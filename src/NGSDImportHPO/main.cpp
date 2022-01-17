@@ -218,8 +218,6 @@ public:
 			this->exactSources = exactSources;
 		}
 
-
-
 		bool operator==(const AnnotatedItem& other)
 		{
 			return this->item == other.item;
@@ -251,8 +249,9 @@ public:
 					if ((int) present_item.evi < (int) evidence)
 					{
 						present_item.evi = evidence;
+						present_item.exactSources.combine(exactSource);
 					}
-					present_item.exactSources.combine(exactSource);
+
 				}
 				else
 				{
@@ -320,8 +319,13 @@ public:
 
 	void parseHpoPhen(QHash<QByteArray, int> id2ngsd, QHash<int, AnnotatedList>& term2diseases)
 	{
-		int lineCount = 0;
 		if (getInfile("hpophen") == "") return;
+
+		int lineCount = 0;
+		int added = 0;
+
+		QTextStream out(stdout);
+		out << "Starting analysis of hpophen file\n";
 
 		// parse phenotype.hpoa file for evidence information
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("hpophen"));
@@ -345,7 +349,10 @@ public:
 
 			if (term_id == -1)
 			{
-				//if (getFlag("debug")) out << "Term not found in id2ngsd: " << term << endl;
+				if (getFlag("debug"))
+				{
+					out << "Term not found in id2ngsd: " << term << "\n";
+				}
 				continue;
 			}
 			else
@@ -353,8 +360,14 @@ public:
 				ExactSources e_src = ExactSources();
 				e_src.term2disease = QString("hpoPhen line ") + QString::number(lineCount);
 				term2diseases[term_id].add(disease, "HPO", evidence,  PhenotypeEvidence::translateHpoEvidence(evidence), e_src);
+				added += 1;
+				if (getFlag("debug"))
+				{
+					out << "Added term2disease relation:\t" << term << "-" << disease << ":\t" << evidence << "\t fin_evi:\t" << PhenotypeEvidence::evidenceToString(PhenotypeEvidence::translateHpoEvidence(evidence)) << "\n";
+				}
 			}
 		}
+		out << "Added " << added << " term-disease relations.\n";
 		fp->close();
 	}
 
