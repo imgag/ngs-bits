@@ -29,7 +29,7 @@ public:
 		addInfile("tumor_bam", "Input tumor BAM/CRAM file for sample similarity.", true, true);
 		addInfileList("related_bams", "BAM files of related cfDNA samples to compute sample similarity.", true, true);
 		addInfile("error_rates", "Input TSV containing umiVar error rates.", true, true);
-		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg19");
+		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg38");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addString("ref_cram", "Reference genome for CRAM support (mandatory if CRAM is used). If set, it is used for tumor and normal file.", true);
 
