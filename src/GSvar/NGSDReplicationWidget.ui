@@ -63,6 +63,16 @@
       <property name="spacing">
        <number>3</number>
       </property>
+      <item row="7" column="0">
+       <widget class="QCheckBox" name="variant_data">
+        <property name="text">
+         <string>replicate variant data but not report configuration</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
       <item row="8" column="0">
        <widget class="QCheckBox" name="report_configuration">
         <property name="text">
@@ -73,10 +83,10 @@
         </property>
        </widget>
       </item>
-      <item row="7" column="0">
-       <widget class="QCheckBox" name="variant_data">
+      <item row="10" column="0">
+       <widget class="QCheckBox" name="post_checks">
         <property name="text">
-         <string>replicate variant data but not report configuration</string>
+         <string>perform post-replication checks</string>
         </property>
         <property name="checked">
          <bool>false</bool>
@@ -103,17 +113,14 @@
         </property>
        </widget>
       </item>
-      <item row="10" column="0">
-       <widget class="QCheckBox" name="post_checks">
-        <property name="text">
-         <string>perform post-replication checks</string>
-        </property>
-        <property name="checked">
-         <bool>false</bool>
+      <item row="11" column="0">
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
         </property>
        </widget>
       </item>
-      <item row="9" column="0">
+      <item row="12" column="0">
        <widget class="QCheckBox" name="post_production">
         <property name="text">
          <string>replicate data post-production (usable after production start of HG38 database)</string>

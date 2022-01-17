@@ -286,7 +286,24 @@ void MainWindow::on_actionDebug_triggered()
 		QTime timer;
 		timer.start();
 
-		on_actionReplicateNGSD_triggered();
+		//Delete genome samples that have small variants report config, but no variants imported (caused by error in NGSDReplicationWidget)
+		/*
+		NGSD db;
+		QList<int> ps_ids_with_small_variant_rc = db.getValuesInt("SELECT DISTINCT rc.processed_sample_id FROM report_configuration rc, report_configuration_variant rcv WHERE rc.id=rcv.report_configuration_id");
+		qDebug() << ps_ids_with_small_variant_rc.count();
+		QSet<int> ps_ids_with_variants_imported = db.getValuesInt("SELECT DISTINCT(processed_sample_id) FROM `detected_variant`").toSet();
+		qDebug() << ps_ids_with_variants_imported.count();
+		foreach(int ps_id, ps_ids_with_small_variant_rc)
+		{
+			if (!ps_ids_with_variants_imported.contains(ps_id))
+			{
+				QString ps_id_str = QString::number(ps_id);
+				QString rc_id = db.getValue("SELECT id FROM report_configuration WHERE processed_sample_id=:0",false, ps_id_str).toString();
+				//qDebug() << ps_id_str << db.processedSampleName(ps_id_str) << rc_id;
+				db.getQuery().exec("DELETE FROM `report_configuration_variant` WHERE `report_configuration_id`='"+rc_id+"'");
+			}
+		}
+		*/
 
 		//Check HPO terms in NGSD
 		/*
@@ -5080,16 +5097,19 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	menu.addSeparator();
 
 
-	//Google
+	//Google and Google Scholar
 	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/Google.png"), "Google");
+	QMenu* sub_menu2 = menu.addMenu(QIcon("://Icons/GoogleScholar.png"), "Google Scholar");
 	foreach(const VariantTranscript& trans, transcripts)
 	{
 		QAction* action = sub_menu->addAction(trans.gene + " " + trans.idWithoutVersion() + " " + trans.hgvs_c + " " + trans.hgvs_p);
+		QAction* action2 = sub_menu2->addAction(trans.gene + " " + trans.idWithoutVersion() + " " + trans.hgvs_c + " " + trans.hgvs_p);
 		if (preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion()))
 		{
 			QFont font = action->font();
 			font.setBold(true);
 			action->setFont(font);
+			action2->setFont(font);
 		}
 	}
 
@@ -5314,7 +5334,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 			}
 		}
 	}
-	else if (parent_menu && parent_menu->title()=="Google")
+	else if (parent_menu && (parent_menu->title()=="Google" || parent_menu->title()=="Google Scholar"))
 	{
 		QByteArray query;
 		QByteArrayList parts = text.split(' ');
@@ -5333,7 +5353,8 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		}
 		query += ")";
 
-		QDesktopServices::openUrl(QUrl("https://www.google.com/search?q=" + query.replace("+", "%2B").replace(' ', '+')));
+		QString base_url = parent_menu->title()=="Google" ? "https://www.google.com/search?q=" : "https://scholar.google.de/scholar?q=";
+		QDesktopServices::openUrl(QUrl(base_url + query.replace("+", "%2B").replace(' ', '+')));
 	}
 	else if (action==a_varsome)
 	{
