@@ -5,7 +5,40 @@
 #include <QSharedPointer>
 #include <QFile>
 
-class GenomicAlignment
+struct AlignmentLine
+{
+	int size;
+	int ref_dt;
+	int q_dt;
+
+	AlignmentLine():
+	  size(-1)
+	, ref_dt(-1)
+	, q_dt(-1)
+	{
+	}
+
+	AlignmentLine(int size, int ref_dt, int q_dt):
+		size(size)
+	  , ref_dt(ref_dt)
+	  , q_dt(q_dt)
+	{
+	}
+};
+
+struct GenomePosition
+{
+	QByteArray chr;
+	int pos;
+
+	GenomePosition(QByteArray chr, int pos):
+		chr(chr)
+	  , pos(pos)
+	{
+	}
+};
+
+struct GenomicAlignment
 {
 	double score;
 
@@ -23,7 +56,6 @@ class GenomicAlignment
 
 	QList<AlignmentLine> alignment;
 
-public:
 	GenomicAlignment(double score, QByteArray ref_chr, int ref_start, int ref_end, bool ref_on_plus, QByteArray q_chr, int q_start, int q_end, bool q_on_plus, int id):
 		score(score)
 	  , ref_chr(ref_chr)
@@ -43,11 +75,6 @@ public:
 		alignment.append(line);
 	}
 
-	void setLifted(GenomicRegion lifted)
-	{
-		this->lifted = lifted;
-	}
-
 	bool contains(const QByteArray& chr, int pos)
 	{
 		if (chr != ref_chr) return false;
@@ -58,29 +85,12 @@ public:
 
 	GenomePosition getLiftedPosition(const QByteArray& chr, int pos)
 	{
-		// return the correctly lifted position
+		//TODO return the correctly lifted position
+		return GenomePosition(chr, pos);
 	}
 };
 
-struct AlignmentLine
-{
-	int size;
-	int ref_dt;
-	int q_dt;
 
-	AlignmentLine(int size, int ref_dt, int q_dt):
-		size(size)
-	  , ref_dt(ref_dt)
-	  , q_dt(q_dt)
-	{
-	}
-};
-
-struct GenomePosition
-{
-	QByteArray chr;
-	int pos;
-};
 
 class CPPNGSSHARED_EXPORT ChainFileReader
 {
@@ -91,7 +101,7 @@ public:
 	void load(QString filepath);
 
 private:
-	GenomicAlignment parseChainLine(QList<QByteArray> line_parts);
+	GenomicAlignment parseChainLine(QList<QByteArray> parts, QHash<QByteArray, int>& ref_chrom_sizes, QHash<QByteArray, int>& q_chrom_sizes);
 
 	QString filepath_;
 	QSharedPointer<QFile> fp_;

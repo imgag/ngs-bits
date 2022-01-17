@@ -17,16 +17,15 @@ void ChainFileReader::load(QString filepath)
 	filepath_ = filepath;
 	fp_ = Helper::openFileForReading(filepath, false);
 
-	QHash<QByteArray, QList<GenomicAlignment&>> chromosomes;
+	QHash<QByteArray, QList<GenomicAlignment>> chromosomes;
 	QHash<QByteArray, int> ref_chrom_sizes;
 	QHash<QByteArray, int> q_chrom_sizes;
-	GenomicAlignment currentAlignment;
 
 	// read first alignment line:
 	QByteArray line = fp_->readLine();
 	line = line.trimmed();
 
-	currentAlignment = parseChainLine(line.split('\t'));
+	GenomicAlignment currentAlignment = parseChainLine(line.split('\t'), ref_chrom_sizes, q_chrom_sizes);
 
 	while(! fp_->atEnd())
 	{
@@ -46,7 +45,7 @@ void ChainFileReader::load(QString filepath)
 			chromosomes[currentAlignment.ref_chr].append(currentAlignment);
 
 			// parse the new Alignment
-			currentAlignment = parseChainLine(parts);
+			currentAlignment = parseChainLine(parts, ref_chrom_sizes, q_chrom_sizes);
 
 		}
 		else
@@ -70,7 +69,7 @@ void ChainFileReader::load(QString filepath)
 	}
 }
 
-GenomicAlignment ChainFileReader::parseChainLine(QList<QByteArray> parts)
+GenomicAlignment ChainFileReader::parseChainLine(QList<QByteArray> parts, QHash<QByteArray, int>& ref_chrom_sizes, QHash<QByteArray, int>& q_chrom_sizes)
 {
 	double score = parts[1].toDouble();
 	QByteArray ref_chr = parts[2];
