@@ -99,7 +99,6 @@ SOURCES += main.cpp\
     NGSDReplicationWidget.cpp \
     CohortAnalysisWidget.cpp \
     cfDNARemovedRegions.cpp \
-    CfdnaAnalysisDialog.cpp \
     ClinvarUploadDialog.cpp \
     LiftOverWidget.cpp \
     CacheInitWorker.cpp \
@@ -201,7 +200,6 @@ HEADERS += MainWindow.h \
     NGSDReplicationWidget.h \
     CohortAnalysisWidget.h \
     cfDNARemovedRegions.h \
-    CfdnaAnalysisDialog.h \
     ClinvarUploadDialog.h \
     LiftOverWidget.h \
     BlatWidget.h \
@@ -291,7 +289,6 @@ FORMS    += MainWindow.ui \
     NGSDReplicationWidget.ui \
     CohortAnalysisWidget.ui \
     cfDNARemovedRegions.ui \
-    CfdnaAnalysisDialog.ui \
     ClinvarUploadDialog.ui \
     BlatWidget.ui \
     AnalysisInformationWidget.ui \
