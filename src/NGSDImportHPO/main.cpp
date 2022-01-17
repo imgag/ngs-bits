@@ -606,7 +606,7 @@ public:
 				{
 					if (gene_db_id!=-1)
 					{
-						if (debug) out << "HPO-GENE: " << term_accession << " - " << gene << endl;
+						if (debug) out << "HPO-GENE: " << term_accession << " - " << gene << "\n";
 
 						ExactSources e_src = ExactSources();
 						e_src.term2gene = exactSource;
@@ -615,7 +615,7 @@ public:
 				}
 				else
 				{
-					if (debug) out << "HPO-DISEASE: " << term_accession << " - " << disease << endl;
+					if (debug) out << "HPO-DISEASE: " << term_accession << " - " << disease << "\n";
 
 					ExactSources e_src = ExactSources();
 					e_src.term2disease = exactSource;
@@ -625,7 +625,7 @@ public:
 
 			if (gene_db_id!=-1)
 			{
-				if (debug) out << "DISEASE-GENE (HPO): " << disease << " - " << db.geneSymbol(gene_db_id) << endl;
+				if (debug) out << "DISEASE-GENE (HPO): " << disease << " - " << db.geneSymbol(gene_db_id) << "\n";
 
 				ExactSources e_src = ExactSources();
 				e_src.disease2gene = exactSource;
