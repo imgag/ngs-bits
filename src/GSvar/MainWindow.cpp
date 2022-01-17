@@ -258,13 +258,13 @@ MainWindow::MainWindow(QWidget *parent)
 	worker->start();
 
 	//init phenotype filter to accept all Values
-	this->last_phenotype_evidences_ = PhenotypeEvidence::allEvidenceValues();
-	this->last_phenotype_sources_ = PhenotypeSource::allSourceValues();
-	this->filter_phenos_ = false;
+	last_phenotype_evidences_ = PhenotypeEvidence::allEvidenceValues();
+	last_phenotype_sources_ = PhenotypeSource::allSourceValues();
+	filter_phenos_ = false;
 	//give the filter widget the current state and update the tooltip:
-	this->ui_.filters->setAllowedPhenotypeEvidences(last_phenotype_evidences_);
-	this->ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
-	this->ui_.filters->phenotypesChanged();
+	ui_.filters->setAllowedPhenotypeEvidences(last_phenotype_evidences_);
+	ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
+	ui_.filters->phenotypesChanged();
 
 }
 
@@ -2315,14 +2315,14 @@ void MainWindow::openPhenotypeOptions()
 	//update
 	if (dlg->exec()==QDialog::Accepted)
 	{
-		this->last_phenotype_evidences_ = selector->selectedEvidences();
-		this->last_phenotype_sources_ = selector->selectedSources();
+		last_phenotype_evidences_ = selector->selectedEvidences();
+		last_phenotype_sources_ = selector->selectedSources();
 
-		this->ui_.filters->setAllowedPhenotypeEvidences(last_phenotype_evidences_);
-		this->ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
-		this->ui_.filters->phenotypesChanged();
+		ui_.filters->setAllowedPhenotypeEvidences(last_phenotype_evidences_);
+		ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
+		ui_.filters->phenotypesChanged();
 
-		if (this->last_phenos_.count() != 0)
+		if (last_phenos_.count() != 0)
 		{
 			filter_phenos_ = true;
 			refreshVariantTable();
@@ -4772,8 +4772,8 @@ void MainWindow::on_actionPhenoToGenes_triggered()
 	try
 	{
 		PhenoToGenesDialog dlg(this);
-		dlg.setAllowedEvidences(this->last_phenotype_evidences_);
-		dlg.setAllowedSources(this->last_phenotype_sources_);
+		dlg.setAllowedEvidences(last_phenotype_evidences_);
+		dlg.setAllowedSources(last_phenotype_sources_);
 		dlg.exec();
 	}
 	catch (DatabaseException& e)

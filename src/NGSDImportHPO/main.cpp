@@ -53,14 +53,14 @@ public:
 
 		SourceDetails()
 		{
-			this->sources = QList<PhenotypeSource::Source>();
+			sources = QList<PhenotypeSource::Source>();
 		}
 
 		SourceDetails(const QByteArray& s, const QByteArray& original_evi, PhenotypeEvidence::Evidence translated_evi=PhenotypeEvidence::Evidence::NA)
 		{
-			this->sources = QList<PhenotypeSource::Source>();
-			this->original_evidence = QStringList();
-			this->translated_evidence = QList<PhenotypeEvidence::Evidence>();
+			sources = QList<PhenotypeSource::Source>();
+			original_evidence = QStringList();
+			translated_evidence = QList<PhenotypeEvidence::Evidence>();
 
 			sources.append(PhenotypeSource::SourceFromString(s));
 			original_evidence.append(QString(original_evi));
@@ -69,54 +69,54 @@ public:
 
 		bool contains(const PhenotypeSource::Source& s)
 		{
-			return this->sources.contains(s);
+			return sources.contains(s);
 		}
 
 		bool contains(const QByteArray& s)
 		{
-			return this->sources.contains(PhenotypeSource::SourceFromString(s));
+			return sources.contains(PhenotypeSource::SourceFromString(s));
 		}
 
 		bool contains(const QString& s)
 		{
-			return this->sources.contains(PhenotypeSource::SourceFromString(s));
+			return sources.contains(PhenotypeSource::SourceFromString(s));
 		}
 
 		int getIndexOfSource(const PhenotypeSource::Source& s)
 		{
-			return this->sources.indexOf(s);
+			return sources.indexOf(s);
 		}
 
 		void append(const PhenotypeSource::Source& s,const QString& original_evi, PhenotypeEvidence::Evidence translated_evi)
 		{
-			this->sources.append(s);
-			this->original_evidence.append(original_evi);
-			this->translated_evidence.append(translated_evi);
+			sources.append(s);
+			original_evidence.append(original_evi);
+			translated_evidence.append(translated_evi);
 		}
 
 		void append(const QByteArray& s, const QString& original_evi, PhenotypeEvidence::Evidence translated_evi)
 		{
-			this->sources.append(PhenotypeSource::SourceFromString(s));
-			this->original_evidence.append(original_evi);
-			this->translated_evidence.append(translated_evi);
+			sources.append(PhenotypeSource::SourceFromString(s));
+			original_evidence.append(original_evi);
+			translated_evidence.append(translated_evi);
 		}
 
 		void unite(const SourceDetails& second)
 		{
 			for (int i=0; i<second.sources.count(); i++)
 			{
-				if (this->contains(second.sources[i]))
+				if (contains(second.sources[i]))
 				{
-					int idx = this->getIndexOfSource(second.sources[i]);
-					if ((int) second.translated_evidence[i] > (int) this->translated_evidence[idx])
+					int idx = getIndexOfSource(second.sources[i]);
+					if ((int) second.translated_evidence[i] > (int) translated_evidence[idx])
 					{
-						this->original_evidence[idx] = second.original_evidence[i];
-						this->translated_evidence[idx] = second.translated_evidence[i];
+						original_evidence[idx] = second.original_evidence[i];
+						translated_evidence[idx] = second.translated_evidence[i];
 					}
 				}
 				else
 				{
-					this->append(second.sources[i], second.original_evidence[i], second.translated_evidence[i]);
+					append(second.sources[i], second.original_evidence[i], second.translated_evidence[i]);
 				}
 			}
 		}
@@ -196,31 +196,31 @@ public:
 		{
 		}
 
-		AnnotatedItem(const QByteArray& item, const QByteArray& src, const QByteArray& original_evi, PhenotypeEvidence::Evidence evi)
+		AnnotatedItem(const QByteArray& item, const QByteArray& s, const QByteArray& original_evi, PhenotypeEvidence::Evidence evi):
+			item(item)
+		  , evi(evi)
 		{
-			this->item = item;
-			this->src = SourceDetails(src, original_evi, evi);
-			this->evi = evi;
+			src = SourceDetails(s, original_evi, evi);
 		}
 
-		AnnotatedItem(const QByteArray& item, SourceDetails src, PhenotypeEvidence::Evidence evi)
+		AnnotatedItem(const QByteArray& item, SourceDetails src, PhenotypeEvidence::Evidence evi):
+			item(item)
+		  , src(src)
+		  , evi(evi)
 		{
-			this->item = item;
-			this->src = src;
-			this->evi = evi;;
 		}
 
-		AnnotatedItem(const QByteArray& item, SourceDetails src, PhenotypeEvidence::Evidence evi, ExactSources exactSources)
+		AnnotatedItem(const QByteArray& item, SourceDetails src, PhenotypeEvidence::Evidence evi, ExactSources exactSources):
+			item(item)
+		  , src(src)
+		  , evi(evi)
+		  , exactSources(exactSources)
 		{
-			this->item = item;
-			this->src = src;
-			this->evi = evi;
-			this->exactSources = exactSources;
 		}
 
 		bool operator==(const AnnotatedItem& other)
 		{
-			return this->item == other.item;
+			return item == other.item;
 		}
 	};
 

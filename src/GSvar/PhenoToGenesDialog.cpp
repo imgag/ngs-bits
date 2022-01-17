@@ -20,12 +20,12 @@ PhenoToGenesDialog::PhenoToGenesDialog(QWidget *parent)
 
 void PhenoToGenesDialog::setAllowedEvidences(QList<PhenotypeEvidence::Evidence> allowedEvidences)
 {
-	this->ui.options_selector->setEvidences(allowedEvidences);
+	ui.options_selector->setEvidences(allowedEvidences);
 }
 
 void PhenoToGenesDialog::setAllowedSources(QList<PhenotypeSource::Source> allowedSources)
 {
-	this->ui.options_selector->setSources(allowedSources);
+	ui.options_selector->setSources(allowedSources);
 }
 
 
