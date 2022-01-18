@@ -327,8 +327,6 @@ public slots:
 	void importPhenotypesFromNGSD();
 	///Create sub-panel from phenotype
 	void createSubPanelFromPhenotypeFilter();
-	/// Open phenotype Options menu
-	void openPhenotypeOptions();
 
 	///Opens a sample based on the processed sample name
 	void openProcessedSampleFromNGSD(QString processed_sample_name, bool search_multi=true);

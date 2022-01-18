@@ -210,7 +210,6 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.actionDesignSubpanel, SIGNAL(triggered()), this, SLOT(openSubpanelDesignDialog()));
 	connect(ui_.filters, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 	connect(ui_.filters, SIGNAL(phenotypeSubPanelRequested()), this, SLOT(createSubPanelFromPhenotypeFilter()));
-	connect(ui_.filters, SIGNAL(phenotypeOptionsRequested()), this, SLOT(openPhenotypeOptions()));
 
 	//variants tool bar
 	connect(ui_.vars_copy_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(copyToClipboard()));
@@ -2301,33 +2300,6 @@ void MainWindow::createSubPanelFromPhenotypeFilter()
 
 	//open dialog
 	openSubpanelDesignDialog(genes);
-}
-
-void MainWindow::openPhenotypeOptions()
-{
-	//edit TODO
-	PhenotypeSourceEvidenceSelector* selector = new PhenotypeSourceEvidenceSelector(this);
-	selector->setEvidences(last_phenotype_evidences_);
-	selector->setSources(last_phenotype_sources_);
-
-	auto dlg = GUIHelper::createDialog(selector, "Phenotype Filter Options", "", true);
-
-	//update
-	if (dlg->exec()==QDialog::Accepted)
-	{
-		last_phenotype_evidences_ = selector->selectedEvidences();
-		last_phenotype_sources_ = selector->selectedSources();
-
-		ui_.filters->setAllowedPhenotypeEvidences(last_phenotype_evidences_);
-		ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
-		ui_.filters->phenotypesChanged();
-
-		if (last_phenos_.count() != 0)
-		{
-			filter_phenos_ = true;
-			refreshVariantTable();
-		}
-	}
 }
 
 void MainWindow::on_actionOpen_triggered()

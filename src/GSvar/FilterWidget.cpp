@@ -655,7 +655,21 @@ void FilterWidget::showPhenotypeContextMenu(QPoint pos)
 	}
 	else if (action->text()=="options")
 	{
-		emit phenotypeOptionsRequested();
+		PhenotypeSourceEvidenceSelector* selector = new PhenotypeSourceEvidenceSelector(this);
+		selector->setEvidences(allowedPhenotypeEvidences());
+		selector->setSources(allowedPhenotypeSources());
+
+		auto dlg = GUIHelper::createDialog(selector, "Phenotype Filter Options", "", true);
+
+		//update
+		if (dlg->exec()==QDialog::Accepted)
+		{
+			allowedPhenotypeEvidences_ = selector->selectedEvidences();
+			allowedPhenotypeSources_ = selector->selectedSources();
+			ui_.filters->phenotypesChanged();
+
+			emit filtersChanged();
+		}
 	}
 }
 
