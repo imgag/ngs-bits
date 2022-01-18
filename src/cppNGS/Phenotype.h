@@ -148,11 +148,11 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 		{
 			return PhenotypeEvidence::LOW;
 		}
-		else if (gencc_evi == "Refuted")
+		else if (gencc_evi == "Refuted" || gencc_evi == "Refuted Evidence")
 		{
 			return PhenotypeEvidence::AGAINST;
 		}
-		else if (gencc_evi == "Disputed")
+		else if (gencc_evi == "Disputed" || gencc_evi == "Disputed Evidence")
 		{
 			return PhenotypeEvidence::AGAINST;
 		}

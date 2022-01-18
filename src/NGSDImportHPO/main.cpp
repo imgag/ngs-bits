@@ -398,32 +398,30 @@ public:
 
 			// merge parts of strings that contained commas:
 
-			if (parts.length() > 16) // some strings contain commas
+			QByteArrayList cleaned_parts = QByteArrayList();
+
+			for (int i=0; i<parts.length(); i++)
 			{
-				QByteArrayList cleaned_parts = QByteArrayList();
-
-				for (int i=0; i<parts.length(); i++)
+				if (parts[i].startsWith('"') && ( ! parts[i].endsWith('"'))) // starts with " but doesn't end with "
 				{
-					if (parts[i].startsWith('"') && ( ! parts[i].endsWith('"'))) // starts with " but doesn't end with "
+					QByteArray combined_part = parts[i];
+					do
 					{
-						QByteArray combined_part = parts[i];
-						do
-						{
-							i++;
-							combined_part.append(parts[i]);
+						i++;
+						combined_part.append(parts[i]);
 
-						} while (! parts[i].endsWith('"'));
+					} while (! parts[i].endsWith('"'));
 
-						cleaned_parts.append(combined_part);
-					}
-					else
-					{
-						cleaned_parts.append(parts[i]);
-					}
-
+					cleaned_parts.append(combined_part);
 				}
-				parts = cleaned_parts;
+				else
+				{
+					cleaned_parts.append(parts[i]);
+				}
+
 			}
+			parts = cleaned_parts;
+
 
 			QByteArray gene = parts[0].trimmed();
 			QByteArray disease = "OMIM:" + parts[3].trimmed();
@@ -727,6 +725,8 @@ public:
 			int c_skipped_invalid_gene = 0;
 			fp = Helper::openFileForReading(omim_file);
 			QRegExp mim_exp("([0-9]{6})");
+			QRegExp evi_exp("(\\([1-4]{1}\\))");
+
 			while(!fp->atEnd())
 			{
 				lineCount++;
@@ -738,9 +738,15 @@ public:
 				QByteArray mim_number = parts[2].trimmed(); // mim number for gene
 				QByteArray omim_evi = "";
 
+				out << QString(parts.join()) << "\n";
 				if (mim_exp.indexIn(pheno)!=-1)
 				{
 					mim_number = mim_exp.cap().toLatin1(); // mim number for phenotype
+				}
+
+				if (evi_exp.indexIn(pheno) != -1)
+				{
+					omim_evi = evi_exp.cap().toLatin1(); // evidence for relation
 				}
 
 				foreach(QByteArray gene, genes)
