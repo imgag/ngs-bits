@@ -360,14 +360,14 @@ public:
 				ExactSources e_src = ExactSources();
 				e_src.term2disease = QString("hpoPhen line ") + QString::number(lineCount);
 				term2diseases[term_id].add(disease, "HPO", evidence,  PhenotypeEvidence::translateHpoEvidence(evidence), e_src);
-				added += 1;
+				added++;
 				if (getFlag("debug"))
 				{
-					out << "Added term2disease relation:\t" << term << "-" << disease << ":\t" << evidence << "\t fin_evi:\t" << PhenotypeEvidence::evidenceToString(PhenotypeEvidence::translateHpoEvidence(evidence)) << "\n";
+					out << "Imported term2disease relation:\t" << term << "-" << disease << ":\t" << evidence << "\t fin_evi:\t" << PhenotypeEvidence::evidenceToString(PhenotypeEvidence::translateHpoEvidence(evidence)) << "\n";
 				}
 			}
 		}
-		out << "Added " << added << " term-disease relations.\n";
+		out << "Imported " << added << " term-disease relations.\n";
 		fp->close();
 	}
 
@@ -384,7 +384,7 @@ public:
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("decipher"));
 
 		QByteArray line = fp->readLine();
-		//"gene symbol","gene mim","disease name","disease mim","DDD category","allelic requirement","mutation consequence",phenotypes,"organ specificity list",pmids,panel,"prev symbols","hgnc id","gene disease pair entry date"
+		//"gene symbol","gene mim","disease name","disease mim","confidence category","allelic requirement","mutation consequence",phenotypes,"organ specificity list",pmids,panel,"prev symbols","hgnc id","gene disease pair entry date","cross cutting modifier","mutation consequence flag"
 
 		QList<QByteArray> non_hgc_genes;
 		QSet<QByteArray> bad_hpo_terms;
@@ -395,12 +395,41 @@ public:
 			lineCount++;
 			line = fp->readLine().trimmed();
 			QByteArrayList parts = line.split(',');
+
+			// merge parts of strings that contained commas:
+
+			if (parts.length() > 16) // some strings contain commas
+			{
+				QByteArrayList cleaned_parts = QByteArrayList();
+
+				for (int i=0; i<parts.length(); i++)
+				{
+					if (parts[i].startsWith('"') && ( ! parts[i].endsWith('"'))) // starts with " but doesn't end with "
+					{
+						QByteArray combined_part = parts[i];
+						do
+						{
+							i++;
+							combined_part.append(parts[i]);
+
+						} while (! parts[i].endsWith('"'));
+
+						cleaned_parts.append(combined_part);
+					}
+					else
+					{
+						cleaned_parts.append(parts[i]);
+					}
+
+				}
+				parts = cleaned_parts;
+			}
+
 			QByteArray gene = parts[0].trimmed();
 			QByteArray disease = "OMIM:" + parts[3].trimmed();
 			QByteArray decipher_evi = parts[4].trimmed();
 			PhenotypeEvidence::Evidence evidence = PhenotypeEvidence::translateDecipherEvidence(decipher_evi);
 			QByteArrayList hpo_terms = parts[7].trimmed().split(';');
-
 			//verify information
 			int gene_db_id = db.geneToApprovedID(gene);
 
@@ -535,6 +564,40 @@ public:
 		out << "Imported " << count << " disease gene relations from GenCC" << endl;
 	}
 
+	// TODO use in decipher, genCC. Test again!
+	QByteArrayList reconstructStrings(const QByteArrayList& parts, int expected_size=-1)
+	{
+		// if parts size bigger than expected, try to reconstruct strings that were split:
+		if (parts.length() > expected_size)
+		{
+			QByteArrayList cleaned_parts = QByteArrayList();
+
+			for (int i=0; i<parts.length(); i++)
+			{
+				if (parts[i].startsWith('"') && ( ! parts[i].endsWith('"'))) // starts with " but doesn't end with "
+				{
+					QByteArray combined_part = parts[i];
+					do
+					{
+						i++;
+						combined_part.append(parts[i]);
+
+					} while (! parts[i].endsWith('"'));
+
+					cleaned_parts.append(combined_part);
+				}
+				else
+				{
+					cleaned_parts.append(parts[i]);
+				}
+
+			}
+			return cleaned_parts;;
+		}
+
+		return parts;
+	}
+
 	virtual void main()
 	{
 		//init
@@ -618,7 +681,7 @@ public:
 				{
 					if (gene_db_id!=-1)
 					{
-						if (debug) out << "HPO-GENE: " << term_accession << " - " << gene << "\n";
+						//if (debug) out << "HPO-GENE: " << term_accession << " - " << gene << "\n";
 
 						ExactSources e_src = ExactSources();
 						e_src.term2gene = exactSource;
@@ -627,7 +690,7 @@ public:
 				}
 				else
 				{
-					if (debug) out << "HPO-DISEASE: " << term_accession << " - " << disease << "\n";
+					//if (debug) out << "HPO-DISEASE: " << term_accession << " - " << disease << "\n";
 
 					ExactSources e_src = ExactSources();
 					e_src.term2disease = exactSource;
@@ -637,7 +700,7 @@ public:
 
 			if (gene_db_id!=-1)
 			{
-				if (debug) out << "DISEASE-GENE (HPO): " << disease << " - " << db.geneSymbol(gene_db_id) << "\n";
+				//if (debug) out << "DISEASE-GENE (HPO): " << disease << " - " << db.geneSymbol(gene_db_id) << "\n";
 
 				ExactSources e_src = ExactSources();
 				e_src.disease2gene = exactSource;
@@ -687,12 +750,12 @@ public:
 					int approved_id = db.geneToApprovedID(gene);
 					if (approved_id==-1)
 					{
-						if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << endl;
+						//if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!\n";
 						++c_skipped_invalid_gene;
 						continue;
 					}
 
-					if (debug) out << "DISEASE-GENE (OMIM): OMIM:" << mim_number << " - " << db.geneSymbol(approved_id) << endl;
+					//if (debug) out << "DISEASE-GENE (OMIM): OMIM:" << mim_number << " - " << db.geneSymbol(approved_id) << "\n";
 
 					ExactSources e_src = ExactSources();
 					e_src.disease2gene = QString("OMIM line ") + QString::number(lineCount);
@@ -772,7 +835,7 @@ public:
 
 					foreach(const QByteArray& disease, diseases)
 					{
-						if (debug) out << "DISEASE-GENE (ClinVar): " << disease << " - " << gene_approved << endl;
+						if (debug) out << "DISEASE-GENE (ClinVar): " << disease << " - " << gene_approved << "\n";
 
 						ExactSources e_src = ExactSources();
 						e_src.disease2gene = QString("ClinVar line ") + QString::number(lineCount);
@@ -780,7 +843,7 @@ public:
 					}
 					foreach(const QByteArray& hpo, hpos)
 					{
-						if (debug) out << "HPO-GENE (ClinVar): " << hpo << " - " << gene_approved << endl;
+						if (debug) out << "HPO-GENE (ClinVar): " << hpo << " - " << gene_approved << "\n";
 						int term_db_id = id2ngsd.value(hpo, -1);
 						if (term_db_id != -1)
 						{

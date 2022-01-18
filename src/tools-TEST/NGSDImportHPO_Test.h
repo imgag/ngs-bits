@@ -322,15 +322,15 @@ private slots:
 //		EXECUTE("NGSDImportHGNC", "-in W:/share/data/dbs/HGNC/hgnc_complete_set.tsv -test");
 //		EXECUTE("NGSDImportHPO", "-obo W:/GRCh38/share/data/dbs/HPO/hp.obo -anno W:/GRCh38/share/data/dbs/HPO/phenotype_to_genes.txt -omim W:/GRCh38/share/data/dbs/OMIM/morbidmap.txt -clinvar W:/GRCh38/share/data/dbs/ClinVar/clinvar_20210424.vcf -hgmd W:/GRCh38/share/data/dbs/HGMD/hgmd_phenbase-2021.3.dump -decipher W:/GRCh38/share/data/dbs/DECIPHER/DDG2P_22_12_2021.csv -gencc W:/GRCh38/share/data/dbs/GenCC/gencc-submissions.csv -hpophen W:/GRCh38/share/data/dbs/HPO/phenotype.hpoa -test -force -debug");
 
-		//min files + decipher
-		db.init();
-		EXECUTE("NGSDImportHGNC", "-in W:/share/data/dbs/HGNC/hgnc_complete_set.tsv -test");
-		EXECUTE("NGSDImportHPO", "-obo W:/GRCh38/share/data/dbs/HPO/hp.obo -anno W:/GRCh38/share/data/dbs/HPO/phenotype_to_genes.txt -decipher W:/GRCh38/share/data/dbs/DECIPHER/DDG2P_22_12_2021.csv -test -force -debug");
-
-//		//min files + genCC
+//		//min files + decipher
 //		db.init();
 //		EXECUTE("NGSDImportHGNC", "-in W:/share/data/dbs/HGNC/hgnc_complete_set.tsv -test");
-//		EXECUTE("NGSDImportHPO", "-obo W:/GRCh38/share/data/dbs/HPO/hp.obo -anno W:/GRCh38/share/data/dbs/HPO/phenotype_to_genes.txt -gencc W:/GRCh38/share/data/dbs/GenCC/gencc-submissions.csv -test -force -debug");
+//		EXECUTE("NGSDImportHPO", "-obo W:/GRCh38/share/data/dbs/HPO/hp.obo -anno W:/GRCh38/share/data/dbs/HPO/phenotype_to_genes.txt -decipher W:/GRCh38/share/data/dbs/DECIPHER/DDG2P_22_12_2021.csv -test -force -debug");
+
+		//min files + genCC
+		db.init();
+		EXECUTE("NGSDImportHGNC", "-in W:/share/data/dbs/HGNC/hgnc_complete_set.tsv -test");
+		EXECUTE("NGSDImportHPO", "-obo W:/GRCh38/share/data/dbs/HPO/hp.obo -anno W:/GRCh38/share/data/dbs/HPO/phenotype_to_genes.txt -gencc W:/GRCh38/share/data/dbs/GenCC/gencc-submissions.csv -test -force -debug");
 
 //		//min files + hpophen
 //		db.init();
