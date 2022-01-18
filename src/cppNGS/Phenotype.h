@@ -55,7 +55,7 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 		}
 		else
 		{
-			return PhenotypeEvidence::NA;
+			THROW(ArgumentException, "Given Evidence is not a HPO evidence value: " + QString(hpo_evi));
 		}
 	}
 	/// turns a given OMIM Evidence value into one from the Evidences enum
@@ -92,7 +92,7 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 		}
 		else
 		{
-			return PhenotypeEvidence::NA;
+			THROW(ArgumentException, "Given Evidence is not a Omim evidence value: " + QString(omim_evi));
 		}
 	}
 	/// turns a given Decipher Evidence value into one from the Evidences enum
@@ -115,7 +115,7 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 		{ // meaning?
 			return PhenotypeEvidence::LOW;
 		}
-		else if (decipher_evi == "possible")
+		else if (decipher_evi == "possible" || decipher_evi == "limited")
 		{
 			return PhenotypeEvidence::LOW;
 		}
@@ -123,13 +123,13 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 		{
 			return PhenotypeEvidence::MED;
 		}
-		else if (decipher_evi == "confirmed")
+		else if (decipher_evi == "confirmed" || decipher_evi == "definitive" || decipher_evi == "strong")
 		{
 			return PhenotypeEvidence::HIGH;
 		}
 		else
 		{
-			return PhenotypeEvidence::NA;
+			THROW(ArgumentException, "Given Evidence is not a Decipher evidence value.: " + QString(decipher_evi));
 		}
 	}
 	/// turns a given GenCC Evidence value into one from the Evidences enum
@@ -178,7 +178,7 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 		}
 		else
 		{
-			return PhenotypeEvidence::NA;
+			THROW(ArgumentException, "Given Evidence is not a GenCC evidence value: " + QString(gencc_evi));
 		}
 	}
 	/// returns the appropriate evidence value for a given string
