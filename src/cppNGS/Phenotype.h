@@ -12,7 +12,14 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 {
 	PhenotypeEvidence() = delete;
 	/// Strength of the evidence for a given relation
+	/// If the evidence values are changed remember to adjust allEvidenceValues and the other functions below if needed.
 	enum Evidence {NA=0, AGAINST=1, LOW=2, MED=3, HIGH=4};
+
+	/// returns all possible values for the evidence enum
+	static QList<Evidence> allEvidenceValues()
+	{
+		return QList<Evidence>{Evidence::NA, Evidence::AGAINST, Evidence::LOW, Evidence::MED, Evidence::HIGH};
+	}
 
 	/// returns a QString representation für the given evidence
 	static QString evidenceToString(const Evidence& e)
@@ -207,12 +214,6 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 
 		THROW(TypeConversionException, "Cannot convert String: '" + e + "' to Phenotype Evidence.")
 	}
-
-	/// returns all possible values for the evidence enum
-	static QList<Evidence> allEvidenceValues()
-	{
-		return QList<Evidence>{Evidence::NA, Evidence::AGAINST, Evidence::LOW, Evidence::MED, Evidence::HIGH};
-	}
 };
 
 ///PhenotypeSource a 'static class' to contain an enum and helperfunctions to represent possible source databases for phenotype-gene relations
@@ -220,7 +221,15 @@ struct CPPNGSSHARED_EXPORT PhenotypeSource
 {
 	PhenotypeSource() = delete;
 	/// Source for a given relation
+	/// when changing the source enum the functions below have to be adjusted!
 	enum Source {HPO, OMIM, CLINVAR, DECIPHER, HGMD, GENCC };
+
+	///returns a list of all source enum values
+	static QList<Source> allSourceValues()
+	{
+		return QList<Source>{Source::HPO, Source::OMIM, Source::CLINVAR, Source::DECIPHER, Source::HGMD, Source::GENCC};
+	}
+
 	/// returns a QString representation für the given phenotype source
 	static QString sourceToString(Source src)
 	{
@@ -283,11 +292,6 @@ struct CPPNGSSHARED_EXPORT PhenotypeSource
 	static Source SourceFromString(const QByteArray& s)
 	{
 		return SourceFromString(QString(s));
-	}
-	///returns a list of all source enum values
-	static QList<Source> allSourceValues()
-	{
-		return QList<Source>{Source::HPO, Source::OMIM, Source::CLINVAR, Source::DECIPHER, Source::HGMD, Source::GENCC};
 	}
 };
 

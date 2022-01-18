@@ -57,9 +57,37 @@ private slots:
 		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
 		I_EQUAL(count, 149)
-		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Breast carcinoma"), false, false).contains("BRCA1"))
-		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Breast carcinoma"), false, false).contains("BRCA2"))
-		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Autosomal dominant inheritance"), false, false).contains("PTEN"))
+		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Breast carcinoma"), false, false).contains("BRCA1"));
+		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Breast carcinoma"), false, false).contains("BRCA2"));
+		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Autosomal dominant inheritance"), false, false).contains("PTEN"));
+
+		QStringList results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%(1)%'");
+		I_EQUAL(results.length(), 4);
+		foreach (const QString res, results)
+		{
+			S_EQUAL(res, "low")
+		}
+
+		results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%(2)%'");
+		I_EQUAL(results.length(), 4);
+		foreach (const QString res, results)
+		{
+			S_EQUAL(res, "low")
+		}
+
+		results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%(3)%'");
+		I_EQUAL(results.length(), 61);
+		foreach (const QString res, results)
+		{
+			S_EQUAL(res, "high")
+		}
+
+		results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%(4)%'");
+		I_EQUAL(results.length(), 4);
+		foreach (const QString res, results)
+		{
+			S_EQUAL(res, "high")
+		}
 	}
 
 	void with_clinvar()

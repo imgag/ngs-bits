@@ -28,7 +28,6 @@ public:
 		addInfile("hgmd", "HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2021.3.dump').", true);
 
 		// optional (for evidence information):
-		//TODO test if this improves the results compated to using only 'anno'
 		addInfile("hpophen", "HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information. Download from https://hpo.jax.org/app/download/annotation", true);
 		addInfile("gencc", "gencc 'gencc-submissions.csv' file for additional disease-gene evidence information. Download from https://search.thegencc.org/download", true);
 		addInfile("decipher", "G2P 'DDG2P.csv' file for additional gene-disease-phenotype evidence information. Download from https://www.deciphergenomics.org/about/downloads/data", true);
@@ -398,30 +397,7 @@ public:
 
 			// merge parts of strings that contained commas:
 
-			QByteArrayList cleaned_parts = QByteArrayList();
-
-			for (int i=0; i<parts.length(); i++)
-			{
-				if (parts[i].startsWith('"') && ( ! parts[i].endsWith('"'))) // starts with " but doesn't end with "
-				{
-					QByteArray combined_part = parts[i];
-					do
-					{
-						i++;
-						combined_part.append(parts[i]);
-
-					} while (! parts[i].endsWith('"'));
-
-					cleaned_parts.append(combined_part);
-				}
-				else
-				{
-					cleaned_parts.append(parts[i]);
-				}
-
-			}
-			parts = cleaned_parts;
-
+			parts = reconstructStrings(parts);
 
 			QByteArray gene = parts[0].trimmed();
 			QByteArray disease = "OMIM:" + parts[3].trimmed();
@@ -507,32 +483,7 @@ public:
 
 			QByteArrayList parts = line.split(',');
 
-			if (parts.length() > 30) // some strings contain commas
-			{
-				QByteArrayList cleaned_parts = QByteArrayList();
-
-				for (int i=0; i<parts.length(); i++)
-				{
-					if (parts[i].startsWith('"') && ( ! parts[i].endsWith('"'))) // starts with " but doesn't end with "
-					{
-						QByteArray combined_part = parts[i];
-						do
-						{
-							i++;
-							combined_part.append(parts[i]);
-
-						} while (! parts[i].endsWith('"'));
-
-						cleaned_parts.append(combined_part);
-					}
-					else
-					{
-						cleaned_parts.append(parts[i]);
-					}
-
-				}
-				parts = cleaned_parts;
-			}
+			parts = reconstructStrings(parts, 30);
 
 			QByteArray gene_symbol = parts[2].replace('"', ' ').trimmed();
 			QByteArray disease = parts[5].replace('"', ' ').trimmed(); // OMIM:XXXXXX, MONDO:XXXXXXX, Orphanet:XXXXX needs mapping from Orphanet and Mondo to Omim
@@ -562,7 +513,6 @@ public:
 		out << "Imported " << count << " disease gene relations from GenCC" << endl;
 	}
 
-	// TODO use in decipher, genCC. Test again!
 	QByteArrayList reconstructStrings(const QByteArrayList& parts, int expected_size=-1)
 	{
 		// if parts size bigger than expected, try to reconstruct strings that were split:
