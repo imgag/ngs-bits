@@ -6,6 +6,10 @@
 #include <QFile>
 #include <QList>
 #include <BigWigReader.h>
+#include "Auxilary.h"
+#include "ChunkProcessor.h"
+#include "OutputWorker.h"
+#include <QThreadPool>
 
 class ConcreteTool
 		: public ToolBase
@@ -28,6 +32,10 @@ public:
 		addString("name", "Name of the new INFO column.", false);
 		addString("desc", "Optional description of the new INFO column.", false);
 		//optional
+		addInt("threads", "The number of threads used to read, process and write files.", true, 1);
+		addInt("block_size", "Number of lines processed in one chunk.", true, 5000);
+		addInt("prefetch", "Maximum number of chunks that may be pre-fetched into memory.", true, 64);
+		addInt("debug", "Enables debug output at the given interval in milliseconds (disabled by default, cannot be combined with writing to STDOUT).", true, -1);
 
 
 		changeLog(2022, 01, 14, "Initial implementation.");
@@ -35,71 +43,201 @@ public:
 
 	virtual void main()
 	{
-
 		//open input/output streams
 		QString in = getInfile("in");
 		QString out = getOutfile("out");
 		QString bw_path = getInfile("bw");
 		QString name = getString("name");
-
 		QString desc = getString("desc");
+		//init multithreading
+		int block_size = getInt("block_size");
+		int threads = getInt("threads");
+		int prefetch = getInt("prefetch");
+		int debug = getInt("debug");
 
-		if(in!="" && in==out)
+		// check parameter:
+		if (block_size < 1) THROW(ArgumentException, "Parameter 'block_size' has to be greater than zero!");
+		if (threads < 1) THROW(ArgumentException, "Parameter 'threads' has to be greater than zero!");
+		if (prefetch < threads) THROW(ArgumentException, "Parameter 'prefetch' has to be at least number of used threads!");
+		if (out.isEmpty() && (debug > 0)) THROW(ArgumentException, "Parameter 'progress' cannot be combined with writing to STDOUT!");
+
+		//open input/output streams
+		if(!in.isEmpty() && in==out)
 		{
 			THROW(ArgumentException, "Input and output files must be different when streaming!");
 		}
-
 		QSharedPointer<QFile> in_p = Helper::openFileForReading(in, true);
-		QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
-		BigWigReader bw = BigWigReader(bw_path);
-		bool writtenInfo = false;
-		while(!in_p->atEnd())
+
+		// create job pool
+		QList<AnalysisJob> job_pool;
+		while(job_pool.count() < prefetch)
 		{
-			QByteArray line = in_p->readLine();
-
-			//skip empty lines
-			if (line.trimmed().isEmpty()) continue;
-
-			//write out headers:
-			if (line.startsWith('#'))
-			{
-				 // add the new INFO header line at the top of the other ones.
-				if (! writtenInfo && line.startsWith("##INFO"))
-				{
-					writtenInfo = true;
-					out_p->write(QString("##INFO=<ID=" + name + ",Number=1,Type=Float,Description=\"" + desc + "\">\n").toStdString().data());
-				}
-				out_p->write(line);
-				continue;
-			}
-
-			//split line and extract variant infos
-			QList<QByteArray> parts = line.split('\t');
-			if (parts.count()<8) THROW(FileParseException, "VCF with too few columns: " + line);
-
-			Chromosome chr = parts[0];
-			int pos_start = atoi(parts[1]);
-
-			Sequence ref = parts[3].toUpper();
-			Sequence alt = parts[4].toUpper();
-
-			float value = bw.reproduceVepPhylopAnnotation(chr.str(), pos_start, pos_start + ref.length() - 1, QString(ref.data()), QString(alt.data()));
-			parts[7].append(QString(";%1=%2").arg(name, QString::number(value))); // append key value pair to INFO column
-			char tab = '\t';
-			// write the first 7 columns unchanged
-			for (int i=0; i<parts.length(); i++)
-			{
-				out_p->write(parts[i]);
-
-				if (i!=parts.length()-1)
-				{
-					out_p->write(&tab, 1);
-				}
-			}
+			job_pool << AnalysisJob();
 		}
 
-		in_p->close();
-		out_p->close();
+		// create thread pool
+		QThreadPool analysis_pool;
+		analysis_pool.setMaxThreadCount(threads + 1); // +1 for output writer
+
+		// start writer thread
+		OutputWorker* output_worker = new OutputWorker(job_pool, out);
+		analysis_pool.start(output_worker);
+
+		//QByteArrayList data;
+		int current_chunk = 0;
+
+		//debug
+		QTime timer;
+		QTextStream outstream(stdout);
+		if (debug>0) timer.start();
+
+		try
+		{
+			// parse VCF file:
+			while(!in_p->atEnd())
+			{
+				int to_be_processed = 0;
+				int to_be_written = 0;
+				int vcf_line_idx = 0;
+				int done = 0;
+				for (int j=0; j<job_pool.count(); ++j)
+				{
+					AnalysisJob& job = job_pool[j];
+					switch(job.status)
+					{
+						case DONE:
+							++done;
+
+							// create new job with the next chunk of lines
+							job.clear();
+							job.chunk_id = current_chunk;
+							job.status = TO_BE_PROCESSED;
+							while(vcf_line_idx < block_size && !in_p->atEnd())
+							{
+								job.current_chunk.append(QByteArray(in_p->readLine()));
+								vcf_line_idx++;
+							}
+							vcf_line_idx = 0;
+							analysis_pool.start(new ChunkProcessor(job, name.toLatin1(), desc.toLatin1(), bw_path.toLatin1()));
+							++current_chunk;
+							break;
+
+						case TO_BE_WRITTEN:
+							++to_be_written;
+							//sleep
+							QThread::msleep(100);
+							break;
+
+						case TO_BE_PROCESSED:
+							++to_be_processed;
+							//sleep
+							QThread::msleep(100);
+							break;
+
+						case ERROR:
+							if (job.error_message.startsWith("FileParseException\t"))
+							{
+								THROW(FileParseException, job.error_message.split("\t").at(1));
+							}
+							else if (job.error_message.startsWith("FileAccessException\t"))
+							{
+								THROW(FileAccessException, job.error_message.split("\t").at(1));
+							}
+							else
+							{
+								THROW(Exception, job.error_message);
+							}
+							break;
+						default:
+							break;
+					}
+					//break if file is read
+					if(in_p->atEnd()) break;
+				}
+
+				//debug output
+				if (debug>0 && timer.elapsed()>debug)
+				{
+					outstream << Helper::dateTime() << " debug - to_be_processed: " << to_be_processed << " to_be_written: " << to_be_written << " done: " << done << endl;
+					timer.restart();
+				}
+			}
+
+			// close file
+			in_p->close();
+
+			//wait for all jobs to finish
+			if (debug>0) outstream << Helper::dateTime() << " input data read completely - waiting for analysis to finish" << endl;
+			int done = 0;
+			int to_be_written, to_be_processed;
+			while(done < job_pool.count())
+			{
+				done = 0;
+				to_be_written = 0;
+				to_be_processed = 0;
+				for (int j=0; j<job_pool.count(); ++j)
+				{
+					AnalysisJob& job = job_pool[j];
+					switch(job.status)
+					{
+						case DONE:
+							++done;
+							break;
+
+						case TO_BE_WRITTEN:
+							to_be_written++;
+							//sleep
+							QThread::msleep(100);
+							break;
+
+						case TO_BE_PROCESSED:
+							++to_be_processed;
+							//sleep
+							QThread::msleep(100);
+							break;
+
+
+						case ERROR:
+							if (job.error_message.startsWith("FileParseException\t"))
+							{
+								THROW(FileParseException, job.error_message.split("\t").at(1));
+							}
+							else if (job.error_message.startsWith("FileAccessException\t"))
+							{
+								THROW(FileAccessException, job.error_message.split("\t").at(1));
+							}
+							else
+							{
+								THROW(Exception, job.error_message);
+							}
+							break;
+
+						default:
+							break;
+					}
+				}
+
+				//sleep
+				QThread::msleep(500);
+
+				//debug output
+				if (debug>0 && timer.elapsed()>debug)
+				{
+					outstream << Helper::dateTime() << " debug - to_be_analyzed: " << to_be_processed << " to_be_written: " << to_be_written << " done: " << done << endl;
+					timer.restart();
+				}
+			}
+
+			output_worker->terminate();
+			if (debug>0) outstream << Helper::dateTime() << " analysis finished" << endl;
+
+		}
+		catch(...)
+		{
+			//terminate output worker if an exeption is thrown
+			output_worker->terminate();
+			throw;
+		}
 	}
 };
 
