@@ -1,6 +1,7 @@
 #include "TestFramework.h"
 #include "Settings.h"
 #include "NGSD.h"
+#include "Helper.h"
 
 TEST_CLASS(NGSDImportHPO_Test)
 {
@@ -383,16 +384,16 @@ private slots:
 		I_EQUAL(count, 178);
 	}
 
-	void test_resulting_relations()
-	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+//	void test_resulting_relations()
+//	{
+//		QString host = Settings::string("ngsd_test_host", true);
+//		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
-		//init
-		NGSD db(true);
+//		//init
+//		NGSD db(true);
 
-		//test
-		//minimum files
+//		//test
+//		//minimum files
 //		db.init();
 //		EXECUTE("NGSDImportHGNC", "-in W:/share/data/dbs/HGNC/hgnc_complete_set.tsv -test");
 //		EXECUTE("NGSDImportHPO", "-obo W:/GRCh38/share/data/dbs/HPO/hp.obo -anno W:/GRCh38/share/data/dbs/HPO/phenotype_to_genes.txt -test -force -debug");
@@ -407,15 +408,31 @@ private slots:
 //		EXECUTE("NGSDImportHGNC", "-in W:/share/data/dbs/HGNC/hgnc_complete_set.tsv -test");
 //		EXECUTE("NGSDImportHPO", "-obo W:/GRCh38/share/data/dbs/HPO/hp.obo -anno W:/GRCh38/share/data/dbs/HPO/phenotype_to_genes.txt -decipher W:/GRCh38/share/data/dbs/DECIPHER/DDG2P_22_12_2021.csv -test -force -debug");
 
-		//min files + genCC
-		db.init();
-		EXECUTE("NGSDImportHGNC", "-in W:/share/data/dbs/HGNC/hgnc_complete_set.tsv -test");
-		EXECUTE("NGSDImportHPO", "-obo W:/GRCh38/share/data/dbs/HPO/hp.obo -anno W:/GRCh38/share/data/dbs/HPO/phenotype_to_genes.txt -gencc W:/GRCh38/share/data/dbs/GenCC/gencc-submissions.csv -test -force -debug");
+//		//min files + genCC
+//		db.init();
+//		EXECUTE("NGSDImportHGNC", "-in W:/share/data/dbs/HGNC/hgnc_complete_set.tsv -test");
+//		EXECUTE("NGSDImportHPO", "-obo W:/GRCh38/share/data/dbs/HPO/hp.obo -anno W:/GRCh38/share/data/dbs/HPO/phenotype_to_genes.txt -gencc W:/GRCh38/share/data/dbs/GenCC/gencc-submissions.csv -test -force -debug");
 
 //		//min files + hpophen
 //		db.init();
 //		EXECUTE("NGSDImportHGNC", "-in W:/share/data/dbs/HGNC/hgnc_complete_set.tsv -test");
 //		EXECUTE("NGSDImportHPO", "-obo W:/GRCh38/share/data/dbs/HPO/hp.obo -anno W:/GRCh38/share/data/dbs/HPO/phenotype_to_genes.txt -hpophen W:/GRCh38/share/data/dbs/HPO/phenotype.hpoa -test -force -debug");
-	}
+
+//		//min files + omim
+//		db.init();
+//		EXECUTE("NGSDImportHGNC", "-in W:/share/data/dbs/HGNC/hgnc_complete_set.tsv -test");
+//		EXECUTE("NGSDImportHPO", "-obo W:/GRCh38/share/data/dbs/HPO/hp.obo -anno W:/GRCh38/share/data/dbs/HPO/phenotype_to_genes.txt -omim W:/GRCh38/share/data/dbs/OMIM/morbidmap.txt -test -force -debug");
+
+//		// find out what/where the many relations are added:
+//		QSharedPointer<QFile> test = Helper::openFileForWriting("out/NGSDImportHPO_Test_hpo_term_dist_minimal.csv");
+//		QStringList hpo_ids = db.getValues("SELECT id FROM hpo_term");
+//		test->write("TERM_ID\tnumOfGenes\tgenes\n");
+//		foreach (const QString& id, hpo_ids)
+//		{
+//			QStringList genes = db.getValues("SELECT gene FROM hpo_genes WHERE hpo_term_id ='" + id + "'");
+//			QString line = id + "\t" + QString::number(genes.length()) + "\t" + genes.join(';') + "\n";
+//			test->write(line.toLatin1());
+//		}
+//	}
 };
 

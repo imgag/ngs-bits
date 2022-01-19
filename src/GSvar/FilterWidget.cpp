@@ -5,6 +5,7 @@
 #include "Log.h"
 #include "ScrollableTextDialog.h"
 #include "PhenotypeSelectionWidget.h"
+#include "PhenotypeSourceEvidenceSelector.h"
 #include "GUIHelper.h"
 #include "GSvarHelper.h"
 #include "DBSelector.h"
@@ -666,9 +667,7 @@ void FilterWidget::showPhenotypeContextMenu(QPoint pos)
 		{
 			allowedPhenotypeEvidences_ = selector->selectedEvidences();
 			allowedPhenotypeSources_ = selector->selectedSources();
-			ui_.filters->phenotypesChanged();
-
-			emit filtersChanged();
+			phenotypesChanged();
 		}
 	}
 }

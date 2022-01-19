@@ -139,6 +139,7 @@ public:
 		}
 	};
 
+	// struct used to find the first instance of where a relation was parsed from. Only used for debugging and testing
 	struct ExactSources
 	{
 		QString disease2gene;
@@ -232,13 +233,6 @@ public:
 				add(item, SourceDetails(source, original_evi, evidence), evidence, exactSource);
 			}
 
-//			void add(const QByteArray& item, SourceDetails source, PhenotypeEvidence::Evidence evidence=PhenotypeEvidence::NA, QString exactSource="not Set")
-//			{
-//				QStringList l;
-//				l.append(exactSource);
-//				add(item, source, evidence, l);
-//			}
-
 			void add(const QByteArray& item, SourceDetails source, PhenotypeEvidence::Evidence evidence=PhenotypeEvidence::NA, ExactSources exactSource=ExactSources())
 			{
 				if (hash.contains(item))
@@ -324,7 +318,7 @@ public:
 		int added = 0;
 
 		QTextStream out(stdout);
-		out << "Starting analysis of hpophen file\n";
+		if (getFlag("debug")) out << "Starting analysis of hpophen file\n";
 
 		// parse phenotype.hpoa file for evidence information
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("hpophen"));
@@ -375,7 +369,7 @@ public:
 		if (getInfile("decipher") == "") return;
 
 		QTextStream out(stdout);
-		out << "Parsing Decipher...\n";
+		if (getFlag("debug")) out << "Parsing Decipher...\n";
 		int countT2D = 0;
 		int countD2G = 0;
 		int countT2G = 0;
@@ -669,8 +663,10 @@ public:
 		//parse disease-gene relations from OMIM
 		QString omim_file = getInfile("omim");
 		lineCount = 0;
+		int count = 0;
 		if (omim_file!="")
 		{
+			if (debug) out << "Parsing OMIM file...\n";
 			//parse disease-gene relations
 			int c_skipped_invalid_gene = 0;
 			fp = Helper::openFileForReading(omim_file);
@@ -688,7 +684,6 @@ public:
 				QByteArray mim_number = parts[2].trimmed(); // mim number for gene
 				QByteArray omim_evi = "";
 
-				out << QString(parts.join()) << "\n";
 				if (mim_exp.indexIn(pheno)!=-1)
 				{
 					mim_number = mim_exp.cap().toLatin1(); // mim number for phenotype
@@ -716,15 +711,18 @@ public:
 					ExactSources e_src = ExactSources();
 					e_src.disease2gene = QString("OMIM line ") + QString::number(lineCount);
 					disease2genes["OMIM:"+mim_number].add(db.geneSymbol(approved_id), "OMIM", omim_evi, PhenotypeEvidence::translateOmimEvidence(omim_evi), e_src);
+					count++;
 				}
 			}
 			fp->close();
+			out << "Imported " << count << " disease to genes relations.\n";
 		}
-		out << "Starting with ClinVar" << endl;
+
 		//parse disease-gene relations from ClinVar
 		QString clinvar_file = getInfile("clinvar");
 		if (clinvar_file!="")
 		{
+			if (debug) out << "Prasing ClinVar..." << endl;
 			//parse disease-gene relations
 			int c_skipped_invalid_gene = 0;
 			fp = Helper::openFileForReading(clinvar_file);
