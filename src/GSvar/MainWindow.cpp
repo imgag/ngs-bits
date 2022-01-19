@@ -3530,8 +3530,8 @@ void MainWindow::generateReportSomaticRTF()
 	somatic_report_settings_.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions( db.processingSystemIdFromProcessedSample(ps_tumor) );
 	somatic_report_settings_.processing_system_genes = db.genesToApproved( GlobalServiceProvider::database().processingSystemGenes(db.processingSystemIdFromProcessedSample(ps_tumor)), true );
 
-	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
 
+	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
 
 	QCCollection cnv_metrics = Statistics::hrdScore(SomaticReportSettings::filterCnvs(cnvs_, somatic_report_settings_), GSvarHelper::build());
 	somatic_report_settings_.report_config.setCnvLohCount( cnv_metrics.value("QC:2000062", true).asInt() );
@@ -3548,6 +3548,17 @@ void MainWindow::generateReportSomaticRTF()
 		somatic_report_settings_.report_config.setMsiStatus(true);
 		somatic_report_settings_.report_config.setCnvBurden(true);
 		somatic_report_settings_.report_config.setHrdScore(0);
+	}
+
+
+	try
+	{
+		somatic_report_settings_.check();
+	}
+	catch(Exception e)
+	{
+		QMessageBox::warning(this, "Error before creating report", e.message());
+		return;
 	}
 
 	SomaticReportDialog dlg(somatic_report_settings_, cnvs_, somatic_control_tissue_variants_, this); //widget for settings
