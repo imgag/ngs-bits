@@ -2355,7 +2355,7 @@ FilterTrio::FilterTrio()
 	params_ << FilterParameter("gender_child", FilterParameterType::STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
 	params_.last().constraints["valid"] = "male,female,n/a";
 
-	params_ << FilterParameter("build", FilterParameterType::STRING, "hg19", "Genome build used for pseudoautosomal region coordinates");
+	params_ << FilterParameter("build", FilterParameterType::STRING, "hg38", "Genome build used for pseudoautosomal region coordinates");
 	params_.last().constraints["valid"] = "hg19,hg38";
 
 	checkIsRegistered();
@@ -4865,9 +4865,7 @@ FilterSpliceEffect::FilterSpliceEffect()
 	params_ << FilterParameter("SpliceAi", FilterParameterType::DOUBLE, 0.5, "Minimum SpliceAi value. Disabled if set to zero.");
 	params_.last().constraints["min"] = "0";
 	params_.last().constraints["max"] = "1";
-	params_ << FilterParameter("MMSplice", FilterParameterType::DOUBLE, 2.0, "Minimum absolute Delta Logit PSI Score. Disabled if set to zero.");
-	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("action", FilterParameterType::STRING, "KEEP", "Action to perform");
+	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
 	params_.last().constraints["valid"] = "KEEP,FILTER";
 	checkIsRegistered();
 }
@@ -4879,8 +4877,6 @@ QString FilterSpliceEffect::toText() const
 	text += " maxEntScan>=" + QString::number(mes) +"%";
 	double sai = getDouble("SpliceAi", false);
 	text += " SpliceAi>=" + QString::number(sai);
-	double mms = getDouble("MMSplice", false);
-	text += " MMSplice>=" + QString::number(mms);
 	return text;
 }
 
@@ -4891,14 +4887,11 @@ void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &re
 	int idx_sai = annotationColumn(variant_list, "SpliceAi");
 	double sai = getDouble("SpliceAi");
 
-	int idx_mms = annotationColumn(variant_list, "MMSplice_DeltaLogitPSI");
-	double mmsplice = getDouble("MMSplice");
-
 	int idx_mes = annotationColumn(variant_list, "MaxEntScan");
 	int mes = getInt("MaxEntScan");
 
 	// if all filters are deactivated return
-	if ((sai == 0) && (mmsplice == 0) && (mes == 0)) return;
+	if (sai == 0 && mes == 0) return;
 
 	// action FILTER
 	if (getString("action") == "FILTER")
@@ -4908,7 +4901,7 @@ void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &re
 			if (!result.flags()[i]) continue;
 
 			//If the variant has no value for all possible filters remove it
-			if (variant_list[i].annotations()[idx_sai].isEmpty() && variant_list[i].annotations()[idx_mes].isEmpty() && variant_list[i].annotations()[idx_mms].isEmpty())
+			if (variant_list[i].annotations()[idx_sai].isEmpty() && variant_list[i].annotations()[idx_mes].isEmpty())
 			{
 				result.flags()[i] = false;
 				continue;
@@ -4918,12 +4911,6 @@ void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &re
 			if (sai > 0)
 			{
 				if (applySpliceAi_(variant_list[i], idx_sai)) continue;
-			}
-
-			// MMSplice filter:
-			if (mmsplice > 0)
-			{
-				if (applyMMsplice_(variant_list[i], idx_mms)) continue;
 			}
 
 			// MaxEntScan filter:
@@ -4946,15 +4933,6 @@ void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &re
 			{
 				if (applySpliceAi_(variant_list[i], idx_sai))
 				{
-					result.flags()[i] = true;
-					continue;
-				}
-			}
-
-			// MMSplice filter:
-			if (mmsplice > 0)
-			{
-				if (applyMMsplice_(variant_list[i], idx_mms)) {
 					result.flags()[i] = true;
 					continue;
 				}
@@ -5029,21 +5007,6 @@ bool FilterSpliceEffect::applySpliceAi_(const Variant& var, int idx_sai) const
 	if ( ! sai_value.trimmed().isEmpty())
 	{
 		if (sai_value.toDouble() >= sai)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-bool FilterSpliceEffect::applyMMsplice_(const Variant& var, int idx_mms) const
-{
-	double mmsplice = getDouble("MMSplice");
-
-	QByteArray mms_value = var.annotations()[idx_mms];
-	if ( ! mms_value.trimmed().isEmpty())
-	{
-		if (std::abs(mms_value.toDouble()) >= mmsplice)
 		{
 			return true;
 		}

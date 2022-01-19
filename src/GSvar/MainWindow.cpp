@@ -3277,6 +3277,7 @@ void MainWindow::generateEvaluationSheet()
 	//try to get VariantListInfo from the NGSD
 	QString ps_id = db.processedSampleId(base_name);
 	EvaluationSheetData evaluation_sheet_data = db.evaluationSheetData(ps_id, false);
+	evaluation_sheet_data.build = GSvarHelper::build();
 	if (evaluation_sheet_data.ps_id == "") //No db entry found > init
 	{
 		evaluation_sheet_data.ps_id = db.processedSampleId(base_name);
