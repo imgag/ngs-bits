@@ -72,7 +72,7 @@ public:
 
 			if (getEnum("evidence") == "ALL")
 			{
-				evidences = PhenotypeEvidence::allEvidenceValues();
+				evidences = PhenotypeEvidence::allEvidenceValues(false);
 			}
 			else
 			{

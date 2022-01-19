@@ -226,9 +226,13 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 	}
 
 	/// returns all possible values for the evidence enum
-	static QList<Evidence> allEvidenceValues()
+	static QList<Evidence> allEvidenceValues(bool include_against)
 	{
-		return QList<Evidence>{Evidence::NA, Evidence::AGAINST, Evidence::LOW, Evidence::MED, Evidence::HIGH};
+		QList<Evidence> output {Evidence::NA, Evidence::LOW, Evidence::MED, Evidence::HIGH};
+
+		if (include_against) output << Evidence::AGAINST;
+
+		return output;
 	}
 };
 
