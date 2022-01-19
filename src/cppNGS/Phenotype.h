@@ -214,6 +214,16 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 
 		THROW(TypeConversionException, "Cannot convert String: '" + e + "' to Phenotype Evidence.")
 	}
+
+	/// returns all possible values for the evidence enum
+	static QList<Evidence> allEvidenceValues(bool include_against)
+	{
+		QList<Evidence> output {Evidence::NA, Evidence::LOW, Evidence::MED, Evidence::HIGH};
+
+		if (include_against) output << Evidence::AGAINST;
+
+		return output;
+	}
 };
 
 ///PhenotypeSource a 'static class' to contain an enum and helperfunctions to represent possible source databases for phenotype-gene relations
