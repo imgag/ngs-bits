@@ -766,7 +766,11 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahgscha1")
 	{
-		Statistics::hrdScore(cnvs_, GenomeBuild::HG19);
+		FileLocationList locations = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFiles(false);
+		for(const auto& loc : locations)
+		{
+			qDebug() << loc.exists << " " << loc.filename << " " << loc.id << " " << loc.typeAsHumanReadableString() << endl;
+		}
 	}
 }
 
