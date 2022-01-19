@@ -623,7 +623,7 @@ public:
 				{
 					if (gene_db_id!=-1)
 					{
-						//if (debug) out << "HPO-GENE: " << term_accession << " - " << gene << "\n";
+						if (debug) out << "HPO-GENE: " << term_accession << " - " << gene << "\n";
 
 						ExactSources e_src = ExactSources();
 						e_src.term2gene = exactSource;
@@ -632,7 +632,7 @@ public:
 				}
 				else
 				{
-					//if (debug) out << "HPO-DISEASE: " << term_accession << " - " << disease << "\n";
+					if (debug) out << "HPO-DISEASE: " << term_accession << " - " << disease << "\n";
 
 					ExactSources e_src = ExactSources();
 					e_src.term2disease = exactSource;
@@ -642,7 +642,7 @@ public:
 
 			if (gene_db_id!=-1)
 			{
-				//if (debug) out << "DISEASE-GENE (HPO): " << disease << " - " << db.geneSymbol(gene_db_id) << "\n";
+				if (debug) out << "DISEASE-GENE (HPO): " << disease << " - " << db.geneSymbol(gene_db_id) << "\n";
 
 				ExactSources e_src = ExactSources();
 				e_src.disease2gene = exactSource;
@@ -701,12 +701,12 @@ public:
 					int approved_id = db.geneToApprovedID(gene);
 					if (approved_id==-1)
 					{
-						//if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!\n";
+						if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!\n";
 						++c_skipped_invalid_gene;
 						continue;
 					}
 
-					//if (debug) out << "DISEASE-GENE (OMIM): OMIM:" << mim_number << " - " << db.geneSymbol(approved_id) << "\n";
+					if (debug) out << "DISEASE-GENE (OMIM): OMIM:" << mim_number << " - " << db.geneSymbol(approved_id) << "\n";
 
 					ExactSources e_src = ExactSources();
 					e_src.disease2gene = QString("OMIM line ") + QString::number(lineCount);
