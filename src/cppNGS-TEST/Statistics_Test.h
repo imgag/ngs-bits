@@ -172,6 +172,37 @@ TEST_CLASS(Statistics_Test)
 		}
 	}
 
+	void somatic_custom_depth() //test uses the same input data as "mapping_panel"-test
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if(ref_file=="") SKIP("Test needs the reference genome");
+
+		BedFile bed_file;
+		bed_file.load(TESTDATA("data_in/panel.bed"));
+		bed_file.merge();
+		QCCollection res = Statistics::somaticCustomDepth(bed_file, TESTDATA("data_in/panel.bam"), ref_file, 20);
+
+		I_EQUAL(res.count(), 8);
+
+		S_EQUAL(res[0].name(), QString("somatic custom target region read depth"));
+		S_EQUAL(res[0].toString(), QString("125.45"));
+		S_EQUAL(res[1].name(), QString("somatic custom target 10x percentage"));
+		S_EQUAL(res[1].toString(), QString("97.13"));
+		S_EQUAL(res[2].name(), QString("somatic custom target 20x percentage"));
+		S_EQUAL(res[2].toString(), QString("94.06"));
+		S_EQUAL(res[3].name(), QString("somatic custom target 30x percentage"));
+		S_EQUAL(res[3].toString(), QString("90.23"));
+		S_EQUAL(res[4].name(), QString("somatic custom target 50x percentage"));
+		S_EQUAL(res[4].toString(), QString("80.75"));
+		S_EQUAL(res[5].name(), QString("somatic custom target 100x percentage"));
+		S_EQUAL(res[5].toString(), QString("55.39"));
+		S_EQUAL(res[6].name(), QString("somatic custom target 200x percentage"));
+		S_EQUAL(res[6].toString(), QString("18.14"));
+		S_EQUAL(res[7].name(), QString("somatic custom target 500x percentage"));
+		S_EQUAL(res[7].toString(), QString("0.06"));
+
+	}
+
 	void mapping_panel()
 	{
 		QString ref_file = Settings::string("reference_genome", true);
