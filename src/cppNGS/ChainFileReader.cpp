@@ -25,7 +25,6 @@ GenomePosition ChainFileReader::lift(const GenomePosition& pos) const
 	}
 	QList<GenomicAlignment> alignments = chromosomes[pos.chr];
 
-
 	// TODO binary search ?
 	foreach(const GenomicAlignment& a, alignments)
 	{
@@ -63,10 +62,11 @@ void ChainFileReader::load(QString filepath)
 		line = line.trimmed();
 		if (line.length() == 0) continue;
 
-		QList<QByteArray> parts = line.split(' ');
+		QList<QByteArray> parts;
 
 		if (line.startsWith("chain"))
 		{
+			parts = line.split(' ');
 			// add last chain alignment to the chromosomes:
 			if ( ! chromosomes.contains(currentAlignment.ref_chr))
 			{
@@ -80,6 +80,15 @@ void ChainFileReader::load(QString filepath)
 		}
 		else
 		{
+			if (line.contains('\t'))
+			{
+				parts = line.split('\t');
+			}
+			else
+			{
+				parts = line.split(' ');
+			}
+
 			AlignmentLine align;
 			if (parts.length() == 1)
 			{
@@ -102,27 +111,31 @@ GenomicAlignment ChainFileReader::parseChainLine(QList<QByteArray> parts)
 {
 	double score = parts[1].toDouble();
 	QByteArray ref_chr = parts[2];
+	int ref_chr_size = parts[3].toInt();
 	if ( ! ref_chrom_sizes.contains(ref_chr))
 	{
-		ref_chrom_sizes.insert(ref_chr, parts[3].toInt());
+		ref_chrom_sizes.insert(ref_chr, ref_chr_size);
 	}
+
 
 	bool ref_plus_strand = parts[4] == "+";
 	int ref_start = parts[5].toInt();
 	int ref_end = parts[6].toInt();
 
 	QByteArray q_chr = parts[7];
+	int q_chr_size = parts[8].toInt();
 	if ( ! q_chrom_sizes.contains(q_chr))
 	{
-		q_chrom_sizes.insert(ref_chr, parts[8].toInt());
+		q_chrom_sizes.insert(q_chr, q_chr_size);
 	}
+
 
 	bool q_plus_strand = parts[9] == "+";
 	int q_start = parts[10].toInt();
 	int q_end = parts[11].toInt();
 	int chain_id = parts[12].toInt();
 
-	return GenomicAlignment(score, ref_chr, ref_start, ref_end, ref_plus_strand, q_chr, q_start, q_end, q_plus_strand, chain_id);
+	return GenomicAlignment(score, ref_chr, ref_chr_size, ref_start, ref_end, ref_plus_strand, q_chr, q_chr_size, q_start, q_end, q_plus_strand, chain_id);
 }
 
 
