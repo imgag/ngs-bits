@@ -3,6 +3,7 @@
 #include "Exceptions.h"
 #include "Helper.h"
 #include "NGSHelper.h"
+#include "Transcript.h"
 
 #include <QFileInfo>
 
@@ -49,24 +50,28 @@ public:
 		return query.value(0).toInt();
 	}
 
-	int addTranscript(SqlQuery& query, int gene_id, const QByteArray& name, const QByteArray& source, const TranscriptData& t_data)
+    int addTranscript(SqlQuery& query, int gene_id, const QByteArray& name, const QByteArray& source, const Transcript& t)
 	{
 		//QTextStream(stdout) << "Adding transcript name=" << name << " source=" << source << " gene=" << t_data.ngsd_gene_id << " start_coding=" << t_data.start_coding << " end_coding=" << t_data.end_coding << endl;
 		query.bindValue(0, gene_id);
 		query.bindValue(1, name);
 		query.bindValue(2, source);
-		query.bindValue(3, t_data.chr);
-		if (t_data.start_coding!=-1 && t_data.end_coding!=-1)
-		{
-			query.bindValue(4, t_data.start_coding);
-			query.bindValue(5, t_data.end_coding);
+        query.bindValue(3, t.chr().str());
+        if (t.codingStart()!=0 && t.codingEnd()!=0)
+        {
+            //Transcript class encodes actual coding start (ATG), but coding_start < coding_end is required here
+            int coding_start = std::min(t.codingStart(), t.codingEnd());
+            int coding_end = std::max(t.codingStart(), t.codingEnd());
+            query.bindValue(4, coding_start);
+            query.bindValue(5, coding_end);
 		}
 		else
 		{
 			query.bindValue(4, QVariant());
 			query.bindValue(5, QVariant());
 		}
-		query.bindValue(6, t_data.strand);
+        QByteArray strand = t.strand() == Transcript::PLUS ? "+" : "-";
+        query.bindValue(6, strand);
 		query.exec();
 
 		return query.lastInsertId().toInt();
@@ -287,44 +292,48 @@ public:
 		QMap<QByteArray, QByteArray> gene_name_relation;
 
 		//parse input - format description at https://www.gencodegenes.org/data_format.html and http://www.ensembl.org/info/website/upload/gff3.html
-        QList<TranscriptData> trans_list = NGSHelper::loadGffFile(getInfile("in"), transcript_gene_relation, gene_name_relation, all);
+        TranscriptList trans_list = NGSHelper::loadGffFile(getInfile("in"), transcript_gene_relation, gene_name_relation, all);
 
         QSet<QByteArray> ccds_transcripts_added;
 
-        foreach(TranscriptData t_data, trans_list)
+        foreach(Transcript t, trans_list)
         {
             //transform gene name to approved gene ID
-            QByteArray gene = gene_name_relation[t_data.gene_symbol];
+            QByteArray gene = gene_name_relation[t.geneId()];
             int ngsd_gene_id = db.geneToApprovedID(gene);
             if(ngsd_gene_id==-1) //fallback to HGNC ID
             {
-                ngsd_gene_id = geneByHGNC(q_gene, t_data.hgnc_id);
+                ngsd_gene_id = geneByHGNC(q_gene, t.hgncId());
                 if (ngsd_gene_id!=-1)
                 {
-                    out << "Notice: Gene " << t_data.gene_id << "/" << gene << " without HGNC-approved name identified by HGNC identifier." << endl;
+                    out << "Notice: Gene " << t.geneId() << "/" << gene << " without HGNC-approved name identified by HGNC identifier." << endl;
                 }
             }
 
             if (ngsd_gene_id==-1)
             {
-                out << "Notice: Gene " << t_data.gene_id << "/" << gene << " without HGNC-approved name is skipped." << endl;
+                out << "Notice: Gene " << t.geneId() << "/" << gene << " without HGNC-approved name is skipped." << endl;
                 continue;
             }
 
             //add Ensembl transcript
-            int trans_id = addTranscript(q_trans, ngsd_gene_id, t_data.name, "ensembl", t_data);
+            int trans_id = addTranscript(q_trans, ngsd_gene_id, t.name(), "ensembl", t);
             //add exons
-            addExons(q_exon, trans_id, t_data.exons);
+            addExons(q_exon, trans_id, t.regions());
 
             //add CCDS transcript as well (only once)
-            if(t_data.name_ccds!="" && !ccds_transcripts_added.contains(t_data.name_ccds))
+            if(t.nameCcds()!="" && !ccds_transcripts_added.contains(t.nameCcds()))
             {
-                int trans_id_ccds = addTranscript(q_trans, ngsd_gene_id, t_data.name_ccds , "ccds", t_data);
+                int trans_id_ccds = addTranscript(q_trans, ngsd_gene_id, t.nameCcds() , "ccds", t);
                 //add exons (only coding part)
-                t_data.exons.intersect(BedFile(t_data.exons[0].chr() ,t_data.start_coding, t_data.end_coding));
-                addExons(q_exon, trans_id_ccds, t_data.exons);
+                BedFile exons = t.regions();
+                //Transcript class encodes actual coding start (ATG), but coding_start < coding_end is required here
+                int coding_start = std::min(t.codingStart(), t.codingEnd());
+                int coding_end = std::max(t.codingStart(), t.codingEnd());
+                exons.intersect(BedFile(exons[0].chr(), coding_start, coding_end));
+                addExons(q_exon, trans_id_ccds, exons);
 
-                ccds_transcripts_added.insert(t_data.name_ccds);
+                ccds_transcripts_added.insert(t.nameCcds());
             }
         }
 

@@ -26,6 +26,15 @@ public:
 		gene_ = symbol;
 	}
 
+    const QByteArray& geneId() const
+    {
+        return gene_id_;
+    }
+    void setGeneId(const QByteArray& gene_id)
+    {
+        gene_id_ = gene_id;
+    }
+
     const QByteArray& hgncId() const
     {
         return hgnc_id_;
@@ -44,6 +53,15 @@ public:
 	{
 		name_ = name;
 	}
+
+    const QByteArray& nameCcds() const
+    {
+        return name_ccds_;
+    }
+    void setNameCcds(const QByteArray& name_ccds)
+    {
+        name_ccds_ = name_ccds;
+    }
 
 	enum SOURCE
 	{
@@ -163,8 +181,10 @@ public:
 
 protected:
 	QByteArray gene_;
+    QByteArray gene_id_;
     QByteArray hgnc_id_;
     QByteArray name_;
+    QByteArray name_ccds_;
 	SOURCE source_;
 	STRAND strand_;
 	Chromosome chr_;

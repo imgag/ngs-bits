@@ -10,48 +10,78 @@ class ConcreteTool
     Q_OBJECT
 
 private:
-    void annotateVcfFile(const QString& in_file, const QString& out_file, const ChromosomalIndex<TranscriptList>& transcript_index,
-                         const FastaFileIndex& ref_file, const int& max_dist_to_trans, const int& splice_region_ex, const int& splice_region_in)
+    void annotateVcfStream(const QString& in_file, const QString& out_file, const ChromosomalIndex<TranscriptList>& transcript_index,
+                           const FastaFileIndex& reference, const int& max_dist_to_trans, const int& splice_region_ex, const int& splice_region_in,
+                           const QByteArray& tag)
     {
+        if(in_file != "" && in_file == out_file)
+        {
+            THROW(ArgumentException, "Input and output files must be different when streaming!");
+        }
+        QSharedPointer<QFile> reader = Helper::openFileForReading(in_file, true);
+        QSharedPointer<QFile> writer = Helper::openFileForWriting(out_file, true);
+
+        bool csq_line_inserted = false;
+
         TranscriptList transcripts = transcript_index.container();
-
-        VcfFile vcf;
-        vcf.load(in_file);
-
         VariantHgvsAnnotator hgvs_anno(max_dist_to_trans, splice_region_ex, splice_region_in);
 
-
-        for(int i = 0; i < vcf.vcfHeader().infoLines().count(); i++)
+        while(!reader->atEnd())
         {
-            if(vcf.vcfHeader().infoLines().at(i).id == "CSQ")
+            QByteArray line = reader->readLine();
+
+            //skip empty lines
+            if(line.trimmed().isEmpty()) continue;
+
+            //write out headers unchanged (unless they are the CSQ description)
+            if(line.startsWith("##"))
             {
-                vcf.vcfHeader().removeInfoLine(i);
+                if(!line.contains(tag))
+                {
+                    writer->write(line);
+                    continue;
+                }
             }
-        }
 
-        //add info line for CSQ
-        InfoFormatLine csq_line;
-        csq_line.id = "CSQ";
-        csq_line.number = ".";
-        csq_line.type = "String";
-        csq_line.description = "Consequence annotations from VcfAnnotateConsequence. Format: Allele|Consequence|IMPACT|SYMBOL|"
-                               "HGNC_ID|Feature|Feature_type|BIOTYPE|EXON|INTRON|HGVSc|HGVSp";
-        vcf.vcfHeader().addInfoLine(csq_line);
-
-        //annotate all variants
-        foreach(VcfLinePtr variant, vcf.vcfLines())
-        {
-            //skip structural variants, e.g. <DEL>, <INS>
-            if(variant->alt(0).startsWith("<"))
+            //add the CSQ info line after all other header lines
+            if(!csq_line_inserted)
             {
+                writer->write("##INFO=<ID=" + tag + ",Number=.,Type=String,Description=\"Consequence annotations from VcfAnnotateConsequence. "
+                              "Format: Allele|Consequence|IMPACT|SYMBOL|HGNC_ID|Feature|Feature_type|BIOTYPE|EXON|INTRON|HGVSc|HGVSp\">\n");
+                csq_line_inserted = true;
+            }
+
+            //column header line
+            if(line.startsWith("#"))
+            {
+                writer->write(line);
                 continue;
             }
 
-            //get all transcripts where the variant is completely contained in the region
-            int region_start = std::max(variant->end() - max_dist_to_trans, 0);
-            int region_end = variant->start() + max_dist_to_trans;
+            //split line and extract variant infos
+            line = line.trimmed();
+            QList<QByteArray> parts = line.split('\t');
+            if(parts.count() < 8) THROW(FileParseException, "VCF with too few columns: " + line);
 
-            QVector<int> indices = transcript_index.matchingIndices(variant->chr(), region_start, region_end);
+            Chromosome chr = parts[0];
+            int pos = atoi(parts[1]);
+            Sequence ref = parts[3].toUpper();
+            Sequence alt = parts[4].toUpper();
+
+            //write out multi-allelic and structural (e.g. <DEL>) variants without CSQ annotation
+            if(alt.contains(',') || alt.startsWith("<"))
+            {
+                writeLine(writer, parts, pos, ref, alt, parts[7]);
+                continue;
+            }
+
+            VcfLine variant = VcfLine(chr, pos, ref, QVector<Sequence>() << alt);
+
+            //get all transcripts where the variant is completely contained in the region
+            int region_start = std::max(variant.end() - max_dist_to_trans, 0);
+            int region_end = variant.start() + max_dist_to_trans;
+
+            QVector<int> indices = transcript_index.matchingIndices(variant.chr(), region_start, region_end);
 
             QByteArray csq;
 
@@ -59,12 +89,12 @@ private:
             if(indices.isEmpty())
             {
                 HgvsNomenclature hgvs;
-                if(variant->isSNV()) hgvs.allele = variant->alt(0);
-                else if(variant->isDel()) hgvs.allele = "-";
+                if(variant.isSNV()) hgvs.allele = variant.alt(0);
+                else if(variant.isDel()) hgvs.allele = "-";
                 else
                 {
-                    variant->normalize(VcfLine::ShiftDirection::RIGHT, ref_file);
-                    hgvs.allele = variant->alt(0).mid(1);
+                    variant.normalize(VcfLine::ShiftDirection::RIGHT, reference);
+                    hgvs.allele = variant.alt(0).mid(1);
                 }
                 hgvs.variant_consequence_type.insert(VariantConsequenceType::INTERGENIC_VARIANT);
                 Transcript t;
@@ -77,61 +107,71 @@ private:
                 Transcript t = transcripts.at(idx);
 
                 //create new VcfLine for annotation (don't change original variant coordinates by normalization!)
-                VcfLine var_for_anno = VcfLine(variant->chr(), variant->start(), variant->ref(), variant->alt());
+                VcfLine var_for_anno = VcfLine(variant.chr(), variant.start(), variant.ref(), variant.alt());
 
                 HgvsNomenclature hgvs;
                 try
                 {
-                    hgvs = hgvs_anno.variantToHgvs(t, var_for_anno, ref_file);
+                    hgvs = hgvs_anno.variantToHgvs(t, var_for_anno, reference);
+                    if(!csq.isEmpty()) csq.append(",");
+                    csq.append(hgvsNomenclatureToString(hgvs, t));
                 }
-                catch(Exception& e)
+                catch(ArgumentException& e)
                 {
                     QTextStream out(stdout);
-                    out << "Variant out of region for transcript " << t.name() <<", chromsome " << t.chr().str()
-                        << "(" << t.start() << " - " << t.end();
-                    out << "Variant start: " << variant->start() << "; end: " << variant->end() << endl;
-                    out << "Considered region:" << region_start << " - " << region_end << endl;
+                    out << e.message() << endl;
+                    out << "Variant out of region for transcript " << t.name() <<", chromosome " << t.chr().str()
+                        << " (" << t.start() << " - " << t.end() << "); ";
+                    out << "Variant start: " << variant.start() << "; end: " << variant.end()
+                        << "; start of shifted variant: " << var_for_anno.start() << "; end: " << var_for_anno.end()
+                        << " " << variant.isDel() << endl;
+                    out << "Considered region: " << region_start << " - " << region_end << endl;
                 }
-                csq.append(hgvsNomenclatureToString(hgvs, t));
-                if(idx != indices[indices.size()-1]) csq.append(",");
             }
 
-            //add CSQ to INFO field; keep all other infos
-            QByteArrayList info;
-            InfoIDToIdxPtr info_ptr = InfoIDToIdxPtr(new OrderedHash<QByteArray, int>);
-
-            bool csq_contained = false;
-
-            for(int i = 0; i < variant->infoKeys().size(); i++)
+            //add CSQ to INFO; keep all other infos
+            QByteArrayList info_list = parts[7].split(';');
+            int csq_idx = info_list.indexOf(tag);
+            if(csq_idx != -1)
             {
-                QByteArray key = variant->infoKeys().at(i);
-                if(key == "CSQ") csq_contained=true;
-                info_ptr->push_back(key, i);
-                info.append(variant->info(key));
-            }
-
-            if(csq_contained)
-            {
-                int csq_idx = info_ptr->operator []("CSQ");
-                info[csq_idx] = csq;
+                info_list[csq_idx] = tag + "=" + csq;
             }
             else
             {
-                info_ptr->push_back("CSQ", info_ptr->size());
-                info.append(csq);
+                info_list.append(tag + "=" + csq);
             }
-
-            variant->setInfo(info);
-            variant->setInfoIdToIdxPtr(info_ptr);
+            writeLine(writer, parts, pos, ref, alt, info_list.join(';'));
         }
-
-        vcf.store(out_file);
     }
 
-    void annotateVcfStream(const QString& in_file, const QString& out_file, const ChromosomalIndex<TranscriptList>& transcript_index,
-                           const FastaFileIndex& ref_file, const int& max_dist_to_trans, const int& splice_region_ex, const int& splice_region_in)
+    void writeLine(QSharedPointer<QFile>& writer, const QList<QByteArray>& parts, int pos, const QByteArray& ref, const QByteArray& alt, const QByteArray& info)
     {
-        TranscriptList transcripts = transcript_index.container();
+        char tab = '\t';
+        writer->write(parts[0]);
+        writer->write(&tab, 1);
+        writer->write(QByteArray::number(pos));
+        writer->write(&tab, 1);
+        writer->write(parts[2]);
+        writer->write(&tab, 1);
+        writer->write(ref);
+        writer->write(&tab, 1);
+        writer->write(alt);
+        writer->write(&tab, 1);
+        writer->write(parts[5]);
+        writer->write(&tab, 1);
+        writer->write(parts[6]);
+        writer->write(&tab, 1);
+        writer->write(info);
+        writer->write(&tab, 1);
+        if(parts.count() > 8)
+        {
+            for(int i=8; i<parts.count(); ++i)
+            {
+                writer->write(&tab, 1);
+                writer->write(parts[i]);
+            }
+        }
+        writer->write("\n");
     }
 
     QString hgvsNomenclatureToString(const HgvsNomenclature& hgvs, const Transcript& t)
@@ -163,7 +203,8 @@ private:
 
         //biotype
         if(t.isCoding()) csq.append("protein_coding|");
-        else csq.append("processed_transcript|");
+        else if(t.isValid()) csq.append("processed_transcript|");
+        else csq.append("|");
 
         //exon number
         if(hgvs.exon_number != -1) csq.append(QString::number(hgvs.exon_number) + "/" + QString::number(t.regions().count()) + "|");
@@ -173,7 +214,9 @@ private:
         if(hgvs.intron_number != -1) csq.append(QString::number(hgvs.intron_number) + "/" + QString::number(t.regions().count() - 1) + "|");
         else csq.append("|");
 
-        csq.append(hgvs.hgvs_c + "|" + hgvs.hgvs_p);
+        csq.append(hgvs.hgvs_c + "|");
+        QString hgvs_p = hgvs.hgvs_p;
+        csq.append(hgvs_p.replace("=", "%3D"));
 
         return csq;
     }
@@ -190,11 +233,11 @@ public:
         addInfile("in", "Input VCF file.", false);
         addInfile("gff", "GFF file with all interesting transcripts.", false);
         addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
-        addOutfile("out", "Output VCF file containing predicted consequences for each variant.", false);
+        addOutfile("out", "Output VCF file annotated with predicted consequences for each variant.", false);
 
         //optional
-        addFlag("all", "If set, all transcripts are imported (the default is to skip transcripts not labeled as with the 'GENCODE basic' tag).");
-        addFlag("stream", "Allows to stream the input and output VCF without loading the whole file into memory. Only supported with uncompressed VCF files.");
+        addFlag("all", "If set, all transcripts are imported (the default is to skip transcripts not labeled with the 'GENCODE basic' tag).");
+        addString("tag", "tag that is used for the consequence annotation", true, "CSQ");
         addInt("dist-to-trans", "maximum distance between variant and transcript", true, 5000);
         addInt("splice-region-ex", "number of bases at exon boundaries that are considered to be in the splice region", true, 3);
         addInt("splice-region-in", "number of bases at intron boundaries that are considered to be in the splice region", true, 8);
@@ -213,7 +256,7 @@ public:
         QString gff_file = getInfile("gff");
         QString out_file = getOutfile("out");
         bool all = getFlag("all");
-        bool stream = getFlag("stream");
+        QByteArray tag = getString("tag").toUtf8();
 
         int max_dist_to_trans = getInt("dist-to-trans");
         int splice_region_ex = getInt("splice-region-ex");
@@ -222,46 +265,12 @@ public:
         //parse gff file
         QMap<QByteArray, QByteArray> transcript_gene_relation;
         QMap<QByteArray, QByteArray> gene_name_relation;
-        QList<TranscriptData> t_data_list = NGSHelper::loadGffFile(gff_file, transcript_gene_relation, gene_name_relation, all);
-
-        TranscriptList transcripts;
-        foreach(TranscriptData t_data, t_data_list)
-        {
-            Transcript t;
-            t.setName(t_data.name);
-            t.setGene(t_data.gene_symbol);
-            t.setHgncId(t_data.hgnc_id);
-            t.setSource(Transcript::ENSEMBL);
-            t.setStrand(t_data.strand == "+" ? Transcript::PLUS : Transcript::MINUS);
-            int start_coding = 0;
-            int end_coding = 0;
-            if(t_data.start_coding != -1 && t_data.end_coding != -1)
-            {
-                start_coding = t_data.start_coding;
-                end_coding = t_data.end_coding;
-
-                if(t.strand() == Transcript::MINUS)
-                {
-                   int temp = start_coding;
-                   start_coding = end_coding;
-                   end_coding = temp;
-                }
-            }
-            t.setRegions(t_data.exons, start_coding, end_coding);
-            transcripts.append(t);
-        }
+        TranscriptList transcripts = NGSHelper::loadGffFile(gff_file, transcript_gene_relation, gene_name_relation, all);
 
         transcripts.sortByPosition();
         ChromosomalIndex<TranscriptList> transcript_index(transcripts);
 
-        if(stream)
-        {
-            annotateVcfStream(in_file, out_file, transcript_index, ref_file, max_dist_to_trans, splice_region_ex, splice_region_in);
-        }
-        else
-        {
-            annotateVcfFile(in_file, out_file, transcript_index, ref_file, max_dist_to_trans, splice_region_ex, splice_region_in);
-        }
+        annotateVcfStream(in_file, out_file, transcript_index, reference, max_dist_to_trans, splice_region_ex, splice_region_in, tag);
     }
 };
 

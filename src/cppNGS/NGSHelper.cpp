@@ -761,14 +761,14 @@ QMap<QByteArray, QByteArray> NGSHelper::parseGffAttributes(const QByteArray& att
     return output;
 }
 
-QList<TranscriptData> NGSHelper::loadGffFile(QString filename, QMap<QByteArray, QByteArray>& transcript_gene_relation,
-                                             QMap<QByteArray, QByteArray>& gene_name_relation, bool all)
+TranscriptList NGSHelper::loadGffFile(QString filename, QMap<QByteArray, QByteArray>& transcript_gene_relation,
+                                      QMap<QByteArray, QByteArray>& gene_name_relation, bool all)
 {
     transcript_gene_relation.clear();
     gene_name_relation.clear();
 
     QMap<QByteArray, TranscriptData> transcripts;
-    QList<TranscriptData> trans_list;
+    TranscriptList trans_list;
 
     QMap<QByteArray, QByteArray> gene_to_hgnc;
 
@@ -782,13 +782,31 @@ QList<TranscriptData> NGSHelper::loadGffFile(QString filename, QMap<QByteArray, 
         //section end => commit data
         if (line=="###")
         {
-            //import data
+            //convert from TranscriptData to Transcript and append to list
             auto it = transcripts.begin();
             while(it!=transcripts.end())
             {
                 TranscriptData& t_data = it.value();
                 t_data.exons.merge();
-                trans_list.append(t_data);
+                Transcript t;
+                t.setGene(t_data.gene_symbol);
+                t.setGeneId(t_data.gene_id);
+                t.setHgncId(t_data.hgnc_id);
+                t.setName(t_data.name);
+                t.setNameCcds(t_data.name_ccds);
+                t.setSource(Transcript::ENSEMBL);
+                t.setStrand(t_data.strand == "+" ? Transcript::PLUS : Transcript::MINUS);
+
+                int coding_start = t_data.start_coding;
+                int coding_end = t_data.end_coding;
+                if(t.strand() == Transcript::MINUS)
+                {
+                   int temp = coding_start;
+                   coding_start = coding_end;
+                   coding_end = temp;
+                }
+                t.setRegions(t_data.exons, coding_start, coding_end);
+                trans_list.append(t);
                 ++it;
             }
 
@@ -880,8 +898,8 @@ QList<TranscriptData> NGSHelper::loadGffFile(QString filename, QMap<QByteArray, 
 
             if (type=="CDS")
             {
-                t_data.start_coding = (t_data.start_coding==-1) ? start : std::min(start, t_data.start_coding);
-                t_data.end_coding = (t_data.end_coding==-1) ? end : std::max(end, t_data.end_coding);
+                t_data.start_coding = (t_data.start_coding==0) ? start : std::min(start, t_data.start_coding);
+                t_data.end_coding = (t_data.end_coding==0) ? end : std::max(end, t_data.end_coding);
             }
 
             //add coding exon

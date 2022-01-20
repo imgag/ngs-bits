@@ -46,8 +46,8 @@ struct TranscriptData
     QByteArray gene_id;
     QByteArray hgnc_id;
     QByteArray chr;
-    int start_coding = -1;
-    int end_coding = -1;
+    int start_coding = 0;
+    int end_coding = 0;
     QByteArray strand;
 
     BedFile exons;
@@ -97,8 +97,8 @@ public:
 	static QString populationCodeToHumanReadable(QString code);
 
     ///Fills a TranscriptList with features from a GFF file
-    static QList<TranscriptData> loadGffFile(QString filename, QMap<QByteArray, QByteArray>& transcript_gene_relation,
-                                             QMap<QByteArray, QByteArray>& gene_name_relation, bool all = false);
+    static TranscriptList loadGffFile(QString filename, QMap<QByteArray, QByteArray>& transcript_gene_relation,
+                                      QMap<QByteArray, QByteArray>& gene_name_relation, bool all = false);
 
     ///Parse attributes in GFF file line
     static QMap<QByteArray, QByteArray> parseGffAttributes(const QByteArray& attributes);
