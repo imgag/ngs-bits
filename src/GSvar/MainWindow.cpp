@@ -287,7 +287,24 @@ void MainWindow::on_actionDebug_triggered()
 		QTime timer;
 		timer.start();
 
-		on_actionReplicateNGSD_triggered();
+		//Delete genome samples that have small variants report config, but no variants imported (caused by error in NGSDReplicationWidget)
+		/*
+		NGSD db;
+		QList<int> ps_ids_with_small_variant_rc = db.getValuesInt("SELECT DISTINCT rc.processed_sample_id FROM report_configuration rc, report_configuration_variant rcv WHERE rc.id=rcv.report_configuration_id");
+		qDebug() << ps_ids_with_small_variant_rc.count();
+		QSet<int> ps_ids_with_variants_imported = db.getValuesInt("SELECT DISTINCT(processed_sample_id) FROM `detected_variant`").toSet();
+		qDebug() << ps_ids_with_variants_imported.count();
+		foreach(int ps_id, ps_ids_with_small_variant_rc)
+		{
+			if (!ps_ids_with_variants_imported.contains(ps_id))
+			{
+				QString ps_id_str = QString::number(ps_id);
+				QString rc_id = db.getValue("SELECT id FROM report_configuration WHERE processed_sample_id=:0",false, ps_id_str).toString();
+				//qDebug() << ps_id_str << db.processedSampleName(ps_id_str) << rc_id;
+				db.getQuery().exec("DELETE FROM `report_configuration_variant` WHERE `report_configuration_id`='"+rc_id+"'");
+			}
+		}
+		*/
 
 		//Check HPO terms in NGSD
 		/*
