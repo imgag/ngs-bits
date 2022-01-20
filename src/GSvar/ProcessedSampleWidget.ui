@@ -134,7 +134,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="rna_btn">
+          <widget class="QToolButton" name="rna_btn">
            <property name="enabled">
             <bool>false</bool>
            </property>
@@ -144,6 +144,9 @@
            <property name="icon">
             <iconset resource="GSvar.qrc">
              <normaloff>:/Icons/RNA.png</normaloff>:/Icons/RNA.png</iconset>
+           </property>
+           <property name="popupMode">
+            <enum>QToolButton::InstantPopup</enum>
            </property>
           </widget>
          </item>
