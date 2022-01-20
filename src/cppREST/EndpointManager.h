@@ -29,6 +29,12 @@ struct CPPRESTSHARED_EXPORT ParamProps
 	}	
 };
 
+typedef enum
+{
+	HTTP_BASIC_AUTH,
+	SECURE_TOKEN
+} AuthType;
+
 struct CPPRESTSHARED_EXPORT Endpoint
 {
 	QString url;

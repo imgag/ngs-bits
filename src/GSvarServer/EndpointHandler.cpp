@@ -459,7 +459,7 @@ HttpResponse EndpointHandler::performLogin(const HttpRequest& request)
 	if (message.isEmpty())
 	{
 		QString secure_token = ServerHelper::generateUniqueStr();
-		Session cur_session = Session{request.getFormUrlEncoded()["name"], QDateTime::currentDateTime()};
+		Session cur_session = Session(request.getFormUrlEncoded()["name"], QDateTime::currentDateTime());
 
 		SessionManager::addNewSession(secure_token, cur_session);
 		body = secure_token.toLocal8Bit();
