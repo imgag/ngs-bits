@@ -129,8 +129,8 @@ struct CPPNGSSHARED_EXPORT HgvsNomenclature
             case VariantConsequenceType::STOP_RETAINED_VARIANT: return "stop_retained_variant";
             case VariantConsequenceType::SYNONYMOUS_VARIANT: return "synonymous_variant";
             case VariantConsequenceType::CODING_SEQUENCE_VARIANT: return "coding_sequence_variant";
-            case VariantConsequenceType::FIVE_PRIME_UTR_VARIANT: return "5_prime_utr_variant";
-            case VariantConsequenceType::THREE_PRIME_UTR_VARIANT: return "3_prime_utr_variant";
+            case VariantConsequenceType::FIVE_PRIME_UTR_VARIANT: return "5_prime_UTR_variant";
+            case VariantConsequenceType::THREE_PRIME_UTR_VARIANT: return "3_prime_UTR_variant";
             case VariantConsequenceType::NON_CODING_TRANSCRIPT_EXON_VARIANT: return "non_coding_transcript_exon_variant";
             case VariantConsequenceType::INTRON_VARIANT: return "intron_variant";
             case VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT: return "non_coding_transcript_variant";
