@@ -8,14 +8,6 @@ namespace Ui {
 class ExpressionDataWidget;
 }
 
-//// custom QTableWidgetItem class to allow inplace sorting of doubles
-//class NumericWidgetItem: public QTableWidgetItem
-//{
-//public:
-//	NumericWidgetItem(QString text);
-//	bool operator< (const QTableWidgetItem &other) const;
-//};
-
 class ExpressionDataWidget : public QWidget
 {
 	Q_OBJECT

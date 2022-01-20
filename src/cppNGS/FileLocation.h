@@ -39,6 +39,7 @@ enum class PathType
 	MANTA_FUSIONS, //fusions determined by manta (BEDPE format)
 	COUNTS, //gene/transcript counts from RNA (TSV format)
 	EXPRESSION, //relative RNA expressions values from RNA (TSV format)
+	EXPRESSION_COHORT, //relative RNA expressions values from RNA cohort of this sample (TSV format)
 	SPLICING_BED, //splicing junctions from RNA (BED format)
 	VIRAL, //viral DNA detected in tumor samples (TSV format)
 	VCF_CF_DNA, //cfDNA variants file (VCF format)
@@ -144,6 +145,8 @@ struct FileLocation
 				return "QC";
 			case PathType::EXPRESSION:
 				return "EXPRESSION";
+			case PathType::EXPRESSION_COHORT:
+				return "EXPRESSION_COHORT";
 			case PathType::MRD_CF_DNA:
 				return "MRD_CF_DNA";
 		}
@@ -184,6 +187,7 @@ struct FileLocation
 		if (in_upper == "QC") return PathType::QC;
 		if (in_upper == "OTHER") return PathType::OTHER;
 		if (in_upper == "EXPRESSION") return PathType::EXPRESSION;
+		if (in_upper == "EXPRESSION_COHORT") return PathType::EXPRESSION_COHORT;
 		if (in_upper == "MRD_CF_DNA") return PathType::MRD_CF_DNA;
 		THROW(ProgrammingException, "Unhandled path type string '" + in_upper + "' in stringToType()!");
 	}
@@ -252,6 +256,8 @@ struct FileLocation
 				return "variant list QC (qcML) files";
 			case PathType::EXPRESSION:
 				return "RNA relative expression";
+			case PathType::EXPRESSION_COHORT:
+				return "RNA relative expression of cohort";
 			case PathType::MRD_CF_DNA:
 				return "measurable residual disease value (umiVar 2)";
 		}

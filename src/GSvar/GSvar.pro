@@ -105,7 +105,8 @@ SOURCES += main.cpp\
     BlatWidget.cpp \
     AnalysisInformationWidget.cpp \
     PhenotypeSourceEvidenceSelector.cpp \
-    FusionWidget.cpp
+    FusionWidget.cpp \
+    CohortExpressionDataWidget.cpp
 
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
@@ -207,7 +208,8 @@ HEADERS += MainWindow.h \
     CacheInitWorker.h \
     AnalysisInformationWidget.h \
     PhenotypeSourceEvidenceSelector.h \
-    FusionWidget.h
+    FusionWidget.h \
+    CohortExpressionDataWidget.h
 
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
@@ -295,7 +297,8 @@ FORMS    += MainWindow.ui \
     LiftOverWidget.ui \
     AnalysisInformationWidget.ui \
     PhenotypeSourceEvidenceSelector.ui \
-    FusionWidget.ui
+    FusionWidget.ui \
+    CohortExpressionDataWidget.ui
 
 include("../app_gui.pri")
 
