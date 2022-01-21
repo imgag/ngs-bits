@@ -1,5 +1,5 @@
-#ifndef USERPERMISSIONS_H
-#define USERPERMISSIONS_H
+#ifndef USERPERMISSIONLIST_H
+#define USERPERMISSIONLIST_H
 
 #include "cppNGSD_global.h"
 #include "Exceptions.h"
@@ -16,60 +16,50 @@ enum class Permission
 	UNDEFINED // no persmissions available
 };
 
-struct UserPermissions
+struct UserPermission
 {
 	int user_id;
-	QList<Permission> item_list;
+	Permission permission;
+	QString data;
+};
 
-	UserPermissions()
+class CPPNGSDSHARED_EXPORT UserPermissionList
+	: public QList<UserPermission>
+{
+
+public:
+	UserPermissionList()
 	{
 	}
 
-	UserPermissions(int user_id_)
-		:user_id(user_id_)
+	UserPermissionList(UserPermission permission)
 	{
+		item_list_.append(permission);
 	}
 
-	UserPermissions(int user_id_, Permission permission)
-		:user_id(user_id_)
+	UserPermissionList(QList<UserPermission> permissions)
 	{
-		item_list.append(permission);
+		setPermissions(permissions);
 	}
 
-	UserPermissions(int user_id_, QList<Permission> permissions)
-		:user_id(user_id_)
+	void setPermissions(QList<UserPermission> permissions)
 	{
-		item_list = permissions;
+		item_list_ = permissions;
 	}
 
-	void setUserId(int user_id_)
+	QList<UserPermission> getPermissions()
 	{
-		user_id = user_id_;
+		return item_list_;
 	}
 
-	int getUserId()
+	void addPermission(UserPermission permission)
 	{
-		return user_id;
-	}
-
-	void setPermissions(QList<Permission> permissions)
-	{
-		item_list = permissions;
-	}
-
-	QList<Permission> getPermissions()
-	{
-		return item_list;
-	}
-
-	void addPermission(Permission permissions)
-	{
-		item_list.append(permissions);
+		item_list_.append(permission);
 	}
 
 	void removeAllPermissions()
 	{
-		item_list.clear();
+		item_list_.clear();
 	}
 
 	static Permission stringToType(const QString& in)
@@ -103,9 +93,7 @@ struct UserPermissions
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)in) + "' in typeToString()!");
 	}
 
-//	QString typeAsString() const
-//	{
-//		return typeToString(item);
-//	}
+private:
+	QList<UserPermission> item_list_;
 };
-#endif // USERPERMISSIONS_H
+#endif // USERPERMISSIONLIST_H

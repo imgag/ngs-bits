@@ -2,9 +2,8 @@
 #define USERPERMISSIONPROVIDER_H
 
 #include "cppNGSD_global.h"
-#include "UserPermissions.h"
+#include "UserPermissionList.h"
 #include "NGSD.h"
-
 
 class CPPNGSDSHARED_EXPORT UserPermissionProvider
 {
@@ -12,11 +11,13 @@ public:
 	UserPermissionProvider(int user_id);
 
 	///Returns all permissions for a predefined user
-	UserPermissions getUserPermissions();
+	UserPermissionList getUserPermissions();
+
+	bool isEligibleToAccessProcessedSample(QString ps_name);
 
 private:
 	int user_id_;
-	UserPermissions user_permissions_;
+	UserPermissionList user_permissions_;
 
 };
 
