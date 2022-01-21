@@ -382,7 +382,10 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 		if (samples.size() > 0) dlg.setSamples(samples);
 		if (dlg.exec()==QDialog::Accepted)
 		{
-			db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
+			foreach(const AnalysisJobSample& sample,  dlg.samples())
+			{
+				db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
+			}
 		}
 	}
 	else if (type==GERMLINE_MULTISAMPLE)
