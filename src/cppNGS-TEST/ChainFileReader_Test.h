@@ -89,72 +89,72 @@ private slots:
 		}
 	}
 
-	void test_bed_hg38Tohg19()
-	{
-		QString hg38_to_hg19 = "C:/Users/ahott1a1/data/liftOver/hg38ToHg19.over.chain";
-		ChainFileReader r;
-		r.load(hg38_to_hg19);
+//	void test_bed_hg38Tohg19()
+//	{
+//		QString hg38_to_hg19 = "C:/Users/ahott1a1/data/liftOver/hg38ToHg19.over.chain";
+//		ChainFileReader r;
+//		r.load(hg38_to_hg19);
 
-		QSharedPointer<QFile> bed = Helper::openFileForReading("C:/Users/ahott1a1/data/NA12878_45_var.bed");
-		QSharedPointer<QFile> out = Helper::openFileForReading("C:/Users/ahott1a1/data/NA12878_45_var_lifted_with_server.bed");
-		int line = 0;
-		while (! out->atEnd())
-		{
-			line ++;
-			QByteArray bed_line = bed->readLine().trimmed();
-			QByteArray out_line = out->readLine().trimmed();
+//		QSharedPointer<QFile> bed = Helper::openFileForReading("C:/Users/ahott1a1/data/NA12878_45_var.bed");
+//		QSharedPointer<QFile> out = Helper::openFileForReading("C:/Users/ahott1a1/data/NA12878_45_var_lifted_with_server.bed");
+//		int line = 0;
+//		while (! out->atEnd())
+//		{
+//			line ++;
+//			QByteArray bed_line = bed->readLine().trimmed();
+//			QByteArray out_line = out->readLine().trimmed();
 
-			QList<QByteArray> bed_parts = bed_line.split('\t');
-			QByteArray chr = bed_parts[0];
-			int start = bed_parts[1].toInt();
-			int end = bed_parts[2].toInt();
-			BedLine lifted;
+//			QList<QByteArray> bed_parts = bed_line.split('\t');
+//			QByteArray chr = bed_parts[0];
+//			int start = bed_parts[1].toInt();
+//			int end = bed_parts[2].toInt();
+//			BedLine lifted;
 
-			try
-			{
-//				std::cout << "line:\t" << line <<"\n";
-				lifted = r.lift(chr, start, end);
+//			try
+//			{
+////				std::cout << "line:\t" << line <<"\n";
+//				lifted = r.lift(chr, start, end);
 
-			}
-			catch (ArgumentException e)
-			{
-				if ( ! out_line.contains("ERROR"))
-				{
-					std::cout << "To lift: " + bed_line.toStdString() + "\n";
-					THROW(ArgumentException, "Code threw error but shouldn't have:" + e.message())
-				}
-				else
-				{
-					continue;
-					// fine both threw error
-				}
-			}
+//			}
+//			catch (ArgumentException e)
+//			{
+//				if ( ! out_line.contains("ERROR"))
+//				{
+//					std::cout << "To lift: " + bed_line.toStdString() + "\n";
+//					THROW(ArgumentException, "Code threw error but shouldn't have:" + e.message())
+//				}
+//				else
+//				{
+//					continue;
+//					// fine both threw error
+//				}
+//			}
 
-			if (out_line.contains("ERROR"))
-			{
-				std::cout << "To lift:   " + bed_line.toStdString() + "\n";
-				std::cout << "lifted to: " + lifted.toString(true).toStdString() + "\n";
-				THROW(ArgumentException, "Code should have thrown an error: " + out_line)
-			}
+//			if (out_line.contains("ERROR"))
+//			{
+//				std::cout << "To lift:   " + bed_line.toStdString() + "\n";
+//				std::cout << "lifted to: " + lifted.toString(true).toStdString() + "\n";
+//				THROW(ArgumentException, "Code should have thrown an error: " + out_line)
+//			}
 
-			QList<QByteArray> out_parts = out_line.split('\t');
-			QByteArray out_chr = out_parts[0];
-			int out_start = out_parts[1].toInt();
-			int out_end = out_parts[2].toInt();
+//			QList<QByteArray> out_parts = out_line.split('\t');
+//			QByteArray out_chr = out_parts[0];
+//			int out_start = out_parts[1].toInt();
+//			int out_end = out_parts[2].toInt();
 
-			if (QString(lifted.chr().str()) != QString(out_chr) || lifted.start() != out_start || lifted.end() != out_end)
-			{
-				std::cout << "To lift:   " + bed_line.toStdString() + "\n";
-				std::cout << "lifted to: " + lifted.toString(true).toStdString() + "\n";
-				std::cout << "expected:  " + out_line.toStdString() + "\n";
-			}
+//			if (QString(lifted.chr().str()) != QString(out_chr) || lifted.start() != out_start || lifted.end() != out_end)
+//			{
+//				std::cout << "To lift:   " + bed_line.toStdString() + "\n";
+//				std::cout << "lifted to: " + lifted.toString(true).toStdString() + "\n";
+//				std::cout << "expected:  " + out_line.toStdString() + "\n";
+//			}
 
-			S_EQUAL(QString(lifted.chr().str()), QString(out_chr));
-			I_EQUAL(lifted.start(), out_start);
-			I_EQUAL(lifted.end(), out_end);
-		}
+//			S_EQUAL(QString(lifted.chr().str()), QString(out_chr));
+//			I_EQUAL(lifted.start(), out_start);
+//			I_EQUAL(lifted.end(), out_end);
+//		}
 
-	}
+//	}
 
 //	void writeTestFileFromServer()
 //	{
