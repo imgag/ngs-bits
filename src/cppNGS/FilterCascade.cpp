@@ -2355,7 +2355,7 @@ FilterTrio::FilterTrio()
 	params_ << FilterParameter("gender_child", FilterParameterType::STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
 	params_.last().constraints["valid"] = "male,female,n/a";
 
-	params_ << FilterParameter("build", FilterParameterType::STRING, "hg19", "Genome build used for pseudoautosomal region coordinates");
+	params_ << FilterParameter("build", FilterParameterType::STRING, "hg38", "Genome build used for pseudoautosomal region coordinates");
 	params_.last().constraints["valid"] = "hg19,hg38";
 
 	checkIsRegistered();
@@ -3710,8 +3710,10 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 			if (!result.flags()[i]) continue;
 
 			QSet<QString> sv_entries = QString(svs[i].annotations()[filter_col_index]).split(';').toSet();
-			// check if intersection of both list == 0 -> remove entry otherwise
-			result.flags()[i] = (sv_entries.intersect(filter_entries).size() == 0);
+			if (sv_entries.intersects(filter_entries))
+			{
+				result.flags()[i] = false;
+			}
 		}
 	}
 	else if (action=="FILTER")
@@ -3721,7 +3723,6 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 			if (!result.flags()[i]) continue;
 
 			QSet<QString> sv_entries = QString(svs[i].annotations()[filter_col_index]).split(';').toSet();
-			// compute intersection
 			if (!sv_entries.intersects(filter_entries))
 			{
 				result.flags()[i] = false;
@@ -3733,15 +3734,9 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 		for(int i=0; i<svs.count(); ++i)
 		{
 			QSet<QString> sv_entries = QString(svs[i].annotations()[filter_col_index]).split(';').toSet();
-			// iterate over list of required entries
-			foreach (QString filter_entry, filter_entries)
+			if (sv_entries.intersects(filter_entries))
 			{
-				if (sv_entries.contains(filter_entry))
-				{
-					// display SV if at least one of the provided filter entries match
-					result.flags()[i] = true;
-					break;
-				}
+				result.flags()[i] = true;
 			}
 		}
 	}
