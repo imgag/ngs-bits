@@ -1811,6 +1811,36 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 		dlg.addFile(FileLocation{name, PathType::OTHER, filename, QFile::exists(filename)}, action->isChecked());
 	}
 
+	//related RNA tracks
+	if (LoginManager::active())
+	{
+		NGSD db;
+
+		QString sample_id = db.sampleId(filename_, false);
+		if (sample_id!="")
+		{
+			foreach (int rna_sample_id, db.relatedSamples(sample_id.toInt(), "same sample", "RNA"))
+			{
+				// iterate over all processed RNA samples
+				foreach (const QString& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", QString::number(rna_sample_id)))
+				{
+					//add RNA BAM
+					FileLocation rna_bam_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::BAM);
+					qDebug() << rna_bam_file.filename;
+					if (rna_bam_file.exists) dlg.addFile(rna_bam_file, false);
+
+					//add fusions BAM
+					FileLocation rna_fusions_bam_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS_BAM);
+					if (rna_fusions_bam_file.exists) dlg.addFile(rna_fusions_bam_file, false);
+
+					//add splicing BED
+					FileLocation rna_splicing_bed_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::SPLICING_BED);
+					if (rna_splicing_bed_file.exists) dlg.addFile(rna_splicing_bed_file, false);
+				}
+			}
+		}
+	}
+
 	// switch to MainWindow to prevent dialog to appear behind other widgets
 	raise();
 	activateWindow();
@@ -2921,9 +2951,9 @@ void MainWindow::loadFile(QString filename)
 					FileLocation rna_count_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION);
 					if (rna_count_file.exists) ui_.actionExpressionData->setEnabled(true);
 
-					// search for manta fusion file
-					FileLocation manta_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS);
-					if (manta_fusion_file.exists) ui_.actionShowRnaFusions->setEnabled(true);
+					// search for arriba fusion file
+					FileLocation arriba_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS);
+					if (arriba_fusion_file.exists) ui_.actionShowRnaFusions->setEnabled(true);
 
 					// search for cohort fusion file
 					FileLocation cohort_expression_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_COHORT);
