@@ -3541,8 +3541,16 @@ void MainWindow::generateReportSomaticRTF()
 	somatic_report_settings_.normal_ps = ps_normal;
 
 	somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
-	somatic_report_settings_.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions( db.processingSystemIdFromProcessedSample(ps_tumor) );
-	somatic_report_settings_.processing_system_genes = db.genesToApproved( GlobalServiceProvider::database().processingSystemGenes(db.processingSystemIdFromProcessedSample(ps_tumor)), true );
+	if(ui_.filters->targetRegion().name != "somatic_custom_panel")
+	{
+		somatic_report_settings_.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions( db.processingSystemIdFromProcessedSample(ps_tumor) );
+		somatic_report_settings_.processing_system_genes = db.genesToApproved( GlobalServiceProvider::database().processingSystemGenes(db.processingSystemIdFromProcessedSample(ps_tumor)), true );
+	}
+	else
+	{
+		somatic_report_settings_.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions( db.processingSystemId("somatic_custom_panel") );
+		somatic_report_settings_.processing_system_genes = db.genesToApproved( GlobalServiceProvider::database().processingSystemGenes( db.processingSystemId("somatic_custom_panel") ), true );
+	}
 
 
 	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
@@ -3635,7 +3643,6 @@ void MainWindow::generateReportSomaticRTF()
 
 			//Store XML file with the same somatic report configuration settings
 			QString gsvar_xml_folder = Settings::path("gsvar_xml_folder");
-
 			try
 			{
 				report.storeXML(gsvar_xml_folder + "\\" + somatic_report_settings_.tumor_ps + "-" + somatic_report_settings_.normal_ps + ".xml");
@@ -3649,12 +3656,12 @@ void MainWindow::generateReportSomaticRTF()
 			QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
 
 			report.storeRtf(temp_filename);
-
 			ReportWorker::moveReport(temp_filename, file_rep);
 
 			//Generate files for QBIC upload
 			QString path = Settings::string("qbic_data_path") + "/" + ps_tumor + "-" + ps_normal;
 			report.storeQbicData(path);
+
 			QApplication::restoreOverrideCursor();
 		}
 		catch(Exception& error)

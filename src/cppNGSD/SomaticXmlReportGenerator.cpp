@@ -27,19 +27,35 @@ SomaticXmlReportGeneratorData::SomaticXmlReportGeneratorData(GenomeBuild genome_
 
 void SomaticXmlReportGeneratorData::check() const
 {
-	bool valid = true;
+	QStringList messages;
 
-	if( settings.report_config.tumContentByHistological() && !BasicStatistics::isValidFloat(tumor_content_histology)) valid = false;
-
-	if( settings.report_config.tumContentByMaxSNV() && !BasicStatistics::isValidFloat(tumor_content_snvs)) valid = false;
-	if( settings.report_config.tumContentByClonality() && !BasicStatistics::isValidFloat(tumor_content_clonality) ) valid = false;
-
-	if( !BasicStatistics::isValidFloat(tumor_mutation_burden)) valid = false;
-	if( settings.report_config.msiStatus() && !BasicStatistics::isValidFloat(mantis_msi)) valid = false;
-
-	if(!valid)
+	if( settings.report_config.tumContentByHistological() && !BasicStatistics::isValidFloat(tumor_content_histology))
 	{
-		THROW(ArgumentException, "Invalid data in SomaticXmlReportGeneratorData!");
+		messages << "Tumor content by histology selected but value is not valid float";
+	}
+
+	if( settings.report_config.tumContentByMaxSNV() && !BasicStatistics::isValidFloat(tumor_content_snvs))
+	{
+		messages << "Tumor content by median SNV B-AF selected but value is not valid float";
+	}
+
+	if( settings.report_config.tumContentByClonality() && !BasicStatistics::isValidFloat(tumor_content_clonality) )
+	{
+		messages << "Tumor content by maximum CNV clonality selected but value is not valid float";
+	}
+
+	if( !BasicStatistics::isValidFloat(tumor_mutation_burden))
+	{
+		messages << "Tumor mutation burden is not a valid float";
+	}
+	if( settings.report_config.msiStatus() && !BasicStatistics::isValidFloat(mantis_msi))
+	{
+		messages << "MSI status selected but value is not valid float";
+	}
+
+	if(messages.count() > 0)
+	{
+		THROW(ArgumentException, "Invalid data in SomaticXmlReportGeneratorData! Messages: " + messages.join(",\n"));
 	}
 
 	SomaticXmlReportGenerator::checkSomaticVariantAnnotation(tumor_snvs);
