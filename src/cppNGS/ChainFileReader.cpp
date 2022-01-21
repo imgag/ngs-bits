@@ -13,25 +13,25 @@ ChainFileReader::~ChainFileReader()
 
 }
 
-GenomePosition ChainFileReader::lift(const GenomePosition& pos) const
+GenomePosition ChainFileReader::lift(const QByteArray& chr, int pos) const
 {
-	if ( ! chromosomes.contains(pos.chr))
+	if ( ! chromosomes.contains(chr))
 	{
-		THROW(ArgumentException, "Position to lift is in unknown chromosome. Tried to lift:" + pos.toString());
+		THROW(ArgumentException, "Position to lift is in unknown chromosome. Tried to lift: chr" + chr +": " + QByteArray::number(pos));
 	}
-	if (pos.pos < 0 || pos.pos > ref_chrom_sizes[pos.chr])
+	if (pos < 0 || pos > ref_chrom_sizes[chr])
 	{
-		THROW(ArgumentException, "Position to lift is outside of the chromosome size for chromosome. Tried to lift:" + pos.toString());
+		THROW(ArgumentException, "Position to lift is outside of the chromosome size for chromosome. Tried to lift: " + chr +": " + QByteArray::number(pos));
 	}
-	QList<GenomicAlignment> alignments = chromosomes[pos.chr];
+	QList<GenomicAlignment> alignments = chromosomes[chr];
 
 	// TODO binary search ?
 	foreach(const GenomicAlignment& a, alignments)
 	{
-		if (a.contains(pos))
+		if (a.contains(chr, pos))
 		{
-			GenomePosition lifted = a.lift(pos);
-			if (lifted.chr == "") // if returned is invalid the given position might be aligned to a gap in this alignment search for another.
+			GenomePosition lifted = a.lift(chr, pos);
+			if (lifted.chr == "" || lifted.pos == -1) // if returned is invalid the given position might be aligned to a gap in this alignment search for another.
 			{
 				continue;
 			}
@@ -43,6 +43,38 @@ GenomePosition ChainFileReader::lift(const GenomePosition& pos) const
 	}
 
 	THROW(ArgumentException, "The given position is in an unmapped region!")
+}
+
+BedLine ChainFileReader::lift(const QByteArray &chr, int start, int end) const
+{
+	BedLine bed;
+	GenomePosition lifted_start = lift(chr, start);
+	GenomePosition lifted_end = lift(chr, end);
+
+	if (lifted_start.chr != lifted_end.chr)
+	{
+		THROW(ArgumentException, "The start and end of the given region map to different chromosomes!")
+	}
+
+	if (std::abs(lifted_start.pos - lifted_end.pos) < end-start)
+	{
+		THROW(ArgumentException, "The new region maps to smaller region!")
+	}
+
+	bed.setChr(Chromosome(lifted_start.chr));
+
+	if (lifted_start.pos < lifted_end.pos)
+	{
+		bed.setStart(lifted_start.pos);
+		bed.setEnd(lifted_end.pos);
+	}
+	else
+	{
+		bed.setStart(lifted_end.pos);
+		bed.setEnd(lifted_start.pos);
+	}
+
+	return bed;
 }
 
 void ChainFileReader::load(QString filepath)

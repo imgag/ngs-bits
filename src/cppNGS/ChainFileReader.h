@@ -6,6 +6,7 @@
 #include <QFile>
 #include "Helper.h"
 #include <iostream>
+#include "BedFile.h"
 
 struct AlignmentLine
 {
@@ -125,8 +126,8 @@ struct GenomicAlignment
 				}
 				else
 				{
-					std::cout << "q current pos: " << q_current_pos <<  "\tlast bit:  " << last_bit << "\tq_chr_size:" << q_chr_size << "\n";
-					return GenomePosition(q_chr, q_chr_size - (q_current_pos + last_bit));
+					//std::cout << "q current pos: " << q_current_pos <<  "\tlast bit:  " << last_bit << "\tq_chr_size:" << q_chr_size << "\n";
+					return GenomePosition(q_chr, q_chr_size - (q_current_pos + last_bit) + 1);
 				}
 
 			}
@@ -199,7 +200,9 @@ public:
 	~ChainFileReader();
 
 	void load(QString filepath);
-	GenomePosition lift(const GenomePosition& pos) const;
+	GenomePosition lift(const QByteArray& chr, int pos) const;
+	BedLine lift(const QByteArray& chr, int start, int end) const;
+
 
 	const QHash<QByteArray, int>& refChromSizes()
 	{
