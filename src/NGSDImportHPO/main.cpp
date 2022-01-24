@@ -60,7 +60,7 @@ public:
 			original_evidence = QStringList();
 			translated_evidence = QList<PhenotypeEvidence::Evidence>();
 
-			sources.append(PhenotypeSource::SourceFromString(s));
+			sources.append(PhenotypeSource::sourceFromString(s));
 			original_evidence.append(QString(original_evi));
 			translated_evidence.append(translated_evi);
 		}
@@ -72,12 +72,12 @@ public:
 
 		bool contains(const QByteArray& s)
 		{
-			return sources.contains(PhenotypeSource::SourceFromString(s));
+			return sources.contains(PhenotypeSource::sourceFromString(s));
 		}
 
 		bool contains(const QString& s)
 		{
-			return sources.contains(PhenotypeSource::SourceFromString(s));
+			return sources.contains(PhenotypeSource::sourceFromString(s));
 		}
 
 		int getIndexOfSource(const PhenotypeSource::Source& s)
@@ -94,7 +94,7 @@ public:
 
 		void append(const QByteArray& s, const QString& original_evi, PhenotypeEvidence::Evidence translated_evi)
 		{
-			sources.append(PhenotypeSource::SourceFromString(s));
+			sources.append(PhenotypeSource::sourceFromString(s));
 			original_evidence.append(original_evi);
 			translated_evidence.append(translated_evi);
 		}
@@ -548,7 +548,7 @@ public:
 				}
 
 			}
-			return cleaned_parts;;
+			return cleaned_parts;
 		}
 
 		return parts;

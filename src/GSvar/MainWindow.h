@@ -413,12 +413,12 @@ private:
 	BedpeFile svs_;
 	FilterResult filter_result_;
 	QString last_report_path_;
-	PhenotypeList last_phenos_;
 	bool filter_phenos_;
-	BedFile last_phenos_roi_;
+	PhenotypeList last_phenos_;
 	QList<PhenotypeEvidence::Evidence> last_phenotype_evidences_;
 	QList<PhenotypeSource::Source> last_phenotype_sources_;
-    QHash<QByteArray, BedFile> gene2region_cache_;
+	BedFile last_phenos_roi_;
+	QHash<QByteArray, BedFile> gene2region_cache_;
 	ReportSettings report_settings_;
 	QString germline_report_ps_;
 	SomaticReportSettings somatic_report_settings_;

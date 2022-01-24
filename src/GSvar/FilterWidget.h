@@ -132,8 +132,8 @@ private:
 	TargetRegionInfo roi_;
 	GeneSet last_genes_;
 	PhenotypeList phenotypes_;
-	QList<PhenotypeSource::Source> allowedPhenotypeSources_;
-	QList<PhenotypeEvidence::Evidence> allowedPhenotypeEvidences_;
+	QList<PhenotypeSource::Source> allowed_phenotype_sources_;
+	QList<PhenotypeEvidence::Evidence> allowed_phenotype_evidences_;
 
 };
 

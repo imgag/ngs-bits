@@ -24,7 +24,8 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 	/// returns a QString representation für the given evidence
 	static QString evidenceToString(const Evidence& e)
 	{
-		switch (e) {
+		switch (e)
+		{
 			case Evidence::NA:
 				return "n/a";
 			case Evidence::AGAINST:
@@ -200,7 +201,8 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 		{
 			return PhenotypeEvidence::NA;
 		}
-		else if (e=="LOW") {
+		else if (e=="LOW")
+		{
 			return PhenotypeEvidence::LOW;
 		}
 		else if (e=="MED" || e=="MEDIUM")
@@ -243,7 +245,8 @@ struct CPPNGSSHARED_EXPORT PhenotypeSource
 	/// returns a QString representation für the given phenotype source
 	static QString sourceToString(Source src)
 	{
-		switch (src) {
+		switch (src)
+		{
 			case Source::HPO:
 				return "HPO";
 				break;
@@ -269,7 +272,7 @@ struct CPPNGSSHARED_EXPORT PhenotypeSource
 		}
 	}
 	/// return the corresponding phenotype source for a given string
-	static Source SourceFromString(QString s)
+	static Source sourceFromString(QString s)
 	{
 		s = s.toLower();
 		if (s == "hpo")
@@ -299,9 +302,9 @@ struct CPPNGSSHARED_EXPORT PhenotypeSource
 		THROW(TypeConversionException, "Cannot convert String: '" + s + "' to Phenotype Source.")
 	}
 	/// return the corresponding phenotype source for a given string
-	static Source SourceFromString(const QByteArray& s)
+	static Source sourceFromString(const QByteArray& s)
 	{
-		return SourceFromString(QString(s));
+		return sourceFromString(QString(s));
 	}
 };
 
