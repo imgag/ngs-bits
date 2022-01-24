@@ -22,48 +22,45 @@ UserPermissionList UserPermissionProvider::getUserPermissions()
 	return user_permissions_;
 }
 
-bool UserPermissionProvider::isEligibleToAccessProcessedSample(QString ps_name)
+bool UserPermissionProvider::isEligibleToAccessProcessedSampleById(QString ps_id)
+{
+	NGSD db;
+	for(int i = 0; i < user_permissions_.size(); i++)
+	{
+		switch(user_permissions_[i].permission)
+		{
+			case Permission::META_DATA:
+				return false; // not implementent so far
+			case Permission::PROJECT:
+				if (user_permissions_[i].data == db.getValue("SELECT project_id FROM processed_sample WHERE id='"+ ps_id +"'").toString())
+				{
+					return true;
+				}
+			case Permission::PROJECT_TYPE:
+				if (user_permissions_[i].data.toLower() == db.getValue("SELECT type FROM project INNER JOIN processed_sample ON project.id=processed_sample.project_id WHERE processed_sample.id='"+ ps_id +"'").toString().toLower())
+				{
+					return true;
+				}
+			case Permission::STUDY:
+				if (user_permissions_[i].data.toLower() == db.getValue("SELECT study_id FROM study_sample INNER JOIN processed_sample ON study_sample.processed_sample_id=processed_sample.id WHERE processed_sample.id='"+ ps_id +"'").toString().toLower())
+				{
+					return true;
+				}
+			case Permission::SAMPLE:
+				if (user_permissions_[i].data.toLower() == db.getValue("SELECT sample_id FROM processed_sample INNER JOIN sample ON processed_sample.sample_id=sample.id WHERE processed_sample.id='"+ ps_id +"'").toString().toLower())
+				{
+					return true;
+				}
+			case Permission::UNDEFINED:
+				return false;
+		}
+	}
+	return false;
+}
+
+bool UserPermissionProvider::isEligibleToAccessProcessedSampleByName(QString ps_name)
 {
 	NGSD db;
 	QString ps_id = db.processedSampleId(ps_name);
-
-	for(int i = 0; i < user_permissions_.size(); i++)
-	{
-		if (user_permissions_[i].permission == Permission::PROJECT)
-		{
-
-			if (user_permissions_[i].data == db.getValue("SELECT project_id FROM processed_sample WHERE id='"+ ps_id +"'").toString())
-			{
-				return true;
-			}
-
-		}
-		if (user_permissions_[i].permission == Permission::PROJECT_TYPE)
-		{
-
-			if (user_permissions_[i].data.toLower() == db.getValue("SELECT type FROM project INNER JOIN processed_sample ON project.id=processed_sample.project_id WHERE processed_sample.id='"+ ps_id +"'").toString().toLower())
-			{
-				return true;
-			}
-		}
-		if (user_permissions_[i].permission == Permission::STUDY)
-		{
-
-			if (user_permissions_[i].data.toLower() == db.getValue("SELECT study_id FROM study_sample INNER JOIN processed_sample ON study_sample.processed_sample_id=processed_sample.id WHERE processed_sample.id='"+ ps_id +"'").toString().toLower())
-			{
-				return true;
-			}
-		}
-
-		if (user_permissions_[i].permission == Permission::SAMPLE)
-		{
-
-			if (user_permissions_[i].data.toLower() == db.getValue("SELECT study_id FROM study_sample INNER JOIN processed_sample ON study_sample.processed_sample_id=processed_sample.id WHERE processed_sample.id='"+ ps_id +"'").toString().toLower())
-			{
-				return true;
-			}
-		}
-	}
-
-	return false;
+	return isEligibleToAccessProcessedSampleById(ps_id);
 }

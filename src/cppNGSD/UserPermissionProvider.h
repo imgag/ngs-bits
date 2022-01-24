@@ -13,7 +13,8 @@ public:
 	///Returns all permissions for a predefined user
 	UserPermissionList getUserPermissions();
 
-	bool isEligibleToAccessProcessedSample(QString ps_name);
+	bool isEligibleToAccessProcessedSampleById(QString ps_id);
+	bool isEligibleToAccessProcessedSampleByName(QString ps_name);
 
 private:
 	int user_id_;

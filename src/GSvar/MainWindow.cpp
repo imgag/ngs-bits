@@ -2342,6 +2342,13 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 		NGSD db;
 		QString processed_sample_id = db.processedSampleId(processed_sample_name);
 
+		UserPermissionProvider upp(LoginManager::userId());
+		if (!upp.isEligibleToAccessProcessedSampleById(processed_sample_id))
+		{
+			QMessageBox::warning(this, "Cannot open sample from NGSD", "You do not have permissions to open this sample");
+			return;
+		}
+
 		//processed sample exists > add to recent samples menu
 		addToRecentSamples(processed_sample_name);
 
