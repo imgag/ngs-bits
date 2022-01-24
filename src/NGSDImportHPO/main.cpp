@@ -3,7 +3,6 @@
 #include "Exceptions.h"
 #include "Helper.h"
 #include "OntologyTermCollection.h"
-#include <QDebug>
 
 class ConcreteTool
 		: public ToolBase
@@ -367,9 +366,9 @@ public:
 	void parseDecipher(NGSD& db, const QHash<QByteArray, int>& id2ngsd, QHash<QByteArray, AnnotatedList>& disease2genes, QHash<int, AnnotatedList>& term2diseases, QHash<int, AnnotatedList>& term2genes)
 	{
 		if (getInfile("decipher") == "") return;
-
+		bool debug = getFlag("debug");
 		QTextStream out(stdout);
-		if (getFlag("debug")) out << "Parsing Decipher...\n";
+		if (debug) out << "Parsing Decipher...\n";
 		int countT2D = 0;
 		int countD2G = 0;
 		int countT2G = 0;
@@ -383,6 +382,7 @@ public:
 		QSet<QByteArray> bad_hpo_terms;
 		QByteArray source = "Decipher";
 		int lineCount = 0;
+		QRegExp mim_exp("([0-9]{6})");
 		while(! fp->atEnd())
 		{
 			lineCount++;
@@ -394,10 +394,12 @@ public:
 			parts = reconstructStrings(parts);
 
 			QByteArray gene = parts[0].trimmed();
+			QByteArray disease_num = parts[3].trimmed();
 			QByteArray disease = "OMIM:" + parts[3].trimmed();
 			QByteArray decipher_evi = parts[4].trimmed();
 			PhenotypeEvidence::Evidence evidence = PhenotypeEvidence::translateDecipherEvidence(decipher_evi);
 			QByteArrayList hpo_terms = parts[7].trimmed().split(';');
+
 			//verify information
 			int gene_db_id = db.geneToApprovedID(gene);
 
@@ -408,12 +410,13 @@ public:
 				foreach (QByteArray term, hpo_terms)
 				{
 					int term_db_id = id2ngsd.value(term, -1);
-					if (term_db_id != -1)
+					if (term_db_id != -1 && mim_exp.indexIn(disease_num) != -1)
 					{
 						ExactSources e_src = ExactSources();
 						e_src.term2disease = QString("Decipher line") + QString::number(lineCount);
 						term2diseases[term_db_id].add(disease, source, decipher_evi,  evidence, e_src);
 						countT2D++;
+						if (debug) out << "Deciper\tTERM2DISEASE\tTERM,DISEASE,GENE\t" << term << "\t" << disease << "\t''\t" << "\tSource:\t" << e_src.term2disease <<"\n";
 					}
 					else
 					{
@@ -434,20 +437,31 @@ public:
 						e_src.term2gene = QString("Decipher line") + QString::number(lineCount);
 						term2genes[term_db_id].add(approved_gene_symbol, source, decipher_evi, evidence, e_src);
 						countT2G++;
-						e_src = ExactSources();
-						e_src.term2disease = QString("Decipher line") + QString::number(lineCount);
-						term2diseases[term_db_id].add(disease, source, decipher_evi, evidence, e_src);
-						countT2D++;
+						if (debug) out << "Deciper\tTERM2GENE\tTERM,DISEASE,GENE\t" << term << "\t''\t" << gene << "\tSource:\t" << e_src.term2gene << "\tapproved_gene_symbol:\t" << approved_gene_symbol << "\n";
+
+						if (mim_exp.indexIn(disease_num) != -1)
+						{
+							e_src = ExactSources();
+							e_src.term2disease = QString("Decipher line") + QString::number(lineCount);
+							term2diseases[term_db_id].add(disease, source, decipher_evi, evidence, e_src);
+							countT2D++;
+							if (debug) out << "Deciper\tTERM2DISEASE\tTERM,DISEASE,GENE\t" << term << "\t" << disease << "\t''\t" << "\tSource:\t" << e_src.term2disease <<"\n";
+						}
+
 					}
 					else
 					{
 						bad_hpo_terms.insert(term);
 					}
 				}
-				ExactSources e_src = ExactSources();
-				e_src.term2disease = QString("Decipher line") + QString::number(lineCount);
-				disease2genes[disease].add(approved_gene_symbol, source, decipher_evi, evidence, e_src);
-				countD2G++;
+				if (mim_exp.indexIn(disease_num) != -1)
+				{
+					ExactSources e_src = ExactSources();
+					e_src.term2disease = QString("Decipher line") + QString::number(lineCount);
+					disease2genes[disease].add(approved_gene_symbol, source, decipher_evi, evidence, e_src);
+					countD2G++;
+					if (debug) out << "Deciper\tTERM2GENE\tTERM,DISEASE,GENE\t" << "''\t" << disease << "\t" << gene << "\tSource:\t" << e_src.term2gene << "\tapproved_gene_symbol:\t" << approved_gene_symbol << "\n";
+				}
 			}
 		}
 		fp->close();
@@ -587,12 +601,13 @@ public:
 		QHash<QByteArray, AnnotatedList> disease2genes;
 
 		// parse Evidence files if provided
+		// parse g2pDDG2P_11_11_2021.csv file
+		parseDecipher(db, id2ngsd, disease2genes, term2diseases, term2genes);
 		// parse gencc-submissions.csv file
 		parseGenCC(db, disease2genes);
 		// parse phenotype.hpoa file
 		parseHpoPhen(id2ngsd, term2diseases);
-		// parse g2pDDG2P_11_11_2021.csv file
-		parseDecipher(db, id2ngsd, disease2genes, term2diseases, term2genes);
+
 
 		//parse term-disease and disease-gene relations from HPO
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("anno"));
