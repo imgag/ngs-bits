@@ -28,7 +28,7 @@ public:
 		//optional
 		addInt("min_depth", "Minimum depth for calling SNPs.", true, 3);
 		addInt("min_alt_count", "Minimum number of alternate observations for calling a SNP.", true, 1);
-		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg19");
+		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg38");
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 

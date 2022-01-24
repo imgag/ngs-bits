@@ -259,7 +259,7 @@ MainWindow::MainWindow(QWidget *parent)
 	worker->start();
 
 	//init phenotype filter to accept all Values
-	this->last_phenotype_evidences_ = PhenotypeEvidence::allEvidenceValues();
+	this->last_phenotype_evidences_ = PhenotypeEvidence::allEvidenceValues(false);
 	this->last_phenotype_sources_ = PhenotypeSource::allSourceValues();
 	this->filter_phenos_ = false;
 	//give the filter widget the current state and update the tooltip:
@@ -287,7 +287,21 @@ void MainWindow::on_actionDebug_triggered()
 		QTime timer;
 		timer.start();
 
-		//Delete genome samples that have small variants report config, but no variants imported (caused by error in NGSDReplicationWidget)
+		//Delete report config CNVs of samples that where the report configuration was not changed since 06.12.22 (for re-import of CNV report config data from HG19 databases - necessary because of CNV calling bug at chromosome ends)
+		/*
+		NGSD db;
+		QList<int> rc_ids_with_cnv_rc = db.getValuesInt("SELECT DISTINCT rc.id FROM report_configuration rc, report_configuration_cnv rcc WHERE rc.id=rcc.report_configuration_id AND rc.last_edit_date < \"2021-12-06\" AND rc.created_date < \"2021-12-06\"");
+		foreach(int rc_id, rc_ids_with_cnv_rc)
+		{
+			QString ps_id = db.getValue("SELECT processed_sample_id FROM report_configuration WHERE id=:0", false, QString::number(rc_id)).toString();
+			qDebug() << "Deleting report config CNVs of " << db.processedSampleName(ps_id) << "ps_id=" << ps_id  << "rc_id=" << rc_id;
+			SqlQuery query = db.getQuery();
+			query.exec("DELETE FROM `report_configuration_cnv` WHERE `report_configuration_id`='"+QString::number(rc_id)+"'");
+			qDebug() << "  Affected rows:" << query.numRowsAffected();
+		}
+		*/
+
+		//Delete small variants report config of samples that have no variants imported (caused by error in NGSDReplicationWidget)
 		/*
 		NGSD db;
 		QList<int> ps_ids_with_small_variant_rc = db.getValuesInt("SELECT DISTINCT rc.processed_sample_id FROM report_configuration rc, report_configuration_variant rcv WHERE rc.id=rcv.report_configuration_id");
@@ -300,7 +314,7 @@ void MainWindow::on_actionDebug_triggered()
 			{
 				QString ps_id_str = QString::number(ps_id);
 				QString rc_id = db.getValue("SELECT id FROM report_configuration WHERE processed_sample_id=:0",false, ps_id_str).toString();
-				//qDebug() << ps_id_str << db.processedSampleName(ps_id_str) << rc_id;
+				qDebug() << "Deleting " << db.processedSampleName(ps_id_str) << "ps_id=" << ps_id_str  << "rc_id=" << rc_id;
 				db.getQuery().exec("DELETE FROM `report_configuration_variant` WHERE `report_configuration_id`='"+rc_id+"'");
 			}
 		}
@@ -3315,6 +3329,7 @@ void MainWindow::generateEvaluationSheet()
 	//try to get VariantListInfo from the NGSD
 	QString ps_id = db.processedSampleId(base_name);
 	EvaluationSheetData evaluation_sheet_data = db.evaluationSheetData(ps_id, false);
+	evaluation_sheet_data.build = GSvarHelper::build();
 	if (evaluation_sheet_data.ps_id == "") //No db entry found > init
 	{
 		evaluation_sheet_data.ps_id = db.processedSampleId(base_name);
@@ -5135,16 +5150,19 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	menu.addSeparator();
 
 
-	//Google
+	//Google and Google Scholar
 	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/Google.png"), "Google");
+	QMenu* sub_menu2 = menu.addMenu(QIcon("://Icons/GoogleScholar.png"), "Google Scholar");
 	foreach(const VariantTranscript& trans, transcripts)
 	{
 		QAction* action = sub_menu->addAction(trans.gene + " " + trans.idWithoutVersion() + " " + trans.hgvs_c + " " + trans.hgvs_p);
+		QAction* action2 = sub_menu2->addAction(trans.gene + " " + trans.idWithoutVersion() + " " + trans.hgvs_c + " " + trans.hgvs_p);
 		if (preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion()))
 		{
 			QFont font = action->font();
 			font.setBold(true);
 			action->setFont(font);
+			action2->setFont(font);
 		}
 	}
 
@@ -5369,7 +5387,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 			}
 		}
 	}
-	else if (parent_menu && parent_menu->title()=="Google")
+	else if (parent_menu && (parent_menu->title()=="Google" || parent_menu->title()=="Google Scholar"))
 	{
 		QByteArray query;
 		QByteArrayList parts = text.split(' ');
@@ -5388,7 +5406,8 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		}
 		query += ")";
 
-		QDesktopServices::openUrl(QUrl("https://www.google.com/search?q=" + query.replace("+", "%2B").replace(' ', '+')));
+		QString base_url = parent_menu->title()=="Google" ? "https://www.google.com/search?q=" : "https://scholar.google.de/scholar?q=";
+		QDesktopServices::openUrl(QUrl(base_url + query.replace("+", "%2B").replace(' ', '+')));
 	}
 	else if (action==a_varsome)
 	{

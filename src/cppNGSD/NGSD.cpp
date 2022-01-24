@@ -4168,7 +4168,7 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QList<PhenotypeSource:
 		if (ignore_non_phenotype_terms && ignored_terms_ids.contains(id)) continue;
 		QString query = QString("SELECT gene FROM hpo_genes WHERE hpo_term_id=%1").arg(id);
 
-		if (allowedSources.length() > 0)
+		if (allowedSources.length() > 0 && allowedSources.count()<PhenotypeSource::allSourceValues().count())
 		{
 			query += " and (";
 			foreach (PhenotypeSource::Source s, allowedSources)
@@ -4179,7 +4179,7 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QList<PhenotypeSource:
 			query.append(")");
 		}
 
-		if (allowedEvidences.length() > 0)
+		if (allowedEvidences.length() > 0 && allowedEvidences.count()<PhenotypeEvidence::allEvidenceValues(false).count())
 		{
 			query += " and (";
 

@@ -424,6 +424,7 @@ struct CPPNGSDSHARED_EXPORT EvaluationSheetData
 {
 	//set default values on construction
 	EvaluationSheetData() :
+		build(GenomeBuild::HG38),
 		acmg_requested(false),
 		acmg_noticeable(false),
 		acmg_analyzed(false),
@@ -441,6 +442,7 @@ struct CPPNGSDSHARED_EXPORT EvaluationSheetData
 		filtered_by_trio_relaxed(false)
 	{}
 
+	GenomeBuild build;
 	QString ps_id;
 	QString dna_rna;
 	QString reviewer1;

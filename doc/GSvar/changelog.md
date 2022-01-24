@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2021_12-64 (17.01.22)
+- General: Removed support for dbscSNV and MMsplice annotations.
+- General: Added Google Scholar search for variants.
+
+
 ### 2021_12-33 (14.12.21)
 - General: Added analysis information dialog to processed sample tab and analysis status tab.
 - General: Improved error checks when loading a GSvar file (outdated annotation, genome build, ...).

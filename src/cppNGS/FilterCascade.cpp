@@ -2363,7 +2363,7 @@ FilterTrio::FilterTrio()
 	params_ << FilterParameter("gender_child", FilterParameterType::STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
 	params_.last().constraints["valid"] = "male,female,n/a";
 
-	params_ << FilterParameter("build", FilterParameterType::STRING, "hg19", "Genome build used for pseudoautosomal region coordinates");
+	params_ << FilterParameter("build", FilterParameterType::STRING, "hg38", "Genome build used for pseudoautosomal region coordinates");
 	params_.last().constraints["valid"] = "hg19,hg38";
 
 	checkIsRegistered();
@@ -3718,8 +3718,10 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 			if (!result.flags()[i]) continue;
 
 			QSet<QString> sv_entries = QString(svs[i].annotations()[filter_col_index]).split(';').toSet();
-			// check if intersection of both list == 0 -> remove entry otherwise
-			result.flags()[i] = (sv_entries.intersect(filter_entries).size() == 0);
+			if (sv_entries.intersects(filter_entries))
+			{
+				result.flags()[i] = false;
+			}
 		}
 	}
 	else if (action=="FILTER")
@@ -3729,7 +3731,6 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 			if (!result.flags()[i]) continue;
 
 			QSet<QString> sv_entries = QString(svs[i].annotations()[filter_col_index]).split(';').toSet();
-			// compute intersection
 			if (!sv_entries.intersects(filter_entries))
 			{
 				result.flags()[i] = false;
@@ -3741,15 +3742,9 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 		for(int i=0; i<svs.count(); ++i)
 		{
 			QSet<QString> sv_entries = QString(svs[i].annotations()[filter_col_index]).split(';').toSet();
-			// iterate over list of required entries
-			foreach (QString filter_entry, filter_entries)
+			if (sv_entries.intersects(filter_entries))
 			{
-				if (sv_entries.contains(filter_entry))
-				{
-					// display SV if at least one of the provided filter entries match
-					result.flags()[i] = true;
-					break;
-				}
+				result.flags()[i] = true;
 			}
 		}
 	}
@@ -4873,9 +4868,7 @@ FilterSpliceEffect::FilterSpliceEffect()
 	params_ << FilterParameter("SpliceAi", FilterParameterType::DOUBLE, 0.5, "Minimum SpliceAi value. Disabled if set to zero.");
 	params_.last().constraints["min"] = "0";
 	params_.last().constraints["max"] = "1";
-	params_ << FilterParameter("MMSplice", FilterParameterType::DOUBLE, 2.0, "Minimum absolute Delta Logit PSI Score. Disabled if set to zero.");
-	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("action", FilterParameterType::STRING, "KEEP", "Action to perform");
+	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
 	params_.last().constraints["valid"] = "KEEP,FILTER";
 	checkIsRegistered();
 }
@@ -4887,8 +4880,6 @@ QString FilterSpliceEffect::toText() const
 	text += " maxEntScan>=" + QString::number(mes) +"%";
 	double sai = getDouble("SpliceAi", false);
 	text += " SpliceAi>=" + QString::number(sai);
-	double mms = getDouble("MMSplice", false);
-	text += " MMSplice>=" + QString::number(mms);
 	return text;
 }
 
@@ -4899,14 +4890,11 @@ void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &re
 	int idx_sai = annotationColumn(variant_list, "SpliceAi");
 	double sai = getDouble("SpliceAi");
 
-	int idx_mms = annotationColumn(variant_list, "MMSplice_DeltaLogitPSI");
-	double mmsplice = getDouble("MMSplice");
-
 	int idx_mes = annotationColumn(variant_list, "MaxEntScan");
 	int mes = getInt("MaxEntScan");
 
 	// if all filters are deactivated return
-	if ((sai == 0) && (mmsplice == 0) && (mes == 0)) return;
+	if (sai == 0 && mes == 0) return;
 
 	// action FILTER
 	if (getString("action") == "FILTER")
@@ -4916,7 +4904,7 @@ void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &re
 			if (!result.flags()[i]) continue;
 
 			//If the variant has no value for all possible filters remove it
-			if (variant_list[i].annotations()[idx_sai].isEmpty() && variant_list[i].annotations()[idx_mes].isEmpty() && variant_list[i].annotations()[idx_mms].isEmpty())
+			if (variant_list[i].annotations()[idx_sai].isEmpty() && variant_list[i].annotations()[idx_mes].isEmpty())
 			{
 				result.flags()[i] = false;
 				continue;
@@ -4926,12 +4914,6 @@ void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &re
 			if (sai > 0)
 			{
 				if (applySpliceAi_(variant_list[i], idx_sai)) continue;
-			}
-
-			// MMSplice filter:
-			if (mmsplice > 0)
-			{
-				if (applyMMsplice_(variant_list[i], idx_mms)) continue;
 			}
 
 			// MaxEntScan filter:
@@ -4954,15 +4936,6 @@ void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &re
 			{
 				if (applySpliceAi_(variant_list[i], idx_sai))
 				{
-					result.flags()[i] = true;
-					continue;
-				}
-			}
-
-			// MMSplice filter:
-			if (mmsplice > 0)
-			{
-				if (applyMMsplice_(variant_list[i], idx_mms)) {
 					result.flags()[i] = true;
 					continue;
 				}
@@ -5044,22 +5017,6 @@ bool FilterSpliceEffect::applySpliceAi_(const Variant& var, int idx_sai) const
 	return false;
 }
 
-bool FilterSpliceEffect::applyMMsplice_(const Variant& var, int idx_mms) const
-{
-	double mmsplice = getDouble("MMSplice");
-
-	QByteArray mms_value = var.annotations()[idx_mms];
-	if ( ! mms_value.trimmed().isEmpty())
-	{
-		if (std::abs(mms_value.toDouble()) >= mmsplice)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-
 FilterVariantRNAAseAlleleFrequency::FilterVariantRNAAseAlleleFrequency()
 {
 	name_ = "RNA ASE allele frequency";
@@ -5068,7 +5025,7 @@ FilterVariantRNAAseAlleleFrequency::FilterVariantRNAAseAlleleFrequency()
 	params_ << FilterParameter("min_af", FilterParameterType::DOUBLE, 0.0, "Minimal expression allele frequency.");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "1.0";
-	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 0.0, "Maximal expression allele frequency.");
+	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximal expression allele frequency.");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "1.0";
 
@@ -5111,7 +5068,7 @@ FilterVariantRNAAseDepth::FilterVariantRNAAseDepth()
 	name_ = "RNA ASE depth";
 	type_ = VariantType::SNVS_INDELS;
 	description_ = QStringList() << "Filter based on the allele specific expression depth.";
-	params_ << FilterParameter("min_depth", FilterParameterType::INT, 0, "Minimal expression depth.");
+	params_ << FilterParameter("min_depth", FilterParameterType::INT, 20, "Minimal expression depth.");
 	params_.last().constraints["min"] = "0";
 
 	checkIsRegistered();
@@ -5144,7 +5101,7 @@ FilterVariantRNAAseAlt::FilterVariantRNAAseAlt()
 	name_ = "RNA ASE alternative count";
 	type_ = VariantType::SNVS_INDELS;
 	description_ = QStringList() << "Filter based on the allele specific expression alternative count.";
-	params_ << FilterParameter("min_ac", FilterParameterType::INT, 0, "Minimal expression alternative count.");
+	params_ << FilterParameter("min_ac", FilterParameterType::INT, 5, "Minimal expression alternative count.");
 	params_.last().constraints["min"] = "0";
 
 	checkIsRegistered();
@@ -5312,7 +5269,7 @@ FilterVariantRNAExpressionFC::FilterVariantRNAExpressionFC()
 	name_ = "RNA expression fold-change";
 	type_ = VariantType::SNVS_INDELS;
 	description_ = QStringList() << "Filter based on the absolute gene expression log2 fold-change.";
-	params_ << FilterParameter("min_fc", FilterParameterType::DOUBLE, 5.0, "Minimal absolute fold-change.");
+	params_ << FilterParameter("min_fc", FilterParameterType::DOUBLE, 2.0, "Minimal absolute fold-change.");
 	params_.last().constraints["min"] = "0.0";
 }
 
@@ -5354,7 +5311,7 @@ FilterVariantRNAExpressionZScore::FilterVariantRNAExpressionZScore()
 	name_ = "RNA expression z-score";
 	type_ = VariantType::SNVS_INDELS;
 	description_ = QStringList() << "Filter based on the absolute gene expression z-score.";
-	params_ << FilterParameter("min_zscore", FilterParameterType::DOUBLE, 5.0, "Minimal absolute z-score.");
+	params_ << FilterParameter("min_zscore", FilterParameterType::DOUBLE, 2.0, "Minimal absolute z-score.");
 	params_.last().constraints["min"] = "0.0";
 }
 
