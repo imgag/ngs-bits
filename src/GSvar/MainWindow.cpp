@@ -1826,7 +1826,6 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 				{
 					//add RNA BAM
 					FileLocation rna_bam_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::BAM);
-					qDebug() << rna_bam_file.filename;
 					if (rna_bam_file.exists) dlg.addFile(rna_bam_file, false);
 
 					//add fusions BAM

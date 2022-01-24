@@ -966,6 +966,14 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["SV allele frequency NGSD"] = &createInstance<FilterSvAfNGSD>;
         output["SV trio"] = &createInstance<FilterSvTrio>;
 		output["Splice effect"] = &createInstance<FilterSpliceEffect>;
+		output["RNA ASE allele frequency"] = &createInstance<FilterVariantRNAAseAlleleFrequency>;
+		output["RNA ASE depth"] = &createInstance<FilterVariantRNAAseDepth>;
+		output["RNA ASE alternative count"] = &createInstance<FilterVariantRNAAseAlt>;
+		output["RNA ASE p-value"] = &createInstance<FilterVariantRNAAsePval>;
+		output["RNA aberrant splicing fraction"] = &createInstance<FilterVariantRNAAberrantSplicing>;
+		output["RNA gene expression"] = &createInstance<FilterVariantRNAGeneExpression>;
+		output["RNA expression fold-change"] = &createInstance<FilterVariantRNAExpressionFC>;
+		output["RNA expression z-score"] = &createInstance<FilterVariantRNAExpressionZScore>;
 	}
 
 	return output;
@@ -5051,3 +5059,334 @@ bool FilterSpliceEffect::applyMMsplice_(const Variant& var, int idx_mms) const
 	return false;
 }
 
+
+FilterVariantRNAAseAlleleFrequency::FilterVariantRNAAseAlleleFrequency()
+{
+	name_ = "RNA ASE allele frequency";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the allele specific expression allele frequency.";
+	params_ << FilterParameter("min_af", FilterParameterType::DOUBLE, 0.0, "Minimal expression allele frequency.");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 0.0, "Maximal expression allele frequency.");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+
+	checkIsRegistered();
+}
+
+QString FilterVariantRNAAseAlleleFrequency::toText() const
+{
+	return name() + " between " + QString::number(getDouble("min_af", false), 'f', 2) + " and " + QString::number(getDouble("max_af", false), 'f', 2);
+}
+
+void FilterVariantRNAAseAlleleFrequency::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double min_af = getDouble("min_af");
+	double max_af = getDouble("max_af");
+
+	int idx_ase_af = annotationColumn(variants, "ASE_af");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		//skip not covered variants
+		QString ase_af_string = variants[i].annotations()[idx_ase_af].trimmed();
+		if(ase_af_string.isEmpty() || ase_af_string.startsWith("n/a"))
+		{
+			result.flags()[i] = false;
+			continue;
+		}
+
+		double ase_af = Helper::toDouble(ase_af_string, "ASE_af", QString::number(i));
+		result.flags()[i] = (ase_af >= min_af) && (ase_af <= max_af);
+	}
+}
+
+FilterVariantRNAAseDepth::FilterVariantRNAAseDepth()
+{
+	name_ = "RNA ASE depth";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the allele specific expression depth.";
+	params_ << FilterParameter("min_depth", FilterParameterType::INT, 0, "Minimal expression depth.");
+	params_.last().constraints["min"] = "0";
+
+	checkIsRegistered();
+}
+
+QString FilterVariantRNAAseDepth::toText() const
+{
+	return name() + " &ge; " + QString::number(getInt("min_depth", false));
+}
+
+void FilterVariantRNAAseDepth::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int min_depth = getInt("min_depth");
+
+	int idx_ase_depth = annotationColumn(variants, "ASE_depth");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		int ase_depth = Helper::toInt(variants[i].annotations()[idx_ase_depth], "ASE_depth", QString::number(i));
+		result.flags()[i] = ase_depth >= min_depth;
+	}
+}
+
+FilterVariantRNAAseAlt::FilterVariantRNAAseAlt()
+{
+	name_ = "RNA ASE alternative count";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the allele specific expression alternative count.";
+	params_ << FilterParameter("min_ac", FilterParameterType::INT, 0, "Minimal expression alternative count.");
+	params_.last().constraints["min"] = "0";
+
+	checkIsRegistered();
+}
+
+QString FilterVariantRNAAseAlt::toText() const
+{
+	return name() + " &ge; " + QString::number(getInt("min_ac", false));
+}
+
+void FilterVariantRNAAseAlt::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int min_ac = getInt("min_ac");
+
+	int idx_ase_ac = annotationColumn(variants, "ASE_alt");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		//skip not covered variants
+		QString ase_ac_string = variants[i].annotations()[idx_ase_ac].trimmed();
+		if(ase_ac_string.isEmpty() || ase_ac_string.startsWith("n/a"))
+		{
+			result.flags()[i] = false;
+			continue;
+		}
+
+		int ase_ac = Helper::toInt(ase_ac_string, "ASE_alt", QString::number(i));
+		result.flags()[i] = ase_ac >= min_ac;
+	}
+}
+
+FilterVariantRNAAsePval::FilterVariantRNAAsePval()
+{
+	name_ = "RNA ASE p-value";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the allele specific expression p-value.";
+	params_ << FilterParameter("max_pval", FilterParameterType::DOUBLE, 0.05, "Maximal expression p-value.");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+
+	checkIsRegistered();
+}
+
+QString FilterVariantRNAAsePval::toText() const
+{
+	return name() + " &le; " + QString::number(getDouble("max_pval", false), 'f', 2);
+}
+
+void FilterVariantRNAAsePval::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double max_pval = getDouble("max_pval");
+
+	int idx_ase_pval = annotationColumn(variants, "ASE_pval");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		//skip not covered variants
+		QString ase_pval_string = variants[i].annotations()[idx_ase_pval].trimmed();
+		if(ase_pval_string.isEmpty() || ase_pval_string.startsWith("n/a"))
+		{
+			result.flags()[i] = false;
+			continue;
+		}
+
+		double ase_pval = Helper::toDouble(ase_pval_string, "ASE_pval", QString::number(i));
+		result.flags()[i] = ase_pval <= max_pval;
+	}
+}
+
+FilterVariantRNAAberrantSplicing::FilterVariantRNAAberrantSplicing()
+{
+	name_ = "RNA aberrant splicing fraction";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the fraction of aberrant splicing reads.";
+	params_ << FilterParameter("min_asf", FilterParameterType::DOUBLE, 0.01, "Minimal aberrant splicing fraction.");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+}
+
+QString FilterVariantRNAAberrantSplicing::toText() const
+{
+	return name() + " &ge; " + QString::number(getDouble("min_asf", false), 'f', 3);
+}
+
+void FilterVariantRNAAberrantSplicing::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double min_asf = getDouble("min_asf");
+
+	int idx_asf = annotationColumn(variants, "aberrant_splicing");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		QList<QByteArray> fraction_strings = variants[i].annotations()[idx_asf].split(',');
+		result.flags()[i] = false;
+		foreach (const QByteArray& fraction_string, fraction_strings)
+		{
+			if(fraction_string.isEmpty() || fraction_string.startsWith("n/a")) continue;
+
+			double fraction_value = Helper::toDouble(fraction_string, "aberrant_splicing", QString::number(i));
+			if (fraction_value >= min_asf)
+			{
+				result.flags()[i] = true;
+				break;
+			}
+		}
+	}
+}
+
+FilterVariantRNAGeneExpression::FilterVariantRNAGeneExpression()
+{
+	name_ = "RNA gene expression";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the gene expression in transcripts-per-million";
+	params_ << FilterParameter("min_tpm", FilterParameterType::DOUBLE, 5.0, "Minimal gene expression in transcripts-per-million.");
+	params_.last().constraints["min"] = "0.0";
+}
+
+QString FilterVariantRNAGeneExpression::toText() const
+{
+	return name() + " &ge; " + QString::number(getDouble("min_tpm", false), 'f', 2) + "(tpm)";
+}
+
+void FilterVariantRNAGeneExpression::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double min_tpm = getDouble("min_tpm");
+
+	int idx_asf = annotationColumn(variants, "tpm");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		QList<QByteArray> fraction_strings = variants[i].annotations()[idx_asf].split(',');
+		result.flags()[i] = false;
+		foreach (const QByteArray& fraction_string, fraction_strings)
+		{
+			if(fraction_string.isEmpty() || fraction_string.startsWith("n/a")) continue;
+
+			double fraction_value = Helper::toDouble(fraction_string, "tpm", QString::number(i));
+			if (fraction_value >= min_tpm)
+			{
+				result.flags()[i] = true;
+				break;
+			}
+		}
+	}
+}
+
+FilterVariantRNAExpressionFC::FilterVariantRNAExpressionFC()
+{
+	name_ = "RNA expression fold-change";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the absolute gene expression log2 fold-change.";
+	params_ << FilterParameter("min_fc", FilterParameterType::DOUBLE, 5.0, "Minimal absolute fold-change.");
+	params_.last().constraints["min"] = "0.0";
+}
+
+QString FilterVariantRNAExpressionFC::toText() const
+{
+	return name() + " (abs) &ge; " + QString::number(getDouble("min_fc", false), 'f', 2);
+}
+
+void FilterVariantRNAExpressionFC::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double min_fc = getDouble("min_fc");
+
+	int idx_fc = annotationColumn(variants, "expr_log2fc");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		QList<QByteArray> fc_strings = variants[i].annotations()[idx_fc].split(',');
+		result.flags()[i] = false;
+		foreach (const QByteArray& fc_string, fc_strings)
+		{
+			if(fc_string.isEmpty() || fc_string.startsWith("n/a")) continue;
+
+			double fraction_value = fabs(Helper::toDouble(fc_string, "expr_log2fc", QString::number(i)));
+			if (fraction_value >= min_fc)
+			{
+				result.flags()[i] = true;
+				break;
+			}
+		}
+	}
+}
+
+FilterVariantRNAExpressionZScore::FilterVariantRNAExpressionZScore()
+{
+	name_ = "RNA expression z-score";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the absolute gene expression z-score.";
+	params_ << FilterParameter("min_zscore", FilterParameterType::DOUBLE, 5.0, "Minimal absolute z-score.");
+	params_.last().constraints["min"] = "0.0";
+}
+
+QString FilterVariantRNAExpressionZScore::toText() const
+{
+	return name() + " (abs) &ge; " + QString::number(getDouble("min_zscore", false), 'f', 2);
+}
+
+void FilterVariantRNAExpressionZScore::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double min_zscore = getDouble("min_zscore");
+
+	int idx_zscore = annotationColumn(variants, "expr_zscore");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		QList<QByteArray> zscore_strings = variants[i].annotations()[idx_zscore].split(',');
+		result.flags()[i] = false;
+		foreach (const QByteArray& zscore_string, zscore_strings)
+		{
+			if(zscore_string.isEmpty() || zscore_string.startsWith("n/a")) continue;
+
+			double zscore = fabs(Helper::toDouble(zscore_string, "expr_zscore", QString::number(i)));
+			if (zscore >= min_zscore)
+			{
+				result.flags()[i] = true;
+				break;
+			}
+		}
+	}
+}
