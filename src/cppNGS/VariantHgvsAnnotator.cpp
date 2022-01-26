@@ -123,7 +123,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
             //special case: deletion spanning exon-intron boundary -> no protein annotation
             if(!pos_hgvs_c.contains("+") && !pos_hgvs_c.contains("-"))
             {
-                hgvs.hgvs_p = getHgvsProteinAnnotation(variant, genome_idx, pos_hgvs_c, plus_strand);
+                hgvs.hgvs_p = getHgvsProteinAnnotation(variant, genome_idx, pos_hgvs_c, transcript, plus_strand);
             }
         }
     }
@@ -644,7 +644,7 @@ QByteArray VariantHgvsAnnotator::translate(const Sequence& seq, bool is_mito)
 
 //determine the annotation of the variant according to the HGVS nomenclature for proteins
 QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, const FastaFileIndex& genome_idx,
-                                                       const QString& pos_hgvs_c, bool plus_strand)
+                                                       const QString& pos_hgvs_c, const Transcript& transcript, bool plus_strand)
 {
     QString hgvs_p("p.");
     int pos_trans_start = 0;
@@ -653,6 +653,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
     QByteArray aa_ref;
     QByteArray aa_obs;
     Sequence seq_obs;
+    Sequence coding_sequence = getCodingSequence(transcript, genome_idx, true);
 
     if(variant.isSNV())
     {
@@ -661,21 +662,16 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
         int offset = pos_trans_start % 3;
 
         //translate the reference sequence codon and obtain the observed sequence codon
+        aa_ref = toThreeLetterCode(NGSHelper::translateCodon(coding_sequence.mid(pos_trans_start - offset, 3),
+                                                                          variant.chr().isM()));
+        seq_obs = coding_sequence.mid(pos_trans_start - offset, 3);
         if(plus_strand)
         {
-            aa_ref = toThreeLetterCode(NGSHelper::translateCodon(genome_idx.seq(variant.chr(), start - offset, 3),
-                                                                          variant.chr().isM()));
-            seq_obs = genome_idx.seq(variant.chr(), start - offset, 3);
             seq_obs[offset] = variant.alt().at(0)[0];
         }
         else
         {
-            aa_ref = toThreeLetterCode(NGSHelper::translateCodon(genome_idx.seq(variant.chr(), start + offset - 2, 3).toReverseComplement(),
-                                                                          variant.chr().isM()));
-            seq_obs = genome_idx.seq(variant.chr(), start + offset - 2, 3);
-            seq_obs.reverse();
-            seq_obs[offset] = variant.alt().at(0)[0];
-            seq_obs.complement();
+            seq_obs[offset] = variant.alt().at(0).toReverseComplement()[0];
         }
 
         //translate the observed sequence codon
@@ -688,8 +684,19 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
     }
     else if(variant.isInDel())
     {
+        QStringList positions = pos_hgvs_c.split("_");
+
         //make position of start of deletion/insertion in transcript zero-based
-        pos_trans_start = pos_hgvs_c.split("_").at(0).toInt() - 1;
+        pos_trans_start = positions.at(0).toInt() - 1;
+
+        //don't annotate deletions spanning two (or more) exons
+        if(positions.size() == 2)
+        {
+            if(transcript.exonNumber(pos_trans_start, pos_trans_start) != transcript.exonNumber(positions.at(1).toInt() - 1, positions.at(1).toInt() - 1))
+            {
+                return "p.?";
+            }
+        }
 
         int offset = pos_trans_start % 3;
         int frame_diff = variant.isDel() ? end - start : variant.alt()[0].length() - variant.ref().length();
@@ -703,17 +710,17 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
         {
             if(variant.isDel())
             {
-                seq_ref = genome_idx.seq(variant.chr(), start + 1 - offset, frame_diff + seq_length);
-                seq_obs = seq_ref.left(offset) + seq_ref.right(seq_length - offset);
+                seq_ref = coding_sequence.mid(pos_trans_start - offset, frame_diff + seq_length);
+                seq_obs = seq_ref.left(offset) + seq_ref.mid(offset + frame_diff);
             }
             else if(variant.isIns())
             {
-                seq_ref = genome_idx.seq(variant.chr(), start - offset, seq_length);
+                seq_ref = coding_sequence.mid(pos_trans_start - offset, seq_length);
                 seq_obs = seq_ref.left(offset + 1) + variant.alt(0).right(frame_diff) + seq_ref.right(seq_length - offset - 1);
             }
             else
             {
-                seq_ref = genome_idx.seq(variant.chr(), start + 1 - offset, variant.ref().length() + seq_length - 1);
+                seq_ref = coding_sequence.mid(pos_trans_start - offset, variant.ref().length() + seq_length - 1);
                 seq_obs = seq_ref.left(offset + 1) + variant.alt(0).mid(1) + seq_ref.right(seq_length - offset);
             }
         }
@@ -721,35 +728,34 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
         {
             if(variant.isDel())
             {
-                seq_ref = genome_idx.seq(variant.chr(), start - seq_length, frame_diff + seq_length + offset + 1);
-                seq_obs = seq_ref.left(seq_length + 1) + seq_ref.right(offset);
+                seq_ref = coding_sequence.mid(pos_trans_start - offset, frame_diff + seq_length);
+                seq_obs = seq_ref.left(offset) + seq_ref.mid(offset + frame_diff);
             }
             else if(variant.isIns())
             {
-                seq_ref = genome_idx.seq(variant.chr(), start - seq_length, seq_length + offset + 2);
-                seq_obs = seq_ref.left(seq_length + 1) + variant.alt()[0].right(frame_diff) + seq_ref.right(offset + 1);
+                seq_ref = coding_sequence.mid(pos_trans_start - offset, seq_length);
+                seq_obs = seq_ref.left(offset + 1) + variant.alt(0).toReverseComplement().left(frame_diff) + seq_ref.right(seq_length - offset - 1);
             }
             else
             {
-                seq_ref = genome_idx.seq(variant.chr(), start - seq_length, variant.ref().length() + seq_length + offset);
-                seq_obs = seq_ref.left(seq_length + 1) + variant.alt(0).mid(1) + seq_ref.right(offset);
+                seq_ref = coding_sequence.mid(pos_trans_start - offset, variant.ref().length() + seq_length - 1);
+                Sequence alt = variant.alt(0).mid(1);
+                seq_obs = seq_ref.left(offset) + alt.toReverseComplement() + seq_ref.right(seq_length - offset);
             }
-            seq_obs.reverseComplement();
-            seq_ref.reverseComplement();
         }
 
         if(variant.isDel() || (variant.isIns() && frame_diff % 3 != 0) || (!variant.isIns() && !variant.isDel()))
         {
             //find the first amino acid that is changed due to the deletion/frameshift insertion/deletion-insertion
-            while(aa_obs == aa_ref)
+            while(aa_obs == aa_ref && aa_obs != "Ter" && aa_ref != "Ter")
             {
                 aa_ref = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.left(3), variant.chr().isM()));
                 aa_obs = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.left(3), variant.chr().isM()));
 
-                if(aa_obs == aa_ref)
+                if(aa_obs == aa_ref && aa_obs != "Ter")
                 {
-                    seq_obs = seq_obs.right(seq_obs.length() - 3);
-                    seq_ref = seq_ref.right(seq_ref.length() - 3);
+                    seq_obs = seq_obs.mid(3);
+                    seq_ref = seq_ref.mid(3);
                     pos_shift += 3;
                 }
             }
@@ -961,4 +967,44 @@ QByteArray VariantHgvsAnnotator::toThreeLetterCode(QChar aa_one_letter_code)
 {
     if(aa_one_letter_code == "*") return "Ter";
     else return NGSHelper::threeLetterCode(aa_one_letter_code);
+}
+
+//extract the coding DNA sequence of the transcript from the reference genome
+Sequence VariantHgvsAnnotator::getCodingSequence(const Transcript& trans, const FastaFileIndex& genome_idx, bool add_utr_3)
+{
+    Sequence seq;
+
+    if(add_utr_3 && trans.strand() == Transcript::MINUS)
+    {
+        for(int i=0; i<trans.utr3prime().count(); i++)
+        {
+            int start = trans.utr3prime()[i].start();
+            int length = trans.utr3prime()[i].end() - start + 1;
+            seq.append(genome_idx.seq(trans.chr(), start, length));
+        }
+    }
+
+    for(int i=0; i<trans.codingRegions().count(); i++)
+    {
+        int start = trans.codingRegions()[i].start();
+        int length = trans.codingRegions()[i].end() - start + 1;
+        seq.append(genome_idx.seq(trans.chr(), start, length));
+    }
+
+    if(add_utr_3 && trans.strand() == Transcript::PLUS)
+    {
+        for(int i=0; i<trans.utr3prime().count(); i++)
+        {
+            int start = trans.utr3prime()[i].start();
+            int length = trans.utr3prime()[i].end() - start + 1;
+            seq.append(genome_idx.seq(trans.chr(), start, length));
+        }
+    }
+
+    if(trans.strand() == Transcript::MINUS)
+    {
+        seq.reverseComplement();
+    }
+
+    return seq;
 }
