@@ -122,11 +122,11 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 		{ // meaning?
 			return PhenotypeEvidence::LOW;
 		}
-		else if (decipher_evi == "possible" || decipher_evi == "limited")
+        else if (decipher_evi == "possible" || decipher_evi == "limited" || decipher_evi == "supportive")
 		{
 			return PhenotypeEvidence::LOW;
 		}
-		else if (decipher_evi == "probable")
+        else if (decipher_evi == "probable" || decipher_evi == "moderate")
 		{
 			return PhenotypeEvidence::MED;
 		}
