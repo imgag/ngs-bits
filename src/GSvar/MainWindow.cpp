@@ -179,6 +179,7 @@ MainWindow::MainWindow(QWidget *parent)
 	rna_menu_btn_->menu()->addAction(ui_.actionShowRnaFusions);
 	rna_menu_btn_->menu()->addAction(ui_.actionShowCohortExpressionData);
 	rna_menu_btn_->setPopupMode(QToolButton::InstantPopup);
+	rna_menu_btn_->setEnabled(false);
 	ui_.tools->addWidget(rna_menu_btn_);
 
 
@@ -2942,6 +2943,7 @@ void MainWindow::loadFile(QString filename)
 	}
 
 	//activate RNA menu
+	rna_menu_btn_->setEnabled(false);
 	ui_.actionExpressionData->setEnabled(false);
 	ui_.actionShowRnaFusions->setEnabled(false);
 	ui_.actionShowCohortExpressionData->setEnabled(false);
