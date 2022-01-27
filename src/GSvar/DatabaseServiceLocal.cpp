@@ -11,21 +11,21 @@ bool DatabaseServiceLocal::enabled() const
 	return enabled_;
 }
 
-BedFile DatabaseServiceLocal::processingSystemRegions(int sys_id) const
+BedFile DatabaseServiceLocal::processingSystemRegions(int sys_id, bool ignore_if_missing) const
 {
 	checkEnabled(__PRETTY_FUNCTION__);
 
 	return NGSD().processingSystemRegions(sys_id);
 }
 
-BedFile DatabaseServiceLocal::processingSystemAmplicons(int sys_id) const
+BedFile DatabaseServiceLocal::processingSystemAmplicons(int sys_id, bool ignore_if_missing) const
 {
 	checkEnabled(__PRETTY_FUNCTION__);
 
 	return NGSD().processingSystemAmplicons(sys_id);
 }
 
-GeneSet DatabaseServiceLocal::processingSystemGenes(int sys_id) const
+GeneSet DatabaseServiceLocal::processingSystemGenes(int sys_id, bool ignore_if_missing) const
 {
 	checkEnabled(__PRETTY_FUNCTION__);
 

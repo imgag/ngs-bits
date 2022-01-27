@@ -40,13 +40,13 @@ void ProcessingSystemWidget::updateGUI()
 	ui_.genome->setText(ps_data.genome);
 
 	//###target region infos###
-	BedFile roi = GlobalServiceProvider::database().processingSystemRegions(sys_id_);
+	BedFile roi = GlobalServiceProvider::database().processingSystemRegions(sys_id_, true);
 	if (!roi.isEmpty())
 	{
 		ui_.roi_bases->setText(QString::number(roi.baseCount(), 'f', 0));
 		ui_.roi_regions->setText(QString::number(roi.count(), 'f', 0));
 	}
-	GeneSet roi_genes = GlobalServiceProvider::database().processingSystemGenes(sys_id_);
+	GeneSet roi_genes = GlobalServiceProvider::database().processingSystemGenes(sys_id_, true);
 	if (!roi_genes.isEmpty())
 	{
 		ui_.roi_genes->setText(QString::number(roi_genes.count(), 'f', 0));
@@ -80,7 +80,7 @@ void ProcessingSystemWidget::edit()
 void ProcessingSystemWidget::openRoiInIGV()
 {
 	//load ROI
-	BedFile roi = GlobalServiceProvider::database().processingSystemRegions(sys_id_);
+	BedFile roi = GlobalServiceProvider::database().processingSystemRegions(sys_id_, true);
 
 	//store to temporary file
 	QString roi_file = GSvarHelper::localRoiFolder() + ui_.name_short->text().trimmed() + ".bed";
