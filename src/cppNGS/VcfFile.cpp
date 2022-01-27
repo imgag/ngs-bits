@@ -122,7 +122,7 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 		THROW(ArgumentException, "Invalid variant chromosome string in line " + QString::number(line_number) + ": " + vcf_line->chr().str() + ".");
 	}
 	vcf_line->setPos(atoi(line_parts[POS]));
-	if(vcf_line->start() < 1)
+	if(vcf_line->start() < 0)
 	{
 		THROW(ArgumentException, "Invalid variant position range in line " + QString::number(line_number) + ": " + QString::number(vcf_line->start()) + ".");
 	}
@@ -382,52 +382,71 @@ void VcfFile::loadFromVCFGZ(const QString& filename, bool allow_multi_sample, Ch
 {
 	//clear content in case we load a second file
 	clear();
-	
-	//open stream
-	FILE* instream = filename.isEmpty() ? stdin : fopen(filename.toLatin1().data(), "rb");
-	gzFile file = gzdopen(fileno(instream), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
-	if (file==NULL)
-	{
-		THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
-	}
-	
-	//parse
+
 	int line_number = 0;
-	const int buffer_size = 1048576; //1MB buffer
-	char* buffer = new char[buffer_size]; 
 	//Sets holding all INFO and FORMAT IDs defined in the header (might be extended if a vcf line contains new ones)
 	QSet<QByteArray> info_ids_in_header;
 	QSet<QByteArray> format_ids_in_header;
 	QSet<QByteArray> filter_ids_in_header;
-	while(!gzeof(file))
+
+	if (filename.startsWith("http", Qt::CaseInsensitive))
 	{
-		char* char_array = gzgets(file, buffer, buffer_size);
-		//handle errors like truncated GZ file
-		if (char_array==nullptr)
+		// Temporary solution to handle remote VCF files (we assume that there are no *.vcg.gz files)
+		if (filename.toLower().endsWith(".vcg.gz"))
 		{
-			int error_no = Z_OK;
-			QByteArray error_message = gzerror(file, &error_no);
-			if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-			{
-				THROW(FileParseException, "Error while reading file '" + filename + "': " + error_message);
-			}
-			
-			continue;
+			THROW(NotImplementedException, "The support for *.vcg.gz files has not been implemented!");
 		}
-		
-		//determine end of read line
-		int i=0;
-		while(i<buffer_size && char_array[i]!='\0' && char_array[i]!='\n' && char_array[i]!='\r')
+
+		QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(filename, true);
+		while(!file->atEnd())
 		{
-			++i;
+			QByteArray line = file->readLine();
+			processVcfLine(line_number, line, info_ids_in_header, format_ids_in_header, filter_ids_in_header, allow_multi_sample, roi_idx, invert);
 		}
-		
-		QByteArray line = QByteArray::fromRawData(char_array, i);
-		
-		processVcfLine(line_number, line, info_ids_in_header, format_ids_in_header, filter_ids_in_header, allow_multi_sample, roi_idx, invert);
+		file->close();
 	}
-	gzclose(file);
-	delete[] buffer;
+	else
+	{
+		const int buffer_size = 1048576; //1MB buffer
+		char* buffer = new char[buffer_size];
+		//open stream
+		FILE* instream = filename.isEmpty() ? stdin : fopen(filename.toLatin1().data(), "rb");
+		gzFile file = gzdopen(fileno(instream), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
+		if (file==NULL)
+		{
+			THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
+		}
+
+		while(!gzeof(file))
+		{
+			char* char_array = gzgets(file, buffer, buffer_size);
+			//handle errors like truncated GZ file
+			if (char_array==nullptr)
+			{
+				int error_no = Z_OK;
+				QByteArray error_message = gzerror(file, &error_no);
+				if (error_no!=Z_OK && error_no!=Z_STREAM_END)
+				{
+					THROW(FileParseException, "Error while reading file '" + filename + "': " + error_message);
+				}
+
+				continue;
+			}
+
+			//determine end of read line
+			int i=0;
+			while(i<buffer_size && char_array[i]!='\0' && char_array[i]!='\n' && char_array[i]!='\r')
+			{
+				++i;
+			}
+
+			QByteArray line = QByteArray::fromRawData(char_array, i);
+
+			processVcfLine(line_number, line, info_ids_in_header, format_ids_in_header, filter_ids_in_header, allow_multi_sample, roi_idx, invert);
+		}
+		gzclose(file);
+		delete[] buffer;
+	}
 }
 
 void VcfFile::load(const QString& filename, bool allow_multi_sample)

@@ -370,6 +370,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool s_name_ext = false;
 	bool s_name_comments = false;
 	QString s_species;
+	QString s_type;
 	QString s_sender;
 	QString s_study;
 	QString s_disease_group;
@@ -423,6 +424,7 @@ struct CPPNGSDSHARED_EXPORT EvaluationSheetData
 {
 	//set default values on construction
 	EvaluationSheetData() :
+		build(GenomeBuild::HG38),
 		acmg_requested(false),
 		acmg_noticeable(false),
 		acmg_analyzed(false),
@@ -440,6 +442,7 @@ struct CPPNGSDSHARED_EXPORT EvaluationSheetData
 		filtered_by_trio_relaxed(false)
 	{}
 
+	GenomeBuild build;
 	QString ps_id;
 	QString dna_rna;
 	QString reviewer1;
@@ -488,6 +491,17 @@ struct CfdnaGeneEntry
 	BedFile bed = BedFile();
 };
 
+///NGSD import status for germline analysis.
+struct CPPNGSDSHARED_EXPORT ImportStatusGermline
+{
+	//variant data
+	int small_variants = 0;
+	int cnvs = 0;
+	int svs = 0;
+	//QC data
+	int qc_terms = 0;
+};
+
 /// NGSD accessor.
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
@@ -496,7 +510,7 @@ Q_OBJECT
 
 public:
 	///Default constructor that connects to the DB
-	NGSD(bool test_db = false, bool hg38 = false);
+	NGSD(bool test_db=false, QString name_suffix="");
 	///Destructor.
 	~NGSD();
 	///Returns if the database connection is (still) open
@@ -505,7 +519,7 @@ public:
 	///Returns the table list.
 	QStringList tables() const;
 	///Returns information about all fields of a table.
-	const TableInfo& tableInfo(const QString& table) const;
+	const TableInfo& tableInfo(const QString& table, bool use_cache = true) const;
 	///Checks if the value is valid for the table/field when used in an SQL query. Returns a non-empty error list in case it is not. 'check_unique' must not be used for existing entries.
 	QStringList checkValue(const QString& table, const QString& field, const QString& value, bool check_unique) const;
 	///Escapes SQL special characters in a text
@@ -609,8 +623,10 @@ public:
 	PhenotypeList phenotypes(const QByteArray& symbol);
 	///Returns all phenotypes matching the given search terms (or all terms if no search term is given)
 	PhenotypeList phenotypes(QStringList search_terms);
-	///Returns all genes associated to a phenotype. If is set terms of the following parent terms are ignored: "Mode of inheritance", "Frequency"
+	///Returns all genes associated to a phenotype. If "ignore_non_phenotype_terms" is set terms of the following parent terms are ignored: "Mode of inheritance", "Frequency"
 	GeneSet phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype_terms=true);
+	///Returns all genes associated with a phenotype that fullfil the allowed Sources and Evidences criteria. If "ignore_non_phenotype_terms" is set terms of the following parent terms are ignored: "Mode of inheritance", "Frequency"
+	GeneSet phenotypeToGenesbySourceAndEvidence(int id, QList<PhenotypeSource::Source> allowedSources, QList<PhenotypeEvidence::Evidence> allowedEvidences, bool recursive, bool ignore_non_phenotype_terms);
 	///Returns all child terms of the given phenotype
 	PhenotypeList phenotypeChildTerms(int term_id, bool recursive);
 	///Returns OMIM information for a gene. Several OMIM entries per gene are rare, but happen e.g. in the PAR region.
@@ -626,6 +642,9 @@ public:
 	///Returns the NGSD processed sample ID from a file name or processed sample name. Throws an exception if it could not be determined.
 	QString processedSampleId(const QString& filename, bool throw_if_fails = true);
 
+	///Returns the project folder for a project type
+	QString projectFolder(QString type);
+	///Returns the path of certain file of a processed sample (type)
 	QString processedSamplePath(const QString& processed_sample_id, PathType type);
 	///Returns the path to secondary analyses of the processed samples.
 	QStringList secondaryAnalyses(QString processed_sample_name, QString analysis_type);
@@ -670,6 +689,9 @@ public:
 	QString addSomaticCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll = 0.0);
 	QString somaticCnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_fails = true);
 	CopyNumberVariant somaticCnv(int cnv_id);
+
+	///Returns the germline import status.
+	ImportStatusGermline importStatus(const QString& ps_id);
 
 	/***User handling functions ***/
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.
@@ -722,10 +744,19 @@ public:
 	int processingSystemIdFromProcessedSample(QString ps_name);
 	///Returns the processing system information for a processed sample.
 	ProcessingSystemData getProcessingSystemData(int sys_id);
+
+	///Returns a path (including filename) for the processing system target region file.
+	QString processingSystemRegionsFilePath(int sys_id);
 	///Returns the processing system target region file.
 	BedFile processingSystemRegions(int sys_id);
+
+	///Returns a path (including filename) for the processing system amplicon region file.
+	QString processingSystemAmpliconsFilePath(int sys_id);
 	///Returns the processing system amplicon region file.
 	BedFile processingSystemAmplicons(int sys_id);
+
+	///Returns a path (including filename) for the processing system genes.
+	QString processingSystemGenesFilePath(int sys_id);
 	///Returns the processing system genes.
 	GeneSet processingSystemGenes(int sys_id);
 

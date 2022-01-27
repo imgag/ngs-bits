@@ -8,6 +8,7 @@ RC_FILE	 = icon.rc
 
 SOURCES += main.cpp\
     CfDNAPanelBatchImport.cpp \
+    DatabaseServiceRemote.cpp \
     GlobalServiceProvider.cpp \
     MainWindow.cpp \
     ExternalToolDialog.cpp \
@@ -102,10 +103,13 @@ SOURCES += main.cpp\
     ClinvarUploadDialog.cpp \
     LiftOverWidget.cpp \
     CacheInitWorker.cpp \
+    BlatWidget.cpp \
+    AnalysisInformationWidget.cpp \
+    PhenotypeSourceEvidenceSelector.cpp\
     ClinvarUploadStatusWidget.cpp
-
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
+    DatabaseServiceRemote.h \
     ExternalToolDialog.h \
     GlobalServiceProvider.h \
     ReportDialog.h \
@@ -199,9 +203,10 @@ HEADERS += MainWindow.h \
     CfdnaAnalysisDialog.h \
     ClinvarUploadDialog.h \
     LiftOverWidget.h \
+    AnalysisInformationWidget.h \
     CacheInitWorker.h \
+    PhenotypeSourceEvidenceSelector.h \
     ClinvarUploadStatusWidget.h
-
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
@@ -284,9 +289,12 @@ FORMS    += MainWindow.ui \
     cfDNARemovedRegions.ui \
     CfdnaAnalysisDialog.ui \
     ClinvarUploadDialog.ui \
+    BlatWidget.ui \
+    AnalysisInformationWidget.ui \
     LiftOverWidget.ui \
+    PhenotypeSourceEvidenceSelector.ui \
     ClinvarUploadStatusWidget.ui
-    include("../app_gui.pri")
+include("../app_gui.pri")
 
 #include NGSD library
 INCLUDEPATH += $$PWD/../cppNGSD

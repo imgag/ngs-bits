@@ -15,6 +15,7 @@
 #include "GlobalServiceProvider.h"
 #include "FileLocationProviderLocal.h"
 #include "FileLocationProviderRemote.h"
+#include "VersatileTextStream.h"
 
 ///Main window class
 class MainWindow
@@ -76,9 +77,11 @@ public slots:
 	///Loads a variant list. Unloads the variant list if no file name is given
 	void loadFile(QString filename="");
 	///Checks if variant list is outdated
-	void checkVariantList(QStringList messages);
+	void checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues);
 	///Checks if processed samples have bad quality or other problems
-	void checkProcessedSamplesInNGSD();
+	void checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>>& issues);
+	///Shows a dialog with issues in analysis. Returns the DialogCode.
+	int showAnalysisIssues(QList<QPair<Log::LogLevel, QString> >& issues);
 	///Open dialog
 	void on_actionOpen_triggered();
 	///Open dialog by name (using NGSD)
@@ -167,7 +170,7 @@ public slots:
 	///Genes to regions conversion dialog
 	void on_actionGenesToRegions_triggered();
 	///Subpanel archive dialog
-	void on_actionArchiveSubpanel_triggered();
+	void on_actionManageSubpanels_triggered();
 	///Close current variant list
 	void on_actionClose_triggered();
 	///Close all meta data tabs
@@ -236,9 +239,12 @@ public slots:
 	void on_actionAlleleBalance_triggered();
 	///Shows lift-over dialog
 	void on_actionLiftOver_triggered();
+	///Get reference sequence
+	void on_actionGetGenomicSequence_triggered();
+	///Perform BLAT search
+	void on_actionBlatSearch_triggered();
 	///Shows ClinVar upload status widget
 	void on_actionClinvar_upload_status_triggered();
-
 	///Load report configuration
 	void loadReportConfig();
 	///Store report configuration
@@ -322,6 +328,8 @@ public slots:
 	void importPhenotypesFromNGSD();
 	///Create sub-panel from phenotype
 	void createSubPanelFromPhenotypeFilter();
+	/// Open phenotype Options menu
+	void openPhenotypeOptions();
 
 	///Opens a sample based on the processed sample name
 	void openProcessedSampleFromNGSD(QString processed_sample_name, bool search_multi=true);
@@ -409,6 +417,9 @@ private:
 	FilterResult filter_result_;
 	QString last_report_path_;
 	PhenotypeList last_phenos_;
+	bool filter_phenos_;
+	QList<PhenotypeEvidence::Evidence> last_phenotype_evidences_;
+	QList<PhenotypeSource::Source> last_phenotype_sources_;
 	BedFile last_phenos_roi_;
     QHash<QByteArray, BedFile> gene2region_cache_;
 	ReportSettings report_settings_;

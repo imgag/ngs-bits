@@ -5,6 +5,7 @@
 #include "FastaFileIndex.h"
 #include "Settings.h"
 #include "Exceptions.h"
+#include "Helper.h"
 #include <cmath>
 
 class ConcreteTool

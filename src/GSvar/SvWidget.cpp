@@ -691,9 +691,10 @@ void SvWidget::editGermlineReportConfiguration(int row)
 	int i_genes = sv_bedpe_file_.annotationIndexByName("genes", false);
 	if (i_genes!=-1)
 	{
-		QByteArrayList genes = sv_bedpe_file_[row].annotations()[i_genes].split(',');
-		foreach(QByteArray gene, genes)
+		GeneSet genes = GeneSet::createFromText(sv_bedpe_file_[row].annotations()[i_genes], ',');
+		foreach(const QByteArray& gene, genes)
 		{
+
 			GeneInfo gene_info = db.geneInfo(gene);
 			inheritance_by_gene << KeyValuePair{gene, gene_info.inheritance};
 		}

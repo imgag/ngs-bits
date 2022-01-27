@@ -65,7 +65,7 @@ public:
 
 		//check if variants were already imported for this PID
 		QString ps_id = db.processedSampleId(ps_name);
-		int count_old = db.getValue("SELECT count(*) FROM detected_variant WHERE processed_sample_id=:0", true, ps_id).toInt();
+		int count_old = db.importStatus(ps_id).small_variants;
 		out << "Found " << count_old  << " variants already imported into NGSD!\n";
 		if(count_old>0 && !var_force)
 		{
@@ -362,18 +362,18 @@ public:
 		QByteArray caller;
 		QByteArray caller_version;
 		QDate date;
-		foreach (const QByteArray &comment, svs.comments())
+		foreach (const QByteArray &header, svs.headers())
 		{
 			// parse date
-			if (comment.startsWith("##fileDate="))
+			if (header.startsWith("##fileDate="))
 			{
-				date = QDate::fromString(comment.split('=')[1].trimmed(), "yyyyMMdd");
+				date = QDate::fromString(header.split('=')[1].trimmed(), "yyyyMMdd");
 			}
 
 			// parse manta version
-			if (comment.startsWith("##source="))
+			if (header.startsWith("##source="))
 			{
-				QByteArrayList application_string = comment.split('=')[1].trimmed().split(' ');
+				QByteArrayList application_string = header.split('=')[1].trimmed().split(' ');
 				if (application_string[0].startsWith("GenerateSVCandidates")) caller = "Manta";
 				caller_version = application_string[1].trimmed();
 			}

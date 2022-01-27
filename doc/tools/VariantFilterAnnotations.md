@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2021_06-105-g6f3de776)
+	VariantFilterAnnotations (2021_09-54-g98c25b4f)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -100,6 +100,12 @@
 	                                   Parameters:
 	                                     min_af_tum - Minimum allele frequency in tumor sample [%] [default=5] [min=0.0] [max=100.0]
 	                                     max_af_nor - Maximum allele frequency in normal sample [%] [default=1] [min=0.0] [max=100.0]
+	Splice effect                      Filter based on the predicted change in splice effect
+	                                   Parameters:
+	                                     MaxEntScan - Minimum percentage change in the value of MaxEntScan. Positive min. increase, negative min. decrease. Disabled if set to zero. [default=-15]
+	                                     SpliceAi - Minimum SpliceAi value. Disabled if set to zero. [default=0.5] [min=0] [max=1]
+	                                     MMSplice - Minimum absolute Delta Logit PSI Score. Disabled if set to zero. [default=2] [min=0]
+	                                     action - Action to perform [default=KEEP] [valid=KEEP,FILTER]
 	Text search                        Filter for text match in variant annotations.
 	                                   The text comparison ignores the case.
 	                                   Parameters:
@@ -141,7 +147,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2021_06-105-g6f3de776
+	VariantFilterAnnotations 2021_09-54-g98c25b4f
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

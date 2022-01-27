@@ -66,27 +66,27 @@ INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane
  
 --variant
 INSERT INTO variant (id, chr, start, end, ref, obs, comment, 1000g, gnomad) VALUES
-(1, 'chr1', 62713224, 62713224, 'C', 'G', 'from NA12880', 0.0, 0.05),
-(2, 'chr1', 62713246, 62713246, 'G', 'A', '', 0.0, 0.04),
-(3, 'chr1', 62728784, 62728784, 'A', 'G', '', 0.0, 0.04),
-(4, 'chr1', 62728838, 62728838, 'T', 'C', 'from DUMMY', 0.0, 0.04),
-(5, 'chr1', 120539331, 120539331, 'C', 'T', '', 0.0, 0.04),
-(6, 'chr1', 120611964, 120611964, 'G', 'A', '', 0.0, 0.04),
-(7, 'chr1', 120612034, 120612034, 'T', 'G', '', 0.0, 0.04),
-(8, 'chr1', 120612040, 120612040, '-', 'CCTCCTCCG', '', 0.0, 0.14),
-(9, 'chr5', 131925483, 131925483, 'G', 'C', '', 0.0, 0.04),
+(1, 'chr1', 62247552, 62247552, 'C', 'G', 'from NA12880', 0.0, 0.05),
+(2, 'chr1', 62247574, 62247574, 'G', 'A', '', 0.0, 0.04),
+(3, 'chr1', 62263112, 62263112, 'A', 'G', '', 0.0, 0.04),
+(4, 'chr1', 62263166, 62263166, 'T', 'C', 'from DUMMY', 0.0, 0.04),
+(5, 'chr1', 119996708, 119996708, 'C', 'T', '', 0.0, 0.04),
+(6, 'chr1', 120069350, 120069350, 'G', 'A', '', 0.0, 0.04),
+(7, 'chr1', 120069420, 120069420, 'T', 'G', '', 0.0, 0.04),
+(8, 'chr1', 120069426, 120069426, '-', 'CCTCCTCCG', '', 0.0, 0.14),
+(9, 'chr5', 132589791, 132589791, 'G', 'C', '', 0.0, 0.04),
 (10, 'chr1', 13657, 13657, 'AG', '-', 'NA12878_38_Dragen_abra', 0.0, 0.04),
 (11, 'chr1', 17385, 17385, 'G', 'A', 'NA12878_38_Dragen_abra', 0.0, 0.04),
-(12, 'chr1', 324822, 324822, 'A', 'T', 'NA12878_38_Dragen_abra', 0.0, 0.04),
-(13, 'chr1', 762273, 762273, 'G', 'A', 'NA12878_38_Dragen_abra', 0.0, 0.04),
-(14, 'chr1', 762589, 762589, 'G', 'C', 'NA12878_38_Dragen_abra', 0.0, 0.04),
-(15, 'chr1', 762592, 762592, 'C', 'G', 'NA12878_38_Dragen_abra', 0.08, 0.04),
-(16, 'chr1', 762601, 762601, 'T', 'C', 'NA12878_38_Dragen_abra', 0.08, 0.04),
-(17, 'chr1', 762632, 762632, 'T', 'A', 'NA12878_38_Dragen_abra', 0.0, 0.04),
-(18, 'chr1', 866512, 866512, '-', 'CCCT', 'NA12878_38_Dragen_abra', 0.0, 0.04),
-(19, 'chr1', 871334, 871334, 'G', 'T', 'NA12878_38_Dragen_abra', 0.0, 0.04),
-(20, 'chr1', 876499, 876499, 'A', 'G', 'NA12878_38_Dragen_abra', 0.0, 0.04),
-(21, 'chr6', 82461926, 82461926, 'GACGCGCGGCGGCGGAGAGC', 'GCCCC', 'NA12878_38_Dragen_abra', 0.0, 0.04);
+(12, 'chr1', 494515, 494515, 'T', 'A', 'NA12878_38_Dragen_abra', 0.0, 0.04),
+(13, 'chr1', 826893, 826893, 'G', 'A', 'NA12878_38_Dragen_abra', 0.0, 0.04),
+(14, 'chr1', 827209, 827209, 'G', 'C', 'NA12878_38_Dragen_abra', 0.0, 0.04),
+(15, 'chr1', 827212, 827212, 'C', 'G', 'NA12878_38_Dragen_abra', 0.08, 0.04),
+(16, 'chr1', 827221, 827221, 'T', 'C', 'NA12878_38_Dragen_abra', 0.08, 0.04),
+(17, 'chr1', 827252, 827252, 'T', 'A', 'NA12878_38_Dragen_abra', 0.0, 0.04),
+(18, 'chr1', 931132, 931132, '-', 'CCCT', 'NA12878_38_Dragen_abra', 0.0, 0.04),
+(19, 'chr1', 935954, 935954, 'G', 'T', 'NA12878_38_Dragen_abra', 0.0, 0.04),
+(20, 'chr1', 941119, 941119, 'A', 'G', 'NA12878_38_Dragen_abra', 0.0, 0.04),
+(21, 'chr6', 81752209, 81752209, 'GACGCGCGGCGGCGGAGAGC', 'GCCCC', 'NA12878_38_Dragen_abra', 0.0, 0.04);
 
 
 --variant_classification
@@ -447,7 +447,7 @@ INSERT INTO `hpo_term` (`id`, `hpo_id`, `name`, `definition`, `synonyms`) VALUES
 (1, 'HP:0000007', 'Autosomal recessive inheritance', '\"A mode of inheritance that is observed for traits related to a gene encoded on one of the autosomes (i.e., the human chromosomes 1-22) in which a trait manifests in homozygotes. In the context of medical genetics, autosomal recessive disorders manifest in homozygotes (with two copies of the mutant allele) or compound heterozygotes (whereby each copy of a gene has a distinct mutant allele).', ''),
 (2, 'HP:0001427', 'Mitochondrial inheritance', '\"A mode of inheritance that is observed for traits related to a gene encoded on the mitochondrial genome. Because the mitochondrial genome is essentially always maternally inherited, a mitochondrial condition can only be transmitted by females, although the condition can affect both sexes. The proportion of mutant mitochondria can vary (heteroplasmy).', '');
 
-INSERT INTO `hpo_genes` (`hpo_term_id`, `gene`) VALUES
-(1, 'OR4F5'),
-(2, 'OR4F5');
+INSERT INTO `hpo_genes` (`hpo_term_id`, `gene`, `details`, `evidence`) VALUES
+(1, 'OR4F5', '(ClinVar,,n/a); (HPO,,n/a)', 'n/a'),
+(2, 'OR4F5', '(OMIM,(2), low)', 'low');
 

@@ -9,6 +9,7 @@
 #include <QMessageBox>
 #include <QAction>
 #include <QDesktopServices>
+#include <QInputDialog>
 
 VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	: QWidget(parent)
@@ -20,6 +21,7 @@ VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	connect(ui_.similarity, SIGNAL(clicked(bool)), this, SLOT(calculateSimilarity()));
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 	connect(ui_.update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
+	connect(ui_.edit_btn, SIGNAL(clicked(bool)), this, SLOT(editComment()));
 	connect(ui_.class_btn, SIGNAL(clicked(bool)), this, SLOT(editClassification()));
 	connect(ui_.transcripts, SIGNAL(linkActivated(QString)), this, SLOT(openGeneTab(QString)));
 	connect(ui_.af_gnomad, SIGNAL(linkActivated(QString)), this, SLOT(gnomadClicked(QString)));
@@ -57,7 +59,7 @@ void VariantWidget::updateGUI()
 	QPair<int, int> counts = db.variantCounts(variant_id);
 	ui_.ngsd_het->setText(QString::number(counts.first));
 	ui_.ngsd_hom->setText(QString::number(counts.second));
-	ui_.comments->setText(query1.value("comment").toString());
+	GSvarHelper::limitLines(ui_.comments, query1.value("comment").toString());
 
 	//transcripts
 	QStringList lines;
@@ -70,7 +72,7 @@ void VariantWidget::updateGUI()
 	//classification
 	ClassificationInfo class_info = db.getClassification(variant_);
 	ui_.classification->setText(class_info.classification);
-	ui_.classification_comment->setText(class_info.comments);
+	GSvarHelper::limitLines(ui_.classification_comment, class_info.comments);
 
 	//samples table
 	SqlQuery query2 = db.getQuery();
@@ -292,6 +294,25 @@ void VariantWidget::openGSvarFile()
 	GlobalServiceProvider::openGSvarViaNGSD(ps, true);
 }
 
+void VariantWidget::editComment()
+{
+	try
+	{
+		//add variant if missing
+		NGSD db;
+		bool ok = true;
+		QByteArray text = QInputDialog::getMultiLineText(this, "Variant comment", "Text: ", db.comment(variant_), &ok).toLatin1();
+		if (!ok) return;
+
+		db.setComment(variant_, text);
+		updateGUI();
+	}
+	catch (DatabaseException& e)
+	{
+		GUIHelper::showMessage("NGSD error", e.message());
+	}
+}
+
 void VariantWidget::editClassification()
 {
 	try
@@ -309,7 +330,6 @@ void VariantWidget::editClassification()
 	catch (DatabaseException& e)
 	{
 		GUIHelper::showMessage("NGSD error", e.message());
-		return;
 	}
 }
 
@@ -317,7 +337,7 @@ void VariantWidget::gnomadClicked(QString var_id)
 {
 	NGSD db;
 	Variant v = db.variant(var_id);
-	QString link = GSvarHelper::gnomaADLink(v);
+	QString link = GSvarHelper::gnomADLink(v, GSvarHelper::build());
 	QDesktopServices::openUrl(QUrl(link));
 }
 

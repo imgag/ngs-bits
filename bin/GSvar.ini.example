@@ -46,6 +46,7 @@ mtb_xml_upload_url = ""
 qbic_data_path = ""
 
 #misc settings
-build = "hg19"
+build = "hg38"
 custom_menu_small_variants = ""
 use_free_hgmd_version = false
+gsvar_file_outdated_before = 2021-12-01

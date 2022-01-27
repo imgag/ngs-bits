@@ -21,7 +21,7 @@ public:
 		addInfile("in", "Input somatic ClinCNV file in TSV format.", false);
 		addOutfile("out", "Output qcML file.", false);
 		//optoinal
-		addEnum("build", "Reference genome to be used.", true, QStringList() << "hg19" << "hg38", "hg19");
+		addEnum("build", "Reference genome to be used.", true, QStringList() << "hg19" << "hg38", "hg38");
 		addString("tid", "Tumor processed sample ID (for retrieving CNVs flagged as artefact from NGSD.)", true);
 		addString("nid", "Normal processed sample ID (for retrieving CNVs flagged as artefact from NGSD.)", true);
 

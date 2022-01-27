@@ -417,6 +417,9 @@
     <addaction name="actionSampleAncestry"/>
     <addaction name="separator"/>
     <addaction name="actionAlleleBalance"/>
+    <addaction name="separator"/>
+    <addaction name="actionGetGenomicSequence"/>
+    <addaction name="actionBlatSearch"/>
    </widget>
    <widget class="QMenu" name="menuIGV">
     <property name="title">
@@ -481,7 +484,7 @@
       <string>Sub-panels</string>
      </property>
      <addaction name="actionDesignSubpanel"/>
-     <addaction name="actionArchiveSubpanel"/>
+     <addaction name="actionManageSubpanels"/>
     </widget>
     <widget class="QMenu" name="menuAdmin">
      <property name="title">
@@ -756,9 +759,9 @@
     <string>Design</string>
    </property>
   </action>
-  <action name="actionArchiveSubpanel">
+  <action name="actionManageSubpanels">
    <property name="text">
-    <string>Archive/restore</string>
+    <string>Manage</string>
    </property>
   </action>
   <action name="actionClose">
@@ -1342,12 +1345,21 @@
     <string>Lift-over</string>
    </property>
   </action>
+  <action name="actionGetGenomicSequence">
+   <property name="text">
+    <string>Get genomic sequence</string>
+   </property>
+  </action>
+  <action name="actionBlatSearch">
+   <property name="text">
+    <string>BLAT search</string>
+   </property>
+  </action>
   <action name="actionClinvar_upload_status">
    <property name="text">
     <string>Clinvar upload status</string>
    </property>
-  </action>
- </widget>
+  </action> </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>

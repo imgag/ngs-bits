@@ -19,15 +19,6 @@ Thus, we need to use a different driver:
 * Download the [MySQL Community Server 5.7.9 ZIP file (32-bit)](http://downloads.mysql.com/archives/community/) and extract it to C:\Qt\Qt5.9.5\mysql-5.7.9-win32\.  
 * Copy C:\Qt\Qt5.9.5\mysql-5.7.9-win32\lib\libmysql.dll to C:\Windows\
 
-## Download
-
-Open a *Git CMD* and clone the most recent release (the source code package of GitHub does not contain required sub-modules):
-
-    git clone --recursive https://github.com/imgag/ngs-bits.git
-	cd ngs-bits
-	git checkout 2021_09
-	git submodule update --recursive --init
-
 ## Build
 
 We can now build ngs-bits:

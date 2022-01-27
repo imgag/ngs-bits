@@ -127,6 +127,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "GenomeVisualizationWidget.h"
 #include "LiftOverWidget.h"
 #include "CacheInitWorker.h"
+#include "BlatWidget.h"
 #include "ClinvarUploadStatusWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -210,6 +211,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.actionDesignSubpanel, SIGNAL(triggered()), this, SLOT(openSubpanelDesignDialog()));
 	connect(ui_.filters, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 	connect(ui_.filters, SIGNAL(phenotypeSubPanelRequested()), this, SLOT(createSubPanelFromPhenotypeFilter()));
+	connect(ui_.filters, SIGNAL(phenotypeOptionsRequested()), this, SLOT(openPhenotypeOptions()));
 
 	//variants tool bar
 	connect(ui_.vars_copy_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(copyToClipboard()));
@@ -255,6 +257,16 @@ MainWindow::MainWindow(QWidget *parent)
 	//init cache in background thread (it takes about 6 seconds)
 	CacheInitWorker* worker = new CacheInitWorker();
 	worker->start();
+
+	//init phenotype filter to accept all Values
+	this->last_phenotype_evidences_ = PhenotypeEvidence::allEvidenceValues(false);
+	this->last_phenotype_sources_ = PhenotypeSource::allSourceValues();
+	this->filter_phenos_ = false;
+	//give the filter widget the current state and update the tooltip:
+	this->ui_.filters->setAllowedPhenotypeEvidences(last_phenotype_evidences_);
+	this->ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
+	this->ui_.filters->phenotypesChanged();
+
 }
 
 QString MainWindow::appName() const
@@ -275,7 +287,38 @@ void MainWindow::on_actionDebug_triggered()
 		QTime timer;
 		timer.start();
 
-		on_actionReplicateNGSD_triggered();
+		//Delete report config CNVs of samples that where the report configuration was not changed since 06.12.22 (for re-import of CNV report config data from HG19 databases - necessary because of CNV calling bug at chromosome ends)
+		/*
+		NGSD db;
+		QList<int> rc_ids_with_cnv_rc = db.getValuesInt("SELECT DISTINCT rc.id FROM report_configuration rc, report_configuration_cnv rcc WHERE rc.id=rcc.report_configuration_id AND rc.last_edit_date < \"2021-12-06\" AND rc.created_date < \"2021-12-06\"");
+		foreach(int rc_id, rc_ids_with_cnv_rc)
+		{
+			QString ps_id = db.getValue("SELECT processed_sample_id FROM report_configuration WHERE id=:0", false, QString::number(rc_id)).toString();
+			qDebug() << "Deleting report config CNVs of " << db.processedSampleName(ps_id) << "ps_id=" << ps_id  << "rc_id=" << rc_id;
+			SqlQuery query = db.getQuery();
+			query.exec("DELETE FROM `report_configuration_cnv` WHERE `report_configuration_id`='"+QString::number(rc_id)+"'");
+			qDebug() << "  Affected rows:" << query.numRowsAffected();
+		}
+		*/
+
+		//Delete small variants report config of samples that have no variants imported (caused by error in NGSDReplicationWidget)
+		/*
+		NGSD db;
+		QList<int> ps_ids_with_small_variant_rc = db.getValuesInt("SELECT DISTINCT rc.processed_sample_id FROM report_configuration rc, report_configuration_variant rcv WHERE rc.id=rcv.report_configuration_id");
+		qDebug() << ps_ids_with_small_variant_rc.count();
+		QSet<int> ps_ids_with_variants_imported = db.getValuesInt("SELECT DISTINCT(processed_sample_id) FROM `detected_variant`").toSet();
+		qDebug() << ps_ids_with_variants_imported.count();
+		foreach(int ps_id, ps_ids_with_small_variant_rc)
+		{
+			if (!ps_ids_with_variants_imported.contains(ps_id))
+			{
+				QString ps_id_str = QString::number(ps_id);
+				QString rc_id = db.getValue("SELECT id FROM report_configuration WHERE processed_sample_id=:0",false, ps_id_str).toString();
+				qDebug() << "Deleting " << db.processedSampleName(ps_id_str) << "ps_id=" << ps_id_str  << "rc_id=" << rc_id;
+				db.getQuery().exec("DELETE FROM `report_configuration_variant` WHERE `report_configuration_id`='"+rc_id+"'");
+			}
+		}
+		*/
 
 		//Check HPO terms in NGSD
 		/*
@@ -865,13 +908,56 @@ void MainWindow::on_actionLiftOver_triggered()
 	addModelessDialog(dlg);
 }
 
+void MainWindow::on_actionGetGenomicSequence_triggered()
+{
+	QString title = "Get genomic sequence";
+	try
+	{
+		//get region
+		QString region_text = QInputDialog::getText(this, title, "genomic region:");
+		if (region_text=="") return;
+
+		Chromosome chr;
+		int start, end;
+		NGSHelper::parseRegion(region_text, chr, start, end);
+
+		//get sequence
+		QString genome_file = Settings::string("reference_genome", false);
+		FastaFileIndex genome_idx(genome_file);
+		int length = end-start+1;
+		Sequence sequence = genome_idx.seq(chr, start, length, true);
+
+		//copy to clipboard
+		QApplication::clipboard()->setText(sequence);
+
+		//show message
+		if (sequence.length()>100)
+		{
+			sequence.resize(100);
+			sequence += "...";
+		}
+		QMessageBox::information(this, title, "Extracted reference sequence of region " + chr.strNormalized(true) + ":" + QString::number(start) + "-" + QString::number(end) + " (length " + QString::number(length) + "):\n" + sequence + "\n\nThe sequence was copied to the clipboard.");
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, title, "Error getting reference sequence:\n" + e.message());
+	}
+}
+
+void MainWindow::on_actionBlatSearch_triggered()
+{
+	BlatWidget* widget = new BlatWidget(this);
+
+	auto dlg = GUIHelper::createDialog(widget, "BLAT search");
+	addModelessDialog(dlg);
+}
+
 void MainWindow::on_actionClinvar_upload_status_triggered()
 {
 	ClinvarUploadStatusWidget* widget = new ClinvarUploadStatusWidget();
 	auto dlg = GUIHelper::createDialog(widget, "Clinvar upload status");
 	addModelessDialog(dlg);
 }
-
 void MainWindow::on_actionClose_triggered()
 {
 	loadFile();
@@ -1180,9 +1266,13 @@ void MainWindow::on_actionCircos_triggered()
 	if (filename_=="") return;
 
 	//load plot file
-	QList<FileLocation> plot_files = GlobalServiceProvider::fileLocationProvider().getCircosPlotFiles(false);
+	FileLocationList plot_files = GlobalServiceProvider::fileLocationProvider().getCircosPlotFiles(true);
 	if (plot_files.isEmpty()) return; //this should not happen because the button is not enabled then...
-
+	if (!plot_files[0].exists)
+	{
+		QMessageBox::warning(this, "Circos plot file access", "Circos plot image file does not exist or the URL has expired");
+		return;
+	}
 	//show plot
 	CircosPlotWidget* widget = new CircosPlotWidget(plot_files[0].filename);
 	auto dlg = GUIHelper::createDialog(widget, "Circos Plot of " + variants_.analysisName());
@@ -1780,7 +1870,7 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 			bool debug = false;
 			foreach(QString command, init_commands)
 			{
-				if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;
+				if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;				
 				socket.write((command + "\n").toLatin1());
 				bool ok = socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)
 				QString answer = socket.readAll().trimmed();
@@ -1897,7 +1987,6 @@ void MainWindow::editVariantValidation(int index)
 	catch (DatabaseException& e)
 	{
 		GUIHelper::showMessage("NGSD error", e.message());
-		return;
 	}
 }
 
@@ -1937,7 +2026,6 @@ void MainWindow::editVariantComment(int index)
 	catch (DatabaseException& e)
 	{
 		GUIHelper::showMessage("NGSD error", e.message());
-		return;
 	}
 }
 
@@ -1984,8 +2072,7 @@ void MainWindow::showCnHistogram()
 
 		//determine CN values
 		QVector<double> cn_values;
-		QSharedPointer<QFile> file = Helper::openFileForReading(seg_files[0]);
-		QTextStream stream(file.data());
+		VersatileTextStream stream(seg_files[0]);
 		while (!stream.atEnd())
 		{
 			QString line = stream.readLine();
@@ -2235,6 +2322,33 @@ void MainWindow::createSubPanelFromPhenotypeFilter()
 
 	//open dialog
 	openSubpanelDesignDialog(genes);
+}
+
+void MainWindow::openPhenotypeOptions()
+{
+	//edit TODO
+	PhenotypeSourceEvidenceSelector* selector = new PhenotypeSourceEvidenceSelector(this);
+	selector->setEvidences(last_phenotype_evidences_);
+	selector->setSources(last_phenotype_sources_);
+
+	auto dlg = GUIHelper::createDialog(selector, "Phenotype Filter Options", "", true);
+
+	//update
+	if (dlg->exec()==QDialog::Accepted)
+	{
+		this->last_phenotype_evidences_ = selector->selectedEvidences();
+		this->last_phenotype_sources_ = selector->selectedSources();
+
+		this->ui_.filters->setAllowedPhenotypeEvidences(last_phenotype_evidences_);
+		this->ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
+		this->ui_.filters->phenotypesChanged();
+
+		if (this->last_phenos_.count() != 0)
+		{
+			filter_phenos_ = true;
+			refreshVariantTable();
+		}
+	}
 }
 
 void MainWindow::on_actionOpen_triggered()
@@ -2605,9 +2719,11 @@ void MainWindow::loadFile(QString filename)
 		timer.restart();
 		variants_.load(filename);
 		Log::perf("Loading small variant list took ", timer);
+		QString mode_title = "";
 		if (filename.startsWith("http"))
 		{
-			GlobalServiceProvider::setFileLocationProvider(QSharedPointer<FileLocationProviderRemote>(new FileLocationProviderRemote(filename, Settings::string("server_host"), Settings::integer("server_port"))));
+			GlobalServiceProvider::setFileLocationProvider(QSharedPointer<FileLocationProviderRemote>(new FileLocationProviderRemote(filename)));
+			mode_title = " (client-server mode)";
 		}
 		else
 		{
@@ -2670,7 +2786,7 @@ void MainWindow::loadFile(QString filename)
 		filename_ = filename;
 
 		//update GUI
-		setWindowTitle(appName() + " - " + variants_.analysisName());
+		setWindowTitle(appName() + " - " + variants_.analysisName() + mode_title);
 		ui_.statusBar->showMessage("Loaded variant list with " + QString::number(variants_.count()) + " variants.");
 
 		refreshVariantTable(false);
@@ -2686,22 +2802,26 @@ void MainWindow::loadFile(QString filename)
 		return;
 	}
 
-	//check if variant list is outdated
-	QStringList messages;
+	//check analysis for issues (outdated, missing columns, wrong genome build, bad quality, ...)
+	QList<QPair<Log::LogLevel, QString>> issues;
 	try
 	{
 		ui_.variant_details->setLabelTooltips(variants_);
 	}
 	catch(Exception& e)
 	{
-		messages << e.message();
+		issues << qMakePair(Log::LOG_INFO, e.message());
 	}
-	checkVariantList(messages);
+	checkVariantList(issues);
 
 	//check variant list in NGSD
-	if (LoginManager::active())
+	checkProcessedSamplesInNGSD(issues);
+
+	//show issues
+	if (showAnalysisIssues(issues)==QDialog::Rejected)
 	{
-		checkProcessedSamplesInNGSD();
+		loadFile();
+		return;
 	}
 
 	//load report config
@@ -2826,19 +2946,27 @@ void MainWindow::loadFile(QString filename)
 	}
 }
 
-void MainWindow::checkVariantList(QStringList messages)
+void MainWindow::checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues)
 {
 	//check genome builds match
-	if (variants_.getBuild()!=GSvarHelper::build())
+	if (variants_.build()!=GSvarHelper::build())
 	{
-		messages << "genome build of GSvar file (" + buildToString(variants_.getBuild(), true) + ") not matching genome build of the GSvar application (" + buildToString(GSvarHelper::build(), true) + ")!";
+		issues << qMakePair(Log::LOG_ERROR, "Genome build of GSvar file (" + buildToString(variants_.build(), true) + ") not matching genome build of the GSvar application (" + buildToString(GSvarHelper::build(), true) + ")! Re-do the analysis for " + buildToString(GSvarHelper::build(), true) +"!");
 	}
 
 	//check creation date
 	QDate create_date = variants_.getCreationDate();
-	if (create_date.isValid() && create_date < QDate::currentDate().addDays(-42))
+	if (create_date.isValid())
 	{
-		messages << "annotations are older than six weeks (" + create_date.toString("yyyy-MM-dd") + ")";
+		if (create_date < QDate::currentDate().addDays(-42))
+		{
+			issues << qMakePair(Log::LOG_INFO, "Variant annotations are older than six weeks (" + create_date.toString("yyyy-MM-dd") + ").");
+		}
+		QDate gsvar_file_outdated_before = QDate::fromString(Settings::string("gsvar_file_outdated_before", true), "yyyy-MM-dd");
+		if (gsvar_file_outdated_before.isValid() && create_date<gsvar_file_outdated_before)
+		{
+			issues << qMakePair(Log::LOG_WARNING, "Variant annotations are outdated! They are older than " + gsvar_file_outdated_before.toString("yyyy-MM-dd") + ". Please re-annotate variants!");
+		}
 	}
 
 	//check sample header
@@ -2848,7 +2976,7 @@ void MainWindow::checkVariantList(QStringList messages)
 	}
 	catch(Exception e)
 	{
-		messages << e.message();
+		issues << qMakePair(Log::LOG_WARNING,  e.message());
 	}
 
 	//create list of required columns
@@ -2876,7 +3004,7 @@ void MainWindow::checkVariantList(QStringList messages)
 	{
 		if (variants_.annotationIndexByName(col, true, false)==-1)
 		{
-			messages << ("column '" + col + "' missing");
+			issues << qMakePair(Log::LOG_WARNING, "Column '" + col + "' missing. Please re-annotate variants!");
 		}
 	}
 
@@ -2895,21 +3023,16 @@ void MainWindow::checkVariantList(QStringList messages)
 			}
 			if (chromosomes.size()<23)
 			{
-				messages << ("Variants detected on " + QString::number(chromosomes.size()) + " chromosomes only! Expected variants on at least 23 chromosomes for WES/WGS data!");
+				issues << qMakePair(Log::LOG_WARNING, "Variants detected on " + QString::number(chromosomes.size()) + " chromosomes only! Expected variants on at least 23 chromosomes for WES/WGS data! Please re-do variant calling of small variants!");
 			}
 		}
 	}
-
-	//show messages
-	if (!messages.empty())
-	{
-		QMessageBox::warning(this, "GSvar file problems", "The GSvar file contains the following problems:\n  -" + messages.join("\n  -"));
-	}
 }
 
-void MainWindow::checkProcessedSamplesInNGSD()
+void MainWindow::checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>>& issues)
 {
-	QStringList messages;
+	if (!LoginManager::active()) return;
+
 	NGSD db;
 
 	foreach(const SampleInfo& info, variants_.getSampleHeader())
@@ -2922,7 +3045,7 @@ void MainWindow::checkProcessedSamplesInNGSD()
 		QString quality = db.getValue("SELECT quality FROM processed_sample WHERE id=" + ps_id).toString();
 		if (quality=="bad")
 		{
-			messages << ("Quality of processed sample '" + ps + "' is 'bad'!");
+			issues << qMakePair(Log::LOG_WARNING, "Quality of processed sample '" + ps + "' is 'bad'!");
 		}
 
 		//check KASP result
@@ -2930,29 +3053,56 @@ void MainWindow::checkProcessedSamplesInNGSD()
 		double error_prob = db.getValue("SELECT random_error_prob FROM kasp_status WHERE random_error_prob<=1 AND processed_sample_id=" + ps_id, true).toDouble(&ok);
 		if (ok && error_prob>0.03)
 		{
-			messages << ("KASP swap probability of processed sample '" + ps + "' is larger than 3%!");
+			issues << qMakePair(Log::LOG_WARNING, "KASP swap probability of processed sample '" + ps + "' is larger than 3%!");
 		}
 
 		//check variants are imported
 		AnalysisType type = variants_.type();
 		if (type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE)
 		{
-			QString sys_type = db.getValue("SELECT sys.type FROM processing_system sys, processed_sample ps WHERE sys.id=ps.processing_system_id AND ps.id="+ps_id, false).toString();
+
+			QString sys_type = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(ps)).type;
 			if (sys_type=="WGS" || sys_type=="WES")
 			{
-				if (db.getValue("SELECT EXISTS(SELECT * FROM detected_variant WHERE processed_sample_id="+ps_id+")").toInt()!=1)
+				ImportStatusGermline import_status = db.importStatus(ps_id);
+				if (import_status.small_variants==0)
 				{
-					messages << ("No germline variants imported into NGSD for processed sample '" + ps + "'!");
+					issues << qMakePair(Log::LOG_WARNING, "No germline variants imported into NGSD for processed sample '" + ps + "'!");
 				}
 			}
 		}
 	}
+}
 
-	//show messages
-	if (!messages.empty())
+int MainWindow::showAnalysisIssues(QList<QPair<Log::LogLevel, QString>>& issues)
+{
+	if (issues.empty()) return QDialog::Accepted;
+
+	//generate text
+	QStringList lines;
+	foreach(auto issue, issues)
 	{
-		QMessageBox::warning(this, "NGSD check of processed sample(s)", "Sample quality is bad or other problems deteted:\n  -" + messages.join("\n  -"));
+		if (issue.first==Log::LOG_ERROR)
+		{
+			lines << "<font color=red>Error:</font>";
+		}
+		else if (issue.first==Log::LOG_WARNING)
+		{
+			lines << "<font color=orange>Warning:</font>";
+		}
+		else
+		{
+			lines << "Notice:";
+		}
+		lines << issue.second;
+		lines << "";
 	}
+
+	//show dialog
+	QLabel* label = new QLabel(lines.join("<br>"));
+	label->setMargin(6);
+	auto dlg = GUIHelper::createDialog(label, "GSvar analysis issues", "The following issues were encountered when loading the analysis:", true);
+	return dlg->exec();
 }
 
 void MainWindow::on_actionAbout_triggered()
@@ -3148,6 +3298,7 @@ void MainWindow::generateEvaluationSheet()
 	//try to get VariantListInfo from the NGSD
 	QString ps_id = db.processedSampleId(base_name);
 	EvaluationSheetData evaluation_sheet_data = db.evaluationSheetData(ps_id, false);
+	evaluation_sheet_data.build = GSvarHelper::build();
 	if (evaluation_sheet_data.ps_id == "") //No db entry found > init
 	{
 		evaluation_sheet_data.ps_id = db.processedSampleId(base_name);
@@ -3494,13 +3645,8 @@ void MainWindow::generateReportSomaticRTF()
 			ReportWorker::moveReport(temp_filename, file_rep);
 
 			//Generate files for QBIC upload
-			QString base_dir = Settings::path("qbic_data_path", true);
-			if (!base_dir.isEmpty())
-			{
-				QString path = base_dir + ps_tumor + "-" + ps_normal + QDir::separator();
-				report.storeQbicData(path);
-			}
-
+			QString path = Settings::string("qbic_data_path") + "/" + ps_tumor + "-" + ps_normal;
+			report.storeQbicData(path);
 			QApplication::restoreOverrideCursor();
 		}
 		catch(Exception& error)
@@ -3532,7 +3678,7 @@ void MainWindow::generateReportSomaticRTF()
 
 			SomaticRnaReportData rna_report_data = somatic_report_settings_;
 			rna_report_data.rna_ps_name = dlg.getRNAid();
-			rna_report_data.rna_fusion_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::FUSIONS).filename;
+			rna_report_data.rna_fusion_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::STAR_FUSIONS).filename;
 
 			SomaticRnaReport rna_report(variants_, cnvs_, rna_report_data);
 
@@ -4648,6 +4794,8 @@ void MainWindow::on_actionPhenoToGenes_triggered()
 	try
 	{
 		PhenoToGenesDialog dlg(this);
+		dlg.setAllowedEvidences(this->last_phenotype_evidences_);
+		dlg.setAllowedSources(this->last_phenotype_sources_);
 		dlg.exec();
 	}
 	catch (DatabaseException& e)
@@ -4682,7 +4830,7 @@ void MainWindow::openSubpanelDesignDialog(const GeneSet& genes)
 	}
 }
 
-void MainWindow::on_actionArchiveSubpanel_triggered()
+void MainWindow::on_actionManageSubpanels_triggered()
 {
 	SubpanelArchiveDialog dlg(this);
 	dlg.exec();
@@ -4971,16 +5119,19 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	menu.addSeparator();
 
 
-	//Google
+	//Google and Google Scholar
 	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/Google.png"), "Google");
+	QMenu* sub_menu2 = menu.addMenu(QIcon("://Icons/GoogleScholar.png"), "Google Scholar");
 	foreach(const VariantTranscript& trans, transcripts)
 	{
 		QAction* action = sub_menu->addAction(trans.gene + " " + trans.idWithoutVersion() + " " + trans.hgvs_c + " " + trans.hgvs_p);
+		QAction* action2 = sub_menu2->addAction(trans.gene + " " + trans.idWithoutVersion() + " " + trans.hgvs_c + " " + trans.hgvs_p);
 		if (preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion()))
 		{
 			QFont font = action->font();
 			font.setBold(true);
 			action->setFont(font);
+			action2->setFont(font);
 		}
 	}
 
@@ -5165,7 +5316,6 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	else if (action==a_clinvar_find)
 	{
 		QDesktopServices::openUrl(QUrl("https://www.ncbi.nlm.nih.gov/clinvar/?term=" + variant.chr().strNormalized(false)+"[chr]+AND+" + QString::number(variant.start()) + "%3A" + QString::number(variant.end()) + (GSvarHelper::build()==GenomeBuild::HG38? "[chrpos38] " : "[chrpos37] ")));
-
 	}
 	else if (action==a_clinvar_pub)
 	{
@@ -5206,7 +5356,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 			}
 		}
 	}
-	else if (parent_menu && parent_menu->title()=="Google")
+	else if (parent_menu && (parent_menu->title()=="Google" || parent_menu->title()=="Google Scholar"))
 	{
 		QByteArray query;
 		QByteArrayList parts = text.split(' ');
@@ -5225,7 +5375,8 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		}
 		query += ")";
 
-		QDesktopServices::openUrl(QUrl("https://www.google.com/search?q=" + query.replace("+", "%2B").replace(' ', '+')));
+		QString base_url = parent_menu->title()=="Google" ? "https://www.google.com/search?q=" : "https://scholar.google.de/scholar?q=";
+		QDesktopServices::openUrl(QUrl(base_url + query.replace("+", "%2B").replace(' ', '+')));
 	}
 	else if (action==a_varsome)
 	{
@@ -5665,8 +5816,8 @@ void MainWindow::editVariantReportConfiguration(int index)
 
 		if (i_genes!=-1)
 		{
-			QByteArrayList genes = variant.annotations()[i_genes].split(',');
-			foreach(QByteArray gene, genes)
+			GeneSet genes = GeneSet::createFromText(variant.annotations()[i_genes], ',');
+			foreach(const QByteArray& gene, genes)
 			{
 				GeneInfo gene_info = db.geneInfo(gene);
 				inheritance_by_gene << KeyValuePair{gene, gene_info.inheritance};
@@ -5776,7 +5927,51 @@ void MainWindow::storeCurrentVariantList()
 	}
 	else
 	{
-		//TODO GSvarServer: add a end-point to update the GSvar file on the server - use data from variants_changed_
+		QJsonDocument json_doc = QJsonDocument();
+		QJsonArray json_array;
+		QJsonObject json_object;
+
+		foreach(const VariantListChange& variant_changed, variants_changed_)
+		{
+			try
+			{
+				json_object.insert("variant", variant_changed.variant.toString());
+				json_object.insert("column", variant_changed.column);
+				json_object.insert("text", variant_changed.text);
+				json_array.append(json_object);
+			}
+			catch (Exception& e)
+			{				
+				QMessageBox::warning(this, "Could not process the changes to be sent to the server:", e.message());
+			}
+		}
+
+		json_doc.setArray(json_array);
+
+		QString ps_url_id;
+		QList<QString> filename_parts = filename_.split("/");
+		if (filename_parts.size()>3)
+		{
+			ps_url_id = filename_parts[filename_parts.size()-2];
+		}
+
+		try
+		{
+			HttpHeaders add_headers;
+			add_headers.insert("Accept", "application/json");
+			add_headers.insert("Content-Type", "application/json");
+			add_headers.insert("Content-Length", QByteArray::number(json_doc.toJson().count()));
+
+			QString reply = HttpHandler(HttpRequestHandler::NONE).put(
+						Helper::serverApiUrl() + "project_file?ps_url_id=" + ps_url_id,
+						json_doc.toJson(),
+						add_headers
+					);
+		}
+		catch (Exception& e)
+		{
+			QMessageBox::warning(this, "Could not reach the server:", e.message());
+		}
 	}
 
 	QApplication::restoreOverrideCursor();
@@ -5790,7 +5985,7 @@ void MainWindow::checkPendingVariantValidations()
 	QStringList vv_pending = db.getValues("SELECT id FROM variant_validation WHERE status='for reporting' AND user_id='" + LoginManager::userIdAsString() + "'");
 	if (vv_pending.isEmpty()) return;
 
-	showNotification("Variant validation: " + QString::number(vv_pending.count()) + " pending variants 'for reporing'!");
+	showNotification("Variant validation: " + QString::number(vv_pending.count()) + " pending variants 'for reporting'!");
 }
 
 void MainWindow::showNotification(QString text)
@@ -5978,8 +6173,9 @@ void MainWindow::applyFilters(bool debug_time)
 
 		//phenotype selection changed => update ROI
 		const PhenotypeList& phenos = ui_.filters->phenotypes();
-		if (phenos!=last_phenos_)
+		if ((phenos!=last_phenos_) | filter_phenos_)
 		{
+			filter_phenos_ = false;
 			last_phenos_ = phenos;
 
 			//convert phenotypes to genes
@@ -5987,7 +6183,8 @@ void MainWindow::applyFilters(bool debug_time)
 			GeneSet pheno_genes;
 			foreach(const Phenotype& pheno, phenos)
 			{
-				pheno_genes << db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
+
+				pheno_genes << db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(pheno.accession()), last_phenotype_sources_, last_phenotype_evidences_, true, false);
 			}
 
 			//convert genes to ROI (using a cache to speed up repeating queries)

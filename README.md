@@ -7,11 +7,22 @@
 
 ## Obtaining ngs-bits
 
-Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can be built from sources:
+Binaries of *ngs-bits* are available via Bioconda:
 
 * **Binaries** for [Linux/macOS](doc/install_bioconda.md)
-* From **sources** for [Linux/macOS](doc/install_unix.md)
-* From **sources** for [Windows](doc/install_win.md)
+
+Alternatively, *ngs-bits* can be built from sources. Use git to clone the most recent release (the source code package of GitHub does not contains required sub-modules):
+
+    > git clone --recursive https://github.com/imgag/ngs-bits.git
+	> cd ngs-bits
+	> git checkout 2021_12
+	> git submodule update --recursive --init
+
+Depending on your operating system, building instructions vary slightly:
+
+* Building from **sources** for [Linux](doc/install_unix.md)
+* Building from **sources** for [MacOS](doc/install_mac.md)
+* Building from **sources** for [Windows](doc/install_win.md)
 
 ## ChangeLog
 
@@ -20,18 +31,12 @@ Changes already implemented in GIT master for next release:
 * none
 
 
-Changes in release 2021_09:  
+Changes in release 2021_12:  
 
-* GenePrioritization: Performs gene prioritization based on list of known disease genes and a PPI graph.
-* GraphStringDb: Creates simple representation of String-DB interaction graph.
-* VcfCheck: improved checking of empty INFO column
-* VcfAnnotateFromBed: added multithread support
-* VcfAnnotateFromVcf: improved memory useage
-* MappingQC: added support for cfDNA samples, improved support for RNA
-* NGSD:
-	* removed 'gene' and 'variant\_type' columns from 'variant' table
-	* added 'germline\_het' and 'germline\_hom' columns to 'variant' table
-	* added method 'shallow WGS' to 'variant\_validation' table
+* VcfFile: fixed crash when VCF contains position 0.
+* VcfAnnotateFromVcf: fixed error handling (seg-fault of error in worker thread occured).
+* VariantFilterAnnotations: Added filter for variants with splicing effect.
+
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 

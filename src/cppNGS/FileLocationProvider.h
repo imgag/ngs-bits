@@ -55,6 +55,8 @@ public:
 	virtual FileLocationList getPrsFiles(bool return_if_missing) const = 0;
 	//Returns sample-specific CIRCOS plot files.
 	virtual FileLocationList getCircosPlotFiles(bool return_if_missing) const = 0;
+	//Returns sample specific RNA expression files.
+	virtual FileLocationList getExpressionFiles(bool return_if_missing) const = 0;
 
 	//############################## somatic-only files ##############################
 	//Returns the tumor-normal CNV coverage SEG file (throws an exception if not SOMATIC_PAIR or SOMATIC_SINGLE)
@@ -65,12 +67,6 @@ public:
 	virtual FileLocation getSomaticLowCoverageFile() const = 0;
 	//Returns the somatic MSI file in TSV format (throws an exception if not SOMATIC_PAIR or SOMATIC_SINGLE)
 	virtual FileLocation getSomaticMsiFile() const = 0;
-
-protected:
-	//Returns analysis path, i.e. the path of the GSvar file
-	virtual QString getAnalysisPath() const = 0;
-	//Returns the project path , i.e. the parent directory of the analysis path
-	virtual QString getProjectPath() const = 0;
 };
 
 #endif // FILELOCATIONPROVIDER_H

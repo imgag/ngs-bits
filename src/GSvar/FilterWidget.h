@@ -61,6 +61,14 @@ public:
 	const PhenotypeList& phenotypes() const;
 	///Sets selected phenotype terms.
 	void setPhenotypes(const PhenotypeList& phenotypes);
+	///Returns selected database sources
+	const QList<PhenotypeSource::Source>& allowedPhenotypeSources() const;
+	/// sets the allowed phenotypeSources for the PhenotypeFilter tooltip
+	void setAllowedPhenotypeSources(QList<PhenotypeSource::Source> sources);
+	///Returns selected Evidence levels
+	const QList<PhenotypeEvidence::Evidence>& allowedPhenotypeEvidences() const;
+	/// sets the allowed phenotypeEvidences for the PhenotypeFilter tooltip
+	void setAllowedPhenotypeEvidences(QList<PhenotypeEvidence::Evidence> evidences);
 
 	/// Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)
 	void loadTargetRegions();
@@ -89,6 +97,11 @@ signals:
 	void phenotypeImportNGSDRequested();
 	/// Signal that a sub-panel should be created using the phenotypes
 	void phenotypeSubPanelRequested();
+	/// Signal that the options for evidence and source selection were requested.
+	void phenotypeOptionsRequested();
+
+public slots:
+		void phenotypesChanged();
 
 protected slots:
 	void addRoi();
@@ -99,7 +112,6 @@ protected slots:
 	void textChanged();
 	void regionChanged();
 	void reportConfigFilterChanged();
-	void phenotypesChanged();
 	void updateFilterName();
 	void customFilterLoaded();
 	void showTargetRegionDetails();
@@ -122,6 +134,9 @@ private:
 	TargetRegionInfo roi_;
 	GeneSet last_genes_;
 	PhenotypeList phenotypes_;
+	QList<PhenotypeSource::Source> allowedPhenotypeSources_;
+	QList<PhenotypeEvidence::Evidence> allowedPhenotypeEvidences_;
+
 };
 
 #endif // FILTERWIDGET_H

@@ -35,6 +35,13 @@ clean_tools_debug:
 	rm -rf build-tools-Linux-Debug;
 
 build_tools_debug: clean_tools_debug build_tools_debug_noclean
+
+build_server_debug:
+	rm -rf build-GSvarServer-Linux-Debug;
+	mkdir -p build-GSvarServer-Linux-Debug;
+	cd build-GSvarServer-Linux-Debug; \
+                qmake ../src/tools_server.pro "CONFIG+=debug" "CONFIG-=release"; \
+                make -j5;
 	
 #################################### build - RELEASE ####################################
 
@@ -71,6 +78,13 @@ build_release_noclean:
 	cd build-tools_gui-Linux-Release; \
 		qmake ../src/tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
+
+build_server_release:
+	rm -rf build-GSvarServer-Linux-Release;
+	mkdir -p build-GSvarServer-Linux-Release;
+	cd build-GSvarServer-Linux-Release; \
+                qmake ../src/tools_server.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+                make -j5;
 	
 #################################### other targets ##################################
 
@@ -80,7 +94,10 @@ clean:
 	find bin -type f -or -type l | grep -v ".ini" | grep -v "GSvar_" | grep -v "libhts" | xargs -l1 rm -rf
 
 test_lib:
-	cd bin && ./cppCORE-TEST && ./cppNGS-TEST && ./cppNGSD-TEST
+	cd bin && ./cppCORE-TEST && ./cppNGS-TEST && ./cppNGSD-TEST && ./cppREST-TEST
+
+test_server:
+	cd bin && ./GSvarServer-TEST
 
 test_tools:
 	cd bin && ./tools-TEST
@@ -89,7 +106,7 @@ test_single_tool:
 	cd bin && ./tools-TEST -s $(T)
 
 NGSBITS_VER = $(shell  bin/SeqPurge --version | cut -d' ' -f2)/
-DEP_PATH=/mnt/share/opt/ngs-bits-$(NGSBITS_VER)
+DEP_PATH=/mnt/share/opt/ngs-bits-hg38-$(NGSBITS_VER)
 deploy_nobuild:
 	@echo "#Clean up source"
 	rm -rf bin/out bin/*-TEST
@@ -104,10 +121,10 @@ deploy_nobuild:
 	@echo ""
 	@echo "#Activating"
 	@echo "You can active the new build using the command:"
-	@echo "cd /mnt/share/opt/ && rm ngs-bits-current && ln -s ngs-bits-$(NGSBITS_VER) ngs-bits-current"
+	@echo "cd /mnt/share/opt/ && rm ngs-bits-current && ln -s ngs-bits-hg38-$(NGSBITS_VER) ngs-bits-current"
 	@echo ""
 	@echo "#Deploy settings"
-	cp /mnt/share/opt/ngs-bits-settings/settings.ini $(DEP_PATH)settings.ini
+	cp /mnt/share/opt/ngs-bits-settings/settings_hg38.ini $(DEP_PATH)settings.ini
 	diff bin/settings.ini $(DEP_PATH)settings.ini
 
 test_debug: clean build_libs_debug build_tools_debug test_lib test_tools

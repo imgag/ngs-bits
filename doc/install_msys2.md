@@ -27,7 +27,7 @@ Clone the most recent release of ngs-bits (the source code package of GitHub doe
 
     git clone --recursive https://github.com/imgag/ngs-bits.git
 	cd ngs-bits
-	git checkout 2021_09
+	git checkout 2021_12
 	git submodule update --recursive --init
 
 ## Build
@@ -37,3 +37,6 @@ Now you can build ngs-bits as if you are using Linux:
 
 ## Development
 You can also install *Qt creator* and create your own development environment with msys2: `pacman -S mingw-w64-x86_64-qt-creator`
+
+## Build in a Docker container
+`docker run -it -v FOLDER_ON_YOUR_MACHINE:/root/output/ win_build:latest`

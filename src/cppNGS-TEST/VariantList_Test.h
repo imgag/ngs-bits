@@ -41,7 +41,7 @@ private slots:
 		vl.checkValid();
 		vl.leftAlign(ref_file, false);
 		vl.store("out/LeftAlign_out2.GSvar");
-		COMPARE_FILES("out/LeftAlign_out2.GSvar", TESTDATA("data_out/LeftAlign_out2.GSvar"));
+		COMPARE_FILES("out/LeftAlign_out2.GSvar", TESTDATA("data_out/LeftAlign_out.GSvar"));
 	}
 
 	void removeDuplicates_TSV()
@@ -400,9 +400,9 @@ private slots:
 	void getBuild()
 	{
 		VariantList vl;
-		I_EQUAL(vl.getBuild(), GenomeBuild::HG19);
+		I_EQUAL(vl.build(), GenomeBuild::HG19);
 
 		vl.addCommentLine("##GENOME_BUILD=GRCh38");
-		I_EQUAL(vl.getBuild(), GenomeBuild::HG38);
+		I_EQUAL(vl.build(), GenomeBuild::HG38);
 	}
 };

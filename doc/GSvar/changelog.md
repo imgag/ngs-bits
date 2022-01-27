@@ -1,5 +1,27 @@
 # GSvar change log
 
+### 2021_12-64 (17.01.22)
+- General: Removed support for dbscSNV and MMsplice annotations.
+- General: Added Google Scholar search for variants.
+
+
+### 2021_12-33 (14.12.21)
+- General: Added analysis information dialog to processed sample tab and analysis status tab.
+- General: Improved error checks when loading a GSvar file (outdated annotation, genome build, ...).
+- Sub-panels: Added functionality to manually edit a subpanel target region (sub-panel management dialog).
+- General: Added BLAT search (main menu 'Tools').
+- General: Genomic sequence tool (main menu 'Tools').
+
+### 2021_09-41 (30.11.21)
+- Variant details: corrected changed ClinVar variation links.
+- Gene/variant tab: imiting comments to 15 lines to avoid disruption of the tab layout by huge comments.
+- Somatic report: several improvements.
+- General: fixed several minor issues and crashes.
+
+### 2021_09-34 (27.10.21)
+- Report: updated XML to contain HGNC gene identifiers.
+- General: added lift-over dialog to main menu folder 'Conversion'.
+- General: fixed several minor issues and crashes.
 
 ### 2021_09-2 (29.09.21)
 - Variant table: added button to open qcML files of analysis.

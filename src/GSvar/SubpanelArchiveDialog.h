@@ -20,6 +20,7 @@ protected slots:
 	void updateSubpanelLists();
 	void archive(QListWidgetItem* item);
 	void restore(QListWidgetItem* item);
+	void activePanelContextMenu(QPoint pos);
 
 private:
 	void updateSubpanelList(QListWidget* list, bool archived, const GeneSet& f_genes, QString f_filename);

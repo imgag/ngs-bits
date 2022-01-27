@@ -723,6 +723,9 @@ void VariantList::loadHeaderOnly(QString filename)
 
 void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert, bool header_only)
 {
+	//create cache to avoid copies of the same string in memory (via Qt implicit sharing)
+	QHash<QByteArray, QByteArray> str_cache;
+
 	//create ROI index (if given)
 	QScopedPointer<ChromosomalIndex<BedFile>> roi_idx;
 	if (roi!=nullptr)
@@ -741,7 +744,7 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 	clear();
 
 	//parse from stream
-	QSharedPointer<QFile> file = Helper::openFileForReading(filename, true);
+	QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(filename, true);
 	int filter_index = -1;
 	while(!file->atEnd())
 	{
@@ -787,7 +790,7 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 		if (header_only) break;
 
 		//error when special columns are not present
-		QList<QByteArray> fields = line.split('\t');
+		QByteArrayList fields = line.split('\t');
 		if (fields.count()<special_cols)
 		{
 			THROW(FileParseException, "Variant TSV file line with less than five fields found: '" + line.trimmed() + "'");
@@ -804,6 +807,27 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 			{
 				continue;
 			}
+		}
+
+		//decode annotation entries that contains URL-encodings
+		for (int i = special_cols; i < fields.size(); i++)
+		{
+			if (fields[i].contains('%'))
+			{
+				fields[i] = QUrl::fromPercentEncoding(fields[i]).toLocal8Bit();
+			}
+		}
+
+		//replace repeated strings with cached copy => save ~ 40% of memory
+		for(int i=3; i<fields.count(); ++i)
+		{
+			const QByteArray& field = fields[i];
+			if (!str_cache.contains(field))
+			{
+				str_cache.insert(field, field);
+			}
+
+			fields[i] = str_cache[field];
 		}
 
 		append(Variant(chr, start, end, fields[3], fields[4], fields.mid(special_cols), filter_index));
@@ -1046,7 +1070,7 @@ SampleHeaderInfo VariantList::getSampleHeader() const
 	return output;
 }
 
-GenomeBuild VariantList::getBuild()
+GenomeBuild VariantList::build()
 {
 	foreach(const QString& line, comments_)
 	{

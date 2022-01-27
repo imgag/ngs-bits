@@ -344,7 +344,7 @@ CREATE  TABLE IF NOT EXISTS `sample`
   `name_external` VARCHAR(255) NULL DEFAULT NULL COMMENT 'External names.<br>If several, separate by comma!<br>Always enter full names, no short forms!',
   `received` DATE NULL DEFAULT NULL,
   `receiver_id` INT(11) NULL DEFAULT NULL,
-  `sample_type` ENUM('DNA','DNA (amplicon)','DNA (native)','RNA') NOT NULL,
+  `sample_type` ENUM('DNA','DNA (amplicon)','DNA (native)','RNA','cfDNA') NOT NULL,
   `species_id` INT(11) NOT NULL,
   `concentration` FLOAT NULL DEFAULT NULL,
   `volume` FLOAT NULL DEFAULT NULL,
@@ -768,7 +768,7 @@ CREATE  TABLE IF NOT EXISTS `processed_sample_qc`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
   `qc_terms_id` INT(11) NOT NULL,
-  `value` VARCHAR(30) NOT NULL,
+  `value` TEXT NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `c_processing_id_qc_terms_id` (`processed_sample_id` ASC, `qc_terms_id` ASC),
   INDEX `fk_qcvalues_processing1` (`processed_sample_id` ASC),
@@ -941,6 +941,8 @@ CREATE TABLE IF NOT EXISTS `hpo_genes`
 (
   `hpo_term_id` INT(10) UNSIGNED NOT NULL,
   `gene` VARCHAR(40) CHARACTER SET 'utf8' NOT NULL,
+  `details` TEXT COMMENT 'Semicolon seperated pairs of database sources with evidences of where the connection was found (Source, Original Evidence, Evidence translated; Source2, ....)',
+  `evidence` ENUM('n/a','low','medium','high') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`hpo_term_id`, `gene`),
   CONSTRAINT `hpo_genes_ibfk_1`
     FOREIGN KEY (`hpo_term_id`)
@@ -1826,7 +1828,7 @@ CREATE  TABLE IF NOT EXISTS `variant_validation`
   `sv_inversion_id` INT(11) UNSIGNED DEFAULT NULL,
   `sv_translocation_id` INT(11) UNSIGNED DEFAULT NULL,
   `genotype` ENUM('hom','het') DEFAULT NULL,
-  `validation_method` ENUM('Sanger sequencing', 'breakpoint PCR', 'qPCR', 'MLPA', 'Array', 'shallow WGS', 'n/a') NOT NULL DEFAULT 'n/a',
+  `validation_method` ENUM('Sanger sequencing', 'breakpoint PCR', 'qPCR', 'MLPA', 'Array', 'shallow WGS', 'fragment length analysis', 'n/a') NOT NULL DEFAULT 'n/a',
   `status` ENUM('n/a','to validate','to segregate','for reporting','true positive','false positive','wrong genotype') NOT NULL DEFAULT 'n/a',
   `comment` TEXT NULL DEFAULT NULL,
 PRIMARY KEY (`id`),

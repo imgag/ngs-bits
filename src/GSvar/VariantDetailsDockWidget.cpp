@@ -29,6 +29,7 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	connect(ui->trans_next, SIGNAL(clicked(bool)), this, SLOT(nextTanscript()));
 	connect(ui->variant, SIGNAL(linkActivated(QString)), this, SLOT(variantClicked(QString)));
 	connect(ui->gnomad, SIGNAL(linkActivated(QString)), this, SLOT(gnomadClicked(QString)));
+	connect(ui->gnomad, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(gnomadContextMenu(QPoint)));
 	connect(ui->var_btn, SIGNAL(clicked(bool)), this, SLOT(variantButtonClicked()));
 	connect(ui->trans, SIGNAL(linkActivated(QString)), this, SLOT(transcriptClicked(QString)));
 	connect(ui->som_details_prev, SIGNAL(clicked(bool)), this, SLOT(previousSomDetails()));
@@ -87,14 +88,11 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_sift->setToolTip(vl.annotationDescriptionByName("Sift").description());
 	ui->label_polyphen->setToolTip(vl.annotationDescriptionByName("PolyPhen").description());
 	ui->label_cadd->setToolTip(vl.annotationDescriptionByName("CADD").description());
-	ui->label_fathmm->setToolTip(vl.annotationDescriptionByName("fathmm-MKL", false).description());
 	ui->label_revel->setToolTip(vl.annotationDescriptionByName("REVEL").description());
 
 	//splicing/regulatory
 	ui->label_maxentscan->setToolTip(vl.annotationDescriptionByName("MaxEntScan").description());
-	ui->label_dbscsnv->setToolTip(vl.annotationDescriptionByName("dbscSNV").description());
 	ui->label_regulatory->setToolTip(vl.annotationDescriptionByName("regulatory", false).description());
-	ui->label_mmsplice->setToolTip("MMSplice prediction of splice-site variations;\nMaximum absolute values for the highest scored exon are shown in following format:\n[DeltaLogitPSI score as effect on exon inclusion (values below -2 stand for higher exclusion, values above 2 for higher inclusion) / Pathogenicity score]");
 	ui->label_spliceai->setToolTip("SpliceAI prediction of splice-site variations;\nProbability of the variant being splice-altering (range from 0-1).\nThe score is the maximum value of acceptor/donor gain/loss of all effected genes.");
 
 	//NGSD (all optional)
@@ -178,13 +176,10 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->sift, vl, index, "Sift");
 	setAnnotation(ui->polyphen, vl, index, "PolyPhen");
 	setAnnotation(ui->cadd, vl, index, "CADD");
-	setAnnotation(ui->fathmm, vl, index, "fathmm-MKL");
 	setAnnotation(ui->revel, vl, index, "REVEL");
 
 	//splicing/regulatory
 	setAnnotation(ui->maxentscan, vl, index, "MaxEntScan");
-	setAnnotation(ui->dbscsnv, vl, index, "dbscSNV");
-	setAnnotation(ui->mmsplice, vl, index, "MMSplice_DeltaLogitPSI");
 	setAnnotation(ui->spliceai, vl, index, "SpliceAI");
 	setAnnotation(ui->regulatory, vl, index, "regulatory");
 
@@ -278,7 +273,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		}
 		else if(name=="OMIM")
 		{
-			foreach(const DBEntry& entry, parseDB(anno, ','))
+			foreach(const DBEntry& entry, parseDB(anno, '&'))
 			{
 				text += formatLink(entry.id, "https://omim.org/entry/" + entry.id) + " ";
 				tooltip += nobr() + entry.id + ": " + entry.details;
@@ -295,7 +290,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				else if (entry.details.contains("pathogenic")) color = RED;
 				else if (entry.details.contains("benign")) color = GREEN;
 
-				QString url = entry.id.startsWith("RCV") ? "https://www.ncbi.nlm.nih.gov/clinvar/" : "https://www.ncbi.nlm.nih.gov/clinvar?term=";
+				QString url = entry.id.startsWith("RCV") ? "https://www.ncbi.nlm.nih.gov/clinvar/" : "https://www.ncbi.nlm.nih.gov/clinvar/variation/";
 				text += formatLink(entry.id, url + entry.id, color) + " ";
 				tooltip += nobr() + entry.id + ": " + entry.details;
 			}
@@ -377,30 +372,6 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		else if(name=="Sift" || name=="PolyPhen")
 		{
 			text = anno.replace("D", formatText("D", RED)).replace("P", formatText("P", ORANGE));
-		}
-		else if(name=="fathmm-MKL")
-		{
-			double max = 0.0;
-			QStringList parts = anno.split(",");
-			foreach(QString part, parts)
-			{
-				bool ok = true;
-				double value = part.toDouble(&ok);
-				if (ok) max = std::max(value, max);
-			}
-
-			if (max>=0.9)
-			{
-				text = formatText(anno, RED);
-			}
-			else if (max>=0.5)
-			{
-				text = formatText(anno, ORANGE);
-			}
-			else
-			{
-				text = anno;
-			}
 		}
 		else if(name=="REVEL")
 		{
@@ -528,35 +499,6 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		{
 			if(anno == "1" || anno == "2" || anno == "3") text = formatText(anno, RED);
 			else text = anno;
-		}
-		else if(name=="MMSplice_DeltaLogitPSI")
-		{
-			//add pathogenicity score
-			int pathogenicity_index = vl.annotationIndexByName("MMSplice_pathogenicity", true, false);
-			QString anno_p;
-			if(pathogenicity_index!=-1)
-			{
-				anno_p = vl[index].annotations()[pathogenicity_index];
-			}
-
-			//if one score is present save the score
-			if(anno!="" || anno_p!="")
-			{
-				//deltaLogitPSI score with an absolute value beyond 2 are supposed to be strong
-				if(anno.toDouble() >= 2)
-				{
-					text = formatText(anno + " / " + anno_p, GREEN);
-				}
-				else if(anno.toDouble() <= -2)
-				{
-					text = formatText(anno + " / " + anno_p, RED);
-				}
-				else
-				{
-					text = anno + " / " + anno_p;
-				}
-			}
-
 		}
 		else if(name == "NGSD_som_vicc_interpretation")
 		{
@@ -819,7 +761,7 @@ QString VariantDetailsDockWidget::nobr()
 void VariantDetailsDockWidget::gnomadClicked(QString variant_string)
 {
 	Variant v = Variant::fromString(variant_string);
-	QString link = GSvarHelper::gnomaADLink(v);
+	QString link = GSvarHelper::gnomADLink(v, GSvarHelper::build());
 	QDesktopServices::openUrl(QUrl(link));
 }
 
@@ -957,4 +899,23 @@ void VariantDetailsDockWidget::showOverviewTable(QString title, QString text, ch
 
 	//delete
 	delete table;
+}
+
+void VariantDetailsDockWidget::gnomadContextMenu(QPoint pos)
+{
+	if (GSvarHelper::build()!=GenomeBuild::HG38) return;
+
+	QMenu menu;
+	QAction* a_v2 = menu.addAction("Lift-over to gnomaAD 2.1");
+
+	QAction* action = menu.exec(ui->gnomad->mapToGlobal(pos));
+	if (action==nullptr) return;
+
+	if (action==a_v2)
+	{
+		Variant v = Variant::fromString(variant_str);
+		Variant v2 = GSvarHelper::liftOverVariant(v, false);
+		QString link = GSvarHelper::gnomADLink(v2, GenomeBuild::HG19);
+		QDesktopServices::openUrl(QUrl(link));
+	}
 }

@@ -663,7 +663,7 @@
         </column>
         <column>
          <property name="text">
-          <string>bases</string>
+          <string>bases/exons</string>
          </property>
         </column>
         <column>

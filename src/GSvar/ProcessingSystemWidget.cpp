@@ -53,7 +53,7 @@ void ProcessingSystemWidget::updateGUI()
 	}
 
 	//###processed sample###
-	QString samples = db.getValue("SELECT COUNT(id) FROM processed_sample WHERE processing_system_id=" + QString::number(sys_id_)).toString();
+	QString samples = db.getValue("SELECT COUNT(id) FROM processed_sample WHERE processing_system_id=" + QString::number(sys_id_) + " AND id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)").toString();
 	ui_.number_of_samples_processed->setText(samples);
 
 	QApplication::restoreOverrideCursor();

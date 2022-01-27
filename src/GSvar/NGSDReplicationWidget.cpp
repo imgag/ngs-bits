@@ -14,11 +14,9 @@ NGSDReplicationWidget::NGSDReplicationWidget(QWidget* parent)
 	//init databases and genome indices
 	try
 	{
-		db_source_ = QSharedPointer<NGSD>(new NGSD());
-		db_target_ = QSharedPointer<NGSD>(new NGSD(false, true));
-
-		genome_index_ = QSharedPointer<FastaFileIndex>(new FastaFileIndex(Settings::string("reference_genome")));
-		genome_index_hg38_ = QSharedPointer<FastaFileIndex>(new FastaFileIndex(Settings::string("reference_genome_hg38")));
+		if (GSvarHelper::build()!=GenomeBuild::HG38) THROW(ArgumentException, "This dialog can only be used from GSvar with HG38 genome build!");
+		db_source_ = QSharedPointer<NGSD>(new NGSD(false, "_hg19"));
+		db_target_ = QSharedPointer<NGSD>(new NGSD());
 	}
 	catch(Exception& e)
 	{
@@ -47,6 +45,8 @@ void NGSDReplicationWidget::replicate()
 			addSampleGroups();
 		}
 		if (ui_.variant_data->isChecked()) replicateVariantData();
+		if (ui_.report_configuration->isChecked()) replicateReportConfiguration();
+		if (ui_.post_production->isCheckable()) replicatePostProduction();
 		if (ui_.post_checks->isChecked()) performPostChecks();
 	}
 	catch (Exception& e)
@@ -106,7 +106,7 @@ void NGSDReplicationWidget::performPreChecks()
 	{
 		if (!target_tables.contains(table)) continue;
 
-		if (db_source_->tableInfo(table).fieldNames()!=db_target_->tableInfo(table).fieldNames())
+		if (db_source_->tableInfo(table, false).fieldNames()!=db_target_->tableInfo(table, false).fieldNames())
 		{
 			addWarning("Table '" + table + "' has differing field list!");
 		}
@@ -284,7 +284,7 @@ void NGSDReplicationWidget::updateTable(QString table, bool contains_variant_id,
 				bool pathogenic_variant = table=="variant_classification" && query.value("class").toInt()>3;
 				target_variant_id = liftOverVariant(source_variant_id, causal_variant||pathogenic_variant);
 
-				//warn if causal/pathogenic variant could not be lifed
+				//warn if causal/pathogenic variant could not be lifted
 				if (target_variant_id<0)
 				{
 					if (causal_variant)
@@ -294,8 +294,7 @@ void NGSDReplicationWidget::updateTable(QString table, bool contains_variant_id,
 					}
 					else if (pathogenic_variant)
 					{
-						QString ps = db_source_->processedSampleName(db_source_->getValue("SELECT processed_sample_id FROM report_configuration WHERE id=" + query.value("report_configuration_id").toString()).toString());
-						addWarning("Pathogenic variant " + db_source_->variant(query.value("variant_id").toString()).toString() + " of sample " + ps + " (class " + query.value("class").toString() + ") could not be lifted (" + QString::number(target_variant_id) + ")!");
+						addWarning("Pathogenic variant " + db_source_->variant(query.value("variant_id").toString()).toString() + " (class " + query.value("class").toString() + ") could not be lifted (" + QString::number(target_variant_id) + ")!");
 					}
 				}
 			}
@@ -438,81 +437,543 @@ void NGSDReplicationWidget::replicateVariantData()
 {
 	addHeader("replication of variant data");
 
-	updateTable("variant_classification", true); //TODO also add missing variants (AF>5%, manually added)
+	updateTable("variant_classification", true);
 	updateTable("somatic_variant_classification", true);
 	updateTable("somatic_vicc_interpretation", true);
 	updateTable("variant_publication", true);
 	updateTable("variant_validation", true, "WHERE variant_id IS NOT NULL"); //small variants
 	updateCnvTable("variant_validation", "WHERE cnv_id IS NOT NULL"); //CNVs
-	if (!ui_.skip_rc->isChecked())
-	{
-		QStringList rc_ids_with_variants = db_target_->getValues("SELECT id FROM report_configuration WHERE processed_sample_id IN (SELECT DISTINCT processed_sample_id FROM detected_variant)");
-		updateTable("report_configuration_variant", true, "WHERE report_configuration_id IN (" + rc_ids_with_variants.join(",") + ")"); //only entries for samples with imported variants
-		updateCnvTable("report_configuration_cnv");
-		updateTable("somatic_report_configuration_variant", true);
-		updateTable("somatic_report_configuration_germl_var", true);
-	}
-
-	//TODO NGSDReplicationWidget:
-	//- SVs: report_configuration_sv, variant_validation SVs
-	//- CNVs somatic: somatic_report_configuration_cnv
-	//- misc: gaps, cfdna_panel_genes, cfdna_panels
+	updateSvTable("variant_validation", StructuralVariantType::DEL, "WHERE sv_deletion_id IS NOT NULL"); //SVs (DEL)
+	updateSvTable("variant_validation", StructuralVariantType::DUP, "WHERE sv_duplication_id IS NOT NULL"); //SVs (DUP)
+	updateSvTable("variant_validation", StructuralVariantType::INS, "WHERE sv_insertion_id IS NOT NULL"); //SVs (INS)
+	updateSvTable("variant_validation", StructuralVariantType::INV, "WHERE sv_inversion_id IS NOT NULL"); //SVs (INV)
+	updateSvTable("variant_validation", StructuralVariantType::BND, "WHERE sv_translocation_id IS NOT NULL"); //SVs (BND)
 }
 
-int NGSDReplicationWidget::liftOverVariant(int source_variant_id, bool debug_output)
+void NGSDReplicationWidget::replicateReportConfiguration()
 {
-	Variant var = db_source_->variant(QString::number(source_variant_id));
-	//lift-over coordinates
-	BedLine coords;
-	try
-	{
-		coords = GSvarHelper::liftOver(var.chr(), var.start(), var.end());
-	}
-	catch(Exception& e)
-	{
-		if (debug_output) qDebug() << "-1" << var.toString() << e.message();
-		return -1;
-	}
+	addHeader("replication of report configuration data");
 
-	//check new chromosome is ok
-	if (!coords.chr().isNonSpecial())
-	{
-		if (debug_output) qDebug() << "-2" << var.toString() << coords.chr().str()+":"+QString::number(coords.start())+"-"+QString::number(coords.end());
-		return -2;
-	}
+	//(1) germline
 
-	//check sequence context is the same (ref +-5 bases). If it is not, the strand might have changed, e.g. in NIPA1, GDF2, ANKRD35, TPTE, ...
-	bool strand_changed = false;
-	Sequence context_old = genome_index_->seq(var.chr(), var.start()-5, 10 + var.ref().length());
-	Sequence context_new = genome_index_hg38_->seq(coords.chr(), coords.start()-5, 10 + var.ref().length());
-	if (context_old!=context_new)
+	//import report variants for samples with imported variants that are not already imported
+	QStringList rc_todo = db_target_->getValues("SELECT id FROM report_configuration WHERE processed_sample_id IN (SELECT DISTINCT processed_sample_id FROM detected_variant)");
+	QStringList rc_ids_already_present = db_target_->getValues("SELECT DISTINCT report_configuration_id FROM report_configuration_variant");
+	foreach(QString id, rc_ids_already_present)
 	{
-		context_new.reverseComplement();
-		if (context_old==context_new)
+		rc_todo.removeAll(id);
+	}
+	qDebug() << "report config small variants: samples todo:" << rc_todo.count() << " already imported:" << rc_ids_already_present.count();
+	updateTable("report_configuration_variant", true, "WHERE report_configuration_id IN (" + rc_todo.join(",") + ")");
+
+	//import report CNVs for samples with imported CNVs that are not already imported
+	rc_todo = db_target_->getValues("SELECT id FROM report_configuration WHERE processed_sample_id IN (SELECT processed_sample_id FROM cnv_callset WHERE id IN (SELECT cnv_callset_id FROM cnv))");
+	rc_ids_already_present = db_target_->getValues("SELECT DISTINCT report_configuration_id FROM report_configuration_cnv");
+	foreach(QString id, rc_ids_already_present)
+	{
+		rc_todo.removeAll(id);
+	}
+	qDebug() << "report config CNVs: samples todo:" << rc_todo.count() << " already imported:" << rc_ids_already_present.count();
+	updateCnvTable("report_configuration_cnv", "WHERE report_configuration_id IN (" + rc_todo.join(",") + ")");
+
+
+	//import report SVs for samples with imported SVs that are not already imported
+	rc_ids_already_present = db_target_->getValues("SELECT DISTINCT report_configuration_id FROM report_configuration_sv");
+	//DEL
+	rc_todo = db_target_->getValues("SELECT id FROM report_configuration WHERE processed_sample_id IN (SELECT processed_sample_id FROM sv_callset WHERE id IN (SELECT sv_callset_id FROM sv_deletion))");
+	foreach(QString id, rc_ids_already_present)
+	{
+		rc_todo.removeAll(id);
+	}
+	qDebug() << "report config SVs (DEL): samples todo:" << rc_todo.count() << " already imported:" << rc_ids_already_present.count();
+	updateSvTable("report_configuration_sv", StructuralVariantType::DEL, "WHERE report_configuration_id IN (" + rc_todo.join(",") + ") AND sv_deletion_id IS NOT NULL");
+	//DUP
+	rc_todo = db_target_->getValues("SELECT id FROM report_configuration WHERE processed_sample_id IN (SELECT processed_sample_id FROM sv_callset WHERE id IN (SELECT sv_callset_id FROM sv_duplication))");
+	foreach(QString id, rc_ids_already_present)
+	{
+		rc_todo.removeAll(id);
+	}
+	qDebug() << "report config SVs (DUP): samples todo:" << rc_todo.count() << " already imported:" << rc_ids_already_present.count();
+	updateSvTable("report_configuration_sv", StructuralVariantType::DUP, "WHERE report_configuration_id IN (" + rc_todo.join(",") + ") AND sv_duplication_id IS NOT NULL");
+	//INS
+	rc_todo = db_target_->getValues("SELECT id FROM report_configuration WHERE processed_sample_id IN (SELECT processed_sample_id FROM sv_callset WHERE id IN (SELECT sv_callset_id FROM sv_insertion))");
+	foreach(QString id, rc_ids_already_present)
+	{
+		rc_todo.removeAll(id);
+	}
+	qDebug() << "report config SVs (INS): samples todo:" << rc_todo.count() << " already imported:" << rc_ids_already_present.count();
+	updateSvTable("report_configuration_sv", StructuralVariantType::INS, "WHERE report_configuration_id IN (" + rc_todo.join(",") + ") AND sv_insertion_id IS NOT NULL");
+	//INV
+	rc_todo = db_target_->getValues("SELECT id FROM report_configuration WHERE processed_sample_id IN (SELECT processed_sample_id FROM sv_callset WHERE id IN (SELECT sv_callset_id FROM sv_inversion))");
+	foreach(QString id, rc_ids_already_present)
+	{
+		rc_todo.removeAll(id);
+	}
+	qDebug() << "report config SVs (INV): samples todo:" << rc_todo.count() << " already imported:" << rc_ids_already_present.count();
+	updateSvTable("report_configuration_sv", StructuralVariantType::INV, "WHERE report_configuration_id IN (" + rc_todo.join(",") + ") AND sv_inversion_id IS NOT NULL");
+	//BND
+	rc_todo = db_target_->getValues("SELECT id FROM report_configuration WHERE processed_sample_id IN (SELECT processed_sample_id FROM sv_callset WHERE id IN (SELECT sv_callset_id FROM sv_translocation))");
+	foreach(QString id, rc_ids_already_present)
+	{
+		rc_todo.removeAll(id);
+	}
+	qDebug() << "report config SVs (BND): samples todo:" << rc_todo.count() << " already imported:" << rc_ids_already_present.count();
+	updateSvTable("report_configuration_sv", StructuralVariantType::BND, "WHERE report_configuration_id IN (" + rc_todo.join(",") + ") AND sv_translocation_id IS NOT NULL");
+
+
+	//(2) somatic
+
+	updateTable("somatic_report_configuration_variant", true);
+	updateTable("somatic_report_configuration_germl_var", true);
+}
+
+void NGSDReplicationWidget::replicatePostProduction()
+{
+	//lift-over statistics (variant publication variants for DX21 samples)
+	//results from 17.12.2021:
+	//SNV: 244 240 ~ 98%
+	//INS: 39 39 ~ 100%
+	//DEL: 89 86 - 96%
+	//SNV+INS+DEL: 98.11%
+	if (false)
+	{
+		int c_snv = 0;
+		int c_snv_lift = 0;
+		int c_ins = 0;
+		int c_ins_lift = 0;
+		int c_del = 0;
+		int c_del_lift = 0;
+
+		SqlQuery query_s = db_source_->getQuery();
+		query_s.exec("SELECT DISTINCT vp.variant_id FROM variant_publication vp, sample s WHERE vp.sample_id=s.id AND s.name LIKE 'DX21%'");
+		while(query_s.next())
 		{
-			strand_changed = true;
+			int source_variant_id = query_s.value("variant_id").toInt();
+			int target_variant_id = liftOverVariant(source_variant_id, false);
+
+			Variant tmp = db_source_->variant(QString::number(source_variant_id));
+			if (tmp.isSNV())
+			{
+				++c_snv;
+				if (target_variant_id>0) ++c_snv_lift;
+			}
+			else if (tmp.ref()=="-") //ins
+			{
+				++c_ins;
+				if (target_variant_id>0) ++c_ins_lift;
+			}
+			else //del
+			{
+				++c_del;
+				if (target_variant_id>0) ++c_del_lift;
+			}
 		}
-		else
-		{
-			context_new.reverseComplement();
-			if (debug_output) qDebug() << "-3" << var.toString() << coords.chr().str()+":"+QString::number(coords.start())+"-"+QString::number(coords.end()) << "old_context="+context_old << "new_context="+context_new;
-			return -3;
-		}
+		qDebug() << c_snv << c_snv_lift;
+		qDebug() << c_ins << c_ins_lift;
+		qDebug() << c_del << c_del_lift;
+		return;
 	}
 
-	//check for variant in target NGSD
-	Sequence ref = var.ref();
-	if (strand_changed && ref!="-") ref.reverseComplement();
-	Sequence obs = var.obs();
-	if (strand_changed && obs!="-") obs.reverseComplement();
-	QString variant_id = db_target_->variantId(Variant(coords.chr(), coords.start(), coords.end(), ref, obs), false);
-	if (variant_id.isEmpty())
+	//variant comments
 	{
-		if (debug_output) qDebug() << "-4" << var.toString() << coords.chr().str()+":"+QString::number(coords.start())+"-"+QString::number(coords.end()) << "strand_changed="+QString(strand_changed?"yes":"no") << "af="+db_source_->getValue("SELECT gnomad FROM variant WHERE id="+QString::number(source_variant_id)).toString();
-		return -4;
+		int c_update = 0;
+		SqlQuery query_s = db_source_->getQuery();
+		query_s.exec("SELECT id, comment FROM `variant` WHERE `comment` IS NOT NULL");
+		while(query_s.next())
+		{
+			QString source_comment = query_s.value(1).toString().trimmed();
+			if (source_comment.isEmpty()) continue;
+
+			//lift-over
+			int source_variant_id = query_s.value(0).toInt();
+			int target_variant_id = liftOverVariant(source_variant_id, false);
+			if (target_variant_id<0) continue;
+
+			//check if comment set > skip then
+			QString target_comment = db_target_->getValue("SELECT comment FROM variant WHERE id='" + QString::number(target_variant_id) + "'", true).toString();
+			if (target_comment!="") continue;
+
+			//update target entry
+			SqlQuery query_t = db_target_->getQuery();
+			query_t.prepare("UPDATE variant SET comment=:0 WHERE id=:1");
+			query_t.bindValue(0, source_comment);
+			query_t.bindValue(1, target_variant_id);
+			query_t.exec();
+
+			++c_update;
+		}
+
+		addLine("  Table 'variant' comments updated: "+QString::number(c_update));
 	}
 
-	return variant_id.toInt();
+	//geneinfo_germline
+	{
+		int c_update = 0;
+		SqlQuery query_s = db_source_->getQuery();
+		query_s.exec("SELECT symbol, comments FROM geneinfo_germline");
+		while(query_s.next())
+		{
+			QString gene = query_s.value(0).toString().trimmed();
+			QString source_comment = query_s.value(1).toString().trimmed();
+			if (source_comment.isEmpty()) continue;
+
+			//replicate only if target entry exists and has no comment
+			QVariant target_comment = db_target_->getValue("SELECT comments FROM geneinfo_germline WHERE symbol='"+gene+"'", true);
+			if (!target_comment.isValid()) continue;
+			if (!target_comment.toString().trimmed().isEmpty()) continue;
+
+			//update target entry
+			SqlQuery query_t = db_target_->getQuery();
+			query_t.prepare("UPDATE geneinfo_germline SET comments=:0 WHERE symbol=:1");
+			query_t.bindValue(0, source_comment);
+			query_t.bindValue(1, gene);
+			query_t.exec();
+
+			++c_update;
+		}
+		addLine("  Table 'geneinfo_germline' comments updated: "+QString::number(c_update));
+	}
+
+	//variant_validation
+	{
+		int c_add = 0;
+		SqlQuery query_s = db_source_->getQuery();
+		SqlQuery q_add = db_target_->getQuery();
+		q_add.prepare("INSERT INTO `variant_validation`(`user_id`, `date`, `sample_id`, `variant_type`, `variant_id`,  `genotype`, `validation_method`, `status`, `comment`) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8)");
+		query_s.exec("SELECT * FROM variant_validation WHERE variant_type='SNV_INDEL'");
+		while(query_s.next())
+		{
+			QString sample_id = query_s.value("sample_id").toString();
+			int source_variant_id = query_s.value("variant_id").toInt();
+			int target_variant_id = liftOverVariant(source_variant_id, false);
+
+			//warn if causal/pathogenic variant could not be lifted
+			if (target_variant_id>=0)
+			{
+				 QVariant target_id = db_target_->getValue("SELECT id FROM variant_validation WHERE variant_id='" + QString::number(target_variant_id) + "' AND sample_id='"+sample_id+"' LIMIT 1", true);
+				 if (!target_id.isValid())
+				 {
+					QString source_sample = db_source_->getValue("SELECT name FROM sample WHERE id='"+sample_id+"'").toString();
+					QString target_sample = db_target_->getValue("SELECT name FROM sample WHERE id='"+sample_id+"'").toString();
+					if (source_sample==target_sample)
+					{
+						q_add.bindValue(0, query_s.value("user_id"));
+						q_add.bindValue(1, query_s.value("date"));
+						q_add.bindValue(2, sample_id);
+						q_add.bindValue(3, "SNV_INDEL");
+						q_add.bindValue(4, target_variant_id);
+						q_add.bindValue(5, query_s.value("genotype"));
+						q_add.bindValue(6, query_s.value("validation_method"));
+						q_add.bindValue(7, query_s.value("status"));
+						q_add.bindValue(8, query_s.value("comment"));
+						q_add.exec();
+
+						++c_add;
+					}
+				 }
+			}
+		}
+		addLine("  Table 'variant_validation' added: "+QString::number(c_add));
+	}
+
+	//variant_publication
+	{
+		int c_add = 0;
+		SqlQuery query_s = db_source_->getQuery();
+		SqlQuery q_add = db_target_->getQuery();
+		q_add.prepare("INSERT INTO `variant_publication`(`sample_id`, `variant_id`, `db`, `class`, `details`, `user_id`, `date`) VALUES (:0,:1,:2,:3,:4,:5,:6)");
+		query_s.exec("SELECT * FROM variant_publication ORDER BY id DESC");
+		while(query_s.next())
+		{
+			QString sample_id = query_s.value("sample_id").toString();
+			int source_variant_id = query_s.value("variant_id").toInt();
+			int target_variant_id = liftOverVariant(source_variant_id, false);
+
+			//warn if causal/pathogenic variant could not be lifted
+			if (target_variant_id>=0)
+			{
+				 QVariant target_id = db_target_->getValue("SELECT id FROM variant_publication WHERE variant_id='" + QString::number(target_variant_id) + "' AND sample_id='"+sample_id+"' LIMIT 1", true);
+				 if (!target_id.isValid())
+				 {
+					QString source_sample = db_source_->getValue("SELECT name FROM sample WHERE id='"+sample_id+"'").toString();
+					QString target_sample = db_target_->getValue("SELECT name FROM sample WHERE id='"+sample_id+"'").toString();
+					if (source_sample==target_sample)
+					{
+						q_add.bindValue(0, sample_id);
+						q_add.bindValue(1, target_variant_id);
+						q_add.bindValue(2, query_s.value("db"));
+						q_add.bindValue(3, query_s.value("class"));
+						q_add.bindValue(4, query_s.value("details"));
+						q_add.bindValue(5, query_s.value("user_id"));
+						q_add.bindValue(6, query_s.value("date"));
+						q_add.exec();
+
+						++c_add;
+					}
+				 }
+			}
+		}
+		addLine("  Table 'variant_publication' added: "+QString::number(c_add));
+	}
+
+	//variant_classification
+	{
+		int c_add = 0;
+		SqlQuery query_s = db_source_->getQuery();
+		SqlQuery q_add = db_target_->getQuery();
+		q_add.prepare("INSERT INTO `variant_classification`(`variant_id`, `class`, `comment`) VALUES (:0,:1,:2)");
+		query_s.exec("SELECT * FROM variant_classification");
+		while(query_s.next())
+		{
+			int source_variant_id = query_s.value("variant_id").toInt();
+			int target_variant_id = liftOverVariant(source_variant_id, false);
+
+			//warn if class 4/5 variant could not be found
+			if (target_variant_id<0)
+			{
+				QString source_class = query_s.value("class").toString();
+				if (target_variant_id==-4 && (source_class=="4" || source_class=="5")) //target_variant_id==-4 means that the variant is liftable, but was not found in the target NGSD
+				{
+					qDebug() << "variant_classification: class " << source_class  << " variant " << db_source_->variant(query_s.value("variant_id").toString()).toString() << " not found in target NGSD!";
+				}
+			}
+			else
+			{
+				 QVariant target_id = db_target_->getValue("SELECT id FROM variant_classification WHERE variant_id='" + QString::number(target_variant_id) + "'", true);
+				 if (!target_id.isValid())
+				 {
+					 q_add.bindValue(0, target_variant_id);
+					 q_add.bindValue(1, query_s.value("class"));
+					 q_add.bindValue(2, query_s.value("comment"));
+					 q_add.exec();
+
+					++c_add;
+				 }
+			}
+		}
+		addLine("  Table 'variant_classification' added: "+QString::number(c_add));
+	}
+
+	//report config (small variants, CNVs, SVs)
+	{
+		//init
+		int c_add_small = 0;
+		int c_add_cnv = 0;
+		int c_add_sv = 0;
+
+		//iterate over report_configuration entries in source DB
+		SqlQuery  s_query = db_source_->getQuery();
+		s_query.exec("SELECT ps.id, s.name, ps.process_id, rc.id FROM sample s, processed_sample ps, report_configuration rc WHERE s.id=ps.sample_id AND ps.id=rc.processed_sample_id");
+		while(s_query.next())
+		{
+			QString ps_id = s_query.value(0).toString();
+			QString s_name = s_query.value(1).toString();
+			QString process_id = s_query.value(2).toString();
+			QString rc_id_source = s_query.value(3).toString();
+
+			//check if report config in target exists (it should unless it was intentionally deleted in the target database)
+			QString rc_id_target = db_target_->getValue("SELECT rc.id FROM sample s, processed_sample ps, report_configuration rc WHERE s.id=ps.sample_id AND ps.id=rc.processed_sample_id AND s.name='" + s_name + "' AND ps.process_id='"+process_id+"'", true).toString();
+			if (rc_id_target.isEmpty())
+			{
+				qDebug() << "Notice: Report configuration missing for " << (s_name+"_0"+process_id) << ". Skipped!";
+				continue;
+			}
+
+			//replicate small variants (only if variants are imported)
+			if (db_target_->importStatus(ps_id).small_variants>0)
+			{
+				QList<int> source_variant_ids = db_source_->getValuesInt("SELECT variant_id FROM report_configuration_variant WHERE report_configuration_id='" + rc_id_source + "'");
+				foreach (int source_variant_id, source_variant_ids)
+				{
+					//lift-over
+					int target_variant_id = liftOverVariant(source_variant_id, false);
+					if (target_variant_id<0) continue;
+
+					//check if exists
+					QVariant target_rcv_id = db_target_->getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id='"+rc_id_target+"' AND variant_id='"+QString::number(target_variant_id)+"'", true);
+					if (!target_rcv_id.isValid())
+					{
+						++c_add_small;
+
+						//get souce data
+						SqlQuery s_get = db_source_->getQuery();
+						s_get.exec("SELECT * FROM report_configuration_variant WHERE report_configuration_id='" + rc_id_source +"' AND variant_id='"+QString::number(source_variant_id)+"'");
+						if (!s_get.next())
+						{
+							qDebug() << "Error: Report config entry missing for small variant. This should not happen! Skipped!";
+							continue;
+						}
+
+						//insert into target
+						SqlQuery t_add = db_target_->getQuery();
+						t_add.prepare("INSERT INTO `report_configuration_variant`(`report_configuration_id`, `variant_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13,:14)");
+						t_add.bindValue(0, rc_id_target);
+						t_add.bindValue(1, target_variant_id);
+						t_add.bindValue(2, s_get.value("type"));
+						t_add.bindValue(3, s_get.value("causal"));
+						t_add.bindValue(4, s_get.value("inheritance"));
+						t_add.bindValue(5, s_get.value("de_novo"));
+						t_add.bindValue(6, s_get.value("mosaic"));
+						t_add.bindValue(7, s_get.value("compound_heterozygous"));
+						t_add.bindValue(8, s_get.value("exclude_artefact"));
+						t_add.bindValue(9, s_get.value("exclude_frequency"));
+						t_add.bindValue(10, s_get.value("exclude_phenotype"));
+						t_add.bindValue(11, s_get.value("exclude_mechanism"));
+						t_add.bindValue(12, s_get.value("exclude_other"));
+						t_add.bindValue(13, s_get.value("comments"));
+						t_add.bindValue(14, s_get.value("comments2"));
+
+						t_add.exec();
+					}
+				}
+			}
+
+			//replicate CNVs
+			QList<int> source_cnv_ids = db_source_->getValuesInt("SELECT cnv_id FROM report_configuration_cnv WHERE report_configuration_id='" + rc_id_source + "'");
+			foreach (int source_cnv_id, source_cnv_ids)
+			{
+				//get callset id (not present if sample CNVs are not imported)
+				bool ok = true;
+				int target_callset_id = db_target_->getValue("SELECT id FROM cnv_callset WHERE processed_sample_id="+ps_id).toInt(&ok);
+				if (!ok)
+				{
+					qDebug() << "CNV callset not imported for " << (s_name+"_0"+process_id) << ". Skipped!";
+					continue;
+				}
+
+				//lift-over
+				QString error_message = "";
+				int target_cnv_id = liftOverCnv(source_cnv_id, target_callset_id, error_message);
+				if (target_cnv_id<0) continue;
+
+				//check if exists
+				QVariant target_rcc_id = db_target_->getValue("SELECT id FROM report_configuration_cnv WHERE report_configuration_id='"+rc_id_target+"' AND cnv_id='"+QString::number(target_cnv_id)+"'", true);
+				if (!target_rcc_id.isValid())
+				{
+					++c_add_cnv;
+
+					//get souce data
+					SqlQuery s_get = db_source_->getQuery();
+					s_get.exec("SELECT * FROM report_configuration_cnv WHERE report_configuration_id='" + rc_id_source +"' AND cnv_id='"+QString::number(source_cnv_id)+"'");
+					if (!s_get.next())
+					{
+						qDebug() << "Error: Report config entry missing for CNV. This should not happen! Skipped!";
+						continue;
+					}
+
+					//insert into target
+					SqlQuery t_add = db_target_->getQuery();
+					t_add.prepare("INSERT INTO `report_configuration_cnv`(`report_configuration_id`, `cnv_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13,:14,:15)");
+					t_add.bindValue(0, rc_id_target);
+					t_add.bindValue(1, target_cnv_id);
+					t_add.bindValue(2, s_get.value("type"));
+					t_add.bindValue(3, s_get.value("causal"));
+					t_add.bindValue(4, s_get.value("class"));
+					t_add.bindValue(5, s_get.value("inheritance"));
+					t_add.bindValue(6, s_get.value("de_novo"));
+					t_add.bindValue(7, s_get.value("mosaic"));
+					t_add.bindValue(8, s_get.value("compound_heterozygous"));
+					t_add.bindValue(9, s_get.value("exclude_artefact"));
+					t_add.bindValue(10, s_get.value("exclude_frequency"));
+					t_add.bindValue(11, s_get.value("exclude_phenotype"));
+					t_add.bindValue(12, s_get.value("exclude_mechanism"));
+					t_add.bindValue(13, s_get.value("exclude_other"));
+					t_add.bindValue(14, s_get.value("comments"));
+					t_add.bindValue(15, s_get.value("comments2"));
+
+					t_add.exec();
+				}
+			}
+
+			//replicate SVs
+			SqlQuery rc_svs = db_source_->getQuery();
+			rc_svs.exec("SELECT * FROM report_configuration_sv WHERE report_configuration_id='" + rc_id_source + "'");
+			while(rc_svs.next())
+			{
+				//get callset id (not present if sample SVs are not imported)
+				bool ok = true;
+				int target_callset_id = db_target_->getValue("SELECT id FROM sv_callset WHERE processed_sample_id="+ps_id).toInt(&ok);
+				if (!ok)
+				{
+					qDebug() << "SV callset not imported for " << (s_name+"_0"+process_id) << ". Skipped!";
+					continue;
+				}
+
+				//determine type and ID
+				int source_sv_id = -1;
+				StructuralVariantType sv_type = StructuralVariantType::UNKNOWN;
+				QString sv_col = "";
+				if (!rc_svs.value("sv_deletion_id").isNull())
+				{
+					sv_type = StructuralVariantType::DEL;
+					source_sv_id = rc_svs.value("sv_deletion_id").toInt();
+					sv_col = "sv_deletion_id";
+				}
+				else if (!rc_svs.value("sv_duplication_id").isNull())
+				{
+					sv_type = StructuralVariantType::DUP;
+					source_sv_id = rc_svs.value("sv_duplication_id").toInt();
+					sv_col = "sv_duplication_id";
+				}
+				else if (!rc_svs.value("sv_insertion_id").isNull())
+				{
+					sv_type = StructuralVariantType::INS;
+					source_sv_id = rc_svs.value("sv_insertion_id").toInt();
+					sv_col = "sv_insertion_id";
+				}
+				else if (!rc_svs.value("sv_inversion_id").isNull())
+				{
+					sv_type = StructuralVariantType::INV;
+					source_sv_id = rc_svs.value("sv_inversion_id").toInt();
+					sv_col = "sv_inversion_id";
+				}
+				else if (!rc_svs.value("sv_translocation_id").isNull())
+				{
+					sv_type = StructuralVariantType::BND;
+					source_sv_id = rc_svs.value("sv_translocation_id").toInt();
+					sv_col = "sv_translocation_id";
+				}
+
+				//lift-over
+				QString error_message = "";
+				int target_sv_id = liftOverSv(source_sv_id, sv_type, target_callset_id, error_message);
+				if (target_sv_id<0) continue;
+				//check if exists
+				QVariant target_rcs_id = db_target_->getValue("SELECT id FROM report_configuration_sv WHERE report_configuration_id='"+rc_id_target+"' AND "+sv_col+"='"+QString::number(target_sv_id)+"'", true);
+				if (!target_rcs_id.isValid())
+				{
+					++c_add_sv;
+					SqlQuery t_add = db_target_->getQuery();
+					t_add.prepare("INSERT INTO `report_configuration_sv`(`report_configuration_id`, `sv_deletion_id`, `sv_duplication_id`, `sv_insertion_id`, `sv_inversion_id`, `sv_translocation_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13,:14,:15,:16,:17,:18,:19)");
+					t_add.bindValue(0, rc_id_target);
+					t_add.bindValue(1, sv_type==StructuralVariantType::DEL ? QVariant(target_sv_id) : QVariant());
+					t_add.bindValue(2, sv_type==StructuralVariantType::DUP ? QVariant(target_sv_id) : QVariant());
+					t_add.bindValue(3, sv_type==StructuralVariantType::INS ? QVariant(target_sv_id) : QVariant());
+					t_add.bindValue(4, sv_type==StructuralVariantType::INV ? QVariant(target_sv_id) : QVariant());
+					t_add.bindValue(5, sv_type==StructuralVariantType::BND ? QVariant(target_sv_id) : QVariant());
+					t_add.bindValue(6, rc_svs.value("type"));
+					t_add.bindValue(7, rc_svs.value("causal"));
+					t_add.bindValue(8, rc_svs.value("class"));
+					t_add.bindValue(9, rc_svs.value("inheritance"));
+					t_add.bindValue(10, rc_svs.value("de_novo"));
+					t_add.bindValue(11, rc_svs.value("mosaic"));
+					t_add.bindValue(12, rc_svs.value("compound_heterozygous"));
+					t_add.bindValue(13, rc_svs.value("exclude_artefact"));
+					t_add.bindValue(14, rc_svs.value("exclude_frequency"));
+					t_add.bindValue(15, rc_svs.value("exclude_phenotype"));
+					t_add.bindValue(16, rc_svs.value("exclude_mechanism"));
+					t_add.bindValue(17, rc_svs.value("exclude_other"));
+					t_add.bindValue(18, rc_svs.value("comments"));
+					t_add.bindValue(19, rc_svs.value("comments2"));
+
+					t_add.exec();
+				}
+			}
+		}
+		addLine("  Table 'report_configuration_variant' - added variants: "+QString::number(c_add_small));
+		addLine("  Table 'report_configuration_cnv' - added CNVs: "+QString::number(c_add_cnv));
+		addLine("  Table 'report_configuration_sv' - added SVs: "+QString::number(c_add_sv));
+	}
 }
 
 void NGSDReplicationWidget::performPostChecks()
@@ -550,6 +1011,43 @@ void NGSDReplicationWidget::performPostChecks()
 			addWarning("Table '" + table + "' not filled!");
 		}
 	}
+}
+
+int NGSDReplicationWidget::liftOverVariant(int source_variant_id, bool debug_output)
+{
+	//cache results to speed things up
+	static QHash<int, int> cache;
+	if (cache.contains(source_variant_id))
+	{
+		return cache[source_variant_id];
+	}
+
+	const Variant var = db_source_->variant(QString::number(source_variant_id));
+
+	//lift-over variant
+	Variant var2;
+	try
+	{
+		var2 = GSvarHelper::liftOverVariant(var, true);
+	}
+	catch(Exception& e)
+	{
+		if (debug_output) qDebug() << "-1" << var.toString() << "Lift-over failed: " + e.message();
+		cache[source_variant_id] = -1;
+		return -1;
+	}
+
+	//check for variant in target NGSD
+	QString variant_id = db_target_->variantId(var2, false);
+	if (variant_id.isEmpty())
+	{
+		if (debug_output) qDebug() << "-4" << var.toString() << "Lifted variant not found in target NGSD: " + var2.toString();
+		cache[source_variant_id] = -4;
+		return -4;
+	}
+
+	cache[source_variant_id] = variant_id.toInt();
+	return variant_id.toInt();
 }
 
 int NGSDReplicationWidget::liftOverCnv(int source_cnv_id, int callset_id, QString& error_message)
@@ -600,6 +1098,137 @@ int NGSDReplicationWidget::liftOverCnv(int source_cnv_id, int callset_id, QStrin
 	}
 
 	return cnv_id.toInt();
+}
+
+int NGSDReplicationWidget::liftOverSv(int source_sv_id, StructuralVariantType sv_type, int callset_id, QString& error_message)
+{
+	BedpeFile dummy; //dummy BEDPE file to pass as structure
+	QList<QByteArray> annotation_headers;
+	annotation_headers << "QUAL" << "FILTER" << "ALT_A" << "INFO_A";
+	dummy.setAnnotationHeaders(annotation_headers);
+	BedpeLine sv = db_source_->structuralVariant(source_sv_id, sv_type, dummy, false);
+
+	//lift-over coordinates
+	BedLine coords1, coords2;
+	try
+	{
+		coords1 = GSvarHelper::liftOver(sv.chr1(), sv.start1(), sv.end1());
+	}
+	catch(Exception& e)
+	{
+		error_message = "lift-over failed (pos1): " + e.message().replace("\t", " ").replace("<br>", " ").replace("&nbsp;", " ");
+		return -1;
+	}
+	try
+	{
+		coords2 = GSvarHelper::liftOver(sv.chr2(), sv.start2(), sv.end2());
+	}
+	catch(Exception& e)
+	{
+		error_message = "lift-over failed (pos2): " + e.message().replace("\t", " ").replace("<br>", " ").replace("&nbsp;", " ");
+		return -1;
+	}
+
+
+	//check new chromosome is ok
+	if (!coords1.chr().isNonSpecial())
+	{
+		error_message = "chromosome 1 is now special chromosome: " + coords1.chr().strNormalized(true);
+		return -2;
+	}
+	if (!coords2.chr().isNonSpecial())
+	{
+		error_message = "chromosome 2 is now special chromosome: " + coords2.chr().strNormalized(true);
+		return -2;
+	}
+
+	//check for strand changes
+	if (sv_type != StructuralVariantType::INS && coords2 < coords1)
+	{
+		// switch positions
+		error_message = "(WARNING: strand changed!) ";
+		BedLine tmp = coords1;
+		coords1 = coords2;
+		coords2 = tmp;
+	}
+
+	//check for SV in target NGSD
+	sv.setChr1(coords1.chr());
+	sv.setStart1(coords1.start());
+	sv.setEnd1(coords1.end());
+	sv.setChr2(coords2.chr());
+	sv.setStart2(coords2.start());
+	sv.setEnd2(coords2.end());
+	QString sv_id = db_target_->svId(sv, callset_id, dummy, false);
+	if (sv_id.isEmpty())
+	{
+		// no exact match found -> try fuzzy match (overlapping of CI)
+		SqlQuery query = db_target_->getQuery();
+		QByteArray query_string;
+
+		// prepare query
+		if (sv.type() == StructuralVariantType::BND)
+		{
+			//BND
+			query_string = "SELECT id FROM sv_translocation sv WHERE sv_callset_id = :0 AND sv.chr1 = :1 AND sv.start1 <= :2 AND :3 <= sv.end1 AND sv.chr2 = :4 AND sv.start2 <= :5 AND :6 <= sv.end2";
+			query.prepare(query_string);
+			query.bindValue(0, callset_id);
+			query.bindValue(1, sv.chr1().strNormalized(true));
+			query.bindValue(2, sv.end1());
+			query.bindValue(3, sv.start1());
+			query.bindValue(4, sv.chr2().strNormalized(true));
+			query.bindValue(5, sv.end2());
+			query.bindValue(6, sv.start2());
+
+		}
+		else if (sv.type() == StructuralVariantType::INS)
+		{
+			//INS
+
+			//get min and max position
+			int min_pos = std::min(sv.start1(), sv.start2());
+			int max_pos = std::max(sv.end1(), sv.end2());
+
+			query_string = "SELECT id FROM sv_insertion sv WHERE sv_callset_id = :0 AND sv.chr = :1 AND sv.pos <= :2 AND :3 <= (sv.pos + sv.ci_upper)";
+			query.prepare(query_string);
+			query.bindValue(0, callset_id);
+			query.bindValue(1, sv.chr1().strNormalized(true));
+			query.bindValue(2, max_pos);
+			query.bindValue(3, min_pos);
+		}
+		else
+		{
+			//DEL, DUP, INV
+			query_string = "SELECT id FROM " + db_target_->svTableName(sv.type()).toUtf8() + " sv WHERE sv_callset_id = :0 AND sv.chr = :1 AND sv.start_min <= :2 AND :3 <= sv.start_max AND sv.end_min <= :4 AND :5 <= sv.end_max";
+			query.prepare(query_string);
+			query.bindValue(0, callset_id);
+			query.bindValue(1, sv.chr1().strNormalized(true));
+			query.bindValue(2, sv.end1());
+			query.bindValue(3, sv.start1());
+			query.bindValue(4, sv.end2());
+			query.bindValue(5, sv.start2());
+		}
+
+		query.exec();
+
+		//parse result
+		if (query.size() == 0)
+		{
+			error_message = "SV not found in NGSD";
+			return -4;
+		}
+		else if (query.size() > 1)
+		{
+			error_message = "Multiple matching SVs found in NGSD";
+			return -5;
+		}
+		query.next();
+		return query.value(0).toInt();
+
+	}
+	// return id
+	return sv_id.toInt();
+
 }
 
 void NGSDReplicationWidget::updateCnvTable(QString table, QString where_clause)
@@ -751,7 +1380,7 @@ void NGSDReplicationWidget::updateCnvTable(QString table, QString where_clause)
 			debug_stream << ps << "\t" << var.toString() << "\t" << cn << "\t" << QString::number((double)var.size()/1000, 'f', 2) << "\t"  << regs << "\t" << QString::number((double)ll/regs, 'f', 2) << "\t"  << (target_cnv_id>=0 ? "yes ("+QString::number(target_cnv_id)+")" : "no") << "\t" << error_message << "\t" << comments.join(", ") << "\n";
 			debug_stream.flush();
 
-			//warn if causal/pathogenic CNV could not be lifed
+			//warn if causal/pathogenic CNV could not be lifted
 			if (target_cnv_id<0)
 			{
 				if (causal_variant)
@@ -782,7 +1411,14 @@ void NGSDReplicationWidget::updateCnvTable(QString table, QString where_clause)
 				}
 				catch (Exception& e)
 				{
-					THROW(Exception, "Could not add table "+table+" entry with id "+QString::number(id)+": "+e.message());
+					if (table=="report_configuration_cnv") //due to lift-over we sometimes have several entries that map to the same ps-cnv combination => skip them
+					{
+						addWarning("Could not add report_configuration_cnv entry: " + e.message());
+					}
+					else
+					{
+						THROW(Exception, "Could not add table "+table+" entry with id "+QString::number(id)+": "+e.message());
+					}
 				}
 				++c_added;
 			}
@@ -814,3 +1450,267 @@ void NGSDReplicationWidget::updateCnvTable(QString table, QString where_clause)
 	addLine("  Table '"+table+"' replicated: "+details.join(", ")+". Time: " + Helper::elapsedTime(timer));
 	tables_done_ << table;
 }
+
+void NGSDReplicationWidget::updateSvTable(QString table, StructuralVariantType sv_type, QString where_clause)
+{
+	BedpeFile dummy; //dummy BEDPE file to pass as structure
+	QList<QByteArray> annotation_headers;
+	annotation_headers << "QUAL" << "FILTER" << "ALT_A" << "INFO_A";
+	dummy.setAnnotationHeaders(annotation_headers);
+
+	QFile file(QCoreApplication::applicationDirPath()  + QDir::separator() + "liftover_" + table + "_" + StructuralVariantTypeToString(sv_type) + ".tsv");
+	file.open(QIODevice::WriteOnly);
+	QTextStream debug_stream(&file);
+	debug_stream << "#ps\tSV\ttype\tfound_in_HG38\terror\tcomments\n";
+
+	QStringList fields = db_target_->tableInfo(table).fieldNames();
+
+	//init
+	QTime timer;
+	timer.start();
+
+	int c_added = 0;
+	int c_kept = 0;
+	int c_removed = 0;
+	int c_updated = 0;
+	int c_not_mappable = 0;
+	int c_not_in_ngsd = 0;
+	int c_no_callset = 0;
+	int c_strand_changed = 0;
+
+	SqlQuery q_del = db_target_->getQuery();
+	q_del.prepare("DELETE FROM "+table+" WHERE id=:0");
+
+	SqlQuery q_add = db_target_->getQuery();
+	q_add.prepare("INSERT INTO "+table+" VALUES (:" + fields.join(", :") + ")");
+
+	SqlQuery q_get = db_target_->getQuery();
+	q_get.prepare("SELECT * FROM "+table+" WHERE id=:0");
+
+	SqlQuery q_update = db_target_->getQuery();
+	QString query_str = "UPDATE "+table+" SET";
+	bool first = true;
+	foreach(const QString& field, fields)
+	{
+		if (field=="id") continue;
+
+		//special handling of SV (lifted-over)
+		if (field=="sv_id") continue;
+
+		query_str += (first? " " : ", ") + field + "=:" + field;
+
+		if (first) first = false;
+	}
+	query_str += " WHERE id=:id";
+	q_update.prepare(query_str);
+
+	//delete removed entries
+	QSet<int> source_ids = db_source_->getValuesInt("SELECT id FROM " + table + " " + where_clause + " ORDER BY id ASC").toSet();
+	QSet<int> target_ids = db_target_->getValuesInt("SELECT id FROM " + table + " " + where_clause + " ORDER BY id ASC").toSet();
+	foreach(int id, target_ids)
+	{
+		if (!source_ids.contains(id))
+		{
+			q_del.bindValue(0, id);
+			q_del.exec();
+
+			++c_removed;
+		}
+	}
+
+	//add/update entries
+	SqlQuery query = db_source_->getQuery();
+	query.exec("SELECT * FROM " + table + " " + where_clause + " ORDER BY id ASC");
+	while(query.next())
+	{
+		int id = query.value("id").toInt();
+		if (target_ids.contains(id))
+		{
+			//check if changed
+			q_get.bindValue(0, id);
+			q_get.exec();
+			q_get.next();
+			bool changed = false;
+			foreach(const QString& field, fields)
+			{
+				//special handling of SV ids (lifted-over)
+				if (sv_type == StructuralVariantType::DEL && field=="sv_deletion_id") continue;
+				if (sv_type == StructuralVariantType::DUP && field=="sv_duplication_id") continue;
+				if (sv_type == StructuralVariantType::INS && field=="sv_insertion_id") continue;
+				if (sv_type == StructuralVariantType::INV && field=="sv_inversion_id") continue;
+				if (sv_type == StructuralVariantType::BND && field=="sv_translocation_id") continue;
+
+				if (q_get.value(field)!=query.value(field))
+				{
+					changed = true;
+				}
+			}
+
+			//update if changed
+			if (changed)
+			{
+				foreach(const QString& field, fields)
+				{
+					//special handling of SV ids (lifted-over)
+					if (sv_type == StructuralVariantType::DEL && field=="sv_deletion_id") continue;
+					if (sv_type == StructuralVariantType::DUP && field=="sv_duplication_id") continue;
+					if (sv_type == StructuralVariantType::INS && field=="sv_insertion_id") continue;
+					if (sv_type == StructuralVariantType::INV && field=="sv_inversion_id") continue;
+					if (sv_type == StructuralVariantType::BND && field=="sv_translocation_id") continue;
+
+					q_update.bindValue(":"+field, query.value(field));
+				}
+				q_update.exec();
+
+				++c_updated;
+			}
+			else
+			{
+				++c_kept;
+			}
+		}
+		else //row not in target table > add
+		{
+			int source_sv_id;
+			QString ps_id;
+			switch (sv_type)
+			{
+				case StructuralVariantType::DEL:
+					source_sv_id = query.value("sv_deletion_id").toInt();
+					ps_id = db_source_->getValue("SELECT cs.processed_sample_id FROM sv_deletion sv, sv_callset cs WHERE sv.sv_callset_id=cs.id AND sv.id=" + QString::number(source_sv_id)).toString();
+					break;
+				case StructuralVariantType::DUP:
+					source_sv_id = query.value("sv_duplication_id").toInt();
+					ps_id = db_source_->getValue("SELECT cs.processed_sample_id FROM sv_duplication sv, sv_callset cs WHERE sv.sv_callset_id=cs.id AND sv.id=" + QString::number(source_sv_id)).toString();
+					break;
+				case StructuralVariantType::INS:
+					source_sv_id = query.value("sv_insertion_id").toInt();
+					ps_id = db_source_->getValue("SELECT cs.processed_sample_id FROM sv_insertion sv, sv_callset cs WHERE sv.sv_callset_id=cs.id AND sv.id=" + QString::number(source_sv_id)).toString();
+					break;
+				case StructuralVariantType::INV:
+					source_sv_id = query.value("sv_inversion_id").toInt();
+					ps_id = db_source_->getValue("SELECT cs.processed_sample_id FROM sv_inversion sv, sv_callset cs WHERE sv.sv_callset_id=cs.id AND sv.id=" + QString::number(source_sv_id)).toString();
+					break;
+				case StructuralVariantType::BND:
+					source_sv_id = query.value("sv_translocation_id").toInt();
+					ps_id = db_source_->getValue("SELECT cs.processed_sample_id FROM sv_translocation sv, sv_callset cs WHERE sv.sv_callset_id=cs.id AND sv.id=" + QString::number(source_sv_id)).toString();
+					break;
+				default:
+					THROW(ArgumentException, "Invalid SV type!");
+					break;
+			}
+			int target_sv_id = -1;
+			QString ps = db_source_->processedSampleName(ps_id);
+			QVariant callset_id = db_target_->getValue("SELECT id FROM sv_callset WHERE processed_sample_id=" + ps_id);
+			if (!callset_id.isValid())
+			{
+				++c_no_callset;
+				continue;
+			}
+
+			bool causal_variant = table=="report_configuration_sv" && query.value("causal").toInt()==1;
+			bool pathogenic_variant = table=="report_configuration_sv" && query.value("class").toInt()>3;
+			QString error_message = "";
+			target_sv_id = liftOverSv(source_sv_id, sv_type, callset_id.toInt(), error_message);
+
+			QStringList comments;
+			if (causal_variant) comments << "causal";
+			if (pathogenic_variant) comments << "pathogenic";
+			BedpeLine sv = db_source_->structuralVariant(source_sv_id, sv_type, dummy, true);
+
+			debug_stream << ps << "\t" << sv.toString() << "\t" << StructuralVariantTypeToString(sv_type) << "\t" << (target_sv_id>=0 ? "yes" : "no") << "\t" << error_message << "\t"
+						 << comments.join(", ") << "\n";
+			debug_stream.flush();
+
+
+			//check for strand changes
+			if (error_message.contains("(WARNING: strand changed!)")) c_strand_changed++;
+
+			//warn if causal/pathogenic SV could not be lifed
+			if (target_sv_id<0)
+			{
+				if (causal_variant)
+				{
+					addWarning("Causal SV " + db_source_->structuralVariant(source_sv_id, sv_type, dummy, true).toString() + " of sample " + ps + " could not be lifted ("
+							   + QString::number(target_sv_id) + ", '" + error_message +"')!");
+				}
+				else if (pathogenic_variant)
+				{
+					addWarning("Pathogenic SV " + db_source_->structuralVariant(source_sv_id, sv_type, dummy, true).toString() + " of sample " + ps + " (class "
+							   + query.value("class").toString() + ") could not be lifted (" + QString::number(target_sv_id) + ", '" + error_message +"')!");
+				}
+			}
+
+			if (target_sv_id>=0)
+			{
+				foreach(const QString& field, fields)
+				{
+					//special handling of SV ids (lifted-over)
+					if (sv_type == StructuralVariantType::DEL && field=="sv_deletion_id")
+					{
+						q_add.bindValue(":"+field, target_sv_id);
+						continue;
+					}
+					if (sv_type == StructuralVariantType::DUP && field=="sv_duplication_id")
+					{
+						q_add.bindValue(":"+field, target_sv_id);
+						continue;
+					}
+					if (sv_type == StructuralVariantType::INS && field=="sv_insertion_id")
+					{
+						q_add.bindValue(":"+field, target_sv_id);
+						continue;
+					}
+					if (sv_type == StructuralVariantType::INV && field=="sv_inversion_id")
+					{
+						q_add.bindValue(":"+field, target_sv_id);
+						continue;
+					}
+					if (sv_type == StructuralVariantType::BND && field=="sv_translocation_id")
+					{
+						q_add.bindValue(":"+field, target_sv_id);
+						continue;
+					}
+
+					q_add.bindValue(":"+field, query.value(field));
+				}
+				try
+				{
+					q_add.exec();
+				}
+				catch (Exception& e)
+				{
+					THROW(Exception, "Could not add table "+table+" entry with id "+QString::number(id)+": "+e.message());
+				}
+				++c_added;
+			}
+			else if (target_sv_id>=-3)
+			{
+				++c_not_mappable;
+			}
+			else if (target_sv_id==-4)
+			{
+				++c_not_in_ngsd;
+			}
+			else
+			{
+				THROW(NotImplementedException, "Unhandled SV error: " + QString::number(target_sv_id));
+			}
+		}
+	}
+
+	//output
+	QStringList details;
+	if (c_added>0) details << "added " + QString::number(c_added);
+	if (c_not_mappable>0) details << "skipped unmappable " + StructuralVariantTypeToString(sv_type) + "s " + QString::number(c_not_mappable);
+	if (c_not_in_ngsd>0) details << "skipped " + StructuralVariantTypeToString(sv_type) + "s not found in NGSD " + QString::number(c_not_in_ngsd);
+	if (c_no_callset>0) details << "skipped " + StructuralVariantTypeToString(sv_type) + "s of samples without callset " + QString::number(c_no_callset);
+	if (c_kept>0) details << "kept " + QString::number(c_kept);
+	if (c_updated>0) details << "updated " + QString::number(c_updated);
+	if (c_removed>0) details << "removed " + QString::number(c_removed);
+	if (c_strand_changed>0) details << "strand changed " + QString::number(c_strand_changed);
+
+	addLine("  Table '" + table + "' replicated (" + StructuralVariantTypeToString(sv_type) + "): "+details.join(", ")+". Time: " + Helper::elapsedTime(timer));
+	tables_done_ << table;
+}
+

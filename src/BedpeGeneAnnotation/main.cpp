@@ -91,7 +91,7 @@ public:
 
 		// copy comments
 		QByteArrayList output_buffer;
-		output_buffer.append(bedpe_input_file.comments());
+		output_buffer.append(bedpe_input_file.headers());
 
 		// get header
 		QByteArrayList header = bedpe_input_file.annotationHeaders();

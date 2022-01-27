@@ -34,10 +34,16 @@ enum class PathType
 	CIRCOS_PLOT, //CIRCOS plot (PNG format)
 	REPEAT_EXPANSION_IMAGE, //image of repeat expansions locus (SVG format)
 	FUSIONS, //gene fusions determined from RNA (TSV format)
+	STAR_FUSIONS, //gene fusions determined from RNA (TSV format via Star-Fusion
+	FUSIONS_BAM, //gene fusion evidence alignments determined from RNA (BAM format)
 	MANTA_FUSIONS, //fusions determined by manta (BEDPE format)
 	COUNTS, //gene/transcript counts from RNA (TSV format)
+	EXPRESSION, //relative RNA expressions values from RNA (TSV format)
+	SPLICING_BED, //splicing junctions from RNA (BED format)
 	VIRAL, //viral DNA detected in tumor samples (TSV format)
 	VCF_CF_DNA, //cfDNA variants file (VCF format)
+	MRD_CF_DNA, // measurable residual disease file of a cfDNA analysis (UmiVar2)
+	QC, // variant list QC (qcML) files
 	OTHER // everything else
 };
 
@@ -120,6 +126,12 @@ struct FileLocation
 				return "REPEAT_EXPANSION_IMAGE";
 			case PathType::FUSIONS:
 				return "FUSIONS";
+			case PathType::STAR_FUSIONS:
+				return "STAR_FUSIONS";
+			case PathType::FUSIONS_BAM:
+				return "FUSIONS_BAM";
+			case PathType::SPLICING_BED:
+				return "SPLICING_BED";
 			case PathType::MANTA_FUSIONS:
 				return "MANTA_FUSIONS";
 			case PathType::COUNTS:
@@ -128,7 +140,12 @@ struct FileLocation
 				return "VIRAL";
 			case PathType::VCF_CF_DNA:
 				return "VCF_CF_DNA";
-
+			case PathType::QC:
+				return "QC";
+			case PathType::EXPRESSION:
+				return "EXPRESSION";
+			case PathType::MRD_CF_DNA:
+				return "MRD_CF_DNA";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToString()!");
 	}
@@ -157,11 +174,17 @@ struct FileLocation
 		if (in_upper == "STRUCTURAL_VARIANTS") return PathType::STRUCTURAL_VARIANTS;
 		if (in_upper == "REPEAT_EXPANSION_IMAGE") return PathType::REPEAT_EXPANSION_IMAGE;
 		if (in_upper == "FUSIONS") return PathType::FUSIONS;
+		if (in_upper == "STAR_FUSIONS") return PathType::STAR_FUSIONS;
+		if (in_upper == "FUSIONS_BAM") return PathType::FUSIONS_BAM;
+		if (in_upper == "SPLICING_BED") return PathType::SPLICING_BED;
 		if (in_upper == "MANTA_FUSIONS") return PathType::MANTA_FUSIONS;
 		if (in_upper == "COUNTS") return PathType::COUNTS;
 		if (in_upper == "VIRAL") return PathType::VIRAL;
 		if (in_upper == "VCF_CF_DNA") return PathType::VCF_CF_DNA;
-
+		if (in_upper == "QC") return PathType::QC;
+		if (in_upper == "OTHER") return PathType::OTHER;
+		if (in_upper == "EXPRESSION") return PathType::EXPRESSION;
+		if (in_upper == "MRD_CF_DNA") return PathType::MRD_CF_DNA;
 		THROW(ProgrammingException, "Unhandled path type string '" + in_upper + "' in stringToType()!");
 	}
 
@@ -209,6 +232,12 @@ struct FileLocation
 				return "repeat expansion visualization";
 			case PathType::FUSIONS:
 				return "gene fusions";
+			case PathType::STAR_FUSIONS:
+				return "Star Fusion RNA fusion calls";
+			case PathType::FUSIONS_BAM:
+				return "gene fusions evidence alignments";
+			case PathType::SPLICING_BED:
+				return "splicing junctions";
 			case PathType::MANTA_FUSIONS:
 				return "gene fusions called by Manta";
 			case PathType::COUNTS:
@@ -219,6 +248,12 @@ struct FileLocation
 				return "other files";
 			case PathType::VCF_CF_DNA:
 				return "cfDNA small variant calls";
+			case PathType::QC:
+				return "variant list QC (qcML) files";
+			case PathType::EXPRESSION:
+				return "RNA relative expression";
+			case PathType::MRD_CF_DNA:
+				return "measurable residual disease value (umiVar 2)";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToHumanReadableString()!");
 	}

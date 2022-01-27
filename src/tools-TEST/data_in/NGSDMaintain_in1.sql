@@ -57,9 +57,9 @@ INSERT INTO `geneinfo_germline` (`symbol`, `inheritance`, `gnomad_oe_mis`, `gnom
 INSERT INTO `hpo_term` (`id`, `hpo_id`, `name`, `definition`, `synonyms`) VALUES
 (11495, 'HP:0000003', 'Multicystic kidney dysplasia', '\"Multicystic dysplasia of the kidney is characterized by multiple cysts of varying size in the kidney and the absence of a normal pelvocaliceal system. The condition is associated with ureteral or ureteropelvic atresia, and the affected kidney is nonfunctional.', '');
 
-INSERT INTO `hpo_genes` (`hpo_term_id`, `gene`) VALUES
-(11495, 'BRCA1'),
-(11495, 'A1BG-AS');
+INSERT INTO `hpo_genes` (`hpo_term_id`, `gene`, `details`, `evidence`) VALUES
+(11495, 'BRCA1', '(OMIM,(3), high)', 'high'),
+(11495, 'A1BG-AS', '(OMIM,(1),low)', 'low');
 
 INSERT INTO `omim_gene` (`id`, `gene`, `mim`) VALUES
 (95435, 'BRCA1', '113705'),

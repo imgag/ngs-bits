@@ -4,6 +4,7 @@
 #include "Helper.h"
 #include "NGSHelper.h"
 #include "Log.h"
+#include "GeneSet.h"
 #include "cmath"
 
 /*************************************************** FilterParameter ***************************************************/
@@ -964,6 +965,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["SV count NGSD"] = &createInstance<FilterSvCountNGSD>;
 		output["SV allele frequency NGSD"] = &createInstance<FilterSvAfNGSD>;
         output["SV trio"] = &createInstance<FilterSvTrio>;
+		output["Splice effect"] = &createInstance<FilterSpliceEffect>;
 	}
 
 	return output;
@@ -1760,7 +1762,7 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 
 			if (geno_all=="het")
 			{
-				QList<QByteArray> genes = variants[i].annotations()[i_gene].toUpper().split(',');
+				GeneSet genes = GeneSet::createFromText(variants[i].annotations()[i_gene], ',');
 				foreach(const QByteArray& gene, genes)
 				{
 					gene_to_het[gene.trimmed()] += 1;
@@ -1782,7 +1784,7 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 			QByteArray geno_all = checkSameGenotype(geno_indices, variants[i]);
 			if (geno_all=="het")
 			{
-				QList<QByteArray> genes = variants[i].annotations()[i_gene].toUpper().split(',');
+				GeneSet genes = GeneSet::createFromText(variants[i].annotations()[i_gene], ',');
 				foreach(const QByteArray& gene, genes)
 				{
 					if (gene_to_het[gene.trimmed()]>=2)
@@ -1964,7 +1966,7 @@ bool FilterAnnotationPathogenic::annotatedPathogenic(const Variant& v) const
 FilterPredictionPathogenic::FilterPredictionPathogenic()
 {
 	name_ = "Predicted pathogenic";
-	description_ = QStringList() << "Filter for variants predicted to be pathogenic." << "Pathogenicity predictions used by this filter are: phyloP, Sift, PolyPhen, fathmm-MKL, CADD and REVEL.";
+	description_ = QStringList() << "Filter for variants predicted to be pathogenic." << "Pathogenicity predictions used by this filter are: phyloP, Sift, PolyPhen, CADD and REVEL.";
 	params_ << FilterParameter("min", FilterParameterType::INT, 1, "Minimum number of pathogenic predictions");
 	params_.last().constraints["min"] = "1";
 	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
@@ -1974,9 +1976,6 @@ FilterPredictionPathogenic::FilterPredictionPathogenic()
 	params_ << FilterParameter("cutoff_cadd", FilterParameterType::DOUBLE, 20.0, "Minimum CADD score for a pathogenic prediction. The CADD score is not used if set to 0.0.");
 	params_.last().constraints["min"] = "0";
 	params_ << FilterParameter("cutoff_revel", FilterParameterType::DOUBLE, 0.9, "Minimum REVEL score for a pathogenic prediction. The REVEL score is not used if set to 0.0.");
-	params_.last().constraints["min"] = "0";
-	params_.last().constraints["max"] = "1";
-	params_ << FilterParameter("cutoff_fathmm_mkl", FilterParameterType::DOUBLE, 0.9, "Minimum fathmm-MKL score for a pathogenic prediction. The fathmm-MKL score is not used if set to 0.0.");
 	params_.last().constraints["min"] = "0";
 	params_.last().constraints["max"] = "1";
 	params_ << FilterParameter("cutoff_phylop", FilterParameterType::DOUBLE, 1.6, "Minimum phyloP score for a pathogenic prediction. The phyloP score is not used if set to -10.0.");
@@ -1999,7 +1998,6 @@ void FilterPredictionPathogenic::apply(const VariantList& variants, FilterResult
 	i_phylop = annotationColumn(variants, "phyloP");
 	i_sift = annotationColumn(variants, "Sift");
 	i_polyphen = annotationColumn(variants, "PolyPhen");
-	i_fathmm = annotationColumn(variants, "fathmm-MKL", false);
 	i_cadd = annotationColumn(variants, "CADD");
 	i_revel = annotationColumn(variants, "REVEL");
 	skip_high_impact = getBool("skip_high_impact");
@@ -2007,7 +2005,6 @@ void FilterPredictionPathogenic::apply(const VariantList& variants, FilterResult
 
 	cutoff_cadd = getDouble("cutoff_cadd");
 	cutoff_revel = getDouble("cutoff_revel");
-	cutoff_fathmm_mkl = getDouble("cutoff_fathmm_mkl");
 	cutoff_phylop = getDouble("cutoff_phylop");
 	ignore_sift = getBool("ignore_sift");
 	ignore_polyphen = getBool("ignore_polyphen");
@@ -2046,28 +2043,6 @@ bool FilterPredictionPathogenic::predictedPathogenic(const Variant& v) const
 	if (!ignore_polyphen && v.annotations()[i_polyphen].contains("D"))
 	{
 		++count;
-	}
-
-	if (cutoff_fathmm_mkl>0)
-	{
-		if (i_fathmm==-1)
-		{
-			THROW(ArgumentException, "Column 'fathmm-MKL' not found. Disable it by setting the score cutoff to 0.0!");
-		}
-		else if (v.annotations()[i_fathmm].contains(","))
-		{
-			QByteArrayList parts = v.annotations()[i_fathmm].split(',');
-			foreach(const QByteArray& part, parts)
-			{
-				bool ok = true;
-				double value = part.toDouble(&ok);
-				if (ok && value>=cutoff_fathmm_mkl)
-				{
-					++count;
-					break;
-				}
-			}
-		}
 	}
 
 	if (cutoff_phylop>-10)
@@ -2353,7 +2328,7 @@ FilterTrio::FilterTrio()
 	params_ << FilterParameter("gender_child", FilterParameterType::STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
 	params_.last().constraints["valid"] = "male,female,n/a";
 
-	params_ << FilterParameter("build", FilterParameterType::STRING, "hg19", "Genome build used for pseudoautosomal region coordinates");
+	params_ << FilterParameter("build", FilterParameterType::STRING, "hg38", "Genome build used for pseudoautosomal region coordinates");
 	params_.last().constraints["valid"] = "hg19,hg38";
 
 	checkIsRegistered();
@@ -3708,8 +3683,10 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 			if (!result.flags()[i]) continue;
 
 			QSet<QString> sv_entries = QString(svs[i].annotations()[filter_col_index]).split(';').toSet();
-			// check if intersection of both list == 0 -> remove entry otherwise
-			result.flags()[i] = (sv_entries.intersect(filter_entries).size() == 0);
+			if (sv_entries.intersects(filter_entries))
+			{
+				result.flags()[i] = false;
+			}
 		}
 	}
 	else if (action=="FILTER")
@@ -3719,7 +3696,6 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 			if (!result.flags()[i]) continue;
 
 			QSet<QString> sv_entries = QString(svs[i].annotations()[filter_col_index]).split(';').toSet();
-			// compute intersection
 			if (!sv_entries.intersects(filter_entries))
 			{
 				result.flags()[i] = false;
@@ -3731,15 +3707,9 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 		for(int i=0; i<svs.count(); ++i)
 		{
 			QSet<QString> sv_entries = QString(svs[i].annotations()[filter_col_index]).split(';').toSet();
-			// iterate over list of required entries
-			foreach (QString filter_entry, filter_entries)
+			if (sv_entries.intersects(filter_entries))
 			{
-				if (sv_entries.contains(filter_entry))
-				{
-					// display SV if at least one of the provided filter entries match
-					result.flags()[i] = true;
-					break;
-				}
+				result.flags()[i] = true;
 			}
 		}
 	}
@@ -4308,9 +4278,7 @@ void FilterSvCompHet::apply(const BedpeFile& svs, FilterResult& result) const
 	{
 		if (!result.flags()[i]) continue;
 
-		GeneSet genes;
-		genes << svs[i].annotations()[i_genes].split(';');
-
+		GeneSet genes = GeneSet::createFromText(svs[i].annotations()[i_genes], ';');
 		foreach(const QByteArray& gene, genes)
 		{
 			gene_count[gene] += 1;
@@ -4357,8 +4325,7 @@ void FilterSvCompHet::apply(const BedpeFile& svs, FilterResult& result) const
 	{
 		if (!result.flags()[i]) continue;
 
-		GeneSet genes;
-		genes << svs[i].annotations()[i_genes].split(';');
+		GeneSet genes = GeneSet::createFromText(svs[i].annotations()[i_genes], ';');
 		result.flags()[i] = genes.intersectsWith(comphet_hit);
 	}
 }
@@ -4856,3 +4823,162 @@ void FilterGSvarScoreAndRank::apply(const VariantList& variants, FilterResult& r
 		}
 	}
 }
+
+FilterSpliceEffect::FilterSpliceEffect()
+{
+	name_="Splice effect";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the predicted change in splice effect";
+	params_ << FilterParameter("MaxEntScan", FilterParameterType::INT, -15, "Minimum percentage change in the value of MaxEntScan. Positive min. increase, negative min. decrease. Disabled if set to zero.");
+	params_ << FilterParameter("SpliceAi", FilterParameterType::DOUBLE, 0.5, "Minimum SpliceAi value. Disabled if set to zero.");
+	params_.last().constraints["min"] = "0";
+	params_.last().constraints["max"] = "1";
+	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
+	params_.last().constraints["valid"] = "KEEP,FILTER";
+	checkIsRegistered();
+}
+
+QString FilterSpliceEffect::toText() const
+{
+	QString text = this->name() + " " + getString("action");
+	int mes = getInt("MaxEntScan", false);
+	text += " maxEntScan>=" + QString::number(mes) +"%";
+	double sai = getDouble("SpliceAi", false);
+	text += " SpliceAi>=" + QString::number(sai);
+	return text;
+}
+
+void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &result) const
+{
+	if (!enabled_) return;
+
+	int idx_sai = annotationColumn(variant_list, "SpliceAi");
+	double sai = getDouble("SpliceAi");
+
+	int idx_mes = annotationColumn(variant_list, "MaxEntScan");
+	int mes = getInt("MaxEntScan");
+
+	// if all filters are deactivated return
+	if (sai == 0 && mes == 0) return;
+
+	// action FILTER
+	if (getString("action") == "FILTER")
+	{
+		for(int i=0; i<variant_list.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			//If the variant has no value for all possible filters remove it
+			if (variant_list[i].annotations()[idx_sai].isEmpty() && variant_list[i].annotations()[idx_mes].isEmpty())
+			{
+				result.flags()[i] = false;
+				continue;
+			}
+
+			// SpliceAi filter:
+			if (sai > 0)
+			{
+				if (applySpliceAi_(variant_list[i], idx_sai)) continue;
+			}
+
+			// MaxEntScan filter:
+			if (mes != 0)
+			{
+				if (applyMaxEntScanFilter_(variant_list[i], idx_mes)) continue;
+			}
+			result.flags()[i] = false;
+		}
+	}
+	// actio KEEP
+	else if (getString("action") == "KEEP")
+	{
+		for(int i=0; i<variant_list.count(); ++i)
+		{
+			if (result.flags()[i]) continue;
+
+			// SpliceAi filter:
+			if (sai > 0)
+			{
+				if (applySpliceAi_(variant_list[i], idx_sai))
+				{
+					result.flags()[i] = true;
+					continue;
+				}
+			}
+
+			// MaxEntScan filter:
+			if (mes != 0)
+			{
+				if (applyMaxEntScanFilter_(variant_list[i], idx_mes))
+				{
+					result.flags()[i] = true;
+					continue;
+				}
+			}
+		}
+	}
+}
+
+double FilterSpliceEffect::calculatePercentageChangeMES_(const QByteArray& value) const
+{
+	QByteArrayList parts = value.split('>');
+	if (parts.count() < 2) return 0;
+	double percentChange;
+	double base = parts[0].toDouble();
+	double newValue = parts[1].toDouble();
+
+	if (base == 0) return 0; // infinite change... ?
+
+	if (base > 0)
+	{
+		percentChange = (newValue - base) / base;
+	} else {
+		percentChange = (base - newValue) / base;
+	}
+
+	return percentChange*100;
+}
+
+bool FilterSpliceEffect::applyMaxEntScanFilter_(const Variant& var, int idx_mes) const
+{
+	int mes = getInt("MaxEntScan");
+
+	QByteArray var_mes = var.annotations()[idx_mes];
+	if ( ! var_mes.trimmed().isEmpty())
+	{
+		QByteArrayList var_mes_list = var_mes.split(',');
+		foreach (QByteArray value, var_mes_list)
+		{
+			double percentChange = calculatePercentageChangeMES_(value);
+			if (mes < 0)
+			{
+				if (percentChange <= mes)
+				{
+					return true;
+				}
+			} else {
+				if (percentChange >= mes)
+				{
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool FilterSpliceEffect::applySpliceAi_(const Variant& var, int idx_sai) const
+{
+	double sai = getDouble("SpliceAi");
+
+	QByteArray sai_value = var.annotations()[idx_sai];
+	if ( ! sai_value.trimmed().isEmpty())
+	{
+		if (sai_value.toDouble() >= sai)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
