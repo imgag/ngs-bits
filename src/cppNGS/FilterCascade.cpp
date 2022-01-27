@@ -1966,7 +1966,7 @@ bool FilterAnnotationPathogenic::annotatedPathogenic(const Variant& v) const
 FilterPredictionPathogenic::FilterPredictionPathogenic()
 {
 	name_ = "Predicted pathogenic";
-	description_ = QStringList() << "Filter for variants predicted to be pathogenic." << "Pathogenicity predictions used by this filter are: phyloP, Sift, PolyPhen, fathmm-MKL, CADD and REVEL.";
+	description_ = QStringList() << "Filter for variants predicted to be pathogenic." << "Pathogenicity predictions used by this filter are: phyloP, Sift, PolyPhen, CADD and REVEL.";
 	params_ << FilterParameter("min", FilterParameterType::INT, 1, "Minimum number of pathogenic predictions");
 	params_.last().constraints["min"] = "1";
 	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
@@ -1976,9 +1976,6 @@ FilterPredictionPathogenic::FilterPredictionPathogenic()
 	params_ << FilterParameter("cutoff_cadd", FilterParameterType::DOUBLE, 20.0, "Minimum CADD score for a pathogenic prediction. The CADD score is not used if set to 0.0.");
 	params_.last().constraints["min"] = "0";
 	params_ << FilterParameter("cutoff_revel", FilterParameterType::DOUBLE, 0.9, "Minimum REVEL score for a pathogenic prediction. The REVEL score is not used if set to 0.0.");
-	params_.last().constraints["min"] = "0";
-	params_.last().constraints["max"] = "1";
-	params_ << FilterParameter("cutoff_fathmm_mkl", FilterParameterType::DOUBLE, 0.9, "Minimum fathmm-MKL score for a pathogenic prediction. The fathmm-MKL score is not used if set to 0.0.");
 	params_.last().constraints["min"] = "0";
 	params_.last().constraints["max"] = "1";
 	params_ << FilterParameter("cutoff_phylop", FilterParameterType::DOUBLE, 1.6, "Minimum phyloP score for a pathogenic prediction. The phyloP score is not used if set to -10.0.");
@@ -2001,7 +1998,6 @@ void FilterPredictionPathogenic::apply(const VariantList& variants, FilterResult
 	i_phylop = annotationColumn(variants, "phyloP");
 	i_sift = annotationColumn(variants, "Sift");
 	i_polyphen = annotationColumn(variants, "PolyPhen");
-	i_fathmm = annotationColumn(variants, "fathmm-MKL", false);
 	i_cadd = annotationColumn(variants, "CADD");
 	i_revel = annotationColumn(variants, "REVEL");
 	skip_high_impact = getBool("skip_high_impact");
@@ -2009,7 +2005,6 @@ void FilterPredictionPathogenic::apply(const VariantList& variants, FilterResult
 
 	cutoff_cadd = getDouble("cutoff_cadd");
 	cutoff_revel = getDouble("cutoff_revel");
-	cutoff_fathmm_mkl = getDouble("cutoff_fathmm_mkl");
 	cutoff_phylop = getDouble("cutoff_phylop");
 	ignore_sift = getBool("ignore_sift");
 	ignore_polyphen = getBool("ignore_polyphen");
@@ -2048,28 +2043,6 @@ bool FilterPredictionPathogenic::predictedPathogenic(const Variant& v) const
 	if (!ignore_polyphen && v.annotations()[i_polyphen].contains("D"))
 	{
 		++count;
-	}
-
-	if (cutoff_fathmm_mkl>0)
-	{
-		if (i_fathmm==-1)
-		{
-			THROW(ArgumentException, "Column 'fathmm-MKL' not found. Disable it by setting the score cutoff to 0.0!");
-		}
-		else if (v.annotations()[i_fathmm].contains(","))
-		{
-			QByteArrayList parts = v.annotations()[i_fathmm].split(',');
-			foreach(const QByteArray& part, parts)
-			{
-				bool ok = true;
-				double value = part.toDouble(&ok);
-				if (ok && value>=cutoff_fathmm_mkl)
-				{
-					++count;
-					break;
-				}
-			}
-		}
 	}
 
 	if (cutoff_phylop>-10)
