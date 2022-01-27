@@ -3,6 +3,7 @@
 #include "ProcessedSampleDataDeletionDialog.h"
 #include "SingleSampleAnalysisDialog.h"
 #include "GlobalServiceProvider.h"
+#include "GSvarHelper.h"
 #include <QMessageBox>
 #include <QAction>
 
@@ -196,15 +197,7 @@ void SampleSearchWidget::queueAnalysis()
 		samples << AnalysisJobSample {db_.processedSampleName(ps_id), ""};
 	}
 
-	//show dialog
-	SingleSampleAnalysisDialog dlg(this);
-	dlg.setSamples(samples);
-	if (dlg.exec()!=QDialog::Accepted) return;
-
-	//start analysis
-	foreach(const AnalysisJobSample& sample,  dlg.samples())
-	{
-		db_.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
-	}
+	//queue analysis
+	GSvarHelper::queueSampleAnalysis(AnalysisType::GERMLINE_SINGLESAMPLE, samples, this);
 }
 

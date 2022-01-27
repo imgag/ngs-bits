@@ -690,7 +690,89 @@ private:
 	bool applySpliceAi_(const Variant& var, int idx_sai) const;
 };
 
+//Filter RNA ASE allele frequency
+class CPPNGSSHARED_EXPORT FilterVariantRNAAseAlleleFrequency
+	: public FilterBase
+{
+	public:
+		FilterVariantRNAAseAlleleFrequency();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+//Filter RNA ASE depth
+class CPPNGSSHARED_EXPORT FilterVariantRNAAseDepth
+	: public FilterBase
+{
+	public:
+		FilterVariantRNAAseDepth();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+//Filter RNA ASE alternative observered count
+class CPPNGSSHARED_EXPORT FilterVariantRNAAseAlt
+	: public FilterBase
+{
+	public:
+		FilterVariantRNAAseAlt();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+//Filter RNA ASE p-value
+class CPPNGSSHARED_EXPORT FilterVariantRNAAsePval
+	: public FilterBase
+{
+	public:
+		FilterVariantRNAAsePval();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+//Filter RNA aberrant splicing
+class CPPNGSSHARED_EXPORT FilterVariantRNAAberrantSplicing
+	: public FilterBase
+{
+	public:
+		FilterVariantRNAAberrantSplicing();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+//Filter RNA TPM value
+class CPPNGSSHARED_EXPORT FilterVariantRNAGeneExpression
+	: public FilterBase
+{
+	public:
+		FilterVariantRNAGeneExpression();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+//Filter RNA expression fold-change
+class CPPNGSSHARED_EXPORT FilterVariantRNAExpressionFC
+	: public FilterBase
+{
+	public:
+		FilterVariantRNAExpressionFC();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+//Filter RNA expression zscore
+class CPPNGSSHARED_EXPORT FilterVariantRNAExpressionZScore
+	: public FilterBase
+{
+	public:
+		FilterVariantRNAExpressionZScore();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+
 /*************************************************** filters for CNVs ***************************************************/
+
 //Filter CNV size
 class CPPNGSSHARED_EXPORT FilterCnvSize
 	: public FilterBase
