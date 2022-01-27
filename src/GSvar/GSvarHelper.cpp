@@ -380,12 +380,13 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 	{
 		SingleSampleAnalysisDialog dlg(parent);
 		if (samples.size() > 0) dlg.setSamples(samples);
-		if (dlg.exec()==QDialog::Accepted)
+		if (dlg.exec()==QDialog::Accepted && dlg.samples().size() > 0)
 		{
 			foreach(const AnalysisJobSample& sample,  dlg.samples())
 			{
 				db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
 			}
+			return true;
 		}
 	}
 	else if (type==GERMLINE_MULTISAMPLE)
@@ -395,6 +396,7 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 		if (dlg.exec()==QDialog::Accepted)
 		{
 			db.queueAnalysis("multi sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
+			return true;
 		}
 	}
 	else if (type==GERMLINE_TRIO)
@@ -404,6 +406,7 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 		if (dlg.exec()==QDialog::Accepted)
 		{
 			NGSD().queueAnalysis("trio", dlg.highPriority(), dlg.arguments(), dlg.samples());
+			return true;
 		}
 	}
 	else if (type==SOMATIC_PAIR || type==SOMATIC_SINGLESAMPLE)
@@ -414,6 +417,7 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 		if (dlg.exec()==QDialog::Accepted)
 		{
 			db.queueAnalysis("somatic", dlg.highPriority(), dlg.arguments(), dlg.samples());
+			return true;
 		}
 	}
 	else
@@ -421,5 +425,5 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 		THROW(NotImplementedException, "Invalid analysis type")
 	}
 
-	return true;
+	return false;
 }
