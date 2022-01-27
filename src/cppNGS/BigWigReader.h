@@ -107,6 +107,13 @@ struct OverlappingBlock
 {
 	quint64 offset;
 	quint64 size;
+    quint32 start;
+    quint32 end;
+
+    static bool lessThan(const OverlappingBlock& b1, const OverlappingBlock& b2)
+    {
+        return b1.start < b2.start;
+    }
 };
 
 struct OverlappingInterval

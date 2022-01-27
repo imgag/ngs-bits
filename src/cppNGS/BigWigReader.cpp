@@ -219,6 +219,7 @@ QList<OverlappingBlock> BigWigReader::getOverlappingBlocks(quint32 chr_id, quint
 	{
 		result = overlapsTwig(index_tree_.root, chr_id, start, end);
 	}
+    std::sort(result.begin(), result.end(), OverlappingBlock::lessThan);
 	return result;
 }
 
@@ -309,6 +310,9 @@ QList<OverlappingBlock> BigWigReader::overlapsLeaf(const IndexRTreeNode& node, q
 		OverlappingBlock newBlock;
 		newBlock.offset = node.data_offset[i];
 		newBlock.size = node.size[i];
+        newBlock.start = node.base_start[i];
+        newBlock.end = node.base_end[i];
+
 		blocks.append(newBlock);
 	}
 
