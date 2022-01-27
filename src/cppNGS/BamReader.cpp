@@ -776,21 +776,21 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 		}
 
 		//skip reads that do not span the whole region
-		if (al.start()>start || al.end()<end ) continue;
+		if (al.start()>start || al.end()<end ) continue;		
 		++depth;
 
 		//run time optimization: skip reads that do not contain Indels
-		bool contains_indels = false;
+		bool contains_indels_refskip = false;
 		const QList<CigarOp> cigar_data = al.cigarData();
 		foreach(const CigarOp& op, cigar_data)
 		{
-			if (op.Type==BAM_CINS || op.Type==BAM_CDEL)
+			if (op.Type==BAM_CINS || op.Type==BAM_CDEL || op.Type==BAM_CREF_SKIP)
 			{
-				contains_indels = true;
+				contains_indels_refskip = true;
 				break;
 			}
 		}
-		if (!contains_indels) continue;
+		if (!contains_indels_refskip) continue;
 
 		//look up indels
 		int read_pos = 0;
@@ -822,7 +822,14 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 			}
 			else if(op.Type==BAM_CREF_SKIP) //skipped reference bases (for RNA)
 			{
-				genome_pos += op.Length;
+				//remove read from depth if ref_skip spans indel region:
+				if (genome_pos<=start && (genome_pos+op.Length)>=end)
+				{
+					// revert depth count:
+					depth--;
+				}
+
+				genome_pos += op.Length;				
 			}
 			else if(op.Type==BAM_CSOFT_CLIP) //soft-clipped (only at the beginning/end)
 			{

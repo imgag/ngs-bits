@@ -88,7 +88,6 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_sift->setToolTip(vl.annotationDescriptionByName("Sift").description());
 	ui->label_polyphen->setToolTip(vl.annotationDescriptionByName("PolyPhen").description());
 	ui->label_cadd->setToolTip(vl.annotationDescriptionByName("CADD").description());
-	ui->label_fathmm->setToolTip(vl.annotationDescriptionByName("fathmm-MKL", false).description());
 	ui->label_revel->setToolTip(vl.annotationDescriptionByName("REVEL").description());
 
 	//splicing/regulatory
@@ -110,6 +109,12 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_somatic_tsg->setToolTip( vl.annotationDescriptionByName("ncg_tsg", false).description() );
 	ui->label_somatic_cancerhotspots->setToolTip( vl.annotationDescriptionByName("CANCERHOTSPOTS_ALT_COUNT", false).description() );
 	ui->label_somatic_cmc_class->setToolTip( vl.annotationDescriptionByName("CMC_mutation_significance", false).description() );
+
+	//RNAseq details
+	ui->label_rna_ase->setToolTip(vl.annotationDescriptionByName("ASE_pval", false).description());
+	ui->label_rna_splicing->setToolTip(vl.annotationDescriptionByName("aberrant_splicing", false).description());
+	ui->label_rna_tpm->setToolTip(vl.annotationDescriptionByName("tpm", false).description());
+	ui->label_rna_rel->setToolTip(vl.annotationDescriptionByName("expr_log2fc", false).description());
 }
 
 void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
@@ -177,7 +182,6 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->sift, vl, index, "Sift");
 	setAnnotation(ui->polyphen, vl, index, "PolyPhen");
 	setAnnotation(ui->cadd, vl, index, "CADD");
-	setAnnotation(ui->fathmm, vl, index, "fathmm-MKL");
 	setAnnotation(ui->revel, vl, index, "REVEL");
 
 	//splicing/regulatory
@@ -219,6 +223,39 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 
 	//somatic VICC data from NGSD
 	setAnnotation(ui->somatic_vicc_score, vl, index, "NGSD_som_vicc_interpretation");
+
+	//RNAseq
+	QString rna_ase = "";
+	int ase_af_idx = vl.annotationIndexByName("ASE_af", true, false);
+	int ase_pval_idx = vl.annotationIndexByName("ASE_pval", true, false);
+	if(ase_af_idx!=-1 && ase_pval_idx!=-1)
+	{
+		QString ase_af = vl[index].annotations()[ase_af_idx];
+		QString ase_pval = vl[index].annotations()[ase_pval_idx];
+		if (!ase_af.startsWith("n/a"))
+		{
+			rna_ase = "AF=" + ase_af + ", p=" + ase_pval;
+		}
+	}
+	ui->rna_ase->setText(rna_ase);
+
+	setAnnotation(ui->rna_splicing, vl, index, "aberrant_splicing");
+
+	setAnnotation(ui->rna_tpm, vl, index, "tpm");
+
+	QString rna_rel = "";
+	int expr_log2fc_idx = vl.annotationIndexByName("expr_log2fc", true, false);
+	int expr_zscore_idx = vl.annotationIndexByName("expr_zscore", true, false);
+	if(ase_af_idx!=-1 && ase_pval_idx!=-1)
+	{
+		QString expr_log2fc = vl[index].annotations()[expr_log2fc_idx];
+		QString expr_zscore = vl[index].annotations()[expr_zscore_idx];
+		if (!expr_log2fc.startsWith("n/a"))
+		{
+			rna_rel = "log₂FC=" + expr_log2fc + ", z=" + expr_zscore;
+		}
+	}
+	ui->rna_rel->setText(rna_rel);
 
 	//update NGSD button
 	ui->var_btn->setEnabled(LoginManager::active());
@@ -375,30 +412,6 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		{
 			text = anno.replace("D", formatText("D", RED)).replace("P", formatText("P", ORANGE));
 		}
-		else if(name=="fathmm-MKL")
-		{
-			double max = 0.0;
-			QStringList parts = anno.split(",");
-			foreach(QString part, parts)
-			{
-				bool ok = true;
-				double value = part.toDouble(&ok);
-				if (ok) max = std::max(value, max);
-			}
-
-			if (max>=0.9)
-			{
-				text = formatText(anno, RED);
-			}
-			else if (max>=0.5)
-			{
-				text = formatText(anno, ORANGE);
-			}
-			else
-			{
-				text = anno;
-			}
-		}
 		else if(name=="REVEL")
 		{
 			bool ok = true;
@@ -525,35 +538,6 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		{
 			if(anno == "1" || anno == "2" || anno == "3") text = formatText(anno, RED);
 			else text = anno;
-		}
-		else if(name=="MMSplice_DeltaLogitPSI")
-		{
-			//add pathogenicity score
-			int pathogenicity_index = vl.annotationIndexByName("MMSplice_pathogenicity", true, false);
-			QString anno_p;
-			if(pathogenicity_index!=-1)
-			{
-				anno_p = vl[index].annotations()[pathogenicity_index];
-			}
-
-			//if one score is present save the score
-			if(anno!="" || anno_p!="")
-			{
-				//deltaLogitPSI score with an absolute value beyond 2 are supposed to be strong
-				if(anno.toDouble() >= 2)
-				{
-					text = formatText(anno + " / " + anno_p, GREEN);
-				}
-				else if(anno.toDouble() <= -2)
-				{
-					text = formatText(anno + " / " + anno_p, RED);
-				}
-				else
-				{
-					text = anno + " / " + anno_p;
-				}
-			}
-
 		}
 		else if(name == "NGSD_som_vicc_interpretation")
 		{

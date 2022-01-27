@@ -5,8 +5,10 @@
 #include "BedFile.h"
 #include "VariantList.h"
 #include "GenomeBuild.h"
+#include "NGSD.h"
 #include <QTableWidgetItem>
 #include <QLabel>
+
 
 ///Helper class for GSvar
 class GSvarHelper
@@ -45,6 +47,9 @@ public:
 
 	///Returns a the local target region folder where tempory target regions and gene lists can be stored for IGV.
 	static QString localRoiFolder();
+
+	//Queue the analysis of samples
+	static bool queueSampleAnalysis(AnalysisType type, const QList<AnalysisJobSample>& samples, QWidget* parent = 0);
 
 protected:
 	GSvarHelper() = delete;

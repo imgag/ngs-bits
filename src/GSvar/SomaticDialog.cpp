@@ -87,7 +87,8 @@ void SomaticDialog::updateStartButton()
 
 QString SomaticDialog::addSample(QString status, QString sample, bool force_showing_dialog)
 {
-	QString ps_id = SingleSampleAnalysisDialog::addSample(db_, status, samples_, sample, true, force_showing_dialog);
+	QString analysis_type;
+	QString ps_id = SingleSampleAnalysisDialog::addSample(db_, status, samples_, analysis_type, sample, true, force_showing_dialog);
 	if (ps_id.isEmpty()) THROW(AbortByUserException, "");
 	return ps_id;
 }

@@ -124,7 +124,8 @@ void TrioDialog::annotate_only_state_changed()
 
 QString TrioDialog::addSample(QString status, QString sample, bool force_showing_dialog)
 {
-	QString ps_id = SingleSampleAnalysisDialog::addSample(db_, status, samples_, sample, false, force_showing_dialog);
+	QString analysis_type;
+	QString ps_id = SingleSampleAnalysisDialog::addSample(db_, status, samples_, analysis_type, sample, false, force_showing_dialog);
 	if (ps_id.isEmpty()) THROW(AbortByUserException, "");
 	return ps_id;
 }

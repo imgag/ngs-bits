@@ -51,6 +51,10 @@ protected slots:
 	void openProjectTab(QString project_name);
 	void openProcessingSystemTab(QString system_short_name);
 
+	//RNA menu
+	void openExpressionWidget();
+	void openFusionWidget();
+
 	///Opens the processed sample edit dialog
 	void edit();
 	///Opens sample edit dialog

@@ -352,6 +352,17 @@ private slots:
 		I_EQUAL(indels.count(), 14);
 		I_EQUAL(indels.count("-AG"), 14);
 		F_EQUAL2(mapq0_frac, 0.0, 0.001);
+
+		//depth calculation on spliced reads in RNA samples
+		BamReader reader2(TESTDATA("data_in/rna.bam"));
+		reader2.getIndels(reference, "chr1", 998764-10, 998764+10, indels, depth, mapq0_frac);
+		I_EQUAL(depth, 2);
+
+		reader2.getIndels(reference, "chr1", 2401387-10, 2401392+10, indels, depth, mapq0_frac);
+		I_EQUAL(depth, 0);
+
+		reader2.getIndels(reference, "chr1", 10460908-10, 10460909+10, indels, depth, mapq0_frac);
+		I_EQUAL(depth, 27);
 	}
 
 	void BamReader_genomeSize()

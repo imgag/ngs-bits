@@ -29,7 +29,7 @@ class SingleSampleAnalysisDialog
 	Q_OBJECT
 
 public:
-	SingleSampleAnalysisDialog(QWidget *parent = 0, bool is_rna = false);
+	SingleSampleAnalysisDialog(QWidget *parent = 0);
 	//Fills table with given processed samples
 	void setSamples(QList<AnalysisJobSample> samples);
 
@@ -41,7 +41,7 @@ public:
 	bool highPriority() const;
 
 	//Adds a sample and returns the processed sample ID (or empty string if canelled)
-	static QString addSample(NGSD& db, QString status, QList<SampleDetails>& samples, QString ps_name="", bool throw_if_bam_missing=true, bool force_showing_dialog=false);
+	static QString addSample(NGSD& db, QString status, QList<SampleDetails>& samples, QString& analysis_type, QString ps_name="", bool throw_if_bam_missing=true, bool force_showing_dialog=false);
 	static void initTable(QTableWidget* samples_table);
 	static void updateSampleTable(const QList<SampleDetails>& samples, QTableWidget* samples_table);
 	static QList<AnalysisJobSample> samples(const QList<SampleDetails>& samples);
@@ -61,9 +61,11 @@ private:
 	NGSD db_;
 	QList<SampleDetails> samples_;
 	QList<AnalysisStep> steps_;
+	QString analysis_type_;
 
 	void addSample(QString status, QString sample="");
 	void updateSampleTable();
+	void setAnalysisSteps();
 };
 
 #endif // SINGLESAMPLEANALYSISDIALOG_H

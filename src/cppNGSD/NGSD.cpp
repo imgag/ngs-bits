@@ -880,7 +880,9 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==PathType::VIRAL) output += ps_name + "_viral.tsv";
 	else if (type==PathType::COUNTS) output += ps_name + "_counts.tsv";
 	else if (type==PathType::EXPRESSION) output += ps_name + "_expr.tsv";
-	else if (type==PathType::MRD_CF_DNA) output += QString("umiVar") + QDir::separator() + ps_name + ".mrd";	else if (type!=PathType::SAMPLE_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
+	else if (type==PathType::EXPRESSION_COHORT) output += ps_name + "_expr.cohort.tsv";
+	else if (type==PathType::MRD_CF_DNA) output += QString("umiVar") + QDir::separator() + ps_name + ".mrd";
+	else if (type!=PathType::SAMPLE_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
 
 	return QFileInfo(output).absoluteFilePath();
 }
@@ -4778,7 +4780,7 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 		}
 		if (var_conf.variant_index==-1)
 		{
-			messages << "Could not find variant '" + var.toString() + "' in given variant list!";
+			messages << "Could not find variant '" + var.toString() + "' in given variant list. The report configuration of this variant will be lost if you change anything in the report configuration!";
 			continue;
 		}
 
@@ -4817,7 +4819,7 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 		}
 		if (var_conf.variant_index==-1)
 		{
-			messages << "Could not find CNV '" + var.toString() + "' in given variant list!";
+			messages << "Could not find CNV '" + var.toString() + "' in given variant list. The report configuration of this variant will be lost if you change anything in the report configuration!";
 			continue;
 		}
 
@@ -4889,7 +4891,7 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 			var_conf.variant_index = svs.findMatch(sv, true, false);
 			if (var_conf.variant_index==-1)
 			{
-				messages << "Could not find SV '" + BedpeFile::typeToString(sv.type()) + " " + sv.positionRange() + "' in given variant list!";
+				messages << "Could not find SV '" + BedpeFile::typeToString(sv.type()) + " " + sv.positionRange() + "' in given variant list. The report configuration of this variant will be lost if you change anything in the report configuration!";
 				continue;
 			}
 
@@ -4922,12 +4924,9 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 	QString id_str = QString::number(id);
 
 	//check that it is not finalized
-	if (id!=-1)
+	if (id!=-1 && reportConfigIsFinalized(id))
 	{
-		if (reportConfigIsFinalized(id))
-		{
-			THROW (ProgrammingException, "Cannot update report configuration with id=" + id_str + ", because it is finalized!");
-		}
+		THROW (ProgrammingException, "Cannot update report configuration with id=" + id_str + " because it is finalized!");
 	}
 
 	try
@@ -5679,7 +5678,7 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 		}
 		if(var_conf.variant_index == -1)
 		{
-			messages << "Could not find somatic variant '" + var.toString() + "' in given variant list!";
+			messages << "Could not find somatic variant '" + var.toString() + "' in given variant list. The report configuration of this variant will be lost if you change anything in the report configuration!";
 		}
 
 		var_conf.exclude_artefact = query.value("exclude_artefact").toBool();
@@ -5713,7 +5712,7 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 		}
 		if(var_conf.variant_index == -1)
 		{
-			messages << "Could not find somatic CNV '" + cnv.toString() + "' in given variant list!";
+			messages << "Could not find somatic CNV '" + cnv.toString() + "' in given variant list. The report configuration of this variant will be lost if you change anything in the report configuration!";
 			continue;
 		}
 
@@ -5740,7 +5739,7 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 		}
 		if(var_conf.variant_index == -1)
 		{
-			messages << "Could not find germline variant '" + var.toString() + "' in given variant list!";
+			messages << "Could not find germline variant '" + var.toString() + "' in given variant list. The report configuration of this variant will be lost if you change anything in the report configuration!";
 		}
 
 		if(!query.value("tum_freq").isNull()) var_conf.tum_freq = query.value("tum_freq").toDouble();

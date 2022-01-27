@@ -122,12 +122,13 @@ QT_CHARTS_USE_NAMESPACE
 #include "CohortAnalysisWidget.h"
 #include "cfDNARemovedRegions.h"
 #include "CfDNAPanelBatchImport.h"
-#include "CfdnaAnalysisDialog.h"
 #include "ClinvarUploadDialog.h"
 #include "GenomeVisualizationWidget.h"
 #include "LiftOverWidget.h"
 #include "CacheInitWorker.h"
 #include "BlatWidget.h"
+#include "FusionWidget.h"
+#include "CohortExpressionDataWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -176,10 +177,11 @@ MainWindow::MainWindow(QWidget *parent)
 	rna_menu_btn_->setMenu(new QMenu());
 	rna_menu_btn_->menu()->addAction(ui_.actionExpressionData);
 	rna_menu_btn_->menu()->addAction(ui_.actionShowRnaFusions);
+	rna_menu_btn_->menu()->addAction(ui_.actionShowCohortExpressionData);
 	rna_menu_btn_->setPopupMode(QToolButton::InstantPopup);
-	ui_.tools->addWidget(rna_menu_btn_);
-	// deaktivate on default
 	rna_menu_btn_->setEnabled(false);
+	ui_.tools->addWidget(rna_menu_btn_);
+
 
 	// add cfdna menu
 	cfdna_menu_btn_ = new QToolButton();
@@ -1301,7 +1303,7 @@ void MainWindow::on_actionExpressionData_triggered()
 	QStringList rna_count_files;
 	foreach (QString rna_ps_id, rna_ps_ids)
 	{
-		FileLocation file_location = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::COUNTS);
+		FileLocation file_location = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION);
 		if (file_location.exists) rna_count_files << file_location.filename;
 	}
 	rna_count_files.removeDuplicates();
@@ -1338,44 +1340,88 @@ void MainWindow::on_actionShowRnaFusions_triggered()
 	NGSD db;
 
 	//get all available files
-	QStringList manta_fusion_files;
+	QStringList arriba_fusion_files;
 	foreach (int rna_sample_id, db.relatedSamples(db.sampleId(variants_.mainSampleName()).toInt(), "same sample", "RNA"))
 	{
 		// check for required files
 		foreach (const QString& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", QString::number(rna_sample_id)))
 		{
-			// search for manta fusion file
-			FileLocation manta_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::MANTA_FUSIONS);
-			if (manta_fusion_file.exists) manta_fusion_files << manta_fusion_file.filename;
+			// search for fusion file
+			FileLocation fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS);
+			if (fusion_file.exists) arriba_fusion_files << fusion_file.filename;
 		}
 	}
 
-	if (manta_fusion_files.isEmpty())
+	if (arriba_fusion_files.isEmpty())
 	{
-		QMessageBox::warning(this, "Manta fusion files missing", "Error: No RNA manta fusion files of corresponding RNA samples found!");
+		QMessageBox::warning(this, "Fusion files missing", "Error: No RNA fusion files of corresponding RNA samples found!");
 		return;
 	}
 
 	//select file to open
-	QString manta_fusion_filepath;
-	if (manta_fusion_files.size()==1)
+	QString fusion_filepath;
+	if (arriba_fusion_files.size()==1)
 	{
-		manta_fusion_filepath = manta_fusion_files.at(0);
+		fusion_filepath = arriba_fusion_files.at(0);
 	}
 	else
 	{
 		bool ok;
-		manta_fusion_filepath = QInputDialog::getItem(this, "Multiple files found", "Multiple RNA manta fusion files found.\nPlease select a file:", manta_fusion_files, 0, false, &ok);
+		fusion_filepath = QInputDialog::getItem(this, "Multiple files found", "Multiple RNA fusion files found.\nPlease select a file:", arriba_fusion_files, 0, false, &ok);
 		if (!ok) return;
 	}
 
-	BedpeFile fusions;
-	fusions.load(manta_fusion_filepath);
+	FusionWidget* fusion_widget = new FusionWidget(fusion_filepath, this);
 
-	//open SV widget
-	SvWidget* sv_widget = new SvWidget(fusions, db.processedSampleId(variants_.mainSampleName()), ui_.filters, GeneSet(), gene2region_cache_, this);
+	auto dlg = GUIHelper::createDialog(fusion_widget, "Fusions of " + variants_.analysisName() + " (arriba)");
+	addModelessDialog(dlg);
+}
 
-	auto dlg = GUIHelper::createDialog(sv_widget, "Manta fusions of " + variants_.analysisName());
+void MainWindow::on_actionShowCohortExpressionData_triggered()
+{
+	if (filename_=="") return;
+	if (!LoginManager::active()) return;
+
+	NGSD db;
+
+	//get all available files
+	QStringList cohort_expression_files;
+	foreach (int rna_sample_id, db.relatedSamples(db.sampleId(variants_.mainSampleName()).toInt(), "same sample", "RNA"))
+	{
+		// check for required files
+		foreach (const QString& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", QString::number(rna_sample_id)))
+		{
+			// search for fusion file
+			FileLocation cohort_expression_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_COHORT);
+			if (cohort_expression_file.exists) cohort_expression_files << cohort_expression_file.filename;
+		}
+	}
+
+	if (cohort_expression_files.isEmpty())
+	{
+		QMessageBox::warning(this, "Cohort expression data files missing", "Error: No RNA cohort expression data files of corresponding RNA samples found!");
+		return;
+	}
+
+	//select file to open
+	QString cohort_expression_filepath;
+	if (cohort_expression_files.size()==1)
+	{
+		cohort_expression_filepath = cohort_expression_files.at(0);
+	}
+	else
+	{
+		bool ok;
+		cohort_expression_filepath = QInputDialog::getItem(this, "Multiple files found", "Multiple RNA cohort expression data files found.\nPlease select a file:", cohort_expression_files, 0, false, &ok);
+		if (!ok) return;
+	}
+
+	QString rna_ps_id = db.processedSampleId(cohort_expression_filepath);
+	ProcessedSampleData rna_ps_info = db.getProcessedSampleData(rna_ps_id);
+
+	CohortExpressionDataWidget* cohort_expression_widget = new CohortExpressionDataWidget(cohort_expression_filepath, this, rna_ps_info.project_name, rna_ps_info.processing_system);
+
+	auto dlg = GUIHelper::createDialog(cohort_expression_widget, "Cohort RNA expression of " + variants_.analysisName());
 	addModelessDialog(dlg);
 }
 
@@ -1548,37 +1594,20 @@ void MainWindow::on_actionReanalyze_triggered()
 
 	AnalysisType type = variants_.type();
 	SampleHeaderInfo header_info = variants_.getSampleHeader();
-
 	QList<AnalysisJobSample> samples;
-	if (type==GERMLINE_SINGLESAMPLE)
+	if (type==GERMLINE_SINGLESAMPLE  || type==CFDNA || type==SOMATIC_SINGLESAMPLE)
 	{
-		SingleSampleAnalysisDialog dlg(this, false);
 		samples << AnalysisJobSample {header_info[0].id, ""};
-		dlg.setSamples(samples);
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			foreach(const AnalysisJobSample& sample,  dlg.samples())
-			{
-				NGSD().queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
-			}
-		}
 	}
 	else if (type==GERMLINE_MULTISAMPLE)
 	{
-		MultiSampleDialog dlg(this);
 		foreach(const SampleInfo& info, header_info)
 		{
 			samples << AnalysisJobSample {info.id, info.isAffected() ? "affected" : "control"};
 		}
-		dlg.setSamples(samples);
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			NGSD().queueAnalysis("multi sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
-		}
 	}
 	else if (type==GERMLINE_TRIO)
 	{
-		TrioDialog dlg(this);
 		foreach(const SampleInfo& info, header_info)
 		{
 			if(info.isAffected())
@@ -1590,39 +1619,16 @@ void MainWindow::on_actionReanalyze_triggered()
 				samples << AnalysisJobSample {info.id, info.gender()=="male" ? "father" : "mother"};
 			}
 		}
-		dlg.setSamples(samples);
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			NGSD().queueAnalysis("trio", dlg.highPriority(), dlg.arguments(), dlg.samples());
-		}
 	}
 	else if (type==SOMATIC_PAIR)
 	{
-		SomaticDialog dlg(this);
 		foreach(const SampleInfo& info, header_info)
 		{
 			samples << AnalysisJobSample {info.id, info.isTumor() ? "tumor" : "normal"};
 		}
-		dlg.setSamples(samples);
+	}
 
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			NGSD().queueAnalysis("somatic", dlg.highPriority(), dlg.arguments(), dlg.samples());
-		}
-	}
-	else if (type==CFDNA)
-	{
-		CfdnaAnalysisDialog dlg(this);
-		samples << AnalysisJobSample {header_info[0].id, ""};
-		dlg.setSamples(samples);
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			foreach(const AnalysisJobSample& sample,  dlg.samples())
-			{
-				NGSD().queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
-			}
-		}
-	}
+	GSvarHelper::queueSampleAnalysis(type, samples, this);
 }
 
 void MainWindow::delayedInitialization()
@@ -1822,6 +1828,35 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 
 		QString filename = action->toolTip().trimmed();
 		dlg.addFile(FileLocation{name, PathType::OTHER, filename, QFile::exists(filename)}, action->isChecked());
+	}
+
+	//related RNA tracks
+	if (LoginManager::active())
+	{
+		NGSD db;
+
+		QString sample_id = db.sampleId(filename_, false);
+		if (sample_id!="")
+		{
+			foreach (int rna_sample_id, db.relatedSamples(sample_id.toInt(), "same sample", "RNA"))
+			{
+				// iterate over all processed RNA samples
+				foreach (const QString& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", QString::number(rna_sample_id)))
+				{
+					//add RNA BAM
+					FileLocation rna_bam_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::BAM);
+					if (rna_bam_file.exists) dlg.addFile(rna_bam_file, false);
+
+					//add fusions BAM
+					FileLocation rna_fusions_bam_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS_BAM);
+					if (rna_fusions_bam_file.exists) dlg.addFile(rna_fusions_bam_file, false);
+
+					//add splicing BED
+					FileLocation rna_splicing_bed_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::SPLICING_BED);
+					if (rna_splicing_bed_file.exists) dlg.addFile(rna_splicing_bed_file, false);
+				}
+			}
+		}
 	}
 
 	// switch to MainWindow to prevent dialog to appear behind other widgets
@@ -2915,11 +2950,12 @@ void MainWindow::loadFile(QString filename)
 	rna_menu_btn_->setEnabled(false);
 	ui_.actionExpressionData->setEnabled(false);
 	ui_.actionShowRnaFusions->setEnabled(false);
-	if (LoginManager::active() && germlineReportSupported())
+	ui_.actionShowCohortExpressionData->setEnabled(false);
+	if (LoginManager::active())
 	{
 		NGSD db;
 
-		QString sample_id = db.sampleId(germlineReportSample(), false);
+		QString sample_id = db.sampleId(filename_, false);
 		if (sample_id!="")
 		{
 			foreach (int rna_sample_id, db.relatedSamples(sample_id.toInt(), "same sample", "RNA"))
@@ -2931,12 +2967,16 @@ void MainWindow::loadFile(QString filename)
 				foreach (const QString& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", QString::number(rna_sample_id)))
 				{
 					// search for count file
-					FileLocation rna_count_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::COUNTS);
+					FileLocation rna_count_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION);
 					if (rna_count_file.exists) ui_.actionExpressionData->setEnabled(true);
 
-					// search for manta fusion file
-					FileLocation manta_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::MANTA_FUSIONS);
-					if (manta_fusion_file.exists) ui_.actionShowRnaFusions->setEnabled(true);
+					// search for arriba fusion file
+					FileLocation arriba_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS);
+					if (arriba_fusion_file.exists) ui_.actionShowRnaFusions->setEnabled(true);
+
+					// search for cohort fusion file
+					FileLocation cohort_expression_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_COHORT);
+					if (cohort_expression_file.exists) ui_.actionShowCohortExpressionData->setEnabled(true);
 				}
 			}
 		}

@@ -16,7 +16,7 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	bool showInReport() const;
 
 	VariantType variant_type;
-	int variant_index;
+	int variant_index; //index of the variant in the variant/CNV/SV list
 
 	QString report_type;
 	bool causal;
