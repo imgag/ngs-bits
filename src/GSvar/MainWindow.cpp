@@ -266,6 +266,11 @@ MainWindow::MainWindow(QWidget *parent)
 	this->ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
 	this->ui_.filters->phenotypesChanged();
 
+	// Setting a value for the current working directory. On Linux it is defined in the TMPDIR environment
+	// variable or /tmp if TMPDIR is not set. On Windows it is saved in the TEMP or TMP environment variable.
+	// e.g. c:\Users\UserName\AppData\Local\Temp
+	// It is needed to enable saving *.bai files while accessing remote *.bam files.
+	QDir::setCurrent(QDir::tempPath());
 }
 
 QString MainWindow::appName() const
