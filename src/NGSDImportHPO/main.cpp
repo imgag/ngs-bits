@@ -407,7 +407,7 @@ public:
 			{
 				non_hgc_genes.append(gene);
 				// add term2disease relations
-				foreach (QByteArray term, hpo_terms)
+				foreach (const QByteArray& term, hpo_terms)
 				{
 					int term_db_id = id2ngsd.value(term, -1);
 					if (term_db_id != -1 && mim_exp.indexIn(disease_num) != -1)
@@ -428,7 +428,7 @@ public:
 			{
 				QByteArray approved_gene_symbol = db.geneSymbol(gene_db_id);
 
-				foreach (QByteArray term, hpo_terms)
+				foreach (const QByteArray& term, hpo_terms)
 				{
 					int term_db_id = id2ngsd.value(term, -1);
 					if (term_db_id != -1)
@@ -538,7 +538,8 @@ public:
 						i++;
 						combined_part.append(parts[i]);
 
-					} while (! parts[i].endsWith('"'));
+					}
+					while (! parts[i].endsWith('"'));
 
 					cleaned_parts.append(combined_part);
 				}

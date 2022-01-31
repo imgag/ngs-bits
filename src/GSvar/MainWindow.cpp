@@ -6186,18 +6186,6 @@ void MainWindow::applyFilters(bool debug_time)
 			filter_phenos_ = false;
 			last_phenos_ = phenos;
 
-			qDebug() << "allowed Sources: " << last_phenotype_sources_.length() << "\n";
-			foreach (PhenotypeSource::Source s, last_phenotype_sources_)
-			{
-				qDebug() << PhenotypeSource::sourceToString(s) << "\n";
-			}
-
-			qDebug() << "allowed Evidences: " << last_phenotype_evidences_.length() << "\n";
-			foreach (PhenotypeEvidence::Evidence e, last_phenotype_evidences_)
-			{
-				qDebug() << PhenotypeEvidence::evidenceToString(e) << "\n";
-			}
-
 			//convert phenotypes to genes
 			NGSD db;
 			GeneSet pheno_genes;
@@ -6205,7 +6193,7 @@ void MainWindow::applyFilters(bool debug_time)
 			{
 				pheno_genes << db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(pheno.accession()), last_phenotype_sources_, last_phenotype_evidences_, true, false);
 			}
-			qDebug() << "Found genes: " << pheno_genes.count() << "\n";
+
 			//convert genes to ROI (using a cache to speed up repeating queries)
 			last_phenos_roi_.clear();
 			foreach(const QByteArray& gene, pheno_genes)
