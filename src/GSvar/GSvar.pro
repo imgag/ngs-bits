@@ -206,7 +206,6 @@ HEADERS += MainWindow.h \
     BlatWidget.h \
     AnalysisInformationWidget.h \
     CacheInitWorker.h \
-    AnalysisInformationWidget.h \
     PhenotypeSourceEvidenceSelector.h \
     FusionWidget.h \
     CohortExpressionDataWidget.h
@@ -295,7 +294,6 @@ FORMS    += MainWindow.ui \
     BlatWidget.ui \
     AnalysisInformationWidget.ui \
     LiftOverWidget.ui \
-    AnalysisInformationWidget.ui \
     PhenotypeSourceEvidenceSelector.ui \
     FusionWidget.ui \
     CohortExpressionDataWidget.ui

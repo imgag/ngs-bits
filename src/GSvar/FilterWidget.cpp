@@ -5,6 +5,7 @@
 #include "Log.h"
 #include "ScrollableTextDialog.h"
 #include "PhenotypeSelectionWidget.h"
+#include "PhenotypeSourceEvidenceSelector.h"
 #include "GUIHelper.h"
 #include "GSvarHelper.h"
 #include "DBSelector.h"
@@ -334,23 +335,23 @@ void FilterWidget::setPhenotypes(const PhenotypeList& phenotypes)
 
 const QList<PhenotypeSource::Source>& FilterWidget::allowedPhenotypeSources() const
 {
-	return allowedPhenotypeSources_;
+	return allowed_phenotype_sources_;
 }
 
 const QList<PhenotypeEvidence::Evidence>& FilterWidget::allowedPhenotypeEvidences() const
 {
-	return allowedPhenotypeEvidences_;
+	return allowed_phenotype_evidences_;
 }
 
 void FilterWidget::setAllowedPhenotypeSources(QList<PhenotypeSource::Source> sources)
 {
-	allowedPhenotypeSources_ = sources;
+	allowed_phenotype_sources_ = sources;
 }
 
 
 void FilterWidget::setAllowedPhenotypeEvidences(QList<PhenotypeEvidence::Evidence> evidences)
 {
-	allowedPhenotypeEvidences_ = evidences;
+	allowed_phenotype_evidences_ = evidences;
 }
 
 
@@ -481,7 +482,7 @@ void FilterWidget::phenotypesChanged()
 
 	QString tooltip = "Phenotype/inheritance filter based on HPO terms.<br><br>Notes:<br>- This functionality is only available when NGSD is enabled.<br>- Filters based on the phenotype-associated gene loci including 5000 flanking bases.";
 
-	if ( (!phenotypes_.isEmpty()) | (! allowedPhenotypeEvidences_.isEmpty()) | (! allowedPhenotypeSources_.isEmpty()))
+	if ( (!phenotypes_.isEmpty()) | (! allowed_phenotype_evidences_.isEmpty()) | (! allowed_phenotype_sources_.isEmpty()))
 	{
 		tooltip += "<br>";
 	}
@@ -495,11 +496,11 @@ void FilterWidget::phenotypesChanged()
 		}
 	}
 
-	if (! allowedPhenotypeEvidences_.isEmpty())
+	if (! allowed_phenotype_evidences_.isEmpty())
 	{
 		tooltip += "<br><nobr>Currently selected evidences:</nobr>";
 		tooltip += "<br><nobr>";
-		foreach(const PhenotypeEvidence::Evidence& e, allowedPhenotypeEvidences_)
+		foreach(const PhenotypeEvidence::Evidence& e, allowed_phenotype_evidences_)
 		{
 			tooltip += PhenotypeEvidence::evidenceToString(e) + ", ";
 		}
@@ -507,11 +508,11 @@ void FilterWidget::phenotypesChanged()
 		tooltip += "</nobr>";
 	}
 
-	if (! allowedPhenotypeSources_.isEmpty())
+	if (! allowed_phenotype_sources_.isEmpty())
 	{
 		tooltip += "<br><nobr>Currently selected Sources:</nobr>";
 		tooltip += "<br><nobr>";
-		foreach(const PhenotypeSource::Source& s, allowedPhenotypeSources_)
+		foreach(const PhenotypeSource::Source& s, allowed_phenotype_sources_)
 		{
 			tooltip += PhenotypeSource::sourceToString(s) + ", ";
 		}
@@ -655,7 +656,20 @@ void FilterWidget::showPhenotypeContextMenu(QPoint pos)
 	}
 	else if (action->text()=="options")
 	{
-		emit phenotypeOptionsRequested();
+		PhenotypeSourceEvidenceSelector* selector = new PhenotypeSourceEvidenceSelector(this);
+		selector->setEvidences(allowedPhenotypeEvidences());
+		selector->setSources(allowedPhenotypeSources());
+
+		auto dlg = GUIHelper::createDialog(selector, "Phenotype Filter Options", "", true);
+
+		//update
+		if (dlg->exec()==QDialog::Accepted)
+		{
+			allowed_phenotype_evidences_ = selector->selectedEvidences();
+			allowed_phenotype_sources_ = selector->selectedSources();
+			emit phenotypeSourcesAndEvidencesChanged(allowed_phenotype_evidences_, allowed_phenotype_sources_);
+			phenotypesChanged();
+		}
 	}
 }
 

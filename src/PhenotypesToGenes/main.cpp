@@ -85,7 +85,7 @@ public:
 			}
 			else
 			{
-				sources.append(PhenotypeSource::SourceFromString(getEnum("source")));
+				sources.append(PhenotypeSource::sourceFromString(getEnum("source")));
 			}
 
 			GeneSet genes = db.phenotypeToGenesbySourceAndEvidence(id, sources, evidences, true, ignore_non_phenotype);

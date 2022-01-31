@@ -212,7 +212,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.actionDesignSubpanel, SIGNAL(triggered()), this, SLOT(openSubpanelDesignDialog()));
 	connect(ui_.filters, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 	connect(ui_.filters, SIGNAL(phenotypeSubPanelRequested()), this, SLOT(createSubPanelFromPhenotypeFilter()));
-	connect(ui_.filters, SIGNAL(phenotypeOptionsRequested()), this, SLOT(openPhenotypeOptions()));
+    connect(ui_.filters, SIGNAL(phenotypeSourcesAndEvidencesChanged(QList<PhenotypeEvidence::Evidence>,QList<PhenotypeSource::Source>)), this, SLOT(updateAllowedSourcesAndEvidences(QList<PhenotypeEvidence::Evidence>,QList<PhenotypeSource::Source>)));
 
 	//variants tool bar
 	connect(ui_.vars_copy_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(copyToClipboard()));
@@ -260,13 +260,13 @@ MainWindow::MainWindow(QWidget *parent)
 	worker->start();
 
 	//init phenotype filter to accept all Values
-	this->last_phenotype_evidences_ = PhenotypeEvidence::allEvidenceValues(false);
-	this->last_phenotype_sources_ = PhenotypeSource::allSourceValues();
-	this->filter_phenos_ = false;
+	last_phenotype_evidences_ = PhenotypeEvidence::allEvidenceValues(false);
+	last_phenotype_sources_ = PhenotypeSource::allSourceValues();
+	filter_phenos_ = false;
 	//give the filter widget the current state and update the tooltip:
-	this->ui_.filters->setAllowedPhenotypeEvidences(last_phenotype_evidences_);
-	this->ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
-	this->ui_.filters->phenotypesChanged();
+	ui_.filters->setAllowedPhenotypeEvidences(last_phenotype_evidences_);
+	ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
+	ui_.filters->phenotypesChanged();
 
 }
 
@@ -973,8 +973,8 @@ void MainWindow::on_actionCloseMetaDataTabs_triggered()
 void MainWindow::on_actionIgvClear_triggered()
 {
 	QStringList commands;
+	commands << ("genome " + Settings::path("igv_genome")); //genome command first, see https://github.com/igvteam/igv/issues/1094
 	commands << "new";
-	commands << ("genome " + Settings::path("igv_genome"));
 	executeIGVCommands(commands);
 
 	igv_initialized_ = false;
@@ -1874,8 +1874,8 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 		{
 			QStringList files_to_load = dlg.filesToLoad();
 			QStringList init_commands;
+			init_commands.append("genome " + Settings::path("igv_genome")); //genome command first, see https://github.com/igvteam/igv/issues/1094
 			init_commands.append("new");
-			init_commands.append("genome " + Settings::path("igv_genome"));
 
 			//load non-BAM files
 			foreach(QString file, files_to_load)
@@ -2354,33 +2354,6 @@ void MainWindow::createSubPanelFromPhenotypeFilter()
 
 	//open dialog
 	openSubpanelDesignDialog(genes);
-}
-
-void MainWindow::openPhenotypeOptions()
-{
-	//edit TODO
-	PhenotypeSourceEvidenceSelector* selector = new PhenotypeSourceEvidenceSelector(this);
-	selector->setEvidences(last_phenotype_evidences_);
-	selector->setSources(last_phenotype_sources_);
-
-	auto dlg = GUIHelper::createDialog(selector, "Phenotype Filter Options", "", true);
-
-	//update
-	if (dlg->exec()==QDialog::Accepted)
-	{
-		this->last_phenotype_evidences_ = selector->selectedEvidences();
-		this->last_phenotype_sources_ = selector->selectedSources();
-
-		this->ui_.filters->setAllowedPhenotypeEvidences(last_phenotype_evidences_);
-		this->ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
-		this->ui_.filters->phenotypesChanged();
-
-		if (this->last_phenos_.count() != 0)
-		{
-			filter_phenos_ = true;
-			refreshVariantTable();
-		}
-	}
 }
 
 void MainWindow::on_actionOpen_triggered()
@@ -3519,14 +3492,21 @@ void MainWindow::generateReportTumorOnly()
 	}
 	QString ps = variants_.mainSampleName();
 
+	NGSD db;
+
 	//get report settings
 	TumorOnlyReportWorkerConfig config;
-	config.ps = ps;
+	int sys_id = db.processingSystemIdFromProcessedSample(ps);
+
+	config.sys = db.getProcessingSystemData(sys_id);
+	config.ps_data = db.getProcessedSampleData(db.processedSampleId(ps));
 	config.roi = ui_.filters->targetRegion();
+
 	config.low_coverage_file = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFile().filename;
 	config.bam_file = GlobalServiceProvider::fileLocationProvider().getBamFiles(true).at(0).filename;
 	config.filter_result = filter_result_;
 	config.preferred_transcripts = GSvarHelper::preferredTranscripts();
+	config.build = GSvarHelper::build();
 
 	TumorOnlyReportDialog dlg(variants_, config, this);
 	if(!dlg.exec()) return;
@@ -3541,10 +3521,28 @@ void MainWindow::generateReportTumorOnly()
 	try
 	{
 		TumorOnlyReportWorker worker(variants_, config);
+
 		QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
 		worker.writeRtf(temp_filename);
-
 		ReportWorker::moveReport(temp_filename, file_rep);
+
+		if(!ui_.filters->targetRegion().isValid()) //if no ROI filter was set, use panel target information instead
+		{
+			TargetRegionInfo roi_info;
+			roi_info.name = config.sys.name;
+			roi_info.regions = db.processingSystemRegions(sys_id);
+			roi_info.genes = db.processingSystemGenes(sys_id);
+			config.roi = roi_info;
+		}
+
+		QString gsvar_xml_folder = Settings::path("gsvar_xml_folder", true);
+		if (gsvar_xml_folder!="")
+		{
+			QString xml_file = gsvar_xml_folder + "/" + ps + "_tumor_only.xml" ;
+			QByteArray temp_xml = Helper::tempFileName(".xml").toUtf8();
+			worker.writeXML(temp_xml);
+			ReportWorker::moveReport(temp_xml,xml_file);
+		}
 	}
 	catch(Exception e)
 	{
@@ -4849,8 +4847,8 @@ void MainWindow::on_actionPhenoToGenes_triggered()
 	try
 	{
 		PhenoToGenesDialog dlg(this);
-		dlg.setAllowedEvidences(this->last_phenotype_evidences_);
-		dlg.setAllowedSources(this->last_phenotype_sources_);
+		dlg.setAllowedEvidences(last_phenotype_evidences_);
+		dlg.setAllowedSources(last_phenotype_sources_);
 		dlg.exec();
 	}
 	catch (DatabaseException& e)
@@ -5605,6 +5603,22 @@ void MainWindow::updateSomaticVariantInterpretationAnno(int index, QString vicc_
 	refreshVariantTable();
 }
 
+void MainWindow::updateAllowedSourcesAndEvidences(QList<PhenotypeEvidence::Evidence> new_evidences, QList<PhenotypeSource::Source> new_sources)
+{
+    if (last_phenotype_evidences_ != new_evidences)
+    {
+        filter_phenos_ = true;
+        last_phenotype_evidences_ = new_evidences;
+    }
+
+    if (last_phenotype_sources_ != new_sources)
+    {
+        filter_phenos_ = true;
+        last_phenotype_sources_ = new_sources;
+    }
+    refreshVariantTable();
+}
+
 void MainWindow::on_actionAnnotateSomaticVariantInterpretation_triggered()
 {
 	if (filename_.isEmpty()) return;
@@ -6225,7 +6239,6 @@ void MainWindow::applyFilters(bool debug_time)
 				timer.start();
 			}
 		}
-
 		//phenotype selection changed => update ROI
 		const PhenotypeList& phenos = ui_.filters->phenotypes();
 		if ((phenos!=last_phenos_) | filter_phenos_)
@@ -6238,7 +6251,6 @@ void MainWindow::applyFilters(bool debug_time)
 			GeneSet pheno_genes;
 			foreach(const Phenotype& pheno, phenos)
 			{
-
 				pheno_genes << db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(pheno.accession()), last_phenotype_sources_, last_phenotype_evidences_, true, false);
 			}
 

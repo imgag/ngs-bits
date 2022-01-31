@@ -29,14 +29,14 @@ PhenotypeSourceEvidenceSelector::~PhenotypeSourceEvidenceSelector()
 
 void PhenotypeSourceEvidenceSelector::setSources(QList<PhenotypeSource::Source> sources)
 {
-	selectedSources_ = sources;
+	selected_sources_ = sources;
 
 	foreach (QObject* o, ui->sourceBox->children())
 	{
 		QCheckBox* box = qobject_cast<QCheckBox*>(o);
 		if (box == nullptr) continue;
 
-		if (sources.contains(PhenotypeSource::SourceFromString(box->objectName())))
+		if (sources.contains(PhenotypeSource::sourceFromString(box->objectName())))
 		{
 			box->setChecked(true);
 		}
@@ -45,7 +45,7 @@ void PhenotypeSourceEvidenceSelector::setSources(QList<PhenotypeSource::Source> 
 
 void PhenotypeSourceEvidenceSelector::setEvidences(QList<PhenotypeEvidence::Evidence> evidences)
 {
-	selectedEvidences_ = evidences;
+	selected_evidences_ = evidences;
 
 	foreach (QObject* o, ui->evidenceBox->children())
 	{
@@ -61,18 +61,18 @@ void PhenotypeSourceEvidenceSelector::setEvidences(QList<PhenotypeEvidence::Evid
 
 QList<PhenotypeSource::Source> PhenotypeSourceEvidenceSelector::selectedSources()
 {
-	return selectedSources_;
+	return selected_sources_;
 }
 
 QList<PhenotypeEvidence::Evidence> PhenotypeSourceEvidenceSelector::selectedEvidences()
 {
-	return selectedEvidences_;
+	return selected_evidences_;
 }
 
 
 void PhenotypeSourceEvidenceSelector::updateEvidenceSelection()
 {
-	QList <PhenotypeEvidence::Evidence> newSelected;
+	QList <PhenotypeEvidence::Evidence> new_selected;
 
 	foreach (QObject* o, ui->evidenceBox->children())
 	{
@@ -81,15 +81,15 @@ void PhenotypeSourceEvidenceSelector::updateEvidenceSelection()
 
 		if (box->isChecked())
 		{
-			newSelected.append(PhenotypeEvidence::evidenceFromString(box->objectName()));
+			new_selected.append(PhenotypeEvidence::evidenceFromString(box->objectName()));
 		}
 	}
-	selectedEvidences_ = newSelected;
+	selected_evidences_ = new_selected;
 }
 
 void PhenotypeSourceEvidenceSelector::updateSourceSelection()
 {
-	QList <PhenotypeSource::Source> newSelected;
+	QList <PhenotypeSource::Source> new_selected;
 
 	foreach (QObject* o, ui->sourceBox->children())
 	{
@@ -98,8 +98,8 @@ void PhenotypeSourceEvidenceSelector::updateSourceSelection()
 
 		if (box->isChecked())
 		{
-			newSelected.append(PhenotypeSource::SourceFromString(box->objectName()));
+			new_selected.append(PhenotypeSource::sourceFromString(box->objectName()));
 		}
 	}
-	selectedSources_ = newSelected;
+	selected_sources_ = new_selected;
 }
