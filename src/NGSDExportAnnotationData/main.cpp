@@ -409,12 +409,60 @@ private:
 			<< "\t(count computation: "<< getTimeString(count_computation_sum) << ")\n"<< endl;
 	}
 
+	//Struct for variant counts
+	struct CountCache
+	{
+		int variant_id;
+		int count_het;
+		int count_hom;
+	};
+
+	//Function that stores cached variant counts
+	void storeCountCache(QTextStream& out, NGSD& db, QVector<CountCache>& count_cache)
+	{
+		out << "Storing count cache into NGSD..." << endl;
+
+		QElapsedTimer timer;
+		timer.start();
+
+		//update counts
+		try
+		{
+			db.transaction();
+
+			SqlQuery query = db.getQuery();
+			query.prepare("UPDATE variant SET germline_het=:0, germline_hom=:1 WHERE id=:2");
+			foreach(const CountCache& entry, count_cache)
+			{
+
+				query.bindValue(0, entry.count_het);
+				query.bindValue(1, entry.count_hom);
+				query.bindValue(2, entry.variant_id);
+				query.exec();
+			}
+
+			db.commit();
+		}
+		catch (Exception& e)
+		{
+			db.rollback();
+
+			throw e;
+		}
+
+		//clear cache
+		count_cache.clear();
+
+		out << "done - it took " << getTimeString(timer.elapsed()) << endl;
+	}
 
 	/*
 	 *  writes the somantic variant annotation data from the NGSD to a vcf file
 	 */
 	void exportingVariantsToVcfGermline(QString reference_file_path, QString vcf_file_path, NGSD& db)
 	{
+		QVector<CountCache> count_cache;
+
 		// init output stream
 		QTextStream out(stdout);
 		QElapsedTimer timer;
@@ -470,8 +518,6 @@ private:
 		ngsd_count_query.prepare("SELECT s.id, s.disease_status, s.disease_group, dv.genotype FROM detected_variant dv, processed_sample ps, sample s WHERE dv.variant_id=:0 AND ps.sample_id=s.id AND ps.quality!='bad' AND dv.processed_sample_id=ps.id");
 		SqlQuery variant_query = db.getQuery();
 		variant_query.prepare("SELECT chr, start, end, ref, obs, 1000g, gnomad, comment, germline_het, germline_hom FROM variant WHERE id=:0");
-		SqlQuery variant_update_query = db.getQuery();
-		variant_update_query.prepare("UPDATE variant SET germline_het=:0, germline_hom=:1 WHERE id=:2");
 
 		// write info column descriptions
 		vcf_file_writing.restart();
@@ -656,12 +702,11 @@ private:
 						// update variant table if counts changed
 						if (count_het!=germline_het || count_hom!=germline_hom)
 						{
-							db_queries.restart();
-							variant_update_query.bindValue(0, count_het);
-							variant_update_query.bindValue(1, count_hom);
-							variant_update_query.bindValue(2, variant_id);
-							variant_update_query.exec();
-							db_query_sum += db_queries.elapsed();
+							count_cache << CountCache{variant_id, count_het, count_hom};
+							if (count_cache.count()>=10000)
+							{
+								storeCountCache(out, db, count_cache);
+							}
 						}
 					}
 					else
@@ -718,6 +763,9 @@ private:
 			out << "\t...done\n\t\t" << variant_ids.size() << " variants exported.\n" << "\t\t(runtime: " << getTimeString(timer.elapsed()) << ")" << endl;
 			variant_count += variant_ids.size();
 		}
+
+		//store remaining entries in cache
+		storeCountCache(out, db, count_cache);
 
 		// close vcf file
 		vcf_stream.flush();
