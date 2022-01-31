@@ -1012,7 +1012,7 @@ private slots:
 		vl.clear();
 		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
 		I_EQUAL(messages2.count(), 1);
-		S_EQUAL(messages2[0], "Could not find variant 'chr2:47635523-47635523 ->T' in given variant list!");
+		S_EQUAL(messages2[0], "Could not find variant 'chr2:47635523-47635523 ->T' in given variant list. The report configuration of this variant will be lost if you change anything in the report configuration!");
 		I_EQUAL(report_conf2->variantConfig().count(), 2);
 		X_EQUAL(report_conf2->variantConfig()[0].variant_type, VariantType::CNVS);
 

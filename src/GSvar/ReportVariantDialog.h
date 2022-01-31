@@ -22,6 +22,8 @@ protected slots:
 protected:
 	///Transfers report settings to GUI
 	void updateGUI();
+	///Returns if the variant report configuration was changed.
+	bool variantReportConfigChanged();
 
 	Ui::ReportVariantDialog ui_;
 	ReportVariantConfiguration& config_;
