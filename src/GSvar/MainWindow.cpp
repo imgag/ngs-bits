@@ -969,8 +969,8 @@ void MainWindow::on_actionCloseMetaDataTabs_triggered()
 void MainWindow::on_actionIgvClear_triggered()
 {
 	QStringList commands;
+	commands << ("genome " + Settings::path("igv_genome")); //genome command first, see https://github.com/igvteam/igv/issues/1094
 	commands << "new";
-	commands << ("genome " + Settings::path("igv_genome"));
 	executeIGVCommands(commands);
 
 	igv_initialized_ = false;
@@ -1870,8 +1870,8 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 		{
 			QStringList files_to_load = dlg.filesToLoad();
 			QStringList init_commands;
+			init_commands.append("genome " + Settings::path("igv_genome")); //genome command first, see https://github.com/igvteam/igv/issues/1094
 			init_commands.append("new");
-			init_commands.append("genome " + Settings::path("igv_genome"));
 
 			//load non-BAM files
 			foreach(QString file, files_to_load)
