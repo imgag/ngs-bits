@@ -4161,7 +4161,6 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QList<PhenotypeSource:
 	GeneSet genes;
 	SqlQuery pid2genes = getQuery();
 	pid2genes.prepare("SELECT gene FROM hpo_genes WHERE hpo_term_id=:0");
-    int count = 0;
 	while (!pheno_ids.isEmpty())
 	{
 		int id = pheno_ids.takeLast();
@@ -4197,7 +4196,6 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QList<PhenotypeSource:
 		{
 			QByteArray gene = pid2genes.value(0).toByteArray();
 			genes.insert(geneToApproved(gene, true));
-            count++;
 		}
 	}
 	return genes;
