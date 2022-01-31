@@ -665,8 +665,9 @@ void FilterWidget::showPhenotypeContextMenu(QPoint pos)
 		//update
 		if (dlg->exec()==QDialog::Accepted)
 		{
-			allowed_phenotype_evidences_ = selector->selectedEvidences();
-			allowed_phenotype_sources_ = selector->selectedSources();
+			allowedPhenotypeEvidences_ = selector->selectedEvidences();
+			allowedPhenotypeSources_ = selector->selectedSources();
+            emit phenotypeSourcesAndEvidencesChanged(allowedPhenotypeEvidences_, allowedPhenotypeSources_);
 			phenotypesChanged();
 		}
 	}

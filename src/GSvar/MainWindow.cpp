@@ -214,6 +214,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.actionDesignSubpanel, SIGNAL(triggered()), this, SLOT(openSubpanelDesignDialog()));
 	connect(ui_.filters, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 	connect(ui_.filters, SIGNAL(phenotypeSubPanelRequested()), this, SLOT(createSubPanelFromPhenotypeFilter()));
+    connect(ui_.filters, SIGNAL(phenotypeSourcesAndEvidencesChanged(QList<PhenotypeEvidence::Evidence>,QList<PhenotypeSource::Source>)), this, SLOT(updateAllowedSourcesAndEvidences(QList<PhenotypeEvidence::Evidence>,QList<PhenotypeSource::Source>)));
 
 	//variants tool bar
 	connect(ui_.vars_copy_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(copyToClipboard()));
@@ -261,7 +262,6 @@ MainWindow::MainWindow(QWidget *parent)
 	worker->start();
 
 	//init phenotype filter to accept all Values
-
 	last_phenotype_evidences_ = PhenotypeEvidence::allEvidenceValues(false);
 	last_phenotype_sources_ = PhenotypeSource::allSourceValues();
 	filter_phenos_ = false;
@@ -5558,6 +5558,22 @@ void MainWindow::updateSomaticVariantInterpretationAnno(int index, QString vicc_
 	refreshVariantTable();
 }
 
+void MainWindow::updateAllowedSourcesAndEvidences(QList<PhenotypeEvidence::Evidence> new_evidences, QList<PhenotypeSource::Source> new_sources)
+{
+    if (last_phenotype_evidences_ != new_evidences)
+    {
+        filter_phenos_ = true;
+        last_phenotype_evidences_ = new_evidences;
+    }
+
+    if (last_phenotype_sources_ != new_sources)
+    {
+        filter_phenos_ = true;
+        last_phenotype_sources_ = new_sources;
+    }
+    refreshVariantTable();
+}
+
 void MainWindow::on_actionAnnotateSomaticVariantInterpretation_triggered()
 {
 	if (filename_.isEmpty()) return;
@@ -6178,7 +6194,6 @@ void MainWindow::applyFilters(bool debug_time)
 				timer.start();
 			}
 		}
-
 		//phenotype selection changed => update ROI
 		const PhenotypeList& phenos = ui_.filters->phenotypes();
 		if ((phenos!=last_phenos_) | filter_phenos_)

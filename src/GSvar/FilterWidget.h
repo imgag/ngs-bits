@@ -97,6 +97,9 @@ signals:
 	void phenotypeImportNGSDRequested();
 	/// Signal that a sub-panel should be created using the phenotypes
 	void phenotypeSubPanelRequested();
+    // Signal that the allowed sources or evidences changed
+    void phenotypeSourcesAndEvidencesChanged(QList<PhenotypeEvidence::Evidence> evidences, QList<PhenotypeSource::Source> sources);
+
 
 public slots:
 		void phenotypesChanged();
