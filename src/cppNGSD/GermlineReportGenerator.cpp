@@ -1160,7 +1160,7 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 		}
 		catch(Exception e)
 		{
-			Log::warn("Low-coverage statistics needs to be calculated. Pre-calulated gap file cannot be used because: " + e.message());
+			Log::warn("Low-coverage statistics needs to be calculated. Pre-calculated gap file cannot be used because: " + e.message());
 			low_cov = Statistics::lowCoverage(data_.roi.regions, data_.ps_bam, data_.report_settings.min_depth);
 		}
 
@@ -1354,7 +1354,7 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 		}
 		catch(Exception e)
 		{
-			Log::warn("Low-coverage statistics for transcript " + transcript.name() + " needs to be calculated. Pre-calulated gap file cannot be used because: " + e.message());
+			Log::warn("Low-coverage statistics for transcript " + transcript.name() + " needs to be calculated. Pre-calculated gap file cannot be used because: " + e.message());
 			gaps = Statistics::lowCoverage(roi, data_.ps_bam, data_.report_settings.min_depth);
 		}
 
