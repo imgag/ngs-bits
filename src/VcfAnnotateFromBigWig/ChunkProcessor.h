@@ -10,7 +10,7 @@ class ChunkProcessor
 		:public QRunnable
 {
 public:
-	ChunkProcessor(AnalysisJob &job_, const QByteArray& name_, const QByteArray& desc_, const QByteArray& bw_filepath_);
+	ChunkProcessor(AnalysisJob &job, const QByteArray& name, const QByteArray& desc, const QByteArray& bw_filepath);
 	void run();
     QList<float> getAnnotation(const QByteArray& chr, int start, int end, const QString& ref, const QString& alt);
 
@@ -23,11 +23,11 @@ private:
 
     QList<float> interpretIntervals(const QList<OverlappingInterval>& intervals);
 	bool terminate_;
-	AnalysisJob& job;
-	const QByteArray name;
-	const QByteArray desc;
-	const QByteArray bw_filepath;
-    BigWigReader bw_reader;
+	AnalysisJob& job_;
+	const QByteArray name_;
+	const QByteArray desc_;
+	const QByteArray bw_filepath_;
+	BigWigReader bw_reader_;
 };
 
 #endif // CHUNKPROCESSOR_H

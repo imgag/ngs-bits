@@ -25,6 +25,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Annotates the INFO column of a VCF with data from a bigWig file.");
+		setExtendedDescription(extendedDescription());
 
 		addInfile("in", "Input VCF file. If unset, reads from STDIN.", false, true);
 		addOutfile("out", "Output VCF or VCF or VCF.GZ file. If unset, writes to STDOUT.", true, true);
@@ -39,6 +40,18 @@ public:
 
 
 		changeLog(2022, 01, 14, "Initial implementation.");
+	}
+
+	QStringList extendedDescription()
+	{
+		QStringList desc;
+
+		desc << "The annotation is decided according the following rules:";
+		desc << "Mutations that change only a single position are annotated with the corresponding value in the file. If no value is provided in the file the mutation is not annotated.";
+		desc << "Mutations that change multiple reference positions but don't insert additional bases are annotated with the maximum of the affected region.";
+		desc << "Deletions are annotated with the maximum in the affected reference region.";
+		desc << "Insertions are not annotated.";
+		return desc;
 	}
 
 	virtual void main()

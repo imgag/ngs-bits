@@ -13,20 +13,6 @@ TEST_CLASS(BigWigReader_Test)
 Q_OBJECT
 private slots:
 
-    void dev()
-    {
-        BigWigReader r = BigWigReader(QString(TESTDATA("data_in/BigWigReader_phyloP_chr1_part.bw")));
-        QSharedPointer<QFile> out = Helper::openFileForWriting("BigWigReader_bw_file_h.csv");
-        // last mut: chr1	999842
-
-        for (int i=1; i<1000001; i++)
-        {
-            float value = r.readValue("chr1", i);
-            out->write(QByteArray::number(i) + "\t" + QByteArray::number(value) + "\n");
-        }
-
-    }
-
     void read_local_values()
 	{
 		BigWigReader r = BigWigReader(QString(TESTDATA("data_in/BigWigReader.bw")));

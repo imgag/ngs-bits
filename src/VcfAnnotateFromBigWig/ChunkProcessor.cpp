@@ -9,32 +9,26 @@
 #include <QMutex>
 #include "BigWigReader.h"
 
-ChunkProcessor::ChunkProcessor(AnalysisJob &job_, const QByteArray& name_, const QByteArray& desc_, const QByteArray& bw_filepath_)
+ChunkProcessor::ChunkProcessor(AnalysisJob &job, const QByteArray& name, const QByteArray& desc, const QByteArray& bw_filepath)
 
 	:QRunnable()
 	, terminate_(false)
-	, job(job_)
-	, name(name_)
-	, desc(desc_)
-	, bw_filepath(bw_filepath_)
-    , bw_reader(bw_filepath_)
+	, job_(job)
+	, name_(name)
+	, desc_(desc)
+	, bw_filepath_(bw_filepath)
+	, bw_reader_(bw_filepath)
 {
 }
 
 // single chunks are processed
 void ChunkProcessor::run()
 {
-	job.error_message.clear();
-	job.current_chunk_processed.clear();
+	job_.error_message.clear();
+	job_.current_chunk_processed.clear();
 
-<<<<<<< HEAD
-=======
-	// load bw file:
-	bw_reader = BigWigReader(bw_filepath);
-
->>>>>>> 87d48ea61b4ed64ef2f4889176cf8981c90a4a87
 	// read vcf file
-	foreach(QByteArray line, job.current_chunk)
+	foreach(QByteArray line, job_.current_chunk)
 	{
 		while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
 
@@ -47,9 +41,9 @@ void ChunkProcessor::run()
 			//append header line for new annotation
 			if (line.startsWith("#CHROM"))
 			{
-				job.current_chunk_processed.append("##INFO=<ID=" + name + ",Number=1,Type=Float,Description=\"" + desc + "\">\n");
+				job_.current_chunk_processed.append("##INFO=<ID=" + name_ + ",Number=1,Type=Float,Description=\"" + desc_ + "\">\n");
 			}
-			job.current_chunk_processed.append(line + "\n");
+			job_.current_chunk_processed.append(line + "\n");
 			continue;
 		}
 
@@ -57,8 +51,8 @@ void ChunkProcessor::run()
 		QList<QByteArray> parts = line.split('\t');
 		if (parts.count()<VcfFile::MIN_COLS)
 		{
-			job.error_message.append("FileParseException: VCF line with too few columns: " + line);
-			job.status = ERROR;
+			job_.error_message.append("FileParseException: VCF line with too few columns: " + line);
+			job_.status = ERROR;
 			return;
 		}
 		Chromosome chr = parts[0];
@@ -66,11 +60,11 @@ void ChunkProcessor::run()
 		int start = parts[1].toInt(&ok);
 		if (!ok)
 		{
-			job.error_message.append("FileParseException: Could not convert VCF variant position '" + parts[1] + "' to integer!");
-			job.status = ERROR;
+			job_.error_message.append("FileParseException: Could not convert VCF variant position '" + parts[1] + "' to integer!");
+			job_.status = ERROR;
 			return;
 		}
-		int end = start + parts[3].length() - 1; //length of ref
+		int end = start + parts[3].length(); //length of ref
 		QByteArray ref = parts[3];
 		QByteArray alt = parts[4];
 		if (alt.contains(',')) // if alt contains a list of alternatives choose the first one.
@@ -83,21 +77,21 @@ void ChunkProcessor::run()
         if (anno.length() == 0)
         {
             // if there is no annotation to add, append the line unchanged:
-            job.current_chunk_processed.append(line + "\n");
+			job_.current_chunk_processed.append(line + "\n");
             continue;
         }
 
 		// add INFO column annotation
 		if(parts[7] == ".") parts[7].clear(); // remove '.' if column was empty before
 		if(!parts[7].isEmpty()) parts[7].append(';');
-        parts[7].append(name + "=" + QByteArray::number(anno[0]));
+		parts[7].append(name_ + "=" + QByteArray::number(anno[0]));
 
-		job.current_chunk_processed.append(parts.join('\t') + "\n");
+		job_.current_chunk_processed.append(parts.join('\t') + "\n");
 	}
 
 	// annotation of job finished, clear input to keep memory usage low
-	job.current_chunk.clear();
-	job.status=TO_BE_WRITTEN;
+	job_.current_chunk.clear();
+	job_.status=TO_BE_WRITTEN;
 }
 
 QList<float> ChunkProcessor::getAnnotation(const QByteArray& chr, int start, int end, const QString& ref, const QString& alt)
@@ -109,12 +103,19 @@ QList<float> ChunkProcessor::getAnnotation(const QByteArray& chr, int start, int
     {
         if ((ref.length() == 1) && (ref[0] != alt[0]) && (start==end)) // insertions that deletes a single base get the value of that base
         {
-            return interpretIntervals(bw_reader.getOverlappingIntervals(chr, end, end+1, offset));
+			return interpretIntervals(bw_reader_.getOverlappingIntervals(chr, end, end+1, offset));
         }
+		//other insertions cannot be annotated
         return QList<float>();
     }
 
-    return interpretIntervals(bw_reader.getOverlappingIntervals(chr, start, end, offset));
+	std::cout << start << " - " << end << "\n";
+	if (ref[0] == alt[0])
+	{
+		return interpretIntervals(bw_reader_.getOverlappingIntervals(chr, start+1, end, offset));
+	}
+
+	return interpretIntervals(bw_reader_.getOverlappingIntervals(chr, start, end, offset));
 }
 
 QList<float> ChunkProcessor::interpretIntervals(const QList<OverlappingInterval>& intervals)
