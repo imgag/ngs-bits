@@ -95,7 +95,8 @@ void MultiSampleDialog::addSample(QString status, QString sample)
 {
 	try
 	{
-		SingleSampleAnalysisDialog::addSample(db_, status, samples_, sample);
+		QString analysis_type;
+		SingleSampleAnalysisDialog::addSample(db_, status, samples_, analysis_type, sample);
 	}
 	catch(const Exception& e)
 	{

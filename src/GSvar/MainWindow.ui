@@ -1353,6 +1353,14 @@
     <string>BLAT search</string>
    </property>
   </action>
+  <action name="actionShowCohortExpressionData">
+   <property name="text">
+    <string>Show Cohort Expression Data</string>
+   </property>
+   <property name="toolTip">
+    <string>Shows the expression data of samples of the same cohort.</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>

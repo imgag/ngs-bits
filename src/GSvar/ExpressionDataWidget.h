@@ -8,14 +8,6 @@ namespace Ui {
 class ExpressionDataWidget;
 }
 
-//// custom QTableWidgetItem class to allow inplace sorting of doubles
-//class NumericWidgetItem: public QTableWidgetItem
-//{
-//public:
-//	NumericWidgetItem(QString text);
-//	bool operator< (const QTableWidgetItem &other) const;
-//};
-
 class ExpressionDataWidget : public QWidget
 {
 	Q_OBJECT
@@ -24,8 +16,11 @@ public:
 	ExpressionDataWidget(QString tsv_filename, QWidget *parent = 0);
 	~ExpressionDataWidget();
 
-protected slots:
+private slots:
 	void applyFilters();
+	void copyToClipboard();
+	void showBiotypeContextMenu(QPoint pos);
+	void selectAllBiotypes(bool deselect=false);
 
 private:
 	void loadExpressionData();
@@ -35,6 +30,7 @@ private:
 	//table info
 	QStringList column_names_;
 	QVector<bool> numeric_columns_;
+	QVector<int> precision_;
 };
 
 #endif // EXPRESSIONDATAWIDGET_H
