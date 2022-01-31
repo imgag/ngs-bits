@@ -4200,8 +4200,6 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QList<PhenotypeSource:
             count++;
 		}
 	}
-    qDebug() << "gene count: " << count;
-
 	return genes;
 }
 
