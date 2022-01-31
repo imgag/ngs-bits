@@ -6,12 +6,46 @@
 #include <iostream>
 #include <math.h>
 #include <VcfFile.h>
+#include <iostream>
 
 TEST_CLASS(BigWigReader_Test)
 {
 Q_OBJECT
 private slots:
-
+	
+	void dev()
+	{
+		BigWigReader r = BigWigReader("/mnt/share/data/dbs/phyloP/hg19.100way.phyloP100way.bw");
+		
+		QVector<int> ch1_pos;
+		ch1_pos.append(940296);
+		//ch1_pos.append(75213491);
+		//ch1_pos.append(99720834);
+		std::cout << "Test: " << r.reproduceVepPhylopAnnotation("chr1", 940296, 940296+2, "GCC", "G" );
+		foreach (int p, ch1_pos)
+		{
+			std::cout << "\n\n Position chr1" << p << "\n";
+			QVector<float> intervals = r.readValues("chr1", p-5, p+5);
+			for (int i=0; i<intervals.size(); i++)
+			{
+				std::cout << p-5+i << "\tvalue: " << intervals[i] << "\n";
+			}
+		}
+		QVector<int> chr2_pos;
+		//chr2_pos.append(153675);
+		//chr2_pos.append(47577400);
+		
+		foreach (int p, chr2_pos)
+		{
+			std::cout << "\n\n Position chr2 " << p << "\n";
+			QVector<float> intervals = r.readValues("chr2", p-5, p+5);
+			for (int i=0; i<intervals.size(); i++)
+			{
+				std::cout << p-5+i << "\tvalue: " << intervals[i] << "\n";
+			}
+		}
+	}
+	
 	void read_local()
 	{
 		BigWigReader r = BigWigReader(QString(TESTDATA("data_in/BigWigReader.bw")));

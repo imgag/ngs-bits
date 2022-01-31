@@ -11,7 +11,8 @@ class ChunkProcessor
 public:
 	ChunkProcessor(AnalysisJob &job_, const QByteArray& name_, const QByteArray& desc_, const QByteArray& bw_filepath_);
 	void run();
-
+	float getAnnotation(const QByteArray&, int start, int end, const QByteArray& ref, const QByteArray& alt);
+	
 	void terminate()
 	{
 		terminate_ = true;
@@ -23,6 +24,7 @@ private:
 	const QByteArray name;
 	const QByteArray desc;
 	const QByteArray bw_filepath;
+	BigWigReader bw_reader;
 };
 
 #endif // CHUNKPROCESSOR_H

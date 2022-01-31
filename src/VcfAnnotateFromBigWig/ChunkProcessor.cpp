@@ -27,7 +27,7 @@ void ChunkProcessor::run()
 	job.current_chunk_processed.clear();
 
 	// load bw file:
-	BigWigReader bw_reader = BigWigReader(bw_filepath);
+	bw_reader = BigWigReader(bw_filepath);
 
 	// read vcf file
 	foreach(QByteArray line, job.current_chunk)
@@ -87,4 +87,34 @@ void ChunkProcessor::run()
 	// annotation of job finished, clear input to keep memory usage low
 	job.current_chunk.clear();
 	job.status=TO_BE_WRITTEN;
+}
+
+float getAnnotation(const QByteArray&, int start, int end, const QByteArray& ref, const QByteArray& alt)
+{
+	// insertions:
+	if (alt.length() > ref.length())
+	{
+		if ((ref.length() == 1) && (ref[0] != alt[0]) && (start==end)) // insertions that deletes a single base get the value of that base
+		{
+			return readValue(chr, end); 
+			
+		}
+		return bw_reader.defaultValue(); // for other insertions no value can be determined
+	}
+	
+	// deletions:
+	if (ref.length() > alt.length())
+	{
+		if ((alt.length() == 1) && (ref[0] != alt[0])) // if a single base replaces multiple ref bases set it to zero
+		{
+			return 0;
+		}
+		
+		if (ref.length() - alt.length() > 1) // if deletion deletes more than one base
+		{
+		   // check if only a single position has a valid value or they all have the same value: if so return that value.
+		   QVector<float> intervals = readValues(chr, start, end);
+		   return std::max(intervals) // TODO problem for high default values
+	    }
+	}
 }
