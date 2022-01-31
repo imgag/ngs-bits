@@ -13,6 +13,7 @@ public:
 	ChunkProcessor(AnalysisJob &job_, const QByteArray& name_, const QByteArray& desc_, const QByteArray& bw_filepath_);
 	void run();
     QList<float> getAnnotation(const QByteArray& chr, int start, int end, const QString& ref, const QString& alt);
+
 	void terminate()
 	{
 		terminate_ = true;

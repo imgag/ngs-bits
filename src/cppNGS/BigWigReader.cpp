@@ -193,6 +193,41 @@ float BigWigReader::reproduceVepPhylopAnnotation(const QByteArray& chr, int star
 		{
 			return 0;
 		}
+		
+		if (ref.length() - alt.length() > 1) // if deletion deletes more than one base
+		{
+		   // check if only a single position has a valid value or they all have the same value: if so return that value.
+		   QVector<float> intervals = readValues(chr, start+1, end+1);
+		   float value = default_value_;
+		   foreach (float v, intervals)
+			{
+				//std::cout << "current comp v: " << value << "\n";
+				//std::cout << "values: " << v << "\n";
+			    if (value != default_value_)
+				{
+				   if (v == default_value_)
+					{
+						   continue;
+					} else {
+					   if (v != value)
+						{
+							   return 0;
+						}
+					}
+			    } else 
+				{
+					   value = v;
+			    }
+		    }
+
+		   if (value == default_value_)
+		    {
+				   return 0;
+		    } else 
+			{
+				   return value;
+		    }
+	    }
 	}
     // for mutations concering a single base /two bases take the value of the "last"
 	if (end-start <= 1)
@@ -340,6 +375,7 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList
 
 	foreach (const OverlappingBlock &b, blocks)
 	{
+		decompressed_block = "";
 		if (decompress_buffer_size > 0) // if data is compressed -> decompress it
 		{
 			fp_->seek(b.offset);
@@ -389,7 +425,7 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList
 
 		quint32 interval_start, interval_end;
 		float interval_value;
-
+		
 		if (data_header.type == 3) {
 			interval_start = data_header.start - data_header.step; // minus step as it is added below before evaluating.
 		}

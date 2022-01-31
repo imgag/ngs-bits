@@ -6,6 +6,7 @@
 #include <QString>
 #include <QVector>
 #include <QDataStream>
+#include <iostream>
 
 
 // Helper structs to save the parsed data from the big wig file:
@@ -153,6 +154,7 @@ struct IntervalBuffer
 	 */
 	void append(OverlappingInterval interval)
 	{
+		//std::cout << "inserting interval -  start: " << interval.start << "\tend: " << interval.end << "\n";
 		if (intervals.length() == 0)
 		{
 			start = interval.start;
@@ -162,6 +164,7 @@ struct IntervalBuffer
 		{
 			if (interval.start < end )
 			{
+				//std::cout << "interval start: " << interval.start << "\t current end: " << end << "\n";
 				THROW(ProgrammingException, "Intervals need to be inserted in increasing order")
 			}
 			end = interval.end;

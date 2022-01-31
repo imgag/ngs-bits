@@ -6,6 +6,7 @@
 #include <iostream>
 #include <math.h>
 #include <VcfFile.h>
+#include <iostream>
 
 TEST_CLASS(BigWigReader_Test)
 {

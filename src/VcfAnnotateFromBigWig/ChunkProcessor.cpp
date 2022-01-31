@@ -27,6 +27,12 @@ void ChunkProcessor::run()
 	job.error_message.clear();
 	job.current_chunk_processed.clear();
 
+<<<<<<< HEAD
+=======
+	// load bw file:
+	bw_reader = BigWigReader(bw_filepath);
+
+>>>>>>> 87d48ea61b4ed64ef2f4889176cf8981c90a4a87
 	// read vcf file
 	foreach(QByteArray line, job.current_chunk)
 	{
