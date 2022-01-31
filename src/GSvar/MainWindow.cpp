@@ -212,7 +212,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.actionDesignSubpanel, SIGNAL(triggered()), this, SLOT(openSubpanelDesignDialog()));
 	connect(ui_.filters, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 	connect(ui_.filters, SIGNAL(phenotypeSubPanelRequested()), this, SLOT(createSubPanelFromPhenotypeFilter()));
-	connect(ui_.filters, SIGNAL(phenotypeOptionsRequested()), this, SLOT(openPhenotypeOptions()));
+    connect(ui_.filters, SIGNAL(phenotypeSourcesAndEvidencesChanged(QList<PhenotypeEvidence::Evidence>,QList<PhenotypeSource::Source>)), this, SLOT(updateAllowedSourcesAndEvidences(QList<PhenotypeEvidence::Evidence>,QList<PhenotypeSource::Source>)));
 
 	//variants tool bar
 	connect(ui_.vars_copy_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(copyToClipboard()));
@@ -260,13 +260,13 @@ MainWindow::MainWindow(QWidget *parent)
 	worker->start();
 
 	//init phenotype filter to accept all Values
-	this->last_phenotype_evidences_ = PhenotypeEvidence::allEvidenceValues(false);
-	this->last_phenotype_sources_ = PhenotypeSource::allSourceValues();
-	this->filter_phenos_ = false;
+	last_phenotype_evidences_ = PhenotypeEvidence::allEvidenceValues(false);
+	last_phenotype_sources_ = PhenotypeSource::allSourceValues();
+	filter_phenos_ = false;
 	//give the filter widget the current state and update the tooltip:
-	this->ui_.filters->setAllowedPhenotypeEvidences(last_phenotype_evidences_);
-	this->ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
-	this->ui_.filters->phenotypesChanged();
+	ui_.filters->setAllowedPhenotypeEvidences(last_phenotype_evidences_);
+	ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
+	ui_.filters->phenotypesChanged();
 
 }
 
@@ -2350,33 +2350,6 @@ void MainWindow::createSubPanelFromPhenotypeFilter()
 
 	//open dialog
 	openSubpanelDesignDialog(genes);
-}
-
-void MainWindow::openPhenotypeOptions()
-{
-	//edit TODO
-	PhenotypeSourceEvidenceSelector* selector = new PhenotypeSourceEvidenceSelector(this);
-	selector->setEvidences(last_phenotype_evidences_);
-	selector->setSources(last_phenotype_sources_);
-
-	auto dlg = GUIHelper::createDialog(selector, "Phenotype Filter Options", "", true);
-
-	//update
-	if (dlg->exec()==QDialog::Accepted)
-	{
-		this->last_phenotype_evidences_ = selector->selectedEvidences();
-		this->last_phenotype_sources_ = selector->selectedSources();
-
-		this->ui_.filters->setAllowedPhenotypeEvidences(last_phenotype_evidences_);
-		this->ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
-		this->ui_.filters->phenotypesChanged();
-
-		if (this->last_phenos_.count() != 0)
-		{
-			filter_phenos_ = true;
-			refreshVariantTable();
-		}
-	}
 }
 
 void MainWindow::on_actionOpen_triggered()
@@ -4827,8 +4800,8 @@ void MainWindow::on_actionPhenoToGenes_triggered()
 	try
 	{
 		PhenoToGenesDialog dlg(this);
-		dlg.setAllowedEvidences(this->last_phenotype_evidences_);
-		dlg.setAllowedSources(this->last_phenotype_sources_);
+		dlg.setAllowedEvidences(last_phenotype_evidences_);
+		dlg.setAllowedSources(last_phenotype_sources_);
 		dlg.exec();
 	}
 	catch (DatabaseException& e)
@@ -5583,6 +5556,22 @@ void MainWindow::updateSomaticVariantInterpretationAnno(int index, QString vicc_
 	refreshVariantTable();
 }
 
+void MainWindow::updateAllowedSourcesAndEvidences(QList<PhenotypeEvidence::Evidence> new_evidences, QList<PhenotypeSource::Source> new_sources)
+{
+    if (last_phenotype_evidences_ != new_evidences)
+    {
+        filter_phenos_ = true;
+        last_phenotype_evidences_ = new_evidences;
+    }
+
+    if (last_phenotype_sources_ != new_sources)
+    {
+        filter_phenos_ = true;
+        last_phenotype_sources_ = new_sources;
+    }
+    refreshVariantTable();
+}
+
 void MainWindow::on_actionAnnotateSomaticVariantInterpretation_triggered()
 {
 	if (filename_.isEmpty()) return;
@@ -6203,7 +6192,6 @@ void MainWindow::applyFilters(bool debug_time)
 				timer.start();
 			}
 		}
-
 		//phenotype selection changed => update ROI
 		const PhenotypeList& phenos = ui_.filters->phenotypes();
 		if ((phenos!=last_phenos_) | filter_phenos_)
@@ -6216,7 +6204,6 @@ void MainWindow::applyFilters(bool debug_time)
 			GeneSet pheno_genes;
 			foreach(const Phenotype& pheno, phenos)
 			{
-
 				pheno_genes << db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(pheno.accession()), last_phenotype_sources_, last_phenotype_evidences_, true, false);
 			}
 

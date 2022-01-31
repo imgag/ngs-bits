@@ -5,8 +5,8 @@ Adenocarcinoma, ovarian, somatic, 167000 (3)	PRKN, PARK2, PDJ, LPRS2	602544	6q26
 # Generated: 2017-06-29
 # See end of file for additional documentation on specific fields
 # Phenotype	Gene Symbols	MIM Number	Cyto Location
-Adenomatous polyposis coli, 175100 (3)	APC, GS, FPC, BTPS2	611731	5q22.2
-Brain tumor-polyposis syndrome 2, 175100 (3)	APC, GS, FPC, BTPS2	611731	5q22.2
+Adenomatous polyposis coli, 175100 (2)	APC, GS, FPC, BTPS2	611731	5q22.2
+Brain tumor-polyposis syndrome 2, 175100 (2)	APC, GS, FPC, BTPS2	611731	5q22.2
 Breast cancer, 114480 (3)	TP53, P53, LFS1 , BCC7	191170	17p13.1
 Breast cancer, early-onset, 114480 (3)	BRIP1, BACH1, FANCJ	605882	17q23.2
 Breast cancer, somatic, 114480 (3)	AKT1, CWS6	164730	14q32.33
@@ -20,7 +20,7 @@ Cowden syndrome 1, 158350 (3)	PTEN, MMAC1, GLM2, CWS1	601728	10q23.31
 Cowden syndrome 5, 615108 (3)	PIK3CA, CLOVE, MCAP, MCM, MCMTC, CWS5	171834	3q26.32
 Cowden syndrome 6, 615109 (3)	AKT1, CWS6	164730	14q32.33
 Familial adenomatous polyposis 3, 616415 (3)	NTHL1, OCTS3, FAP3	602656	16p13.3
-Gardner syndrome, 175100 (3)	APC, GS, FPC, BTPS2	611731	5q22.2
+Gardner syndrome, 175100 (2)	APC, GS, FPC, BTPS2	611731	5q22.2
 Lhermitte-Duclos syndrome, 158350 (3)	PTEN, MMAC1, GLM2, CWS1	601728	10q23.31
 Li-Fraumeni syndrome, 151623 (3)	TP53, P53, LFS1 , BCC7	191170	17p13.1
 Muir-Torre syndrome, 158320 (3)	MLH1, COCA2, HNPCC2	120436	3p22.2
@@ -30,16 +30,16 @@ Ovarian cancer, somatic, 167000 (3)	CTNNB1, MRD19	116806	3p22.1
 Ovarian cancer, somatic, 167000 (3)	PIK3CA, CLOVE, MCAP, MCM, MCMTC, CWS5	171834	3q26.32
 Ovarian carcinoma, somatic, 167000 (3)	CDH1, UVO, LCAM, ECAD	192090	16q22.1
 Peutz-Jeghers syndrome, 175200 (3)	STK11, PJS, LKB1	602216	19p13.3
-Saethre-Chotzen syndrome with eyelid anomalies, 101400 (3)	TWIST1, ACS3, SCS, CRS1	601622	7p21.1
+Saethre-Chotzen syndrome with eyelid anomalies, 101400 (2)	TWIST1, ACS3, SCS, CRS1	601622	7p21.1
 Saethre-Chotzen syndrome, 101400 (3)	FGFR2, BEK, CFD1, JWS, TK14, BBDS	176943	10q26.13
-Saethre-Chotzen syndrome, 101400 (3)	TWIST1, ACS3, SCS, CRS1	601622	7p21.1
+Saethre-Chotzen syndrome, 101400 (2)	TWIST1, ACS3, SCS, CRS1	601622	7p21.1
 [Axillary odor, variation in], 117800 (3)	ABCC11, MRP8, EWWD, WW	607040	16q12.1
 [Colostrum secretion, variation in], 117800 (3)	ABCC11, MRP8, EWWD, WW	607040	16q12.1
 [Earwax, wet/dry], 117800 (3)	ABCC11, MRP8, EWWD, WW	607040	16q12.1
 {?Breast cancer susceptibility}, 114480 (1)	NQO2, NMOR2	160998	6p25.2
 {Breast cancer, invasive ductal}, 114480 (3)	RAD54L, HR54, HRAD54	603615	1p34.1
 {Breast cancer, lobular}, 114480 (3)	CDH1, UVO, LCAM, ECAD	192090	16q22.1
-{Breast cancer, male, susceptibility to}, 114480 (3)	BRCA2, FANCD1, BROVCA2, GLM3, PNCA2	600185	13q13.1
+{Breast cancer, male, susceptibility to}, 114480 (4)	BRCA2, FANCD1, BROVCA2, GLM3, PNCA2	600185	13q13.1
 {Breast cancer, protection against}, 114480 (3)	CASP8, MCH5, ALPS2B	601763	2q33.1
 {Breast cancer, susceptibility to}, 114480 (3)	ATM, ATA, AT1	607585	11q22.3
 {Breast cancer, susceptibility to}, 114480 (3)	BARD1	601593	2q35
@@ -50,8 +50,8 @@ Saethre-Chotzen syndrome, 101400 (3)	TWIST1, ACS3, SCS, CRS1	601622	7p21.1
 {Breast cancer, susceptibility to}, 114480 (3)	RAD51A, RECA, MRMV2, FANCR	179617	15q15.1
 {Breast cancer, susceptibility to}, 114480 (3)	XRCC3, CMM6	600675	14q32.33
 {Breast cancer}, 114480 (1)	ESR1, ESR, ESTRR	133430	6q25.1-q25.2
-{Breast-ovarian cancer, familial, 1}, 604370 (3)	BRCA1, PSCP, BROVCA1, PNCA4	113705	17q21.31
-{Breast-ovarian cancer, familial, 2}, 612555 (3)	BRCA2, FANCD1, BROVCA2, GLM3, PNCA2	600185	13q13.1
+{Breast-ovarian cancer, familial, 1}, 604370 (4)	BRCA1, PSCP, BROVCA1, PNCA4	113705	17q21.31
+{Breast-ovarian cancer, familial, 2}, 612555 (4)	BRCA2, FANCD1, BROVCA2, GLM3, PNCA2	600185	13q13.1
 {Ovarian cancer, somatic}, 167000 (3)	OPCML	600632	11q25
 46XY sex reversal 10 (4)	SRXY10	616425	17q24
 #

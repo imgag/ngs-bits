@@ -12,29 +12,20 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 {
 	PhenotypeEvidence() = delete;
 	/// Strength of the evidence for a given relation
-	enum Evidence {NA, AGAINST, LOW, MED, HIGH};
-	/// returns a integer representing the Strength of the evidence: lower less evidence, higher better evidence
-	static int rank(const Evidence& e)
+	/// If the evidence values are changed remember to adjust allEvidenceValues and the other functions below if needed.
+	enum Evidence {NA=0, AGAINST=1, LOW=2, MED=3, HIGH=4};
+
+	/// returns all possible values for the evidence enum
+	static QList<Evidence> allEvidenceValues()
 	{
-		switch (e) {
-			case PhenotypeEvidence::NA:
-				return 0;
-			case PhenotypeEvidence::AGAINST:
-				return 1;
-			case PhenotypeEvidence::LOW:
-				return 2;
-			case PhenotypeEvidence::MED:
-				return 3;
-			case PhenotypeEvidence::HIGH:
-				return 4;
-			default:
-				return -1;
-		}
+		return QList<Evidence>{Evidence::NA, Evidence::AGAINST, Evidence::LOW, Evidence::MED, Evidence::HIGH};
 	}
+
 	/// returns a QString representation für the given evidence
 	static QString evidenceToString(const Evidence& e)
 	{
-		switch (e) {
+		switch (e)
+		{
 			case Evidence::NA:
 				return "n/a";
 			case Evidence::AGAINST:
@@ -72,7 +63,7 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 		}
 		else
 		{
-			return PhenotypeEvidence::NA;
+			THROW(ArgumentException, "Given Evidence is not a HPO evidence value: " + QString(hpo_evi));
 		}
 	}
 	/// turns a given OMIM Evidence value into one from the Evidences enum
@@ -109,7 +100,7 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 		}
 		else
 		{
-			return PhenotypeEvidence::NA;
+			THROW(ArgumentException, "Given Evidence is not a Omim evidence value: " + QString(omim_evi));
 		}
 	}
 	/// turns a given Decipher Evidence value into one from the Evidences enum
@@ -128,25 +119,25 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 						Possible disease-causing mutations within, affecting or encompassing an interpretable functional region of a single gene identified in more than one unrelated cases/families or segregation within multiple individuals within a single large family with a developmental disorder
 		   Both RD and IF 	Plausible disease-causing mutations within, affecting or encompassing the coding region of a single gene identified in multiple (>3) unrelated cases/families with both the relevant disease (RD) and an incidental disorder
 		*/
-		if (decipher_evi == "both DD and IF")
+		if (decipher_evi == "\"both RD and IF\"")
 		{ // meaning?
 			return PhenotypeEvidence::LOW;
 		}
-		else if (decipher_evi == "possible")
+        else if (decipher_evi == "possible" || decipher_evi == "limited" || decipher_evi == "supportive")
 		{
 			return PhenotypeEvidence::LOW;
 		}
-		else if (decipher_evi == "probable")
+        else if (decipher_evi == "probable" || decipher_evi == "moderate")
 		{
 			return PhenotypeEvidence::MED;
 		}
-		else if (decipher_evi == "confirmed")
+		else if (decipher_evi == "confirmed" || decipher_evi == "definitive" || decipher_evi == "strong")
 		{
 			return PhenotypeEvidence::HIGH;
 		}
 		else
 		{
-			return PhenotypeEvidence::NA;
+			THROW(ArgumentException, "Given Evidence is not a Decipher evidence value.: " + QString(decipher_evi));
 		}
 	}
 	/// turns a given GenCC Evidence value into one from the Evidences enum
@@ -165,11 +156,11 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 		{
 			return PhenotypeEvidence::LOW;
 		}
-		else if (gencc_evi == "Refuted")
+		else if (gencc_evi == "Refuted" || gencc_evi == "Refuted Evidence")
 		{
 			return PhenotypeEvidence::AGAINST;
 		}
-		else if (gencc_evi == "Disputed")
+		else if (gencc_evi == "Disputed" || gencc_evi == "Disputed Evidence")
 		{
 			return PhenotypeEvidence::AGAINST;
 		}
@@ -195,7 +186,7 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 		}
 		else
 		{
-			return PhenotypeEvidence::NA;
+			THROW(ArgumentException, "Given Evidence is not a GenCC evidence value: " + QString(gencc_evi));
 		}
 	}
 	/// returns the appropriate evidence value for a given string
@@ -210,7 +201,8 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 		{
 			return PhenotypeEvidence::NA;
 		}
-		else if (e=="LOW") {
+		else if (e=="LOW")
+		{
 			return PhenotypeEvidence::LOW;
 		}
 		else if (e=="MED" || e=="MEDIUM")
@@ -241,11 +233,20 @@ struct CPPNGSSHARED_EXPORT PhenotypeSource
 {
 	PhenotypeSource() = delete;
 	/// Source for a given relation
+	/// when changing the source enum the functions below have to be adjusted!
 	enum Source {HPO, OMIM, CLINVAR, DECIPHER, HGMD, GENCC };
+
+	///returns a list of all source enum values
+	static QList<Source> allSourceValues()
+	{
+		return QList<Source>{Source::HPO, Source::OMIM, Source::CLINVAR, Source::DECIPHER, Source::HGMD, Source::GENCC};
+	}
+
 	/// returns a QString representation für the given phenotype source
 	static QString sourceToString(Source src)
 	{
-		switch (src) {
+		switch (src)
+		{
 			case Source::HPO:
 				return "HPO";
 				break;
@@ -271,7 +272,7 @@ struct CPPNGSSHARED_EXPORT PhenotypeSource
 		}
 	}
 	/// return the corresponding phenotype source for a given string
-	static Source SourceFromString(QString s)
+	static Source sourceFromString(QString s)
 	{
 		s = s.toLower();
 		if (s == "hpo")
@@ -301,14 +302,9 @@ struct CPPNGSSHARED_EXPORT PhenotypeSource
 		THROW(TypeConversionException, "Cannot convert String: '" + s + "' to Phenotype Source.")
 	}
 	/// return the corresponding phenotype source for a given string
-	static Source SourceFromString(const QByteArray& s)
+	static Source sourceFromString(const QByteArray& s)
 	{
-		return SourceFromString(QString(s));
-	}
-	///returns a list of all source enum values
-	static QList<Source> allSourceValues()
-	{
-		return QList<Source>{Source::HPO, Source::OMIM, Source::CLINVAR, Source::DECIPHER, Source::HGMD, Source::GENCC};
+		return sourceFromString(QString(s));
 	}
 };
 
