@@ -2,6 +2,7 @@
 #define TUMORONLYREPORTWORKER_H
 
 #include <QObject>
+#include <QXmlStreamWriter>
 #include "cppNGSD_global.h"
 #include "VariantList.h"
 #include "RtfDocument.h"
@@ -13,9 +14,13 @@
 ///Input configuration for TumorOnlyReportWorker
 struct CPPNGSDSHARED_EXPORT TumorOnlyReportWorkerConfig
 {
-	QString ps; //Tumor processed sample name
-
 	TargetRegionInfo roi;
+
+	//processing system
+	ProcessingSystemData sys;
+
+	ProcessedSampleData ps_data;
+
 	QString low_coverage_file = "";
 	QString bam_file = "";
 
@@ -27,6 +32,8 @@ struct CPPNGSDSHARED_EXPORT TumorOnlyReportWorkerConfig
 	QMap<QByteArray, QByteArrayList> preferred_transcripts;
 
 	bool use_test_db = false;
+
+	GenomeBuild build;
 };
 
 ///Helper class for tumor-only report generation
@@ -41,6 +48,8 @@ public:
 	///checks whether all neccessary annotations are available in variants and throws FileParseException if not available
 	static void checkAnnotation(const VariantList& variants);
 
+	void writeXML(QString filename, bool test=false);
+
 private:
 	const TumorOnlyReportWorkerConfig& config_;
 	const VariantList& variants_;
@@ -51,6 +60,8 @@ private:
 	//variant annotation indices
 	int i_co_sp_;
 	int i_tum_af_;
+	int i_tum_dp_;
+	int i_gene_;
 	int i_ncg_oncogene_;
 	int i_ncg_tsg_;
 	int i_germl_class_;

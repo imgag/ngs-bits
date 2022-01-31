@@ -3488,14 +3488,21 @@ void MainWindow::generateReportTumorOnly()
 	}
 	QString ps = variants_.mainSampleName();
 
+	NGSD db;
+
 	//get report settings
 	TumorOnlyReportWorkerConfig config;
-	config.ps = ps;
+	int sys_id = db.processingSystemIdFromProcessedSample(ps);
+
+	config.sys = db.getProcessingSystemData(sys_id);
+	config.ps_data = db.getProcessedSampleData(db.processedSampleId(ps));
 	config.roi = ui_.filters->targetRegion();
+
 	config.low_coverage_file = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFile().filename;
 	config.bam_file = GlobalServiceProvider::fileLocationProvider().getBamFiles(true).at(0).filename;
 	config.filter_result = filter_result_;
 	config.preferred_transcripts = GSvarHelper::preferredTranscripts();
+	config.build = GSvarHelper::build();
 
 	TumorOnlyReportDialog dlg(variants_, config, this);
 	if(!dlg.exec()) return;
@@ -3510,10 +3517,28 @@ void MainWindow::generateReportTumorOnly()
 	try
 	{
 		TumorOnlyReportWorker worker(variants_, config);
+
 		QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
 		worker.writeRtf(temp_filename);
-
 		ReportWorker::moveReport(temp_filename, file_rep);
+
+		if(!ui_.filters->targetRegion().isValid()) //if no ROI filter was set, use panel target information instead
+		{
+			TargetRegionInfo roi_info;
+			roi_info.name = config.sys.name;
+			roi_info.regions = db.processingSystemRegions(sys_id);
+			roi_info.genes = db.processingSystemGenes(sys_id);
+			config.roi = roi_info;
+		}
+
+		QString gsvar_xml_folder = Settings::path("gsvar_xml_folder", true);
+		if (gsvar_xml_folder!="")
+		{
+			QString xml_file = gsvar_xml_folder + "/" + ps + "_tumor_only.xml" ;
+			QByteArray temp_xml = Helper::tempFileName(".xml").toUtf8();
+			worker.writeXML(temp_xml);
+			ReportWorker::moveReport(temp_xml,xml_file);
+		}
 	}
 	catch(Exception e)
 	{
