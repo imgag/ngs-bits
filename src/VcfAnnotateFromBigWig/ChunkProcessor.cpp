@@ -17,6 +17,7 @@ ChunkProcessor::ChunkProcessor(AnalysisJob &job_, const QByteArray& name_, const
 	, name(name_)
 	, desc(desc_)
 	, bw_filepath(bw_filepath_)
+    , bw_reader(bw_filepath_)
 {
 }
 
@@ -25,9 +26,6 @@ void ChunkProcessor::run()
 {
 	job.error_message.clear();
 	job.current_chunk_processed.clear();
-
-	// load bw file:
-	BigWigReader bw_reader = BigWigReader(bw_filepath);
 
 	// read vcf file
 	foreach(QByteArray line, job.current_chunk)
@@ -74,12 +72,19 @@ void ChunkProcessor::run()
 			alt = alt.split(',')[0];
 		}
 		//get annotation data
-		float anno = bw_reader.reproduceVepPhylopAnnotation(chr.str(), start, end, ref, alt);
+        QList<float> anno = getAnnotation(chr.str(), start, end, ref, alt);
+
+        if (anno.length() == 0)
+        {
+            // if there is no annotation to add, append the line unchanged:
+            job.current_chunk_processed.append(line + "\n");
+            continue;
+        }
 
 		// add INFO column annotation
 		if(parts[7] == ".") parts[7].clear(); // remove '.' if column was empty before
 		if(!parts[7].isEmpty()) parts[7].append(';');
-		parts[7].append(name + "=" + QByteArray::number(anno));
+        parts[7].append(name + "=" + QByteArray::number(anno[0]));
 
 		job.current_chunk_processed.append(parts.join('\t') + "\n");
 	}
@@ -87,4 +92,45 @@ void ChunkProcessor::run()
 	// annotation of job finished, clear input to keep memory usage low
 	job.current_chunk.clear();
 	job.status=TO_BE_WRITTEN;
+}
+
+QList<float> ChunkProcessor::getAnnotation(const QByteArray& chr, int start, int end, const QString& ref, const QString& alt)
+{
+    int offset = -1; // offset is -1 as the vcf file uses genome coordinates from 1 - N but bw-files from 0 - N-1
+
+    // insertions:
+    if (alt.length() > ref.length())
+    {
+        if ((ref.length() == 1) && (ref[0] != alt[0]) && (start==end)) // insertions that deletes a single base get the value of that base
+        {
+            return interpretIntervals(bw_reader.getOverlappingIntervals(chr, end, end+1, offset));
+        }
+        return QList<float>();
+    }
+
+    return interpretIntervals(bw_reader.getOverlappingIntervals(chr, start, end, offset));
+}
+
+QList<float> ChunkProcessor::interpretIntervals(const QList<OverlappingInterval>& intervals)
+{
+    if (intervals.length() == 0)
+    {
+        return QList<float>();
+    }
+    else if (intervals.length() == 1)
+    {
+        return QList<float>{intervals[0].value};
+    }
+    else
+    {
+        float max = std::numeric_limits<float>::lowest();
+        foreach (OverlappingInterval i, intervals)
+        {
+            if (i.value > max)
+            {
+                max = i.value;
+            }
+        }
+        return QList<float>{max};
+    }
 }

@@ -87,37 +87,7 @@ float BigWigReader::readValue(const QByteArray& chr, int position, int offset)
 
 QVector<float> BigWigReader::readValues(const QByteArray& chr, quint32 start, quint32 end, int offset)
 {
-	quint32 chr_id;
-	if (containsChromosome(chr))
-	{
-		chr_id = chromosomes[chr].chrom_id;
-	}
-	else
-	{
-		THROW(ArgumentException, "Couldn't find given chromosome in file.")
-	}
-	QList<OverlappingInterval> intervals;
-
-	// try to find it in the buffer:
-	if ( ! buffer_.contains(chr_id, start, end))
-	{
-		//std::cout << "Buffer miss\n";
-
-		QList<OverlappingBlock> blocks = getOverlappingBlocks(chr_id, start+offset, end+offset);
-
-		if (blocks.length() == 0)
-		{
-			//std::cout << "Didn't find any overlapping blocks\n";
-			return QVector<float>();
-		}
-
-		intervals = extractOverlappingIntervals(blocks, chr_id, start+offset, end+offset);
-	}
-	else
-	{
-		//std::cout << "Buffer hit\n";
-		intervals = buffer_.get(chr_id, start+offset, end+offset);
-	}
+    QList<OverlappingInterval> intervals = getOverlappingIntervals(chr, start, end, offset);
 
 	// split long intervals into single values:
 	QVector<float> result = QVector<float>(end-start, default_value_);
@@ -154,6 +124,44 @@ QVector<float> BigWigReader::readValues(const QByteArray& region, int offset)
 	return readValues(parts1[0], parts2[0].toInt(), parts2[1].toInt(), offset);
 }
 
+QList<OverlappingInterval> BigWigReader::getOverlappingIntervals(const QByteArray& chr, quint32 start, quint32 end, int offset)
+{
+    quint32 chr_id;
+    if (containsChromosome(chr))
+    {
+        chr_id = chromosomes[chr].chrom_id;
+    }
+    else
+    {
+        THROW(ArgumentException, "Couldn't find given chromosome in file.")
+    }
+    QList<OverlappingInterval> intervals;
+
+    // try to find it in the buffer:
+    if ( ! buffer_.contains(chr_id, start, end))
+    {
+        //std::cout << "Buffer miss\n";
+
+        QList<OverlappingBlock> blocks = getOverlappingBlocks(chr_id, start+offset, end+offset);
+
+        if (blocks.length() == 0)
+        {
+            //std::cout << "Didn't find any overlapping blocks\n";
+            return QList<OverlappingInterval>();
+        }
+
+        intervals = extractOverlappingIntervals(blocks, chr_id, start+offset, end+offset);
+    }
+    else
+    {
+        //std::cout << "Buffer hit\n";
+        intervals = buffer_.get(chr_id, start+offset, end+offset);
+    }
+
+    return intervals;
+}
+
+
 float BigWigReader::reproduceVepPhylopAnnotation(const QByteArray& chr, int start, int end, const QString& ref, const QString& alt)
 {
 	if ( ! containsChromosome(chr))
@@ -186,7 +194,7 @@ float BigWigReader::reproduceVepPhylopAnnotation(const QByteArray& chr, int star
 			return 0;
 		}
 	}
-	// for mutations concering a single abse /two bases take the value of the "last"
+    // for mutations concering a single base /two bases take the value of the "last"
 	if (end-start <= 1)
 	{
 		double res = readValue(chr, end);
