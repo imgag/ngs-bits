@@ -12,41 +12,22 @@ TEST_CLASS(BigWigReader_Test)
 {
 Q_OBJECT
 private slots:
-	
-	void dev()
-	{
-		BigWigReader r = BigWigReader("/mnt/share/data/dbs/phyloP/hg19.100way.phyloP100way.bw");
-		
-		QVector<int> ch1_pos;
-		ch1_pos.append(940296);
-		//ch1_pos.append(75213491);
-		//ch1_pos.append(99720834);
-		std::cout << "Test: " << r.reproduceVepPhylopAnnotation("chr1", 940296, 940296+2, "GCC", "G" );
-		foreach (int p, ch1_pos)
-		{
-			std::cout << "\n\n Position chr1" << p << "\n";
-			QVector<float> intervals = r.readValues("chr1", p-5, p+5);
-			for (int i=0; i<intervals.size(); i++)
-			{
-				std::cout << p-5+i << "\tvalue: " << intervals[i] << "\n";
-			}
-		}
-		QVector<int> chr2_pos;
-		//chr2_pos.append(153675);
-		//chr2_pos.append(47577400);
-		
-		foreach (int p, chr2_pos)
-		{
-			std::cout << "\n\n Position chr2 " << p << "\n";
-			QVector<float> intervals = r.readValues("chr2", p-5, p+5);
-			for (int i=0; i<intervals.size(); i++)
-			{
-				std::cout << p-5+i << "\tvalue: " << intervals[i] << "\n";
-			}
-		}
-	}
-	
-	void read_local()
+
+    void dev()
+    {
+        BigWigReader r = BigWigReader(QString(TESTDATA("data_in/BigWigReader_phyloP_chr1_part.bw")));
+        QSharedPointer<QFile> out = Helper::openFileForWriting("BigWigReader_bw_file_h.csv");
+        // last mut: chr1	999842
+
+        for (int i=1; i<1000001; i++)
+        {
+            float value = r.readValue("chr1", i);
+            out->write(QByteArray::number(i) + "\t" + QByteArray::number(value) + "\n");
+        }
+
+    }
+
+    void read_local_values()
 	{
 		BigWigReader r = BigWigReader(QString(TESTDATA("data_in/BigWigReader.bw")));
 
@@ -116,6 +97,39 @@ private slots:
 		result = r.readValue("1", 50, 0);
 		F_EQUAL2(result, new_default, 0.000001);
 	}
+
+    void read_local_intervals()
+    {
+        BigWigReader r = BigWigReader(QString(TESTDATA("data_in/BigWigReader.bw")));
+
+        // Overlapping single value intervals
+        QList<OverlappingInterval> intervals = r.getOverlappingIntervals("1", 0, 1, 0);
+        I_EQUAL(intervals.length(), 1);
+        I_EQUAL(intervals[0].start, 0);
+        I_EQUAL(intervals[0].end, 1);
+        F_EQUAL2(intervals[0].value, 0.1f, 0.000001);
+
+        intervals = r.getOverlappingIntervals("1", 1, 2, 0);
+        I_EQUAL(intervals.length(), 1);
+        I_EQUAL(intervals[0].start, 1);
+        I_EQUAL(intervals[0].end, 2);
+        F_EQUAL2(intervals[0].value, 0.2f, 0.000001);
+
+        // range with multiple one value intervals
+        intervals = r.getOverlappingIntervals("1", 0, 3, 0);
+        I_EQUAL(intervals.length(), 3);
+
+        // single value of large interval?
+        intervals = r.getOverlappingIntervals("1", 100, 101, 0);
+        I_EQUAL(intervals.length(), 1);
+        I_EQUAL(intervals[0].start, 100);
+        I_EQUAL(intervals[0].end, 150);
+        F_EQUAL2(intervals[0].value, 1.4f, 0.000001);
+
+        // no value saved so no overlapping interval
+        intervals = r.getOverlappingIntervals("1", 99, 100, 0);
+        I_EQUAL(intervals.length(), 0)
+    }
 
 	void test_vep_annotation_file_test()
 	{

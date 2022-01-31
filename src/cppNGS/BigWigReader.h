@@ -239,6 +239,9 @@ public:
 	// Convenience function to call readValues with an unparsed region of type (chrNAME:start-end)
 	QVector<float> readValues(const QByteArray& region, int offset=-1);
 
+    // function to only get the overlapping intervals (not filled up with default values)
+    QList<OverlappingInterval> getOverlappingIntervals(const QByteArray& chr, quint32 start, quint32 end, int offset=-1);
+
 	// Function that reproduces the phylop annotation as VEP would write it.
 	float reproduceVepPhylopAnnotation(const QByteArray& chr, int start, int end, const QString& ref, const QString& alt);
 

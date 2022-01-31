@@ -4,6 +4,7 @@
 #include <QRunnable>
 #include <QByteArray>
 #include "Auxilary.h"
+#include "BigWigReader.h"
 
 class ChunkProcessor
 		:public QRunnable
@@ -11,20 +12,22 @@ class ChunkProcessor
 public:
 	ChunkProcessor(AnalysisJob &job_, const QByteArray& name_, const QByteArray& desc_, const QByteArray& bw_filepath_);
 	void run();
-	float getAnnotation(const QByteArray&, int start, int end, const QByteArray& ref, const QByteArray& alt);
-	
+    QList<float> getAnnotation(const QByteArray& chr, int start, int end, const QString& ref, const QString& alt);
+
 	void terminate()
 	{
 		terminate_ = true;
 	}
 
 private:
+
+    QList<float> interpretIntervals(const QList<OverlappingInterval>& intervals);
 	bool terminate_;
 	AnalysisJob& job;
 	const QByteArray name;
 	const QByteArray desc;
 	const QByteArray bw_filepath;
-	BigWigReader bw_reader;
+    BigWigReader bw_reader;
 };
 
 #endif // CHUNKPROCESSOR_H
