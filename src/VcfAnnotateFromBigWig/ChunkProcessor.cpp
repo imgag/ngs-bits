@@ -98,18 +98,12 @@ QList<float> ChunkProcessor::getAnnotation(const QByteArray& chr, int start, int
 {
     int offset = -1; // offset is -1 as the vcf file uses genome coordinates from 1 - N but bw-files from 0 - N-1
 
-    // insertions:
+	// insertions are not annotated:
     if (alt.length() > ref.length())
     {
-        if ((ref.length() == 1) && (ref[0] != alt[0]) && (start==end)) // insertions that deletes a single base get the value of that base
-        {
-			return interpretIntervals(bw_reader_.getOverlappingIntervals(chr, end, end+1, offset));
-        }
-		//other insertions cannot be annotated
         return QList<float>();
     }
 
-	std::cout << start << " - " << end << "\n";
 	if (ref[0] == alt[0])
 	{
 		return interpretIntervals(bw_reader_.getOverlappingIntervals(chr, start+1, end, offset));
@@ -131,7 +125,7 @@ QList<float> ChunkProcessor::interpretIntervals(const QList<OverlappingInterval>
     else
     {
         float max = std::numeric_limits<float>::lowest();
-        foreach (OverlappingInterval i, intervals)
+		foreach (const OverlappingInterval& i, intervals)
         {
             if (i.value > max)
             {

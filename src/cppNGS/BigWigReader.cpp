@@ -91,7 +91,8 @@ QVector<float> BigWigReader::readValues(const QByteArray& chr, quint32 start, qu
 
 	// split long intervals into single values:
 	QVector<float> result = QVector<float>(end-start, default_value_);
-	foreach (const OverlappingInterval& interval, intervals) {
+	foreach (const OverlappingInterval& interval, intervals)
+	{
 		if (interval.end-interval.start == 1) // covers a single position if it is overlapping it has to be in vector
 		{
 			result[interval.start-(start+offset)] = interval.value;
@@ -140,13 +141,10 @@ QList<OverlappingInterval> BigWigReader::getOverlappingIntervals(const QByteArra
     // try to find it in the buffer:
     if ( ! buffer_.contains(chr_id, start, end))
     {
-        //std::cout << "Buffer miss\n";
-
         QList<OverlappingBlock> blocks = getOverlappingBlocks(chr_id, start+offset, end+offset);
 
         if (blocks.length() == 0)
         {
-            //std::cout << "Didn't find any overlapping blocks\n";
             return QList<OverlappingInterval>();
         }
 
@@ -154,7 +152,6 @@ QList<OverlappingInterval> BigWigReader::getOverlappingIntervals(const QByteArra
     }
     else
     {
-        //std::cout << "Buffer hit\n";
         intervals = buffer_.get(chr_id, start+offset, end+offset);
     }
 
@@ -189,7 +186,7 @@ float BigWigReader::reproduceVepPhylopAnnotation(const QByteArray& chr, int star
 	// deletions
 	if (ref.length() > alt.length())
 	{
-		if ((alt.length() == 1) && (ref[0] != alt[0])) // if a single base replaces multiple ref bases set it to zero
+		if (alt.length() == 1 && ref[0] != alt[0]) // if a single base replaces multiple ref bases set it to zero
 		{
 			return 0;
 		}
@@ -278,12 +275,10 @@ QList<OverlappingBlock> BigWigReader::overlapsLeaf(const IndexRTreeNode& node, q
 	{
 		if (chr_id < node.chr_idx_start[i])
 		{
-			//std::cout << "chr id smaller than of leaf.\n";
 			break;
 		}
 		if (chr_id > node.chr_idx_end[i])
 		{
-			//std::cout << "chr id bigger than the last chr id of leaf.\n";
 			continue;
 		}
 
@@ -293,7 +288,6 @@ QList<OverlappingBlock> BigWigReader::overlapsLeaf(const IndexRTreeNode& node, q
 			{
 				if (node.base_start[i] >= end)
 				{
-					//std::cout << "Leaf spans contigs and block bases end before the region.\n";
 					continue;
 				}
 			}
@@ -301,7 +295,6 @@ QList<OverlappingBlock> BigWigReader::overlapsLeaf(const IndexRTreeNode& node, q
 			{
 				if (node.base_end[i] <= start)
 				{
-					//std::cout << "Leaf spans contigs and block bases start after the region\n";
 					continue;
 				}
 			}
@@ -391,7 +384,8 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList
 		quint32 interval_start, interval_end;
 		float interval_value;
 		
-		if (data_header.type == 3) {
+		if (data_header.type == 3)
+		{
 			interval_start = data_header.start - data_header.step; // minus step as it is added below before evaluating.
 		}
 

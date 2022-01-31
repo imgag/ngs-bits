@@ -117,6 +117,7 @@ struct OverlappingBlock
     }
 };
 
+// Interval containing the value for the positions start - end-1
 struct OverlappingInterval
 {
 	OverlappingInterval(quint32 start, quint32 end, float value):
@@ -154,7 +155,6 @@ struct IntervalBuffer
 	 */
 	void append(OverlappingInterval interval)
 	{
-		//std::cout << "inserting interval -  start: " << interval.start << "\tend: " << interval.end << "\n";
 		if (intervals.length() == 0)
 		{
 			start = interval.start;
@@ -162,9 +162,8 @@ struct IntervalBuffer
 		}
 		else
 		{
-			if (interval.start < end )
+			if (interval.start < end)
 			{
-				//std::cout << "interval start: " << interval.start << "\t current end: " << end << "\n";
 				THROW(ProgrammingException, "Intervals need to be inserted in increasing order")
 			}
 			end = interval.end;
@@ -182,7 +181,7 @@ struct IntervalBuffer
 			return res;
 		}
 
-		foreach (const OverlappingInterval i, intervals)
+		foreach (const OverlappingInterval& i, intervals)
 		{
 			if (pos_start >= i.end ||  pos_end <= i.start) continue;
 			res.append(i);

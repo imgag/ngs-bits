@@ -134,7 +134,6 @@ private slots:
 			QByteArray chr = v.chr().str();
 
 			double expectedValue = v.vepAnnotations(i_phylop)[0].toDouble();
-			//std::cout << "vcf mutation: " << i << " postition - " << chr.toStdString() << ":" << start << "-" << end << "\n";
 			F_EQUAL(r.reproduceVepPhylopAnnotation(chr, start, end, QString(v.ref()), QString(v.altString())), expectedValue)
 		}
 	}

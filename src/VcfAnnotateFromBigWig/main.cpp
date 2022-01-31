@@ -31,13 +31,12 @@ public:
 		addOutfile("out", "Output VCF or VCF or VCF.GZ file. If unset, writes to STDOUT.", true, true);
 		addInfile("bw", "BigWig file containen the data to be used in the annotation.", true, true);
 		addString("name", "Name of the new INFO column.", false);
-		addString("desc", "Optional description of the new INFO column.", false);
+		addString("desc", "Description of the new INFO column.", false);
 		//optional
 		addInt("threads", "The number of threads used to read, process and write files.", true, 1);
 		addInt("block_size", "Number of lines processed in one chunk.", true, 5000);
 		addInt("prefetch", "Maximum number of chunks that may be pre-fetched into memory.", true, 64);
 		addInt("debug", "Enables debug output at the given interval in milliseconds (disabled by default, cannot be combined with writing to STDOUT).", true, -1);
-
 
 		changeLog(2022, 01, 14, "Initial implementation.");
 	}
