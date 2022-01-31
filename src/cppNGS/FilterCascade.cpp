@@ -4940,7 +4940,9 @@ double FilterSpliceEffect::calculatePercentageChangeMES_(const QByteArray& value
 	if (base > 0)
 	{
 		percentChange = (newValue - base) / base;
-	} else {
+	}
+	else
+	{
 		percentChange = (base - newValue) / base;
 	}
 
@@ -4964,7 +4966,9 @@ bool FilterSpliceEffect::applyMaxEntScanFilter_(const Variant& var, int idx_mes)
 				{
 					return true;
 				}
-			} else {
+			}
+			else
+			{
 				if (percentChange >= mes)
 				{
 					return true;

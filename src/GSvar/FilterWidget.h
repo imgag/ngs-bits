@@ -97,8 +97,9 @@ signals:
 	void phenotypeImportNGSDRequested();
 	/// Signal that a sub-panel should be created using the phenotypes
 	void phenotypeSubPanelRequested();
-	/// Signal that the options for evidence and source selection were requested.
-	void phenotypeOptionsRequested();
+    // Signal that the allowed sources or evidences changed
+    void phenotypeSourcesAndEvidencesChanged(QList<PhenotypeEvidence::Evidence> evidences, QList<PhenotypeSource::Source> sources);
+
 
 public slots:
 		void phenotypesChanged();
@@ -134,8 +135,8 @@ private:
 	TargetRegionInfo roi_;
 	GeneSet last_genes_;
 	PhenotypeList phenotypes_;
-	QList<PhenotypeSource::Source> allowedPhenotypeSources_;
-	QList<PhenotypeEvidence::Evidence> allowedPhenotypeEvidences_;
+	QList<PhenotypeSource::Source> allowed_phenotype_sources_;
+	QList<PhenotypeEvidence::Evidence> allowed_phenotype_evidences_;
 
 };
 
