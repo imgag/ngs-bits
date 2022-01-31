@@ -8,6 +8,7 @@
 #include <QDesktopServices>
 #include <QProcess>
 #include <QDialog>
+#include <QMessageBox>
 
 ProcessingSystemWidget::ProcessingSystemWidget(QWidget* parent, int sys_id)
 	: QWidget(parent)
@@ -80,7 +81,12 @@ void ProcessingSystemWidget::edit()
 void ProcessingSystemWidget::openRoiInIGV()
 {
 	//load ROI
-	BedFile roi = GlobalServiceProvider::database().processingSystemRegions(sys_id_, true);
+	BedFile roi = GlobalServiceProvider::database().processingSystemRegions(sys_id_, false);
+	if (roi.isEmpty())
+	{
+		QMessageBox::warning(QApplication::activeWindow(), "Nothing was found", "Could not get the processing system regions for " + QString::number(sys_id_));
+		return;
+	}
 
 	//store to temporary file
 	QString roi_file = GSvarHelper::localRoiFolder() + ui_.name_short->text().trimmed() + ".bed";

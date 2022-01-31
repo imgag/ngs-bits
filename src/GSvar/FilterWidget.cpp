@@ -167,9 +167,9 @@ void FilterWidget::loadTargetRegionData(TargetRegionInfo& roi, QString name)
 
 		NGSD db;
 		int sys_id = db.processingSystemId(roi.name);
-		roi.regions = GlobalServiceProvider::database().processingSystemRegions(sys_id, true);
+		roi.regions = GlobalServiceProvider::database().processingSystemRegions(sys_id, false);
 		roi.regions.merge();
-		roi.genes = GlobalServiceProvider::database().processingSystemGenes(sys_id, true);
+		roi.genes = GlobalServiceProvider::database().processingSystemGenes(sys_id, false);
 	}
 	else //local target regions
 	{
