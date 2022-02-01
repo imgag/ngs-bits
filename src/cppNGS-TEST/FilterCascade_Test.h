@@ -938,6 +938,119 @@ private slots:
 
 	}
 
+	void FilterVariantRNAAseAlleleFrequency_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterVariantRNAAseAlleleFrequency filter;
+		filter.setDouble("min_af", 0.33);
+		filter.setDouble("max_af", 0.66);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 41);
+	}
+
+	void FilterVariantRNAAseAlt_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterVariantRNAAseAlt filter;
+		filter.setInteger("min_ac", 17);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 91);
+	}
+
+	void FilterVariantRNAAseDepth_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterVariantRNAAseDepth filter;
+		filter.setInteger("min_depth", 26);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 110);
+	}
+
+	void FilterVariantRNAAsePval_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterVariantRNAAsePval filter;
+		filter.setDouble("max_pval", 0.2);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 13);
+	}
+
+	void FilterVariantRNAAberrantSplicing_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterVariantRNAAberrantSplicing filter;
+		filter.setDouble("min_asf", 0.05);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 17);
+	}
+
+	void FilterVariantRNAExpressionFC_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterVariantRNAExpressionFC filter;
+		filter.setDouble("min_fc", 1.5);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 17);
+	}
+
+	void FilterVariantRNAExpressionZScore_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterVariantRNAExpressionZScore filter;
+		filter.setDouble("min_zscore", 1.25);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 22);
+	}
+
+	void FilterVariantRNAGeneExpression_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterVariantRNAGeneExpression filter;
+		filter.setDouble("min_tpm", 35);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 18);
+	}
+
 	/********************************************* Filters for small variants (somatic tumor-only) *********************************************/
 
 	void FilterSomaticAlleleFrequency_apply_tumor_only()
@@ -1411,6 +1524,27 @@ private slots:
 		filter.setString("action", "FILTER");
 		filter.apply(svs, result);
 		I_EQUAL(result.countPassing(), 7);
+	}
+
+	void FilterSvFilterColumn_keep()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		//pre-filter SVs
+		FilterSvType pre_filter;
+		pre_filter.setStringList("Structural variant type", QStringList("DEL"));
+		pre_filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 29);
+
+
+		FilterSvFilterColumn filter;
+		filter.setStringList("entries", QStringList("AMBIGUOUS"));
+		filter.setString("action", "KEEP");
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 42);
 	}
 
 	void FilterSvPairedReadAF_apply()

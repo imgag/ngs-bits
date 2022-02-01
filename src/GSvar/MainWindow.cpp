@@ -122,14 +122,14 @@ QT_CHARTS_USE_NAMESPACE
 #include "CohortAnalysisWidget.h"
 #include "cfDNARemovedRegions.h"
 #include "CfDNAPanelBatchImport.h"
-#include "CfdnaAnalysisDialog.h"
 #include "ClinvarUploadDialog.h"
 #include "GenomeVisualizationWidget.h"
 #include "LiftOverWidget.h"
 #include "CacheInitWorker.h"
 #include "BlatWidget.h"
 #include "ClinvarUploadStatusWidget.h"
-
+#include "FusionWidget.h"
+#include "CohortExpressionDataWidget.h"
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -177,10 +177,11 @@ MainWindow::MainWindow(QWidget *parent)
 	rna_menu_btn_->setMenu(new QMenu());
 	rna_menu_btn_->menu()->addAction(ui_.actionExpressionData);
 	rna_menu_btn_->menu()->addAction(ui_.actionShowRnaFusions);
+	rna_menu_btn_->menu()->addAction(ui_.actionShowCohortExpressionData);
 	rna_menu_btn_->setPopupMode(QToolButton::InstantPopup);
-	ui_.tools->addWidget(rna_menu_btn_);
-	// deaktivate on default
 	rna_menu_btn_->setEnabled(false);
+	ui_.tools->addWidget(rna_menu_btn_);
+
 
 	// add cfdna menu
 	cfdna_menu_btn_ = new QToolButton();
@@ -211,7 +212,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.actionDesignSubpanel, SIGNAL(triggered()), this, SLOT(openSubpanelDesignDialog()));
 	connect(ui_.filters, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 	connect(ui_.filters, SIGNAL(phenotypeSubPanelRequested()), this, SLOT(createSubPanelFromPhenotypeFilter()));
-	connect(ui_.filters, SIGNAL(phenotypeOptionsRequested()), this, SLOT(openPhenotypeOptions()));
+    connect(ui_.filters, SIGNAL(phenotypeSourcesAndEvidencesChanged(QList<PhenotypeEvidence::Evidence>,QList<PhenotypeSource::Source>)), this, SLOT(updateAllowedSourcesAndEvidences(QList<PhenotypeEvidence::Evidence>,QList<PhenotypeSource::Source>)));
 
 	//variants tool bar
 	connect(ui_.vars_copy_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(copyToClipboard()));
@@ -259,13 +260,13 @@ MainWindow::MainWindow(QWidget *parent)
 	worker->start();
 
 	//init phenotype filter to accept all Values
-	this->last_phenotype_evidences_ = PhenotypeEvidence::allEvidenceValues(false);
-	this->last_phenotype_sources_ = PhenotypeSource::allSourceValues();
-	this->filter_phenos_ = false;
+	last_phenotype_evidences_ = PhenotypeEvidence::allEvidenceValues(false);
+	last_phenotype_sources_ = PhenotypeSource::allSourceValues();
+	filter_phenos_ = false;
 	//give the filter widget the current state and update the tooltip:
-	this->ui_.filters->setAllowedPhenotypeEvidences(last_phenotype_evidences_);
-	this->ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
-	this->ui_.filters->phenotypesChanged();
+	ui_.filters->setAllowedPhenotypeEvidences(last_phenotype_evidences_);
+	ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
+	ui_.filters->phenotypesChanged();
 
 }
 
@@ -974,8 +975,8 @@ void MainWindow::on_actionCloseMetaDataTabs_triggered()
 void MainWindow::on_actionIgvClear_triggered()
 {
 	QStringList commands;
+	commands << ("genome " + Settings::path("igv_genome")); //genome command first, see https://github.com/igvteam/igv/issues/1094
 	commands << "new";
-	commands << ("genome " + Settings::path("igv_genome"));
 	executeIGVCommands(commands);
 
 	igv_initialized_ = false;
@@ -1304,7 +1305,7 @@ void MainWindow::on_actionExpressionData_triggered()
 	QStringList rna_count_files;
 	foreach (QString rna_ps_id, rna_ps_ids)
 	{
-		FileLocation file_location = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::COUNTS);
+		FileLocation file_location = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION);
 		if (file_location.exists) rna_count_files << file_location.filename;
 	}
 	rna_count_files.removeDuplicates();
@@ -1341,44 +1342,88 @@ void MainWindow::on_actionShowRnaFusions_triggered()
 	NGSD db;
 
 	//get all available files
-	QStringList manta_fusion_files;
+	QStringList arriba_fusion_files;
 	foreach (int rna_sample_id, db.relatedSamples(db.sampleId(variants_.mainSampleName()).toInt(), "same sample", "RNA"))
 	{
 		// check for required files
 		foreach (const QString& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", QString::number(rna_sample_id)))
 		{
-			// search for manta fusion file
-			FileLocation manta_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::MANTA_FUSIONS);
-			if (manta_fusion_file.exists) manta_fusion_files << manta_fusion_file.filename;
+			// search for fusion file
+			FileLocation fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS);
+			if (fusion_file.exists) arriba_fusion_files << fusion_file.filename;
 		}
 	}
 
-	if (manta_fusion_files.isEmpty())
+	if (arriba_fusion_files.isEmpty())
 	{
-		QMessageBox::warning(this, "Manta fusion files missing", "Error: No RNA manta fusion files of corresponding RNA samples found!");
+		QMessageBox::warning(this, "Fusion files missing", "Error: No RNA fusion files of corresponding RNA samples found!");
 		return;
 	}
 
 	//select file to open
-	QString manta_fusion_filepath;
-	if (manta_fusion_files.size()==1)
+	QString fusion_filepath;
+	if (arriba_fusion_files.size()==1)
 	{
-		manta_fusion_filepath = manta_fusion_files.at(0);
+		fusion_filepath = arriba_fusion_files.at(0);
 	}
 	else
 	{
 		bool ok;
-		manta_fusion_filepath = QInputDialog::getItem(this, "Multiple files found", "Multiple RNA manta fusion files found.\nPlease select a file:", manta_fusion_files, 0, false, &ok);
+		fusion_filepath = QInputDialog::getItem(this, "Multiple files found", "Multiple RNA fusion files found.\nPlease select a file:", arriba_fusion_files, 0, false, &ok);
 		if (!ok) return;
 	}
 
-	BedpeFile fusions;
-	fusions.load(manta_fusion_filepath);
+	FusionWidget* fusion_widget = new FusionWidget(fusion_filepath, this);
 
-	//open SV widget
-	SvWidget* sv_widget = new SvWidget(fusions, db.processedSampleId(variants_.mainSampleName()), ui_.filters, GeneSet(), gene2region_cache_, this);
+	auto dlg = GUIHelper::createDialog(fusion_widget, "Fusions of " + variants_.analysisName() + " (arriba)");
+	addModelessDialog(dlg);
+}
 
-	auto dlg = GUIHelper::createDialog(sv_widget, "Manta fusions of " + variants_.analysisName());
+void MainWindow::on_actionShowCohortExpressionData_triggered()
+{
+	if (filename_=="") return;
+	if (!LoginManager::active()) return;
+
+	NGSD db;
+
+	//get all available files
+	QStringList cohort_expression_files;
+	foreach (int rna_sample_id, db.relatedSamples(db.sampleId(variants_.mainSampleName()).toInt(), "same sample", "RNA"))
+	{
+		// check for required files
+		foreach (const QString& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", QString::number(rna_sample_id)))
+		{
+			// search for fusion file
+			FileLocation cohort_expression_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_COHORT);
+			if (cohort_expression_file.exists) cohort_expression_files << cohort_expression_file.filename;
+		}
+	}
+
+	if (cohort_expression_files.isEmpty())
+	{
+		QMessageBox::warning(this, "Cohort expression data files missing", "Error: No RNA cohort expression data files of corresponding RNA samples found!");
+		return;
+	}
+
+	//select file to open
+	QString cohort_expression_filepath;
+	if (cohort_expression_files.size()==1)
+	{
+		cohort_expression_filepath = cohort_expression_files.at(0);
+	}
+	else
+	{
+		bool ok;
+		cohort_expression_filepath = QInputDialog::getItem(this, "Multiple files found", "Multiple RNA cohort expression data files found.\nPlease select a file:", cohort_expression_files, 0, false, &ok);
+		if (!ok) return;
+	}
+
+	QString rna_ps_id = db.processedSampleId(cohort_expression_filepath);
+	ProcessedSampleData rna_ps_info = db.getProcessedSampleData(rna_ps_id);
+
+	CohortExpressionDataWidget* cohort_expression_widget = new CohortExpressionDataWidget(cohort_expression_filepath, this, rna_ps_info.project_name, rna_ps_info.processing_system);
+
+	auto dlg = GUIHelper::createDialog(cohort_expression_widget, "Cohort RNA expression of " + variants_.analysisName());
 	addModelessDialog(dlg);
 }
 
@@ -1551,37 +1596,20 @@ void MainWindow::on_actionReanalyze_triggered()
 
 	AnalysisType type = variants_.type();
 	SampleHeaderInfo header_info = variants_.getSampleHeader();
-
 	QList<AnalysisJobSample> samples;
-	if (type==GERMLINE_SINGLESAMPLE)
+	if (type==GERMLINE_SINGLESAMPLE  || type==CFDNA || type==SOMATIC_SINGLESAMPLE)
 	{
-		SingleSampleAnalysisDialog dlg(this, false);
 		samples << AnalysisJobSample {header_info[0].id, ""};
-		dlg.setSamples(samples);
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			foreach(const AnalysisJobSample& sample,  dlg.samples())
-			{
-				NGSD().queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
-			}
-		}
 	}
 	else if (type==GERMLINE_MULTISAMPLE)
 	{
-		MultiSampleDialog dlg(this);
 		foreach(const SampleInfo& info, header_info)
 		{
 			samples << AnalysisJobSample {info.id, info.isAffected() ? "affected" : "control"};
 		}
-		dlg.setSamples(samples);
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			NGSD().queueAnalysis("multi sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
-		}
 	}
 	else if (type==GERMLINE_TRIO)
 	{
-		TrioDialog dlg(this);
 		foreach(const SampleInfo& info, header_info)
 		{
 			if(info.isAffected())
@@ -1593,39 +1621,16 @@ void MainWindow::on_actionReanalyze_triggered()
 				samples << AnalysisJobSample {info.id, info.gender()=="male" ? "father" : "mother"};
 			}
 		}
-		dlg.setSamples(samples);
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			NGSD().queueAnalysis("trio", dlg.highPriority(), dlg.arguments(), dlg.samples());
-		}
 	}
 	else if (type==SOMATIC_PAIR)
 	{
-		SomaticDialog dlg(this);
 		foreach(const SampleInfo& info, header_info)
 		{
 			samples << AnalysisJobSample {info.id, info.isTumor() ? "tumor" : "normal"};
 		}
-		dlg.setSamples(samples);
+	}
 
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			NGSD().queueAnalysis("somatic", dlg.highPriority(), dlg.arguments(), dlg.samples());
-		}
-	}
-	else if (type==CFDNA)
-	{
-		CfdnaAnalysisDialog dlg(this);
-		samples << AnalysisJobSample {header_info[0].id, ""};
-		dlg.setSamples(samples);
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			foreach(const AnalysisJobSample& sample,  dlg.samples())
-			{
-				NGSD().queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
-			}
-		}
-	}
+	GSvarHelper::queueSampleAnalysis(type, samples, this);
 }
 
 void MainWindow::delayedInitialization()
@@ -1827,6 +1832,35 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 		dlg.addFile(FileLocation{name, PathType::OTHER, filename, QFile::exists(filename)}, action->isChecked());
 	}
 
+	//related RNA tracks
+	if (LoginManager::active())
+	{
+		NGSD db;
+
+		QString sample_id = db.sampleId(filename_, false);
+		if (sample_id!="")
+		{
+			foreach (int rna_sample_id, db.relatedSamples(sample_id.toInt(), "same sample", "RNA"))
+			{
+				// iterate over all processed RNA samples
+				foreach (const QString& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", QString::number(rna_sample_id)))
+				{
+					//add RNA BAM
+					FileLocation rna_bam_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::BAM);
+					if (rna_bam_file.exists) dlg.addFile(rna_bam_file, false);
+
+					//add fusions BAM
+					FileLocation rna_fusions_bam_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS_BAM);
+					if (rna_fusions_bam_file.exists) dlg.addFile(rna_fusions_bam_file, false);
+
+					//add splicing BED
+					FileLocation rna_splicing_bed_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::SPLICING_BED);
+					if (rna_splicing_bed_file.exists) dlg.addFile(rna_splicing_bed_file, false);
+				}
+			}
+		}
+	}
+
 	// switch to MainWindow to prevent dialog to appear behind other widgets
 	raise();
 	activateWindow();
@@ -1842,8 +1876,8 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 		{
 			QStringList files_to_load = dlg.filesToLoad();
 			QStringList init_commands;
+			init_commands.append("genome " + Settings::path("igv_genome")); //genome command first, see https://github.com/igvteam/igv/issues/1094
 			init_commands.append("new");
-			init_commands.append("genome " + Settings::path("igv_genome"));
 
 			//load non-BAM files
 			foreach(QString file, files_to_load)
@@ -2322,33 +2356,6 @@ void MainWindow::createSubPanelFromPhenotypeFilter()
 
 	//open dialog
 	openSubpanelDesignDialog(genes);
-}
-
-void MainWindow::openPhenotypeOptions()
-{
-	//edit TODO
-	PhenotypeSourceEvidenceSelector* selector = new PhenotypeSourceEvidenceSelector(this);
-	selector->setEvidences(last_phenotype_evidences_);
-	selector->setSources(last_phenotype_sources_);
-
-	auto dlg = GUIHelper::createDialog(selector, "Phenotype Filter Options", "", true);
-
-	//update
-	if (dlg->exec()==QDialog::Accepted)
-	{
-		this->last_phenotype_evidences_ = selector->selectedEvidences();
-		this->last_phenotype_sources_ = selector->selectedSources();
-
-		this->ui_.filters->setAllowedPhenotypeEvidences(last_phenotype_evidences_);
-		this->ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
-		this->ui_.filters->phenotypesChanged();
-
-		if (this->last_phenos_.count() != 0)
-		{
-			filter_phenos_ = true;
-			refreshVariantTable();
-		}
-	}
 }
 
 void MainWindow::on_actionOpen_triggered()
@@ -2918,11 +2925,12 @@ void MainWindow::loadFile(QString filename)
 	rna_menu_btn_->setEnabled(false);
 	ui_.actionExpressionData->setEnabled(false);
 	ui_.actionShowRnaFusions->setEnabled(false);
-	if (LoginManager::active() && germlineReportSupported())
+	ui_.actionShowCohortExpressionData->setEnabled(false);
+	if (LoginManager::active())
 	{
 		NGSD db;
 
-		QString sample_id = db.sampleId(germlineReportSample(), false);
+		QString sample_id = db.sampleId(filename_, false);
 		if (sample_id!="")
 		{
 			foreach (int rna_sample_id, db.relatedSamples(sample_id.toInt(), "same sample", "RNA"))
@@ -2934,12 +2942,16 @@ void MainWindow::loadFile(QString filename)
 				foreach (const QString& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", QString::number(rna_sample_id)))
 				{
 					// search for count file
-					FileLocation rna_count_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::COUNTS);
+					FileLocation rna_count_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION);
 					if (rna_count_file.exists) ui_.actionExpressionData->setEnabled(true);
 
-					// search for manta fusion file
-					FileLocation manta_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::MANTA_FUSIONS);
-					if (manta_fusion_file.exists) ui_.actionShowRnaFusions->setEnabled(true);
+					// search for arriba fusion file
+					FileLocation arriba_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS);
+					if (arriba_fusion_file.exists) ui_.actionShowRnaFusions->setEnabled(true);
+
+					// search for cohort fusion file
+					FileLocation cohort_expression_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_COHORT);
+					if (cohort_expression_file.exists) ui_.actionShowCohortExpressionData->setEnabled(true);
 				}
 			}
 		}
@@ -3482,14 +3494,21 @@ void MainWindow::generateReportTumorOnly()
 	}
 	QString ps = variants_.mainSampleName();
 
+	NGSD db;
+
 	//get report settings
 	TumorOnlyReportWorkerConfig config;
-	config.ps = ps;
+	int sys_id = db.processingSystemIdFromProcessedSample(ps);
+
+	config.sys = db.getProcessingSystemData(sys_id);
+	config.ps_data = db.getProcessedSampleData(db.processedSampleId(ps));
 	config.roi = ui_.filters->targetRegion();
+
 	config.low_coverage_file = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFile().filename;
 	config.bam_file = GlobalServiceProvider::fileLocationProvider().getBamFiles(true).at(0).filename;
 	config.filter_result = filter_result_;
 	config.preferred_transcripts = GSvarHelper::preferredTranscripts();
+	config.build = GSvarHelper::build();
 
 	TumorOnlyReportDialog dlg(variants_, config, this);
 	if(!dlg.exec()) return;
@@ -3504,10 +3523,28 @@ void MainWindow::generateReportTumorOnly()
 	try
 	{
 		TumorOnlyReportWorker worker(variants_, config);
+
 		QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
 		worker.writeRtf(temp_filename);
-
 		ReportWorker::moveReport(temp_filename, file_rep);
+
+		if(!ui_.filters->targetRegion().isValid()) //if no ROI filter was set, use panel target information instead
+		{
+			TargetRegionInfo roi_info;
+			roi_info.name = config.sys.name;
+			roi_info.regions = db.processingSystemRegions(sys_id);
+			roi_info.genes = db.processingSystemGenes(sys_id);
+			config.roi = roi_info;
+		}
+
+		QString gsvar_xml_folder = Settings::path("gsvar_xml_folder", true);
+		if (gsvar_xml_folder!="")
+		{
+			QString xml_file = gsvar_xml_folder + "/" + ps + "_tumor_only.xml" ;
+			QByteArray temp_xml = Helper::tempFileName(".xml").toUtf8();
+			worker.writeXML(temp_xml);
+			ReportWorker::moveReport(temp_xml,xml_file);
+		}
 	}
 	catch(Exception e)
 	{
@@ -4794,8 +4831,8 @@ void MainWindow::on_actionPhenoToGenes_triggered()
 	try
 	{
 		PhenoToGenesDialog dlg(this);
-		dlg.setAllowedEvidences(this->last_phenotype_evidences_);
-		dlg.setAllowedSources(this->last_phenotype_sources_);
+		dlg.setAllowedEvidences(last_phenotype_evidences_);
+		dlg.setAllowedSources(last_phenotype_sources_);
 		dlg.exec();
 	}
 	catch (DatabaseException& e)
@@ -5550,6 +5587,22 @@ void MainWindow::updateSomaticVariantInterpretationAnno(int index, QString vicc_
 	refreshVariantTable();
 }
 
+void MainWindow::updateAllowedSourcesAndEvidences(QList<PhenotypeEvidence::Evidence> new_evidences, QList<PhenotypeSource::Source> new_sources)
+{
+    if (last_phenotype_evidences_ != new_evidences)
+    {
+        filter_phenos_ = true;
+        last_phenotype_evidences_ = new_evidences;
+    }
+
+    if (last_phenotype_sources_ != new_sources)
+    {
+        filter_phenos_ = true;
+        last_phenotype_sources_ = new_sources;
+    }
+    refreshVariantTable();
+}
+
 void MainWindow::on_actionAnnotateSomaticVariantInterpretation_triggered()
 {
 	if (filename_.isEmpty()) return;
@@ -6170,7 +6223,6 @@ void MainWindow::applyFilters(bool debug_time)
 				timer.start();
 			}
 		}
-
 		//phenotype selection changed => update ROI
 		const PhenotypeList& phenos = ui_.filters->phenotypes();
 		if ((phenos!=last_phenos_) | filter_phenos_)
@@ -6183,7 +6235,6 @@ void MainWindow::applyFilters(bool debug_time)
 			GeneSet pheno_genes;
 			foreach(const Phenotype& pheno, phenos)
 			{
-
 				pheno_genes << db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(pheno.accession()), last_phenotype_sources_, last_phenotype_evidences_, true, false);
 			}
 

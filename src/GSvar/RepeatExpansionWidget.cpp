@@ -21,6 +21,9 @@ NumericWidgetItem::NumericWidgetItem(QString text):
 
 bool NumericWidgetItem::operator<(const QTableWidgetItem& other) const
 {
+	// return false for empty cells
+	if (text().trimmed().isEmpty()) return false;
+	if (other.text().trimmed().isEmpty()) return true;
 	//convert text to double
 	double this_value = Helper::toDouble(text());
 	double other_value = Helper::toDouble(other.text());

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>483</width>
-    <height>476</height>
+    <height>581</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <iconset resource="GSvar.qrc">
     <normaloff>:/Icons/Report.png</normaloff>:/Icons/Report.png</iconset>
   </property>
-  <layout class="QGridLayout" name="gridLayout" columnstretch="0,1,0,0">
+  <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0">
    <property name="leftMargin">
     <number>3</number>
    </property>
@@ -33,20 +33,6 @@
    <property name="spacing">
     <number>3</number>
    </property>
-   <item row="12" column="1" colspan="3">
-    <widget class="QCheckBox" name="exclude_artefact">
-     <property name="text">
-      <string>artefact</string>
-     </property>
-    </widget>
-   </item>
-   <item row="14" column="1" colspan="3">
-    <widget class="QCheckBox" name="exclude_phenotype">
-     <property name="text">
-      <string>phenotype not matching</string>
-     </property>
-    </widget>
-   </item>
    <item row="16" column="1" colspan="3">
     <widget class="QCheckBox" name="exclude_other">
      <property name="text">
@@ -64,15 +50,19 @@
      </property>
     </widget>
    </item>
-   <item row="13" column="1" colspan="3">
-    <widget class="QCheckBox" name="exclude_frequency">
+   <item row="14" column="1" colspan="3">
+    <widget class="QCheckBox" name="exclude_phenotype">
      <property name="text">
-      <string>frequency too high</string>
+      <string>phenotype not matching</string>
      </property>
     </widget>
    </item>
-   <item row="19" column="1" colspan="3">
-    <widget class="QPlainTextEdit" name="comments2"/>
+   <item row="12" column="1" colspan="3">
+    <widget class="QCheckBox" name="exclude_artefact">
+     <property name="text">
+      <string>artefact</string>
+     </property>
+    </widget>
    </item>
    <item row="4" column="0">
     <widget class="QLabel" name="label_8">
@@ -87,10 +77,33 @@
      </property>
     </widget>
    </item>
+   <item row="13" column="1" colspan="3">
+    <widget class="QCheckBox" name="exclude_frequency">
+     <property name="text">
+      <string>frequency too high</string>
+     </property>
+    </widget>
+   </item>
    <item row="4" column="1" colspan="3">
     <widget class="QCheckBox" name="causal">
      <property name="text">
       <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="19" column="1" colspan="3">
+    <widget class="QPlainTextEdit" name="comments2"/>
+   </item>
+   <item row="9" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="toolTip">
+      <string>The variant is in mosaic state.</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
      </property>
     </widget>
    </item>
@@ -110,6 +123,13 @@
      </property>
     </widget>
    </item>
+   <item row="7" column="1" colspan="2">
+    <widget class="QComboBox" name="inheritance">
+     <property name="toolTip">
+      <string>Inhertitance mode of the variant.</string>
+     </property>
+    </widget>
+   </item>
    <item row="2" column="0">
     <widget class="QLabel" name="label">
      <property name="toolTip">
@@ -123,23 +143,10 @@
      </property>
     </widget>
    </item>
-   <item row="7" column="1" colspan="2">
-    <widget class="QComboBox" name="inheritance">
-     <property name="toolTip">
-      <string>Inhertitance mode of the variant.</string>
-     </property>
-    </widget>
-   </item>
-   <item row="9" column="0">
-    <widget class="QLabel" name="label_4">
-     <property name="toolTip">
-      <string>The variant is in mosaic state.</string>
-     </property>
+   <item row="8" column="1" colspan="3">
+    <widget class="QCheckBox" name="de_novo">
      <property name="text">
-      <string/>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+      <string>de-novo</string>
      </property>
     </widget>
    </item>
@@ -161,7 +168,7 @@
       <string/>
      </property>
      <property name="pixmap">
-      <pixmap resource="GSvar.qrc">:/Icons/Info.png</pixmap>
+      <pixmap resource="../cppGUI/resources.qrc">:/Icons/Info.png</pixmap>
      </property>
      <property name="scaledContents">
       <bool>true</bool>
@@ -170,13 +177,6 @@
    </item>
    <item row="18" column="1" colspan="3">
     <widget class="QPlainTextEdit" name="comments"/>
-   </item>
-   <item row="8" column="1" colspan="3">
-    <widget class="QCheckBox" name="de_novo">
-     <property name="text">
-      <string>de-novo</string>
-     </property>
-    </widget>
    </item>
    <item row="7" column="0">
     <widget class="QLabel" name="label_2">
@@ -237,6 +237,13 @@
      </property>
     </widget>
    </item>
+   <item row="9" column="1" colspan="3">
+    <widget class="QCheckBox" name="mosaic">
+     <property name="text">
+      <string>mosaic</string>
+     </property>
+    </widget>
+   </item>
    <item row="10" column="0">
     <widget class="QLabel" name="label_5">
      <property name="toolTip">
@@ -250,27 +257,10 @@
      </property>
     </widget>
    </item>
-   <item row="20" column="0" colspan="4">
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-     </property>
-    </widget>
-   </item>
    <item row="6" column="0" colspan="4">
     <widget class="Line" name="line">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="9" column="1" colspan="3">
-    <widget class="QCheckBox" name="mosaic">
-     <property name="text">
-      <string>mosaic</string>
      </property>
     </widget>
    </item>
@@ -281,12 +271,15 @@
      </property>
     </widget>
    </item>
-   <item row="11" column="0" colspan="4">
-    <widget class="Line" name="line_2">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+   <item row="5" column="0">
+    <widget class="QLabel" name="label_classification">
+     <property name="text">
+      <string>classifcation:</string>
      </property>
     </widget>
+   </item>
+   <item row="5" column="1" colspan="3">
+    <widget class="QComboBox" name="classification"/>
    </item>
    <item row="12" column="0" rowspan="5">
     <widget class="QLabel" name="label_7">
@@ -304,51 +297,83 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="0">
-    <widget class="QLabel" name="label_classification">
-     <property name="text">
-      <string>classifcation:</string>
+   <item row="11" column="0" colspan="4">
+    <widget class="Line" name="line_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
-   <item row="5" column="1" colspan="3">
-    <widget class="QComboBox" name="classification"/>
+   <item row="20" column="0" colspan="4">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <property name="spacing">
+      <number>3</number>
+     </property>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_ok">
+       <property name="text">
+        <string>Ok</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_cancel">
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
  <resources>
+  <include location="../cppGUI/resources.qrc"/>
   <include location="GSvar.qrc"/>
  </resources>
  <connections>
   <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
+   <sender>btn_ok</sender>
+   <signal>clicked()</signal>
    <receiver>ReportVariantDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>368</x>
+     <y>576</y>
     </hint>
     <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
+     <x>274</x>
+     <y>474</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
+   <sender>btn_cancel</sender>
+   <signal>clicked()</signal>
    <receiver>ReportVariantDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>436</x>
+     <y>576</y>
     </hint>
     <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
+     <x>413</x>
+     <y>475</y>
     </hint>
    </hints>
   </connection>

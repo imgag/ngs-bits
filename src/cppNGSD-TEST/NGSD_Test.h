@@ -1012,7 +1012,7 @@ private slots:
 		vl.clear();
 		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
 		I_EQUAL(messages2.count(), 1);
-		S_EQUAL(messages2[0], "Could not find variant 'chr2:47635523-47635523 ->T' in given variant list!");
+		S_EQUAL(messages2[0], "Could not find variant 'chr2:47635523-47635523 ->T' in given variant list. The report configuration of this variant will be lost if you change anything in the report configuration!");
 		I_EQUAL(report_conf2->variantConfig().count(), 2);
 		X_EQUAL(report_conf2->variantConfig()[0].variant_type, VariantType::CNVS);
 
@@ -2106,9 +2106,19 @@ private slots:
 		config.filter_result = filters.apply(vl);
 		config.low_coverage_file = TESTDATA("data_in/tumor_only_stat_lowcov.bed");
 		config.preferred_transcripts.insert("MITF", QByteArrayList() << "ENST00000314589");
-		config.ps = "DX000001_01";
+
+		ProcessingSystemData sys;
+		sys.name = "tumor only test panel";
+		sys.type = "Panel";
+		config.sys = sys;
+
+		ProcessedSampleData ps_data;
+		ps_data.name = "DX000001_01";
+		ps_data.comments = "MHH_STUFF_IN_COMMENT";
+		config.ps_data = ps_data;
+
 		config.roi.name = "tum_only_target_filter";
-		config.roi.genes = GeneSet::createFromStringList(QStringList() << "MITF");
+		config.roi.genes = GeneSet::createFromStringList(QStringList() << "MITF" << "SYNPR");
 
 		BedFile tum_only_roi_filter;
 		tum_only_roi_filter.load(TESTDATA("data_in/tumor_only_target_region.bed"));
@@ -2117,6 +2127,7 @@ private slots:
 		config.include_coverage_per_gap = true;
 		config.include_exon_number_per_gap = true;
 		config.use_test_db = true;
+		config.build = GenomeBuild::HG19;
 
 		//create RTF report with 2 SNVs and two gaps
 		TumorOnlyReportWorker report_worker(vl, config);
@@ -2125,8 +2136,13 @@ private slots:
 
 		REMOVE_LINES("out/tumor_only_report.rtf", QRegExp(QDate::currentDate().toString("dd.MM.yyyy").toUtf8())); //today's date
 		REMOVE_LINES("out/tumor_only_report.rtf", QRegExp(QCoreApplication::applicationName().toUtf8())); //application name and version
-
 		COMPARE_FILES("out/tumor_only_report.rtf", TESTDATA("data_out/tumor_only_report.rtf"));
+
+
+		//create XML report
+		report_worker.writeXML("out/tumor_only_report.xml", true);
+
+		COMPARE_FILES("out/tumor_only_report.xml",  TESTDATA("data_out/tumor_only_report.xml") );
 	}
 
 
