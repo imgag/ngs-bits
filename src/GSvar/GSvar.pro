@@ -297,7 +297,9 @@ FORMS    += MainWindow.ui \
     PhenotypeSourceEvidenceSelector.ui \
     FusionWidget.ui \
     CohortExpressionDataWidget.ui \
-    ClinvarUploadStatusWidget.uiinclude("../app_gui.pri")
+    ClinvarUploadStatusWidget.ui
+
+include("../app_gui.pri")
 
 #include NGSD library
 INCLUDEPATH += $$PWD/../cppNGSD

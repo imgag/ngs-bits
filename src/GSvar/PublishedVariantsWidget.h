@@ -1,7 +1,18 @@
 #ifndef PUBLISHEDVARIANTSWIDGET_H
 #define PUBLISHEDVARIANTSWIDGET_H
 
+#include "ClinvarUploadDialog.h"
+#include "HttpHandler.h"
+
 #include <QWidget>
+
+
+struct SubmissionStatus
+{
+	QString status;
+	QString stable_id;
+	QString comment;
+};
 
 namespace Ui {
 class PublishedVariantsWidget;
@@ -21,9 +32,14 @@ private slots:
 	void updateTable();
 	void searchForVariantInLOVD();
 	void searchForVariantInClinVar();
+	void showContextMenu(QPoint pos);
 
 private:
 	Ui::PublishedVariantsWidget* ui_;
+	HttpHandler http_handler_;
+	SubmissionStatus getSubmissionStatus(const QString& submission_id, HttpHandler& http_handler);
+	ClinvarUploadData getClinvarUploadData(int var_pub_id);
+
 };
 
 #endif // PUBLISHEDVARIANTSWIDGET_H

@@ -107,6 +107,13 @@
        </property>
       </spacer>
      </item>
+     <item>
+      <widget class="QCheckBox" name="cb_show_replaced">
+       <property name="text">
+        <string>Also show replaced published variants</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item row="5" column="0">

@@ -7,13 +7,8 @@
 #include "NGSD.h"
 #include "HttpHandler.h"
 #include "ClinvarUploadDialog.h"
+#include "PublishedVariantsWidget.h"
 
-struct SubmissionStatus
-{
-	QString status;
-	QString stable_id;
-	QString comment;
-};
 
 namespace Ui {
 class ClinvarUploadStatusWidget;
