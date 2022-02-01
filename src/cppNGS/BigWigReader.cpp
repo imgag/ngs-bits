@@ -142,7 +142,7 @@ QList<BigWigReader::OverlappingInterval> BigWigReader::getOverlappingIntervals(c
     }
     else
     {
-        THROW(ArgumentException, "Couldn't find given chromosome in file.")
+		THROW(ArgumentException, "Couldn't find given chromosome in file: " + chr)
     }
     QList<OverlappingInterval> intervals;
 

@@ -97,6 +97,11 @@ QList<float> ChunkProcessor::getAnnotation(const QByteArray& chr, int start, int
 {
     int offset = -1; // offset is -1 as the vcf file uses genome coordinates from 1 - N but bw-files from 0 - N-1
 
+	if ( ! bw_reader_.containsChromosome(chr))
+	{
+		return QList<float>();
+	}
+
 	// insertions are not annotated:
     if (alt.length() > ref.length())
     {
