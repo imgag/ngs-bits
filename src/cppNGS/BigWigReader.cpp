@@ -57,6 +57,11 @@ double BigWigReader::defaultValue() const
 	return default_value_;
 }
 
+bool BigWigReader::defaulValueIsSet() const
+{
+	return default_value_is_set_;
+}
+
 bool BigWigReader::isLittleEndian() const
 {
 	return byte_order_ == QDataStream::LittleEndian;

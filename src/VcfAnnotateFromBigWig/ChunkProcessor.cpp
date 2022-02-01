@@ -10,7 +10,6 @@
 #include "BigWigReader.h"
 
 ChunkProcessor::ChunkProcessor(AnalysisJob &job, const QByteArray& name, const QByteArray& desc, const QByteArray& bw_filepath)
-
 	:QRunnable()
 	, terminate_(false)
 	, job_(job)

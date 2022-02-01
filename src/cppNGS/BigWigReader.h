@@ -67,6 +67,7 @@ public:
 		QVector<IndexRTreeNode> children; // twigs only
 	};
 
+
 	// Constructor
 	BigWigReader(const QString& bigWigFilepath);
 	// Destructor
@@ -74,25 +75,39 @@ public:
 
 	Header header() const;
 	Summary summary() const;
-	double defaultValue() const;
-
-	/// Set default Value used by the redValue functions. Has to be set before they can be used.
-	void setDefaultValue(double default_value);
-
 
 	// reports if a given chromosome name is contained in the file.
 	bool containsChromosome(const QByteArray& chr) const;
 
 	/**
-	 * @brief Reads the bigWig value for the given position of the genome. Default value HAS TO be set before it can be used.
-	 * @param offset Offset for regions as libBigWig uses zero-based genome indexing -> 0 - length-1
+	 * @brief function to only get the overlapping intervals to the given region.
+	 * Intervals are not filled up with default values so parts/or all of the region my be missing.
+	 * Intervals may also additionally cover adjecent regions.
+	 * @param offset Offset for regions as bigWig files use zero-based genome indexing -> 0 - length-1
+	 * @return the intervals that overlap with the given region
+	 */
+	QList<OverlappingInterval> getOverlappingIntervals(const QByteArray& chr, quint32 start, quint32 end, int offset=-1);
+
+
+	/// Read Value functions below need the default value
+	double defaultValue() const;
+	bool defaulValueIsSet() const;
+
+	/// Set default Value used by the redValue functions. Has to be set before they can be used.
+	void setDefaultValue(double default_value);
+
+	/**
+	 * @brief Reads the bigWig value for the given position of the genome.
+	 * Default value HAS TO be set before it can be used.
+	 * @param offset Offset for regions as bigWig files use zero-based genome indexing -> 0 - length-1
 	 * @return The value specified in the file or when the given position is not covered in the file returns the default_value.
 	 */
 	float readValue(const QByteArray& chr, int position, int offset=-1);
 
 	/**
-	 * @brief Reads the bigWig values for the given region of the genome. Default value HAS TO be set before it can be used.
-	 * @param offset Offset for regions as libBigWig uses zero-based genome indexing -> 0 - length-1
+	 * @brief Reads the bigWig values for the given region of the genome.
+	 * Default value HAS TO be set before it can be used.
+	 * @param offset Offset for regions as bigWig files use zero-based genome indexing -> 0 - length-1
 	 * @return A QVector containing a value for each position requested: values specified in the file or when the given position is not covered in the file the default_value.
 	 */
 	QVector<float> readValues(const QByteArray& chr, quint32 start, quint32 end, int offset=-1);
@@ -101,8 +116,7 @@ public:
 	/// Default value HAS TO be set before it can be used.
 	QVector<float> readValues(const QByteArray& region, int offset=-1);
 
-    // function to only get the overlapping intervals (not filled up with default values)
-    QList<OverlappingInterval> getOverlappingIntervals(const QByteArray& chr, quint32 start, quint32 end, int offset=-1);
+
 
 	// Print functions for convenience while testing
 	void printHeader() const;
