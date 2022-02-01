@@ -20,7 +20,7 @@ namespace {
 		if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + buildToString(build) + "'!");
 
 		//copy from resource file (gzopen cannot access Qt resources)
-		QString tmp = Helper::tempFileName(".vcf");
+		QString tmp = Helper::tempFileName("_snps.vcf");
 		QFile::copy(snp_file, tmp);
 
 		return tmp;

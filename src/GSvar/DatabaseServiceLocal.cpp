@@ -11,25 +11,25 @@ bool DatabaseServiceLocal::enabled() const
 	return enabled_;
 }
 
-BedFile DatabaseServiceLocal::processingSystemRegions(int sys_id, bool /*ignore_if_missing*/) const
+BedFile DatabaseServiceLocal::processingSystemRegions(int sys_id, bool ignore_if_missing) const
 {
 	checkEnabled(__PRETTY_FUNCTION__);
 
-	return NGSD().processingSystemRegions(sys_id);
+	return NGSD().processingSystemRegions(sys_id, ignore_if_missing);
 }
 
-BedFile DatabaseServiceLocal::processingSystemAmplicons(int sys_id, bool /*ignore_if_missing*/) const
+BedFile DatabaseServiceLocal::processingSystemAmplicons(int sys_id, bool ignore_if_missing) const
 {
 	checkEnabled(__PRETTY_FUNCTION__);
 
-	return NGSD().processingSystemAmplicons(sys_id);
+	return NGSD().processingSystemAmplicons(sys_id, ignore_if_missing);
 }
 
-GeneSet DatabaseServiceLocal::processingSystemGenes(int sys_id, bool /*ignore_if_missing*/) const
+GeneSet DatabaseServiceLocal::processingSystemGenes(int sys_id, bool ignore_if_missing) const
 {
 	checkEnabled(__PRETTY_FUNCTION__);
 
-	return NGSD().processingSystemGenes(sys_id);
+	return NGSD().processingSystemGenes(sys_id, ignore_if_missing);
 }
 
 QStringList DatabaseServiceLocal::secondaryAnalyses(QString processed_sample_name, QString analysis_type) const

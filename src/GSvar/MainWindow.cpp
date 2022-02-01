@@ -3534,8 +3534,8 @@ void MainWindow::generateReportTumorOnly()
 		{
 			TargetRegionInfo roi_info;
 			roi_info.name = config.sys.name;
-			roi_info.regions = db.processingSystemRegions(sys_id);
-			roi_info.genes = db.processingSystemGenes(sys_id);
+			roi_info.regions = GlobalServiceProvider::database().processingSystemRegions(sys_id, false);
+			roi_info.genes = GlobalServiceProvider::database().processingSystemGenes(sys_id, false);
 			config.roi = roi_info;
 		}
 
