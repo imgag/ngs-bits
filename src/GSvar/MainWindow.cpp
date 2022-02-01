@@ -4924,7 +4924,7 @@ void MainWindow::uploadToClinvar(int variant_index)
 		THROW(DatabaseException, "Could not determine report config id for sample " + data.processed_sample + "!");
 	}
 
-	data.variant_report_config_id = db.getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id="
+	data.report_config_variant_id = db.getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id="
 													+ QString::number(rc_id) + " AND variant_id=" + QString::number(data.variant_id), false).toInt();
 
 

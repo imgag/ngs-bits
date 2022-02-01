@@ -107,6 +107,7 @@ SOURCES += main.cpp\
     AnalysisInformationWidget.cpp \
     PhenotypeSourceEvidenceSelector.cpp\
     ClinvarUploadStatusWidget.cpp
+
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
     DatabaseServiceRemote.h \
@@ -203,10 +204,12 @@ HEADERS += MainWindow.h \
     CfdnaAnalysisDialog.h \
     ClinvarUploadDialog.h \
     LiftOverWidget.h \
+    BlatWidget.h \
     AnalysisInformationWidget.h \
     CacheInitWorker.h \
     PhenotypeSourceEvidenceSelector.h \
     ClinvarUploadStatusWidget.h
+
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \

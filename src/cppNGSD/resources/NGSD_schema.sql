@@ -591,6 +591,8 @@ CREATE  TABLE IF NOT EXISTS `variant_publication`
   `details` TEXT NOT NULL,
   `user_id` INT(11) NOT NULL,
   `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `result` TEXT DEFAULT NULL,
+  `replaced` BOOLEAN NOT NULL DEFAULT FALSE,
 PRIMARY KEY (`id`),
 CONSTRAINT `fk_variant_publication_has_user`
   FOREIGN KEY (`user_id`)

@@ -3028,14 +3028,22 @@ void NGSD::deleteSomaticGeneRole(QByteArray gene)
 }
 
 
-void NGSD::addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details)
+void NGSD::addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details, int user_id)
 {
 	QString s_id = sampleId(filename);
 	QString v_id = variantId(variant);
-	QString user_id = LoginManager::userIdAsString();
+	if (user_id < 0) user_id = LoginManager::userId();
 
 	//insert
-	getQuery().exec("INSERT INTO variant_publication (sample_id, variant_id, db, class, details, user_id) VALUES ("+s_id+","+v_id+", '"+database+"', '"+classification+"', '"+details+"', "+user_id+")");
+	SqlQuery query = getQuery();
+	query.prepare("INSERT INTO variant_publication (sample_id, variant_id, db, class, details, user_id) VALUES (:0, :1, :2, :3, :4, :5)");
+	query.bindValue(0, s_id);
+	query.bindValue(1, v_id);
+	query.bindValue(2, database);
+	query.bindValue(3, classification);
+	query.bindValue(4, details);
+	query.bindValue(5, user_id);
+	query.exec();
 }
 
 QString NGSD::getVariantPublication(QString filename, const Variant& variant)
@@ -3057,6 +3065,33 @@ QString NGSD::getVariantPublication(QString filename, const Variant& variant)
 	}
 
 	return output.join("\n");
+}
+
+void NGSD::updateVariantPublicationResult(int variant_publication_id, QString result)
+{
+	// check if given id is valid
+	if (getValue("SELECT COUNT(id) FROM variant_publication WHERE id=:0", false, QString::number(variant_publication_id)).toInt() != 1)
+	{
+		THROW(DatabaseException, "Given variant publication id '" + QString::number(variant_publication_id) + "' is not valid!");
+	}
+	SqlQuery query = getQuery();
+	query.prepare("UPDATE variant_publication SET result=:0 WHERE id=:1");
+	query.bindValue(0, result);
+	query.bindValue(1, variant_publication_id);
+	query.exec();
+}
+
+void NGSD::flagVariantPublicationAsReplaced(int variant_publication_id)
+{
+	// check if given id is valid
+	if (getValue("SELECT COUNT(id) FROM variant_publication WHERE id=:0", false, QString::number(variant_publication_id)).toInt() != 1)
+	{
+		THROW(DatabaseException, "Given variant publication id '" + QString::number(variant_publication_id) + "' is not valid!");
+	}
+	SqlQuery query = getQuery();
+	query.prepare("UPDATE variant_publication SET replaced=1 WHERE id=:0");
+	query.bindValue(0, variant_publication_id);
+	query.exec();
 }
 
 QString NGSD::comment(const Variant& variant)
