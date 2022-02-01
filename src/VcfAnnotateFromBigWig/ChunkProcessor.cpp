@@ -112,7 +112,7 @@ QList<float> ChunkProcessor::getAnnotation(const QByteArray& chr, int start, int
 	return interpretIntervals(bw_reader_.getOverlappingIntervals(chr, start, end, offset));
 }
 
-QList<float> ChunkProcessor::interpretIntervals(const QList<OverlappingInterval>& intervals)
+QList<float> ChunkProcessor::interpretIntervals(const QList<BigWigReader::OverlappingInterval>& intervals)
 {
     if (intervals.length() == 0)
     {
@@ -125,7 +125,7 @@ QList<float> ChunkProcessor::interpretIntervals(const QList<OverlappingInterval>
     else
     {
         float max = std::numeric_limits<float>::lowest();
-		foreach (const OverlappingInterval& i, intervals)
+		foreach (const BigWigReader::OverlappingInterval& i, intervals)
         {
             if (i.value > max)
             {

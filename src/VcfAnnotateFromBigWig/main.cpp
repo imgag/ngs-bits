@@ -35,7 +35,7 @@ public:
 		//optional
 		addInt("threads", "The number of threads used to read, process and write files.", true, 1);
 		addInt("block_size", "Number of lines processed in one chunk.", true, 5000);
-		addInt("prefetch", "Maximum number of chunks that may be pre-fetched into memory.", true, 64);
+		addInt("prefetch", "Maximum number of blocks that may be pre-fetched into memory.", true, 64);
 		addInt("debug", "Enables debug output at the given interval in milliseconds (disabled by default, cannot be combined with writing to STDOUT).", true, -1);
 
 		changeLog(2022, 01, 14, "Initial implementation.");

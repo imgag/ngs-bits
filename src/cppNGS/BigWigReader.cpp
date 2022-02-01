@@ -6,9 +6,8 @@
 #include <Log.h>
 
 
-BigWigReader::BigWigReader(const QString& bigWigFilepath, float default_value):
+BigWigReader::BigWigReader(const QString& bigWigFilepath):
 	file_path_(bigWigFilepath)
-  , default_value_(default_value)
 {
 	fp_ = QSharedPointer<VersatileFile>(new VersatileFile(bigWigFilepath));
 	if (!fp_->open(QFile::ReadOnly))
@@ -16,17 +15,12 @@ BigWigReader::BigWigReader(const QString& bigWigFilepath, float default_value):
 		THROW(FileAccessException, "Could not open versatile file for reading: '" + bigWigFilepath + "'!");
 	}
 	buffer_.clear();
+	default_value_is_set_ = false;
+	default_value_ = 0;
 
 	parseInfo();
 	parseChrom();
 	parseIndexTree();
-
-	if ( ! defaultValid())
-	{
-		// warn user that the default value cannot be distinguished from a real value
-		Log::warn(QString("The default value of the BigWigReader is within min and maxValue of the file! It can't be distinguished from a real value!\n %1 - min: %2 max: %3 default: %4")
-				  .arg(bigWigFilepath, QString::number(summary_.min_val), QString::number(summary_.max_val), QString::number(default_value)));
-	}
 }
 
 BigWigReader::~BigWigReader()
@@ -34,37 +28,41 @@ BigWigReader::~BigWigReader()
 	fp_->close();
 }
 
-void BigWigReader::setDefault(float new_default)
+void BigWigReader::setDefaultValue(double default_value)
 {
-	default_value_ = new_default;
+	if (summary_.min_val <= default_value_ && default_value_ <= summary_.max_val)
+	{
+		// warn user that the default value cannot be distinguished from a real value
+		Log::warn(QString("The default value of the BigWigReader is within min and maxValue of the file! It can't be distinguished from a real value!\n %1 - min: %2 max: %3 default: %4")
+				  .arg(file_path_, QString::number(summary_.min_val), QString::number(summary_.max_val), QString::number(default_value)));
+	}
+
+	default_value_ = default_value;
+	default_value_is_set_ = true;
 }
 
-bool BigWigReader::defaultValid()
-{
-	return (summary_.min_val > default_value_ || default_value_ > summary_.max_val);
-}
 
-float BigWigReader::defaultValue()
-{
-	return default_value_;
-}
-
-BigWigHeader BigWigReader::header()
+BigWigReader::Header BigWigReader::header() const
 {
 	return header_;
 }
 
-Summary BigWigReader::summary()
+BigWigReader::Summary BigWigReader::summary() const
 {
 	return summary_;
 }
 
-bool BigWigReader::isLittleEndian()
+double BigWigReader::defaultValue() const
+{
+	return default_value_;
+}
+
+bool BigWigReader::isLittleEndian() const
 {
 	return byte_order_ == QDataStream::LittleEndian;
 }
 
-bool BigWigReader::containsChromosome(const QByteArray& chr)
+bool BigWigReader::containsChromosome(const QByteArray& chr) const
 {
 	return chromosomes.contains(chr);
 }
@@ -85,8 +83,24 @@ float BigWigReader::readValue(const QByteArray& chr, int position, int offset)
 
 }
 
+QVector<float> BigWigReader::readValues(const QByteArray& region, int offset)
+{
+	QList<QByteArray> parts1 = region.split(':');
+	if (parts1.length() != 2) THROW(ArgumentException, "Given region is not formatted correctly: Expected 'chr:start-end'\n Given:" + QString(region));
+
+	QList<QByteArray> parts2 = parts1[1].split('-');
+	if (parts2.length() != 2) THROW(ArgumentException, "Given region is not formatted correctly: Expected 'chr:start-end'\n Given:" + QString(region));
+
+	return readValues(parts1[0], parts2[0].toInt(), parts2[1].toInt(), offset);
+}
+
 QVector<float> BigWigReader::readValues(const QByteArray& chr, quint32 start, quint32 end, int offset)
 {
+	if (! default_value_is_set_)
+	{
+		THROW(ProgrammingException, "The default value has to be set before the readValue functions can be used!")
+	}
+
     QList<OverlappingInterval> intervals = getOverlappingIntervals(chr, start, end, offset);
 
 	// split long intervals into single values:
@@ -114,18 +128,7 @@ QVector<float> BigWigReader::readValues(const QByteArray& chr, quint32 start, qu
 	return result;
 }
 
-QVector<float> BigWigReader::readValues(const QByteArray& region, int offset)
-{
-	QList<QByteArray> parts1 = region.split(':');
-	if (parts1.length() != 2) THROW(ArgumentException, "Given region is not formatted correctly: Expected 'chr:start-end'\n Given:" + QString(region));
-
-	QList<QByteArray> parts2 = parts1[1].split('-');
-	if (parts2.length() != 2) THROW(ArgumentException, "Given region is not formatted correctly: Expected 'chr:start-end'\n Given:" + QString(region));
-
-	return readValues(parts1[0], parts2[0].toInt(), parts2[1].toInt(), offset);
-}
-
-QList<OverlappingInterval> BigWigReader::getOverlappingIntervals(const QByteArray& chr, quint32 start, quint32 end, int offset)
+QList<BigWigReader::OverlappingInterval> BigWigReader::getOverlappingIntervals(const QByteArray& chr, quint32 start, quint32 end, int offset)
 {
     quint32 chr_id;
     if (containsChromosome(chr))
@@ -158,59 +161,7 @@ QList<OverlappingInterval> BigWigReader::getOverlappingIntervals(const QByteArra
     return intervals;
 }
 
-
-float BigWigReader::reproduceVepPhylopAnnotation(const QByteArray& chr, int start, int end, const QString& ref, const QString& alt)
-{
-	if ( ! containsChromosome(chr))
-	{
-		return 0;
-	}
-	//insterions
-	if (alt.length() > ref.length())
-	{
-		if ((ref.length() == 1) && (ref[0] != alt[0]) && (start==end)) // insertions that deletes a single base get the value of that base
-		{
-			double res = readValue(chr, end);
-			if (res == defaultValue())
-			{
-				return 0;
-			}
-			else
-			{
-				return res;
-			}
-		}
-		return 0; // other insertions are set to zero
-	}
-
-	// deletions
-	if (ref.length() > alt.length())
-	{
-		if (alt.length() == 1 && ref[0] != alt[0]) // if a single base replaces multiple ref bases set it to zero
-		{
-			return 0;
-		}
-	}
-    // for mutations concering a single base /two bases take the value of the "last"
-	if (end-start <= 1)
-	{
-		double res = readValue(chr, end);
-		if (res == defaultValue())
-		{
-			return 0;
-		}
-		else
-		{
-			return res;
-		}
-	}
-
-	// for multi base deletions also set it to zero
-	return 0;
-
-}
-
-QList<OverlappingBlock> BigWigReader::getOverlappingBlocks(quint32 chr_id, quint32 start, quint32 end)
+QList<BigWigReader::OverlappingBlock> BigWigReader::getOverlappingBlocks(quint32 chr_id, quint32 start, quint32 end)
 {
 	QList<OverlappingBlock> result;
 
@@ -228,7 +179,7 @@ QList<OverlappingBlock> BigWigReader::getOverlappingBlocks(quint32 chr_id, quint
 	return result;
 }
 
-QList<OverlappingBlock> BigWigReader::overlapsTwig(const IndexRTreeNode& node, quint32 chr_id, quint32 start, quint32 end)
+QList<BigWigReader::OverlappingBlock> BigWigReader::overlapsTwig(const IndexRTreeNode& node, quint32 chr_id, quint32 start, quint32 end)
 {
 	QList<OverlappingBlock> blocks;
 	for (quint16 i=0; i<node.count; i++)
@@ -268,7 +219,7 @@ QList<OverlappingBlock> BigWigReader::overlapsTwig(const IndexRTreeNode& node, q
 	return blocks;
 }
 
-QList<OverlappingBlock> BigWigReader::overlapsLeaf(const IndexRTreeNode& node, quint32 chr_id, quint32 start, quint32 end)
+QList<BigWigReader::OverlappingBlock> BigWigReader::overlapsLeaf(const IndexRTreeNode& node, quint32 chr_id, quint32 start, quint32 end)
 {
 	QList<OverlappingBlock> blocks;
 	for (quint16 i=0; i<node.count; i++)
@@ -320,7 +271,7 @@ QList<OverlappingBlock> BigWigReader::overlapsLeaf(const IndexRTreeNode& node, q
 	return blocks;
 }
 
-QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList<OverlappingBlock>& blocks, quint32 chr_id, quint32 start, quint32 end)
+QList<BigWigReader::OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList<OverlappingBlock>& blocks, quint32 chr_id, quint32 start, quint32 end)
 {
 	QList<OverlappingInterval> result;
 	buffer_.clear();
@@ -602,7 +553,7 @@ void BigWigReader::parseIndexTree()
 	index_tree_.root = parseIndexTreeNode(index_tree_.root_offset);
 }
 
-IndexRTreeNode BigWigReader::parseIndexTreeNode(quint64 offset)
+BigWigReader::IndexRTreeNode BigWigReader::parseIndexTreeNode(quint64 offset)
 {
 	fp_->seek(offset);
 	QByteArray node_header_bytes = fp_->read(4);
@@ -666,7 +617,7 @@ IndexRTreeNode BigWigReader::parseIndexTreeNode(quint64 offset)
 	return node;
 }
 
-void BigWigReader::printHeader()
+void BigWigReader::printHeader() const
 {
 	std::cout << "Header: \n";
 	std::cout << "Version:\t" << header_.version << "\n";
@@ -679,7 +630,7 @@ void BigWigReader::printHeader()
 	std::cout << "BufSize:\t" << std::dec << header_.uncompress_buf_size << "\n" << std::endl;
 }
 
-void BigWigReader::printSummary()
+void BigWigReader::printSummary() const
 {
 	std::cout << "Summary:\n";
 	std::cout << "Bases covered:\t" << summary_.bases_covered << "\n";
@@ -689,7 +640,7 @@ void BigWigReader::printSummary()
 	std::cout << "sum Squares:\t" << summary_.sum_squares << "\n" << std::endl;
 }
 
-void BigWigReader::printZoomLevels()
+void BigWigReader::printZoomLevels() const
 {
 	std::cout << "Zoom levles:\n";
 	for (int i=0; i<zoom_levels_.length(); i++)
@@ -702,7 +653,7 @@ void BigWigReader::printZoomLevels()
 	}
 }
 
-void BigWigReader::printChromHeader()
+void BigWigReader::printChromHeader() const
 {
 	std::cout << "Chrom Header:\n";
 	std::cout << "magic: \t0x" << chr_header.magic << "\n";
@@ -712,7 +663,7 @@ void BigWigReader::printChromHeader()
 	std::cout << "item count:\t" << chr_header.item_count << "\n" << std::endl;
 }
 
-void BigWigReader::printChromosomes()
+void BigWigReader::printChromosomes() const
 {
 	std::cout << "Chromosomes: #" << chromosomes.keys().length() <<"\n";
 	foreach (const QString &chr_key, chromosomes.keys())
@@ -722,7 +673,7 @@ void BigWigReader::printChromosomes()
 	std::cout << std::endl;
 }
 
-void BigWigReader::printIndexTree()
+void BigWigReader::printIndexTree() const
 {
 	std::cout << "IndexTree:\n";
 	std::cout << "ChrIdxStart:\t" << QString::number(index_tree_.chr_idx_start).toStdString() << "\n";
@@ -737,7 +688,7 @@ void BigWigReader::printIndexTree()
 	std::cout << std::endl;
 }
 
-void BigWigReader::printIndexTreeNode(const IndexRTreeNode& node, int level)
+void BigWigReader::printIndexTreeNode(const BigWigReader::IndexRTreeNode& node, int level) const
 {
 	for (quint32 i=0;  i<node.count; i++)
 	{

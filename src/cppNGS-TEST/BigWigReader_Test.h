@@ -18,7 +18,7 @@ private slots:
 		BigWigReader r = BigWigReader(QString(TESTDATA("data_in/BigWigReader.bw")));
 
 		//Header
-		BigWigHeader header = r.header();
+		BigWigReader::Header header = r.header();
 		I_EQUAL(header.version, 4);
 		I_EQUAL(header.zoom_levels, 1);
 		I_EQUAL(header.chromosome_tree_offset, 0x158);
@@ -29,14 +29,23 @@ private slots:
 		I_EQUAL(header.uncompress_buf_size, 32768);
 
 		//Summary
-		Summary summary = r.summary();
+		BigWigReader::Summary summary = r.summary();
 		I_EQUAL(summary.bases_covered, 154);
 		F_EQUAL(summary.min_val, 0.1);
 		F_EQUAL(summary.max_val, 2.0);
 		F_EQUAL2(summary.sum_data, 272.1, 0.000001);
 		F_EQUAL2(summary.sum_squares, 500.389992, 0.000001);
 
+
+		// Make sure exceptions are thrown if default value is not set:
+		IS_THROWN(ProgrammingException, r.readValue("1", 0, 0));
+		IS_THROWN(ProgrammingException, r.readValues("1", 100, 150, 0));
+		IS_THROWN(ProgrammingException, r.readValues("1:0-1", 0));
+
 		//Read single values
+		r.setDefaultValue(-50);
+		F_EQUAL(r.defaultValue(), (-50));
+
 		float result;
 		result = r.readValue("1", 0, 0);
 		F_EQUAL2(result, 0.1f, 0.000001);
@@ -51,13 +60,20 @@ private slots:
 		F_EQUAL2(result, r.defaultValue(), 0.000001);
 
 		//read multiple values
-		// existing in file
+		//existing in file
 		QVector<float> intervals = r.readValues("1", 100, 150, 0);
 		for (int i=0; i<intervals.size(); i++)
 		{
 			F_EQUAL2(intervals[i], 1.4f, 0.000001);
 		}
 		I_EQUAL(intervals.size(), 50);
+
+		intervals = r.readValues("1:100-110", 0);
+		for (int i=0; i<intervals.size(); i++)
+		{
+			F_EQUAL2(intervals[i], 1.4f, 0.000001);
+		}
+		I_EQUAL(intervals.size(), 10);
 
 		// not in file
 		intervals = r.readValues("1", 80, 90, 0);
@@ -67,9 +83,25 @@ private slots:
 		}
 		I_EQUAL(intervals.size(), 10);
 
+		//half half:
+		intervals = r.readValues("1", 90, 110, 0);
+		for (int i=0; i<intervals.size(); i++)
+		{
+			if (i  <  10)
+			{
+				F_EQUAL2(intervals[i], r.defaultValue(), 0.000001);
+			}
+			else
+			{
+				F_EQUAL2(intervals[i], 1.4f, 0.000001);
+			}
+
+		}
+		I_EQUAL(intervals.size(), 20);
+
 		//test change default
 		float new_default = -42;
-		r.setDefault(new_default);
+		r.setDefaultValue(new_default);
 
 		F_EQUAL(new_default, r.defaultValue());
 
@@ -89,7 +121,7 @@ private slots:
         BigWigReader r = BigWigReader(QString(TESTDATA("data_in/BigWigReader.bw")));
 
         // Overlapping single value intervals
-        QList<OverlappingInterval> intervals = r.getOverlappingIntervals("1", 0, 1, 0);
+		QList<BigWigReader::OverlappingInterval> intervals = r.getOverlappingIntervals("1", 0, 1, 0);
         I_EQUAL(intervals.length(), 1);
         I_EQUAL(intervals[0].start, 0);
         I_EQUAL(intervals[0].end, 1);
@@ -116,27 +148,6 @@ private slots:
         intervals = r.getOverlappingIntervals("1", 99, 100, 0);
         I_EQUAL(intervals.length(), 0)
     }
-
-	void test_vep_annotation_file_test()
-	{
-		BigWigReader r = BigWigReader(TESTDATA("data_in/BigWigReader_phyloP_chr1_part.bw"));
-		QString test_file = TESTDATA("data_in/BigWigReader_vep1.vcf");
-
-		VcfFile vcf = VcfFile();
-		vcf.load(test_file);
-
-		int i_phylop = vcf.vcfHeader().vepIndexByName("PHYLOP", false);
-		for (int i=0; i<vcf.count(); i++)
-		{
-			VcfLine v = vcf[i];
-			int start = v.start();
-			int end = v.end();
-			QByteArray chr = v.chr().str();
-
-			double expectedValue = v.vepAnnotations(i_phylop)[0].toDouble();
-			F_EQUAL(r.reproduceVepPhylopAnnotation(chr, start, end, QString(v.ref()), QString(v.altString())), expectedValue)
-		}
-	}
 };
 
 

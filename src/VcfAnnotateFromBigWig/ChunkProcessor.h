@@ -21,7 +21,7 @@ public:
 
 private:
 
-    QList<float> interpretIntervals(const QList<OverlappingInterval>& intervals);
+	QList<float> interpretIntervals(const QList<BigWigReader::OverlappingInterval>& intervals);
 	bool terminate_;
 	AnalysisJob& job_;
 	const QByteArray name_;
