@@ -18,6 +18,8 @@ public:
 	static int convertResponseStatusToStatusCodeNumber(const ResponseStatus& status_code);
 	static QString convertResponseStatusCodeNumberToStatusClass(const int& status_code_number);
 
+	static ContentType detectErrorContentType(const QList<QString> headers);
+
 protected:
 	HttpProcessor();
 
