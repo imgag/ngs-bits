@@ -69,6 +69,7 @@ CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_wi
 	ui->setupUi(this);
 	connect(ui->cnvs, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(cnvDoubleClicked(QTableWidgetItem*)));
 	connect(ui->cnvs, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
+	connect(ui->flag_artefacts, SIGNAL(clicked(bool)), this, SLOT(flagSomaticArtefacts()) );
 	connect(ui->copy_clipboard, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 	connect(ui->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
 	connect(ui->filter_widget, SIGNAL(targetRegionChanged()), this, SLOT(clearTooltips()));
@@ -106,6 +107,11 @@ void CnvWidget::initGUI()
 	{
 		addInfoLine("<font color='red'>Error parsing file:\n" + e.message() + "</font>");
 		disableGUI();
+	}
+
+	if(is_somatic_)
+	{
+		ui->flag_artefacts->setEnabled(true);
 	}
 
 	//apply filters
@@ -1131,6 +1137,31 @@ void CnvWidget::editSomaticReportConfiguration(const QList<int> &rows)
 
 		updateReportConfigHeaderIcon(row);
 	}
+	emit storeSomaticReportConfiguration();
+}
+
+void CnvWidget::flagSomaticArtefacts()
+{
+	if(somatic_report_config_ == nullptr)
+	{
+		THROW(ProgrammingException, "SomaticReportConfiguration in CnvWidget is null pointer.");
+	}
+
+	SomaticReportVariantConfiguration generic_var_config;
+	generic_var_config.variant_type = VariantType::CNVS;
+	generic_var_config.exclude_artefact = true;
+	generic_var_config.comment = "Flagged as CNV artefact by batch filtering";
+
+	for(int r=0; r<ui->cnvs->rowCount(); ++r)
+	{
+		if(ui->cnvs->isRowHidden(r))
+		{
+			generic_var_config.variant_index = r;
+			somatic_report_config_->set(generic_var_config);
+			updateReportConfigHeaderIcon(r);
+		}
+	}
+
 	emit storeSomaticReportConfiguration();
 }
 
