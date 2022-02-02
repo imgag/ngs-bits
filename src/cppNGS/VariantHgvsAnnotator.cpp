@@ -706,42 +706,24 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
         int seq_length = 120;
         Sequence seq_ref;
 
-        if(plus_strand)
+        if(variant.isDel())
         {
-            if(variant.isDel())
-            {
-                seq_ref = coding_sequence.mid(pos_trans_start - offset, frame_diff + seq_length);
-                seq_obs = seq_ref.left(offset) + seq_ref.mid(offset + frame_diff);
-            }
-            else if(variant.isIns())
-            {
-                seq_ref = coding_sequence.mid(pos_trans_start - offset, seq_length);
-                seq_obs = seq_ref.left(offset + 1) + variant.alt(0).right(frame_diff) + seq_ref.right(seq_length - offset - 1);
-            }
-            else
-            {
-                seq_ref = coding_sequence.mid(pos_trans_start - offset, variant.ref().length() + seq_length - 1);
-                seq_obs = seq_ref.left(offset + 1) + variant.alt(0).mid(1) + seq_ref.right(seq_length - offset);
-            }
+            seq_ref = coding_sequence.mid(pos_trans_start - offset, frame_diff + seq_length);
+            seq_obs = seq_ref.left(offset) + seq_ref.mid(offset + frame_diff);
+        }
+        else if(variant.isIns())
+        {
+            seq_ref = coding_sequence.mid(pos_trans_start - offset, seq_length);
+            Sequence alt = variant.alt(0).right(frame_diff);
+            if(!plus_strand) alt.reverseComplement();
+            seq_obs = seq_ref.left(offset + 1) + alt + seq_ref.right(seq_length - offset - 1);
         }
         else
         {
-            if(variant.isDel())
-            {
-                seq_ref = coding_sequence.mid(pos_trans_start - offset, frame_diff + seq_length);
-                seq_obs = seq_ref.left(offset) + seq_ref.mid(offset + frame_diff);
-            }
-            else if(variant.isIns())
-            {
-                seq_ref = coding_sequence.mid(pos_trans_start - offset, seq_length);
-                seq_obs = seq_ref.left(offset + 1) + variant.alt(0).toReverseComplement().left(frame_diff) + seq_ref.right(seq_length - offset - 1);
-            }
-            else
-            {
-                seq_ref = coding_sequence.mid(pos_trans_start - offset, variant.ref().length() + seq_length - 1);
-                Sequence alt = variant.alt(0).mid(1);
-                seq_obs = seq_ref.left(offset) + alt.toReverseComplement() + seq_ref.right(seq_length - offset);
-            }
+            seq_ref = coding_sequence.mid(pos_trans_start - offset, variant.ref().length() + seq_length - 1);
+            Sequence alt = variant.alt(0).mid(1);
+            if(!plus_strand) alt.reverseComplement();
+            seq_obs = seq_ref.left(offset + plus_strand ? 1 : 0) + alt + seq_ref.right(seq_length - offset);
         }
 
         if(variant.isDel() || (variant.isIns() && frame_diff % 3 != 0) || (!variant.isIns() && !variant.isDel()))
@@ -759,6 +741,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
                     pos_shift += 3;
                 }
             }
+            aa_ref.append(QByteArray::number((pos_trans_start + pos_shift) / 3 + 1));
         }
         else if(variant.isIns())
         {
@@ -770,15 +753,36 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
 
             if(aa_obs == aa_ref && aa_obs_after == aa_ref_after)
             {
-                aa_obs = "ins" + translate(seq_obs.mid(3, frame_diff));
+                QString inserted_sequence = translate(seq_obs.mid(3, frame_diff));
+                QString left_sequence;
+                if(pos_trans_start - offset - frame_diff > 0)
+                {
+                    left_sequence = translate(coding_sequence.mid(pos_trans_start - offset - frame_diff + 3, frame_diff));
+                }
+                if(inserted_sequence == left_sequence)
+                {
+                    aa_ref = left_sequence.left(3).toUtf8();
+                    aa_ref.append(QByteArray::number((pos_trans_start - offset - frame_diff + 3) / 3 + 1));
+                    if(left_sequence.length() > 3)
+                    {
+                        aa_ref.append("_" + left_sequence.right(3));
+                        aa_ref.append(QByteArray::number((pos_trans_start - offset) / 3 + 1));
+                    }
+                    aa_obs = "dup";
+                }
+                else
+                {
+                    aa_ref.append(QByteArray::number(pos_trans_start / 3 + 1));
+                    aa_obs = "ins" + inserted_sequence.toUtf8();
+                }
             }
             //delins if first amino acid is changed by the insertion
             else if(aa_obs_after == aa_ref_after)
             {
+                aa_ref.append(QByteArray::number(pos_trans_start / 3 + 1));
                 aa_obs = "delins" + translate(seq_obs.left(3 + frame_diff));
             }
         }
-        aa_ref.append(QByteArray::number((pos_trans_start + pos_shift) / 3 + 1));
 
         // frameshift deletion/insertion/deletion-insertion
         if(frame_diff % 3 != 0)
@@ -824,7 +828,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
         //inframe insertion
         else if(variant.isIns())
         {
-            if(!aa_obs.startsWith("delins"))
+            if(!aa_obs.startsWith("delins") && aa_obs != "dup")
             {
                 aa_ref += "_" + toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(3, 3)))
                         + QByteArray::number((pos_trans_start + pos_shift) / 3 + 2);

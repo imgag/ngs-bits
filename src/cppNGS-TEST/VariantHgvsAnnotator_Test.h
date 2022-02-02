@@ -440,6 +440,19 @@ private slots:
         I_EQUAL(hgvs.intron_number, -1);
         S_EQUAL(hgvs.allele, "GGGTGACAGAGTGACACCATCTCTTGAAAGAGAGAGAGAGAGAGAG");
 
+        // inframe duplication
+        alt.clear();
+        alt.push_back("CTGCTGCTGC");
+        variant.setPos(196228229);
+        variant.setRef("CTGCTGC");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.490_492dup");
+        S_EQUAL(hgvs.hgvs_p, "p.Cys164dup");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_INSERTION));
+
         Transcript t_2 = trans_DECR1();
 
         // inframe deletion
@@ -851,6 +864,19 @@ private slots:
         I_EQUAL(hgvs.exon_number, 5);
         I_EQUAL(hgvs.intron_number, -1);
         S_EQUAL(hgvs.allele, "GGGGG");
+
+        // inframe duplication
+        alt.clear();
+        alt.push_back("GTTCTCG");
+        variant.setPos(195569089);
+        variant.setRef("G");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.376_381dup");
+        S_EQUAL(hgvs.hgvs_p, "p.Glu126_Asn127dup");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_INSERTION));
 
         Transcript t_2 = trans_CALCA();
 
