@@ -59,6 +59,8 @@ void PublishedVariantsWidget::updateTable()
 	bg_orange.setAlphaF(0.5);
 	QColor bg_yellow = Qt::yellow;
 	bg_yellow.setAlphaF(0.5);
+	QColor bg_gray = Qt::gray;
+	bg_gray.setAlphaF(0.5);
 
 
 	//init
@@ -131,8 +133,15 @@ void PublishedVariantsWidget::updateTable()
 	headers.replace(headers.indexOf("variant_id"), "variant");
 	table.setHeaders(headers);
 
-	//remove 'replaced' column
-	table.takeColumn(table.columnIndex("replaced"));
+	if (!ui_->cb_show_replaced->isChecked())
+	{
+		//remove 'replaced' column
+		table.takeColumn(table.columnIndex("replaced"));
+	}
+	else
+	{
+		table.formatBooleanColumn(table.columnIndex("replaced"));
+	}
 
 	//remove 'result' column and split it into multiple columns
 	int result_idx = table.columnIndex("result");
@@ -187,6 +196,12 @@ void PublishedVariantsWidget::updateTable()
 	ui_->table->setBackgroundColorIfEqual("ClinVar submission status", bg_red, "error");
 	ui_->table->setBackgroundColorIfEqual("ClinVar submission status", bg_green, "processed");
 	ui_->table->setBackgroundColorIfEqual("ClinVar submission status", bg_yellow, "processing");
+
+	//format replaced column if available
+	if (ui_->cb_show_replaced->isChecked())
+	{
+		ui_->table->setBackgroundColorIfEqual("replaced", bg_gray, "yes");
+	}
 
 
 	//set tool tips
