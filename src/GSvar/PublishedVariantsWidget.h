@@ -30,14 +30,15 @@ public:
 
 private slots:
 	void updateTable();
+	void updateClinvarSubmissionStatus();
 	void searchForVariantInLOVD();
 	void searchForVariantInClinVar();
-	void showContextMenu(QPoint pos);
+	void retryClinvarSubmission();
 
 private:
 	Ui::PublishedVariantsWidget* ui_;
 	HttpHandler http_handler_;
-	SubmissionStatus getSubmissionStatus(const QString& submission_id, HttpHandler& http_handler);
+	SubmissionStatus getSubmissionStatus(const QString& submission_id);
 	ClinvarUploadData getClinvarUploadData(int var_pub_id);
 
 };

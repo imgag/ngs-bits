@@ -169,6 +169,7 @@ void ClinvarUploadDialog::upload()
     if (!validateJson(clinvar_submission, errors))
     {
         QMessageBox::warning(this, "JSON validation failed", "The generated JSON contains the following errors: \n" + errors.join("\n"));
+		ui_.upload_btn->setEnabled(true);
         return;
     }
 
@@ -267,6 +268,7 @@ void ClinvarUploadDialog::upload()
 			{
 				details << "reupload=true";
 				details << "previous_publication_id=" + QString::number(clinvar_upload_data_.variant_publication_id);
+				details << "reupload_by=" + LoginManager::user();
 			}
 
             // log publication in NGSD
@@ -286,7 +288,7 @@ void ClinvarUploadDialog::upload()
 			// log original submitter for reuploads
 			if (clinvar_upload_data_.user_id > 0)
 			{
-				lines << "user: " + db_.userLogin(clinvar_upload_data_.user_id) + "(Reupload by " + LoginManager::user() + ")";
+				lines << "user: " + db_.userLogin(clinvar_upload_data_.user_id) + " (Reupload by " + LoginManager::user() + ")";
 			}
 			else
 			{
@@ -305,6 +307,7 @@ void ClinvarUploadDialog::upload()
 					QString file_rep = gsvar_publication_folder + "/" + clinvar_upload_data_.processed_sample + "_CLINVAR_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".txt";
                     Helper::storeTextFile(file_rep, ui_.comment_upload->toPlainText().split("\n"));
             }
+			ui_.upload_btn->setEnabled(false);
 
         }
         else
@@ -497,7 +500,7 @@ QJsonObject ClinvarUploadDialog::createJson()
         clinvar_submission.insert("clinicalSignificance", clinical_significance);
 
         //optional
-		if (clinvar_upload_data_.stable_id.isEmpty())
+		if (!clinvar_upload_data_.stable_id.isEmpty())
 		{
 			clinvar_submission.insert("clinvarAccession", clinvar_upload_data_.stable_id);
 		}
@@ -746,7 +749,7 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
 		QString scv_id = clinvar_submission.value("clinvarAccession").toString();
 		if (!scv_id.startsWith("SCV"))
 		{
-			errors << "ID for  'clinvarAccession' in 'clinvarSubmission' doesn't match the required format (Has to start with SCV)!";
+			errors << "ID '" + scv_id + "' for 'clinvarAccession' in 'clinvarSubmission' doesn't match the required format (Has to start with SCV)!";
 			is_valid = false;
 		}
 	}

@@ -18,6 +18,7 @@ PublishedVariantsWidget::PublishedVariantsWidget(QWidget* parent)
 {
 	ui_->setupUi(this);
 	connect(ui_->search_btn, SIGNAL(clicked(bool)), this, SLOT(updateTable()));
+	connect(ui_->updateStatus_btn, SIGNAL(clicked(bool)), this, SLOT(updateClinvarSubmissionStatus()));
 
 	//fill filter boxes
 	NGSD db;
@@ -35,6 +36,11 @@ PublishedVariantsWidget::PublishedVariantsWidget(QWidget* parent)
 	action = new QAction(QIcon(":/Icons/ClinGen.png"), "Find in ClinVar", this);
 	ui_->table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(searchForVariantInClinVar()));
+
+	//rebumit to ClinVar
+	action = new QAction(QIcon(":/Icons/ClinGen.png"), "Edit/retry ClinVar submission", this);
+	ui_->table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(retryClinvarSubmission()));
 }
 
 PublishedVariantsWidget::~PublishedVariantsWidget()
@@ -44,6 +50,17 @@ PublishedVariantsWidget::~PublishedVariantsWidget()
 
 void PublishedVariantsWidget::updateTable()
 {
+	// define table backround colors
+	QColor bg_red = Qt::red;
+	bg_red.setAlphaF(0.5);
+	QColor bg_green = Qt::darkGreen;
+	bg_green.setAlphaF(0.5);
+	QColor bg_orange = QColor(255, 135, 60);
+	bg_orange.setAlphaF(0.5);
+	QColor bg_yellow = Qt::yellow;
+	bg_yellow.setAlphaF(0.5);
+
+
 	//init
 	NGSD db;
 	QStringList constraints;
@@ -119,57 +136,16 @@ void PublishedVariantsWidget::updateTable()
 
 	//remove 'result' column and split it into multiple columns
 	int result_idx = table.columnIndex("result");
-	int db_idx = table.columnIndex("db");
-	int details_idx = table.columnIndex("details");
-	int id_idx = table.columnIndex("id");
 	QStringList results = table.takeColumn(result_idx);
 	QStringList status, stable_ids, error_messages;
-	int row_idx = 0;
-	foreach (const QString& result, results)
+	for (int row_idx = 0; row_idx < results.size(); ++row_idx)
 	{
+		const QString& result = results.at(row_idx);
 		if (result.isEmpty())
 		{
-			if ((table.row(row_idx).value(db_idx) == "ClinVar") && (table.row(row_idx).value(details_idx).contains("submission_id=SUB")))
-			{
-				//get submission id
-				QString submission_id;
-				foreach (const QString& key_value_pair, table.row(row_idx).value(details_idx).split(';'))
-				{
-					if (key_value_pair.startsWith("submission_id="))
-					{
-						submission_id = key_value_pair.split("=").at(1).trimmed();
-						break;
-					}
-				}
-				if (submission_id.isEmpty()) THROW(ArgumentException, "No ClinVar submission id found!");
-				//get status from ClinVar
-				SubmissionStatus submission_status = getSubmissionStatus(submission_id, http_handler_);
-				if (submission_status.status == "processed" || submission_status.status == "error")
-				{
-					QString result = submission_status.status + ";";
-					if (submission_status.status == "processed")
-					{
-						result += submission_status.stable_id;
-					}
-					else //submission_status.status == "error"
-					{
-						result += submission_status.comment;
-					}
-					//update result info in the NGSD
-					db.updateVariantPublicationResult(table.row(row_idx).value(id_idx).toInt(), result);
-				}
-				status << "";
-				stable_ids << "";
-				error_messages << "";
-			}
-			else
-			{
-				status << "";
-				stable_ids << "";
-				error_messages << "";
-
-			}
-
+			status << "";
+			stable_ids << "";
+			error_messages << "";
 		}
 		else if (result.startsWith("error;"))
 		{
@@ -189,9 +165,9 @@ void PublishedVariantsWidget::updateTable()
 			stable_ids << "";
 			error_messages << "";
 		}
-		row_idx++;
+
 	}
-	table.addColumn(status, "submission status");
+	table.addColumn(status, "ClinVar submission status");
 	table.addColumn(stable_ids, "ClinVar accession id");
 	table.addColumn(error_messages, "errors");
 
@@ -205,11 +181,95 @@ void PublishedVariantsWidget::updateTable()
 	}
 
 	//show data
-	ui_->table->setData(table);
+	ui_->table->setData(table, 350);
 
 	//color results
-	ui_->table->setBackgroundColorIfEqual("submission status", Qt::darkRed, "error");
-	ui_->table->setBackgroundColorIfEqual("submission status", Qt::darkGreen, "processed");
+	ui_->table->setBackgroundColorIfEqual("ClinVar submission status", bg_red, "error");
+	ui_->table->setBackgroundColorIfEqual("ClinVar submission status", bg_green, "processed");
+	ui_->table->setBackgroundColorIfEqual("ClinVar submission status", bg_yellow, "processing");
+
+
+	//set tool tips
+	ui_->table->showTextAsTooltip("errors");
+	ui_->table->showTextAsTooltip("details");
+
+	QApplication::restoreOverrideCursor();
+}
+
+void PublishedVariantsWidget::updateClinvarSubmissionStatus()
+{
+	//deactivate button and set busy curser
+	ui_->updateStatus_btn->setEnabled(false);
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
+	// parse variant publication table and update ClinVar submission status
+	NGSD db;
+	SqlQuery query = db.getQuery();
+
+	query.exec("SELECT id, details, result FROM variant_publication WHERE db='ClinVar'");
+
+	int n_var_checked = 0;
+	int n_var_updated = 0;
+
+	while(query.next())
+	{
+		int vp_id = query.value("id").toInt();
+		QString details = query.value("details").toString();
+		QString result = query.value("result").toString();
+
+		// skip publications without submission id
+		if (!details.contains("submission_id=SUB")) continue;
+
+		// skip publications which are already processed
+		if (result.startsWith("processed")) continue;
+		if (result.startsWith("error")) continue;
+
+		//extract submission id
+		QString submission_id;
+		foreach (const QString& key_value_pair, details.split(';'))
+		{
+			if (key_value_pair.startsWith("submission_id=SUB"))
+			{
+				submission_id = key_value_pair.split("=").at(1).trimmed();
+				break;
+			}
+		}
+		if (submission_id.isEmpty())
+		{
+			THROW(ArgumentException, "'details' column doesn't contain submission id!")
+		}
+
+		SubmissionStatus submission_status = getSubmissionStatus(submission_id);
+		n_var_checked++;
+
+		//update db if neccessary
+		if (!result.startsWith(submission_status.status))
+		{
+			//update NGSD
+			result = submission_status.status;
+
+			if (submission_status.status == "processed")
+			{
+				result += ";" + submission_status.stable_id;
+			}
+			else if (submission_status.status == "error")
+			{
+				result += ";" + submission_status.comment;
+			}
+
+			//update result info in the NGSD
+			db.updateVariantPublicationResult(vp_id, result);
+			n_var_updated++;
+		}
+
+
+	}
+
+	QMessageBox::information(this, "ClinVar submission status updated", "The Submission status of " + QString::number(n_var_checked) + " published varaints has been checked, "
+							 + QString::number(n_var_updated) + " NGSD entries were updated." );
+
+	//activate button and reset busy curser
+	ui_->updateStatus_btn->setEnabled(true);
 	QApplication::restoreOverrideCursor();
 }
 
@@ -260,30 +320,32 @@ void PublishedVariantsWidget::searchForVariantInClinVar()
 	}
 }
 
-void PublishedVariantsWidget::showContextMenu(QPoint pos)
+void PublishedVariantsWidget::retryClinvarSubmission()
 {
-	int row_idx = ui_->table->itemAt(pos)->row();
-	int status_idx = ui_->table->columnIndex("submission status");
-	int accession_idx = ui_->table->columnIndex("ClinVar accession id");
-
-	//create context menu based on PRS entry
-	QMenu menu(ui_->table);
-
-	QAction* resubmit = menu.addAction("Resubmit variant publication");
-	resubmit->setEnabled(ui_->table->item(row_idx, status_idx)->text().startsWith("error;"));
-	QAction* edit = menu.addAction("Edit variant publication");
-	edit->setEnabled(ui_->table->item(row_idx, status_idx)->text().startsWith("processed;"));
-
-	//execute menu
-	QAction* action = menu.exec(ui_->table->viewport()->mapToGlobal(pos));
-	if (action == nullptr) return;
-
-	if (action == resubmit || action == edit)
+	try
 	{
+		QSet<int> rows = ui_->table->selectedRows();
+		if (rows.size() != 1)
+		{
+			//only available if a singel line is selected
+			QMessageBox::warning(this, "Invalid variant selection", "Please select exactly 1 varaint for re-upload!");
+			return;
+		}
+		int row_idx = rows.values().at(0);
+		int status_idx = ui_->table->columnIndex("ClinVar submission status");
+		int accession_idx = ui_->table->columnIndex("ClinVar accession id");
+
+		//get status
+		QString status = ui_->table->item(row_idx, status_idx)->text().trimmed();
+		if ((status != "processed") && (status != "error"))
+		{
+			//only available for already submitted variants
+			QMessageBox::warning(this, "Invalid variant selected", "Reupload is only supported for variants which are submitted to ClinVar and are already processed.");
+			return;
+		}
+
 		// get publication id
 		int var_pub_id = ui_->table->getId(row_idx).toInt();
-
-		qDebug() << "Publication id:" << var_pub_id;
 
 		// get ClinVar upload data
 		ClinvarUploadData data = getClinvarUploadData(var_pub_id);
@@ -295,9 +357,8 @@ void PublishedVariantsWidget::showContextMenu(QPoint pos)
 		}
 
 		//add stable id
-		if (action == edit)
+		if (status == "processed")
 		{
-
 			data.stable_id = ui_->table->item(row_idx, accession_idx)->text();
 		}
 
@@ -307,10 +368,15 @@ void PublishedVariantsWidget::showContextMenu(QPoint pos)
 		dlg.setData(data);
 		dlg.exec();
 
+
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::critical(this, "ClinVar resubmission error", e.message());
 	}
 }
 
-SubmissionStatus PublishedVariantsWidget::getSubmissionStatus(const QString& submission_id, HttpHandler& http_handler)
+SubmissionStatus PublishedVariantsWidget::getSubmissionStatus(const QString& submission_id)
 {
 	// read API key
 	QByteArray api_key = Settings::string("clinvar_api_key").trimmed().toUtf8();
@@ -326,7 +392,7 @@ SubmissionStatus PublishedVariantsWidget::getSubmissionStatus(const QString& sub
 		add_headers.insert("SP-API-KEY", api_key);
 
 		//get request
-		QByteArray reply = http_handler.get("https://submit.ncbi.nlm.nih.gov/api/v1/submissions/" + submission_id.toUpper() + "/actions/", add_headers);
+		QByteArray reply = http_handler_.get("https://submit.ncbi.nlm.nih.gov/api/v1/submissions/" + submission_id.toUpper() + "/actions/", add_headers);
 
 		// parse response
 		QJsonObject response = QJsonDocument::fromJson(reply).object();
@@ -339,7 +405,7 @@ SubmissionStatus PublishedVariantsWidget::getSubmissionStatus(const QString& sub
 		{
 			//get summary file and extract stable id or error message
 			QString report_summary_file = actions.at(0).toObject().value("responses").toArray().at(0).toObject().value("files").toArray().at(0).toObject().value("url").toString();
-			QByteArray summary_reply = http_handler.get(report_summary_file);
+			QByteArray summary_reply = http_handler_.get(report_summary_file);
 			QJsonDocument summary_response = QJsonDocument::fromJson(summary_reply);
 
 			if (submission_status.status == "processed")
@@ -358,8 +424,6 @@ SubmissionStatus PublishedVariantsWidget::getSubmissionStatus(const QString& sub
 				}
 				submission_status.comment = error_messages.join("\n");
 			}
-
-
 		}
 
 		return submission_status;
@@ -369,7 +433,7 @@ SubmissionStatus PublishedVariantsWidget::getSubmissionStatus(const QString& sub
 	}
 	catch(Exception e)
 	{
-		qDebug() << "Status check failed for submission " << submission_id << " (" << e.message() << ")!";
+		QMessageBox::critical(this, "Status check failed", "Status check failed for submission " + submission_id + " (" + e.message() + ")!");
 
 		return SubmissionStatus();
 	}
@@ -425,7 +489,6 @@ ClinvarUploadData PublishedVariantsWidget::getClinvarUploadData(int var_pub_id)
 		if (kv_pair.startsWith("variant_rc_id="))
 		{
 			data.report_config_variant_id = Helper::toInt(kv_pair.split('=').at(1), "variant_rc_id");
-			qDebug() << "Report configuration variant id: " << data.report_config_variant_id;
 			break;
 		}
 	}
