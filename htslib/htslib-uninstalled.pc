@@ -1,15 +1,15 @@
-includedir=/mnt/users/ahstoht1/ngs-bits/htslib
-libdir=/mnt/users/ahstoht1/ngs-bits/htslib
+includedir=/home/User/htslib-1.14
+libdir=/home/User/htslib-1.14
 
 # Flags and libraries needed when linking against a static libhts.a
 # (used by manual and semi-manual pkg-config(1)-style enquiries).
 static_ldflags=
-static_libs=-lpthread -lz -lm -lbz2 -llzma -lcurl -lcrypto
+static_libs=-lpthread -lz -lm -lws2_32 -lbz2 -llzma -ldeflate -lcurl -lcrypto
 
 Name: htslib
 Description: C library for high-throughput sequencing data formats
 Version: @-PACKAGE_VERSION@
 Cflags: -I${includedir}
 Libs: -L${libdir} -lhts
-Libs.private: -L${libdir}  -lbz2 -lhts -lm -lpthread
-Requires.private: zlib  liblzma
+Libs.private: -L${libdir}  -ldeflate -lhts -lm -lpthread
+Requires.private: zlib  bzip2 liblzma
