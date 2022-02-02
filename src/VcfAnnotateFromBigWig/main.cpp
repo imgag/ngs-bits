@@ -29,9 +29,12 @@ public:
 
 		addInfile("in", "Input VCF file. If unset, reads from STDIN.", false, true);
 		addOutfile("out", "Output VCF or VCF or VCF.GZ file. If unset, writes to STDOUT.", true, true);
-		addInfile("bw", "BigWig file containen the data to be used in the annotation.", true, true);
+		addInfile("bw", "BigWig file containen the data to be used in the annotation.", false, true);
 		addString("name", "Name of the new INFO column.", false);
 		addString("desc", "Description of the new INFO column.", false);
+		QStringList modi;
+		modi << "max" << "min" << "avg" << "none";
+		addEnum("modus", "Annotate modus: How the annotation is chosen when multiple bases are affected.", false, modi);
 		//optional
 		addInt("threads", "The number of threads used to read, process and write files.", true, 1);
 		addInt("block_size", "Number of lines processed in one chunk.", true, 5000);
@@ -46,10 +49,12 @@ public:
 		QStringList desc;
 
 		desc << "The annotation is decided according the following rules:";
-		desc << "Mutations that change only a single position are annotated with the corresponding value in the file. If no value is provided in the file the mutation is not annotated.";
-		desc << "Mutations that change multiple reference positions but don't insert additional bases are annotated with the maximum of the affected region.";
-		desc << "Deletions are annotated with the maximum in the affected reference region.";
 		desc << "Insertions are not annotated.";
+		desc << "SNPs are annotated according to the corresponding value in the bigWig file. If the file has no corresponding value no annotation is written.";
+		desc << "MNPs, complex INDELs and Deletions the annotated value is choosen according to the given modus:";
+		desc << "max - maximum; min - minimum; avg - average; of the values in the affected reference region.";
+		desc << "none - regions that affect multiple reference bases are not annotated.";
+
 		return desc;
 	}
 
@@ -58,9 +63,12 @@ public:
 		//open input/output streams
 		QString in = getInfile("in");
 		QString out = getOutfile("out");
+
 		QString bw_path = getInfile("bw");
 		QString name = getString("name");
 		QString desc = getString("desc");
+		QString modus = getEnum("modus");
+
 		//init multithreading
 		int block_size = getInt("block_size");
 		int threads = getInt("threads");
@@ -130,7 +138,7 @@ public:
 								vcf_line_idx++;
 							}
 							vcf_line_idx = 0;
-							analysis_pool.start(new ChunkProcessor(job, name.toLatin1(), desc.toLatin1(), bw_path.toLatin1()));
+							analysis_pool.start(new ChunkProcessor(job, name.toLatin1(), desc.toLatin1(), bw_path.toLatin1(), modus));
 							++current_chunk;
 							break;
 
