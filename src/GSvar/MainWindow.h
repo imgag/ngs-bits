@@ -245,8 +245,6 @@ public slots:
 	void on_actionGetGenomicSequence_triggered();
 	///Perform BLAT search
 	void on_actionBlatSearch_triggered();
-	///Shows ClinVar upload status widget
-	void on_actionClinvar_upload_status_triggered();
 	///Load report configuration
 	void loadReportConfig();
 	///Store report configuration

@@ -127,7 +127,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "LiftOverWidget.h"
 #include "CacheInitWorker.h"
 #include "BlatWidget.h"
-#include "ClinvarUploadStatusWidget.h"
 #include "FusionWidget.h"
 #include "CohortExpressionDataWidget.h"
 MainWindow::MainWindow(QWidget *parent)
@@ -953,12 +952,7 @@ void MainWindow::on_actionBlatSearch_triggered()
 	addModelessDialog(dlg);
 }
 
-void MainWindow::on_actionClinvar_upload_status_triggered()
-{
-	ClinvarUploadStatusWidget* widget = new ClinvarUploadStatusWidget();
-	auto dlg = GUIHelper::createDialog(widget, "Clinvar upload status");
-	addModelessDialog(dlg);
-}
+
 void MainWindow::on_actionClose_triggered()
 {
 	loadFile();

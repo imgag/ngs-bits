@@ -317,10 +317,10 @@
                 <bool>false</bool>
                </property>
                <attribute name="horizontalHeaderVisible">
-                <bool>true</bool>
+                <bool>false</bool>
                </attribute>
                <attribute name="verticalHeaderVisible">
-                <bool>true</bool>
+                <bool>false</bool>
                </attribute>
               </widget>
              </item>
@@ -506,7 +506,6 @@
      <addaction name="separator"/>
      <addaction name="actionReplicateNGSD"/>
      <addaction name="separator"/>
-     <addaction name="actionClinvar_upload_status"/>
     </widget>
     <widget class="QMenu" name="menuBatch_import">
      <property name="title">
@@ -1361,11 +1360,6 @@
    </property>
    <property name="toolTip">
     <string>Shows the expression data of samples of the same cohort.</string>
-   </property>
-  </action>
-  <action name="actionClinvar_upload_status">
-   <property name="text">
-    <string>Clinvar upload status</string>
    </property>
   </action>
  </widget>
