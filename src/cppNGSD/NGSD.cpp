@@ -678,21 +678,21 @@ QString NGSD::processingSystemRegionsFilePath(int sys_id)
 	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
 	if (!rel_path.isEmpty())
 	{
-		QString region_file = getTargetFilePath() + rel_path;
-		if (QFile::exists(region_file))
-		{
-			return region_file;
-		}
+		return getTargetFilePath() + rel_path;
 	}
 	return "";
 }
 
-BedFile NGSD::processingSystemRegions(int sys_id)
+BedFile NGSD::processingSystemRegions(int sys_id, bool ignore_if_missing)
 {
 	BedFile output;
 
 	QString regions_file = processingSystemRegionsFilePath(sys_id);
-	if (!regions_file.isEmpty())
+	if (regions_file.isEmpty())
+	{
+		if (!ignore_if_missing) THROW(FileAccessException, "Target region BED file of processing system '" + getProcessingSystemData(sys_id).name + "' requested but not set in NGSD!");
+	}
+	else
 	{
 		output.load(regions_file);
 	}
@@ -705,20 +705,21 @@ QString NGSD::processingSystemAmpliconsFilePath(int sys_id)
 	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
 	if (!rel_path.isEmpty())
 	{
-		QString amplicon_file = getTargetFilePath() + rel_path.mid(0, rel_path.length() -4) + "_amplicons.bed";
-		if (QFile::exists(amplicon_file))
-		{
-			return amplicon_file;
-		}
+		return getTargetFilePath() + rel_path.mid(0, rel_path.length() -4) + "_amplicons.bed";
 	}
 	return "";
 }
 
-BedFile NGSD::processingSystemAmplicons(int sys_id)
+BedFile NGSD::processingSystemAmplicons(int sys_id, bool ignore_if_missing)
 {
 	BedFile output;
+
 	QString amplicon_file = processingSystemAmpliconsFilePath(sys_id);
-	if (!amplicon_file.isEmpty())
+	if (amplicon_file.isEmpty())
+	{
+		if (!ignore_if_missing) THROW(FileAccessException, "Amplicon BED file of processing system '" + getProcessingSystemData(sys_id).name + "' requested but not set in NGSD!");
+	}
+	else
 	{
 		output.load(amplicon_file);
 	}
@@ -731,22 +732,21 @@ QString NGSD::processingSystemGenesFilePath(int sys_id)
 	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
 	if (!rel_path.isEmpty())
 	{
-		QString gene_file = getTargetFilePath() + rel_path.mid(0, rel_path.length() -4) + "_genes.txt";
-
-		if (QFile::exists(gene_file))
-		{
-			return gene_file;
-		}
+		return getTargetFilePath() + rel_path.mid(0, rel_path.length() -4) + "_genes.txt";
 	}
 	return "";
 }
 
-GeneSet NGSD::processingSystemGenes(int sys_id)
+GeneSet NGSD::processingSystemGenes(int sys_id, bool ignore_if_missing)
 {
 	GeneSet output;
-	QString gene_file = processingSystemGenesFilePath(sys_id);
 
-	if (!gene_file.isEmpty())
+	QString gene_file = processingSystemGenesFilePath(sys_id);
+	if (gene_file.isEmpty())
+	{
+		if (!ignore_if_missing) THROW(FileAccessException, "Gene file of processing system '" + getProcessingSystemData(sys_id).name + "' requested but not set in NGSD!");
+	}
+	else
 	{
 		output = GeneSet::createFromFile(gene_file);
 	}
@@ -2591,7 +2591,7 @@ VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, bool throw_on_fail)
 	vcf.sampleIDs().append("TUMOR");
 	vcf.sampleIDs().append("NORMAL");
 
-	ProcessingSystemData sys = NGSD().getProcessingSystemData(sys_id);
+	ProcessingSystemData sys = getProcessingSystemData(sys_id);
 
 	// add INFO line to determine source
 	InfoFormatLine id_source;
@@ -2609,7 +2609,7 @@ VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, bool throw_on_fail)
 	info.push_back(value);
 	info_ptr->push_back(key, static_cast<unsigned char>(0));
 
-	BedFile target_region = NGSD().processingSystemRegions(sys_id);
+	BedFile target_region = processingSystemRegions(sys_id, false);
 
 	QByteArrayList format_ids = QByteArrayList() << "GT";
 	QByteArrayList sample_ids = QByteArrayList() << "TUMOR" << "NORMAL";

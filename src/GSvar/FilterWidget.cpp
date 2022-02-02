@@ -168,9 +168,9 @@ void FilterWidget::loadTargetRegionData(TargetRegionInfo& roi, QString name)
 
 		NGSD db;
 		int sys_id = db.processingSystemId(roi.name);
-		roi.regions = GlobalServiceProvider::database().processingSystemRegions(sys_id);
+		roi.regions = GlobalServiceProvider::database().processingSystemRegions(sys_id, false);
 		roi.regions.merge();
-		roi.genes = GlobalServiceProvider::database().processingSystemGenes(sys_id);
+		roi.genes = GlobalServiceProvider::database().processingSystemGenes(sys_id, true);
 	}
 	else //local target regions
 	{
@@ -193,7 +193,7 @@ void FilterWidget::resetSignalsUnblocked(bool clear_roi)
 	ui_.cascade_widget->clear();
 	ui_.filters->setCurrentIndex(0);
 
-    //rois
+	//rois
 	if (clear_roi)
 	{
 		ui_.roi->setCurrentIndex(1);
@@ -202,8 +202,8 @@ void FilterWidget::resetSignalsUnblocked(bool clear_roi)
 	}
 
 	//gene
-    last_genes_.clear();
-    ui_.gene->clear();
+	last_genes_.clear();
+	ui_.gene->clear();
 	ui_.text->clear();
 	ui_.region->clear();
 	ui_.report_config->setCurrentIndex(0);
@@ -436,7 +436,15 @@ void FilterWidget::roiSelectionChanged(int index)
 
 	//load target region data
 	QString roi_name = ui_.roi->itemData(index).toString().trimmed();
-	loadTargetRegionData(roi_, roi_name);
+	try
+	{
+		loadTargetRegionData(roi_, roi_name);
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, "Error loading target region '" + roi_.name + "'", e.message());
+		clearTargetRegion();
+	}
 
 	if(index!=0)
 	{
