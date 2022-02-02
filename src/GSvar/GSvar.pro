@@ -107,7 +107,6 @@ SOURCES += main.cpp\
     PhenotypeSourceEvidenceSelector.cpp \
     FusionWidget.cpp \
     CohortExpressionDataWidget.cpp
-
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
     DatabaseServiceRemote.h \
@@ -209,7 +208,6 @@ HEADERS += MainWindow.h \
     PhenotypeSourceEvidenceSelector.h \
     FusionWidget.h \
     CohortExpressionDataWidget.h
-
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \

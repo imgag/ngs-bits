@@ -505,6 +505,7 @@
      <addaction name="actionChangePassword"/>
      <addaction name="separator"/>
      <addaction name="actionReplicateNGSD"/>
+     <addaction name="separator"/>
     </widget>
     <widget class="QMenu" name="menuBatch_import">
      <property name="title">

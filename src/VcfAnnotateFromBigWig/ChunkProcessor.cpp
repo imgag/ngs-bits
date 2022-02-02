@@ -9,7 +9,7 @@
 #include <QMutex>
 #include "BigWigReader.h"
 
-ChunkProcessor::ChunkProcessor(AnalysisJob &job, const QByteArray& name, const QByteArray& desc, const QByteArray& bw_filepath)
+ChunkProcessor::ChunkProcessor(AnalysisJob &job, const QByteArray& name, const QByteArray& desc, const QByteArray& bw_filepath, const QString& modus)
 	:QRunnable()
 	, terminate_(false)
 	, job_(job)
@@ -17,6 +17,7 @@ ChunkProcessor::ChunkProcessor(AnalysisJob &job, const QByteArray& name, const Q
 	, desc_(desc)
 	, bw_filepath_(bw_filepath)
 	, bw_reader_(bw_filepath)
+	, modus_(modus)
 {
 }
 
@@ -95,7 +96,7 @@ void ChunkProcessor::run()
 
 QList<float> ChunkProcessor::getAnnotation(const QByteArray& chr, int start, int end, const QString& ref, const QString& alt)
 {
-    int offset = -1; // offset is -1 as the vcf file uses genome coordinates from 1 - N but bw-files from 0 - N-1
+	int offset = -1; // offset is -1 as the vcf file uses genome coordinates from 1 - N but bw-files from 0 - N-1
 
 	if ( ! bw_reader_.containsChromosome(chr))
 	{
@@ -110,13 +111,13 @@ QList<float> ChunkProcessor::getAnnotation(const QByteArray& chr, int start, int
 
 	if (ref[0] == alt[0])
 	{
-		return interpretIntervals(bw_reader_.getOverlappingIntervals(chr, start+1, end, offset));
+		return interpretIntervals(bw_reader_.getOverlappingIntervals(chr, start+1, end, offset), start+offset, end+offset);
 	}
 
-	return interpretIntervals(bw_reader_.getOverlappingIntervals(chr, start, end, offset));
+	return interpretIntervals(bw_reader_.getOverlappingIntervals(chr, start, end, offset), start+offset, end+offset);
 }
 
-QList<float> ChunkProcessor::interpretIntervals(const QList<BigWigReader::OverlappingInterval>& intervals)
+QList<float> ChunkProcessor::interpretIntervals(const QList<BigWigReader::OverlappingInterval>& intervals, int start, int end)
 {
     if (intervals.length() == 0)
     {
@@ -128,14 +129,66 @@ QList<float> ChunkProcessor::interpretIntervals(const QList<BigWigReader::Overla
     }
     else
     {
-        float max = std::numeric_limits<float>::lowest();
-		foreach (const BigWigReader::OverlappingInterval& i, intervals)
-        {
-            if (i.value > max)
-            {
-                max = i.value;
-            }
-        }
-        return QList<float>{max};
+		if (modus_ == "max")
+		{
+			float max = std::numeric_limits<float>::lowest();
+			foreach (const BigWigReader::OverlappingInterval& i, intervals)
+			{
+				if (i.value > max)
+				{
+					max = i.value;
+				}
+			}
+			return QList<float>{max};
+		}
+		else if (modus_ == "min")
+		{
+			float min = std::numeric_limits<float>::max();
+			foreach (const BigWigReader::OverlappingInterval& i, intervals)
+			{
+				if (i.value < min)
+				{
+					min = i.value;
+				}
+			}
+			return QList<float>{min};
+		}
+		else if (modus_ == "avg")
+		{
+			QList<float> values;
+			foreach(BigWigReader::OverlappingInterval ci, intervals)
+			{
+				// if the overlapping interval has size 1, the value has to be relevant
+				if (ci.end - ci.start == 1)
+				{
+					values.append(ci.value);
+					continue;
+				}
+
+				// for longer intervals add the value as often as it is within the given region
+				for(int i=ci.start; i < (int) ci.end; i++)
+				{
+					if(i >= start && i < end)
+					{
+						values.append(ci.value);
+					}
+
+					if (i >= end)
+					{
+						break;
+					}
+				}
+			}
+
+			return QList<float>{std::accumulate(values.begin(), values.end(), (float) 0.0) / values.size()};
+		}
+		else if (modus_ == "none")
+		{
+			return QList<float>();
+		}
+		else
+		{
+			THROW(ArgumentException, "Unknown Modus." + modus_)
+		}
     }
 }
