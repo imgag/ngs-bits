@@ -74,7 +74,7 @@ public:
 	void loadTargetRegions();
 	/// Helper for loading target regions (also in CNV/SV widget)
 	static void loadTargetRegions(QComboBox* box);
-	/// Helper for loading target region data
+	/// Helper for loading target region data. Throws an exception of the target region file is missing!
 	static void loadTargetRegionData(TargetRegionInfo& roi, QString name);
 
 	///Returns the filter INI file name

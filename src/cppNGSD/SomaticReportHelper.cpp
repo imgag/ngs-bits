@@ -1474,7 +1474,7 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	metadata.addRow(RtfTableRow({"MSI-Status:", (!BasicStatistics::isValidFloat(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3)),  "Durchschnittliche Tiefe Tumor:", tumor_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x"},{1550,3000,2250,3121}));
 
 
-	metadata.addRow(RtfTableRow({"Prozessierungssystem:", processing_system_data_.name.toUtf8() + " (" + QByteArray::number(db_.processingSystemGenes(db_.processingSystemId(processing_system_data_.name) ).count() ) + ")", "Coverage Normal 100x:", normal_qcml_data_.value("QC:2000030",true).toString().toUtf8() + " \%"} , {1550,3000,2250,3121} ));
+	metadata.addRow(RtfTableRow({"Prozessierungssystem:", processing_system_data_.name.toUtf8() + " (" + QByteArray::number(db_.processingSystemGenes(db_.processingSystemId(processing_system_data_.name) , true).count() ) + ")", "Coverage Normal 100x:", normal_qcml_data_.value("QC:2000030",true).toString().toUtf8() + " \%"} , {1550,3000,2250,3121} ));
 	metadata.addRow(RtfTableRow({"ICD10:", icd10_diagnosis_code_.toUtf8(), "Durchschnittliche Tiefe Normal:", normal_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x"},{1550,3000,2250,3121}));
 
 	//somatic custom panel specific QC values
@@ -1485,7 +1485,7 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 		{
 			RtfTableRow row_cov =RtfTableRow({"Coverage Tumor 100x:", tumor_qcml_data_.value("QC:2000094",true).toString().toUtf8() +" \%", "Coverage Normal 100x:", normal_qcml_data_.value("QC:2000094",true).toString().toUtf8() + " \%"},{1550,3000,2250,3121});
 			RtfTableRow row_depth =RtfTableRow({"Durchschnittliche Tiefe Tumor:", tumor_qcml_data_.value("QC:2000097",true).toString().toUtf8() + "x", "Durchschnittliche Tiefe Normal:", normal_qcml_data_.value("QC:2000097",true).toString().toUtf8() + "x"},{1550,3000,2250,3121});
-			metadata.addRow(RtfTableRow({RtfText("Somatisches Subpanel ").setBold(true).setFontSize(16).setHorizontalAlignment("c").RtfCode() + RtfText("(" +QByteArray::number(db_.processingSystemGenes(db_.processingSystemId("somatic_custom_panel")).count()) + " Gene)" ).setFontSize(16).RtfCode()}, {9921}));
+			metadata.addRow(RtfTableRow({RtfText("Somatisches Subpanel ").setBold(true).setFontSize(16).setHorizontalAlignment("c").RtfCode() + RtfText("(" +QByteArray::number(db_.processingSystemGenes(db_.processingSystemId("somatic_custom_panel"), true).count()) + " Gene)" ).setFontSize(16).RtfCode()}, {9921}));
 
 			metadata.addRow(row_cov);
 			metadata.addRow(row_depth);

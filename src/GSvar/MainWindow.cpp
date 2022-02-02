@@ -268,6 +268,14 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
 	ui_.filters->phenotypesChanged();
 
+	// Setting a value for the current working directory. On Linux it is defined in the TMPDIR environment
+	// variable or /tmp if TMPDIR is not set. On Windows it is saved in the TEMP or TMP environment variable.
+	// e.g. c:\Users\USER_NAME\AppData\Local\Temp
+	// It is needed to enable saving *.bai files while accessing remote *.bam files. htsLib tries to save the
+	// index file locally, if it deals with a remote *.bam file. The index file is always saved at the current
+	// working directory, and it seems there is no way to change it. On some systems users may not have write
+	// priveleges for the working directory and this is precisely why we came up with this workaround:
+	QDir::setCurrent(QDir::tempPath());
 }
 
 QString MainWindow::appName() const
@@ -1793,7 +1801,7 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 	{
 		NGSD db;
 		int sys_id = db.processingSystemIdFromProcessedSample(germlineReportSample());
-		BedFile ampilicons = GlobalServiceProvider::database().processingSystemAmplicons(sys_id);
+		BedFile ampilicons = GlobalServiceProvider::database().processingSystemAmplicons(sys_id, true);
 		if (!ampilicons.isEmpty())
 		{
 			QString amp_file = GSvarHelper::localRoiFolder() + db.getProcessingSystemData(sys_id).name_short + "_amplicons.bed";
@@ -3530,8 +3538,8 @@ void MainWindow::generateReportTumorOnly()
 		{
 			TargetRegionInfo roi_info;
 			roi_info.name = config.sys.name;
-			roi_info.regions = db.processingSystemRegions(sys_id);
-			roi_info.genes = db.processingSystemGenes(sys_id);
+			roi_info.regions = GlobalServiceProvider::database().processingSystemRegions(sys_id, false);
+			roi_info.genes = GlobalServiceProvider::database().processingSystemGenes(sys_id, false);
 			config.roi = roi_info;
 		}
 
@@ -3581,13 +3589,13 @@ void MainWindow::generateReportSomaticRTF()
 	somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
 	if(ui_.filters->targetRegion().name != "somatic_custom_panel")
 	{
-		somatic_report_settings_.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions( db.processingSystemIdFromProcessedSample(ps_tumor) );
-		somatic_report_settings_.processing_system_genes = db.genesToApproved( GlobalServiceProvider::database().processingSystemGenes(db.processingSystemIdFromProcessedSample(ps_tumor)), true );
+		somatic_report_settings_.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(ps_tumor), false);
+		somatic_report_settings_.processing_system_genes = db.genesToApproved(GlobalServiceProvider::database().processingSystemGenes(db.processingSystemIdFromProcessedSample(ps_tumor), false), true);
 	}
 	else
 	{
-		somatic_report_settings_.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions( db.processingSystemId("somatic_custom_panel") );
-		somatic_report_settings_.processing_system_genes = db.genesToApproved( GlobalServiceProvider::database().processingSystemGenes( db.processingSystemId("somatic_custom_panel") ), true );
+		somatic_report_settings_.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions( db.processingSystemId("somatic_custom_panel"), false);
+		somatic_report_settings_.processing_system_genes = db.genesToApproved( GlobalServiceProvider::database().processingSystemGenes( db.processingSystemId("somatic_custom_panel"), false), true );
 	}
 
 
@@ -3807,7 +3815,7 @@ void MainWindow::generateReportGermline()
 	if (prs_files.count()==1) prs_table.load(prs_files[0].filename);
 
 	GermlineReportGeneratorData data(GSvarHelper::build(), ps_name, variants_, cnvs_, svs_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts());
-	data.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(ps_name));
+	data.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(ps_name), false);
 	data.ps_bam = GlobalServiceProvider::database().processedSamplePath(processed_sample_id, PathType::BAM).filename;
 	data.ps_lowcov = GlobalServiceProvider::database().processedSamplePath(processed_sample_id, PathType::LOWCOV_BED).filename;
 	if (ui_.filters->targetRegion().isValid())
@@ -4632,7 +4640,7 @@ void MainWindow::on_actionGapsLookup_triggered()
 		if (ps_id!="")
 		{
 			int sys_id = db.getValue("SELECT processing_system_id FROM processed_sample WHERE id=:0", true, ps_id).toInt();
-			BedFile sys_regions = GlobalServiceProvider::database().processingSystemRegions(sys_id);
+			BedFile sys_regions = GlobalServiceProvider::database().processingSystemRegions(sys_id, false);
 			if (!sys_regions.isEmpty())
 			{
 				BedFile region = db.geneToRegions(gene.toLatin1(), Transcript::ENSEMBL, "gene");

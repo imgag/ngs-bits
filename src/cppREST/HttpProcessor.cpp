@@ -64,7 +64,7 @@ ContentType HttpProcessor::getContentTypeByFilename(const QString& filename)
 	if (extention == "xml") return TEXT_XML;
 	if (extention == "css") return TEXT_CSS;
 	if (extention == "bam") return APPLICATION_OCTET_STREAM;
-	if (extention == "bai") return TEXT_PLAIN;
+	if (extention == "bai") return APPLICATION_OCTET_STREAM;
 	if (extention == "gsvar") return TEXT_PLAIN;
 	if (extention == "bed") return TEXT_PLAIN;
 	if (extention == "tsv") return TEXT_PLAIN;
@@ -228,5 +228,18 @@ QString HttpProcessor::convertResponseStatusCodeNumberToStatusClass(const int& s
 	}
 
 	return "Unknown response class";
+}
+
+ContentType HttpProcessor::detectErrorContentType(const QList<QString> headers)
+{
+	ContentType error_type = ContentType::TEXT_PLAIN;
+	for (int i = 0; i < headers.length(); i++)
+	{
+		if ((headers[i].toLower().contains("mozilla")) || (headers[i].toLower().contains("chrome")) || (headers[i].toLower().contains("edge") || (headers[i].toLower().contains("opera"))))
+		{
+			return ContentType::TEXT_HTML;
+		}
+	}
+	return error_type;
 }
 

@@ -745,20 +745,20 @@ public:
 	///Returns the processing system information for a processed sample.
 	ProcessingSystemData getProcessingSystemData(int sys_id);
 
-	///Returns a path (including filename) for the processing system target region file.
+	///Returns a path (including filename) for the processing system target region file. Returns an empty string if unset.
 	QString processingSystemRegionsFilePath(int sys_id);
 	///Returns the processing system target region file.
-	BedFile processingSystemRegions(int sys_id);
+	BedFile processingSystemRegions(int sys_id, bool ignore_if_missing);
 
-	///Returns a path (including filename) for the processing system amplicon region file.
+	///Returns a path (including filename) for the processing system amplicon region file.  Returns an empty string if unset.
 	QString processingSystemAmpliconsFilePath(int sys_id);
 	///Returns the processing system amplicon region file.
-	BedFile processingSystemAmplicons(int sys_id);
+	BedFile processingSystemAmplicons(int sys_id, bool ignore_if_missing);
 
-	///Returns a path (including filename) for the processing system genes.
+	///Returns a path (including filename) for the processing system genes. Returns an empty string if unset.
 	QString processingSystemGenesFilePath(int sys_id);
 	///Returns the processing system genes.
-	GeneSet processingSystemGenes(int sys_id);
+	GeneSet processingSystemGenes(int sys_id, bool ignore_if_missing);
 
 	///Retuns the list of sub-panel names.
 	QStringList subPanelList(bool archived);

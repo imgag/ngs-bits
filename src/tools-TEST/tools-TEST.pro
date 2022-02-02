@@ -128,7 +128,8 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     SplicingToBed_Test.h \
     GraphStringDb_Test.h \
     GenePrioritization_Test.h \
-    CfDnaQC_Test.h
+    CfDnaQC_Test.h \
+    VcfAnnotateFromBigWig_Test.h
 
 SOURCES += \
     main.cpp
