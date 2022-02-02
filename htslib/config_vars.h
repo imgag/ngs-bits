@@ -1,5 +1,0 @@
-#define HTS_CC "gcc"
-#define HTS_CPPFLAGS "-D_XOPEN_SOURCE=600"
-#define HTS_CFLAGS "-Wall -g -O2 -fvisibility=hidden"
-#define HTS_LDFLAGS "-fvisibility=hidden "
-#define HTS_LIBS "-lregex -ldeflate -llzma -lbz2 -lws2_32 -lz  -lcurl -lcrypto"
