@@ -191,9 +191,7 @@ void FastqFileStream::extractLine(QByteArray& line)
 
 FastqOutfileStream::FastqOutfileStream(QString filename, int compression_level, int compression_strategy)
 	: filename_(filename)
-    , is_closed_(false)
-	, buffer_()
-	, buffer_size_(10000)
+	, is_closed_(false)
 {
 	gzfile_ = gzopen(filename.toLatin1().data(), "wb");
     if (gzfile_ == NULL)
@@ -213,26 +211,17 @@ FastqOutfileStream::~FastqOutfileStream()
 
 void FastqOutfileStream::write(const FastqEntry& entry)
 {
-	//append entry to buffer
-	buffer_.append(entry.header);
-	buffer_.append('\n');
-	buffer_.append(entry.bases);
-	buffer_.append('\n');
-	buffer_.append(entry.header2);
-	buffer_.append('\n');
-	buffer_.append(entry.qualities);
-	buffer_.append('\n');
-
-	if (buffer_.size()>=buffer_size_)
+	static QByteArray newline = "\n";
+	if (gzputs(gzfile_, entry.header.constData())==-1
+		|| gzputs(gzfile_, newline)==-1
+		|| gzputs(gzfile_, entry.bases.constData())==-1
+		|| gzputs(gzfile_, newline)==-1
+		|| gzputs(gzfile_, entry.header2.constData())==-1
+		|| gzputs(gzfile_, newline)==-1
+		|| gzputs(gzfile_, entry.qualities.constData())==-1
+		|| gzputs(gzfile_, newline)==-1)
 	{
-		int written = gzputs(gzfile_, buffer_.constData());
-		if (written==0)
-		{
-			THROW(FileAccessException, "Could not write to file '" + filename_ + "'!");
-		}
-
-		buffer_.clear();
-		buffer_.reserve(buffer_size_+1000);
+		THROW(FileAccessException, "Could not write to file '" + filename_ + "'!");
 	}
 }
 
@@ -240,19 +229,6 @@ void FastqOutfileStream::close()
 {
     if (is_closed_) return;
 
-
-	if (buffer_.size()>0)
-	{
-		int written = gzputs(gzfile_, buffer_.constData());
-		if (written==0)
-		{
-			THROW(FileAccessException, "Could not write to file '" + filename_ + "'!");
-		}
-
-		buffer_.clear();
-		buffer_.reserve(buffer_size_+1000);
-	}
-
-    gzclose(gzfile_);
+	gzclose(gzfile_);
 	is_closed_ = true;
 }
