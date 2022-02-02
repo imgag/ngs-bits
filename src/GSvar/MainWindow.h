@@ -245,7 +245,6 @@ public slots:
 	void on_actionGetGenomicSequence_triggered();
 	///Perform BLAT search
 	void on_actionBlatSearch_triggered();
-
 	///Load report configuration
 	void loadReportConfig();
 	///Store report configuration

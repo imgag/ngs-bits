@@ -34,17 +34,33 @@ ClinvarUploadDialog::ClinvarUploadDialog(QWidget *parent)
 void ClinvarUploadDialog::setData(ClinvarUploadData data)
 {
     // set variant data
+
     QByteArray chr = data.variant.chr().strNormalized(false);
     ui_.cb_chr->setEnabled(false);
     ui_.cb_chr->setCurrentText(chr);
-    ui_.le_start->setEnabled(false);
-    ui_.le_start->setText(QString::number(data.variant.start()));
-    ui_.le_end->setEnabled(false);
-    ui_.le_end->setText(QString::number(data.variant.end()));
-    ui_.le_ref->setEnabled(false);
-    ui_.le_ref->setText(data.variant.ref());
-    ui_.le_obs->setEnabled(false);
-    ui_.le_obs->setText(data.variant.obs());
+	ui_.le_start->setEnabled(false);
+	ui_.le_end->setEnabled(false);
+	ui_.le_ref->setEnabled(false);
+	ui_.le_obs->setEnabled(false);
+
+	if (data.variant.isSNV())
+	{
+		ui_.le_start->setText(QString::number(data.variant.start()));
+		ui_.le_end->setText(QString::number(data.variant.end()));
+		ui_.le_ref->setText(data.variant.ref());
+		ui_.le_obs->setText(data.variant.obs());
+	}
+	else
+	{
+		//convert indels to VCF format
+		static FastaFileIndex genome_index(Settings::string("reference_genome"));
+		VariantVcfRepresentation vcf_variant = data.variant.toVCF(genome_index);
+
+		ui_.le_start->setText(QString::number(vcf_variant.pos));
+		ui_.le_end->setText(QString::number(vcf_variant.pos + vcf_variant.ref.length() - 1));
+		ui_.le_ref->setText(vcf_variant.ref);
+		ui_.le_obs->setText(vcf_variant.alt);
+	}
 
     // set genes
     ui_.le_gene->setText(data.genes.join(","));
@@ -82,8 +98,24 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
     // set affected status
     ui_.cb_affected_status->setCurrentText(convertAffectedStatus(data.affected_status));
 
-
+	// store given data
     clinvar_upload_data_ = data;
+
+	// check for reupload
+	if (clinvar_upload_data_.variant_publication_id > 0)
+	{
+		// reupload
+		if (clinvar_upload_data_.stable_id.trimmed().isEmpty())
+		{
+			// reupload of failed submission
+			setWindowTitle(windowTitle() + " (Reupload of failed submission by " + db_.userName(clinvar_upload_data_.user_id) + ")");
+		}
+		else
+		{
+			// modification of successful submission
+			setWindowTitle(windowTitle() + " (Modification of successfull submission (" + clinvar_upload_data_.stable_id + ") by " + db_.userName(clinvar_upload_data_.user_id) + ")");
+		}
+	}
 
     //validate input
     checkGuiData();
@@ -137,6 +169,7 @@ void ClinvarUploadDialog::upload()
     if (!validateJson(clinvar_submission, errors))
     {
         QMessageBox::warning(this, "JSON validation failed", "The generated JSON contains the following errors: \n" + errors.join("\n"));
+		ui_.upload_btn->setEnabled(true);
         return;
     }
 
@@ -181,9 +214,6 @@ void ClinvarUploadDialog::upload()
         if (response.isEmpty())
         {
             messages << "MESSAGE: Dry-run successful!";
-//			QFile jsonFile(clinvar_upload_data_.processed_sample + "_submission_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".json");
-//			jsonFile.open(QFile::WriteOnly);
-//			jsonFile.write(QJsonDocument(clinvar_submission).toJson());
         }
         else if (response.contains("id"))
         {
@@ -217,7 +247,7 @@ void ClinvarUploadDialog::upload()
             }
             details << "condition=" + condition.join(',');
 			details << "variant_id=" + QString::number(clinvar_upload_data_.variant_id);
-			details << "variant_rc_id=" + QString::number(clinvar_upload_data_.variant_report_config_id);
+			details << "variant_rc_id=" + QString::number(clinvar_upload_data_.report_config_variant_id);
             //observed in
             details << "affected_status=" + ui_.cb_affected_status->currentText();
             details << "allele_origin=" + ui_.cb_allele_origin->currentText();
@@ -233,8 +263,20 @@ void ClinvarUploadDialog::upload()
             details << "release_status=" + ui_.cb_release_status->currentText();
             details << "gene=" +  NGSD().genesToApproved(GeneSet::createFromStringList(ui_.le_gene->text().replace(";", ",").split(','))).toStringList().join(',');
 
+			// additional info for reupload
+			if (clinvar_upload_data_.variant_publication_id > 0)
+			{
+				details << "reupload=true";
+				details << "previous_publication_id=" + QString::number(clinvar_upload_data_.variant_publication_id);
+				details << "reupload_by=" + LoginManager::user();
+			}
+
             // log publication in NGSD
-            db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.variant, "ClinVar", clinvar_upload_data_.report_variant_config.classification, details.join(";"));
+			db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.variant, "ClinVar", clinvar_upload_data_.report_variant_config.classification,
+									  details.join(";"), clinvar_upload_data_.user_id);
+
+			// for reupload: flag previous upload as replaced
+			if (clinvar_upload_data_.variant_publication_id > 0) db_.flagVariantPublicationAsReplaced(clinvar_upload_data_.variant_publication_id);
 
             //show result
             QStringList lines;
@@ -243,7 +285,15 @@ void ClinvarUploadDialog::upload()
             lines << messages.join("\n");
             lines << "";
             lines << "sample: " + clinvar_upload_data_.processed_sample;
-            lines << "user: " + LoginManager::user();
+			// log original submitter for reuploads
+			if (clinvar_upload_data_.user_id > 0)
+			{
+				lines << "user: " + db_.userLogin(clinvar_upload_data_.user_id) + " (Reupload by " + LoginManager::user() + ")";
+			}
+			else
+			{
+				lines << "user: " + LoginManager::user();
+			}
             lines << "date: " + Helper::dateTime();
             lines << "";
             lines << details;
@@ -257,6 +307,7 @@ void ClinvarUploadDialog::upload()
 					QString file_rep = gsvar_publication_folder + "/" + clinvar_upload_data_.processed_sample + "_CLINVAR_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".txt";
                     Helper::storeTextFile(file_rep, ui_.comment_upload->toPlainText().split("\n"));
             }
+			ui_.upload_btn->setEnabled(false);
 
         }
         else
@@ -449,7 +500,10 @@ QJsonObject ClinvarUploadDialog::createJson()
         clinvar_submission.insert("clinicalSignificance", clinical_significance);
 
         //optional
-        // clinvar_submission.insert("clinvarAccession", "");
+		if (!clinvar_upload_data_.stable_id.isEmpty())
+		{
+			clinvar_submission.insert("clinvarAccession", clinvar_upload_data_.stable_id);
+		}
 
         //required
         QJsonObject condition_set;
@@ -501,7 +555,7 @@ QJsonObject ClinvarUploadDialog::createJson()
         clinvar_submission.insert("localID", QString::number(clinvar_upload_data_.variant_id));
 
         //optional
-        clinvar_submission.insert("localKey", QString::number(clinvar_upload_data_.variant_report_config_id));
+		clinvar_submission.insert("localKey", QString::number(clinvar_upload_data_.report_config_variant_id));
 
         //required
         QJsonObject observed_in;
@@ -688,6 +742,17 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
         errors << "Required string 'clinicalSignificance' in 'clinvarSubmission' missing!";
         is_valid = false;
     }
+
+	if (clinvar_submission.contains("clinvarAccession"))
+	{
+		//parse optional ClinVar accession
+		QString scv_id = clinvar_submission.value("clinvarAccession").toString();
+		if (!scv_id.startsWith("SCV"))
+		{
+			errors << "ID '" + scv_id + "' for 'clinvarAccession' in 'clinvarSubmission' doesn't match the required format (Has to start with SCV)!";
+			is_valid = false;
+		}
+	}
 
     if (clinvar_submission.contains("observedIn"))
     {
