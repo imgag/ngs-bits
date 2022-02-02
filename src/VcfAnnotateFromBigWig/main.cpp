@@ -34,7 +34,7 @@ public:
 		addString("desc", "Description of the new INFO column.", false);
 		QStringList modi;
 		modi << "max" << "min" << "avg" << "none";
-		addEnum("modus", "Annotate modus: How the annotation is chosen when multiple bases are affected.", false, modi);
+		addEnum("mode", "Annotate mode: How the annotation is chosen when multiple bases are affected.", false, modi);
 		//optional
 		addInt("threads", "The number of threads used to read, process and write files.", true, 1);
 		addInt("block_size", "Number of lines processed in one chunk.", true, 5000);
@@ -51,7 +51,7 @@ public:
 		desc << "The annotation is decided according the following rules:";
 		desc << "Insertions are not annotated.";
 		desc << "SNPs are annotated according to the corresponding value in the bigWig file. If the file has no corresponding value no annotation is written.";
-		desc << "MNPs, complex INDELs and Deletions the annotated value is choosen according to the given modus:";
+		desc << "MNPs, complex INDELs and Deletions the annotated value is choosen according to the given mode:";
 		desc << "max - maximum; min - minimum; avg - average; of the values in the affected reference region.";
 		desc << "none - regions that affect multiple reference bases are not annotated.";
 
@@ -67,7 +67,7 @@ public:
 		QString bw_path = getInfile("bw");
 		QString name = getString("name");
 		QString desc = getString("desc");
-		QString modus = getEnum("modus");
+		QString mode = getEnum("mode");
 
 		//init multithreading
 		int block_size = getInt("block_size");
@@ -138,7 +138,7 @@ public:
 								vcf_line_idx++;
 							}
 							vcf_line_idx = 0;
-							analysis_pool.start(new ChunkProcessor(job, name.toLatin1(), desc.toLatin1(), bw_path.toLatin1(), modus));
+							analysis_pool.start(new ChunkProcessor(job, name.toLatin1(), desc.toLatin1(), bw_path.toLatin1(), mode));
 							++current_chunk;
 							break;
 
