@@ -1316,6 +1316,42 @@ private slots:
 		removed_regions_db.clearHeaders();
 		S_EQUAL(removed_regions.toText(), removed_regions_db.toText());
 
+		//############################### variant publication ###############################
+		variant = db.variant("199844");
+		db.addVariantPublication("NA12878_03.GSvar", variant, "ClinVar", "5", "submission_id=SUB00001234;blabla...");
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT id, sample_id, class, details, user_id, result, replaced FROM variant_publication WHERE variant_id=199844");
+		I_EQUAL(query.size(), 1);
+		query.next();
+		I_EQUAL(query.value("sample_id").toInt(), 1);
+		I_EQUAL(query.value("class").toInt(), 5);
+		S_EQUAL(query.value("details").toString(), "submission_id=SUB00001234;blabla...");
+		I_EQUAL(query.value("user_id").toInt(), 99);
+		S_EQUAL(query.value("result").toString(), "");
+		IS_FALSE(query.value("replaced").toBool());
+
+		int vp_id = query.value("id").toInt();
+		db.updateVariantPublicationResult(vp_id, "processed;SCV12345678");
+		query.exec("SELECT id, sample_id, class, details, user_id, result FROM variant_publication WHERE variant_id=199844");
+		I_EQUAL(query.size(), 1);
+		query.next();
+		I_EQUAL(query.value("sample_id").toInt(), 1);
+		I_EQUAL(query.value("class").toInt(), 5);
+		S_EQUAL(query.value("details").toString(), "submission_id=SUB00001234;blabla...");
+		I_EQUAL(query.value("user_id").toInt(), 99);
+		S_EQUAL(query.value("result").toString(), "processed;SCV12345678");
+
+		IS_TRUE(db.getVariantPublication("NA12878_03.GSvar", variant).startsWith("db: ClinVar class: 5 user: Max Mustermann date: "));
+
+		db.flagVariantPublicationAsReplaced(vp_id);
+		query.exec("SELECT replaced FROM variant_publication WHERE variant_id=199844");
+		I_EQUAL(query.size(), 1);
+		query.next();
+		IS_TRUE(query.value("replaced").toBool());
+
+		//test with invalid IDs
+		IS_THROWN(DatabaseException, db.updateVariantPublicationResult(-42, "processed;SCV12345678"));
+		IS_THROWN(DatabaseException, db.flagVariantPublicationAsReplaced(-42));
 	}
 
 	inline void report_germline()

@@ -816,9 +816,13 @@ public:
 
 
 	///Adds a variant publication
-	void addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details);
+	void addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details, int user_id=-1);
 	///Returns variant publication data as text
 	QString getVariantPublication(QString filename, const Variant& variant);
+	///Updates ClinVar result of a varaint publication
+	void updateVariantPublicationResult(int variant_publication_id, QString result);
+	///Flag a varaint publication as replaced
+	void flagVariantPublicationAsReplaced(int variant_publication_id);
 
 	///Returns the comment of a variant in the NGSD.
 	QString comment(const Variant& variant);
