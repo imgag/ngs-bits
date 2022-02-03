@@ -122,6 +122,9 @@ FastqFileStream::FastqFileStream(QString filename, bool auto_validate)
     {
 		THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
     }
+
+	gzbuffer(gzfile_, 131072);
+
 	buffer_ = new char[1024];
 }
 
@@ -136,7 +139,7 @@ void FastqFileStream::readEntry(FastqEntry& entry)
     //special cases handling
     if (is_first_entry_)
     {
-		last_output_ = gzgets(gzfile_, buffer_, 1024); //TODO try speed-up by reading bigger chunks and extracting the lines from the chunks, like in VcfFile::loadFromVCFGZ
+		last_output_ = gzgets(gzfile_, buffer_, 1024);
         is_first_entry_ = false;
     }
 
@@ -198,6 +201,8 @@ FastqOutfileStream::FastqOutfileStream(QString filename, int compression_level, 
     {
         THROW(FileAccessException, "Could not open file '" + filename + "' for writing!");
 	}
+
+	gzbuffer(gzfile_, 131072);
 
 	if (compression_level<0 || compression_level>9) THROW(ArgumentException, "Invalid gzip compression level '" + QString::number(compression_level) +"' given for FASTQ file '" + filename + "'!");
 	if (compression_strategy<0 || compression_strategy>4) THROW(ArgumentException, "Invalid gzip compression strategy '" + QString::number(compression_strategy) +"' given for FASTQ file '" + filename + "'!");

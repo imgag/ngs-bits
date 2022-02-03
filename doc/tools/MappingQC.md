@@ -1,5 +1,5 @@
 ### MappingQC tool help
-	MappingQC (2021_06-89-gbbd16264)
+	MappingQC (2021_12-80-g5ff26d8f)
 	
 	Calculates QC metrics based on mapped NGS reads.
 	
@@ -24,7 +24,7 @@
 	  -debug          Enables verbose debug outout.
 	                  Default value: 'false'
 	  -build <enum>   Genome build used to generate the input (needed for contamination only).
-	                  Default value: 'hg19'
+	                  Default value: 'hg38'
 	                  Valid: 'hg19,hg38'
 	  -ref <file>     Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.
 	                  Default value: ''
@@ -38,7 +38,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### MappingQC changelog
-	MappingQC 2021_06-89-gbbd16264
+	MappingQC 2021_12-80-g5ff26d8f
 	
 	2021-02-09 Added new QC metrics for uniformity of coverage (QC:2000057-QC:2000061).
 	2020-11-27 Added CRAM support.
