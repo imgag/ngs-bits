@@ -1,5 +1,5 @@
 ### SampleSimilarity tool help
-	SampleSimilarity (2020_12-85-g5ff87d17)
+	SampleSimilarity (2021_12-80-g5ff26d8f)
 	
 	Calculates pairwise sample similarity metrics from VCF/BAM/CRAM files.
 	
@@ -28,7 +28,7 @@
 	  -max_snps <int>     The maximum number of high-coverage SNPs to extract from BAM/CRAM. 0 means unlimited (BAM mode).
 	                      Default value: '2000'
 	  -build <enum>       Genome build used to generate the input (BAM mode).
-	                      Default value: 'hg19'
+	                      Default value: 'hg38'
 	                      Valid: 'hg19,hg38'
 	  -ref <file>         Reference genome for CRAM support (mandatory if CRAM is used).
 	                      Default value: ''
@@ -42,7 +42,7 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleSimilarity changelog
-	SampleSimilarity 2020_12-85-g5ff87d17
+	SampleSimilarity 2021_12-80-g5ff26d8f
 	
 	2020-11-27 Added CRAM support.
 	2019-02-08 Massive speed-up by caching of variants/genotypes instead of loading them again for each comparison.
