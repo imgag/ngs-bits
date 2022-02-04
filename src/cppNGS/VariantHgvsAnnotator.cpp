@@ -801,9 +801,12 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
             {
                 int offset_end = (offset + 2) % 3;
                 aa_ref.append("_");
-                if(plus_strand)
+                if(aa_obs == toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(frame_diff, 3))))
                 {
                     pos_shift -= 3;
+                }
+                if(plus_strand)
+                {
                     aa_ref.append(toThreeLetterCode(NGSHelper::translateCodon(genome_idx.seq(variant.chr(), end - offset_end + pos_shift, 3),
                                                                               variant.chr().isM())));
                 }
