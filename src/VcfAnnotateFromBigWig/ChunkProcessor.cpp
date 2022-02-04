@@ -94,9 +94,14 @@ void ChunkProcessor::run()
 	job_.status=TO_BE_WRITTEN;
 }
 
-QList<float> ChunkProcessor::getAnnotation(const QByteArray& chr, int start, int end, const QString& ref, const QString& alt)
+QList<float> ChunkProcessor::getAnnotation(QByteArray chr, int start, int end, const QString& ref, const QString& alt)
 {
 	int offset = -1; // offset is -1 as the vcf file uses genome coordinates from 1 - N but bw-files from 0 - N-1
+
+	if ( ! bw_reader_.containsChromosome(chr) && ! chr.startsWith("chr"))
+	{
+		chr = "chr" + chr;
+	}
 
 	if ( ! bw_reader_.containsChromosome(chr))
 	{
