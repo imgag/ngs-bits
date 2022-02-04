@@ -36,11 +36,11 @@ public slots:
 	void updateEvidenceSelection();
 private:
 
-	QList<PhenotypeSource::Source> selectedSources_;
-	QList<PhenotypeEvidence::Evidence> selectedEvidences_;
+	QList<PhenotypeSource::Source> selected_sources_;
+	QList<PhenotypeEvidence::Evidence> selected_evidences_;
 
-	QList<QCheckBox> sourceBoxes_;
-	QList<QCheckBox> evidenceBoxes_;
+	QList<QCheckBox> source_boxes_;
+	QList<QCheckBox> evidence_boxes_;
 
 	Ui::PhenotypeSourceEvidenceSelector *ui;
 };

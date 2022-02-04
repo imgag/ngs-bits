@@ -27,7 +27,6 @@ public:
 		addInfile("hgmd", "HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2021.3.dump').", true);
 
 		// optional (for evidence information):
-		//TODO test if this improves the results compated to using only 'anno'
 		addInfile("hpophen", "HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information. Download from https://hpo.jax.org/app/download/annotation", true);
 		addInfile("gencc", "gencc 'gencc-submissions.csv' file for additional disease-gene evidence information. Download from https://search.thegencc.org/download", true);
 		addInfile("decipher", "G2P 'DDG2P.csv' file for additional gene-disease-phenotype evidence information. Download from https://www.deciphergenomics.org/about/downloads/data", true);
@@ -52,70 +51,70 @@ public:
 
 		SourceDetails()
 		{
-			this->sources = QList<PhenotypeSource::Source>();
+			sources = QList<PhenotypeSource::Source>();
 		}
 
-		SourceDetails(QByteArray s, QByteArray original_evi, PhenotypeEvidence::Evidence translated_evi=PhenotypeEvidence::Evidence::NA)
+		SourceDetails(const QByteArray& s, const QByteArray& original_evi, PhenotypeEvidence::Evidence translated_evi=PhenotypeEvidence::Evidence::NA)
 		{
-			this->sources = QList<PhenotypeSource::Source>();
-			this->original_evidence = QStringList();
-			this->translated_evidence = QList<PhenotypeEvidence::Evidence>();
+			sources = QList<PhenotypeSource::Source>();
+			original_evidence = QStringList();
+			translated_evidence = QList<PhenotypeEvidence::Evidence>();
 
-			sources.append(PhenotypeSource::SourceFromString(s));
+			sources.append(PhenotypeSource::sourceFromString(s));
 			original_evidence.append(QString(original_evi));
 			translated_evidence.append(translated_evi);
 		}
 
-		bool contains(PhenotypeSource::Source s)
+		bool contains(const PhenotypeSource::Source& s)
 		{
-			return this->sources.contains(s);
+			return sources.contains(s);
 		}
 
-		bool contains(QByteArray s)
+		bool contains(const QByteArray& s)
 		{
-			return this->sources.contains(PhenotypeSource::SourceFromString(s));
+			return sources.contains(PhenotypeSource::sourceFromString(s));
 		}
 
-		bool contains(QString s)
+		bool contains(const QString& s)
 		{
-			return this->sources.contains(PhenotypeSource::SourceFromString(s));
+			return sources.contains(PhenotypeSource::sourceFromString(s));
 		}
 
-		int getIndexOfSource(PhenotypeSource::Source s)
+		int getIndexOfSource(const PhenotypeSource::Source& s)
 		{
-			return this->sources.indexOf(s);
+			return sources.indexOf(s);
 		}
 
-		void append(PhenotypeSource::Source s, QString original_evi, PhenotypeEvidence::Evidence translated_evi)
+		void append(const PhenotypeSource::Source& s,const QString& original_evi, PhenotypeEvidence::Evidence translated_evi)
 		{
-			this->sources.append(s);
-			this->original_evidence.append(original_evi);
-			this->translated_evidence.append(translated_evi);
+			sources.append(s);
+			original_evidence.append(original_evi);
+			translated_evidence.append(translated_evi);
 		}
 
-		void append(QByteArray s, QString original_evi, PhenotypeEvidence::Evidence translated_evi)
+		void append(const QByteArray& s, const QString& original_evi, PhenotypeEvidence::Evidence translated_evi)
 		{
-			this->sources.append(PhenotypeSource::SourceFromString(s));
-			this->original_evidence.append(original_evi);
-			this->translated_evidence.append(translated_evi);
+			sources.append(PhenotypeSource::sourceFromString(s));
+			original_evidence.append(original_evi);
+			translated_evidence.append(translated_evi);
 		}
 
-		void unite(SourceDetails second)
+		void unite(const SourceDetails& second)
 		{
 			for (int i=0; i<second.sources.count(); i++)
 			{
-				if (this->contains(second.sources[i]))
+				if (contains(second.sources[i]))
 				{
-					int idx = this->getIndexOfSource(second.sources[i]);
-					if (PhenotypeEvidence::rank(second.translated_evidence[i]) > PhenotypeEvidence::rank(this->translated_evidence[idx]))
+					int idx = getIndexOfSource(second.sources[i]);
+					if ((int) second.translated_evidence[i] > (int) translated_evidence[idx])
 					{
-						this->original_evidence[idx] = second.original_evidence[i];
-						this->translated_evidence[idx] = second.translated_evidence[i];
+						original_evidence[idx] = second.original_evidence[i];
+						translated_evidence[idx] = second.translated_evidence[i];
 					}
 				}
 				else
 				{
-					this->append(second.sources[i], second.original_evidence[i], second.translated_evidence[i]);
+					append(second.sources[i], second.original_evidence[i], second.translated_evidence[i]);
 				}
 			}
 		}
@@ -139,34 +138,88 @@ public:
 		}
 	};
 
-	/// struct to annotate a gene/disease/phenotype with a source db and an evidence strength
+	// struct used to find the first instance of where a relation was parsed from. Only used for debugging and testing
+	struct ExactSources
+	{
+		QString disease2gene;
+		QString term2disease;
+		QString term2gene;
+
+		ExactSources():
+		disease2gene("")
+		, term2disease("")
+		, term2gene("")
+		{
+		}
+
+		ExactSources(const QString& disease2phenotype, const QString& phenotype2gene, const QString& term2gene):
+		disease2gene(disease2phenotype)
+		, term2disease(phenotype2gene)
+		, term2gene(term2gene)
+		{
+		}
+
+		void combine(const ExactSources& src)
+		{
+			if (disease2gene.length() == 0)
+			{
+				disease2gene = src.disease2gene;
+			}
+
+			if (term2disease.length() == 0)
+			{
+				term2disease = src.term2disease;
+			}
+
+			if (term2gene.length() == 0)
+			{
+				term2gene = src.term2gene;
+			}
+		}
+
+		QString toString() const
+		{
+			return QString("Exact Sources: disease2gene \t  '%1', \t term2disease \t '%2', \t term2gene \t '%3'").arg(disease2gene, term2disease, term2gene);
+		}
+	};
+
+	// struct to annotate a gene/disease/phenotype with a source db and an evidence strength
 	struct AnnotatedItem
 	{
 		QByteArray item;
 		SourceDetails src;
 		PhenotypeEvidence::Evidence evi;
+		ExactSources exactSources; // for debuging and testing
 
 		AnnotatedItem()
 		{
 		}
 
-		AnnotatedItem(const QByteArray& item, const QByteArray& src, const QByteArray& original_evi, PhenotypeEvidence::Evidence evi)
+		AnnotatedItem(const QByteArray& item, const QByteArray& s, const QByteArray& original_evi, PhenotypeEvidence::Evidence evi):
+			item(item)
+		  , evi(evi)
 		{
-			this->item = item;
-			this->src = SourceDetails(src, original_evi, evi);
-			this->evi = evi;
+			src = SourceDetails(s, original_evi, evi);
 		}
 
-		AnnotatedItem(const QByteArray& item, SourceDetails src, PhenotypeEvidence::Evidence evi)
+		AnnotatedItem(const QByteArray& item, SourceDetails src, PhenotypeEvidence::Evidence evi):
+			item(item)
+		  , src(src)
+		  , evi(evi)
 		{
-			this->item = item;
-			this->src = src;
-			this->evi = evi;
+		}
+
+		AnnotatedItem(const QByteArray& item, SourceDetails src, PhenotypeEvidence::Evidence evi, ExactSources exactSources):
+			item(item)
+		  , src(src)
+		  , evi(evi)
+		  , exactSources(exactSources)
+		{
 		}
 
 		bool operator==(const AnnotatedItem& other)
 		{
-			return this->item == other.item;
+			return item == other.item;
 		}
 	};
 
@@ -174,25 +227,27 @@ public:
 	class AnnotatedList
 	{
 		public:
-			void add(const QByteArray& item, const QByteArray& source, const QByteArray& original_evi, PhenotypeEvidence::Evidence evidence=PhenotypeEvidence::NA)
+			void add(const QByteArray& item, const QByteArray& source, const QByteArray& original_evi, PhenotypeEvidence::Evidence evidence=PhenotypeEvidence::NA, ExactSources exactSource=ExactSources())
 			{
-				add(item, SourceDetails(source, original_evi, evidence), evidence);
+				add(item, SourceDetails(source, original_evi, evidence), evidence, exactSource);
 			}
 
-			void add(const QByteArray& item, SourceDetails source, PhenotypeEvidence::Evidence evidence=PhenotypeEvidence::NA)
+			void add(const QByteArray& item, SourceDetails source, PhenotypeEvidence::Evidence evidence=PhenotypeEvidence::NA, ExactSources exactSource=ExactSources())
 			{
 				if (hash.contains(item))
 				{
 					AnnotatedItem& present_item = hash[item];
 					present_item.src.unite(source);
-					if (PhenotypeEvidence::rank(present_item.evi) < PhenotypeEvidence::rank(evidence))
+					if ((int) present_item.evi < (int) evidence)
 					{
 						present_item.evi = evidence;
+						present_item.exactSources.combine(exactSource);
 					}
+
 				}
 				else
 				{
-					hash.insert(item, AnnotatedItem(item, source, evidence));
+					hash.insert(item, AnnotatedItem(item, source, evidence, exactSource));
 				}
 			}
 
@@ -258,13 +313,18 @@ public:
 	{
 		if (getInfile("hpophen") == "") return;
 
+		int lineCount = 0;
+		int added = 0;
+
 		QTextStream out(stdout);
+		if (getFlag("debug")) out << "Starting analysis of hpophen file\n";
+
 		// parse phenotype.hpoa file for evidence information
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("hpophen"));
 
 		while(! fp->atEnd())
 		{
-
+			lineCount++;
 			QByteArray line = fp->readLine();
 
 			if (line.startsWith('#')) continue;
@@ -281,34 +341,60 @@ public:
 
 			if (term_id == -1)
 			{
-				if (getFlag("debug")) out << "Term not found in id2ngsd: " << term << endl;
+				if (getFlag("debug"))
+				{
+					out << "Term not found in id2ngsd: " << term << "\n";
+				}
 				continue;
 			}
 			else
 			{
-				term2diseases[term_id].add(disease, "HPO", evidence,  PhenotypeEvidence::translateHpoEvidence(evidence));
+				ExactSources e_src = ExactSources();
+				e_src.term2disease = QString("hpoPhen line ") + QString::number(lineCount);
+				term2diseases[term_id].add(disease, "HPO", evidence,  PhenotypeEvidence::translateHpoEvidence(evidence), e_src);
+				added++;
+				if (getFlag("debug"))
+				{
+					out << "Imported term2disease relation:\t" << term << "-" << disease << ":\t" << evidence << "\t fin_evi:\t" << PhenotypeEvidence::evidenceToString(PhenotypeEvidence::translateHpoEvidence(evidence)) << "\n";
+				}
 			}
 		}
+		out << "Imported " << added << " term-disease relations.\n";
 		fp->close();
 	}
 
 	void parseDecipher(NGSD& db, const QHash<QByteArray, int>& id2ngsd, QHash<QByteArray, AnnotatedList>& disease2genes, QHash<int, AnnotatedList>& term2diseases, QHash<int, AnnotatedList>& term2genes)
 	{
 		if (getInfile("decipher") == "") return;
+		bool debug = getFlag("debug");
+		QTextStream out(stdout);
+		if (debug) out << "Parsing Decipher...\n";
+		int countT2D = 0;
+		int countD2G = 0;
+		int countT2G = 0;
 
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("decipher"));
 
 		QByteArray line = fp->readLine();
-		//"gene symbol","gene mim","disease name","disease mim","DDD category","allelic requirement","mutation consequence",phenotypes,"organ specificity list",pmids,panel,"prev symbols","hgnc id","gene disease pair entry date"
+		//"gene symbol","gene mim","disease name","disease mim","confidence category","allelic requirement","mutation consequence",phenotypes,"organ specificity list",pmids,panel,"prev symbols","hgnc id","gene disease pair entry date","cross cutting modifier","mutation consequence flag"
 
 		QList<QByteArray> non_hgc_genes;
 		QSet<QByteArray> bad_hpo_terms;
 		QByteArray source = "Decipher";
+		int lineCount = 0;
+		QRegExp mim_exp("([0-9]{6})");
 		while(! fp->atEnd())
 		{
+			lineCount++;
 			line = fp->readLine().trimmed();
 			QByteArrayList parts = line.split(',');
+
+			// merge parts of strings that contained commas:
+
+			parts = reconstructStrings(parts);
+
 			QByteArray gene = parts[0].trimmed();
+			QByteArray disease_num = parts[3].trimmed();
 			QByteArray disease = "OMIM:" + parts[3].trimmed();
 			QByteArray decipher_evi = parts[4].trimmed();
 			PhenotypeEvidence::Evidence evidence = PhenotypeEvidence::translateDecipherEvidence(decipher_evi);
@@ -321,12 +407,16 @@ public:
 			{
 				non_hgc_genes.append(gene);
 				// add term2disease relations
-				foreach (QByteArray term, hpo_terms)
+				foreach (const QByteArray& term, hpo_terms)
 				{
 					int term_db_id = id2ngsd.value(term, -1);
-					if (term_db_id != -1)
+					if (term_db_id != -1 && mim_exp.indexIn(disease_num) != -1)
 					{
-						term2diseases[term_db_id].add(disease, source, decipher_evi,  evidence);
+						ExactSources e_src = ExactSources();
+						e_src.term2disease = QString("Decipher line") + QString::number(lineCount);
+						term2diseases[term_db_id].add(disease, source, decipher_evi,  evidence, e_src);
+						countT2D++;
+						if (debug) out << "Deciper\tTERM2DISEASE\tTERM,DISEASE,GENE\t" << term << "\t" << disease << "\t''\t" << "\tSource:\t" << e_src.term2disease <<"\n";
 					}
 					else
 					{
@@ -338,48 +428,104 @@ public:
 			{
 				QByteArray approved_gene_symbol = db.geneSymbol(gene_db_id);
 
-				foreach (QByteArray term, hpo_terms)
+				foreach (const QByteArray& term, hpo_terms)
 				{
 					int term_db_id = id2ngsd.value(term, -1);
 					if (term_db_id != -1)
 					{
-						term2genes[term_db_id].add(approved_gene_symbol, source, decipher_evi, evidence);
-						term2diseases[term_db_id].add(disease, source, decipher_evi, evidence);
+						ExactSources e_src = ExactSources();
+						e_src.term2gene = QString("Decipher line") + QString::number(lineCount);
+						term2genes[term_db_id].add(approved_gene_symbol, source, decipher_evi, evidence, e_src);
+						countT2G++;
+						if (debug) out << "Deciper\tTERM2GENE\tTERM,DISEASE,GENE\t" << term << "\t''\t" << gene << "\tSource:\t" << e_src.term2gene << "\tapproved_gene_symbol:\t" << approved_gene_symbol << "\n";
+
+						if (mim_exp.indexIn(disease_num) != -1)
+						{
+							e_src = ExactSources();
+							e_src.term2disease = QString("Decipher line") + QString::number(lineCount);
+							term2diseases[term_db_id].add(disease, source, decipher_evi, evidence, e_src);
+							countT2D++;
+							if (debug) out << "Deciper\tTERM2DISEASE\tTERM,DISEASE,GENE\t" << term << "\t" << disease << "\t''\t" << "\tSource:\t" << e_src.term2disease <<"\n";
+						}
+
 					}
 					else
 					{
 						bad_hpo_terms.insert(term);
 					}
 				}
-				disease2genes[disease].add(approved_gene_symbol, source, decipher_evi, evidence);
+				if (mim_exp.indexIn(disease_num) != -1)
+				{
+					ExactSources e_src = ExactSources();
+					e_src.term2disease = QString("Decipher line") + QString::number(lineCount);
+					disease2genes[disease].add(approved_gene_symbol, source, decipher_evi, evidence, e_src);
+					countD2G++;
+					if (debug) out << "Deciper\tTERM2GENE\tTERM,DISEASE,GENE\t" << "''\t" << disease << "\t" << gene << "\tSource:\t" << e_src.term2gene << "\tapproved_gene_symbol:\t" << approved_gene_symbol << "\n";
+				}
 			}
 		}
 		fp->close();
+		out << "Finished Deciper parsing. Imported:\n" << countD2G << "\tDisease to gene relations\n" << countT2D << "\tHPO term to disease relations\n" << countT2G << "\tHPO term to gene relations.\n";
+
 	}
 
 	void parseGenCC(NGSD& db, QHash<QByteArray, AnnotatedList>& disease2genes)
 	{
 		if (getInfile("gencc") == "") return;
 
-		QTextStream out(stdout);
-		// parse phenotype.hpoa file for evidence information
+		// parse gencc_submission.csv file for evidence information
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("gencc"));
-
-		QByteArray line = fp->readLine();
-		//"uuid","gene_curie","gene_symbol","disease_curie","disease_title","disease_original_curie","disease_original_title","classification_curie","classification_title","moi_curie","moi_title","submitter_curie","submitter_title","submitted_as_hgnc_id","submitted_as_hgnc_symbol","submitted_as_disease_id","submitted_as_disease_name","submitted_as_moi_id","submitted_as_moi_name","submitted_as_submitter_id","submitted_as_submitter_name","submitted_as_classification_id","submitted_as_classification_name","submitted_as_date","submitted_as_public_report_url","submitted_as_notes","submitted_as_pmids","submitted_as_assertion_criteria_url","submitted_as_submission_id","submitted_run_date"
-
+		QByteArray line = fp->readLine(); // header
 		QByteArray source = "GenCC";
 		int count =0;
+		int lineCount =0;
 		while(! fp->atEnd())
 		{
+			lineCount++;
 			line = fp->readLine().trimmed();
-			while ( ! line.endsWith('"'))
+			while ( ! line.endsWith('"')) //some strings contain newlines..
 			{
+				lineCount++;
 				line.append(fp->readLine().trimmed());
 			}
 
 			QByteArrayList parts = line.split(',');
 
+			parts = reconstructStrings(parts, 30);
+
+			QByteArray gene_symbol = parts[2].replace('"', ' ').trimmed();
+			QByteArray disease = parts[5].replace('"', ' ').trimmed(); // OMIM:XXXXXX, MONDO:XXXXXXX, Orphanet:XXXXX needs mapping from Orphanet and Mondo to Omim
+			QByteArray gencc_evi = parts[8].replace('"', ' ').trimmed();
+			PhenotypeEvidence::Evidence evidence = PhenotypeEvidence::translateGenccEvidence(gencc_evi);
+
+			if (evidence == PhenotypeEvidence::NA || evidence == PhenotypeEvidence::AGAINST)
+			{
+				continue;
+			}
+
+			if ( ! disease.startsWith("OMIM"))
+			{
+				continue;
+			}
+
+			int gene_db_id = db.geneToApprovedID(gene_symbol);
+			if (gene_db_id == -1) continue;
+			ExactSources e_src = ExactSources();
+			e_src.disease2gene = QString("GenCC line") + QString::number(lineCount);
+			disease2genes[disease].add(db.geneSymbol(gene_db_id), source, gencc_evi, evidence, e_src);
+			count++;
+		}
+		fp->close();
+
+		QTextStream out(stdout);
+		out << "Imported " << count << " disease gene relations from GenCC" << endl;
+	}
+
+	QByteArrayList reconstructStrings(const QByteArrayList& parts, int expected_size=-1)
+	{
+		// if parts size bigger than expected, try to reconstruct strings that were split:
+		if (parts.length() > expected_size)
+		{
 			QByteArrayList cleaned_parts = QByteArrayList();
 
 			for (int i=0; i<parts.length(); i++)
@@ -392,44 +538,21 @@ public:
 						i++;
 						combined_part.append(parts[i]);
 
-					} while (! parts[i].endsWith('"'));
+					}
+					while (! parts[i].endsWith('"'));
 
 					cleaned_parts.append(combined_part);
-					continue;
 				}
 				else
 				{
 					cleaned_parts.append(parts[i]);
 				}
+
 			}
-
-			QByteArray gene_symbol = cleaned_parts[2].replace('"', ' ').trimmed();
-			QByteArray disease = cleaned_parts[5].replace('"', ' ').trimmed(); // OMIM:XXXXXX, MONDO:XXXXXXX, Orphanet:XXXXX needs mapping from Orphanet and Mondo to Omim
-			QByteArray gencc_evi = cleaned_parts[8].replace('"', ' ').trimmed();
-			PhenotypeEvidence::Evidence evidence = PhenotypeEvidence::translateGenccEvidence(gencc_evi);
-			if (evidence == PhenotypeEvidence::NA && getFlag("debug"))
-			{
-				out << gencc_evi << endl;
-				out << line << endl;
-				return;
-			}
-
-			if (evidence == PhenotypeEvidence::NA || evidence == PhenotypeEvidence::AGAINST) continue;
-
-			if ( ! disease.startsWith("OMIM"))
-			{
-				continue;
-			}
-
-			int gene_db_id = db.geneToApprovedID(gene_symbol);
-			if (gene_db_id == -1) continue;
-
-			disease2genes[disease].add(db.geneSymbol(gene_db_id), source, gencc_evi, evidence);
-			count++;
+			return cleaned_parts;
 		}
-		fp->close();
 
-		out << "Imported " << count << " disease gene relations from GenCC" << endl;
+		return parts;
 	}
 
 	virtual void main()
@@ -479,20 +602,24 @@ public:
 		QHash<QByteArray, AnnotatedList> disease2genes;
 
 		// parse Evidence files if provided
+		// parse g2pDDG2P_11_11_2021.csv file
+		parseDecipher(db, id2ngsd, disease2genes, term2diseases, term2genes);
 		// parse gencc-submissions.csv file
 		parseGenCC(db, disease2genes);
 		// parse phenotype.hpoa file
 		parseHpoPhen(id2ngsd, term2diseases);
-		// parse g2pDDG2P_11_11_2021.csv file
-		parseDecipher(db, id2ngsd, disease2genes, term2diseases, term2genes);
+
 
 		//parse term-disease and disease-gene relations from HPO
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("anno"));
 		QSet<QByteArray> non_hgnc_genes;
 		PhenotypeList inheritance_terms = db.phenotypeChildTerms(db.phenotypeIdByAccession("HP:0000005"), true); //Mode of inheritance
-
+		int lineCount = 0;
+		QString exactSource;
 		while(!fp->atEnd())
 		{
+			lineCount++;
+			exactSource = QString("Anno line ") + QString::number(lineCount);
 			QByteArray line =  fp->readLine();
 			QByteArrayList parts =line.split('\t');
 
@@ -512,21 +639,30 @@ public:
 				{
 					if (gene_db_id!=-1)
 					{
-						if (debug) out << "HPO-GENE: " << term_accession << " - " << gene << endl;
-						term2genes[term_db_id].add(db.geneSymbol(gene_db_id), "HPO", "");
+						if (debug) out << "HPO-GENE: " << term_accession << " - " << gene << "\n";
+
+						ExactSources e_src = ExactSources();
+						e_src.term2gene = exactSource;
+						term2genes[term_db_id].add(db.geneSymbol(gene_db_id), "HPO", "", PhenotypeEvidence::NA, e_src);
 					}
 				}
 				else
 				{
-					if (debug) out << "HPO-DISEASE: " << term_accession << " - " << disease << endl;
-					term2diseases[term_db_id].add(disease, "HPO", "");
+					if (debug) out << "HPO-DISEASE: " << term_accession << " - " << disease << "\n";
+
+					ExactSources e_src = ExactSources();
+					e_src.term2disease = exactSource;
+					term2diseases[term_db_id].add(disease, "HPO", "", PhenotypeEvidence::NA, e_src);
 				}
 			}
 
 			if (gene_db_id!=-1)
 			{
-				if (debug) out << "DISEASE-GENE (HPO): " << disease << " - " << db.geneSymbol(gene_db_id) << endl;
-				disease2genes[disease].add(db.geneSymbol(gene_db_id), "HPO", "");
+				if (debug) out << "DISEASE-GENE (HPO): " << disease << " - " << db.geneSymbol(gene_db_id) << "\n";
+
+				ExactSources e_src = ExactSources();
+				e_src.disease2gene = exactSource;
+				disease2genes[disease].add(db.geneSymbol(gene_db_id), "HPO", "", PhenotypeEvidence::NA, e_src);
 			}
 			else
 			{
@@ -542,15 +678,20 @@ public:
 
 		//parse disease-gene relations from OMIM
 		QString omim_file = getInfile("omim");
-		// disease2genes.clear(); *********************** Why clear it?
+		lineCount = 0;
+		int count = 0;
 		if (omim_file!="")
 		{
+			if (debug) out << "Parsing OMIM file...\n";
 			//parse disease-gene relations
 			int c_skipped_invalid_gene = 0;
 			fp = Helper::openFileForReading(omim_file);
 			QRegExp mim_exp("([0-9]{6})");
+			QRegExp evi_exp("(\\([1-4]{1}\\))");
+
 			while(!fp->atEnd())
 			{
+				lineCount++;
 				QByteArrayList parts = fp->readLine().trimmed().split('\t');
 				if (parts.count()<4) continue;
 
@@ -564,6 +705,11 @@ public:
 					mim_number = mim_exp.cap().toLatin1(); // mim number for phenotype
 				}
 
+				if (evi_exp.indexIn(pheno) != -1)
+				{
+					omim_evi = evi_exp.cap().toLatin1(); // evidence for relation
+				}
+
 				foreach(QByteArray gene, genes)
 				{
 					//make sure the gene symbol is approved by HGNC
@@ -571,28 +717,35 @@ public:
 					int approved_id = db.geneToApprovedID(gene);
 					if (approved_id==-1)
 					{
-						if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << endl;
+						if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!\n";
 						++c_skipped_invalid_gene;
 						continue;
 					}
 
-					if (debug) out << "DISEASE-GENE (OMIM): OMIM:" << mim_number << " - " << db.geneSymbol(approved_id) << endl;
+					if (debug) out << "DISEASE-GENE (OMIM): OMIM:" << mim_number << " - " << db.geneSymbol(approved_id) << "\n";
 
-					disease2genes["OMIM:"+mim_number].add(db.geneSymbol(approved_id), "OMIM", omim_evi, PhenotypeEvidence::translateOmimEvidence(omim_evi));
+					ExactSources e_src = ExactSources();
+					e_src.disease2gene = QString("OMIM line ") + QString::number(lineCount);
+					disease2genes["OMIM:"+mim_number].add(db.geneSymbol(approved_id), "OMIM", omim_evi, PhenotypeEvidence::translateOmimEvidence(omim_evi), e_src);
+					count++;
 				}
 			}
 			fp->close();
+			out << "Imported " << count << " disease to genes relations.\n";
 		}
-		out << "Starting with ClinVar" << endl;
+
 		//parse disease-gene relations from ClinVar
 		QString clinvar_file = getInfile("clinvar");
 		if (clinvar_file!="")
 		{
+			if (debug) out << "Prasing ClinVar..." << endl;
 			//parse disease-gene relations
 			int c_skipped_invalid_gene = 0;
 			fp = Helper::openFileForReading(clinvar_file);
+			lineCount = 0;
 			while(!fp->atEnd())
 			{
+				lineCount++;
 				QByteArray line = fp->readLine().trimmed();
 				if (!line.contains("CLNSIG=Pathogenic") && !line.contains("CLNSIG=Likely_pathogenic")) continue;
 
@@ -652,16 +805,21 @@ public:
 
 					foreach(const QByteArray& disease, diseases)
 					{
-						if (debug) out << "DISEASE-GENE (ClinVar): " << disease << " - " << gene_approved << endl;
-						disease2genes[disease].add(gene_approved, "ClinVar", "");
+						if (debug) out << "DISEASE-GENE (ClinVar): " << disease << " - " << gene_approved << "\n";
+
+						ExactSources e_src = ExactSources();
+						e_src.disease2gene = QString("ClinVar line ") + QString::number(lineCount);
+						disease2genes[disease].add(gene_approved, "ClinVar", "", PhenotypeEvidence::NA, e_src);
 					}
 					foreach(const QByteArray& hpo, hpos)
 					{
-						if (debug) out << "HPO-GENE (ClinVar): " << hpo << " - " << gene_approved << endl;
+						if (debug) out << "HPO-GENE (ClinVar): " << hpo << " - " << gene_approved << "\n";
 						int term_db_id = id2ngsd.value(hpo, -1);
 						if (term_db_id != -1)
 						{
-							term2genes[term_db_id].add(gene_approved, "ClinVar", "");
+							ExactSources e_src = ExactSources();
+							e_src.term2gene = QString("ClinVar line ") + QString::number(lineCount);
+							term2genes[term_db_id].add(gene_approved, "ClinVar", "", PhenotypeEvidence::NA, e_src);
 						}
 					}
 				}
@@ -830,7 +988,9 @@ public:
 							int term_db_id = id2ngsd.value(hpo, -1);
 							if (term_db_id != -1)
 							{
-								term2genes[term_db_id].add(gene_approved, "HGMD", ""); // is there some evidence in the file that could be parsed?
+								ExactSources e_src = ExactSources();
+								e_src.term2gene = QString("HGMD unknown line");
+								term2genes[term_db_id].add(gene_approved, "HGMD", "", PhenotypeEvidence::NA, e_src); // is there some evidence in the file that could be parsed?
 							}
 						}
 					}
@@ -865,13 +1025,16 @@ public:
 					}
 					else
 					{
-						evi = PhenotypeEvidence::rank(disease.evi) < PhenotypeEvidence::rank(gene.evi) ? disease.evi : gene.evi;
+						evi = (int) disease.evi < (int) gene.evi ? disease.evi : gene.evi;
 					}
 
 					SourceDetails src = SourceDetails(); // list all the combined sources?
 					src.unite(disease.src);
 					src.unite(gene.src);
-					term2genes[term_id].add(gene.item, src, evi);
+					ExactSources exactSource = disease.exactSources;
+					exactSource.combine(gene.exactSources);
+
+					term2genes[term_id].add(gene.item, src, evi, exactSource);
 				}
 			}
 		}
@@ -883,6 +1046,10 @@ public:
 		{
 			foreach (const AnnotatedItem& gene, term2genes[term_id].items())
 			{
+				if (getFlag("debug"))
+				{
+					out << "Gene:\t" << gene.item << "\tHPO term id:\t" << term_id << "\t" << "final evidence:\t" << PhenotypeEvidence::evidenceToString(gene.evi) << "  \torigin:\t" << gene.exactSources.toString() << "\n";
+				}
 				tuples << QString("(%1, '%2', '%3', '%4')").arg(QString::number(term_id), QString(gene.item), gene.src.toCsvString(), PhenotypeEvidence::evidenceToString(gene.evi));
 			}
 		}

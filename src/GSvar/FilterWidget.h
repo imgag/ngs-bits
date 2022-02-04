@@ -74,7 +74,7 @@ public:
 	void loadTargetRegions();
 	/// Helper for loading target regions (also in CNV/SV widget)
 	static void loadTargetRegions(QComboBox* box);
-	/// Helper for loading target region data
+	/// Helper for loading target region data. Throws an exception of the target region file is missing!
 	static void loadTargetRegionData(TargetRegionInfo& roi, QString name);
 
 	///Returns the filter INI file name
@@ -97,8 +97,9 @@ signals:
 	void phenotypeImportNGSDRequested();
 	/// Signal that a sub-panel should be created using the phenotypes
 	void phenotypeSubPanelRequested();
-	/// Signal that the options for evidence and source selection were requested.
-	void phenotypeOptionsRequested();
+    // Signal that the allowed sources or evidences changed
+    void phenotypeSourcesAndEvidencesChanged(QList<PhenotypeEvidence::Evidence> evidences, QList<PhenotypeSource::Source> sources);
+
 
 public slots:
 		void phenotypesChanged();
@@ -134,8 +135,8 @@ private:
 	TargetRegionInfo roi_;
 	GeneSet last_genes_;
 	PhenotypeList phenotypes_;
-	QList<PhenotypeSource::Source> allowedPhenotypeSources_;
-	QList<PhenotypeEvidence::Evidence> allowedPhenotypeEvidences_;
+	QList<PhenotypeSource::Source> allowed_phenotype_sources_;
+	QList<PhenotypeEvidence::Evidence> allowed_phenotype_evidences_;
 
 };
 

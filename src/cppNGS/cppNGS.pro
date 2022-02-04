@@ -75,7 +75,8 @@ SOURCES += BedFile.cpp \
     PrsTable.cpp \
     RtfDocument.cpp \
     GenomeBuild.cpp \
-    ChainFileReader.cpp
+    ChainFileReader.cpp \
+    BigWigReader.cpp
 
 HEADERS += BedFile.h \
     Chromosome.h \
@@ -124,7 +125,8 @@ HEADERS += BedFile.h \
     GraphNode.h \
     GraphEdge.h \
     GenomeBuild.h \
-    ChainFileReader.h
+    ChainFileReader.h \
+    BigWigReader.h
 
 RESOURCES += \
     cppNGS.qrc

@@ -1,0 +1,120 @@
+##fileformat=VCFv4.2
+##fileDate=20210817
+##source=freeBayes v1.3.3
+##reference=/tmp/local_ngs_data_GRCh38//GRCh38.fa
+##phasing=none
+##commandline="/mnt/storage1/share/opt/freebayes-1.3.3/build/freebayes -t /tmp/241593.1.default_srv015/megSAP_user_ahschul1/vc_freebayes_pid28914_u8Kg76/chr1.bed --min-alternate-fraction 0.1 --min-mapping-quality 1 --min-base-quality 15 --min-alternate-count 3 --genotype-qualities -f /tmp/local_ngs_data_GRCh38//GRCh38.fa -b /tmp/241593.1.default_srv015/megSAP_user_ahschul1/local_bamwK0sYh/NA12878_38.bam -v /tmp/241593.1.default_srv015/megSAP_user_ahschul1/vc_freebayes_pid28914_u8Kg76/chr1.vcf"
+##filter="QUAL > 5"
+##INFO=<ID=NS,Number=.,Type=Integer,Description="Number of samples with data">
+##INFO=<ID=DP,Number=.,Type=Integer,Description="Total read depth at the locus">
+##INFO=<ID=DPB,Number=.,Type=Float,Description="Total read depth per bp at the locus; bases in reads overlapping / bases in haplotype">
+##INFO=<ID=AC,Number=A,Type=Integer,Description="Total number of alternate alleles in called genotypes">
+##INFO=<ID=AN,Number=.,Type=Integer,Description="Total number of alleles in called genotypes">
+##INFO=<ID=AF,Number=A,Type=Float,Description="Estimated allele frequency in the range (0,1]">
+##INFO=<ID=RO,Number=.,Type=Integer,Description="Count of full observations of the reference haplotype.">
+##INFO=<ID=AO,Number=A,Type=Integer,Description="Count of full observations of this alternate haplotype.">
+##INFO=<ID=PRO,Number=.,Type=Float,Description="Reference allele observation count, with partial observations recorded fractionally">
+##INFO=<ID=PAO,Number=A,Type=Float,Description="Alternate allele observations, with partial observations recorded fractionally">
+##INFO=<ID=QR,Number=.,Type=Integer,Description="Reference allele quality sum in phred">
+##INFO=<ID=QA,Number=A,Type=Integer,Description="Alternate allele quality sum in phred">
+##INFO=<ID=PQR,Number=.,Type=Float,Description="Reference allele quality sum in phred for partial observations">
+##INFO=<ID=PQA,Number=A,Type=Float,Description="Alternate allele quality sum in phred for partial observations">
+##INFO=<ID=SRF,Number=.,Type=Integer,Description="Number of reference observations on the forward strand">
+##INFO=<ID=SRR,Number=.,Type=Integer,Description="Number of reference observations on the reverse strand">
+##INFO=<ID=SAF,Number=A,Type=Integer,Description="Number of alternate observations on the forward strand">
+##INFO=<ID=SAR,Number=A,Type=Integer,Description="Number of alternate observations on the reverse strand">
+##INFO=<ID=SRP,Number=.,Type=Float,Description="Strand balance probability for the reference allele: Phred-scaled upper-bounds estimate of the probability of observing the deviation between SRF and SRR given E(SRF/SRR) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=SAP,Number=A,Type=Float,Description="Strand balance probability for the alternate allele: Phred-scaled upper-bounds estimate of the probability of observing the deviation between SAF and SAR given E(SAF/SAR) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=AB,Number=A,Type=Float,Description="Allele balance at heterozygous sites: a number between 0 and 1 representing the ratio of reads showing the reference allele to all reads, considering only reads from individuals called as heterozygous">
+##INFO=<ID=ABP,Number=A,Type=Float,Description="Allele balance probability at heterozygous sites: Phred-scaled upper-bounds estimate of the probability of observing the deviation between ABR and ABA given E(ABR/ABA) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=RUN,Number=A,Type=Integer,Description="Run length: the number of consecutive repeats of the alternate allele in the reference genome">
+##INFO=<ID=RPP,Number=A,Type=Float,Description="Read Placement Probability: Phred-scaled upper-bounds estimate of the probability of observing the deviation between RPL and RPR given E(RPL/RPR) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=RPPR,Number=.,Type=Float,Description="Read Placement Probability for reference observations: Phred-scaled upper-bounds estimate of the probability of observing the deviation between RPL and RPR given E(RPL/RPR) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=RPL,Number=A,Type=Float,Description="Reads Placed Left: number of reads supporting the alternate balanced to the left (5') of the alternate allele">
+##INFO=<ID=RPR,Number=A,Type=Float,Description="Reads Placed Right: number of reads supporting the alternate balanced to the right (3') of the alternate allele">
+##INFO=<ID=EPP,Number=A,Type=Float,Description="End Placement Probability: Phred-scaled upper-bounds estimate of the probability of observing the deviation between EL and ER given E(EL/ER) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=EPPR,Number=.,Type=Float,Description="End Placement Probability for reference observations: Phred-scaled upper-bounds estimate of the probability of observing the deviation between EL and ER given E(EL/ER) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=DPRA,Number=A,Type=Float,Description="Alternate allele depth ratio.  Ratio between depth in samples with each called alternate allele and those without.">
+##INFO=<ID=ODDS,Number=.,Type=Float,Description="The log odds ratio of the best genotype combination to the second-best.">
+##INFO=<ID=GTI,Number=.,Type=Integer,Description="Number of genotyping iterations required to reach convergence or bailout.">
+##INFO=<ID=TYPE,Number=A,Type=String,Description="The type of allele, either snp, mnp, ins, del, or complex.">
+##INFO=<ID=CIGAR,Number=A,Type=String,Description="The extended CIGAR representation of each alternate allele, with the exception that '=' is replaced by 'M' to ease VCF parsing.  Note that INDEL alleles do not have the first matched base (which is provided by default, per the spec) referred to by the CIGAR.">
+##INFO=<ID=NUMALT,Number=.,Type=Integer,Description="Number of unique non-reference alleles in called genotypes at this position.">
+##INFO=<ID=MEANALT,Number=A,Type=Float,Description="Mean number of unique non-reference allele observations per sample with the corresponding alternate alleles.">
+##INFO=<ID=LEN,Number=A,Type=Integer,Description="allele length">
+##INFO=<ID=MQM,Number=A,Type=Float,Description="Mean mapping quality of observed alternate alleles">
+##INFO=<ID=MQMR,Number=.,Type=Float,Description="Mean mapping quality of observed reference alleles">
+##INFO=<ID=PAIRED,Number=A,Type=Float,Description="Proportion of observed alternate alleles which are supported by properly paired read fragments">
+##INFO=<ID=PAIREDR,Number=.,Type=Float,Description="Proportion of observed reference alleles which are supported by properly paired read fragments">
+##INFO=<ID=MIN_DP,Number=1,Type=Integer,Description="Minimum depth in gVCF output block.">
+##INFO=<ID=END,Number=1,Type=Integer,Description="Last position (inclusive) in gVCF output record.">
+##INFO=<ID=technology.ILLUMINA,Number=A,Type=Float,Description="Fraction of observations supporting the alternate observed in reads from ILLUMINA">
+##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=GQ,Number=1,Type=Float,Description="Genotype Quality, the Phred-scaled marginal (or unconditional) probability of the called genotype">
+##FORMAT=<ID=GL,Number=G,Type=Float,Description="Genotype Likelihood, log10-scaled likelihoods of the data given the called genotype for each possible genotype generated from the reference and alternate alleles given the sample ploidy">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Number of observation for each allele">
+##FORMAT=<ID=RO,Number=1,Type=Integer,Description="Reference allele observation count">
+##FORMAT=<ID=QR,Number=1,Type=Integer,Description="Sum of quality of the reference observations">
+##FORMAT=<ID=AO,Number=A,Type=Integer,Description="Alternate allele observation count">
+##FORMAT=<ID=QA,Number=A,Type=Integer,Description="Sum of quality of the alternate observations">
+##FORMAT=<ID=MIN_DP,Number=1,Type=Integer,Description="Minimum depth in gVCF output block.">
+##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
+##PIPELINE=megSAP 0.2-660-g1c2b0c04
+##SAMPLE=<ID=NA12878_38,Gender=female,ExternalSampleName=Coriell-DNA,IsTumor=no,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=affected>
+##INFO=<ID=PHYLOP,Number=1,Type=Float,Description="phylop_value">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878_38
+chr1	10917	.	A	T	23	.	MQM=22;SAP=25;ABP=4	GT:DP:AO:GQ	0/1:24:10:8
+chr1	10918	.	G	C	23	.	MQM=22;SAP=25;ABP=4;PHYLOP=0.064	GT:DP:AO:GQ	0/1:24:10:8
+chr1	16949	.	A	C	9	.	MQM=22;SAP=25;ABP=4;PHYLOP=3.207	GT:DP:AO:GQ	0/1:24:10:8
+chr1	17020	.	G	A	64	.	MQM=21;SAP=4;ABP=3;PHYLOP=-0.144	GT:DP:AO:GQ	0/1:22:10:63
+chr1	165284	.	CTCCAAAAAAAAAAAA	C	64	.	MQM=21;SAP=4;ABP=3;PHYLOP=0.856	GT:DP:AO:GQ	0/1:22:10:63
+chr1	188254	.	C	A	43	.	MQM=22;SAP=27;ABP=3;PHYLOP=3.212	GT:DP:AO:GQ	0/1:23:11:42
+chr1	200000	.	C	CGTAA	43	.	MQM=22;SAP=27;ABP=3	GT:DP:AO:GQ	0/1:23:11:42
+chr1	269732	.	AAGCT	A	43	.	MQM=22;SAP=27;ABP=3;PHYLOP=1.387	GT:DP:AO:GQ	0/1:23:11:42
+chr1	399406	.	TTGAGT	T	43	.	MQM=22;SAP=27;ABP=3;PHYLOP=1.544	GT:DP:AO:GQ	0/1:23:11:42
+chr1	399406	.	TTGAGTG	T	43	.	MQM=22;SAP=27;ABP=3;PHYLOP=1.824	GT:DP:AO:GQ	0/1:23:11:42
+chr1	494515	.	T	A	397	.	MQM=33;SAP=6;ABP=0;PHYLOP=-0.556	GT:DP:AO:GQ	1/1:21:19:134
+chr1	592326	.	CAGATG	TGCTTA	656	.	MQM=32;SAP=3;ABP=0;PHYLOP=0.332	GT:DP:AO:GQ	1/1:26:26:152
+chr1	597988	.	GA	G	656	.	MQM=32;SAP=3;ABP=0;PHYLOP=-0.257	GT:DP:AO:GQ	1/1:26:26:152
+chr1	727717	.	G	C	656	.	MQM=32;SAP=3;ABP=0;PHYLOP=0.058	GT:DP:AO:GQ	1/1:26:26:152
+chr1	729454	.	T	G	46	.	MQM=24;SAP=33;ABP=3;PHYLOP=-1.89	GT:DP:AO:GQ	0/1:30:14:45
+chr1	817341	.	A	G	732	off-target	MQM=60;SAP=11;ABP=0;PHYLOP=0.085	GT:DP:AO:GQ	1/1:23:23:147
+chr1	817514	.	T	C	117	.	MQM=34;SAP=14;ABP=0;PHYLOP=0.633	GT:DP:AO:GQ	1/1:5:5:50
+chr1	826577	.	A	AT	833	.	MQM=39;SAP=83;ABP=0	GT:DP:AO:GQ	1/1:37:37:145
+chr1	931131	.	C	CCCCT	307	off-target	MQM=60;SAP=27;ABP=0	GT:DP:AO:GQ	1/1:12:11:86
+chr1	935954	.	G	T	179	off-target	MQM=60;SAP=11;ABP=0;PHYLOP=0.857	GT:DP:AO:GQ	1/1:7:7:62
+chr1	941119	.	A	G	942	off-target	MQM=60;SAP=5;ABP=0;PHYLOP=-2.575	GT:DP:AO:GQ	1/1:29:29:156
+chr1	942451	.	T	C	183	.	MQM=60;SAP=3;ABP=0;PHYLOP=1.367	GT:DP:AO:GQ	1/1:6:6:56
+chr1	944296	.	G	A	540	.	MQM=60;SAP=38;ABP=0;PHYLOP=-0.075	GT:DP:AO:GQ	1/1:20:20:139
+chr1	944307	.	T	C	389	.	MQM=60;SAP=25;ABP=0;PHYLOP=-0.501	GT:DP:AO:GQ	1/1:14:14:104
+chr1	944858	.	A	G	2968	off-target	MQM=60;SAP=6;ABP=0;PHYLOP=-0.611	GT:DP:AO:GQ	1/1:89:89:155
+chr1	946247	.	G	A	2933	.	MQM=60;SAP=30;ABP=0;PHYLOP=4.704	GT:DP:AO:GQ	1/1:89:89:160
+chr1	948245	.	A	G	4073	.	MQM=60;SAP=3;ABP=0;PHYLOP=-0.925	GT:DP:AO:GQ	1/1:121:121:152
+chr1	948519	.	T	G	2784	.	MQM=60;SAP=43;ABP=4;PHYLOP=4.717	GT:DP:AO:GQ	0/1:202:106:143
+chr1	952180	.	A	C	3381	off-target	MQM=60;SAP=12;ABP=0;PHYLOP=-0.945	GT:DP:AO:GQ	1/1:102:102:160
+chr1	952421	.	A	G	5300	.	MQM=60;SAP=46;ABP=0;PHYLOP=-2.042	GT:DP:AO:GQ	1/1:163:163:160
+chr1	953259	.	T	C	5182	.	MQM=60;SAP=4;ABP=0;PHYLOP=-0.067	GT:DP:AO:GQ	1/1:157:157:153
+chr1	953279	.	T	C	5239	.	MQM=60;SAP=3;ABP=0;PHYLOP=0.037	GT:DP:AO:GQ	1/1:159:158:156
+chr1	953778	.	G	C	721	.	MQM=60;SAP=24;ABP=0;PHYLOP=-4.537	GT:DP:AO:GQ	1/1:23:23:147
+chr1	953779	.	A	C	721	.	MQM=60;SAP=24;ABP=0;PHYLOP=-0.703	GT:DP:AO:GQ	1/1:23:23:147
+chr1	959193	.	G	A	2900	off-target	MQM=60;SAP=21;ABP=0;PHYLOP=-0.076	GT:DP:AO:GQ	1/1:87:87:152
+chr1	961945	.	G	C	8577	.	MQM=60;SAP=4;ABP=0;PHYLOP=-2.168	GT:DP:AO:GQ	1/1:261:259:160
+chr1	962184	.	T	C	8669	.	MQM=60;SAP=11;ABP=0;PHYLOP=-1.184	GT:DP:AO:GQ	1/1:262:262:160
+chr1	962943	.	T	C	2806	off-target	MQM=60;SAP=8;ABP=0;PHYLOP=-0.461	GT:DP:AO:GQ	1/1:86:86:160
+chr1	964548	.	G	C	1099	.	MQM=60;SAP=42;ABP=0;PHYLOP=-1.83	GT:DP:AO:GQ	1/1:38:38:149
+chr1	964557	.	G	T	761	off-target	MQM=60;SAP=53;ABP=0;PHYLOP=0.32	GT:DP:AO:GQ	1/1:27:27:160
+chr1	964558	.	G	C	761	off-target	MQM=60;SAP=53;ABP=0;PHYLOP=-1.236	GT:DP:AO:GQ	1/1:27:27:160
+chr1	964562	.	G	A	761	off-target	MQM=60;SAP=53;ABP=0;PHYLOP=-0.658	GT:DP:AO:GQ	1/1:27:27:160
+chr1	964905	.	C	T	1202	off-target	MQM=60;SAP=76;ABP=0;PHYLOP=0.334	GT:DP:AO:GQ	1/1:41:41:160
+chr1	964906	.	A	G	1202	off-target	MQM=60;SAP=76;ABP=0;PHYLOP=-3.578	GT:DP:AO:GQ	1/1:41:41:160
+chr1	964918	.	C	G	553	off-target	MQM=60;SAP=38;ABP=4;PHYLOP=-0.496	GT:DP:AO:GQ	0/1:59:27:160
+chr1	974039	.	C	T	358	.	MQM=60;SAP=10;ABP=8;PHYLOP=-0.345	GT:DP:AO:GQ	0/1:23:15:144
+chr1	974388	.	A	G	6683	off-target	MQM=60;SAP=9;ABP=0;PHYLOP=-2.748	GT:DP:AO:GQ	1/1:202:202:155
+chr1	976215	.	A	G	2803	.	MQM=60;SAP=8;ABP=0;PHYLOP=0.054	GT:DP:AO:GQ	1/1:84:84:160
+chr1	976669	.	T	C	104	off-target	MQM=60;SAP=6;ABP=8;PHYLOP=-1.816	GT:DP:AO:GQ	0/1:21:7:104
+chr1	978812	.	G	C	572	off-target	MQM=60;SAP=11;ABP=0;PHYLOP=-0.968	GT:DP:AO:GQ	1/1:18:18:128
+chr1	978953	.	C	G	825	.	MQM=60;SAP=4;ABP=3;PHYLOP=-0.22	GT:DP:AO:GQ	0/1:66:32:160
+chr1	979034	.	CGAA	C	1051	.	MQM=60;SAP=6;ABP=21;PHYLOP=0.121	GT:DP:AO:GQ	0/1:124:46:160
+chrMT	152	.	T	C	825	.	MQM=60;SAP=4;ABP=44	GT:DP:AO:GQ	0/1:33:29:0

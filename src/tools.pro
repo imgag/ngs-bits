@@ -440,3 +440,7 @@ SplicingToBed.depends = cppNGSD
 SUBDIRS += CfDnaQC
 tools-TEST.depends += CfDnaQC
 CfDnaQC.depends = cppNGS
+
+SUBDIRS += VcfAnnotateFromBigWig
+tools-TEST.depends += VcfAnnotateFromBigWig
+VcfAnnotateFromBigWig.depends = cppNGS

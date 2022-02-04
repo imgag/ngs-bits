@@ -89,13 +89,13 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 		try
 		{
 			int sys_id = db_.processingSystemIdFromProcessedSample(ps_);
-			BedFile sys_roi = GlobalServiceProvider::database().processingSystemRegions(sys_id);
+			BedFile sys_roi = GlobalServiceProvider::database().processingSystemRegions(sys_id, false);
 			low_cov = GermlineReportGenerator::precalculatedGaps(lowcov_file_, roi_, cutoff, sys_roi);
 		}
 		catch(Exception e)
 		{
 			output << "Low-coverage statistics had to be re-calculated!";
-			output << "Pre-calulated gap file could not be used because:";
+			output << "Pre-calculated gap file could not be used because:";
 			output << e.message();
 			low_cov = Statistics::lowCoverage(roi_, bam_, cutoff);
 		}

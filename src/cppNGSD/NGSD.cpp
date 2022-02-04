@@ -678,21 +678,21 @@ QString NGSD::processingSystemRegionsFilePath(int sys_id)
 	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
 	if (!rel_path.isEmpty())
 	{
-		QString region_file = getTargetFilePath() + rel_path;
-		if (QFile::exists(region_file))
-		{
-			return region_file;
-		}
+		return getTargetFilePath() + rel_path;
 	}
 	return "";
 }
 
-BedFile NGSD::processingSystemRegions(int sys_id)
+BedFile NGSD::processingSystemRegions(int sys_id, bool ignore_if_missing)
 {
 	BedFile output;
 
 	QString regions_file = processingSystemRegionsFilePath(sys_id);
-	if (!regions_file.isEmpty())
+	if (regions_file.isEmpty())
+	{
+		if (!ignore_if_missing) THROW(FileAccessException, "Target region BED file of processing system '" + getProcessingSystemData(sys_id).name + "' requested but not set in NGSD!");
+	}
+	else
 	{
 		output.load(regions_file);
 	}
@@ -705,20 +705,21 @@ QString NGSD::processingSystemAmpliconsFilePath(int sys_id)
 	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
 	if (!rel_path.isEmpty())
 	{
-		QString amplicon_file = getTargetFilePath() + rel_path.mid(0, rel_path.length() -4) + "_amplicons.bed";
-		if (QFile::exists(amplicon_file))
-		{
-			return amplicon_file;
-		}
+		return getTargetFilePath() + rel_path.mid(0, rel_path.length() -4) + "_amplicons.bed";
 	}
 	return "";
 }
 
-BedFile NGSD::processingSystemAmplicons(int sys_id)
+BedFile NGSD::processingSystemAmplicons(int sys_id, bool ignore_if_missing)
 {
 	BedFile output;
+
 	QString amplicon_file = processingSystemAmpliconsFilePath(sys_id);
-	if (!amplicon_file.isEmpty())
+	if (amplicon_file.isEmpty())
+	{
+		if (!ignore_if_missing) THROW(FileAccessException, "Amplicon BED file of processing system '" + getProcessingSystemData(sys_id).name + "' requested but not set in NGSD!");
+	}
+	else
 	{
 		output.load(amplicon_file);
 	}
@@ -731,22 +732,21 @@ QString NGSD::processingSystemGenesFilePath(int sys_id)
 	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
 	if (!rel_path.isEmpty())
 	{
-		QString gene_file = getTargetFilePath() + rel_path.mid(0, rel_path.length() -4) + "_genes.txt";
-
-		if (QFile::exists(gene_file))
-		{
-			return gene_file;
-		}
+		return getTargetFilePath() + rel_path.mid(0, rel_path.length() -4) + "_genes.txt";
 	}
 	return "";
 }
 
-GeneSet NGSD::processingSystemGenes(int sys_id)
+GeneSet NGSD::processingSystemGenes(int sys_id, bool ignore_if_missing)
 {
 	GeneSet output;
-	QString gene_file = processingSystemGenesFilePath(sys_id);
 
-	if (!gene_file.isEmpty())
+	QString gene_file = processingSystemGenesFilePath(sys_id);
+	if (gene_file.isEmpty())
+	{
+		if (!ignore_if_missing) THROW(FileAccessException, "Gene file of processing system '" + getProcessingSystemData(sys_id).name + "' requested but not set in NGSD!");
+	}
+	else
 	{
 		output = GeneSet::createFromFile(gene_file);
 	}
@@ -880,7 +880,9 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==PathType::VIRAL) output += ps_name + "_viral.tsv";
 	else if (type==PathType::COUNTS) output += ps_name + "_counts.tsv";
 	else if (type==PathType::EXPRESSION) output += ps_name + "_expr.tsv";
-	else if (type==PathType::MRD_CF_DNA) output += QString("umiVar") + QDir::separator() + ps_name + ".mrd";	else if (type!=PathType::SAMPLE_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
+	else if (type==PathType::EXPRESSION_COHORT) output += ps_name + "_expr.cohort.tsv";
+	else if (type==PathType::MRD_CF_DNA) output += QString("umiVar") + QDir::separator() + ps_name + ".mrd";
+	else if (type!=PathType::SAMPLE_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
 
 	return QFileInfo(output).absoluteFilePath();
 }
@@ -2589,7 +2591,7 @@ VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, bool throw_on_fail)
 	vcf.sampleIDs().append("TUMOR");
 	vcf.sampleIDs().append("NORMAL");
 
-	ProcessingSystemData sys = NGSD().getProcessingSystemData(sys_id);
+	ProcessingSystemData sys = getProcessingSystemData(sys_id);
 
 	// add INFO line to determine source
 	InfoFormatLine id_source;
@@ -2607,7 +2609,7 @@ VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, bool throw_on_fail)
 	info.push_back(value);
 	info_ptr->push_back(key, static_cast<unsigned char>(0));
 
-	BedFile target_region = NGSD().processingSystemRegions(sys_id);
+	BedFile target_region = processingSystemRegions(sys_id, false);
 
 	QByteArrayList format_ids = QByteArrayList() << "GT";
 	QByteArrayList sample_ids = QByteArrayList() << "TUMOR" << "NORMAL";
@@ -3028,14 +3030,22 @@ void NGSD::deleteSomaticGeneRole(QByteArray gene)
 }
 
 
-void NGSD::addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details)
+void NGSD::addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details, int user_id)
 {
 	QString s_id = sampleId(filename);
 	QString v_id = variantId(variant);
-	QString user_id = LoginManager::userIdAsString();
+	if (user_id < 0) user_id = LoginManager::userId();
 
 	//insert
-	getQuery().exec("INSERT INTO variant_publication (sample_id, variant_id, db, class, details, user_id) VALUES ("+s_id+","+v_id+", '"+database+"', '"+classification+"', '"+details+"', "+user_id+")");
+	SqlQuery query = getQuery();
+	query.prepare("INSERT INTO variant_publication (sample_id, variant_id, db, class, details, user_id) VALUES (:0, :1, :2, :3, :4, :5)");
+	query.bindValue(0, s_id);
+	query.bindValue(1, v_id);
+	query.bindValue(2, database);
+	query.bindValue(3, classification);
+	query.bindValue(4, details);
+	query.bindValue(5, user_id);
+	query.exec();
 }
 
 QString NGSD::getVariantPublication(QString filename, const Variant& variant)
@@ -3057,6 +3067,33 @@ QString NGSD::getVariantPublication(QString filename, const Variant& variant)
 	}
 
 	return output.join("\n");
+}
+
+void NGSD::updateVariantPublicationResult(int variant_publication_id, QString result)
+{
+	// check if given id is valid
+	if (getValue("SELECT COUNT(id) FROM variant_publication WHERE id=:0", false, QString::number(variant_publication_id)).toInt() != 1)
+	{
+		THROW(DatabaseException, "Given variant publication id '" + QString::number(variant_publication_id) + "' is not valid!");
+	}
+	SqlQuery query = getQuery();
+	query.prepare("UPDATE variant_publication SET result=:0 WHERE id=:1");
+	query.bindValue(0, result);
+	query.bindValue(1, variant_publication_id);
+	query.exec();
+}
+
+void NGSD::flagVariantPublicationAsReplaced(int variant_publication_id)
+{
+	// check if given id is valid
+	if (getValue("SELECT COUNT(id) FROM variant_publication WHERE id=:0", false, QString::number(variant_publication_id)).toInt() != 1)
+	{
+		THROW(DatabaseException, "Given variant publication id '" + QString::number(variant_publication_id) + "' is not valid!");
+	}
+	SqlQuery query = getQuery();
+	query.prepare("UPDATE variant_publication SET replaced=1 WHERE id=:0");
+	query.bindValue(0, variant_publication_id);
+	query.exec();
 }
 
 QString NGSD::comment(const Variant& variant)
@@ -4159,14 +4196,13 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QList<PhenotypeSource:
 	GeneSet genes;
 	SqlQuery pid2genes = getQuery();
 	pid2genes.prepare("SELECT gene FROM hpo_genes WHERE hpo_term_id=:0");
-
 	while (!pheno_ids.isEmpty())
 	{
 		int id = pheno_ids.takeLast();
 		if (ignore_non_phenotype_terms && ignored_terms_ids.contains(id)) continue;
 		QString query = QString("SELECT gene FROM hpo_genes WHERE hpo_term_id=%1").arg(id);
 
-		if (allowedSources.length() > 0 && allowedSources.count()<PhenotypeSource::allSourceValues().count())
+		if (allowedSources.length() > 0 && allowedSources.count() < PhenotypeSource::allSourceValues().count())
 		{
 			query += " and (";
 			foreach (PhenotypeSource::Source s, allowedSources)
@@ -4177,7 +4213,7 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QList<PhenotypeSource:
 			query.append(")");
 		}
 
-		if (allowedEvidences.length() > 0 && allowedEvidences.count()<PhenotypeEvidence::allEvidenceValues(false).count())
+		if (allowedEvidences.length() > 0 && allowedEvidences.count() < PhenotypeEvidence::allEvidenceValues(false).count())
 		{
 			query += " and (";
 
@@ -4188,16 +4224,15 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QList<PhenotypeSource:
 			query.chop(4);
 			query.append(")");
 		}
-
 		//pid2genes.bindValue(0, id);
 		pid2genes.exec(query);
+
 		while(pid2genes.next())
 		{
 			QByteArray gene = pid2genes.value(0).toByteArray();
 			genes.insert(geneToApproved(gene, true));
 		}
 	}
-
 	return genes;
 }
 
@@ -4778,7 +4813,7 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 		}
 		if (var_conf.variant_index==-1)
 		{
-			messages << "Could not find variant '" + var.toString() + "' in given variant list!";
+			messages << "Could not find variant '" + var.toString() + "' in given variant list. The report configuration of this variant will be lost if you change anything in the report configuration!";
 			continue;
 		}
 
@@ -4817,7 +4852,7 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 		}
 		if (var_conf.variant_index==-1)
 		{
-			messages << "Could not find CNV '" + var.toString() + "' in given variant list!";
+			messages << "Could not find CNV '" + var.toString() + "' in given variant list. The report configuration of this variant will be lost if you change anything in the report configuration!";
 			continue;
 		}
 
@@ -4889,7 +4924,7 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 			var_conf.variant_index = svs.findMatch(sv, true, false);
 			if (var_conf.variant_index==-1)
 			{
-				messages << "Could not find SV '" + BedpeFile::typeToString(sv.type()) + " " + sv.positionRange() + "' in given variant list!";
+				messages << "Could not find SV '" + BedpeFile::typeToString(sv.type()) + " " + sv.positionRange() + "' in given variant list. The report configuration of this variant will be lost if you change anything in the report configuration!";
 				continue;
 			}
 
@@ -4922,12 +4957,9 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 	QString id_str = QString::number(id);
 
 	//check that it is not finalized
-	if (id!=-1)
+	if (id!=-1 && reportConfigIsFinalized(id))
 	{
-		if (reportConfigIsFinalized(id))
-		{
-			THROW (ProgrammingException, "Cannot update report configuration with id=" + id_str + ", because it is finalized!");
-		}
+		THROW (ProgrammingException, "Cannot update report configuration with id=" + id_str + " because it is finalized!");
 	}
 
 	try
@@ -5679,7 +5711,7 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 		}
 		if(var_conf.variant_index == -1)
 		{
-			messages << "Could not find somatic variant '" + var.toString() + "' in given variant list!";
+			messages << "Could not find somatic variant '" + var.toString() + "' in given variant list. The report configuration of this variant will be lost if you change anything in the report configuration!";
 		}
 
 		var_conf.exclude_artefact = query.value("exclude_artefact").toBool();
@@ -5713,7 +5745,7 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 		}
 		if(var_conf.variant_index == -1)
 		{
-			messages << "Could not find somatic CNV '" + cnv.toString() + "' in given variant list!";
+			messages << "Could not find somatic CNV '" + cnv.toString() + "' in given variant list. The report configuration of this variant will be lost if you change anything in the report configuration!";
 			continue;
 		}
 
@@ -5740,7 +5772,7 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 		}
 		if(var_conf.variant_index == -1)
 		{
-			messages << "Could not find germline variant '" + var.toString() + "' in given variant list!";
+			messages << "Could not find germline variant '" + var.toString() + "' in given variant list. The report configuration of this variant will be lost if you change anything in the report configuration!";
 		}
 
 		if(!query.value("tum_freq").isNull()) var_conf.tum_freq = query.value("tum_freq").toDouble();

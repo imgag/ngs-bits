@@ -99,14 +99,14 @@ SOURCES += main.cpp\
     NGSDReplicationWidget.cpp \
     CohortAnalysisWidget.cpp \
     cfDNARemovedRegions.cpp \
-    CfdnaAnalysisDialog.cpp \
     ClinvarUploadDialog.cpp \
     LiftOverWidget.cpp \
     CacheInitWorker.cpp \
     BlatWidget.cpp \
     AnalysisInformationWidget.cpp \
-    PhenotypeSourceEvidenceSelector.cpp
-
+    PhenotypeSourceEvidenceSelector.cpp \
+    FusionWidget.cpp \
+    CohortExpressionDataWidget.cpp
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
     DatabaseServiceRemote.h \
@@ -200,14 +200,14 @@ HEADERS += MainWindow.h \
     NGSDReplicationWidget.h \
     CohortAnalysisWidget.h \
     cfDNARemovedRegions.h \
-    CfdnaAnalysisDialog.h \
     ClinvarUploadDialog.h \
     LiftOverWidget.h \
     BlatWidget.h \
     AnalysisInformationWidget.h \
     CacheInitWorker.h \
-    PhenotypeSourceEvidenceSelector.h
-
+    PhenotypeSourceEvidenceSelector.h \
+    FusionWidget.h \
+    CohortExpressionDataWidget.h
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
@@ -288,12 +288,13 @@ FORMS    += MainWindow.ui \
     NGSDReplicationWidget.ui \
     CohortAnalysisWidget.ui \
     cfDNARemovedRegions.ui \
-    CfdnaAnalysisDialog.ui \
     ClinvarUploadDialog.ui \
     BlatWidget.ui \
     AnalysisInformationWidget.ui \
     LiftOverWidget.ui \
-    PhenotypeSourceEvidenceSelector.ui
+    PhenotypeSourceEvidenceSelector.ui \
+    FusionWidget.ui \
+    CohortExpressionDataWidget.ui
 
 include("../app_gui.pri")
 
