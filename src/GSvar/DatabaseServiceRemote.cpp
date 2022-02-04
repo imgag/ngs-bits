@@ -22,10 +22,6 @@ BedFile DatabaseServiceRemote::processingSystemRegions(int sys_id, bool ignore_i
 	BedFile output;
 	QByteArray reply = makeApiCall("ps_regions?sys_id="+QString::number(sys_id), ignore_if_missing);
 
-	if ((reply.length() == 0) && (ignore_if_missing))
-	{
-		QMessageBox::warning(QApplication::activeWindow(), "Nothing was found", "Could not get the processing system regions for " + QString::number(sys_id));
-	}
 	if ((reply.length() == 0) && (!ignore_if_missing))
 	{
 		THROW(Exception, "Could not get the processing system regions for " + QString::number(sys_id));
@@ -43,10 +39,6 @@ BedFile DatabaseServiceRemote::processingSystemAmplicons(int sys_id, bool ignore
 	BedFile output;
 	QByteArray reply = makeApiCall("ps_amplicons?sys_id="+QString::number(sys_id), ignore_if_missing);
 
-	if ((reply.length() == 0) && (ignore_if_missing))
-	{
-		QMessageBox::warning(QApplication::activeWindow(), "Nothing was found", "Could not get the processing system amplicons for " + QString::number(sys_id));
-	}
 	if ((reply.length() == 0) && (!ignore_if_missing))
 	{
 		THROW(Exception, "Could not get the processing system amplicons for " + QString::number(sys_id));
@@ -64,10 +56,6 @@ GeneSet DatabaseServiceRemote::processingSystemGenes(int sys_id, bool ignore_if_
 	GeneSet output;
 	QByteArray reply = makeApiCall("ps_genes?sys_id="+QString::number(sys_id), ignore_if_missing);
 
-	if ((reply.length() == 0) && (ignore_if_missing))
-	{
-		QMessageBox::warning(QApplication::activeWindow(), "Nothing was found", "Could not get the processing system genes for " + QString::number(sys_id));
-	}
 	if ((reply.length() == 0) && (!ignore_if_missing))
 	{
 		THROW(Exception, "Could not get the processing system genes for " + QString::number(sys_id));
@@ -136,12 +124,7 @@ QByteArray DatabaseServiceRemote::makeApiCall(QString url_param, bool ignore_if_
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "text/plain");
 	add_headers.insert("User-Agent", "GSvar");
-
 	QByteArray result;
-	if (!ignore_if_missing)
-	{
-		return HttpRequestHandler(HttpRequestHandler::NONE).get(Helper::serverApiUrl() +url_param, add_headers);
-	}
 
 	try
 	{
@@ -149,7 +132,10 @@ QByteArray DatabaseServiceRemote::makeApiCall(QString url_param, bool ignore_if_
 	}
 	catch (Exception& e)
 	{
-		QMessageBox::warning(QApplication::activeWindow(), "Database API call error", e.message());
+		if (!ignore_if_missing)
+		{
+			QMessageBox::warning(QApplication::activeWindow(), "Database API call error", e.message());
+		}
 	}
 
 	return result;
