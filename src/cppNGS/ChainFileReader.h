@@ -206,23 +206,24 @@ public:
 
 	const QHash<QByteArray, int>& refChromSizes()
 	{
-		return ref_chrom_sizes;
+		return ref_chrom_sizes_;
 	}
 
 	const QHash<QByteArray, int>& qChromSizes()
 	{
-		return q_chrom_sizes;
+		return q_chrom_sizes_;
 	}
 
 	// TODO make private again after tests
-	QString filepath_;
-	QSharedPointer<QFile> fp_;
-	QHash<QByteArray, QList<GenomicAlignment>> chromosomes;
-	QHash<QByteArray, int> ref_chrom_sizes;
-	QHash<QByteArray, int> q_chrom_sizes;
+
 private:
 	GenomicAlignment parseChainLine(QList<QByteArray> parts);
 
+	QString filepath_;
+	QSharedPointer<QFile> fp_;
+	QHash<QByteArray, QList<GenomicAlignment>> chromosomes_;
+	QHash<QByteArray, int> ref_chrom_sizes_;
+	QHash<QByteArray, int> q_chrom_sizes_;
 
 };
 

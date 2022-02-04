@@ -15,15 +15,15 @@ ChainFileReader::~ChainFileReader()
 
 GenomePosition ChainFileReader::lift(const QByteArray& chr, int pos) const
 {
-	if ( ! chromosomes.contains(chr))
+	if ( ! chromosomes_.contains(chr))
 	{
 		THROW(ArgumentException, "Position to lift is in unknown chromosome. Tried to lift: chr" + chr +": " + QByteArray::number(pos));
 	}
-	if (pos < 0 || pos > ref_chrom_sizes[chr])
+	if (pos < 0 || pos > ref_chrom_sizes_[chr])
 	{
 		THROW(ArgumentException, "Position to lift is outside of the chromosome size for chromosome. Tried to lift: " + chr +": " + QByteArray::number(pos));
 	}
-	QList<GenomicAlignment> alignments = chromosomes[chr];
+	QList<GenomicAlignment> alignments = chromosomes_[chr];
 
 	// TODO binary search ?
 	foreach(const GenomicAlignment& a, alignments)
@@ -100,11 +100,11 @@ void ChainFileReader::load(QString filepath)
 		{
 			parts = line.split(' ');
 			// add last chain alignment to the chromosomes:
-			if ( ! chromosomes.contains(currentAlignment.ref_chr))
+			if ( ! chromosomes_.contains(currentAlignment.ref_chr))
 			{
-				chromosomes.insert(currentAlignment.ref_chr, QList<GenomicAlignment>());
+				chromosomes_.insert(currentAlignment.ref_chr, QList<GenomicAlignment>());
 			}
-			chromosomes[currentAlignment.ref_chr].append(currentAlignment);
+			chromosomes_[currentAlignment.ref_chr].append(currentAlignment);
 
 			// parse the new Alignment
 			currentAlignment = parseChainLine(parts);
@@ -144,9 +144,9 @@ GenomicAlignment ChainFileReader::parseChainLine(QList<QByteArray> parts)
 	double score = parts[1].toDouble();
 	QByteArray ref_chr = parts[2];
 	int ref_chr_size = parts[3].toInt();
-	if ( ! ref_chrom_sizes.contains(ref_chr))
+	if ( ! ref_chrom_sizes_.contains(ref_chr))
 	{
-		ref_chrom_sizes.insert(ref_chr, ref_chr_size);
+		ref_chrom_sizes_.insert(ref_chr, ref_chr_size);
 	}
 
 
@@ -156,9 +156,9 @@ GenomicAlignment ChainFileReader::parseChainLine(QList<QByteArray> parts)
 
 	QByteArray q_chr = parts[7];
 	int q_chr_size = parts[8].toInt();
-	if ( ! q_chrom_sizes.contains(q_chr))
+	if ( ! q_chrom_sizes_.contains(q_chr))
 	{
-		q_chrom_sizes.insert(q_chr, q_chr_size);
+		q_chrom_sizes_.insert(q_chr, q_chr_size);
 	}
 
 
