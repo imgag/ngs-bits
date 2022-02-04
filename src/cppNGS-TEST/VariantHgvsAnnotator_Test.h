@@ -567,7 +567,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_INSERTION));
         I_EQUAL(hgvs.exon_number, 10);
         I_EQUAL(hgvs.intron_number, -1);
-        S_EQUAL(hgvs.allele, "CACCGT");
+        S_EQUAL(hgvs.allele, "TCACCG");
 
         // inframe insertion
         alt.clear();

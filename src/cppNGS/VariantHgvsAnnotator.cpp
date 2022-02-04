@@ -17,6 +17,22 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
 {
     //init
     bool plus_strand = transcript.strand() == Transcript::PLUS;
+    HgvsNomenclature hgvs;
+
+    //variant allele extracted before normalization/shifting for insertion/delins
+    if(!variant.isSNV() && !variant.isDel())
+    {
+        if(variant.alt(0).at(0) == variant.ref().at(0))
+        {
+            hgvs.allele = variant.alt(0).mid(1);
+        }
+        else
+        {
+            hgvs.allele = variant.alt(0);
+        }
+    }
+
+    //normalization and 3' shifting for indel variants
     VcfLine::ShiftDirection shift_dir = plus_strand ? VcfLine::ShiftDirection::RIGHT : VcfLine::ShiftDirection::LEFT;
     variant.normalize(shift_dir, genome_idx);
     int start = variant.start();
@@ -30,7 +46,6 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
     QString pos_hgvs_c;
     QString pos_hgvs_c_dup;
 
-    HgvsNomenclature hgvs;
     hgvs.transcript_id = transcript.name();
 
     // annotate coding transcript
@@ -62,14 +77,13 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
         //insertion
         else if(variant.isIns())
         {
-            hgvs.allele = variant.alt(0).mid(1);
             if(plus_strand)
             {
                 //duplication
-                if(genome_idx.seq(variant.chr(), start - hgvs.allele.length() + 1, hgvs.allele.length()) == hgvs.allele)
+                if(genome_idx.seq(variant.chr(), start - variant.alt(0).mid(1).length() + 1, variant.alt(0).mid(1).length()) == variant.alt(0).mid(1))
                 {
-                    pos_hgvs_c_dup = annotateRegionsCoding(transcript, hgvs, start - hgvs.allele.length() + 1, plus_strand);
-                    if(hgvs.allele.length() > 1)
+                    pos_hgvs_c_dup = annotateRegionsCoding(transcript, hgvs, start - variant.alt(0).mid(1).length() + 1, plus_strand);
+                    if(variant.alt(0).mid(1).length() > 1)
                     {
                         pos_hgvs_c_dup += "_" + annotateRegionsCoding(transcript, hgvs, start, plus_strand);
                     }
@@ -80,10 +94,10 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
             else
             {
                 //duplication
-                if(genome_idx.seq(variant.chr(), start + 1, hgvs.allele.length()) == hgvs.allele)
+                if(genome_idx.seq(variant.chr(), start + 1, variant.alt(0).mid(1).length()) == variant.alt(0).mid(1))
                 {
-                    pos_hgvs_c_dup = annotateRegionsCoding(transcript, hgvs, start + hgvs.allele.length(), plus_strand);
-                    if(hgvs.allele.length() > 1)
+                    pos_hgvs_c_dup = annotateRegionsCoding(transcript, hgvs, start + variant.alt(0).mid(1).length(), plus_strand);
+                    if(variant.alt(0).mid(1).length() > 1)
                     {
                         pos_hgvs_c_dup += "_" + annotateRegionsCoding(transcript, hgvs, start + 1, plus_strand);
                     }
@@ -97,8 +111,6 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
         //delins (deletion and insertion at the same time/substitution of more than one base)
         else if(variant.isInDel() && !variant.isDel() && !variant.isIns())
         {
-            //normalization made sure that alt and ref always have the same base prepended
-            hgvs.allele = variant.alt(0).mid(1);
             pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, start + 1, plus_strand);
 
             if(end - start > 1 && pos_hgvs_c != "")
@@ -154,14 +166,13 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
         }
         else if(variant.isIns())
         {
-            hgvs.allele = variant.alt(0).mid(1);
             if(plus_strand)
             {
                 //duplication
-                if(genome_idx.seq(variant.chr(), start - hgvs.allele.length() + 1, hgvs.allele.length()) == hgvs.allele)
+                if(genome_idx.seq(variant.chr(), start - variant.alt(0).mid(1).length() + 1, variant.alt(0).mid(1).length()) == variant.alt(0).mid(1))
                 {
-                    pos_hgvs_c_dup = annotateRegionsNonCoding(transcript, hgvs, start - hgvs.allele.length() + 1, plus_strand);
-                    if(hgvs.allele.length() > 1)
+                    pos_hgvs_c_dup = annotateRegionsNonCoding(transcript, hgvs, start - variant.alt(0).mid(1).length() + 1, plus_strand);
+                    if(variant.alt(0).mid(1).length() > 1)
                     {
                         pos_hgvs_c_dup += "_" + annotateRegionsNonCoding(transcript, hgvs, start, plus_strand);
                     }
@@ -172,10 +183,10 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
             else
             {
                 //duplication
-                if(genome_idx.seq(variant.chr(), start + 1, hgvs.allele.length()) == hgvs.allele)
+                if(genome_idx.seq(variant.chr(), start + 1, variant.alt(0).mid(1).length()) == variant.alt(0).mid(1))
                 {
-                    pos_hgvs_c_dup = annotateRegionsNonCoding(transcript, hgvs, start + hgvs.allele.length(), plus_strand);
-                    if(hgvs.allele.length() > 1)
+                    pos_hgvs_c_dup = annotateRegionsNonCoding(transcript, hgvs, start + variant.alt(0).mid(1).length(), plus_strand);
+                    if(variant.alt(0).mid(1).length() > 1)
                     {
                         pos_hgvs_c_dup += "_" + annotateRegionsNonCoding(transcript, hgvs, start + 1, plus_strand);
                     }
@@ -188,8 +199,6 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
         }
         else if(variant.isInDel() && !variant.isDel() && !variant.isIns())
         {
-            //normalization made sure that alt and ref always have the same base prepended
-            hgvs.allele = variant.alt(0).mid(1);
             pos_hgvs_c = annotateRegionsNonCoding(transcript, hgvs, start + 1, plus_strand);
 
             if(end - start > 1 && pos_hgvs_c != "")
@@ -799,22 +808,14 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
             // more than one amino acid deleted
             if(frame_diff > 3)
             {
-                int offset_end = (offset + 2) % 3;
                 aa_ref.append("_");
                 if(aa_obs == toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(frame_diff, 3))))
                 {
                     pos_shift -= 3;
                 }
-                if(plus_strand)
-                {
-                    aa_ref.append(toThreeLetterCode(NGSHelper::translateCodon(genome_idx.seq(variant.chr(), end - offset_end + pos_shift, 3),
-                                                                              variant.chr().isM())));
-                }
-                else
-                {
-                    aa_ref.append(toThreeLetterCode(NGSHelper::translateCodon(genome_idx.seq(variant.chr(), start - 2 + offset - pos_shift, 3).toReverseComplement(),
-                                                                              variant.chr().isM())));
-                }
+                aa_ref.append(toThreeLetterCode(NGSHelper::translateCodon(coding_sequence.mid(pos_trans_start - offset +
+                                                                                              pos_shift + frame_diff, 3),
+                                                                          variant.chr().isM())));
                 aa_ref.append(QByteArray::number((pos_trans_start + pos_shift + frame_diff) / 3 + 1));
             }
 
@@ -935,7 +936,8 @@ void VariantHgvsAnnotator::annotateSpliceRegion(HgvsNomenclature& hgvs, const Tr
             if(i != 0)
             {
                 hgvs.variant_consequence_type.insert(VariantConsequenceType::SPLICE_REGION_VARIANT);
-                if(diff_intron_end <= 2 && diff_intron_end > 0)
+                if((diff_intron_end <= 2 && diff_intron_end > 0) ||
+                        (start < transcript.regions()[i].start() && end >= transcript.regions()[i].start()))
                 {
                     if(plus_strand) hgvs.variant_consequence_type.insert(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT);
                     else hgvs.variant_consequence_type.insert(VariantConsequenceType::SPLICE_DONOR_VARIANT);
@@ -954,7 +956,8 @@ void VariantHgvsAnnotator::annotateSpliceRegion(HgvsNomenclature& hgvs, const Tr
             if(i != transcript.regions().count() - 1)
             {
                 hgvs.variant_consequence_type.insert(VariantConsequenceType::SPLICE_REGION_VARIANT);
-                if(diff_intron_start <= 2 && diff_intron_start > 0)
+                if((diff_intron_start <= 2 && diff_intron_start > 0) ||
+                        (start <= transcript.regions()[i].end() && end > transcript.regions()[i].end()))
                 {
                     if(plus_strand) hgvs.variant_consequence_type.insert(VariantConsequenceType::SPLICE_DONOR_VARIANT);
                     else hgvs.variant_consequence_type.insert(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT);
