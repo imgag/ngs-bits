@@ -88,17 +88,28 @@ private:
             //no transcripts in proximity: intergenic variant
             if(indices.isEmpty())
             {
-                HgvsNomenclature hgvs;
-                if(variant.isSNV()) hgvs.allele = variant.alt(0);
-                else if(variant.isDel()) hgvs.allele = "-";
-                else
+                //treat each alternative allele of multi-allelic variants as a new variant
+                foreach(Sequence alt, variant.alt())
                 {
-                    variant.normalize(VcfLine::ShiftDirection::RIGHT, reference);
-                    hgvs.allele = variant.alt(0).mid(1);
+                    VcfLine var_for_anno = VcfLine(variant.chr(), variant.start(), variant.ref(), QVector<Sequence>() << alt);
+                    HgvsNomenclature hgvs;
+                    if(var_for_anno.isSNV()) hgvs.allele = var_for_anno.alt(0);
+                    else if(var_for_anno.isDel()) hgvs.allele = "-";
+                    else
+                    {
+                        if(var_for_anno.alt(0).at(0) == var_for_anno.ref().at(0))
+                        {
+                            hgvs.allele = var_for_anno.alt(0).mid(1);
+                        }
+                        else
+                        {
+                            hgvs.allele = var_for_anno.alt(0);
+                        }
+                    }
+                    hgvs.variant_consequence_type.insert(VariantConsequenceType::INTERGENIC_VARIANT);
+                    Transcript t;
+                    csq.append(hgvsNomenclatureToString(hgvs, t));
                 }
-                hgvs.variant_consequence_type.insert(VariantConsequenceType::INTERGENIC_VARIANT);
-                Transcript t;
-                csq.append(hgvsNomenclatureToString(hgvs, t));
             }
 
             //hgvs annotation for each transcript in proximity to variant
@@ -106,26 +117,30 @@ private:
             {
                 Transcript t = transcripts.at(idx);
 
-                //create new VcfLine for annotation (don't change original variant coordinates by normalization!)
-                VcfLine var_for_anno = VcfLine(variant.chr(), variant.start(), variant.ref(), variant.alt());
+                //treat each alternative allele of multi-allelic variants as a new variant
+                foreach(Sequence alt, variant.alt())
+                {
+                    //create new VcfLine for annotation (don't change original variant coordinates by normalization!)
+                    VcfLine var_for_anno = VcfLine(variant.chr(), variant.start(), variant.ref(), QVector<Sequence>() << alt);
 
-                HgvsNomenclature hgvs;
-                try
-                {
-                    hgvs = hgvs_anno.variantToHgvs(t, var_for_anno, reference);
-                    if(!csq.isEmpty()) csq.append(",");
-                    csq.append(hgvsNomenclatureToString(hgvs, t));
-                }
-                catch(ArgumentException& e)
-                {
-                    QTextStream out(stdout);
-                    out << e.message() << endl;
-                    out << "Variant out of region for transcript " << t.name() <<", chromosome " << t.chr().str()
-                        << " (" << t.start() << " - " << t.end() << "); ";
-                    out << "Variant start: " << variant.start() << "; end: " << variant.end()
-                        << "; start of shifted variant: " << var_for_anno.start() << "; end: " << var_for_anno.end()
-                        << " " << variant.isDel() << endl;
-                    out << "Considered region: " << region_start << " - " << region_end << endl;
+                    HgvsNomenclature hgvs;
+                    try
+                    {
+                        hgvs = hgvs_anno.variantToHgvs(t, var_for_anno, reference);
+                        if(!csq.isEmpty()) csq.append(",");
+                        csq.append(hgvsNomenclatureToString(hgvs, t));
+                    }
+                    catch(ArgumentException& e)
+                    {
+                        QTextStream out(stdout);
+                        out << e.message() << endl;
+                        out << "Variant out of region for transcript " << t.name() <<", chromosome " << t.chr().str()
+                            << " (" << t.start() << " - " << t.end() << "); ";
+                        out << "Variant start: " << variant.start() << "; end: " << variant.end()
+                            << "; start of shifted variant: " << var_for_anno.start() << "; end: " << var_for_anno.end()
+                            << " " << variant.isDel() << endl;
+                        out << "Considered region: " << region_start << " - " << region_end << endl;
+                    }
                 }
             }
 
