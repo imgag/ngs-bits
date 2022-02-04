@@ -58,6 +58,37 @@ public:
 
 	virtual void main()
 	{
+		/* benchmarking of FASTQ read/write
+		QTime timer;
+		timer.start();
+		QTextStream out2(stdout);
+		QList<FastqEntry> entries;
+		FastqFileStream is(getInfileList("in1")[0]);
+		for (int i=0; i<1000000; ++i)
+		{
+			FastqEntry entry;
+			is.readEntry(entry);
+			entries << entry;
+		}
+
+		out2 << "Reading: " << Helper::elapsedTime(timer) << endl;
+		timer.restart();
+
+
+		FastqOutfileStream os(getOutfile("out1"));
+		for (int i=0; i<2; ++i)
+		{
+			foreach(const FastqEntry& entry, entries)
+			{
+				os.write(entry);
+			}
+		}
+		os.close();
+
+		out2 << "Writing: " << Helper::elapsedTime(timer) << endl;
+		return;
+		*/
+
 		//init
 		QStringList in1_files = getInfileList("in1");
 		QStringList in2_files = getInfileList("in2");
