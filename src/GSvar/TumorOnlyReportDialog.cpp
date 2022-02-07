@@ -17,6 +17,7 @@ TumorOnlyReportDialog::TumorOnlyReportDialog(const VariantList& variants, TumorO
 	connect( this, SIGNAL(accepted()), this, SLOT(writeBackSettings()) );
 	connect( ui->snvs, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(rightClickMenu(QPoint)) );
 
+
 	if(config_.roi.isValid())
 	{
 		ui->include_cov_per_gap->setEnabled(true);
@@ -99,8 +100,11 @@ void TumorOnlyReportDialog::rightClickMenu(QPoint p)
 	if (row==-1) return;
 
 	QMenu menu(this);
-	menu.addAction(QIcon(":/Icons/box_unchecked.png") , "deselect");
-	menu.addAction(QIcon(":/Icons/box_checked.png") , "select");
+	menu.addAction(QIcon(":/Icons/box_checked.png") , "select all");
+	menu.addAction(QIcon(":/Icons/box_unchecked.png") , "deselect all");
+	menu.addAction(QIcon(":/Icons/box_checked.png") , "select highlighted");
+	menu.addAction(QIcon(":/Icons/box_unchecked.png") , "deselect higlighted");
+
 	//exec menu
 	QAction* action = menu.exec(ui->snvs->viewport()->mapToGlobal(p));
 
@@ -110,13 +114,29 @@ void TumorOnlyReportDialog::rightClickMenu(QPoint p)
 
 	for(const auto index : ui->snvs->selectionModel()->selectedRows())
 	{
-		if(action_text == "deselect")
+		if(action_text == "deselect higlighted")
 		{
 			ui->snvs->item(index.row(), 0)->setCheckState(Qt::CheckState::Unchecked);
 		}
-		if(action_text == "select")
+		else if(action_text == "select highlighted")
 		{
 			ui->snvs->item(index.row(), 0)->setCheckState(Qt::CheckState::Checked);
 		}
+		else if(action_text == "select all")
+		{
+			for (int i = 0; i < ui->snvs->rowCount(); ++i)
+			{
+				ui->snvs->item(i, 0)->setCheckState( Qt::Checked );
+			}
+		}
+		else if(action_text == "deselect all")
+		{
+			for (int i = 0; i < ui->snvs->rowCount(); ++i)
+			{
+				ui->snvs->item(i, 0)->setCheckState( Qt::Unchecked );
+			}
+		}
+
 	}
 }
+
