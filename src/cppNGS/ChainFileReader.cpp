@@ -13,19 +13,19 @@ ChainFileReader::~ChainFileReader()
 
 }
 
-GenomePosition ChainFileReader::lift(const QByteArray& chr, int pos) const
+GenomePosition ChainFileReader::lift(const Chromosome& chr, int pos) const
 {
 	if ( ! chromosomes_.contains(chr))
 	{
-		THROW(ArgumentException, "Position to lift is in unknown chromosome. Tried to lift: chr" + chr +": " + QByteArray::number(pos));
+		THROW(ArgumentException, "Position to lift is in unknown chromosome. Tried to lift: " + chr.strNormalized(true) +": " + QByteArray::number(pos));
 	}
 	if (pos < 0 || pos > ref_chrom_sizes_[chr])
 	{
-		THROW(ArgumentException, "Position to lift is outside of the chromosome size for chromosome. Tried to lift: " + chr +": " + QByteArray::number(pos));
+		THROW(ArgumentException, "Position to lift is outside of the chromosome size for chromosome. Tried to lift: " + chr.strNormalized(true) +": " + QByteArray::number(pos));
 	}
 	QList<GenomicAlignment> alignments = chromosomes_[chr];
 
-	// TODO binary search ?
+	// TODO change from list to tree strcuture
 	foreach(const GenomicAlignment& a, alignments)
 	{
 		if (a.contains(chr, pos))
@@ -45,23 +45,21 @@ GenomePosition ChainFileReader::lift(const QByteArray& chr, int pos) const
 	THROW(ArgumentException, "The given position is in an unmapped region!")
 }
 
-BedLine ChainFileReader::lift(const QByteArray &chr, int start, int end) const
+BedLine ChainFileReader::lift(const Chromosome &chr, int start, int end) const
 {
 	BedLine bed;
 	GenomePosition lifted_start = lift(chr, start);
 	GenomePosition lifted_end = lift(chr, end);
 
+	for (int i=start+1; i<end; i++)
+	{
+		GenomePosition test_middle = lift(chr, i); //throw error if part of the sequence is in unmapped
+	}
+
 	if (lifted_start.chr != lifted_end.chr)
 	{
 		THROW(ArgumentException, "The start and end of the given region map to different chromosomes!")
 	}
-
-	if (std::abs(lifted_start.pos - lifted_end.pos) < end-start)
-	{
-		THROW(ArgumentException, "The new region maps to smaller region!")
-	}
-
-	bed.setChr(Chromosome(lifted_start.chr));
 
 	if (lifted_start.pos < lifted_end.pos)
 	{
@@ -73,6 +71,16 @@ BedLine ChainFileReader::lift(const QByteArray &chr, int start, int end) const
 		bed.setStart(lifted_end.pos);
 		bed.setEnd(lifted_start.pos);
 	}
+	bed.setChr(Chromosome(lifted_start.chr));
+
+	if (std::abs(bed.start() - bed.end()) < end-start)
+	{
+		THROW(ArgumentException, "The new region maps to smaller region!")
+	}
+
+
+
+
 
 	return bed;
 }
@@ -142,7 +150,7 @@ void ChainFileReader::load(QString filepath)
 GenomicAlignment ChainFileReader::parseChainLine(QList<QByteArray> parts)
 {
 	double score = parts[1].toDouble();
-	QByteArray ref_chr = parts[2];
+	Chromosome ref_chr(parts[2]);
 	int ref_chr_size = parts[3].toInt();
 	if ( ! ref_chrom_sizes_.contains(ref_chr))
 	{
@@ -154,7 +162,7 @@ GenomicAlignment ChainFileReader::parseChainLine(QList<QByteArray> parts)
 	int ref_start = parts[5].toInt();
 	int ref_end = parts[6].toInt();
 
-	QByteArray q_chr = parts[7];
+	Chromosome q_chr(parts[7]);
 	int q_chr_size = parts[8].toInt();
 	if ( ! q_chrom_sizes_.contains(q_chr))
 	{

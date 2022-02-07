@@ -36,10 +36,10 @@ struct AlignmentLine
 
 struct GenomePosition
 {
-	QByteArray chr;
+	Chromosome chr;
 	int pos;
 
-	GenomePosition(QByteArray chr, int pos):
+	GenomePosition(Chromosome chr, int pos):
 		chr(chr)
 	  , pos(pos)
 	{
@@ -47,7 +47,7 @@ struct GenomePosition
 
 	QString toString() const
 	{
-		return QString(chr) + ":" + QString::number(pos);
+		return QString(chr.strNormalized(true)) + ":" + QString::number(pos);
 	}
 };
 
@@ -55,13 +55,13 @@ struct GenomicAlignment
 {
 	double score;
 
-	QByteArray ref_chr;
+	Chromosome ref_chr;
 	int ref_chr_size;
 	int ref_start;
 	int ref_end;
 	bool ref_on_plus;
 
-	QByteArray q_chr;
+	Chromosome q_chr;
 	int q_chr_size;
 	int q_start;
 	int q_end;
@@ -71,7 +71,7 @@ struct GenomicAlignment
 
 	QList<AlignmentLine> alignment;
 
-	GenomicAlignment(double score, QByteArray ref_chr, int ref_chr_size, int ref_start, int ref_end, bool ref_on_plus, QByteArray q_chr, int q_chr_size, int q_start, int q_end, bool q_on_plus, int id):
+	GenomicAlignment(double score, Chromosome ref_chr, int ref_chr_size, int ref_start, int ref_end, bool ref_on_plus, Chromosome q_chr, int q_chr_size, int q_start, int q_end, bool q_on_plus, int id):
 		score(score)
 	  , ref_chr(ref_chr)
 	  , ref_chr_size(ref_chr_size)
@@ -92,7 +92,7 @@ struct GenomicAlignment
 		alignment.append(line);
 	}
 
-	bool contains(const QByteArray& chr, int pos) const
+	bool contains(const Chromosome& chr, int pos) const
 	{
 		if (chr != ref_chr) return false;
 		if (pos < ref_start || pos > ref_end) return false;
@@ -105,7 +105,7 @@ struct GenomicAlignment
 		return contains(pos.chr, pos.pos);
 	}
 
-	GenomePosition lift(const QByteArray& chr, int pos) const
+	GenomePosition lift(const Chromosome& chr, int pos) const
 	{
 		if (! contains(chr, pos))
 		{
@@ -127,7 +127,7 @@ struct GenomicAlignment
 				else
 				{
 					//std::cout << "q current pos: " << q_current_pos <<  "\tlast bit:  " << last_bit << "\tq_chr_size:" << q_chr_size << "\n";
-					return GenomePosition(q_chr, q_chr_size - (q_current_pos + last_bit) + 1);
+					return GenomePosition(q_chr, q_chr_size - (q_current_pos + last_bit));
 				}
 
 			}
@@ -150,7 +150,7 @@ struct GenomicAlignment
 		}
 		//Should not be possible if the position is contained in the alignment!
 		std::cout << toString().toStdString();
-		THROW(ProgrammingException, "Function contains() has an error! Position was not contained in alignment! Pos:" + QString(chr) + ":" + QString::number(pos) + " Alignment: " + QString(ref_chr) + ":" + QString::number(ref_start) + "-" + QString::number(ref_end) + "\n")
+		THROW(ProgrammingException, "Function contains() has an error! Position was not contained in alignment! Pos:" + QString(chr.strNormalized(true)) + ":" + QString::number(pos) + " Alignment: " + QString(ref_chr.strNormalized(true)) + ":" + QString::number(ref_start) + "-" + QString::number(ref_end) + "\n")
 	}
 
 	GenomePosition lift(const GenomePosition& g_pos) const
@@ -160,7 +160,7 @@ struct GenomicAlignment
 
 	QString toString(bool with_al_lines=true) const
 	{
-		QString res = QString("ref_chr:\t%1\tref_start:\t%2\tref_end:\t%3\tq_chr:\t%4\tq_start:\t%5\tq_end:\t%6\n").arg(QString(ref_chr), QString::number(ref_start), QString::number(ref_end), QString(q_chr), QString::number(q_start), QString::number(q_end));
+		QString res = QString("ref_chr:\t%1\tref_start:\t%2\tref_end:\t%3\tq_chr:\t%4\tq_start:\t%5\tq_end:\t%6\n").arg(QString(ref_chr.strNormalized(true)), QString::number(ref_start), QString::number(ref_end), QString(q_chr.strNormalized(true)), QString::number(q_start), QString::number(q_end));
 		res += "ref on plus: " + QString::number(ref_on_plus) + "\tq on plus: " + QString::number(q_on_plus) + "\n";
 		if (with_al_lines)
 		{
@@ -200,30 +200,28 @@ public:
 	~ChainFileReader();
 
 	void load(QString filepath);
-	GenomePosition lift(const QByteArray& chr, int pos) const;
-	BedLine lift(const QByteArray& chr, int start, int end) const;
+	GenomePosition lift(const Chromosome& chr, int pos) const;
+	BedLine lift(const Chromosome& chr, int start, int end) const;
 
 
-	const QHash<QByteArray, int>& refChromSizes()
+	const QHash<Chromosome, int>& refChromSizes()
 	{
 		return ref_chrom_sizes_;
 	}
 
-	const QHash<QByteArray, int>& qChromSizes()
+	const QHash<Chromosome, int>& qChromSizes()
 	{
 		return q_chrom_sizes_;
 	}
-
-	// TODO make private again after tests
 
 private:
 	GenomicAlignment parseChainLine(QList<QByteArray> parts);
 
 	QString filepath_;
 	QSharedPointer<QFile> fp_;
-	QHash<QByteArray, QList<GenomicAlignment>> chromosomes_;
-	QHash<QByteArray, int> ref_chrom_sizes_;
-	QHash<QByteArray, int> q_chrom_sizes_;
+	QHash<Chromosome, QList<GenomicAlignment>> chromosomes_;
+	QHash<Chromosome, int> ref_chrom_sizes_;
+	QHash<Chromosome, int> q_chrom_sizes_;
 
 };
 
