@@ -38,37 +38,37 @@ private slots:
 
 
 		// Make sure exceptions are thrown if default value is not set:
-		IS_THROWN(ProgrammingException, r.readValue("1", 0, 0));
-		IS_THROWN(ProgrammingException, r.readValues("1", 100, 150, 0));
-		IS_THROWN(ProgrammingException, r.readValues("1:0-1", 0));
+		IS_THROWN(ProgrammingException, r.readValue("chr1", 0, 0));
+		IS_THROWN(ProgrammingException, r.readValues("chr1", 100, 150, 0));
+		IS_THROWN(ProgrammingException, r.readValues("chr1:0-1", 0));
 
 		//Read single values
 		r.setDefaultValue(-50);
 		F_EQUAL(r.defaultValue(), (-50));
 
 		float result;
-		result = r.readValue("1", 0, 0);
+		result = r.readValue("chr1", 0, 0);
 		F_EQUAL2(result, 0.1f, 0.000001);
 
-		result = r.readValue("1", 1, 0);
+		result = r.readValue("chr1", 1, 0);
 		F_EQUAL2(result, 0.2f, 0.000001);
 
-		result = r.readValue("1", 100, 0);
+		result = r.readValue("chr1", 100, 0);
 		F_EQUAL2(result, 1.4f, 0.000001);
 
-		result = r.readValue("1", 99, 0);
+		result = r.readValue("chr1", 99, 0);
 		F_EQUAL2(result, r.defaultValue(), 0.000001);
 
 		//read multiple values
 		//existing in file
-		QVector<float> intervals = r.readValues("1", 100, 150, 0);
+		QVector<float> intervals = r.readValues("chr1", 100, 150, 0);
 		for (int i=0; i<intervals.size(); i++)
 		{
 			F_EQUAL2(intervals[i], 1.4f, 0.000001);
 		}
 		I_EQUAL(intervals.size(), 50);
 
-		intervals = r.readValues("1:100-110", 0);
+		intervals = r.readValues("chr1:100-110", 0);
 		for (int i=0; i<intervals.size(); i++)
 		{
 			F_EQUAL2(intervals[i], 1.4f, 0.000001);
@@ -76,7 +76,7 @@ private slots:
 		I_EQUAL(intervals.size(), 10);
 
 		// not in file
-		intervals = r.readValues("1", 80, 90, 0);
+		intervals = r.readValues("chr1", 80, 90, 0);
 		for (int i=0; i<intervals.size(); i++)
 		{
 			F_EQUAL2(intervals[i], r.defaultValue(), 0.000001);
@@ -84,7 +84,7 @@ private slots:
 		I_EQUAL(intervals.size(), 10);
 
 		//half half:
-		intervals = r.readValues("1", 90, 110, 0);
+		intervals = r.readValues("chr1", 90, 110, 0);
 		for (int i=0; i<intervals.size(); i++)
 		{
 			if (i  <  10)
@@ -105,14 +105,14 @@ private slots:
 
 		F_EQUAL(new_default, r.defaultValue());
 
-		intervals = r.readValues("1", 80, 90, 0);
+		intervals = r.readValues("chr1", 80, 90, 0);
 		for (int i=0; i<intervals.size(); i++)
 		{
 			F_EQUAL2(intervals[i], new_default, 0.000001);
 		}
 		I_EQUAL(intervals.size(), 10);
 
-		result = r.readValue("1", 50, 0);
+		result = r.readValue("chr1", 50, 0);
 		F_EQUAL2(result, new_default, 0.000001);
 	}
 
@@ -121,31 +121,31 @@ private slots:
         BigWigReader r = BigWigReader(QString(TESTDATA("data_in/BigWigReader.bw")));
 
         // Overlapping single value intervals
-		QList<BigWigReader::OverlappingInterval> intervals = r.getOverlappingIntervals("1", 0, 1, 0);
+		QList<BigWigReader::OverlappingInterval> intervals = r.getOverlappingIntervals("chr1", 0, 1, 0);
         I_EQUAL(intervals.length(), 1);
         I_EQUAL(intervals[0].start, 0);
         I_EQUAL(intervals[0].end, 1);
         F_EQUAL2(intervals[0].value, 0.1f, 0.000001);
 
-        intervals = r.getOverlappingIntervals("1", 1, 2, 0);
+		intervals = r.getOverlappingIntervals("chr1", 1, 2, 0);
         I_EQUAL(intervals.length(), 1);
         I_EQUAL(intervals[0].start, 1);
         I_EQUAL(intervals[0].end, 2);
         F_EQUAL2(intervals[0].value, 0.2f, 0.000001);
 
         // range with multiple one value intervals
-        intervals = r.getOverlappingIntervals("1", 0, 3, 0);
+		intervals = r.getOverlappingIntervals("chr1", 0, 3, 0);
         I_EQUAL(intervals.length(), 3);
 
         // single value of large interval?
-        intervals = r.getOverlappingIntervals("1", 100, 101, 0);
+		intervals = r.getOverlappingIntervals("chr1", 100, 101, 0);
         I_EQUAL(intervals.length(), 1);
         I_EQUAL(intervals[0].start, 100);
         I_EQUAL(intervals[0].end, 150);
         F_EQUAL2(intervals[0].value, 1.4f, 0.000001);
 
         // no value saved so no overlapping interval
-        intervals = r.getOverlappingIntervals("1", 99, 100, 0);
+		intervals = r.getOverlappingIntervals("chr1", 99, 100, 0);
         I_EQUAL(intervals.length(), 0)
     }
 };

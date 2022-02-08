@@ -1,5 +1,5 @@
 ### TrioMaternalContamination tool help
-	TrioMaternalContamination (2020_12-85-g5ff87d17)
+	TrioMaternalContamination (2021_12-80-g5ff26d8f)
 	
 	Detects maternal contamination of a child using SNPs from parents.
 	
@@ -17,7 +17,7 @@
 	  -min_alt_count <int> Minimum number of alternate observations for calling a SNP.
 	                       Default value: '1'
 	  -build <enum>        Genome build used to generate the input.
-	                       Default value: 'hg19'
+	                       Default value: 'hg38'
 	                       Valid: 'hg19,hg38'
 	  -out <file>          Output file. If unset, writes to STDOUT.
 	                       Default value: ''
@@ -31,7 +31,7 @@
 	  --tdx                Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### TrioMaternalContamination changelog
-	TrioMaternalContamination 2020_12-85-g5ff87d17
+	TrioMaternalContamination 2021_12-80-g5ff26d8f
 	
 	2020-11-27 Added CRAM support.
 	2020-06-18 Initial version of the tool.

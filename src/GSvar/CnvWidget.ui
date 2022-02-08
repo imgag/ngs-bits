@@ -62,6 +62,9 @@
        <property name="enabled">
         <bool>false</bool>
        </property>
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="acceptDrops">
         <bool>false</bool>
        </property>
@@ -79,6 +82,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="copy_clipboard">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="toolTip">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Copy filtered CNVs to clipboard.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>

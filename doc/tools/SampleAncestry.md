@@ -1,5 +1,5 @@
 ### SampleAncestry tool help
-	SampleAncestry (2021_03-58-g9b3abcdd)
+	SampleAncestry (2021_12-80-g5ff26d8f)
 	
 	Estimates the ancestry of a sample based on variants.
 	
@@ -16,7 +16,7 @@
 	  -mad_dist <float>     Maximum number of median average diviations that are allowed from median population score.
 	                        Default value: '4.2'
 	  -build <enum>         Genome build used to generate the input.
-	                        Default value: 'hg19'
+	                        Default value: 'hg38'
 	                        Valid: 'hg19,hg38'
 	
 	Special parameters:
@@ -26,7 +26,7 @@
 	  --tdx                 Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleAncestry changelog
-	SampleAncestry 2021_03-58-g9b3abcdd
+	SampleAncestry 2021_12-80-g5ff26d8f
 	
 	2021-05-17 Population assignment is based on abolute score and on median/mad now. Should be much more accurate now especially for admixed samples.
 	2020-08-07 VCF files only as input format for variant list.

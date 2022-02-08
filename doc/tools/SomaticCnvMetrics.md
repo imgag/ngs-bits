@@ -1,5 +1,5 @@
 ### SomaticCnvMetrics tool help
-	SomaticCnvMetrics (2021_06-48-gfc326851)
+	SomaticCnvMetrics (2021_12-80-g5ff26d8f)
 	
 	Calculate somatic CNV metrics based on CNV file.
 	
@@ -9,7 +9,7 @@
 	
 	Optional parameters:
 	  -build <enum> Reference genome to be used.
-	                Default value: 'hg19'
+	                Default value: 'hg38'
 	                Valid: 'hg19,hg38'
 	  -tid <string> Tumor processed sample ID (for retrieving CNVs flagged as artefact from NGSD.)
 	                Default value: ''
@@ -23,7 +23,7 @@
 	  --tdx         Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SomaticCnvMetrics changelog
-	SomaticCnvMetrics 2021_06-48-gfc326851
+	SomaticCnvMetrics 2021_12-80-g5ff26d8f
 	
 	2021-05-06 Initial version of the tool to calculate HRD score.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
