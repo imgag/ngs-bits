@@ -125,25 +125,17 @@ FileLocation DatabaseServiceRemote::analysisJobGSvarFile(const int& job_id) cons
 
 	FileLocation output;
 	QByteArray reply = makeApiCall("analysis_job_gsvar_file?job_id=" + QString::number(job_id), true);
-
 	if (reply.length() == 0)
 	{
 		THROW(Exception, "Could not get a GSvar file for the job id " + QString::number(job_id));
 	}
 
 	QJsonDocument json_doc = QJsonDocument::fromJson(reply);
-	QJsonArray json_array = json_doc.array();
-	QStringList analyses;
-	for (int i = 0; i < json_array.count(); i++)
-	{
-		if (!json_array.at(i).isObject()) break;
+	QJsonObject json_object = json_doc.object();
 
-		if (json_array.at(i).toObject().contains("id") && json_array.at(i).toObject().contains("type")
-			&& json_array.at(i).toObject().contains("filename") && json_array.at(i).toObject().contains("exists"))
-		{
-			return FileLocation(json_array.at(i).toObject().value("id").toString(), FileLocation::stringToType(json_array.at(i).toObject().value("type").toString()),
-								json_array.at(i).toObject().value("filename").toString(), json_array.at(i).toObject().value("exists").toBool());
-		}
+	if (json_object.contains("id") && json_object.contains("type") && json_object.contains("filename") && json_object.contains("exists"))
+	{
+		return FileLocation(json_object.value("id").toString(), FileLocation::stringToType(json_object.value("type").toString()), json_object.value("filename").toString(), json_object.value("exists").toBool());
 	}
 
 	return output;
