@@ -14,9 +14,10 @@
 #include "GenLabDB.h"
 #include "GlobalServiceProvider.h"
 #include <QMessageBox>
-#include "CfdnaAnalysisDialog.h"
 #include "GlobalServiceProvider.h"
 #include "AnalysisInformationWidget.h"
+#include "ExpressionDataWidget.h"
+#include "FusionWidget.h"
 
 ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	: QWidget(parent)
@@ -64,17 +65,52 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	ui_->disease_details->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openExternalDiseaseDatabase()));
 
+	// determine sample type
+	NGSD db;
+	QString sample_type = db.getSampleData(db.sampleId(db.processedSampleName(ps_id_))).type;
+
 	QMenu* menu = new QMenu();
 	addIgvMenuEntry(menu, PathType::BAM);
-	addIgvMenuEntry(menu, PathType::LOWCOV_BED);
-	addIgvMenuEntry(menu, PathType::BAF);
-	menu->addSeparator();
-	addIgvMenuEntry(menu, PathType::VCF);
-	addIgvMenuEntry(menu, PathType::COPY_NUMBER_RAW_DATA);
-	addIgvMenuEntry(menu, PathType::STRUCTURAL_VARIANTS);
-	menu->addSeparator();
-	addIgvMenuEntry(menu, PathType::MANTA_EVIDENCE);
+
+	if(sample_type == "cfDNA")
+	{
+		menu->addSeparator();
+		addIgvMenuEntry(menu, PathType::VCF_CF_DNA);
+	}
+	else if(sample_type == "RNA")
+	{
+		menu->addSeparator();
+		addIgvMenuEntry(menu, PathType::FUSIONS_BAM);
+		addIgvMenuEntry(menu, PathType::SPLICING_BED);
+	}
+	else if(sample_type.startsWith("DNA"))
+	{
+		addIgvMenuEntry(menu, PathType::LOWCOV_BED);
+		addIgvMenuEntry(menu, PathType::BAF);
+		menu->addSeparator();
+		addIgvMenuEntry(menu, PathType::VCF);
+		addIgvMenuEntry(menu, PathType::COPY_NUMBER_RAW_DATA);
+		addIgvMenuEntry(menu, PathType::STRUCTURAL_VARIANTS);
+		menu->addSeparator();
+		addIgvMenuEntry(menu, PathType::MANTA_EVIDENCE);
+	}
+
 	ui_->igv_btn->setMenu(menu);
+
+	//init RNA menu
+	ui_->rna_btn->setEnabled(false);
+	if(sample_type == "RNA")
+	{
+		QMenu* rna_menu = new QMenu();
+
+		QAction* expr_action = rna_menu->addAction("open RNA expression data widget", this, SLOT(openExpressionWidget()));
+		expr_action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::EXPRESSION).exists);
+		QAction* fusion_action = rna_menu->addAction("open RNA fusion widget", this, SLOT(openFusionWidget()));
+		fusion_action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::FUSIONS).exists);
+
+		ui_->rna_btn->setMenu(rna_menu);
+		ui_->rna_btn->setEnabled(true);
+	}
 
 	updateGUI();
 }
@@ -322,7 +358,12 @@ void ProcessedSampleWidget::showPlot()
 void ProcessedSampleWidget::openSampleFolder()
 {
 	QString folder = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER).filename;
-	if(!QFile::exists(folder))
+	if (folder.toLower().startsWith("http"))
+	{
+		QMessageBox::information(this, "Open processed sample folder", "Cannot open processed sample folder in client-server mode!");
+		return;
+	}
+	else if (!QFile::exists(folder))
 	{
 		QMessageBox::warning(this, "Error opening processed sample folder", "Folder does not exist:\n" + folder);
 		return;
@@ -584,6 +625,37 @@ void ProcessedSampleWidget::openProcessingSystemTab(QString system_short_name)
 	GlobalServiceProvider::openProcessingSystemTab(system_short_name);
 }
 
+void ProcessedSampleWidget::openExpressionWidget()
+{
+	FileLocation file_location = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::EXPRESSION);
+	if (file_location.exists)
+	{
+		ExpressionDataWidget* widget = new ExpressionDataWidget(file_location.filename, this);
+		auto dlg = GUIHelper::createDialog(widget, "Expression Data");
+		dlg->exec();
+	}
+	else
+	{
+		QMessageBox::warning(this, "Expression data file not found!", "Couldn't find expression data file at '" + file_location.filename + "'!");
+	}
+
+}
+
+void ProcessedSampleWidget::openFusionWidget()
+{
+	FileLocation file_location = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::FUSIONS);
+	if (file_location.exists)
+	{
+		FusionWidget* widget = new FusionWidget(file_location.filename, this);
+		auto dlg = GUIHelper::createDialog(widget, "Fusions of " + processedSampleName() + " (arriba)");
+		dlg->exec();
+	}
+	else
+	{
+		QMessageBox::warning(this, "Fusion data file not found!", "Couldn't find fusions data file at '" + file_location.filename + "'!");
+	}
+}
+
 void ProcessedSampleWidget::editSample()
 {
 	int sample_id = NGSD().sampleId(sampleName()).toInt();
@@ -721,38 +793,12 @@ void ProcessedSampleWidget::queueSampleAnalysis()
 	NGSD db;
 
 	//prepare sample list
+	QString ps_name = db.processedSampleName(ps_id_);
 	QList<AnalysisJobSample> job_list;
-	job_list << AnalysisJobSample {db.processedSampleName(ps_id_), ""};
+	job_list << AnalysisJobSample {ps_name, ""};
 
-	QString sys_type = db.getProcessedSampleData(ps_id_).processing_system_type;
-	bool is_cfdna = (sys_type == "cfDNA (patient-specific)" || sys_type == "cfDNA");
+	GSvarHelper::queueSampleAnalysis(AnalysisType::GERMLINE_SINGLESAMPLE, job_list, this);
 
-	if (is_cfdna)
-	{
-		//show dialog
-		CfdnaAnalysisDialog dlg(this);
-		dlg.setSamples(job_list);
-		if (dlg.exec()!=QDialog::Accepted) return;
-
-		//start analysis
-		foreach(const AnalysisJobSample& sample,  dlg.samples())
-		{
-			db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
-		}
-	}
-	else
-	{
-		//show dialog
-		SingleSampleAnalysisDialog dlg(this);
-		dlg.setSamples(job_list);
-		if (dlg.exec()!=QDialog::Accepted) return;
-
-		//start analysis
-		foreach(const AnalysisJobSample& sample,  dlg.samples())
-		{
-			db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
-		}
-	}
 }
 
 void ProcessedSampleWidget::showAnalysisInfo()

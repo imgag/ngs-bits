@@ -779,49 +779,52 @@ void NGSDReplicationWidget::replicatePostProduction()
 				continue;
 			}
 
-			//replicate small variants
-			QList<int> source_variant_ids = db_source_->getValuesInt("SELECT variant_id FROM report_configuration_variant WHERE report_configuration_id='" + rc_id_source + "'");
-			foreach (int source_variant_id, source_variant_ids)
+			//replicate small variants (only if variants are imported)
+			if (db_target_->importStatus(ps_id).small_variants>0)
 			{
-				//lift-over
-				int target_variant_id = liftOverVariant(source_variant_id, false);
-				if (target_variant_id<0) continue;
-
-				//check if exists
-				QVariant target_rcv_id = db_target_->getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id='"+rc_id_target+"' AND variant_id='"+QString::number(target_variant_id)+"'", true);
-				if (!target_rcv_id.isValid())
+				QList<int> source_variant_ids = db_source_->getValuesInt("SELECT variant_id FROM report_configuration_variant WHERE report_configuration_id='" + rc_id_source + "'");
+				foreach (int source_variant_id, source_variant_ids)
 				{
-					++c_add_small;
+					//lift-over
+					int target_variant_id = liftOverVariant(source_variant_id, false);
+					if (target_variant_id<0) continue;
 
-					//get souce data
-					SqlQuery s_get = db_source_->getQuery();
-					s_get.exec("SELECT * FROM report_configuration_variant WHERE report_configuration_id='" + rc_id_source +"' AND variant_id='"+QString::number(source_variant_id)+"'");
-					if (!s_get.next())
+					//check if exists
+					QVariant target_rcv_id = db_target_->getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id='"+rc_id_target+"' AND variant_id='"+QString::number(target_variant_id)+"'", true);
+					if (!target_rcv_id.isValid())
 					{
-						qDebug() << "Error: Report config entry missing for small variant. This should not happen! Skipped!";
-						continue;
+						++c_add_small;
+
+						//get souce data
+						SqlQuery s_get = db_source_->getQuery();
+						s_get.exec("SELECT * FROM report_configuration_variant WHERE report_configuration_id='" + rc_id_source +"' AND variant_id='"+QString::number(source_variant_id)+"'");
+						if (!s_get.next())
+						{
+							qDebug() << "Error: Report config entry missing for small variant. This should not happen! Skipped!";
+							continue;
+						}
+
+						//insert into target
+						SqlQuery t_add = db_target_->getQuery();
+						t_add.prepare("INSERT INTO `report_configuration_variant`(`report_configuration_id`, `variant_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13,:14)");
+						t_add.bindValue(0, rc_id_target);
+						t_add.bindValue(1, target_variant_id);
+						t_add.bindValue(2, s_get.value("type"));
+						t_add.bindValue(3, s_get.value("causal"));
+						t_add.bindValue(4, s_get.value("inheritance"));
+						t_add.bindValue(5, s_get.value("de_novo"));
+						t_add.bindValue(6, s_get.value("mosaic"));
+						t_add.bindValue(7, s_get.value("compound_heterozygous"));
+						t_add.bindValue(8, s_get.value("exclude_artefact"));
+						t_add.bindValue(9, s_get.value("exclude_frequency"));
+						t_add.bindValue(10, s_get.value("exclude_phenotype"));
+						t_add.bindValue(11, s_get.value("exclude_mechanism"));
+						t_add.bindValue(12, s_get.value("exclude_other"));
+						t_add.bindValue(13, s_get.value("comments"));
+						t_add.bindValue(14, s_get.value("comments2"));
+
+						t_add.exec();
 					}
-
-					//insert into target
-					SqlQuery t_add = db_target_->getQuery();
-					t_add.prepare("INSERT INTO `report_configuration_variant`(`report_configuration_id`, `variant_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13,:14)");
-					t_add.bindValue(0, rc_id_target);
-					t_add.bindValue(1, target_variant_id);
-					t_add.bindValue(2, s_get.value("type"));
-					t_add.bindValue(3, s_get.value("causal"));
-					t_add.bindValue(4, s_get.value("inheritance"));
-					t_add.bindValue(5, s_get.value("de_novo"));
-					t_add.bindValue(6, s_get.value("mosaic"));
-					t_add.bindValue(7, s_get.value("compound_heterozygous"));
-					t_add.bindValue(8, s_get.value("exclude_artefact"));
-					t_add.bindValue(9, s_get.value("exclude_frequency"));
-					t_add.bindValue(10, s_get.value("exclude_phenotype"));
-					t_add.bindValue(11, s_get.value("exclude_mechanism"));
-					t_add.bindValue(12, s_get.value("exclude_other"));
-					t_add.bindValue(13, s_get.value("comments"));
-					t_add.bindValue(14, s_get.value("comments2"));
-
-					t_add.exec();
 				}
 			}
 

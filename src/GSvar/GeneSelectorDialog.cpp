@@ -110,7 +110,7 @@ void GeneSelectorDialog::updateGeneTable()
 	//load processing system target region
 
 	NGSD db;
-	BedFile sys_roi = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(sample_name_));
+	BedFile sys_roi = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(sample_name_), true);
 	if (sys_roi.isEmpty())
 	{
 		updateError("Gene selection error", "Processing system target region file not found for sample '" + sample_name_ +  "'");

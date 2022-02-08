@@ -18,6 +18,7 @@
 #include <QPair>
 #include "Histogram.h"
 #include "FilterCascade.h"
+#include "ToolBase.h"
 
 QCCollection Statistics::variantList(VcfFile variants, bool filter)
 {
@@ -1598,7 +1599,7 @@ AncestryEstimates Statistics::ancestry(GenomeBuild build, QString filename, int 
 	//copy ancestry SNP file from resources (gzopen cannot access Qt resources)
 	QString snp_file = ":/Resources/" + buildToString(build) + "_ancestry.vcf";
 	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + buildToString(build) + "' for ancestry estimation!");
-	QString tmp = Helper::tempFileName(".vcf");
+	QString tmp = Helper::tempFileName("_" + ToolBase::version() + "_ancestry.vcf");
 	QFile::copy(snp_file, tmp);
 
 	//load ancestry SNP file

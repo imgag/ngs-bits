@@ -39,7 +39,7 @@ public:
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addFlag("skip_plots", "Skip plots (intended to increase speed of automated tests).");
 		setExtendedDescription(QStringList() << "SomaticQC integrates the output of the other QC tools and adds several metrics specific for tumor-normal pairs." << "All tools produce qcML, a generic XML format for QC of -omics experiments, which we adapted for NGS.");
-		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg19");
+		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg38");
 		addString("ref_cram", "Reference genome for CRAM support (mandatory if CRAM is used). If set, it is used for tumor and normal file.", true);
 
 		//changelog

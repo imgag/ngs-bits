@@ -424,6 +424,7 @@ struct CPPNGSDSHARED_EXPORT EvaluationSheetData
 {
 	//set default values on construction
 	EvaluationSheetData() :
+		build(GenomeBuild::HG38),
 		acmg_requested(false),
 		acmg_noticeable(false),
 		acmg_analyzed(false),
@@ -441,6 +442,7 @@ struct CPPNGSDSHARED_EXPORT EvaluationSheetData
 		filtered_by_trio_relaxed(false)
 	{}
 
+	GenomeBuild build;
 	QString ps_id;
 	QString dna_rna;
 	QString reviewer1;
@@ -743,20 +745,20 @@ public:
 	///Returns the processing system information for a processed sample.
 	ProcessingSystemData getProcessingSystemData(int sys_id);
 
-	///Returns a path (including filename) for the processing system target region file.
+	///Returns a path (including filename) for the processing system target region file. Returns an empty string if unset.
 	QString processingSystemRegionsFilePath(int sys_id);
 	///Returns the processing system target region file.
-	BedFile processingSystemRegions(int sys_id);
+	BedFile processingSystemRegions(int sys_id, bool ignore_if_missing);
 
-	///Returns a path (including filename) for the processing system amplicon region file.
+	///Returns a path (including filename) for the processing system amplicon region file.  Returns an empty string if unset.
 	QString processingSystemAmpliconsFilePath(int sys_id);
 	///Returns the processing system amplicon region file.
-	BedFile processingSystemAmplicons(int sys_id);
+	BedFile processingSystemAmplicons(int sys_id, bool ignore_if_missing);
 
-	///Returns a path (including filename) for the processing system genes.
+	///Returns a path (including filename) for the processing system genes. Returns an empty string if unset.
 	QString processingSystemGenesFilePath(int sys_id);
 	///Returns the processing system genes.
-	GeneSet processingSystemGenes(int sys_id);
+	GeneSet processingSystemGenes(int sys_id, bool ignore_if_missing);
 
 	///Retuns the list of sub-panel names.
 	QStringList subPanelList(bool archived);
@@ -814,9 +816,13 @@ public:
 
 
 	///Adds a variant publication
-	void addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details);
+	void addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details, int user_id=-1);
 	///Returns variant publication data as text
 	QString getVariantPublication(QString filename, const Variant& variant);
+	///Updates ClinVar result of a varaint publication
+	void updateVariantPublicationResult(int variant_publication_id, QString result);
+	///Flag a varaint publication as replaced
+	void flagVariantPublicationAsReplaced(int variant_publication_id);
 
 	///Returns the comment of a variant in the NGSD.
 	QString comment(const Variant& variant);

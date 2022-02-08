@@ -34,7 +34,7 @@ public:
 		addFlag("skip_multi", "Skip multi-allelic variants instead of throwing an error (VCF mode).");
 		addInt("min_cov",  "Minimum coverage to consider a SNP for the analysis (BAM mode).",  true,  30);
 		addInt("max_snps",  "The maximum number of high-coverage SNPs to extract from BAM/CRAM. 0 means unlimited (BAM mode).",  true, 2000);
-		addEnum("build", "Genome build used to generate the input (BAM mode).", true, QStringList() << "hg19" << "hg38", "hg19");
+		addEnum("build", "Genome build used to generate the input (BAM mode).", true, QStringList() << "hg19" << "hg38", "hg38");
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addFlag("debug", "Print debug output.");
 

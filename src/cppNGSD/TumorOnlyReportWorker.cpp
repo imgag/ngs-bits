@@ -6,6 +6,7 @@
 #include "Statistics.h"
 #include "LoginManager.h"
 #include "RtfDocument.h"
+#include "XmlHelper.h"
 
 TumorOnlyReportWorker::TumorOnlyReportWorker(const VariantList& variants, const TumorOnlyReportWorkerConfig& config)
 	: config_(config)
@@ -15,6 +16,8 @@ TumorOnlyReportWorker::TumorOnlyReportWorker(const VariantList& variants, const 
 	//set annotation indices
 	i_co_sp_ = variants_.annotationIndexByName("coding_and_splicing");
 	i_tum_af_ = variants_.annotationIndexByName("tumor_af");
+	i_tum_dp_ = variants_.annotationIndexByName("tumor_dp");
+	i_gene_ = variants_.annotationIndexByName("gene");
 	i_ncg_oncogene_ = variants_.annotationIndexByName("ncg_oncogene");
 	i_ncg_tsg_ = variants_.annotationIndexByName("ncg_tsg");
 	i_germl_class_ = variants_.annotationIndexByName("classification");
@@ -37,6 +40,209 @@ void TumorOnlyReportWorker::checkAnnotation(const VariantList &variants)
 	for(const auto& ann : anns)
 	{
 		if( variants.annotationIndexByName(ann, true, false) < 0) THROW(FileParseException, "Could not find column " + ann + " for tumor only report in variant list.");
+	}
+}
+
+void TumorOnlyReportWorker::writeXML(QString filename, bool test)
+{
+	QSharedPointer<QFile> outfile = Helper::openFileForWriting(filename);
+
+	QXmlStreamWriter w(outfile.data());
+	w.writeStartDocument();
+	w.setAutoFormatting(true);
+
+
+	w.writeStartElement("DiagnosticNgsReport");
+	w.writeAttribute("version", "1");
+	w.writeAttribute("genome_build", buildToString( config_.build, true) );
+
+
+	w.writeStartElement("ReportGeneration");
+
+		w.writeAttribute("date", (test ? "2022-01-30" : QDate::currentDate().toString("yyyy-MM-dd")) );
+		w.writeAttribute("user_name", (test ? "ahtest1" : LoginManager::user() ) );
+		w.writeAttribute("software",  (test ? "cppNGSD-TEST-CASE" : QCoreApplication::applicationName()+ " " + QCoreApplication::applicationVersion()) );
+
+	//end element ReportGeneration
+	w.writeEndElement();
+
+
+	w.writeStartElement("Sample");
+
+		w.writeAttribute("name", config_.ps_data.name);
+		w.writeAttribute("processing_system", config_.sys.name);
+
+		w.writeAttribute("processing_system_type", config_.sys.type);
+		w.writeAttribute("comment", config_.ps_data.comments);
+
+	//end element Sample
+	w.writeEndElement();
+
+	w.writeStartElement("AnalysisPipeline");
+
+		w.writeAttribute("name", "megSAP");
+		w.writeAttribute("version", variants_.getPipeline().replace("megSAP","").trimmed() );
+
+	//end element AnalysisPipeline
+	w.writeEndElement();
+
+
+	w.writeStartElement("TargetRegion");
+		w.writeAttribute("name", config_.roi.name);
+
+		for(int i=0; i<config_.roi.regions.count(); ++i)
+		{
+			const auto& line = config_.roi.regions[i];
+			w.writeStartElement("Region");
+				w.writeAttribute( "chr", line.chr().str() );
+				w.writeAttribute( "start", QString::number( line.start() ) );
+				w.writeAttribute( "end", QString::number( line.end() ) );
+			//end element Region
+			w.writeEndElement();
+		}
+
+		for(QString gene : config_.roi.genes)
+		{
+			GeneInfo gene_info = db_.geneInfo(gene.toUtf8());
+			if(gene_info.symbol.isEmpty()) continue;
+			if(gene_info.hgnc_id.isEmpty()) continue;
+
+			w.writeStartElement("Gene");
+				w.writeAttribute("name", gene_info.symbol);
+				w.writeAttribute("id", gene_info.hgnc_id);
+			w.writeEndElement();
+		}
+
+	//end element TargetRegion
+	w.writeEndElement();
+
+
+	w.writeStartElement("VariantList");
+
+
+		for(int i=0; i<variants_.count(); ++i)
+		{
+			const Variant& var = variants_[i];
+
+			if(!config_.filter_result.passing(i)) continue;
+
+			w.writeStartElement("Variant");
+
+				w.writeAttribute("chr", var.chr().str());
+				w.writeAttribute("start", QString::number(var.start()) );
+				w.writeAttribute("end", QString::number(var.end()) );
+				w.writeAttribute("ref", var.ref());
+				w.writeAttribute("obs", var.obs());
+				w.writeAttribute("allele_frequency", var.annotations()[i_tum_af_]);
+				w.writeAttribute("depth", var.annotations()[i_tum_dp_]);
+
+
+				if( !var.annotations()[i_germl_class_].isEmpty() ) w.writeAttribute("germline_class" , var.annotations()[i_germl_class_] );
+
+				if( !var.annotations()[i_somatic_class_].isEmpty() ) w.writeAttribute("somatic_class", var.annotations()[i_somatic_class_] );
+
+
+
+
+				QByteArrayList genes = var.annotations()[i_gene_].split(',');
+				QByteArrayList oncogenes = var.annotations()[i_ncg_oncogene_].split(',');
+				QByteArrayList tsg = var.annotations()[i_ncg_tsg_].split(',');
+
+				for(int j=0; j < genes.count(); ++j)
+				{
+					GeneInfo gene_info = db_.geneInfo(genes[j]);
+					if(gene_info.symbol.isEmpty()) continue;
+					if(gene_info.hgnc_id.isEmpty()) continue; //genes that have been withdrawn or cannot be mapped to a unique approved symbol
+					w.writeStartElement("Gene");
+						w.writeAttribute("name", gene_info.symbol);
+						w.writeAttribute("id", gene_info.hgnc_id);
+
+						if(tsg[j].contains("1"))
+						{
+							w.writeStartElement("IsTumorSuppressor");
+								w.writeAttribute("source", "Network of Cancer Genes");
+								w.writeAttribute("source_version", "6.0");
+							w.writeEndElement();
+						}
+
+						if(oncogenes[j].contains("1"))
+						{
+							w.writeStartElement("IsOncoGene");
+								w.writeAttribute("source", "Network of Cancer Genes");
+								w.writeAttribute("source_version", "6.0");
+							w.writeEndElement();
+						}
+					//end element gene
+					w.writeEndElement();
+				}
+
+
+				//Elements transcript information
+				for(int i=0; i < var.transcriptAnnotations(i_co_sp_).count(); ++i )
+				{
+
+					const auto trans = var.transcriptAnnotations(i_co_sp_)[i];
+					w.writeStartElement("TranscriptInformation");
+
+						w.writeAttribute("transcript_id", QString(trans.id));
+
+						w.writeAttribute("gene", QString(trans.gene) );
+						w.writeAttribute("type", QString(trans.type) );
+						w.writeAttribute("hgvs_c", QString(trans.hgvs_c) );
+						w.writeAttribute("hgvs_p", QString(trans.hgvs_p) );
+						w.writeAttribute("exon", QString(trans.exon) ) ;
+						w.writeAttribute("variant_type", QString(trans.type) );
+
+						bool is_main_transcript = false;
+						if( config_.preferred_transcripts.contains(trans.gene) )
+						{
+							if( config_.preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion()) )
+							{
+								is_main_transcript = true;
+							}
+						}
+						else if(i == 0)
+						{
+							is_main_transcript = true; //first transcript otherwise
+						}
+
+						if(is_main_transcript)
+						{
+							w.writeAttribute("main_transcript", "true");
+						}
+						else
+						{
+							w.writeAttribute("main_transcript", "false");
+						}
+
+					//end element transcript information
+					w.writeEndElement();
+				}
+
+			//end element Variant
+			w.writeEndElement();
+		}
+	//end element VariantList
+	w.writeEndElement();
+
+
+	//Element ReportDocument
+	w.writeStartElement("ReportDocument");
+		w.writeAttribute("format", "RTF");
+	w.writeEndElement();
+
+	//end element DiagnosticNgsReport
+	w.writeEndDocument();
+
+	w.writeEndDocument();
+	outfile->close();
+
+	//validate written XML file
+	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/TumorOnlyNGSReport_v1.xsd");
+
+	if (xml_error!="")
+	{
+		THROW(ProgrammingException, "Invalid tumor only report XML file gererated: " + xml_error);
 	}
 }
 
@@ -160,7 +366,7 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 
 
 	//Create table with additional report data
-	QCCollection qc_mapping = db_.getQCData(db_.processedSampleId(config_.ps));
+	QCCollection qc_mapping = db_.getQCData(db_.processedSampleId(config_.ps_data.name));
 
 	RtfTable metadata;
 	metadata.addRow( RtfTableRow( { RtfText("Allgemeine Informationen").setBold(true).setFontSize(16).RtfCode(), RtfText("Qualitätsparameter").setBold(true).setFontSize(16).RtfCode() }, {5000,4638}) );

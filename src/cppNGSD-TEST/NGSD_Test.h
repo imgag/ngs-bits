@@ -1012,7 +1012,7 @@ private slots:
 		vl.clear();
 		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
 		I_EQUAL(messages2.count(), 1);
-		S_EQUAL(messages2[0], "Could not find variant 'chr2:47635523-47635523 ->T' in given variant list!");
+		S_EQUAL(messages2[0], "Could not find variant 'chr2:47635523-47635523 ->T' in given variant list. The report configuration of this variant will be lost if you change anything in the report configuration!");
 		I_EQUAL(report_conf2->variantConfig().count(), 2);
 		X_EQUAL(report_conf2->variantConfig()[0].variant_type, VariantType::CNVS);
 
@@ -1316,6 +1316,42 @@ private slots:
 		removed_regions_db.clearHeaders();
 		S_EQUAL(removed_regions.toText(), removed_regions_db.toText());
 
+		//############################### variant publication ###############################
+		variant = db.variant("199844");
+		db.addVariantPublication("NA12878_03.GSvar", variant, "ClinVar", "5", "submission_id=SUB00001234;blabla...");
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT id, sample_id, class, details, user_id, result, replaced FROM variant_publication WHERE variant_id=199844");
+		I_EQUAL(query.size(), 1);
+		query.next();
+		I_EQUAL(query.value("sample_id").toInt(), 1);
+		I_EQUAL(query.value("class").toInt(), 5);
+		S_EQUAL(query.value("details").toString(), "submission_id=SUB00001234;blabla...");
+		I_EQUAL(query.value("user_id").toInt(), 99);
+		S_EQUAL(query.value("result").toString(), "");
+		IS_FALSE(query.value("replaced").toBool());
+
+		int vp_id = query.value("id").toInt();
+		db.updateVariantPublicationResult(vp_id, "processed;SCV12345678");
+		query.exec("SELECT id, sample_id, class, details, user_id, result FROM variant_publication WHERE variant_id=199844");
+		I_EQUAL(query.size(), 1);
+		query.next();
+		I_EQUAL(query.value("sample_id").toInt(), 1);
+		I_EQUAL(query.value("class").toInt(), 5);
+		S_EQUAL(query.value("details").toString(), "submission_id=SUB00001234;blabla...");
+		I_EQUAL(query.value("user_id").toInt(), 99);
+		S_EQUAL(query.value("result").toString(), "processed;SCV12345678");
+
+		IS_TRUE(db.getVariantPublication("NA12878_03.GSvar", variant).startsWith("db: ClinVar class: 5 user: Max Mustermann date: "));
+
+		db.flagVariantPublicationAsReplaced(vp_id);
+		query.exec("SELECT replaced FROM variant_publication WHERE variant_id=199844");
+		I_EQUAL(query.size(), 1);
+		query.next();
+		IS_TRUE(query.value("replaced").toBool());
+
+		//test with invalid IDs
+		IS_THROWN(DatabaseException, db.updateVariantPublicationResult(-42, "processed;SCV12345678"));
+		IS_THROWN(DatabaseException, db.flagVariantPublicationAsReplaced(-42));
 	}
 
 	inline void report_germline()
@@ -2070,9 +2106,19 @@ private slots:
 		config.filter_result = filters.apply(vl);
 		config.low_coverage_file = TESTDATA("data_in/tumor_only_stat_lowcov.bed");
 		config.preferred_transcripts.insert("MITF", QByteArrayList() << "ENST00000314589");
-		config.ps = "DX000001_01";
+
+		ProcessingSystemData sys;
+		sys.name = "tumor only test panel";
+		sys.type = "Panel";
+		config.sys = sys;
+
+		ProcessedSampleData ps_data;
+		ps_data.name = "DX000001_01";
+		ps_data.comments = "MHH_STUFF_IN_COMMENT";
+		config.ps_data = ps_data;
+
 		config.roi.name = "tum_only_target_filter";
-		config.roi.genes = GeneSet::createFromStringList(QStringList() << "MITF");
+		config.roi.genes = GeneSet::createFromStringList(QStringList() << "MITF" << "SYNPR");
 
 		BedFile tum_only_roi_filter;
 		tum_only_roi_filter.load(TESTDATA("data_in/tumor_only_target_region.bed"));
@@ -2081,6 +2127,7 @@ private slots:
 		config.include_coverage_per_gap = true;
 		config.include_exon_number_per_gap = true;
 		config.use_test_db = true;
+		config.build = GenomeBuild::HG19;
 
 		//create RTF report with 2 SNVs and two gaps
 		TumorOnlyReportWorker report_worker(vl, config);
@@ -2089,8 +2136,13 @@ private slots:
 
 		REMOVE_LINES("out/tumor_only_report.rtf", QRegExp(QDate::currentDate().toString("dd.MM.yyyy").toUtf8())); //today's date
 		REMOVE_LINES("out/tumor_only_report.rtf", QRegExp(QCoreApplication::applicationName().toUtf8())); //application name and version
-
 		COMPARE_FILES("out/tumor_only_report.rtf", TESTDATA("data_out/tumor_only_report.rtf"));
+
+
+		//create XML report
+		report_worker.writeXML("out/tumor_only_report.xml", true);
+
+		COMPARE_FILES("out/tumor_only_report.xml",  TESTDATA("data_out/tumor_only_report.xml") );
 	}
 
 

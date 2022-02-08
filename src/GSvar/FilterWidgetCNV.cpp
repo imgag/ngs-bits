@@ -185,7 +185,15 @@ void FilterWidgetCNV::roiSelectionChanged(int index)
 
 	//load target region data
 	QString roi_name = ui_.roi->itemData(index).toString().trimmed();
-	FilterWidget::loadTargetRegionData(roi_, roi_name);
+	try
+	{
+		FilterWidget::loadTargetRegionData(roi_, roi_name);
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, "Error loading target region '" + roi_.name + "'", e.message());
+		clearTargetRegion();
+	}
 
 	//enable annotation button if annotation is possible
 	ui_.calculate_gene_overlap->setEnabled(LoginManager::active() && !roi_.genes.isEmpty());

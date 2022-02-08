@@ -92,7 +92,6 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 	int i_ihdb_het = variants.annotationIndexByName("NGSD_het", true, false);
 	int i_clinvar = variants.annotationIndexByName("ClinVar", true, false);
 	int i_hgmd = variants.annotationIndexByName("HGMD", true, false);
-	int i_mmsplice_dlogpsi = variants.annotationIndexByName("MMSplice_DeltaLogitPSI", true, false);
 	int i_spliceai = variants.annotationIndexByName("SpliceAI", true, false);
 	int i_maxentscan = variants.annotationIndexByName("MaxEntScan", true, false);
 	int r = -1;
@@ -116,7 +115,7 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 		setItem(r, 4, createTableItem(variant.obs()));
 		bool is_warning_line = false;
 		bool is_notice_line = false;
-		bool is_ok_line = false;
+		bool is_ngsd_benign = false;
 		for (int j=0; j<variant.annotations().count(); ++j)
 		{
 			const QByteArray& anno = variant.annotations().at(j);
@@ -148,16 +147,9 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 				item->setBackgroundColor(Qt::red);
 				is_warning_line = true;
 			}
-			else if (j==i_mmsplice_dlogpsi && (anno.toDouble() <= -2 || anno.toDouble() >= 2) )
-			{
-				item->setBackgroundColor(Qt::red);
-				is_warning_line = true;
-				is_notice_line = true;
-			}
 			else if (j==i_spliceai && anno.toDouble() >= 0.5)
 			{
-				item->setBackgroundColor(Qt::red);
-				is_warning_line = true;
+				item->setBackgroundColor(QColor(255, 135, 60)); //orange
 				is_notice_line = true;
 			}
 			else if (j==i_maxentscan &&  (! anno.isEmpty()))
@@ -194,23 +186,18 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 				}
 
 				//color item
-				if (maxRelevantChange >= 0.15 && maxRelevantChange < 0.3)
+				if (maxRelevantChange >= 0.15)
 				{
 					item->setBackgroundColor(QColor(255, 135, 60)); //orange
-					is_notice_line = true;
-				}
-				else if (maxRelevantChange > 0.3)
-				{
-					item->setBackgroundColor(Qt::red);
 					is_notice_line = true;
 				}
 			}
 
 			//non-pathogenic
-			if (j==i_classification && (anno=="0" || anno=="1" || anno=="2"))
+			if (j==i_classification && (anno=="1" || anno=="2"))
 			{
 				item->setBackgroundColor(Qt::green);
-				is_ok_line = true;
+				is_ngsd_benign = true;
 			}
 
 			//highlighed
@@ -246,19 +233,22 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 		//vertical headers - warning (red), notice (orange)
 		QTableWidgetItem* item = createTableItem(QByteArray::number(i+1));
 		item->setData(Qt::UserRole, i); //store variant index in user data (for selection methods)
-		if (is_notice_line && !is_ok_line)
+		if (!is_ngsd_benign)
 		{
-			item->setForeground(QBrush(QColor(255, 135, 60)));
-			QFont font;
-			font.setWeight(QFont::Bold);
-			item->setFont(font);
-		}
-		else if (is_warning_line && !is_ok_line)
-		{
-			item->setForeground(QBrush(Qt::red));
-			QFont font;
-			font.setWeight(QFont::Bold);
-			item->setFont(font);
+			if (is_warning_line)
+			{
+				item->setForeground(QBrush(Qt::red));
+				QFont font;
+				font.setWeight(QFont::Bold);
+				item->setFont(font);
+			}
+			else if (is_notice_line)
+			{
+				item->setForeground(QBrush(QColor(255, 135, 60)));
+				QFont font;
+				font.setWeight(QFont::Bold);
+				item->setFont(font);
+			}
 		}
 		if (index_show_report_icon.keys().contains(i))
 		{
@@ -615,7 +605,7 @@ void VariantTable::copyToClipboard(bool split_quality, bool include_header_one_r
 
 	//check quality column is present
 	QStringList quality_keys;
-	quality_keys << "QUAL" << "DP" << "AF" << "MQM" << "TRIO"; //if modified, also modify quality_values!!!
+	quality_keys << "QUAL" << "DP" << "AF" << "MQM" << "SAP" << "ABP" << "TRIO"; //if modified, also modify quality_values!!!
 	int qual_index = -1;
 	if (split_quality)
 	{

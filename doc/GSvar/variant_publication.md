@@ -34,6 +34,42 @@ For variants other than SNVs/InDels, use the Submission Portal of ClinVar:
 
 [ClinVar Submission Portal](https://submit.ncbi.nlm.nih.gov/clinvar/)
 
+In order to submit variant to Clinvar you need a NCBI account which is linked to your organization/institute. Since NCBI disabled the creation of new accounts an ORCiD account is needed beforehand. If you already have an ORCiD account you can skip the next chapter.
+
+#### Create Orcid account
+
+To create an ORCID account go to [https://orcid.org/](https://orcid.org/) and click on `SIGN IN/REGISTER`.
+![alt](create_orcid_account_1.png)
+
+Then select `Register now` and follow the instructions.
+![alt](create_orcid_account_2.png)
+
+#### Create NCBI account
+
+The ORCID account can be used to login into ClinVar/NCBI and allows you to create a new NCBI account.
+
+First go to the [ClinVar Submission Portal](https://submit.ncbi.nlm.nih.gov/clinvar/), click on `Log in` in the top right corner and choose `ORCiD`.
+![alt](orcid_login.png)
+
+On the next site log in with your ORCiD credentials and allow to link ClinVar with ORCiD.
+![alt](orcid_link.png)
+
+Now you can create a NCBI account:
+![alt](create_ncbi_account.png)
+
+Finally you have to complete your NCBI profile and your account has to be added to the group of your organization/institute. This can be done by one of the administrators of the group.
+
+#### Upload variant to ClinVar
+
+Log in into ClinVar and visit the [ClinVar Submission Portal](https://submit.ncbi.nlm.nih.gov/clinvar/). Here select `ClinVar single submission wizard` and go through the steps on the following pages.
+![alt](submission_wizard.png)
+![alt](clinvar_wizard_step1.png)
+
+Detailed help about the single steps can be found on the ClinVar website:
+ - [Detailed help for the ClinVar Submission Wizard](https://www.ncbi.nlm.nih.gov/clinvar/docs/wizard/)
+ - [YouTube video](https://www.youtube.com/watch?v=IP0wr7JSvU4)
+
+
 ## FAQ
 
 ### There is no context menu entry for database upload.

@@ -106,7 +106,7 @@ void RequestWorker::run()
 
 	if (all_request_parts.size() == 0)
 	{
-		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Request could not be processed"));
+		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_PLAIN, "Request could not be processed"));
 		qDebug() << "Was not able to read from the socket. Exiting";
 		return;
 	}
@@ -124,11 +124,13 @@ void RequestWorker::run()
 		return;
 	}
 
+	ContentType error_type = HttpProcessor::detectErrorContentType(parsed_request.getHeaderByName("User-Agent"));
+
 	// Process the request based on the endpoint info
 	Endpoint current_endpoint = EndpointManager::getEndpointByUrlAndMethod(parsed_request.getPath(), parsed_request.getMethod());
 	if (current_endpoint.action_func == nullptr)
 	{
-		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::BAD_REQUEST, parsed_request.getContentType(), "This action cannot be processed"));
+		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::BAD_REQUEST, error_type, "This action cannot be processed"));
 		return;
 	}
 
@@ -139,7 +141,7 @@ void RequestWorker::run()
 	catch (ArgumentException& e)
 	{
 		qDebug() << "Parameter validation has failed";
-		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::BAD_REQUEST, parsed_request.getContentType(), e.message()));
+		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::BAD_REQUEST, error_type, e.message()));
 		return;
 	}
 
@@ -164,7 +166,7 @@ void RequestWorker::run()
 	catch (Exception& e)
 	{
 		qDebug() << "Error while executing an action" << e.message();
-		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "Could not process endpoint action"));
+		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, error_type, "Could not process endpoint action"));
 		return;
 	}
 
@@ -175,14 +177,14 @@ void RequestWorker::run()
 		if (response.getFilename().isEmpty())
 		{
 			HttpResponse error_response;
-			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, parsed_request.getContentType(), "File name has not been found"));
+			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, error_type, "File name has not been found"));
 			return;
 		}
 
 		QFile streamed_file(response.getFilename());
 		if (!streamed_file.exists())
 		{
-			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, parsed_request.getContentType(), "Requested file does not exist"));
+			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, error_type, "Requested file does not exist"));
 			return;
 		}
 
@@ -195,14 +197,14 @@ void RequestWorker::run()
 		catch (Exception& e)
 		{
 			qDebug() << "Error while opening a file for streaming";
-			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "Could not open a file for streaming: " + response.getFilename()));
+			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, error_type, "Could not open a file for streaming: " + response.getFilename()));
 			return;
 		}
 
 		if (!streamed_file.isOpen())
 		{
 			qDebug() << "File is not open";
-			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "File is not open: " + response.getFilename()));
+			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, error_type, "File is not open: " + response.getFilename()));
 			return;
 		}
 
@@ -339,11 +341,11 @@ void RequestWorker::run()
 	}
 	else if (response.getPayload().isNull())
 	{
-		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "Could not produce any output"));
+		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, error_type, "Could not produce any output"));
 		return;
 	}
 
-	sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, parsed_request.getContentType(), "This page does not exist. Check the URL and try again"));
+	sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, error_type, "This page does not exist. Check the URL and try again"));
 }
 
 void RequestWorker::handleConnection()

@@ -966,6 +966,14 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["SV allele frequency NGSD"] = &createInstance<FilterSvAfNGSD>;
         output["SV trio"] = &createInstance<FilterSvTrio>;
 		output["Splice effect"] = &createInstance<FilterSpliceEffect>;
+		output["RNA ASE allele frequency"] = &createInstance<FilterVariantRNAAseAlleleFrequency>;
+		output["RNA ASE depth"] = &createInstance<FilterVariantRNAAseDepth>;
+		output["RNA ASE alternative count"] = &createInstance<FilterVariantRNAAseAlt>;
+		output["RNA ASE p-value"] = &createInstance<FilterVariantRNAAsePval>;
+		output["RNA aberrant splicing fraction"] = &createInstance<FilterVariantRNAAberrantSplicing>;
+		output["RNA gene expression"] = &createInstance<FilterVariantRNAGeneExpression>;
+		output["RNA expression fold-change"] = &createInstance<FilterVariantRNAExpressionFC>;
+		output["RNA expression z-score"] = &createInstance<FilterVariantRNAExpressionZScore>;
 	}
 
 	return output;
@@ -1966,7 +1974,7 @@ bool FilterAnnotationPathogenic::annotatedPathogenic(const Variant& v) const
 FilterPredictionPathogenic::FilterPredictionPathogenic()
 {
 	name_ = "Predicted pathogenic";
-	description_ = QStringList() << "Filter for variants predicted to be pathogenic." << "Pathogenicity predictions used by this filter are: phyloP, Sift, PolyPhen, fathmm-MKL, CADD and REVEL.";
+	description_ = QStringList() << "Filter for variants predicted to be pathogenic." << "Pathogenicity predictions used by this filter are: phyloP, Sift, PolyPhen, CADD and REVEL.";
 	params_ << FilterParameter("min", FilterParameterType::INT, 1, "Minimum number of pathogenic predictions");
 	params_.last().constraints["min"] = "1";
 	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
@@ -1976,9 +1984,6 @@ FilterPredictionPathogenic::FilterPredictionPathogenic()
 	params_ << FilterParameter("cutoff_cadd", FilterParameterType::DOUBLE, 20.0, "Minimum CADD score for a pathogenic prediction. The CADD score is not used if set to 0.0.");
 	params_.last().constraints["min"] = "0";
 	params_ << FilterParameter("cutoff_revel", FilterParameterType::DOUBLE, 0.9, "Minimum REVEL score for a pathogenic prediction. The REVEL score is not used if set to 0.0.");
-	params_.last().constraints["min"] = "0";
-	params_.last().constraints["max"] = "1";
-	params_ << FilterParameter("cutoff_fathmm_mkl", FilterParameterType::DOUBLE, 0.9, "Minimum fathmm-MKL score for a pathogenic prediction. The fathmm-MKL score is not used if set to 0.0.");
 	params_.last().constraints["min"] = "0";
 	params_.last().constraints["max"] = "1";
 	params_ << FilterParameter("cutoff_phylop", FilterParameterType::DOUBLE, 1.6, "Minimum phyloP score for a pathogenic prediction. The phyloP score is not used if set to -10.0.");
@@ -2001,7 +2006,6 @@ void FilterPredictionPathogenic::apply(const VariantList& variants, FilterResult
 	i_phylop = annotationColumn(variants, "phyloP");
 	i_sift = annotationColumn(variants, "Sift");
 	i_polyphen = annotationColumn(variants, "PolyPhen");
-	i_fathmm = annotationColumn(variants, "fathmm-MKL", false);
 	i_cadd = annotationColumn(variants, "CADD");
 	i_revel = annotationColumn(variants, "REVEL");
 	skip_high_impact = getBool("skip_high_impact");
@@ -2009,7 +2013,6 @@ void FilterPredictionPathogenic::apply(const VariantList& variants, FilterResult
 
 	cutoff_cadd = getDouble("cutoff_cadd");
 	cutoff_revel = getDouble("cutoff_revel");
-	cutoff_fathmm_mkl = getDouble("cutoff_fathmm_mkl");
 	cutoff_phylop = getDouble("cutoff_phylop");
 	ignore_sift = getBool("ignore_sift");
 	ignore_polyphen = getBool("ignore_polyphen");
@@ -2048,28 +2051,6 @@ bool FilterPredictionPathogenic::predictedPathogenic(const Variant& v) const
 	if (!ignore_polyphen && v.annotations()[i_polyphen].contains("D"))
 	{
 		++count;
-	}
-
-	if (cutoff_fathmm_mkl>0)
-	{
-		if (i_fathmm==-1)
-		{
-			THROW(ArgumentException, "Column 'fathmm-MKL' not found. Disable it by setting the score cutoff to 0.0!");
-		}
-		else if (v.annotations()[i_fathmm].contains(","))
-		{
-			QByteArrayList parts = v.annotations()[i_fathmm].split(',');
-			foreach(const QByteArray& part, parts)
-			{
-				bool ok = true;
-				double value = part.toDouble(&ok);
-				if (ok && value>=cutoff_fathmm_mkl)
-				{
-					++count;
-					break;
-				}
-			}
-		}
 	}
 
 	if (cutoff_phylop>-10)
@@ -2355,7 +2336,7 @@ FilterTrio::FilterTrio()
 	params_ << FilterParameter("gender_child", FilterParameterType::STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
 	params_.last().constraints["valid"] = "male,female,n/a";
 
-	params_ << FilterParameter("build", FilterParameterType::STRING, "hg19", "Genome build used for pseudoautosomal region coordinates");
+	params_ << FilterParameter("build", FilterParameterType::STRING, "hg38", "Genome build used for pseudoautosomal region coordinates");
 	params_.last().constraints["valid"] = "hg19,hg38";
 
 	checkIsRegistered();
@@ -3710,8 +3691,10 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 			if (!result.flags()[i]) continue;
 
 			QSet<QString> sv_entries = QString(svs[i].annotations()[filter_col_index]).split(';').toSet();
-			// check if intersection of both list == 0 -> remove entry otherwise
-			result.flags()[i] = (sv_entries.intersect(filter_entries).size() == 0);
+			if (sv_entries.intersects(filter_entries))
+			{
+				result.flags()[i] = false;
+			}
 		}
 	}
 	else if (action=="FILTER")
@@ -3721,7 +3704,6 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 			if (!result.flags()[i]) continue;
 
 			QSet<QString> sv_entries = QString(svs[i].annotations()[filter_col_index]).split(';').toSet();
-			// compute intersection
 			if (!sv_entries.intersects(filter_entries))
 			{
 				result.flags()[i] = false;
@@ -3733,15 +3715,9 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 		for(int i=0; i<svs.count(); ++i)
 		{
 			QSet<QString> sv_entries = QString(svs[i].annotations()[filter_col_index]).split(';').toSet();
-			// iterate over list of required entries
-			foreach (QString filter_entry, filter_entries)
+			if (sv_entries.intersects(filter_entries))
 			{
-				if (sv_entries.contains(filter_entry))
-				{
-					// display SV if at least one of the provided filter entries match
-					result.flags()[i] = true;
-					break;
-				}
+				result.flags()[i] = true;
 			}
 		}
 	}
@@ -4865,9 +4841,7 @@ FilterSpliceEffect::FilterSpliceEffect()
 	params_ << FilterParameter("SpliceAi", FilterParameterType::DOUBLE, 0.5, "Minimum SpliceAi value. Disabled if set to zero.");
 	params_.last().constraints["min"] = "0";
 	params_.last().constraints["max"] = "1";
-	params_ << FilterParameter("MMSplice", FilterParameterType::DOUBLE, 2.0, "Minimum absolute Delta Logit PSI Score. Disabled if set to zero.");
-	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("action", FilterParameterType::STRING, "KEEP", "Action to perform");
+	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
 	params_.last().constraints["valid"] = "KEEP,FILTER";
 	checkIsRegistered();
 }
@@ -4879,8 +4853,6 @@ QString FilterSpliceEffect::toText() const
 	text += " maxEntScan>=" + QString::number(mes) +"%";
 	double sai = getDouble("SpliceAi", false);
 	text += " SpliceAi>=" + QString::number(sai);
-	double mms = getDouble("MMSplice", false);
-	text += " MMSplice>=" + QString::number(mms);
 	return text;
 }
 
@@ -4891,14 +4863,11 @@ void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &re
 	int idx_sai = annotationColumn(variant_list, "SpliceAi");
 	double sai = getDouble("SpliceAi");
 
-	int idx_mms = annotationColumn(variant_list, "MMSplice_DeltaLogitPSI");
-	double mmsplice = getDouble("MMSplice");
-
 	int idx_mes = annotationColumn(variant_list, "MaxEntScan");
 	int mes = getInt("MaxEntScan");
 
 	// if all filters are deactivated return
-	if ((sai == 0) && (mmsplice == 0) && (mes == 0)) return;
+	if (sai == 0 && mes == 0) return;
 
 	// action FILTER
 	if (getString("action") == "FILTER")
@@ -4908,7 +4877,7 @@ void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &re
 			if (!result.flags()[i]) continue;
 
 			//If the variant has no value for all possible filters remove it
-			if (variant_list[i].annotations()[idx_sai].isEmpty() && variant_list[i].annotations()[idx_mes].isEmpty() && variant_list[i].annotations()[idx_mms].isEmpty())
+			if (variant_list[i].annotations()[idx_sai].isEmpty() && variant_list[i].annotations()[idx_mes].isEmpty())
 			{
 				result.flags()[i] = false;
 				continue;
@@ -4918,12 +4887,6 @@ void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &re
 			if (sai > 0)
 			{
 				if (applySpliceAi_(variant_list[i], idx_sai)) continue;
-			}
-
-			// MMSplice filter:
-			if (mmsplice > 0)
-			{
-				if (applyMMsplice_(variant_list[i], idx_mms)) continue;
 			}
 
 			// MaxEntScan filter:
@@ -4946,15 +4909,6 @@ void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &re
 			{
 				if (applySpliceAi_(variant_list[i], idx_sai))
 				{
-					result.flags()[i] = true;
-					continue;
-				}
-			}
-
-			// MMSplice filter:
-			if (mmsplice > 0)
-			{
-				if (applyMMsplice_(variant_list[i], idx_mms)) {
 					result.flags()[i] = true;
 					continue;
 				}
@@ -4986,7 +4940,9 @@ double FilterSpliceEffect::calculatePercentageChangeMES_(const QByteArray& value
 	if (base > 0)
 	{
 		percentChange = (newValue - base) / base;
-	} else {
+	}
+	else
+	{
 		percentChange = (base - newValue) / base;
 	}
 
@@ -5010,7 +4966,9 @@ bool FilterSpliceEffect::applyMaxEntScanFilter_(const Variant& var, int idx_mes)
 				{
 					return true;
 				}
-			} else {
+			}
+			else
+			{
 				if (percentChange >= mes)
 				{
 					return true;
@@ -5036,18 +4994,333 @@ bool FilterSpliceEffect::applySpliceAi_(const Variant& var, int idx_sai) const
 	return false;
 }
 
-bool FilterSpliceEffect::applyMMsplice_(const Variant& var, int idx_mms) const
+FilterVariantRNAAseAlleleFrequency::FilterVariantRNAAseAlleleFrequency()
 {
-	double mmsplice = getDouble("MMSplice");
+	name_ = "RNA ASE allele frequency";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the allele specific expression allele frequency.";
+	params_ << FilterParameter("min_af", FilterParameterType::DOUBLE, 0.0, "Minimal expression allele frequency.");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximal expression allele frequency.");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
 
-	QByteArray mms_value = var.annotations()[idx_mms];
-	if ( ! mms_value.trimmed().isEmpty())
-	{
-		if (std::abs(mms_value.toDouble()) >= mmsplice)
-		{
-			return true;
-		}
-	}
-	return false;
+	checkIsRegistered();
 }
 
+QString FilterVariantRNAAseAlleleFrequency::toText() const
+{
+	return name() + " between " + QString::number(getDouble("min_af", false), 'f', 2) + " and " + QString::number(getDouble("max_af", false), 'f', 2);
+}
+
+void FilterVariantRNAAseAlleleFrequency::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double min_af = getDouble("min_af");
+	double max_af = getDouble("max_af");
+
+	int idx_ase_af = annotationColumn(variants, "ASE_af");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		//skip not covered variants
+		QString ase_af_string = variants[i].annotations()[idx_ase_af].trimmed();
+		if(ase_af_string.isEmpty() || ase_af_string.startsWith("n/a"))
+		{
+			result.flags()[i] = false;
+			continue;
+		}
+
+		double ase_af = Helper::toDouble(ase_af_string, "ASE_af", QString::number(i));
+		result.flags()[i] = (ase_af >= min_af) && (ase_af <= max_af);
+	}
+}
+
+FilterVariantRNAAseDepth::FilterVariantRNAAseDepth()
+{
+	name_ = "RNA ASE depth";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the allele specific expression depth.";
+	params_ << FilterParameter("min_depth", FilterParameterType::INT, 20, "Minimal expression depth.");
+	params_.last().constraints["min"] = "0";
+
+	checkIsRegistered();
+}
+
+QString FilterVariantRNAAseDepth::toText() const
+{
+	return name() + " &ge; " + QString::number(getInt("min_depth", false));
+}
+
+void FilterVariantRNAAseDepth::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int min_depth = getInt("min_depth");
+
+	int idx_ase_depth = annotationColumn(variants, "ASE_depth");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		int ase_depth = Helper::toInt(variants[i].annotations()[idx_ase_depth], "ASE_depth", QString::number(i));
+		result.flags()[i] = ase_depth >= min_depth;
+	}
+}
+
+FilterVariantRNAAseAlt::FilterVariantRNAAseAlt()
+{
+	name_ = "RNA ASE alternative count";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the allele specific expression alternative count.";
+	params_ << FilterParameter("min_ac", FilterParameterType::INT, 5, "Minimal expression alternative count.");
+	params_.last().constraints["min"] = "0";
+
+	checkIsRegistered();
+}
+
+QString FilterVariantRNAAseAlt::toText() const
+{
+	return name() + " &ge; " + QString::number(getInt("min_ac", false));
+}
+
+void FilterVariantRNAAseAlt::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int min_ac = getInt("min_ac");
+
+	int idx_ase_ac = annotationColumn(variants, "ASE_alt");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		//skip not covered variants
+		QString ase_ac_string = variants[i].annotations()[idx_ase_ac].trimmed();
+		if(ase_ac_string.isEmpty() || ase_ac_string.startsWith("n/a"))
+		{
+			result.flags()[i] = false;
+			continue;
+		}
+
+		int ase_ac = Helper::toInt(ase_ac_string, "ASE_alt", QString::number(i));
+		result.flags()[i] = ase_ac >= min_ac;
+	}
+}
+
+FilterVariantRNAAsePval::FilterVariantRNAAsePval()
+{
+	name_ = "RNA ASE p-value";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the allele specific expression p-value.";
+	params_ << FilterParameter("max_pval", FilterParameterType::DOUBLE, 0.05, "Maximal expression p-value.");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+
+	checkIsRegistered();
+}
+
+QString FilterVariantRNAAsePval::toText() const
+{
+	return name() + " &le; " + QString::number(getDouble("max_pval", false), 'f', 2);
+}
+
+void FilterVariantRNAAsePval::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double max_pval = getDouble("max_pval");
+
+	int idx_ase_pval = annotationColumn(variants, "ASE_pval");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		//skip not covered variants
+		QString ase_pval_string = variants[i].annotations()[idx_ase_pval].trimmed();
+		if(ase_pval_string.isEmpty() || ase_pval_string.startsWith("n/a"))
+		{
+			result.flags()[i] = false;
+			continue;
+		}
+
+		double ase_pval = Helper::toDouble(ase_pval_string, "ASE_pval", QString::number(i));
+		result.flags()[i] = ase_pval <= max_pval;
+	}
+}
+
+FilterVariantRNAAberrantSplicing::FilterVariantRNAAberrantSplicing()
+{
+	name_ = "RNA aberrant splicing fraction";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the fraction of aberrant splicing reads.";
+	params_ << FilterParameter("min_asf", FilterParameterType::DOUBLE, 0.01, "Minimal aberrant splicing fraction.");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+}
+
+QString FilterVariantRNAAberrantSplicing::toText() const
+{
+	return name() + " &ge; " + QString::number(getDouble("min_asf", false), 'f', 3);
+}
+
+void FilterVariantRNAAberrantSplicing::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double min_asf = getDouble("min_asf");
+
+	int idx_asf = annotationColumn(variants, "aberrant_splicing");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		QList<QByteArray> fraction_strings = variants[i].annotations()[idx_asf].split(',');
+		result.flags()[i] = false;
+		foreach (const QByteArray& fraction_string, fraction_strings)
+		{
+			if(fraction_string.isEmpty() || fraction_string.startsWith("n/a")) continue;
+
+			double fraction_value = Helper::toDouble(fraction_string, "aberrant_splicing", QString::number(i));
+			if (fraction_value >= min_asf)
+			{
+				result.flags()[i] = true;
+				break;
+			}
+		}
+	}
+}
+
+FilterVariantRNAGeneExpression::FilterVariantRNAGeneExpression()
+{
+	name_ = "RNA gene expression";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the gene expression in transcripts-per-million";
+	params_ << FilterParameter("min_tpm", FilterParameterType::DOUBLE, 5.0, "Minimal gene expression in transcripts-per-million.");
+	params_.last().constraints["min"] = "0.0";
+}
+
+QString FilterVariantRNAGeneExpression::toText() const
+{
+	return name() + " &ge; " + QString::number(getDouble("min_tpm", false), 'f', 2) + "(tpm)";
+}
+
+void FilterVariantRNAGeneExpression::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double min_tpm = getDouble("min_tpm");
+
+	int idx_asf = annotationColumn(variants, "tpm");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		QList<QByteArray> fraction_strings = variants[i].annotations()[idx_asf].split(',');
+		result.flags()[i] = false;
+		foreach (const QByteArray& fraction_string, fraction_strings)
+		{
+			if(fraction_string.isEmpty() || fraction_string.startsWith("n/a")) continue;
+
+			double fraction_value = Helper::toDouble(fraction_string, "tpm", QString::number(i));
+			if (fraction_value >= min_tpm)
+			{
+				result.flags()[i] = true;
+				break;
+			}
+		}
+	}
+}
+
+FilterVariantRNAExpressionFC::FilterVariantRNAExpressionFC()
+{
+	name_ = "RNA expression fold-change";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the absolute gene expression log2 fold-change.";
+	params_ << FilterParameter("min_fc", FilterParameterType::DOUBLE, 2.0, "Minimal absolute fold-change.");
+	params_.last().constraints["min"] = "0.0";
+}
+
+QString FilterVariantRNAExpressionFC::toText() const
+{
+	return name() + " (abs) &ge; " + QString::number(getDouble("min_fc", false), 'f', 2);
+}
+
+void FilterVariantRNAExpressionFC::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double min_fc = getDouble("min_fc");
+
+	int idx_fc = annotationColumn(variants, "expr_log2fc");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		QList<QByteArray> fc_strings = variants[i].annotations()[idx_fc].split(',');
+		result.flags()[i] = false;
+		foreach (const QByteArray& fc_string, fc_strings)
+		{
+			if(fc_string.isEmpty() || fc_string.startsWith("n/a")) continue;
+
+			double fraction_value = fabs(Helper::toDouble(fc_string, "expr_log2fc", QString::number(i)));
+			if (fraction_value >= min_fc)
+			{
+				result.flags()[i] = true;
+				break;
+			}
+		}
+	}
+}
+
+FilterVariantRNAExpressionZScore::FilterVariantRNAExpressionZScore()
+{
+	name_ = "RNA expression z-score";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the absolute gene expression z-score.";
+	params_ << FilterParameter("min_zscore", FilterParameterType::DOUBLE, 2.0, "Minimal absolute z-score.");
+	params_.last().constraints["min"] = "0.0";
+}
+
+QString FilterVariantRNAExpressionZScore::toText() const
+{
+	return name() + " (abs) &ge; " + QString::number(getDouble("min_zscore", false), 'f', 2);
+}
+
+void FilterVariantRNAExpressionZScore::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double min_zscore = getDouble("min_zscore");
+
+	int idx_zscore = annotationColumn(variants, "expr_zscore");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		QList<QByteArray> zscore_strings = variants[i].annotations()[idx_zscore].split(',');
+		result.flags()[i] = false;
+		foreach (const QByteArray& zscore_string, zscore_strings)
+		{
+			if(zscore_string.isEmpty() || zscore_string.startsWith("n/a")) continue;
+
+			double zscore = fabs(Helper::toDouble(zscore_string, "expr_zscore", QString::number(i)));
+			if (zscore >= min_zscore)
+			{
+				result.flags()[i] = true;
+				break;
+			}
+		}
+	}
+}

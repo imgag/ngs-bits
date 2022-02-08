@@ -612,6 +612,8 @@ CREATE  TABLE IF NOT EXISTS `variant_publication`
   `details` TEXT NOT NULL,
   `user_id` INT(11) NOT NULL,
   `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `result` TEXT DEFAULT NULL,
+  `replaced` BOOLEAN NOT NULL DEFAULT FALSE,
 PRIMARY KEY (`id`),
 CONSTRAINT `fk_variant_publication_has_user`
   FOREIGN KEY (`user_id`)
@@ -789,7 +791,7 @@ CREATE  TABLE IF NOT EXISTS `processed_sample_qc`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
   `qc_terms_id` INT(11) NOT NULL,
-  `value` VARCHAR(30) NOT NULL,
+  `value` TEXT NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `c_processing_id_qc_terms_id` (`processed_sample_id` ASC, `qc_terms_id` ASC),
   INDEX `fk_qcvalues_processing1` (`processed_sample_id` ASC),
@@ -1940,7 +1942,7 @@ CONSTRAINT `fk_study_sample_has_ps`
   REFERENCES `processed_sample` (`id`)
   ON DELETE NO ACTION
   ON UPDATE NO ACTION,
-  UNIQUE INDEX `unique_sample_ps` (`processed_sample_id`, `study_sample_idendifier`),
+  UNIQUE INDEX `unique_sample_ps` (`study_id`, `processed_sample_id`),
 INDEX `i_study_sample_idendifier` (`study_sample_idendifier` ASC)
 )
 ENGINE = InnoDB

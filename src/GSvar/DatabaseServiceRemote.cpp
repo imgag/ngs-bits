@@ -2,6 +2,8 @@
 #include "Settings.h"
 #include "HttpRequestHandler.h"
 #include "Helper.h"
+#include <QApplication>
+#include <QMessageBox>
 
 DatabaseServiceRemote::DatabaseServiceRemote()
 	: enabled_(Settings::boolean("NGSD_enabled"))
@@ -13,59 +15,53 @@ bool DatabaseServiceRemote::enabled() const
 	return enabled_;
 }
 
-BedFile DatabaseServiceRemote::processingSystemRegions(int sys_id) const
+BedFile DatabaseServiceRemote::processingSystemRegions(int sys_id, bool ignore_if_missing) const
 {
 	checkEnabled(__PRETTY_FUNCTION__);
 
 	BedFile output;
-	QByteArray reply = makeApiCall("ps_regions?sys_id="+QString::number(sys_id));
+	QByteArray reply = makeApiCall("ps_regions?sys_id="+QString::number(sys_id), ignore_if_missing);
 
-	if (reply.length() == 0)
+	if ((reply.length() == 0) && (!ignore_if_missing))
 	{
 		THROW(Exception, "Could not get the processing system regions for " + QString::number(sys_id));
 	}
-	else
-	{
-		output = output.fromText(reply);
-	}
+
+	output = output.fromText(reply);
 
 	return output;
 }
 
-BedFile DatabaseServiceRemote::processingSystemAmplicons(int sys_id) const
+BedFile DatabaseServiceRemote::processingSystemAmplicons(int sys_id, bool ignore_if_missing) const
 {
 	checkEnabled(__PRETTY_FUNCTION__);
 
 	BedFile output;
-	QByteArray reply = makeApiCall("ps_amplicons?sys_id="+QString::number(sys_id));
+	QByteArray reply = makeApiCall("ps_amplicons?sys_id="+QString::number(sys_id), ignore_if_missing);
 
-	if (reply.length() == 0)
+	if ((reply.length() == 0) && (!ignore_if_missing))
 	{
 		THROW(Exception, "Could not get the processing system amplicons for " + QString::number(sys_id));
 	}
-	else
-	{
-		output = output.fromText(reply);
-	}
+
+	output = output.fromText(reply);
 
 	return output;
 }
 
-GeneSet DatabaseServiceRemote::processingSystemGenes(int sys_id) const
+GeneSet DatabaseServiceRemote::processingSystemGenes(int sys_id, bool ignore_if_missing) const
 {
 	checkEnabled(__PRETTY_FUNCTION__);
 
 	GeneSet output;
-	QByteArray reply = makeApiCall("ps_genes?sys_id="+QString::number(sys_id));
+	QByteArray reply = makeApiCall("ps_genes?sys_id="+QString::number(sys_id), ignore_if_missing);
 
-	if (reply.length() == 0)
+	if ((reply.length() == 0) && (!ignore_if_missing))
 	{
 		THROW(Exception, "Could not get the processing system genes for " + QString::number(sys_id));
 	}
-	else
-	{
-		output = GeneSet::createFromText(reply);
-	}
+
+	output = GeneSet::createFromText(reply);
 
 	return output;
 }
@@ -75,7 +71,7 @@ QStringList DatabaseServiceRemote::secondaryAnalyses(QString processed_sample_na
 	checkEnabled(__PRETTY_FUNCTION__);
 
 	QStringList list;
-	QByteArray reply = makeApiCall("secondary_analyses?ps_name="+processed_sample_name+"&type="+analysis_type);
+	QByteArray reply = makeApiCall("secondary_analyses?ps_name="+processed_sample_name+"&type="+analysis_type, true);
 	if (reply.length() == 0)
 	{
 		THROW(Exception, "Could not get the processing system genes for " + processed_sample_name);
@@ -98,7 +94,7 @@ FileLocation DatabaseServiceRemote::processedSamplePath(const QString& processed
 	checkEnabled(__PRETTY_FUNCTION__);
 
 	FileLocation output;
-	QByteArray reply = makeApiCall("processed_sample_path?ps_id=" + processed_sample_id + "&type=" + FileLocation::typeToString(type));
+	QByteArray reply = makeApiCall("processed_sample_path?ps_id=" + processed_sample_id + "&type=" + FileLocation::typeToString(type), true);
 
 	if (reply.length() == 0)
 	{
@@ -123,10 +119,46 @@ FileLocation DatabaseServiceRemote::processedSamplePath(const QString& processed
 	return output;
 }
 
-QByteArray DatabaseServiceRemote::makeApiCall(QString url_param) const
+FileLocation DatabaseServiceRemote::analysisJobGSvarFile(const int& job_id) const
+{
+	checkEnabled(__PRETTY_FUNCTION__);
+
+	FileLocation output;
+	QByteArray reply = makeApiCall("analysis_job_gsvar_file?job_id=" + QString::number(job_id), true);
+	if (reply.length() == 0)
+	{
+		THROW(Exception, "Could not get a GSvar file for the job id " + QString::number(job_id));
+	}
+
+	QJsonDocument json_doc = QJsonDocument::fromJson(reply);
+	QJsonObject json_object = json_doc.object();
+
+	if (json_object.contains("id") && json_object.contains("type") && json_object.contains("filename") && json_object.contains("exists"))
+	{
+		return FileLocation(json_object.value("id").toString(), FileLocation::stringToType(json_object.value("type").toString()), json_object.value("filename").toString(), json_object.value("exists").toBool());
+	}
+
+	return output;
+}
+
+QByteArray DatabaseServiceRemote::makeApiCall(QString url_param, bool ignore_if_missing) const
 {
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "text/plain");
+	add_headers.insert("User-Agent", "GSvar");
+	QByteArray result;
 
-	return HttpRequestHandler(HttpRequestHandler::NONE).get(Helper::serverApiUrl() +url_param, add_headers);
+	try
+	{
+		result = HttpRequestHandler(HttpRequestHandler::NONE).get(Helper::serverApiUrl() +url_param, add_headers);
+	}
+	catch (Exception& e)
+	{
+		if (!ignore_if_missing)
+		{
+			QMessageBox::warning(QApplication::activeWindow(), "Database API call error", e.message());
+		}
+	}
+
+	return result;
 }

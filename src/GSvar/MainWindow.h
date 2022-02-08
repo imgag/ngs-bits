@@ -204,10 +204,12 @@ public slots:
 	void on_actionCfDNADiseaseCourse_triggered();
 	/// Open dialog to add excluded regions
 	void on_actionCfDNAAddExcludedRegions_triggered();
-	///Open expression data Widget
+	///Open expression data widget
 	void on_actionExpressionData_triggered();
 	///Open RNA fusion widget
 	void on_actionShowRnaFusions_triggered();
+	///Open cohort expression data widget
+	void on_actionShowCohortExpressionData_triggered();
 	///Open gene OMIM info dialog.
 	void on_actionGeneOmimInfo_triggered();
 	///Open folder of variant list in explorer.
@@ -244,7 +246,6 @@ public slots:
 	void on_actionGetGenomicSequence_triggered();
 	///Perform BLAT search
 	void on_actionBlatSearch_triggered();
-
 	///Load report configuration
 	void loadReportConfig();
 	///Store report configuration
@@ -328,8 +329,6 @@ public slots:
 	void importPhenotypesFromNGSD();
 	///Create sub-panel from phenotype
 	void createSubPanelFromPhenotypeFilter();
-	/// Open phenotype Options menu
-	void openPhenotypeOptions();
 
 	///Opens a sample based on the processed sample name
 	void openProcessedSampleFromNGSD(QString processed_sample_name, bool search_multi=true);
@@ -380,11 +379,13 @@ public slots:
 	///Clears somatic report settings
 	void clearSomaticReportSettings(QString ps_id_in_other_widget);
 
-
 	///Edit somatic variant interpretation (VICC consortium)
 	void editSomaticVariantInterpretation(const VariantList& vl, int index);
 	///Updates somatic variant interpreation annotation for specific variant of GSvar file
 	void updateSomaticVariantInterpretationAnno(int index, QString vicc_interpretation, QString vicc_comment);
+
+    ///Updates current allowed sources and evidences and starts filters if changed
+    void updateAllowedSourcesAndEvidences(QList<PhenotypeEvidence::Evidence> new_evidences, QList<PhenotypeSource::Source> new_sources);
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
@@ -416,12 +417,12 @@ private:
 	BedpeFile svs_;
 	FilterResult filter_result_;
 	QString last_report_path_;
-	PhenotypeList last_phenos_;
 	bool filter_phenos_;
+	PhenotypeList last_phenos_;
 	QList<PhenotypeEvidence::Evidence> last_phenotype_evidences_;
 	QList<PhenotypeSource::Source> last_phenotype_sources_;
 	BedFile last_phenos_roi_;
-    QHash<QByteArray, BedFile> gene2region_cache_;
+	QHash<QByteArray, BedFile> gene2region_cache_;
 	ReportSettings report_settings_;
 	QString germline_report_ps_;
 	SomaticReportSettings somatic_report_settings_;

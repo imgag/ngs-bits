@@ -15,7 +15,7 @@ HttpResponse EndpointHandler::serveIndexPage(const HttpRequest& request)
 		return EndpointController::serveStaticFile(":/assets/client/info.html", request.getMethod(), request.getHeaders());
 	}
 
-	return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "Requested page was not found");
+	return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Requested page was not found");
 }
 
 HttpResponse EndpointHandler::serveFavicon(const HttpRequest& request)
@@ -24,7 +24,7 @@ HttpResponse EndpointHandler::serveFavicon(const HttpRequest& request)
 	{
 		return EndpointController::serveStaticFile(":/assets/client/favicon.ico", request.getMethod(), request.getHeaders());
 	}
-	return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "Favicon was not found");
+	return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Favicon was not found");
 }
 
 HttpResponse EndpointHandler::serveApiInfo(const HttpRequest& request)
@@ -33,7 +33,7 @@ HttpResponse EndpointHandler::serveApiInfo(const HttpRequest& request)
 	{
 		return EndpointController::serveStaticFile(":/assets/client/api.json", request.getMethod(), request.getHeaders());
 	}
-	return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "API info was not found");
+	return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "API info was not found");
 }
 
 HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
@@ -41,12 +41,16 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 	qDebug() << "File location service";
 	if (!request.getUrlParams().contains("ps_url_id"))
 	{
-		return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Sample id has not been provided");
+		return HttpResponse(ResponseStatus::BAD_REQUEST, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Sample id has not been provided");
 	}
 	QString ps_url_id = request.getUrlParams()["ps_url_id"];
 
 	UrlEntity url_entity = UrlManager::getURLById(ps_url_id.trimmed());	
 	QString found_file = url_entity.filename_with_path;
+	if (!QFile::exists(found_file))
+	{
+		return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Processed sample file does not exist");
+	}
 
 	bool return_if_missing = true;
 	if (request.getUrlParams().contains("return_if_missing"))
@@ -111,7 +115,7 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 			case PathType::REPEAT_EXPANSION_IMAGE:
 				if (!request.getUrlParams().contains("locus"))
 				{
-					return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Locus value has not been provided");
+					return HttpResponse(ResponseStatus::BAD_REQUEST, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Locus value has not been provided");
 				}
 				file_list << file_locator->getRepeatExpansionImage(request.getUrlParams()["locus"]);
 				break;
@@ -198,7 +202,7 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 			}
 			catch (Exception& e)
 			{
-				return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), e.message());
+				return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), e.message());
 			}
 		}
 		else
@@ -245,7 +249,7 @@ HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 	catch (Exception& e)
 	{
 		qWarning() << "Error opening processed sample from NGSD:" + e.message();
-		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, request.getContentType(), e.message());
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), e.message());
 	}
 
 	bool return_http = false;
@@ -271,6 +275,45 @@ HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
+HttpResponse EndpointHandler::getAnalysisJobGSvarFile(const HttpRequest& request)
+{
+	qDebug() << "Analysis job GSvar file";
+	QJsonDocument json_doc_output;
+	QJsonObject json_object_output;
+
+	QString id;
+	QString found_file_path;
+
+	try
+	{
+		NGSD db;
+		int job_id = request.getUrlParams()["job_id"].toInt();
+		AnalysisJob job = db.analysisInfo(job_id, true);
+		id = db.processedSampleName(db.processedSampleId(job.samples[0].name));
+		found_file_path = db.analysisJobGSvarFile(job_id);
+	}
+	catch (Exception& e)
+	{
+		qWarning() << "Error while looking for the analysis job GSvar file in NGSD:" + e.message();
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), e.message());
+	}
+
+	FileLocation analysis_job_gsvar_file = FileLocation(id, PathType::GSVAR, createFileTempUrl(found_file_path, false), QFile::exists(found_file_path));
+
+	json_object_output.insert("id", id);
+	json_object_output.insert("type", analysis_job_gsvar_file.typeAsString());
+	json_object_output.insert("filename", analysis_job_gsvar_file.filename);
+	json_object_output.insert("exists", analysis_job_gsvar_file.exists);
+	json_doc_output.setObject(json_object_output);
+
+	BasicResponseData response_data;
+	response_data.byte_ranges = QList<ByteRange>{};
+	response_data.length = json_doc_output.toJson().length();
+	response_data.content_type = ContentType::APPLICATION_JSON;
+	response_data.is_downloadable = false;
+	return HttpResponse(response_data, json_doc_output.toJson());
+}
+
 HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 {
 	QString ps_url_id = request.getUrlParams()["ps_url_id"];
@@ -278,7 +321,7 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 
 	if (url.filename_with_path.isEmpty())
 	{
-		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_HTML, "The GSvar file in " + ps_url_id + "could not be located");
+		return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "The GSvar file in " + ps_url_id + "could not be located");
 	}
 
 	QJsonDocument json_doc;
@@ -289,7 +332,7 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 	catch (Exception& e)
 	{
 		qWarning() << "Error while parsing changes for the GSvar file" + url.filename_with_path + ":" << e.message();
-		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Changes for the GSvar file in " + ps_url_id + "could not be parsed: " + e.message());
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Changes for the GSvar file in " + ps_url_id + "could not be parsed: " + e.message());
 	}
 
 	QString tmp = url.filename_with_path + "_" + ps_url_id + ".tmp";
@@ -330,7 +373,7 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 
 			if ((chr_pos == -1) || (start_pos == -1) || (end_pos == -1) || (ref_pos == -1) || (obs_pos == -1))
 			{
-				return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Could not identify key columns in GSvar file: " + ps_url_id);
+				return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Could not identify key columns in GSvar file: " + ps_url_id);
 			}
 			continue;
 		}
@@ -353,7 +396,7 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 					// Locating changed column
 					if (column_names.indexOf(column) == -1)
 					{
-						return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Could not identify changed column " + column + " in GSvar file: " + ps_url_id);
+						return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Could not identify changed column " + column + " in GSvar file: " + ps_url_id);
 					}
 					is_current_variant_changed = true;
 					is_file_changed = true;
@@ -364,7 +407,7 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 			catch (Exception& e)
 			{
 				qDebug() << "Error while processing changes for the GSvar file" + url.filename_with_path + ":" << e.message();
-				return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Changes for the GSvar file in " + ps_url_id + "could not be parsed: " + e.message());
+				return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Changes for the GSvar file in " + ps_url_id + "could not be parsed: " + e.message());
 			}
 		}
 
@@ -417,7 +460,7 @@ HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 
 	if ((filename.isEmpty()) || (path.isEmpty()))
 	{
-		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Path or filename has not been provided");
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Path or filename has not been provided");
 	}
 
 	// It should not be possible to move up to the parent directory or to access system directories
@@ -440,10 +483,10 @@ HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 	}
 	catch (Exception& e)
 	{
-		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Could not save the data: " + e.message());
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Could not save the data: " + e.message());
 	}
 
-	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_HTML, filename + " has been saved");
+	return HttpResponse(ResponseStatus::OK, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), filename + " has been saved");
 }
 
 HttpResponse EndpointHandler::performLogin(const HttpRequest& request)
@@ -510,7 +553,7 @@ HttpResponse EndpointHandler::getProcessingSystemRegions(const HttpRequest& requ
 	QString filename = db.processingSystemRegionsFilePath(sys_id.toInt());
 	if (filename.isEmpty())
 	{
-		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_HTML, "Processing system regions file has not been found");
+		return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Processing system regions file has not been found");
 	}
 	return EndpointController::createStaticStreamResponse(filename, false);
 }
@@ -522,7 +565,7 @@ HttpResponse EndpointHandler::getProcessingSystemAmplicons(const HttpRequest& re
 	QString filename = db.processingSystemAmpliconsFilePath(sys_id.toInt());
 	if (filename.isEmpty())
 	{
-		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_HTML, "Processing system amplicons file has not been found");
+		return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Processing system amplicons file has not been found");
 	}
 	return EndpointController::createStaticStreamResponse(filename, false);
 }
@@ -534,7 +577,7 @@ HttpResponse EndpointHandler::getProcessingSystemGenes(const HttpRequest& reques
 	QString filename = db.processingSystemGenesFilePath(sys_id.toInt());
 	if (filename.isEmpty())
 	{
-		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_HTML, "Processing system genes file has not been found");
+		return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Processing system genes file has not been found");
 	}
 	return EndpointController::createStaticStreamResponse(filename, false);
 }
@@ -551,7 +594,7 @@ HttpResponse EndpointHandler::getSecondaryAnalyses(const HttpRequest& request)
 	}
 	catch (DatabaseException& e)
 	{
-		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Could not get secondary analyses from the database");
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Could not get secondary analyses from the database");
 	}
 
 	QJsonDocument json_doc_output;

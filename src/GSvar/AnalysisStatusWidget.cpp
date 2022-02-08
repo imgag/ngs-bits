@@ -8,8 +8,8 @@
 #include "cmath"
 #include "LoginManager.h"
 #include "GlobalServiceProvider.h"
-#include "CfdnaAnalysisDialog.h"
 #include "AnalysisInformationWidget.h"
+#include "GSvarHelper.h"
 #include <QMenu>
 #include <QFileInfo>
 #include <QDesktopServices>
@@ -38,85 +38,32 @@ AnalysisStatusWidget::AnalysisStatusWidget(QWidget* parent)
 
 void AnalysisStatusWidget::analyzeSingleSamples(QList<AnalysisJobSample> samples)
 {
-	NGSD db;
-
-	//Determine whether samples are RNA => show RNA steps
-	bool is_rna = false;
-	bool is_cfdna = false;
-	for(const AnalysisJobSample& sample : samples)
+	if (GSvarHelper::queueSampleAnalysis(AnalysisType::GERMLINE_SINGLESAMPLE, samples, this))
 	{
-		if(db.getSampleData(db.sampleId(sample.name)).type=="RNA")
-		{
-			is_rna = true;
-			break;
-		}
-		QString sys_type = db.getProcessedSampleData(db.processedSampleId(sample.name)).processing_system_type;
-		if(sys_type == "cfDNA (patient-specific)" || sys_type == "cfDNA")
-		{
-			is_cfdna = true;
-			break;
-		}
+		refreshStatus();
 	}
-	if (is_cfdna)
-	{
-		CfdnaAnalysisDialog dlg(this);
-
-		dlg.setSamples(samples);
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			foreach(const AnalysisJobSample& sample,  dlg.samples())
-			{
-				db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
-			}
-			refreshStatus();
-		}
-	}
-	else
-	{
-		SingleSampleAnalysisDialog dlg(this, is_rna);
-
-		dlg.setSamples(samples);
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			foreach(const AnalysisJobSample& sample,  dlg.samples())
-			{
-				db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
-			}
-			refreshStatus();
-		}
-	}
-
 }
 
 void AnalysisStatusWidget::analyzeTrio(QList<AnalysisJobSample> samples)
 {
-	TrioDialog dlg(this);
-	dlg.setSamples(samples);
-	if (dlg.exec()==QDialog::Accepted)
+	if (GSvarHelper::queueSampleAnalysis(AnalysisType::GERMLINE_TRIO, samples, this))
 	{
-		NGSD().queueAnalysis("trio", dlg.highPriority(), dlg.arguments(), dlg.samples());
 		refreshStatus();
 	}
 }
 
 void AnalysisStatusWidget::analyzeMultiSample(QList<AnalysisJobSample> samples)
 {
-	MultiSampleDialog dlg(this);
-	dlg.setSamples(samples);
-	if (dlg.exec()==QDialog::Accepted)
+	if (GSvarHelper::queueSampleAnalysis(AnalysisType::GERMLINE_MULTISAMPLE, samples, this))
 	{
-		NGSD().queueAnalysis("multi sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
 		refreshStatus();
 	}
 }
 
 void AnalysisStatusWidget::analyzeSomatic(QList<AnalysisJobSample> samples)
 {
-	SomaticDialog dlg(this);
-	dlg.setSamples(samples);
-	if (dlg.exec()==QDialog::Accepted)
+	if (GSvarHelper::queueSampleAnalysis(AnalysisType::SOMATIC_PAIR, samples, this))
 	{
-		NGSD().queueAnalysis("somatic", dlg.highPriority(), dlg.arguments(), dlg.samples());
 		refreshStatus();
 	}
 }
@@ -415,7 +362,19 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 		NGSD db;
 		foreach(int id, job_ids)
 		{
-			emit loadFile(db.analysisJobGSvarFile(id));
+			if (db.analysisInfo(id).isRunning())
+			{
+				QMessageBox::warning(this, "Loading error", "The job is still running");
+				return;
+			}
+			FileLocation analysis_job_gsvar_file = GlobalServiceProvider::database().analysisJobGSvarFile(id);
+
+			if (!analysis_job_gsvar_file.exists)
+			{
+				QMessageBox::warning(this, "Loading error", "The requested file does not exist");
+				return;
+			}
+			emit loadFile(analysis_job_gsvar_file.filename);
 		}
 	}
 	if (text=="Open processed sample tab")

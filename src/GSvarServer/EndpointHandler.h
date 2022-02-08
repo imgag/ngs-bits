@@ -34,6 +34,7 @@ public:
 	static HttpResponse serveTempUrl(const HttpRequest& request);
 	static HttpResponse locateFileByType(const HttpRequest& request);
 	static HttpResponse getProcessedSamplePath(const HttpRequest& request);
+	static HttpResponse getAnalysisJobGSvarFile(const HttpRequest& request);
 	static HttpResponse saveProjectFile(const HttpRequest& request);
 	static HttpResponse saveQbicFiles(const HttpRequest& request);
 	static HttpResponse performLogin(const HttpRequest& request);

@@ -1160,7 +1160,7 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 		}
 		catch(Exception e)
 		{
-			Log::warn("Low-coverage statistics needs to be calculated. Pre-calulated gap file cannot be used because: " + e.message());
+			Log::warn("Low-coverage statistics needs to be calculated. Pre-calculated gap file cannot be used because: " + e.message());
 			low_cov = Statistics::lowCoverage(data_.roi.regions, data_.ps_bam, data_.report_settings.min_depth);
 		}
 
@@ -1354,7 +1354,7 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 		}
 		catch(Exception e)
 		{
-			Log::warn("Low-coverage statistics for transcript " + transcript.name() + " needs to be calculated. Pre-calulated gap file cannot be used because: " + e.message());
+			Log::warn("Low-coverage statistics for transcript " + transcript.name() + " needs to be calculated. Pre-calculated gap file cannot be used because: " + e.message());
 			gaps = Statistics::lowCoverage(roi, data_.ps_bam, data_.report_settings.min_depth);
 		}
 
@@ -1505,6 +1505,7 @@ void GermlineReportGenerator::writeEvaluationSheet(QString filename, const Evalu
 	stream << "      <tr>" << endl;
 	stream << "        <td class='noborder' valign='top'>" << endl;
 	stream << "          <p>DNA/RNA#: <span class='line'>" << evaluation_sheet_data.dna_rna << "</span></p>" << endl;
+	stream << "          <p>Genom: <span class='line'>" << buildToString(evaluation_sheet_data.build, true) << "</span></p>" << endl;
 	stream << "          <br />" << endl;
 	stream << "          <p>1. Auswerter: <span class='line'>" << evaluation_sheet_data.reviewer1 << "</span> Datum: <span class='line'>" << evaluation_sheet_data.review_date1.toString("dd.MM.yyyy") << "</span></p>" << endl;
 	stream << "          <p><nobr>2. Auswerter: <span class='line'>" << evaluation_sheet_data.reviewer2 << "</span> Datum: <span class='line'>" << evaluation_sheet_data.review_date2.toString("dd.MM.yyyy") << "</span></nobr></p>" << endl;

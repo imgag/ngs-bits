@@ -3,7 +3,13 @@
 #include "NGSD.h"
 #include "HttpHandler.h"
 #include "Settings.h"
+#include "SingleSampleAnalysisDialog.h"
+#include "MultiSampleDialog.h"
+#include "TrioDialog.h"
+#include "SomaticDialog.h"
+#include "Exceptions.h"
 #include <QDir>
+#include <QMessageBox>
 #include <QStandardPaths>
 
 const GeneSet& GSvarHelper::impritingGenes()
@@ -357,4 +363,67 @@ QString GSvarHelper::localRoiFolder()
 	}
 
 	return local_roi_folder;
+}
+
+bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJobSample>& samples, QWidget *parent)
+{
+	if (!LoginManager::active())
+	{
+		QMessageBox::warning(parent, "No access to the NGSD", "You need access to the NGSD to queue a anlysis!");
+		return false;
+	}
+
+	//init NGSD
+	NGSD db;
+
+	if (type==GERMLINE_SINGLESAMPLE || type==CFDNA)
+	{
+		SingleSampleAnalysisDialog dlg(parent);
+		if (samples.size() > 0) dlg.setSamples(samples);
+		if (dlg.exec()==QDialog::Accepted && dlg.samples().size() > 0)
+		{
+			foreach(const AnalysisJobSample& sample,  dlg.samples())
+			{
+				db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
+			}
+			return true;
+		}
+	}
+	else if (type==GERMLINE_MULTISAMPLE)
+	{
+		MultiSampleDialog dlg(parent);
+		dlg.setSamples(samples);
+		if (dlg.exec()==QDialog::Accepted)
+		{
+			db.queueAnalysis("multi sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
+			return true;
+		}
+	}
+	else if (type==GERMLINE_TRIO)
+	{
+		TrioDialog dlg(parent);
+		dlg.setSamples(samples);
+		if (dlg.exec()==QDialog::Accepted)
+		{
+			NGSD().queueAnalysis("trio", dlg.highPriority(), dlg.arguments(), dlg.samples());
+			return true;
+		}
+	}
+	else if (type==SOMATIC_PAIR || type==SOMATIC_SINGLESAMPLE)
+	{
+		SomaticDialog dlg(parent);
+		dlg.setSamples(samples);
+
+		if (dlg.exec()==QDialog::Accepted)
+		{
+			db.queueAnalysis("somatic", dlg.highPriority(), dlg.arguments(), dlg.samples());
+			return true;
+		}
+	}
+	else
+	{
+		THROW(NotImplementedException, "Invalid analysis type")
+	}
+
+	return false;
 }

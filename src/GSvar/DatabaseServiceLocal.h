@@ -13,12 +13,13 @@ public:
 
 	virtual bool enabled() const override;
 
-	virtual BedFile processingSystemRegions(int sys_id) const override;
-	virtual BedFile processingSystemAmplicons(int sys_id) const override;
-	virtual GeneSet processingSystemGenes(int sys_id) const override;
+	virtual BedFile processingSystemRegions(int sys_id, bool /*ignore_if_missing*/) const override;
+	virtual BedFile processingSystemAmplicons(int sys_id, bool /*ignore_if_missing*/) const override;
+	virtual GeneSet processingSystemGenes(int sys_id, bool /*ignore_if_missing*/) const override;
 	virtual QStringList secondaryAnalyses(QString processed_sample_name, QString analysis_type) const override;
 
 	virtual FileLocation processedSamplePath(const QString& processed_sample_id, PathType type) const override;
+	virtual FileLocation analysisJobGSvarFile(const int& job_id) const override;
 
 protected:
 	//Throws an error if NGSD is not enabled
