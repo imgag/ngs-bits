@@ -362,7 +362,19 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 		NGSD db;
 		foreach(int id, job_ids)
 		{
-			emit loadFile(db.analysisJobGSvarFile(id));
+			if (db.analysisInfo(id).isRunning())
+			{
+				QMessageBox::warning(this, "Loading error", "The job is still running");
+				return;
+			}
+			FileLocation analysis_job_gsvar_file = GlobalServiceProvider::database().analysisJobGSvarFile(id);
+
+			if (!analysis_job_gsvar_file.exists)
+			{
+				QMessageBox::warning(this, "Loading error", "The requested file does not exist");
+				return;
+			}
+			emit loadFile(analysis_job_gsvar_file.filename);
 		}
 	}
 	if (text=="Open processed sample tab")

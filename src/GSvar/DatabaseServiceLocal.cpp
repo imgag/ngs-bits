@@ -58,3 +58,14 @@ FileLocation DatabaseServiceLocal::processedSamplePath(const QString& processed_
 	QString filename = NGSD().processedSamplePath(processed_sample_id, type);
 	return FileLocation(id, type, filename, QFile::exists(filename));
 }
+
+FileLocation DatabaseServiceLocal::analysisJobGSvarFile(const int& job_id) const
+{
+	checkEnabled(__PRETTY_FUNCTION__);
+
+	NGSD db;
+	AnalysisJob job = db.analysisInfo(job_id, true);
+	QString id = db.processedSampleName(db.processedSampleId(job.samples[0].name));
+	QString filename = db.analysisJobGSvarFile(job_id);
+	return FileLocation(id, PathType::GSVAR, filename, QFile::exists(filename));
+}

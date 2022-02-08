@@ -47,6 +47,10 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 
 	UrlEntity url_entity = UrlManager::getURLById(ps_url_id.trimmed());	
 	QString found_file = url_entity.filename_with_path;
+	if (!QFile::exists(found_file))
+	{
+		return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Processed sample file does not exist");
+	}
 
 	bool return_if_missing = true;
 	if (request.getUrlParams().contains("return_if_missing"))
@@ -268,6 +272,45 @@ HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 	response_data.content_type = ContentType::APPLICATION_JSON;
 	response_data.is_downloadable = false;
 
+	return HttpResponse(response_data, json_doc_output.toJson());
+}
+
+HttpResponse EndpointHandler::getAnalysisJobGSvarFile(const HttpRequest& request)
+{
+	qDebug() << "Analysis job GSvar file";
+	QJsonDocument json_doc_output;
+	QJsonObject json_object_output;
+
+	QString id;
+	QString found_file_path;
+
+	try
+	{
+		NGSD db;
+		int job_id = request.getUrlParams()["job_id"].toInt();
+		AnalysisJob job = db.analysisInfo(job_id, true);
+		id = db.processedSampleName(db.processedSampleId(job.samples[0].name));
+		found_file_path = db.analysisJobGSvarFile(job_id);
+	}
+	catch (Exception& e)
+	{
+		qWarning() << "Error while looking for the analysis job GSvar file in NGSD:" + e.message();
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), e.message());
+	}
+
+	FileLocation analysis_job_gsvar_file = FileLocation(id, PathType::GSVAR, createFileTempUrl(found_file_path, false), QFile::exists(found_file_path));
+
+	json_object_output.insert("id", id);
+	json_object_output.insert("type", analysis_job_gsvar_file.typeAsString());
+	json_object_output.insert("filename", analysis_job_gsvar_file.filename);
+	json_object_output.insert("exists", analysis_job_gsvar_file.exists);
+	json_doc_output.setObject(json_object_output);
+
+	BasicResponseData response_data;
+	response_data.byte_ranges = QList<ByteRange>{};
+	response_data.length = json_doc_output.toJson().length();
+	response_data.content_type = ContentType::APPLICATION_JSON;
+	response_data.is_downloadable = false;
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
