@@ -87,7 +87,7 @@ private:
 	/*
 	 *  returns a formatted time string (QByteArray) from a given time in milliseconds
 	 */
-	QByteArray getTimeString(qint64 milliseconds)
+	QByteArray getTimeString(double milliseconds)
 	{
 		QTime time(0,0,0);
 		time = time.addMSecs(milliseconds);
@@ -420,40 +420,47 @@ private:
 	//Function that stores cached variant counts
 	void storeCountCache(QTextStream& out, NGSD& db, QVector<CountCache>& count_cache)
 	{
-		out << "Storing count cache into NGSD..." << endl;
-
-		QElapsedTimer timer;
-		timer.start();
-
+		out << "Upadating variant counts (" << count_cache.count() << " variants)" << endl;
 		//update counts
-		try
+		int tries_max = 5;
+		int try_nr = 1;
+		while (try_nr <= tries_max)
 		{
-			db.transaction();
-
-			SqlQuery query = db.getQuery();
-			query.prepare("UPDATE variant SET germline_het=:0, germline_hom=:1 WHERE id=:2");
-			foreach(const CountCache& entry, count_cache)
+			try
 			{
+				db.transaction();
 
-				query.bindValue(0, entry.count_het);
-				query.bindValue(1, entry.count_hom);
-				query.bindValue(2, entry.variant_id);
-				query.exec();
+				SqlQuery query = db.getQuery();
+				query.prepare("UPDATE variant SET germline_het=:0, germline_hom=:1 WHERE id=:2");
+				foreach(const CountCache& entry, count_cache)
+				{
+
+					query.bindValue(0, entry.count_het);
+					query.bindValue(1, entry.count_hom);
+					query.bindValue(2, entry.variant_id);
+					query.exec();
+				}
+
+				db.commit();
+				break;
 			}
-
-			db.commit();
-		}
-		catch (Exception& e)
-		{
-			db.rollback();
-
-			throw e;
+			catch (Exception& e)
+			{
+				out << "Note: count update transaction failed in try number " << try_nr << ": " << e.message() << endl;
+				db.rollback();
+				if (try_nr<tries_max)
+				{
+					++try_nr;
+				}
+				else
+				{
+					throw e;
+				}
+			}
 		}
 
 		//clear cache
 		count_cache.clear();
-
-		out << "done - it took " << getTimeString(timer.elapsed()) << endl;
 	}
 
 	/*
@@ -463,32 +470,33 @@ private:
 	{
 		QVector<CountCache> count_cache;
 
-		// init output stream
+		//init
 		QTextStream out(stdout);
-		QElapsedTimer timer;
-		timer.start();
+		FastaFileIndex reference_file(reference_file_path);
+		bool debug = false;
 
-		QElapsedTimer ref_lookup;
-		qint64 ref_lookup_sum = 0;
-		QElapsedTimer count_computation;
-		qint64 count_computation_sum = 0;
-		qint64 create_header = 0;
-		QElapsedTimer db_queries;
-		qint64 db_query_sum = 0;
-		QElapsedTimer vcf_file_writing;
-		qint64  vcf_file_writing_sum = 0;
+		//prepare queries
+		SqlQuery ngsd_count_query = db.getQuery();
+		ngsd_count_query.prepare("SELECT s.id, s.disease_status, s.disease_group, dv.genotype FROM detected_variant dv, processed_sample ps, sample s WHERE dv.variant_id=:0 AND ps.sample_id=s.id AND ps.quality!='bad' AND dv.processed_sample_id=ps.id");
+		SqlQuery variant_query = db.getQuery();
+		variant_query.prepare("SELECT chr, start, end, ref, obs, 1000g, gnomad, comment, germline_het, germline_hom FROM variant WHERE id=:0");
 
+		//timers
+		QElapsedTimer chr_timer;
+		QElapsedTimer tmp_timer;
+		double ref_lookup_sum = 0;
+		double vcf_file_writing_sum = 0;
+		double ngsd_variant_query_sum = 0;
+		double ngsd_count_query_sum = 0;
+		double ngsd_class_query_sum = 0;
+		double ngsd_count_update = 0;
 
 		out << "Exporting germline variants to VCF file... " << endl;
-
-		// open input reference file
-		FastaFileIndex reference_file(reference_file_path);
 
 		// open output vcf file
 
 		// write meta-information lines
-		out << "\twriting header...";
-		vcf_file_writing.start();
+		tmp_timer.start();
 		QSharedPointer<QFile> vcf_file = Helper::openFileForWriting(vcf_file_path, true);
 		QTextStream vcf_stream(vcf_file.data());
 
@@ -496,7 +504,6 @@ private:
 		vcf_stream << "##fileDate=" << QDate::currentDate().toString("yyyyMMdd") << "\n";
 		vcf_stream << "##source=NGSDExportAnnotationData " << version() << "\n";
 		vcf_stream << "##reference=" << reference_file_path << "\n";
-		vcf_file_writing_sum += vcf_file_writing.elapsed();
 
 		// write contigs
 		foreach (const QString& chr_name, db.getEnum("variant", "chr"))
@@ -505,22 +512,13 @@ private:
 			int chr_length = reference_file.lengthOf(Chromosome(chr_name));
 
 			// write meta information
-			vcf_file_writing.restart();
 			vcf_stream << "##contig=<ID=" << chr_name << ",length=" << chr_length << ">\n";
-			vcf_file_writing_sum += vcf_file_writing.elapsed();
 		}
 
 		// get disease groups
 		QStringList disease_groups = db.getEnum("sample", "disease_group");
 
-		//prepare queries
-		SqlQuery ngsd_count_query = db.getQuery();
-		ngsd_count_query.prepare("SELECT s.id, s.disease_status, s.disease_group, dv.genotype FROM detected_variant dv, processed_sample ps, sample s WHERE dv.variant_id=:0 AND ps.sample_id=s.id AND ps.quality!='bad' AND dv.processed_sample_id=ps.id");
-		SqlQuery variant_query = db.getQuery();
-		variant_query.prepare("SELECT chr, start, end, ref, obs, 1000g, gnomad, comment, germline_het, germline_hom FROM variant WHERE id=:0");
-
 		// write info column descriptions
-		vcf_file_writing.restart();
 		vcf_stream << "##INFO=<ID=COUNTS,Number=2,Type=Integer,Description=\"Homozygous/Heterozygous variant counts in NGSD.\">\n";
 
 		// create info column entry for all disease groups
@@ -538,230 +536,214 @@ private:
 
 		// write header line
 		vcf_stream << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
-		vcf_file_writing_sum += vcf_file_writing.elapsed();
-
-		out << "done" << endl;
-		create_header = timer.elapsed();
-
-		int variant_count = 0;
+		vcf_file_writing_sum += tmp_timer.nsecsElapsed()/1000000.0;
 
 		// iterate over database chromosome-wise
-		foreach (const QString& chr_name, db.getEnum("variant", "chr"))
+		foreach (const QString& chr_name, QStringList() << db.getEnum("variant", "chr"))
 		{
-			out << "\texporting variants from " << chr_name << "... " << endl;
-
+			chr_timer.start();
 			// get all ids of all variants on this chromosome
-			db_queries.restart();
 			QList<int> variant_ids = db.getValuesInt("SELECT id FROM variant WHERE chr='" + chr_name + "' ORDER BY start ASC, end ASC");
-			db_query_sum += db_queries.elapsed();
-
-			int variant_count_per_chr = 0;
 
 			// iterate over all variants
 			foreach (int variant_id, variant_ids)
 			{
+				QElapsedTimer v_timer;
+				v_timer.start();
+
 				Variant variant;
-				db_queries.restart();
+				tmp_timer.restart();
 				variant_query.bindValue(0, variant_id);
 				variant_query.exec();
-				db_query_sum += db_queries.elapsed();
+				if (variant_query.size()!=1) THROW(DatabaseException, "Invalid number of database results found: " + QString::number(variant_query.size()));
+				ngsd_variant_query_sum += tmp_timer.nsecsElapsed()/1000000.0;
 
 				// parse query
-				if (variant_query.size() == 1)
+				variant_query.first();
+				variant.setChr(Chromosome(variant_query.value(0).toByteArray()));
+				variant.setStart(variant_query.value(1).toInt());
+				variant.setEnd(variant_query.value(2).toInt());
+				variant.setRef(variant_query.value(3).toByteArray());
+				variant.setObs(variant_query.value(4).toByteArray());
+				QByteArray one_thousand_g = variant_query.value(5).toByteArray();
+				QByteArray gnomad = variant_query.value(6).toByteArray();
+				QByteArray comment = variant_query.value(7).toByteArray();
+				int germline_het = variant_query.value(8).toInt();
+				int germline_hom = variant_query.value(9).toInt();
+
+				// modify sequence if deletion or insertion occurs (to fit VCF specification)
+				if ((variant.ref() == "-") || (variant.obs() == "-"))
 				{
-					variant_query.first();
-					variant.setChr(Chromosome(variant_query.value(0).toByteArray()));
-					variant.setStart(variant_query.value(1).toInt());
-					variant.setEnd(variant_query.value(2).toInt());
-					variant.setRef(variant_query.value(3).toByteArray());
-					variant.setObs(variant_query.value(4).toByteArray());
-					QByteArray one_thousand_g = variant_query.value(5).toByteArray();
-					QByteArray gnomad = variant_query.value(6).toByteArray();
-					QByteArray comment = variant_query.value(7).toByteArray();
-					int germline_het = variant_query.value(9).toInt();
-					int germline_hom = variant_query.value(9).toInt();
+					// benchmark
+					tmp_timer.restart();
 
-					// modify sequence if deletion or insertion occurs (to fit VCF specification)
-					if ((variant.ref() == "-") || (variant.obs() == "-"))
+					//include base before (after) to the variant
+					QByteArray new_ref_seq, new_obs_seq;
+					if (variant.start() != 1)
 					{
-						// benchmark
-						ref_lookup.restart();
 
-						//include base before (after) to the variant
-						QByteArray new_ref_seq, new_obs_seq;
-						if (variant.start() != 1)
+						// update position for deletion
+						if (variant.obs() == "-")
 						{
-
-							// update position for deletion
-							if (variant.obs() == "-")
-							{
-								variant.setStart(variant.start() - 1);
-							}
-
-
-							// add base before ref and alt sequence
-							Sequence previous_base = reference_file.seq(variant.chr(),
-																		variant.start(), 1);
-							new_ref_seq = previous_base + variant.ref();
-							new_obs_seq = previous_base + variant.obs();
-						}
-						else
-						{
-							// add base after ref and alt sequence
-							Sequence next_base = reference_file.seq(variant.chr(),
-																	variant.start() + 1, 1);
-							new_ref_seq = variant.ref() + next_base;
-							new_obs_seq = variant.obs() + next_base;
-						}
-						new_ref_seq.replace("-", "");
-						new_obs_seq.replace("-", "");
-						variant.setRef(new_ref_seq);
-						variant.setObs(new_obs_seq);
-
-						// benchmark
-						ref_lookup_sum += ref_lookup.elapsed();
-					}
-					vcf_file_writing.restart();
-					vcf_stream << variant.chr().strNormalized(true) << "\t";
-					vcf_stream << variant.start() << "\t";
-					vcf_stream << variant_id << "\t";
-					vcf_stream << variant.ref() << "\t";
-					vcf_stream << variant.obs() << "\t";
-					vcf_stream << "." << "\t"; //quality
-					vcf_stream << "." << "\t"; //filter
-					vcf_file_writing_sum += vcf_file_writing.elapsed();
-
-					QByteArrayList info_column;
-
-					if((one_thousand_g.toDouble() <= max_allel_frequency_) && (gnomad.toDouble() <= max_allel_frequency_))
-					{
-						// benchmark
-						count_computation.restart();
-
-						// calculate NGSD counts for each variant
-						int count_het = 0;
-						int count_hom = 0;
-						//counts per group/status
-						QHash<QString, int> hom_per_group, het_per_group;
-						QSet<int> samples_done_het, samples_done_hom;
-						db_queries.restart();
-						ngsd_count_query.bindValue(0, variant_id);
-						ngsd_count_query.exec();
-						db_query_sum += db_queries.elapsed();
-						while(ngsd_count_query.next())
-						{
-							//use sample ID to prevent counting variants several times if a
-							//sample was sequenced more than once.
-							int sample_id = ngsd_count_query.value(0).toInt();
-
-							// count heterozygous variants
-							if (ngsd_count_query.value(3) == "het" && !samples_done_het.contains(sample_id))
-							{
-								++count_het;
-								samples_done_het << sample_id;
-								samples_done_het.unite(db.sameSamples(sample_id));
-
-								if (ngsd_count_query.value(1) == "Affected")
-								{
-									het_per_group[ngsd_count_query.value(2).toString()] += 1;
-								}
-							}
-
-							// count homozygous variants
-							if (ngsd_count_query.value(3) == "hom" && !samples_done_hom.contains(sample_id))
-							{
-								++count_hom;
-								samples_done_hom << sample_id;
-								samples_done_hom.unite(db.sameSamples(sample_id));
-
-								if (ngsd_count_query.value(1) == "Affected")
-								{
-									hom_per_group[ngsd_count_query.value(2).toString()] += 1;
-								}
-							}
+							variant.setStart(variant.start() - 1);
 						}
 
-						// store counts in vcf
-						info_column.append("COUNTS=" + QByteArray::number(count_hom) + "," + QByteArray::number(count_het));
-
-						for(int i = 0; i < disease_groups.size(); i++)
-						{
-							if ((het_per_group.value(disease_groups[i], 0) > 0) || (hom_per_group.value(disease_groups[i], 0) > 0))
-							{
-								info_column.append("GSC" + QByteArray::number(i + 1).rightJustified(2, '0')
-												   + "="
-												   + QByteArray::number(hom_per_group.value(disease_groups[i], 0))
-												   + ","
-												   + QByteArray::number(het_per_group.value(disease_groups[i], 0)));
-							}
-						}
-
-						// benchmark
-						count_computation_sum += count_computation.elapsed();
-
-						// update variant table if counts changed
-						if (count_het!=germline_het || count_hom!=germline_hom)
-						{
-							count_cache << CountCache{variant_id, count_het, count_hom};
-							if (count_cache.count()>=10000)
-							{
-								storeCountCache(out, db, count_cache);
-							}
-						}
+						// add base before ref and alt sequence
+						Sequence previous_base = reference_file.seq(variant.chr(),
+																	variant.start(), 1);
+						new_ref_seq = previous_base + variant.ref();
+						new_obs_seq = previous_base + variant.obs();
 					}
 					else
 					{
-						// mark variants with high allele frequeny
-						info_column.append("HAF");
+						// add base after ref and alt sequence
+						Sequence next_base = reference_file.seq(variant.chr(),
+																variant.start() + 1, 1);
+						new_ref_seq = variant.ref() + next_base;
+						new_obs_seq = variant.obs() + next_base;
+					}
+					new_ref_seq.replace("-", "");
+					new_obs_seq.replace("-", "");
+					variant.setRef(new_ref_seq);
+					variant.setObs(new_obs_seq);
+
+					// benchmark
+					ref_lookup_sum += tmp_timer.nsecsElapsed()/1000000.0;
+				}
+				tmp_timer.restart();
+				vcf_stream << variant.chr().strNormalized(true) << "\t";
+				vcf_stream << variant.start() << "\t";
+				vcf_stream << variant_id << "\t";
+				vcf_stream << variant.ref() << "\t";
+				vcf_stream << variant.obs() << "\t";
+				vcf_stream << "." << "\t"; //quality
+				vcf_stream << "." << "\t"; //filter
+				vcf_file_writing_sum += tmp_timer.nsecsElapsed()/1000000.0;
+
+				QByteArrayList info_column;
+
+				if((one_thousand_g.toDouble() <= max_allel_frequency_) && (gnomad.toDouble() <= max_allel_frequency_))
+				{
+					// calculate NGSD counts for each variant
+					int count_het = 0;
+					int count_hom = 0;
+					//counts per group/status
+					QHash<QString, int> hom_per_group, het_per_group;
+					QSet<int> samples_done_het, samples_done_hom;
+					tmp_timer.restart();
+					ngsd_count_query.bindValue(0, variant_id);
+					ngsd_count_query.exec();
+					ngsd_count_query_sum += tmp_timer.nsecsElapsed()/1000000.0;
+					while(ngsd_count_query.next())
+					{
+						//use sample ID to prevent counting variants several times if a
+						//sample was sequenced more than once.
+						int sample_id = ngsd_count_query.value(0).toInt();
+
+						// count heterozygous variants
+						if (ngsd_count_query.value(3) == "het" && !samples_done_het.contains(sample_id))
+						{
+							++count_het;
+							samples_done_het << sample_id;
+							samples_done_het.unite(db.sameSamples(sample_id));
+
+							if (ngsd_count_query.value(1) == "Affected")
+							{
+								het_per_group[ngsd_count_query.value(2).toString()] += 1;
+							}
+						}
+
+						// count homozygous variants
+						if (ngsd_count_query.value(3) == "hom" && !samples_done_hom.contains(sample_id))
+						{
+							++count_hom;
+							samples_done_hom << sample_id;
+							samples_done_hom.unite(db.sameSamples(sample_id));
+
+							if (ngsd_count_query.value(1) == "Affected")
+							{
+								hom_per_group[ngsd_count_query.value(2).toString()] += 1;
+							}
+						}
 					}
 
-					// get classification
-					SqlQuery query = db.getQuery();
-					db_queries.restart();
-					query.exec("SELECT class, comment FROM variant_classification WHERE variant_id='" + QString::number(variant_id) + "'");
-					db_query_sum += db_queries.elapsed();
-					if (query.size() > 0)
+					// store counts in vcf
+					info_column.append("COUNTS=" + QByteArray::number(count_hom) + "," + QByteArray::number(count_het));
+
+					for(int i = 0; i < disease_groups.size(); i++)
 					{
-						query.first();
-						QByteArray classification = query.value(0).toByteArray().trimmed().replace("n/a", "");
-						QByteArray clas_comment = VcfFile::encodeInfoValue(query.value(1).toByteArray()).toUtf8();
-						if (classification != "") info_column.append("CLAS=" + classification);
-						if (clas_comment != "") info_column.append("CLAS_COM=\"" + clas_comment + "\"");
+						if ((het_per_group.value(disease_groups[i], 0) > 0) || (hom_per_group.value(disease_groups[i], 0) > 0))
+						{
+							info_column.append("GSC" + QByteArray::number(i + 1).rightJustified(2, '0')
+											   + "="
+											   + QByteArray::number(hom_per_group.value(disease_groups[i], 0))
+											   + ","
+											   + QByteArray::number(het_per_group.value(disease_groups[i], 0)));
+						}
 					}
 
-					// get comment
-					if(comment != "")
+					// update variant table if counts changed
+					if (count_het!=germline_het || count_hom!=germline_hom)
 					{
-						info_column.append("COM=\"" + VcfFile::encodeInfoValue(comment).toUtf8() + "\"");
+						count_cache << CountCache{variant_id, count_het, count_hom};
+						if (count_cache.count()>=10000)
+						{
+							tmp_timer.restart();
+							storeCountCache(out, db, count_cache);
+							ngsd_count_update += tmp_timer.nsecsElapsed()/1000000.0;
+						}
 					}
-
-					// concat all info entries
-					vcf_file_writing.restart();
-					if (info_column.size() > 0)
-					{
-						vcf_stream << info_column.join(";") << "\n";
-					}
-					else
-					{
-						vcf_stream << ".\n";
-					}
-					vcf_file_writing_sum += vcf_file_writing.elapsed();
-
 				}
 				else
 				{
-					THROW(DatabaseException, "Invalid number of database results found: " + QString::number(variant_query.size()));
+					// mark variants with high allele frequeny
+					info_column.append("HAF");
 				}
 
-				variant_count_per_chr++;
-				if(variant_count_per_chr % 10000 == 0)
+				// get classification
+				SqlQuery query = db.getQuery();
+				tmp_timer.restart();
+				query.exec("SELECT class, comment FROM variant_classification WHERE variant_id='" + QString::number(variant_id) + "'");
+				ngsd_class_query_sum += tmp_timer.nsecsElapsed()/1000000.0;
+				if (query.size() > 0)
 				{
-					out << "\t\t\t" << variant_count_per_chr << " variants of " << chr_name << " exported. " << endl;
+					query.first();
+					QByteArray classification = query.value(0).toByteArray().trimmed().replace("n/a", "");
+					QByteArray clas_comment = VcfFile::encodeInfoValue(query.value(1).toByteArray()).toUtf8();
+					if (classification != "") info_column.append("CLAS=" + classification);
+					if (clas_comment != "") info_column.append("CLAS_COM=\"" + clas_comment + "\"");
 				}
+
+				// get comment
+				if(comment != "")
+				{
+					info_column.append("COM=\"" + VcfFile::encodeInfoValue(comment).toUtf8() + "\"");
+				}
+
+				// concat all info entries
+				tmp_timer.restart();
+				if (info_column.size() > 0)
+				{
+					vcf_stream << info_column.join(";") << "\n";
+				}
+				else
+				{
+					vcf_stream << ".\n";
+				}
+				vcf_file_writing_sum += tmp_timer.nsecsElapsed()/1000000.0;
+
+				if (debug) out << variant.toString(false) << " " << getTimeString(v_timer.elapsed()) << endl;
 			}
 
-			out << "\t...done\n\t\t" << variant_ids.size() << " variants exported.\n" << "\t\t(runtime: " << getTimeString(timer.elapsed()) << ")" << endl;
-			variant_count += variant_ids.size();
+
+			out << "finished " << chr_name << ": " << variant_ids.count() << " variants exported.\n"
+				<< "  " << getTimeString(chr_timer.elapsed()) << " overall\n"
+				<< "  " << getTimeString(ref_lookup_sum) << " for ref sequence lookup\n"
+				<< "  " << getTimeString(vcf_file_writing_sum) << " for vcf writing\n"
+				<< "  " << getTimeString(ngsd_variant_query_sum) << " for database queries (variant)\n"
+				<< "  " << getTimeString(ngsd_count_query_sum) << " for database queries (variant counts)\n"
+				<< "  " << getTimeString(ngsd_class_query_sum) << " for database queries (variant class)\n"
+				<< "  " << getTimeString(ngsd_count_update) << " for database update (variant counts)\n";
 		}
 
 		//store remaining entries in cache
@@ -770,14 +752,6 @@ private:
 		// close vcf file
 		vcf_stream.flush();
 		vcf_file->close();
-
-		out << " ...finished, " << variant_count << " variants exported.\n"
-			<< "\t(overall runtime: " << getTimeString(timer.elapsed()) << ")\n"
-			<< "\t(create header: "<< getTimeString(create_header) << ")\n"
-			<< "\t(ref sequence lookup: "<< getTimeString(ref_lookup_sum) << ")\n"
-			<< "\t(db query sum: "<< getTimeString(db_query_sum) << ")\n"
-			<< "\t(vcf file writing: "<< getTimeString(vcf_file_writing_sum) << ")\n"
-			<< "\t(count computation: "<< getTimeString(count_computation_sum) << ")\n"<< endl;
 	}
 
 /*
