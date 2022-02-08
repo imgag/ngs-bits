@@ -76,6 +76,7 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_hgmd->setToolTip(vl.annotationDescriptionByName("HGMD", false).description()); //optional
 	ui->label_omim->setToolTip(vl.annotationDescriptionByName("OMIM", false).description()); //optional
 	ui->label_cosmic->setToolTip(vl.annotationDescriptionByName("COSMIC").description());
+	ui->label_pubmed->setToolTip(vl.annotationDescriptionByName("PubMed", false).description()); //optional
 
 	//AFs
 	ui->label_tg->setToolTip(vl.annotationDescriptionByName("1000g").description());
@@ -170,6 +171,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->hgmd, vl, index, "HGMD");
 	setAnnotation(ui->omim, vl, index, "OMIM");
 	setAnnotation(ui->cosmic, vl, index, "COSMIC");
+	setAnnotation(ui->pubmed, vl, index, "PubMed");
 
 	//public allel frequencies
 	setAnnotation(ui->tg, vl, index, "1000g");
@@ -555,6 +557,16 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			else
 			{
 				text = anno;
+			}
+		}
+		else if(name=="PubMed")
+		{
+			QStringList ids = anno.split(",");
+			foreach(QString id, ids)
+			{
+				id = id.trimmed();
+				if(id.isEmpty()) continue;
+				text += formatLink(id, "https://pubmed.ncbi.nlm.nih.gov/" + id + "/") + " ";
 			}
 		}
 		else //fallback: use complete annotations string
