@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2021_09-54-g98c25b4f)
+	VariantFilterAnnotations (2021_12-80-g5ff26d8f)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -79,17 +79,41 @@
 	                                   Parameters:
 	                                     action - Action to perform [default=FILTER] [valid=REMOVE,FILTER]
 	Predicted pathogenic               Filter for variants predicted to be pathogenic.
-	                                   Pathogenicity predictions used by this filter are: phyloP, Sift, PolyPhen, fathmm-MKL, CADD and REVEL.
+	                                   Pathogenicity predictions used by this filter are: phyloP, Sift, PolyPhen, CADD and REVEL.
 	                                   Parameters:
 	                                     min - Minimum number of pathogenic predictions [default=1] [min=1]
 	                                     action - Action to perform [default=FILTER] [valid=KEEP,FILTER]
 	                                     skip_high_impact - Do not apply this filter to variants with impact 'HIGH'. [default=false]
 	                                     cutoff_cadd - Minimum CADD score for a pathogenic prediction. The CADD score is not used if set to 0.0. [default=20] [min=0]
 	                                     cutoff_revel - Minimum REVEL score for a pathogenic prediction. The REVEL score is not used if set to 0.0. [default=0.9] [min=0] [max=1]
-	                                     cutoff_fathmm_mkl - Minimum fathmm-MKL score for a pathogenic prediction. The fathmm-MKL score is not used if set to 0.0. [default=0.9] [min=0] [max=1]
 	                                     cutoff_phylop - Minimum phyloP score for a pathogenic prediction. The phyloP score is not used if set to -10.0. [default=1.6]
 	                                     ignore_sift - Do not used the Sift score. If unset, Sift consequence 'D' is considered pathogenic. [default=false]
 	                                     ignore_polyphen - Do not used the PolyPhen score. If unset, PolyPhen consequence 'D' is considered pathogenic. [default=false]
+	RNA ASE allele frequency           Filter based on the allele specific expression allele frequency.
+	                                   Parameters:
+	                                     min_af - Minimal expression allele frequency. [default=0] [min=0.0] [max=1.0]
+	                                     max_af - Maximal expression allele frequency. [default=1] [min=0.0] [max=1.0]
+	RNA ASE alternative count          Filter based on the allele specific expression alternative count.
+	                                   Parameters:
+	                                     min_ac - Minimal expression alternative count. [default=5] [min=0]
+	RNA ASE depth                      Filter based on the allele specific expression depth.
+	                                   Parameters:
+	                                     min_depth - Minimal expression depth. [default=20] [min=0]
+	RNA ASE p-value                    Filter based on the allele specific expression p-value.
+	                                   Parameters:
+	                                     max_pval - Maximal expression p-value. [default=0.05] [min=0.0] [max=1.0]
+	RNA aberrant splicing fraction     Filter based on the fraction of aberrant splicing reads.
+	                                   Parameters:
+	                                     min_asf - Minimal aberrant splicing fraction. [default=0.01] [min=0.0] [max=1.0]
+	RNA expression fold-change         Filter based on the absolute gene expression log2 fold-change.
+	                                   Parameters:
+	                                     min_fc - Minimal absolute fold-change. [default=2] [min=0.0]
+	RNA expression z-score             Filter based on the absolute gene expression z-score.
+	                                   Parameters:
+	                                     min_zscore - Minimal absolute z-score. [default=2] [min=0.0]
+	RNA gene expression                Filter based on the gene expression in transcripts-per-million
+	                                   Parameters:
+	                                     min_tpm - Minimal gene expression in transcripts-per-million. [default=5] [min=0.0]
 	Regulatory                         Filter for regulatory variants, i.e. the 'regulatory' column is not empty.
 	                                   Parameters:
 	                                     action - Action to perform [default=FILTER] [valid=REMOVE,FILTER]
@@ -104,8 +128,7 @@
 	                                   Parameters:
 	                                     MaxEntScan - Minimum percentage change in the value of MaxEntScan. Positive min. increase, negative min. decrease. Disabled if set to zero. [default=-15]
 	                                     SpliceAi - Minimum SpliceAi value. Disabled if set to zero. [default=0.5] [min=0] [max=1]
-	                                     MMSplice - Minimum absolute Delta Logit PSI Score. Disabled if set to zero. [default=2] [min=0]
-	                                     action - Action to perform [default=KEEP] [valid=KEEP,FILTER]
+	                                     action - Action to perform [default=FILTER] [valid=KEEP,FILTER]
 	Text search                        Filter for text match in variant annotations.
 	                                   The text comparison ignores the case.
 	                                   Parameters:
@@ -115,11 +138,11 @@
 	                                   Parameters:
 	                                     types - Variant types [default=de-novo,recessive,comp-het,LOH,x-linked] [valid=de-novo,recessive,comp-het,LOH,x-linked,imprinting]
 	                                     gender_child - Gender of the child - if 'n/a', the gender from the GSvar file header is taken [default=n/a] [valid=male,female,n/a]
-	                                     build - Genome build used for pseudoautosomal region coordinates [default=hg19] [valid=hg19,hg38]
+	                                     build - Genome build used for pseudoautosomal region coordinates [default=hg38] [valid=hg19,hg38]
 	Tumor zygosity                     Filter based on the zygosity of tumor-only samples. Filters out germline het/hom calls.
 	                                   Parameters:
-	                                     het_af_range - Consider allele frequencies of 50% Â± het_af_range as heterozygous and thus as germline. [default=0] [min=0] [max=49.9]
-	                                     hom_af_range - Consider allele frequencies of 100% Â± hom_af_range as homozygous and thus as germline. [default=0] [min=0] [max=99.9]
+	                                     het_af_range - Consider allele frequencies of 50% ± het_af_range as heterozygous and thus as germline. [default=0] [min=0] [max=49.9]
+	                                     hom_af_range - Consider allele frequencies of 100% ± hom_af_range as homozygous and thus as germline. [default=0] [min=0] [max=99.9]
 	Variant quality                    Filter for variant quality
 	                                   Parameters:
 	                                     qual - Minimum variant quality score (Phred) [default=250] [min=0]
@@ -147,7 +170,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2021_09-54-g98c25b4f
+	VariantFilterAnnotations 2021_12-80-g5ff26d8f
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.
