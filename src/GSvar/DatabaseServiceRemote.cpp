@@ -119,6 +119,36 @@ FileLocation DatabaseServiceRemote::processedSamplePath(const QString& processed
 	return output;
 }
 
+FileLocation DatabaseServiceRemote::analysisJobGSvarFile(const int& job_id) const
+{
+	checkEnabled(__PRETTY_FUNCTION__);
+
+	FileLocation output;
+	QByteArray reply = makeApiCall("analysis_job_gsvar_file?job_id=" + QString::number(job_id), true);
+
+	if (reply.length() == 0)
+	{
+		THROW(Exception, "Could not get a GSvar file for the job id " + QString::number(job_id));
+	}
+
+	QJsonDocument json_doc = QJsonDocument::fromJson(reply);
+	QJsonArray json_array = json_doc.array();
+	QStringList analyses;
+	for (int i = 0; i < json_array.count(); i++)
+	{
+		if (!json_array.at(i).isObject()) break;
+
+		if (json_array.at(i).toObject().contains("id") && json_array.at(i).toObject().contains("type")
+			&& json_array.at(i).toObject().contains("filename") && json_array.at(i).toObject().contains("exists"))
+		{
+			return FileLocation(json_array.at(i).toObject().value("id").toString(), FileLocation::stringToType(json_array.at(i).toObject().value("type").toString()),
+								json_array.at(i).toObject().value("filename").toString(), json_array.at(i).toObject().value("exists").toBool());
+		}
+	}
+
+	return output;
+}
+
 QByteArray DatabaseServiceRemote::makeApiCall(QString url_param, bool ignore_if_missing) const
 {
 	HttpHeaders add_headers;
