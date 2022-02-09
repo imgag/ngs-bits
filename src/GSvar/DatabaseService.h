@@ -24,6 +24,8 @@ public:
 
 	//Returns a FileLocation for a given file type of a processed sample
 	virtual FileLocation processedSamplePath(const QString& processed_sample_id, PathType type) const = 0;
+	//Returns a location for a GSvar file based on the corresponding job id
+	virtual FileLocation analysisJobGSvarFile(const int& job_id) const = 0;
 };
 
 #endif // DATABASESERVICE_H

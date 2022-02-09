@@ -1921,7 +1921,7 @@ CONSTRAINT `fk_study_sample_has_ps`
   REFERENCES `processed_sample` (`id`)
   ON DELETE NO ACTION
   ON UPDATE NO ACTION,
-  UNIQUE INDEX `unique_sample_ps` (`processed_sample_id`, `study_sample_idendifier`),
+  UNIQUE INDEX `unique_sample_ps` (`study_id`, `processed_sample_id`),
 INDEX `i_study_sample_idendifier` (`study_sample_idendifier` ASC)
 )
 ENGINE = InnoDB
