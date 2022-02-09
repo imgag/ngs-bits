@@ -170,6 +170,17 @@ void RequestWorker::run()
 		return;
 	}
 
+	qDebug() << "Path " << parsed_request.getPath();
+	for (int k=0; k<parsed_request.getPathParams().length(); k++)
+	{
+		qDebug() << k << " - " << parsed_request.getPathParams()[k];
+	}
+	qDebug() << "Method " << HttpProcessor::convertMethodTypeToString(parsed_request.getMethod());
+	qDebug() << "Code " << response.getStatusCode();
+	qDebug() << "Payload =-----------";
+	qDebug() << response.getPayload();
+
+	qDebug() << "--------------------";
 	if (response.isStream())
 	{
 		qDebug() << "Initiating a stream: " + response.getFilename();

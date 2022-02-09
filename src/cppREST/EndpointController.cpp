@@ -40,7 +40,7 @@ HttpResponse EndpointController::serveStaticFromServerRoot(const HttpRequest& re
 		return serveFolderContent(served_file, request.getPrefix(), request.getPath(), request.getPathParams());
 	}
 
-	return serveStaticFile(served_file, request.getMethod(), request.getHeaders());
+	return serveStaticFile(served_file, request.getMethod(), request.getContentType(), request.getHeaders());
 }
 
 HttpResponse EndpointController::serveStaticForTempUrl(const HttpRequest& request)
@@ -49,9 +49,16 @@ HttpResponse EndpointController::serveStaticForTempUrl(const HttpRequest& reques
 	try
 	{
 		served_file = getServedTempPath(request.getPathParams());
+		qDebug() << "served_file" << served_file;
 	}
 	catch(Exception& e)
 	{
+		// Special case, when sending HEAD request for a file that does not exist
+		if (request.getMethod() == RequestMethod::HEAD)
+		{
+			return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), 0.0);
+		}
+
 		return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), e.message());
 	}
 
@@ -60,7 +67,7 @@ HttpResponse EndpointController::serveStaticForTempUrl(const HttpRequest& reques
 		return serveFolderContent(served_file, request.getPrefix(), request.getPath(), request.getPathParams());
 	}
 
-	return serveStaticFile(served_file, request.getMethod(), request.getHeaders());
+	return serveStaticFile(served_file, request.getMethod(), HttpProcessor::getContentTypeByFilename(served_file), request.getHeaders());
 }
 
 HttpResponse EndpointController::serveStaticFileFromCache(const HttpRequest& request)
@@ -217,11 +224,29 @@ HttpResponse EndpointController::serveFolderContent(QString path, QString reques
 	return serveFolderListing(dir.dirName(), cur_folder_url, parent_folder_url, files);
 }
 
-HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod method, QMap<QString, QList<QString>> headers)
+HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod method, ContentType content_type, QMap<QString, QList<QString>> headers)
 {
-	if (filename.isEmpty())
+	qDebug() << "Serving static file " << filename << ", " << filename.isEmpty();
+	if ((filename.isEmpty()) || ((!filename.isEmpty()) && (!QFile::exists(filename))))
 	{
-		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::APPLICATION_JSON, "Requested file does not exist");
+		qDebug() << "File does not exist";
+		// Special case, when sending HEAD request for a file that does not exist
+		if (method == RequestMethod::HEAD)
+		{
+			return HttpResponse(ResponseStatus::NOT_FOUND, content_type, 0.0);
+		}
+
+		return HttpResponse(ResponseStatus::NOT_FOUND, content_type, "Requested file does not exist");
+	}
+	if (!QFile::exists(filename))
+	{
+		// Special case, when sending HEAD request for a file that does not exist
+		if (method == RequestMethod::HEAD)
+		{
+			return HttpResponse(ResponseStatus::NOT_FOUND, content_type, 0.0);
+		}
+
+		return HttpResponse(ResponseStatus::NOT_FOUND, content_type, "Requested file does not exist");
 	}
 
 	quint64 file_size = QFileInfo(filename).size();
@@ -279,12 +304,12 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 
 				if ((!is_start_set) && (!is_end_set))
 				{
-					return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, ContentType::APPLICATION_JSON, "Range limits have not been specified");
+					return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, content_type, "Range limits have not been specified");
 				}
 
 				if (current_range.start > current_range.end)
 				{
-					return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, ContentType::APPLICATION_JSON, "The requested range start position is greater than its end position");
+					return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, content_type, "The requested range start position is greater than its end position");
 				}
 			}
 
@@ -294,7 +319,7 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 		}
 		if (hasOverlappingRanges(byte_ranges))
 		{
-			return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, ContentType::APPLICATION_JSON, "Overlapping ranges have been detected");
+			return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, content_type, "Overlapping ranges have been detected");
 		}
 
 		return createStaticFileRangeResponse(filename, byte_ranges, HttpProcessor::getContentTypeByFilename(filename), false);
