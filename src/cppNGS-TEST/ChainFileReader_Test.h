@@ -4,74 +4,85 @@
 #include "VcfFile.h"
 #include <iostream>
 #include "HttpRequestHandler.h"
+#include <QTime>
 
 TEST_CLASS(ChainFileReader_Test)
 {
 Q_OBJECT
 private slots:
 
-	void dev()
+	void testing()
 	{
 		QString hg38_to_hg19 = "C:/Users/ahott1a1/data/liftOver/hg38ToHg19.over.chain";
 		ChainFileReader r;
 		r.load(hg38_to_hg19);
 
-		std::cout << r.lift("chr1",	143196583, 143196585).toString(true).toStdString();
+		BedLine line = BedLine::fromString("chr1	2782508	2782509");
 
-//		QSharedPointer<QFile> bed = Helper::openFileForReading("C:/Users/ahott1a1/data/liftOver/NA12878_45_var.bed");
-//		QSharedPointer<QFile> out = Helper::openFileForWriting("C:/Users/ahott1a1/data/liftOver/NA12878_45_var_lifted.bed");
-//		QSharedPointer<QFile> unmapped = Helper::openFileForWriting("C:/Users/ahott1a1/data/liftOver/NA12878_45_var_unmapped.bed");
-//		int count = 0;
+		r.lift_tree(line.chr(), line.start()-1, line.end());
 
-//		while (! bed->atEnd())
-//		{
-//			count++;
+	}
 
-//			if (count%1000 == 0)
-//			{
-//				std::cout << "Count: " << count << "\n";
-//			}
-//			QByteArray bed_line = bed->readLine().trimmed();
-//			QList<QByteArray> bed_parts = bed_line.split('\t');
-//			QByteArray chr = bed_parts[0];
-//			int start = bed_parts[1].toInt();
-//			int end = bed_parts[2].toInt();
-//			BedLine lifted;
-//			try
-//			{
-//				lifted = r.lift(chr, start, end);
+	void dev1()
+	{
+		QString hg38_to_hg19 = "C:/Users/ahott1a1/data/liftOver/hg38ToHg19.over.chain";
+		ChainFileReader r;
+		r.load(hg38_to_hg19);
 
-//				GenomePosition start_lifted = r.lift(chr, start);
-//				GenomePosition end_lifted = r.lift(chr, end);
+		QSharedPointer<QFile> bed = Helper::openFileForReading(TESTDATA("data_in/ChainFileReader_test_in1.bed"));
 
-//				if (start_lifted.pos > end_lifted.pos)
-//				{
-//					GenomePosition tmp = start_lifted;
-//					start_lifted = end_lifted;
-//					end_lifted = tmp;
-//				}
+		QTime timer;
 
-//				BedLine single;
-//				single.setChr(start_lifted.chr);
-//				single.setStart(start_lifted.pos);
-//				single.setEnd(end_lifted.pos);
 
-//				if (single.chr() != lifted.chr() || single.start() != lifted.start() || single.end() != lifted.end())
-//				{
-//					std::cout << "lifted: " << lifted.toString(true).toStdString() << "\n";
-//					std::cout << "single: " << single.toString(true).toStdString() << "\n";
-//					break;
-//				}
-//				IS_TRUE(single == lifted)
-//			}
-//			catch (Exception e)
-//			{
-//				std::cout << "Some error: " << e.message().toStdString() << "\n";
-//				unmapped->write(bed_line + "\n");
-//				continue;
-//			}
-//			out->write(lifted.toString(false).toLatin1() + "\n");
-//		}
+		timer.start();
+		bed->seek(0);
+		while (! bed->atEnd())
+		{
+			QByteArray bed_line = bed->readLine().trimmed();
+
+			QList<QByteArray> bed_parts = bed_line.split('\t');
+			QByteArray chr = bed_parts[0];
+			int start = bed_parts[1].toInt()-1;
+			int end = bed_parts[2].toInt();
+			BedLine list_lifted;
+			bool list_error = false;
+
+			try
+			{
+				list_lifted = r.lift_list(Chromosome(chr), start, end);
+			} catch(...)
+			{
+				list_error = true;
+			}
+		}
+		std::cout << "Naive list: " << timer.elapsed()/1000.0 << "s \n";
+
+		timer.start();
+		bed->seek(0);
+		while (! bed->atEnd())
+		{
+			QByteArray bed_line = bed->readLine().trimmed();
+
+			QList<QByteArray> bed_parts = bed_line.split('\t');
+			QByteArray chr = bed_parts[0];
+			int start = bed_parts[1].toInt()-1;
+			int end = bed_parts[2].toInt();
+			BedLine tree_lifted;
+			bool tree_error = false;
+
+			try
+			{
+				tree_lifted = r.lift_list(Chromosome(chr), start, end);
+			} catch(...)
+			{
+				tree_error = true;
+			}
+		}
+		std::cout << "Tree: " << timer.elapsed()/1000.0 << "s \n";
+
+
+
+
 
 	}
 
@@ -81,21 +92,21 @@ private slots:
 		ChainFileReader r;
 		r.load(hg19_to_hg38);
 
-		GenomePosition lifted = r.lift("chrY", 1000000+10);
+		GenomePosition lifted = r.lift_list("chrY", 1000000+10);
 		S_EQUAL(lifted.chr.str(), "chrY");
 		I_EQUAL(lifted.pos, 2000000+10);
 
-		lifted = r.lift("chrY", 1000000+1126);
+		lifted = r.lift_list("chrY", 1000000+1126);
 		S_EQUAL(lifted.chr.str(), "chrY");
 		I_EQUAL(lifted.pos, 2000000 + 1112);
 
-		IS_THROWN(ArgumentException, r.lift("chrY", 1000000+510));
+		IS_THROWN(ArgumentException, r.lift_list("chrY", 1000000+510));
 
-		lifted = r.lift("chrY", 1000000+1330);
+		lifted = r.lift_list("chrY", 1000000+1330);
 		S_EQUAL(lifted.chr.str(), "chrX");
 		I_EQUAL(lifted.pos, 3000000 + 4);
 
-		lifted = r.lift("chrY", 1001326 + 28);
+		lifted = r.lift_list("chrY", 1001326 + 28);
 		S_EQUAL(lifted.chr.str(), "chrX");
 		I_EQUAL(lifted.pos, 3000000 + 29);
 	}
@@ -130,7 +141,7 @@ private slots:
 				int start = bed_parts[1].toInt()-1;
 				int end = bed_parts[2].toInt();
 
-				BedLine lifted = r.lift(chr, start, end);
+				BedLine lifted = r.lift_list(chr, start, end);
 				lifted.setStart(lifted.start() +1);
 
 				QList<QByteArray> out_parts = out_line.split('\t');
@@ -262,7 +273,7 @@ private slots:
 //	}
 
 
-	void DevelopmentTestServer()
+	void serverTesting()
 	{
 
 		QString hg38_to_hg19 = "C:/Users/ahott1a1/data/liftOver/hg38ToHg19.over.chain";
@@ -300,7 +311,7 @@ private slots:
 			try
 			{
 				//std::cout << "line " << line <<":" << bed_line.toStdString() << "\n";
-				lifted = r.lift(in.chr(), in.start()-1, in.end());
+				lifted = r.lift_tree(in.chr(), in.start()-1, in.end());
 			}
 			catch (ArgumentException e)
 			{

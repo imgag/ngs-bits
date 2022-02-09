@@ -2,11 +2,12 @@
 #define CHAINFILEREADER_H
 
 #include "cppNGS_global.h"
-#include <QSharedPointer>
+#include <memory>
 #include <QFile>
 #include "Helper.h"
 #include <iostream>
 #include "BedFile.h"
+#include "ChromosomalIndex.h"
 
 struct AlignmentLine
 {
@@ -70,6 +71,21 @@ struct GenomicAlignment
 	int id;
 
 	QList<AlignmentLine> alignment;
+	GenomicAlignment():
+		score(0)
+	  , ref_chr("")
+	  , ref_chr_size(0)
+	  , ref_start(0)
+	  , ref_end(0)
+	  , ref_on_plus(false)
+	  , q_chr("")
+	  , q_chr_size(0)
+	  , q_start(0)
+	  , q_end(0)
+	  , q_on_plus(false)
+	  , id(0)
+	{
+	}
 
 	GenomicAlignment(double score, Chromosome ref_chr, int ref_chr_size, int ref_start, int ref_end, bool ref_on_plus, Chromosome q_chr, int q_chr_size, int q_start, int q_end, bool q_on_plus, int id):
 		score(score)
@@ -85,6 +101,21 @@ struct GenomicAlignment
 	  , q_on_plus(q_on_plus)
 	  , id(id)
 	{
+	}
+
+	int start() const
+	{
+		return ref_start;
+	}
+
+	int end() const
+	{
+		return ref_end;
+	}
+
+	Chromosome chr() const
+	{
+		return ref_chr;
 	}
 
 	void addAlignmentLine(AlignmentLine line)
@@ -103,6 +134,11 @@ struct GenomicAlignment
 	bool contains(const GenomePosition& pos) const
 	{
 		return contains(pos.chr, pos.pos);
+	}
+
+	bool overlapsWith(int start, int end) const
+	{
+		return (ref_start < start && start < ref_end) || (ref_start < end && end < ref_end);
 	}
 
 	GenomePosition lift(const Chromosome& chr, int pos) const
@@ -196,13 +232,76 @@ struct GenomicAlignment
 class CPPNGSSHARED_EXPORT ChainFileReader
 {
 public:
+
+	class IntervalTree
+	{
+	public:
+		IntervalTree(int min, int max);
+		IntervalTree();
+		~IntervalTree();
+		QList<GenomicAlignment> query(int start, int end) const;
+		void addInterval(GenomicAlignment alignment);
+		void sort();
+
+		IntervalTree(const IntervalTree& other)
+		: min_(other.min_)
+		, max_(other.max_)
+		, center_(other.center_)
+		, left_(other.left_ ? other.left_->clone() : nullptr)
+		, right_(other.right_ ? other.right_->clone() : nullptr)
+		, sorted_by_start_(other.sorted_by_start_)
+		, sorted_by_end_(other.sorted_by_end_)
+		{}
+
+		IntervalTree& operator=(const IntervalTree& other) {
+			min_ = other.min_;
+			max_ = other.max_;
+			center_ = other.center_;
+			left_ = other.left_ ? other.left_->clone() : nullptr;
+			right_= other.right_ ? other.right_->clone() : nullptr;
+			sorted_by_start_ = other.sorted_by_start_;
+			sorted_by_end_ = other.sorted_by_end_;
+			return *this;
+		}
+
+		std::unique_ptr<IntervalTree> clone() const {
+			return std::unique_ptr<IntervalTree>(new IntervalTree(*this));
+		}
+
+		struct AlignmentStartComp
+		{
+			inline bool operator() (const GenomicAlignment& left, const GenomicAlignment& right)
+			{
+				return (left.ref_start < right.ref_start);
+			}
+		};
+
+		struct AlignmentEndComp
+		{
+			inline bool operator() (const GenomicAlignment& left, const GenomicAlignment& right)
+			{
+				return (left.ref_end < right.ref_end);
+			}
+		};
+
+	private:
+		int min_, max_, center_;
+		std::unique_ptr<IntervalTree> left_;
+		std::unique_ptr<IntervalTree> right_;
+		QList<GenomicAlignment> sorted_by_start_;
+		QList<GenomicAlignment> sorted_by_end_;
+
+	};
+
 	ChainFileReader();
 	~ChainFileReader();
 
 	void load(QString filepath);
-	GenomePosition lift(const Chromosome& chr, int pos) const;
-	BedLine lift(const Chromosome& chr, int start, int end) const;
-
+	GenomePosition lift_list(const Chromosome& chr, int pos) const;
+	BedLine lift_list(const Chromosome& chr, int start, int end) const;
+	BedLine lift_tree(const Chromosome& chr, int start, int end) const;
+	BedLine lift_index(const Chromosome& chr, int start, int end) const;
+	void testing();
 
 	const QHash<Chromosome, int>& refChromSizes()
 	{
@@ -214,12 +313,19 @@ public:
 		return q_chrom_sizes_;
 	}
 
+	std::unique_ptr<ChromosomalIndex<QVector<GenomicAlignment>>> chromosomes_index;
+	QHash<Chromosome, QList<GenomicAlignment>> chromosomes_list;
 private:
 	GenomicAlignment parseChainLine(QList<QByteArray> parts);
 
 	QString filepath_;
 	QSharedPointer<QFile> fp_;
-	QHash<Chromosome, QList<GenomicAlignment>> chromosomes_;
+
+//	QHash<Chromosome, QList<GenomicAlignment>> chromosomes_list;
+	QHash<Chromosome, IntervalTree> chromosomes_tree;
+
+	QVector<GenomicAlignment> alignments_index_;
+
 	QHash<Chromosome, int> ref_chrom_sizes_;
 	QHash<Chromosome, int> q_chrom_sizes_;
 
