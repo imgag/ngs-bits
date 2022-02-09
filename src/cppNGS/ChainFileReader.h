@@ -71,6 +71,8 @@ struct GenomicAlignment
 	int id;
 
 	QList<AlignmentLine> alignment;
+
+
 	GenomicAlignment():
 		score(0)
 	  , ref_chr("")
@@ -103,6 +105,75 @@ struct GenomicAlignment
 	{
 	}
 
+	BedLine lift(int start, int end) const
+	{
+		int lifted_start = -1;
+		int lifted_end = -1;
+
+		int ref_current_pos = ref_start;
+		int q_current_pos = q_start;
+
+		// change end to the base included in the region:
+		end--;
+		std::cout << "start: " << start << " - end:" << end << "\n";
+		foreach(const AlignmentLine& line, alignment)
+		{
+
+			std::cout << "current pos: " << ref_current_pos << " - line size: " << line.size << " - line ref_dt: " << line.ref_dt <<"\n";
+			// try to lift start and end:
+			if (ref_current_pos <= start && ref_current_pos + line.size > start)
+			{
+				std::cout << "start current pos in alignment: " << ref_current_pos << " - line size: " << line.size << "\n";
+				lifted_start = q_current_pos + (start - ref_current_pos);
+			}
+
+			if (ref_current_pos <= end && ref_current_pos + line.size > end)
+			{
+				std::cout << "end   current pos in alignment: " << ref_current_pos << " - line size: " << line.size << "\n";
+				lifted_end = q_current_pos + (end - ref_current_pos);
+			}
+
+			ref_current_pos += line.size;
+			q_current_pos += line.size;
+
+			// break when the current position is after the end:
+			if (ref_current_pos > end)
+			{
+				break;
+			}
+			else
+			{
+				ref_current_pos += line.ref_dt;
+				q_current_pos += line.q_dt;
+			}
+
+		}
+
+		if (lifted_start != -1 && lifted_end != -1)
+		{
+			if (q_on_plus)
+			{
+				return BedLine(q_chr, lifted_start, lifted_end+1);
+			}
+			else
+			{
+
+				return BedLine(q_chr, (q_chr_size-1)- lifted_end, (q_chr_size-1)- lifted_start+1);
+			}
+		}
+		else
+		{
+			if (lifted_start == -1 && lifted_end == -1)
+			{
+				// both start and end are mapped to gaps in this alignment. Return "empty" result, to continue search in other alignment.
+				return BedLine("", -1, -1);
+			}
+
+			// One was lifted so the region was split or partially deleted:
+			THROW(ArgumentException, "Region was split or partially deleted! lifted start: " + QByteArray::number(lifted_start) + " - lifted end: " + QByteArray::number(lifted_end));
+		}
+	}
+
 	int start() const
 	{
 		return ref_start;
@@ -131,73 +202,15 @@ struct GenomicAlignment
 		return true;
 	}
 
-	bool contains(const GenomePosition& pos) const
-	{
-		return contains(pos.chr, pos.pos);
-	}
-
 	bool overlapsWith(int start, int end) const
 	{
-		return (ref_start < start && start < ref_end) || (ref_start < end && end < ref_end);
-	}
-
-	GenomePosition lift(const Chromosome& chr, int pos) const
-	{
-		if (! contains(chr, pos))
-		{
-			return GenomePosition("", -1);
-		}
-
-		int ref_current_pos = ref_start;
-		int q_current_pos = q_start;
-
-		foreach(const AlignmentLine& line, alignment)
-		{
-			if (ref_current_pos + line.size >= pos)
-			{
-				int last_bit = pos - ref_current_pos;
-				if (q_on_plus)
-				{
-					return GenomePosition(q_chr, q_current_pos + last_bit);
-				}
-				else
-				{
-					//std::cout << "q current pos: " << q_current_pos <<  "\tlast bit:  " << last_bit << "\tq_chr_size:" << q_chr_size << "\n";
-					return GenomePosition(q_chr, q_chr_size - (q_current_pos + last_bit));
-				}
-
-			}
-			else
-			{
-				ref_current_pos += line.size;
-				q_current_pos += line.size;
-
-				if (ref_current_pos + line.ref_dt >= pos)
-				{
-					// if given position lands in a gap return invalid. Given position is not mapped in this alignment
-					return GenomePosition("", -1);
-				}
-				else
-				{
-					ref_current_pos += line.ref_dt;
-					q_current_pos += line.q_dt;
-				}
-			}
-		}
-		//Should not be possible if the position is contained in the alignment!
-		std::cout << toString().toStdString();
-		THROW(ProgrammingException, "Function contains() has an error! Position was not contained in alignment! Pos:" + QString(chr.strNormalized(true)) + ":" + QString::number(pos) + " Alignment: " + QString(ref_chr.strNormalized(true)) + ":" + QString::number(ref_start) + "-" + QString::number(ref_end) + "\n")
-	}
-
-	GenomePosition lift(const GenomePosition& g_pos) const
-	{
-		return lift(g_pos.chr, g_pos.pos);
+		return ((ref_start <= start && start <= ref_end) || (ref_start <= end && end <= ref_end));
 	}
 
 	QString toString(bool with_al_lines=true) const
 	{
 		QString res = QString("ref_chr:\t%1\tref_start:\t%2\tref_end:\t%3\tq_chr:\t%4\tq_start:\t%5\tq_end:\t%6\n").arg(QString(ref_chr.strNormalized(true)), QString::number(ref_start), QString::number(ref_end), QString(q_chr.strNormalized(true)), QString::number(q_start), QString::number(q_end));
-		res += "ref on plus: " + QString::number(ref_on_plus) + "\tq on plus: " + QString::number(q_on_plus) + "\n";
+		res += "ref on plus: " + QString::number(ref_on_plus) + "\tq on plus: " + QString::number(q_on_plus);
 		if (with_al_lines)
 		{
 			foreach (AlignmentLine l, alignment)
@@ -297,9 +310,8 @@ public:
 	~ChainFileReader();
 
 	void load(QString filepath);
-	GenomePosition lift_list(const Chromosome& chr, int pos) const;
-	BedLine lift_list(const Chromosome& chr, int start, int end) const;
 	BedLine lift_tree(const Chromosome& chr, int start, int end) const;
+	BedLine lift_list(const Chromosome& chr, int start, int end) const;
 	BedLine lift_index(const Chromosome& chr, int start, int end) const;
 	void testing();
 

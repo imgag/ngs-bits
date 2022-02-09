@@ -30,74 +30,6 @@ void ChainFileReader::testing()
 
 }
 
-GenomePosition ChainFileReader::lift_list(const Chromosome& chr, int pos) const
-{
-	if ( ! chromosomes_list.contains(chr))
-	{
-		THROW(ArgumentException, "Position to lift is in unknown chromosome. Tried to lift: " + chr.strNormalized(true) +": " + QByteArray::number(pos));
-	}
-	if (pos < 0 || pos > ref_chrom_sizes_[chr])
-	{
-		THROW(ArgumentException, "Position to lift is outside of the chromosome size for chromosome. Tried to lift: " + chr.strNormalized(true) +": " + QByteArray::number(pos));
-	}
-	QList<GenomicAlignment> alignments = chromosomes_list[chr];
-
-	// TODO change from list to tree strcuture
-	foreach(const GenomicAlignment& a, alignments)
-	{
-		if (a.contains(chr, pos))
-		{
-			GenomePosition lifted = a.lift(chr, pos);
-			if (lifted.chr == "" || lifted.pos == -1) // if returned is invalid the given position might be aligned to a gap in this alignment search for another.
-			{
-				continue;
-			}
-			else
-			{
-				return lifted;
-			}
-		}
-	}
-
-	THROW(ArgumentException, "The given position is in an unmapped region!")
-}
-
-BedLine ChainFileReader::lift_list(const Chromosome &chr, int start, int end) const
-{
-	BedLine bed;
-	GenomePosition lifted_start = lift_list(chr, start);
-	GenomePosition lifted_end = lift_list(chr, end);
-
-	for (int i=start+1; i<end; i++)
-	{
-		GenomePosition test_middle = lift_list(chr, i); //throw error if part of the sequence is in unmapped
-	}
-
-	if (lifted_start.chr != lifted_end.chr)
-	{
-		THROW(ArgumentException, "The start and end of the given region map to different chromosomes!")
-	}
-
-	if (lifted_start.pos < lifted_end.pos)
-	{
-		bed.setStart(lifted_start.pos);
-		bed.setEnd(lifted_end.pos);
-	}
-	else
-	{
-		bed.setStart(lifted_end.pos);
-		bed.setEnd(lifted_start.pos);
-	}
-	bed.setChr(Chromosome(lifted_start.chr));
-
-	if (std::abs(bed.start() - bed.end()) < end-start)
-	{
-		THROW(ArgumentException, "The new region maps to smaller region!")
-	}
-
-	return bed;
-}
-
 BedLine ChainFileReader::lift_tree(const Chromosome& chr, int start, int end) const
 {
 	if (end <= start)
@@ -116,106 +48,28 @@ BedLine ChainFileReader::lift_tree(const Chromosome& chr, int start, int end) co
 
 	//get alignments that overlap with the given region
 	QList<GenomicAlignment> alignments = chromosomes_tree[chr].query(start, end);
-	//std::cout << "Count of overlapping alignments:" << alignments.count() << "\n";
 
-	QVector<int> liftedPos(end-start+1, -1);
-	QByteArray liftedChr = "";
+	//std::cout << "Alignments found: " << alignments.size() << "\n";
+
 	foreach(const GenomicAlignment& a, alignments)
 	{
-		//std::cout << a.toString().toStdString() << "\n";
-		for (int pos=start; pos<=end; pos++)
+		//std::cout << a.toString(false).toStdString() << "\n";
+		BedLine result = a.lift(start, end);
+
+		if (result.start() == -1)
 		{
-			GenomePosition l =  a.lift(chr, pos);
-
-			if (l.pos != -1) // position was lifted!
-			{
-				if (liftedChr == "") // test for chromosome
-				{
-					liftedChr = l.chr.strNormalized(true);
-				}
-				else if (l.chr.strNormalized(true) != liftedChr)
-				{
-					THROW(ArgumentException, "Given region maps to different chromosomes.")
-				}
-
-				if(liftedPos[pos-start] != -1) // test for position
-				{
-					if (l.pos == liftedPos[pos-start])
-					{
-						std::cout << "Position was lifted twice successfully to the same position.\n";
-					}
-					THROW(ProgrammingException, "Position was lifted twice. Available from different alignments!")
-				}
-
-				liftedPos[pos-start] = l.pos;
-			}
-		}
-	}
-
-//	for (int i=0; i<liftedPos.size(); i++)
-//	{
-//		std::cout << liftedPos[i] << "\n";
-//	}
-
-	// single position special case:
-	if (liftedPos.size() == 1)
-	{
-		if (liftedPos[0] != -1)
-		{
-			return BedLine(Chromosome(liftedChr), liftedPos[0], liftedPos[0]);
+			continue;
 		}
 		else
 		{
-			THROW(ArgumentException, "Position in unmapped region!")
+			return result;
 		}
 	}
 
-	// region:
-
-	if (liftedPos[0] != -1 && liftedPos[liftedPos.size()-1] != -1)
-	{
-		if (liftedPos[0] < liftedPos[liftedPos.size()-1])
-		{
-			//mapped to plus strand: (everything "normally" ordered)
-			for (int i=0; i< liftedPos.size()-1; i++)
-			{
-				if (liftedPos[i] == -1)
-				{
-					THROW(ArgumentException, "Partial deletion in query region! 1")
-				}
-
-//				if(liftedPos[i]+1 != liftedPos[i+1])
-//				{
-//					THROW(ArgumentException, "Region is split! 1")
-//				}
-			}
-			return BedLine(Chromosome(liftedChr), liftedPos[0], liftedPos[liftedPos.size()-1]);
-		}
-		else
-		{
-			// mapped to minus strand:
-			for (int i=0; i< liftedPos.size()-1; i++)
-			{
-				if (liftedPos[i] == -1)
-				{
-					THROW(ArgumentException, "Partial deletion in query region! 2")
-				}
-
-//				if(liftedPos[i]-1 != liftedPos[i+1])
-//				{
-//					THROW(ArgumentException, "Region is split! 2")
-//				}
-			}
-			return BedLine(Chromosome(liftedChr), liftedPos[liftedPos.size()-1], liftedPos[0]);
-		}
-	}
-	else
-	{
-		THROW(ArgumentException, "Partial deletion in query region! 3")
-	}
+	THROW(ArgumentException, "Region is unmapped.");
 }
 
-BedLine ChainFileReader::lift_index(const Chromosome& chr, int start, int end) const
+BedLine ChainFileReader::lift_list(const Chromosome& chr, int start, int end) const
 {
 	if (end <= start)
 	{
@@ -232,100 +86,146 @@ BedLine ChainFileReader::lift_index(const Chromosome& chr, int start, int end) c
 	}
 
 	//get alignments that overlap with the given region
-	QVector<int> indices = chromosomes_index->matchingIndices(chr, start, end);
-	std::cout << "Count of overlapping alignments:" << indices.count() << "\n";
+	QList<GenomicAlignment> alignments = chromosomes_list[chr];
+	//std::cout << "Count of overlapping alignments:" << alignments.count() << "\n";
 
-	QVector<int> liftedPos(end-start+1, -1);
-	QByteArray liftedChr = "";
-	foreach(int idx, indices)
+	foreach(const GenomicAlignment& a, alignments)
 	{
-		GenomicAlignment a = alignments_index_[idx];
-		for (int pos=start; pos<=end; pos++)
+		if( ! a.overlapsWith(start, end))
 		{
-			GenomePosition l =  a.lift(chr, pos);
-
-			if (l.pos != -1) // position was lifted!
-			{
-				if (liftedChr == "") // test for chromosome
-				{
-					liftedChr = l.chr.strNormalized(true);
-				}
-				else if (l.chr.strNormalized(true) != liftedChr)
-				{
-					THROW(ArgumentException, "Given region maps to different chromosomes.")
-				}
-
-				if(liftedPos[pos-start] != -1) // test for position
-				{
-					if (l.pos == liftedPos[pos-start])
-					{
-						std::cout << "Position was lifted twice successfully to the same position.\n";
-					}
-					THROW(ProgrammingException, "Position was lifted twice. Available from different alignments!")
-				}
-
-				liftedPos[pos-start] = l.pos;
-			}
+			continue;
 		}
-	}
 
-	// single position special case:
-	if (liftedPos.size() == 1)
-	{
-		if (liftedPos[0] != -1)
+//		std::cout << "\n" << a.toString(false).toStdString() << "\n";
+		BedLine result = a.lift(start, end);
+
+//		std::cout << result.toString(true).toStdString() << "\n\n";
+
+		if (result.start() == -1)
 		{
-			return BedLine(Chromosome(liftedChr), liftedPos[0], liftedPos[0]);
+			continue;
 		}
 		else
 		{
-			THROW(ArgumentException, "Position in unmapped region!")
+			result.setEnd(result.end());
+			return result;
 		}
 	}
 
-	// region:
-
-	if (liftedPos[0] != -1 && liftedPos[liftedPos.size()-1] != -1)
-	{
-		if (liftedPos[0] < liftedPos[liftedPos.size()-1])
-		{
-			//mapped to plus strand: (everything "normally" ordered)
-			for (int i=0; i< liftedPos.size()-1; i++)
-			{
-				if (liftedPos[i] == -1)
-				{
-					THROW(ArgumentException, "Partial deletion in query region!")
-				}
-
-				if(liftedPos[i]+1 != liftedPos[i+1])
-				{
-					THROW(ArgumentException, "Region is split!")
-				}
-			}
-			return BedLine(Chromosome(liftedChr), liftedPos[0], liftedPos[liftedPos.size()-1]);
-		}
-		else
-		{
-			// mapped to minus strand:
-			for (int i=0; i< liftedPos.size()-1; i++)
-			{
-				if (liftedPos[i] == -1)
-				{
-					THROW(ArgumentException, "Partial deletion in query region!")
-				}
-
-				if(liftedPos[i]-1 != liftedPos[i+1])
-				{
-					THROW(ArgumentException, "Region is split!")
-				}
-			}
-			return BedLine(Chromosome(liftedChr), liftedPos[liftedPos.size()-1], liftedPos[0]);
-		}
-	}
-	else
-	{
-		THROW(ArgumentException, "Partial deletion in query region!")
-	}
+	THROW(ArgumentException, "Region is unmapped.");
 }
+
+//BedLine ChainFileReader::lift_index(const Chromosome& chr, int start, int end) const
+//{
+//	if (end <= start)
+//	{
+//		THROW(ArgumentException, "End is smaller or equal to start!");
+//	}
+
+//	if ( ! chromosomes_tree.contains(chr))
+//	{
+//		THROW(ArgumentException, "Position to lift is in unknown chromosome. Tried to lift: " + chr.strNormalized(true));
+//	}
+//	if (start < 0 || end > ref_chrom_sizes_[chr])
+//	{
+//		THROW(ArgumentException, "Position to lift is outside of the chromosome size for chromosome. Tried to lift: " + chr.strNormalized(true) +": " + QByteArray::number(start) + "-" + QByteArray::number(end));
+//	}
+
+//	//get alignments that overlap with the given region
+//	QVector<int> indices = chromosomes_index->matchingIndices(chr, start, end);
+//	std::cout << "Count of overlapping alignments:" << indices.count() << "\n";
+
+//	QVector<int> liftedPos(end-start+1, -1);
+//	QByteArray liftedChr = "";
+//	foreach(int idx, indices)
+//	{
+//		GenomicAlignment a = alignments_index_[idx];
+//		for (int pos=start; pos<=end; pos++)
+//		{
+//			GenomePosition l =  a.lift(chr, pos);
+
+//			if (l.pos != -1) // position was lifted!
+//			{
+//				if (liftedChr == "") // test for chromosome
+//				{
+//					liftedChr = l.chr.strNormalized(true);
+//				}
+//				else if (l.chr.strNormalized(true) != liftedChr)
+//				{
+//					THROW(ArgumentException, "Given region maps to different chromosomes.")
+//				}
+
+//				if(liftedPos[pos-start] != -1) // test for position
+//				{
+//					if (l.pos == liftedPos[pos-start])
+//					{
+//						std::cout << "Position was lifted twice successfully to the same position.\n";
+//					}
+//					THROW(ProgrammingException, "Position was lifted twice. Available from different alignments!")
+//				}
+
+//				liftedPos[pos-start] = l.pos;
+//			}
+//		}
+//	}
+
+//	// single position special case:
+//	if (liftedPos.size() == 1)
+//	{
+//		if (liftedPos[0] != -1)
+//		{
+//			return BedLine(Chromosome(liftedChr), liftedPos[0], liftedPos[0]);
+//		}
+//		else
+//		{
+//			THROW(ArgumentException, "Position in unmapped region!")
+//		}
+//	}
+
+//	// region:
+
+//	if (liftedPos[0] != -1 && liftedPos[liftedPos.size()-1] != -1)
+//	{
+//		if (liftedPos[0] < liftedPos[liftedPos.size()-1])
+//		{
+//			//mapped to plus strand: (everything "normally" ordered)
+//			for (int i=0; i< liftedPos.size()-1; i++)
+//			{
+//				if (liftedPos[i] == -1)
+//				{
+//					THROW(ArgumentException, "Partial deletion in query region!")
+//				}
+
+//				if(liftedPos[i]+1 != liftedPos[i+1])
+//				{
+//					THROW(ArgumentException, "Region is split!")
+//				}
+//			}
+//			return BedLine(Chromosome(liftedChr), liftedPos[0], liftedPos[liftedPos.size()-1]);
+//		}
+//		else
+//		{
+//			// mapped to minus strand:
+//			for (int i=0; i< liftedPos.size()-1; i++)
+//			{
+//				if (liftedPos[i] == -1)
+//				{
+//					THROW(ArgumentException, "Partial deletion in query region!")
+//				}
+
+//				if(liftedPos[i]-1 != liftedPos[i+1])
+//				{
+//					THROW(ArgumentException, "Region is split!")
+//				}
+//			}
+//			return BedLine(Chromosome(liftedChr), liftedPos[liftedPos.size()-1], liftedPos[0]);
+//		}
+//	}
+//	else
+//	{
+//		THROW(ArgumentException, "Partial deletion in query region!")
+//	}
+//}
 
 void ChainFileReader::load(QString filepath)
 {
@@ -349,8 +249,8 @@ void ChainFileReader::load(QString filepath)
 		{
 			parts = line.split(' ');
 			// add last chain alignment to the chromosomes:
-			// to naive list:
-			if ( ! chromosomes_list.contains(currentAlignment.ref_chr))
+			//
+			if (! chromosomes_list.contains(currentAlignment.ref_chr))
 			{
 				chromosomes_list.insert(currentAlignment.ref_chr, QList<GenomicAlignment>());
 			}

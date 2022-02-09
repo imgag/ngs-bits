@@ -11,19 +11,136 @@ TEST_CLASS(ChainFileReader_Test)
 Q_OBJECT
 private slots:
 
-	void testing()
+	void wrong()
 	{
 		QString hg38_to_hg19 = "C:/Users/ahott1a1/data/liftOver/hg38ToHg19.over.chain";
 		ChainFileReader r;
 		r.load(hg38_to_hg19);
 
-		BedLine line = BedLine::fromString("chr1	2782508	2782509");
+		int count = 0;
+		QSharedPointer<QFile> bed = Helper::openFileForReading("C:/Users/ahott1a1/data/liftOver/wrongly_mapped1.bed");
+		while (! bed->atEnd())
+		{
+			count ++;
 
-		r.lift_tree(line.chr(), line.start()-1, line.end());
+			if (count > 1)
+			{
+				break;
+			}
 
+			bool expected_error = false;
+			bool actual_error = false;
+
+			BedLine bed_line = BedLine::fromString(bed->readLine().trimmed());
+			BedLine actual;
+			BedLine expected;
+			try
+			{
+				actual = r.lift_list(bed_line.chr(), bed_line.start(), bed_line.end());
+			}
+			catch (Exception& e)
+			{
+//				std::cout << e.message().toStdString() << "\n";
+				actual_error = true;
+			}
+
+			try
+			{
+				expected = liftOver(bed_line.chr(), bed_line.start(), bed_line.end(), false);
+			}
+			catch (Exception& e)
+			{
+
+				std::cout << e.message().toStdString() << "\n";
+				expected_error = true;
+			}
+
+			if (actual_error && expected_error)
+			{
+				// both throw error: ok
+				std::cout << "correct\n";
+				continue;
+			}
+
+			if (actual_error || expected_error)
+			{
+				// only one throws
+				if (actual_error)
+				{
+					std::cout << "My lift throws error!\n";
+				}
+				if (expected_error)
+				{
+					std::cout << "Only Server throws error!\n";
+				}
+
+			}
+
+			if (actual.chr() != expected.chr() || actual.start() != expected.start() || actual.end() != expected.end())
+			{
+				std::cout << "To lift: \t" << bed_line.toString(true).toStdString() << "\n";
+				std::cout << "expected:\t" << expected.toString(true).toStdString() << "\n";
+				std::cout << "actual:  \t" << actual.toString(true).toStdString() << "\n\n";
+			} else
+			{
+				std::cout << "correct\n";
+			}
+		}
 	}
 
-	void dev1()
+	void dev()
+	{
+		QString hg38_to_hg19 = "C:/Users/ahott1a1/data/liftOver/hg38ToHg19.over.chain";
+		ChainFileReader r;
+		r.load(hg38_to_hg19);
+
+
+		QSharedPointer<QFile> bed = Helper::openFileForReading("C:/Users/ahott1a1/data/liftOver/NA12878_45_var_zero_based.bed");
+		QSharedPointer<QFile> expected = Helper::openFileForReading("C:/Users/ahott1a1/data/liftOver/NA12878_45_var_zero_based_lifted_to_hg19_REF.bed");
+		QSharedPointer<QFile> out = Helper::openFileForWriting("C:/Users/ahott1a1/data/liftOver/wrongly_mapped.bed");
+
+		int count = 0;
+		BedLine last;
+		while (! bed->atEnd())
+		{
+			count++;
+
+//			if(count % 500000 == 0)
+			if(count % 1 == 0)
+			{
+				std::cout << "Line: " << count << "\n";
+			}
+
+			BedLine bed_line = BedLine::fromString(bed->readLine().trimmed());
+
+			BedLine actual;
+
+			try
+			{
+				actual = r.lift_list(bed_line.chr(), bed_line.start(), bed_line.end());
+			}
+			catch (...)
+			{
+				continue;
+			}
+			BedLine ref = BedLine::fromString(expected->readLine());
+
+			if (ref.chr() != actual.chr() || ref.start() != actual.start() || ref.end() != actual.end())
+			{
+				std::cout << "Mismatch!\n";
+				out->write(last.toString(false).toLatin1() + "\n");
+				out->write(bed_line.toString(false).toLatin1() + "\n");
+				break;
+
+			}
+
+			//out->write(actual.toString(false).toLatin1() + "\n");
+			last = bed_line;
+
+		}
+	}
+
+	void time_it()
 	{
 		QString hg38_to_hg19 = "C:/Users/ahott1a1/data/liftOver/hg38ToHg19.over.chain";
 		ChainFileReader r;
@@ -33,9 +150,13 @@ private slots:
 
 		QTime timer;
 
+		BedLine tree_lifted;
+		bool tree_error = false;
+		BedLine list_lifted;
+		bool list_error = false;
 
-		timer.start();
 		bed->seek(0);
+		timer.start();
 		while (! bed->atEnd())
 		{
 			QByteArray bed_line = bed->readLine().trimmed();
@@ -44,21 +165,22 @@ private slots:
 			QByteArray chr = bed_parts[0];
 			int start = bed_parts[1].toInt()-1;
 			int end = bed_parts[2].toInt();
-			BedLine list_lifted;
-			bool list_error = false;
+
 
 			try
 			{
 				list_lifted = r.lift_list(Chromosome(chr), start, end);
-			} catch(...)
+			} catch(Exception& e)
 			{
+				//std::cout << e.message().toStdString() << "\n";
 				list_error = true;
 			}
 		}
 		std::cout << "Naive list: " << timer.elapsed()/1000.0 << "s \n";
 
-		timer.start();
+
 		bed->seek(0);
+		timer.start();
 		while (! bed->atEnd())
 		{
 			QByteArray bed_line = bed->readLine().trimmed();
@@ -67,23 +189,59 @@ private slots:
 			QByteArray chr = bed_parts[0];
 			int start = bed_parts[1].toInt()-1;
 			int end = bed_parts[2].toInt();
-			BedLine tree_lifted;
-			bool tree_error = false;
 
 			try
 			{
-				tree_lifted = r.lift_list(Chromosome(chr), start, end);
-			} catch(...)
+				tree_lifted = r.lift_tree(Chromosome(chr), start, end);
+				//std::cout << tree_lifted.toString(true).toStdString() << "\n";
+			} catch(Exception& e)
 			{
+				//std::cout << e.message().toStdString() << "\n";
 				tree_error = true;
 			}
 		}
 		std::cout << "Tree: " << timer.elapsed()/1000.0 << "s \n";
 
+		bed->seek(0);
+		timer.start();
+		while (! bed->atEnd())
+		{
+			QByteArray bed_line = bed->readLine().trimmed();
+
+			QList<QByteArray> bed_parts = bed_line.split('\t');
+			QByteArray chr = bed_parts[0];
+			int start = bed_parts[1].toInt()-1;
+			int end = bed_parts[2].toInt();
+
+			try
+			{
+				tree_lifted = r.lift_tree(Chromosome(chr), start, end);
+				//std::cout << tree_lifted.toString(true).toStdString() << "\n";
+			} catch(Exception& e)
+			{
+				tree_error = true;
+			}
+			try
+			{
+				list_lifted = r.lift_list(Chromosome(chr), start, end);
+			} catch(Exception& e)
+			{
+				list_error = true;
+			}
+
+			if (list_error && tree_error)
+			{
+				continue;
+			}
+
+			if (tree_lifted.chr() != list_lifted.chr() || tree_lifted.start() != list_lifted.start() || tree_lifted.end() != list_lifted.end())
+			{
+				std::cout << "Lifting between tree and list differs!\n";
+			}
 
 
-
-
+		}
+		std::cout << "Comparision: " << timer.elapsed()/1000.0 << "s \n";
 	}
 
 	void generalDatastructureTest()
@@ -92,23 +250,23 @@ private slots:
 		ChainFileReader r;
 		r.load(hg19_to_hg38);
 
-		GenomePosition lifted = r.lift_list("chrY", 1000000+10);
-		S_EQUAL(lifted.chr.str(), "chrY");
-		I_EQUAL(lifted.pos, 2000000+10);
+		BedLine lifted = r.lift_tree("chrY", 1000000+10, 1000000+10);
+		S_EQUAL(lifted.chr().str(), "chrY");
+		I_EQUAL(lifted.start(), 2000000+10);
 
-		lifted = r.lift_list("chrY", 1000000+1126);
-		S_EQUAL(lifted.chr.str(), "chrY");
-		I_EQUAL(lifted.pos, 2000000 + 1112);
+		lifted = r.lift_tree("chrY", 1000000+1126, 1000000+1126);
+		S_EQUAL(lifted.chr().str(), "chrY");
+		I_EQUAL(lifted.start(), 2000000 + 1112);
 
-		IS_THROWN(ArgumentException, r.lift_list("chrY", 1000000+510));
+		IS_THROWN(ArgumentException, r.lift_tree("chrY", 1000000+510, 1000000+510));
 
-		lifted = r.lift_list("chrY", 1000000+1330);
-		S_EQUAL(lifted.chr.str(), "chrX");
-		I_EQUAL(lifted.pos, 3000000 + 4);
+		lifted = r.lift_tree("chrY", 1000000+1330, 1000000+1330);
+		S_EQUAL(lifted.chr().str(), "chrX");
+		I_EQUAL(lifted.start(), 3000000 + 4);
 
-		lifted = r.lift_list("chrY", 1001326 + 28);
-		S_EQUAL(lifted.chr.str(), "chrX");
-		I_EQUAL(lifted.pos, 3000000 + 29);
+		lifted = r.lift_tree("chrY", 1001326 + 28, 1001326 + 28);
+		S_EQUAL(lifted.chr().str(), "chrX");
+		I_EQUAL(lifted.start(), 3000000 + 29);
 	}
 
 	void test_bed_hg19Tohg38()
@@ -141,7 +299,7 @@ private slots:
 				int start = bed_parts[1].toInt()-1;
 				int end = bed_parts[2].toInt();
 
-				BedLine lifted = r.lift_list(chr, start, end);
+				BedLine lifted = r.lift_tree(chr, start, end);
 				lifted.setStart(lifted.start() +1);
 
 				QList<QByteArray> out_parts = out_line.split('\t');
@@ -281,7 +439,8 @@ private slots:
 		ChainFileReader r;
 		r.load(hg38_to_hg19);
 
-		QSharedPointer<QFile> bed = Helper::openFileForReading("C:/Users/ahott1a1/data/liftOver/NA12878_45_var.bed");
+//		QSharedPointer<QFile> bed = Helper::openFileForReading("C:/Users/ahott1a1/data/liftOver/NA12878_45_var.bed");
+		QSharedPointer<QFile> bed = Helper::openFileForReading("C:/Users/ahott1a1/data/liftOver/NA12878_45_var_zero_based.bed");
 		QSharedPointer<QFile> out = Helper::openFileForWriting("C:/Users/ahott1a1/data/liftOver/wrongly_mapped.bed");
 
 		int line = 0;
@@ -308,29 +467,21 @@ private slots:
 			in.setEnd(bed_parts[2].toInt());
 			BedLine lifted;
 			BedLine out_bed;
+
+			ArgumentException err = ArgumentException("Placeholder Error", "ChainFileReader_Test.h", 371);
+			bool actual_error = false;
 			try
 			{
-				//std::cout << "line " << line <<":" << bed_line.toStdString() << "\n";
-				lifted = r.lift_tree(in.chr(), in.start()-1, in.end());
+//				lifted = r.lift_list(in.chr(), in.start()-1, in.end());
+				lifted = r.lift_list(in.chr(), in.start(), in.end());
+
 			}
 			catch (ArgumentException e)
 			{
-				try
-				{
-					out_bed = liftOver(in.chr(), in.start(), in.end(), hg19_to_hg38);
-				}
-				catch(ArgumentException)
-				{
-					//std::cout << "Both throw errors fine.\n";
-					correct++;
-					continue;
-				}
-				error++;
-				std::cout << "Only my side encountered Argument exception." << e.message().toStdString() << "\n";
-				out->write(bed_line + "\tunexpected error on my side\n");
-				out->flush();
+				err = e;
+				actual_error = true;
 			}
-			lifted.setStart(lifted.start() +1);
+//			lifted.setStart(lifted.start() +1);
 
 			try
 			{
@@ -338,25 +489,43 @@ private slots:
 			}
 			catch (ArgumentException e)
 			{
-				wrong++;
-				std::cout << "Only server threw error.... " << e.message().toStdString() << "\n";
-				std::cout << "mine lifted: " << lifted.toString(true).toStdString() <<"\n";
-				out->write(bed_line + "\tserver threw error on my side lifted!\n");
+				if (actual_error)
+				{
+					// both threw error: ok
+					correct++;
+					continue;
+				}
+				else
+				{
+					wrong++;
+					std::cout << "Only server threw error.... " << e.message().toStdString() << "\n";
+					std::cout << "mine lifted: " << lifted.toString(true).toStdString() <<"\n";
+					out->write(bed_line + "\tserver threw error on my side lifted: " + e.message().toLatin1() + "\n");
+					out->flush();
+					continue;
+				}
+			}
+
+			if (actual_error)
+			{
+				error++;
+				std::cout << "Only my side encountered Argument exception." << err.message().toStdString() << "\n";
+				out->write(bed_line + "\tunexpected error on my side:" + err.message().toLatin1() + "\n");
 				out->flush();
-				continue;
 			}
 
 			if (lifted.chr() != out_bed.chr() || lifted.start() != out_bed.start() || lifted.end() != out_bed.end())
 			{
 				wrong++;
 				std::cout << "not the same coordinates!\n";
+				std::cout << "expected: " << out_bed.toString(true).toStdString() << "\n";
+				std::cout << "actual: " << lifted.toString(true).toStdString() << "\n";
 				out->write(bed_line + "\tmapped to different coordinates!\n");
 				out->flush();
 				continue;
 			}
 			correct++;
 		}
-		std::cout << "Positions wrongly mapped: " << wrong << "\n";
 	}
 
 private:
@@ -364,9 +533,6 @@ private:
 	{
 		//special handling of chrMT (they are the same for GRCh37 and GRCh38)
 		if (chr.strNormalized(true)=="chrMT") return BedLine(chr, start, end);
-
-		//convert start to BED format (0-based)
-		start -= 1;
 
 		//call lift-over webservice
 		QString url = "https://portal.img.med.uni-tuebingen.de/LiftOver/liftover.php?chr=" + chr.strNormalized(true) + "&start=" + QString::number(start) + "&end=" + QString::number(end);
@@ -379,9 +545,6 @@ private:
 		//convert output to region
 		BedLine region = BedLine::fromString(output);
 		if (!region.isValid()) THROW(ArgumentException, "genomic coordinate lift-over failed: Could not convert output '" + output + "' to valid region");
-
-		//revert to 1-based
-		region.setStart(region.start()+1);
 
 		return region;
 	}
