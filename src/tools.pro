@@ -444,7 +444,3 @@ CfDnaQC.depends = cppNGS
 SUBDIRS += VcfAnnotateFromBigWig
 tools-TEST.depends += VcfAnnotateFromBigWig
 VcfAnnotateFromBigWig.depends = cppNGS
-
-SUBDIRS += NGSDExportSV
-tools-TEST.depends += NGSDExportSV
-NGSDExportSV.depends = cppNGSD
