@@ -22,6 +22,7 @@ public:
 	virtual QStringList secondaryAnalyses(QString processed_sample_name, QString analysis_type) const override;
 
 	virtual FileLocation processedSamplePath(const QString& processed_sample_id, PathType type) const override;
+	virtual FileLocation analysisJobGSvarFile(const int& job_id) const override;
 
 protected:
 	QByteArray makeApiCall(QString url_param, bool ignore_if_missing) const;

@@ -291,7 +291,7 @@ private:
 	QList<ZoomLevel> zoom_levels_;
 	ChromosomeHeader chr_header;
 	IndexRTree index_tree_;
-	QHash<QString, ChromosomeItem> chromosomes;
+	QHash<QByteArray, ChromosomeItem> chromosomes_;
 	VersatileFile fp_;
 	QDataStream::ByteOrder byte_order_;
 	IntervalBuffer buffer_;

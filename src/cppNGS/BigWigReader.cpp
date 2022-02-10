@@ -4,6 +4,7 @@
 #include <iostream>
 #include <zlib.h>
 #include <Log.h>
+#include "Chromosome.h"
 
 
 BigWigReader::BigWigReader(const QString& bigWigFilepath)
@@ -69,7 +70,7 @@ bool BigWigReader::isLittleEndian() const
 
 bool BigWigReader::containsChromosome(const QByteArray& chr) const
 {
-	return chromosomes.contains(chr);
+	return chromosomes_.contains(chr);
 }
 
 float BigWigReader::readValue(const QByteArray& chr, int position, int offset)
@@ -138,7 +139,7 @@ QList<BigWigReader::OverlappingInterval> BigWigReader::getOverlappingIntervals(c
     quint32 chr_id;
     if (containsChromosome(chr))
     {
-        chr_id = chromosomes[chr].chrom_id;
+		chr_id = chromosomes_[chr].chrom_id;
     }
     else
     {
@@ -493,8 +494,8 @@ void BigWigReader::parseChromLeaf(quint16 num_items, quint32 key_size)
 	{
 		ChromosomeItem chr;
 		QByteArray bytes = fp_.read(key_size + 8);
-		chr.key = bytes.mid(0, key_size);
-		chr.key = chr.key.trimmed();
+		QString k =bytes.mid(0, key_size); // shorter than max length keys end with zero bytes that don't get trimmed normally
+		chr.key = Chromosome(k.toLatin1().trimmed()).strNormalized(true);
 
 		QDataStream ds(bytes.mid(key_size, bytes.length()));
 		ds.setByteOrder(byte_order_);
@@ -502,7 +503,7 @@ void BigWigReader::parseChromLeaf(quint16 num_items, quint32 key_size)
 		ds >> chr.chrom_id;
 		ds >> chr.chrom_size;
 
-		chromosomes.insert(chr.key, chr);
+		chromosomes_.insert(chr.key, chr);
 	}
 }
 
@@ -670,10 +671,10 @@ void BigWigReader::printChromHeader() const
 
 void BigWigReader::printChromosomes() const
 {
-	std::cout << "Chromosomes: #" << chromosomes.keys().length() <<"\n";
-	foreach (const QString &chr_key, chromosomes.keys())
+	std::cout << "Chromosomes: #" << chromosomes_.keys().length() <<"\n";
+	foreach (const QByteArray &chr_key, chromosomes_.keys())
 	{
-		std::cout << "chr: " <<  chromosomes[chr_key].key.toStdString() << " id: " << QString::number(chromosomes[chr_key].chrom_id).toStdString() << " size: " << QString::number(chromosomes[chr_key].chrom_size).toStdString() << "\tkey:\t" <<"'" << chr_key.toStdString() << "'" << "\n";
+		std::cout << "chr: " <<  chromosomes_[chr_key].key.toStdString() << "\tid: " << QByteArray::number(chromosomes_[chr_key].chrom_id).toStdString() << "\tsize: " << QByteArray::number(chromosomes_[chr_key].chrom_size).toStdString() << "\tkey: " <<"'" << chr_key.toStdString() << "'" << "\n";
 	}
 	std::cout << std::endl;
 }

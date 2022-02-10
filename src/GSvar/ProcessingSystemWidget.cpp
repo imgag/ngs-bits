@@ -58,10 +58,13 @@ void ProcessingSystemWidget::updateGUI()
 
 	try
 	{
-		GeneSet roi_genes = GlobalServiceProvider::database().processingSystemGenes(sys_id_, true);
-		if (!roi_genes.isEmpty())
+		if (ps_data.type!="WGS") //no genes file for WGS
 		{
-			ui_.roi_genes->setText(QString::number(roi_genes.count(), 'f', 0));
+			GeneSet roi_genes = GlobalServiceProvider::database().processingSystemGenes(sys_id_, true);
+			if (!roi_genes.isEmpty())
+			{
+				ui_.roi_genes->setText(QString::number(roi_genes.count(), 'f', 0));
+			}
 		}
 	}
 	catch (Exception& e)
