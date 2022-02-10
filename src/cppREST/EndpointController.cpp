@@ -45,74 +45,20 @@ HttpResponse EndpointController::serveStaticFromServerRoot(const HttpRequest& re
 
 HttpResponse EndpointController::serveStaticForTempUrl(const HttpRequest& request)
 {
-	QString served_file;
-	try
-	{
-		served_file = getServedTempPath(request.getPathParams());
-		qDebug() << "served_file" << served_file;
-	}
-	catch(Exception& e)
-	{
-		// Special case, when sending HEAD request for a file that does not exist
-		if (request.getMethod() == RequestMethod::HEAD)
-		{
-			return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), 0.0);
-		}
+	QString full_entity_path = getServedTempPath(request.getPathParams());
 
-		return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), e.message());
+	if ((!full_entity_path.isEmpty()) && (QFileInfo(full_entity_path).isDir()))
+	{
+		return serveFolderContent(full_entity_path, request.getPrefix(), request.getPath(), request.getPathParams());
 	}
 
-	if (QFileInfo(served_file).isDir())
-	{
-		return serveFolderContent(served_file, request.getPrefix(), request.getPath(), request.getPathParams());
-	}
-
-	return serveStaticFile(served_file, request.getMethod(), HttpProcessor::getContentTypeByFilename(served_file), request.getHeaders());
+	return serveStaticFile(full_entity_path, request.getMethod(), HttpProcessor::getContentTypeByFilename(full_entity_path), request.getHeaders());
 }
 
 HttpResponse EndpointController::serveStaticFileFromCache(const HttpRequest& request)
 {
 	QString filename = FileCache::getFileById(request.getPathParams()[0]).filename_with_path;
 	return createStaticFromCacheResponse(filename, QList<ByteRange>{}, HttpProcessor::getContentTypeByFilename(filename), false);
-}
-
-HttpResponse EndpointController::getFileInfo(const HttpRequest& request)
-{
-	QString filename = request.getUrlParams()["file"];
-	if (request.getUrlParams()["file"].toLower().startsWith("http"))
-	{
-		QList<QString> url_parts = request.getUrlParams()["file"].split("/");
-		if (url_parts.size() > 0)
-		{
-			UrlEntity current_entity = UrlManager::getURLById(url_parts[url_parts.size()-2]);
-			if (!current_entity.path.isEmpty())
-			{
-				filename = current_entity.path + QDir::separator() + url_parts[url_parts.size()-1];
-			}
-		}
-	}
-
-	if (!QFile(filename).exists())
-	{
-		return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "File does not exist: " + filename);
-	}
-
-	QJsonDocument json_doc_output {};
-	QJsonObject json_object {};
-	json_object.insert("absolute_path", QFileInfo(filename).absolutePath());
-	json_object.insert("base_name", QFileInfo(filename).baseName());
-	json_object.insert("file_name", QFileInfo(filename).fileName());
-	json_object.insert("last_modified", QString::number(QFileInfo(filename).lastModified().toSecsSinceEpoch()));
-	json_object.insert("exists", QFileInfo(filename).exists());
-
-	json_doc_output.setObject(json_object);
-
-	BasicResponseData response_data;
-	response_data.length = json_doc_output.toJson().length();
-	response_data.content_type = ContentType::APPLICATION_JSON;
-	response_data.is_downloadable = false;
-
-	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
 HttpResponse EndpointController::createStaticFileRangeResponse(QString filename, QList<ByteRange> byte_ranges, ContentType type, bool is_downloadable)
@@ -226,31 +172,26 @@ HttpResponse EndpointController::serveFolderContent(QString path, QString reques
 
 HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod method, ContentType content_type, QMap<QString, QList<QString>> headers)
 {
-	qDebug() << "Serving static file " << filename << ", " << filename.isEmpty();
 	if ((filename.isEmpty()) || ((!filename.isEmpty()) && (!QFile::exists(filename))))
 	{
-		qDebug() << "File does not exist";
 		// Special case, when sending HEAD request for a file that does not exist
 		if (method == RequestMethod::HEAD)
 		{
 			return HttpResponse(ResponseStatus::NOT_FOUND, content_type, 0.0);
 		}
 
-		return HttpResponse(ResponseStatus::NOT_FOUND, content_type, "Requested file does not exist");
-	}
-	if (!QFile::exists(filename))
-	{
-		// Special case, when sending HEAD request for a file that does not exist
-		if (method == RequestMethod::HEAD)
-		{
-			return HttpResponse(ResponseStatus::NOT_FOUND, content_type, 0.0);
-		}
-
-		return HttpResponse(ResponseStatus::NOT_FOUND, content_type, "Requested file does not exist");
+		return HttpResponse(ResponseStatus::NOT_FOUND, content_type, "Requested could not be found");
 	}
 
 	quint64 file_size = QFileInfo(filename).size();
 
+	// Client wants to see only the size of the requested file (not its content)
+	if (method == RequestMethod::HEAD)
+	{
+		return HttpResponse(ResponseStatus::OK, HttpProcessor::getContentTypeByFilename(filename), file_size);
+	}
+
+	// Random read functionality based on byte-range headers
 	if (headers.contains("range"))
 	{
 		QList<ByteRange> byte_ranges;
@@ -325,19 +266,8 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 		return createStaticFileRangeResponse(filename, byte_ranges, HttpProcessor::getContentTypeByFilename(filename), false);
 	}
 
-	// Client wants to see only the size of the requested file (not its content)
-	if (method == RequestMethod::HEAD)
-	{
-		BasicResponseData response_data;
-		response_data.length = QFileInfo(filename).size();
-		response_data.filename = filename;
-		response_data.file_size = QFileInfo(filename).size();
-		response_data.content_type = HttpProcessor::getContentTypeByFilename(filename);
-		response_data.is_stream = false;
 
-		return HttpResponse(response_data);
-	}
-
+	// Stream the content of the entire file
 	return createStaticStreamResponse(filename, false);
 }
 
@@ -418,19 +348,20 @@ QString EndpointController::generateHelpPage(const QString& path)
 
 QString EndpointController::getServedTempPath(QList<QString> path_parts)
 {
+	QString full_entity_path = "";
 	if (path_parts.size() < 1)
 	{
-		THROW(Exception, "Not path has been provided in temporary URL");
+		return full_entity_path;
 	}
 
 	UrlEntity url_entity = UrlManager::getURLById(path_parts[0]);
 	if (!url_entity.filename_with_path.isEmpty())
 	{
 		path_parts.removeAt(0);
-		return QFileInfo(url_entity.filename_with_path).absolutePath() + QDir::separator() + path_parts.join(QDir::separator());
+		full_entity_path = QFileInfo(url_entity.filename_with_path).absolutePath() + QDir::separator() + path_parts.join(QDir::separator());
 	}
 
-	return "";
+	return full_entity_path;
 }
 
 QString EndpointController::getServedRootPath(const QList<QString>& path_parts)
