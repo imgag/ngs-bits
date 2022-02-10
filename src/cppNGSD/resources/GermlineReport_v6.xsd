@@ -638,7 +638,7 @@
 									</xs:attribute>
 									<xs:attribute name="hgvs_end" type="xs:string">
 										<xs:annotation>
-											<xs:documentation>manually cutated HGVS start position</xs:documentation>
+											<xs:documentation>manually cutated HGVS end position</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="type" use="required">
@@ -895,7 +895,7 @@
 									</xs:attribute>
 									<xs:attribute name="hgvs_end" type="xs:string">
 										<xs:annotation>
-											<xs:documentation>manually cutated HGVS start position</xs:documentation>
+											<xs:documentation>manually cutated HGVS end position</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="genotype" use="required">
