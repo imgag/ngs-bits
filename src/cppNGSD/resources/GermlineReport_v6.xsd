@@ -631,6 +631,16 @@
 											<xs:documentation>cytogenetic band end position</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
+									<xs:attribute name="hgvs_start" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>manually cutated HGVS start position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="hgvs_end" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>manually cutated HGVS start position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
 									<xs:attribute name="type" use="required">
 										<xs:annotation>
 											<xs:documentation>cnv type</xs:documentation>
@@ -876,6 +886,16 @@
 									<xs:attribute name="end_band" type="xs:string" use="required">
 										<xs:annotation>
 											<xs:documentation>cytogenetic band end position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="hgvs_start" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>manually cutated HGVS start position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="hgvs_end" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>manually cutated HGVS start position</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="genotype" use="required">
