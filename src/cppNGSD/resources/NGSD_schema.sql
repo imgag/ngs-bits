@@ -321,7 +321,7 @@ CREATE  TABLE IF NOT EXISTS `user`
   `password` VARCHAR(64) NOT NULL,
   `user_role` ENUM('user','admin','special') NOT NULL,
   `name` VARCHAR(45) NOT NULL,
-  `email` VARCHAR(45) NOT NULL,
+  `email` VARCHAR(100) NOT NULL,
   `created` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_login` DATETIME NULL DEFAULT NULL,
   `active` TINYINT(1) DEFAULT 1 NOT NULL,
