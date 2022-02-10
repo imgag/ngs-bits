@@ -27,7 +27,6 @@ private slots:
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_18 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv") + " -var_force -cnv_force");
 		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line27.log", QRegExp("^WARNING: transactions"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line27.log", TESTDATA("data_out/NGSDAddVariantsGermline_out2.log"));
-
 	}
 
 	//ClinCNV cnvs
@@ -82,7 +81,7 @@ private slots:
 		I_EQUAL(count, 1);
 
 		//check log
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line59.log", TESTDATA("data_out/NGSDAddVariantsGermline_out56.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line67.log", TESTDATA("data_out/NGSDAddVariantsGermline_out56.log"));
 	}
 
 
@@ -116,8 +115,8 @@ private slots:
 		I_EQUAL(count, 1);
 
 		//check log
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line90.log", TESTDATA("data_out/NGSDAddVariantsGermline_out87.log"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line93.log", TESTDATA("data_out/NGSDAddVariantsGermline_out90.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line98.log", TESTDATA("data_out/NGSDAddVariantsGermline_out87.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line101.log", TESTDATA("data_out/NGSDAddVariantsGermline_out90.log"));
 	}
 
 
@@ -151,8 +150,8 @@ private slots:
 		I_EQUAL(count, 1);
 
 		//check log
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line125.log", TESTDATA("data_out/NGSDAddVariantsGermline_out122.log"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line128.log", TESTDATA("data_out/NGSDAddVariantsGermline_out125.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line133.log", TESTDATA("data_out/NGSDAddVariantsGermline_out122.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line136.log", TESTDATA("data_out/NGSDAddVariantsGermline_out125.log"));
 	}
 
 	void import_with_existing_report_config()
@@ -187,8 +186,8 @@ private slots:
 		I_EQUAL(count, 0);
 
 		//check log
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line161.log", TESTDATA("data_out/NGSDAddVariantsGermline_out158.log"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line162.log", TESTDATA("data_out/NGSDAddVariantsGermline_out159.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line169.log", TESTDATA("data_out/NGSDAddVariantsGermline_out158.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line170.log", TESTDATA("data_out/NGSDAddVariantsGermline_out159.log"));
 	}
 };
 
