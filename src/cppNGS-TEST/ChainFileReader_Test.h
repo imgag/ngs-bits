@@ -56,7 +56,7 @@ private slots:
 			}
 			catch (Exception& e)
 			{
-				std::cout << e.message().toStdString() << "\n";
+//				std::cout << e.message().toStdString() << "\n";
 				actual_error = true;
 			}
 

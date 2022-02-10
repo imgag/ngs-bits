@@ -117,19 +117,32 @@ struct GenomicAlignment
 		for (int i=0; i<alignment.size(); i++)
 		{
 			const AlignmentLine& line = alignment[i];
-//			std::cout << "current pos: " << ref_current_pos << " - current_q_pos: " << q_current_pos  << " - line size: " << line.size << "\t- line ref_dt: " << line.ref_dt << "\t- line q_dt: " << line.q_dt <<"\n";
+			std::cout << "current pos: " << ref_current_pos << " - current_q_pos: " << q_current_pos  << " - line size: " << line.size << "\t- line ref_dt: " << line.ref_dt << "\t- line q_dt: " << line.q_dt <<"\n";
 			// try to lift start and end:
 			if (ref_current_pos <= start && ref_current_pos + line.size >= start)
 			{
-//				std::cout << "start current pos in alignment: " << ref_current_pos << " - line size: " << line.size << "\n";
+				std::cout << "start current pos in alignment: " << ref_current_pos << " - line size: " << line.size << "\n";
 				lifted_start = q_current_pos + (start - ref_current_pos);
 
+			}
+			// if start was in an unmapped or deleted region of the last alignment line - take the next possible position:
+			if (ref_current_pos > start && lifted_start == -1)
+			{
+				std::cout << "start in unmapped: " << "\n";
+				lifted_start = q_current_pos;
 			}
 			//it's not in the same alignment piece but there is no gap in the reference:
 			if (ref_current_pos <= end && ref_current_pos + line.size >= end)
 			{
-//				std::cout << "end current pos in alignment: " << ref_current_pos << " - line size: " << line.size << "\n";
+				std::cout << "end current pos in alignment: " << ref_current_pos << " - line size: " << line.size << "\n";
 				lifted_end = q_current_pos + (end - ref_current_pos);
+			}
+
+			// if end is in the next unmapped region - take the last possible position:
+			if (ref_current_pos +line.size < end && end < ref_current_pos +line.size + line.ref_dt && lifted_end == -1)
+			{
+				std::cout << "end in unmapped: " << "\n";
+				lifted_end = q_current_pos + line.size;
 			}
 
 			ref_current_pos += line.size;
@@ -332,6 +345,7 @@ private:
 
 	QString filepath_;
 	QSharedPointer<QFile> fp_;
+	double percent_deletion_;
 
 //	QHash<Chromosome, QList<GenomicAlignment>> chromosomes_list;
 	QHash<Chromosome, IntervalTree> chromosomes_tree;

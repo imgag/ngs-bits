@@ -4,7 +4,7 @@
 
 ChainFileReader::ChainFileReader()
 {
-
+	percent_deletion_ = 0.05;
 }
 
 
@@ -32,39 +32,39 @@ void ChainFileReader::testing()
 
 BedLine ChainFileReader::lift_tree(const Chromosome& chr, int start, int end) const
 {
-	if (end <= start)
-	{
-		THROW(ArgumentException, "End is smaller or equal to start!");
-	}
+//	if (end <= start)
+//	{
+//		THROW(ArgumentException, "End is smaller or equal to start!");
+//	}
 
-	if ( ! chromosomes_tree.contains(chr))
-	{
-		THROW(ArgumentException, "Position to lift is in unknown chromosome. Tried to lift: " + chr.strNormalized(true));
-	}
-	if (start < 0 || end > ref_chrom_sizes_[chr])
-	{
-		THROW(ArgumentException, "Position to lift is outside of the chromosome size for chromosome. Tried to lift: " + chr.strNormalized(true) +": " + QByteArray::number(start) + "-" + QByteArray::number(end));
-	}
+//	if ( ! chromosomes_tree.contains(chr))
+//	{
+//		THROW(ArgumentException, "Position to lift is in unknown chromosome. Tried to lift: " + chr.strNormalized(true));
+//	}
+//	if (start < 0 || end > ref_chrom_sizes_[chr])
+//	{
+//		THROW(ArgumentException, "Position to lift is outside of the chromosome size for chromosome. Tried to lift: " + chr.strNormalized(true) +": " + QByteArray::number(start) + "-" + QByteArray::number(end));
+//	}
 
-	//get alignments that overlap with the given region
-	QList<GenomicAlignment> alignments = chromosomes_tree[chr].query(start, end);
+//	//get alignments that overlap with the given region
+//	QList<GenomicAlignment> alignments = chromosomes_tree[chr].query(start, end);
 
-//	std::cout << "Alignments found: " << alignments.size() << "\n";
+////	std::cout << "Alignments found: " << alignments.size() << "\n";
 
-	foreach(const GenomicAlignment& a, alignments)
-	{
-		//std::cout << a.toString(false).toStdString() << "\n";
-		BedLine result = a.lift(start, end);
+//	foreach(const GenomicAlignment& a, alignments)
+//	{
+//		//std::cout << a.toString(false).toStdString() << "\n";
+//		BedLine result = a.lift(start, end);
 
-		if (result.start() == -1)
-		{
-			continue;
-		}
-		else
-		{
-			return result;
-		}
-	}
+//		if (result.start() == -1)
+//		{
+//			continue;
+//		}
+//		else
+//		{
+//			return result;
+//		}
+//	}
 
 	THROW(ArgumentException, "Region is unmapped.");
 }
@@ -95,25 +95,41 @@ BedLine ChainFileReader::lift_list(const Chromosome& chr, int start, int end) co
 			continue;
 		}
 
-//		std::cout << "\n" << a.toString(false).toStdString() << "\n";
+		std::cout << "\n" << a.toString(false).toStdString() << "\n";
 
 
 		BedLine result = a.lift(start, end);
 
 //		std::cout << result.toString(true).toStdString() << "\n\n";
 
-		if (result.start() == -1)
+		if (result.start() == -1 || result.end() - result.start() == 0)
 		{
 			continue;
 		}
 		else
 		{
-			result.setEnd(result.end());
+			std::cout << "Lifted:" << result.toString(true).toStdString() << "\n";
+			// test if too much of the region was deleted:
+			if ((end-start) != (result.end() - result.start()) && (end-start) - (result.end() - result.start()) > std::ceil(percent_deletion_*(end-start)))
+			{
+//				std::cout << "Lifted is too short:" << result.toString(true).toStdString() << "\n";
+				continue;
+
+				THROW(ArgumentException, "Region is partially deleted. Missing more than " + QByteArray::number(percent_deletion_*100) + "% of its length.");
+			}
+
+//			if ((end-start) != (result.end() - result.start()) && (result.end() - result.start()) - (end-start) > std::ceil(percent_deletion_*(end-start)))
+//			{
+////				std::cout << "Lifted is too long:" << result.toString(true).toStdString() << "\n";
+//				continue;
+
+//				THROW(ArgumentException, "Region is contains big insertion. Increase by more than " + QByteArray::number(percent_deletion_*100) + "% of its length.");
+//			}
 			return result;
 		}
 	}
 
-	THROW(ArgumentException, "Region is unmapped.");
+	THROW(ArgumentException, "Region is unmapped or size differs by more than " + QByteArray::number(percent_deletion_*100) + "% of its length.");
 }
 
 //BedLine ChainFileReader::lift_index(const Chromosome& chr, int start, int end) const
