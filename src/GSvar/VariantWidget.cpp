@@ -25,6 +25,7 @@ VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	connect(ui_.class_btn, SIGNAL(clicked(bool)), this, SLOT(editClassification()));
 	connect(ui_.transcripts, SIGNAL(linkActivated(QString)), this, SLOT(openGeneTab(QString)));
 	connect(ui_.af_gnomad, SIGNAL(linkActivated(QString)), this, SLOT(gnomadClicked(QString)));
+	connect(ui_.pubmed, SIGNAL(linkActivated(QString)), this, SLOT(pubmedClicked(QString)));
 
 	//add sample table context menu entries
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
@@ -69,6 +70,24 @@ void VariantWidget::updateGUI()
 		lines << "<a href=\"" + trans.gene + "\">" + trans.gene + "</a> " + trans.id + ": " + trans.type + " " + trans.hgvs_c + " " + trans.hgvs_p;
 	}
 	ui_.transcripts->setText(lines.join("<br>"));
+
+	//PubMed ids
+	QStringList pubmed_ids = db.pubmedIds(variant_id);
+	QStringList pubmed_links;
+	foreach (const QString& id, pubmed_ids)
+	{
+		pubmed_links << "<a href=\"https://pubmed.ncbi.nlm.nih.gov/" + id + "/" "\">" + id + "</a>";
+	}
+
+	QString open_all;
+	if (pubmed_ids.size() > 2)
+	{
+		open_all = "<br><a href=\"openAll\"><i>(open all (" + QString::number(pubmed_ids.size()) + " ids))</i></a>";
+	}
+	ui_.pubmed->setText(pubmed_links.join(", ") + open_all);
+	ui_.pubmed->setToolTip(pubmed_ids.join(", "));
+
+
 	//classification
 	ClassificationInfo class_info = db.getClassification(variant_);
 	ui_.classification->setText(class_info.classification);
@@ -339,5 +358,22 @@ void VariantWidget::gnomadClicked(QString var_id)
 	Variant v = db.variant(var_id);
 	QString link = GSvarHelper::gnomADLink(v, GSvarHelper::build());
 	QDesktopServices::openUrl(QUrl(link));
+}
+
+void VariantWidget::pubmedClicked(QString link)
+{
+	if (link.startsWith("http")) //transcript
+	{
+		QDesktopServices::openUrl(QUrl(link));
+	}
+	else //gene
+	{
+		//open all publications
+		QStringList pubmed_ids = ui_.pubmed->toolTip().split(", ");
+		foreach (QString id, pubmed_ids)
+		{
+			QDesktopServices::openUrl(QUrl("https://pubmed.ncbi.nlm.nih.gov/" + id + "/"));
+		}
+	}
 }
 

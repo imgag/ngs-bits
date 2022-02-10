@@ -2107,3 +2107,23 @@ UNIQUE INDEX(`gene_name`)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `variant_literature`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `variant_literature`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `variant_id` INT(11) NOT NULL,
+  `pubmed` VARCHAR(12) CHARACTER SET 'utf8' NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX(`variant_id`),
+  UNIQUE INDEX `variant_literature_UNIQUE` (`variant_id` ASC, `pubmed` ASC),
+  CONSTRAINT `variant_literature_variant_id`
+    FOREIGN KEY (`variant_id`)
+    REFERENCES `variant` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
