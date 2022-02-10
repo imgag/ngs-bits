@@ -11,6 +11,22 @@ TEST_CLASS(ChainFileReader_Test)
 Q_OBJECT
 private slots:
 
+	void createTestBed()
+	{
+		QSharedPointer<QFile> out = Helper::openFileForWriting("C:/Users/ahott1a1/data/liftOver/test_regions.bed");
+		BedLine line;
+		line.setChr("chr1");
+		int prev_start = 177316;
+		for (int i=0; i<200; i++)
+		{
+			line.setStart(prev_start+1);
+			line.setEnd(line.start()+100);
+
+			prev_start = line.start();
+			out->write(line.toString(false).toLatin1() + "\n");
+		}
+	}
+
 	void wrong()
 	{
 		QString hg38_to_hg19 = "C:/Users/ahott1a1/data/liftOver/hg38ToHg19.over.chain";
@@ -40,7 +56,7 @@ private slots:
 			}
 			catch (Exception& e)
 			{
-//				std::cout << e.message().toStdString() << "\n";
+				std::cout << e.message().toStdString() << "\n";
 				actual_error = true;
 			}
 
@@ -95,9 +111,14 @@ private slots:
 		r.load(hg38_to_hg19);
 
 
-		QSharedPointer<QFile> bed = Helper::openFileForReading("C:/Users/ahott1a1/data/liftOver/NA12878_45_var_zero_based.bed");
-		QSharedPointer<QFile> expected = Helper::openFileForReading("C:/Users/ahott1a1/data/liftOver/NA12878_45_var_zero_based_lifted_to_hg19_REF.bed");
+//		QSharedPointer<QFile> bed = Helper::openFileForReading("C:/Users/ahott1a1/data/liftOver/NA12878_45_var_zero_based.bed");
+//		QSharedPointer<QFile> expected = Helper::openFileForReading("C:/Users/ahott1a1/data/liftOver/NA12878_45_var_zero_based_lifted_to_hg19_REF.bed");
+		QSharedPointer<QFile> bed = Helper::openFileForReading("C:/Users/ahott1a1/data/liftOver/NA12878_45_var.bed");
+		QSharedPointer<QFile> expected = Helper::openFileForReading("C:/Users/ahott1a1/data/liftOver/NA12878_45_var_lifted_to_hg19_REF.bed");
+
+
 		QSharedPointer<QFile> out = Helper::openFileForWriting("C:/Users/ahott1a1/data/liftOver/wrongly_mapped.bed");
+//		QSharedPointer<QFile> lifted = Helper::openFileForWriting("C:/Users/ahott1a1/data/liftOver/NA12878_45_var_lifted.bed");
 
 		int count = 0;
 		BedLine last;
@@ -106,7 +127,7 @@ private slots:
 			count++;
 
 //			if(count % 500000 == 0)
-			if(count % 1 == 0)
+			if(count % 1000 == 0)
 			{
 				std::cout << "Line: " << count << "\n";
 			}
@@ -127,14 +148,18 @@ private slots:
 
 			if (ref.chr() != actual.chr() || ref.start() != actual.start() || ref.end() != actual.end())
 			{
-				std::cout << "Mismatch!\n";
+				std::cout << "line: " << count << "  - Mismatch!\n";
+				std::cout << "to lift:  " << bed_line.toString(true).toStdString() << "\n";
+				std::cout << "lifted :  " << actual.toString(true).toStdString() << "\n";
+				std::cout << "expected: " << ref.toString(true).toStdString() << "\n";
+
 				out->write(last.toString(false).toLatin1() + "\n");
 				out->write(bed_line.toString(false).toLatin1() + "\n");
 				break;
 
 			}
 
-			//out->write(actual.toString(false).toLatin1() + "\n");
+//			lifted->write(actual.toString(false).toLatin1() + "\n");
 			last = bed_line;
 
 		}
@@ -440,7 +465,9 @@ private slots:
 		r.load(hg38_to_hg19);
 
 //		QSharedPointer<QFile> bed = Helper::openFileForReading("C:/Users/ahott1a1/data/liftOver/NA12878_45_var.bed");
-		QSharedPointer<QFile> bed = Helper::openFileForReading("C:/Users/ahott1a1/data/liftOver/NA12878_45_var_zero_based.bed");
+//		QSharedPointer<QFile> bed = Helper::openFileForReading("C:/Users/ahott1a1/data/liftOver/NA12878_45_var_zero_based.bed");
+		QSharedPointer<QFile> bed = Helper::openFileForReading("C:/Users/ahott1a1/data/liftOver/test_regions.bed");
+
 		QSharedPointer<QFile> out = Helper::openFileForWriting("C:/Users/ahott1a1/data/liftOver/wrongly_mapped.bed");
 
 		int line = 0;
@@ -492,6 +519,7 @@ private slots:
 				if (actual_error)
 				{
 					// both threw error: ok
+					std::cout << "both error.\n";
 					correct++;
 					continue;
 				}

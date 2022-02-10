@@ -49,7 +49,7 @@ BedLine ChainFileReader::lift_tree(const Chromosome& chr, int start, int end) co
 	//get alignments that overlap with the given region
 	QList<GenomicAlignment> alignments = chromosomes_tree[chr].query(start, end);
 
-	//std::cout << "Alignments found: " << alignments.size() << "\n";
+//	std::cout << "Alignments found: " << alignments.size() << "\n";
 
 	foreach(const GenomicAlignment& a, alignments)
 	{
@@ -87,7 +87,6 @@ BedLine ChainFileReader::lift_list(const Chromosome& chr, int start, int end) co
 
 	//get alignments that overlap with the given region
 	QList<GenomicAlignment> alignments = chromosomes_list[chr];
-	//std::cout << "Count of overlapping alignments:" << alignments.count() << "\n";
 
 	foreach(const GenomicAlignment& a, alignments)
 	{
@@ -97,6 +96,8 @@ BedLine ChainFileReader::lift_list(const Chromosome& chr, int start, int end) co
 		}
 
 //		std::cout << "\n" << a.toString(false).toStdString() << "\n";
+
+
 		BedLine result = a.lift(start, end);
 
 //		std::cout << result.toString(true).toStdString() << "\n\n";

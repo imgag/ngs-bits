@@ -113,30 +113,29 @@ struct GenomicAlignment
 		int ref_current_pos = ref_start;
 		int q_current_pos = q_start;
 
-		// change end to the base included in the region:
-		end--;
-		std::cout << "start: " << start << " - end:" << end << "\n";
-		foreach(const AlignmentLine& line, alignment)
+//		std::cout << "start: " << start << " - end:" << end << "\n";
+		for (int i=0; i<alignment.size(); i++)
 		{
-
-			std::cout << "current pos: " << ref_current_pos << " - line size: " << line.size << " - line ref_dt: " << line.ref_dt <<"\n";
+			const AlignmentLine& line = alignment[i];
+//			std::cout << "current pos: " << ref_current_pos << " - current_q_pos: " << q_current_pos  << " - line size: " << line.size << "\t- line ref_dt: " << line.ref_dt << "\t- line q_dt: " << line.q_dt <<"\n";
 			// try to lift start and end:
-			if (ref_current_pos <= start && ref_current_pos + line.size > start)
+			if (ref_current_pos <= start && ref_current_pos + line.size >= start)
 			{
-				std::cout << "start current pos in alignment: " << ref_current_pos << " - line size: " << line.size << "\n";
+//				std::cout << "start current pos in alignment: " << ref_current_pos << " - line size: " << line.size << "\n";
 				lifted_start = q_current_pos + (start - ref_current_pos);
-			}
 
-			if (ref_current_pos <= end && ref_current_pos + line.size > end)
+			}
+			//it's not in the same alignment piece but there is no gap in the reference:
+			if (ref_current_pos <= end && ref_current_pos + line.size >= end)
 			{
-				std::cout << "end   current pos in alignment: " << ref_current_pos << " - line size: " << line.size << "\n";
+//				std::cout << "end current pos in alignment: " << ref_current_pos << " - line size: " << line.size << "\n";
 				lifted_end = q_current_pos + (end - ref_current_pos);
 			}
 
 			ref_current_pos += line.size;
 			q_current_pos += line.size;
 
-			// break when the current position is after the end:
+			// break when the current position is after the start:
 			if (ref_current_pos > end)
 			{
 				break;
@@ -153,12 +152,13 @@ struct GenomicAlignment
 		{
 			if (q_on_plus)
 			{
-				return BedLine(q_chr, lifted_start, lifted_end+1);
+//				std::cout << "plus strand!\n";
+				return BedLine(q_chr, lifted_start, lifted_end);
 			}
 			else
 			{
-
-				return BedLine(q_chr, (q_chr_size-1)- lifted_end, (q_chr_size-1)- lifted_start+1);
+//				std::cout << "minus strand!\n";
+				return BedLine(q_chr, q_chr_size- lifted_end, q_chr_size- lifted_start);
 			}
 		}
 		else
