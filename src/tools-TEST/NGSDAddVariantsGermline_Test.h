@@ -27,6 +27,7 @@ private slots:
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_18 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv") + " -var_force -cnv_force");
 		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line27.log", QRegExp("^WARNING: transactions"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line27.log", TESTDATA("data_out/NGSDAddVariantsGermline_out2.log"));
+
 	}
 
 	//ClinCNV cnvs
@@ -44,6 +45,14 @@ private slots:
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_38 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in2.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in2.tsv"));
 		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line44.log", QRegExp("^WARNING: transactions"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line44.log", TESTDATA("data_out/NGSDAddVariantsGermline_out3.log"));
+
+		//check if PubMed ids are imported
+		Variant var = Variant(Chromosome("chrX"), 155255024, 155255024, "C", "T");
+		QString var_id = db.variantId(var);
+		QStringList pubmed_ids = db.pubmedIds(var_id);
+		pubmed_ids.sort();
+		S_EQUAL(pubmed_ids.at(0), "12345678");
+		S_EQUAL(pubmed_ids.at(1), "87654321")
 	}
 
 	void sv_default_import()
