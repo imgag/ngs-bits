@@ -105,45 +105,90 @@ struct GenomicAlignment
 	{
 	}
 
-	BedLine lift(int start, int end) const
+	BedLine lift(int start, int end, double percent_deletion) const
 	{
 		int lifted_start = -1;
 		int lifted_end = -1;
+		int sum_of_ref_dt = 0;
 
 		int ref_current_pos = ref_start;
 		int q_current_pos = q_start;
 
-//		std::cout << "start: " << start << " - end:" << end << "\n";
+		bool start_was_in_unmapped = false;
+
+		bool debug = false;
+
+		if (debug) std::cout << "start: " << start << " - end:" << end << "\n";
+
+
+		// Test if part of the query region is outside of the alignment.
+		if (ref_start >= start)
+		{
+			if (debug) std::cout << "Set lifted start before beginning as it was smaller than ref_start!\n";
+			lifted_start = q_current_pos;
+			sum_of_ref_dt += ref_current_pos - start;
+		}
+
+		if (ref_end <= end)
+		{
+			if (debug) std::cout << "Set lifted end before beginning as it was bigger than ref_end!\n";
+			lifted_end = q_end;
+			sum_of_ref_dt += end - ref_end;
+		}
+
 		for (int i=0; i<alignment.size(); i++)
 		{
 			const AlignmentLine& line = alignment[i];
-			std::cout << "current pos: " << ref_current_pos << " - current_q_pos: " << q_current_pos  << " - line size: " << line.size << "\t- line ref_dt: " << line.ref_dt << "\t- line q_dt: " << line.q_dt <<"\n";
+
+			if (debug) std::cout << "current pos: " << ref_current_pos << " - current_q_pos: " << q_current_pos  << " - line size: " << line.size << "\t- line ref_dt: " << line.ref_dt << "\t- line q_dt: " << line.q_dt <<"\n";
 			// try to lift start and end:
-			if (ref_current_pos <= start && ref_current_pos + line.size >= start)
-			{
-				std::cout << "start current pos in alignment: " << ref_current_pos << " - line size: " << line.size << "\n";
-				lifted_start = q_current_pos + (start - ref_current_pos);
 
-			}
-			// if start was in an unmapped or deleted region of the last alignment line - take the next possible position:
-			if (ref_current_pos > start && lifted_start == -1)
+			if (lifted_start == -1)
 			{
-				std::cout << "start in unmapped: " << "\n";
-				lifted_start = q_current_pos;
-			}
-			//it's not in the same alignment piece but there is no gap in the reference:
-			if (ref_current_pos <= end && ref_current_pos + line.size >= end)
-			{
-				std::cout << "end current pos in alignment: " << ref_current_pos << " - line size: " << line.size << "\n";
-				lifted_end = q_current_pos + (end - ref_current_pos);
+				if (ref_current_pos <= start && ref_current_pos + line.size >= start)
+				{
+					if (line.ref_dt == 0 && ref_current_pos + line.size == start)
+					{
+						lifted_start = q_current_pos + (start - ref_current_pos) + line.q_dt;
+					}
+					else
+					{
+						lifted_start = q_current_pos + (start - ref_current_pos);
+					}
+
+
+					if (debug) std::cout << "start current pos in alignment: " << ref_current_pos << " - line size: " << line.size << " - lifted_start: " << lifted_start <<"\n";
+
+				}
+				 //if start is in the next unmapped or deleted region of the last alignment line - take the next possible position:
+				if (ref_current_pos + line.size < start && start < ref_current_pos +line.size + line.ref_dt)
+				{
+					sum_of_ref_dt += (ref_current_pos + line.size + line.ref_dt) - start;
+					lifted_start = q_current_pos + line.size + line.q_dt;
+					start_was_in_unmapped = true;
+					if (debug) std::cout << "start in unmapped - lifted_start: " << lifted_start << " - added to ref_dt: " << (ref_current_pos + line.size + line.ref_dt) - start <<"\n";
+				}
 			}
 
-			// if end is in the next unmapped region - take the last possible position:
-			if (ref_current_pos +line.size < end && end < ref_current_pos +line.size + line.ref_dt && lifted_end == -1)
+			if (lifted_end == -1)
 			{
-				std::cout << "end in unmapped: " << "\n";
-				lifted_end = q_current_pos + line.size;
+				//it's not in the same alignment piece but there is no gap in the reference:
+				if (ref_current_pos <= end && ref_current_pos + line.size >= end)
+				{
+					lifted_end = q_current_pos + (end - ref_current_pos);
+					if (debug) std::cout << "end current pos in alignment: " << ref_current_pos << " - line size: " << line.size << " - lifted_end: " << lifted_end << "\n";
+				}
+
+				// if end is in the next unmapped region - take the last possible position:
+				if (ref_current_pos +line.size < end && end < ref_current_pos +line.size + line.ref_dt)
+				{
+
+					sum_of_ref_dt += end - (ref_current_pos +line.size); // amount the end is "pulled forward"
+					lifted_end = q_current_pos + line.size;
+					if (debug) std::cout << "end in unmapped - lifted_end: " << lifted_end << " - added to ref_dt: " << end - (ref_current_pos +line.size) <<"\n";
+				}
 			}
+
 
 			ref_current_pos += line.size;
 			q_current_pos += line.size;
@@ -155,22 +200,32 @@ struct GenomicAlignment
 			}
 			else
 			{
+				if(lifted_start != -1 && lifted_end == -1 && ! start_was_in_unmapped)
+				{
+					sum_of_ref_dt += line.ref_dt;
+				}
+				start_was_in_unmapped = false;
 				ref_current_pos += line.ref_dt;
 				q_current_pos += line.q_dt;
 			}
 
 		}
-
+		if (debug) std::cout << "sum of ref_dt: " << sum_of_ref_dt << " - expected to be smaller than: " << percent_deletion * (end-start) << "\n";
 		if (lifted_start != -1 && lifted_end != -1)
 		{
+
+			if (sum_of_ref_dt > percent_deletion * (end-start)) // !Certain that it's 5 percent and > (not >=) and not rounded!
+			{
+				return BedLine("", -1, -1);
+//				THROW(ArgumentException, "Inside lifting: Too much deletion in the region (sum of ref_dt > 5% of length)")
+			}
+
 			if (q_on_plus)
 			{
-//				std::cout << "plus strand!\n";
 				return BedLine(q_chr, lifted_start, lifted_end);
 			}
 			else
 			{
-//				std::cout << "minus strand!\n";
 				return BedLine(q_chr, q_chr_size- lifted_end, q_chr_size- lifted_start);
 			}
 		}
@@ -183,6 +238,7 @@ struct GenomicAlignment
 			}
 
 			// One was lifted so the region was split or partially deleted:
+			return BedLine("", -1, -1);
 			THROW(ArgumentException, "Region was split or partially deleted! lifted start: " + QByteArray::number(lifted_start) + " - lifted end: " + QByteArray::number(lifted_end));
 		}
 	}
@@ -325,8 +381,6 @@ public:
 	void load(QString filepath);
 	BedLine lift_tree(const Chromosome& chr, int start, int end) const;
 	BedLine lift_list(const Chromosome& chr, int start, int end) const;
-	BedLine lift_index(const Chromosome& chr, int start, int end) const;
-	void testing();
 
 	const QHash<Chromosome, int>& refChromSizes()
 	{
@@ -338,7 +392,6 @@ public:
 		return q_chrom_sizes_;
 	}
 
-	std::unique_ptr<ChromosomalIndex<QVector<GenomicAlignment>>> chromosomes_index;
 	QHash<Chromosome, QList<GenomicAlignment>> chromosomes_list;
 private:
 	GenomicAlignment parseChainLine(QList<QByteArray> parts);
