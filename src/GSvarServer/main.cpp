@@ -244,6 +244,18 @@ int main(int argc, char **argv)
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
+						"analysis_job_gsvar_file",
+						QMap<QString, ParamProps> {
+						   {"job_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Analysis job id"}}
+						},
+						RequestMethod::GET,
+						ContentType::APPLICATION_JSON,
+						false,
+						"FileLocation object with the information about GSvar for the corresponding analysis job",
+						&EndpointHandler::getAnalysisJobGSvarFile
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
 						"project_file",
 						QMap<QString, ParamProps> {
 						   {"ps_url_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "An id of a temporary URL pointing to a specific processed sample"}}
@@ -254,19 +266,6 @@ int main(int argc, char **argv)
 						"Update an existing project file (GSvar file)",
 						&EndpointHandler::saveProjectFile
 					});
-
-	EndpointManager::appendEndpoint(Endpoint{
-						"file_info",
-						QMap<QString, ParamProps> {
-						   {"file", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Filename with its full path"}}
-						},
-						RequestMethod::GET,
-						ContentType::APPLICATION_JSON,
-						false,
-						"Detailed information about a specific file",
-						&EndpointController::getFileInfo
-					});
-
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"ps_regions",

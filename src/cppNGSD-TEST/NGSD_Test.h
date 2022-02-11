@@ -655,6 +655,15 @@ private slots:
 		S_EQUAL(som_class_info.classification, "inactivating");
 		S_EQUAL(som_class_info.comments, "som_class_comm2");
 
+		//set PubMed ids
+		db.addPubmedId(199844, "12345678");
+		db.addPubmedId(199844, "87654321");
+		QStringList pubmed_ids = db.pubmedIds("199844");
+		pubmed_ids.sort();
+		S_EQUAL(pubmed_ids.at(0), "12345678");
+		S_EQUAL(pubmed_ids.at(1), "87654321");
+
+
 
 
 		//analysisInfo
@@ -1352,6 +1361,8 @@ private slots:
 		//test with invalid IDs
 		IS_THROWN(DatabaseException, db.updateVariantPublicationResult(-42, "processed;SCV12345678"));
 		IS_THROWN(DatabaseException, db.flagVariantPublicationAsReplaced(-42));
+
+
 	}
 
 	inline void report_germline()

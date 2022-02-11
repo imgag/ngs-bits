@@ -24,13 +24,11 @@ public:
 	static HttpResponse serveStaticForTempUrl(const HttpRequest& request);
 	/// Serves or streams file content saved in the server cache
 	static HttpResponse serveStaticFileFromCache(const HttpRequest& request);
-	/// Returns file information in JSON format for a specific file
-	static HttpResponse getFileInfo(const HttpRequest& request);
 
 	static HttpResponse createStaticFileRangeResponse(QString filename, QList<ByteRange> byte_ranges, ContentType type, bool is_downloadable);
 	static HttpResponse createStaticStreamResponse(QString filename, bool is_downloadable);
 	static HttpResponse createStaticFromCacheResponse(QString id, QList<ByteRange> byte_ranges, ContentType type, bool is_downloadable);
-	static HttpResponse serveStaticFile(QString filename, RequestMethod method, QMap<QString, QList<QString>> headers);
+	static HttpResponse serveStaticFile(QString filename, RequestMethod method, ContentType content_type, QMap<QString, QList<QString>> headers);
 
 protected:
 	EndpointController();

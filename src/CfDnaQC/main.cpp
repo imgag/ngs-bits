@@ -32,6 +32,8 @@ public:
 		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg38");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addString("ref_cram", "Reference genome for CRAM support (mandatory if CRAM is used). If set, it is used for tumor and normal file.", true);
+		addInt("min_mapq", "Set minimal mapping quality (default:0)", true, 0);
+
 
 		//changelog
 		changeLog(2021, 10, 22, "Initial version.");
@@ -47,17 +49,14 @@ public:
 		QString tumor_bam = getInfile("tumor_bam");
 		QStringList related_bams = getInfileList("related_bams");
 		QString umivar_error_rate_file = getInfile("error_rates");
+		int min_mapq = getInt("min_mapq");
 		GenomeBuild build = stringToBuild(getEnum("build"));
 		QString ref = getInfile("ref");
 		if(ref.isEmpty())	ref = Settings::string("reference_genome", true);
 		if (ref=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
-		//TODO: make parameter
-		int min_mapq = 0;
-		//TODO: determine good threshold
-		int required_depth = 250;
 
-		//TODO: remove
-		QTextStream std_out(stdout);
+		//set depth threshold
+		int required_depth = 250;
 
 
 		//split panel in ID and monitoring SNPs (gene/hotspot regions)
@@ -98,9 +97,6 @@ public:
 		//normalize
 		monitoring_avg_depth /= monitoring_snps.count();
 
-		qDebug() << "Monitoring SNP avg_depth:" << monitoring_avg_depth;
-		qDebug() << required_depth << "x covered monitoring SNP:" << covered_monitoring_snps << "/" << monitoring_snps.count();
-
 		// compute coverage on ID SNPs
 		Statistics::avgCoverage(id_snps, bam, min_mapq, false, true, 3, ref);
 
@@ -118,15 +114,6 @@ public:
 		//normalize
 		id_avg_depth /= id_snps.count();
 
-		qDebug() << "ID SNP avg_depth:" << id_avg_depth;
-		qDebug() << required_depth << "x covered ID SNP:" << covered_id_snps << "/" << id_snps.count();
-
-		std_out << bam << "\t"
-				<< QString::number(monitoring_avg_depth) << "\t"
-				<< QString::number(covered_monitoring_snps) << "\t"
-				<< QString::number(id_avg_depth) << "\t"
-				<< QString::number(covered_id_snps) << endl;
-
 
 		//extend cfDNA panel
 		cfdna_panel.extend(60);
@@ -142,7 +129,6 @@ public:
 			sample_similarity.calculateSimilarity(cfdna_genotype_data, tumor_genotype_data);
 			tumor_correlation = sample_similarity.sampleCorrelation();
 
-			qDebug() << "Sample similarity: " << tumor_correlation;
 		}
 
 
@@ -176,11 +162,6 @@ public:
 				umivar_error_rates.insert(duplication_rate, error_rate);
 			}
 			error_rate_fp->close();
-
-			foreach (const QString& key, umivar_error_rates.keys())
-			{
-				qDebug() << "Error rate for" << key << "-duplication: " << umivar_error_rates.value(key);
-			}
 
 		}
 
