@@ -675,6 +675,22 @@ private slots:
         I_EQUAL(hgvs.intron_number, 2);
         S_EQUAL(hgvs.allele, "G");
 
+        //SNV intron splice region next to acceptor
+        alt.clear();
+        alt.push_back("T");
+        variant.setPos(195573974);
+        variant.setRef("G");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.124-3C>A");
+        S_EQUAL(hgvs.hgvs_p, "");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
+        IS_FALSE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT));
+        I_EQUAL(hgvs.exon_number, -1);
+        I_EQUAL(hgvs.intron_number, 2);
+        S_EQUAL(hgvs.allele, "T");
+
         //SNV intron splice donor
         alt.clear();
         alt.push_back("G");

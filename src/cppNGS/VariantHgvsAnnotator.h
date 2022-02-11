@@ -161,7 +161,7 @@ private:
 
     QByteArray toThreeLetterCode(QChar aa_one_letter_code);
 
-    void annotateSpliceRegion(HgvsNomenclature& hgvs, const Transcript& transcript, int start, int end, bool plus_strand);
+    void annotateSpliceRegion(HgvsNomenclature& hgvs, const Transcript& transcript, int start, int end, bool plus_strand, bool insertion);
 
     void annotateProtSeqCsqSnv(HgvsNomenclature& hgvs);
 

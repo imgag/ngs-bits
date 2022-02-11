@@ -219,7 +219,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
     }
 
     //find out if the variant is a splice region variant
-    annotateSpliceRegion(hgvs, transcript, start, end, plus_strand);
+    annotateSpliceRegion(hgvs, transcript, start, end, plus_strand, variant.isIns());
 
     QString hgvs_c_prefix = transcript.isCoding() ? "c." : "n.";
 
@@ -701,7 +701,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
         //don't annotate deletions spanning two (or more) exons
         if(positions.size() == 2)
         {
-            if(transcript.exonNumber(pos_trans_start, pos_trans_start) != transcript.exonNumber(positions.at(1).toInt() - 1, positions.at(1).toInt() - 1))
+            if(transcript.exonNumber(variant.start(), variant.end()) == -2)
             {
                 return "p.?";
             }
@@ -711,28 +711,27 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
         int frame_diff = variant.isDel() ? end - start : variant.alt()[0].length() - variant.ref().length();
         int pos_shift = 0;
 
-        // get a sufficiently large part of the reference and observed sequence
-        int seq_length = 120;
+        // get reference and observed sequence (from coding sequence)
         Sequence seq_ref;
 
         if(variant.isDel())
         {
-            seq_ref = coding_sequence.mid(pos_trans_start - offset, frame_diff + seq_length);
+            seq_ref = coding_sequence.mid(pos_trans_start - offset);
             seq_obs = seq_ref.left(offset) + seq_ref.mid(offset + frame_diff);
         }
         else if(variant.isIns())
         {
-            seq_ref = coding_sequence.mid(pos_trans_start - offset, seq_length);
-            Sequence alt = variant.alt(0).right(frame_diff);
+            seq_ref = coding_sequence.mid(pos_trans_start - offset);
+            Sequence alt = variant.alt(0).mid(1);
             if(!plus_strand) alt.reverseComplement();
-            seq_obs = seq_ref.left(offset + 1) + alt + seq_ref.right(seq_length - offset - 1);
+            seq_obs = seq_ref.left(offset + 1) + alt + seq_ref.mid(offset + 1);
         }
         else
         {
-            seq_ref = coding_sequence.mid(pos_trans_start - offset, variant.ref().length() + seq_length - 1);
-            Sequence alt = variant.alt(0).mid(1);
+            seq_ref = coding_sequence.mid(pos_trans_start - offset);
+            Sequence alt = variant.alt(0);
             if(!plus_strand) alt.reverseComplement();
-            seq_obs = seq_ref.left(offset + plus_strand ? 1 : 0) + alt + seq_ref.right(seq_length - offset);
+            seq_obs = seq_ref.left(offset) + alt + seq_ref.mid(offset + variant.ref().length());
         }
 
         if(variant.isDel() || (variant.isIns() && frame_diff % 3 != 0) || (!variant.isIns() && !variant.isDel()))
@@ -760,30 +759,30 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
             QByteArray aa_ref_after = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(3, 3), variant.chr().isM()));
             QByteArray aa_obs_after = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.mid(3 + frame_diff, 3), variant.chr().isM()));
 
-            if(aa_obs == aa_ref && aa_obs_after == aa_ref_after)
+            //check for duplication
+            int diff = 0;
+            if(aa_obs == aa_ref) diff += 3;
+            QString inserted_sequence = translate(seq_obs.mid(diff, frame_diff));
+            QString left_sequence;
+            if(pos_trans_start - offset - frame_diff > 0)
             {
-                QString inserted_sequence = translate(seq_obs.mid(3, frame_diff));
-                QString left_sequence;
-                if(pos_trans_start - offset - frame_diff > 0)
+                left_sequence = translate(coding_sequence.mid(pos_trans_start - offset - frame_diff + diff, frame_diff));
+            }
+            if(inserted_sequence == left_sequence)
+            {
+                aa_ref = left_sequence.left(3).toUtf8();
+                aa_ref.append(QByteArray::number((pos_trans_start - offset - frame_diff + diff) / 3 + 1));
+                if(left_sequence.length() > 3)
                 {
-                    left_sequence = translate(coding_sequence.mid(pos_trans_start - offset - frame_diff + 3, frame_diff));
+                    aa_ref.append("_" + left_sequence.right(3));
+                    aa_ref.append(QByteArray::number((pos_trans_start - offset + diff) / 3));
                 }
-                if(inserted_sequence == left_sequence)
-                {
-                    aa_ref = left_sequence.left(3).toUtf8();
-                    aa_ref.append(QByteArray::number((pos_trans_start - offset - frame_diff + 3) / 3 + 1));
-                    if(left_sequence.length() > 3)
-                    {
-                        aa_ref.append("_" + left_sequence.right(3));
-                        aa_ref.append(QByteArray::number((pos_trans_start - offset) / 3 + 1));
-                    }
-                    aa_obs = "dup";
-                }
-                else
-                {
-                    aa_ref.append(QByteArray::number(pos_trans_start / 3 + 1));
-                    aa_obs = "ins" + inserted_sequence.toUtf8();
-                }
+                aa_obs = "dup";
+            }
+            else if(aa_obs == aa_ref && aa_obs_after == aa_ref_after)
+            {
+                aa_ref.append(QByteArray::number(pos_trans_start / 3 + 1));
+                aa_obs = "ins" + inserted_sequence.toUtf8();
             }
             //delins if first amino acid is changed by the insertion
             else if(aa_obs_after == aa_ref_after)
@@ -858,7 +857,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
             //more than one amino acid inserted
             if(variant.alt(0).length() > (4 + pos_shift))
             {
-                aa_obs = "delins" + translate(seq_obs.left(((variant.alt(0).length() - 1) * 3) / 3 + 1  - pos_shift));
+                aa_obs = "delins" + translate(seq_obs.left((variant.alt(0).length() - 1) + 1  - pos_shift));
             }
             else
             {
@@ -868,7 +867,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
         //inframe deletion-insertion, more than one amino acid inserted
         else if(variant.alt(0).length() > (4 + pos_shift))
         {
-            aa_obs = "delins" + translate(seq_obs.left(((variant.alt(0).length() - 1) * 3) / 3 + 1  - pos_shift));
+            aa_obs = "delins" + translate(seq_obs.left((variant.alt(0).length() - 1) + 1  - pos_shift));
         }
     }
 
@@ -919,7 +918,7 @@ void VariantHgvsAnnotator::annotateProtSeqCsqSnv(HgvsNomenclature& hgvs)
 }
 
 //annotate if the variant is a splice region variant
-void VariantHgvsAnnotator::annotateSpliceRegion(HgvsNomenclature& hgvs, const Transcript& transcript, int start, int end, bool plus_strand)
+void VariantHgvsAnnotator::annotateSpliceRegion(HgvsNomenclature& hgvs, const Transcript& transcript, int start, int end, bool plus_strand, bool insertion)
 {
     for(int i=0; i<transcript.regions().count(); i++)
     {
@@ -927,6 +926,13 @@ void VariantHgvsAnnotator::annotateSpliceRegion(HgvsNomenclature& hgvs, const Tr
         int diff_exon_start = start - transcript.regions()[i].start() + 1;
         int diff_exon_end = transcript.regions()[i].end() - end + 1;
         int diff_intron_start = start - transcript.regions()[i].end();
+
+        //sequence inserted right after splice region/acceptor/donor: do not consider position of common base for insertions, but one further
+        if(insertion)
+        {
+            diff_intron_start += 1;
+            diff_exon_start += 1;
+        }
 
         if((diff_intron_end <= splice_region_in_ && diff_intron_end >= 0) ||
                 (diff_exon_start <= splice_region_ex_ && diff_exon_start >= 0) ||
