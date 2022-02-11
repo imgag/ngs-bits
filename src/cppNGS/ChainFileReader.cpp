@@ -13,14 +13,14 @@ ChainFileReader::~ChainFileReader()
 
 }
 
-BedLine ChainFileReader::lift_tree(const Chromosome& chr, int start, int end) const
+BedLine ChainFileReader::lift(const Chromosome& chr, int start, int end) const
 {
 	if (end <= start)
 	{
 		THROW(ArgumentException, "End is smaller or equal to start!");
 	}
 
-	if ( ! chromosomes_tree.contains(chr))
+	if ( ! chromosomes_.contains(chr))
 	{
 		THROW(ArgumentException, "Position to lift is in unknown chromosome. Tried to lift: " + chr.strNormalized(true));
 	}
@@ -30,46 +30,7 @@ BedLine ChainFileReader::lift_tree(const Chromosome& chr, int start, int end) co
 	}
 
 	//get alignments that overlap with the given region
-	QList<GenomicAlignment> alignments = chromosomes_tree[chr].query(start, end);
-
-//	std::cout << "Alignments found: " << alignments.size() << "\n";
-
-	foreach(const GenomicAlignment& a, alignments)
-	{
-		//std::cout << a.toString(false).toStdString() << "\n";
-		BedLine result = a.lift(start, end, percent_deletion_);
-
-		if (result.start() == -1)
-		{
-			continue;
-		}
-		else
-		{
-			return result;
-		}
-	}
-
-	THROW(ArgumentException, "Region is unmapped.");
-}
-
-BedLine ChainFileReader::lift_list(const Chromosome& chr, int start, int end) const
-{
-	if (end <= start)
-	{
-		THROW(ArgumentException, "End is smaller or equal to start!");
-	}
-
-	if ( ! chromosomes_tree.contains(chr))
-	{
-		THROW(ArgumentException, "Position to lift is in unknown chromosome. Tried to lift: " + chr.strNormalized(true));
-	}
-	if (start < 0 || end > ref_chrom_sizes_[chr])
-	{
-		THROW(ArgumentException, "Position to lift is outside of the chromosome size for chromosome. Tried to lift: " + chr.strNormalized(true) +": " + QByteArray::number(start) + "-" + QByteArray::number(end));
-	}
-
-	//get alignments that overlap with the given region
-	QList<GenomicAlignment> alignments = chromosomes_list[chr];
+	QList<GenomicAlignment> alignments = chromosomes_[chr];
 
 	foreach(const GenomicAlignment& a, alignments)
 	{
@@ -123,23 +84,11 @@ void ChainFileReader::load(QString filepath)
 		{
 			parts = line.split(' ');
 			// add last chain alignment to the chromosomes:
-			//
-			if (! chromosomes_list.contains(currentAlignment.ref_chr))
+			if (! chromosomes_.contains(currentAlignment.ref_chr))
 			{
-				chromosomes_list.insert(currentAlignment.ref_chr, QList<GenomicAlignment>());
+				chromosomes_.insert(currentAlignment.ref_chr, QList<GenomicAlignment>());
 			}
-			chromosomes_list[currentAlignment.ref_chr].append(currentAlignment);
-
-			// to interval tree:
-			if (! chromosomes_tree.contains(currentAlignment.ref_chr))
-			{
-				chromosomes_tree.insert(currentAlignment.ref_chr, IntervalTree(0, currentAlignment.ref_chr_size));
-			}
-			chromosomes_tree[currentAlignment.ref_chr].addInterval(currentAlignment);
-
-			// to chromosomal index:
-
-			alignments_index_.append(currentAlignment);
+			chromosomes_[currentAlignment.ref_chr].append(currentAlignment);
 
 			// parse the new Alignment
 			currentAlignment = parseChainLine(parts);
@@ -156,20 +105,18 @@ void ChainFileReader::load(QString filepath)
 				parts = line.split(' ');
 			}
 
-			AlignmentLine align;
 			if (parts.length() == 1)
 			{
-				align = AlignmentLine(parts[0].toInt(), 0, 0);
+				currentAlignment.addAlignmentLine(parts[0].toInt(), 0, 0);
 			}
 			else if (parts.length() == 3)
 			{
-				align = AlignmentLine(parts[0].toInt(), parts[1].toInt(), parts[2].toInt());
+				currentAlignment.addAlignmentLine(parts[0].toInt(), parts[1].toInt(), parts[2].toInt());
 			}
 			else
 			{
 				THROW(FileParseException, "Alignment Data line with neither 3 nor a single number. " + line);
 			}
-			currentAlignment.addAlignmentLine(align);
 		}
 	}
 
@@ -192,11 +139,6 @@ GenomicAlignment ChainFileReader::parseChainLine(QList<QByteArray> parts)
 
 	Chromosome q_chr(parts[7]);
 	int q_chr_size = parts[8].toInt();
-	if ( ! q_chrom_sizes_.contains(q_chr))
-	{
-		q_chrom_sizes_.insert(q_chr, q_chr_size);
-	}
-
 
 	bool q_plus_strand = parts[9] == "+";
 	int q_start = parts[10].toInt();
@@ -206,147 +148,241 @@ GenomicAlignment ChainFileReader::parseChainLine(QList<QByteArray> parts)
 	return GenomicAlignment(score, ref_chr, ref_chr_size, ref_start, ref_end, ref_plus_strand, q_chr, q_chr_size, q_start, q_end, q_plus_strand, chain_id);
 }
 
-ChainFileReader::IntervalTree::IntervalTree(int min, int max):
-	min_(min)
-  , max_(max)
-  , center_((min+max) / 2)
-  , left_(nullptr)
-  , right_(nullptr)
-  , sorted_by_start_()
-  , sorted_by_end_()
+GenomicAlignment::GenomicAlignment():
+	score(0)
+  , ref_chr("")
+  , ref_chr_size(0)
+  , ref_start(0)
+  , ref_end(0)
+  , ref_on_plus(false)
+  , q_chr("")
+  , q_chr_size(0)
+  , q_start(0)
+  , q_end(0)
+  , q_on_plus(false)
+  , id(0)
 {
 }
 
-ChainFileReader::IntervalTree::IntervalTree():
-	min_(0)
-  , max_(0)
-  , center_(0)
-  , left_(nullptr)
-  , right_(nullptr)
-  , sorted_by_start_()
-  , sorted_by_end_()
+GenomicAlignment::GenomicAlignment(double score, Chromosome ref_chr, int ref_chr_size, int ref_start, int ref_end, bool ref_on_plus, Chromosome q_chr, int q_chr_size, int q_start, int q_end, bool q_on_plus, int id):
+	score(score)
+  , ref_chr(ref_chr)
+  , ref_chr_size(ref_chr_size)
+  , ref_start(ref_start)
+  , ref_end(ref_end)
+  , ref_on_plus(ref_on_plus)
+  , q_chr(q_chr)
+  , q_chr_size(q_chr_size)
+  , q_start(q_start)
+  , q_end(q_end)
+  , q_on_plus(q_on_plus)
+  , id(id)
 {
+	index.append(IndexLine(ref_start, q_start, 0));
 }
 
-ChainFileReader::IntervalTree::~IntervalTree()
+BedLine GenomicAlignment::lift(int start, int end, double percent_deletion) const
 {
-}
+	// TODO remove debug prints!
+	int start_index = 0;
+	int ref_current_pos = ref_start;
+	int q_current_pos = q_start;
+	bool debug = true;
 
-QList<GenomicAlignment> ChainFileReader::IntervalTree::query(int start, int end) const
-{
-	if (end < start)
+
+	for (int cur=1; cur<index.size(); cur++)
 	{
-		THROW(ArgumentException, "End cannot be smaller than start!")
-	}
-
-	QList<GenomicAlignment> result;
-
-	if (start < center_)
-	{
-		if (left_)
+		if (index[cur].ref_start > start)
 		{
-			result.append(left_->query(start, end));
+			ref_current_pos = index[cur-1].ref_start;
+			q_current_pos = index[cur-1].q_start;
+			start_index = index[cur-1].alignment_line_index;
+			if (debug) std::cout << "index set start variables!\n";
+			if (debug) std::cout << "ref start: " << index[cur-1].ref_start << " - q start: " << index[cur-1].q_start << " - alignment idx: " << index[cur-1].alignment_line_index << "\n";
+			break;
+		}
+
+		if (cur == index.size()-1)
+		{
+			ref_current_pos = index[cur].ref_start;
+			q_current_pos = index[cur].q_start;
+			start_index = index[cur].alignment_line_index;
+			if (debug) std::cout << "index set start variables! (last index)\n";
+			if (debug) std::cout << "ref start: " << index[cur].ref_start << " - q start: " << index[cur].q_start << " - alignment idx: " << index[cur].alignment_line_index << "\n";
+			break;
 		}
 	}
 
-	if (end < center_)
+	int lifted_start = -1;
+	int lifted_end = -1;
+	int unmapped_bases = 0;
+
+	bool start_was_in_unmapped = false;
+
+
+	if (debug) std::cout << "start: " << start << " - end:" << end << "\n";
+
+
+	// Test if part of the query region is outside of the alignment.
+	if (ref_start >= start)
 	{
-		//region to the left of center: search sorted by start until no more intervals overlap
-		for (int i=0; i<sorted_by_start_.size(); i++)
+		if (debug) std::cout << "Set lifted start before beginning as it was smaller than ref_start!\n";
+		lifted_start = q_current_pos;
+		unmapped_bases += ref_current_pos - start;
+	}
+
+	if (ref_end <= end)
+	{
+		if (debug) std::cout << "Set lifted end before beginning as it was bigger than ref_end!\n";
+		lifted_end = q_end;
+		unmapped_bases += end - ref_end;
+	}
+
+	for (int i=start_index; i<alignment.size(); i++)
+	{
+		if (unmapped_bases > percent_deletion * (end-start))
 		{
-			//std::cout << "sorted by start: " << sorted_by_start_[i].toString(false).toStdString() << "\n";
-			if (sorted_by_start_[i].overlapsWith(start, end))
+			// break if more than the allowed percentage is unmapped/deleted
+			break;
+		}
+
+		const AlignmentLine& line = alignment[i];
+
+		if (debug) std::cout << "current pos: " << ref_current_pos << " - current_q_pos: " << q_current_pos  << " - line size: " << line.size << "\t- line ref_dt: " << line.ref_dt << "\t- line q_dt: " << line.q_dt << " - idx:" << i <<"\n";
+		// try to lift start and end:
+
+		if (lifted_start == -1)
+		{
+			if (ref_current_pos <= start && ref_current_pos + line.size >= start)
 			{
-				result.append(sorted_by_start_[i]);
-			}
-			else
-			{
-				//break;
-			}
-		}
-	}
-	else if (start > center_)
-	{
-		//region to the right of center: search sorted by end until no more intervals overlap
-		for (int i=0; i<sorted_by_end_.size(); i++)
-		{
+				if (line.ref_dt == 0 && ref_current_pos + line.size == start)
+				{
+					lifted_start = q_current_pos + (start - ref_current_pos) + line.q_dt;
+				}
+				else
+				{
+					lifted_start = q_current_pos + (start - ref_current_pos);
+				}
 
-			//std::cout << "sorted by end: " << sorted_by_end_[i].toString(false).toStdString() << "\n";
-			if (sorted_by_end_[i].overlapsWith(start, end))
-			{
-				result.append(sorted_by_end_[i]);
+
+				if (debug) std::cout << "start current pos in alignment: " << ref_current_pos << " - line size: " << line.size << " - lifted_start: " << lifted_start <<"\n";
+
 			}
-			else
+			 //if start is in the next unmapped or deleted region of the last alignment line - take the next possible position:
+			if (ref_current_pos + line.size < start && start < ref_current_pos +line.size + line.ref_dt)
 			{
-				//break;
+				unmapped_bases += (ref_current_pos + line.size + line.ref_dt) - start;
+				lifted_start = q_current_pos + line.size + line.q_dt;
+				start_was_in_unmapped = true; // make sure the line.ref_dt is only added once
+				if (debug) std::cout << "start in unmapped - lifted_start: " << lifted_start << " - added to ref_dt: " << (ref_current_pos + line.size + line.ref_dt) - start <<"\n";
 			}
 		}
+
+		if (lifted_end == -1)
+		{
+			//it's not in the same alignment piece but there is no gap in the reference:
+			if (ref_current_pos <= end && ref_current_pos + line.size >= end)
+			{
+				lifted_end = q_current_pos + (end - ref_current_pos);
+				if (debug) std::cout << "end current pos in alignment: " << ref_current_pos << " - line size: " << line.size << " - lifted_end: " << lifted_end << "\n";
+			}
+
+			// if end is in the next unmapped region - take the last possible position:
+			if (ref_current_pos +line.size < end && end < ref_current_pos +line.size + line.ref_dt)
+			{
+
+				unmapped_bases += end - (ref_current_pos +line.size); // amount the end is "pulled forward"
+				lifted_end = q_current_pos + line.size;
+				if (debug) std::cout << "end in unmapped - lifted_end: " << lifted_end << " - added to ref_dt: " << end - (ref_current_pos +line.size) <<"\n";
+			}
+		}
+
+
+		ref_current_pos += line.size;
+		q_current_pos += line.size;
+
+		// break when the current position is after the start:
+		if (ref_current_pos > end)
+		{
+			break;
+		}
+		else
+		{
+			if(lifted_start != -1 && lifted_end == -1 && ! start_was_in_unmapped)
+			{
+				unmapped_bases += line.ref_dt;
+			}
+			start_was_in_unmapped = false;
+			ref_current_pos += line.ref_dt;
+			q_current_pos += line.q_dt;
+		}
+
 	}
-	else if (start <= center_ && center_ <= end)
+	if (debug) std::cout << "sum of ref_dt: " << unmapped_bases << " - expected to be smaller than: " << percent_deletion * (end-start) << "\n";
+	if (lifted_start != -1 && lifted_end != -1)
 	{
-		// interval overlaps center so all intervals here are overlapping!
-		result.append(sorted_by_start_);
-	}
-	else
-	{
-		std::cout << "start: " << start << " end: " << end << "\n";
-		std::cout << "center: " << center_ << "\n";
-		THROW(ProgrammingException, "This shouldn't be possible... Query Interval neither to the left, nor to the right and also not overlapping a value.")
+
+		if (unmapped_bases > percent_deletion * (end-start)) // !Certain that it's 5 percent and > (not >=) and not rounded!
+		{
+			return BedLine("", -1, -1);
+		}
+
+		if (q_on_plus)
+		{
+			return BedLine(q_chr, lifted_start, lifted_end);
+		}
+		else
+		{
+			return BedLine(q_chr, q_chr_size - lifted_end, q_chr_size - lifted_start);
+		}
 	}
 
-	if (end > center_)
-	{
-		if (right_)
-		{
-			result.append(right_->query(start, end));
-		}
-	}
-	return result;
+	return BedLine("", -1, -1);
+
 }
 
-void ChainFileReader::IntervalTree::addInterval(GenomicAlignment alignment)
+void GenomicAlignment::addAlignmentLine(int size, int ref_dt, int q_dt)
 {
-	if (alignment.ref_end < center_)
+	AlignmentLine line = AlignmentLine(size, ref_dt, q_dt);
+	alignment.append(line);
+
+	if (alignment.size() % index_frequency == 0)
 	{
-		if (! left_)
+		int new_index_ref_start = index[index.size()-1].ref_start;
+		int new_index_q_start = index[index.size()-1].q_start;
+		for(int i=index[index.size()-1].alignment_line_index; i < alignment.size()-1; i++)
 		{
-			left_.reset(new IntervalTree(min_, center_));
+			new_index_ref_start += alignment[i].size + alignment[i].ref_dt;
+			new_index_q_start += alignment[i].size + alignment[i].q_dt;
 		}
-		left_->addInterval(alignment);
-	}
-	else if (alignment.ref_start > center_)
-	{
-		if (! right_)
-		{
-			right_.reset(new IntervalTree(center_, max_));
-		}
-		right_->addInterval(alignment);
-	}
-	else
-	{
-		sorted_by_end_.append(alignment);
-		sorted_by_start_.append(alignment);
+		index.append(IndexLine(new_index_ref_start, new_index_q_start, alignment.size()-1));
 	}
 }
 
-void ChainFileReader::IntervalTree::sort()
+bool GenomicAlignment::contains(const Chromosome& chr, int pos) const
 {
-	if (left_)
-	{
-		left_->sort();
-	}
+	if (chr != ref_chr) return false;
+	if (pos < ref_start || pos > ref_end) return false;
 
-	if (right_)
-	{
-		right_->sort();
-	}
-
-	if (! sorted_by_end_.empty())
-	{
-		std::sort(sorted_by_start_.begin(), sorted_by_start_.end(), AlignmentStartComp());
-		std::sort(sorted_by_end_.begin(), sorted_by_end_.end(), AlignmentEndComp());
-	}
+	return true;
 }
 
+bool GenomicAlignment::overlapsWith(int start, int end) const
+{
+	return ((ref_start <= start && start <= ref_end) || (ref_start <= end && end <= ref_end));
+}
 
+QString GenomicAlignment::toString(bool with_al_lines) const
+{
+	QString res = QString("ref_chr:\t%1\tref_start:\t%2\tref_end:\t%3\tq_chr:\t%4\tq_start:\t%5\tq_end:\t%6\n").arg(QString(ref_chr.strNormalized(true)), QString::number(ref_start), QString::number(ref_end), QString(q_chr.strNormalized(true)), QString::number(q_start), QString::number(q_end));
+	res += "ref on plus: " + QString::number(ref_on_plus) + "\tq on plus: " + QString::number(q_on_plus);
+	if (with_al_lines)
+	{
+		foreach (AlignmentLine l, alignment)
+		{
+			res += l.toString() + "\n";
+		}
+	}
 
+	return res;
+}
