@@ -11,6 +11,27 @@ TEST_CLASS(ChainFileReader_Test)
 Q_OBJECT
 private slots:
 
+	void index()
+	{
+		QString hg38_to_hg19 = "C:/Users/ahott1a1/data/liftOver/hg38ToHg19.over.chain";
+		ChainFileReader r;
+		r.load(hg38_to_hg19);
+
+		QHash<Chromosome, QList<GenomicAlignment>> chromosomes_list = r.chromosomes_list;
+
+		QList<GenomicAlignment> alignments = chromosomes_list[Chromosome("chr1")];
+
+		GenomicAlignment first = alignments[0];
+
+//		for (int i=0; i< first.alignment.size(); i++)
+//		{
+//			if (i % first.index_frequency == 0)
+//			{
+//				std::cout << "IndexLine:  start: " << first.index[i+1/freq]
+//			}
+//		}
+	}
+
 	void createTestBed()
 	{
 		QSharedPointer<QFile> out = Helper::openFileForWriting("C:/Users/ahott1a1/data/liftOver/test_regions.bed");
@@ -111,9 +132,14 @@ private slots:
 
 	void dev()
 	{
+		QTime timer;
+		timer.start();
 		QString hg38_to_hg19 = "C:/Users/ahott1a1/data/liftOver/hg38ToHg19.over.chain";
 		ChainFileReader r;
 		r.load(hg38_to_hg19);
+
+		std::cout << "Loading took: " << timer.elapsed() / 1000.0 << "s.\n";
+		timer.start();
 
 
 		QSharedPointer<QFile> bed = Helper::openFileForReading("C:/Users/ahott1a1/data/liftOver/NA12878_45_var_zero_based.bed");
@@ -131,8 +157,7 @@ private slots:
 		{
 			count++;
 
-//			if(count % 500000 == 0)
-			if(count % 10000 == 0)
+			if(count % 500000 == 0)
 			{
 				std::cout << "Line: " << count << "\n";
 			}
@@ -168,6 +193,7 @@ private slots:
 			last = bed_line;
 
 		}
+		std::cout << "Lifting took: " << timer.elapsed() / 1000.0 << "s.\n";
 	}
 
 	void time_it()

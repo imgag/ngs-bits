@@ -52,8 +52,23 @@ struct GenomePosition
 	}
 };
 
-struct GenomicAlignment
+class GenomicAlignment
 {
+private:
+	struct IndexLine
+	{
+		int ref_start;
+		int q_start;
+		int alignment_line_index;
+
+		IndexLine(int ref_start, int q_start, int idx):
+			ref_start(ref_start)
+		  , q_start(q_start)
+		  , alignment_line_index(idx)
+		{
+		}
+	};
+public:
 	double score;
 
 	Chromosome ref_chr;
@@ -71,6 +86,8 @@ struct GenomicAlignment
 	int id;
 
 	QList<AlignmentLine> alignment;
+	QList<IndexLine> index;
+	int index_frequency = 25;
 
 
 	GenomicAlignment():
@@ -103,16 +120,42 @@ struct GenomicAlignment
 	  , q_on_plus(q_on_plus)
 	  , id(id)
 	{
+		index.append(IndexLine(ref_start, q_start, 0));
 	}
 
 	BedLine lift(int start, int end, double percent_deletion) const
 	{
+		int start_index = 0;
+		int ref_current_pos = ref_start;
+		int q_current_pos = q_start;
+
+		for (int cur=1; cur<index.size(); cur++)
+		{
+			if (index[cur].ref_start > start)
+			{
+				ref_current_pos = index[cur-1].ref_start;
+				q_current_pos = index[cur-1].q_start;
+				start_index = index[cur-1].alignment_line_index;
+//				std::cout << "index set start variables!\n";
+//				std::cout << "ref start: " << index[cur-1].ref_start << " - q start: " << index[cur-1].q_start << " - alignment idx: " << index[cur-1].alignment_line_index << "\n";
+				break;
+			}
+
+			if (cur == index.size()-1)
+			{
+				ref_current_pos = index[cur].ref_start;
+				q_current_pos = index[cur].q_start;
+				start_index = index[cur].alignment_line_index;
+//				std::cout << "index set start variables! (last index)\n";
+//				std::cout << "ref start: " << index[cur].ref_start << " - q start: " << index[cur].q_start << " - alignment idx: " << index[cur].alignment_line_index << "\n";
+				break;
+			}
+
+		}
+
 		int lifted_start = -1;
 		int lifted_end = -1;
 		int sum_of_ref_dt = 0;
-
-		int ref_current_pos = ref_start;
-		int q_current_pos = q_start;
 
 		bool start_was_in_unmapped = false;
 
@@ -136,11 +179,11 @@ struct GenomicAlignment
 			sum_of_ref_dt += end - ref_end;
 		}
 
-		for (int i=0; i<alignment.size(); i++)
+		for (int i=start_index; i<alignment.size(); i++)
 		{
 			const AlignmentLine& line = alignment[i];
 
-			if (debug) std::cout << "current pos: " << ref_current_pos << " - current_q_pos: " << q_current_pos  << " - line size: " << line.size << "\t- line ref_dt: " << line.ref_dt << "\t- line q_dt: " << line.q_dt <<"\n";
+			if (debug) std::cout << "current pos: " << ref_current_pos << " - current_q_pos: " << q_current_pos  << " - line size: " << line.size << "\t- line ref_dt: " << line.ref_dt << "\t- line q_dt: " << line.q_dt << " - idx:" << i <<"\n";
 			// try to lift start and end:
 
 			if (lifted_start == -1)
@@ -261,6 +304,18 @@ struct GenomicAlignment
 	void addAlignmentLine(AlignmentLine line)
 	{
 		alignment.append(line);
+
+		if (alignment.size() % index_frequency == 0)
+		{
+			int new_index_ref_start = index[index.size()-1].ref_start;
+			int new_index_q_start = index[index.size()-1].q_start;
+			for(int i=index[index.size()-1].alignment_line_index; i < alignment.size()-1; i++)
+			{
+				new_index_ref_start += alignment[i].size + alignment[i].ref_dt;
+				new_index_q_start += alignment[i].size + alignment[i].q_dt;
+			}
+			index.append(IndexLine(new_index_ref_start, new_index_q_start, alignment.size()-1));
+		}
 	}
 
 	bool contains(const Chromosome& chr, int pos) const
