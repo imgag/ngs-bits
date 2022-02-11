@@ -1,17 +1,20 @@
 #ifndef ANALYSISWORKER_H
 #define ANALYSISWORKER_H
 
-#include <QRunnable>
 #include <Auxilary.h>
-
 
 ///Analysis worker
 class AnalysisWorker
-        : public QRunnable
+		: public QObject
 {
+	Q_OBJECT
+
 public:
 	AnalysisWorker(AnalysisJob& job, TrimmingParameters& params, TrimmingStatistics& stats, ErrorCorrectionStatistics& ecstats);
 	void run();
+
+signals:
+	void write(AnalysisJob* job);
 
 private:
 	AnalysisJob& job_;

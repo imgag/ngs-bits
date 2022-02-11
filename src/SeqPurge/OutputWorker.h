@@ -1,23 +1,23 @@
 #ifndef OUTPUTWORKER_H
 #define OUTPUTWORKER_H
 
-#include <QRunnable>
 #include <Auxilary.h>
 
 class OutputWorker
-	: public QRunnable
+	: public QObject
 {
+	Q_OBJECT
+
 public:
-	OutputWorker(QList<AnalysisJob>& job_pool, QString out1, QString out2, QString out3_base, const TrimmingParameters& params, TrimmingStatistics& stats);
-	void run();
-	void terminate()
-	{
-		terminate_ = true;
-	}
+	OutputWorker(QString out1, QString out2, QString out3_base, const TrimmingParameters& params, TrimmingStatistics& stats);
+
+public slots:
+	void write(AnalysisJob* job);
+	void threadStarted();
+	void threadFinished();
 
 protected:
-	bool terminate_;
-	QList<AnalysisJob>& job_pool_;
+	QTextStream out_;
 	QSharedPointer<FastqOutfileStream> ostream1;
 	QSharedPointer<FastqOutfileStream> ostream2;
 	QSharedPointer<FastqOutfileStream> ostream3;

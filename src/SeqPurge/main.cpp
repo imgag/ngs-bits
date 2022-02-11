@@ -3,7 +3,7 @@
 #include "OutputWorker.h"
 #include "Helper.h"
 #include "BasicStatistics.h"
-#include <QThreadPool>
+#include <QThread>
 #include <QTime>
 
 class ConcreteTool
@@ -58,37 +58,6 @@ public:
 
 	virtual void main()
 	{
-		/* benchmarking of FASTQ read/write
-		QTime timer;
-		timer.start();
-		QTextStream out2(stdout);
-		QList<FastqEntry> entries;
-		FastqFileStream is(getInfileList("in1")[0]);
-		for (int i=0; i<1000000; ++i)
-		{
-			FastqEntry entry;
-			is.readEntry(entry);
-			entries << entry;
-		}
-
-		out2 << "Reading: " << Helper::elapsedTime(timer) << endl;
-		timer.restart();
-
-
-		FastqOutfileStream os(getOutfile("out1"));
-		for (int i=0; i<2; ++i)
-		{
-			foreach(const FastqEntry& entry, entries)
-			{
-				os.write(entry);
-			}
-		}
-		os.close();
-
-		out2 << "Writing: " << Helper::elapsedTime(timer) << endl;
-		return;
-		*/
-
 		//init
 		QStringList in1_files = getInfileList("in1");
 		QStringList in2_files = getInfileList("in2");
@@ -132,11 +101,18 @@ public:
 			job_pool << AnalysisJob();
 		}
 
-		//create thread pools
-		QThreadPool analysis_pool;
-		analysis_pool.setMaxThreadCount(getInt("threads")+1);
-		OutputWorker* output_worker = new OutputWorker(job_pool, getOutfile("out1"), getOutfile("out2"), getOutfile("out3"), params_, stats_);
-		analysis_pool.start(output_worker);
+		OutputWorker* output_worker = new OutputWorker(getOutfile("out1"), getOutfile("out2"), getOutfile("out3"), params_, stats_);
+
+		//create thread pool
+		QList<QThread*> analysis_pool;
+		for (int i=0; i<getInt("threads"); ++i)
+		{
+			QThread* thread = new QThread();
+			analysis_pool << thread;
+			connect(thread, SIGNAL(started()), output_worker, SLOT(threadStarted()));
+			connect(thread, SIGNAL(finished()), output_worker, SLOT(threadFinished()));
+			thread->start();
+		}
 
 		try //we need this block to terminate the output_worker in case something goes wrong...
 		{
@@ -157,24 +133,29 @@ public:
 					for (int j=0; j<job_pool.count(); ++j)
 					{
 						AnalysisJob& job = job_pool[j];
-						switch(job.status)
+						if (job.status==TO_BE_ANALYZED)
 						{
-							case TO_BE_ANALYZED:
-								++to_be_analyzed;
-								break;
-							case TO_BE_WRITTEN:
-								++to_be_written;
-								break;
-							case DONE:
-								++done;
-								job.clear();
-								in1.readEntry(job.e1);
-								in2.readEntry(job.e2);
-								job.status = TO_BE_ANALYZED;
-								analysis_pool.start(new AnalysisWorker(job, params_, stats_, ecstats_));
-								break;
-							case ERROR: //handle errors during analayis (must be thrown in the main thread)
-								THROW(Exception, job.error_message);
+							++to_be_analyzed;
+						}
+						else if (job.status==TO_BE_WRITTEN)
+						{
+							++to_be_written;
+						}
+						else if (job.status==DONE)
+						{
+							++done;
+							job.clear();
+							in1.readEntry(job.e1);
+							in2.readEntry(job.e2);
+							job.status = TO_BE_ANALYZED;
+							AnalysisWorker* worker = new AnalysisWorker(job, params_, stats_, ecstats_);
+							worker->moveToThread(analysis_pool[0]);
+							connect(worker, SIGNAL(write(AnalysisJob*)), output_worker, SLOT(write(AnalysisJob*)));
+							worker->run();
+						}
+						else if (job.status==ERROR)
+						{
+							THROW(Exception, job.error_message);
 						}
 
 						if (in1.atEnd() || in2.atEnd()) break;
@@ -229,12 +210,10 @@ public:
 				}
 			}
 			if (progress>0) out << Helper::dateTime() << " analysis finished" << endl;
-			output_worker->terminate();
 			delete output_worker; //has to be deleted before the job list > no QScopedPointer is used!
 		}
 		catch(...)
 		{
-			output_worker->terminate();
 			throw;
 		}
 

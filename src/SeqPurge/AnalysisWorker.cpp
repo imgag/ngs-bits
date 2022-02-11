@@ -4,7 +4,7 @@
 #include "BasicStatistics.h"
 
 AnalysisWorker::AnalysisWorker(AnalysisJob& job, TrimmingParameters& params, TrimmingStatistics& stats, ErrorCorrectionStatistics& ecstats)
-    : QRunnable()
+	: QObject()
 	, job_(job)
 	, params_(params)
 	, stats_(stats)
@@ -441,4 +441,6 @@ void AnalysisWorker::run()
 	}
 
 	job_.status = TO_BE_WRITTEN;
+	QTextStream(stdout) << "AnalysisWorker: done > write\n";
+	emit write(&job_);
 }
