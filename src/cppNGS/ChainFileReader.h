@@ -2,12 +2,8 @@
 #define CHAINFILEREADER_H
 
 #include "cppNGS_global.h"
-#include <memory>
 #include <QFile>
-#include "Helper.h"
-#include <iostream>
 #include "BedFile.h"
-#include "ChromosomalIndex.h"
 
 class GenomicAlignment
 {
@@ -66,6 +62,7 @@ public:
 	QString toString(bool with_al_lines=true) const;
 
 	double score;
+	int id;
 
 	Chromosome ref_chr;
 	int ref_chr_size;
@@ -79,11 +76,10 @@ public:
 	int q_end;
 	bool q_on_plus;
 
-	int id;
-
 	QList<AlignmentLine> alignment;
+
 	QList<IndexLine> index;
-	int index_frequency = 25;
+	const static int index_frequency = 25;
 };
 
 
@@ -91,21 +87,17 @@ public:
 class CPPNGSSHARED_EXPORT ChainFileReader
 {
 public:
-	ChainFileReader();
+	ChainFileReader(QString filepath, double percent_deletion);
 	~ChainFileReader();
-
-	void load(QString filepath);
 
 	BedLine lift(const Chromosome& chr, int start, int end) const;
 
 private:
-
-
-
+	void load();
 	GenomicAlignment parseChainLine(QList<QByteArray> parts);
 
 	QString filepath_;
-	QSharedPointer<QFile> fp_;
+	QFile file_;
 	double percent_deletion_;
 
 	QHash<Chromosome, QList<GenomicAlignment>> chromosomes_;

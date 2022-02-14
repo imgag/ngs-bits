@@ -1,16 +1,80 @@
 #include "ChainFileReader.h"
-#include "Helper.h"
 #include <iostream>
+#include "Exceptions.h"
 
-ChainFileReader::ChainFileReader()
+ChainFileReader::ChainFileReader(QString filepath, double percent_deletion):
+	filepath_(filepath)
+  , file_(filepath)
+  , percent_deletion_(percent_deletion)
+
 {
-	percent_deletion_ = 0.05;
+	load();
 }
 
 
 ChainFileReader::~ChainFileReader()
 {
 
+}
+
+void ChainFileReader::load()
+{
+	if (!file_.open(QFile::ReadOnly | QIODevice::Text))
+	{
+		THROW(FileAccessException, "Could not open bw-file for reading: '" + filepath_ + "'!");
+	}
+
+	// read first alignment line:
+	QByteArray line = file_.readLine();
+	line = line.trimmed();
+	GenomicAlignment currentAlignment = parseChainLine(line.split(' '));
+
+	while(! file_.atEnd())
+	{
+		line = file_.readLine();
+		line = line.trimmed();
+		if (line.length() == 0) continue;
+
+		QList<QByteArray> parts;
+
+		if (line.startsWith("chain"))
+		{
+			parts = line.split(' ');
+			// add last chain alignment to the chromosomes:
+			if (! chromosomes_.contains(currentAlignment.ref_chr))
+			{
+				chromosomes_.insert(currentAlignment.ref_chr, QList<GenomicAlignment>());
+			}
+			chromosomes_[currentAlignment.ref_chr].append(currentAlignment);
+
+			// parse the new Alignment
+			currentAlignment = parseChainLine(parts);
+		}
+		else
+		{
+			if (line.contains('\t'))
+			{
+				parts = line.split('\t');
+			}
+			else
+			{
+				parts = line.split(' ');
+			}
+
+			if (parts.length() == 1)
+			{
+				currentAlignment.addAlignmentLine(parts[0].toInt(), 0, 0);
+			}
+			else if (parts.length() == 3)
+			{
+				currentAlignment.addAlignmentLine(parts[0].toInt(), parts[1].toInt(), parts[2].toInt());
+			}
+			else
+			{
+				THROW(FileParseException, "Alignment Data line with neither 3 nor a single number. " + line);
+			}
+		}
+	}
 }
 
 BedLine ChainFileReader::lift(const Chromosome& chr, int start, int end) const
@@ -39,14 +103,9 @@ BedLine ChainFileReader::lift(const Chromosome& chr, int start, int end) const
 			continue;
 		}
 
-//		if ( ! (a.q_start<= 146039389 && 146039390 <= a.q_end) || a.ref_start == 10000)
-//		{
-//			continue;
-//		}
-
 		BedLine result = a.lift(start, end, percent_deletion_);
 
-//		std::cout << "\n" << a.toString(false).toStdString() << "\n################################################\n\n";
+//		std::cout << "\n" << a.toString(false).toStdString() << "\n################################################\n\n\n\n";
 //		std::cout << result.toString(true).toStdString() << "\n\n";
 
 		if (result.start() == -1)
@@ -60,66 +119,6 @@ BedLine ChainFileReader::lift(const Chromosome& chr, int start, int end) const
 	}
 
 	THROW(ArgumentException, "Region is unmapped or more than " + QByteArray::number(percent_deletion_*100) + "% deleted/unmapped bases.");
-}
-
-void ChainFileReader::load(QString filepath)
-{
-	filepath_ = filepath;
-	fp_ = Helper::openFileForReading(filepath, false);
-
-	// read first alignment line:
-	QByteArray line = fp_->readLine();
-	line = line.trimmed();
-	GenomicAlignment currentAlignment = parseChainLine(line.split(' '));
-
-	while(! fp_->atEnd())
-	{
-		line = fp_->readLine();
-		line = line.trimmed();
-		if (line.length() == 0) continue;
-
-		QList<QByteArray> parts;
-
-		if (line.startsWith("chain"))
-		{
-			parts = line.split(' ');
-			// add last chain alignment to the chromosomes:
-			if (! chromosomes_.contains(currentAlignment.ref_chr))
-			{
-				chromosomes_.insert(currentAlignment.ref_chr, QList<GenomicAlignment>());
-			}
-			chromosomes_[currentAlignment.ref_chr].append(currentAlignment);
-
-			// parse the new Alignment
-			currentAlignment = parseChainLine(parts);
-
-		}
-		else
-		{
-			if (line.contains('\t'))
-			{
-				parts = line.split('\t');
-			}
-			else
-			{
-				parts = line.split(' ');
-			}
-
-			if (parts.length() == 1)
-			{
-				currentAlignment.addAlignmentLine(parts[0].toInt(), 0, 0);
-			}
-			else if (parts.length() == 3)
-			{
-				currentAlignment.addAlignmentLine(parts[0].toInt(), parts[1].toInt(), parts[2].toInt());
-			}
-			else
-			{
-				THROW(FileParseException, "Alignment Data line with neither 3 nor a single number. " + line);
-			}
-		}
-	}
-
 }
 
 GenomicAlignment ChainFileReader::parseChainLine(QList<QByteArray> parts)
@@ -150,6 +149,7 @@ GenomicAlignment ChainFileReader::parseChainLine(QList<QByteArray> parts)
 
 GenomicAlignment::GenomicAlignment():
 	score(0)
+  , id(0)
   , ref_chr("")
   , ref_chr_size(0)
   , ref_start(0)
@@ -160,12 +160,12 @@ GenomicAlignment::GenomicAlignment():
   , q_start(0)
   , q_end(0)
   , q_on_plus(false)
-  , id(0)
 {
 }
 
 GenomicAlignment::GenomicAlignment(double score, Chromosome ref_chr, int ref_chr_size, int ref_start, int ref_end, bool ref_on_plus, Chromosome q_chr, int q_chr_size, int q_start, int q_end, bool q_on_plus, int id):
 	score(score)
+  , id(id)
   , ref_chr(ref_chr)
   , ref_chr_size(ref_chr_size)
   , ref_start(ref_start)
@@ -176,7 +176,6 @@ GenomicAlignment::GenomicAlignment(double score, Chromosome ref_chr, int ref_chr
   , q_start(q_start)
   , q_end(q_end)
   , q_on_plus(q_on_plus)
-  , id(id)
 {
 	index.append(IndexLine(ref_start, q_start, 0));
 }
@@ -187,7 +186,7 @@ BedLine GenomicAlignment::lift(int start, int end, double percent_deletion) cons
 	int start_index = 0;
 	int ref_current_pos = ref_start;
 	int q_current_pos = q_start;
-	bool debug = true;
+	bool debug = false;
 
 
 	for (int cur=1; cur<index.size(); cur++)
@@ -253,7 +252,7 @@ BedLine GenomicAlignment::lift(int start, int end, double percent_deletion) cons
 
 		if (lifted_start == -1)
 		{
-			if (ref_current_pos <= start && ref_current_pos + line.size >= start)
+			if (ref_current_pos <= start && ref_current_pos + line.size > start)
 			{
 				if (line.ref_dt == 0 && ref_current_pos + line.size == start)
 				{
@@ -269,7 +268,7 @@ BedLine GenomicAlignment::lift(int start, int end, double percent_deletion) cons
 
 			}
 			 //if start is in the next unmapped or deleted region of the last alignment line - take the next possible position:
-			if (ref_current_pos + line.size < start && start < ref_current_pos +line.size + line.ref_dt)
+			if (ref_current_pos + line.size <= start && start < ref_current_pos +line.size + line.ref_dt)
 			{
 				unmapped_bases += (ref_current_pos + line.size + line.ref_dt) - start;
 				lifted_start = q_current_pos + line.size + line.q_dt;
@@ -281,41 +280,49 @@ BedLine GenomicAlignment::lift(int start, int end, double percent_deletion) cons
 		if (lifted_end == -1)
 		{
 			//it's not in the same alignment piece but there is no gap in the reference:
-			if (ref_current_pos <= end && ref_current_pos + line.size >= end)
+			if (ref_current_pos <= end && ref_current_pos + line.size > end)
 			{
 				lifted_end = q_current_pos + (end - ref_current_pos);
 				if (debug) std::cout << "end current pos in alignment: " << ref_current_pos << " - line size: " << line.size << " - lifted_end: " << lifted_end << "\n";
 			}
 
 			// if end is in the next unmapped region - take the last possible position:
-			if (ref_current_pos +line.size < end && end < ref_current_pos +line.size + line.ref_dt)
+			if (ref_current_pos +line.size <= end && end < ref_current_pos +line.size + line.ref_dt)
 			{
 
 				unmapped_bases += end - (ref_current_pos +line.size); // amount the end is "pulled forward"
 				lifted_end = q_current_pos + line.size;
 				if (debug) std::cout << "end in unmapped - lifted_end: " << lifted_end << " - added to ref_dt: " << end - (ref_current_pos +line.size) <<"\n";
 			}
+
+			if (ref_current_pos + line.size +line.ref_dt == end)
+			{
+				unmapped_bases += line.ref_dt;
+				lifted_end = q_current_pos + line.size;
+				if (debug) std::cout << "###end current pos in alignment: " << ref_current_pos << " - line size: " << line.size << " - lifted_end: " << lifted_end << "\n";
+			}
 		}
 
 
 		ref_current_pos += line.size;
 		q_current_pos += line.size;
+		ref_current_pos += line.ref_dt;
+		q_current_pos += line.q_dt;
+
+
+		if(lifted_start != -1 && lifted_end == -1 && ! start_was_in_unmapped)
+		{
+			unmapped_bases += line.ref_dt;
+		}
+		start_was_in_unmapped = false;
+
 
 		// break when the current position is after the start:
 		if (ref_current_pos > end)
 		{
 			break;
 		}
-		else
-		{
-			if(lifted_start != -1 && lifted_end == -1 && ! start_was_in_unmapped)
-			{
-				unmapped_bases += line.ref_dt;
-			}
-			start_was_in_unmapped = false;
-			ref_current_pos += line.ref_dt;
-			q_current_pos += line.q_dt;
-		}
+
 
 	}
 	if (debug) std::cout << "sum of ref_dt: " << unmapped_bases << " - expected to be smaller than: " << percent_deletion * (end-start) << "\n";
