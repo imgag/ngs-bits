@@ -22,6 +22,15 @@ HttpResponse::HttpResponse(BasicResponseData data, QByteArray payload)
 	readBasicResponseData(data);
 }
 
+HttpResponse::HttpResponse(ResponseStatus status, ContentType content_type, qlonglong content_length)
+{
+	setStatus(status);
+	addHeader("Content-Type: " + HttpProcessor::convertContentTypeToString(content_type).toLocal8Bit() + "\r\n");
+	addHeader("Content-Length: " + QByteArray::number(content_length) + "\r\n");
+	addHeader("\r\n");
+	setIsStream(false);
+}
+
 HttpResponse::HttpResponse(ResponseStatus status, ContentType content_type, QString message)
 {
 	if (message.isEmpty())

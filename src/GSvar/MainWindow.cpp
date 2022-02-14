@@ -295,6 +295,53 @@ void MainWindow::on_actionDebug_triggered()
 		QTime timer;
 		timer.start();
 
+                //Delete variant that are not used
+                /*
+                QStringList ref_tables;
+                ref_tables << "detected_variant";
+                ref_tables << "report_configuration_variant";
+                ref_tables << "variant_classification";
+                ref_tables << "variant_publication";
+                ref_tables << "variant_validation";
+                ref_tables << "detected_somatic_variant";
+                ref_tables << "somatic_report_configuration_variant";
+                ref_tables << "somatic_variant_classification";
+                ref_tables << "somatic_vicc_interpretation";
+                ref_tables << "somatic_report_configuration_germl_var";
+
+                NGSD db;
+                foreach (const QString& chr_name, db.getEnum("variant", "chr"))
+                {
+                    QList<int> v_ids = db.getValuesInt("SELECT id FROM variant WHERE chr='" + chr_name + "'");
+                    qDebug() << QDateTime::currentDateTime() << chr_name << "variants:" << v_ids.count();
+                    int c_deleted = 0;
+                    foreach(int v_id , v_ids)
+                    {
+                        QString var_id_str = QString::number(v_id);
+                        bool remove = true;
+                        foreach (const QString& table, ref_tables)
+                        {
+                            long long count = db.getValue("SELECT count(*) FROM " + table + " WHERE variant_id="+var_id_str).toLongLong();
+                            if (count>0)
+                            {
+                                remove = false;
+                                break;
+                            }
+                        }
+                        if (remove)
+                        {
+                            //QTime timer;
+                            //timer.start();
+                            db.getQuery().exec("DELETE FROM variant WHERE id="+var_id_str);
+                            //qDebug() << QDateTime::currentDateTime() << "DELETE:" << var_id_str << " TIME:" << Helper::elapsedTime(timer);
+                            ++c_deleted;
+                        }
+                    }
+                    qDebug() << QDateTime::currentDateTime() << chr_name << "deleted:" << c_deleted;
+
+                }
+                */
+
 		//Delete report config CNVs of samples that where the report configuration was not changed since 06.12.22 (for re-import of CNV report config data from HG19 databases - necessary because of CNV calling bug at chromosome ends)
 		/*
 		NGSD db;

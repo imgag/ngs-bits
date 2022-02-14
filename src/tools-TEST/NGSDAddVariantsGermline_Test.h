@@ -44,6 +44,14 @@ private slots:
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_38 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in2.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in2.tsv"));
 		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line44.log", QRegExp("^WARNING: transactions"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line44.log", TESTDATA("data_out/NGSDAddVariantsGermline_out3.log"));
+
+		//check if PubMed ids are imported
+		Variant var = Variant(Chromosome("chrX"), 155255024, 155255024, "C", "T");
+		QString var_id = db.variantId(var);
+		QStringList pubmed_ids = db.pubmedIds(var_id);
+		pubmed_ids.sort();
+		S_EQUAL(pubmed_ids.at(0), "12345678");
+		S_EQUAL(pubmed_ids.at(1), "87654321")
 	}
 
 	void sv_default_import()
@@ -73,7 +81,7 @@ private slots:
 		I_EQUAL(count, 1);
 
 		//check log
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line59.log", TESTDATA("data_out/NGSDAddVariantsGermline_out56.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line67.log", TESTDATA("data_out/NGSDAddVariantsGermline_out56.log"));
 	}
 
 
@@ -107,8 +115,8 @@ private slots:
 		I_EQUAL(count, 1);
 
 		//check log
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line90.log", TESTDATA("data_out/NGSDAddVariantsGermline_out87.log"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line93.log", TESTDATA("data_out/NGSDAddVariantsGermline_out90.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line98.log", TESTDATA("data_out/NGSDAddVariantsGermline_out87.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line101.log", TESTDATA("data_out/NGSDAddVariantsGermline_out90.log"));
 	}
 
 
@@ -142,8 +150,8 @@ private slots:
 		I_EQUAL(count, 1);
 
 		//check log
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line125.log", TESTDATA("data_out/NGSDAddVariantsGermline_out122.log"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line128.log", TESTDATA("data_out/NGSDAddVariantsGermline_out125.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line133.log", TESTDATA("data_out/NGSDAddVariantsGermline_out122.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line136.log", TESTDATA("data_out/NGSDAddVariantsGermline_out125.log"));
 	}
 
 	void import_with_existing_report_config()
@@ -178,8 +186,8 @@ private slots:
 		I_EQUAL(count, 0);
 
 		//check log
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line161.log", TESTDATA("data_out/NGSDAddVariantsGermline_out158.log"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line162.log", TESTDATA("data_out/NGSDAddVariantsGermline_out159.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line169.log", TESTDATA("data_out/NGSDAddVariantsGermline_out158.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line170.log", TESTDATA("data_out/NGSDAddVariantsGermline_out159.log"));
 	}
 };
 
