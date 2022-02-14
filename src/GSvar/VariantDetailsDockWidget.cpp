@@ -567,12 +567,21 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				QString new_anno = "";
 
 				QList<double> percentages;
+				QList<double> absValues;
 
-				bool color = GSvarHelper::percentageChangeMaxEntScan(anno, percentages);
+				bool color = GSvarHelper::percentageChangeMaxEntScan(anno, percentages, absValues);
 				QStringList values = anno.split(',');
 				for (int i=0; i<values.size(); i++)
 				{
-					new_anno += values[i] + "(" + QString::number(percentages[i]*100, 'f', 1) + "%), ";
+					if (absValues[i] > 0.5)
+					{
+						new_anno += values[i] + "(" + QString::number(percentages[i]*100, 'f', 1) + "%), ";
+					}
+					else
+					{
+						new_anno += values[i] + ", ";
+					}
+
 				}
 
 				new_anno.chop(2);

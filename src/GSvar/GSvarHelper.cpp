@@ -429,7 +429,7 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 }
 
 
-bool GSvarHelper::percentageChangeMaxEntScan(QString anno, QList<double>& percentages)
+bool GSvarHelper::percentageChangeMaxEntScan(QString anno, QList<double>& percentages, QList<double>& absValues)
 {
 	double max_relevant_change = 0;
 	foreach (const QString value, anno.split(','))
@@ -442,6 +442,7 @@ bool GSvarHelper::percentageChangeMaxEntScan(QString anno, QList<double>& percen
 			double base = parts[0].toDouble();
 			double newValue = parts[1].toDouble();
 			double absChange = std::abs(base-newValue);
+			absValues.append(absChange);
 
 			// calculate percentage change:
 			if (base != 0)
