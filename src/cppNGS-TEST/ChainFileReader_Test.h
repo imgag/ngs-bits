@@ -36,10 +36,6 @@ private slots:
 			catch (Exception& e)
 			{
 				QByteArray unmapped_line = unmapped->readLine().trimmed();
-				if (unmapped_line.startsWith('#'))
-				{
-					unmapped_line =	unmapped->readLine().trimmed();
-				}
 				S_EQUAL(bed_line.toString(false), unmapped_line)
 				continue;
 
@@ -92,5 +88,44 @@ private slots:
 				std::cout << "Encountered Argument exception." << e.message().toStdString() << "\n";
 			}
 		}
+	}
+
+	void test03()
+	{
+		QString bw_file = Settings::string("liftOver_hg38_hg19", true);
+		if (bw_file=="") SKIP("Test needs the liftOver hg38->hg19 chain file!");
+
+		QList<double> allowed_deletion{0, 0.05, 0.1, 0.2};
+		QList<int> expected{0, 5, 10, 20};
+
+		QSharedPointer<QFile> bed = Helper::openFileForReading(TESTDATA("data_in/ChainFileReader_in3.bed"));
+
+		for(int i=0; i<allowed_deletion.size(); i++)
+		{
+			ChainFileReader r(bw_file, allowed_deletion[i]);
+			bed->seek(0);
+			int count  = 0;
+			while (! bed->atEnd())
+			{
+
+				BedLine bed_line = BedLine::fromString(bed->readLine().trimmed());
+				BedLine actual;
+
+				try
+				{
+					actual = r.lift(bed_line.chr(), bed_line.start(), bed_line.end());
+					count++;
+				}
+				catch (Exception& e)
+				{
+					continue;
+
+				}
+			}
+
+			I_EQUAL(count, expected[i]);
+		}
+
+
 	}
 };

@@ -444,3 +444,7 @@ CfDnaQC.depends = cppNGS
 SUBDIRS += VcfAnnotateFromBigWig
 tools-TEST.depends += VcfAnnotateFromBigWig
 VcfAnnotateFromBigWig.depends = cppNGS
+
+SUBDIRS += BedLiftOver
+tools-TEST.depends += BedLiftOver
+BedLiftOver.depends = cppNGS

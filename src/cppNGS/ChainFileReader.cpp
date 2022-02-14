@@ -344,7 +344,7 @@ QString ChainFileReader::GenomicAlignment::toString(bool with_al_lines) const
 	res += "ref on plus: " + QString::number(ref_on_plus) + "\tq on plus: " + QString::number(q_on_plus);
 	if (with_al_lines)
 	{
-		foreach (AlignmentLine l, alignment)
+		foreach (const AlignmentLine& l, alignment)
 		{
 			res += l.toString() + "\n";
 		}
