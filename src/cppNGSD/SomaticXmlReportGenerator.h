@@ -8,6 +8,7 @@
 #include "SomaticReportConfiguration.h"
 #include "SomaticReportSettings.h"
 #include <QDate>
+#include <QXmlStreamWriter>
 
 ///Container for XML data exchange format
 struct CPPNGSDSHARED_EXPORT SomaticXmlReportGeneratorData
@@ -42,15 +43,14 @@ class CPPNGSDSHARED_EXPORT SomaticXmlReportGenerator
 public:
 	SomaticXmlReportGenerator();
 
-	static QString generateXML(const SomaticXmlReportGeneratorData &data, NGSD& db, bool test=false);
-
 	static void checkSomaticVariantAnnotation(const VariantList& vl);
 
-private:
-	static void generateXML(const SomaticXmlReportGeneratorData& data, QString& output, NGSD& db, bool test=false);
+	static void generateXML(const SomaticXmlReportGeneratorData& data, QSharedPointer<QFile> out_file, NGSD& db, bool test=false);
 
-	//validates somatic xml report against .xsd file in resources dir
-	static void validateXml(const QString& xml);
+	///validates somatic xml report against .xsd file in resources dir
+	static void validateXml(QString file_name);
+
+
 };
 
 #endif // SOMATICXMLREPORTGENERATOR_H

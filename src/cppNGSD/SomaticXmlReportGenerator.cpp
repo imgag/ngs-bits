@@ -82,22 +82,9 @@ void SomaticXmlReportGenerator::checkSomaticVariantAnnotation(const VariantList 
 	}
 }
 
-QString SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData &data, NGSD& db, bool test)
+void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData &data, QSharedPointer<QFile> out_file, NGSD& db, bool test)
 {
-	QString output;
-
-	data.check();
-	generateXML(data, output, db, test);
-
-	validateXml(output);
-
-
-	return output;
-}
-
-void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData &data, QString& output, NGSD& db, bool test)
-{
-	QXmlStreamWriter w(&output);
+	QXmlStreamWriter w(out_file.data());
 
 	w.setAutoFormatting(true);
 
@@ -502,12 +489,9 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 }
 
 
-void SomaticXmlReportGenerator::validateXml(const QString &xml)
+void SomaticXmlReportGenerator::validateXml(QString file_name)
 {
-	QString tmp_file = Helper::tempFileName(".xml");
-	Helper::storeTextFile(tmp_file, QStringList() << xml);
-
-	QString xml_error = XmlHelper::isValidXml(tmp_file, ":/resources/SomaticReport_v3.xsd");
+	QString xml_error = XmlHelper::isValidXml(file_name, ":/resources/SomaticReport_v3.xsd");
 
 	if(xml_error!= "")
 	{

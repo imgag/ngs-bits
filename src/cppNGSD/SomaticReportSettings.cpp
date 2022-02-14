@@ -105,7 +105,7 @@ CnvList SomaticReportSettings::filterCnvs(const CnvList &cnvs, const SomaticRepo
 
 void SomaticReportSettings::check()
 {
-	if( target_region_filter.name != "somatic_custom_panel" )
+	if( target_region_filter.name != "somatic_custom_panel" && target_region_filter.name != "" )
 	{
 		THROW(NotImplementedException, "Cannot create somatic report for target region other than 'somatic_custom_panel'. Please use 'somatic_custom_panel'!");
 	}

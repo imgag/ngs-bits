@@ -64,7 +64,7 @@ RtfTable SomaticReportHelper::cnvTable()
 	{
 		const CopyNumberVariant& variant = cnvs_[i];
 
-		if( !settings_.target_region_filter.regions.overlapsWith( variant.chr(),variant.start(), variant.end() ) ) continue; //target region from GSvar filter widget
+		if(settings_.target_region_filter.isValid() && !settings_.target_region_filter.regions.overlapsWith( variant.chr(),variant.start(), variant.end() ) ) continue; //target region from GSvar filter widget
 
 
 		RtfTableRow temp_row;
@@ -1094,6 +1094,7 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	/************
 	 * METADATA *
 	 ************/
+
 	RtfTable general_info_table;
 	general_info_table.addRow(RtfTableRow("Allgemeine genetische Charakteristika (" + RtfText(settings_.tumor_ps.toUtf8() + "-" + settings_.normal_ps.toUtf8()).setFontSize(16).setBold(false).RtfCode() +")",doc_.maxWidth(),RtfParagraph().setBold(true)).setBackgroundColor(4).setBorders(1,"brdrhair",4));
 
@@ -1535,11 +1536,12 @@ void SomaticReportHelper::storeXML(QString file_name)
 	data.tumor_mutation_burden = mutation_burden_;
 	data.mantis_msi = mantis_msi_swd_value_;
 
-
-	QByteArray xml_data = SomaticXmlReportGenerator::generateXML(data, db_, false).toUtf8();
 	QSharedPointer<QFile> out_file = Helper::openFileForWriting(file_name);
-	out_file->write(xml_data);
+	SomaticXmlReportGenerator::generateXML(data, out_file, db_, false);
+
 	out_file->close();
+
+	SomaticXmlReportGenerator::validateXml(file_name);
 }
 
 void SomaticReportHelper::storeQbicData(QString path)
