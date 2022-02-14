@@ -192,8 +192,15 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	//Element TargetRegion
 	w.writeStartElement("TargetRegion");
 
-	int sys_id = db.processingSystemIdFromProcessedSample(data.settings.tumor_ps);
-	w.writeAttribute("name",  db.getProcessingSystemData(sys_id).name); //in our workflow identical to processing system name
+	if(!data.settings.target_region_filter.isValid())
+	{
+		int sys_id = db.processingSystemIdFromProcessedSample(data.settings.tumor_ps);
+		w.writeAttribute("name",  db.getProcessingSystemData(sys_id).name); //in our workflow identical to processing system name
+	}
+	else
+	{
+		w.writeAttribute("name",  data.settings.target_region_filter.name); //sub panel target has been selected
+	}
 
 	for(int i=0; i<data.processing_system_roi.count(); ++i)
 	{
@@ -441,6 +448,8 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 				if(gene_info.symbol.isEmpty()) continue;
 				if(gene_info.hgnc_id.isEmpty()) continue; //genes that were withdrawn or cannot uniquely mapped to approved symbol
+
+				if(!data.processing_system_genes.contains(gene)) continue; //Include genes from target filter only
 
 				w.writeStartElement("Gene");
 				w.writeAttribute("name", gene_info.symbol);
