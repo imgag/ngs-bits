@@ -51,8 +51,8 @@ public:
 	//Queue the analysis of samples
 	static bool queueSampleAnalysis(AnalysisType type, const QList<AnalysisJobSample>& samples, QWidget* parent = 0);
 
-	//Calculate percentage change of MaxEntScan.
-	static bool percentageChangeMaxEntScan(QString anno, QList<double>& percentages, QList<double>& absValues);
+	//returns if the change of MaxEntScan is large enough to color it in the VariantTable, also provides percent- and abs-changes of MaxEntScan.
+	static bool colorMaxEntScan(QString anno, QList<double>& percentages, QList<double>& absValues);
 
 protected:
 	GSvarHelper() = delete;

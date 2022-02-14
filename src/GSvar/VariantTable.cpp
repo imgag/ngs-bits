@@ -155,8 +155,8 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 			else if (j==i_maxentscan &&  (! anno.isEmpty()))
 			{
 				//color item
-				QList<double> percentages, absValues;
-				if (GSvarHelper::percentageChangeMaxEntScan(anno, percentages, absValues))
+				QList<double> percentages, abs_values;
+				if (GSvarHelper::colorMaxEntScan(anno, percentages, abs_values))
 				{
 					item->setBackgroundColor(QColor(255, 135, 60)); //orange
 					is_notice_line = true;

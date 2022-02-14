@@ -567,13 +567,13 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				QString new_anno = "";
 
 				QList<double> percentages;
-				QList<double> absValues;
+				QList<double> abs_values;
 
-				bool color = GSvarHelper::percentageChangeMaxEntScan(anno, percentages, absValues);
+				bool color = GSvarHelper::colorMaxEntScan(anno, percentages, abs_values);
 				QStringList values = anno.split(',');
 				for (int i=0; i<values.size(); i++)
 				{
-					if (absValues[i] > 0.5)
+					if (abs_values[i] > 0.5)
 					{
 						new_anno += values[i] + "(" + QString::number(percentages[i]*100, 'f', 1) + "%), ";
 					}
@@ -581,9 +581,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 					{
 						new_anno += values[i] + ", ";
 					}
-
 				}
-
 				new_anno.chop(2);
 
 				//color item
@@ -596,7 +594,6 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 					text = new_anno;
 				}
 			}
-
 		}
 		else if(name=="PubMed")
 		{

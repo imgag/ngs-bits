@@ -429,7 +429,7 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 }
 
 
-bool GSvarHelper::percentageChangeMaxEntScan(QString anno, QList<double>& percentages, QList<double>& absValues)
+bool GSvarHelper::colorMaxEntScan(QString anno, QList<double>& percentages, QList<double>& abs_values)
 {
 	double max_relevant_change = 0;
 	foreach (const QString value, anno.split(','))
@@ -438,30 +438,29 @@ bool GSvarHelper::percentageChangeMaxEntScan(QString anno, QList<double>& percen
 
 		if (parts.count() == 2)
 		{
-			double percentChange;
+			double percent_change;
 			double base = parts[0].toDouble();
-			double newValue = parts[1].toDouble();
-			double absChange = std::abs(base-newValue);
-			absValues.append(absChange);
+			double new_value = parts[1].toDouble();
+			double abs_change = std::abs(base-new_value);
+			abs_values.append(abs_change);
 
 			// calculate percentage change:
 			if (base != 0)
 			{
 				if (base > 0)
 				{
-					percentChange = (newValue - base) / base;
+					percent_change = (new_value - base) / base;
 				} else {
-					percentChange = (base - newValue) / base;
+					percent_change = (base - new_value) / base;
 				}
 			}
-			percentChange = std::abs(percentChange);
-
-			percentages.append(percentChange);
+			percent_change = std::abs(percent_change);
+			percentages.append(percent_change);
 
 			//Don't color if absChange smaller than 0.5
-			if ((absChange > 0.5) && percentChange > max_relevant_change)
+			if ((abs_change > 0.5) && percent_change > max_relevant_change)
 			{
-				max_relevant_change = percentChange;
+				max_relevant_change = percent_change;
 			}
 		}
 	}
