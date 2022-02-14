@@ -427,3 +427,50 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 
 	return false;
 }
+
+
+bool GSvarHelper::percentageChangeMaxEntScan(QString anno, QList<double>& percentages)
+{
+	double max_relevant_change = 0;
+	foreach (const QString value, anno.split(','))
+	{
+		QStringList parts = value.split('>');
+
+		if (parts.count() == 2)
+		{
+			double percentChange;
+			double base = parts[0].toDouble();
+			double newValue = parts[1].toDouble();
+			double absChange = std::abs(base-newValue);
+
+			// calculate percentage change:
+			if (base != 0)
+			{
+				if (base > 0)
+				{
+					percentChange = (newValue - base) / base;
+				} else {
+					percentChange = (base - newValue) / base;
+				}
+			}
+			percentChange = std::abs(percentChange);
+
+			percentages.append(percentChange);
+
+			//Don't color if absChange smaller than 0.5
+			if ((absChange > 0.5) && percentChange > max_relevant_change)
+			{
+				max_relevant_change = percentChange;
+			}
+		}
+	}
+
+	if (max_relevant_change >= 0.15)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
