@@ -1006,7 +1006,7 @@ RtfTable SomaticReportHelper::snvTable(const VariantList &vl, bool include_germl
 
 			if(cn == 2) continue; //Skip LOHs
 
-			if( !settings_.target_region_filter.regions.overlapsWith( cnv.chr(), cnv.start(), cnv.end() ) ) continue; //target region from GSvar filter widget
+			if( settings_.target_region_filter.isValid() && !settings_.target_region_filter.regions.overlapsWith( cnv.chr(), cnv.start(), cnv.end() ) ) continue; //target region from GSvar filter widget
 
 			GeneSet genes = db_.genesToApproved( cnv.genes() ).intersect(settings_.processing_system_genes);
 
@@ -1134,7 +1134,14 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	//MSI status, values larger than 0.16 are considered unstable
 	if(settings_.report_config.msiStatus())
 	{
-		general_info_table.addRow(RtfTableRow({"Mikrosatelliten", ( mantis_msi_swd_value_ <= 0.16 ? "kein Hinweis auf eine MSI" : "Hinweise auf MSI" ) },{2500,7421}).setBorders(1,"brdrhair",4));
+		if(processing_system_data_.type == "WES")
+		{
+			general_info_table.addRow(RtfTableRow({"Mikrosatelliten", ( mantis_msi_swd_value_ <= 0.4 ? "kein Hinweis auf eine MSI" : "Hinweise auf MSI" ) },{2500,7421}).setBorders(1,"brdrhair",4));
+		}
+		else
+		{
+			general_info_table.addRow(RtfTableRow({"Mikrosatelliten", ( mantis_msi_swd_value_ <= 0.16 ? "kein Hinweis auf eine MSI" : "Hinweise auf MSI" ) },{2500,7421}).setBorders(1,"brdrhair",4));
+		}
 	}
 
 	//Fusion status
@@ -1498,14 +1505,9 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 
 	metadata.addRow(RtfTableRow("In Regionen mit einer Abdeckung >100x können somatische Varianten mit einer Frequenz >5% im Tumorgewebe mit einer Sensitivität >95,0% und einem Positive Prediction Value PPW >99% bestimmt werden. Für mindestens 95% aller untersuchten Gene kann die Kopienzahl korrekt unter diesen Bedingungen bestimmt werden.", doc_.maxWidth()) );
 
-
 	metadata.setUniqueFontSize(14);
 
 	doc_.addPart(metadata.RtfCode());
-
-
-
-
 
 	/***********************
 	 * BILLING INFORMATION *
