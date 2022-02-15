@@ -448,3 +448,7 @@ VcfAnnotateFromBigWig.depends = cppNGS
 SUBDIRS += NGSDExportSV
 tools-TEST.depends += NGSDExportSV
 NGSDExportSV.depends = cppNGSD
+
+SUBDIRS += BedpeAnnotateCounts
+tools-TEST.depends += BedpeAnnotateCounts
+BedpeAnnotateCounts.depends = cppNGS

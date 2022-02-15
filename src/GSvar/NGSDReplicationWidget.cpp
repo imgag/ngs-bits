@@ -1104,7 +1104,7 @@ int NGSDReplicationWidget::liftOverSv(int source_sv_id, StructuralVariantType sv
 {
 	BedpeFile dummy; //dummy BEDPE file to pass as structure
 	QList<QByteArray> annotation_headers;
-	annotation_headers << "QUAL" << "FILTER" << "ALT_A" << "INFO_A";
+	annotation_headers << "QUAL" << "FILTER" << "ALT_A" << "INFO_A" << "FORMAT" << "";
 	dummy.setAnnotationHeaders(annotation_headers);
 	BedpeLine sv = db_source_->structuralVariant(source_sv_id, sv_type, dummy, false);
 

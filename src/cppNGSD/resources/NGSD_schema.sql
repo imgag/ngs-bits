@@ -1557,6 +1557,7 @@ CREATE  TABLE IF NOT EXISTS `sv_deletion`
   `start_max` INT(11) UNSIGNED NOT NULL,
   `end_min` INT(11) UNSIGNED NOT NULL,
   `end_max` INT(11) UNSIGNED NOT NULL,
+  `genotype` ENUM('hom','het', 'n/a') NOT NULL DEFAULT 'n/a',
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   PRIMARY KEY (`id`),
   CONSTRAINT `sv_del_references_sv_callset`
@@ -1583,6 +1584,7 @@ CREATE  TABLE IF NOT EXISTS `sv_duplication`
   `start_max` INT(11) UNSIGNED NOT NULL,
   `end_min` INT(11) UNSIGNED NOT NULL,
   `end_max` INT(11) UNSIGNED NOT NULL,
+  `genotype` ENUM('hom','het', 'n/a') NOT NULL DEFAULT 'n/a',
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   PRIMARY KEY (`id`),
   CONSTRAINT `sv_dup_references_sv_callset`
@@ -1611,6 +1613,7 @@ CREATE  TABLE IF NOT EXISTS `sv_insertion`
   `inserted_sequence` TEXT DEFAULT NULL,
   `known_left` TEXT DEFAULT NULL,
   `known_right` TEXT DEFAULT NULL,
+  `genotype` ENUM('hom','het', 'n/a') NOT NULL DEFAULT 'n/a',
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   PRIMARY KEY (`id`),
   CONSTRAINT `sv_ins_references_sv_callset`
@@ -1636,6 +1639,7 @@ CREATE  TABLE IF NOT EXISTS `sv_inversion`
   `start_max` INT(11) UNSIGNED NOT NULL,
   `end_min` INT(11) UNSIGNED NOT NULL,
   `end_max` INT(11) UNSIGNED NOT NULL,
+  `genotype` ENUM('hom','het', 'n/a') NOT NULL DEFAULT 'n/a',
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   PRIMARY KEY (`id`),
   CONSTRAINT `sv_inv_references_sv_callset`
@@ -1663,6 +1667,7 @@ CREATE  TABLE IF NOT EXISTS `sv_translocation`
   `chr2` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
   `start2` INT(11) UNSIGNED NOT NULL,
   `end2` INT(11) UNSIGNED NOT NULL,
+  `genotype` ENUM('hom','het', 'n/a') NOT NULL DEFAULT 'n/a',
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   PRIMARY KEY (`id`),
   CONSTRAINT `sv_bnd_references_sv_callset`
