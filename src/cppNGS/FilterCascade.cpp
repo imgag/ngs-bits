@@ -946,6 +946,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["CNV polymorphism region"] = &createInstance<FilterCnvCnpOverlap>;
 		output["CNV gene constraint"] = &createInstance<FilterCnvGeneConstraint>;
 		output["CNV gene overlap"] = &createInstance<FilterCnvGeneOverlap>;
+		output["CNV clonality"] = &createInstance<FilterCnvClonality>;
 		output["SV type"] = &createInstance<FilterSvType>;
 		output["SV remove chr type"] = &createInstance<FilterSvRemoveChromosomeType>;
 		output["SV genotype control"] = &createInstance<FilterSvGenotypeControl>;
@@ -3285,6 +3286,41 @@ void FilterCnvGeneConstraint::apply(const CnvList& cnvs, FilterResult& result) c
 			}
 		}
 		result.flags()[i] = any_gene_passed;
+	}
+}
+
+FilterCnvClonality::FilterCnvClonality()
+{
+	name_ = "CNV clonality";
+	type_ = VariantType::CNVS;
+	description_ = QStringList() << "Filter based on CNV clonality.";
+	params_ << FilterParameter("min_clonality", FilterParameterType::DOUBLE, 0., "Minimum Clonality of the CNV ");
+	params_ << FilterParameter("max_clonality", FilterParameterType::DOUBLE, 1., "Maximum Clonality of the CNV ");
+
+	checkIsRegistered();
+}
+
+QString FilterCnvClonality::toText() const
+{
+	return name() + " min_clonality=" + QString::number(getDouble("min_clonality")) + ", max_clonality=" + QString::number(getDouble("max_clonality"));
+}
+
+void FilterCnvClonality::apply(const CnvList &cnvs, FilterResult &result) const
+{
+	if(!enabled_) return;
+	int i_clonality = cnvs.annotationIndexByName("tumor_clonality", true);
+	double min_clonality= getDouble("min_clonality");
+	double max_clonality = getDouble("max_clonality");
+
+	//filter
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+		bool ok = false;
+		double tumor_clonality = cnvs[i].annotations()[i_clonality].trimmed().toDouble(&ok);
+		if(!ok) continue;
+
+		result.flags()[i] = (tumor_clonality > min_clonality) && (tumor_clonality < max_clonality);
 	}
 }
 
