@@ -90,7 +90,7 @@ public:
 			case Permission::UNDEFINED:
 				return "UNDEFINED";
 		}
-		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)in) + "' in typeToString()!");
+		THROW(ProgrammingException, "Unhandled permission type '" + QString::number((int)in) + "' in typeToString()!");
 	}
 
 private:
