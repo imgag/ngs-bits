@@ -34,6 +34,7 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	connect(ui->trans, SIGNAL(linkActivated(QString)), this, SLOT(transcriptClicked(QString)));
 	connect(ui->som_details_prev, SIGNAL(clicked(bool)), this, SLOT(previousSomDetails()));
 	connect(ui->som_details_next, SIGNAL(clicked(bool)), this, SLOT(nextSomDetails()) );
+	connect(ui->pubmed, SIGNAL(linkActivated(QString)), this, SLOT(pubmedClicked(QString)));
 
 	//set up transcript buttons
 	ui->trans_prev->setStyleSheet("QPushButton {border: none; margin: 0px;padding: 0px;}");
@@ -76,6 +77,7 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_hgmd->setToolTip(vl.annotationDescriptionByName("HGMD", false).description()); //optional
 	ui->label_omim->setToolTip(vl.annotationDescriptionByName("OMIM", false).description()); //optional
 	ui->label_cosmic->setToolTip(vl.annotationDescriptionByName("COSMIC").description());
+	ui->label_pubmed->setToolTip(vl.annotationDescriptionByName("PubMed", false).description()); //optional
 
 	//AFs
 	ui->label_tg->setToolTip(vl.annotationDescriptionByName("1000g").description());
@@ -170,6 +172,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->hgmd, vl, index, "HGMD");
 	setAnnotation(ui->omim, vl, index, "OMIM");
 	setAnnotation(ui->cosmic, vl, index, "COSMIC");
+	setAnnotation(ui->pubmed, vl, index, "PubMed");
 
 	//public allel frequencies
 	setAnnotation(ui->tg, vl, index, "1000g");
@@ -550,12 +553,65 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			double value = anno.toDouble(&ok);
 			if (ok && value >= 0.5)
 			{
-				text = formatText(anno, RED);
+				text = formatText(anno, ORANGE);
 			}
 			else
 			{
 				text = anno;
 			}
+		}
+		else if(name=="MaxEntScan")
+		{
+			if (anno != "")
+			{
+				QString new_anno = "";
+
+				QList<double> percentages;
+				QList<double> abs_values;
+
+				bool color = GSvarHelper::colorMaxEntScan(anno, percentages, abs_values);
+				QStringList values = anno.split(',');
+				for (int i=0; i<values.size(); i++)
+				{
+					if (abs_values[i] > 0.5)
+					{
+						new_anno += values[i] + "(" + QString::number(percentages[i]*100, 'f', 1) + "%), ";
+					}
+					else
+					{
+						new_anno += values[i] + ", ";
+					}
+				}
+				new_anno.chop(2);
+
+				//color item
+				if (color)
+				{
+					text = formatText(new_anno, ORANGE);
+				}
+				else
+				{
+					text = new_anno;
+				}
+			}
+		}
+		else if(name=="PubMed")
+		{
+			QStringList ids = anno.split(",");
+			ids.removeAll("");
+			text.clear();
+			for (int i = 0; i < std::min(ids.size(), 2); ++i)
+			{
+				QString id = ids.at(i).trimmed();
+				text += formatLink(id, "https://pubmed.ncbi.nlm.nih.gov/" + id + "/") + " ";
+			}
+			if (ids.size() > 2)
+			{
+				text += "... " + formatLink("<i>(open all (" + QString::number(ids.size()) + "))</i> ", "openAll") + " ";
+			}
+
+			tooltip = ids.join(", ");
+
 		}
 		else //fallback: use complete annotations string
 		{
@@ -816,6 +872,23 @@ void VariantDetailsDockWidget::transcriptClicked(QString link)
 	}
 }
 
+void VariantDetailsDockWidget::pubmedClicked(QString link)
+{
+	if (link.startsWith("http")) //transcript
+	{
+		QDesktopServices::openUrl(QUrl(link));
+	}
+	else //gene
+	{
+		//open all publications
+		QStringList pubmed_ids = ui->pubmed->toolTip().split(", ");
+		foreach (QString id, pubmed_ids)
+		{
+			QDesktopServices::openUrl(QUrl("https://pubmed.ncbi.nlm.nih.gov/" + id + "/"));
+		}
+	}
+}
+
 void VariantDetailsDockWidget::variantButtonClicked()
 {
 	if (variant_str.isEmpty()) return;
@@ -958,3 +1031,6 @@ void VariantDetailsDockWidget::gnomadContextMenu(QPoint pos)
 		QDesktopServices::openUrl(QUrl(link));
 	}
 }
+
+
+

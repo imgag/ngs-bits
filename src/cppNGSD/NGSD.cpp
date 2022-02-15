@@ -973,6 +973,7 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 	int i_co_sp = variant_list.annotationIndexByName("coding_and_splicing");
 	int i_cadd = variant_list.annotationIndexByName("CADD");
 	int i_spliceai = variant_list.annotationIndexByName("SpliceAI");
+	int i_pubmed = variant_list.annotationIndexByName("PubMed", true, false);
 
 	c_add = 0;
 	c_update = 0;
@@ -998,6 +999,8 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 
 		QByteArray cadd = variant.annotations()[i_cadd].trimmed();
 		QByteArray spliceai = variant.annotations()[i_spliceai].trimmed();
+		QByteArrayList pubmed_ids;
+		if (i_pubmed > 0) pubmed_ids = variant.annotations()[i_pubmed].split(',');
 
 		//get variant ID
 		q_id.bindValue(0, variant.chr().strNormalized(true));
@@ -1053,6 +1056,11 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 			{
 				output << variantId(variant).toInt();
 			}
+		}
+		foreach (const QByteArray pubmed_id, pubmed_ids)
+		{
+			if (pubmed_id.isEmpty()) continue;
+			addPubmedId(output.last(), pubmed_id);
 		}
 	}
 
@@ -1206,6 +1214,20 @@ void NGSD::deleteVariants(const QString& ps_id, VariantType type)
 	{
 		THROW(NotImplementedException, "Deleting variants of type '" + QString::number((int)type) + "' not implemented!");
 	}
+}
+
+void NGSD::addPubmedId(int variant_id, const QString& pubmed_id)
+{
+	SqlQuery query = getQuery();
+	query.prepare("REPLACE INTO `variant_literature` (`variant_id`, `pubmed`) VALUES (:0, :1)");
+	query.bindValue(0, variant_id);
+	query.bindValue(1, pubmed_id);
+	query.exec();
+}
+
+QStringList NGSD::pubmedIds(const QString& variant_id)
+{
+	return getValues("SELECT `pubmed` FROM `variant_literature` WHERE `variant_id`=:0", variant_id);
 }
 
 QString NGSD::somaticCnvId(const CopyNumberVariant &cnv, int callset_id, bool throw_if_fails)

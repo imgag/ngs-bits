@@ -35,3 +35,6 @@ HEADERS += \
 
 SOURCES += \
         main.cpp
+
+RESOURCES += \
+    ../GSvarServer/GSvarServer.qrc

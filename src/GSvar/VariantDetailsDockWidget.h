@@ -50,6 +50,7 @@ private slots:
 	void variantClicked(QString link);
 	void gnomadClicked(QString variant_string);
 	void transcriptClicked(QString link);
+	void pubmedClicked(QString link);
 	void variantButtonClicked();
 	void nextSomDetails();
 	void previousSomDetails();
@@ -90,6 +91,8 @@ private:
 	int trans_curr;
 	//Transcript data
 	QList<VariantTranscript> trans_data;
+
+	//
 
 	//GUI
 	Ui::VariantDetailsDockWidget* ui;

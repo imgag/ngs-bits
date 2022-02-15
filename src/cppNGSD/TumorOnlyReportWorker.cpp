@@ -73,7 +73,7 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 		w.writeAttribute("processing_system", config_.sys.name);
 
 		w.writeAttribute("processing_system_type", config_.sys.type);
-		w.writeAttribute("comment", config_.ps_data.comments);
+		w.writeAttribute("comments", config_.ps_data.comments);
 
 	//end element Sample
 	w.writeEndElement();
