@@ -154,39 +154,9 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 			}
 			else if (j==i_maxentscan &&  (! anno.isEmpty()))
 			{
-				double maxRelevantChange = 0;
-				foreach (QByteArray value, anno.split(','))
-				{
-					QByteArrayList parts = value.split('>');
-					if (parts.count() == 2)
-					{
-						double percentChange;
-						double base = parts[0].toDouble();
-						double newValue = parts[1].toDouble();
-						double absChange = std::abs(base-newValue);
-
-						// calculate percentage change:
-						if (base != 0)
-						{
-							if (base > 0)
-							{
-								percentChange = (newValue - base) / base;
-							} else {
-								percentChange = (base - newValue) / base;
-							}
-						}
-						percentChange = std::abs(percentChange);
-
-						//Don't color if absChange smaller than 0.5
-						if ((absChange > 0.5) && percentChange > maxRelevantChange)
-						{
-							maxRelevantChange = percentChange;
-						}
-					}
-				}
-
 				//color item
-				if (maxRelevantChange >= 0.15)
+				QList<double> percentages, abs_values;
+				if (GSvarHelper::colorMaxEntScan(anno, percentages, abs_values))
 				{
 					item->setBackgroundColor(QColor(255, 135, 60)); //orange
 					is_notice_line = true;
