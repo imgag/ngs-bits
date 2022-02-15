@@ -12,12 +12,12 @@ private slots:
 
 	void test01()
 	{
-		QString bw_file = Settings::string("liftOver_hg38_hg19", true);
-		if (bw_file=="") SKIP("Test needs the liftOver hg38->hg19 chain file!");
+		QString chain_file = Settings::string("liftover_hg38_hg19", true);
+		if (chain_file=="") SKIP("Test needs the liftOver hg38->hg19 chain file!");
 
 		double allowed_deletion =  0.05;
 
-		ChainFileReader r(bw_file, allowed_deletion);
+		ChainFileReader r(chain_file, allowed_deletion);
 
 		QSharedPointer<QFile> bed = Helper::openFileForReading(TESTDATA("data_in/ChainFileReader_in1.bed"));
 		QSharedPointer<QFile> expected = Helper::openFileForReading(TESTDATA("data_out/ChainFileReader_out1_lifted.bed"));
@@ -48,12 +48,12 @@ private slots:
 
 	void test02()
 	{
-		QString bw_file = Settings::string("liftOver_hg19_hg38", true);
-		if (bw_file=="") SKIP("Test needs the liftOver hg19->hg38 chain file!");
+		QString chain_file = Settings::string("liftover_hg19_hg38", true);
+		if (chain_file=="") SKIP("Test needs the liftOver hg19->hg38 chain file!");
 
 		double allowed_deleteion = 0.05;
 
-		ChainFileReader r(bw_file, allowed_deleteion);
+		ChainFileReader r(chain_file, allowed_deleteion);
 
 		QSharedPointer<QFile> bed = Helper::openFileForReading(TESTDATA("data_in/ChainFileReader_in2.bed"));
 		QSharedPointer<QFile> out = Helper::openFileForReading(TESTDATA("data_out/ChainFileReader_out2.bed"));
@@ -92,8 +92,8 @@ private slots:
 
 	void test03()
 	{
-		QString bw_file = Settings::string("liftOver_hg38_hg19", true);
-		if (bw_file=="") SKIP("Test needs the liftOver hg38->hg19 chain file!");
+		QString chain_file = Settings::string("liftover_hg38_hg19", true);
+		if (chain_file=="") SKIP("Test needs the liftOver hg38->hg19 chain file!");
 
 		QList<double> allowed_deletion{0, 0.05, 0.1, 0.2};
 		QList<int> expected{0, 5, 10, 20};
@@ -102,7 +102,7 @@ private slots:
 
 		for(int i=0; i<allowed_deletion.size(); i++)
 		{
-			ChainFileReader r(bw_file, allowed_deletion[i]);
+			ChainFileReader r(chain_file, allowed_deletion[i]);
 			bed->seek(0);
 			int count  = 0;
 			while (! bed->atEnd())
@@ -119,13 +119,10 @@ private slots:
 				catch (Exception& e)
 				{
 					continue;
-
 				}
 			}
 
 			I_EQUAL(count, expected[i]);
 		}
-
-
 	}
 };

@@ -19,11 +19,11 @@ public:
 	{
 		setDescription("Lifts the regions in the bed file according to the provided chain file.");
 		addInfile("in", "Input BED file with the regions to lift.", false);
-		addInfile("chain", "Input Chain file.", false);
 		addOutfile("lifted", "The file where the lifted regions will be written to.", false);
 		addOutfile("unmapped", "The file where the unmappable regions will be written to.", false);
 
 		//optional
+		addString("chain", "Input Chain file or hg19_hg38 / hg38_hg19 to read from settings file.", true, "hg19_hg38");
 		addFloat("del", "Allowed percentage of deleted/unmapped bases in each region.", true, 0.05);
 
 		changeLog(2022,  02, 14, "First implementation");
@@ -34,8 +34,12 @@ public:
 		//init
 		QString in = getInfile("in");
 		QSharedPointer<QFile> bed = Helper::openFileForReading(in);
-		QString chain = getInfile("chain");
+		QString chain = getString("chain");
 
+		if (! chain.contains(".chain"))
+		{
+			chain = Settings::string("liftover_" + chain, false);
+		}
 
 		double allowed_del = getFloat("del");
 

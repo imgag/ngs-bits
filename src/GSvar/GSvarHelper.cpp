@@ -11,6 +11,7 @@
 #include <QDir>
 #include <QMessageBox>
 #include <QStandardPaths>
+#include "ChainFileReader.h"
 
 const GeneSet& GSvarHelper::impritingGenes()
 {
@@ -226,23 +227,37 @@ void GSvarHelper::limitLines(QLabel* label, QString text, QString sep, int max_l
 
 BedLine GSvarHelper::liftOver(const Chromosome& chr, int start, int end, bool hg19_to_hg38)
 {
+	// keep a reader for each liftover file after it was needed
+	static QHash<QString, ChainFileReader> chainReaders;
+
 	//special handling of chrMT (they are the same for GRCh37 and GRCh38)
 	if (chr.strNormalized(true)=="chrMT") return BedLine(chr, start, end);
 
 	//convert start to BED format (0-based)
 	start -= 1;
 
-	//call lift-over webservice
-	QString url = Settings::string("liftover_webservice") + "?chr=" + chr.strNormalized(true) + "&start=" + QString::number(start) + "&end=" + QString::number(end);
-	if (!hg19_to_hg38) url += "&dir=hg38_hg19";
-	QString output = HttpHandler(HttpRequestHandler::ProxyType::NONE).get(url);
+	QString chain;
+	if (hg19_to_hg38)
+	{
+		chain = "hg19_hg38";
+	}
+	else
+	{
+		chain = "hg38_hg19";
+	}
 
-	//handle error from webservice
-	if (output.contains("ERROR")) THROW(ArgumentException, "genomic coordinate lift-over failed: " + output);
+	// create a new reader if it doesn't exist yet
+	if (! chainReaders.contains(chain))
+	{
+		QString filepath = Settings::string("liftover_" + chain, true);
+		if (filepath=="") THROW(FileAccessException, "Test needs the lift over chain file! Not found in settings under liftover_" + chain + ".");
+		chainReaders[chain] = ChainFileReader(filepath, 0.05);
+	}
 
-	//convert output to region
-	BedLine region = BedLine::fromString(output);
-	if (!region.isValid()) THROW(ArgumentException, "genomic coordinate lift-over failed: Could not convert output '" + output + "' to valid region");
+	//lift region
+	BedLine region = chainReaders[chain].lift(chr, start, end); // Throws ArgumentExceptions if it can't lift the coordinates
+
+	if (!region.isValid()) THROW(ArgumentException, "genomic coordinate lift-over failed: Lifted region is not a valid region");
 
 	//revert to 1-based
 	region.setStart(region.start()+1);

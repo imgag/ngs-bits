@@ -10,15 +10,25 @@
 class CPPNGSSHARED_EXPORT ChainFileReader
 {
 public:
+	//Constructors
+	ChainFileReader();
 	ChainFileReader(QString filepath, double percent_deletion);
+	ChainFileReader(const ChainFileReader& other);
+
 	~ChainFileReader();
 
+	// lifts the given region to the new genome
 	BedLine lift(const Chromosome& chr, int start, int end) const;
 
+	ChainFileReader& operator =(const ChainFileReader& other);
+
 private:
+	// internal calss to represent the genomic alignment between the reference and query genome
 	class GenomicAlignment
 	{
 	private:
+		// helper struct to build an index improving performance
+		// (saves checkpoints within an alignment which reduces calculations within an alignment)
 		struct IndexLine
 		{
 			int ref_start;
@@ -60,13 +70,23 @@ private:
 		};
 
 	public:
+		//Constructor
 		GenomicAlignment(double score, Chromosome ref_chr, int ref_chr_size, int ref_start, int ref_end, bool ref_on_plus, Chromosome q_chr, int q_chr_size, int q_start, int q_end, bool q_on_plus, int id);
 		GenomicAlignment();
 
+		///
+		/// \brief try to lift given cooridinates in this alignment
+		/// \param start start coordinate (0-based)
+		/// \param end end coordinate
+		/// \param percent_deletion how many percent of bases in the ref genome are allowed to be unmapped/deleted
+		/// \return BedLine("", -1,-1) if no lifting possible else the lifted region.
+		///
 		BedLine lift(int start, int end, double percent_deletion) const;
 
+		// add newly parsed alignment line (also builds the index when "too many" lines are added)
 		void addAlignmentLine(int size, int ref_dt, int q_dt);
 
+		// return wheather a given position /region is within the reference region of this alignment
 		bool contains(const Chromosome& chr, int pos) const;
 		bool overlapsWith(int start, int end) const;
 
@@ -90,10 +110,12 @@ private:
 		QList<AlignmentLine> alignment;
 
 		QList<IndexLine> index;
+		// how often the index saves "checkpoints" every X alignmentLines.
+		// around 20-50 seems best
 		const static int index_frequency = 25;
 	};
 
-
+	//parse file and generate genomicAlignments
 	void load();
 	GenomicAlignment parseChainLine(QList<QByteArray> parts);
 

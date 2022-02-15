@@ -1,5 +1,4 @@
 #include "ChainFileReader.h"
-#include <iostream>
 #include "Exceptions.h"
 
 ChainFileReader::ChainFileReader(QString filepath, double percent_deletion):
@@ -10,9 +9,37 @@ ChainFileReader::ChainFileReader(QString filepath, double percent_deletion):
 	load();
 }
 
+ChainFileReader::ChainFileReader(const ChainFileReader& other):
+	filepath_(other.filepath_)
+  , file_(other.filepath_)
+  , percent_deletion_(other.percent_deletion_)
+{
+	chromosomes_ = other.chromosomes_;
+	ref_chrom_sizes_ = other.ref_chrom_sizes_;
+	file_.open(QFile::ReadOnly | QIODevice::Text);
+}
+
+ChainFileReader::ChainFileReader():
+	filepath_("")
+  , file_()
+  , percent_deletion_(0)
+{
+}
 
 ChainFileReader::~ChainFileReader()
 {
+}
+
+ChainFileReader& ChainFileReader::operator =(const ChainFileReader& other)
+{
+	filepath_ = other.filepath_;
+	file_.setFileName(filepath_);
+	file_.open(QFile::ReadOnly | QIODevice::Text);
+	percent_deletion_ = other.percent_deletion_;
+	chromosomes_ = other.chromosomes_;
+	ref_chrom_sizes_ = other.ref_chrom_sizes_;
+
+	return *this;
 }
 
 void ChainFileReader::load()
