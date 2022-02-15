@@ -23,7 +23,7 @@ public:
 		addOutfile("unmapped", "The file where the unmappable regions will be written to.", false);
 
 		//optional
-		addString("chain", "Input Chain file or hg19_hg38 / hg38_hg19 to read from settings file.", true, "hg19_hg38");
+		addString("chain", "Input Chain file or \"hg19_hg38\" / \"hg38_hg19\" to read from settings file.", true, "hg19_hg38");
 		addFloat("del", "Allowed percentage of deleted/unmapped bases in each region.", true, 0.05);
 
 		changeLog(2022,  02, 14, "First implementation");
@@ -36,7 +36,7 @@ public:
 		QSharedPointer<QFile> bed = Helper::openFileForReading(in);
 		QString chain = getString("chain");
 
-		if (! chain.contains(".chain"))
+		if (! QFile(chain).exists() && ! chain.contains('\\') && ! chain.contains('/'))
 		{
 			chain = Settings::string("liftover_" + chain, false);
 		}
@@ -64,7 +64,11 @@ public:
 
 			try
 			{
-				BedLine lifted_line = reader.lift(l.chr(), l.start(), l.end());
+				// convert to 1-based coordinates for lifting
+				BedLine lifted_line = reader.lift(l.chr(), l.start()+1, l.end());
+				//convert back to 0-based for bed file.
+				lifted_line.setStart(lifted_line.start()-1);
+
 				lifted->write(lifted_line.toString(false).toLatin1() + "\n");
 			}
 			catch (ArgumentException& e)

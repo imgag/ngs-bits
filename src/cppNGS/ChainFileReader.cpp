@@ -9,23 +9,6 @@ ChainFileReader::ChainFileReader(QString filepath, double percent_deletion):
 	load();
 }
 
-ChainFileReader::ChainFileReader(const ChainFileReader& other):
-	filepath_(other.filepath_)
-  , file_(other.filepath_)
-  , percent_deletion_(other.percent_deletion_)
-{
-	chromosomes_ = other.chromosomes_;
-	ref_chrom_sizes_ = other.ref_chrom_sizes_;
-	file_.open(QFile::ReadOnly | QIODevice::Text);
-}
-
-ChainFileReader::ChainFileReader():
-	filepath_("")
-  , file_()
-  , percent_deletion_(0)
-{
-}
-
 ChainFileReader::~ChainFileReader()
 {
 }
@@ -104,19 +87,21 @@ void ChainFileReader::load()
 
 BedLine ChainFileReader::lift(const Chromosome& chr, int start, int end) const
 {
-	if (end <= start)
+	if (end < start)
 	{
-		THROW(ArgumentException, "End is smaller or equal to start!");
+		THROW(ArgumentException, "End is smaller than start!");
 	}
 
 	if ( ! chromosomes_.contains(chr))
 	{
 		THROW(ArgumentException, "Position to lift is in unknown chromosome. Tried to lift: " + chr.strNormalized(true));
 	}
-	if (start < 0 || end > ref_chrom_sizes_[chr])
+	if (start < 1 || end > ref_chrom_sizes_[chr])
 	{
 		THROW(ArgumentException, "Position to lift is outside of the chromosome size for chromosome. Tried to lift: " + chr.strNormalized(true) +": " + QByteArray::number(start) + "-" + QByteArray::number(end));
 	}
+
+	start = start-1;
 
 	//get alignments that overlap with the given region
 	QList<GenomicAlignment> alignments = chromosomes_[chr];
@@ -136,6 +121,7 @@ BedLine ChainFileReader::lift(const Chromosome& chr, int start, int end) const
 		}
 		else
 		{
+			result.setStart(result.start() +1);
 			return result;
 		}
 	}

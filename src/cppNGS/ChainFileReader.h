@@ -10,11 +10,8 @@
 class CPPNGSSHARED_EXPORT ChainFileReader
 {
 public:
-	//Constructors
-	ChainFileReader();
+	//Constructor
 	ChainFileReader(QString filepath, double percent_deletion);
-	ChainFileReader(const ChainFileReader& other);
-
 	~ChainFileReader();
 
 	// lifts the given region to the new genome

@@ -31,7 +31,8 @@ private slots:
 
 			try
 			{
-				actual = r.lift(bed_line.chr(), bed_line.start(), bed_line.end());
+				//lift is one based
+				actual = r.lift(bed_line.chr(), bed_line.start()+1, bed_line.end());
 			}
 			catch (Exception& e)
 			{
@@ -40,7 +41,8 @@ private slots:
 				continue;
 
 			}
-
+			//revert back to 0-based:
+			actual.setStart(actual.start()-1);
 			// test that expected and lifted are equal:
 			S_EQUAL(actual.toString(false), expected->readLine().trimmed());
 		}
@@ -51,9 +53,9 @@ private slots:
 		QString chain_file = Settings::string("liftover_hg19_hg38", true);
 		if (chain_file=="") SKIP("Test needs the liftOver hg19->hg38 chain file!");
 
-		double allowed_deleteion = 0.05;
+		double allowed_deletion = 0.05;
 
-		ChainFileReader r(chain_file, allowed_deleteion);
+		ChainFileReader r(chain_file, allowed_deletion);
 
 		QSharedPointer<QFile> bed = Helper::openFileForReading(TESTDATA("data_in/ChainFileReader_in2.bed"));
 		QSharedPointer<QFile> out = Helper::openFileForReading(TESTDATA("data_out/ChainFileReader_out2.bed"));
@@ -68,11 +70,11 @@ private slots:
 			{
 				QList<QByteArray> bed_parts = bed_line.split('\t');
 				QByteArray chr = bed_parts[0];
-				int start = bed_parts[1].toInt()-1;
+				int start = bed_parts[1].toInt();
 				int end = bed_parts[2].toInt();
 
 				BedLine lifted = r.lift(chr, start, end);
-				lifted.setStart(lifted.start() +1);
+				lifted.setStart(lifted.start());
 
 				QList<QByteArray> out_parts = out_line.split('\t');
 				QByteArray out_chr = out_parts[0];
@@ -113,7 +115,7 @@ private slots:
 
 				try
 				{
-					actual = r.lift(bed_line.chr(), bed_line.start(), bed_line.end());
+					actual = r.lift(bed_line.chr(), bed_line.start()+1, bed_line.end());
 					count++;
 				}
 				catch (Exception& e)

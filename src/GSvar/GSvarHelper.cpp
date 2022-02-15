@@ -228,13 +228,10 @@ void GSvarHelper::limitLines(QLabel* label, QString text, QString sep, int max_l
 BedLine GSvarHelper::liftOver(const Chromosome& chr, int start, int end, bool hg19_to_hg38)
 {
 	// keep a reader for each liftover file after it was needed
-	static QHash<QString, ChainFileReader> chainReaders;
+	static QHash<QString, QSharedPointer<ChainFileReader>> chainReaders;
 
 	//special handling of chrMT (they are the same for GRCh37 and GRCh38)
 	if (chr.strNormalized(true)=="chrMT") return BedLine(chr, start, end);
-
-	//convert start to BED format (0-based)
-	start -= 1;
 
 	QString chain;
 	if (hg19_to_hg38)
@@ -251,16 +248,13 @@ BedLine GSvarHelper::liftOver(const Chromosome& chr, int start, int end, bool hg
 	{
 		QString filepath = Settings::string("liftover_" + chain, true);
 		if (filepath=="") THROW(FileAccessException, "Test needs the lift over chain file! Not found in settings under liftover_" + chain + ".");
-		chainReaders[chain] = ChainFileReader(filepath, 0.05);
+		chainReaders.insert(chain, QSharedPointer<ChainFileReader>(new ChainFileReader(filepath, 0.05)));
 	}
 
 	//lift region
-	BedLine region = chainReaders[chain].lift(chr, start, end); // Throws ArgumentExceptions if it can't lift the coordinates
+	BedLine region = chainReaders[chain]->lift(chr, start, end); // Throws ArgumentExceptions if it can't lift the coordinates
 
 	if (!region.isValid()) THROW(ArgumentException, "genomic coordinate lift-over failed: Lifted region is not a valid region");
-
-	//revert to 1-based
-	region.setStart(region.start()+1);
 
 	return region;
 }
