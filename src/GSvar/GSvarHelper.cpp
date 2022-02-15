@@ -11,6 +11,7 @@
 #include <QDir>
 #include <QMessageBox>
 #include <QStandardPaths>
+#include "ChainFileReader.h"
 
 const GeneSet& GSvarHelper::impritingGenes()
 {
@@ -226,26 +227,34 @@ void GSvarHelper::limitLines(QLabel* label, QString text, QString sep, int max_l
 
 BedLine GSvarHelper::liftOver(const Chromosome& chr, int start, int end, bool hg19_to_hg38)
 {
+	// keep a reader for each liftover file after it was needed
+	static QHash<QString, QSharedPointer<ChainFileReader>> chainReaders;
+
 	//special handling of chrMT (they are the same for GRCh37 and GRCh38)
 	if (chr.strNormalized(true)=="chrMT") return BedLine(chr, start, end);
 
-	//convert start to BED format (0-based)
-	start -= 1;
+	QString chain;
+	if (hg19_to_hg38)
+	{
+		chain = "hg19_hg38";
+	}
+	else
+	{
+		chain = "hg38_hg19";
+	}
 
-	//call lift-over webservice
-	QString url = Settings::string("liftover_webservice") + "?chr=" + chr.strNormalized(true) + "&start=" + QString::number(start) + "&end=" + QString::number(end);
-	if (!hg19_to_hg38) url += "&dir=hg38_hg19";
-	QString output = HttpHandler(HttpRequestHandler::ProxyType::NONE).get(url);
+	// create a new reader if it doesn't exist yet
+	if (! chainReaders.contains(chain))
+	{
+		QString filepath = Settings::string("liftover_" + chain, true);
+		if (filepath=="") THROW(FileAccessException, "Test needs the lift over chain file! Not found in settings under liftover_" + chain + ".");
+		chainReaders.insert(chain, QSharedPointer<ChainFileReader>(new ChainFileReader(filepath, 0.05)));
+	}
 
-	//handle error from webservice
-	if (output.contains("ERROR")) THROW(ArgumentException, "genomic coordinate lift-over failed: " + output);
+	//lift region
+	BedLine region = chainReaders[chain]->lift(chr, start, end); // Throws ArgumentExceptions if it can't lift the coordinates
 
-	//convert output to region
-	BedLine region = BedLine::fromString(output);
-	if (!region.isValid()) THROW(ArgumentException, "genomic coordinate lift-over failed: Could not convert output '" + output + "' to valid region");
-
-	//revert to 1-based
-	region.setStart(region.start()+1);
+	if (!region.isValid()) THROW(ArgumentException, "genomic coordinate lift-over failed: Lifted region is not a valid region");
 
 	return region;
 }
@@ -426,4 +435,51 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 	}
 
 	return false;
+}
+
+
+bool GSvarHelper::colorMaxEntScan(QString anno, QList<double>& percentages, QList<double>& abs_values)
+{
+	double max_relevant_change = 0;
+	foreach (const QString value, anno.split(','))
+	{
+		QStringList parts = value.split('>');
+
+		if (parts.count() == 2)
+		{
+			double percent_change;
+			double base = parts[0].toDouble();
+			double new_value = parts[1].toDouble();
+			double abs_change = std::abs(base-new_value);
+			abs_values.append(abs_change);
+
+			// calculate percentage change:
+			if (base != 0)
+			{
+				if (base > 0)
+				{
+					percent_change = (new_value - base) / base;
+				} else {
+					percent_change = (base - new_value) / base;
+				}
+			}
+			percent_change = std::abs(percent_change);
+			percentages.append(percent_change);
+
+			//Don't color if absChange smaller than 0.5
+			if ((abs_change > 0.5) && percent_change > max_relevant_change)
+			{
+				max_relevant_change = percent_change;
+			}
+		}
+	}
+
+	if (max_relevant_change >= 0.15)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
