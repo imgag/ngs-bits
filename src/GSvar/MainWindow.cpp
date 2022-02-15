@@ -1862,8 +1862,18 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 	//sample low-coverage
 	if (analysis_type==SOMATIC_SINGLESAMPLE || analysis_type==SOMATIC_PAIR)
 	{
-		FileLocation loc = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFile();
-		dlg.addFile(loc, ui_.actionIgvLowcov->isChecked());
+		FileLocationList som_low_cov_files = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFiles(false);
+		for(const FileLocation& loc : som_low_cov_files)
+		{
+			if(loc.filename.contains("somatic_custom_panel_stat"))
+			{
+				dlg.addFile(FileLocation{loc.id + " (somatic custom panel)", PathType::LOWCOV_BED, loc.filename, QFile::exists(loc.filename)}, ui_.actionIgvLowcov->isChecked());
+			}
+			else
+			{
+				dlg.addFile(loc, ui_.actionIgvLowcov->isChecked());
+			}
+		}
 	}
 	else
 	{
