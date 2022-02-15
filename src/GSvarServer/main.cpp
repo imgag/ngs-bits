@@ -268,19 +268,6 @@ int main(int argc, char **argv)
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
-						"file_info",
-						QMap<QString, ParamProps> {
-						   {"file", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Filename with its full path"}}
-						},
-						RequestMethod::GET,
-						ContentType::APPLICATION_JSON,
-						false,
-						"Detailed information about a specific file",
-						&EndpointController::getFileInfo
-					});
-
-
-	EndpointManager::appendEndpoint(Endpoint{
 						"ps_regions",
 						QMap<QString, ParamProps> {
 						   {"sys_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processing system id"}}

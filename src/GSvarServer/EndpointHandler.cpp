@@ -12,7 +12,7 @@ HttpResponse EndpointHandler::serveIndexPage(const HttpRequest& request)
 	}
 	else if ((request.getPrefix().toLower().contains("index") || (request.getPrefix().toLower().trimmed() == "v1")) && (request.getPathParams().count() == 0))
 	{
-		return EndpointController::serveStaticFile(":/assets/client/info.html", request.getMethod(), request.getHeaders());
+		return EndpointController::serveStaticFile(":/assets/client/info.html", request.getMethod(), request.getContentType(), request.getHeaders());
 	}
 
 	return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Requested page was not found");
@@ -22,7 +22,7 @@ HttpResponse EndpointHandler::serveFavicon(const HttpRequest& request)
 {
 	if (request.getPathParams().count() == 0)
 	{
-		return EndpointController::serveStaticFile(":/assets/client/favicon.ico", request.getMethod(), request.getHeaders());
+		return EndpointController::serveStaticFile(":/assets/client/favicon.ico", request.getMethod(), request.getContentType(), request.getHeaders());
 	}
 	return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Favicon was not found");
 }
@@ -31,7 +31,7 @@ HttpResponse EndpointHandler::serveApiInfo(const HttpRequest& request)
 {
 	if (request.getPathParams().count() == 0)
 	{
-		return EndpointController::serveStaticFile(":/assets/client/api.json", request.getMethod(), request.getHeaders());
+		return EndpointController::serveStaticFile(":/assets/client/api.json", request.getMethod(), request.getContentType(), request.getHeaders());
 	}
 	return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "API info was not found");
 }

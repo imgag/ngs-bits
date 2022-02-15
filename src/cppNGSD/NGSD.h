@@ -664,6 +664,11 @@ public:
 	///Deletes the variants of a processed sample (a specific type)
 	void deleteVariants(const QString& ps_id, VariantType type);
 
+	///Adds PubMed ID to a variant
+	void addPubmedId(int variant_id, const QString& pubmed_id);
+	///Returns all PubMed IDs for a given variant id
+	QStringList pubmedIds(const QString& variant_id);
+
 	void deleteSomaticVariants(QString t_ps_id, QString n_ps_id);
 	void deleteSomaticVariants(QString t_ps_id, QString n_ps_id, VariantType type);
 
