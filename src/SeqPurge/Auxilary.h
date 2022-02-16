@@ -1,9 +1,9 @@
 #ifndef AUXILARY_H
 #define AUXILARY_H
 
-#include "FastqFileStream.h"
 #include <Pileup.h>
-#include <QSharedPointer>
+#include <QFile>
+#include "FastqFileStream.h"
 #include "StatisticsReads.h"
 
 
@@ -14,13 +14,13 @@ enum AnalysisStatus
 {
 	TO_BE_ANALYZED,
 	TO_BE_WRITTEN,
-	ERROR,
 	DONE
 };
 
 ///Analysis data for worker.
 struct AnalysisJob
 {
+	int index;
 	FastqEntry e1;
 	FastqEntry e2;
 	AnalysisStatus status = DONE;
@@ -48,6 +48,19 @@ struct AnalysisJob
 	}
 };
 
+//Output streams
+struct OutputStreams
+{
+	QSharedPointer<QFile> summary_file;
+	QSharedPointer<QTextStream> summary_stream;
+
+	//FASTQ output steams
+	QSharedPointer<FastqOutfileStream> ostream1;
+	QSharedPointer<FastqOutfileStream> ostream2;
+	QSharedPointer<FastqOutfileStream> ostream3;
+	QSharedPointer<FastqOutfileStream> ostream4;
+};
+
 ///Input parameters datastructure.
 struct TrimmingParameters
 {
@@ -64,6 +77,9 @@ struct TrimmingParameters
 	double match_perc;
 	double mep;
 	int min_len;
+	int prefetch;
+	int threads;
+	int progress;
 	int qcut;
 	int qwin;
 	int qoff;

@@ -1,20 +1,25 @@
 #ifndef ANALYSISWORKER_H
 #define ANALYSISWORKER_H
 
-#include <Auxilary.h>
+#include <QRunnable>
+#include "ThreadCoordinator.h"
+#include "Auxilary.h"
 
 ///Analysis worker
 class AnalysisWorker
-		: public QObject
+	: public QObject
+	, public QRunnable
 {
 	Q_OBJECT
 
 public:
 	AnalysisWorker(AnalysisJob& job, TrimmingParameters& params, TrimmingStatistics& stats, ErrorCorrectionStatistics& ecstats);
-	void run();
+	virtual ~AnalysisWorker();
+	virtual void run() override;
 
 signals:
-	void write(AnalysisJob* job);
+	void done(int i); //signal emitted when job was successful
+	void error(int i, QString message); //signal emitted when job failed
 
 private:
 	AnalysisJob& job_;

@@ -62,6 +62,11 @@ public:
         return entry_index_;
     }
 
+	///Returns the file name
+	QString filename() const
+	{
+		return filename_;
+	}
 protected:
 	QString filename_;
 	gzFile gzfile_;

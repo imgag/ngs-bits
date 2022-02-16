@@ -1,27 +1,28 @@
 #ifndef OUTPUTWORKER_H
 #define OUTPUTWORKER_H
 
-#include <Auxilary.h>
+#include <QRunnable>
+#include "Auxilary.h"
 
+//Output worker
 class OutputWorker
 	: public QObject
+	, public QRunnable
 {
 	Q_OBJECT
 
 public:
-	OutputWorker(QString out1, QString out2, QString out3_base, const TrimmingParameters& params, TrimmingStatistics& stats);
+	OutputWorker(AnalysisJob& job, OutputStreams& streams, const TrimmingParameters& params, TrimmingStatistics& stats);
+	virtual ~OutputWorker();
+	virtual void run() override;
 
-public slots:
-	void write(AnalysisJob* job);
-	void threadStarted();
-	void threadFinished();
+signals:
+	void done(int i); //signal emitted when job was successful
+	void error(int i, QString message); //signal emitted when job failed
 
-protected:
-	QTextStream out_;
-	QSharedPointer<FastqOutfileStream> ostream1;
-	QSharedPointer<FastqOutfileStream> ostream2;
-	QSharedPointer<FastqOutfileStream> ostream3;
-	QSharedPointer<FastqOutfileStream> ostream4;
+private:
+	AnalysisJob& job_;
+	OutputStreams& streams_;
 	const TrimmingParameters& params_;
 	TrimmingStatistics& stats_;
 };
