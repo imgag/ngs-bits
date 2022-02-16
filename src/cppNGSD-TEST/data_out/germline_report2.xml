@@ -1,6 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<DiagnosticNgsReport version="5" type="diagnostic variant">
+<DiagnosticNgsReport version="6" type="diagnostic variant">
     <ReportGeneration date="2021-02-19" user_name="ahmustm1" software="cppNGSD-TEST " outcome="no significant findings"/>
+    <ChromosomeAliases>
+        <Chromosome chr="chr1" refseq="NC_000001.11"/>
+        <Chromosome chr="chr2" refseq="NC_000002.12"/>
+        <Chromosome chr="chr3" refseq="NC_000003.12"/>
+        <Chromosome chr="chr4" refseq="NC_000004.12"/>
+        <Chromosome chr="chr5" refseq="NC_000005.10"/>
+        <Chromosome chr="chr6" refseq="NC_000006.12"/>
+        <Chromosome chr="chr7" refseq="NC_000007.14"/>
+        <Chromosome chr="chr8" refseq="NC_000008.11"/>
+        <Chromosome chr="chr9" refseq="NC_000009.12"/>
+        <Chromosome chr="chr10" refseq="NC_000010.11"/>
+        <Chromosome chr="chr11" refseq="NC_000011.10"/>
+        <Chromosome chr="chr12" refseq="NC_000012.12"/>
+        <Chromosome chr="chr13" refseq="NC_000013.11"/>
+        <Chromosome chr="chr14" refseq="NC_000014.9"/>
+        <Chromosome chr="chr15" refseq="NC_000015.10"/>
+        <Chromosome chr="chr16" refseq="NC_000016.10"/>
+        <Chromosome chr="chr17" refseq="NC_000017.11"/>
+        <Chromosome chr="chr18" refseq="NC_000018.10"/>
+        <Chromosome chr="chr19" refseq="NC_000019.10"/>
+        <Chromosome chr="chr20" refseq="NC_000020.11"/>
+        <Chromosome chr="chr21" refseq="NC_000021.9"/>
+        <Chromosome chr="chr22" refseq="NC_000022.11"/>
+        <Chromosome chr="chrX" refseq="NC_000023.11"/>
+        <Chromosome chr="chrY" refseq="NC_000024.10"/>
+        <Chromosome chr="chrMT" refseq="NC_012920.1"/>
+    </ChromosomeAliases>
     <Sample name="NA12878_03" name_external="ex1" processing_system="HaloPlex HSP v2" processing_system_type="Panel Haloplex" comments="comment_ps1"/>
     <TargetRegion name="panel" regions="1532" bases="271536" gap_percentage="5.69" ccds_bases_sequenced="4347">
         <Gene name="CYP7B1" identifier="HGNC:622167"/>
@@ -26,5 +53,11 @@
             <ExternalLink url="https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&amp;position=chr21:10541092-10649856" type="UCSC"/>
         </Cnv>
     </CnvList>
+    <SvList sv_caller="Manta" overall_number="1" genome_build="GRCh38">
+        <Sv type="Breakend" chr="chr1" start="9061390" end="9061394" start_band="1p36.23" end_band="1p36.23" genotype="het" bnd_chr2="chr14" bnd_start2="93246136" bnd_end2="93246140" causal="false" de_novo="false" comp_het="false" mosaic="false">
+            <Gene name="BTBD7" identifier="n/a"/>
+            <Gene name="SLC2A5" identifier="n/a"/>
+        </Sv>
+    </SvList>
     <ReportDocument format="HTML"></ReportDocument>
 </DiagnosticNgsReport>

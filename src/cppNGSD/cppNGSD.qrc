@@ -3,7 +3,7 @@
         <file>resources/NGSD_schema.sql</file>
         <file>resources/SomaticReport_v3.xsd</file>
         <file>resources/NGSD_initial_data.sql</file>
-        <file>resources/GermlineReport_v5.xsd</file>
         <file>resources/TumorOnlyNGSReport_v1.xsd</file>
+        <file>resources/GermlineReport_v6.xsd</file>
     </qresource>
 </RCC>
