@@ -82,6 +82,9 @@ private:
 	static QByteArray formatGenotype(GenomeBuild build, const QByteArray& gender, const QByteArray& genotype, const Variant& variant);
 	QString formatCodingSplicing(const QList<VariantTranscript>& transcripts);
 
+	//Helper for the chromosome alias table
+	QMap<Chromosome, QString> getChromosomeTable(GenomeBuild build);
+
 	///Helper functions for writeEvaluationSheet()
 	static void printVariantSheetRowHeader(QTextStream& stream, bool causal);
 	void printVariantSheetRow(QTextStream& stream, const ReportVariantConfiguration& conf);
