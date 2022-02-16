@@ -83,8 +83,7 @@ private:
 	QString formatCodingSplicing(const QList<VariantTranscript>& transcripts);
 
 	//Helper for the chromosome alias table
-	static QStringList getChromosomeNames();
-	static QStringList getChromosomeRefseq(GenomeBuild build);
+	QMap<Chromosome, QString> getChromosomeTable(GenomeBuild build);
 
 	///Helper functions for writeEvaluationSheet()
 	static void printVariantSheetRowHeader(QTextStream& stream, bool causal);
