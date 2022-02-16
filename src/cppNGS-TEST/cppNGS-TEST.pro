@@ -72,6 +72,7 @@ HEADERS += \
     BamWriter_Test.h \
     SomaticVariantInterpreter_Test.h \
     Graph_Test.h \
+    ChainFileReader_Test.h \
     BigWigReader_Test.h
 
 SOURCES += \
