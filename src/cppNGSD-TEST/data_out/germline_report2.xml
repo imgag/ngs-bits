@@ -53,10 +53,16 @@
             <ExternalLink url="https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&amp;position=chr21:10541092-10649856" type="UCSC"/>
         </Cnv>
     </CnvList>
-    <SvList sv_caller="Manta" overall_number="1" genome_build="GRCh38">
-        <Sv type="Breakend" chr="chr1" start="9061390" end="9061394" start_band="1p36.23" end_band="1p36.23" genotype="het" bnd_chr2="chr14" bnd_start2="93246136" bnd_end2="93246140" causal="false" de_novo="false" comp_het="false" mosaic="false">
-            <Gene name="BTBD7" identifier="n/a"/>
-            <Gene name="SLC2A5" identifier="n/a"/>
+    <SvList sv_caller="Manta" overall_number="87" genome_build="GRCh38">
+        <Sv type="Insertion" chr="chr1" start="934143" end="934144" start_band="1p36.33" end_band="1p36.33" genotype="hom" ins_sequence="GGGAGGGCGCGGAGCGGAGGGGAGGGCGCGGAGCGGAGGGGAGGGCGCGGAGCGGAGG" causal="false" de_novo="false" comp_het="false" mosaic="false">
+            <Gene name="HES4" identifier="n/a"/>
+        </Sv>
+        <Sv type="Breakend" chr="chr1" start="1584546" end="1584546" start_band="1p36.33" end_band="19p13.3" genotype="het" bnd_chr2="chr19" bnd_start2="2301862" bnd_end2="2301862" causal="false" de_novo="false" comp_het="false" mosaic="false">
+            <Gene name="CDK11B" identifier="n/a"/>
+            <Gene name="LINGO3" identifier="n/a"/>
+        </Sv>
+        <Sv type="Deletion" chr="chr1" start="1598413" end="1598580" start_band="1p36.33" end_band="1p36.33" genotype="hom" causal="false" de_novo="false" comp_het="false" mosaic="false">
+            <Gene name="SLC35E2B" identifier="n/a"/>
         </Sv>
     </SvList>
     <ReportDocument format="HTML"></ReportDocument>

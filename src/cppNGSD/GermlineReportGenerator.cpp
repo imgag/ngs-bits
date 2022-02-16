@@ -919,19 +919,34 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		}
 
 		w.writeAttribute("chr", sv.chr1().str());
-		w.writeAttribute("start", QString::number(sv.start1()));
-		w.writeAttribute("end", QString::number(sv.end1()));
+		Variant v;// for genotype formating
+		// start and end may be split over start1 and start2 for INS, DEL, DUP, INV
+		if (sv.type() == StructuralVariantType::BND)
+		{
+			w.writeAttribute("start", QString::number(sv.start1()));
+			w.writeAttribute("end", QString::number(sv.end1()));
+
+			v.setChr(sv.chr1());
+			v.setStart(sv.start1());
+			v.setEnd(sv.end1());
+		}
+		else
+		{
+			w.writeAttribute("start", QString::number(sv.start1()));
+			w.writeAttribute("end", QString::number(sv.end2()));
+
+			v.setChr(sv.chr1());
+			v.setStart(sv.start1());
+			v.setEnd(sv.end2());
+		}
+
 		w.writeAttribute("start_band", NGSHelper::cytoBand(data_.build, sv.chr1(), sv.start1()));
-		w.writeAttribute("end_band", NGSHelper::cytoBand(data_.build, sv.chr1(), sv.end1()));
+		w.writeAttribute("end_band", NGSHelper::cytoBand(data_.build, sv.chr2(), sv.end2()));
 
 		//TODO
 //		w.writeAttribute("hgvs_start", );
 //		w.writeAttribute("hgvs_end", );
 
-		Variant v;
-		v.setChr(sv.chr1());
-		v.setStart(sv.start1());
-		v.setEnd(sv.end1());
 
 		QByteArray sv_gt = sv.formatValueByKey("GT", data_.svs.annotationHeaders());
 		QByteArray sv_genotype;
@@ -959,7 +974,6 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			w.writeAttribute("bnd_start2", QString::number(sv.start2()));
 			w.writeAttribute("bnd_end2", QString::number(sv.end2()));
 		}
-
 
 		w.writeAttribute("causal", var_conf.causal ? "true" : "false");
 		w.writeAttribute("de_novo", var_conf.de_novo ? "true" : "false");
