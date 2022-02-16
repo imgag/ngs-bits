@@ -10,13 +10,16 @@ ThreadCoordinator::ThreadCoordinator(QObject* parent, InputStreams streams_in, O
 	, streams_out_(streams_out)
 	, job_pool_()
 	, thread_pool_read_()
+	, thread_pool_analyze_()
 	, thread_pool_write_()
 	, params_(params)
 	, stats_()
 {
+	timer_overall_.start();
+
 	//set number of threads
-	QThreadPool::globalInstance()->setMaxThreadCount(params_.threads);
 	thread_pool_read_.setMaxThreadCount(1);
+	thread_pool_analyze_.setMaxThreadCount(params_.threads);
 	thread_pool_write_.setMaxThreadCount(1);
 
 	//create analysis job pool
@@ -76,7 +79,7 @@ void ThreadCoordinator::analyze(int i)
 	AnalysisWorker* worker = new AnalysisWorker(job_pool_[i], params_, stats_, ec_stats_);
 	connect(worker, SIGNAL(done(int)), this, SLOT(write(int)));
 	connect(worker, SIGNAL(error(int,QString)), this, SLOT(error(int,QString)));
-	QThreadPool::globalInstance()->start(worker);
+	thread_pool_analyze_.start(worker);
 }
 
 void ThreadCoordinator::write(int i)
@@ -133,6 +136,8 @@ void ThreadCoordinator::checkDone()
 		if (params_.progress>0) (*streams_out_.summary_stream) << Helper::dateTime() << " writing error corrections summary" << endl;
 		ec_stats_.writeStatistics((*streams_out_.summary_stream));
 	}
+
+	(*streams_out_.summary_stream) << Helper::dateTime() << " overall runtime: " << Helper::elapsedTime(timer_overall_) << endl;
 
 	emit finished();
 }

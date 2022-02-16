@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QThreadPool>
 #include <QTimer>
+#include <QTime>
 #include "Auxilary.h"
 
 //Coordinator class for analysis, writing, errors. Needed because the "main" function cannot hanle signals/slots.
@@ -41,11 +42,16 @@ private:
 	InputStreams streams_in_;
 	OutputStreams streams_out_;
 	QList<AnalysisJob> job_pool_;
+
 	QThreadPool thread_pool_read_;
+	QThreadPool thread_pool_analyze_;
 	QThreadPool thread_pool_write_;
+
 	TrimmingParameters params_;
 	TrimmingStatistics stats_;
 	ErrorCorrectionStatistics ec_stats_;
+
+	QTime timer_overall_;
 	QTimer timer_progress_;
 	QTimer timer_done_;
 };
