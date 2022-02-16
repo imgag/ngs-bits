@@ -46,7 +46,7 @@ public:
 		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, Z_BEST_SPEED);
 
 		//changelog
-		changeLog(2022, 2, 16, "Improved scaling with more than 6 threads."); //TODO
+		changeLog(2022, 2, 16, "Improved scaling with more than 6 threads.");
 		changeLog(2019, 3, 26, "Added 'compression_level' parameter.");
 		changeLog(2019, 2, 11, "Added writer thread to make SeqPurge scale better when using many threads.");
 		changeLog(2017, 6, 15, "Changed default value of 'min_len' parameter from 15 to 30.");
@@ -58,14 +58,6 @@ public:
 
 	virtual void main()
 	{
-		//init
-		QStringList in1_files = getInfileList("in1");
-		QStringList in2_files = getInfileList("in2");
-		if (in1_files.count()!=in2_files.count())
-		{
-			THROW(CommandLineParsingException, "Input file lists 'in1' and 'in2' differ in counts!");
-		}
-
 		//load parameters
 		TrimmingParameters params;
 		params.a1 = getString("a1").trimmed().toLatin1();
@@ -91,24 +83,36 @@ public:
 		params.debug = getFlag("debug");
 		params.compression_level = getInt("compression_level");
 
+		//open input streams
+		InputStreams streams_in;
+		streams_in.files_in1 = getInfileList("in1");
+		streams_in.files_in2 = getInfileList("in2");
+		if (streams_in.files_in1.count()!=streams_in.files_in2.count())
+		{
+			THROW(CommandLineParsingException, "Input file lists 'in1' and 'in2' differ in counts!");
+		}
+		streams_in.current_index = 0;
+		streams_in.istream1.reset(new FastqFileStream(streams_in.files_in1[0], false));
+		streams_in.istream2.reset(new FastqFileStream(streams_in.files_in2[0], false));
+
 		//open output streams
-		OutputStreams streams;
-		streams.summary_file = Helper::openFileForWriting(getOutfile("summary"), true);
-		streams.summary_stream.reset(new QTextStream(streams.summary_file.data()));
-		streams.ostream1.reset(new FastqOutfileStream(getOutfile("out1"), params.compression_level));
-		streams.ostream2.reset(new FastqOutfileStream(getOutfile("out2"), params.compression_level));
+		OutputStreams streams_out;
+		streams_out.summary_file = Helper::openFileForWriting(getOutfile("summary"), true);
+		streams_out.summary_stream.reset(new QTextStream(streams_out.summary_file.data()));
+		streams_out.ostream1.reset(new FastqOutfileStream(getOutfile("out1"), params.compression_level));
+		streams_out.ostream2.reset(new FastqOutfileStream(getOutfile("out2"), params.compression_level));
 		QString out3_base = getOutfile("out3");
 		if (out3_base.trimmed()!="")
 		{
-			streams.ostream3.reset(new FastqOutfileStream(out3_base + "_R1.fastq.gz", params.compression_level));
-			streams.ostream4.reset(new FastqOutfileStream(out3_base + "_R2.fastq.gz", params.compression_level));
+			streams_out.ostream3.reset(new FastqOutfileStream(out3_base + "_R1.fastq.gz", params.compression_level));
+			streams_out.ostream4.reset(new FastqOutfileStream(out3_base + "_R2.fastq.gz", params.compression_level));
 		}
 
 		//init pre-calculation of factorials
 		BasicStatistics::precalculateFactorials();
 
 		//create cooridinator instance
-		ThreadCoordinator* coordinator = new ThreadCoordinator(this, in1_files, in2_files, streams, params);
+		ThreadCoordinator* coordinator = new ThreadCoordinator(this, streams_in, streams_out, params);
 		connect(coordinator, SIGNAL(finished()), QCoreApplication::instance(), SLOT(quit()));
 	}
 

@@ -12,7 +12,8 @@ CONFIG   -= app_bundle
 SOURCES += main.cpp \
     AnalysisWorker.cpp \
     OutputWorker.cpp \
-    ThreadCoordinator.cpp
+    ThreadCoordinator.cpp \
+    InputWorker.cpp
 
 include("../app_cli.pri")
 
@@ -23,5 +24,6 @@ HEADERS += \
     AnalysisWorker.h \
     Auxilary.h \
     OutputWorker.h \
-    ThreadCoordinator.h
+    ThreadCoordinator.h \
+    InputWorker.h
 

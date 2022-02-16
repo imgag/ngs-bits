@@ -12,19 +12,23 @@ class ThreadCoordinator
 {
 	Q_OBJECT
 public:
-	ThreadCoordinator(QObject* parent, QStringList in1_files, QStringList in2_files, OutputStreams streams, TrimmingParameters params);
+	ThreadCoordinator(QObject* parent, InputStreams streams_in, OutputStreams streams_out, TrimmingParameters params);
 	~ThreadCoordinator();
 
 signals:
 	void finished();
 
 private slots:
+	//Slot that loads new data into a job
+	void load(int i);
+	//Slot that analyzes data in a job
+	void analyze(int i);
 	//Slot that writes a job
 	void write(int i);
-	//Slot that load new data into a job
-	void load(int i);
 	//Slot that handles errors
 	void error(int i, QString message);
+	//Slots that notifies this class if all input data was read
+	void inputDone(int i);
 	//Slot that checks if the processing is done
 	void checkDone();
 
@@ -34,16 +38,16 @@ private slots:
 private:
 	QStringList in1_files_;
 	QStringList in2_files_;
-	OutputStreams streams_;
+	InputStreams streams_in_;
+	OutputStreams streams_out_;
 	QList<AnalysisJob> job_pool_;
+	QThreadPool thread_pool_read_;
+	QThreadPool thread_pool_write_;
 	TrimmingParameters params_;
 	TrimmingStatistics stats_;
 	ErrorCorrectionStatistics ec_stats_;
 	QTimer timer_progress_;
 	QTimer timer_done_;
-
-	//Reads a input read pair. Returns true, if read. Returns false if no more data can be read.
-	bool readPair(AnalysisJob& job);
 };
 
 #endif // THREADCOORDINATOR_H

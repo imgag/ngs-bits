@@ -24,7 +24,6 @@ struct AnalysisJob
 	FastqEntry e1;
 	FastqEntry e2;
 	AnalysisStatus status = DONE;
-	QString error_message;
 
 	//statistics stuff
 	int length_s1_orig = -1;
@@ -37,7 +36,6 @@ struct AnalysisJob
 	void clear()
 	{
 		status = DONE;
-		error_message.clear();
 
 		length_s1_orig = -1;
 		length_s2_orig = -1;
@@ -48,7 +46,17 @@ struct AnalysisJob
 	}
 };
 
-//Output streams
+//Input stream data
+struct InputStreams
+{
+	QStringList files_in1;
+	QStringList files_in2;
+	int current_index = 0;
+	QSharedPointer<FastqFileStream> istream1;
+	QSharedPointer<FastqFileStream> istream2;
+};
+
+//Output stream data
 struct OutputStreams
 {
 	QSharedPointer<QFile> summary_file;
