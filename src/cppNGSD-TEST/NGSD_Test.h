@@ -1418,7 +1418,6 @@ private slots:
 			generator.writeXML("out/germline_report1.xml", "out/germline_report1.html");
 			COMPARE_FILES("out/germline_report1.xml", TESTDATA("data_out/germline_report1.xml"));
 		}
-		qDebug("Test 1 - pass");
 
 		//############################### TEST 2 - with variants, with target region, all optional parts enabled ###############################
 		{
@@ -1480,13 +1479,11 @@ private slots:
 			GermlineReportGenerator generator(data, true);
 			generator.overrideDate(report_date);
 			generator.writeHTML("out/germline_report2.html");
-			generator.writeXML("out/germline_report2.xml", "out/germline_report2.html");
 			COMPARE_FILES("out/germline_report2.html", TESTDATA("data_out/germline_report2.html"));
-
+			generator.writeXML("out/germline_report2.xml", "out/germline_report2.html");
 			COMPARE_FILES("out/germline_report2.xml", TESTDATA("data_out/germline_report2.xml"));
 		}
 
-		qDebug("Test 2 - pass");
 		//############################### TEST 3 - english ###############################
 		{
 			report_settings.language = "english";
@@ -1498,7 +1495,6 @@ private slots:
 			COMPARE_FILES("out/germline_report3.html", TESTDATA("data_out/germline_report3.html"));
 		}
 
-		qDebug("Test 3 - pass");
 		//############################### TEST 4 - evaluation sheet ###############################
 		{
 			GermlineReportGenerator generator(data, true);
@@ -1531,7 +1527,6 @@ private slots:
 			generator.writeEvaluationSheet("out/germline_sheet1.html", sheet_data);
 			COMPARE_FILES("out/germline_sheet1.html", TESTDATA("data_out/germline_sheet1.html"));
 		}
-		qDebug("Test 4 - pass");
 
 	}
 
