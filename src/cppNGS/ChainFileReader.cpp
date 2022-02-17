@@ -13,18 +13,6 @@ ChainFileReader::~ChainFileReader()
 {
 }
 
-ChainFileReader& ChainFileReader::operator =(const ChainFileReader& other)
-{
-	filepath_ = other.filepath_;
-	file_.setFileName(filepath_);
-	file_.open(QFile::ReadOnly | QIODevice::Text);
-	percent_deletion_ = other.percent_deletion_;
-	chromosomes_ = other.chromosomes_;
-	ref_chrom_sizes_ = other.ref_chrom_sizes_;
-
-	return *this;
-}
-
 void ChainFileReader::load()
 {
 	if (!file_.open(QFile::ReadOnly | QIODevice::Text))

@@ -2,7 +2,7 @@
 #define CHAINFILEREADER_H
 
 #include "cppNGS_global.h"
-#include <QFile>
+#include "VersatileFile.h"
 #include "BedFile.h"
 
 
@@ -16,8 +16,6 @@ public:
 
 	// lifts the given region to the new genome
 	BedLine lift(const Chromosome& chr, int start, int end) const;
-
-	ChainFileReader& operator =(const ChainFileReader& other);
 
 private:
 	// internal calss to represent the genomic alignment between the reference and query genome
@@ -117,7 +115,7 @@ private:
 	GenomicAlignment parseChainLine(QList<QByteArray> parts);
 
 	QString filepath_;
-	QFile file_;
+	VersatileFile file_;
 	double percent_deletion_;
 
 	QHash<Chromosome, QList<GenomicAlignment>> chromosomes_;
