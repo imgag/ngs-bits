@@ -1,5 +1,6 @@
 #include "ChainFileReader.h"
 #include "Exceptions.h"
+#include "zlib.h"
 
 ChainFileReader::ChainFileReader(QString filepath, double percent_deletion):
 	filepath_(filepath)
@@ -15,20 +16,16 @@ ChainFileReader::~ChainFileReader()
 
 void ChainFileReader::load()
 {
-	if (!file_.open(QFile::ReadOnly | QIODevice::Text))
-	{
-		THROW(FileAccessException, "Could not open bw-file for reading: '" + filepath_ + "'!");
-	}
+	QList<QByteArray> lines = getLines();
 
 	// read first alignment line:
-	QByteArray line = file_.readLine();
+	QByteArray line = lines[0];
 	line = line.trimmed();
 	GenomicAlignment currentAlignment = parseChainLine(line.split(' '));
 
-	while(! file_.atEnd())
+	for(int i=1; i<lines.size(); i++)
 	{
-		line = file_.readLine();
-		line = line.trimmed();
+		line = lines[i];
 		if (line.length() == 0) continue;
 
 		QList<QByteArray> parts;
@@ -70,6 +67,61 @@ void ChainFileReader::load()
 				THROW(FileParseException, "Alignment Data line with neither 3 nor a single number. " + line);
 			}
 		}
+	}
+}
+
+QList<QByteArray> ChainFileReader::getLines()
+{
+	if (filepath_.endsWith(".chain"))
+	{
+		if (!file_.open(QFile::ReadOnly | QIODevice::Text))
+		{
+			THROW(FileAccessException, "Could not open bw-file for reading: '" + filepath_ + "'!");
+		}
+
+		return file_.readAll().split('\n');
+	}
+	else if (filepath_.endsWith(".gz"))
+	{
+		if (!file_.open(QFile::ReadOnly))
+		{
+			THROW(FileAccessException, "Could not open bw-file for reading: '" + filepath_ + "'!");
+		}
+		QByteArray decompressed;
+		QByteArray compressed = file_.readAll();
+		int decompress_buffer_size = 1024*20; // 20mb
+		char out[decompress_buffer_size];
+		//set zlib vars
+		z_stream infstream;
+		infstream.zalloc = Z_NULL;
+		infstream.zfree = Z_NULL;
+		infstream.opaque = Z_NULL;
+		inflateInit(&infstream);
+
+		// setup "compressed_block.data()" as the input and "out" as the uncompressed output
+		infstream.avail_in = compressed.size(); // size of input
+		infstream.next_in = (Bytef *)compressed.data(); // input char array
+
+		int ret;
+		do {
+			infstream.avail_out = decompress_buffer_size;
+			infstream.next_out = (Bytef *) out;
+			ret = inflate(&infstream, Z_NO_FLUSH);
+			if(ret != Z_OK && ret != Z_STREAM_END)  /* state not clobbered */
+			{
+				THROW(FileParseException, "Error while decompressing file!")
+			}
+			decompressed.append(out, infstream.avail_out);
+
+		} while (infstream.avail_out == 0);
+
+		inflateEnd(&infstream);
+
+		return decompressed.split('\n');
+	}
+	else
+	{
+		THROW(ArgumentException, "File doesn't end with .chain or .gz. Unknown filetype.")
 	}
 }
 

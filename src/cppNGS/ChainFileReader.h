@@ -112,6 +112,7 @@ private:
 
 	//parse file and generate genomicAlignments
 	void load();
+	QList<QByteArray> getLines();
 	GenomicAlignment parseChainLine(QList<QByteArray> parts);
 
 	QString filepath_;
