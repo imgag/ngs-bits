@@ -61,12 +61,16 @@ void AnalysisInformationWidget::updateGUI()
 			if (file.exists && sample_data.species=="human")
 			{
 				BamReader reader(file.filename);
-				QByteArray genome = reader.build();
-				if (genome!="" && stringToBuild(genome)!=GSvarHelper::build())
+				try
 				{
-					ui_.table->item(0,1)->setText(ui_.table->item(0,1)->text() + " (" + genome + ")");
-					ui_.table->item(0,1)->setTextColor(QColor(Qt::red));
+					GenomeBuild build = reader.build();
+					if (build!=GSvarHelper::build())
+					{
+						ui_.table->item(0,1)->setText(ui_.table->item(0,1)->text() + " (" + buildToString(build) + ")");
+						ui_.table->item(0,1)->setTextColor(QColor(Qt::red));
+					}
 				}
+				catch(...) {} //do nothing (genome build could not be determined)
 			}
 			ui_.table->setItem(0, 2, GUIHelper::createTableItem(QString::number(import_status.qc_terms) + " QC terms"));
 
@@ -138,12 +142,16 @@ void AnalysisInformationWidget::updateGUI()
 			if (file.exists && sample_data.species=="human")
 			{
 				BamReader reader(file.filename);
-				QByteArray genome = reader.build();
-				if (genome!="" && stringToBuild(genome)!=GSvarHelper::build())
+				try
 				{
-					ui_.table->item(0,1)->setText(ui_.table->item(0,1)->text() + " (" + genome + ")");
-					ui_.table->item(0,1)->setTextColor(QColor(Qt::red));
+					GenomeBuild build = reader.build();
+					if (build!=GSvarHelper::build())
+					{
+						ui_.table->item(0,1)->setText(ui_.table->item(0,1)->text() + " (" + buildToString(build) + ")");
+						ui_.table->item(0,1)->setTextColor(QColor(Qt::red));
+					}
 				}
+				catch(...) {} //do nothing (genome build could not be determined)
 			}
 			ui_.table->setItem(0, 2, GUIHelper::createTableItem(QString::number(import_status.qc_terms) + " QC terms"));
 
@@ -185,12 +193,16 @@ void AnalysisInformationWidget::updateGUI()
 			if (file.exists && sample_data.species=="human")
 			{
 				BamReader reader(file.filename);
-				QByteArray genome = reader.build();
-				if (genome!="" && stringToBuild(genome)!=GSvarHelper::build())
+				try
 				{
-					ui_.table->item(0,1)->setText(ui_.table->item(0,1)->text() + " (" + genome + ")");
-					ui_.table->item(0,1)->setTextColor(QColor(Qt::red));
+					GenomeBuild build = reader.build();
+					if (build!=GSvarHelper::build())
+					{
+						ui_.table->item(0,1)->setText(ui_.table->item(0,1)->text() + " (" + buildToString(build) + ")");
+						ui_.table->item(0,1)->setTextColor(QColor(Qt::red));
+					}
 				}
+				catch(...) {} //do nothing (genome build could not be determined)
 			}
 			ui_.table->setItem(0, 2, GUIHelper::createTableItem(QString::number(import_status.qc_terms) + " QC terms"));
 

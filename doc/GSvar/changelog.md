@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2021_12-100 (10.02.22)
+- Added PubMed identifiers (variant details and variant tab).
+- Added upload status and re-upload for ClinVar upload.
+- RNA: improved integration.
+
 ### 2021_12-64 (17.01.22)
 - General: Removed support for dbscSNV and MMsplice annotations.
 - General: Added Google Scholar search for variants.
