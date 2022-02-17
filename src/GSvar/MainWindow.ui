@@ -518,6 +518,7 @@
      <addaction name="actionImportSamples"/>
      <addaction name="actionImportProcessedSamples"/>
      <addaction name="actionImportSampleRelations"/>
+     <addaction name="actionImportSampleHpoTerms"/>
      <addaction name="actionImportCfDNAPanels"/>
      <addaction name="separator"/>
      <addaction name="actionImportMids"/>
@@ -1360,6 +1361,11 @@
    </property>
    <property name="toolTip">
     <string>Shows the expression data of samples of the same cohort.</string>
+   </property>
+  </action>
+  <action name="actionImportSampleHpoTerms">
+   <property name="text">
+    <string>Sample HPO terms</string>
    </property>
   </action>
  </widget>

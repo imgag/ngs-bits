@@ -2189,12 +2189,24 @@ const TableInfo& NGSD::tableInfo(const QString& table, bool use_cache) const
 					{
 						if(info.name == "gene_id") info.fk_name_sql = "symbol";
 					}
+					else if (table=="sample_relations")
 					{
 						if (info.name=="sample1_id")
 						{
 							info.fk_name_sql = "name";
 						}
 						if (info.name=="sample2_id")
+						{
+							info.fk_name_sql = "name";
+						}
+						if (info.name=="user_id")
+						{
+							info.fk_name_sql = "name";
+						}
+					}
+					else if (table=="sample_disease_info")
+					{
+						if (info.name=="sample_id")
 						{
 							info.fk_name_sql = "name";
 						}
