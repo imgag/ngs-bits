@@ -507,7 +507,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element DiagnosticNgsReport
 	w.writeStartElement("DiagnosticNgsReport");
-	w.writeAttribute("version", "5");
+	w.writeAttribute("version", "6");
 	w.writeAttribute("type", data_.report_settings.report_type);
 
 	//element ReportGeneration
@@ -518,6 +518,19 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	w.writeAttribute("outcome", db_.getDiagnosticStatus(ps_id_).outcome);
 	w.writeEndElement();
 
+	//element ChromosomeAliases
+	w.writeStartElement("ChromosomeAliases");
+	QMap<Chromosome, QString> table = getChromosomeTable(data_.build);
+
+	foreach (Chromosome key, table.keys())
+	{
+		w.writeStartElement("Chromosome");
+		w.writeAttribute("chr", key.str());
+		w.writeAttribute("refseq", table[key]);
+		w.writeEndElement();
+	}
+
+	w.writeEndElement();
 	//element Sample
 	w.writeStartElement("Sample");
 	w.writeAttribute("name", data_.ps);
@@ -851,6 +864,152 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	}
 	w.writeEndElement();
 
+	//SV List:
+	w.writeStartElement("SvList");
+
+	QString caller = "Unknown";
+	foreach (const QByteArray header, data_.svs.headers())
+	{
+		if (! header.startsWith("##cmdline=")) continue;
+
+		if (header.contains("configManta.py"))
+		{
+			caller = "Manta";
+		}
+		break;
+	}
+
+	w.writeAttribute("sv_caller", caller);
+	w.writeAttribute("overall_number", QString::number(data_.svs.count()));
+	w.writeAttribute("genome_build", buildToString(data_.build, true));
+
+	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
+	{
+		if (!var_conf.showInReport()) continue;
+		if (var_conf.variant_type!=VariantType::SVS) continue;
+		if (!selected_svs_.contains(var_conf.variant_index)) continue;
+		if (var_conf.report_type!=data_.report_settings.report_type) continue;
+
+
+		const BedpeLine& sv = data_.svs[var_conf.variant_index];
+
+		w.writeStartElement("Sv");
+
+		// StructuralVariantTypeToString(sv.type())) gives only shortend versions.
+		if (sv.type() == StructuralVariantType::INS)
+		{
+			w.writeAttribute("type", "Insertion");
+		}
+		else if (sv.type() == StructuralVariantType::DUP)
+		{
+			w.writeAttribute("type", "Duplication");
+		}
+		else if (sv.type() == StructuralVariantType::INV)
+		{
+			w.writeAttribute("type", "Inversion");
+		}
+		else if (sv.type() == StructuralVariantType::DEL)
+		{
+			w.writeAttribute("type", "Deletion");
+		}
+		else if (sv.type() == StructuralVariantType::BND)
+		{
+			w.writeAttribute("type", "Breakend");
+		}
+
+		w.writeAttribute("chr", sv.chr1().str());
+		Variant v;// for genotype formating
+		// start and end may be split over start1 and start2 for INS, DEL, DUP, INV
+		if (sv.type() == StructuralVariantType::BND)
+		{
+			w.writeAttribute("start", QString::number(sv.start1()));
+			w.writeAttribute("end", QString::number(sv.end1()));
+
+			v.setChr(sv.chr1());
+			v.setStart(sv.start1());
+			v.setEnd(sv.end1());
+		}
+		else
+		{
+			w.writeAttribute("start", QString::number(sv.start1()));
+			w.writeAttribute("end", QString::number(sv.end2()));
+
+			v.setChr(sv.chr1());
+			v.setStart(sv.start1());
+			v.setEnd(sv.end2());
+		}
+
+		w.writeAttribute("start_band", NGSHelper::cytoBand(data_.build, sv.chr1(), sv.start1()));
+		w.writeAttribute("end_band", NGSHelper::cytoBand(data_.build, sv.chr2(), sv.end2()));
+
+		//TODO
+//		w.writeAttribute("hgvs_start", );
+//		w.writeAttribute("hgvs_end", );
+
+
+		QByteArray sv_gt = sv.formatValueByKey("GT", data_.svs.annotationHeaders());
+		QByteArray sv_genotype;
+		if (sv_gt == "1/1")
+		{
+			sv_genotype = "hom";
+		}
+		else
+		{
+			sv_genotype = "het";
+		}
+		w.writeAttribute("genotype", formatGenotype(data_.build, processed_sample_data.gender.toLatin1(), sv_genotype, v));
+
+		if (sv.type() == StructuralVariantType::INS)
+		{
+			QByteArray alt = sv.annotations()[data_.svs.annotationIndexByName("ALT_A")];
+
+			// write alt string except for the first character
+			w.writeAttribute("ins_sequence", alt.right(alt.size()-1));
+		}
+
+		if (sv.type() == StructuralVariantType::BND)
+		{
+			w.writeAttribute("bnd_chr2", sv.chr2().str());
+			w.writeAttribute("bnd_start2", QString::number(sv.start2()));
+			w.writeAttribute("bnd_end2", QString::number(sv.end2()));
+		}
+
+		w.writeAttribute("causal", var_conf.causal ? "true" : "false");
+		w.writeAttribute("de_novo", var_conf.de_novo ? "true" : "false");
+		w.writeAttribute("comp_het", var_conf.comp_het ? "true" : "false");
+		w.writeAttribute("mosaic", var_conf.mosaic ? "true" : "false");
+
+		if (var_conf.inheritance!="n/a")
+		{
+			w.writeAttribute("inheritance", var_conf.inheritance);
+		}
+		if (var_conf.classification!="n/a")
+		{
+			w.writeAttribute("class", var_conf.classification);
+		}
+		if (!var_conf.comments.trimmed().isEmpty())
+		{
+			w.writeAttribute("comments_1st_assessor", var_conf.comments.trimmed());
+		}
+		if (!var_conf.comments2.trimmed().isEmpty())
+		{
+			w.writeAttribute("comments_2nd_assessor", var_conf.comments2.trimmed());
+		}
+
+		foreach(const QByteArray& gene, sv.genes(data_.svs.annotationHeaders(), false))
+		{
+			w.writeStartElement("Gene");
+			w.writeAttribute("name", gene);
+			int hgnc_id = db_.geneToApprovedID(gene);
+			w.writeAttribute("identifier", hgnc_id==-1 ? "n/a" : "HGNC:" + QString::number(hgnc_id));
+			w.writeEndElement();
+		}
+
+		w.writeEndElement();
+	}
+	w.writeEndElement();
+
+
 	//element ReportDocument
 	w.writeStartElement("ReportDocument");
 	QString format = QFileInfo(html_document).suffix().toUpper();
@@ -871,7 +1030,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	outfile->close();
 
 	//validate written XML file
-	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/GermlineReport_v5.xsd");
+	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/GermlineReport_v6.xsd");
 	if (xml_error!="")
 	{
 		THROW(ProgrammingException, "Invalid germline report XML file gererated: " + xml_error);
@@ -1456,6 +1615,52 @@ QString GermlineReportGenerator::formatCodingSplicing(const QList<VariantTranscr
 		}
 	}
 	return output.join("<br />");
+}
+
+QMap<Chromosome, QString> GermlineReportGenerator::getChromosomeTable(GenomeBuild build)
+{
+	QStringList refseq;
+	if (build == GenomeBuild::HG38)
+	{
+		// chromosomes 1-22:
+		refseq << "NC_000001.11" << "NC_000002.12" << "NC_000003.12" << "NC_000004.12" << "NC_000005.10";
+		refseq << "NC_000006.12" << "NC_000007.14" << "NC_000008.11" << "NC_000009.12" << "NC_000010.11";
+		refseq << "NC_000011.10" << "NC_000012.12" << "NC_000013.11" << "NC_000014.9"  << "NC_000015.10";
+		refseq << "NC_000016.10" << "NC_000017.11" << "NC_000018.10" << "NC_000019.10" << "NC_000020.11";
+		refseq << "NC_000021.9"  << "NC_000022.11";
+		// chromosomes y + x
+		refseq << "NC_000024.10" << "NC_000023.11";
+		// chrMT
+		refseq << "NC_012920.1";
+	}
+	else if (build == GenomeBuild::HG19)
+	{
+		// chromosomes 1-22:
+		refseq << "NC_000001.10" << "NC_000002.11" << "NC_000003.11" << "NC_000004.11" << "NC_000005.9";
+		refseq << "NC_000006.11" << "NC_000007.13" << "NC_000008.10" << "NC_000009.11" << "NC_000010.10";
+		refseq << "NC_000011.9"  << "NC_000012.11" << "NC_000013.10" << "NC_000014.8"  << "NC_000015.9";
+		refseq << "NC_000016.9"  << "NC_000017.10" << "NC_000018.9"  << "NC_000019.9"  << "NC_000020.10";
+		refseq << "NC_000021.8"  << "NC_000022.10";
+		// chromosomes y + x
+		refseq << "NC_000024.9" << "NC_000023.10";
+		// chrMT
+		refseq << "NC_012920.1";
+	}
+	//Order: chr1-22, chrY, chrX, chrMT
+	QStringList chromosomes = db_.getEnum("variant", "chr");
+
+	if (refseq.size() != chromosomes.size())
+	{
+		THROW(ProgrammingException, "Chromosomes and refseq don't have the same length.")
+	}
+
+	QMap<Chromosome, QString> map;
+	for (int i=0; i < chromosomes.size(); i++)
+	{
+		map.insert(Chromosome(chromosomes[i]), refseq[i]);
+	}
+
+	return map;
 }
 
 void GermlineReportGenerator::writeEvaluationSheet(QString filename, const EvaluationSheetData& evaluation_sheet_data)

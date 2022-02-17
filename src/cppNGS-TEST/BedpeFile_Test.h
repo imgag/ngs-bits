@@ -22,6 +22,9 @@ private slots:
 		I_EQUAL( test_file_germl_[14].end1(), 1588661 );
 		I_EQUAL( test_file_germl_[14].start2(), 1653313 );
 		I_EQUAL( test_file_germl_[14].end2(), 1654249 );
+		S_EQUAL(test_file_germl_[14].genes(test_file_germl_.annotationHeaders())[0], "CDK11A");
+		S_EQUAL(test_file_germl_[14].genes(test_file_germl_.annotationHeaders())[4], "SLC35E2B");
+
 
 
 		test_file_som_.load( TESTDATA("data_in/SV_Manta_somatic.bedpe") );
