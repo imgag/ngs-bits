@@ -455,3 +455,7 @@ NGSDExportSV.depends = cppNGSD
 SUBDIRS += BedpeAnnotateCounts
 tools-TEST.depends += BedpeAnnotateCounts
 BedpeAnnotateCounts.depends = cppNGS
+
+SUBDIRS += BedpeSort
+tools-TEST.depends += BedpeSort
+BedpeSort.depends = cppNGS

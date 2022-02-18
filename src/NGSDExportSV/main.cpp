@@ -32,6 +32,61 @@ public:
 		changeLog(2022, 2, 10, "Initial struct.");
 	}
 
+	void collapseSvDensity(QString output_folder, QHash<Chromosome, QMap<int,int>> sv_density, const QStringList& chromosomes)
+	{
+
+		QTextStream std_out(stdout);
+		QTime timer_collapse_density;
+		double debug_time_collapse_density = 0;
+		timer_collapse_density.start();
+		BedFile sv_density_file;
+
+		//iterate over all chromosomes
+		foreach (const QString& chr_str, chromosomes)
+		{
+			Chromosome chr = Chromosome(chr_str);
+			int start = -1;
+			int end = -1;
+			int density_value = 0;
+			const QMap<int,int>& current_density = sv_density[chr];
+
+
+			//iterate over QMap
+			foreach (int pos, current_density.keys())
+			{
+				if(start < 0)
+				{
+					// start new entry
+					start = pos;
+					end = pos;
+					density_value = current_density.value(pos);
+				}
+				else
+				{
+					if ((pos == (end + 1)) && (density_value == current_density.value(pos)))
+					{
+						//same segment with constant value --> extend BED region
+						end = pos;
+					}
+					else
+					{
+						//either density value changed or new segment --> finish old segment and start new entry
+						sv_density_file.append(BedLine(chr, start + 1, end + 1, QByteArrayList() << QByteArray::number(density_value))); // +1 because BEDPE is 0-based and method requires 1-based positions
+						start = pos;
+						end = pos;
+						density_value = current_density.value(pos);
+					}
+				}
+			}
+		}
+		debug_time_collapse_density += timer_collapse_density.elapsed();
+
+		//write to file
+		sv_density_file.store(QDir(output_folder).filePath("sv_breakpoint_density.bed"), false);
+
+		std_out << "Collapsing SV density took " << QByteArray::number(debug_time_collapse_density) << "s" << endl;
+	}
+
 	virtual void main()
 	{
 		//init
@@ -43,20 +98,24 @@ public:
 		QTextStream std_out(stdout);
 
 		//debug
-		QTime timer_reset;
-		QTime timer_get_cs;
 		QTime timer_get_var;
 		QTime timer_get_sys;
 		QTime timer_write_file;
-		double debug_time_reset_timer = 0;
-		double debug_time_get_cs = 0;
+		QTime timer_extract_density;
+		QTime timer_collapse_density;
 		double debug_time_get_var = 0;
 		double debug_time_get_sys = 0;
 		double debug_time_write_file = 0;
+		double debug_time_extract_density = 0;
+
 
 		//create BEDPE columns for output file
 		BedpeFile bedpe_structure;
 		bedpe_structure.setAnnotationHeaders(QList<QByteArray>() << "TYPE" << "PROCESSING_SYSTEM" << "ID" << "FORMAT" << "FORMAT_VALUES");
+		int idx_type = bedpe_structure.annotationIndexByName("TYPE");
+		int idx_processing_system = bedpe_structure.annotationIndexByName("PROCESSING_SYSTEM");
+		int idx_sv_id = bedpe_structure.annotationIndexByName("ID");
+		int idx_format = bedpe_structure.annotationIndexByName("FORMAT");
 
 		QList<StructuralVariantType> sv_types = QList<StructuralVariantType>() << StructuralVariantType::DEL << StructuralVariantType::DUP << StructuralVariantType::INS
 																			   << StructuralVariantType::INV << StructuralVariantType::BND;
@@ -64,9 +123,12 @@ public:
 		QMap<int, QByteArray> callset_cache; // Cache to store callset - processing system relation
 
 
-		//prepare temp tables in NGSD:
-
-		std_out << "Generating temporary tables in NGSD..." << endl;
+		//init QMap for SV density map
+		QHash<Chromosome, QMap<int,int>> sv_density;
+		foreach (const QString& chr, chromosomes)
+		{
+			sv_density.insert(Chromosome(chr), QMap<int,int>());
+		}
 
 
 		//get sample counts
@@ -149,7 +211,7 @@ public:
 
 
 			//write header
-			out << "#CHROM_A\tSTART_A\tEND_A\tCHROM_B\tSTART_B\tEND_B" + bedpe_structure.annotationHeaders().join('\t') + "\n";
+			out << "#CHROM_A\tSTART_A\tEND_A\tCHROM_B\tSTART_B\tEND_B\t" + bedpe_structure.annotationHeaders().join('\t') + "\n";
 
 			//export svs chromosome-wise
 			int line_idx = 0;
@@ -163,20 +225,12 @@ public:
 				//get SVs and write to file
 				foreach (int id, ids)
 				{
-//					// get callset id
-//					timer_reset.restart();
-//					timer_get_cs.restart();
-//					q_callset_id.bindValue(0, id);
-//					q_callset_id.exec();
-//					q_callset_id.next();
-//					int cs_id = q_callset_id.value(0).toInt();
-//					debug_time_get_cs += timer_get_cs.elapsed()/1000.0;
-//					debug_time_reset_timer += timer_reset.elapsed()/1000.0;
 
 					//get SV from NGSD
 					timer_get_var.restart();
 					int cs_id = -1;
 					BedpeLine sv = db.structuralVariant(id, sv_type, bedpe_structure, true, &cs_id);
+					int allele_count = (sv.annotations().at(idx_format).split(':').at(0) == "1/1")?2:1;
 					debug_time_get_var += timer_get_var.elapsed()/1000.0;
 
 					//skip invalid callsets:
@@ -202,15 +256,23 @@ public:
 					}
 					debug_time_get_sys += timer_get_sys.elapsed()/1000.0;
 
+					//write to file
 					timer_write_file.restart();
+					//update annotation
+					QList<QByteArray> sv_annotation = sv.annotations();
+					sv_annotation[idx_type] = StructuralVariantTypeToString(sv_type).toUtf8();
+					sv_annotation[idx_processing_system] = processing_system;
 					if (sv_type == StructuralVariantType::BND)
 					{
 						//special handling: store both directions and add SV id
-						sv.setAnnotations(QList<QByteArray>() << StructuralVariantTypeToString(sv_type).toUtf8() << processing_system << QByteArray::number(id));
+						sv_annotation[idx_sv_id] = QByteArray::number(id);
+						sv.setAnnotations(sv_annotation);
 
-						//store both variants
+						//1st direction
 						QByteArrayList tsv_line = sv.toTsv().split('\t');
 						out << tsv_line.join('\t') << "\n";
+
+						//2nd direction
 						tsv_line[0] = sv.chr2().strNormalized(true);
 						tsv_line[1] = QByteArray::number(sv.start2());
 						tsv_line[2] = QByteArray::number(sv.end2());
@@ -222,25 +284,67 @@ public:
 					}
 					else
 					{
-						sv.setAnnotations(QList<QByteArray>() << StructuralVariantTypeToString(sv_type).toUtf8() << processing_system << "");
+						sv.setAnnotations(sv_annotation);
 						out << sv.toTsv() << "\n";
 					}
 					debug_time_write_file += timer_write_file.elapsed()/1000.0;
 					line_idx++;
+
+
+					//calculate SV breakpoint density
+					timer_extract_density.restart();
+					// 1st breakpoint
+					for (int i = sv.start1(); i <= sv.end1(); ++i)
+					{
+						if (sv_density[sv.chr1()].contains(i))
+						{
+							sv_density[sv.chr1()][i] += allele_count;
+						}
+						else
+						{
+							sv_density[sv.chr1()].insert(i, allele_count);
+						}
+					}
+
+					// 2nd breakpoint (except INS)
+					if (sv_type != StructuralVariantType::INS)
+					{
+						for (int i = sv.start2(); i <= sv.end2(); ++i)
+						{
+							if (sv_density[sv.chr2()].contains(i))
+							{
+								sv_density[sv.chr2()][i] += allele_count;
+							}
+							else
+							{
+								sv_density[sv.chr2()].insert(i, allele_count);
+							}
+						}
+					}
+					debug_time_extract_density += timer_extract_density.elapsed()/1000.0;
+
+					//progress output
 					if (line_idx % 100000 == 0)
 					{
 						std_out << QByteArray::number(line_idx) << " structural variants exported. " << Helper::elapsedTime(timer) << "\n";
 						std_out << "\t getting SV took " << QByteArray::number(debug_time_get_var) << "s \n";
 						std_out << "\t getting processing system took " << QByteArray::number(debug_time_get_sys) << "s \n";
 						std_out << "\t write file took " << QByteArray::number(debug_time_write_file) << "s \n";
+						std_out << "\t extracting SV density took " << QByteArray::number(debug_time_extract_density) << "s \n";
+						std_out << endl;
 					}
 				}
+
 			}
 
 			//close file
 			out.flush();
 			out_file->close();
 		}
+
+		//collape SV density to BED file
+		collapseSvDensity(output_folder, sv_density, chromosomes);
+
 	}
 
 };

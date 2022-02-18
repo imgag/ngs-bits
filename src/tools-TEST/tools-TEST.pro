@@ -130,7 +130,8 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     GenePrioritization_Test.h \
     CfDnaQC_Test.h \
     VcfAnnotateFromBigWig_Test.h \
-    BedLiftOver_Test.h
+    BedLiftOver_Test.h \
+    BedpeSort_Test.h
 
 SOURCES += \
     main.cpp

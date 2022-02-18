@@ -1764,7 +1764,18 @@ BedpeLine NGSD::structuralVariant(int sv_id, StructuralVariantType type, const B
 		start2 = query.value("end_min").toInt();
 		end2 = query.value("end_max").toInt();
 		QByteArray genotype = query.value("genotype").toByteArray();
-		if (genotype == "hom") genotype = "1/1"; else genotype = "0/1";
+		if (genotype == "hom")
+		{
+			genotype = "1/1";
+		}
+		else if (genotype == "het")
+		{
+			genotype = "0/1";
+		}
+		else // 'n/a'
+		{
+			genotype = "./.";
+		}
 		annotations[format_idx] = "GT";
 		annotations[format_idx + 1] = genotype;
 
@@ -1791,7 +1802,18 @@ BedpeLine NGSD::structuralVariant(int sv_id, StructuralVariantType type, const B
 		int pos = query.value("pos").toInt();
 		int pos_upper = pos + query.value("ci_upper").toInt();
 		QByteArray genotype = query.value("genotype").toByteArray();
-		if (genotype == "hom") genotype = "1/1"; else genotype = "0/1";
+		if (genotype == "hom")
+		{
+			genotype = "1/1";
+		}
+		else if (genotype == "het")
+		{
+			genotype = "0/1";
+		}
+		else // 'n/a'
+		{
+			genotype = "./.";
+		}
 		annotations[format_idx] = "GT";
 		annotations[format_idx + 1] = genotype;
 
@@ -1846,7 +1868,18 @@ BedpeLine NGSD::structuralVariant(int sv_id, StructuralVariantType type, const B
 		start2 = query.value("start2").toInt();
 		end2 = query.value("end2").toInt();
 		QByteArray genotype = query.value("genotype").toByteArray();
-		if (genotype == "hom") genotype = "1/1"; else genotype = "0/1";
+		if (genotype == "hom")
+		{
+			genotype = "1/1";
+		}
+		else if (genotype == "het")
+		{
+			genotype = "0/1";
+		}
+		else // 'n/a'
+		{
+			genotype = "./.";
+		}
 		annotations[format_idx] = "GT";
 		annotations[format_idx + 1] = genotype;
 
