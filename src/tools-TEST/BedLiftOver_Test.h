@@ -17,7 +17,7 @@ private slots:
 		COMPARE_FILES("out/BedLiftOver_out1_unmapped.bed", TESTDATA("../cppNGS-TEST/data_out/ChainFileReader_out1_unmapped.bed"));
 	}
 	
-	// testing allowed number ef deleted bases
+	// testing allowed number of deleted bases
 	void test_02()
 	{
 		QString chain_file = Settings::string("liftover_hg38_hg19", true);
@@ -71,8 +71,8 @@ private slots:
 		QString chain_file = Settings::string("liftover_hg38_hg19", true);
 		if (chain_file=="") SKIP("Test needs the liftOver hg38->hg19 chain file!");
 
-		QList<int> max_increase{0, 10, 20};
-		QList<int> expected{1, 2, 3};
+		QList<int> max_increase{0, 9, 10, 19, 20};
+		QList<int> expected{1, 1, 2, 2, 3};
 
 		for (int i=0; i<max_increase.size(); i++)
 		{
