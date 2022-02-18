@@ -56,6 +56,58 @@
 						</xs:attribute>
 					</xs:complexType>
 				</xs:element>
+				<xs:element name="ChromosomeAliases">
+					<xs:annotation>
+						<xs:documentation>Alias names for chromosomes</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="Chromosome" maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:attribute name="chr" use="required">
+										<xs:annotation>
+											<xs:documentation>chromosome name used in this file</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="chr1"/>
+												<xs:enumeration value="chr2"/>
+												<xs:enumeration value="chr3"/>
+												<xs:enumeration value="chr4"/>
+												<xs:enumeration value="chr5"/>
+												<xs:enumeration value="chr6"/>
+												<xs:enumeration value="chr7"/>
+												<xs:enumeration value="chr8"/>
+												<xs:enumeration value="chr9"/>
+												<xs:enumeration value="chr10"/>
+												<xs:enumeration value="chr11"/>
+												<xs:enumeration value="chr12"/>
+												<xs:enumeration value="chr13"/>
+												<xs:enumeration value="chr14"/>
+												<xs:enumeration value="chr15"/>
+												<xs:enumeration value="chr16"/>
+												<xs:enumeration value="chr17"/>
+												<xs:enumeration value="chr18"/>
+												<xs:enumeration value="chr19"/>
+												<xs:enumeration value="chr20"/>
+												<xs:enumeration value="chr21"/>
+												<xs:enumeration value="chr22"/>
+												<xs:enumeration value="chrX"/>
+												<xs:enumeration value="chrY"/>
+												<xs:enumeration value="chrMT"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="refseq" use="required">
+										<xs:annotation>
+											<xs:documentation>RefSeq accession of the chromosome</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
 				<xs:element name="Sample">
 					<xs:annotation>
 						<xs:documentation>Information about the sample</xs:documentation>
@@ -180,7 +232,7 @@
 				</xs:element>
 				<xs:element name="VariantList">
 					<xs:annotation>
-						<xs:documentation>Variants of interest</xs:documentation>
+						<xs:documentation>Small variants (SNVs and InDels) of interest</xs:documentation>
 					</xs:annotation>
 					<xs:complexType>
 						<xs:sequence>
@@ -342,10 +394,39 @@
 											</xs:complexType>
 										</xs:element>
 									</xs:sequence>
-									<xs:attribute name="chr" type="xs:string" use="required">
+									<xs:attribute name="chr" use="required">
 										<xs:annotation>
 											<xs:documentation>chromosome</xs:documentation>
 										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="chr1"/>
+												<xs:enumeration value="chr2"/>
+												<xs:enumeration value="chr3"/>
+												<xs:enumeration value="chr4"/>
+												<xs:enumeration value="chr5"/>
+												<xs:enumeration value="chr6"/>
+												<xs:enumeration value="chr7"/>
+												<xs:enumeration value="chr8"/>
+												<xs:enumeration value="chr9"/>
+												<xs:enumeration value="chr10"/>
+												<xs:enumeration value="chr11"/>
+												<xs:enumeration value="chr12"/>
+												<xs:enumeration value="chr13"/>
+												<xs:enumeration value="chr14"/>
+												<xs:enumeration value="chr15"/>
+												<xs:enumeration value="chr16"/>
+												<xs:enumeration value="chr17"/>
+												<xs:enumeration value="chr18"/>
+												<xs:enumeration value="chr19"/>
+												<xs:enumeration value="chr20"/>
+												<xs:enumeration value="chr21"/>
+												<xs:enumeration value="chr22"/>
+												<xs:enumeration value="chrX"/>
+												<xs:enumeration value="chrY"/>
+												<xs:enumeration value="chrMT"/>
+											</xs:restriction>
+										</xs:simpleType>
 									</xs:attribute>
 									<xs:attribute name="start" type="xs:int" use="required">
 										<xs:annotation>
@@ -477,16 +558,22 @@
 								<xs:restriction base="xs:int"/>
 							</xs:simpleType>
 						</xs:attribute>
-						<xs:attribute name="genome_build" type="xs:string" use="required">
+						<xs:attribute name="genome_build" use="required">
 							<xs:annotation>
 								<xs:documentation>genome build that the variant positions refer to e.g. GRCh37</xs:documentation>
 							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:enumeration value="GRCh37"/>
+									<xs:enumeration value="GRCh38"/>
+								</xs:restriction>
+							</xs:simpleType>
 						</xs:attribute>
 					</xs:complexType>
 				</xs:element>
 				<xs:element name="CnvList">
 					<xs:annotation>
-						<xs:documentation>CNVs of interest</xs:documentation>
+						<xs:documentation>Copy-number variants of interest</xs:documentation>
 					</xs:annotation>
 					<xs:complexType>
 						<xs:sequence>
@@ -542,10 +629,39 @@
 											</xs:complexType>
 										</xs:element>
 									</xs:sequence>
-									<xs:attribute name="chr" type="xs:string" use="required">
+									<xs:attribute name="chr" use="required">
 										<xs:annotation>
 											<xs:documentation>chromosome</xs:documentation>
 										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="chr1"/>
+												<xs:enumeration value="chr2"/>
+												<xs:enumeration value="chr3"/>
+												<xs:enumeration value="chr4"/>
+												<xs:enumeration value="chr5"/>
+												<xs:enumeration value="chr6"/>
+												<xs:enumeration value="chr7"/>
+												<xs:enumeration value="chr8"/>
+												<xs:enumeration value="chr9"/>
+												<xs:enumeration value="chr10"/>
+												<xs:enumeration value="chr11"/>
+												<xs:enumeration value="chr12"/>
+												<xs:enumeration value="chr13"/>
+												<xs:enumeration value="chr14"/>
+												<xs:enumeration value="chr15"/>
+												<xs:enumeration value="chr16"/>
+												<xs:enumeration value="chr17"/>
+												<xs:enumeration value="chr18"/>
+												<xs:enumeration value="chr19"/>
+												<xs:enumeration value="chr20"/>
+												<xs:enumeration value="chr21"/>
+												<xs:enumeration value="chr22"/>
+												<xs:enumeration value="chrX"/>
+												<xs:enumeration value="chrY"/>
+												<xs:enumeration value="chrMT"/>
+											</xs:restriction>
+										</xs:simpleType>
 									</xs:attribute>
 									<xs:attribute name="start" type="xs:int" use="required">
 										<xs:annotation>
@@ -565,6 +681,16 @@
 									<xs:attribute name="end_band" type="xs:string" use="required">
 										<xs:annotation>
 											<xs:documentation>cytogenetic band end position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="hgvs_start" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>manually cutated HGVS start position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="hgvs_end" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>manually cutated HGVS end position</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="type" use="required">
@@ -675,10 +801,16 @@
 								<xs:restriction base="xs:int"/>
 							</xs:simpleType>
 						</xs:attribute>
-						<xs:attribute name="genome_build" type="xs:string" use="required">
+						<xs:attribute name="genome_build" use="required">
 							<xs:annotation>
 								<xs:documentation>genome build that the CNV positions refer to e.g. GRCh37</xs:documentation>
 							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:enumeration value="GRCh37"/>
+									<xs:enumeration value="GRCh38"/>
+								</xs:restriction>
+							</xs:simpleType>
 						</xs:attribute>
 						<xs:attribute name="quality" use="required">
 							<xs:annotation>
@@ -702,6 +834,241 @@
 							<xs:annotation>
 								<xs:documentation>number of high-quality CNV calls, i.e. log-likelihood>20 (for ClinCNV caller only)</xs:documentation>
 							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="SvList">
+					<xs:annotation>
+						<xs:documentation>Structural variants of interest</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="Sv" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Reprentation of a single structural variant</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="Gene" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Genes that overlap the SV</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="name" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>HGNC gene name</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="identifier" use="required">
+													<xs:annotation>
+														<xs:documentation>HGNC identiifer</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="type" use="required">
+										<xs:annotation>
+											<xs:documentation>SV type</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="Duplication"/>
+												<xs:enumeration value="Deletion"/>
+												<xs:enumeration value="Inversion"/>
+												<xs:enumeration value="Insertion"/>
+												<xs:enumeration value="Breakend"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="chr" use="required">
+										<xs:annotation>
+											<xs:documentation>chromosome</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="chr1"/>
+												<xs:enumeration value="chr2"/>
+												<xs:enumeration value="chr3"/>
+												<xs:enumeration value="chr4"/>
+												<xs:enumeration value="chr5"/>
+												<xs:enumeration value="chr6"/>
+												<xs:enumeration value="chr7"/>
+												<xs:enumeration value="chr8"/>
+												<xs:enumeration value="chr9"/>
+												<xs:enumeration value="chr10"/>
+												<xs:enumeration value="chr11"/>
+												<xs:enumeration value="chr12"/>
+												<xs:enumeration value="chr13"/>
+												<xs:enumeration value="chr14"/>
+												<xs:enumeration value="chr15"/>
+												<xs:enumeration value="chr16"/>
+												<xs:enumeration value="chr17"/>
+												<xs:enumeration value="chr18"/>
+												<xs:enumeration value="chr19"/>
+												<xs:enumeration value="chr20"/>
+												<xs:enumeration value="chr21"/>
+												<xs:enumeration value="chr22"/>
+												<xs:enumeration value="chrX"/>
+												<xs:enumeration value="chrY"/>
+												<xs:enumeration value="chrMT"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="start" type="xs:int" use="required">
+										<xs:annotation>
+											<xs:documentation>genomic start position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="end" type="xs:int" use="required">
+										<xs:annotation>
+											<xs:documentation>genomic end position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="start_band" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>cytogenetic band start position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="end_band" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>cytogenetic band end position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="hgvs_start" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>manually cutated HGVS start position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="hgvs_end" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>manually cutated HGVS end position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="genotype" use="required">
+										<xs:annotation>
+											<xs:documentation>variant genotype</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="hom"/>
+												<xs:enumeration value="het"/>
+												<xs:enumeration value="hemi"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ins_sequence" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>inserted sequence (only for insertion)</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="bnd_chr2" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>chromosome of second region (only for breakend)</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="bnd_start2" type="xs:int">
+										<xs:annotation>
+											<xs:documentation>genomic start position of second region (only for breakend)</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="bnd_end2" type="xs:int">
+										<xs:annotation>
+											<xs:documentation>genomic end position of second region (only for breakend)</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="causal" type="xs:boolean" use="required">
+										<xs:annotation>
+											<xs:documentation>If the variant is causal in the context of the diagnostics phenotype.</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="de_novo" type="xs:boolean" use="required">
+										<xs:annotation>
+											<xs:documentation>if the variant is de-novo</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="comp_het" type="xs:boolean" use="required">
+										<xs:annotation>
+											<xs:documentation>if the variant is compound-heterozygous</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="mosaic" type="xs:boolean" use="required">
+										<xs:annotation>
+											<xs:documentation>if the variant is a mosaic variant</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="inheritance">
+										<xs:annotation>
+											<xs:documentation>inheritance mode of the variant (i.e. inheritance mode of the gene for this phenotype)</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="AR"/>
+												<xs:enumeration value="AD"/>
+												<xs:enumeration value="AR+AD"/>
+												<xs:enumeration value="XLR"/>
+												<xs:enumeration value="XLD"/>
+												<xs:enumeration value="XLR+XLD"/>
+												<xs:enumeration value="MT"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="class">
+										<xs:annotation>
+											<xs:documentation>Variant classification. 1=benign ... 5=pahogenic M=modifier</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="1"/>
+												<xs:enumeration value="2"/>
+												<xs:enumeration value="3"/>
+												<xs:enumeration value="4"/>
+												<xs:enumeration value="5"/>
+												<xs:enumeration value="M"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="comments_1st_assessor" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>Comments of first assessor</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="comments_2nd_assessor" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>Comments of second</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="sv_caller" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>SV caller used</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="overall_number" use="required">
+							<xs:annotation>
+								<xs:documentation>Overall number of variants before filtering</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:int"/>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="genome_build" use="required">
+							<xs:annotation>
+								<xs:documentation>genome build that the SV positions refer to e.g. GRCh37</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:enumeration value="GRCh37"/>
+									<xs:enumeration value="GRCh38"/>
+								</xs:restriction>
+							</xs:simpleType>
 						</xs:attribute>
 					</xs:complexType>
 				</xs:element>
@@ -734,8 +1101,8 @@
 				</xs:annotation>
 				<xs:simpleType>
 					<xs:restriction base="xs:int">
-						<xs:minInclusive value="5"/>
-						<xs:maxInclusive value="5"/>
+						<xs:minInclusive value="6"/>
+						<xs:maxInclusive value="6"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>

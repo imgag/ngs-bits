@@ -167,10 +167,10 @@ private slots:
 	void BamReader_build()
 	{
 		BamReader reader(TESTDATA("data_in/panel.bam"));
-		S_EQUAL(reader.build(), "GRCh38");
+		I_EQUAL(reader.build(), GenomeBuild::HG38);
 
 		BamReader reader2(TESTDATA("data_in/BamReader_insert_only.bam"));
-		S_EQUAL(reader2.build(), "GRCh37");
+		I_EQUAL(reader2.build(),  GenomeBuild::HG19);
 	}
 
 	void BamReader_cigarDataAsString()

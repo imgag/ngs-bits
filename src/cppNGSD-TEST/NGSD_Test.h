@@ -1386,7 +1386,8 @@ private slots:
 		CnvList cnvs;
 		cnvs.load(TESTDATA("../cppNGS-TEST/data_in/panel_cnvs_clincnv.tsv"));
 		BedpeFile svs;
-		svs.load(TESTDATA("../cppNGS-TEST/data_in/panel_svs.bedpe"));
+		svs.load(TESTDATA("/data_in/sv_manta.bedpe"));
+
 		PrsTable prs;
 		prs.load(TESTDATA("../cppNGS-TEST/data_in/panel_prs.tsv"));
 		ReportSettings report_settings;
@@ -1453,9 +1454,29 @@ private slots:
 			var_conf.report_type = "diagnostic variant";
 			report_settings.report_config->set(var_conf);
 
-			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 0)); //SV - breakpoint
+			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 3)); //SV - Insertion
 			var_conf.variant_type = VariantType::SVS;
-			var_conf.variant_index = 0;
+			var_conf.variant_index = 3;
+			var_conf.causal = false;
+			var_conf.mosaic = false;
+			var_conf.de_novo = false;
+			var_conf.comp_het = false;
+			var_conf.report_type = "diagnostic variant";
+			report_settings.report_config->set(var_conf);
+
+			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 12)); //SV - breakpoint
+			var_conf.variant_type = VariantType::SVS;
+			var_conf.variant_index = 12;
+			var_conf.causal = false;
+			var_conf.mosaic = false;
+			var_conf.de_novo = false;
+			var_conf.comp_het = false;
+			var_conf.report_type = "diagnostic variant";
+			report_settings.report_config->set(var_conf);
+
+			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 16)); //SV - Deletion
+			var_conf.variant_type = VariantType::SVS;
+			var_conf.variant_index = 16;
 			var_conf.causal = false;
 			var_conf.mosaic = false;
 			var_conf.de_novo = false;
@@ -1484,7 +1505,6 @@ private slots:
 			COMPARE_FILES("out/germline_report2.xml", TESTDATA("data_out/germline_report2.xml"));
 		}
 
-
 		//############################### TEST 3 - english ###############################
 		{
 			report_settings.language = "english";
@@ -1495,7 +1515,6 @@ private slots:
 			generator.writeHTML("out/germline_report3.html");
 			COMPARE_FILES("out/germline_report3.html", TESTDATA("data_out/germline_report3.html"));
 		}
-
 
 		//############################### TEST 4 - evaluation sheet ###############################
 		{
