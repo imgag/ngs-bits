@@ -500,7 +500,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 void SomaticXmlReportGenerator::validateXml(QString file_name)
 {
-	QString xml_error = XmlHelper::isValidXml(file_name, ":/resources/SomaticReport_v3.xsd");
+	QString xml_error = XmlHelper::isValidXml(file_name, ":/resources/SomaticReport_v4.xsd");
 
 	if(xml_error!= "")
 	{
