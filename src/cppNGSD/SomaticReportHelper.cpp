@@ -65,6 +65,15 @@ RtfTable SomaticReportHelper::cnvTable()
 		const CopyNumberVariant& variant = cnvs_[i];
 
 		if(settings_.target_region_filter.isValid() && !settings_.target_region_filter.regions.overlapsWith( variant.chr(),variant.start(), variant.end() ) ) continue; //target region from GSvar filter widget
+		if(variant.genes().count() == 0) continue;
+
+		//gene names
+		GeneSet genes = settings_.processing_system_genes.intersect( db_.genesToApproved(variant.genes()) );
+		std::sort(genes.begin(), genes.end());
+
+		if(genes.count() == 0) continue;
+
+
 
 
 		RtfTableRow temp_row;
@@ -72,7 +81,8 @@ RtfTable SomaticReportHelper::cnvTable()
 		//coordinates
 		QList<RtfSourceCode> coords;
 		coords << RtfText(variant.chr().str()).setFontSize(14).RtfCode();
-		coords << RtfText(QByteArray::number(variant.start() == 0 ? 1 : variant.start()) + " - " + QByteArray::number(variant.end())).setFontSize(12).RtfCode();
+		coords << RtfText(QByteArray::number(variant.start() == 0 ? 1 : variant.start()) + " - " + QByteArray::number(variant.end()) + " (" + QByteArray::number( variant.size() / 1000000. , 'f', 1) + " MB)" ).setFontSize(12).RtfCode();
+
 		temp_row.addCell(coords,1700);
 
 
@@ -92,9 +102,7 @@ RtfTable SomaticReportHelper::cnvTable()
 		//tumor clonality
 		temp_row.addCell(800,QByteArray::number(variant.annotations().at(cnv_index_tumor_clonality_).toDouble(),'f',2).replace(".", ","), RtfParagraph().setHorizontalAlignment("c").setFontSize(14));
 
-		//gene names
-		GeneSet genes = settings_.processing_system_genes.intersect( db_.genesToApproved(variant.genes()) );
-		std::sort(genes.begin(), genes.end());
+
 		temp_row.addCell(5221,genes.join(", "), RtfParagraph().setItalic(true).setFontSize(14));
 
 		cnv_table.addRow(temp_row);
@@ -1379,26 +1387,9 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 		snv_expl += settings_.report_config.limitations().replace("\n","\n\\line\n");
 	}
 	doc_.addPart(RtfParagraph(snv_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setHorizontalAlignment("j").RtfCode());
-
-
 	doc_.addPart(RtfParagraph("").setIndent(0,0,0).setFontSize(18).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).RtfCode());
 
-	snv_expl = RtfText("Zusätzliche genetische Daten:").setFontSize(18).setBold(true).RtfCode();
-	snv_expl += " Weitere Informationen zu allen nachgewiesenen somatischen Veränderungen und pharmakogenetisch relevanten Polymorphismen entnehmen Sie bitte der Anlage. ";
-	doc_.addPart(RtfParagraph(snv_expl).highlight(3).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
-	doc_.addPart(RtfParagraph("").setIndent(0,0,0).setLineSpacing(276).setFontSize(18).RtfCode());
 
-	snv_expl = "Die Varianten- und Gendosisanalysen der Gene " + RtfText("BRCA1").setItalic(true).setFontSize(18).RtfCode() + " und " + RtfText("BRCA2").setItalic(true).setFontSize(18).RtfCode();
-	snv_expl += " in der Normalprobe waren unauffällig.";
-	doc_.addPart(RtfParagraph(snv_expl).highlight(3).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
-	doc_.addPart(RtfParagraph("").setIndent(0,0,0).setLineSpacing(276).setFontSize(18).RtfCode());
-
-	doc_.addPart(RtfParagraph("Die Analyse des Transkriptoms wird getrennt berichtet.").highlight(3).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
-	doc_.addPart(RtfParagraph("").setIndent(0,0,0).setLineSpacing(276).setFontSize(18).RtfCode());
-
-	doc_.addPart(RtfParagraph("Über die somatische Analyse einer zusätzlichen Tumorprobe wird nachträglich berichtet.").highlight(3).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
-
-	doc_.addPart(RtfParagraph("").setIndent(0,0,0).setLineSpacing(276).setFontSize(18).RtfCode());
 
 	doc_.newPage();
 
@@ -1475,36 +1466,54 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	 * GENERAL INFORMATION / QUALITY PARAMETERS*
 	 *******************************************/
 	RtfTable metadata;
-	metadata.addRow(RtfTableRow({RtfText("Allgemeine Informationen").setBold(true).setFontSize(16).RtfCode(),RtfText("Qualitätsparameter").setBold(true).setFontSize(16).RtfCode()}, {4550,5371}));
-	metadata.addRow(RtfTableRow({"Auswertungsdatum:",QDate::currentDate().toString("dd.MM.yyyy").toUtf8(),"Analysepipeline:", somatic_vl_.getPipeline().toUtf8()}, {1550,3000,2250,3121}));
-	metadata.addRow(RtfTableRow({"Proben-ID (Tumor):", settings_.tumor_ps.toUtf8(), "Auswertungssoftware:", QCoreApplication::applicationName().toUtf8() + " " + QCoreApplication::applicationVersion().toUtf8()},{1550,3000,2250,3121}));
-	metadata.addRow(RtfTableRow({"Proben-ID (Keimbahn):", settings_.normal_ps.toUtf8(), "Coverage Tumor 100x:", tumor_qcml_data_.value("QC:2000030",true).toString().toUtf8() + " \%"},{1550,3000,2250,3121}));
-	metadata.addRow(RtfTableRow({"MSI-Status:", (!BasicStatistics::isValidFloat(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3)),  "Durchschnittliche Tiefe Tumor:", tumor_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x"},{1550,3000,2250,3121}));
+	metadata.addRow( RtfTableRow("Allgemeine Informationen", 9921, RtfParagraph().setBold(true).setFontSize(16)) );
+
+	metadata.addRow(RtfTableRow({"Prozessierungssystem:", processing_system_data_.name.toUtf8()}, {2000,7921}) );
+
+	if(settings_.target_region_filter.name != "")
+	{
+		metadata.addRow( RtfTableRow({"Genpanel:", settings_.target_region_filter.name.toUtf8() + " (namentliche Listung der Gene s. letzte Seite)"} , {2000,7921} ) );
+	}
 
 
-	metadata.addRow(RtfTableRow({"Prozessierungssystem:", processing_system_data_.name.toUtf8() + " (" + QByteArray::number(db_.processingSystemGenes(db_.processingSystemId(processing_system_data_.name) , true).count() ) + ")", "Coverage Normal 100x:", normal_qcml_data_.value("QC:2000030",true).toString().toUtf8() + " \%"} , {1550,3000,2250,3121} ));
-	metadata.addRow(RtfTableRow({"ICD10:", icd10_diagnosis_code_.toUtf8(), "Durchschnittliche Tiefe Normal:", normal_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x"},{1550,3000,2250,3121}));
+	metadata.addRow(RtfTableRow( {"", "Tumor", "Normal", ""}, {2000,1480,1480,4961}, RtfParagraph().setFontSize(14).setUnderline(true)) );
+	metadata.addRow(RtfTableRow({"Proben-ID", settings_.tumor_ps.toUtf8(), settings_.normal_ps.toUtf8(), "Auswertungsdatum", QDate::currentDate().toString("dd.MM.yyyy").toUtf8()}, {2000,1480,1480,2000,2961} , RtfParagraph().setFontSize(14)) );
 
-	//somatic custom panel specific QC values
+	metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe:", tumor_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x", normal_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x", "Analysepipeline:", somatic_vl_.getPipeline().toUtf8()}, {2000,1480,1480,2000,2961}) );
+
 
 	if(settings_.report_config.targetRegionName() == "somatic_custom_panel")
 	{
 		try
 		{
-			RtfTableRow row_cov =RtfTableRow({"Coverage Tumor 100x:", tumor_qcml_data_.value("QC:2000094",true).toString().toUtf8() +" \%", "Coverage Normal 100x:", normal_qcml_data_.value("QC:2000094",true).toString().toUtf8() + " \%"},{1550,3000,2250,3121});
-			RtfTableRow row_depth =RtfTableRow({"Durchschnittliche Tiefe Tumor:", tumor_qcml_data_.value("QC:2000097",true).toString().toUtf8() + "x", "Durchschnittliche Tiefe Normal:", normal_qcml_data_.value("QC:2000097",true).toString().toUtf8() + "x"},{1550,3000,2250,3121});
-			metadata.addRow(RtfTableRow({RtfText("Somatisches Subpanel ").setBold(true).setFontSize(16).setHorizontalAlignment("c").RtfCode() + RtfText("(" +QByteArray::number(db_.processingSystemGenes(db_.processingSystemId("somatic_custom_panel"), true).count()) + " Gene)" ).setFontSize(16).RtfCode()}, {9921}));
-
-			metadata.addRow(row_cov);
-			metadata.addRow(row_depth);
+			metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe Genpanel:", tumor_qcml_data_.value("QC:2000097",true).toString().toUtf8() + "x", normal_qcml_data_.value("QC:2000097",true).toString().toUtf8() + "x", "Auswertungssoftware:", QCoreApplication::applicationName().toUtf8() + " " + QCoreApplication::applicationVersion().toUtf8()}, {2000,1480,1480,2000,2961}) );
 		}
-		catch(Exception e) //nothing to do here
+		catch(Exception) //nothing to do here
 		{
-			qDebug() << e.message() << endl;
 		}
 	}
+	else
+	{
+		metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe Genpanel:", "n/a", "n/a", "Auswertungssoftware:", QCoreApplication::applicationName().toUtf8() + " " + QCoreApplication::applicationVersion().toUtf8()}, {2000,1480,1480,2000,2961}) );
+	}
 
-	metadata.addRow(RtfTableRow("In Regionen mit einer Abdeckung >100x können somatische Varianten mit einer Frequenz >5% im Tumorgewebe mit einer Sensitivität >95,0% und einem Positive Prediction Value PPW >99% bestimmt werden. Für mindestens 95% aller untersuchten Gene kann die Kopienzahl korrekt unter diesen Bedingungen bestimmt werden.", doc_.maxWidth()) );
+	metadata.addRow( RtfTableRow( {"Coverage 60x:", tumor_qcml_data_.value("QC:2000099",true).toString().toUtf8() + "\%", normal_qcml_data_.value("QC:2000099",true).toString().toUtf8() + "\%", "ICD10:", icd10_diagnosis_code_.toUtf8()} ,{2000,1480,1480,2000,2961}) );
+	if(settings_.report_config.targetRegionName() == "somatic_custom_panel")
+	{
+		try
+		{
+			metadata.addRow(RtfTableRow({"Coverage Genpanel 60x:", tumor_qcml_data_.value("QC:2000098",true).toString().toUtf8() + "x", normal_qcml_data_.value("QC:2000098",true).toString().toUtf8() + "x", "MSI-Status:", (!BasicStatistics::isValidFloat(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3))}, {2000,1480,1480,2000,2961}) );
+		}
+		catch(Exception) //nothing to do here
+		{
+		}
+	}
+	else
+	{
+		metadata.addRow(RtfTableRow({"Coverage Genpanel 60x:", "n/a", "n/a", "MSI-Status:", (!BasicStatistics::isValidFloat(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3))}, {2000,1480,1480,2000,2961}) );
+	}
+
+	metadata.addRow(RtfTableRow("In Regionen mit einer Abdeckung >60 können somatische Varianten mit einer Frequenz >5% im Tumorgewebe mit einer Sensitivität >95,0% und einem Positive Prediction Value PPW >99% bestimmt werden. Für mindestens 95% aller untersuchten Gene kann die Kopienzahl korrekt unter diesen Bedingungen bestimmt werden.", doc_.maxWidth()) );
 
 	metadata.setUniqueFontSize(14);
 

@@ -3675,17 +3675,6 @@ void MainWindow::generateReportSomaticRTF()
 		somatic_report_settings_.report_config.setHrdScore(0);
 	}
 
-
-	try
-	{
-		somatic_report_settings_.check();
-	}
-	catch(Exception e)
-	{
-		QMessageBox::warning(this, "Error before creating report", e.message());
-		return;
-	}
-
 	SomaticReportDialog dlg(somatic_report_settings_, cnvs_, somatic_control_tissue_variants_, this); //widget for settings
 
 	if(SomaticRnaReport::checkRequiredSNVAnnotations(variants_))

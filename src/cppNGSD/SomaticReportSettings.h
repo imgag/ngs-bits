@@ -36,9 +36,6 @@ struct CPPNGSDSHARED_EXPORT SomaticReportSettings
 	static CnvList filterCnvs(const CnvList& cnvs, const SomaticReportSettings& sett);
 	///returns list containing germline variants.
 	static VariantList filterGermlineVariants(const VariantList& germl_snvs, const SomaticReportSettings& sett);
-
-	///checks settings and throws error in case an inconsitency has been found
-	void check();
 };
 
 #endif // SOMATICREPORTSETTINGS_H
