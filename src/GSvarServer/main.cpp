@@ -330,8 +330,6 @@ int main(int argc, char **argv)
 						&EndpointHandler::saveQbicFiles
 					});
 
-
-
 	EndpointManager::appendEndpoint(Endpoint{
 							"login",
 						QMap<QString, ParamProps>{

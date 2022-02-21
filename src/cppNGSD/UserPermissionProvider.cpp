@@ -6,7 +6,6 @@ UserPermissionProvider::UserPermissionProvider(int user_id)
 	NGSD db;
 	SqlQuery query = db.getQuery();
 	query.exec("SELECT * FROM user_permissions WHERE user_id=" + QString::number(user_id_));
-	if (query.size() == 0 ) THROW(DatabaseException, "User with id '" + QString::number(user_id) + "'not found in table 'user_permissions'!" );
 	while(query.next())
 	{
 		UserPermission current_permission;
