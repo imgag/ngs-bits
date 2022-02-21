@@ -14,7 +14,7 @@ void FastqEntry::validate() const
     }
 	if (bases.length()!=qualities.length())
     {
-		THROW(FileParseException, message + "Differing length of bases and qualities string in sequence '" + header + "'.");
+		THROW(FileParseException, message + "Differing length of bases ("+QString::number(bases.length())+") and qualities string ("+QString::number(bases.length())+") in sequence '" + header + "'.");
     }
 	foreach(char c, bases)
     {
