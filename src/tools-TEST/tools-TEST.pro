@@ -131,7 +131,9 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     CfDnaQC_Test.h \
     VcfAnnotateFromBigWig_Test.h \
     BedLiftOver_Test.h \
-    BedpeSort_Test.h
+    BedpeSort_Test.h \
+    NGSDExportSV_Test.h \
+    BedpeAnnotateCounts_Test.h
 
 SOURCES += \
     main.cpp

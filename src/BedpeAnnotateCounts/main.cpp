@@ -122,7 +122,7 @@ public:
 					case StructuralVariantType::DEL:
 					case StructuralVariantType::DUP:
 					case StructuralVariantType::INV:
-						sv_region = BedLine(sv.chr1(), sv.start1(), sv.end2()+1);
+						sv_region = BedLine(sv.chr1(), sv.start1() - 1, sv.end2() + 1);
 						break;
 					case StructuralVariantType::INS:
 						sv_region = BedLine(sv.chr1(), std::min(sv.start1(), sv.start2()), std::max(sv.end1(), sv.end2()) + 1);
@@ -173,8 +173,8 @@ public:
 						if (bnd_ids.contains(bnd_id)) continue;
 
 						//pos1 and pos2 of both SVs have to overlap
-						if (BedLine(sv.chr1(), sv.start1(), sv.end1()).overlapsWith(Chromosome(columns[0]), Helper::toInt(columns[1]), Helper::toInt(columns[2]))
-							&& BedLine(sv.chr2(), sv.start2(), sv.end2()).overlapsWith(Chromosome(columns[3]), Helper::toInt(columns[4]), Helper::toInt(columns[5])))
+						if (BedLine(sv.chr1(), sv.start1(), sv.end1() + 1).overlapsWith(Chromosome(columns[0]), Helper::toInt(columns[1]), Helper::toInt(columns[2]) + 1)
+							&& BedLine(sv.chr2(), sv.start2(), sv.end2() + 1).overlapsWith(Chromosome(columns[3]), Helper::toInt(columns[4]), Helper::toInt(columns[5]) + 1))
 						{
 							//exact match
 							if (columns[idx_format_ + 1].split(':').at(0).trimmed() == "1/1")
@@ -191,8 +191,11 @@ public:
 					else
 					{
 						//pos1 and pos2 of both SVs have to overlap
-						if (BedLine(sv.chr1(), sv.start1(), sv.end1()).overlapsWith(Chromosome(columns[0]), Helper::toInt(columns[1]), Helper::toInt(columns[2]))
-							&& BedLine(sv.chr2(), sv.start2(), sv.end2()).overlapsWith(Chromosome(columns[3]), Helper::toInt(columns[4]), Helper::toInt(columns[5])))
+						BedLine pos1 = BedLine(sv.chr1(), sv.start1(), sv.end1());
+						BedLine pos2 = BedLine(sv.chr2(), sv.start2(), sv.end2());
+
+						if (pos1.overlapsWith(Chromosome(columns[0]), Helper::toInt(columns[1]), Helper::toInt(columns[2]))
+							&& pos2.overlapsWith(Chromosome(columns[3]), Helper::toInt(columns[4]), Helper::toInt(columns[5])))
 						{
 							//exact match
 							if (columns[idx_format_ + 1].split(':').at(0).trimmed() == "1/1")
