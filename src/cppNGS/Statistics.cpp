@@ -457,9 +457,9 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	}
 
 	QVector<int> depths;
-	depths << 10 << 20 << 30 << 50 << 100 << 200 << 500;
+	depths << 10 << 20 << 30 << 50 << 60 << 100 << 200 << 500;
 	QVector<QByteArray> accessions;
-	accessions << "QC:2000026" << "QC:2000027" << "QC:2000028" << "QC:2000029" << "QC:2000030" << "QC:2000031" << "QC:2000032";
+	accessions << "QC:2000026" << "QC:2000027" << "QC:2000028" << "QC:2000029" << "QC:2000099" << "QC:2000030" << "QC:2000031" << "QC:2000032";
 
 	if (is_cfdna)
 	{
@@ -1027,9 +1027,9 @@ QCCollection Statistics::somaticCustomDepth(const BedFile& bed_file, QString bam
 
 
 	QVector<int> depths;
-	depths << 10 << 20 << 30 << 50 << 100 << 200 << 500;
+	depths << 10 << 20 << 30 << 50 << 60 << 100 << 200 << 500;
 	QVector<QByteArray> accessions;
-	accessions << "QC:2000090" << "QC:2000091" << "QC:2000092" << "QC:2000093" << "QC:2000094" << "QC:2000095" << "QC:2000096";
+	accessions << "QC:2000090" << "QC:2000091" << "QC:2000092" << "QC:2000093" << "QC:2000098" << "QC:2000094" << "QC:2000095" << "QC:2000096";
 
 
 	for (int i=0; i<depths.count(); ++i)

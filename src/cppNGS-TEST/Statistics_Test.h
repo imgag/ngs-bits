@@ -182,7 +182,7 @@ TEST_CLASS(Statistics_Test)
 		bed_file.merge();
 		QCCollection res = Statistics::somaticCustomDepth(bed_file, TESTDATA("data_in/panel.bam"), ref_file, 20);
 
-		I_EQUAL(res.count(), 8);
+		I_EQUAL(res.count(), 9);
 
 		S_EQUAL(res[0].name(), QString("somatic custom target region read depth"));
 		S_EQUAL(res[0].toString(), QString("125.45"));
@@ -194,12 +194,14 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(res[3].toString(), QString("90.23"));
 		S_EQUAL(res[4].name(), QString("somatic custom target 50x percentage"));
 		S_EQUAL(res[4].toString(), QString("80.75"));
-		S_EQUAL(res[5].name(), QString("somatic custom target 100x percentage"));
-		S_EQUAL(res[5].toString(), QString("55.39"));
-		S_EQUAL(res[6].name(), QString("somatic custom target 200x percentage"));
-		S_EQUAL(res[6].toString(), QString("18.14"));
-		S_EQUAL(res[7].name(), QString("somatic custom target 500x percentage"));
-		S_EQUAL(res[7].toString(), QString("0.06"));
+		S_EQUAL(res[5].name(), QString("somatic custom target 60x percentage"));
+		S_EQUAL(res[5].toString(), QString("75.73"));
+		S_EQUAL(res[6].name(), QString("somatic custom target 100x percentage"));
+		S_EQUAL(res[6].toString(), QString("55.39"));
+		S_EQUAL(res[7].name(), QString("somatic custom target 200x percentage"));
+		S_EQUAL(res[7].toString(), QString("18.14"));
+		S_EQUAL(res[8].name(), QString("somatic custom target 500x percentage"));
+		S_EQUAL(res[8].toString(), QString("0.06"));
 
 	}
 
@@ -213,7 +215,7 @@ TEST_CLASS(Statistics_Test)
 		bed_file.merge();
 
 		QCCollection stats = Statistics::mapping(bed_file, TESTDATA("data_in/panel.bam"), ref_file, 20);
-		I_EQUAL(stats.count(), 23);
+		I_EQUAL(stats.count(), 24);
 		S_EQUAL(stats[0].name(), QString("trimmed base percentage"));
 		S_EQUAL(stats[0].toString(), QString("10.82"));
 		S_EQUAL(stats[1].name(), QString("clipped base percentage"));
@@ -242,24 +244,26 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[12].toString(), QString("90.23"));
 		S_EQUAL(stats[13].name(), QString("target region 50x percentage"));
 		S_EQUAL(stats[13].toString(), QString("80.75"));
-		S_EQUAL(stats[14].name(), QString("target region 100x percentage"));
-		S_EQUAL(stats[14].toString(), QString("55.39"));
-		S_EQUAL(stats[15].name(), QString("target region 200x percentage"));
-		S_EQUAL(stats[15].toString(), QString("18.14"));
-		S_EQUAL(stats[16].name(), QString("target region 500x percentage"));
-		S_EQUAL(stats[16].toString(), QString("0.06"));
-		S_EQUAL(stats[17].name(), QString("target region half depth percentage"));
-		S_EQUAL(stats[17].toString(), QString("74.35"));
-		S_EQUAL(stats[18].name(), QString("AT dropout"));
-		S_EQUAL(stats[18].toString(), QString("8.42"));
-		S_EQUAL(stats[19].name(), QString("GC dropout"));
-		S_EQUAL(stats[19].toString(), QString("1.18"));
-		S_EQUAL(stats[20].name(), QString("depth distribution plot"));
-		IS_TRUE(stats[20].type()==QVariant::ByteArray);
-		S_EQUAL(stats[21].name(), QString("insert size distribution plot"));
+		S_EQUAL(stats[14].name(), QString("target region 60x percentage"));
+		S_EQUAL(stats[14].toString(), QString("75.73"));
+		S_EQUAL(stats[15].name(), QString("target region 100x percentage"));
+		S_EQUAL(stats[15].toString(), QString("55.39"));
+		S_EQUAL(stats[16].name(), QString("target region 200x percentage"));
+		S_EQUAL(stats[16].toString(), QString("18.14"));
+		S_EQUAL(stats[17].name(), QString("target region 500x percentage"));
+		S_EQUAL(stats[17].toString(), QString("0.06"));
+		S_EQUAL(stats[18].name(), QString("target region half depth percentage"));
+		S_EQUAL(stats[18].toString(), QString("74.35"));
+		S_EQUAL(stats[19].name(), QString("AT dropout"));
+		S_EQUAL(stats[19].toString(), QString("8.42"));
+		S_EQUAL(stats[20].name(), QString("GC dropout"));
+		S_EQUAL(stats[20].toString(), QString("1.18"));
+		S_EQUAL(stats[21].name(), QString("depth distribution plot"));
 		IS_TRUE(stats[21].type()==QVariant::ByteArray);
-		S_EQUAL(stats[22].name(), QString("GC bias plot"));
+		S_EQUAL(stats[22].name(), QString("insert size distribution plot"));
 		IS_TRUE(stats[22].type()==QVariant::ByteArray);
+		S_EQUAL(stats[23].name(), QString("GC bias plot"));
+		IS_TRUE(stats[23].type()==QVariant::ByteArray);
 
 		//check that there is a description for each term
 		for (int i=0; i<stats.count(); ++i)
