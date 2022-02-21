@@ -4057,6 +4057,13 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 		fields.append("user_id");
 	}
 
+	//special handling of sample_disease_info: add type and user
+	if (table=="sample_disease_info")
+	{
+		fields.append("type");
+		fields.append("user_id");
+	}
+
 	//prepare query
 	QString query_str = "INSERT INTO " + table + " (" + fields.join(", ") + ") VALUES (";
 	for(int i=0; i<fields.count(); ++i)
@@ -4076,20 +4083,19 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 		db.transaction();
 
 		int imported = 0;
-		QStringList duplicate_samples;
+		QStringList duplicates;
 		QStringList missing_cfDNA_relation;
 		for (int i = 0; i < table_content.size(); ++i)
 		{
 			QStringList& row = table_content[i];
 			last_processed_line = row.join("\t");
 
-			//special handling of processed sample: add 'process_id' and check tumor relation for cfDNA samples
+			//special handling of processed sample: add 'process_id'
 			if (table=="processed_sample")
 			{
-				// process id
 				QString sample_name = row[0].trimmed();
-				QVariant next_ps_number = db.getValue("SELECT MAX(ps.process_id)+1 FROM sample as s, processed_sample as ps WHERE s.id=ps.sample_id AND s.name=:0", true, sample_name);
-				row.append(next_ps_number.isNull() ? "1" : next_ps_number.toString());
+				QString sample_id = db.sampleId(sample_name);
+				row.append(db.nextProcessingId(sample_id));
 			}
 
 			//special handling of sample duplicates
@@ -4099,7 +4105,7 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 				QString sample_id = db.sampleId(sample_name, false);
 				if (sample_id!="")
 				{
-					duplicate_samples << sample_name;
+					duplicates << sample_name;
 					continue;
 				}
 			}
@@ -4110,15 +4116,38 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 				row.append(LoginManager::userName());
 			}
 
+			//special handling of sample_disease_info:
+			if (table=="sample_disease_info")
+			{
+				//add type and user
+				row.append("HPO term id");
+				row.append(LoginManager::userName());
+
+				//skip duplicates
+				QString sample_name = row[0].trimmed();
+				QString hpo_id = row[1].trimmed();
+				QString sample_id = db.sampleId(sample_name, false);
+				QList<int> duplicate_ids = db.getValuesInt("SELECT id FROM sample_disease_info WHERE sample_id='"+sample_id+"' AND disease_info='"+hpo_id+"' AND type='HPO term id'");
+				if (!duplicate_ids.isEmpty())
+				{
+					duplicates << sample_name+"/"+hpo_id;
+					continue;
+				}
+			}
+
 			//check tab-separated parts count
 			if (row.count()!=fields.count()) THROW(ArgumentException, "Error: line with more/less than " + QString::number(fields.count()) + " tab-separated parts.");
 			//check and bind
 			for(int i=0; i<fields.count(); ++i)
 			{
+				QString field = fields[i];
+				const TableFieldInfo& field_info = db.tableInfo(table).fieldInfo(field);
+
 				QString value = row[i].trimmed();
+				qDebug() << i << field << value;
 
 				//check for cfDNA samples if a corresponding tumor sample exists
-				if ((table=="processed_sample") && (fields[i] == "processing_system_id") && (cfdna_processing_systems.contains(value)))
+				if (table=="processed_sample" && field=="processing_system_id" && cfdna_processing_systems.contains(value))
 				{
 					// get tumor relation
 					int sample_id = db.sampleId(row[0].trimmed()).toInt();
@@ -4129,8 +4158,12 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 					}
 				}
 
-				const TableFieldInfo& field_info = db.tableInfo(table).fieldInfo(fields[i]);
-
+				//special handling of sample_disease_info
+				if (table=="sample_disease_info" && field=="disease_info")
+				{
+					//check HPO term id is valid
+					db.getValue("SELECT id FROM hpo_term WHERE hpo_id=:0", false, value);
+				}
 
 				//FK: name to id
 				if (field_info.type==TableFieldInfo::FK && !value.isEmpty())
@@ -4161,25 +4194,24 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 				}
 
 				//check errors
-				QStringList errors = db.checkValue(table, fields[i], value, true);
+				QStringList errors = db.checkValue(table, field, value, true);
 				if (errors.count()>0)
 				{
-					THROW(ArgumentException, "Error: Invalid value '" + value + "' for field '" + fields[i] + "':\n" + errors.join("\n"));
+					THROW(ArgumentException, "Error: Invalid value '" + value + "' for field '" + field + "':\n" + errors.join("\n"));
 				}
 
 				q_insert.bindValue(i, value.isEmpty() && field_info.is_nullable ? QVariant() : value);
 			}
 
-			// abort if cfDNA
 			//insert
 			q_insert.exec();
 			++imported;
 		}
 
-		//handle duplicate samples
-		if (duplicate_samples.count()>0)
+		//ask user if duplicates should be skipped
+		if (duplicates.count()>0)
 		{
-			int button = QMessageBox::question(this, title, QString::number(duplicate_samples.count()) +" samples are already present in the NGSD:\n" + duplicate_samples.join(" ") + "\n\n Do you want to skip these samples and continue?", QMessageBox::Ok, QMessageBox::Abort);
+			int button = QMessageBox::question(this, title, QString::number(duplicates.count()) +" entries are already present in the NGSD:\n" + duplicates.join(" ") + "\n\n Do you want to skip these duplicates and continue?", QMessageBox::Ok, QMessageBox::Abort);
 			if (button==QMessageBox::Abort)
 			{
 				db.rollback();
@@ -4214,7 +4246,7 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 		db.commit();
 
 		QString message = "Imported " + QString::number(imported) + " table rows.";
-		if (duplicate_samples.count()>0) message += "\n\nSkipped " + QString::number(duplicate_samples.count()) + " table rows.";
+		if (duplicates.count()>0) message += "\n\nSkipped " + QString::number(duplicates.count()) + " table rows.";
 		if (imported_relations > 0) message += "\n\nImported " + QString::number(imported_relations) + " tumor-cfDNA relations.";
 		QMessageBox::information(this, title,  message);
 	}
@@ -4540,6 +4572,15 @@ void MainWindow::on_actionImportSampleRelations_triggered()
 				"Batch import of sample relations. Must contain the following tab-separated fields:<br><b>sample1</b>, <b>relation</b>, <b>sample2</b>",
 				"sample_relations",
 				QStringList() << "sample1_id" << "relation" << "sample2_id"
+				);
+}
+
+void MainWindow::on_actionImportSampleHpoTerms_triggered()
+{
+	importBatch("Import sample HPO terms",
+				"Batch import of sample HPO terms. Must contain the following tab-separated fields:<br><b>sample1</b>, <b>HPO term id, e.g. 'HP:0003002'</b>",
+				"sample_disease_info",
+				QStringList() << "sample_id" << "disease_info"
 				);
 }
 
