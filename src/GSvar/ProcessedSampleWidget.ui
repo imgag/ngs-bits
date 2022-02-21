@@ -953,6 +953,9 @@
               <height>0</height>
              </size>
             </property>
+            <property name="toolTip">
+             <string>Number of SNPs matching between KASP assay and NGS.</string>
+            </property>
             <property name="text">
              <string>SNPs matching:</string>
             </property>
@@ -967,6 +970,9 @@
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_19">
+            <property name="toolTip">
+             <string>Probability that the number of matching SNPs (or more) occurs when comparing random samples.</string>
+            </property>
             <property name="text">
              <string>swap probability:</string>
             </property>
