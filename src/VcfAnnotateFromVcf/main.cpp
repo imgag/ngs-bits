@@ -231,56 +231,39 @@ public:
 
 			while(!gzeof(file))
 			{
-				int to_be_processed = 0;
-				int to_be_written = 0;
-				int done = 0;
 				for (int j=0; j<job_pool.count(); ++j)
 				{
 					AnalysisJob& job = job_pool[j];
-					switch(job.status)
+					if (job.status==DONE)
 					{
-						case DONE:
-							++done;
+						// create new job with the next chunk of lines
+						job.clear();
+						job.chunk_id = current_chunk++;
+						job.status = TO_BE_PROCESSED;
 
-							// create new job with the next chunk of lines
-							job.clear();
-							job.chunk_id = current_chunk++;
-							job.status = TO_BE_PROCESSED;
-
-							//read lines
-							while(job.current_chunk.count() < block_size && !gzeof(file))
+						//read lines
+						while(job.current_chunk.count() < block_size && !gzeof(file))
+						{
+							// get next line
+							char* char_array = gzgets(file, buffer, buffer_size);
+							if (char_array==nullptr) //handle errors like truncated GZ file
 							{
-								// get next line
-								char* char_array = gzgets(file, buffer, buffer_size);
-								if (char_array==nullptr) //handle errors like truncated GZ file
+								int error_no = Z_OK;
+								QByteArray error_message = gzerror(file, &error_no);
+								if (error_no!=Z_OK && error_no!=Z_STREAM_END)
 								{
-									int error_no = Z_OK;
-									QByteArray error_message = gzerror(file, &error_no);
-									if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-									{
-										THROW(FileParseException, "Error while reading input: " + error_message);
-									}
+									THROW(FileParseException, "Error while reading input: " + error_message);
 								}
-								
-								job.current_chunk.append(QByteArray(char_array));
 							}
-							
-							analysis_pool.start(new ChunkProcessor(job, prefix_list, unique_output_ids, info_id_list, out_info_id_list, id_column_name_list, out_id_column_name_list, allow_missing_header_list, annotation_file_list));
-							break;
 
-						case TO_BE_WRITTEN:
-							++to_be_written;
-							break;
+							job.current_chunk.append(QByteArray(char_array));
+						}
 
-						case TO_BE_PROCESSED:
-							++to_be_processed;
-							break;
-
-						case ERROR:
-							THROW(Exception, "Error in worker thread: " + job.error_message);
-							break;
-						default:
-							break;
+						analysis_pool.start(new ChunkProcessor(job, prefix_list, unique_output_ids, info_id_list, out_info_id_list, id_column_name_list, out_id_column_name_list, allow_missing_header_list, annotation_file_list));
+					}
+					else if (job.status==ERROR)
+					{
+						THROW(Exception, "Error in worker thread: " + job.error_message);
 					}
 					
 					//break if file is read
@@ -297,29 +280,17 @@ public:
 			while (done < job_pool.count())
 			{
 				done = 0;
-
 				for (int j=0; j<job_pool.count(); ++j)
 				{
 					AnalysisJob& job = job_pool[j];
 
-					switch(job.status)
+					if (job.status==DONE)
 					{
-						case DONE:
-							++done;
-							break;
-
-						case TO_BE_WRITTEN:
-							break;
-
-						case TO_BE_PROCESSED:
-							break;
-
-						case ERROR:
-							THROW(Exception, "Error in worker thread: " + job.error_message);
-							break;
-
-						default:
-							break;
+						++done;
+					}
+					else if (job.status==ERROR)
+					{
+						THROW(Exception, "Error in worker thread: " + job.error_message);
 					}
 				}
 			}

@@ -433,7 +433,7 @@ void ChunkProcessor::run()
 			}
 		}
 
-		job.status=TO_BE_WRITTEN;
+		job.status = TO_BE_WRITTEN;
 	}
 	catch(Exception& e)
 	{

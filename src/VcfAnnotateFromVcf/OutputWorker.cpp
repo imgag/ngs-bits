@@ -1,6 +1,6 @@
 #include "OutputWorker.h"
-
-#include <Helper.h>
+#include "Helper.h"
+#include <QThread>
 
 OutputWorker::OutputWorker(QList<AnalysisJob>& job_pool, QString output_filename)
 	: QRunnable()
