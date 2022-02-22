@@ -1,20 +1,12 @@
 #include "ToolBase.h"
 #include "Exceptions.h"
 #include "Helper.h"
-#include "TabixIndexedFile.h"
-#include "VcfFile.h"
-#include "VariantList.h"
 #include <QFile>
 #include <QSharedPointer>
 #include <zlib.h>
-#include <QElapsedTimer>
-#include <QFileInfo>
 #include <QThreadPool>
 #include "ChunkProcessor.h"
 #include "OutputWorker.h"
-#include <iostream>
-#include <fstream>
-#include <QTime>
 
 
 class ConcreteTool
@@ -42,12 +34,12 @@ public:
         addFlag("allow_missing_header", "If set the execution is not aborted if a INFO header is missing in annotation file");
         addInfile("in", "Input VCF(.GZ) file. If unset, reads from STDIN.", true, true);
         addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
-        addInt("threads", "The number of threads used to read, process and write files.", true, 1);
+		addInt("threads", "The number of threads used to process VCF lines (two additional threads are used for reading/writing).", true, 1);
 		addInt("block_size", "Number of lines processed in one chunk.", true, 5000);
 		addInt("prefetch", "Maximum number of chunks that may be pre-fetched into memory.", true, 64);
 
 		changeLog(2021, 9, 20, "Prefetch only part of input file (to save memory).");
-        changeLog(2020, 4, 11, "Added multithread support by Julian Fratte.");
+		changeLog(2020, 4, 11, "Added multithread support.");
         changeLog(2019, 8, 19, "Added support for multiple annotations files through config file.");
         changeLog(2019, 8, 14, "Added VCF.GZ support.");
         changeLog(2019, 8, 13, "Initial implementation.");
@@ -83,7 +75,6 @@ public:
         QByteArrayList id_column_name_list;
         QByteArrayList out_id_column_name_list;
         QVector<bool> allow_missing_header_list;
-
 
         // check for config file
         if (config_file_path != "")
@@ -168,8 +159,6 @@ public:
             allow_missing_header_list.append(allow_missing_header);
         }
 
-
-
         // write arguments:
         out << "Input file: \t" << input_path << "\n";
         out << "Output file: \t" << output_path << "\n";
@@ -192,7 +181,6 @@ public:
                     << out_info_id_list[i][j] << "\n";
             }
         }
-
         out.flush();
 
         // check info ids for duplicates:
@@ -230,21 +218,17 @@ public:
 		OutputWorker* output_worker = new OutputWorker(job_pool, output_path);
 		analysis_pool.start(output_worker);
 
-		//open input file
-		FILE* instream = input_path.isEmpty() ? stdin : fopen(input_path.toLatin1().data(), "rb");
-		gzFile file = gzdopen(fileno(instream), "rb"); //always open in binary mode because windows and mac open in text mode
-		if (file==NULL)
-		{
-			THROW(FileAccessException, "Could not open file '" + input_path + "' for reading!");
-		}
-
-		const int buffer_size = 1048576; //1MB buffer
-		char* buffer = new char[buffer_size];
-		int current_chunk = 0;
-		int vcf_line_idx = 0;
-
 		try
 		{
+			//open input file
+			FILE* instream = input_path.isEmpty() ? stdin : fopen(input_path.toLatin1().data(), "rb");
+			gzFile file = gzdopen(fileno(instream), "rb"); //always open in binary mode because windows and mac open in text mode
+			if (file==NULL) THROW(FileAccessException, "Could not open file '" + input_path + "' for reading!");
+
+			const int buffer_size = 1048576; //1MB buffer
+			char* buffer = new char[buffer_size];
+			int current_chunk = 0;
+
 			while(!gzeof(file))
 			{
 				int to_be_processed = 0;
@@ -260,68 +244,40 @@ public:
 
 							// create new job with the next chunk of lines
 							job.clear();
-							job.chunk_id = current_chunk;
+							job.chunk_id = current_chunk++;
 							job.status = TO_BE_PROCESSED;
 
-							while(vcf_line_idx < block_size && !gzeof(file))
+							//read lines
+							while(job.current_chunk.count() < block_size && !gzeof(file))
 							{
 								// get next line
 								char* char_array = gzgets(file, buffer, buffer_size);
-
-								//handle errors like truncated GZ file
-								if (char_array==nullptr)
+								if (char_array==nullptr) //handle errors like truncated GZ file
 								{
 									int error_no = Z_OK;
 									QByteArray error_message = gzerror(file, &error_no);
 									if (error_no!=Z_OK && error_no!=Z_STREAM_END)
 									{
-										THROW(FileParseException, "Error while reading file '" + input_path + "': " + error_message);
+										THROW(FileParseException, "Error while reading input: " + error_message);
 									}
 								}
 								
 								job.current_chunk.append(QByteArray(char_array));
-
-								vcf_line_idx++;
 							}
 							
-							vcf_line_idx = 0;
-							analysis_pool.start(new ChunkProcessor(job,
-																   prefix_list,
-																   unique_output_ids,
-																   info_id_list,
-																   out_info_id_list,
-																   id_column_name_list,
-																   out_id_column_name_list,
-																   allow_missing_header_list,
-																   annotation_file_list));
-							++current_chunk;
+							analysis_pool.start(new ChunkProcessor(job, prefix_list, unique_output_ids, info_id_list, out_info_id_list, id_column_name_list, out_id_column_name_list, allow_missing_header_list, annotation_file_list));
 							break;
 
 						case TO_BE_WRITTEN:
 							++to_be_written;
-							//sleep
-							QThread::msleep(100);
 							break;
 
 						case TO_BE_PROCESSED:
 							++to_be_processed;
-							//sleep
-							QThread::msleep(100);
 							break;
 
 						case ERROR:
-							if (job.error_message.startsWith("FileParseException\t"))
-							{
-								THROW(FileParseException, job.error_message.split("\t").at(1));
-							}
-							else if (job.error_message.startsWith("FileAccessException\t"))
-							{
-								THROW(FileAccessException, job.error_message.split("\t").at(1));
-							}
-							else
-							{
-								THROW(Exception, job.error_message);
-							}
+							THROW(Exception, "Error in worker thread: " + job.error_message);
 							break;
 						default:
 							break;
@@ -353,28 +309,13 @@ public:
 							break;
 
 						case TO_BE_WRITTEN:
-							//sleep
-							QThread::msleep(100);
 							break;
 
 						case TO_BE_PROCESSED:
-							//sleep
-							QThread::msleep(100);
 							break;
 
 						case ERROR:
-							if (job.error_message.startsWith("FileParseException\t"))
-							{
-								THROW(FileParseException, job.error_message.split("\t").at(1));
-							}
-							else if (job.error_message.startsWith("FileAccessException\t"))
-							{
-								THROW(FileAccessException, job.error_message.split("\t").at(1));
-							}
-							else
-							{
-								THROW(Exception, job.error_message);
-							}
+							THROW(Exception, "Error in worker thread: " + job.error_message);
 							break;
 
 						default:

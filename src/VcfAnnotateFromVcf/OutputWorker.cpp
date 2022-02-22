@@ -1,7 +1,6 @@
 #include "OutputWorker.h"
 
 #include <Helper.h>
-#include <QThread>
 
 OutputWorker::OutputWorker(QList<AnalysisJob>& job_pool, QString output_filename)
 	: QRunnable()
@@ -10,7 +9,6 @@ OutputWorker::OutputWorker(QList<AnalysisJob>& job_pool, QString output_filename
 	, out_p_(Helper::openFileForWriting(output_filename, true))
 	, write_chunk_(0)
 {
-
 }
 
 void OutputWorker::run()
@@ -21,31 +19,22 @@ void OutputWorker::run()
 		{
 			AnalysisJob& job = job_pool_[j];
 			if (job.status!=TO_BE_WRITTEN) continue;
+			if (job.chunk_id!=write_chunk_) continue;
 
 			try
 			{
-				if (job.chunk_id == write_chunk_)
+				foreach(const QByteArray& line, job.current_chunk_processed)
 				{
-					foreach(const QByteArray& line, job.current_chunk_processed)
-					{
-						out_p_->write(line);
-					}
-
-					++write_chunk_;
-					out_p_->flush();
-					job.clear();
-					job.status = DONE;
+					int bytes_written = out_p_->write(line);
+					if (bytes_written==-1) THROW(FileAccessException, "Could not write output: " +  out_p_->errorString());
 				}
-				else
-				{
-					//sleep
-					QThread::msleep(200);
-				}
+				++write_chunk_;
+				job.status = DONE;
 			}
 			catch(Exception& e)
 			{
-				job.status = ERROR;
 				job.error_message = e.message();
+				job.status = ERROR;
 				terminate();
 			}
 		}

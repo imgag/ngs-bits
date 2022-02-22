@@ -1,7 +1,6 @@
 #ifndef AUXILARY_H
 #define AUXILARY_H
 
-#include <QByteArray>
 #include <QByteArrayList>
 #include <QString>
 

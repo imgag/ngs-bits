@@ -2,17 +2,9 @@
 #define CHUNKPROCESSOR_H
 
 #include <QRunnable>
-#include <QByteArray>
 #include <QByteArrayList>
-#include <QTextStream>
-#include <iostream>
-#include <QBuffer>
 #include <QVector>
 #include <Auxilary.h>
-#include <Exceptions.h>
-#include <TabixIndexedFile.h>
-#include <QMutex>
-#include <Helper.h>
 
 class ChunkProcessor
         :public QRunnable
