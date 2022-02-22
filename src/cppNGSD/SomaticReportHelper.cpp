@@ -860,7 +860,16 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 		metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe Genpanel:", "n/a", "n/a", "Auswertungssoftware:", QCoreApplication::applicationName().toUtf8() + " " + QCoreApplication::applicationVersion().toUtf8()}, {2000,1480,1480,2000,2961}) );
 	}
 
-	metadata.addRow( RtfTableRow( {"Coverage 60x:", tumor_qcml_data_.value("QC:2000099",true).toString().toUtf8() + "\%", normal_qcml_data_.value("QC:2000099",true).toString().toUtf8() + "\%", "ICD10:", icd10_diagnosis_code_.toUtf8()} ,{2000,1480,1480,2000,2961}) );
+	QByteArray tum_cov_60x = "n/a";
+	QByteArray nor_cov_60x = "n/a";
+	try
+	{
+		tum_cov_60x = tumor_qcml_data_.value("QC:2000099",true).toString().toUtf8();
+		nor_cov_60x = normal_qcml_data_.value("QC:2000099",true).toString().toUtf8();
+	}
+	catch(Exception)
+	{} //nothing to do here
+	metadata.addRow( RtfTableRow( {"Coverage 60x:", tum_cov_60x + "\%", nor_cov_60x + "\%", "ICD10:", icd10_diagnosis_code_.toUtf8()} ,{2000,1480,1480,2000,2961}) );
 
 
 	if(settings_.report_config.targetRegionName() == "somatic_custom_panel")
