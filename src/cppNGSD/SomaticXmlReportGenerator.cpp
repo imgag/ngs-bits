@@ -93,7 +93,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 	//Element SomaticNgsReport
 	w.writeStartElement("SomaticNgsReport");
-	w.writeAttribute("version", "1");
+	w.writeAttribute("version", "4");
 	w.writeAttribute("genome_build", buildToString(data.build, true));
 
 	//Element ReportGeneration
@@ -490,6 +490,17 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	w.writeAttribute("format", "RTF");
 	w.writeEndElement();
 
+	writeReportPartsElement(w, "summary", data.rtf_part_summary);
+	writeReportPartsElement(w, "relevant_variants", data.rtf_part_relevant_variants);
+	writeReportPartsElement(w, "unclear_variants", data.rtf_part_unclear_variants);
+	writeReportPartsElement(w, "cnvs", data.rtf_part_cnvs);
+	writeReportPartsElement(w, "svs", data.rtf_part_svs);
+	writeReportPartsElement(w, "pharmaco_genetics", data.rtf_part_pharmacogenetics);
+	writeReportPartsElement(w, "general_info", data.rtf_part_general_info);
+	writeReportPartsElement(w, "igv_screenshot", "");
+	writeReportPartsElement(w, "mtb_summary", data.rtf_part_mtb_summary);
+
+
 
 	//End Element SomaticNgsReport
 	w.writeEndElement();
@@ -507,4 +518,13 @@ void SomaticXmlReportGenerator::validateXml(QString file_name)
 		THROW(ProgrammingException, "SomaticXmlReportGenerator::generateXML produced an invalid XML file: " + xml_error);
 	}
 
+}
+
+void SomaticXmlReportGenerator::writeReportPartsElement(QXmlStreamWriter &w, QString name, RtfSourceCode rtf_part)
+{
+	w.writeStartElement("ReportDocumentParts");
+		w.writeAttribute("name", name);
+		w.writeAttribute("format", "RTF");
+		w.writeCharacters(rtf_part.toBase64());
+	w.writeEndElement();
 }

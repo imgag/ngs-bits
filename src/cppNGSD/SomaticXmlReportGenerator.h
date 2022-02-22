@@ -7,6 +7,7 @@
 #include "GenLabDB.h"
 #include "SomaticReportConfiguration.h"
 #include "SomaticReportSettings.h"
+#include "RtfDocument.h"
 #include <QDate>
 #include <QXmlStreamWriter>
 
@@ -33,6 +34,18 @@ struct CPPNGSDSHARED_EXPORT SomaticXmlReportGeneratorData
 	BedFile processing_system_roi;
 	GeneSet processing_system_genes;
 
+
+	RtfSourceCode rtf_part_summary;
+	RtfSourceCode rtf_part_relevant_variants;
+	RtfSourceCode rtf_part_unclear_variants;
+	RtfSourceCode rtf_part_cnvs;
+	RtfSourceCode rtf_part_svs;
+	RtfSourceCode rtf_part_pharmacogenetics;
+	RtfSourceCode rtf_part_general_info;
+	QByteArray rtf_part_igv_screenshot;
+	RtfSourceCode rtf_part_mtb_summary;
+
+
 	//Check whether all neccessary data is set up consistently
 	void check() const;
 };
@@ -49,6 +62,9 @@ public:
 
 	///validates somatic xml report against .xsd file in resources dir
 	static void validateXml(QString file_name);
+
+	///writes a ReportDocumentParts element
+	static void writeReportPartsElement(QXmlStreamWriter& w, QString name, RtfSourceCode rtf_part);
 
 
 };
