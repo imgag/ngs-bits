@@ -1745,10 +1745,10 @@ private slots:
 		// default
 		FilterSvCountNGSD filter1;
 		filter1.apply(svs, result);
-		I_EQUAL(result.countPassing(), 24);
+		I_EQUAL(result.countPassing(), 84);
 	}
 
-	void FilterrSvCountNGSD_apply_overlap()
+	void FilterSvCountNGSD_apply_ignore_genotype()
 	{
 		BedpeFile svs;
 		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
@@ -1757,14 +1757,13 @@ private slots:
 
 		// overlap
 		FilterSvCountNGSD filter;
-		filter.setBool("overlap_matches", true);
+		filter.setBool("ignore_genotype", true);
 		filter.apply(svs, result);
-		I_EQUAL(result.countPassing(), 22);
-
+		I_EQUAL(result.countPassing(), 76);
 
 	}
 
-	void FilterrSvCountNGSD_apply_custom()
+	void FilterSvCountNGSD_apply_custom()
 	{
 
 		BedpeFile svs;
@@ -1775,11 +1774,12 @@ private slots:
 		// custom maximum
 		FilterSvCountNGSD filter;
 		filter.setInteger("max_count", 10);
+		filter.setBool("ignore_genotype", true);
 		filter.apply(svs, result);
-		I_EQUAL(result.countPassing(), 22);
+		I_EQUAL(result.countPassing(), 71);
 	}
 
-	void FilterrSvAfNGSD_apply_default()
+	void FilterSvAfNGSD_apply_default()
 	{
 
 		BedpeFile svs;
@@ -1787,13 +1787,13 @@ private slots:
 
 		FilterResult result(svs.count());
 
-		// custom maximum
+		// default maximum
 		FilterSvAfNGSD filter;
 		filter.apply(svs, result);
-		I_EQUAL(result.countPassing(), 18);
+		I_EQUAL(result.countPassing(), 78);
 	}
 
-	void FilterrSvAfNGSD_apply_custom()
+	void FilterSvAfNGSD_apply_custom()
 	{
 
 		BedpeFile svs;
@@ -1805,7 +1805,36 @@ private slots:
 		FilterSvAfNGSD filter;
 		filter.setDouble("max_af", 50.0);
 		filter.apply(svs, result);
-		I_EQUAL(result.countPassing(), 55);
+		I_EQUAL(result.countPassing(), 83);
+	}
+
+	void FilterSvBreakpointDensityNGSD_default()
+	{
+
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		// default maximum
+		FilterSvBreakpointDensityNGSD filter;
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 77);
+	}
+
+	void FilterSvBreakpointDensityNGSD_custom()
+	{
+
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		// custom maximum
+		FilterSvBreakpointDensityNGSD filter;
+		filter.setInteger("max_density", 100);
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 80);
 	}
 
 	void FilterSvTrio_apply()
