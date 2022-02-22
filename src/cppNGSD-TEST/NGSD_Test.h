@@ -1894,6 +1894,18 @@ private slots:
 		xml_data.tumor_content_clonality = 0.8;
 		xml_data.tumor_content_snvs = 0.73;
 
+		xml_data.rtf_part_summary = "I am the summary part of the RTF report";
+		xml_data.rtf_part_relevant_variants = "relevant SNVs and INDELs";
+		xml_data.rtf_part_unclear_variants = "unclear SNVs";
+		xml_data.rtf_part_cnvs = "chromosomal aberrations";
+		xml_data.rtf_part_svs = "Fusions";
+		xml_data.rtf_part_pharmacogenetics = "RTF pharmacogenomics table";
+		xml_data.rtf_part_general_info = "general meta data";
+		xml_data.rtf_part_igv_screenshot = "";
+		xml_data.rtf_part_mtb_summary = "MTB summary";
+
+
+
 		QSharedPointer<QFile> out_file = Helper::openFileForWriting("out/somatic_report.xml");
 		SomaticXmlReportGenerator::generateXML(xml_data, out_file, db, true);
 		out_file->close();

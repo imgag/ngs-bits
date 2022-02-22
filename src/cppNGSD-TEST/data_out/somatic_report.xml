@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<SomaticNgsReport version="1" genome_build="GRCh37">
+<SomaticNgsReport version="4" genome_build="GRCh37">
     <ReportGeneration date="2000-01-01" user_name="ahmustm1" software="cppNGSD-TEST 0.1-cppNGSD-TEST-Version"/>
     <PatientInfo sap_patient_identifier="SAP_TEST_IDENTIFIER">
         <DiseaseInfo type="ICD10" identifier="C17.2"/>
@@ -82,5 +82,13 @@
         </Cnv>
     </CnvList>
     <ReportDocument format="RTF"/>
+    <ReportDocumentParts name="summary" format="RTF">SSBhbSB0aGUgc3VtbWFyeSBwYXJ0IG9mIHRoZSBSVEYgcmVwb3J0</ReportDocumentParts>
+    <ReportDocumentParts name="relevant_variants" format="RTF">cmVsZXZhbnQgU05WcyBhbmQgSU5ERUxz</ReportDocumentParts>
+    <ReportDocumentParts name="unclear_variants" format="RTF">dW5jbGVhciBTTlZz</ReportDocumentParts>
+    <ReportDocumentParts name="cnvs" format="RTF">Y2hyb21vc29tYWwgYWJlcnJhdGlvbnM=</ReportDocumentParts>
+    <ReportDocumentParts name="svs" format="RTF">RnVzaW9ucw==</ReportDocumentParts>
+    <ReportDocumentParts name="pharmaco_genetics" format="RTF">UlRGIHBoYXJtYWNvZ2Vub21pY3MgdGFibGU=</ReportDocumentParts>
+    <ReportDocumentParts name="general_info" format="RTF">Z2VuZXJhbCBtZXRhIGRhdGE=</ReportDocumentParts>
+    <ReportDocumentParts name="igv_screenshot" format="RTF"></ReportDocumentParts>
+    <ReportDocumentParts name="mtb_summary" format="RTF">TVRCIHN1bW1hcnk=</ReportDocumentParts>
 </SomaticNgsReport>
-
