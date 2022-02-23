@@ -69,7 +69,7 @@ public:
         //init
 		QTextStream out(stdout);
 
-        // parse parameter
+		//parse parameters
         QString input_path = getInfile("in");
         QString output_path = getOutfile("out");
         QString config_file_path = getInfile("config_file");
@@ -82,27 +82,21 @@ public:
         int threads = getInt("threads");
 		int prefetch = getInt("prefetch");
 
-		// check parameter:
+		//check parameters
 		if (block_size < 1) THROW(ArgumentException, "Parameter 'block_size' has to be greater than zero!");
 		if (threads < 1) THROW(ArgumentException, "Parameter 'threads' has to be greater than zero!");
 		if (prefetch < threads) THROW(ArgumentException, "Parameter 'prefetch' has to be at least number of used threads!");
 
-        QByteArrayList annotation_file_list;
-        QByteArrayList prefix_list;
-        QVector<QByteArrayList> info_id_list;
-        QVector<QByteArrayList> out_info_id_list;
-        QByteArrayList id_column_name_list;
-        QByteArrayList out_id_column_name_list;
-        QVector<bool> allow_missing_header_list;
 
 		//get config
+		MetaData meta;
 		if (config_file_path != "") //from file
         {
             // parse config file line by line
             QSharedPointer<QFile> config_file = Helper::openFileForReading(config_file_path, false);
-            while (!config_file -> atEnd())
+			while (!config_file->atEnd())
             {
-                QByteArray line = config_file -> readLine();
+				QByteArray line = config_file->readLine();
                 // skip empty or comment lines
                 if ((line.trimmed() == "") || (line.startsWith('#'))) continue;
                 QByteArrayList columns = line.split('\t');
@@ -111,42 +105,42 @@ public:
 					THROW(FileParseException, QByteArray() + "Invalid number of columns! "  + "File name, prefix, INFO ids and id column name are required:\n"  + line.replace("\t", " -> ").trimmed());
                 }
 
-                annotation_file_list.append(columns[0].trimmed());
+				meta.annotation_file_list.append(columns[0].trimmed());
 
                 QByteArray prefix = columns[1];
                 QByteArrayList info_ids;
                 QByteArrayList out_info_ids;
                 parseInfoIds(info_ids, out_info_ids, columns[2], prefix);
 
-                prefix_list.append(prefix);
-                info_id_list.append(info_ids);
-                out_info_id_list.append(out_info_ids);
+				meta.prefix_list.append(prefix);
+				meta.info_id_list.append(info_ids);
+				meta.out_info_id_list.append(out_info_ids);
 
                 QByteArray id_column_name;
                 QByteArray out_id_column_name;
                 parseIdColumn(id_column_name, out_id_column_name, columns[3], prefix);
 
-                id_column_name_list.append(id_column_name);
-                out_id_column_name_list.append(out_id_column_name);
+				meta.id_column_name_list.append(id_column_name);
+				meta.out_id_column_name_list.append(out_id_column_name);
 
                 if (columns.size() > 4)
                 {
-					allow_missing_header_list.append((columns[4].trimmed().toLower() == "true") || (columns[4].trimmed() == "1"));
+					meta.allow_missing_header_list.append((columns[4].trimmed().toLower() == "true") || (columns[4].trimmed() == "1"));
                 }
                 else
                 {
-                    allow_missing_header_list.append(false);
+					meta.allow_missing_header_list.append(false);
                 }
             }
 
-            if (annotation_file_list.size() < 1)
+			if (meta.annotation_file_list.size() < 1)
             {
 				THROW(FileParseException, "The config file has to contain at least 1 valid annotation configuration!");
             }
         }
 		else //from CLI parameters
         {
-            annotation_file_list.append(annotation_file_path.toLatin1().trimmed());
+			meta.annotation_file_list.append(annotation_file_path.toLatin1().trimmed());
 
             if (info_id_string.trimmed() == "")
             {
@@ -157,18 +151,18 @@ public:
             QByteArrayList out_info_ids;
             parseInfoIds(info_ids, out_info_ids, info_id_string, id_prefix);
 
-            prefix_list.append(id_prefix);
-            info_id_list.append(info_ids);
-            out_info_id_list.append(out_info_ids);
+			meta.prefix_list.append(id_prefix);
+			meta.info_id_list.append(info_ids);
+			meta.out_info_id_list.append(out_info_ids);
 
             QByteArray id_column_name;
             QByteArray out_id_column_name;
             parseIdColumn(id_column_name, out_id_column_name, id_column, id_prefix);
 
-            id_column_name_list.append(id_column_name);
-            out_id_column_name_list.append(out_id_column_name);
+			meta.id_column_name_list.append(id_column_name);
+			meta.out_id_column_name_list.append(out_id_column_name);
 
-            allow_missing_header_list.append(allow_missing_header);
+			meta.allow_missing_header_list.append(allow_missing_header);
         }
 
 		//write contig
@@ -177,24 +171,24 @@ public:
         out << "Threads: \t" << threads << "\n";
         out << "Block (Chunk) size: \t" << block_size << "\n";
 
-        for(int i = 0; i < annotation_file_list.size(); i++)
+		for(int i = 0; i < meta.annotation_file_list.size(); i++)
         {
-            out << "Annotation file: " << annotation_file_list[i] << "\n";
+			out << "Annotation file: " << meta.annotation_file_list[i] << "\n";
 
-            if (id_column_name_list[i] != "")
+			if (meta.id_column_name_list[i] != "")
             {
-				out << "Id column:\n\t " << id_column_name_list[i].leftJustified(12) << "\t -> \t" << out_id_column_name_list[i] << "\n";
+				out << "Id column:\n\t " << meta.id_column_name_list[i].leftJustified(12) << "\t -> \t" << meta.out_id_column_name_list[i] << "\n";
             }
             out << "INFO ids:\n";
-            for (int j = 0; j < info_id_list[i].size(); j++)
+			for (int j = 0; j < meta.info_id_list[i].size(); j++)
             {
-				out << "\t " << info_id_list[i][j].leftJustified(12) << "->   " << out_info_id_list[i][j] << endl;
+				out << "\t " << meta.info_id_list[i][j].leftJustified(12) << "->   " << meta.out_info_id_list[i][j] << endl;
             }
 		}
 
         // check info ids for duplicates:
         QByteArrayList tmp;
-        foreach (QByteArrayList ids, out_info_id_list)
+		foreach (QByteArrayList ids, meta.out_info_id_list)
         {
             tmp.append(ids);
         }
@@ -273,7 +267,7 @@ public:
 							job.lines.append(QByteArray(char_array));
 						}
 
-						analysis_pool.start(new ChunkProcessor(job, info_id_list, out_info_id_list, out_id_column_name_list, annotation_file_list, id_column_name_list, allow_missing_header_list, unique_output_ids, prefix_list));
+						analysis_pool.start(new ChunkProcessor(job, meta));
 					}
 					else if (job.status==ERROR)
 					{
