@@ -6,30 +6,27 @@
 #include <QVector>
 #include <QSet>
 
-//Analysis status
-enum AnalysisStatus
+//Tool parameters
+struct Parameters
 {
-    TO_BE_PROCESSED,
-    TO_BE_WRITTEN,
-	ERROR,
-	DONE
+	QString in;
+	QString out;
+	int prefetch;
+	int threads;
+	int block_size;
 };
 
 //Analysis data for worker thread
 struct AnalysisJob
 {
+	int index; //job index [0-prefetch] used to identify jobs in slots
+	int chunk_nr = -1; //chunk number used to write chunks in input order
 	QList<QByteArray> lines;
-    QString error_message;
-
-    //id used to keep the vcf file in order
-    int chunk_id = 0;
-    AnalysisStatus status = DONE;
 
     void clear()
     {
+		chunk_nr = -1;
 		lines.clear();
-		error_message.clear();
-        status = DONE;
     }
 };
 

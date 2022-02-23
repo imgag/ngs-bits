@@ -3,10 +3,10 @@
 #include "Helper.h"
 #include <QFile>
 #include <QSharedPointer>
-#include <zlib.h>
 #include <QThreadPool>
 #include "ChunkProcessor.h"
 #include "OutputWorker.h"
+#include "ThreadCoordinator.h"
 
 
 class ConcreteTool
@@ -18,6 +18,7 @@ public:
     ConcreteTool(int& argc, char *argv[])
         : ToolBase(argc, argv)
     {
+		setExitEventLoopAfterMain(false);
     }
 
 
@@ -26,18 +27,19 @@ public:
         setDescription("Annotates the INFO column of a VCF with data from another VCF file (or multiple VCF files if config file is provided).");
 
         //optional
-        addInfile("config_file", "TSV file containing the annotation file path, the prefix, the INFO ids and the id column for multiple annotations.", true);
+		addInfile("in", "Input VCF(.GZ) file. If unset, reads from STDIN.", true, true);
+		addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
+		addInfile("config_file", "TSV file containing the annotation file path, the prefix, the INFO ids and the id column for multiple annotations.", true);
         addInfile("annotation_file", "Tabix indexed VCF.GZ file used for annotation.", true, true);
         addString("info_ids", "INFO id(s) in annotation VCF file (Multiple ids can be separated by ',', optional new id names in output file can be added by '=': original_id=new_id).", true, "");
         addString("id_column", "Name of the ID column in annotation file. (If "" it will be ignored in output file, alternative output name can be specified by old_id_column_name=new_name", true, "");
         addString("id_prefix", "Prefix for INFO id(s) in output VCF file.", true, "");
-        addFlag("allow_missing_header", "If set the execution is not aborted if a INFO header is missing in annotation file");
-        addInfile("in", "Input VCF(.GZ) file. If unset, reads from STDIN.", true, true);
-        addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
+		addFlag("allow_missing_header", "If set the execution is not aborted if a INFO header is missing in annotation file.");
 		addInt("threads", "The number of threads used to process VCF lines (two additional threads are used for reading/writing).", true, 1);
 		addInt("block_size", "Number of lines processed in one chunk.", true, 10000);
 		addInt("prefetch", "Maximum number of chunks that may be pre-fetched into memory.", true, 64);
 
+		changeLog(2022, 2, 25, "Refactoring and change to event-driven implementation (improved scaling with many threads)"); //TODO
 		changeLog(2021, 9, 20, "Prefetch only part of input file (to save memory).");
 		changeLog(2020, 4, 11, "Added multithread support.");
         changeLog(2019, 8, 19, "Added support for multiple annotations files through config file.");
@@ -45,50 +47,32 @@ public:
         changeLog(2019, 8, 13, "Initial implementation.");
     }
 
-	//returns the value of a given INFO key from a given INFO header line
-	QByteArray getInfoHeaderValue(const QByteArray &header_line, QByteArray key)
-	{
-		if (!header_line.contains('<')) THROW(ArgumentException, "VCF INFO header contains no '<': " + header_line);
-
-		key = key.toLower();
-
-		QByteArrayList key_value_pairs = header_line.split('<')[1].split('>')[0].split(',');
-		foreach (const QByteArray& key_value, key_value_pairs)
-		{
-			if (key_value.toLower().startsWith(key+'='))
-			{
-				return key_value.split('=')[1].trimmed();
-			}
-		}
-
-		THROW(ArgumentException, "VCF INFO header contains no key '"+key+"': " + header_line);
-	}
-
     virtual void main()
     {
         //init
 		QTextStream out(stdout);
 
 		//parse parameters
-        QString input_path = getInfile("in");
-        QString output_path = getOutfile("out");
+		Parameters params;
+		params.in = getInfile("in");
+		params.out = getOutfile("out");
         QString config_file_path = getInfile("config_file");
         QString annotation_file_path = getInfile("annotation_file");
         QByteArray info_id_string = getString("info_ids").toLatin1().trimmed();
         QByteArray id_column = getString("id_column").toLatin1().trimmed();
         QByteArray id_prefix = getString("id_prefix").toLatin1().trimmed();
-        bool allow_missing_header = getFlag("allow_missing_header");
-        int block_size = getInt("block_size");
-        int threads = getInt("threads");
-		int prefetch = getInt("prefetch");
+		bool allow_missing_header = getFlag("allow_missing_header");
+		params.threads = getInt("threads");
+		params.prefetch = getInt("prefetch");
+		params.block_size = getInt("block_size");
 
 		//check parameters
-		if (block_size < 1) THROW(ArgumentException, "Parameter 'block_size' has to be greater than zero!");
-		if (threads < 1) THROW(ArgumentException, "Parameter 'threads' has to be greater than zero!");
-		if (prefetch < threads) THROW(ArgumentException, "Parameter 'prefetch' has to be at least number of used threads!");
+		if (params.block_size < 1) THROW(ArgumentException, "Parameter 'block_size' has to be greater than zero!");
+		if (params.threads < 1) THROW(ArgumentException, "Parameter 'threads' has to be greater than zero!");
+		if (params.prefetch < params.threads) THROW(ArgumentException, "Parameter 'prefetch' has to be at least number of used threads!");
+		if (params.in!="" && params.in==params.out) THROW(ArgumentException, "Input and output files must be different when streaming!");
 
-
-		//get config
+		//get meta data
 		MetaData meta;
 		if (config_file_path != "") //from file
         {
@@ -165,11 +149,23 @@ public:
 			meta.allow_missing_header_list.append(allow_missing_header);
         }
 
-		//write contig
-        out << "Input file: \t" << input_path << "\n";
-        out << "Output file: \t" << output_path << "\n";
-        out << "Threads: \t" << threads << "\n";
-        out << "Block (Chunk) size: \t" << block_size << "\n";
+		//check meta data
+		QByteArrayList tmp;
+		foreach (QByteArrayList ids, meta.out_info_id_list)
+		{
+			tmp.append(ids);
+		}
+		QSet<QByteArray> unique_output_ids = QSet<QByteArray>::fromList(tmp);
+		if (unique_output_ids.size() < tmp.size())
+		{
+			THROW(FileParseException, "The given output INFO ids contain duplicates!")
+		}
+
+		//write meta data to stdout
+		out << "Input file: \t" << params.in << "\n";
+		out << "Output file: \t" << params.out << "\n";
+		out << "Threads: \t" << params.threads << "\n";
+		out << "Block (Chunk) size: \t" << params.block_size << "\n";
 
 		for(int i = 0; i < meta.annotation_file_list.size(); i++)
         {
@@ -186,139 +182,15 @@ public:
             }
 		}
 
-        // check info ids for duplicates:
-        QByteArrayList tmp;
-		foreach (QByteArrayList ids, meta.out_info_id_list)
-        {
-            tmp.append(ids);
-        }
-        QSet<QByteArray> unique_output_ids = QSet<QByteArray>::fromList(tmp);
-        if (unique_output_ids.size() < tmp.size())
-        {
-            THROW(FileParseException, "The given output INFO ids contain duplicates!")
-        }
-
-		//open input/output streams
-		if (input_path!="" && input_path==output_path)
-		{
-			THROW(ArgumentException, "Input and output files must be different when streaming!");
-		}
-
-		// create job pool
-		out << "Creating job pool and thread pool" << endl;
-		QList<AnalysisJob> job_pool;
-		while(job_pool.count() < prefetch)
-		{
-			job_pool << AnalysisJob();
-		}
-
-		//create thread pool
-		QThreadPool analysis_pool;
-		analysis_pool.setMaxThreadCount(threads + 1); // +1 for output writer
-
-		//start writer thread
-		out << "Creating output worker" << endl;
-		OutputWorker* output_worker = new OutputWorker(job_pool, output_path);
-		analysis_pool.start(output_worker);
-
-		//annotation
+		//create coordinator instance
 		out << "Performing annotation" << endl;
-		try
-		{
-			//open input file
-			FILE* instream = input_path.isEmpty() ? stdin : fopen(input_path.toLatin1().data(), "rb");
-			gzFile file = gzdopen(fileno(instream), "rb"); //always open in binary mode because windows and mac open in text mode
-			if (file==NULL) THROW(FileAccessException, "Could not open file '" + input_path + "' for reading!");
-
-			//parse input header and write output header
-			const int buffer_size = 1048576; //1MB buffer
-			char* buffer = new char[buffer_size];
-
-			int current_chunk = 0;
-			while(!gzeof(file))
-			{
-				for (int j=0; j<job_pool.count(); ++j)
-				{
-					AnalysisJob& job = job_pool[j];
-					if (job.status==DONE)
-					{
-						// create new job with the next chunk of lines
-						job.clear();
-						job.chunk_id = current_chunk++;
-						job.status = TO_BE_PROCESSED;
-
-						//read lines
-						while(job.lines.count() < block_size && !gzeof(file))
-						{
-							// get next line
-							char* char_array = gzgets(file, buffer, buffer_size);
-							if (char_array==nullptr) //handle errors like truncated GZ file
-							{
-								int error_no = Z_OK;
-								QByteArray error_message = gzerror(file, &error_no);
-								if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-								{
-									THROW(FileParseException, "Error while reading input: " + error_message);
-								}
-							}
-
-							job.lines.append(QByteArray(char_array));
-						}
-
-						analysis_pool.start(new ChunkProcessor(job, meta));
-					}
-					else if (job.status==ERROR)
-					{
-						THROW(Exception, "Error in worker thread: " + job.error_message);
-					}
-					
-					//break if file is read
-					if(gzeof(file)) break;
-				}
-			}
-
-			//close file
-			gzclose(file);
-			delete[] buffer;
-
-			//wait for all jobs to finish
-			int done = 0;
-			while (done < job_pool.count())
-			{
-				done = 0;
-				for (int j=0; j<job_pool.count(); ++j)
-				{
-					AnalysisJob& job = job_pool[j];
-
-					if (job.status==DONE)
-					{
-						++done;
-					}
-					else if (job.status==ERROR)
-					{
-						THROW(Exception, "Error in worker thread: " + job.error_message);
-					}
-				}
-			}
-
-			//terminater output worker
-			output_worker->terminate();
-			out << "Programm finished!" << endl;
-		}
-		catch (...)
-		{
-			//terminate output worker if an exeption is thrown
-			output_worker->terminate();
-			throw;
-		}
+		ThreadCoordinator* coordinator = new ThreadCoordinator(this, params, meta);
+		connect(coordinator, SIGNAL(finished()), QCoreApplication::instance(), SLOT(quit()));
     }
 
 private:
 
-    /*
-     *  parses the INFO id parameter and extracts the INFO ids for the annotation file and the
-     *	 corresponding output and modifies the given QByteArrayLists inplace
-     */
+	//parses the INFO id parameter and extracts the INFO ids for the annotation file and the corresponding output and modifies the given QByteArrayLists inplace
 	void parseInfoIds(QByteArrayList &info_ids, QByteArrayList &out_info_ids, const QByteArray &input_string, const QByteArray &prefix)
     {
         // iterate over all info ids
@@ -352,10 +224,7 @@ private:
         }
     }
 
-    /*
-     *  parses the column id parameter and returns the annotation id column name and the id column
-     *	 name in the output file by modifying the given QByteArrays inplace
-     */
+	//parses the column id parameter and returns the annotation id column name and the id column name in the output file by modifying the given QByteArrays inplace
 	void parseIdColumn(QByteArray &id_column_name, QByteArray &out_id_column_name,  const QByteArray &input_string, const QByteArray &prefix)
     {
         // skip empty column id
@@ -389,6 +258,25 @@ private:
             out_id_column_name = prefix + "_" + out_id_column_name;
         }
     }
+
+	//returns the value of a given INFO key from a given INFO header line
+	QByteArray getInfoHeaderValue(const QByteArray &header_line, QByteArray key)
+	{
+		if (!header_line.contains('<')) THROW(ArgumentException, "VCF INFO header contains no '<': " + header_line);
+
+		key = key.toLower();
+
+		QByteArrayList key_value_pairs = header_line.split('<')[1].split('>')[0].split(',');
+		foreach (const QByteArray& key_value, key_value_pairs)
+		{
+			if (key_value.toLower().startsWith(key+'='))
+			{
+				return key_value.split('=')[1].trimmed();
+			}
+		}
+
+		THROW(ArgumentException, "VCF INFO header contains no key '"+key+"': " + header_line);
+	}
 
 };
 

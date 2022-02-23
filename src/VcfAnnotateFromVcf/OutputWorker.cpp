@@ -2,44 +2,38 @@
 #include "Helper.h"
 #include <QThread>
 
-OutputWorker::OutputWorker(QList<AnalysisJob>& job_pool, QString output_filename)
+OutputWorker::OutputWorker(AnalysisJob& job, QSharedPointer<QFile> out_stream)
 	: QRunnable()
-	, terminate_(false)
-	, job_pool_(job_pool)
-	, out_p_(Helper::openFileForWriting(output_filename, true))
-	, write_chunk_(0)
+	, job_(job)
+	, out_stream_(out_stream)
 {
 }
 
 void OutputWorker::run()
 {
-	while(!terminate_)
+	//static variables shared between output workers
+	static int write_chunk = 0;
+
+	try
 	{
-		for (int j=0; j<job_pool_.count(); ++j)
+		if (job_.chunk_nr!=write_chunk)
 		{
-			AnalysisJob& job = job_pool_[j];
-			if (job.status!=TO_BE_WRITTEN) continue;
-			if (job.chunk_id!=write_chunk_) continue;
-
-			try
-			{
-				foreach(const QByteArray& line, job.lines)
-				{
-					int bytes_written = out_p_->write(line);
-					if (bytes_written==-1) THROW(FileAccessException, "Could not write output: " +  out_p_->errorString());
-				}
-				++write_chunk_;
-				job.status = DONE;
-			}
-			catch(Exception& e)
-			{
-				job.error_message = e.message();
-				job.status = ERROR;
-				terminate();
-			}
+			emit retry(job_.index);
+			return;
 		}
-	}
 
-	//close output file
-	out_p_->close();
+		foreach(const QByteArray& line, job_.lines)
+		{
+			int bytes_written = out_stream_->write(line);
+			if (bytes_written==-1) THROW(FileAccessException, "Could not write output: " +  out_stream_->errorString());
+		}
+		++write_chunk;
+
+
+		emit done(job_.index);
+	}
+	catch(Exception& e)
+	{
+		emit error(job_.index, e.message());
+	}
 }

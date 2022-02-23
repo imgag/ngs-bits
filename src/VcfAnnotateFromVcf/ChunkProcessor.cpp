@@ -5,8 +5,8 @@
 #include <QFileInfo>
 
 ChunkProcessor::ChunkProcessor(AnalysisJob& job, const MetaData& meta)
-	: QRunnable()
-    , terminate_(false)
+	: QObject()
+	, QRunnable()
 	, job_(job)
 	, meta_(meta)
 {
@@ -392,12 +392,10 @@ void ChunkProcessor::run()
 		}
 		job_.lines = lines_new;
 
-		job_.status = TO_BE_WRITTEN;
+		emit done(job_.index);
 	}
 	catch(Exception& e)
 	{
-		job_.error_message = e.message();
-		job_.status = ERROR;
+		emit error(job_.index, e.message());
 	}
-
 }
