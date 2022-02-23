@@ -35,7 +35,7 @@ public:
         addInfile("in", "Input VCF(.GZ) file. If unset, reads from STDIN.", true, true);
         addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
 		addInt("threads", "The number of threads used to process VCF lines (two additional threads are used for reading/writing).", true, 1);
-		addInt("block_size", "Number of lines processed in one chunk.", true, 5000);
+		addInt("block_size", "Number of lines processed in one chunk.", true, 10000);
 		addInt("prefetch", "Maximum number of chunks that may be pre-fetched into memory.", true, 64);
 
 		changeLog(2021, 9, 20, "Prefetch only part of input file (to save memory).");
