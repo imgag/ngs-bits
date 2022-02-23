@@ -63,13 +63,20 @@ void VariantWidget::updateGUI()
 	GSvarHelper::limitLines(ui_.comments, query1.value("comment").toString());
 
 	//transcripts
-	QStringList lines;
-	QList<VariantTranscript> transcripts = Variant::parseTranscriptString(query1.value("coding").toByteArray(), true);
-	foreach(const VariantTranscript& trans, transcripts)
+	try
 	{
-		lines << "<a href=\"" + trans.gene + "\">" + trans.gene + "</a> " + trans.id + ": " + trans.type + " " + trans.hgvs_c + " " + trans.hgvs_p;
+		QStringList lines;
+		QList<VariantTranscript> transcripts = Variant::parseTranscriptString(query1.value("coding").toByteArray(), true);
+		foreach(const VariantTranscript& trans, transcripts)
+		{
+			lines << "<a href=\"" + trans.gene + "\">" + trans.gene + "</a> " + trans.id + ": " + trans.type + " " + trans.hgvs_c + " " + trans.hgvs_p;
+		}
+		ui_.transcripts->setText(lines.join("<br>"));
 	}
-	ui_.transcripts->setText(lines.join("<br>"));
+	catch(...)
+	{
+		ui_.transcripts->setText("<font color=red>Could not parse transcript information from NGSD!</font>");
+	}
 
 	//PubMed ids
 	QStringList pubmed_ids = db.pubmedIds(variant_id);
