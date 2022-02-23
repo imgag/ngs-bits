@@ -25,7 +25,7 @@ jobs:
     - name: Generate SSL certificate-key pair
       run: openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=DE/ST=BW/L=Tuebingen/O=test-certificate/CN=localhost" -keyout ~/test-key.key -out ~/test-cert.crt
     - name: Create a settings.ini file for tests
-      run: .github/workflows/settings.sh
+      run: .github/workflows/settings_win_mac.sh
       shell: bash
     - name: Download test files
       run: make download_test_files
