@@ -222,9 +222,9 @@ public:
 		analysis_pool.start(output_worker);
 
 		//annotation
+		out << "Performing annotation" << endl;
 		try
 		{
-			out << "Writing output header" << endl;
 			//open input file
 			FILE* instream = input_path.isEmpty() ? stdin : fopen(input_path.toLatin1().data(), "rb");
 			gzFile file = gzdopen(fileno(instream), "rb"); //always open in binary mode because windows and mac open in text mode
@@ -234,8 +234,6 @@ public:
 			const int buffer_size = 1048576; //1MB buffer
 			char* buffer = new char[buffer_size];
 
-
-			out << "Performing annotation" << endl;
 			int current_chunk = 0;
 			while(!gzeof(file))
 			{
@@ -321,8 +319,7 @@ private:
      *  parses the INFO id parameter and extracts the INFO ids for the annotation file and the
      *	 corresponding output and modifies the given QByteArrayLists inplace
      */
-    void parseInfoIds(QByteArrayList &info_ids, QByteArrayList &out_info_ids,
-                      const QByteArray &input_string, const QByteArray &prefix)
+	void parseInfoIds(QByteArrayList &info_ids, QByteArrayList &out_info_ids, const QByteArray &input_string, const QByteArray &prefix)
     {
         // iterate over all info ids
         foreach(QByteArray raw_string, input_string.split(','))
@@ -359,8 +356,7 @@ private:
      *  parses the column id parameter and returns the annotation id column name and the id column
      *	 name in the output file by modifying the given QByteArrays inplace
      */
-    void parseIdColumn(QByteArray &id_column_name, QByteArray &out_id_column_name,
-                       const QByteArray &input_string, const QByteArray &prefix)
+	void parseIdColumn(QByteArray &id_column_name, QByteArray &out_id_column_name,  const QByteArray &input_string, const QByteArray &prefix)
     {
         // skip empty column id
         if (input_string.trimmed() == "")
