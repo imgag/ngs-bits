@@ -1,9 +1,6 @@
 #include "ChainFileReader.h"
 #include "Exceptions.h"
 #include "zlib.h"
-#include <QBuffer>
-#include <iostream>
-#include <QDataStream>
 
 ChainFileReader::ChainFileReader(QString filepath, double percent_deletion):
 	filepath_(filepath)
@@ -21,19 +18,13 @@ void ChainFileReader::load()
 {
 	QList<QByteArray> lines = getLines();
 
-//	qDebug() << "# of lines: " << lines.size();
-//	qDebug() << "line?: " << lines[0];
-
-
 	// read first alignment line:
 	QByteArray line = lines[0];
 	line = line.trimmed();
-//	qDebug() << line;
 	GenomicAlignment currentAlignment = parseChainLine(line.split(' '));
 
 	for(int i=1; i<lines.size(); i++)
 	{
-//		qDebug() << line;
 		line = lines[i].trimmed();
 		if (line.length() == 0) continue;
 
@@ -82,8 +73,6 @@ void ChainFileReader::load()
 QList<QByteArray> ChainFileReader::getLines()
 {
 	file_ = VersatileFile(filepath_);
-
-	qDebug() << "File exists:" << filepath_ << (QFile(filepath_).exists() ? "true" : "false");
 
 	if (! file_.open(QFile::ReadOnly))
 	{
@@ -136,8 +125,6 @@ QList<QByteArray> ChainFileReader::getLines()
 							THROW(FileParseException, "Zlib stream Error while decompressing file!");
 							break;
 						case Z_DATA_ERROR:
-							qDebug() << "avail out:" << decompress_buffer_size - infstream.avail_out;
-							qDebug() << infstream.msg;
 							inflateEnd(&infstream);
 							// means that either the data is not a zlib stream to begin with, or that the data was corrupted somewhere along the way since it was compressed
 							THROW(FileParseException, "Zlib data Error while decompressing file!");
