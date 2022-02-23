@@ -257,9 +257,9 @@ enum AnalysisType
 	CFDNA
 };
 ///Returns the string repesentation of the analysis type (or a human-readable version).
-QString analysisTypeToString(AnalysisType type, bool human_readable=false);
+QString CPPNGSSHARED_EXPORT analysisTypeToString(AnalysisType type, bool human_readable=false);
 ///Returns a the  repesentation of the analysis type (does not support the human-readable version).
-AnalysisType stringToAnalysisType(QString type);
+AnalysisType CPPNGSSHARED_EXPORT stringToAnalysisType(QString type);
 
 ///A list of genetic variants
 class CPPNGSSHARED_EXPORT VariantList

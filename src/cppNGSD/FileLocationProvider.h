@@ -2,14 +2,14 @@
 #define FILELOCATIONPROVIDER_H
 #include "Exceptions.h"
 
-#include "cppNGS_global.h"
+#include "cppNGSD_global.h"
 #include "VariantList.h"
 #include "Helper.h"
 #include "FileLocation.h"
 #include "FileLocationList.h"
 
 //Analysis file location provider interface for local/client-server mode.
-class CPPNGSSHARED_EXPORT FileLocationProvider
+class CPPNGSDSHARED_EXPORT FileLocationProvider
 {
 public:
 
