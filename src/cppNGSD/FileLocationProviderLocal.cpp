@@ -345,15 +345,21 @@ QList<KeyValuePair> FileLocationProviderLocal::getBaseLocations() const
 		{
 			if (Settings::boolean("NGSD_enabled", true))
 			{
-				QString id = NGSD().processedSampleId(info.id, false);
-				QString sample_path = NGSD().processedSamplePath(id, PathType::SAMPLE_FOLDER);
-				output << KeyValuePair(info.id, sample_path + info.id);
-			}
-			else
-			{
-				output << KeyValuePair(info.id, project_folder + "/Sample_" + info.id + "/" + info.id);
+				try
+				{
+					QString id = NGSD().processedSampleId(info.id, false);
+					QString sample_path = NGSD().processedSamplePath(id, PathType::SAMPLE_FOLDER);
+					output << KeyValuePair(info.id, sample_path + info.id);
+					continue;
+				}
+				catch (...)
+				{
+					// We fall back to the standard behaviour, if the sample cannot be found
+				}
+
 			}
 
+			output << KeyValuePair(info.id, project_folder + "/Sample_" + info.id + "/" + info.id);
 		}
 	}
 
