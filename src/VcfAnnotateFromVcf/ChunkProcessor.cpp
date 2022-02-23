@@ -379,7 +379,9 @@ void ChunkProcessor::run()
 		}
 
 		//process data
-		for(const QByteArray& line : job_.current_chunk)
+		QList<QByteArray> lines_new;
+		lines_new.reserve(job_.lines.size());
+		for(const QByteArray& line : job_.lines)
 		{
 			if (line.trimmed().isEmpty())  continue;
 
@@ -395,16 +397,17 @@ void ChunkProcessor::run()
 				//append header line for new annotation
 				if (line.startsWith("#CHROM"))
 				{
-					job_.current_chunk_processed << annotation_header_lines;
+					lines_new << annotation_header_lines;
 				}
 
-				job_.current_chunk_processed << line;
+				lines_new << line;
 			}
 			else //content line
 			{
-				job_.current_chunk_processed << extendVcfDataLine(line, info_id_list_, out_info_id_list_, out_id_column_name_list_, id_column_indices, annotation_files);
+				lines_new << extendVcfDataLine(line, info_id_list_, out_info_id_list_, out_id_column_name_list_, id_column_indices, annotation_files);
 			}
 		}
+		job_.lines = lines_new;
 
 		job_.status = TO_BE_WRITTEN;
 	}

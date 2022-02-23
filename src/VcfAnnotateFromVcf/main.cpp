@@ -256,7 +256,7 @@ public:
 						job.status = TO_BE_PROCESSED;
 
 						//read lines
-						while(job.current_chunk.count() < block_size && !gzeof(file))
+						while(job.lines.count() < block_size && !gzeof(file))
 						{
 							// get next line
 							char* char_array = gzgets(file, buffer, buffer_size);
@@ -270,7 +270,7 @@ public:
 								}
 							}
 
-							job.current_chunk.append(QByteArray(char_array));
+							job.lines.append(QByteArray(char_array));
 						}
 
 						analysis_pool.start(new ChunkProcessor(job, info_id_list, out_info_id_list, out_id_column_name_list, annotation_file_list, id_column_name_list, allow_missing_header_list, unique_output_ids, prefix_list));

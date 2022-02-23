@@ -16,8 +16,7 @@ enum AnalysisStatus
 //Analysis data for worker thread
 struct AnalysisJob
 {
-    QList<QByteArray> current_chunk;
-    QList<QByteArray> current_chunk_processed;
+	QList<QByteArray> lines;
     QString error_message;
 
     //id used to keep the vcf file in order
@@ -26,8 +25,7 @@ struct AnalysisJob
 
     void clear()
     {
-		current_chunk.clear();
-		current_chunk_processed.clear();
+		lines.clear();
 		error_message.clear();
         status = DONE;
     }

@@ -23,7 +23,7 @@ void OutputWorker::run()
 
 			try
 			{
-				foreach(const QByteArray& line, job.current_chunk_processed)
+				foreach(const QByteArray& line, job.lines)
 				{
 					int bytes_written = out_p_->write(line);
 					if (bytes_written==-1) THROW(FileAccessException, "Could not write output: " +  out_p_->errorString());
