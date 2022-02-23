@@ -275,22 +275,21 @@ QByteArray extendVcfDataLine(const QByteArray& vcf_line, const MetaData& meta, c
                         }
                         else
                         {
-                            QByteArray annotation_value =
-                                    key_value_pair.split('=')[1].trimmed();
+							QByteArray annotation_value = key_value_pair.split('=')[1].trimmed();
 
-                            // skip empty values:
-                            if (annotation_value == "") continue;
+							// skip empty values
+							if (annotation_value == "") continue;
 
 							int key_idx = additional_keys.indexOf(meta.out_info_id_list[ann_file_idx][j]);
-                            if (key_idx == -1)
-                            {
+							if (key_idx == -1)
+							{
 								additional_keys.append(meta.out_info_id_list[ann_file_idx][j]);
-                                additional_values.append(annotation_value);
-                            }
-                            else
-                            {
-                                additional_values[key_idx] += "&" + annotation_value;
-                            }
+								additional_values.append(annotation_value);
+							}
+							else
+							{
+								additional_values[key_idx] += "&" + annotation_value;
+							}
                         }
                         break;
                     }
