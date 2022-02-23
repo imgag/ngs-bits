@@ -81,35 +81,87 @@ void ChainFileReader::load()
 
 QList<QByteArray> ChainFileReader::getLines()
 {
+	file_ = VersatileFile(filepath_);
+
+	qDebug() << "File exists:" << filepath_ << (QFile(filepath_).exists() ? "true" : "false");
+
+	if (! file_.open(QFile::ReadOnly))
+	{
+		THROW(FileAccessException, "Could not open chain-file for reading: '" + filepath_ + "'!");
+	}
 
 	if (filepath_.endsWith(".chain"))
 	{
-		if (!file_.open(QFile::ReadOnly | QIODevice::Text))
-		{
-			THROW(FileAccessException, "Could not open bw-file for reading: '" + filepath_ + "'!");
-		}
-
 		return file_.readAll().split('\n');
 	}
 	else if (filepath_.endsWith(".gz"))
 	{
-		QList<QByteArray> lines;
-		gzFile gzfile = gzopen(filepath_.toLatin1().data(), "rb");
 
-		gzbuffer(gzfile, 1024*128);
-		char* out = new char[1024];
-		char * ret = nullptr;
-		do
+		QByteArray compressed = file_.readAll();
+		if (compressed.length() == 0)
 		{
-			ret = gzgets(gzfile, out, 1024);
-			lines.append(QByteArray(out));
-
+			THROW(ProgrammingException, "Reading file gave no compressed data.");
 		}
-		while (ret != nullptr);
 
-		delete[] out;
+		QByteArray decompressed;
+		int ret;
+		int decompress_buffer_size = 1024*128; // 128kb
+		char out[decompress_buffer_size];
+		//set zlib vars
+		z_stream infstream;
+		infstream.zalloc = Z_NULL;
+		infstream.zfree = Z_NULL;
+		infstream.opaque = Z_NULL;
+		infstream.avail_in = 0;
+		infstream.next_in = Z_NULL;
+		ret = inflateInit2(&infstream, 16+MAX_WBITS);
+		if (ret != Z_OK)
+		{
+			THROW(ProgrammingException, "Error while initializing inflate. Error code: " + QString::number(ret));
+		}
 
-		return lines;
+		// setup "compressed_block.data()" as the input and "out" as the uncompressed output
+		infstream.avail_in = compressed.size(); // size of input
+		infstream.next_in = (Bytef *)compressed.data(); // input char array
+
+		do {
+				infstream.avail_out = decompress_buffer_size;
+				infstream.next_out = (Bytef *) out;
+				ret = inflate(&infstream, Z_NO_FLUSH);
+				if(ret != Z_OK && ret != Z_STREAM_END && ret != Z_BUF_ERROR)  /* state not clobbered */
+				{
+					switch (ret) {
+						case Z_STREAM_ERROR:
+							inflateEnd(&infstream);
+							THROW(FileParseException, "Zlib stream Error while decompressing file!");
+							break;
+						case Z_DATA_ERROR:
+							qDebug() << "avail out:" << decompress_buffer_size - infstream.avail_out;
+							qDebug() << infstream.msg;
+							inflateEnd(&infstream);
+							// means that either the data is not a zlib stream to begin with, or that the data was corrupted somewhere along the way since it was compressed
+							THROW(FileParseException, "Zlib data Error while decompressing file!");
+							break;
+						case Z_MEM_ERROR:
+							// Z_MEM_ERROR, memory allocation for internal state of inflate() failed.
+							inflateEnd(&infstream);
+							THROW(FileParseException, "Zlib memory Error while decompressing file!");
+							break;
+						case Z_VERSION_ERROR:
+							inflateEnd(&infstream);
+							THROW(FileParseException, "Zlib Version Error while decompressing file!");
+							break;
+						default:
+							inflateEnd(&infstream);
+							THROW(FileParseException, "Unknown zlib error while decompressing file! Error Code: " + QString::number(ret));
+							break;
+					}
+				}
+				decompressed.append(out, decompress_buffer_size-infstream.avail_out);
+			} while (infstream.avail_out == 0);
+
+		inflateEnd(&infstream);
+		return decompressed.split('\n');
 
 	}
 	else
