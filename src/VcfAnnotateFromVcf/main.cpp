@@ -45,6 +45,25 @@ public:
         changeLog(2019, 8, 13, "Initial implementation.");
     }
 
+	//returns the value of a given INFO key from a given INFO header line
+	QByteArray getInfoHeaderValue(const QByteArray &header_line, QByteArray key)
+	{
+		if (!header_line.contains('<')) THROW(ArgumentException, "VCF INFO header contains no '<': " + header_line);
+
+		key = key.toLower();
+
+		QByteArrayList key_value_pairs = header_line.split('<')[1].split('>')[0].split(',');
+		foreach (const QByteArray& key_value, key_value_pairs)
+		{
+			if (key_value.toLower().startsWith(key+'='))
+			{
+				return key_value.split('=')[1].trimmed();
+			}
+		}
+
+		THROW(ArgumentException, "VCF INFO header contains no key '"+key+"': " + header_line);
+	}
+
     virtual void main()
     {
         //init
@@ -76,8 +95,8 @@ public:
         QByteArrayList out_id_column_name_list;
         QVector<bool> allow_missing_header_list;
 
-        // check for config file
-        if (config_file_path != "")
+		//get config
+		if (config_file_path != "") //from file
         {
             // parse config file line by line
             QSharedPointer<QFile> config_file = Helper::openFileForReading(config_file_path, false);
@@ -89,9 +108,7 @@ public:
                 QByteArrayList columns = line.split('\t');
                 if (columns.size() < 4)
                 {
-                    THROW(FileParseException, QByteArray() + "Invalid number of columns! "
-                          + "File name, prefix, INFO ids and id column name are required:\n"
-                          + line.replace("\t", " -> ").trimmed());
+					THROW(FileParseException, QByteArray() + "Invalid number of columns! "  + "File name, prefix, INFO ids and id column name are required:\n"  + line.replace("\t", " -> ").trimmed());
                 }
 
                 annotation_file_list.append(columns[0].trimmed());
@@ -114,26 +131,21 @@ public:
 
                 if (columns.size() > 4)
                 {
-                    allow_missing_header_list.append((columns[4].trimmed().toLower() == "true")
-                            || (columns[4].trimmed() == "1"));
+					allow_missing_header_list.append((columns[4].trimmed().toLower() == "true") || (columns[4].trimmed() == "1"));
                 }
                 else
                 {
                     allow_missing_header_list.append(false);
                 }
-
             }
 
             if (annotation_file_list.size() < 1)
             {
-                THROW(FileParseException,
-                      "The config file has to contain at least 1 valid annotation configuration!");
+				THROW(FileParseException, "The config file has to contain at least 1 valid annotation configuration!");
             }
         }
-        else
+		else //from CLI parameters
         {
-            // use parameter
-
             annotation_file_list.append(annotation_file_path.toLatin1().trimmed());
 
             if (info_id_string.trimmed() == "")
@@ -159,7 +171,7 @@ public:
             allow_missing_header_list.append(allow_missing_header);
         }
 
-        // write arguments:
+		//write contig
         out << "Input file: \t" << input_path << "\n";
         out << "Output file: \t" << output_path << "\n";
         out << "Threads: \t" << threads << "\n";
@@ -171,17 +183,14 @@ public:
 
             if (id_column_name_list[i] != "")
             {
-                out << "Id column:\n\t " << id_column_name_list[i].leftJustified(12) << "\t -> \t"
-                    << out_id_column_name_list[i] << "\n";
+				out << "Id column:\n\t " << id_column_name_list[i].leftJustified(12) << "\t -> \t" << out_id_column_name_list[i] << "\n";
             }
             out << "INFO ids:\n";
             for (int j = 0; j < info_id_list[i].size(); j++)
             {
-                out << "\t " << info_id_list[i][j].leftJustified(12) << "->   "
-                    << out_info_id_list[i][j] << "\n";
+				out << "\t " << info_id_list[i][j].leftJustified(12) << "->   " << out_info_id_list[i][j] << endl;
             }
-        }
-        out.flush();
+		}
 
         // check info ids for duplicates:
         QByteArrayList tmp;
@@ -192,18 +201,17 @@ public:
         QSet<QByteArray> unique_output_ids = QSet<QByteArray>::fromList(tmp);
         if (unique_output_ids.size() < tmp.size())
         {
-            //Duplicates found!
             THROW(FileParseException, "The given output INFO ids contain duplicates!")
         }
 
-
-        //open input/output streams
-        if (input_path!="" && input_path==output_path)
-        {
-            THROW(ArgumentException, "Input and output files must be different when streaming!");
-        }
+		//open input/output streams
+		if (input_path!="" && input_path==output_path)
+		{
+			THROW(ArgumentException, "Input and output files must be different when streaming!");
+		}
 
 		// create job pool
+		out << "Creating job pool and thread pool" << endl;
 		QList<AnalysisJob> job_pool;
 		while(job_pool.count() < prefetch)
 		{
@@ -211,24 +219,30 @@ public:
 		}
 
 		//create thread pool
-        QThreadPool analysis_pool;
+		QThreadPool analysis_pool;
 		analysis_pool.setMaxThreadCount(threads + 1); // +1 for output writer
 
-		// start writer thread
+		//start writer thread
+		out << "Creating output worker" << endl;
 		OutputWorker* output_worker = new OutputWorker(job_pool, output_path);
 		analysis_pool.start(output_worker);
 
+		//annotation
 		try
 		{
+			out << "Writing output header" << endl;
 			//open input file
 			FILE* instream = input_path.isEmpty() ? stdin : fopen(input_path.toLatin1().data(), "rb");
 			gzFile file = gzdopen(fileno(instream), "rb"); //always open in binary mode because windows and mac open in text mode
 			if (file==NULL) THROW(FileAccessException, "Could not open file '" + input_path + "' for reading!");
 
+			//parse input header and write output header
 			const int buffer_size = 1048576; //1MB buffer
 			char* buffer = new char[buffer_size];
-			int current_chunk = 0;
 
+
+			out << "Performing annotation" << endl;
+			int current_chunk = 0;
 			while(!gzeof(file))
 			{
 				for (int j=0; j<job_pool.count(); ++j)
@@ -259,7 +273,7 @@ public:
 							job.current_chunk.append(QByteArray(char_array));
 						}
 
-						analysis_pool.start(new ChunkProcessor(job, prefix_list, unique_output_ids, info_id_list, out_info_id_list, id_column_name_list, out_id_column_name_list, allow_missing_header_list, annotation_file_list));
+						analysis_pool.start(new ChunkProcessor(job, info_id_list, out_info_id_list, out_id_column_name_list, annotation_file_list, id_column_name_list, allow_missing_header_list, unique_output_ids, prefix_list));
 					}
 					else if (job.status==ERROR)
 					{
