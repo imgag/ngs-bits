@@ -1,7 +1,7 @@
 #ifndef FILELOCATION_H
 #define FILELOCATION_H
 
-#include "cppNGS_global.h"
+#include "cppNGSD_global.h"
 #include "Exceptions.h"
 #include <QString>
 

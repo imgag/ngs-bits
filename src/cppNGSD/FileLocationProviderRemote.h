@@ -1,16 +1,18 @@
-#ifndef FILELOCATIONPROVIDERLOCAL_H
-#define FILELOCATIONPROVIDERLOCAL_H
+#ifndef FILELOCATIONPROVIDERREMOTE_H
+#define FILELOCATIONPROVIDERREMOTE_H
 
-#include "cppNGS_global.h"
+#include "cppNGSD_global.h"
 #include "FileLocationProvider.h"
-#include "KeyValuePair.h"
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 
-class CPPNGSSHARED_EXPORT FileLocationProviderLocal
+class CPPNGSDSHARED_EXPORT FileLocationProviderRemote
 	: virtual public FileLocationProvider
 {
 public:
-	FileLocationProviderLocal(QString gsvar_file, const SampleHeaderInfo& header_info, AnalysisType analysis_type);
-	virtual ~FileLocationProviderLocal() {}
+	FileLocationProviderRemote(const QString sample_id);
+	virtual ~FileLocationProviderRemote() {}
 
 	bool isLocal() const override;
 
@@ -22,12 +24,13 @@ public:
 	FileLocation getRepeatExpansionImage(QString locus) const override;
 	FileLocationList getQcFiles() const override;
 
-	FileLocationList getVcfFiles(bool return_if_missing) const override;
 	FileLocationList getBamFiles(bool return_if_missing) const override;
 	FileLocationList getCnvCoverageFiles(bool return_if_missing) const override;
 	FileLocationList getBafFiles(bool return_if_missing) const override;
 	FileLocationList getMantaEvidenceFiles(bool return_if_missing) const override;
+
 	FileLocationList getCircosPlotFiles(bool return_if_missing) const override;
+	FileLocationList getVcfFiles(bool return_if_missing) const override;
 	FileLocationList getRepeatExpansionFiles(bool return_if_missing) const override;
 	FileLocationList getPrsFiles(bool return_if_missing) const override;
 	FileLocationList getLowCoverageFiles(bool return_if_missing) const override;
@@ -42,20 +45,14 @@ public:
 	FileLocation getSomaticMsiFile() const override;
 
 private:
-	static void addToList(const FileLocation& loc, FileLocationList& list, bool add_if_missing=true); //Make add_if_missing mandatory when all
-
-	//Returns base location for sample-specific files, i.e. the GSvar file name without extension. From the base locations other file names can be generated.
-	QList<KeyValuePair> getBaseLocations() const;
-
-	//Returns analysis path, i.e. the path of the GSvar file
-	QString getAnalysisPath() const;
-	//Returns the project path , i.e. the parent directory of the analysis path
-	QString getProjectPath() const;
+	FileLocationList getFileLocationsByType(PathType type, bool return_if_missing) const;
+	FileLocation getOneFileLocationByType(PathType type, QString locus) const;
+	FileLocation mapJsonObjectToFileLocation(QJsonObject obj) const;
+	FileLocationList mapJsonArrayToFileLocationList(QJsonArray array, bool return_if_missing) const;
 
 protected:
-	QString gsvar_file_;
-	SampleHeaderInfo header_info_;
-	AnalysisType analysis_type_;
+	QString sample_id_;
 };
 
-#endif // FILELOCATIONPROVIDERLOCAL_H
+#endif // FILELOCATIONPROVIDERSERVER_H
+

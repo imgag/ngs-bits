@@ -1,4 +1,5 @@
 #include "FileLocationProviderLocal.h"
+#include "NGSD.h"
 #include <QDir>
 
 FileLocationProviderLocal::FileLocationProviderLocal(QString gsvar_file, const SampleHeaderInfo& header_info, AnalysisType analysis_type)
@@ -362,6 +363,22 @@ QList<KeyValuePair> FileLocationProviderLocal::getBaseLocations() const
 
 		foreach(const SampleInfo& info, header_info_)
 		{
+			if (Settings::boolean("NGSD_enabled", true))
+			{
+				try
+				{
+					QString id = NGSD().processedSampleId(info.id, false);
+					QString sample_path = NGSD().processedSamplePath(id, PathType::SAMPLE_FOLDER);
+					output << KeyValuePair(info.id, sample_path + info.id);
+					continue;
+				}
+				catch (...)
+				{
+					// We fall back to the standard behaviour, if the sample cannot be found
+				}
+
+			}
+
 			output << KeyValuePair(info.id, project_folder + "/Sample_" + info.id + "/" + info.id);
 		}
 	}
