@@ -23,7 +23,7 @@ public:
 
 		//optional
 		addOutfile("unmapped", "The file where the unmappable regions will be written to.", true, false);
-		addString("chain", "Input Chain file or \"hg19_hg38\" / \"hg38_hg19\" to read from settings file.", true, "hg19_hg38");
+		addString("chain", "Input Chain file in .chain/.chain.gz format or \"hg19_hg38\" / \"hg38_hg19\" to read from settings file.", true, "hg19_hg38");
 		addInt("max_deletion", "Allowed percentage of deleted/unmapped bases in each region.", true, 5);
 		addInt("max_increase", "Allowed percentage size increase of a region.", true, 10);
 		addFlag("remove_special_chr", "Removes regions that are mapped to special chromosomes.");
