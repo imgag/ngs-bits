@@ -459,3 +459,7 @@ BedpeAnnotateCounts.depends = cppNGS
 SUBDIRS += BedpeSort
 tools-TEST.depends += BedpeSort
 BedpeSort.depends = cppNGS
+
+SUBDIRS += BedpeAnnotateBreakpointDensity
+tools-TEST.depends += BedpeAnnotateBreakpointDensity
+BedpeAnnotateBreakpointDensity.depends = cppNGS

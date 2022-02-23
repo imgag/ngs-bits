@@ -117,22 +117,13 @@ public:
 			if (sv.chr1().isNonSpecial() && sv.chr2().isNonSpecial())
 			{
 				BedLine sv_region;
-				switch (sv.type())
+				if (sv.type() == StructuralVariantType::BND)
 				{
-					case StructuralVariantType::DEL:
-					case StructuralVariantType::DUP:
-					case StructuralVariantType::INV:
-						sv_region = BedLine(sv.chr1(), sv.start1(), sv.end2() + 1);
-						break;
-					case StructuralVariantType::INS:
-						sv_region = BedLine(sv.chr1(), std::min(sv.start1(), sv.start2()), std::max(sv.end1(), sv.end2()) + 1);
-						break;
-					case StructuralVariantType::BND:
-						sv_region = BedLine(sv.chr1(), sv.start1(), sv.end1() + 1);
-						break;
-					default:
-						THROW(ArgumentException, "Invalid SV type!");
-						break;
+					sv_region = BedLine(sv.chr1(), sv.start1(), sv.end1() + 1);
+				}
+				else
+				{
+					sv_region = BedLine(sv.chr1(), std::min(sv.start1(), sv.start2()), std::max(sv.end1(), sv.end2()) + 1);
 				}
 
 				// get all svs in the SV region
