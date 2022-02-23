@@ -122,13 +122,13 @@ public:
 					case StructuralVariantType::DEL:
 					case StructuralVariantType::DUP:
 					case StructuralVariantType::INV:
-						sv_region = BedLine(sv.chr1(), sv.start1() - 1, sv.end2() + 1);
+						sv_region = BedLine(sv.chr1(), sv.start1(), sv.end2() + 1);
 						break;
 					case StructuralVariantType::INS:
 						sv_region = BedLine(sv.chr1(), std::min(sv.start1(), sv.start2()), std::max(sv.end1(), sv.end2()) + 1);
 						break;
 					case StructuralVariantType::BND:
-						sv_region = BedLine(sv.chr1(), sv.start1(), sv.end1()+1);
+						sv_region = BedLine(sv.chr1(), sv.start1(), sv.end1() + 1);
 						break;
 					default:
 						THROW(ArgumentException, "Invalid SV type!");
