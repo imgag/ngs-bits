@@ -61,7 +61,7 @@ void TabixIndexedFile::clear()
 	chr2chr_.clear();
 }
 
-QByteArrayList TabixIndexedFile::getMatchingLines(const Chromosome& chr, int start, int end, bool ignore_missing_chr)
+QByteArrayList TabixIndexedFile::getMatchingLines(const Chromosome& chr, int start, int end, bool ignore_missing_chr) const
 {
 	QByteArrayList output;
 

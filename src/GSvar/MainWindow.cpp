@@ -295,8 +295,8 @@ void MainWindow::on_actionDebug_triggered()
 		QTime timer;
 		timer.start();
 
-                //Delete variant that are not used
-                /*
+		//Delete variant that are not used
+		/*
 		QStringList ref_tables;
 		ref_tables << "detected_variant";
 		ref_tables << "report_configuration_variant";
@@ -339,7 +339,7 @@ void MainWindow::on_actionDebug_triggered()
 			}
 			qDebug() << QDateTime::currentDateTime() << chr_name << "deleted:" << c_deleted;
 		}
-                */
+		*/
 
 		//Delete report config CNVs of samples that where the report configuration was not changed since 06.12.22 (for re-import of CNV report config data from HG19 databases - necessary because of CNV calling bug at chromosome ends)
 		/*
