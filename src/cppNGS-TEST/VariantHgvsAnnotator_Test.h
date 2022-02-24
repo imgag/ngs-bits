@@ -894,6 +894,19 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_INSERTION));
 
+        // inframe insertion
+        alt.clear();
+        alt.push_back("GATA");
+        variant.setPos(195569089);
+        variant.setRef("G");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.380_381insTAT");
+        S_EQUAL(hgvs.hgvs_p, "p.Asn127_Tyr128insIle");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_INSERTION));
+
         Transcript t_2 = trans_CALCA();
 
         // frameshift deletion

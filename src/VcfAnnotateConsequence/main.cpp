@@ -137,8 +137,7 @@ private:
                         out << "Variant out of region for transcript " << t.name() <<", chromosome " << t.chr().str()
                             << " (" << t.start() << " - " << t.end() << "); ";
                         out << "Variant start: " << variant.start() << "; end: " << variant.end()
-                            << "; start of shifted variant: " << var_for_anno.start() << "; end: " << var_for_anno.end()
-                            << " " << variant.isDel() << endl;
+                            << "; start of shifted variant: " << var_for_anno.start() << "; end: " << var_for_anno.end() << endl;
                         out << "Considered region: " << region_start << " - " << region_end << endl;
                     }
                 }

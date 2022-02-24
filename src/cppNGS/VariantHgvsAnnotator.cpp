@@ -488,7 +488,7 @@ QString VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& transcr
     }
     else
     {
-        THROW(Exception, "Variant is too far up/downstream of transcript");
+        THROW(ArgumentException, "Variant is too far up/downstream of transcript");
     }
     return pos_hgvs_c;
 }
@@ -699,9 +699,9 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
         pos_trans_start = positions.at(0).toInt() - 1;
 
         //don't annotate deletions spanning two (or more) exons
-        if(positions.size() == 2)
+        if(positions.size() == 2 && variant.isDel())
         {
-            if(transcript.exonNumber(variant.start(), variant.end()) == -2)
+            if(transcript.exonNumber(variant.start(), variant.start()) != transcript.exonNumber(variant.end(), variant.end()))
             {
                 return "p.?";
             }
@@ -712,23 +712,20 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
         int pos_shift = 0;
 
         // get reference and observed sequence (from coding sequence)
-        Sequence seq_ref;
+        Sequence seq_ref = coding_sequence.mid(pos_trans_start - offset);
 
         if(variant.isDel())
         {
-            seq_ref = coding_sequence.mid(pos_trans_start - offset);
             seq_obs = seq_ref.left(offset) + seq_ref.mid(offset + frame_diff);
         }
         else if(variant.isIns())
         {
-            seq_ref = coding_sequence.mid(pos_trans_start - offset);
             Sequence alt = variant.alt(0).mid(1);
             if(!plus_strand) alt.reverseComplement();
             seq_obs = seq_ref.left(offset + 1) + alt + seq_ref.mid(offset + 1);
         }
         else
         {
-            seq_ref = coding_sequence.mid(pos_trans_start - offset);
             Sequence alt = variant.alt(0);
             if(!plus_strand) alt.reverseComplement();
             seq_obs = seq_ref.left(offset) + alt + seq_ref.mid(offset + variant.ref().length());
@@ -753,43 +750,73 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
         }
         else if(variant.isIns())
         {
-            aa_ref = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.left(3), variant.chr().isM()));
-            aa_obs = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.left(3), variant.chr().isM()));
+            QByteArray aa_ref_next;
+            QByteArray aa_obs_next;
 
-            QByteArray aa_ref_after = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(3, 3), variant.chr().isM()));
-            QByteArray aa_obs_after = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.mid(3 + frame_diff, 3), variant.chr().isM()));
+            //shift to the most C-terminal position possible
+            while(aa_obs == aa_ref && aa_obs_next == aa_ref_next && aa_obs != "Ter" && aa_ref != "Ter")
+            {
+                aa_ref = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.left(3), variant.chr().isM()));
+                aa_obs = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.left(3), variant.chr().isM()));
+                aa_ref_next = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(3, 3), variant.chr().isM()));
+                aa_obs_next = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.mid(3, 3), variant.chr().isM()));
+
+                if(aa_obs == aa_ref && aa_obs_next == aa_ref_next && aa_obs != "Ter")
+                {
+                    seq_obs = seq_obs.mid(3);
+                    seq_ref = seq_ref.mid(3);
+                    pos_shift += 3;
+                }
+            }
 
             //check for duplication
             int diff = 0;
             if(aa_obs == aa_ref) diff += 3;
+
+            QByteArray aa_ref_after = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(diff, 3), variant.chr().isM()));
+            QByteArray aa_obs_after = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.mid(diff + frame_diff, 3), variant.chr().isM()));
+
             QString inserted_sequence = translate(seq_obs.mid(diff, frame_diff));
             QString left_sequence;
-            if(pos_trans_start - offset - frame_diff > 0)
+            if(pos_trans_start + pos_shift - offset - frame_diff > 0)
             {
-                left_sequence = translate(coding_sequence.mid(pos_trans_start - offset - frame_diff + diff, frame_diff));
+                left_sequence = translate(coding_sequence.mid(pos_trans_start + pos_shift - offset - frame_diff + diff, frame_diff));
             }
             if(inserted_sequence == left_sequence)
             {
                 aa_ref = left_sequence.left(3).toUtf8();
-                aa_ref.append(QByteArray::number((pos_trans_start - offset - frame_diff + diff) / 3 + 1));
+                aa_ref.append(QByteArray::number((pos_trans_start + pos_shift - offset - frame_diff + diff) / 3 + 1));
                 if(left_sequence.length() > 3)
                 {
                     aa_ref.append("_" + left_sequence.right(3));
-                    aa_ref.append(QByteArray::number((pos_trans_start - offset + diff) / 3));
+                    aa_ref.append(QByteArray::number((pos_trans_start + pos_shift - offset + diff) / 3));
                 }
                 aa_obs = "dup";
             }
             else if(aa_obs == aa_ref && aa_obs_after == aa_ref_after)
             {
-                aa_ref.append(QByteArray::number(pos_trans_start / 3 + 1));
+                aa_ref.append(QByteArray::number((pos_trans_start + pos_shift) / 3 + 1));
+                aa_ref += "_" + toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(3, 3)))
+                        + QByteArray::number((pos_trans_start + pos_shift) / 3 + 2);
                 aa_obs = "ins" + inserted_sequence.toUtf8();
             }
-            //delins if first amino acid is changed by the insertion
-            else if(aa_obs_after == aa_ref_after)
+            else if(aa_obs_after == aa_ref && pos_trans_start + pos_shift - offset > 2)
             {
-                aa_ref.append(QByteArray::number(pos_trans_start / 3 + 1));
+                aa_ref = translate(coding_sequence.mid(pos_trans_start + pos_shift - offset - 3, 3)) +
+                        QByteArray::number((pos_trans_start + pos_shift) / 3) +
+                        "_" + aa_ref + QByteArray::number((pos_trans_start + pos_shift) / 3 + 1);
+                aa_obs = "ins" + inserted_sequence.toUtf8();
+            }
+            //delins if amino acid is changed by the insertion
+            else
+            {
+                aa_ref.append(QByteArray::number((pos_trans_start + pos_shift) / 3 + 1));
                 aa_obs = "delins" + translate(seq_obs.left(3 + frame_diff));
             }
+        }
+        else
+        {
+            aa_ref.append(QByteArray::number((pos_trans_start + pos_shift) / 3 + 1));
         }
 
         // frameshift deletion/insertion/deletion-insertion
@@ -804,8 +831,8 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
         // inframe deletion
         else if(variant.isDel())
         {
-            // more than one amino acid deleted
-            if(frame_diff > 3)
+            // more than one amino acid deleted or delins with 3 deleted bases
+            if(frame_diff > 3 || aa_obs != toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(frame_diff, 3))))
             {
                 aa_ref.append("_");
                 if(aa_obs == toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(frame_diff, 3))))
@@ -818,7 +845,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
                 aa_ref.append(QByteArray::number((pos_trans_start + pos_shift + frame_diff) / 3 + 1));
             }
 
-            // delin if first mismatched amino acid is not the first one after the deletion
+            // delins if first mismatched amino acid is not the first one after the deletion
             if(aa_obs != toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(frame_diff, 3))))
             {
                 aa_obs = "delins" + aa_obs;
@@ -828,17 +855,8 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
                 aa_obs = "del";
             }
         }
-        //inframe insertion
-        else if(variant.isIns())
-        {
-            if(!aa_obs.startsWith("delins") && aa_obs != "dup")
-            {
-                aa_ref += "_" + toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(3, 3)))
-                        + QByteArray::number((pos_trans_start + pos_shift) / 3 + 2);
-            }
-        }
         //inframe deletion-insertion, more than one amino acid deleted
-        else if(variant.ref().length() > (4 + pos_shift))
+        else if(!variant.isIns() && variant.ref().length() > (4 + pos_shift))
         {
             int offset_end = (offset + variant.ref().length() - 1) % 3;
             aa_ref.append("_");
@@ -865,7 +883,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
             }
         }
         //inframe deletion-insertion, more than one amino acid inserted
-        else if(variant.alt(0).length() > (4 + pos_shift))
+        else if(!variant.isIns() && variant.alt(0).length() > (4 + pos_shift))
         {
             aa_obs = "delins" + translate(seq_obs.left((variant.alt(0).length() - 1) + 1  - pos_shift));
         }
@@ -998,6 +1016,11 @@ Sequence VariantHgvsAnnotator::getCodingSequence(const Transcript& trans, const 
             int length = trans.utr3prime()[i].end() - start + 1;
             seq.append(genome_idx.seq(trans.chr(), start, length));
         }
+        //incomplete 3' end: add 30 bases from the reference sequence
+        if(trans.utr3prime().count() == 0)
+        {
+            seq.append(genome_idx.seq(trans.chr(), std::max(trans.start() - 30, 1), std::min(30, trans.start() - 1)));
+        }
     }
 
     for(int i=0; i<trans.codingRegions().count(); i++)
@@ -1014,6 +1037,11 @@ Sequence VariantHgvsAnnotator::getCodingSequence(const Transcript& trans, const 
             int start = trans.utr3prime()[i].start();
             int length = trans.utr3prime()[i].end() - start + 1;
             seq.append(genome_idx.seq(trans.chr(), start, length));
+        }
+        //incomplete 3' end: add 30 bases from the reference sequence
+        if(trans.utr3prime().count() == 0)
+        {
+            seq.append(genome_idx.seq(trans.chr(), trans.end() + 1, 30));
         }
     }
 
