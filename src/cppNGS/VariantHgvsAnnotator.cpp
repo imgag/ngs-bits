@@ -274,6 +274,25 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
     {
         hgvs.variant_consequence_type.insert(VariantConsequenceType::PROTEIN_ALTERING_VARIANT);
 
+        if(hgvs.variant_consequence_type.contains(VariantConsequenceType::THREE_PRIME_UTR_VARIANT) &&
+                hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT))
+        {
+            hgvs.variant_consequence_type.insert(VariantConsequenceType::STOP_LOST);
+        }
+
+        if(hgvs.hgvs_p == "p.Met1?")
+        {
+            hgvs.variant_consequence_type.insert(VariantConsequenceType::START_LOST);
+        }
+        else if(hgvs.hgvs_p.endsWith("Ter"))
+        {
+            hgvs.variant_consequence_type.insert(VariantConsequenceType::STOP_GAINED);
+        }
+        else if(hgvs.hgvs_p.contains("Ter"))
+        {
+            hgvs.variant_consequence_type.insert(VariantConsequenceType::STOP_LOST);
+        }
+
         if(hgvs.hgvs_p.contains("fs"))
         {
             hgvs.variant_consequence_type.insert(VariantConsequenceType::FRAMESHIFT_VARIANT);
@@ -284,14 +303,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
         }
         else if(variant.isIns())
         {
-            if(hgvs.hgvs_p.endsWith("Ter"))
-            {
-                hgvs.variant_consequence_type.insert(VariantConsequenceType::STOP_GAINED);
-            }
-            else
-            {
-                hgvs.variant_consequence_type.insert(VariantConsequenceType::INFRAME_INSERTION);
-            }
+            hgvs.variant_consequence_type.insert(VariantConsequenceType::INFRAME_INSERTION);
         }
         else
         {
@@ -339,7 +351,7 @@ QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript
         if((plus_strand && gen_pos >= transcript.start()) ||
                 (!plus_strand && gen_pos <= transcript.end()))
         {
-            pos_hgvs_c = getHgvsPosition(transcript.utr5prime(), hgvs, gen_pos, plus_strand, true);
+            pos_hgvs_c = getHgvsPosition(transcript.utr5prime(), hgvs, gen_pos, plus_strand, transcript.codingRegions(), true);
 
             if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
             {
@@ -349,7 +361,15 @@ QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript
             {
                 hgvs.variant_consequence_type.insert(VariantConsequenceType::FIVE_PRIME_UTR_VARIANT);
             }
-            pos_hgvs_c = "-" + pos_hgvs_c;
+
+            if(pos_hgvs_c.startsWith("+1-"))
+            {
+                pos_hgvs_c = pos_hgvs_c.mid(1);
+            }
+            else if(!pos_hgvs_c.startsWith("-1+"))
+            {
+                pos_hgvs_c = "-" + pos_hgvs_c;
+            }
         }
         else if((plus_strand && transcript.start() - gen_pos <= max_dist_to_transcript_) ||
                 (!plus_strand && gen_pos - transcript.end() <= max_dist_to_transcript_))
@@ -395,7 +415,21 @@ QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript
                 }
             }
 
-            pos_hgvs_c = "*" + getHgvsPosition(transcript.utr3prime(), hgvs, gen_pos, plus_strand, false, first_region);
+            pos_hgvs_c = getHgvsPosition(transcript.utr3prime(), hgvs, gen_pos, plus_strand, transcript.codingRegions(),
+                                         false, first_region);
+            if(pos_hgvs_c.startsWith("+"))
+            {
+                int cds_length = 0;
+                for(int i = 0; i < transcript.codingRegions().count(); i++)
+                {
+                    cds_length += transcript.codingRegions()[i].length();
+                }
+                pos_hgvs_c = "*" + QString::number(cds_length) + pos_hgvs_c;
+            }
+            else
+            {
+                pos_hgvs_c = "*" + pos_hgvs_c;
+            }
 
             if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
             {
@@ -435,7 +469,7 @@ QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript
             }
         }
 
-        pos_hgvs_c = getHgvsPosition(transcript.codingRegions(), hgvs, gen_pos, plus_strand, false, first_region);
+        pos_hgvs_c = getHgvsPosition(transcript.codingRegions(), hgvs, gen_pos, plus_strand, transcript.codingRegions(), false, first_region);
 
         if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
         {
@@ -459,7 +493,7 @@ QString VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& transcr
     {
         hgvs.variant_consequence_type.insert(VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT);
 
-        pos_hgvs_c = getHgvsPosition(transcript.regions(), hgvs, gen_pos, plus_strand, false);
+        pos_hgvs_c = getHgvsPosition(transcript.regions(), hgvs, gen_pos, plus_strand, transcript.regions(), false);
 
         if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
         {
@@ -494,7 +528,8 @@ QString VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& transcr
 }
 
 //determine the HGVS position string for a single genomic position in any part of the transcript
-QString VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand, bool utr_5, int first_region)
+QString VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand,
+                                              const BedFile& coding_regions, bool utr_5, int first_region)
 {
     bool in_exon = false;
 
@@ -539,13 +574,14 @@ QString VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, HgvsNomenc
     }
     else
     {
-        pos_hgvs_c = getPositionInIntron(regions, hgvs, gen_pos, plus_strand, utr_5, first_region);
+        pos_hgvs_c = getPositionInIntron(regions, hgvs, gen_pos, plus_strand, coding_regions, utr_5, first_region);
     }
     return pos_hgvs_c;
 }
 
 //determine the HGVS position string for a single genomic position in an intron
-QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, HgvsNomenclature& hgvs, int genomic_position, bool plus_strand, bool utr_5, int first_region)
+QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, HgvsNomenclature& hgvs, int genomic_position, bool plus_strand,
+                                                  const BedFile& coding_regions, bool utr_5, int first_region)
 {
     QString pos_in_intron;
     int closest_exon_pos = 0;
@@ -578,15 +614,27 @@ QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, HgvsNo
                 if(utr_5) hgvs.intron_number = regions.count() - i + first_region - 1;
                 else hgvs.intron_number = i + 1 + first_region;
 
-                if(dist_below <= dist_above)
+                if(utr_5)
                 {
-                    QString prefix = utr_5 ? "-" : "+";
-                    pos_in_intron = prefix + QString::number(dist_below);
+                    if(dist_below < dist_above)
+                    {
+                        pos_in_intron = "-" + QString::number(dist_below);
+                    }
+                    else
+                    {
+                        pos_in_intron = "+" + QString::number(dist_above);
+                    }
                 }
                 else
                 {
-                    QString prefix = utr_5 ? "+" : "-";
-                    pos_in_intron = prefix + QString::number(dist_above);
+                    if(dist_below <= dist_above)
+                    {
+                        pos_in_intron = "+" + QString::number(dist_below);
+                    }
+                    else
+                    {
+                        pos_in_intron = "-" + QString::number(dist_above);
+                    }
                 }
                 break;
             }
@@ -596,18 +644,104 @@ QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, HgvsNo
                 else hgvs.intron_number = regions.count() - i + first_region - 1;
 
                 closest_exon_pos += regions[i+1].length();
-                if(dist_above <= dist_below)
-                {                    
-                    QString prefix = utr_5 ? "-" : "+";
-                    pos_in_intron = prefix + QString::number(dist_above);
+
+                if(utr_5)
+                {
+                    if(dist_above < dist_below)
+                    {
+                        pos_in_intron = "-" + QString::number(dist_above);
+                    }
+                    else
+                    {
+                        pos_in_intron = "+" + QString::number(dist_below);
+                    }
                 }
                 else
                 {
-                    QString prefix = utr_5 ? "+" : "-";
-                    pos_in_intron = prefix + QString::number(dist_below);
+                    if(dist_above <= dist_below)
+                    {
+                        pos_in_intron = "+" + QString::number(dist_above);
+                    }
+                    else
+                    {
+                        pos_in_intron = "-" + QString::number(dist_below);
+                    }
                 }
             }
         }
+    }
+
+    //special case: utr and coding regions on completely different exons, position on intron between them
+    if(!pos_found) //only happens in the case stated above, when regions are 5 or 3 prime utr
+    {
+        //position on intron between 5 prime utr and first cds exon
+        if(utr_5)
+        {
+            //strand information was reverted for 5 prime utr
+            if(plus_strand)
+            {
+                int dist_below = genomic_position - coding_regions[coding_regions.count()-1].end();
+                int dist_above = regions[0].start() - genomic_position;
+
+                if(dist_below < dist_above)
+                {
+                    pos_in_intron = "+1-" + QString::number(dist_below);
+                }
+                else
+                {
+                    pos_in_intron = "-1+" + QString::number(dist_above);
+                }
+            }
+            else
+            {
+                int dist_below = genomic_position - regions[regions.count()-1].end();
+                int dist_above = coding_regions[0].start() - genomic_position;
+
+                if(dist_below <= dist_above)
+                {
+                    pos_in_intron = "-1+" + QString::number(dist_below);
+                }
+                else
+                {
+                    pos_in_intron = "+1-" + QString::number(dist_above);
+                }
+            }
+            hgvs.intron_number = regions.count();
+        }
+        //position on intron between last cds exon and 3 prime utr
+        else
+        {
+            if(plus_strand)
+            {
+                int dist_below = genomic_position - coding_regions[coding_regions.count()-1].end();
+                int dist_above = regions[0].start() - genomic_position;
+
+                if(dist_below <= dist_above)
+                {
+                    pos_in_intron = "+" + QString::number(dist_below);
+                }
+                else
+                {
+                    pos_in_intron = "1-" + QString::number(dist_above);
+                }
+            }
+            else
+            {
+                int dist_below = genomic_position - regions[regions.count()-1].end();
+                int dist_above = coding_regions[0].start() - genomic_position;
+
+                if(dist_below < dist_above)
+                {
+                    pos_in_intron = "1-" + QString(dist_below);
+                }
+                else
+                {
+                    pos_in_intron = "+" + QString::number(dist_above);
+                }
+            }
+            hgvs.intron_number = first_region;
+        }
+        return pos_in_intron;
     }
 
     //annotate position according to closest exon
@@ -638,7 +772,7 @@ QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, HgvsNo
 }
 
 //translate a DNA sequence into an amino acid sequence
-QByteArray VariantHgvsAnnotator::translate(const Sequence& seq, bool is_mito)
+QByteArray VariantHgvsAnnotator::translate(const Sequence& seq, bool is_mito, bool end_at_stop)
 {
     if(seq.length() % 3 != 0) THROW(ArgumentException, "Coding sequence length must be multiple of three.")
 
@@ -647,6 +781,9 @@ QByteArray VariantHgvsAnnotator::translate(const Sequence& seq, bool is_mito)
     for(int i=0; i<seq.length(); i+=3)
     {
         aa_seq.append(toThreeLetterCode(NGSHelper::translateCodon(seq.mid(i, 3), is_mito)));
+
+        //only translate up to termination codon
+        if(end_at_stop && aa_seq.right(3) == "Ter") break;
     }
     return aa_seq;
 }
@@ -686,8 +823,33 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
         //translate the observed sequence codon
         aa_obs = toThreeLetterCode(NGSHelper::translateCodon(seq_obs, variant.chr().isM()));
 
-        if(aa_obs == aa_ref) aa_obs = "=";
-        else if(aa_ref == "Met" && pos_trans_start < 3) aa_obs = "?";
+        if(aa_obs == aa_ref)
+        {
+            aa_obs = "=";
+        }
+        else if(aa_ref == "Met" && pos_trans_start < 3)
+        {
+            aa_obs = "?";
+        }
+        else if(aa_ref == "Ter")
+        {
+            aa_obs.append("extTer");
+            bool stop_found = false;
+            for(int i = pos_trans_start - offset + 3; i < coding_sequence.length() - 2; i += 3)
+            {
+                if(NGSHelper::translateCodon(coding_sequence.mid(i, 3), variant.chr().isM()) == "*")
+                {
+                    stop_found = true;
+                    int stop_pos = i - (pos_trans_start - offset);
+                    aa_obs.append(QByteArray::number(stop_pos / 3));
+                    break;
+                }
+            }
+            if(!stop_found)
+            {
+                aa_obs.append("?");
+            }
+        }
 
         aa_ref.append(QByteArray::number(pos_trans_start / 3 + 1));
     }
@@ -810,8 +972,30 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
             //delins if amino acid is changed by the insertion
             else
             {
+                //extension if changed amino acid was stop codon
+                if(aa_ref == "Ter")
+                {
+                    aa_obs.append("extTer");
+                    bool stop_found = false;
+                    for(int i = 3; i < seq_obs.length() - 2; i += 3)
+                    {
+                        if(NGSHelper::translateCodon(seq_obs.mid(i, 3), variant.chr().isM()) == "*")
+                        {
+                            stop_found = true;
+                            aa_obs.append(QByteArray::number(i / 3));
+                            break;
+                        }
+                    }
+                    if(!stop_found)
+                    {
+                        aa_obs.append("?");
+                    }
+                }
+                else
+                {
+                    aa_obs = "delins" + translate(seq_obs.left(3 + frame_diff));
+                }
                 aa_ref.append(QByteArray::number((pos_trans_start + pos_shift) / 3 + 1));
-                aa_obs = "delins" + translate(seq_obs.left(3 + frame_diff));
             }
         }
         else
@@ -822,10 +1006,31 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
         // frameshift deletion/insertion/deletion-insertion
         if(frame_diff % 3 != 0)
         {
-            //special case if first changed amino acid is changed into a stop codon: describe as substitution
-            if(aa_obs != "Ter")
+            //special case if deleted amino acid is Met at translation start site
+            if(aa_ref == "Met1")
             {
-               aa_obs = "fs";
+                aa_obs = "?";
+            }
+            //special case if first changed amino acid is changed into a stop codon: describe as substitution
+            else if(aa_obs != "Ter")
+            {
+               aa_obs = aa_obs + "fs" + "Ter";
+
+               //search for stop codon in new reading frame
+               bool stop_found = false;
+               for(int i = 3; i < seq_obs.length() - 2; i += 3)
+               {
+                   if(NGSHelper::translateCodon(seq_obs.mid(i, 3), variant.chr().isM()) == "*")
+                   {
+                       stop_found = true;
+                       aa_obs.append(QByteArray::number(i / 3 + 1));
+                       break;
+                   }
+               }
+               if(!stop_found)
+               {
+                   aa_obs.append("?");
+               }
             }
         }
         // inframe deletion
@@ -834,19 +1039,54 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
             // more than one amino acid deleted or delins with 3 deleted bases
             if(frame_diff > 3 || aa_obs != toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(frame_diff, 3))))
             {
+                int deletion_length = frame_diff;
                 aa_ref.append("_");
                 if(aa_obs == toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(frame_diff, 3))))
                 {
                     pos_shift -= 3;
                 }
-                aa_ref.append(toThreeLetterCode(NGSHelper::translateCodon(coding_sequence.mid(pos_trans_start - offset +
-                                                                                              pos_shift + frame_diff, 3),
-                                                                          variant.chr().isM())));
-                aa_ref.append(QByteArray::number((pos_trans_start + pos_shift + frame_diff) / 3 + 1));
+                else
+                {
+                    deletion_length += 3;
+                }
+
+                QByteArray deleted_aa_seq = translate(seq_ref.left(deletion_length), variant.chr().isM(), true);
+
+                if(deleted_aa_seq.endsWith("Ter"))
+                {
+                    aa_ref.append("Ter" + QByteArray::number((pos_trans_start + pos_shift + deleted_aa_seq.length()) / 3 + 1));
+                }
+                else
+                {
+                    aa_ref.append(toThreeLetterCode(NGSHelper::translateCodon(coding_sequence.mid(pos_trans_start - offset +
+                                                                                                  pos_shift + frame_diff, 3),
+                                                                              variant.chr().isM())));
+                    aa_ref.append(QByteArray::number((pos_trans_start + pos_shift + frame_diff) / 3 + 1));
+                }
             }
 
+            if(aa_ref.startsWith("Ter"))
+            {
+                aa_obs.append("extTer");
+
+                //search for stop codon in extension
+                bool stop_found = false;
+                for(int i = 3; i < seq_obs.length() - 2; i += 3)
+                {
+                    if(NGSHelper::translateCodon(seq_obs.mid(i, 3), variant.chr().isM()) == "*")
+                    {
+                        stop_found = true;
+                        aa_obs.append(QByteArray::number(i / 3 + 1));
+                        break;
+                    }
+                }
+                if(!stop_found)
+                {
+                    aa_obs.append("?");
+                }
+            }
             // delins if first mismatched amino acid is not the first one after the deletion
-            if(aa_obs != toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(frame_diff, 3))))
+            else if(aa_obs != toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(frame_diff, 3))))
             {
                 aa_obs = "delins" + aa_obs;
             }
@@ -917,7 +1157,7 @@ void VariantHgvsAnnotator::annotateProtSeqCsqSnv(HgvsNomenclature& hgvs)
         hgvs.variant_consequence_type.insert(VariantConsequenceType::PROTEIN_ALTERING_VARIANT);
     }
 
-    if(hgvs.hgvs_p.contains("Met") && hgvs.hgvs_p.endsWith("?"))
+    if(hgvs.hgvs_p == "p.Met1?")
     {
         hgvs.variant_consequence_type.insert(VariantConsequenceType::START_LOST);
     }

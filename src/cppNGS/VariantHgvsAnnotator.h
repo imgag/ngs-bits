@@ -155,8 +155,8 @@ private:
 
     QString annotateRegionsCoding(const Transcript& transcript, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand);
     QString annotateRegionsNonCoding(const Transcript& transcript, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand);
-    QString getHgvsPosition(const BedFile& regions, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand, bool utr_5 = false, int first_region = 0);
-    QString getPositionInIntron(const BedFile& regions, HgvsNomenclature& hgvs, int genomic_position, bool plus_strand, bool utr_5 = false, int first_region = 0);
+    QString getHgvsPosition(const BedFile& regions, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand, const BedFile& coding_regions, bool utr_5 = false, int first_region = 0);
+    QString getPositionInIntron(const BedFile& regions, HgvsNomenclature& hgvs, int genomic_position, bool plus_strand, const BedFile &coding_regions, bool utr_5 = false, int first_region = 0);
     QString getHgvsProteinAnnotation(const VcfLine& variant, const FastaFileIndex& genome_idx, const QString& pos_hgvs_c, const Transcript& transcript, bool plus_strand);
 
     QByteArray toThreeLetterCode(QChar aa_one_letter_code);
@@ -176,7 +176,7 @@ public:
     HgvsNomenclature variantToHgvs(const Transcript& transcript, VcfLine &variant, const FastaFileIndex& genome_idx);
     HgvsNomenclature variantToHgvs(const Transcript& transcript, Variant& variant, const FastaFileIndex& genome_idx);
 
-    QByteArray translate(const Sequence& seq, bool is_mito = false);
+    QByteArray translate(const Sequence& seq, bool is_mito = false, bool end_at_stop = true);
     Sequence getCodingSequence(const Transcript& trans, const FastaFileIndex& genome_idx, bool add_utr_3 = false);
 };
 

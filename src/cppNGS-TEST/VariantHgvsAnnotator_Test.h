@@ -185,7 +185,7 @@ private slots:
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.1021T>C");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
-        S_EQUAL(hgvs.hgvs_p, "p.Ter341Gln");
+        S_EQUAL(hgvs.hgvs_p, "p.Ter341GlnextTer7");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::STOP_LOST));
         I_EQUAL(hgvs.exon_number, 9);
@@ -340,7 +340,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.105del");
-        S_EQUAL(hgvs.hgvs_p, "p.Gln35fs");
+        S_EQUAL(hgvs.hgvs_p, "p.Gln35HisfsTer9");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
@@ -356,7 +356,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.678del");
-        S_EQUAL(hgvs.hgvs_p, "p.Val227fs");
+        S_EQUAL(hgvs.hgvs_p, "p.Val227CysfsTer39");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
@@ -372,7 +372,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.703_706del");
-        S_EQUAL(hgvs.hgvs_p, "p.Thr235fs");
+        S_EQUAL(hgvs.hgvs_p, "p.Thr235TrpfsTer30");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
@@ -430,8 +430,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.762_763insGGGTGACAGAGTGACACCATCTCTTGAAAGAGAGAGAGAGAGAGAG");
-        //S_EQUAL(hgvs.hgvs_p, "p.Lys255GlyfsTer2");
-        S_EQUAL(hgvs.hgvs_p, "p.Lys255fs");
+        S_EQUAL(hgvs.hgvs_p, "p.Lys255GlyfsTer2");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
@@ -529,7 +528,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.635_636insA");
-        S_EQUAL(hgvs.hgvs_p, "p.Ser212fs");
+        S_EQUAL(hgvs.hgvs_p, "p.Ser212ArgfsTer7");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
@@ -860,7 +859,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.542del");
-        S_EQUAL(hgvs.hgvs_p, "p.Asp181fs");
+        S_EQUAL(hgvs.hgvs_p, "p.Asp181AlafsTer3");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
@@ -918,7 +917,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.209_212del");
-        S_EQUAL(hgvs.hgvs_p, "p.Gln70fs");
+        S_EQUAL(hgvs.hgvs_p, "p.Gln70ArgfsTer20");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
@@ -934,7 +933,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.361del");
-        S_EQUAL(hgvs.hgvs_p, "p.Arg121fs");
+        S_EQUAL(hgvs.hgvs_p, "p.Arg121GlyfsTer19");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
@@ -966,7 +965,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.135_136insTCAGT");
-        S_EQUAL(hgvs.hgvs_p, "p.Glu46fs");
+        S_EQUAL(hgvs.hgvs_p, "p.Glu46SerfsTer18");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
@@ -982,7 +981,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.136_137insTCAGT");
-        S_EQUAL(hgvs.hgvs_p, "p.Glu46fs");
+        S_EQUAL(hgvs.hgvs_p, "p.Glu46ValfsTer18");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
@@ -998,7 +997,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.137_138insTCAGT");
-        S_EQUAL(hgvs.hgvs_p, "p.Glu46fs");
+        S_EQUAL(hgvs.hgvs_p, "p.Glu46AspfsTer3");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
@@ -1145,7 +1144,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.631delinsAA");
-        S_EQUAL(hgvs.hgvs_p, "p.Ala211fs");
+        S_EQUAL(hgvs.hgvs_p, "p.Ala211AsnfsTer30");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
@@ -1161,7 +1160,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.310_311delinsG");
-        S_EQUAL(hgvs.hgvs_p, "p.Leu104fs");
+        S_EQUAL(hgvs.hgvs_p, "p.Leu104GlyfsTer168");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
@@ -1299,6 +1298,11 @@ private slots:
                          "IleIleIleMetThrThrThrThrAsnAsnLysLysValValValValAlaAla"
                          "AlaAlaAspAspGluGluGlyGlyGlyGly";
 
-        S_EQUAL(annotator.translate(dna_seq), aa_seq);
+        S_EQUAL(annotator.translate(dna_seq, false, false), aa_seq);
+
+        dna_seq = "TTTTTCTTATTGCTTCTCCTACTGTCTTCCTCATCGAGTAGCTATTACTAA";
+        aa_seq = "PhePheLeuLeuLeuLeuLeuLeuSerSerSerSerSerSerTyrTyrTer";
+
+        S_EQUAL(annotator.translate(dna_seq, false, true), aa_seq);
     }
 };
