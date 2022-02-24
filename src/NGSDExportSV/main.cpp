@@ -30,6 +30,8 @@ public:
 		addFlag("test", "Uses the test database instead of on the production database.");
 
 		changeLog(2022, 2, 10, "Initial struct.");
+		changeLog(2022, 2, 18, "Implemented tool.");
+		changeLog(2022, 2, 24, "Changed SV break point output format.");
 	}
 
 	void collapseSvDensity(QString output_folder, QHash<Chromosome, QMap<int,int>> sv_density, const QStringList& chromosomes)
@@ -40,6 +42,7 @@ public:
 		double debug_time_collapse_density = 0;
 		timer_collapse_density.start();
 		BedFile sv_density_file;
+		sv_density_file.appendHeader("#track graphtype=bar autoScale=on windowingFunction=none coords=0 name=\"SV break point density\"");
 
 		//iterate over all chromosomes
 		foreach (const QString& chr_str, chromosomes)
@@ -71,7 +74,7 @@ public:
 					else
 					{
 						//either density value changed or new segment --> finish old segment and start new entry
-						sv_density_file.append(BedLine(chr, start + 1, end + 1, QByteArrayList() << QByteArray::number(density_value))); // +1 because BEDPE is 0-based and method requires 1-based positions
+						sv_density_file.append(BedLine(chr, start + 1, end + 1, QByteArrayList() << "." << QByteArray::number(density_value))); // +1 because BEDPE is 0-based and method requires 1-based positions
 						start = pos;
 						end = pos;
 						density_value = current_density.value(pos);
@@ -82,7 +85,7 @@ public:
 		debug_time_collapse_density += timer_collapse_density.elapsed();
 
 		//write to file
-		sv_density_file.store(QDir(output_folder).filePath("sv_breakpoint_density.bed"), false);
+		sv_density_file.store(QDir(output_folder).filePath("sv_breakpoint_density.igv"), false);
 
 		std_out << "Collapsing SV density took " << QByteArray::number(debug_time_collapse_density) << "s" << endl;
 	}

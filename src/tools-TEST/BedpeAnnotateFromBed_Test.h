@@ -1,6 +1,5 @@
 #include "TestFramework.h"
 #include "Settings.h"
-#include "NGSD.h"
 
 TEST_CLASS(BedpeAnnotateFromBed_Test)
 {

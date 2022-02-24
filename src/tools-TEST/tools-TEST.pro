@@ -133,7 +133,8 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     BedLiftOver_Test.h \
     BedpeSort_Test.h \
     NGSDExportSV_Test.h \
-    BedpeAnnotateCounts_Test.h
+    BedpeAnnotateCounts_Test.h \
+    BedpeAnnotateBreakpointDensity.h
 
 SOURCES += \
     main.cpp

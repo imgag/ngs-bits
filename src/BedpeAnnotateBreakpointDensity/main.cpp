@@ -23,7 +23,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Annotates a BEDPE file with breakpoint density.");
-		addInfile("bed", "BED file containing break point density.", false);
+		addInfile("density", "IGV density file containing break point density.", false);
 		//optional
 		addInfile("in", "Input BEDPE file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output BEDPE file. If unset, writes to STDOUT.", true);
@@ -36,14 +36,15 @@ public:
 	{
 		//init
 		QString in = getInfile("in");
-		QString bed = getInfile("bed");
+		QString density_file_path = getInfile("density");
 		QString out = getOutfile("out");
+		int idx_density_column = 1;
 
 		//load annotation database
-		BedFile anno_file;
-		anno_file.load(bed);
-		if (!anno_file.isSorted()) anno_file.sort();
-		ChromosomalIndex<BedFile> anno_index(anno_file);
+		BedFile density_file;
+		density_file.load(density_file_path);
+		if (!density_file.isSorted()) density_file.sort();
+		ChromosomalIndex<BedFile> anno_index(density_file);
 
 		//process BEDPE file
 		BedpeFile bedpe_file;
@@ -67,73 +68,43 @@ public:
 		for(int i=0; i<bedpe_file.count(); ++i)
 		{
 			BedpeLine line = bedpe_file[i];
-			BedFile region;
-			region.append(BedLine(line.chr1(), line.start1() + 1, line.end1() + 1));
+
+			QByteArrayList density_annotation;
+
+
+			// determine density for first break point
+			QVector<int> density_bp1;
+			QVector<int> indices = anno_index.matchingIndices(line.chr1(), line.start1() + 1, line.end1() + 1);
+			//get all density values
+			foreach(int index, indices)
+			{
+				density_bp1 << Helper::toInt(density_file[index].annotations()[idx_density_column], "SV break point density (BP1)", QByteArray::number(i));
+			}
+			density_annotation << QByteArray::number((*std::max_element(density_bp1.begin(), density_bp1.end())));
+
+			//determine density for second break point
+			//(insertions only have 1 breakpoint)
 			if (line.type() != StructuralVariantType::INS)
 			{
-				//insertions only have 1 breakpoint
-				region.append(BedLine(line.chr2(), line.start2() + 1, line.end2() + 1));
-			}
-
-			//determine annotations
-			QByteArrayList additional_annotations;
-
-			for(int j=0; j<region.count(); ++j)
-			{
-				BedLine& line = region[j];
-				QVector<int> indices = anno_index.matchingIndices(line.chr(), line.start(), line.end());
+				QVector<int> density_bp2;
+				indices = anno_index.matchingIndices(line.chr2(), line.start2() + 1, line.end2() + 1);
+				//get all density values
 				foreach(int index, indices)
 				{
-					const BedLine& match = anno_file[index];
-					bool anno_exists = match.annotations().count()>i_col;
-					if (anno_exists)
-					{
-						additional_annotations << match.annotations()[i_col];
-					}
+					density_bp2 << Helper::toInt(density_file[index].annotations()[idx_density_column], "SV break point density (BP2)", QByteArray::number(i));
 				}
+				density_annotation << QByteArray::number((*std::max_element(density_bp2.begin(), density_bp2.end())));
 			}
 
-			// format additional annotation
-			if (max_value)
-			{
-				if (additional_annotations.size() > 0)
-				{
-					double max_value = Helper::toDouble(additional_annotations.at(0));
-					for (int i = 1; i < additional_annotations.size(); ++i)
-					{
-						max_value = std::max(max_value, Helper::toDouble(additional_annotations.at(i)));
-					}
-					// format value
-					additional_annotations = QByteArrayList() << QByteArray::number(max_value, 'f', (fmod(max_value, 1) == 0.0)? 0: 4);
-				}
-			}
-
-			if (no_duplicates)
-			{
-				std::sort(additional_annotations.begin(), additional_annotations.end());
-				additional_annotations.erase(std::unique(additional_annotations.begin(), additional_annotations.end()), additional_annotations.end());
-			}
-
-			QByteArray additional_annotation_string = additional_annotations.join(";");
-
-			if (url_decode)
-			{
-				additional_annotation_string = VcfFile::decodeInfoValue(additional_annotation_string).toUtf8();
-			}
-
-			if (replace_underscore)
-			{
-				additional_annotation_string = additional_annotation_string.replace("_", " ");
-			}
-
+			//add annotation
 			QList<QByteArray> annotations = line.annotations();
 			if (i_annotation > -1)
 			{
-				annotations[i_annotation] = additional_annotation_string;
+				annotations[i_annotation] = density_annotation.join(" / ");
 			}
 			else
 			{
-				annotations.append(additional_annotation_string);
+				annotations.append(density_annotation.join(" / "));
 			}
 			line.setAnnotations(annotations);
 

@@ -32,7 +32,7 @@ private slots:
 		COMPARE_FILES("out/NGSDExportSV/sv_insertion.bedpe", TESTDATA("data_out/NGSDExportSV/sv_insertion.bedpe"));
 		COMPARE_FILES("out/NGSDExportSV/sv_inversion.bedpe", TESTDATA("data_out/NGSDExportSV/sv_inversion.bedpe"));
 		COMPARE_FILES("out/NGSDExportSV/sv_translocation.bedpe", TESTDATA("data_out/NGSDExportSV/sv_translocation.bedpe"));
-		COMPARE_FILES("out/NGSDExportSV/sv_breakpoint_density.bed", TESTDATA("data_out/NGSDExportSV/sv_breakpoint_density.bed"));
+		COMPARE_FILES("out/NGSDExportSV/sv_breakpoint_density.igv", TESTDATA("data_out/NGSDExportSV/sv_breakpoint_density.igv"));
 	}
 
 
