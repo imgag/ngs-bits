@@ -35,11 +35,11 @@ public:
         addString("id_column", "Name of the ID column in annotation file. (If "" it will be ignored in output file, alternative output name can be specified by old_id_column_name=new_name", true, "");
         addString("id_prefix", "Prefix for INFO id(s) in output VCF file.", true, "");
 		addFlag("allow_missing_header", "If set the execution is not aborted if a INFO header is missing in annotation file.");
-		addInt("threads", "The number of threads used to process VCF lines (two additional threads are used for reading/writing).", true, 1);
+		addInt("threads", "The number of threads used to process VCF lines.", true, 1);
 		addInt("block_size", "Number of lines processed in one chunk.", true, 10000);
 		addInt("prefetch", "Maximum number of chunks that may be pre-fetched into memory.", true, 64);
 
-		changeLog(2022, 2, 25, "Refactoring and change to event-driven implementation (improved scaling with many threads)"); //TODO
+		changeLog(2022, 2, 24, "Refactoring and change to event-driven implementation (improved scaling with many threads)");
 		changeLog(2021, 9, 20, "Prefetch only part of input file (to save memory).");
 		changeLog(2020, 4, 11, "Added multithread support.");
         changeLog(2019, 8, 19, "Added support for multiple annotations files through config file.");
