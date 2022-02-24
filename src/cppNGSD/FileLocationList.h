@@ -1,11 +1,11 @@
 #ifndef FILELOCATIONLIST_H
 #define FILELOCATIONLIST_H
 
-#include "cppNGS_global.h"
+#include "cppNGSD_global.h"
 #include <QStringList>
 #include "FileLocation.h"
 
-class CPPNGSSHARED_EXPORT FileLocationList
+class CPPNGSDSHARED_EXPORT FileLocationList
 	: public QList<FileLocation>
 {
 public:

@@ -674,6 +674,7 @@ void NGSDReplicationWidget::replicatePostProduction()
 			}
 		}
 		addLine("  Table 'variant_validation' added: "+QString::number(c_add));
+		QApplication::processEvents();
 	}
 
 	//variant_publication
@@ -714,6 +715,7 @@ void NGSDReplicationWidget::replicatePostProduction()
 			}
 		}
 		addLine("  Table 'variant_publication' added: "+QString::number(c_add));
+		QApplication::processEvents();
 	}
 
 	//variant_classification
@@ -752,6 +754,7 @@ void NGSDReplicationWidget::replicatePostProduction()
 			}
 		}
 		addLine("  Table 'variant_classification' added: "+QString::number(c_add));
+		QApplication::processEvents();
 	}
 
 	//report config (small variants, CNVs, SVs)
