@@ -1,5 +1,4 @@
-#track graphtype=bar autoScale=on windowingFunction=none coords=0
-Chromosome	Start	End	Feature	SV break point density
+#track graphtype=bar autoScale=on windowingFunction=none coords=0 name="SV break point density"
 chr1	5	51	.	1
 chr1	1000	1021	.	2
 chr1	12000	13001	.	2

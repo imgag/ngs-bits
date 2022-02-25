@@ -1819,7 +1819,7 @@ private slots:
 		// default maximum
 		FilterSvBreakpointDensityNGSD filter;
 		filter.apply(svs, result);
-		I_EQUAL(result.countPassing(), 77);
+		I_EQUAL(result.countPassing(), 72);
 	}
 
 	void FilterSvBreakpointDensityNGSD_custom()
@@ -1832,9 +1832,10 @@ private slots:
 
 		// custom maximum
 		FilterSvBreakpointDensityNGSD filter;
-		filter.setInteger("max_density", 100);
+		filter.setInteger("max_density", 257);
+		filter.setBool("remove_strict", true);
 		filter.apply(svs, result);
-		I_EQUAL(result.countPassing(), 80);
+		I_EQUAL(result.countPassing(), 73);
 	}
 
 	void FilterSvTrio_apply()
