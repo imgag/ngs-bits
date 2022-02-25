@@ -34,6 +34,8 @@ jobs:
     - name: Create a settings.ini file for tests
       run: .github/workflows/settings.sh
       shell: bash
+    - name: Download test files
+      run: make download_test_files
     - name: Start GSvar server and run tests
       run: |
         bin/GSvarServer -p=8443 -l=3 &

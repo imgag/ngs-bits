@@ -1018,7 +1018,7 @@ void VariantDetailsDockWidget::gnomadContextMenu(QPoint pos)
 	if (GSvarHelper::build()!=GenomeBuild::HG38) return;
 
 	QMenu menu;
-	QAction* a_v2 = menu.addAction("Lift-over to gnomaAD 2.1");
+	QAction* a_v2 = menu.addAction("Lift-over to gnomAD 2.1");
 
 	QAction* action = menu.exec(ui->gnomad->mapToGlobal(pos));
 	if (action==nullptr) return;
