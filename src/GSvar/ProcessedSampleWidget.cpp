@@ -736,7 +736,7 @@ void ProcessedSampleWidget::importSampleRelations()
 	}
 
 	//show result to user
-	int c_after = db.relatedSamples(s_id).count();
+	int c_after = db.getValue("SELECT count(*) FROM sample_relations WHERE sample1_id='"+QString::number(s_id)+"' OR sample2_id='"+QString::number(s_id)+"'").toInt();
 	QMessageBox::information(this, "Sample relation import", "Imported " + QString::number(c_after-c_before) + " sample relations from GenLab!" + error);
 
 	updateGUI();

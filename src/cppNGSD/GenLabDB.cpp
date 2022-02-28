@@ -412,8 +412,8 @@ QList<SampleRelation> GenLabDB::relatives(QString ps_name)
 			else if (relation=="MUTTER") relation = "parent-child";
 			else if (relation=="SCHWESTER") relation = "siblings";
 			else if (relation=="BRUDER") relation = "siblings";
-			else if (relation=="ZWILLINGSSCHWESTER") relation = "twins (monozygotic)";
-			else if (relation=="ZWILLINGSBRUDER") relation = "twins (monozygotic)";
+			else if (relation=="ZWILLINGSSCHWESTER") relation = "twins";
+			else if (relation=="ZWILLINGSBRUDER") relation = "twins";
 			else if (relation=="COUSIN") relation = "cousins";
 			else if (relation=="COUSINE") relation = "cousins";
 			else THROW(ProgrammingException, "Unhandled sample relation '" + relation + "'!");
