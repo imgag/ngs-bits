@@ -2931,7 +2931,7 @@ FilterCnvMaxLoglikelihood::FilterCnvMaxLoglikelihood()
 	name_ = "CNV maximum log-likelihood";
 	type_ = VariantType::CNVS;
 	description_ << QStringList() << "Filter for maximum log-likelihood" << "Can be used to display artefact CNVs only" << "Works only for tumor-normal pairs" ;
-	params_ << FilterParameter("max_ll", FilterParameterType::DOUBLE, 200, "Maixmum log-likelihood");
+	params_ << FilterParameter("max_ll", FilterParameterType::DOUBLE, 200.0, "Maixmum log-likelihood");
 	params_.last().constraints["min"] = "0.0";
 	params_ << FilterParameter("scale_by_regions", FilterParameterType::BOOL, false, "Scale log-likelihood by number of regions.");
 	checkIsRegistered();
