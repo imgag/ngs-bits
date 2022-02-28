@@ -835,6 +835,15 @@ class CPPNGSSHARED_EXPORT FilterCnvLoglikelihood
 		void apply(const CnvList& cnvs, FilterResult& result) const override;
 };
 
+class CPPNGSSHARED_EXPORT FilterCnvMaxLoglikelihood
+		: public FilterBase
+{
+public:
+	FilterCnvMaxLoglikelihood();
+	QString toText() const override;
+	void apply(const CnvList &cnvs, FilterResult &result) const override;
+};
+
 //Filter CNV q-value
 class CPPNGSSHARED_EXPORT FilterCnvQvalue
 	: public FilterBase
