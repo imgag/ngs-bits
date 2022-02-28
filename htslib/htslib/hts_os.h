@@ -1,7 +1,7 @@
 /// @file hts_os.h
 /// Operating System specific tweaks, for compatibility with POSIX.
 /*
-   Copyright (C) 2017, 2019 Genome Research Ltd.
+   Copyright (C) 2017, 2019-2020 Genome Research Ltd.
 
     Author: James Bonfield <jkb@sanger.ac.uk>
 
@@ -77,4 +77,10 @@ extern int is_cygpty(int fd);
 #define random rand
 #endif
 
+/* MSVC does not provide ssize_t in its <sys/types.h>. This ensures the type
+   is available (unless suppressed by defining HTS_NO_SSIZE_T first). */
+#if defined _MSC_VER && defined _INTPTR_T_DEFINED && !defined _SSIZE_T_DEFINED && !defined HTS_NO_SSIZE_T && !defined ssize_t
+#define ssize_t intptr_t
 #endif
+
+#endif // HTSLIB_HTS_OS_H
