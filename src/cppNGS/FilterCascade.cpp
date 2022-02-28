@@ -946,6 +946,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["CNV polymorphism region"] = &createInstance<FilterCnvCnpOverlap>;
 		output["CNV gene constraint"] = &createInstance<FilterCnvGeneConstraint>;
 		output["CNV gene overlap"] = &createInstance<FilterCnvGeneOverlap>;
+		output["CNV tumor CN change"] = &createInstance<FilterCnvTumorCopyNumberChange>;
 		output["CNV clonality"] = &createInstance<FilterCnvClonality>;
 		output["SV type"] = &createInstance<FilterSvType>;
 		output["SV remove chr type"] = &createInstance<FilterSvRemoveChromosomeType>;
@@ -3286,6 +3287,40 @@ void FilterCnvGeneConstraint::apply(const CnvList& cnvs, FilterResult& result) c
 			}
 		}
 		result.flags()[i] = any_gene_passed;
+	}
+}
+
+FilterCnvTumorCopyNumberChange::FilterCnvTumorCopyNumberChange()
+{
+	name_ = "CNV tumor CN change";
+	type_ = VariantType::CNVS;
+	description_ = QStringList() << "Filter based on CNV tumor copy number.";
+	params_ << FilterParameter("min_tumor_cn", FilterParameterType::INT, 0, "Minimum tumor copy number of the CNV");
+	params_ << FilterParameter("max_tumor_cn", FilterParameterType::INT, 10, "Maximum tumor copy number of the CNV.");
+
+	checkIsRegistered();
+}
+
+QString FilterCnvTumorCopyNumberChange::toText() const
+{
+	return name() + " min_tumor_cn=" + QString::number(getInt("min_tumor_cn")) + ", max_tumor_cn=" + QString::number(getInt("max_tumor_cn"));
+
+}
+
+void FilterCnvTumorCopyNumberChange::apply(const CnvList& cnvs, FilterResult &result) const
+{
+	if(!enabled_) return;
+
+	int i_tumor_cn = cnvs.annotationIndexByName("tumor_CN_change", true);
+	int min_cn = getInt("min_tumor_cn");
+	int max_cn = getInt("max_tumor_cn");
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+		bool ok = false;
+		int tumor_cn = cnvs[i].annotations()[i_tumor_cn].trimmed().toDouble(&ok);
+		if(!ok) continue;
+		result.flags()[i] = (tumor_cn >= min_cn) && (tumor_cn <= max_cn);
 	}
 }
 

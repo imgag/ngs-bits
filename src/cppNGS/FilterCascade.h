@@ -916,6 +916,16 @@ class CPPNGSSHARED_EXPORT FilterCnvGeneOverlap
 		QByteArrayList selectedOptions() const;
 };
 
+//Filters CNVs for tumor copy number
+class CPPNGSSHARED_EXPORT FilterCnvTumorCopyNumberChange
+		: public FilterBase
+{
+public:
+	FilterCnvTumorCopyNumberChange();
+	QString toText() const override;
+	void apply(const CnvList& cnvs, FilterResult &result) const override;
+};
+
 //Filters CNVs for clonality
 class CPPNGSSHARED_EXPORT FilterCnvClonality
 		: public FilterBase
