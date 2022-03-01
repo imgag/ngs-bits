@@ -76,6 +76,8 @@ void ThreadCoordinator::inputDone(int /*i*/)
 
 	connect(&timer_done_, SIGNAL(timeout()), this, SLOT(checkDone()));
 	timer_done_.start(100);
+
+	QTextStream(stdout) << "Reading input done" << endl;
 }
 
 void ThreadCoordinator::checkDone()
@@ -88,6 +90,8 @@ void ThreadCoordinator::checkDone()
 
 	//done > stop timer to prevent it from fireing again
 	timer_done_.stop();
+
+	QTextStream(stdout) << "Annotation jobs finished" << endl;
 
 	emit finished();
 }
