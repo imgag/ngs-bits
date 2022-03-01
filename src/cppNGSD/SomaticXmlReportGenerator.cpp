@@ -202,9 +202,9 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 		w.writeAttribute("name",  data.settings.target_region_filter.name); //sub panel target has been selected
 	}
 
-	for(int i=0; i<data.processing_system_roi.count(); ++i)
+	for(int i=0; i<data.settings.target_region_filter.regions.count(); ++i)
 	{
-		const BedLine& line = data.processing_system_roi[i];
+		const BedLine& line = data.settings.target_region_filter.regions[i];
 
 		w.writeStartElement("Region");
 		w.writeAttribute("chr", line.chr().strNormalized(true));
@@ -213,7 +213,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 		w.writeEndElement();
 	}
 
-	foreach(const QByteArray& gene, data.processing_system_genes)
+	foreach(const QByteArray& gene, data.settings.target_region_filter.genes)
 	{
 		GeneInfo gene_info = db.geneInfo(gene);
 		if(gene_info.symbol.isEmpty()) continue;
@@ -449,7 +449,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 				if(gene_info.symbol.isEmpty()) continue;
 				if(gene_info.hgnc_id.isEmpty()) continue; //genes that were withdrawn or cannot uniquely mapped to approved symbol
 
-				if(!data.processing_system_genes.contains(gene)) continue; //Include genes from target filter only
+				if(!data.settings.target_region_filter.genes.contains(gene)) continue; //Include genes from target filter only
 
 				w.writeStartElement("Gene");
 				w.writeAttribute("name", gene_info.symbol);

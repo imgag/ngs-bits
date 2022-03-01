@@ -35,13 +35,6 @@
         <Gene name="SPEN" id="HGNC:17575"/>
     </TargetRegion>
     <VariantList>
-        <Variant chr="chr2" start="178096717" end="178096717" ref="T" obs="C" af_tumor="0.1057" depth_tumor="389" af_normal="0.0000" depth_normal="603" effect="benign">
-            <Gene name="NFE2L2" id="HGNC:7782"/>
-            <TranscriptInformation transcript_id="ENST00000397062" gene="NFE2L2" type="missense_variant" hgvs_c="c.614A&gt;G" hgvs_p="p.Asp205Gly" exon="exon5/5" variant_type="missense_variant" main_transcript="true"/>
-            <TranscriptInformation transcript_id="ENST00000397063" gene="NFE2L2" type="missense_variant" hgvs_c="c.566A&gt;G" hgvs_p="p.Asp189Gly" exon="exon5/5" variant_type="missense_variant" main_transcript="false"/>
-            <TranscriptInformation transcript_id="ENST00000446151" gene="NFE2L2" type="missense_variant" hgvs_c="c.545A&gt;G" hgvs_p="p.Asp182Gly" exon="exon5/5" variant_type="missense_variant" main_transcript="false"/>
-            <TranscriptInformation transcript_id="ENST00000464747" gene="NFE2L2" type="missense_variant" hgvs_c="c.566A&gt;G" hgvs_p="p.Asp189Gly" exon="exon8/8" variant_type="missense_variant" main_transcript="false"/>
-        </Variant>
         <Variant chr="chr16" start="56870524" end="56870524" ref="A" obs="C" af_tumor="0.1254" depth_tumor="639" af_normal="0.0000" depth_normal="736">
             <Gene name="NUP93" id="HGNC:28958"/>
             <TranscriptInformation transcript_id="ENST00000308159" gene="NUP93" type="synonymous_variant" hgvs_c="c.1794A&gt;C" hgvs_p="p.Ile598=" exon="exon17/22" variant_type="synonymous_variant" main_transcript="true"/>

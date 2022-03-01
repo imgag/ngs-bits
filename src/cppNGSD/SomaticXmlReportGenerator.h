@@ -30,10 +30,6 @@ struct CPPNGSDSHARED_EXPORT SomaticXmlReportGeneratorData
 	double tumor_mutation_burden;
 	double mantis_msi;
 
-	//processing system information
-	BedFile processing_system_roi;
-	GeneSet processing_system_genes;
-
 
 	RtfSourceCode rtf_part_summary;
 	RtfSourceCode rtf_part_relevant_variants;

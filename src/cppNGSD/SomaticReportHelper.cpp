@@ -68,7 +68,7 @@ RtfSourceCode SomaticReportHelper::partCnvTable()
 		if(variant.genes().count() == 0) continue;
 
 		//gene names
-		GeneSet genes = settings_.processing_system_genes.intersect( db_.genesToApproved(variant.genes()) );
+		GeneSet genes = settings_.target_region_filter.genes.intersect( db_.genesToApproved(variant.genes()) );
 		std::sort(genes.begin(), genes.end());
 
 		if(genes.count() == 0) continue;
@@ -101,8 +101,8 @@ RtfSourceCode SomaticReportHelper::partCnvTable()
 		//tumor clonality
 		temp_row.addCell(800,QByteArray::number(variant.annotations().at(cnv_index_tumor_clonality_).toDouble(),'f',2).replace(".", ","), RtfParagraph().setHorizontalAlignment("c").setFontSize(14));
 
-
-		temp_row.addCell(5121,genes.join(", "), RtfParagraph().setItalic(true).setFontSize(14));
+		if(genes.count() < 25) temp_row.addCell(5121,genes.join(", "), RtfParagraph().setItalic(true).setFontSize(14));
+		else temp_row.addCell(5121, "> 25 Gene", RtfParagraph().setItalic(true).setFontSize(14));
 
 		cnv_table.addRow(temp_row);
 	}
@@ -488,7 +488,7 @@ void SomaticReportHelper::somaticCnvForQbic(QString path_target_folder)
 	{
 		const CopyNumberVariant& variant = cnvs_[i];
 
-		GeneSet genes_in_report = settings_.processing_system_genes.intersect(db_.genesToApproved(variant.genes()) );
+		GeneSet genes_in_report = settings_.target_region_filter.genes.intersect(db_.genesToApproved(variant.genes()) );
 
 		if(cnv_index_cnv_type_ < 0)
 		{
@@ -544,7 +544,7 @@ void SomaticReportHelper::somaticCnvForQbic(QString path_target_folder)
 		stream << "\t";
 
 		//genes in target region
-		GeneSet genes = settings_.processing_system_genes.intersect(db_.genesToApproved(variant.genes()) );
+		GeneSet genes = settings_.target_region_filter.genes.intersect(db_.genesToApproved(variant.genes()) );
 
 		QByteArrayList gene_effects;
 		for(const auto& gene : genes)
@@ -862,16 +862,16 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 		metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe Genpanel:", "n/a", "n/a", "Auswertungssoftware:", QCoreApplication::applicationName().toUtf8() + " " + QCoreApplication::applicationVersion().toUtf8()}, {2000,1480,1480,2000,2961}) );
 	}
 
-	QByteArray tum_cov_60x = "n/a";
-	QByteArray nor_cov_60x = "n/a";
+	RtfSourceCode tum_cov_60x = "n/a";
+	RtfSourceCode nor_cov_60x = "n/a";
 	try
 	{
-		tum_cov_60x = tumor_qcml_data_.value("QC:2000099",true).toString().toUtf8();
-		nor_cov_60x = normal_qcml_data_.value("QC:2000099",true).toString().toUtf8();
+		tum_cov_60x = tumor_qcml_data_.value("QC:2000099",true).toString().toUtf8() + "\%";
+		nor_cov_60x = normal_qcml_data_.value("QC:2000099",true).toString().toUtf8() + "\%";
 	}
 	catch(Exception)
 	{} //nothing to do here
-	metadata.addRow( RtfTableRow( {"Coverage 60x:", tum_cov_60x + "\%", nor_cov_60x + "\%", "ICD10:", icd10_diagnosis_code_.toUtf8()} ,{2000,1480,1480,2000,2961}) );
+	metadata.addRow( RtfTableRow( {"Coverage 60x:", tum_cov_60x, nor_cov_60x, "ICD10:", icd10_diagnosis_code_.toUtf8()} ,{2000,1480,1480,2000,2961}) );
 
 
 	if(settings_.report_config.targetRegionName() == "somatic_custom_panel")
@@ -1197,7 +1197,7 @@ RtfTable SomaticReportHelper::snvTable(const VariantList &vl, bool include_germl
 
 			if( settings_.target_region_filter.isValid() && !settings_.target_region_filter.regions.overlapsWith( cnv.chr(), cnv.start(), cnv.end() ) ) continue; //target region from GSvar filter widget
 
-			GeneSet genes = db_.genesToApproved( cnv.genes() ).intersect(settings_.processing_system_genes);
+			GeneSet genes = db_.genesToApproved( cnv.genes() ).intersect(settings_.target_region_filter.genes);
 
 			for(const auto& gene : genes)
 			{
@@ -1296,8 +1296,6 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	/*****************************
 	 * RELEVANT SOMATIC VARIANTS *
 	 *****************************/
-
-
 	doc_.addPart( partRelevantVariants() );
 	doc_.addPart(RtfParagraph("").setIndent(0,0,0).setFontSize(18).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).RtfCode());
 	doc_.newPage();
@@ -1353,9 +1351,6 @@ void SomaticReportHelper::storeXML(QString file_name)
 {
 	VariantList som_var_in_normal = SomaticReportSettings::filterGermlineVariants(germline_vl_, settings_);
 	SomaticXmlReportGeneratorData data(build_, settings_, somatic_vl_, som_var_in_normal, cnvs_);
-
-	data.processing_system_roi = settings_.processing_system_roi;
-	data.processing_system_genes = settings_.processing_system_genes;
 
 	data.tumor_content_histology = histol_tumor_fraction_ / 100.; //is stored as double between 0 and 1, NGSD contains percentages
 	data.tumor_content_snvs = getTumorContentBySNVs() / 100; //is stored as a double between 0 and 1, QCML file contains percentages
