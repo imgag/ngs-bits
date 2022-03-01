@@ -38,6 +38,7 @@ public:
 		addInt("threads", "The number of threads used to process VCF lines.", true, 1);
 		addInt("block_size", "Number of lines processed in one chunk.", true, 10000);
 		addInt("prefetch", "Maximum number of chunks that may be pre-fetched into memory.", true, 64);
+		addFlag("debug", "Enables debug output (use only with one thread).");
 
 		changeLog(2022, 2, 24, "Refactoring and change to event-driven implementation (improved scaling with many threads)");
 		changeLog(2021, 9, 20, "Prefetch only part of input file (to save memory).");
@@ -65,6 +66,7 @@ public:
 		params.threads = getInt("threads");
 		params.prefetch = getInt("prefetch");
 		params.block_size = getInt("block_size");
+		params.debug = getFlag("debug");
 
 		//check parameters
 		if (params.block_size < 1) THROW(ArgumentException, "Parameter 'block_size' has to be greater than zero!");
