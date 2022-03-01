@@ -14,6 +14,7 @@ struct Parameters
 	int prefetch;
 	int threads;
 	int block_size;
+	bool debug;
 };
 
 //Analysis data for worker thread

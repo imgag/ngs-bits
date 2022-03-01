@@ -38,8 +38,15 @@ ThreadCoordinator::ThreadCoordinator(QObject* parent, Parameters params, MetaDat
 	}
 }
 
+ThreadCoordinator::~ThreadCoordinator()
+{
+	if (params_.debug) QTextStream(stdout) << "Destroying ThreadCoordinator" << endl;
+}
+
 void ThreadCoordinator::read(int i)
 {
+	if (params_.debug) QTextStream(stdout) << "ThreadCoordinator::read(" << i << ")" << endl;
+
 	InputWorker* worker = new InputWorker(job_pool_[i], in_stream_, params_);
 	connect(worker, SIGNAL(error(int,QString)), this, SLOT(error(int,QString)));
 	connect(worker, SIGNAL(done(int)), this, SLOT(annotate(int)));
@@ -49,6 +56,8 @@ void ThreadCoordinator::read(int i)
 
 void ThreadCoordinator::annotate(int i)
 {
+	if (params_.debug) QTextStream(stdout) << "ThreadCoordinator::annotate(" << i << ")" << endl;
+
 	ChunkProcessor* worker = new ChunkProcessor(job_pool_[i], meta_);
 	connect(worker, SIGNAL(done(int)), this, SLOT(write(int)));
 	connect(worker, SIGNAL(error(int,QString)), this, SLOT(error(int,QString)));
@@ -57,6 +66,8 @@ void ThreadCoordinator::annotate(int i)
 
 void ThreadCoordinator::write(int i)
 {
+	if (params_.debug) QTextStream(stdout) << "ThreadCoordinator::write(" << i << ")" << endl;
+
 	OutputWorker* worker = new OutputWorker(job_pool_[i], out_stream_);
 	connect(worker, SIGNAL(error(int,QString)), this, SLOT(error(int,QString)));
 	connect(worker, SIGNAL(retry(int)), this, SLOT(write(int)));
