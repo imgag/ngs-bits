@@ -977,7 +977,19 @@ RtfSourceCode SomaticReportHelper::partPharmacoGenetics()
 					VariantTranscript trans = snv.transcriptAnnotations(i_co_sp)[0];
 
 					row.addCell(1200,snv.annotations().at(i_dbsnp),RtfParagraph().setFontSize(14));
-					row.addCell(800,trans.gene,RtfParagraph().setFontSize(14));
+					if(!trans.gene.isEmpty())
+					{
+						row.addCell( 800, trans.gene, RtfParagraph().setFontSize(14).setItalic(true) );
+					}
+					else if(key == "rs12248560") //has no gene annotated in VEP, however, we need CYP2C19 here
+					{
+						row.addCell( 800, "CYP2C19", RtfParagraph().setFontSize(14).setItalic(true) );
+					}
+					else
+					{
+						row.addCell( 800, "n/a", RtfParagraph().setFontSize(14).setItalic(true) );
+					}
+
 
 					if(!trans.hgvs_c.isEmpty() && !trans.hgvs_p.isEmpty())
 					{
