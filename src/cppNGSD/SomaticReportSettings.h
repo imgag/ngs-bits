@@ -22,8 +22,6 @@ struct CPPNGSDSHARED_EXPORT SomaticReportSettings
 
 	QMap<QByteArray, QByteArrayList> preferred_transcripts;
 
-	//target region of processing system
-	BedFile processing_system_roi;
 	//genes that lie in processing systems target
 	GeneSet processing_system_genes;
 

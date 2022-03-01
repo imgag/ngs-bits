@@ -127,7 +127,7 @@ RtfSourceCode SomaticReportHelper::partBillingTable()
 
 	table.addRow(RtfTableRow({"#Gene", "OMIM"}, {doc_.maxWidth()/2, doc_.maxWidth()/2}, RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader() );
 
-	BedFile target = settings_.processing_system_roi;
+	BedFile target = settings_.target_region_filter.regions;
 	target.merge();
 
 	BedFile ebm_genes_target = db_.genesToRegions(ebm_genes_,Transcript::SOURCE::ENSEMBL,"gene");

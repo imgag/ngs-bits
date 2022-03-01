@@ -3643,19 +3643,20 @@ void MainWindow::generateReportSomaticRTF()
 	somatic_report_settings_.normal_ps = ps_normal;
 
 	somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
-	if(ui_.filters->targetRegion().name != "somatic_custom_panel")
-	{
-		somatic_report_settings_.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(ps_tumor), false);
-		somatic_report_settings_.processing_system_genes = db.genesToApproved(GlobalServiceProvider::database().processingSystemGenes(db.processingSystemIdFromProcessedSample(ps_tumor), false), true);
-	}
-	else
-	{
-		somatic_report_settings_.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions( db.processingSystemId("somatic_custom_panel"), false);
-		somatic_report_settings_.processing_system_genes = db.genesToApproved( GlobalServiceProvider::database().processingSystemGenes( db.processingSystemId("somatic_custom_panel"), false), true );
-	}
 
 
 	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
+	if(!ui_.filters->targetRegion().isValid()) //use processing system data in case no filter is set
+	{
+		TargetRegionInfo generic_target;
+		generic_target.regions = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(ps_tumor), false);
+		generic_target.genes = db.genesToApproved(GlobalServiceProvider::database().processingSystemGenes(db.processingSystemIdFromProcessedSample(ps_tumor), false), true);
+		generic_target.name = db.getProcessedSampleData(db.processedSampleId(ps_tumor)).processing_system;
+		somatic_report_settings_.target_region_filter = generic_target;
+	}
+
+
+
 
 	QCCollection cnv_metrics = Statistics::hrdScore(SomaticReportSettings::filterCnvs(cnvs_, somatic_report_settings_), GSvarHelper::build());
 	somatic_report_settings_.report_config.setCnvLohCount( cnv_metrics.value("QC:2000062", true).asInt() );
