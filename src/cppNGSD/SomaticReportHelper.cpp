@@ -38,7 +38,7 @@ RtfSourceCode SomaticReportHelper::partCnvTable()
 
 	//Table Header
 	cnv_table.addRow(RtfTableRow({"Chromosomale Aberrationen"},doc_.maxWidth(),RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(18)).setBackgroundColor(4).setHeader());
-	cnv_table.addRow(RtfTableRow({"Position","CNV","Typ","CN","Anteil","Gene"},{1700,1000,800,400,800,5221},RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader());
+	cnv_table.addRow(RtfTableRow({"Position","CNV","Typ","CN","Anteil","Gene"},{1700,1000,900,400,800,5121},RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader());
 
 	RtfParagraph header_format;
 	header_format.setBold(true);
@@ -89,9 +89,11 @@ RtfSourceCode SomaticReportHelper::partCnvTable()
 		//Type
 		RtfSourceCode type_statement = variant.annotations().at(cnv_index_cnv_type_);
 		type_statement = type_statement.replace("chromosome", "chr");
-		type_statement = type_statement.replace("partial p-arm", "partial\\line p-arm");
-		type_statement = type_statement.replace("partial q-arm", "partial\\line q-arm");
-		temp_row.addCell(800, type_statement, RtfParagraph().setHorizontalAlignment("c").setFontSize(14));
+		type_statement = type_statement.replace("partial p-arm", "partial p-arm");
+		type_statement = type_statement.replace("partial q-arm", "partial q-arm");
+
+		type_statement += "\n\\line" +RtfText(cytoband(variant)).setFontSize(12).RtfCode();
+		temp_row.addCell(900, type_statement, RtfParagraph().setHorizontalAlignment("c").setFontSize(14));
 
 		//copy numbers
 		temp_row.addCell(400,QByteArray::number(variant.copyNumber(cnvs_.annotationHeaders())), RtfParagraph().setFontSize(14).setHorizontalAlignment("c"));
@@ -100,7 +102,7 @@ RtfSourceCode SomaticReportHelper::partCnvTable()
 		temp_row.addCell(800,QByteArray::number(variant.annotations().at(cnv_index_tumor_clonality_).toDouble(),'f',2).replace(".", ","), RtfParagraph().setHorizontalAlignment("c").setFontSize(14));
 
 
-		temp_row.addCell(5221,genes.join(", "), RtfParagraph().setItalic(true).setFontSize(14));
+		temp_row.addCell(5121,genes.join(", "), RtfParagraph().setItalic(true).setFontSize(14));
 
 		cnv_table.addRow(temp_row);
 	}
