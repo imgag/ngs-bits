@@ -117,15 +117,15 @@ void DiseaseCourseWidget::loadVariantLists()
 		cfDnaColumn cf_dna_column;
 		cf_dna_column.name = db_.processedSampleName(ps_id);
 		cf_dna_column.date = QDate::fromString(db_.getSampleData(db_.sampleId(cf_dna_column.name)).received, "dd.MM.yyyy");
-		QString cfdna_vcf = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::VCF_CF_DNA).filename;
-		if (!QFile::exists(cfdna_vcf))
+		FileLocation cfdna_vcf = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::VCF_CF_DNA);
+		if (!cfdna_vcf.exists)
 		{
 			QMessageBox::warning(this, "File not found", "Could not find cfDNA VCF for processed Sample " + cf_dna_column.name + "! ");
 		}
 		else
 		{
 			// load variant list
-			cf_dna_column.variants.load(cfdna_vcf);
+			cf_dna_column.variants.load(cfdna_vcf.filename);
 
 			// create lookup table for each variant
 			cf_dna_column.lookup_table.clear();
@@ -135,15 +135,15 @@ void DiseaseCourseWidget::loadVariantLists()
 				cf_dna_column.lookup_table.insert(vcf_line.variantToString().toUtf8(), &vcf_line);
 			}
 
-			QString cfdna_mrd_file = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::MRD_CF_DNA).filename;
-			if (!QFile::exists(cfdna_mrd_file))
+			FileLocation cfdna_mrd_file = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::MRD_CF_DNA);
+			if (!cfdna_mrd_file.exists)
 			{
 				QMessageBox::warning(this, "File not found", "Could not find cfDNA MRD file for processed Sample " + cf_dna_column.name + "! ");
 			}
 			else
 			{
 				// load mrd table
-				cf_dna_column.mrd.load(cfdna_mrd_file);
+				cf_dna_column.mrd.load(cfdna_mrd_file.filename);
 
 				//check for correct table format
 				if(cf_dna_column.mrd.headers() != QStringList() << "MRD_log10" << "MRD_pval" << "SUM_DP" << "SUM_ALT" << "Mean_AF" << "Median_AF")

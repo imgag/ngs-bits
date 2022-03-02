@@ -55,6 +55,13 @@
 #endif
 #endif
 
+// Ensure ssize_t exists within this header. All #includes must precede this,
+// and ssize_t must be undefined again at the end of this header.
+#if defined _MSC_VER && defined _INTPTR_T_DEFINED && !defined _SSIZE_T_DEFINED && !defined ssize_t
+#define HTSLIB_SSIZE_T
+#define ssize_t intptr_t
+#endif
+
 /* kstring_t is a simple non-opaque type whose fields are likely to be
  * used directly by user code (but see also ks_str() and ks_len() below).
  * A kstring_t object is initialised by either of
@@ -109,18 +116,21 @@ extern "C" {
     HTSLIB_EXPORT
 	char *kstrtok(const char *str, const char *sep, ks_tokaux_t *aux);
 
-	/* kgetline() uses the supplied fgets()-like function to read a "\n"-
-	 * or "\r\n"-terminated line from fp.  The line read is appended to the
-	 * kstring without its terminator and 0 is returned; EOF is returned at
-	 * EOF or on error (determined by querying fp, as per fgets()). */
-	typedef char *kgets_func(char *, int, void *);
+    /* kgetline() uses the supplied fgets()-like function to read a "\n"-
+     * or "\r\n"-terminated line from fp.  The line read is appended to the
+     * kstring without its terminator and 0 is returned; EOF is returned at
+     * EOF or on error (determined by querying fp, as per fgets()). */
+    typedef char *kgets_func(char *, int, void *);
     HTSLIB_EXPORT
-	int kgetline(kstring_t *s, kgets_func *fgets, void *fp);
+    int kgetline(kstring_t *s, kgets_func *fgets_fn, void *fp);
 
-    // This matches the signature of hgetln(), apart from the last pointer
-	typedef ssize_t kgets_func2(char *, size_t, void *);
+    /* kgetline2() uses the supplied hgetln()-like function to read a "\n"-
+     * or "\r\n"-terminated line from fp.  The line read is appended to the
+     * ksring without its terminator and 0 is returned; EOF is returned at
+     * EOF or on error (determined by querying fp, as per fgets()). */
+    typedef ssize_t kgets_func2(char *, size_t, void *);
     HTSLIB_EXPORT
-	int kgetline2(kstring_t *s, kgets_func2 *fgets, void *fp);
+    int kgetline2(kstring_t *s, kgets_func2 *fgets_fn, void *fp);
 
 #ifdef __cplusplus
 }
@@ -392,5 +402,10 @@ static inline int *ksplit(kstring_t *s, int delimiter, int *n)
 	*n = ksplit_core(s->s, delimiter, &max, &offsets);
 	return offsets;
 }
+
+#ifdef HTSLIB_SSIZE_T
+#undef HTSLIB_SSIZE_T
+#undef ssize_t
+#endif
 
 #endif

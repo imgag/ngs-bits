@@ -38,6 +38,9 @@ LIBS += -L$$PWD/../../htslib/lib/ -lhts
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 SOURCES += \
+    FileLocationList.cpp \
+    FileLocationProviderLocal.cpp \
+    FileLocationProviderRemote.cpp \
     SqlQuery.cpp\
     NGSD.cpp \
     GenLabDB.cpp \
@@ -55,6 +58,11 @@ SOURCES += \
     UserPermissionProvider.cpp
 
 HEADERS += \
+    FileLocation.h \
+    FileLocationList.h \
+    FileLocationProvider.h \
+    FileLocationProviderLocal.h \
+    FileLocationProviderRemote.h \
     SqlQuery.h \
     NGSD.h \
     GenLabDB.h \

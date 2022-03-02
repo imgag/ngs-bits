@@ -1,5 +1,9 @@
 # GSvar change log
 
+### 2021_12-112 (10.02.22)
+- SVs are now contained in the XML report (germline).
+- Genome coordinate lift-over is now built-in. The liftover webservice is no longer needed.
+
 ### 2021_12-100 (10.02.22)
 - Added PubMed identifiers (variant details and variant tab).
 - Added upload status and re-upload for ClinVar upload.

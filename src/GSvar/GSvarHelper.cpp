@@ -227,32 +227,21 @@ void GSvarHelper::limitLines(QLabel* label, QString text, QString sep, int max_l
 
 BedLine GSvarHelper::liftOver(const Chromosome& chr, int start, int end, bool hg19_to_hg38)
 {
-	// keep a reader for each liftover file after it was needed
-	static QHash<QString, QSharedPointer<ChainFileReader>> chainReaders;
-
 	//special handling of chrMT (they are the same for GRCh37 and GRCh38)
 	if (chr.strNormalized(true)=="chrMT") return BedLine(chr, start, end);
 
-	QString chain;
-	if (hg19_to_hg38)
+	//cache chain file readers to speed up multiple calls
+	static QHash<QString, QSharedPointer<ChainFileReader>> chain_reader_cache;
+	QString chain = hg19_to_hg38 ? "hg19_hg38" : "hg38_hg19";
+	if (!chain_reader_cache.contains(chain))
 	{
-		chain = "hg19_hg38";
-	}
-	else
-	{
-		chain = "hg38_hg19";
-	}
-
-	// create a new reader if it doesn't exist yet
-	if (! chainReaders.contains(chain))
-	{
-		QString filepath = Settings::string("liftover_" + chain, true);
-		if (filepath=="") THROW(FileAccessException, "Test needs the lift over chain file! Not found in settings under liftover_" + chain + ".");
-		chainReaders.insert(chain, QSharedPointer<ChainFileReader>(new ChainFileReader(filepath, 0.05)));
+		QString filepath = Settings::string("liftover_" + chain, true).trimmed();
+		if (filepath.isEmpty()) THROW(ProgrammingException, "No chain file specified in settings.ini. Please inform the bioinformatics team!");
+		chain_reader_cache.insert(chain, QSharedPointer<ChainFileReader>(new ChainFileReader(filepath, 0.05)));
 	}
 
 	//lift region
-	BedLine region = chainReaders[chain]->lift(chr, start, end); // Throws ArgumentExceptions if it can't lift the coordinates
+	BedLine region = chain_reader_cache[chain]->lift(chr, start, end);
 
 	if (!region.isValid()) THROW(ArgumentException, "genomic coordinate lift-over failed: Lifted region is not a valid region");
 
