@@ -249,6 +249,7 @@ struct CPPNGSDSHARED_EXPORT SampleData
 	QString comments;
 	QString disease_group;
 	QString disease_status;
+	QString tissue;
 	PhenotypeList phenotypes;
 	bool is_tumor;
 	bool is_ffpe;
@@ -375,6 +376,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	QString s_study;
 	QString s_disease_group;
 	QString s_disease_status;
+	QString s_tissue;
 	bool include_bad_quality_samples = true;
 	bool include_tumor_samples = true;
 	bool include_ffpe_samples = true;
