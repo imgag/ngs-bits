@@ -156,13 +156,8 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 			<< "r.recipe as run_recipe"
 			<< "r.quality as run_quality"
 			<< "s.disease_group as disease_group"
-			<< "s.disease_status as disease_status";
-
-	// TODO remove 'if' when new schema for NGSD is fully used.
-	if (tableInfo("sample").fieldExists("tissue"))
-	{
-			fields << "s.tissue as tissue";
-	}
+			<< "s.disease_status as disease_status"
+			<< "s.tissue as tissue";
 
 	QStringList tables;
 	tables	<< "sample s"
@@ -225,15 +220,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	}
 	if (p.s_tissue.trimmed() != "")
 	{
-		// Don't search for sample tissue if it doesn't exist in the db yet.
-		if (! tableInfo("sample").fieldExists("tissue")) // TODO remove
-		{
-			Log::warn("Searching for sample tissue is not support by current DB version.");
-		}
-		else
-		{
-			conditions << "s.tissue='" + escapeForSql(p.s_tissue) + "'";
-		}
+		conditions << "s.tissue='" + escapeForSql(p.s_tissue) + "'";
 	}
 	if (!p.include_bad_quality_samples)
 	{

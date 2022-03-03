@@ -208,20 +208,11 @@ public:
 
 		if (params.s_tissue !="")
 		{
-			if (! db.tableInfo("sample").fieldExists("tissue")) //TODO remove
+			QStringList values = db.getEnum("sample", "tissue");
+			if (! values.contains(params.s_tissue))
 			{
-				THROW(DatabaseException, "Currently used version of the database doesn't support filtering for sample tissue.");
+				THROW(DatabaseException, "Invalid sample tissue '"+params.s_tissue+"'.\nValid tissues are: " + values.join(", "));
 			}
-			else
-			{
-				QStringList values = db.getEnum("sample", "tissue");
-				if (! values.contains(params.s_tissue))
-				{
-					THROW(DatabaseException, "Invalid sample tissue '"+params.s_tissue+"'.\nValid tissues are: " + values.join(", "));
-				}
-			}
-
-
 		}
 
 		if (params.s_disease_group !="")
