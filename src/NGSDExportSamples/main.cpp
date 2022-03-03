@@ -132,7 +132,7 @@ public:
 			QStringList values = db.getEnum("project", "type");
 			if (! values.contains(params.p_type))
 			{
-				THROW(DatabaseException, "Invalid project type '" + params.p_type + ".\nValid types are: " + values);
+				THROW(DatabaseException, "Invalid project type '" + params.p_type + ".\nValid types are: " + values.join(", "));
 			}
 		}
 
