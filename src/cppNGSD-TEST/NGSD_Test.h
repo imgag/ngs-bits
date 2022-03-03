@@ -655,16 +655,16 @@ private slots:
 		S_EQUAL(som_class_info.classification, "inactivating");
 		S_EQUAL(som_class_info.comments, "som_class_comm2");
 
-		//set PubMed ids
+		//addPubmedId
 		db.addPubmedId(199844, "12345678");
 		db.addPubmedId(199844, "87654321");
 		QStringList pubmed_ids = db.pubmedIds("199844");
 		pubmed_ids.sort();
 		S_EQUAL(pubmed_ids.at(0), "12345678");
 		S_EQUAL(pubmed_ids.at(1), "87654321");
-
-
-
+		//check that duplicate entries are ignored
+		db.addPubmedId(199844, "12345678");
+		I_EQUAL(db.pubmedIds("199844").count(), 2);
 
 		//analysisInfo
 		AnalysisJob analysis_job = db.analysisInfo(-1, false);

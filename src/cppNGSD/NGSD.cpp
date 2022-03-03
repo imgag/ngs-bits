@@ -1219,7 +1219,7 @@ void NGSD::deleteVariants(const QString& ps_id, VariantType type)
 void NGSD::addPubmedId(int variant_id, const QString& pubmed_id)
 {
 	SqlQuery query = getQuery();
-	query.prepare("REPLACE INTO `variant_literature` (`variant_id`, `pubmed`) VALUES (:0, :1)");
+	query.prepare("INSERT INTO `variant_literature` (`variant_id`, `pubmed`) VALUES (:0, :1) ON DUPLICATE KEY UPDATE id=id");
 	query.bindValue(0, variant_id);
 	query.bindValue(1, pubmed_id);
 	query.exec();
