@@ -14,6 +14,7 @@ class InputWorker
 
 public:
 	InputWorker(AnalysisJob& job, gzFile& in_stream, Parameters& params);
+	~InputWorker();
 	virtual void run() override;
 
 signals:

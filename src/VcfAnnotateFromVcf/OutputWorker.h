@@ -14,7 +14,8 @@ class OutputWorker
 	Q_OBJECT
 
 public:
-	OutputWorker(AnalysisJob& job, QSharedPointer<QFile> out_stream);
+	OutputWorker(AnalysisJob& job, QSharedPointer<QFile> out_stream, Parameters& params);
+	~OutputWorker();
 	virtual void run() override;
 
 signals:
@@ -25,6 +26,7 @@ signals:
 protected:
 	AnalysisJob& job_;
 	QSharedPointer<QFile> out_stream_;
+	Parameters& params_;
 };
 
 #endif // OUTPUTWORKER_H
