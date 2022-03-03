@@ -37,9 +37,15 @@ public:
 		addFlag("match_external_names", "If set, also samples for which the external name matches 'sample' are exported.");
 		addFlag("with_merged", "If set, processed samples that were merged into another sample are included.");
 		addString("species", "Species filter.", true, "");
+		addString("tissue", "Tissue filter.", true, ""); //TODO
+		addString("disease_group", "Disease group filter", true, ""); // TODO
+		addString("disease_status", "Disease status filter", true, ""); // TODO
 		addString("sender", "Sample sender filter.", true, "");
 		addString("study", "Processed sample study filter.", true, "");
 		addString("project", "Project name filter.", true, "");
+		addString("project_type", "Project type filter", true, ""); // TODO
+
+
 		addString("system", "Processing system name filter (short name).", true, "");
 		addString("run", "Sequencing run name filter.", true, "");
 		addFlag("run_finished", "Only show samples where the analysis of the run is finished.");
@@ -54,6 +60,7 @@ public:
 		addFlag("add_comments", "Adds sample and processed sample comments columns.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
+		changeLog(2022,  3,  3, "Added 'disease_group', 'disease_status', 'project_type' and 'tissue' filter options.");
 		changeLog(2021,  4, 29, "Added 'run_before' filter option.");
 		changeLog(2021,  4, 16, "Added ancestry column.");
 		changeLog(2021,  4, 13, "Changed 'add_path' parameter to support different file/folder types.");
@@ -77,12 +84,16 @@ public:
 		params.s_name_ext = getFlag("match_external_names");
 		params.s_species = getString("species");
 		params.s_sender = getString("sender");
+		params.s_tissue = getString("tissue");
+		params.s_disease_group = getString("disease_group");
+		params.s_disease_status = getString("disease_status");
 		params.s_study = getString("study");
 		params.include_bad_quality_samples = !getFlag("no_bad_samples");
 		params.include_tumor_samples = !getFlag("no_tumor");
 		params.include_ffpe_samples = !getFlag("no_ffpe");
 		params.include_merged_samples = getFlag("with_merged");
 		params.p_name = getString("project");
+		params.p_type = getString("project_type");
 		params.sys_name = getString("system");
 		params.r_name = getString("run");
 		params.include_bad_quality_runs = !getFlag("no_bad_runs");
@@ -112,6 +123,16 @@ public:
 			if (tmp.isNull())
 			{
 				THROW(DatabaseException, "Invalid project name '" + params.p_name + ".\nValid names are: " + db.getValues("SELECT name FROM project ORDER BY name ASC").join(", "));
+			}
+		}
+
+		if (params.p_type!="")
+		{
+			//check that type is valid
+			QStringList values = db.getEnum("project", "type");
+			if (! values.contains(params.p_type))
+			{
+				THROW(DatabaseException, "Invalid project type '" + params.p_type + ".\nValid types are: " + values);
 			}
 		}
 
@@ -172,6 +193,33 @@ public:
 			if (tmp.isNull())
 			{
 				THROW(DatabaseException, "Invalid study name '"+params.s_study+".\nValid names are: " + db.getValues("SELECT name FROM study ORDER BY name ASC").join(", "));
+			}
+		}
+
+		if (params.s_tissue !="")
+		{
+			QStringList values = db.getEnum("sample", "tissue");
+			if (! values.contains(params.s_tissue))
+			{
+				THROW(DatabaseException, "Invalid sample tissue '"+params.s_tissue+".\nValid tissues are: " + values.join(", "));
+			}
+		}
+
+		if (params.s_disease_group !="")
+		{
+			QStringList values = db.getEnum("sample", "disease_group");
+			if (! values.contains(params.s_disease_group))
+			{
+				THROW(DatabaseException, "Invalid sample disease group '"+params.s_disease_group+".\nValid groups are: " + values.join(", "));
+			}
+		}
+
+		if (params.s_disease_status !="")
+		{
+			QStringList values = db.getEnum("sample", "disease_status");
+			if (! values.contains(params.s_disease_status))
+			{
+				THROW(DatabaseException, "Invalid sample disease status '"+params.s_disease_status+".\nValid statuses are: " + values.join(", "));
 			}
 		}
 
