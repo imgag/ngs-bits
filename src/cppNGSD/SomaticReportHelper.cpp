@@ -101,8 +101,7 @@ RtfSourceCode SomaticReportHelper::partCnvTable()
 		//tumor clonality
 		temp_row.addCell(800,QByteArray::number(variant.annotations().at(cnv_index_tumor_clonality_).toDouble(),'f',2).replace(".", ","), RtfParagraph().setHorizontalAlignment("c").setFontSize(14));
 
-		if(genes.count() < 25) temp_row.addCell(5121,genes.join(", "), RtfParagraph().setItalic(true).setFontSize(14));
-		else temp_row.addCell(5121, "> 25 Gene", RtfParagraph().setItalic(true).setFontSize(14));
+		temp_row.addCell(5121,genes.join(", "), RtfParagraph().setItalic(true).setFontSize(14));
 
 		cnv_table.addRow(temp_row);
 	}
@@ -848,22 +847,21 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 	metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe:", tumor_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x", normal_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x", "Auswertungsdatum:", QDate::currentDate().toString("dd.MM.yyyy").toUtf8()}, {2000,1480,1480,1480,3481}) );
 
 
+	RtfSourceCode tum_panel_depth = "n/a";
+	RtfSourceCode nor_panel_depth = "n/a";
 	if(settings_.report_config.targetRegionName() == "somatic_custom_panel")
 	{
 		try
 		{
-			metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe Genpanel:", tumor_qcml_data_.value("QC:2000097",true).toString().toUtf8() + "x", normal_qcml_data_.value("QC:2000097",true).toString().toUtf8() + "x", "Analysepipeline:", somatic_vl_.getPipeline().toUtf8()}, {2000,1480,1480,1480,3481}) );
+			tum_panel_depth = tumor_qcml_data_.value("QC:2000097",true).toString().toUtf8() + "x";
+			nor_panel_depth = normal_qcml_data_.value("QC:2000097",true).toString().toUtf8() + "x";
 		}
 		catch(Exception) //nothing to do here
 		{
 		}
 	}
-	else
-	{
-		metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe Genpanel:", "n/a", "n/a", "Analysepipeline:", somatic_vl_.getPipeline().toUtf8()}, {2000,1480,1480,1480,3481}) );
-	}
+	metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe Genpanel:", tum_panel_depth, nor_panel_depth, "Analysepipeline:", somatic_vl_.getPipeline().toUtf8()}, {2000,1480,1480,1480,3481}) );
 
-	//
 
 
 	RtfSourceCode tum_cov_60x = "n/a";
@@ -878,20 +876,20 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 	metadata.addRow( RtfTableRow( {"Coverage 60x:", tum_cov_60x, nor_cov_60x, "Auswertungssoftware:", QCoreApplication::applicationName().toUtf8() + " " + QCoreApplication::applicationVersion().toUtf8()} , {2000,1480,1480,1480,3481}) );
 
 
+	RtfSourceCode tum_panel_cov_60x = "n/a";
+	RtfSourceCode nor_panel_cov_60x = "n/a";
 	if(settings_.report_config.targetRegionName() == "somatic_custom_panel")
 	{
 		try
 		{
-			metadata.addRow(RtfTableRow({"Coverage Genpanel 60x:", tumor_qcml_data_.value("QC:2000098",true).toString().toUtf8(), normal_qcml_data_.value("QC:2000098",true).toString().toUtf8(), "ICD10: " + icd10_diagnosis_code_.toUtf8(), "MSI-Status: " + (!BasicStatistics::isValidFloat(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3))}, {2000,1480,1480,1480,3481}) );
+			tum_panel_cov_60x = tumor_qcml_data_.value("QC:2000098",true).toString().toUtf8() + "\%";
+			nor_panel_cov_60x = normal_qcml_data_.value("QC:2000098",true).toString().toUtf8() + "\%";
 		}
 		catch(Exception) //nothing to do here
 		{
 		}
 	}
-	else
-	{
-		metadata.addRow(RtfTableRow({"Coverage Genpanel 60x:", "n/a", "n/a", "ICD10: " + icd10_diagnosis_code_.toUtf8(), "MSI-Status: " + (!BasicStatistics::isValidFloat(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3))}, {2000,1480,1480,1480,3481}) );
-	}
+	metadata.addRow(RtfTableRow({"Coverage Genpanel 60x:", tum_panel_cov_60x , nor_panel_cov_60x, "ICD10: " + icd10_diagnosis_code_.toUtf8(), "MSI-Status: " + (!BasicStatistics::isValidFloat(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3))}, {2000,1480,1480,1480,3481}) );
 
 	metadata.addRow(RtfTableRow("In Regionen mit einer Abdeckung >60 können somatische Varianten mit einer Frequenz >5% im Tumorgewebe mit einer Sensitivität >95,0% und einem Positive Prediction Value PPW >99% bestimmt werden. Für mindestens 95% aller untersuchten Gene kann die Kopienzahl korrekt unter diesen Bedingungen bestimmt werden.", doc_.maxWidth()) );
 
