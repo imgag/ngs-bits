@@ -156,7 +156,8 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 			<< "r.recipe as run_recipe"
 			<< "r.quality as run_quality"
 			<< "s.disease_group as disease_group"
-			<< "s.disease_status as disease_status";
+			<< "s.disease_status as disease_status"
+			<< "s.tissue as tissue";
 
 	QStringList tables;
 	tables	<< "sample s"
@@ -216,6 +217,10 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	if (p.s_disease_status.trimmed()!="")
 	{
 		conditions << "s.disease_status='" + escapeForSql(p.s_disease_status) + "'";
+	}
+	if (p.s_tissue.trimmed() != "")
+	{
+		conditions << "s.tissue='" + escapeForSql(p.s_tissue) + "'";
 	}
 	if (!p.include_bad_quality_samples)
 	{
@@ -392,7 +397,7 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 {
 	//execute query
 	SqlQuery query = getQuery();
-	query.exec("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe, s.sample_type, s.sender_id, s.species_id, s.received, s.receiver_id FROM sample s WHERE id=" + sample_id);
+	query.exec("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe, s.sample_type, s.sender_id, s.species_id, s.received, s.receiver_id, s.tissue FROM sample s WHERE id=" + sample_id);
 	if (query.size()==0)
 	{
 		THROW(ProgrammingException, "Invalid 'id' for table 'sample' given: '" + sample_id + "'");
@@ -424,6 +429,8 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 	{
 		output.received_by = userName(receiver_id.toInt());
 	}
+
+	output.tissue = query.value(14).toString();
 
 	//sample groups
 	SqlQuery group_query = getQuery();
@@ -1219,7 +1226,7 @@ void NGSD::deleteVariants(const QString& ps_id, VariantType type)
 void NGSD::addPubmedId(int variant_id, const QString& pubmed_id)
 {
 	SqlQuery query = getQuery();
-	query.prepare("REPLACE INTO `variant_literature` (`variant_id`, `pubmed`) VALUES (:0, :1)");
+	query.prepare("INSERT INTO `variant_literature` (`variant_id`, `pubmed`) VALUES (:0, :1) ON DUPLICATE KEY UPDATE id=id");
 	query.bindValue(0, variant_id);
 	query.bindValue(1, pubmed_id);
 	query.exec();

@@ -12,7 +12,8 @@ class ChunkProcessor
 	Q_OBJECT
 
 public:
-	ChunkProcessor(AnalysisJob &job, const MetaData& meta);
+	ChunkProcessor(AnalysisJob &job, const MetaData& meta, Parameters& params);
+	~ChunkProcessor();
 	virtual void run() override;
 
 signals:
@@ -22,6 +23,7 @@ signals:
 private:
 	AnalysisJob& job_;
 	const MetaData& meta_;
+	Parameters& params_;
 };
 
 #endif // CHUNKPROCESSOR_H

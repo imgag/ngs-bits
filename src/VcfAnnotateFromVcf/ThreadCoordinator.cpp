@@ -38,8 +38,15 @@ ThreadCoordinator::ThreadCoordinator(QObject* parent, Parameters params, MetaDat
 	}
 }
 
+ThreadCoordinator::~ThreadCoordinator()
+{
+	if (params_.debug) QTextStream(stdout) << "Destroying ThreadCoordinator" << endl;
+}
+
 void ThreadCoordinator::read(int i)
 {
+	if (params_.debug) QTextStream(stdout) << "ThreadCoordinator::read(" << i << ")" << endl;
+
 	InputWorker* worker = new InputWorker(job_pool_[i], in_stream_, params_);
 	connect(worker, SIGNAL(error(int,QString)), this, SLOT(error(int,QString)));
 	connect(worker, SIGNAL(done(int)), this, SLOT(annotate(int)));
@@ -49,7 +56,9 @@ void ThreadCoordinator::read(int i)
 
 void ThreadCoordinator::annotate(int i)
 {
-	ChunkProcessor* worker = new ChunkProcessor(job_pool_[i], meta_);
+	if (params_.debug) QTextStream(stdout) << "ThreadCoordinator::annotate(" << i << ")" << endl;
+
+	ChunkProcessor* worker = new ChunkProcessor(job_pool_[i], meta_, params_);
 	connect(worker, SIGNAL(done(int)), this, SLOT(write(int)));
 	connect(worker, SIGNAL(error(int,QString)), this, SLOT(error(int,QString)));
 	thread_pool_annotate_.start(worker);
@@ -57,7 +66,9 @@ void ThreadCoordinator::annotate(int i)
 
 void ThreadCoordinator::write(int i)
 {
-	OutputWorker* worker = new OutputWorker(job_pool_[i], out_stream_);
+	if (params_.debug) QTextStream(stdout) << "ThreadCoordinator::write(" << i << ")" << endl;
+
+	OutputWorker* worker = new OutputWorker(job_pool_[i], out_stream_, params_);
 	connect(worker, SIGNAL(error(int,QString)), this, SLOT(error(int,QString)));
 	connect(worker, SIGNAL(retry(int)), this, SLOT(write(int)));
 	connect(worker, SIGNAL(done(int)), this, SLOT(read(int)));
@@ -76,10 +87,14 @@ void ThreadCoordinator::inputDone(int /*i*/)
 
 	connect(&timer_done_, SIGNAL(timeout()), this, SLOT(checkDone()));
 	timer_done_.start(100);
+
+	QTextStream(stdout) << "Reading input done" << endl;
 }
 
 void ThreadCoordinator::checkDone()
 {
+	if (params_.debug) QTextStream(stdout) << "ThreadCoordinator::checkDone()" << endl;
+
 	//check if all jobs are done
 	for (int i=0; i<job_pool_.count(); ++i)
 	{
@@ -88,6 +103,8 @@ void ThreadCoordinator::checkDone()
 
 	//done > stop timer to prevent it from fireing again
 	timer_done_.stop();
+
+	QTextStream(stdout) << "Annotation jobs finished" << endl;
 
 	emit finished();
 }

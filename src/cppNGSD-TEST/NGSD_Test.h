@@ -655,16 +655,16 @@ private slots:
 		S_EQUAL(som_class_info.classification, "inactivating");
 		S_EQUAL(som_class_info.comments, "som_class_comm2");
 
-		//set PubMed ids
+		//addPubmedId
 		db.addPubmedId(199844, "12345678");
 		db.addPubmedId(199844, "87654321");
 		QStringList pubmed_ids = db.pubmedIds("199844");
 		pubmed_ids.sort();
 		S_EQUAL(pubmed_ids.at(0), "12345678");
 		S_EQUAL(pubmed_ids.at(1), "87654321");
-
-
-
+		//check that duplicate entries are ignored
+		db.addPubmedId(199844, "12345678");
+		I_EQUAL(db.pubmedIds("199844").count(), 2);
 
 		//analysisInfo
 		AnalysisJob analysis_job = db.analysisInfo(-1, false);
@@ -820,43 +820,43 @@ private slots:
 		ProcessedSampleSearchParameters params;
 		DBTable ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 19);
+		I_EQUAL(ps_table.columnCount(), 20);
 		//add path
 		params.add_path = "SAMPLE_FOLDER";
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 20);
+		I_EQUAL(ps_table.columnCount(), 21);
 		//add outcome
 		params.add_outcome = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 22);
+		I_EQUAL(ps_table.columnCount(), 23);
 		//add disease details
 		params.add_disease_details = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 31);
+		I_EQUAL(ps_table.columnCount(), 32);
 		//add QC
 		params.add_qc = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 70);
+		I_EQUAL(ps_table.columnCount(), 71);
 		//add report config
 		params.add_report_config = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 71);
-		S_EQUAL(ps_table.row(0).value(70), "");
-		S_EQUAL(ps_table.row(4).value(70), "exists, causal variant: chr9:98232224-98232224 A>- (genotype:het genes:PTCH1), causal CNV: chr1:3000-4000 (cn:1 classification:4)");
+		I_EQUAL(ps_table.columnCount(), 72);
+		S_EQUAL(ps_table.row(0).value(71), "");
+		S_EQUAL(ps_table.row(4).value(71), "exists, causal variant: chr9:98232224-98232224 A>- (genotype:het genes:PTCH1), causal CNV: chr1:3000-4000 (cn:1 classification:4)");
 		//add comments
 		params.add_comments = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 73);
-		S_EQUAL(ps_table.headers().at(19), "comment_sample");
-		S_EQUAL(ps_table.headers().at(20), "comment_processed_sample");
-		S_EQUAL(ps_table.row(0).value(19), "comment_s6");
-		S_EQUAL(ps_table.row(0).value(20), "comment_ps7");
+		I_EQUAL(ps_table.columnCount(), 74);
+		S_EQUAL(ps_table.headers().at(20), "comment_sample");
+		S_EQUAL(ps_table.headers().at(21), "comment_processed_sample");
+		S_EQUAL(ps_table.row(0).value(20), "comment_s6");
+		S_EQUAL(ps_table.row(0).value(21), "comment_ps7");
 
 
 		//apply all search parameters
@@ -865,6 +865,7 @@ private slots:
 		params.s_type = "DNA";
 		params.s_sender = "Coriell";
 		params.s_study = "SomeStudy";
+		params.s_tissue = "Blood";
 		params.include_bad_quality_samples = false;
 		params.include_tumor_samples = false;
 		params.include_ffpe_samples = false;
@@ -879,7 +880,7 @@ private slots:
 		params.r_before = QDate::fromString("2021-02-19", Qt::ISODate);
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 2);
-		I_EQUAL(ps_table.columnCount(), 73);
+		I_EQUAL(ps_table.columnCount(), 74);
 
 		//reportConfigId
 		QString ps_id = db.processedSampleId("NA12878_03");

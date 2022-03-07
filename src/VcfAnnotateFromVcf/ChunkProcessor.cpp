@@ -4,13 +4,21 @@
 #include <zlib.h>
 #include <QFileInfo>
 
-ChunkProcessor::ChunkProcessor(AnalysisJob& job, const MetaData& meta)
+ChunkProcessor::ChunkProcessor(AnalysisJob& job, const MetaData& meta, Parameters& params)
 	: QObject()
 	, QRunnable()
 	, job_(job)
 	, meta_(meta)
+	, params_(params)
 {
+	if (params_.debug) QTextStream(stdout) << "ChunkProcessor(): " << job_.index << endl;
 }
+
+ChunkProcessor::~ChunkProcessor()
+{
+	if (params_.debug) QTextStream(stdout) << "~ChunkProcessor(): " << job_.index << endl;
+}
+
 
 //returns the value of a given INFO key from a given INFO header line
 QByteArray getInfoHeaderValue(const QByteArray &header_line, QByteArray key)

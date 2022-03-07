@@ -187,6 +187,7 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->tumor_ffpe->setText(QString(s_data.is_tumor ? "<font color=red>yes</font>" : "no") + " / " + (s_data.is_ffpe ? "<font color=red>yes</font>" : "no"));
 	ui_->gender->setText(s_data.gender);
 	ui_->disease_group_status->setText(s_data.disease_group + " (" + s_data.disease_status + ")");
+	ui_->tissue->setText(s_data.tissue);
 	ui_->comments_sample->setText(s_data.comments);
 	QStringList groups;
 	foreach(SampleGroup group, s_data.sample_groups)
@@ -736,7 +737,7 @@ void ProcessedSampleWidget::importSampleRelations()
 	}
 
 	//show result to user
-	int c_after = db.relatedSamples(s_id).count();
+	int c_after = db.getValue("SELECT count(*) FROM sample_relations WHERE sample1_id='"+QString::number(s_id)+"' OR sample2_id='"+QString::number(s_id)+"'").toInt();
 	QMessageBox::information(this, "Sample relation import", "Imported " + QString::number(c_after-c_before) + " sample relations from GenLab!" + error);
 
 	updateGUI();

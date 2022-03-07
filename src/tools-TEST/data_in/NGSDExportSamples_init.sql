@@ -28,9 +28,9 @@ INSERT INTO processing_system (id, name_manufacturer, shotgun, name_short, genom
 (2, 'SureSelect Human All Exon v5', '1', 'ssHAEv5', 1);
 
 -- sample
-INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, quality, disease_group, disease_status) VALUES
-(1, 'NA12878', 'DNA', 1, 'female', '0', '0', 1, 'good', 'Neoplasms', 'Affected'),
-(2, 'NA12880', 'DNA', 1, 'female', '1', '0', 1, 'good', 'n/a', 'n/a');
+INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, quality, disease_group, disease_status, tissue) VALUES
+(1, 'NA12878', 'DNA', 1, 'female', '0', '0', 1, 'good', 'Neoplasms', 'Affected', 'Blood'),
+(2, 'NA12880', 'DNA', 1, 'female', '1', '0', 1, 'good', 'n/a', 'n/a', 'Skin');
 
 -- processed_sample
 INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id, quality) VALUES

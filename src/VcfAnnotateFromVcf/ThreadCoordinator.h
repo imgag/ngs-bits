@@ -16,6 +16,7 @@ class ThreadCoordinator
 	Q_OBJECT
 public:
 	ThreadCoordinator(QObject* parent, Parameters params, MetaData meta);
+	~ThreadCoordinator();
 
 signals:
 	void finished();

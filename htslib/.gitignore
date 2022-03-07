@@ -2,9 +2,9 @@ config.*
 htslib.pc.tmp
 libhts.so
 libhts.so.2
-version.h
 bin
 include
 lib
 share
 *.o
+htscodecs.mk
