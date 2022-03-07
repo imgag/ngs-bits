@@ -187,6 +187,7 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->tumor_ffpe->setText(QString(s_data.is_tumor ? "<font color=red>yes</font>" : "no") + " / " + (s_data.is_ffpe ? "<font color=red>yes</font>" : "no"));
 	ui_->gender->setText(s_data.gender);
 	ui_->disease_group_status->setText(s_data.disease_group + " (" + s_data.disease_status + ")");
+	ui_->tissue->setText(s_data.tissue);
 	ui_->comments_sample->setText(s_data.comments);
 	QStringList groups;
 	foreach(SampleGroup group, s_data.sample_groups)
