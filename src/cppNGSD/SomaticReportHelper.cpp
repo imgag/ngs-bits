@@ -833,25 +833,26 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 	RtfTable metadata;
 	metadata.addRow( RtfTableRow("Allgemeine Informationen", 9921, RtfParagraph().setBold(true).setFontSize(16)) );
 
-	metadata.addRow(RtfTableRow({"Prozessierungssystem:", processing_system_data_.name.toUtf8()}, {2000,7921}) );
 
-	if(settings_.target_region_filter.name != "")
+	metadata.addRow(RtfTableRow( {"", RtfText("Tumor").setFontSize(14).setUnderline(true).RtfCode(), RtfText("Normal").setFontSize(14).setUnderline(true).RtfCode(), "Prozessierungssystem:", processing_system_data_.name.toUtf8()}, {2000,1480,1480,1480,3481}, RtfParagraph().setFontSize(14)) );
+
+	if(settings_.target_region_filter.name == "")
 	{
-		metadata.addRow( RtfTableRow({"Genpanel:", settings_.target_region_filter.name.toUtf8() + " (namentliche Listung der Gene s. letzte Seite)"} , {2000,7921} ) );
+		metadata.addRow(RtfTableRow({"Proben-ID", settings_.tumor_ps.toUtf8(), settings_.normal_ps.toUtf8(), "", ""}, {2000,1480,1480,1480,3481} , RtfParagraph().setFontSize(14)) );
+	}
+	else
+	{
+		metadata.addRow(RtfTableRow({"Proben-ID", settings_.tumor_ps.toUtf8(), settings_.normal_ps.toUtf8(), "Genpanel:", settings_.target_region_filter.name.toUtf8() + " (Gennamen s. letzte Seite)"}, {2000,1480,1480,1480,3481} , RtfParagraph().setFontSize(14)) );
 	}
 
-
-	metadata.addRow(RtfTableRow( {"", "Tumor", "Normal", ""}, {2000,1480,1480,4961}, RtfParagraph().setFontSize(14).setUnderline(true)) );
-	metadata.addRow(RtfTableRow({"Proben-ID", settings_.tumor_ps.toUtf8(), settings_.normal_ps.toUtf8(), "Auswertungsdatum", QDate::currentDate().toString("dd.MM.yyyy").toUtf8()}, {2000,1480,1480,2000,2961} , RtfParagraph().setFontSize(14)) );
-
-	metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe:", tumor_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x", normal_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x", "Analysepipeline:", somatic_vl_.getPipeline().toUtf8()}, {2000,1480,1480,2000,2961}) );
+	metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe:", tumor_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x", normal_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x", "Auswertungsdatum:", QDate::currentDate().toString("dd.MM.yyyy").toUtf8()}, {2000,1480,1480,1480,3481}) );
 
 
 	if(settings_.report_config.targetRegionName() == "somatic_custom_panel")
 	{
 		try
 		{
-			metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe Genpanel:", tumor_qcml_data_.value("QC:2000097",true).toString().toUtf8() + "x", normal_qcml_data_.value("QC:2000097",true).toString().toUtf8() + "x", "Auswertungssoftware:", QCoreApplication::applicationName().toUtf8() + " " + QCoreApplication::applicationVersion().toUtf8()}, {2000,1480,1480,2000,2961}) );
+			metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe Genpanel:", tumor_qcml_data_.value("QC:2000097",true).toString().toUtf8() + "x", normal_qcml_data_.value("QC:2000097",true).toString().toUtf8() + "x", "Analysepipeline:", somatic_vl_.getPipeline().toUtf8()}, {2000,1480,1480,1480,3481}) );
 		}
 		catch(Exception) //nothing to do here
 		{
@@ -859,8 +860,11 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 	}
 	else
 	{
-		metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe Genpanel:", "n/a", "n/a", "Auswertungssoftware:", QCoreApplication::applicationName().toUtf8() + " " + QCoreApplication::applicationVersion().toUtf8()}, {2000,1480,1480,2000,2961}) );
+		metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe Genpanel:", "n/a", "n/a", "Analysepipeline:", somatic_vl_.getPipeline().toUtf8()}, {2000,1480,1480,1480,3481}) );
 	}
+
+	//
+
 
 	RtfSourceCode tum_cov_60x = "n/a";
 	RtfSourceCode nor_cov_60x = "n/a";
@@ -871,14 +875,14 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 	}
 	catch(Exception)
 	{} //nothing to do here
-	metadata.addRow( RtfTableRow( {"Coverage 60x:", tum_cov_60x, nor_cov_60x, "ICD10:", icd10_diagnosis_code_.toUtf8()} ,{2000,1480,1480,2000,2961}) );
+	metadata.addRow( RtfTableRow( {"Coverage 60x:", tum_cov_60x, nor_cov_60x, "Auswertungssoftware:", QCoreApplication::applicationName().toUtf8() + " " + QCoreApplication::applicationVersion().toUtf8()} , {2000,1480,1480,1480,3481}) );
 
 
 	if(settings_.report_config.targetRegionName() == "somatic_custom_panel")
 	{
 		try
 		{
-			metadata.addRow(RtfTableRow({"Coverage Genpanel 60x:", tumor_qcml_data_.value("QC:2000098",true).toString().toUtf8() + "x", normal_qcml_data_.value("QC:2000098",true).toString().toUtf8() + "x", "MSI-Status:", (!BasicStatistics::isValidFloat(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3))}, {2000,1480,1480,2000,2961}) );
+			metadata.addRow(RtfTableRow({"Coverage Genpanel 60x:", tumor_qcml_data_.value("QC:2000098",true).toString().toUtf8(), normal_qcml_data_.value("QC:2000098",true).toString().toUtf8(), "ICD10: " + icd10_diagnosis_code_.toUtf8(), "MSI-Status: " + (!BasicStatistics::isValidFloat(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3))}, {2000,1480,1480,1480,3481}) );
 		}
 		catch(Exception) //nothing to do here
 		{
@@ -886,7 +890,7 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 	}
 	else
 	{
-		metadata.addRow(RtfTableRow({"Coverage Genpanel 60x:", "n/a", "n/a", "MSI-Status:", (!BasicStatistics::isValidFloat(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3))}, {2000,1480,1480,2000,2961}) );
+		metadata.addRow(RtfTableRow({"Coverage Genpanel 60x:", "n/a", "n/a", "ICD10: " + icd10_diagnosis_code_.toUtf8(), "MSI-Status: " + (!BasicStatistics::isValidFloat(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3))}, {2000,1480,1480,1480,3481}) );
 	}
 
 	metadata.addRow(RtfTableRow("In Regionen mit einer Abdeckung >60 können somatische Varianten mit einer Frequenz >5% im Tumorgewebe mit einer Sensitivität >95,0% und einem Positive Prediction Value PPW >99% bestimmt werden. Für mindestens 95% aller untersuchten Gene kann die Kopienzahl korrekt unter diesen Bedingungen bestimmt werden.", doc_.maxWidth()) );
@@ -1512,7 +1516,7 @@ RtfSourceCode SomaticReportHelper::partSummary()
 			coll.setNumericMode(true);
 			std::sort(chr.begin(), chr.end(), [&](const QString s1, const QString& s2){return coll.compare(s1,s2) < 0;});
 
-			RtfSourceCode temp = "\\line Verdacht auf einechromosomale Instabilität: Chr. ";
+			RtfSourceCode temp = "\\line Verdacht auf eine chromosomale Instabilität: Chr. ";
 			for(int i=0; i< settings_.report_config.cinChromosomes().count(); ++i)
 			{
 				if( i< settings_.report_config.cinChromosomes().count() - 2) temp += chr[i].toUtf8().replace("chr","") + ", ";
