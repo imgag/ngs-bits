@@ -17,7 +17,7 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Lifts the regions in the bed file according to the provided chain file.");
+		setDescription("Lift-over of regions in a BED file to a different genome build.");
 		addInfile("in", "Input BED file with the regions to lift.", false);
 		addOutfile("out", "The file where the lifted regions will be written to.", false);
 
