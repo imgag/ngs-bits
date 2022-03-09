@@ -1700,10 +1700,16 @@ QString NGSD::svId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bo
 		THROW(FileParseException, "Invalid structural variant type!");
 	}
 
-	query.next();
-
 	// Throw error if multiple matches found
-	if(query.size() > 1) THROW(DatabaseException, "Multiple matching SVs found in NGSD!");
+	if(query.size() > 1)
+	{
+		QStringList ids;
+		while (query.next())
+		{
+			ids << query.value("id").toString();
+		}
+		THROW(DatabaseException, "Multiple matching SVs found in NGSD!\t(" + ids.join(",") + ")");
+	}
 
 	if(query.size() < 1)
 	{
@@ -1712,6 +1718,7 @@ QString NGSD::svId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bo
 		THROW(DatabaseException, "SV " + BedpeFile::typeToString(sv.type()) + " at " + sv.positionRange() + " for callset with id '" + QString::number(callset_id) + "' not found in NGSD!");
 	}
 
+	query.next();
 	return query.value("id").toString();
 
 }

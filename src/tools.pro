@@ -463,3 +463,8 @@ BedpeSort.depends = cppNGS
 SUBDIRS += BedpeAnnotateBreakpointDensity
 tools-TEST.depends += BedpeAnnotateBreakpointDensity
 BedpeAnnotateBreakpointDensity.depends = cppNGS
+
+SUBDIRS += NGSDUpdateSvGenotype
+tools-TEST.depends += NGSDUpdateSvGenotype
+NGSDUpdateSvGenotype.depends = cppNGSD
+
