@@ -53,6 +53,11 @@ public:
 		italic_ = italic;
 		return *this;
 	}
+	virtual RtfText& setUnderline(bool underline)
+	{
+		underline_ = underline;
+		return *this;
+	}
 
 	///Highlight text according color number specified in Document header
 	virtual RtfText& highlight(int color_number)
@@ -93,6 +98,7 @@ private:
 	int font_size_ = 18;
 	bool bold_ = false;
 	bool italic_ = false;
+	bool underline_ = false;
 	QByteArray horizontal_alignment_ = "l";
 	//font number as specified in header
 	int font_number_ = 0;
@@ -154,6 +160,12 @@ public:
 	RtfParagraph& setBold(bool bold) override
 	{
 		this->RtfText::setBold(bold);
+		return *this;
+	}
+
+	RtfParagraph& setUnderline(bool underline) override
+	{
+		this->RtfText::setUnderline(underline);
 		return *this;
 	}
 

@@ -14,6 +14,7 @@ RtfSourceCode RtfText::RtfCode()
 
 	if(bold_) output << "\\b";
 	if(italic_) output << "\\i";
+	if(underline_) output << "\\ul";
 	if(highlight_color_ != 0) output << "\\highlight" + QByteArray::number(highlight_color_);
 
 

@@ -251,6 +251,26 @@ FileLocationList FileLocationProviderLocal::getLowCoverageFiles(bool return_if_m
 	return output;
 }
 
+FileLocationList FileLocationProviderLocal::getSomaticLowCoverageFiles(bool return_if_missing) const
+{
+	if (analysis_type_!=SOMATIC_SINGLESAMPLE && analysis_type_!=SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticLowCoverageFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+
+	FileLocationList output;
+
+	QString name = QFileInfo(gsvar_file_).baseName();
+	QString folder = QFileInfo(gsvar_file_).absoluteDir().absolutePath();
+	QStringList beds = Helper::findFiles(folder, "*_lowcov.bed", false);
+
+	for(QString bed_file : beds)
+	{
+		FileLocation file = FileLocation(name, PathType::LOWCOV_BED, bed_file, QFile::exists(bed_file));
+		addToList(file, output, return_if_missing);
+	}
+
+	return output;
+}
+
+
 FileLocationList FileLocationProviderLocal::getCopyNumberCallFiles(bool return_if_missing) const
 {
 	FileLocationList output;
