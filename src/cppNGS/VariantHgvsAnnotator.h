@@ -151,10 +151,11 @@ private:
 
     //How far the splice region extends into exon/intron
     int splice_region_ex_;
-    int splice_region_in_;
+    int splice_region_in_5_;
+    int splice_region_in_3_;
 
-    QString annotateRegionsCoding(const Transcript& transcript, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand);
-    QString annotateRegionsNonCoding(const Transcript& transcript, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand);
+    QString annotateRegionsCoding(const Transcript& transcript, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand, bool is_dup = false);
+    QString annotateRegionsNonCoding(const Transcript& transcript, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand, bool is_dup = false);
     QString getHgvsPosition(const BedFile& regions, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand, const BedFile& coding_regions, bool utr_5 = false, int first_region = 0);
     QString getPositionInIntron(const BedFile& regions, HgvsNomenclature& hgvs, int genomic_position, bool plus_strand, const BedFile &coding_regions, bool utr_5 = false, int first_region = 0);
     QString getHgvsProteinAnnotation(const VcfLine& variant, const FastaFileIndex& genome_idx, const QString& pos_hgvs_c, const Transcript& transcript, bool plus_strand);
@@ -169,8 +170,11 @@ public:
     ///Default constructor
     VariantHgvsAnnotator();
 
-    ///Constructor to change parameters for detecting up/downstream and splice region variants
+    ///Constructor to change parameters for detecting up/downstream and splice region variants: same for 5 and 3 prime site intron
     VariantHgvsAnnotator(int max_dist_to_transcript, int splice_region_ex, int splice_region_in);
+
+    ///Constructor to change parameters for detecting up/downstream and splice region variants: different for 5 and 3 prime site intron
+    VariantHgvsAnnotator(int max_dist_to_transcript, int splice_region_ex, int splice_region_in_5, int splice_region_in_3);
 
     ///Converts a variant in VCF format to HGVS nomenclature
     HgvsNomenclature variantToHgvs(const Transcript& transcript, VcfLine &variant, const FastaFileIndex& genome_idx);

@@ -11,8 +11,8 @@ class ConcreteTool
 
 private:
     void annotateVcfStream(const QString& in_file, const QString& out_file, const ChromosomalIndex<TranscriptList>& transcript_index,
-                           const FastaFileIndex& reference, const int& max_dist_to_trans, const int& splice_region_ex, const int& splice_region_in,
-                           const QByteArray& tag)
+                           const FastaFileIndex& reference, const int& max_dist_to_trans, const int& splice_region_ex,
+                           const int& splice_region_in_5, const int& splice_region_in_3, const QByteArray& tag)
     {
         if(in_file != "" && in_file == out_file)
         {
@@ -24,7 +24,7 @@ private:
         bool csq_line_inserted = false;
 
         TranscriptList transcripts = transcript_index.container();
-        VariantHgvsAnnotator hgvs_anno(max_dist_to_trans, splice_region_ex, splice_region_in);
+        VariantHgvsAnnotator hgvs_anno(max_dist_to_trans, splice_region_ex, splice_region_in_5, splice_region_in_3);
 
         while(!reader->atEnd())
         {
@@ -254,7 +254,8 @@ public:
         addString("tag", "tag that is used for the consequence annotation", true, "CSQ");
         addInt("dist-to-trans", "maximum distance between variant and transcript", true, 5000);
         addInt("splice-region-ex", "number of bases at exon boundaries that are considered to be in the splice region", true, 3);
-        addInt("splice-region-in", "number of bases at intron boundaries that are considered to be in the splice region", true, 8);
+        addInt("splice-region-in-5", "number of bases at intron boundaries (5') that are considered to be in the splice region", true, 8);
+        addInt("splice-region-in-3", "number of bases at intron boundaries (5') that are considered to be in the splice region", true, 8);
     }
 
     virtual void main()
@@ -274,7 +275,13 @@ public:
 
         int max_dist_to_trans = getInt("dist-to-trans");
         int splice_region_ex = getInt("splice-region-ex");
-        int splice_region_in = getInt("splice-region-in");
+        int splice_region_in_5 = getInt("splice-region-in-5");
+        int splice_region_in_3 = getInt("splice-region-in-3");
+
+        if(max_dist_to_trans <= 0 || splice_region_ex <= 0 || splice_region_in_5 <= 0 || splice_region_in_3 <= 0)
+        {
+            THROW(CommandLineParsingException, "Distance to transcript and splice region parameters must be >= 1!");
+        }
 
         //parse gff file
         QMap<QByteArray, QByteArray> transcript_gene_relation;
@@ -284,7 +291,8 @@ public:
         transcripts.sortByPosition();
         ChromosomalIndex<TranscriptList> transcript_index(transcripts);
 
-        annotateVcfStream(in_file, out_file, transcript_index, reference, max_dist_to_trans, splice_region_ex, splice_region_in, tag);
+        annotateVcfStream(in_file, out_file, transcript_index, reference, max_dist_to_trans,
+                          splice_region_ex, splice_region_in_5, splice_region_in_3, tag);
     }
 };
 

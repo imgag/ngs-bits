@@ -1,14 +1,23 @@
 #include "VariantHgvsAnnotator.h"
 
 VariantHgvsAnnotator::VariantHgvsAnnotator()
-    : VariantHgvsAnnotator::VariantHgvsAnnotator(5000, 3, 8)
+    : VariantHgvsAnnotator::VariantHgvsAnnotator(5000, 3, 8, 8)
 {
 }
 
 VariantHgvsAnnotator::VariantHgvsAnnotator(int max_dist_to_transcript, int splice_region_ex, int splice_region_in)
     : max_dist_to_transcript_(max_dist_to_transcript)
     , splice_region_ex_(splice_region_ex)
-    , splice_region_in_(splice_region_in)
+    , splice_region_in_5_(splice_region_in)
+    , splice_region_in_3_(splice_region_in)
+{
+}
+
+VariantHgvsAnnotator::VariantHgvsAnnotator(int max_dist_to_transcript, int splice_region_ex, int splice_region_in_5, int splice_region_in_3)
+    : max_dist_to_transcript_(max_dist_to_transcript)
+    , splice_region_ex_(splice_region_ex)
+    , splice_region_in_5_(splice_region_in_5)
+    , splice_region_in_3_(splice_region_in_3)
 {
 }
 
@@ -82,10 +91,10 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
                 //duplication
                 if(genome_idx.seq(variant.chr(), start - variant.alt(0).mid(1).length() + 1, variant.alt(0).mid(1).length()) == variant.alt(0).mid(1))
                 {
-                    pos_hgvs_c_dup = annotateRegionsCoding(transcript, hgvs, start - variant.alt(0).mid(1).length() + 1, plus_strand);
+                    pos_hgvs_c_dup = annotateRegionsCoding(transcript, hgvs, start - variant.alt(0).mid(1).length() + 1, plus_strand, true);
                     if(variant.alt(0).mid(1).length() > 1)
                     {
-                        pos_hgvs_c_dup += "_" + annotateRegionsCoding(transcript, hgvs, start, plus_strand);
+                        pos_hgvs_c_dup += "_" + annotateRegionsCoding(transcript, hgvs, start, plus_strand, true);
                     }
                 }
                 pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, start, plus_strand) + "_" +
@@ -96,10 +105,10 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
                 //duplication
                 if(genome_idx.seq(variant.chr(), start + 1, variant.alt(0).mid(1).length()) == variant.alt(0).mid(1))
                 {
-                    pos_hgvs_c_dup = annotateRegionsCoding(transcript, hgvs, start + variant.alt(0).mid(1).length(), plus_strand);
+                    pos_hgvs_c_dup = annotateRegionsCoding(transcript, hgvs, start + variant.alt(0).mid(1).length(), plus_strand, true);
                     if(variant.alt(0).mid(1).length() > 1)
                     {
-                        pos_hgvs_c_dup += "_" + annotateRegionsCoding(transcript, hgvs, start + 1, plus_strand);
+                        pos_hgvs_c_dup += "_" + annotateRegionsCoding(transcript, hgvs, start + 1, plus_strand, true);
                     }
                 }
                 pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, start + 1, plus_strand) + "_" +
@@ -133,7 +142,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
         if(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT))
         {
             //special case: deletion spanning exon-intron boundary -> no protein annotation
-            if(!pos_hgvs_c.contains("+") && !pos_hgvs_c.contains("-"))
+            if(!hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT))
             {
                 hgvs.hgvs_p = getHgvsProteinAnnotation(variant, genome_idx, pos_hgvs_c, transcript, plus_strand);
             }
@@ -185,10 +194,10 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
                 //duplication
                 if(genome_idx.seq(variant.chr(), start + 1, variant.alt(0).mid(1).length()) == variant.alt(0).mid(1))
                 {
-                    pos_hgvs_c_dup = annotateRegionsNonCoding(transcript, hgvs, start + variant.alt(0).mid(1).length(), plus_strand);
+                    pos_hgvs_c_dup = annotateRegionsNonCoding(transcript, hgvs, start + variant.alt(0).mid(1).length(), plus_strand, true);
                     if(variant.alt(0).mid(1).length() > 1)
                     {
-                        pos_hgvs_c_dup += "_" + annotateRegionsNonCoding(transcript, hgvs, start + 1, plus_strand);
+                        pos_hgvs_c_dup += "_" + annotateRegionsNonCoding(transcript, hgvs, start + 1, plus_strand, true);
                     }
                 }
                 pos_hgvs_c = annotateRegionsNonCoding(transcript, hgvs, start + 1, plus_strand) + "_" +
@@ -270,10 +279,12 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
         hgvs.hgvs_c = hgvs_c_prefix + pos_hgvs_c + "delins" + alt;
     }
 
+    //consequence annotations based on protein annotation string
     if(!variant.isSNV() && hgvs.hgvs_p != "")
     {
         hgvs.variant_consequence_type.insert(VariantConsequenceType::PROTEIN_ALTERING_VARIANT);
 
+        //effects on stop or start codon
         if(hgvs.variant_consequence_type.contains(VariantConsequenceType::THREE_PRIME_UTR_VARIANT) &&
                 hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT))
         {
@@ -283,6 +294,10 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
         if(hgvs.hgvs_p == "p.Met1?")
         {
             hgvs.variant_consequence_type.insert(VariantConsequenceType::START_LOST);
+        }
+        else if(hgvs.hgvs_p == "p.Met1=")
+        {
+            hgvs.variant_consequence_type.insert(VariantConsequenceType::START_RETAINED_VARIANT);
         }
         else if(hgvs.hgvs_p.endsWith("Ter"))
         {
@@ -297,7 +312,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
         {
             hgvs.variant_consequence_type.insert(VariantConsequenceType::FRAMESHIFT_VARIANT);
         }
-        else if(variant.isDel())
+        else if(variant.isDel() && !hgvs.variant_consequence_type.contains(VariantConsequenceType::START_RETAINED_VARIANT))
         {
             hgvs.variant_consequence_type.insert(VariantConsequenceType::INFRAME_DELETION);
         }
@@ -307,17 +322,20 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
         }
         else
         {
-            if(variant.ref().length() == variant.alt(0).length())
+            if(!hgvs.variant_consequence_type.contains(VariantConsequenceType::START_RETAINED_VARIANT))
             {
-                hgvs.variant_consequence_type.insert(VariantConsequenceType::MISSENSE_VARIANT);
-            }
-            else if(variant.ref().length() > variant.alt(0).length())
-            {
-                hgvs.variant_consequence_type.insert(VariantConsequenceType::INFRAME_DELETION);
-            }
-            else
-            {
-                hgvs.variant_consequence_type.insert(VariantConsequenceType::INFRAME_INSERTION);
+                if(variant.ref().length() == variant.alt(0).length())
+                {
+                    hgvs.variant_consequence_type.insert(VariantConsequenceType::MISSENSE_VARIANT);
+                }
+                else if(variant.ref().length() > variant.alt(0).length())
+                {
+                    hgvs.variant_consequence_type.insert(VariantConsequenceType::INFRAME_DELETION);
+                }
+                else
+                {
+                    hgvs.variant_consequence_type.insert(VariantConsequenceType::INFRAME_INSERTION);
+                }
             }
         }
     }
@@ -339,7 +357,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
 
 // make variant consequence type annotations depending on the part of the transcript the variant occurs in;
 // for coding variants and a single genomic position
-QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand)
+QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand, bool is_dup)
 {
     QString pos_hgvs_c;
 
@@ -353,13 +371,17 @@ QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript
         {
             pos_hgvs_c = getHgvsPosition(transcript.utr5prime(), hgvs, gen_pos, plus_strand, transcript.codingRegions(), true);
 
-            if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
+            //if positions of duplicated regions are annotated, don't insert consequences (apply only to insertion position!)
+            if(!is_dup)
             {
-                hgvs.variant_consequence_type.insert(VariantConsequenceType::INTRON_VARIANT);
-            }
-            else
-            {
-                hgvs.variant_consequence_type.insert(VariantConsequenceType::FIVE_PRIME_UTR_VARIANT);
+                if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
+                {
+                    hgvs.variant_consequence_type.insert(VariantConsequenceType::INTRON_VARIANT);
+                }
+                else
+                {
+                    hgvs.variant_consequence_type.insert(VariantConsequenceType::FIVE_PRIME_UTR_VARIANT);
+                }
             }
 
             if(pos_hgvs_c.startsWith("+1-"))
@@ -374,8 +396,13 @@ QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript
         else if((plus_strand && transcript.start() - gen_pos <= max_dist_to_transcript_) ||
                 (!plus_strand && gen_pos - transcript.end() <= max_dist_to_transcript_))
         {
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::INTERGENIC_VARIANT);
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::UPSTREAM_GENE_VARIANT);
+
+            //if positions of duplicated regions are annotated, don't insert consequences (apply only to insertion position!)
+            if(!is_dup)
+            {
+                hgvs.variant_consequence_type.insert(VariantConsequenceType::INTERGENIC_VARIANT);
+                hgvs.variant_consequence_type.insert(VariantConsequenceType::UPSTREAM_GENE_VARIANT);
+            }
             return "";
         }
         else
@@ -431,20 +458,28 @@ QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript
                 pos_hgvs_c = "*" + pos_hgvs_c;
             }
 
-            if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
+            //if positions of duplicated regions are annotated, don't insert consequences (apply only to insertion position!)
+            if(!is_dup)
             {
-                hgvs.variant_consequence_type.insert(VariantConsequenceType::INTRON_VARIANT);
-            }
-            else
-            {
-                hgvs.variant_consequence_type.insert(VariantConsequenceType::THREE_PRIME_UTR_VARIANT);
+                if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
+                {
+                    hgvs.variant_consequence_type.insert(VariantConsequenceType::INTRON_VARIANT);
+                }
+                else
+                {
+                    hgvs.variant_consequence_type.insert(VariantConsequenceType::THREE_PRIME_UTR_VARIANT);
+                }
             }
         }
         else if((plus_strand && gen_pos - transcript.end() <= max_dist_to_transcript_) ||
                 (!plus_strand && transcript.start() - gen_pos <= max_dist_to_transcript_))
         {
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::INTERGENIC_VARIANT);
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::DOWNSTREAM_GENE_VARIANT);
+            //if positions of duplicated regions are annotated, don't insert consequences (apply only to insertion position!)
+            if(!is_dup)
+            {
+                hgvs.variant_consequence_type.insert(VariantConsequenceType::INTERGENIC_VARIANT);
+                hgvs.variant_consequence_type.insert(VariantConsequenceType::DOWNSTREAM_GENE_VARIANT);
+            }
             return "";
         }
         else
@@ -471,13 +506,17 @@ QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript
 
         pos_hgvs_c = getHgvsPosition(transcript.codingRegions(), hgvs, gen_pos, plus_strand, transcript.codingRegions(), false, first_region);
 
-        if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
+        //if positions of duplicated regions are annotated, don't insert consequences (apply only to insertion position!)
+        if(!is_dup)
         {
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::INTRON_VARIANT);
-        }
-        else
-        {
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::CODING_SEQUENCE_VARIANT);
+            if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
+            {
+                hgvs.variant_consequence_type.insert(VariantConsequenceType::INTRON_VARIANT);
+            }
+            else
+            {
+                hgvs.variant_consequence_type.insert(VariantConsequenceType::CODING_SEQUENCE_VARIANT);
+            }
         }
     }
     return pos_hgvs_c;
@@ -485,39 +524,55 @@ QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript
 
 // make variant consequence type annotations depending on the part of the transcript the variant occurs in;
 // for non-coding variants and a single genomic position
-QString VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& transcript, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand)
+QString VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& transcript, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand, bool is_dup)
 {
     QString pos_hgvs_c;
 
     if(gen_pos >= transcript.start() && gen_pos <= transcript.end())
     {
-        hgvs.variant_consequence_type.insert(VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT);
+        //if positions of duplicated regions are annotated, don't insert consequences (apply only to insertion position!)
+        if(!is_dup)
+        {
+            hgvs.variant_consequence_type.insert(VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT);
+        }
 
         pos_hgvs_c = getHgvsPosition(transcript.regions(), hgvs, gen_pos, plus_strand, transcript.regions(), false);
 
-        if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
+        //if positions of duplicated regions are annotated, don't insert consequences (apply only to insertion position!)
+        if(!is_dup)
         {
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::INTRON_VARIANT);
-        }
-        else
-        {
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::NON_CODING_TRANSCRIPT_EXON_VARIANT);
+            if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
+            {
+                hgvs.variant_consequence_type.insert(VariantConsequenceType::INTRON_VARIANT);
+            }
+            else
+            {
+                hgvs.variant_consequence_type.insert(VariantConsequenceType::NON_CODING_TRANSCRIPT_EXON_VARIANT);
+            }
         }
     }
     // variant downstream of non-coding transcript
     else if((plus_strand && gen_pos - transcript.end() <= max_dist_to_transcript_ && gen_pos > transcript.end()) ||
             (!plus_strand && transcript.start() - gen_pos <= max_dist_to_transcript_ && gen_pos < transcript.start()))
     {
-        hgvs.variant_consequence_type.insert(VariantConsequenceType::INTERGENIC_VARIANT);
-        hgvs.variant_consequence_type.insert(VariantConsequenceType::DOWNSTREAM_GENE_VARIANT);
+        //if positions of duplicated regions are annotated, don't insert consequences (apply only to insertion position!)
+        if(!is_dup)
+        {
+            hgvs.variant_consequence_type.insert(VariantConsequenceType::INTERGENIC_VARIANT);
+            hgvs.variant_consequence_type.insert(VariantConsequenceType::DOWNSTREAM_GENE_VARIANT);
+        }
         return "";
     }
     // variant upstream of non-coding transcript
     else if((plus_strand && transcript.start() - gen_pos <= max_dist_to_transcript_ && gen_pos < transcript.start()) ||
             (!plus_strand && gen_pos - transcript.end() <= max_dist_to_transcript_ && gen_pos > transcript.end()))
     {
-        hgvs.variant_consequence_type.insert(VariantConsequenceType::INTERGENIC_VARIANT);
-        hgvs.variant_consequence_type.insert(VariantConsequenceType::UPSTREAM_GENE_VARIANT);
+        //if positions of duplicated regions are annotated, don't insert consequences (apply only to insertion position!)
+        if(!is_dup)
+        {
+            hgvs.variant_consequence_type.insert(VariantConsequenceType::INTERGENIC_VARIANT);
+            hgvs.variant_consequence_type.insert(VariantConsequenceType::UPSTREAM_GENE_VARIANT);
+        }
         return "";
     }
     else
@@ -855,6 +910,8 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
     }
     else if(variant.isInDel())
     {
+        if(variant.isIns() && pos_hgvs_c == "-1_1") return "";
+
         QStringList positions = pos_hgvs_c.split("_");
 
         //make position of start of deletion/insertion in transcript zero-based
@@ -866,6 +923,51 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
             if(transcript.exonNumber(variant.start(), variant.start()) != transcript.exonNumber(variant.end(), variant.end()))
             {
                 return "p.?";
+            }
+        }
+
+        //special case: deletion spanning 5' UTR and start of coding region
+        if(pos_trans_start <= -1)
+        {
+            int pos_trans_end = positions.at(1).toInt() - 1;
+            if(pos_trans_end > 2)
+            {
+                return "p.Met1?";
+            }
+            else
+            {
+                Sequence new_start;
+                if(plus_strand)
+                {
+                    if(variant.isDel())
+                    {
+                        new_start = genome_idx.seq(variant.chr(), variant.start() - pos_trans_end, pos_trans_end + 1);
+                    }
+                    else
+                    {
+                        new_start = variant.alt(0).right(pos_trans_end + 1);
+                    }
+                }
+                else
+                {
+                    if(variant.isDel())
+                    {
+                        new_start = genome_idx.seq(variant.chr(), variant.end() + pos_trans_end + 1, pos_trans_end + 1);
+                    }
+                    else
+                    {
+                        new_start = variant.alt(0).mid(1, pos_trans_end + 1);
+                    }
+                    new_start.reverseComplement();
+                }
+                if(new_start == coding_sequence.left(pos_trans_end + 1))
+                {
+                    return "p.Met1=";
+                }
+                else
+                {
+                    return "p.Met1?";
+                }
             }
         }
 
@@ -1178,6 +1280,13 @@ void VariantHgvsAnnotator::annotateProtSeqCsqSnv(HgvsNomenclature& hgvs)
 //annotate if the variant is a splice region variant
 void VariantHgvsAnnotator::annotateSpliceRegion(HgvsNomenclature& hgvs, const Transcript& transcript, int start, int end, bool plus_strand, bool insertion)
 {
+    //allow different definitions for 5 prime and 3 prime side of intron
+    int splice_region_in_start = plus_strand ? splice_region_in_5_ : splice_region_in_3_;
+    int splice_region_in_end = plus_strand ? splice_region_in_3_ : splice_region_in_5_;
+
+    //deletion/deletion-insertion: start of variant is common prepended base -> adjust by one base
+    if(end - start > 0) start++;
+
     for(int i=0; i<transcript.regions().count(); i++)
     {
         int diff_intron_end = transcript.regions()[i].start() - end;
@@ -1192,7 +1301,7 @@ void VariantHgvsAnnotator::annotateSpliceRegion(HgvsNomenclature& hgvs, const Tr
             diff_exon_start += 1;
         }
 
-        if((diff_intron_end <= splice_region_in_ && diff_intron_end >= 0) ||
+        if((diff_intron_end <= splice_region_in_end && diff_intron_end >= 0) ||
                 (diff_exon_start <= splice_region_ex_ && diff_exon_start >= 0) ||
                 (start < transcript.regions()[i].start() && end >= transcript.regions()[i].start()))
         {
@@ -1213,7 +1322,7 @@ void VariantHgvsAnnotator::annotateSpliceRegion(HgvsNomenclature& hgvs, const Tr
             }
         }
         else if((diff_exon_end <= splice_region_ex_ && diff_exon_end >= 0) ||
-                (diff_intron_start <= splice_region_in_ && diff_intron_start >= 0) ||
+                (diff_intron_start <= splice_region_in_start && diff_intron_start >= 0) ||
                 (start <= transcript.regions()[i].end() && end > transcript.regions()[i].end()))
         {
             //last exon cannot have splice region variant at the end
