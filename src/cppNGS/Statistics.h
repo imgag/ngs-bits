@@ -45,6 +45,10 @@ public:
 	static QCCollection region(const BedFile& bed_file, bool merge);
 	///Calculates somatic QC metrics from BAM and VCF file
 	static QCCollection somatic(GenomeBuild build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots = false, const QString& ref_file_cram = QString());
+
+	///Calculates QC depths for somatic custom panel
+	static QCCollection somaticCustomDepth(const BedFile& bed_file, QString bam_file, QString ref_file, int min_mapq=1);
+
 	///Calculates mutation burden metric from somatic VCF normalized to Exome Size
 	static QCValue mutationBurdenNormalized(QString somatic_vcf, QString exons, QString target, QString tsg, QString blacklist);
 	///Calculates unnormalized raw mutation burden

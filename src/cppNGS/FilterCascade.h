@@ -835,6 +835,15 @@ class CPPNGSSHARED_EXPORT FilterCnvLoglikelihood
 		void apply(const CnvList& cnvs, FilterResult& result) const override;
 };
 
+class CPPNGSSHARED_EXPORT FilterCnvMaxLoglikelihood
+		: public FilterBase
+{
+public:
+	FilterCnvMaxLoglikelihood();
+	QString toText() const override;
+	void apply(const CnvList &cnvs, FilterResult &result) const override;
+};
+
 //Filter CNV q-value
 class CPPNGSSHARED_EXPORT FilterCnvQvalue
 	: public FilterBase
@@ -914,6 +923,27 @@ class CPPNGSSHARED_EXPORT FilterCnvGeneOverlap
 		void apply(const CnvList& cnvs, FilterResult& result) const override;
 
 		QByteArrayList selectedOptions() const;
+};
+
+//Filters CNVs for tumor copy number
+class CPPNGSSHARED_EXPORT FilterCnvTumorCopyNumberChange
+		: public FilterBase
+{
+public:
+	FilterCnvTumorCopyNumberChange();
+	QString toText() const override;
+	void apply(const CnvList& cnvs, FilterResult &result) const override;
+};
+
+//Filters CNVs for clonality
+class CPPNGSSHARED_EXPORT FilterCnvClonality
+		: public FilterBase
+{
+	public:
+		FilterCnvClonality();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+
 };
 
 //Filter CNVs for overlaps with pathogenic CNVs

@@ -12,6 +12,7 @@ target region 10x percentage: 98.18
 target region 20x percentage: 94.06
 target region 30x percentage: 89.60
 target region 50x percentage: 74.98
+target region 60x percentage: 67.56
 target region 100x percentage: 35.22
 target region 200x percentage: 1.24
 target region 500x percentage: 0.00
