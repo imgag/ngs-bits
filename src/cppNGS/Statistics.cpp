@@ -1042,14 +1042,14 @@ QCCollection Statistics::somaticCustomDepth(const BedFile& bed_file, QString bam
 	return output;
 }
 
-QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots, const QString& ref_file_cram)
+QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots)
 {
 	QCCollection output;
 
 	//sample correlation
-	auto tumor_genotypes = SampleSimilarity::genotypesFromBam(build, tumor_bam, 30, 500, true, target_file, ref_file_cram);
+	auto tumor_genotypes = SampleSimilarity::genotypesFromBam(build, tumor_bam, 30, 500, true, target_file, ref_fasta);
 
-	auto normal_genotypes = SampleSimilarity::genotypesFromBam(build, normal_bam, 30, 500, true, target_file, ref_file_cram);
+	auto normal_genotypes = SampleSimilarity::genotypesFromBam(build, normal_bam, 30, 500, true, target_file, ref_fasta);
 	SampleSimilarity sc;
 
 	sc.calculateSimilarity(tumor_genotypes, normal_genotypes);
@@ -1160,8 +1160,8 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	int n = 10;
 	//process variants
 	QVector<double> freqs;
-	BamReader reader_tumor(tumor_bam, ref_file_cram);
-	BamReader reader_normal(normal_bam, ref_file_cram);
+	BamReader reader_tumor(tumor_bam, ref_fasta);
+	BamReader reader_normal(normal_bam, ref_fasta);
 	for (int i=0; i<variants.count(); ++i)
 	{
 		const  VcfLine& v = variants[i];

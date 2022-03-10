@@ -44,7 +44,7 @@ public:
 	///Calculates target region statistics (term-value pairs). @p merge determines if overlapping regions are merged before calculating the statistics.
 	static QCCollection region(const BedFile& bed_file, bool merge);
 	///Calculates somatic QC metrics from BAM and VCF file
-	static QCCollection somatic(GenomeBuild build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots = false, const QString& ref_file_cram = QString());
+	static QCCollection somatic(GenomeBuild build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots = false);
 
 	///Calculates QC depths for somatic custom panel
 	static QCCollection somaticCustomDepth(const BedFile& bed_file, QString bam_file, QString ref_file, int min_mapq=1);

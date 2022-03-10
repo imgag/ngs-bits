@@ -31,7 +31,6 @@ public:
 		addInfile("error_rates", "Input TSV containing umiVar error rates.", true, true);
 		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg38");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
-		addString("ref_cram", "Reference genome for CRAM support (mandatory if CRAM is used). If set, it is used for tumor and normal file.", true);
 		addInt("min_mapq", "Set minimal mapping quality (default:0)", true, 0);
 
 
