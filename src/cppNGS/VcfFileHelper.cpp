@@ -492,7 +492,7 @@ bool VcfLine::isIns() const
         THROW(NotImplementedException, "Can not determine if multi allelic variant is insertion");
     }
 
-    if(alt(0).length() > 1 && ref().length() == 1)
+    if(alt(0).length() > 1 && ref().length() == 1 && alt(0).at(0) == ref().at(0))
     {
         return true;
     }
@@ -506,7 +506,7 @@ bool VcfLine::isDel() const
         THROW(NotImplementedException, "Can not determine if multi allelic variant is deletion")
     }
 
-    if(alt(0).length() == 1 && ref().length() > 1)
+    if(alt(0).length() == 1 && ref().length() > 1 && alt(0).at(0) == ref().at(0))
     {
         return true;
     }
