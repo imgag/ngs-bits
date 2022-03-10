@@ -835,7 +835,11 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahgscha1")
 	{
-		Statistics::hrdScore(cnvs_, GenomeBuild::HG19);
+		FileLocationList locations = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFiles(false);
+		for(const auto& loc : locations)
+		{
+			qDebug() << loc.exists << " " << loc.filename << " " << loc.id << " " << loc.typeAsHumanReadableString() << endl;
+		}
 	}
 }
 
@@ -1857,8 +1861,18 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 	//sample low-coverage
 	if (analysis_type==SOMATIC_SINGLESAMPLE || analysis_type==SOMATIC_PAIR)
 	{
-		FileLocation loc = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFile();
-		dlg.addFile(loc, ui_.actionIgvLowcov->isChecked());
+		FileLocationList som_low_cov_files = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFiles(false);
+		for(const FileLocation& loc : som_low_cov_files)
+		{
+			if(loc.filename.contains("somatic_custom_panel_stat"))
+			{
+				dlg.addFile(FileLocation{loc.id + " (somatic custom panel)", PathType::LOWCOV_BED, loc.filename, QFile::exists(loc.filename)}, ui_.actionIgvLowcov->isChecked());
+			}
+			else
+			{
+				dlg.addFile(loc, ui_.actionIgvLowcov->isChecked());
+			}
+		}
 	}
 	else
 	{
@@ -3629,10 +3643,19 @@ void MainWindow::generateReportSomaticRTF()
 	somatic_report_settings_.normal_ps = ps_normal;
 
 	somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
-	somatic_report_settings_.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(ps_tumor), false);
-	somatic_report_settings_.processing_system_genes = db.genesToApproved(GlobalServiceProvider::database().processingSystemGenes(db.processingSystemIdFromProcessedSample(ps_tumor), false), true);
+
 
 	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
+	if(!ui_.filters->targetRegion().isValid()) //use processing system data in case no filter is set
+	{
+		TargetRegionInfo generic_target;
+		generic_target.regions = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(ps_tumor), false);
+		generic_target.genes = db.genesToApproved(GlobalServiceProvider::database().processingSystemGenes(db.processingSystemIdFromProcessedSample(ps_tumor), false), true);
+		generic_target.name = db.getProcessedSampleData(db.processedSampleId(ps_tumor)).processing_system;
+		somatic_report_settings_.target_region_filter = generic_target;
+	}
+
+
 
 
 	QCCollection cnv_metrics = Statistics::hrdScore(SomaticReportSettings::filterCnvs(cnvs_, somatic_report_settings_), GSvarHelper::build());
@@ -3701,6 +3724,7 @@ void MainWindow::generateReportSomaticRTF()
 		//generate somatic DNA report
 		try
 		{
+
 			if(!SomaticReportHelper::checkGermlineSNVFile(somatic_control_tissue_variants_))
 			{
 				QApplication::restoreOverrideCursor();
@@ -3711,11 +3735,11 @@ void MainWindow::generateReportSomaticRTF()
 			SomaticReportHelper report(GSvarHelper::build(), variants_, cnvs_, somatic_control_tissue_variants_, somatic_report_settings_);
 
 			//Store XML file with the same somatic report configuration settings
-			QString gsvar_xml_folder = Settings::path("gsvar_xml_folder");
-
 			try
 			{
-				report.storeXML(gsvar_xml_folder + "\\" + somatic_report_settings_.tumor_ps + "-" + somatic_report_settings_.normal_ps + ".xml");
+				QString tmp_xml = Helper::tempFileName(".xml");
+				report.storeXML(tmp_xml);
+				ReportWorker::moveReport(tmp_xml, Settings::path("gsvar_xml_folder") + "\\" + somatic_report_settings_.tumor_ps + "-" + somatic_report_settings_.normal_ps + ".xml");
 			}
 			catch(Exception e)
 			{
@@ -3726,12 +3750,12 @@ void MainWindow::generateReportSomaticRTF()
 			QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
 
 			report.storeRtf(temp_filename);
-
 			ReportWorker::moveReport(temp_filename, file_rep);
 
 			//Generate files for QBIC upload
 			QString path = Settings::string("qbic_data_path") + "/" + ps_tumor + "-" + ps_normal;
 			report.storeQbicData(path);
+
 			QApplication::restoreOverrideCursor();
 		}
 		catch(Exception& error)

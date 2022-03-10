@@ -201,6 +201,11 @@ FileLocationList FileLocationProviderRemote::getRohFiles(bool return_if_missing)
 	return getFileLocationsByType(PathType::ROH, return_if_missing);
 }
 
+FileLocationList FileLocationProviderRemote::getSomaticLowCoverageFiles(bool return_if_missing) const
+{
+	return getFileLocationsByType(PathType::LOWCOV_BED, return_if_missing);
+}
+
 FileLocation FileLocationProviderRemote::getSomaticCnvCoverageFile() const
 {
 	return getOneFileLocationByType(PathType::COPY_NUMBER_RAW_DATA, "");

@@ -804,6 +804,46 @@
 						</xs:simpleContent>
 					</xs:complexType>
 				</xs:element>
+				<xs:element name="ReportDocumentParts" nillable="false" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>base64-encoded report tables/images for re-use in other software</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:simpleContent>
+							<xs:extension base="xs:base64Binary">
+								<xs:attribute name="name" use="required">
+									<xs:annotation>
+										<xs:documentation>Name of the part.</xs:documentation>
+									</xs:annotation>
+									<xs:simpleType>
+										<xs:restriction base="xs:string">
+											<xs:enumeration value="summary"/>
+											<xs:enumeration value="relevant_variants"/>
+											<xs:enumeration value="unclear_variants"/>
+											<xs:enumeration value="cnvs"/>
+											<xs:enumeration value="svs"/>
+											<xs:enumeration value="pharmaco_genetics"/>
+											<xs:enumeration value="general_info"/>
+											<xs:enumeration value="igv_screenshot"/>
+											<xs:enumeration value="mtb_summary"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+								<xs:attribute name="format" use="required">
+									<xs:annotation>
+										<xs:documentation>Data format of the part.</xs:documentation>
+									</xs:annotation>
+									<xs:simpleType>
+										<xs:restriction base="xs:string">
+											<xs:enumeration value="PNG"/>
+											<xs:enumeration value="RTF"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+							</xs:extension>
+						</xs:simpleContent>
+					</xs:complexType>
+				</xs:element>
 			</xs:sequence>
 			<xs:attribute name="version" use="required">
 				<xs:annotation>
@@ -811,8 +851,8 @@
 				</xs:annotation>
 				<xs:simpleType>
 					<xs:restriction base="xs:int">
-						<xs:minInclusive value="1"/>
-						<xs:maxInclusive value="1"/>
+						<xs:minInclusive value="4"/>
+						<xs:maxInclusive value="4"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>

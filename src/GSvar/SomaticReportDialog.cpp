@@ -97,7 +97,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 		}
 	}
 
-	tum_cont_max_clonality_ = SomaticReportHelper::getCnvMaxTumorClonality(cnvs);
+	tum_cont_max_clonality_ = SomaticReportHelper::getCnvMaxTumorClonality(cnvs_);
 
 	//Load HPO terms from database
 	QStringList hpos_ngsd;
@@ -277,6 +277,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	else
 	{
 		ui_.include_max_clonality->setCheckable(false);
+		ui_.include_max_clonality->setEnabled(false);
 	}
 
 	if(BasicStatistics::isValidFloat( tum_cont_histological_) && tum_cont_histological_ > 0.)
@@ -307,6 +308,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	else
 	{
 		ui_.include_cnv_burden->setCheckable(false);
+		ui_.include_cnv_burden->setEnabled(false);
 	}
 
 	if(cnvs_.count() > 0)

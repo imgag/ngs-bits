@@ -1876,6 +1876,9 @@ private slots:
 		settings.report_config = res_config;
 		settings.tumor_ps = "DX184894_01";
 		settings.normal_ps = "DX184263_01";
+		settings.target_region_filter.name = "SureSelect Somatic vTEST";
+		settings.target_region_filter.genes = GeneSet::createFromFile(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test_genes.txt"));;
+		settings.target_region_filter.regions.load(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test.bed"));
 
 
 		//Test somatic XML report
@@ -1885,8 +1888,10 @@ private slots:
 		CnvList cnvs_filtered = SomaticReportSettings::filterCnvs(cnvs,settings);
 
 		SomaticXmlReportGeneratorData xml_data(GenomeBuild::HG19, settings, vl_filtered, vl_germl_filtered, cnvs_filtered);
-		xml_data.processing_system_roi.load(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test.bed"));
-		xml_data.processing_system_genes = GeneSet::createFromFile(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test_genes.txt"));
+
+
+		//xml_data.processing_system_roi.load(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test.bed"));
+		//xml_data.processing_system_genes = GeneSet::createFromFile(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test_genes.txt"));
 		IS_THROWN(ArgumentException, xml_data.check());
 
 		xml_data.mantis_msi = 0.74;
@@ -1895,10 +1900,22 @@ private slots:
 		xml_data.tumor_content_clonality = 0.8;
 		xml_data.tumor_content_snvs = 0.73;
 
+		xml_data.rtf_part_summary = "I am the summary part of the RTF report";
+		xml_data.rtf_part_relevant_variants = "relevant SNVs and INDELs";
+		xml_data.rtf_part_unclear_variants = "unclear SNVs";
+		xml_data.rtf_part_cnvs = "chromosomal aberrations";
+		xml_data.rtf_part_svs = "Fusions";
+		xml_data.rtf_part_pharmacogenetics = "RTF pharmacogenomics table";
+		xml_data.rtf_part_general_info = "general meta data";
+		xml_data.rtf_part_igv_screenshot = "";
+		xml_data.rtf_part_mtb_summary = "MTB summary";
 
-		QString out = SomaticXmlReportGenerator::generateXML(xml_data, db, true);
 
-		Helper::storeTextFile("out/somatic_report.xml", out.split("\n"));
+
+		QSharedPointer<QFile> out_file = Helper::openFileForWriting("out/somatic_report.xml");
+		SomaticXmlReportGenerator::generateXML(xml_data, out_file, db, true);
+		out_file->close();
+
 		COMPARE_FILES("out/somatic_report.xml", TESTDATA("data_out/somatic_report.xml"));
 
 
