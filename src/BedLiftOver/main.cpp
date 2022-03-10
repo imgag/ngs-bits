@@ -70,9 +70,22 @@ public:
 			unmapped = Helper::openFileForWriting(unmapped_path, true);
 		}
 
+		//for statistics:
+		int in_count = 0;
+		long long in_length = 0;
+		long long unlifted_in_length = 0;
+
+		int lifted_count = 0;
+		int unlifted_count = 0;
+		long long lifted_length = 0;
+
+
+
 		while(! bed->atEnd())
 		{
 			BedLine l = BedLine::fromString(bed->readLine());
+			in_count++;
+			in_length += l.length();
 
 			try
 			{
@@ -92,9 +105,14 @@ public:
 				}
 
 				lifted->write(lifted_line.toString(false).toLatin1() + "\n");
+				lifted_count++;
+				lifted_length += lifted_line.length();
 			}
 			catch (ArgumentException& e)
 			{
+				unlifted_count++;
+				unlifted_in_length += l.length();
+
 				if (! unmapped.isNull())
 				{
 					unmapped->write("# " + e.message().toLatin1() + "\n");
@@ -102,6 +120,23 @@ public:
 				}
 			}
 		}
+
+		// print statistics:
+		QTextStream out(stdout);
+		long long lifted_in_length = in_length - unlifted_in_length;
+		out << "LiftOver Statistics:" << endl;
+		out << "Input regions : " << in_count << endl;
+		out << "lifted        : " << lifted_count << " (" << QString::number(100.0*lifted_count/in_count, 'f', 2) << "%)" << endl;
+		out << "unlifted      : " << unlifted_count << " (" << QString::number(100.0*unlifted_count/in_count, 'f', 2) << "%)" << endl;
+		out << endl;
+		out << "Bases input: " << in_length << endl;
+		out << "lifted     : " << lifted_in_length << " (" << QString::number(100.0*lifted_in_length/in_length, 'f', 2) << "%)" << endl;
+		out << "unlifted   : " << unlifted_in_length  << " (" << QString::number(100.0*unlifted_in_length/in_length, 'f', 2) << "%)" << endl;
+		out << endl;
+		out << "Bases after lifting: " << lifted_length << endl;
+
+
+
 	}
 };
 
