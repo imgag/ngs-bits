@@ -1,10 +1,10 @@
 # GSvar change log
 
-### 2021_12-112 (03.03.22)
+### 2021_12-126 (03.03.22)
 - General: added disease group and status to batch sample import.
 - General: added batch import of sample HPO terms.
 
-### 2021_12-112 (10.02.22)
+### 2021_12-112 (21.02.22)
 - SVs are now contained in the XML report (germline).
 - Genome coordinate lift-over is now built-in. The liftover webservice is no longer needed.
 
