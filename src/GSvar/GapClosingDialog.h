@@ -19,6 +19,7 @@ protected slots:
 	void updateTable();
 	void openPrimerDesign();
 	void copyForPrimerGap();
+	void copyCoordinates();
 	void setStatus();
 
 private:

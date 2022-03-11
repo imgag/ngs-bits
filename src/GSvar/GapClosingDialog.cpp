@@ -28,6 +28,11 @@ GapClosingDialog::GapClosingDialog(QWidget* parent)
 	ui_.table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(copyForPrimerGap()));
 
+	//copy coordinates
+	action = new QAction(QIcon(":/Icons/CopyClipboard.png"), "Copy coordinates", this);
+	ui_.table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(copyCoordinates()));
+
 	//primer design link
 	action = new QAction(QIcon("://Icons/WebService.png"), "PrimerDesign", this);
 	ui_.table->addAction(action);
@@ -218,6 +223,31 @@ void GapClosingDialog::copyForPrimerGap()
 			QString genes = ui_.table->item(row, 2)->text();
 
 			output << chr.strNormalized(true) + "\t" + QString::number(start) + "\t" + QString::number(end) + "\t" + genes;
+		}
+		QApplication::clipboard()->setText(output.join("\n"));
+	}
+	catch (Exception& e)
+	{
+		GUIHelper::showMessage("PrimerGap error", e.message());
+		return;
+	}
+}
+
+void GapClosingDialog::copyCoordinates()
+{
+	try
+	{
+		QStringList output;
+
+		QSet<int> rows = ui_.table->selectedRows();
+		foreach(int row, rows)
+		{
+			Chromosome chr;
+			int start;
+			int end;
+			gapCoordinates(row, chr, start, end);
+
+			output << chr.strNormalized(true) + ":" + QString::number(start) + "-" + QString::number(end);
 		}
 		QApplication::clipboard()->setText(output.join("\n"));
 	}
