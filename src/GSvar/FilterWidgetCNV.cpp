@@ -210,6 +210,7 @@ void FilterWidgetCNV::geneChanged()
 	if (genes()!=last_genes_)
 	{
 		last_genes_ = genes();
+		FilterWidget::checkGeneNames(last_genes_, ui_.gene);
 		emit filtersChanged();
 	}
 }

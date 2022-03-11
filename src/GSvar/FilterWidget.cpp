@@ -187,6 +187,35 @@ void FilterWidget::loadTargetRegionData(TargetRegionInfo& roi, QString name)
 	}
 }
 
+void FilterWidget::checkGeneNames(const GeneSet& genes, QLineEdit* widget)
+{
+	if (!GlobalServiceProvider::database().enabled()) return;
+
+	QStringList errors;
+	NGSD db;
+	foreach(const QByteArray& gene, genes)
+	{
+		if (!db.approvedGeneNames().contains(gene))
+		{
+			QByteArray approved = db.geneToApproved(gene, false);
+			if (approved!="")
+			{
+				errors << "Gene symbol " + gene + " is not an approved HGNC symbol! Please use " + approved + "!";
+			}
+		}
+	}
+	if (errors.isEmpty())
+	{
+		widget->setToolTip("");
+		widget->setStyleSheet("");
+	}
+	else
+	{
+		widget->setToolTip(errors.join("\n"));
+		widget->setStyleSheet("QLineEdit {border: 2px solid red;}");
+	}
+}
+
 void FilterWidget::resetSignalsUnblocked(bool clear_roi)
 {
 	//filter cols
@@ -458,6 +487,7 @@ void FilterWidget::geneChanged()
 	if (genes()!=last_genes_)
 	{
 		last_genes_ = genes();
+		checkGeneNames(last_genes_, ui_.gene);
 		emit filtersChanged();
 	}
 }
