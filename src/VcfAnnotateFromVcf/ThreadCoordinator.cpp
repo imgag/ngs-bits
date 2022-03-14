@@ -82,9 +82,11 @@ void ThreadCoordinator::error(int /*i*/, QString message)
 
 void ThreadCoordinator::inputDone(int /*i*/)
 {
-	//timer already running > nothing to do
-	if (timer_done_.isActive()) return;
+	//nothing to do
+	if (input_done_) return;
 
+	//start timer to regularly check if all jobs are processed
+	input_done_ = true;
 	connect(&timer_done_, SIGNAL(timeout()), this, SLOT(checkDone()));
 	timer_done_.start(100);
 
