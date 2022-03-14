@@ -1,5 +1,12 @@
 # GSvar change log
 
+### 2021_12-138 (14.03.22)
+- General: added support for somatic WGS
+- NGSD: added tissue to sample table.
+- Published variants: added search by gene and variant tab context menu entry.
+- Small variants search: added CADD and SpliceAI to output table.
+- Gaps: added context menu entry to copy coordinates.
+
 ### 2021_12-126 (03.03.22)
 - General: added disease group and status to batch sample import.
 - General: added batch import of sample HPO terms.
