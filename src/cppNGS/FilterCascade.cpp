@@ -939,6 +939,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["CNV copy-number"] = &createInstance<FilterCnvCopyNumber>;
 		output["CNV allele frequency"] = &createInstance<FilterCnvAlleleFrequency>;
 		output["CNV z-score"] = &createInstance<FilterCnvZscore>;
+		output["CNV maximum log-likelihood"] = &createInstance<FilterCnvMaxLoglikelihood>;
 		output["CNV log-likelihood"] = &createInstance<FilterCnvLoglikelihood>;
 		output["CNV q-value"] = &createInstance<FilterCnvQvalue>;
 		output["CNV compound-heterozygous"] = &createInstance<FilterCnvCompHet>;
@@ -946,6 +947,8 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["CNV polymorphism region"] = &createInstance<FilterCnvCnpOverlap>;
 		output["CNV gene constraint"] = &createInstance<FilterCnvGeneConstraint>;
 		output["CNV gene overlap"] = &createInstance<FilterCnvGeneOverlap>;
+		output["CNV tumor CN change"] = &createInstance<FilterCnvTumorCopyNumberChange>;
+		output["CNV clonality"] = &createInstance<FilterCnvClonality>;
 		output["SV type"] = &createInstance<FilterSvType>;
 		output["SV remove chr type"] = &createInstance<FilterSvRemoveChromosomeType>;
 		output["SV genotype control"] = &createInstance<FilterSvGenotypeControl>;
@@ -2923,6 +2926,55 @@ void FilterCnvZscore::apply(const CnvList& cnvs, FilterResult& result) const
 	}
 }
 
+FilterCnvMaxLoglikelihood::FilterCnvMaxLoglikelihood()
+{
+	name_ = "CNV maximum log-likelihood";
+	type_ = VariantType::CNVS;
+	description_ << QStringList() << "Filter for maximum log-likelihood" << "Can be used to display artefact CNVs only" << "Works only for tumor-normal pairs" ;
+	params_ << FilterParameter("max_ll", FilterParameterType::DOUBLE, 200.0, "Maixmum log-likelihood");
+	params_.last().constraints["min"] = "0.0";
+	params_ << FilterParameter("scale_by_regions", FilterParameterType::BOOL, false, "Scale log-likelihood by number of regions.");
+	checkIsRegistered();
+}
+
+QString FilterCnvMaxLoglikelihood::toText() const
+{
+	return name() + " max_ll=" + QString::number(getDouble("max_ll"), 'f', 2) + QString(getBool("scale_by_regions")?" (scaled by regions)": "");
+}
+
+void FilterCnvMaxLoglikelihood::apply(const CnvList &cnvs, FilterResult &result) const
+{
+	if(!enabled_) return;
+	if(cnvs.type() != CnvListType::CLINCNV_TUMOR_NORMAL_PAIR) return;
+
+	double max_ll = getDouble("max_ll");
+	bool scale_by_regions = getBool("scale_by_regions");
+	int i_ll = cnvs.annotationIndexByName("loglikelihood", true);
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		if (scale_by_regions)
+		{
+			int number_of_regions = cnvs[i].regions();
+			if (number_of_regions < 0) THROW(FileParseException, "Invalid/unset number of regions!");
+			double scaled_ll = cnvs[i].annotations()[i_ll].toDouble() / number_of_regions;
+			if (scaled_ll > max_ll)
+			{
+				result.flags()[i] = false;
+			}
+		}
+		else
+		{
+			if (cnvs[i].annotations()[i_ll].toDouble() > max_ll)
+			{
+				result.flags()[i] = false;
+			}
+		}
+	}
+}
+
+
 FilterCnvLoglikelihood::FilterCnvLoglikelihood()
 {
 	name_ = "CNV log-likelihood";
@@ -3285,6 +3337,75 @@ void FilterCnvGeneConstraint::apply(const CnvList& cnvs, FilterResult& result) c
 			}
 		}
 		result.flags()[i] = any_gene_passed;
+	}
+}
+
+FilterCnvTumorCopyNumberChange::FilterCnvTumorCopyNumberChange()
+{
+	name_ = "CNV tumor CN change";
+	type_ = VariantType::CNVS;
+	description_ = QStringList() << "Filter based on CNV tumor copy number.";
+	params_ << FilterParameter("min_tumor_cn", FilterParameterType::INT, 0, "Minimum tumor copy number of the CNV");
+	params_ << FilterParameter("max_tumor_cn", FilterParameterType::INT, 10, "Maximum tumor copy number of the CNV.");
+
+	checkIsRegistered();
+}
+
+QString FilterCnvTumorCopyNumberChange::toText() const
+{
+	return name() + " min_tumor_cn=" + QString::number(getInt("min_tumor_cn")) + ", max_tumor_cn=" + QString::number(getInt("max_tumor_cn"));
+
+}
+
+void FilterCnvTumorCopyNumberChange::apply(const CnvList& cnvs, FilterResult &result) const
+{
+	if(!enabled_) return;
+
+	int i_tumor_cn = cnvs.annotationIndexByName("tumor_CN_change", true);
+	int min_cn = getInt("min_tumor_cn");
+	int max_cn = getInt("max_tumor_cn");
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+		bool ok = false;
+		int tumor_cn = cnvs[i].annotations()[i_tumor_cn].trimmed().toDouble(&ok);
+		if(!ok) continue;
+		result.flags()[i] = (tumor_cn >= min_cn) && (tumor_cn <= max_cn);
+	}
+}
+
+FilterCnvClonality::FilterCnvClonality()
+{
+	name_ = "CNV clonality";
+	type_ = VariantType::CNVS;
+	description_ = QStringList() << "Filter based on CNV clonality.";
+	params_ << FilterParameter("min_clonality", FilterParameterType::DOUBLE, 0., "Minimum Clonality of the CNV ");
+	params_ << FilterParameter("max_clonality", FilterParameterType::DOUBLE, 1., "Maximum Clonality of the CNV ");
+
+	checkIsRegistered();
+}
+
+QString FilterCnvClonality::toText() const
+{
+	return name() + " min_clonality=" + QString::number(getDouble("min_clonality")) + ", max_clonality=" + QString::number(getDouble("max_clonality"));
+}
+
+void FilterCnvClonality::apply(const CnvList &cnvs, FilterResult &result) const
+{
+	if(!enabled_) return;
+	int i_clonality = cnvs.annotationIndexByName("tumor_clonality", true);
+	double min_clonality= getDouble("min_clonality");
+	double max_clonality = getDouble("max_clonality");
+
+	//filter
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+		bool ok = false;
+		double tumor_clonality = cnvs[i].annotations()[i_clonality].trimmed().toDouble(&ok);
+		if(!ok) continue;
+
+		result.flags()[i] = (tumor_clonality > min_clonality) && (tumor_clonality < max_clonality);
 	}
 }
 

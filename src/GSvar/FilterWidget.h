@@ -76,6 +76,8 @@ public:
 	static void loadTargetRegions(QComboBox* box);
 	/// Helper for loading target region data. Throws an exception of the target region file is missing!
 	static void loadTargetRegionData(TargetRegionInfo& roi, QString name);
+	/// Helper for checking that gene names are approved symbols (also in CNV/SV widget)
+	static void checkGeneNames(const GeneSet& genes, QLineEdit* widget);
 
 	///Returns the filter INI file name
 	static QString filterFileName();

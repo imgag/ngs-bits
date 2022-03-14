@@ -69,7 +69,8 @@ CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_wi
 	ui->setupUi(this);
 	connect(ui->cnvs, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(cnvDoubleClicked(QTableWidgetItem*)));
 	connect(ui->cnvs, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
-	connect(ui->flag_artefacts, SIGNAL(clicked(bool)), this, SLOT(flagSomaticArtefacts()) );
+	connect(ui->flag_invisible_cnvs_artefacts, SIGNAL(clicked(bool)), this, SLOT(flagInvisibleSomaticCnvsAsArtefacts()) );
+	connect(ui->flag_visible_cnvs_artefacts, SIGNAL(clicked(bool)), this, SLOT(flagVisibleSomaticCnvsAsArtefacts()) );
 	connect(ui->copy_clipboard, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 	connect(ui->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
 	connect(ui->filter_widget, SIGNAL(targetRegionChanged()), this, SLOT(clearTooltips()));
@@ -111,7 +112,8 @@ void CnvWidget::initGUI()
 
 	if(is_somatic_)
 	{
-		ui->flag_artefacts->setEnabled(true);
+		ui->flag_invisible_cnvs_artefacts->setEnabled(true);
+		ui->flag_visible_cnvs_artefacts->setEnabled(true);
 	}
 
 	//apply filters
@@ -642,6 +644,7 @@ void CnvWidget::showContextMenu(QPoint p)
 			QModelIndexList selectedRows = ui->cnvs->selectionModel()->selectedRows();
 			for(const auto& selected_row : selectedRows)
 			{
+				if( ui->cnvs->isRowHidden(selected_row.row()) ) continue;
 				somatic_report_config_->remove(VariantType::CNVS, selected_row.row());
 				updateReportConfigHeaderIcon(selected_row.row());
 			}
@@ -889,6 +892,7 @@ void CnvWidget::editReportConfiguration(int row)
 			QList<int> rows;
 			for(const auto& selectedRow : selectedRows)
 			{
+				if( ui->cnvs->isRowHidden(selectedRow.row()) ) continue;
 				rows << selectedRow.row();
 			}
 			editSomaticReportConfiguration(rows);
@@ -1140,7 +1144,7 @@ void CnvWidget::editSomaticReportConfiguration(const QList<int> &rows)
 	emit storeSomaticReportConfiguration();
 }
 
-void CnvWidget::flagSomaticArtefacts()
+void CnvWidget::flagInvisibleSomaticCnvsAsArtefacts()
 {
 	if(somatic_report_config_ == nullptr)
 	{
@@ -1165,3 +1169,26 @@ void CnvWidget::flagSomaticArtefacts()
 	emit storeSomaticReportConfiguration();
 }
 
+void CnvWidget::flagVisibleSomaticCnvsAsArtefacts()
+{
+	if(somatic_report_config_ == nullptr)
+	{
+		THROW(ProgrammingException, "SomaticReportConfiguration in CnvWidget is null pointer");
+	}
+
+	SomaticReportVariantConfiguration generic_var_config;
+	generic_var_config.variant_type = VariantType::CNVS;
+	generic_var_config.exclude_artefact = true;
+	generic_var_config.comment = "Flagged as CNV artefact by batch filtering";
+
+	for(int r=0; r<ui->cnvs->rowCount(); ++r)
+	{
+		if(!ui->cnvs->isRowHidden(r))
+		{
+			generic_var_config.variant_index = r;
+			somatic_report_config_->set(generic_var_config);
+			updateReportConfigHeaderIcon(r);
+		}
+	}
+	emit storeSomaticReportConfiguration();
+}

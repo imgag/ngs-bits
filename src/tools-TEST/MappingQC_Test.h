@@ -89,4 +89,17 @@ private slots:
 		REMOVE_LINES("out/MappingQC_test08_out.qcML", QRegExp("<binary>"));
 		COMPARE_FILES("out/MappingQC_test08_out.qcML", TESTDATA("data_out/MappingQC_test08_out.qcML"));
 	}
+
+	void somatic_custom()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		EXECUTE("MappingQC", "-in " + TESTDATA("data_in/MappingQC_in2.bam") + " -somatic_custom_bed " + TESTDATA("data_in/MappingQC_in2_custom_subpanel.bed") + " -roi " + TESTDATA("data_in/MappingQC_in2.bed") + " -build hg19 -out out/MappingQC_test09_out.qcML -ref " + ref_file);
+		REMOVE_LINES("out/MappingQC_test09_out.qcML", QRegExp("creation "));
+		REMOVE_LINES("out/MappingQC_test09_out.qcML", QRegExp("<binary>"));
+		COMPARE_FILES("out/MappingQC_test09_out.qcML", TESTDATA("data_out/MappingQC_test09_out.qcML"));
+	}
+
+
 };

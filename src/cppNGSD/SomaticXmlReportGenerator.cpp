@@ -27,19 +27,35 @@ SomaticXmlReportGeneratorData::SomaticXmlReportGeneratorData(GenomeBuild genome_
 
 void SomaticXmlReportGeneratorData::check() const
 {
-	bool valid = true;
+	QStringList messages;
 
-	if( settings.report_config.tumContentByHistological() && !BasicStatistics::isValidFloat(tumor_content_histology)) valid = false;
-
-	if( settings.report_config.tumContentByMaxSNV() && !BasicStatistics::isValidFloat(tumor_content_snvs)) valid = false;
-	if( settings.report_config.tumContentByClonality() && !BasicStatistics::isValidFloat(tumor_content_clonality) ) valid = false;
-
-	if( !BasicStatistics::isValidFloat(tumor_mutation_burden)) valid = false;
-	if( settings.report_config.msiStatus() && !BasicStatistics::isValidFloat(mantis_msi)) valid = false;
-
-	if(!valid)
+	if( settings.report_config.tumContentByHistological() && !BasicStatistics::isValidFloat(tumor_content_histology))
 	{
-		THROW(ArgumentException, "Invalid data in SomaticXmlReportGeneratorData!");
+		messages << "Tumor content by histology selected but value is not valid float";
+	}
+
+	if( settings.report_config.tumContentByMaxSNV() && !BasicStatistics::isValidFloat(tumor_content_snvs))
+	{
+		messages << "Tumor content by median SNV B-AF selected but value is not valid float";
+	}
+
+	if( settings.report_config.tumContentByClonality() && !BasicStatistics::isValidFloat(tumor_content_clonality) )
+	{
+		messages << "Tumor content by maximum CNV clonality selected but value is not valid float";
+	}
+
+	if( !BasicStatistics::isValidFloat(tumor_mutation_burden))
+	{
+		messages << "Tumor mutation burden is not a valid float";
+	}
+	if( settings.report_config.msiStatus() && !BasicStatistics::isValidFloat(mantis_msi))
+	{
+		messages << "MSI status selected but value is not valid float";
+	}
+
+	if(messages.count() > 0)
+	{
+		THROW(ArgumentException, "Invalid data in SomaticXmlReportGeneratorData! Messages: " + messages.join(",\n"));
 	}
 
 	SomaticXmlReportGenerator::checkSomaticVariantAnnotation(tumor_snvs);
@@ -66,22 +82,9 @@ void SomaticXmlReportGenerator::checkSomaticVariantAnnotation(const VariantList 
 	}
 }
 
-QString SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData &data, NGSD& db, bool test)
+void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData &data, QSharedPointer<QFile> out_file, NGSD& db, bool test)
 {
-	QString output;
-
-	data.check();
-	generateXML(data, output, db, test);
-
-	validateXml(output);
-
-
-	return output;
-}
-
-void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData &data, QString& output, NGSD& db, bool test)
-{
-	QXmlStreamWriter w(&output);
+	QXmlStreamWriter w(out_file.data());
 
 	w.setAutoFormatting(true);
 
@@ -90,7 +93,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 	//Element SomaticNgsReport
 	w.writeStartElement("SomaticNgsReport");
-	w.writeAttribute("version", "1");
+	w.writeAttribute("version", "4");
 	w.writeAttribute("genome_build", buildToString(data.build, true));
 
 	//Element ReportGeneration
@@ -189,12 +192,19 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	//Element TargetRegion
 	w.writeStartElement("TargetRegion");
 
-	int sys_id = db.processingSystemIdFromProcessedSample(data.settings.tumor_ps);
-	w.writeAttribute("name",  db.getProcessingSystemData(sys_id).name); //in our workflow identical to processing system name
-
-	for(int i=0; i<data.processing_system_roi.count(); ++i)
+	if(!data.settings.target_region_filter.isValid())
 	{
-		const BedLine& line = data.processing_system_roi[i];
+		int sys_id = db.processingSystemIdFromProcessedSample(data.settings.tumor_ps);
+		w.writeAttribute("name",  db.getProcessingSystemData(sys_id).name); //in our workflow identical to processing system name
+	}
+	else
+	{
+		w.writeAttribute("name",  data.settings.target_region_filter.name); //sub panel target has been selected
+	}
+
+	for(int i=0; i<data.settings.target_region_filter.regions.count(); ++i)
+	{
+		const BedLine& line = data.settings.target_region_filter.regions[i];
 
 		w.writeStartElement("Region");
 		w.writeAttribute("chr", line.chr().strNormalized(true));
@@ -203,7 +213,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 		w.writeEndElement();
 	}
 
-	foreach(const QByteArray& gene, data.processing_system_genes)
+	foreach(const QByteArray& gene, data.settings.target_region_filter.genes)
 	{
 		GeneInfo gene_info = db.geneInfo(gene);
 		if(gene_info.symbol.isEmpty()) continue;
@@ -439,6 +449,8 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 				if(gene_info.symbol.isEmpty()) continue;
 				if(gene_info.hgnc_id.isEmpty()) continue; //genes that were withdrawn or cannot uniquely mapped to approved symbol
 
+				if(!data.settings.target_region_filter.genes.contains(gene)) continue; //Include genes from target filter only
+
 				w.writeStartElement("Gene");
 				w.writeAttribute("name", gene_info.symbol);
 				w.writeAttribute("id", gene_info.hgnc_id);
@@ -478,6 +490,17 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	w.writeAttribute("format", "RTF");
 	w.writeEndElement();
 
+	writeReportPartsElement(w, "summary", data.rtf_part_summary);
+	writeReportPartsElement(w, "relevant_variants", data.rtf_part_relevant_variants);
+	writeReportPartsElement(w, "unclear_variants", data.rtf_part_unclear_variants);
+	writeReportPartsElement(w, "cnvs", data.rtf_part_cnvs);
+	writeReportPartsElement(w, "svs", data.rtf_part_svs);
+	writeReportPartsElement(w, "pharmaco_genetics", data.rtf_part_pharmacogenetics);
+	writeReportPartsElement(w, "general_info", data.rtf_part_general_info);
+	writeReportPartsElement(w, "igv_screenshot", "");
+	writeReportPartsElement(w, "mtb_summary", data.rtf_part_mtb_summary);
+
+
 
 	//End Element SomaticNgsReport
 	w.writeEndElement();
@@ -486,16 +509,22 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 }
 
 
-void SomaticXmlReportGenerator::validateXml(const QString &xml)
+void SomaticXmlReportGenerator::validateXml(QString file_name)
 {
-	QString tmp_file = Helper::tempFileName(".xml");
-	Helper::storeTextFile(tmp_file, QStringList() << xml);
-
-	QString xml_error = XmlHelper::isValidXml(tmp_file, ":/resources/SomaticReport_v3.xsd");
+	QString xml_error = XmlHelper::isValidXml(file_name, ":/resources/SomaticReport_v4.xsd");
 
 	if(xml_error!= "")
 	{
 		THROW(ProgrammingException, "SomaticXmlReportGenerator::generateXML produced an invalid XML file: " + xml_error);
 	}
 
+}
+
+void SomaticXmlReportGenerator::writeReportPartsElement(QXmlStreamWriter &w, QString name, RtfSourceCode rtf_part)
+{
+	w.writeStartElement("ReportDocumentParts");
+		w.writeAttribute("name", name);
+		w.writeAttribute("format", "RTF");
+		w.writeCharacters(rtf_part.toBase64());
+	w.writeEndElement();
 }

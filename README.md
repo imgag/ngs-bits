@@ -109,6 +109,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [BedHighCoverage](doc/tools/BedHighCoverage.md) - Detects high-coverage regions from a BAM file.
 * [BedInfo](doc/tools/BedInfo.md) - Prints summary information about a BED file.
 * [BedIntersect](doc/tools/BedIntersect.md) - Intersects two BED files.
+* [BedLiftOver](doc/tools/BedLiftOver.md) - Lift-over of regions in a BED file to a different genome build.
 * [BedLowCoverage](doc/tools/BedLowCoverage.md) - Calcualtes regions of low coverage based on a input BED and BAM file.
 * [BedMerge](doc/tools/BedMerge.md) - Merges overlapping regions in a BED file.
 * [BedReadCount](doc/tools/BedReadCount.md) - Annoates the regions in a BED file with the read count from a BAM file.

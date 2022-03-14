@@ -457,9 +457,9 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	}
 
 	QVector<int> depths;
-	depths << 10 << 20 << 30 << 50 << 100 << 200 << 500;
+	depths << 10 << 20 << 30 << 50 << 60 << 100 << 200 << 500;
 	QVector<QByteArray> accessions;
-	accessions << "QC:2000026" << "QC:2000027" << "QC:2000028" << "QC:2000029" << "QC:2000030" << "QC:2000031" << "QC:2000032";
+	accessions << "QC:2000026" << "QC:2000027" << "QC:2000028" << "QC:2000029" << "QC:2000099" << "QC:2000030" << "QC:2000031" << "QC:2000032";
 
 	if (is_cfdna)
 	{
@@ -895,14 +895,161 @@ QCValue Statistics::mutationBurdenNormalized(QString somatic_vcf, QString exons,
 	return QCValue(qcml_name, QString::number(mutation_burden, 'f', 2), qcml_desc, qcml_id);
 }
 
-QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots, const QString& ref_file_cram)
+QCCollection Statistics::somaticCustomDepth(const BedFile& bed_file, QString bam_file, QString ref_file, int min_mapq)
+{
+	//check target region is merged/sorted and create index
+	if (!bed_file.isMergedAndSorted())
+	{
+		THROW(ArgumentException, "Merged and sorted BED file required for depth details statistics!");
+	}
+	ChromosomalIndex<BedFile> roi_index(bed_file);
+
+	//create coverage statistics data structure
+	long long roi_bases = 0;
+	QHash<int, QMap<int, int> > roi_cov;
+	for (int i=0; i<bed_file.count(); ++i)
+	{
+		const BedLine& line = bed_file[i];
+		int chr_num = line.chr().num();
+		if (!roi_cov.contains(chr_num))
+		{
+			roi_cov.insert(chr_num, QMap<int, int>());
+		}
+
+		for(int p=line.start(); p<=line.end(); ++p)
+		{
+			roi_cov[chr_num].insert(p, 0);
+		}
+		roi_bases += line.length();
+	}
+
+	long long bases_usable = 0;
+
+	Histogram dp_dist(0.5, 4.5, 1);
+	int max_length = 0;
+
+	//iterate through all alignments
+	BamReader reader(bam_file, ref_file);
+	BamAlignment al;
+	while (reader.getNextAlignment(al))
+	{
+		//skip secondary alignments
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
+
+		max_length = std::max(max_length, al.length());
+
+
+		if (!al.isUnmapped())
+		{
+
+			//calculate soft/hard-clipped bases
+			const int start_pos = al.start();
+			const int end_pos = al.end();
+
+			//calculate usable bases, base-resolution coverage and GC statistics
+			const Chromosome& chr = reader.chromosome(al.chromosomeID());
+			QVector<int> indices = roi_index.matchingIndices(chr, start_pos-250, end_pos+250);
+			if (indices.count()!=0)
+			{
+				//check if on target
+				indices = roi_index.matchingIndices(chr, start_pos, end_pos);
+				if (indices.count()!=0)
+				{
+					int dp = al.tagi("DP");
+					if (dp != 0)
+					{
+						dp_dist.inc(std::min(dp, 4), true);
+					}
+
+					//calculate usable bases and base-resolution coverage on target region
+					if (!al.isDuplicate() && al.mappingQuality()>=min_mapq)
+					{
+						foreach(int index, indices)
+						{
+							const int ol_start = std::max(bed_file[index].start(), start_pos);
+							const int ol_end = std::min(bed_file[index].end(), end_pos);
+							bases_usable += ol_end - ol_start + 1;
+
+							auto it = roi_cov[chr.num()].lowerBound(ol_start);
+							auto end = roi_cov[chr.num()].upperBound(ol_end);
+							while (it!=end)
+							{
+								(*it)++;
+								++it;
+							}
+						}
+					}
+
+				}
+			}
+		}
+
+	}
+
+	//calculate coverage depth statistics
+	double avg_depth = (double) bases_usable / roi_bases;
+
+	int hist_max = 599;
+	int hist_step = 5;
+	if (avg_depth>200)
+	{
+		hist_max += 400;
+		hist_step += 5;
+	}
+	if (avg_depth>500)
+	{
+		hist_max += 500;
+	}
+	if (avg_depth>1000)
+	{
+		hist_max += 1000;
+	}
+
+
+	Histogram depth_dist(0, hist_max, hist_step);
+	QHashIterator<int, QMap<int, int> > it(roi_cov);
+	while(it.hasNext())
+	{
+		it.next();
+		QMapIterator<int, int> it2(it.value());
+		while(it2.hasNext())
+		{
+			it2.next();
+
+			int depth = it2.value();
+			depth_dist.inc(depth, true);
+		}
+	}
+
+	//output
+	QCCollection output;
+	addQcValue(output, "QC:2000097", "somatic custom target region read depth", avg_depth);
+
+
+	QVector<int> depths;
+	depths << 10 << 20 << 30 << 50 << 60 << 100 << 200 << 500;
+	QVector<QByteArray> accessions;
+	accessions << "QC:2000090" << "QC:2000091" << "QC:2000092" << "QC:2000093" << "QC:2000098" << "QC:2000094" << "QC:2000095" << "QC:2000096";
+
+
+	for (int i=0; i<depths.count(); ++i)
+	{
+		double cov_bases = 0.0;
+		for (int bin=depth_dist.binIndex(depths[i]); bin<depth_dist.binCount(); ++bin) cov_bases += depth_dist.binValue(bin);
+		addQcValue(output, accessions[i], "somatic custom target " + QByteArray::number(depths[i]) + "x percentage", 100.0 * cov_bases / roi_bases);
+	}
+
+	return output;
+}
+
+QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots)
 {
 	QCCollection output;
 
 	//sample correlation
-	auto tumor_genotypes = SampleSimilarity::genotypesFromBam(build, tumor_bam, 30, 500, true, target_file, ref_file_cram);
+	auto tumor_genotypes = SampleSimilarity::genotypesFromBam(build, tumor_bam, 30, 500, true, target_file, ref_fasta);
 
-	auto normal_genotypes = SampleSimilarity::genotypesFromBam(build, normal_bam, 30, 500, true, target_file, ref_file_cram);
+	auto normal_genotypes = SampleSimilarity::genotypesFromBam(build, normal_bam, 30, 500, true, target_file, ref_fasta);
 	SampleSimilarity sc;
 
 	sc.calculateSimilarity(tumor_genotypes, normal_genotypes);
@@ -1013,8 +1160,8 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	int n = 10;
 	//process variants
 	QVector<double> freqs;
-	BamReader reader_tumor(tumor_bam, ref_file_cram);
-	BamReader reader_normal(normal_bam, ref_file_cram);
+	BamReader reader_tumor(tumor_bam, ref_fasta);
+	BamReader reader_normal(normal_bam, ref_fasta);
 	for (int i=0; i<variants.count(); ++i)
 	{
 		const  VcfLine& v = variants[i];
