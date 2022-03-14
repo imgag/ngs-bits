@@ -9,7 +9,7 @@
 #include "NGSD.h"
 #include "NGSHelper.h"
 #include "GSvarHelper.h"
-#include <QAction>
+#include "GlobalServiceProvider.h"
 
 PublishedVariantsWidget::PublishedVariantsWidget(QWidget* parent)
 	: QWidget(parent)
@@ -37,10 +37,14 @@ PublishedVariantsWidget::PublishedVariantsWidget(QWidget* parent)
 	ui_->table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(searchForVariantInClinVar()));
 
-	//rebumit to ClinVar
+	//resumit to ClinVar
 	action = new QAction(QIcon(":/Icons/ClinGen.png"), "Edit/retry ClinVar submission", this);
 	ui_->table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(retryClinvarSubmission()));
+
+	action = new QAction(QIcon(":/Icons/NGSD.png"), "Open variant tab", this);
+	ui_->table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(openVariantTab()));
 }
 
 PublishedVariantsWidget::~PublishedVariantsWidget()
@@ -73,6 +77,26 @@ void PublishedVariantsWidget::updateTable()
 		constraints << "user_id='" + ui_->f_published->getId() + "'";
 	}
 	ui_->f_published->showVisuallyIfValid(true);
+
+	//filter "gene"
+	try
+	{
+		if (!ui_->f_gene->text().trimmed().isEmpty())
+		{
+			QByteArray gene = ui_->f_gene->text().trimmed().toLatin1();
+			BedFile roi = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
+			roi.extend(5000);
+			roi.merge();
+			if (roi.count()!=1 || roi.baseCount()==0) THROW(ArgumentException, "Could not convert gene to (single) region!");
+			constraints << ("variant_id IN (SELECT id FROM variant where chr='" + roi[0].chr().strNormalized(true) + "' AND start>=" + QString::number(roi[0].start()) + " AND end<=" + QString::number(roi[0].end()) + ")");
+
+			ui_->f_gene->setStyleSheet("");
+		}
+	}
+	catch (...)
+	{
+		ui_->f_gene->setStyleSheet("QLineEdit {border: 2px solid red;}");
+	}
 
 	//filter "region"
 	try
@@ -382,12 +406,29 @@ void PublishedVariantsWidget::retryClinvarSubmission()
 		ClinvarUploadDialog dlg(this);
 		dlg.setData(data);
 		dlg.exec();
-
-
 	}
 	catch(Exception& e)
 	{
 		QMessageBox::critical(this, "ClinVar resubmission error", e.message());
+	}
+}
+
+void PublishedVariantsWidget::openVariantTab()
+{
+	try
+	{
+		int col = ui_->table->columnIndex("variant");
+
+		QSet<int> rows = ui_->table->selectedRows();
+		foreach (int row, rows)
+		{
+			QString variant_text = ui_->table->item(row, col)->text();
+			GlobalServiceProvider::openVariantTab(Variant::fromString(variant_text));
+		}
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::critical(this, "Error opening variant tab", e.message());
 	}
 }
 
