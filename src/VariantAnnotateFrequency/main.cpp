@@ -29,7 +29,6 @@ public:
 		addFlag("mapq0", "Annotate an additional column containing the percentage of mapq 0 reads.");
 		addString("name", "Column header prefix in output file.", true, "");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
-		addString("ref_cram", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 
 		changeLog(2020,  11, 27, "Added CRAM support.");
 	}
@@ -46,7 +45,7 @@ public:
 		//load input
 		VariantList input;
 		input.load(getInfile("in"));
-		BamReader reader(getInfile("bam"), getString("ref_cram"));
+		BamReader reader(getInfile("bam"), ref_file);
 
 		//determine frequencies and depths
 		FastaFileIndex reference(ref_file);

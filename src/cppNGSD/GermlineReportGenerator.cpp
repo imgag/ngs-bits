@@ -243,7 +243,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	stream << "</table>" << endl;
 
 	//CNVs
-	stream << "<p></p>" << endl;
+	stream << "<p>&nbsp;</p>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><td><b>" << trans("CNV") << "</b></td><td><b>" << trans("Regionen") << "</b></td><td><b>" << trans("CN") << "</b></td><td><b>"
 		   << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td></tr>" << endl;
@@ -273,7 +273,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 
 	//--------------------------------------------------------------------------------------
 	//SVs
-	stream << "<p></p>" << endl;
+	stream << "<p>&nbsp;</p>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><td><b>" << trans("SV") << "</b></td><td><b>" << trans("Position") << "</b></td><td><b>" << trans("Genotyp") << "</b></td><td><b>"
 		   << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td></tr>" << endl;
@@ -345,7 +345,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "</tr>" << endl;
 	}
 	stream << "</table>" << endl;
-	stream << "<p></p>" << endl;
+	stream << "<p>&nbsp;</p>" << endl;
 
 	//-----------------------------------------------------------------------------------
 

@@ -271,7 +271,7 @@ RtfTable SomaticRnaReport::cnvTable()
 	{
 		const CopyNumberVariant& cnv = dna_cnvs_[i];
 
-		GeneSet genes = dna_cnvs_[i].genes().intersect(data_.processing_system_genes);
+		GeneSet genes = dna_cnvs_[i].genes().intersect(data_.target_region_filter.genes);
 
 		GeneSet tsgs = GeneSet::createFromText(dna_cnvs_[i].annotations()[i_tsg], ',' );
 		GeneSet oncogenes = GeneSet::createFromText( dna_cnvs_[i].annotations()[i_oncogene] , ',' );

@@ -2,12 +2,20 @@
 #include "Helper.h"
 #include <QThread>
 
-OutputWorker::OutputWorker(AnalysisJob& job, QSharedPointer<QFile> out_stream)
+OutputWorker::OutputWorker(AnalysisJob& job, QSharedPointer<QFile> out_stream, Parameters& params)
 	: QRunnable()
 	, job_(job)
 	, out_stream_(out_stream)
+	, params_(params)
 {
+	if (params_.debug) QTextStream(stdout) << "OutputWorker(): " << job_.index << endl;
 }
+
+OutputWorker::~OutputWorker()
+{
+	if (params_.debug) QTextStream(stdout) << "~OutputWorker(): " << job_.index << endl;
+}
+
 
 void OutputWorker::run()
 {

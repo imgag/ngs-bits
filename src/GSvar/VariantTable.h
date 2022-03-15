@@ -13,10 +13,6 @@ class VariantTable
 {
 	Q_OBJECT
 
-private:
-	///This method provides generic functionality independent of ReportSettings/SomaticReportSettings
-	void updateTable(const VariantList& variants, const FilterResult& filter_result, const QMap<int, bool>& index_show_report_icon, int max_variants);
-
 public:
 	VariantTable(QWidget* parent);
 
@@ -59,7 +55,7 @@ public:
 	void setColumnWidths(const QList<int>& widths);
 
 	///Returns report config icon
-	static QIcon reportIcon(bool show_in_report);
+	static QIcon reportIcon(bool show_in_report, bool causal);
 
 public slots:
 
@@ -79,6 +75,9 @@ public slots:
 	void copyToClipboard(bool split_quality=false, bool include_header_one_row=false);
 
 protected:
+
+	///This method provides generic functionality independent of ReportSettings/SomaticReportSettings
+	void updateTable(const VariantList& variants, const FilterResult& filter_result, const QHash<int, bool>& index_show_report_icon, const QSet<int>& index_causal, int max_variants);
 
 	///Override copy command
 	void keyPressEvent(QKeyEvent* event) override;

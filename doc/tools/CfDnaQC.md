@@ -1,5 +1,5 @@
 ### CfDnaQC tool help
-	CfDnaQC (2021_12-80-g5ff26d8f)
+	CfDnaQC (2021_12-126-g84edc586)
 	
 	Calculates QC metrics for cfDNA samples.
 	
@@ -23,6 +23,8 @@
 	                           Default value: ''
 	  -ref_cram <string>       Reference genome for CRAM support (mandatory if CRAM is used). If set, it is used for tumor and normal file.
 	                           Default value: ''
+	  -min_mapq <int>          Set minimal mapping quality (default:0)
+	                           Default value: '0'
 	
 	Special parameters:
 	  --help                   Shows this help and exits.
@@ -31,7 +33,7 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### CfDnaQC changelog
-	CfDnaQC 2021_12-80-g5ff26d8f
+	CfDnaQC 2021_12-126-g84edc586
 	
 	2021-12-03 Added correllation between cfDNA samples.
 	2021-10-22 Initial version.

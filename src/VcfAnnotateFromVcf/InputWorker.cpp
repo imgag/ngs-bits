@@ -9,6 +9,12 @@ InputWorker::InputWorker(AnalysisJob& job, gzFile& in_stream, Parameters& params
 	, in_stream_(in_stream)
 	, params_(params)
 {
+	if (params_.debug) QTextStream(stdout) << "InputWorker(): " << job_.index << endl;
+}
+
+InputWorker::~InputWorker()
+{
+	if (params_.debug) QTextStream(stdout) << "~InputWorker(): " << job_.index << endl;
 }
 
 void InputWorker::run()
@@ -17,14 +23,19 @@ void InputWorker::run()
 	static int current_chunk = 0;
 	static const int buffer_size = 1048576; //1MB buffer
 	static char* buffer = new char[buffer_size];
+	static bool reading_done = false;
 
 	try
 	{
 		job_.clear();
 
-		//nothing to read
+		//reading input is done
+		if (reading_done) return;
+
+		//check if reading input is done
 		if (gzeof(in_stream_))
 		{
+			reading_done = true;
 			emit inputDone(job_.index);
 			return;
 		}

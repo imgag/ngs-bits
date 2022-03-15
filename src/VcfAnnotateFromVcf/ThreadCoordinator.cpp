@@ -58,7 +58,7 @@ void ThreadCoordinator::annotate(int i)
 {
 	if (params_.debug) QTextStream(stdout) << "ThreadCoordinator::annotate(" << i << ")" << endl;
 
-	ChunkProcessor* worker = new ChunkProcessor(job_pool_[i], meta_);
+	ChunkProcessor* worker = new ChunkProcessor(job_pool_[i], meta_, params_);
 	connect(worker, SIGNAL(done(int)), this, SLOT(write(int)));
 	connect(worker, SIGNAL(error(int,QString)), this, SLOT(error(int,QString)));
 	thread_pool_annotate_.start(worker);
@@ -68,7 +68,7 @@ void ThreadCoordinator::write(int i)
 {
 	if (params_.debug) QTextStream(stdout) << "ThreadCoordinator::write(" << i << ")" << endl;
 
-	OutputWorker* worker = new OutputWorker(job_pool_[i], out_stream_);
+	OutputWorker* worker = new OutputWorker(job_pool_[i], out_stream_, params_);
 	connect(worker, SIGNAL(error(int,QString)), this, SLOT(error(int,QString)));
 	connect(worker, SIGNAL(retry(int)), this, SLOT(write(int)));
 	connect(worker, SIGNAL(done(int)), this, SLOT(read(int)));
@@ -82,9 +82,11 @@ void ThreadCoordinator::error(int /*i*/, QString message)
 
 void ThreadCoordinator::inputDone(int /*i*/)
 {
-	//timer already running > nothing to do
-	if (timer_done_.isActive()) return;
+	//nothing to do
+	if (input_done_) return;
 
+	//start timer to regularly check if all jobs are processed
+	input_done_ = true;
 	connect(&timer_done_, SIGNAL(timeout()), this, SLOT(checkDone()));
 	timer_done_.start(100);
 
@@ -93,6 +95,8 @@ void ThreadCoordinator::inputDone(int /*i*/)
 
 void ThreadCoordinator::checkDone()
 {
+	if (params_.debug) QTextStream(stdout) << "ThreadCoordinator::checkDone()" << endl;
+
 	//check if all jobs are done
 	for (int i=0; i<job_pool_.count(); ++i)
 	{
