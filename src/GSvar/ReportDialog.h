@@ -37,6 +37,7 @@ protected slots:
 	void editDiseaseGroupStatus();
 	void editDiseaseDetails();
 	void editDiagnosticStatus();
+	void editCausalVariant();
 
 protected:
 	Ui::ReportDialog ui_;

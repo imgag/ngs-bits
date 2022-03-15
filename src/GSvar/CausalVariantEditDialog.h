@@ -1,0 +1,30 @@
+#ifndef CAUSALVARIANTEDITDIALOG_H
+#define CAUSALVARIANTEDITDIALOG_H
+
+#include <QDialog>
+#include "ReportConfiguration.h"
+
+namespace Ui {
+class CausalVariantEditDialog;
+}
+
+class CausalVariantEditDialog : public QDialog
+{
+	Q_OBJECT
+
+public:
+	explicit CausalVariantEditDialog(OtherCausalVariant causal_variant, QStringList variant_types, QWidget *parent = 0);
+	~CausalVariantEditDialog();
+	OtherCausalVariant causalVariant();
+
+private slots:
+	updateCausalVariant();
+	enableOkButton();
+
+private:
+	Ui::CausalVariantEditDialog* ui_;
+	OtherCausalVariant causal_variant_;
+
+};
+
+#endif // CAUSALVARIANTEDITDIALOG_H

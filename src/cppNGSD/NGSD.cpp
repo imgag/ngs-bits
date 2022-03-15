@@ -4812,6 +4812,15 @@ QString NGSD::reportConfigSummaryText(const QString& processed_sample_id)
 				}
 			}
 		}
+
+		//find other causal variants
+		SqlQuery query = getQuery();
+		query.exec("SELECT * FROM report_configuration_other_causal_variant WHERE report_config_id=" + rc_id.toString());
+		if(query.next())
+		{
+			output += ", causal " + query.value("type").toString() + ": " + query.value("coordinates").toString();
+		}
+
 	}
 
 	return output;
@@ -4989,6 +4998,17 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 
 	}
 
+	//load other causal variant
+	query.exec("SELECT * FROM report_configuration_other_causal_variant WHERE report_configuration_id=" + QString::number(conf_id));
+	if(query.next())
+	{
+		OtherCausalVariant causal_variant;
+		causal_variant.coordinates = query.value("coordinates").toString();
+		causal_variant.gene = query.value("gene").toString();
+		causal_variant.type = query.value("type").toString();
+		causal_variant.comment = query.value("comment").toString();
+		output->setOtherCausalVariant(causal_variant);
+	}
 	return output;
 }
 
@@ -5200,6 +5220,19 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 			{
 				THROW(NotImplementedException, "Storing of report config variants with type '" + QString::number((int)var_conf.variant_type) + "' not implemented!");
 			}
+		}
+
+		//store other causal variant
+		if(!config->other_causal_variant_.coordinates.isEmpty())
+		{
+			SqlQuery query = getQuery();
+			query.prepare("INSERT INTO `report_configuration_other_causal_variant` (`report_config_id`, `coordinates`, `gene`, `type`, `comment`) VALUES (:0, :1, :2, :3, :4) ON DUPLICATE KEY UPDATE id=id");
+			query.bindValue(0, id);
+			query.bindValue(1, config->other_causal_variant_.coordinates);
+			query.bindValue(2, config->other_causal_variant_.gene);
+			query.bindValue(3, config->other_causal_variant_.type);
+			query.bindValue(4, config->other_causal_variant_.comment);
+			query.exec();
 		}
 
 		commit();

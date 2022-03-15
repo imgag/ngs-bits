@@ -72,6 +72,7 @@ private:
 	QSet<int> selected_small_;
 	QSet<int> selected_cnvs_;
 	QSet<int> selected_svs_;
+	bool selected_other_causal_variant_;
 
 	static void writeHtmlHeader(QTextStream& stream, QString sample_name);
 	static void writeHtmlFooter(QTextStream& stream);
