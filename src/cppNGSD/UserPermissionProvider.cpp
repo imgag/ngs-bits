@@ -9,9 +9,10 @@ UserPermissionProvider::UserPermissionProvider(int user_id)
 	while(query.next())
 	{
 		UserPermission current_permission;
-		current_permission.user_id = query.value("user_id").toInt();
 		current_permission.permission = UserPermissionList::stringToType(query.value("permission").toString());
 		current_permission.data = query.value("data").toString();
+
+		user_permissions_.setUserId(query.value("user_id").toInt());
 		user_permissions_.addPermission(current_permission);
 	}
 }
@@ -28,8 +29,6 @@ bool UserPermissionProvider::isEligibleToAccessProcessedSampleById(QString ps_id
 	{
 		switch(user_permissions_[i].permission)
 		{
-			case Permission::META_DATA:
-				return false; // not implementent so far
 			case Permission::PROJECT:
 				return user_permissions_[i].data == db.getValue("SELECT project_id FROM processed_sample WHERE id='"+ ps_id +"'").toString();
 			case Permission::PROJECT_TYPE:
@@ -38,8 +37,6 @@ bool UserPermissionProvider::isEligibleToAccessProcessedSampleById(QString ps_id
 				return user_permissions_[i].data.toLower() == db.getValue("SELECT study_id FROM study_sample INNER JOIN processed_sample ON study_sample.processed_sample_id=processed_sample.id WHERE processed_sample.id='"+ ps_id +"'").toString().toLower();
 			case Permission::SAMPLE:
 				return user_permissions_[i].data.toLower() == db.getValue("SELECT sample_id FROM processed_sample INNER JOIN sample ON processed_sample.sample_id=sample.id WHERE processed_sample.id='"+ ps_id +"'").toString().toLower();
-			case Permission::UNDEFINED:
-				return false;
 		}
 	}
 	return false;

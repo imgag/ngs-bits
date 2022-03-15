@@ -8,17 +8,14 @@
 /// User permission items (used in user_permissions table)
 enum class Permission
 {
-	META_DATA, // all metadata
 	PROJECT, // only a specific project
 	PROJECT_TYPE, // only specific types of projects
 	STUDY, // only a specific study
-	SAMPLE, // only a specific sample
-	UNDEFINED // no persmissions available
+	SAMPLE // only a specific sample
 };
 
 struct UserPermission
 {
-	int user_id;
 	Permission permission;
 	QString data;
 };
@@ -40,6 +37,16 @@ public:
 	UserPermissionList(QList<UserPermission> permissions)
 	{
 		setPermissions(permissions);
+	}
+
+	void setUserId(int user_id)
+	{
+		user_id_ = user_id;
+	}
+
+	int getUserId()
+	{
+		return user_id_;
 	}
 
 	void setPermissions(QList<UserPermission> permissions)
@@ -64,21 +71,18 @@ public:
 
 	static Permission stringToType(const QString& in)
 	{
-		if (in.toLower() == "meta_data") {return Permission::META_DATA;}
 		if (in.toLower() == "project") {return Permission::PROJECT;}
 		if (in.toLower() == "project_type") {return Permission::PROJECT_TYPE;}
 		if (in.toLower() == "study") {return Permission::STUDY;}
 		if (in.toLower() == "sample") {return Permission::SAMPLE;}
 
-		return Permission::UNDEFINED;
+		THROW(ProgrammingException, "Unhandled permission type '" + in + "' in stringToType()!");
 	}
 
 	static QString typeToString(Permission in)
 	{
 		switch(in)
 		{
-			case Permission::META_DATA:
-				return "META_DATA";
 			case Permission::PROJECT:
 				return "PROJECT";
 			case Permission::PROJECT_TYPE:
@@ -87,13 +91,12 @@ public:
 				return "STUDY";
 			case Permission::SAMPLE:
 				return "SAMPLE";
-			case Permission::UNDEFINED:
-				return "UNDEFINED";
 		}
 		THROW(ProgrammingException, "Unhandled permission type '" + QString::number((int)in) + "' in typeToString()!");
 	}
 
 private:
 	QList<UserPermission> item_list_;
+	int user_id_;
 };
 #endif // USERPERMISSIONLIST_H
