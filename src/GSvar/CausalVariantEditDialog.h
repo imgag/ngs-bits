@@ -18,8 +18,8 @@ public:
 	OtherCausalVariant causalVariant();
 
 private slots:
-	updateCausalVariant();
-	enableOkButton();
+	void updateCausalVariant();
+	void enableOkButton();
 
 private:
 	Ui::CausalVariantEditDialog* ui_;

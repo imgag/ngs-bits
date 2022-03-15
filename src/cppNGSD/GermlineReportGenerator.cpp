@@ -158,8 +158,10 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	stream << "<br />" << trans("Anzahl Varianten ausgew&auml;hlt f&uuml;r Report") << ": " << selected_small_.count() << endl;
 	stream << "<br />" << trans("Anzahl CNVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_cnvs_.count() << endl;
 	stream << "<br />" << trans("Anzahl SVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_svs_.count() << endl;
-	int n_other_causal_var = (data_.report_settings.select_other_causal_variant)? 1: 0;
-	stream << "<br />" << trans("Anzahl anderer Varianten ausgew&auml;hlt f&uuml;r Report") << ": " << n_other_causal_var << endl;
+	if(data_.report_settings.select_other_causal_variant)
+	{
+		stream << "<br />" << trans("Anzahl anderer Varianten ausgew&auml;hlt f&uuml;r Report") << ": 1" << endl;
+	}
 	stream << "</p>" << endl;
 
 	//output: selected variants

@@ -31,7 +31,7 @@ OtherCausalVariant CausalVariantEditDialog::causalVariant()
 	return causal_variant_;
 }
 
-CausalVariantEditDialog::updateCausalVariant()
+void CausalVariantEditDialog::updateCausalVariant()
 {
 	causal_variant_.coordinates = ui_->le_coordinates->text();
 	causal_variant_.gene = ui_->le_gene->text();
@@ -41,7 +41,7 @@ CausalVariantEditDialog::updateCausalVariant()
 	emit accepted();
 }
 
-CausalVariantEditDialog::enableOkButton()
+void CausalVariantEditDialog::enableOkButton()
 {
 	if((ui_->le_coordinates->text().trimmed().isEmpty()) || (ui_->cb_type->currentText().trimmed().isEmpty()))
 	{

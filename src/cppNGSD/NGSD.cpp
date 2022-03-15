@@ -4815,7 +4815,7 @@ QString NGSD::reportConfigSummaryText(const QString& processed_sample_id)
 
 		//find other causal variants
 		SqlQuery query = getQuery();
-		query.exec("SELECT * FROM report_configuration_other_causal_variant WHERE report_config_id=" + rc_id.toString());
+		query.exec("SELECT * FROM report_configuration_other_causal_variant WHERE report_configuration_id=" + rc_id.toString());
 		if(query.next())
 		{
 			output += ", causal " + query.value("type").toString() + ": " + query.value("coordinates").toString();
@@ -5226,7 +5226,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 		if(!config->other_causal_variant_.coordinates.isEmpty())
 		{
 			SqlQuery query = getQuery();
-			query.prepare("INSERT INTO `report_configuration_other_causal_variant` (`report_config_id`, `coordinates`, `gene`, `type`, `comment`) VALUES (:0, :1, :2, :3, :4) ON DUPLICATE KEY UPDATE id=id");
+			query.prepare("INSERT INTO `report_configuration_other_causal_variant` (`report_configuration_id`, `coordinates`, `gene`, `type`, `comment`) VALUES (:0, :1, :2, :3, :4) ON DUPLICATE KEY UPDATE id=id");
 			query.bindValue(0, id);
 			query.bindValue(1, config->other_causal_variant_.coordinates);
 			query.bindValue(2, config->other_causal_variant_.gene);

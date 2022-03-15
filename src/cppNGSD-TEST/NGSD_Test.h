@@ -1392,6 +1392,7 @@ private slots:
 		PrsTable prs;
 		prs.load(TESTDATA("../cppNGS-TEST/data_in/panel_prs.tsv"));
 		ReportSettings report_settings;
+		report_settings.select_other_causal_variant = false;
 		report_settings.report_type = "diagnostic variant";
 		report_settings.min_depth = 20;
 		report_settings.show_coverage_details = false;
