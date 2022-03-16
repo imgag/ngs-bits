@@ -234,7 +234,8 @@ int main(int argc, char **argv)
 						"processed_sample_path",
 						QMap<QString, ParamProps> {
 						   {"ps_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processed sample id"}},
-						   {"type", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "File type"}}
+						   {"type", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "File type"}},
+						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_PLAIN,
@@ -338,7 +339,7 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::POST,
 						ContentType::TEXT_PLAIN,
-						true,
+						false,
 						"Secure token generation, the token will be used to access protected resources and to perform  certain API calls",
 						&EndpointHandler::performLogin
 					});
@@ -349,7 +350,7 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::POST,
 						ContentType::TEXT_PLAIN,
-						true,
+						false,
 						"Secure token invalidation, after this step the token cannot longer be used",
 						&EndpointHandler::performLogout
 					});

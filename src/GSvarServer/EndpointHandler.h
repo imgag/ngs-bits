@@ -13,6 +13,7 @@
 #include "SessionManager.h"
 #include "FileLocationProviderLocal.h"
 #include "VariantList.h"
+#include "UserPermissionProvider.h"
 
 struct SampleMetadata
 {

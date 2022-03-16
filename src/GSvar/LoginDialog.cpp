@@ -1,6 +1,7 @@
 #include "LoginDialog.h"
 #include "Helper.h"
 #include "NGSD.h"
+#include "HttpRequestHandler.h"
 
 LoginDialog::LoginDialog(QWidget *parent)
 	: QDialog(parent)
@@ -38,6 +39,16 @@ void LoginDialog::checkPassword()
 		{
 			user_name_ = user_name;
 			accept();
+
+			if (!Settings::string("server_host", true).isEmpty())
+			{
+				HttpHeaders add_headers;
+				add_headers.insert("Accept", "text/plain");
+				QString content = "name="+user_name+"&password="+password;
+				QByteArray reply = HttpRequestHandler(HttpRequestHandler::NONE).post(Helper::serverApiUrl()+ "login", content.toLocal8Bit(), add_headers);
+				qDebug() << "reply " << reply;
+
+			}
 		}
 		else
 		{

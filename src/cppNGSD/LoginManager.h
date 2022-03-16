@@ -3,6 +3,7 @@
 
 #include <QString>
 #include "cppNGSD_global.h"
+#include "HttpRequestHandler.h"
 
 ///NGSD login manager (singleton)
 class CPPNGSDSHARED_EXPORT LoginManager

@@ -244,6 +244,17 @@ HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 	try
 	{
 		id = NGSD().processedSampleName(request.getUrlParams()["ps_id"]);
+
+		if (request.getUrlParams().contains("token"))
+		{
+			Session current_session = SessionManager::getSessionBySecureToken(request.getUrlParams()["token"]);
+			UserPermissionProvider upp(current_session.user_id.toInt());
+			if (!upp.isEligibleToAccessProcessedSampleById(id))
+			{
+				return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You do not have permissions to open this sample");
+			}
+		}
+
 		found_file_path =  NGSD().processedSamplePath(request.getUrlParams()["ps_id"], type);
 	}
 	catch (Exception& e)
