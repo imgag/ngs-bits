@@ -400,7 +400,8 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	w.writeStartElement("CnvList");
 
 		//Elements CNV
-
+	if(data.tumor_cnvs.count() > 0)
+	{
 
 		int i_clonality = data.tumor_cnvs.annotationIndexByName("tumor_clonality", true);
 		int i_state = data.tumor_cnvs.annotationIndexByName("state", true); //AMP/DEL/LOH
@@ -481,7 +482,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 			w.writeEndElement();
 		}
-
+	}
 
 	w.writeEndElement();
 
