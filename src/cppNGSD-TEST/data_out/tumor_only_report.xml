@@ -22,7 +22,7 @@
     </TargetRegion>
     <VariantList>
         <Variant chr="chr3" start="63611706" end="63611706" ref="G" obs="A" allele_frequency="0.4063" depth="694">
-            <TranscriptInformation transcript_id="ENST00000295894" gene="SYNPR" type="intron_variant" hgvs_c="c.540+2390G&gt;A" hgvs_p="" exon="intron4/4" variant_type="intron_variant" main_transcript="true"/>
+            <TranscriptInformation transcript_id="ENST00000295894" gene="SYNPR" type="intron_variant" hgvs_c="c.540+2390G&gt;A" hgvs_p="" exon="intron4/4" variant_type="intron_variant" main_transcript="false"/>
             <TranscriptInformation transcript_id="ENST00000460711" gene="SYNPR" type="intron_variant" hgvs_c="c.573+2390G&gt;A" hgvs_p="" exon="intron5/5" variant_type="intron_variant" main_transcript="false"/>
             <TranscriptInformation transcript_id="ENST00000465156" gene="SYNPR" type="intron_variant" hgvs_c="c.349-3518G&gt;A" hgvs_p="" exon="intron3/3" variant_type="intron_variant" main_transcript="false"/>
             <TranscriptInformation transcript_id="ENST00000478300" gene="SYNPR" type="intron_variant" hgvs_c="c.600+2390G&gt;A" hgvs_p="" exon="intron5/5" variant_type="intron_variant" main_transcript="false"/>

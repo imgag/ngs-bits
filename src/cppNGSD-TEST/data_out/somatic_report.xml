@@ -43,7 +43,7 @@
             <TranscriptInformation transcript_id="ENST00000569842" gene="NUP93" type="synonymous_variant" hgvs_c="c.1794A&gt;C" hgvs_p="p.Ile598=" exon="exon17/23" variant_type="synonymous_variant" main_transcript="false"/>
         </Variant>
         <Variant chr="chr6" start="26093141" end="26093141" ref="G" obs="A" af_tumor="0.7" depth_tumor="1210" af_normal="0.5" effect="oncogenic">
-            <TranscriptInformation transcript_id="ENST00000309234" gene="HFE" type="missense_variant" hgvs_c="c.845G&gt;A" hgvs_p="p.Cys282Tyr" exon="exon4/6" variant_type="missense_variant" main_transcript="true"/>
+            <TranscriptInformation transcript_id="ENST00000309234" gene="HFE" type="missense_variant" hgvs_c="c.845G&gt;A" hgvs_p="p.Cys282Tyr" exon="exon4/6" variant_type="missense_variant" main_transcript="false"/>
             <TranscriptInformation transcript_id="ENST00000317896" gene="HFE" type="missense_variant" hgvs_c="c.569G&gt;A" hgvs_p="p.Cys190Tyr" exon="exon3/5" variant_type="missense_variant" main_transcript="false"/>
             <TranscriptInformation transcript_id="ENST00000336625" gene="HFE" type="missense_variant" hgvs_c="c.527G&gt;A" hgvs_p="p.Cys176Tyr" exon="exon3/5" variant_type="missense_variant" main_transcript="false"/>
             <TranscriptInformation transcript_id="ENST00000349999" gene="HFE" type="missense_variant" hgvs_c="c.581G&gt;A" hgvs_p="p.Cys194Tyr" exon="exon3/5" variant_type="missense_variant" main_transcript="false"/>
@@ -56,7 +56,7 @@
             <TranscriptInformation transcript_id="ENST00000488199" gene="HFE" type="missense_variant" hgvs_c="c.539G&gt;A" hgvs_p="p.Cys180Tyr" exon="exon3/5" variant_type="missense_variant" main_transcript="false"/>
         </Variant>
         <Variant chr="chr12" start="56078988" end="56078988" ref="G" obs="A" af_tumor="0.68" depth_tumor="1022" af_normal="0.5">
-            <TranscriptInformation transcript_id="ENST00000257879" gene="ITGA7" type="stop_gained" hgvs_c="c.3268C&gt;T" hgvs_p="p.Gln1090Ter" exon="exon25/25" variant_type="stop_gained" main_transcript="true"/>
+            <TranscriptInformation transcript_id="ENST00000257879" gene="ITGA7" type="stop_gained" hgvs_c="c.3268C&gt;T" hgvs_p="p.Gln1090Ter" exon="exon25/25" variant_type="stop_gained" main_transcript="false"/>
             <TranscriptInformation transcript_id="ENST00000257880" gene="ITGA7" type="3_prime_UTR_variant" hgvs_c="c.*24C&gt;T" hgvs_p="" exon="exon27/27" variant_type="3_prime_UTR_variant" main_transcript="false"/>
             <TranscriptInformation transcript_id="ENST00000347027" gene="ITGA7" type="stop_gained" hgvs_c="c.3250C&gt;T" hgvs_p="p.Gln1084Ter" exon="exon25/25" variant_type="stop_gained" main_transcript="false"/>
             <TranscriptInformation transcript_id="ENST00000394229" gene="ITGA7" type="3_prime_UTR_variant" hgvs_c="c.*24C&gt;T" hgvs_p="" exon="exon26/26" variant_type="3_prime_UTR_variant" main_transcript="false"/>

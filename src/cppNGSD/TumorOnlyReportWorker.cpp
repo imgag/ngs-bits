@@ -193,27 +193,8 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 						w.writeAttribute("exon", QString(trans.exon) ) ;
 						w.writeAttribute("variant_type", QString(trans.type) );
 
-						bool is_main_transcript = false;
-						if( config_.preferred_transcripts.contains(trans.gene) )
-						{
-							if( config_.preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion()) )
-							{
-								is_main_transcript = true;
-							}
-						}
-						else if(i == 0)
-						{
-							is_main_transcript = true; //first transcript otherwise
-						}
-
-						if(is_main_transcript)
-						{
-							w.writeAttribute("main_transcript", "true");
-						}
-						else
-						{
-							w.writeAttribute("main_transcript", "false");
-						}
+						bool is_main_transcript = config_.preferred_transcripts.contains(trans.gene) && config_.preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion());
+						w.writeAttribute("main_transcript", is_main_transcript ? "true" : "false");
 
 					//end element transcript information
 					w.writeEndElement();
