@@ -323,20 +323,6 @@ void ReportDialog::editDiagnosticStatus()
 	checkMetaData();
 }
 
-void ReportDialog::editCausalVariant()
-{
-	OtherCausalVariant causal_variant = settings_.report_config->getOtherCausalVariant();
-	QStringList variant_types = db_.getEnum("report_configuration_other_causal_variant", "type");
-
-	//open edit dialog
-	CausalVariantEditDialog* dlg = new CausalVariantEditDialog(causal_variant, variant_types, this);
-
-	if (dlg->exec()!=QDialog::Accepted) return;
-
-	//store updated causal variant
-	settings_.report_config->setOtherCausalVariant(dlg->causalVariant());
-}
-
 QTableWidgetItem* ReportDialog::addTableItem(int row, int col, QString text)
 {
 	QTableWidgetItem* item = new QTableWidgetItem();

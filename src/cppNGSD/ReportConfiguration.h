@@ -48,6 +48,13 @@ struct CPPNGSDSHARED_EXPORT OtherCausalVariant
 	QString gene;
 	QString type;
 	QString comment;
+
+	bool isValid()
+	{
+		if(type.isEmpty()) return false;
+		if(coordinates.isEmpty()) return false;
+		return true;
+	}
 };
 
 
@@ -72,7 +79,7 @@ public:
 	///Returns other causal variant
 	OtherCausalVariant getOtherCausalVariant();
 	///Set other causal variant
-	void setOtherCausalVariant(OtherCausalVariant causal_variant);
+	void setOtherCausalVariant(const OtherCausalVariant& causal_variant);
 	///Sets the report configuration for the variant. Returns if it already existed.
 	void set(const ReportVariantConfiguration& config);
 	///Removes the matching configuration. Returns if a configuration was removed.

@@ -82,6 +82,7 @@ private:
 	void writeCoverageReportCCDS(QTextStream& stream, int extend, bool gap_table=true, bool gene_details=true);
 	static QByteArray formatGenotype(GenomeBuild build, const QByteArray& gender, const QByteArray& genotype, const Variant& variant);
 	QString formatCodingSplicing(const QList<VariantTranscript>& transcripts);
+	static QString convertOtherVariantType(const QString& type, bool xml=false);
 
 	//Helper for the chromosome alias table
 	QMap<Chromosome, QString> getChromosomeTable(GenomeBuild build);

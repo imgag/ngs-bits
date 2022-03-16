@@ -111,7 +111,7 @@ OtherCausalVariant ReportConfiguration::getOtherCausalVariant()
 	return other_causal_variant_;
 }
 
-void ReportConfiguration::setOtherCausalVariant(OtherCausalVariant causal_variant)
+void ReportConfiguration::setOtherCausalVariant(const OtherCausalVariant& causal_variant)
 {
 	other_causal_variant_ = causal_variant;
 }
