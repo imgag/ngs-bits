@@ -5,6 +5,7 @@
 #include "NGSD.h"
 #include "GSvarHelper.h"
 #include "GlobalServiceProvider.h"
+#include "VariantTable.h"
 #include <QMessageBox>
 #include <QMenu>
 #include <QDir>
@@ -273,7 +274,7 @@ void CfDNAPanelDesignDialog::loadVariants()
 		item->setData(Qt::UserRole, i); //store variant index in user data (for selection methods)
 		if (report_config_indices.contains(i))
 		{
-			item->setIcon(QIcon(var_conf.showInReport() ? QPixmap(":/Icons/Report_add.png") : QPixmap(":/Icons/Report exclude.png")));
+			item->setIcon(VariantTable::reportIcon(var_conf.showInReport(), false));
 		}
 		ui_->vars->setVerticalHeaderItem(row_idx, item);
 
