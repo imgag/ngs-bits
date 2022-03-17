@@ -787,7 +787,7 @@ QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, HgvsNo
 
                 if(dist_below < dist_above)
                 {
-                    pos_in_intron = "1-" + QString(dist_below);
+                    pos_in_intron = "1-" + QString::number(dist_below);
                 }
                 else
                 {
