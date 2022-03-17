@@ -206,7 +206,7 @@ public:
 				sv_annotations[i_ngsd_het] = QByteArray::number(ngsd_count_het);
 				if (sample_count_ != 0)
 				{
-					double ngsd_af = (double) (2.0 * ngsd_count_hom + ngsd_count_het) / (double) sample_count_;
+					double ngsd_af = std::min(1.0, (double) (2.0 * ngsd_count_hom + ngsd_count_het) / (double) (sample_count_ * 2.0));
 					sv_annotations[i_ngsd_af] = QByteArray::number(ngsd_af, 'f', 4);
 				}
 			}
