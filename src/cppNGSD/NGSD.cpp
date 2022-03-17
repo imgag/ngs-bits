@@ -5234,6 +5234,11 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 			query.bindValue(4, config->other_causal_variant_.comment);
 			query.exec();
 		}
+		else
+		{
+			//TODO: delete old entry
+
+		}
 
 		commit();
 	}
