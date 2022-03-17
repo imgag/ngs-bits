@@ -847,7 +847,7 @@ private slots:
 		I_EQUAL(ps_table.rowCount(), 9);
 		I_EQUAL(ps_table.columnCount(), 72);
 		S_EQUAL(ps_table.row(0).value(71), "");
-		S_EQUAL(ps_table.row(4).value(71), "exists, causal variant: chr9:98232224-98232224 A>- (genotype:het genes:PTCH1), causal CNV: chr1:3000-4000 (cn:1 classification:4)");
+		S_EQUAL(ps_table.row(4).value(71), "exists, causal variant: chr9:98232224-98232224 A>- (genotype:het genes:PTCH1), causal CNV: chr1:3000-4000 (cn:1 classification:4), causal uncalled CNV: chr2:123456-789012 (genes: EPRS)");
 		//add comments
 		params.add_comments = true;
 		ps_table = db.processedSampleSearch(params);
@@ -1484,6 +1484,14 @@ private slots:
 			var_conf.comp_het = false;
 			var_conf.report_type = "diagnostic variant";
 			report_settings.report_config->set(var_conf);
+
+			OtherCausalVariant causal_variant;
+			causal_variant.coordinates = "chr2:123456-789012";
+			causal_variant.gene = "EPRS";
+			causal_variant.type = "uncalled CNV";
+			causal_variant.comment = "This is a comment!";
+			report_settings.report_config->setOtherCausalVariant(causal_variant);
+			report_settings.select_other_causal_variant = true;
 
 			report_settings.show_coverage_details = true;
 			report_settings.roi_low_cov = true;

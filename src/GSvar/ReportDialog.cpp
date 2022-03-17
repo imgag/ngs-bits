@@ -3,6 +3,7 @@
 #include "DiseaseInfoWidget.h"
 #include "SampleDiseaseInfoWidget.h"
 #include "DiagnosticStatusWidget.h"
+#include "CausalVariantEditDialog.h"
 #include <QTableWidgetItem>
 #include <QMenu>
 
@@ -239,6 +240,24 @@ void ReportDialog::updateVariantTable()
 		}
 	}
 
+	//add other causal variant
+	OtherCausalVariant causal_variant = settings_.report_config->getOtherCausalVariant();
+
+	if(!causal_variant.coordinates.isEmpty())
+	{
+		ui_.vars->setRowCount(ui_.vars->rowCount()+1);
+		addCheckBox(row, 0, true, true)->setData(Qt::UserRole, -1);
+		addTableItem(row, 1, "causal");
+		addTableItem(row, 2, causal_variant.type);
+		addTableItem(row, 3, causal_variant.coordinates);
+		addTableItem(row, 4, causal_variant.gene);
+		addTableItem(row, 5, "");
+		addTableItem(row, 6, causal_variant.comment);
+		++row;
+	}
+
+
+
 	//resize table cells
 	GUIHelper::resizeTableCells(ui_.vars);
 }
@@ -347,13 +366,23 @@ QTableWidgetItem*ReportDialog::addCheckBox(int row, int col, bool is_checked, bo
 void ReportDialog::writeBackSettings()
 {
 	settings_.selected_variants.clear();
+	settings_.select_other_causal_variant = false;
 	for (int r=0; r<ui_.vars->rowCount(); ++r)
 	{
 		if (ui_.vars->item(r, 0)->checkState()!=Qt::Checked) continue;
 
-		VariantType type = stringToVariantType(ui_.vars->item(r, 2)->text());
 		int index = ui_.vars->item(r, 0)->data(Qt::UserRole).toInt();
-		settings_.selected_variants << qMakePair(type, index);
+		if(index != -1)
+		{
+			VariantType type = stringToVariantType(ui_.vars->item(r, 2)->text());
+			settings_.selected_variants << qMakePair(type, index);
+		}
+		else
+		{
+			// other causal variant
+			settings_.select_other_causal_variant = true;
+		}
+
 	}
 
 	settings_.show_coverage_details = ui_.details_cov->isChecked();

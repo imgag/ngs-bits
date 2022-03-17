@@ -129,6 +129,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "BlatWidget.h"
 #include "FusionWidget.h"
 #include "CohortExpressionDataWidget.h"
+#include "CausalVariantEditDialog.h"
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -220,6 +221,9 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.vars_export_btn->menu()->addAction("Export GSvar (filtered)", this, SLOT(exportGSvar()));
 	ui_.vars_export_btn->menu()->addAction("Export VCF (filtered)", this, SLOT(exportVCF()));
 	ui_.report_btn->setMenu(new QMenu());
+	ui_.report_btn->menu()->addSeparator();
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_add.png"), "Add/edit other causal Variant", this, SLOT(editOtherCausalVariant()));
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report exclude.png"), "Delete other causal Variant", this, SLOT(deleteOtherCausalVariant()));
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate report", this, SLOT(generateReport()));
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate evaluation sheet", this, SLOT(generateEvaluationSheet()));
@@ -3471,6 +3475,58 @@ void MainWindow::showReportConfigInfo()
 		}
 		QMessageBox::information(this, title, db.somaticReportConfigData(conf_id).history());
 	}
+}
+
+void MainWindow::editOtherCausalVariant()
+{
+	//check if applicable
+	if (!germlineReportSupported()) return;
+
+	QString ps = germlineReportSample();
+	QString title = "Add/edit other causal variant of " + ps;
+
+	//check sample exists
+	NGSD db;
+	QString processed_sample_id = db.processedSampleId(ps, false);
+	if (processed_sample_id=="")
+	{
+		QMessageBox::warning(this, title, "Sample was not found in the NGSD!");
+		return;
+	}
+	//check config exists
+	int conf_id = db.reportConfigId(processed_sample_id);
+	if (conf_id==-1)
+	{
+		QMessageBox::warning(this, title , "No germline report configuration found in the NGSD!");
+		return;
+	}
+	QStringList messages;
+	QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, messages);
+	OtherCausalVariant causal_variant = report_config->getOtherCausalVariant();
+	QStringList variant_types = db.getEnum("report_configuration_other_causal_variant", "type");
+	if (causal_variant.isValid())
+	{
+		title = "Edit other causal variant of " + ps;
+	}
+	else
+	{
+		title = "Add other causal variant of " + ps;
+	}
+
+	//open edit dialog
+	CausalVariantEditDialog* dlg = new CausalVariantEditDialog(causal_variant, variant_types, this);
+	dlg->setWindowTitle(title);
+
+	if (dlg->exec()!=QDialog::Accepted) return;
+
+	//store updated causal variant in NGSD
+	causal_variant = dlg->causalVariant();
+	if (causal_variant.isValid())
+	{
+		report_config->setOtherCausalVariant(causal_variant);
+		db.setReportConfig(processed_sample_id, report_config, variants_, cnvs_, svs_);
+	}
+
 }
 
 void MainWindow::finalizeReportConfig()
