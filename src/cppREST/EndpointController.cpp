@@ -381,9 +381,11 @@ QString EndpointController::getServedRootPath(const QList<QString>& path_parts)
 	{
 		server_root = server_root + QDir::separator();
 	}
-
 	QString served_file = server_root.trimmed() + path_parts.join(QDir::separator());
+
 	served_file = QUrl::fromEncoded(served_file.toLocal8Bit()).toString(); // handling browser endcoding, e.g. spaces and other characters in names
+	int param_pos = served_file.indexOf("?");
+	if (param_pos > -1) served_file = served_file.left(param_pos);
 
 	if (QFile(served_file).exists())
 	{
