@@ -7,6 +7,7 @@
 #include "EndpointManager.h"
 #include "UrlManager.h"
 #include "HttpResponse.h"
+#include "SessionManager.h"
 #include <QUrl>
 #include <QDir>
 
@@ -29,6 +30,9 @@ public:
 	static HttpResponse createStaticStreamResponse(QString filename, bool is_downloadable);
 	static HttpResponse createStaticFromCacheResponse(QString id, QList<ByteRange> byte_ranges, ContentType type, bool is_downloadable);
 	static HttpResponse serveStaticFile(QString filename, RequestMethod method, ContentType content_type, QMap<QString, QList<QString>> headers);
+
+	/// Checks if a valid token has been provided
+	static bool isAuthorizedWithToken(const HttpRequest& request);
 
 protected:
 	EndpointController();

@@ -1705,7 +1705,7 @@ void MainWindow::delayedInitialization()
 		LoginDialog dlg(this);
 		if (dlg.exec()==QDialog::Accepted)
 		{
-			LoginManager::login(dlg.userName());
+			LoginManager::login(dlg.userName(), dlg.userToken());
 		}
 	}
 
@@ -2447,8 +2447,9 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 	try
 	{
 		NGSD db;
+		qDebug() << "processed_sample_name" << processed_sample_name;
 		QString processed_sample_id = db.processedSampleId(processed_sample_name);
-
+		qDebug() << "processed_sample_id" << processed_sample_id;
 		UserPermissionProvider upp(LoginManager::userId());
 		if (!upp.isEligibleToAccessProcessedSampleById(processed_sample_id))
 		{

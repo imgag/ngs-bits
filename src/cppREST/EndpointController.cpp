@@ -28,6 +28,11 @@ HttpResponse EndpointController::serveEndpointHelp(const HttpRequest& request)
 
 HttpResponse EndpointController::serveStaticFromServerRoot(const HttpRequest& request)
 {
+	if (!isAuthorizedWithToken(request))
+	{
+		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+	}
+
 	QString served_file = getServedRootPath(request.getPathParams());
 
 	if (served_file.isEmpty())
@@ -45,6 +50,11 @@ HttpResponse EndpointController::serveStaticFromServerRoot(const HttpRequest& re
 
 HttpResponse EndpointController::serveStaticForTempUrl(const HttpRequest& request)
 {
+//	if (!isAuthorizedWithToken(request))
+//	{
+//		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+//	}
+
 	QString full_entity_path = getServedTempPath(request.getPathParams());
 
 	if ((!full_entity_path.isEmpty()) && (QFileInfo(full_entity_path).isDir()))
@@ -466,4 +476,14 @@ bool EndpointController::hasOverlappingRanges(const QList<ByteRange> ranges)
 	return false;
 }
 
+bool EndpointController::isAuthorizedWithToken(const HttpRequest& request)
+{
+	if (request.getUrlParams().contains("token"))
+	{
+		qDebug() << "Token" << SessionManager::isTokenValid(request.getUrlParams()["token"]);
+		return SessionManager::isTokenValid(request.getUrlParams()["token"]);
+	}
+
+	return false;
+}
 

@@ -105,7 +105,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in1.sql"));
 
 		//log in user
-		LoginManager::login("ahmustm1", true);
+		LoginManager::login("ahmustm1", "", true);
 
 		//escapeText
 		S_EQUAL(db.escapeText("; '"), "'; '''");
@@ -1377,7 +1377,7 @@ private slots:
 		NGSD db(true);
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in2.sql"));
-		LoginManager::login("ahmustm1", true);
+		LoginManager::login("ahmustm1", "", true);
 
 		QDate report_date = QDate::fromString("2021-02-19", Qt::ISODate);
 
@@ -1564,7 +1564,7 @@ private slots:
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in1.sql"));
 		//log in user
-		LoginManager::login("ahmustm1", true);
+		LoginManager::login("ahmustm1", "", true);
 
 
 

@@ -6,6 +6,7 @@ LoginManager::LoginManager()
 	, user_name_()
 	, user_id_(-1)
 	, role_()
+	, token_()
 {
 }
 
@@ -41,6 +42,14 @@ QString LoginManager::userIdAsString()
 	return QString::number(id);
 }
 
+QString LoginManager::token()
+{
+	QString token = instance().token_;
+	if (token.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::token if no user is logged in!");
+
+	return token;
+}
+
 QString LoginManager::role()
 {
 	return instance().role_;
@@ -51,7 +60,7 @@ bool LoginManager::active()
 	return !instance().user_.isEmpty();
 }
 
-void LoginManager::login(QString user, bool test_db)
+void LoginManager::login(QString user, QString token, bool test_db)
 {
 	NGSD db(test_db);
 
@@ -60,12 +69,15 @@ void LoginManager::login(QString user, bool test_db)
 	manager.user_id_ = db.userId(user, true);
 	manager.user_ = user;
 	manager.user_name_ = db.userName(manager.user_id_);
+	manager.token_ = token;
 
 	//determine role
 	manager.role_ = db.getValue("SELECT user_role FROM user WHERE id='" + QString::number(manager.user_id_) + "'").toString();
 
 	//update last login
 	db.getQuery().exec("UPDATE user SET last_login=NOW() WHERE id='" + QString::number(manager.user_id_) + "'");
+
+	qDebug() << "Login" << manager.token_;
 }
 
 void LoginManager::logout()
@@ -74,6 +86,7 @@ void LoginManager::logout()
 	manager.user_.clear();
 	manager.user_id_ = -1;
 	manager.role_.clear();
+	manager.token_.clear();
 }
 
 void LoginManager::checkRoleIn(QStringList roles)

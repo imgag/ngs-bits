@@ -21,6 +21,11 @@ QString LoginDialog::userName() const
 	return user_name_;
 }
 
+QString LoginDialog::userToken() const
+{
+	return user_token_;
+}
+
 void LoginDialog::clear()
 {
 	ui_.password->clear();
@@ -47,6 +52,7 @@ void LoginDialog::checkPassword()
 				QString content = "name="+user_name+"&password="+password;
 				QByteArray reply = HttpRequestHandler(HttpRequestHandler::NONE).post(Helper::serverApiUrl()+ "login", content.toLocal8Bit(), add_headers);
 				qDebug() << "reply " << reply;
+				user_token_ = reply;
 
 			}
 		}

@@ -10,7 +10,6 @@
 
 #include "Exceptions.h"
 #include "EndpointController.h"
-#include "SessionManager.h"
 #include "FileLocationProviderLocal.h"
 #include "VariantList.h"
 #include "UserPermissionProvider.h"
@@ -52,8 +51,7 @@ public:
 
 private:
 	/// Creates a temporary URL for a file (includes a file name and its full path)
-	static QString createFileTempUrl(const QString& file, const bool& return_http);
-
+	static QString createFileTempUrl(const QString& file, const QString& token, const bool& return_http);
 };
 
 #endif // ENDPOINTHANDLER_H

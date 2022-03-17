@@ -11,7 +11,7 @@
 
 struct CPPRESTSHARED_EXPORT Session
 {
-	QString user_id;
+	int user_id;
 	QDateTime login_time;
 
 	Session()
@@ -20,7 +20,7 @@ struct CPPRESTSHARED_EXPORT Session
 	{
 	}
 
-	Session(const QString& user_id_, const QDateTime login_time_)
+	Session(const int& user_id_, const QDateTime login_time_)
 		: user_id(user_id_)
 		, login_time(login_time_)
 	{
@@ -32,7 +32,7 @@ class CPPRESTSHARED_EXPORT SessionManager
 public:
 	static void addNewSession(QString id, Session in);
 	static void removeSession(QString id);
-	static void removeSession(QString user_id, QDateTime login_time);
+	static void removeSession(int user_id, QDateTime login_time);
 	static Session getSessionByUserId(QString id);
 	static Session getSessionBySecureToken(QString token);
 	static bool hasValidToken(QString id);

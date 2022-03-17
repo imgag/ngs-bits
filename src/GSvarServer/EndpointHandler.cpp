@@ -38,6 +38,11 @@ HttpResponse EndpointHandler::serveApiInfo(const HttpRequest& request)
 
 HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 {
+	if (!EndpointController::isAuthorizedWithToken(request))
+	{
+		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+	}
+
 	qDebug() << "File location service";
 	if (!request.getUrlParams().contains("ps_url_id"))
 	{
@@ -198,7 +203,7 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 				{
 					return_http = true;
 				}
-				cur_json_item.insert("filename", createFileTempUrl(file_list[i].filename, return_http));
+				cur_json_item.insert("filename", createFileTempUrl(file_list[i].filename, request.getUrlParams()["token"], return_http));
 			}
 			catch (Exception& e)
 			{
@@ -227,6 +232,7 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 {
 	qDebug() << "Processed sample path";
+	qDebug() << request.getUrlParams()["token"];
 
 	PathType type = PathType::GSVAR;
 	if (request.getUrlParams().contains("type"))
@@ -244,17 +250,21 @@ HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 	try
 	{
 		id = NGSD().processedSampleName(request.getUrlParams()["ps_id"]);
-
-		if (request.getUrlParams().contains("token"))
+		qDebug() << "id" << id;
+		if (!EndpointController::isAuthorizedWithToken(request))
 		{
-			Session current_session = SessionManager::getSessionBySecureToken(request.getUrlParams()["token"]);
-			UserPermissionProvider upp(current_session.user_id.toInt());
-			if (!upp.isEligibleToAccessProcessedSampleById(id))
-			{
-				return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You do not have permissions to open this sample");
-			}
+			return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
 		}
 
+		qDebug() << "-------------------User is authorized";
+		Session current_session = SessionManager::getSessionBySecureToken(request.getUrlParams()["token"]);
+		UserPermissionProvider upp(current_session.user_id);
+		if (!upp.isEligibleToAccessProcessedSampleById(request.getUrlParams()["ps_id"]))
+		{
+			return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You do not have permissions to open this sample");
+		}
+
+		qDebug() << "Eligible to open";
 		found_file_path =  NGSD().processedSamplePath(request.getUrlParams()["ps_id"], type);
 	}
 	catch (Exception& e)
@@ -268,7 +278,9 @@ HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 	{
 		return_http = true;
 	}
-	FileLocation project_file = FileLocation(id, type, createFileTempUrl(found_file_path, return_http), QFile::exists(found_file_path));
+
+	qDebug() << "found_file_path = " << found_file_path;
+	FileLocation project_file = FileLocation(id, type, createFileTempUrl(found_file_path, request.getUrlParams()["token"], return_http), QFile::exists(found_file_path));
 
 	json_object_output.insert("id", id);
 	json_object_output.insert("type", project_file.typeAsString());
@@ -288,6 +300,11 @@ HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 
 HttpResponse EndpointHandler::getAnalysisJobGSvarFile(const HttpRequest& request)
 {
+	if (!EndpointController::isAuthorizedWithToken(request))
+	{
+		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+	}
+
 	qDebug() << "Analysis job GSvar file";
 	QJsonDocument json_doc_output;
 	QJsonObject json_object_output;
@@ -309,7 +326,7 @@ HttpResponse EndpointHandler::getAnalysisJobGSvarFile(const HttpRequest& request
 		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), e.message());
 	}
 
-	FileLocation analysis_job_gsvar_file = FileLocation(id, PathType::GSVAR, createFileTempUrl(found_file_path, false), QFile::exists(found_file_path));
+	FileLocation analysis_job_gsvar_file = FileLocation(id, PathType::GSVAR, createFileTempUrl(found_file_path, request.getUrlParams()["token"], false), QFile::exists(found_file_path));
 
 	json_object_output.insert("id", id);
 	json_object_output.insert("type", analysis_job_gsvar_file.typeAsString());
@@ -327,6 +344,11 @@ HttpResponse EndpointHandler::getAnalysisJobGSvarFile(const HttpRequest& request
 
 HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 {
+	if (!EndpointController::isAuthorizedWithToken(request))
+	{
+		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+	}
+
 	QString ps_url_id = request.getUrlParams()["ps_url_id"];
 	UrlEntity url = UrlManager::getURLById(ps_url_id);
 
@@ -458,6 +480,11 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 
 HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 {
+	if (!EndpointController::isAuthorizedWithToken(request))
+	{
+		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+	}
+
 	QString qbic_data_path = Settings::string("qbic_data_path");
 	if (!qbic_data_path.endsWith(QDir::separator())) qbic_data_path = qbic_data_path.remove(qbic_data_path.length()-1, 1);
 	if (!QDir(qbic_data_path).exists())
@@ -513,7 +540,8 @@ HttpResponse EndpointHandler::performLogin(const HttpRequest& request)
 	if (message.isEmpty())
 	{
 		QString secure_token = ServerHelper::generateUniqueStr();
-		Session cur_session = Session(request.getFormUrlEncoded()["name"], QDateTime::currentDateTime());
+		qDebug() << "Add session" << request.getFormUrlEncoded()["name"];
+		Session cur_session = Session(db.userId(request.getFormUrlEncoded()["name"]), QDateTime::currentDateTime());
 
 		SessionManager::addNewSession(secure_token, cur_session);
 		body = secure_token.toLocal8Bit();
@@ -559,6 +587,11 @@ HttpResponse EndpointHandler::performLogout(const HttpRequest& request)
 
 HttpResponse EndpointHandler::getProcessingSystemRegions(const HttpRequest& request)
 {
+	if (!EndpointController::isAuthorizedWithToken(request))
+	{
+		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+	}
+
 	NGSD db;
 	QString sys_id = request.getUrlParams()["sys_id"];
 	QString filename = db.processingSystemRegionsFilePath(sys_id.toInt());
@@ -571,6 +604,11 @@ HttpResponse EndpointHandler::getProcessingSystemRegions(const HttpRequest& requ
 
 HttpResponse EndpointHandler::getProcessingSystemAmplicons(const HttpRequest& request)
 {
+	if (!EndpointController::isAuthorizedWithToken(request))
+	{
+		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+	}
+
 	NGSD db;
 	QString sys_id = request.getUrlParams()["sys_id"];
 	QString filename = db.processingSystemAmpliconsFilePath(sys_id.toInt());
@@ -583,6 +621,11 @@ HttpResponse EndpointHandler::getProcessingSystemAmplicons(const HttpRequest& re
 
 HttpResponse EndpointHandler::getProcessingSystemGenes(const HttpRequest& request)
 {
+	if (!EndpointController::isAuthorizedWithToken(request))
+	{
+		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+	}
+
 	NGSD db;
 	QString sys_id = request.getUrlParams()["sys_id"];
 	QString filename = db.processingSystemGenesFilePath(sys_id.toInt());
@@ -595,6 +638,11 @@ HttpResponse EndpointHandler::getProcessingSystemGenes(const HttpRequest& reques
 
 HttpResponse EndpointHandler::getSecondaryAnalyses(const HttpRequest& request)
 {
+	if (!EndpointController::isAuthorizedWithToken(request))
+	{
+		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+	}
+
 	NGSD db;
 	QString processed_sample_name = request.getUrlParams()["ps_name"];
 	QString type  = QUrl::fromEncoded(request.getUrlParams()["type"].toLatin1()).toString();
@@ -612,7 +660,7 @@ HttpResponse EndpointHandler::getSecondaryAnalyses(const HttpRequest& request)
 	QJsonArray json_array;
 	for (int i = 0; i < secondary_analyses.count(); i++)
 	{
-		json_array.append(createFileTempUrl(secondary_analyses[i], false));
+		json_array.append(createFileTempUrl(secondary_analyses[i], request.getUrlParams()["token"], false));
 	}
 	json_doc_output.setArray(json_array);
 
@@ -625,10 +673,10 @@ HttpResponse EndpointHandler::getSecondaryAnalyses(const HttpRequest& request)
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
-QString EndpointHandler::createFileTempUrl(const QString& file, const bool& return_http)
+QString EndpointHandler::createFileTempUrl(const QString& file, const QString& token, const bool& return_http)
 {
 	QString id = ServerHelper::generateUniqueStr();
 	UrlManager::addUrlToStorage(id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file);
 
-	return Helper::serverApiUrl(return_http) + "temp/" + id + "/" + QFileInfo(file).fileName();
+	return Helper::serverApiUrl(return_http) + "temp/" + id + "/" + QFileInfo(file).fileName() + "&token=" + token;
 }
