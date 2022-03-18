@@ -50,10 +50,10 @@ HttpResponse EndpointController::serveStaticFromServerRoot(const HttpRequest& re
 
 HttpResponse EndpointController::serveStaticForTempUrl(const HttpRequest& request)
 {
-//	if (!isAuthorizedWithToken(request))
-//	{
-//		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
-//	}
+	if (!isAuthorizedWithToken(request))
+	{
+		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+	}
 
 	QString full_entity_path = getServedTempPath(request.getPathParams());
 
@@ -192,7 +192,7 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 			return HttpResponse(ResponseStatus::NOT_FOUND, content_type, 0.0);
 		}
 
-		return HttpResponse(ResponseStatus::NOT_FOUND, content_type, "Requested could not be found");
+		return HttpResponse(ResponseStatus::NOT_FOUND, content_type, "Requested file could not be found");
 	}
 
 	quint64 file_size = QFileInfo(filename).size();

@@ -15,6 +15,9 @@ private slots:
 		UrlManager::addUrlToStorage(url_id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file);
 		IS_TRUE(UrlManager::isInStorageAlready(file));
 
+		Session cur_session(1, QDateTime::currentDateTime());
+		SessionManager::addNewSession("token", cur_session);
+
 		HttpRequest request;
 		request.setMethod(RequestMethod::GET);
 		request.setContentType(ContentType::TEXT_HTML);
@@ -26,6 +29,7 @@ private slots:
 		request.setPath("temp");
 		request.addPathParam(url_id);
 		request.addPathParam("text.txt");
+		request.addUrlParam("token", "token");
 
 		HttpResponse response = EndpointController::serveStaticForTempUrl(request);
 
@@ -42,6 +46,9 @@ private slots:
 
 	void test_head_response_with_empty_body_for_missing_file()
 	{
+		Session cur_session(1, QDateTime::currentDateTime());
+		SessionManager::addNewSession("token", cur_session);
+
 		HttpRequest request;
 		request.setMethod(RequestMethod::HEAD);
 		request.setContentType(ContentType::TEXT_HTML);
@@ -52,6 +59,7 @@ private slots:
 		request.setPath("temp");
 		request.addPathParam("fake_unique_id");
 		request.addPathParam("file.txt");
+		request.addUrlParam("token", "token");
 
 		HttpResponse response = EndpointController::serveStaticForTempUrl(request);
 
@@ -73,6 +81,9 @@ private slots:
 		QByteArray file = TESTDATA("data_in/text.txt");
 		UrlManager::addUrlToStorage(url_id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file);
 
+		Session cur_session(1, QDateTime::currentDateTime());
+		SessionManager::addNewSession("token", cur_session);
+
 		HttpRequest request;
 		request.setMethod(RequestMethod::HEAD);
 		request.setContentType(ContentType::TEXT_HTML);
@@ -83,6 +94,7 @@ private slots:
 		request.setPath("temp");
 		request.addPathParam(url_id);
 		request.addPathParam("text.txt");
+		request.addUrlParam("token", "token");
 
 		HttpResponse response = EndpointController::serveStaticForTempUrl(request);
 

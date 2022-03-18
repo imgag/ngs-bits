@@ -678,5 +678,5 @@ QString EndpointHandler::createFileTempUrl(const QString& file, const QString& t
 	QString id = ServerHelper::generateUniqueStr();
 	UrlManager::addUrlToStorage(id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file);
 
-	return Helper::serverApiUrl(return_http) + "temp/" + id + "/" + QFileInfo(file).fileName() + "&token=" + token;
+	return Helper::serverApiUrl(return_http) + "temp/" + id + "/" + QFileInfo(file).fileName() + "?token=" + token;
 }

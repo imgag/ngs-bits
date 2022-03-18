@@ -21,7 +21,6 @@ UserPermissionProvider::UserPermissionProvider(int user_id)
 //		user_permissions_.addPermission(current_permission);
 		user_permissions_.append(current_permission);
 	}
-	qDebug() << "Size1 = " << user_permissions_.size();
 }
 
 UserPermissionList UserPermissionProvider::getUserPermissions()
@@ -32,25 +31,8 @@ UserPermissionList UserPermissionProvider::getUserPermissions()
 bool UserPermissionProvider::isEligibleToAccessProcessedSampleById(QString ps_id)
 {
 	NGSD db;
-	qDebug() << "Size = " << user_permissions_.size();
 	for(int i = 0; i < user_permissions_.size(); i++)
 	{
-		qDebug() << UserPermissionList::typeToString(user_permissions_[i].permission);
-		if (user_permissions_[i].permission == Permission::SAMPLE)
-		{
-			qDebug() << "Permission::SAMPLE";
-			if (user_permissions_[i].data.toLower() == db.getValue("SELECT sample_id FROM processed_sample INNER JOIN sample ON processed_sample.sample_id=sample.id WHERE processed_sample.id='"+ ps_id +"'").toString().toLower())
-			{
-				qDebug() << "db ok";
-			}
-			else
-			{
-				qDebug() << "db not ok";
-				qDebug() << user_permissions_[i].data.toLower();
-				qDebug() << "SELECT sample_id FROM processed_sample INNER JOIN sample ON processed_sample.sample_id=sample.id WHERE processed_sample.id='"+ ps_id +"'";
-				qDebug() << db.getValue("SELECT sample_id FROM processed_sample INNER JOIN sample ON processed_sample.sample_id=sample.id WHERE processed_sample.id='"+ ps_id +"'").toString().toLower();
-			}
-		}
 		switch(user_permissions_[i].permission)
 		{
 			case Permission::PROJECT:
@@ -64,7 +46,6 @@ bool UserPermissionProvider::isEligibleToAccessProcessedSampleById(QString ps_id
 				return user_permissions_[i].data.toLower() == db.getValue("SELECT sample_id FROM processed_sample INNER JOIN sample ON processed_sample.sample_id=sample.id WHERE processed_sample.id='"+ ps_id +"'").toString().toLower();
 		}
 	}
-	qDebug() << "Return flase for auth";
 	return false;
 }
 
