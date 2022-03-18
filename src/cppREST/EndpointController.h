@@ -40,8 +40,8 @@ protected:
 private:
 	static EndpointController& instance();
 
-	static HttpResponse serveFolderContent(QString path, QString request_prefix, QString request_path, QList<QString> request_path_params);
-	static HttpResponse serveFolderListing(QString folder_title, QString cur_folder_url, QString parent_folder_url, QList<FolderItem> items);
+	static HttpResponse serveFolderContent(const QString path, const HttpRequest& request);
+	static HttpResponse serveFolderListing(QString folder_title, QString cur_folder_url, QString parent_folder_url, QList<FolderItem> items, QString token);
 
 	static QString getEndpointHelpTemplate(QList<Endpoint> endpoint_list);
 	static QString generateHelpPage();

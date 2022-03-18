@@ -173,7 +173,14 @@ QList<QString> RequestParser::getRequestPathParams(const QList<QString>& path_it
 		{
 			if (!path_items[p].trimmed().isEmpty())
 			{
-				params.append(path_items[p].trimmed());
+				QString current_item = path_items[p].trimmed();
+				int param_separator = current_item.indexOf("?");
+				if (param_separator > -1)
+				{
+					current_item = current_item.left(param_separator);
+				}
+				if (current_item.length() == 0) continue;
+				params.append(current_item);
 			}
 		}
 	}

@@ -42,7 +42,7 @@ HttpResponse EndpointController::serveStaticFromServerRoot(const HttpRequest& re
 
 	if (QFileInfo(served_file).isDir())
 	{
-		return serveFolderContent(served_file, request.getPrefix(), request.getPath(), request.getPathParams());
+		return serveFolderContent(served_file, request);
 	}
 
 	return serveStaticFile(served_file, request.getMethod(), request.getContentType(), request.getHeaders());
@@ -59,7 +59,7 @@ HttpResponse EndpointController::serveStaticForTempUrl(const HttpRequest& reques
 
 	if ((!full_entity_path.isEmpty()) && (QFileInfo(full_entity_path).isDir()))
 	{
-		return serveFolderContent(full_entity_path, request.getPrefix(), request.getPath(), request.getPathParams());
+		return serveFolderContent(full_entity_path, request);
 	}
 
 	return serveStaticFile(full_entity_path, request.getMethod(), HttpProcessor::getContentTypeByFilename(full_entity_path), request.getHeaders());
@@ -134,7 +134,7 @@ EndpointController& EndpointController::instance()
 	return endpoint_controller;
 }
 
-HttpResponse EndpointController::serveFolderContent(QString path, QString request_prefix, QString request_path, QList<QString> request_path_params)
+HttpResponse EndpointController::serveFolderContent(const QString path, const HttpRequest& request)
 {
 	if (!Settings::boolean("allow_folder_listing", true))
 	{
@@ -147,21 +147,21 @@ HttpResponse EndpointController::serveFolderContent(QString path, QString reques
 		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_HTML, "Requested folder does not exist");
 	}
 
-	QString base_folder_url = ServerHelper::getUrlProtocol(false) + ServerHelper::getStringSettingsValue("server_host") + ":" + QString::number(ServerHelper::getNumSettingsValue("https_server_port")) + "/" + request_prefix + "/" + request_path;
+	QString base_folder_url = ServerHelper::getUrlProtocol(false) + ServerHelper::getStringSettingsValue("server_host") + ":" + QString::number(ServerHelper::getNumSettingsValue("https_server_port")) + "/" + request.getPrefix() + "/" + request.getPath();
 	if (!base_folder_url.endsWith("/"))
 	{
 		base_folder_url = base_folder_url + "/";
 	}
-	QString cur_folder_url = base_folder_url + request_path_params.join("/");
+	QString cur_folder_url = base_folder_url + request.getPathParams().join("/");
 	if (!cur_folder_url.endsWith("/"))
 	{
 		cur_folder_url = cur_folder_url + "/";
 	}
-	if (request_path_params.size()>0)
+	if (request.getPathParams().size()>0)
 	{
-		request_path_params.removeAt(request_path_params.size()-1);
+		request.getPathParams().removeAt(request.getPathParams().size()-1);
 	}
-	QString parent_folder_url = base_folder_url + request_path_params.join("/");
+	QString parent_folder_url = base_folder_url + request.getPathParams().join("/");
 
 	dir.setFilter(QDir::Dirs | QDir::Files | QDir::NoSymLinks);
 	QFileInfoList list = dir.entryInfoList();
@@ -177,7 +177,9 @@ HttpResponse EndpointController::serveFolderContent(QString path, QString reques
 		current_item.is_folder = fileInfo.isDir() ? true : false;
 		files.append(current_item);
 	}
-	return serveFolderListing(dir.dirName(), cur_folder_url, parent_folder_url, files);
+	QString token;
+	if (!request.getFormUrlEncoded().contains("token")) token = request.getUrlParams()["token"];
+	return serveFolderListing(dir.dirName(), cur_folder_url, parent_folder_url, files, token);
 }
 
 HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod method, ContentType content_type, QMap<QString, QList<QString>> headers)
@@ -281,7 +283,7 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 	return createStaticStreamResponse(filename, false);
 }
 
-HttpResponse EndpointController::serveFolderListing(QString folder_title, QString cur_folder_url, QString parent_folder_url, QList<FolderItem> items)
+HttpResponse EndpointController::serveFolderListing(QString folder_title, QString cur_folder_url, QString parent_folder_url, QList<FolderItem> items, QString token)
 {
 	HttpResponse response;
 
@@ -290,7 +292,7 @@ HttpResponse EndpointController::serveFolderListing(QString folder_title, QStrin
 	stream << HtmlEngine::getPageHeader("Folder content: " + folder_title);
 	stream << HtmlEngine::getFolderIcons();
 	stream << HtmlEngine::createFolderListingHeader(folder_title, parent_folder_url);
-	stream << HtmlEngine::createFolderListingElements(items, cur_folder_url);
+	stream << HtmlEngine::createFolderListingElements(items, cur_folder_url, token);
 	stream << HtmlEngine::getPageFooter();
 
 	BasicResponseData response_data;
