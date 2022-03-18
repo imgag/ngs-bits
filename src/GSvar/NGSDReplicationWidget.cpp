@@ -720,6 +720,12 @@ void NGSDReplicationWidget::replicatePostProduction()
 
 	//variant_classification
 	{
+
+		QFile file(QCoreApplication::applicationDirPath()  + QDir::separator() + "liftover_class_4_or_5.tsv");
+		file.open(QIODevice::WriteOnly);
+		QTextStream debug_stream(&file);
+		debug_stream << "#variant\tps\tproject\tsystem\n";
+
 		int c_add = 0;
 		SqlQuery query_s = db_source_->getQuery();
 		SqlQuery q_add = db_target_->getQuery();
@@ -736,7 +742,15 @@ void NGSDReplicationWidget::replicatePostProduction()
 				QString source_class = query_s.value("class").toString();
 				if (target_variant_id==-4 && (source_class=="4" || source_class=="5")) //target_variant_id==-4 means that the variant is liftable, but was not found in the target NGSD
 				{
-					qDebug() << "variant_classification: class " << source_class  << " variant " << db_source_->variant(query_s.value("variant_id").toString()).toString() << " not found in target NGSD!";
+					QString variant_id = QString::number(source_variant_id);
+					qDebug() << "variant_classification: class " << source_class  << " variant " << db_source_->variant(variant_id).toString() << " not found in target NGSD!";
+
+					QList<int> ps_ids = db_source_->getValuesInt("SELECT processed_sample_id FROM detected_variant WHERE variant_id="+ variant_id);
+					foreach(int ps_id, ps_ids)
+					{
+						QString ps_id_str = QString::number(ps_id);
+						debug_stream << db_source_->variant(variant_id).toString() + "\t" + db_source_->processedSampleName(ps_id_str) + "\t" + db_source_->getValue("SELECT p.name FROM project p, processed_sample ps WHERE p.id=ps.project_id AND ps.id=" + ps_id_str).toString() + "\t" + db_source_->getValue("SELECT sys.name_short FROM processing_system sys, processed_sample ps WHERE sys.id=ps.processing_system_id AND ps.id=" + ps_id_str).toString() << endl;
+					}
 				}
 			}
 			else

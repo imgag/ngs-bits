@@ -5961,6 +5961,7 @@ QString SomaticReportConfigurationData::history() const
 	QStringList output;
 	output << "The report configuration was created by " + created_by + " on " + created_date + ".";
 	if (last_edit_by!="") output << "The report configuration was last updated by " + last_edit_by + " on " + last_edit_date + ".";
+	if (mtb_xml_upload_date != "") output << "The XML file was last uploaded to MTB on " + mtb_xml_upload_date + ".";
 	return output.join("\n");
 }
 
