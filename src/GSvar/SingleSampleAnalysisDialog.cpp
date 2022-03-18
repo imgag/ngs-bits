@@ -97,6 +97,7 @@ QString SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<Sa
 
 	//check if sample fits to the selected analysis type
 	QString sample_type = db.getSampleData(db.sampleId(ps_name)).type;
+	if (sample_type.startsWith("DNA (")) sample_type = "DNA"; //convert "DNA (amplicon)" and "DNA (native)" to "DNA"
 	if (analysis_type.isEmpty())
 	{
 		//set analysis type based on the first sample
