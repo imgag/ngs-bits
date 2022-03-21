@@ -349,6 +349,25 @@ void GermlineReportGenerator::writeHTML(QString filename)
 
 	//-----------------------------------------------------------------------------------
 
+	//other causal variant
+	if (data_.report_settings.select_other_causal_variant)
+	{
+		const OtherCausalVariant& causal_variant = data_.report_settings.report_config->getOtherCausalVariant();
+		stream << "<p>&nbsp;</p>" << endl;
+		stream << "<table>" << endl;
+		stream << "<tr><td><b>" << trans("Variantentyp") << "</b></td><td><b>" << trans("Regionen") << "</b></td><td><b>" << trans("Gen(e)") << "</b></td><td><b>"
+			   << trans("Kommentar") << "</b></td></tr>" << endl;
+
+		stream << "<tr>" << endl;
+		stream << "<td>" << trans(convertOtherVariantType(causal_variant.type)) << "</td>" << endl;
+		stream << "<td>" << causal_variant.coordinates << "</td>" << endl;
+		stream << "<td>" << causal_variant.gene << "</td>" << endl;
+		stream << "<td>" << causal_variant.comment << "</td>" << endl;
+		stream << "</tr>" << endl;
+		stream << "</table>" << endl;
+	}
+	//--------------------------------------------------------------------------------------
+
 	stream << "<p>" << trans("F&uuml;r Informationen zur Klassifizierung von Varianten, siehe allgemeine Zusatzinformationen.") << endl;
 	stream << "</p>" << endl;
 
@@ -507,7 +526,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element DiagnosticNgsReport
 	w.writeStartElement("DiagnosticNgsReport");
-	w.writeAttribute("version", "6");
+	w.writeAttribute("version", "7");
 	w.writeAttribute("type", data_.report_settings.report_type);
 
 	//element ReportGeneration
@@ -1009,6 +1028,18 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	}
 	w.writeEndElement();
 
+	//other causal variant
+	if (data_.report_settings.select_other_causal_variant)
+	{
+		OtherCausalVariant causal_variant = data_.report_settings.report_config->getOtherCausalVariant();
+		w.writeStartElement("OtherCausalVariant");
+		w.writeAttribute("type", convertOtherVariantType(causal_variant.type, true));
+		w.writeAttribute("coordinates", causal_variant.coordinates);
+		w.writeAttribute("gene", causal_variant.gene);
+		w.writeAttribute("comments", causal_variant.comment);
+		w.writeEndElement();
+	}
+
 
 	//element ReportDocument
 	w.writeStartElement("ReportDocument");
@@ -1030,7 +1061,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	outfile->close();
 
 	//validate written XML file
-	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/GermlineReport_v6.xsd");
+	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/GermlineReport_v7.xsd");
 	if (xml_error!="")
 	{
 		THROW(ProgrammingException, "Invalid germline report XML file gererated: " + xml_error);
@@ -1166,6 +1197,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Anzahl Varianten ausgew&auml;hlt f&uuml;r Report"] = "Variants selected for report";
 		de2en["Anzahl CNVs ausgew&auml;hlt f&uuml;r Report"] = "CNVs selected for report";
 		de2en["Anzahl SVs ausgew&auml;hlt f&uuml;r Report"] = "SVs selected for report";
+		de2en["Anzahl anderer Varianten ausgew&auml;hlt f&uuml;r Report"] = "Other variants selected for report";
 		de2en["Varianten nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized variants";
 		de2en["Vererbung"] = "Inheritance";
 		de2en["Klasse"] = "Class";
@@ -1230,6 +1262,14 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Insertion"] = "insertion";
 		de2en["Inversion"] = "inversion";
 		de2en["Translokation"] = "translocation";
+		de2en["Variantentyp"] = "variant type";
+		de2en["Kommentar"] = "comment";
+		de2en["Repeat-Expansion"] = "repeat expansion";
+		de2en["uniparentale Disomie"] = "uniparental disomy";
+		de2en["mosaik CNV"] = "mosaic CNV";
+		de2en["nicht-detektierte kleine Variante (SNV/InDel)"] = "uncalled small variant (SNV/InDel)";
+		de2en["nicht-detektierte CNV"] = "uncalled CNV";
+		de2en["nicht-detektierte Strukturvariante"] = "uncalled structural variant";
 		de2en["In der folgenden Tabelle werden neben wahrscheinlich pathogenen (Klasse 4) und pathogenen (Klasse 5) nur solche Varianten unklarer klinischer Signifikanz (Klasse 3) gelistet, f&uuml;r die in Zusammenschau von Literatur und Klinik des Patienten ein Beitrag zur Symptomatik denkbar ist und f&uuml;r die gegebenenfalls eine weitere Einordnung der klinischen Relevanz durch Folgeuntersuchungen sinnvoll ist. Eine Liste aller detektierten Varianten kann bei Bedarf angefordert werden."] = "In addition to likely pathogenic variants (class 4) and pathogenic variants (class 5), the following table contains only those variants of uncertain significance (class 3), for which a contribution to the clinical symptoms of the patient is conceivable and for which a further evaluation of the clinical relevance by follow-up examinations may be useful.  A list of all detected variants can be provided on request.";
 		de2en["L&uuml;ckenschluss"] = "Gaps closed";
 		de2en["L&uuml;cken die mit Sanger-Sequenzierung geschlossen wurden:"] = "Gaps closed by Sanger sequencing:";
@@ -1615,6 +1655,17 @@ QString GermlineReportGenerator::formatCodingSplicing(const QList<VariantTranscr
 		}
 	}
 	return output.join("<br />");
+}
+
+QString GermlineReportGenerator::convertOtherVariantType(const QString& type, bool xml)
+{
+	if(type == "RE") return (xml)? "repeat_expansion": "Repeat-Expansion";
+	if(type == "UPD") return (xml)? "uniparental_disomy": "uniparentale Disomie";
+	if(type == "mosaic CNV") return (xml)? "mosaic_cnv": "mosaik CNV";
+	if(type == "uncalled small variant") return (xml)? "uncalled_small_variant": "nicht-detektierte kleine Variante (SNV/InDel)";
+	if(type == "uncalled CNV") return (xml)? "uncalled_cnv": "nicht-detektierte CNV";
+	if(type == "uncalled SV") return (xml)? "uncalled_sv": "nicht-detektierte Strukturvariante";
+	THROW(ArgumentException, "Invalid variant type '" + type + "'!");
 }
 
 QMap<Chromosome, QString> GermlineReportGenerator::getChromosomeTable(GenomeBuild build)

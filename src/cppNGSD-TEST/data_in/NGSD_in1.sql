@@ -546,6 +546,9 @@ INSERT INTO `report_configuration_variant` (`report_configuration_id`, `variant_
 INSERT INTO `report_configuration_cnv` (`report_configuration_id`, `cnv_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES
 (1, 4, 'diagnostic variant', '1', '4', 'AD', '0', '0', '0', '0', '0', '0', '0', '0', 'bla', 'bla bla');
 
+INSERT INTO `report_configuration_other_causal_variant` (`id`, `report_configuration_id`, `coordinates`, `gene`, `type`, `comment`) VALUES
+(1, 1, 'chr2:123456-789012', 'EPRS', 'uncalled CNV', 'This is a comment!');
+
 -- somatic_cnv_callset_id`
 INSERT INTO `somatic_cnv_callset` (`id`, `ps_tumor_id`, `ps_normal_id`, `caller`, `caller_version`, `call_date`, `quality_metrics`, `quality`) VALUES
 (1, 4000, 3999, 'ClinCNV', 'v 1.16', '2020-01-12T13:35:01', '{"estimated fdr":"0","gender of sample":"F","ploidy":"2.21","clonality by BAF (if != 1)":"0;0.725;0.25"}', 'good'),

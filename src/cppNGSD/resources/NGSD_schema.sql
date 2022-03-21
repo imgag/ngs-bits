@@ -2133,3 +2133,26 @@ CREATE  TABLE IF NOT EXISTS `variant_literature`
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `report_configuration_other_causal_variant`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `report_configuration_other_causal_variant`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `report_configuration_id` INT(11) NOT NULL,
+  `coordinates` TEXT NOT NULL,
+  `gene` TEXT NOT NULL,
+  `type` ENUM('RE', 'UPD', 'mosaic CNV', 'uncalled small variant', 'uncalled CNV', 'uncalled SV') NOT NULL,
+  `comment` TEXT NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `report_configuration_id_unique` (`report_configuration_id`),
+  CONSTRAINT `fk_report_configuration_id`
+    FOREIGN KEY (`report_configuration_id` )
+    REFERENCES `report_configuration` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+

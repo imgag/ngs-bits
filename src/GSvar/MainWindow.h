@@ -260,6 +260,8 @@ public slots:
 	void transferSomaticData();
 	///Shows information about the report config
 	void showReportConfigInfo();
+	///Add/edit other causal Variant
+	void editOtherCausalVariant();
 	///Finalize report configuration
 	void finalizeReportConfig();
 	///Generate report
