@@ -38,9 +38,15 @@ HttpResponse EndpointHandler::serveApiInfo(const HttpRequest& request)
 
 HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 {
-	if (!EndpointController::isAuthorizedWithToken(request))
+	HttpResponse check_result = EndpointController::checkToken(request);
+	if (check_result.getStatus() != ResponseStatus::OK)
 	{
-		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+		return check_result;
+	}
+
+	if (SessionManager::isUserSessionExpired(request.getUrlParams()["token"]))
+	{
+		return HttpResponse(ResponseStatus::REQUEST_TIMEOUT, request.getContentType(), "Secure token has expired");
 	}
 
 	qDebug() << "File location service";
@@ -251,9 +257,10 @@ HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 	{
 		id = NGSD().processedSampleName(request.getUrlParams()["ps_id"]);
 		qDebug() << "id" << id;
-		if (!EndpointController::isAuthorizedWithToken(request))
+		HttpResponse check_result = EndpointController::checkToken(request);
+		if (check_result.getStatus() != ResponseStatus::OK)
 		{
-			return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+			return check_result;
 		}
 
 		qDebug() << "-------------------User is authorized";
@@ -299,10 +306,11 @@ HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 }
 
 HttpResponse EndpointHandler::getAnalysisJobGSvarFile(const HttpRequest& request)
-{
-	if (!EndpointController::isAuthorizedWithToken(request))
+{	
+	HttpResponse check_result = EndpointController::checkToken(request);
+	if (check_result.getStatus() != ResponseStatus::OK)
 	{
-		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+		return check_result;
 	}
 
 	qDebug() << "Analysis job GSvar file";
@@ -344,9 +352,10 @@ HttpResponse EndpointHandler::getAnalysisJobGSvarFile(const HttpRequest& request
 
 HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 {
-	if (!EndpointController::isAuthorizedWithToken(request))
+	HttpResponse check_result = EndpointController::checkToken(request);
+	if (check_result.getStatus() != ResponseStatus::OK)
 	{
-		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+		return check_result;
 	}
 
 	QString ps_url_id = request.getUrlParams()["ps_url_id"];
@@ -480,9 +489,10 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 
 HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 {
-	if (!EndpointController::isAuthorizedWithToken(request))
+	HttpResponse check_result = EndpointController::checkToken(request);
+	if (check_result.getStatus() != ResponseStatus::OK)
 	{
-		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+		return check_result;
 	}
 
 	QString qbic_data_path = Settings::string("qbic_data_path");
@@ -535,6 +545,8 @@ HttpResponse EndpointHandler::performLogin(const HttpRequest& request)
 		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "No username or/and password were found");
 	}
 
+	qDebug() << "request.getFormUrlEncoded().contains(name)" << request.getFormUrlEncoded()["name"];
+	qDebug() << "request.getFormUrlEncoded().contains(password)" << request.getFormUrlEncoded()["password"];
 	NGSD db;
 	QString message = db.checkPassword(request.getFormUrlEncoded()["name"], request.getFormUrlEncoded()["password"]);
 	if (message.isEmpty())
@@ -542,6 +554,8 @@ HttpResponse EndpointHandler::performLogin(const HttpRequest& request)
 		QString secure_token = ServerHelper::generateUniqueStr();
 		qDebug() << "Add session" << request.getFormUrlEncoded()["name"];
 		Session cur_session = Session(db.userId(request.getFormUrlEncoded()["name"]), QDateTime::currentDateTime());
+
+		qDebug() << "db.userId(request.getFormUrlEncoded()[name])" << db.userId(request.getFormUrlEncoded()["name"]);
 
 		SessionManager::addNewSession(secure_token, cur_session);
 		body = secure_token.toLocal8Bit();
@@ -564,7 +578,7 @@ HttpResponse EndpointHandler::performLogout(const HttpRequest& request)
 	{
 		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "Secure token has not been provided");
 	}
-	if (SessionManager::isTokenValid(request.getFormUrlEncoded()["token"]))
+	if (SessionManager::isTokenReal(request.getFormUrlEncoded()["token"]))
 	{
 		try
 		{
@@ -587,9 +601,10 @@ HttpResponse EndpointHandler::performLogout(const HttpRequest& request)
 
 HttpResponse EndpointHandler::getProcessingSystemRegions(const HttpRequest& request)
 {
-	if (!EndpointController::isAuthorizedWithToken(request))
+	HttpResponse check_result = EndpointController::checkToken(request);
+	if (check_result.getStatus() != ResponseStatus::OK)
 	{
-		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+		return check_result;
 	}
 
 	NGSD db;
@@ -604,9 +619,10 @@ HttpResponse EndpointHandler::getProcessingSystemRegions(const HttpRequest& requ
 
 HttpResponse EndpointHandler::getProcessingSystemAmplicons(const HttpRequest& request)
 {
-	if (!EndpointController::isAuthorizedWithToken(request))
+	HttpResponse check_result = EndpointController::checkToken(request);
+	if (check_result.getStatus() != ResponseStatus::OK)
 	{
-		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+		return check_result;
 	}
 
 	NGSD db;
@@ -621,9 +637,10 @@ HttpResponse EndpointHandler::getProcessingSystemAmplicons(const HttpRequest& re
 
 HttpResponse EndpointHandler::getProcessingSystemGenes(const HttpRequest& request)
 {
-	if (!EndpointController::isAuthorizedWithToken(request))
+	HttpResponse check_result = EndpointController::checkToken(request);
+	if (check_result.getStatus() != ResponseStatus::OK)
 	{
-		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+		return check_result;
 	}
 
 	NGSD db;
@@ -638,9 +655,10 @@ HttpResponse EndpointHandler::getProcessingSystemGenes(const HttpRequest& reques
 
 HttpResponse EndpointHandler::getSecondaryAnalyses(const HttpRequest& request)
 {
-	if (!EndpointController::isAuthorizedWithToken(request))
+	HttpResponse check_result = EndpointController::checkToken(request);
+	if (check_result.getStatus() != ResponseStatus::OK)
 	{
-		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+		return check_result;
 	}
 
 	NGSD db;

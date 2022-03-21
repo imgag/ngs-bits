@@ -28,9 +28,10 @@ HttpResponse EndpointController::serveEndpointHelp(const HttpRequest& request)
 
 HttpResponse EndpointController::serveStaticFromServerRoot(const HttpRequest& request)
 {
-	if (!isAuthorizedWithToken(request))
+	HttpResponse check_result = checkToken(request);
+	if (check_result.getStatus() != ResponseStatus::OK)
 	{
-		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+		return check_result;
 	}
 
 	QString served_file = getServedRootPath(request.getPathParams());
@@ -50,9 +51,10 @@ HttpResponse EndpointController::serveStaticFromServerRoot(const HttpRequest& re
 
 HttpResponse EndpointController::serveStaticForTempUrl(const HttpRequest& request)
 {
-	if (!isAuthorizedWithToken(request))
+	HttpResponse check_result = checkToken(request);
+	if (check_result.getStatus() != ResponseStatus::OK)
 	{
-		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+		return check_result;
 	}
 
 	QString full_entity_path = getServedTempPath(request.getPathParams());
@@ -484,10 +486,24 @@ bool EndpointController::isAuthorizedWithToken(const HttpRequest& request)
 {
 	if (request.getUrlParams().contains("token"))
 	{
-		qDebug() << "Token" << SessionManager::isTokenValid(request.getUrlParams()["token"]);
-		return SessionManager::isTokenValid(request.getUrlParams()["token"]);
+		qDebug() << "Token" << SessionManager::isTokenReal(request.getUrlParams()["token"]);
+		return SessionManager::isTokenReal(request.getUrlParams()["token"]);
 	}
 
 	return false;
 }
 
+HttpResponse EndpointController::checkToken(const HttpRequest& request)
+{
+	if (!isAuthorizedWithToken(request))
+	{
+		return HttpResponse(ResponseStatus::FORBIDDEN, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+	}
+
+	if (SessionManager::isUserSessionExpired(request.getUrlParams()["token"]))
+	{
+		return HttpResponse(ResponseStatus::REQUEST_TIMEOUT, request.getContentType(), "Secure token has expired");
+	}
+
+	return HttpResponse(ResponseStatus::OK, request.getContentType(), "OK");
+}

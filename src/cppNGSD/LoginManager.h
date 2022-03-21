@@ -3,6 +3,7 @@
 
 #include <QString>
 #include "cppNGSD_global.h"
+#include "HttpRequestHandler.h"
 
 ///NGSD login manager (singleton)
 class CPPNGSDSHARED_EXPORT LoginManager
@@ -17,8 +18,10 @@ public:
 	//Returns user ID from NGSD (as string)
 	static QString userIdAsString();
 
+	static QString userLogin();
 	//Returns a secure token generated for the given user
 	static QString token();
+	static QString password();
 
 	//Returns user role from NGSD
 	static QString role();
@@ -26,7 +29,10 @@ public:
 	static bool active();
 
 	//User is logged in
-	static void login(QString user, QString token = "", bool test_db = false);
+	static void login(QString user, QString password, bool test_db = false);
+
+	static void renewLogin();
+
 	//Log out user
 	static void logout();
 
@@ -36,12 +42,15 @@ public:
 private:
 	LoginManager();
 	static LoginManager& instance();
+	static QByteArray sendAuthRequest(QString content, HttpHeaders add_headers);
 
 	QString user_;
 	QString user_name_;
 	int user_id_;
 	QString role_;
+	QString user_login_;
 	QString token_;
+	QString password_;
 };
 
 #endif // LOGINMANAGER_H

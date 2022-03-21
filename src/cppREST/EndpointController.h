@@ -33,6 +33,8 @@ public:
 
 	/// Checks if a valid token has been provided
 	static bool isAuthorizedWithToken(const HttpRequest& request);
+	/// Checks if the token is valid and not expired
+	static HttpResponse checkToken(const HttpRequest& request);
 
 protected:
 	EndpointController();

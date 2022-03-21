@@ -7,6 +7,7 @@
 #include <QNetworkAccessManager>
 #include <QHttpMultiPart>
 #include "HttpRequestHandler.h"
+#include "LoginManager.h"
 
 using HttpHeaders = QMap<QByteArray, QByteArray>;
 

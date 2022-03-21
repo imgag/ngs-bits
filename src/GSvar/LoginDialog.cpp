@@ -21,9 +21,9 @@ QString LoginDialog::userName() const
 	return user_name_;
 }
 
-QString LoginDialog::userToken() const
+QString LoginDialog::password() const
 {
-	return user_token_;
+	return password_;
 }
 
 void LoginDialog::clear()
@@ -43,18 +43,8 @@ void LoginDialog::checkPassword()
 		if (message.isEmpty())
 		{
 			user_name_ = user_name;
+			password_ = password;
 			accept();
-
-			if (!Settings::string("server_host", true).isEmpty())
-			{
-				HttpHeaders add_headers;
-				add_headers.insert("Accept", "text/plain");
-				QString content = "name="+user_name+"&password="+password;
-				QByteArray reply = HttpRequestHandler(HttpRequestHandler::NONE).post(Helper::serverApiUrl()+ "login", content.toLocal8Bit(), add_headers);
-				qDebug() << "reply " << reply;
-				user_token_ = reply;
-
-			}
 		}
 		else
 		{

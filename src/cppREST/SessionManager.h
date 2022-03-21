@@ -35,15 +35,15 @@ public:
 	static void removeSession(int user_id, QDateTime login_time);
 	static Session getSessionByUserId(QString id);
 	static Session getSessionBySecureToken(QString token);
-	static bool hasValidToken(QString id);
-	static bool isTokenValid(QString token);
+	static bool isUserSessionExpired(QString token);
+	static bool isTokenReal(QString token);
 
 protected:
 	SessionManager();
 
 private:
 	QMutex mutex_;
-	static bool isSessionExpired(Session in);
+
 	static SessionManager& instance();
 	QMap<QString, Session> session_store_;
 };

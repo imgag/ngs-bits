@@ -33,6 +33,7 @@ private slots:
 
 		HttpResponse response = EndpointController::serveStaticForTempUrl(request);
 
+		qDebug() << "response.getStatusLine()" << response.getStatusLine();
 		IS_TRUE(response.getStatusLine().split('\n').first().contains("206"));
 		IS_TRUE(response.getPayload().isNull());
 
