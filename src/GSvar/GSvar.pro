@@ -106,8 +106,7 @@ SOURCES += main.cpp\
     AnalysisInformationWidget.cpp \
     PhenotypeSourceEvidenceSelector.cpp \
     FusionWidget.cpp \
-    CohortExpressionDataWidget.cpp \
-    CausalVariantEditDialog.cpp
+    CohortExpressionDataWidget.cpp
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
     DatabaseServiceRemote.h \
@@ -208,8 +207,7 @@ HEADERS += MainWindow.h \
     CacheInitWorker.h \
     PhenotypeSourceEvidenceSelector.h \
     FusionWidget.h \
-    CohortExpressionDataWidget.h \
-    CausalVariantEditDialog.h
+    CohortExpressionDataWidget.h
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
@@ -296,8 +294,7 @@ FORMS    += MainWindow.ui \
     LiftOverWidget.ui \
     PhenotypeSourceEvidenceSelector.ui \
     FusionWidget.ui \
-    CohortExpressionDataWidget.ui \
-    CausalVariantEditDialog.ui
+    CohortExpressionDataWidget.ui
 
 include("../app_gui.pri")
 
