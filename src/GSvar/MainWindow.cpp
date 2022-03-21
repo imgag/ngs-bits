@@ -3519,14 +3519,54 @@ void MainWindow::editOtherCausalVariant()
 
 	if (dlg->exec()!=QDialog::Accepted) return;
 
-	//store updated causal variant in NGSD
-	causal_variant = dlg->causalVariant();
-	if (causal_variant.isValid())
-	{
-		report_config->setOtherCausalVariant(causal_variant);
-		db.setReportConfig(processed_sample_id, report_config, variants_, cnvs_, svs_);
-	}
+//	//store updated causal variant in NGSD
+//	causal_variant = dlg->causalVariant();
+//	if (causal_variant.isValid())
+//	{
+//		report_config->setOtherCausalVariant(causal_variant);
+//		db.setReportConfig(processed_sample_id, report_config, variants_, cnvs_, svs_);
+//	}
 
+}
+
+void MainWindow::deleteOtherCausalVariant()
+{
+	//check if applicable
+	if (!germlineReportSupported()) return;
+
+	QString ps = germlineReportSample();
+	QString title = "Add/edit other causal variant of " + ps;
+
+	//check sample exists
+	NGSD db;
+	QString processed_sample_id = db.processedSampleId(ps, false);
+	if (processed_sample_id=="")
+	{
+		QMessageBox::warning(this, title, "Sample was not found in the NGSD!");
+		return;
+	}
+	//check config exists
+	int conf_id = db.reportConfigId(processed_sample_id);
+	if (conf_id==-1)
+	{
+		QMessageBox::warning(this, title , "No germline report configuration found in the NGSD!");
+		return;
+	}
+	QStringList messages;
+	QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, messages);
+	OtherCausalVariant causal_variant = report_config->getOtherCausalVariant();
+
+	if(!causal_variant.isValid()) return;
+
+	//show dialog to confirm by user
+	QLabel* label = new QLabel(causal_variant.type + " at " + causal_variant.coordinates + " (gene: " + causal_variant.gene + ", comment: " + causal_variant.comment.replace("\n", " ") + ")");
+	auto dlg = GUIHelper::createDialog(label, "Delete other causal variant", "Are you sure you want to delete the following causal variant", true);
+	if (dlg->exec() != QDialog::Accepted) return;
+
+	//replace other causal variant and delete it from the NGSD
+	causal_variant = OtherCausalVariant();
+	report_config->setOtherCausalVariant(causal_variant);
+	db.setReportConfig(processed_sample_id, report_config, variants_, cnvs_, svs_);
 }
 
 void MainWindow::finalizeReportConfig()

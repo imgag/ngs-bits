@@ -262,6 +262,8 @@ public slots:
 	void showReportConfigInfo();
 	///Add/edit other causal Variant
 	void editOtherCausalVariant();
+	///Delete other causal Variant
+	void deleteOtherCausalVariant();
 	///Finalize report configuration
 	void finalizeReportConfig();
 	///Generate report

@@ -1,7 +1,7 @@
 #include "CausalVariantEditDialog.h"
 #include "ui_CausalVariantEditDialog.h"
 
-CausalVariantEditDialog::CausalVariantEditDialog(OtherCausalVariant causal_variant, QStringList variant_types, QWidget* parent)
+CausalVariantEditDialog::CausalVariantEditDialog(const OtherCausalVariant& causal_variant, const QStringList& variant_types, QWidget* parent)
 {
 	causal_variant_ = causal_variant;
 
