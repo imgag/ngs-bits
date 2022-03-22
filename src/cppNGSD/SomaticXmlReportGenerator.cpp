@@ -498,7 +498,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	writeReportPartsElement(w, "svs", data.rtf_part_svs);
 	writeReportPartsElement(w, "pharmaco_genetics", data.rtf_part_pharmacogenetics);
 	writeReportPartsElement(w, "general_info", data.rtf_part_general_info);
-	writeReportPartsElement(w, "igv_screenshot", "");
+	writeReportPartsElement(w, "igv_screenshot", data.rtf_part_igv_screenshot);
 	writeReportPartsElement(w, "mtb_summary", data.rtf_part_mtb_summary);
 
 
