@@ -238,7 +238,6 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 {
 	qDebug() << "Processed sample path";
-	qDebug() << request.getUrlParams()["token"];
 
 	PathType type = PathType::GSVAR;
 	if (request.getUrlParams().contains("type"))
@@ -256,14 +255,12 @@ HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 	try
 	{
 		id = NGSD().processedSampleName(request.getUrlParams()["ps_id"]);
-		qDebug() << "id" << id;
 		HttpResponse check_result = EndpointController::checkToken(request);
 		if (check_result.getStatus() != ResponseStatus::OK)
 		{
 			return check_result;
 		}
 
-		qDebug() << "-------------------User is authorized";
 		Session current_session = SessionManager::getSessionBySecureToken(request.getUrlParams()["token"]);
 		UserPermissionProvider upp(current_session.user_id);
 		if (!upp.isEligibleToAccessProcessedSampleById(request.getUrlParams()["ps_id"]))
@@ -271,7 +268,6 @@ HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 			return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You do not have permissions to open this sample");
 		}
 
-		qDebug() << "Eligible to open";
 		found_file_path =  NGSD().processedSamplePath(request.getUrlParams()["ps_id"], type);
 	}
 	catch (Exception& e)
@@ -286,7 +282,6 @@ HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 		return_http = true;
 	}
 
-	qDebug() << "found_file_path = " << found_file_path;
 	FileLocation project_file = FileLocation(id, type, createFileTempUrl(found_file_path, request.getUrlParams()["token"], return_http), QFile::exists(found_file_path));
 
 	json_object_output.insert("id", id);
@@ -539,32 +534,27 @@ HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 
 HttpResponse EndpointHandler::performLogin(const HttpRequest& request)
 {
-	QByteArray body {};
+	qDebug() << "Login request";
 	if (!request.getFormUrlEncoded().contains("name") || !request.getFormUrlEncoded().contains("password"))
 	{
 		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "No username or/and password were found");
 	}
 
-	qDebug() << "request.getFormUrlEncoded().contains(name)" << request.getFormUrlEncoded()["name"];
-	qDebug() << "request.getFormUrlEncoded().contains(password)" << request.getFormUrlEncoded()["password"];
 	NGSD db;
 	QString message = db.checkPassword(request.getFormUrlEncoded()["name"], request.getFormUrlEncoded()["password"]);
 	if (message.isEmpty())
 	{
 		QString secure_token = ServerHelper::generateUniqueStr();
-		qDebug() << "Add session" << request.getFormUrlEncoded()["name"];
 		Session cur_session = Session(db.userId(request.getFormUrlEncoded()["name"]), QDateTime::currentDateTime());
 
-		qDebug() << "db.userId(request.getFormUrlEncoded()[name])" << db.userId(request.getFormUrlEncoded()["name"]);
-
 		SessionManager::addNewSession(secure_token, cur_session);
-		body = secure_token.toLocal8Bit();
+		QByteArray body = secure_token.toLocal8Bit();
 
 		BasicResponseData response_data;
 		response_data.length = body.length();
 		response_data.content_type = ContentType::TEXT_PLAIN;
 		response_data.is_downloadable = false;
-
+		qDebug() << "User creadentials are valid";
 		return HttpResponse(response_data, body);
 	}
 

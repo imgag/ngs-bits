@@ -112,20 +112,20 @@ private slots:
 		IS_THROWN(Exception, HttpRequestHandler(HttpRequestHandler::NONE).get("https://localhost:8443/v1/", add_headers));
 	}
 
-//	void test_basic_http_authentication()
-//	{
-//		QByteArray reply;
-//		try
-//		{
-//			HttpHeaders add_headers;
-//			add_headers.insert("Accept", "text/html");
-//			reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://ahmustm1:123456@localhost:8443/v1/protected", add_headers);
-//		}
-//		catch(Exception& e)
-//		{
-//			SKIP("This test requieres a running server");
-//		}
+	void test_basic_http_authentication()
+	{
+		QByteArray reply;
+		try
+		{
+			HttpHeaders add_headers;
+			add_headers.insert("Accept", "text/html");
+			reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://ahmustm1:123456@localhost:8443/v1/protected", add_headers);
+		}
+		catch(Exception& e)
+		{
+			SKIP("This test requieres a running server");
+		}
 
-//		IS_TRUE(reply.contains("Folder content:"))
-//	}
+		IS_TRUE(reply.contains("Folder content:"))
+	}
 };

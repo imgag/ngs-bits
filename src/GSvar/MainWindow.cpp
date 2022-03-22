@@ -2452,9 +2452,7 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 	try
 	{
 		NGSD db;
-		qDebug() << "processed_sample_name" << processed_sample_name;
 		QString processed_sample_id = db.processedSampleId(processed_sample_name);
-		qDebug() << "processed_sample_id" << processed_sample_id;
 		UserPermissionProvider upp(LoginManager::userId());
 		if (!upp.isEligibleToAccessProcessedSampleById(processed_sample_id))
 		{

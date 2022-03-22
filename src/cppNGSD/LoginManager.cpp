@@ -107,30 +107,28 @@ void LoginManager::login(QString user, QString password, bool test_db)
 	//update last login
 	db.getQuery().exec("UPDATE user SET last_login=NOW() WHERE id='" + QString::number(manager.user_id_) + "'");
 
-
 	if (!Settings::string("server_host", true).isEmpty())
 	{
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");
 		QString content = "name="+manager.user_login_+"&password="+manager.password_;
 		manager.token_ = sendAuthRequest(content, add_headers);
-		qDebug() << "Initial token" << manager.token_;
 	}
 }
 
 void LoginManager::renewLogin()
 {
+	qDebug() << "Token renewal";
 	if (!Settings::string("server_host", true).isEmpty())
 	{
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");
 
 		LoginManager& manager = instance();
-		if ((manager.user_name_.isEmpty()) || (manager.password_.isEmpty())) return;
+		if ((manager.user_.isEmpty()) || (manager.password_.isEmpty())) return;
 
-		QString content = "name="+manager.user_name_+"&password="+manager.password_;
+		QString content = "name="+manager.user_+"&password="+manager.password_;
 		manager.token_ = sendAuthRequest(content, add_headers);
-		qDebug() << "Got a new token:" << manager.token_;
 	}
 }
 

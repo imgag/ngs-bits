@@ -30,8 +30,18 @@ HttpResponse EndpointManager::getAuthStatus(HttpRequest request)
 	QString password = auth_header_decoded.mid(separator_pos+1, auth_header_decoded.size()-username.size()-1);
 
 	// TODO: brute-force attack protection may be needed
-	NGSD db;
-	QString message = db.checkPassword(username, password);
+	QString message;
+
+	try
+	{
+		NGSD db;
+		message = db.checkPassword(username, password);
+	}
+	catch (Exception& e)
+	{
+		return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Database error: " + e.message());
+	}
+
 	if (message.isEmpty())
 	{
 		return HttpResponse(ResponseStatus::UNAUTHORIZED, request.getContentType(), "Invalid user credentials");

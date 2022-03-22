@@ -143,7 +143,6 @@ FileLocation DatabaseServiceRemote::analysisJobGSvarFile(const int& job_id) cons
 
 QByteArray DatabaseServiceRemote::makeApiCall(QString url_param, bool ignore_if_missing) const
 {
-	qDebug() << "Api call" << LoginManager::token();
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "text/plain");
 	add_headers.insert("User-Agent", "GSvar");
@@ -151,7 +150,6 @@ QByteArray DatabaseServiceRemote::makeApiCall(QString url_param, bool ignore_if_
 
 	try
 	{
-		qDebug() << Helper::serverApiUrl() +url_param + "&token=" + LoginManager::token();
 		result = HttpRequestHandler(HttpRequestHandler::NONE).get(Helper::serverApiUrl() +url_param + "&token=" + LoginManager::token(), add_headers);
 	}
 	catch (Exception& e)
