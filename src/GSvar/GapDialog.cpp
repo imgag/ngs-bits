@@ -314,7 +314,7 @@ void GapDialog::updateFilters()
 
 void GapDialog::updateNGSDColumn()
 {
-	QString ps_id = db_.processedSampleId(ps_);
+	int ps_id = db_.processedSampleId(ps_).toInt();
 
 	for(int i=0; i<gaps_.count(); ++i)
 	{
@@ -369,7 +369,7 @@ void GapDialog::gapsContextMenu(QPoint pos)
 	int gap_id = item->data(Qt::UserRole).toInt();
 	if (gap_id==-1)
 	{
-		QString ps_id = db_.processedSampleId(ps_);
+		int ps_id = db_.processedSampleId(ps_).toInt();
 		db_.addGap(ps_id, gaps_[row].region.chr(), gaps_[row].region.start(), gaps_[row].region.end(), new_status);
 	}
 	else

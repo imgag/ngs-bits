@@ -3326,7 +3326,7 @@ QString NGSD::analysisJobGSvarFile(int job_id)
 	return output;
 }
 
-int NGSD::addGap(const QString& ps_id, const Chromosome& chr, int start, int end, const QString& status)
+int NGSD::addGap(int ps_id, const Chromosome& chr, int start, int end, const QString& status)
 {
 	SqlQuery query = getQuery();
 	query.prepare("INSERT INTO `gaps`(`chr`, `start`, `end`, `processed_sample_id`) VALUES (:0,:1,:2,:3)");
@@ -3343,37 +3343,44 @@ int NGSD::addGap(const QString& ps_id, const Chromosome& chr, int start, int end
 	return id;
 }
 
-int NGSD::gapId(const QString& ps_id, const Chromosome& chr, int start, int end, bool exact_match)
+int NGSD::gapId(int ps_id, const Chromosome& chr, int start, int end)
 {
-	if (exact_match)
-	{
-		QVariant id =  getValue("SELECT id FROM gaps WHERE processed_sample_id='" + ps_id + "' AND chr='" + chr.strNormalized(true) + "' AND start='" + QString::number(start) + "' AND end='" + QString::number(end) + "'", true);
-		if (id.isValid()) return id.toInt();
-	}
-	else
-	{
-		SqlQuery query = getQuery();
-		query.exec("SELECT id, chr, start, end FROM gaps WHERE processed_sample_id='" + ps_id +"'");
-		while(query.next())
-		{
-			if (chr==query.value("chr").toString())
-			{
-				if (BasicStatistics::rangeOverlaps(start, end, query.value("start").toInt(), query.value("end").toInt()))
-				{
-					return query.value("id").toInt();
-				}
-			}
-		}
-	}
+	QVariant id =  getValue("SELECT id FROM gaps WHERE processed_sample_id='" + QString::number(ps_id) + "' AND chr='" + chr.strNormalized(true) + "' AND start='" + QString::number(start) + "' AND end='" + QString::number(end) + "'", true);
+	if (id.isValid()) return id.toInt();
 
 	return -1;
 }
 
 void NGSD::updateGapStatus(int id, const QString& status)
 {
-	//check gap exists
 	QString id_str = QString::number(id);
-	if(getValue("SELECT EXISTS(SELECT * FROM gaps WHERE id='" + id_str + "')").toInt()==0)
+
+	//check gap exists
+	if(!rowExists("gaps", id))
+	{
+		THROW(ArgumentException, "Gap with ID '" + id_str + "' does not exist!");
+	}
+
+	//only update if necessary
+	QString status_old = getValue("SELECT status FROM gaps WHERE id='" + id_str + "'").toString();
+	if (status==status_old) return;
+
+	//prepare history string
+	QString history = getValue("SELECT history FROM gaps WHERE id='" + id_str + "'").toString().trimmed();
+	if (!history.isEmpty()) history += "\n";
+	history += QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") + " - " + status +" (" + LoginManager::userName() + ")";
+
+	//update
+	SqlQuery query = getQuery();
+	query.exec("UPDATE gaps SET status='"+status+"', history='" + history + "' WHERE id='" + id_str + "'");
+}
+
+void NGSD::addGapComment(int id, const QString& comment)
+{
+	QString id_str = QString::number(id);
+
+	//check gap exists
+	if(!rowExists("gaps", id))
 	{
 		THROW(ArgumentException, "Gap with ID '" + id_str + "' does not exist!");
 	}
@@ -3381,10 +3388,13 @@ void NGSD::updateGapStatus(int id, const QString& status)
 	//prepare history string
 	QString history = getValue("SELECT history FROM gaps WHERE id='" + id_str + "'").toString().trimmed();
 	if (!history.isEmpty()) history += "\n";
-	history += QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") + " - " + status +" (" + LoginManager::userName() + ")";
+	history += QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") + " - comment (" + LoginManager::userName() + "): " + comment;
 
+	//update (binding becaues it's user input)
 	SqlQuery query = getQuery();
-	query.exec("UPDATE gaps SET status='"+status+"', history='" + history + "' WHERE id='" + id_str + "'");
+	query.prepare("UPDATE gaps SET history=:0 WHERE id='" + id_str + "'");
+	query.bindValue(0, history);
+	query.exec();
 }
 
 QHash<QString, QString> NGSD::cnvCallsetMetrics(int callset_id)
@@ -3823,17 +3833,33 @@ QStringList NGSD::getEnum(QString table, QString column) const
 }
 
 
-void NGSD::tableExists(QString table)
+bool NGSD::tableExists(QString table, bool throw_error_if_not_existing) const
 {
 	SqlQuery query = getQuery();
 	query.exec("SHOW TABLES LIKE '" + table + "'");
 	if (query.size()==0)
 	{
-		THROW(DatabaseException, "Table '" + table + "' does not exist!")
+		if (throw_error_if_not_existing) THROW(DatabaseException, "Table '" + table + "' does not exist!");
+
+		return false;
 	}
+
+	return true;
 }
 
-bool NGSD::tableEmpty(QString table)
+bool NGSD::rowExists(QString table, int id) const
+{
+	if (!tableInfo(table).fieldExists("id"))
+	{
+		THROW(DatabaseException, "Table '" + table + "' has no column 'id'!");
+	}
+
+	SqlQuery query = getQuery();
+	query.exec("SELECT id FROM " + table  + " WHERE id=" + QString::number(id));
+	return query.size()==1;
+}
+
+bool NGSD::tableEmpty(QString table) const
 {
 	SqlQuery query = getQuery();
 	query.exec("SELECT COUNT(*) FROM " + table);

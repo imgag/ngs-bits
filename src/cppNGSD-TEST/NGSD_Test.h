@@ -110,6 +110,19 @@ private slots:
 		//escapeText
 		S_EQUAL(db.escapeText("; '"), "'; '''");
 
+		//tableExists
+		IS_TRUE(db.tableExists("user", false));
+		IS_FALSE(db.tableExists("user_missing", false));
+
+		//tableEmpty
+		IS_FALSE(db.tableEmpty("user"));
+		IS_TRUE(db.tableEmpty("gaps"));
+
+		//rowExists
+		IS_TRUE(db.rowExists("user", 99)); //ahmustm1
+		IS_TRUE(db.rowExists("user", 101)); //ahkerra1
+		IS_FALSE(db.rowExists("user", 666));
+
 		//getEnum
 		QStringList enum_values = db.getEnum("sample", "disease_group");
 		I_EQUAL(enum_values.count(), 18);
@@ -1363,7 +1376,17 @@ private slots:
 		IS_THROWN(DatabaseException, db.updateVariantPublicationResult(-42, "processed;SCV12345678"));
 		IS_THROWN(DatabaseException, db.flagVariantPublicationAsReplaced(-42));
 
+		//############################### gaps ###############################
+		int gap_id = db.addGap(3999, "chr1", 5000, 6000, "to close");
+		I_EQUAL(db.gapId(3999, "chr1", 5000, 6000), gap_id);
+		I_EQUAL(db.gapId(3999, "chr2", 5001, 6001), -1);
 
+		db.updateGapStatus(gap_id, "closed");
+		db.updateGapStatus(gap_id, "closed");
+		IS_TRUE(db.getValue("SELECT history FROM gaps WHERE id=" + QString::number(gap_id)).toString().contains("closed"));
+
+		db.addGapComment(gap_id, "my_comment");
+		IS_TRUE(db.getValue("SELECT history FROM gaps WHERE id=" + QString::number(gap_id)).toString().contains("my_comment"));
 	}
 
 	inline void report_germline()

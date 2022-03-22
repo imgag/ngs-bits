@@ -940,16 +940,6 @@
 											<xs:documentation>cytogenetic band end position</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="hgvs_start" type="xs:string">
-										<xs:annotation>
-											<xs:documentation>manually cutated HGVS start position</xs:documentation>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="hgvs_end" type="xs:string">
-										<xs:annotation>
-											<xs:documentation>manually cutated HGVS end position</xs:documentation>
-										</xs:annotation>
-									</xs:attribute>
 									<xs:attribute name="genotype" use="required">
 										<xs:annotation>
 											<xs:documentation>variant genotype</xs:documentation>
@@ -1041,6 +1031,26 @@
 									<xs:attribute name="comments_2nd_assessor" type="xs:string">
 										<xs:annotation>
 											<xs:documentation>Comments of second</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="hgvs_start" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>manually cutated HGVS start position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="hgvs_end" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>manually cutated HGVS end position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="hgvs_bnd_start2" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>manually cutated HGVS start position of second region (only for breakend)</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="hgvs_bnd_end2" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>manually cutated HGVS end position of second region (only for breakend)</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 								</xs:complexType>

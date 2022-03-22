@@ -1,7 +1,7 @@
 # GSvar change log
 
 ### 2021_12-138 (14.03.22)
-- General: added support for somatic WGS
+- General: added support for somatic WES.
 - NGSD: added tissue to sample table.
 - Published variants: added search by gene and variant tab context menu entry.
 - Small variants search: added CADD and SpliceAI to output table.
@@ -23,7 +23,6 @@
 ### 2021_12-64 (17.01.22)
 - General: Removed support for dbscSNV and MMsplice annotations.
 - General: Added Google Scholar search for variants.
-
 
 ### 2021_12-33 (14.12.21)
 - General: Added analysis information dialog to processed sample tab and analysis status tab.
