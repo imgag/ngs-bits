@@ -28,6 +28,8 @@
 #include <GenLabDB.h>
 #include <QToolTip>
 #include <QProcess>
+#include <QImage>
+#include <QBuffer>
 QT_CHARTS_USE_NAMESPACE
 #include "ReportWorker.h"
 #include "ScrollableTextDialog.h"
@@ -840,11 +842,18 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahgscha1")
 	{
-		FileLocationList locations = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFiles(false);
-		for(const auto& loc : locations)
-		{
-			qDebug() << loc.exists << " " << loc.filename << " " << loc.id << " " << loc.typeAsHumanReadableString() << endl;
-		}
+		RtfDocument doc;
+		doc.setMargins( RtfDocument::cm2twip(2.3) , 1134 , RtfDocument::cm2twip(1.2) , 1134 );
+		doc.setDefaultFontSize(16);
+		doc.addColor(191,191,191);
+		doc.addColor(161,161,161);
+		doc.addColor(255,255,0);
+
+		RtfPicture rtf_rep = RtfPicture( GSvarHelper::imageToQByteArray("C:\\axel\\pic_ag.png").toHex() );
+
+		doc.addPart( rtf_rep.RtfCode() );
+
+		doc.save("C:\\axel\\pic.rtf");
 	}
 }
 
@@ -3656,6 +3665,7 @@ void MainWindow::generateReportSomaticRTF()
 	somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
 
 
+
 	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
 	if(!ui_.filters->targetRegion().isValid()) //use processing system data in case no filter is set
 	{
@@ -3685,6 +3695,12 @@ void MainWindow::generateReportSomaticRTF()
 		somatic_report_settings_.report_config.setCnvBurden(true);
 		somatic_report_settings_.report_config.setHrdScore(0);
 	}
+
+	if(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().exists)
+	{
+		somatic_report_settings_.igv_snapshot_png_hex_image = GSvarHelper::imageToQByteArray(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename.toUtf8(), "PNG", 660).toHex();
+	}
+
 
 	SomaticReportDialog dlg(somatic_report_settings_, cnvs_, somatic_control_tissue_variants_, this); //widget for settings
 
@@ -3912,6 +3928,8 @@ void MainWindow::reportGenerationFinished(bool success)
 	//clean
 	worker->deleteLater();
 }
+
+
 
 void MainWindow::openProcessedSampleTabsCurrentAnalysis()
 {

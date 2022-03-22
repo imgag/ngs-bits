@@ -274,6 +274,7 @@ public slots:
 	///Finished the report generation (germline)
 	void reportGenerationFinished(bool success);
 
+
 	///Shows the variant list context menu
 	void varsContextMenu(QPoint pos);
 	///Shows the variant header context menu

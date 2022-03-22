@@ -925,6 +925,16 @@ RtfSourceCode SomaticReportHelper::partVirusTable()
 	return virus_table.RtfCode();
 }
 
+RtfSourceCode SomaticReportHelper::partIgvScreenshot()
+{
+	if(settings_.igv_snapshot_png_hex_image == "") return "";
+
+	RtfPicture snapshot(settings_.igv_snapshot_png_hex_image);
+
+
+	return snapshot.RtfCode();
+}
+
 RtfSourceCode SomaticReportHelper::partPharmacoGenetics()
 {
 	RtfTable table;
@@ -1338,11 +1348,22 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	 * GENERAL INFORMATION / QUALITY PARAMETERS*
 	 *******************************************/
 	doc_.addPart(partMetaData());
+	doc_.addPart(RtfParagraph("").RtfCode());
+
+	/******************
+	 * IGV SCREENSHOT *
+	 ******************/
+	if(!settings_.igv_snapshot_png_hex_image.isEmpty())
+	{
+		qDebug() << doc_.maxWidth() << endl;
+		doc_.addPart(partIgvScreenshot());
+	}
 
 	/***********************
 	 * BILLING INFORMATION *
 	 ***********************/
 	doc_.addPart(RtfParagraph("").RtfCode());
+
 	doc_.newPage();
 
 	doc_.addPart(partBillingTable());

@@ -4,6 +4,7 @@
 #include <QMessageBox>
 #include "GlobalServiceProvider.h"
 #include "Statistics.h"
+#include "MainWindow.h"
 
 //struct holding reference data for tumor mutation burden (DOI:10.1186/s13073-017-0424-2)
 struct tmbInfo
@@ -71,6 +72,8 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 
 	connect(ui_.include_cnv_burden, SIGNAL(stateChanged(int)), this, SLOT(cinState()));
 	connect(ui_.limitations_check, SIGNAL(stateChanged(int)), this, SLOT(limitationState()));
+
+	connect(ui_.igv_screenshot_create, SIGNAL(clicked(bool)), this, SLOT(createIgvScreenshot()));
 
 
 	//Resolve tumor content estimate from NGSD
@@ -364,6 +367,15 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 		}
 	}
 
+
+	if(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().exists)
+	{
+		ui_.label_hint_igv_screenshot_available->setText("available");
+	}
+	else
+	{
+		ui_.label_hint_igv_screenshot_available->setText("not available");
+	}
 }
 
 void SomaticReportDialog::disableGUI()
@@ -512,6 +524,46 @@ void SomaticReportDialog::limitationState()
 {
 	if(ui_.limitations_check->isChecked()) ui_.limitations_text->setEnabled(true);
 	else ui_.limitations_text->setEnabled(false);
+}
+
+void SomaticReportDialog::createIgvScreenshot()
+{
+	QStringList commands;
+	commands << "genome " + Settings::path("igv_genome");
+	for(auto loc : GlobalServiceProvider::fileLocationProvider().getBafFiles(false))
+	{
+		if(loc.id.contains("somatic")) commands  << "load " + Helper::canonicalPath(loc.filename);
+	}
+
+	commands << "load " + Helper::canonicalPath( GlobalServiceProvider::fileLocationProvider().getSomaticCnvCoverageFile().filename );
+	commands << "load " + Helper::canonicalPath( GlobalServiceProvider::fileLocationProvider().getSomaticCnvCallFile().filename );
+	commands << "maxPanelHeight 400";
+	commands << "snapshot " + Helper::canonicalPath( GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename );
+
+	try
+	{
+		for(QWidget* widget : QApplication::topLevelWidgets())
+		{
+			MainWindow* main_window = qobject_cast<MainWindow*>(widget);
+			if (main_window!=nullptr)
+			{
+				main_window->executeIGVCommands(commands, false);
+			}
+		}
+	}
+	catch(Exception e)
+	{
+		QMessageBox::warning(this, "Could not create IGV screenshot", "Could not create IGV screenshot. Error message: " + e.message());
+	}
+
+	if(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().exists)
+	{
+		ui_.label_hint_igv_screenshot_available->setText("available");
+	}
+	else
+	{
+		ui_.label_hint_igv_screenshot_available->setText("not available");
+	}
 }
 
 QList<QString> SomaticReportDialog::resolveCIN()

@@ -8,10 +8,11 @@
 #include "TrioDialog.h"
 #include "SomaticDialog.h"
 #include "Exceptions.h"
+#include "ChainFileReader.h"
 #include <QDir>
 #include <QMessageBox>
 #include <QStandardPaths>
-#include "ChainFileReader.h"
+#include <QBuffer>
 
 const GeneSet& GSvarHelper::impritingGenes()
 {
@@ -471,4 +472,24 @@ bool GSvarHelper::colorMaxEntScan(QString anno, QList<double>& percentages, QLis
 	{
 		return false;
 	}
+}
+
+QByteArray GSvarHelper::imageToQByteArray(QByteArray file_path, QByteArray format, uint max_size)
+{
+	if(!QFile::exists(file_path)) return "";
+
+	QImage picture = QImage(file_path);
+	if( picture.isNull() ) return "";
+
+	if( (uint)picture.width() > max_size ) picture = picture.scaledToWidth(max_size, Qt::TransformationMode::SmoothTransformation);
+	if( (uint)picture.height() > max_size ) picture = picture.scaledToHeight(max_size, Qt::TransformationMode::SmoothTransformation);
+
+	QByteArray out;
+
+	QBuffer buffer(&out);
+	buffer.open(QIODevice::WriteOnly);
+
+	if( !picture.save(&buffer, format) )  return "";
+
+	return out;
 }

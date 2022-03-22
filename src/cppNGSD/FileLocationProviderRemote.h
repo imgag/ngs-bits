@@ -44,6 +44,7 @@ public:
 	FileLocation getSomaticCnvCallFile() const override;
 	FileLocation getSomaticLowCoverageFile() const override;
 	FileLocation getSomaticMsiFile() const override;
+	FileLocation getSomaticIgvScreenshotFile() const override;
 
 private:
 	FileLocationList getFileLocationsByType(PathType type, bool return_if_missing) const;
