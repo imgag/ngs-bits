@@ -40,6 +40,10 @@ private slots:
 		json_array.append(json_object);
 		json_doc.setArray(json_array);
 
+
+		Session cur_session(1, QDateTime::currentDateTime());
+		SessionManager::addNewSession("token", cur_session);
+
 		HttpRequest request;
 		request.setMethod(RequestMethod::PUT);
 		request.setContentType(ContentType::TEXT_HTML);
@@ -47,6 +51,7 @@ private slots:
 		request.setPath("project_file");
 		request.addUrlParam("ps_url_id", url_id);
 		request.setBody(json_doc.toJson());
+		request.addUrlParam("token", "token");
 
 		HttpResponse response = EndpointHandler::saveProjectFile(request);
 		IS_TRUE(response.getStatusLine().contains("200"));

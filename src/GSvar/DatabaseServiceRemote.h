@@ -3,6 +3,7 @@
 
 #include "DatabaseService.h"
 #include "Exceptions.h"
+#include "LoginManager.h"
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>

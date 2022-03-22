@@ -275,6 +275,11 @@ MainWindow::MainWindow(QWidget *parent)
 	// working directory, and it seems there is no way to change it. On some systems users may not have write
 	// priveleges for the working directory and this is precisely why we came up with this workaround:
 	QDir::setCurrent(QDir::tempPath());
+
+	// Setting a timer to renew secure tokens for the server API
+	QTimer *timer = new QTimer(this);
+	connect(timer, &QTimer::timeout, this, &LoginManager::renewLogin);
+	timer->start(3600 * 1000); // every hour
 }
 
 QString MainWindow::appName() const
@@ -1705,7 +1710,7 @@ void MainWindow::delayedInitialization()
 		LoginDialog dlg(this);
 		if (dlg.exec()==QDialog::Accepted)
 		{
-			LoginManager::login(dlg.userName());
+			LoginManager::login(dlg.userName(), dlg.password());
 		}
 	}
 
@@ -2448,6 +2453,12 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 	{
 		NGSD db;
 		QString processed_sample_id = db.processedSampleId(processed_sample_name);
+		UserPermissionProvider upp(LoginManager::userId());
+		if (!upp.isEligibleToAccessProcessedSampleById(processed_sample_id))
+		{
+			QMessageBox::warning(this, "Cannot open sample from NGSD", "You do not have permissions to open this sample");
+			return;
+		}
 
 		//processed sample exists > add to recent samples menu
 		addToRecentSamples(processed_sample_name);

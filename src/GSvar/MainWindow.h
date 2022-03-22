@@ -16,6 +16,7 @@
 #include "FileLocationProviderLocal.h"
 #include "FileLocationProviderRemote.h"
 #include "VersatileTextStream.h"
+#include "UserPermissionProvider.h"
 
 ///Main window class
 class MainWindow

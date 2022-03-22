@@ -319,7 +319,7 @@ CREATE  TABLE IF NOT EXISTS `user`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `user_id` VARCHAR(45) NOT NULL COMMENT 'Use the lower-case Windows domain name!',
   `password` VARCHAR(64) NOT NULL,
-  `user_role` ENUM('user','admin','special') NOT NULL,
+  `user_role` ENUM('user','user_restricted','admin','special') NOT NULL,
   `name` VARCHAR(45) NOT NULL,
   `email` VARCHAR(100) NOT NULL,
   `created` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -329,6 +329,27 @@ CREATE  TABLE IF NOT EXISTS `user`
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`user_id` ASC),
   UNIQUE INDEX `email_UNIQUE` (`email` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `user_permissions`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `user_permissions`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `user_id` INT(11) NOT NULL,
+  `permission` ENUM('meta_data','project','project_type', 'study','sample') NOT NULL,
+  `data` VARCHAR(100) NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `user_id` (`user_id` ASC),
+  CONSTRAINT `user_id`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `user` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;

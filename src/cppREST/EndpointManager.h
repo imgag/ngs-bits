@@ -29,6 +29,12 @@ struct CPPRESTSHARED_EXPORT ParamProps
 	}	
 };
 
+typedef enum
+{
+	HTTP_BASIC_AUTH,
+	SECURE_TOKEN
+} AuthType;
+
 struct CPPRESTSHARED_EXPORT Endpoint
 {
 	QString url;
@@ -49,7 +55,7 @@ class CPPRESTSHARED_EXPORT EndpointManager
 {
 
 public:
-	static HttpResponse blockInvalidUsers(HttpRequest request);
+	static HttpResponse getAuthStatus(HttpRequest request);
 	static void validateInputData(Endpoint* current_endpoint, const HttpRequest& request);
 	static void appendEndpoint(Endpoint new_endpoint);	
 	static Endpoint getEndpointByUrlAndMethod(const QString& url, const RequestMethod& method);
@@ -62,7 +68,6 @@ protected:
 private:	
 	static EndpointManager& instance();
 	QList<Endpoint> endpoint_list_;
-	static bool isUserValid(QString &user, QString &password);
 };
 
 #endif // ENDPOINTMANAGER_H
