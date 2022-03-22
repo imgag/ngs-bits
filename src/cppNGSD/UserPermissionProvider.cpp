@@ -25,6 +25,10 @@ UserPermissionList UserPermissionProvider::getUserPermissions()
 bool UserPermissionProvider::isEligibleToAccessProcessedSampleById(QString ps_id)
 {
 	NGSD db;
+
+	QString role = db.getValue("SELECT user_role FROM user WHERE id='" + QString::number(user_id_) + "'").toString();
+	if (role.toLower() != "user_restricted") return true;
+
 	for(int i = 0; i < user_permissions_.size(); i++)
 	{
 		switch(user_permissions_[i].permission)
