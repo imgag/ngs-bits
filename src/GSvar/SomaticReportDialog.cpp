@@ -73,7 +73,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	connect(ui_.include_cnv_burden, SIGNAL(stateChanged(int)), this, SLOT(cinState()));
 	connect(ui_.limitations_check, SIGNAL(stateChanged(int)), this, SLOT(limitationState()));
 
-	connect(ui_.igv_screenshot_create, SIGNAL(clicked(bool)), this, SLOT(createIgvScreenshot()));
+	connect( ui_.igv_screenshot_create, SIGNAL(linkActivated(QString)), this, SLOT(createIgvScreenshot()) );
 
 
 	//Resolve tumor content estimate from NGSD
@@ -368,14 +368,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	}
 
 
-	if(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().exists)
-	{
-		ui_.label_hint_igv_screenshot_available->setText("available");
-	}
-	else
-	{
-		ui_.label_hint_igv_screenshot_available->setText("not available");
-	}
+	updateIgvText();
 }
 
 void SomaticReportDialog::disableGUI()
@@ -556,14 +549,7 @@ void SomaticReportDialog::createIgvScreenshot()
 		QMessageBox::warning(this, "Could not create IGV screenshot", "Could not create IGV screenshot. Error message: " + e.message());
 	}
 
-	if(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().exists)
-	{
-		ui_.label_hint_igv_screenshot_available->setText("available");
-	}
-	else
-	{
-		ui_.label_hint_igv_screenshot_available->setText("not available");
-	}
+	updateIgvText();
 }
 
 QList<QString> SomaticReportDialog::resolveCIN()
@@ -579,4 +565,17 @@ QList<QString> SomaticReportDialog::resolveCIN()
 bool SomaticReportDialog::skipNGSD()
 {
 	return ui_.no_ngsd->isChecked();
+}
+
+
+void SomaticReportDialog::updateIgvText()
+{
+	if(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().exists)
+	{
+		ui_.label_hint_igv_screenshot_available->setText("<span style=\"color:#000000;\">available</span>");
+	}
+	else
+	{
+		ui_.label_hint_igv_screenshot_available->setText("<span style=\"color:#ff0000;\">not available</span");
+	}
 }

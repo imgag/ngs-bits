@@ -54,10 +54,6 @@ public:
 	//returns if the change of MaxEntScan is large enough to color it in the VariantTable, also provides percent- and abs-changes of MaxEntScan.
 	static bool colorMaxEntScan(QString anno, QList<double>& percentages, QList<double>& absValues);
 
-	///Returns a QByteArray representation of an image file. Edges will be resized to max_size. Returns empty QByteArray if conversion failed.
-	/// Supported formats are "PNG", "BMP", "JPG", "JPEG"
-	static QByteArray imageToQByteArray(QByteArray file_path, QByteArray format = "PNG", uint max_size=1500);
-
 protected:
 	GSvarHelper() = delete;
 };

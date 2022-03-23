@@ -931,6 +931,13 @@ RtfSourceCode SomaticReportHelper::partIgvScreenshot()
 
 	RtfPicture snapshot(settings_.igv_snapshot_png_hex_image);
 
+	snapshot.setWidth(doc_.maxWidth());
+
+	double ratio = (double)doc_.maxWidth() / settings_.igv_snapshot_width;
+	snapshot.setHeight(settings_.igv_snapshot_height * ratio);
+
+
+
 
 	return snapshot.RtfCode();
 }
@@ -1355,7 +1362,6 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	 ******************/
 	if(!settings_.igv_snapshot_png_hex_image.isEmpty())
 	{
-		qDebug() << doc_.maxWidth() << endl;
 		doc_.addPart(partIgvScreenshot());
 	}
 

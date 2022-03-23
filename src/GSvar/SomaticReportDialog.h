@@ -75,6 +75,9 @@ private slots:
 	///Creates screenshot with somatic tracks from IGV
 	void createIgvScreenshot();
 
+	///Updates hint whether IGV snapshot file is available.
+	void updateIgvText();
+
 	///Returns list of all chromosomes checked in CIN tab
 	QList<QString> resolveCIN();
 };

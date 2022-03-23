@@ -842,18 +842,6 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahgscha1")
 	{
-		RtfDocument doc;
-		doc.setMargins( RtfDocument::cm2twip(2.3) , 1134 , RtfDocument::cm2twip(1.2) , 1134 );
-		doc.setDefaultFontSize(16);
-		doc.addColor(191,191,191);
-		doc.addColor(161,161,161);
-		doc.addColor(255,255,0);
-
-		RtfPicture rtf_rep = RtfPicture( GSvarHelper::imageToQByteArray("C:\\axel\\pic_ag.png").toHex() );
-
-		doc.addPart( rtf_rep.RtfCode() );
-
-		doc.save("C:\\axel\\pic.rtf");
 	}
 }
 
@@ -3698,7 +3686,25 @@ void MainWindow::generateReportSomaticRTF()
 
 	if(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().exists)
 	{
-		somatic_report_settings_.igv_snapshot_png_hex_image = GSvarHelper::imageToQByteArray(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename.toUtf8(), "PNG", 660).toHex();
+		QImage picture = QImage(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename);
+
+
+		if( (uint)picture.width() > 1200 ) picture = picture.scaledToWidth(1200, Qt::TransformationMode::SmoothTransformation);
+		if( (uint)picture.height() > 1200 ) picture = picture.scaledToHeight(1200, Qt::TransformationMode::SmoothTransformation);
+
+		QByteArray png_data = "";
+
+		if(!picture.isNull())
+		{
+			QBuffer buffer(&png_data);
+			buffer.open(QIODevice::WriteOnly);
+			if(picture.save(&buffer, "PNG"))
+			{
+				somatic_report_settings_.igv_snapshot_png_hex_image = png_data.toHex();
+				somatic_report_settings_.igv_snapshot_width = picture.width();
+				somatic_report_settings_.igv_snapshot_height = picture.height();
+			}
+		}
 	}
 
 
