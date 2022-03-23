@@ -42,7 +42,9 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 	</tr>
 	<tr>
 		<td>ngs-bits\htslib\lib\</td>
-		<td>hts-3.dll, hts.dll.a, hts-3.def, hts-3.lib, libhts.a, libcrypto-1_1.dll, libbz2-1.dll, libcurl-4.dll, libdeflate.dll</td>
+		<td>
+		hts-3.dll, libbrotlienc.dll, libgcc_s_dw2-1.dll, liblzma-5.dll, libtre-5.dll, hts.dll.a, libbz2-1.dll, libhts.a, libssh2-1.dll, zlib1.dll, libbrotlicommon.dll, libcrypto-1_1.dll, libiconv-2.dll, libssl-1_1.dll, libbrotlidec.dll, libdeflate.dll, libintl-8.dll, libsystre-0.dll
+		</td>
 	</tr>
 	<tr>
 		<td>C:\Qt\Qt5.9.5\5.9.5\mingw53_32\bin\</td>
