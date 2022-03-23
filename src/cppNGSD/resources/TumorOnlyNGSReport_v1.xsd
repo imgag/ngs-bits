@@ -159,6 +159,16 @@
 												</xs:attribute>
 												<xs:attribute name="phenotype" use="required">
 													<xs:annotation>
+														<xs:documentation>OMIM  phenotype</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="phenotype_number">
+													<xs:annotation>
 														<xs:documentation>OMIM  phenotype number</xs:documentation>
 													</xs:annotation>
 													<xs:simpleType>

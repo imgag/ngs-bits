@@ -582,7 +582,11 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 				{
 					w.writeStartElement("Omim");
 					w.writeAttribute("gene", omim_info.mim);
-					w.writeAttribute("phenotype", pheno.accession());
+					w.writeAttribute("phenotype", pheno.name());
+					if (!pheno.accession().isEmpty())
+					{
+						w.writeAttribute("phenotype_number", pheno.accession());
+					}
 					w.writeEndElement();
 				}
 			}
@@ -618,7 +622,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
 		if (!var_conf.showInReport()) continue;
 		if (!selected_small_.contains(var_conf.variant_index)) continue;
-		if (var_conf.report_type!=data_.report_settings.report_type) continue;
+		if (data_.report_settings.report_type!="all" && var_conf.report_type!=data_.report_settings.report_type) continue;
 
 		const Variant& variant = data_.variants[var_conf.variant_index];
 		w.writeStartElement("Variant");
@@ -698,6 +702,8 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		{
 			w.writeAttribute("comments_2nd_assessor", var_conf.comments2.trimmed());
 		}
+		w.writeAttribute("report_type", var_conf.report_type);
+
 		//element TranscriptInformation
 		GeneSet genes;
 		int i_co_sp = data_.variants.annotationIndexByName("coding_and_splicing", true, false);
@@ -831,7 +837,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		if (var_conf.variant_type!=VariantType::CNVS) continue;
 		if (!var_conf.showInReport()) continue;
 		if (!selected_cnvs_.contains(var_conf.variant_index)) continue;
-		if (var_conf.report_type!=data_.report_settings.report_type) continue;
+		if (data_.report_settings.report_type!="all" && var_conf.report_type!=data_.report_settings.report_type) continue;
 
 		const CopyNumberVariant& cnv = data_.cnvs[var_conf.variant_index];
 
@@ -866,6 +872,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		{
 			w.writeAttribute("comments_2nd_assessor", var_conf.comments2.trimmed());
 		}
+		w.writeAttribute("report_type", var_conf.report_type);
 
 		//element Gene
 		foreach(const QByteArray& gene, cnv.genes())
@@ -915,7 +922,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		if (!var_conf.showInReport()) continue;
 		if (var_conf.variant_type!=VariantType::SVS) continue;
 		if (!selected_svs_.contains(var_conf.variant_index)) continue;
-		if (var_conf.report_type!=data_.report_settings.report_type) continue;
+		if (data_.report_settings.report_type!="all" && var_conf.report_type!=data_.report_settings.report_type) continue;
 
 
 		const BedpeLine& sv = data_.svs[var_conf.variant_index];
@@ -1017,6 +1024,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		{
 			w.writeAttribute("comments_2nd_assessor", var_conf.comments2.trimmed());
 		}
+		w.writeAttribute("report_type", var_conf.report_type);
 
 		//TODO
 		//w.writeAttribute("hgvs_start", );

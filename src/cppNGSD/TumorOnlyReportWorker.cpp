@@ -141,7 +141,11 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 				{
 					w.writeStartElement("Omim");
 					w.writeAttribute("gene", omim_info.mim);
-					w.writeAttribute("phenotype", pheno.accession());
+					w.writeAttribute("phenotype", pheno.name());
+					if (!pheno.accession().isEmpty())
+					{
+						w.writeAttribute("phenotype_number", pheno.accession());
+					}
 					w.writeEndElement();
 				}
 			}
