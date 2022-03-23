@@ -239,10 +239,9 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 
 	//validate written XML file
 	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/TumorOnlyNGSReport_v1.xsd");
-
 	if (xml_error!="")
 	{
-		THROW(ProgrammingException, "Invalid tumor only report XML file gererated: " + xml_error);
+		THROW(ProgrammingException, "Invalid tumor only report XML file " + filename + " generated:\n" + xml_error);
 	}
 }
 

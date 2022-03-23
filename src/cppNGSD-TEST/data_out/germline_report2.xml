@@ -29,20 +29,34 @@
         <Chromosome chr="chrMT" refseq="NC_012920.1"/>
     </ChromosomeAliases>
     <Sample name="NA12878_03" name_external="ex1" processing_system="HaloPlex HSP v2" processing_system_type="Panel Haloplex" comments="comment_ps1"/>
-    <TargetRegion name="panel" regions="1532" bases="271536" gap_percentage="5.69" ccds_bases_sequenced="4347">
-        <Gene name="CYP7B1" identifier="HGNC:622167"/>
-        <Gene name="SLC25A15" identifier="HGNC:650913"/>
-        <Gene name="SPG7" identifier="HGNC:652410"/>
+    <TargetRegion name="panel" regions="1532" bases="271536" gap_cutoff="20" gap_percentage="5.69" ccds_bases_sequenced="4347">
+        <Gene name="CYP7B1" identifier="HGNC:2652" bases="2202">
+            <Omim gene="603711" phenotype="613812"/>
+            <Omim gene="603711" phenotype="270800"/>
+            <Gap chr="chr8" start="64615713" end="64615740"/>
+            <Gap chr="chr8" start="64616216" end="64616218"/>
+            <Gap chr="chr8" start="64624393" end="64624515"/>
+            <Gap chr="chr8" start="64798456" end="64798544"/>
+        </Gene>
+        <Gene name="SLC25A15" identifier="HGNC:10985" bases="1586">
+            <Omim gene="603861" phenotype="238970"/>
+            <Gap chr="chr13" start="40799186" end="40799314"/>
+        </Gene>
+        <Gene name="SPG7" identifier="HGNC:11237" bases="3076">
+            <Omim gene="602783" phenotype="607259"/>
+            <Gap chr="chr16" start="89524046" end="89524104"/>
+            <Gap chr="chr16" start="89554476" end="89554542"/>
+        </Gene>
     </TargetRegion>
     <VariantList overall_number="319" genome_build="GRCh38">
         <Variant chr="chr13" start="40793234" end="40793234" ref="C" obs="G" allele_frequency="0.48" depth="268" genotype="het" causal="false" de_novo="false" comp_het="true" mosaic="false">
-            <TranscriptInformation gene="SLC25A15" gene_identifier="HGNC:650913" transcript_id="ENST00000338625.4" type="missense_variant" hgvs_c="8C&gt;G" hgvs_p="Ser3Cys" exon="Exon 2/7"/>
+            <TranscriptInformation gene="SLC25A15" gene_identifier="HGNC:10985" transcript_id="ENST00000338625.4" type="missense_variant" hgvs_c="8C&gt;G" hgvs_p="Ser3Cys" exon="Exon 2/7"/>
         </Variant>
         <Variant chr="chr16" start="89531961" end="89531961" ref="G" obs="A" allele_frequency="0.28" depth="43" genotype="het" causal="true" de_novo="true" comp_het="false" mosaic="true">
-            <TranscriptInformation gene="SPG7" gene_identifier="HGNC:652410" transcript_id="ENST00000268704.2" type="missense_variant" hgvs_c="1045G&gt;A" hgvs_p="Gly349Ser" exon="Exon 8/17"/>
-            <TranscriptInformation gene="SPG7" gene_identifier="HGNC:652410" transcript_id="ENST00000341316.2" type="missense_variant" hgvs_c="1045G&gt;A" hgvs_p="Gly349Ser" exon="Exon 8/10"/>
-            <GeneDiseaseInformation gene="SPG7" gene_identifier="HGNC:652410" source="OMIM gene" identifier="602783" name="SPG7"/>
-            <GeneDiseaseInformation gene="SPG7" gene_identifier="HGNC:652410" source="OMIM phenotype" identifier="607259" name="Spastic paraplegia 7, autosomal recessive, 607259 (3)"/>
+            <TranscriptInformation gene="SPG7" gene_identifier="HGNC:11237" transcript_id="ENST00000268704.2" type="missense_variant" hgvs_c="1045G&gt;A" hgvs_p="Gly349Ser" exon="Exon 8/17"/>
+            <TranscriptInformation gene="SPG7" gene_identifier="HGNC:11237" transcript_id="ENST00000341316.2" type="missense_variant" hgvs_c="1045G&gt;A" hgvs_p="Gly349Ser" exon="Exon 8/10"/>
+            <GeneDiseaseInformation gene="SPG7" gene_identifier="HGNC:11237" source="OMIM gene" identifier="602783" name="SPG7"/>
+            <GeneDiseaseInformation gene="SPG7" gene_identifier="HGNC:11237" source="OMIM phenotype" identifier="607259" name="Spastic paraplegia 7, autosomal recessive, 607259 (3)"/>
         </Variant>
     </VariantList>
     <CnvList cnv_caller="ClinCNV" overall_number="1" genome_build="GRCh38" quality="good" number_of_iterations="1" number_of_hq_cnvs="127">
