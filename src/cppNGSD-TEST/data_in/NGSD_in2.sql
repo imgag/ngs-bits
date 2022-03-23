@@ -145,14 +145,17 @@ INSERT INTO `gene_exon` (`transcript_id`, `start`, `end`) VALUES
 INSERT INTO `omim_gene` (`id`, `gene`, `mim`) VALUES
 (244380, 'SPG7', '602783'),
 (245171, 'CYP7B1', '603711'),
-(245296, 'SLC25A15', '603861');
+(245296, 'SLC25A15', '603861'),
+(50562, 'MITF', '156845');
 
 
 INSERT INTO `omim_phenotype` (`omim_gene_id`, `phenotype`) VALUES
 (244380, 'Spastic paraplegia 7, autosomal recessive, 607259 (3)'),
 (245171, 'Bile acid synthesis defect, congenital, 3, 613812 (3)'),
 (245171, 'Spastic paraplegia 5A, autosomal recessive, 270800 (3)'),
-(245296, 'Hyperornithinemia-hyperammonemia-homocitrullinemia syndrome, 238970 (3)');
+(245296, 'Hyperornithinemia-hyperammonemia-homocitrullinemia syndrome, 238970 (3)'),
+(50562, 'COMMAD syndrome, 617306 (3)'),
+(50562, '{Melanoma, cutaneous malignant, susceptibility to, 8}, 614456 (3)');
 
 
 INSERT INTO `omim_preferred_phenotype`(`gene`, `disease_group`, `phenotype_accession`) VALUES
