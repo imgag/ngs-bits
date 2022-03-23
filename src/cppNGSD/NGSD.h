@@ -577,8 +577,10 @@ public:
 	/*** gene/transcript handling ***/
 	///Returns the gene ID, or -1 if none approved gene name could be found. Checks approved symbols, previous symbols and synonyms.
 	int geneToApprovedID(const QByteArray& gene);
-	///Returns the gene symbol for a gene ID
+	///Returns the gene symbol for a gene ID.
 	QByteArray geneSymbol(int id);
+	///Returns the HGNC identifier of a gene.
+	QByteArray geneHgncId(int id);
 	///Returns the the approved gene symbol or "" if it could not be determined.
 	QByteArray geneToApproved(QByteArray gene, bool return_input_when_unconvertable=false);
 	///Returns the the approved gene symbols.
