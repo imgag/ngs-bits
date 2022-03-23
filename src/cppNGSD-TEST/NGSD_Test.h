@@ -1540,7 +1540,21 @@ private slots:
 			COMPARE_FILES("out/germline_report3.html", TESTDATA("data_out/germline_report3.html"));
 		}
 
-		//############################### TEST 4 - evaluation sheet ###############################
+		//############################### TEST 4 - report type 'all' ###############################
+		{
+			report_settings.report_type = "all";
+			report_settings.language = "german";
+
+			GermlineReportGenerator generator(data, true);
+			generator.overrideDate(report_date);
+
+			generator.writeHTML("out/germline_report4.html");
+			COMPARE_FILES("out/germline_report4.html", TESTDATA("data_out/germline_report4.html"));
+			generator.writeXML("out/germline_report4.xml", "out/germline_report4.html");
+			COMPARE_FILES("out/germline_report4.xml", TESTDATA("data_out/germline_report4.xml"));
+		}
+
+		//############################### TEST 5 - evaluation sheet ###############################
 		{
 			GermlineReportGenerator generator(data, true);
 			generator.overrideDate(report_date);

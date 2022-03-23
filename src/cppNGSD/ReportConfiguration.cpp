@@ -76,7 +76,7 @@ QList<int> ReportConfiguration::variantIndices(VariantType type, bool only_selec
 	{
 		if (var_conf.variant_type!=type) continue;
 		if (only_selected && !var_conf.showInReport()) continue;
-		if (!report_type.isNull() && var_conf.report_type!=report_type) continue;
+		if (!report_type.isNull() && report_type!="all" && var_conf.report_type!=report_type) continue;
 
 		output << var_conf.variant_index;
 	}
