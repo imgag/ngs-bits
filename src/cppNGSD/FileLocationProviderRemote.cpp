@@ -227,3 +227,8 @@ FileLocation FileLocationProviderRemote::getSomaticMsiFile() const
 {
 	return getOneFileLocationByType(PathType::MSI, "");
 }
+
+FileLocation FileLocationProviderRemote::getSomaticIgvScreenshotFile() const
+{
+	return getOneFileLocationByType(PathType::IGV_SCREENSHOT, "");
+}

@@ -1927,8 +1927,6 @@ private slots:
 		SomaticXmlReportGeneratorData xml_data(GenomeBuild::HG19, settings, vl_filtered, vl_germl_filtered, cnvs_filtered);
 
 
-		//xml_data.processing_system_roi.load(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test.bed"));
-		//xml_data.processing_system_genes = GeneSet::createFromFile(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test_genes.txt"));
 		IS_THROWN(ArgumentException, xml_data.check());
 
 		xml_data.mantis_msi = 0.74;
@@ -1944,7 +1942,7 @@ private slots:
 		xml_data.rtf_part_svs = "Fusions";
 		xml_data.rtf_part_pharmacogenetics = "RTF pharmacogenomics table";
 		xml_data.rtf_part_general_info = "general meta data";
-		xml_data.rtf_part_igv_screenshot = "";
+		xml_data.rtf_part_igv_screenshot = "89504E470D0A1A0A0000000D4948445200000002000000020802000000FDD49A73000000097048597300002E2300002E230178A53F76000000164944415408D763606060686E6E66F8FFFFFF7F0606001FCD0586CC377DEC0000000049454E44AE426082";
 		xml_data.rtf_part_mtb_summary = "MTB summary";
 
 

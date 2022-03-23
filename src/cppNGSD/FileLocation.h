@@ -45,6 +45,7 @@ enum class PathType
 	VCF_CF_DNA, //cfDNA variants file (VCF format)
 	MRD_CF_DNA, // measurable residual disease file of a cfDNA analysis (UmiVar2)
 	QC, // variant list QC (qcML) files
+	IGV_SCREENSHOT, //screenshot taken from IGV
 	OTHER // everything else
 };
 
@@ -149,6 +150,8 @@ struct FileLocation
 				return "EXPRESSION_COHORT";
 			case PathType::MRD_CF_DNA:
 				return "MRD_CF_DNA";
+			case PathType::IGV_SCREENSHOT:
+				return "IGV_SCREENSHOT";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToString()!");
 	}
@@ -189,6 +192,7 @@ struct FileLocation
 		if (in_upper == "EXPRESSION") return PathType::EXPRESSION;
 		if (in_upper == "EXPRESSION_COHORT") return PathType::EXPRESSION_COHORT;
 		if (in_upper == "MRD_CF_DNA") return PathType::MRD_CF_DNA;
+		if (in_upper == "IGV_SCREENSHOT") return PathType::IGV_SCREENSHOT;
 		THROW(ProgrammingException, "Unhandled path type string '" + in_upper + "' in stringToType()!");
 	}
 
@@ -260,6 +264,8 @@ struct FileLocation
 				return "RNA relative expression of cohort";
 			case PathType::MRD_CF_DNA:
 				return "measurable residual disease value (umiVar 2)";
+			case PathType::IGV_SCREENSHOT:
+				return "IGV screenshot";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToHumanReadableString()!");
 	}

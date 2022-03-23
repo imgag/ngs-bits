@@ -28,6 +28,8 @@
 #include <GenLabDB.h>
 #include <QToolTip>
 #include <QProcess>
+#include <QImage>
+#include <QBuffer>
 QT_CHARTS_USE_NAMESPACE
 #include "ReportWorker.h"
 #include "ScrollableTextDialog.h"
@@ -840,11 +842,6 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahgscha1")
 	{
-		FileLocationList locations = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFiles(false);
-		for(const auto& loc : locations)
-		{
-			qDebug() << loc.exists << " " << loc.filename << " " << loc.id << " " << loc.typeAsHumanReadableString() << endl;
-		}
 	}
 }
 
@@ -3656,6 +3653,7 @@ void MainWindow::generateReportSomaticRTF()
 	somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
 
 
+
 	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
 	if(!ui_.filters->targetRegion().isValid()) //use processing system data in case no filter is set
 	{
@@ -3685,6 +3683,30 @@ void MainWindow::generateReportSomaticRTF()
 		somatic_report_settings_.report_config.setCnvBurden(true);
 		somatic_report_settings_.report_config.setHrdScore(0);
 	}
+
+	if(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().exists)
+	{
+		QImage picture = QImage(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename);
+
+
+		if( (uint)picture.width() > 1200 ) picture = picture.scaledToWidth(1200, Qt::TransformationMode::SmoothTransformation);
+		if( (uint)picture.height() > 1200 ) picture = picture.scaledToHeight(1200, Qt::TransformationMode::SmoothTransformation);
+
+		QByteArray png_data = "";
+
+		if(!picture.isNull())
+		{
+			QBuffer buffer(&png_data);
+			buffer.open(QIODevice::WriteOnly);
+			if(picture.save(&buffer, "PNG"))
+			{
+				somatic_report_settings_.igv_snapshot_png_hex_image = png_data.toHex();
+				somatic_report_settings_.igv_snapshot_width = picture.width();
+				somatic_report_settings_.igv_snapshot_height = picture.height();
+			}
+		}
+	}
+
 
 	SomaticReportDialog dlg(somatic_report_settings_, cnvs_, somatic_control_tissue_variants_, this); //widget for settings
 
@@ -3913,6 +3935,8 @@ void MainWindow::reportGenerationFinished(bool success)
 	//clean
 	worker->deleteLater();
 }
+
+
 
 void MainWindow::openProcessedSampleTabsCurrentAnalysis()
 {
