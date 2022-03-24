@@ -1819,7 +1819,7 @@ private slots:
 		// default maximum
 		FilterSvBreakpointDensityNGSD filter;
 		filter.apply(svs, result);
-		I_EQUAL(result.countPassing(), 72);
+		I_EQUAL(result.countPassing(), 70);
 	}
 
 	void FilterSvBreakpointDensityNGSD_custom()

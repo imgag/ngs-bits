@@ -4599,7 +4599,7 @@ FilterSvBreakpointDensityNGSD::FilterSvBreakpointDensityNGSD()
 	name_ = "SV break point density NGSD";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter based on the density of SV break points in the NGSD in the CI of the structural variant.";
-	params_ << FilterParameter("max_density", FilterParameterType::INT, 100, "Maximum density in the confidence interval of the SV");
+	params_ << FilterParameter("max_density", FilterParameterType::INT, 20, "Maximum density in the confidence interval of the SV");
 	params_.last().constraints["min"] = "0";
 	params_ << FilterParameter("remove_strict", FilterParameterType::BOOL, false, "Remove also SVs in which only one break point is above threshold.");
 
