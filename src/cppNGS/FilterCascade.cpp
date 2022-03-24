@@ -967,6 +967,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["CNV pathogenic CNV overlap"] = &createInstance<FilterCnvPathogenicCnvOverlap>;
 		output["SV count NGSD"] = &createInstance<FilterSvCountNGSD>;
 		output["SV allele frequency NGSD"] = &createInstance<FilterSvAfNGSD>;
+		output["SV break point density NGSD"] = &createInstance<FilterSvBreakpointDensityNGSD>;
         output["SV trio"] = &createInstance<FilterSvTrio>;
 		output["Splice effect"] = &createInstance<FilterSpliceEffect>;
 		output["RNA ASE allele frequency"] = &createInstance<FilterVariantRNAAseAlleleFrequency>;
@@ -4463,17 +4464,17 @@ FilterSvCountNGSD::FilterSvCountNGSD()
 {
 	name_ = "SV count NGSD";
 	type_ = VariantType::SVS;
-	description_ = QStringList() << "Filter based on the occurances of a structural variant in the NGSD.";
+	description_ = QStringList() << "Filter based on the hom/het occurances of a structural variant in the NGSD.";
 	params_ << FilterParameter("max_count", FilterParameterType::INT, 20, "Maximum NGSD SV count");
 	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("overlap_matches", FilterParameterType::BOOL, false, "If set, overlaping SVs are considered also.");
+	params_ << FilterParameter("ignore_genotype", FilterParameterType::BOOL, false, "If set, all NGSD entries are counted independent of the variant genotype. Otherwise, for homozygous variants only homozygous NGSD entries are counted and for heterozygous variants all NGSD entries are counted.");
 
 	checkIsRegistered();
 }
 
 QString FilterSvCountNGSD::toText() const
 {
-	return name() + " &le; " + QString::number(getInt("max_count", false)) + (getBool("overlap_matches") ? " (overlap_matches)" : "");
+	return name() + " &le; " + QString::number(getInt("max_count", false)) + (getBool("ignore_genotype") ? " (ignore genotype)" : "");
 }
 
 void FilterSvCountNGSD::apply(const BedpeFile& svs, FilterResult& result) const
@@ -4481,37 +4482,82 @@ void FilterSvCountNGSD::apply(const BedpeFile& svs, FilterResult& result) const
 	if (!enabled_) return;
 
 	int max_count = getInt("max_count");
-	bool overlap_match = getBool("overlap_matches");
+	bool ignore_genotype = getBool("ignore_genotype");
 
-	int ngsd_col_index;
-	if (overlap_match)
+	int idx_ngsd_hom = svs.annotationIndexByName("NGSD_HOM");
+	int idx_ngsd_het = svs.annotationIndexByName("NGSD_HET");
+
+	if (ignore_genotype)
 	{
-		ngsd_col_index = svs.annotationIndexByName("NGSD_COUNT_OVERLAP");
+		for(int i=0; i<svs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
 
+			int ngsd_count_hom = Helper::toInt(svs[i].annotations()[idx_ngsd_hom], "NGSD count hom", QString::number(i));
+			int ngsd_count_het = Helper::toInt(svs[i].annotations()[idx_ngsd_het], "NGSD count het", QString::number(i));
+			result.flags()[i] = (ngsd_count_hom + ngsd_count_het) <= max_count;
+		}
 	}
 	else
 	{
-		ngsd_col_index = svs.annotationIndexByName("NGSD_COUNT");
-	}
-
-	for(int i=0; i<svs.count(); ++i)
-	{
-		if (!result.flags()[i]) continue;
-
-		int ngsd_count;
-
-		if (overlap_match)
+		//get genotype indices
+		int idx_format = svs.annotationIndexByName("FORMAT");
+		if (idx_format < 0) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to structural variant list without 'FORMAT' column!");
+		QList<int> indices_format_data;
+		indices_format_data << idx_format + 1; //single sample
+		if ((svs.format() == BedpeFileFormat::BEDPE_GERMLINE_MULTI) || (svs.format() == BedpeFileFormat::BEDPE_GERMLINE_TRIO))
 		{
-			ngsd_count = Helper::toInt(svs[i].annotations()[ngsd_col_index], "NGSD count overlap column", QString::number(i));
-		}
-		else
-		{
-			ngsd_count = Helper::toInt(svs[i].annotations()[ngsd_col_index].split('(')[0], "NGSD count column", QString::number(i));
+			indices_format_data = svs.sampleHeaderInfo().sampleColumns(true);
+			indices_format_data.removeAll(-1);
+			if (indices_format_data.isEmpty()) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list without affected samples!");
 		}
 
-		result.flags()[i] = ngsd_count <= max_count;
-	}
+		// iterate over all SVs
+		for(int i=0; i<svs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
 
+			// get format keys and values
+			QByteArrayList format_keys = svs[i].annotations()[idx_format].split(':');
+			int idx_genotype = format_keys.indexOf("GT");
+
+			if(idx_genotype == -1)
+			{
+				THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list because could not find GT field in format column.");
+			}
+
+
+			//get NGSD counts
+			int ngsd_count_hom = Helper::toInt(svs[i].annotations()[idx_ngsd_hom], "NGSD count hom", QString::number(i));
+			int ngsd_count_het = Helper::toInt(svs[i].annotations()[idx_ngsd_het], "NGSD count het", QString::number(i));
+
+			foreach (int idx_format_data, indices_format_data)
+			{
+				QByteArrayList format_values = svs[i].annotations()[idx_format_data].split(':');
+
+				QByteArray sv_genotype_string = format_values[idx_genotype].trimmed();
+				result.flags()[i] = false;
+
+				if (sv_genotype_string == "1/1")
+				{
+					if(ngsd_count_hom <= max_count)
+					{
+						result.flags()[i] = true;
+						break;
+					}
+				}
+				else
+				{
+					if(ngsd_count_het <= max_count)
+					{
+						result.flags()[i] = true;
+						break;
+					}
+				}
+
+			}
+		}
+	}
 }
 
 FilterSvAfNGSD::FilterSvAfNGSD()
@@ -4522,7 +4568,7 @@ FilterSvAfNGSD::FilterSvAfNGSD()
 								 << "Note: this filter should only be used for whole genome samples.";
 	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximum allele frequency in %");
 	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "100.0";
+	params_.last().constraints["max"] = "200.0";
 
 	checkIsRegistered();
 }
@@ -4538,15 +4584,73 @@ void FilterSvAfNGSD::apply(const BedpeFile& svs, FilterResult& result) const
 
 	double max_af = getDouble("max_af")/100.0;
 
-	int ngsd_col_index = svs.annotationIndexByName("NGSD_COUNT");
+	int idx_ngsd_af = svs.annotationIndexByName("NGSD_AF");
 
 	for(int i=0; i<svs.count(); ++i)
 	{
 		if (!result.flags()[i]) continue;
 
-		result.flags()[i] = Helper::toDouble(svs[i].annotations()[ngsd_col_index].split('(')[1].split(')')[0], "NGSD count column", QString::number(i)) <= max_af;
+		result.flags()[i] = Helper::toDouble(svs[i].annotations()[idx_ngsd_af], "NGSD AF") <= max_af;
 	}
 }
+
+FilterSvBreakpointDensityNGSD::FilterSvBreakpointDensityNGSD()
+{
+	name_ = "SV break point density NGSD";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Filter based on the density of SV break points in the NGSD in the CI of the structural variant.";
+	params_ << FilterParameter("max_density", FilterParameterType::INT, 100, "Maximum density in the confidence interval of the SV");
+	params_.last().constraints["min"] = "0";
+	params_ << FilterParameter("remove_strict", FilterParameterType::BOOL, false, "Remove also SVs in which only one break point is above threshold.");
+
+	checkIsRegistered();
+}
+
+QString FilterSvBreakpointDensityNGSD::toText() const
+{
+	return name() + " &le; " + QString::number(getInt("max_density", false)) + QByteArray((getBool("remove_strict"))?" (remove_strict)":"");
+}
+
+void FilterSvBreakpointDensityNGSD::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int max_density = getInt("max_density");
+	bool remove_strict = getBool("remove_strict");
+
+	int idx_ngsd_density = svs.annotationIndexByName("NGSD_SV_BREAKPOINT_DENSITY");
+
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		QByteArray density = svs[i].annotations()[idx_ngsd_density];
+
+		if (density.trimmed().isEmpty()) continue; //skip empty entries
+		QByteArrayList densities = density.split('/');
+		if (densities.size() == 1)
+		{
+			//only one break point (INS)
+			result.flags()[i] = Helper::toInt(density, "NGSD_SV_BREAKPOINT_DENSITY") <= max_density;
+		}
+		else
+		{
+			//2 break points
+			if (remove_strict)
+			{
+				result.flags()[i] = (Helper::toInt(densities.at(0), "NGSD_SV_BREAKPOINT_DENSITY (BP1)") <= max_density)
+						&& (Helper::toInt(densities.at(1), "NGSD_SV_BREAKPOINT_DENSITY (BP2)") <= max_density);
+			}
+			else
+			{
+				result.flags()[i] = (Helper::toInt(densities.at(0), "NGSD_SV_BREAKPOINT_DENSITY (BP1)") <= max_density)
+						|| (Helper::toInt(densities.at(1), "NGSD_SV_BREAKPOINT_DENSITY (BP2)") <= max_density);
+			}
+		}
+
+	}
+}
+
 
 FilterSvTrio::FilterSvTrio()
 {
@@ -5445,3 +5549,5 @@ void FilterVariantRNAExpressionZScore::apply(const VariantList& variants, Filter
 		}
 	}
 }
+
+
