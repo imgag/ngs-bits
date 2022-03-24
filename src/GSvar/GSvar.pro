@@ -8,6 +8,8 @@ RC_FILE	 = icon.rc
 
 SOURCES += main.cpp\
     CfDNAPanelBatchImport.cpp \
+    DBPermissionsEditor.cpp \
+    DBTablePermissions.cpp \
     DatabaseServiceRemote.cpp \
     GlobalServiceProvider.cpp \
     MainWindow.cpp \
@@ -110,6 +112,8 @@ SOURCES += main.cpp\
     GapClosingEditDialog.cpp
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
+    DBPermissionsEditor.h \
+    DBTablePermissions.h \
     DatabaseServiceRemote.h \
     ExternalToolDialog.h \
     GlobalServiceProvider.h \
@@ -212,6 +216,8 @@ HEADERS += MainWindow.h \
     GapClosingEditDialog.h
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
+    DBPermissionsEditor.ui \
+    DBTablePermissions.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
     TrioDialog.ui \

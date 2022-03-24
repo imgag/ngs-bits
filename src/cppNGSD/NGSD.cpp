@@ -2222,6 +2222,13 @@ const TableInfo& NGSD::tableInfo(const QString& table, bool use_cache) const
 							info.fk_name_sql = "name";
 						}
 					}
+					else if (table=="user_permissions")
+					{
+						if (info.name=="user_id")
+						{
+							info.fk_name_sql = "name";
+						}
+					}
 				}
 			}
 
