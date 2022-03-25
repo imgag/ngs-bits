@@ -156,6 +156,20 @@
 								<xs:documentation>sample comments</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
+						<xs:attribute name="ancestry">
+							<xs:annotation>
+								<xs:documentation>sample ancestry</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:enumeration value="AFR"/>
+									<xs:enumeration value="EAS"/>
+									<xs:enumeration value="EUR"/>
+									<xs:enumeration value="SAS"/>
+									<xs:enumeration value="ADMIXED/UNKNOW"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
 					</xs:complexType>
 				</xs:element>
 				<xs:element name="TargetRegion" minOccurs="0">
@@ -1251,6 +1265,67 @@
 								</xs:restriction>
 							</xs:simpleType>
 						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="PrsList">
+					<xs:annotation>
+						<xs:documentation>List of polygenic risk scores that were calculated</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="Prs" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Representation of a single polygenic risk score</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="id" use="required">
+										<xs:annotation>
+											<xs:documentation>PRS identifier, e.g. PGS id</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="trait" use="required">
+										<xs:annotation>
+											<xs:documentation>trait/disease name</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="citation" use="required">
+										<xs:annotation>
+											<xs:documentation>Publication, URL or any other reference to where more information about the PRS can be found.</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="score" type="xs:float" use="required">
+										<xs:annotation>
+											<xs:documentation>PRS raw score</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="percentile" type="xs:float">
+										<xs:annotation>
+											<xs:documentation>PRS percentile in the raw score distribution of the population (only available/valid if the patient has the same ancestry as the population)</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="z_score" type="xs:float">
+										<xs:annotation>
+											<xs:documentation>PRS z-score based on the raw score distribution of the population (only available/valid if the patient has the same ancestry as the population)</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
 					</xs:complexType>
 				</xs:element>
 				<xs:element name="ReportDocument" nillable="false">

@@ -454,9 +454,9 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<p><b>" << trans("Polygener Risiko-Score (PRS)") << "</b></p>" << endl;
 		stream << "<table>" << endl;
 		stream << "<tr><td><b>" << trans("Erkrankung") << "</b></td><td><b>" << trans("Publikation") << "</b></td><td><b>" << trans("Score") << "</b></td><td><b>" << trans("Z-Score") << "</b></td><td><b>" << trans("Population (gesch&auml;tzt aus NGS)") << "</b></td></tr>" << endl;
-		int trait_idx = data_.prs.headers().indexOf("trait");
-		int score_idx = data_.prs.headers().indexOf("score");
-		int citation_idx = data_.prs.headers().indexOf("citation");
+		int trait_idx = data_.prs.columnIndex("trait");
+		int score_idx = data_.prs.columnIndex("score");
+		int citation_idx = data_.prs.columnIndex("citation");
 		for (int r=0; r<data_.prs.rowCount(); ++r)
 		{
 			const QStringList& row = data_.prs.row(r);
@@ -521,7 +521,6 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	//element ChromosomeAliases
 	w.writeStartElement("ChromosomeAliases");
 	QMap<Chromosome, QString> table = getChromosomeTable(data_.build);
-
 	foreach (Chromosome key, table.keys())
 	{
 		w.writeStartElement("Chromosome");
@@ -529,12 +528,11 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeAttribute("refseq", table[key]);
 		w.writeEndElement();
 	}
-
 	w.writeEndElement();
+
 	//element Sample
 	w.writeStartElement("Sample");
 	w.writeAttribute("name", data_.ps);
-
 	SampleData sample_data = db_.getSampleData(db_.sampleId(data_.ps));
 	w.writeAttribute("name_external", sample_data.name_external);
 	ProcessedSampleData processed_sample_data = db_.getProcessedSampleData(ps_id_);
@@ -545,6 +543,13 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	{
 		w.writeAttribute("comments", comments);
 	}
+
+	QString ancestry = processed_sample_data.ancestry.trimmed();
+	if (!ancestry.isEmpty())
+	{
+		w.writeAttribute("ancestry", ancestry);
+	}
+
 	w.writeEndElement();
 
 	//element TargetRegion (optional)
@@ -1045,6 +1050,32 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	}
 	w.writeEndElement();
 
+	//PRS scores
+	w.writeStartElement("PrsList");
+	if (data_.prs.rowCount()>0)
+	{
+		int i_id = data_.prs.columnIndex("pgs_id");
+		int i_trait = data_.prs.columnIndex("trait");
+		int i_citation = data_.prs.columnIndex("citation");
+		int i_score = data_.prs.columnIndex("score");
+		int i_percentile = data_.prs.columnIndex("percentile");
+		for (int r=0; r<data_.prs.rowCount(); ++r)
+		{
+			const QStringList& row = data_.prs.row(r);
+			w.writeStartElement("Prs");
+			w.writeAttribute("id", row[i_id].trimmed());
+			w.writeAttribute("trait", row[i_trait].trimmed());
+			w.writeAttribute("citation", row[i_citation].trimmed());
+			w.writeAttribute("score", row[i_score].trimmed());
+			QString percentile = row[i_percentile].trimmed();
+			if (!percentile.isEmpty())
+			{
+				w.writeAttribute("percentile", percentile);
+			}
+			w.writeEndElement();
+		}
+	}
+	w.writeEndElement();
 
 	//element ReportDocument
 	w.writeStartElement("ReportDocument");

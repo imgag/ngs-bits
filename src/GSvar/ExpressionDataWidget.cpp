@@ -398,9 +398,6 @@ void ExpressionDataWidget::loadExpressionData()
 		}
 	}
 
-	QStringList tsv_header = expression_data.headers();
-
-
 	//collect biotypes
 	QSet<QString> biotypes;
 
@@ -421,12 +418,7 @@ void ExpressionDataWidget::loadExpressionData()
 	QVector<int> column_indices;
 	foreach (const QString& col_name, column_names_)
 	{
-		int column_index = tsv_header.indexOf(col_name);
-		if (column_index < 0)
-		{
-			THROW(FileParseException, "Column name \"" + col_name + "\" not found in TSV file!");
-		}
-		column_indices << column_index;
+		column_indices << expression_data.columnIndex(col_name);
 	}
 
 	//create header
