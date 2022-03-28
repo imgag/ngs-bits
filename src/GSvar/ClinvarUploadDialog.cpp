@@ -574,6 +574,7 @@ QJsonObject ClinvarUploadDialog::createJson()
                     QJsonObject feature;
                     feature.insert("db", "HP");
                     feature.insert("id", QString(phenotype.accession()));
+					feature.insert("clinicalFeaturesAffectedStatus", "present");
                     clinical_features.append(feature);
 
                 }
