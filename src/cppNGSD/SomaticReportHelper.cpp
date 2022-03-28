@@ -190,7 +190,7 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 		if(vicc == "ONCOGENIC" || vicc == "LIKELY_ONCOGENIC")
 		{
 			somatic_high_impact_vl_.append(snv);
-			high_significance_genes << selectSomaticTranscript(snv).gene;
+			high_significance_genes << selectSomaticTranscript(snv, settings_, snv_index_coding_splicing_).gene;
 		}
 
 	}
@@ -198,7 +198,7 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 	for(int i=0; i<somatic_vl_.count(); ++i)
 	{
 		const Variant& snv = somatic_vl_[i];
-		QByteArray gene = selectSomaticTranscript(snv).gene;
+		QByteArray gene = selectSomaticTranscript(snv, settings_, snv_index_coding_splicing_).gene;
 		if(high_significance_genes.contains(gene) && !somatic_high_impact_vl_.contains(snv))
 		{
 			somatic_high_impact_vl_.append(snv);
@@ -220,7 +220,7 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 				{
 					const Variant& snv = somatic_vl_[j];
 
-					if(gene == selectSomaticTranscript(snv).gene && !somatic_high_impact_vl_.contains(snv))
+					if(gene == selectSomaticTranscript(snv, settings_, snv_index_coding_splicing_).gene && !somatic_high_impact_vl_.contains(snv))
 					{
 						somatic_high_impact_vl_.append(snv);
 						break;
@@ -296,17 +296,6 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 		}
 	}
 	catch(...) {} //Nothing to do here
-
-	//load obo terms for filtering coding/splicing variants
-	OntologyTermCollection obo_terms("://Resources/so-xp_3_0_0.obo",true);
-	QList<QByteArray> ids;
-	ids << obo_terms.childIDs("SO:0001580",true); //coding variants
-	ids << obo_terms.childIDs("SO:0001568",true); //splicing variants
-	foreach(const QByteArray& id, ids)
-	{
-		obo_terms_coding_splicing_.add(obo_terms.getByID(id));
-	}
-
 
 
 	//assign CNV annotation indices
@@ -419,7 +408,7 @@ void SomaticReportHelper::somaticSnvForQbic(QString path_target_folder)
 		stream << variant.annotations().at(i_tumor_depth) << "\t";
 
 		//determine transcript, usually first coding/splicing
-		VariantTranscript transcript = selectSomaticTranscript(variant);
+		VariantTranscript transcript = selectSomaticTranscript(variant, settings_, snv_index_coding_splicing_);
 
 		//affected gene
 		stream << transcript.gene << "\t";
@@ -626,14 +615,15 @@ void SomaticReportHelper::metaDataForQbic(QString path_target_folder)
 	saveReportData("QBIC_metadata.tsv", path_target_folder, content);
 }
 
-VariantTranscript SomaticReportHelper::selectSomaticTranscript(const Variant& variant)
+VariantTranscript SomaticReportHelper::selectSomaticTranscript(const Variant& variant, const SomaticReportSettings& settings, int index_co_sp)
 {
-	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(snv_index_coding_splicing_);
+	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(index_co_sp);
+
 
 	//use preferred transcript that is coding or splicing if available
 	foreach(const VariantTranscript& trans, transcripts)
 	{
-		if(settings_.preferred_transcripts.value( trans.gene ).contains(trans.idWithoutVersion()) && trans.typeMatchesTerms(obo_terms_coding_splicing_))
+		if(settings.preferred_transcripts.value( trans.gene ).contains(trans.idWithoutVersion()) && trans.typeMatchesTerms(settings.obo_terms_coding_splicing))
 		{
 			return trans;
 		}
@@ -642,7 +632,7 @@ VariantTranscript SomaticReportHelper::selectSomaticTranscript(const Variant& va
 	//first coding/splicing transcript otherwise
 	foreach(const VariantTranscript& trans, transcripts)
 	{
-		if(trans.typeMatchesTerms(obo_terms_coding_splicing_))
+		if(trans.typeMatchesTerms(settings.obo_terms_coding_splicing))
 		{
 			return trans;
 		}
@@ -1127,7 +1117,7 @@ RtfTable SomaticReportHelper::snvTable(const VariantList &vl, bool include_germl
 	{
 		const Variant& snv = vl[i];
 
-		VariantTranscript transcript = selectSomaticTranscript(snv);
+		VariantTranscript transcript = selectSomaticTranscript(snv, settings_, snv_index_coding_splicing_);
 		transcript.type = transcript.type.replace("_variant","");
 		transcript.type.replace("&",", ");
 

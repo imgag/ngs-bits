@@ -201,7 +201,7 @@ RtfTable SomaticRnaReport::snvTable()
 		SomaticVariantInterpreter::Result vicc_result = SomaticVariantInterpreter::viccScore(vicc_data);
 		if(vicc_result != SomaticVariantInterpreter::Result::ONCOGENIC && vicc_result != SomaticVariantInterpreter::Result::LIKELY_ONCOGENIC) continue;
 
-		VariantTranscript trans = var.transcriptAnnotations(i_co_sp)[0];
+		VariantTranscript trans = SomaticReportHelper::selectSomaticTranscript(var, data_, i_co_sp);
 
 		RtfTableRow row;
 

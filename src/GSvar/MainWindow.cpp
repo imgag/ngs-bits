@@ -3652,7 +3652,15 @@ void MainWindow::generateReportSomaticRTF()
 
 	somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
 
-
+	//load obo terms for filtering coding/splicing variants
+	OntologyTermCollection obo_terms("://Resources/so-xp_3_0_0.obo",true);
+	QList<QByteArray> ids;
+	ids << obo_terms.childIDs("SO:0001580",true); //coding variants
+	ids << obo_terms.childIDs("SO:0001568",true); //splicing variants
+	foreach(const QByteArray& id, ids)
+	{
+		somatic_report_settings_.obo_terms_coding_splicing.add(obo_terms.getByID(id));
+	}
 
 	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
 	if(!ui_.filters->targetRegion().isValid()) //use processing system data in case no filter is set

@@ -29,6 +29,10 @@ struct CPPNGSDSHARED_EXPORT SomaticReportSettings
 
 	QMap<QByteArray, QByteArrayList> preferred_transcripts;
 
+	//Sequence ontology that contains the SO IDs of coding and splicing transcripts
+	OntologyTermCollection obo_terms_coding_splicing;
+
+
 	TargetRegionInfo target_region_filter;
 
 
