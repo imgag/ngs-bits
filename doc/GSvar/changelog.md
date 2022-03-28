@@ -1,5 +1,8 @@
 # GSvar change log
 
+### 2021_12-162 (28.03.22)
+- Gaps: gaps in closing dialog can now be opened for editing and details by double-clicking or through the context menu.
+
 ### 2021_12-138 (14.03.22)
 - General: added support for somatic WES.
 - NGSD: added tissue to sample table.
