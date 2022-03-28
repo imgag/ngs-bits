@@ -4808,15 +4808,23 @@ const Transcript& NGSD::transcript(int id)
 	return cache[index];
 }
 
-Transcript NGSD::longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source, bool fallback_alt_source_nocoding)
+Transcript NGSD::longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source, bool fallback_noncoding)
 {
 	TranscriptList list = transcripts(gene_id, source, true);
+
+	//fallback (non-coding)
+	if (list.isEmpty() && fallback_noncoding)
+	{
+		list = transcripts(gene_id, source, false);
+	}
+
+	//fallback alternative source
 	Transcript::SOURCE alt_source = (source==Transcript::CCDS) ? Transcript::ENSEMBL : Transcript::CCDS;
 	if (list.isEmpty() && fallback_alt_source)
 	{
 		list = transcripts(gene_id, alt_source, true);
 	}
-	if (list.isEmpty() && fallback_alt_source_nocoding)
+	if (list.isEmpty() && fallback_alt_source && fallback_noncoding)
 	{
 		list = transcripts(gene_id, alt_source, false);
 	}

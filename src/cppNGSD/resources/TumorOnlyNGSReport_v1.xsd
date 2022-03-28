@@ -266,9 +266,7 @@
 											<xs:documentation>Bases of the longest (coding) transcript</xs:documentation>
 										</xs:annotation>
 										<xs:simpleType>
-											<xs:restriction base="xs:int">
-												<xs:minInclusive value="1"/>
-											</xs:restriction>
+											<xs:restriction base="xs:int"/>
 										</xs:simpleType>
 									</xs:attribute>
 								</xs:complexType>
