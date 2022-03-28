@@ -26,6 +26,9 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 (3999, 1, 3, 1, '1', 1, 1, 'medium', 'comment_ps1', null),
 (4000, 2, 1, 1, '1', 1, 1, 'good', 'comment_ps2', null);
 
+INSERT INTO `processed_sample_ancestry` (`processed_sample_id`, `num_snps`, `score_afr`, `score_eur`, `score_sas`, `score_eas`, `population`) VALUES
+(3999, 2478, 0.0793, 0.3233, 0.2282, 0.0652, 'EUR');
+
 INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `outcome`, `comment`) VALUES
 (3999, 'done', 99, '2014-07-29 09:40:49', 'no significant findings', "free text");
 

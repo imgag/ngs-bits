@@ -43,12 +43,12 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 	<tr>
 		<td>ngs-bits\htslib\lib\</td>
 		<td>
-		hts-3.dll, libbrotlienc.dll, libgcc_s_dw2-1.dll, liblzma-5.dll, libtre-5.dll, hts.dll.a, libbz2-1.dll, libhts.a, libssh2-1.dll, zlib1.dll, libbrotlicommon.dll, libcrypto-1_1.dll, libiconv-2.dll, libssl-1_1.dll, libbrotlidec.dll, libdeflate.dll, libintl-8.dll, libsystre-0.dll
+		*.*
 		</td>
 	</tr>
 	<tr>
 		<td>C:\Qt\Qt5.9.5\5.9.5\mingw53_32\bin\</td>
-		<td>Qt5Charts.dll, Qt5Core.dll, Qt5Gui.dll, Qt5Network.dll, Qt5PrintSupport.dll, Qt5Sql.dll, Qt5Widgets.dll, Qt5Xml.dll, Qt5XmlPatterns.dll, libgcc_s_dw2-1.dll, libwinpthread-1.dll, libstdc++-6.dll</td>
+		<td>Qt5Charts.dll, Qt5Core.dll, Qt5Gui.dll, Qt5Network.dll, Qt5PrintSupport.dll, Qt5Sql.dll, Qt5Widgets.dll, Qt5Xml.dll, Qt5XmlPatterns.dll, libwinpthread-1.dll, libstdc++-6.dll</td>
 	</tr>
 	<tr>
 		<td>C:\Qt\Qt5.9.5\5.9.5\mingw53_32\plugins\</td>

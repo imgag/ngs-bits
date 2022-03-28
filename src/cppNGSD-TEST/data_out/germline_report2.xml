@@ -28,7 +28,7 @@
         <Chromosome chr="chrY" refseq="NC_000024.10"/>
         <Chromosome chr="chrMT" refseq="NC_012920.1"/>
     </ChromosomeAliases>
-    <Sample name="NA12878_03" name_external="ex1" processing_system="HaloPlex HSP v2" processing_system_type="Panel Haloplex" comments="comment_ps1"/>
+    <Sample name="NA12878_03" name_external="ex1" processing_system="HaloPlex HSP v2" processing_system_type="Panel Haloplex" comments="comment_ps1" ancestry="EUR"/>
     <TargetRegion name="panel" regions="1532" bases="271536" gap_cutoff="20" gap_percentage="5.69" ccds_bases_sequenced="4347">
         <Gene name="CYP7B1" identifier="HGNC:2652" bases="2202">
             <Omim gene="603711" phenotype="Bile acid synthesis defect, congenital, 3, 613812 (3)" phenotype_number="613812"/>
@@ -79,5 +79,8 @@
             <Gene name="SLC35E2B" identifier="n/a"/>
         </Sv>
     </SvList>
+    <PrsList>
+        <Prs id="PGS000004" trait="Breast Cancer" citation="Mavaddat N et al. Am J Hum Genet (2018). doi:10.1016/j.ajhg.2018.11.002" score="-0.2773" percentile="53"/>
+    </PrsList>
     <ReportDocument format="HTML"></ReportDocument>
 </DiagnosticNgsReport>
