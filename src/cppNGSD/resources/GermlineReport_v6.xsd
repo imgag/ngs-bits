@@ -303,15 +303,10 @@
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
-									<xs:attribute name="bases">
+									<xs:attribute name="bases" type="xs:int">
 										<xs:annotation>
 											<xs:documentation>Bases of the longest (coding) transcript</xs:documentation>
 										</xs:annotation>
-										<xs:simpleType>
-											<xs:restriction base="xs:int">
-												<xs:minInclusive value="1"/>
-											</xs:restriction>
-										</xs:simpleType>
 									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
