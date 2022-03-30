@@ -144,7 +144,11 @@ private:
             }
 
             //add CSQ to INFO; keep all other infos
-            QByteArrayList info_list = parts[7].split(';');
+            QByteArrayList info_list;
+            if(parts[7] != "" && parts[7] != ".")
+            {
+                info_list = parts[7].split(';');
+            }
             int csq_idx = info_list.indexOf(tag);
             if(csq_idx != -1)
             {
@@ -176,7 +180,6 @@ private:
         writer->write(parts[6]);
         writer->write(&tab, 1);
         writer->write(info);
-        writer->write(&tab, 1);
         if(parts.count() > 8)
         {
             for(int i=8; i<parts.count(); ++i)
