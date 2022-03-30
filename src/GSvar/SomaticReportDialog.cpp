@@ -73,7 +73,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	connect(ui_.include_cnv_burden, SIGNAL(stateChanged(int)), this, SLOT(cinState()));
 	connect(ui_.limitations_check, SIGNAL(stateChanged(int)), this, SLOT(limitationState()));
 
-	connect( ui_.igv_screenshot_create, SIGNAL(linkActivated(QString)), this, SLOT(createIgvScreenshot()) );
+	connect( ui_.label_hint_igv_screenshot_available, SIGNAL(linkActivated(QString)), this, SLOT(createIgvScreenshot()) );
 
 
 	//Resolve tumor content estimate from NGSD
@@ -521,18 +521,27 @@ void SomaticReportDialog::limitationState()
 
 void SomaticReportDialog::createIgvScreenshot()
 {
+	//create commands
 	QStringList commands;
 	commands << "genome " + Settings::path("igv_genome");
 	for(auto loc : GlobalServiceProvider::fileLocationProvider().getBafFiles(false))
 	{
-		if(loc.id.contains("somatic")) commands  << "load " + Helper::canonicalPath(loc.filename);
+		if (!loc.exists) continue;
+		if (!loc.id.contains("somatic")) continue;
+
+		commands  << "load " + Helper::canonicalPath(loc.filename);
 	}
 
-	commands << "load " + Helper::canonicalPath( GlobalServiceProvider::fileLocationProvider().getSomaticCnvCoverageFile().filename );
-	commands << "load " + Helper::canonicalPath( GlobalServiceProvider::fileLocationProvider().getSomaticCnvCallFile().filename );
-	commands << "maxPanelHeight 400";
-	commands << "snapshot " + Helper::canonicalPath( GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename );
+	FileLocation loc = GlobalServiceProvider::fileLocationProvider().getSomaticCnvCoverageFile();
+	if (loc.exists) commands << "load " + Helper::canonicalPath(loc.filename);
 
+	loc = GlobalServiceProvider::fileLocationProvider().getSomaticCnvCallFile();
+	if (loc.exists) commands << "load " + Helper::canonicalPath(loc.filename);
+
+	commands << "maxPanelHeight 400";
+	commands << "snapshot " + Helper::canonicalPath( GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename ); //TODO > ALEXANDR this does not work in client-server mode because the filename is read-only then. We need to create the file in the temp folder and have an end-point to upload the file
+
+	//create screenshot
 	try
 	{
 		for(QWidget* widget : QApplication::topLevelWidgets())
@@ -543,13 +552,16 @@ void SomaticReportDialog::createIgvScreenshot()
 				main_window->executeIGVCommands(commands, false);
 			}
 		}
+
+		QMessageBox::information(this, "IGV screenshot", "IGV screenshot was created.");
+
+		updateIgvText();
 	}
 	catch(Exception e)
 	{
-		QMessageBox::warning(this, "Could not create IGV screenshot", "Could not create IGV screenshot. Error message: " + e.message());
+		QMessageBox::warning(this, "IGV screenshot", "Could not create IGV screenshot. Error message: " + e.message());
 	}
 
-	updateIgvText();
 }
 
 QList<QString> SomaticReportDialog::resolveCIN()
@@ -576,6 +588,6 @@ void SomaticReportDialog::updateIgvText()
 	}
 	else
 	{
-		ui_.label_hint_igv_screenshot_available->setText("<span style=\"color:#ff0000;\">not available</span");
+		ui_.label_hint_igv_screenshot_available->setText("<span style=\"color:#ff0000;\">not available</span> <a href='bal'>[create]</a>");
 	}
 }

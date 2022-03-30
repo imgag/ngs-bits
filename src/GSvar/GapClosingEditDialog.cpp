@@ -35,7 +35,7 @@ void GapClosingEditDialog::updateGUI()
 		QString tmp;
 		try
 		{
-			BedLine coords_hg19 = GSvarHelper::liftOver(chr, start, end);
+			BedLine coords_hg19 = GSvarHelper::liftOver(chr, start, end, false);
 			tmp = coords_hg19.toString(true);
 		}
 		catch(Exception& e)

@@ -38,4 +38,11 @@ private slots:
 		}
 	}
 
+	void test_with_unordered_info_ids()
+	{
+		EXECUTE("VcfAnnotateFromVcf", "-in " + TESTDATA("data_in/VcfAnnotateFromVcf_in1.vcf") + " -out out/VcfAnnotateFromVcf_out3.vcf -annotation_file " + TESTDATA("data_in/VcfAnnotateFromVcf_an2_NGSD.vcf.gz") + " -info_ids GSC01=GROUP,CLAS,COM,CLAS_COM,COUNTS,HAF -id_column ID -id_prefix NGSD" );
+		COMPARE_FILES("out/VcfAnnotateFromVcf_out3.vcf", TESTDATA("data_out/VcfAnnotateFromVcf_out3.vcf"));
+		VCF_IS_VALID("out/VcfAnnotateFromVcf_out3.vcf");
+	}
+
 };

@@ -448,3 +448,23 @@ VcfAnnotateFromBigWig.depends = cppNGS
 SUBDIRS += BedLiftOver
 tools-TEST.depends += BedLiftOver
 BedLiftOver.depends = cppNGS
+SUBDIRS += NGSDExportSV
+tools-TEST.depends += NGSDExportSV
+NGSDExportSV.depends = cppNGSD
+
+SUBDIRS += BedpeAnnotateCounts
+tools-TEST.depends += BedpeAnnotateCounts
+BedpeAnnotateCounts.depends = cppNGS
+
+SUBDIRS += BedpeSort
+tools-TEST.depends += BedpeSort
+BedpeSort.depends = cppNGS
+
+SUBDIRS += BedpeAnnotateBreakpointDensity
+tools-TEST.depends += BedpeAnnotateBreakpointDensity
+BedpeAnnotateBreakpointDensity.depends = cppNGS
+
+SUBDIRS += NGSDUpdateSvGenotype
+tools-TEST.depends += NGSDUpdateSvGenotype
+NGSDUpdateSvGenotype.depends = cppNGSD
+
