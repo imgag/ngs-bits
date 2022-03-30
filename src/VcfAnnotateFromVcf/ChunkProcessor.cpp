@@ -353,7 +353,14 @@ void ChunkProcessor::run()
 			{
 				if (meta_.info_id_list[i][j] != meta_.out_info_id_list[i][j])
 				{
-					header_lines[j].replace("##INFO=<ID=" + meta_.info_id_list[i][j], "##INFO=<ID=" + meta_.out_info_id_list[i][j]);
+					for (int h=0; h<header_lines.count(); h++) {
+						QByteArray line_start = "##INFO=<ID=" + meta_.info_id_list[i][j];
+						if (header_lines[h].startsWith(line_start))
+						{
+							header_lines[h].replace(line_start, "##INFO=<ID=" + meta_.out_info_id_list[i][j]);
+						}
+					}
+
 				}
 			}
 
