@@ -20,8 +20,8 @@ public:
 	virtual void setup()
 	{
 		setDescription("Annotates a SV file with (high-quality) CNV overlap of a given file.");
-                addInfile("in", "Input SV file (in BEDPE format).", false);
-                addOutfile("out", "Output SV file (in BEDPE format).", false);
+		addInfile("in", "Input SV file (in BEDPE format).", false);
+		addOutfile("out", "Output SV file (in BEDPE format).", false);
 		addInfile("cnv", "Input CNV file (in TSV format).", false);
 
 		changeLog(2020, 6, 2, "Initial version of the tool.");

@@ -1,6 +1,7 @@
 #include "LoginDialog.h"
 #include "Helper.h"
 #include "NGSD.h"
+#include "HttpRequestHandler.h"
 
 LoginDialog::LoginDialog(QWidget *parent)
 	: QDialog(parent)
@@ -20,6 +21,11 @@ QString LoginDialog::userName() const
 	return user_name_;
 }
 
+QString LoginDialog::password() const
+{
+	return password_;
+}
+
 void LoginDialog::clear()
 {
 	ui_.password->clear();
@@ -37,6 +43,7 @@ void LoginDialog::checkPassword()
 		if (message.isEmpty())
 		{
 			user_name_ = user_name;
+			password_ = password;
 			accept();
 		}
 		else

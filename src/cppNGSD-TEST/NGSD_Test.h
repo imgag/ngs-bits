@@ -105,7 +105,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in1.sql"));
 
 		//log in user
-		LoginManager::login("ahmustm1", true);
+		LoginManager::login("ahmustm1", "", true);
 
 		//escapeText
 		S_EQUAL(db.escapeText("; '"), "'; '''");
@@ -1400,7 +1400,7 @@ private slots:
 		NGSD db(true);
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in2.sql"));
-		LoginManager::login("ahmustm1", true);
+		LoginManager::login("ahmustm1", "", true);
 
 		QDate report_date = QDate::fromString("2021-02-19", Qt::ISODate);
 
@@ -1540,7 +1540,21 @@ private slots:
 			COMPARE_FILES("out/germline_report3.html", TESTDATA("data_out/germline_report3.html"));
 		}
 
-		//############################### TEST 4 - evaluation sheet ###############################
+		//############################### TEST 4 - report type 'all' ###############################
+		{
+			report_settings.report_type = "all";
+			report_settings.language = "german";
+
+			GermlineReportGenerator generator(data, true);
+			generator.overrideDate(report_date);
+
+			generator.writeHTML("out/germline_report4.html");
+			COMPARE_FILES("out/germline_report4.html", TESTDATA("data_out/germline_report4.html"));
+			generator.writeXML("out/germline_report4.xml", "out/germline_report4.html");
+			COMPARE_FILES("out/germline_report4.xml", TESTDATA("data_out/germline_report4.xml"));
+		}
+
+		//############################### TEST 5 - evaluation sheet ###############################
 		{
 			GermlineReportGenerator generator(data, true);
 			generator.overrideDate(report_date);
@@ -1587,7 +1601,7 @@ private slots:
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in1.sql"));
 		//log in user
-		LoginManager::login("ahmustm1", true);
+		LoginManager::login("ahmustm1", "", true);
 
 
 
@@ -1913,8 +1927,6 @@ private slots:
 		SomaticXmlReportGeneratorData xml_data(GenomeBuild::HG19, settings, vl_filtered, vl_germl_filtered, cnvs_filtered);
 
 
-		//xml_data.processing_system_roi.load(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test.bed"));
-		//xml_data.processing_system_genes = GeneSet::createFromFile(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test_genes.txt"));
 		IS_THROWN(ArgumentException, xml_data.check());
 
 		xml_data.mantis_msi = 0.74;
@@ -1930,7 +1942,7 @@ private slots:
 		xml_data.rtf_part_svs = "Fusions";
 		xml_data.rtf_part_pharmacogenetics = "RTF pharmacogenomics table";
 		xml_data.rtf_part_general_info = "general meta data";
-		xml_data.rtf_part_igv_screenshot = "";
+		xml_data.rtf_part_igv_screenshot = "89504E470D0A1A0A0000000D4948445200000002000000020802000000FDD49A73000000097048597300002E2300002E230178A53F76000000164944415408D763606060686E6E66F8FFFFFF7F0606001FCD0586CC377DEC0000000049454E44AE426082";
 		xml_data.rtf_part_mtb_summary = "MTB summary";
 
 

@@ -551,16 +551,6 @@ void VcfFile::storeAsTsv(const QString& filename)
 	}
 }
 
-void writeZipped(gzFile& gz_file, QString& vcf_file_data, const QString& filename)
-{
-	int written = gzputs(gz_file, vcf_file_data.toLocal8Bit().data());
-	if (written==0)
-	{
-		THROW(FileAccessException, "Could not write to file '" + filename + "'!");
-	}
-	vcf_file_data.clear();
-}
-
 void writeBGZipped(BGZF* instream, QString& vcf_file_data)
 {
 	const QByteArray utf8String = vcf_file_data.toUtf8();

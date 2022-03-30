@@ -7,6 +7,7 @@
 #include "EndpointManager.h"
 #include "UrlManager.h"
 #include "HttpResponse.h"
+#include "SessionManager.h"
 #include <QUrl>
 #include <QDir>
 
@@ -30,14 +31,19 @@ public:
 	static HttpResponse createStaticFromCacheResponse(QString id, QList<ByteRange> byte_ranges, ContentType type, bool is_downloadable);
 	static HttpResponse serveStaticFile(QString filename, RequestMethod method, ContentType content_type, QMap<QString, QList<QString>> headers);
 
+	/// Checks if a valid token has been provided
+	static bool isAuthorizedWithToken(const HttpRequest& request);
+	/// Checks if the token is valid and not expired
+	static HttpResponse checkToken(const HttpRequest& request);
+
 protected:
 	EndpointController();
 
 private:
 	static EndpointController& instance();
 
-	static HttpResponse serveFolderContent(QString path, QString request_prefix, QString request_path, QList<QString> request_path_params);
-	static HttpResponse serveFolderListing(QString folder_title, QString cur_folder_url, QString parent_folder_url, QList<FolderItem> items);
+	static HttpResponse serveFolderContent(const QString path, const HttpRequest& request);
+	static HttpResponse serveFolderListing(QString folder_title, QString cur_folder_url, QString parent_folder_url, QList<FolderItem> items, QString token);
 
 	static QString getEndpointHelpTemplate(QList<Endpoint> endpoint_list);
 	static QString generateHelpPage();

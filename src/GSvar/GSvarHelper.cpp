@@ -8,10 +8,11 @@
 #include "TrioDialog.h"
 #include "SomaticDialog.h"
 #include "Exceptions.h"
+#include "ChainFileReader.h"
 #include <QDir>
 #include <QMessageBox>
 #include <QStandardPaths>
-#include "ChainFileReader.h"
+#include <QBuffer>
 
 const GeneSet& GSvarHelper::impritingGenes()
 {

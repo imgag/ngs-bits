@@ -28,6 +28,8 @@
 #include <GenLabDB.h>
 #include <QToolTip>
 #include <QProcess>
+#include <QImage>
+#include <QBuffer>
 QT_CHARTS_USE_NAMESPACE
 #include "ReportWorker.h"
 #include "ScrollableTextDialog.h"
@@ -275,6 +277,11 @@ MainWindow::MainWindow(QWidget *parent)
 	// working directory, and it seems there is no way to change it. On some systems users may not have write
 	// priveleges for the working directory and this is precisely why we came up with this workaround:
 	QDir::setCurrent(QDir::tempPath());
+
+	// Setting a timer to renew secure tokens for the server API
+	QTimer *timer = new QTimer(this);
+	connect(timer, &QTimer::timeout, this, &LoginManager::renewLogin);
+	timer->start(3600 * 1000); // every hour
 }
 
 QString MainWindow::appName() const
@@ -835,11 +842,6 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahgscha1")
 	{
-		FileLocationList locations = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFiles(false);
-		for(const auto& loc : locations)
-		{
-			qDebug() << loc.exists << " " << loc.filename << " " << loc.id << " " << loc.typeAsHumanReadableString() << endl;
-		}
 	}
 }
 
@@ -1705,7 +1707,7 @@ void MainWindow::delayedInitialization()
 		LoginDialog dlg(this);
 		if (dlg.exec()==QDialog::Accepted)
 		{
-			LoginManager::login(dlg.userName());
+			LoginManager::login(dlg.userName(), dlg.password());
 		}
 	}
 
@@ -2448,6 +2450,12 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 	{
 		NGSD db;
 		QString processed_sample_id = db.processedSampleId(processed_sample_name);
+		UserPermissionProvider upp(LoginManager::userId());
+		if (!upp.isEligibleToAccessProcessedSampleById(processed_sample_id))
+		{
+			QMessageBox::warning(this, "Cannot open sample from NGSD", "You do not have permissions to open this sample");
+			return;
+		}
 
 		//processed sample exists > add to recent samples menu
 		addToRecentSamples(processed_sample_name);
@@ -3645,6 +3653,7 @@ void MainWindow::generateReportSomaticRTF()
 	somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
 
 
+
 	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
 	if(!ui_.filters->targetRegion().isValid()) //use processing system data in case no filter is set
 	{
@@ -3674,6 +3683,30 @@ void MainWindow::generateReportSomaticRTF()
 		somatic_report_settings_.report_config.setCnvBurden(true);
 		somatic_report_settings_.report_config.setHrdScore(0);
 	}
+
+	if(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().exists)
+	{
+		QImage picture = QImage(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename);
+
+
+		if( (uint)picture.width() > 1200 ) picture = picture.scaledToWidth(1200, Qt::TransformationMode::SmoothTransformation);
+		if( (uint)picture.height() > 1200 ) picture = picture.scaledToHeight(1200, Qt::TransformationMode::SmoothTransformation);
+
+		QByteArray png_data = "";
+
+		if(!picture.isNull())
+		{
+			QBuffer buffer(&png_data);
+			buffer.open(QIODevice::WriteOnly);
+			if(picture.save(&buffer, "PNG"))
+			{
+				somatic_report_settings_.igv_snapshot_png_hex_image = png_data.toHex();
+				somatic_report_settings_.igv_snapshot_width = picture.width();
+				somatic_report_settings_.igv_snapshot_height = picture.height();
+			}
+		}
+	}
+
 
 	SomaticReportDialog dlg(somatic_report_settings_, cnvs_, somatic_control_tissue_variants_, this); //widget for settings
 
@@ -3846,14 +3879,15 @@ void MainWindow::generateReportGermline()
 
 	//get export file name
 	QString trio_suffix = (variants_.type() == GERMLINE_TRIO ? "trio_" : "");
-	QString type_suffix = dialog.type().replace(" ", "_") + "s_";
+	QString type_suffix = dialog.type();
+	if (type_suffix!="all") type_suffix = type_suffix.replace(" ", "_") + "s";
 	QString roi_name = ui_.filters->targetRegion().name;
 	if (roi_name!="") //remove date and prefix with '_'
 	{
 		roi_name.remove(QRegExp("_[0-9]{4}_[0-9]{2}_[0-9]{2}"));
 		roi_name = "_" + roi_name;
 	}
-	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + ps_name + roi_name + "_report_" + trio_suffix + type_suffix + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
+	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + ps_name + roi_name + "_report_" + trio_suffix + type_suffix + "_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
 	if (file_rep=="") return;
 	last_report_path_ = QFileInfo(file_rep).absolutePath();
 
@@ -3901,6 +3935,8 @@ void MainWindow::reportGenerationFinished(bool success)
 	//clean
 	worker->deleteLater();
 }
+
+
 
 void MainWindow::openProcessedSampleTabsCurrentAnalysis()
 {

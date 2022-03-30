@@ -16,6 +16,7 @@
 #include "FileLocationProviderLocal.h"
 #include "FileLocationProviderRemote.h"
 #include "VersatileTextStream.h"
+#include "UserPermissionProvider.h"
 
 ///Main window class
 class MainWindow
@@ -272,6 +273,7 @@ public slots:
 	void generateReportGermline();
 	///Finished the report generation (germline)
 	void reportGenerationFinished(bool success);
+
 
 	///Shows the variant list context menu
 	void varsContextMenu(QPoint pos);

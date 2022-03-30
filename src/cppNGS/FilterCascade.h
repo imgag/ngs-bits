@@ -1135,12 +1135,22 @@ class CPPNGSSHARED_EXPORT FilterSvCountNGSD
 		void apply(const BedpeFile& svs, FilterResult& result) const override;
 };
 
-//NGSD SV count filter
+//NGSD SV AF filter
 class CPPNGSSHARED_EXPORT FilterSvAfNGSD
 	: public FilterBase
 {
 	public:
 		FilterSvAfNGSD();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+};
+
+//NGSD SV break point density filter
+class CPPNGSSHARED_EXPORT FilterSvBreakpointDensityNGSD
+	: public FilterBase
+{
+	public:
+		FilterSvBreakpointDensityNGSD();
 		QString toText() const override;
 		void apply(const BedpeFile& svs, FilterResult& result) const override;
 };
