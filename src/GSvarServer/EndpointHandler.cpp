@@ -532,6 +532,39 @@ HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 	return HttpResponse(ResponseStatus::OK, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), filename + " has been saved");
 }
 
+
+HttpResponse EndpointHandler::uploadFile(const HttpRequest& request)
+{
+	qDebug() << "File upload request";
+//	if (!request.getFormUrlEncoded().contains("name") || !request.getFormUrlEncoded().contains("password"))
+//	{
+//		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "No username or/and password were found");
+//	}
+
+//	NGSD db;
+//	QString message = db.checkPassword(request.getFormUrlEncoded()["name"], request.getFormUrlEncoded()["password"]);
+//	if (message.isEmpty())
+//	{
+//		QString secure_token = ServerHelper::generateUniqueStr();
+//		Session cur_session = Session(db.userId(request.getFormUrlEncoded()["name"]), QDateTime::currentDateTime());
+
+//		SessionManager::addNewSession(secure_token, cur_session);
+//		QByteArray body = secure_token.toLocal8Bit();
+
+//		BasicResponseData response_data;
+//		response_data.length = body.length();
+//		response_data.content_type = ContentType::TEXT_PLAIN;
+//		response_data.is_downloadable = false;
+//		qDebug() << "User creadentials are valid";
+//		return HttpResponse(response_data, body);
+//	}
+//	qDebug() << request.getHeaders();
+//	qDebug() << request.getContentType();
+//	qDebug() << request.getBody();
+	return HttpResponse(ResponseStatus::OK, request.getContentType(), "OK");
+}
+
+
 HttpResponse EndpointHandler::performLogin(const HttpRequest& request)
 {
 	qDebug() << "Login request";

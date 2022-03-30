@@ -37,6 +37,7 @@ public:
 	static HttpResponse getAnalysisJobGSvarFile(const HttpRequest& request);
 	static HttpResponse saveProjectFile(const HttpRequest& request);
 	static HttpResponse saveQbicFiles(const HttpRequest& request);
+	static HttpResponse uploadFile(const HttpRequest& request);
 	static HttpResponse performLogin(const HttpRequest& request);
 	static HttpResponse performLogout(const HttpRequest& request);
 

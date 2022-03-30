@@ -344,6 +344,18 @@ int main(int argc, char **argv)
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
+						"upload",
+						QMap<QString, ParamProps>{
+							{"name", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, true, "User name"}},
+						},
+						RequestMethod::POST,
+						ContentType::APPLICATION_OCTET_STREAM,
+						false,
+						"File upload to a folder on the server",
+						&EndpointHandler::uploadFile
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
 							"login",
 						QMap<QString, ParamProps>{
 							{"name", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "User name"}},

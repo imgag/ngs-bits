@@ -87,7 +87,7 @@ void RequestWorker::run()
 			}
 
 			all_request_parts.append(line);
-			if (line.trimmed().size() == 0)
+			if ((line.trimmed().size() == 0) && (!finished_reading_headers))
 			{
 				finished_reading_headers = true;
 				request_headers_size = all_request_parts.size();
