@@ -166,7 +166,7 @@
 									<xs:enumeration value="EAS"/>
 									<xs:enumeration value="EUR"/>
 									<xs:enumeration value="SAS"/>
-									<xs:enumeration value="ADMIXED/UNKNOW"/>
+									<xs:enumeration value="ADMIXED/UNKNOWN"/>
 								</xs:restriction>
 							</xs:simpleType>
 						</xs:attribute>
