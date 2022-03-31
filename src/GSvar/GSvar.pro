@@ -8,8 +8,6 @@ RC_FILE	 = icon.rc
 
 SOURCES += main.cpp\
     CfDNAPanelBatchImport.cpp \
-    DBPermissionsEditor.cpp \
-    DBTablePermissions.cpp \
     DatabaseServiceRemote.cpp \
     GlobalServiceProvider.cpp \
     MainWindow.cpp \
@@ -18,6 +16,7 @@ SOURCES += main.cpp\
     ReportWorker.cpp \
     TrioDialog.cpp \
     HttpHandler.cpp \
+    UserPermissionsEditor.cpp \
     ValidationDialog.cpp \
     ClassificationDialog.cpp \
     ApprovedGenesDialog.cpp \
@@ -112,8 +111,6 @@ SOURCES += main.cpp\
     GapClosingEditDialog.cpp
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
-    DBPermissionsEditor.h \
-    DBTablePermissions.h \
     DatabaseServiceRemote.h \
     ExternalToolDialog.h \
     GlobalServiceProvider.h \
@@ -121,6 +118,7 @@ HEADERS += MainWindow.h \
     ReportWorker.h \
     TrioDialog.h \
     HttpHandler.h \
+    UserPermissionsEditor.h \
     ValidationDialog.h \
     ClassificationDialog.h \
     ApprovedGenesDialog.h \
@@ -216,12 +214,11 @@ HEADERS += MainWindow.h \
     GapClosingEditDialog.h
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
-    DBPermissionsEditor.ui \
-    DBTablePermissions.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
     TrioDialog.ui \
     ClassificationDialog.ui \
+    UserPermissionsEditor.ui \
     ValidationDialog.ui \
     ApprovedGenesDialog.ui \
     GeneWidget.ui \

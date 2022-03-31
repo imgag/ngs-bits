@@ -5,8 +5,7 @@
 #include "LoginManager.h"
 #include "EmailDialog.h"
 #include "GlobalServiceProvider.h"
-#include "DBTablePermissions.h"
-#include "DBPermissionsEditor.h"
+#include "UserPermissionsEditor.h"
 #include <QMessageBox>
 #include <QAction>
 
@@ -163,13 +162,13 @@ void DBTableAdministration::changeUserPermissions()
 
 	if (user_role.toLower() == "user_restricted")
 	{
-		DBTablePermissions* widget = new DBTablePermissions("user_permissions", ui_.table->getId(rows.values()[0]), this);
+		UserPermissionsEditor* widget = new UserPermissionsEditor("user_permissions", ui_.table->getId(rows.values()[0]), this);
 		auto dlg = GUIHelper::createDialog(widget, "User permissions", "", false);
 		dlg->exec();
 	}
 	else
 	{
-		QMessageBox::information(this, "Incorrect user category", "Setting permissions is not available for the selected user role");
+		QMessageBox::information(this, "Incorrect user role", "Setting permissions is availabe for the users with role 'user_restricted' only!");
 	}
 }
 
