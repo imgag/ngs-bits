@@ -16,6 +16,7 @@ SOURCES += main.cpp\
     ReportWorker.cpp \
     TrioDialog.cpp \
     HttpHandler.cpp \
+    UserPermissionsEditor.cpp \
     ValidationDialog.cpp \
     ClassificationDialog.cpp \
     ApprovedGenesDialog.cpp \
@@ -117,6 +118,7 @@ HEADERS += MainWindow.h \
     ReportWorker.h \
     TrioDialog.h \
     HttpHandler.h \
+    UserPermissionsEditor.h \
     ValidationDialog.h \
     ClassificationDialog.h \
     ApprovedGenesDialog.h \
@@ -216,6 +218,7 @@ FORMS    += MainWindow.ui \
     ReportDialog.ui \
     TrioDialog.ui \
     ClassificationDialog.ui \
+    UserPermissionsEditor.ui \
     ValidationDialog.ui \
     ApprovedGenesDialog.ui \
     GeneWidget.ui \

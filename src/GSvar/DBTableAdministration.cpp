@@ -5,6 +5,7 @@
 #include "LoginManager.h"
 #include "EmailDialog.h"
 #include "GlobalServiceProvider.h"
+#include "UserPermissionsEditor.h"
 #include <QMessageBox>
 #include <QAction>
 
@@ -19,6 +20,7 @@ DBTableAdministration::DBTableAdministration(QString table, QWidget* parent)
 
 	connect(ui_.add_btn, SIGNAL(clicked(bool)), this, SLOT(add()));
 	connect(ui_.edit_btn, SIGNAL(clicked(bool)), this, SLOT(edit()));
+	connect(ui_.change_permissions_btn, SIGNAL(clicked(bool)), this, SLOT(changeUserPermissions()));
 	connect(ui_.delete_btn, SIGNAL(clicked(bool)), this, SLOT(remove()));
 	connect(ui_.text_filter_btn, SIGNAL(clicked(bool)), this, SLOT(updateTable()));
 	connect(ui_.table, SIGNAL(rowDoubleClicked(int)), this, SLOT(edit(int)));
@@ -26,6 +28,10 @@ DBTableAdministration::DBTableAdministration(QString table, QWidget* parent)
 	QAction* action = new QAction(QIcon(":/Icons/Edit.png"), "Edit", this);
 	ui_.table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(edit()));
+
+	action = new QAction(QIcon(":/Icons/Lock.png"), "User permissions", this);
+	ui_.table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(changeUserPermissions()));
 
 	action = new QAction(QIcon(":/Icons/Remove.png"), "Delete", this);
 	ui_.table->addAction(action);
@@ -130,6 +136,39 @@ void DBTableAdministration::edit(int row)
 		{
 			QMessageBox::warning(this, "Error storing item", "Could not store the item.\n\nDatabase error:\n" + e.message());
 		}
+	}
+}
+
+void DBTableAdministration::changeUserPermissions()
+{
+	//check
+	QSet<int> rows = ui_.table->selectedRows();
+	if (rows.count()!=1)
+	{
+		QMessageBox::information(this, "Selection error", "Please select exactly one item!");
+		return;
+	}
+
+	QString user_id = ui_.table->getId(rows.values()[0]);
+	QString user_role;
+	try
+	{
+		user_role = NGSD().getValue("SELECT user_role FROM user WHERE id=" + user_id).toString();
+	}
+	catch (DatabaseException& e)
+	{
+		QMessageBox::information(this, "Database error", "Could not get user info from the database: " + e.message());
+	}
+
+	if (user_role.toLower() == "user_restricted")
+	{
+		UserPermissionsEditor* widget = new UserPermissionsEditor("user_permissions", ui_.table->getId(rows.values()[0]), this);
+		auto dlg = GUIHelper::createDialog(widget, "User permissions", "", false);
+		dlg->exec();
+	}
+	else
+	{
+		QMessageBox::information(this, "Incorrect user role", "Setting permissions is availabe for the users with role 'user_restricted' only!");
 	}
 }
 
