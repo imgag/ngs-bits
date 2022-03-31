@@ -4,7 +4,7 @@
 #include <QWidget>
 #include "DelayedInitializationTimer.h"
 #include "NGSD.h"
-#include "ui_DBTablePermissions.h"
+#include "ui_UserPermissionsEditor.h"
 
 // This class implements a user interface for adding a removing
 // user permissions: i.e. access to a specific project, project

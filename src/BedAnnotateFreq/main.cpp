@@ -21,7 +21,7 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Extracts base frequencies for given regions from BAM/CRAM files.");
+		setDescription("Extracts base counts and depth in the given regions from a BAM/CRAM files.");
 		addInfileList("bam", "Input BAM/CRAM file(s).", false);
 		//optional
 		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
