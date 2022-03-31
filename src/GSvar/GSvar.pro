@@ -109,7 +109,9 @@ SOURCES += main.cpp\
     FusionWidget.cpp \
     CohortExpressionDataWidget.cpp \
     GapClosingEditDialog.cpp \
-    CausalVariantEditDialog.cppHEADERS += MainWindow.h \
+    CausalVariantEditDialog.cpp
+
+HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
     DatabaseServiceRemote.h \
     ExternalToolDialog.h \
@@ -212,7 +214,9 @@ SOURCES += main.cpp\
     FusionWidget.h \
     CohortExpressionDataWidget.h \
     GapClosingEditDialog.h \
-    CausalVariantEditDialog.hFORMS    += MainWindow.ui \
+    CausalVariantEditDialog.h
+
+FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
