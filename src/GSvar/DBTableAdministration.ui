@@ -116,6 +116,17 @@
       </widget>
      </item>
      <item>
+      <widget class="QToolButton" name="change_permissions_btn">
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset resource="GSvar.qrc">
+         <normaloff>:/Icons/Lock.png</normaloff>:/Icons/Lock.png</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="verticalSpacer_2">
        <property name="orientation">
         <enum>Qt::Vertical</enum>

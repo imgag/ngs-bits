@@ -3109,6 +3109,19 @@ void MainWindow::checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues)
 			}
 		}
 	}
+
+	//check sv annotation
+	if (type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE)
+	{
+		if (svs_.isValid())
+		{
+			//check for NGSD count annotation
+			if(!svs_.annotationHeaders().contains("NGSD_HOM") || !svs_.annotationHeaders().contains("NGSD_HET") || !svs_.annotationHeaders().contains("NGSD_AF"))
+			{
+				issues << qMakePair(Log::LOG_WARNING, QString("Current NGSD count annotation of structural variants is missing! Please reannotate the SV file."));
+			}
+		}
+	}
 }
 
 void MainWindow::checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>>& issues)
