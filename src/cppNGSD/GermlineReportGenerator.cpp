@@ -378,7 +378,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 
 		writeCoverageReportCCDS(stream, 5, true, true);
 
-		writeClosedGapsReport(stream, data_.roi.regions);
+		writeClosedGapsReport(stream);
 	}
 
 	//OMIM table
@@ -1312,6 +1312,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Z-Score"] = "z-score";
 		de2en["Population (gesch&auml;tzt aus NGS)"] = "population (estimated from NGS)";
 		de2en["Die Einsch&auml;tzung der klinischen Bedeutung eines PRS ist nur unter Verwendung eines entsprechenden validierten Risiko-Kalkulations-Programms und unter Ber&uuml;cksichtigung der ethnischen Zugeh&ouml;rigkeit m&ouml;glich (z.B. CanRisk.org f&uuml;r Brustkrebs)."] = "A validated risk estimation program must be used to judge the clinical importance of a PRS, e.g. CanRisk.org for breast cancer. The ethnicity of the patient must also be considered.";
+		de2en["nach L&uuml;ckenschluss"] = "after closing gaps";
 	}
 
 	//translate
@@ -1376,6 +1377,7 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 	stream << "<br />" << trans("Durchschnittliche Sequenziertiefe (chrMT)") << ": " << mito_bed[0].annotations()[0] << endl;
 	stream << "</p>" << endl;
 
+	//low coverage statistics
 	if (data_.report_settings.roi_low_cov)
 	{
 		//calculate low-coverage regions
@@ -1457,15 +1459,17 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 	}
 }
 
-void GermlineReportGenerator::writeClosedGapsReport(QTextStream& stream, const BedFile& roi)
+void GermlineReportGenerator::writeClosedGapsReport(QTextStream& stream)
 {
-	ChromosomalIndex<BedFile> roi_idx(roi);
+	ChromosomalIndex<BedFile> roi_idx(data_.roi.regions);
 	//init
 	SqlQuery query = db_.getQuery();
 	query.prepare("SELECT chr, start, end, status FROM gaps WHERE processed_sample_id='" + ps_id_ + "' AND status=:0 ORDER BY chr,start,end");
 
 	stream << endl;
 	stream << "<p><b>" << trans("L&uuml;ckenschluss") << "</b></p>" << endl;
+
+	int gap_bases_closed = 0;
 
 	//closed by Sanger
 	{
@@ -1491,6 +1495,8 @@ void GermlineReportGenerator::writeClosedGapsReport(QTextStream& stream, const B
 		stream << "</table>" << endl;
 		stream << trans("Basen gesamt:") << QString::number(base_sum);
 		stream << "</p>" << endl;
+
+		gap_bases_closed += base_sum;
 	}
 
 	//closed by visual inspection
@@ -1517,6 +1523,18 @@ void GermlineReportGenerator::writeClosedGapsReport(QTextStream& stream, const B
 		stream << "</table>" << endl;
 		stream << trans("Basen gesamt:") << QString::number(base_sum);
 		stream << "</p>" << endl;
+
+		gap_bases_closed += base_sum;
+	}
+
+	//add gap percentage after closing gaps
+	if (gap_percentage_>0) //only possible if gap statistics of ROI was performed
+	{
+		double gap_bases = gap_percentage_ / 100.0 * data_.roi.regions.baseCount();
+		double gap_percentage_after_closing_gaps = 100.0 * (gap_bases-gap_bases_closed)/data_.roi.regions.baseCount();
+		stream << "<p>";
+		stream << trans("Anteil Regionen mit Tiefe &lt;") << data_.report_settings.min_depth << " " << trans("nach L&uuml;ckenschluss") << ": " << QString::number(gap_percentage_after_closing_gaps, 'f', 2) << "%" << endl;
+		stream << "</p>";
 	}
 }
 
