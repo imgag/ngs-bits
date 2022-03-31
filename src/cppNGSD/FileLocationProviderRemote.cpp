@@ -69,7 +69,8 @@ FileLocationList FileLocationProviderRemote::getFileLocationsByType(PathType typ
 				Helper::serverApiUrl()
 				+ "file_location?ps_url_id=" + file_id + "&type=" + FileLocation::typeToString(type)
 				+ "&multiple_files=1"
-				+ "&return_if_missing=" +(return_if_missing ? "1" : "0"), add_headers);
+				+ "&return_if_missing=" +(return_if_missing ? "1" : "0")
+				+ "&token="+LoginManager::token(), add_headers);
 
 	QJsonDocument json_doc = QJsonDocument::fromJson(reply);
 	QJsonArray file_list = json_doc.array();
@@ -101,7 +102,8 @@ FileLocation FileLocationProviderRemote::getOneFileLocationByType(PathType type,
 				Helper::serverApiUrl()
 				+ "file_location?ps_url_id=" + file_id + "&type=" +  FileLocation::typeToString(type)
 				+ "&multiple_files=0"
-				+ (locus.isEmpty() ? "" : "&locus=" + locus), add_headers);
+				+ (locus.isEmpty() ? "" : "&locus=" + locus)
+				+ "&token="+LoginManager::token(), add_headers);
 
 	QJsonDocument json_doc = QJsonDocument::fromJson(reply.toLatin1());
 	QJsonArray file_list = json_doc.array();
@@ -224,4 +226,9 @@ FileLocation FileLocationProviderRemote::getSomaticLowCoverageFile() const
 FileLocation FileLocationProviderRemote::getSomaticMsiFile() const
 {
 	return getOneFileLocationByType(PathType::MSI, "");
+}
+
+FileLocation FileLocationProviderRemote::getSomaticIgvScreenshotFile() const
+{
+	return getOneFileLocationByType(PathType::IGV_SCREENSHOT, "");
 }

@@ -8,6 +8,33 @@
 
 typedef QByteArray RtfSourceCode;
 
+class CPPNGSSHARED_EXPORT RtfPicture
+{
+public:
+	RtfPicture(QByteArray png_data);
+
+	RtfSourceCode RtfCode();
+
+	RtfPicture& setWidth(int width)
+	{
+		width_ = width;
+		return *this;
+	}
+	RtfPicture& setHeight(int height)
+	{
+		height_ = height;
+		return *this;
+	}
+
+private:
+	//image data representated as a binary string
+	QByteArray png_data_;
+	//image width in pixels
+	int width_ = 0;
+	//image height in pixels
+	int height_ = 0;
+};
+
 
 /*************************
  * RTF TEXT BASE CLASSES *

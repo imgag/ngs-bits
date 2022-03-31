@@ -16,6 +16,7 @@ SOURCES += main.cpp\
     ReportWorker.cpp \
     TrioDialog.cpp \
     HttpHandler.cpp \
+    UserPermissionsEditor.cpp \
     ValidationDialog.cpp \
     ClassificationDialog.cpp \
     ApprovedGenesDialog.cpp \
@@ -107,8 +108,8 @@ SOURCES += main.cpp\
     PhenotypeSourceEvidenceSelector.cpp \
     FusionWidget.cpp \
     CohortExpressionDataWidget.cpp \
-    CausalVariantEditDialog.cpp
-HEADERS += MainWindow.h \
+    GapClosingEditDialog.cpp \
+    CausalVariantEditDialog.cppHEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
     DatabaseServiceRemote.h \
     ExternalToolDialog.h \
@@ -117,6 +118,7 @@ HEADERS += MainWindow.h \
     ReportWorker.h \
     TrioDialog.h \
     HttpHandler.h \
+    UserPermissionsEditor.h \
     ValidationDialog.h \
     ClassificationDialog.h \
     ApprovedGenesDialog.h \
@@ -209,13 +211,14 @@ HEADERS += MainWindow.h \
     PhenotypeSourceEvidenceSelector.h \
     FusionWidget.h \
     CohortExpressionDataWidget.h \
-    CausalVariantEditDialog.h
-FORMS    += MainWindow.ui \
+    GapClosingEditDialog.h \
+    CausalVariantEditDialog.hFORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
     TrioDialog.ui \
     ClassificationDialog.ui \
+    UserPermissionsEditor.ui \
     ValidationDialog.ui \
     ApprovedGenesDialog.ui \
     GeneWidget.ui \
@@ -297,8 +300,8 @@ FORMS    += MainWindow.ui \
     PhenotypeSourceEvidenceSelector.ui \
     FusionWidget.ui \
     CohortExpressionDataWidget.ui \
+    GapClosingEditDialog.ui \
     CausalVariantEditDialog.ui
-
 include("../app_gui.pri")
 
 #include NGSD library

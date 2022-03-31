@@ -48,22 +48,32 @@ HttpRequest RequestParser::parse(QByteArray *request) const
 				parsed_request.addHeader(body[i].left(header_separator).toLower(), header_values[h].trimmed());
 			}
 		}
-		else if (param_separator > -1)
-		{
-			parsed_request.setFormUrlEncoded(getVariables(body[i]));
-		}
 	}
+
+	qDebug() << getRequestBody(*request).trimmed();
 
 	parsed_request.setBody(getRequestBody(*request).trimmed());
 	parsed_request.setContentType(ContentType::TEXT_HTML);
-	if (parsed_request.getHeaders().contains("accept"))
+//	if (parsed_request.getHeaders().contains("accept"))
+//	{
+//		QList<QString> headers = parsed_request.getHeaders()["accept"];
+//		if (headers.isEmpty()) return parsed_request;
+//		if (HttpProcessor::getContentTypeFromString(headers[0]) == ContentType::APPLICATION_JSON)
+//		{
+//			parsed_request.setContentType(ContentType::APPLICATION_JSON);
+//		}
+//	}
+
+	if (parsed_request.getHeaders().contains("content-type"))
 	{
-		QList<QString> headers = parsed_request.getHeaders()["accept"];
+		QList<QString> headers = parsed_request.getHeaders()["content-type"];
 		if (headers.isEmpty()) return parsed_request;
-		if (HttpProcessor::getContentTypeFromString(headers[0]) == ContentType::APPLICATION_JSON)
-		{
-			parsed_request.setContentType(ContentType::APPLICATION_JSON);
-		}
+		parsed_request.setContentType(HttpProcessor::getContentTypeFromString(headers[0]));
+	}
+
+	if (parsed_request.getContentType() == ContentType::APPLICATION_X_WWW_FORM_URLENCODED)
+	{
+		parsed_request.setFormUrlEncoded(getVariables(parsed_request.getBody()));
 	}
 
 	return parsed_request;
@@ -163,7 +173,14 @@ QList<QString> RequestParser::getRequestPathParams(const QList<QString>& path_it
 		{
 			if (!path_items[p].trimmed().isEmpty())
 			{
-				params.append(path_items[p].trimmed());
+				QString current_item = path_items[p].trimmed();
+				int param_separator = current_item.indexOf("?");
+				if (param_separator > -1)
+				{
+					current_item = current_item.left(param_separator);
+				}
+				if (current_item.length() == 0) continue;
+				params.append(current_item);
 			}
 		}
 	}

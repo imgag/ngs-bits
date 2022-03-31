@@ -300,10 +300,19 @@ void CnvWidget::updateGUI()
 		if (report_variant_indices.contains(r))
 		{
 			bool show_report_icon;
-			if(!is_somatic_) show_report_icon = report_config_->get(VariantType::CNVS, r).showInReport();
-			else show_report_icon = somatic_report_config_->get(VariantType::CNVS, r).showInReport();
+			bool causal = false;
+			if(!is_somatic_)
+			{
+				const ReportVariantConfiguration& rc = report_config_->get(VariantType::CNVS, r);
+				show_report_icon = rc.showInReport();
+				causal = rc.causal;
+			}
+			else
+			{
+				show_report_icon = somatic_report_config_->get(VariantType::CNVS, r).showInReport();
+			}
 
-			header_item->setIcon(VariantTable::reportIcon(show_report_icon));
+			header_item->setIcon(VariantTable::reportIcon(show_report_icon, causal));
 		}
 		ui->cnvs->setVerticalHeaderItem(r, header_item);
 
@@ -618,7 +627,7 @@ void CnvWidget::showContextMenu(QPoint p)
 		try
 		{
 			//get region as string (Decipher supports only HG38)
-			QString region = GSvarHelper::build()==GenomeBuild::HG38 ? cnvs_[row].toString() : GSvarHelper::liftOver(cnvs_[row].chr(), cnvs_[row].start(), cnvs_[row].end()).toString(true);
+			QString region = GSvarHelper::build()==GenomeBuild::HG38 ? cnvs_[row].toString() : GSvarHelper::liftOver(cnvs_[row].chr(), cnvs_[row].start(), cnvs_[row].end(), true).toString(true);
 			region.remove("chr");
 
 			QDesktopServices::openUrl(QUrl("https://decipher.sanger.ac.uk/browser#q/" + region));
@@ -810,11 +819,12 @@ void CnvWidget::updateReportConfigHeaderIcon(int row)
 		QIcon report_icon;
 		if (!is_somatic_ && report_config_->exists(VariantType::CNVS, row))
 		{
-			report_icon = VariantTable::reportIcon(report_config_->get(VariantType::CNVS, row).showInReport());
+			const ReportVariantConfiguration& rc = report_config_->get(VariantType::CNVS, row);
+			report_icon = VariantTable::reportIcon(rc.showInReport(), rc.causal);
 		}
 		else if(is_somatic_ && somatic_report_config_->exists(VariantType::CNVS, row))
 		{
-			report_icon = VariantTable::reportIcon(somatic_report_config_->get(VariantType::CNVS, row).showInReport());
+			report_icon = VariantTable::reportIcon(somatic_report_config_->get(VariantType::CNVS, row).showInReport(), false);
 		}
 		ui->cnvs->verticalHeaderItem(row)->setIcon(report_icon);
 	}

@@ -4,7 +4,7 @@ EndpointManager::EndpointManager()
 {
 }
 
-HttpResponse EndpointManager::blockInvalidUsers(HttpRequest request)
+HttpResponse EndpointManager::getAuthStatus(HttpRequest request)
 {
 	QString auth_header = request.getHeaderByName("Authorization").length() > 0 ? request.getHeaderByName("Authorization")[0] : "";
 	if (auth_header.isEmpty())
@@ -30,12 +30,24 @@ HttpResponse EndpointManager::blockInvalidUsers(HttpRequest request)
 	QString password = auth_header_decoded.mid(separator_pos+1, auth_header_decoded.size()-username.size()-1);
 
 	// TODO: brute-force attack protection may be needed
-	if (!isUserValid(username, password))
+	QString message;
+
+	try
+	{
+		NGSD db;
+		message = db.checkPassword(username, password);
+	}
+	catch (Exception& e)
+	{
+		return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Database error: " + e.message());
+	}
+
+	if (message.isEmpty())
 	{
 		return HttpResponse(ResponseStatus::UNAUTHORIZED, request.getContentType(), "Invalid user credentials");
 	}
 
-	return HttpResponse();
+	return HttpResponse(ResponseStatus::OK, request.getContentType(), "Successful authorization");
 }
 
 void EndpointManager::validateInputData(Endpoint* current_endpoint, const HttpRequest& request)
@@ -128,27 +140,4 @@ EndpointManager& EndpointManager::instance()
 {
 	static EndpointManager endpoint_factory;
 	return endpoint_factory;
-}
-
-bool EndpointManager::isUserValid(QString& user, QString& password)
-{
-	try
-	{
-		NGSD db;
-		QString message = db.checkPassword(user, password, true);
-		if (message.isEmpty())
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-
-	}
-	catch (DatabaseException& e)
-	{
-		qCritical() << e.message();
-	}
-	return false;
 }

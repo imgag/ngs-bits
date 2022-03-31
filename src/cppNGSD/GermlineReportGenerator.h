@@ -68,7 +68,9 @@ private:
 	bool test_mode_;
 
 	QString ps_id_;
-	QMap<QString, QString> cache_;
+	double gap_percentage_ = -1; //cached by HTML report for use in XML
+	int bases_ccds_sequenced_ = -1; //cached by HTML report for use in XML
+	QMap<QByteArray, BedFile> gaps_by_gene_; //cached by HTML report for use in XML
 	QSet<int> selected_small_;
 	QSet<int> selected_cnvs_;
 	QSet<int> selected_svs_;

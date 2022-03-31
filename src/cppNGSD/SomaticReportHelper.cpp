@@ -925,6 +925,23 @@ RtfSourceCode SomaticReportHelper::partVirusTable()
 	return virus_table.RtfCode();
 }
 
+RtfSourceCode SomaticReportHelper::partIgvScreenshot()
+{
+	if(settings_.igv_snapshot_png_hex_image == "") return "";
+
+	RtfPicture snapshot(settings_.igv_snapshot_png_hex_image);
+
+	snapshot.setWidth(doc_.maxWidth());
+
+	double ratio = (double)doc_.maxWidth() / settings_.igv_snapshot_width;
+	snapshot.setHeight(settings_.igv_snapshot_height * ratio);
+
+
+
+
+	return snapshot.RtfCode();
+}
+
 RtfSourceCode SomaticReportHelper::partPharmacoGenetics()
 {
 	RtfTable table;
@@ -1338,11 +1355,21 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	 * GENERAL INFORMATION / QUALITY PARAMETERS*
 	 *******************************************/
 	doc_.addPart(partMetaData());
+	doc_.addPart(RtfParagraph("").RtfCode());
+
+	/******************
+	 * IGV SCREENSHOT *
+	 ******************/
+	if(!settings_.igv_snapshot_png_hex_image.isEmpty())
+	{
+		doc_.addPart(partIgvScreenshot());
+	}
 
 	/***********************
 	 * BILLING INFORMATION *
 	 ***********************/
 	doc_.addPart(RtfParagraph("").RtfCode());
+
 	doc_.newPage();
 
 	doc_.addPart(partBillingTable());
@@ -1367,7 +1394,7 @@ void SomaticReportHelper::storeXML(QString file_name)
 	data.rtf_part_svs = partFusions();
 	data.rtf_part_pharmacogenetics = partPharmacoGenetics();
 	data.rtf_part_general_info = partMetaData();
-	data.rtf_part_igv_screenshot = "";
+	data.rtf_part_igv_screenshot = partIgvScreenshot();
 	data.rtf_part_mtb_summary = "";
 
 	QSharedPointer<QFile> out_file = Helper::openFileForWriting(file_name);

@@ -319,7 +319,7 @@ CREATE  TABLE IF NOT EXISTS `user`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `user_id` VARCHAR(45) NOT NULL COMMENT 'Use the lower-case Windows domain name!',
   `password` VARCHAR(64) NOT NULL,
-  `user_role` ENUM('user','admin','special') NOT NULL,
+  `user_role` ENUM('user','user_restricted','admin','special') NOT NULL,
   `name` VARCHAR(45) NOT NULL,
   `email` VARCHAR(100) NOT NULL,
   `created` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -329,6 +329,27 @@ CREATE  TABLE IF NOT EXISTS `user`
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`user_id` ASC),
   UNIQUE INDEX `email_UNIQUE` (`email` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `user_permissions`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `user_permissions`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `user_id` INT(11) NOT NULL,
+  `permission` ENUM('meta_data','project','project_type', 'study','sample') NOT NULL,
+  `data` VARCHAR(100) NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `user_id` (`user_id` ASC),
+  CONSTRAINT `user_id`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `user` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
@@ -1558,6 +1579,7 @@ CREATE  TABLE IF NOT EXISTS `sv_deletion`
   `start_max` INT(11) UNSIGNED NOT NULL,
   `end_min` INT(11) UNSIGNED NOT NULL,
   `end_max` INT(11) UNSIGNED NOT NULL,
+  `genotype` ENUM('hom','het', 'n/a') NOT NULL DEFAULT 'n/a',
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   PRIMARY KEY (`id`),
   CONSTRAINT `sv_del_references_sv_callset`
@@ -1584,6 +1606,7 @@ CREATE  TABLE IF NOT EXISTS `sv_duplication`
   `start_max` INT(11) UNSIGNED NOT NULL,
   `end_min` INT(11) UNSIGNED NOT NULL,
   `end_max` INT(11) UNSIGNED NOT NULL,
+  `genotype` ENUM('hom','het', 'n/a') NOT NULL DEFAULT 'n/a',
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   PRIMARY KEY (`id`),
   CONSTRAINT `sv_dup_references_sv_callset`
@@ -1612,6 +1635,7 @@ CREATE  TABLE IF NOT EXISTS `sv_insertion`
   `inserted_sequence` TEXT DEFAULT NULL,
   `known_left` TEXT DEFAULT NULL,
   `known_right` TEXT DEFAULT NULL,
+  `genotype` ENUM('hom','het', 'n/a') NOT NULL DEFAULT 'n/a',
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   PRIMARY KEY (`id`),
   CONSTRAINT `sv_ins_references_sv_callset`
@@ -1637,6 +1661,7 @@ CREATE  TABLE IF NOT EXISTS `sv_inversion`
   `start_max` INT(11) UNSIGNED NOT NULL,
   `end_min` INT(11) UNSIGNED NOT NULL,
   `end_max` INT(11) UNSIGNED NOT NULL,
+  `genotype` ENUM('hom','het', 'n/a') NOT NULL DEFAULT 'n/a',
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   PRIMARY KEY (`id`),
   CONSTRAINT `sv_inv_references_sv_callset`
@@ -1664,6 +1689,7 @@ CREATE  TABLE IF NOT EXISTS `sv_translocation`
   `chr2` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
   `start2` INT(11) UNSIGNED NOT NULL,
   `end2` INT(11) UNSIGNED NOT NULL,
+  `genotype` ENUM('hom','het', 'n/a') NOT NULL DEFAULT 'n/a',
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   PRIMARY KEY (`id`),
   CONSTRAINT `sv_bnd_references_sv_callset`

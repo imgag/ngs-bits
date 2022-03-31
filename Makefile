@@ -96,11 +96,17 @@ clean:
 test_lib:
 	cd bin && ./cppCORE-TEST && ./cppNGS-TEST && ./cppNGSD-TEST && ./cppREST-TEST
 
+test_lib_windows:
+	cd bin && ./cppCORE-TEST.exe && ./cppNGS-TEST.exe && ./cppNGSD-TEST.exe && ./cppREST-TEST.exe
+
 test_server:
 	cd bin && ./GSvarServer-TEST
 
 test_tools:
 	cd bin && ./tools-TEST
+
+test_tools_windows:
+	cd bin && ./tools-TEST.exe
 
 test_single_tool:
 	cd bin && ./tools-TEST -s $(T)

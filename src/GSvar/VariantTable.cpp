@@ -14,7 +14,7 @@ VariantTable::VariantTable(QWidget* parent)
 {
 }
 
-void VariantTable::updateTable(const VariantList& variants, const FilterResult& filter_result, const QMap<int,bool>& index_show_report_icon, int max_variants)
+void VariantTable::updateTable(const VariantList& variants, const FilterResult& filter_result, const QHash<int,bool>& index_show_report_icon, const QSet<int>& index_causal, int max_variants)
 {
 	//set rows and cols
 	int row_count_new = std::min(filter_result.countPassing(), max_variants);
@@ -222,7 +222,7 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 		}
 		if (index_show_report_icon.keys().contains(i))
 		{
-			item->setIcon(reportIcon(index_show_report_icon.value(i)));
+			item->setIcon(reportIcon(index_show_report_icon.value(i), index_causal.contains(i)));
 		}
 		setVerticalHeaderItem(r, item);
 	}
@@ -231,25 +231,29 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 void VariantTable::update(const VariantList& variants, const FilterResult& filter_result, const ReportSettings& report_settings, int max_variants)
 {
 	//init
-	QMap<int, bool> index_show_report_icon;
+	QHash<int, bool> index_show_report_icon;
+	QSet<int> index_causal;
 	for(int index : report_settings.report_config->variantIndices(VariantType::SNVS_INDELS, false))
 	{
-		index_show_report_icon[index] = report_settings.report_config->get(VariantType::SNVS_INDELS, index).showInReport();
+		const ReportVariantConfiguration& rc = report_settings.report_config->get(VariantType::SNVS_INDELS, index);
+		index_show_report_icon[index] = rc.showInReport();
+		if (rc.causal) index_causal << index;
 	}
 
-	updateTable(variants, filter_result, index_show_report_icon, max_variants);
+	updateTable(variants, filter_result, index_show_report_icon, index_causal, max_variants);
 }
 
 void VariantTable::update(const VariantList& variants, const FilterResult& filter_result, const SomaticReportSettings& report_settings, int max_variants)
 {
 	//init
-	QMap<int, bool> index_show_report_icon;
+	QHash<int, bool> index_show_report_icon;
+	QSet<int> index_causal;
 	for(int index : report_settings.report_config.variantIndices(VariantType::SNVS_INDELS, false))
 	{
 		index_show_report_icon[index] = report_settings.report_config.get(VariantType::SNVS_INDELS, index).showInReport();
 	}
 
-	updateTable(variants, filter_result, index_show_report_icon, max_variants);
+	updateTable(variants, filter_result, index_show_report_icon, index_causal, max_variants);
 }
 
 void VariantTable::updateVariantHeaderIcon(const ReportSettings& report_settings, int variant_index)
@@ -259,7 +263,8 @@ void VariantTable::updateVariantHeaderIcon(const ReportSettings& report_settings
 	QIcon report_icon;
 	if (report_settings.report_config->exists(VariantType::SNVS_INDELS, variant_index))
 	{
-		report_icon = reportIcon(report_settings.report_config->get(VariantType::SNVS_INDELS, variant_index).showInReport());
+		const ReportVariantConfiguration& rc = report_settings.report_config->get(VariantType::SNVS_INDELS, variant_index);
+		report_icon = reportIcon(rc.showInReport(), rc.causal);
 	}
 	verticalHeaderItem(row)->setIcon(report_icon);
 }
@@ -270,7 +275,7 @@ void VariantTable::updateVariantHeaderIcon(const SomaticReportSettings &report_s
 	QIcon report_icon;
 	if(report_settings.report_config.exists(VariantType::SNVS_INDELS, variant_index))
 	{
-		report_icon = reportIcon(report_settings.report_config.get(VariantType::SNVS_INDELS, variant_index).showInReport());
+		report_icon = reportIcon(report_settings.report_config.get(VariantType::SNVS_INDELS, variant_index).showInReport(), false);
 	}
 	verticalHeaderItem(row)->setIcon(report_icon);
 }
@@ -652,9 +657,12 @@ void VariantTable::copyToClipboard(bool split_quality, bool include_header_one_r
 	QApplication::clipboard()->setText(selected_text);
 }
 
-QIcon VariantTable::reportIcon(bool show_in_report)
+QIcon VariantTable::reportIcon(bool show_in_report, bool causal)
 {
-	return QIcon(show_in_report ? QPixmap(":/Icons/Report_add.png") : QPixmap(":/Icons/Report exclude.png"));
+	if (!show_in_report) return QPixmap(":/Icons/Report_exclude.png");
+	if (causal) return QPixmap(":/Icons/Report_add_causal.png");
+
+	return QPixmap(":/Icons/Report_add.png");
 }
 
 void VariantTable::keyPressEvent(QKeyEvent* event)

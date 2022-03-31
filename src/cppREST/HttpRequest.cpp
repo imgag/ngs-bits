@@ -39,7 +39,7 @@ void HttpRequest::addHeader(QString key, QString value)
 	}
 	if (!headers_[key].contains(value.toLower()))
 	{
-		headers_[key].append(value.trimmed().toLower());
+		headers_[key].append(value.trimmed());
 	}
 }
 

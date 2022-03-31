@@ -42,6 +42,7 @@ private:
 	QThreadPool thread_pool_annotate_;
 	QThreadPool thread_pool_write_;
 
+	bool input_done_ = false;
 	QTimer timer_done_;
 };
 

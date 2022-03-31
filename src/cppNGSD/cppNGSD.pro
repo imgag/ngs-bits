@@ -55,6 +55,7 @@ SOURCES += \
     TumorOnlyReportWorker.cpp \
     SomaticReportHelper.cpp \
     SomaticRnaReport.cpp \
+    UserPermissionProvider.cpp
 
 HEADERS += \
     FileLocation.h \
@@ -75,7 +76,9 @@ HEADERS += \
     GermlineReportGenerator.h \
     TumorOnlyReportWorker.h \
     SomaticReportHelper.h \
-    SomaticRnaReport.h
+    SomaticRnaReport.h \
+    UserPermissionList.h \
+    UserPermissionProvider.h
 
 RESOURCES += \
     cppNGSD.qrc

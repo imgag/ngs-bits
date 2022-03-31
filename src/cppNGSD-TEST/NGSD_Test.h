@@ -105,10 +105,23 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in1.sql"));
 
 		//log in user
-		LoginManager::login("ahmustm1", true);
+		LoginManager::login("ahmustm1", "", true);
 
 		//escapeText
 		S_EQUAL(db.escapeText("; '"), "'; '''");
+
+		//tableExists
+		IS_TRUE(db.tableExists("user", false));
+		IS_FALSE(db.tableExists("user_missing", false));
+
+		//tableEmpty
+		IS_FALSE(db.tableEmpty("user"));
+		IS_TRUE(db.tableEmpty("gaps"));
+
+		//rowExists
+		IS_TRUE(db.rowExists("user", 99)); //ahmustm1
+		IS_TRUE(db.rowExists("user", 101)); //ahkerra1
+		IS_FALSE(db.rowExists("user", 666));
 
 		//getEnum
 		QStringList enum_values = db.getEnum("sample", "disease_group");
@@ -1363,7 +1376,17 @@ private slots:
 		IS_THROWN(DatabaseException, db.updateVariantPublicationResult(-42, "processed;SCV12345678"));
 		IS_THROWN(DatabaseException, db.flagVariantPublicationAsReplaced(-42));
 
+		//############################### gaps ###############################
+		int gap_id = db.addGap(3999, "chr1", 5000, 6000, "to close");
+		I_EQUAL(db.gapId(3999, "chr1", 5000, 6000), gap_id);
+		I_EQUAL(db.gapId(3999, "chr2", 5001, 6001), -1);
 
+		db.updateGapStatus(gap_id, "closed");
+		db.updateGapStatus(gap_id, "closed");
+		IS_TRUE(db.getValue("SELECT history FROM gaps WHERE id=" + QString::number(gap_id)).toString().contains("closed"));
+
+		db.addGapComment(gap_id, "my_comment");
+		IS_TRUE(db.getValue("SELECT history FROM gaps WHERE id=" + QString::number(gap_id)).toString().contains("my_comment"));
 	}
 
 	inline void report_germline()
@@ -1377,7 +1400,7 @@ private slots:
 		NGSD db(true);
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in2.sql"));
-		LoginManager::login("ahmustm1", true);
+		LoginManager::login("ahmustm1", "", true);
 
 		QDate report_date = QDate::fromString("2021-02-19", Qt::ISODate);
 
@@ -1525,7 +1548,21 @@ private slots:
 			COMPARE_FILES("out/germline_report3.html", TESTDATA("data_out/germline_report3.html"));
 		}
 
-		//############################### TEST 4 - evaluation sheet ###############################
+		//############################### TEST 4 - report type 'all' ###############################
+		{
+			report_settings.report_type = "all";
+			report_settings.language = "german";
+
+			GermlineReportGenerator generator(data, true);
+			generator.overrideDate(report_date);
+
+			generator.writeHTML("out/germline_report4.html");
+			COMPARE_FILES("out/germline_report4.html", TESTDATA("data_out/germline_report4.html"));
+			generator.writeXML("out/germline_report4.xml", "out/germline_report4.html");
+			COMPARE_FILES("out/germline_report4.xml", TESTDATA("data_out/germline_report4.xml"));
+		}
+
+		//############################### TEST 5 - evaluation sheet ###############################
 		{
 			GermlineReportGenerator generator(data, true);
 			generator.overrideDate(report_date);
@@ -1572,7 +1609,7 @@ private slots:
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in1.sql"));
 		//log in user
-		LoginManager::login("ahmustm1", true);
+		LoginManager::login("ahmustm1", "", true);
 
 
 
@@ -1898,8 +1935,6 @@ private slots:
 		SomaticXmlReportGeneratorData xml_data(GenomeBuild::HG19, settings, vl_filtered, vl_germl_filtered, cnvs_filtered);
 
 
-		//xml_data.processing_system_roi.load(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test.bed"));
-		//xml_data.processing_system_genes = GeneSet::createFromFile(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test_genes.txt"));
 		IS_THROWN(ArgumentException, xml_data.check());
 
 		xml_data.mantis_msi = 0.74;
@@ -1915,7 +1950,7 @@ private slots:
 		xml_data.rtf_part_svs = "Fusions";
 		xml_data.rtf_part_pharmacogenetics = "RTF pharmacogenomics table";
 		xml_data.rtf_part_general_info = "general meta data";
-		xml_data.rtf_part_igv_screenshot = "";
+		xml_data.rtf_part_igv_screenshot = "89504E470D0A1A0A0000000D4948445200000002000000020802000000FDD49A73000000097048597300002E2300002E230178A53F76000000164944415408D763606060686E6E66F8FFFFFF7F0606001FCD0586CC377DEC0000000049454E44AE426082";
 		xml_data.rtf_part_mtb_summary = "MTB summary";
 
 

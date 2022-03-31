@@ -127,6 +127,8 @@ private:
 	RtfSourceCode partBillingTable();
 	///Generates table with virus information
 	RtfSourceCode partVirusTable();
+	///Generates part with somatic IGV snapshot
+	RtfSourceCode partIgvScreenshot();
 
 	///creates table with SNVs, relevant germline SNPs (class 4/5) and overlapping CNVs
 	RtfTable snvTable(const VariantList& vl, bool include_germline = true, bool include_cnvs = true);

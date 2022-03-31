@@ -58,7 +58,7 @@ public:
 		{
 			QByteArray num_info;
 			if (numeric[i]) num_info = " (N)";
-			out->write(QByteArray::number(i+1).rightJustified(2, ' ') + ": " + instream.header().at(i) + num_info + "\n");
+			out->write(QByteArray::number(i).rightJustified(2, ' ') + ": " + instream.header().at(i) + num_info + "\n");
 		}
     }
 };

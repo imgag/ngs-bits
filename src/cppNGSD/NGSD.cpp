@@ -1470,6 +1470,29 @@ int NGSD::addSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs)
 	json_doc.setObject(quality_metrics);
 	QByteArray quality_metrics_string = json_doc.toJson(QJsonDocument::Compact);
 
+	//get genotype
+	int idx_format = svs.annotationIndexByName("FORMAT");
+	QByteArray genotype;
+	QByteArrayList format_keys = sv.annotations()[idx_format].split(':');
+	QByteArrayList format_values = sv.annotations()[idx_format + 1].split(':');
+	for (int i = 0; i < format_keys.size(); ++i)
+	{
+		if (format_keys.at(i) == "GT")
+		{
+			genotype = format_values.at(i).trimmed();
+			if (genotype == "1/1")
+			{
+				genotype = "hom";
+			}
+			else
+			{
+				genotype = "het";
+			}
+			break;
+		}
+	}
+	if (genotype.isEmpty()) THROW(FileParseException, "SV doesn't contain genotype information!");
+
 	if (sv.type() == StructuralVariantType::DEL || sv.type() == StructuralVariantType::DUP || sv.type() == StructuralVariantType::INV)
 	{
 		// get correct sv table
@@ -1492,15 +1515,17 @@ int NGSD::addSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs)
 
 		// insert SV into the NGSD
 		SqlQuery query = getQuery();
-		query.prepare("INSERT INTO `" + table + "` (`sv_callset_id`, `chr`, `start_min`, `start_max`, `end_min`, `end_max`, `quality_metrics`) " +
-					  "VALUES (:0, :1,  :2, :3, :4, :5, :6)");
+		query.prepare("INSERT INTO `" + table + "` (`sv_callset_id`, `chr`, `start_min`, `start_max`, `end_min`, `end_max`, `genotype` , `quality_metrics`) " +
+					  "VALUES (:0, :1,  :2, :3, :4, :5, :6, :7)");
 		query.bindValue(0, callset_id);
 		query.bindValue(1, sv.chr1().strNormalized(true));
 		query.bindValue(2,  sv.start1());
 		query.bindValue(3,  sv.end1());
 		query.bindValue(4,  sv.start2());
 		query.bindValue(5,  sv.end2());
-		query.bindValue(6, quality_metrics_string);
+		query.bindValue(6, genotype);
+		query.bindValue(7, quality_metrics_string);
+
 		query.exec();
 
 		//return insert ID
@@ -1548,7 +1573,7 @@ int NGSD::addSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs)
 		// insert SV into the NGSD
 		SqlQuery query = getQuery();
 		query.prepare(QByteArray() + "INSERT INTO `sv_insertion` (`sv_callset_id`, `chr`, `pos`, `ci_upper`, `inserted_sequence`, "
-					  + "`known_left`, `known_right`, `quality_metrics`) VALUES (:0, :1,  :2, :3, :4, :5, :6, :7)");
+					  + "`known_left`, `known_right`, `genotype`, `quality_metrics`) VALUES (:0, :1,  :2, :3, :4, :5, :6, :7, :8)");
 		query.bindValue(0, callset_id);
 		query.bindValue(1, sv.chr1().strNormalized(true));
 		query.bindValue(2, pos);
@@ -1556,7 +1581,10 @@ int NGSD::addSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs)
 		query.bindValue(4, inserted_sequence);
 		query.bindValue(5, known_left);
 		query.bindValue(6, known_right);
-		query.bindValue(7, quality_metrics_string);		query.exec();
+		query.bindValue(7, genotype);
+		query.bindValue(8, quality_metrics_string);
+
+		query.exec();
 
 		//return insert ID
 		return query.lastInsertId().toInt();
@@ -1565,8 +1593,8 @@ int NGSD::addSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs)
 	{
 		// insert SV into the NGSD
 		SqlQuery query = getQuery();
-		query.prepare(QByteArray() + "INSERT INTO `sv_translocation` (`sv_callset_id`, `chr1`, `start1`, `end1`, `chr2`, `start2`, `end2`, "
-					  + "`quality_metrics`) VALUES (:0, :1,  :2, :3, :4, :5, :6, :7)");
+		query.prepare(QByteArray() + "INSERT INTO `sv_translocation` (`sv_callset_id`, `chr1`, `start1`, `end1`, `chr2`, `start2`, `end2`, `genotype`, "
+					  + "`quality_metrics`) VALUES (:0, :1,  :2, :3, :4, :5, :6, :7, :8)");
 		query.bindValue(0, callset_id);
 		query.bindValue(1, sv.chr1().strNormalized(true));
 		query.bindValue(2, sv.start1());
@@ -1574,7 +1602,8 @@ int NGSD::addSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs)
 		query.bindValue(4, sv.chr2().strNormalized(true));
 		query.bindValue(5, sv.start2());
 		query.bindValue(6, sv.end2());
-		query.bindValue(7, quality_metrics_string);
+		query.bindValue(7, genotype);
+		query.bindValue(8, quality_metrics_string);
 		query.exec();
 
 		//return insert ID
@@ -1671,10 +1700,16 @@ QString NGSD::svId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bo
 		THROW(FileParseException, "Invalid structural variant type!");
 	}
 
-	query.next();
-
 	// Throw error if multiple matches found
-	if(query.size() > 1) THROW(DatabaseException, "Multiple matching SVs found in NGSD!");
+	if(query.size() > 1)
+	{
+		QStringList ids;
+		while (query.next())
+		{
+			ids << query.value("id").toString();
+		}
+		THROW(DatabaseException, "Multiple matching SVs found in NGSD!\t(" + ids.join(",") + ")");
+	}
 
 	if(query.size() < 1)
 	{
@@ -1683,20 +1718,21 @@ QString NGSD::svId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bo
 		THROW(DatabaseException, "SV " + BedpeFile::typeToString(sv.type()) + " at " + sv.positionRange() + " for callset with id '" + QString::number(callset_id) + "' not found in NGSD!");
 	}
 
+	query.next();
 	return query.value("id").toString();
 
 }
 
-BedpeLine NGSD::structuralVariant(int sv_id, StructuralVariantType type, const BedpeFile& svs, bool no_annotation)
+BedpeLine NGSD::structuralVariant(int sv_id, StructuralVariantType type, const BedpeFile& svs, bool no_annotation, int* callset_id)
 {
 	BedpeLine sv;
 	QList<QByteArray> annotations;
 
-	int qual_idx = -1, filter_idx = -1, alt_a_idx = -1, info_a_idx = -1;
+	int qual_idx = -1, filter_idx = -1, alt_a_idx = -1, info_a_idx = -1, format_idx = -1;
+	annotations = QVector<QByteArray>(svs.annotationHeaders().size()).toList();
+	format_idx = svs.annotationIndexByName("FORMAT");
 	if (!no_annotation)
 	{
-		annotations= QVector<QByteArray>(svs.annotationHeaders().size()).toList();
-
 		// determine indices for annotations
 		qual_idx = svs.annotationIndexByName("QUAL");
 		filter_idx = svs.annotationIndexByName("FILTER");
@@ -1741,6 +1777,21 @@ BedpeLine NGSD::structuralVariant(int sv_id, StructuralVariantType type, const B
 		end1 = query.value("start_max").toInt();
 		start2 = query.value("end_min").toInt();
 		end2 = query.value("end_max").toInt();
+		QByteArray genotype = query.value("genotype").toByteArray();
+		if (genotype == "hom")
+		{
+			genotype = "1/1";
+		}
+		else if (genotype == "het")
+		{
+			genotype = "0/1";
+		}
+		else // 'n/a'
+		{
+			genotype = "./.";
+		}
+		annotations[format_idx] = "GT";
+		annotations[format_idx + 1] = genotype;
 
 		if (!no_annotation)
 		{
@@ -1752,17 +1803,33 @@ BedpeLine NGSD::structuralVariant(int sv_id, StructuralVariantType type, const B
 
 		// create SV
 		sv = BedpeLine(chr1, start1, end1, chr2, start2, end2, type, annotations);
+		if (callset_id) *callset_id = query.value("sv_callset_id").toInt();
 	}
 	else if (type == StructuralVariantType::INS)
 	{
 		// get INS from the NGSD
 		SqlQuery query = getQuery();
-		query.exec("SELECT * FROM `sv_insertion` WHERE id=" + QByteArray::number(sv_id));
+		query.exec("SELECT * FROM `sv_insertion` WHERE id = " + QByteArray::number(sv_id));
 		if (query.size() == 0 ) THROW(DatabaseException, "SV with id '" + QString::number(sv_id) + "'not found in table 'sv_insertion'!" );
 		query.next();
 		Chromosome chr = Chromosome(query.value("chr").toByteArray());
 		int pos = query.value("pos").toInt();
 		int pos_upper = pos + query.value("ci_upper").toInt();
+		QByteArray genotype = query.value("genotype").toByteArray();
+		if (genotype == "hom")
+		{
+			genotype = "1/1";
+		}
+		else if (genotype == "het")
+		{
+			genotype = "0/1";
+		}
+		else // 'n/a'
+		{
+			genotype = "./.";
+		}
+		annotations[format_idx] = "GT";
+		annotations[format_idx + 1] = genotype;
 
 		if (!no_annotation)
 		{
@@ -1795,6 +1862,7 @@ BedpeLine NGSD::structuralVariant(int sv_id, StructuralVariantType type, const B
 
 		// create SV
 		sv = BedpeLine(chr, pos, pos_upper, chr, pos, pos, type, annotations);
+		if (callset_id) *callset_id = query.value("sv_callset_id").toInt();
 	}
 	else if (type == StructuralVariantType::BND)
 	{
@@ -1804,8 +1872,8 @@ BedpeLine NGSD::structuralVariant(int sv_id, StructuralVariantType type, const B
 
 		// get SV from the NGSD
 		SqlQuery query = getQuery();
-		query.exec("SELECT * FROM `sv_translocation` WHERE id=" + QByteArray::number(sv_id));
-		if (query.size() == 0 ) THROW(DatabaseException, "SV with id '" + QString::number(sv_id) + "'not found in table 'sv_translocation'!" );
+		query.exec("SELECT * FROM `sv_translocation` WHERE id = " + QByteArray::number(sv_id));
+		if (query.size() == 0 ) THROW(DatabaseException, "SV with id '" + QString::number(sv_id) + "' not found in table 'sv_translocation'!" );
 		query.next();
 		chr1 = Chromosome(query.value("chr1").toByteArray());
 		chr2 = Chromosome(query.value("chr2").toByteArray());
@@ -1813,6 +1881,21 @@ BedpeLine NGSD::structuralVariant(int sv_id, StructuralVariantType type, const B
 		end1 = query.value("end1").toInt();
 		start2 = query.value("start2").toInt();
 		end2 = query.value("end2").toInt();
+		QByteArray genotype = query.value("genotype").toByteArray();
+		if (genotype == "hom")
+		{
+			genotype = "1/1";
+		}
+		else if (genotype == "het")
+		{
+			genotype = "0/1";
+		}
+		else // 'n/a'
+		{
+			genotype = "./.";
+		}
+		annotations[format_idx] = "GT";
+		annotations[format_idx + 1] = genotype;
 
 		if (!no_annotation)
 		{
@@ -1824,6 +1907,7 @@ BedpeLine NGSD::structuralVariant(int sv_id, StructuralVariantType type, const B
 
 		// create SV
 		sv = BedpeLine(chr1, start1, end1, chr2, start2, end2, type, annotations);
+		if (callset_id) *callset_id = query.value("sv_callset_id").toInt();
 	}
 	else
 	{
@@ -2217,6 +2301,13 @@ const TableInfo& NGSD::tableInfo(const QString& table, bool use_cache) const
 						{
 							info.fk_name_sql = "name";
 						}
+						if (info.name=="user_id")
+						{
+							info.fk_name_sql = "name";
+						}
+					}
+					else if (table=="user_permissions")
+					{
 						if (info.name=="user_id")
 						{
 							info.fk_name_sql = "name";
@@ -3326,7 +3417,7 @@ QString NGSD::analysisJobGSvarFile(int job_id)
 	return output;
 }
 
-int NGSD::addGap(const QString& ps_id, const Chromosome& chr, int start, int end, const QString& status)
+int NGSD::addGap(int ps_id, const Chromosome& chr, int start, int end, const QString& status)
 {
 	SqlQuery query = getQuery();
 	query.prepare("INSERT INTO `gaps`(`chr`, `start`, `end`, `processed_sample_id`) VALUES (:0,:1,:2,:3)");
@@ -3343,37 +3434,44 @@ int NGSD::addGap(const QString& ps_id, const Chromosome& chr, int start, int end
 	return id;
 }
 
-int NGSD::gapId(const QString& ps_id, const Chromosome& chr, int start, int end, bool exact_match)
+int NGSD::gapId(int ps_id, const Chromosome& chr, int start, int end)
 {
-	if (exact_match)
-	{
-		QVariant id =  getValue("SELECT id FROM gaps WHERE processed_sample_id='" + ps_id + "' AND chr='" + chr.strNormalized(true) + "' AND start='" + QString::number(start) + "' AND end='" + QString::number(end) + "'", true);
-		if (id.isValid()) return id.toInt();
-	}
-	else
-	{
-		SqlQuery query = getQuery();
-		query.exec("SELECT id, chr, start, end FROM gaps WHERE processed_sample_id='" + ps_id +"'");
-		while(query.next())
-		{
-			if (chr==query.value("chr").toString())
-			{
-				if (BasicStatistics::rangeOverlaps(start, end, query.value("start").toInt(), query.value("end").toInt()))
-				{
-					return query.value("id").toInt();
-				}
-			}
-		}
-	}
+	QVariant id =  getValue("SELECT id FROM gaps WHERE processed_sample_id='" + QString::number(ps_id) + "' AND chr='" + chr.strNormalized(true) + "' AND start='" + QString::number(start) + "' AND end='" + QString::number(end) + "'", true);
+	if (id.isValid()) return id.toInt();
 
 	return -1;
 }
 
 void NGSD::updateGapStatus(int id, const QString& status)
 {
-	//check gap exists
 	QString id_str = QString::number(id);
-	if(getValue("SELECT EXISTS(SELECT * FROM gaps WHERE id='" + id_str + "')").toInt()==0)
+
+	//check gap exists
+	if(!rowExists("gaps", id))
+	{
+		THROW(ArgumentException, "Gap with ID '" + id_str + "' does not exist!");
+	}
+
+	//only update if necessary
+	QString status_old = getValue("SELECT status FROM gaps WHERE id='" + id_str + "'").toString();
+	if (status==status_old) return;
+
+	//prepare history string
+	QString history = getValue("SELECT history FROM gaps WHERE id='" + id_str + "'").toString().trimmed();
+	if (!history.isEmpty()) history += "\n";
+	history += QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") + " - " + status +" (" + LoginManager::userName() + ")";
+
+	//update
+	SqlQuery query = getQuery();
+	query.exec("UPDATE gaps SET status='"+status+"', history='" + history + "' WHERE id='" + id_str + "'");
+}
+
+void NGSD::addGapComment(int id, const QString& comment)
+{
+	QString id_str = QString::number(id);
+
+	//check gap exists
+	if(!rowExists("gaps", id))
 	{
 		THROW(ArgumentException, "Gap with ID '" + id_str + "' does not exist!");
 	}
@@ -3381,10 +3479,13 @@ void NGSD::updateGapStatus(int id, const QString& status)
 	//prepare history string
 	QString history = getValue("SELECT history FROM gaps WHERE id='" + id_str + "'").toString().trimmed();
 	if (!history.isEmpty()) history += "\n";
-	history += QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") + " - " + status +" (" + LoginManager::userName() + ")";
+	history += QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") + " - comment (" + LoginManager::userName() + "): " + comment;
 
+	//update (binding becaues it's user input)
 	SqlQuery query = getQuery();
-	query.exec("UPDATE gaps SET status='"+status+"', history='" + history + "' WHERE id='" + id_str + "'");
+	query.prepare("UPDATE gaps SET history=:0 WHERE id='" + id_str + "'");
+	query.bindValue(0, history);
+	query.exec();
 }
 
 QHash<QString, QString> NGSD::cnvCallsetMetrics(int callset_id)
@@ -3823,17 +3924,33 @@ QStringList NGSD::getEnum(QString table, QString column) const
 }
 
 
-void NGSD::tableExists(QString table)
+bool NGSD::tableExists(QString table, bool throw_error_if_not_existing) const
 {
 	SqlQuery query = getQuery();
 	query.exec("SHOW TABLES LIKE '" + table + "'");
 	if (query.size()==0)
 	{
-		THROW(DatabaseException, "Table '" + table + "' does not exist!")
+		if (throw_error_if_not_existing) THROW(DatabaseException, "Table '" + table + "' does not exist!");
+
+		return false;
 	}
+
+	return true;
 }
 
-bool NGSD::tableEmpty(QString table)
+bool NGSD::rowExists(QString table, int id) const
+{
+	if (!tableInfo(table).fieldExists("id"))
+	{
+		THROW(DatabaseException, "Table '" + table + "' has no column 'id'!");
+	}
+
+	SqlQuery query = getQuery();
+	query.exec("SELECT id FROM " + table  + " WHERE id=" + QString::number(id));
+	return query.size()==1;
+}
+
+bool NGSD::tableEmpty(QString table) const
 {
 	SqlQuery query = getQuery();
 	query.exec("SELECT COUNT(*) FROM " + table);
@@ -3912,7 +4029,12 @@ int NGSD::geneToApprovedID(const QByteArray& gene)
 
 QByteArray NGSD::geneSymbol(int id)
 {
-	return getValue("SELECT symbol FROM gene WHERE id=:0", true, QString::number(id)).toByteArray();
+	return getValue("SELECT symbol FROM gene WHERE id=" + QString::number(id), false).toByteArray();
+}
+
+QByteArray NGSD::geneHgncId(int id)
+{
+	return "HGNC:" + getValue("SELECT hgnc_id FROM gene WHERE id=" + QString::number(id), false).toByteArray();
 }
 
 QByteArray NGSD::geneToApproved(QByteArray gene, bool return_input_when_unconvertable)
@@ -4315,7 +4437,7 @@ QList<OmimInfo> NGSD::omimInfo(const QByteArray& symbol)
 	//get matching ids
 	QString symbol_approved = geneToApproved(symbol, true);
 	QStringList omim_gene_ids = getValues("SELECT id FROM omim_gene WHERE gene=:0 OR gene='" + symbol_approved + "' ORDER BY mim", symbol);
-	foreach(QString omim_gene_id, omim_gene_ids)
+	foreach(const QString& omim_gene_id, omim_gene_ids)
 	{
 		OmimInfo info;
 		info.mim = getValue("SELECT mim FROM omim_gene WHERE id=" + omim_gene_id).toByteArray();
@@ -4323,7 +4445,7 @@ QList<OmimInfo> NGSD::omimInfo(const QByteArray& symbol)
 
 		QRegExp mim_exp("[^0-9]([0-9]{6})[^0-9]");
 		QStringList phenos = getValues("SELECT phenotype FROM omim_phenotype WHERE omim_gene_id=" + omim_gene_id + " ORDER BY phenotype ASC");
-		foreach(QString pheno, phenos)
+		foreach(const QString& pheno, phenos)
 		{
 			Phenotype tmp;
 
@@ -4693,15 +4815,23 @@ const Transcript& NGSD::transcript(int id)
 	return cache[index];
 }
 
-Transcript NGSD::longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source, bool fallback_alt_source_nocoding)
+Transcript NGSD::longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source, bool fallback_noncoding)
 {
 	TranscriptList list = transcripts(gene_id, source, true);
+
+	//fallback (non-coding)
+	if (list.isEmpty() && fallback_noncoding)
+	{
+		list = transcripts(gene_id, source, false);
+	}
+
+	//fallback alternative source
 	Transcript::SOURCE alt_source = (source==Transcript::CCDS) ? Transcript::ENSEMBL : Transcript::CCDS;
 	if (list.isEmpty() && fallback_alt_source)
 	{
 		list = transcripts(gene_id, alt_source, true);
 	}
-	if (list.isEmpty() && fallback_alt_source_nocoding)
+	if (list.isEmpty() && fallback_alt_source && fallback_noncoding)
 	{
 		list = transcripts(gene_id, alt_source, false);
 	}
@@ -4799,6 +4929,7 @@ QString NGSD::reportConfigSummaryText(const QString& processed_sample_id)
 			QStringList sv_id_columns = QStringList() << "sv_deletion_id" << "sv_duplication_id" << "sv_insertion_id" << "sv_inversion_id" << "sv_translocation_id";
 			QList<StructuralVariantType> sv_types = {StructuralVariantType::DEL, StructuralVariantType::DUP, StructuralVariantType::INS, StructuralVariantType::INV, StructuralVariantType::BND};
 			BedpeFile svs;
+			svs.setAnnotationHeaders(QList<QByteArray>() << "FORMAT" << processedSampleName(processed_sample_id).toUtf8());
 			for (int i = 0; i < sv_id_columns.size(); ++i)
 			{
 				QStringList causal_ids = getValues("SELECT " + sv_id_columns.at(i) + " FROM report_configuration_sv WHERE causal='1' AND report_configuration_id=" + rc_id.toString() + " AND " + sv_id_columns.at(i) + " IS NOT NULL");
@@ -5999,6 +6130,7 @@ QString SomaticReportConfigurationData::history() const
 	QStringList output;
 	output << "The report configuration was created by " + created_by + " on " + created_date + ".";
 	if (last_edit_by!="") output << "The report configuration was last updated by " + last_edit_by + " on " + last_edit_date + ".";
+	if (mtb_xml_upload_date != "") output << "The XML file was last uploaded to MTB on " + mtb_xml_upload_date + ".";
 	return output.join("\n");
 }
 

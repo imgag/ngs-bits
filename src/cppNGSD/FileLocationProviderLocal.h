@@ -40,6 +40,7 @@ public:
 	FileLocation getSomaticCnvCallFile() const override;
 	FileLocation getSomaticLowCoverageFile() const override;
 	FileLocation getSomaticMsiFile() const override;
+	FileLocation getSomaticIgvScreenshotFile() const override;
 
 private:
 	static void addToList(const FileLocation& loc, FileLocationList& list, bool add_if_missing=true); //Make add_if_missing mandatory when all
