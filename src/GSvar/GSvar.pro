@@ -16,6 +16,7 @@ SOURCES += main.cpp\
     ReportWorker.cpp \
     TrioDialog.cpp \
     HttpHandler.cpp \
+    UserPermissionsEditor.cpp \
     ValidationDialog.cpp \
     ClassificationDialog.cpp \
     ApprovedGenesDialog.cpp \
@@ -106,7 +107,8 @@ SOURCES += main.cpp\
     AnalysisInformationWidget.cpp \
     PhenotypeSourceEvidenceSelector.cpp \
     FusionWidget.cpp \
-    CohortExpressionDataWidget.cpp
+    CohortExpressionDataWidget.cpp \
+    GapClosingEditDialog.cpp
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
     DatabaseServiceRemote.h \
@@ -116,6 +118,7 @@ HEADERS += MainWindow.h \
     ReportWorker.h \
     TrioDialog.h \
     HttpHandler.h \
+    UserPermissionsEditor.h \
     ValidationDialog.h \
     ClassificationDialog.h \
     ApprovedGenesDialog.h \
@@ -207,13 +210,15 @@ HEADERS += MainWindow.h \
     CacheInitWorker.h \
     PhenotypeSourceEvidenceSelector.h \
     FusionWidget.h \
-    CohortExpressionDataWidget.h
+    CohortExpressionDataWidget.h \
+    GapClosingEditDialog.h
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
     TrioDialog.ui \
     ClassificationDialog.ui \
+    UserPermissionsEditor.ui \
     ValidationDialog.ui \
     ApprovedGenesDialog.ui \
     GeneWidget.ui \
@@ -294,7 +299,8 @@ FORMS    += MainWindow.ui \
     LiftOverWidget.ui \
     PhenotypeSourceEvidenceSelector.ui \
     FusionWidget.ui \
-    CohortExpressionDataWidget.ui
+    CohortExpressionDataWidget.ui \
+    GapClosingEditDialog.ui
 
 include("../app_gui.pri")
 

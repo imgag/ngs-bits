@@ -38,9 +38,9 @@ public:
 	static void limitLines(QLabel* label, QString text, QString sep="\n", int max_lines=15);
 
 	//Lift-over region from GRCh37 to GRCh38 (or the other way). Throws ArgumentException if conversion not possible.
-	static BedLine liftOver(const Chromosome& chr, int start, int end, bool hg19_to_hg38 = true);
+	static BedLine liftOver(const Chromosome& chr, int start, int end, bool hg19_to_hg38);
 	//Lift-over variant from GRCh37 to GRCh38 (or the other way). Throws ArgumentException if conversion not possible.
-	static Variant liftOverVariant(const Variant& v, bool hg19_to_hg38 = true);
+	static Variant liftOverVariant(const Variant& v, bool hg19_to_hg38);
 
 	//Returns gnomAD link for a variant
 	static QString gnomADLink(Variant v, GenomeBuild build);

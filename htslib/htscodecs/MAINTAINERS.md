@@ -10,12 +10,12 @@ This is best done as a release PR so we can check it first.
    - configure.ac VERS_CURRENT, VERS_REVISION and VERS_AGE variables.
      See the long comment above for instructions of how these change.
 
-   - NEWS files.
+   - NEWS and README files.
 
 
 2. Ensure NEWS and README files are up to date.  NEWS is a git log
-   summary.  README likely doesn't change unless something major needs
-   mentioning.
+   summary.  README is probably just a version number update, unless
+   anything major needs bringing up.
 
    - At time of merging, set the date at the top of NEWS.
 

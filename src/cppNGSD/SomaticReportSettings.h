@@ -20,6 +20,13 @@ struct CPPNGSDSHARED_EXPORT SomaticReportSettings
 	QString msi_file;
 	QString viral_file;
 
+	//hex representation of IGV snapshot
+	QByteArray igv_snapshot_png_hex_image;
+	//width of IGV snapshot in pixels
+	int igv_snapshot_width;
+	//height of IGV snapshot in pixels
+	int igv_snapshot_height;
+
 	QMap<QByteArray, QByteArrayList> preferred_transcripts;
 
 	TargetRegionInfo target_region_filter;

@@ -36,7 +36,7 @@ public:
 
 	static QString convertIconNameToString(const FolderItemIcon& in);
 	static QString createFolderListingHeader(const QString& folder_name, const QString& parent_folder_link);
-	static QString createFolderListingElements(const QList<FolderItem>& in, const QString& cur_folder_url);
+	static QString createFolderListingElements(const QList<FolderItem>& in, const QString& cur_folder_url, const QString token);
 
 	static QString getFolderIcons();
 protected:

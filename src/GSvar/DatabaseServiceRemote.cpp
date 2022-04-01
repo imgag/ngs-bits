@@ -150,7 +150,7 @@ QByteArray DatabaseServiceRemote::makeApiCall(QString url_param, bool ignore_if_
 
 	try
 	{
-		result = HttpRequestHandler(HttpRequestHandler::NONE).get(Helper::serverApiUrl() +url_param, add_headers);
+		result = HttpRequestHandler(HttpRequestHandler::NONE).get(Helper::serverApiUrl() +url_param + "&token=" + LoginManager::token(), add_headers);
 	}
 	catch (Exception& e)
 	{

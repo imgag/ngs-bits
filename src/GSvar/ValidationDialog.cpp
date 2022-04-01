@@ -100,7 +100,9 @@ ValidationDialog::ValidationDialog(QWidget* parent, int id)
 			THROW(DatabaseException, "No valid sv id for variant validation found!");
 		}
 
-		BedpeLine sv = db_.structuralVariant(sv_id, sv_type_, BedpeFile(), true);
+		BedpeFile bedpe_structure;
+		bedpe_structure.setAnnotationHeaders(QList<QByteArray>() << "FORMAT" << "");
+		BedpeLine sv = db_.structuralVariant(sv_id, sv_type_, bedpe_structure, true);
 		ui_.variant->setText(sv.toString());
 	}
 

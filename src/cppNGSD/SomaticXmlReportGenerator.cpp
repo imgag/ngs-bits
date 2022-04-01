@@ -392,7 +392,8 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	w.writeStartElement("CnvList");
 
 		//Elements CNV
-
+	if(data.tumor_cnvs.count() > 0)
+	{
 
 		int i_clonality = data.tumor_cnvs.annotationIndexByName("tumor_clonality", true);
 		int i_state = data.tumor_cnvs.annotationIndexByName("state", true); //AMP/DEL/LOH
@@ -473,7 +474,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 			w.writeEndElement();
 		}
-
+	}
 
 	w.writeEndElement();
 
@@ -489,7 +490,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	writeReportPartsElement(w, "svs", data.rtf_part_svs);
 	writeReportPartsElement(w, "pharmaco_genetics", data.rtf_part_pharmacogenetics);
 	writeReportPartsElement(w, "general_info", data.rtf_part_general_info);
-	writeReportPartsElement(w, "igv_screenshot", "");
+	writeReportPartsElement(w, "igv_screenshot", data.rtf_part_igv_screenshot);
 	writeReportPartsElement(w, "mtb_summary", data.rtf_part_mtb_summary);
 
 

@@ -560,9 +560,11 @@ public:
 	///Returns all possible values for a enum column.
 	QStringList getEnum(QString table, QString column) const;
 	///Checks if a table exists.
-	void tableExists(QString table);
+	bool tableExists(QString table, bool throw_error_if_not_existing=true) const;
+	///Checks if a row the the given id exists in the table.
+	bool rowExists(QString table, int id) const;
 	///Checks if a table is empty.
-	bool tableEmpty(QString table);
+	bool tableEmpty(QString table) const;
 	///Clears all contents from a table.
 	void clearTable(QString table);
 
@@ -575,8 +577,10 @@ public:
 	/*** gene/transcript handling ***/
 	///Returns the gene ID, or -1 if none approved gene name could be found. Checks approved symbols, previous symbols and synonyms.
 	int geneToApprovedID(const QByteArray& gene);
-	///Returns the gene symbol for a gene ID
+	///Returns the gene symbol for a gene ID.
 	QByteArray geneSymbol(int id);
+	///Returns the HGNC identifier of a gene.
+	QByteArray geneHgncId(int id);
 	///Returns the the approved gene symbol or "" if it could not be determined.
 	QByteArray geneToApproved(QByteArray gene, bool return_input_when_unconvertable=false);
 	///Returns the the approved gene symbols.
@@ -606,7 +610,7 @@ public:
 	///Returns transcripts of a gene (if @p coding_only is set, only coding transcripts).
 	TranscriptList transcripts(int gene_id, Transcript::SOURCE source, bool coding_only);
 	///Returns longest coding transcript of a gene.
-	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source=false, bool fallback_alt_source_nocoding=false);
+	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source=false, bool fallback_noncoding=false);
 	///Returns the list of all approved gene names
 	const GeneSet& approvedGeneNames();
 	///Returns the map of gene to preferred transcripts
@@ -687,7 +691,7 @@ public:
 	QString svId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bool throw_if_fails = true);
 	///Returns the SV corresponding to the given identifiers or throws an exception if the ID does not exist.
 	///		'no_annotation' will only return the SV position
-	BedpeLine structuralVariant(int sv_id, StructuralVariantType type, const BedpeFile& svs, bool no_annotation = false);
+	BedpeLine structuralVariant(int sv_id, StructuralVariantType type, const BedpeFile& svs, bool no_annotation = false, int* callset_id = 0);
 	///Returns the SQL table name for a given StructuralVariantType
 	static QString svTableName(StructuralVariantType type);
 
@@ -898,11 +902,13 @@ public:
 	QString analysisJobGSvarFile(int job_id);
 
 	///Adds a gap for a sample and returns the gap ID.
-	int addGap(const QString& ps_id, const Chromosome& chr, int start, int end, const QString& status);
+	int addGap(int ps_id, const Chromosome& chr, int start, int end, const QString& status);
 	///Returns the gap ID. If no matching gap is found, -1 is returned.
-	int gapId(const QString& ps_id, const Chromosome& chr, int start, int end, bool exact_match=true);
+	int gapId(int ps_id, const Chromosome& chr, int start, int end);
 	///Updates the status of a gap.
 	void updateGapStatus(int id, const QString& status);
+	///Add a comment to the gap history.
+	void addGapComment(int id, const QString& comment);
 
 	///Returns quality metric for a CNV callsets (all metrics for a single sample)
 	QHash<QString, QString> cnvCallsetMetrics(int callset_id);

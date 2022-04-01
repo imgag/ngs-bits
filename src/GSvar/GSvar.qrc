@@ -118,5 +118,7 @@
         <file>Icons/analysis_info.png</file>
         <file>Icons/GoogleScholar.png</file>
         <file>Icons/Report_exclude_visible.png</file>
+        <file>Icons/Comment.png</file>
+        <file>Icons/Lock.png</file>
     </qresource>
 </RCC>

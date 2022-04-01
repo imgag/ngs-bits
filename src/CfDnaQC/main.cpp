@@ -156,7 +156,11 @@ public:
 
 				//parse line
 				QStringList columns = line.split("\t");
-				double error_rate = Helper::toDouble(columns.at(0), "Error rate");
+				double error_rate = std::numeric_limits<double>::quiet_NaN();
+				if (columns.at(0).trimmed() != "NA")
+				{
+					error_rate = Helper::toDouble(columns.at(0), "Error rate");
+				}
 				QString duplication_rate = columns.at(4).trimmed();
 				umivar_error_rates.insert(duplication_rate, error_rate);
 			}

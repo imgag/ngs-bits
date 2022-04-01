@@ -101,15 +101,67 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 			w.writeEndElement();
 		}
 
-		for(QString gene : config_.roi.genes)
+		//group gaps by gene
+		QMap<QByteArray, BedFile> gaps_by_gene;
+		if(QFileInfo::exists(config_.low_coverage_file))
 		{
-			GeneInfo gene_info = db_.geneInfo(gene.toUtf8());
+			BedFile low_cov;
+			low_cov.load(config_.low_coverage_file);
+			low_cov.intersect(config_.roi.regions);
+			for(int i=0; i<low_cov.count(); ++i)
+			{
+				const BedLine& line = low_cov[i];
+				GeneSet genes = db_.genesOverlapping(line.chr(), line.start(), line.end(), 20); //extend by 20 to annotate splicing regions as well
+				foreach(const QByteArray& gene, genes)
+				{
+					gaps_by_gene[gene].append(line);
+				}
+			}
+		}
+
+		for(QByteArray gene : config_.roi.genes)
+		{
+			GeneInfo gene_info = db_.geneInfo(gene);
 			if(gene_info.symbol.isEmpty()) continue;
 			if(gene_info.hgnc_id.isEmpty()) continue;
+			gene = gene_info.symbol.toLatin1();
 
 			w.writeStartElement("Gene");
-				w.writeAttribute("name", gene_info.symbol);
-				w.writeAttribute("id", gene_info.hgnc_id);
+			w.writeAttribute("name", gene);
+			w.writeAttribute("id", gene_info.hgnc_id);
+			int gene_id = db_.geneToApprovedID(gene);
+			Transcript transcript = db_.longestCodingTranscript(gene_id, Transcript::ENSEMBL, true, true);
+			w.writeAttribute("bases", QString::number(transcript.regions().baseCount()));
+
+			//omim info
+			QList<OmimInfo> omim_infos = db_.omimInfo(gene);
+			foreach(const OmimInfo& omim_info, omim_infos)
+			{
+				foreach(const Phenotype& pheno, omim_info.phenotypes)
+				{
+					w.writeStartElement("Omim");
+					w.writeAttribute("gene", omim_info.mim);
+					w.writeAttribute("phenotype", pheno.name());
+					if (!pheno.accession().isEmpty())
+					{
+						w.writeAttribute("phenotype_number", pheno.accession());
+					}
+					w.writeEndElement();
+				}
+			}
+
+			//gaps
+			const BedFile& gaps = gaps_by_gene[gene];
+			for(int i=0; i<gaps.count(); ++i)
+			{
+				const BedLine& line = gaps[i];
+				w.writeStartElement("Gap");
+				w.writeAttribute("chr", line.chr().str());
+				w.writeAttribute("start", QString::number(line.start()));
+				w.writeAttribute("end", QString::number(line.end()));
+				w.writeEndElement();
+			}
+
 			w.writeEndElement();
 		}
 
@@ -220,10 +272,9 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 
 	//validate written XML file
 	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/TumorOnlyNGSReport_v1.xsd");
-
 	if (xml_error!="")
 	{
-		THROW(ProgrammingException, "Invalid tumor only report XML file gererated: " + xml_error);
+		THROW(ProgrammingException, "Invalid tumor only report XML file " + filename + " generated:\n" + xml_error);
 	}
 }
 

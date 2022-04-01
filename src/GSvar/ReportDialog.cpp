@@ -3,6 +3,7 @@
 #include "DiseaseInfoWidget.h"
 #include "SampleDiseaseInfoWidget.h"
 #include "DiagnosticStatusWidget.h"
+#include "Settings.h"
 #include <QTableWidgetItem>
 #include <QMenu>
 
@@ -91,6 +92,7 @@ void ReportDialog::initGUI()
 {
 	//report types
 	ui_.report_type->addItems(ReportVariantConfiguration::getTypeOptions());
+	if (Settings::boolean("allow_report_with_all_types", true)) ui_.report_type->addItem("all");
 	ui_.report_type->setCurrentIndex(0);
 
 	//settings

@@ -6,6 +6,7 @@
 #include "NGSD.h"
 #include "BamReader.h"
 #include "ui_SomaticReportDialog.h"
+#include "MainWindow.h"
 
 class SomaticReportDialog
 		: public QDialog
@@ -70,6 +71,12 @@ private slots:
 
 	///Disable/Enable limitations text field
 	void limitationState();
+
+	///Creates screenshot with somatic tracks from IGV
+	void createIgvScreenshot();
+
+	///Updates hint whether IGV snapshot file is available.
+	void updateIgvText();
 
 	///Returns list of all chromosomes checked in CIN tab
 	QList<QString> resolveCIN();

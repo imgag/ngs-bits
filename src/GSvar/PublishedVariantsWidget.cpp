@@ -143,7 +143,7 @@ void PublishedVariantsWidget::updateTable()
 	{
 		constraints_str = " WHERE (" + constraints.join(") AND (") + ")";
 	}
-	DBTable table = db.createTable("variant_publication", "SELECT * FROM variant_publication" + constraints_str + " ORDER BY id ASC");
+	DBTable table = db.createTable("variant_publication", "SELECT * FROM variant_publication" + constraints_str + " ORDER BY date DESC");
 
 	//replace foreign keys
 	db.replaceForeignKeyColumn(table, table.columnIndex("sample_id"), "sample", "name");

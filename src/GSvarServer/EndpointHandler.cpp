@@ -38,6 +38,17 @@ HttpResponse EndpointHandler::serveApiInfo(const HttpRequest& request)
 
 HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 {
+	HttpResponse check_result = EndpointController::checkToken(request);
+	if (check_result.getStatus() != ResponseStatus::OK)
+	{
+		return check_result;
+	}
+
+	if (SessionManager::isUserSessionExpired(request.getUrlParams()["token"]))
+	{
+		return HttpResponse(ResponseStatus::REQUEST_TIMEOUT, request.getContentType(), "Secure token has expired");
+	}
+
 	qDebug() << "File location service";
 	if (!request.getUrlParams().contains("ps_url_id"))
 	{
@@ -198,7 +209,7 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 				{
 					return_http = true;
 				}
-				cur_json_item.insert("filename", createFileTempUrl(file_list[i].filename, return_http));
+				cur_json_item.insert("filename", createFileTempUrl(file_list[i].filename, request.getUrlParams()["token"], return_http));
 			}
 			catch (Exception& e)
 			{
@@ -244,6 +255,19 @@ HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 	try
 	{
 		id = NGSD().processedSampleName(request.getUrlParams()["ps_id"]);
+		HttpResponse check_result = EndpointController::checkToken(request);
+		if (check_result.getStatus() != ResponseStatus::OK)
+		{
+			return check_result;
+		}
+
+		Session current_session = SessionManager::getSessionBySecureToken(request.getUrlParams()["token"]);
+		UserPermissionProvider upp(current_session.user_id);
+		if (!upp.isEligibleToAccessProcessedSampleById(request.getUrlParams()["ps_id"]))
+		{
+			return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You do not have permissions to open this sample");
+		}
+
 		found_file_path =  NGSD().processedSamplePath(request.getUrlParams()["ps_id"], type);
 	}
 	catch (Exception& e)
@@ -257,7 +281,8 @@ HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 	{
 		return_http = true;
 	}
-	FileLocation project_file = FileLocation(id, type, createFileTempUrl(found_file_path, return_http), QFile::exists(found_file_path));
+
+	FileLocation project_file = FileLocation(id, type, createFileTempUrl(found_file_path, request.getUrlParams()["token"], return_http), QFile::exists(found_file_path));
 
 	json_object_output.insert("id", id);
 	json_object_output.insert("type", project_file.typeAsString());
@@ -276,7 +301,13 @@ HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 }
 
 HttpResponse EndpointHandler::getAnalysisJobGSvarFile(const HttpRequest& request)
-{
+{	
+	HttpResponse check_result = EndpointController::checkToken(request);
+	if (check_result.getStatus() != ResponseStatus::OK)
+	{
+		return check_result;
+	}
+
 	qDebug() << "Analysis job GSvar file";
 	QJsonDocument json_doc_output;
 	QJsonObject json_object_output;
@@ -298,7 +329,7 @@ HttpResponse EndpointHandler::getAnalysisJobGSvarFile(const HttpRequest& request
 		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), e.message());
 	}
 
-	FileLocation analysis_job_gsvar_file = FileLocation(id, PathType::GSVAR, createFileTempUrl(found_file_path, false), QFile::exists(found_file_path));
+	FileLocation analysis_job_gsvar_file = FileLocation(id, PathType::GSVAR, createFileTempUrl(found_file_path, request.getUrlParams()["token"], false), QFile::exists(found_file_path));
 
 	json_object_output.insert("id", id);
 	json_object_output.insert("type", analysis_job_gsvar_file.typeAsString());
@@ -316,6 +347,12 @@ HttpResponse EndpointHandler::getAnalysisJobGSvarFile(const HttpRequest& request
 
 HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 {
+	HttpResponse check_result = EndpointController::checkToken(request);
+	if (check_result.getStatus() != ResponseStatus::OK)
+	{
+		return check_result;
+	}
+
 	QString ps_url_id = request.getUrlParams()["ps_url_id"];
 	UrlEntity url = UrlManager::getURLById(ps_url_id);
 
@@ -447,6 +484,12 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 
 HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 {
+	HttpResponse check_result = EndpointController::checkToken(request);
+	if (check_result.getStatus() != ResponseStatus::OK)
+	{
+		return check_result;
+	}
+
 	QString qbic_data_path = Settings::string("qbic_data_path");
 	if (!qbic_data_path.endsWith(QDir::separator())) qbic_data_path = qbic_data_path.remove(qbic_data_path.length()-1, 1);
 	if (!QDir(qbic_data_path).exists())
@@ -489,8 +532,71 @@ HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 	return HttpResponse(ResponseStatus::OK, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), filename + " has been saved");
 }
 
+HttpResponse EndpointHandler::performLogin(const HttpRequest& request)
+{
+	qDebug() << "Login request";
+	if (!request.getFormUrlEncoded().contains("name") || !request.getFormUrlEncoded().contains("password"))
+	{
+		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "No username or/and password were found");
+	}
+
+	NGSD db;
+	QString message = db.checkPassword(request.getFormUrlEncoded()["name"], request.getFormUrlEncoded()["password"]);
+	if (message.isEmpty())
+	{
+		QString secure_token = ServerHelper::generateUniqueStr();
+		Session cur_session = Session(db.userId(request.getFormUrlEncoded()["name"]), QDateTime::currentDateTime());
+
+		SessionManager::addNewSession(secure_token, cur_session);
+		QByteArray body = secure_token.toLocal8Bit();
+
+		BasicResponseData response_data;
+		response_data.length = body.length();
+		response_data.content_type = ContentType::TEXT_PLAIN;
+		response_data.is_downloadable = false;
+		qDebug() << "User creadentials are valid";
+		return HttpResponse(response_data, body);
+	}
+
+	return HttpResponse(ResponseStatus::UNAUTHORIZED, request.getContentType(), "Invalid username or password");
+}
+
+HttpResponse EndpointHandler::performLogout(const HttpRequest& request)
+{
+	QByteArray body {};
+	if (!request.getFormUrlEncoded().contains("token"))
+	{
+		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "Secure token has not been provided");
+	}
+	if (SessionManager::isTokenReal(request.getFormUrlEncoded()["token"]))
+	{
+		try
+		{
+			SessionManager::removeSession(request.getFormUrlEncoded()["token"]);
+		} catch (Exception& e)
+		{
+			return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, request.getContentType(), e.message());
+		}
+		body = request.getFormUrlEncoded()["token"].toLocal8Bit();
+
+		BasicResponseData response_data;
+		response_data.length = body.length();
+		response_data.content_type = ContentType::TEXT_PLAIN;
+		response_data.is_downloadable = false;
+
+		return HttpResponse(response_data, body);
+	}
+	return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "You have provided an invalid token");
+}
+
 HttpResponse EndpointHandler::getProcessingSystemRegions(const HttpRequest& request)
 {
+	HttpResponse check_result = EndpointController::checkToken(request);
+	if (check_result.getStatus() != ResponseStatus::OK)
+	{
+		return check_result;
+	}
+
 	NGSD db;
 	QString sys_id = request.getUrlParams()["sys_id"];
 	QString filename = db.processingSystemRegionsFilePath(sys_id.toInt());
@@ -503,6 +609,12 @@ HttpResponse EndpointHandler::getProcessingSystemRegions(const HttpRequest& requ
 
 HttpResponse EndpointHandler::getProcessingSystemAmplicons(const HttpRequest& request)
 {
+	HttpResponse check_result = EndpointController::checkToken(request);
+	if (check_result.getStatus() != ResponseStatus::OK)
+	{
+		return check_result;
+	}
+
 	NGSD db;
 	QString sys_id = request.getUrlParams()["sys_id"];
 	QString filename = db.processingSystemAmpliconsFilePath(sys_id.toInt());
@@ -515,6 +627,12 @@ HttpResponse EndpointHandler::getProcessingSystemAmplicons(const HttpRequest& re
 
 HttpResponse EndpointHandler::getProcessingSystemGenes(const HttpRequest& request)
 {
+	HttpResponse check_result = EndpointController::checkToken(request);
+	if (check_result.getStatus() != ResponseStatus::OK)
+	{
+		return check_result;
+	}
+
 	NGSD db;
 	QString sys_id = request.getUrlParams()["sys_id"];
 	QString filename = db.processingSystemGenesFilePath(sys_id.toInt());
@@ -527,6 +645,12 @@ HttpResponse EndpointHandler::getProcessingSystemGenes(const HttpRequest& reques
 
 HttpResponse EndpointHandler::getSecondaryAnalyses(const HttpRequest& request)
 {
+	HttpResponse check_result = EndpointController::checkToken(request);
+	if (check_result.getStatus() != ResponseStatus::OK)
+	{
+		return check_result;
+	}
+
 	NGSD db;
 	QString processed_sample_name = request.getUrlParams()["ps_name"];
 	QString type  = QUrl::fromEncoded(request.getUrlParams()["type"].toLatin1()).toString();
@@ -544,7 +668,7 @@ HttpResponse EndpointHandler::getSecondaryAnalyses(const HttpRequest& request)
 	QJsonArray json_array;
 	for (int i = 0; i < secondary_analyses.count(); i++)
 	{
-		json_array.append(createFileTempUrl(secondary_analyses[i], false));
+		json_array.append(createFileTempUrl(secondary_analyses[i], request.getUrlParams()["token"], false));
 	}
 	json_doc_output.setArray(json_array);
 
@@ -557,10 +681,10 @@ HttpResponse EndpointHandler::getSecondaryAnalyses(const HttpRequest& request)
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
-QString EndpointHandler::createFileTempUrl(const QString& file, const bool& return_http)
+QString EndpointHandler::createFileTempUrl(const QString& file, const QString& token, const bool& return_http)
 {
 	QString id = ServerHelper::generateUniqueStr();
 	UrlManager::addUrlToStorage(id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file);
 
-	return Helper::serverApiUrl(return_http) + "temp/" + id + "/" + QFileInfo(file).fileName();
+	return Helper::serverApiUrl(return_http) + "temp/" + id + "/" + QFileInfo(file).fileName() + "?token=" + token;
 }
