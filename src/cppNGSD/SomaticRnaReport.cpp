@@ -63,13 +63,13 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 bool SomaticRnaReport::checkRequiredSNVAnnotations(const VariantList& variants)
 {
 	//neccessary DNA annotations (exact match)
-	const QByteArrayList an_names_dna = {"coding_and_splicing", "tumor_af", "ncg_tsg", "ncg_oncogene"};
+	const QByteArrayList an_names_dna = {"coding_and_splicing", "tumor_af"};
 	for(QByteArray an : an_names_dna)
 	{
 		if(variants.annotationIndexByName(an, true, false) == -1) return false;
 	}
 	//neccessary RNA annotation (from RNA samples), (no exact match, because multiple RNA annotations possible)
-	const QByteArrayList an_names_rna = {"_rna_depth", "_rna_af", "_rna_tpm", "rna_ref_tpm"};
+	const QByteArrayList an_names_rna = {"_rna_depth", "_rna_af", "_rna_tpm", "_hpa_tissue_tpm", "_cohort_mean_tpm", "_log2fc", "_pvalue"};
 	for(QByteArray an : an_names_rna)
 	{
 		if(variants.annotationIndexByName(an,false, false) == -1) return false;
@@ -80,13 +80,13 @@ bool SomaticRnaReport::checkRequiredSNVAnnotations(const VariantList& variants)
 
 bool SomaticRnaReport::checkRequiredCNVAnnotations(const CnvList &cnvs)
 {
-	QByteArrayList an_names_dna = {"cnv_type", "ncg_oncogene", "ncg_tsg"};
+	QByteArrayList an_names_dna = {"cnv_type"};
 	for(QByteArray an : an_names_dna)
 	{
 		if(cnvs.annotationIndexByName(an, false) < 0) return false;
 	}
 
-	QByteArrayList an_names_rna = {"_rna_tpm", "rna_ref_tpm"};
+	QByteArrayList an_names_rna = {"_rna_data"};
 	for(QByteArray an : an_names_rna)
 	{
 		if(cnvs.annotationIndexByName(an, false, true) == -1) return false;
@@ -124,8 +124,10 @@ void SomaticRnaReport::checkRefTissueTypeInNGSD(QString ref_type, QString tumor_
 	}
 }
 
-int SomaticRnaReport::rankCnv(double tpm, double mean_tpm, SomaticGeneRole::Role gene_role, bool oncogene, bool tsg)
+int SomaticRnaReport::rankCnv(double tpm, double mean_tpm, SomaticGeneRole::Role gene_role)
 {
+	if(!BasicStatistics::isValidFloat(tpm) || !BasicStatistics::isValidFloat(mean_tpm)) return 2;
+
 	double ratio = tpm/mean_tpm;
 
 	if(gene_role == SomaticGeneRole::Role::LOSS_OF_FUNCTION && ratio <= 0.8)
@@ -136,12 +138,6 @@ int SomaticRnaReport::rankCnv(double tpm, double mean_tpm, SomaticGeneRole::Role
 	{
 		return 1;
 	}
-	else //fallback to TSG/Oncogene
-	{
-		if(tsg && ratio <= 0.8) return 1;
-		else if(oncogene && ratio >= 1.5) return 1;
-	}
-
 	return 2;
 }
 
@@ -185,10 +181,10 @@ RtfTable SomaticRnaReport::snvTable()
 
 	int i_rna_tpm = dna_snvs_.annotationIndexByName(data_.rna_ps_name + "_rna_tpm");
 	int i_rna_af = dna_snvs_.annotationIndexByName(data_.rna_ps_name + "_rna_af");
-	int i_rna_ref_tpm = dna_snvs_.annotationIndexByName("rna_ref_tpm");
 
-	int i_tsg = dna_snvs_.annotationIndexByName("ncg_tsg");
-	int i_oncogene = dna_snvs_.annotationIndexByName("ncg_oncogene");
+	int i_hpa_tissue_tpm = dna_snvs_.annotationIndexByName(data_.rna_ps_name + "_hpa_tissue_tpm");
+	int i_cohort_mean_tpm = dna_snvs_.annotationIndexByName(data_.rna_ps_name + "_cohort_mean_tpm");
+	int i_pval = dna_snvs_.annotationIndexByName(data_.rna_ps_name + "_pvalue");
 
 
 	for(int i=0; i<dna_snvs_.count(); ++i)
@@ -205,39 +201,34 @@ RtfTable SomaticRnaReport::snvTable()
 
 		RtfTableRow row;
 
-		row.addCell(1000, trans.gene, RtfParagraph().setItalic(true).setBold(true).setFontSize(16));
-		row.addCell({RtfText(trans.hgvs_c + ":" + trans.hgvs_p).setFontSize(16).RtfCode(), RtfText(trans.id).setFontSize(14).RtfCode()}, 2550);
-		row.addCell(1150, trans.type.replace("_variant",""), RtfParagraph().setFontSize(16));
-		row.addCell(750, QByteArray::number(var.annotations()[i_tum_af].toDouble(), 'f', 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
+		//DNA data
+		row.addCell(800, trans.gene, RtfParagraph().setItalic(true).setBold(true).setFontSize(16));//4400
+		row.addCell({RtfText(trans.hgvs_c + ":" + trans.hgvs_p).setFontSize(16).RtfCode(), RtfText(trans.id).setFontSize(14).RtfCode()}, 1800);
+		row.addCell(1200, trans.type.replace("_variant",""), RtfParagraph().setFontSize(16));
+		row.addCell(600, QByteArray::number(var.annotations()[i_tum_af].toDouble(), 'f', 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
 
-		RtfSourceCode description = SomaticReportHelper::trans(SomaticVariantInterpreter::viccScoreAsString(vicc_data)).toUtf8();
+		//RNA data
+		row.addCell( 600, var.annotations()[i_rna_af], RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+		row.addCell( 1100, formatDigits(var.annotations()[i_rna_tpm]) , RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+		row.addCell( 1100, formatDigits(var.annotations()[i_hpa_tissue_tpm]), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+		row.addCell( 900, formatDigits(var.annotations()[i_cohort_mean_tpm]), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 
-		if(var.annotations().at(i_oncogene).contains("1") ) description.append(", Onkogen");
-		if(var.annotations().at(i_tsg).contains("1") ) description.append(", TSG");
+		double log_change = var.annotations()[i_rna_tpm].toDouble() / var.annotations()[i_cohort_mean_tpm].toDouble();
+		row.addCell( 1000, (BasicStatistics::isValidFloat(log_change) ? QByteArray::number(log_change, 'f', 1) : "n/a" ), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 
+		row.addCell( 821, var.annotations()[i_pval], RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 
-		row.addCell(1950, description, RtfParagraph().setFontSize(16));
-
-		row.addCell(675, var.annotations()[i_rna_af], RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
-
-		bool ok = false;
-		QByteArray tpm_formatted = QByteArray::number(var.annotations()[i_rna_tpm].toDouble(&ok), 'f', 1);
-		if(!ok) tpm_formatted = ".";
-
-		row.addCell(625, tpm_formatted , RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
-
-		ok = false;
-		QByteArray ref_tpm_formatted = QByteArray::number(var.annotations()[i_rna_ref_tpm].toDouble(&ok), 'f', 1);
-		if(!ok) ref_tpm_formatted = ".";
-		row.addCell(1221, ref_tpm_formatted, RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
-
+		for(int i=4; i<row.count(); ++i) row[i].setBackgroundColor(4);
 		table.addRow(row);
 	}
 	table.sortByCol(0);
 
-
-	table.prependRow(RtfTableRow({"Gen", "Veränderung", "Typ", "Anteil", "Beschreibung", "Anteil", "TPM", "MW TPM*"},{1000,2550,1150,750,1950,675,625,1221}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBorders(1, "brdrhair", 2) );
-	table.prependRow(RtfTableRow({"DNA", "RNA"}, {7400, 2521}, RtfParagraph().setFontSize(16).setHorizontalAlignment("c").setBold(true)).setBorders(1, "brdrhair", 2) );
+	RtfTableRow header = RtfTableRow({"Gen", "Veränderung", "Typ", "Anteil", "Anteil", "Tumorprobe TPM", "Referenz HPA-TPM", "Tumortyp MW-TPM", "Veränderung (x-fach)", "p-Wert"},{800,1800,1200,600,600,1100,1100, 900, 1000, 821}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBorders(1, "brdrhair", 2);
+	for(int i=4; i<header.count(); ++i) header[i].setBackgroundColor(4);
+	table.prependRow( header );
+	RtfTableRow sub_header = RtfTableRow({"DNA", "RNA"}, {4400, 5521}, RtfParagraph().setFontSize(16).setHorizontalAlignment("c").setBold(true)).setBorders(1, "brdrhair", 2);
+	sub_header[1].setBackgroundColor(4);
+	table.prependRow(sub_header);
 	table.prependRow(RtfTableRow("Punktmutationen (SNVs) und kleine Insertionen/Deletionen (INDELs) (" + data_.rna_ps_name.toUtf8() + "-" + data_.tumor_ps.toUtf8() + "-" + data_.normal_ps.toUtf8() + ")", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
 	table.setUniqueBorder(1, "brdrhair", 2);
@@ -258,12 +249,8 @@ RtfTable SomaticRnaReport::cnvTable()
 	int i_tum_clonality = dna_cnvs_.annotationIndexByName("tumor_clonality", true);
 	int i_size_desc = dna_cnvs_.annotationIndexByName("cnv_type", true);
 	//RNA annotations indices
-	int i_rna_tpm = dna_cnvs_.annotationIndexByName(data_.rna_ps_name.toUtf8() + "_rna_tpm", true);
-	int i_ref_rna_tpm = dna_cnvs_.annotationIndexByName("rna_ref_tpm", true);
+	int i_rna_data = dna_cnvs_.annotationIndexByName(data_.rna_ps_name.toUtf8() + "_rna_data", true);
 
-	//TSG/Oncogene
-	int i_tsg = dna_cnvs_.annotationIndexByName("ncg_tsg", true);
-	int i_oncogene = dna_cnvs_.annotationIndexByName("ncg_oncogene", true);
 
 
 	RtfTable table;
@@ -272,9 +259,6 @@ RtfTable SomaticRnaReport::cnvTable()
 		const CopyNumberVariant& cnv = dna_cnvs_[i];
 
 		GeneSet genes = dna_cnvs_[i].genes().intersect(data_.target_region_filter.genes);
-
-		GeneSet tsgs = GeneSet::createFromText(dna_cnvs_[i].annotations()[i_tsg], ',' );
-		GeneSet oncogenes = GeneSet::createFromText( dna_cnvs_[i].annotations()[i_oncogene] , ',' );
 
 		for(const auto& gene : genes)
 		{
@@ -286,46 +270,50 @@ RtfTable SomaticRnaReport::cnvTable()
 
 
 			RtfTableRow temp;
-			temp.addCell(1000, gene, RtfParagraph().setBold(true).setItalic(true).setFontSize(16));
-			temp.addCell(2100, cnv.chr().str() + " (" + cnv.annotations().at(i_size_desc).trimmed() + ")", RtfParagraph().setFontSize(16));
+			temp.addCell(800, gene, RtfParagraph().setBold(true).setItalic(true).setFontSize(16));
+			temp.addCell(1800, cnv.chr().str() + " (" + cnv.annotations().at(i_size_desc).trimmed() + ")", RtfParagraph().setFontSize(16));
 
 			int tumor_cn = cnv.copyNumber(dna_cnvs_.annotationHeaders());
-			temp.addCell(1300, SomaticReportHelper::CnvTypeDescription(tumor_cn), RtfParagraph().setFontSize(16));
+			temp.addCell(1200, SomaticReportHelper::CnvTypeDescription(tumor_cn), RtfParagraph().setFontSize(16));
 
+			temp.addCell(600, QByteArray::number(cnv.annotations().at(i_tum_clonality).toDouble(), 'f', 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
 
-			temp.addCell(500, QByteArray::number(tumor_cn), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
+			const QByteArray& rna_data_field = cnv.annotations().at(i_rna_data);
+			double tpm = getRnaData(gene, rna_data_field , "tpm");
+			temp.addCell(1000, (BasicStatistics::isValidFloat(tpm) ? QByteArray::number( tpm, 'f', 2 ) : "n/a"), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
-			temp.addCell(750, QByteArray::number(cnv.annotations().at(i_tum_clonality).toDouble(), 'f', 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
-
-			bool is_oncogene = false, is_tsg = false;
-			if(tsgs.contains(gene)) is_tsg = true;
-			else if(oncogenes.contains(gene)) is_oncogene = true;
-
-
-			QList<RtfSourceCode> description;
-			if(is_oncogene) description << "Onkogen";
-			if(is_tsg) description <<  "TSG";
-			if(!is_oncogene && !is_tsg) description << "NA";
-
-			temp.addCell(1886, description.join(", ") , RtfParagraph().setFontSize(16));
-
-			temp.addCell(900, QByteArray::number(getTpm(gene, cnv.annotations().at(i_rna_tpm)), 'f', 1), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
-			temp.addCell(900, QByteArray::number(getTpm(gene, cnv.annotations().at(i_ref_rna_tpm)), 'f', 1), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
-
+			double hpa_tissue_tpm = getRnaData(gene, rna_data_field, "hpa_tissue_tpm");
+			temp.addCell(900, (BasicStatistics::isValidFloat(hpa_tissue_tpm) ? QByteArray::number( hpa_tissue_tpm, 'f', 2 ) : "n/a"), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
 			//Determine oncogenetic rank of expression change
-			int rank = rankCnv( getTpm(gene, cnv.annotations().at(i_rna_tpm)) , getTpm(gene, cnv.annotations().at(i_ref_rna_tpm)), role.role , is_oncogene , is_tsg);
+			int rank = rankCnv( tpm , hpa_tissue_tpm, role.role );
+			temp.addCell( 900 , QByteArray::number(rank) , RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
-			temp.addCell( 585 , QByteArray::number(rank) , RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+			double cohort_mean_tpm = getRnaData(gene, rna_data_field, "cohort_mean");
+			temp.addCell(900, (BasicStatistics::isValidFloat(cohort_mean_tpm) ? QByteArray::number( cohort_mean_tpm, 'f', 2 ) : "n/a"), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+
+			//double log2fc = getRnaData(gene, rna_data_field, "log2fc");
+			double fold_change = tpm / cohort_mean_tpm;
+			temp.addCell(1000, (BasicStatistics::isValidFloat(fold_change) ? QByteArray::number( fold_change, 'f', 1 ) : "n/a") , RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+
+			double pval = getRnaData(gene, rna_data_field, "pval");
+			temp.addCell(821, (BasicStatistics::isValidFloat(pval) ? QByteArray::number( pval, 'f', 2 ) : "n/a") , RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+
+			for(int i=4; i< temp.count(); ++i) temp[i].setBackgroundColor(4);
+
 			table.addRow(temp);
 		}
 	}
 
 	table.sortbyCols({8,0}); //sort by rank tean by gene symbol
 
-	//add table headings
-	table.prependRow(RtfTableRow({"Gen", "Position", "CNV", "CN", "Anteil","Beschreibung","TPM RNA", "MW TPM*", "Rang"},{1000,2100,1300,500,750,1886,900,900,585}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader());
-	table.prependRow(RtfTableRow({"DNA", "RNA"},{7536,2385}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader() );
+	RtfTableRow header = RtfTableRow({"Gen", "Position", "CNV", "Anteil", "Tumorprobe TPM", "Referenz HPA-TPM", "Bewertung", "Tumortyp MW TPM", "Veränderung (x-fach)", "p-Wert"},{800, 1800, 1200, 600, 1000, 900,900, 900, 1000, 821}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader();
+	for(int i=4; i< header.count(); ++i) header[i].setBackgroundColor(4);
+	table.prependRow(header);
+
+	RtfTableRow subheader = RtfTableRow({"DNA", "RNA"},{4400, 5521}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader();
+	subheader[1].setBackgroundColor(4);
+	table.prependRow( subheader);
 	table.prependRow(RtfTableRow("Kopienzahlveränderungen (CNVs)", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
 	table.setUniqueBorder(1, "brdrhair", 2);
@@ -341,78 +329,92 @@ RtfTable SomaticRnaReport::cnvTable()
 	return table;
 }
 
-double SomaticRnaReport::getTpm(QByteArray gene, QByteArray field)
+double SomaticRnaReport::getRnaData(QByteArray gene, QString field, QString key)
 {
-	QByteArrayList entries = field.split(',');
-	for(QByteArray& entry : entries)
+	QStringList entries = field.split(',');
+
+	//Extract data from rna_data column. Data is organized as GENE_SYMBOL (KEY1=VALUE1 KEY2=VALUE2 ...)
+	for(QString entry : entries)
 	{
-		QList<QByteArray> parts = entry.append('=').split('=');
-
-		if(parts[0] == gene)
+		QList<QString> parts = entry.append(' ').split(' ');
+		if(parts[0].toUtf8() == gene)
 		{
-			bool ok = false;
-			double res = parts[1].toDouble(&ok);
-
-			if(ok) return res;
+			int start = entry.indexOf('(');
+			int end = entry.indexOf(')');
+			QStringList data_entries = entry.mid(start+1, end-start-1).split(' '); //data from gene between brackets (...)
+			for(QString data_entry : data_entries)
+			{
+				QStringList res = data_entry.append('=').split('=');
+				if(res[0] == key)
+				{
+					bool ok = false;
+					double res_value = res[1].toDouble(&ok);
+					if(ok) return res_value;
+					else return std::numeric_limits<double>::quiet_NaN();
+				}
+			}
 		}
 	}
 
-	return -1.;
+	return std::numeric_limits<double>::quiet_NaN();
 }
 
 RtfSourceCode SomaticRnaReport::trans(QString orig_entry) const
 {
-	QHash<QString, RtfSourceCode> dict;
+	static QHash<QString, RtfSourceCode> dict;
 
-	dict["adipose tissue"] = "Fettgewebe";
-	dict["adrenal gland"] = "Nebenniere";
-	dict["appendix"] = "Blinddarm";
-	dict["B-cells"] = "B-Zellen";
-	dict["bone marrow"] = "Knochenmark";
-	dict["breast"] = "Brust";
-	dict["cerebral cortex"] = "Großhirnrinde";
-	dict["cervix, uterine"] = "Gebärmutterhals";
-	dict["colon"] = "Dickdarm";
-	dict["dendritic cells"] = "dendritische Zellen";
-	dict["duodenum"] = "Zwölffingerdarm";
-	dict["endometrium"] = "Endometrium";
-	dict["epididymis"] = "Nebenhoden";
-	dict["esophagus"] = "Speiseröhre";
-	dict["fallopian tube"] = "Eileiter";
-	dict["gallbladder"] = "Gallenblase";
-	dict["granulocytes"] = "Granulozyten";
-	dict["heart muscle"] = "Herzmuskel";
-	dict["kidney"] = "Niere";
-	dict["liver"] = "Leber";
-	dict["lung"] = "Lunge";
-	dict["lymph node"] = "Lymphknoten";
-	dict["monocytes"] = "Monozyten";
-	dict["NK-cells"] = "NK-Zellen";
-	dict["ovary"] = "Eierstock";
-	dict["pancreas"] = "Pankreas";
-	dict["parathyroid gland"] = "Nebenschilddrüse";
-	dict["placenta"] = "Plazenta";
-	dict["prostate"] = "Prostata";
-	dict["rectum"] = "Rektum";
-	dict["salivary gland"] = "Speicheldrüse";
-	dict["seminal vesicle"] = "Bläschendrüse";
-	dict["skeletal muscle"] = "Skelettmuskel";
-	dict["skin"] = "Haut";
-	dict["small intestine"] = "Dünndarm";
-	dict["smooth muscle"] = "glatter Muskel";
-	dict["spleen"] = "Milz";
-	dict["stomach"] = "Magen";
-	dict["T-cells"] = "T-Zellen";
-	dict["testis"] = "Hoden";
-	dict["thyroid gland"] = "Schilddrüse";
-	dict["tonsil"] = "Tonsilien";
-	dict["urinary bladder"] = "Harnblase";
-	dict["activating"] = "aktivierend";
-	dict["likely_activating"] = "möglicherweise aktivierend";
-	dict["inactivating"] = "inaktivierend";
-	dict["likely_inactivating"] = "möglicherweise inaktivierend";
-	dict["unclear"] = "unklare Bedeutung";
-	dict["test_dependent"] = "testabhängige Bedeutung";
+	if(dict.isEmpty())
+	{
+		dict["adipose tissue"] = "Fettgewebe";
+		dict["adrenal gland"] = "Nebenniere";
+		dict["appendix"] = "Blinddarm";
+		dict["B-cells"] = "B-Zellen";
+		dict["bone marrow"] = "Knochenmark";
+		dict["breast"] = "Brust";
+		dict["cerebral cortex"] = "Großhirnrinde";
+		dict["cervix, uterine"] = "Gebärmutterhals";
+		dict["colon"] = "Dickdarm";
+		dict["dendritic cells"] = "dendritische Zellen";
+		dict["duodenum"] = "Zwölffingerdarm";
+		dict["endometrium"] = "Endometrium";
+		dict["epididymis"] = "Nebenhoden";
+		dict["esophagus"] = "Speiseröhre";
+		dict["fallopian tube"] = "Eileiter";
+		dict["gallbladder"] = "Gallenblase";
+		dict["granulocytes"] = "Granulozyten";
+		dict["heart muscle"] = "Herzmuskel";
+		dict["kidney"] = "Niere";
+		dict["liver"] = "Leber";
+		dict["lung"] = "Lunge";
+		dict["lymph node"] = "Lymphknoten";
+		dict["monocytes"] = "Monozyten";
+		dict["NK-cells"] = "NK-Zellen";
+		dict["ovary"] = "Eierstock";
+		dict["pancreas"] = "Pankreas";
+		dict["parathyroid gland"] = "Nebenschilddrüse";
+		dict["placenta"] = "Plazenta";
+		dict["prostate"] = "Prostata";
+		dict["rectum"] = "Rektum";
+		dict["salivary gland"] = "Speicheldrüse";
+		dict["seminal vesicle"] = "Bläschendrüse";
+		dict["skeletal muscle"] = "Skelettmuskel";
+		dict["skin"] = "Haut";
+		dict["small intestine"] = "Dünndarm";
+		dict["smooth muscle"] = "glatter Muskel";
+		dict["spleen"] = "Milz";
+		dict["stomach"] = "Magen";
+		dict["T-cells"] = "T-Zellen";
+		dict["testis"] = "Hoden";
+		dict["thyroid gland"] = "Schilddrüse";
+		dict["tonsil"] = "Tonsilien";
+		dict["urinary bladder"] = "Harnblase";
+		dict["activating"] = "aktivierend";
+		dict["likely_activating"] = "möglicherweise aktivierend";
+		dict["inactivating"] = "inaktivierend";
+		dict["likely_inactivating"] = "möglicherweise inaktivierend";
+		dict["unclear"] = "unklare Bedeutung";
+		dict["test_dependent"] = "testabhängige Bedeutung";
+	}
 
 	if(!dict.contains(orig_entry)) //Return highlighted original entry if not found
 	{
@@ -431,6 +433,7 @@ void SomaticRnaReport::writeRtf(QByteArray out_file)
 	doc_.addColor(191,191,191);
 	doc_.addColor(161,161,161);
 	doc_.addColor(255,255,0);
+	doc_.addColor(242, 242, 242);
 
 	if(dna_snvs_.count() > 0) doc_.addPart(snvTable().RtfCode());
 	else doc_.addPart(RtfParagraph("Es wurden keine SNVs detektiert.").RtfCode());
@@ -448,6 +451,13 @@ void SomaticRnaReport::writeRtf(QByteArray out_file)
 	if(fusions_.count() > 0) doc_.addPart(fusions().RtfCode());
 	else doc_.addPart(RtfParagraph("Es wurden keine proteinkodierenden Fusionen gefunden.").RtfCode());
 
-
 	doc_.save(out_file);
+}
+
+RtfSourceCode SomaticRnaReport::formatDigits(QByteArray in, int digits)
+{
+	bool ok = false;
+	RtfSourceCode tpm_formatted = QByteArray::number(in.toDouble(&ok), 'f', digits);
+	if(!ok) tpm_formatted = "n/a";
+	return tpm_formatted;
 }

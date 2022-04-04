@@ -55,7 +55,7 @@ public:
 	void checkRefTissueTypeInNGSD(QString ref_type, QString tumor_dna_ps_id);
 
 	///Calculates a rank for CNVs (=1 high or =2 low) depending on gene expression and gene role
-	static int rankCnv(double tpm, double mean_tpm, SomaticGeneRole::Role gene_role, bool oncogene, bool tsg);
+	static int rankCnv(double tpm, double mean_tpm, SomaticGeneRole::Role gene_role);
 
 private:
 	NGSD db_;
@@ -80,9 +80,12 @@ private:
 	///Creates table that contains CN altered genes and their TPM
 	RtfTable cnvTable();
 	///Returns TPM from annotation field, orig. entry has the form gene1=0.00,gene2=2.21,gene3=..., if not found it returns -1.
-	double getTpm(QByteArray gene, QByteArray field);
+	double getRnaData(QByteArray gene, QString field, QString key);
 	///Translates reference tissue type into German
 	RtfSourceCode trans(QString orig_entry) const;
+
+	///Formats tpm string which is annotated to GSVAR file
+	RtfSourceCode formatDigits(QByteArray in, int digits=1);
 
 	RtfDocument doc_;
 };
