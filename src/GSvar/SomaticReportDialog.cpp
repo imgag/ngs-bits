@@ -1,10 +1,11 @@
 #include "SomaticReportDialog.h"
 #include "NGSD.h"
 #include "SomaticReportHelper.h"
-#include <QMessageBox>
 #include "GlobalServiceProvider.h"
 #include "Statistics.h"
 #include "MainWindow.h"
+#include <QMessageBox>
+#include <QBuffer>
 
 //struct holding reference data for tumor mutation burden (DOI:10.1186/s13073-017-0424-2)
 struct tmbInfo
@@ -464,6 +465,29 @@ void SomaticReportDialog::writeBackSettings()
 		settings_.report_config.setLimitations("");
 	}
 
+	//IGV data
+	if(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().exists)
+	{
+		QImage picture = QImage(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename);
+
+
+		if( (uint)picture.width() > 1200 ) picture = picture.scaledToWidth(1200, Qt::TransformationMode::SmoothTransformation);
+		if( (uint)picture.height() > 1200 ) picture = picture.scaledToHeight(1200, Qt::TransformationMode::SmoothTransformation);
+
+		QByteArray png_data = "";
+
+		if(!picture.isNull())
+		{
+			QBuffer buffer(&png_data);
+			buffer.open(QIODevice::WriteOnly);
+			if(picture.save(&buffer, "PNG"))
+			{
+				settings_.igv_snapshot_png_hex_image = png_data.toHex();
+				settings_.igv_snapshot_width = picture.width();
+				settings_.igv_snapshot_height = picture.height();
+			}
+		}
+	}
 }
 
 SomaticReportDialog::report_type SomaticReportDialog::getReportType()
