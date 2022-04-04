@@ -1,5 +1,9 @@
 # GSvar change log
 
+### 2021_12-180 (04.04.22)
+- General: Added GUI to change the permissions of restricted users.
+- Report: Added gap percentage after closing gaps to germline report.
+
 ### 2021_12-162 (28.03.22)
 - Gaps: gaps in closing dialog can now be opened for editing and details by double-clicking or through the context menu.
 
