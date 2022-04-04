@@ -1553,6 +1553,7 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 	foreach(const QByteArray& gene, data_.roi.genes)
 	{
 		int gene_id = db_.geneToApprovedID(gene);
+		if (gene_id==-1) continue;
 
 		//approved gene symbol
 		QByteArray symbol = db_.geneSymbol(gene_id);
