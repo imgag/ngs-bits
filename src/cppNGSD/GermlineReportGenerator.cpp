@@ -572,10 +572,12 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		//contained genes
 		foreach(const QByteArray& gene, data_.roi.genes)
 		{
+			int gene_id = db_.geneToApprovedID(gene);
+			if (gene_id==-1) continue;
+
 			w.writeStartElement("Gene");
 			w.writeAttribute("name", gene);
-			int gene_id = db_.geneToApprovedID(gene);
-			w.writeAttribute("identifier", gene_id==-1 ? "n/a" : db_.geneHgncId(gene_id));
+			w.writeAttribute("identifier", db_.geneHgncId(gene_id));
 			Transcript transcript = db_.longestCodingTranscript(gene_id, Transcript::ENSEMBL, true, true);
 			w.writeAttribute("bases", QString::number(transcript.regions().baseCount()));
 
