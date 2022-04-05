@@ -536,32 +536,30 @@ HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 HttpResponse EndpointHandler::uploadFile(const HttpRequest& request)
 {
 	qDebug() << "File upload request";
-//	if (!request.getFormUrlEncoded().contains("name") || !request.getFormUrlEncoded().contains("password"))
-//	{
-//		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "No username or/and password were found");
-//	}
+	HttpResponse check_result = EndpointController::checkToken(request);
+	if (check_result.getStatus() != ResponseStatus::OK)
+	{
+		return check_result;
+	}
 
-//	NGSD db;
-//	QString message = db.checkPassword(request.getFormUrlEncoded()["name"], request.getFormUrlEncoded()["password"]);
-//	if (message.isEmpty())
-//	{
-//		QString secure_token = ServerHelper::generateUniqueStr();
-//		Session cur_session = Session(db.userId(request.getFormUrlEncoded()["name"]), QDateTime::currentDateTime());
+	if ((request.getFormDataParams().contains("ps_url_id")) && (!request.getMultipartFileName().isEmpty()))
+	{		
+		QString ps_url_id = request.getFormDataParams()["ps_url_id"];
+		UrlEntity url_entity = UrlManager::getURLById(ps_url_id.trimmed());
+		if (!url_entity.path.isEmpty())
+		{
+			if (!url_entity.path.endsWith("/")) url_entity.path = url_entity.path + "/";
+			QSharedPointer<QFile> outfile = Helper::openFileForWriting(url_entity.path + request.getMultipartFileName());
+			outfile->write(request.getMultipartFileContent());
+			return HttpResponse(ResponseStatus::OK, request.getContentType(), "OK");
+		}
+		else
+		{
+			return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Processed sample path has not been found");
+		}
+	}
 
-//		SessionManager::addNewSession(secure_token, cur_session);
-//		QByteArray body = secure_token.toLocal8Bit();
-
-//		BasicResponseData response_data;
-//		response_data.length = body.length();
-//		response_data.content_type = ContentType::TEXT_PLAIN;
-//		response_data.is_downloadable = false;
-//		qDebug() << "User creadentials are valid";
-//		return HttpResponse(response_data, body);
-//	}
-//	qDebug() << request.getHeaders();
-//	qDebug() << request.getContentType();
-//	qDebug() << request.getBody();
-	return HttpResponse(ResponseStatus::OK, request.getContentType(), "OK");
+	return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Parameters have not been provided");
 }
 
 

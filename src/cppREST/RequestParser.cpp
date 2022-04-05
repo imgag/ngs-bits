@@ -1,4 +1,5 @@
 #include "RequestParser.h"
+#include <QRegularExpression>
 
 RequestParser::RequestParser()
 {
@@ -7,8 +8,7 @@ RequestParser::RequestParser()
 HttpRequest RequestParser::parse(QByteArray *request) const
 {
 	HttpRequest parsed_request;
-	QList<QByteArray> body = getRawRequestHeaders(*request);
-
+	QList<QByteArray> body = getRawRequestHeaders(*request);	
 	for (int i = 0; i < body.count(); ++i)
 	{
 		// First line with method type and URL
@@ -50,25 +50,115 @@ HttpRequest RequestParser::parse(QByteArray *request) const
 		}
 	}
 
-	qDebug() << getRequestBody(*request).trimmed();
-
 	parsed_request.setBody(getRequestBody(*request).trimmed());
 	parsed_request.setContentType(ContentType::TEXT_HTML);
-//	if (parsed_request.getHeaders().contains("accept"))
-//	{
-//		QList<QString> headers = parsed_request.getHeaders()["accept"];
-//		if (headers.isEmpty()) return parsed_request;
-//		if (HttpProcessor::getContentTypeFromString(headers[0]) == ContentType::APPLICATION_JSON)
-//		{
-//			parsed_request.setContentType(ContentType::APPLICATION_JSON);
-//		}
-//	}
 
 	if (parsed_request.getHeaders().contains("content-type"))
 	{
 		QList<QString> headers = parsed_request.getHeaders()["content-type"];
 		if (headers.isEmpty()) return parsed_request;
-		parsed_request.setContentType(HttpProcessor::getContentTypeFromString(headers[0]));
+
+		QList<QString> content_type_header_list = headers[0].split(";");
+		QString content_type;
+		if (content_type_header_list.count() > 1)
+		{
+			content_type = content_type_header_list[0];
+			QString boundary = "--" + content_type_header_list[1].trimmed().replace("boundary=", "", Qt::CaseInsensitive);
+
+			// Parse mutipart form data request
+			if ((HttpProcessor::getContentTypeFromString(content_type) == ContentType::MULTIPART_FORM_DATA) && (!boundary.isEmpty()))
+			{
+				QByteArray form_body = parsed_request.getBody();
+				QList<QByteArray> multipart_list;
+
+				// Getting starting positions of all boundaries from the multipart request body
+				QList<int> boundary_start_positions;
+				QRegularExpression boundary_reg_exp(boundary);
+				QRegularExpressionMatchIterator i = boundary_reg_exp.globalMatch(form_body);
+				while (i.hasNext())
+				{
+					QRegularExpressionMatch match = i.next();
+					if (match.hasMatch())
+					{
+						boundary_start_positions.append(match.capturedStart());
+					}
+				}
+
+				for (int p = 0; p < boundary_start_positions.count(); p++)
+				{
+					int boundary_end_position;
+					if (p<boundary_start_positions.count()-1)
+					{
+						boundary_end_position = boundary_start_positions[p+1] - (boundary_start_positions[p]+boundary.length());
+					}
+					else
+					{
+						boundary_end_position = (boundary_start_positions[p]+boundary.length()) - (form_body.length());
+					}
+					QByteArray multipart_item = form_body.mid(boundary_start_positions[p]+boundary.length(), boundary_end_position);
+
+					if ((multipart_item!="--") && (p<boundary_start_positions.count()-1))
+					{
+						QString part_separator = "\r\n\r\n";
+						if (!multipart_item.toLower().contains("content-type"))
+						{
+							// Parse form paramenters (i.e. form fields)
+							int name_pos = multipart_item.toLower().indexOf("name");
+							multipart_item = multipart_item.mid(name_pos, multipart_item.length() - name_pos);
+
+							// Get parameter value
+							QString param_value;
+							int value_start = multipart_item.indexOf(part_separator.toLocal8Bit());
+							if (value_start > -1)
+							{
+								param_value = multipart_item.mid(value_start+part_separator.length(), multipart_item.length()-(value_start+part_separator.length())).trimmed();
+							}
+
+							// Get parameter name
+							QString param_key;
+							int key_start = multipart_item.indexOf("=");
+							if (key_start > -1)
+							{
+								param_key = multipart_item.mid(key_start, value_start - key_start).trimmed();
+								if (param_key.startsWith("=\"")) param_key = param_key.remove(0,2);
+								if (param_key.endsWith("\"")) param_key = param_key.remove(param_key.length()-1,1);
+							}
+
+							if ((!param_key.isEmpty()) && (!param_value.isEmpty())) parsed_request.addFormDataParam(param_key, param_value);
+						}
+						else
+						{
+							// Parse file related content
+							QRegularExpression file_name_fragment_regexp("filename=\"[^<]+\"", QRegularExpression::CaseInsensitiveOption);
+							QRegularExpressionMatch file_name_fragment_match = file_name_fragment_regexp.match(multipart_item);
+							if (file_name_fragment_match.hasMatch())
+							{
+								QString multipart_filename = file_name_fragment_match.captured(0);
+								multipart_filename = multipart_filename.replace("filename=\"", "", Qt::CaseInsensitive);
+								multipart_filename = multipart_filename.remove(multipart_filename.length()-1,1);
+								parsed_request.setMultipartFileName(multipart_filename);
+							}
+
+							int content_start = multipart_item.indexOf(part_separator.toLocal8Bit());
+							if (content_start > -1)
+							{
+								// Remove Headers before the content
+								multipart_item.remove(0, content_start+part_separator.length());
+								// Remove \r\n characters before the last boundary
+								if (multipart_item.length() > 2) multipart_item.remove(multipart_item.length()-2, 2);
+								parsed_request.setMultipartFileContent(multipart_item);
+							}
+						}
+						multipart_list.append(multipart_item);
+					}
+				}
+			}
+		}
+		else
+		{
+			content_type = headers[0];
+		}
+		parsed_request.setContentType(HttpProcessor::getContentTypeFromString(content_type));
 	}
 
 	if (parsed_request.getContentType() == ContentType::APPLICATION_X_WWW_FORM_URLENCODED)

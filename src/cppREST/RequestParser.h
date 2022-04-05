@@ -22,6 +22,7 @@ public:
 private:
 	QList<QByteArray> getRawRequestHeaders(const QByteArray& input) const;
 	QByteArray getRequestBody(const QByteArray& input) const;
+
 	QList<QByteArray> getKeyValuePair(const QByteArray& input) const;
 	QMap<QString, QString> getVariables(const QByteArray& input) const;
 	QByteArray getVariableSequence(const QByteArray& url) const;

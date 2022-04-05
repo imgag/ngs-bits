@@ -68,6 +68,36 @@ QByteArray HttpRequest::getBody() const
 	return body_;
 }
 
+void HttpRequest::addFormDataParam(QString key, QString value)
+{
+	form_data_params_.insert(key, value);
+}
+
+QMap<QString, QString> HttpRequest::getFormDataParams() const
+{
+	return form_data_params_;
+}
+
+void HttpRequest::setMultipartFileName(QString file)
+{
+	multipart_file_name_ = file;
+}
+
+QString HttpRequest::getMultipartFileName() const
+{
+	return multipart_file_name_;
+}
+
+void HttpRequest::setMultipartFileContent(QByteArray content)
+{
+	multipart_file_content_ = content;
+}
+
+QByteArray HttpRequest::getMultipartFileContent() const
+{
+	return multipart_file_content_;
+}
+
 void HttpRequest::setPrefix(QString prefix)
 {
 	prefix_ = prefix;

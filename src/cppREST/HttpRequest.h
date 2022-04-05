@@ -23,6 +23,15 @@ public:
 	void setBody(QByteArray body);
 	QByteArray getBody() const;
 
+	void addFormDataParam(QString key, QString value);
+	QMap<QString, QString> getFormDataParams() const;
+
+	void setMultipartFileName(QString file);
+	QString getMultipartFileName() const;
+
+	void setMultipartFileContent(QByteArray content);
+	QByteArray getMultipartFileContent() const;
+
 	void setPrefix(QString prefix);
 	QString getPrefix() const;
 
@@ -49,6 +58,9 @@ private:
 	ContentType return_type_;
 	QMap<QString, QList<QString>> headers_;
 	QByteArray body_;
+	QMap<QString, QString> form_data_params_;
+	QString multipart_file_name_;
+	QByteArray multipart_file_content_;
 	QString prefix_;
 	QString path_;
 	QString remote_address_;
