@@ -28,17 +28,17 @@ public:
 	///write RTF to file
 	void writeRtf(QByteArray out_file);
 
-	//struct holding data from fusion input file
-	struct fusion
+	//struct holding data from arriba fusion input file
+	struct arriba_sv
 	{
-		QByteArray genes;
+		QByteArray gene_left;
+		QByteArray gene_right;
 
-		QByteArray transcipt_id_left;
-		QByteArray transcipt_id_right;
+		QByteArray transcipt_left;
+		QByteArray transcipt_right;
 
-		//amino acids
-		QByteArray aa_left;
-		QByteArray aa_right;
+		QByteArray breakpoint_left;
+		QByteArray breakpoint_right;
 
 		QByteArray type;
 	};
@@ -68,17 +68,23 @@ private:
 	//Somatic DNA CNVs
 	CnvList dna_cnvs_;
 	//Somatic RNA fusions
-	QList<fusion> fusions_;
+	QList<arriba_sv> svs_;
 
 	//Tissue type for RNA reference TPM in SNV list
 	QString ref_tissue_type_ = "";
 
 	///Creates table that containts fusions from RNA data
-	RtfTable fusions();
+	RtfTable partFusions();
+	///Creates table with structural variants;
+	RtfTable partSVs();
+
 	///Creates table that contains expression of detected somatic variants from DNA/RNA data
-	RtfTable snvTable();
+	RtfTable partSnvTable();
 	///Creates table that contains CN altered genes and their TPM
-	RtfTable cnvTable();
+	RtfTable partCnvTable();
+	///Creates explanation text for SNV and CNV table
+	RtfParagraph partVarExplanation();
+
 	///Returns TPM from annotation field, orig. entry has the form gene1=0.00,gene2=2.21,gene3=..., if not found it returns -1.
 	double getRnaData(QByteArray gene, QString field, QString key);
 	///Translates reference tissue type into German

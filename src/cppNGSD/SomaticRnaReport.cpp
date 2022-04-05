@@ -41,23 +41,28 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 
 
 	//Load fusions
-	TSVFileStream in_file(data.rna_fusion_file);
-	int i_cds_left = in_file.colIndex("CDS_LEFT_ID", true);
-	int i_cds_left_range = in_file.colIndex("CDS_LEFT_RANGE", true);
-	int i_cds_right = in_file.colIndex("CDS_RIGHT_ID", true);
-	int i_cds_right_range = in_file.colIndex("CDS_RIGHT_RANGE", true);
-	int i_fusion_name = in_file.colIndex("FusionName", true);
-	int i_fusion_type = in_file.colIndex("PROT_FUSION_TYPE", true);
-
-	while(!in_file.atEnd())
+	try
 	{
-		QByteArrayList parts = in_file.readLine();
-
-		if(parts[i_cds_left].trimmed() == "." || parts[i_cds_left].isEmpty()) continue;
-
-		fusion temp{parts[i_fusion_name].replace("--","::"), parts[i_cds_left], parts[i_cds_right], parts[i_cds_left_range], parts[i_cds_right_range], parts[i_fusion_type]};
-		fusions_.append(temp);
+		TSVFileStream in_file(data.rna_fusion_file);
+		int i_gene_left = in_file.colIndex("gene1", true);
+		int i_gene_right = in_file.colIndex("gene2", true);
+		int i_transcript_left = in_file.colIndex("transcript_id1", true);
+		int i_transcript_right = in_file.colIndex("transcript_id2", true);
+		int i_breakpoint_left = in_file.colIndex("breakpoint1", true);
+		int i_breakpoint_right = in_file.colIndex("breakpoint2", true);
+		int i_type = in_file.colIndex("type", true);
+		while(!in_file.atEnd())
+		{
+			QByteArrayList parts = in_file.readLine();
+			arriba_sv temp{parts[i_gene_left], parts[i_gene_right], parts[i_transcript_left], parts[i_transcript_right], parts[i_breakpoint_left], parts[i_breakpoint_right], parts[i_type]};
+			svs_.append(temp);
+		}
 	}
+	catch(Exception&)
+	{
+	}
+
+
 }
 
 bool SomaticRnaReport::checkRequiredSNVAnnotations(const VariantList& variants)
@@ -142,37 +147,61 @@ int SomaticRnaReport::rankCnv(double tpm, double mean_tpm, SomaticGeneRole::Role
 }
 
 
-RtfTable SomaticRnaReport::fusions()
+RtfTable SomaticRnaReport::partFusions()
 {
 	RtfTable fusion_table;
 	fusion_table.addRow(RtfTableRow("Fusionen", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1));
 
-	fusion_table.addRow(RtfTableRow({"Fusion", "Transkript links", "Kodierende Region linkes Gen", "Transkript rechts", "Kodierende Region rechtes Gen", "Fusionstyp"},{1600,1800,1400,1800,1400,1921}, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)).setHeader());
-	for(const fusion& fus : fusions_)
+	fusion_table.addRow(RtfTableRow({"Strukturvariante", "Transkript links", "Bruchpunkt Gen 1", "Transkript rechts", "Bruchpunkt Gen 2", "Typ"},{1600,1800,1400,1800,1400,1921}, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)).setHeader());
+
+	for(const auto& sv : svs_)
 	{
-		//fus.genes is parsed because nomenclature for fusions contains only one dash instead of 2 dashes
+		if( !sv.type.contains("translocation") && !sv.type.contains("inversion") ) continue;
+
 		RtfTableRow temp;
 
-		temp.addCell(1600, fus.genes, RtfParagraph().setItalic(true).setFontSize(16));
-		temp.addCell(1800, fus.transcipt_id_left, RtfParagraph().setFontSize(16));
-		temp.addCell(1400, "r.?_" + fus.aa_left.split('-').last() , RtfParagraph().setFontSize(16));
-		temp.addCell(1800, fus.transcipt_id_right, RtfParagraph().setFontSize(16));
-		temp.addCell(1400, "r." + fus.aa_right.split('-').first() + "_?", RtfParagraph().setFontSize(16));
-		temp.addCell(1921, fus.type, RtfParagraph().setFontSize(16));
-
-
-		fusion_table.addRow(temp);
+		temp.addCell( 1600, sv.gene_left + "::" + sv.gene_right, RtfParagraph().setItalic(true).setFontSize(16) );
+		temp.addCell( 1800, sv.transcipt_left, RtfParagraph().setFontSize(16) );
+		temp.addCell( 1400, sv.breakpoint_left , RtfParagraph().setFontSize(16) );
+		temp.addCell( 1800, sv.transcipt_right, RtfParagraph().setFontSize(16) );
+		temp.addCell( 1400, sv.breakpoint_right, RtfParagraph().setFontSize(16) );
+		temp.addCell( 1921, sv.type, RtfParagraph().setFontSize(16) );
+		fusion_table.addRow( temp );
 	}
 
 	fusion_table.setUniqueBorder(1,"brdrhair",2);
 
-	fusion_table.addRow(RtfTableRow("Fusionen vom Typ Frameshift führen wahrscheinlich zu einem nicht-funktionellen Fusionsprotein.",doc_.maxWidth(), RtfParagraph().setFontSize(14)));
+	return fusion_table;
+}
+
+RtfTable SomaticRnaReport::partSVs()
+{
+	RtfTable fusion_table;
+	fusion_table.addRow(RtfTableRow("Strukturvariante", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1));
+
+	fusion_table.addRow(RtfTableRow({"Gen", "Transkript", "Bruchpunkt 1", "Bruchpunkt 2", "Beschreibung"},{1600,1800,1400,1800,3321}, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)).setHeader());
+
+	for(const auto& sv : svs_)
+	{
+		if ( !sv.type.contains("duplication") && !sv.type.contains("deletion")) continue;
+
+		RtfTableRow temp;
+
+		temp.addCell( 1600, sv.gene_right, RtfParagraph().setItalic(true).setFontSize(16) );
+		temp.addCell( 1800, sv.transcipt_right, RtfParagraph().setFontSize(16) );
+		temp.addCell( 1400, sv.breakpoint_left , RtfParagraph().setFontSize(16) );
+		temp.addCell( 1800, sv.breakpoint_right, RtfParagraph().setFontSize(16) );
+		temp.addCell( 3321, sv.type, RtfParagraph().setFontSize(16));
+
+		fusion_table.addRow( temp );
+	}
+	fusion_table.setUniqueBorder(1,"brdrhair",2);
 
 	return fusion_table;
 }
 
 
-RtfTable SomaticRnaReport::snvTable()
+RtfTable SomaticRnaReport::partSnvTable()
 {
 	RtfTable table;
 
@@ -233,18 +262,10 @@ RtfTable SomaticRnaReport::snvTable()
 
 	table.setUniqueBorder(1, "brdrhair", 2);
 
-	RtfSourceCode desc = "";
-
-	desc += RtfText("Anteil:").setBold(true).setFontSize(14).RtfCode() + " " + "Anteil der Allele mit der gelisteten Variante (SNV, INDEL). ";
-	desc += RtfText("Beschreibung:").setBold(true).setFontSize(14).RtfCode() + " " + "Klassifikation der Varianten und ggf. Bewertung der Genfunktion als Onkogen bzw. Tumorsuppressorgen (TSG). ";
-	desc += RtfText("*MW TPM:").setBold(true).setFontSize(14).RtfCode() + " " + "Mittelwerte in Transcripts per Million (TPM) von Vergleichsproben aus " + trans(ref_tissue_type_) + " (The Human Protein Atlas). ";
-	desc += RtfText("Erweiterte Legende und Abkürzungen siehe Anlage 1.").setFontSize(14).RtfCode();
-	table.addRow(RtfTableRow(desc, 9921, RtfParagraph().setFontSize(14)));
-
 	return table;
 }
 
-RtfTable SomaticRnaReport::cnvTable()
+RtfTable SomaticRnaReport::partCnvTable()
 {
 	int i_tum_clonality = dna_cnvs_.annotationIndexByName("tumor_clonality", true);
 	int i_size_desc = dna_cnvs_.annotationIndexByName("cnv_type", true);
@@ -318,15 +339,42 @@ RtfTable SomaticRnaReport::cnvTable()
 
 	table.setUniqueBorder(1, "brdrhair", 2);
 
-	//description hints below table
-	RtfSourceCode desc = "";
-	desc += RtfText("*MW TPM:").setBold(true).setFontSize(14).RtfCode() + " " + "Mittelwerte von Vergleichsproben aus " + trans(ref_tissue_type_) + " (The Human Protein Atlas). ";
-	desc += RtfText("Rang 1:").setBold(true).setFontSize(14).RtfCode() + " Die Expression eines Gens mit beschriebenem Funktionsgewinn (Gain of Function) ist in der Probe erhöht oder die Expression eines Gens mit Funktionsverlust (LoF) ist in der Probe reduziert. ";
-	desc += RtfText("Rang 2:").setBold(true).setFontSize(14).RtfCode() + " Die Expression ist in der Probe und in der Kontrolle ähnlich oder die Rolle des Gens in der Onkogenese ist nicht eindeutig. ";
-	desc += RtfText("NA:").setBold(true).setFontSize(14).RtfCode() + " Keine abschließende Bewertung als Tumor Suppressor Gen (TSG) oder als Onkogen (NCG6.0).";
-	table.addRow(RtfTableRow(desc, 9921, RtfParagraph().setFontSize(14)));
-
 	return table;
+}
+
+RtfParagraph SomaticRnaReport::partVarExplanation()
+{
+
+	auto bold = [](RtfSourceCode text)
+	{
+		return RtfText(text).setBold(true).setFontSize(16).RtfCode();
+	};
+
+	RtfSourceCode out = "";
+
+	out += bold("Veränderung:");
+
+	out += " Kodierende Position, ";
+	out += bold("SNV:");
+	out += " Punktmutationen (Single Nucleotide Variant), ";
+	out += bold("InDel:");
+	out += " Insertionen/Deletionen, ";
+	out += bold("CNV:") + " Kopienzahlvariante (Copy Number Variant), ";
+	out += bold("AMP:") + " Amplifikation, " + bold("DEL:") + " Deletion, " + bold("LOH:") + " Kopienzahlneutraler Verlust der Heterozygotie (Loss of Heterozygosity), ";
+	out += "WT: Wildtypallel, MUT: mutiertes Allel; ";
+	out += bold("Typ:") + " Art der SNV oder Größe und Ausdehnung der CNV: focal (bis zu drei Gene), Cluster (weniger als 25% des Chromosomenarms), non-focal (großer Anteil des Chromosoms); ";
+	out += bold("Anteil:") + " Anteil der Allele mit der gelisteten Variante (SNV, INDEL) bzw. Anteil derZellen mit der entsprechenden CNV in der untersuchten Probe; ";
+	out += bold("CN:") + " Copy Number, ";
+	out += bold("TPM:") + " Normalisierte Expression des Gens als Transkriptanzahl pro Kilobase und pro Million Reads. ";
+	out += bold("Referenz HSA-TPM: ") + "Expression des Gens als Mittelwert TPM in Vergleichsproben aus Zellen aus der Großhirnrinde (The Human Protein Atlas).";
+	out += bold("n/a:") + " Falls keine geeignete Referenzprobe vorhanden. ";
+	out += bold("Bewertung (1):") + " Die Expression eines Gens mit beschriebenem Funtionsgewinn (Gain of Function) ist in der Probe erhöht oder die Expression eines Gens mit Funktionsverlust (LoF) ist in der Probe reduziert. ";
+	out += bold("(2):") + " Die Expression ist in der Probe und in der Kontrolle ähnlich oder die Rolle des Gens in der Onkogenese ist nicht eindeutig. ";
+	out += bold("Tumortyp MW-TPM:") + " Expression des Gens als Mittelwert TPM in Tumorproben gleicher Entität (in-house Datenbank). Bei weniger als fünf Tumorproben gleicher Entität ist kein Vergleich sinnvoll (n/a). ";
+	out += bold("Veränderung (-fach):") + " Relative Expression in der Tumorprobe gegenüber der mittleren Expression in der in-house Vergleichskohorte gleicher Tumorentiät. ";
+	out += bold("p-Wert:") + " Signifikanztest nach Fisher. " + bold("n/a:") + " nicht anwendbar.";
+
+	return RtfParagraph(out).setFontSize(16).setHorizontalAlignment("j");
 }
 
 double SomaticRnaReport::getRnaData(QByteArray gene, QString field, QString key)
@@ -435,21 +483,28 @@ void SomaticRnaReport::writeRtf(QByteArray out_file)
 	doc_.addColor(255,255,0);
 	doc_.addColor(242, 242, 242);
 
-	if(dna_snvs_.count() > 0) doc_.addPart(snvTable().RtfCode());
+	if(dna_snvs_.count() > 0) doc_.addPart(partSnvTable().RtfCode());
 	else doc_.addPart(RtfParagraph("Es wurden keine SNVs detektiert.").RtfCode());
 
 
 	doc_.addPart(RtfParagraph("").RtfCode());
 
-	if(dna_cnvs_.count() > 0) doc_.addPart(cnvTable().RtfCode());
+	if(dna_cnvs_.count() > 0) doc_.addPart(partCnvTable().RtfCode());
 	else doc_.addPart(RtfParagraph("Es wurden keine CNVs detektiert.").RtfCode());
 
 	doc_.addPart(RtfParagraph("").RtfCode());
 
+	doc_.addPart(partVarExplanation().RtfCode());
+
+
 	doc_.addPart(RtfParagraph("").RtfCode());
 
-	if(fusions_.count() > 0) doc_.addPart(fusions().RtfCode());
-	else doc_.addPart(RtfParagraph("Es wurden keine proteinkodierenden Fusionen gefunden.").RtfCode());
+	if(svs_.count() > 0) doc_.addPart(partFusions().RtfCode());
+	doc_.addPart(RtfParagraph("").RtfCode());
+
+	if(svs_.count() > 0) doc_.addPart(partSVs().RtfCode());
+	doc_.addPart(RtfParagraph("").RtfCode());
+
 
 	doc_.save(out_file);
 }
