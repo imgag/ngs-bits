@@ -95,7 +95,7 @@ public:
 		if (i_ngsd_af < 0)
 		{
 			i_ngsd_af = header.size();
-			additional_columns.append("0.00");
+			additional_columns.append("");
 			header.append("NGSD_AF");
 		}
 		output_buffer << "#CHROM_A\tSTART_A\tEND_A\tCHROM_B\tSTART_B\tEND_B\t" + header.join("\t") + "\n";
@@ -204,7 +204,7 @@ public:
 				// write annotations
 				sv_annotations[i_ngsd_hom] = QByteArray::number(ngsd_count_hom);
 				sv_annotations[i_ngsd_het] = QByteArray::number(ngsd_count_het);
-				if (sample_count_ != 0)
+				if (sample_count_ >= 20)
 				{
 					double ngsd_af = std::min(1.0, (double) (2.0 * ngsd_count_hom + ngsd_count_het) / (double) (sample_count_ * 2.0));
 					sv_annotations[i_ngsd_af] = QByteArray::number(ngsd_af, 'f', 4);
@@ -238,13 +238,14 @@ public:
 
 private:
 
-	int sample_count_ = -1;
+	int sample_count_ = 0;
 	int idx_processing_system_ = -1;
 	int idx_sv_id_ = -1;
 	int idx_format_ = -1;
 
 	void parseBedpeGzHead(QString file_path, QByteArray processing_system)
 	{
+		QTextStream out(stdout);
 		//open input file
 		FILE* instream = fopen(file_path.toUtf8().data(), "rb");
 		gzFile file = gzdopen(fileno(instream), "rb"); //always open in binary mode because windows and mac open in text mode
@@ -309,7 +310,8 @@ private:
 
 
 		//check if all required informations are parsed:
-		if (sample_count_ == -1) THROW(FileParseException, "Annotation file doesn't contain sample count!");
+		if (sample_count_ == 0) out << "WARNING: Annotation file doesn't contain sample count for this processing system! NGSD count annotation will be empty.\n";
+		else if (sample_count_ < 20) out << "WARNING: Annotation file contains less than 20 samples for this processing system! NGSD allele frequency cannot be calculated.\n";
 		if (idx_processing_system_ == -1) THROW(FileParseException, "Annotation file doesn't contain processing system column!");
 		if (idx_sv_id_ == -1) THROW(FileParseException, "Annotation file doesn't contain SV id column!");
 		if (idx_format_ == -1) THROW(FileParseException, "Annotation file doesn't contain format column!");

@@ -1,5 +1,5 @@
 ### BedpeAnnotateFromBed tool help
-	BedpeAnnotateFromBed (2019_11-129-g4a5e7bf9)
+	BedpeAnnotateFromBed (2021_12-170-g1acf8802)
 	
 	Annotates a BEDPE file with information from a BED file.
 	
@@ -15,11 +15,15 @@
 	                       Default value: '4'
 	  -col_name <string>   Name of the annotated column
 	                       Default value: 'ANNOTATION'
-	  -no_duplicates       Remove duplicate annotations if several intervals from 'in2' overlap.
+	  -no_duplicates       Remove duplicate annotations if several intervals from 'bed' overlap.
 	                       Default value: 'false'
 	  -url_decode          Decode URL encoded characters.
 	                       Default value: 'false'
 	  -replace_underscore  Replaces underscores with spaces in the annotation column.
+	                       Default value: 'false'
+	  -max_value           Select maximum value if several intervals from 'bed' overlap. (only for numeric columns)
+	                       Default value: 'false'
+	  -only_breakpoints    Only annotate overlaps with the confidence intervall of the break points.
 	                       Default value: 'false'
 	
 	Special parameters:
@@ -29,7 +33,8 @@
 	  --tdx                Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedpeAnnotateFromBed changelog
-	BedpeAnnotateFromBed 2019_11-129-g4a5e7bf9
+	BedpeAnnotateFromBed 2021_12-170-g1acf8802
 	
+	2022-02-17 Added 'max_value' parameter.
 	2020-01-27 Initial commit.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

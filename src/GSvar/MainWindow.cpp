@@ -3109,6 +3109,19 @@ void MainWindow::checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues)
 			}
 		}
 	}
+
+	//check sv annotation
+	if (type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE)
+	{
+		if (svs_.isValid())
+		{
+			//check for NGSD count annotation
+			if(!svs_.annotationHeaders().contains("NGSD_HOM") || !svs_.annotationHeaders().contains("NGSD_HET") || !svs_.annotationHeaders().contains("NGSD_AF"))
+			{
+				issues << qMakePair(Log::LOG_WARNING, QString("Current NGSD count annotation of structural variants is missing! Please reannotate the SV file."));
+			}
+		}
+	}
 }
 
 void MainWindow::checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>>& issues)
@@ -3682,29 +3695,6 @@ void MainWindow::generateReportSomaticRTF()
 		somatic_report_settings_.report_config.setMsiStatus(true);
 		somatic_report_settings_.report_config.setCnvBurden(true);
 		somatic_report_settings_.report_config.setHrdScore(0);
-	}
-
-	if(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().exists)
-	{
-		QImage picture = QImage(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename);
-
-
-		if( (uint)picture.width() > 1200 ) picture = picture.scaledToWidth(1200, Qt::TransformationMode::SmoothTransformation);
-		if( (uint)picture.height() > 1200 ) picture = picture.scaledToHeight(1200, Qt::TransformationMode::SmoothTransformation);
-
-		QByteArray png_data = "";
-
-		if(!picture.isNull())
-		{
-			QBuffer buffer(&png_data);
-			buffer.open(QIODevice::WriteOnly);
-			if(picture.save(&buffer, "PNG"))
-			{
-				somatic_report_settings_.igv_snapshot_png_hex_image = png_data.toHex();
-				somatic_report_settings_.igv_snapshot_width = picture.width();
-				somatic_report_settings_.igv_snapshot_height = picture.height();
-			}
-		}
 	}
 
 
