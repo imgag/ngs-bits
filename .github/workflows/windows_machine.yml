@@ -14,7 +14,7 @@ jobs:
         with:
           msystem: MINGW32
           update: true
-          install: git base-devel mingw-w64-i686-toolchain mingw-w64-i686-zlib mingw-w64-i686-bzip2 mingw-w64-i686-xz mingw-w64-i686-curl mingw-w64-i686-dlfcn mingw-w64-i686-qt5 mingw-w64-i686-libmariadbclient mingw-w64-i686-python mingw-w64-i686-python-numpy mingw-w64-i686-python-matplotlib unzip
+          install: git base-devel mingw-w64-i686-toolchain mingw-w64-i686-zlib mingw-w64-i686-bzip2 mingw-w64-i686-xz mingw-w64-i686-curl mingw-w64-i686-dlfcn mingw-w64-i686-qt5 mingw-w64-i686-libmariadbclient mingw-w64-i686-python mingw-w64-i686-python-numpy mingw-w64-i686-python-matplotlib mingw-w64-i686-python-packaging unzip
 
       - name: Update submodules
         run: git submodule update --recursive --init
