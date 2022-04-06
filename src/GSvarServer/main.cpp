@@ -346,7 +346,8 @@ int main(int argc, char **argv)
 	EndpointManager::appendEndpoint(Endpoint{
 						"upload",
 						QMap<QString, ParamProps>{
-							{"name", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, true, "User name"}},
+							{"ps_url_id", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "An id of a temporary URL pointing to a specific processed sample"}},
+							{"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
 						},
 						RequestMethod::POST,
 						ContentType::APPLICATION_OCTET_STREAM,
