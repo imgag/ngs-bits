@@ -80,6 +80,7 @@ private slots:
 
 	///Returns list of all chromosomes checked in CIN tab
 	QList<QString> resolveCIN();
+
 };
 
 #endif // SOMATICREPORTDIALOG_H
