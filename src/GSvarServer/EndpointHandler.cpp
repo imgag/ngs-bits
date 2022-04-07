@@ -10,7 +10,7 @@ HttpResponse EndpointHandler::serveIndexPage(const HttpRequest& request)
 	{
 		return serveFavicon(request);
 	}
-	else if ((request.getPrefix().toLower().contains("index") || (request.getPrefix().toLower().trimmed() == "v1")) && (request.getPathParams().count() == 0))
+	else if ((request.getPrefix().toLower().contains("index") || (request.getPrefix().toLower().trimmed() == "v1")) && (request.getPathItems().count() == 0))
 	{
 		return EndpointController::serveStaticFile(":/assets/client/info.html", request.getMethod(), request.getContentType(), request.getHeaders());
 	}
@@ -20,7 +20,7 @@ HttpResponse EndpointHandler::serveIndexPage(const HttpRequest& request)
 
 HttpResponse EndpointHandler::serveFavicon(const HttpRequest& request)
 {
-	if (request.getPathParams().count() == 0)
+	if (request.getPathItems().count() == 0)
 	{
 		return EndpointController::serveStaticFile(":/assets/client/favicon.ico", request.getMethod(), request.getContentType(), request.getHeaders());
 	}
@@ -29,7 +29,7 @@ HttpResponse EndpointHandler::serveFavicon(const HttpRequest& request)
 
 HttpResponse EndpointHandler::serveApiInfo(const HttpRequest& request)
 {
-	if (request.getPathParams().count() == 0)
+	if (request.getPathItems().count() == 0)
 	{
 		return EndpointController::serveStaticFile(":/assets/client/api.json", request.getMethod(), request.getContentType(), request.getHeaders());
 	}
@@ -178,6 +178,9 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 				break;
 			case PathType::EXPRESSION:
 				file_list = file_locator->getExpressionFiles(return_if_missing);
+				break;
+			case PathType::IGV_SCREENSHOT:
+				file_list << file_locator->getSomaticIgvScreenshotFile();
 				break;
 			default:
 				FileLocation gsvar_file(

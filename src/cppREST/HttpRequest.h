@@ -49,9 +49,9 @@ public:
 	void setFormUrlEncoded(QMap<QString, QString> form_params);
 	QMap<QString, QString> getFormUrlEncoded() const;
 
-	void addPathParam(QString param);
-	void setPathParams(QList<QString> params);
-	QList<QString> getPathParams() const;
+	void addPathItem(QString param);
+	void setPathItems(QList<QString> params);
+	QList<QString> getPathItems() const;
 
 private:
 	RequestMethod method_;
@@ -66,7 +66,7 @@ private:
 	QString remote_address_;
 	QMap<QString, QString> url_params_;
 	QMap<QString, QString> form_urlencoded_;
-	QList<QString> path_params_;
+	QList<QString> path_items_;
 };
 
 #endif // HTTPREQUEST_H

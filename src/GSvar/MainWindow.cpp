@@ -3698,7 +3698,7 @@ void MainWindow::generateReportSomaticRTF()
 	}
 
 
-	SomaticReportDialog dlg(somatic_report_settings_, cnvs_, somatic_control_tissue_variants_, this); //widget for settings
+	SomaticReportDialog dlg(filename_, somatic_report_settings_, cnvs_, somatic_control_tissue_variants_, this); //widget for settings
 
 	if(SomaticRnaReport::checkRequiredSNVAnnotations(variants_))
 	{

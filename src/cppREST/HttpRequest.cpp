@@ -164,17 +164,17 @@ QMap<QString, QString> HttpRequest::getFormUrlEncoded() const
 	return form_urlencoded_;
 }
 
-void HttpRequest::addPathParam(QString param)
+void HttpRequest::addPathItem(QString param)
 {
-	path_params_.append(param);
+	path_items_.append(param);
 }
 
-void HttpRequest::setPathParams(QList<QString> params)
+void HttpRequest::setPathItems(QList<QString> params)
 {
-	path_params_ = params;
+	path_items_ = params;
 }
 
-QList<QString> HttpRequest::getPathParams() const
+QList<QString> HttpRequest::getPathItems() const
 {
-	return path_params_;
+	return path_items_;
 }
