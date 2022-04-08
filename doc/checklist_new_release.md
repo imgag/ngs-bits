@@ -8,7 +8,7 @@
 	> git diff [last-tag] master doc/tools/
  
 
-1. Update the download version in `ngs-bits/doc/install_*.md`.
+1. Update the download version in `ngs-bits/README.md`.
 1. Commit and push the changes.
 1. Create a new release on GitHub.
 1. Create a release tarball

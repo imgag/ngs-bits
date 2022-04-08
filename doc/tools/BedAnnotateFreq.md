@@ -1,7 +1,7 @@
 ### BedAnnotateFreq tool help
-	BedAnnotateFreq (2021_12-170-g1acf8802)
+	BedAnnotateFreq (2021_12-184-g566576b2)
 	
-	Extracts base frequencies for given regions from BAM/CRAM files.
+	Extracts base counts and depth in the given regions from a BAM/CRAM files.
 	
 	Mandatory parameters:
 	  -bam <filelist>  Input BAM/CRAM file(s).
@@ -25,7 +25,7 @@
 	  --tdx            Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedAnnotateFreq changelog
-	BedAnnotateFreq 2021_12-170-g1acf8802
+	BedAnnotateFreq 2021_12-184-g566576b2
 	
 	2020-11-27 Added CRAM support.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

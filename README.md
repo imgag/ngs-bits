@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2021_12
+	> git checkout 2022_04
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -31,11 +31,16 @@ Changes already implemented in GIT master for next release:
 * none
 
 
-Changes in release 2021_12:  
+Changes in release 2022_04:  
 
-* VcfFile: fixed crash when VCF contains position 0.
-* VcfAnnotateFromVcf: fixed error handling (seg-fault of error in worker thread occured).
-* VariantFilterAnnotations: Added filter for variants with splicing effect.
+* general: updated default genome build from 'hg19' to 'hg38' for all tools that require genome builds.
+* added tools: BedLiftOver, BedpeSort, VcfAnnotateFromBigWig.
+* NGSD:
+	* user: added user type enum value 'restricted_user' and associated table 'user_permissions'.
+	* sample: added sample type enum value 'cfDNA'.
+	* sample: added field 'tissue'.
+	* added table: 'variant_literature' for publications associated with a variant.
+	* sv_deletion/sv_duplication/sv_insertion/sv_inversion/sv_translocation: added field 'genotype'.
 
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
@@ -154,8 +159,8 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [BedpeAnnotateFromBed](doc/tools/BedpeAnnotateFromBed.md) - Annotates a BEDPE file with information from a BED file.
 * [BedpeFilter](doc/tools/BedpeFilter.md) - Filters a BEDPE file by region.
 * [BedpeGeneAnnotation](doc/tools/BedpeGeneAnnotation.md) - Annotates a BEDPE file with gene information from the NGSD (needs [NGSD](doc/install_ngsd.md)).
+* [BedpeSort](doc/tools/BedpeSort.md) - Sort a BEDPE file according to chromosomal position.
 * [BedpeToBed](doc/tools/BedpeToBed.md) - Converts a BEDPE file into BED file.
-* [NGSDAnnotateSV](doc/tools/NGSDAnnotateSV.md) - Annotates the structural variants of a given BEDPE file by the NGSD counts (needs [NGSD](doc/install_ngsd.md)).
 * [SvFilterAnnotations](doc/tools/SvFilterAnnotations.md) - Filter a structural variant list in BEDPE format based on variant annotations.
 
 ### Gene handling tools
