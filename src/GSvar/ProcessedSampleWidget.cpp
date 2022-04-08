@@ -263,14 +263,15 @@ void ProcessedSampleWidget::updateQCMetrics()
 {
 	try
 	{
+		NGSD db;
+
+		//create table
 		QString conditions;
 		if (!ui_->qc_all->isChecked())
 		{
 			conditions = "AND (t.qcml_id='QC:2000007' OR 'QC:2000008' OR t.qcml_id='QC:2000010' OR t.qcml_id='QC:2000013' OR t.qcml_id='QC:2000014' OR t.qcml_id='QC:2000015' OR t.qcml_id='QC:2000016' OR t.qcml_id='QC:2000017' OR t.qcml_id='QC:2000018' OR t.qcml_id='QC:2000020' OR t.qcml_id='QC:2000021' OR t.qcml_id='QC:2000022' OR t.qcml_id='QC:2000023' OR t.qcml_id='QC:2000024' OR t.qcml_id='QC:2000025' OR t.qcml_id='QC:2000027' OR t.qcml_id='QC:2000049' OR t.qcml_id='QC:2000050' OR t.qcml_id='QC:2000051')";
 		}
-
-		//create table
-		DBTable qc_table = NGSD().createTable("processed_sample_qc", "SELECT qc.id, t.qcml_id, t.name, qc.value, t.description FROM processed_sample_qc qc, qc_terms t WHERE qc.qc_terms_id=t.id AND t.obsolete=0 AND qc.processed_sample_id='" + ps_id_ + "' " + conditions + " ORDER BY t.qcml_id ASC");
+		DBTable qc_table = db.createTable("processed_sample_qc", "SELECT qc.id, t.qcml_id, t.name, qc.value, t.description FROM processed_sample_qc qc, qc_terms t WHERE qc.qc_terms_id=t.id AND t.obsolete=0 AND qc.processed_sample_id='" + ps_id_ + "' " + conditions + " ORDER BY t.qcml_id ASC");
 
 		//use descriptions as tooltip
 		QStringList descriptions = qc_table.takeColumn(qc_table.columnIndex("description"));
@@ -278,6 +279,7 @@ void ProcessedSampleWidget::updateQCMetrics()
 		ui_->qc_table->setColumnTooltips("name", descriptions);
 
 		//colors
+		QString sys_type = db.getValue("SELECT sys.type FROM processed_sample ps, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.id='"+ps_id_+"'").toString();
 		QColor orange = QColor(255,150,0,125);
 		QColor red = QColor(255,0,0,125);
 		QList<QColor> colors;
@@ -296,8 +298,16 @@ void ProcessedSampleWidget::updateQCMetrics()
 				}
 				else if (accession=="QC:2000025") //avg depth
 				{
-					if (value<80) color = orange;
-					if (value<30) color = red;
+					if (sys_type=="WGS")
+					{
+						if (value<35) color = orange;
+						if (value<30) color = red;
+					}
+					else
+					{
+						if (value<80) color = orange;
+						if (value<50) color = red;
+					}
 				}
 				else if (accession=="QC:2000027") //cov 20x
 				{

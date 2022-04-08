@@ -26,11 +26,6 @@ Depending on your operating system, building instructions vary slightly:
 
 ## ChangeLog
 
-Changes already implemented in GIT master for next release:
-
-* none
-
-
 Changes in release 2022_04:  
 
 * general: updated default genome build from 'hg19' to 'hg38' for all tools that require genome builds.

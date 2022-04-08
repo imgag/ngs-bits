@@ -13,7 +13,7 @@
 1. Create a new release on GitHub.
 1. Create a release tarball
 
-	> cd ngs-bits/tools/releases/  
+	> cd tools/releases/  
 	> make create\_tarball T=[tag]  
 	> make test\_tarball T=[tag] 
 
