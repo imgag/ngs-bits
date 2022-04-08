@@ -353,7 +353,6 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	if (data_.report_settings.select_other_causal_variant)
 	{
 		const OtherCausalVariant& causal_variant = data_.report_settings.report_config->getOtherCausalVariant();
-		stream << "<p>&nbsp;</p>" << endl;
 		stream << "<table>" << endl;
 		stream << "<tr><td><b>" << trans("Variantentyp") << "</b></td><td><b>" << trans("Regionen") << "</b></td><td><b>" << trans("Gen(e)") << "</b></td><td><b>"
 			   << trans("Kommentar") << "</b></td></tr>" << endl;
@@ -365,6 +364,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<td>" << causal_variant.comment << "</td>" << endl;
 		stream << "</tr>" << endl;
 		stream << "</table>" << endl;
+		stream << "<p>&nbsp;</p>" << endl;
 	}
 	//--------------------------------------------------------------------------------------
 

@@ -1323,6 +1323,7 @@
 						</xs:sequence>
 					</xs:complexType>
 				</xs:element>
+				<xs:element name="OtherCausalVariant" minOccurs="0">
 					<xs:annotation>
 						<xs:documentation>Other causal variant. Either uncalled variant from above types, or other variant type.</xs:documentation>
 					</xs:annotation>
@@ -1358,7 +1359,8 @@
 							</xs:annotation>
 						</xs:attribute>
 					</xs:complexType>
-				</xs:element>				<xs:element name="ReportDocument" nillable="false">
+				</xs:element>
+				<xs:element name="ReportDocument" nillable="false">
 					<xs:annotation>
 						<xs:documentation>Generated report text document - base64 encoded</xs:documentation>
 					</xs:annotation>
