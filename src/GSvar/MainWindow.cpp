@@ -3122,7 +3122,7 @@ void MainWindow::checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues)
 			//check for NGSD count annotation
 			if(!svs_.annotationHeaders().contains("NGSD_HOM") || !svs_.annotationHeaders().contains("NGSD_HET") || !svs_.annotationHeaders().contains("NGSD_AF"))
 			{
-				issues << qMakePair(Log::LOG_WARNING, QString("Current NGSD count annotation of structural variants is missing! Please reannotate the SV file."));
+				issues << qMakePair(Log::LOG_WARNING, QString("Annotation of structural variants is outdated! Please re-annotate structural variants!"));
 			}
 		}
 	}

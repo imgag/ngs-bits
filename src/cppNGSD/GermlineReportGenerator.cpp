@@ -1469,7 +1469,7 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 			{
 				if (gaps_by_gene_.contains(gene))
 				{
-					incomplete_genes << gene + " <span style=\"font-size: 8pt;\">" + QString::number(gaps_by_gene_[gene].baseCount()) + "</span> ";
+					incomplete_genes << gene + " <span style=\"font-size: 8pt;\">" + QString::number(gaps_by_gene_[gene].baseCount()) + "</span>";
 				}
 			}
 			stream << "<br />" << trans("Fehlende Basen in nicht komplett abgedeckten Genen") << ": " << incomplete_genes.join(", ") << endl;
