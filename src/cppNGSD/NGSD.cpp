@@ -5427,6 +5427,7 @@ void NGSD::deleteReportConfig(int id)
 	query.exec("DELETE FROM `report_configuration_cnv` WHERE `report_configuration_id`=" + rc_id);
 	query.exec("DELETE FROM `report_configuration_variant` WHERE `report_configuration_id`=" + rc_id);
 	query.exec("DELETE FROM `report_configuration_sv` WHERE `report_configuration_id`=" + rc_id);
+	query.exec("DELETE FROM `report_configuration_other_causal_variant` WHERE report_configuration_id=" + rc_id);
 	query.exec("DELETE FROM `report_configuration` WHERE `id`=" + rc_id);
 }
 
