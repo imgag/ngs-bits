@@ -494,35 +494,36 @@ HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 	}
 
 	QString qbic_data_path = Settings::string("qbic_data_path");
-	if (!qbic_data_path.endsWith(QDir::separator())) qbic_data_path = qbic_data_path.remove(qbic_data_path.length()-1, 1);
 	if (!QDir(qbic_data_path).exists())
 	{
 		QDir(qbic_data_path).mkpath(".");
 	}
+	if (!qbic_data_path.endsWith(QDir::separator())) qbic_data_path = qbic_data_path + QDir::separator();
 
 	QString filename = request.getUrlParams()["filename"];
-	QString path = request.getUrlParams()["path"];
+	QString folder_name = request.getUrlParams()["id"];
 	QString content = request.getBody();
 
-	if ((filename.isEmpty()) || (path.isEmpty()))
+	if ((filename.isEmpty()) || (folder_name.isEmpty()))
 	{
 		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Path or filename has not been provided");
 	}
 
 	// It should not be possible to move up to the parent directory or to access system directories
-	path = path.replace(".", "");
-	path = qbic_data_path + path;
+	folder_name = folder_name.replace(".", "");
+	folder_name = folder_name.replace(QDir::separator(), "");
+	folder_name = qbic_data_path + folder_name;
 
-	if (!QDir(path).exists())
+	if (!QDir(folder_name).exists())
 	{		
-		QDir(path).mkpath(".");
+		QDir(folder_name).mkpath(".");
 	}
 
-	if (!path.endsWith(QDir::separator())) path = path + QDir::separator();
+	if (!folder_name.endsWith(QDir::separator())) folder_name = folder_name + QDir::separator();
 
 	try
 	{
-		QSharedPointer<QFile> qBicFile = Helper::openFileForWriting(path+filename);
+		QSharedPointer<QFile> qBicFile = Helper::openFileForWriting(folder_name+filename);
 		QTextStream stream(qBicFile.data());
 		stream << content;
 		qBicFile->close();
@@ -552,6 +553,8 @@ HttpResponse EndpointHandler::uploadFile(const HttpRequest& request)
 		if (!url_entity.path.isEmpty())
 		{
 			if (!url_entity.path.endsWith("/")) url_entity.path = url_entity.path + "/";
+			qDebug() << "url_entity.path + request.getMultipartFileName()" << url_entity.path + request.getMultipartFileName();
+			qDebug() << "request.getMultipartFileName()" << request.getMultipartFileName();
 			QSharedPointer<QFile> outfile = Helper::openFileForWriting(url_entity.path + request.getMultipartFileName());
 			outfile->write(request.getMultipartFileContent());
 			return HttpResponse(ResponseStatus::OK, request.getContentType(), "OK");

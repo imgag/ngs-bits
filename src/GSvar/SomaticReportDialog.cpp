@@ -469,8 +469,23 @@ void SomaticReportDialog::writeBackSettings()
 	//IGV data
 	if(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().exists)
 	{
-		QImage picture = QImage(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename);
-
+		QImage picture;
+		if (GlobalServiceProvider::fileLocationProvider().isLocal())
+		{
+			picture = QImage(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename);
+		}
+		else
+		{
+			try
+			{
+				QByteArray response = HttpHandler(HttpRequestHandler::NONE).get(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename);
+				if (!response.isEmpty()) picture.loadFromData(response);
+			}
+			catch (Exception& e)
+			{
+				QMessageBox::warning(this, "Could not retrieve the screenshot from the server", e.message());
+			}
+		}
 
 		if( (uint)picture.width() > 1200 ) picture = picture.scaledToWidth(1200, Qt::TransformationMode::SmoothTransformation);
 		if( (uint)picture.height() > 1200 ) picture = picture.scaledToHeight(1200, Qt::TransformationMode::SmoothTransformation);
@@ -597,7 +612,8 @@ void SomaticReportDialog::createIgvScreenshot()
 	// Upload screenshot to the server, if the client-server mode is activated
 	if (!GlobalServiceProvider::fileLocationProvider().isLocal())
 	{
-		if (!QFile(screenshot_file_location).exists())
+		QFile *file = new QFile(screenshot_file_location);
+		if (!file->exists())
 		{
 			QMessageBox::warning(this, "Screenshot file error", "Could not find the screenshot file!");
 		}
@@ -616,8 +632,8 @@ void SomaticReportDialog::createIgvScreenshot()
 
 		QHttpPart binary_form_data;
 		binary_form_data.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("image/png"));
-		binary_form_data.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"image\"; filename=\"picture.png\""));
-		QFile *file = new QFile(screenshot_file_location);
+		binary_form_data.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"image\"; filename=\"" + QFileInfo(screenshot_file_location).fileName() + "\""));
+
 		file->open(QIODevice::ReadOnly);
 		binary_form_data.setBodyDevice(file);
 		file->setParent(multipart_form);
@@ -633,6 +649,8 @@ void SomaticReportDialog::createIgvScreenshot()
 			QMessageBox::warning(this, "File upload failed", e.message());
 		}
 	}
+
+	updateIgvText();
 
 }
 
