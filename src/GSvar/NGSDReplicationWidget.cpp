@@ -1075,7 +1075,7 @@ int NGSDReplicationWidget::liftOverCnv(int source_cnv_id, int callset_id, QStrin
 	BedLine coords;
 	try
 	{
-		coords = GSvarHelper::liftOver(var.chr(), var.start(), var.end());
+		coords = GSvarHelper::liftOver(var.chr(), var.start(), var.end(), true);
 	}
 	catch(Exception& e)
 	{
@@ -1129,7 +1129,7 @@ int NGSDReplicationWidget::liftOverSv(int source_sv_id, StructuralVariantType sv
 	BedLine coords1, coords2;
 	try
 	{
-		coords1 = GSvarHelper::liftOver(sv.chr1(), sv.start1(), sv.end1());
+		coords1 = GSvarHelper::liftOver(sv.chr1(), sv.start1(), sv.end1(), true);
 	}
 	catch(Exception& e)
 	{
@@ -1138,7 +1138,7 @@ int NGSDReplicationWidget::liftOverSv(int source_sv_id, StructuralVariantType sv
 	}
 	try
 	{
-		coords2 = GSvarHelper::liftOver(sv.chr2(), sv.start2(), sv.end2());
+		coords2 = GSvarHelper::liftOver(sv.chr2(), sv.start2(), sv.end2(), true);
 	}
 	catch(Exception& e)
 	{

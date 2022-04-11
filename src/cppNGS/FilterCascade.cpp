@@ -4587,8 +4587,16 @@ void FilterSvAfNGSD::apply(const BedpeFile& svs, FilterResult& result) const
 	for(int i=0; i<svs.count(); ++i)
 	{
 		if (!result.flags()[i]) continue;
+		//allow empty NGSD af entry
+		if (svs[i].annotations()[idx_ngsd_af].trimmed().isEmpty())
+		{
+			result.flags()[i] = true;
+		}
+		else
+		{
+			result.flags()[i] = Helper::toDouble(svs[i].annotations()[idx_ngsd_af], "NGSD AF") <= max_af;
+		}
 
-		result.flags()[i] = Helper::toDouble(svs[i].annotations()[idx_ngsd_af], "NGSD AF") <= max_af;
 	}
 }
 
