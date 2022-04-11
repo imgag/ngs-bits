@@ -4,7 +4,8 @@
 #include "SampleDiseaseInfoWidget.h"
 #include "DiagnosticStatusWidget.h"
 #include "CausalVariantEditDialog.h"
-#include "Settings.h"#include <QTableWidgetItem>
+#include "Settings.h"
+#include <QTableWidgetItem>
 #include <QMenu>
 
 

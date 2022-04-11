@@ -1,9 +1,12 @@
 #include "CausalVariantEditDialog.h"
 #include "ui_CausalVariantEditDialog.h"
 
-CausalVariantEditDialog::CausalVariantEditDialog(const OtherCausalVariant& causal_variant, const QStringList& variant_types, QWidget* parent)
+CausalVariantEditDialog::CausalVariantEditDialog(const OtherCausalVariant& causal_variant, const QStringList& variant_types, QWidget* parent) :
+	QDialog(parent),
+	ui_(new Ui::CausalVariantEditDialog),
+	causal_variant_(causal_variant)
 {
-	causal_variant_ = causal_variant;
+	ui_->setupUi(this);
 
 	// set init values
 	ui_->le_coordinates->setText(causal_variant_.coordinates);
@@ -17,8 +20,11 @@ CausalVariantEditDialog::CausalVariantEditDialog(const OtherCausalVariant& causa
 	connect(ui_->le_coordinates, SIGNAL(textChanged(QString)), this, SLOT(enableOkButton()));
 	connect(ui_->cb_type, SIGNAL(currentIndexChanged(int)), this, SLOT(enableOkButton()));
 
+	// remove question mark from the title bar
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-	ui_->setupUi(this);
+	// init button box
+	enableOkButton();
 }
 
 CausalVariantEditDialog::~CausalVariantEditDialog()
@@ -45,10 +51,10 @@ void CausalVariantEditDialog::enableOkButton()
 {
 	if((ui_->le_coordinates->text().trimmed().isEmpty()) || (ui_->cb_type->currentText().trimmed().isEmpty()))
 	{
-		ui_->buttonBox->setEnabled(false);
+		ui_->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 	}
 	else
 	{
-		ui_->buttonBox->setEnabled(true);
+		ui_->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 	}
 }

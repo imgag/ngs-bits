@@ -2,6 +2,8 @@
 #define CAUSALVARIANTEDITDIALOG_H
 
 #include <QDialog>
+#include <QDialogButtonBox>
+#include <QPushButton>
 #include "ReportConfiguration.h"
 
 namespace Ui {

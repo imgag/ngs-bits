@@ -5165,6 +5165,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 			query.exec("DELETE FROM `report_configuration_variant` WHERE report_configuration_id=" + id_str);
 			query.exec("DELETE FROM `report_configuration_cnv` WHERE report_configuration_id=" + id_str);
 			query.exec("DELETE FROM `report_configuration_sv` WHERE report_configuration_id=" + id_str);
+			query.exec("DELETE FROM `report_configuration_other_causal_variant` WHERE report_configuration_id=" + id_str);
 
 			//update report config
 			query.exec("UPDATE `report_configuration` SET `last_edit_by`='" + LoginManager::userIdAsString() + "', `last_edit_date`=CURRENT_TIMESTAMP WHERE id=" + id_str);
