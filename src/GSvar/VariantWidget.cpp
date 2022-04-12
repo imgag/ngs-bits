@@ -49,7 +49,6 @@ void VariantWidget::updateGUI()
 	SqlQuery query1 = db.getQuery();
 	query1.exec("SELECT * FROM variant WHERE id=" + variant_id);
 	query1.next();
-	ui_.af_tg->setText(query1.value("1000g").toString());
 	ui_.af_gnomad->setText("<a style=\"color: #000000;\" href=\"" + variant_id + "\">" + query1.value("gnomad").toString() + "</a>");
 
 	QVariant cadd = query1.value("cadd");

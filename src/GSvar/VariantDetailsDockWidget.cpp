@@ -475,7 +475,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				tooltip = vl[index].annotations()[c_index];
 			}
 		}
-		else if(name=="1000g" || name=="gnomAD")
+		else if(name=="gnomAD")
 		{
 			if (anno=="")
 			{
@@ -634,17 +634,7 @@ double VariantDetailsDockWidget::maxAlleleFrequency(const VariantList& vl, int i
 	bool ok;
 	double value;
 
-	int idx = vl.annotationIndexByName("1000g", true, false);
-	if (idx!=-1)
-	{
-		value = vl[index].annotations()[idx].toDouble(&ok);
-		if (ok)
-		{
-			output = std::max(output, value);
-		}
-	}
-
-	idx = vl.annotationIndexByName("gnomAD", true, false);
+	int idx = vl.annotationIndexByName("gnomAD", true, false);
 	if (idx!=-1)
 	{
 		value = vl[index].annotations()[idx].toDouble(&ok);

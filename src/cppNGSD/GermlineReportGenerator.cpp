@@ -125,7 +125,6 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	int i_omim = data_.variants.annotationIndexByName("OMIM", true, true);
 	int i_class = data_.variants.annotationIndexByName("classification", true, true);
 	int i_comment = data_.variants.annotationIndexByName("comment", true, true);
-	int i_kg = data_.variants.annotationIndexByName("1000G", true, true);
 	int i_gnomad = data_.variants.annotationIndexByName("gnomAD", true, true);
 
 	//output: applied filters
@@ -213,9 +212,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<td>" << formatCodingSplicing(variant.transcriptAnnotations(i_co_sp)) << "</td>" << endl;
 		stream << "<td>" << variant.annotations().at(i_class) << "</td>" << endl;
 		stream << "<td>" << var_conf.inheritance << "</td>" << endl;
-		QByteArray freq = variant.annotations().at(i_kg).trimmed();
-		stream << "<td>" << (freq.isEmpty() ? "n/a" : freq) << "</td>" << endl;
-		freq = variant.annotations().at(i_gnomad).trimmed();
+		QByteArray freq = variant.annotations().at(i_gnomad).trimmed();
 		stream << "<td>" << (freq.isEmpty() ? "n/a" : freq) << "</td>" << endl;
 		stream << "</tr>" << endl;
 
