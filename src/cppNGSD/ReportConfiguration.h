@@ -49,7 +49,7 @@ struct CPPNGSDSHARED_EXPORT OtherCausalVariant
 	QString type;
 	QString comment;
 
-	bool isValid()
+	bool isValid() const
 	{
 		if(type.isEmpty()) return false;
 		if(coordinates.isEmpty()) return false;

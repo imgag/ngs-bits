@@ -3514,16 +3514,8 @@ void MainWindow::editOtherCausalVariant()
 		QMessageBox::warning(this, title, "Sample was not found in the NGSD!");
 		return;
 	}
-	//check config exists
-	int conf_id = db.reportConfigId(processed_sample_id);
-	if (conf_id==-1)
-	{
-		QMessageBox::warning(this, title , "No germline report configuration found in the NGSD!");
-		return;
-	}
-	QStringList messages;
-	QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, messages);
-	OtherCausalVariant causal_variant = report_config->getOtherCausalVariant();
+	// get report config
+	OtherCausalVariant causal_variant = report_settings_.report_config->getOtherCausalVariant();
 	QStringList variant_types = db.getEnum("report_configuration_other_causal_variant", "type");
 	if (causal_variant.isValid())
 	{
@@ -3541,11 +3533,10 @@ void MainWindow::editOtherCausalVariant()
 	if (dlg.exec()!=QDialog::Accepted) return;
 
 	//store updated causal variant in NGSD
-	causal_variant = dlg.causalVariant();
-	if (causal_variant.isValid())
+	if (dlg.causalVariant().isValid())
 	{
-		report_config->setOtherCausalVariant(causal_variant);
-		db.setReportConfig(processed_sample_id, report_config, variants_, cnvs_, svs_);
+		report_settings_.report_config->setOtherCausalVariant(dlg.causalVariant());
+		report_settings_.report_config->variantsChanged();
 	}
 
 }
@@ -3566,33 +3557,17 @@ void MainWindow::deleteOtherCausalVariant()
 		QMessageBox::warning(this, title, "Sample was not found in the NGSD!");
 		return;
 	}
-	//check config exists
-	int conf_id = db.reportConfigId(processed_sample_id);
-	if (conf_id==-1)
-	{
-		QMessageBox::warning(this, title , "No germline report configuration found in the NGSD!");
-		return;
-	}
-	QStringList messages;
-	QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, messages);
-	OtherCausalVariant causal_variant = report_config->getOtherCausalVariant();
-
+	OtherCausalVariant causal_variant = report_settings_.report_config->getOtherCausalVariant();
 	if(!causal_variant.isValid()) return;
 
 	//show dialog to confirm by user
-//	QLabel* label = new QLabel(causal_variant.type + " at " + causal_variant.coordinates + " (gene: " + causal_variant.gene + ", comment: " + causal_variant.comment.replace("\n", " ") + ")");
-//	auto dlg = GUIHelper::createDialog(label, "Delete other causal variant", "Are you sure you want to delete the following causal variant", true);
-//	if (dlg->exec() != QDialog::Accepted) return;
 	QString message_text = "Are you sure you want to delete the following causal variant?\n" + causal_variant.type + " at " + causal_variant.coordinates + " (gene: " + causal_variant.gene
 							+ ", comment: " + causal_variant.comment.replace("\n", " ") + ")";
 	QMessageBox::StandardButton response = QMessageBox::question(this, "Delete other causal variant", message_text, QMessageBox::Yes|QMessageBox::No);
 	if(response != QMessageBox::Yes) return;
 
-	//replace other causal variant and delete it from the NGSD
-	qDebug() << "delete causal variant";
-	causal_variant = OtherCausalVariant();
-	report_config->setOtherCausalVariant(causal_variant);
-	db.setReportConfig(processed_sample_id, report_config, variants_, cnvs_, svs_);
+	//replace other causal variant with empty struct
+	report_settings_.report_config->setOtherCausalVariant(OtherCausalVariant());
 }
 
 void MainWindow::finalizeReportConfig()

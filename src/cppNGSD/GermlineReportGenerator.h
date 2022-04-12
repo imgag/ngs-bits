@@ -96,6 +96,8 @@ private:
 	void printVariantSheetRowCnv(QTextStream& stream, const ReportVariantConfiguration& conf);
 	static void printVariantSheetRowHeaderSv(QTextStream& stream, bool causal);
 	void printVariantSheetRowSv(QTextStream& stream, const ReportVariantConfiguration& conf);
+	static void printVariantSheetRowHeaderOtherVariant(QTextStream& stream);
+	void printVariantSheetRowOtherVariant(QTextStream& stream, const OtherCausalVariant& variant);
 	static QString exclusionCriteria(const ReportVariantConfiguration& conf);
 
 	GermlineReportGenerator() = delete;

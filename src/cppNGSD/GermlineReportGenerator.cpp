@@ -844,8 +844,9 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	w.writeAttribute("overall_number", QString::number(data_.cnvs.count()));
 	w.writeAttribute("genome_build", buildToString(data_.build, true));
 	QString cnv_callset_id = db_.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=" + ps_id_, true).toString().trimmed();
-	if (no_cnv_calling || cnv_callset_id.isEmpty()) cnv_callset_id = "-1";
-	QString cnv_calling_quality = db_.getValue("SELECT quality FROM cnv_callset WHERE id=" + cnv_callset_id, true).toString().trimmed();
+	if (no_cnv_calling) cnv_callset_id.clear();
+	QString cnv_calling_quality;
+	if (!cnv_callset_id.isEmpty()) cnv_calling_quality = db_.getValue("SELECT quality FROM cnv_callset WHERE id=" + cnv_callset_id, true).toString().trimmed();
 	w.writeAttribute("quality", cnv_calling_quality.isEmpty() ? "n/a" : cnv_calling_quality);
 	if(data_.cnvs.caller()==CnvCallerType::CLINCNV && !cnv_callset_id.isEmpty())
 	{
@@ -2001,6 +2002,13 @@ void GermlineReportGenerator::writeEvaluationSheet(QString filename, const Evalu
 	stream << "      </table>" << endl;
 	stream << "    </p>" << endl;
 
+	stream << "    <p><b>Sonstige kausale Varianten:</b>" << endl;
+	stream << "      <table border='1'>" << endl;
+	printVariantSheetRowHeaderOtherVariant(stream);
+	printVariantSheetRowOtherVariant(stream, data_.report_settings.report_config->getOtherCausalVariant());
+	stream << "      </table>" << endl;
+	stream << "    </p>" << endl;
+
 	//write footer
 	stream << "  </body>" << endl;
 	stream << "</html>" << endl;
@@ -2210,6 +2218,26 @@ void GermlineReportGenerator::printVariantSheetRowSv(QTextStream& stream, const 
 	stream << "       <td>" << conf.comments2 << "</td>" << endl;
 	stream << "       <td>" << conf.classification << "</td>" << endl;
 	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << " (" << conf.report_type << ")</td>" << endl;
+	stream << "     </tr>" << endl;
+}
+
+void GermlineReportGenerator::printVariantSheetRowHeaderOtherVariant(QTextStream& stream)
+{
+	stream << "     <tr>" << endl;
+	stream << "       <th>Variantentyp</th>" << endl;
+	stream << "       <th>Regionen</th>" << endl;
+	stream << "       <th>Gene</th>" << endl;
+	stream << "       <th>	Kommentar</th>" << endl;
+	stream << "     </tr>" << endl;
+}
+
+void GermlineReportGenerator::printVariantSheetRowOtherVariant(QTextStream& stream, const OtherCausalVariant& variant)
+{
+	stream << "     <tr>" << endl;
+	stream << "       <td>" << convertOtherVariantType(variant.type) << "</td>" << endl;
+	stream << "       <td>" << variant.coordinates << "</td>" << endl;
+	stream << "       <td>" << variant.gene << "</td>" << endl;
+	stream << "       <td>" << variant.comment << "</td>" << endl;
 	stream << "     </tr>" << endl;
 }
 
