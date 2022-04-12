@@ -41,7 +41,7 @@ private slots:
 		filter.setDouble("max_af", 1.0);
 		filter.apply(vl, result);
 
-		I_EQUAL(result.countPassing(), 29);
+		I_EQUAL(result.countPassing(), 22);
 		IS_TRUE(result.flags()[70]);
 		IS_TRUE(result.flags()[74]);
 		IS_TRUE(result.flags()[101]);
@@ -514,12 +514,12 @@ private slots:
 		FilterAlleleFrequency filter1;
 		filter1.setDouble("max_af", 1.0);
 		filter1.apply(vl, result);
-		I_EQUAL(result.countPassing(), 51);
+		I_EQUAL(result.countPassing(), 39);
 
 		FilterGenotypeAffected filter2;
 		filter2.setStringList("genotypes", QStringList() << "comp-het");
 		filter2.apply(vl, result);
-		I_EQUAL(result.countPassing(), 6);
+		I_EQUAL(result.countPassing(), 2);
 	}
 
 	void FilterGenotypeAffected_apply_multiSample_comphet_hom()
@@ -533,12 +533,12 @@ private slots:
 		FilterAlleleFrequency filter1;
 		filter1.setDouble("max_af", 1.0);
 		filter1.apply(vl, result);
-		I_EQUAL(result.countPassing(), 51);
+		I_EQUAL(result.countPassing(), 39);
 
 		FilterGenotypeAffected filter2;
 		filter2.setStringList("genotypes", QStringList() << "comp-het" << "hom");
 		filter2.apply(vl, result);
-		I_EQUAL(result.countPassing(), 7);
+		I_EQUAL(result.countPassing(), 3);
 	}
 
 	void FilterAnnotationPathogenic_apply()

@@ -1010,13 +1010,27 @@ void FilterAlleleFrequency::apply(const VariantList& variants, FilterResult& res
 
 	//get column indices
 	int i_gnomad = annotationColumn(variants, "gnomAD");
+	int i_1000g = annotationColumn(variants, "1000g", false);
 
 	//filter
-	for(int i=0; i<variants.count(); ++i)
+	if (i_1000g == -1)
 	{
-		result.flags()[i] = result.flags()[i]
-			&& variants[i].annotations()[i_gnomad].toDouble()<=max_af;
+		for(int i=0; i<variants.count(); ++i)
+		{
+			result.flags()[i] = result.flags()[i]
+				&& variants[i].annotations()[i_gnomad].toDouble()<=max_af;
+		}
 	}
+	else
+	{
+		for(int i=0; i<variants.count(); ++i)
+		{
+			result.flags()[i] = result.flags()[i]
+				&& variants[i].annotations()[i_1000g].toDouble()<=max_af
+				&& variants[i].annotations()[i_gnomad].toDouble()<=max_af;
+		}
+	}
+
 }
 
 FilterGenes::FilterGenes()
