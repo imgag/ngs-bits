@@ -3,15 +3,15 @@
 HttpResponse EndpointController::serveEndpointHelp(const HttpRequest& request)
 {
 	QByteArray body;
-	if (request.getPathParams().count() == 2)
+	if (request.getPathItems().count() == 2)
 	{
 		// Locate endpoint by URL and request method
-		body = generateHelpPage(request.getPathParams()[0], HttpProcessor::getMethodTypeFromString(request.getPathParams()[1])).toLocal8Bit();
+		body = generateHelpPage(request.getPathItems()[0], HttpProcessor::getMethodTypeFromString(request.getPathItems()[1])).toLocal8Bit();
 	}
-	else if (request.getPathParams().count() == 1)
+	else if (request.getPathItems().count() == 1)
 	{
 		// For the same URL several request methods may be used: e.g. GET and POST
-		body = generateHelpPage(request.getPathParams()[0]).toLocal8Bit();
+		body = generateHelpPage(request.getPathItems()[0]).toLocal8Bit();
 	}
 	else
 	{
@@ -34,7 +34,7 @@ HttpResponse EndpointController::serveStaticFromServerRoot(const HttpRequest& re
 		return check_result;
 	}
 
-	QString served_file = getServedRootPath(request.getPathParams());
+	QString served_file = getServedRootPath(request.getPathItems());
 
 	if (served_file.isEmpty())
 	{
@@ -57,7 +57,7 @@ HttpResponse EndpointController::serveStaticForTempUrl(const HttpRequest& reques
 		return check_result;
 	}
 
-	QString full_entity_path = getServedTempPath(request.getPathParams());
+	QString full_entity_path = getServedTempPath(request.getPathItems());
 
 	if ((!full_entity_path.isEmpty()) && (QFileInfo(full_entity_path).isDir()))
 	{
@@ -69,7 +69,7 @@ HttpResponse EndpointController::serveStaticForTempUrl(const HttpRequest& reques
 
 HttpResponse EndpointController::serveStaticFileFromCache(const HttpRequest& request)
 {
-	QString filename = FileCache::getFileById(request.getPathParams()[0]).filename_with_path;
+	QString filename = FileCache::getFileById(request.getPathItems()[0]).filename_with_path;
 	return createStaticFromCacheResponse(filename, QList<ByteRange>{}, HttpProcessor::getContentTypeByFilename(filename), false);
 }
 
@@ -154,16 +154,16 @@ HttpResponse EndpointController::serveFolderContent(const QString path, const Ht
 	{
 		base_folder_url = base_folder_url + "/";
 	}
-	QString cur_folder_url = base_folder_url + request.getPathParams().join("/");
+	QString cur_folder_url = base_folder_url + request.getPathItems().join("/");
 	if (!cur_folder_url.endsWith("/"))
 	{
 		cur_folder_url = cur_folder_url + "/";
 	}
-	if (request.getPathParams().size()>0)
+	if (request.getPathItems().size()>0)
 	{
-		request.getPathParams().removeAt(request.getPathParams().size()-1);
+		request.getPathItems().removeAt(request.getPathItems().size()-1);
 	}
-	QString parent_folder_url = base_folder_url + request.getPathParams().join("/");
+	QString parent_folder_url = base_folder_url + request.getPathItems().join("/");
 
 	dir.setFilter(QDir::Dirs | QDir::Files | QDir::NoSymLinks);
 	QFileInfoList list = dir.entryInfoList();

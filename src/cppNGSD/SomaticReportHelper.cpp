@@ -10,6 +10,7 @@
 #include "GenLabDB.h"
 #include "SomaticXmlReportGenerator.h"
 #include "SomaticVariantInterpreter.h"
+#include "LoginManager.h"
 #include <cmath>
 #include <QDir>
 #include <QMap>
@@ -787,7 +788,7 @@ void SomaticReportHelper::saveReportData(QString filename, QString path, QString
 	add_headers.insert("Content-Length", QByteArray::number(content.size()));
 	QString reply = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(
 				Helper::serverApiUrl()
-				+ "qbic_report_data?filename=" + QUrl(filename).toEncoded() + "&path=" + QUrl(path).toEncoded(),
+				+ "qbic_report_data?filename=" + QUrl(filename).toEncoded() + "&id=" + QUrl(path).toEncoded() +"&token=" + LoginManager::token(),
 				content.toLocal8Bit(),
 				add_headers
 			);

@@ -339,8 +339,8 @@ FileLocation FileLocationProviderLocal::getSomaticMsiFile() const
 FileLocation FileLocationProviderLocal::getSomaticIgvScreenshotFile() const
 {
 	if (analysis_type_ != SOMATIC_SINGLESAMPLE && analysis_type_ != SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticIgvScreenshotFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
-	QString name = QFileInfo(gsvar_file_).baseName();
-	QString file =gsvar_file_.left(gsvar_file_.length()-6) + "_igv_screenshot.png";
+	QString name = QFileInfo(gsvar_file_).baseName();	
+	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_igv_screenshot.png";
 
 	return FileLocation{name, PathType::IGV_SCREENSHOT, file, QFile::exists(file)};
 }
