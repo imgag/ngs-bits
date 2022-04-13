@@ -988,7 +988,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 FilterAlleleFrequency::FilterAlleleFrequency()
 {
 	name_ = "Allele frequency";
-	description_ = QStringList() << "Filter based on overall allele frequency given by gnomAD.";
+	description_ = QStringList() << "Filter based on overall allele frequency given by gnomAD and if available 1000g.";
 	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximum allele frequency in %");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "100.0";

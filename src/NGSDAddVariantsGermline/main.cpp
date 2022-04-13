@@ -123,7 +123,6 @@ public:
 
 
 		//update: add the missing variants to the processed sample while keeping the others the same.
-//		qDebug() << "Before: " << variant_ids.count() << "\t" << variants.count();
 		if (var_update)
 		{
 			sub_timer.start();
@@ -134,7 +133,6 @@ public:
 
 			for (int i=variant_ids.count()-1; i>=0; i--)
 			{
-//				qDebug() << "1. idx: " << i;
 				if (existing_var_ids.contains(QString::number(variant_ids[i])))
 				{
 					variant_ids.removeAt(i);
@@ -146,7 +144,7 @@ public:
 			sub_times << ("Determining already imported variants took: " + Helper::elapsedTime(sub_timer));
 
 		}
-//		qDebug() << "After: " << variant_ids.count() << "\t" << variants.count();
+
 		//add detected variants
 		sub_timer.start();
 		int i_geno = variants.getSampleHeader().infoByID(ps_name).column_index;
@@ -155,7 +153,6 @@ public:
 		db.transaction();
 		for (int i=0; i<variants.count(); ++i)
 		{
-//			qDebug() << "2. idx: " << i;
 			//skip high-AF variants
 			int variant_id = variant_ids[i];
 			if (variant_id==-1) continue;
