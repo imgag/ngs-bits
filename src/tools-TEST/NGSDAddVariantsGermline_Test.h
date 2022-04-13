@@ -23,10 +23,15 @@ private slots:
 		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line22.log", QRegExp("^WARNING: transactions"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line22.log", TESTDATA("data_out/NGSDAddVariantsGermline_out1.log"));
 
-		//2. import - to check that updating works
+		//2. import - to check that reimporting works
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_18 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv") + " -var_force -cnv_force");
 		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line27.log", QRegExp("^WARNING: transactions"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line27.log", TESTDATA("data_out/NGSDAddVariantsGermline_out2.log"));
+
+		//3. TODO import - test that updating of small variants works
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_18 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.1.GSvar") + " -var_update");
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line32.log", QRegExp("^WARNING: transactions"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line32.log", TESTDATA("data_out/NGSDAddVariantsGermline_out3.log"));
 	}
 
 	//ClinCNV cnvs
@@ -43,7 +48,7 @@ private slots:
 		//import
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_38 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in2.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in2.tsv"));
 		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line44.log", QRegExp("^WARNING: transactions"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line44.log", TESTDATA("data_out/NGSDAddVariantsGermline_out3.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line44.log", TESTDATA("data_out/NGSDAddVariantsGermline_out4.log"));
 
 		//check if PubMed ids are imported
 		Variant var = Variant(Chromosome("chrX"), 155255024, 155255024, "C", "T");
