@@ -87,7 +87,7 @@ void RequestWorker::run()
 			}
 
 			all_request_parts.append(line);
-			if (line.trimmed().size() == 0)
+			if ((line.trimmed().size() == 0) && (!finished_reading_headers))
 			{
 				finished_reading_headers = true;
 				request_headers_size = all_request_parts.size();
@@ -111,7 +111,7 @@ void RequestWorker::run()
 		return;
 	}
 
-	qDebug() << "Client address" << ssl_socket->peerAddress().toString();
+	qDebug() << "Client address: " << ssl_socket->peerAddress().toString();
 	HttpRequest parsed_request;
 	RequestParser *parser = new RequestParser();
 	try
@@ -196,14 +196,14 @@ void RequestWorker::run()
 		}
 		catch (Exception& e)
 		{
-			qDebug() << "Error while opening a file for streaming";
+			qDebug() << "Error while opening a file for streaming: " << response.getFilename();
 			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, error_type, "Could not open a file for streaming: " + response.getFilename()));
 			return;
 		}
 
 		if (!streamed_file.isOpen())
 		{
-			qDebug() << "File is not open";
+			qDebug() << "File is not open: " << response.getFilename();
 			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, error_type, "File is not open: " + response.getFilename()));
 			return;
 		}
@@ -273,7 +273,7 @@ void RequestWorker::run()
 			sendResponseDataPart(ssl_socket, "\r\n");
 			if ((i == (ranges_count-1)) && (ranges_count > 1))
 			{
-				sendResponseDataPart(ssl_socket, "--"+response.getBoundary()+"--\r\n");
+				sendResponseDataPart(ssl_socket, "--" + response.getBoundary() + "--\r\n");
 			}
 
 		}
@@ -394,7 +394,7 @@ void RequestWorker::sendResponseDataPart(QSslSocket* socket, QByteArray data)
 
 void RequestWorker::sendEntireResponse(QSslSocket* socket, HttpResponse response)
 {
-	qDebug() << "Writing an entire response";
+	qDebug() << "Writing an entire response: code " << response.getStatusCode() << " - " << HttpProcessor::convertResponseStatusToReasonPhrase(response.getStatus());
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState)
 	{
 		socket->write(response.getStatusLine());

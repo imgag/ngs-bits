@@ -106,6 +106,17 @@ const ReportVariantConfiguration& ReportConfiguration::get(VariantType type, int
 	THROW(ArgumentException, "Report configuration not found for variant with index '" + QString::number(index) + "'!");
 }
 
+OtherCausalVariant ReportConfiguration::otherCausalVariant()
+{
+	return other_causal_variant_;
+}
+
+void ReportConfiguration::setOtherCausalVariant(const OtherCausalVariant& causal_variant)
+{
+	other_causal_variant_ = causal_variant;
+	emit variantsChanged();
+}
+
 void ReportConfiguration::set(const ReportVariantConfiguration& config)
 {
 	bool updated_existing = false;
@@ -235,6 +246,15 @@ QString ReportConfiguration::variantSummary() const
 	if (c_cnv_causal>0) output.last().append(" (" + QString::number(c_cnv_causal) + " causal)");
 	output << ("SVs: " + QString::number(c_sv));
 	if (c_sv_causal>0) output.last().append(" (" + QString::number(c_sv_causal) + " causal)");
+	OtherCausalVariant test = other_causal_variant_;
+	if (other_causal_variant_.isValid())
+	{
+		output << "other causal variant: 1";
+	}
+	else
+	{
+		output << "other causal variant: 0";
+	}
 
 	return output.join("\n");
 }

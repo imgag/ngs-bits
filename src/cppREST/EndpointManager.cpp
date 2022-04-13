@@ -82,7 +82,7 @@ void EndpointManager::validateInputData(Endpoint* current_endpoint, const HttpRe
 
 		if (i.value().category == ParamProps::ParamCategory::PATH_PARAM)
 		{
-			if (request.getPathParams().size()>0)
+			if (request.getPathItems().size()>0)
 			{
 				is_found = true;
 			}

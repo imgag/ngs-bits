@@ -10,7 +10,7 @@ HttpResponse EndpointHandler::serveIndexPage(const HttpRequest& request)
 	{
 		return serveFavicon(request);
 	}
-	else if ((request.getPrefix().toLower().contains("index") || (request.getPrefix().toLower().trimmed() == "v1")) && (request.getPathParams().count() == 0))
+	else if ((request.getPrefix().toLower().contains("index") || (request.getPrefix().toLower().trimmed() == "v1")) && (request.getPathItems().count() == 0))
 	{
 		return EndpointController::serveStaticFile(":/assets/client/info.html", request.getMethod(), request.getContentType(), request.getHeaders());
 	}
@@ -20,7 +20,7 @@ HttpResponse EndpointHandler::serveIndexPage(const HttpRequest& request)
 
 HttpResponse EndpointHandler::serveFavicon(const HttpRequest& request)
 {
-	if (request.getPathParams().count() == 0)
+	if (request.getPathItems().count() == 0)
 	{
 		return EndpointController::serveStaticFile(":/assets/client/favicon.ico", request.getMethod(), request.getContentType(), request.getHeaders());
 	}
@@ -29,7 +29,7 @@ HttpResponse EndpointHandler::serveFavicon(const HttpRequest& request)
 
 HttpResponse EndpointHandler::serveApiInfo(const HttpRequest& request)
 {
-	if (request.getPathParams().count() == 0)
+	if (request.getPathItems().count() == 0)
 	{
 		return EndpointController::serveStaticFile(":/assets/client/api.json", request.getMethod(), request.getContentType(), request.getHeaders());
 	}
@@ -178,6 +178,9 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 				break;
 			case PathType::EXPRESSION:
 				file_list = file_locator->getExpressionFiles(return_if_missing);
+				break;
+			case PathType::IGV_SCREENSHOT:
+				file_list << file_locator->getSomaticIgvScreenshotFile();
 				break;
 			default:
 				FileLocation gsvar_file(
@@ -491,35 +494,36 @@ HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 	}
 
 	QString qbic_data_path = Settings::string("qbic_data_path");
-	if (!qbic_data_path.endsWith(QDir::separator())) qbic_data_path = qbic_data_path.remove(qbic_data_path.length()-1, 1);
 	if (!QDir(qbic_data_path).exists())
 	{
 		QDir(qbic_data_path).mkpath(".");
 	}
+	if (!qbic_data_path.endsWith(QDir::separator())) qbic_data_path = qbic_data_path + QDir::separator();
 
 	QString filename = request.getUrlParams()["filename"];
-	QString path = request.getUrlParams()["path"];
+	QString folder_name = request.getUrlParams()["id"];
 	QString content = request.getBody();
 
-	if ((filename.isEmpty()) || (path.isEmpty()))
+	if ((filename.isEmpty()) || (folder_name.isEmpty()))
 	{
 		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Path or filename has not been provided");
 	}
 
 	// It should not be possible to move up to the parent directory or to access system directories
-	path = path.replace(".", "");
-	path = qbic_data_path + path;
+	folder_name = folder_name.replace(".", "");
+	folder_name = folder_name.replace(QDir::separator(), "");
+	folder_name = qbic_data_path + folder_name;
 
-	if (!QDir(path).exists())
+	if (!QDir(folder_name).exists())
 	{		
-		QDir(path).mkpath(".");
+		QDir(folder_name).mkpath(".");
 	}
 
-	if (!path.endsWith(QDir::separator())) path = path + QDir::separator();
+	if (!folder_name.endsWith(QDir::separator())) folder_name = folder_name + QDir::separator();
 
 	try
 	{
-		QSharedPointer<QFile> qBicFile = Helper::openFileForWriting(path+filename);
+		QSharedPointer<QFile> qBicFile = Helper::openFileForWriting(folder_name+filename);
 		QTextStream stream(qBicFile.data());
 		stream << content;
 		qBicFile->close();
@@ -531,6 +535,39 @@ HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 
 	return HttpResponse(ResponseStatus::OK, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), filename + " has been saved");
 }
+
+
+HttpResponse EndpointHandler::uploadFile(const HttpRequest& request)
+{
+	qDebug() << "File upload request";
+	HttpResponse check_result = EndpointController::checkToken(request);
+	if (check_result.getStatus() != ResponseStatus::OK)
+	{
+		return check_result;
+	}
+
+	if ((request.getFormDataParams().contains("ps_url_id")) && (!request.getMultipartFileName().isEmpty()))
+	{		
+		QString ps_url_id = request.getFormDataParams()["ps_url_id"];
+		UrlEntity url_entity = UrlManager::getURLById(ps_url_id.trimmed());
+		if (!url_entity.path.isEmpty())
+		{
+			if (!url_entity.path.endsWith("/")) url_entity.path = url_entity.path + "/";
+			qDebug() << "url_entity.path + request.getMultipartFileName()" << url_entity.path + request.getMultipartFileName();
+			qDebug() << "request.getMultipartFileName()" << request.getMultipartFileName();
+			QSharedPointer<QFile> outfile = Helper::openFileForWriting(url_entity.path + request.getMultipartFileName());
+			outfile->write(request.getMultipartFileContent());
+			return HttpResponse(ResponseStatus::OK, request.getContentType(), "OK");
+		}
+		else
+		{
+			return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Processed sample path has not been found");
+		}
+	}
+
+	return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Parameters have not been provided");
+}
+
 
 HttpResponse EndpointHandler::performLogin(const HttpRequest& request)
 {

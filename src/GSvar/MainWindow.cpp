@@ -131,6 +131,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "BlatWidget.h"
 #include "FusionWidget.h"
 #include "CohortExpressionDataWidget.h"
+#include "CausalVariantEditDialog.h"
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -222,10 +223,11 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.vars_export_btn->menu()->addAction("Export GSvar (filtered)", this, SLOT(exportGSvar()));
 	ui_.vars_export_btn->menu()->addAction("Export VCF (filtered)", this, SLOT(exportVCF()));
 	ui_.report_btn->setMenu(new QMenu());
-	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate report", this, SLOT(generateReport()));
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate evaluation sheet", this, SLOT(generateEvaluationSheet()));
-	ui_.report_btn->menu()->addAction("Show report configuration info", this, SLOT(showReportConfigInfo()));
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Info.png"), "Show report configuration info", this, SLOT(showReportConfigInfo()));
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_add_causal.png"), "Add/edit other causal Variant", this, SLOT(editOtherCausalVariant()));
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_exclude.png"), "Delete other causal Variant", this, SLOT(deleteOtherCausalVariant()));
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_finalize.png"), "Finalize report configuration", this, SLOT(finalizeReportConfig()));
 	ui_.report_btn->menu()->addSeparator();
@@ -3494,6 +3496,78 @@ void MainWindow::showReportConfigInfo()
 	}
 }
 
+void MainWindow::editOtherCausalVariant()
+{
+	//check if applicable
+	if (!germlineReportSupported()) return;
+
+	QString ps = germlineReportSample();
+	QString title = "Add/edit other causal variant of " + ps;
+
+	//check sample exists
+	NGSD db;
+	QString processed_sample_id = db.processedSampleId(ps, false);
+	if (processed_sample_id=="")
+	{
+		QMessageBox::warning(this, title, "Sample was not found in the NGSD!");
+		return;
+	}
+	// get report config
+	OtherCausalVariant causal_variant = report_settings_.report_config->otherCausalVariant();
+	QStringList variant_types = db.getEnum("report_configuration_other_causal_variant", "type");
+	QStringList inheritance_modes = db.getEnum("report_configuration_other_causal_variant", "inheritance");
+	if (causal_variant.isValid())
+	{
+		title = "Edit other causal variant of " + ps;
+	}
+	else
+	{
+		title = "Add other causal variant of " + ps;
+	}
+
+	//open edit dialog
+	CausalVariantEditDialog dlg(causal_variant, variant_types, inheritance_modes, this);
+	dlg.setWindowTitle(title);
+
+	if (dlg.exec()!=QDialog::Accepted) return;
+
+	//store updated causal variant in NGSD
+	if (dlg.causalVariant().isValid())
+	{
+		report_settings_.report_config->setOtherCausalVariant(dlg.causalVariant());
+		report_settings_.report_config->variantsChanged();
+	}
+
+}
+
+void MainWindow::deleteOtherCausalVariant()
+{
+	//check if applicable
+	if (!germlineReportSupported()) return;
+
+	QString ps = germlineReportSample();
+
+	//check sample exists
+	NGSD db;
+	QString processed_sample_id = db.processedSampleId(ps, false);
+	if (processed_sample_id=="")
+	{
+		QMessageBox::warning(this, "Delete causal variant of " + ps, "Sample was not found in the NGSD!");
+		return;
+	}
+	OtherCausalVariant causal_variant = report_settings_.report_config->otherCausalVariant();
+	if(!causal_variant.isValid()) return;
+
+	//show dialog to confirm by user
+	QString message_text = "Are you sure you want to delete the following causal variant?\n" + causal_variant.type + " at " + causal_variant.coordinates + " (gene: " + causal_variant.gene
+							+ ", comment: " + causal_variant.comment.replace("\n", " ") + ")";
+	QMessageBox::StandardButton response = QMessageBox::question(this, "Delete other causal variant", message_text, QMessageBox::Yes|QMessageBox::No);
+	if(response != QMessageBox::Yes) return;
+
+	//replace other causal variant with empty struct
+	report_settings_.report_config->setOtherCausalVariant(OtherCausalVariant());
+}
+
 void MainWindow::finalizeReportConfig()
 {
 	//check if applicable
@@ -3698,7 +3772,7 @@ void MainWindow::generateReportSomaticRTF()
 	}
 
 
-	SomaticReportDialog dlg(somatic_report_settings_, cnvs_, somatic_control_tissue_variants_, this); //widget for settings
+	SomaticReportDialog dlg(filename_, somatic_report_settings_, cnvs_, somatic_control_tissue_variants_, this); //widget for settings
 
 	if(SomaticRnaReport::checkRequiredSNVAnnotations(variants_))
 	{
@@ -3777,6 +3851,7 @@ void MainWindow::generateReportSomaticRTF()
 
 			//Generate files for QBIC upload
 			QString path = Settings::string("qbic_data_path") + "/" + ps_tumor + "-" + ps_normal;
+			if (!GlobalServiceProvider::fileLocationProvider().isLocal()) path = ps_tumor + "-" + ps_normal;
 			report.storeQbicData(path);
 
 			QApplication::restoreOverrideCursor();

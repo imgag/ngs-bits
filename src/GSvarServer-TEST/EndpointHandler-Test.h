@@ -59,4 +59,40 @@ private slots:
 		QFile::remove(copy_name);
 	}
 
+	void test_uploading_file()
+	{
+		QString url_id = ServerHelper::generateUniqueStr();
+		QString file = TESTDATA("data/sample.gsvar");
+		QString copy_name = "uploaded_file.txt";
+		QByteArray upload_file = TESTDATA("data/to_upload.txt");
+
+		IS_FALSE(UrlManager::isInStorageAlready(upload_file));
+		UrlManager::addUrlToStorage(url_id, QFileInfo(upload_file).fileName(), QFileInfo(upload_file).absolutePath(), upload_file);
+		IS_TRUE(UrlManager::isInStorageAlready(upload_file));
+
+		Session cur_session(1, QDateTime::currentDateTime());
+		SessionManager::addNewSession("token", cur_session);
+
+		HttpRequest request;
+		request.setMethod(RequestMethod::POST);
+		request.setContentType(ContentType::MULTIPART_FORM_DATA);
+		request.setPrefix("v1");
+		request.setPath("upload");
+		request.addUrlParam("token", "token");
+
+		request.setMultipartFileName(copy_name);
+		request.setMultipartFileContent(Helper::loadTextFile(upload_file)[0].toLocal8Bit());
+
+		request.addHeader("Accept", "*/*");
+		request.addHeader("Content-Type", "multipart/form-data; boundary=------------------------2cb4f6c221043bbe");
+
+		HttpResponse response = EndpointHandler::uploadFile(request);
+		IS_TRUE(response.getStatusLine().contains("400"));
+		request.addFormDataParam("ps_url_id", url_id);
+		response = EndpointHandler::uploadFile(request);
+		IS_TRUE(response.getStatusLine().contains("200"));
+		QString file_copy = TESTDATA("data/" + copy_name.toLocal8Bit());
+		COMPARE_FILES(file_copy, upload_file);
+		QFile::remove(file_copy);
+	}
 };

@@ -108,7 +108,9 @@ SOURCES += main.cpp\
     PhenotypeSourceEvidenceSelector.cpp \
     FusionWidget.cpp \
     CohortExpressionDataWidget.cpp \
-    GapClosingEditDialog.cpp
+    GapClosingEditDialog.cpp \
+    CausalVariantEditDialog.cpp
+
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
     DatabaseServiceRemote.h \
@@ -211,7 +213,9 @@ HEADERS += MainWindow.h \
     PhenotypeSourceEvidenceSelector.h \
     FusionWidget.h \
     CohortExpressionDataWidget.h \
-    GapClosingEditDialog.h
+    GapClosingEditDialog.h \
+    CausalVariantEditDialog.h
+
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
@@ -300,8 +304,8 @@ FORMS    += MainWindow.ui \
     PhenotypeSourceEvidenceSelector.ui \
     FusionWidget.ui \
     CohortExpressionDataWidget.ui \
-    GapClosingEditDialog.ui
-
+    GapClosingEditDialog.ui \
+    CausalVariantEditDialog.ui
 include("../app_gui.pri")
 
 #include NGSD library
