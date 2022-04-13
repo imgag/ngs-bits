@@ -243,7 +243,7 @@ void ReportDialog::updateVariantTable()
 	}
 
 	//add other causal variant
-	OtherCausalVariant causal_variant = settings_.report_config->getOtherCausalVariant();
+	OtherCausalVariant causal_variant = settings_.report_config->otherCausalVariant();
 
 	if(!causal_variant.coordinates.isEmpty())
 	{

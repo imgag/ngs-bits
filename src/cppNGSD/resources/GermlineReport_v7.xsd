@@ -1353,6 +1353,21 @@
 								<xs:documentation>Affected/causal gene</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
+                                                <xs:attribute name="inheritance" use="required">
+                                                        <xs:annotation>
+                                                                <xs:documentation>Variant inheritance</xs:documentation>
+                                                        </xs:annotation>
+                                                        <xs:simpleType>
+                                                                <xs:restriction base="xs:string">
+                                                                        <xs:enumeration value="n/a"/>
+                                                                        <xs:enumeration value="AR"/>
+                                                                        <xs:enumeration value="AD"/>
+                                                                        <xs:enumeration value="XLR"/>
+                                                                        <xs:enumeration value="XLD"/>
+                                                                        <xs:enumeration value="MT"/>
+                                                                </xs:restriction>
+                                                        </xs:simpleType>
+                                                </xs:attribute>
 						<xs:attribute name="comments" type="xs:string" use="required">
 							<xs:annotation>
 								<xs:documentation>Description</xs:documentation>

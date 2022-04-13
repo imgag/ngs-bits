@@ -82,6 +82,6 @@
     <PrsList>
         <Prs id="PGS000004" trait="Breast Cancer" citation="Mavaddat N et al. Am J Hum Genet (2018). doi:10.1016/j.ajhg.2018.11.002" score="-0.2773" percentile="53"/>
     </PrsList>
-    <OtherCausalVariant type="uncalled_cnv" coordinates="chr2:123456-789012" gene="EPRS" comments="This is a comment!"/>
+    <OtherCausalVariant type="uncalled_cnv" coordinates="chr2:123456-789012" gene="EPRS" inheritance="AR" comments="This is a comment!&#10; And it has&#10; multiple lines!&#10;"/>
     <ReportDocument format="HTML"></ReportDocument>
 </DiagnosticNgsReport>

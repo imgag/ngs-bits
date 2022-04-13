@@ -2165,7 +2165,10 @@ CREATE TABLE IF NOT EXISTS `report_configuration_other_causal_variant`
   `coordinates` TEXT NOT NULL,
   `gene` TEXT NOT NULL,
   `type` ENUM('RE', 'UPD', 'mosaic CNV', 'uncalled small variant', 'uncalled CNV', 'uncalled SV') NOT NULL,
+  `inheritance` ENUM('n/a', 'AR','AD','XLR','XLD','MT') NOT NULL,
   `comment` TEXT NOT NULL,
+  `comment_reviewer1` TEXT NOT NULL,
+  `comment_reviewer2` TEXT NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `report_configuration_id_unique` (`report_configuration_id`),
   CONSTRAINT `fk_report_configuration_id`

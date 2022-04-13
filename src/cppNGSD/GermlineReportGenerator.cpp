@@ -352,15 +352,16 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	//other causal variant
 	if (data_.report_settings.select_other_causal_variant)
 	{
-		const OtherCausalVariant& causal_variant = data_.report_settings.report_config->getOtherCausalVariant();
+		OtherCausalVariant causal_variant = data_.report_settings.report_config->otherCausalVariant();
 		stream << "<table>" << endl;
-		stream << "<tr><td><b>" << trans("Variantentyp") << "</b></td><td><b>" << trans("Regionen") << "</b></td><td><b>" << trans("Gen(e)") << "</b></td><td><b>"
-			   << trans("Kommentar") << "</b></td></tr>" << endl;
+		stream << "<tr><td><b>" << trans("Variantentyp") << "</b></td><td><b>" << trans("Regionen") << "</b></td><td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Vererbung")
+			   << "</b></td><td><b>" << trans("Kommentar") << "</b></td></tr>" << endl;
 
 		stream << "<tr>" << endl;
 		stream << "<td>" << trans(convertOtherVariantType(causal_variant.type)) << "</td>" << endl;
 		stream << "<td>" << causal_variant.coordinates << "</td>" << endl;
 		stream << "<td>" << causal_variant.gene << "</td>" << endl;
+		stream << "<td>" << causal_variant.inheritance << "</td>" << endl;
 		stream << "<td>" << causal_variant.comment << "</td>" << endl;
 		stream << "</tr>" << endl;
 		stream << "</table>" << endl;
@@ -1100,11 +1101,12 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	w.writeEndElement();
 	if (data_.report_settings.select_other_causal_variant)
 	{
-		OtherCausalVariant causal_variant = data_.report_settings.report_config->getOtherCausalVariant();
+		OtherCausalVariant causal_variant = data_.report_settings.report_config->otherCausalVariant();
 		w.writeStartElement("OtherCausalVariant");
 		w.writeAttribute("type", convertOtherVariantType(causal_variant.type, true));
 		w.writeAttribute("coordinates", causal_variant.coordinates);
 		w.writeAttribute("gene", causal_variant.gene);
+		w.writeAttribute("inheritance", causal_variant.inheritance);
 		w.writeAttribute("comments", causal_variant.comment);
 		w.writeEndElement();
 	}
@@ -2005,7 +2007,7 @@ void GermlineReportGenerator::writeEvaluationSheet(QString filename, const Evalu
 	stream << "    <p><b>Sonstige kausale Varianten:</b>" << endl;
 	stream << "      <table border='1'>" << endl;
 	printVariantSheetRowHeaderOtherVariant(stream);
-	printVariantSheetRowOtherVariant(stream, data_.report_settings.report_config->getOtherCausalVariant());
+	printVariantSheetRowOtherVariant(stream, data_.report_settings.report_config->otherCausalVariant());
 	stream << "      </table>" << endl;
 	stream << "    </p>" << endl;
 
@@ -2227,17 +2229,23 @@ void GermlineReportGenerator::printVariantSheetRowHeaderOtherVariant(QTextStream
 	stream << "       <th>Variantentyp</th>" << endl;
 	stream << "       <th>Regionen</th>" << endl;
 	stream << "       <th>Gene</th>" << endl;
-	stream << "       <th>	Kommentar</th>" << endl;
+	stream << "       <th>Erbgang</th>" << endl;
+	stream << "       <th>Kommentar</th>" << endl;
+	stream << "       <th style='white-space: nowrap'>Kommentar 1. Auswerter</th>" << endl;
+	stream << "       <th style='white-space: nowrap'>Kommentar 2. Auswerter</th>" << endl;
 	stream << "     </tr>" << endl;
 }
 
-void GermlineReportGenerator::printVariantSheetRowOtherVariant(QTextStream& stream, const OtherCausalVariant& variant)
+void GermlineReportGenerator::printVariantSheetRowOtherVariant(QTextStream& stream, OtherCausalVariant variant)
 {
 	stream << "     <tr>" << endl;
 	stream << "       <td>" << convertOtherVariantType(variant.type) << "</td>" << endl;
 	stream << "       <td>" << variant.coordinates << "</td>" << endl;
 	stream << "       <td>" << variant.gene << "</td>" << endl;
-	stream << "       <td>" << variant.comment << "</td>" << endl;
+	stream << "       <td>" << variant.inheritance << "</td>" << endl;
+	stream << "       <td>" << variant.comment<< "</td>" << endl;
+	stream << "       <td>" << variant.comment_reviewer1 << "</td>" << endl;
+	stream << "       <td>" << variant.comment_reviewer2 << "</td>" << endl;
 	stream << "     </tr>" << endl;
 }
 

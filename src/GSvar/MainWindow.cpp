@@ -223,13 +223,11 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.vars_export_btn->menu()->addAction("Export GSvar (filtered)", this, SLOT(exportGSvar()));
 	ui_.vars_export_btn->menu()->addAction("Export VCF (filtered)", this, SLOT(exportVCF()));
 	ui_.report_btn->setMenu(new QMenu());
-	ui_.report_btn->menu()->addSeparator();
-	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_add.png"), "Add/edit other causal Variant", this, SLOT(editOtherCausalVariant()));
-	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report exclude.png"), "Delete other causal Variant", this, SLOT(deleteOtherCausalVariant()));
-	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate report", this, SLOT(generateReport()));
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate evaluation sheet", this, SLOT(generateEvaluationSheet()));
-	ui_.report_btn->menu()->addAction("Show report configuration info", this, SLOT(showReportConfigInfo()));
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Info.png"), "Show report configuration info", this, SLOT(showReportConfigInfo()));
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_add_causal.png"), "Add/edit other causal Variant", this, SLOT(editOtherCausalVariant()));
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_exclude.png"), "Delete other causal Variant", this, SLOT(deleteOtherCausalVariant()));
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_finalize.png"), "Finalize report configuration", this, SLOT(finalizeReportConfig()));
 	ui_.report_btn->menu()->addSeparator();
@@ -3515,8 +3513,9 @@ void MainWindow::editOtherCausalVariant()
 		return;
 	}
 	// get report config
-	OtherCausalVariant causal_variant = report_settings_.report_config->getOtherCausalVariant();
+	OtherCausalVariant causal_variant = report_settings_.report_config->otherCausalVariant();
 	QStringList variant_types = db.getEnum("report_configuration_other_causal_variant", "type");
+	QStringList inheritance_modes = db.getEnum("report_configuration_other_causal_variant", "inheritance");
 	if (causal_variant.isValid())
 	{
 		title = "Edit other causal variant of " + ps;
@@ -3527,7 +3526,7 @@ void MainWindow::editOtherCausalVariant()
 	}
 
 	//open edit dialog
-	CausalVariantEditDialog dlg(causal_variant, variant_types, this);
+	CausalVariantEditDialog dlg(causal_variant, variant_types, inheritance_modes, this);
 	dlg.setWindowTitle(title);
 
 	if (dlg.exec()!=QDialog::Accepted) return;
@@ -3547,17 +3546,16 @@ void MainWindow::deleteOtherCausalVariant()
 	if (!germlineReportSupported()) return;
 
 	QString ps = germlineReportSample();
-	QString title = "Add/edit other causal variant of " + ps;
 
 	//check sample exists
 	NGSD db;
 	QString processed_sample_id = db.processedSampleId(ps, false);
 	if (processed_sample_id=="")
 	{
-		QMessageBox::warning(this, title, "Sample was not found in the NGSD!");
+		QMessageBox::warning(this, "Delete causal variant of " + ps, "Sample was not found in the NGSD!");
 		return;
 	}
-	OtherCausalVariant causal_variant = report_settings_.report_config->getOtherCausalVariant();
+	OtherCausalVariant causal_variant = report_settings_.report_config->otherCausalVariant();
 	if(!causal_variant.isValid()) return;
 
 	//show dialog to confirm by user

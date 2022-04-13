@@ -546,8 +546,8 @@ INSERT INTO `report_configuration_variant` (`report_configuration_id`, `variant_
 INSERT INTO `report_configuration_cnv` (`report_configuration_id`, `cnv_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES
 (1, 4, 'diagnostic variant', '1', '4', 'AD', '0', '0', '0', '0', '0', '0', '0', '0', 'bla', 'bla bla');
 
-INSERT INTO `report_configuration_other_causal_variant` (`id`, `report_configuration_id`, `coordinates`, `gene`, `type`, `comment`) VALUES
-(1, 1, 'chr2:123456-789012', 'EPRS', 'uncalled CNV', 'This is a comment!');
+INSERT INTO `report_configuration_other_causal_variant` (`id`, `report_configuration_id`, `coordinates`, `gene`, `type`, `inheritance`, `comment`, `comment_reviewer1`, `comment_reviewer2`) VALUES
+(1, 1, 'chr2:123456-789012', 'EPRS', 'uncalled CNV', 'AR', 'This is a comment!', 'Reviewer1: \n This is a comment!\n', 'Reviewer2: \n This is not a comment!\n');
 
 -- somatic_cnv_callset_id`
 INSERT INTO `somatic_cnv_callset` (`id`, `ps_tumor_id`, `ps_normal_id`, `caller`, `caller_version`, `call_date`, `quality_metrics`, `quality`) VALUES

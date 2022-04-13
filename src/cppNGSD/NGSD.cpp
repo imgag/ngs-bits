@@ -5137,7 +5137,10 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 		causal_variant.coordinates = query.value("coordinates").toString();
 		causal_variant.gene = query.value("gene").toString();
 		causal_variant.type = query.value("type").toString();
+		causal_variant.inheritance = query.value("inheritance").toString();
 		causal_variant.comment = query.value("comment").toString();
+		causal_variant.comment_reviewer1 = query.value("comment_reviewer1").toString();
+		causal_variant.comment_reviewer2 = query.value("comment_reviewer2").toString();
 		output->setOtherCausalVariant(causal_variant);
 	}
 	return output;
@@ -5358,18 +5361,17 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 		if(config->other_causal_variant_.isValid())
 		{
 			SqlQuery query = getQuery();
-			query.prepare("INSERT INTO `report_configuration_other_causal_variant` (`report_configuration_id`, `coordinates`, `gene`, `type`, `comment`) VALUES (:0, :1, :2, :3, :4) ON DUPLICATE KEY UPDATE id=id");
+			query.prepare(QString("INSERT INTO `report_configuration_other_causal_variant` (`report_configuration_id`, `coordinates`, `gene`, `type`, `inheritance`, `comment`, `comment_reviewer1`, ")
+						  + "`comment_reviewer2`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7) ON DUPLICATE KEY UPDATE id=id");
 			query.bindValue(0, id);
 			query.bindValue(1, config->other_causal_variant_.coordinates);
 			query.bindValue(2, config->other_causal_variant_.gene);
 			query.bindValue(3, config->other_causal_variant_.type);
-			query.bindValue(4, config->other_causal_variant_.comment);
+			query.bindValue(4, config->other_causal_variant_.inheritance);
+			query.bindValue(5, config->other_causal_variant_.comment);
+			query.bindValue(6, config->other_causal_variant_.comment_reviewer1);
+			query.bindValue(7, config->other_causal_variant_.comment_reviewer2);
 			query.exec();
-		}
-		else
-		{
-			//TODO: delete old entry
-
 		}
 
 		commit();

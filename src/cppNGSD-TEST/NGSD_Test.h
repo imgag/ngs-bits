@@ -1512,7 +1512,10 @@ private slots:
 			causal_variant.coordinates = "chr2:123456-789012";
 			causal_variant.gene = "EPRS";
 			causal_variant.type = "uncalled CNV";
-			causal_variant.comment = "This is a comment!";
+			causal_variant.inheritance = "AR";
+			causal_variant.comment = "This is a comment!\n And it has\n multiple lines!\n";
+			causal_variant.comment_reviewer1 = "This is a comment from reviewer1!";
+			causal_variant.comment_reviewer2 = "This is a comment from reviewer2!";
 			report_settings.report_config->setOtherCausalVariant(causal_variant);
 			report_settings.select_other_causal_variant = true;
 

@@ -1,7 +1,7 @@
 #include "CausalVariantEditDialog.h"
 #include "ui_CausalVariantEditDialog.h"
 
-CausalVariantEditDialog::CausalVariantEditDialog(const OtherCausalVariant& causal_variant, const QStringList& variant_types, QWidget* parent) :
+CausalVariantEditDialog::CausalVariantEditDialog(const OtherCausalVariant& causal_variant, const QStringList& variant_types, const QStringList& inheritance_modes, QWidget* parent) :
 	QDialog(parent),
 	ui_(new Ui::CausalVariantEditDialog),
 	causal_variant_(causal_variant)
@@ -13,7 +13,11 @@ CausalVariantEditDialog::CausalVariantEditDialog(const OtherCausalVariant& causa
 	ui_->le_gene->setText(causal_variant_.gene);
 	ui_->cb_type->addItems(variant_types);
 	if(!causal_variant_.type.isEmpty()) ui_->cb_type->setCurrentText(causal_variant_.type);
-	ui_->le_comment->setText(causal_variant_.comment);
+	ui_->cb_inheritance->addItems(inheritance_modes);
+	if(!causal_variant_.inheritance.isEmpty()) ui_->cb_inheritance->setCurrentText(causal_variant_.inheritance);
+	ui_->te_comment->setText(causal_variant_.comment);
+	ui_->te_comment_reviewer1->setText(causal_variant_.comment_reviewer1);
+	ui_->te_comment_reviewer2->setText(causal_variant_.comment_reviewer2);
 
 	// connect signals and slots
 	connect(ui_->buttonBox, SIGNAL(accepted()), this, SLOT(updateCausalVariant()));
@@ -42,7 +46,10 @@ void CausalVariantEditDialog::updateCausalVariant()
 	causal_variant_.coordinates = ui_->le_coordinates->text();
 	causal_variant_.gene = ui_->le_gene->text();
 	causal_variant_.type = ui_->cb_type->currentText();
-	causal_variant_.comment = ui_->le_comment->text();
+	causal_variant_.inheritance = ui_->cb_inheritance->currentText();
+	causal_variant_.comment = ui_->te_comment->toPlainText();
+	causal_variant_.comment_reviewer1 = ui_->te_comment_reviewer1->toPlainText();
+	causal_variant_.comment_reviewer2 = ui_->te_comment_reviewer2->toPlainText();
 
 	emit accepted();
 }

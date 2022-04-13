@@ -106,7 +106,7 @@ const ReportVariantConfiguration& ReportConfiguration::get(VariantType type, int
 	THROW(ArgumentException, "Report configuration not found for variant with index '" + QString::number(index) + "'!");
 }
 
-OtherCausalVariant ReportConfiguration::getOtherCausalVariant()
+OtherCausalVariant ReportConfiguration::otherCausalVariant()
 {
 	return other_causal_variant_;
 }
