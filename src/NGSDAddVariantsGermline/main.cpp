@@ -25,12 +25,13 @@ public:
 		//optional
 		addInfile("var", "Small variant list in GSvar format (as produced by megSAP).", true, true);
 		addFlag("var_force", "Force import of small variants, even if already imported.");
+		addFlag("var_update", "Import missing small variants - doesn't change others.");
 		addInfile("cnv", "CNV list in TSV format (as produced by megSAP).", true, true);
 		addFlag("cnv_force", "Force import of CNVs, even if already imported.");
 		addInfile("sv", "SV list in BEDPE format (as produced by megSAP).", true, true);
 		addFlag("sv_force", "Force import of SVs, even if already imported.");
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
-		addFloat("max_af", "Maximum allele frequency of small variants to import (1000g and gnomAD).", true, 0.05);
+		addFloat("max_af", "Maximum allele frequency of small variants to import (gnomAD).", true, 0.05);
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("debug", "Enable verbose debug output.");
 		addFlag("no_time", "Disable timing output.");
@@ -49,7 +50,7 @@ public:
 		return KeyValuePair(key, value);
 	}
 
-	void importSmallVariants(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool no_time, bool var_force)
+	void importSmallVariants(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool no_time, bool var_force, bool var_update)
 	{
 		QString filename = getInfile("var");
 		if (filename=="") return;
@@ -67,9 +68,13 @@ public:
 		QString ps_id = db.processedSampleId(ps_name);
 		int count_old = db.importStatus(ps_id).small_variants;
 		out << "Found " << count_old  << " variants already imported into NGSD!\n";
-		if(count_old>0 && !var_force)
+		if(count_old>0 && !var_force && !var_update)
 		{
 			THROW(ArgumentException, "Variants were already imported for '" + ps_name + "'. Use the flag '-var_force' to overwrite them.");
+		}
+		if (var_force && var_update)
+		{
+			THROW(ArgumentException, "Flags -var_force and -var_update cannot be used at the same time! Use -var_force to delete old variants and reimport, and -var_update to only import missing variants.")
 		}
 
 		//remove old variants (and store class4/5 variants for check)
@@ -115,6 +120,30 @@ public:
 		QList<int> variant_ids = db.addVariants(variants, max_af, c_add, c_update);
 		out << "Imported variants (added:" << c_add << " updated:" << c_update << ")\n";
 		sub_times << ("adding variants took: " + Helper::elapsedTime(sub_timer));
+
+
+		//update: add the missing variants to the processed sample while keeping the others the same.
+		if (var_update)
+		{
+			sub_timer.start();
+			int c_doubled = 0;
+			QStringList existing_var_ids = db.getValues("Select variant_id FROM detected_variant WHERE processed_sample_id='" + ps_id + "'");
+
+			//remove all variant ids and variants that are already linked to the processed sample:
+
+			for (int i=variant_ids.count()-1; i>=0; i--)
+			{
+				if (existing_var_ids.contains(QString::number(variant_ids[i])))
+				{
+					variant_ids.removeAt(i);
+					variants.remove(i);
+					c_doubled += 1;
+				}
+			}
+			out << "Ignored " << c_doubled << " already imported variants\n";
+			sub_times << ("Determining already imported variants took: " + Helper::elapsedTime(sub_timer));
+
+		}
 
 		//add detected variants
 		sub_timer.start();
@@ -456,6 +485,7 @@ public:
 		bool debug = getFlag("debug");
 		bool no_time = getFlag("no_time");
 		bool var_force = getFlag("var_force");
+		bool var_update = getFlag("var_update");
 		bool cnv_force = getFlag("cnv_force");
 		bool sv_force = getFlag("sv_force");
 
@@ -468,7 +498,7 @@ public:
 		}
 
 		//import
-		importSmallVariants(db, stream, ps_name, debug, no_time, var_force);
+		importSmallVariants(db, stream, ps_name, debug, no_time, var_force, var_update);
 		importCNVs(db, stream, ps_name, debug, no_time, cnv_force);
 		importSVs(db, stream, ps_name, debug, no_time, sv_force);
 	}

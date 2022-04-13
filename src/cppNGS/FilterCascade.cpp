@@ -988,7 +988,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 FilterAlleleFrequency::FilterAlleleFrequency()
 {
 	name_ = "Allele frequency";
-	description_ = QStringList() << "Filter based on overall allele frequency given by 1000 Genomes and gnomAD.";
+	description_ = QStringList() << "Filter based on overall allele frequency given by gnomAD and if available 1000g.";
 	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximum allele frequency in %");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "100.0";
@@ -1009,16 +1009,28 @@ void FilterAlleleFrequency::apply(const VariantList& variants, FilterResult& res
 	double max_af = getDouble("max_af")/100.0;
 
 	//get column indices
-	int i_1000g = annotationColumn(variants, "1000g");
 	int i_gnomad = annotationColumn(variants, "gnomAD");
+	int i_1000g = annotationColumn(variants, "1000g", false);
 
 	//filter
-	for(int i=0; i<variants.count(); ++i)
+	if (i_1000g == -1)
 	{
-		result.flags()[i] = result.flags()[i]
-			&& variants[i].annotations()[i_1000g].toDouble()<=max_af
-			&& variants[i].annotations()[i_gnomad].toDouble()<=max_af;
+		for(int i=0; i<variants.count(); ++i)
+		{
+			result.flags()[i] = result.flags()[i]
+				&& variants[i].annotations()[i_gnomad].toDouble()<=max_af;
+		}
 	}
+	else
+	{
+		for(int i=0; i<variants.count(); ++i)
+		{
+			result.flags()[i] = result.flags()[i]
+				&& variants[i].annotations()[i_1000g].toDouble()<=max_af
+				&& variants[i].annotations()[i_gnomad].toDouble()<=max_af;
+		}
+	}
+
 }
 
 FilterGenes::FilterGenes()
