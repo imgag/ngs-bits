@@ -36,11 +36,16 @@ private:
             //write out headers unchanged (unless they are the CSQ description)
             if(line.startsWith("##"))
             {
-                if(!line.contains(tag))
+                if(!line.startsWith("##INFO=<ID=" + tag + ","))
                 {
                     writer->write(line);
-                    continue;
                 }
+                else
+                {
+                    QTextStream out(stdout);
+                    out << line << endl;
+                }
+                continue;
             }
 
             //add the CSQ info line after all other header lines
@@ -149,12 +154,20 @@ private:
             {
                 info_list = parts[7].split(';');
             }
-            int csq_idx = info_list.indexOf(tag);
-            if(csq_idx != -1)
+            //replace entry if tag is already there
+            QMutableByteArrayListIterator iter(info_list);
+            bool tag_found = false;
+            while(iter.hasNext())
             {
-                info_list[csq_idx] = tag + "=" + csq;
+                QByteArray val = iter.next();
+                if(val.startsWith(tag + "="))
+                {
+                    iter.setValue(tag + "=" + csq);
+                    tag_found = true;
+                    break;
+                }
             }
-            else
+            if(!tag_found)
             {
                 info_list.append(tag + "=" + csq);
             }
@@ -195,26 +208,58 @@ private:
     {
         QString csq = hgvs.allele;
 
-        //find variant consequence type with highest priority
+        //find variant consequence type with highest priority (apart from splice region)
         VariantConsequenceType max_csq_type = VariantConsequenceType::INTERGENIC_VARIANT;
         foreach(VariantConsequenceType csq_type, hgvs.variant_consequence_type)
         {
-            if(csq_type > max_csq_type)
+            if(csq_type > max_csq_type && csq_type != VariantConsequenceType::SPLICE_REGION_VARIANT &&
+                    csq_type != VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT &&
+                    csq_type != VariantConsequenceType::SPLICE_DONOR_VARIANT)
             {
                 max_csq_type = csq_type;
             }
         }
-        csq.append("|" + hgvs.consequenceTypeToString(max_csq_type) + "|");
+        QString consequence_type = hgvs.consequenceTypeToString(max_csq_type);
+        VariantImpact impact = hgvs.consequenceTypeToImpact(max_csq_type);
+
+        //additionally insert splice region consequence type (if present) and order types by impact
+        if(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_REGION_VARIANT))
+        {
+            VariantConsequenceType splice_type;
+            if(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT))
+            {
+                splice_type = VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT;
+            }
+            else if(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_DONOR_VARIANT))
+            {
+                splice_type = VariantConsequenceType::SPLICE_DONOR_VARIANT;
+            }
+            else
+            {
+                splice_type = VariantConsequenceType::SPLICE_REGION_VARIANT;
+            }
+
+            if(splice_type > max_csq_type)
+            {
+                consequence_type.prepend(hgvs.consequenceTypeToString(splice_type) + "&");
+                impact = hgvs.consequenceTypeToImpact(splice_type);
+            }
+            else
+            {
+                consequence_type.append("&" + hgvs.consequenceTypeToString(splice_type));
+            }
+        }
+
+        csq.append("|" + consequence_type + "|");
 
         //add variant impact
-        VariantImpact impact = hgvs.consequenceTypeToImpact(max_csq_type);
         if(impact == VariantImpact::HIGH) csq.append("HIGH|");
         else if(impact == VariantImpact::MODERATE) csq.append("MODERATE|");
         else if(impact == VariantImpact::LOW) csq.append("LOW|");
         else csq.append("MODIFIER|");
 
         //gene symbol, HGNC ID, transcript ID
-        csq.append(t.gene() + "|" + t.hgncId() + "|" + t.name());
+        csq.append(t.gene() + "|" + t.hgncId() + "|" + t.name() + "." + QByteArray::number(t.version()));
         if(hgvs.transcript_id == "") csq.append("||");
         else csq.append("|Transcript|");
 

@@ -50,10 +50,10 @@ inline uint qHash(VariantConsequenceType key, uint seed)
 ///Representation of the level of impact of a variant
 enum class VariantImpact
 {
-    HIGH,
-    MODERATE,
+    MODIFIER,
     LOW,
-    MODIFIER
+    MODERATE,
+    HIGH
 };
 
 ///Representation of HGVS nomenclature
