@@ -54,6 +54,16 @@ public:
 		name_ = name;
 	}
 
+    const int& version() const
+    {
+        return version_;
+    }
+
+    void setVersion(const int& version)
+    {
+        version_ = version;
+    }
+
     const QByteArray& nameCcds() const
     {
         return name_ccds_;
@@ -184,6 +194,7 @@ protected:
     QByteArray gene_id_;
     QByteArray hgnc_id_;
     QByteArray name_;
+    int version_;
     QByteArray name_ccds_;
 	SOURCE source_;
 	STRAND strand_;

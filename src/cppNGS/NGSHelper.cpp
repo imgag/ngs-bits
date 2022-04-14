@@ -793,6 +793,7 @@ TranscriptList NGSHelper::loadGffFile(QString filename, QMap<QByteArray, QByteAr
                 t.setGeneId(t_data.gene_id);
                 t.setHgncId(t_data.hgnc_id);
                 t.setName(t_data.name);
+                t.setVersion(t_data.version);
                 t.setNameCcds(t_data.name_ccds);
                 t.setSource(Transcript::ENSEMBL);
                 t.setStrand(t_data.strand == "+" ? Transcript::PLUS : Transcript::MINUS);
@@ -866,6 +867,7 @@ TranscriptList NGSHelper::loadGffFile(QString filename, QMap<QByteArray, QByteAr
 
                 TranscriptData tmp;
                 tmp.name = data["transcript_id"];
+                tmp.version = data["version"].toInt();
                 tmp.name_ccds = data.value("ccdsid", "");
                 tmp.gene_symbol = gene_name_relation[parent_id];
                 tmp.gene_id = parent_id;

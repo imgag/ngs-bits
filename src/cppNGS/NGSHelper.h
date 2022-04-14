@@ -41,6 +41,7 @@ struct TargetRegionInfo
 struct TranscriptData
 {
     QByteArray name;
+    int version;
     QByteArray name_ccds;
     QByteArray gene_symbol;
     QByteArray gene_id;
