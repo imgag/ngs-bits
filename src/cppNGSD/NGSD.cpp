@@ -990,12 +990,6 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 
 		//skip variants with too high AF
 		QByteArray tg = variant.annotations()[i_tg].trimmed();
-		if (tg=="n/a") tg.clear();
-		if (!tg.isEmpty() && tg.toDouble()>max_af)
-		{
-			output << -1;
-			continue;
-		}
 		QByteArray gnomad = variant.annotations()[i_gnomad].trimmed();
 		if (gnomad=="n/a") gnomad.clear();
 		if (!gnomad.isEmpty() && gnomad.toDouble()>max_af)
@@ -1003,6 +997,7 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 			output << -1;
 			continue;
 		}
+
 
 		QByteArray cadd = variant.annotations()[i_cadd].trimmed();
 		QByteArray spliceai = variant.annotations()[i_spliceai].trimmed();
