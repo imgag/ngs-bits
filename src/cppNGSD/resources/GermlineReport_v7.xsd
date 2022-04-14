@@ -1328,6 +1328,58 @@
 						</xs:sequence>
 					</xs:complexType>
 				</xs:element>
+				<xs:element name="OtherCausalVariant" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Other causal variant. Either uncalled variant from above types, or other variant type.</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:attribute name="type" use="required">
+							<xs:annotation>
+								<xs:documentation>Variant type</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:enumeration value="repeat_expansion"/>
+									<xs:enumeration value="uniparental_disomy"/>
+									<xs:enumeration value="mosaic_cnv"/>
+									<xs:enumeration value="uncalled_small_variant"/>
+									<xs:enumeration value="uncalled_cnv"/>
+									<xs:enumeration value="uncalled_sv"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="coordinates" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>Vairiant definition (HGVS nomenclature, coordinates or other concise description)</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="gene" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>Affected/causal gene</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+                                                <xs:attribute name="inheritance" use="required">
+                                                        <xs:annotation>
+                                                                <xs:documentation>Variant inheritance</xs:documentation>
+                                                        </xs:annotation>
+                                                        <xs:simpleType>
+                                                                <xs:restriction base="xs:string">
+                                                                        <xs:enumeration value="n/a"/>
+                                                                        <xs:enumeration value="AR"/>
+                                                                        <xs:enumeration value="AD"/>
+                                                                        <xs:enumeration value="XLR"/>
+                                                                        <xs:enumeration value="XLD"/>
+                                                                        <xs:enumeration value="MT"/>
+                                                                </xs:restriction>
+                                                        </xs:simpleType>
+                                                </xs:attribute>
+						<xs:attribute name="comments" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>Description</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
 				<xs:element name="ReportDocument" nillable="false">
 					<xs:annotation>
 						<xs:documentation>Generated report text document - base64 encoded</xs:documentation>
@@ -1357,8 +1409,8 @@
 				</xs:annotation>
 				<xs:simpleType>
 					<xs:restriction base="xs:int">
-						<xs:minInclusive value="6"/>
-						<xs:maxInclusive value="6"/>
+						<xs:minInclusive value="7"/>
+						<xs:maxInclusive value="7"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>

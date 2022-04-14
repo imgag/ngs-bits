@@ -36,11 +36,18 @@ void ReportWorker::process()
 	QString gsvar_xml_folder = Settings::path("gsvar_xml_folder");
 	if (gsvar_xml_folder!="")
 	{
-		temp_filename = Helper::tempFileName(".xml");
-		report_generator.writeXML(temp_filename, filename_);
+		try
+		{
+			temp_filename = Helper::tempFileName(".xml");
+			report_generator.writeXML(temp_filename, filename_);
 
-		QString xml_file = gsvar_xml_folder + "/" + QFileInfo(filename_).fileName().replace(".html", ".xml");
-		moveReport(temp_filename, xml_file);
+			QString xml_file = gsvar_xml_folder + "/" + QFileInfo(filename_).fileName().replace(".html", ".xml");
+			moveReport(temp_filename, xml_file);
+		}
+		catch (Exception& e)
+		{
+			THROW(Exception, "XML generation failed: " + e.message());
+		}
 	}
 }
 

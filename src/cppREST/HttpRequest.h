@@ -23,6 +23,15 @@ public:
 	void setBody(QByteArray body);
 	QByteArray getBody() const;
 
+	void addFormDataParam(QString key, QString value);
+	QMap<QString, QString> getFormDataParams() const;
+
+	void setMultipartFileName(QString file);
+	QString getMultipartFileName() const;
+
+	void setMultipartFileContent(QByteArray content);
+	QByteArray getMultipartFileContent() const;
+
 	void setPrefix(QString prefix);
 	QString getPrefix() const;
 
@@ -40,21 +49,24 @@ public:
 	void setFormUrlEncoded(QMap<QString, QString> form_params);
 	QMap<QString, QString> getFormUrlEncoded() const;
 
-	void addPathParam(QString param);
-	void setPathParams(QList<QString> params);
-	QList<QString> getPathParams() const;
+	void addPathItem(QString param);
+	void setPathItems(QList<QString> params);
+	QList<QString> getPathItems() const;
 
 private:
 	RequestMethod method_;
 	ContentType return_type_;
 	QMap<QString, QList<QString>> headers_;
 	QByteArray body_;
+	QMap<QString, QString> form_data_params_;
+	QString multipart_file_name_;
+	QByteArray multipart_file_content_;
 	QString prefix_;
 	QString path_;
 	QString remote_address_;
 	QMap<QString, QString> url_params_;
 	QMap<QString, QString> form_urlencoded_;
-	QList<QString> path_params_;
+	QList<QString> path_items_;
 };
 
 #endif // HTTPREQUEST_H

@@ -74,15 +74,17 @@ private:
 	QSet<int> selected_small_;
 	QSet<int> selected_cnvs_;
 	QSet<int> selected_svs_;
+	bool selected_other_causal_variant_;
 
 	static void writeHtmlHeader(QTextStream& stream, QString sample_name);
 	static void writeHtmlFooter(QTextStream& stream);
 	QString trans(const QString& text);
 	void writeCoverageReport(QTextStream& stream);
-	void writeClosedGapsReport(QTextStream& stream, const BedFile& roi);
+	void writeClosedGapsReport(QTextStream& stream);
 	void writeCoverageReportCCDS(QTextStream& stream, int extend, bool gap_table=true, bool gene_details=true);
 	static QByteArray formatGenotype(GenomeBuild build, const QByteArray& gender, const QByteArray& genotype, const Variant& variant);
 	QString formatCodingSplicing(const QList<VariantTranscript>& transcripts);
+	static QString convertOtherVariantType(const QString& type, bool xml=false);
 
 	//Helper for the chromosome alias table
 	QMap<Chromosome, QString> getChromosomeTable(GenomeBuild build);
@@ -94,6 +96,8 @@ private:
 	void printVariantSheetRowCnv(QTextStream& stream, const ReportVariantConfiguration& conf);
 	static void printVariantSheetRowHeaderSv(QTextStream& stream, bool causal);
 	void printVariantSheetRowSv(QTextStream& stream, const ReportVariantConfiguration& conf);
+	static void printVariantSheetRowHeaderOtherVariant(QTextStream& stream);
+	void printVariantSheetRowOtherVariant(QTextStream& stream, OtherCausalVariant variant);
 	static QString exclusionCriteria(const ReportVariantConfiguration& conf);
 
 	GermlineReportGenerator() = delete;

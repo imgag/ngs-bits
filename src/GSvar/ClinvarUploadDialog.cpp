@@ -544,7 +544,6 @@ QJsonObject ClinvarUploadDialog::createJson()
                     {
                         THROW(ArgumentException, "Invalid disease info '" + ui_.tw_disease_info->item(row_idx, 0)->text() + "' in disease info table!");
                     }
-
                 }
             }
             condition_set.insert("condition", condition);

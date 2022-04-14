@@ -1,10 +1,11 @@
 #include "SomaticReportDialog.h"
 #include "NGSD.h"
 #include "SomaticReportHelper.h"
-#include <QMessageBox>
 #include "GlobalServiceProvider.h"
 #include "Statistics.h"
 #include "MainWindow.h"
+#include <QMessageBox>
+#include <QBuffer>
 
 //struct holding reference data for tumor mutation burden (DOI:10.1186/s13073-017-0424-2)
 struct tmbInfo
@@ -46,7 +47,7 @@ struct tmbInfo
 	}
 };
 
-SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const CnvList &cnvs, const VariantList& germl_variants, QWidget *parent)
+SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReportSettings &settings, const CnvList &cnvs, const VariantList& germl_variants, QWidget *parent)
 	: QDialog(parent)
 	, ui_()
 	, db_()
@@ -57,6 +58,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	, tum_cont_max_clonality_(std::numeric_limits<double>::quiet_NaN())
 	, tum_cont_histological_(std::numeric_limits<double>::quiet_NaN())
 	, limitations_()
+	, project_filename_(project_filename)
 {
 
 	cnvs_ = SomaticReportSettings::filterCnvs(cnvs, settings_);
@@ -464,6 +466,44 @@ void SomaticReportDialog::writeBackSettings()
 		settings_.report_config.setLimitations("");
 	}
 
+	//IGV data
+	if(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().exists)
+	{
+		QImage picture;
+		if (GlobalServiceProvider::fileLocationProvider().isLocal())
+		{
+			picture = QImage(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename);
+		}
+		else
+		{
+			try
+			{
+				QByteArray response = HttpHandler(HttpRequestHandler::NONE).get(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename);
+				if (!response.isEmpty()) picture.loadFromData(response);
+			}
+			catch (Exception& e)
+			{
+				QMessageBox::warning(this, "Could not retrieve the screenshot from the server", e.message());
+			}
+		}
+
+		if( (uint)picture.width() > 1200 ) picture = picture.scaledToWidth(1200, Qt::TransformationMode::SmoothTransformation);
+		if( (uint)picture.height() > 1200 ) picture = picture.scaledToHeight(1200, Qt::TransformationMode::SmoothTransformation);
+
+		QByteArray png_data = "";
+
+		if(!picture.isNull())
+		{
+			QBuffer buffer(&png_data);
+			buffer.open(QIODevice::WriteOnly);
+			if(picture.save(&buffer, "PNG"))
+			{
+				settings_.igv_snapshot_png_hex_image = png_data.toHex();
+				settings_.igv_snapshot_width = picture.width();
+				settings_.igv_snapshot_height = picture.height();
+			}
+		}
+	}
 }
 
 SomaticReportDialog::report_type SomaticReportDialog::getReportType()
@@ -538,8 +578,15 @@ void SomaticReportDialog::createIgvScreenshot()
 	loc = GlobalServiceProvider::fileLocationProvider().getSomaticCnvCallFile();
 	if (loc.exists) commands << "load " + Helper::canonicalPath(loc.filename);
 
+	QString screenshot_file_location = Helper::canonicalPath(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename);
+	if (!GlobalServiceProvider::fileLocationProvider().isLocal())
+	{
+		// For client-server mode we create a temporary file locally first
+		screenshot_file_location = QDir(QDir::tempPath()).filePath(screenshot_file_location);
+	}
+
 	commands << "maxPanelHeight 400";
-	commands << "snapshot " + Helper::canonicalPath( GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename ); //TODO > ALEXANDR this does not work in client-server mode because the filename is read-only then. We need to create the file in the temp folder and have an end-point to upload the file
+	commands << "snapshot " + screenshot_file_location;
 
 	//create screenshot
 	try
@@ -561,6 +608,49 @@ void SomaticReportDialog::createIgvScreenshot()
 	{
 		QMessageBox::warning(this, "IGV screenshot", "Could not create IGV screenshot. Error message: " + e.message());
 	}
+
+	// Upload screenshot to the server, if the client-server mode is activated
+	if (!GlobalServiceProvider::fileLocationProvider().isLocal())
+	{
+		QFile *file = new QFile(screenshot_file_location);
+		if (!file->exists())
+		{
+			QMessageBox::warning(this, "Screenshot file error", "Could not find the screenshot file!");
+		}
+
+		QList<QString> filename_parts = project_filename_.split("/");
+		if (filename_parts.size()<=3)
+		{
+			QMessageBox::warning(this, "Processed sample error", "Could not find find the location of the processed sample!");
+			return;
+		}
+
+		QHttpMultiPart* multipart_form = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+		QHttpPart text_form_data;
+		text_form_data.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"ps_url_id\""));
+		text_form_data.setBody(filename_parts[filename_parts.size()-2].toLocal8Bit());
+
+		QHttpPart binary_form_data;
+		binary_form_data.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("image/png"));
+		binary_form_data.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"image\"; filename=\"" + QFileInfo(screenshot_file_location).fileName() + "\""));
+
+		file->open(QIODevice::ReadOnly);
+		binary_form_data.setBodyDevice(file);
+		file->setParent(multipart_form);
+		multipart_form->append(text_form_data);
+		multipart_form->append(binary_form_data);
+
+		try
+		{
+			HttpHandler(HttpRequestHandler::NONE).post(Helper::serverApiUrl() + "upload?token=" + LoginManager::token(), multipart_form);
+		}
+		catch (Exception& e)
+		{
+			QMessageBox::warning(this, "File upload failed", e.message());
+		}
+	}
+
+	updateIgvText();
 
 }
 

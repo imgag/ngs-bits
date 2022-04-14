@@ -349,6 +349,26 @@ void GermlineReportGenerator::writeHTML(QString filename)
 
 	//-----------------------------------------------------------------------------------
 
+	//other causal variant
+	if (data_.report_settings.select_other_causal_variant)
+	{
+		OtherCausalVariant causal_variant = data_.report_settings.report_config->otherCausalVariant();
+		stream << "<table>" << endl;
+		stream << "<tr><td><b>" << trans("Variantentyp") << "</b></td><td><b>" << trans("Regionen") << "</b></td><td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Vererbung")
+			   << "</b></td><td><b>" << trans("Kommentar") << "</b></td></tr>" << endl;
+
+		stream << "<tr>" << endl;
+		stream << "<td>" << trans(convertOtherVariantType(causal_variant.type)) << "</td>" << endl;
+		stream << "<td>" << causal_variant.coordinates << "</td>" << endl;
+		stream << "<td>" << causal_variant.gene << "</td>" << endl;
+		stream << "<td>" << causal_variant.inheritance << "</td>" << endl;
+		stream << "<td>" << causal_variant.comment << "</td>" << endl;
+		stream << "</tr>" << endl;
+		stream << "</table>" << endl;
+		stream << "<p>&nbsp;</p>" << endl;
+	}
+	//--------------------------------------------------------------------------------------
+
 	stream << "<p>" << trans("F&uuml;r Informationen zur Klassifizierung von Varianten, siehe allgemeine Zusatzinformationen.") << endl;
 	stream << "</p>" << endl;
 
@@ -378,7 +398,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 
 		writeCoverageReportCCDS(stream, 5, true, true);
 
-		writeClosedGapsReport(stream, data_.roi.regions);
+		writeClosedGapsReport(stream);
 	}
 
 	//OMIM table
@@ -507,7 +527,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element DiagnosticNgsReport
 	w.writeStartElement("DiagnosticNgsReport");
-	w.writeAttribute("version", "6");
+	w.writeAttribute("version", "7");
 	w.writeAttribute("type", data_.report_settings.report_type);
 
 	//element ReportGeneration
@@ -572,10 +592,12 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		//contained genes
 		foreach(const QByteArray& gene, data_.roi.genes)
 		{
+			int gene_id = db_.geneToApprovedID(gene);
+			if (gene_id==-1) continue;
+
 			w.writeStartElement("Gene");
 			w.writeAttribute("name", gene);
-			int gene_id = db_.geneToApprovedID(gene);
-			w.writeAttribute("identifier", gene_id==-1 ? "n/a" : db_.geneHgncId(gene_id));
+			w.writeAttribute("identifier", db_.geneHgncId(gene_id));
 			Transcript transcript = db_.longestCodingTranscript(gene_id, Transcript::ENSEMBL, true, true);
 			w.writeAttribute("bases", QString::number(transcript.regions().baseCount()));
 
@@ -827,8 +849,9 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	w.writeAttribute("overall_number", QString::number(data_.cnvs.count()));
 	w.writeAttribute("genome_build", buildToString(data_.build, true));
 	QString cnv_callset_id = db_.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=" + ps_id_, true).toString().trimmed();
-	if (no_cnv_calling || cnv_callset_id.isEmpty()) cnv_callset_id = "-1";
-	QString cnv_calling_quality = db_.getValue("SELECT quality FROM cnv_callset WHERE id=" + cnv_callset_id, true).toString().trimmed();
+	if (no_cnv_calling) cnv_callset_id.clear();
+	QString cnv_calling_quality;
+	if (!cnv_callset_id.isEmpty()) cnv_calling_quality = db_.getValue("SELECT quality FROM cnv_callset WHERE id=" + cnv_callset_id, true).toString().trimmed();
 	w.writeAttribute("quality", cnv_calling_quality.isEmpty() ? "n/a" : cnv_calling_quality);
 	if(data_.cnvs.caller()==CnvCallerType::CLINCNV && !cnv_callset_id.isEmpty())
 	{
@@ -1080,6 +1103,17 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		}
 	}
 	w.writeEndElement();
+	if (data_.report_settings.select_other_causal_variant)
+	{
+		OtherCausalVariant causal_variant = data_.report_settings.report_config->otherCausalVariant();
+		w.writeStartElement("OtherCausalVariant");
+		w.writeAttribute("type", convertOtherVariantType(causal_variant.type, true));
+		w.writeAttribute("coordinates", causal_variant.coordinates);
+		w.writeAttribute("gene", causal_variant.gene);
+		w.writeAttribute("inheritance", causal_variant.inheritance);
+		w.writeAttribute("comments", causal_variant.comment);
+		w.writeEndElement();
+	}
 
 	//element ReportDocument
 	w.writeStartElement("ReportDocument");
@@ -1101,7 +1135,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	outfile->close();
 
 	//validate written XML file
-	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/GermlineReport_v6.xsd");
+	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/GermlineReport_v7.xsd");
 	if (xml_error!="")
 	{
 		THROW(ProgrammingException, "Invalid germline report XML file " + filename+ " generated:\n" + xml_error);
@@ -1237,6 +1271,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Anzahl Varianten ausgew&auml;hlt f&uuml;r Report"] = "Variants selected for report";
 		de2en["Anzahl CNVs ausgew&auml;hlt f&uuml;r Report"] = "CNVs selected for report";
 		de2en["Anzahl SVs ausgew&auml;hlt f&uuml;r Report"] = "SVs selected for report";
+		de2en["Anzahl anderer Varianten ausgew&auml;hlt f&uuml;r Report"] = "Other variants selected for report";
 		de2en["Varianten nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized variants";
 		de2en["Vererbung"] = "Inheritance";
 		de2en["Klasse"] = "Class";
@@ -1301,6 +1336,14 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Insertion"] = "insertion";
 		de2en["Inversion"] = "inversion";
 		de2en["Translokation"] = "translocation";
+		de2en["Variantentyp"] = "variant type";
+		de2en["Kommentar"] = "comment";
+		de2en["Repeat-Expansion"] = "repeat expansion";
+		de2en["uniparentale Disomie"] = "uniparental disomy";
+		de2en["mosaik CNV"] = "mosaic CNV";
+		de2en["nicht-detektierte kleine Variante (SNV/InDel)"] = "uncalled small variant (SNV/InDel)";
+		de2en["nicht-detektierte CNV"] = "uncalled CNV";
+		de2en["nicht-detektierte Strukturvariante"] = "uncalled structural variant";
 		de2en["In der folgenden Tabelle werden neben wahrscheinlich pathogenen (Klasse 4) und pathogenen (Klasse 5) nur solche Varianten unklarer klinischer Signifikanz (Klasse 3) gelistet, f&uuml;r die in Zusammenschau von Literatur und Klinik des Patienten ein Beitrag zur Symptomatik denkbar ist und f&uuml;r die gegebenenfalls eine weitere Einordnung der klinischen Relevanz durch Folgeuntersuchungen sinnvoll ist. Eine Liste aller detektierten Varianten kann bei Bedarf angefordert werden."] = "In addition to likely pathogenic variants (class 4) and pathogenic variants (class 5), the following table contains only those variants of uncertain significance (class 3), for which a contribution to the clinical symptoms of the patient is conceivable and for which a further evaluation of the clinical relevance by follow-up examinations may be useful.  A list of all detected variants can be provided on request.";
 		de2en["L&uuml;ckenschluss"] = "Gaps closed";
 		de2en["L&uuml;cken die mit Sanger-Sequenzierung geschlossen wurden:"] = "Gaps closed by Sanger sequencing:";
@@ -1316,6 +1359,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Z-Score"] = "z-score";
 		de2en["Population (gesch&auml;tzt aus NGS)"] = "population (estimated from NGS)";
 		de2en["Die Einsch&auml;tzung der klinischen Bedeutung eines PRS ist nur unter Verwendung eines entsprechenden validierten Risiko-Kalkulations-Programms und unter Ber&uuml;cksichtigung der ethnischen Zugeh&ouml;rigkeit m&ouml;glich (z.B. CanRisk.org f&uuml;r Brustkrebs)."] = "A validated risk estimation program must be used to judge the clinical importance of a PRS, e.g. CanRisk.org for breast cancer. The ethnicity of the patient must also be considered.";
+		de2en["nach L&uuml;ckenschluss"] = "after closing gaps";
 	}
 
 	//translate
@@ -1380,6 +1424,7 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 	stream << "<br />" << trans("Durchschnittliche Sequenziertiefe (chrMT)") << ": " << mito_bed[0].annotations()[0] << endl;
 	stream << "</p>" << endl;
 
+	//low coverage statistics
 	if (data_.report_settings.roi_low_cov)
 	{
 		//calculate low-coverage regions
@@ -1431,7 +1476,7 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 			{
 				if (gaps_by_gene_.contains(gene))
 				{
-					incomplete_genes << gene + " <span style=\"font-size: 8pt;\">" + QString::number(gaps_by_gene_[gene].baseCount()) + "</span> ";
+					incomplete_genes << gene + " <span style=\"font-size: 8pt;\">" + QString::number(gaps_by_gene_[gene].baseCount()) + "</span>";
 				}
 			}
 			stream << "<br />" << trans("Fehlende Basen in nicht komplett abgedeckten Genen") << ": " << incomplete_genes.join(", ") << endl;
@@ -1461,15 +1506,17 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 	}
 }
 
-void GermlineReportGenerator::writeClosedGapsReport(QTextStream& stream, const BedFile& roi)
+void GermlineReportGenerator::writeClosedGapsReport(QTextStream& stream)
 {
-	ChromosomalIndex<BedFile> roi_idx(roi);
+	ChromosomalIndex<BedFile> roi_idx(data_.roi.regions);
 	//init
 	SqlQuery query = db_.getQuery();
 	query.prepare("SELECT chr, start, end, status FROM gaps WHERE processed_sample_id='" + ps_id_ + "' AND status=:0 ORDER BY chr,start,end");
 
 	stream << endl;
 	stream << "<p><b>" << trans("L&uuml;ckenschluss") << "</b></p>" << endl;
+
+	int gap_bases_closed = 0;
 
 	//closed by Sanger
 	{
@@ -1495,6 +1542,8 @@ void GermlineReportGenerator::writeClosedGapsReport(QTextStream& stream, const B
 		stream << "</table>" << endl;
 		stream << trans("Basen gesamt:") << QString::number(base_sum);
 		stream << "</p>" << endl;
+
+		gap_bases_closed += base_sum;
 	}
 
 	//closed by visual inspection
@@ -1521,6 +1570,18 @@ void GermlineReportGenerator::writeClosedGapsReport(QTextStream& stream, const B
 		stream << "</table>" << endl;
 		stream << trans("Basen gesamt:") << QString::number(base_sum);
 		stream << "</p>" << endl;
+
+		gap_bases_closed += base_sum;
+	}
+
+	//add gap percentage after closing gaps
+	if (gap_percentage_>0) //only possible if gap statistics of ROI was performed
+	{
+		double gap_bases = gap_percentage_ / 100.0 * data_.roi.regions.baseCount();
+		double gap_percentage_after_closing_gaps = 100.0 * (gap_bases-gap_bases_closed)/data_.roi.regions.baseCount();
+		stream << "<p>";
+		stream << trans("Anteil Regionen mit Tiefe &lt;") << data_.report_settings.min_depth << " " << trans("nach L&uuml;ckenschluss") << ": " << QString::number(gap_percentage_after_closing_gaps, 'f', 2) << "%" << endl;
+		stream << "</p>";
 	}
 }
 
@@ -1539,6 +1600,7 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 	foreach(const QByteArray& gene, data_.roi.genes)
 	{
 		int gene_id = db_.geneToApprovedID(gene);
+		if (gene_id==-1) continue;
 
 		//approved gene symbol
 		QByteArray symbol = db_.geneSymbol(gene_id);
@@ -1676,6 +1738,17 @@ QString GermlineReportGenerator::formatCodingSplicing(const QList<VariantTranscr
 		}
 	}
 	return output.join("<br />");
+}
+
+QString GermlineReportGenerator::convertOtherVariantType(const QString& type, bool xml)
+{
+	if(type == "RE") return (xml)? "repeat_expansion": "Repeat-Expansion";
+	if(type == "UPD") return (xml)? "uniparental_disomy": "uniparentale Disomie";
+	if(type == "mosaic CNV") return (xml)? "mosaic_cnv": "mosaik CNV";
+	if(type == "uncalled small variant") return (xml)? "uncalled_small_variant": "nicht-detektierte kleine Variante (SNV/InDel)";
+	if(type == "uncalled CNV") return (xml)? "uncalled_cnv": "nicht-detektierte CNV";
+	if(type == "uncalled SV") return (xml)? "uncalled_sv": "nicht-detektierte Strukturvariante";
+	THROW(ArgumentException, "Invalid variant type '" + type + "'!");
 }
 
 QMap<Chromosome, QString> GermlineReportGenerator::getChromosomeTable(GenomeBuild build)
@@ -1935,6 +2008,13 @@ void GermlineReportGenerator::writeEvaluationSheet(QString filename, const Evalu
 	stream << "      </table>" << endl;
 	stream << "    </p>" << endl;
 
+	stream << "    <p><b>Sonstige kausale Varianten:</b>" << endl;
+	stream << "      <table border='1'>" << endl;
+	printVariantSheetRowHeaderOtherVariant(stream);
+	printVariantSheetRowOtherVariant(stream, data_.report_settings.report_config->otherCausalVariant());
+	stream << "      </table>" << endl;
+	stream << "    </p>" << endl;
+
 	//write footer
 	stream << "  </body>" << endl;
 	stream << "</html>" << endl;
@@ -2144,6 +2224,32 @@ void GermlineReportGenerator::printVariantSheetRowSv(QTextStream& stream, const 
 	stream << "       <td>" << conf.comments2 << "</td>" << endl;
 	stream << "       <td>" << conf.classification << "</td>" << endl;
 	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << " (" << conf.report_type << ")</td>" << endl;
+	stream << "     </tr>" << endl;
+}
+
+void GermlineReportGenerator::printVariantSheetRowHeaderOtherVariant(QTextStream& stream)
+{
+	stream << "     <tr>" << endl;
+	stream << "       <th>Variantentyp</th>" << endl;
+	stream << "       <th>Regionen</th>" << endl;
+	stream << "       <th>Gene</th>" << endl;
+	stream << "       <th>Erbgang</th>" << endl;
+	stream << "       <th>Kommentar</th>" << endl;
+	stream << "       <th style='white-space: nowrap'>Kommentar 1. Auswerter</th>" << endl;
+	stream << "       <th style='white-space: nowrap'>Kommentar 2. Auswerter</th>" << endl;
+	stream << "     </tr>" << endl;
+}
+
+void GermlineReportGenerator::printVariantSheetRowOtherVariant(QTextStream& stream, OtherCausalVariant variant)
+{
+	stream << "     <tr>" << endl;
+	stream << "       <td>" << convertOtherVariantType(variant.type) << "</td>" << endl;
+	stream << "       <td>" << variant.coordinates << "</td>" << endl;
+	stream << "       <td>" << variant.gene << "</td>" << endl;
+	stream << "       <td>" << variant.inheritance << "</td>" << endl;
+	stream << "       <td>" << variant.comment<< "</td>" << endl;
+	stream << "       <td>" << variant.comment_reviewer1 << "</td>" << endl;
+	stream << "       <td>" << variant.comment_reviewer2 << "</td>" << endl;
 	stream << "     </tr>" << endl;
 }
 

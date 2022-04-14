@@ -14,7 +14,7 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Sort the regions in a BEDPE file.");
+		setDescription("Sort a BEDPE file according to chromosomal position.");
 		addInfile("in", "Input BEDPE file.", false);
 		addOutfile("out", "Output BEDPE file.", false);
 

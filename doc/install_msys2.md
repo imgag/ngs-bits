@@ -1,5 +1,5 @@
 # Building ngs-bits from sources (on Windows using MSYS2 and MinGW)
-The most complicated thing with the WIndows build is the support of HTTPS. Configured incorrectly it will make impossible the use of the server API.
+The most complicated thing with the Windows build is the support of HTTPS. Configured incorrectly it will make impossible the use of the server API.
 
 ## Dependencies
 
@@ -27,7 +27,7 @@ Clone the most recent release of ngs-bits (the source code package of GitHub doe
 
     git clone --recursive https://github.com/imgag/ngs-bits.git
 	cd ngs-bits
-	git checkout 2021_12
+	git checkout 2022_04
 	git submodule update --recursive --init
 
 ## Build
