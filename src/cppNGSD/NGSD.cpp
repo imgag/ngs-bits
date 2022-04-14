@@ -986,6 +986,7 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 			continue;
 		}
 
+
 		QByteArray cadd = variant.annotations()[i_cadd].trimmed();
 		QByteArray spliceai = variant.annotations()[i_spliceai].trimmed();
 		QByteArrayList pubmed_ids;
