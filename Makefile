@@ -128,13 +128,12 @@ deploy_nobuild:
 	@echo "#Update permissions"
 	chmod 775 $(DEP_PATH)*
 	@echo ""
-	@echo "#Activating"
-	@echo "You can active the new build using the command:"
-	@echo "cd /mnt/share/opt/ && rm ngs-bits-current && ln -s ngs-bits-hg38-$(NGSBITS_VER) ngs-bits-current"
-	@echo ""
 	@echo "#Deploy settings"
 	cp /mnt/share/opt/ngs-bits-settings/settings_hg38.ini $(DEP_PATH)settings.ini
 	diff bin/settings.ini $(DEP_PATH)settings.ini
+	@echo ""
+	@echo "#Activating"
+	@echo "rm /mnt/share/opt/ngs-bits-current && ln -s /mnt/share/opt/ngs-bits-hg38-$(NGSBITS_VER) /mnt/share/opt/ngs-bits-current"
 
 SERVER_DEP_PATH=/mnt/storage2/GRCh38/users/bioinf/GSvarServer/GSvarServer-$(NGSBITS_VER)
 deploy_server_nobuild:
@@ -198,10 +197,6 @@ check_tool_ngsd_dependencies:
 
 dummy:
 
-
-download_test_files:
-	wget -O ./src/cppNGS-TEST/data_in/hg19ToHg38.over.chain.gz https://hgdownload.cse.ucsc.edu/goldenpath/hg19/liftOver/hg19ToHg38.over.chain.gz
-	wget -O ./src/cppNGS-TEST/data_in/hg38ToHg19.over.chain.gz https://hgdownload.cse.ucsc.edu/goldenpath/hg38/liftOver/hg38ToHg19.over.chain.gz
 
 #################################### 3rd party  ##################################
 
