@@ -126,20 +126,23 @@ public:
 		if (var_update)
 		{
 			sub_timer.start();
-			int c_already_in_db = 0;
 
 			//remove all variants that are already linked to the processed sample
-			QSet<int> existing_var_ids = db.getValuesInt("Select variant_id FROM detected_variant WHERE processed_sample_id='" + ps_id + "'").toSet();
-			for (int i=variant_ids.count()-1; i>=0; i--)
+			QList<int> variant_ids_new;
+			VariantList variants_new;
+			variants_new.copyMetaData(variants);
+			QSet<int> existing_var_ids = db.getValuesInt("SELECT variant_id FROM detected_variant WHERE processed_sample_id='" + ps_id + "'").toSet();
+			for (int i=0; i<variant_ids.count(); ++i)
 			{
-				if (existing_var_ids.contains(variant_ids[i]))
-				{
-					variant_ids.removeAt(i);
-					variants.remove(i);
-					c_already_in_db += 1;
-				}
+				int variant_id = variant_ids[i];
+				if (existing_var_ids.contains(variant_id)) continue;
+
+				variant_ids_new << variant_id;
+				variants_new.append(variants[i]);
 			}
-			out << "Ignored " << c_already_in_db << " already imported variants" << endl;
+			out << "Ignored " << (variants.count()-variants_new.count()) << " already imported variants" << endl;
+			variant_ids = variant_ids_new;
+			variants = variants_new;
 			sub_times << ("Determining already imported variants took: " + Helper::elapsedTime(sub_timer));
 		}
 
