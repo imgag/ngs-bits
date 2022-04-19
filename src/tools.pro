@@ -468,3 +468,7 @@ SUBDIRS += NGSDUpdateSvGenotype
 tools-TEST.depends += NGSDUpdateSvGenotype
 NGSDUpdateSvGenotype.depends = cppNGSD
 
+SUBDIRS += HgvsToVcf
+tools-TEST.depends += HgvsToVcf
+HgvsToVcf.depends = cppNGSD
+
