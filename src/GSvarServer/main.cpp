@@ -332,7 +332,7 @@ int main(int argc, char **argv)
 						"qbic_report_data",
 						QMap<QString, ParamProps> {
 							{"filename", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "QBic data report file"}},
-							{"path", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Path to the QBic data report file"}},
+							{"id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Location id of the QBic data report file"}},
 							{"content", ParamProps{ParamProps::ParamCategory::POST_OCTET_STREAM, false, "QBic report data to be saved in a file"}},
 							{"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
 						},
@@ -341,6 +341,19 @@ int main(int argc, char **argv)
 						false,
 						"Save QBic data report files",
 						&EndpointHandler::saveQbicFiles
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
+						"upload",
+						QMap<QString, ParamProps>{
+							{"ps_url_id", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "An id of a temporary URL pointing to a specific processed sample"}},
+							{"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::APPLICATION_OCTET_STREAM,
+						false,
+						"File upload to a folder on the server",
+						&EndpointHandler::uploadFile
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{

@@ -27,8 +27,8 @@ private slots:
 		request.addHeader("range", "bytes=10-17");
 		request.setPrefix("v1");
 		request.setPath("temp");
-		request.addPathParam(url_id);
-		request.addPathParam("text.txt");
+		request.addPathItem(url_id);
+		request.addPathItem("text.txt");
 		request.addUrlParam("token", "token");
 
 		HttpResponse response = EndpointController::serveStaticForTempUrl(request);
@@ -40,7 +40,7 @@ private slots:
 		QList<QString> params;
 		params.append("fake_id");
 		params.append("text.txt");
-		request.setPathParams(params);
+		request.setPathItems(params);
 		response = EndpointController::serveStaticForTempUrl(request);
 		IS_TRUE(response.getStatusLine().split('\n').first().contains("404"));
 	}
@@ -58,8 +58,8 @@ private slots:
 		request.addHeader("connection", "keep-alive");
 		request.setPrefix("v1");
 		request.setPath("temp");
-		request.addPathParam("fake_unique_id");
-		request.addPathParam("file.txt");
+		request.addPathItem("fake_unique_id");
+		request.addPathItem("file.txt");
 		request.addUrlParam("token", "token");
 
 		HttpResponse response = EndpointController::serveStaticForTempUrl(request);
@@ -93,8 +93,8 @@ private slots:
 		request.addHeader("connection", "keep-alive");
 		request.setPrefix("v1");
 		request.setPath("temp");
-		request.addPathParam(url_id);
-		request.addPathParam("text.txt");
+		request.addPathItem(url_id);
+		request.addPathItem("text.txt");
 		request.addUrlParam("token", "token");
 
 		HttpResponse response = EndpointController::serveStaticForTempUrl(request);

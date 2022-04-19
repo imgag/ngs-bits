@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<DiagnosticNgsReport version="6" type="diagnostic variant">
+<DiagnosticNgsReport version="7" type="diagnostic variant">
     <ReportGeneration date="2021-02-19" user_name="ahmustm1" software="cppNGSD-TEST " outcome="no significant findings"/>
     <ChromosomeAliases>
         <Chromosome chr="chr1" refseq="NC_000001.11"/>
@@ -50,11 +50,11 @@
     </TargetRegion>
     <VariantList overall_number="319" genome_build="GRCh38">
         <Variant chr="chr13" start="40793234" end="40793234" ref="C" obs="G" allele_frequency="0.48" depth="268" genotype="het" causal="false" de_novo="false" comp_het="true" mosaic="false" report_type="diagnostic variant">
-            <TranscriptInformation gene="SLC25A15" gene_identifier="HGNC:10985" transcript_id="ENST00000338625.4" type="missense_variant" hgvs_c="8C&gt;G" hgvs_p="Ser3Cys" exon="Exon 2/7"/>
+            <TranscriptInformation gene="SLC25A15" gene_identifier="HGNC:10985" transcript_id="ENST00000338625.4" type="missense_variant" hgvs_c="8C&gt;G" hgvs_p="Ser3Cys" exon="Exon 2/7" main_transcript="false"/>
         </Variant>
         <Variant chr="chr16" start="89531961" end="89531961" ref="G" obs="A" allele_frequency="0.28" depth="43" genotype="het" causal="true" de_novo="true" comp_het="false" mosaic="true" report_type="diagnostic variant">
-            <TranscriptInformation gene="SPG7" gene_identifier="HGNC:11237" transcript_id="ENST00000268704.2" type="missense_variant" hgvs_c="1045G&gt;A" hgvs_p="Gly349Ser" exon="Exon 8/17"/>
-            <TranscriptInformation gene="SPG7" gene_identifier="HGNC:11237" transcript_id="ENST00000341316.2" type="missense_variant" hgvs_c="1045G&gt;A" hgvs_p="Gly349Ser" exon="Exon 8/10"/>
+            <TranscriptInformation gene="SPG7" gene_identifier="HGNC:11237" transcript_id="ENST00000268704.2" type="missense_variant" hgvs_c="1045G&gt;A" hgvs_p="Gly349Ser" exon="Exon 8/17" main_transcript="true"/>
+            <TranscriptInformation gene="SPG7" gene_identifier="HGNC:11237" transcript_id="ENST00000341316.2" type="missense_variant" hgvs_c="1045G&gt;A" hgvs_p="Gly349Ser" exon="Exon 8/10" main_transcript="false"/>
             <GeneDiseaseInformation gene="SPG7" gene_identifier="HGNC:11237" source="OMIM gene" identifier="602783" name="SPG7"/>
             <GeneDiseaseInformation gene="SPG7" gene_identifier="HGNC:11237" source="OMIM phenotype" identifier="607259" name="Spastic paraplegia 7, autosomal recessive, 607259 (3)"/>
         </Variant>
@@ -82,5 +82,6 @@
     <PrsList>
         <Prs id="PGS000004" trait="Breast Cancer" citation="Mavaddat N et al. Am J Hum Genet (2018). doi:10.1016/j.ajhg.2018.11.002" score="-0.2773" percentile="53"/>
     </PrsList>
+    <OtherCausalVariant type="uncalled_cnv" coordinates="chr2:123456-789012" gene="EPRS" inheritance="AR" comments="This is a comment!&#10; And it has&#10; multiple lines!&#10;"/>
     <ReportDocument format="HTML"></ReportDocument>
 </DiagnosticNgsReport>

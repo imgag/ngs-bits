@@ -48,6 +48,23 @@ private slots:
 		IS_TRUE(result.flags()[120]);
 	}
 
+	void FilterAlleleFrequency_apply_without_1000g()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_no1000g_in.GSvar"));
+
+		FilterResult result(vl.count());
+		FilterAlleleFrequency filter;
+		filter.setDouble("max_af", 1.0);
+		filter.apply(vl, result);
+
+		I_EQUAL(result.countPassing(), 29);
+		IS_TRUE(result.flags()[70]);
+		IS_TRUE(result.flags()[74]);
+		IS_TRUE(result.flags()[101]);
+		IS_TRUE(result.flags()[120]);
+	}
+
 	void FilterSubpopulationAlleleFrequency_apply()
 	{
 		VariantList vl;
