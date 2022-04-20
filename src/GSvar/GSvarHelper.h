@@ -5,7 +5,10 @@
 #include "BedFile.h"
 #include "VariantList.h"
 #include "GenomeBuild.h"
+#include "NGSD.h"
 #include <QTableWidgetItem>
+#include <QLabel>
+
 
 ///Helper class for GSvar
 class GSvarHelper
@@ -31,15 +34,25 @@ public:
 
 	//colors imprinting and non-haploinsufficiency genes.
 	static void colorGeneItem(QTableWidgetItem* item, const GeneSet& genes);
+	//limit QLabel to certain number of lines
+	static void limitLines(QLabel* label, QString text, QString sep="\n", int max_lines=15);
 
-	//Lift-over from GRCh37 to GRCh38 (or the other way)
-	static BedLine liftOver(const Chromosome& chr, int start, int end, bool hg38_to_hg19 = false);
+	//Lift-over region from GRCh37 to GRCh38 (or the other way). Throws ArgumentException if conversion not possible.
+	static BedLine liftOver(const Chromosome& chr, int start, int end, bool hg19_to_hg38);
+	//Lift-over variant from GRCh37 to GRCh38 (or the other way). Throws ArgumentException if conversion not possible.
+	static Variant liftOverVariant(const Variant& v, bool hg19_to_hg38);
 
 	//Returns gnomAD link for a variant
-	static QString gnomaADLink(const Variant& v);
+	static QString gnomADLink(Variant v, GenomeBuild build);
 
 	///Returns a the local target region folder where tempory target regions and gene lists can be stored for IGV.
 	static QString localRoiFolder();
+
+	//Queue the analysis of samples
+	static bool queueSampleAnalysis(AnalysisType type, const QList<AnalysisJobSample>& samples, QWidget* parent = 0);
+
+	//returns if the change of MaxEntScan is large enough to color it in the VariantTable, also provides percent- and abs-changes of MaxEntScan.
+	static bool colorMaxEntScan(QString anno, QList<double>& percentages, QList<double>& absValues);
 
 protected:
 	GSvarHelper() = delete;

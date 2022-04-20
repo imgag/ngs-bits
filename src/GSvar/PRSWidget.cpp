@@ -22,12 +22,18 @@ PRSWidget::PRSWidget(QString filename, QWidget *parent)
 void PRSWidget::showContextMenu(QPoint pos)
 {
 	int row = ui_.prs->itemAt(pos)->row();
+	QString pgs = ui_.prs->item(row, prs_table_.columnIndex("pgs_id"))->text();
+	QString pgp = ui_.prs->item(row, prs_table_.columnIndex("pgp_id"))->text();
 
-	//create context menu
+
+	//create context menu based on PRS entry
 	QMenu menu(ui_.prs);
 
-	QAction* a_pgs = menu.addAction(QIcon(":/Icons/PGSCatalog.png"), "Show score on PGS Catalog");
-	QAction* a_pgp = menu.addAction(QIcon(":/Icons/PGSCatalog.png"), "Show publication on PGS Catalog");
+	QAction* a_pgs = nullptr;
+	QAction* a_pgp = nullptr;
+	if (pgs.startsWith("PGS")) a_pgs = menu.addAction(QIcon(":/Icons/PGSCatalog.png"), "Show score on PGS Catalog");
+	if (pgp.startsWith("PGP")) a_pgp = menu.addAction(QIcon(":/Icons/PGSCatalog.png"), "Show publication on PGS Catalog");
+
 	QAction* a_citation = menu.addAction("Show publication");
 
 	//execute menu
@@ -36,18 +42,27 @@ void PRSWidget::showContextMenu(QPoint pos)
 
 	if (action == a_pgs)
 	{
-		QString pgs = ui_.prs->item(row, prs_table_.headers().indexOf("pgs_id"))->text();
 		QDesktopServices::openUrl(QUrl("https://www.pgscatalog.org/score/" + pgs));
 	}
 	else if (action == a_pgp)
 	{
-		QString pgp = ui_.prs->item(row, prs_table_.headers().indexOf("pgp_id"))->text();
 		QDesktopServices::openUrl(QUrl("https://www.pgscatalog.org/publication/" + pgp));
 	}
 	else if (action == a_citation)
 	{
-		QString doi = ui_.prs->item(row, prs_table_.headers().indexOf("citation"))->text().split("doi:").at(1).trimmed();
-		QDesktopServices::openUrl(QUrl("https://doi.org/" + doi));
+		QString citation = ui_.prs->item(row, prs_table_.columnIndex("citation"))->text();
+		if (citation.startsWith("CanRisk ("))
+		{
+			//special handling of CanRisk PRS scores
+			QString url = citation.split('(').at(1).split(')').at(0);
+			QDesktopServices::openUrl(QUrl(url));
+		}
+		else
+		{
+			QString doi = citation.split("doi:").at(1).trimmed();
+			QDesktopServices::openUrl(QUrl("https://doi.org/" + doi));
+		}
+
 	}
 }
 

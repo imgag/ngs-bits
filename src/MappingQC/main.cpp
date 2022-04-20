@@ -30,9 +30,10 @@ public:
 		addInt("min_mapq", "Minmum mapping quality to consider a read mapped.", true, 1);
 		addFlag("no_cont", "Disables sample contamination calculation, e.g. for tumor or non-human samples.");
 		addFlag("debug", "Enables verbose debug outout.");
-		addEnum("build", "Genome build used to generate the input (needed for contamination only).", true, QStringList() << "hg19" << "hg38", "hg19");
+		addEnum("build", "Genome build used to generate the input (needed for contamination only).", true, QStringList() << "hg19" << "hg38", "hg38");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addFlag("cfdna", "Add additional QC parameters for cfDNA samples. Only supported mit '-roi'.");
+		addInfile("somatic_custom_bed", "Somatic custom region of interest (subpanel of actual roi). If specified, additional depth metrics will be calculated.", true, true);
 
 		//changelog
 		changeLog(2021,  2,  9, "Added new QC metrics for uniformity of coverage (QC:2000057-QC:2000061).");
@@ -57,6 +58,9 @@ public:
 		int min_maqp = getInt("min_mapq");
 		bool debug = getFlag("debug");
 		GenomeBuild build = stringToBuild(getEnum("build"));
+
+		QString somatic_custom_roi_file = getInfile("somatic_custom_bed");
+
         // check that just one of roi_file, wgs, rna is set
         int parameters_set =  (roi_file!="" ? 1 : 0) +  wgs + rna;
         if (parameters_set!=1)
@@ -104,6 +108,16 @@ public:
 		if (!getFlag("no_cont"))
 		{
 			metrics_cont = Statistics::contamination(build, in, ref_file, debug);
+		}
+
+		if(somatic_custom_roi_file != "")
+		{
+			BedFile custom_bed;
+			custom_bed.load(somatic_custom_roi_file);
+			custom_bed.merge();
+			QCCollection custom_depths = Statistics::somaticCustomDepth(custom_bed, in, ref_file, min_maqp);
+			metrics.insert(custom_depths);
+			parameters << "-somatic_custom_bed " + somatic_custom_roi_file;
 		}
 
 		//special QC for 3 exons

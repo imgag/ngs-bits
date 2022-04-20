@@ -3,6 +3,7 @@
 #include "BedFile.h"
 #include "Exceptions.h"
 #include "GSvarHelper.h"
+#include "NGSHelper.h"
 
 LiftOverWidget::LiftOverWidget(QWidget *parent) :
 	QWidget(parent),
@@ -26,8 +27,12 @@ void LiftOverWidget::performLiftover()
 	//lift-over
 	try
 	{
-		BedLine in = BedLine::fromString(ui->input->text());
-		BedLine out = GSvarHelper::liftOver(in.chr(), in.start(), in.end(), ui->hg38_19->isChecked());
+		Chromosome chr;
+		int start;
+		int end;
+		NGSHelper::parseRegion(ui->input->text(), chr, start, end);
+
+		BedLine out = GSvarHelper::liftOver(chr, start, end, ui->hg19_38->isChecked());
 		QString mode = ui->hg38_19->isChecked() ? ui->hg38_19->text() : ui->hg19_38->text();
 		ui->output->setPlainText("Lift-over " + mode + ":\n" + out.toString(true));
 	}

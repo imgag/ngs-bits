@@ -4,6 +4,7 @@
 #include "BasicStatistics.h"
 #include <QStringList>
 #include "LoginManager.h"
+#include "GSvarHelper.h"
 
 ValidationDialog::ValidationDialog(QWidget* parent, int id)
 	: QDialog(parent)
@@ -38,7 +39,22 @@ ValidationDialog::ValidationDialog(QWidget* parent, int id)
 		ui_.variant_type->setText("SNV/Indel");
 		QString variant_id = query.value("variant_id").toString();
 		Variant variant = db_.variant(variant_id);
-		ui_.variant->setText(variant.toString() + " (" + query.value("genotype").toString() + ")");
+		QString text = variant.toString() + " (" + query.value("genotype").toString() + ")";
+		if (GSvarHelper::build()==GenomeBuild::HG38)
+		{
+			QString tmp;
+			try
+			{
+				Variant variant_hg19 = GSvarHelper::liftOverVariant(variant, false);
+				tmp = variant_hg19.toString();
+			}
+			catch(Exception& e)
+			{
+				tmp = e.message();
+			}
+			text += " // HG19: " + tmp;
+		}
+		ui_.variant->setText(text);
 
 		QString transcript_info = db_.getValue("SELECT coding FROM variant WHERE id=" + variant_id).toString().replace(",", "<br>");
 		ui_.transcript_info->setText(transcript_info);
@@ -84,7 +100,9 @@ ValidationDialog::ValidationDialog(QWidget* parent, int id)
 			THROW(DatabaseException, "No valid sv id for variant validation found!");
 		}
 
-		BedpeLine sv = db_.structuralVariant(sv_id, sv_type_, BedpeFile(), true);
+		BedpeFile bedpe_structure;
+		bedpe_structure.setAnnotationHeaders(QList<QByteArray>() << "FORMAT" << "");
+		BedpeLine sv = db_.structuralVariant(sv_id, sv_type_, bedpe_structure, true);
 		ui_.variant->setText(sv.toString());
 	}
 

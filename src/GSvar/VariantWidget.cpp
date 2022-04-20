@@ -9,6 +9,7 @@
 #include <QMessageBox>
 #include <QAction>
 #include <QDesktopServices>
+#include <QInputDialog>
 
 VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	: QWidget(parent)
@@ -20,9 +21,11 @@ VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	connect(ui_.similarity, SIGNAL(clicked(bool)), this, SLOT(calculateSimilarity()));
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 	connect(ui_.update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
+	connect(ui_.edit_btn, SIGNAL(clicked(bool)), this, SLOT(editComment()));
 	connect(ui_.class_btn, SIGNAL(clicked(bool)), this, SLOT(editClassification()));
 	connect(ui_.transcripts, SIGNAL(linkActivated(QString)), this, SLOT(openGeneTab(QString)));
 	connect(ui_.af_gnomad, SIGNAL(linkActivated(QString)), this, SLOT(gnomadClicked(QString)));
+	connect(ui_.pubmed, SIGNAL(linkActivated(QString)), this, SLOT(pubmedClicked(QString)));
 
 	//add sample table context menu entries
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
@@ -57,20 +60,45 @@ void VariantWidget::updateGUI()
 	QPair<int, int> counts = db.variantCounts(variant_id);
 	ui_.ngsd_het->setText(QString::number(counts.first));
 	ui_.ngsd_hom->setText(QString::number(counts.second));
-	ui_.comments->setText(query1.value("comment").toString());
+	GSvarHelper::limitLines(ui_.comments, query1.value("comment").toString());
 
 	//transcripts
-	QStringList lines;
-	QList<VariantTranscript> transcripts = Variant::parseTranscriptString(query1.value("coding").toByteArray(), true);
-	foreach(const VariantTranscript& trans, transcripts)
+	try
 	{
-		lines << "<a href=\"" + trans.gene + "\">" + trans.gene + "</a> " + trans.id + ": " + trans.type + " " + trans.hgvs_c + " " + trans.hgvs_p;
+		QStringList lines;
+		QList<VariantTranscript> transcripts = Variant::parseTranscriptString(query1.value("coding").toByteArray(), true);
+		foreach(const VariantTranscript& trans, transcripts)
+		{
+			lines << "<a href=\"" + trans.gene + "\">" + trans.gene + "</a> " + trans.id + ": " + trans.type + " " + trans.hgvs_c + " " + trans.hgvs_p;
+		}
+		ui_.transcripts->setText(lines.join("<br>"));
 	}
-	ui_.transcripts->setText(lines.join("<br>"));
+	catch(...)
+	{
+		ui_.transcripts->setText("<font color=red>Could not parse transcript information from NGSD!</font>");
+	}
+
+	//PubMed ids
+	QStringList pubmed_ids = db.pubmedIds(variant_id);
+	QStringList pubmed_links;
+	foreach (const QString& id, pubmed_ids)
+	{
+		pubmed_links << "<a href=\"https://pubmed.ncbi.nlm.nih.gov/" + id + "/" "\">" + id + "</a>";
+	}
+
+	QString open_all;
+	if (pubmed_ids.size() > 2)
+	{
+		open_all = "<br><a href=\"openAll\"><i>(open all (" + QString::number(pubmed_ids.size()) + " ids))</i></a>";
+	}
+	ui_.pubmed->setText(pubmed_links.join(", ") + open_all);
+	ui_.pubmed->setToolTip(pubmed_ids.join(", "));
+
+
 	//classification
 	ClassificationInfo class_info = db.getClassification(variant_);
 	ui_.classification->setText(class_info.classification);
-	ui_.classification_comment->setText(class_info.comments);
+	GSvarHelper::limitLines(ui_.classification_comment, class_info.comments);
 
 	//samples table
 	SqlQuery query2 = db.getQuery();
@@ -292,6 +320,25 @@ void VariantWidget::openGSvarFile()
 	GlobalServiceProvider::openGSvarViaNGSD(ps, true);
 }
 
+void VariantWidget::editComment()
+{
+	try
+	{
+		//add variant if missing
+		NGSD db;
+		bool ok = true;
+		QByteArray text = QInputDialog::getMultiLineText(this, "Variant comment", "Text: ", db.comment(variant_), &ok).toLatin1();
+		if (!ok) return;
+
+		db.setComment(variant_, text);
+		updateGUI();
+	}
+	catch (DatabaseException& e)
+	{
+		GUIHelper::showMessage("NGSD error", e.message());
+	}
+}
+
 void VariantWidget::editClassification()
 {
 	try
@@ -309,7 +356,6 @@ void VariantWidget::editClassification()
 	catch (DatabaseException& e)
 	{
 		GUIHelper::showMessage("NGSD error", e.message());
-		return;
 	}
 }
 
@@ -317,7 +363,24 @@ void VariantWidget::gnomadClicked(QString var_id)
 {
 	NGSD db;
 	Variant v = db.variant(var_id);
-	QString link = GSvarHelper::gnomaADLink(v);
+	QString link = GSvarHelper::gnomADLink(v, GSvarHelper::build());
 	QDesktopServices::openUrl(QUrl(link));
+}
+
+void VariantWidget::pubmedClicked(QString link)
+{
+	if (link.startsWith("http")) //transcript
+	{
+		QDesktopServices::openUrl(QUrl(link));
+	}
+	else //gene
+	{
+		//open all publications
+		QStringList pubmed_ids = ui_.pubmed->toolTip().split(", ");
+		foreach (QString id, pubmed_ids)
+		{
+			QDesktopServices::openUrl(QUrl("https://pubmed.ncbi.nlm.nih.gov/" + id + "/"));
+		}
+	}
 }
 

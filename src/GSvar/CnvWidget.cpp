@@ -69,6 +69,8 @@ CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_wi
 	ui->setupUi(this);
 	connect(ui->cnvs, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(cnvDoubleClicked(QTableWidgetItem*)));
 	connect(ui->cnvs, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
+	connect(ui->flag_invisible_cnvs_artefacts, SIGNAL(clicked(bool)), this, SLOT(flagInvisibleSomaticCnvsAsArtefacts()) );
+	connect(ui->flag_visible_cnvs_artefacts, SIGNAL(clicked(bool)), this, SLOT(flagVisibleSomaticCnvsAsArtefacts()) );
 	connect(ui->copy_clipboard, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 	connect(ui->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
 	connect(ui->filter_widget, SIGNAL(targetRegionChanged()), this, SLOT(clearTooltips()));
@@ -106,6 +108,12 @@ void CnvWidget::initGUI()
 	{
 		addInfoLine("<font color='red'>Error parsing file:\n" + e.message() + "</font>");
 		disableGUI();
+	}
+
+	if(is_somatic_)
+	{
+		ui->flag_invisible_cnvs_artefacts->setEnabled(true);
+		ui->flag_visible_cnvs_artefacts->setEnabled(true);
 	}
 
 	//apply filters
@@ -292,10 +300,19 @@ void CnvWidget::updateGUI()
 		if (report_variant_indices.contains(r))
 		{
 			bool show_report_icon;
-			if(!is_somatic_) show_report_icon = report_config_->get(VariantType::CNVS, r).showInReport();
-			else show_report_icon = somatic_report_config_->get(VariantType::CNVS, r).showInReport();
+			bool causal = false;
+			if(!is_somatic_)
+			{
+				const ReportVariantConfiguration& rc = report_config_->get(VariantType::CNVS, r);
+				show_report_icon = rc.showInReport();
+				causal = rc.causal;
+			}
+			else
+			{
+				show_report_icon = somatic_report_config_->get(VariantType::CNVS, r).showInReport();
+			}
 
-			header_item->setIcon(VariantTable::reportIcon(show_report_icon));
+			header_item->setIcon(VariantTable::reportIcon(show_report_icon, causal));
 		}
 		ui->cnvs->setVerticalHeaderItem(r, header_item);
 
@@ -610,7 +627,7 @@ void CnvWidget::showContextMenu(QPoint p)
 		try
 		{
 			//get region as string (Decipher supports only HG38)
-			QString region = GSvarHelper::build()==GenomeBuild::HG38 ? cnvs_[row].toString() : GSvarHelper::liftOver(cnvs_[row].chr(), cnvs_[row].start(), cnvs_[row].end()).toString(true);
+			QString region = GSvarHelper::build()==GenomeBuild::HG38 ? cnvs_[row].toString() : GSvarHelper::liftOver(cnvs_[row].chr(), cnvs_[row].start(), cnvs_[row].end(), true).toString(true);
 			region.remove("chr");
 
 			QDesktopServices::openUrl(QUrl("https://decipher.sanger.ac.uk/browser#q/" + region));
@@ -636,6 +653,7 @@ void CnvWidget::showContextMenu(QPoint p)
 			QModelIndexList selectedRows = ui->cnvs->selectionModel()->selectedRows();
 			for(const auto& selected_row : selectedRows)
 			{
+				if( ui->cnvs->isRowHidden(selected_row.row()) ) continue;
 				somatic_report_config_->remove(VariantType::CNVS, selected_row.row());
 				updateReportConfigHeaderIcon(selected_row.row());
 			}
@@ -801,11 +819,12 @@ void CnvWidget::updateReportConfigHeaderIcon(int row)
 		QIcon report_icon;
 		if (!is_somatic_ && report_config_->exists(VariantType::CNVS, row))
 		{
-			report_icon = VariantTable::reportIcon(report_config_->get(VariantType::CNVS, row).showInReport());
+			const ReportVariantConfiguration& rc = report_config_->get(VariantType::CNVS, row);
+			report_icon = VariantTable::reportIcon(rc.showInReport(), rc.causal);
 		}
 		else if(is_somatic_ && somatic_report_config_->exists(VariantType::CNVS, row))
 		{
-			report_icon = VariantTable::reportIcon(somatic_report_config_->get(VariantType::CNVS, row).showInReport());
+			report_icon = VariantTable::reportIcon(somatic_report_config_->get(VariantType::CNVS, row).showInReport(), false);
 		}
 		ui->cnvs->verticalHeaderItem(row)->setIcon(report_icon);
 	}
@@ -883,6 +902,7 @@ void CnvWidget::editReportConfiguration(int row)
 			QList<int> rows;
 			for(const auto& selectedRow : selectedRows)
 			{
+				if( ui->cnvs->isRowHidden(selectedRow.row()) ) continue;
 				rows << selectedRow.row();
 			}
 			editSomaticReportConfiguration(rows);
@@ -1004,8 +1024,8 @@ void CnvWidget::editGermlineReportConfiguration(int row)
 	int i_genes = cnvs_.annotationIndexByName("genes", false);
 	if (i_genes!=-1)
 	{
-		QByteArrayList genes = cnvs_[row].annotations()[i_genes].split(',');
-		foreach(QByteArray gene, genes)
+		GeneSet genes = GeneSet::createFromText(cnvs_[row].annotations()[i_genes], ',');
+		foreach(const QByteArray& gene, genes)
 		{
 			GeneInfo gene_info = db.geneInfo(gene);
 			inheritance_by_gene << KeyValuePair{gene, gene_info.inheritance};
@@ -1134,3 +1154,51 @@ void CnvWidget::editSomaticReportConfiguration(const QList<int> &rows)
 	emit storeSomaticReportConfiguration();
 }
 
+void CnvWidget::flagInvisibleSomaticCnvsAsArtefacts()
+{
+	if(somatic_report_config_ == nullptr)
+	{
+		THROW(ProgrammingException, "SomaticReportConfiguration in CnvWidget is null pointer.");
+	}
+
+	SomaticReportVariantConfiguration generic_var_config;
+	generic_var_config.variant_type = VariantType::CNVS;
+	generic_var_config.exclude_artefact = true;
+	generic_var_config.comment = "Flagged as CNV artefact by batch filtering";
+
+	for(int r=0; r<ui->cnvs->rowCount(); ++r)
+	{
+		if(ui->cnvs->isRowHidden(r))
+		{
+			generic_var_config.variant_index = r;
+			somatic_report_config_->set(generic_var_config);
+			updateReportConfigHeaderIcon(r);
+		}
+	}
+
+	emit storeSomaticReportConfiguration();
+}
+
+void CnvWidget::flagVisibleSomaticCnvsAsArtefacts()
+{
+	if(somatic_report_config_ == nullptr)
+	{
+		THROW(ProgrammingException, "SomaticReportConfiguration in CnvWidget is null pointer");
+	}
+
+	SomaticReportVariantConfiguration generic_var_config;
+	generic_var_config.variant_type = VariantType::CNVS;
+	generic_var_config.exclude_artefact = true;
+	generic_var_config.comment = "Flagged as CNV artefact by batch filtering";
+
+	for(int r=0; r<ui->cnvs->rowCount(); ++r)
+	{
+		if(!ui->cnvs->isRowHidden(r))
+		{
+			generic_var_config.variant_index = r;
+			somatic_report_config_->set(generic_var_config);
+			updateReportConfigHeaderIcon(r);
+		}
+	}
+	emit storeSomaticReportConfiguration();
+}

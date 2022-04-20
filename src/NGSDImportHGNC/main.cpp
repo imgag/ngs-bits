@@ -101,6 +101,7 @@ public:
 				db.clearTable("gene_exon");
 				db.clearTable("gene_transcript");
 				db.clearTable("gene_alias");
+				db.clearTable("gene_pseudogene_relation");
 				db.clearTable("gene");
 			}
 			else

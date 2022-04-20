@@ -8,6 +8,33 @@
 
 typedef QByteArray RtfSourceCode;
 
+class CPPNGSSHARED_EXPORT RtfPicture
+{
+public:
+	RtfPicture(QByteArray png_data);
+
+	RtfSourceCode RtfCode();
+
+	RtfPicture& setWidth(int width)
+	{
+		width_ = width;
+		return *this;
+	}
+	RtfPicture& setHeight(int height)
+	{
+		height_ = height;
+		return *this;
+	}
+
+private:
+	//image data representated as a binary string
+	QByteArray png_data_;
+	//image width in pixels
+	int width_ = 0;
+	//image height in pixels
+	int height_ = 0;
+};
+
 
 /*************************
  * RTF TEXT BASE CLASSES *
@@ -53,6 +80,11 @@ public:
 		italic_ = italic;
 		return *this;
 	}
+	virtual RtfText& setUnderline(bool underline)
+	{
+		underline_ = underline;
+		return *this;
+	}
 
 	///Highlight text according color number specified in Document header
 	virtual RtfText& highlight(int color_number)
@@ -93,6 +125,7 @@ private:
 	int font_size_ = 18;
 	bool bold_ = false;
 	bool italic_ = false;
+	bool underline_ = false;
 	QByteArray horizontal_alignment_ = "l";
 	//font number as specified in header
 	int font_number_ = 0;
@@ -154,6 +187,12 @@ public:
 	RtfParagraph& setBold(bool bold) override
 	{
 		this->RtfText::setBold(bold);
+		return *this;
+	}
+
+	RtfParagraph& setUnderline(bool underline) override
+	{
+		this->RtfText::setUnderline(underline);
 		return *this;
 	}
 

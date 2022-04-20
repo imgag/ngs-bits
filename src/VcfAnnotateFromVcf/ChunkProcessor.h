@@ -1,50 +1,29 @@
 #ifndef CHUNKPROCESSOR_H
 #define CHUNKPROCESSOR_H
 
+#include <QObject>
 #include <QRunnable>
-#include <QByteArray>
-#include <QByteArrayList>
-#include <QTextStream>
-#include <iostream>
-#include <QBuffer>
-#include <QVector>
-#include <Auxilary.h>
-#include <Exceptions.h>
-#include <TabixIndexedFile.h>
-#include <QMutex>
-#include <Helper.h>
+#include "Auxilary.h"
 
 class ChunkProcessor
-        :public QRunnable
+	: public QObject
+	, public QRunnable
 {
-public:
-	ChunkProcessor(AnalysisJob &job,
-				   QByteArrayList &prefix_list,
-				   QSet<QByteArray> &ids,
-				   const QVector<QByteArrayList> &info_id_list,
-				   const QVector<QByteArrayList> &out_info_id_list,
-				   const QByteArrayList &out_id_column_name_list,
-				   const QByteArrayList &id_column_name_list,
-				   const QVector<bool> &allow_missing_header_list,
-				   QByteArrayList &annotation_file_list);
-    void run();
+	Q_OBJECT
 
-    void terminate()
-    {
-        terminate_ = true;
-    }
+public:
+	ChunkProcessor(AnalysisJob &job, const MetaData& meta, Parameters& params);
+	~ChunkProcessor();
+	virtual void run() override;
+
+signals:
+	void done(int i); //signal emitted when job was successful
+	void error(int i, QString message); //signal emitted when job failed
 
 private:
-    bool terminate_;
-    AnalysisJob &job;
-    QByteArrayList & prefix_list;
-    QSet<QByteArray> &ids;
-    const QVector<QByteArrayList> &info_id_list;
-    const QVector<QByteArrayList> &out_info_id_list;
-    const QByteArrayList &out_id_column_name_list;
-    const QByteArrayList &id_column_name_list;
-    const QVector<bool> &allow_missing_header_list;
-	QByteArrayList &annotation_file_list;
+	AnalysisJob& job_;
+	const MetaData& meta_;
+	Parameters& params_;
 };
 
 #endif // CHUNKPROCESSOR_H

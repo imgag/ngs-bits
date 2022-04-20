@@ -8,36 +8,56 @@
 #include "ProcessedSampleWidget.h"
 #include "GlobalServiceProvider.h"
 
-SingleSampleAnalysisDialog::SingleSampleAnalysisDialog(QWidget *parent, bool is_rna)
+SingleSampleAnalysisDialog::SingleSampleAnalysisDialog(QWidget *parent)
 	: QDialog(parent)
 	, ui_()
 	, db_()
 	, samples_()
 {
-	if(is_rna)
-	{
-		steps_ = loadSteps("analysis_steps_single_sample_rna");
-	}
-	else
-	{
-		steps_ = loadSteps("analysis_steps_single_sample");
-	}
-
 	ui_.setupUi(this);
 	initTable(ui_.samples_table);
-	addStepsToParameters(steps_, qobject_cast<QFormLayout*>(ui_.param_group->layout()));
 
 	connect(ui_.annotate_only, SIGNAL(stateChanged(int)), this, SLOT(annotate_only_state_changed()));
 }
 
+void SingleSampleAnalysisDialog::setAnalysisSteps()
+{
+	// load and display correct analysis steps
+	if (steps_.size() == 0 && samples_.size() > 0)
+	{
+		if (analysis_type_ == "cfDNA")
+		{
+			steps_ = loadSteps("analysis_steps_cfdna");
+		}
+		else if (analysis_type_ == "RNA")
+		{
+			steps_ = loadSteps("analysis_steps_single_sample_rna");
+		}
+		else if (analysis_type_.startsWith("DNA"))
+		{
+			steps_ = loadSteps("analysis_steps_single_sample");
+		}
+		else
+		{
+			THROW(NotImplementedException, "Invalid analysis type '" + analysis_type_ + "'!");
+		}
+
+		// set correct steps
+		addStepsToParameters(steps_, qobject_cast<QFormLayout*>(ui_.param_group->layout()));
+	}
+
+	updateSampleTable();
+	updateStartButton();
+}
+
 void SingleSampleAnalysisDialog::setSamples(QList<AnalysisJobSample> samples)
 {
+	// add samples
 	foreach(AnalysisJobSample sample, samples)
 	{
 		addSample(sample.info, sample.name);
 	}
-	updateSampleTable();
-	updateStartButton();
+	setAnalysisSteps();
 }
 
 QList<AnalysisJobSample> SingleSampleAnalysisDialog::samples() const
@@ -55,7 +75,7 @@ bool SingleSampleAnalysisDialog::highPriority() const
 	return ui_.high_priority->isChecked();
 }
 
-QString SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<SampleDetails>& samples, QString ps_name, bool throw_if_bam_missing, bool force_showing_dialog)
+QString SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<SampleDetails>& samples, QString& analysis_type, QString ps_name, bool throw_if_bam_missing, bool force_showing_dialog)
 {
 	status = status.trimmed();
 
@@ -74,6 +94,23 @@ QString SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<Sa
 
 	//check NGSD data
 	QString ps_id = db.processedSampleId(ps_name);
+
+	//check if sample fits to the selected analysis type
+	QString sample_type = db.getSampleData(db.sampleId(ps_name)).type;
+	if (sample_type.startsWith("DNA (")) sample_type = "DNA"; //convert "DNA (amplicon)" and "DNA (native)" to "DNA"
+	if (analysis_type.isEmpty())
+	{
+		//set analysis type based on the first sample
+		analysis_type = sample_type;
+	}
+	else
+	{
+		//check if sample have the same type as the widget
+		if (analysis_type != sample_type)
+		{
+			THROW(ArgumentException, "Sample " + ps_name + " doesn't match previously determined analysis typ (" + analysis_type + ")!");
+		}
+	}
 
 	//check BAM file exists
 	if (throw_if_bam_missing)
@@ -207,6 +244,7 @@ QStringList SingleSampleAnalysisDialog::arguments(const QWidget* widget)
 	return output;
 }
 
+
 void SingleSampleAnalysisDialog::on_add_sample_clicked(bool)
 {
 	addSample("");
@@ -276,13 +314,15 @@ void SingleSampleAnalysisDialog::addSample(QString status, QString sample)
 {
 	try
 	{
-		addSample(db_, status, samples_, sample, false);
+		addSample(db_, status, samples_, analysis_type_, sample, false);
 	}
 	catch(const Exception& e)
 	{
 		QMessageBox::warning(this, "Error adding sample", e.message());
 		samples_.clear();
 	}
+
+	setAnalysisSteps();
 }
 
 void SingleSampleAnalysisDialog::updateSampleTable()

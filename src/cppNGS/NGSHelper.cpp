@@ -4,6 +4,7 @@
 #include "BasicStatistics.h"
 #include "BamReader.h"
 #include "GeneSet.h"
+#include "ToolBase.h"
 
 #include <QTextStream>
 #include <QFileInfo>
@@ -20,7 +21,7 @@ namespace {
 		if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + buildToString(build) + "'!");
 
 		//copy from resource file (gzopen cannot access Qt resources)
-		QString tmp = Helper::tempFileName(".vcf");
+		QString tmp = Helper::tempFileNameNonRandom(buildToString(build) + "_snps.vcf");
 		QFile::copy(snp_file, tmp);
 
 		return tmp;

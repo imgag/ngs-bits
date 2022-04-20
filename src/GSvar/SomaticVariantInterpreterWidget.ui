@@ -972,6 +972,13 @@
       </layout>
      </item>
      <item>
+      <widget class="Line" name="line_4">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
       <layout class="QHBoxLayout" name="horizontalLayout_16" stretch="1,0,0,0">
        <property name="spacing">
         <number>0</number>
@@ -1019,13 +1026,6 @@
       </layout>
      </item>
      <item>
-      <widget class="Line" name="line_4">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
-     </item>
-     <item>
       <layout class="QHBoxLayout" name="horizontalLayout_17" stretch="1,0,0,0">
        <property name="spacing">
         <number>0</number>
@@ -1071,6 +1071,13 @@
         </widget>
        </item>
       </layout>
+     </item>
+     <item>
+      <widget class="Line" name="line_9">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_18" stretch="1,0,0,0">
@@ -1263,22 +1270,22 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="onco_absent_from_controls"/>
-  <buttongroup name="onco_mutation_in_gene_with_etiology"/>
-  <buttongroup name="onco_protein_length_change"/>
-  <buttongroup name="onco_other_aa_known_oncogenic"/>
-  <buttongroup name="benign_very_high_maf"/>
-  <buttongroup name="benign_synonymous_mutation"/>
-  <buttongroup name="onco_computational_evidence"/>
-  <buttongroup name="benign_benign_functional_studies"/>
-  <buttongroup name="onco_weak_cancerhotspot"/>
-  <buttongroup name="onco_strong_cancerhotspot"/>
-  <buttongroup name="benign_high_maf"/>
-  <buttongroup name="onco_oncogenic_functional_studies"/>
-  <buttongroup name="onco_located_in_canerhotspot"/>
   <buttongroup name="benign_benign_computational_evidence"/>
+  <buttongroup name="onco_protein_length_change"/>
+  <buttongroup name="benign_synonymous_mutation"/>
+  <buttongroup name="onco_located_in_canerhotspot"/>
+  <buttongroup name="onco_oncogenic_functional_studies"/>
   <buttongroup name="onco_known_oncogenic_aa"/>
-  <buttongroup name="onco_very_weak_cancerhotspot"/>
+  <buttongroup name="onco_absent_from_controls"/>
+  <buttongroup name="onco_computational_evidence"/>
+  <buttongroup name="onco_weak_cancerhotspot"/>
+  <buttongroup name="benign_high_maf"/>
   <buttongroup name="onco_null_mutation_in_tsg"/>
+  <buttongroup name="onco_mutation_in_gene_with_etiology"/>
+  <buttongroup name="benign_very_high_maf"/>
+  <buttongroup name="onco_other_aa_known_oncogenic"/>
+  <buttongroup name="benign_benign_functional_studies"/>
+  <buttongroup name="onco_strong_cancerhotspot"/>
+  <buttongroup name="onco_very_weak_cancerhotspot"/>
  </buttongroups>
 </ui>

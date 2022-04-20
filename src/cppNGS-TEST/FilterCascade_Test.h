@@ -1,7 +1,6 @@
 #include "TestFramework.h"
 #include "FilterCascade.h"
 #include "Settings.h"
-
 TEST_CLASS(FilterCascade_Test)
 {
 Q_OBJECT
@@ -43,6 +42,23 @@ private slots:
 		filter.apply(vl, result);
 
 		I_EQUAL(result.countPassing(), 22);
+		IS_TRUE(result.flags()[70]);
+		IS_TRUE(result.flags()[74]);
+		IS_TRUE(result.flags()[101]);
+		IS_TRUE(result.flags()[120]);
+	}
+
+	void FilterAlleleFrequency_apply_without_1000g()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_no1000g_in.GSvar"));
+
+		FilterResult result(vl.count());
+		FilterAlleleFrequency filter;
+		filter.setDouble("max_af", 1.0);
+		filter.apply(vl, result);
+
+		I_EQUAL(result.countPassing(), 29);
 		IS_TRUE(result.flags()[70]);
 		IS_TRUE(result.flags()[74]);
 		IS_TRUE(result.flags()[101]);
@@ -855,6 +871,203 @@ private slots:
 		I_EQUAL(result.countPassing(), 2);
 	}
 
+	void FilterSplice_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in_newer_Annotation_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+
+		FilterSpliceEffect filter;
+		// MODUS FILTER:
+		filter.setString("action", "FILTER");
+
+		// all filters off
+		filter.setInteger("MaxEntScan", 0);
+		filter.setDouble("SpliceAi", 0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), result.flags().count());
+
+		//only MES: increase
+		result.reset();
+		filter.setInteger("MaxEntScan", 15);
+		filter.setDouble("SpliceAi", 0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 1);
+
+		//only MES: decrease
+		result.reset();
+		filter.setInteger("MaxEntScan", -15);
+		filter.setDouble("SpliceAi", 0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 2);
+
+		//only SpliceAi
+		result.reset();
+		filter.setInteger("MaxEntScan", 0);
+		filter.setDouble("SpliceAi", 0.2);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 5);
+
+		//combined
+		result.reset();
+		filter.setInteger("MaxEntScan", -15);
+		filter.setDouble("SpliceAi", 0.4);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 3);
+
+		// MODUS KEEP combined
+		filter.setString("action", "KEEP");
+		result.reset(false);
+		filter.setInteger("MaxEntScan", -15);
+		filter.setDouble("SpliceAi", 0.4);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 3);
+
+		//only MES: increase
+		result.reset(false);
+		filter.setInteger("MaxEntScan", 15);
+		filter.setDouble("SpliceAi", 0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 1);
+
+		//only MES: decrease
+		result.reset(false);
+		filter.setInteger("MaxEntScan", -15);
+		filter.setDouble("SpliceAi", 0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 2);
+
+		//only SpliceAi
+		result.reset(false);
+		filter.setInteger("MaxEntScan", 0);
+		filter.setDouble("SpliceAi", 0.2);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 5);
+
+		// all filters off:
+		result.reset(false);
+		filter.setInteger("MaxEntScan", 0);
+		filter.setDouble("SpliceAi", 0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 0);
+
+	}
+
+	void FilterVariantRNAAseAlleleFrequency_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterVariantRNAAseAlleleFrequency filter;
+		filter.setDouble("min_af", 0.33);
+		filter.setDouble("max_af", 0.66);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 41);
+	}
+
+	void FilterVariantRNAAseAlt_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterVariantRNAAseAlt filter;
+		filter.setInteger("min_ac", 17);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 91);
+	}
+
+	void FilterVariantRNAAseDepth_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterVariantRNAAseDepth filter;
+		filter.setInteger("min_depth", 26);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 110);
+	}
+
+	void FilterVariantRNAAsePval_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterVariantRNAAsePval filter;
+		filter.setDouble("max_pval", 0.2);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 13);
+	}
+
+	void FilterVariantRNAAberrantSplicing_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterVariantRNAAberrantSplicing filter;
+		filter.setDouble("min_asf", 0.05);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 17);
+	}
+
+	void FilterVariantRNAExpressionFC_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterVariantRNAExpressionFC filter;
+		filter.setDouble("min_fc", 1.5);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 17);
+	}
+
+	void FilterVariantRNAExpressionZScore_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterVariantRNAExpressionZScore filter;
+		filter.setDouble("min_zscore", 1.25);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 22);
+	}
+
+	void FilterVariantRNAGeneExpression_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterVariantRNAGeneExpression filter;
+		filter.setDouble("min_tpm", 35);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 18);
+	}
+
 	/********************************************* Filters for small variants (somatic tumor-only) *********************************************/
 
 	void FilterSomaticAlleleFrequency_apply_tumor_only()
@@ -1330,6 +1543,27 @@ private slots:
 		I_EQUAL(result.countPassing(), 7);
 	}
 
+	void FilterSvFilterColumn_keep()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		//pre-filter SVs
+		FilterSvType pre_filter;
+		pre_filter.setStringList("Structural variant type", QStringList("DEL"));
+		pre_filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 29);
+
+
+		FilterSvFilterColumn filter;
+		filter.setStringList("entries", QStringList("AMBIGUOUS"));
+		filter.setString("action", "KEEP");
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 42);
+	}
+
 	void FilterSvPairedReadAF_apply()
 	{
 		BedpeFile svs;
@@ -1528,10 +1762,10 @@ private slots:
 		// default
 		FilterSvCountNGSD filter1;
 		filter1.apply(svs, result);
-		I_EQUAL(result.countPassing(), 24);
+		I_EQUAL(result.countPassing(), 84);
 	}
 
-	void FilterrSvCountNGSD_apply_overlap()
+	void FilterSvCountNGSD_apply_ignore_genotype()
 	{
 		BedpeFile svs;
 		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
@@ -1540,14 +1774,13 @@ private slots:
 
 		// overlap
 		FilterSvCountNGSD filter;
-		filter.setBool("overlap_matches", true);
+		filter.setBool("ignore_genotype", true);
 		filter.apply(svs, result);
-		I_EQUAL(result.countPassing(), 22);
-
+		I_EQUAL(result.countPassing(), 76);
 
 	}
 
-	void FilterrSvCountNGSD_apply_custom()
+	void FilterSvCountNGSD_apply_custom()
 	{
 
 		BedpeFile svs;
@@ -1558,11 +1791,12 @@ private slots:
 		// custom maximum
 		FilterSvCountNGSD filter;
 		filter.setInteger("max_count", 10);
+		filter.setBool("ignore_genotype", true);
 		filter.apply(svs, result);
-		I_EQUAL(result.countPassing(), 22);
+		I_EQUAL(result.countPassing(), 71);
 	}
 
-	void FilterrSvAfNGSD_apply_default()
+	void FilterSvAfNGSD_apply_default()
 	{
 
 		BedpeFile svs;
@@ -1570,13 +1804,13 @@ private slots:
 
 		FilterResult result(svs.count());
 
-		// custom maximum
+		// default maximum
 		FilterSvAfNGSD filter;
 		filter.apply(svs, result);
-		I_EQUAL(result.countPassing(), 18);
+		I_EQUAL(result.countPassing(), 78);
 	}
 
-	void FilterrSvAfNGSD_apply_custom()
+	void FilterSvAfNGSD_apply_custom()
 	{
 
 		BedpeFile svs;
@@ -1588,7 +1822,37 @@ private slots:
 		FilterSvAfNGSD filter;
 		filter.setDouble("max_af", 50.0);
 		filter.apply(svs, result);
-		I_EQUAL(result.countPassing(), 55);
+		I_EQUAL(result.countPassing(), 83);
+	}
+
+	void FilterSvBreakpointDensityNGSD_default()
+	{
+
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		// default maximum
+		FilterSvBreakpointDensityNGSD filter;
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 70);
+	}
+
+	void FilterSvBreakpointDensityNGSD_custom()
+	{
+
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		// custom maximum
+		FilterSvBreakpointDensityNGSD filter;
+		filter.setInteger("max_density", 257);
+		filter.setBool("remove_strict", true);
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 73);
 	}
 
 	void FilterSvTrio_apply()

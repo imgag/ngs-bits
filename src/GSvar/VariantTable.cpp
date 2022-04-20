@@ -14,14 +14,14 @@ VariantTable::VariantTable(QWidget* parent)
 {
 }
 
-void VariantTable::updateTable(const VariantList& variants, const FilterResult& filter_result, const QMap<int,bool>& index_show_report_icon, int max_variants)
+void VariantTable::updateTable(const VariantList& variants, const FilterResult& filter_result, const QHash<int,bool>& index_show_report_icon, const QSet<int>& index_causal, int max_variants)
 {
 	//set rows and cols
 	int row_count_new = std::min(filter_result.countPassing(), max_variants);
 	int col_count_new = 5 + variants.annotations().count();
 	if (rowCount()!=row_count_new || columnCount()!=col_count_new)
 	{
-		//completely clear items (is faster then resizing)
+		//completely clear items (is faster than resizing)
 		clearContents();
 		//set new size
 		setRowCount(row_count_new);
@@ -92,8 +92,8 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 	int i_ihdb_het = variants.annotationIndexByName("NGSD_het", true, false);
 	int i_clinvar = variants.annotationIndexByName("ClinVar", true, false);
 	int i_hgmd = variants.annotationIndexByName("HGMD", true, false);
-	int i_mmsplice_dlogpsi = variants.annotationIndexByName("MMSplice_DeltaLogitPSI", true, false);
 	int i_spliceai = variants.annotationIndexByName("SpliceAI", true, false);
+	int i_maxentscan = variants.annotationIndexByName("MaxEntScan", true, false);
 	int r = -1;
 	for (int i=0; i<variants.count(); ++i)
 	{
@@ -115,7 +115,7 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 		setItem(r, 4, createTableItem(variant.obs()));
 		bool is_warning_line = false;
 		bool is_notice_line = false;
-		bool is_ok_line = false;
+		bool is_ngsd_benign = false;
 		for (int j=0; j<variant.annotations().count(); ++j)
 		{
 			const QByteArray& anno = variant.annotations().at(j);
@@ -147,25 +147,27 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 				item->setBackgroundColor(Qt::red);
 				is_warning_line = true;
 			}
-			else if (j==i_mmsplice_dlogpsi && (anno.toDouble() <= -2 || anno.toDouble() >= 2) )
-			{
-				item->setBackgroundColor(Qt::red);
-				is_warning_line = true;
-				is_notice_line = true;
-			}
 			else if (j==i_spliceai && anno.toDouble() >= 0.5)
 			{
-				item->setBackgroundColor(Qt::red);
-				is_warning_line = true;
+				item->setBackgroundColor(QColor(255, 135, 60)); //orange
 				is_notice_line = true;
 			}
-
+			else if (j==i_maxentscan &&  (! anno.isEmpty()))
+			{
+				//color item
+				QList<double> percentages, abs_values;
+				if (GSvarHelper::colorMaxEntScan(anno, percentages, abs_values))
+				{
+					item->setBackgroundColor(QColor(255, 135, 60)); //orange
+					is_notice_line = true;
+				}
+			}
 
 			//non-pathogenic
-			if (j==i_classification && (anno=="0" || anno=="1" || anno=="2"))
+			if (j==i_classification && (anno=="1" || anno=="2"))
 			{
 				item->setBackgroundColor(Qt::green);
-				is_ok_line = true;
+				is_ngsd_benign = true;
 			}
 
 			//highlighed
@@ -201,23 +203,26 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 		//vertical headers - warning (red), notice (orange)
 		QTableWidgetItem* item = createTableItem(QByteArray::number(i+1));
 		item->setData(Qt::UserRole, i); //store variant index in user data (for selection methods)
-		if (is_notice_line && !is_ok_line)
+		if (!is_ngsd_benign)
 		{
-			item->setForeground(QBrush(QColor(255, 135, 60)));
-			QFont font;
-			font.setWeight(QFont::Bold);
-			item->setFont(font);
-		}
-		else if (is_warning_line && !is_ok_line)
-		{
-			item->setForeground(QBrush(Qt::red));
-			QFont font;
-			font.setWeight(QFont::Bold);
-			item->setFont(font);
+			if (is_warning_line)
+			{
+				item->setForeground(QBrush(Qt::red));
+				QFont font;
+				font.setWeight(QFont::Bold);
+				item->setFont(font);
+			}
+			else if (is_notice_line)
+			{
+				item->setForeground(QBrush(QColor(255, 135, 60)));
+				QFont font;
+				font.setWeight(QFont::Bold);
+				item->setFont(font);
+			}
 		}
 		if (index_show_report_icon.keys().contains(i))
 		{
-			item->setIcon(reportIcon(index_show_report_icon.value(i)));
+			item->setIcon(reportIcon(index_show_report_icon.value(i), index_causal.contains(i)));
 		}
 		setVerticalHeaderItem(r, item);
 	}
@@ -226,25 +231,29 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 void VariantTable::update(const VariantList& variants, const FilterResult& filter_result, const ReportSettings& report_settings, int max_variants)
 {
 	//init
-	QMap<int, bool> index_show_report_icon;
+	QHash<int, bool> index_show_report_icon;
+	QSet<int> index_causal;
 	for(int index : report_settings.report_config->variantIndices(VariantType::SNVS_INDELS, false))
 	{
-		index_show_report_icon[index] = report_settings.report_config->get(VariantType::SNVS_INDELS, index).showInReport();
+		const ReportVariantConfiguration& rc = report_settings.report_config->get(VariantType::SNVS_INDELS, index);
+		index_show_report_icon[index] = rc.showInReport();
+		if (rc.causal) index_causal << index;
 	}
 
-	updateTable(variants, filter_result, index_show_report_icon, max_variants);
+	updateTable(variants, filter_result, index_show_report_icon, index_causal, max_variants);
 }
 
 void VariantTable::update(const VariantList& variants, const FilterResult& filter_result, const SomaticReportSettings& report_settings, int max_variants)
 {
 	//init
-	QMap<int, bool> index_show_report_icon;
+	QHash<int, bool> index_show_report_icon;
+	QSet<int> index_causal;
 	for(int index : report_settings.report_config.variantIndices(VariantType::SNVS_INDELS, false))
 	{
 		index_show_report_icon[index] = report_settings.report_config.get(VariantType::SNVS_INDELS, index).showInReport();
 	}
 
-	updateTable(variants, filter_result, index_show_report_icon, max_variants);
+	updateTable(variants, filter_result, index_show_report_icon, index_causal, max_variants);
 }
 
 void VariantTable::updateVariantHeaderIcon(const ReportSettings& report_settings, int variant_index)
@@ -254,7 +263,8 @@ void VariantTable::updateVariantHeaderIcon(const ReportSettings& report_settings
 	QIcon report_icon;
 	if (report_settings.report_config->exists(VariantType::SNVS_INDELS, variant_index))
 	{
-		report_icon = reportIcon(report_settings.report_config->get(VariantType::SNVS_INDELS, variant_index).showInReport());
+		const ReportVariantConfiguration& rc = report_settings.report_config->get(VariantType::SNVS_INDELS, variant_index);
+		report_icon = reportIcon(rc.showInReport(), rc.causal);
 	}
 	verticalHeaderItem(row)->setIcon(report_icon);
 }
@@ -265,7 +275,7 @@ void VariantTable::updateVariantHeaderIcon(const SomaticReportSettings &report_s
 	QIcon report_icon;
 	if(report_settings.report_config.exists(VariantType::SNVS_INDELS, variant_index))
 	{
-		report_icon = reportIcon(report_settings.report_config.get(VariantType::SNVS_INDELS, variant_index).showInReport());
+		report_icon = reportIcon(report_settings.report_config.get(VariantType::SNVS_INDELS, variant_index).showInReport(), false);
 	}
 	verticalHeaderItem(row)->setIcon(report_icon);
 }
@@ -570,7 +580,7 @@ void VariantTable::copyToClipboard(bool split_quality, bool include_header_one_r
 
 	//check quality column is present
 	QStringList quality_keys;
-	quality_keys << "QUAL" << "DP" << "AF" << "MQM" << "TRIO"; //if modified, also modify quality_values!!!
+	quality_keys << "QUAL" << "DP" << "AF" << "MQM" << "SAP" << "ABP" << "TRIO"; //if modified, also modify quality_values!!!
 	int qual_index = -1;
 	if (split_quality)
 	{
@@ -647,9 +657,12 @@ void VariantTable::copyToClipboard(bool split_quality, bool include_header_one_r
 	QApplication::clipboard()->setText(selected_text);
 }
 
-QIcon VariantTable::reportIcon(bool show_in_report)
+QIcon VariantTable::reportIcon(bool show_in_report, bool causal)
 {
-	return QIcon(show_in_report ? QPixmap(":/Icons/Report_add.png") : QPixmap(":/Icons/Report exclude.png"));
+	if (!show_in_report) return QPixmap(":/Icons/Report_exclude.png");
+	if (causal) return QPixmap(":/Icons/Report_add_causal.png");
+
+	return QPixmap(":/Icons/Report_add.png");
 }
 
 void VariantTable::keyPressEvent(QKeyEvent* event)

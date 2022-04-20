@@ -8,6 +8,7 @@ RC_FILE	 = icon.rc
 
 SOURCES += main.cpp\
     CfDNAPanelBatchImport.cpp \
+    DatabaseServiceRemote.cpp \
     GlobalServiceProvider.cpp \
     MainWindow.cpp \
     ExternalToolDialog.cpp \
@@ -15,6 +16,7 @@ SOURCES += main.cpp\
     ReportWorker.cpp \
     TrioDialog.cpp \
     HttpHandler.cpp \
+    UserPermissionsEditor.cpp \
     ValidationDialog.cpp \
     ClassificationDialog.cpp \
     ApprovedGenesDialog.cpp \
@@ -98,19 +100,27 @@ SOURCES += main.cpp\
     NGSDReplicationWidget.cpp \
     CohortAnalysisWidget.cpp \
     cfDNARemovedRegions.cpp \
-    CfdnaAnalysisDialog.cpp \
     ClinvarUploadDialog.cpp \
     LiftOverWidget.cpp \
-    CacheInitWorker.cpp
+    CacheInitWorker.cpp \
+    BlatWidget.cpp \
+    AnalysisInformationWidget.cpp \
+    PhenotypeSourceEvidenceSelector.cpp \
+    FusionWidget.cpp \
+    CohortExpressionDataWidget.cpp \
+    GapClosingEditDialog.cpp \
+    CausalVariantEditDialog.cpp
 
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
+    DatabaseServiceRemote.h \
     ExternalToolDialog.h \
     GlobalServiceProvider.h \
     ReportDialog.h \
     ReportWorker.h \
     TrioDialog.h \
     HttpHandler.h \
+    UserPermissionsEditor.h \
     ValidationDialog.h \
     ClassificationDialog.h \
     ApprovedGenesDialog.h \
@@ -195,10 +205,16 @@ HEADERS += MainWindow.h \
     NGSDReplicationWidget.h \
     CohortAnalysisWidget.h \
     cfDNARemovedRegions.h \
-    CfdnaAnalysisDialog.h \
     ClinvarUploadDialog.h \
     LiftOverWidget.h \
-    CacheInitWorker.h
+    BlatWidget.h \
+    AnalysisInformationWidget.h \
+    CacheInitWorker.h \
+    PhenotypeSourceEvidenceSelector.h \
+    FusionWidget.h \
+    CohortExpressionDataWidget.h \
+    GapClosingEditDialog.h \
+    CausalVariantEditDialog.h
 
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
@@ -206,6 +222,7 @@ FORMS    += MainWindow.ui \
     ReportDialog.ui \
     TrioDialog.ui \
     ClassificationDialog.ui \
+    UserPermissionsEditor.ui \
     ValidationDialog.ui \
     ApprovedGenesDialog.ui \
     GeneWidget.ui \
@@ -280,10 +297,16 @@ FORMS    += MainWindow.ui \
     NGSDReplicationWidget.ui \
     CohortAnalysisWidget.ui \
     cfDNARemovedRegions.ui \
-    CfdnaAnalysisDialog.ui \
     ClinvarUploadDialog.ui \
-    LiftOverWidget.ui
-    include("../app_gui.pri")
+    BlatWidget.ui \
+    AnalysisInformationWidget.ui \
+    LiftOverWidget.ui \
+    PhenotypeSourceEvidenceSelector.ui \
+    FusionWidget.ui \
+    CohortExpressionDataWidget.ui \
+    GapClosingEditDialog.ui \
+    CausalVariantEditDialog.ui
+include("../app_gui.pri")
 
 #include NGSD library
 INCLUDEPATH += $$PWD/../cppNGSD

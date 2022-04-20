@@ -12,6 +12,7 @@
 #include <QStringList>
 #include <QtAlgorithms>
 #include <QVectorIterator>
+#include <QUrl>
 
 
 ///Transcript annotations e.g. from SnpEff/VEP.
@@ -256,9 +257,9 @@ enum AnalysisType
 	CFDNA
 };
 ///Returns the string repesentation of the analysis type (or a human-readable version).
-QString analysisTypeToString(AnalysisType type, bool human_readable=false);
+QString CPPNGSSHARED_EXPORT analysisTypeToString(AnalysisType type, bool human_readable=false);
 ///Returns a the  repesentation of the analysis type (does not support the human-readable version).
-AnalysisType stringToAnalysisType(QString type);
+AnalysisType CPPNGSSHARED_EXPORT stringToAnalysisType(QString type);
 
 ///A list of genetic variants
 class CPPNGSSHARED_EXPORT VariantList
@@ -417,8 +418,8 @@ public:
 	///Parses and returns sample data from variant list header (only for GSvar).
 	SampleHeaderInfo getSampleHeader() const;
 
-	///Returns the genome build coordinates are based on.
-	GenomeBuild getBuild();
+	///Returns the genome build that the coordinates are based on.
+	GenomeBuild build();
 	///Returns the analysis pipeline and version from the header.
 	QString getPipeline() const;
 	///Returns the creation date from the header i.e. the date of the annotatated VCF from which the GSvar was created. If not available, a invalid date is returned.

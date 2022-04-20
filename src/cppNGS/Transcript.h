@@ -136,12 +136,12 @@ public:
 	{
 		return coding_start_!=0 && coding_end_!=0;
 	}
-	//Returns the start of the coding region (0 for non-coding transcripts)
+	//Returns the start of the coding region (0 for non-coding transcripts). Note: for minus-strand transcipts codingStart() is bigger than codingEnd()
 	int codingStart() const
 	{
 		return coding_start_;
 	}
-	//Returns the end of the coding region (0 for non-coding transcripts)
+	//Returns the end of the coding region (0 for non-coding transcripts). Note: for minus-strand transcipts codingStart() is bigger than codingEnd()
 	int codingEnd() const
 	{
 		return coding_end_;

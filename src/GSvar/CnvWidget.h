@@ -59,6 +59,11 @@ private slots:
 	///Removes the calculated gene overlap tooltips
 	void clearTooltips();
 
+	///Flags all filtered (=currently invisible) CNVs as artefacts in somatic report configuration
+	void flagInvisibleSomaticCnvsAsArtefacts();
+	///Flags all unfiltered (=currently visible) CNVs as artefacts in somatic report configuration
+	void flagVisibleSomaticCnvsAsArtefacts();
+
 private:
 	void initGUI();
 	void updateGUI();
@@ -71,6 +76,7 @@ private:
 	void editCnvValidation(int row);
 	///Handles somatic report configuration if multiple rows are selected;
 	void editSomaticReportConfiguration(const QList<int>& rows);
+
 	Ui::CnvWidget* ui;
 	QString ps_id_; //processed sample database ID. '' if unknown of NGSD is disabled.
 	QString callset_id_; //CNV callset database ID. '' if unknown of if NGSD is disabled.

@@ -8,7 +8,8 @@
 #include "cmath"
 #include "LoginManager.h"
 #include "GlobalServiceProvider.h"
-#include "CfdnaAnalysisDialog.h"
+#include "AnalysisInformationWidget.h"
+#include "GSvarHelper.h"
 #include <QMenu>
 #include <QFileInfo>
 #include <QDesktopServices>
@@ -37,85 +38,32 @@ AnalysisStatusWidget::AnalysisStatusWidget(QWidget* parent)
 
 void AnalysisStatusWidget::analyzeSingleSamples(QList<AnalysisJobSample> samples)
 {
-	NGSD db;
-
-	//Determine whether samples are RNA => show RNA steps
-	bool is_rna = false;
-	bool is_cfdna = false;
-	for(const AnalysisJobSample& sample : samples)
+	if (GSvarHelper::queueSampleAnalysis(AnalysisType::GERMLINE_SINGLESAMPLE, samples, this))
 	{
-		if(db.getSampleData(db.sampleId(sample.name)).type=="RNA")
-		{
-			is_rna = true;
-			break;
-		}
-		QString sys_type = db.getProcessedSampleData(db.processedSampleId(sample.name)).processing_system_type;
-		if(sys_type == "cfDNA (patient-specific)" || sys_type == "cfDNA")
-		{
-			is_cfdna = true;
-			break;
-		}
+		refreshStatus();
 	}
-	if (is_cfdna)
-	{
-		CfdnaAnalysisDialog dlg(this);
-
-		dlg.setSamples(samples);
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			foreach(const AnalysisJobSample& sample,  dlg.samples())
-			{
-				db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
-			}
-			refreshStatus();
-		}
-	}
-	else
-	{
-		SingleSampleAnalysisDialog dlg(this, is_rna);
-
-		dlg.setSamples(samples);
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			foreach(const AnalysisJobSample& sample,  dlg.samples())
-			{
-				db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
-			}
-			refreshStatus();
-		}
-	}
-
 }
 
 void AnalysisStatusWidget::analyzeTrio(QList<AnalysisJobSample> samples)
 {
-	TrioDialog dlg(this);
-	dlg.setSamples(samples);
-	if (dlg.exec()==QDialog::Accepted)
+	if (GSvarHelper::queueSampleAnalysis(AnalysisType::GERMLINE_TRIO, samples, this))
 	{
-		NGSD().queueAnalysis("trio", dlg.highPriority(), dlg.arguments(), dlg.samples());
 		refreshStatus();
 	}
 }
 
 void AnalysisStatusWidget::analyzeMultiSample(QList<AnalysisJobSample> samples)
 {
-	MultiSampleDialog dlg(this);
-	dlg.setSamples(samples);
-	if (dlg.exec()==QDialog::Accepted)
+	if (GSvarHelper::queueSampleAnalysis(AnalysisType::GERMLINE_MULTISAMPLE, samples, this))
 	{
-		NGSD().queueAnalysis("multi sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
 		refreshStatus();
 	}
 }
 
 void AnalysisStatusWidget::analyzeSomatic(QList<AnalysisJobSample> samples)
 {
-	SomaticDialog dlg(this);
-	dlg.setSamples(samples);
-	if (dlg.exec()==QDialog::Accepted)
+	if (GSvarHelper::queueSampleAnalysis(AnalysisType::SOMATIC_PAIR, samples, this))
 	{
-		NGSD().queueAnalysis("somatic", dlg.highPriority(), dlg.arguments(), dlg.samples());
 		refreshStatus();
 	}
 }
@@ -196,12 +144,19 @@ void AnalysisStatusWidget::refreshStatus()
 			addItem(ui_.analyses, row, 2, job.type);
 
 			//sample(s)
+			bool bad_quality = false;
 			QStringList parts;
-			foreach(const AnalysisJobSample& sample, job.samples)
+			foreach(const ProcessedSampleData& data, ps_data)
 			{
-				parts << sample.name;
+				parts << data.name;
+				if (data.quality=="bad") bad_quality = true;
 			}
-			addItem(ui_.analyses, row, 3, parts.join(" "));
+			QTableWidgetItem* item = addItem(ui_.analyses, row, 3, parts.join(" "));
+			if (bad_quality)
+			{
+				item->setIcon(QIcon(":/Icons/quality_bad.png"));
+				item->setToolTip("At least one sample has bad quality!");
+			}
 
 			//system(s)
 			parts.clear();
@@ -327,12 +282,16 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 
 	//set up menu
 	QMenu menu;
+	if (rows.count()==1 && types.values()[0]=="single sample")
+	{
+		menu.addAction(QIcon(":/Icons/analysis_info.png"), "Show analysis information");
+	}
 	if (rows.count()==1)
 	{
 		menu.addAction(QIcon(":/Icons/Icon.png"), "Open variant list");
 	}
-	menu.addAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample");
-	menu.addAction(QIcon(":/Icons/NGSD_run.png"), "Open sequencing run");
+	menu.addAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab");
+	menu.addAction(QIcon(":/Icons/NGSD_run.png"), "Open sequencing run tab");
 	menu.addAction(QIcon(":/Icons/Folder.png"), "Open analysis folder(s)");
 	if (rows.count()==1 && types.values()[0]!="single sample")
 	{
@@ -351,15 +310,16 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 		{
 			//Show restart action only if only DNA or only RNA samples are selected
 			QSet<QString> sample_types;
-			QSet<bool> cfdna_sample;
 			NGSD db;
 			for(const AnalysisJobSample& sample : samples)
 			{
-				sample_types << (db.getSampleData(db.sampleId(sample.name)).type=="RNA" ? "RNA" : "DNA");
-				QString sys_type = db.getProcessedSampleData(db.processedSampleId(sample.name)).processing_system_type;
-				cfdna_sample << (sys_type == "cfDNA (patient-specific)" || sys_type == "cfDNA");
+				QString sample_type = db.getSampleData(db.sampleId(sample.name)).type;
+				if (sample_type=="RNA") sample_types << "RNA";
+				else if (sample_type.startsWith("DNA")) sample_types << "DNA";
+				else if (sample_type=="cfDNA") sample_types << "cfDNA";
+				else THROW(ProgrammingException, "Unhandled sample type: "+sample_type);
 			}
-			if((sample_types.count() == 1) && (cfdna_sample.count() == 1)) menu.addAction(QIcon(":/Icons/reanalysis.png"), "Restart single sample analysis");
+			if((sample_types.count() == 1)) menu.addAction(QIcon(":/Icons/reanalysis.png"), "Restart single sample analysis");
 		}
 		else if (type=="multi sample" && job_ids.count()==1)
 		{
@@ -386,22 +346,45 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 
 	//execute
 	QString text = action->text();
+	if (text=="Show analysis information")
+	{
+		NGSD db;
+		foreach(const AnalysisJobSample& sample, samples)
+		{
+			QString ps = sample.name;
+			AnalysisInformationWidget* widget = new AnalysisInformationWidget(db.processedSampleId(ps));
+			auto dlg = GUIHelper::createDialog(widget, "Analsis information of " + ps);
+			dlg->exec();
+		}
+	}
 	if (text=="Open variant list")
 	{
 		NGSD db;
 		foreach(int id, job_ids)
 		{
-			emit loadFile(db.analysisJobGSvarFile(id));
+			if (db.analysisInfo(id).isRunning())
+			{
+				QMessageBox::warning(this, "Loading error", "The job is still running");
+				return;
+			}
+			FileLocation analysis_job_gsvar_file = GlobalServiceProvider::database().analysisJobGSvarFile(id);
+
+			if (!analysis_job_gsvar_file.exists)
+			{
+				QMessageBox::warning(this, "Loading error", "The requested file does not exist");
+				return;
+			}
+			emit loadFile(analysis_job_gsvar_file.filename);
 		}
 	}
-	if (text=="Open processed sample")
+	if (text=="Open processed sample tab")
 	{
 		foreach(const AnalysisJobSample& sample, samples)
 		{
 			GlobalServiceProvider::openProcessedSampleTab(sample.name);
 		}
 	}
-	if (text=="Open sequencing run")
+	if (text=="Open sequencing run tab")
 	{
 		NGSD db;
 		foreach(const AnalysisJobSample& sample, samples)
@@ -640,12 +623,15 @@ void AnalysisStatusWidget::applyTextFilter()
 	GUIHelper::resizeTableCells(ui_.analyses, 350);
 }
 
-void AnalysisStatusWidget::addItem(QTableWidget* table, int row, int col, QString text, QColor bg_color)
+QTableWidgetItem* AnalysisStatusWidget::addItem(QTableWidget* table, int row, int col, QString text, QColor bg_color)
 {
-	auto item = new QTableWidgetItem(text);
+	QTableWidgetItem* item = new QTableWidgetItem(text);
+
 	item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
 	item->setBackgroundColor(bg_color);
 	table->setItem(row, col, item);
+
+	return item;
 }
 
 QColor AnalysisStatusWidget::statusToColor(QString status)
@@ -674,19 +660,5 @@ QString AnalysisStatusWidget::timeHumanReadable(int sec)
 
 QList<int> AnalysisStatusWidget::selectedRows() const
 {
-	QList<int> output;
-
-	QList<QTableWidgetSelectionRange> ranges = ui_.analyses->selectedRanges();
-	foreach(const QTableWidgetSelectionRange& range, ranges)
-	{
-		for (int r=range.topRow(); r<=range.bottomRow(); ++r)
-		{
-			if (ui_.analyses->isRowHidden(r)) continue;
-			output << r;
-		}
-	}
-
-	std::sort(output.begin(), output.end());
-
-	return output;
+	return GUIHelper::selectedTableRows(ui_.analyses);
 }

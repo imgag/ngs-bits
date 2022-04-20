@@ -217,8 +217,8 @@ void SvWidget::initGUI()
 		QTableWidgetItem* header_item = GUIHelper::createTableItem(QByteArray::number(row+1));
 		if (report_variant_indices.contains(row))
 		{
-			bool show_report_icon = report_config_->get(VariantType::SVS, row).showInReport();
-			header_item->setIcon(VariantTable::reportIcon(show_report_icon));
+			const ReportVariantConfiguration& rc = report_config_->get(VariantType::SVS, row);
+			header_item->setIcon(VariantTable::reportIcon(rc.showInReport(), rc.causal));
 		}
 		ui->svs->setVerticalHeaderItem(row, header_item);
 
@@ -691,9 +691,10 @@ void SvWidget::editGermlineReportConfiguration(int row)
 	int i_genes = sv_bedpe_file_.annotationIndexByName("genes", false);
 	if (i_genes!=-1)
 	{
-		QByteArrayList genes = sv_bedpe_file_[row].annotations()[i_genes].split(',');
-		foreach(QByteArray gene, genes)
+		GeneSet genes = GeneSet::createFromText(sv_bedpe_file_[row].annotations()[i_genes], ',');
+		foreach(const QByteArray& gene, genes)
 		{
+
 			GeneInfo gene_info = db.geneInfo(gene);
 			inheritance_by_gene << KeyValuePair{gene, gene_info.inheritance};
 		}
@@ -925,7 +926,8 @@ void SvWidget::updateReportConfigHeaderIcon(int row)
 		QIcon report_icon;
 		if (!is_somatic_ && report_config_->exists(VariantType::SVS, row))
 		{
-			report_icon = VariantTable::reportIcon(report_config_->get(VariantType::SVS, row).showInReport());
+			const ReportVariantConfiguration& rc = report_config_->get(VariantType::SVS, row);
+			report_icon = VariantTable::reportIcon(rc.showInReport(), rc.causal);
 		}
 		ui->svs->verticalHeaderItem(row)->setIcon(report_icon);
 	}

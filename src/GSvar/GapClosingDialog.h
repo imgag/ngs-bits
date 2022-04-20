@@ -17,9 +17,11 @@ public:
 protected slots:
 	void delayedInitialization();
 	void updateTable();
+	void edit();
+	void edit(int row);
+	void addComment();
 	void openPrimerDesign();
 	void copyForPrimerGap();
-	void setStatus();
 
 private:
 	Ui::GapClosingDialog ui_;

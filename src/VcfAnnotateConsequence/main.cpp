@@ -1,6 +1,7 @@
 #include "ToolBase.h"
 #include "Settings.h"
 #include "NGSHelper.h"
+#include "Helper.h"
 #include "VcfFile.h"
 #include "VariantHgvsAnnotator.h"
 

@@ -62,6 +62,12 @@ public:
         return entry_index_;
     }
 
+	///Returns the file name
+	QString filename() const
+	{
+		return filename_;
+	}
+
 protected:
 	QString filename_;
 	gzFile gzfile_;
@@ -92,7 +98,7 @@ public:
     ~FastqOutfileStream();
 
     ///Writes an entry to the stream.
-    void write(const FastqEntry& entry);
+	void write(const FastqEntry& entry);
     ///Closes the stream.
     void close();
 
@@ -101,21 +107,11 @@ public:
 	{
 		return filename_;
 	}
-	int bufferSize() const
-	{
-		return buffer_size_;
-	}
-	void setBufferSize(int new_size)
-	{
-		buffer_size_ = new_size;
-	}
 
 protected:
     QString filename_;
-    gzFile gzfile_;
+	gzFile gzfile_;
 	bool is_closed_;
-	QByteArray buffer_;
-	int buffer_size_;
 
     //declared away methods
 	FastqOutfileStream(const FastqOutfileStream& ) = delete;

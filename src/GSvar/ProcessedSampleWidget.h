@@ -41,6 +41,7 @@ protected slots:
 	void deleteSampleData();
 	void loadVariantList();
 	void queueSampleAnalysis();
+	void showAnalysisInfo();
 
 	void openIgvTrack();
 	void somRepDeleted();
@@ -49,6 +50,10 @@ protected slots:
 	void openRunTab(QString name);
 	void openProjectTab(QString project_name);
 	void openProcessingSystemTab(QString system_short_name);
+
+	//RNA menu
+	void openExpressionWidget();
+	void openFusionWidget();
 
 	///Opens the processed sample edit dialog
 	void edit();

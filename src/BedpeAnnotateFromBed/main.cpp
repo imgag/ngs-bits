@@ -4,6 +4,7 @@
 #include "Settings.h"
 #include "VcfFile.h"
 #include "BedpeFile.h"
+#include "Helper.h"
 #include <QTextStream>
 #include <QFileInfo>
 #include <QElapsedTimer>
@@ -28,11 +29,15 @@ public:
 		addOutfile("out", "Output BEDPE file. If unset, writes to STDOUT.", true);
 		addInt("col", "Annotation source column (default: 4).", true, 4);
 		addString("col_name", "Name of the annotated column", true, "ANNOTATION");
-		addFlag("no_duplicates", "Remove duplicate annotations if several intervals from 'in2' overlap.");
+		addFlag("no_duplicates", "Remove duplicate annotations if several intervals from 'bed' overlap.");
 		addFlag("url_decode", "Decode URL encoded characters.");
 		addFlag("replace_underscore", "Replaces underscores with spaces in the annotation column.");
+		addFlag("max_value", "Select maximum value if several intervals from 'bed' overlap. (only for numeric columns)");
+		addFlag("only_breakpoints", "Only annotate overlaps with the confidence intervall of the break points.");
+
 
 		changeLog(2020, 1, 27, "Initial commit.");
+		changeLog(2022, 2, 17, "Added 'max_value' parameter.");
 	}
 
 	virtual void main()
@@ -46,6 +51,8 @@ public:
 		bool no_duplicates = getFlag("no_duplicates");
 		bool url_decode = getFlag("url_decode");
 		bool replace_underscore = getFlag("replace_underscore");
+		bool max_value = getFlag("max_value");
+		bool only_breakpoints = getFlag("only_breakpoints");
 
 
 		//load annotation database
@@ -66,7 +73,7 @@ public:
 
 		// create output buffer and copy comments and header
 		QByteArrayList output_buffer;
-		output_buffer.append(bedpe_file.comments());
+		output_buffer.append(bedpe_file.headers());
 		// get header
 		QByteArrayList header = bedpe_file.annotationHeaders();
 		// modify header if gene columns not already present
@@ -78,15 +85,28 @@ public:
 		for(int i=0; i<bedpe_file.count(); ++i)
 		{
 			BedpeLine line = bedpe_file[i];
-			BedFile affected_region = line.affectedRegion();
+			BedFile region;
+			if (only_breakpoints)
+			{
+				region.append(BedLine(line.chr1(), line.start1() + 1, line.end1() + 1));
+				if (line.type() != StructuralVariantType::INS)
+				{
+					//insertions only have 1 breakpoint
+					region.append(BedLine(line.chr2(), line.start2() + 1, line.end2() + 1));
+				}
+			}
+			else
+			{
+				region = line.affectedRegion();
+			}
 
 			//determine annotations
 			QByteArrayList additional_annotations;
 
-			for(int j=0; j<affected_region.count(); ++j)
+			for(int j=0; j<region.count(); ++j)
 			{
-				BedLine& region = affected_region[j];
-				QVector<int> indices = anno_index.matchingIndices(region.chr(), region.start(), region.end());
+				BedLine& line = region[j];
+				QVector<int> indices = anno_index.matchingIndices(line.chr(), line.start(), line.end());
 				foreach(int index, indices)
 				{
 					const BedLine& match = anno_file[index];
@@ -99,6 +119,20 @@ public:
 			}
 
 			// format additional annotation
+			if (max_value)
+			{
+				if (additional_annotations.size() > 0)
+				{
+					double max_value = Helper::toDouble(additional_annotations.at(0));
+					for (int i = 1; i < additional_annotations.size(); ++i)
+					{
+						max_value = std::max(max_value, Helper::toDouble(additional_annotations.at(i)));
+					}
+					// format value
+					additional_annotations = QByteArrayList() << QByteArray::number(max_value, 'f', (fmod(max_value, 1) == 0.0)? 0: 4);
+				}
+			}
+
 			if (no_duplicates)
 			{
 				std::sort(additional_annotations.begin(), additional_annotations.end());

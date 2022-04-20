@@ -20,12 +20,14 @@ struct CPPNGSDSHARED_EXPORT SomaticReportSettings
 	QString msi_file;
 	QString viral_file;
 
-	QMap<QByteArray, QByteArrayList> preferred_transcripts;
+	//hex representation of IGV snapshot
+	QByteArray igv_snapshot_png_hex_image;
+	//width of IGV snapshot in pixels
+	int igv_snapshot_width;
+	//height of IGV snapshot in pixels
+	int igv_snapshot_height;
 
-	//target region of processing system
-	BedFile processing_system_roi;
-	//genes that lie in processing systems target
-	GeneSet processing_system_genes;
+	QMap<QByteArray, QByteArrayList> preferred_transcripts;
 
 	TargetRegionInfo target_region_filter;
 

@@ -1,6 +1,35 @@
 #include "RtfDocument.h"
 #include "Helper.h"
 
+RtfPicture::RtfPicture(QByteArray png_data)
+	: png_data_(png_data)
+{
+}
+
+RtfSourceCode RtfPicture::RtfCode()
+{
+	QByteArrayList output;
+	output << "{";
+	output << "\\pict";
+	output << "\\pngblip";
+	if(width_ > 0) output << "\\picwgoal" + QByteArray::number(width_);
+	if(height_ > 0) output << "\\pichgoal" + QByteArray::number(height_);
+
+	//Split one line PNG data into many smaller lines
+	int pos = 0;
+	QList<QByteArray> parts;
+	while( pos < png_data_.size() )
+	{
+		QByteArray part = png_data_.mid(pos, 128);
+		parts << part;
+		pos += part.size();
+	}
+	output << parts.join("\n");
+
+	output << "}";
+
+	return output.join("\n");
+}
 
 RtfSourceCode RtfText::RtfCode()
 {
@@ -14,6 +43,7 @@ RtfSourceCode RtfText::RtfCode()
 
 	if(bold_) output << "\\b";
 	if(italic_) output << "\\i";
+	if(underline_) output << "\\ul";
 	if(highlight_color_ != 0) output << "\\highlight" + QByteArray::number(highlight_color_);
 
 

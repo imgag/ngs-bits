@@ -28,6 +28,8 @@ private:
 private slots:
 	///provide menu with options to select and deselect more than one row at once
 	void rightClickMenu(QPoint p);
+
+
 public slots:
 	///write settings to TumorOnlyReportWorkerConfig "config" which was passed to this Dialog
 	void writeBackSettings();

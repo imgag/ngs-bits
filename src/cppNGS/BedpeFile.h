@@ -3,12 +3,10 @@
 
 #include "cppNGS_global.h"
 #include "Chromosome.h"
-#include "Helper.h"
 #include "BedFile.h"
 #include "GeneSet.h"
-#include "VariantList.h"
-#include <QByteArrayList>
-#include <QMap>
+#include "VcfFile.h"
+#include "TSVFileStream.h"
 
 enum StructuralVariantType
 {
@@ -176,8 +174,10 @@ public:
 	///Default constructor (of an invalid file).
 	BedpeFile();
 
-	///Loads the file
+	///Loads the file (header and content).
 	void load(const QString& file_name);
+	///Loads the header, but no content lines.
+	void loadHeaderOnly(const QString& file_name);
 
 	///Returns if the file is valid. It is invalid e.g. after default-construction or calling clear().
 	bool isValid() const;
@@ -188,7 +188,7 @@ public:
 	void clear()
 	{
 		annotation_headers_.clear();
-		comments_.clear();
+		headers_.clear();
 		lines_.clear();
 	}
 
@@ -196,10 +196,13 @@ public:
 	{
 		return lines_.count();
 	}
-	const QList<QByteArray> comments() const
+	const QList<QByteArray>& headers() const
 	{
-		return comments_;
+		return headers_;
 	}
+
+	///Returns the genome build from the header or an empty string if it could not be determined.
+	QByteArray build();
 
 	///Read-only access to members
 	const BedpeLine& operator[](int index) const
@@ -279,11 +282,12 @@ public:
 	int findMatch(const BedpeLine& sv, bool deep_ins_compare = false, bool error_on_mismatch = true, bool compare_ci=true) const;
 
 private:
+	void parseHeader(const TSVFileStream& stream);
     void parseSampleHeaderInfo();
 	QList<QByteArray> annotation_headers_;
     /// annotation description in file header: ##DESCRIPTION=KEY=VALUE
 	QMap<QByteArray, QByteArray> annotation_descriptions_;
-	QList<QByteArray> comments_;
+	QList<QByteArray> headers_;
     SampleHeaderInfo sample_header_info_; //contains sample info of trio/multisample
 	QList<BedpeLine> lines_;
 

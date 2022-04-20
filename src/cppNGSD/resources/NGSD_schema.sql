@@ -319,9 +319,9 @@ CREATE  TABLE IF NOT EXISTS `user`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `user_id` VARCHAR(45) NOT NULL COMMENT 'Use the lower-case Windows domain name!',
   `password` VARCHAR(64) NOT NULL,
-  `user_role` ENUM('user','admin','special') NOT NULL,
+  `user_role` ENUM('user','user_restricted','admin','special') NOT NULL,
   `name` VARCHAR(45) NOT NULL,
-  `email` VARCHAR(45) NOT NULL,
+  `email` VARCHAR(100) NOT NULL,
   `created` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_login` DATETIME NULL DEFAULT NULL,
   `active` TINYINT(1) DEFAULT 1 NOT NULL,
@@ -329,6 +329,27 @@ CREATE  TABLE IF NOT EXISTS `user`
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`user_id` ASC),
   UNIQUE INDEX `email_UNIQUE` (`email` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `user_permissions`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `user_permissions`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `user_id` INT(11) NOT NULL,
+  `permission` ENUM('meta_data','project','project_type', 'study','sample') NOT NULL,
+  `data` VARCHAR(100) NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `user_id` (`user_id` ASC),
+  CONSTRAINT `user_id`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `user` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
@@ -344,7 +365,7 @@ CREATE  TABLE IF NOT EXISTS `sample`
   `name_external` VARCHAR(255) NULL DEFAULT NULL COMMENT 'External names.<br>If several, separate by comma!<br>Always enter full names, no short forms!',
   `received` DATE NULL DEFAULT NULL,
   `receiver_id` INT(11) NULL DEFAULT NULL,
-  `sample_type` ENUM('DNA','DNA (amplicon)','DNA (native)','RNA') NOT NULL,
+  `sample_type` ENUM('DNA','DNA (amplicon)','DNA (native)','RNA','cfDNA') NOT NULL,
   `species_id` INT(11) NOT NULL,
   `concentration` FLOAT NULL DEFAULT NULL,
   `volume` FLOAT NULL DEFAULT NULL,
@@ -359,6 +380,7 @@ CREATE  TABLE IF NOT EXISTS `sample`
   `sender_id` INT(11) NOT NULL,
   `disease_group` ENUM('n/a','Neoplasms','Diseases of the blood or blood-forming organs','Diseases of the immune system','Endocrine, nutritional or metabolic diseases','Mental, behavioural or neurodevelopmental disorders','Sleep-wake disorders','Diseases of the nervous system','Diseases of the visual system','Diseases of the ear or mastoid process','Diseases of the circulatory system','Diseases of the respiratory system','Diseases of the digestive system','Diseases of the skin','Diseases of the musculoskeletal system or connective tissue','Diseases of the genitourinary system','Developmental anomalies','Other diseases') NOT NULL DEFAULT 'n/a',
   `disease_status` ENUM('n/a','Affected','Unaffected','Unclear') NOT NULL DEFAULT 'n/a',
+  `tissue` ENUM('n/a','Blood','Buccal mucosa','Skin') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC),
   INDEX `fk_samples_species1` (`species_id` ASC),
@@ -591,6 +613,8 @@ CREATE  TABLE IF NOT EXISTS `variant_publication`
   `details` TEXT NOT NULL,
   `user_id` INT(11) NOT NULL,
   `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `result` TEXT DEFAULT NULL,
+  `replaced` BOOLEAN NOT NULL DEFAULT FALSE,
 PRIMARY KEY (`id`),
 CONSTRAINT `fk_variant_publication_has_user`
   FOREIGN KEY (`user_id`)
@@ -768,7 +792,7 @@ CREATE  TABLE IF NOT EXISTS `processed_sample_qc`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
   `qc_terms_id` INT(11) NOT NULL,
-  `value` VARCHAR(30) NOT NULL,
+  `value` TEXT NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `c_processing_id_qc_terms_id` (`processed_sample_id` ASC, `qc_terms_id` ASC),
   INDEX `fk_qcvalues_processing1` (`processed_sample_id` ASC),
@@ -941,6 +965,8 @@ CREATE TABLE IF NOT EXISTS `hpo_genes`
 (
   `hpo_term_id` INT(10) UNSIGNED NOT NULL,
   `gene` VARCHAR(40) CHARACTER SET 'utf8' NOT NULL,
+  `details` TEXT COMMENT 'Semicolon seperated pairs of database sources with evidences of where the connection was found (Source, Original Evidence, Evidence translated; Source2, ....)',
+  `evidence` ENUM('n/a','low','medium','high') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`hpo_term_id`, `gene`),
   CONSTRAINT `hpo_genes_ibfk_1`
     FOREIGN KEY (`hpo_term_id`)
@@ -1553,6 +1579,7 @@ CREATE  TABLE IF NOT EXISTS `sv_deletion`
   `start_max` INT(11) UNSIGNED NOT NULL,
   `end_min` INT(11) UNSIGNED NOT NULL,
   `end_max` INT(11) UNSIGNED NOT NULL,
+  `genotype` ENUM('hom','het', 'n/a') NOT NULL DEFAULT 'n/a',
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   PRIMARY KEY (`id`),
   CONSTRAINT `sv_del_references_sv_callset`
@@ -1579,6 +1606,7 @@ CREATE  TABLE IF NOT EXISTS `sv_duplication`
   `start_max` INT(11) UNSIGNED NOT NULL,
   `end_min` INT(11) UNSIGNED NOT NULL,
   `end_max` INT(11) UNSIGNED NOT NULL,
+  `genotype` ENUM('hom','het', 'n/a') NOT NULL DEFAULT 'n/a',
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   PRIMARY KEY (`id`),
   CONSTRAINT `sv_dup_references_sv_callset`
@@ -1607,6 +1635,7 @@ CREATE  TABLE IF NOT EXISTS `sv_insertion`
   `inserted_sequence` TEXT DEFAULT NULL,
   `known_left` TEXT DEFAULT NULL,
   `known_right` TEXT DEFAULT NULL,
+  `genotype` ENUM('hom','het', 'n/a') NOT NULL DEFAULT 'n/a',
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   PRIMARY KEY (`id`),
   CONSTRAINT `sv_ins_references_sv_callset`
@@ -1632,6 +1661,7 @@ CREATE  TABLE IF NOT EXISTS `sv_inversion`
   `start_max` INT(11) UNSIGNED NOT NULL,
   `end_min` INT(11) UNSIGNED NOT NULL,
   `end_max` INT(11) UNSIGNED NOT NULL,
+  `genotype` ENUM('hom','het', 'n/a') NOT NULL DEFAULT 'n/a',
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   PRIMARY KEY (`id`),
   CONSTRAINT `sv_inv_references_sv_callset`
@@ -1659,6 +1689,7 @@ CREATE  TABLE IF NOT EXISTS `sv_translocation`
   `chr2` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
   `start2` INT(11) UNSIGNED NOT NULL,
   `end2` INT(11) UNSIGNED NOT NULL,
+  `genotype` ENUM('hom','het', 'n/a') NOT NULL DEFAULT 'n/a',
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   PRIMARY KEY (`id`),
   CONSTRAINT `sv_bnd_references_sv_callset`
@@ -1826,7 +1857,7 @@ CREATE  TABLE IF NOT EXISTS `variant_validation`
   `sv_inversion_id` INT(11) UNSIGNED DEFAULT NULL,
   `sv_translocation_id` INT(11) UNSIGNED DEFAULT NULL,
   `genotype` ENUM('hom','het') DEFAULT NULL,
-  `validation_method` ENUM('Sanger sequencing', 'breakpoint PCR', 'qPCR', 'MLPA', 'Array', 'shallow WGS', 'n/a') NOT NULL DEFAULT 'n/a',
+  `validation_method` ENUM('Sanger sequencing', 'breakpoint PCR', 'qPCR', 'MLPA', 'Array', 'shallow WGS', 'fragment length analysis', 'n/a') NOT NULL DEFAULT 'n/a',
   `status` ENUM('n/a','to validate','to segregate','for reporting','true positive','false positive','wrong genotype') NOT NULL DEFAULT 'n/a',
   `comment` TEXT NULL DEFAULT NULL,
 PRIMARY KEY (`id`),
@@ -1917,7 +1948,7 @@ CONSTRAINT `fk_study_sample_has_ps`
   REFERENCES `processed_sample` (`id`)
   ON DELETE NO ACTION
   ON UPDATE NO ACTION,
-  UNIQUE INDEX `unique_sample_ps` (`processed_sample_id`, `study_sample_idendifier`),
+  UNIQUE INDEX `unique_sample_ps` (`study_id`, `processed_sample_id`),
 INDEX `i_study_sample_idendifier` (`study_sample_idendifier` ASC)
 )
 ENGINE = InnoDB
@@ -2103,3 +2134,49 @@ UNIQUE INDEX(`gene_name`)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `variant_literature`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `variant_literature`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `variant_id` INT(11) NOT NULL,
+  `pubmed` VARCHAR(12) CHARACTER SET 'utf8' NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX(`variant_id`),
+  UNIQUE INDEX `variant_literature_UNIQUE` (`variant_id` ASC, `pubmed` ASC),
+  CONSTRAINT `variant_literature_variant_id`
+    FOREIGN KEY (`variant_id`)
+    REFERENCES `variant` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `report_configuration_other_causal_variant`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `report_configuration_other_causal_variant`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `report_configuration_id` INT(11) NOT NULL,
+  `coordinates` TEXT NOT NULL,
+  `gene` TEXT NOT NULL,
+  `type` ENUM('RE', 'UPD', 'mosaic CNV', 'uncalled small variant', 'uncalled CNV', 'uncalled SV') NOT NULL,
+  `inheritance` ENUM('n/a', 'AR','AD','XLR','XLD','MT') NOT NULL,
+  `comment` TEXT NOT NULL,
+  `comment_reviewer1` TEXT NOT NULL,
+  `comment_reviewer2` TEXT NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `report_configuration_id_unique` (`report_configuration_id`),
+  CONSTRAINT `fk_report_configuration_id`
+    FOREIGN KEY (`report_configuration_id` )
+    REFERENCES `report_configuration` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+

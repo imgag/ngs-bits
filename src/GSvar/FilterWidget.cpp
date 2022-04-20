@@ -5,6 +5,7 @@
 #include "Log.h"
 #include "ScrollableTextDialog.h"
 #include "PhenotypeSelectionWidget.h"
+#include "PhenotypeSourceEvidenceSelector.h"
 #include "GUIHelper.h"
 #include "GSvarHelper.h"
 #include "DBSelector.h"
@@ -63,7 +64,16 @@ FilterWidget::FilterWidget(QWidget *parent)
 	{
 		Log::warn("Target region data for filter widget could not be loaded from NGSD: " + e.message());
 	}
-	loadFilters();
+
+	try
+	{
+		loadFilters();
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, "Filter load failed", "Filter file could not be opened:\n" + e.message());
+	}
+
 	reset(true);
 }
 
@@ -158,9 +168,9 @@ void FilterWidget::loadTargetRegionData(TargetRegionInfo& roi, QString name)
 
 		NGSD db;
 		int sys_id = db.processingSystemId(roi.name);
-		roi.regions = GlobalServiceProvider::database().processingSystemRegions(sys_id);
+		roi.regions = GlobalServiceProvider::database().processingSystemRegions(sys_id, false);
 		roi.regions.merge();
-		roi.genes = GlobalServiceProvider::database().processingSystemGenes(sys_id);
+		roi.genes = GlobalServiceProvider::database().processingSystemGenes(sys_id, true);
 	}
 	else //local target regions
 	{
@@ -177,13 +187,42 @@ void FilterWidget::loadTargetRegionData(TargetRegionInfo& roi, QString name)
 	}
 }
 
+void FilterWidget::checkGeneNames(const GeneSet& genes, QLineEdit* widget)
+{
+	if (!GlobalServiceProvider::database().enabled()) return;
+
+	QStringList errors;
+	NGSD db;
+	foreach(const QByteArray& gene, genes)
+	{
+		if (!db.approvedGeneNames().contains(gene))
+		{
+			QByteArray approved = db.geneToApproved(gene, false);
+			if (approved!="")
+			{
+				errors << "Gene symbol " + gene + " is not an approved HGNC symbol! Please use " + approved + "!";
+			}
+		}
+	}
+	if (errors.isEmpty())
+	{
+		widget->setToolTip("");
+		widget->setStyleSheet("");
+	}
+	else
+	{
+		widget->setToolTip(errors.join("\n"));
+		widget->setStyleSheet("QLineEdit {border: 2px solid red;}");
+	}
+}
+
 void FilterWidget::resetSignalsUnblocked(bool clear_roi)
 {
 	//filter cols
 	ui_.cascade_widget->clear();
 	ui_.filters->setCurrentIndex(0);
 
-    //rois
+	//rois
 	if (clear_roi)
 	{
 		ui_.roi->setCurrentIndex(1);
@@ -192,8 +231,8 @@ void FilterWidget::resetSignalsUnblocked(bool clear_roi)
 	}
 
 	//gene
-    last_genes_.clear();
-    ui_.gene->clear();
+	last_genes_.clear();
+	ui_.gene->clear();
 	ui_.text->clear();
 	ui_.region->clear();
 	ui_.report_config->setCurrentIndex(0);
@@ -323,6 +362,28 @@ void FilterWidget::setPhenotypes(const PhenotypeList& phenotypes)
 	phenotypesChanged();
 }
 
+const QList<PhenotypeSource::Source>& FilterWidget::allowedPhenotypeSources() const
+{
+	return allowed_phenotype_sources_;
+}
+
+const QList<PhenotypeEvidence::Evidence>& FilterWidget::allowedPhenotypeEvidences() const
+{
+	return allowed_phenotype_evidences_;
+}
+
+void FilterWidget::setAllowedPhenotypeSources(QList<PhenotypeSource::Source> sources)
+{
+	allowed_phenotype_sources_ = sources;
+}
+
+
+void FilterWidget::setAllowedPhenotypeEvidences(QList<PhenotypeEvidence::Evidence> evidences)
+{
+	allowed_phenotype_evidences_ = evidences;
+}
+
+
 const FilterCascade& FilterWidget::filters() const
 {
 	return ui_.cascade_widget->filters();
@@ -404,7 +465,15 @@ void FilterWidget::roiSelectionChanged(int index)
 
 	//load target region data
 	QString roi_name = ui_.roi->itemData(index).toString().trimmed();
-	loadTargetRegionData(roi_, roi_name);
+	try
+	{
+		loadTargetRegionData(roi_, roi_name);
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, "Error loading target region '" + roi_.name + "'", e.message());
+		clearTargetRegion();
+	}
 
 	if(index!=0)
 	{
@@ -418,6 +487,7 @@ void FilterWidget::geneChanged()
 	if (genes()!=last_genes_)
 	{
 		last_genes_ = genes();
+		checkGeneNames(last_genes_, ui_.gene);
 		emit filtersChanged();
 	}
 }
@@ -449,14 +519,45 @@ void FilterWidget::phenotypesChanged()
 	ui_.hpo_terms->setText(tmp.join("; "));
 
 	QString tooltip = "Phenotype/inheritance filter based on HPO terms.<br><br>Notes:<br>- This functionality is only available when NGSD is enabled.<br>- Filters based on the phenotype-associated gene loci including 5000 flanking bases.";
+
+	if ( (!phenotypes_.isEmpty()) | (! allowed_phenotype_evidences_.isEmpty()) | (! allowed_phenotype_sources_.isEmpty()))
+	{
+		tooltip += "<br>";
+	}
+
 	if (!phenotypes_.isEmpty())
 	{
-		tooltip += "<br><br><nobr>Currently selected HPO terms:</nobr>";
+		tooltip += "<br><nobr>Currently selected HPO terms:</nobr>";
 		foreach(const Phenotype& pheno, phenotypes_)
 		{
 			tooltip += "<br><nobr>" + pheno.toString() + "</nobr>";
 		}
 	}
+
+	if (! allowed_phenotype_evidences_.isEmpty())
+	{
+		tooltip += "<br><nobr>Currently selected evidences:</nobr>";
+		tooltip += "<br><nobr>";
+		foreach(const PhenotypeEvidence::Evidence& e, allowed_phenotype_evidences_)
+		{
+			tooltip += PhenotypeEvidence::evidenceToString(e) + ", ";
+		}
+		tooltip.chop(2);
+		tooltip += "</nobr>";
+	}
+
+	if (! allowed_phenotype_sources_.isEmpty())
+	{
+		tooltip += "<br><nobr>Currently selected Sources:</nobr>";
+		tooltip += "<br><nobr>";
+		foreach(const PhenotypeSource::Source& s, allowed_phenotype_sources_)
+		{
+			tooltip += PhenotypeSource::sourceToString(s) + ", ";
+		}
+		tooltip.chop(2);
+		tooltip += "</nobr>";
+	}
+
 	ui_.hpo_terms->setToolTip(tooltip);
 
 	emit filtersChanged();
@@ -546,6 +647,7 @@ void FilterWidget::editPhenotypes()
 	//edit
 	PhenotypeSelectionWidget* selector = new PhenotypeSelectionWidget(this);
 	selector->setPhenotypes(phenotypes_);
+
 	auto dlg = GUIHelper::createDialog(selector, "Select HPO terms", "", true);
 
 	//update
@@ -564,6 +666,8 @@ void FilterWidget::showPhenotypeContextMenu(QPoint pos)
 	{
 		menu.addAction("load from NGSD");
 		menu.addAction("create sub-panel");
+		menu.addSeparator();
+		menu.addAction("options");
 		menu.addSeparator();
 	}
 	if (!phenotypes_.isEmpty())
@@ -587,6 +691,23 @@ void FilterWidget::showPhenotypeContextMenu(QPoint pos)
 	else if (action->text()=="create sub-panel")
 	{
 		emit phenotypeSubPanelRequested();
+	}
+	else if (action->text()=="options")
+	{
+		PhenotypeSourceEvidenceSelector* selector = new PhenotypeSourceEvidenceSelector(this);
+		selector->setEvidences(allowedPhenotypeEvidences());
+		selector->setSources(allowedPhenotypeSources());
+
+		auto dlg = GUIHelper::createDialog(selector, "Phenotype Filter Options", "", true);
+
+		//update
+		if (dlg->exec()==QDialog::Accepted)
+		{
+			allowed_phenotype_evidences_ = selector->selectedEvidences();
+			allowed_phenotype_sources_ = selector->selectedSources();
+			emit phenotypeSourcesAndEvidencesChanged(allowed_phenotype_evidences_, allowed_phenotype_sources_);
+			phenotypesChanged();
+		}
 	}
 }
 

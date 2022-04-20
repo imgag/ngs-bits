@@ -8,6 +8,7 @@
 #include <QDesktopServices>
 #include <QProcess>
 #include <QDialog>
+#include <QMessageBox>
 
 ProcessingSystemWidget::ProcessingSystemWidget(QWidget* parent, int sys_id)
 	: QWidget(parent)
@@ -37,23 +38,49 @@ void ProcessingSystemWidget::updateGUI()
 	ui_.type->setText(ps_data.type);
 	ui_.shotgun->setText(ps_data.shotgun ? "yes" : "no");
 	ui_.umi->setText(ps_data.umi_type);
-	ui_.genome->setText(ps_data.genome);
+
+	//genome build
+	QString build = ps_data.genome;
+	if (GSvarHelper::build()==GenomeBuild::HG38 && build=="GRCh37")
+	{
+		build = "<font color='red'>" + build + "</font>";
+	}
+	ui_.genome->setText(build);
 
 	//###target region infos###
-	BedFile roi = GlobalServiceProvider::database().processingSystemRegions(sys_id_);
-	if (!roi.isEmpty())
+	try
 	{
-		ui_.roi_bases->setText(QString::number(roi.baseCount(), 'f', 0));
-		ui_.roi_regions->setText(QString::number(roi.count(), 'f', 0));
+		BedFile roi = GlobalServiceProvider::database().processingSystemRegions(sys_id_, false);
+		if (!roi.isEmpty())
+		{
+			ui_.roi_bases->setText(QString::number(roi.baseCount(), 'f', 0));
+			ui_.roi_regions->setText(QString::number(roi.count(), 'f', 0));
+		}
 	}
-	GeneSet roi_genes = GlobalServiceProvider::database().processingSystemGenes(sys_id_);
-	if (!roi_genes.isEmpty())
+	catch (Exception& e)
 	{
-		ui_.roi_genes->setText(QString::number(roi_genes.count(), 'f', 0));
+		ui_.roi_bases->setText("<font color='red'>" + e.message() + "</font>");
+		ui_.roi_regions->setText("<font color='red'>" + e.message() + "</font>");
+	}
+
+	try
+	{
+		if (ps_data.type!="WGS") //no genes file for WGS
+		{
+			GeneSet roi_genes = GlobalServiceProvider::database().processingSystemGenes(sys_id_, true);
+			if (!roi_genes.isEmpty())
+			{
+				ui_.roi_genes->setText(QString::number(roi_genes.count(), 'f', 0));
+			}
+		}
+	}
+	catch (Exception& e)
+	{
+		ui_.roi_genes->setText("<font color='red'>" + e.message() + "</font>");
 	}
 
 	//###processed sample###
-	QString samples = db.getValue("SELECT COUNT(id) FROM processed_sample WHERE processing_system_id=" + QString::number(sys_id_)).toString();
+	QString samples = db.getValue("SELECT COUNT(id) FROM processed_sample WHERE processing_system_id=" + QString::number(sys_id_) + " AND id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)").toString();
 	ui_.number_of_samples_processed->setText(samples);
 
 	QApplication::restoreOverrideCursor();
@@ -79,8 +106,24 @@ void ProcessingSystemWidget::edit()
 
 void ProcessingSystemWidget::openRoiInIGV()
 {
-	//load ROI
-	BedFile roi = GlobalServiceProvider::database().processingSystemRegions(sys_id_);
+	QString title = "Show target region in IGV";
+
+	BedFile roi;
+	try
+	{
+		roi = GlobalServiceProvider::database().processingSystemRegions(sys_id_, false);
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, title, "Target region could not be load:\n" + e.message());
+		return;
+	}
+
+	if (roi.isEmpty())
+	{
+		QMessageBox::warning(this, title, "Target region is empty!");
+		return;
+	}
 
 	//store to temporary file
 	QString roi_file = GSvarHelper::localRoiFolder() + ui_.name_short->text().trimmed() + ".bed";
@@ -88,4 +131,5 @@ void ProcessingSystemWidget::openRoiInIGV()
 	roi.store(roi_file);
 
 	GlobalServiceProvider::loadFileInIGV(roi_file, false);
+
 }

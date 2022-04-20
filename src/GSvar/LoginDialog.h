@@ -15,6 +15,7 @@ public:
 
 	//Returns the user name that successfully logged in.
 	QString userName() const;
+	QString password() const;
 
 protected slots:
 	void clear();
@@ -23,6 +24,7 @@ protected slots:
 private:
 	Ui::LoginDialog ui_;
 	QString user_name_;
+	QString password_;
 };
 
 #endif // LOGINDIALOG_H

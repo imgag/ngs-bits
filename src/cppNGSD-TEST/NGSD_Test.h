@@ -10,6 +10,7 @@
 #include <QThread>
 #include <cmath>
 #include <QCoreApplication>
+#include <iostream>
 
 TEST_CLASS(NGSD_Test)
 {
@@ -104,10 +105,23 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in1.sql"));
 
 		//log in user
-		LoginManager::login("ahmustm1", true);
+		LoginManager::login("ahmustm1", "", true);
 
 		//escapeText
 		S_EQUAL(db.escapeText("; '"), "'; '''");
+
+		//tableExists
+		IS_TRUE(db.tableExists("user", false));
+		IS_FALSE(db.tableExists("user_missing", false));
+
+		//tableEmpty
+		IS_FALSE(db.tableEmpty("user"));
+		IS_TRUE(db.tableEmpty("gaps"));
+
+		//rowExists
+		IS_TRUE(db.rowExists("user", 99)); //ahmustm1
+		IS_TRUE(db.rowExists("user", 101)); //ahkerra1
+		IS_FALSE(db.rowExists("user", 666));
 
 		//getEnum
 		QStringList enum_values = db.getEnum("sample", "disease_group");
@@ -654,7 +668,16 @@ private slots:
 		S_EQUAL(som_class_info.classification, "inactivating");
 		S_EQUAL(som_class_info.comments, "som_class_comm2");
 
-
+		//addPubmedId
+		db.addPubmedId(199844, "12345678");
+		db.addPubmedId(199844, "87654321");
+		QStringList pubmed_ids = db.pubmedIds("199844");
+		pubmed_ids.sort();
+		S_EQUAL(pubmed_ids.at(0), "12345678");
+		S_EQUAL(pubmed_ids.at(1), "87654321");
+		//check that duplicate entries are ignored
+		db.addPubmedId(199844, "12345678");
+		I_EQUAL(db.pubmedIds("199844").count(), 2);
 
 		//analysisInfo
 		AnalysisJob analysis_job = db.analysisInfo(-1, false);
@@ -810,50 +833,52 @@ private slots:
 		ProcessedSampleSearchParameters params;
 		DBTable ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 19);
+		I_EQUAL(ps_table.columnCount(), 20);
 		//add path
 		params.add_path = "SAMPLE_FOLDER";
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 20);
+		I_EQUAL(ps_table.columnCount(), 21);
 		//add outcome
 		params.add_outcome = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 22);
+		I_EQUAL(ps_table.columnCount(), 23);
 		//add disease details
 		params.add_disease_details = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 31);
+		I_EQUAL(ps_table.columnCount(), 32);
 		//add QC
 		params.add_qc = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 70);
+		I_EQUAL(ps_table.columnCount(), 71);
 		//add report config
 		params.add_report_config = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 71);
-		S_EQUAL(ps_table.row(0).value(70), "");
-		S_EQUAL(ps_table.row(4).value(70), "exists, causal variant: chr9:98232224-98232224 A>- (genotype:het genes:PTCH1), causal CNV: chr1:3000-4000 (cn:1 classification:4)");
+		I_EQUAL(ps_table.columnCount(), 72);
+		S_EQUAL(ps_table.row(0).value(71), "");
+		S_EQUAL(ps_table.row(4).value(71), "exists, causal variant: chr9:98232224-98232224 A>- (genotype:het genes:PTCH1), causal CNV: chr1:3000-4000 (cn:1 classification:4), causal uncalled CNV: chr2:123456-789012 (genes: EPRS)");
 		//add comments
 		params.add_comments = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 73);
-		S_EQUAL(ps_table.headers().at(19), "comment_sample");
-		S_EQUAL(ps_table.headers().at(20), "comment_processed_sample");
-		S_EQUAL(ps_table.row(0).value(19), "comment_s6");
-		S_EQUAL(ps_table.row(0).value(20), "comment_ps7");
+		I_EQUAL(ps_table.columnCount(), 74);
+		S_EQUAL(ps_table.headers().at(20), "comment_sample");
+		S_EQUAL(ps_table.headers().at(21), "comment_processed_sample");
+		S_EQUAL(ps_table.row(0).value(20), "comment_s6");
+		S_EQUAL(ps_table.row(0).value(21), "comment_ps7");
 
 
 		//apply all search parameters
 		params.s_name = "NA12878";
 		params.s_species = "human";
+		params.s_type = "DNA";
 		params.s_sender = "Coriell";
 		params.s_study = "SomeStudy";
+		params.s_tissue = "Blood";
 		params.include_bad_quality_samples = false;
 		params.include_tumor_samples = false;
 		params.include_ffpe_samples = false;
@@ -868,7 +893,7 @@ private slots:
 		params.r_before = QDate::fromString("2021-02-19", Qt::ISODate);
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 2);
-		I_EQUAL(ps_table.columnCount(), 73);
+		I_EQUAL(ps_table.columnCount(), 74);
 
 		//reportConfigId
 		QString ps_id = db.processedSampleId("NA12878_03");
@@ -1010,7 +1035,7 @@ private slots:
 		vl.clear();
 		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
 		I_EQUAL(messages2.count(), 1);
-		S_EQUAL(messages2[0], "Could not find variant 'chr2:47635523-47635523 ->T' in given variant list!");
+		S_EQUAL(messages2[0], "Could not find variant 'chr2:47635523-47635523 ->T' in given variant list. The report configuration of this variant will be lost if you change anything in the report configuration!");
 		I_EQUAL(report_conf2->variantConfig().count(), 2);
 		X_EQUAL(report_conf2->variantConfig()[0].variant_type, VariantType::CNVS);
 
@@ -1314,6 +1339,54 @@ private slots:
 		removed_regions_db.clearHeaders();
 		S_EQUAL(removed_regions.toText(), removed_regions_db.toText());
 
+		//############################### variant publication ###############################
+		variant = db.variant("199844");
+		db.addVariantPublication("NA12878_03.GSvar", variant, "ClinVar", "5", "submission_id=SUB00001234;blabla...");
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT id, sample_id, class, details, user_id, result, replaced FROM variant_publication WHERE variant_id=199844");
+		I_EQUAL(query.size(), 1);
+		query.next();
+		I_EQUAL(query.value("sample_id").toInt(), 1);
+		I_EQUAL(query.value("class").toInt(), 5);
+		S_EQUAL(query.value("details").toString(), "submission_id=SUB00001234;blabla...");
+		I_EQUAL(query.value("user_id").toInt(), 99);
+		S_EQUAL(query.value("result").toString(), "");
+		IS_FALSE(query.value("replaced").toBool());
+
+		int vp_id = query.value("id").toInt();
+		db.updateVariantPublicationResult(vp_id, "processed;SCV12345678");
+		query.exec("SELECT id, sample_id, class, details, user_id, result FROM variant_publication WHERE variant_id=199844");
+		I_EQUAL(query.size(), 1);
+		query.next();
+		I_EQUAL(query.value("sample_id").toInt(), 1);
+		I_EQUAL(query.value("class").toInt(), 5);
+		S_EQUAL(query.value("details").toString(), "submission_id=SUB00001234;blabla...");
+		I_EQUAL(query.value("user_id").toInt(), 99);
+		S_EQUAL(query.value("result").toString(), "processed;SCV12345678");
+
+		IS_TRUE(db.getVariantPublication("NA12878_03.GSvar", variant).startsWith("db: ClinVar class: 5 user: Max Mustermann date: "));
+
+		db.flagVariantPublicationAsReplaced(vp_id);
+		query.exec("SELECT replaced FROM variant_publication WHERE variant_id=199844");
+		I_EQUAL(query.size(), 1);
+		query.next();
+		IS_TRUE(query.value("replaced").toBool());
+
+		//test with invalid IDs
+		IS_THROWN(DatabaseException, db.updateVariantPublicationResult(-42, "processed;SCV12345678"));
+		IS_THROWN(DatabaseException, db.flagVariantPublicationAsReplaced(-42));
+
+		//############################### gaps ###############################
+		int gap_id = db.addGap(3999, "chr1", 5000, 6000, "to close");
+		I_EQUAL(db.gapId(3999, "chr1", 5000, 6000), gap_id);
+		I_EQUAL(db.gapId(3999, "chr2", 5001, 6001), -1);
+
+		db.updateGapStatus(gap_id, "closed");
+		db.updateGapStatus(gap_id, "closed");
+		IS_TRUE(db.getValue("SELECT history FROM gaps WHERE id=" + QString::number(gap_id)).toString().contains("closed"));
+
+		db.addGapComment(gap_id, "my_comment");
+		IS_TRUE(db.getValue("SELECT history FROM gaps WHERE id=" + QString::number(gap_id)).toString().contains("my_comment"));
 	}
 
 	inline void report_germline()
@@ -1327,7 +1400,7 @@ private slots:
 		NGSD db(true);
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in2.sql"));
-		LoginManager::login("ahmustm1", true);
+		LoginManager::login("ahmustm1", "", true);
 
 		QDate report_date = QDate::fromString("2021-02-19", Qt::ISODate);
 
@@ -1337,7 +1410,8 @@ private slots:
 		CnvList cnvs;
 		cnvs.load(TESTDATA("../cppNGS-TEST/data_in/panel_cnvs_clincnv.tsv"));
 		BedpeFile svs;
-		svs.load(TESTDATA("../cppNGS-TEST/data_in/panel_svs.bedpe"));
+		svs.load(TESTDATA("/data_in/sv_manta.bedpe"));
+
 		PrsTable prs;
 		prs.load(TESTDATA("../cppNGS-TEST/data_in/panel_prs.tsv"));
 		ReportSettings report_settings;
@@ -1349,11 +1423,12 @@ private slots:
 		report_settings.show_omim_table = false;
 		report_settings.show_one_entry_in_omim_table = false;
 		report_settings.show_class_details = false;
+
 		FilterCascade filters;
 		filters.add(QSharedPointer<FilterBase>(new FilterAlleleFrequency()));
 		QMap<QByteArray, QByteArrayList> preferred_transcripts;
 		preferred_transcripts.insert("SPG7", QByteArrayList() << "ENST00000268704");
-		GermlineReportGeneratorData data(GenomeBuild::HG19, "NA12878_03", variants, cnvs, svs, prs, report_settings, filters, preferred_transcripts);
+		GermlineReportGeneratorData data(GenomeBuild::HG38, "NA12878_03", variants, cnvs, svs, prs, report_settings, filters, preferred_transcripts);
 		data.processing_system_roi.load(TESTDATA("../cppNGS-TEST/data_in/panel.bed"));
 		data.ps_bam = TESTDATA("../cppNGS-TEST/data_in/panel.bam");
 		data.ps_lowcov = TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed");
@@ -1371,6 +1446,7 @@ private slots:
 
 		//############################### TEST 2 - with variants, with target region, all optional parts enabled ###############################
 		{
+
 			report_settings.selected_variants.append(qMakePair(VariantType::SNVS_INDELS, 252)); //small variant - chr13:41367370 C>G (SPG7)
 			ReportVariantConfiguration var_conf;
 			var_conf.variant_type = VariantType::SNVS_INDELS;
@@ -1402,15 +1478,46 @@ private slots:
 			var_conf.report_type = "diagnostic variant";
 			report_settings.report_config->set(var_conf);
 
-			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 0)); //SV - breakpoint
+			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 3)); //SV - Insertion
 			var_conf.variant_type = VariantType::SVS;
-			var_conf.variant_index = 0;
+			var_conf.variant_index = 3;
 			var_conf.causal = false;
 			var_conf.mosaic = false;
 			var_conf.de_novo = false;
 			var_conf.comp_het = false;
 			var_conf.report_type = "diagnostic variant";
 			report_settings.report_config->set(var_conf);
+
+			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 12)); //SV - breakpoint
+			var_conf.variant_type = VariantType::SVS;
+			var_conf.variant_index = 12;
+			var_conf.causal = false;
+			var_conf.mosaic = false;
+			var_conf.de_novo = false;
+			var_conf.comp_het = false;
+			var_conf.report_type = "diagnostic variant";
+			report_settings.report_config->set(var_conf);
+
+			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 16)); //SV - Deletion
+			var_conf.variant_type = VariantType::SVS;
+			var_conf.variant_index = 16;
+			var_conf.causal = false;
+			var_conf.mosaic = false;
+			var_conf.de_novo = false;
+			var_conf.comp_het = false;
+			var_conf.report_type = "diagnostic variant";
+			report_settings.report_config->set(var_conf);
+
+			OtherCausalVariant causal_variant;
+			causal_variant.coordinates = "chr2:123456-789012";
+			causal_variant.gene = "EPRS";
+			causal_variant.type = "uncalled CNV";
+			causal_variant.inheritance = "AR";
+			causal_variant.comment = "This is a comment!\n And it has\n multiple lines!\n";
+			causal_variant.comment_reviewer1 = "This is a comment from reviewer1!";
+			causal_variant.comment_reviewer2 = "This is a comment from reviewer2!";
+			report_settings.report_config->setOtherCausalVariant(causal_variant);
+			report_settings.select_other_causal_variant = true;
 
 			report_settings.show_coverage_details = true;
 			report_settings.roi_low_cov = true;
@@ -1427,13 +1534,11 @@ private slots:
 
 			GermlineReportGenerator generator(data, true);
 			generator.overrideDate(report_date);
-
 			generator.writeHTML("out/germline_report2.html");
 			COMPARE_FILES("out/germline_report2.html", TESTDATA("data_out/germline_report2.html"));
 			generator.writeXML("out/germline_report2.xml", "out/germline_report2.html");
 			COMPARE_FILES("out/germline_report2.xml", TESTDATA("data_out/germline_report2.xml"));
 		}
-
 
 		//############################### TEST 3 - english ###############################
 		{
@@ -1446,8 +1551,21 @@ private slots:
 			COMPARE_FILES("out/germline_report3.html", TESTDATA("data_out/germline_report3.html"));
 		}
 
+		//############################### TEST 4 - report type 'all' ###############################
+		{
+			report_settings.report_type = "all";
+			report_settings.language = "german";
 
-		//############################### TEST 4 - evaluation sheet ###############################
+			GermlineReportGenerator generator(data, true);
+			generator.overrideDate(report_date);
+
+			generator.writeHTML("out/germline_report4.html");
+			COMPARE_FILES("out/germline_report4.html", TESTDATA("data_out/germline_report4.html"));
+			generator.writeXML("out/germline_report4.xml", "out/germline_report4.html");
+			COMPARE_FILES("out/germline_report4.xml", TESTDATA("data_out/germline_report4.xml"));
+		}
+
+		//############################### TEST 5 - evaluation sheet ###############################
 		{
 			GermlineReportGenerator generator(data, true);
 			generator.overrideDate(report_date);
@@ -1494,7 +1612,7 @@ private slots:
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in1.sql"));
 		//log in user
-		LoginManager::login("ahmustm1", true);
+		LoginManager::login("ahmustm1", "", true);
 
 
 
@@ -1806,6 +1924,9 @@ private slots:
 		settings.report_config = res_config;
 		settings.tumor_ps = "DX184894_01";
 		settings.normal_ps = "DX184263_01";
+		settings.target_region_filter.name = "SureSelect Somatic vTEST";
+		settings.target_region_filter.genes = GeneSet::createFromFile(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test_genes.txt"));;
+		settings.target_region_filter.regions.load(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test.bed"));
 
 
 		//Test somatic XML report
@@ -1815,8 +1936,8 @@ private slots:
 		CnvList cnvs_filtered = SomaticReportSettings::filterCnvs(cnvs,settings);
 
 		SomaticXmlReportGeneratorData xml_data(GenomeBuild::HG19, settings, vl_filtered, vl_germl_filtered, cnvs_filtered);
-		xml_data.processing_system_roi.load(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test.bed"));
-		xml_data.processing_system_genes = GeneSet::createFromFile(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test_genes.txt"));
+
+
 		IS_THROWN(ArgumentException, xml_data.check());
 
 		xml_data.mantis_msi = 0.74;
@@ -1825,10 +1946,22 @@ private slots:
 		xml_data.tumor_content_clonality = 0.8;
 		xml_data.tumor_content_snvs = 0.73;
 
+		xml_data.rtf_part_summary = "I am the summary part of the RTF report";
+		xml_data.rtf_part_relevant_variants = "relevant SNVs and INDELs";
+		xml_data.rtf_part_unclear_variants = "unclear SNVs";
+		xml_data.rtf_part_cnvs = "chromosomal aberrations";
+		xml_data.rtf_part_svs = "Fusions";
+		xml_data.rtf_part_pharmacogenetics = "RTF pharmacogenomics table";
+		xml_data.rtf_part_general_info = "general meta data";
+		xml_data.rtf_part_igv_screenshot = "89504E470D0A1A0A0000000D4948445200000002000000020802000000FDD49A73000000097048597300002E2300002E230178A53F76000000164944415408D763606060686E6E66F8FFFFFF7F0606001FCD0586CC377DEC0000000049454E44AE426082";
+		xml_data.rtf_part_mtb_summary = "MTB summary";
 
-		QString out = SomaticXmlReportGenerator::generateXML(xml_data, db, true);
 
-		Helper::storeTextFile("out/somatic_report.xml", out.split("\n"));
+
+		QSharedPointer<QFile> out_file = Helper::openFileForWriting("out/somatic_report.xml");
+		SomaticXmlReportGenerator::generateXML(xml_data, out_file, db, true);
+		out_file->close();
+
 		COMPARE_FILES("out/somatic_report.xml", TESTDATA("data_out/somatic_report.xml"));
 
 
@@ -2067,9 +2200,19 @@ private slots:
 		config.filter_result = filters.apply(vl);
 		config.low_coverage_file = TESTDATA("data_in/tumor_only_stat_lowcov.bed");
 		config.preferred_transcripts.insert("MITF", QByteArrayList() << "ENST00000314589");
-		config.ps = "DX000001_01";
+
+		ProcessingSystemData sys;
+		sys.name = "tumor only test panel";
+		sys.type = "Panel";
+		config.sys = sys;
+
+		ProcessedSampleData ps_data;
+		ps_data.name = "DX000001_01";
+		ps_data.comments = "MHH_STUFF_IN_COMMENT";
+		config.ps_data = ps_data;
+
 		config.roi.name = "tum_only_target_filter";
-		config.roi.genes = GeneSet::createFromStringList(QStringList() << "MITF");
+		config.roi.genes = GeneSet::createFromStringList(QStringList() << "MITF" << "SYNPR");
 
 		BedFile tum_only_roi_filter;
 		tum_only_roi_filter.load(TESTDATA("data_in/tumor_only_target_region.bed"));
@@ -2078,6 +2221,7 @@ private slots:
 		config.include_coverage_per_gap = true;
 		config.include_exon_number_per_gap = true;
 		config.use_test_db = true;
+		config.build = GenomeBuild::HG19;
 
 		//create RTF report with 2 SNVs and two gaps
 		TumorOnlyReportWorker report_worker(vl, config);
@@ -2086,8 +2230,13 @@ private slots:
 
 		REMOVE_LINES("out/tumor_only_report.rtf", QRegExp(QDate::currentDate().toString("dd.MM.yyyy").toUtf8())); //today's date
 		REMOVE_LINES("out/tumor_only_report.rtf", QRegExp(QCoreApplication::applicationName().toUtf8())); //application name and version
-
 		COMPARE_FILES("out/tumor_only_report.rtf", TESTDATA("data_out/tumor_only_report.rtf"));
+
+
+		//create XML report
+		report_worker.writeXML("out/tumor_only_report.xml", true);
+
+		COMPARE_FILES("out/tumor_only_report.xml",  TESTDATA("data_out/tumor_only_report.xml") );
 	}
 
 

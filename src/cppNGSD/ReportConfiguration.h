@@ -16,7 +16,7 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	bool showInReport() const;
 
 	VariantType variant_type;
-	int variant_index;
+	int variant_index; //index of the variant in the variant/CNV/SV list
 
 	QString report_type;
 	bool causal;
@@ -41,6 +41,26 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	static QStringList getClassificationOptions();
 };
 
+///struct to handle other causal variants
+struct CPPNGSDSHARED_EXPORT OtherCausalVariant
+{
+	QString coordinates;
+	QString gene;
+	QString type;
+	QString inheritance;
+	QString comment;
+	QString comment_reviewer1;
+	QString comment_reviewer2;
+
+	bool isValid() const
+	{
+		if(type.trimmed().isEmpty()) return false;
+		if(coordinates.isEmpty()) return false;
+		if(inheritance.trimmed().isEmpty()) return false;
+		return true;
+	}
+};
+
 
 ///Report configuration
 class CPPNGSDSHARED_EXPORT ReportConfiguration
@@ -60,6 +80,10 @@ public:
 	bool exists(VariantType type, int index) const;
 	///Returns the matching report configuration (throws an error if not found).
 	const ReportVariantConfiguration& get(VariantType type, int index) const;
+	///Returns other causal variant
+	OtherCausalVariant otherCausalVariant();
+	///Set other causal variant
+	void setOtherCausalVariant(const OtherCausalVariant& causal_variant);
 	///Sets the report configuration for the variant. Returns if it already existed.
 	void set(const ReportVariantConfiguration& config);
 	///Removes the matching configuration. Returns if a configuration was removed.
@@ -100,6 +124,7 @@ signals:
 
 private:
 	QList<ReportVariantConfiguration> variant_config_;
+	OtherCausalVariant other_causal_variant_;
 
 	QString created_by_;
 	QDateTime created_at_;

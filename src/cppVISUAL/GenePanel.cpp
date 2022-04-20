@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QPainter>
 #include <QMenu>
+#include <QToolTip>
 
 GenePanel::GenePanel(QWidget *parent)
 	: QWidget(parent)
@@ -34,7 +35,10 @@ void GenePanel::contextMenu(QPoint pos)
 	QAction* a_flip_strand = menu.addAction("Flip strand");
 	QAction* a_show_translation = menu.addAction("Show translation");
 	a_show_translation->setCheckable(true);
-	a_show_translation->setChecked(settings_.show_translation_);
+	a_show_translation->setChecked(settings_.show_translation);
+	QAction* a_show_ensebl_only = menu.addAction("Show only Ensembl transcripts");
+	a_show_ensebl_only->setCheckable(true);
+	a_show_ensebl_only->setChecked(settings_.show_only_ensembl);
 
 	//show menu
 	QAction* action = menu.exec(mapToGlobal(pos));
@@ -42,12 +46,17 @@ void GenePanel::contextMenu(QPoint pos)
 	//perform action
 	if (action==a_flip_strand)
 	{
-		settings_.strand_forward_ = !settings_.strand_forward_;
+		settings_.strand_forward = !settings_.strand_forward;
 		update();
 	}
 	else if (action==a_show_translation)
 	{
-		settings_.show_translation_ = !settings_.show_translation_;
+		settings_.show_translation = !settings_.show_translation;
+		update();
+	}
+	else if (action==a_show_ensebl_only)
+	{
+		settings_.show_only_ensembl = !settings_.show_only_ensembl;
 		update();
 	}
 }
@@ -63,7 +72,7 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 	QPainter painter(this);
 	char_size_ = characterSize(painter.font());
 	pixels_per_base_ = (double)(w-settings_.label_width-4) / (double)reg_.length();
-	int h_start_content = 2;
+	int y_content_start = 2;
 
 	//backgroud
 	painter.fillRect(0,0, w,h, QBrush(Qt::white));
@@ -71,20 +80,20 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 	//paint label region
 	painter.drawLine(QPoint(settings_.label_width, 0), QPoint(settings_.label_width, h));
 	painter.drawText(QRect(2,2, settings_.label_width-4, settings_.label_width-4), "Gene");
-	painter.drawText(QRect(2,2, settings_.label_width-4, settings_.label_width-4), Qt::AlignRight|Qt::AlignTop, settings_.strand_forward_ ? "→" : "←");
+	painter.drawText(QRect(2,2, settings_.label_width-4, settings_.label_width-4), Qt::AlignRight|Qt::AlignTop, settings_.strand_forward ? "→" : "←");
 
 	//paint sequence (only if at lest one pixel per base is available)
 	if (pixels_per_base_ >= 1)
 	{
 		Sequence seq = genome_idx_->seq(reg_.chr(), reg_.start(), reg_.length());
-		if (!settings_.strand_forward_) seq.complement();
+		if (!settings_.strand_forward) seq.complement();
 		painter.setPen(Qt::transparent);
 
 		for(int i=0; i<seq.length(); ++i)
 		{
 			QChar base = seq.at(i);
 			QColor color = baseColor(base);
-			QRectF rect(settings_.label_width + 2 + i*pixels_per_base_, h_start_content, pixels_per_base_, char_size_.height());
+			QRectF rect(settings_.label_width + 2 + i*pixels_per_base_, y_content_start, pixels_per_base_, char_size_.height());
 			if (pixels_per_base_>=char_size_.width()) //show base characters
 			{
 				painter.setPen(color);
@@ -97,10 +106,10 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 			}
 		}
 
-		h_start_content += char_size_.height();
+		y_content_start += char_size_.height();
 
 		//paint tranlations
-		if (settings_.show_translation_)
+		if (settings_.show_translation)
 		{
 			painter.setPen(Qt::white);
 			for (int offset=0; offset<3; ++offset)
@@ -110,11 +119,11 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 					QByteArray triplet = seq.mid(i, 3);
 					if(triplet.length()<3) continue; //right border
 					if (triplet.contains('N')) continue; //N region
-					if (!settings_.strand_forward_) std::reverse(triplet.begin(), triplet.end());
+					if (!settings_.strand_forward) std::reverse(triplet.begin(), triplet.end());
 					QChar aa = NGSHelper::translateCodon(triplet, reg_.chr().isM());
 
 					//draw rectangle
-					QRectF rect(settings_.label_width + 2 + i*pixels_per_base_, h_start_content, 3*pixels_per_base_, char_size_.height());
+					QRectF rect(settings_.label_width + 2 + i*pixels_per_base_, y_content_start, 3*pixels_per_base_, char_size_.height());
 					QColor color = aaColor(i, aa);
 					painter.setBrush(color);
 					painter.drawRect(rect);
@@ -125,11 +134,14 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 					}
 				}
 
-				h_start_content += char_size_.height();
+				y_content_start += char_size_.height();
 			}
 		}
 	}
-	h_start_content += 2;
+
+	//init for painting transcripts
+	y_content_start += 2;
+	trans_positions_.clear();
 
 	//paint preferred transcripts;
 	QVector<int> trans_indices = transcripts_idx_->matchingIndices(reg_.chr(), reg_.start(), reg_.end());
@@ -137,22 +149,18 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 	{
 		const Transcript& trans = transcripts_->at(i);
 		if (!trans.isPreferredTranscript()) continue;
-		drawTranscript(painter, trans, h_start_content, QColor(130, 0, 50));
+		if (trans.source()!=Transcript::ENSEMBL && settings_.show_only_ensembl) continue;
+		drawTranscript(painter, trans, y_content_start, QColor(130, 0, 50));
 	}
 
 	//paint other transcripts
-	//TODO
-	/*
-	int trans_height = 2+12+2+char_size_.height()+2;
-
-	QVector<int> trans_indices = transcripts_idx_->matchingIndices(reg_.chr(), reg_.start(), reg_.end());
 	foreach(int i, trans_indices)
 	{
 		const Transcript& trans = transcripts_->at(i);
-		if (!trans.isPreferredTranscript()) continue;
-		drawTranscript(painter, trans, h_start_content, QColor());
+		if (trans.isPreferredTranscript()) continue;
+		if (trans.source()!=Transcript::ENSEMBL && settings_.show_only_ensembl) continue;
+		drawTranscript(painter, trans, y_content_start, QColor(0, 0, 178));
 	}
-	*/
 }
 
 void GenePanel::mouseMoveEvent(QMouseEvent* event)
@@ -171,6 +179,34 @@ void GenePanel::mouseMoveEvent(QMouseEvent* event)
 	{
 		emit mouseCoordinate("");
 	}
+}
+
+bool GenePanel::event(QEvent* event)
+{
+	if (event->type()==QEvent::ToolTip)
+	{
+		QHelpEvent* helpEvent = static_cast<QHelpEvent*>(event);
+		QPoint pos = helpEvent->pos();
+		bool tooltip_shown = false;
+		foreach(const TranscriptPosition& trans_pos, trans_positions_)
+		{
+			if (trans_pos.rect.contains(pos))
+			{
+				QToolTip::showText(helpEvent->globalPos(), "<nobr><b>"+trans_pos.trans.gene()+" ("+trans_pos.trans.name()+")</b></nobr>");
+				tooltip_shown = true;
+				break;
+			}
+		}
+		if (!tooltip_shown)
+		{
+			QToolTip::hideText();
+			event->ignore();
+		}
+
+		return true;
+	}
+
+	return QWidget::event(event);
 }
 
 QSize GenePanel::characterSize(QFont font)
@@ -243,15 +279,23 @@ double GenePanel::baseEndX(int pos, bool restrict_to_content_area) const
 	return x;
 }
 
-void GenePanel::drawTranscript(QPainter& painter, const Transcript& trans, int y, QColor color)
+void GenePanel::drawTranscript(QPainter& painter, const Transcript& trans, int y_content_start, QColor color)
 {
-
-	//draw gene name (at the horizontal center of the visual part of the transcript)
+	//determine x start/end
 	double x_start = baseStartX(trans.start(), true);
 	double x_end = baseEndX(trans.end(), true);
+
+	//determine where to paint in y-axis
+	int trans_height = 2+12+2+char_size_.height()+2; //margin, transcript, margin, label, margin
+	int y = transcriptY(x_start, x_end, y_content_start, trans_height, trans);
+
+	//draw gene name (at the horizontal center of the visual part of the transcript, only if not larger than transcript itself)
 	painter.setPen(Qt::black);
 	QRectF rect(x_start, y+2+12+2, x_end-x_start, char_size_.height());
-	painter.drawText(rect, Qt::AlignCenter, trans.gene());
+	if  (trans.gene().length()*char_size_.width()<rect.width())
+	{
+		painter.drawText(rect, Qt::AlignCenter, trans.gene());
+	}
 
 	//paint center line
 	painter.setPen(color);
@@ -271,7 +315,7 @@ void GenePanel::drawTranscript(QPainter& painter, const Transcript& trans, int y
 	}
 
 	//draw coding exons (12px heigh)
-	for(int i=0; i<trans.regions().count(); ++i)
+	for(int i=0; i<trans.codingRegions().count(); ++i)
 	{
 		const BedLine& exon = trans.codingRegions()[i];
 		double x_start = baseStartX(exon.start(), true);
@@ -280,4 +324,33 @@ void GenePanel::drawTranscript(QPainter& painter, const Transcript& trans, int y
 		painter.drawRect(rect);
 	}
 
+}
+
+int GenePanel::transcriptY(double x_start, double x_end, int y_content_start, int trans_height, const Transcript& trans)
+{
+	//determine first row index without overlap with previously painted transcripts
+	int row = -1;
+	bool overlap_exists = true;
+	while (overlap_exists)
+	{
+		++row;
+
+		//check if overlap exists
+		overlap_exists = false;
+		foreach(const TranscriptPosition& trans_pos, trans_positions_)
+		{
+			if (trans_pos.row==row && x_start<=(trans_pos.rect.x()+trans_pos.rect.width()) && x_end>=trans_pos.rect.x())
+			{
+				overlap_exists = true;
+			}
+		}
+	}
+
+	//calculate y-coord start
+	double y_start = y_content_start + trans_height * row;
+
+	//store transcript position
+	trans_positions_.append(TranscriptPosition{trans, row, QRectF(x_start, y_start, x_end-x_start, trans_height)});
+
+	return y_start;
 }

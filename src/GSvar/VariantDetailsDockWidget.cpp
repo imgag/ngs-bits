@@ -29,10 +29,12 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	connect(ui->trans_next, SIGNAL(clicked(bool)), this, SLOT(nextTanscript()));
 	connect(ui->variant, SIGNAL(linkActivated(QString)), this, SLOT(variantClicked(QString)));
 	connect(ui->gnomad, SIGNAL(linkActivated(QString)), this, SLOT(gnomadClicked(QString)));
+	connect(ui->gnomad, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(gnomadContextMenu(QPoint)));
 	connect(ui->var_btn, SIGNAL(clicked(bool)), this, SLOT(variantButtonClicked()));
 	connect(ui->trans, SIGNAL(linkActivated(QString)), this, SLOT(transcriptClicked(QString)));
 	connect(ui->som_details_prev, SIGNAL(clicked(bool)), this, SLOT(previousSomDetails()));
 	connect(ui->som_details_next, SIGNAL(clicked(bool)), this, SLOT(nextSomDetails()) );
+	connect(ui->pubmed, SIGNAL(linkActivated(QString)), this, SLOT(pubmedClicked(QString)));
 
 	//set up transcript buttons
 	ui->trans_prev->setStyleSheet("QPushButton {border: none; margin: 0px;padding: 0px;}");
@@ -75,6 +77,7 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_hgmd->setToolTip(vl.annotationDescriptionByName("HGMD", false).description()); //optional
 	ui->label_omim->setToolTip(vl.annotationDescriptionByName("OMIM", false).description()); //optional
 	ui->label_cosmic->setToolTip(vl.annotationDescriptionByName("COSMIC").description());
+	ui->label_pubmed->setToolTip(vl.annotationDescriptionByName("PubMed", false).description()); //optional
 
 	//AFs
 	ui->label_tg->setToolTip(vl.annotationDescriptionByName("1000g").description());
@@ -87,14 +90,11 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_sift->setToolTip(vl.annotationDescriptionByName("Sift").description());
 	ui->label_polyphen->setToolTip(vl.annotationDescriptionByName("PolyPhen").description());
 	ui->label_cadd->setToolTip(vl.annotationDescriptionByName("CADD").description());
-	ui->label_fathmm->setToolTip(vl.annotationDescriptionByName("fathmm-MKL", false).description());
 	ui->label_revel->setToolTip(vl.annotationDescriptionByName("REVEL").description());
 
 	//splicing/regulatory
 	ui->label_maxentscan->setToolTip(vl.annotationDescriptionByName("MaxEntScan").description());
-	ui->label_dbscsnv->setToolTip(vl.annotationDescriptionByName("dbscSNV").description());
 	ui->label_regulatory->setToolTip(vl.annotationDescriptionByName("regulatory", false).description());
-	ui->label_mmsplice->setToolTip("MMSplice prediction of splice-site variations;\nMaximum absolute values for the highest scored exon are shown in following format:\n[DeltaLogitPSI score as effect on exon inclusion (values below -2 stand for higher exclusion, values above 2 for higher inclusion) / Pathogenicity score]");
 	ui->label_spliceai->setToolTip("SpliceAI prediction of splice-site variations;\nProbability of the variant being splice-altering (range from 0-1).\nThe score is the maximum value of acceptor/donor gain/loss of all effected genes.");
 
 	//NGSD (all optional)
@@ -111,6 +111,12 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_somatic_tsg->setToolTip( vl.annotationDescriptionByName("ncg_tsg", false).description() );
 	ui->label_somatic_cancerhotspots->setToolTip( vl.annotationDescriptionByName("CANCERHOTSPOTS_ALT_COUNT", false).description() );
 	ui->label_somatic_cmc_class->setToolTip( vl.annotationDescriptionByName("CMC_mutation_significance", false).description() );
+
+	//RNAseq details
+	ui->label_rna_ase->setToolTip(vl.annotationDescriptionByName("ASE_pval", false).description());
+	ui->label_rna_splicing->setToolTip(vl.annotationDescriptionByName("aberrant_splicing", false).description());
+	ui->label_rna_tpm->setToolTip(vl.annotationDescriptionByName("tpm", false).description());
+	ui->label_rna_rel->setToolTip(vl.annotationDescriptionByName("expr_log2fc", false).description());
 }
 
 void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
@@ -166,6 +172,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->hgmd, vl, index, "HGMD");
 	setAnnotation(ui->omim, vl, index, "OMIM");
 	setAnnotation(ui->cosmic, vl, index, "COSMIC");
+	setAnnotation(ui->pubmed, vl, index, "PubMed");
 
 	//public allel frequencies
 	setAnnotation(ui->tg, vl, index, "1000g");
@@ -178,13 +185,10 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->sift, vl, index, "Sift");
 	setAnnotation(ui->polyphen, vl, index, "PolyPhen");
 	setAnnotation(ui->cadd, vl, index, "CADD");
-	setAnnotation(ui->fathmm, vl, index, "fathmm-MKL");
 	setAnnotation(ui->revel, vl, index, "REVEL");
 
 	//splicing/regulatory
 	setAnnotation(ui->maxentscan, vl, index, "MaxEntScan");
-	setAnnotation(ui->dbscsnv, vl, index, "dbscSNV");
-	setAnnotation(ui->mmsplice, vl, index, "MMSplice_DeltaLogitPSI");
 	setAnnotation(ui->spliceai, vl, index, "SpliceAI");
 	setAnnotation(ui->regulatory, vl, index, "regulatory");
 
@@ -222,6 +226,39 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 
 	//somatic VICC data from NGSD
 	setAnnotation(ui->somatic_vicc_score, vl, index, "NGSD_som_vicc_interpretation");
+
+	//RNAseq
+	QString rna_ase = "";
+	int ase_af_idx = vl.annotationIndexByName("ASE_af", true, false);
+	int ase_pval_idx = vl.annotationIndexByName("ASE_pval", true, false);
+	if(ase_af_idx!=-1 && ase_pval_idx!=-1)
+	{
+		QString ase_af = vl[index].annotations()[ase_af_idx];
+		QString ase_pval = vl[index].annotations()[ase_pval_idx];
+		if (!ase_af.startsWith("n/a"))
+		{
+			rna_ase = "AF=" + ase_af + ", p=" + ase_pval;
+		}
+	}
+	ui->rna_ase->setText(rna_ase);
+
+	setAnnotation(ui->rna_splicing, vl, index, "aberrant_splicing");
+
+	setAnnotation(ui->rna_tpm, vl, index, "tpm");
+
+	QString rna_rel = "";
+	int expr_log2fc_idx = vl.annotationIndexByName("expr_log2fc", true, false);
+	int expr_zscore_idx = vl.annotationIndexByName("expr_zscore", true, false);
+	if(ase_af_idx!=-1 && ase_pval_idx!=-1)
+	{
+		QString expr_log2fc = vl[index].annotations()[expr_log2fc_idx];
+		QString expr_zscore = vl[index].annotations()[expr_zscore_idx];
+		if (!expr_log2fc.startsWith("n/a"))
+		{
+			rna_rel = "log₂FC=" + expr_log2fc + ", z=" + expr_zscore;
+		}
+	}
+	ui->rna_rel->setText(rna_rel);
 
 	//update NGSD button
 	ui->var_btn->setEnabled(LoginManager::active());
@@ -278,7 +315,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		}
 		else if(name=="OMIM")
 		{
-			foreach(const DBEntry& entry, parseDB(anno, ','))
+			foreach(const DBEntry& entry, parseDB(anno, '&'))
 			{
 				text += formatLink(entry.id, "https://omim.org/entry/" + entry.id) + " ";
 				tooltip += nobr() + entry.id + ": " + entry.details;
@@ -295,7 +332,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				else if (entry.details.contains("pathogenic")) color = RED;
 				else if (entry.details.contains("benign")) color = GREEN;
 
-				QString url = entry.id.startsWith("RCV") ? "https://www.ncbi.nlm.nih.gov/clinvar/" : "https://www.ncbi.nlm.nih.gov/clinvar?term=";
+				QString url = entry.id.startsWith("RCV") ? "https://www.ncbi.nlm.nih.gov/clinvar/" : "https://www.ncbi.nlm.nih.gov/clinvar/variation/";
 				text += formatLink(entry.id, url + entry.id, color) + " ";
 				tooltip += nobr() + entry.id + ": " + entry.details;
 			}
@@ -377,30 +414,6 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		else if(name=="Sift" || name=="PolyPhen")
 		{
 			text = anno.replace("D", formatText("D", RED)).replace("P", formatText("P", ORANGE));
-		}
-		else if(name=="fathmm-MKL")
-		{
-			double max = 0.0;
-			QStringList parts = anno.split(",");
-			foreach(QString part, parts)
-			{
-				bool ok = true;
-				double value = part.toDouble(&ok);
-				if (ok) max = std::max(value, max);
-			}
-
-			if (max>=0.9)
-			{
-				text = formatText(anno, RED);
-			}
-			else if (max>=0.5)
-			{
-				text = formatText(anno, ORANGE);
-			}
-			else
-			{
-				text = anno;
-			}
 		}
 		else if(name=="REVEL")
 		{
@@ -529,35 +542,6 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			if(anno == "1" || anno == "2" || anno == "3") text = formatText(anno, RED);
 			else text = anno;
 		}
-		else if(name=="MMSplice_DeltaLogitPSI")
-		{
-			//add pathogenicity score
-			int pathogenicity_index = vl.annotationIndexByName("MMSplice_pathogenicity", true, false);
-			QString anno_p;
-			if(pathogenicity_index!=-1)
-			{
-				anno_p = vl[index].annotations()[pathogenicity_index];
-			}
-
-			//if one score is present save the score
-			if(anno!="" || anno_p!="")
-			{
-				//deltaLogitPSI score with an absolute value beyond 2 are supposed to be strong
-				if(anno.toDouble() >= 2)
-				{
-					text = formatText(anno + " / " + anno_p, GREEN);
-				}
-				else if(anno.toDouble() <= -2)
-				{
-					text = formatText(anno + " / " + anno_p, RED);
-				}
-				else
-				{
-					text = anno + " / " + anno_p;
-				}
-			}
-
-		}
 		else if(name == "NGSD_som_vicc_interpretation")
 		{
 			if(!anno.isEmpty()) text = anno;
@@ -569,12 +553,65 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			double value = anno.toDouble(&ok);
 			if (ok && value >= 0.5)
 			{
-				text = formatText(anno, RED);
+				text = formatText(anno, ORANGE);
 			}
 			else
 			{
 				text = anno;
 			}
+		}
+		else if(name=="MaxEntScan")
+		{
+			if (anno != "")
+			{
+				QString new_anno = "";
+
+				QList<double> percentages;
+				QList<double> abs_values;
+
+				bool color = GSvarHelper::colorMaxEntScan(anno, percentages, abs_values);
+				QStringList values = anno.split(',');
+				for (int i=0; i<values.size(); i++)
+				{
+					if (abs_values[i] > 0.5)
+					{
+						new_anno += values[i] + "(" + QString::number(percentages[i]*100, 'f', 1) + "%), ";
+					}
+					else
+					{
+						new_anno += values[i] + ", ";
+					}
+				}
+				new_anno.chop(2);
+
+				//color item
+				if (color)
+				{
+					text = formatText(new_anno, ORANGE);
+				}
+				else
+				{
+					text = new_anno;
+				}
+			}
+		}
+		else if(name=="PubMed")
+		{
+			QStringList ids = anno.split(",");
+			ids.removeAll("");
+			text.clear();
+			for (int i = 0; i < std::min(ids.size(), 2); ++i)
+			{
+				QString id = ids.at(i).trimmed();
+				text += formatLink(id, "https://pubmed.ncbi.nlm.nih.gov/" + id + "/") + " ";
+			}
+			if (ids.size() > 2)
+			{
+				text += "... " + formatLink("<i>(open all (" + QString::number(ids.size()) + "))</i> ", "openAll") + " ";
+			}
+
+			tooltip = ids.join(", ");
+
 		}
 		else //fallback: use complete annotations string
 		{
@@ -819,7 +856,7 @@ QString VariantDetailsDockWidget::nobr()
 void VariantDetailsDockWidget::gnomadClicked(QString variant_string)
 {
 	Variant v = Variant::fromString(variant_string);
-	QString link = GSvarHelper::gnomaADLink(v);
+	QString link = GSvarHelper::gnomADLink(v, GSvarHelper::build());
 	QDesktopServices::openUrl(QUrl(link));
 }
 
@@ -832,6 +869,23 @@ void VariantDetailsDockWidget::transcriptClicked(QString link)
 	else //gene
 	{
 		GlobalServiceProvider::openGeneTab(link);
+	}
+}
+
+void VariantDetailsDockWidget::pubmedClicked(QString link)
+{
+	if (link.startsWith("http")) //transcript
+	{
+		QDesktopServices::openUrl(QUrl(link));
+	}
+	else //gene
+	{
+		//open all publications
+		QStringList pubmed_ids = ui->pubmed->toolTip().split(", ");
+		foreach (QString id, pubmed_ids)
+		{
+			QDesktopServices::openUrl(QUrl("https://pubmed.ncbi.nlm.nih.gov/" + id + "/"));
+		}
 	}
 }
 
@@ -958,3 +1012,25 @@ void VariantDetailsDockWidget::showOverviewTable(QString title, QString text, ch
 	//delete
 	delete table;
 }
+
+void VariantDetailsDockWidget::gnomadContextMenu(QPoint pos)
+{
+	if (GSvarHelper::build()!=GenomeBuild::HG38) return;
+
+	QMenu menu;
+	QAction* a_v2 = menu.addAction("Lift-over to gnomAD 2.1");
+
+	QAction* action = menu.exec(ui->gnomad->mapToGlobal(pos));
+	if (action==nullptr) return;
+
+	if (action==a_v2)
+	{
+		Variant v = Variant::fromString(variant_str);
+		Variant v2 = GSvarHelper::liftOverVariant(v, false);
+		QString link = GSvarHelper::gnomADLink(v2, GenomeBuild::HG19);
+		QDesktopServices::openUrl(QUrl(link));
+	}
+}
+
+
+

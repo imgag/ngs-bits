@@ -4,6 +4,7 @@
 #include "Helper.h"
 #include "NGSHelper.h"
 #include "Log.h"
+#include "GeneSet.h"
 #include "cmath"
 
 /*************************************************** FilterParameter ***************************************************/
@@ -938,6 +939,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["CNV copy-number"] = &createInstance<FilterCnvCopyNumber>;
 		output["CNV allele frequency"] = &createInstance<FilterCnvAlleleFrequency>;
 		output["CNV z-score"] = &createInstance<FilterCnvZscore>;
+		output["CNV maximum log-likelihood"] = &createInstance<FilterCnvMaxLoglikelihood>;
 		output["CNV log-likelihood"] = &createInstance<FilterCnvLoglikelihood>;
 		output["CNV q-value"] = &createInstance<FilterCnvQvalue>;
 		output["CNV compound-heterozygous"] = &createInstance<FilterCnvCompHet>;
@@ -945,6 +947,8 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["CNV polymorphism region"] = &createInstance<FilterCnvCnpOverlap>;
 		output["CNV gene constraint"] = &createInstance<FilterCnvGeneConstraint>;
 		output["CNV gene overlap"] = &createInstance<FilterCnvGeneOverlap>;
+		output["CNV tumor CN change"] = &createInstance<FilterCnvTumorCopyNumberChange>;
+		output["CNV clonality"] = &createInstance<FilterCnvClonality>;
 		output["SV type"] = &createInstance<FilterSvType>;
 		output["SV remove chr type"] = &createInstance<FilterSvRemoveChromosomeType>;
 		output["SV genotype control"] = &createInstance<FilterSvGenotypeControl>;
@@ -963,7 +967,17 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["CNV pathogenic CNV overlap"] = &createInstance<FilterCnvPathogenicCnvOverlap>;
 		output["SV count NGSD"] = &createInstance<FilterSvCountNGSD>;
 		output["SV allele frequency NGSD"] = &createInstance<FilterSvAfNGSD>;
+		output["SV break point density NGSD"] = &createInstance<FilterSvBreakpointDensityNGSD>;
         output["SV trio"] = &createInstance<FilterSvTrio>;
+		output["Splice effect"] = &createInstance<FilterSpliceEffect>;
+		output["RNA ASE allele frequency"] = &createInstance<FilterVariantRNAAseAlleleFrequency>;
+		output["RNA ASE depth"] = &createInstance<FilterVariantRNAAseDepth>;
+		output["RNA ASE alternative count"] = &createInstance<FilterVariantRNAAseAlt>;
+		output["RNA ASE p-value"] = &createInstance<FilterVariantRNAAsePval>;
+		output["RNA aberrant splicing fraction"] = &createInstance<FilterVariantRNAAberrantSplicing>;
+		output["RNA gene expression"] = &createInstance<FilterVariantRNAGeneExpression>;
+		output["RNA expression fold-change"] = &createInstance<FilterVariantRNAExpressionFC>;
+		output["RNA expression z-score"] = &createInstance<FilterVariantRNAExpressionZScore>;
 	}
 
 	return output;
@@ -974,7 +988,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 FilterAlleleFrequency::FilterAlleleFrequency()
 {
 	name_ = "Allele frequency";
-	description_ = QStringList() << "Filter based on overall allele frequency given by 1000 Genomes and gnomAD.";
+	description_ = QStringList() << "Filter based on overall allele frequency given by gnomAD and if available 1000g.";
 	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximum allele frequency in %");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "100.0";
@@ -995,16 +1009,28 @@ void FilterAlleleFrequency::apply(const VariantList& variants, FilterResult& res
 	double max_af = getDouble("max_af")/100.0;
 
 	//get column indices
-	int i_1000g = annotationColumn(variants, "1000g");
 	int i_gnomad = annotationColumn(variants, "gnomAD");
+	int i_1000g = annotationColumn(variants, "1000g", false);
 
 	//filter
-	for(int i=0; i<variants.count(); ++i)
+	if (i_1000g == -1)
 	{
-		result.flags()[i] = result.flags()[i]
-			&& variants[i].annotations()[i_1000g].toDouble()<=max_af
-			&& variants[i].annotations()[i_gnomad].toDouble()<=max_af;
+		for(int i=0; i<variants.count(); ++i)
+		{
+			result.flags()[i] = result.flags()[i]
+				&& variants[i].annotations()[i_gnomad].toDouble()<=max_af;
+		}
 	}
+	else
+	{
+		for(int i=0; i<variants.count(); ++i)
+		{
+			result.flags()[i] = result.flags()[i]
+				&& variants[i].annotations()[i_1000g].toDouble()<=max_af
+				&& variants[i].annotations()[i_gnomad].toDouble()<=max_af;
+		}
+	}
+
 }
 
 FilterGenes::FilterGenes()
@@ -1760,7 +1786,7 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 
 			if (geno_all=="het")
 			{
-				QList<QByteArray> genes = variants[i].annotations()[i_gene].toUpper().split(',');
+				GeneSet genes = GeneSet::createFromText(variants[i].annotations()[i_gene], ',');
 				foreach(const QByteArray& gene, genes)
 				{
 					gene_to_het[gene.trimmed()] += 1;
@@ -1782,7 +1808,7 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 			QByteArray geno_all = checkSameGenotype(geno_indices, variants[i]);
 			if (geno_all=="het")
 			{
-				QList<QByteArray> genes = variants[i].annotations()[i_gene].toUpper().split(',');
+				GeneSet genes = GeneSet::createFromText(variants[i].annotations()[i_gene], ',');
 				foreach(const QByteArray& gene, genes)
 				{
 					if (gene_to_het[gene.trimmed()]>=2)
@@ -1964,7 +1990,7 @@ bool FilterAnnotationPathogenic::annotatedPathogenic(const Variant& v) const
 FilterPredictionPathogenic::FilterPredictionPathogenic()
 {
 	name_ = "Predicted pathogenic";
-	description_ = QStringList() << "Filter for variants predicted to be pathogenic." << "Pathogenicity predictions used by this filter are: phyloP, Sift, PolyPhen, fathmm-MKL, CADD and REVEL.";
+	description_ = QStringList() << "Filter for variants predicted to be pathogenic." << "Pathogenicity predictions used by this filter are: phyloP, Sift, PolyPhen, CADD and REVEL.";
 	params_ << FilterParameter("min", FilterParameterType::INT, 1, "Minimum number of pathogenic predictions");
 	params_.last().constraints["min"] = "1";
 	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
@@ -1974,9 +2000,6 @@ FilterPredictionPathogenic::FilterPredictionPathogenic()
 	params_ << FilterParameter("cutoff_cadd", FilterParameterType::DOUBLE, 20.0, "Minimum CADD score for a pathogenic prediction. The CADD score is not used if set to 0.0.");
 	params_.last().constraints["min"] = "0";
 	params_ << FilterParameter("cutoff_revel", FilterParameterType::DOUBLE, 0.9, "Minimum REVEL score for a pathogenic prediction. The REVEL score is not used if set to 0.0.");
-	params_.last().constraints["min"] = "0";
-	params_.last().constraints["max"] = "1";
-	params_ << FilterParameter("cutoff_fathmm_mkl", FilterParameterType::DOUBLE, 0.9, "Minimum fathmm-MKL score for a pathogenic prediction. The fathmm-MKL score is not used if set to 0.0.");
 	params_.last().constraints["min"] = "0";
 	params_.last().constraints["max"] = "1";
 	params_ << FilterParameter("cutoff_phylop", FilterParameterType::DOUBLE, 1.6, "Minimum phyloP score for a pathogenic prediction. The phyloP score is not used if set to -10.0.");
@@ -1999,7 +2022,6 @@ void FilterPredictionPathogenic::apply(const VariantList& variants, FilterResult
 	i_phylop = annotationColumn(variants, "phyloP");
 	i_sift = annotationColumn(variants, "Sift");
 	i_polyphen = annotationColumn(variants, "PolyPhen");
-	i_fathmm = annotationColumn(variants, "fathmm-MKL", false);
 	i_cadd = annotationColumn(variants, "CADD");
 	i_revel = annotationColumn(variants, "REVEL");
 	skip_high_impact = getBool("skip_high_impact");
@@ -2007,7 +2029,6 @@ void FilterPredictionPathogenic::apply(const VariantList& variants, FilterResult
 
 	cutoff_cadd = getDouble("cutoff_cadd");
 	cutoff_revel = getDouble("cutoff_revel");
-	cutoff_fathmm_mkl = getDouble("cutoff_fathmm_mkl");
 	cutoff_phylop = getDouble("cutoff_phylop");
 	ignore_sift = getBool("ignore_sift");
 	ignore_polyphen = getBool("ignore_polyphen");
@@ -2046,28 +2067,6 @@ bool FilterPredictionPathogenic::predictedPathogenic(const Variant& v) const
 	if (!ignore_polyphen && v.annotations()[i_polyphen].contains("D"))
 	{
 		++count;
-	}
-
-	if (cutoff_fathmm_mkl>0)
-	{
-		if (i_fathmm==-1)
-		{
-			THROW(ArgumentException, "Column 'fathmm-MKL' not found. Disable it by setting the score cutoff to 0.0!");
-		}
-		else if (v.annotations()[i_fathmm].contains(","))
-		{
-			QByteArrayList parts = v.annotations()[i_fathmm].split(',');
-			foreach(const QByteArray& part, parts)
-			{
-				bool ok = true;
-				double value = part.toDouble(&ok);
-				if (ok && value>=cutoff_fathmm_mkl)
-				{
-					++count;
-					break;
-				}
-			}
-		}
 	}
 
 	if (cutoff_phylop>-10)
@@ -2353,7 +2352,7 @@ FilterTrio::FilterTrio()
 	params_ << FilterParameter("gender_child", FilterParameterType::STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
 	params_.last().constraints["valid"] = "male,female,n/a";
 
-	params_ << FilterParameter("build", FilterParameterType::STRING, "hg19", "Genome build used for pseudoautosomal region coordinates");
+	params_ << FilterParameter("build", FilterParameterType::STRING, "hg38", "Genome build used for pseudoautosomal region coordinates");
 	params_.last().constraints["valid"] = "hg19,hg38";
 
 	checkIsRegistered();
@@ -2940,6 +2939,55 @@ void FilterCnvZscore::apply(const CnvList& cnvs, FilterResult& result) const
 	}
 }
 
+FilterCnvMaxLoglikelihood::FilterCnvMaxLoglikelihood()
+{
+	name_ = "CNV maximum log-likelihood";
+	type_ = VariantType::CNVS;
+	description_ << QStringList() << "Filter for maximum log-likelihood" << "Can be used to display artefact CNVs only" << "Works only for tumor-normal pairs" ;
+	params_ << FilterParameter("max_ll", FilterParameterType::DOUBLE, 200.0, "Maixmum log-likelihood");
+	params_.last().constraints["min"] = "0.0";
+	params_ << FilterParameter("scale_by_regions", FilterParameterType::BOOL, false, "Scale log-likelihood by number of regions.");
+	checkIsRegistered();
+}
+
+QString FilterCnvMaxLoglikelihood::toText() const
+{
+	return name() + " max_ll=" + QString::number(getDouble("max_ll"), 'f', 2) + QString(getBool("scale_by_regions")?" (scaled by regions)": "");
+}
+
+void FilterCnvMaxLoglikelihood::apply(const CnvList &cnvs, FilterResult &result) const
+{
+	if(!enabled_) return;
+	if(cnvs.type() != CnvListType::CLINCNV_TUMOR_NORMAL_PAIR) return;
+
+	double max_ll = getDouble("max_ll");
+	bool scale_by_regions = getBool("scale_by_regions");
+	int i_ll = cnvs.annotationIndexByName("loglikelihood", true);
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		if (scale_by_regions)
+		{
+			int number_of_regions = cnvs[i].regions();
+			if (number_of_regions < 0) THROW(FileParseException, "Invalid/unset number of regions!");
+			double scaled_ll = cnvs[i].annotations()[i_ll].toDouble() / number_of_regions;
+			if (scaled_ll > max_ll)
+			{
+				result.flags()[i] = false;
+			}
+		}
+		else
+		{
+			if (cnvs[i].annotations()[i_ll].toDouble() > max_ll)
+			{
+				result.flags()[i] = false;
+			}
+		}
+	}
+}
+
+
 FilterCnvLoglikelihood::FilterCnvLoglikelihood()
 {
 	name_ = "CNV log-likelihood";
@@ -3302,6 +3350,75 @@ void FilterCnvGeneConstraint::apply(const CnvList& cnvs, FilterResult& result) c
 			}
 		}
 		result.flags()[i] = any_gene_passed;
+	}
+}
+
+FilterCnvTumorCopyNumberChange::FilterCnvTumorCopyNumberChange()
+{
+	name_ = "CNV tumor CN change";
+	type_ = VariantType::CNVS;
+	description_ = QStringList() << "Filter based on CNV tumor copy number.";
+	params_ << FilterParameter("min_tumor_cn", FilterParameterType::INT, 0, "Minimum tumor copy number of the CNV");
+	params_ << FilterParameter("max_tumor_cn", FilterParameterType::INT, 10, "Maximum tumor copy number of the CNV.");
+
+	checkIsRegistered();
+}
+
+QString FilterCnvTumorCopyNumberChange::toText() const
+{
+	return name() + " min_tumor_cn=" + QString::number(getInt("min_tumor_cn")) + ", max_tumor_cn=" + QString::number(getInt("max_tumor_cn"));
+
+}
+
+void FilterCnvTumorCopyNumberChange::apply(const CnvList& cnvs, FilterResult &result) const
+{
+	if(!enabled_) return;
+
+	int i_tumor_cn = cnvs.annotationIndexByName("tumor_CN_change", true);
+	int min_cn = getInt("min_tumor_cn");
+	int max_cn = getInt("max_tumor_cn");
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+		bool ok = false;
+		int tumor_cn = cnvs[i].annotations()[i_tumor_cn].trimmed().toDouble(&ok);
+		if(!ok) continue;
+		result.flags()[i] = (tumor_cn >= min_cn) && (tumor_cn <= max_cn);
+	}
+}
+
+FilterCnvClonality::FilterCnvClonality()
+{
+	name_ = "CNV clonality";
+	type_ = VariantType::CNVS;
+	description_ = QStringList() << "Filter based on CNV clonality.";
+	params_ << FilterParameter("min_clonality", FilterParameterType::DOUBLE, 0., "Minimum Clonality of the CNV ");
+	params_ << FilterParameter("max_clonality", FilterParameterType::DOUBLE, 1., "Maximum Clonality of the CNV ");
+
+	checkIsRegistered();
+}
+
+QString FilterCnvClonality::toText() const
+{
+	return name() + " min_clonality=" + QString::number(getDouble("min_clonality")) + ", max_clonality=" + QString::number(getDouble("max_clonality"));
+}
+
+void FilterCnvClonality::apply(const CnvList &cnvs, FilterResult &result) const
+{
+	if(!enabled_) return;
+	int i_clonality = cnvs.annotationIndexByName("tumor_clonality", true);
+	double min_clonality= getDouble("min_clonality");
+	double max_clonality = getDouble("max_clonality");
+
+	//filter
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+		bool ok = false;
+		double tumor_clonality = cnvs[i].annotations()[i_clonality].trimmed().toDouble(&ok);
+		if(!ok) continue;
+
+		result.flags()[i] = (tumor_clonality > min_clonality) && (tumor_clonality < max_clonality);
 	}
 }
 
@@ -3708,8 +3825,10 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 			if (!result.flags()[i]) continue;
 
 			QSet<QString> sv_entries = QString(svs[i].annotations()[filter_col_index]).split(';').toSet();
-			// check if intersection of both list == 0 -> remove entry otherwise
-			result.flags()[i] = (sv_entries.intersect(filter_entries).size() == 0);
+			if (sv_entries.intersects(filter_entries))
+			{
+				result.flags()[i] = false;
+			}
 		}
 	}
 	else if (action=="FILTER")
@@ -3719,7 +3838,6 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 			if (!result.flags()[i]) continue;
 
 			QSet<QString> sv_entries = QString(svs[i].annotations()[filter_col_index]).split(';').toSet();
-			// compute intersection
 			if (!sv_entries.intersects(filter_entries))
 			{
 				result.flags()[i] = false;
@@ -3731,15 +3849,9 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 		for(int i=0; i<svs.count(); ++i)
 		{
 			QSet<QString> sv_entries = QString(svs[i].annotations()[filter_col_index]).split(';').toSet();
-			// iterate over list of required entries
-			foreach (QString filter_entry, filter_entries)
+			if (sv_entries.intersects(filter_entries))
 			{
-				if (sv_entries.contains(filter_entry))
-				{
-					// display SV if at least one of the provided filter entries match
-					result.flags()[i] = true;
-					break;
-				}
+				result.flags()[i] = true;
 			}
 		}
 	}
@@ -4308,9 +4420,7 @@ void FilterSvCompHet::apply(const BedpeFile& svs, FilterResult& result) const
 	{
 		if (!result.flags()[i]) continue;
 
-		GeneSet genes;
-		genes << svs[i].annotations()[i_genes].split(';');
-
+		GeneSet genes = GeneSet::createFromText(svs[i].annotations()[i_genes], ';');
 		foreach(const QByteArray& gene, genes)
 		{
 			gene_count[gene] += 1;
@@ -4357,8 +4467,7 @@ void FilterSvCompHet::apply(const BedpeFile& svs, FilterResult& result) const
 	{
 		if (!result.flags()[i]) continue;
 
-		GeneSet genes;
-		genes << svs[i].annotations()[i_genes].split(';');
+		GeneSet genes = GeneSet::createFromText(svs[i].annotations()[i_genes], ';');
 		result.flags()[i] = genes.intersectsWith(comphet_hit);
 	}
 }
@@ -4367,17 +4476,17 @@ FilterSvCountNGSD::FilterSvCountNGSD()
 {
 	name_ = "SV count NGSD";
 	type_ = VariantType::SVS;
-	description_ = QStringList() << "Filter based on the occurances of a structural variant in the NGSD.";
+	description_ = QStringList() << "Filter based on the hom/het occurances of a structural variant in the NGSD.";
 	params_ << FilterParameter("max_count", FilterParameterType::INT, 20, "Maximum NGSD SV count");
 	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("overlap_matches", FilterParameterType::BOOL, false, "If set, overlaping SVs are considered also.");
+	params_ << FilterParameter("ignore_genotype", FilterParameterType::BOOL, false, "If set, all NGSD entries are counted independent of the variant genotype. Otherwise, for homozygous variants only homozygous NGSD entries are counted and for heterozygous variants all NGSD entries are counted.");
 
 	checkIsRegistered();
 }
 
 QString FilterSvCountNGSD::toText() const
 {
-	return name() + " &le; " + QString::number(getInt("max_count", false)) + (getBool("overlap_matches") ? " (overlap_matches)" : "");
+	return name() + " &le; " + QString::number(getInt("max_count", false)) + (getBool("ignore_genotype") ? " (ignore genotype)" : "");
 }
 
 void FilterSvCountNGSD::apply(const BedpeFile& svs, FilterResult& result) const
@@ -4385,37 +4494,82 @@ void FilterSvCountNGSD::apply(const BedpeFile& svs, FilterResult& result) const
 	if (!enabled_) return;
 
 	int max_count = getInt("max_count");
-	bool overlap_match = getBool("overlap_matches");
+	bool ignore_genotype = getBool("ignore_genotype");
 
-	int ngsd_col_index;
-	if (overlap_match)
+	int idx_ngsd_hom = svs.annotationIndexByName("NGSD_HOM");
+	int idx_ngsd_het = svs.annotationIndexByName("NGSD_HET");
+
+	if (ignore_genotype)
 	{
-		ngsd_col_index = svs.annotationIndexByName("NGSD_COUNT_OVERLAP");
+		for(int i=0; i<svs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
 
+			int ngsd_count_hom = Helper::toInt(svs[i].annotations()[idx_ngsd_hom], "NGSD count hom", QString::number(i));
+			int ngsd_count_het = Helper::toInt(svs[i].annotations()[idx_ngsd_het], "NGSD count het", QString::number(i));
+			result.flags()[i] = (ngsd_count_hom + ngsd_count_het) <= max_count;
+		}
 	}
 	else
 	{
-		ngsd_col_index = svs.annotationIndexByName("NGSD_COUNT");
-	}
-
-	for(int i=0; i<svs.count(); ++i)
-	{
-		if (!result.flags()[i]) continue;
-
-		int ngsd_count;
-
-		if (overlap_match)
+		//get genotype indices
+		int idx_format = svs.annotationIndexByName("FORMAT");
+		if (idx_format < 0) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to structural variant list without 'FORMAT' column!");
+		QList<int> indices_format_data;
+		indices_format_data << idx_format + 1; //single sample
+		if ((svs.format() == BedpeFileFormat::BEDPE_GERMLINE_MULTI) || (svs.format() == BedpeFileFormat::BEDPE_GERMLINE_TRIO))
 		{
-			ngsd_count = Helper::toInt(svs[i].annotations()[ngsd_col_index], "NGSD count overlap column", QString::number(i));
-		}
-		else
-		{
-			ngsd_count = Helper::toInt(svs[i].annotations()[ngsd_col_index].split('(')[0], "NGSD count column", QString::number(i));
+			indices_format_data = svs.sampleHeaderInfo().sampleColumns(true);
+			indices_format_data.removeAll(-1);
+			if (indices_format_data.isEmpty()) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list without affected samples!");
 		}
 
-		result.flags()[i] = ngsd_count <= max_count;
-	}
+		// iterate over all SVs
+		for(int i=0; i<svs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
 
+			// get format keys and values
+			QByteArrayList format_keys = svs[i].annotations()[idx_format].split(':');
+			int idx_genotype = format_keys.indexOf("GT");
+
+			if(idx_genotype == -1)
+			{
+				THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list because could not find GT field in format column.");
+			}
+
+
+			//get NGSD counts
+			int ngsd_count_hom = Helper::toInt(svs[i].annotations()[idx_ngsd_hom], "NGSD count hom", QString::number(i));
+			int ngsd_count_het = Helper::toInt(svs[i].annotations()[idx_ngsd_het], "NGSD count het", QString::number(i));
+
+			foreach (int idx_format_data, indices_format_data)
+			{
+				QByteArrayList format_values = svs[i].annotations()[idx_format_data].split(':');
+
+				QByteArray sv_genotype_string = format_values[idx_genotype].trimmed();
+				result.flags()[i] = false;
+
+				if (sv_genotype_string == "1/1")
+				{
+					if(ngsd_count_hom <= max_count)
+					{
+						result.flags()[i] = true;
+						break;
+					}
+				}
+				else
+				{
+					if(ngsd_count_het <= max_count)
+					{
+						result.flags()[i] = true;
+						break;
+					}
+				}
+
+			}
+		}
+	}
 }
 
 FilterSvAfNGSD::FilterSvAfNGSD()
@@ -4426,7 +4580,7 @@ FilterSvAfNGSD::FilterSvAfNGSD()
 								 << "Note: this filter should only be used for whole genome samples.";
 	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximum allele frequency in %");
 	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "100.0";
+	params_.last().constraints["max"] = "200.0";
 
 	checkIsRegistered();
 }
@@ -4442,15 +4596,81 @@ void FilterSvAfNGSD::apply(const BedpeFile& svs, FilterResult& result) const
 
 	double max_af = getDouble("max_af")/100.0;
 
-	int ngsd_col_index = svs.annotationIndexByName("NGSD_COUNT");
+	int idx_ngsd_af = svs.annotationIndexByName("NGSD_AF");
+
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+		//allow empty NGSD af entry
+		if (svs[i].annotations()[idx_ngsd_af].trimmed().isEmpty())
+		{
+			result.flags()[i] = true;
+		}
+		else
+		{
+			result.flags()[i] = Helper::toDouble(svs[i].annotations()[idx_ngsd_af], "NGSD AF") <= max_af;
+		}
+
+	}
+}
+
+FilterSvBreakpointDensityNGSD::FilterSvBreakpointDensityNGSD()
+{
+	name_ = "SV break point density NGSD";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Filter based on the density of SV break points in the NGSD in the CI of the structural variant.";
+	params_ << FilterParameter("max_density", FilterParameterType::INT, 20, "Maximum density in the confidence interval of the SV");
+	params_.last().constraints["min"] = "0";
+	params_ << FilterParameter("remove_strict", FilterParameterType::BOOL, false, "Remove also SVs in which only one break point is above threshold.");
+
+	checkIsRegistered();
+}
+
+QString FilterSvBreakpointDensityNGSD::toText() const
+{
+	return name() + " &le; " + QString::number(getInt("max_density", false)) + QByteArray((getBool("remove_strict"))?" (remove_strict)":"");
+}
+
+void FilterSvBreakpointDensityNGSD::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int max_density = getInt("max_density");
+	bool remove_strict = getBool("remove_strict");
+
+	int idx_ngsd_density = svs.annotationIndexByName("NGSD_SV_BREAKPOINT_DENSITY");
 
 	for(int i=0; i<svs.count(); ++i)
 	{
 		if (!result.flags()[i]) continue;
 
-		result.flags()[i] = Helper::toDouble(svs[i].annotations()[ngsd_col_index].split('(')[1].split(')')[0], "NGSD count column", QString::number(i)) <= max_af;
+		QByteArray density = svs[i].annotations()[idx_ngsd_density];
+
+		if (density.trimmed().isEmpty()) continue; //skip empty entries
+		QByteArrayList densities = density.split('/');
+		if (densities.size() == 1)
+		{
+			//only one break point (INS)
+			result.flags()[i] = Helper::toInt(density, "NGSD_SV_BREAKPOINT_DENSITY") <= max_density;
+		}
+		else
+		{
+			//2 break points
+			if (remove_strict)
+			{
+				result.flags()[i] = (Helper::toInt(densities.at(0), "NGSD_SV_BREAKPOINT_DENSITY (BP1)") <= max_density)
+						&& (Helper::toInt(densities.at(1), "NGSD_SV_BREAKPOINT_DENSITY (BP2)") <= max_density);
+			}
+			else
+			{
+				result.flags()[i] = (Helper::toInt(densities.at(0), "NGSD_SV_BREAKPOINT_DENSITY (BP1)") <= max_density)
+						|| (Helper::toInt(densities.at(1), "NGSD_SV_BREAKPOINT_DENSITY (BP2)") <= max_density);
+			}
+		}
+
 	}
 }
+
 
 FilterSvTrio::FilterSvTrio()
 {
@@ -4856,3 +5076,498 @@ void FilterGSvarScoreAndRank::apply(const VariantList& variants, FilterResult& r
 		}
 	}
 }
+
+FilterSpliceEffect::FilterSpliceEffect()
+{
+	name_="Splice effect";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the predicted change in splice effect";
+	params_ << FilterParameter("MaxEntScan", FilterParameterType::INT, -15, "Minimum percentage change in the value of MaxEntScan. Positive min. increase, negative min. decrease. Disabled if set to zero.");
+	params_ << FilterParameter("SpliceAi", FilterParameterType::DOUBLE, 0.5, "Minimum SpliceAi value. Disabled if set to zero.");
+	params_.last().constraints["min"] = "0";
+	params_.last().constraints["max"] = "1";
+	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
+	params_.last().constraints["valid"] = "KEEP,FILTER";
+	checkIsRegistered();
+}
+
+QString FilterSpliceEffect::toText() const
+{
+	QString text = this->name() + " " + getString("action");
+	int mes = getInt("MaxEntScan", false);
+	text += " maxEntScan>=" + QString::number(mes) +"%";
+	double sai = getDouble("SpliceAi", false);
+	text += " SpliceAi>=" + QString::number(sai);
+	return text;
+}
+
+void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &result) const
+{
+	if (!enabled_) return;
+
+	int idx_sai = annotationColumn(variant_list, "SpliceAi");
+	double sai = getDouble("SpliceAi");
+
+	int idx_mes = annotationColumn(variant_list, "MaxEntScan");
+	int mes = getInt("MaxEntScan");
+
+	// if all filters are deactivated return
+	if (sai == 0 && mes == 0) return;
+
+	// action FILTER
+	if (getString("action") == "FILTER")
+	{
+		for(int i=0; i<variant_list.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			//If the variant has no value for all possible filters remove it
+			if (variant_list[i].annotations()[idx_sai].isEmpty() && variant_list[i].annotations()[idx_mes].isEmpty())
+			{
+				result.flags()[i] = false;
+				continue;
+			}
+
+			// SpliceAi filter:
+			if (sai > 0)
+			{
+				if (applySpliceAi_(variant_list[i], idx_sai)) continue;
+			}
+
+			// MaxEntScan filter:
+			if (mes != 0)
+			{
+				if (applyMaxEntScanFilter_(variant_list[i], idx_mes)) continue;
+			}
+			result.flags()[i] = false;
+		}
+	}
+	// actio KEEP
+	else if (getString("action") == "KEEP")
+	{
+		for(int i=0; i<variant_list.count(); ++i)
+		{
+			if (result.flags()[i]) continue;
+
+			// SpliceAi filter:
+			if (sai > 0)
+			{
+				if (applySpliceAi_(variant_list[i], idx_sai))
+				{
+					result.flags()[i] = true;
+					continue;
+				}
+			}
+
+			// MaxEntScan filter:
+			if (mes != 0)
+			{
+				if (applyMaxEntScanFilter_(variant_list[i], idx_mes))
+				{
+					result.flags()[i] = true;
+					continue;
+				}
+			}
+		}
+	}
+}
+
+double FilterSpliceEffect::calculatePercentageChangeMES_(const QByteArray& value) const
+{
+	QByteArrayList parts = value.split('>');
+	if (parts.count() < 2) return 0;
+	double percentChange;
+	double base = parts[0].toDouble();
+	double newValue = parts[1].toDouble();
+
+	if (base == 0) return 0; // infinite change... ?
+
+	if (base > 0)
+	{
+		percentChange = (newValue - base) / base;
+	}
+	else
+	{
+		percentChange = (base - newValue) / base;
+	}
+
+	return percentChange*100;
+}
+
+bool FilterSpliceEffect::applyMaxEntScanFilter_(const Variant& var, int idx_mes) const
+{
+	int mes = getInt("MaxEntScan");
+
+	QByteArray var_mes = var.annotations()[idx_mes];
+	if ( ! var_mes.trimmed().isEmpty())
+	{
+		QByteArrayList var_mes_list = var_mes.split(',');
+		foreach (QByteArray value, var_mes_list)
+		{
+			double percentChange = calculatePercentageChangeMES_(value);
+			if (mes < 0)
+			{
+				if (percentChange <= mes)
+				{
+					return true;
+				}
+			}
+			else
+			{
+				if (percentChange >= mes)
+				{
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool FilterSpliceEffect::applySpliceAi_(const Variant& var, int idx_sai) const
+{
+	double sai = getDouble("SpliceAi");
+
+	QByteArray sai_value = var.annotations()[idx_sai];
+	if ( ! sai_value.trimmed().isEmpty())
+	{
+		if (sai_value.toDouble() >= sai)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+FilterVariantRNAAseAlleleFrequency::FilterVariantRNAAseAlleleFrequency()
+{
+	name_ = "RNA ASE allele frequency";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the allele specific expression allele frequency.";
+	params_ << FilterParameter("min_af", FilterParameterType::DOUBLE, 0.0, "Minimal expression allele frequency.");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximal expression allele frequency.");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+
+	checkIsRegistered();
+}
+
+QString FilterVariantRNAAseAlleleFrequency::toText() const
+{
+	return name() + " between " + QString::number(getDouble("min_af", false), 'f', 2) + " and " + QString::number(getDouble("max_af", false), 'f', 2);
+}
+
+void FilterVariantRNAAseAlleleFrequency::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double min_af = getDouble("min_af");
+	double max_af = getDouble("max_af");
+
+	int idx_ase_af = annotationColumn(variants, "ASE_af");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		//skip not covered variants
+		QString ase_af_string = variants[i].annotations()[idx_ase_af].trimmed();
+		if(ase_af_string.isEmpty() || ase_af_string.startsWith("n/a"))
+		{
+			result.flags()[i] = false;
+			continue;
+		}
+
+		double ase_af = Helper::toDouble(ase_af_string, "ASE_af", QString::number(i));
+		result.flags()[i] = (ase_af >= min_af) && (ase_af <= max_af);
+	}
+}
+
+FilterVariantRNAAseDepth::FilterVariantRNAAseDepth()
+{
+	name_ = "RNA ASE depth";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the allele specific expression depth.";
+	params_ << FilterParameter("min_depth", FilterParameterType::INT, 20, "Minimal expression depth.");
+	params_.last().constraints["min"] = "0";
+
+	checkIsRegistered();
+}
+
+QString FilterVariantRNAAseDepth::toText() const
+{
+	return name() + " &ge; " + QString::number(getInt("min_depth", false));
+}
+
+void FilterVariantRNAAseDepth::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int min_depth = getInt("min_depth");
+
+	int idx_ase_depth = annotationColumn(variants, "ASE_depth");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		int ase_depth = Helper::toInt(variants[i].annotations()[idx_ase_depth], "ASE_depth", QString::number(i));
+		result.flags()[i] = ase_depth >= min_depth;
+	}
+}
+
+FilterVariantRNAAseAlt::FilterVariantRNAAseAlt()
+{
+	name_ = "RNA ASE alternative count";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the allele specific expression alternative count.";
+	params_ << FilterParameter("min_ac", FilterParameterType::INT, 5, "Minimal expression alternative count.");
+	params_.last().constraints["min"] = "0";
+
+	checkIsRegistered();
+}
+
+QString FilterVariantRNAAseAlt::toText() const
+{
+	return name() + " &ge; " + QString::number(getInt("min_ac", false));
+}
+
+void FilterVariantRNAAseAlt::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int min_ac = getInt("min_ac");
+
+	int idx_ase_ac = annotationColumn(variants, "ASE_alt");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		//skip not covered variants
+		QString ase_ac_string = variants[i].annotations()[idx_ase_ac].trimmed();
+		if(ase_ac_string.isEmpty() || ase_ac_string.startsWith("n/a"))
+		{
+			result.flags()[i] = false;
+			continue;
+		}
+
+		int ase_ac = Helper::toInt(ase_ac_string, "ASE_alt", QString::number(i));
+		result.flags()[i] = ase_ac >= min_ac;
+	}
+}
+
+FilterVariantRNAAsePval::FilterVariantRNAAsePval()
+{
+	name_ = "RNA ASE p-value";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the allele specific expression p-value.";
+	params_ << FilterParameter("max_pval", FilterParameterType::DOUBLE, 0.05, "Maximal expression p-value.");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+
+	checkIsRegistered();
+}
+
+QString FilterVariantRNAAsePval::toText() const
+{
+	return name() + " &le; " + QString::number(getDouble("max_pval", false), 'f', 2);
+}
+
+void FilterVariantRNAAsePval::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double max_pval = getDouble("max_pval");
+
+	int idx_ase_pval = annotationColumn(variants, "ASE_pval");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		//skip not covered variants
+		QString ase_pval_string = variants[i].annotations()[idx_ase_pval].trimmed();
+		if(ase_pval_string.isEmpty() || ase_pval_string.startsWith("n/a"))
+		{
+			result.flags()[i] = false;
+			continue;
+		}
+
+		double ase_pval = Helper::toDouble(ase_pval_string, "ASE_pval", QString::number(i));
+		result.flags()[i] = ase_pval <= max_pval;
+	}
+}
+
+FilterVariantRNAAberrantSplicing::FilterVariantRNAAberrantSplicing()
+{
+	name_ = "RNA aberrant splicing fraction";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the fraction of aberrant splicing reads.";
+	params_ << FilterParameter("min_asf", FilterParameterType::DOUBLE, 0.01, "Minimal aberrant splicing fraction.");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+}
+
+QString FilterVariantRNAAberrantSplicing::toText() const
+{
+	return name() + " &ge; " + QString::number(getDouble("min_asf", false), 'f', 3);
+}
+
+void FilterVariantRNAAberrantSplicing::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double min_asf = getDouble("min_asf");
+
+	int idx_asf = annotationColumn(variants, "aberrant_splicing");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		QList<QByteArray> fraction_strings = variants[i].annotations()[idx_asf].split(',');
+		result.flags()[i] = false;
+		foreach (const QByteArray& fraction_string, fraction_strings)
+		{
+			if(fraction_string.isEmpty() || fraction_string.startsWith("n/a")) continue;
+
+			double fraction_value = Helper::toDouble(fraction_string, "aberrant_splicing", QString::number(i));
+			if (fraction_value >= min_asf)
+			{
+				result.flags()[i] = true;
+				break;
+			}
+		}
+	}
+}
+
+FilterVariantRNAGeneExpression::FilterVariantRNAGeneExpression()
+{
+	name_ = "RNA gene expression";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the gene expression in transcripts-per-million";
+	params_ << FilterParameter("min_tpm", FilterParameterType::DOUBLE, 5.0, "Minimal gene expression in transcripts-per-million.");
+	params_.last().constraints["min"] = "0.0";
+}
+
+QString FilterVariantRNAGeneExpression::toText() const
+{
+	return name() + " &ge; " + QString::number(getDouble("min_tpm", false), 'f', 2) + "(tpm)";
+}
+
+void FilterVariantRNAGeneExpression::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double min_tpm = getDouble("min_tpm");
+
+	int idx_asf = annotationColumn(variants, "tpm");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		QList<QByteArray> fraction_strings = variants[i].annotations()[idx_asf].split(',');
+		result.flags()[i] = false;
+		foreach (const QByteArray& fraction_string, fraction_strings)
+		{
+			if(fraction_string.isEmpty() || fraction_string.startsWith("n/a")) continue;
+
+			double fraction_value = Helper::toDouble(fraction_string, "tpm", QString::number(i));
+			if (fraction_value >= min_tpm)
+			{
+				result.flags()[i] = true;
+				break;
+			}
+		}
+	}
+}
+
+FilterVariantRNAExpressionFC::FilterVariantRNAExpressionFC()
+{
+	name_ = "RNA expression fold-change";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the absolute gene expression log2 fold-change.";
+	params_ << FilterParameter("min_fc", FilterParameterType::DOUBLE, 2.0, "Minimal absolute fold-change.");
+	params_.last().constraints["min"] = "0.0";
+}
+
+QString FilterVariantRNAExpressionFC::toText() const
+{
+	return name() + " (abs) &ge; " + QString::number(getDouble("min_fc", false), 'f', 2);
+}
+
+void FilterVariantRNAExpressionFC::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double min_fc = getDouble("min_fc");
+
+	int idx_fc = annotationColumn(variants, "expr_log2fc");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		QList<QByteArray> fc_strings = variants[i].annotations()[idx_fc].split(',');
+		result.flags()[i] = false;
+		foreach (const QByteArray& fc_string, fc_strings)
+		{
+			if(fc_string.isEmpty() || fc_string.startsWith("n/a")) continue;
+
+			double fraction_value = fabs(Helper::toDouble(fc_string, "expr_log2fc", QString::number(i)));
+			if (fraction_value >= min_fc)
+			{
+				result.flags()[i] = true;
+				break;
+			}
+		}
+	}
+}
+
+FilterVariantRNAExpressionZScore::FilterVariantRNAExpressionZScore()
+{
+	name_ = "RNA expression z-score";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the absolute gene expression z-score.";
+	params_ << FilterParameter("min_zscore", FilterParameterType::DOUBLE, 2.0, "Minimal absolute z-score.");
+	params_.last().constraints["min"] = "0.0";
+}
+
+QString FilterVariantRNAExpressionZScore::toText() const
+{
+	return name() + " (abs) &ge; " + QString::number(getDouble("min_zscore", false), 'f', 2);
+}
+
+void FilterVariantRNAExpressionZScore::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double min_zscore = getDouble("min_zscore");
+
+	int idx_zscore = annotationColumn(variants, "expr_zscore");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		QList<QByteArray> zscore_strings = variants[i].annotations()[idx_zscore].split(',');
+		result.flags()[i] = false;
+		foreach (const QByteArray& zscore_string, zscore_strings)
+		{
+			if(zscore_string.isEmpty() || zscore_string.startsWith("n/a")) continue;
+
+			double zscore = fabs(Helper::toDouble(zscore_string, "expr_zscore", QString::number(i)));
+			if (zscore >= min_zscore)
+			{
+				result.flags()[i] = true;
+				break;
+			}
+		}
+	}
+}
+
+

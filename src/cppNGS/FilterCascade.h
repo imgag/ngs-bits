@@ -557,7 +557,6 @@ class CPPNGSSHARED_EXPORT FilterPredictionPathogenic
 		mutable int i_phylop;
 		mutable int i_sift;
 		mutable int i_polyphen;
-		mutable int i_fathmm;
 		mutable int i_cadd;
 		mutable int i_revel;
 		mutable bool skip_high_impact;
@@ -565,7 +564,6 @@ class CPPNGSSHARED_EXPORT FilterPredictionPathogenic
 
 		mutable double cutoff_cadd;
 		mutable double cutoff_revel;
-		mutable double cutoff_fathmm_mkl;
 		mutable double cutoff_phylop;
 		mutable bool ignore_sift;
 		mutable bool ignore_polyphen;
@@ -678,7 +676,103 @@ public:
 	void apply(const VariantList& variants, FilterResult& result) const override;
 };
 
+//Filter for variants that influence splice sites
+class CPPNGSSHARED_EXPORT FilterSpliceEffect
+		: public FilterBase
+{
+public:
+	FilterSpliceEffect();
+	QString toText() const override;
+	void apply(const VariantList &variant_list, FilterResult &result) const override;
+private:
+	double calculatePercentageChangeMES_(const QByteArray& value) const;
+	bool applyMaxEntScanFilter_(const Variant& var, int idx_mes) const;
+	bool applySpliceAi_(const Variant& var, int idx_sai) const;
+};
+
+//Filter RNA ASE allele frequency
+class CPPNGSSHARED_EXPORT FilterVariantRNAAseAlleleFrequency
+	: public FilterBase
+{
+	public:
+		FilterVariantRNAAseAlleleFrequency();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+//Filter RNA ASE depth
+class CPPNGSSHARED_EXPORT FilterVariantRNAAseDepth
+	: public FilterBase
+{
+	public:
+		FilterVariantRNAAseDepth();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+//Filter RNA ASE alternative observered count
+class CPPNGSSHARED_EXPORT FilterVariantRNAAseAlt
+	: public FilterBase
+{
+	public:
+		FilterVariantRNAAseAlt();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+//Filter RNA ASE p-value
+class CPPNGSSHARED_EXPORT FilterVariantRNAAsePval
+	: public FilterBase
+{
+	public:
+		FilterVariantRNAAsePval();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+//Filter RNA aberrant splicing
+class CPPNGSSHARED_EXPORT FilterVariantRNAAberrantSplicing
+	: public FilterBase
+{
+	public:
+		FilterVariantRNAAberrantSplicing();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+//Filter RNA TPM value
+class CPPNGSSHARED_EXPORT FilterVariantRNAGeneExpression
+	: public FilterBase
+{
+	public:
+		FilterVariantRNAGeneExpression();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+//Filter RNA expression fold-change
+class CPPNGSSHARED_EXPORT FilterVariantRNAExpressionFC
+	: public FilterBase
+{
+	public:
+		FilterVariantRNAExpressionFC();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+//Filter RNA expression zscore
+class CPPNGSSHARED_EXPORT FilterVariantRNAExpressionZScore
+	: public FilterBase
+{
+	public:
+		FilterVariantRNAExpressionZScore();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+
 /*************************************************** filters for CNVs ***************************************************/
+
 //Filter CNV size
 class CPPNGSSHARED_EXPORT FilterCnvSize
 	: public FilterBase
@@ -739,6 +833,15 @@ class CPPNGSSHARED_EXPORT FilterCnvLoglikelihood
 		FilterCnvLoglikelihood();
 		QString toText() const override;
 		void apply(const CnvList& cnvs, FilterResult& result) const override;
+};
+
+class CPPNGSSHARED_EXPORT FilterCnvMaxLoglikelihood
+		: public FilterBase
+{
+public:
+	FilterCnvMaxLoglikelihood();
+	QString toText() const override;
+	void apply(const CnvList &cnvs, FilterResult &result) const override;
 };
 
 //Filter CNV q-value
@@ -820,6 +923,27 @@ class CPPNGSSHARED_EXPORT FilterCnvGeneOverlap
 		void apply(const CnvList& cnvs, FilterResult& result) const override;
 
 		QByteArrayList selectedOptions() const;
+};
+
+//Filters CNVs for tumor copy number
+class CPPNGSSHARED_EXPORT FilterCnvTumorCopyNumberChange
+		: public FilterBase
+{
+public:
+	FilterCnvTumorCopyNumberChange();
+	QString toText() const override;
+	void apply(const CnvList& cnvs, FilterResult &result) const override;
+};
+
+//Filters CNVs for clonality
+class CPPNGSSHARED_EXPORT FilterCnvClonality
+		: public FilterBase
+{
+	public:
+		FilterCnvClonality();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+
 };
 
 //Filter CNVs for overlaps with pathogenic CNVs
@@ -1011,12 +1135,22 @@ class CPPNGSSHARED_EXPORT FilterSvCountNGSD
 		void apply(const BedpeFile& svs, FilterResult& result) const override;
 };
 
-//NGSD SV count filter
+//NGSD SV AF filter
 class CPPNGSSHARED_EXPORT FilterSvAfNGSD
 	: public FilterBase
 {
 	public:
 		FilterSvAfNGSD();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+};
+
+//NGSD SV break point density filter
+class CPPNGSSHARED_EXPORT FilterSvBreakpointDensityNGSD
+	: public FilterBase
+{
+	public:
+		FilterSvBreakpointDensityNGSD();
 		QString toText() const override;
 		void apply(const BedpeFile& svs, FilterResult& result) const override;
 };

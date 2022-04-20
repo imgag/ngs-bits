@@ -7,31 +7,36 @@
 
 ## Obtaining ngs-bits
 
-Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can be built from sources:
+Binaries of *ngs-bits* are available via Bioconda:
 
 * **Binaries** for [Linux/macOS](doc/install_bioconda.md)
-* From **sources** for [Linux/macOS](doc/install_unix.md)
-* From **sources** for [Windows](doc/install_win.md)
+
+Alternatively, *ngs-bits* can be built from sources. Use git to clone the most recent release (the source code package of GitHub does not contains required sub-modules):
+
+    > git clone --recursive https://github.com/imgag/ngs-bits.git
+	> cd ngs-bits
+	> git checkout 2022_04
+	> git submodule update --recursive --init
+
+Depending on your operating system, building instructions vary slightly:
+
+* Building from **sources** for [Linux](doc/install_unix.md)
+* Building from **sources** for [MacOS](doc/install_mac.md)
+* Building from **sources** for [Windows](doc/install_win.md)
 
 ## ChangeLog
 
-Changes already implemented in GIT master for next release:
+Changes in release 2022_04:  
 
-* none
-
-
-Changes in release 2021_09:  
-
-* GenePrioritization: Performs gene prioritization based on list of known disease genes and a PPI graph.
-* GraphStringDb: Creates simple representation of String-DB interaction graph.
-* VcfCheck: improved checking of empty INFO column
-* VcfAnnotateFromBed: added multithread support
-* VcfAnnotateFromVcf: improved memory useage
-* MappingQC: added support for cfDNA samples, improved support for RNA
+* general: updated default genome build from 'hg19' to 'hg38' for all tools that require genome builds.
+* added tools: BedLiftOver, BedpeSort, VcfAnnotateFromBigWig.
 * NGSD:
-	* removed 'gene' and 'variant\_type' columns from 'variant' table
-	* added 'germline\_het' and 'germline\_hom' columns to 'variant' table
-	* added method 'shallow WGS' to 'variant\_validation' table
+	* user: added user type enum value 'restricted_user' and associated table 'user_permissions'.
+	* sample: added sample type enum value 'cfDNA'.
+	* sample: added field 'tissue'.
+	* added table: 'variant_literature' for publications associated with a variant.
+	* sv_deletion/sv_duplication/sv_insertion/sv_inversion/sv_translocation: added field 'genotype'.
+
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 
@@ -104,6 +109,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [BedHighCoverage](doc/tools/BedHighCoverage.md) - Detects high-coverage regions from a BAM file.
 * [BedInfo](doc/tools/BedInfo.md) - Prints summary information about a BED file.
 * [BedIntersect](doc/tools/BedIntersect.md) - Intersects two BED files.
+* [BedLiftOver](doc/tools/BedLiftOver.md) - Lift-over of regions in a BED file to a different genome build.
 * [BedLowCoverage](doc/tools/BedLowCoverage.md) - Calcualtes regions of low coverage based on a input BED and BAM file.
 * [BedMerge](doc/tools/BedMerge.md) - Merges overlapping regions in a BED file.
 * [BedReadCount](doc/tools/BedReadCount.md) - Annoates the regions in a BED file with the read count from a BAM file.
@@ -130,6 +136,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 ### VCF tools (small variants)
 
 * [VcfAnnotateFromBed](doc/tools/VcfAnnotateFromBed.md) - Annotates the INFO column of a VCF with data from a BED file.
+* [VcfAnnotateFromBigWig](doc/tools/VcfAnnotateFromBigWig.md) - Annotates the INFO column of a VCF with data from a BED file.
 * [VcfAnnotateFromVcf](doc/tools/VcfAnnotateFromVcf.md) - Annotates the INFO column of a VCF with data from another VCF file (or multiple VCF files if config file is provided)
 * [VcfBreakMulti](doc/tools/VcfBreakMulti.md) - Breaks multi-allelic variants into several lines, making sure that allele-specific INFO/SAMPLE fields are still valid.
 * [VcfCalculatePRS](doc/tools/VcfCalculatePRS.md) - Calculates the Polgenic Risk Score(s) for a sample.
@@ -147,8 +154,8 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [BedpeAnnotateFromBed](doc/tools/BedpeAnnotateFromBed.md) - Annotates a BEDPE file with information from a BED file.
 * [BedpeFilter](doc/tools/BedpeFilter.md) - Filters a BEDPE file by region.
 * [BedpeGeneAnnotation](doc/tools/BedpeGeneAnnotation.md) - Annotates a BEDPE file with gene information from the NGSD (needs [NGSD](doc/install_ngsd.md)).
+* [BedpeSort](doc/tools/BedpeSort.md) - Sort a BEDPE file according to chromosomal position.
 * [BedpeToBed](doc/tools/BedpeToBed.md) - Converts a BEDPE file into BED file.
-* [NGSDAnnotateSV](doc/tools/NGSDAnnotateSV.md) - Annotates the structural variants of a given BEDPE file by the NGSD counts (needs [NGSD](doc/install_ngsd.md)).
 * [SvFilterAnnotations](doc/tools/SvFilterAnnotations.md) - Filter a structural variant list in BEDPE format based on variant annotations.
 
 ### Gene handling tools

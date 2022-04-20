@@ -1,4 +1,7 @@
 #include "PhenotypeSelectionWidget.h"
+#include <iostream>
+#include <qobject.h>
+#include <QMessageBox>
 
 PhenotypeSelectionWidget::PhenotypeSelectionWidget(QWidget *parent)
 	: QWidget(parent)

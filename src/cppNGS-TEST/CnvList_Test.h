@@ -7,12 +7,26 @@ TEST_CLASS(CnvList_Test)
 Q_OBJECT
 private slots:
 
-	void qcMetric()
+
+	void load()
 	{
 		CnvList cnvs;
 		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_germline.tsv"));
 
+		I_EQUAL(cnvs.comments().count(), 5);
+		S_EQUAL(cnvs.build(), "GRCh38");
+		I_EQUAL(cnvs.count(), 67);
 		S_EQUAL(cnvs.qcMetric("number of iterations"), "1");
+	}
+
+	void loadHeaderOnly()
+	{
+		CnvList cnvs;
+		cnvs.loadHeaderOnly(TESTDATA("data_in/CnvList_ClinCNV_germline_multi.tsv"));
+
+		I_EQUAL(cnvs.comments().count(), 16);
+		S_EQUAL(cnvs.build(), "");
+		I_EQUAL(cnvs.count(), 0);
 	}
 
 	void import_export_ClinCNV_germline()

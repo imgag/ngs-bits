@@ -12,7 +12,7 @@ struct ClinvarUploadData
 {
     //sample data
     int variant_id;
-    int variant_report_config_id;
+	int report_config_variant_id;
     ReportVariantConfiguration report_variant_config;
 	QString processed_sample;
 
@@ -26,6 +26,11 @@ struct ClinvarUploadData
     //variant data
     Variant variant;
     GeneSet genes;
+
+	//additional info for re-upload
+	QString stable_id;
+	int user_id = -1;
+	int variant_publication_id = -1;
 };
 
 ///ClinVar upload dialog

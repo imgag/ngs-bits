@@ -6,6 +6,32 @@ TEST_CLASS(BedpeLine_Test)
 Q_OBJECT
 private slots:
 
+	void load()
+	{
+		BedpeFile file;
+		file.load(TESTDATA("../cppNGS-TEST/data_in/panel_svs.bedpe"));
+		I_EQUAL(file.count(), 1);
+		I_EQUAL(file.headers().count(), 131);
+		I_EQUAL(file.annotationHeaders().count(), 22);
+	}
+
+	void loadHeaderOnly()
+	{
+		BedpeFile file;
+		file.loadHeaderOnly(TESTDATA("../cppNGS-TEST/data_in/panel_svs.bedpe"));
+		I_EQUAL(file.count(), 0);
+		I_EQUAL(file.headers().count(), 131);
+		I_EQUAL(file.annotationHeaders().count(), 22);
+	}
+
+	void build()
+	{
+		BedpeFile file;
+		file.loadHeaderOnly(TESTDATA("../cppNGS-TEST/data_in/panel_svs.bedpe"));
+
+		S_EQUAL(file.build(), "GRCh37");
+	}
+
 	void toTsv()
 	{
 		QByteArrayList raw = {"BND00001285", ".", ".", ".", "BND", "PASS", "BND00001285", "A", "A[CHR1:144534771[", ".", ".", ".", "CIEND=-619,619;CIPOS=-619,619;CHR2=chr1;END=144534771;PE=11;MAPQ=24;CT=3to5;IMPRECISE;SVTYPE=BND;POS=5765244;SVMETHOD=EMBL.DELLYv0.8.1", ".", "GT:GL:GQ:FT:RC:RCL:RCR:CN:DR:DV:RR:RV","0/1:-15.1235,0,-127.373:151:PASS:153:84:147:1:31:11:0:0"};

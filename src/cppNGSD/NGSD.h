@@ -154,7 +154,7 @@ class CPPNGSDSHARED_EXPORT TableInfo
 			return output;
 		}
 
-		bool fieldExists(const QString& field_name)
+		bool fieldExists(const QString& field_name) const
 		{
 			foreach(const TableFieldInfo& entry, field_infos_)
 			{
@@ -249,6 +249,7 @@ struct CPPNGSDSHARED_EXPORT SampleData
 	QString comments;
 	QString disease_group;
 	QString disease_status;
+	QString tissue;
 	PhenotypeList phenotypes;
 	bool is_tumor;
 	bool is_ffpe;
@@ -370,10 +371,12 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool s_name_ext = false;
 	bool s_name_comments = false;
 	QString s_species;
+	QString s_type;
 	QString s_sender;
 	QString s_study;
 	QString s_disease_group;
 	QString s_disease_status;
+	QString s_tissue;
 	bool include_bad_quality_samples = true;
 	bool include_tumor_samples = true;
 	bool include_ffpe_samples = true;
@@ -423,6 +426,7 @@ struct CPPNGSDSHARED_EXPORT EvaluationSheetData
 {
 	//set default values on construction
 	EvaluationSheetData() :
+		build(GenomeBuild::HG38),
 		acmg_requested(false),
 		acmg_noticeable(false),
 		acmg_analyzed(false),
@@ -440,6 +444,7 @@ struct CPPNGSDSHARED_EXPORT EvaluationSheetData
 		filtered_by_trio_relaxed(false)
 	{}
 
+	GenomeBuild build;
 	QString ps_id;
 	QString dna_rna;
 	QString reviewer1;
@@ -488,6 +493,17 @@ struct CfdnaGeneEntry
 	BedFile bed = BedFile();
 };
 
+///NGSD import status for germline analysis.
+struct CPPNGSDSHARED_EXPORT ImportStatusGermline
+{
+	//variant data
+	int small_variants = 0;
+	int cnvs = 0;
+	int svs = 0;
+	//QC data
+	int qc_terms = 0;
+};
+
 /// NGSD accessor.
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
@@ -496,7 +512,7 @@ Q_OBJECT
 
 public:
 	///Default constructor that connects to the DB
-	NGSD(bool test_db = false, bool hg38 = false);
+	NGSD(bool test_db=false, QString name_suffix="");
 	///Destructor.
 	~NGSD();
 	///Returns if the database connection is (still) open
@@ -505,7 +521,7 @@ public:
 	///Returns the table list.
 	QStringList tables() const;
 	///Returns information about all fields of a table.
-	const TableInfo& tableInfo(const QString& table) const;
+	const TableInfo& tableInfo(const QString& table, bool use_cache = true) const;
 	///Checks if the value is valid for the table/field when used in an SQL query. Returns a non-empty error list in case it is not. 'check_unique' must not be used for existing entries.
 	QStringList checkValue(const QString& table, const QString& field, const QString& value, bool check_unique) const;
 	///Escapes SQL special characters in a text
@@ -544,9 +560,11 @@ public:
 	///Returns all possible values for a enum column.
 	QStringList getEnum(QString table, QString column) const;
 	///Checks if a table exists.
-	void tableExists(QString table);
+	bool tableExists(QString table, bool throw_error_if_not_existing=true) const;
+	///Checks if a row the the given id exists in the table.
+	bool rowExists(QString table, int id) const;
 	///Checks if a table is empty.
-	bool tableEmpty(QString table);
+	bool tableEmpty(QString table) const;
 	///Clears all contents from a table.
 	void clearTable(QString table);
 
@@ -559,8 +577,10 @@ public:
 	/*** gene/transcript handling ***/
 	///Returns the gene ID, or -1 if none approved gene name could be found. Checks approved symbols, previous symbols and synonyms.
 	int geneToApprovedID(const QByteArray& gene);
-	///Returns the gene symbol for a gene ID
+	///Returns the gene symbol for a gene ID.
 	QByteArray geneSymbol(int id);
+	///Returns the HGNC identifier of a gene.
+	QByteArray geneHgncId(int id);
 	///Returns the the approved gene symbol or "" if it could not be determined.
 	QByteArray geneToApproved(QByteArray gene, bool return_input_when_unconvertable=false);
 	///Returns the the approved gene symbols.
@@ -590,7 +610,7 @@ public:
 	///Returns transcripts of a gene (if @p coding_only is set, only coding transcripts).
 	TranscriptList transcripts(int gene_id, Transcript::SOURCE source, bool coding_only);
 	///Returns longest coding transcript of a gene.
-	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source=false, bool fallback_alt_source_nocoding=false);
+	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source=false, bool fallback_noncoding=false);
 	///Returns the list of all approved gene names
 	const GeneSet& approvedGeneNames();
 	///Returns the map of gene to preferred transcripts
@@ -609,8 +629,10 @@ public:
 	PhenotypeList phenotypes(const QByteArray& symbol);
 	///Returns all phenotypes matching the given search terms (or all terms if no search term is given)
 	PhenotypeList phenotypes(QStringList search_terms);
-	///Returns all genes associated to a phenotype. If is set terms of the following parent terms are ignored: "Mode of inheritance", "Frequency"
+	///Returns all genes associated to a phenotype. If "ignore_non_phenotype_terms" is set terms of the following parent terms are ignored: "Mode of inheritance", "Frequency"
 	GeneSet phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype_terms=true);
+	///Returns all genes associated with a phenotype that fullfil the allowed Sources and Evidences criteria. If "ignore_non_phenotype_terms" is set terms of the following parent terms are ignored: "Mode of inheritance", "Frequency"
+	GeneSet phenotypeToGenesbySourceAndEvidence(int id, QList<PhenotypeSource::Source> allowedSources, QList<PhenotypeEvidence::Evidence> allowedEvidences, bool recursive, bool ignore_non_phenotype_terms);
 	///Returns all child terms of the given phenotype
 	PhenotypeList phenotypeChildTerms(int term_id, bool recursive);
 	///Returns OMIM information for a gene. Several OMIM entries per gene are rare, but happen e.g. in the PAR region.
@@ -626,6 +648,9 @@ public:
 	///Returns the NGSD processed sample ID from a file name or processed sample name. Throws an exception if it could not be determined.
 	QString processedSampleId(const QString& filename, bool throw_if_fails = true);
 
+	///Returns the project folder for a project type
+	QString projectFolder(QString type);
+	///Returns the path of certain file of a processed sample (type)
 	QString processedSamplePath(const QString& processed_sample_id, PathType type);
 	///Returns the path to secondary analyses of the processed samples.
 	QStringList secondaryAnalyses(QString processed_sample_name, QString analysis_type);
@@ -645,6 +670,11 @@ public:
 	///Deletes the variants of a processed sample (a specific type)
 	void deleteVariants(const QString& ps_id, VariantType type);
 
+	///Adds PubMed ID to a variant
+	void addPubmedId(int variant_id, const QString& pubmed_id);
+	///Returns all PubMed IDs for a given variant id
+	QStringList pubmedIds(const QString& variant_id);
+
 	void deleteSomaticVariants(QString t_ps_id, QString n_ps_id);
 	void deleteSomaticVariants(QString t_ps_id, QString n_ps_id, VariantType type);
 
@@ -661,7 +691,7 @@ public:
 	QString svId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bool throw_if_fails = true);
 	///Returns the SV corresponding to the given identifiers or throws an exception if the ID does not exist.
 	///		'no_annotation' will only return the SV position
-	BedpeLine structuralVariant(int sv_id, StructuralVariantType type, const BedpeFile& svs, bool no_annotation = false);
+	BedpeLine structuralVariant(int sv_id, StructuralVariantType type, const BedpeFile& svs, bool no_annotation = false, int* callset_id = 0);
 	///Returns the SQL table name for a given StructuralVariantType
 	static QString svTableName(StructuralVariantType type);
 
@@ -670,6 +700,9 @@ public:
 	QString addSomaticCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll = 0.0);
 	QString somaticCnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_fails = true);
 	CopyNumberVariant somaticCnv(int cnv_id);
+
+	///Returns the germline import status.
+	ImportStatusGermline importStatus(const QString& ps_id);
 
 	/***User handling functions ***/
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.
@@ -722,12 +755,21 @@ public:
 	int processingSystemIdFromProcessedSample(QString ps_name);
 	///Returns the processing system information for a processed sample.
 	ProcessingSystemData getProcessingSystemData(int sys_id);
+
+	///Returns a path (including filename) for the processing system target region file. Returns an empty string if unset.
+	QString processingSystemRegionsFilePath(int sys_id);
 	///Returns the processing system target region file.
-	BedFile processingSystemRegions(int sys_id);
+	BedFile processingSystemRegions(int sys_id, bool ignore_if_missing);
+
+	///Returns a path (including filename) for the processing system amplicon region file.  Returns an empty string if unset.
+	QString processingSystemAmpliconsFilePath(int sys_id);
 	///Returns the processing system amplicon region file.
-	BedFile processingSystemAmplicons(int sys_id);
+	BedFile processingSystemAmplicons(int sys_id, bool ignore_if_missing);
+
+	///Returns a path (including filename) for the processing system genes. Returns an empty string if unset.
+	QString processingSystemGenesFilePath(int sys_id);
 	///Returns the processing system genes.
-	GeneSet processingSystemGenes(int sys_id);
+	GeneSet processingSystemGenes(int sys_id, bool ignore_if_missing);
 
 	///Retuns the list of sub-panel names.
 	QStringList subPanelList(bool archived);
@@ -785,9 +827,13 @@ public:
 
 
 	///Adds a variant publication
-	void addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details);
+	void addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details, int user_id=-1);
 	///Returns variant publication data as text
 	QString getVariantPublication(QString filename, const Variant& variant);
+	///Updates ClinVar result of a varaint publication
+	void updateVariantPublicationResult(int variant_publication_id, QString result);
+	///Flag a varaint publication as replaced
+	void flagVariantPublicationAsReplaced(int variant_publication_id);
 
 	///Returns the comment of a variant in the NGSD.
 	QString comment(const Variant& variant);
@@ -856,11 +902,13 @@ public:
 	QString analysisJobGSvarFile(int job_id);
 
 	///Adds a gap for a sample and returns the gap ID.
-	int addGap(const QString& ps_id, const Chromosome& chr, int start, int end, const QString& status);
+	int addGap(int ps_id, const Chromosome& chr, int start, int end, const QString& status);
 	///Returns the gap ID. If no matching gap is found, -1 is returned.
-	int gapId(const QString& ps_id, const Chromosome& chr, int start, int end, bool exact_match=true);
+	int gapId(int ps_id, const Chromosome& chr, int start, int end);
 	///Updates the status of a gap.
 	void updateGapStatus(int id, const QString& status);
+	///Add a comment to the gap history.
+	void addGapComment(int id, const QString& comment);
 
 	///Returns quality metric for a CNV callsets (all metrics for a single sample)
 	QHash<QString, QString> cnvCallsetMetrics(int callset_id);
