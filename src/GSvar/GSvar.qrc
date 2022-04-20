@@ -120,5 +120,6 @@
         <file>Icons/Report_exclude_visible.png</file>
         <file>Icons/Comment.png</file>
         <file>Icons/Lock.png</file>
+        <file>Icons/MosaicVariant.png</file>
     </qresource>
 </RCC>
