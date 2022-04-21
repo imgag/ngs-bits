@@ -979,6 +979,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["RNA expression fold-change"] = &createInstance<FilterVariantRNAExpressionFC>;
 		output["RNA expression z-score"] = &createInstance<FilterVariantRNAExpressionZScore>;
 		output["Occurences per strand"] = &createInstance<FilterVariantOccurencesPerStrand>;
+		output["Allele frequency in sample"] = &createInstance<FilterAllelFrequencySample>;
 	}
 
 	return output;
@@ -5598,9 +5599,9 @@ void FilterVariantOccurencesPerStrand::apply(const VariantList& variants, Filter
 	{
 		if (!result.flags()[i]) continue;
 
-		if ( ! variants[i].annotations()[idx_quality].contains("SAF") || ! variants[i].annotations()[idx_quality].contains("SAR"))
+		if ( ! variants[i].annotations()[idx_quality].contains("SAF=") || ! variants[i].annotations()[idx_quality].contains("SAR="))
 		{
-			THROW(ArgumentException, "Cannot be applied, File is missing SAR and/or SAF Annotation in quality column.");
+			THROW(ArgumentException, "Cannot be applied, file is missing SAR and/or SAF annotation in quality column.");
 		}
 
 		QList<QByteArray> quality_parts = variants[i].annotations()[idx_quality].split(';');
@@ -5623,3 +5624,61 @@ void FilterVariantOccurencesPerStrand::apply(const VariantList& variants, Filter
 	}
 }
 
+
+FilterAllelFrequencySample::FilterAllelFrequencySample()
+{
+	name_ = "Allele frequency in sample";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the allel frequency of the variant in the sample.";
+	params_ << FilterParameter("min_af", FilterParameterType::DOUBLE, 0.01, "Minimum allowed allele frequency in the sample.");
+	params_.last().constraints["min"] = "0";
+	params_.last().constraints["max"] = "1";
+	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximum allowed allele frequency in the sample.");
+	params_.last().constraints["min"] = "0";
+	params_.last().constraints["max"] = "1";
+
+	checkIsRegistered();
+}
+
+QString FilterAllelFrequencySample::toText() const
+{
+	return name() + " between " + QString::number(getDouble("min_af", false), 'f', 2) + " and " + QString::number(getDouble("max_af", false), 'f', 2);
+}
+
+void FilterAllelFrequencySample::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double max_af= getDouble("max_af");
+	double min_af= getDouble("min_af");
+
+	int idx_quality = annotationColumn(variants, "quality");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		if ( ! variants[i].annotations()[idx_quality].contains("AF="))
+		{
+			THROW(ArgumentException, "Cannot be applied, file is missing AF annotation in quality column.");
+		}
+
+		QList<QByteArray> quality_parts = variants[i].annotations()[idx_quality].split(';');
+
+		foreach (const QByteArray& quality_part, quality_parts)
+		{
+			if(quality_part.isEmpty()) continue;
+			if(quality_part.startsWith("AF="))
+			{
+				bool ok = true;
+				double af = quality_part.split('=')[1].toDouble(&ok);
+
+				if (ok && (min_af > af || max_af < af))
+				{
+					result.flags()[i] = false;
+					break;
+				}
+			}
+		}
+	}
+}

@@ -1080,6 +1080,22 @@ private slots:
 		filter.setInteger("min_occurences", 3);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 6);
+	}
+
+	void FilterAlleleFrequencySample_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in1.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterAllelFrequencySample filter;
+		filter.setDouble("min_af", 0.02);
+		filter.setDouble("max_af", 0.10);
+
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 6);
 
 	}
 
