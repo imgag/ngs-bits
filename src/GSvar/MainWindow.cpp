@@ -132,6 +132,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "FusionWidget.h"
 #include "CohortExpressionDataWidget.h"
 #include "CausalVariantEditDialog.h"
+#include "MosaicWidget.h"
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -1139,47 +1140,12 @@ void MainWindow::on_actionSV_triggered()
 void MainWindow::on_actionMosaic_triggered()
 {
 	qDebug() << "connected?";
+	qDebug() << "mosaic variants: #" << mosaics_.count();
 	if(filename_ == "") return;
 
-	if (!mosaics_.count() > 0)	{
+	if (!(mosaics_.count() > 0))	{
 		QMessageBox::information(this, "No mosaic variants", "No detected mosaic variants in the analysis!");
 		return;
-	}
-
-	//create list of genes with heterozygous variant hits
-	GeneSet het_hit_genes;
-	int i_genes = variants_.annotationIndexByName("gene", true, false);
-	QList<int> i_genotypes = variants_.getSampleHeader().sampleColumns(true);
-	i_genotypes.removeAll(-1);
-
-	if (i_genes!=-1 && i_genotypes.count()>0)
-	{
-		//check that a filter was applied (otherwise this can take forever)
-		int passing_vars = filter_result_.countPassing();
-		if (passing_vars>2000)
-		{
-			int res = QMessageBox::question(this, "Continue?", "There are " + QString::number(passing_vars) + " variants that pass the filters.\nGenerating the list of candidate genes for compound-heterozygous hits may take very long for this amount of variants.\nDo you want to continue?", QMessageBox::Yes, QMessageBox::No);
-			if(res==QMessageBox::No) return;
-		}
-		for (int i=0; i<variants_.count(); ++i)
-		{
-			if (!filter_result_.passing(i)) continue;
-
-			bool all_genos_het = true;
-			foreach(int i_genotype, i_genotypes)
-			{
-				if (variants_[i].annotations()[i_genotype]!="het")
-				{
-					all_genos_het = false;
-				}
-			}
-			if (!all_genos_het) continue;
-			het_hit_genes.insert(GeneSet::createFromText(variants_[i].annotations()[i_genes], ','));
-		}
-	}
-	else if (variants_.type()!=SOMATIC_PAIR && variants_.type() != SOMATIC_SINGLESAMPLE)
-	{
-		QMessageBox::information(this, "Invalid variant list", "Column for genes or genotypes not found in variant list. Cannot apply compound-heterozygous filter based on variants!");
 	}
 
 	try
@@ -1193,18 +1159,12 @@ void MainWindow::on_actionMosaic_triggered()
 			report_config = report_settings_.report_config;
 		}
 
-		//open SV widget
-		SvWidget* list;
-		if(svs_.isSomatic())
-		{
-			// somatic
-			list = new SvWidget(svs_, ps_id, ui_.filters, het_hit_genes, gene2region_cache_, this);
-		}
-		else
-		{
-			// germline single, trio or multi sample
-			list = new SvWidget(svs_, ps_id, ui_.filters, report_config, het_hit_genes, gene2region_cache_, this);
-		}
+		//open mosaic widget
+		MosaicWidget* list;
+
+		// germline single, trio or multi sample
+		list = new MosaicWidget(mosaics_, ps_id, ui_.filters, report_settings_, gene2region_cache_, this);
+
 
 		auto dlg = GUIHelper::createDialog(list, "Structural variants of " + variants_.analysisName());
 		addModelessDialog(dlg);
@@ -1215,7 +1175,7 @@ void MainWindow::on_actionMosaic_triggered()
 	}
 	catch(FileAccessException error)
 	{
-		QMessageBox::warning(this,"SV file not found",error.message());
+		QMessageBox::warning(this,"Mosaic file not found",error.message());
 	}
 
 }

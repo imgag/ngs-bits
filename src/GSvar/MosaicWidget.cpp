@@ -27,22 +27,20 @@
 QT_CHARTS_USE_NAMESPACE
 
 
-MosaicWidget::MosaicWidget(const VariantList& variants, QString ps_id, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
+MosaicWidget::MosaicWidget(const VariantList& variants, QString ps_id, FilterWidget* filter_widget, ReportSettings rep_settings, QHash<QByteArray, BedFile>& cache, QWidget* parent)
 	: QWidget(parent)
-	, ui(new Ui::MosaicWidget)
+	, ui_(new Ui::MosaicWidget)
 	, ps_id_(ps_id)
 	, variants_(variants)
-	, report_config_()
-	, var_het_genes_(het_hit_genes)
+	, filter_result_()
+	, report_settings_()
 	, gene2region_cache_(cache)
-	, ngsd_enabled_(LoginManager::active())
+	,ngsd_enabled_(LoginManager::active())
 {
-	ui->setupUi(this);
+	ui_->setupUi(this);
 
-	//set small variant filters TODO remove ?
-//	ui->filter_widget->setVariantFilterWidget(filter_widget);
-
-	report_config_ = rep_conf;
+	connect(ui_->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
+	report_settings_ = rep_settings;
 	initGUI();
 }
 
@@ -51,7 +49,7 @@ void MosaicWidget::initGUI()
 	//set up GUI
 	try
 	{
-//		updateGUI();
+		updateGUI();
 	}
 	catch(Exception e)
 	{
@@ -59,20 +57,19 @@ void MosaicWidget::initGUI()
 //		disableGUI();
 	}
 
-	//apply filters
+//	apply filters
 	applyFilters();
 }
 
 MosaicWidget::~MosaicWidget()
 {
-	delete ui;
+	delete ui_;
 }
 
 
 void MosaicWidget::applyFilters(bool debug_time)
 {
 	const int rows = variants_.count();
-	FilterResult filter_result(rows);
 
 	try
 	{
@@ -80,18 +77,9 @@ void MosaicWidget::applyFilters(bool debug_time)
 		timer.start();
 
 		//apply main filter
-		const FilterCascade& filter_cascade = ui->filter_widget->filters();
-		//set comp-het gene list the first time the filter is applied
-		for(int i=0; i<filter_cascade.count(); ++i)
-		{
-			const FilterCnvCompHet* comphet_filter = dynamic_cast<const FilterCnvCompHet*>(filter_cascade[i].data());
-			if (comphet_filter!=nullptr && comphet_filter->hetHitGenes().count()!=var_het_genes_.count())
-			{
-				comphet_filter->setHetHitGenes(var_het_genes_);
-			}
-		}
-		filter_result = filter_cascade.apply(variants_, false, debug_time);
-		ui->filter_widget->markFailedFilters();
+		const FilterCascade& filter_cascade = ui_->filter_widget->filters();
+		filter_result_ = filter_cascade.apply(variants_, false, debug_time);
+		ui_->filter_widget->markFailedFilters();
 
 		if (debug_time)
 		{
@@ -100,49 +88,56 @@ void MosaicWidget::applyFilters(bool debug_time)
 		}
 
 		//filter by report config
-		ReportConfigFilter rc_filter = ui->filter_widget->reportConfigurationFilter();
+		ReportConfigFilter rc_filter = ui_->filter_widget->reportConfigurationFilter();
 		if (rc_filter!=ReportConfigFilter::NONE)
 		{
 			for(int r=0; r<rows; ++r)
 			{
-				if (!filter_result.flags()[r]) continue;
+				if (!filter_result_.flags()[r]) continue;
 
 				if (rc_filter==ReportConfigFilter::HAS_RC)
 				{
 
-					filter_result.flags()[r] = report_config_->exists(VariantType::CNVS, r);
+					filter_result_.flags()[r] = report_settings_.report_config->exists(VariantType::CNVS, r);
 
 				}
 				else if (rc_filter==ReportConfigFilter::NO_RC)
 				{
 
-					filter_result.flags()[r] = !report_config_->exists(VariantType::CNVS, r);
+					filter_result_.flags()[r] = !report_settings_.report_config->exists(VariantType::CNVS, r);
 
 				}
 			}
 		}
 
 		//filter by genes
-		GeneSet genes = ui->filter_widget->genes();
+		GeneSet genes = ui_->filter_widget->genes();
 		if (!genes.isEmpty())
 		{
-			QByteArray genes_joined = genes.join('|');
-			//TODO
+			FilterGenes filter;
+			filter.setStringList("genes", genes.toStringList());
+			filter.apply(variants_, filter_result_);
+
+			if (debug_time)
+			{
+				Log::perf("Applying gene filter took ", timer);
+				timer.start();
+			}
 		}
 
 		//filter by ROI
-		if (ui->filter_widget->targetRegion().isValid())
+		if (ui_->filter_widget->targetRegion().isValid())
 		{
 			for(int r=0; r<rows; ++r)
 			{
-				if (!filter_result.flags()[r]) continue;
+				if (!filter_result_.flags()[r]) continue;
 
-				filter_result.flags()[r] = ui->filter_widget->targetRegion().regions.overlapsWith(variants_[r].chr(), variants_[r].start(), variants_[r].end());
+				filter_result_.flags()[r] = ui_->filter_widget->targetRegion().regions.overlapsWith(variants_[r].chr(), variants_[r].start(), variants_[r].end());
 			}
 		}
 
 		//filter by region
-		QString region_text = ui->filter_widget->region();
+		QString region_text = ui_->filter_widget->region();
 		BedLine region = BedLine::fromString(region_text);
 		if (!region.isValid()) //check if valid chr
 		{
@@ -158,14 +153,14 @@ void MosaicWidget::applyFilters(bool debug_time)
 		{
 			for(int r=0; r<rows; ++r)
 			{
-				if (!filter_result.flags()[r]) continue;
+				if (!filter_result_.flags()[r]) continue;
 
-				filter_result.flags()[r] = region.overlapsWith(variants_[r].chr(), variants_[r].start(), variants_[r].end());
+				filter_result_.flags()[r] = region.overlapsWith(variants_[r].chr(), variants_[r].start(), variants_[r].end());
 			}
 		}
 
 		//filter by phenotype (via genes, not genomic regions)
-		PhenotypeList phenotypes = ui->filter_widget->phenotypes();
+		PhenotypeList phenotypes = ui_->filter_widget->phenotypes();
 		if (!phenotypes.isEmpty())
 		{
 			//convert phenotypes to genes
@@ -194,19 +189,19 @@ void MosaicWidget::applyFilters(bool debug_time)
 
 			for(int r=0; r<rows; ++r)
 			{
-				if (!filter_result.flags()[r]) continue;
+				if (!filter_result_.flags()[r]) continue;
 
-				filter_result.flags()[r] = pheno_roi.overlapsWith(variants_[r].chr(), variants_[r].start(), variants_[r].end());
+				filter_result_.flags()[r] = pheno_roi.overlapsWith(variants_[r].chr(), variants_[r].start(), variants_[r].end());
 			}
 		}
 
 		//filter annotations by text
-		QByteArray text = ui->filter_widget->text().trimmed().toLower();
+		QByteArray text = ui_->filter_widget->text().trimmed().toLower();
 		if (text!="")
 		{
 			for(int r=0; r<rows; ++r)
 			{
-				if (!filter_result.flags()[r]) continue;
+				if (!filter_result_.flags()[r]) continue;
 
 				bool match = false;
 				foreach(const QByteArray& anno, variants_[r].annotations())
@@ -217,7 +212,7 @@ void MosaicWidget::applyFilters(bool debug_time)
 						break;
 					}
 				}
-				filter_result.flags()[r] = match;
+				filter_result_.flags()[r] = match;
 			}
 		}
 
@@ -226,26 +221,73 @@ void MosaicWidget::applyFilters(bool debug_time)
 	{
 		QMessageBox::warning(this, "Filtering error", e.message() + "\nA possible reason for this error is an outdated variant list.\nTry re-annotating the NGSD columns.\n If re-annotation does not help, please re-analyze the sample (starting from annotation) in the sample information dialog!");
 
-		filter_result = FilterResult(variants_.count(), false);
+		filter_result_ = FilterResult(variants_.count(), false);
 	}
 
 	//update GUI
 	for(int r=0; r<rows; ++r)
 	{
-		ui->mosaics->setRowHidden(r, !filter_result.flags()[r]);
+		ui_->mosaics->setRowHidden(r, !filter_result_.flags()[r]);
 	}
-	updateStatus(filter_result.countPassing());
+	updateStatus(filter_result_.countPassing());
+}
+
+void MosaicWidget::updateGUI(bool keep_widths)
+{
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
+	QTime timer;
+	timer.start();
+
+	//apply filters
+	applyFilters();
+	int passing_variants = filter_result_.countPassing();
+	QString status = QString::number(passing_variants) + " of " + QString::number(variants_.count()) + " variants passed filters.";
+	int max_variants = 10000;
+	if (passing_variants>max_variants)
+	{
+		status += " Displaying " + QString::number(max_variants) + " variants only!";
+	}
+	ui_->status->setText(status);
+
+	Log::perf("Applying all filters took ", timer);
+	timer.start();
+
+	//update variant table
+	QList<int> col_widths = ui_->mosaics->columnWidths();
+	AnalysisType type = variants_.type();
+
+	if (type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE)
+	{
+		ui_->mosaics->update(variants_, filter_result_, report_settings_, max_variants);
+	}
+	else
+	{
+		THROW(ProgrammingException, "Unsupported analysis type in refreshVariantTable!");
+	}
+
+	ui_->mosaics->adaptRowHeights();
+	if (keep_widths)
+	{
+		ui_->mosaics->setColumnWidths(col_widths);
+	}
+	else
+	{
+		ui_->mosaics->adaptColumnWidths();
+	}
+	QApplication::restoreOverrideCursor();
+
 }
 
 void MosaicWidget::copyToClipboard()
 {
-	GUIHelper::copyToClipboard(ui->mosaics);
+	GUIHelper::copyToClipboard(ui_->mosaics);
 }
 
 
 void MosaicWidget::updateStatus(int shown)
 {
 	QString text = QString::number(shown) + "/" + QString::number(variants_.count()) + " passing filter(s)";
-	ui->status->setText(text);
+	ui_->status->setText(text);
 }
 

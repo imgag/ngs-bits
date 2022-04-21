@@ -23,7 +23,7 @@ class MosaicWidget
 
 public:
 
-	MosaicWidget(const VariantList& variants, QString ps_id, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
+	MosaicWidget(const VariantList& variants, QString ps_id, FilterWidget* filter_widget, ReportSettings rep_settings, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
 
 	~MosaicWidget();
 
@@ -35,20 +35,19 @@ private slots:
 	void applyFilters(bool debug_time=false);
 	void copyToClipboard();
 	void updateStatus(int num);
+	void updateGUI(bool keep_widths =  false);
 
 
 private:
 	void initGUI();
-	void updateGUI();
 	void disableGUI();
 
-	Ui::MosaicWidget* ui;
+	Ui::MosaicWidget* ui_;
 	QString ps_id_; //processed sample database ID. '' if unknown of NGSD is disabled.
 	const VariantList& variants_;
-	QStringList special_cols_;
-	QSharedPointer<ReportConfiguration> report_config_;
+	FilterResult filter_result_;
+	ReportSettings report_settings_;
 
-	GeneSet var_het_genes_;
 	QHash<QByteArray, BedFile>& gene2region_cache_;
 	bool ngsd_enabled_;
 };
