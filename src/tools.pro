@@ -468,3 +468,6 @@ SUBDIRS += NGSDUpdateSvGenotype
 tools-TEST.depends += NGSDUpdateSvGenotype
 NGSDUpdateSvGenotype.depends = cppNGSD
 
+SUBDIRS += VcfAnnotateConsequence
+tools-TEST.depends += VcfAnnotateConsequence
+VcfAnnotateConsequence.depends = cppNGS

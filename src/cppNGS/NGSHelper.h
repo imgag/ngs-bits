@@ -5,6 +5,7 @@
 #include "BamReader.h"
 #include "FilterCascade.h"
 #include "GenomeBuild.h"
+#include "Transcript.h"
 
 //Helper datastructure for gene impringing info.
 struct ImprintingInfo
@@ -34,6 +35,23 @@ struct TargetRegionInfo
 		genes.clear();
 	}
 
+};
+
+//Transcript data for GFF parsing
+struct TranscriptData
+{
+    QByteArray name;
+    int version;
+    QByteArray name_ccds;
+    QByteArray gene_symbol;
+    QByteArray gene_id;
+    QByteArray hgnc_id;
+    QByteArray chr;
+    int start_coding = 0;
+    int end_coding = 0;
+    QByteArray strand;
+
+    BedFile exons;
 };
 
 ///Helper class for NGS-specific stuff.
@@ -78,6 +96,13 @@ public:
 
 	///Converts the 3letter ancestry code to a human-readable text, see http://m.ensembl.org/Help/Faq?id=532
 	static QString populationCodeToHumanReadable(QString code);
+
+    ///Fills a TranscriptList with features from a GFF file
+    static TranscriptList loadGffFile(QString filename, QMap<QByteArray, QByteArray>& transcript_gene_relation,
+                                      QMap<QByteArray, QByteArray>& gene_name_relation, bool all = false);
+
+    ///Parse attributes in GFF file line
+    static QMap<QByteArray, QByteArray> parseGffAttributes(const QByteArray& attributes);
 
 private:
 	///Constructor declared away
