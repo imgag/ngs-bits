@@ -230,7 +230,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	//somatic VICC data from NGSD
 	setAnnotation(ui->somatic_vicc_score, vl, index, "NGSD_som_vicc_interpretation");
 
-	//RNAseq
+	//RNA (ASE)
 	QString rna_ase = "";
 	int ase_af_idx = vl.annotationIndexByName("ASE_af", true, false);
 	int ase_pval_idx = vl.annotationIndexByName("ASE_pval", true, false);
@@ -244,15 +244,14 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 		}
 	}
 	ui->rna_ase->setText(rna_ase);
-
 	setAnnotation(ui->rna_splicing, vl, index, "aberrant_splicing");
-
 	setAnnotation(ui->rna_tpm, vl, index, "tpm");
 
+	//RNA (fold-change)
 	QString rna_rel = "";
 	int expr_log2fc_idx = vl.annotationIndexByName("expr_log2fc", true, false);
 	int expr_zscore_idx = vl.annotationIndexByName("expr_zscore", true, false);
-	if(ase_af_idx!=-1 && ase_pval_idx!=-1)
+	if(expr_log2fc_idx!=-1 && expr_zscore_idx!=-1)
 	{
 		QString expr_log2fc = vl[index].annotations()[expr_log2fc_idx];
 		QString expr_zscore = vl[index].annotations()[expr_zscore_idx];

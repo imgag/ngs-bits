@@ -364,7 +364,6 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 			}
 
 			//Elements transcript information
-			bool is_first = true;
 			for(const auto& trans : snv.transcriptAnnotations(i_germl_co_sp) )
 			{
 				w.writeStartElement("TranscriptInformation");
@@ -377,15 +376,8 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 				w.writeAttribute("exon", trans.exon);
 				w.writeAttribute("variant_type", trans.type);
 
-				if(is_first)
-				{
-					w.writeAttribute("main_transcript", "true");
-					is_first = false;
-				}
-				else
-				{
-					w.writeAttribute("main_transcript", "false");
-				}
+				bool is_main_transcript = data.settings.preferred_transcripts.contains(trans.gene) && data.settings.preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion());
+				w.writeAttribute("main_transcript", is_main_transcript ? "true" : "false");
 
 				w.writeEndElement();
 			}

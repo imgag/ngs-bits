@@ -1,5 +1,8 @@
 # GSvar change log
 
+### 2022_04-10 (21.04.22)
+- Report: added functionality to document causal varaints that are not small variants, CNVs or SVs.
+
 ### 2021_12-180 (04.04.22)
 - General: Added GUI to change the permissions of restricted users.
 - Report: Added gap percentage after closing gaps to germline report.

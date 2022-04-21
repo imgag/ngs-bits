@@ -757,6 +757,10 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 					exon_nr.replace("intron", "Intron ");
 				}
 				w.writeAttribute("exon", exon_nr);
+
+				bool is_main_transcript = data_.preferred_transcripts.contains(trans.gene) && data_.preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion());
+				w.writeAttribute("main_transcript", is_main_transcript ? "true" : "false");
+
 				w.writeEndElement();
 
 				genes << trans.gene;
