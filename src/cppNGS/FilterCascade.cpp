@@ -978,6 +978,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["RNA gene expression"] = &createInstance<FilterVariantRNAGeneExpression>;
 		output["RNA expression fold-change"] = &createInstance<FilterVariantRNAExpressionFC>;
 		output["RNA expression z-score"] = &createInstance<FilterVariantRNAExpressionZScore>;
+		output["Occurences per strand"] = &createInstance<FilterVariantOccurencesPerStrand>;
 	}
 
 	return output;
@@ -5570,4 +5571,55 @@ void FilterVariantRNAExpressionZScore::apply(const VariantList& variants, Filter
 	}
 }
 
+FilterVariantOccurencesPerStrand::FilterVariantOccurencesPerStrand()
+{
+	name_ = "Occurences per strand";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the number of occurences on the forward and revverse strand.";
+	params_ << FilterParameter("min_occurences", FilterParameterType::INT, 2, "Minimum occurences per strand.");
+	params_.last().constraints["min"] = "0";
+
+	checkIsRegistered();
+}
+
+QString FilterVariantOccurencesPerStrand::toText() const
+{
+	return name() + " &ge; " + QString::number(getInt("min_occurences", false));
+}
+
+void FilterVariantOccurencesPerStrand::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int min_occurences = getInt("min_occurences");
+	int idx_quality = annotationColumn(variants, "quality");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		if ( ! variants[i].annotations()[idx_quality].contains("SAF") || ! variants[i].annotations()[idx_quality].contains("SAR"))
+		{
+			THROW(ArgumentException, "Cannot be applied, File is missing SAR and/or SAF Annotation in quality column.");
+		}
+
+		QList<QByteArray> quality_parts = variants[i].annotations()[idx_quality].split(';');
+
+		foreach (const QByteArray& quality_part, quality_parts)
+		{
+			if(quality_part.isEmpty()) continue;
+			if(quality_part.startsWith("SAR=") || quality_part.startsWith("SAF="))
+			{
+				bool ok = true;
+				int occ = quality_part.split('=')[1].toInt(&ok);
+
+				if (ok && occ < min_occurences)
+				{
+					result.flags()[i] = false;
+					break;
+				}
+			}
+		}
+	}
+}
 

@@ -1068,6 +1068,21 @@ private slots:
 		I_EQUAL(result.countPassing(), 18);
 	}
 
+	void FilterOccurencesPerStrand_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in1.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterVariantOccurencesPerStrand filter;
+		filter.setInteger("min_occurences", 3);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 6);
+
+	}
+
 	/********************************************* Filters for small variants (somatic tumor-only) *********************************************/
 
 	void FilterSomaticAlleleFrequency_apply_tumor_only()
