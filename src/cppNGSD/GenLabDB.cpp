@@ -382,7 +382,8 @@ QString GenLabDB::sapID(QString ps_name)
 	foreach(QString name, names(ps_name))
 	{
 		SqlQuery query = getQuery();
-		query.exec("SELECT identnr FROM v_ngs_sap WHERE labornummer='" + name + "'");
+		query.exec("SELECT SAPID FROM v_ngs_patient_ids WHERE labornummer='" + name + "'");
+
 		while (query.next())
 		{
 			QString id = query.value(0).toString().trimmed();
