@@ -2,6 +2,7 @@
 #include "GUIHelper.h"
 #include "Exceptions.h"
 #include "GSvarHelper.h"
+#include "GUIHelper.h"
 
 #include <QBitArray>
 #include <QApplication>
@@ -12,6 +13,10 @@
 VariantTable::VariantTable(QWidget* parent)
 	: QTableWidget(parent)
 {
+	//make sure the selection is visible when the table looses focus
+	QString fg = GUIHelper::colorToQssFormat(palette().color(QPalette::Active, QPalette::HighlightedText));
+	QString bg = GUIHelper::colorToQssFormat(palette().color(QPalette::Active, QPalette::Highlight));
+	setStyleSheet(QString("QTableWidget:!active { selection-color: %1; selection-background-color: %2; }").arg(fg).arg(bg));
 }
 
 void VariantTable::updateTable(const VariantList& variants, const FilterResult& filter_result, const QHash<int,bool>& index_show_report_icon, const QSet<int>& index_causal, int max_variants)
