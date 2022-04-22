@@ -188,14 +188,8 @@ public:
 		QString out = getOutfile("out");
 		int compression_level = getInt("compression_level");
 
-		if (getFlag("stream"))
-		{
-			/*
-			 * If the stream parameter is set the previous code of VcfLeftNormalize will be used. This code streams input and output without keeping
-			 * the whole VCF in memory which allows to normalize large VCFs. It does not support compressed input or output (the compression_level
-			 * parameter will be ignored)
-			 *
-			 */
+		if (getFlag("stream")) //This code streams input and output without keeping the whole VCF in memory which allows to normalize large VCFs.
+		{	
 			streamVcf(in, out, ref_file);
 		}
 		else
@@ -205,9 +199,6 @@ public:
 			vcf_file.leftNormalize(ref_file);
 			vcf_file.store(out, true, compression_level);
 		}
-
-
-
     }
 };
 

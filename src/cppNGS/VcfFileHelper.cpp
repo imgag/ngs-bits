@@ -716,11 +716,8 @@ void VcfLine::normalize(const Sequence& empty_seq, bool to_gsvar_format)
 	}
 }
 
-void VcfLine::leftNormalize(QString reference_genome)
+void VcfLine::leftNormalize(FastaFileIndex& reference)
 {
-
-	FastaFileIndex reference(reference_genome);
-
 	//leave multi-allelic variants unchanged
 	if (isMultiAllelic())
 	{

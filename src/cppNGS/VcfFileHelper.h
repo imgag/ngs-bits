@@ -562,8 +562,8 @@ public:
 	//Return a string of the variant coordinates and reference, alternative base(s)
 	QString variantToString() const;
 	QByteArrayList vepAnnotations(int field_index) const;
-
-	void leftNormalize(QString reference_genome);
+	// Left-normalize all variants.
+	void leftNormalize(FastaFileIndex& reference);
 	// Removes the common prefix/suffix from indels, adapts the start/end position and replaces empty sequences with a custom string.
 	void normalize(const Sequence& empty_seq="", bool to_gsvar_format=true);
     // Removes the common prefix/suffix from indels, shifts the variant left or right, and adds a common reference base
