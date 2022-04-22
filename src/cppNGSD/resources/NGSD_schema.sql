@@ -363,9 +363,11 @@ CREATE  TABLE IF NOT EXISTS `sample`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(20) NOT NULL,
   `name_external` VARCHAR(255) NULL DEFAULT NULL COMMENT 'External names.<br>If several, separate by comma!<br>Always enter full names, no short forms!',
+  `patient_identifier` VARCHAR(20) NULL DEFAULT NULL COMMENT 'Patient identifier. This can be any identifier, e.g. the GenLab patient ID.',
   `received` DATE NULL DEFAULT NULL,
   `receiver_id` INT(11) NULL DEFAULT NULL,
   `sample_type` ENUM('DNA','DNA (amplicon)','DNA (native)','RNA','cfDNA') NOT NULL,
+  `tissue` ENUM('n/a','Blood','Buccal mucosa','Skin') NOT NULL DEFAULT 'n/a',
   `species_id` INT(11) NOT NULL,
   `concentration` FLOAT NULL DEFAULT NULL,
   `volume` FLOAT NULL DEFAULT NULL,
@@ -380,7 +382,6 @@ CREATE  TABLE IF NOT EXISTS `sample`
   `sender_id` INT(11) NOT NULL,
   `disease_group` ENUM('n/a','Neoplasms','Diseases of the blood or blood-forming organs','Diseases of the immune system','Endocrine, nutritional or metabolic diseases','Mental, behavioural or neurodevelopmental disorders','Sleep-wake disorders','Diseases of the nervous system','Diseases of the visual system','Diseases of the ear or mastoid process','Diseases of the circulatory system','Diseases of the respiratory system','Diseases of the digestive system','Diseases of the skin','Diseases of the musculoskeletal system or connective tissue','Diseases of the genitourinary system','Developmental anomalies','Other diseases') NOT NULL DEFAULT 'n/a',
   `disease_status` ENUM('n/a','Affected','Unaffected','Unclear') NOT NULL DEFAULT 'n/a',
-  `tissue` ENUM('n/a','Blood','Buccal mucosa','Skin') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC),
   INDEX `fk_samples_species1` (`species_id` ASC),
@@ -391,6 +392,7 @@ CREATE  TABLE IF NOT EXISTS `sample`
   INDEX `quality` (`quality` ASC),
   INDEX `disease_group` (`disease_group`),
   INDEX `disease_status` (`disease_status`),
+  INDEX `patient_identifier` (`patient_identifier` ASC),
   CONSTRAINT `fk_samples_species1`
     FOREIGN KEY (`species_id`)
     REFERENCES `species` (`id`)

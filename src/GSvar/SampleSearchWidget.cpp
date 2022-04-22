@@ -81,6 +81,7 @@ void SampleSearchWidget::search()
 		params.s_name_ext = ui_.s_name_ext->isChecked();
 		params.s_name_comments = ui_.s_name_comments->isChecked();
 		params.s_species = ui_.s_species->text();
+		params.s_patient_identifier = ui_.s_patient_identifier->text();
 		params.s_type = ui_.s_type->currentText();
 		params.s_sender = ui_.s_sender->text();
 		params.s_study = ui_.s_study->text();

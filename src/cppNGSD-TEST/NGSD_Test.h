@@ -255,6 +255,7 @@ private slots:
 		SampleData sample_data = db.getSampleData(sample_id);
 		S_EQUAL(sample_data.name, "NA12878");
 		S_EQUAL(sample_data.name_external, "ex1");
+		S_EQUAL(sample_data.patient_identifier, "pat1");
 		S_EQUAL(sample_data.quality, "good");
 		S_EQUAL(sample_data.comments, "comment_s1");
 		S_EQUAL(sample_data.disease_group, "Diseases of the blood or blood-forming organs");
@@ -267,6 +268,7 @@ private slots:
 		sample_data = db.getSampleData(sample_id);
 		S_EQUAL(sample_data.name, "NA12345");
 		S_EQUAL(sample_data.name_external, "ex3");
+		S_EQUAL(sample_data.patient_identifier, "pat3");
 		S_EQUAL(sample_data.quality, "bad");
 		S_EQUAL(sample_data.comments, "comment_s3");
 		S_EQUAL(sample_data.disease_group, "Diseases of the immune system");
@@ -875,6 +877,7 @@ private slots:
 		//apply all search parameters
 		params.s_name = "NA12878";
 		params.s_species = "human";
+		params.s_patient_identifier = "pat1";
 		params.s_type = "DNA";
 		params.s_sender = "Coriell";
 		params.s_study = "SomeStudy";
@@ -1277,10 +1280,13 @@ private slots:
 
 		//sameSample
 		I_EQUAL(db.sameSamples(99).count(), 0);
-		I_EQUAL(db.sameSamples(2).count(), 1);
+		I_EQUAL(db.sameSamples(2).count(), 2);
 		IS_TRUE(db.sameSamples(2).contains(4));
+		IS_TRUE(db.sameSamples(2).contains(7));
 		I_EQUAL(db.sameSamples(4).count(), 1);
 		IS_TRUE(db.sameSamples(4).contains(2));
+		I_EQUAL(db.sameSamples(7).count(), 1);
+		IS_TRUE(db.sameSamples(7).contains(2));
 
 		//relatedSamples
 		I_EQUAL(db.relatedSamples(99).count(), 0);
