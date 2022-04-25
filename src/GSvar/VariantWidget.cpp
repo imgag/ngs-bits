@@ -370,7 +370,7 @@ void VariantWidget::gnomadClicked(QString var_id)
 
 void VariantWidget::pubmedClicked(QString link)
 {
-	if (link.startsWith("http")) //transcript
+	if (Helper::isHttpUrl(link)) //transcript
 	{
 		QDesktopServices::openUrl(QUrl(link));
 	}

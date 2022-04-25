@@ -861,7 +861,7 @@ void VariantDetailsDockWidget::gnomadClicked(QString variant_string)
 
 void VariantDetailsDockWidget::transcriptClicked(QString link)
 {
-	if (link.startsWith("http")) //transcript
+	if (Helper::isHttpUrl(link)) //transcript
 	{
 		QDesktopServices::openUrl(QUrl(link));
 	}
@@ -873,7 +873,7 @@ void VariantDetailsDockWidget::transcriptClicked(QString link)
 
 void VariantDetailsDockWidget::pubmedClicked(QString link)
 {
-	if (link.startsWith("http")) //transcript
+	if (Helper::isHttpUrl(link)) //transcript
 	{
 		QDesktopServices::openUrl(QUrl(link));
 	}
@@ -988,7 +988,7 @@ void VariantDetailsDockWidget::showOverviewTable(QString title, QString text, ch
 			int col = headers.indexOf(pair.key);
 
 			QString text = pair.value.trimmed();
-			if (text.startsWith("http://") || text.startsWith("https://")) //URL
+			if (Helper::isHttpUrl(text)) //URL
 			{
 				QLabel* label = GUIHelper::createLinkLabel("<a href='" + text + "'>" + text + "</a>");
 				table->setCellWidget(row, col, label);

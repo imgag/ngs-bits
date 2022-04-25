@@ -42,7 +42,7 @@ PublishedVariantsWidget::PublishedVariantsWidget(QWidget* parent)
 	ui_->table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(retryClinvarSubmission()));
 
-	action = new QAction(QIcon(":/Icons/NGSD.png"), "Open variant tab", this);
+	action = new QAction(QIcon(":/Icons/NGSD_variant.png"), "Open variant tab", this);
 	ui_->table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openVariantTab()));
 }
