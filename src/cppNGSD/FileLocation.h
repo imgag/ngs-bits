@@ -9,6 +9,7 @@ enum class PathType
 {
 	//folders
 	SAMPLE_FOLDER, // folder of a single sample
+	FUSIONS_PIC_DIR, //picture of gene fusions determined by arriba from RNA (PNG format)
 
 	//mapping data
 	BAM, //BAM file
@@ -128,6 +129,8 @@ struct FileLocation
 				return "REPEAT_EXPANSION_IMAGE";
 			case PathType::FUSIONS:
 				return "FUSIONS";
+			case PathType::FUSIONS_PIC_DIR:
+				return "FUSIONS_PIC_DIR";
 			case PathType::STAR_FUSIONS:
 				return "STAR_FUSIONS";
 			case PathType::FUSIONS_BAM:
@@ -240,6 +243,8 @@ struct FileLocation
 				return "repeat expansion visualization";
 			case PathType::FUSIONS:
 				return "gene fusions";
+			case PathType::FUSIONS_PIC_DIR:
+				return "arriba fusions pictures directory";
 			case PathType::STAR_FUSIONS:
 				return "Star Fusion RNA fusion calls";
 			case PathType::FUSIONS_BAM:

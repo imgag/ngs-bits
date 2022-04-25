@@ -3924,6 +3924,35 @@ void MainWindow::generateReportSomaticRTF()
 			rna_report_data.rna_ps_name = dlg.getRNAid();
 			rna_report_data.rna_fusion_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::FUSIONS).filename;
 
+			//Retrieve data for PNG files
+			QString png_path_dir = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::FUSIONS_PIC_DIR).filename;
+			try
+			{
+				QStringList fusion_pics = Helper::findFiles(png_path_dir, "*.png", false);
+				for(QString path : fusion_pics)
+				{
+					QImage pic = QImage(path);
+					//set maximum width/height in pixels
+					if( (uint)pic.width() > 1200 ) pic = pic.scaledToWidth(1200, Qt::TransformationMode::SmoothTransformation);
+					if( (uint)pic.height() > 1200 ) pic = pic.scaledToHeight(1200, Qt::TransformationMode::SmoothTransformation);
+
+					QByteArray png_data = "";
+					if(!pic.isNull())
+					{
+						QBuffer buffer(&png_data);
+						buffer.open(QIODevice::WriteOnly);
+						if(pic.save(&buffer, "PNG"))
+						{
+							rna_report_data.fusion_pics << std::make_tuple(png_data.toHex(), pic.width(), pic.height());
+						}
+					}
+				}
+			}
+			catch(Exception) //Nothing to do here
+			{
+			}
+
+
 			SomaticRnaReport rna_report(variants_, cnvs_, rna_report_data);
 
 			rna_report.checkRefTissueTypeInNGSD(rna_report.refTissueType(variants_),somatic_report_settings_.tumor_ps);

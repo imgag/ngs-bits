@@ -174,6 +174,24 @@ RtfTable SomaticRnaReport::partFusions()
 	return fusion_table;
 }
 
+
+RtfSourceCode SomaticRnaReport::partFusionPics()
+{
+	QByteArrayList out;
+	for(const auto& pic_data : data_.fusion_pics)
+	{
+		QByteArray data;
+		int width, height;
+		std::tie(data,width,height) = pic_data;
+
+		//magnification ratio if pic resized to max width of document
+		int width_goal = doc_.maxWidth()-500; //in twips
+		double ratio = (double)width_goal/ width;
+		out << RtfPicture(data, width, height).setWidth(width_goal).setHeight(height * ratio).RtfCode();
+	}
+	return out.join("\n\\line\n");
+}
+
 RtfTable SomaticRnaReport::partSVs()
 {
 	RtfTable fusion_table;
@@ -503,6 +521,9 @@ void SomaticRnaReport::writeRtf(QByteArray out_file)
 	doc_.addPart(RtfParagraph("").RtfCode());
 
 	if(svs_.count() > 0) doc_.addPart(partSVs().RtfCode());
+	doc_.addPart(RtfParagraph("").RtfCode());
+
+	if(data_.fusion_pics.count() > 0) doc_.addPart(partFusionPics());
 	doc_.addPart(RtfParagraph("").RtfCode());
 
 

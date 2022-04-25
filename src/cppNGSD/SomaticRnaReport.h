@@ -16,6 +16,9 @@ struct CPPNGSDSHARED_EXPORT SomaticRnaReportData : public SomaticReportSettings
 
 	QString rna_ps_name;
 	QString rna_fusion_file;
+
+	//list for fusions pics containing hex png data, width and height
+	QList<std::tuple<QByteArray,int,int>> fusion_pics;
 };
 
 
@@ -77,6 +80,8 @@ private:
 	RtfTable partFusions();
 	///Creates table with structural variants;
 	RtfTable partSVs();
+
+	RtfSourceCode partFusionPics();
 
 	///Creates table that contains expression of detected somatic variants from DNA/RNA data
 	RtfTable partSnvTable();

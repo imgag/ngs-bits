@@ -11,7 +11,9 @@ typedef QByteArray RtfSourceCode;
 class CPPNGSSHARED_EXPORT RtfPicture
 {
 public:
+	RtfPicture();
 	RtfPicture(QByteArray png_data);
+	RtfPicture(QByteArray png_data, int width, int height);
 
 	RtfSourceCode RtfCode();
 
