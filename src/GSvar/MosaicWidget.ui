@@ -74,10 +74,10 @@
         <bool>true</bool>
        </property>
        <property name="selectionMode">
-        <enum>QAbstractItemView::SingleSelection</enum>
+        <enum>QAbstractItemView::ExtendedSelection</enum>
        </property>
        <property name="selectionBehavior">
-        <enum>QAbstractItemView::SelectRows</enum>
+        <enum>QAbstractItemView::SelectItems</enum>
        </property>
        <property name="gridStyle">
         <enum>Qt::SolidLine</enum>
@@ -90,22 +90,27 @@
        </attribute>
        <column>
         <property name="text">
-         <string>position</string>
+         <string>chr</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>size (Kb)</string>
+         <string>start</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>regions</string>
+         <string>end</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>genes</string>
+         <string>ref</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>obs</string>
         </property>
        </column>
       </widget>

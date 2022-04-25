@@ -1166,7 +1166,7 @@ void MainWindow::on_actionMosaic_triggered()
 		list = new MosaicWidget(mosaics_, ps_id, ui_.filters, report_settings_, gene2region_cache_, this);
 
 
-		auto dlg = GUIHelper::createDialog(list, "Structural variants of " + variants_.analysisName());
+		auto dlg = GUIHelper::createDialog(list, "Mosaic variants of " + variants_.analysisName());
 		addModelessDialog(dlg);
 	}
 	catch(FileParseException error)

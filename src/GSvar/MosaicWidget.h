@@ -34,8 +34,10 @@ signals:
 private slots:
 	void applyFilters(bool debug_time=false);
 	void copyToClipboard();
+	void copyVariantsToClipboard();
 	void updateStatus(int num);
 	void updateGUI(bool keep_widths =  false);
+	void variantDoubleClicked(QTableWidgetItem *item);
 
 
 private:

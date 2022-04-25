@@ -40,6 +40,8 @@ MosaicWidget::MosaicWidget(const VariantList& variants, QString ps_id, FilterWid
 	ui_->setupUi(this);
 
 	connect(ui_->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
+	connect(ui_->mosaics,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(variantDoubleClicked(QTableWidgetItem*)));
+	ui_->filter_widget->setValidFilterEntries(variants_.filters().keys());
 	report_settings_ = rep_settings;
 	initGUI();
 }
@@ -57,13 +59,24 @@ void MosaicWidget::initGUI()
 //		disableGUI();
 	}
 
-//	apply filters
+	//apply filters
 	applyFilters();
 }
 
 MosaicWidget::~MosaicWidget()
 {
 	delete ui_;
+}
+
+
+void MosaicWidget::variantDoubleClicked(QTableWidgetItem *item)
+{
+	if (item==nullptr) return;
+
+	int row = item->row();
+
+	const Variant& v = variants_[ui_->mosaics->rowToVariantIndex(row)];
+	GlobalServiceProvider::gotoInIGV(v.chr().str() + ":" + QString::number(v.start()) + "-" + QString::number(v.end()), true);
 }
 
 
@@ -282,6 +295,11 @@ void MosaicWidget::updateGUI(bool keep_widths)
 void MosaicWidget::copyToClipboard()
 {
 	GUIHelper::copyToClipboard(ui_->mosaics);
+}
+
+void MosaicWidget::copyVariantsToClipboard()
+{
+	GUIHelper::copyToClipboard(ui_->mosaics, true);
 }
 
 
