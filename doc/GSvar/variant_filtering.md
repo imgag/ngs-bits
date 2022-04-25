@@ -17,7 +17,7 @@ To perform a single sample analysis, follow those steps:
 2. When the analysis is finished, open the GSvar variant list.
 3. For filtering the variant list, use one of the default `recessive` and `dominant` filters.
 4. Default filter can be modified and new filters created using the filter toolbar on the right.
-5. The single sample pipeline also calls potential mosaic variants. These can be opened in a seperate window with the mosaic variant button ![alt text](MosaicVariant.png).
+5. The single sample pipeline also calls potential mosaic variants. These can be opened in a seperate window with the mosaic variant button <img src="MosaicVariant.jpg" alt="alt text" width="30"/>
 6. For mosaic variants there are two default filters available: Mosaic WGS and Mosaic WES
 
 ### Trio analysis
