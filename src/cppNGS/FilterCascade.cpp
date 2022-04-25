@@ -4496,6 +4496,23 @@ void FilterSvCountNGSD::apply(const BedpeFile& svs, FilterResult& result) const
 	int max_count = getInt("max_count");
 	bool ignore_genotype = getBool("ignore_genotype");
 
+	//fallback for annotations before 24.03.22
+	int idx_old = svs.annotationIndexByName("NGSD_COUNT", false);
+	if (idx_old!=-1 && svs.annotationIndexByName("NGSD_HOM",false)==-1)
+	{
+		for(int i=0; i<svs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			QString text = svs[i].annotations()[idx_old];
+			if (text.contains('(')) text = text.split('(')[0];
+			int count = Helper::toInt(text, "NGSD count", QString::number(i));
+			result.flags()[i] = count <= max_count;
+		}
+
+		return;
+	}
+
 	int idx_ngsd_hom = svs.annotationIndexByName("NGSD_HOM");
 	int idx_ngsd_het = svs.annotationIndexByName("NGSD_HET");
 
@@ -4595,6 +4612,24 @@ void FilterSvAfNGSD::apply(const BedpeFile& svs, FilterResult& result) const
 	if (!enabled_) return;
 
 	double max_af = getDouble("max_af")/100.0;
+
+	//fallback for annotations before 24.03.22
+	int idx_old = svs.annotationIndexByName("NGSD_COUNT", false);
+	if (idx_old!=-1 && svs.annotationIndexByName("NGSD_AF",false)==-1)
+	{
+		for(int i=0; i<svs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			QString text = svs[i].annotations()[idx_old];
+			if (text.contains('(')) text = text.split('(')[0];
+			if (text.contains(')')) text = text.split(')')[0];
+			double af = Helper::toDouble(text, "NGSD AF", QString::number(i));
+			result.flags()[i] = af <= max_af;
+		}
+
+		return;
+	}
 
 	int idx_ngsd_af = svs.annotationIndexByName("NGSD_AF");
 

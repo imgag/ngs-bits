@@ -3,7 +3,9 @@
 
 #include "cppNGSD_global.h"
 #include "Exceptions.h"
+#include "Helper.h"
 #include <QString>
+#include <QFileInfo>
 
 enum class PathType
 {
@@ -71,6 +73,26 @@ struct FileLocation
 		, filename(filename_)
 		, exists(exists_)
 	{
+	}
+
+	//Returns if the file is a HTTP/HTTPS URL.
+	bool isHttpUrl() const
+	{
+		return Helper::isHttpUrl(filename);
+	}
+
+	//Returns the base name of the file without the path.
+	QString fileName(bool remove_http_get_args=true) const
+	{
+		QString output = QFileInfo(filename).fileName();
+
+		//remove HTTP GET arguments
+		if (remove_http_get_args && isHttpUrl() && output.contains('?'))
+		{
+			output = output.split('?')[0];
+		}
+
+		return output;
 	}
 
 	QString typeAsString() const

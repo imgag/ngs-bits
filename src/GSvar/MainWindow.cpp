@@ -2828,7 +2828,7 @@ void MainWindow::loadFile(QString filename)
 		variants_.load(filename);
 		Log::perf("Loading small variant list took ", timer);
 		QString mode_title = "";
-		if (filename.startsWith("http"))
+		if (Helper::isHttpUrl(filename))
 		{
 			GlobalServiceProvider::setFileLocationProvider(QSharedPointer<FileLocationProviderRemote>(new FileLocationProviderRemote(filename)));
 			mode_title = " (client-server mode)";

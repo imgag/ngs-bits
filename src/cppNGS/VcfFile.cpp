@@ -389,7 +389,7 @@ void VcfFile::loadFromVCFGZ(const QString& filename, bool allow_multi_sample, Ch
 	QSet<QByteArray> format_ids_in_header;
 	QSet<QByteArray> filter_ids_in_header;
 
-	if (filename.startsWith("http", Qt::CaseInsensitive))
+	if (Helper::isHttpUrl(filename))
 	{
 		// Temporary solution to handle remote VCF files (we assume that there are no *.vcg.gz files)
 		if (filename.toLower().endsWith(".vcg.gz"))

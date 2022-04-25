@@ -369,18 +369,18 @@ void ProcessedSampleWidget::showPlot()
 
 void ProcessedSampleWidget::openSampleFolder()
 {
-	QString folder = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER).filename;
-	if (folder.toLower().startsWith("http"))
+	FileLocation folder = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER);
+	if (folder.isHttpUrl())
 	{
 		QMessageBox::information(this, "Open processed sample folder", "Cannot open processed sample folder in client-server mode!");
 		return;
 	}
-	else if (!QFile::exists(folder))
+	else if (!QFile::exists(folder.filename))
 	{
-		QMessageBox::warning(this, "Error opening processed sample folder", "Folder does not exist:\n" + folder);
+		QMessageBox::warning(this, "Error opening processed sample folder", "Folder does not exist:\n" + folder.filename);
 		return;
 	}
-	QDesktopServices::openUrl(QUrl(folder));
+	QDesktopServices::openUrl(QUrl(folder.filename));
 }
 
 void ProcessedSampleWidget::openSampleTab()
