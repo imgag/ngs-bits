@@ -978,8 +978,6 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["RNA gene expression"] = &createInstance<FilterVariantRNAGeneExpression>;
 		output["RNA expression fold-change"] = &createInstance<FilterVariantRNAExpressionFC>;
 		output["RNA expression z-score"] = &createInstance<FilterVariantRNAExpressionZScore>;
-		output["Occurences per strand"] = &createInstance<FilterVariantOccurencesPerStrand>;
-		output["Allele frequency in sample"] = &createInstance<FilterAllelFrequencySample>;
 	}
 
 	return output;
@@ -2259,13 +2257,21 @@ FilterVariantQC::FilterVariantQC()
 	params_.last().constraints["min"] = "-1";
 	params_ << FilterParameter("allele_balance", FilterParameterType::INT, 40, "Maximum allele balance Phred score (set -1 to disable)");
 	params_.last().constraints["min"] = "-1";
+	params_ << FilterParameter("min_occurences", FilterParameterType::INT, 1, "Minimum occurences of the variant per strand");
+	params_.last().constraints["min"] = "0";
+	params_ << FilterParameter("min_af", FilterParameterType::DOUBLE, 0.0, "Minimum allele frequency of the variant in the sample");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximum allele frequency of the variant in the sample");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
 
 	checkIsRegistered();
 }
 
 QString FilterVariantQC::toText() const
 {
-	return name() + " qual&ge;" + QString::number(getInt("qual", false)) + " depth&ge;" + QString::number(getInt("depth", false)) + " mapq&ge;" + QString::number(getInt("mapq", false)) + " strand_bias&le;" + QString::number(getInt("strand_bias", false)) + " allele_balance&le;" + QString::number(getInt("allele_balance", false));
+	return name() + " qual&ge;" + QString::number(getInt("qual", false)) + " depth&ge;" + QString::number(getInt("depth", false)) + " mapq&ge;" + QString::number(getInt("mapq", false)) + " strand_bias&le;" + QString::number(getInt("strand_bias", false)) + " allele_balance&le;" + QString::number(getInt("allele_balance", false)) + " min_occurences&ge;" + QString::number(getInt("min_occurences", false)) + " min_af&ge;" + QString::number(getDouble("min_af", false)) + " max_af&le;" + QString::number(getDouble("max_af", false));
 }
 
 void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) const
@@ -2278,6 +2284,10 @@ void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) c
 	int mapq = getInt("mapq");
 	int strand_bias = getInt("strand_bias");
 	int allele_balance = getInt("allele_balance");
+	double min_af = getDouble("min_af");
+	double max_af = getDouble("max_af");
+	int min_occ = getInt("min_occurences");
+
 
 	for(int i=0; i<variants.count(); ++i)
 	{
@@ -2334,6 +2344,21 @@ void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) c
 			else if (allele_balance>=0 && part.startsWith("ABP="))
 			{
 				if (part.mid(4).toInt()>allele_balance)
+				{
+					result.flags()[i] = false;
+				}
+			}
+			else if (min_occ > 0 && (part.startsWith("SAR=") || part.startsWith("SAF=")))
+			{
+				if (part.mid(4).toInt() < min_occ)
+				{
+					result.flags()[i] = false;
+				}
+			}
+			else if ((min_af > 0 || max_af < 1) && part.startsWith("AF="))
+			{
+				double af = part.mid(3).toDouble();
+				if (af < min_af || max_af < af)
 				{
 					result.flags()[i] = false;
 				}
@@ -5572,113 +5597,3 @@ void FilterVariantRNAExpressionZScore::apply(const VariantList& variants, Filter
 	}
 }
 
-FilterVariantOccurencesPerStrand::FilterVariantOccurencesPerStrand()
-{
-	name_ = "Occurences per strand";
-	type_ = VariantType::SNVS_INDELS;
-	description_ = QStringList() << "Filter based on the number of occurences on the forward and revverse strand.";
-	params_ << FilterParameter("min_occurences", FilterParameterType::INT, 2, "Minimum occurences per strand.");
-	params_.last().constraints["min"] = "0";
-
-	checkIsRegistered();
-}
-
-QString FilterVariantOccurencesPerStrand::toText() const
-{
-	return name() + " &ge; " + QString::number(getInt("min_occurences", false));
-}
-
-void FilterVariantOccurencesPerStrand::apply(const VariantList& variants, FilterResult& result) const
-{
-	if (!enabled_) return;
-
-	int min_occurences = getInt("min_occurences");
-	int idx_quality = annotationColumn(variants, "quality");
-
-	for(int i=0; i<variants.count(); ++i)
-	{
-		if (!result.flags()[i]) continue;
-
-		if ( ! variants[i].annotations()[idx_quality].contains("SAF=") || ! variants[i].annotations()[idx_quality].contains("SAR="))
-		{
-			THROW(ArgumentException, "Cannot be applied, file is missing SAR and/or SAF annotation in quality column.");
-		}
-
-		QList<QByteArray> quality_parts = variants[i].annotations()[idx_quality].split(';');
-
-		foreach (const QByteArray& quality_part, quality_parts)
-		{
-			if(quality_part.isEmpty()) continue;
-			if(quality_part.startsWith("SAR=") || quality_part.startsWith("SAF="))
-			{
-				bool ok = true;
-				int occ = quality_part.split('=')[1].toInt(&ok);
-
-				if (ok && occ < min_occurences)
-				{
-					result.flags()[i] = false;
-					break;
-				}
-			}
-		}
-	}
-}
-
-
-FilterAllelFrequencySample::FilterAllelFrequencySample()
-{
-	name_ = "Allele frequency in sample";
-	type_ = VariantType::SNVS_INDELS;
-	description_ = QStringList() << "Filter based on the allel frequency of the variant in the sample.";
-	params_ << FilterParameter("min_af", FilterParameterType::DOUBLE, 0.01, "Minimum allowed allele frequency in the sample.");
-	params_.last().constraints["min"] = "0";
-	params_.last().constraints["max"] = "1";
-	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximum allowed allele frequency in the sample.");
-	params_.last().constraints["min"] = "0";
-	params_.last().constraints["max"] = "1";
-
-	checkIsRegistered();
-}
-
-QString FilterAllelFrequencySample::toText() const
-{
-	return name() + " between " + QString::number(getDouble("min_af", false), 'f', 2) + " and " + QString::number(getDouble("max_af", false), 'f', 2);
-}
-
-void FilterAllelFrequencySample::apply(const VariantList& variants, FilterResult& result) const
-{
-	if (!enabled_) return;
-
-	double max_af= getDouble("max_af");
-	double min_af= getDouble("min_af");
-
-	int idx_quality = annotationColumn(variants, "quality");
-
-	for(int i=0; i<variants.count(); ++i)
-	{
-		if (!result.flags()[i]) continue;
-
-		if ( ! variants[i].annotations()[idx_quality].contains("AF="))
-		{
-			THROW(ArgumentException, "Cannot be applied, file is missing AF annotation in quality column.");
-		}
-
-		QList<QByteArray> quality_parts = variants[i].annotations()[idx_quality].split(';');
-
-		foreach (const QByteArray& quality_part, quality_parts)
-		{
-			if(quality_part.isEmpty()) continue;
-			if(quality_part.startsWith("AF="))
-			{
-				bool ok = true;
-				double af = quality_part.split('=')[1].toDouble(&ok);
-
-				if (ok && (min_af > af || max_af < af))
-				{
-					result.flags()[i] = false;
-					break;
-				}
-			}
-		}
-	}
-}

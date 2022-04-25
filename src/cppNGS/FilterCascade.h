@@ -770,28 +770,6 @@ class CPPNGSSHARED_EXPORT FilterVariantRNAExpressionZScore
 		void apply(const VariantList& variants, FilterResult& result) const override;
 };
 
-//Filter variants by the number of occurences per strand
-class CPPNGSSHARED_EXPORT FilterVariantOccurencesPerStrand
-	: public FilterBase
-{
-	public:
-		FilterVariantOccurencesPerStrand();
-		QString toText() const override;
-		void apply(const VariantList& variants, FilterResult& result) const override;
-};
-
-//Filter variants by the number of occurences per strand
-class CPPNGSSHARED_EXPORT FilterAllelFrequencySample
-	: public FilterBase
-{
-	public:
-		FilterAllelFrequencySample();
-		QString toText() const override;
-		void apply(const VariantList& variants, FilterResult& result) const override;
-};
-
-
-
 
 /*************************************************** filters for CNVs ***************************************************/
 
