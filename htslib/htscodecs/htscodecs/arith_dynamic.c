@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019,2020 Genome Research Ltd.
+ * Copyright (c) 2019-2021 Genome Research Ltd.
  * Author(s): James Bonfield
  *
  * Redistribution and use in source and binary forms, with or without
@@ -886,6 +886,8 @@ unsigned char *arith_uncompress_to(unsigned char *in,  unsigned int in_size,
 	if (c_meta_len >= in_size)
 	    return NULL;
 	unsigned int N = in[c_meta_len++];
+        if (N < 1)  // Must be at least one stripe
+            return NULL;
 	unsigned int clenN[256], ulenN[256], idxN[256];
 	if (!out) {
 	    if (ulen >= INT_MAX)
@@ -1084,7 +1086,6 @@ unsigned char *arith_uncompress_to(unsigned char *in,  unsigned int in_size,
 		goto err;
 	}
     } else {
-	tmp1 = NULL;
 	tmp1_size = 0;
     }
 

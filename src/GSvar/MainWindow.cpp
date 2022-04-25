@@ -223,11 +223,12 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.vars_export_btn->menu()->addAction("Export GSvar (filtered)", this, SLOT(exportGSvar()));
 	ui_.vars_export_btn->menu()->addAction("Export VCF (filtered)", this, SLOT(exportVCF()));
 	ui_.report_btn->setMenu(new QMenu());
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_add_causal.png"), "Add/edit other causal variant", this, SLOT(editOtherCausalVariant()));
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_exclude.png"), "Delete other causal variant", this, SLOT(deleteOtherCausalVariant()));
+	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate report", this, SLOT(generateReport()));
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate evaluation sheet", this, SLOT(generateEvaluationSheet()));
-	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Info.png"), "Show report configuration info", this, SLOT(showReportConfigInfo()));
-	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_add_causal.png"), "Add/edit other causal Variant", this, SLOT(editOtherCausalVariant()));
-	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_exclude.png"), "Delete other causal Variant", this, SLOT(deleteOtherCausalVariant()));
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_info.png"), "Show report configuration info", this, SLOT(showReportConfigInfo()));
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_finalize.png"), "Finalize report configuration", this, SLOT(finalizeReportConfig()));
 	ui_.report_btn->menu()->addSeparator();
@@ -834,6 +835,33 @@ void MainWindow::on_actionDebug_triggered()
 
 			qDebug() << i << "/" << ps_list.size() << " - " << ps;
 			genlab.addMissingMetaDataToNGSD(ps, true, true, true, true, false);
+		}
+		*/
+
+		//initial import of patient identifiers from GenLab (diagnostic samples only)
+		/*
+		NGSD db;
+		GenLabDB db_genlab;
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT s.id, concat(s.name, '_0', ps.process_id), s.patient_identifier FROM sample s, processed_sample ps, project p WHERE s.id=ps.sample_id AND p.id=ps.project_id AND p.type='diagnostic' ORDER BY ps.id ASC");
+		while(query.next())
+		{
+			QString s_id = query.value(0).toString().trimmed();
+			QString ps = query.value(1).toString().trimmed();
+			QString patient_id_old = query.value(2).toString().trimmed();
+
+			QString patient_id = db_genlab.patientIdentifier(ps);
+			if (patient_id=="") continue;
+
+			//check for mismatches
+			if (patient_id_old!="")
+			{
+				if (patient_id!=patient_id_old) qDebug() << "MISMATCH:" << ps << "NGSD=" << patient_id_old << "GenLab=" << patient_id;
+				continue;
+			}
+
+			qDebug() << "UPDATE:" << ps << patient_id;
+			db.getQuery().exec("UPDATE sample SET patient_identifier='" + patient_id + "' WHERE id='" + s_id + "'");
 		}
 		*/
 

@@ -129,23 +129,24 @@ void VariantWidget::updateGUI()
 			QTableWidgetItem* item = addItem(row, 0,  ps_data.name);
 			DBTableWidget::styleQuality(item, ps_data.quality);
 			addItem(row, 1,  s_data.name_external);
-			addItem(row, 2,  s_data.gender);
-			addItem(row, 3,  s_data.quality + " / " + ps_data.quality);
-			addItem(row, 4,  query2.value(1).toString());
-			addItem(row, 5, ps_data.processing_system);
-			addItem(row, 6, ps_data.project_name);
-			addItem(row, 7, s_data.disease_group);
-			addItem(row, 8, s_data.disease_status);
+			addItem(row, 2,  s_data.patient_identifier);
+			addItem(row, 3,  s_data.gender);
+			addItem(row, 4,  s_data.quality + " / " + ps_data.quality);
+			addItem(row, 5,  query2.value(1).toString());
+			addItem(row, 6, ps_data.processing_system);
+			addItem(row, 7, ps_data.project_name);
+			addItem(row, 8, s_data.disease_group);
+			addItem(row, 9, s_data.disease_status);
 			QStringList pho_list;
 			foreach(const Phenotype& pheno, s_data.phenotypes)
 			{
 				pho_list << pheno.toString();
 			}
-			addItem(row, 9, pho_list.join("; "));
-			addItem(row, 10, diag_data.dagnostic_status);
-			addItem(row, 11, diag_data.user);
-			addItem(row, 12, s_data.comments, true);
-			addItem(row, 13, ps_data.comments, true);
+			addItem(row, 10, pho_list.join("; "));
+			addItem(row, 11, diag_data.dagnostic_status);
+			addItem(row, 12, diag_data.user);
+			addItem(row, 13, s_data.comments, true);
+			addItem(row, 14, ps_data.comments, true);
 
 			//get causal genes from report config
 			GeneSet genes_causal;
@@ -155,7 +156,7 @@ void VariantWidget::updateGUI()
 			{
 				genes_causal << db.genesOverlapping(query3.value(0).toByteArray(), query3.value(1).toInt(), query3.value(2).toInt(), 5000);
 			}
-			addItem(row, 14, genes_causal.join(','));
+			addItem(row, 15, genes_causal.join(','));
 
 			//get candidate genes from report config
 			GeneSet genes_candidate;
@@ -164,7 +165,7 @@ void VariantWidget::updateGUI()
 			{
 				genes_candidate << db.genesOverlapping(query3.value(0).toByteArray(), query3.value(1).toInt(), query3.value(2).toInt(), 5000);
 			}
-			addItem(row, 15, genes_candidate.join(','));
+			addItem(row, 16, genes_candidate.join(','));
 
 			//add report config comment of variant
 			QString rc_comment;
@@ -173,13 +174,13 @@ void VariantWidget::updateGUI()
 			{
 				rc_comment = query3.value(0).toString().trimmed();
 			}
-			addItem(row, 16, rc_comment, true);
+			addItem(row, 17, rc_comment, true);
 
 			//validation info
 			QString vv_id = db.getValue("SELECT id FROM variant_validation WHERE sample_id='" + s_id + "' AND variant_id='" + variant_id + "' AND variant_type='SNV_INDEL'").toString();
 			if (!vv_id.isEmpty())
 			{
-				addItem(row, 17, db.getValue("SELECT status FROM variant_validation WHERE id='" + vv_id + "'").toString());
+				addItem(row, 18, db.getValue("SELECT status FROM variant_validation WHERE id='" + vv_id + "'").toString());
 			}
 
 			++row;

@@ -600,7 +600,7 @@
               </property>
              </widget>
             </item>
-            <item row="2" column="0">
+            <item row="3" column="0">
              <widget class="QLabel" name="label_9">
               <property name="toolTip">
                <string>Sample sender and date/person the sample was received (by).</string>
@@ -610,7 +610,7 @@
               </property>
              </widget>
             </item>
-            <item row="2" column="1">
+            <item row="3" column="1">
              <widget class="QLabel" name="sender">
               <property name="text">
                <string>TextLabel</string>
@@ -620,14 +620,14 @@
               </property>
              </widget>
             </item>
-            <item row="3" column="0">
+            <item row="4" column="0">
              <widget class="QLabel" name="label_12">
               <property name="text">
                <string>species / type:</string>
               </property>
              </widget>
             </item>
-            <item row="3" column="1">
+            <item row="4" column="1">
              <widget class="QLabel" name="species_type">
               <property name="text">
                <string>TextLabel</string>
@@ -637,14 +637,14 @@
               </property>
              </widget>
             </item>
-            <item row="4" column="0">
+            <item row="5" column="0">
              <widget class="QLabel" name="label_8">
               <property name="text">
                <string>tumor/ FFPE:</string>
               </property>
              </widget>
             </item>
-            <item row="4" column="1">
+            <item row="5" column="1">
              <widget class="QLabel" name="tumor_ffpe">
               <property name="text">
                <string>TextLabel</string>
@@ -654,14 +654,14 @@
               </property>
              </widget>
             </item>
-            <item row="5" column="0">
+            <item row="6" column="0">
              <widget class="QLabel" name="label_7">
               <property name="text">
                <string>gender:</string>
               </property>
              </widget>
             </item>
-            <item row="5" column="1">
+            <item row="6" column="1">
              <widget class="QLabel" name="gender">
               <property name="text">
                <string>TextLabel</string>
@@ -671,7 +671,7 @@
               </property>
              </widget>
             </item>
-            <item row="6" column="0">
+            <item row="7" column="0">
              <widget class="QLabel" name="label_11">
               <property name="toolTip">
                <string>Disease group and status.</string>
@@ -681,7 +681,7 @@
               </property>
              </widget>
             </item>
-            <item row="6" column="1">
+            <item row="7" column="1">
              <widget class="QLabel" name="disease_group_status">
               <property name="text">
                <string>TextLabel</string>
@@ -691,21 +691,21 @@
               </property>
              </widget>
             </item>
-            <item row="7" column="0">
+            <item row="8" column="0">
              <widget class="QLabel" name="label_15">
               <property name="text">
                <string>sample groups:</string>
               </property>
              </widget>
             </item>
-            <item row="7" column="1">
+            <item row="8" column="1">
              <widget class="QLabel" name="sample_groups">
               <property name="text">
                <string>TextLabel</string>
               </property>
              </widget>
             </item>
-            <item row="9" column="0">
+            <item row="10" column="0">
              <widget class="QLabel" name="label_2">
               <property name="text">
                <string>comments:</string>
@@ -715,7 +715,7 @@
               </property>
              </widget>
             </item>
-            <item row="9" column="1">
+            <item row="10" column="1">
              <widget class="QLabel" name="comments_sample">
               <property name="text">
                <string>TextLabel</string>
@@ -725,17 +725,34 @@
               </property>
              </widget>
             </item>
-            <item row="8" column="1">
+            <item row="9" column="1">
              <widget class="QLabel" name="tissue">
               <property name="text">
                <string>TextLabel</string>
               </property>
              </widget>
             </item>
-            <item row="8" column="0">
+            <item row="9" column="0">
              <widget class="QLabel" name="label_29">
               <property name="text">
                <string>tissue:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_28">
+              <property name="text">
+               <string>patient identifier:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLabel" name="patient_identifier">
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+              <property name="textInteractionFlags">
+               <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
               </property>
              </widget>
             </item>

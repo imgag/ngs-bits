@@ -134,7 +134,8 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     BedpeSort_Test.h \
     NGSDExportSV_Test.h \
     BedpeAnnotateCounts_Test.h \
-    BedpeAnnotateBreakpointDensity.h
+    BedpeAnnotateBreakpointDensity.h \
+    VcfAnnotateConsequence_Test.h
 
 SOURCES += \
     main.cpp
