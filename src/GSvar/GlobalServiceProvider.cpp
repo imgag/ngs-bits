@@ -146,10 +146,7 @@ void GlobalServiceProvider::gotoInIGV(QString region, bool init_if_not_done)
 void GlobalServiceProvider::loadFileInIGV(QString filename, bool init_if_not_done)
 {
 	//normalize local files
-	if (!filename.startsWith("http"))
-	{
-		filename = Helper::canonicalPath(filename);
-	}
+	filename = Helper::canonicalPath(filename);
 
 	foreach(QWidget* widget, QApplication::topLevelWidgets())
 	{

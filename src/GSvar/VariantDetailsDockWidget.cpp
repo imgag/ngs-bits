@@ -227,7 +227,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	//somatic VICC data from NGSD
 	setAnnotation(ui->somatic_vicc_score, vl, index, "NGSD_som_vicc_interpretation");
 
-	//RNAseq
+	//RNA (ASE)
 	QString rna_ase = "";
 	int ase_af_idx = vl.annotationIndexByName("ASE_af", true, false);
 	int ase_pval_idx = vl.annotationIndexByName("ASE_pval", true, false);
@@ -241,15 +241,14 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 		}
 	}
 	ui->rna_ase->setText(rna_ase);
-
 	setAnnotation(ui->rna_splicing, vl, index, "aberrant_splicing");
-
 	setAnnotation(ui->rna_tpm, vl, index, "tpm");
 
+	//RNA (fold-change)
 	QString rna_rel = "";
 	int expr_log2fc_idx = vl.annotationIndexByName("expr_log2fc", true, false);
 	int expr_zscore_idx = vl.annotationIndexByName("expr_zscore", true, false);
-	if(ase_af_idx!=-1 && ase_pval_idx!=-1)
+	if(expr_log2fc_idx!=-1 && expr_zscore_idx!=-1)
 	{
 		QString expr_log2fc = vl[index].annotations()[expr_log2fc_idx];
 		QString expr_zscore = vl[index].annotations()[expr_zscore_idx];
@@ -862,7 +861,7 @@ void VariantDetailsDockWidget::gnomadClicked(QString variant_string)
 
 void VariantDetailsDockWidget::transcriptClicked(QString link)
 {
-	if (link.startsWith("http")) //transcript
+	if (Helper::isHttpUrl(link)) //transcript
 	{
 		QDesktopServices::openUrl(QUrl(link));
 	}
@@ -874,7 +873,7 @@ void VariantDetailsDockWidget::transcriptClicked(QString link)
 
 void VariantDetailsDockWidget::pubmedClicked(QString link)
 {
-	if (link.startsWith("http")) //transcript
+	if (Helper::isHttpUrl(link)) //transcript
 	{
 		QDesktopServices::openUrl(QUrl(link));
 	}
@@ -989,7 +988,7 @@ void VariantDetailsDockWidget::showOverviewTable(QString title, QString text, ch
 			int col = headers.indexOf(pair.key);
 
 			QString text = pair.value.trimmed();
-			if (text.startsWith("http://") || text.startsWith("https://")) //URL
+			if (Helper::isHttpUrl(text)) //URL
 			{
 				QLabel* label = GUIHelper::createLinkLabel("<a href='" + text + "'>" + text + "</a>");
 				table->setCellWidget(row, col, label);

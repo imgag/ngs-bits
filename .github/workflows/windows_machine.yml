@@ -22,7 +22,7 @@ jobs:
         working-directory: ./htslib
         run: unzip htslib_win.zip
       - name: Copy htslib to bin folder
-        run: cp htslib/lib/*.* bin/
+        run: (cp htslib/lib/hts.dll.a bin/) && (cp htslib/lib/hts-3.dll bin/) && (cp htslib/lib/libhts.a bin/)
       - name: Download test files
         run: make download_test_files
       - name: Build other dependencies
@@ -30,7 +30,5 @@ jobs:
       - name: Create a settings.ini file for tests
         run: .github/workflows/settings_win_mac.sh
         shell: bash
-      - name: List bin folder
-        run: ls -la ./bin
       - name: Run tests
         run: make -k test_lib_windows test_tools_windows

@@ -382,7 +382,8 @@ QString GenLabDB::sapID(QString ps_name)
 	foreach(QString name, names(ps_name))
 	{
 		SqlQuery query = getQuery();
-		query.exec("SELECT identnr FROM v_ngs_sap WHERE labornummer='" + name + "'");
+		query.exec("SELECT SAPID FROM v_ngs_patient_ids WHERE labornummer='" + name + "'");
+
 		while (query.next())
 		{
 			QString id = query.value(0).toString().trimmed();
@@ -452,6 +453,24 @@ QString GenLabDB::gender(QString ps_name)
 	}
 
 	return "n/a";
+}
+
+QString GenLabDB::patientIdentifier(QString ps_name)
+{
+	QString output;
+
+	foreach(QString name, names(ps_name))
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT GenlabID FROM v_ngs_patient_ids WHERE labornummer='" + name + "'");
+		if(query.next())
+		{
+			QString id = query.value(0).toString().trimmed();
+			if (id!="") output = id;
+		}
+	}
+
+	return output;
 }
 
 void GenLabDB::addMissingMetaDataToNGSD(QString ps_name, bool log, bool add_disease_group_status, bool add_disease_details, bool add_gender, bool add_relations)

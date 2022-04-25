@@ -1,6 +1,6 @@
 /* Tests for CRAM-3.0 rANS codec */
 /*
- * Copyright (c) 2019,2020 Genome Research Ltd.
+ * Copyright (c) 2019-2021 Genome Research Ltd.
  * Author(s): James Bonfield
  *
  * Redistribution and use in source and binary forms, with or without

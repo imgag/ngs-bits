@@ -1,0 +1,61 @@
+##fileformat=VCFv4.2
+##fileDate=20220111
+##source=freeBayes v1.3.3
+##reference=/tmp/local_ngs_data_GRCh38//GRCh38.fa
+##phasing=none
+##filter="QUAL > 5"
+##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
+##PIPELINE=megSAP 0.2-721-g94bb9cd8
+##SAMPLE=<ID=NA12878_58,Gender=female,ExternalSampleName=Coriell-DNA,IsTumor=no,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=affected>
+##INFO=<ID=ABP,Number=A,Type=Float,Description="Allele balance probability at heterozygous sites: Phred-scaled upper-bounds estimate of the probability of observing the deviation between ABR and ABA given E(ABR/ABA) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=MQM,Number=A,Type=Float,Description="Mean mapping quality of observed alternate alleles">
+##INFO=<ID=SAP,Number=A,Type=Float,Description="Strand balance probability for the alternate allele: Phred-scaled upper-bounds estimate of the probability of observing the deviation between SAF and SAR given E(SAF/SAR) ~ 0.5, derived using Hoeffding's inequality">
+##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
+##FILTER=<ID=low_conf_region,Description="Variant marked as 'low_conf_region'.">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=GQ,Number=1,Type=Float,Description="Genotype Quality, the Phred-scaled marginal (or unconditional) probability of the called genotype">
+##FORMAT=<ID=GL,Number=G,Type=Float,Description="Genotype Likelihood, log10-scaled likelihoods of the data given the called genotype for each possible genotype generated from the reference and alternate alleles given the sample ploidy">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Number of observation for each allele">
+##FORMAT=<ID=RO,Number=1,Type=Integer,Description="Reference allele observation count">
+##FORMAT=<ID=QR,Number=1,Type=Integer,Description="Sum of quality of the reference observations">
+##FORMAT=<ID=AO,Number=A,Type=Integer,Description="Alternate allele observation count">
+##FORMAT=<ID=QA,Number=A,Type=Integer,Description="Sum of quality of the alternate observations">
+##FORMAT=<ID=MIN_DP,Number=1,Type=Integer,Description="Minimum depth in gVCF output block.">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878_58
+chr1	13732900	.	T	C	596	.	MQM=60;SAP=30;ABP=3	GT:DP:AO:GQ	0/1:52:26:154
+chr1	13778644	.	T	A	978	.	MQM=59;SAP=21;ABP=6	GT:DP:AO:GQ	0/1:97:43:143
+chr1	13778803	.	G	A	2709	.	MQM=60;SAP=4;ABP=3	GT:DP:AO:GQ	0/1:205:104:160
+chr1	13779899	.	A	ACTC	1618	.	MQM=60;SAP=17;ABP=11	GT:DP:AO:GQ	0/1:162:69:143
+chr1	13782619	.	A	G	1359	.	MQM=60;SAP=4;ABP=15	GT:DP:AO:GQ	0/1:137:55:160
+chr1	13816508	.	A	G	6753	.	MQM=60;SAP=8;ABP=0	GT:DP:AO:GQ	1/1:209:209:160
+chr1	13823106	.	C	T	2039	off-target	MQM=60;SAP=59;ABP=0	GT:DP:AO:GQ	1/1:65:65:160
+chr1	13823127	.	T	C	2445	off-target	MQM=60;SAP=35;ABP=0	GT:DP:AO:GQ	1/1:78:78:160
+chr1	120157112	.	T	G	269	.	MQM=26;SAP=18;ABP=125	GT:DP:AO:GQ	0/1:216:53:160
+chr1	120157248	.	A	T	296	off-target	MQM=51;SAP=38;ABP=3	GT:DP:AO:GQ	0/1:33:16:149
+chr1	120163401	.	A	G	169	off-target	MQM=22;SAP=44;ABP=33	GT:DP:AO:GQ	0/1:21:19:0
+chr1	120168929	.	T	C	1877	.	MQM=20;SAP=25;ABP=0	GT:DP:AO:GQ	1/1:109:109:148
+chr1	146325275	.	G	T	122	.	MQM=28;SAP=20;ABP=25	GT:DP:AO:GQ	0/1:61:18:122
+chr1	187563312	.	T	TGTGGGCTC	282	off-target	MQM=60;SAP=6;ABP=0	GT:DP:AO:GQ	1/1:10:10:74
+chr1	187563443	.	C	T	211	off-target	MQM=60;SAP=11;ABP=0	GT:DP:AO:GQ	1/1:7:7:56
+chr1	26282291	.	C	T	938	.	MQM=60;SAP=19;ABP=8	GT:DP:AO:GQ	0/1:66:39:142
+chr1	26282320	.	TCCAGGACAGGGACTGGGGCCGGGACCGGGACCGGGACTGGGGCCGGGACCGGGACCGGGACTGGGGCCGGGACCGGGA	T	219	.	MQM=60;SAP=9;ABP=5	GT:DP:AO:GQ	0/1:16:6:25
+chr1	26282328	.	AGGGACTGGGGCCGGGACCGGGACC	A	219	.	MQM=60;SAP=16;ABP=5	GT:DP:AO:GQ	0/1:16:6:25
+chr1	26284400	.	A	C	2207	.	MQM=60;SAP=6;ABP=4	GT:DP:AO:GQ	0/1:162:85:143
+chr1	26294355	.	C	CA	1094	off-target	MQM=60;SAP=75;ABP=3	GT:DP:AO:GQ	0/1:92:48:138
+chr1	26320235	.	A	G	2006	.	MQM=60;SAP=3;ABP=13	GT:DP:AO:GQ	0/1:192:81:136
+chr8	143563095	.	T	TCTGG	235	off-target	MQM=60;SAP=4;ABP=5	GT:DP:AO:GQ	0/1:33:14:160
+chr8	143567371	.	G	GC	981	.	MQM=60;SAP=3;ABP=3	GT:DP:AO:GQ	0/1:36:18:160
+chr8	143567380	.	A	G	981	.	MQM=60;SAP=11;ABP=3	GT:DP:AO:GQ	1/1:36:18:160
+chr8	143567798	.	C	T	1474	.	MQM=60;SAP=31;ABP=3	GT:DP:AO:GQ	0/1:121:60:141
+chr8	143570223	.	C	CCCCTCCTCA	483	.	MQM=60;SAP=15;ABP=15	GT:DP:AO:GQ	0/1:72:26:142
+chr8	143570841	.	C	T	24	off-target	MQM=60;SAP=5;ABP=10	GT:DP:AO:GQ	0/1:15:4:23
+chr8	143571048	.	A	G	1197	off-target	MQM=60;SAP=92;ABP=0	GT:DP:AO:GQ	1/1:41:41:160
+chr8	143572079	.	G	A	2165	.	MQM=60;SAP=18;ABP=3	GT:DP:AO:GQ	0/1:167:84:141
+chr8	143572085	.	A	G	5788	.	MQM=60;SAP=42;ABP=0	GT:DP:AO:GQ	1/1:181:181:160
+chr8	143572416	.	G	C	2357	.	MQM=60;SAP=65;ABP=0	GT:DP:AO:GQ	1/1:79:77:142
+chr8	143572424	.	G	T	850	.	MQM=60;SAP=8;ABP=4	GT:DP:AO:GQ	0/1:83:39:143
+chr9	92457315	.	G	A	1980	.	MQM=60;SAP=102;ABP=0	GT:DP:AO:GQ	1/1:64:64:160
+chr9	92474742	.	C	CTCA	1212	.	MQM=60;SAP=3;ABP=17	GT:DP:AO:GQ	0/1:50:32:142
+chr9	92474742	.	CTCA	C	1212	.	MQM=60;SAP=3;ABP=12	GT:DP:AO:GQ	0/1:50:16:142
+chr9	92474940	.	G	T	272	off-target	MQM=60;SAP=38;ABP=6	GT:DP:AO:GQ	0/1:40:16:141

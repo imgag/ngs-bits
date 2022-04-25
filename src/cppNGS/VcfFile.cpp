@@ -389,7 +389,7 @@ void VcfFile::loadFromVCFGZ(const QString& filename, bool allow_multi_sample, Ch
 	QSet<QByteArray> format_ids_in_header;
 	QSet<QByteArray> filter_ids_in_header;
 
-	if (filename.startsWith("http", Qt::CaseInsensitive))
+	if (Helper::isHttpUrl(filename))
 	{
 		// Temporary solution to handle remote VCF files (we assume that there are no *.vcg.gz files)
 		if (filename.toLower().endsWith(".vcg.gz"))
@@ -626,9 +626,11 @@ void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int comp
 
 void VcfFile::leftNormalize(QString reference_genome)
 {
+	FastaFileIndex reference(reference_genome);
+
 	for(VcfLinePtr& variant_line : vcfLines())
 	{
-		variant_line->leftNormalize(reference_genome);
+		variant_line->leftNormalize(reference);
 	}
 }
 

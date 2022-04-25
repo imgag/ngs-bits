@@ -243,6 +243,7 @@ struct CPPNGSDSHARED_EXPORT SampleData
 {
 	QString name;
 	QString name_external;
+	QString patient_identifier;
 	QString type;
 	QString gender;
 	QString quality;
@@ -370,6 +371,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	QString s_name;
 	bool s_name_ext = false;
 	bool s_name_comments = false;
+	QString s_patient_identifier;
 	QString s_species;
 	QString s_type;
 	QString s_sender;
