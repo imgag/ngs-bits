@@ -3,7 +3,6 @@
 
 #include "cppREST_global.h"
 #include <QObject>
-#include <QDebug>
 #include <QFile>
 #include <QSslCertificate>
 #include <QSslKey>
@@ -12,6 +11,7 @@
 #include <QStandardPaths>
 #include <QTimer>
 
+#include "Log.h"
 #include "SslServer.h"
 #include "UrlManager.h"
 

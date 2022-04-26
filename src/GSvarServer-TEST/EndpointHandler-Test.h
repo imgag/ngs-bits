@@ -14,7 +14,7 @@ private slots:
 		request.setPrefix("v1");
 		request.setPath("info");
 
-		HttpResponse response = EndpointHandler::serveApiInfo(request);
+		HttpResponse response = EndpointHandler::serveResourceAsset(request);
 		IS_TRUE(response.getStatusLine().contains("200"));
 		IS_TRUE(response.getFilename().contains("api.json"));
     }

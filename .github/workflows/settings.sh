@@ -13,3 +13,4 @@ echo "http_server_port = 8080" >> ./bin/settings.ini
 echo "https_server_port = 8443" >> ./bin/settings.ini
 echo "liftover_hg19_hg38 = ../src/cppNGS-TEST/data_in/hg19ToHg38.over.chain.gz" >> ./bin/settings.ini
 echo "liftover_hg38_hg19 = ../src/cppNGS-TEST/data_in/hg38ToHg19.over.chain.gz" >> ./bin/settings.ini
+echo "session_duration = 36000" >> ./bin/settings.ini

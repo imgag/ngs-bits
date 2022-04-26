@@ -4,5 +4,7 @@
         <file>assets/client/api.json</file>
         <file>assets/client/example.png</file>
         <file>assets/client/favicon.ico</file>
+        <file>assets/client/rna.bam</file>
+        <file>assets/client/rna.bam.bai</file>
     </qresource>
 </RCC>

@@ -8,6 +8,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 
+#include "Log.h"
 #include "Exceptions.h"
 #include "EndpointController.h"
 #include "FileLocationProviderLocal.h"
@@ -20,17 +21,14 @@ struct SampleMetadata
 	AnalysisType type;
 };
 
-
 class EndpointHandler
 {
-
 
 public:
     EndpointHandler();
 
-	static HttpResponse serveIndexPage(const HttpRequest& request);
-	static HttpResponse serveFavicon(const HttpRequest& request);
-	static HttpResponse serveApiInfo(const HttpRequest& request);
+	/// Serves files saved in the server assets
+	static HttpResponse serveResourceAsset(const HttpRequest& request);
 	static HttpResponse serveTempUrl(const HttpRequest& request);
 	static HttpResponse locateFileByType(const HttpRequest& request);
 	static HttpResponse getProcessedSamplePath(const HttpRequest& request);

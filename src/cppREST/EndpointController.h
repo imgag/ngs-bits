@@ -2,6 +2,7 @@
 #define ENDPOINTCONTROLLER_H
 
 #include "cppREST_global.h"
+#include "Log.h"
 #include "HttpParts.h"
 #include "FileCache.h"
 #include "EndpointManager.h"

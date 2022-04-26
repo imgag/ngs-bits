@@ -2,7 +2,6 @@
 #define URLMANAGER_H
 
 #include <QMap>
-#include <QDebug>
 #include <QMutex>
 #include <QDateTime>
 #include "cppREST_global.h"

@@ -42,7 +42,7 @@ HttpResponse EndpointManager::getAuthStatus(HttpRequest request)
 		return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Database error: " + e.message());
 	}
 
-	if (message.isEmpty())
+	if (!message.isEmpty())
 	{
 		return HttpResponse(ResponseStatus::UNAUTHORIZED, request.getContentType(), "Invalid user credentials");
 	}
