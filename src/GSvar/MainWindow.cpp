@@ -1167,8 +1167,6 @@ void MainWindow::on_actionSV_triggered()
 
 void MainWindow::on_actionMosaic_triggered()
 {
-	qDebug() << "connected?";
-	qDebug() << "mosaic variants: #" << mosaics_.count();
 	if(filename_ == "") return;
 
 	if (!(mosaics_.count() > 0))	{

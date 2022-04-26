@@ -113,7 +113,6 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
                         case PathType::MOSAIC_VARIANTS:
                                 file_list << file_locator->getAnalysisMosaicFile();
                                 break;
-
 			case PathType::COPY_NUMBER_CALLS:
 				if (multiple_files)
 				{
