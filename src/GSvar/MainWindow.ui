@@ -586,6 +586,7 @@
    <addaction name="actionSV"/>
    <addaction name="actionROH"/>
    <addaction name="actionRE"/>
+   <addaction name="actionMosaic"/>
    <addaction name="actionPRS"/>
    <addaction name="actionCircos"/>
    <addaction name="separator"/>
@@ -1366,6 +1367,18 @@
   <action name="actionImportSampleHpoTerms">
    <property name="text">
     <string>Sample HPO terms</string>
+   </property>
+  </action>
+  <action name="actionMosaic">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/MosaicVariant.png</normaloff>:/Icons/MosaicVariant.png</iconset>
+   </property>
+   <property name="text">
+    <string>Mosaic</string>
+   </property>
+   <property name="toolTip">
+    <string>Show mosaic Variants of the current sample.</string>
    </property>
   </action>
  </widget>

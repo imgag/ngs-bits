@@ -711,6 +711,9 @@ private slots:
 		filter.setInteger("mapq", 0);
 		filter.setInteger("strand_bias", -1);
 		filter.setInteger("allele_balance", -1);
+		filter.setInteger("min_occurences", 0);
+		filter.setDouble("min_af", 0);
+		filter.setDouble("max_af", 1);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 138);
 
@@ -721,6 +724,9 @@ private slots:
 		filter.setInteger("mapq", 0);
 		filter.setInteger("strand_bias", -1);
 		filter.setInteger("allele_balance", -1);
+		filter.setInteger("min_occurences", 0);
+		filter.setDouble("min_af", 0);
+		filter.setDouble("max_af", 1);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 136);
 
@@ -731,6 +737,9 @@ private slots:
 		filter.setInteger("mapq", 55);
 		filter.setInteger("strand_bias", -1);
 		filter.setInteger("allele_balance", -1);
+		filter.setInteger("min_occurences", 0);
+		filter.setDouble("min_af", 0);
+		filter.setDouble("max_af", 1);
 
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 131);
@@ -742,6 +751,9 @@ private slots:
 		filter.setInteger("mapq", 0);
 		filter.setInteger("strand_bias", 20);
 		filter.setInteger("allele_balance", -1);
+		filter.setInteger("min_occurences", 0);
+		filter.setDouble("min_af", 0);
+		filter.setDouble("max_af", 1);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 142);
 
@@ -752,6 +764,9 @@ private slots:
 		filter.setInteger("mapq", 0);
 		filter.setInteger("strand_bias", -1);
 		filter.setInteger("allele_balance", 20);
+		filter.setInteger("min_occurences", 0);
+		filter.setDouble("min_af", 0);
+		filter.setDouble("max_af", 1);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 142);
 
@@ -762,8 +777,43 @@ private slots:
 		filter.setInteger("mapq", 55);
 		filter.setInteger("strand_bias", 20);
 		filter.setInteger("allele_balance", 20);
+		filter.setDouble("min_af", 0);
+		filter.setDouble("max_af", 1);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 113);
+
+		// new test File
+		vl.clear();
+		vl.load(TESTDATA("data_in/VariantFilter_in1.GSvar"));
+		result = FilterResult(vl.count());
+
+		//min occurences per strand
+		result.reset();
+		filter.setInteger("qual", 0);
+		filter.setInteger("depth", 0);
+		filter.setInteger("mapq", 0);
+		filter.setInteger("strand_bias", -1);
+		filter.setInteger("allele_balance", -1);
+		filter.setInteger("min_occurences", 3);
+		filter.setDouble("min_af", 0);
+		filter.setDouble("max_af", 1);
+
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 6);
+
+
+		//Allele frequency
+		result.reset();
+		filter.setInteger("qual", 0);
+		filter.setInteger("depth", 0);
+		filter.setInteger("mapq", 0);
+		filter.setInteger("strand_bias", -1);
+		filter.setInteger("allele_balance", -1);
+		filter.setInteger("min_occurences", 0);
+		filter.setDouble("min_af", 0.02);
+		filter.setDouble("max_af", 0.1);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 6);
 	}
 
 	void FilterVariantQC_apply_multiSample()
@@ -1067,6 +1117,7 @@ private slots:
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 18);
 	}
+
 
 	/********************************************* Filters for small variants (somatic tumor-only) *********************************************/
 
