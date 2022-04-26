@@ -18,9 +18,7 @@ FileLocation FileLocationProviderRemote::getAnalysisVcf() const
 
 FileLocation FileLocationProviderRemote::getAnalysisMosaicFile() const
 {
-	THROW(NotImplementedException, "Remote Fileprovider can't yet provide mosaic file.");
-//	return getOneFileLocationByType(PathType::GSVAR, "");
-	return FileLocation();
+	return getOneFileLocationByType(PathType::MOSAIC_VARIANTS, "");
 }
 
 FileLocation FileLocationProviderRemote::getAnalysisSvFile() const
