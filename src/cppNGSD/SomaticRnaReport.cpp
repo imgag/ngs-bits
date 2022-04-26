@@ -178,16 +178,29 @@ RtfTable SomaticRnaReport::partFusions()
 RtfSourceCode SomaticRnaReport::partFusionPics()
 {
 	QByteArrayList out;
+
+	out << RtfParagraph("Strukturvarianten").setFontSize(18).setBold(true).RtfCode();
+
+	RtfSourceCode desc = "Abbildung 1: Gezeigt werden die mögliche Strukturvarianten als lineare und als kreisförmige Genom-Darstellung, ";
+	desc += "beteiligte Chromosomen, Fusionspartner, ihre Orientierung, Bruchpunkte im Genom, beteiligte Exons und ihre Abdeckung aus den Sequenzierdaten, das Fusionstranskript, ";
+	desc += "Anzahl der für die Detektion unterstützenden Reads und Funktionelle Domäne im Protein mit der Position der Exons. ";
+	desc += "Für Strukturvarianten innerhalb eines Gens wird zu Visualisierungszwecken eine Kopie des Gens zusätzlich dargestellt. Die Grafik wurde mit der Software ARRIBA erstellt.";
+
+	out << RtfParagraph(desc).setHorizontalAlignment("j").setFontSize(16).RtfCode();
+
 	for(const auto& pic_data : data_.fusion_pics)
 	{
-		out << pngToRtf(pic_data, doc_.maxWidth() - 500).RtfCode();
+		out << pngToRtf(pic_data, doc_.maxWidth() - 500).RtfCode() << RtfParagraph("").RtfCode();
 	}
-	return out.join("\n\\line\n");
+	return out.join("\n");
 }
 
 RtfSourceCode SomaticRnaReport::partExpressionPics()
 {
 	QByteArrayList out;
+
+	out << RtfParagraph("Expression bestimmter Gene aus therapierelevanten Signalkaskaden").setFontSize(18).setBold(true).RtfCode();
+
 	RtfSourceCode desc = "Abbildung 2: Die Abbildung zeigt die jeweilige Genexpression als logarithmierten TPM in der Patientenprobe (";
 	desc += RtfText("X").setFontSize(16).setFontColor(5).RtfCode();
 	desc += "), in der Vergleichskohorte gleicher Tumorentität (Boxplot mit Quartil, SD und individuelle Expressionswerte) und als Mittelwert von Normalgewebe in der Literatur (" + RtfText("□").setFontSize(16).setBold(true).RtfCode() + ", Human Protein Altas). ";
@@ -539,21 +552,30 @@ void SomaticRnaReport::writeRtf(QByteArray out_file)
 	doc_.addPart(RtfParagraph("").RtfCode());
 
 	doc_.addPart(partVarExplanation().RtfCode());
-
-
 	doc_.addPart(RtfParagraph("").RtfCode());
 
-	if(svs_.count() > 0) doc_.addPart(partFusions().RtfCode());
-	doc_.addPart(RtfParagraph("").RtfCode());
+	if(svs_.count() > 0)
+	{
+		doc_.addPart(partFusions().RtfCode());
+		doc_.addPart(RtfParagraph("").RtfCode());
+	}
 
-	if(svs_.count() > 0) doc_.addPart(partSVs().RtfCode());
-	doc_.addPart(RtfParagraph("").RtfCode());
+	if(svs_.count() > 0)
+	{
+		doc_.addPart(partSVs().RtfCode());
+		doc_.newPage();
+	}
 
-	if(data_.fusion_pics.count() > 0) doc_.addPart(partFusionPics());
-	doc_.addPart(RtfParagraph("").RtfCode());
+	if(data_.fusion_pics.count() > 0)
+	{
+		doc_.addPart(partFusionPics());
+		doc_.newPage();
+	}
 
-	if(data_.expression_plots.count() > 0) doc_.addPart(partExpressionPics());
-	doc_.addPart(RtfParagraph("").RtfCode());
+	if(data_.expression_plots.count() > 0)
+	{
+		doc_.addPart(partExpressionPics());
+	}
 
 
 	doc_.save(out_file);
