@@ -353,7 +353,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 		{
 			QString ps = sample.name;
 			AnalysisInformationWidget* widget = new AnalysisInformationWidget(db.processedSampleId(ps));
-			auto dlg = GUIHelper::createDialog(widget, "Analsis information of " + ps);
+			auto dlg = GUIHelper::createDialog(widget, "Analysis information of " + ps);
 			dlg->exec();
 		}
 	}

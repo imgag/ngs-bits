@@ -189,6 +189,8 @@ public slots:
 	void on_actionROH_triggered();
 	///Open SV dialog
 	void on_actionSV_triggered();
+	///Open Mosaic dialog
+	void on_actionMosaic_triggered();
 	///Open gene picker dialog
 	void on_actionGeneSelector_triggered();
 	///Open Circos plot
@@ -421,6 +423,7 @@ private:
 	QList<VariantListChange> variants_changed_;
 	CnvList cnvs_;
 	BedpeFile svs_;
+	VariantList mosaics_;
 	FilterResult filter_result_;
 	QString last_report_path_;
 	bool filter_phenos_;

@@ -1,4 +1,5 @@
 #include "EndpointHandler.h"
+#include "FileLocationProviderLocal.h"
 
 EndpointHandler::EndpointHandler()
 {
@@ -107,8 +108,11 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 				file_list << file_locator->getAnalysisVcf();
 				break;
 			case PathType::STRUCTURAL_VARIANTS:
-				file_list << file_locator->getAnalysisSvFile();
+                                file_list << file_locator->getAnalysisSvFile();
 				break;
+                        case PathType::MOSAIC_VARIANTS:
+                                file_list << file_locator->getAnalysisMosaicFile();
+                                break;
 			case PathType::COPY_NUMBER_CALLS:
 				if (multiple_files)
 				{
@@ -116,23 +120,23 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 					break;
 				}				
 				file_list << file_locator->getAnalysisCnvFile();
-				break;
+                                break;
 			case PathType::COPY_NUMBER_CALLS_MOSAIC:
 				file_list << file_locator->getAnalysisMosaicCnvFile();
-				break;
+                                break;
 			case PathType::UPD:
 				file_list << file_locator->getAnalysisUpdFile();
-				break;
+                                break;
 			case PathType::REPEAT_EXPANSION_IMAGE:
 				if (!request.getUrlParams().contains("locus"))
 				{
 					return HttpResponse(ResponseStatus::BAD_REQUEST, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Locus value has not been provided");
 				}
 				file_list << file_locator->getRepeatExpansionImage(request.getUrlParams()["locus"]);
-				break;
+                                break;
 			case PathType::BAM:
 				file_list = file_locator->getBamFiles(return_if_missing);
-				break;
+                                break;
 			case PathType::COPY_NUMBER_RAW_DATA:
 				if (multiple_files)
 				{

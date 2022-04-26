@@ -71,7 +71,8 @@ HEADERS += \
     SomaticVariantInterpreter_Test.h \
     Graph_Test.h \
     ChainFileReader_Test.h \
-    BigWigReader_Test.h
+    BigWigReader_Test.h \
+    VariantHgvsAnnotator_Test.h
 
 SOURCES += \
         main.cpp

@@ -186,6 +186,10 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		}
 		conditions << "(" + name_conditions.join(" OR ") + ")";
 	}
+	if (p.s_patient_identifier.trimmed()!="")
+	{
+		conditions << "s.patient_identifier='" + escapeForSql(p.s_patient_identifier) + "'";
+	}
 	if (p.s_species.trimmed()!="")
 	{
 		tables	<< "species sp";
@@ -397,7 +401,7 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 {
 	//execute query
 	SqlQuery query = getQuery();
-	query.exec("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe, s.sample_type, s.sender_id, s.species_id, s.received, s.receiver_id, s.tissue FROM sample s WHERE id=" + sample_id);
+	query.exec("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe, s.sample_type, s.sender_id, s.species_id, s.received, s.receiver_id, s.tissue, s.patient_identifier FROM sample s WHERE id=" + sample_id);
 	if (query.size()==0)
 	{
 		THROW(ProgrammingException, "Invalid 'id' for table 'sample' given: '" + sample_id + "'");
@@ -431,6 +435,7 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 	}
 
 	output.tissue = query.value(14).toString();
+	output.patient_identifier = query.value(15).toString();
 
 	//sample groups
 	SqlQuery group_query = getQuery();
@@ -550,6 +555,7 @@ const QSet<int>& NGSD::sameSamples(int sample_id)
 	//init if empty
 	if (same_samples.isEmpty())
 	{
+		//sample relation
 		SqlQuery query = getQuery();
 		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample' OR relation='same patient'");
 		while (query.next())
@@ -558,6 +564,33 @@ const QSet<int>& NGSD::sameSamples(int sample_id)
 			int sample2_id = query.value(1).toInt();
 			same_samples[sample1_id] << sample2_id;
 			same_samples[sample2_id] << sample1_id;
+		}
+
+		//same patient identifier
+		query.exec("SELECT id, patient_identifier FROM sample WHERE patient_identifier IS NOT NULL AND patient_identifier!=''");
+		QHash<QString, QList<int>> sample_ids_by_patient_id;
+		while (query.next())
+		{
+			int sample_id = query.value(0).toInt();
+			QString patient_identifier = query.value(1).toString().trimmed();
+			if (patient_identifier.isEmpty()) continue;
+
+			sample_ids_by_patient_id[patient_identifier] << sample_id;
+		}
+		foreach(QString patient_id, sample_ids_by_patient_id.keys())
+		{
+			QList<int>& sample_ids = sample_ids_by_patient_id[patient_id];
+
+			for (int i=0; i<sample_ids.count(); ++i)
+			{
+				for (int j=i+1; j<sample_ids.count(); ++j)
+				{
+					int sample1_id = sample_ids[i];
+					int sample2_id = sample_ids[j];
+					same_samples[sample1_id] << sample2_id;
+					same_samples[sample2_id] << sample1_id;
+				}
+			}
 		}
 	}
 
@@ -877,6 +910,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==PathType::MANTA_EVIDENCE) output += "manta_evid/" + ps_name + "_manta_evidence.bam";
 	else if (type==PathType::BAF) output += ps_name + "_bafs.igv";
 	else if (type==PathType::STRUCTURAL_VARIANTS) output += ps_name + "_manta_var_structural.bedpe";
+	else if (type==PathType::MOSAIC_VARIANTS) output += ps_name + "_mosaic.GSvar";
 	else if (type==PathType::COPY_NUMBER_RAW_DATA) output += ps_name + "_cnvs_clincnv.seg";
 	else if (type==PathType::COPY_NUMBER_CALLS) output += ps_name + "_cnvs_clincnv.tsv";
 	else if (type==PathType::FUSIONS) output += ps_name + "_fusions_arriba.tsv";

@@ -60,6 +60,9 @@ public:
 	///Returns the sample gender
 	QString gender(QString ps_name);
 
+	///Returns the patient identifier, or an empty string if it could not be determined (tries sample name if processed sample name is not found)
+	QString patientIdentifier(QString ps_name);
+
 	///Imports missing sample meta data (disease group/status/details) for a sample into NGSD
 	void addMissingMetaDataToNGSD(QString ps_name, bool log=false, bool add_disease_group_status=true, bool add_disease_details=true, bool add_gender=true, bool add_relations=true);
 

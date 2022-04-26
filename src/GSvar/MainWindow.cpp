@@ -132,6 +132,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "FusionWidget.h"
 #include "CohortExpressionDataWidget.h"
 #include "CausalVariantEditDialog.h"
+#include "MosaicWidget.h"
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -223,11 +224,12 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.vars_export_btn->menu()->addAction("Export GSvar (filtered)", this, SLOT(exportGSvar()));
 	ui_.vars_export_btn->menu()->addAction("Export VCF (filtered)", this, SLOT(exportVCF()));
 	ui_.report_btn->setMenu(new QMenu());
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_add_causal.png"), "Add/edit other causal variant", this, SLOT(editOtherCausalVariant()));
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_exclude.png"), "Delete other causal variant", this, SLOT(deleteOtherCausalVariant()));
+	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate report", this, SLOT(generateReport()));
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate evaluation sheet", this, SLOT(generateEvaluationSheet()));
-	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Info.png"), "Show report configuration info", this, SLOT(showReportConfigInfo()));
-	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_add_causal.png"), "Add/edit other causal Variant", this, SLOT(editOtherCausalVariant()));
-	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_exclude.png"), "Delete other causal Variant", this, SLOT(deleteOtherCausalVariant()));
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_info.png"), "Show report configuration info", this, SLOT(showReportConfigInfo()));
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_finalize.png"), "Finalize report configuration", this, SLOT(finalizeReportConfig()));
 	ui_.report_btn->menu()->addSeparator();
@@ -837,6 +839,33 @@ void MainWindow::on_actionDebug_triggered()
 		}
 		*/
 
+		//initial import of patient identifiers from GenLab (diagnostic samples only)
+		/*
+		NGSD db;
+		GenLabDB db_genlab;
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT s.id, concat(s.name, '_0', ps.process_id), s.patient_identifier FROM sample s, processed_sample ps, project p WHERE s.id=ps.sample_id AND p.id=ps.project_id AND p.type='diagnostic' ORDER BY ps.id ASC");
+		while(query.next())
+		{
+			QString s_id = query.value(0).toString().trimmed();
+			QString ps = query.value(1).toString().trimmed();
+			QString patient_id_old = query.value(2).toString().trimmed();
+
+			QString patient_id = db_genlab.patientIdentifier(ps);
+			if (patient_id=="") continue;
+
+			//check for mismatches
+			if (patient_id_old!="")
+			{
+				if (patient_id!=patient_id_old) qDebug() << "MISMATCH:" << ps << "NGSD=" << patient_id_old << "GenLab=" << patient_id;
+				continue;
+			}
+
+			qDebug() << "UPDATE:" << ps << patient_id;
+			db.getQuery().exec("UPDATE sample SET patient_identifier='" + patient_id + "' WHERE id='" + s_id + "'");
+		}
+		*/
+
 		qDebug() << Helper::elapsedTime(timer, true);
 	}
 	else if (user=="ahschul1")
@@ -1134,6 +1163,47 @@ void MainWindow::on_actionSV_triggered()
 	{
 		QMessageBox::warning(this,"SV file not found",error.message());
 	}
+}
+
+void MainWindow::on_actionMosaic_triggered()
+{
+	if(filename_ == "") return;
+
+	if (!(mosaics_.count() > 0))	{
+		QMessageBox::information(this, "No mosaic variants", "No detected mosaic variants in the analysis!");
+		return;
+	}
+
+	try
+	{
+		//determine processed sample ID (needed for report config)
+		QString ps_id = "";
+		QSharedPointer<ReportConfiguration> report_config = nullptr;
+		if (germlineReportSupported())
+		{
+			ps_id = NGSD().processedSampleId(germlineReportSample(), false);
+			report_config = report_settings_.report_config;
+		}
+
+		//open mosaic widget
+		MosaicWidget* list;
+
+		// germline single, trio or multi sample
+		list = new MosaicWidget(mosaics_, ps_id, ui_.filters, report_settings_, gene2region_cache_, this);
+
+
+		auto dlg = GUIHelper::createDialog(list, "Mosaic variants of " + variants_.analysisName());
+		addModelessDialog(dlg);
+	}
+	catch(FileParseException error)
+	{
+		QMessageBox::warning(this,"File Parse Exception",error.message());
+	}
+	catch(FileAccessException error)
+	{
+		QMessageBox::warning(this,"Mosaic file not found",error.message());
+	}
+
 }
 
 void MainWindow::on_actionCNV_triggered()
@@ -2799,7 +2869,7 @@ void MainWindow::loadFile(QString filename)
 		variants_.load(filename);
 		Log::perf("Loading small variant list took ", timer);
 		QString mode_title = "";
-		if (filename.startsWith("http"))
+		if (Helper::isHttpUrl(filename))
 		{
 			GlobalServiceProvider::setFileLocationProvider(QSharedPointer<FileLocationProviderRemote>(new FileLocationProviderRemote(filename)));
 			mode_title = " (client-server mode)";
@@ -2857,6 +2927,24 @@ void MainWindow::loadFile(QString filename)
 			}
 		}
 		Log::perf("Loading SV list took ", timer);
+
+		//load mosaics
+		timer.restart();
+		FileLocation mosaic_loc = GlobalServiceProvider::fileLocationProvider().getAnalysisMosaicFile();
+		if (mosaic_loc.exists)
+		{
+			try
+			{
+				mosaics_.load(mosaic_loc.filename);
+			}
+			catch(Exception& e)
+			{
+				QMessageBox::warning(this, "Error loading mosaic file", e.message());
+				svs_.clear();
+			}
+		}
+		Log::perf("Loading mosaic list took ", timer);
+
 
 		ui_.filters->setValidFilterEntries(variants_.filters().keys());
 

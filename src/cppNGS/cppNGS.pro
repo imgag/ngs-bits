@@ -73,7 +73,8 @@ SOURCES += BedFile.cpp \
     RtfDocument.cpp \
     GenomeBuild.cpp \
     ChainFileReader.cpp \
-    BigWigReader.cpp
+    BigWigReader.cpp \
+    VariantHgvsAnnotator.cpp
 
 HEADERS += BedFile.h \
     Chromosome.h \
@@ -118,7 +119,8 @@ HEADERS += BedFile.h \
     GraphEdge.h \
     GenomeBuild.h \
     ChainFileReader.h \
-    BigWigReader.h
+    BigWigReader.h \
+    VariantHgvsAnnotator.h
 
 RESOURCES += \
     cppNGS.qrc

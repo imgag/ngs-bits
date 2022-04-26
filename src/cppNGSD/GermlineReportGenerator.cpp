@@ -760,6 +760,10 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 					exon_nr.replace("intron", "Intron ");
 				}
 				w.writeAttribute("exon", exon_nr);
+
+				bool is_main_transcript = data_.preferred_transcripts.contains(trans.gene) && data_.preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion());
+				w.writeAttribute("main_transcript", is_main_transcript ? "true" : "false");
+
 				w.writeEndElement();
 
 				genes << trans.gene;
@@ -2004,12 +2008,16 @@ void GermlineReportGenerator::writeEvaluationSheet(QString filename, const Evalu
 	stream << "      </table>" << endl;
 	stream << "    </p>" << endl;
 
-	stream << "    <p><b>Sonstige kausale Varianten:</b>" << endl;
-	stream << "      <table border='1'>" << endl;
-	printVariantSheetRowHeaderOtherVariant(stream);
-	printVariantSheetRowOtherVariant(stream, data_.report_settings.report_config->otherCausalVariant());
-	stream << "      </table>" << endl;
-	stream << "    </p>" << endl;
+	OtherCausalVariant other_causal_var = data_.report_settings.report_config->otherCausalVariant();
+	if (other_causal_var.isValid())
+	{
+		stream << "    <p><b>Sonstige kausale Varianten:</b>" << endl;
+		stream << "      <table border='1'>" << endl;
+		printVariantSheetRowHeaderOtherVariant(stream);
+		printVariantSheetRowOtherVariant(stream, other_causal_var);
+		stream << "      </table>" << endl;
+		stream << "    </p>" << endl;
+	}
 
 	//write footer
 	stream << "  </body>" << endl;
