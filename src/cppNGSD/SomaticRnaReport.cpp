@@ -180,16 +180,30 @@ RtfSourceCode SomaticRnaReport::partFusionPics()
 	QByteArrayList out;
 	for(const auto& pic_data : data_.fusion_pics)
 	{
-		QByteArray data;
-		int width, height;
-		std::tie(data,width,height) = pic_data;
-
-		//magnification ratio if pic resized to max width of document
-		int width_goal = doc_.maxWidth()-500; //in twips
-		double ratio = (double)width_goal/ width;
-		out << RtfPicture(data, width, height).setWidth(width_goal).setHeight(height * ratio).RtfCode();
+		out << pngToRtf(pic_data, doc_.maxWidth() - 500).RtfCode();
 	}
 	return out.join("\n\\line\n");
+}
+
+RtfSourceCode SomaticRnaReport::partExpressionPics()
+{
+	QByteArrayList out;
+	RtfSourceCode desc = "Abbildung 2: Die Abbildung zeigt die jeweilige Genexpression als logarithmierten TPM in der Patientenprobe (";
+	desc += RtfText("X").setFontSize(16).setFontColor(5).RtfCode();
+	desc += "), in der Vergleichskohorte gleicher Tumorentität (Boxplot mit Quartil, SD und individuelle Expressionswerte) und als Mittelwert von Normalgewebe in der Literatur (" + RtfText("□").setFontSize(16).setBold(true).RtfCode() + ", Human Protein Altas). ";
+	desc += "Die angegebenen Expressionswerte hängen unter anderem vom Tumorgehalt ab und sind daher nur mit Vorbehalt mit anderen Proben vergleichbar. ";
+	desc += "Dargestellt sind die in Hinblick auf eine Therapie wichtigsten Signalkaskaden. Weitere Daten können auf Anfrage zur Verfügung gestellt werden. )";
+	desc += "\n\\line\n";
+
+	out << RtfParagraph(desc).setFontSize(16).setHorizontalAlignment("j").RtfCode();
+
+	for(int i=0; i<data_.expression_plots.count(); ++i)
+	{
+		out << pngToRtf(data_.expression_plots[i], doc_.maxWidth() / 2 - 50).RtfCode();
+		if((i+1)%2==0) out << RtfParagraph("").RtfCode();
+	}
+
+	return out.join("\n");
 }
 
 RtfTable SomaticRnaReport::partSVs()
@@ -395,6 +409,17 @@ RtfParagraph SomaticRnaReport::partVarExplanation()
 	return RtfParagraph(out).setFontSize(16).setHorizontalAlignment("j");
 }
 
+RtfPicture SomaticRnaReport::pngToRtf(std::tuple<QByteArray, int, int> tuple, int width_goal)
+{
+	QByteArray data;
+	int width, height;
+	std::tie(data,width,height) = tuple;
+
+	//magnification ratio if pic resized to max width of document
+	double ratio = (double)width_goal/ width;
+	return RtfPicture(data, width, height).setWidth(width_goal).setHeight(height * ratio);
+}
+
 double SomaticRnaReport::getRnaData(QByteArray gene, QString field, QString key)
 {
 	QStringList entries = field.split(',');
@@ -500,6 +525,7 @@ void SomaticRnaReport::writeRtf(QByteArray out_file)
 	doc_.addColor(161,161,161);
 	doc_.addColor(255,255,0);
 	doc_.addColor(242, 242, 242);
+	doc_.addColor(255,0,0);
 
 	if(dna_snvs_.count() > 0) doc_.addPart(partSnvTable().RtfCode());
 	else doc_.addPart(RtfParagraph("Es wurden keine SNVs detektiert.").RtfCode());
@@ -524,6 +550,9 @@ void SomaticRnaReport::writeRtf(QByteArray out_file)
 	doc_.addPart(RtfParagraph("").RtfCode());
 
 	if(data_.fusion_pics.count() > 0) doc_.addPart(partFusionPics());
+	doc_.addPart(RtfParagraph("").RtfCode());
+
+	if(data_.expression_plots.count() > 0) doc_.addPart(partExpressionPics());
 	doc_.addPart(RtfParagraph("").RtfCode());
 
 

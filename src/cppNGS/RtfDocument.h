@@ -95,6 +95,12 @@ public:
 		return *this;
 	}
 
+	virtual RtfText& setFontColor(int color_number)
+	{
+		font_color_ = color_number;
+		return *this;
+	}
+
 
 	void setContent(const QByteArray& content)
 	{

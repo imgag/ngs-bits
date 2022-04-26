@@ -3919,38 +3919,44 @@ void MainWindow::generateReportSomaticRTF()
 		{
 			QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
 
-
 			SomaticRnaReportData rna_report_data = somatic_report_settings_;
 			rna_report_data.rna_ps_name = dlg.getRNAid();
 			rna_report_data.rna_fusion_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::FUSIONS).filename;
 
-			//Retrieve data for PNG files
-			QString png_path_dir = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::FUSIONS_PIC_DIR).filename;
 			try
 			{
-				QStringList fusion_pics = Helper::findFiles(png_path_dir, "*.png", false);
-				for(QString path : fusion_pics)
+				//transforms png data into list of tuples (png data in hex format, width, height)
+				auto pngFromFile = [](QStringList files)
 				{
-					QImage pic = QImage(path);
-					//set maximum width/height in pixels
-					if( (uint)pic.width() > 1200 ) pic = pic.scaledToWidth(1200, Qt::TransformationMode::SmoothTransformation);
-					if( (uint)pic.height() > 1200 ) pic = pic.scaledToHeight(1200, Qt::TransformationMode::SmoothTransformation);
-
-					QByteArray png_data = "";
-					if(!pic.isNull())
+					QList<std::tuple<QByteArray,int,int>> pic_list;
+					for(QString path : files)
 					{
-						QBuffer buffer(&png_data);
-						buffer.open(QIODevice::WriteOnly);
-						if(pic.save(&buffer, "PNG"))
+						QImage pic = QImage(path);
+						//set maximum width/height in pixels
+						if( (uint)pic.width() > 1200 ) pic = pic.scaledToWidth(1200, Qt::TransformationMode::SmoothTransformation);
+						if( (uint)pic.height() > 1200 ) pic = pic.scaledToHeight(1200, Qt::TransformationMode::SmoothTransformation);
+
+						QByteArray png_data = "";
+						if(!pic.isNull())
 						{
-							rna_report_data.fusion_pics << std::make_tuple(png_data.toHex(), pic.width(), pic.height());
+							QBuffer buffer(&png_data);
+							buffer.open(QIODevice::WriteOnly);
+							if(pic.save(&buffer, "PNG"))
+							{
+								pic_list << std::make_tuple(png_data.toHex(), pic.width(), pic.height());
+							}
 						}
 					}
-				}
+					return pic_list;
+				};
+
+				rna_report_data.fusion_pics = pngFromFile( Helper::findFiles(GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::FUSIONS_PIC_DIR).filename, "*.png", false) );
+				rna_report_data.expression_plots = pngFromFile( Helper::findFiles(GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::SAMPLE_FOLDER).filename, dlg.getRNAid() + "_expr.*.png", false) );
 			}
 			catch(Exception) //Nothing to do here
 			{
 			}
+
 
 
 			SomaticRnaReport rna_report(variants_, cnvs_, rna_report_data);
