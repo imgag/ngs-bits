@@ -642,7 +642,7 @@ void SomaticReportDialog::createIgvScreenshot()
 
 		try
 		{
-			HttpHandler(HttpRequestHandler::NONE).post(Helper::serverApiUrl() + "upload?token=" + LoginManager::token(), multipart_form);
+			HttpHandler(HttpRequestHandler::NONE).post(NGSHelper::serverApiUrl() + "upload?token=" + LoginManager::token(), multipart_form);
 		}
 		catch (Exception& e)
 		{

@@ -12,8 +12,7 @@ int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
 	QCoreApplication::setApplicationVersion(SERVER_VERSION);
-	Log::setFileEnabled(true);
-	Log::setFileName("GSvarServer.log");
+	Log::setFileName(QCoreApplication::applicationFilePath().replace(".exe", "") + ".log");
 	Log::setCMDEnabled(true);
 	Log::appInfo();
 

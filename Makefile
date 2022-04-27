@@ -90,6 +90,12 @@ build_server_release:
                 qmake ../src/tools_server.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
                 make -j5;
 	
+build_server_release_noclean:
+	mkdir -p build-GSvarServer-Linux-Release;
+	cd build-GSvarServer-Linux-Release; \
+                qmake ../src/tools_server.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+                make -j5;
+
 #################################### other targets ##################################
 
 clean:
@@ -139,6 +145,7 @@ deploy_nobuild:
 SERVER_DEP_PATH=/mnt/storage2/GRCh38/users/bioinf/GSvarServer/GSvarServer-$(NGSBITS_VER)
 deploy_server_nobuild:
 	@if [ ! -e ./bin/GSvarServer ] ; then echo "Error: bin/GSvarServer is missing!"; false; fi;
+	@if [ ! -e ./src/cppCORE/CRYPT_KEY.txt ] ; then echo "Error: src/cppCORE/CRYPT_KEY.txt is missing!"; false; fi;
 	@echo "#Clean up source"
 	rm -rf bin/out bin/*-TEST
 	@echo ""

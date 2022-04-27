@@ -759,7 +759,25 @@ QMap<QByteArray, QByteArray> NGSHelper::parseGffAttributes(const QByteArray& att
         output[part.left(split_index)] = part.mid(split_index+1);
     }
 
-    return output;
+	return output;
+}
+
+bool NGSHelper::isCliendServerMode()
+{
+	return !Settings::string("server_host",true).trimmed().isEmpty() && !Settings::string("https_server_port").trimmed().isEmpty();
+}
+
+QString NGSHelper::serverApiUrl(const bool& return_http)
+{
+	QString protocol = "https://";
+	QString port = Settings::string("https_server_port", true);
+	if (return_http)
+	{
+		protocol = "http://";
+		port = Settings::string("http_server_port", true);
+	}
+
+	return protocol + Settings::string("server_host", true) + ":" + port + "/v1/";
 }
 
 TranscriptList NGSHelper::loadGffFile(QString filename, QMap<QByteArray, QByteArray>& transcript_gene_relation,
