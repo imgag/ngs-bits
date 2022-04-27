@@ -27,15 +27,13 @@
 QT_CHARTS_USE_NAMESPACE
 
 
-MosaicWidget::MosaicWidget(const VariantList& variants, QString ps_id, FilterWidget* filter_widget, ReportSettings rep_settings, QHash<QByteArray, BedFile>& cache, QWidget* parent)
+MosaicWidget::MosaicWidget(const VariantList& variants, QString ps_id, ReportSettings rep_settings, QHash<QByteArray, BedFile>& cache, QWidget* parent)
 	: QWidget(parent)
 	, ui_(new Ui::MosaicWidget)
-	, ps_id_(ps_id)
 	, variants_(variants)
 	, filter_result_()
 	, report_settings_()
 	, gene2region_cache_(cache)
-	,ngsd_enabled_(LoginManager::active())
 {
 	ui_->setupUi(this);
 
@@ -49,15 +47,7 @@ MosaicWidget::MosaicWidget(const VariantList& variants, QString ps_id, FilterWid
 void MosaicWidget::initGUI()
 {
 	//set up GUI
-	try
-	{
-		updateGUI();
-	}
-	catch(Exception e)
-	{
-//		addInfoLine("<font color='red'>Error parsing file:\n" + e.message() + "</font>");
-//		disableGUI();
-	}
+	updateGUI();
 
 	//apply filters
 	applyFilters();

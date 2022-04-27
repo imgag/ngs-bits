@@ -1189,7 +1189,7 @@ void MainWindow::on_actionMosaic_triggered()
 		MosaicWidget* list;
 
 		// germline single, trio or multi sample
-		list = new MosaicWidget(mosaics_, ps_id, ui_.filters, report_settings_, gene2region_cache_, this);
+		list = new MosaicWidget(mosaics_, ps_id, report_settings_, gene2region_cache_, this);
 
 
 		auto dlg = GUIHelper::createDialog(list, "Mosaic variants of " + variants_.analysisName());
@@ -3039,6 +3039,16 @@ void MainWindow::loadFile(QString filename)
 	else
 	{
 		ui_.actionPRS->setEnabled(false);
+	}
+
+	//activate mosaic menu item if available
+	if (type==GERMLINE_SINGLESAMPLE && GlobalServiceProvider::fileLocationProvider().getAnalysisMosaicFile().exists)
+	{
+		ui_.actionMosaic->setEnabled(true);
+	}
+	else
+	{
+		ui_.actionMosaic->setEnabled(false);
 	}
 
 	//activate cfDNA menu entries and get all available cfDNA samples
@@ -5160,7 +5170,7 @@ void MainWindow::openSubpanelDesignDialog(const GeneSet& genes)
 		//update target region list
 		ui_.filters->loadTargetRegions();
 
-		//optinally use sub-panel as target regions
+		//optionally use sub-panel as target regions
 		if (QMessageBox::question(this, "Use sub-panel?", "Do you want to set the sub-panel as target region?")==QMessageBox::Yes)
 		{
 			ui_.filters->setTargetRegionByDisplayName(dlg.lastCreatedSubPanel());
