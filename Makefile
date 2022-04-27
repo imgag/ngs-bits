@@ -4,7 +4,8 @@ help:
 	@echo "  build_3rdparty        - Builds 3rd party libraries"
 	@echo "  build_libs_release    - Builds base libraries in release mode"
 	@echo "  build_tools_release   - Builds tools in release mode"
-	@echo "  build_server_release  - Builds server in release mode"	
+	@echo "  build_gui_release     - Builds GSvar in release mode"
+	@echo "  build_server_release  - Builds GSvar server in release mode"	
 	@echo "  test_lib              - Executes library tests"
 	@echo "  test_tools            - Executes tool tests"
 	@echo "  test_server           - Executes server tests"
@@ -137,6 +138,7 @@ deploy_nobuild:
 
 SERVER_DEP_PATH=/mnt/storage2/GRCh38/users/bioinf/GSvarServer/GSvarServer-$(NGSBITS_VER)
 deploy_server_nobuild:
+	@if [ ! -e ./bin/GSvarServer ] ; then echo "Error: bin/GSvarServer is missing!"; false; fi;
 	@echo "#Clean up source"
 	rm -rf bin/out bin/*-TEST
 	@echo ""
@@ -155,11 +157,11 @@ deploy_server_nobuild:
 	@echo ""
 	@echo "#Deploy settings"
 	cp /mnt/share/opt/ngs-bits-settings/GSvarServer.ini $(SERVER_DEP_PATH)GSvarServer.ini
-
+	
 test_debug: clean build_libs_debug build_tools_debug test_lib test_tools
 
 test_release:
-	make clean build_libs_release build_tools_release build_gui_release > t.log 2>&1
+	make clean build_libs_release build_tools_release build_gui_release build_server_release > t.log 2>&1
 	@echo "Build done, starting tests"
 	make test_lib test_tools >> t.log 2>&1
 	egrep "FAILED|SKIPPED" t.log
