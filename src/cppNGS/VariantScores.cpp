@@ -161,7 +161,7 @@ VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants,
 	int i_gene_info = variants.annotationIndexByName("gene_info");
 	int i_classification = variants.annotationIndexByName("classification");
 	QList<int> affected_cols = variants.getSampleHeader().sampleColumns(true);
-	if (affected_cols.count()!=1) THROW(ArgumentException, "VariantScores: Algorihtm 'GSvar_V1' can only be applied to variant lists with exactly one affected patient!");
+	if (affected_cols.count()!=1) THROW(ArgumentException, "VariantScores: Algorihtm 'GSvar_v1' can only be applied to variant lists with exactly one affected patient!");
 	int i_genotye = affected_cols[0];
 
 	//prepare ROI for fast lookup
@@ -218,7 +218,7 @@ VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants,
 		double score = 0.0;
 		QStringList explainations;
 
-		//in phenotye ROI
+		//in phenotype ROI
 		int index = roi_index.matchingIndex(v.chr(), v.start(), v.end());
 		if (index!=-1)
 		{
@@ -267,7 +267,7 @@ VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants,
 		}
 
 		//OMIM gene
-		if (i_omim!=-1) //optinal because of license
+		if (i_omim!=-1) //optional because of license
 		{
 			QByteArray omim = v.annotations()[i_omim].trimmed();
 			if (!omim.isEmpty())
@@ -278,7 +278,7 @@ VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants,
 		}
 
 		//HGMD
-		if (i_hgmd!=-1) //optinal because of license
+		if (i_hgmd!=-1) //optional because of license
 		{
 			double hgmd_score = 0.0;
 			QByteArrayList hgmd = v.annotations()[i_hgmd].trimmed().split(';');
@@ -413,7 +413,7 @@ VariantScores::Result VariantScores::score_GSvar_V1_noNGSD(const VariantList& va
 	int i_clinvar = variants.annotationIndexByName("ClinVar");
 	int i_gene_info = variants.annotationIndexByName("gene_info");
 	QList<int> affected_cols = variants.getSampleHeader().sampleColumns(true);
-	if (affected_cols.count()!=1) THROW(ArgumentException, "VariantScores: Algorihtm 'GSvar_V1' can only be applied to variant lists with exactly one affected patient!");
+	if (affected_cols.count()!=1) THROW(ArgumentException, "VariantScores: Algorihtm 'GSvar_v1_noNGSD' can only be applied to variant lists with exactly one affected patient!");
 	int i_genotye = affected_cols[0];
 
 	//prepare ROI for fast lookup
@@ -470,7 +470,7 @@ VariantScores::Result VariantScores::score_GSvar_V1_noNGSD(const VariantList& va
 		double score = 0.0;
 		QStringList explainations;
 
-		//in phenotye ROI
+		//in phenotype ROI
 		int index = roi_index.matchingIndex(v.chr(), v.start(), v.end());
 		if (index!=-1)
 		{
@@ -519,7 +519,7 @@ VariantScores::Result VariantScores::score_GSvar_V1_noNGSD(const VariantList& va
 		}
 
 		//OMIM gene
-		if (i_omim!=-1) //optinal because of license
+		if (i_omim!=-1) //optional because of license
 		{
 			QByteArray omim = v.annotations()[i_omim].trimmed();
 			if (!omim.isEmpty())
@@ -530,7 +530,7 @@ VariantScores::Result VariantScores::score_GSvar_V1_noNGSD(const VariantList& va
 		}
 
 		//HGMD
-		if (i_hgmd!=-1) //optinal because of license
+		if (i_hgmd!=-1) //optional because of license
 		{
 			double hgmd_score = 0.0;
 			QByteArrayList hgmd = v.annotations()[i_hgmd].trimmed().split(';');

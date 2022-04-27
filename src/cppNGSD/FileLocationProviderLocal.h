@@ -15,6 +15,7 @@ public:
 	bool isLocal() const override;
 
 	FileLocation getAnalysisVcf() const override;
+	FileLocation getAnalysisMosaicFile() const override;
 	FileLocation getAnalysisSvFile() const override;
 	FileLocation getAnalysisCnvFile() const override;
 	FileLocation getAnalysisMosaicCnvFile() const override;

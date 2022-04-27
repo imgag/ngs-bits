@@ -132,6 +132,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "FusionWidget.h"
 #include "CohortExpressionDataWidget.h"
 #include "CausalVariantEditDialog.h"
+#include "MosaicWidget.h"
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -1162,6 +1163,47 @@ void MainWindow::on_actionSV_triggered()
 	{
 		QMessageBox::warning(this,"SV file not found",error.message());
 	}
+}
+
+void MainWindow::on_actionMosaic_triggered()
+{
+	if(filename_ == "") return;
+
+	if (!(mosaics_.count() > 0))	{
+		QMessageBox::information(this, "No mosaic variants", "No detected mosaic variants in the analysis!");
+		return;
+	}
+
+	try
+	{
+		//determine processed sample ID (needed for report config)
+		QString ps_id = "";
+		QSharedPointer<ReportConfiguration> report_config = nullptr;
+		if (germlineReportSupported())
+		{
+			ps_id = NGSD().processedSampleId(germlineReportSample(), false);
+			report_config = report_settings_.report_config;
+		}
+
+		//open mosaic widget
+		MosaicWidget* list;
+
+		// germline single, trio or multi sample
+		list = new MosaicWidget(mosaics_, ps_id, report_settings_, gene2region_cache_, this);
+
+
+		auto dlg = GUIHelper::createDialog(list, "Mosaic variants of " + variants_.analysisName());
+		addModelessDialog(dlg);
+	}
+	catch(FileParseException error)
+	{
+		QMessageBox::warning(this,"File Parse Exception",error.message());
+	}
+	catch(FileAccessException error)
+	{
+		QMessageBox::warning(this,"Mosaic file not found",error.message());
+	}
+
 }
 
 void MainWindow::on_actionCNV_triggered()
@@ -2886,6 +2928,24 @@ void MainWindow::loadFile(QString filename)
 		}
 		Log::perf("Loading SV list took ", timer);
 
+		//load mosaics
+		timer.restart();
+		FileLocation mosaic_loc = GlobalServiceProvider::fileLocationProvider().getAnalysisMosaicFile();
+		if (mosaic_loc.exists)
+		{
+			try
+			{
+				mosaics_.load(mosaic_loc.filename);
+			}
+			catch(Exception& e)
+			{
+				QMessageBox::warning(this, "Error loading mosaic file", e.message());
+				svs_.clear();
+			}
+		}
+		Log::perf("Loading mosaic list took ", timer);
+
+
 		ui_.filters->setValidFilterEntries(variants_.filters().keys());
 
 		//update data structures
@@ -2979,6 +3039,16 @@ void MainWindow::loadFile(QString filename)
 	else
 	{
 		ui_.actionPRS->setEnabled(false);
+	}
+
+	//activate mosaic menu item if available
+	if (type==GERMLINE_SINGLESAMPLE && GlobalServiceProvider::fileLocationProvider().getAnalysisMosaicFile().exists)
+	{
+		ui_.actionMosaic->setEnabled(true);
+	}
+	else
+	{
+		ui_.actionMosaic->setEnabled(false);
 	}
 
 	//activate cfDNA menu entries and get all available cfDNA samples
@@ -5100,7 +5170,7 @@ void MainWindow::openSubpanelDesignDialog(const GeneSet& genes)
 		//update target region list
 		ui_.filters->loadTargetRegions();
 
-		//optinally use sub-panel as target regions
+		//optionally use sub-panel as target regions
 		if (QMessageBox::question(this, "Use sub-panel?", "Do you want to set the sub-panel as target region?")==QMessageBox::Yes)
 		{
 			ui_.filters->setTargetRegionByDisplayName(dlg.lastCreatedSubPanel());

@@ -587,6 +587,7 @@
    <addaction name="actionROH"/>
    <addaction name="actionRE"/>
    <addaction name="actionPRS"/>
+   <addaction name="actionMosaic"/>
    <addaction name="actionCircos"/>
    <addaction name="separator"/>
    <addaction name="actionDebug"/>
@@ -1144,13 +1145,16 @@
    <property name="text">
     <string>Show Repeat Expansion</string>
    </property>
+   <property name="toolTip">
+    <string>Show repeat expansions of the current sample.</string>
+   </property>
    <property name="shortcutContext">
     <enum>Qt::WidgetShortcut</enum>
    </property>
   </action>
   <action name="actionPRS">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="icon">
     <iconset resource="GSvar.qrc">
@@ -1158,6 +1162,9 @@
    </property>
    <property name="text">
     <string>Show Polygenic Risk Scores</string>
+   </property>
+   <property name="toolTip">
+    <string>Show polygenic risk scores of the current sample.</string>
    </property>
   </action>
   <action name="actionSearchSNVs">
@@ -1366,6 +1373,18 @@
   <action name="actionImportSampleHpoTerms">
    <property name="text">
     <string>Sample HPO terms</string>
+   </property>
+  </action>
+  <action name="actionMosaic">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/MosaicVariant.png</normaloff>:/Icons/MosaicVariant.png</iconset>
+   </property>
+   <property name="text">
+    <string>Mosaic</string>
+   </property>
+   <property name="toolTip">
+    <string>Show mosaic variants of the current sample (called only on exon/splice regions).</string>
    </property>
   </action>
  </widget>
