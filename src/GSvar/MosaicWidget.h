@@ -15,21 +15,15 @@ namespace Ui {
 class MosaicWidget;
 }
 
-///Widget for visualization and filtering of CNVs.
+///Widget for visualization and filtering of mosaic variants.
 class MosaicWidget
 	: public QWidget
 {
 	Q_OBJECT
 
 public:
-
-	MosaicWidget(const VariantList& variants, QString ps_id, FilterWidget* filter_widget, ReportSettings rep_settings, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
-
+	MosaicWidget(const VariantList& variants, QString ps_id, ReportSettings rep_settings, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
 	~MosaicWidget();
-
-protected:
-
-signals:
 
 private slots:
 	void applyFilters(bool debug_time=false);
@@ -42,16 +36,13 @@ private slots:
 
 private:
 	void initGUI();
-	void disableGUI();
 
 	Ui::MosaicWidget* ui_;
-	QString ps_id_; //processed sample database ID. '' if unknown of NGSD is disabled.
 	const VariantList& variants_;
 	FilterResult filter_result_;
 	ReportSettings report_settings_;
 
 	QHash<QByteArray, BedFile>& gene2region_cache_;
-	bool ngsd_enabled_;
 };
 
 #endif // MOSAICWIDGET_H
