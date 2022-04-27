@@ -142,10 +142,14 @@ void RequestWorker::run()
 		return;
 	}
 
-	if (current_endpoint.is_password_protected)
+	if (current_endpoint.authentication_type != AuthType::NONE)
 	{
 		qDebug() << "Accessing password protected area";
-		HttpResponse auth_response = EndpointManager::getAuthStatus(parsed_request);
+		HttpResponse auth_response;
+
+		if (current_endpoint.authentication_type == AuthType::HTTP_BASIC_AUTH) auth_response = EndpointManager::getBasicHttpAuthStatus(parsed_request);
+		if (current_endpoint.authentication_type == AuthType::SECURE_TOKEN) auth_response = EndpointManager::getTokenAuthStatus(parsed_request);
+
 		if ((auth_response.getStatus() == ResponseStatus::UNAUTHORIZED) || (auth_response.getStatus() == ResponseStatus::BAD_REQUEST))
 		{
 			sendEntireResponse(ssl_socket, auth_response);
@@ -166,6 +170,8 @@ void RequestWorker::run()
 		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, error_type, "Could not process endpoint action: " + e.message()));
 		return;
 	}
+
+	Log::info(HttpProcessor::convertMethodTypeToString(current_endpoint.method).toUpper() + " " + current_endpoint.url + " - " + current_endpoint.comment);
 
 	if (response.isStream())
 	{

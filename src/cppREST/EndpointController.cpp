@@ -28,12 +28,6 @@ HttpResponse EndpointController::serveEndpointHelp(const HttpRequest& request)
 
 HttpResponse EndpointController::serveStaticFromServerRoot(const HttpRequest& request)
 {
-	HttpResponse check_result = checkToken(request);
-	if (check_result.getStatus() != ResponseStatus::OK)
-	{
-		return check_result;
-	}
-
 	QString served_file = getServedRootPath(request.getPathItems());
 
 	if (served_file.isEmpty())
@@ -51,12 +45,6 @@ HttpResponse EndpointController::serveStaticFromServerRoot(const HttpRequest& re
 
 HttpResponse EndpointController::serveStaticForTempUrl(const HttpRequest& request)
 {
-	HttpResponse check_result = checkToken(request);
-	if (check_result.getStatus() != ResponseStatus::OK)
-	{
-		return check_result;
-	}
-
 	QString full_entity_path = getServedTempPath(request.getPathItems());
 
 	if ((!full_entity_path.isEmpty()) && (QFileInfo(full_entity_path).isDir()))
@@ -480,29 +468,4 @@ bool EndpointController::hasOverlappingRanges(const QList<ByteRange> ranges)
 	}
 
 	return false;
-}
-
-bool EndpointController::isAuthorizedWithToken(const HttpRequest& request)
-{
-	if (request.getUrlParams().contains("token"))
-	{		
-		return SessionManager::isTokenReal(request.getUrlParams()["token"]);
-	}
-
-	return false;
-}
-
-HttpResponse EndpointController::checkToken(const HttpRequest& request)
-{
-	if (!isAuthorizedWithToken(request))
-	{
-		return HttpResponse(ResponseStatus::FORBIDDEN, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
-	}
-
-	if (SessionManager::isUserSessionExpired(request.getUrlParams()["token"]))
-	{
-		return HttpResponse(ResponseStatus::REQUEST_TIMEOUT, request.getContentType(), "Secure token has expired");
-	}
-
-	return HttpResponse(ResponseStatus::OK, request.getContentType(), "OK");
 }

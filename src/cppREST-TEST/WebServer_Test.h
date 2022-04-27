@@ -5,8 +5,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include "EndpointManager.h"
-#include "EndpointHandler.h"
-#include "EndpointHandler.cpp"
+#include "ServerController.h"
+#include "ServerController.cpp"
 
 TEST_CLASS(WebServer_Test)
 {

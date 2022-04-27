@@ -1,11 +1,11 @@
-#include "EndpointHandler.h"
+#include "ServerController.h"
 #include "FileLocationProviderLocal.h"
 
-EndpointHandler::EndpointHandler()
+ServerController::ServerController()
 {
 }
 
-HttpResponse EndpointHandler::serveResourceAsset(const HttpRequest& request)
+HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 {
 	if (request.getPrefix().toLower() == "favicon.ico")
 	{
@@ -32,14 +32,8 @@ HttpResponse EndpointHandler::serveResourceAsset(const HttpRequest& request)
 	return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Requested asset was not found");
 }
 
-HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
+HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 {
-	HttpResponse check_result = EndpointController::checkToken(request);
-	if (check_result.getStatus() != ResponseStatus::OK)
-	{
-		return check_result;
-	}
-
 	if (SessionManager::isUserSessionExpired(request.getUrlParams()["token"]))
 	{
 		return HttpResponse(ResponseStatus::REQUEST_TIMEOUT, request.getContentType(), "Secure token has expired");
@@ -103,11 +97,11 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 				file_list << file_locator->getAnalysisVcf();
 				break;
 			case PathType::STRUCTURAL_VARIANTS:
-                                file_list << file_locator->getAnalysisSvFile();
+				file_list << file_locator->getAnalysisSvFile();
 				break;
-                        case PathType::MOSAIC_VARIANTS:
-                                file_list << file_locator->getAnalysisMosaicFile();
-                                break;
+			case PathType::MOSAIC_VARIANTS:
+				file_list << file_locator->getAnalysisMosaicFile();
+				break;
 			case PathType::COPY_NUMBER_CALLS:
 				if (multiple_files)
 				{
@@ -115,23 +109,23 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 					break;
 				}				
 				file_list << file_locator->getAnalysisCnvFile();
-                                break;
+				break;
 			case PathType::COPY_NUMBER_CALLS_MOSAIC:
 				file_list << file_locator->getAnalysisMosaicCnvFile();
-                                break;
+				break;
 			case PathType::UPD:
 				file_list << file_locator->getAnalysisUpdFile();
-                                break;
+				break;
 			case PathType::REPEAT_EXPANSION_IMAGE:
 				if (!request.getUrlParams().contains("locus"))
 				{
 					return HttpResponse(ResponseStatus::BAD_REQUEST, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Locus value has not been provided");
 				}
 				file_list << file_locator->getRepeatExpansionImage(request.getUrlParams()["locus"]);
-                                break;
+				break;
 			case PathType::BAM:
 				file_list = file_locator->getBamFiles(return_if_missing);
-                                break;
+				break;
 			case PathType::COPY_NUMBER_RAW_DATA:
 				if (multiple_files)
 				{
@@ -222,7 +216,6 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 		{
 			cur_json_item.insert("filename", file_list[i].filename);
 		}
-//		cur_json_item.insert("exists", file_list[i].exists);
 		cur_json_item.insert("exists", QFile::exists(file_list[i].filename));
 
 		json_list_output.append(cur_json_item);
@@ -237,7 +230,7 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
-HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
+HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request)
 {
 	qDebug() << "Processed sample path";
 
@@ -257,12 +250,6 @@ HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 	try
 	{
 		id = NGSD().processedSampleName(request.getUrlParams()["ps_id"]);
-		HttpResponse check_result = EndpointController::checkToken(request);
-		if (check_result.getStatus() != ResponseStatus::OK)
-		{
-			return check_result;
-		}
-
 		Session current_session = SessionManager::getSessionBySecureToken(request.getUrlParams()["token"]);
 		UserPermissionProvider upp(current_session.user_id);
 		if (!upp.isEligibleToAccessProcessedSampleById(request.getUrlParams()["ps_id"]))
@@ -302,14 +289,8 @@ HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
-HttpResponse EndpointHandler::getAnalysisJobGSvarFile(const HttpRequest& request)
+HttpResponse ServerController::getAnalysisJobGSvarFile(const HttpRequest& request)
 {	
-	HttpResponse check_result = EndpointController::checkToken(request);
-	if (check_result.getStatus() != ResponseStatus::OK)
-	{
-		return check_result;
-	}
-
 	qDebug() << "Analysis job GSvar file";
 	QJsonDocument json_doc_output;
 	QJsonObject json_object_output;
@@ -347,14 +328,8 @@ HttpResponse EndpointHandler::getAnalysisJobGSvarFile(const HttpRequest& request
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
-HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
+HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 {
-	HttpResponse check_result = EndpointController::checkToken(request);
-	if (check_result.getStatus() != ResponseStatus::OK)
-	{
-		return check_result;
-	}
-
 	QString ps_url_id = request.getUrlParams()["ps_url_id"];
 	UrlEntity url = UrlManager::getURLById(ps_url_id);
 
@@ -484,14 +459,8 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 	return HttpResponse(ResponseStatus::OK, ContentType::APPLICATION_JSON, msg);
 }
 
-HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
+HttpResponse ServerController::saveQbicFiles(const HttpRequest& request)
 {
-	HttpResponse check_result = EndpointController::checkToken(request);
-	if (check_result.getStatus() != ResponseStatus::OK)
-	{
-		return check_result;
-	}
-
 	QString qbic_data_path = Settings::string("qbic_data_path");
 	if (!QDir(qbic_data_path).exists())
 	{
@@ -536,14 +505,9 @@ HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 }
 
 
-HttpResponse EndpointHandler::uploadFile(const HttpRequest& request)
+HttpResponse ServerController::uploadFile(const HttpRequest& request)
 {
-	qDebug() << "File upload request";
-	HttpResponse check_result = EndpointController::checkToken(request);
-	if (check_result.getStatus() != ResponseStatus::OK)
-	{
-		return check_result;
-	}
+	qDebug() << "File upload request";	
 
 	if ((request.getFormDataParams().contains("ps_url_id")) && (!request.getMultipartFileName().isEmpty()))
 	{		
@@ -568,7 +532,7 @@ HttpResponse EndpointHandler::uploadFile(const HttpRequest& request)
 }
 
 
-HttpResponse EndpointHandler::performLogin(const HttpRequest& request)
+HttpResponse ServerController::performLogin(const HttpRequest& request)
 {
 	qDebug() << "Login request";
 	if (!request.getFormUrlEncoded().contains("name") || !request.getFormUrlEncoded().contains("password"))
@@ -597,7 +561,7 @@ HttpResponse EndpointHandler::performLogin(const HttpRequest& request)
 	return HttpResponse(ResponseStatus::UNAUTHORIZED, request.getContentType(), "Invalid username or password");
 }
 
-HttpResponse EndpointHandler::performLogout(const HttpRequest& request)
+HttpResponse ServerController::performLogout(const HttpRequest& request)
 {
 	QByteArray body {};
 	if (!request.getFormUrlEncoded().contains("token"))
@@ -625,14 +589,8 @@ HttpResponse EndpointHandler::performLogout(const HttpRequest& request)
 	return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "You have provided an invalid token");
 }
 
-HttpResponse EndpointHandler::getProcessingSystemRegions(const HttpRequest& request)
+HttpResponse ServerController::getProcessingSystemRegions(const HttpRequest& request)
 {
-	HttpResponse check_result = EndpointController::checkToken(request);
-	if (check_result.getStatus() != ResponseStatus::OK)
-	{
-		return check_result;
-	}
-
 	NGSD db;
 	QString sys_id = request.getUrlParams()["sys_id"];
 	QString filename = db.processingSystemRegionsFilePath(sys_id.toInt());
@@ -643,14 +601,8 @@ HttpResponse EndpointHandler::getProcessingSystemRegions(const HttpRequest& requ
 	return EndpointController::createStaticStreamResponse(filename, false);
 }
 
-HttpResponse EndpointHandler::getProcessingSystemAmplicons(const HttpRequest& request)
+HttpResponse ServerController::getProcessingSystemAmplicons(const HttpRequest& request)
 {
-	HttpResponse check_result = EndpointController::checkToken(request);
-	if (check_result.getStatus() != ResponseStatus::OK)
-	{
-		return check_result;
-	}
-
 	NGSD db;
 	QString sys_id = request.getUrlParams()["sys_id"];
 	QString filename = db.processingSystemAmpliconsFilePath(sys_id.toInt());
@@ -661,14 +613,8 @@ HttpResponse EndpointHandler::getProcessingSystemAmplicons(const HttpRequest& re
 	return EndpointController::createStaticStreamResponse(filename, false);
 }
 
-HttpResponse EndpointHandler::getProcessingSystemGenes(const HttpRequest& request)
+HttpResponse ServerController::getProcessingSystemGenes(const HttpRequest& request)
 {
-	HttpResponse check_result = EndpointController::checkToken(request);
-	if (check_result.getStatus() != ResponseStatus::OK)
-	{
-		return check_result;
-	}
-
 	NGSD db;
 	QString sys_id = request.getUrlParams()["sys_id"];
 	QString filename = db.processingSystemGenesFilePath(sys_id.toInt());
@@ -679,14 +625,8 @@ HttpResponse EndpointHandler::getProcessingSystemGenes(const HttpRequest& reques
 	return EndpointController::createStaticStreamResponse(filename, false);
 }
 
-HttpResponse EndpointHandler::getSecondaryAnalyses(const HttpRequest& request)
+HttpResponse ServerController::getSecondaryAnalyses(const HttpRequest& request)
 {
-	HttpResponse check_result = EndpointController::checkToken(request);
-	if (check_result.getStatus() != ResponseStatus::OK)
-	{
-		return check_result;
-	}
-
 	NGSD db;
 	QString processed_sample_name = request.getUrlParams()["ps_name"];
 	QString type  = QUrl::fromEncoded(request.getUrlParams()["type"].toLatin1()).toString();
@@ -717,7 +657,7 @@ HttpResponse EndpointHandler::getSecondaryAnalyses(const HttpRequest& request)
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
-QString EndpointHandler::createFileTempUrl(const QString& file, const QString& token, const bool& return_http)
+QString ServerController::createFileTempUrl(const QString& file, const QString& token, const bool& return_http)
 {
 	QString id = ServerHelper::generateUniqueStr();
 	UrlManager::addUrlToStorage(id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file);

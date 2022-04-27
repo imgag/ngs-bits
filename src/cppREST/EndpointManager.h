@@ -7,6 +7,7 @@
 #include "ServerHelper.h"
 #include "HttpRequest.h"
 #include "HttpResponse.h"
+#include "SessionManager.h"
 #include "NGSD.h"
 
 struct CPPRESTSHARED_EXPORT ParamProps
@@ -31,6 +32,7 @@ struct CPPRESTSHARED_EXPORT ParamProps
 
 typedef enum
 {
+	NONE,
 	HTTP_BASIC_AUTH,
 	SECURE_TOKEN
 } AuthType;
@@ -41,7 +43,7 @@ struct CPPRESTSHARED_EXPORT Endpoint
 	QMap<QString, ParamProps> params;
 	RequestMethod method;
 	ContentType return_type;
-	bool is_password_protected;
+	AuthType authentication_type;
 	QString comment;
 	HttpResponse (*action_func)(const HttpRequest& request);
 
@@ -55,7 +57,13 @@ class CPPRESTSHARED_EXPORT EndpointManager
 {
 
 public:
-	static HttpResponse getAuthStatus(HttpRequest request);
+	static HttpResponse getBasicHttpAuthStatus(HttpRequest request);
+
+	/// Checks if a valid token has been provided
+	static bool isAuthorizedWithToken(const HttpRequest& request);
+	/// Checks if the token is valid and not expired
+	static HttpResponse getTokenAuthStatus(const HttpRequest& request);
+
 	static void validateInputData(Endpoint* current_endpoint, const HttpRequest& request);
 	static void appendEndpoint(Endpoint new_endpoint);	
 	static Endpoint getEndpointByUrlAndMethod(const QString& url, const RequestMethod& method);

@@ -24,7 +24,7 @@ SVN_VER= \\\"$$system(cd .. && git describe --tags)\\\"
 DEFINES += "SERVER_VERSION=$$SVN_VER"
 
 SOURCES += \
-        EndpointHandler.cpp \
+        ServerController.cpp \
         main.cpp
 
 # Default rules for deployment.
@@ -33,7 +33,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    EndpointHandler.h
+    ServerController.h
 
 include("../app_cli.pri")
 

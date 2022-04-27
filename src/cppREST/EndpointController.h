@@ -27,15 +27,14 @@ public:
 	/// Serves or streams file content saved in the server cache
 	static HttpResponse serveStaticFileFromCache(const HttpRequest& request);
 
+	/// Serves a file for a byte range request (i.e. specific fragment of a file)
 	static HttpResponse createStaticFileRangeResponse(QString filename, QList<ByteRange> byte_ranges, ContentType type, bool is_downloadable);
+	/// Serves a stream, used to transfer files
 	static HttpResponse createStaticStreamResponse(QString filename, bool is_downloadable);
+	/// Serves a file from the server cache (not fully implementd and not used yet)
 	static HttpResponse createStaticFromCacheResponse(QString id, QList<ByteRange> byte_ranges, ContentType type, bool is_downloadable);
+	/// Handles all requests for static data
 	static HttpResponse serveStaticFile(QString filename, RequestMethod method, ContentType content_type, QMap<QString, QList<QString>> headers);
-
-	/// Checks if a valid token has been provided
-	static bool isAuthorizedWithToken(const HttpRequest& request);
-	/// Checks if the token is valid and not expired
-	static HttpResponse checkToken(const HttpRequest& request);
 
 protected:
 	EndpointController();
