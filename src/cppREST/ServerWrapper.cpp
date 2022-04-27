@@ -10,13 +10,13 @@ ServerWrapper::ServerWrapper(const quint16& port, const bool& insecure)
 		if (ssl_certificate.isEmpty())
 		{
 			ssl_certificate = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + QDir::separator() + "test-cert.crt";
-			qDebug() << "SSL certificate has not been specified in the config. Using a test certificate: " + ssl_certificate;
+			Log::warn("SSL certificate has not been specified in the config. Using a test certificate: " + ssl_certificate);
 		}
 
 		QFile certFile(ssl_certificate);
 		if (!certFile.open(QIODevice::ReadOnly))
 		{
-			qFatal("Unable to load SSL certificate");
+			Log::error("Unable to load SSL certificate");
 			return;
 		}
 
@@ -24,13 +24,13 @@ ServerWrapper::ServerWrapper(const quint16& port, const bool& insecure)
 		if (ssl_key.isEmpty())
 		{
 			ssl_key = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + QDir::separator() + "test-key.key";
-			qDebug() << "SSL key has not been specified in the config. Using a test key: " + ssl_key;
+			Log::warn("SSL key has not been specified in the config. Using a test key: " + ssl_key);
 		}
 
 		QFile keyFile(ssl_key);
 		if (!keyFile.open(QIODevice::ReadOnly))
 		{
-			qFatal("Unable to load SSL key");
+			Log::error("Unable to load SSL key");
 			return;
 		}
 
@@ -38,7 +38,7 @@ ServerWrapper::ServerWrapper(const quint16& port, const bool& insecure)
 		QList<QSslCertificate> ca_certificates;
 		if (!ssl_chain.isEmpty())
 		{
-			qInfo() << "Reading SSL certificate chain file";
+			Log::info("Reading SSL certificate chain file");
 			ca_certificates = QSslCertificate::fromPath(ssl_chain, QSsl::Pem);
 		}
 
@@ -53,7 +53,7 @@ ServerWrapper::ServerWrapper(const quint16& port, const bool& insecure)
 
 		if (ca_certificates.size()>0)
 		{
-			qInfo() << "Loading SSL certificate chain";
+			Log::info("Loading SSL certificate chain");
 			config.setLocalCertificateChain(ca_certificates);
 		}
 
@@ -62,20 +62,20 @@ ServerWrapper::ServerWrapper(const quint16& port, const bool& insecure)
 	else
 	{
 		protocol_name = "HTTP";
-		qInfo() << "Insecure server option has been selected";
+		Log::warn("Insecure server option has been selected");
 		server_ = new SslServer(this, true);
 	}
 
 	if (server_->listen(QHostAddress::Any, port))
 	{
-		qInfo() << protocol_name << "server is running on port #" + QString::number(port);
+		Log::info(protocol_name + " server is running on port #" + QString::number(port));
 		QTimer *timer = new QTimer(this);
 		connect(timer, &QTimer::timeout, this, &UrlManager::removeExpiredUrls);
 		timer->start(10000); // every 10 seconds
 	}
 	else
-	{
-		qCritical() << "Could not start " << protocol_name << " server on port #" + QString::number(port) + ":" + server_->serverError();
+	{		
+		Log::error("Could not start " + protocol_name + " server on port #" + QString::number(port) + ": " + server_->errorString());
 	}
 
 }

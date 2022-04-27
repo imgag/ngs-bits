@@ -446,7 +446,7 @@ StaticFile EndpointController::readFileContent(const QString& filename, const QL
 		}
 		catch (Exception& e)
 		{
-			qDebug() << "Could not add " << filename << " to the cache:" << e.message();
+			Log::error("Could not add " + filename + " to the cache:" + e.message());
 		}
 	}
 
@@ -485,8 +485,7 @@ bool EndpointController::hasOverlappingRanges(const QList<ByteRange> ranges)
 bool EndpointController::isAuthorizedWithToken(const HttpRequest& request)
 {
 	if (request.getUrlParams().contains("token"))
-	{
-		qDebug() << "Token" << SessionManager::isTokenReal(request.getUrlParams()["token"]);
+	{		
 		return SessionManager::isTokenReal(request.getUrlParams()["token"]);
 	}
 

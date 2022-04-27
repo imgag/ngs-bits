@@ -20,20 +20,19 @@ RequestWorker::RequestWorker(qintptr socket)
 void RequestWorker::run()
 {
 	QString tid = ServerHelper::generateUniqueStr();
-	qDebug() << "Start processing an incomming connection in a new separate worker thread" << tid;
 	QSslSocket *ssl_socket = new QSslSocket();
 	ssl_socket->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
 
 	if (!ssl_socket)
 	{
-		qCritical() << "Could not create a socket";
+		Log::error("Could not create a socket: " + ssl_socket->errorString());
 		return;
 	}
 	if (is_secure_) ssl_socket->setSslConfiguration(ssl_configuration_);
 
 	if (!ssl_socket->setSocketDescriptor(socket_))
 	{
-		qCritical() << "Could not set a socket descriptor";
+		Log::error("Could not set a socket descriptor: " + ssl_socket->errorString());
 		delete ssl_socket;
 		return;
 	}
@@ -49,8 +48,7 @@ void RequestWorker::run()
 	}
 
 	if (is_secure_)
-	{
-		qDebug() << "Starting the encryption";
+	{		
 		ssl_socket->startServerEncryption();
 	}
 
@@ -72,7 +70,7 @@ void RequestWorker::run()
 
 		if ((is_secure_ && !ssl_socket->isEncrypted()) || (ssl_socket->state() == QSslSocket::SocketState::UnconnectedState))
 		{
-			qDebug() << "Connection cannot be continued";
+			qDebug() << "Connection cannot be continued: " + ssl_socket->errorString();
 			closeAndDeleteSocket(ssl_socket);
 			return;
 		}
@@ -106,12 +104,11 @@ void RequestWorker::run()
 
 	if (all_request_parts.size() == 0)
 	{
-		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_PLAIN, "Request could not be processed"));
-		qDebug() << "Was not able to read from the socket. Exiting";
+		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_PLAIN, "Request could not be processed"));		
+		Log::error("Was not able to read from the socket. Exiting. " + ssl_socket->errorString());
 		return;
 	}
 
-	qDebug() << "Client address: " << ssl_socket->peerAddress().toString();
 	HttpRequest parsed_request;
 	RequestParser *parser = new RequestParser();
 	try
@@ -140,7 +137,7 @@ void RequestWorker::run()
 	}
 	catch (ArgumentException& e)
 	{
-		qDebug() << "Parameter validation has failed";
+		Log::warn("Parameter validation has failed: " + e.message());
 		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::BAD_REQUEST, error_type, e.message()));
 		return;
 	}
@@ -165,8 +162,8 @@ void RequestWorker::run()
 	}
 	catch (Exception& e)
 	{
-		qDebug() << "Error while executing an action" << e.message();
-		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, error_type, "Could not process endpoint action. Error:" + e.message()));
+		Log::error("Error while executing an action: " + e.message());
+		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, error_type, "Could not process endpoint action: " + e.message()));
 		return;
 	}
 
@@ -188,15 +185,9 @@ void RequestWorker::run()
 			return;
 		}
 
-		QFile::OpenMode mode = QFile::ReadOnly;
-
-		try
+		if (!streamed_file.open(QFile::ReadOnly))
 		{
-			streamed_file.open(mode);
-		}
-		catch (Exception& e)
-		{
-			qDebug() << "Error while opening a file for streaming: " << response.getFilename();
+			Log::error("Error while opening a file for streaming: " + response.getFilename());
 			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, error_type, "Could not open a file for streaming: " + response.getFilename()));
 			return;
 		}

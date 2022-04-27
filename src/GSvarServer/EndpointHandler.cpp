@@ -5,36 +5,31 @@ EndpointHandler::EndpointHandler()
 {
 }
 
-HttpResponse EndpointHandler::serveIndexPage(const HttpRequest& request)
+HttpResponse EndpointHandler::serveResourceAsset(const HttpRequest& request)
 {
 	if (request.getPrefix().toLower() == "favicon.ico")
 	{
-		return serveFavicon(request);
+		return EndpointController::serveStaticFile(":/assets/client/favicon.ico", request.getMethod(), request.getContentType(), request.getHeaders());
 	}
-	else if ((request.getPrefix().toLower().contains("index") || (request.getPrefix().toLower().trimmed() == "v1")) && (request.getPathItems().count() == 0))
+	else if ((request.getPrefix().toLower().contains("index") || (request.getPrefix().toLower().trimmed() == "v1")) && ((request.getPath().isEmpty()) || (request.getPath().toLower().contains("index"))))
 	{
 		return EndpointController::serveStaticFile(":/assets/client/info.html", request.getMethod(), request.getContentType(), request.getHeaders());
 	}
-
-	return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Requested page was not found");
-}
-
-HttpResponse EndpointHandler::serveFavicon(const HttpRequest& request)
-{
-	if (request.getPathItems().count() == 0)
-	{
-		return EndpointController::serveStaticFile(":/assets/client/favicon.ico", request.getMethod(), request.getContentType(), request.getHeaders());
-	}
-	return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Favicon was not found");
-}
-
-HttpResponse EndpointHandler::serveApiInfo(const HttpRequest& request)
-{
-	if (request.getPathItems().count() == 0)
+	else if ((request.getPrefix().toLower().trimmed() == "v1") && (request.getPath().toLower() == "info"))
 	{
 		return EndpointController::serveStaticFile(":/assets/client/api.json", request.getMethod(), request.getContentType(), request.getHeaders());
 	}
-	return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "API info was not found");
+	else if ((request.getPrefix().toLower().trimmed() == "v1") && (request.getPath().toLower() == "bam"))
+	{
+		QString filename;
+		if (request.getPathItems().count() > 0) filename = request.getPathItems()[0];
+		if (!filename.isEmpty())
+		{
+			return EndpointController::serveStaticFile(":/assets/client/" + filename, request.getMethod(), request.getContentType(), request.getHeaders());
+		}
+	}
+
+	return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Requested asset was not found");
 }
 
 HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
@@ -279,7 +274,7 @@ HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 	}
 	catch (Exception& e)
 	{
-		qWarning() << "Error opening processed sample from NGSD:" + e.message();
+		Log::error("Error opening processed sample from NGSD:" + e.message());
 		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), e.message());
 	}
 
@@ -332,7 +327,7 @@ HttpResponse EndpointHandler::getAnalysisJobGSvarFile(const HttpRequest& request
 	}
 	catch (Exception& e)
 	{
-		qWarning() << "Error while looking for the analysis job GSvar file in NGSD:" + e.message();
+		Log::error("Error while looking for the analysis job GSvar file in NGSD:" + e.message());
 		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), e.message());
 	}
 
@@ -375,7 +370,7 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 	}
 	catch (Exception& e)
 	{
-		qWarning() << "Error while parsing changes for the GSvar file" + url.filename_with_path + ":" << e.message();
+		Log::error("Error while parsing changes for the GSvar file" + url.filename_with_path + ":" + e.message());
 		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Changes for the GSvar file in " + ps_url_id + "could not be parsed: " + e.message());
 	}
 
@@ -473,12 +468,12 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 		//remove original file
 		if (!in_file.data()->remove())
 		{
-			qWarning() << "Could not remove: " << in_file.data()->fileName();
+			Log::warn("Could not remove: " + in_file.data()->fileName());
 		}
 		//put the changed copy instead of the original
 		if (!out_file.data()->rename(url.filename_with_path))
 		{
-			qWarning() << "Could not rename: " << out_file.data()->fileName();
+			Log::warn("Could not rename: " + out_file.data()->fileName());
 		}
 	}
 

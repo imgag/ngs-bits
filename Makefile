@@ -150,6 +150,9 @@ deploy_server_nobuild:
 	@echo "#Create a new link"
 	cd /mnt/storage2/GRCh38/users/bioinf/GSvarServer/ && (rm -f GSvarServer-current) && (ln -s GSvarServer-$(NGSBITS_VER) GSvarServer-current)
 	@echo ""
+	@echo "#Create an empty log file"
+	cd /mnt/storage2/GRCh38/users/bioinf/GSvarServer/ && (touch GSvarServer-$(NGSBITS_VER)/GSvarServer.log) && (chmod 775 GSvarServer-$(NGSBITS_VER)/GSvarServer.log)
+	@echo ""
 	@echo "#Deploy settings"
 	cp /mnt/share/opt/ngs-bits-settings/GSvarServer.ini $(SERVER_DEP_PATH)GSvarServer.ini
 

@@ -1,72 +1,21 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QFile>
-#include <QTextStream>
 #include <QCommandLineParser>
+#include "Log.h"
 #include "ServerWrapper.h"
 #include "ServerHelper.h"
 #include "EndpointController.h"
 #include "EndpointHandler.h"
 
-int log_level = 3;
-
-QFile gsvar_server_log_file("gsvar-server-log.txt");
-
-void interceptLogMessage(QtMsgType type, const QMessageLogContext &, const QString &msg)
-{
-	QString time_stamp = QDate::currentDate().toString("dd/MM/yyyy") + " " + QTime::currentTime().toString("hh:mm:ss:zzz");
-	QString log_statement = "";
-	int msg_level = 0;
-	switch (type) {
-		case QtCriticalMsg:
-			msg_level = 0;
-			log_statement = QString("%1 - [Critical] %2").arg(time_stamp, msg);
-			break;
-		case QtFatalMsg:
-			msg_level = 0;
-			log_statement = QString("%1 - [Fatal] %2").arg(time_stamp, msg);
-			break;
-		case QtInfoMsg:
-			msg_level = 1;
-			log_statement = QString("%1 - [Info] %2").arg(time_stamp, msg);
-			break;
-		case QtWarningMsg:
-			msg_level = 2;
-			log_statement = QString("%1 - [Warning] %2").arg(time_stamp, msg);
-			break;
-		case QtDebugMsg:
-		default:
-			msg_level = 3;
-			log_statement = QString("%1 - [Debug] %2").arg(time_stamp, msg);
-	}
-
-	// Log levels:
-	// 0: only critical and fatal
-	// 1: += info
-	// 2: += warning
-	// 3: += debug
-	if (msg_level <= log_level)
-	{
-		printf("%s", qUtf8Printable(log_statement.replace("\"", "")));
-		printf("\n");
-
-		QTextStream out_stream(&gsvar_server_log_file);
-		out_stream.setCodec("UTF-8");
-		out_stream.setGenerateByteOrderMark(false);
-		out_stream << log_statement << endl;
-	}
-
-	if (type == QtFatalMsg)
-	{
-		abort();
-	}
-}
-
 int main(int argc, char **argv)
 {
-	gsvar_server_log_file.open(QIODevice::WriteOnly | QIODevice::Append);
-
 	QCoreApplication app(argc, argv);
+	QCoreApplication::setApplicationVersion(SERVER_VERSION);
+	Log::setFileEnabled(true);
+	Log::setFileName("GSvarServer.log");
+	Log::setCMDEnabled(true);
+	Log::appInfo();
 
 	QCommandLineParser parser;
 	parser.setApplicationDescription("GSvar file server");
@@ -89,18 +38,6 @@ int main(int argc, char **argv)
 	QString http_port = parser.value(httpServerPortOption);
 	QString log_level_option = parser.value(logLevelOption);
 
-	if (!log_level_option.isEmpty())
-	{
-		qInfo().noquote() << "Log level parameter has been provided through the command line arguments:" + log_level_option;
-		log_level = log_level_option.toInt();
-	}
-	else {
-		qInfo().noquote() << "Using log level from the application settings:" + QString::number(ServerHelper::getNumSettingsValue("log_level"));
-		log_level = ServerHelper::getNumSettingsValue("log_level");
-	}
-
-	qInstallMessageHandler(interceptLogMessage);
-
 	EndpointManager::appendEndpoint(Endpoint{
 						"",
 						QMap<QString, ParamProps>{},
@@ -108,7 +45,7 @@ int main(int argc, char **argv)
 						ContentType::TEXT_HTML,
 						false,
 						"Index page with general information",
-						&EndpointHandler::serveIndexPage
+						&EndpointHandler::serveResourceAsset
 					});
 	EndpointManager::appendEndpoint(Endpoint{
 						"favicon.ico",
@@ -117,7 +54,7 @@ int main(int argc, char **argv)
 						ContentType::IMAGE_PNG,
 						false,
 						"Favicon to avoid warnings from the browser",
-						&EndpointHandler::serveFavicon
+						&EndpointHandler::serveResourceAsset
 					});
 	EndpointManager::appendEndpoint(Endpoint{
 						"info",
@@ -126,8 +63,31 @@ int main(int argc, char **argv)
 						ContentType::APPLICATION_JSON,
 						false,
 						"General information about this API",
-						&EndpointHandler::serveApiInfo
+						&EndpointHandler::serveResourceAsset
 					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"bam",
+						QMap<QString, ParamProps>{
+						   {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, true, "Name of the BAM file to be served"}}
+						},
+						RequestMethod::GET,
+						ContentType::APPLICATION_OCTET_STREAM,
+						false,
+						"BAM file used for the testing purposes",
+						&EndpointHandler::serveResourceAsset
+				   });
+	EndpointManager::appendEndpoint(Endpoint{
+						"bam",
+						QMap<QString, ParamProps>{
+						   {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, false, "Name of the BAM file to be served"}}
+						},
+						RequestMethod::HEAD,
+						ContentType::APPLICATION_OCTET_STREAM,
+						false,
+						"Size of the BAM file used for the testing purposes",
+						&EndpointHandler::serveResourceAsset
+				   });
+
 	EndpointManager::appendEndpoint(Endpoint{
 						"static",
 						QMap<QString, ParamProps>{
@@ -387,27 +347,27 @@ int main(int argc, char **argv)
 
 	if (!https_port.isEmpty())
 	{
-		qInfo() << "HTTPS server port has been provided through the command line arguments:" + https_port;
+		Log::info("HTTPS server port has been provided through the command line arguments:" + https_port);
 		https_port_setting = https_port.toInt();
 	}
 	if (https_port_setting == 0)
 	{
-		qInfo() << "HTTPS port number is invalid";
+		Log::error("HTTPS port number is invalid");
 		app.exit(EXIT_FAILURE);
 	}
 
-	qInfo() << "SSL version used for build: " << QSslSocket::sslLibraryBuildVersionString();
+	Log::info("SSL version used for build: " + QSslSocket::sslLibraryBuildVersionString());
 	ServerWrapper https_server(https_port_setting);
 
 	if (!http_port.isEmpty())
 	{
-		qInfo() << "HTTP server port has been provided through the command line arguments:" + http_port;
+		Log::info("HTTP server port has been provided through the command line arguments:" + http_port);
 		http_port_setting = https_port.toInt();
 	}
 
 	if (http_port_setting == 0)
 	{
-		qInfo() << "HTTP port number is invalid";
+		Log::error("HTTP port number is invalid");
 		app.exit(EXIT_FAILURE);
 	}
 	ServerWrapper http_server(http_port_setting, true);
