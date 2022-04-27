@@ -704,6 +704,26 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 	return output;
 }
 
+QCCollection Statistics::mapping_housekeeping(const BedFile& bed_file, const QString& bam_file, const QString& ref_file, int min_mapq)
+{
+	QCCollection metrics;
+
+	// get QC of housekeeping genes
+	QCCollection housekeeping_qc = Statistics::mapping(bed_file, bam_file, ref_file, min_mapq);
+	//extract parameter
+	Statistics::addQcValue(metrics, "QC:2000100", "housekeeping genes read percentage", housekeeping_qc.value("QC:2000021", true).asDouble());
+	Statistics::addQcValue(metrics, "QC:2000101", "housekeeping genes read depth", housekeeping_qc.value("QC:2000025", true).asDouble());
+	QVector<int> coverage_steps = QVector<int>() << 10 << 20 << 30 << 50 << 100 << 200 << 500;
+	for (int i = 0; i < coverage_steps.length(); ++i)
+	{
+		Statistics::addQcValue(metrics,
+							   QByteArray("QC:200010") + QByteArray::number((2 + i)),
+							   QByteArray("housekeeping genes ") + QByteArray::number(coverage_steps.at(i)) + "x percentage",
+							   housekeeping_qc.value(QByteArray("QC:20000") + QByteArray::number((26 + i)), true).asDouble());
+	}
+	return metrics;
+}
+
 QCCollection Statistics::region(const BedFile& bed_file, bool merge)
 {
 	//sort if necessary
