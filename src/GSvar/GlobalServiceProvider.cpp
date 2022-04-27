@@ -4,12 +4,13 @@
 #include "DatabaseServiceLocal.h"
 #include "DatabaseServiceRemote.h"
 #include "MainWindow.h"
+#include "GSvarHelper.h"
 
 GlobalServiceProvider::GlobalServiceProvider()
   : file_location_provider_()
   , database_service_()
 {
-	if (Settings::string("server_host",true).trimmed()!="" && Settings::string("https_server_port").trimmed()!="")
+	if (NGSHelper::isCliendServerMode())
 	{		
 		database_service_ = QSharedPointer<DatabaseService>(new DatabaseServiceRemote());
 	}

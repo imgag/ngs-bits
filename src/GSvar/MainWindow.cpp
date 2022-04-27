@@ -282,10 +282,14 @@ MainWindow::MainWindow(QWidget *parent)
 	// priveleges for the working directory and this is precisely why we came up with this workaround:
 	QDir::setCurrent(QDir::tempPath());
 
+	//TODO also check if server has been rebooted => force restart of GSvar > Alexandr
 	// Setting a timer to renew secure tokens for the server API
-	QTimer *timer = new QTimer(this);
-	connect(timer, &QTimer::timeout, this, &LoginManager::renewLogin);
-	timer->start(3600 * 1000); // every hour
+	if (NGSHelper::isCliendServerMode())
+	{
+		QTimer *timer = new QTimer(this);
+		connect(timer, &QTimer::timeout, this, &LoginManager::renewLogin);
+		timer->start(3600 * 1000); // every hour
+	}
 }
 
 QString MainWindow::appName() const
@@ -1189,7 +1193,7 @@ void MainWindow::on_actionMosaic_triggered()
 		MosaicWidget* list;
 
 		// germline single, trio or multi sample
-		list = new MosaicWidget(mosaics_, ps_id, report_settings_, gene2region_cache_, this);
+		list = new MosaicWidget(mosaics_, report_settings_, gene2region_cache_, this);
 
 
 		auto dlg = GUIHelper::createDialog(list, "Mosaic variants of " + variants_.analysisName());
@@ -6327,7 +6331,7 @@ void MainWindow::storeCurrentVariantList()
 			add_headers.insert("Content-Length", QByteArray::number(json_doc.toJson().count()));
 
 			QString reply = HttpHandler(HttpRequestHandler::NONE).put(
-						Helper::serverApiUrl() + "project_file?ps_url_id=" + ps_url_id,
+						NGSHelper::serverApiUrl() + "project_file?ps_url_id=" + ps_url_id,
 						json_doc.toJson(),
 						add_headers
 					);
