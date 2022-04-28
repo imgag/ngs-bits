@@ -54,7 +54,7 @@ private slots:
 		{
 			HttpHeaders add_headers;
 			add_headers.insert("Accept", "text/html");
-			add_headers.insert("Range", "bytes=251-282,1369-1374");
+			add_headers.insert("Range", "bytes=114-140,399-430");
 			reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://localhost:" + ServerHelper::getStringSettingsValue("https_server_port") + "/v1/", add_headers);
 		}
 		catch(Exception& e)
@@ -62,8 +62,8 @@ private slots:
 			qDebug() << e.message();
 			SKIP("This test requieres a running server");
 		}
-		IS_TRUE(reply.contains("Welcome to GSvarServer info page"));
-		IS_TRUE(reply.contains("looks"));
+		IS_TRUE(reply.contains("Welcome to the GSvar server"));
+		IS_TRUE(reply.contains("help"));
 	}
 
 	void test_partial_content_empty_end_request()
@@ -73,7 +73,7 @@ private slots:
 		{
 			HttpHeaders add_headers;
 			add_headers.insert("Accept", "text/html");
-			add_headers.insert("Range", "bytes=1830-");
+			add_headers.insert("Range", "bytes=454-");
 			reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://localhost:" + ServerHelper::getStringSettingsValue("https_server_port") + "/v1/", add_headers);
 		}
 		catch(Exception& e)

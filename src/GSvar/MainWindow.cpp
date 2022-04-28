@@ -282,13 +282,15 @@ MainWindow::MainWindow(QWidget *parent)
 	// priveleges for the working directory and this is precisely why we came up with this workaround:
 	QDir::setCurrent(QDir::tempPath());
 
-	//TODO also check if server has been rebooted => force restart of GSvar > Alexandr
-	// Setting a timer to renew secure tokens for the server API
 	if (NGSHelper::isCliendServerMode())
 	{
-		QTimer *timer = new QTimer(this);
-		connect(timer, &QTimer::timeout, this, &LoginManager::renewLogin);
-		timer->start(3600 * 1000); // every hour
+		QTimer *login_timer = new QTimer(this);
+		connect(login_timer, &QTimer::timeout, this, &LoginManager::renewLogin);
+		login_timer->start(3600 * 1000); // every hour
+
+		QTimer *server_ping_timer = new QTimer(this);
+		connect(server_ping_timer, SIGNAL(timeout()), this, SLOT(checkServerAvailability()));
+		server_ping_timer->start(600 * 1000); // every 10 minutes
 	}
 }
 
@@ -300,6 +302,45 @@ QString MainWindow::appName() const
 	if (build==GenomeBuild::HG38) name += " - " + buildToString(build);
 
 	return name;
+}
+
+bool MainWindow::isServerRunning()
+{
+	QByteArray response;
+	HttpHeaders add_headers;
+	add_headers.insert("Accept", "application/json");
+	try
+	{
+		response = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).get(NGSHelper::serverApiUrl()+ "info", add_headers);
+	}
+	catch (Exception& e)
+	{
+		Log::error("Server availability problem: " + e.message());
+		QMessageBox::warning(this, "Server not responding", "GSvar application will be closed, since the server is not available");
+		return false;
+	}
+
+	if (response.isEmpty())
+	{
+		QMessageBox::warning(this, "Version information not available", "Could not identify the server version. The application will be closed");
+		return false;
+	}
+
+	QJsonDocument json_doc = QJsonDocument::fromJson(response);	;
+	if (!json_doc.isObject()) return false;
+
+	if (ToolBase::version() != json_doc.object()["version"].toString())
+	{
+		QMessageBox::warning(this, "Version mismatch", "GSvar and the server have different versions. No stable work can be guaranteed. The application will be closed");
+		return false;
+	}
+
+	return true;
+}
+
+void MainWindow::checkServerAvailability()
+{
+	if (!isServerRunning()) close();
 }
 
 void MainWindow::on_actionDebug_triggered()
@@ -1775,6 +1816,16 @@ void MainWindow::delayedInitialization()
 		QMessageBox::warning(this, "GSvar is not configured", "GSvar is not configured correctly.\nPlease inform your administrator!");
 		close();
 		return;
+	}
+
+	// Setting a timer to renew secure tokens for the server API
+	if (NGSHelper::isCliendServerMode())
+	{
+		if (!isServerRunning())
+		{
+			close();
+			return;
+		}
 	}
 
 	//user login for database

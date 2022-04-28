@@ -15,8 +15,12 @@ private slots:
 		request.setPath("info");
 
 		HttpResponse response = ServerController::serveResourceAsset(request);
+		QJsonDocument json_doc = QJsonDocument::fromJson(response.getPayload());	;
+
 		IS_TRUE(response.getStatusLine().contains("200"));
-		IS_TRUE(response.getFilename().contains("api.json"));
+		S_EQUAL(json_doc.object()["name"].toString(), ToolBase::applicationName());
+		S_EQUAL(json_doc.object()["version"].toString(), ToolBase::version());
+		S_EQUAL(json_doc.object()["api_version"].toString(), NGSHelper::serverApiVersion());
     }
 
 	void test_saving_gsvar_file()
