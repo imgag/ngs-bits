@@ -62,6 +62,7 @@ public:
 
 	Variant hgvsToVariant(QString transcript_name, QString hgvs_c, NGSD& db, FastaFileIndex& ref_genome_idx)
 	{
+
 		static QMap<QString, Transcript> name2transcript;
 		static QMap<QString, bool> bad_transcripts;
 		Transcript transcript;
@@ -113,8 +114,6 @@ public:
 				QTextStream out(stdout);
 				out << "ArgumentException:\tCannot determine Ensembl transcript for CCDS/RefSeq/Ensembl transcript identifier.\t" + transcript_name + ":" + hgvs_c + "\tTranscript not found in the database.\n";
 				return Variant();
-
-
 			}
 
 			transcript = db.transcript(trans_id);
@@ -140,7 +139,6 @@ public:
 			return Variant();
 		}
 
-
 		try
 		{
 			variant.checkValid();
@@ -154,9 +152,6 @@ public:
 			out << "ArgumentException\tInvalid resulting variant\t" + transcript_name + ":" + hgvs_c + "\t" + e.message() + "\n";
 			return Variant();
 		}
-
-
-
 	}
 
 	void writeVcfHeaders(QSharedPointer<QFile> outstream, QStringList tsv_headers, QString reference)
