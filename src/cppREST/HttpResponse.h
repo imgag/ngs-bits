@@ -15,7 +15,6 @@ class CPPRESTSHARED_EXPORT HttpResponse : public QByteArray
 {
 public:
 	HttpResponse();
-	HttpResponse(QByteArray response_data);
 	HttpResponse(BasicResponseData data);
 	HttpResponse(BasicResponseData data, QByteArray payload);
 	HttpResponse(ResponseStatus status, ContentType content_type, qlonglong content_length);

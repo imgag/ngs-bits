@@ -5,12 +5,6 @@ HttpResponse::HttpResponse()
 	this->clear();
 }
 
-HttpResponse::HttpResponse(QByteArray response_data)
-{
-	this->clear();
-	this->append(response_data);
-}
-
 HttpResponse::HttpResponse(BasicResponseData data)
 {
 	readBasicResponseData(data);
