@@ -27,9 +27,6 @@ public:
 		setExtendedDescription(extDescription);
 		addOutfile("out", "Output VCF file.", false);
 		//optional
-		//TODO
-		// allow .GZ files as input
-		// flag to allow gz output?
 		addInfile("in", "Input TSV file. If unset, reads from STDIN.", true);
 		addString("sep", "Separator in the input TSV file, default: \\t", true, "\t");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
