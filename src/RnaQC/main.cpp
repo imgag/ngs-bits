@@ -196,7 +196,7 @@ public:
 			QByteArray zscore_str = tsv_line.at(idx_zscore);
 			// skip n/a entries
 			if(zscore_str == "n/a") continue;
-			double zscore = Helper::toDouble(zscore_str, "ZScore");
+			double zscore = std::fabs(Helper::toDouble(zscore_str, "ZScore"));
 			if (zscore >= zscore_threshold)
 			{
 				outlier_genes.append(tsv_line.at(idx_gene));
