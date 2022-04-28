@@ -19,13 +19,18 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 	}
 	else if (path_lower=="info")
 	{
-		QString text = "{\n\n"
-					   "  \"name\": \"" + ToolBase::applicationName() + "\",\n"
-					   "  \"description\": \"GSvar server\",\n"
-					   "  \"version\": \"" + ToolBase::version() + "\",\n"
-					   "  \"api_version\": \"" + NGSHelper::serverApiVersion() + "\",\n"
-					   "}\n";
-		return HttpResponse(text.toLatin1());
+		QString text = "{"
+					   "\"name\": \"" + ToolBase::applicationName() + "\","
+					   "\"description\": \"GSvar server\","
+					   "\"version\": \"" + ToolBase::version() + "\","
+					   "\"api_version\": \"" + NGSHelper::serverApiVersion() + "\""
+					   "}";
+		BasicResponseData response_data;
+		response_data.length = text.length();
+		response_data.content_type = ContentType::APPLICATION_JSON;
+		response_data.is_downloadable = false;
+
+		return HttpResponse(response_data, text.toLocal8Bit());
 	}
 	else if (path_lower=="bam")
 	{
