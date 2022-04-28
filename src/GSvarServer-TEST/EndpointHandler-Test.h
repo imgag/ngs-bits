@@ -16,7 +16,6 @@ private slots:
 
 		HttpResponse response = ServerController::serveResourceAsset(request);
 		IS_TRUE(response.getStatusLine().contains("200"));
-		IS_TRUE(response.getFilename().contains("api.json"));
     }
 
 	void test_saving_gsvar_file()
