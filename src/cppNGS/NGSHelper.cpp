@@ -767,6 +767,11 @@ bool NGSHelper::isCliendServerMode()
 	return !Settings::string("server_host",true).trimmed().isEmpty() && !Settings::string("https_server_port").trimmed().isEmpty();
 }
 
+QString NGSHelper::serverApiVersion()
+{
+	return "v0.1";
+}
+
 QString NGSHelper::serverApiUrl(const bool& return_http)
 {
 	QString protocol = "https://";
