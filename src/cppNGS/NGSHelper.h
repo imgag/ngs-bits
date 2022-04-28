@@ -106,6 +106,9 @@ public:
 	///Returns if the application is running in client-server mode (mainly used for GSvar).
 	static bool isCliendServerMode();
 
+	///Returns the server API version. Used to check that the server and the client have the same version.
+	static QString serverApiVersion();
+
 	///Retunrs the URL used for sending requests to the GSvar server (use only when in client-server mode)
 	static QString serverApiUrl(const bool& return_http = false);
 

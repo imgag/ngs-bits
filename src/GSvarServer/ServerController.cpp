@@ -1,5 +1,6 @@
 #include "ServerController.h"
 #include "FileLocationProviderLocal.h"
+#include "ToolBase.h"
 
 ServerController::ServerController()
 {
@@ -7,19 +8,26 @@ ServerController::ServerController()
 
 HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 {
-	if (request.getPrefix().toLower() == "favicon.ico")
+	QString path_lower = request.getPath().toLower().trimmed();
+	if (path_lower == "favicon.ico")
 	{
 		return EndpointController::serveStaticFile(":/assets/client/favicon.ico", request.getMethod(), request.getContentType(), request.getHeaders());
 	}
-	else if ((request.getPrefix().toLower().contains("index") || (request.getPrefix().toLower().trimmed() == "v1")) && ((request.getPath().isEmpty()) || (request.getPath().toLower().contains("index"))))
+	else if (path_lower.isEmpty() || path_lower=="index" || path_lower.startsWith("index."))
 	{
 		return EndpointController::serveStaticFile(":/assets/client/info.html", request.getMethod(), request.getContentType(), request.getHeaders());
 	}
-	else if ((request.getPrefix().toLower().trimmed() == "v1") && (request.getPath().toLower() == "info"))
+	else if (path_lower=="info")
 	{
-		return EndpointController::serveStaticFile(":/assets/client/api.json", request.getMethod(), request.getContentType(), request.getHeaders());
+		QString text = "{\n\n"
+					   "  \"name\": \"" + ToolBase::applicationName() + "\",\n"
+					   "  \"description\": \"GSvar server\",\n"
+					   "  \"version\": \"" + ToolBase::version() + "\",\n"
+					   "  \"api_version\": \"" + NGSHelper::serverApiVersion() + "\",\n"
+					   "}\n";
+		return HttpResponse(text.toLatin1());
 	}
-	else if ((request.getPrefix().toLower().trimmed() == "v1") && (request.getPath().toLower() == "bam"))
+	else if (path_lower=="bam")
 	{
 		QString filename;
 		if (request.getPathItems().count() > 0) filename = request.getPathItems()[0];
