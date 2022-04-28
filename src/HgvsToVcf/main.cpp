@@ -166,10 +166,15 @@ public:
 		headers << "##INFO=<ID=" + getString("hgvs_c") + ",Number=.,Type=String,Description=transcript_name:HGVS_change.>";
 		if (tsv_headers.count() > 2)
 		{
+			QString in = getInfile("in");
+			if (in == "")
+			{
+				in = "STDIN";
+			}
 			for (int i=2; i<tsv_headers.count(); i++)
 			{
 
-				headers << "##INFO=<ID=" + tsv_headers[i] + ",Number=.,Type=String,Description=Column of HGVS TSV file>";
+				headers << "##INFO=<ID=" + tsv_headers[i] + ",Number=.,Type=String,Description=Column of HGVS TSV file: " + in + ">";
 			}
 		}
 
