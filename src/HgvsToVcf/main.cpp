@@ -21,13 +21,13 @@ public:
 		setDescription("Transforms a TSV file (col1: transcript ID; col 2: HGVS.c change ) into a VCF file.");
 		QStringList extDescription;
 		extDescription << "Transforms a given TSV file with the transcript ID (e.g. ENST00000366955) in the first column and the HGVS.c change (e.g. c.8802A>G) in the second column into a vcf file.";
-		extDescription << "Any further columns of the input TSV file are added as info entries to the output VCF. The TSV column header is used to name for the  info entries.";
-		extDescription << "When a input line can't be transformed into a VCF line a warning is printed to the console.";
+		extDescription << "Any further columns of the input TSV file are added as info entries to the output VCF. The TSV column header is used to name for the info entries.";
+		extDescription << "Transcript IDs can be given in Ensembl, CCDS and RefSeq, but transcripts are transformed using Ensembl transcripts. CCDS and RefSeq transcripts will be matched to an Ensembl transcript, if an identical one exists.";
+		extDescription << "When an input line can't be transformed into a VCF line a warning is printed to the console.";
 		setExtendedDescription(extDescription);
 		addOutfile("out", "Output VCF file.", false);
 		//optional
 		addInfile("in", "Input TSV file. If unset, reads from STDIN.", true);
-		addString("sep", "Separator in the input TSV file, default: \\t", true, "\t");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addString("hgvs_c", "The input transcript_ID:HGVS pair is added to the VCF output using this name.", true, "HGVSc");
 		QStringList builds;
@@ -185,9 +185,9 @@ public:
 		}
 	}
 
-	void parseLine(QString line, NGSD& db, QSharedPointer<QFile> outstream, QStringList& tsv_headers, QString sep, FastaFileIndex& ref_index)
+	void parseLine(QString line, NGSD& db, QSharedPointer<QFile> outstream, QStringList& tsv_headers, FastaFileIndex& ref_index)
 	{
-		QStringList parts = line.split(sep);
+		QStringList parts = line.split("\t");
 
 		Variant variant = hgvsToVariant(parts[0], parts[1], db, ref_index);
 		if (! variant.isValid())
@@ -225,8 +225,6 @@ public:
 		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 		FastaFileIndex ref_index(ref_file);
 
-		QString sep = getString("sep");
-
 		QSharedPointer<QFile> instream = Helper::openFileForReading(in, true);
 		QSharedPointer<QFile> outstream = Helper::openFileForWriting(out, false);
 
@@ -245,15 +243,15 @@ public:
 		}
 
 
-		if ((! line.startsWith("#") && line.split(sep).count() != 2) || line.split(sep).count() < 2)
+		if ((! line.startsWith("#") && line.split("\t").count() != 2) || line.split("\t").count() < 2)
 		{
-			THROW(ArgumentException, "Malformed HGVS.tsv. Missing headers for a file with more than two columns or only one column found using the seprerator.");
+			THROW(ArgumentException, "Malformed HGVS.tsv. Missing headers for a file with more than two columns or only one column found.");
 		}
 
 		if (line.startsWith("#"))
 		{
 			line = line.mid(1);
-			tsv_headers = line.split(sep);
+			tsv_headers = line.split("\n");
 			line = instream->readLine();
 			line = line.trimmed();
 		}
@@ -262,12 +260,12 @@ public:
 
 		while (! instream->atEnd())
 		{
-			parseLine(line, db, outstream, tsv_headers, sep, ref_index);
+			parseLine(line, db, outstream, tsv_headers, ref_index);
 			//read next line
 			line = instream->readLine();
 			line = line.trimmed();
 		}
-		parseLine(line, db, outstream, tsv_headers, sep, ref_index);
+		parseLine(line, db, outstream, tsv_headers, ref_index);
     }
 };
 
