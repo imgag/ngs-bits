@@ -18,145 +18,26 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Transforms a TSV file (col1: transcript ID; col 2: HGVS.c change ) into a VCF file. (Attention: This tool is experimental. Please report any errors!)");
-		QStringList extDescription;
-		extDescription << "Transforms a given TSV file with the transcript ID (e.g. ENST00000366955) in the first column and the HGVS.c change (e.g. c.8802A>G) in the second column into a vcf file.";
-		extDescription << "Any further columns of the input TSV file are added as info entries to the output VCF. The TSV column header is used to name for the info entries.";
-		extDescription << "Transcript IDs can be given in Ensembl, CCDS and RefSeq, but HGVS.c changes are transformed using Ensembl transcripts. CCDS and RefSeq transcripts will be matched to an Ensembl transcript, if an identical one exists.";
-		extDescription << "When an input line can't be transformed into a VCF line a warning is printed to the console.";
-		setExtendedDescription(extDescription);
+		setDescription("Transforms a TSV file with transcript ID and HGVS.c change into a VCF file.");
+		QStringList desc_ext;
+		desc_ext << "Transforms a given TSV file with the transcript ID (e.g. ENST00000366955) in the first column and the HGVS.c change (e.g. c.8802A>G) in the second column into a VCF file.";
+		desc_ext << "Any further columns of the input TSV file are added as info entries to the output VCF. The TSV column header is used as name for the info entries.";
+		desc_ext << "Ensembl, CCDS and RefSeq transcript IDs can be given, the conversion is always based on the Ensembl transcripts. CCDS and RefSeq transcripts will be matched to an Ensembl transcript, if an identical one exists.";
+		desc_ext << "When an input line can't be transformed into a VCF line a warning is printed to the console.";
+		desc_ext << "";
+		desc_ext << "Attention: This tool is experimental. Please report any errors!";
+		setExtendedDescription(desc_ext);
 		addOutfile("out", "Output VCF file.", false);
 		//optional
 		addInfile("in", "Input TSV file. If unset, reads from STDIN.", true);
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
-		addString("hgvs_c", "The input transcript_ID:HGVS pair is added to the VCF output using this name.", true, "HGVSc");
+		addString("input_info_field", "The input transcript ID and HGVS.c change are added to the VCF output using this INFO field name.", true, "HGVSc");
 		QStringList builds;
 		builds << "hg19" << "hg38";
 		addEnum("build", "Genome build", true, builds, "hg38");
 	}
 
-
-	const QMap<QByteArray, QByteArrayList>& transcriptMatches()
-	{
-		static QMap<QByteArray, QByteArrayList> output;
-		static bool initialized = false;
-
-		if (!initialized)
-		{
-			QStringList lines = Helper::loadTextFile(":/Resources/"+getEnum("build")+"_ensembl_transcript_matches.tsv", true, '#', true);
-			foreach(const QString& line, lines)
-			{
-				QByteArrayList parts = line.toLatin1().split('\t');
-				if (parts.count()>=2)
-				{
-					QByteArray enst = parts[0];
-					QByteArray match = parts[1];
-					output[enst] << match;
-				}
-			}
-			initialized = true;
-		}
-		return output;
-	}
-
-	Variant hgvsToVariant(QString transcript_name, QString hgvs_c, NGSD& db, FastaFileIndex& ref_genome_idx)
-	{
-
-		static QMap<QString, Transcript> name2transcript;
-		static QMap<QString, bool> bad_transcripts;
-		Transcript transcript;
-
-		// try to find it in buffer
-		if (name2transcript.contains(transcript_name))
-		{
-			transcript = name2transcript[transcript_name];
-		}
-		else if (name2transcript.contains(transcript_name.left(transcript_name.indexOf('.'))))
-		{
-			transcript = name2transcript[transcript_name.left(transcript_name.indexOf('.'))];
-		}
-		else
-		{
-			//loock if base transcript was already searched without success:
-			if (bad_transcripts.contains(transcript_name.left(transcript_name.indexOf('.'))))
-			{
-				QTextStream out(stdout);
-				out << "ArgumentException:\tCannot determine Ensembl transcript for CCDS/RefSeq/Ensembl transcript identifier.\t" + transcript_name + ":" + hgvs_c + "\tTranscript not found in the database.\n";
-				return Variant();
-			}
-			//Query NGSD to find transcript
-			int trans_id = db.transcriptId(transcript_name, false);
-			if (trans_id==-1) //not found > try to match CCDS/RefSeq toEnsembl
-			{
-				//remove version number (if present)
-				if (transcript_name.contains("."))
-				{
-					transcript_name = transcript_name.left(transcript_name.indexOf('.'));
-				}
-
-				QString transcript_name2 = "";
-				const QMap<QByteArray, QByteArrayList>& matches = transcriptMatches();
-				for (auto it=matches.begin(); it!=matches.end(); ++it)
-				{
-					foreach(const QByteArray& trans, it.value())
-					{
-						if (trans==transcript_name)
-						{
-							transcript_name2 = it.key();
-						}
-					}
-				}
-				if (transcript_name2!="")
-				{
-					trans_id = db.transcriptId(transcript_name2, false);
-				}
-			}
-			if (trans_id==-1)
-			{
-				bad_transcripts[transcript_name] = false;
-				QTextStream out(stdout);
-				out << "ArgumentException\tCannot determine Ensembl transcript for CCDS/RefSeq/Ensembl transcript identifier.\t" + transcript_name + ":" + hgvs_c + "\tTranscript not found in the database.\n";
-				return Variant();
-			}
-			transcript = db.transcript(trans_id);
-			// save new transcript in buffer
-			name2transcript[transcript_name] = transcript;
-		}
-		Variant variant;
-
-		try
-		{
-			variant = transcript.hgvsToVariant(hgvs_c, ref_genome_idx);
-		}
-		catch (ArgumentException e)
-		{
-			QTextStream out(stdout);
-			out << "ArgumentException\tCouldn't transform given HGVSc into vcf with found transcript.\t" + transcript_name + ":" + hgvs_c + "\t" + e.message() + "\n";
-			return Variant();
-		}
-		catch (ProgrammingException e)
-		{
-			QTextStream out(stdout);
-			out << "ProgrammingException\tCouldn't transform given HGVSc into vcf with found transcript. \t" + transcript_name + ":" + hgvs_c + "\t" + e.message() + "\n";
-			return Variant();
-		}
-
-		try
-		{
-			variant.checkValid();
-			if (variant.ref()!="-") variant.checkReferenceSequence(ref_genome_idx);
-			return variant;
-		}
-		catch (ArgumentException e)
-		{
-
-			QTextStream out(stdout);
-			out << "ArgumentException\tInvalid resulting variant\t" + transcript_name + ":" + hgvs_c + "\t" + e.message() + "\n";
-			return Variant();
-		}
-	}
-
-	void writeVcfHeaders(QSharedPointer<QFile> outstream, QStringList tsv_headers, QString reference)
+	void writeVcfHeaders(QSharedPointer<QFile>& outstream, const QStringList& tsv_headers, QString reference)
 	{
 		QStringList headers;
 		headers << "##fileformat=VCFv4.2";
@@ -165,14 +46,12 @@ public:
 		headers << "##reference=" + reference;
 
 
-		headers << "##INFO=<ID=" + getString("hgvs_c") + ",Number=.,Type=String,Description=transcript_name:HGVS_change.>";
+		headers << "##INFO=<ID=" + getString("input_info_field") + ",Number=1,Type=String,Description=\"Input transcript name and HGVS.c change.\">";
 		if (tsv_headers.count() > 2)
 		{
 			QString in = getInfile("in");
-			if (in == "")
-			{
-				in = "STDIN";
-			}
+			if (in=="") in = "STDIN";
+
 			for (int i=2; i<tsv_headers.count(); i++)
 			{
 
@@ -182,39 +61,74 @@ public:
 
 		headers << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
 
-		foreach (QString line, headers)
+		foreach (const QString& line, headers)
 		{
-			outstream->write(line.toLatin1() + "\n");
+			outstream->write(line.toLocal8Bit() + "\n");
 		}
 	}
 
-	void parseLine(QString line, NGSD& db, QSharedPointer<QFile> outstream, QStringList& tsv_headers, FastaFileIndex& ref_index)
+	void parseLine(const QString& line, NGSD& db, QSharedPointer<QFile>& outstream, const QStringList& tsv_headers, FastaFileIndex& ref_index, const QMap<QByteArray, QByteArrayList>& transcript_matches)
 	{
 		QStringList parts = line.split("\t");
+		if (parts.count()!=tsv_headers.count()) THROW(FileParseException, "Input TSV content line has " + QString::number(parts.count()) + " fields, but " + QString::number(tsv_headers.count()) + " are expected from header: " + line);
 
-		Variant variant = hgvsToVariant(parts[0], parts[1], db, ref_index);
-		if (! variant.isValid())
+		//convert HGVS.c to VCF
+		QByteArray transcript_name = parts[0].toLocal8Bit();
+		QByteArray hgvs_c = parts[1].toLocal8Bit();
+
+		try
 		{
-			return;
-		}
-		VariantVcfRepresentation vcf_rep = variant.toVCF(ref_index);
-		QByteArray outline = vcf_rep.chr.strNormalized(true) + "\t" + QByteArray::number(vcf_rep.pos) + "\t.\t" + vcf_rep.ref + "\t" + vcf_rep.alt + "\t.\t.\t";
+			//remove version number from transcript (if present)
+			if (transcript_name.contains(".")) transcript_name = transcript_name.left(transcript_name.indexOf('.'));
 
+			//get transcript from NGSD
+			int trans_id = db.transcriptId(transcript_name, false);
 
-		QByteArrayList info_fields;
-		info_fields.append(getString("hgvs_c").toLatin1() + "=" + parts[0].toLatin1() + ":" + parts[1].toLatin1());
+			if (trans_id==-1) //not found > check if it is a CCDS/RefSeq transcript
+			{
+				const QByteArrayList& matches = transcript_matches[transcript_name];
+				foreach(const QByteArray& match, matches)
+				{
+					if (match.startsWith("ENST"))
+					{
+						trans_id = db.transcriptId(match, false);
+					}
+				}
+			}
 
-		if (parts.length() > 2)
-		{
+			if (trans_id==-1) //not found > abort
+			{
+				THROW(ArgumentException, "Transcript " + transcript_name + " not found in NGSD");
+			}
 
+			//convert to variant
+			Transcript transcript = db.transcript(trans_id);
+			Variant variant = transcript.hgvsToVariant(hgvs_c, ref_index);
+
+			//check variant
+			variant.checkValid();
+			if (variant.ref()!="-") variant.checkReferenceSequence(ref_index);
+
+			//write base variant line
+			VariantVcfRepresentation vcf_rep = variant.toVCF(ref_index);
+			QByteArray outline = vcf_rep.chr.strNormalized(true) + "\t" + QByteArray::number(vcf_rep.pos) + "\t.\t" + vcf_rep.ref + "\t" + vcf_rep.alt + "\t.\t.\t";
+
+			//write info fields
+			QByteArrayList info_fields;
+			info_fields.append(getString("input_info_field").toLatin1() + "=" + parts[0].toLatin1() + ":" + parts[1].toLatin1());
 			for(int i=2; i< parts.length(); i++)
 			{
 				info_fields.append(tsv_headers[i].toLatin1()+"="+parts[i].toLatin1());
 			}
+			outline += info_fields.join(";");
 
+			outstream->write(outline + "\n");
 		}
-		outline += info_fields.join(";");
-		outstream->write(outline + "\n");
+		catch (Exception& e)
+		{
+			QTextStream out(stderr);
+			out << "Warning: " + transcript_name + ":" + hgvs_c + " skipped: couldn't transform it to valid VCF: " + e.message() + "\n";
+		}
 	}
 
 
@@ -231,44 +145,43 @@ public:
 		QSharedPointer<QFile> instream = Helper::openFileForReading(in, true);
 		QSharedPointer<QFile> outstream = Helper::openFileForWriting(out, false);
 
-		QString line;
-		QStringList tsv_headers;
+		const QMap<QByteArray, QByteArrayList>& transcript_matches = NGSHelper::transcriptMatches(stringToBuild(getEnum("build")));
+
+		QStringList tsv_headers = {"", ""}; //fallback in case there is no header
 		NGSD db;
-
-		line = instream->readLine();
-		line = line.trimmed();
-
-		//ignore empty lines and comments at the start of the file
-		while (line == "" || line.startsWith("##"))
+		bool header_written = false;
+		while (!instream->atEnd())
 		{
-			line = instream->readLine();
-			line = line.trimmed();
+			QString line = instream->readLine();
+			while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
+
+			//ignore empty lines and comments at the start of the file
+			if (line.trimmed().isEmpty()) continue;
+			if (line.startsWith("##")) continue;
+
+			//handle headers
+			if (line.startsWith('#'))
+			{
+				tsv_headers = line.split("\t");
+				if (tsv_headers.count()<2) THROW(FileParseException, "Input TSV header line has less than two parts: " + line);
+				for(int i=2; i<tsv_headers.count(); ++i)
+				{
+					QString header = tsv_headers[i];
+					if (header.contains(';') || header.contains('=')) THROW(FileParseException, "TSV header is no valid VCF info key: " + header);
+				}
+				continue;
+			}
+
+			//write VCF header before first content line
+			if (!header_written)
+			{
+				writeVcfHeaders(outstream, tsv_headers, ref_file);
+				header_written = true;
+			}
+
+			//process content line
+			parseLine(line, db, outstream, tsv_headers, ref_index, transcript_matches);
 		}
-
-
-		if ((! line.startsWith("#") && line.split("\t").count() != 2) || line.split("\t").count() < 2)
-		{
-			THROW(ArgumentException, "Malformed HGVS.tsv. Missing headers for a file with more than two columns or only one column found.");
-		}
-
-		if (line.startsWith("#"))
-		{
-			line = line.mid(1);
-			tsv_headers = line.split("\t");
-			line = instream->readLine();
-			line = line.trimmed();
-		}
-
-		writeVcfHeaders(outstream, tsv_headers, ref_file);
-
-		while (! instream->atEnd())
-		{
-			parseLine(line, db, outstream, tsv_headers, ref_index);
-			//read next line
-			line = instream->readLine();
-			line = line.trimmed();
-		}
-		parseLine(line, db, outstream, tsv_headers, ref_index);
     }
 };
 

@@ -1,7 +1,6 @@
 ##fileformat=VCFv4.2
 ##source=ngs-bits:HgvsToVcf
-##reference=Q:\AH\Apps\NGS-Tools\genome\GRCh38.fa
-##INFO=<ID=test_name,Number=.,Type=String,Description=transcript_name:HGVS_change.>
+##INFO=<ID=test_name,Number=1,Type=String,Description="Input transcript name and HGVS.c change.">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 chr1	27359572	.	G	C	.	.	test_name=ENST00000357582.3:c.2320-50C>G
 chr1	27360975	.	G	T	.	.	test_name=ENST00000357582.3:c.1866C>A

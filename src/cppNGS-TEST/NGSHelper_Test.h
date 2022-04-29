@@ -201,4 +201,27 @@ private slots:
 		S_EQUAL(NGSHelper::populationCodeToHumanReadable("EAS"), "East asian");
 		S_EQUAL(NGSHelper::populationCodeToHumanReadable("ADMIXED/UNKNOWN"), "Admixed/Unknown");
 	}
+
+	void transcriptMatches()
+	{
+		//HG19
+		auto matches = NGSHelper::transcriptMatches(GenomeBuild::HG19);
+		IS_FALSE(matches.contains("ENST00000644374"));
+		IS_TRUE(matches.contains("ENST00000004921"));
+		I_EQUAL(matches["ENST00000004921"].count(), 2);
+		IS_TRUE(matches["ENST00000004921"].contains("CCDS11306"));
+		IS_TRUE(matches["ENST00000004921"].contains("NM_002988"));
+		IS_TRUE(matches["CCDS11306"].contains("ENST00000004921"));
+		IS_TRUE(matches["NM_002988"].contains("ENST00000004921"));
+
+		//HG38
+		matches = NGSHelper::transcriptMatches(GenomeBuild::HG38);
+		IS_TRUE(matches.contains("ENST00000644374"));
+		IS_FALSE(matches.contains("ENST00000004921"));
+		I_EQUAL(matches["ENST00000644374"].count(), 2);
+		IS_TRUE(matches["ENST00000644374"].contains("NM_004447"));
+		IS_TRUE(matches["ENST00000644374"].contains("CCDS31753"));
+		IS_TRUE(matches["CCDS31753"].contains("ENST00000644374"));
+		IS_TRUE(matches["NM_004447"].contains("ENST00000644374"));
+	}
 };

@@ -112,6 +112,8 @@ public:
 	///Retunrs the URL used for sending requests to the GSvar server (use only when in client-server mode)
 	static QString serverApiUrl(const bool& return_http = false);
 
+	///Returns a map with matching Ensembl, RefSeq and CCDS transcript identifiers (without version numbers).
+	static QMap<QByteArray, QByteArrayList>& transcriptMatches(GenomeBuild build);
 
 private:
 	///Constructor declared away
