@@ -8,7 +8,9 @@ VcfFile::VcfFile()
 	, column_headers_()
 	, sample_id_to_idx_()
 	, format_id_to_idx_list_()
-	, info_id_to_idx_list_()
+	, info_id_to_idx_list_()	
+	, format_exists_(false)
+	, samples_exist_(false)
 {
 }
 
@@ -21,6 +23,9 @@ void VcfFile::clear()
 	sample_id_to_idx_.clear();
 	format_id_to_idx_list_.clear();
 	info_id_to_idx_list_.clear();
+
+	format_exists_ = false;
+	samples_exist_ = false;
 }
 
 void VcfFile::parseVcfHeader(int line_number, const QByteArray& line)
@@ -74,6 +79,9 @@ void VcfFile::parseHeaderFields(const QByteArray& line, bool allow_multi_sample)
 			THROW(FileParseException, "VCF file header line with an inaccurately named FORMAT column: '" + line.trimmed() + "'");
 		}
 
+		format_exists_ = header_fields.count() >= 9;
+		samples_exist_ = header_fields.count() >= 10;
+
 		int header_count;
 		allow_multi_sample ? header_count=header_fields.count() : header_count=std::min(10, header_fields.count());
 
@@ -81,7 +89,7 @@ void VcfFile::parseHeaderFields(const QByteArray& line, bool allow_multi_sample)
 		{
 			column_headers_.push_back(header_fields.at(i));
 		}
-		qDebug() << line;
+
 		//samples are all columns after the 10th
 		sample_id_to_idx_ = SampleIDToIdxPtr(new OrderedHash<QByteArray, int>);
 		if(column_headers_.count() >= 10)
@@ -784,7 +792,7 @@ void VcfFile::storeLineInformation(QTextStream& stream, VcfLine line) const
 	}
 
 	//if format exists
-	if (column_headers_.contains("FORMAT"))
+	if (format_exists_)
 	{
 		if(!line.formatKeys().empty())
 		{
@@ -799,7 +807,7 @@ void VcfFile::storeLineInformation(QTextStream& stream, VcfLine line) const
 
 
 	//if sample exists
-	if (column_headers_.count() > 9)
+	if (samples_exist_)
 	{
 		if(!line.samples().empty())
 		{
@@ -852,27 +860,34 @@ void VcfFile::storeHeaderColumns(QTextStream &stream) const
 	// if column headers are missing FORMAT and or sample headers.
 	if (headers.count() < 10)
 	{
-		bool format_added = headers.contains("FORMAT");
-		int sample_ids_added = 0;
+		format_exists_ = headers.contains("FORMAT");
+		samples_exist_ = false;
 
 		foreach (VcfLinePtr line, vcf_lines_)
 		{
-			if (! format_added && ! line->formatKeys().empty())
+			if (! format_exists_ && ! line->formatKeys().empty())
 			{
 				headers.append("FORMAT");
-				format_added = true;
+				format_exists_ = true;
 			}
 
-			if (line->samples().count() > sample_ids_added)
+			if (line->samples().count() > 0)
 			{
-				for(int i=sample_ids_added; i<line->samples().count(); i++)
+				if (!format_exists_)
 				{
-					headers.append("Sample" + QByteArray::number(i));
+					THROW(ArgumentException, "Cannot store vcfLine. It has sample values but no format!")
 				}
+				samples_exist_ = true;
+
+				for(int i=0; i<line->samples().count(); i++)
+				{
+					headers.append("Sample_" + QByteArray::number(i+1));
+				}
+				// when one with samples was found no other line can have more samples as it would break writing the file
+				break;
 			}
 		}
 	}
-
 
 	stream << "#";
 	for(int i = 0; i < headers.count() - 1; ++i)
@@ -881,7 +896,7 @@ void VcfFile::storeHeaderColumns(QTextStream &stream) const
 	}
 
 
-	stream << headers.at(column_headers_.count() - 1) << "\n";
+	stream << headers.at(headers.count() - 1) << "\n";
 }
 
 void VcfFile::copyMetaDataForSubsetting(const VcfFile& rhs)
@@ -1012,6 +1027,7 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 
 	//add header fields
 	vcf_file.column_headers_ << "CHROM" << "POS" << "ID" << "REF" << "ALT" << "QUAL" << "FILTER" << "INFO" << "FORMAT";
+	vcf_file.format_exists_ = true;
 	//search for genotype on annotations
 	SampleHeaderInfo genotype_columns;
 	try
@@ -1023,6 +1039,7 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 	//write genotype Format into header
 	if(!genotype_columns.empty())
 	{
+		vcf_file.samples_exist_ = true;
 		for(const SampleInfo& genotype : genotype_columns)
 		{
 			vcf_file.column_headers_ << genotype.column_name.toUtf8();
