@@ -18,11 +18,11 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Transforms a TSV file (col1: transcript ID; col 2: HGVS.c change ) into a VCF file.");
+		setDescription("Transforms a TSV file (col1: transcript ID; col 2: HGVS.c change ) into a VCF file. (Attention: This tool is experimental. Please report any errors!)");
 		QStringList extDescription;
 		extDescription << "Transforms a given TSV file with the transcript ID (e.g. ENST00000366955) in the first column and the HGVS.c change (e.g. c.8802A>G) in the second column into a vcf file.";
 		extDescription << "Any further columns of the input TSV file are added as info entries to the output VCF. The TSV column header is used to name for the info entries.";
-		extDescription << "Transcript IDs can be given in Ensembl, CCDS and RefSeq, but transcripts are transformed using Ensembl transcripts. CCDS and RefSeq transcripts will be matched to an Ensembl transcript, if an identical one exists.";
+		extDescription << "Transcript IDs can be given in Ensembl, CCDS and RefSeq, but HGVS.c changes are transformed using Ensembl transcripts. CCDS and RefSeq transcripts will be matched to an Ensembl transcript, if an identical one exists.";
 		extDescription << "When an input line can't be transformed into a VCF line a warning is printed to the console.";
 		setExtendedDescription(extDescription);
 		addOutfile("out", "Output VCF file.", false);
@@ -71,6 +71,10 @@ public:
 		{
 			transcript = name2transcript[transcript_name];
 		}
+		else if (name2transcript.contains(transcript_name.left(transcript_name.indexOf('.'))))
+		{
+			transcript = name2transcript[transcript_name.left(transcript_name.indexOf('.'))];
+		}
 		else
 		{
 			//loock if base transcript was already searched without success:
@@ -114,7 +118,6 @@ public:
 				out << "ArgumentException\tCannot determine Ensembl transcript for CCDS/RefSeq/Ensembl transcript identifier.\t" + transcript_name + ":" + hgvs_c + "\tTranscript not found in the database.\n";
 				return Variant();
 			}
-
 			transcript = db.transcript(trans_id);
 			// save new transcript in buffer
 			name2transcript[transcript_name] = transcript;
@@ -194,13 +197,13 @@ public:
 		{
 			return;
 		}
-
 		VariantVcfRepresentation vcf_rep = variant.toVCF(ref_index);
 		QByteArray outline = vcf_rep.chr.strNormalized(true) + "\t" + QByteArray::number(vcf_rep.pos) + "\t.\t" + vcf_rep.ref + "\t" + vcf_rep.alt + "\t.\t.\t";
 
 
 		QByteArrayList info_fields;
 		info_fields.append(getString("hgvs_c").toLatin1() + "=" + parts[0].toLatin1() + ":" + parts[1].toLatin1());
+
 		if (parts.length() > 2)
 		{
 
@@ -251,7 +254,7 @@ public:
 		if (line.startsWith("#"))
 		{
 			line = line.mid(1);
-			tsv_headers = line.split("\n");
+			tsv_headers = line.split("\t");
 			line = instream->readLine();
 			line = line.trimmed();
 		}

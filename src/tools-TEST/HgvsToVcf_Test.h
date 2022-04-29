@@ -40,6 +40,29 @@ private slots:
 		VCF_IS_VALID("out/HgvsToVcf_out3.vcf");
 	}
 
+	void refseq_transcripts()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		EXECUTE("HgvsToVcf", "-in " + TESTDATA("/data_in/HgvsToVcf_in4.tsv") + " -out out/HgvsToVcf_out4.vcf" + " -ref " + ref_file);
+		REMOVE_LINES("out/HgvsToVcf_out4.vcf", QRegExp("##fileDate="));
+		COMPARE_FILES("out/HgvsToVcf_out4.vcf", TESTDATA("data_out/HgvsToVcf_out4.vcf"));
+		VCF_IS_VALID("out/HgvsToVcf_out4.vcf");
+	}
+
+	void ccds_transcripts()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		EXECUTE("HgvsToVcf", "-in " + TESTDATA("/data_in/HgvsToVcf_in5.tsv") + " -out out/HgvsToVcf_out5.vcf" + " -ref " + ref_file);
+		REMOVE_LINES("out/HgvsToVcf_out5.vcf", QRegExp("##fileDate="));
+		COMPARE_FILES("out/HgvsToVcf_out5.vcf", TESTDATA("data_out/HgvsToVcf_out5.vcf"));
+		VCF_IS_VALID("out/HgvsToVcf_out5.vcf");
+	}
+
+
 };
 
 
