@@ -18,18 +18,18 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Transforms a TSV file (col1: transcript ID; col 2: HGVS change ) into a VCF file.");
+		setDescription("Transforms a TSV file (col1: transcript ID; col 2: HGVS.c change ) into a VCF file.");
 		QStringList extDescription;
-		extDescription << "Transforms a given TSV file with the transcript ID in the first column and the HGVS change in the second column into a vcf file.";
-		extDescription << "Any further columns are added as info headers with the column header as info ID.";
-		extDescription << "When a transcript ID - HGVS change pair can't be transformed into a vcf line an error is printed to std:out.";
+		extDescription << "Transforms a given TSV file with the transcript ID (e.g. ENST00000366955) in the first column and the HGVS.c change (e.g. c.8802A>G) in the second column into a vcf file.";
+		extDescription << "Any further columns of the input TSV file are added as info entries to the output VCF. The TSV column header is used to name for the  info entries.";
+		extDescription << "When a input line can't be transformed into a VCF line a warning is printed to the console.";
 		setExtendedDescription(extDescription);
 		addOutfile("out", "Output VCF file.", false);
 		//optional
 		addInfile("in", "Input TSV file. If unset, reads from STDIN.", true);
 		addString("sep", "Separator in the input TSV file, default: \\t", true, "\t");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
-		addString("hgvs_c", "The original transcript_ID:HGVS pair is saved under the given name in the info field of the vcf.", true, "HGVSc");
+		addString("hgvs_c", "The input transcript_ID:HGVS pair is added to the VCF output using this name.", true, "HGVSc");
 		QStringList builds;
 		builds << "hg19" << "hg38";
 		addEnum("build", "Genome build", true, builds, "hg38");
