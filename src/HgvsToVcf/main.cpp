@@ -1,11 +1,9 @@
 #include "ToolBase.h"
 #include "Helper.h"
-#include <QBitArray>
 #include "VcfFile.h"
 #include "Transcript.h"
 #include "NGSD.h"
 #include <QDate>
-#include <QTime>
 
 class ConcreteTool
 		: public ToolBase
@@ -24,13 +22,14 @@ public:
 		QStringList extDescription;
 		extDescription << "Transforms a given TSV file with the transcript ID in the first column and the HGVS change in the second column into a vcf file.";
 		extDescription << "Any further columns are added as info headers with the column header as info ID.";
+		extDescription << "When a transcript ID - HGVS change pair can't be transformed into a vcf line an error is printed to std:out.";
 		setExtendedDescription(extDescription);
 		addOutfile("out", "Output VCF file.", false);
 		//optional
 		addInfile("in", "Input TSV file. If unset, reads from STDIN.", true);
 		addString("sep", "Separator in the input TSV file, default: \\t", true, "\t");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
-		addString("hgvs_c", "Name of the HGVSc in the info filed of the vcf.", true, "HGVSc");
+		addString("hgvs_c", "The original transcript_ID:HGVS pair is saved under the given name in the info field of the vcf.", true, "HGVSc");
 		QStringList builds;
 		builds << "hg19" << "hg38";
 		addEnum("build", "Genome build", true, builds, "hg38");
@@ -112,7 +111,7 @@ public:
 			{
 				bad_transcripts[transcript_name] = false;
 				QTextStream out(stdout);
-				out << "ArgumentException:\tCannot determine Ensembl transcript for CCDS/RefSeq/Ensembl transcript identifier.\t" + transcript_name + ":" + hgvs_c + "\tTranscript not found in the database.\n";
+				out << "ArgumentException\tCannot determine Ensembl transcript for CCDS/RefSeq/Ensembl transcript identifier.\t" + transcript_name + ":" + hgvs_c + "\tTranscript not found in the database.\n";
 				return Variant();
 			}
 
@@ -218,22 +217,13 @@ public:
 
 	virtual void main()
 	{
-		QTime timer;
-		timer.start();
-
 		//init
 		QString in = getInfile("in");
 		QString out = getOutfile("out");
-		if(in!="" && in==out)
-		{
-			THROW(ArgumentException, "Input and output files must be different when streaming!");
-		}
 		QString ref_file = getInfile("ref");
 		if (ref_file=="") ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 		FastaFileIndex ref_index(ref_file);
-
-		int time_load_ref = timer.elapsed();
 
 		QString sep = getString("sep");
 
@@ -243,6 +233,7 @@ public:
 		QString line;
 		QStringList tsv_headers;
 		NGSD db;
+
 		line = instream->readLine();
 		line = line.trimmed();
 
@@ -277,11 +268,6 @@ public:
 			line = line.trimmed();
 		}
 		parseLine(line, db, outstream, tsv_headers, sep, ref_index);
-
-		qDebug() << "Time to load ref: " << time_load_ref << "ms.";
-		qDebug() << "Total time: " << (timer.elapsed() / 1000.0) / 60 << "min.";
-
-
     }
 };
 
