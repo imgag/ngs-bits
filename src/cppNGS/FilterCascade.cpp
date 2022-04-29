@@ -2257,13 +2257,21 @@ FilterVariantQC::FilterVariantQC()
 	params_.last().constraints["min"] = "-1";
 	params_ << FilterParameter("allele_balance", FilterParameterType::INT, 40, "Maximum allele balance Phred score (set -1 to disable)");
 	params_.last().constraints["min"] = "-1";
+	params_ << FilterParameter("min_occurences", FilterParameterType::INT, 1, "Minimum occurences of the variant per strand");
+	params_.last().constraints["min"] = "0";
+	params_ << FilterParameter("min_af", FilterParameterType::DOUBLE, 0.0, "Minimum allele frequency of the variant in the sample");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximum allele frequency of the variant in the sample");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
 
 	checkIsRegistered();
 }
 
 QString FilterVariantQC::toText() const
 {
-	return name() + " qual&ge;" + QString::number(getInt("qual", false)) + " depth&ge;" + QString::number(getInt("depth", false)) + " mapq&ge;" + QString::number(getInt("mapq", false)) + " strand_bias&le;" + QString::number(getInt("strand_bias", false)) + " allele_balance&le;" + QString::number(getInt("allele_balance", false));
+	return name() + " qual&ge;" + QString::number(getInt("qual", false)) + " depth&ge;" + QString::number(getInt("depth", false)) + " mapq&ge;" + QString::number(getInt("mapq", false)) + " strand_bias&le;" + QString::number(getInt("strand_bias", false)) + " allele_balance&le;" + QString::number(getInt("allele_balance", false)) + " min_occurences&ge;" + QString::number(getInt("min_occurences", false)) + " min_af&ge;" + QString::number(getDouble("min_af", false)) + " max_af&le;" + QString::number(getDouble("max_af", false));
 }
 
 void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) const
@@ -2276,6 +2284,10 @@ void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) c
 	int mapq = getInt("mapq");
 	int strand_bias = getInt("strand_bias");
 	int allele_balance = getInt("allele_balance");
+	double min_af = getDouble("min_af");
+	double max_af = getDouble("max_af");
+	int min_occ = getInt("min_occurences");
+
 
 	for(int i=0; i<variants.count(); ++i)
 	{
@@ -2332,6 +2344,21 @@ void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) c
 			else if (allele_balance>=0 && part.startsWith("ABP="))
 			{
 				if (part.mid(4).toInt()>allele_balance)
+				{
+					result.flags()[i] = false;
+				}
+			}
+			else if (min_occ > 0 && (part.startsWith("SAR=") || part.startsWith("SAF=")))
+			{
+				if (part.mid(4).toInt() < min_occ)
+				{
+					result.flags()[i] = false;
+				}
+			}
+			else if ((min_af > 0 || max_af < 1) && part.startsWith("AF="))
+			{
+				double af = part.mid(3).toDouble();
+				if (af < min_af || max_af < af)
 				{
 					result.flags()[i] = false;
 				}
@@ -5604,5 +5631,4 @@ void FilterVariantRNAExpressionZScore::apply(const VariantList& variants, Filter
 		}
 	}
 }
-
 

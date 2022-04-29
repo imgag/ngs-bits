@@ -22,7 +22,7 @@ private slots:
 
 	void rank_GSvar_v1()
 	{
-		//construct phenotye ROI
+		//construct phenotype ROI
 		BedFile roi;
 		roi.load(TESTDATA("data_in/VariantScores_HP0003002.bed"));
 		Phenotype pheno("HP0003002", "Breast carcinoma");
@@ -111,7 +111,7 @@ private slots:
 
 	void rank_GSvar_v1_noNGSD()
 	{
-		//construct phenotye ROI
+		//construct phenotype ROI
 		BedFile roi;
 		roi.load(TESTDATA("data_in/VariantScores_HP0003002.bed"));
 		Phenotype pheno("HP0003002", "Breast carcinoma");

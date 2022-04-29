@@ -4,7 +4,7 @@ EndpointManager::EndpointManager()
 {
 }
 
-HttpResponse EndpointManager::getAuthStatus(HttpRequest request)
+HttpResponse EndpointManager::getBasicHttpAuthStatus(HttpRequest request)
 {
 	QString auth_header = request.getHeaderByName("Authorization").length() > 0 ? request.getHeaderByName("Authorization")[0] : "";
 	if (auth_header.isEmpty())
@@ -42,13 +42,40 @@ HttpResponse EndpointManager::getAuthStatus(HttpRequest request)
 		return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Database error: " + e.message());
 	}
 
-	if (message.isEmpty())
+	if (!message.isEmpty())
 	{
 		return HttpResponse(ResponseStatus::UNAUTHORIZED, request.getContentType(), "Invalid user credentials");
 	}
 
 	return HttpResponse(ResponseStatus::OK, request.getContentType(), "Successful authorization");
 }
+
+
+bool EndpointManager::isAuthorizedWithToken(const HttpRequest& request)
+{
+	if (request.getUrlParams().contains("token"))
+	{
+		return SessionManager::isTokenReal(request.getUrlParams()["token"]);
+	}
+
+	return false;
+}
+
+HttpResponse EndpointManager::getTokenAuthStatus(const HttpRequest& request)
+{
+	if (!isAuthorizedWithToken(request))
+	{
+		return HttpResponse(ResponseStatus::FORBIDDEN, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+	}
+
+	if (SessionManager::isUserSessionExpired(request.getUrlParams()["token"]))
+	{
+		return HttpResponse(ResponseStatus::REQUEST_TIMEOUT, request.getContentType(), "Secure token has expired");
+	}
+
+	return HttpResponse(ResponseStatus::OK, request.getContentType(), "OK");
+}
+
 
 void EndpointManager::validateInputData(Endpoint* current_endpoint, const HttpRequest& request)
 {	

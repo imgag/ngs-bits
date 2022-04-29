@@ -762,7 +762,7 @@ RtfTableRow SomaticReportHelper::overlappingCnv(const CopyNumberVariant &cnv, QB
 
 void SomaticReportHelper::saveReportData(QString filename, QString path, QString content)
 {
-	if (Settings::string("server_host", true).isEmpty())
+	if (!NGSHelper::isCliendServerMode())
 	{
 		if(!QDir(path).exists()) QDir().mkdir(path);
 
@@ -776,8 +776,10 @@ void SomaticReportHelper::saveReportData(QString filename, QString path, QString
 	add_headers.insert("Accept", "application/json");
 	add_headers.insert("Content-Type", "application/json");
 	add_headers.insert("Content-Length", QByteArray::number(content.size()));
+
+	//TODO handle reply? try-catch? > Alexandr
 	QString reply = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(
-				Helper::serverApiUrl()
+				NGSHelper::serverApiUrl()
 				+ "qbic_report_data?filename=" + QUrl(filename).toEncoded() + "&id=" + QUrl(path).toEncoded() +"&token=" + LoginManager::token(),
 				content.toLocal8Bit(),
 				add_headers
