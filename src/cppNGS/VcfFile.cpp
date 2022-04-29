@@ -81,7 +81,7 @@ void VcfFile::parseHeaderFields(const QByteArray& line, bool allow_multi_sample)
 		{
 			column_headers_.push_back(header_fields.at(i));
 		}
-
+		qDebug() << line;
 		//samples are all columns after the 10th
 		sample_id_to_idx_ = SampleIDToIdxPtr(new OrderedHash<QByteArray, int>);
 		if(column_headers_.count() >= 10)
@@ -90,17 +90,6 @@ void VcfFile::parseHeaderFields(const QByteArray& line, bool allow_multi_sample)
 			{
 				sample_id_to_idx_->push_back(column_headers_.at(i), i-9);
 			}
-		}
-		else if(header_fields.count()==9) //if we have a FORMAT column with no sample
-		{
-			column_headers_.push_back("Sample");
-			sample_id_to_idx_->push_back("Sample", 0);
-		}
-		else if(header_fields.count()==8)
-		{
-			column_headers_.push_back("FORMAT");
-			column_headers_.push_back("Sample");
-			sample_id_to_idx_->push_back("Sample", 0);
 		}
 	}
 }
@@ -795,45 +784,53 @@ void VcfFile::storeLineInformation(QTextStream& stream, VcfLine line) const
 	}
 
 	//if format exists
-	if(!line.formatKeys().empty())
+	if (column_headers_.contains("FORMAT"))
 	{
-		QString all_format_keys = line.formatKeys().join(":");
-		stream << "\t" << all_format_keys;
-	}
-	else
-	{
-		stream << "\t.";
-	}
-
-	//if sample exists
-	if(!line.samples().empty())
-	{
-		//for every sample
-		for(int sample_idx = 0; sample_idx < line.samples().size(); ++sample_idx)
+		if(!line.formatKeys().empty())
 		{
-			QByteArrayList sample_entry = line.sample(sample_idx);
-			if(sample_entry.empty())
-			{
-				stream << "\t.";
-			}
-			else
-			{
-				//for all entries in the sample (e.g. 'GT':'DP':...)
-				QByteArrayList values;
-				for(int sample_entry_id = 0; sample_entry_id < sample_entry.size(); ++sample_entry_id)
-				{
-					QByteArray value = ".";
-					if(sample_entry.at(sample_entry_id) != "") value = sample_entry.at(sample_entry_id);
-					values.append(value);
-				}
-				stream << "\t" << values.join(":");
-			}
+			QString all_format_keys = line.formatKeys().join(":");
+			stream << "\t" << all_format_keys;
+		}
+		else
+		{
+			stream << "\t.";
 		}
 	}
-	else
+
+
+	//if sample exists
+	if (column_headers_.count() > 9)
 	{
-		stream << "\t.";
+		if(!line.samples().empty())
+		{
+			//for every sample
+			for(int sample_idx = 0; sample_idx < line.samples().size(); ++sample_idx)
+			{
+				QByteArrayList sample_entry = line.sample(sample_idx);
+				if(sample_entry.empty())
+				{
+					stream << "\t.";
+				}
+				else
+				{
+					//for all entries in the sample (e.g. 'GT':'DP':...)
+					QByteArrayList values;
+					for(int sample_entry_id = 0; sample_entry_id < sample_entry.size(); ++sample_entry_id)
+					{
+						QByteArray value = ".";
+						if(sample_entry.at(sample_entry_id) != "") value = sample_entry.at(sample_entry_id);
+						values.append(value);
+					}
+					stream << "\t" << values.join(":");
+				}
+			}
+		}
+		else
+		{
+			stream << "\t.";
+		}
 	}
+
 	stream << "\n";
 }
 
@@ -851,13 +848,40 @@ void VcfFile::storeHeaderColumns(QTextStream &stream) const
 	{
 		THROW(ArgumentException, "Number of column headers is " + QString::number(vcfColumnHeader().count()) + ", but the minimum expected number of columns is: " + QString::number(MIN_COLS) + ".");
 	}
+	QVector<QByteArray> headers(column_headers_);
+	// if column headers are missing FORMAT and or sample headers.
+	if (headers.count() < 10)
+	{
+		bool format_added = headers.contains("FORMAT");
+		int sample_ids_added = 0;
+
+		foreach (VcfLinePtr line, vcf_lines_)
+		{
+			if (! format_added && ! line->formatKeys().empty())
+			{
+				headers.append("FORMAT");
+				format_added = true;
+			}
+
+			if (line->samples().count() > sample_ids_added)
+			{
+				for(int i=sample_ids_added; i<line->samples().count(); i++)
+				{
+					headers.append("Sample" + QByteArray::number(i));
+				}
+			}
+		}
+	}
+
 
 	stream << "#";
-	for(int i = 0; i < column_headers_.count() - 1; ++i)
+	for(int i = 0; i < headers.count() - 1; ++i)
 	{
-		stream << column_headers_.at(i) << "\t";
+		stream << headers.at(i) << "\t";
 	}
-	stream << column_headers_.at(column_headers_.count() - 1) << "\n";
+
+
+	stream << headers.at(column_headers_.count() - 1) << "\n";
 }
 
 void VcfFile::copyMetaDataForSubsetting(const VcfFile& rhs)
