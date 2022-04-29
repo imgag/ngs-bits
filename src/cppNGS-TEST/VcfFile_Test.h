@@ -166,14 +166,6 @@ private slots:
 	void loadFromVCF_noSampleOrFormatColumn()
 	{
 		VcfFile vl;
-		vl.load(TESTDATA("data_in/VariantList_loadFromVCF_noSample.vcf"));
-		I_EQUAL(vl.count(), 14);
-		I_EQUAL(vl.informationIDs().count(), 18);
-		I_EQUAL(vl.formatIDs().count(), 6);
-		I_EQUAL(vl.vcfHeader().comments().count(), 1);
-		S_EQUAL(vl.vcfHeader().fileFormat(), QByteArray("VCFv4.1"));
-		I_EQUAL(vl.sampleIDs().count(), 0);
-
 		vl.load(TESTDATA("data_in/VariantList_loadFromVCF_noFormatSample.vcf"));
 		I_EQUAL(vl.count(), 14);
 		I_EQUAL(vl.informationIDs().count(), 18);

@@ -9,7 +9,6 @@ VcfFile::VcfFile()
 	, sample_id_to_idx_()
 	, format_id_to_idx_list_()
 	, info_id_to_idx_list_()	
-	, format_exists_(false)
 	, samples_exist_(false)
 {
 }
@@ -24,7 +23,6 @@ void VcfFile::clear()
 	format_id_to_idx_list_.clear();
 	info_id_to_idx_list_.clear();
 
-	format_exists_ = false;
 	samples_exist_ = false;
 }
 
@@ -78,8 +76,11 @@ void VcfFile::parseHeaderFields(const QByteArray& line, bool allow_multi_sample)
 		{
 			THROW(FileParseException, "VCF file header line with an inaccurately named FORMAT column: '" + line.trimmed() + "'");
 		}
+		if (header_fields.count() == 9)
+		{
+			THROW(FileParseException, "VCF file header line has only FORMAT column but no sample columns.");
+		}
 
-		format_exists_ = header_fields.count() >= 9;
 		samples_exist_ = header_fields.count() >= 10;
 
 		int header_count;
@@ -792,7 +793,7 @@ void VcfFile::storeLineInformation(QTextStream& stream, VcfLine line) const
 	}
 
 	//if format exists
-	if (format_exists_)
+	if (samples_exist_)
 	{
 		if(!line.formatKeys().empty())
 		{
@@ -860,24 +861,15 @@ void VcfFile::storeHeaderColumns(QTextStream &stream) const
 	// if column headers are missing FORMAT and or sample headers.
 	if (headers.count() < 10)
 	{
-		format_exists_ = headers.contains("FORMAT");
 		samples_exist_ = false;
 
 		foreach (VcfLinePtr line, vcf_lines_)
 		{
-			if (! format_exists_ && ! line->formatKeys().empty())
-			{
-				headers.append("FORMAT");
-				format_exists_ = true;
-			}
-
 			if (line->samples().count() > 0)
 			{
-				if (!format_exists_)
-				{
-					THROW(ArgumentException, "Cannot store vcfLine. It has sample values but no format!")
-				}
 				samples_exist_ = true;
+
+				headers.append("FORMAT");
 
 				for(int i=0; i<line->samples().count(); i++)
 				{
@@ -1027,7 +1019,6 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 
 	//add header fields
 	vcf_file.column_headers_ << "CHROM" << "POS" << "ID" << "REF" << "ALT" << "QUAL" << "FILTER" << "INFO" << "FORMAT";
-	vcf_file.format_exists_ = true;
 	//search for genotype on annotations
 	SampleHeaderInfo genotype_columns;
 	try
