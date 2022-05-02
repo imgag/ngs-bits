@@ -44,7 +44,7 @@ public:
 	void updateRecentSampleMenu();
 	///Updates IGV menu
     void updateIGVMenu();
-	///Updates menu and toolbar according to NGSD-support
+	///Enabled/disables actions/buttons depending if NGSD is enabled or disabled.
 	void updateNGSDSupport();
 	///Returns 'nobr' paragraph start for Qt tooltips
 	static QString nobr();
