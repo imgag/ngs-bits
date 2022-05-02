@@ -759,7 +759,48 @@ QMap<QByteArray, QByteArray> NGSHelper::parseGffAttributes(const QByteArray& att
         output[part.left(split_index)] = part.mid(split_index+1);
     }
 
-    return output;
+	return output;
+}
+
+bool NGSHelper::isCliendServerMode()
+{
+	return !Settings::string("server_host", true).trimmed().isEmpty() && !Settings::string("https_server_port", true).trimmed().isEmpty();
+}
+
+QString NGSHelper::serverApiVersion()
+{
+	return "v1";
+}
+
+QString NGSHelper::serverApiUrl(const bool& return_http)
+{
+	QString protocol = return_http ? "http://" : "https://";
+	QString port = return_http ? Settings::string("http_server_port", true) : Settings::string("https_server_port", true);
+
+	return protocol + Settings::string("server_host", true) + ":" + port + "/" + serverApiVersion() + "/";
+}
+
+QMap<QByteArray, QByteArrayList>& NGSHelper::transcriptMatches(GenomeBuild build)
+{
+	static QMap<GenomeBuild, QMap<QByteArray, QByteArrayList>> output;
+
+	if (!output.contains(build))
+	{
+		QStringList lines = Helper::loadTextFile(":/Resources/"+buildToString(build)+"_ensembl_transcript_matches.tsv", true, '#', true);
+		foreach(const QString& line, lines)
+		{
+			QByteArrayList parts = line.toLatin1().split('\t');
+			if (parts.count()>=2)
+			{
+				QByteArray enst = parts[0];
+				QByteArray other = parts[1];
+				output[build][enst] << other;
+				output[build][other] << enst;
+			}
+		}
+	}
+
+	return output[build];
 }
 
 TranscriptList NGSHelper::loadGffFile(QString filename, QMap<QByteArray, QByteArray>& transcript_gene_relation,

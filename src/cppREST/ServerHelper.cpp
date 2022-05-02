@@ -39,7 +39,7 @@ int ServerHelper::getNumSettingsValue(const QString& key)
 	}
 	catch (Exception& e)
 	{
-		qWarning() << "Cannot find numerical key " + key + " in the settings: " + e.message();
+		Log::warn("Cannot find numerical key " + key + " in the settings: " + e.message());
 	}
 
 	return num_value;
@@ -54,7 +54,7 @@ QString ServerHelper::getStringSettingsValue(const QString& key)
 	}
 	catch (Exception& e)
 	{
-		qWarning() << "Cannot find string key " + key + " in the settings: " + e.message();
+		Log::warn("Cannot find string key " + key + " in the settings: " + e.message());
 	}
 
 	return string_value;

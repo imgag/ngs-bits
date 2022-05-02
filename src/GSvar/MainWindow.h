@@ -31,6 +31,9 @@ public:
 	///Returns the application name
 	QString appName() const;
 
+	/// Gets server API information to make sure ther the server is currently running
+	bool isServerRunning();
+
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
 	///Returns the LOG files corresponding to the variant list.
@@ -75,6 +78,8 @@ public:
 	int igvPort() const;
 
 public slots:
+	/// Checks (only in clinet-server mode) if the server is currently running
+	void checkServerAvailability();
 	///Loads a variant list. Unloads the variant list if no file name is given
 	void loadFile(QString filename="");
 	///Checks if variant list is outdated

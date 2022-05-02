@@ -24,11 +24,9 @@ public:
     static const QMap<QByteArray, QByteArrayList>& preferredTranscripts(bool reload=false);
     //Returns a list of special regions that are to be added to sub-panel designs for a given gene
 	static const QMap<QByteArray, QList<BedLine>>& specialRegions();
-	//Returns a list of matching regions for ENST transcripts (no version numbers!)
-	static const QMap<QByteArray, QByteArrayList>& transcriptMatches();
 
 	//Returns the application base name - path and filename
-    static QString applicationBaseName();
+	static QString applicationBaseName();
 	//Returns the genome build used by GSvar.
 	static GenomeBuild build();
 

@@ -27,7 +27,7 @@
 QT_CHARTS_USE_NAMESPACE
 
 
-MosaicWidget::MosaicWidget(const VariantList& variants, QString ps_id, ReportSettings rep_settings, QHash<QByteArray, BedFile>& cache, QWidget* parent)
+MosaicWidget::MosaicWidget(const VariantList& variants, ReportSettings rep_settings, QHash<QByteArray, BedFile>& cache, QWidget* parent)
 	: QWidget(parent)
 	, ui_(new Ui::MosaicWidget)
 	, variants_(variants)

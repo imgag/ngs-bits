@@ -129,31 +129,6 @@ const QMap<QByteArray, QList<BedLine>> & GSvarHelper::specialRegions()
 	return output;
 }
 
-const QMap<QByteArray, QByteArrayList>& GSvarHelper::transcriptMatches()
-{
-	static QMap<QByteArray, QByteArrayList> output;
-	static bool initialized = false;
-
-	if (!initialized)
-	{
-		QStringList lines = Helper::loadTextFile(":/Resources/"+buildToString(build())+"_ensembl_transcript_matches.tsv", true, '#', true);
-		foreach(const QString& line, lines)
-		{
-			QByteArrayList parts = line.toLatin1().split('\t');
-			if (parts.count()>=2)
-			{
-				QByteArray enst = parts[0];
-				QByteArray match = parts[1];
-				output[enst] << match;
-			}
-		}
-
-		initialized = true;
-	}
-
-	return output;
-}
-
 QString GSvarHelper::applicationBaseName()
 {
 	return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName();

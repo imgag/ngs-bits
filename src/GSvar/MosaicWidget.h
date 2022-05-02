@@ -22,7 +22,7 @@ class MosaicWidget
 	Q_OBJECT
 
 public:
-	MosaicWidget(const VariantList& variants, QString ps_id, ReportSettings rep_settings, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
+	MosaicWidget(const VariantList& variants, ReportSettings rep_settings, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
 	~MosaicWidget();
 
 private slots:

@@ -1,6 +1,6 @@
 #include "TestFramework.h"
-#include "EndpointHandler.h"
-#include "EndpointHandler.cpp"
+#include "ServerController.h"
+#include "ServerController.cpp"
 
 TEST_CLASS(EndpointHandler_Test)
 {
@@ -14,9 +14,13 @@ private slots:
 		request.setPrefix("v1");
 		request.setPath("info");
 
-		HttpResponse response = EndpointHandler::serveApiInfo(request);
+		HttpResponse response = ServerController::serveResourceAsset(request);
+		QJsonDocument json_doc = QJsonDocument::fromJson(response.getPayload());	;
+
 		IS_TRUE(response.getStatusLine().contains("200"));
-		IS_TRUE(response.getFilename().contains("api.json"));
+		S_EQUAL(json_doc.object()["name"].toString(), ToolBase::applicationName());
+		S_EQUAL(json_doc.object()["version"].toString(), ToolBase::version());
+		S_EQUAL(json_doc.object()["api_version"].toString(), NGSHelper::serverApiVersion());
     }
 
 	void test_saving_gsvar_file()
@@ -53,7 +57,7 @@ private slots:
 		request.setBody(json_doc.toJson());
 		request.addUrlParam("token", "token");
 
-		HttpResponse response = EndpointHandler::saveProjectFile(request);
+		HttpResponse response = ServerController::saveProjectFile(request);
 		IS_TRUE(response.getStatusLine().contains("200"));
 		COMPARE_FILES(file_copy, TESTDATA("data/sample_saved_changes.gsvar"));
 		QFile::remove(copy_name);
@@ -86,10 +90,10 @@ private slots:
 		request.addHeader("Accept", "*/*");
 		request.addHeader("Content-Type", "multipart/form-data; boundary=------------------------2cb4f6c221043bbe");
 
-		HttpResponse response = EndpointHandler::uploadFile(request);
+		HttpResponse response = ServerController::uploadFile(request);
 		IS_TRUE(response.getStatusLine().contains("400"));
 		request.addFormDataParam("ps_url_id", url_id);
-		response = EndpointHandler::uploadFile(request);
+		response = ServerController::uploadFile(request);
 		IS_TRUE(response.getStatusLine().contains("200"));
 		QString file_copy = TESTDATA("data/" + copy_name.toLocal8Bit());
 		COMPARE_FILES(file_copy, upload_file);

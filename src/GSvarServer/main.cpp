@@ -1,72 +1,20 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QFile>
-#include <QTextStream>
 #include <QCommandLineParser>
+#include "Log.h"
 #include "ServerWrapper.h"
 #include "ServerHelper.h"
 #include "EndpointController.h"
-#include "EndpointHandler.h"
-
-int log_level = 3;
-
-QFile gsvar_server_log_file("gsvar-server-log.txt");
-
-void interceptLogMessage(QtMsgType type, const QMessageLogContext &, const QString &msg)
-{
-	QString time_stamp = QDate::currentDate().toString("dd/MM/yyyy") + " " + QTime::currentTime().toString("hh:mm:ss:zzz");
-	QString log_statement = "";
-	int msg_level = 0;
-	switch (type) {
-		case QtCriticalMsg:
-			msg_level = 0;
-			log_statement = QString("%1 - [Critical] %2").arg(time_stamp, msg);
-			break;
-		case QtFatalMsg:
-			msg_level = 0;
-			log_statement = QString("%1 - [Fatal] %2").arg(time_stamp, msg);
-			break;
-		case QtInfoMsg:
-			msg_level = 1;
-			log_statement = QString("%1 - [Info] %2").arg(time_stamp, msg);
-			break;
-		case QtWarningMsg:
-			msg_level = 2;
-			log_statement = QString("%1 - [Warning] %2").arg(time_stamp, msg);
-			break;
-		case QtDebugMsg:
-		default:
-			msg_level = 3;
-			log_statement = QString("%1 - [Debug] %2").arg(time_stamp, msg);
-	}
-
-	// Log levels:
-	// 0: only critical and fatal
-	// 1: += info
-	// 2: += warning
-	// 3: += debug
-	if (msg_level <= log_level)
-	{
-		printf("%s", qUtf8Printable(log_statement.replace("\"", "")));
-		printf("\n");
-
-		QTextStream out_stream(&gsvar_server_log_file);
-		out_stream.setCodec("UTF-8");
-		out_stream.setGenerateByteOrderMark(false);
-		out_stream << log_statement << endl;
-	}
-
-	if (type == QtFatalMsg)
-	{
-		abort();
-	}
-}
+#include "ServerController.h"
 
 int main(int argc, char **argv)
 {
-	gsvar_server_log_file.open(QIODevice::WriteOnly | QIODevice::Append);
-
 	QCoreApplication app(argc, argv);
+	QCoreApplication::setApplicationVersion(SERVER_VERSION);
+	Log::setFileName(QCoreApplication::applicationFilePath().replace(".exe", "") + ".log");
+	Log::setCMDEnabled(true);
+	Log::appInfo();
 
 	QCommandLineParser parser;
 	parser.setApplicationDescription("GSvar file server");
@@ -89,45 +37,56 @@ int main(int argc, char **argv)
 	QString http_port = parser.value(httpServerPortOption);
 	QString log_level_option = parser.value(logLevelOption);
 
-	if (!log_level_option.isEmpty())
-	{
-		qInfo().noquote() << "Log level parameter has been provided through the command line arguments:" + log_level_option;
-		log_level = log_level_option.toInt();
-	}
-	else {
-		qInfo().noquote() << "Using log level from the application settings:" + QString::number(ServerHelper::getNumSettingsValue("log_level"));
-		log_level = ServerHelper::getNumSettingsValue("log_level");
-	}
-
-	qInstallMessageHandler(interceptLogMessage);
-
 	EndpointManager::appendEndpoint(Endpoint{
 						"",
 						QMap<QString, ParamProps>{},
 						RequestMethod::GET,
 						ContentType::TEXT_HTML,
-						false,
+						AuthType::NONE,
 						"Index page with general information",
-						&EndpointHandler::serveIndexPage
+						&ServerController::serveResourceAsset
 					});
 	EndpointManager::appendEndpoint(Endpoint{
 						"favicon.ico",
 						QMap<QString, ParamProps>{},
 						RequestMethod::GET,
 						ContentType::IMAGE_PNG,
-						false,
+						AuthType::NONE,
 						"Favicon to avoid warnings from the browser",
-						&EndpointHandler::serveFavicon
+						&ServerController::serveResourceAsset
 					});
 	EndpointManager::appendEndpoint(Endpoint{
 						"info",
 						QMap<QString, ParamProps>{},
 						RequestMethod::GET,
 						ContentType::APPLICATION_JSON,
-						false,
+						AuthType::NONE,
 						"General information about this API",
-						&EndpointHandler::serveApiInfo
+						&ServerController::serveResourceAsset
 					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"bam",
+						QMap<QString, ParamProps>{
+						   {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, true, "Name of the BAM file to be served"}}
+						},
+						RequestMethod::GET,
+						ContentType::APPLICATION_OCTET_STREAM,
+						AuthType::NONE,
+						"BAM file used for the testing purposes",
+						&ServerController::serveResourceAsset
+				   });
+	EndpointManager::appendEndpoint(Endpoint{
+						"bam",
+						QMap<QString, ParamProps>{
+						   {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, false, "Name of the BAM file to be served"}}
+						},
+						RequestMethod::HEAD,
+						ContentType::APPLICATION_OCTET_STREAM,
+						AuthType::NONE,
+						"Size of the BAM file used for the testing purposes",
+						&ServerController::serveResourceAsset
+				   });
+
 	EndpointManager::appendEndpoint(Endpoint{
 						"static",
 						QMap<QString, ParamProps>{
@@ -136,7 +95,7 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_HTML,
-						false,
+						AuthType::SECURE_TOKEN,
 						"Static content served from the server root folder (defined in the config file)",
 						&EndpointController::serveStaticFromServerRoot
 				   });
@@ -149,7 +108,7 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::HEAD,
 						ContentType::TEXT_HTML,
-						false,
+						AuthType::SECURE_TOKEN,
 						"Size of the static content served from the server root folder (defined in the config file)",
 						&EndpointController::serveStaticFromServerRoot
 				   });
@@ -161,22 +120,11 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_HTML,
-						true,
+						AuthType::HTTP_BASIC_AUTH,
 						"Protected static files",
 						&EndpointController::serveStaticFromServerRoot
 				   });
 
-	EndpointManager::appendEndpoint(Endpoint{
-						"cache",
-						QMap<QString, ParamProps>{
-						   {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, false, "Name of the file to be served"}}
-						},
-						RequestMethod::GET,
-						ContentType::TEXT_HTML,
-						false,
-						"Static content served from the server cache",
-						&EndpointController::serveStaticFileFromCache
-				   });
 	EndpointManager::appendEndpoint(Endpoint{
 						"temp",
 						QMap<QString, ParamProps>{
@@ -185,7 +133,7 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_HTML,
-						false,
+						AuthType::SECURE_TOKEN,
 						"Static file served via secure temporary URL",
 						&EndpointController::serveStaticForTempUrl
 				   });
@@ -199,7 +147,7 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::HEAD,
 						ContentType::TEXT_HTML,
-						false,
+						AuthType::SECURE_TOKEN,
 						"Size of the static file served via secure temporary URL",
 						&EndpointController::serveStaticForTempUrl
 				   });
@@ -212,7 +160,7 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_HTML,
-						false,
+						AuthType::NONE,
 						"Help page on the usage of the endpoints",
 						&EndpointController::serveEndpointHelp
 					});
@@ -230,9 +178,9 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::GET,
 						ContentType::APPLICATION_JSON,
-						false,
+						AuthType::SECURE_TOKEN,
 						"Retrieve file location information for specific file types",
-						&EndpointHandler::locateFileByType
+						&ServerController::locateFileByType
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -244,9 +192,9 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_PLAIN,
-						false,
+						AuthType::SECURE_TOKEN,
 						"Temporary URL leading to a specific project file (based on the processed sample id)",
-						&EndpointHandler::getProcessedSamplePath
+						&ServerController::getProcessedSamplePath
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -257,9 +205,9 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::GET,
 						ContentType::APPLICATION_JSON,
-						false,
+						AuthType::SECURE_TOKEN,
 						"FileLocation object with the information about GSvar for the corresponding analysis job",
-						&EndpointHandler::getAnalysisJobGSvarFile
+						&ServerController::getAnalysisJobGSvarFile
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -270,9 +218,9 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::PUT,
 						ContentType::APPLICATION_JSON,
-						false,
+						AuthType::SECURE_TOKEN,
 						"Update an existing project file (GSvar file)",
-						&EndpointHandler::saveProjectFile
+						&ServerController::saveProjectFile
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -283,9 +231,9 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_PLAIN,
-						false,
+						AuthType::SECURE_TOKEN,
 						"Processing system regions",
-						&EndpointHandler::getProcessingSystemRegions
+						&ServerController::getProcessingSystemRegions
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -296,9 +244,9 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_PLAIN,
-						false,
+						AuthType::SECURE_TOKEN,
 						"Processing system amplicons",
-						&EndpointHandler::getProcessingSystemAmplicons
+						&ServerController::getProcessingSystemAmplicons
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -309,9 +257,9 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_PLAIN,
-						false,
+						AuthType::SECURE_TOKEN,
 						"Processing system genes",
-						&EndpointHandler::getProcessingSystemGenes
+						&ServerController::getProcessingSystemGenes
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -323,9 +271,9 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::GET,
 						ContentType::APPLICATION_JSON,
-						false,
+						AuthType::SECURE_TOKEN,
 						"Secondary analyses list",
-						&EndpointHandler::getSecondaryAnalyses
+						&ServerController::getSecondaryAnalyses
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -338,9 +286,9 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::POST,
 						ContentType::APPLICATION_JSON,
-						false,
+						AuthType::SECURE_TOKEN,
 						"Save QBic data report files",
-						&EndpointHandler::saveQbicFiles
+						&ServerController::saveQbicFiles
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -351,9 +299,9 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::POST,
 						ContentType::APPLICATION_OCTET_STREAM,
-						false,
+						AuthType::SECURE_TOKEN,
 						"File upload to a folder on the server",
-						&EndpointHandler::uploadFile
+						&ServerController::uploadFile
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -364,9 +312,9 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::POST,
 						ContentType::TEXT_PLAIN,
-						false,
+						AuthType::NONE,
 						"Secure token generation, the token will be used to access protected resources and to perform  certain API calls",
-						&EndpointHandler::performLogin
+						&ServerController::performLogin
 					});
 	EndpointManager::appendEndpoint(Endpoint{
 						"logout",
@@ -375,39 +323,37 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::POST,
 						ContentType::TEXT_PLAIN,
-						false,
+						AuthType::SECURE_TOKEN,
 						"Secure token invalidation, after this step the token cannot longer be used",
-						&EndpointHandler::performLogout
+						&ServerController::performLogout
 					});
-
-
 
 	int https_port_setting = ServerHelper::getNumSettingsValue("https_server_port");
 	int http_port_setting = ServerHelper::getNumSettingsValue("http_server_port");
 
 	if (!https_port.isEmpty())
 	{
-		qInfo() << "HTTPS server port has been provided through the command line arguments:" + https_port;
+		Log::info("HTTPS server port has been provided through the command line arguments:" + https_port);
 		https_port_setting = https_port.toInt();
 	}
 	if (https_port_setting == 0)
 	{
-		qInfo() << "HTTPS port number is invalid";
+		Log::error("HTTPS port number is invalid");
 		app.exit(EXIT_FAILURE);
 	}
 
-	qInfo() << "SSL version used for build: " << QSslSocket::sslLibraryBuildVersionString();
+	Log::info("SSL version used for build: " + QSslSocket::sslLibraryBuildVersionString());
 	ServerWrapper https_server(https_port_setting);
 
 	if (!http_port.isEmpty())
 	{
-		qInfo() << "HTTP server port has been provided through the command line arguments:" + http_port;
+		Log::info("HTTP server port has been provided through the command line arguments:" + http_port);
 		http_port_setting = https_port.toInt();
 	}
 
 	if (http_port_setting == 0)
 	{
-		qInfo() << "HTTP port number is invalid";
+		Log::error("HTTP port number is invalid");
 		app.exit(EXIT_FAILURE);
 	}
 	ServerWrapper http_server(http_port_setting, true);

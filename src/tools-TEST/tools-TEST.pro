@@ -128,6 +128,7 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     SplicingToBed_Test.h \
     GraphStringDb_Test.h \
     GenePrioritization_Test.h \
+    CfDnaQC_Test.h \
     VcfAnnotateFromBigWig_Test.h \
     BedLiftOver_Test.h \
     BedpeSort_Test.h \
@@ -135,6 +136,7 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     BedpeAnnotateCounts_Test.h \
     BedpeAnnotateBreakpointDensity.h \
     VcfAnnotateConsequence_Test.h \
+    HgvsToVcf_Test.h\
     CfnaQC_Test.h \
     RnaQC_Test.h
 
