@@ -1,7 +1,5 @@
 #include "LoginDialog.h"
-#include "Helper.h"
-#include "NGSD.h"
-#include "HttpRequestHandler.h"
+#include "GlobalServiceProvider.h"
 
 LoginDialog::LoginDialog(QWidget *parent)
 	: QDialog(parent)
@@ -37,9 +35,8 @@ void LoginDialog::checkPassword()
 	QString password = ui_.password->text().trimmed();
 
 	try
-	{
-		NGSD db;
-		QString message = db.checkPassword(user_name, password);
+	{		
+		QString message = GlobalServiceProvider::database().checkPassword(user_name, password);
 		if (message.isEmpty())
 		{
 			user_name_ = user_name;

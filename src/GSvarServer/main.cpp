@@ -305,7 +305,7 @@ int main(int argc, char **argv)
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
-							"login",
+						"login",
 						QMap<QString, ParamProps>{
 							{"name", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "User name"}},
 							{"password", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "Password"}}
@@ -315,6 +315,54 @@ int main(int argc, char **argv)
 						AuthType::NONE,
 						"Secure token generation, the token will be used to access protected resources and to perform  certain API calls",
 						&ServerController::performLogin
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
+						"validate_credentials",
+						QMap<QString, ParamProps>{
+							{"name", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "User name"}},
+							{"password", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "Password"}}
+						},
+						RequestMethod::POST,
+						ContentType::TEXT_PLAIN,
+						AuthType::NONE,
+						"Checks if provided GSvar credentials are valid",
+						&ServerController::validateCredentials
+					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"db_token",
+						QMap<QString, ParamProps>{
+							{"token", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "User name"}}
+						},
+						RequestMethod::POST,
+						ContentType::TEXT_PLAIN,
+						AuthType::SECURE_TOKEN,
+						"Secure token generation for accessing the database credentials",
+						&ServerController::getDbToken
+					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"ngsd_credentials",
+						QMap<QString, ParamProps>{
+							{"dbtoken", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "Secure token for the database credentials"}},
+							{"secret", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "Secret known to a client and to the server"}}
+						},
+						RequestMethod::POST,
+						ContentType::APPLICATION_JSON,
+						AuthType::GSVAR_TOKEN,
+						"Sends NGSD credentials to the GSvar client application",
+						&ServerController::getNgsdCredentials
+					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"genlab_credentials",
+						QMap<QString, ParamProps>{
+							{"dbtoken", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "Secure token for the database credentials"}},
+							{"secret", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "Secret known to a client and to the server"}}
+						},
+						RequestMethod::POST,
+						ContentType::APPLICATION_JSON,
+						AuthType::GSVAR_TOKEN,
+						"Sends Genlab database credentials to the GSvar client application",
+						&ServerController::getGenlabCredentials
 					});
 	EndpointManager::appendEndpoint(Endpoint{
 						"logout",
@@ -340,9 +388,10 @@ int main(int argc, char **argv)
 	{
 		Log::error("HTTPS port number is invalid");
 		app.exit(EXIT_FAILURE);
+		return app.exec();
 	}
 
-	Log::info("SSL version used for build: " + QSslSocket::sslLibraryBuildVersionString());
+	Log::info("SSL version used for the build: " + QSslSocket::sslLibraryBuildVersionString());
 	ServerWrapper https_server(https_port_setting);
 
 	if (!http_port.isEmpty())
@@ -350,11 +399,11 @@ int main(int argc, char **argv)
 		Log::info("HTTP server port has been provided through the command line arguments:" + http_port);
 		http_port_setting = https_port.toInt();
 	}
-
 	if (http_port_setting == 0)
 	{
 		Log::error("HTTP port number is invalid");
 		app.exit(EXIT_FAILURE);
+		return app.exec();
 	}
 	ServerWrapper http_server(http_port_setting, true);
 

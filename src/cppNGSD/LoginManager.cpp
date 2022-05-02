@@ -1,12 +1,28 @@
 #include "LoginManager.h"
 #include "NGSD.h"
+#include "ToolBase.h"
+#include <QJsonDocument>
 
 LoginManager::LoginManager()
 	: user_()
 	, user_name_()
 	, user_id_(-1)
-	, role_()
-	, token_()
+	, user_role_()
+	, user_login_()
+	, user_token_()
+	, user_password_()
+	, db_token_()
+	, ngsd_host_name_()
+	, ngsd_port_()
+	, ngsd_name_()
+	, ngsd_user_()
+	, ngsd_password_()
+	, genlab_mssql_()
+	, genlab_host_()
+	, genlab_port_()
+	, genlab_name_()
+	, genlab_user_()
+	, genlab_password_()
 {
 }
 
@@ -16,18 +32,17 @@ LoginManager& LoginManager::instance()
 	return manager;
 }
 
-QByteArray LoginManager::sendAuthRequest(QString content, HttpHeaders add_headers)
+QByteArray LoginManager::sendPostApiRequest(QString path, QString content, HttpHeaders add_headers)
 {
-	QByteArray response;
 	try
 	{
-		response = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(NGSHelper::serverApiUrl()+ "login", content.toLocal8Bit(), add_headers);
+		return HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(NGSHelper::serverApiUrl() + path, content.toLocal8Bit(), add_headers);
 	}
 	catch (Exception& e)
 	{
-		qDebug() << "Login problem: " + e.message();
+		Log::error("Login manager encountered an error while sending POST request: " + e.message());
 	}
-	return response;
+	return QByteArray{};
 }
 
 QString LoginManager::user()
@@ -64,25 +79,25 @@ QString LoginManager::userLogin()
 	return user_login;
 }
 
-QString LoginManager::token()
+QString LoginManager::userToken()
 {
-	QString token = instance().token_;
+	QString token = instance().user_token_;
 	if (token.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::token if no user is logged in!");
 
 	return token;
 }
 
-QString LoginManager::password()
+QString LoginManager::userPassword()
 {
-	QString password = instance().password_;
+	QString password = instance().user_password_;
 	if (password.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::password if no user is logged in!");
 
 	return password;
 }
 
-QString LoginManager::role()
+QString LoginManager::userRole()
 {
-	return instance().role_;
+	return instance().user_role_;
 }
 
 bool LoginManager::active()
@@ -92,28 +107,51 @@ bool LoginManager::active()
 
 void LoginManager::login(QString user, QString password, bool test_db)
 {
-	NGSD db(test_db);
-
-	//login
 	LoginManager& manager = instance();
-	manager.user_id_ = db.userId(user, true);
-	manager.user_ = user;
-	manager.user_name_ = db.userName(manager.user_id_);
-	manager.password_ = password;
-
-	//determine role
-	manager.role_ = db.getValue("SELECT user_role FROM user WHERE id='" + QString::number(manager.user_id_) + "'").toString();
-	manager.user_login_ = db.userLogin(manager.user_id_);
-	//update last login
-	db.getQuery().exec("UPDATE user SET last_login=NOW() WHERE id='" + QString::number(manager.user_id_) + "'");
-
 	if (NGSHelper::isCliendServerMode())
 	{
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");
-		QString content = "name="+manager.user_login_+"&password="+manager.password_;
-		manager.token_ = sendAuthRequest(content, add_headers);
+
+		manager.user_token_ = sendPostApiRequest("login", "name="+user+"&password="+password, add_headers);
+		manager.db_token_ = sendPostApiRequest("db_token", "token="+manager.user_token_, add_headers);
+		QByteArray ngsd_credentials = sendPostApiRequest("ngsd_credentials", "dbtoken="+manager.db_token_+"&secret="+QString::number(ToolBase::encryptionKey("encryption helper"), 16), add_headers);
+		QJsonDocument ngsd_json = QJsonDocument::fromJson(ngsd_credentials);
+
+		if (ngsd_json.isObject())
+		{
+			manager.ngsd_host_name_ = ngsd_json.object().value("ngsd_host").toString();
+			manager.ngsd_port_ = ngsd_json.object().value("ngsd_port").toString().toInt();
+			manager.ngsd_name_ = ngsd_json.object().value("ngsd_name").toString();
+			manager.ngsd_user_ = ngsd_json.object().value("ngsd_user").toString();
+			manager.ngsd_password_ = ngsd_json.object().value("ngsd_pass").toString();
+		}
+
+		QByteArray genlab_credentials = sendPostApiRequest("genlab_credentials", "dbtoken="+manager.db_token_+"&secret="+QString::number(ToolBase::encryptionKey("encryption helper"), 16), add_headers);
+		QJsonDocument genlab_json = QJsonDocument::fromJson(genlab_credentials);
+
+		if (genlab_json.isObject())
+		{
+			manager.genlab_mssql_ = genlab_json.object().value("genlab_mssql").toBool();
+			manager.genlab_host_ = genlab_json.object().value("genlab_host").toString();
+			manager.genlab_port_ = genlab_json.object().value("genlab_port").toString().toInt();
+			manager.genlab_name_ = genlab_json.object().value("genlab_name").toString();
+			manager.genlab_user_ = genlab_json.object().value("genlab_user").toString();
+			manager.genlab_password_ = genlab_json.object().value("genlab_pass").toString();
+		}
 	}
+
+	NGSD db(test_db);
+	manager.user_id_ = db.userId(user, true);
+	manager.user_ = user;
+	manager.user_name_ = db.userName(manager.user_id_);
+	manager.user_password_ = password;
+
+	//determine role
+	manager.user_role_ = db.getValue("SELECT user_role FROM user WHERE id='" + QString::number(manager.user_id_) + "'").toString();
+	manager.user_login_ = db.userLogin(manager.user_id_);
+	//update last login
+	db.getQuery().exec("UPDATE user SET last_login=NOW() WHERE id='" + QString::number(manager.user_id_) + "'");
 }
 
 void LoginManager::renewLogin()
@@ -122,10 +160,15 @@ void LoginManager::renewLogin()
 	add_headers.insert("Accept", "text/plain");
 
 	LoginManager& manager = instance();
-	if ((manager.user_.isEmpty()) || (manager.password_.isEmpty())) return;
+	if ((manager.user_.isEmpty()) || (manager.user_password_.isEmpty())) return;
 
-	QString content = "name="+manager.user_+"&password="+manager.password_;
-	manager.token_ = sendAuthRequest(content, add_headers);
+	QString content = "name="+manager.user_+"&password="+manager.user_password_;
+	manager.user_token_ = sendPostApiRequest("login", content, add_headers);
+}
+
+QString LoginManager::dbToken()
+{
+	return instance().db_token_;
 }
 
 void LoginManager::logout()
@@ -133,8 +176,108 @@ void LoginManager::logout()
 	LoginManager& manager = instance();
 	manager.user_.clear();
 	manager.user_id_ = -1;
-	manager.role_.clear();
-	manager.token_.clear();
+	manager.user_role_.clear();
+	manager.user_token_.clear();
+	manager.user_name_.clear();
+	manager.user_login_.clear();
+	manager.user_password_.clear();
+	manager.db_token_.clear();
+	manager.ngsd_host_name_.clear();
+	manager.ngsd_port_ = -1;
+	manager.ngsd_name_.clear();
+	manager.ngsd_user_.clear();
+	manager.ngsd_password_.clear();
+	manager.genlab_mssql_ = false;
+	manager.genlab_host_.clear();
+	manager.genlab_port_ = -1;
+	manager.genlab_name_.clear();
+	manager.genlab_user_.clear();
+	manager.genlab_password_.clear();
+}
+
+QString LoginManager::ngsdHostName()
+{
+	QString ngsd_host_name = instance().ngsd_host_name_;
+	if (ngsd_host_name.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::ngsd_host_name without database credentials available!");
+
+	return ngsd_host_name;
+}
+
+int LoginManager::ngsdPort()
+{
+	int ngsd_port = instance().ngsd_port_;
+	if (ngsd_port <= 0) THROW(ProgrammingException, "Cannot use LoginManager::ngsd_port without database credentials available!");
+
+	return ngsd_port;
+}
+
+QString LoginManager::ngsdName()
+{
+	QString ngsd_name = instance().ngsd_name_;
+	if (ngsd_name.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::ngsd_name without database credentials available!");
+
+	return ngsd_name;
+}
+
+QString LoginManager::ngsdUser()
+{
+	QString ngsd_user = instance().ngsd_user_;
+	if (ngsd_user.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::ngsd_user without database credentials available!");
+
+	return ngsd_user;
+}
+
+QString LoginManager::ngsdPassword()
+{
+	QString ngsd_password = instance().ngsd_password_;
+	if (ngsd_password.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::ngsd_password without database credentials available!");
+
+	return ngsd_password;
+}
+
+bool LoginManager::genlab_mssql()
+{
+	return instance().genlab_mssql_;
+}
+
+QString LoginManager::genlabHost()
+{
+	QString genlab_host = instance().genlab_host_;
+	if (genlab_host.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::genlab_host without database credentials available!");
+
+	return genlab_host;
+}
+
+int LoginManager::genlabPort()
+{
+	int genlab_port = instance().genlab_port_;
+	if (genlab_port <= 0) THROW(ProgrammingException, "Cannot use LoginManager::genlab_port without database credentials available!");
+
+	return genlab_port;
+}
+
+QString LoginManager::genlabName()
+{
+	QString genlab_name = instance().genlab_name_;
+	if (genlab_name.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::genlab_name without database credentials available!");
+
+	return genlab_name;
+}
+
+QString LoginManager::genlabUser()
+{
+	QString genlab_user = instance().genlab_user_;
+	if (genlab_user.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::genlab_user without database credentials available!");
+
+	return genlab_user;
+}
+
+QString LoginManager::genlabPassword()
+{
+	QString genlab_password = instance().genlab_password_;
+	if (genlab_password.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::genlab_password without database credentials available!");
+
+	return genlab_password;
 }
 
 void LoginManager::checkRoleIn(QStringList roles)
@@ -149,9 +292,9 @@ void LoginManager::checkRoleIn(QStringList roles)
 
 	//check if user has role
 	LoginManager& manager = instance();
-	if (!roles.contains(manager.role_))
+	if (!roles.contains(manager.user_role_))
 	{
-		THROW(Exception, "Access denied.\nOnly users with the roles '" + roles.join("', '") + "' have access.\nThe user '" + manager.user_ + "' has the role '" + manager.role_ + "'!");
+		THROW(Exception, "Access denied.\nOnly users with the roles '" + roles.join("', '") + "' have access.\nThe user '" + manager.user_ + "' has the role '" + manager.user_role_ + "'!");
 		return;
 	}
 }

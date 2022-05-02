@@ -790,7 +790,7 @@ void SomaticReportHelper::saveReportData(QString filename, QString path, QString
 	//TODO handle reply? try-catch? > Alexandr
 	QString reply = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(
 				NGSHelper::serverApiUrl()
-				+ "qbic_report_data?filename=" + QUrl(filename).toEncoded() + "&id=" + QUrl(path).toEncoded() +"&token=" + LoginManager::token(),
+				+ "qbic_report_data?filename=" + QUrl(filename).toEncoded() + "&id=" + QUrl(path).toEncoded() +"&token=" + LoginManager::userToken(),
 				content.toLocal8Bit(),
 				add_headers
 			);

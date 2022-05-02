@@ -20,21 +20,35 @@ public:
 
 	static QString userLogin();
 	//Returns a secure token generated for the given user
-	static QString token();
-	static QString password();
+	static QString userToken();
+	static QString userPassword();
 
 	//Returns user role from NGSD
-	static QString role();
+	static QString userRole();
 	//Returns if a user is logged in (and that the NGSD is enabled)
 	static bool active();
 
 	//User is logged in
 	static void login(QString user, QString password, bool test_db = false);
-
+	//Updates the user's session before it expires
 	static void renewLogin();
-
+	//Secure token to access the database
+	static QString dbToken();
 	//Log out user
 	static void logout();
+
+	static QString ngsdHostName();
+	static int ngsdPort();
+	static QString ngsdName();
+	static QString ngsdUser();
+	static QString ngsdPassword();
+
+	static bool genlab_mssql();
+	static QString genlabHost();
+	static int genlabPort();
+	static QString genlabName();
+	static QString genlabUser();
+	static QString genlabPassword();
 
 	//Checks if the user role is in the given role list. If not, an exception is thrown.
 	static void checkRoleIn(QStringList roles);
@@ -42,15 +56,34 @@ public:
 private:
 	LoginManager();
 	static LoginManager& instance();
-	static QByteArray sendAuthRequest(QString content, HttpHeaders add_headers);
+	static QByteArray sendPostApiRequest(QString path, QString content, HttpHeaders add_headers);
 
+	//User info
 	QString user_;
 	QString user_name_;
 	int user_id_;
-	QString role_;
+	QString user_role_;
 	QString user_login_;
-	QString token_;
-	QString password_;
+	QString user_token_;
+	QString user_password_;
+
+	//Token for requesting database credentials
+	QString db_token_;
+
+	//NGSD info
+	QString ngsd_host_name_;
+	int ngsd_port_;
+	QString ngsd_name_;
+	QString ngsd_user_;
+	QString ngsd_password_;
+
+	//Genlab info
+	bool genlab_mssql_;
+	QString genlab_host_;
+	int genlab_port_;
+	QString genlab_name_;
+	QString genlab_user_;
+	QString genlab_password_;
 };
 
 #endif // LOGINMANAGER_H

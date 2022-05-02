@@ -47,7 +47,7 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 
 HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 {
-	if (SessionManager::isUserSessionExpired(request.getUrlParams()["token"]))
+	if (SessionManager::isSessionExpired(request.getUrlParams()["token"]))
 	{
 		return HttpResponse(ResponseStatus::REQUEST_TIMEOUT, request.getContentType(), "Secure token has expired");
 	}
@@ -572,6 +572,86 @@ HttpResponse ServerController::performLogin(const HttpRequest& request)
 	}
 
 	return HttpResponse(ResponseStatus::UNAUTHORIZED, request.getContentType(), "Invalid username or password");
+}
+
+HttpResponse ServerController::validateCredentials(const HttpRequest& request)
+{
+	qDebug() << "Validation of user credentials";
+
+	qDebug() << "request.getFormUrlEncoded()[\"name\"]" << request.getFormUrlEncoded()["name"];
+	NGSD db;
+	QString message = db.checkPassword(request.getFormUrlEncoded()["name"], request.getFormUrlEncoded()["password"]);
+
+	QByteArray body = message.toLocal8Bit();
+	BasicResponseData response_data;
+	response_data.length = body.length();
+	response_data.content_type = ContentType::TEXT_PLAIN;
+	response_data.is_downloadable = false;
+
+	return HttpResponse(response_data, body);
+}
+
+HttpResponse ServerController::getDbToken(const HttpRequest& request)
+{
+	Session user_session = SessionManager::getSessionBySecureToken(request.getFormUrlEncoded()["token"]);
+
+//	if (user_session.isEmpty())
+//	{
+//		return HttpResponse(ResponseStatus::UNAUTHORIZED, request.getContentType(), "You need to log in first");
+//	}
+
+	Session cur_session = Session(user_session.user_id, QDateTime::currentDateTime(), true);
+	QString db_token = ServerHelper::generateUniqueStr();
+	SessionManager::addNewSession(db_token, cur_session);
+	QByteArray body = db_token.toLocal8Bit();
+
+	BasicResponseData response_data;
+	response_data.length = body.length();
+	response_data.content_type = ContentType::TEXT_PLAIN;
+	response_data.is_downloadable = false;
+	return HttpResponse(response_data, body);
+}
+
+HttpResponse ServerController::getNgsdCredentials(const HttpRequest& request)
+{
+	qDebug() << "NGSD credentials request";
+	QJsonDocument json_doc;
+	QJsonObject json_object;
+
+	QString prefix = "ngsd";
+	json_object.insert(prefix + "_host", Settings::string(prefix + "_host", true));
+	json_object.insert(prefix + "_port", Settings::string(prefix + "_port", true));
+	json_object.insert(prefix + "_name", Settings::string(prefix + "_name", true));
+	json_object.insert(prefix + "_user", Settings::string(prefix + "_user", true));
+	json_object.insert(prefix + "_pass", Settings::string(prefix + "_pass", true));
+	json_doc.setObject(json_object);
+
+	BasicResponseData response_data;
+	response_data.length = json_doc.toJson().length();
+	response_data.content_type = request.getContentType();
+	response_data.is_downloadable = false;
+	return HttpResponse(response_data, json_doc.toJson());
+}
+
+HttpResponse ServerController::getGenlabCredentials(const HttpRequest& request)
+{
+	qDebug() << "Genlab credentials request";
+	QJsonDocument json_doc;
+	QJsonObject json_object;
+
+	json_object.insert("genlab_mssql", Settings::boolean("genlab_mssql", true));	
+	json_object.insert("genlab_host", Settings::string("genlab_host", true));
+	json_object.insert("genlab_port", Settings::string("genlab_port", true));
+	json_object.insert("genlab_name", Settings::string("genlab_name", true));
+	json_object.insert("genlab_user", Settings::string("genlab_user", true));
+	json_object.insert("genlab_pass", Settings::string("genlab_pass", true));
+	json_doc.setObject(json_object);
+
+	BasicResponseData response_data;
+	response_data.length = json_doc.toJson().length();
+	response_data.content_type = request.getContentType();
+	response_data.is_downloadable = false;
+	return HttpResponse(response_data, json_doc.toJson());
 }
 
 HttpResponse ServerController::performLogout(const HttpRequest& request)

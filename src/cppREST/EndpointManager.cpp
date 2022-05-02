@@ -1,4 +1,5 @@
 #include "EndpointManager.h"
+#include "ToolBase.h"
 
 EndpointManager::EndpointManager()
 {
@@ -57,20 +58,54 @@ bool EndpointManager::isAuthorizedWithToken(const HttpRequest& request)
 	{
 		return SessionManager::isTokenReal(request.getUrlParams()["token"]);
 	}
+	if (request.getFormUrlEncoded().contains("token"))
+	{
+		return SessionManager::isTokenReal(request.getFormUrlEncoded()["token"]);
+	}
 
 	return false;
 }
 
-HttpResponse EndpointManager::getTokenAuthStatus(const HttpRequest& request)
+HttpResponse EndpointManager::getSecureTokenAuthStatus(const HttpRequest& request)
 {
+	qDebug() << "Check user token status";
 	if (!isAuthorizedWithToken(request))
 	{
 		return HttpResponse(ResponseStatus::FORBIDDEN, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
 	}
 
-	if (SessionManager::isUserSessionExpired(request.getUrlParams()["token"]))
+	if (SessionManager::isSessionExpired(request.getUrlParams()["token"]))
 	{
 		return HttpResponse(ResponseStatus::REQUEST_TIMEOUT, request.getContentType(), "Secure token has expired");
+	}
+
+	return HttpResponse(ResponseStatus::OK, request.getContentType(), "OK");
+}
+
+HttpResponse EndpointManager::getGSvarTokenAuthStatus(const HttpRequest& request)
+{
+	qDebug() << "Check db token status";
+	if (!isAuthorizedWithToken(request))
+	{
+		return HttpResponse(ResponseStatus::FORBIDDEN, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+	}
+
+	if (SessionManager::isSessionExpired(request.getFormUrlEncoded()["dbtoken"]))
+	{
+		return HttpResponse(ResponseStatus::REQUEST_TIMEOUT, request.getContentType(), "Database token has expired");
+	}
+
+	if (!request.getHeaderByName("User-Agent").contains("GSvar"))
+	{
+		Log::warn("Unauthorized entity tried to request the database credentials");
+		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "You are not allowed to request the database credentials. This incident will be reported");
+	}
+
+	bool ok = true;
+	if (request.getFormUrlEncoded()["secret"].toULongLong(&ok, 16) != ToolBase::encryptionKey("encryption helper"))
+	{
+		Log::warn("Secret check failed for the database credentials");
+		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "You are not allowed to request the database credentials. This incident will be reported");
 	}
 
 	return HttpResponse(ResponseStatus::OK, request.getContentType(), "OK");

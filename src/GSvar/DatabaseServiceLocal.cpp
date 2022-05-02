@@ -11,6 +11,13 @@ bool DatabaseServiceLocal::enabled() const
 	return enabled_;
 }
 
+QString DatabaseServiceLocal::checkPassword(const QString user_name, const QString password) const
+{
+	checkEnabled(__PRETTY_FUNCTION__);
+
+	return NGSD().checkPassword(user_name, password);
+}
+
 BedFile DatabaseServiceLocal::processingSystemRegions(int sys_id, bool ignore_if_missing) const
 {
 	checkEnabled(__PRETTY_FUNCTION__);

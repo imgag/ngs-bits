@@ -43,8 +43,17 @@ public:
 	static HttpResponse saveQbicFiles(const HttpRequest& request);
 	/// Uploads a file to the sample folder (via multipart form POST request)
 	static HttpResponse uploadFile(const HttpRequest& request);
+
 	/// Requests a secure token that is needed for the communication with the server
 	static HttpResponse performLogin(const HttpRequest& request);
+	/// Checks if prodivided login and password are valid
+	static HttpResponse validateCredentials(const HttpRequest& request);
+	/// Requests a toke to access the database credentials
+	static HttpResponse getDbToken(const HttpRequest& request);
+	/// Requests NGSD credentials for the GSvar application
+	static HttpResponse getNgsdCredentials(const HttpRequest& request);
+	/// Requests Genlab database credentials for the GSvar application
+	static HttpResponse getGenlabCredentials(const HttpRequest& request);
 	/// Destoroys the user's session and invalidates the token
 	static HttpResponse performLogout(const HttpRequest& request);
 
