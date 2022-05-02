@@ -75,6 +75,7 @@ private:
 	QString sampleName() const;
 	QString processedSampleName() const;
 	QString mergedSamples() const;
+	QStringList limitedQCParameter(const QString& sample_type);
 	void addIgvMenuEntry(QMenu* menu, PathType file_type);
 };
 

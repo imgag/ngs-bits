@@ -3174,9 +3174,10 @@ void MainWindow::loadFile(QString filename)
 					FileLocation arriba_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS);
 					if (arriba_fusion_file.exists) ui_.actionShowRnaFusions->setEnabled(true);
 
-					// search for cohort fusion file
-					FileLocation cohort_expression_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_COHORT);
-					if (cohort_expression_file.exists) ui_.actionShowCohortExpressionData->setEnabled(true);
+					// search for cohort expression file
+					//TODO: reactivate if expression values are stored in the NGSD
+//					FileLocation cohort_expression_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_COHORT);
+//					if (cohort_expression_file.exists) ui_.actionShowCohortExpressionData->setEnabled(true);
 				}
 			}
 		}
