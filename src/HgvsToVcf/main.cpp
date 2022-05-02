@@ -69,6 +69,8 @@ public:
 
 	void parseLine(const QString& line, NGSD& db, QSharedPointer<QFile>& outstream, const QStringList& tsv_headers, FastaFileIndex& ref_index, const QMap<QByteArray, QByteArrayList>& transcript_matches)
 	{
+		static QMap<QString, Transcript> name2transcript;
+
 		QStringList parts = line.split("\t");
 		if (parts.count()!=tsv_headers.count()) THROW(FileParseException, "Input TSV content line has " + QString::number(parts.count()) + " fields, but " + QString::number(tsv_headers.count()) + " are expected from header: " + line);
 
@@ -78,31 +80,47 @@ public:
 
 		try
 		{
+			Transcript transcript;
 			//remove version number from transcript (if present)
 			if (transcript_name.contains(".")) transcript_name = transcript_name.left(transcript_name.indexOf('.'));
 
-			//get transcript from NGSD
-			int trans_id = db.transcriptId(transcript_name, false);
-
-			if (trans_id==-1) //not found > check if it is a CCDS/RefSeq transcript
+			if (name2transcript.contains(transcript_name))
 			{
-				const QByteArrayList& matches = transcript_matches[transcript_name];
-				foreach(const QByteArray& match, matches)
+				transcript = name2transcript[transcript_name];
+
+				if (! transcript.isValid())
 				{
-					if (match.startsWith("ENST"))
-					{
-						trans_id = db.transcriptId(match, false);
-					}
+					THROW(ArgumentException, "Transcript " + transcript_name + " not found in NGSD");
 				}
 			}
-
-			if (trans_id==-1) //not found > abort
+			else
 			{
-				THROW(ArgumentException, "Transcript " + transcript_name + " not found in NGSD");
+				//get transcript from NGSD
+				int trans_id = db.transcriptId(transcript_name, false);
+
+				if (trans_id==-1) //not found > check if it is a CCDS/RefSeq transcript
+				{
+					const QByteArrayList& matches = transcript_matches[transcript_name];
+					foreach(const QByteArray& match, matches)
+					{
+						if (match.startsWith("ENST"))
+						{
+							trans_id = db.transcriptId(match, false);
+						}
+					}
+				}
+
+				if (trans_id==-1) //not found > abort
+				{
+					name2transcript[transcript_name] = Transcript();
+					THROW(ArgumentException, "Transcript " + transcript_name + " not found in NGSD");
+				}
+
+				transcript = db.transcript(trans_id);
+				name2transcript[transcript_name] = transcript;
 			}
 
 			//convert to variant
-			Transcript transcript = db.transcript(trans_id);
 			Variant variant = transcript.hgvsToVariant(hgvs_c, ref_index);
 
 			//check variant
