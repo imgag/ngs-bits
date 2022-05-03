@@ -13,7 +13,7 @@ private slots:
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		QString host = Settings::string("ngsd_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (host=="") SKIP("Test needs access to the NGSD database!");
 
 		EXECUTE("HgvsToVcf", "-in " + TESTDATA("/data_in/HgvsToVcf_in1.tsv") + " -out out/HgvsToVcf_out1.vcf" + " -ref " + ref_file);
 		REMOVE_LINES("out/HgvsToVcf_out1.vcf", QRegExp("##fileDate="));
@@ -28,7 +28,7 @@ private slots:
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		QString host = Settings::string("ngsd_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (host=="") SKIP("Test needs access to the NGSD database!");
 
 		EXECUTE("HgvsToVcf", "-in " + TESTDATA("/data_in/HgvsToVcf_in2.tsv") + " -out out/HgvsToVcf_out2.vcf" + " -ref " + ref_file);
 		REMOVE_LINES("out/HgvsToVcf_out2.vcf", QRegExp("##fileDate="));
@@ -43,7 +43,7 @@ private slots:
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		QString host = Settings::string("ngsd_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (host=="") SKIP("Test needs access to the NGSD database!");
 
 		EXECUTE("HgvsToVcf", "-in " + TESTDATA("/data_in/HgvsToVcf_in2.tsv") + " -out out/HgvsToVcf_out3.vcf" + " -input_info_field test_name -ref " + ref_file);
 		REMOVE_LINES("out/HgvsToVcf_out3.vcf", QRegExp("##fileDate="));
@@ -58,7 +58,7 @@ private slots:
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		QString host = Settings::string("ngsd_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (host=="") SKIP("Test needs access to the NGSD database!");
 
 		EXECUTE("HgvsToVcf", "-in " + TESTDATA("/data_in/HgvsToVcf_in4.tsv") + " -out out/HgvsToVcf_out4.vcf" + " -ref " + ref_file);
 		REMOVE_LINES("out/HgvsToVcf_out4.vcf", QRegExp("##fileDate="));
@@ -73,7 +73,7 @@ private slots:
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		QString host = Settings::string("ngsd_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (host=="") SKIP("Test needs access to the NGSD database!");
 
 		EXECUTE("HgvsToVcf", "-in " + TESTDATA("/data_in/HgvsToVcf_in5.tsv") + " -out out/HgvsToVcf_out5.vcf" + " -ref " + ref_file);
 		REMOVE_LINES("out/HgvsToVcf_out5.vcf", QRegExp("##fileDate="));
@@ -81,8 +81,6 @@ private slots:
 		COMPARE_FILES("out/HgvsToVcf_out5.vcf", TESTDATA("data_out/HgvsToVcf_out5.vcf"));
 		VCF_IS_VALID("out/HgvsToVcf_out5.vcf");
 	}
-
-
 };
 
 
