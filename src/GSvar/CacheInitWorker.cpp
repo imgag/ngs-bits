@@ -1,6 +1,7 @@
 #include "CacheInitWorker.h"
 #include "NGSD.h"
 #include "Settings.h"
+#include "GlobalServiceProvider.h"
 
 CacheInitWorker::CacheInitWorker()
 	: WorkerBase("Cache initialization")
@@ -9,7 +10,7 @@ CacheInitWorker::CacheInitWorker()
 
 void CacheInitWorker::process()
 {
-	if (Settings::boolean("NGSD_enabled"))
+	if (GlobalServiceProvider::database().enabled())
 	{
 		NGSD().transcripts();
 	}

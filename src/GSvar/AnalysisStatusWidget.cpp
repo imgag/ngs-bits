@@ -457,7 +457,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 				}
 				if (!is_owner)
 				{
-					LoginManager::checkRoleIn(QStringList() << "admin");
+					LoginManager::checkRoleIn(QStringList{"admin"});
 				}
 			}
 			catch (Exception& /*e*/)
@@ -491,7 +491,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 		//only admins can do this
 		try
 		{
-			LoginManager::checkRoleIn(QStringList() << "admin");
+			LoginManager::checkRoleIn(QStringList{"admin"});
 		}
 		catch (Exception& e)
 		{

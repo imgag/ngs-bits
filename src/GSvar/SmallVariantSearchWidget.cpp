@@ -3,6 +3,7 @@
 #include "GUIHelper.h"
 #include "NGSHelper.h"
 #include "GlobalServiceProvider.h"
+#include "LoginManager.h"
 #include <QApplication>
 #include <QClipboard>
 #include <QMessageBox>
@@ -36,6 +37,17 @@ void SmallVariantSearchWidget::changeSearchType()
 
 void SmallVariantSearchWidget::updateVariants()
 {
+	//not for restricted users
+	try
+	{
+		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::information(this, "Access denied", e.message());
+		return;
+	}
+
 	//clear old results
 	ui_.variants->clearContents();
 

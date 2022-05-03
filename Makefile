@@ -137,11 +137,14 @@ deploy_nobuild:
 	@echo ""
 	@echo "#Deploy settings"
 	cp /mnt/share/opt/ngs-bits-settings/settings_hg38.ini $(DEP_PATH)settings.ini
-	diff bin/settings.ini $(DEP_PATH)settings.ini
 	@echo ""
 	@echo "#Activating"
-	@echo "rm /mnt/share/opt/ngs-bits-current && ln -s /mnt/share/opt/ngs-bits-hg38-$(NGSBITS_VER) /mnt/share/opt/ngs-bits-current"
+	rm /mnt/share/opt/ngs-bits-current && ln -s /mnt/share/opt/ngs-bits-hg38-$(NGSBITS_VER) /mnt/share/opt/ngs-bits-current
+	@echo ""
+	@echo "#Settings diff:"
+	diff bin/settings.ini $(DEP_PATH)settings.ini
 
+	
 SERVER_DEP_PATH=/mnt/storage2/GRCh38/users/bioinf/GSvarServer/GSvarServer-$(NGSBITS_VER)
 deploy_server_nobuild:
 	@if [ ! -e ./bin/GSvarServer ] ; then echo "Error: bin/GSvarServer is missing!"; false; fi;

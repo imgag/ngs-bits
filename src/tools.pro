@@ -475,3 +475,7 @@ HgvsToVcf.depends = cppNGSD
 SUBDIRS += VcfAnnotateConsequence
 tools-TEST.depends += VcfAnnotateConsequence
 VcfAnnotateConsequence.depends = cppNGS
+
+SUBDIRS += RnaQC
+tools-TEST.depends += RnaQC
+RnaQC.depends = cppNGS

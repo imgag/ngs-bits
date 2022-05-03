@@ -3,6 +3,7 @@
 #include "Chromosome.h"
 #include "Helper.h"
 #include "NGSHelper.h"
+#include "LoginManager.h"
 #include "GlobalServiceProvider.h"
 #include <QJsonDocument>
 #include <QJsonArray>
@@ -43,6 +44,17 @@ void CnvSearchWidget::setCoordinates(Chromosome chr, int start, int end)
 
 void CnvSearchWidget::search()
 {
+	//not for restricted users
+	try
+	{
+		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::information(this, "Access denied", e.message());
+		return;
+	}
+
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
 	// clear table
