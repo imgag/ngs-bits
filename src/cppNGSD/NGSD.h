@@ -506,6 +506,13 @@ struct CPPNGSDSHARED_EXPORT ImportStatusGermline
 	int qc_terms = 0;
 };
 
+/// statistics data on RNA expression
+struct ExpressionStats
+{
+	double mean;
+	double stdev;
+};
+
 /// NGSD accessor.
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
@@ -705,6 +712,11 @@ public:
 
 	///Returns the germline import status.
 	ImportStatusGermline importStatus(const QString& ps_id);
+
+	///Imports expression data to the NGSD
+	void importExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
+	///Calculates statistics on all expression values of the same processing system and tissue
+	QMap<QByteArray, ExpressionStats> calculateExpressionStatistics(int sys_id, const QString& tissue_type);
 
 	/***User handling functions ***/
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.

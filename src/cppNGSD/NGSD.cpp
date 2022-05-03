@@ -1355,6 +1355,110 @@ ImportStatusGermline NGSD::importStatus(const QString& ps_id)
 	return output;
 }
 
+void NGSD::importExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug)
+{
+	QTextStream outstream(stdout);
+	//check ps_name
+	QString ps_id = processedSampleId(ps_name);
+	outstream << "Processed sample: " << ps_name << endl;
+
+	// check if already imported
+	int n_prev_entries = getValue("SELECT COUNT(`id`) FROM `expression_values` WHERE `processed_sample_id`=:0", false, ps_id).toInt();
+
+	if (!force && (n_prev_entries > 0))
+	{
+		THROW(DatabaseException, "Expression values for sample '" + ps_name +"' already imported and method called without 'force' parameter: Cannot import data!");
+	}
+
+	// start transaction
+	transaction();
+
+	// delete old entries
+	if (n_prev_entries > 0)
+	{
+		SqlQuery query = getQuery();
+		query.exec("DELETE FROM `expression_values` WHERE `processed_sample_id`='"+ps_id+"'");
+		outstream << QByteArray::number(n_prev_entries) + " previously imported expression values deleted." << endl;
+
+	}
+
+	//TODO: get ENSG -> id mapping
+	QMap<QByteArray,int> gene_mapping;
+
+	// prepare query
+	SqlQuery query = getQuery();
+	query.prepare("INSERT INTO `expression_values`(`processed_sample_id`, `gene_id`, `expression_value`) VALUES ('" + ps_id + "',:0,:1)");
+
+
+	// open file and iterate over expression values
+	TSVFileStream tsv_file(expression_data_file_path);
+	int idx_ensg = tsv_file.colIndex("gene_id", true);
+	int idx_tpm = tsv_file.colIndex("tpm", true);
+	int n_imported = 0;
+
+	while (!tsv_file.atEnd())
+	{
+		QByteArrayList tsv_line = tsv_file.readLine();
+		QByteArray ensg = tsv_line.at(idx_ensg);
+		double tpm = Helper::toDouble(tsv_line.at(idx_tpm), "TPM value");
+
+		// import value
+		query.bindValue(0, gene_mapping.value(ensg));
+		query.bindValue(1, tpm);
+		query.exec();
+		n_imported++;
+	}
+
+
+	// commit
+	commit();
+
+	outstream << QByteArray::number(n_imported) + " expression values imported into the NGSD." << endl;
+}
+
+QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id, const QString& tissue_type)
+{
+	// check tissue
+	if (!getEnum("sample", "tissue").contains(tissue_type))
+	{
+		THROW(ArgumentException, "'" +  tissue_type + "' is not a valid tissue type in the NGSD!")
+	}
+
+	//TODO: get ENSG -> id mapping
+	QMap<QByteArray,int> gene_mapping;
+
+	//prepare query
+	SqlQuery query = getQuery();
+	query.prepare(QString() + "SELECT ev.expression_value FROM `expression_values` ev "
+				  + "INNER JOIN `processed_sample` ps ON ev.processed_sample_id = ps.id "
+				  + "INNER JOIN `sample` s ON ps.sample_id = s.id "
+				  + "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND ev.gene_id=:0");
+
+	//parse database
+	QMap<QByteArray, ExpressionStats> expression_stats;
+	foreach (const QByteArray& ensg, gene_mapping.keys())
+	{
+		query.bindValue(0, gene_mapping.value(ensg));
+		query.exec();
+
+		QVector<double> expression_values;
+
+		while(query.next())
+		{
+			expression_values << query.value(0).toDouble();
+		}
+		ExpressionStats stats;
+		stats.mean = BasicStatistics::mean(expression_values);
+		stats.stdev = BasicStatistics::stdev(expression_values, stats.mean);
+
+		expression_stats.insert(ensg, stats);
+	}
+
+	return expression_stats;
+
+
+}
+
 CopyNumberVariant NGSD::cnv(int cnv_id)
 {
 	SqlQuery query = getQuery();
