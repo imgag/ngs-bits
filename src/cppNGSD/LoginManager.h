@@ -36,8 +36,10 @@ public:
 	//Log out user
 	static void logout();
 
-	//Checks if the user role is in the given role list. If not, an exception is thrown.
+	//Checks if the logged-in user has one of the given roles. If not, an exception is thrown.
 	static void checkRoleIn(QStringList roles);
+	//Checks if the logged-in user has none of the given roles. If has has, an exception is thrown.
+	static void checkRoleNotIn(QStringList roles);
 
 private:
 	LoginManager();

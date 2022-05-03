@@ -734,6 +734,8 @@ public:
 	QString checkPassword(QString user_name, QString password, bool only_active=true);
 	///Sets the password for a NGSD user using a new random salt.
 	void setPassword(int user_id, QString password);
+	///Checks if the user has one of the given roles.
+	bool userRoleIn(QString user, QStringList roles);
 
 	/*** Main NGSD functions ***/
 	///Search for processed samples

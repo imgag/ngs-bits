@@ -1305,6 +1305,12 @@ private slots:
 		S_EQUAL(db.omimPreferredPhenotype("ATM", "Diseases of the immune system"), "");
 		S_EQUAL(db.omimPreferredPhenotype("ATM", "Neoplasms"), "114480");
 
+		//userRoleIn
+		IS_TRUE(db.userRoleIn("ahmustm1", QStringList{"user"}));
+		IS_FALSE(db.userRoleIn("ahmustm1", QStringList{"user_restricted"}));
+
+		IS_FALSE(db.userRoleIn("ahkerra1", QStringList{"user"}));
+		IS_TRUE(db.userRoleIn("ahkerra1", QStringList{"user_restricted"}));
 
 		//cfDNA panels
 		CfdnaPanelInfo panel_info;
