@@ -282,6 +282,7 @@ MainWindow::MainWindow(QWidget *parent)
 	// priveleges for the working directory and this is precisely why we came up with this workaround:
 	QDir::setCurrent(QDir::tempPath());
 
+	//enable timers needed in client-server mode
 	if (NGSHelper::isCliendServerMode())
 	{
 		QTimer *login_timer = new QTimer(this);
@@ -3175,9 +3176,10 @@ void MainWindow::loadFile(QString filename)
 					FileLocation arriba_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS);
 					if (arriba_fusion_file.exists) ui_.actionShowRnaFusions->setEnabled(true);
 
-					// search for cohort fusion file
-					FileLocation cohort_expression_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_COHORT);
-					if (cohort_expression_file.exists) ui_.actionShowCohortExpressionData->setEnabled(true);
+					// search for cohort expression file
+					//TODO: reactivate if expression values are stored in the NGSD
+//					FileLocation cohort_expression_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_COHORT);
+//					if (cohort_expression_file.exists) ui_.actionShowCohortExpressionData->setEnabled(true);
 				}
 			}
 		}
@@ -4635,7 +4637,7 @@ void MainWindow::on_actionStatistics_triggered()
 {
 	try
 	{
-		LoginManager::checkRoleIn(QStringList() << "admin");
+		LoginManager::checkRoleIn(QStringList{"admin"});
 	}
 	catch (Exception& e)
 	{
@@ -4803,7 +4805,7 @@ void MainWindow::on_actionUsers_triggered()
 {
 	try
 	{
-		LoginManager::checkRoleIn(QStringList() << "admin");
+		LoginManager::checkRoleIn(QStringList{"admin"});
 	}
 	catch (Exception& e)
 	{
@@ -6834,6 +6836,24 @@ void MainWindow::updateNGSDSupport()
 	ui_.vars_ranking->setEnabled(ngsd_user_logged_in);
 
 	ui_.filters->updateNGSDSupport();
+
+	//disable certain actions/buttons for restricted users
+	if (ngsd_user_logged_in)
+	{
+		NGSD db;
+		if (db.userRoleIn(LoginManager::user(), QStringList{"user_restricted"}))
+		{
+			auto actions = ui_.menuAdmin->actions();
+			foreach(QAction* action, actions)
+			{
+				if (action!=ui_.actionChangePassword)
+				{
+					qDebug() << action;
+					action->setEnabled(false);
+				}
+			}
+		}
+	}
 }
 
 void MainWindow::openRecentSample()

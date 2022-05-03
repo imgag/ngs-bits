@@ -1254,3 +1254,99 @@ def: "Percentage of the target region that is covered at least 60-fold."
 is_a: QC:2000003 ! NGS mapping parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: gschwind
+
+[Term]
+id: QC:2000100
+name: housekeeping genes read percentage
+def: "Percentage of reads that could be mapped to the exon region of housekeeping genes."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000101
+name: housekeeping genes read depth
+def: "Average sequencing depth in exon region of housekeeping genes."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000102
+name: housekeeping genes 10x percentage
+def: "Percentage of the exon region of housekeeping genes that is covered at least 10-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000103
+name: housekeeping genes 20x percentage
+def: "Percentage of the exon region of housekeeping genes that is covered at least 20-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000104
+name: housekeeping genes 30x percentage
+def: "Percentage of the exon region of housekeeping genes that is covered at least 30-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000105
+name: housekeeping genes 50x percentage
+def: "Percentage of the exon region of housekeeping genes that is covered at least 50-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000106
+name: housekeeping genes 100x percentage
+def: "Percentage of the exon region of housekeeping genes that is covered at least 100-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000107
+name: housekeeping genes 200x percentage
+def: "Percentage of the exon region of housekeeping genes that is covered at least 200-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000108
+name: housekeeping genes 500x percentage
+def: "Percentage of the exon region of housekeeping genes that is covered at least 500-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000109
+name: covered gene count
+def: "Number of covered genes (TPM >= 10.0)"
+is_a: QC:2000004 ! NGS variant list parameter
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000110
+name: aberrant spliced gene count
+def: "Number of aberrant spliced genes (>= 5%)"
+is_a: QC:2000004 ! NGS variant list parameter
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000111
+name: outlier gene count
+def: "Number of outlier genes (zscore >= 3.0)"
+is_a: QC:2000004 ! NGS variant list parameter
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: schuetz

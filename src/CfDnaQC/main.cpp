@@ -32,6 +32,7 @@ public:
 		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg38");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addInt("min_mapq", "Set minimal mapping quality (default:0)", true, 0);
+		addFlag("txt", "Writes TXT format instead of qcML.");
 
 
 		//changelog
@@ -235,8 +236,16 @@ public:
 		}
 		if(!umivar_error_rate_file.isEmpty()) parameters += " -error_rates " + umivar_error_rate_file;
 
-		metrics.storeToQCML(out, QStringList(), parameters, precision_overwrite, metadata);
-
+		if (getFlag("txt"))
+		{
+			QStringList output;
+			metrics.appendToStringList(output);
+			Helper::storeTextFile(Helper::openFileForWriting(out, true), output);
+		}
+		else
+		{
+			metrics.storeToQCML(out, QStringList(), parameters, precision_overwrite, metadata);
+		}
 	}
 };
 

@@ -412,6 +412,15 @@ bool ClinvarUploadDialog::checkGuiData()
 		upload_comment_text << "<font color='red'>WARNING: This variant has already been uploaded to ClinVar! Are you sure you want to upload it again? </font><br>" + upload_details.replace("\n", "<br>");
 	}
 
+	//not for restricted users
+	try
+	{
+		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
+	}
+	catch(Exception& e)
+	{
+		errors << e.message();
+	}
 
     //show error or enable upload button
     if (errors.count()>0)
