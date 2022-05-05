@@ -2,7 +2,7 @@
 #include "Settings.h"
 
 DatabaseServiceLocal::DatabaseServiceLocal()
-	: enabled_(Settings::boolean("NGSD_enabled"))
+	: enabled_(Settings::boolean("NGSD_enabled", true))
 {
 }
 

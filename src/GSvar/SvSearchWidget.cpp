@@ -5,6 +5,7 @@
 #include "FilterCascade.h"
 #include "NGSHelper.h"
 #include "GlobalServiceProvider.h"
+#include "LoginManager.h"
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -49,6 +50,17 @@ void SvSearchWidget::setProcessedSampleId(QString ps_id)
 
 void SvSearchWidget::search()
 {
+	//not for restricted users
+	try
+	{
+		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::information(this, "Access denied", e.message());
+		return;
+	}
+
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
 	// clear table

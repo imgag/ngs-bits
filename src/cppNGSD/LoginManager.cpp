@@ -282,19 +282,27 @@ QString LoginManager::genlabPassword()
 
 void LoginManager::checkRoleIn(QStringList roles)
 {
-	//check that role list is valid
 	NGSD db;
-	QStringList valid_roles = db.getEnum("user", "user_role");
-	foreach(QString role, roles)
-	{
-		if (!valid_roles.contains(role)) THROW (ProgrammingException, "Invalid role '" + role + "' in LoginManager!");
-	}
 
 	//check if user has role
 	LoginManager& manager = instance();
-	if (!roles.contains(manager.user_role_))
+	if (!db.userRoleIn(manager.user_, roles))
 	{
-		THROW(Exception, "Access denied.\nOnly users with the roles '" + roles.join("', '") + "' have access.\nThe user '" + manager.user_ + "' has the role '" + manager.user_role_ + "'!");
-		return;
+		THROW(Exception, "Access denied.\nOnly users with the following roles have access to this functionality: " + roles.join(", ") + ".\nThe user '" + manager.user_ + "' has the role '" + manager.role_ + "'!");
+	}
+}
+
+void LoginManager::checkRoleNotIn(QStringList roles)
+{
+	NGSD db;
+
+	LoginManager& manager = instance();
+	if (db.userRoleIn(manager.user_, roles))
+	{
+		//invert role selection for output
+		QStringList roles_db = db.getEnum("user", "user_role");
+		roles = roles_db.toSet().subtract(roles.toSet()).toList();
+
+		THROW(Exception, "Access denied.\nOnly users with the following roles have access to this functionality: " + roles.join(", ") + ".\nThe user '" + manager.user_ + "' has the role '" + manager.role_ + "'!");
 	}
 }

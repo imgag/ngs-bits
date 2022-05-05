@@ -148,6 +148,19 @@ void NGSD::setPassword(int user_id, QString password)
 	getQuery().exec("UPDATE user SET password='" + hash + "', salt='" + salt + "' WHERE id=" + QString::number(user_id));
 }
 
+bool NGSD::userRoleIn(QString user, QStringList roles)
+{
+	//check that role list contains only correct user role names
+	QStringList valid_roles = getEnum("user", "user_role");
+	foreach(const QString& role, roles)
+	{
+		if (!valid_roles.contains(role)) THROW (ProgrammingException, "Invalid role '" + role + "' given in NGSD::userRoleIn()!");
+	}
+
+	QString user_role = getValue("SELECT user_role FROM user WHERE user_id=:0", false, user).toString();
+	return roles.contains(user_role);
+}
+
 DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 {
 	//init

@@ -41,6 +41,8 @@ public:
 	static QCCollection mapping_rna(const QString& bam_file, int min_mapq=1, const QString& ref_file = QString());
 	///Calculates mapping QC metrics for WGS from a BAM file.
 	static QCCollection mapping(const QString& bam_file, int min_mapq=1, const QString& ref_file = QString());
+	///Calculates mapping QC metrics for a housekeeping genes exon region from a BAM file. The input BED file must be merged!
+	static QCCollection mapping_housekeeping(const BedFile& bed_file, const QString& bam_file, const QString& ref_file, int min_mapq=1);
 	///Calculates target region statistics (term-value pairs). @p merge determines if overlapping regions are merged before calculating the statistics.
 	static QCCollection region(const BedFile& bed_file, bool merge);
 	///Calculates somatic QC metrics from BAM and VCF file
