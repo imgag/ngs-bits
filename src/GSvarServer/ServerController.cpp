@@ -336,7 +336,7 @@ HttpResponse ServerController::getAnalysisJobGSvarFile(const HttpRequest& reques
 	BasicResponseData response_data;
 	response_data.byte_ranges = QList<ByteRange>{};
 	response_data.length = json_doc_output.toJson().length();
-	response_data.content_type = ContentType::APPLICATION_JSON;
+	response_data.content_type = request.getContentType();
 	response_data.is_downloadable = false;
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
@@ -558,14 +558,14 @@ HttpResponse ServerController::performLogin(const HttpRequest& request)
 	if (message.isEmpty())
 	{
 		QString secure_token = ServerHelper::generateUniqueStr();
-		Session cur_session = Session(db.userId(request.getFormUrlEncoded()["name"]), QDateTime::currentDateTime());
+		Session cur_session = Session(db.userId(request.getFormUrlEncoded()["name"]), QDateTime::currentDateTime(), false);
 
 		SessionManager::addNewSession(secure_token, cur_session);
 		QByteArray body = secure_token.toLocal8Bit();
 
 		BasicResponseData response_data;
 		response_data.length = body.length();
-		response_data.content_type = ContentType::TEXT_PLAIN;
+		response_data.content_type = request.getContentType();
 		response_data.is_downloadable = false;
 		qDebug() << "User creadentials are valid";
 		return HttpResponse(response_data, body);
@@ -576,16 +576,13 @@ HttpResponse ServerController::performLogin(const HttpRequest& request)
 
 HttpResponse ServerController::validateCredentials(const HttpRequest& request)
 {
-	qDebug() << "Validation of user credentials";
-
-	qDebug() << "request.getFormUrlEncoded()[\"name\"]" << request.getFormUrlEncoded()["name"];
-	NGSD db;
-	QString message = db.checkPassword(request.getFormUrlEncoded()["name"], request.getFormUrlEncoded()["password"]);
+	qDebug() << "Validation of user credentials";	
+	QString message = NGSD().checkPassword(request.getFormUrlEncoded()["name"], request.getFormUrlEncoded()["password"]);
 
 	QByteArray body = message.toLocal8Bit();
 	BasicResponseData response_data;
 	response_data.length = body.length();
-	response_data.content_type = ContentType::TEXT_PLAIN;
+	response_data.content_type = request.getContentType();
 	response_data.is_downloadable = false;
 
 	return HttpResponse(response_data, body);
@@ -595,10 +592,10 @@ HttpResponse ServerController::getDbToken(const HttpRequest& request)
 {
 	Session user_session = SessionManager::getSessionBySecureToken(request.getFormUrlEncoded()["token"]);
 
-//	if (user_session.isEmpty())
-//	{
-//		return HttpResponse(ResponseStatus::UNAUTHORIZED, request.getContentType(), "You need to log in first");
-//	}
+	if (user_session.isEmpty())
+	{
+		return HttpResponse(ResponseStatus::UNAUTHORIZED, request.getContentType(), "You need to log in first");
+	}
 
 	Session cur_session = Session(user_session.user_id, QDateTime::currentDateTime(), true);
 	QString db_token = ServerHelper::generateUniqueStr();
@@ -684,9 +681,8 @@ HttpResponse ServerController::performLogout(const HttpRequest& request)
 
 HttpResponse ServerController::getProcessingSystemRegions(const HttpRequest& request)
 {
-	NGSD db;
 	QString sys_id = request.getUrlParams()["sys_id"];
-	QString filename = db.processingSystemRegionsFilePath(sys_id.toInt());
+	QString filename = NGSD().processingSystemRegionsFilePath(sys_id.toInt());
 	if (filename.isEmpty())
 	{
 		return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Processing system regions file has not been found");
@@ -696,9 +692,8 @@ HttpResponse ServerController::getProcessingSystemRegions(const HttpRequest& req
 
 HttpResponse ServerController::getProcessingSystemAmplicons(const HttpRequest& request)
 {
-	NGSD db;
 	QString sys_id = request.getUrlParams()["sys_id"];
-	QString filename = db.processingSystemAmpliconsFilePath(sys_id.toInt());
+	QString filename = NGSD().processingSystemAmpliconsFilePath(sys_id.toInt());
 	if (filename.isEmpty())
 	{
 		return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Processing system amplicons file has not been found");
@@ -708,9 +703,8 @@ HttpResponse ServerController::getProcessingSystemAmplicons(const HttpRequest& r
 
 HttpResponse ServerController::getProcessingSystemGenes(const HttpRequest& request)
 {
-	NGSD db;
 	QString sys_id = request.getUrlParams()["sys_id"];
-	QString filename = db.processingSystemGenesFilePath(sys_id.toInt());
+	QString filename = NGSD().processingSystemGenesFilePath(sys_id.toInt());
 	if (filename.isEmpty())
 	{
 		return HttpResponse(ResponseStatus::NOT_FOUND, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Processing system genes file has not been found");
@@ -720,13 +714,12 @@ HttpResponse ServerController::getProcessingSystemGenes(const HttpRequest& reque
 
 HttpResponse ServerController::getSecondaryAnalyses(const HttpRequest& request)
 {
-	NGSD db;
 	QString processed_sample_name = request.getUrlParams()["ps_name"];
 	QString type  = QUrl::fromEncoded(request.getUrlParams()["type"].toLatin1()).toString();
 	QStringList secondary_analyses;
 	try
 	{
-		secondary_analyses = db.secondaryAnalyses(processed_sample_name, type);
+		secondary_analyses = NGSD().secondaryAnalyses(processed_sample_name, type);
 	}
 	catch (DatabaseException& e)
 	{

@@ -62,6 +62,10 @@ bool EndpointManager::isAuthorizedWithToken(const HttpRequest& request)
 	{
 		return SessionManager::isTokenReal(request.getFormUrlEncoded()["token"]);
 	}
+	if (request.getFormUrlEncoded().contains("dbtoken"))
+	{
+		return SessionManager::isTokenReal(request.getFormUrlEncoded()["dbtoken"]);
+	}
 
 	return false;
 }
@@ -74,7 +78,10 @@ HttpResponse EndpointManager::getSecureTokenAuthStatus(const HttpRequest& reques
 		return HttpResponse(ResponseStatus::FORBIDDEN, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
 	}
 
-	if (SessionManager::isSessionExpired(request.getUrlParams()["token"]))
+	QString token;
+	if (request.getUrlParams().contains("token")) token = request.getUrlParams()["token"];
+	if (request.getFormUrlEncoded().contains("token")) token = request.getFormUrlEncoded()["token"];
+	if (SessionManager::isSessionExpired(token))
 	{
 		return HttpResponse(ResponseStatus::REQUEST_TIMEOUT, request.getContentType(), "Secure token has expired");
 	}

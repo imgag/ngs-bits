@@ -74,7 +74,7 @@ QString LoginManager::userIdAsString()
 QString LoginManager::userLogin()
 {
 	QString user_login = instance().user_login_;
-	if (user_login.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::userLogin if no user is logged in!");
+	if (user_login.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::userLogin() if no user is logged in!");
 
 	return user_login;
 }
@@ -82,7 +82,7 @@ QString LoginManager::userLogin()
 QString LoginManager::userToken()
 {
 	QString token = instance().user_token_;
-	if (token.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::token if no user is logged in!");
+	if (token.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::userToken() if no user is logged in!");
 
 	return token;
 }
@@ -90,7 +90,7 @@ QString LoginManager::userToken()
 QString LoginManager::userPassword()
 {
 	QString password = instance().user_password_;
-	if (password.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::password if no user is logged in!");
+	if (password.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::userPassword() if no user is logged in!");
 
 	return password;
 }
@@ -112,7 +112,6 @@ void LoginManager::login(QString user, QString password, bool test_db)
 	{
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");
-
 		manager.user_token_ = sendPostApiRequest("login", "name="+user+"&password="+password, add_headers);
 		manager.db_token_ = sendPostApiRequest("db_token", "token="+manager.user_token_, add_headers);
 		QByteArray ngsd_credentials = sendPostApiRequest("ngsd_credentials", "dbtoken="+manager.db_token_+"&secret="+QString::number(ToolBase::encryptionKey("encryption helper"), 16), add_headers);
@@ -168,7 +167,10 @@ void LoginManager::renewLogin()
 
 QString LoginManager::dbToken()
 {
-	return instance().db_token_;
+	QString db_token = instance().db_token_;
+	if (db_token.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::db_token before logging in!");
+
+	return db_token;
 }
 
 void LoginManager::logout()
@@ -198,7 +200,7 @@ void LoginManager::logout()
 QString LoginManager::ngsdHostName()
 {
 	QString ngsd_host_name = instance().ngsd_host_name_;
-	if (ngsd_host_name.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::ngsd_host_name without database credentials available!");
+	if (ngsd_host_name.isEmpty()) THROW(ProgrammingException, "Could not retrieve database credentials: ngsd_host_name");
 
 	return ngsd_host_name;
 }
@@ -206,7 +208,7 @@ QString LoginManager::ngsdHostName()
 int LoginManager::ngsdPort()
 {
 	int ngsd_port = instance().ngsd_port_;
-	if (ngsd_port <= 0) THROW(ProgrammingException, "Cannot use LoginManager::ngsd_port without database credentials available!");
+	if (ngsd_port <= 0) THROW(ProgrammingException, "Could not retrieve database credentials:: ngsd_port");
 
 	return ngsd_port;
 }
@@ -214,7 +216,7 @@ int LoginManager::ngsdPort()
 QString LoginManager::ngsdName()
 {
 	QString ngsd_name = instance().ngsd_name_;
-	if (ngsd_name.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::ngsd_name without database credentials available!");
+	if (ngsd_name.isEmpty()) THROW(ProgrammingException, "Could not retrieve database credentials: ngsd_name");
 
 	return ngsd_name;
 }
@@ -222,7 +224,7 @@ QString LoginManager::ngsdName()
 QString LoginManager::ngsdUser()
 {
 	QString ngsd_user = instance().ngsd_user_;
-	if (ngsd_user.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::ngsd_user without database credentials available!");
+	if (ngsd_user.isEmpty()) THROW(ProgrammingException, "Could not retrieve database credentials: ngsd_user");
 
 	return ngsd_user;
 }
@@ -230,7 +232,7 @@ QString LoginManager::ngsdUser()
 QString LoginManager::ngsdPassword()
 {
 	QString ngsd_password = instance().ngsd_password_;
-	if (ngsd_password.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::ngsd_password without database credentials available!");
+	if (ngsd_password.isEmpty()) THROW(ProgrammingException, "Could not retrieve database credentials: ngsd_password");
 
 	return ngsd_password;
 }
@@ -243,7 +245,7 @@ bool LoginManager::genlab_mssql()
 QString LoginManager::genlabHost()
 {
 	QString genlab_host = instance().genlab_host_;
-	if (genlab_host.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::genlab_host without database credentials available!");
+	if (genlab_host.isEmpty()) THROW(ProgrammingException, "Could not retrieve database credentials: genlab_host");
 
 	return genlab_host;
 }
@@ -251,7 +253,7 @@ QString LoginManager::genlabHost()
 int LoginManager::genlabPort()
 {
 	int genlab_port = instance().genlab_port_;
-	if (genlab_port <= 0) THROW(ProgrammingException, "Cannot use LoginManager::genlab_port without database credentials available!");
+	if (genlab_port <= 0) THROW(ProgrammingException, "Could not retrieve database credentials: genlab_port");
 
 	return genlab_port;
 }
@@ -259,7 +261,7 @@ int LoginManager::genlabPort()
 QString LoginManager::genlabName()
 {
 	QString genlab_name = instance().genlab_name_;
-	if (genlab_name.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::genlab_name without database credentials available!");
+	if (genlab_name.isEmpty()) THROW(ProgrammingException, "Could not retrieve database credentials: genlab_name");
 
 	return genlab_name;
 }
@@ -267,7 +269,7 @@ QString LoginManager::genlabName()
 QString LoginManager::genlabUser()
 {
 	QString genlab_user = instance().genlab_user_;
-	if (genlab_user.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::genlab_user without database credentials available!");
+	if (genlab_user.isEmpty()) THROW(ProgrammingException, "Could not retrieve database credentials: genlab_user");
 
 	return genlab_user;
 }
@@ -275,7 +277,7 @@ QString LoginManager::genlabUser()
 QString LoginManager::genlabPassword()
 {
 	QString genlab_password = instance().genlab_password_;
-	if (genlab_password.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::genlab_password without database credentials available!");
+	if (genlab_password.isEmpty()) THROW(ProgrammingException, "Could not retrieve database credentials: genlab_password");
 
 	return genlab_password;
 }
@@ -288,7 +290,7 @@ void LoginManager::checkRoleIn(QStringList roles)
 	LoginManager& manager = instance();
 	if (!db.userRoleIn(manager.user_, roles))
 	{
-		THROW(Exception, "Access denied.\nOnly users with the following roles have access to this functionality: " + roles.join(", ") + ".\nThe user '" + manager.user_ + "' has the role '" + manager.role_ + "'!");
+		THROW(Exception, "Access denied.\nOnly users with the following roles have access to this functionality: " + roles.join(", ") + ".\nThe user '" + manager.user_ + "' has the role '" + manager.user_role_ + "'!");
 	}
 }
 
@@ -303,6 +305,6 @@ void LoginManager::checkRoleNotIn(QStringList roles)
 		QStringList roles_db = db.getEnum("user", "user_role");
 		roles = roles_db.toSet().subtract(roles.toSet()).toList();
 
-		THROW(Exception, "Access denied.\nOnly users with the following roles have access to this functionality: " + roles.join(", ") + ".\nThe user '" + manager.user_ + "' has the role '" + manager.role_ + "'!");
+		THROW(Exception, "Access denied.\nOnly users with the following roles have access to this functionality: " + roles.join(", ") + ".\nThe user '" + manager.user_ + "' has the role '" + manager.user_role_ + "'!");
 	}
 }

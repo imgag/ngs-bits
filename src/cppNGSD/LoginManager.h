@@ -37,8 +37,23 @@ public:
 	//Log out user
 	static void logout();
 
+	static QString ngsdHostName();
+	static int ngsdPort();
+	static QString ngsdName();
+	static QString ngsdUser();
+	static QString ngsdPassword();
+
+	static bool genlab_mssql();
+	static QString genlabHost();
+	static int genlabPort();
+	static QString genlabName();
+	static QString genlabUser();
+	static QString genlabPassword();
+
 	//Checks if the logged-in user has one of the given roles. If not, an exception is thrown.
 	static void checkRoleIn(QStringList roles);
+	//Checks if the logged-in user has none of the given roles. If has has, an exception is thrown.
+	static void checkRoleNotIn(QStringList roles);
 
 private:
 	LoginManager();

@@ -1833,10 +1833,7 @@ void MainWindow::delayedInitialization()
 	if (GlobalServiceProvider::database().enabled())
 	{
 		LoginDialog dlg(this);
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			LoginManager::login(dlg.userName(), dlg.password());
-		}
+		dlg.exec();
 	}
 
 	//init GUI

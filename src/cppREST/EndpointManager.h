@@ -34,8 +34,8 @@ typedef enum
 {
 	NONE,
 	HTTP_BASIC_AUTH,
-	SECURE_TOKEN,
-	GSVAR_TOKEN
+	USER_TOKEN,
+	DB_TOKEN
 } AuthType;
 
 struct CPPRESTSHARED_EXPORT Endpoint
