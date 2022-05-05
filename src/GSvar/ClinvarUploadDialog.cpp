@@ -412,6 +412,15 @@ bool ClinvarUploadDialog::checkGuiData()
 		upload_comment_text << "<font color='red'>WARNING: This variant has already been uploaded to ClinVar! Are you sure you want to upload it again? </font><br>" + upload_details.replace("\n", "<br>");
 	}
 
+	//not for restricted users
+	try
+	{
+		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
+	}
+	catch(Exception& e)
+	{
+		errors << e.message();
+	}
 
     //show error or enable upload button
     if (errors.count()>0)
@@ -848,8 +857,8 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
 
                         if (chromosome_coordinates.contains("start"))
                         {
-                            bool* ok = new bool();
-                            chromosome_coordinates.value("start").toString().toInt(ok);
+							bool ok = false;
+							chromosome_coordinates.value("start").toString().toInt(&ok);
                             if (!ok)
                             {
                                 errors << "Invalid entry '" + chromosome_coordinates.value("start").toString() + "' in 'start'!";
@@ -864,8 +873,8 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
 
                         if (chromosome_coordinates.contains("stop"))
                         {
-                            bool* ok = new bool();
-                            chromosome_coordinates.value("stop").toString().toInt(ok);
+							bool ok = false;
+							chromosome_coordinates.value("stop").toString().toInt(&ok);
                             if (!ok)
                             {
                                 errors << "Invalid entry '" + chromosome_coordinates.value("stop").toString() + "' in 'stop'!";

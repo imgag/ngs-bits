@@ -2,6 +2,7 @@
 #include "NGSD.h"
 #include "GUIHelper.h"
 #include "GlobalServiceProvider.h"
+#include "LoginManager.h"
 #include <QMessageBox>
 #include <QMenu>
 
@@ -66,6 +67,17 @@ QString CohortAnalysisWidget::baseQuery()
 
 void CohortAnalysisWidget::updateOutputTable()
 {
+	//not for restricted users
+	try
+	{
+		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::information(this, "Access denied", e.message());
+		return;
+	}
+
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
 	try

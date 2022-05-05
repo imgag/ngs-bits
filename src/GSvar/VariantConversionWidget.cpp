@@ -140,7 +140,7 @@ void VariantConversionWidget::convert()
 					}
 
 					QString transcript_name2 = "";
-					const QMap<QByteArray, QByteArrayList>& matches = GSvarHelper::transcriptMatches();
+					const QMap<QByteArray, QByteArrayList>& matches = NGSHelper::transcriptMatches(GSvarHelper::build());
 					for (auto it=matches.begin(); it!=matches.end(); ++it)
 					{
 						foreach(const QByteArray& trans, it.value())

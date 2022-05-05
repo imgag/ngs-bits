@@ -353,7 +353,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 		{
 			QString ps = sample.name;
 			AnalysisInformationWidget* widget = new AnalysisInformationWidget(db.processedSampleId(ps));
-			auto dlg = GUIHelper::createDialog(widget, "Analsis information of " + ps);
+			auto dlg = GUIHelper::createDialog(widget, "Analysis information of " + ps);
 			dlg->exec();
 		}
 	}
@@ -457,7 +457,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 				}
 				if (!is_owner)
 				{
-					LoginManager::checkRoleIn(QStringList() << "admin");
+					LoginManager::checkRoleIn(QStringList{"admin"});
 				}
 			}
 			catch (Exception& /*e*/)
@@ -491,7 +491,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 		//only admins can do this
 		try
 		{
-			LoginManager::checkRoleIn(QStringList() << "admin");
+			LoginManager::checkRoleIn(QStringList{"admin"});
 		}
 		catch (Exception& e)
 		{

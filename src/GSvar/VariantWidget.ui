@@ -497,6 +497,11 @@
         </column>
         <column>
          <property name="text">
+          <string>patient identifier</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
           <string>gender</string>
          </property>
         </column>

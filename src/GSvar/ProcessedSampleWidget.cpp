@@ -182,6 +182,7 @@ void ProcessedSampleWidget::updateGUI()
 	styleQualityLabel(ui_->s_quality, s_data.quality);
 	ui_->s_name->setText(s_data.name);
 	ui_->name_external->setText(s_data.name_external);
+	ui_->patient_identifier->setText(s_data.patient_identifier);
 	ui_->sender->setText(s_data.sender + " (received on " + s_data.received + " by " + s_data.received_by +")");
 	ui_->species_type->setText(s_data.species + " / " + s_data.type);
 	ui_->tumor_ffpe->setText(QString(s_data.is_tumor ? "<font color=red>yes</font>" : "no") + " / " + (s_data.is_ffpe ? "<font color=red>yes</font>" : "no"));
@@ -264,12 +265,15 @@ void ProcessedSampleWidget::updateQCMetrics()
 	try
 	{
 		NGSD db;
+		QString sample_type = db.getSampleData(db.sampleId(db.processedSampleName(ps_id_))).type;
 
 		//create table
 		QString conditions;
 		if (!ui_->qc_all->isChecked())
 		{
-			conditions = "AND (t.qcml_id='QC:2000007' OR 'QC:2000008' OR t.qcml_id='QC:2000010' OR t.qcml_id='QC:2000013' OR t.qcml_id='QC:2000014' OR t.qcml_id='QC:2000015' OR t.qcml_id='QC:2000016' OR t.qcml_id='QC:2000017' OR t.qcml_id='QC:2000018' OR t.qcml_id='QC:2000020' OR t.qcml_id='QC:2000021' OR t.qcml_id='QC:2000022' OR t.qcml_id='QC:2000023' OR t.qcml_id='QC:2000024' OR t.qcml_id='QC:2000025' OR t.qcml_id='QC:2000027' OR t.qcml_id='QC:2000049' OR t.qcml_id='QC:2000050' OR t.qcml_id='QC:2000051')";
+			QStringList preferred_qc_parameters = limitedQCParameter(sample_type);
+			conditions = "AND (t.qcml_id IN ('" + preferred_qc_parameters.join("', '") + "'))";
+//			conditions = "AND (t.qcml_id='QC:2000007' OR 'QC:2000008' OR t.qcml_id='QC:2000010' OR t.qcml_id='QC:2000013' OR t.qcml_id='QC:2000014' OR t.qcml_id='QC:2000015' OR t.qcml_id='QC:2000016' OR t.qcml_id='QC:2000017' OR t.qcml_id='QC:2000018' OR t.qcml_id='QC:2000020' OR t.qcml_id='QC:2000021' OR t.qcml_id='QC:2000022' OR t.qcml_id='QC:2000023' OR t.qcml_id='QC:2000024' OR t.qcml_id='QC:2000025' OR t.qcml_id='QC:2000027' OR t.qcml_id='QC:2000049' OR t.qcml_id='QC:2000050' OR t.qcml_id='QC:2000051')";
 		}
 		DBTable qc_table = db.createTable("processed_sample_qc", "SELECT qc.id, t.qcml_id, t.name, qc.value, t.description FROM processed_sample_qc qc, qc_terms t WHERE qc.qc_terms_id=t.id AND t.obsolete=0 AND qc.processed_sample_id='" + ps_id_ + "' " + conditions + " ORDER BY t.qcml_id ASC");
 
@@ -368,18 +372,18 @@ void ProcessedSampleWidget::showPlot()
 
 void ProcessedSampleWidget::openSampleFolder()
 {
-	QString folder = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER).filename;
-	if (folder.toLower().startsWith("http"))
+	FileLocation folder = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER);
+	if (folder.isHttpUrl())
 	{
 		QMessageBox::information(this, "Open processed sample folder", "Cannot open processed sample folder in client-server mode!");
 		return;
 	}
-	else if (!QFile::exists(folder))
+	else if (!QFile::exists(folder.filename))
 	{
-		QMessageBox::warning(this, "Error opening processed sample folder", "Folder does not exist:\n" + folder);
+		QMessageBox::warning(this, "Error opening processed sample folder", "Folder does not exist:\n" + folder.filename);
 		return;
 	}
-	QDesktopServices::openUrl(QUrl(folder));
+	QDesktopServices::openUrl(QUrl(folder.filename));
 }
 
 void ProcessedSampleWidget::openSampleTab()
@@ -797,6 +801,65 @@ QString ProcessedSampleWidget::mergedSamples() const
 	}
 
 	return output.join(", ");
+}
+
+QStringList ProcessedSampleWidget::limitedQCParameter(const QString& sample_type)
+{
+	QStringList parameter_list;
+
+	// add common parameter
+	parameter_list << "QC:2000007"; // Q20 read percentage
+	parameter_list << "QC:2000008"; // Q30 base percentage
+	parameter_list << "QC:2000010"; // gc content percentage
+	parameter_list << "QC:2000020"; // mapped read percentage
+	parameter_list << "QC:2000021"; // on-target read percentage
+	parameter_list << "QC:2000025"; // target region read depth
+	parameter_list << "QC:2000049"; // bases sequenced (MB)
+	parameter_list << "QC:2000050"; // bases usable (MB)
+
+	// add type-specific parameter
+	if (sample_type == "DNA" || sample_type == "DNA (amplicon)" || sample_type == "DNA (native)")
+	{
+		parameter_list << "QC:2000013"; // variant count
+		parameter_list << "QC:2000014"; // known variants percentage
+		parameter_list << "QC:2000015"; // high-impact variants percentage
+		parameter_list << "QC:2000016"; // homozygous variants percentage
+		parameter_list << "QC:2000017"; // indel variants percentage
+		parameter_list << "QC:2000018"; // transition/transversion ratio
+		parameter_list << "QC:2000022"; // properly-paired read percentage
+		parameter_list << "QC:2000023"; // insert size
+		parameter_list << "QC:2000024"; // duplicate read percentage
+		parameter_list << "QC:2000027"; // target region 20x percentage
+		parameter_list << "QC:2000051"; // SNV allele frequency deviation
+	}
+	else if(sample_type == "cfDNA")
+	{
+		parameter_list << "QC:2000065"; // target region 1000x percentage
+		parameter_list << "QC:2000067"; // target region 5000x percentage
+		parameter_list << "QC:2000069"; // target region 10000x percentage
+		parameter_list << "QC:2000071"; // target region read depth 2-fold duplication
+		parameter_list << "QC:2000073"; // target region read depth 4-fold duplication
+		parameter_list << "QC:2000077"; // monitoring variant read depth
+		parameter_list << "QC:2000078"; // ID variant read depth
+		parameter_list << "QC:2000079"; // monitoring variant count
+		parameter_list << "QC:2000080"; // monitoring variant 250x percentage
+		parameter_list << "QC:2000081"; // ID variant count
+		parameter_list << "QC:2000082"; // ID variant 250x percentage
+		parameter_list << "QC:2000083"; // cfDNA-tumor correlation
+		parameter_list << "QC:2000084"; // cfDNA-cfDNA correlation
+
+	}
+	else if(sample_type == "RNA")
+	{
+		parameter_list << "QC:2000027"; // target region 20x percentage
+		parameter_list << "QC:2000100"; // housekeeping genes read percentage
+		parameter_list << "QC:2000101"; // housekeeping genes read depth
+		parameter_list << "QC:2000103"; // housekeeping genes 20x percentage
+		parameter_list << "QC:2000109"; // covered gene count
+		parameter_list << "QC:2000110"; // aberrant spliced gene count
+		parameter_list << "QC:2000111"; // outlier gene count
+	}
+	return parameter_list;
 }
 
 void ProcessedSampleWidget::queueSampleAnalysis()

@@ -10,6 +10,7 @@
 #include <QHostAddress>
 #include <QList>
 
+#include "Log.h"
 #include "Exceptions.h"
 #include "HttpResponse.h"
 #include "RequestParser.h"

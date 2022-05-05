@@ -21,7 +21,7 @@ QByteArray LoginManager::sendAuthRequest(QString content, HttpHeaders add_header
 	QByteArray response;
 	try
 	{
-		response = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(Helper::serverApiUrl()+ "login", content.toLocal8Bit(), add_headers);
+		response = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(NGSHelper::serverApiUrl()+ "login", content.toLocal8Bit(), add_headers);
 	}
 	catch (Exception& e)
 	{
@@ -107,7 +107,7 @@ void LoginManager::login(QString user, QString password, bool test_db)
 	//update last login
 	db.getQuery().exec("UPDATE user SET last_login=NOW() WHERE id='" + QString::number(manager.user_id_) + "'");
 
-	if (!Settings::string("server_host", true).isEmpty())
+	if (NGSHelper::isCliendServerMode())
 	{
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");
@@ -118,18 +118,14 @@ void LoginManager::login(QString user, QString password, bool test_db)
 
 void LoginManager::renewLogin()
 {
-	qDebug() << "Token renewal";
-	if (!Settings::string("server_host", true).isEmpty())
-	{
-		HttpHeaders add_headers;
-		add_headers.insert("Accept", "text/plain");
+	HttpHeaders add_headers;
+	add_headers.insert("Accept", "text/plain");
 
-		LoginManager& manager = instance();
-		if ((manager.user_.isEmpty()) || (manager.password_.isEmpty())) return;
+	LoginManager& manager = instance();
+	if ((manager.user_.isEmpty()) || (manager.password_.isEmpty())) return;
 
-		QString content = "name="+manager.user_+"&password="+manager.password_;
-		manager.token_ = sendAuthRequest(content, add_headers);
-	}
+	QString content = "name="+manager.user_+"&password="+manager.password_;
+	manager.token_ = sendAuthRequest(content, add_headers);
 }
 
 void LoginManager::logout()
@@ -143,19 +139,27 @@ void LoginManager::logout()
 
 void LoginManager::checkRoleIn(QStringList roles)
 {
-	//check that role list is valid
 	NGSD db;
-	QStringList valid_roles = db.getEnum("user", "user_role");
-	foreach(QString role, roles)
-	{
-		if (!valid_roles.contains(role)) THROW (ProgrammingException, "Invalid role '" + role + "' in LoginManager!");
-	}
 
 	//check if user has role
 	LoginManager& manager = instance();
-	if (!roles.contains(manager.role_))
+	if (!db.userRoleIn(manager.user_, roles))
 	{
-		THROW(Exception, "Access denied.\nOnly users with the roles '" + roles.join("', '") + "' have access.\nThe user '" + manager.user_ + "' has the role '" + manager.role_ + "'!");
-		return;
+		THROW(Exception, "Access denied.\nOnly users with the following roles have access to this functionality: " + roles.join(", ") + ".\nThe user '" + manager.user_ + "' has the role '" + manager.role_ + "'!");
+	}
+}
+
+void LoginManager::checkRoleNotIn(QStringList roles)
+{
+	NGSD db;
+
+	LoginManager& manager = instance();
+	if (db.userRoleIn(manager.user_, roles))
+	{
+		//invert role selection for output
+		QStringList roles_db = db.getEnum("user", "user_role");
+		roles = roles_db.toSet().subtract(roles.toSet()).toList();
+
+		THROW(Exception, "Access denied.\nOnly users with the following roles have access to this functionality: " + roles.join(", ") + ".\nThe user '" + manager.user_ + "' has the role '" + manager.role_ + "'!");
 	}
 }

@@ -166,23 +166,13 @@ private slots:
 	void loadFromVCF_noSampleOrFormatColumn()
 	{
 		VcfFile vl;
-
-		vl.load(TESTDATA("data_in/VariantList_loadFromVCF_noSample.vcf"));
-		I_EQUAL(vl.count(), 14);
-		I_EQUAL(vl.informationIDs().count(), 18);
-		I_EQUAL(vl.formatIDs().count(), 6);
-		I_EQUAL(vl.vcfHeader().comments().count(), 1);
-		S_EQUAL(vl.vcfHeader().fileFormat(), QByteArray("VCFv4.1"));
-		S_EQUAL(vl.sampleIDs().at(0), QString("Sample"));
-
 		vl.load(TESTDATA("data_in/VariantList_loadFromVCF_noFormatSample.vcf"));
 		I_EQUAL(vl.count(), 14);
 		I_EQUAL(vl.informationIDs().count(), 18);
 		I_EQUAL(vl.formatIDs().count(), 6);
 		I_EQUAL(vl.vcfHeader().comments().count(), 1);
 		S_EQUAL(vl.vcfHeader().fileFormat(), QByteArray("VCFv4.1"));
-		I_EQUAL(vl.sampleIDs().count(), 1);
-		S_EQUAL(vl.sampleIDs().at(0), QString("Sample"));
+		I_EQUAL(vl.sampleIDs().count(), 0);
 	}
 
 	void loadFromVCF_undeclaredAnnotations()
@@ -390,6 +380,50 @@ private slots:
 		vl.store("out/sort_out.vcf", false, BGZF_NO_COMPRESSION);
 		COMPARE_FILES("out/sort_out.vcf",TESTDATA("data_out/sort_out.vcf"));
 		VCF_IS_VALID("out/sort_out.vcf")
+	}
+
+	void storeAfterAddingSample()
+	{
+		VcfFile vl;
+		vl.load(TESTDATA("data_in/sort_in.vcf"));
+		vl.sort();
+		FormatIDToIdxPtr format_id_to_idx_entry = FormatIDToIdxPtr(new OrderedHash<QByteArray, int>);
+		format_id_to_idx_entry->push_back("CT", 0);
+		for (int i=0; i<(vl.count()); i++)
+		{
+			vl[i].setFormatIdToIdxPtr(format_id_to_idx_entry);
+			QList<QByteArrayList> samples;
+			QByteArrayList value;
+			value << QByteArray::number(i);
+			samples << value;
+			vl[i].setSample(samples);
+		}
+		vl.store("out/sort_out2.vcf", false, BGZF_NO_COMPRESSION);
+		COMPARE_FILES("out/sort_out2.vcf",TESTDATA("data_out/sort_out2.vcf"));
+		VCF_IS_VALID("out/sort_out2.vcf")
+	}
+
+	void storeAfterAddingThreeSamples()
+	{
+		VcfFile vl;
+		vl.load(TESTDATA("data_in/sort_in.vcf"));
+		vl.sort();
+		FormatIDToIdxPtr format_id_to_idx_entry = FormatIDToIdxPtr(new OrderedHash<QByteArray, int>);
+		format_id_to_idx_entry->push_back("CT", 0);
+		for (int i=0; i<(vl.count()); i++)
+		{
+			vl[i].setFormatIdToIdxPtr(format_id_to_idx_entry);
+			QList<QByteArrayList> samples;
+			QByteArrayList value;
+			value << QByteArray::number(i);
+			samples << value;
+			samples << value;
+			samples << value;
+			vl[i].setSample(samples);
+		}
+		vl.store("out/sort_out3.vcf", false, BGZF_NO_COMPRESSION);
+		COMPARE_FILES("out/sort_out3.vcf",TESTDATA("data_out/sort_out3.vcf"));
+		VCF_IS_VALID("out/sort_out3.vcf")
 	}
 
 	//test sort function for VCF files (with quality)

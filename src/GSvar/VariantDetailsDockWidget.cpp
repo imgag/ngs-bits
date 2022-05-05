@@ -32,18 +32,11 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	connect(ui->gnomad, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(gnomadContextMenu(QPoint)));
 	connect(ui->var_btn, SIGNAL(clicked(bool)), this, SLOT(variantButtonClicked()));
 	connect(ui->trans, SIGNAL(linkActivated(QString)), this, SLOT(transcriptClicked(QString)));
-	connect(ui->som_details_prev, SIGNAL(clicked(bool)), this, SLOT(previousSomDetails()));
-	connect(ui->som_details_next, SIGNAL(clicked(bool)), this, SLOT(nextSomDetails()) );
 	connect(ui->pubmed, SIGNAL(linkActivated(QString)), this, SLOT(pubmedClicked(QString)));
 
 	//set up transcript buttons
 	ui->trans_prev->setStyleSheet("QPushButton {border: none; margin: 0px;padding: 0px;}");
 	ui->trans_next->setStyleSheet("QPushButton {border: none; margin: 0px;padding: 0px;}");
-
-	//set up somatic detail buttons
-	ui->som_details_prev->setStyleSheet("QPushButton {border: none; margin: 0px;padding: 0px;}");
-	ui->som_details_next->setStyleSheet("QPushButton {border: none; margin: 0px;padding: 0px;}");
-	enableSomDetailsArrows();
 
 	//set up content label properties
 	QList<QLabel*> labels = findChildren<QLabel*>();
@@ -501,18 +494,27 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			}
 			else
 			{
-				bool high_af = false;
+				QStringList pops = {"AFR", "AMR", "EAS", "NFE", "SAS"};
 				QStringList parts = anno.split(",");
-				foreach(QString part, parts)
+				if (parts.count()!=pops.count()) qDebug() << "Invalid gnomAD sub-population count!";
+
+				QStringList tt_parts;
+				double max_af = 0.0;
+				for(int i=0; i<parts.count(); ++i)
 				{
+					QString part = parts[i].trimmed();
+
 					bool ok = true;
-					double value = part.toDouble(&ok);
-					if (ok && value>=0.05)
-					{
-						high_af = true;
-					}
+					double af = part.toDouble(&ok);
+					if (ok) max_af = std::max(max_af, af);
+
+					if (i<pops.count()) tt_parts << pops[i]+": "+part;
 				}
-				text = high_af ? formatText(anno, GREEN) : anno;
+
+				text = QString::number(max_af, 'g', 4);
+				if (max_af>=0.05) text = formatText(text, GREEN);
+
+				tooltip = tt_parts.join("\n");
 			}
 		}
 		else if(name=="comment")
@@ -854,7 +856,7 @@ void VariantDetailsDockWidget::gnomadClicked(QString variant_string)
 
 void VariantDetailsDockWidget::transcriptClicked(QString link)
 {
-	if (link.startsWith("http")) //transcript
+	if (Helper::isHttpUrl(link)) //transcript
 	{
 		QDesktopServices::openUrl(QUrl(link));
 	}
@@ -866,7 +868,7 @@ void VariantDetailsDockWidget::transcriptClicked(QString link)
 
 void VariantDetailsDockWidget::pubmedClicked(QString link)
 {
-	if (link.startsWith("http")) //transcript
+	if (Helper::isHttpUrl(link)) //transcript
 	{
 		QDesktopServices::openUrl(QUrl(link));
 	}
@@ -886,24 +888,6 @@ void VariantDetailsDockWidget::variantButtonClicked()
 	if (variant_str.isEmpty()) return;
 
 	GlobalServiceProvider::openVariantTab(Variant::fromString(variant_str));
-}
-
-void VariantDetailsDockWidget::nextSomDetails()
-{
-	ui->somaticDetailsWidget->setCurrentIndex(ui->somaticDetailsWidget->currentIndex()+1);
-	enableSomDetailsArrows();
-}
-
-void VariantDetailsDockWidget::previousSomDetails()
-{
-	ui->somaticDetailsWidget->setCurrentIndex(ui->somaticDetailsWidget->currentIndex()-1);
-	enableSomDetailsArrows();
-}
-
-void VariantDetailsDockWidget::enableSomDetailsArrows()
-{
-	ui->som_details_prev->setEnabled(ui->somaticDetailsWidget->widget(ui->somaticDetailsWidget->currentIndex()-1) != nullptr);
-	ui->som_details_next->setEnabled(ui->somaticDetailsWidget->widget(ui->somaticDetailsWidget->currentIndex()+1) != nullptr);
 }
 
 QList<KeyValuePair> VariantDetailsDockWidget::DBEntry::splitByName() const
@@ -981,7 +965,7 @@ void VariantDetailsDockWidget::showOverviewTable(QString title, QString text, ch
 			int col = headers.indexOf(pair.key);
 
 			QString text = pair.value.trimmed();
-			if (text.startsWith("http://") || text.startsWith("https://")) //URL
+			if (Helper::isHttpUrl(text)) //URL
 			{
 				QLabel* label = GUIHelper::createLinkLabel("<a href='" + text + "'>" + text + "</a>");
 				table->setCellWidget(row, col, label);

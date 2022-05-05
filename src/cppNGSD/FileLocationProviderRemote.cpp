@@ -1,5 +1,6 @@
 #include "FileLocationProviderRemote.h"
 #include "HttpRequestHandler.h"
+#include "NGSHelper.h"
 
 FileLocationProviderRemote::FileLocationProviderRemote(const QString sample_id)
 	: sample_id_(sample_id)
@@ -14,6 +15,11 @@ bool FileLocationProviderRemote::isLocal() const
 FileLocation FileLocationProviderRemote::getAnalysisVcf() const
 {
 	return getOneFileLocationByType(PathType::VCF, "");
+}
+
+FileLocation FileLocationProviderRemote::getAnalysisMosaicFile() const
+{
+	return getOneFileLocationByType(PathType::MOSAIC_VARIANTS, "");
 }
 
 FileLocation FileLocationProviderRemote::getAnalysisSvFile() const
@@ -66,7 +72,7 @@ FileLocationList FileLocationProviderRemote::getFileLocationsByType(PathType typ
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "application/json");
 	QByteArray reply = HttpRequestHandler(HttpRequestHandler::NONE).get(
-				Helper::serverApiUrl()
+				NGSHelper::serverApiUrl()
 				+ "file_location?ps_url_id=" + file_id + "&type=" + FileLocation::typeToString(type)
 				+ "&multiple_files=1"
 				+ "&return_if_missing=" +(return_if_missing ? "1" : "0")
@@ -99,7 +105,7 @@ FileLocation FileLocationProviderRemote::getOneFileLocationByType(PathType type,
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "application/json");
 	QString reply = HttpRequestHandler(HttpRequestHandler::NONE).get(
-				Helper::serverApiUrl()
+				NGSHelper::serverApiUrl()
 				+ "file_location?ps_url_id=" + file_id + "&type=" +  FileLocation::typeToString(type)
 				+ "&multiple_files=0"
 				+ (locus.isEmpty() ? "" : "&locus=" + locus)

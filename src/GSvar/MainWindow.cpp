@@ -132,6 +132,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "FusionWidget.h"
 #include "CohortExpressionDataWidget.h"
 #include "CausalVariantEditDialog.h"
+#include "MosaicWidget.h"
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -281,10 +282,17 @@ MainWindow::MainWindow(QWidget *parent)
 	// priveleges for the working directory and this is precisely why we came up with this workaround:
 	QDir::setCurrent(QDir::tempPath());
 
-	// Setting a timer to renew secure tokens for the server API
-	QTimer *timer = new QTimer(this);
-	connect(timer, &QTimer::timeout, this, &LoginManager::renewLogin);
-	timer->start(3600 * 1000); // every hour
+	//enable timers needed in client-server mode
+	if (NGSHelper::isCliendServerMode())
+	{
+		QTimer *login_timer = new QTimer(this);
+		connect(login_timer, &QTimer::timeout, this, &LoginManager::renewLogin);
+		login_timer->start(3600 * 1000); // every hour
+
+		QTimer *server_ping_timer = new QTimer(this);
+		connect(server_ping_timer, SIGNAL(timeout()), this, SLOT(checkServerAvailability()));
+		server_ping_timer->start(600 * 1000); // every 10 minutes
+	}
 }
 
 QString MainWindow::appName() const
@@ -295,6 +303,45 @@ QString MainWindow::appName() const
 	if (build==GenomeBuild::HG38) name += " - " + buildToString(build);
 
 	return name;
+}
+
+bool MainWindow::isServerRunning()
+{
+	QByteArray response;
+	HttpHeaders add_headers;
+	add_headers.insert("Accept", "application/json");
+	try
+	{
+		response = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).get(NGSHelper::serverApiUrl()+ "info", add_headers);
+	}
+	catch (Exception& e)
+	{
+		Log::error("Server availability problem: " + e.message());
+		QMessageBox::warning(this, "Server not responding", "GSvar application will be closed, since the server is not available");
+		return false;
+	}
+
+	if (response.isEmpty())
+	{
+		QMessageBox::warning(this, "Version information not available", "Could not identify the server version. The application will be closed");
+		return false;
+	}
+
+	QJsonDocument json_doc = QJsonDocument::fromJson(response);	;
+	if (!json_doc.isObject()) return false;
+
+	if (ToolBase::version() != json_doc.object()["version"].toString())
+	{
+		QMessageBox::warning(this, "Version mismatch", "GSvar and the server have different versions. No stable work can be guaranteed. The application will be closed");
+		return false;
+	}
+
+	return true;
+}
+
+void MainWindow::checkServerAvailability()
+{
+	if (!isServerRunning()) close();
 }
 
 void MainWindow::on_actionDebug_triggered()
@@ -838,6 +885,33 @@ void MainWindow::on_actionDebug_triggered()
 		}
 		*/
 
+		//initial import of patient identifiers from GenLab (diagnostic samples only)
+		/*
+		NGSD db;
+		GenLabDB db_genlab;
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT s.id, concat(s.name, '_0', ps.process_id), s.patient_identifier FROM sample s, processed_sample ps, project p WHERE s.id=ps.sample_id AND p.id=ps.project_id AND p.type='diagnostic' ORDER BY ps.id ASC");
+		while(query.next())
+		{
+			QString s_id = query.value(0).toString().trimmed();
+			QString ps = query.value(1).toString().trimmed();
+			QString patient_id_old = query.value(2).toString().trimmed();
+
+			QString patient_id = db_genlab.patientIdentifier(ps);
+			if (patient_id=="") continue;
+
+			//check for mismatches
+			if (patient_id_old!="")
+			{
+				if (patient_id!=patient_id_old) qDebug() << "MISMATCH:" << ps << "NGSD=" << patient_id_old << "GenLab=" << patient_id;
+				continue;
+			}
+
+			qDebug() << "UPDATE:" << ps << patient_id;
+			db.getQuery().exec("UPDATE sample SET patient_identifier='" + patient_id + "' WHERE id='" + s_id + "'");
+		}
+		*/
+
 		qDebug() << Helper::elapsedTime(timer, true);
 	}
 	else if (user=="ahschul1")
@@ -1135,6 +1209,47 @@ void MainWindow::on_actionSV_triggered()
 	{
 		QMessageBox::warning(this,"SV file not found",error.message());
 	}
+}
+
+void MainWindow::on_actionMosaic_triggered()
+{
+	if(filename_ == "") return;
+
+	if (!(mosaics_.count() > 0))	{
+		QMessageBox::information(this, "No mosaic variants", "No detected mosaic variants in the analysis!");
+		return;
+	}
+
+	try
+	{
+		//determine processed sample ID (needed for report config)
+		QString ps_id = "";
+		QSharedPointer<ReportConfiguration> report_config = nullptr;
+		if (germlineReportSupported())
+		{
+			ps_id = NGSD().processedSampleId(germlineReportSample(), false);
+			report_config = report_settings_.report_config;
+		}
+
+		//open mosaic widget
+		MosaicWidget* list;
+
+		// germline single, trio or multi sample
+		list = new MosaicWidget(mosaics_, report_settings_, gene2region_cache_, this);
+
+
+		auto dlg = GUIHelper::createDialog(list, "Mosaic variants of " + variants_.analysisName());
+		addModelessDialog(dlg);
+	}
+	catch(FileParseException error)
+	{
+		QMessageBox::warning(this,"File Parse Exception",error.message());
+	}
+	catch(FileAccessException error)
+	{
+		QMessageBox::warning(this,"Mosaic file not found",error.message());
+	}
+
 }
 
 void MainWindow::on_actionCNV_triggered()
@@ -1702,6 +1817,16 @@ void MainWindow::delayedInitialization()
 		QMessageBox::warning(this, "GSvar is not configured", "GSvar is not configured correctly.\nPlease inform your administrator!");
 		close();
 		return;
+	}
+
+	// Setting a timer to renew secure tokens for the server API
+	if (NGSHelper::isCliendServerMode())
+	{
+		if (!isServerRunning())
+		{
+			close();
+			return;
+		}
 	}
 
 	//user login for database
@@ -2800,7 +2925,7 @@ void MainWindow::loadFile(QString filename)
 		variants_.load(filename);
 		Log::perf("Loading small variant list took ", timer);
 		QString mode_title = "";
-		if (filename.startsWith("http"))
+		if (Helper::isHttpUrl(filename))
 		{
 			GlobalServiceProvider::setFileLocationProvider(QSharedPointer<FileLocationProviderRemote>(new FileLocationProviderRemote(filename)));
 			mode_title = " (client-server mode)";
@@ -2858,6 +2983,24 @@ void MainWindow::loadFile(QString filename)
 			}
 		}
 		Log::perf("Loading SV list took ", timer);
+
+		//load mosaics
+		timer.restart();
+		FileLocation mosaic_loc = GlobalServiceProvider::fileLocationProvider().getAnalysisMosaicFile();
+		if (mosaic_loc.exists)
+		{
+			try
+			{
+				mosaics_.load(mosaic_loc.filename);
+			}
+			catch(Exception& e)
+			{
+				QMessageBox::warning(this, "Error loading mosaic file", e.message());
+				svs_.clear();
+			}
+		}
+		Log::perf("Loading mosaic list took ", timer);
+
 
 		ui_.filters->setValidFilterEntries(variants_.filters().keys());
 
@@ -2954,6 +3097,16 @@ void MainWindow::loadFile(QString filename)
 		ui_.actionPRS->setEnabled(false);
 	}
 
+	//activate mosaic menu item if available
+	if (type==GERMLINE_SINGLESAMPLE && GlobalServiceProvider::fileLocationProvider().getAnalysisMosaicFile().exists)
+	{
+		ui_.actionMosaic->setEnabled(true);
+	}
+	else
+	{
+		ui_.actionMosaic->setEnabled(false);
+	}
+
 	//activate cfDNA menu entries and get all available cfDNA samples
 	cf_dna_available = false;
 	ui_.actionDesignCfDNAPanel->setVisible(false);
@@ -3022,9 +3175,10 @@ void MainWindow::loadFile(QString filename)
 					FileLocation arriba_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS);
 					if (arriba_fusion_file.exists) ui_.actionShowRnaFusions->setEnabled(true);
 
-					// search for cohort fusion file
-					FileLocation cohort_expression_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_COHORT);
-					if (cohort_expression_file.exists) ui_.actionShowCohortExpressionData->setEnabled(true);
+					// search for cohort expression file
+					//TODO: reactivate if expression values are stored in the NGSD
+//					FileLocation cohort_expression_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_COHORT);
+//					if (cohort_expression_file.exists) ui_.actionShowCohortExpressionData->setEnabled(true);
 				}
 			}
 		}
@@ -4439,7 +4593,7 @@ void MainWindow::on_actionStatistics_triggered()
 {
 	try
 	{
-		LoginManager::checkRoleIn(QStringList() << "admin");
+		LoginManager::checkRoleIn(QStringList{"admin"});
 	}
 	catch (Exception& e)
 	{
@@ -4607,7 +4761,7 @@ void MainWindow::on_actionUsers_triggered()
 {
 	try
 	{
-		LoginManager::checkRoleIn(QStringList() << "admin");
+		LoginManager::checkRoleIn(QStringList{"admin"});
 	}
 	catch (Exception& e)
 	{
@@ -5073,7 +5227,7 @@ void MainWindow::openSubpanelDesignDialog(const GeneSet& genes)
 		//update target region list
 		ui_.filters->loadTargetRegions();
 
-		//optinally use sub-panel as target regions
+		//optionally use sub-panel as target regions
 		if (QMessageBox::question(this, "Use sub-panel?", "Do you want to set the sub-panel as target region?")==QMessageBox::Yes)
 		{
 			ui_.filters->setTargetRegionByDisplayName(dlg.lastCreatedSubPanel());
@@ -6230,7 +6384,7 @@ void MainWindow::storeCurrentVariantList()
 			add_headers.insert("Content-Length", QByteArray::number(json_doc.toJson().count()));
 
 			QString reply = HttpHandler(HttpRequestHandler::NONE).put(
-						Helper::serverApiUrl() + "project_file?ps_url_id=" + ps_url_id,
+						NGSHelper::serverApiUrl() + "project_file?ps_url_id=" + ps_url_id,
 						json_doc.toJson(),
 						add_headers
 					);
@@ -6638,6 +6792,24 @@ void MainWindow::updateNGSDSupport()
 	ui_.vars_ranking->setEnabled(ngsd_user_logged_in);
 
 	ui_.filters->updateNGSDSupport();
+
+	//disable certain actions/buttons for restricted users
+	if (ngsd_user_logged_in)
+	{
+		NGSD db;
+		if (db.userRoleIn(LoginManager::user(), QStringList{"user_restricted"}))
+		{
+			auto actions = ui_.menuAdmin->actions();
+			foreach(QAction* action, actions)
+			{
+				if (action!=ui_.actionChangePassword)
+				{
+					qDebug() << action;
+					action->setEnabled(false);
+				}
+			}
+		}
+	}
 }
 
 void MainWindow::openRecentSample()

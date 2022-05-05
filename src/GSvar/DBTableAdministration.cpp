@@ -20,7 +20,6 @@ DBTableAdministration::DBTableAdministration(QString table, QWidget* parent)
 
 	connect(ui_.add_btn, SIGNAL(clicked(bool)), this, SLOT(add()));
 	connect(ui_.edit_btn, SIGNAL(clicked(bool)), this, SLOT(edit()));
-	connect(ui_.change_permissions_btn, SIGNAL(clicked(bool)), this, SLOT(changeUserPermissions()));
 	connect(ui_.delete_btn, SIGNAL(clicked(bool)), this, SLOT(remove()));
 	connect(ui_.text_filter_btn, SIGNAL(clicked(bool)), this, SLOT(updateTable()));
 	connect(ui_.table, SIGNAL(rowDoubleClicked(int)), this, SLOT(edit(int)));
@@ -29,9 +28,12 @@ DBTableAdministration::DBTableAdministration(QString table, QWidget* parent)
 	ui_.table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(edit()));
 
-	action = new QAction(QIcon(":/Icons/Lock.png"), "User permissions", this);
-	ui_.table->addAction(action);
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(changeUserPermissions()));
+	if (table_=="user")
+	{
+		action = new QAction(QIcon(":/Icons/Lock.png"), "Edit permissions", this);
+		ui_.table->addAction(action);
+		connect(action, SIGNAL(triggered(bool)), this, SLOT(changeUserPermissions()));
+	}
 
 	action = new QAction(QIcon(":/Icons/Remove.png"), "Delete", this);
 	ui_.table->addAction(action);

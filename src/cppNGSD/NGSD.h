@@ -243,6 +243,7 @@ struct CPPNGSDSHARED_EXPORT SampleData
 {
 	QString name;
 	QString name_external;
+	QString patient_identifier;
 	QString type;
 	QString gender;
 	QString quality;
@@ -370,6 +371,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	QString s_name;
 	bool s_name_ext = false;
 	bool s_name_comments = false;
+	QString s_patient_identifier;
 	QString s_species;
 	QString s_type;
 	QString s_sender;
@@ -720,6 +722,8 @@ public:
 	QString checkPassword(QString user_name, QString password, bool only_active=true);
 	///Sets the password for a NGSD user using a new random salt.
 	void setPassword(int user_id, QString password);
+	///Checks if the user has one of the given roles.
+	bool userRoleIn(QString user, QStringList roles);
 
 	/*** Main NGSD functions ***/
 	///Search for processed samples

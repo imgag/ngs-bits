@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QUuid>
 #include <QDate>
+#include "Log.h"
 #include "Exceptions.h"
 #include "Settings.h"
 

@@ -197,6 +197,8 @@ private:
 	QHash<ListOfFormatIds, FormatIDToIdxPtr> format_id_to_idx_list_; //Hash storing all possible format orders
 	QHash<ListOfInfoIds, FormatIDToIdxPtr> info_id_to_idx_list_; //Hash storing all possible info orders
 
+	mutable bool samples_exist_;
+
 	//INFO/FORMAT/FILTER definition line for VCFCHECK only
 	struct DefinitionLine
 	{

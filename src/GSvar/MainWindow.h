@@ -31,6 +31,9 @@ public:
 	///Returns the application name
 	QString appName() const;
 
+	/// Gets server API information to make sure ther the server is currently running
+	bool isServerRunning();
+
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
 	///Returns the LOG files corresponding to the variant list.
@@ -41,7 +44,7 @@ public:
 	void updateRecentSampleMenu();
 	///Updates IGV menu
     void updateIGVMenu();
-	///Updates menu and toolbar according to NGSD-support
+	///Enabled/disables actions/buttons depending if NGSD is enabled or disabled.
 	void updateNGSDSupport();
 	///Returns 'nobr' paragraph start for Qt tooltips
 	static QString nobr();
@@ -75,6 +78,8 @@ public:
 	int igvPort() const;
 
 public slots:
+	/// Checks (only in clinet-server mode) if the server is currently running
+	void checkServerAvailability();
 	///Loads a variant list. Unloads the variant list if no file name is given
 	void loadFile(QString filename="");
 	///Checks if variant list is outdated
@@ -189,6 +194,8 @@ public slots:
 	void on_actionROH_triggered();
 	///Open SV dialog
 	void on_actionSV_triggered();
+	///Open Mosaic dialog
+	void on_actionMosaic_triggered();
 	///Open gene picker dialog
 	void on_actionGeneSelector_triggered();
 	///Open Circos plot
@@ -421,6 +428,7 @@ private:
 	QList<VariantListChange> variants_changed_;
 	CnvList cnvs_;
 	BedpeFile svs_;
+	VariantList mosaics_;
 	FilterResult filter_result_;
 	QString last_report_path_;
 	bool filter_phenos_;

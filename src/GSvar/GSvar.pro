@@ -109,7 +109,8 @@ SOURCES += main.cpp\
     FusionWidget.cpp \
     CohortExpressionDataWidget.cpp \
     GapClosingEditDialog.cpp \
-    CausalVariantEditDialog.cpp
+    CausalVariantEditDialog.cpp \
+    MosaicWidget.cpp
 
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
@@ -214,7 +215,8 @@ HEADERS += MainWindow.h \
     FusionWidget.h \
     CohortExpressionDataWidget.h \
     GapClosingEditDialog.h \
-    CausalVariantEditDialog.h
+    CausalVariantEditDialog.h \
+    MosaicWidget.h
 
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
@@ -305,7 +307,8 @@ FORMS    += MainWindow.ui \
     FusionWidget.ui \
     CohortExpressionDataWidget.ui \
     GapClosingEditDialog.ui \
-    CausalVariantEditDialog.ui
+    CausalVariantEditDialog.ui \
+    MosaicWidget.ui
 include("../app_gui.pri")
 
 #include NGSD library
