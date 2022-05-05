@@ -32,6 +32,7 @@ public:
 		addInfile("in", "Input TSV file. If unset, reads from STDIN.", true);
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addString("input_info_field", "The input transcript ID and HGVS.c change are added to the VCF output using this INFO field name.", true, "HGVSc");
+		addFlag("test", "Uses the test database instead of on the production database.");
 		QStringList builds;
 		builds << "hg19" << "hg38";
 		addEnum("build", "Genome build", true, builds, "hg38");
@@ -166,7 +167,7 @@ public:
 		const QMap<QByteArray, QByteArrayList>& transcript_matches = NGSHelper::transcriptMatches(stringToBuild(getEnum("build")));
 
 		QStringList tsv_headers = {"", ""}; //fallback in case there is no header
-		NGSD db;
+		NGSD db(getFlag("test"));
 		bool header_written = false;
 		while (!instream->atEnd())
 		{
