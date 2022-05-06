@@ -717,6 +717,8 @@ public:
 	void importExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
 	///Calculates statistics on all expression values of the same processing system and tissue
 	QMap<QByteArray, ExpressionStats> calculateExpressionStatistics(int sys_id, const QString& tissue_type);
+	///Creates a mapping from ENSG ensembl identifier to NGSD gene ids
+	QMap<QByteArray, int> getEnsemblGeneIdMapping();
 
 	/***User handling functions ***/
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.

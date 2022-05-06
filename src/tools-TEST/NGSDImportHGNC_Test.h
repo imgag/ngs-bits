@@ -18,7 +18,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportHGNC_init.sql"));
 
 		//test
-		EXECUTE("NGSDImportHGNC", "-test -in " + TESTDATA("data_in/NGSDImportHGNC_in1.txt"));
+		EXECUTE("NGSDImportHGNC", "-test -in " + TESTDATA("data_in/NGSDImportHGNC_in1.txt") + " -ensembl " + TESTDATA("data_in/NGSDImportEnsembl_in.gff3"));
 
 		//check counts
 		int gene_count = db.getValue("SELECT count(*) FROM gene").toInt();

@@ -1373,10 +1373,10 @@ void NGSD::importExpressionData(const QString& expression_data_file_path, const 
 	QTextStream outstream(stdout);
 	//check ps_name
 	QString ps_id = processedSampleId(ps_name);
-	outstream << "Processed sample: " << ps_name << endl;
+	if(debug) outstream << "Processed sample: " << ps_name << endl;
 
 	// check if already imported
-	int n_prev_entries = getValue("SELECT COUNT(`id`) FROM `expression_values` WHERE `processed_sample_id`=:0", false, ps_id).toInt();
+	int n_prev_entries = getValue("SELECT COUNT(`id`) FROM `expression` WHERE `processed_sample_id`=:0", false, ps_id).toInt();
 
 	if (!force && (n_prev_entries > 0))
 	{
@@ -1390,17 +1390,16 @@ void NGSD::importExpressionData(const QString& expression_data_file_path, const 
 	if (n_prev_entries > 0)
 	{
 		SqlQuery query = getQuery();
-		query.exec("DELETE FROM `expression_values` WHERE `processed_sample_id`='"+ps_id+"'");
-		outstream << QByteArray::number(n_prev_entries) + " previously imported expression values deleted." << endl;
-
+		query.exec("DELETE FROM `expression` WHERE `processed_sample_id`='"+ps_id+"'");
+		if(debug) outstream << QByteArray::number(n_prev_entries) + " previously imported expression values deleted." << endl;
 	}
 
-	//TODO: get ENSG -> id mapping
-	QMap<QByteArray,int> gene_mapping;
+	//get ENSG -> id mapping
+	QMap<QByteArray,int> gene_mapping = getEnsemblGeneIdMapping();
 
 	// prepare query
 	SqlQuery query = getQuery();
-	query.prepare("INSERT INTO `expression_values`(`processed_sample_id`, `gene_id`, `expression_value`) VALUES ('" + ps_id + "',:0,:1)");
+	query.prepare("INSERT INTO `expression`(`processed_sample_id`, `gene_id`, `tpm`) VALUES ('" + ps_id + "',:0,:1)");
 
 
 	// open file and iterate over expression values
@@ -1408,12 +1407,20 @@ void NGSD::importExpressionData(const QString& expression_data_file_path, const 
 	int idx_ensg = tsv_file.colIndex("gene_id", true);
 	int idx_tpm = tsv_file.colIndex("tpm", true);
 	int n_imported = 0;
+	int n_skipped = 0;
 
 	while (!tsv_file.atEnd())
 	{
 		QByteArrayList tsv_line = tsv_file.readLine();
 		QByteArray ensg = tsv_line.at(idx_ensg);
 		double tpm = Helper::toDouble(tsv_line.at(idx_tpm), "TPM value");
+
+		//skip ENSG ids which are not in the NGSD
+		if (!gene_mapping.contains(ensg))
+		{
+			n_skipped++;
+			continue;
+		}
 
 		// import value
 		query.bindValue(0, gene_mapping.value(ensg));
@@ -1426,7 +1433,8 @@ void NGSD::importExpressionData(const QString& expression_data_file_path, const 
 	// commit
 	commit();
 
-	outstream << QByteArray::number(n_imported) + " expression values imported into the NGSD." << endl;
+	if(debug) outstream << QByteArray::number(n_imported) + " expression values imported into the NGSD." << endl;
+	if(debug) outstream << QByteArray::number(n_skipped) + " expression values skipped." << endl;
 }
 
 QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id, const QString& tissue_type)
@@ -1437,12 +1445,12 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id
 		THROW(ArgumentException, "'" +  tissue_type + "' is not a valid tissue type in the NGSD!")
 	}
 
-	//TODO: get ENSG -> id mapping
-	QMap<QByteArray,int> gene_mapping;
+	//get ENSG -> id mapping
+	QMap<QByteArray,int> gene_mapping = getEnsemblGeneIdMapping();
 
 	//prepare query
 	SqlQuery query = getQuery();
-	query.prepare(QString() + "SELECT ev.expression_value FROM `expression_values` ev "
+	query.prepare(QString() + "SELECT ev.tpm FROM `expression` ev "
 				  + "INNER JOIN `processed_sample` ps ON ev.processed_sample_id = ps.id "
 				  + "INNER JOIN `sample` s ON ps.sample_id = s.id "
 				  + "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND ev.gene_id=:0");
@@ -1470,6 +1478,17 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id
 	return expression_stats;
 
 
+}
+
+QMap<QByteArray, int> NGSD::getEnsemblGeneIdMapping()
+{
+	QMap<QByteArray, int> mapping;
+	SqlQuery query = getQuery();
+	query.exec("SELECT id, ensembl_id FROM gene WHERE ensembl_id NOT NULL");
+	while(query.next())
+	{
+		mapping.insert(query.value(1).toByteArray(), query.value(0).toInt());
+	}
 }
 
 CopyNumberVariant NGSD::cnv(int cnv_id)
@@ -3784,6 +3803,11 @@ QHash<QString, QStringList> NGSD::checkMetaData(const QString& ps_id, const Vari
 					output[s_name] << "causal " + variantTypeToString(var_conf.variant_type) + ", but report type is not 'diagnostic variant'!";
 				}
 			}
+		}
+
+		if(report_config->otherCausalVariant().isValid())
+		{
+			causal_diagnostic_variant_present = true;
 		}
 	}
 
