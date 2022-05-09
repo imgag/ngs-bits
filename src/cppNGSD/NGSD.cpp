@@ -3682,6 +3682,11 @@ QHash<QString, QStringList> NGSD::checkMetaData(const QString& ps_id, const Vari
 				}
 			}
 		}
+
+		if(report_config->otherCausalVariant().isValid())
+		{
+			causal_diagnostic_variant_present = true;
+		}
 	}
 
 	if (sample_data.disease_status=="Affected")
