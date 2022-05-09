@@ -144,33 +144,31 @@ void DBTableAdministration::edit(int row)
 void DBTableAdministration::changeUserPermissions()
 {
 	//check
-	QSet<int> rows = ui_.table->selectedRows();
-	if (rows.count()!=1)
-	{
-		QMessageBox::information(this, "Selection error", "Please select exactly one item!");
-		return;
-	}
-
-	QString user_id = ui_.table->getId(rows.values()[0]);
-	QString user_role;
 	try
 	{
-		user_role = NGSD().getValue("SELECT user_role FROM user WHERE id=" + user_id).toString();
-	}
-	catch (DatabaseException& e)
-	{
-		QMessageBox::information(this, "Database error", "Could not get user info from the database: " + e.message());
-	}
+		//check selection
+		QSet<int> rows = ui_.table->selectedRows();
+		if (rows.count()!=1)
+		{
+			INFO(ArgumentException, "Please select exactly one user!");
+		}
 
-	if (user_role.toLower() == "user_restricted")
-	{
+		//check user role
+		QString user_id = ui_.table->getId(rows.values()[0]);
+		QString user_role = NGSD().getValue("SELECT user_role FROM user WHERE id=" + user_id).toString().toLower();
+		if (user_role!="user_restricted")
+		{
+			INFO(ArgumentException, "Setting permissions is availabe for the users with role 'user_restricted' only!");
+		}
+
+		//show dialog
 		UserPermissionsEditor* widget = new UserPermissionsEditor("user_permissions", ui_.table->getId(rows.values()[0]), this);
 		auto dlg = GUIHelper::createDialog(widget, "User permissions", "", false);
 		dlg->exec();
 	}
-	else
+	catch (Exception& e)
 	{
-		QMessageBox::information(this, "Incorrect user role", "Setting permissions is availabe for the users with role 'user_restricted' only!");
+		GUIHelper::showException(this, e, "Changing user permissions error");
 	}
 }
 

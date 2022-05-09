@@ -49,8 +49,8 @@ private:
 	QString user_;
 	QString user_name_;
 	int user_id_;
-	QString role_;
 	QString user_login_;
+	QString role_;
 	QString token_;
 	QString password_;
 };

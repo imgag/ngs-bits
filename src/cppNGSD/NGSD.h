@@ -724,6 +724,8 @@ public:
 	void setPassword(int user_id, QString password);
 	///Checks if the user has one of the given roles.
 	bool userRoleIn(QString user, QStringList roles);
+	///Checks if the user can access the processed sample.
+	bool userCanAccess(int user_id, int ps_id);
 
 	/*** Main NGSD functions ***/
 	///Search for processed samples
