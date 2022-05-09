@@ -1312,6 +1312,17 @@ private slots:
 		IS_FALSE(db.userRoleIn("ahkerra1", QStringList{"user"}));
 		IS_TRUE(db.userRoleIn("ahkerra1", QStringList{"user_restricted"}));
 
+		int user_id = db.userId("ahkerra1");
+		IS_FALSE(db.userCanAccess(user_id, 3999));
+		IS_FALSE(db.userCanAccess(user_id, 4001));
+		IS_FALSE(db.userCanAccess(user_id, 4002));
+		IS_FALSE(db.userCanAccess(user_id, 5));
+		IS_FALSE(db.userCanAccess(user_id, 6));
+		IS_TRUE(db.userCanAccess(user_id, 4000)); //access via study 'SecondStudy'
+		IS_TRUE(db.userCanAccess(user_id, 4003)); //access via sample 'NA12123repeat'
+		IS_TRUE(db.userCanAccess(user_id, 7)); //access via project 'Diagnostik'
+		IS_TRUE(db.userCanAccess(user_id, 8)); //access via project 'Diagnostik'
+
 		//cfDNA panels
 		CfdnaPanelInfo panel_info;
 		panel_info.tumor_id = db.processedSampleId("DX184894_01").toInt();

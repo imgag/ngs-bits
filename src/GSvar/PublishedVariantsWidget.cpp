@@ -10,6 +10,7 @@
 #include "NGSHelper.h"
 #include "GSvarHelper.h"
 #include "GlobalServiceProvider.h"
+#include "GUIHelper.h"
 
 PublishedVariantsWidget::PublishedVariantsWidget(QWidget* parent)
 	: QWidget(parent)
@@ -364,23 +365,21 @@ void PublishedVariantsWidget::retryClinvarSubmission()
 	try
 	{
 		QSet<int> rows = ui_->table->selectedRows();
-		if (rows.size() != 1)
+		if (rows.size() != 1) //only available if a single line is selected
 		{
-			//only available if a singel line is selected
-			QMessageBox::warning(this, "Invalid variant selection", "Please select exactly 1 varaint for re-upload!");
-			return;
+			INFO(ArgumentException, "Please select exactly one varaint for re-upload!");
 		}
+
 		int row_idx = rows.values().at(0);
 		int status_idx = ui_->table->columnIndex("ClinVar submission status");
 		int accession_idx = ui_->table->columnIndex("ClinVar accession id");
 
 		//get status
 		QString status = ui_->table->item(row_idx, status_idx)->text().trimmed();
-		if ((status != "processed") && (status != "error"))
+		if (status!="processed" && status!="error") //only available for already submitted variants
 		{
-			//only available for already submitted variants
-			QMessageBox::warning(this, "Invalid variant selected", "Reupload is only supported for variants which are submitted to ClinVar and are already processed.");
-			return;
+
+			INFO(ArgumentException, "Reupload is only supported for variants which are submitted to ClinVar and are already processed.");
 		}
 
 		// get publication id
@@ -388,11 +387,9 @@ void PublishedVariantsWidget::retryClinvarSubmission()
 
 		// get ClinVar upload data
 		ClinvarUploadData data = getClinvarUploadData(var_pub_id);
-
 		if (data.processed_sample.isEmpty())
 		{
-			QMessageBox::warning(this, "Upload data incomplete", "The ClinVar upload data is incomplete. Cannot perform reupload.");
-			return;
+			INFO(ArgumentException,  "The ClinVar upload data is incomplete: Processed sample not set!");
 		}
 
 		//add stable id
@@ -401,7 +398,6 @@ void PublishedVariantsWidget::retryClinvarSubmission()
 			data.stable_id = ui_->table->item(row_idx, accession_idx)->text();
 		}
 
-
 		// show dialog
 		ClinvarUploadDialog dlg(this);
 		dlg.setData(data);
@@ -409,7 +405,7 @@ void PublishedVariantsWidget::retryClinvarSubmission()
 	}
 	catch(Exception& e)
 	{
-		QMessageBox::critical(this, "ClinVar resubmission error", e.message());
+		GUIHelper::showException(this, e, "ClinVar submission error");
 	}
 }
 

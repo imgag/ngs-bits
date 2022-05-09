@@ -11,7 +11,8 @@ INSERT INTO `sender` (`id`, `name`) VALUES
 (1, 'Coriell');
 
 INSERT INTO `project` (`id`, `name`, `type`, `internal_coordinator_id`, `analysis`) VALUES
-(1, 'KontrollDNACoriell', 'test', 1, 'variants');
+(1, 'KontrollDNACoriell', 'test', 1, 'variants'),
+(2, 'Diagnostik', 'test', 1, 'variants');
 
 INSERT INTO `sequencing_run` (`id`, `name`, `fcid`, `start_date`, `device_id`, `recipe`, `status`) VALUES
 (1, '#00372', 'AB2J9', '2021-02-19', 1, '158+8+158', 'analysis_finished');
@@ -21,9 +22,9 @@ INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`
 (2, 'NA12123', 'ex2', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s2', 'Neoplasms', 'Affected', 'Skin', 'pat2'),
 (3, 'NA12345', 'ex3', 'DNA', 1, 'male', 'bad', 1 ,1, 1, 'comment_s3', 'Diseases of the immune system', 'Affected', 'Blood', 'pat3'),
 (4, 'NA12123repeat', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s4', 'Neoplasms', 'Affected', 'n/a', NULL),
-(7, 'NA12123repeat2', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s4', 'Neoplasms', 'Affected', 'n/a', 'pat2'),
 (5, 'DX184894', 'ex5', 'DNA', 1, 'female', 'good', 1, 1, 1, 'comment_s5', 'Neoplasms', 'Affected', 'Buccal mucosa', NULL),
-(6, 'DX184263', 'ex6', 'DNA', 1, 'female', 'good', 0, 0, 1, 'comment_s6', 'Neoplasms', 'Affected', 'Skin', NULL);
+(6, 'DX184263', 'ex6', 'DNA', 1, 'female', 'good', 0, 0, 1, 'comment_s6', 'Neoplasms', 'Affected', 'Skin', NULL),
+(7, 'NA12123repeat2', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s4', 'Neoplasms', 'Affected', 'n/a', 'pat2');
 
 INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapter1_p5`, `adapter2_p7`, `type`, `shotgun`, `target_file`, `genome_id`) VALUES
 (1, 'hpHBOCv5', 'HaloPlex HBOC v5', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel Haloplex', 0, 'hpHBOCv5.bed', 1),
@@ -39,8 +40,8 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 (4003, 4, 1, 1, '1', 1, 1, 'good', 'comment_ps4', null),
 (5, 2, 23, 1, '1', 1, 1, 'medium', 'comment_ps5', null),
 (6, 3, 44, 1, '1', 1, 1, 'medium', 'comment_ps6', null),
-(7, 6, 1, '1', '1,2,3,4', 3, 1, 'good', 'comment_ps7', null),
-(8, 5, 1, '1', '1,2,3,4', 3, 1, 'good', 'comment_ps8', 7);
+(7, 6, 1, '1', '1,2,3,4', 3, 2, 'good', 'comment_ps7', null),
+(8, 5, 1, '1', '1,2,3,4', 3, 2, 'good', 'comment_ps8', 7);
 
 INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `outcome`, `comment`) VALUES
 (3999, 'done', 99, '2014-07-29 09:40:49', 'no significant findings', "free text");
@@ -631,7 +632,8 @@ INSERT INTO `sv_translocation` (`id`, `sv_callset_id`, `chr1`, `start1`, `end1`,
 
 -- study
 INSERT INTO `study`(`id`, `name`, `description`) VALUES
-(1, "SomeStudy","");
+(1, "SomeStudy",""),
+(2, "SecondStudy","");
 
 INSERT INTO `study_sample`(`study_id`, `processed_sample_id`) VALUES
 (1, 3999),
@@ -642,7 +644,14 @@ INSERT INTO `study_sample`(`study_id`, `processed_sample_id`) VALUES
 (1, 5),
 (1, 6),
 (1, 7),
-(1, 8);
+(1, 8),
+(2, 4000);
 
 INSERT INTO `subpanels` (`id`, `name`, `created_by`, `created_date`, `mode`, `extend`, `genes`, `roi`, `archived`) VALUES
 (1, 'some_target_region', 99, '2021-04-15', 'exon', 5, 'WDPCP\r\n', 'chr2	63349135	63349196\r\nchr2	63380043	63380085\r\nchr2	63380624	63380714\r\nchr2	63401799	63401972\r\nchr2	63456957	63457012\r\nchr2	63486436	63486549\r\nchr2	63540377	63540451\r\nchr2	63605515	63605649\r\nchr2	63609035	63609234\r\nchr2	63631177	63631797\r\nchr2	63660873	63661075\r\nchr2	63664549	63664693\r\nchr2	63664990	63665022\r\nchr2	63666885	63667010\r\nchr2	63711732	63711802\r\nchr2	63712045	63712126\r\nchr2	63713670	63713725\r\nchr2	63714575	63714633\r\nchr2	63719984	63720079\r\nchr2	63815325	63815410\r\n', 0);
+
+
+INSERT INTO `user_permissions` (`id`, `user_id`, `permission`, `data`) VALUES
+(1, 101, 'study', '2'),
+(2, 101, 'sample', '4'),
+(3, 101, 'project', '2');

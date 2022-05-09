@@ -7,6 +7,7 @@
 #include "NGSHelper.h"
 #include "FilterCascade.h"
 #include "LoginManager.h"
+#include "UserPermissionList.h"
 #include <QFileInfo>
 #include <QPair>
 #include <QSqlDriver>
@@ -144,6 +145,43 @@ bool NGSD::userRoleIn(QString user, QStringList roles)
 
 	QString user_role = getValue("SELECT user_role FROM user WHERE user_id=:0", false, user).toString();
 	return roles.contains(user_role);
+}
+
+bool NGSD::userCanAccess(int user_id, int ps_id)
+{
+	//access restricted only for user role 'user_restricted'
+	QString role = getValue("SELECT user_role FROM user WHERE id='" + QString::number(user_id) + "'").toString().toLower();
+	if (role!="user_restricted") return true;
+
+	QString ps_id_str = QString::number(ps_id);
+
+	//get permission list
+	SqlQuery query = getQuery();
+	query.exec("SELECT * FROM user_permissions WHERE user_id=" + QString::number(user_id));
+	while(query.next())
+	{
+		Permission permission = UserPermissionList::stringToType(query.value("permission").toString());
+		QVariant data = query.value("data").toString();
+
+		switch(permission)
+		{
+			case Permission::PROJECT:
+				if (data.toInt() == getValue("SELECT project_id FROM processed_sample WHERE id=:0", true, ps_id_str).toInt()) return true;
+				break;
+			case Permission::PROJECT_TYPE:
+				if (data.toString() == getValue("SELECT p.type FROM project p, processed_sample ps WHERE p.id=ps.project_id AND ps.id=:0", true, ps_id_str).toString()) return true;
+				break;
+			case Permission::SAMPLE:
+				if (data.toInt() == getValue("SELECT sample_id FROM processed_sample WHERE id=:0", true, ps_id_str).toInt()) return true;
+				break;
+			case Permission::STUDY:
+				QSet<int> study_ids = getValuesInt("SELECT study_id FROM study_sample WHERE processed_sample_id=:0", ps_id_str).toSet();
+				if (study_ids.contains(data.toInt())) return true;
+				break;
+		}
+	}
+
+	return false;
 }
 
 DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)

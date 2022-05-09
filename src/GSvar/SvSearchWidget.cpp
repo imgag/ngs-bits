@@ -6,6 +6,7 @@
 #include "NGSHelper.h"
 #include "GlobalServiceProvider.h"
 #include "LoginManager.h"
+#include "GUIHelper.h"
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -50,17 +51,6 @@ void SvSearchWidget::setProcessedSampleId(QString ps_id)
 
 void SvSearchWidget::search()
 {
-	//not for restricted users
-	try
-	{
-		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
-	}
-	catch(Exception& e)
-	{
-		QMessageBox::information(this, "Access denied", e.message());
-		return;
-	}
-
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
 	// clear table
@@ -69,6 +59,9 @@ void SvSearchWidget::search()
 
 	try
 	{
+		//not for restricted users
+		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
+
 		// SV type/table
 		StructuralVariantType type = BedpeFile::stringToType(ui_.svType->currentText().toUtf8());
 		QString sv_table = db_.svTableName(type);
@@ -307,14 +300,13 @@ void SvSearchWidget::search()
 		ui_.table->setData(table);
 		ui_.table->showTextAsTooltip("report_config_comments");
 		ui_.message->setText("Found " + QString::number(ui_.table->rowCount()) + " matching SVs in NGSD.");
+
+		QApplication::restoreOverrideCursor();
 	}
 	catch(Exception& e)
 	{
-		ui_.message->setText("Error: Search could not be performed:\t" + e.message());
-		QMessageBox::warning(this, "SV search", "Error: Search could not be performed:\n" + e.message());
+		GUIHelper::showException(this, e, "SV search could not be performed");
 	}
-
-	QApplication::restoreOverrideCursor();
 }
 
 void SvSearchWidget::changeSearchType()
