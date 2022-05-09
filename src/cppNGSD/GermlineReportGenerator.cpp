@@ -69,7 +69,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	stream << "<br />" << trans("Prozessierungssystem-Typ") << ": " << processed_sample_data.processing_system_type << endl;
 	stream << "<br />" << trans("Referenzgenom") << ": " << system_data.genome << endl;
 	stream << "<br />" << trans("Datum") << ": " << date_.toString("dd.MM.yyyy") << endl;
-	stream << "<br />" << trans("Benutzer") << ": " << LoginManager::user() << endl;
+	stream << "<br />" << trans("Benutzer") << ": " << LoginManager::userLogin() << endl;
 	stream << "<br />" << trans("Analysepipeline") << ": "  << data_.variants.getPipeline() << endl;
 	stream << "<br />" << trans("Auswertungssoftware") << ": "  << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << endl;
 	stream << "<br />" << trans("KASP-Ergebnis") << ": " << db_.getQCData(ps_id_).value("kasp").asString() << endl;
@@ -533,7 +533,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	//element ReportGeneration
 	w.writeStartElement("ReportGeneration");
 	w.writeAttribute("date", date_.toString("yyyy-MM-dd"));
-	w.writeAttribute("user_name", LoginManager::user());
+	w.writeAttribute("user_name", LoginManager::userLogin());
 	w.writeAttribute("software", QCoreApplication::applicationName() + " " + QCoreApplication::applicationVersion());
 	w.writeAttribute("outcome", db_.getDiagnosticStatus(ps_id_).outcome);
 	w.writeEndElement();

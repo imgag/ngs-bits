@@ -451,7 +451,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 			{
 				bool is_owner = false;
 				AnalysisJob job = db.analysisInfo(id);
-				if (!job.history.isEmpty() && job.history.at(0).user==LoginManager::user())
+				if (!job.history.isEmpty() && job.history.at(0).user==LoginManager::userLogin())
 				{
 					is_owner = true;
 				}

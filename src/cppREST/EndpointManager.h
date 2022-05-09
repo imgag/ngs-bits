@@ -34,7 +34,8 @@ typedef enum
 {
 	NONE,
 	HTTP_BASIC_AUTH,
-	SECURE_TOKEN
+	USER_TOKEN,
+	DB_TOKEN
 } AuthType;
 
 struct CPPRESTSHARED_EXPORT Endpoint
@@ -61,8 +62,10 @@ public:
 
 	/// Checks if a valid token has been provided
 	static bool isAuthorizedWithToken(const HttpRequest& request);
-	/// Checks if the token is valid and not expired
-	static HttpResponse getTokenAuthStatus(const HttpRequest& request);
+	/// Checks if the secure token is valid and not expired
+	static HttpResponse getUserTokenAuthStatus(const HttpRequest& request);
+	/// Check if GSvar toje is valid
+	static HttpResponse getDbTokenAuthStatus(const HttpRequest& request);
 
 	static void validateInputData(Endpoint* current_endpoint, const HttpRequest& request);
 	static void appendEndpoint(Endpoint new_endpoint);	

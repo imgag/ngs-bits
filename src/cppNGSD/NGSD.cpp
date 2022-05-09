@@ -26,17 +26,32 @@ NGSD::NGSD(bool test_db, QString name_suffix)
 	db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "NGSD_" + Helper::randomString(20))));
 
 	//connect to DB
-	QString prefix = "ngsd";
-	if (test_db_) prefix += "_test";
-	if (!name_suffix.isEmpty()) prefix += name_suffix;
-	db_->setHostName(Settings::string(prefix + "_host"));
-	db_->setPort(Settings::integer(prefix + "_port"));
-	db_->setDatabaseName(Settings::string(prefix + "_name"));
-	db_->setUserName(Settings::string(prefix + "_user"));
-	db_->setPassword(Settings::string(prefix + "_pass"));
+	QString db_name;
+	if (NGSHelper::isCliendServerMode() && !NGSHelper::isRunningOnServer())
+	{
+		db_->setHostName(LoginManager::ngsdHostName());
+		db_->setPort(LoginManager::ngsdPort());
+		db_->setDatabaseName(LoginManager::ngsdName());
+		db_->setUserName(LoginManager::ngsdUser());
+		db_->setPassword(LoginManager::ngsdPassword());
+		db_name = LoginManager::ngsdName();
+	}
+	else
+	{
+		QString prefix = "ngsd";
+		if (test_db_) prefix += "_test";
+		if (!name_suffix.isEmpty()) prefix += name_suffix;
+		db_->setHostName(Settings::string(prefix + "_host"));
+		db_->setPort(Settings::integer(prefix + "_port"));
+		db_->setDatabaseName(Settings::string(prefix + "_name"));
+		db_->setUserName(Settings::string(prefix + "_user"));
+		db_->setPassword(Settings::string(prefix + "_pass"));
+		db_name = prefix;
+	}
+
 	if (!db_->open())
 	{
-		THROW(DatabaseException, "Could not connect to NGSD database '" + prefix + "': " + db_->lastError().text());
+		THROW(DatabaseException, "Could not connect to NGSD database '" + db_name + "': " + db_->lastError().text());
 	}
 }
 

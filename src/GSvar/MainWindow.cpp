@@ -1833,10 +1833,7 @@ void MainWindow::delayedInitialization()
 	if (GlobalServiceProvider::database().enabled())
 	{
 		LoginDialog dlg(this);
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			LoginManager::login(dlg.userName(), dlg.password());
-		}
+		dlg.exec();
 	}
 
 	//init GUI
@@ -2580,7 +2577,7 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 		QString processed_sample_id = db.processedSampleId(processed_sample_name);
 
 		//check user can access
-		if (LoginManager::role()=="user_restricted")
+		if (LoginManager::userRole()=="user_restricted")
 		{
 			if (!db.userCanAccess(LoginManager::userId(), processed_sample_id.toInt()))
 			{
@@ -6786,7 +6783,7 @@ void MainWindow::updateNGSDSupport()
 	if (ngsd_user_logged_in)
 	{
 		NGSD db;
-		if (db.userRoleIn(LoginManager::user(), QStringList{"user_restricted"}))
+		if (db.userRoleIn(LoginManager::userLogin(), QStringList{"user_restricted"}))
 		{
 			auto actions = ui_.menuAdmin->actions();
 			foreach(QAction* action, actions)
