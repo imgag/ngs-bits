@@ -270,7 +270,7 @@ void ClinvarUploadDialog::upload()
 			{
 				details << "reupload=true";
 				details << "previous_publication_id=" + QString::number(clinvar_upload_data_.variant_publication_id);
-				details << "reupload_by=" + LoginManager::user();
+				details << "reupload_by=" + LoginManager::userLogin();
 			}
 
             // log publication in NGSD
@@ -290,11 +290,11 @@ void ClinvarUploadDialog::upload()
 			// log original submitter for reuploads
 			if (clinvar_upload_data_.user_id > 0)
 			{
-				lines << "user: " + db_.userLogin(clinvar_upload_data_.user_id) + " (Reupload by " + LoginManager::user() + ")";
+				lines << "user: " + db_.userLogin(clinvar_upload_data_.user_id) + " (Reupload by " + LoginManager::userLogin() + ")";
 			}
 			else
 			{
-				lines << "user: " + LoginManager::user();
+				lines << "user: " + LoginManager::userLogin();
 			}
             lines << "date: " + Helper::dateTime();
             lines << "";

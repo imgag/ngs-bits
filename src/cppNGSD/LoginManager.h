@@ -10,7 +10,7 @@ class CPPNGSDSHARED_EXPORT LoginManager
 {
 public:
 	//Returns user login from NGSD
-	static QString user();
+	static QString userLogin();
 	//Returns the full user name from NGSD
 	static QString userName();
 	//Returns user ID from NGSD
@@ -18,7 +18,6 @@ public:
 	//Returns user ID from NGSD (as string)
 	static QString userIdAsString();
 
-	static QString userLogin();
 	//Returns a secure token generated for the given user
 	static QString userToken();
 	static QString userPassword();
@@ -61,11 +60,10 @@ private:
 	static QByteArray sendPostApiRequest(QString path, QString content, HttpHeaders add_headers);
 
 	//User info
-	QString user_;
+	QString user_login_;
 	QString user_name_;
 	int user_id_;
 	QString user_role_;
-	QString user_login_;
 	QString user_token_;
 	QString user_password_;
 

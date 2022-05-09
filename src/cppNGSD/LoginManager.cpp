@@ -4,11 +4,10 @@
 #include <QJsonDocument>
 
 LoginManager::LoginManager()
-	: user_()
+	: user_login_()
 	, user_name_()
 	, user_id_(-1)
-	, user_role_()
-	, user_login_()
+	, user_role_()	
 	, user_token_()
 	, user_password_()
 	, db_token_()
@@ -45,10 +44,11 @@ QByteArray LoginManager::sendPostApiRequest(QString path, QString content, HttpH
 	return QByteArray{};
 }
 
-QString LoginManager::user()
+QString LoginManager::userLogin()
 {
-	return instance().user_;
+	return instance().user_login_;
 }
+
 
 QString LoginManager::userName()
 {
@@ -69,14 +69,6 @@ QString LoginManager::userIdAsString()
 	if (id==-1) THROW(ProgrammingException, "Cannot use LoginManager::userIdAsString() if no user is logged in!");
 
 	return QString::number(id);
-}
-
-QString LoginManager::userLogin()
-{
-	QString user_login = instance().user_login_;
-	if (user_login.isEmpty()) THROW(ProgrammingException, "Cannot use LoginManager::userLogin() if no user is logged in!");
-
-	return user_login;
 }
 
 QString LoginManager::userToken()
@@ -102,7 +94,7 @@ QString LoginManager::userRole()
 
 bool LoginManager::active()
 {
-	return !instance().user_.isEmpty();
+	return !instance().user_login_.isEmpty();
 }
 
 void LoginManager::login(QString user, QString password, bool test_db)
@@ -142,13 +134,12 @@ void LoginManager::login(QString user, QString password, bool test_db)
 
 	NGSD db(test_db);
 	manager.user_id_ = db.userId(user, true);
-	manager.user_ = user;
+	manager.user_login_ = user;
 	manager.user_name_ = db.userName(manager.user_id_);
 	manager.user_password_ = password;
 
 	//determine role
 	manager.user_role_ = db.getValue("SELECT user_role FROM user WHERE id='" + QString::number(manager.user_id_) + "'").toString().toLower();
-	manager.user_login_ = db.userLogin(manager.user_id_);
 	//update last login
 	db.getQuery().exec("UPDATE user SET last_login=NOW() WHERE id='" + QString::number(manager.user_id_) + "'");
 }
@@ -159,9 +150,9 @@ void LoginManager::renewLogin()
 	add_headers.insert("Accept", "text/plain");
 
 	LoginManager& manager = instance();
-	if ((manager.user_.isEmpty()) || (manager.user_password_.isEmpty())) return;
+	if ((manager.user_login_.isEmpty()) || (manager.user_password_.isEmpty())) return;
 
-	QString content = "name="+manager.user_+"&password="+manager.user_password_;
+	QString content = "name="+manager.user_login_+"&password="+manager.user_password_;
 	manager.user_token_ = sendPostApiRequest("login", content, add_headers);
 }
 
@@ -176,13 +167,12 @@ QString LoginManager::dbToken()
 void LoginManager::logout()
 {
 	LoginManager& manager = instance();
-	manager.user_.clear();
+	manager.user_login_.clear();
 	manager.user_name_.clear();
 	manager.user_id_ = -1;
 	manager.user_role_.clear();
 	manager.user_token_.clear();
-	manager.user_name_.clear();
-	manager.user_login_.clear();
+	manager.user_name_.clear();	
 	manager.user_password_.clear();
 	manager.db_token_.clear();
 	manager.ngsd_host_name_.clear();
@@ -287,9 +277,9 @@ void LoginManager::checkRoleIn(QStringList roles)
 {
 	//check if user has role
 	LoginManager& manager = instance();
-	if (!NGSD().userRoleIn(manager.user_, roles))
+	if (!NGSD().userRoleIn(manager.user_login_, roles))
 	{
-		INFO(AccessDeniedException, "Access denied.\nOnly users with the following roles have access to this functionality: " + roles.join(", ") + ".\nThe user '" + manager.user_ + "' has the role '" + manager.role_ + "'!");
+		INFO(AccessDeniedException, "Access denied.\nOnly users with the following roles have access to this functionality: " + roles.join(", ") + ".\nThe user '" + manager.user_login_ + "' has the role '" + manager.user_role_ + "'!");
 	}
 }
 
@@ -298,12 +288,12 @@ void LoginManager::checkRoleNotIn(QStringList roles)
 	NGSD db;
 
 	LoginManager& manager = instance();
-	if (db.userRoleIn(manager.user_, roles))
+	if (db.userRoleIn(manager.user_login_, roles))
 	{
 		//invert role selection for output
 		QStringList roles_db = db.getEnum("user", "user_role");
 		roles = roles_db.toSet().subtract(roles.toSet()).toList();
 
-		INFO(AccessDeniedException, "Access denied.\nOnly users with the following roles have access to this functionality: " + roles.join(", ") + ".\nThe user '" + manager.user_ + "' has the role '" + manager.role_ + "'!");
+		INFO(AccessDeniedException, "Access denied.\nOnly users with the following roles have access to this functionality: " + roles.join(", ") + ".\nThe user '" + manager.user_login_ + "' has the role '" + manager.user_role_ + "'!");
 	}
 }

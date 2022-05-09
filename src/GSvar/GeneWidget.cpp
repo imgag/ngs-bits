@@ -191,7 +191,7 @@ void GeneWidget::editComment()
 {
     NGSD db;
     GeneInfo info = db.geneInfo(symbol_);
-	QString text = "[" + QDate::currentDate().toString("dd.MM.yyyy") + " " + LoginManager::user() + "]\nAdd comment here\n\n" + info.comments;
+	QString text = "[" + QDate::currentDate().toString("dd.MM.yyyy") + " " + LoginManager::userLogin() + "]\nAdd comment here\n\n" + info.comments;
 
     bool ok;
     QString text_new = QInputDialog::getMultiLineText(this, "Edit gene comment", "comment:", text, &ok);

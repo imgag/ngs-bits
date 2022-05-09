@@ -54,7 +54,7 @@ QStringList ReportVariantConfiguration::getClassificationOptions()
 
 ReportConfiguration::ReportConfiguration()
 	: variant_config_()
-	, created_by_(LoginManager::user())
+	, created_by_(LoginManager::userLogin())
 	, created_at_(QDateTime::currentDateTime())
 	, last_updated_by_()
 	, last_updated_at_(QDateTime())

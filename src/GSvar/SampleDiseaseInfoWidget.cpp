@@ -77,7 +77,7 @@ void SampleDiseaseInfoWidget::addDiseaseInfo()
 	//preprare entry
 	SampleDiseaseInfo tmp;
 	tmp.type = type;
-	tmp.user = LoginManager::user();
+	tmp.user = LoginManager::userLogin();
 	tmp.date = QDateTime::currentDateTime();
 
 	//get info from user

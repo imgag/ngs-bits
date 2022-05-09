@@ -240,7 +240,7 @@ void GapClosingDialog::openPrimerDesign()
 				end = region.end();
 			}
 
-			QString url = Settings::string("PrimerDesign")+"/index.php?user="+LoginManager::user()+"&sample="+ps+"&chr="+chr.strNormalized(true)+"&start="+QString::number(start)+"&end="+QString::number(end)+"";
+			QString url = Settings::string("PrimerDesign")+"/index.php?user="+LoginManager::userLogin()+"&sample="+ps+"&chr="+chr.strNormalized(true)+"&start="+QString::number(start)+"&end="+QString::number(end)+"";
 			QDesktopServices::openUrl(QUrl(url));
 		}
 	}
