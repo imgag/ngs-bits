@@ -6,14 +6,11 @@
 #include "NGSD.h"
 #include "ui_UserPermissionsEditor.h"
 
-// This class implements a user interface for adding a removing
-// user permissions: i.e. access to a specific project, project
-// type, study, or sample. Setting such permissions is only
-// available for the users with the role "user_restricted".
-// User permissions are necessary to restirct the access
-// while working in a client-server mode.
-
-class UserPermissionsEditor : public QWidget
+// This class implements a user interface for changing user permissions: i.e. access to a specific project, project type, study, or sample.
+// Setting such permissions is only available for the users with the role 'user_restricted'.
+// User permissions are necessary to restirct the access while working in a client-server mode.
+class UserPermissionsEditor
+	: public QWidget
 {
 	Q_OBJECT
 

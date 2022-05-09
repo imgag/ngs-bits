@@ -253,7 +253,6 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 		type = FileLocation::stringToType(request.getUrlParams()["type"].toUpper().trimmed());
 	}
 
-	QList<QString> project_files;
 	QJsonDocument json_doc_output;
 	QJsonArray json_list_output;
 	QJsonObject json_object_output;
@@ -262,15 +261,21 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 	QString found_file_path;
 	try
 	{
-		id = NGSD().processedSampleName(request.getUrlParams()["ps_id"]);
+		NGSD db;
+		id = db.processedSampleName(request.getUrlParams()["ps_id"]);
 		Session current_session = SessionManager::getSessionBySecureToken(request.getUrlParams()["token"]);
-		UserPermissionProvider upp(current_session.user_id);
-		if (!upp.isEligibleToAccessProcessedSampleById(request.getUrlParams()["ps_id"]))
+
+		//access restricted only for user role 'user_restricted'
+		QString role = db.getValue("SELECT user_role FROM user WHERE id='" + QString::number(current_session.user_id) + "'").toString().toLower();
+		if (role=="user_restricted")
 		{
-			return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You do not have permissions to open this sample");
+			if (!db.userCanAccess(current_session.user_id, id.toInt()))
+			{
+				return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You do not have permissions to open this sample");
+			}
 		}
 
-		found_file_path =  NGSD().processedSamplePath(request.getUrlParams()["ps_id"], type);
+		found_file_path =  db.processedSamplePath(id, type);
 	}
 	catch (Exception& e)
 	{
