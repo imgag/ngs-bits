@@ -316,7 +316,6 @@ int main(int argc, char **argv)
 						"Secure token generation, the token will be used to access protected resources and to perform  certain API calls",
 						&ServerController::performLogin
 					});
-
 	EndpointManager::appendEndpoint(Endpoint{
 						"validate_credentials",
 						QMap<QString, ParamProps>{

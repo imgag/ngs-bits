@@ -63,9 +63,9 @@ public:
 	/// Checks if a valid token has been provided
 	static bool isAuthorizedWithToken(const HttpRequest& request);
 	/// Checks if the secure token is valid and not expired
-	static HttpResponse getSecureTokenAuthStatus(const HttpRequest& request);
+	static HttpResponse getUserTokenAuthStatus(const HttpRequest& request);
 	/// Check if GSvar toje is valid
-	static HttpResponse getGSvarTokenAuthStatus(const HttpRequest& request);
+	static HttpResponse getDbTokenAuthStatus(const HttpRequest& request);
 
 	static void validateInputData(Endpoint* current_endpoint, const HttpRequest& request);
 	static void appendEndpoint(Endpoint new_endpoint);	

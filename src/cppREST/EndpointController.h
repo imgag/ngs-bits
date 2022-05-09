@@ -4,7 +4,6 @@
 #include "cppREST_global.h"
 #include "Log.h"
 #include "HttpParts.h"
-#include "FileCache.h"
 #include "EndpointManager.h"
 #include "UrlManager.h"
 #include "HttpResponse.h"
@@ -24,8 +23,6 @@ public:
 	/// Provides a random access to a file or streams it (depending on the headers), as well as displays a folder
 	/// content for a specific project folder linked to a temporary URL
 	static HttpResponse serveStaticForTempUrl(const HttpRequest& request);
-	/// Serves or streams file content saved in the server cache
-	static HttpResponse serveStaticFileFromCache(const HttpRequest& request);
 
 	/// Serves a file for a byte range request (i.e. specific fragment of a file)
 	static HttpResponse createStaticFileRangeResponse(QString filename, QList<ByteRange> byte_ranges, ContentType type, bool is_downloadable);

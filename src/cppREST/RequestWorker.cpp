@@ -148,8 +148,8 @@ void RequestWorker::run()
 		HttpResponse auth_response;
 
 		if (current_endpoint.authentication_type == AuthType::HTTP_BASIC_AUTH) auth_response = EndpointManager::getBasicHttpAuthStatus(parsed_request);
-		if (current_endpoint.authentication_type == AuthType::USER_TOKEN) auth_response = EndpointManager::getSecureTokenAuthStatus(parsed_request);
-		if (current_endpoint.authentication_type == AuthType::DB_TOKEN) auth_response = EndpointManager::getGSvarTokenAuthStatus(parsed_request);
+		if (current_endpoint.authentication_type == AuthType::USER_TOKEN) auth_response = EndpointManager::getUserTokenAuthStatus(parsed_request);
+		if (current_endpoint.authentication_type == AuthType::DB_TOKEN) auth_response = EndpointManager::getDbTokenAuthStatus(parsed_request);
 
 		if (auth_response.getStatus() != ResponseStatus::OK)
 		{

@@ -54,7 +54,8 @@ void SessionManager::removeSession(int user_id, QDateTime login_time)
 Session SessionManager::getSessionByUserId(QString id)
 {
 	QMapIterator<QString, Session> i(instance().session_store_);
-	while (i.hasNext()) {
+	while (i.hasNext())
+	{
 		i.next();
 		if (i.value().user_id == id)
 		{

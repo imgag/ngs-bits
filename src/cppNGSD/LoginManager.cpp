@@ -284,11 +284,9 @@ QString LoginManager::genlabPassword()
 
 void LoginManager::checkRoleIn(QStringList roles)
 {
-	NGSD db;
-
 	//check if user has role
 	LoginManager& manager = instance();
-	if (!db.userRoleIn(manager.user_, roles))
+	if (!NGSD().userRoleIn(manager.user_, roles))
 	{
 		THROW(Exception, "Access denied.\nOnly users with the following roles have access to this functionality: " + roles.join(", ") + ".\nThe user '" + manager.user_ + "' has the role '" + manager.user_role_ + "'!");
 	}

@@ -35,8 +35,7 @@ HttpResponse EndpointManager::getBasicHttpAuthStatus(HttpRequest request)
 
 	try
 	{
-		NGSD db;
-		message = db.checkPassword(username, password);
+		message = NGSD().checkPassword(username, password);
 	}
 	catch (Exception& e)
 	{
@@ -64,13 +63,14 @@ bool EndpointManager::isAuthorizedWithToken(const HttpRequest& request)
 	}
 	if (request.getFormUrlEncoded().contains("dbtoken"))
 	{
+		if (!SessionManager::getSessionBySecureToken(request.getFormUrlEncoded()["dbtoken"]).is_for_db_only) return false;
 		return SessionManager::isTokenReal(request.getFormUrlEncoded()["dbtoken"]);
 	}
 
 	return false;
 }
 
-HttpResponse EndpointManager::getSecureTokenAuthStatus(const HttpRequest& request)
+HttpResponse EndpointManager::getUserTokenAuthStatus(const HttpRequest& request)
 {
 	qDebug() << "Check user token status";
 	if (!isAuthorizedWithToken(request))
@@ -89,7 +89,7 @@ HttpResponse EndpointManager::getSecureTokenAuthStatus(const HttpRequest& reques
 	return HttpResponse(ResponseStatus::OK, request.getContentType(), "OK");
 }
 
-HttpResponse EndpointManager::getGSvarTokenAuthStatus(const HttpRequest& request)
+HttpResponse EndpointManager::getDbTokenAuthStatus(const HttpRequest& request)
 {
 	qDebug() << "Check db token status";
 	if (!isAuthorizedWithToken(request))
@@ -122,7 +122,8 @@ HttpResponse EndpointManager::getGSvarTokenAuthStatus(const HttpRequest& request
 void EndpointManager::validateInputData(Endpoint* current_endpoint, const HttpRequest& request)
 {	
 	QMapIterator<QString, ParamProps> i(current_endpoint->params);
-	while (i.hasNext()) {
+	while (i.hasNext())
+	{
 		i.next();		
 		bool is_found = false;
 		if (i.value().category == ParamProps::ParamCategory::POST_OCTET_STREAM)
