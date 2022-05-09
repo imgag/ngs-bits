@@ -257,25 +257,26 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 	QJsonArray json_list_output;
 	QJsonObject json_object_output;
 
-	QString id;
+	QString ps_name;
 	QString found_file_path;
 	try
 	{
 		NGSD db;
-		id = db.processedSampleName(request.getUrlParams()["ps_id"]);
+		int id = request.getUrlParams()["ps_id"].toInt();
+		ps_name = db.processedSampleName(request.getUrlParams()["ps_id"]);
 		Session current_session = SessionManager::getSessionBySecureToken(request.getUrlParams()["token"]);
 
 		//access restricted only for user role 'user_restricted'
 		QString role = db.getValue("SELECT user_role FROM user WHERE id='" + QString::number(current_session.user_id) + "'").toString().toLower();
 		if (role=="user_restricted")
 		{
-			if (!db.userCanAccess(current_session.user_id, id.toInt()))
+			if (!db.userCanAccess(current_session.user_id, id))
 			{
 				return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You do not have permissions to open this sample");
 			}
 		}
 
-		found_file_path =  db.processedSamplePath(id, type);
+		found_file_path =  db.processedSamplePath(QString::number(id), type);
 	}
 	catch (Exception& e)
 	{
@@ -289,9 +290,9 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 		return_http = true;
 	}
 
-	FileLocation project_file = FileLocation(id, type, createFileTempUrl(found_file_path, request.getUrlParams()["token"], return_http), QFile::exists(found_file_path));
+	FileLocation project_file = FileLocation(ps_name, type, createFileTempUrl(found_file_path, request.getUrlParams()["token"], return_http), QFile::exists(found_file_path));
 
-	json_object_output.insert("id", id);
+	json_object_output.insert("id", ps_name);
 	json_object_output.insert("type", project_file.typeAsString());
 	json_object_output.insert("filename", project_file.filename);
 	json_object_output.insert("exists", project_file.exists);
