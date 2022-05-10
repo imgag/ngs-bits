@@ -52,7 +52,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "GeneSelectorDialog.h"
 #include "NGSHelper.h"
 #include "QCCollection.h"
-#include "NGSDReannotationDialog.h"
 #include "DiseaseInfoWidget.h"
 #include "SmallVariantSearchWidget.h"
 #include "TSVFileStream.h"
@@ -494,7 +493,7 @@ void MainWindow::on_actionDebug_triggered()
 			SqlQuery query = db.getQuery();
 			QString af = "0.001";
 			Chromosome chr = roi_coding[0].chr();
-			query.exec("SELECT v.id, v.start, v.end, v.ref, v.obs, v.coding, v.gnomad FROM variant v WHERE chr='" + chr.strNormalized(true)  + "' AND start>='" + QString::number(roi_coding[0].start()) + "' AND end<='" + QString::number(roi_coding[roi_coding.count()-1].end()) + "' AND (1000g IS NULL OR 1000g<=" + af + ") AND (gnomad IS NULL OR gnomad<=" + af + ") ORDER BY start");
+			query.exec("SELECT v.id, v.start, v.end, v.ref, v.obs, v.coding, v.gnomad FROM variant v WHERE chr='" + chr.strNormalized(true)  + "' AND start>='" + QString::number(roi_coding[0].start()) + "' AND end<='" + QString::number(roi_coding[roi_coding.count()-1].end()) + "' AND (gnomad IS NULL OR gnomad<=" + af + ") ORDER BY start");
 			while(query.next())
 			{
 				QList<VariantTranscript> trans_infos;

@@ -73,7 +73,8 @@ private slots:
 		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab database!");
 
 		GenLabDB db;
-		I_EQUAL(db.tumorFraction("DXtest1").count(), 0); //TODO Anne adds data?!
+		I_EQUAL(db.tumorFraction("DXtest1").count(), 1);
+		S_EQUAL(db.tumorFraction("DXtest1")[0], "50");
 		I_EQUAL(db.tumorFraction("DXtest2").count(), 0);
 	}
 
