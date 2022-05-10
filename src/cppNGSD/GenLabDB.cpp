@@ -32,7 +32,7 @@ GenLabDB::GenLabDB()
 	{
 		genlab_mssql = Settings::boolean("genlab_mssql", true);
 		host = Settings::string("genlab_host", true);
-		port = Settings::integer("genlab_port");
+		port = Settings::contains("genlab_port") ? Settings::integer("genlab_port") : -1;
 		name = Settings::string("genlab_name", true);
 		user = Settings::string("genlab_user", true);
 		pass = Settings::string("genlab_pass", true);
