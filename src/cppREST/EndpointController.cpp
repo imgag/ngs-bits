@@ -21,7 +21,7 @@ HttpResponse EndpointController::serveEndpointHelp(const HttpRequest& request)
 
 	BasicResponseData response_data;
 	response_data.length = body.length();
-	response_data.content_type = ContentType::TEXT_HTML;
+	response_data.content_type = request.getContentType();
 	response_data.is_downloadable = false;
 	return HttpResponse(response_data, body);
 }
@@ -352,11 +352,7 @@ QString EndpointController::getServedRootPath(const QList<QString>& path_parts)
 	served_file = QUrl::fromEncoded(served_file.toLocal8Bit()).toString(); // handling browser endcoding, e.g. spaces and other characters in names
 	int param_pos = served_file.indexOf("?");
 	if (param_pos > -1) served_file = served_file.left(param_pos);
-
-	if (QFile(served_file).exists())
-	{
-		return served_file;
-	}
+	if (QFile(served_file).exists()) return served_file;
 
 	return "";
 }

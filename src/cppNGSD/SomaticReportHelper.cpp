@@ -787,13 +787,13 @@ void SomaticReportHelper::saveReportData(QString filename, QString path, QString
 	add_headers.insert("Content-Type", "application/json");
 	add_headers.insert("Content-Length", QByteArray::number(content.size()));
 
-	//TODO handle reply? try-catch? > Alexandr
-	QString reply = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(
-				NGSHelper::serverApiUrl()
-				+ "qbic_report_data?filename=" + QUrl(filename).toEncoded() + "&id=" + QUrl(path).toEncoded() +"&token=" + LoginManager::userToken(),
-				content.toLocal8Bit(),
-				add_headers
-			);
+	// Exception is handled from GSvar
+	HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(
+		NGSHelper::serverApiUrl()
+		+ "qbic_report_data?filename=" + QUrl(filename).toEncoded() + "&id=" + QUrl(path).toEncoded() +"&token=" + LoginManager::userToken(),
+		content.toLocal8Bit(),
+		add_headers
+	);
 }
 
 double SomaticReportHelper::getCnvMaxTumorClonality(const CnvList &cnvs)

@@ -1,6 +1,7 @@
 #include "ServerWrapper.h"
 
 ServerWrapper::ServerWrapper(const quint16& port, const bool& insecure)
+	: is_running_(false)
 {
 	QString protocol_name;
 	if (!insecure)
@@ -78,4 +79,9 @@ ServerWrapper::ServerWrapper(const quint16& port, const bool& insecure)
 		Log::error("Could not start " + protocol_name + " server on port #" + QString::number(port) + ": " + server_->errorString());
 	}
 
+}
+
+bool ServerWrapper::isRunning() const
+{
+	return is_running_;
 }

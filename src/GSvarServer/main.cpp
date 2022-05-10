@@ -191,7 +191,7 @@ int main(int argc, char **argv)
 						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
 						},
 						RequestMethod::GET,
-						ContentType::TEXT_PLAIN,
+						ContentType::APPLICATION_JSON,
 						AuthType::USER_TOKEN,
 						"Temporary URL leading to a specific project file (based on the processed sample id)",
 						&ServerController::getProcessedSamplePath
@@ -392,6 +392,12 @@ int main(int argc, char **argv)
 
 	Log::info("SSL version used for the build: " + QSslSocket::sslLibraryBuildVersionString());
 	ServerWrapper https_server(https_port_setting);
+	if (!https_server.isRunning())
+	{
+		Log::error("HTTPS is not running. Exiting");
+		app.exit(EXIT_FAILURE);
+		return app.exec();
+	}
 
 	if (!http_port.isEmpty())
 	{
@@ -405,6 +411,12 @@ int main(int argc, char **argv)
 		return app.exec();
 	}
 	ServerWrapper http_server(http_port_setting, true);
+	if (!http_server.isRunning())
+	{
+		Log::error("HTTP is not running. Exiting");
+		app.exit(EXIT_FAILURE);
+		return app.exec();
+	}
 
 	return app.exec();
 }
