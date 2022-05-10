@@ -21,9 +21,11 @@ class CPPRESTSHARED_EXPORT ServerWrapper : public QObject
 
 public:
 	ServerWrapper(const quint16& port, const bool& insecure = false);
+	bool isRunning() const;
 
 private:
 	SslServer *server_;
+	bool is_running_;
 };
 
 #endif // SERVERWRAPPER_H

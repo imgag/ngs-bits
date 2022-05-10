@@ -78,6 +78,27 @@ QString ServerHelper::getUrlPort(const bool& return_http)
 	return ServerHelper::getStringSettingsValue("https_server_port");
 }
 
+bool ServerHelper::hasBasicSettings()
+{
+	if (!ServerHelper::getStringSettingsValue("https_server_port").isEmpty() &&
+		!ServerHelper::getStringSettingsValue("http_server_port").isEmpty() &&
+		!ServerHelper::getStringSettingsValue("server_host").isEmpty() &&
+		!ServerHelper::getStringSettingsValue("ssl_certificate").isEmpty() &&
+		!ServerHelper::getStringSettingsValue("ssl_key").isEmpty() &&
+		(ServerHelper::getNumSettingsValue("url_lifetime")>0) &&
+		(ServerHelper::getNumSettingsValue("session_duration")>0))
+	{
+		return true;
+	}
+	return false;
+}
+
+QString ServerHelper::getServerUrl(const bool& return_http)
+{
+	return getUrlProtocol(return_http) + "://" + ServerHelper::getStringSettingsValue("server_host") +
+			ServerHelper::getUrlPort(return_http);
+}
+
 ServerHelper& ServerHelper::instance()
 {
 	static ServerHelper server_helper;
