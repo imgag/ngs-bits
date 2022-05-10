@@ -73,10 +73,11 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_pubmed->setToolTip(vl.annotationDescriptionByName("PubMed", false).description()); //optional
 
 	//AFs
-	ui->label_tg->setToolTip(vl.annotationDescriptionByName("1000g").description());
 	ui->label_gnomad->setToolTip(vl.annotationDescriptionByName("gnomAD").description());
-	ui->label_gnomad_hom_hemi->setToolTip(vl.annotationDescriptionByName("gnomAD_hom_hemi").description());
 	ui->label_gnomad_sub->setToolTip(vl.annotationDescriptionByName("gnomAD_sub").description());
+	ui->label_gnomad_hom_hemi->setToolTip(vl.annotationDescriptionByName("gnomAD_hom_hemi").description());
+	ui->label_gnomad_het->setToolTip(vl.annotationDescriptionByName("gnomAD_het", false).description()); // optional
+	ui->label_gnomad_wt->setToolTip(vl.annotationDescriptionByName("gnomAD_wt", false).description()); // optional
 
 	//pathogenicity predictions
 	ui->label_phylop->setToolTip(vl.annotationDescriptionByName("phyloP").description());
@@ -168,10 +169,12 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->pubmed, vl, index, "PubMed");
 
 	//public allel frequencies
-	setAnnotation(ui->tg, vl, index, "1000g");
 	setAnnotation(ui->gnomad, vl, index, "gnomAD");
-	setAnnotation(ui->gnomad_hom_hemi, vl, index, "gnomAD_hom_hemi");
 	setAnnotation(ui->gnomad_sub, vl, index, "gnomAD_sub");
+	setAnnotation(ui->gnomad_hom_hemi, vl, index, "gnomAD_hom_hemi");
+	setAnnotation(ui->gnomad_het, vl, index, "gnomAD_het");
+	setAnnotation(ui->gnomad_wt, vl, index, "gnomAD_wt");
+
 
 	//pathogenity predictions
 	setAnnotation(ui->phylop, vl, index, "phyloP");
@@ -464,7 +467,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				tooltip = vl[index].annotations()[c_index];
 			}
 		}
-		else if(name=="1000g" || name=="gnomAD")
+		else if(name=="gnomAD")
 		{
 			if (anno=="")
 			{
@@ -632,17 +635,7 @@ double VariantDetailsDockWidget::maxAlleleFrequency(const VariantList& vl, int i
 	bool ok;
 	double value;
 
-	int idx = vl.annotationIndexByName("1000g", true, false);
-	if (idx!=-1)
-	{
-		value = vl[index].annotations()[idx].toDouble(&ok);
-		if (ok)
-		{
-			output = std::max(output, value);
-		}
-	}
-
-	idx = vl.annotationIndexByName("gnomAD", true, false);
+	int idx = vl.annotationIndexByName("gnomAD", true, false);
 	if (idx!=-1)
 	{
 		value = vl[index].annotations()[idx].toDouble(&ok);

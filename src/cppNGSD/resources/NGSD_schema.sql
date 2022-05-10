@@ -584,7 +584,6 @@ CREATE  TABLE IF NOT EXISTS `variant`
   `end` INT(11) NOT NULL,
   `ref` TEXT NOT NULL,
   `obs` TEXT NOT NULL,
-  `1000g` FLOAT NULL DEFAULT NULL,
   `gnomad` FLOAT NULL DEFAULT NULL,
   `coding` TEXT NULL DEFAULT NULL,  
   `comment` TEXT NULL DEFAULT NULL,
@@ -594,7 +593,6 @@ CREATE  TABLE IF NOT EXISTS `variant`
   `germline_hom` INT(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `variant_UNIQUE` (`chr` ASC, `start` ASC, `end` ASC, `ref`(255) ASC, `obs`(255) ASC),
-  INDEX `1000g` (`1000g` ASC),
   INDEX `gnomad` (`gnomad` ASC),
   INDEX `comment` (`comment`(50) ASC)
 )
