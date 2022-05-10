@@ -74,6 +74,16 @@ bool GenLabDB::isOpen() const
 	return QSqlQuery(*db_).exec("SELECT 1");
 }
 
+bool GenLabDB::isAvailable()
+{
+	if (NGSHelper::isCliendServerMode() && !NGSHelper::isRunningOnServer())
+	{
+		return true;
+	}
+
+	return Settings::contains("genlab_host") && Settings::contains("genlab_name") && Settings::contains("genlab_user") && Settings::contains("genlab_pass"); //port is not required for MsSQL
+}
+
 QStringList GenLabDB::tables() const
 {
 	QStringList output;

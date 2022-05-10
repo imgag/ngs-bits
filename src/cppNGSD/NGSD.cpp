@@ -27,7 +27,7 @@ NGSD::NGSD(bool test_db, QString name_suffix)
 
 	//connect to DB
 	QString db_name;
-	if (NGSHelper::isCliendServerMode() && !NGSHelper::isRunningOnServer())
+	if (!test_db_ && NGSHelper::isCliendServerMode() && !NGSHelper::isRunningOnServer())
 	{
 		db_->setHostName(LoginManager::ngsdHostName());
 		db_->setPort(LoginManager::ngsdPort());
@@ -53,6 +53,19 @@ NGSD::NGSD(bool test_db, QString name_suffix)
 	{
 		THROW(DatabaseException, "Could not connect to NGSD database '" + db_name + "': " + db_->lastError().text());
 	}
+}
+
+bool NGSD::isAvailable(bool test_db)
+{
+	if (!test_db && NGSHelper::isCliendServerMode() && !NGSHelper::isRunningOnServer())
+	{
+		return true;
+	}
+
+	QString prefix = "ngsd";
+	if (test_db) prefix += "_test";
+
+	return Settings::contains(prefix+"_host") && Settings::contains(prefix+"_port") && Settings::contains(prefix+"_name") && Settings::contains(prefix+"_user") && Settings::contains(prefix+"_pass");
 }
 
 int NGSD::userId(QString user_name, bool only_active, bool throw_if_fails)
