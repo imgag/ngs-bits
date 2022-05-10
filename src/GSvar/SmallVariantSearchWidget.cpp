@@ -37,17 +37,6 @@ void SmallVariantSearchWidget::changeSearchType()
 
 void SmallVariantSearchWidget::updateVariants()
 {
-	//not for restricted users
-	try
-	{
-		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
-	}
-	catch(Exception& e)
-	{
-		QMessageBox::information(this, "Access denied", e.message());
-		return;
-	}
-
 	//clear old results
 	ui_.variants->clearContents();
 
@@ -59,6 +48,9 @@ void SmallVariantSearchWidget::updateVariants()
 	try
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
+
+		//not for restricted users
+		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
 
 		//process genes/region
 		QStringList comments;
@@ -134,9 +126,7 @@ void SmallVariantSearchWidget::updateVariants()
 	}
 	catch(Exception& e)
 	{
-		QApplication::restoreOverrideCursor();
-
-		QMessageBox::critical(this, "Error", e.message());
+		GUIHelper::showException(this, e, "Small variants search error");
 	}
 }
 

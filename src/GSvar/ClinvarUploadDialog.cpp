@@ -21,11 +21,13 @@ ClinvarUploadDialog::ClinvarUploadDialog(QWidget *parent)
     : QDialog(parent)
     , ui_()
 {
-    if (!LoginManager::active())
-    {
-        QMessageBox::warning(this, "No NGSD connection", "ClinVar Upload requires access to the NGSD");
-        return;
-    }
+	if (!LoginManager::active())
+	{
+		INFO(DatabaseException, "ClinVar Upload requires logging in into NGSD!");
+	}
+
+	LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
+
     ui_.setupUi(this);
 
     initGui();
@@ -268,7 +270,7 @@ void ClinvarUploadDialog::upload()
 			{
 				details << "reupload=true";
 				details << "previous_publication_id=" + QString::number(clinvar_upload_data_.variant_publication_id);
-				details << "reupload_by=" + LoginManager::user();
+				details << "reupload_by=" + LoginManager::userLogin();
 			}
 
             // log publication in NGSD
@@ -288,11 +290,11 @@ void ClinvarUploadDialog::upload()
 			// log original submitter for reuploads
 			if (clinvar_upload_data_.user_id > 0)
 			{
-				lines << "user: " + db_.userLogin(clinvar_upload_data_.user_id) + " (Reupload by " + LoginManager::user() + ")";
+				lines << "user: " + db_.userLogin(clinvar_upload_data_.user_id) + " (Reupload by " + LoginManager::userLogin() + ")";
 			}
 			else
 			{
-				lines << "user: " + LoginManager::user();
+				lines << "user: " + LoginManager::userLogin();
 			}
             lines << "date: " + Helper::dateTime();
             lines << "";
@@ -410,16 +412,6 @@ bool ClinvarUploadDialog::checkGuiData()
 	if (uploaded_to_clinvar)
 	{
 		upload_comment_text << "<font color='red'>WARNING: This variant has already been uploaded to ClinVar! Are you sure you want to upload it again? </font><br>" + upload_details.replace("\n", "<br>");
-	}
-
-	//not for restricted users
-	try
-	{
-		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
-	}
-	catch(Exception& e)
-	{
-		errors << e.message();
 	}
 
     //show error or enable upload button

@@ -7,6 +7,7 @@
 #include "NGSHelper.h"
 #include "FilterCascade.h"
 #include "LoginManager.h"
+#include "UserPermissionList.h"
 #include <QFileInfo>
 #include <QPair>
 #include <QSqlDriver>
@@ -25,17 +26,32 @@ NGSD::NGSD(bool test_db, QString name_suffix)
 	db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "NGSD_" + Helper::randomString(20))));
 
 	//connect to DB
-	QString prefix = "ngsd";
-	if (test_db_) prefix += "_test";
-	if (!name_suffix.isEmpty()) prefix += name_suffix;
-	db_->setHostName(Settings::string(prefix + "_host"));
-	db_->setPort(Settings::integer(prefix + "_port"));
-	db_->setDatabaseName(Settings::string(prefix + "_name"));
-	db_->setUserName(Settings::string(prefix + "_user"));
-	db_->setPassword(Settings::string(prefix + "_pass"));
+	QString db_name;
+	if (NGSHelper::isCliendServerMode() && !NGSHelper::isRunningOnServer())
+	{
+		db_->setHostName(LoginManager::ngsdHostName());
+		db_->setPort(LoginManager::ngsdPort());
+		db_->setDatabaseName(LoginManager::ngsdName());
+		db_->setUserName(LoginManager::ngsdUser());
+		db_->setPassword(LoginManager::ngsdPassword());
+		db_name = LoginManager::ngsdName();
+	}
+	else
+	{
+		QString prefix = "ngsd";
+		if (test_db_) prefix += "_test";
+		if (!name_suffix.isEmpty()) prefix += name_suffix;
+		db_->setHostName(Settings::string(prefix + "_host"));
+		db_->setPort(Settings::integer(prefix + "_port"));
+		db_->setDatabaseName(Settings::string(prefix + "_name"));
+		db_->setUserName(Settings::string(prefix + "_user"));
+		db_->setPassword(Settings::string(prefix + "_pass"));
+		db_name = prefix;
+	}
+
 	if (!db_->open())
 	{
-		THROW(DatabaseException, "Could not connect to NGSD database '" + prefix + "': " + db_->lastError().text());
+		THROW(DatabaseException, "Could not connect to NGSD database '" + db_name + "': " + db_->lastError().text());
 	}
 }
 
@@ -144,6 +160,43 @@ bool NGSD::userRoleIn(QString user, QStringList roles)
 
 	QString user_role = getValue("SELECT user_role FROM user WHERE user_id=:0", false, user).toString();
 	return roles.contains(user_role);
+}
+
+bool NGSD::userCanAccess(int user_id, int ps_id)
+{
+	//access restricted only for user role 'user_restricted'
+	QString role = getValue("SELECT user_role FROM user WHERE id='" + QString::number(user_id) + "'").toString().toLower();
+	if (role!="user_restricted") return true;
+
+	QString ps_id_str = QString::number(ps_id);
+
+	//get permission list
+	SqlQuery query = getQuery();
+	query.exec("SELECT * FROM user_permissions WHERE user_id=" + QString::number(user_id));
+	while(query.next())
+	{
+		Permission permission = UserPermissionList::stringToType(query.value("permission").toString());
+		QVariant data = query.value("data").toString();
+
+		switch(permission)
+		{
+			case Permission::PROJECT:
+				if (data.toInt() == getValue("SELECT project_id FROM processed_sample WHERE id=:0", true, ps_id_str).toInt()) return true;
+				break;
+			case Permission::PROJECT_TYPE:
+				if (data.toString() == getValue("SELECT p.type FROM project p, processed_sample ps WHERE p.id=ps.project_id AND ps.id=:0", true, ps_id_str).toString()) return true;
+				break;
+			case Permission::SAMPLE:
+				if (data.toInt() == getValue("SELECT sample_id FROM processed_sample WHERE id=:0", true, ps_id_str).toInt()) return true;
+				break;
+			case Permission::STUDY:
+				QSet<int> study_ids = getValuesInt("SELECT study_id FROM study_sample WHERE processed_sample_id=:0", ps_id_str).toSet();
+				if (study_ids.contains(data.toInt())) return true;
+				break;
+		}
+	}
+
+	return false;
 }
 
 DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
@@ -3665,6 +3718,11 @@ QHash<QString, QStringList> NGSD::checkMetaData(const QString& ps_id, const Vari
 					output[s_name] << "causal " + variantTypeToString(var_conf.variant_type) + ", but report type is not 'diagnostic variant'!";
 				}
 			}
+		}
+
+		if(report_config->otherCausalVariant().isValid())
+		{
+			causal_diagnostic_variant_present = true;
 		}
 	}
 
