@@ -164,39 +164,49 @@ bool NGSD::userRoleIn(QString user, QStringList roles)
 
 bool NGSD::userCanAccess(int user_id, int ps_id)
 {
+	QHash<int, QSet<int>>& cache = getCache().user_access_ps;
+
 	//access restricted only for user role 'user_restricted'
-	QString role = getValue("SELECT user_role FROM user WHERE id='" + QString::number(user_id) + "'").toString().toLower();
-	if (role!="user_restricted") return true;
-
-	QString ps_id_str = QString::number(ps_id);
-
-	//get permission list
-	SqlQuery query = getQuery();
-	query.exec("SELECT * FROM user_permissions WHERE user_id=" + QString::number(user_id));
-	while(query.next())
+	if (!cache.contains(user_id))
 	{
-		Permission permission = UserPermissionList::stringToType(query.value("permission").toString());
-		QVariant data = query.value("data").toString();
-
-		switch(permission)
-		{
-			case Permission::PROJECT:
-				if (data.toInt() == getValue("SELECT project_id FROM processed_sample WHERE id=:0", true, ps_id_str).toInt()) return true;
-				break;
-			case Permission::PROJECT_TYPE:
-				if (data.toString() == getValue("SELECT p.type FROM project p, processed_sample ps WHERE p.id=ps.project_id AND ps.id=:0", true, ps_id_str).toString()) return true;
-				break;
-			case Permission::SAMPLE:
-				if (data.toInt() == getValue("SELECT sample_id FROM processed_sample WHERE id=:0", true, ps_id_str).toInt()) return true;
-				break;
-			case Permission::STUDY:
-				QSet<int> study_ids = getValuesInt("SELECT study_id FROM study_sample WHERE processed_sample_id=:0", ps_id_str).toSet();
-				if (study_ids.contains(data.toInt())) return true;
-				break;
-		}
+		QString role = getValue("SELECT user_role FROM user WHERE id='" + QString::number(user_id) + "'").toString().toLower();
+		if (role!="user_restricted") return true;
 	}
 
-	return false;
+	//init
+	if (!cache.contains(user_id))
+	{
+		QSet<int> ps_ids;
+
+		//get permission list
+		SqlQuery query = getQuery();
+		query.exec("SELECT * FROM user_permissions WHERE user_id=" + QString::number(user_id));
+		while(query.next())
+		{
+			Permission permission = UserPermissionList::stringToType(query.value("permission").toString());
+			QVariant data = query.value("data").toString();
+
+			switch(permission)
+			{
+				case Permission::PROJECT:
+					ps_ids += getValuesInt("SELECT id FROM processed_sample WHERE project_id=" + data.toString()).toSet();
+					break;
+				case Permission::PROJECT_TYPE:
+					ps_ids += getValuesInt("SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND p.type='" + data.toString() + "'").toSet();
+					break;
+				case Permission::SAMPLE:
+					ps_ids += getValuesInt("SELECT id FROM processed_sample WHERE sample_id=" + data.toString()).toSet();
+					break;
+				case Permission::STUDY:
+					ps_ids += getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id=" + data.toString()).toSet();
+					break;
+			}
+		}
+
+		cache.insert(user_id, ps_ids);
+	}
+
+	return cache[user_id].contains(ps_id);
 }
 
 DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
@@ -368,6 +378,21 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	}
 
 	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
+
+	//filter by user access rights (for restricted users only)
+	if (p.restricted_user!="")
+	{
+		int user_id = userId(p.restricted_user);
+
+		for(int r=output.rowCount()-1; r>=0; --r) //reverse, so that all indices are valid
+		{
+			int ps_id = output.row(r).id().toInt();
+			if (!userCanAccess(user_id, ps_id))
+			{
+				output.removeRow(r);
+			}
+		}
+	}
 
 	//add path
 	if(!p.add_path.isEmpty())
@@ -5254,7 +5279,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 	//check that it is not finalized
 	if (id!=-1 && reportConfigIsFinalized(id))
 	{
-		THROW (ProgrammingException, "Cannot update report configuration with id=" + id_str + " because it is finalized!");
+		WARNING(ProgrammingException, "Cannot update report configuration with id=" + id_str + " because it is finalized!");
 	}
 
 	try
@@ -6548,6 +6573,7 @@ void NGSD::clearCache()
 	cache_instance.non_approved_to_approved_gene_names.clear();
 	cache_instance.phenotypes_by_id.clear();
 	cache_instance.phenotypes_accession_to_id.clear();
+	cache_instance.user_access_ps.clear();
 
 	cache_instance.gene_transcripts.clear();
 	cache_instance.gene_transcripts_index.createIndex();

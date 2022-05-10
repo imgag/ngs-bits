@@ -157,21 +157,6 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 	ui_.actionDebug->setVisible(Settings::boolean("debug_mode_enabled", true));
 
-	//NGSD search button
-	auto ngsd_btn = new QToolButton();
-	ngsd_btn->setObjectName("ngsd_search_btn");
-	ngsd_btn->setIcon(QIcon(":/Icons/NGSD_search.png"));
-	ngsd_btn->setToolTip("Open NGSD item as tab.");
-	ngsd_btn->setMenu(new QMenu());
-	ngsd_btn->menu()->addAction(ui_.actionOpenProcessedSampleTabByName);
-	ngsd_btn->menu()->addAction(ui_.actionOpenSequencingRunTabByName);
-	ngsd_btn->menu()->addAction(ui_.actionOpenGeneTabByName);
-	ngsd_btn->menu()->addAction(ui_.actionOpenProjectTab);
-	ngsd_btn->menu()->addAction(ui_.actionOpenVariantTab);
-	ngsd_btn->menu()->addAction(ui_.actionOpenProcessingSystemTab);
-	ngsd_btn->setPopupMode(QToolButton::InstantPopup);
-	ui_.tools->insertWidget(ui_.actionSampleSearch, ngsd_btn);
-
 	// add rna menu
 	rna_menu_btn_ = new QToolButton();
 	rna_menu_btn_->setObjectName("rna_btn");
@@ -2728,23 +2713,21 @@ void MainWindow::checkMendelianErrorRate(double cutoff_perc)
 
 void MainWindow::openProcessedSampleTab(QString ps_name)
 {
-	QString ps_id;
 	try
 	{
-		ps_id = NGSD().processedSampleId(ps_name);
-	}
-	catch (DatabaseException e)
-	{
-		GUIHelper::showMessage("NGSD error", "The processed sample database ID could not be determined for '"  + ps_name + "'!\nError message: " + e.message());
-		return;
-	}
+		QString ps_id = NGSD().processedSampleId(ps_name);
 
-	ProcessedSampleWidget* widget = new ProcessedSampleWidget(this, ps_id);
-	connect(widget, SIGNAL(clearMainTableSomReport(QString)), this, SLOT(clearSomaticReportSettings(QString)));
-	int index = openTab(QIcon(":/Icons/NGSD_sample.png"), ps_name, widget);
-	if (Settings::boolean("debug_mode_enabled"))
+		ProcessedSampleWidget* widget = new ProcessedSampleWidget(this, ps_id);
+		connect(widget, SIGNAL(clearMainTableSomReport(QString)), this, SLOT(clearSomaticReportSettings(QString)));
+		int index = openTab(QIcon(":/Icons/NGSD_sample.png"), ps_name, widget);
+		if (Settings::boolean("debug_mode_enabled"))
+		{
+			ui_.tabs->setTabToolTip(index, "NGSD ID: " + ps_id);
+		}
+	}
+	catch (Exception& e)
 	{
-		ui_.tabs->setTabToolTip(index, "NGSD ID: " + ps_id);
+		GUIHelper::showException(this, e, "Open processed sample tab");
 	}
 }
 
@@ -3521,7 +3504,7 @@ void MainWindow::storeReportConfig()
 	}
 	catch (Exception& e)
 	{
-		QMessageBox::warning(this, "Storing report configuration", "Error: Could not store the report configuration.\nPlease resolve this error or report it to the administrator:\n\n" + e.message());
+		QMessageBox::warning(this, "Storing report configuration", e.message());
 	}
 }
 
@@ -6751,6 +6734,12 @@ void MainWindow::updateNGSDSupport()
 	bool ngsd_user_logged_in = LoginManager::active();
 
 	//toolbar
+	ui_.actionOpenProcessedSampleTabByName->setEnabled(ngsd_user_logged_in);
+	ui_.actionOpenSequencingRunTabByName->setEnabled(ngsd_user_logged_in);
+	ui_.actionOpenGeneTabByName->setEnabled(ngsd_user_logged_in);
+	ui_.actionOpenVariantTab->setEnabled(ngsd_user_logged_in);
+	ui_.actionOpenProjectTab->setEnabled(ngsd_user_logged_in);
+	ui_.actionOpenProcessingSystemTab->setEnabled(ngsd_user_logged_in);
 	ui_.report_btn->setEnabled(ngsd_user_logged_in);
 	ui_.actionAnalysisStatus->setEnabled(ngsd_user_logged_in);
 	ui_.actionReanalyze->setEnabled(ngsd_user_logged_in);
@@ -6763,10 +6752,6 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionGapsRecalculate->setEnabled(ngsd_user_logged_in);
 	ui_.actionExpressionData->setEnabled(ngsd_user_logged_in);
 	ui_.actionAnnotateSomaticVariantInterpretation->setEnabled(ngsd_user_logged_in);
-
-	//toolbar - NGSD search menu
-	QToolButton* ngsd_search_btn = ui_.tools->findChild<QToolButton*>("ngsd_search_btn");
-	ngsd_search_btn->setEnabled(ngsd_user_logged_in);
 
 	//NGSD menu
 	ui_.menuNGSD->setEnabled(ngsd_user_logged_in);
@@ -6790,7 +6775,6 @@ void MainWindow::updateNGSDSupport()
 			{
 				if (action!=ui_.actionChangePassword)
 				{
-					qDebug() << action;
 					action->setEnabled(false);
 				}
 			}

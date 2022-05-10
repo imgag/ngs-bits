@@ -872,8 +872,6 @@ private slots:
 		S_EQUAL(ps_table.headers().at(21), "comment_processed_sample");
 		S_EQUAL(ps_table.row(0).value(20), "comment_s6");
 		S_EQUAL(ps_table.row(0).value(21), "comment_ps7");
-
-
 		//apply all search parameters
 		params.s_name = "NA12878";
 		params.s_species = "human";
@@ -897,6 +895,11 @@ private slots:
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 2);
 		I_EQUAL(ps_table.columnCount(), 74);
+		//filter based on access rights (restricted user)
+		params = ProcessedSampleSearchParameters();
+		params.restricted_user = "ahkerra1";
+		ps_table = db.processedSampleSearch(params);
+		I_EQUAL(ps_table.rowCount(), 4);
 
 		//reportConfigId
 		QString ps_id = db.processedSampleId("NA12878_03");
