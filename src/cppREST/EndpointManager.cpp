@@ -10,12 +10,12 @@ HttpResponse EndpointManager::getBasicHttpAuthStatus(HttpRequest request)
 	QString auth_header = request.getHeaderByName("Authorization").length() > 0 ? request.getHeaderByName("Authorization")[0] : "";
 	if (auth_header.isEmpty())
 	{
-		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::getContentTypeFromString("text/plain"), "You are in a protected area. Please provide your credentials");
+		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are in a protected area. Please provide your credentials");
 	}
 
 	if (auth_header.split(" ").size() < 2)
 	{
-		return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Could not parse basic authentication headers");
+		return HttpResponse(ResponseStatus::BAD_REQUEST, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Could not parse basic authentication headers");
 	}
 
 	auth_header = auth_header.split(" ").takeLast().trimmed();
@@ -24,13 +24,12 @@ HttpResponse EndpointManager::getBasicHttpAuthStatus(HttpRequest request)
 
 	if (separator_pos == -1)
 	{
-		return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Could not retrieve the credentials");
+		return HttpResponse(ResponseStatus::BAD_REQUEST, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Could not retrieve the credentials");
 	}
 
 	QString username = auth_header_decoded.mid(0, separator_pos);
 	QString password = auth_header_decoded.mid(separator_pos+1, auth_header_decoded.size()-username.size()-1);
 
-	// TODO: brute-force attack protection may be needed
 	QString message;
 
 	try
@@ -39,12 +38,12 @@ HttpResponse EndpointManager::getBasicHttpAuthStatus(HttpRequest request)
 	}
 	catch (Exception& e)
 	{
-		return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Database error: " + e.message());
+		return HttpResponse(ResponseStatus::BAD_REQUEST, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Database error: " + e.message());
 	}
 
 	if (!message.isEmpty())
 	{
-		return HttpResponse(ResponseStatus::UNAUTHORIZED, request.getContentType(), "Invalid user credentials");
+		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Invalid user credentials");
 	}
 
 	return HttpResponse(ResponseStatus::OK, request.getContentType(), "Successful authorization");

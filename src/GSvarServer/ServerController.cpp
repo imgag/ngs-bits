@@ -27,7 +27,7 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 					   "}";
 		BasicResponseData response_data;
 		response_data.length = text.length();
-		response_data.content_type = ContentType::APPLICATION_JSON;
+		response_data.content_type = request.getContentType();
 		response_data.is_downloadable = false;
 
 		return HttpResponse(response_data, text.toLocal8Bit());
@@ -238,7 +238,7 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 
 	BasicResponseData response_data;
 	response_data.length = json_doc_output.toJson().length();
-	response_data.content_type = ContentType::APPLICATION_JSON;
+	response_data.content_type = request.getContentType();
 	response_data.is_downloadable = false;
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
@@ -252,10 +252,6 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 	{
 		type = FileLocation::stringToType(request.getUrlParams()["type"].toUpper().trimmed());
 	}
-
-	QJsonDocument json_doc_output;
-	QJsonArray json_list_output;
-	QJsonObject json_object_output;
 
 	QString ps_name;
 	QString found_file_path;
@@ -285,24 +281,24 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 	}
 
 	bool return_http = false;
-	if (type == PathType::BAM)
-	{
-		return_http = true;
-	}
+	if (type == PathType::BAM) return_http = true;
 
 	FileLocation project_file = FileLocation(ps_name, type, createFileTempUrl(found_file_path, request.getUrlParams()["token"], return_http), QFile::exists(found_file_path));
 
-	json_object_output.insert("id", ps_name);
-	json_object_output.insert("type", project_file.typeAsString());
-	json_object_output.insert("filename", project_file.filename);
-	json_object_output.insert("exists", project_file.exists);
-	json_list_output.append(json_object_output);
-	json_doc_output.setArray(json_list_output);
+	QJsonDocument json_doc_output;
+	QJsonArray file_location_as_json_list;
+	QJsonObject file_location_as_json_object;
+	file_location_as_json_object.insert("id", ps_name);
+	file_location_as_json_object.insert("type", project_file.typeAsString());
+	file_location_as_json_object.insert("filename", project_file.filename);
+	file_location_as_json_object.insert("exists", project_file.exists);
+	file_location_as_json_list.append(file_location_as_json_object);
+	json_doc_output.setArray(file_location_as_json_list);
 
 	BasicResponseData response_data;
 	response_data.byte_ranges = QList<ByteRange>{};
 	response_data.length = json_doc_output.toJson().length();
-	response_data.content_type = ContentType::APPLICATION_JSON;
+	response_data.content_type = request.getContentType();
 	response_data.is_downloadable = false;
 
 	return HttpResponse(response_data, json_doc_output.toJson());
@@ -311,10 +307,8 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 HttpResponse ServerController::getAnalysisJobGSvarFile(const HttpRequest& request)
 {	
 	qDebug() << "Analysis job GSvar file";
-	QJsonDocument json_doc_output;
-	QJsonObject json_object_output;
 
-	QString id;
+	QString ps_name;
 	QString found_file_path;
 
 	try
@@ -322,7 +316,7 @@ HttpResponse ServerController::getAnalysisJobGSvarFile(const HttpRequest& reques
 		NGSD db;
 		int job_id = request.getUrlParams()["job_id"].toInt();
 		AnalysisJob job = db.analysisInfo(job_id, true);
-		id = db.processedSampleName(db.processedSampleId(job.samples[0].name));
+		ps_name = db.processedSampleName(db.processedSampleId(job.samples[0].name));
 		found_file_path = db.analysisJobGSvarFile(job_id);
 	}
 	catch (Exception& e)
@@ -331,13 +325,16 @@ HttpResponse ServerController::getAnalysisJobGSvarFile(const HttpRequest& reques
 		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), e.message());
 	}
 
-	FileLocation analysis_job_gsvar_file = FileLocation(id, PathType::GSVAR, createFileTempUrl(found_file_path, request.getUrlParams()["token"], false), QFile::exists(found_file_path));
+	FileLocation analysis_job_gsvar_file = FileLocation(ps_name, PathType::GSVAR, createFileTempUrl(found_file_path, request.getUrlParams()["token"], false), QFile::exists(found_file_path));
 
-	json_object_output.insert("id", id);
-	json_object_output.insert("type", analysis_job_gsvar_file.typeAsString());
-	json_object_output.insert("filename", analysis_job_gsvar_file.filename);
-	json_object_output.insert("exists", analysis_job_gsvar_file.exists);
-	json_doc_output.setObject(json_object_output);
+	QJsonDocument json_doc_output;
+	QJsonObject file_location_as_json_object;
+
+	file_location_as_json_object.insert("id", ps_name);
+	file_location_as_json_object.insert("type", analysis_job_gsvar_file.typeAsString());
+	file_location_as_json_object.insert("filename", analysis_job_gsvar_file.filename);
+	file_location_as_json_object.insert("exists", analysis_job_gsvar_file.exists);
+	json_doc_output.setObject(file_location_as_json_object);
 
 	BasicResponseData response_data;
 	response_data.byte_ranges = QList<ByteRange>{};
@@ -381,8 +378,6 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 	int ref_pos = -1;
 	int obs_pos = -1;
 	bool is_file_changed = false;
-
-	QString msg = "Size = " + QString::number(json_doc.array().size()) + request.getBody();
 
 	while(!in_stream.atEnd())
 	{
@@ -473,9 +468,9 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 
 	if (is_file_changed)
 	{
-		return HttpResponse(ResponseStatus::OK, ContentType::APPLICATION_JSON, "changed" + msg);
+		return HttpResponse(ResponseStatus::OK, request.getContentType(), "Project file has been changed");
 	}
-	return HttpResponse(ResponseStatus::OK, ContentType::APPLICATION_JSON, msg);
+	return HttpResponse(ResponseStatus::OK, request.getContentType(), "No changes to the file detected");
 }
 
 HttpResponse ServerController::saveQbicFiles(const HttpRequest& request)
@@ -539,7 +534,7 @@ HttpResponse ServerController::uploadFile(const HttpRequest& request)
 			qDebug() << "request.getMultipartFileName()" << request.getMultipartFileName();
 			QSharedPointer<QFile> outfile = Helper::openFileForWriting(url_entity.path + request.getMultipartFileName());
 			outfile->write(request.getMultipartFileContent());
-			return HttpResponse(ResponseStatus::OK, request.getContentType(), "OK");
+			return HttpResponse(ResponseStatus::OK, request.getContentType(), "File has been uploaded");
 		}
 		else
 		{
@@ -547,7 +542,7 @@ HttpResponse ServerController::uploadFile(const HttpRequest& request)
 		}
 	}
 
-	return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Parameters have not been provided");
+	return HttpResponse(ResponseStatus::BAD_REQUEST, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Parameters have not been provided");
 }
 
 
@@ -610,7 +605,7 @@ HttpResponse ServerController::getDbToken(const HttpRequest& request)
 
 	BasicResponseData response_data;
 	response_data.length = body.length();
-	response_data.content_type = ContentType::TEXT_PLAIN;
+	response_data.content_type = request.getContentType();
 	response_data.is_downloadable = false;
 	return HttpResponse(response_data, body);
 }
@@ -677,7 +672,7 @@ HttpResponse ServerController::performLogout(const HttpRequest& request)
 
 		BasicResponseData response_data;
 		response_data.length = body.length();
-		response_data.content_type = ContentType::TEXT_PLAIN;
+		response_data.content_type = request.getContentType();
 		response_data.is_downloadable = false;
 
 		return HttpResponse(response_data, body);
@@ -743,7 +738,7 @@ HttpResponse ServerController::getSecondaryAnalyses(const HttpRequest& request)
 	BasicResponseData response_data;
 	response_data.byte_ranges = QList<ByteRange>{};
 	response_data.length = json_doc_output.toJson().length();
-	response_data.content_type = ContentType::APPLICATION_JSON;
+	response_data.content_type = request.getContentType();
 	response_data.is_downloadable = false;
 
 	return HttpResponse(response_data, json_doc_output.toJson());
