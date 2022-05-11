@@ -563,6 +563,82 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
 
+	int idx_chr22 =  -1;
+	for (int i=0; i<reader.chromosomes().length(); i++)
+	{
+		if (reader.chromosomes()[i].strNormalized(true) == "chr22")
+		{
+			idx_chr22 = i;
+		}
+	}
+	if (idx_chr22 == -1)
+	{
+		THROW(ArgumentException, "Couldn't find chromosome 22 in the BAM file: " + bam_file);
+	}
+	long long chr22_size = reader.chromosomeSize(reader.chromosome(idx_chr22));
+	QVector<int> depth(chr22_size, 0);
+
+	FastaFileIndex ref_idx(ref_file);
+	BedFile chr22_mappable_regions;
+	Chromosome chr22("chr22");
+
+	int start = -1;
+
+	Sequence seq_chr22 = ref_idx.seq(chr22);
+	for (int i=0; i<seq_chr22.size(); i++)
+	{
+
+		if (start == -1)
+		{
+			if (seq_chr22.at(i) == 'N')
+			{
+				continue;
+			}
+			else
+			{
+				start = i+1;
+			}
+		}
+		else
+		{
+			if (seq_chr22.at(i) == 'N')
+			{
+				chr22_mappable_regions.append(BedLine(chr22, start, i));
+				start = -1;
+			}
+			else
+			{
+				continue;
+			}
+		}
+	}
+	// TODO remove file saving
+	chr22_mappable_regions.store("C:\\Users\\ahott1a1\\data\\chr22_mappable.bed");
+
+	BedFile dropout;
+	dropout.add(chr22_mappable_regions);
+	dropout.chunk(100);
+	QHash<int, double> gc_roi;
+	QHash<int, double> gc_reads;
+	QHash<int, int> gc_index_to_bin_map;
+	for (int i=0; i<dropout.count(); ++i)
+	{
+		BedLine& line = dropout[i];
+		Sequence seq = ref_idx.seq(line.chr(), line.start(), line.length());
+		double gc_content = seq.gcContent();
+		if (!BasicStatistics::isValidFloat(gc_content))
+		{
+			gc_index_to_bin_map[i] = -1;
+		}
+		else
+		{
+			int bin = (int)std::floor(100.0*gc_content);
+			gc_index_to_bin_map[i] = bin;
+			gc_roi[bin] += 1.0;
+		}
+	}
+	ChromosomalIndex<BedFile> dropout_index(dropout);
+
 	//init counts
 	long long al_total = 0;
 	long long al_mapped = 0;
@@ -575,6 +651,10 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 	double insert_size_sum = 0;
 	Histogram insert_dist(0, 999, 5);
 	long long bases_usable = 0;
+	long long bases_usable_roi = 0;
+	QVector<long long> bases_usable_roi_dp(5, 0); //usable bases by duplication level
+	long long bases_usable_roi_raw = 0; //usable bases in BAM before deduplication
+
 	int max_length = 0;
 	bool paired_end = false;
 
@@ -619,6 +699,29 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 				{
 					bases_usable += al.length();
 				}
+
+				//calculate base resolution Coverage statistics over chromosome 22:
+				if (!al.isDuplicate() && al.mappingQuality()>=min_mapq && al.chromosomeID() == idx_chr22)
+				{
+					long long length = al.end() - al.start() + 1;
+					bases_usable_roi += length;
+
+					for (int i=al.start()-1; i<al.end(); i++)
+					{
+						depth[i] += 1;
+					}
+				}
+
+				//calcualte GC statistics
+				QVector<int> indices = dropout_index.matchingIndices(reader.chromosome(al.chromosomeID()), al.start(), al.end());
+				foreach(int index, indices)
+				{
+					int bin = gc_index_to_bin_map[index];
+					if (bin>=0)
+					{
+						gc_reads[bin] += 1.0/indices.count();
+					}
+				}
 			}
 		}
 
@@ -652,6 +755,92 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 		}
 	}
 
+	// TODO remove debug bedfile:
+	BedFile test;
+	start = -1;
+	for (int i=0; i<depth.size(); i++)
+	{
+		if (start == -1)
+		{
+			if (depth[i] == 0)
+			{
+				continue;
+			}
+			else
+			{
+				start = i+1;
+			}
+		}
+		else
+		{
+			if (depth[i] == 0)
+			{
+				test.append(BedLine(chr22, start, i));
+				start = -1;
+			}
+			else
+			{
+				continue;
+			}
+		}
+	}
+
+	test.store("C:\\Users\\ahott1a1\\data\\chr22_test_detected_depth.bed");
+
+	//calculate coverage depth statistics
+	double avg_depth = (double) bases_usable_roi / chr22_mappable_regions.baseCount();
+	qDebug() << "Average depth on chromosome 22:" << avg_depth;
+	int half_depth = std::round(0.5*avg_depth);
+	long long bases_covered_at_least_half_depth = 0;
+	int hist_max = 599;
+	int hist_step = 5;
+	if (avg_depth>200)
+	{
+		hist_max += 400;
+		hist_step += 5;
+	}
+
+	Histogram depth_dist(0, hist_max, hist_step);
+
+	for (int i=0; i<depth.size(); i++)
+	{
+		depth_dist.inc(depth[i], true);
+		if(depth[i]>=half_depth)
+		{
+			++bases_covered_at_least_half_depth;
+		}
+	}
+
+	//calculate AT/GC dropout
+	QList<double> values = gc_roi.values();
+	double gc_sum = std::accumulate(values.begin(),values.end(), 0.0);
+	values = gc_reads.values();
+	double roi_sum = std::accumulate(values.begin(),values.end(), 0.0);
+	double at_dropout = 0;
+	double gc_dropout = 0;
+	QVector<double> gc_read_percentages;
+	QVector<double> gc_roi_percentages;
+	for (int i=0; i<100; ++i)
+	{
+		double roi_perc = 100.0*gc_roi[i]/gc_sum;
+		gc_roi_percentages << roi_perc;
+		double read_perc = 100.0*gc_reads[i]/roi_sum;
+		gc_read_percentages << read_perc;
+
+		double diff = roi_perc-read_perc;
+		if (diff>0)
+		{
+			if (i<=50)
+			{
+				at_dropout += diff;
+			}
+			if (i>=50)
+			{
+				gc_dropout += diff;
+			}
+		}
+	}
+
 	//output
 	QCCollection output;
 	addQcValue(output, "QC:2000019", "trimmed base percentage", 100.0 * bases_trimmed / al_total / max_length);
@@ -676,8 +865,48 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 	{
 		addQcValue(output, "QC:2000024", "duplicate read percentage", 100.0 * al_dup / al_total);
 	}
-	addQcValue(output, "QC:2000050", "bases usable (MB)", (double)bases_usable / 1000000.0);
+
+
+	QVector<int> depth_values;
+	depth_values << 10 << 20 << 30 << 50 << 60 << 100 << 200 << 500;
+	QVector<QByteArray> accessions;
+	accessions << "QC:2000026" << "QC:2000027" << "QC:2000028" << "QC:2000029" << "QC:2000099" << "QC:2000030" << "QC:2000031" << "QC:2000032";
+
+	for (int i=0; i<depth_values.count(); ++i)
+	{
+		double cov_bases = 0.0;
+		for (int bin=depth_dist.binIndex(depth_values[i]); bin<depth_dist.binCount(); ++bin) cov_bases += depth_dist.binValue(bin);
+		addQcValue(output, accessions[i], "target region " + QByteArray::number(depth_values[i]) + "x percentage", 100.0 * cov_bases / chr22_size);
+	}
+	addQcValue(output, "QC:2000058", "target region half depth percentage", 100.0 * bases_covered_at_least_half_depth / chr22_mappable_regions.baseCount());
+	addQcValue(output, "QC:2000059", "AT dropout", at_dropout);
+	addQcValue(output, "QC:2000060", "GC dropout", gc_dropout);
+
+	addQcValue(output, "QC:2000050", "bases usable (MB)", (double) bases_usable / 1000000.0);
 	addQcValue(output, "QC:2000025", "target region read depth", (double) bases_usable / reader.genomeSize(false));
+
+	//add depth distribtion plot
+	LinePlot plot;
+	plot.setXLabel("depth of coverage");
+	plot.setYLabel("chromosome 22 [%]");
+	plot.setXValues(depth_dist.xCoords());
+	plot.addLine(depth_dist.yCoords(true));
+	QString plotname = Helper::tempFileName(".png");
+	plot.store(plotname);
+	addQcPlot(output, "QC:2000037", "depth distribution plot", plotname);
+	QFile::remove(plotname);
+
+	//add GC bias plot
+	LinePlot plot3;
+	plot3.setXLabel("GC bin");
+	plot3.setYLabel("count [%]");
+	plot3.setXValues(BasicStatistics::range(0.0, 100.0, 1.0));
+	plot3.addLine(gc_roi_percentages, "target region");
+	plot3.addLine(gc_read_percentages, "reads");
+	plotname = Helper::tempFileName(".png");
+	plot3.store(plotname);
+	addQcPlot(output, "QC:2000061","GC bias plot", plotname);
+	QFile::remove(plotname);
 
 	//add insert size distribution plot
 	if (paired_end)

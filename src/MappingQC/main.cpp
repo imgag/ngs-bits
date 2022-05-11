@@ -55,7 +55,7 @@ public:
 		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 		bool cfdna = getFlag("cfdna");
 
-		int min_maqp = getInt("min_mapq");
+		int min_mapq = getInt("min_mapq");
 		bool debug = getFlag("debug");
 		GenomeBuild build = stringToBuild(getEnum("build"));
 
@@ -76,14 +76,14 @@ public:
 		QCCollection metrics;
 		if (wgs)
         {
-			metrics = Statistics::mapping(in, min_maqp, ref_file);
+			metrics = Statistics::mapping(in, min_mapq, ref_file);
 
 			//parameters
 			parameters << "-wgs";
 		}
         else if(rna)
 		{
-			metrics = Statistics::mapping(in, min_maqp, ref_file);
+			metrics = Statistics::mapping(in, min_mapq, ref_file);
 
             //parameters
             parameters << "-rna";
@@ -96,7 +96,7 @@ public:
 			roi.merge();
 
 			//calculate metrics
-			metrics = Statistics::mapping(roi, in, ref_file, min_maqp, cfdna);
+			metrics = Statistics::mapping(roi, in, ref_file, min_mapq, cfdna);
 
 			//parameters
 			parameters << "-roi" << QFileInfo(roi_file).fileName();
@@ -115,7 +115,7 @@ public:
 			BedFile custom_bed;
 			custom_bed.load(somatic_custom_roi_file);
 			custom_bed.merge();
-			QCCollection custom_depths = Statistics::somaticCustomDepth(custom_bed, in, ref_file, min_maqp);
+			QCCollection custom_depths = Statistics::somaticCustomDepth(custom_bed, in, ref_file, min_mapq);
 			metrics.insert(custom_depths);
 			parameters << "-somatic_custom_bed " + somatic_custom_roi_file;
 		}
