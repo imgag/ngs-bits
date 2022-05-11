@@ -754,6 +754,16 @@ void VariantDetailsDockWidget::setTranscript(int index)
 	}
 	ui->trans->setText("<span style=\"font-weight:600; color:#222222;\">" + text + "<span>");
 
+	//RefSeq match
+	const QMap<QByteArray, QByteArrayList>& transcript_matches = NGSHelper::transcriptMatches(GSvarHelper::build());
+	QStringList refseq_links;
+	foreach(QByteArray transcript_match, transcript_matches[trans.idWithoutVersion()])
+	{
+		if (transcript_match.startsWith("CCDS")) continue;
+		refseq_links << formatLink(transcript_match, "https://www.ncbi.nlm.nih.gov/nuccore/" + transcript_match);
+	}
+	ui->trans_refseq->setText(refseq_links.join(", "));
+
 	//set detail labels
 	if (trans.impact=="HIGH")
 	{
