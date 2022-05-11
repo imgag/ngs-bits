@@ -1,6 +1,5 @@
 
 ### importing SVs for NA12878_45 ###
-filename: ../src/tools-TEST/data_in/NGSDAddVariantsGermline_in3.bedpe
 Processed sample id: 4001
 Callset id: 1
 DEBUG: chr1:66221-66277 sv: DEL quality: {"filter":"SampleFT","quality":"46"}
