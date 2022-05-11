@@ -558,8 +558,158 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	return output;
 }
 
-QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QString& ref_file)
+
+QCCollection Statistics::mapping_rna(const QString &bam_file, int min_mapq, const QString& ref_file)
 {
+	//open BAM file
+	BamReader reader(bam_file, ref_file);
+
+	//init counts
+	long long al_total = 0;
+	long long al_mapped = 0;
+	long long al_ontarget = 0;
+	long long al_dup = 0;
+	long long al_proper_paired = 0;
+	double bases_trimmed = 0;
+	double bases_mapped = 0;
+	double bases_clipped = 0;
+	double insert_size_sum = 0;
+	Histogram insert_dist(0, 999, 5);
+	long long bases_usable = 0;
+	int max_length = 0;
+	bool paired_end = false;
+
+	//iterate through all alignments
+	BamAlignment al;
+	while (reader.getNextAlignment(al))
+	{
+		//skip secondary alignments
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
+
+		++al_total;
+		max_length = std::max(max_length, al.length());
+
+		//track if spliced alignment
+		bool spliced_alignment = false;
+
+		if (!al.isUnmapped())
+		{
+			++al_mapped;
+
+			//calculate soft/hard-clipped bases
+			bases_mapped += al.length();
+			const QList<CigarOp> cigar_data = al.cigarData();
+			foreach(const CigarOp& op, cigar_data)
+			{
+				if (op.Type==BAM_CSOFT_CLIP || op.Type==BAM_CHARD_CLIP)
+				{
+					bases_clipped += op.Length;
+				}
+				else if (op.Type==BAM_CREF_SKIP)
+				{
+					spliced_alignment = true;
+				}
+			}
+
+			//usable
+			if (reader.chromosome(al.chromosomeID()).isNonSpecial())
+			{
+				++al_ontarget;
+
+				if (!al.isDuplicate() && al.mappingQuality()>=min_mapq)
+				{
+					bases_usable += al.length();
+				}
+			}
+		}
+
+		//insert size
+		if (al.isPaired())
+		{
+			paired_end = true;
+
+			if (al.isProperPair())
+			{
+				++al_proper_paired;
+				//if alignment is spliced, exclude it from insert size calculation
+				if (!spliced_alignment)
+				{
+					const int insert_size = std::min(abs(al.insertSize()),  999); //cap insert size at 1000
+					insert_size_sum += insert_size;
+					insert_dist.inc(insert_size, true);
+				}
+			}
+		}
+
+		//trimmed bases (this is not entirely correct if the first alignments are all trimmed, but saves the second pass through the data)
+		if (al.length()<max_length)
+		{
+			bases_trimmed += (max_length - al.length());
+		}
+
+		if (al.isDuplicate())
+		{
+			++al_dup;
+		}
+	}
+
+	//output
+	QCCollection output;
+	addQcValue(output, "QC:2000019", "trimmed base percentage", 100.0 * bases_trimmed / al_total / max_length);
+	addQcValue(output, "QC:2000052", "clipped base percentage", 100.0 * bases_clipped / bases_mapped);
+	addQcValue(output, "QC:2000020", "mapped read percentage", 100.0 * al_mapped / al_total);
+	addQcValue(output, "QC:2000021", "on-target read percentage", 100.0 * al_ontarget / al_total);
+	if (paired_end)
+	{
+		addQcValue(output, "QC:2000022", "properly-paired read percentage", 100.0 * al_proper_paired / al_total);
+		addQcValue(output, "QC:2000023", "insert size", insert_size_sum / al_proper_paired);
+	}
+	else
+	{
+		addQcValue(output, "QC:2000022", "properly-paired read percentage", "n/a (single end)");
+		addQcValue(output, "QC:2000023", "insert size", "n/a (single end)");
+	}
+	if (al_dup==0)
+	{
+		addQcValue(output, "QC:2000024", "duplicate read percentage", "n/a (duplicates not marked or removed during data analysis)");
+	}
+	else
+	{
+		addQcValue(output, "QC:2000024", "duplicate read percentage", 100.0 * al_dup / al_total);
+	}
+	addQcValue(output, "QC:2000050", "bases usable (MB)", (double)bases_usable / 1000000.0);
+	addQcValue(output, "QC:2000025", "target region read depth", (double) bases_usable / reader.genomeSize(false));
+
+	//add insert size distribution plot
+	if (paired_end)
+	{
+		if (insert_dist.binSum()>0)
+		{
+			LinePlot plot2;
+			plot2.setXLabel("insert size");
+			plot2.setYLabel("reads [%]");
+			plot2.setXValues(insert_dist.xCoords());
+			plot2.addLine(insert_dist.yCoords(true));
+
+			QString plotname = Helper::tempFileName(".png");
+			plot2.store(plotname);
+			addQcPlot(output, "QC:2000038", "insert size distribution plot", plotname);
+			QFile::remove(plotname);
+		}
+		else
+		{
+			Log::warn("Skipping insert size histogram - no read pairs found!");
+		}
+	}
+
+	return output;
+}
+
+
+QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, const QString& ref_file)
+{
+	QTime timer;
+	timer.start();
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
 
@@ -612,6 +762,10 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 			}
 		}
 	}
+
+	qDebug() << "Time taken up to find chr22 roi:" << timer.elapsed()/1000.0 << "s";
+	timer.start();
+
 	// TODO remove file saving
 	chr22_mappable_regions.store("C:\\Users\\ahott1a1\\data\\chr22_mappable.bed");
 
@@ -652,8 +806,6 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 	Histogram insert_dist(0, 999, 5);
 	long long bases_usable = 0;
 	long long bases_usable_roi = 0;
-	QVector<long long> bases_usable_roi_dp(5, 0); //usable bases by duplication level
-	long long bases_usable_roi_raw = 0; //usable bases in BAM before deduplication
 
 	int max_length = 0;
 	bool paired_end = false;
@@ -698,17 +850,17 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 				if (!al.isDuplicate() && al.mappingQuality()>=min_mapq)
 				{
 					bases_usable += al.length();
-				}
 
-				//calculate base resolution Coverage statistics over chromosome 22:
-				if (!al.isDuplicate() && al.mappingQuality()>=min_mapq && al.chromosomeID() == idx_chr22)
-				{
-					long long length = al.end() - al.start() + 1;
-					bases_usable_roi += length;
-
-					for (int i=al.start()-1; i<al.end(); i++)
+					//calculate base resolution Coverage statistics over chromosome 22:
+					if (al.chromosomeID() == idx_chr22)
 					{
-						depth[i] += 1;
+						long long length = al.end() - al.start() + 1;
+						bases_usable_roi += length;
+
+						for (int i=al.start()-1; i<al.end(); i++)
+						{
+							depth[i] += 1;
+						}
 					}
 				}
 
@@ -792,22 +944,20 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 	qDebug() << "Average depth on chromosome 22:" << avg_depth;
 	int half_depth = std::round(0.5*avg_depth);
 	long long bases_covered_at_least_half_depth = 0;
-	int hist_max = 599;
+	int hist_max = 550;
 	int hist_step = 5;
-	if (avg_depth>200)
-	{
-		hist_max += 400;
-		hist_step += 5;
-	}
 
 	Histogram depth_dist(0, hist_max, hist_step);
-
-	for (int i=0; i<depth.size(); i++)
+	for (int r=0; r<chr22_mappable_regions.count(); r++)
 	{
-		depth_dist.inc(depth[i], true);
-		if(depth[i]>=half_depth)
+		BedLine region = chr22_mappable_regions[r];
+		for (int i=region.start()-1; i<region.end(); i++)
 		{
-			++bases_covered_at_least_half_depth;
+			depth_dist.inc(depth[i], true);
+			if(depth[i]>=half_depth)
+			{
+				++bases_covered_at_least_half_depth;
+			}
 		}
 	}
 
@@ -876,7 +1026,7 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 	{
 		double cov_bases = 0.0;
 		for (int bin=depth_dist.binIndex(depth_values[i]); bin<depth_dist.binCount(); ++bin) cov_bases += depth_dist.binValue(bin);
-		addQcValue(output, accessions[i], "target region " + QByteArray::number(depth_values[i]) + "x percentage", 100.0 * cov_bases / chr22_size);
+		addQcValue(output, accessions[i], "target region " + QByteArray::number(depth_values[i]) + "x percentage", 100.0 * cov_bases / chr22_mappable_regions.baseCount());
 	}
 	addQcValue(output, "QC:2000058", "target region half depth percentage", 100.0 * bases_covered_at_least_half_depth / chr22_mappable_regions.baseCount());
 	addQcValue(output, "QC:2000059", "AT dropout", at_dropout);
@@ -895,6 +1045,7 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 	plot.store(plotname);
 	addQcPlot(output, "QC:2000037", "depth distribution plot", plotname);
 	QFile::remove(plotname);
+	plot.store("/mnt/users/ahott1a1/depth_of_coverage.png");
 
 	//add GC bias plot
 	LinePlot plot3;
@@ -907,6 +1058,7 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 	plot3.store(plotname);
 	addQcPlot(output, "QC:2000061","GC bias plot", plotname);
 	QFile::remove(plotname);
+	plot3.store("/mnt/users/ahott1a1/gc_dropout.png");
 
 	//add insert size distribution plot
 	if (paired_end)
@@ -923,13 +1075,14 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 			plot2.store(plotname);
 			addQcPlot(output, "QC:2000038", "insert size distribution plot", plotname);
 			QFile::remove(plotname);
+			plot2.store("/mnt/users/ahott1a1/insert_size_dist.png");
 		}
 		else
 		{
 			Log::warn("Skipping insert size histogram - no read pairs found!");
 		}
 	}
-
+	qDebug() << "total time:" << timer.elapsed()/1000.0/60.0 << "min.";
 	return output;
 }
 

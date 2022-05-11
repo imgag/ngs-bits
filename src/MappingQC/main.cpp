@@ -76,14 +76,14 @@ public:
 		QCCollection metrics;
 		if (wgs)
         {
-			metrics = Statistics::mapping(in, min_mapq, ref_file);
+			metrics = Statistics::mapping_wgs(in, min_mapq, ref_file);
 
 			//parameters
 			parameters << "-wgs";
 		}
         else if(rna)
 		{
-			metrics = Statistics::mapping(in, min_mapq, ref_file);
+			metrics = Statistics::mapping_rna(in, min_mapq, ref_file);
 
             //parameters
             parameters << "-rna";
