@@ -1,6 +1,5 @@
 ##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
 ##SAMPLE=<ID=Sample_01>
-##VariantAnnotateASE_BAM=../src/tools-TEST/data_in/rnaseq.bam
 ##DESCRIPTION=Sample_01=Genotype of variant in sample.
 ##DESCRIPTION=ASE_af=Expressed variant allele frequency.
 ##DESCRIPTION=ASE_depth=Sequencing depth at the variant position.
