@@ -8,6 +8,12 @@
 #include <SampleSimilarity.h>
 #include "Settings.h"
 
+struct GeneCount
+{
+	int n_outlier_genes;
+	int n_covered_genes;
+};
+
 class ConcreteTool
 		: public ToolBase
 {
@@ -28,7 +34,6 @@ public:
 
 		//optional
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true, true);
-		addInfile("rna_counts", "TSV file containing read counts by gene.", true, true);
 		addInfile("splicing", "TSV file containing spliced reads by gene.", true, true);
 		addInfile("expression", "TSV file containing RNA expression.", true, true);
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
@@ -47,7 +52,6 @@ public:
 		BedFile housekeeping_genes;
 		housekeeping_genes.load(getInfile("housekeeping_genes"));
 		QString out = getOutfile("out");
-		QString rna_counts = getInfile("rna_counts");
 		QString splicing = getInfile("splicing");
 		QString expression = getInfile("expression");
 		int min_mapq = getInt("min_mapq");
@@ -57,14 +61,6 @@ public:
 
 
 		QCCollection rna_qc = Statistics::mapping_housekeeping(housekeeping_genes, bam, ref, min_mapq);
-
-		if (!rna_counts.trimmed().isEmpty())
-		{
-			//get number of covered genes and outlier
-			double tpm_threshold = 10.0;
-			int n_covered_genes = getNumberOfCoveredGenes(rna_counts, tpm_threshold);
-			rna_qc.insert(QCValue("covered gene count", n_covered_genes, "Number of covered genes (TPM >= 10.0)", "QC:2000109"));
-		}
 
 		if (!splicing.trimmed().isEmpty())
 		{
@@ -78,8 +74,11 @@ public:
 		{
 			//get outlier
 			double zscore_threshold = 3;
-			int n_outlier_genes = getNumberOfOutlierGenes(expression, zscore_threshold);
-			rna_qc.insert(QCValue("outlier gene count", n_outlier_genes, "Number of outlier genes (zscore >= 3.0)", "QC:2000111"));
+			double tpm_threshold = 10.0;
+			GeneCount gene_count = parseGeneExpression(expression, zscore_threshold, tpm_threshold);
+			rna_qc.insert(QCValue("outlier gene count", gene_count.n_outlier_genes, "Number of outlier genes (zscore >= 3.0)", "QC:2000111"));
+			rna_qc.insert(QCValue("covered gene count", gene_count.n_covered_genes, "Number of covered genes (TPM >= 10.0)", "QC:2000109"));
+
 		}
 
 		// TODO: get intronic/exonic read fraction
@@ -90,11 +89,6 @@ public:
 		QString parameters = "";
 		metadata << QCValue("source file", QFileInfo(bam).fileName(), "", "QC:1000005");
 		parameters += " -bam " + bam;
-		if(!rna_counts.trimmed().isEmpty())
-		{
-			metadata << QCValue("source file", QFileInfo(rna_counts).fileName(), " (RNA counts)", "QC:1000005");
-			parameters += " -rna_counts " + rna_counts;
-		}
 		if(!splicing.trimmed().isEmpty())
 		{
 			metadata << QCValue("source file", QFileInfo(splicing).fileName(), " (splicing)", "QC:1000005");
@@ -122,28 +116,6 @@ public:
 
 	}
 
-
-	int getNumberOfCoveredGenes(const QString& file_path, double tpm_threshold)
-	{
-		QStringList covered_genes;
-
-		TSVFileStream tsv_file(file_path);
-		int idx_gene = tsv_file.colIndex("gene_name", true);
-		int idx_tpm = tsv_file.colIndex("tpm", true);
-
-		while (!tsv_file.atEnd())
-		{
-			QByteArrayList tsv_line = tsv_file.readLine();
-			double tpm = Helper::toDouble(tsv_line.at(idx_tpm), "TPM value");
-			if (tpm >= tpm_threshold)
-			{
-				covered_genes.append(tsv_line.at(idx_gene));
-			}
-		}
-
-		return covered_genes.length();
-	}
-
 	int getNumberOfAberrantGenes(const QString& file_path, double aberrant_gene_threshold)
 	{
 		QStringList aberrant_genes;
@@ -165,28 +137,44 @@ public:
 		return aberrant_genes.length();
 	}
 
-	int getNumberOfOutlierGenes(const QString& file_path, double zscore_threshold)
+	GeneCount parseGeneExpression(const QString& file_path, double zscore_threshold, double tpm_threshold)
 	{
 		QStringList outlier_genes;
+		QStringList covered_genes;
 
 		TSVFileStream tsv_file(file_path);
 		int idx_gene = tsv_file.colIndex("gene_name", true);
 		int idx_zscore = tsv_file.colIndex("zscore", true);
+		int idx_tpm = tsv_file.colIndex("tpm", true);
 
 		while (!tsv_file.atEnd())
 		{
 			QByteArrayList tsv_line = tsv_file.readLine();
+
+			//parse zScore (outlier genes)
 			QByteArray zscore_str = tsv_line.at(idx_zscore);
 			// skip n/a entries
-			if(zscore_str == "n/a") continue;
-			double zscore = std::fabs(Helper::toDouble(zscore_str, "ZScore"));
-			if (zscore >= zscore_threshold)
+			if(zscore_str != "n/a")
 			{
-				outlier_genes.append(tsv_line.at(idx_gene));
+				double zscore = std::fabs(Helper::toDouble(zscore_str, "ZScore"));
+				if (zscore >= zscore_threshold)
+				{
+					outlier_genes.append(tsv_line.at(idx_gene));
+				}
+			}
+
+			//parse covered genes
+			double tpm = Helper::toDouble(tsv_line.at(idx_tpm), "TPM value");
+			if (tpm >= tpm_threshold)
+			{
+				covered_genes.append(tsv_line.at(idx_gene));
 			}
 		}
 
-		return outlier_genes.length();
+		GeneCount gene_count;
+		gene_count.n_outlier_genes = outlier_genes.length();
+		gene_count.n_covered_genes = covered_genes.length();
+		return gene_count;
 	}
 };
 

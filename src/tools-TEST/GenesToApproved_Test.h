@@ -15,7 +15,7 @@ private slots:
 		//init
 		NGSD db(true);
 		db.init();
-		EXECUTE("NGSDImportHGNC", "-test -in " + TESTDATA("data_in/NGSDImportHGNC_in1.txt"));
+		EXECUTE("NGSDImportHGNC", "-test -in " + TESTDATA("data_in/NGSDImportHGNC_in1.txt") + " -ensembl " + TESTDATA("data_in/NGSDImportEnsembl_in.gff3"));
 
 		//test
 		EXECUTE("GenesToApproved", "-test -in " + TESTDATA("data_in/GenesToApproved_in1.txt") + " -out out/GenesToApproved_out1.txt");
@@ -30,7 +30,7 @@ private slots:
 		//init
 		NGSD db(true);
 		db.init();
-		EXECUTE("NGSDImportHGNC", "-test -in " + TESTDATA("data_in/NGSDImportHGNC_in1.txt"));
+		EXECUTE("NGSDImportHGNC", "-test -in " + TESTDATA("data_in/NGSDImportHGNC_in1.txt") + " -ensembl " + TESTDATA("data_in/NGSDImportEnsembl_in.gff3"));
 
 		//test
 		EXECUTE("GenesToApproved", "-test -in " + TESTDATA("data_in/GenesToApproved_in1.txt") + " -report_ambiguous -out out/GenesToApproved_out2.txt");

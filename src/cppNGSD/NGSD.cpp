@@ -1377,10 +1377,11 @@ void NGSD::importExpressionData(const QString& expression_data_file_path, const 
 
 	// check if already imported
 	int n_prev_entries = getValue("SELECT COUNT(`id`) FROM `expression` WHERE `processed_sample_id`=:0", false, ps_id).toInt();
+	if(debug) outstream << "Previously imported expression values: " << n_prev_entries << endl;
 
 	if (!force && (n_prev_entries > 0))
 	{
-		THROW(DatabaseException, "Expression values for sample '" + ps_name +"' already imported and method called without 'force' parameter: Cannot import data!");
+		THROW(DatabaseException, "Expression values for sample '" + ps_name + "' already imported and method called without '-force' parameter: Cannot import data!");
 	}
 
 	// start transaction
@@ -1453,7 +1454,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id
 	query.prepare(QString() + "SELECT ev.tpm FROM `expression` ev "
 				  + "INNER JOIN `processed_sample` ps ON ev.processed_sample_id = ps.id "
 				  + "INNER JOIN `sample` s ON ps.sample_id = s.id "
-				  + "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND ev.gene_id=:0");
+				  + "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue='" + tissue_type + "' AND ev.gene_id=:0");
 
 	//parse database
 	QMap<QByteArray, ExpressionStats> expression_stats;
@@ -1484,11 +1485,13 @@ QMap<QByteArray, int> NGSD::getEnsemblGeneIdMapping()
 {
 	QMap<QByteArray, int> mapping;
 	SqlQuery query = getQuery();
-	query.exec("SELECT id, ensembl_id FROM gene WHERE ensembl_id NOT NULL");
+	query.exec("SELECT id, ensembl_id FROM gene WHERE ensembl_id IS NOT NULL");
 	while(query.next())
 	{
 		mapping.insert(query.value(1).toByteArray(), query.value(0).toInt());
 	}
+
+	return mapping;
 }
 
 CopyNumberVariant NGSD::cnv(int cnv_id)
