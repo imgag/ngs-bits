@@ -1399,12 +1399,6 @@ private slots:
 
 		db.addGapComment(gap_id, "my_comment");
 		IS_TRUE(db.getValue("SELECT history FROM gaps WHERE id=" + QString::number(gap_id)).toString().contains("my_comment"));
-
-
-		//############################### RNA ###############################
-
-		//expression data import
-
 	}
 
 	inline void report_germline()
