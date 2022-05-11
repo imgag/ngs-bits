@@ -26,18 +26,46 @@ NGSD::NGSD(bool test_db, QString name_suffix)
 	db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "NGSD_" + Helper::randomString(20))));
 
 	//connect to DB
-	QString prefix = "ngsd";
-	if (test_db_) prefix += "_test";
-	if (!name_suffix.isEmpty()) prefix += name_suffix;
-	db_->setHostName(Settings::string(prefix + "_host"));
-	db_->setPort(Settings::integer(prefix + "_port"));
-	db_->setDatabaseName(Settings::string(prefix + "_name"));
-	db_->setUserName(Settings::string(prefix + "_user"));
-	db_->setPassword(Settings::string(prefix + "_pass"));
+	QString db_name;
+	if (!test_db_ && NGSHelper::isCliendServerMode() && !NGSHelper::isRunningOnServer())
+	{
+		db_->setHostName(LoginManager::ngsdHostName());
+		db_->setPort(LoginManager::ngsdPort());
+		db_->setDatabaseName(LoginManager::ngsdName());
+		db_->setUserName(LoginManager::ngsdUser());
+		db_->setPassword(LoginManager::ngsdPassword());
+		db_name = LoginManager::ngsdName();
+	}
+	else
+	{
+		QString prefix = "ngsd";
+		if (test_db_) prefix += "_test";
+		if (!name_suffix.isEmpty()) prefix += name_suffix;
+		db_->setHostName(Settings::string(prefix + "_host"));
+		db_->setPort(Settings::integer(prefix + "_port"));
+		db_->setDatabaseName(Settings::string(prefix + "_name"));
+		db_->setUserName(Settings::string(prefix + "_user"));
+		db_->setPassword(Settings::string(prefix + "_pass"));
+		db_name = prefix;
+	}
+
 	if (!db_->open())
 	{
-		THROW(DatabaseException, "Could not connect to NGSD database '" + prefix + "': " + db_->lastError().text());
+		THROW(DatabaseException, "Could not connect to NGSD database '" + db_name + "': " + db_->lastError().text());
 	}
+}
+
+bool NGSD::isAvailable(bool test_db)
+{
+	if (!test_db && NGSHelper::isCliendServerMode() && !NGSHelper::isRunningOnServer())
+	{
+		return true;
+	}
+
+	QString prefix = "ngsd";
+	if (test_db) prefix += "_test";
+
+	return Settings::contains(prefix+"_host") && Settings::contains(prefix+"_port") && Settings::contains(prefix+"_name") && Settings::contains(prefix+"_user") && Settings::contains(prefix+"_pass");
 }
 
 int NGSD::userId(QString user_name, bool only_active, bool throw_if_fails)
@@ -149,39 +177,49 @@ bool NGSD::userRoleIn(QString user, QStringList roles)
 
 bool NGSD::userCanAccess(int user_id, int ps_id)
 {
+	QHash<int, QSet<int>>& cache = getCache().user_access_ps;
+
 	//access restricted only for user role 'user_restricted'
-	QString role = getValue("SELECT user_role FROM user WHERE id='" + QString::number(user_id) + "'").toString().toLower();
-	if (role!="user_restricted") return true;
-
-	QString ps_id_str = QString::number(ps_id);
-
-	//get permission list
-	SqlQuery query = getQuery();
-	query.exec("SELECT * FROM user_permissions WHERE user_id=" + QString::number(user_id));
-	while(query.next())
+	if (!cache.contains(user_id))
 	{
-		Permission permission = UserPermissionList::stringToType(query.value("permission").toString());
-		QVariant data = query.value("data").toString();
-
-		switch(permission)
-		{
-			case Permission::PROJECT:
-				if (data.toInt() == getValue("SELECT project_id FROM processed_sample WHERE id=:0", true, ps_id_str).toInt()) return true;
-				break;
-			case Permission::PROJECT_TYPE:
-				if (data.toString() == getValue("SELECT p.type FROM project p, processed_sample ps WHERE p.id=ps.project_id AND ps.id=:0", true, ps_id_str).toString()) return true;
-				break;
-			case Permission::SAMPLE:
-				if (data.toInt() == getValue("SELECT sample_id FROM processed_sample WHERE id=:0", true, ps_id_str).toInt()) return true;
-				break;
-			case Permission::STUDY:
-				QSet<int> study_ids = getValuesInt("SELECT study_id FROM study_sample WHERE processed_sample_id=:0", ps_id_str).toSet();
-				if (study_ids.contains(data.toInt())) return true;
-				break;
-		}
+		QString role = getValue("SELECT user_role FROM user WHERE id='" + QString::number(user_id) + "'").toString().toLower();
+		if (role!="user_restricted") return true;
 	}
 
-	return false;
+	//init
+	if (!cache.contains(user_id))
+	{
+		QSet<int> ps_ids;
+
+		//get permission list
+		SqlQuery query = getQuery();
+		query.exec("SELECT * FROM user_permissions WHERE user_id=" + QString::number(user_id));
+		while(query.next())
+		{
+			Permission permission = UserPermissionList::stringToType(query.value("permission").toString());
+			QVariant data = query.value("data").toString();
+
+			switch(permission)
+			{
+				case Permission::PROJECT:
+					ps_ids += getValuesInt("SELECT id FROM processed_sample WHERE project_id=" + data.toString()).toSet();
+					break;
+				case Permission::PROJECT_TYPE:
+					ps_ids += getValuesInt("SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND p.type='" + data.toString() + "'").toSet();
+					break;
+				case Permission::SAMPLE:
+					ps_ids += getValuesInt("SELECT id FROM processed_sample WHERE sample_id=" + data.toString()).toSet();
+					break;
+				case Permission::STUDY:
+					ps_ids += getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id=" + data.toString()).toSet();
+					break;
+			}
+		}
+
+		cache.insert(user_id, ps_ids);
+	}
+
+	return cache[user_id].contains(ps_id);
 }
 
 DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
@@ -353,6 +391,21 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	}
 
 	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
+
+	//filter by user access rights (for restricted users only)
+	if (p.restricted_user!="")
+	{
+		int user_id = userId(p.restricted_user);
+
+		for(int r=output.rowCount()-1; r>=0; --r) //reverse, so that all indices are valid
+		{
+			int ps_id = output.row(r).id().toInt();
+			if (!userCanAccess(user_id, ps_id))
+			{
+				output.removeRow(r);
+			}
+		}
+	}
 
 	//add path
 	if(!p.add_path.isEmpty())
@@ -1013,34 +1066,24 @@ QStringList NGSD::secondaryAnalyses(QString processed_sample_name, QString analy
 QString NGSD::addVariant(const Variant& variant, const VariantList& variant_list)
 {
 	SqlQuery query = getQuery(); //use binding (user input)
-	query.prepare("INSERT INTO variant (chr, start, end, ref, obs, 1000g, gnomad, coding) VALUES (:0,:1,:2,:3,:4,:5,:6,:7)");
+	query.prepare("INSERT INTO variant (chr, start, end, ref, obs, gnomad, coding) VALUES (:0,:1,:2,:3,:4,:5,:6)");
 	query.bindValue(0, variant.chr().strNormalized(true));
 	query.bindValue(1, variant.start());
 	query.bindValue(2, variant.end());
 	query.bindValue(3, variant.ref());
 	query.bindValue(4, variant.obs());
-	int idx = variant_list.annotationIndexByName("1000g");
-	QByteArray tg = variant.annotations()[idx].trimmed();
-	if (tg.isEmpty() || tg=="n/a")
+	int idx = variant_list.annotationIndexByName("gnomAD");
+	QByteArray gnomad = variant.annotations()[idx].trimmed();
+	if (gnomad.isEmpty() || gnomad=="n/a")
 	{
 		query.bindValue(5, QVariant());
 	}
 	else
 	{
-		query.bindValue(5, tg);
-	}
-	idx = variant_list.annotationIndexByName("gnomAD");
-	QByteArray gnomad = variant.annotations()[idx].trimmed();
-	if (gnomad.isEmpty() || gnomad=="n/a")
-	{
-		query.bindValue(6, QVariant());
-	}
-	else
-	{
-		query.bindValue(6, gnomad);
+		query.bindValue(5, gnomad);
 	}
 	idx = variant_list.annotationIndexByName("coding_and_splicing");
-	query.bindValue(7, variant.annotations()[idx]);
+	query.bindValue(6, variant.annotations()[idx]);
 	query.exec();
 
 	return query.lastInsertId().toString();
@@ -1052,16 +1095,15 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 
 	//prepare queried
 	SqlQuery q_id = getQuery();
-	q_id.prepare("SELECT id, 1000g, gnomad, coding, cadd, spliceai FROM variant WHERE chr=:0 AND start=:1 AND end=:2 AND ref=:3 AND obs=:4");
+	q_id.prepare("SELECT id, gnomad, coding, cadd, spliceai FROM variant WHERE chr=:0 AND start=:1 AND end=:2 AND ref=:3 AND obs=:4");
 
 	SqlQuery q_update = getQuery(); //use binding (user input)
-	q_update.prepare("UPDATE variant SET 1000g=:0, gnomad=:1, coding=:2, cadd=:3, spliceai=:4 WHERE id=:5");
+	q_update.prepare("UPDATE variant SET gnomad=:0, coding=:1, cadd=:2, spliceai=:3 WHERE id=:4");
 
 	SqlQuery q_insert = getQuery(); //use binding (user input)
-	q_insert.prepare("INSERT IGNORE INTO variant (chr, start, end, ref, obs, 1000g, gnomad, coding, cadd, spliceai) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8,:9)");
+	q_insert.prepare("INSERT IGNORE INTO variant (chr, start, end, ref, obs, gnomad, coding, cadd, spliceai) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8)");
 
 	//get annotated column indices
-	int i_tg = variant_list.annotationIndexByName("1000g");
 	int i_gnomad = variant_list.annotationIndexByName("gnomAD");
 	int i_co_sp = variant_list.annotationIndexByName("coding_and_splicing");
 	int i_cadd = variant_list.annotationIndexByName("CADD");
@@ -1075,7 +1117,6 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 		const Variant& variant = variant_list[i];
 
 		//skip variants with too high AF
-		QByteArray tg = variant.annotations()[i_tg].trimmed();
 		QByteArray gnomad = variant.annotations()[i_gnomad].trimmed();
 		if (gnomad=="n/a") gnomad.clear();
 		if (!gnomad.isEmpty() && gnomad.toDouble()>max_af)
@@ -1102,19 +1143,17 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 			int id = q_id.value(0).toInt();
 
 			//check if variant meta data needs to be updated
-			if (q_id.value(1).toByteArray().toDouble()!=tg.toDouble() //numeric comparison (NULL > "" > 0.0)
-				|| q_id.value(2).toByteArray().toDouble()!=gnomad.toDouble() //numeric comparison (NULL > "" > 0.0)
-				|| q_id.value(3).toByteArray()!=variant.annotations()[i_co_sp]
-				|| q_id.value(4).toByteArray().toDouble()!=cadd.toDouble() //numeric comparison (NULL > "" > 0.0)
-				|| q_id.value(5).toByteArray().toDouble()!=spliceai.toDouble() //numeric comparison (NULL > "" > 0.0)
+			if (q_id.value(1).toByteArray().toDouble()!=gnomad.toDouble() //numeric comparison (NULL > "" > 0.0)
+				|| q_id.value(2).toByteArray()!=variant.annotations()[i_co_sp]
+				|| q_id.value(3).toByteArray().toDouble()!=cadd.toDouble() //numeric comparison (NULL > "" > 0.0)
+				|| q_id.value(4).toByteArray().toDouble()!=spliceai.toDouble() //numeric comparison (NULL > "" > 0.0)
 				)
 			{
-				q_update.bindValue(0, tg.isEmpty() ? QVariant() : tg);
-				q_update.bindValue(1, gnomad.isEmpty() ? QVariant() : gnomad);
-				q_update.bindValue(2, variant.annotations()[i_co_sp]);
-				q_update.bindValue(3, cadd.isEmpty() ? QVariant() : cadd);
-				q_update.bindValue(4, spliceai.isEmpty() ? QVariant() : spliceai);
-				q_update.bindValue(5, id);
+				q_update.bindValue(0, gnomad.isEmpty() ? QVariant() : gnomad);
+				q_update.bindValue(1, variant.annotations()[i_co_sp]);
+				q_update.bindValue(2, cadd.isEmpty() ? QVariant() : cadd);
+				q_update.bindValue(3, spliceai.isEmpty() ? QVariant() : spliceai);
+				q_update.bindValue(4, id);
 				q_update.exec();
 				++c_update;
 			}
@@ -1128,11 +1167,10 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 			q_insert.bindValue(2, variant.end());
 			q_insert.bindValue(3, variant.ref());
 			q_insert.bindValue(4, variant.obs());
-			q_insert.bindValue(5, tg.isEmpty() ? QVariant() : tg);
-			q_insert.bindValue(6, gnomad.isEmpty() ? QVariant() : gnomad);
-			q_insert.bindValue(7, variant.annotations()[i_co_sp]);
-			q_insert.bindValue(8, cadd.isEmpty() ? QVariant() : cadd);
-			q_insert.bindValue(9, spliceai.isEmpty() ? QVariant() : spliceai);
+			q_insert.bindValue(5, gnomad.isEmpty() ? QVariant() : gnomad);
+			q_insert.bindValue(6, variant.annotations()[i_co_sp]);
+			q_insert.bindValue(7, cadd.isEmpty() ? QVariant() : cadd);
+			q_insert.bindValue(8, spliceai.isEmpty() ? QVariant() : spliceai);
 			q_insert.exec();
 			++c_add;
 			QVariant last_insert_id = q_insert.lastInsertId();
@@ -5240,7 +5278,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 	//check that it is not finalized
 	if (id!=-1 && reportConfigIsFinalized(id))
 	{
-		THROW (ProgrammingException, "Cannot update report configuration with id=" + id_str + " because it is finalized!");
+		WARNING(ProgrammingException, "Cannot update report configuration with id=" + id_str + " because it is finalized!");
 	}
 
 	try
@@ -6534,6 +6572,7 @@ void NGSD::clearCache()
 	cache_instance.non_approved_to_approved_gene_names.clear();
 	cache_instance.phenotypes_by_id.clear();
 	cache_instance.phenotypes_accession_to_id.clear();
+	cache_instance.user_access_ps.clear();
 
 	cache_instance.gene_transcripts.clear();
 	cache_instance.gene_transcripts_index.createIndex();

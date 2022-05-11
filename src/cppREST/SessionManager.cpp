@@ -54,7 +54,8 @@ void SessionManager::removeSession(int user_id, QDateTime login_time)
 Session SessionManager::getSessionByUserId(QString id)
 {
 	QMapIterator<QString, Session> i(instance().session_store_);
-	while (i.hasNext()) {
+	while (i.hasNext())
+	{
 		i.next();
 		if (i.value().user_id == id)
 		{
@@ -78,16 +79,11 @@ Session SessionManager::getSessionBySecureToken(QString token)
 	return Session();
 }
 
-bool SessionManager::isUserSessionExpired(QString token)
+bool SessionManager::isSessionExpired(QString token)
 {
 	Session in = getSessionBySecureToken(token);
 	qint64 valid_period = ServerHelper::getNumSettingsValue("session_duration");
-	if (valid_period == 0) valid_period = 60;
-
-//	qDebug() << "Login time: " << in.login_time.toSecsSinceEpoch();
-//	qDebug() << "User id: " << in.user_id;
-//	qDebug() << "Current time: " << QDateTime::currentDateTime().toSecsSinceEpoch();
-//	qDebug() << "Valid period: " << valid_period;
+	if (valid_period == 0) valid_period = 3600;
 
 	if (in.login_time.addSecs(valid_period).toSecsSinceEpoch() < QDateTime::currentDateTime().toSecsSinceEpoch())
 	{

@@ -4,6 +4,7 @@
 #include "SingleSampleAnalysisDialog.h"
 #include "GlobalServiceProvider.h"
 #include "GSvarHelper.h"
+#include "LoginManager.h"
 #include <QMessageBox>
 #include <QAction>
 
@@ -120,6 +121,11 @@ void SampleSearchWidget::search()
 		params.add_qc = ui_.add_qc->isChecked();
 		params.add_report_config = ui_.add_report_config->isChecked();
 		params.add_comments = ui_.add_comments->isChecked();
+
+		if (LoginManager::userRole()=="user_restricted")
+		{
+			params.restricted_user = LoginManager::userLogin();
+		}
 
 		//execute query
 		DBTable ps_table = db_.processedSampleSearch(params);

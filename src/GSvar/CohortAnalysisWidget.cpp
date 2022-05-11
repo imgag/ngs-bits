@@ -21,7 +21,7 @@ QString CohortAnalysisWidget::baseQuery()
 
 	//AF
 	QString max_af = QString::number(ui_.filter_af->value()/100.0);
-	query_str += " AND (v.1000g IS NULL OR v.1000g<=" + max_af + ") AND (v.gnomad IS NULL OR v.gnomad<=" + max_af + ")";
+	query_str += " AND (v.gnomad IS NULL OR v.gnomad<=" + max_af + ")";
 
 	//impact
 	query_str += " AND ( 0 ";

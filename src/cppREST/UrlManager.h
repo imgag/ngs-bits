@@ -16,6 +16,14 @@ struct CPPRESTSHARED_EXPORT UrlEntity
 	QDateTime created;
 };
 
+struct CPPRESTSHARED_EXPORT StaticFile
+{
+	QString filename_with_path;
+	QDateTime modified;
+	QByteArray content;
+	qint64 size;
+};
+
 class CPPRESTSHARED_EXPORT UrlManager
 {
 public:

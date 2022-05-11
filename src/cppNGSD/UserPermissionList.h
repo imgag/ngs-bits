@@ -54,8 +54,5 @@ public:
 		}
 		THROW(ProgrammingException, "Unhandled permission type '" + QString::number((int)in) + "' in typeToString()!");
 	}
-
-private:
-	QList<UserPermission> item_list_;
 };
 #endif // USERPERMISSIONLIST_H

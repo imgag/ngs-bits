@@ -578,7 +578,7 @@
       <bool>false</bool>
      </property>
      <property name="columnCount">
-      <number>24</number>
+      <number>23</number>
      </property>
      <attribute name="verticalHeaderVisible">
       <bool>false</bool>
@@ -606,11 +606,6 @@
      <column>
       <property name="text">
        <string>gnomAD AF</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>1000g AF</string>
       </property>
      </column>
      <column>

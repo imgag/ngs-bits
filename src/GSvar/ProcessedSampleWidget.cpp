@@ -50,6 +50,14 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(ui_->genlab_disease_btn, SIGNAL(clicked(bool)), this, SLOT(editDiseaseGroupAndInfo()));
 	connect(ui_->genlab_relations_btn, SIGNAL(clicked(bool)), this, SLOT(importSampleRelations()));
 
+	//check user has access rights
+	NGSD db;
+	if (!db.userCanAccess(LoginManager::userId(), ps_id.toInt()))
+	{
+		INFO(AccessDeniedException, "You do not have permissions to open this sample!");
+	}
+
+
 	//QC value > plot
 	QAction* action = new QAction(QIcon(":/Icons/chart.png"), "Plot", this);
 	ui_->qc_table->addAction(action);
@@ -66,7 +74,6 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openExternalDiseaseDatabase()));
 
 	// determine sample type
-	NGSD db;
 	QString sample_type = db.getSampleData(db.sampleId(db.processedSampleName(ps_id_))).type;
 
 	QMenu* menu = new QMenu();

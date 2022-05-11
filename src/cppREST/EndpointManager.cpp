@@ -1,4 +1,5 @@
 #include "EndpointManager.h"
+#include "ToolBase.h"
 
 EndpointManager::EndpointManager()
 {
@@ -9,12 +10,12 @@ HttpResponse EndpointManager::getBasicHttpAuthStatus(HttpRequest request)
 	QString auth_header = request.getHeaderByName("Authorization").length() > 0 ? request.getHeaderByName("Authorization")[0] : "";
 	if (auth_header.isEmpty())
 	{
-		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::getContentTypeFromString("text/plain"), "You are in a protected area. Please provide your credentials");
+		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are in a protected area. Please provide your credentials");
 	}
 
 	if (auth_header.split(" ").size() < 2)
 	{
-		return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Could not parse basic authentication headers");
+		return HttpResponse(ResponseStatus::BAD_REQUEST, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Could not parse basic authentication headers");
 	}
 
 	auth_header = auth_header.split(" ").takeLast().trimmed();
@@ -23,28 +24,26 @@ HttpResponse EndpointManager::getBasicHttpAuthStatus(HttpRequest request)
 
 	if (separator_pos == -1)
 	{
-		return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Could not retrieve the credentials");
+		return HttpResponse(ResponseStatus::BAD_REQUEST, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Could not retrieve the credentials");
 	}
 
 	QString username = auth_header_decoded.mid(0, separator_pos);
 	QString password = auth_header_decoded.mid(separator_pos+1, auth_header_decoded.size()-username.size()-1);
 
-	// TODO: brute-force attack protection may be needed
 	QString message;
 
 	try
 	{
-		NGSD db;
-		message = db.checkPassword(username, password);
+		message = NGSD().checkPassword(username, password);
 	}
 	catch (Exception& e)
 	{
-		return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Database error: " + e.message());
+		return HttpResponse(ResponseStatus::BAD_REQUEST, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Database error: " + e.message());
 	}
 
 	if (!message.isEmpty())
 	{
-		return HttpResponse(ResponseStatus::UNAUTHORIZED, request.getContentType(), "Invalid user credentials");
+		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Invalid user credentials");
 	}
 
 	return HttpResponse(ResponseStatus::OK, request.getContentType(), "Successful authorization");
@@ -57,20 +56,62 @@ bool EndpointManager::isAuthorizedWithToken(const HttpRequest& request)
 	{
 		return SessionManager::isTokenReal(request.getUrlParams()["token"]);
 	}
+	if (request.getFormUrlEncoded().contains("token"))
+	{
+		return SessionManager::isTokenReal(request.getFormUrlEncoded()["token"]);
+	}
+	if (request.getFormUrlEncoded().contains("dbtoken"))
+	{
+		if (!SessionManager::getSessionBySecureToken(request.getFormUrlEncoded()["dbtoken"]).is_for_db_only) return false;
+		return SessionManager::isTokenReal(request.getFormUrlEncoded()["dbtoken"]);
+	}
 
 	return false;
 }
 
-HttpResponse EndpointManager::getTokenAuthStatus(const HttpRequest& request)
+HttpResponse EndpointManager::getUserTokenAuthStatus(const HttpRequest& request)
 {
+	qDebug() << "Check user token status";
 	if (!isAuthorizedWithToken(request))
 	{
 		return HttpResponse(ResponseStatus::FORBIDDEN, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
 	}
 
-	if (SessionManager::isUserSessionExpired(request.getUrlParams()["token"]))
+	QString token;
+	if (request.getUrlParams().contains("token")) token = request.getUrlParams()["token"];
+	if (request.getFormUrlEncoded().contains("token")) token = request.getFormUrlEncoded()["token"];
+	if (SessionManager::isSessionExpired(token))
 	{
 		return HttpResponse(ResponseStatus::REQUEST_TIMEOUT, request.getContentType(), "Secure token has expired");
+	}
+
+	return HttpResponse(ResponseStatus::OK, request.getContentType(), "OK");
+}
+
+HttpResponse EndpointManager::getDbTokenAuthStatus(const HttpRequest& request)
+{
+	qDebug() << "Check db token status";
+	if (!isAuthorizedWithToken(request))
+	{
+		return HttpResponse(ResponseStatus::FORBIDDEN, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+	}
+
+	if (SessionManager::isSessionExpired(request.getFormUrlEncoded()["dbtoken"]))
+	{
+		return HttpResponse(ResponseStatus::REQUEST_TIMEOUT, request.getContentType(), "Database token has expired");
+	}
+
+	if (!request.getHeaderByName("User-Agent").contains("GSvar"))
+	{
+		Log::warn("Unauthorized entity tried to request the database credentials");
+		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "You are not allowed to request the database credentials. This incident will be reported");
+	}
+
+	bool ok = true;
+	if (request.getFormUrlEncoded()["secret"].toULongLong(&ok, 16) != ToolBase::encryptionKey("encryption helper"))
+	{
+		Log::warn("Secret check failed for the database credentials");
+		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "You are not allowed to request the database credentials. This incident will be reported");
 	}
 
 	return HttpResponse(ResponseStatus::OK, request.getContentType(), "OK");
@@ -80,7 +121,8 @@ HttpResponse EndpointManager::getTokenAuthStatus(const HttpRequest& request)
 void EndpointManager::validateInputData(Endpoint* current_endpoint, const HttpRequest& request)
 {	
 	QMapIterator<QString, ParamProps> i(current_endpoint->params);
-	while (i.hasNext()) {
+	while (i.hasNext())
+	{
 		i.next();		
 		bool is_found = false;
 		if (i.value().category == ParamProps::ParamCategory::POST_OCTET_STREAM)

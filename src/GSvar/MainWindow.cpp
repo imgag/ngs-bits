@@ -52,7 +52,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "GeneSelectorDialog.h"
 #include "NGSHelper.h"
 #include "QCCollection.h"
-#include "NGSDReannotationDialog.h"
 #include "DiseaseInfoWidget.h"
 #include "SmallVariantSearchWidget.h"
 #include "TSVFileStream.h"
@@ -156,21 +155,6 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.splitter_2->setStretchFactor(1, 1);
 	connect(ui_.tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 	ui_.actionDebug->setVisible(Settings::boolean("debug_mode_enabled", true));
-
-	//NGSD search button
-	auto ngsd_btn = new QToolButton();
-	ngsd_btn->setObjectName("ngsd_search_btn");
-	ngsd_btn->setIcon(QIcon(":/Icons/NGSD_search.png"));
-	ngsd_btn->setToolTip("Open NGSD item as tab.");
-	ngsd_btn->setMenu(new QMenu());
-	ngsd_btn->menu()->addAction(ui_.actionOpenProcessedSampleTabByName);
-	ngsd_btn->menu()->addAction(ui_.actionOpenSequencingRunTabByName);
-	ngsd_btn->menu()->addAction(ui_.actionOpenGeneTabByName);
-	ngsd_btn->menu()->addAction(ui_.actionOpenProjectTab);
-	ngsd_btn->menu()->addAction(ui_.actionOpenVariantTab);
-	ngsd_btn->menu()->addAction(ui_.actionOpenProcessingSystemTab);
-	ngsd_btn->setPopupMode(QToolButton::InstantPopup);
-	ui_.tools->insertWidget(ui_.actionSampleSearch, ngsd_btn);
 
 	// add rna menu
 	rna_menu_btn_ = new QToolButton();
@@ -509,7 +493,7 @@ void MainWindow::on_actionDebug_triggered()
 			SqlQuery query = db.getQuery();
 			QString af = "0.001";
 			Chromosome chr = roi_coding[0].chr();
-			query.exec("SELECT v.id, v.start, v.end, v.ref, v.obs, v.coding, v.gnomad FROM variant v WHERE chr='" + chr.strNormalized(true)  + "' AND start>='" + QString::number(roi_coding[0].start()) + "' AND end<='" + QString::number(roi_coding[roi_coding.count()-1].end()) + "' AND (1000g IS NULL OR 1000g<=" + af + ") AND (gnomad IS NULL OR gnomad<=" + af + ") ORDER BY start");
+			query.exec("SELECT v.id, v.start, v.end, v.ref, v.obs, v.coding, v.gnomad FROM variant v WHERE chr='" + chr.strNormalized(true)  + "' AND start>='" + QString::number(roi_coding[0].start()) + "' AND end<='" + QString::number(roi_coding[roi_coding.count()-1].end()) + "' AND (gnomad IS NULL OR gnomad<=" + af + ") ORDER BY start");
 			while(query.next())
 			{
 				QList<VariantTranscript> trans_infos;
@@ -1834,10 +1818,7 @@ void MainWindow::delayedInitialization()
 	if (GlobalServiceProvider::database().enabled())
 	{
 		LoginDialog dlg(this);
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			LoginManager::login(dlg.userName(), dlg.password());
-		}
+		dlg.exec();
 	}
 
 	//init GUI
@@ -2581,7 +2562,7 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 		QString processed_sample_id = db.processedSampleId(processed_sample_name);
 
 		//check user can access
-		if (LoginManager::role()=="user_restricted")
+		if (LoginManager::userRole()=="user_restricted")
 		{
 			if (!db.userCanAccess(LoginManager::userId(), processed_sample_id.toInt()))
 			{
@@ -2732,23 +2713,21 @@ void MainWindow::checkMendelianErrorRate(double cutoff_perc)
 
 void MainWindow::openProcessedSampleTab(QString ps_name)
 {
-	QString ps_id;
 	try
 	{
-		ps_id = NGSD().processedSampleId(ps_name);
-	}
-	catch (DatabaseException e)
-	{
-		GUIHelper::showMessage("NGSD error", "The processed sample database ID could not be determined for '"  + ps_name + "'!\nError message: " + e.message());
-		return;
-	}
+		QString ps_id = NGSD().processedSampleId(ps_name);
 
-	ProcessedSampleWidget* widget = new ProcessedSampleWidget(this, ps_id);
-	connect(widget, SIGNAL(clearMainTableSomReport(QString)), this, SLOT(clearSomaticReportSettings(QString)));
-	int index = openTab(QIcon(":/Icons/NGSD_sample.png"), ps_name, widget);
-	if (Settings::boolean("debug_mode_enabled"))
+		ProcessedSampleWidget* widget = new ProcessedSampleWidget(this, ps_id);
+		connect(widget, SIGNAL(clearMainTableSomReport(QString)), this, SLOT(clearSomaticReportSettings(QString)));
+		int index = openTab(QIcon(":/Icons/NGSD_sample.png"), ps_name, widget);
+		if (Settings::boolean("debug_mode_enabled"))
+		{
+			ui_.tabs->setTabToolTip(index, "NGSD ID: " + ps_id);
+		}
+	}
+	catch (Exception& e)
 	{
-		ui_.tabs->setTabToolTip(index, "NGSD ID: " + ps_id);
+		GUIHelper::showException(this, e, "Open processed sample tab");
 	}
 }
 
@@ -3525,7 +3504,7 @@ void MainWindow::storeReportConfig()
 	}
 	catch (Exception& e)
 	{
-		QMessageBox::warning(this, "Storing report configuration", "Error: Could not store the report configuration.\nPlease resolve this error or report it to the administrator:\n\n" + e.message());
+		QMessageBox::warning(this, "Storing report configuration", e.message());
 	}
 }
 
@@ -6798,6 +6777,12 @@ void MainWindow::updateNGSDSupport()
 	bool ngsd_user_logged_in = LoginManager::active();
 
 	//toolbar
+	ui_.actionOpenProcessedSampleTabByName->setEnabled(ngsd_user_logged_in);
+	ui_.actionOpenSequencingRunTabByName->setEnabled(ngsd_user_logged_in);
+	ui_.actionOpenGeneTabByName->setEnabled(ngsd_user_logged_in);
+	ui_.actionOpenVariantTab->setEnabled(ngsd_user_logged_in);
+	ui_.actionOpenProjectTab->setEnabled(ngsd_user_logged_in);
+	ui_.actionOpenProcessingSystemTab->setEnabled(ngsd_user_logged_in);
 	ui_.report_btn->setEnabled(ngsd_user_logged_in);
 	ui_.actionAnalysisStatus->setEnabled(ngsd_user_logged_in);
 	ui_.actionReanalyze->setEnabled(ngsd_user_logged_in);
@@ -6810,10 +6795,6 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionGapsRecalculate->setEnabled(ngsd_user_logged_in);
 	ui_.actionExpressionData->setEnabled(ngsd_user_logged_in);
 	ui_.actionAnnotateSomaticVariantInterpretation->setEnabled(ngsd_user_logged_in);
-
-	//toolbar - NGSD search menu
-	QToolButton* ngsd_search_btn = ui_.tools->findChild<QToolButton*>("ngsd_search_btn");
-	ngsd_search_btn->setEnabled(ngsd_user_logged_in);
 
 	//NGSD menu
 	ui_.menuNGSD->setEnabled(ngsd_user_logged_in);
@@ -6830,14 +6811,13 @@ void MainWindow::updateNGSDSupport()
 	if (ngsd_user_logged_in)
 	{
 		NGSD db;
-		if (db.userRoleIn(LoginManager::user(), QStringList{"user_restricted"}))
+		if (db.userRoleIn(LoginManager::userLogin(), QStringList{"user_restricted"}))
 		{
 			auto actions = ui_.menuAdmin->actions();
 			foreach(QAction* action, actions)
 			{
 				if (action!=ui_.actionChangePassword)
 				{
-					qDebug() << action;
 					action->setEnabled(false);
 				}
 			}

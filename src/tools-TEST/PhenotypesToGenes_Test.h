@@ -7,22 +7,15 @@ TEST_CLASS(PhenotypesToGenes_Test)
 {
 Q_OBJECT
 private slots:
-	void setup()
+
+	void default_parameters()
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
 		//init
 		NGSD db(true);
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/PhenotypesToGenes_init.sql"));
-	}
-
-	void default_parameters()
-	{
-		setup();
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
 		//test
 		EXECUTE("PhenotypesToGenes", "-test -in " + TESTDATA("data_in/PhenotypesToGenes_in1.txt") + " -ignore_invalid -out out/PhenotypesToGenes_out1.txt");
@@ -31,9 +24,12 @@ private slots:
 
 	void filterungSources()
 	{
-		setup();
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/PhenotypesToGenes_init.sql"));
 
 		//test
 		EXECUTE("PhenotypesToGenes", "-test -in " + TESTDATA("data_in/PhenotypesToGenes_in1.txt") + " -source HPO -ignore_invalid -out out/PhenotypesToGenes_out2.txt");
@@ -42,9 +38,12 @@ private slots:
 
 	void filteringEvidences()
 	{
-		setup();
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/PhenotypesToGenes_init.sql"));
 
 		//test
 		EXECUTE("PhenotypesToGenes", "-test -in " + TESTDATA("data_in/PhenotypesToGenes_in1.txt") + " -evidence HIGH -ignore_invalid -out out/PhenotypesToGenes_out3.txt");
@@ -53,9 +52,12 @@ private slots:
 
 	void filteringSourcesAndEvidences()
 	{
-		setup();
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/PhenotypesToGenes_init.sql"));
 
 		//test
 		EXECUTE("PhenotypesToGenes", "-test -in " + TESTDATA("data_in/PhenotypesToGenes_in1.txt") + " -source GENCC -evidence MED -ignore_invalid -out out/PhenotypesToGenes_out4.txt");

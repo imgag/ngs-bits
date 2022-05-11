@@ -22,6 +22,9 @@ public:
 	///Returns if the database connection is (still) open
 	bool isOpen() const;
 
+	///Returns if the database is available (i.e. the credentials are in the settings file)
+	static bool isAvailable();
+
 	///Returns all tables in the database
 	QStringList tables() const;
 	///Returns table meta data.

@@ -2,8 +2,8 @@
 INSERT INTO `report_configuration` (`id`, `processed_sample_id`, `created_by`, `created_date`) VALUES
 (1, 4001, 1, '2000-01-01 00:00:00');
 
-INSERT INTO `variant` (`id`, `chr`, `start`, `end`, `ref`, `obs`, `1000g`, `gnomad`, `coding`, `comment`) VALUES
-(1, 'chr1', 115256554, 115256554, 'A', 'G', NULL, NULL, 'NRAS:ENST00000369535:synonymous_variant:LOW:exon3/7:c.157T>C:p.Leu53=:PF00071', NULL);
+INSERT INTO `variant` (`id`, `chr`, `start`, `end`, `ref`, `obs`, `gnomad`, `coding`, `comment`) VALUES
+(1, 'chr1', 115256554, 115256554, 'A', 'G', NULL, 'NRAS:ENST00000369535:synonymous_variant:LOW:exon3/7:c.157T>C:p.Leu53=:PF00071', NULL);
 
 INSERT INTO `report_configuration_variant` (`id`, `report_configuration_id`, `variant_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES
 (1, 1, 1, 'diagnostic variant', 1, 'n/a', 0, 0, 0, 0, 0, 0, 0, 0, '', '');
