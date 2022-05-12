@@ -115,7 +115,7 @@ public:
 	static QString serverApiUrl(const bool& return_http = false);
 
 	///Returns a map with matching Ensembl, RefSeq and CCDS transcript identifiers (without version numbers).
-	static QMap<QByteArray, QByteArrayList>& transcriptMatches(GenomeBuild build);
+	static const QMap<QByteArray, QByteArrayList>& transcriptMatches(GenomeBuild build);
 
 private:
 	///Constructor declared away

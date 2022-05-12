@@ -152,6 +152,7 @@ private slots:
 		}
 		catch(Exception& e)
 		{
+			Log::error(e.message());
 			SKIP("This test requieres a running server");
 		}
 

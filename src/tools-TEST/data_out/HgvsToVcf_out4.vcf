@@ -1,7 +1,6 @@
 ##fileformat=VCFv4.2
 ##source=ngs-bits:HgvsToVcf
 ##INFO=<ID=HGVSc,Number=1,Type=String,Description="Input transcript name and HGVS.c change.">
-##INFO=<ID=count,Number=.,Type=String,Description=Column of HGVS TSV file: ../src/tools-TEST/data_in/HgvsToVcf_in4.tsv>
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 chr1	950296	.	C	A	.	.	HGVSc=NM_015658.4:c.1443+831G>T;count=605
 chr1	950309	.	G	A	.	.	HGVSc=NM_015658.4:c.1443+818C>T;count=606
@@ -84,3 +83,5 @@ chr1	1101667	.	C	T	.	.	HGVSc=NM_001330306.2:c.-135-9564G>A;count=788
 chr1	1111365	.	CA	C	.	.	HGVSc=NM_001330306.2:c.-136+3656del;count=789
 chr1	1112601	.	G	A	.	.	HGVSc=NM_001330306.2:c.-136+2421C>T;count=790
 chr1	1113195	.	CA	C	.	.	HGVSc=NM_001330306.2:c.-136+1826del;count=791
+chr13	32338918	.	A	G	.	.	HGVSc=NM_000059.3:c.4563A>G;count=792
+chr17	61683490	.	T	C	.	.	HGVSc=NM_032043.2:c.3556A>G;count=793

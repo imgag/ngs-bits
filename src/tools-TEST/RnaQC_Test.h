@@ -25,7 +25,6 @@ private slots:
 
 		EXECUTE("RnaQC", "-bam " + TESTDATA("data_in/RnaQC_in1.bam")
 				+ " -housekeeping_genes " + TESTDATA("data_in/RnaQC_in1_housekeeping_genes.bed")
-				+ " -rna_counts " + TESTDATA("data_in/RnaQC_in1_counts.tsv")
 				+ " -splicing " + TESTDATA("data_in/RnaQC_in1_splicing_gene.tsv")
 				+ " -expression " + TESTDATA("data_in/RnaQC_in1_expr.tsv")
 				+ " -out out/RnaQC_out2.qcML");
@@ -41,7 +40,6 @@ private slots:
 
 		EXECUTE("RnaQC", "-bam " + TESTDATA("data_in/RnaQC_in1.bam")
 				+ " -housekeeping_genes " + TESTDATA("data_in/RnaQC_in1_housekeeping_genes.bed")
-				+ " -rna_counts " + TESTDATA("data_in/RnaQC_in1_counts.tsv")
 				+ " -splicing " + TESTDATA("data_in/RnaQC_in1_splicing_gene.tsv")
 				+ " -expression " + TESTDATA("data_in/RnaQC_in1_expr.tsv")
 				+ " -txt -out out/RnaQC_out2.txt");

@@ -74,8 +74,11 @@ QString ServerHelper::getUrlProtocol(const bool& return_http)
 
 QString ServerHelper::getUrlPort(const bool& return_http)
 {
-	if (return_http) return ServerHelper::getStringSettingsValue("http_server_port");
-	return ServerHelper::getStringSettingsValue("https_server_port");
+	QString port = "";
+	if (return_http) port = ServerHelper::getStringSettingsValue("http_server_port");
+	if (!return_http) port = ServerHelper::getStringSettingsValue("https_server_port");
+	if (!port.isEmpty()) port = ":" + port;
+	return port;
 }
 
 bool ServerHelper::hasBasicSettings()
@@ -95,7 +98,7 @@ bool ServerHelper::hasBasicSettings()
 
 QString ServerHelper::getServerUrl(const bool& return_http)
 {
-	return getUrlProtocol(return_http) + "://" + ServerHelper::getStringSettingsValue("server_host") +
+	return getUrlProtocol(return_http) + ServerHelper::getStringSettingsValue("server_host") +
 			ServerHelper::getUrlPort(return_http);
 }
 
