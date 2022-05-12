@@ -1,6 +1,5 @@
 
 ### importing small variants for NA12878_18 ###
-filename: ../src/tools-TEST/data_in/NGSDAddVariantsGermline_in1.GSvar
 Found 46 variants already imported into NGSD!
 Found 0 class 4/5 variants for the sample!
 Deleted previous variants
@@ -10,7 +9,6 @@ Imported 46 detected variants
 DEBUG: Skipped 303 high-AF variants!
 
 ### importing CNVs for NA12878_18 ###
-filename: ../src/tools-TEST/data_in/NGSDAddVariantsGermline_in1.tsv
 Deleted previous CNV callset
 caller: CnvHunter
 caller version: 2019_09-19-g3268388b

@@ -37,17 +37,6 @@ void SmallVariantSearchWidget::changeSearchType()
 
 void SmallVariantSearchWidget::updateVariants()
 {
-	//not for restricted users
-	try
-	{
-		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
-	}
-	catch(Exception& e)
-	{
-		QMessageBox::information(this, "Access denied", e.message());
-		return;
-	}
-
 	//clear old results
 	ui_.variants->clearContents();
 
@@ -59,6 +48,9 @@ void SmallVariantSearchWidget::updateVariants()
 	try
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
+
+		//not for restricted users
+		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
 
 		//process genes/region
 		QStringList comments;
@@ -134,9 +126,7 @@ void SmallVariantSearchWidget::updateVariants()
 	}
 	catch(Exception& e)
 	{
-		QApplication::restoreOverrideCursor();
-
-		QMessageBox::critical(this, "Error", e.message());
+		GUIHelper::showException(this, e, "Small variants search error");
 	}
 }
 
@@ -234,7 +224,6 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 	double max_af = ui_.filter_af->value()/100.0;
 	if (max_af<1.0)
 	{
-		constraints << "(1000g IS NULL OR 1000g<=" + QString::number(max_af) + ")";
 		constraints << "(gnomad IS NULL OR gnomad<=" + QString::number(max_af) + ")";
 	}
 
@@ -248,7 +237,6 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 	{
 		QString var = query.value("chr").toString() + ":" + query.value("start").toString() + "-" + query.value("end").toString() + " " + query.value("ref").toString() + " > " + query.value("obs").toString();
 		QString gnomad = QString::number(query.value("gnomad").toDouble(), 'f', 4);
-		QString tg = QString::number(query.value("1000g").toDouble(), 'f', 4);
 		QString cadd = query.value("cadd").isNull() ? "" : QString::number(query.value("cadd").toDouble(), 'f', 2);
 		QString spliceai = query.value("spliceai").isNull() ? "" : QString::number(query.value("spliceai").toDouble(), 'f', 2);
 
@@ -349,7 +337,7 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 
 			//add variant line to output
 			vars_distinct << variant_id;
-			var_data.append(QStringList() << gene << var << QString::number(germline_het) << QString::number(germline_hom) << gnomad << tg << cadd << spliceai << type << coding << query2.value("ps_name").toString() << query2.value("name_external").toString()  << query2.value("genotype").toString() + denovo << query2.value("sys_name").toString()<< query2.value("p_name").toString() << query2.value("disease_group").toString() << query2.value("disease_status").toString() << phenotypes.toString() << query2.value("class").toString() << query2.value("outcome").toString() << query2.value("comment").toString().replace("\n", " ") << genes_causal.join(',') << genes_candidate.join(',')<< related_samples.join(", "));
+			var_data.append(QStringList() << gene << var << QString::number(germline_het) << QString::number(germline_hom) << gnomad << cadd << spliceai << type << coding << query2.value("ps_name").toString() << query2.value("name_external").toString()  << query2.value("genotype").toString() + denovo << query2.value("sys_name").toString()<< query2.value("p_name").toString() << query2.value("disease_group").toString() << query2.value("disease_status").toString() << phenotypes.toString() << query2.value("class").toString() << query2.value("outcome").toString() << query2.value("comment").toString().replace("\n", " ") << genes_causal.join(',') << genes_candidate.join(',')<< related_samples.join(", "));
 		}
 	}
 	QString comment = gene + " - " + QString::number(vars_distinct.count()) + " distinct variants in " + QString::number(var_data.count()) + " hits";

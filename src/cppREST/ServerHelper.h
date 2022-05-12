@@ -24,6 +24,10 @@ public:
 	static QString getUrlProtocol(const bool& return_http);
 	static QString getUrlPort(const bool& return_http);
 
+	static bool hasBasicSettings();
+	static QString getServerUrl(const bool& return_http);
+
+
 protected:
 	ServerHelper();
 

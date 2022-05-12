@@ -399,6 +399,9 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	QDate r_before = QDate();
 	QString r_device_name;
 
+	//filter output to processed samples that user has access to
+	QString restricted_user;
+
 	//output options
 	QString add_path;
 	bool add_disease_details = false;
@@ -526,6 +529,9 @@ public:
 	~NGSD();
 	///Returns if the database connection is (still) open
 	bool isOpen() const;
+
+	///Returns if the database is available (i.e. the credentials are in the settings file or the application is in client-server mode)
+	static bool isAvailable(bool test_db=false);
 
 	///Returns the table list.
 	QStringList tables() const;
@@ -738,6 +744,8 @@ public:
 	void setPassword(int user_id, QString password);
 	///Checks if the user has one of the given roles.
 	bool userRoleIn(QString user, QStringList roles);
+	///Checks if the user can access the processed sample. Use for users with role 'restricted_user' only, or it will be slow because the user role has to be checked every time. Uses caching for massive speed-up.
+	bool userCanAccess(int user_id, int ps_id);
 
 	/*** Main NGSD functions ***/
 	///Search for processed samples
@@ -976,6 +984,7 @@ protected:
 		QMap<QByteArray, QByteArray> non_approved_to_approved_gene_names;
 		QHash<int, Phenotype> phenotypes_by_id;
 		QHash<QByteArray, int> phenotypes_accession_to_id;
+		QHash<int, QSet<int>> user_access_ps; //user id => ps id set
 
 		TranscriptList gene_transcripts;
 		ChromosomalIndex<TranscriptList> gene_transcripts_index;

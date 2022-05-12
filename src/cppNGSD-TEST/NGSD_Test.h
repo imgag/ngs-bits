@@ -24,8 +24,7 @@ private slots:
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex idx(ref_file);
 
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 		NGSD db;
 
 		QHash<QString, Transcript> transcrips;
@@ -96,8 +95,7 @@ private slots:
 	//Because initializing the database takes very long, all NGSD functionality is tested in one slot.
 	void main_tests()
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
 		//init
 		NGSD db(true);
@@ -872,8 +870,6 @@ private slots:
 		S_EQUAL(ps_table.headers().at(21), "comment_processed_sample");
 		S_EQUAL(ps_table.row(0).value(20), "comment_s6");
 		S_EQUAL(ps_table.row(0).value(21), "comment_ps7");
-
-
 		//apply all search parameters
 		params.s_name = "NA12878";
 		params.s_species = "human";
@@ -897,6 +893,11 @@ private slots:
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 2);
 		I_EQUAL(ps_table.columnCount(), 74);
+		//filter based on access rights (restricted user)
+		params = ProcessedSampleSearchParameters();
+		params.restricted_user = "ahkerra1";
+		ps_table = db.processedSampleSearch(params);
+		I_EQUAL(ps_table.rowCount(), 4);
 
 		//reportConfigId
 		QString ps_id = db.processedSampleId("NA12878_03");
@@ -1312,6 +1313,17 @@ private slots:
 		IS_FALSE(db.userRoleIn("ahkerra1", QStringList{"user"}));
 		IS_TRUE(db.userRoleIn("ahkerra1", QStringList{"user_restricted"}));
 
+		int user_id = db.userId("ahkerra1");
+		IS_FALSE(db.userCanAccess(user_id, 3999));
+		IS_FALSE(db.userCanAccess(user_id, 4001));
+		IS_FALSE(db.userCanAccess(user_id, 4002));
+		IS_FALSE(db.userCanAccess(user_id, 5));
+		IS_FALSE(db.userCanAccess(user_id, 6));
+		IS_TRUE(db.userCanAccess(user_id, 4000)); //access via study 'SecondStudy'
+		IS_TRUE(db.userCanAccess(user_id, 4003)); //access via sample 'NA12123repeat'
+		IS_TRUE(db.userCanAccess(user_id, 7)); //access via project 'Diagnostik'
+		IS_TRUE(db.userCanAccess(user_id, 8)); //access via project 'Diagnostik'
+
 		//cfDNA panels
 		CfdnaPanelInfo panel_info;
 		panel_info.tumor_id = db.processedSampleId("DX184894_01").toInt();
@@ -1403,8 +1415,7 @@ private slots:
 
 	inline void report_germline()
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
@@ -1615,8 +1626,7 @@ private slots:
 	//Tests for SomaticReportConfiguration and specific somatic variants
 	inline void report_somatic()
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
 		QCoreApplication::setApplicationVersion("0.1-cppNGSD-TEST-Version"); //application version (is written into somatic xml report)
 		//init
@@ -2188,8 +2198,7 @@ private slots:
 	//Test tumor only RTF report generation
 	void report_tumor_only()
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
 		NGSD db(true);
 		db.init();
@@ -2322,8 +2331,7 @@ private slots:
 	/*
 	void debug()
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 		NGSD db(true);
 
 		//getProcessingSystem

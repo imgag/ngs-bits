@@ -1,6 +1,7 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include "GenLabDB.h"
+#include "LoginManager.h"
 #include "Helper.h"
 #include "Settings.h"
 #include "Exceptions.h"
@@ -10,18 +11,39 @@ QMap<QString, TableInfo> GenLabDB::infos_;
 
 GenLabDB::GenLabDB()
 {
-	//get settings
-	QString host = Settings::string("genlab_host");
-	QString name = Settings::string("genlab_name");
-	QString user = Settings::string("genlab_user");
-	QString pass = Settings::string("genlab_pass");
+	bool genlab_mssql;
+	QString host;
+	int port;
+	QString name;
+	QString user;
+	QString pass;
 
-	if (!Settings::boolean("genlab_mssql")) //MySQL server
+	//get settings
+	if (NGSHelper::isCliendServerMode() && !NGSHelper::isRunningOnServer())
+	{
+		genlab_mssql = LoginManager::genlab_mssql();
+		host = LoginManager::genlabHost();
+		port = LoginManager::genlabPort();
+		name = LoginManager::genlabName();
+		user = LoginManager::genlabUser();
+		pass = LoginManager::genlabPassword();
+	}
+	else
+	{
+		genlab_mssql = Settings::boolean("genlab_mssql", true);
+		host = Settings::string("genlab_host", true);
+		port = Settings::contains("genlab_port") ? Settings::integer("genlab_port") : -1;
+		name = Settings::string("genlab_name", true);
+		user = Settings::string("genlab_user", true);
+		pass = Settings::string("genlab_pass", true);
+	}
+
+
+	if (!genlab_mssql) //MySQL server
 	{
 		db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "GENLAB_" + Helper::randomString(20))));
 
-		db_->setHostName(host);
-		int port = Settings::integer("genlab_port");
+		db_->setHostName(host);		
 		db_->setPort(port);
 		db_->setDatabaseName(name);
 		db_->setUserName(user);
@@ -50,6 +72,16 @@ GenLabDB::~GenLabDB()
 bool GenLabDB::isOpen() const
 {
 	return QSqlQuery(*db_).exec("SELECT 1");
+}
+
+bool GenLabDB::isAvailable()
+{
+	if (NGSHelper::isCliendServerMode() && !NGSHelper::isRunningOnServer())
+	{
+		return true;
+	}
+
+	return Settings::contains("genlab_host") && Settings::contains("genlab_name") && Settings::contains("genlab_user") && Settings::contains("genlab_pass"); //port is not required for MsSQL
 }
 
 QStringList GenLabDB::tables() const

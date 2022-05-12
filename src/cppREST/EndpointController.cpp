@@ -21,7 +21,7 @@ HttpResponse EndpointController::serveEndpointHelp(const HttpRequest& request)
 
 	BasicResponseData response_data;
 	response_data.length = body.length();
-	response_data.content_type = ContentType::TEXT_HTML;
+	response_data.content_type = request.getContentType();
 	response_data.is_downloadable = false;
 	return HttpResponse(response_data, body);
 }
@@ -55,12 +55,6 @@ HttpResponse EndpointController::serveStaticForTempUrl(const HttpRequest& reques
 	return serveStaticFile(full_entity_path, request.getMethod(), HttpProcessor::getContentTypeByFilename(full_entity_path), request.getHeaders());
 }
 
-HttpResponse EndpointController::serveStaticFileFromCache(const HttpRequest& request)
-{
-	QString filename = FileCache::getFileById(request.getPathItems()[0]).filename_with_path;
-	return createStaticFromCacheResponse(filename, QList<ByteRange>{}, HttpProcessor::getContentTypeByFilename(filename), false);
-}
-
 HttpResponse EndpointController::createStaticFileRangeResponse(QString filename, QList<ByteRange> byte_ranges, ContentType type, bool is_downloadable)
 {
 	quint64 total_length = 0;
@@ -92,26 +86,6 @@ HttpResponse EndpointController::createStaticStreamResponse(QString filename, bo
 	response_data.is_downloadable = is_downloadable;
 
 	return HttpResponse(response_data);
-}
-
-HttpResponse EndpointController::createStaticFromCacheResponse(QString id, QList<ByteRange> byte_ranges, ContentType type, bool is_downloadable)
-{
-	StaticFile static_file = FileCache::getFileById(id);
-
-	if (static_file.content.isEmpty() || static_file.content.isNull())
-	{
-		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Empty or corrpupted file");
-	}
-
-	BasicResponseData response_data;
-	response_data.filename = FileCache::getFileById(id).filename_with_path;
-	response_data.length = static_file.content.length();
-	response_data.byte_ranges = byte_ranges;
-	response_data.file_size = static_file.size;
-	response_data.content_type = type;
-	response_data.is_downloadable = is_downloadable;
-
-	return HttpResponse(response_data, static_file.content);
 }
 
 EndpointController::EndpointController()
@@ -378,11 +352,7 @@ QString EndpointController::getServedRootPath(const QList<QString>& path_parts)
 	served_file = QUrl::fromEncoded(served_file.toLocal8Bit()).toString(); // handling browser endcoding, e.g. spaces and other characters in names
 	int param_pos = served_file.indexOf("?");
 	if (param_pos > -1) served_file = served_file.left(param_pos);
-
-	if (QFile(served_file).exists())
-	{
-		return served_file;
-	}
+	if (QFile(served_file).exists()) return served_file;
 
 	return "";
 }
@@ -392,12 +362,6 @@ StaticFile EndpointController::readFileContent(const QString& filename, const QL
 	StaticFile static_file {};
 	static_file.filename_with_path = filename;
 	static_file.modified = QFileInfo(filename).lastModified();
-
-	QString found_id = FileCache::getFileIdIfInCache(filename);
-	if (found_id.length() > 0)
-	{
-		return FileCache::getFileById(found_id);
-	}
 
 	QFile file(filename);
 	static_file.size = file.size();
@@ -426,27 +390,9 @@ StaticFile EndpointController::readFileContent(const QString& filename, const QL
 		}
 	}
 
-	if ((!static_file.content.isEmpty()) && (Settings::boolean("static_cache", true)))
-	{
-		try
-		{
-			FileCache::addFileToCache(ServerHelper::generateUniqueStr(), filename, static_file.content, static_file.content.size());
-		}
-		catch (Exception& e)
-		{
-			Log::error("Could not add " + filename + " to the cache:" + e.message());
-		}
-	}
-
 	file.close();
 
 	return static_file;
-}
-
-QString EndpointController::addFileToCache(const QString& filename)
-{
-	readFileContent(filename, QList<ByteRange>{});
-	return FileCache::getFileIdIfInCache(filename);
 }
 
 bool EndpointController::hasOverlappingRanges(const QList<ByteRange> ranges)

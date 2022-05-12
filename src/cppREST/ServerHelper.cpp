@@ -39,7 +39,7 @@ int ServerHelper::getNumSettingsValue(const QString& key)
 	}
 	catch (Exception& e)
 	{
-		Log::warn("Cannot find numerical key " + key + " in the settings: " + e.message());
+		Log::warn("Numerical settings value unavailable: " + e.message());
 	}
 
 	return num_value;
@@ -54,7 +54,7 @@ QString ServerHelper::getStringSettingsValue(const QString& key)
 	}
 	catch (Exception& e)
 	{
-		Log::warn("Cannot find string key " + key + " in the settings: " + e.message());
+		Log::warn("String settings value unavailable: " + e.message());
 	}
 
 	return string_value;
@@ -74,8 +74,32 @@ QString ServerHelper::getUrlProtocol(const bool& return_http)
 
 QString ServerHelper::getUrlPort(const bool& return_http)
 {
-	if (return_http) return ServerHelper::getStringSettingsValue("http_server_port");
-	return ServerHelper::getStringSettingsValue("https_server_port");
+	QString port = "";
+	if (return_http) port = ServerHelper::getStringSettingsValue("http_server_port");
+	if (!return_http) port = ServerHelper::getStringSettingsValue("https_server_port");
+	if (!port.isEmpty()) port = ":" + port;
+	return port;
+}
+
+bool ServerHelper::hasBasicSettings()
+{
+	if (!ServerHelper::getStringSettingsValue("https_server_port").isEmpty() &&
+		!ServerHelper::getStringSettingsValue("http_server_port").isEmpty() &&
+		!ServerHelper::getStringSettingsValue("server_host").isEmpty() &&
+		!ServerHelper::getStringSettingsValue("ssl_certificate").isEmpty() &&
+		!ServerHelper::getStringSettingsValue("ssl_key").isEmpty() &&
+		(ServerHelper::getNumSettingsValue("url_lifetime")>0) &&
+		(ServerHelper::getNumSettingsValue("session_duration")>0))
+	{
+		return true;
+	}
+	return false;
+}
+
+QString ServerHelper::getServerUrl(const bool& return_http)
+{
+	return getUrlProtocol(return_http) + ServerHelper::getStringSettingsValue("server_host") +
+			ServerHelper::getUrlPort(return_http);
 }
 
 ServerHelper& ServerHelper::instance()

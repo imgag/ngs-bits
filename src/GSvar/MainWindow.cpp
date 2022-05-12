@@ -52,7 +52,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "GeneSelectorDialog.h"
 #include "NGSHelper.h"
 #include "QCCollection.h"
-#include "NGSDReannotationDialog.h"
 #include "DiseaseInfoWidget.h"
 #include "SmallVariantSearchWidget.h"
 #include "TSVFileStream.h"
@@ -156,21 +155,6 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.splitter_2->setStretchFactor(1, 1);
 	connect(ui_.tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 	ui_.actionDebug->setVisible(Settings::boolean("debug_mode_enabled", true));
-
-	//NGSD search button
-	auto ngsd_btn = new QToolButton();
-	ngsd_btn->setObjectName("ngsd_search_btn");
-	ngsd_btn->setIcon(QIcon(":/Icons/NGSD_search.png"));
-	ngsd_btn->setToolTip("Open NGSD item as tab.");
-	ngsd_btn->setMenu(new QMenu());
-	ngsd_btn->menu()->addAction(ui_.actionOpenProcessedSampleTabByName);
-	ngsd_btn->menu()->addAction(ui_.actionOpenSequencingRunTabByName);
-	ngsd_btn->menu()->addAction(ui_.actionOpenGeneTabByName);
-	ngsd_btn->menu()->addAction(ui_.actionOpenProjectTab);
-	ngsd_btn->menu()->addAction(ui_.actionOpenVariantTab);
-	ngsd_btn->menu()->addAction(ui_.actionOpenProcessingSystemTab);
-	ngsd_btn->setPopupMode(QToolButton::InstantPopup);
-	ui_.tools->insertWidget(ui_.actionSampleSearch, ngsd_btn);
 
 	// add rna menu
 	rna_menu_btn_ = new QToolButton();
@@ -509,7 +493,7 @@ void MainWindow::on_actionDebug_triggered()
 			SqlQuery query = db.getQuery();
 			QString af = "0.001";
 			Chromosome chr = roi_coding[0].chr();
-			query.exec("SELECT v.id, v.start, v.end, v.ref, v.obs, v.coding, v.gnomad FROM variant v WHERE chr='" + chr.strNormalized(true)  + "' AND start>='" + QString::number(roi_coding[0].start()) + "' AND end<='" + QString::number(roi_coding[roi_coding.count()-1].end()) + "' AND (1000g IS NULL OR 1000g<=" + af + ") AND (gnomad IS NULL OR gnomad<=" + af + ") ORDER BY start");
+			query.exec("SELECT v.id, v.start, v.end, v.ref, v.obs, v.coding, v.gnomad FROM variant v WHERE chr='" + chr.strNormalized(true)  + "' AND start>='" + QString::number(roi_coding[0].start()) + "' AND end<='" + QString::number(roi_coding[roi_coding.count()-1].end()) + "' AND (gnomad IS NULL OR gnomad<=" + af + ") ORDER BY start");
 			while(query.next())
 			{
 				QList<VariantTranscript> trans_infos;
@@ -1833,10 +1817,7 @@ void MainWindow::delayedInitialization()
 	if (GlobalServiceProvider::database().enabled())
 	{
 		LoginDialog dlg(this);
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			LoginManager::login(dlg.userName(), dlg.password());
-		}
+		dlg.exec();
 	}
 
 	//init GUI
@@ -2578,11 +2559,14 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 	{
 		NGSD db;
 		QString processed_sample_id = db.processedSampleId(processed_sample_name);
-		UserPermissionProvider upp(LoginManager::userId());
-		if (!upp.isEligibleToAccessProcessedSampleById(processed_sample_id))
+
+		//check user can access
+		if (LoginManager::userRole()=="user_restricted")
 		{
-			QMessageBox::warning(this, "Cannot open sample from NGSD", "You do not have permissions to open this sample");
-			return;
+			if (!db.userCanAccess(LoginManager::userId(), processed_sample_id.toInt()))
+			{
+				INFO(AccessDeniedException, "You do not have permissions to open this sample!");
+			}
 		}
 
 		//processed sample exists > add to recent samples menu
@@ -2610,8 +2594,7 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 		QString file;
 		if (analyses.count()==0)
 		{
-			QMessageBox::warning(this, "GSvar file missing", "The GSvar file does not exist:\n" + file_location.filename);
-			return;
+			INFO(ArgumentException, "The GSvar file does not exist:\n" + file_location.filename);
 		}
 		else if (analyses.count()==1)
 		{
@@ -2641,7 +2624,7 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 	}
 	catch (Exception& e)
 	{
-		QMessageBox::warning(this, "Error opening processed sample from NGSD", e.message());
+		GUIHelper::showException(this, e, "Error opening processed sample by name");
 	}
 }
 
@@ -2729,23 +2712,21 @@ void MainWindow::checkMendelianErrorRate(double cutoff_perc)
 
 void MainWindow::openProcessedSampleTab(QString ps_name)
 {
-	QString ps_id;
 	try
 	{
-		ps_id = NGSD().processedSampleId(ps_name);
-	}
-	catch (DatabaseException e)
-	{
-		GUIHelper::showMessage("NGSD error", "The processed sample database ID could not be determined for '"  + ps_name + "'!\nError message: " + e.message());
-		return;
-	}
+		QString ps_id = NGSD().processedSampleId(ps_name);
 
-	ProcessedSampleWidget* widget = new ProcessedSampleWidget(this, ps_id);
-	connect(widget, SIGNAL(clearMainTableSomReport(QString)), this, SLOT(clearSomaticReportSettings(QString)));
-	int index = openTab(QIcon(":/Icons/NGSD_sample.png"), ps_name, widget);
-	if (Settings::boolean("debug_mode_enabled"))
+		ProcessedSampleWidget* widget = new ProcessedSampleWidget(this, ps_id);
+		connect(widget, SIGNAL(clearMainTableSomReport(QString)), this, SLOT(clearSomaticReportSettings(QString)));
+		int index = openTab(QIcon(":/Icons/NGSD_sample.png"), ps_name, widget);
+		if (Settings::boolean("debug_mode_enabled"))
+		{
+			ui_.tabs->setTabToolTip(index, "NGSD ID: " + ps_id);
+		}
+	}
+	catch (Exception& e)
 	{
-		ui_.tabs->setTabToolTip(index, "NGSD ID: " + ps_id);
+		GUIHelper::showException(this, e, "Open processed sample tab");
 	}
 }
 
@@ -3522,7 +3503,7 @@ void MainWindow::storeReportConfig()
 	}
 	catch (Exception& e)
 	{
-		QMessageBox::warning(this, "Storing report configuration", "Error: Could not store the report configuration.\nPlease resolve this error or report it to the administrator:\n\n" + e.message());
+		QMessageBox::warning(this, "Storing report configuration", e.message());
 	}
 }
 
@@ -5254,89 +5235,84 @@ void MainWindow::uploadToClinvar(int variant_index)
 {
 	if (!LoginManager::active()) return;
 
-	//abort if no report config is available
-	if (!germlineReportSupported())
+	try
 	{
-		QMessageBox::warning(this, "Report configuration missing", "No report configuration available. \nOnly variants with report configuration can be published!");
-		return;
-	}
+		//abort if API key is missing
+		if(Settings::string("clinvar_api_key", true).trimmed().isEmpty())
+		{
+			THROW(ProgrammingException, "ClinVar API key is needed, but not found in settings.\nPlease inform the bioinformatics team");
+		}
 
-	//abort if API key is missing
-	if(Settings::string("clinvar_api_key", true).trimmed().isEmpty())
+		NGSD db;
+
+		//(1) prepare data as far as we can
+		ClinvarUploadData data;
+		data.processed_sample = germlineReportSample();
+		QString sample_id = db.sampleId(data.processed_sample);
+		SampleData sample_data = db.getSampleData(sample_id);
+
+
+		//get disease info
+		data.disease_info = db.getSampleDiseaseInfo(sample_id, "OMIM disease/phenotype identifier");
+		data.disease_info.append(db.getSampleDiseaseInfo(sample_id, "Orpha number"));
+		if (data.disease_info.length() < 1)
+		{
+			INFO(InformationMissingException, "The sample has to have at least one OMIM or Orphanet disease identifier to publish a variant in ClinVar.");
+		}
+
+		// get affected status
+		data.affected_status = sample_data.disease_status;
+
+		//get phenotype(s)
+		data.phenos = sample_data.phenotypes;
+
+		//get variant info
+		data.variant = variants_[variant_index];
+
+		// get report info
+		if (!report_settings_.report_config.data()->exists(VariantType::SNVS_INDELS, variant_index))
+		{
+			INFO(InformationMissingException, "The variant has to be in the report configuration to be published!");
+		}
+		data.report_variant_config = report_settings_.report_config.data()->get(VariantType::SNVS_INDELS, variant_index);
+
+		//update classification
+		data.report_variant_config.classification = db.getClassification(data.variant).classification;
+		if (data.report_variant_config.classification.trimmed().isEmpty() || (data.report_variant_config.classification.trimmed() == "n/a"))
+		{
+			INFO(InformationMissingException, "The variant has to be classified to be published!");
+		}
+
+		//genes
+		int gene_idx = variants_.annotationIndexByName("gene");
+		data.genes = GeneSet::createFromText(data.variant.annotations()[gene_idx], ',');
+
+		//determine NGSD ids of variant and report variant
+		QString var_id = db.variantId(data.variant, false);
+		if (var_id == "")
+		{
+			INFO(InformationMissingException, "The variant has to be in NGSD and part of a report config to be published!");
+		}
+		data.variant_id = Helper::toInt(var_id);
+		//extract report variant id
+		int rc_id = db.reportConfigId(db.processedSampleId(data.processed_sample));
+		if (rc_id == -1 )
+		{
+			THROW(DatabaseException, "Could not determine report config id for sample " + data.processed_sample + "!");
+		}
+
+		data.report_config_variant_id = db.getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id=" + QString::number(rc_id) + " AND variant_id=" + QString::number(data.variant_id), false).toInt();
+
+
+		// (2) show dialog
+		ClinvarUploadDialog dlg(this);
+		dlg.setData(data);
+		dlg.exec();
+	}
+	catch(Exception& e)
 	{
-		QMessageBox::warning(this, "No ClinVar API key", "The GSVar.ini does not contain an entry of ClinVar API key for variant publication!");
-		return;
+		GUIHelper::showException(this, e, "ClinVar submission error");
 	}
-
-	NGSD db;
-
-	//(1) prepare data as far as we can
-	ClinvarUploadData data;
-	data.processed_sample = germlineReportSample();
-	QString sample_id = db.sampleId(data.processed_sample);
-	SampleData sample_data = db.getSampleData(sample_id);
-
-
-	//get disease info
-	data.disease_info = db.getSampleDiseaseInfo(sample_id, "OMIM disease/phenotype identifier");
-	data.disease_info.append(db.getSampleDiseaseInfo(sample_id, "Orpha number"));
-	if (data.disease_info.length() < 1)
-	{
-		QMessageBox::warning(this, "No disease info", "The sample has to have at least one OMIM or Orphanet disease identifier to publish a variant in ClinVar.");
-		return;
-	}
-
-	// get affected status
-	data.affected_status = sample_data.disease_status;
-
-	//get phenotype(s)
-	data.phenos = sample_data.phenotypes;
-
-	//get variant info
-	data.variant = variants_[variant_index];
-
-	// get report info
-	if (!report_settings_.report_config.data()->exists(VariantType::SNVS_INDELS, variant_index))
-	{
-		QMessageBox::warning(this, "Variant not in ReportConfig", "The variant has to be in NGSD and part of a report config to be published!");
-		return;
-	}
-	data.report_variant_config = report_settings_.report_config.data()->get(VariantType::SNVS_INDELS, variant_index);
-	//update classification
-	data.report_variant_config.classification = db.getClassification(data.variant).classification;
-	if (data.report_variant_config.classification.trimmed().isEmpty() || (data.report_variant_config.classification.trimmed() == "n/a"))
-	{
-		QMessageBox::warning(this, "No Classification", "The variant has to have a classification to be published!");
-		return;
-	}
-
-	//genes
-	int gene_idx = variants_.annotationIndexByName("gene");
-	data.genes = GeneSet::createFromText(data.variant.annotations()[gene_idx], ',');
-
-	//determine NGSD ids of variant and report variant
-	QString var_id = db.variantId(data.variant, false);
-	if (var_id == "")
-	{
-		QMessageBox::warning(this, "Variant not in NGSD", "The variant has to be in NGSD and part of a report config to be published!");
-		return;
-	}
-	data.variant_id = Helper::toInt(var_id);
-	//extract report variant id
-	int rc_id = db.reportConfigId(db.processedSampleId(data.processed_sample));
-	if (rc_id == -1 )
-	{
-		THROW(DatabaseException, "Could not determine report config id for sample " + data.processed_sample + "!");
-	}
-
-	data.report_config_variant_id = db.getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id="
-													+ QString::number(rc_id) + " AND variant_id=" + QString::number(data.variant_id), false).toInt();
-
-
-	// (2) show dialog
-	ClinvarUploadDialog dlg(this);
-	dlg.setData(data);
-	dlg.exec();
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent* e)
@@ -5724,15 +5700,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	}
 	else if (action==a_clinvar_pub)
 	{
-		try
-		{
-			uploadToClinvar(index);
-		}
-		catch (Exception& e)
-		{
-			GUIHelper::showMessage("ClinVar upload error", "Error while uploading variant to ClinVar: " + e.message());
-			return;
-		}
+		uploadToClinvar(index);
 	}
 	else if (parent_menu && parent_menu->title()=="Alamut")
 	{
@@ -6765,6 +6733,12 @@ void MainWindow::updateNGSDSupport()
 	bool ngsd_user_logged_in = LoginManager::active();
 
 	//toolbar
+	ui_.actionOpenProcessedSampleTabByName->setEnabled(ngsd_user_logged_in);
+	ui_.actionOpenSequencingRunTabByName->setEnabled(ngsd_user_logged_in);
+	ui_.actionOpenGeneTabByName->setEnabled(ngsd_user_logged_in);
+	ui_.actionOpenVariantTab->setEnabled(ngsd_user_logged_in);
+	ui_.actionOpenProjectTab->setEnabled(ngsd_user_logged_in);
+	ui_.actionOpenProcessingSystemTab->setEnabled(ngsd_user_logged_in);
 	ui_.report_btn->setEnabled(ngsd_user_logged_in);
 	ui_.actionAnalysisStatus->setEnabled(ngsd_user_logged_in);
 	ui_.actionReanalyze->setEnabled(ngsd_user_logged_in);
@@ -6777,10 +6751,6 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionGapsRecalculate->setEnabled(ngsd_user_logged_in);
 	ui_.actionExpressionData->setEnabled(ngsd_user_logged_in);
 	ui_.actionAnnotateSomaticVariantInterpretation->setEnabled(ngsd_user_logged_in);
-
-	//toolbar - NGSD search menu
-	QToolButton* ngsd_search_btn = ui_.tools->findChild<QToolButton*>("ngsd_search_btn");
-	ngsd_search_btn->setEnabled(ngsd_user_logged_in);
 
 	//NGSD menu
 	ui_.menuNGSD->setEnabled(ngsd_user_logged_in);
@@ -6797,14 +6767,13 @@ void MainWindow::updateNGSDSupport()
 	if (ngsd_user_logged_in)
 	{
 		NGSD db;
-		if (db.userRoleIn(LoginManager::user(), QStringList{"user_restricted"}))
+		if (db.userRoleIn(LoginManager::userLogin(), QStringList{"user_restricted"}))
 		{
 			auto actions = ui_.menuAdmin->actions();
 			foreach(QAction* action, actions)
 			{
 				if (action!=ui_.actionChangePassword)
 				{
-					qDebug() << action;
 					action->setEnabled(false);
 				}
 			}

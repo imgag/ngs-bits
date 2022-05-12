@@ -3,7 +3,6 @@
 #include "GUIHelper.h"
 #include "GlobalServiceProvider.h"
 #include "LoginManager.h"
-#include <QMessageBox>
 #include <QMenu>
 
 CohortAnalysisWidget::CohortAnalysisWidget(QWidget* parent)
@@ -22,7 +21,7 @@ QString CohortAnalysisWidget::baseQuery()
 
 	//AF
 	QString max_af = QString::number(ui_.filter_af->value()/100.0);
-	query_str += " AND (v.1000g IS NULL OR v.1000g<=" + max_af + ") AND (v.gnomad IS NULL OR v.gnomad<=" + max_af + ")";
+	query_str += " AND (v.gnomad IS NULL OR v.gnomad<=" + max_af + ")";
 
 	//impact
 	query_str += " AND ( 0 ";
@@ -67,24 +66,15 @@ QString CohortAnalysisWidget::baseQuery()
 
 void CohortAnalysisWidget::updateOutputTable()
 {
-	//not for restricted users
-	try
-	{
-		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
-	}
-	catch(Exception& e)
-	{
-		QMessageBox::information(this, "Access denied", e.message());
-		return;
-	}
-
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
 	try
 	{
-		NGSD db;
+		//not for restricted users
+		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
 
 		//init
+		NGSD db;
 		QString query_str = baseQuery();
 		bool iheritance_is_recessive = ui_.filter_inheritance->currentText()=="recessive";
 		int max_ngsd = ui_.filter_ngsd_count->value();
@@ -176,8 +166,7 @@ void CohortAnalysisWidget::updateOutputTable()
 	}
 	catch(Exception& e)
 	{
-		QApplication::restoreOverrideCursor();
-		QMessageBox::warning(this, "Error", "Could not perform cohort analysis:\n" + e.message());
+		GUIHelper::showException(this, e, "Cohort analysis error");
 	}
 }
 

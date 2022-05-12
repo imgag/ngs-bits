@@ -767,6 +767,11 @@ bool NGSHelper::isCliendServerMode()
 	return !Settings::string("server_host", true).trimmed().isEmpty() && !Settings::string("https_server_port", true).trimmed().isEmpty();
 }
 
+bool NGSHelper::isRunningOnServer()
+{
+	return !Settings::string("ssl_certificate",true).trimmed().isEmpty() && !Settings::string("ssl_key",true).trimmed().isEmpty();
+}
+
 QString NGSHelper::serverApiVersion()
 {
 	return "v1";
@@ -780,7 +785,7 @@ QString NGSHelper::serverApiUrl(const bool& return_http)
 	return protocol + Settings::string("server_host", true) + ":" + port + "/" + serverApiVersion() + "/";
 }
 
-QMap<QByteArray, QByteArrayList>& NGSHelper::transcriptMatches(GenomeBuild build)
+const QMap<QByteArray, QByteArrayList>& NGSHelper::transcriptMatches(GenomeBuild build)
 {
 	static QMap<GenomeBuild, QMap<QByteArray, QByteArrayList>> output;
 

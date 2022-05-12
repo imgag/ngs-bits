@@ -29,46 +29,6 @@ public:
 	{
 	}
 
-	UserPermissionList(UserPermission permission)
-	{
-		item_list_.append(permission);
-	}
-
-	UserPermissionList(QList<UserPermission> permissions)
-	{
-		setPermissions(permissions);
-	}
-
-	void setUserId(int user_id)
-	{
-		user_id_ = user_id;
-	}
-
-	int getUserId()
-	{
-		return user_id_;
-	}
-
-	void setPermissions(QList<UserPermission> permissions)
-	{
-		item_list_ = permissions;
-	}
-
-	QList<UserPermission> getPermissions()
-	{
-		return item_list_;
-	}
-
-	void addPermission(UserPermission permission)
-	{
-		item_list_.append(permission);
-	}
-
-	void removeAllPermissions()
-	{
-		item_list_.clear();
-	}
-
 	static Permission stringToType(const QString& in)
 	{
 		if (in.toLower() == "project") {return Permission::PROJECT;}
@@ -94,9 +54,5 @@ public:
 		}
 		THROW(ProgrammingException, "Unhandled permission type '" + QString::number((int)in) + "' in typeToString()!");
 	}
-
-private:
-	QList<UserPermission> item_list_;
-	int user_id_;
 };
 #endif // USERPERMISSIONLIST_H

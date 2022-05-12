@@ -572,6 +572,13 @@
    </attribute>
    <addaction name="actionAnnotateSomaticVariantInterpretation"/>
    <addaction name="separator"/>
+   <addaction name="actionOpenProcessedSampleTabByName"/>
+   <addaction name="actionOpenSequencingRunTabByName"/>
+   <addaction name="actionOpenGeneTabByName"/>
+   <addaction name="actionOpenVariantTab"/>
+   <addaction name="actionOpenProjectTab"/>
+   <addaction name="actionOpenProcessingSystemTab"/>
+   <addaction name="separator"/>
    <addaction name="actionSampleSearch"/>
    <addaction name="actionRunOverview"/>
    <addaction name="separator"/>
@@ -885,7 +892,7 @@
     <string>Processed sample</string>
    </property>
    <property name="toolTip">
-    <string>Open processed sample tab from NGSD.</string>
+    <string>Open processed sample tab.</string>
    </property>
   </action>
   <action name="actionResizeCustom">
@@ -905,7 +912,7 @@
     <string>Sequencing run</string>
    </property>
    <property name="toolTip">
-    <string>Open sequencing run tab from NGSD.</string>
+    <string>Open sequencing run tab.</string>
    </property>
   </action>
   <action name="actionEncrypt">
@@ -945,7 +952,7 @@
     <string>Gene</string>
    </property>
    <property name="toolTip">
-    <string>Open Gene tab from NGSD.</string>
+    <string>Open Gene tab.</string>
    </property>
   </action>
   <action name="actionDebug">
@@ -977,6 +984,9 @@
    <property name="text">
     <string>Variant</string>
    </property>
+   <property name="toolTip">
+    <string>Open variant tab.</string>
+   </property>
   </action>
   <action name="actionOpenProcessingSystemTab">
    <property name="icon">
@@ -987,7 +997,7 @@
     <string>Processing system</string>
    </property>
    <property name="toolTip">
-    <string>Processing system</string>
+    <string>Open processing system tab.</string>
    </property>
   </action>
   <action name="actionOpenProjectTab">
@@ -999,7 +1009,7 @@
     <string>Project</string>
    </property>
    <property name="toolTip">
-    <string>Project</string>
+    <string>Open project tab.</string>
    </property>
   </action>
   <action name="actionStatistics">

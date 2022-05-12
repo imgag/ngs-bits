@@ -16,50 +16,45 @@ private slots:
 
 	void test_if_server_is_running()
 	{
+		if (!ServerHelper::hasBasicSettings())
+		{
+			SKIP("Server has not been configured correctly");
+		}
+
 		QByteArray reply;
 		try
 		{
 			HttpHeaders add_headers;
 			add_headers.insert("Accept", "text/html");
-			reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://localhost:" + ServerHelper::getStringSettingsValue("https_server_port") + "/v1/", add_headers);
+			reply = HttpRequestHandler(HttpRequestHandler::NONE).get(ServerHelper::getServerUrl(false) + "/v1/", add_headers);
 		}
 		catch(Exception& e)
 		{
-			qDebug() << e.message();
+			Log::error(e.message());
 			SKIP("This test requieres a running server");
 		}
 		IS_TRUE(!reply.isEmpty());
-
-		QThread::sleep(5);
-		try
-		{
-			qDebug() << "Sending a request";
-			HttpHeaders add_headers;
-			add_headers.insert("Accept", "application/json");
-			reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://localhost:" + ServerHelper::getStringSettingsValue("https_server_port") + "/v1/fakepage", add_headers);
-		}
-		catch(Exception& e)
-		{
-			reply = e.message().toUtf8();
-
-		}
-		IS_TRUE(reply.indexOf("This action cannot be processed")!=-1);
 	}
 
 
 	void test_partial_content_multirange_request()
 	{
+		if (!ServerHelper::hasBasicSettings())
+		{
+			SKIP("Server has not been configured correctly");
+		}
+
 		QByteArray reply;
 		try
 		{
 			HttpHeaders add_headers;
 			add_headers.insert("Accept", "text/html");
 			add_headers.insert("Range", "bytes=114-140,399-430");
-			reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://localhost:" + ServerHelper::getStringSettingsValue("https_server_port") + "/v1/", add_headers);
+			reply = HttpRequestHandler(HttpRequestHandler::NONE).get(ServerHelper::getServerUrl(false) + "/v1/", add_headers);
 		}
 		catch(Exception& e)
 		{
-			qDebug() << e.message();
+			Log::error(e.message());
 			SKIP("This test requieres a running server");
 		}
 		IS_TRUE(reply.contains("Welcome to the GSvar server"));
@@ -68,70 +63,86 @@ private slots:
 
 	void test_partial_content_empty_end_request()
 	{
+		if (!ServerHelper::hasBasicSettings())
+		{
+			SKIP("Server has not been configured correctly");
+		}
+
 		QByteArray reply;
 		try
 		{
 			HttpHeaders add_headers;
 			add_headers.insert("Accept", "text/html");
 			add_headers.insert("Range", "bytes=454-");
-			reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://localhost:" + ServerHelper::getStringSettingsValue("https_server_port") + "/v1/", add_headers);
+			reply = HttpRequestHandler(HttpRequestHandler::NONE).get(ServerHelper::getServerUrl(false) + "/v1/", add_headers);
 		}
 		catch(Exception& e)
 		{
-			qDebug() << e.message();
+			Log::error(e.message());
 			SKIP("This test requieres a running server");
 		}
 		S_EQUAL(reply.trimmed(), "</html>");
-
 	}
 
 	void test_partial_content_empty_start_request()
 	{
+		if (!ServerHelper::hasBasicSettings())
+		{
+			SKIP("Server has not been configured correctly");
+		}
+
 		QByteArray reply;
 		try
 		{
 			HttpHeaders add_headers;
 			add_headers.insert("Accept", "text/html");
 			add_headers.insert("Range", "bytes=-8");
-			reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://localhost:" + ServerHelper::getStringSettingsValue("https_server_port") + "/v1/", add_headers);
+			reply = HttpRequestHandler(HttpRequestHandler::NONE).get(ServerHelper::getServerUrl(false) + "/v1/", add_headers);
+
 		}
 		catch(Exception& e)
 		{
-			qDebug() << e.message();
+			Log::error(e.message());
 			SKIP("This test requieres a running server");
 		}
 		S_EQUAL(reply.trimmed(), "</html>");
 
-	}
-
-	void test_partial_content_overlapping_ranges_request()
-	{
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/html");
 		add_headers.insert("Range", "bytes=0-5,5-8");
-		IS_THROWN(Exception, HttpRequestHandler(HttpRequestHandler::NONE).get("https://localhost:" + ServerHelper::getStringSettingsValue("https_server_port") + "/v1/", add_headers));
+		IS_THROWN(Exception, HttpRequestHandler(HttpRequestHandler::NONE).get(ServerHelper::getServerUrl(false) + "/v1/", add_headers));
 	}
 
 	void test_basic_http_authentication()
 	{
+		if (!ServerHelper::hasBasicSettings())
+		{
+			SKIP("Server has not been configured correctly");
+		}
+
 		QByteArray reply;
 		try
 		{
 			HttpHeaders add_headers;
 			add_headers.insert("Accept", "text/html");
-			reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://ahmustm1:123456@localhost:" + ServerHelper::getStringSettingsValue("https_server_port") + "/v1/protected", add_headers);
+			reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://ahmustm1:123456@" + ServerHelper::getStringSettingsValue("server_host") +":" + ServerHelper::getStringSettingsValue("https_server_port") + "/v1/protected", add_headers);
 		}
 		catch(Exception& e)
 		{
+			Log::error(e.message());
 			SKIP("This test requieres a running server");
 		}
-
-		IS_TRUE(reply.contains("Folder content:"))
+		IS_TRUE(reply.contains("Folder content:"));
 	}
 
 	void test_access_to_bam_files_over_http()
 	{
-		QString filename = "http://localhost:" + ServerHelper::getStringSettingsValue("http_server_port")+ "/v1/bam/rna.bam";
+		if (!ServerHelper::hasBasicSettings())
+		{
+			SKIP("Server has not been configured correctly");
+		}
+
+		QString filename = ServerHelper::getServerUrl(true) + "/v1/bam/rna.bam";
 
 		try
 		{
@@ -141,6 +152,7 @@ private slots:
 		}
 		catch(Exception& e)
 		{
+			Log::error(e.message());
 			SKIP("This test requieres a running server");
 		}
 

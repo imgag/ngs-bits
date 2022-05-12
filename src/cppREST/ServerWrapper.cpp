@@ -1,6 +1,7 @@
 #include "ServerWrapper.h"
 
 ServerWrapper::ServerWrapper(const quint16& port, const bool& insecure)
+	: is_running_(false)
 {
 	QString protocol_name;
 	if (!insecure)
@@ -68,6 +69,7 @@ ServerWrapper::ServerWrapper(const quint16& port, const bool& insecure)
 
 	if (server_->listen(QHostAddress::Any, port))
 	{
+		is_running_ = true;
 		Log::info(protocol_name + " server is running on port #" + QString::number(port));
 		QTimer *timer = new QTimer(this);
 		connect(timer, &QTimer::timeout, this, &UrlManager::removeExpiredUrls);
@@ -78,4 +80,9 @@ ServerWrapper::ServerWrapper(const quint16& port, const bool& insecure)
 		Log::error("Could not start " + protocol_name + " server on port #" + QString::number(port) + ": " + server_->errorString());
 	}
 
+}
+
+bool ServerWrapper::isRunning() const
+{
+	return is_running_;
 }

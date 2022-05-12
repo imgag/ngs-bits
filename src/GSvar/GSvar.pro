@@ -32,7 +32,6 @@ SOURCES += main.cpp\
     CnvWidget.cpp \
     GeneSelectorDialog.cpp \
     MultiSampleDialog.cpp \
-    NGSDReannotationDialog.cpp \
     SmallVariantSearchWidget.cpp \
     PhenotypeSelectionWidget.cpp \
     RohWidget.cpp \
@@ -137,7 +136,6 @@ HEADERS += MainWindow.h \
     CnvWidget.h \
     GeneSelectorDialog.h \
     MultiSampleDialog.h \
-    NGSDReannotationDialog.h \
     SmallVariantSearchWidget.h \
     PhenotypeSelectionWidget.h \
     RohWidget.h \
@@ -239,7 +237,6 @@ FORMS    += MainWindow.ui \
     CnvWidget.ui \
     GeneSelectorDialog.ui \
     MultiSampleDialog.ui \
-    NGSDReannotationDialog.ui \
     SmallVariantSearchWidget.ui \
     PhenotypeSelectionWidget.ui \
     RohWidget.ui \

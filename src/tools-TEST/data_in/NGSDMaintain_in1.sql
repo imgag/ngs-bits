@@ -21,8 +21,8 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 (2, 2, 1, 1, '1', 1, 1, 'good'),
 (3, 3, 1, 1, '1', 1, 1, 'bad');
 
-INSERT INTO `variant` (`id`, `chr`, `start`, `end`, `ref`, `obs`, `1000g`, `gnomAD`, `coding`) VALUES
-(6, 'chr10', 43613843, 43613843, 'G', 'T', 0.7125, 0.7653, '');
+INSERT INTO `variant` (`id`, `chr`, `start`, `end`, `ref`, `obs`, `gnomAD`, `coding`) VALUES
+(6, 'chr10', 43613843, 43613843, 'G', 'T', 0.7653, '');
 
 INSERT INTO `detected_variant` (`processed_sample_id`, `variant_id`, `genotype`) VALUES
 (1, 6, 'hom'),

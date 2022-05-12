@@ -105,6 +105,8 @@ public:
 
 	///Returns if the application is running in client-server mode (mainly used for GSvar).
 	static bool isCliendServerMode();
+	///Checks if the application is running on the server or on a client machine
+	static bool isRunningOnServer();
 
 	///Returns the server API version. Used to check that the server and the client have the same version.
 	static QString serverApiVersion();
@@ -113,7 +115,7 @@ public:
 	static QString serverApiUrl(const bool& return_http = false);
 
 	///Returns a map with matching Ensembl, RefSeq and CCDS transcript identifiers (without version numbers).
-	static QMap<QByteArray, QByteArrayList>& transcriptMatches(GenomeBuild build);
+	static const QMap<QByteArray, QByteArrayList>& transcriptMatches(GenomeBuild build);
 
 private:
 	///Constructor declared away
