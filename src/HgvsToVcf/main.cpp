@@ -107,6 +107,10 @@ public:
 						if (match.startsWith("ENST"))
 						{
 							trans_id = db.transcriptId(match, false);
+							if (trans_id != -1)
+							{
+								break;
+							}
 						}
 					}
 				}
