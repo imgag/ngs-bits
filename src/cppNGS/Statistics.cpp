@@ -708,11 +708,10 @@ QCCollection Statistics::mapping_rna(const QString &bam_file, int min_mapq, cons
 
 QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, const QString& ref_file)
 {
-	QTime timer;
-	timer.start();
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
 
+	//find index of chr22
 	int idx_chr22 =  -1;
 	for (int i=0; i<reader.chromosomes().length(); i++)
 	{
@@ -725,19 +724,15 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, cons
 	{
 		THROW(ArgumentException, "Couldn't find chromosome 22 in the BAM file: " + bam_file);
 	}
-	long long chr22_size = reader.chromosomeSize(reader.chromosome(idx_chr22));
-	QVector<int> depth(chr22_size, 0);
 
 	FastaFileIndex ref_idx(ref_file);
+
+	//find mappable regions of chr22
+	Sequence seq_chr22 = ref_idx.seq(reader.chromosome(idx_chr22));
 	BedFile chr22_mappable_regions;
-	Chromosome chr22("chr22");
-
 	int start = -1;
-
-	Sequence seq_chr22 = ref_idx.seq(chr22);
 	for (int i=0; i<seq_chr22.size(); i++)
 	{
-
 		if (start == -1)
 		{
 			if (seq_chr22.at(i) == 'N')
@@ -753,7 +748,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, cons
 		{
 			if (seq_chr22.at(i) == 'N')
 			{
-				chr22_mappable_regions.append(BedLine(chr22, start, i));
+				chr22_mappable_regions.append(BedLine(reader.chromosome(idx_chr22), start, i));
 				start = -1;
 			}
 			else
@@ -763,12 +758,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, cons
 		}
 	}
 
-	qDebug() << "Time taken up to find chr22 roi:" << timer.elapsed()/1000.0 << "s";
-	timer.start();
-
-	// TODO remove file saving
-	chr22_mappable_regions.store("C:\\Users\\ahott1a1\\data\\chr22_mappable.bed");
-
+	//prepare At/GC dropout data structure
 	BedFile dropout;
 	dropout.add(chr22_mappable_regions);
 	dropout.chunk(100);
@@ -794,6 +784,8 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, cons
 	ChromosomalIndex<BedFile> dropout_index(dropout);
 
 	//init counts
+	QVector<int> depth(reader.chromosomeSize(reader.chromosome(idx_chr22)), 0);
+
 	long long al_total = 0;
 	long long al_mapped = 0;
 	long long al_ontarget = 0;
@@ -907,44 +899,11 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, cons
 		}
 	}
 
-	// TODO remove debug bedfile:
-	BedFile test;
-	start = -1;
-	for (int i=0; i<depth.size(); i++)
-	{
-		if (start == -1)
-		{
-			if (depth[i] == 0)
-			{
-				continue;
-			}
-			else
-			{
-				start = i+1;
-			}
-		}
-		else
-		{
-			if (depth[i] == 0)
-			{
-				test.append(BedLine(chr22, start, i));
-				start = -1;
-			}
-			else
-			{
-				continue;
-			}
-		}
-	}
-
-	test.store("C:\\Users\\ahott1a1\\data\\chr22_test_detected_depth.bed");
-
 	//calculate coverage depth statistics
 	double avg_depth = (double) bases_usable_roi / chr22_mappable_regions.baseCount();
-	qDebug() << "Average depth on chromosome 22:" << avg_depth;
 	int half_depth = std::round(0.5*avg_depth);
 	long long bases_covered_at_least_half_depth = 0;
-	int hist_max = 550;
+	int hist_max = 599;
 	int hist_step = 5;
 
 	Histogram depth_dist(0, hist_max, hist_step);
@@ -1047,19 +1006,6 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, cons
 	QFile::remove(plotname);
 	plot.store("/mnt/users/ahott1a1/depth_of_coverage.png");
 
-	//add GC bias plot
-	LinePlot plot3;
-	plot3.setXLabel("GC bin");
-	plot3.setYLabel("count [%]");
-	plot3.setXValues(BasicStatistics::range(0.0, 100.0, 1.0));
-	plot3.addLine(gc_roi_percentages, "target region");
-	plot3.addLine(gc_read_percentages, "reads");
-	plotname = Helper::tempFileName(".png");
-	plot3.store(plotname);
-	addQcPlot(output, "QC:2000061","GC bias plot", plotname);
-	QFile::remove(plotname);
-	plot3.store("/mnt/users/ahott1a1/gc_dropout.png");
-
 	//add insert size distribution plot
 	if (paired_end)
 	{
@@ -1082,7 +1028,20 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, cons
 			Log::warn("Skipping insert size histogram - no read pairs found!");
 		}
 	}
-	qDebug() << "total time:" << timer.elapsed()/1000.0/60.0 << "min.";
+
+	//add GC bias plot
+	LinePlot plot3;
+	plot3.setXLabel("GC bin");
+	plot3.setYLabel("count [%]");
+	plot3.setXValues(BasicStatistics::range(0.0, 100.0, 1.0));
+	plot3.addLine(gc_roi_percentages, "target region");
+	plot3.addLine(gc_read_percentages, "reads");
+	plotname = Helper::tempFileName(".png");
+	plot3.store(plotname);
+	addQcPlot(output, "QC:2000061","GC bias plot", plotname);
+	QFile::remove(plotname);
+	plot3.store("/mnt/users/ahott1a1/gc_dropout.png");
+
 	return output;
 }
 

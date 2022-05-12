@@ -69,6 +69,19 @@ private slots:
 		REMOVE_LINES("out/MappingQC_test05_out.qcML", QRegExp("<binary>"));
 		COMPARE_FILES("out/MappingQC_test05_out.qcML", TESTDATA("data_out/MappingQC_test05_out.qcML"));
 	}
+
+	void wgs_chr22()
+	{
+		//to test coverage and GC/AT dropout statistics
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		EXECUTE("MappingQC", "-in " + TESTDATA("data_in/MappingQC_in5.bam") + " -wgs -out out/MappingQC_test10_out.qcML -ref " + ref_file);
+		REMOVE_LINES("out/MappingQC_test10_out.qcML", QRegExp("creation "));
+		REMOVE_LINES("out/MappingQC_test10_out.qcML", QRegExp("<binary>"));
+		COMPARE_FILES("out/MappingQC_test10_out.qcML", TESTDATA("data_out/MappingQC_test10_out.qcML"));
+	}
+
     void rna_pairedend()
     {
 		QString ref_file = Settings::string("reference_genome", true);
