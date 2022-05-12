@@ -784,7 +784,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, cons
 	ChromosomalIndex<BedFile> dropout_index(dropout);
 
 	//init counts
-	QVector<int> depth(reader.chromosomeSize(reader.chromosome(idx_chr22)), 0);
+	QVector<int> depth(reader.chromosomeSize(reader.chromosome(idx_chr22)), 0); // base level depth counts
 
 	long long al_total = 0;
 	long long al_mapped = 0;
@@ -797,7 +797,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, cons
 	double insert_size_sum = 0;
 	Histogram insert_dist(0, 999, 5);
 	long long bases_usable = 0;
-	long long bases_usable_roi = 0;
+	long long bases_usable_chr22 = 0;
 
 	int max_length = 0;
 	bool paired_end = false;
@@ -847,7 +847,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, cons
 					if (al.chromosomeID() == idx_chr22)
 					{
 						long long length = al.end() - al.start() + 1;
-						bases_usable_roi += length;
+						bases_usable_chr22 += length;
 
 						for (int i=al.start()-1; i<al.end(); i++)
 						{
@@ -900,7 +900,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, cons
 	}
 
 	//calculate coverage depth statistics
-	double avg_depth = (double) bases_usable_roi / chr22_mappable_regions.baseCount();
+	double avg_depth = (double) bases_usable_chr22 / chr22_mappable_regions.baseCount();
 	int half_depth = std::round(0.5*avg_depth);
 	long long bases_covered_at_least_half_depth = 0;
 	int hist_max = 599;
@@ -974,7 +974,8 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, cons
 	{
 		addQcValue(output, "QC:2000024", "duplicate read percentage", 100.0 * al_dup / al_total);
 	}
-
+	addQcValue(output, "QC:2000050", "bases usable (MB)", (double) bases_usable / 1000000.0);
+	addQcValue(output, "QC:2000025", "target region read depth", (double) bases_usable / reader.genomeSize(false));
 
 	QVector<int> depth_values;
 	depth_values << 10 << 20 << 30 << 50 << 60 << 100 << 200 << 500;
@@ -991,8 +992,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, cons
 	addQcValue(output, "QC:2000059", "AT dropout", at_dropout);
 	addQcValue(output, "QC:2000060", "GC dropout", gc_dropout);
 
-	addQcValue(output, "QC:2000050", "bases usable (MB)", (double) bases_usable / 1000000.0);
-	addQcValue(output, "QC:2000025", "target region read depth", (double) bases_usable / reader.genomeSize(false));
+
 
 	//add depth distribtion plot
 	LinePlot plot;
