@@ -342,9 +342,9 @@ TEST_CLASS(Statistics_Test)
 		IS_TRUE(stats[23].type()==QVariant::ByteArray);
 	}
 
-	void mapping_rna()
+	void mapping()
 	{
-		QCCollection stats = Statistics::mapping_rna(TESTDATA("data_in/close_exons.bam"));
+		QCCollection stats = Statistics::mapping(TESTDATA("data_in/close_exons.bam"));
 		S_EQUAL(stats[0].name(), QString("trimmed base percentage"));
 		S_EQUAL(stats[0].toString(), QString("20.88"));
 		S_EQUAL(stats[1].name(), QString("clipped base percentage"));

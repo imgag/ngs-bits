@@ -559,7 +559,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 }
 
 
-QCCollection Statistics::mapping_rna(const QString &bam_file, int min_mapq, const QString& ref_file)
+QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QString& ref_file)
 {
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
