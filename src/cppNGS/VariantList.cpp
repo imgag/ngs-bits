@@ -155,7 +155,7 @@ void Variant::checkValid() const
 	}
 }
 
-void Variant::checkReferenceSequence(const FastaFileIndex& reference)
+void Variant::checkReferenceSequence(const FastaFileIndex& reference) const
 {
 	if (ref_.isEmpty()) return;
 
@@ -1308,7 +1308,7 @@ Variant Variant::fromString(const QString& text_orig)
 
 	//split
 	QStringList parts = text.split(QRegExp("\\s+"));
-	if (parts.count()!=5) THROW(ArgumentException, "Input text has " + QString::number(parts.count()) + " parts, but must consist of 5 parts (chr, start, end, ref, obs)!");
+	if (parts.count()!=5) THROW(ArgumentException, "Input text has " + QString::number(parts.count()) + " part(s), but must consist of 5 parts (chr, start, end, ref, obs)!");
 
 	//create variant
 	Variant v = Variant(parts[0], parts[1].toInt(), parts[2].toInt(), parts[3].toLatin1(), parts[4].toLatin1());

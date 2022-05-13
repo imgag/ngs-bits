@@ -201,7 +201,7 @@ public:
 	///Checks if the variant is valid (without annotations). Throws ArgumentException if not.
 	void checkValid() const;
 	///Checks if the reference sequence matches the reference genome. Throws ArgumentException if not.
-	void checkReferenceSequence(const FastaFileIndex& reference);
+	void checkReferenceSequence(const FastaFileIndex& reference) const;
 
 	/// Left-align indels in repeat regions. Works for GSvar files only - assumes the variants are normalized.
 	void leftAlign(const FastaFileIndex& reference);
