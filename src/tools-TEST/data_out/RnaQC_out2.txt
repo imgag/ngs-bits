@@ -9,4 +9,4 @@ housekeeping genes 200x percentage: 0.93
 housekeeping genes 500x percentage: 0.00
 aberrant spliced gene count: 3
 outlier gene count: 3
-covered gene count: 18
+covered gene count: 36

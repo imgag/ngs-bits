@@ -74,11 +74,10 @@ public:
 		{
 			//get outlier
 			double zscore_threshold = 3;
-			double tpm_threshold = 10.0;
+			double tpm_threshold = 1.0;
 			GeneCount gene_count = parseGeneExpression(expression, zscore_threshold, tpm_threshold);
 			rna_qc.insert(QCValue("outlier gene count", gene_count.n_outlier_genes, "Number of outlier genes (zscore >= 3.0)", "QC:2000111"));
-			rna_qc.insert(QCValue("covered gene count", gene_count.n_covered_genes, "Number of covered genes (TPM >= 10.0)", "QC:2000109"));
-
+			rna_qc.insert(QCValue("covered gene count", gene_count.n_covered_genes, "Number of covered genes (TPM >= 1.0)", "QC:2000109"));
 		}
 
 		// TODO: get intronic/exonic read fraction
@@ -139,11 +138,12 @@ public:
 
 	GeneCount parseGeneExpression(const QString& file_path, double zscore_threshold, double tpm_threshold)
 	{
-		QStringList outlier_genes;
+		GeneCount gene_count;
+		gene_count.n_outlier_genes = 0;
+		gene_count.n_covered_genes = 0;
 		QStringList covered_genes;
 
 		TSVFileStream tsv_file(file_path);
-		int idx_gene = tsv_file.colIndex("gene_name", true);
 		int idx_zscore = tsv_file.colIndex("zscore", true);
 		int idx_tpm = tsv_file.colIndex("tpm", true);
 
@@ -156,24 +156,19 @@ public:
 			// skip n/a entries
 			if(zscore_str != "n/a")
 			{
-				double zscore = std::fabs(Helper::toDouble(zscore_str, "ZScore"));
+			double zscore = std::fabs(Helper::toDouble(zscore_str, "ZScore"));
 				if (zscore >= zscore_threshold)
 				{
-					outlier_genes.append(tsv_line.at(idx_gene));
-				}
-			}
-
+					gene_count.n_outlier_genes++;
+				}			}
 			//parse covered genes
 			double tpm = Helper::toDouble(tsv_line.at(idx_tpm), "TPM value");
 			if (tpm >= tpm_threshold)
 			{
-				covered_genes.append(tsv_line.at(idx_gene));
-			}
-		}
+				gene_count.n_covered_genes++;
+			}		}
 
-		GeneCount gene_count;
-		gene_count.n_outlier_genes = outlier_genes.length();
-		gene_count.n_covered_genes = covered_genes.length();
+
 		return gene_count;
 	}
 };

@@ -107,6 +107,10 @@ public:
 						if (match.startsWith("ENST"))
 						{
 							trans_id = db.transcriptId(match, false);
+							if (trans_id != -1)
+							{
+								break;
+							}
 						}
 					}
 				}
@@ -163,6 +167,12 @@ public:
 
 		QSharedPointer<QFile> instream = Helper::openFileForReading(in, true);
 		QSharedPointer<QFile> outstream = Helper::openFileForWriting(out, false);
+
+		if (getEnum("build") == "hg19")
+		{
+			QTextStream out(stderr);
+			out << "Warning: When using the hg19 build, it is neccessary to also use a NGSD instance containing hg19 data and a hg19 reference genome.\n";
+		}
 
 		const QMap<QByteArray, QByteArrayList>& transcript_matches = NGSHelper::transcriptMatches(stringToBuild(getEnum("build")));
 

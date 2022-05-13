@@ -21,7 +21,7 @@
     <qualityParameter ID="qp0009" name="housekeeping genes 500x percentage" description="Percentage of the exon region of housekeeping genes that is covered at least 500-fold." value="0.00" cvRef="QC" accession="QC:2000108"/>
     <qualityParameter ID="qp0010" name="aberrant spliced gene count" description="Number of aberrant spliced genes (&gt;= 5%)" value="3" cvRef="QC" accession="QC:2000110"/>
     <qualityParameter ID="qp0011" name="outlier gene count" description="Number of outlier genes (zscore &gt;= 3.0)" value="3" cvRef="QC" accession="QC:2000111"/>
-    <qualityParameter ID="qp0012" name="covered gene count" description="Number of covered genes (TPM &gt;= 10.0)" value="18" cvRef="QC" accession="QC:2000109"/>
+    <qualityParameter ID="qp0012" name="covered gene count" description="Number of covered genes (TPM &gt;= 1.0)" value="36" cvRef="QC" accession="QC:2000109"/>
   </runQuality>
   <cvList>
     <cv uri="https://raw.githubusercontent.com/imgag/ngs-bits/master/src/cppNGS/Resources/qcML.obo" ID="QC" fullName="QC" version="0.1"/>
