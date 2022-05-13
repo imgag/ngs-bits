@@ -447,6 +447,8 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 	{
 		int ins_pos = hgvs_c.indexOf("ins");
 
+		if (hgvs_c.mid(ins_pos+3) == "") THROW(ArgumentException, "Insertion '" + hgvs_c + "' does not specify what was inserted!")
+
 		//coordinates
 		QString position = hgvs_c.left(ins_pos);
 		int pos_underscore = position.indexOf('_');

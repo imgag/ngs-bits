@@ -101,15 +101,14 @@ public:
 
 				if (trans_id==-1) //not found > check if it is a CCDS/RefSeq transcript
 				{
-					const QByteArrayList& matches = transcript_matches[transcript_name];
-					foreach(const QByteArray& match, matches)
+					foreach(const QByteArray& match, transcript_matches[transcript_name])
 					{
 						if (match.startsWith("ENST"))
 						{
-							trans_id = db.transcriptId(match, false);
-							if (trans_id != -1)
+							int match_id = db.transcriptId(match, false);
+							if (match_id != -1)
 							{
-								break;
+								trans_id = match_id;
 							}
 						}
 					}
