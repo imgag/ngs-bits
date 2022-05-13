@@ -43,6 +43,7 @@ public:
 
 		//changelog
 		changeLog(2022, 4, 27, "Initial version.");
+		changeLog(2022, 5, 12, "Changed TPM cutoffs.");
 	}
 
 	virtual void main()
@@ -141,7 +142,6 @@ public:
 		GeneCount gene_count;
 		gene_count.n_outlier_genes = 0;
 		gene_count.n_covered_genes = 0;
-		QStringList covered_genes;
 
 		TSVFileStream tsv_file(file_path);
 		int idx_zscore = tsv_file.colIndex("zscore", true);
@@ -160,13 +160,15 @@ public:
 				if (zscore >= zscore_threshold)
 				{
 					gene_count.n_outlier_genes++;
-				}			}
+				}
+			}
 			//parse covered genes
 			double tpm = Helper::toDouble(tsv_line.at(idx_tpm), "TPM value");
 			if (tpm >= tpm_threshold)
 			{
 				gene_count.n_covered_genes++;
-			}		}
+			}
+		}
 
 
 		return gene_count;
