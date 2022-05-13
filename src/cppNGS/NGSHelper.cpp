@@ -785,7 +785,7 @@ QString NGSHelper::serverApiUrl(const bool& return_http)
 	return protocol + Settings::string("server_host", true) + ":" + port + "/" + serverApiVersion() + "/";
 }
 
-QMap<QByteArray, QByteArrayList>& NGSHelper::transcriptMatches(GenomeBuild build)
+const QMap<QByteArray, QByteArrayList>& NGSHelper::transcriptMatches(GenomeBuild build)
 {
 	static QMap<GenomeBuild, QMap<QByteArray, QByteArrayList>> output;
 

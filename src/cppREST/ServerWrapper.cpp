@@ -69,6 +69,7 @@ ServerWrapper::ServerWrapper(const quint16& port, const bool& insecure)
 
 	if (server_->listen(QHostAddress::Any, port))
 	{
+		is_running_ = true;
 		Log::info(protocol_name + " server is running on port #" + QString::number(port));
 		QTimer *timer = new QTimer(this);
 		connect(timer, &QTimer::timeout, this, &UrlManager::removeExpiredUrls);

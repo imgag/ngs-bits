@@ -101,12 +101,15 @@ public:
 
 				if (trans_id==-1) //not found > check if it is a CCDS/RefSeq transcript
 				{
-					const QByteArrayList& matches = transcript_matches[transcript_name];
-					foreach(const QByteArray& match, matches)
+					foreach(const QByteArray& match, transcript_matches[transcript_name])
 					{
 						if (match.startsWith("ENST"))
 						{
-							trans_id = db.transcriptId(match, false);
+							int match_id = db.transcriptId(match, false);
+							if (match_id != -1)
+							{
+								trans_id = match_id;
+							}
 						}
 					}
 				}
@@ -163,6 +166,12 @@ public:
 
 		QSharedPointer<QFile> instream = Helper::openFileForReading(in, true);
 		QSharedPointer<QFile> outstream = Helper::openFileForWriting(out, false);
+
+		if (getEnum("build") == "hg19")
+		{
+			QTextStream out(stderr);
+			out << "Warning: When using the hg19 build, it is neccessary to also use a NGSD instance containing hg19 data and a hg19 reference genome.\n";
+		}
 
 		const QMap<QByteArray, QByteArrayList>& transcript_matches = NGSHelper::transcriptMatches(stringToBuild(getEnum("build")));
 

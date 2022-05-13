@@ -132,6 +132,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "CohortExpressionDataWidget.h"
 #include "CausalVariantEditDialog.h"
 #include "MosaicWidget.h"
+#include "VariantOpenDialog.h"
+
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -1797,7 +1799,7 @@ void MainWindow::delayedInitialization()
 	Log::appInfo();
 
 	//load from INI file (if a valid INI file - otherwise restore INI file)
-	if (!Settings::contains("igv_genome") || !Settings::contains("build"))
+	if (!Settings::contains("igv_genome") || !Settings::contains("build") || !Settings::contains("reference_genome"))
 	{
 		QMessageBox::warning(this, "GSvar is not configured", "GSvar is not configured correctly.\nPlease inform your administrator!");
 		close();
@@ -2771,21 +2773,25 @@ void MainWindow::openGeneTab(QString symbol)
 
 void MainWindow::openVariantTab(Variant variant)
 {
-	//check variant is in NGSD
-	NGSD db;
-	QString v_id = db.variantId(variant, false);
-	if (v_id=="")
+	try
 	{
-		QMessageBox::information(this, "Variant not in NGSD", "Variant " + variant.toString() + " was not found in NGSD.");
-		return;
-	}
+		//check variant is in NGSD
+		NGSD db;
+		QString v_id = db.variantId(variant);
 
-	//open tab
-	VariantWidget* widget = new VariantWidget(variant, this);
-	int index = openTab(QIcon(":/Icons/NGSD_variant.png"), variant.toString(), widget);
-	if (Settings::boolean("debug_mode_enabled"))
+		//open tab
+		VariantWidget* widget = new VariantWidget(variant, this);
+		int index = openTab(QIcon(":/Icons/NGSD_variant.png"), variant.toString(), widget);
+
+		//add database id
+		if (Settings::boolean("debug_mode_enabled"))
+		{
+			ui_.tabs->setTabToolTip(index, "NGSD ID: " + v_id);
+		}
+	}
+	catch(Exception& e)
 	{
-		ui_.tabs->setTabToolTip(index, "NGSD ID: " + v_id);
+		QMessageBox::warning(this, "Open variant tab", e.message());
 	}
 }
 
@@ -4559,25 +4565,18 @@ void MainWindow::on_actionOpenGeneTabByName_triggered()
 
 void MainWindow::on_actionOpenVariantTab_triggered()
 {
-	//get user input
-	bool ok;
-	QString text = QInputDialog::getText(this, "Enter variant", "genomic coordinates (GSvar format):", QLineEdit::Normal, "", &ok);
-	if (!ok) return;
-
-	//parse variant
-	Variant v;
 	try
 	{
-		 v = Variant::fromString(text);
+		VariantOpenDialog dlg(this);
+
+		if (dlg.exec()!=QDialog::Accepted) return;
+
+		openVariantTab(dlg.variant());
 	}
 	catch(Exception& e)
 	{
 		QMessageBox::warning(this, "Invalid variant text", e.message());
-		return;
 	}
-
-	//show sample overview for variant
-	openVariantTab(v);
 }
 
 void MainWindow::on_actionOpenProcessingSystemTab_triggered()
