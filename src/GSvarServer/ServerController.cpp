@@ -747,7 +747,7 @@ HttpResponse ServerController::getSecondaryAnalyses(const HttpRequest& request)
 QString ServerController::createFileTempUrl(const QString& file, const QString& token, const bool& return_http)
 {
 	QString id = ServerHelper::generateUniqueStr();
-	UrlManager::addUrlToStorage(id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file);
+	UrlManager::addNewUrl(id, UrlEntity(QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, id, QDateTime::currentDateTime()));
 
 	return NGSHelper::serverApiUrl(return_http) + "temp/" + id + "/" + QFileInfo(file).fileName() + "?token=" + token;
 }
