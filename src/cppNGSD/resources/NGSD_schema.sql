@@ -16,10 +16,12 @@ CREATE TABLE IF NOT EXISTS `gene`
 `symbol` varchar(40) NOT NULL,
 `name` TEXT NOT NULL,
 `type` enum('protein-coding gene','pseudogene','non-coding RNA','other') NOT NULL,
+`ensembl_id` varchar(40) DEFAULT NULL,
 
 PRIMARY KEY (`id`), 
 UNIQUE KEY `hgnc_id` (`hgnc_id`),
 UNIQUE KEY `symbol` (`symbol`),
+UNIQUE KEY `ensembl_id` (`ensembl_id`),
 KEY `type` (`type`)
 )
 ENGINE=InnoDB DEFAULT
