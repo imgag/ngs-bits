@@ -1485,7 +1485,10 @@ void MainWindow::on_actionExpressionData_triggered()
 		if (!ok) return;
 	}
 
-	ExpressionDataWidget* widget = new ExpressionDataWidget(count_file, this);
+	int sys_id = db.processingSystemIdFromProcessedSample(germlineReportSample());
+	QString tissue = db.getSampleData(sample_id).tissue;
+
+	ExpressionDataWidget* widget = new ExpressionDataWidget(count_file, sys_id, tissue, this);
 	auto dlg = GUIHelper::createDialog(widget, "Expression Data");
 	addModelessDialog(dlg, false);
 }

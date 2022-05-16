@@ -509,6 +509,12 @@ struct CPPNGSDSHARED_EXPORT ImportStatusGermline
 	int qc_terms = 0;
 };
 
+/// statistics data on RNA expression
+struct ExpressionStats
+{
+	double mean;
+	double stddev;
+};
 /// NGSD accessor.
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject

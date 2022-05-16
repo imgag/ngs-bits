@@ -2261,6 +2261,66 @@ private slots:
 	}
 
 
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in3.sql"));
+		//import hgnc genes:
+		EXECUTE("NGSDImportHGNC", "-test -in " + TESTDATA("data_in/NGSD_import_hgnc_set.tsv") + " -ensembl " + TESTDATA("data_in/NGSD_import_hgnc_set.tsv"));
+
+		//Test ENSG->gene_id mapping
+		QMap<QByteArray, int> ensg_gene_mapping = db.getEnsemblGeneIdMapping();
+		I_EQUAL(ensg_gene_mapping.value("ENSG00000204518"), 1);
+		I_EQUAL(ensg_gene_mapping.value("ENSG00000171735"), 11);
+		I_EQUAL(ensg_gene_mapping.value("ENSG00000127463"), 24);
+		I_EQUAL(ensg_gene_mapping.value("ENSG00000231510"), 36);
+		I_EQUAL(ensg_gene_mapping.value("ENSG00000263793"), 47);
+		I_EQUAL(ensg_gene_mapping.value("ENSG00000187583"), 66);
+
+		//Test expression data import
+		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in1.tsv"), "RX001_01", false, false);
+		int count = db.getValue("SELECT count(*) FROM expression").toInt();
+		I_EQUAL(count, 102);
+		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in2.tsv"), "RX002_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		I_EQUAL(count, 204);
+		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in3.tsv"), "RX003_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		I_EQUAL(count, 306);
+		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in4.tsv"), "RX004_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		I_EQUAL(count, 408);
+		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in5.tsv"), "RX005_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		I_EQUAL(count, 510);
+		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in6.tsv"), "RX006_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		I_EQUAL(count, 612);
+		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in7.tsv"), "RX007_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		I_EQUAL(count, 714);
+		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in8.tsv"), "RX008_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		I_EQUAL(count, 816);
+		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in8.tsv"), "RX008_01", true, false);
+		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		I_EQUAL(count, 816);
+
+
+		//Test expression stats:
+		QMap<QByteArray, ExpressionStats> expression_stats = db.calculateExpressionStatistics(1, "Blood");
+		F_EQUAL2(expression_stats.value("ENSG00000232596").mean, 121.091, 0.001);
+		F_EQUAL2(expression_stats.value("ENSG00000011021").stddev, 133.406, 0.001);
+		F_EQUAL2(expression_stats.value("ENSG00000049245").mean, 0.0, 0.001);
+		F_EQUAL2(expression_stats.value("ENSG00000049249").stddev, 93.0873, 0.001);
+
+		expression_stats = db.calculateExpressionStatistics(1, "Skin");
+		F_EQUAL2(expression_stats.value("ENSG00000157916").mean, 47.9532, 0.001);
+		F_EQUAL2(expression_stats.value("ENSG00000049249").stddev, 151.291, 0.001);
+		F_EQUAL2(expression_stats.value("ENSG00000283234").mean, 0.0, 0.001);
+		F_EQUAL2(expression_stats.value("ENSG00000159189").stddev, 88.6637, 0.001);
+
+
+	}
 	//Test for debugging (without initialization because of speed)
 	/*
 	void debug()

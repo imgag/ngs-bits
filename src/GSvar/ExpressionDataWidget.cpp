@@ -4,20 +4,30 @@
 #include "Helper.h"
 #include "GUIHelper.h"
 #include "FilterCascade.h"
+#include <NGSD.h>
 #include <QCheckBox>
 #include <QFile>
 #include <QMenu>
 #include <QMessageBox>
 #include "RepeatExpansionWidget.h"
+#include "LoginManager.h"
 
 
 
-ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, QWidget *parent) :
+ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, int sys_id, QString tissue, QWidget *parent) :
 	QWidget(parent),
 	tsv_filename_(tsv_filename),
+	sys_id_(sys_id),
+	tissue_(tissue),
 	ui_(new Ui::ExpressionDataWidget)
 
 {
+	// skipp if no NGSD is available
+	if (!LoginManager::active())
+	{
+		QMessageBox::warning(this, "Expression data widget", "Widget requires NGSD access!");
+		return;
+	}
 	ui_->setupUi(this);
 
 	//connect signals and slots
@@ -368,6 +378,9 @@ void ExpressionDataWidget::selectAllBiotypes(bool deselect)
 
 void ExpressionDataWidget::loadExpressionData()
 {
+	//skip without database
+	if (!LoginManager::active()) return;
+
 	//load TSV file
 	TsvFile expression_data;
 	QSharedPointer<VersatileFile> expression_data_file = Helper::openVersatileFileForReading(tsv_filename_, false);
@@ -401,6 +414,10 @@ void ExpressionDataWidget::loadExpressionData()
 	//collect biotypes
 	QSet<QString> biotypes;
 
+	//get RNA stats from NGSD
+	QMap<QByteArray, ExpressionStats> expression_stats = NGSD().calculateExpressionStatistics(sys_id_, tissue_);
+
+
 	column_names_.clear();
 	numeric_columns_.clear();
 	precision_.clear();
@@ -421,6 +438,14 @@ void ExpressionDataWidget::loadExpressionData()
 		column_indices << expression_data.columnIndex(col_name);
 	}
 
+	//db columns
+
+	QStringList db_column_names = QStringList()  << "db_tpm_mean" << "db_tpm_stddev" << "db_tpm_zscore";
+	column_names_ << db_column_names;
+	numeric_columns_  << true << true << true;
+	precision_ << 3 << 3 << 3;
+
+
 	//create header
 	ui_->expression_data->setColumnCount(column_names_.size());
 	for (int col_idx = 0; col_idx < column_names_.size(); ++col_idx)
@@ -433,35 +458,72 @@ void ExpressionDataWidget::loadExpressionData()
 	for(int row_idx=0; row_idx<expression_data.rowCount(); ++row_idx)
 	{
 		QStringList row = expression_data.row(row_idx);
+		QByteArray ensg = row.at(column_indices.at(0)).toUtf8();
+		double tpm = Helper::toDouble(row.at(column_indices.at(column_names_.indexOf("tpm"))), "tpm", QString::number(row_idx));
 		for (int col_idx = 0; col_idx < column_names_.size(); ++col_idx)
 		{
-			if(numeric_columns_.at(col_idx))
+			if(db_column_names.contains(column_names_.at(col_idx)))
 			{
-				// add numeric QTableWidgetItem
-				QString value = row.at(column_indices.at(col_idx));
-				if (value != "n/a" && !value.isEmpty())
+				//get value from NGSD
+				if(expression_stats.contains(ensg))
 				{
-					QString rounded_number = QString::number(Helper::toDouble(value,
-																			  "TSV column " + QString::number(col_idx),
-																			  QString::number(row_idx)), 'f', precision_.at(col_idx));
-					ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(rounded_number));
+					ExpressionStats gene_stats = expression_stats.value(ensg);
+					if(column_names_.at(col_idx) == "db_tpm_mean")
+					{
+						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(gene_stats.mean, 'f', precision_.at(col_idx))));
+					}
+					else if(column_names_.at(col_idx) == "db_tpm_stddev")
+					{
+						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(gene_stats.stddev, 'f', precision_.at(col_idx))));
+					}
+					else if(column_names_.at(col_idx) == "db_tpm_zscore")
+					{
+						double zscore = (tpm - gene_stats.mean) / gene_stats.stddev;
+						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(zscore, 'f', precision_.at(col_idx))));
+					}
+					else
+					{
+						THROW(ArgumentException, "Invalid db column '" + column_names_.at(col_idx) + "'!");
+					}
 				}
 				else
 				{
-					ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(""));
+					ui_->expression_data->setItem(row_idx, col_idx, new QTableWidgetItem(""));
 				}
 			}
 			else
 			{
-				// add standard QTableWidgetItem
-				ui_->expression_data->setItem(row_idx, col_idx, new QTableWidgetItem(row.at(column_indices.at(col_idx))));
+				//get value from file
+				if(numeric_columns_.at(col_idx))
+				{
+					// add numeric QTableWidgetItem
+					QString value = row.at(column_indices.at(col_idx));
+					if (value != "n/a" && !value.isEmpty())
+					{
+						QString rounded_number = QString::number(Helper::toDouble(value,
+																				  "TSV column " + QString::number(col_idx),
+																				  QString::number(row_idx)), 'f', precision_.at(col_idx));
+						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(rounded_number));
+					}
+					else
+					{
+						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(""));
+					}
+				}
+				else
+				{
+					// add standard QTableWidgetItem
+					ui_->expression_data->setItem(row_idx, col_idx, new QTableWidgetItem(row.at(column_indices.at(col_idx))));
+				}
+
+				//extract gene biotype
+				if (column_names_.at(col_idx) == "gene_biotype")
+				{
+					biotypes.insert(row.at(column_indices.at(col_idx)));
+				}
 			}
 
-			//extract gene biotype
-			if (column_names_.at(col_idx) == "gene_biotype")
-			{
-				biotypes.insert(row.at(column_indices.at(col_idx)));
-			}
+
 		}
 
 
