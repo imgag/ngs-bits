@@ -21,7 +21,7 @@
 
 LOCK TABLES `gene` WRITE;
 /*!40000 ALTER TABLE `gene` DISABLE KEYS */;
-INSERT INTO `gene` VALUES (22713,12692,'VIM','vimentin','protein-coding gene');
+INSERT INTO `gene` VALUES (22713,12692,'VIM','vimentin','protein-coding gene',NULL);
 /*!40000 ALTER TABLE `gene` ENABLE KEYS */;
 UNLOCK TABLES;
 
