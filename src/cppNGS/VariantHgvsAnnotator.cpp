@@ -892,7 +892,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
             bool stop_found = false;
             for(int i = pos_trans_start - offset + 3; i < coding_sequence.length() - 2; i += 3)
             {
-                if(NGSHelper::translateCodon(coding_sequence.mid(i, 3), variant.chr().isM()) == "*")
+				if(NGSHelper::translateCodon(coding_sequence.mid(i, 3), variant.chr().isM()) == '*')
                 {
                     stop_found = true;
                     int stop_pos = i - (pos_trans_start - offset);
@@ -1081,7 +1081,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
                     bool stop_found = false;
                     for(int i = 3; i < seq_obs.length() - 2; i += 3)
                     {
-                        if(NGSHelper::translateCodon(seq_obs.mid(i, 3), variant.chr().isM()) == "*")
+						if(NGSHelper::translateCodon(seq_obs.mid(i, 3), variant.chr().isM()) == '*')
                         {
                             stop_found = true;
                             aa_obs.append(QByteArray::number(i / 3));
@@ -1122,7 +1122,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
                bool stop_found = false;
                for(int i = 3; i < seq_obs.length() - 2; i += 3)
                {
-                   if(NGSHelper::translateCodon(seq_obs.mid(i, 3), variant.chr().isM()) == "*")
+				   if(NGSHelper::translateCodon(seq_obs.mid(i, 3), variant.chr().isM()) == '*')
                    {
                        stop_found = true;
                        aa_obs.append(QByteArray::number(i / 3 + 1));
@@ -1175,7 +1175,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
                 bool stop_found = false;
                 for(int i = 3; i < seq_obs.length() - 2; i += 3)
                 {
-                    if(NGSHelper::translateCodon(seq_obs.mid(i, 3), variant.chr().isM()) == "*")
+					if(NGSHelper::translateCodon(seq_obs.mid(i, 3), variant.chr().isM()) == '*')
                     {
                         stop_found = true;
                         aa_obs.append(QByteArray::number(i / 3 + 1));
@@ -1346,9 +1346,9 @@ void VariantHgvsAnnotator::annotateSpliceRegion(HgvsNomenclature& hgvs, const Tr
 
 //transform one letter aa code to three letter code; replacing "*" with "Ter" to encode for termination codon
 //  (needed for HGVS nomenclature to obtain same output as from VEP)
-QByteArray VariantHgvsAnnotator::toThreeLetterCode(QChar aa_one_letter_code)
+QByteArray VariantHgvsAnnotator::toThreeLetterCode(char aa_one_letter_code)
 {
-    if(aa_one_letter_code == "*") return "Ter";
+	if(aa_one_letter_code == '*') return "Ter";
     else return NGSHelper::threeLetterCode(aa_one_letter_code);
 }
 
