@@ -160,7 +160,7 @@ private:
     QString getPositionInIntron(const BedFile& regions, HgvsNomenclature& hgvs, int genomic_position, bool plus_strand, const BedFile &coding_regions, bool utr_5 = false, int first_region = 0);
     QString getHgvsProteinAnnotation(const VcfLine& variant, const FastaFileIndex& genome_idx, const QString& pos_hgvs_c, const Transcript& transcript, bool plus_strand);
 
-    QByteArray toThreeLetterCode(QChar aa_one_letter_code);
+	QByteArray toThreeLetterCode(char aa_one_letter_code);
 
     void annotateSpliceRegion(HgvsNomenclature& hgvs, const Transcript& transcript, int start, int end, bool plus_strand, bool insertion);
 

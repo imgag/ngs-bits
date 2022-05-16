@@ -4554,6 +4554,37 @@ PhenotypeList NGSD::phenotypeChildTerms(int term_id, bool recursive)
 	return output;
 }
 
+PhenotypeList NGSD::phenotypeParentTerms(int term_id, bool recursive)
+{
+	PhenotypeList output;
+
+	//prepare queries
+	SqlQuery pid2paranets = getQuery();
+	pid2paranets.prepare("SELECT parent FROM hpo_parent WHERE child=:0");
+
+	//convert term ids to genes
+	QList<int> term_ids;
+	term_ids << term_id;
+	while (!term_ids.isEmpty())
+	{
+		int id = term_ids.takeLast();
+
+		pid2paranets.bindValue(0, id);
+		pid2paranets.exec();
+		while(pid2paranets.next())
+		{
+			int id_child = pid2paranets.value(0).toInt();
+			output << phenotype(id_child);
+			if (recursive)
+			{
+				term_ids << id_child;
+			}
+		}
+	}
+
+	return output;
+}
+
 QList<OmimInfo> NGSD::omimInfo(const QByteArray& symbol)
 {
 	QList<OmimInfo> output;

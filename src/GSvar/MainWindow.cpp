@@ -5782,7 +5782,17 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		query = gene + " AND (\"" + hgvs_c.mid(2) + "\" OR \"" + hgvs_c.mid(2).replace(">", "->") + "\" OR \"" + hgvs_c.mid(2).replace(">", "-->") + "\" OR \"" + hgvs_c.mid(2).replace(">", "/") + "\"";
 		if (hgvs_p!="")
 		{
-			query += " OR \"" + hgvs_p.mid(2) + "\"";
+			QByteArray protein_change = hgvs_p.mid(2).trimmed();
+			query += " OR \"" + protein_change + "\"";
+			if (protein_change.length()>6)
+			{
+				QByteArray aa1 = protein_change.left(3);
+				QByteArray aa2 = protein_change.right(3);
+				QByteArray pos = protein_change.mid(3, protein_change.length()-6);
+				qDebug() << protein_change << ":" << aa1 << pos << aa2;
+
+				query += QByteArray(" OR \"") + NGSHelper::oneLetterCode(aa1) + pos + NGSHelper::oneLetterCode(aa2) + "\"";
+			}
 		}
 		QByteArray dbsnp = variant.annotations()[i_dbsnp].trimmed();
 		if (dbsnp!="")
