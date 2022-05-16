@@ -26,6 +26,8 @@ public:
 
 	static bool hasBasicSettings();
 	static QString getServerUrl(const bool& return_http);
+	static QString getSessionBackupFileName();
+	static QString getUrlStorageBackupFileName();
 
 
 protected:
@@ -33,6 +35,7 @@ protected:
 
 private:	
 	static ServerHelper& instance();
+	static QString getStandardFileLocation();
 
 
 };

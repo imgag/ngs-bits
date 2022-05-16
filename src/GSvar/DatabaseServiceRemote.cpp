@@ -6,7 +6,7 @@
 #include <QMessageBox>
 
 DatabaseServiceRemote::DatabaseServiceRemote()
-	: enabled_(Settings::boolean("NGSD_enabled", true))
+	: enabled_(true)
 {
 }
 
