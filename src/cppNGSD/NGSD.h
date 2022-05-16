@@ -509,6 +509,13 @@ struct CPPNGSDSHARED_EXPORT ImportStatusGermline
 	int qc_terms = 0;
 };
 
+/// statistics data on RNA expression
+struct ExpressionStats
+{
+	double mean;
+	double stdev;
+};
+
 /// NGSD accessor.
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
@@ -643,6 +650,8 @@ public:
 	GeneSet phenotypeToGenesbySourceAndEvidence(int id, QList<PhenotypeSource::Source> allowedSources, QList<PhenotypeEvidence::Evidence> allowedEvidences, bool recursive, bool ignore_non_phenotype_terms);
 	///Returns all child terms of the given phenotype
 	PhenotypeList phenotypeChildTerms(int term_id, bool recursive);
+	///Returns all parent terms of the given phenotype
+	PhenotypeList phenotypeParentTerms(int term_id, bool recursive);
 	///Returns OMIM information for a gene. Several OMIM entries per gene are rare, but happen e.g. in the PAR region.
 	QList<OmimInfo> omimInfo(const QByteArray& symbol);
 	///Returns the accession (6 digit number) of the preferred OMIM phenotype for a gene. If unset, an empty string is returned.
@@ -711,6 +720,13 @@ public:
 
 	///Returns the germline import status.
 	ImportStatusGermline importStatus(const QString& ps_id);
+
+	///Imports expression data to the NGSD
+	void importExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
+	///Calculates statistics on all expression values of the same processing system and tissue
+	QMap<QByteArray, ExpressionStats> calculateExpressionStatistics(int sys_id, const QString& tissue_type);
+	///Creates a mapping from ENSG ensembl identifier to NGSD gene ids
+	QMap<QByteArray, int> getEnsemblGeneIdMapping();
 
 	/***User handling functions ***/
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.

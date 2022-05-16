@@ -43,6 +43,7 @@ private slots:
 	void search(QString text);
 	void itemChanged(QListWidgetItem* item);
 	void itemActivated(QListWidgetItem* item);
+	void addByContextMenu();
 
 private:
 	///Returns HTML-formatted details for the currently selected item.

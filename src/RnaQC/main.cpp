@@ -43,6 +43,7 @@ public:
 
 		//changelog
 		changeLog(2022, 4, 27, "Initial version.");
+		changeLog(2022, 5, 12, "Changed TPM cutoffs.");
 	}
 
 	virtual void main()
@@ -78,7 +79,6 @@ public:
 			GeneCount gene_count = parseGeneExpression(expression, zscore_threshold, tpm_threshold);
 			rna_qc.insert(QCValue("outlier gene count", gene_count.n_outlier_genes, "Number of outlier genes (zscore >= 3.0)", "QC:2000111"));
 			rna_qc.insert(QCValue("covered gene count", gene_count.n_covered_genes, "Number of covered genes (TPM >= 1.0)", "QC:2000109"));
-
 		}
 
 		// TODO: get intronic/exonic read fraction
@@ -156,13 +156,12 @@ public:
 			// skip n/a entries
 			if(zscore_str != "n/a")
 			{
-				double zscore = std::fabs(Helper::toDouble(zscore_str, "ZScore"));
+			double zscore = std::fabs(Helper::toDouble(zscore_str, "ZScore"));
 				if (zscore >= zscore_threshold)
 				{
 					gene_count.n_outlier_genes++;
 				}
 			}
-
 			//parse covered genes
 			double tpm = Helper::toDouble(tsv_line.at(idx_tpm), "TPM value");
 			if (tpm >= tpm_threshold)

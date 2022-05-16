@@ -327,10 +327,10 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 	vl_merged.store(out);
 }
 
-QChar NGSHelper::translateCodon(const QByteArray& codon, bool use_mito_table)
+char NGSHelper::translateCodon(const QByteArray& codon, bool use_mito_table)
 {
 	//init
-	const static QHash<QByteArray, QChar> dictionary =   {{"TTT", 'F'}, {"TTC", 'F'}, {"TTA", 'L'}, {"TTG", 'L'}, {"CTT", 'L'}, {"CTC", 'L'},
+	const static QHash<QByteArray, char> dictionary =   {{"TTT", 'F'}, {"TTC", 'F'}, {"TTA", 'L'}, {"TTG", 'L'}, {"CTT", 'L'}, {"CTC", 'L'},
 														  {"CTA", 'L'}, {"CTG", 'L'}, {"TCT", 'S'}, {"TCC", 'S'}, {"TCA", 'S'}, {"TCG", 'S'},
 														  {"AGT", 'S'}, {"AGC", 'S'}, {"TAT", 'Y'}, {"TAC", 'Y'}, {"TAA", '*'}, {"TAG", '*'},
 														  {"TGA", '*'}, {"TGT", 'C'}, {"TGC", 'C'}, {"TGG", 'W'}, {"CCT", 'P'}, {"CCC", 'P'},
@@ -358,10 +358,10 @@ QChar NGSHelper::translateCodon(const QByteArray& codon, bool use_mito_table)
 	return dictionary[codon];
 }
 
-QByteArray NGSHelper::threeLetterCode(QChar one_letter_code)
+QByteArray NGSHelper::threeLetterCode(char one_letter_code)
 {
 	//init
-	const static QHash<QChar,QByteArray> dictionary = {{'A',"Ala"},{'R',"Arg"},{'N',"Asn"},{'D',"Asp"},{'C',"Cys"},{'E',"Glu"},
+	const static QHash<char,QByteArray> dictionary = {{'A',"Ala"},{'R',"Arg"},{'N',"Asn"},{'D',"Asp"},{'C',"Cys"},{'E',"Glu"},
 													   {'Q',"Gln"},{'G',"Gly"},{'H',"His"},{'I',"Ile"},{'L',"Leu"},{'K',"Lys"},{'M',"Met"},{'F',"Phe"},{'P',"Pro"},{'S',"Ser"},
 													   {'T',"Thr"},{'W',"Trp"},{'Y',"Tyr"},{'V',"Val"},{'*',"*"}};
 
@@ -370,6 +370,20 @@ QByteArray NGSHelper::threeLetterCode(QChar one_letter_code)
 
 	//return
 	return dictionary[one_letter_code];
+}
+
+char NGSHelper::oneLetterCode(QByteArray aa_tree_letter_code)
+{
+	//init
+	const static QHash<QByteArray,char> dictionary = { {"Ala",'A'},{"Arg",'R'},{"Asn",'N'},{"Asp",'D'},{"Cys",'C'},{"Glu",'E'}, {"Gln",'Q'},{"Gly",'G'},
+														{"His",'H'},{"Ile",'I'},{"Leu",'L'},{"Lys",'K'},{"Met",'M'},{"Phe",'F'},{"Pro",'P'},{"Ser",'S'},
+														{"Thr",'T'},{"Trp",'W'},{"Tyr",'Y'},{"Val",'V'},{"*",'*'} };
+
+	//check
+	if (!dictionary.contains(aa_tree_letter_code)) THROW(ProgrammingException, "Invalid AA three-letter code: '" + aa_tree_letter_code + "'");
+
+	//return
+	return dictionary[aa_tree_letter_code];
 }
 
 const BedFile& NGSHelper::pseudoAutosomalRegion(GenomeBuild build)
