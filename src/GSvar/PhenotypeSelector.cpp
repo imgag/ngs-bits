@@ -1,7 +1,7 @@
 #include "PhenotypeSelector.h"
 #include "ui_PhenotypeSelector.h"
 #include "GUIHelper.h"
-#include <QMenu>
+#include <QAction>
 #include <QTextEdit>
 
 PhenotypeSelector::PhenotypeSelector(QWidget *parent)
@@ -13,6 +13,10 @@ PhenotypeSelector::PhenotypeSelector(QWidget *parent)
 	connect(ui->search, SIGNAL(textChanged(QString)), this, SLOT(search(QString)));
 	connect(ui->list, SIGNAL(itemActivated(QListWidgetItem*)), this, SLOT(itemActivated(QListWidgetItem*)));
 	connect(ui->list, SIGNAL(currentItemChanged(QListWidgetItem*,QListWidgetItem*)), this, SLOT(itemChanged(QListWidgetItem*)));
+
+	QAction* action = new QAction(QIcon(":/Icons/Add.png"), "Add");
+	ui->list->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(addByContextMenu()));
 }
 
 PhenotypeSelector::~PhenotypeSelector()
@@ -98,6 +102,14 @@ void PhenotypeSelector::itemActivated(QListWidgetItem* item)
 	if (item==nullptr) return;
 
 	emit phenotypeActivated(item->text());
+}
+
+void PhenotypeSelector::addByContextMenu()
+{
+	QList<QListWidgetItem*> items = ui->list->selectedItems();
+	if (items.count()!=1) return;
+
+	emit phenotypeActivated(items[0]->text());
 }
 
 QString PhenotypeSelector::selectedItemDetails(bool show_name, bool shown_genes)

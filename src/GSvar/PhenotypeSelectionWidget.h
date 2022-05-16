@@ -23,9 +23,11 @@ signals:
 	void phenotypeSelectionChanged();
 
 private slots:
-	void copyPhenotype(QString name);
+	void addPhenotypeToSelection(QString name);
 	void deletePhenotype(QListWidgetItem* item);
 	void updateSelectedPhenotypeList();
+	void removeByContextMenu();
+	void addParentsByContextMenu();
 
 private:
 	Ui::PhenotypeSelectionWidget ui_;

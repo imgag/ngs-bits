@@ -45,7 +45,7 @@
    <item>
     <widget class="QListWidget" name="list">
      <property name="contextMenuPolicy">
-      <enum>Qt::CustomContextMenu</enum>
+      <enum>Qt::ActionsContextMenu</enum>
      </property>
      <property name="toolTip">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Double-click a phenotype to select it.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>

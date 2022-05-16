@@ -562,6 +562,20 @@ private slots:
 		phenos = db.phenotypeChildTerms(db.phenotypeIdByName("Mitochondrial inheritance"), false);
 		I_EQUAL(phenos.count(), 0);
 
+		//phenotypeParentTerms
+		phenos = db.phenotypeParentTerms(db.phenotypeIdByName("All"), false);
+		I_EQUAL(phenos.count(), 0);
+		phenos = db.phenotypeParentTerms(db.phenotypeIdByName("All"), true);
+		I_EQUAL(phenos.count(), 0);
+		phenos = db.phenotypeParentTerms(db.phenotypeIdByName("X-linked recessive inheritance"), false);
+		I_EQUAL(phenos.count(), 1);
+		IS_TRUE(phenos.containsAccession("HP:0001417")); //X-linked inheritance
+		phenos = db.phenotypeParentTerms(db.phenotypeIdByName("X-linked recessive inheritance"), true);
+		I_EQUAL(phenos.count(), 3);
+		IS_TRUE(phenos.containsAccession("HP:0001417")); //X-linked inheritance
+		IS_TRUE(phenos.containsAccession("HP:0000005")); //Mode of inheritance
+		IS_TRUE(phenos.containsAccession("HP:0000001")); //All
+
 		//getDiagnosticStatus
 		DiagnosticStatusData diag_status = db.getDiagnosticStatus(db.processedSampleId("NA12878_03"));
 		S_EQUAL(diag_status.date.toString(Qt::ISODate), "2014-07-29T09:40:49");
@@ -2326,7 +2340,6 @@ private slots:
 
 
 	}
-
 	//Test for debugging (without initialization because of speed)
 	/*
 	void debug()
