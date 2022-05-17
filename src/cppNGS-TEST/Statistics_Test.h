@@ -392,35 +392,10 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[7].toString(), QString("0.17"));
 		S_EQUAL(stats[8].name(), QString("target region read depth"));
 		S_EQUAL(stats[8].toString(8), QString("0.00005488"));
-		S_EQUAL(stats[9].name(), QString("target region 10x percentage"));
-		S_EQUAL(stats[9].toString(), QString("0.00"));
-		S_EQUAL(stats[10].name(), QString("target region 20x percentage"));
-		S_EQUAL(stats[10].toString(), QString("0.00"));
-		S_EQUAL(stats[11].name(), QString("target region 30x percentage"));
-		S_EQUAL(stats[11].toString(), QString("0.00"));
-		S_EQUAL(stats[12].name(), QString("target region 50x percentage"));
-		S_EQUAL(stats[12].toString(), QString("0.00"));
-		S_EQUAL(stats[13].name(), QString("target region 60x percentage"));
-		S_EQUAL(stats[13].toString(), QString("0.00"));
-		S_EQUAL(stats[14].name(), QString("target region 100x percentage"));
-		S_EQUAL(stats[14].toString(), QString("0.00"));
-		S_EQUAL(stats[15].name(), QString("target region 200x percentage"));
-		S_EQUAL(stats[15].toString(), QString("0.00"));
-		S_EQUAL(stats[16].name(), QString("target region 500x percentage"));
-		S_EQUAL(stats[16].toString(), QString("0.00"));
-		S_EQUAL(stats[17].name(), QString("target region half depth percentage"));
-		S_EQUAL(stats[17].toString(), QString("100.00"));
-		S_EQUAL(stats[18].name(), QString("AT dropout"));
-		S_EQUAL(stats[18].toString(), QString("0.00"));
-		S_EQUAL(stats[19].name(), QString("GC dropout"));
-		S_EQUAL(stats[19].toString(), QString("0.00"));
-		S_EQUAL(stats[20].name(), QString("depth distribution plot"));
-		IS_TRUE(stats[20].type()==QVariant::ByteArray);
-		S_EQUAL(stats[21].name(), QString("insert size distribution plot"));
-		IS_TRUE(stats[21].type()==QVariant::ByteArray);
-		S_EQUAL(stats[22].name(), QString("GC bias plot"));
-		IS_TRUE(stats[22].type()==QVariant::ByteArray);
-		I_EQUAL(stats.count(), 23);
+		S_EQUAL(stats[9].name(), QString("insert size distribution plot"));
+		IS_TRUE(stats[9].type()==QVariant::ByteArray);
+
+		I_EQUAL(stats.count(), 10);
 	}
 
 	void mapping_cfdna()
