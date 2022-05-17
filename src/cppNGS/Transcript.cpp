@@ -307,6 +307,10 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 	if (length<4) THROW(ProgrammingException, "Invalid cDNA change '" + hgvs_c + "'!");
 	//qDebug() << "### cDNA:" << hgvs_c << "###";
 
+	//fix unneeded base sequence at the end of 'dup' and 'del' entries
+	hgvs_c.replace(QRegExp("dup[ACGTN]+"), "dup");
+	hgvs_c.replace(QRegExp("del[ACGTN]+"), "del");
+
 	//SNV
 	if(hgvs_c.at(length-4).isDigit() && hgvs_c.at(length-3).isLetter() && hgvs_c.at(length-2)=='>' && hgvs_c.at(length-1).isLetter())
 	{
@@ -483,7 +487,7 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 	{
 		QStringList lines;
 		lines << "Unsupported cDNA change '" + hgvs_c + "'. Please note:";
-		lines << "- Adjacent SNVs changes e.g. 'c.1234CA>TC' are not supported. Spit them in single base changes or format them as 'delins'.";
+		lines << "- Adjacent SNVs changes e.g. 'c.1234CA>TC' are not supported. Spit them in single base changes or format them as 'delins'."; //TODO implement?
 		lines << "- Duplication must end with 'dup'. Remove everyhing after.";
 		lines << "- Deletions must end with 'del'. Remove everyhing after.";
 		THROW(ArgumentException, lines.join("\n"));

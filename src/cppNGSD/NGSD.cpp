@@ -1444,6 +1444,132 @@ ImportStatusGermline NGSD::importStatus(const QString& ps_id)
 	return output;
 }
 
+void NGSD::importExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug)
+{
+	QTextStream outstream(stdout);
+	//check ps_name
+	QString ps_id = processedSampleId(ps_name);
+	if(debug) outstream << "Processed sample: " << ps_name << endl;
+
+	// check if already imported
+	int n_prev_entries = getValue("SELECT COUNT(`id`) FROM `expression` WHERE `processed_sample_id`=:0", false, ps_id).toInt();
+	if(debug) outstream << "Previously imported expression values: " << n_prev_entries << endl;
+
+	if (!force && (n_prev_entries > 0))
+	{
+		THROW(DatabaseException, "Expression values for sample '" + ps_name + "' already imported and method called without '-force' parameter: Cannot import data!");
+	}
+
+	// start transaction
+	transaction();
+
+	// delete old entries
+	if (n_prev_entries > 0)
+	{
+		SqlQuery query = getQuery();
+		query.exec("DELETE FROM `expression` WHERE `processed_sample_id`='"+ps_id+"'");
+		if(debug) outstream << QByteArray::number(n_prev_entries) + " previously imported expression values deleted." << endl;
+	}
+
+	//get ENSG -> id mapping
+	QMap<QByteArray,int> gene_mapping = getEnsemblGeneIdMapping();
+
+	// prepare query
+	SqlQuery query = getQuery();
+	query.prepare("INSERT INTO `expression`(`processed_sample_id`, `gene_id`, `tpm`) VALUES ('" + ps_id + "',:0,:1)");
+
+
+	// open file and iterate over expression values
+	TSVFileStream tsv_file(expression_data_file_path);
+	int idx_ensg = tsv_file.colIndex("gene_id", true);
+	int idx_tpm = tsv_file.colIndex("tpm", true);
+	int n_imported = 0;
+	int n_skipped = 0;
+
+	while (!tsv_file.atEnd())
+	{
+		QByteArrayList tsv_line = tsv_file.readLine();
+		QByteArray ensg = tsv_line.at(idx_ensg);
+		double tpm = Helper::toDouble(tsv_line.at(idx_tpm), "TPM value");
+
+		//skip ENSG ids which are not in the NGSD
+		if (!gene_mapping.contains(ensg))
+		{
+			n_skipped++;
+			continue;
+		}
+
+		// import value
+		query.bindValue(0, gene_mapping.value(ensg));
+		query.bindValue(1, tpm);
+		query.exec();
+		n_imported++;
+	}
+
+
+	// commit
+	commit();
+
+	if(debug) outstream << QByteArray::number(n_imported) + " expression values imported into the NGSD." << endl;
+	if(debug) outstream << QByteArray::number(n_skipped) + " expression values skipped." << endl;
+}
+
+QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id, const QString& tissue_type)
+{
+	// check tissue
+	if (!getEnum("sample", "tissue").contains(tissue_type))
+	{
+		THROW(ArgumentException, "'" +  tissue_type + "' is not a valid tissue type in the NGSD!")
+	}
+
+	//get ENSG -> id mapping
+	QMap<QByteArray,int> gene_mapping = getEnsemblGeneIdMapping();
+
+	//prepare query
+	SqlQuery query = getQuery();
+	query.prepare(QString() + "SELECT ev.tpm FROM `expression` ev "
+				  + "INNER JOIN `processed_sample` ps ON ev.processed_sample_id = ps.id "
+				  + "INNER JOIN `sample` s ON ps.sample_id = s.id "
+				  + "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue='" + tissue_type + "' AND ev.gene_id=:0");
+
+	//parse database
+	QMap<QByteArray, ExpressionStats> expression_stats;
+	foreach (const QByteArray& ensg, gene_mapping.keys())
+	{
+		query.bindValue(0, gene_mapping.value(ensg));
+		query.exec();
+
+		QVector<double> expression_values;
+
+		while(query.next())
+		{
+			expression_values << query.value(0).toDouble();
+		}
+		ExpressionStats stats;
+		stats.mean = BasicStatistics::mean(expression_values);
+		stats.stdev = BasicStatistics::stdev(expression_values, stats.mean);
+
+		expression_stats.insert(ensg, stats);
+	}
+
+	return expression_stats;
+
+
+}
+
+QMap<QByteArray, int> NGSD::getEnsemblGeneIdMapping()
+{
+	QMap<QByteArray, int> mapping;
+	SqlQuery query = getQuery();
+	query.exec("SELECT id, ensembl_id FROM gene WHERE ensembl_id IS NOT NULL");
+	while(query.next())
+	{
+		mapping.insert(query.value(1).toByteArray(), query.value(0).toInt());
+	}
+
+	return mapping;
+}
+
 CopyNumberVariant NGSD::cnv(int cnv_id)
 {
 	SqlQuery query = getQuery();
@@ -4542,6 +4668,37 @@ PhenotypeList NGSD::phenotypeChildTerms(int term_id, bool recursive)
 		while(pid2children.next())
 		{
 			int id_child = pid2children.value(0).toInt();
+			output << phenotype(id_child);
+			if (recursive)
+			{
+				term_ids << id_child;
+			}
+		}
+	}
+
+	return output;
+}
+
+PhenotypeList NGSD::phenotypeParentTerms(int term_id, bool recursive)
+{
+	PhenotypeList output;
+
+	//prepare queries
+	SqlQuery pid2paranets = getQuery();
+	pid2paranets.prepare("SELECT parent FROM hpo_parent WHERE child=:0");
+
+	//convert term ids to genes
+	QList<int> term_ids;
+	term_ids << term_id;
+	while (!term_ids.isEmpty())
+	{
+		int id = term_ids.takeLast();
+
+		pid2paranets.bindValue(0, id);
+		pid2paranets.exec();
+		while(pid2paranets.next())
+		{
+			int id_child = pid2paranets.value(0).toInt();
 			output << phenotype(id_child);
 			if (recursive)
 			{

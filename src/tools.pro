@@ -479,3 +479,7 @@ VcfAnnotateConsequence.depends = cppNGS
 SUBDIRS += RnaQC
 tools-TEST.depends += RnaQC
 RnaQC.depends = cppNGS
+
+SUBDIRS += NGSDImportExpressionData
+tools-TEST.depends += NGSDImportExpressionData
+NGSDImportExpressionData.depends = cppNGSD

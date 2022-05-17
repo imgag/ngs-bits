@@ -16,10 +16,12 @@ CREATE TABLE IF NOT EXISTS `gene`
 `symbol` varchar(40) NOT NULL,
 `name` TEXT NOT NULL,
 `type` enum('protein-coding gene','pseudogene','non-coding RNA','other') NOT NULL,
+`ensembl_id` varchar(40) DEFAULT NULL,
 
 PRIMARY KEY (`id`), 
 UNIQUE KEY `hgnc_id` (`hgnc_id`),
 UNIQUE KEY `symbol` (`symbol`),
+UNIQUE KEY `ensembl_id` (`ensembl_id`),
 KEY `type` (`type`)
 )
 ENGINE=InnoDB DEFAULT
@@ -2174,6 +2176,31 @@ CREATE TABLE IF NOT EXISTS `report_configuration_other_causal_variant`
   CONSTRAINT `fk_report_configuration_id`
     FOREIGN KEY (`report_configuration_id` )
     REFERENCES `report_configuration` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `expression`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `expression`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `processed_sample_id` INT(11) NOT NULL,
+  `gene_id` INT(11) UNSIGNED NOT NULL,
+  `tpm` FLOAT NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `expression_UNIQUE` (`processed_sample_id` ASC, `gene_id` ASC),
+  CONSTRAINT `fk_expression_processed_sample_id`
+    FOREIGN KEY (`processed_sample_id` )
+    REFERENCES `processed_sample` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_expression_gene_id`
+    FOREIGN KEY (`gene_id` )
+    REFERENCES `gene` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
 )

@@ -69,10 +69,13 @@ public:
 	static void createSampleOverview(QStringList in, QString out, int indel_window=100, bool cols_auto=true, QStringList cols = QStringList());
 
 	///Translates a codon to the 1-letter amino acid code
-	static QChar translateCodon(const QByteArray& codon, bool use_mito_table=false);
+	static char translateCodon(const QByteArray& codon, bool use_mito_table=false);
 
 	///Converts a 1-letter amino acid code to a 3-letter amino acid code
-	static QByteArray threeLetterCode(QChar aa_one_letter_code);
+	static QByteArray threeLetterCode(char aa_one_letter_code);
+
+	///Converts a 3-letter amino acid code to a 1-letter amino acid code
+	static char oneLetterCode(QByteArray aa_tree_letter_code);
 
 	///Returns the pseudoautomal regions on gnosomes.
 	static const BedFile& pseudoAutosomalRegion(GenomeBuild build);
