@@ -52,7 +52,7 @@ class CPPRESTSHARED_EXPORT UrlManager
 public:
 	static void saveEverythingToFile();
 	static void saveUrlToFile(QString id, UrlEntity in);
-	static void restoreFromFile(bool remove_backup);
+	static void restoreFromFile();
 	static void addNewUrl(QString id, UrlEntity url_entity, bool save_to_file = true);
 	static void removeUrl(const QString& id);
 	static bool isInStorageAlready(const QString& filename_with_path);
@@ -67,7 +67,7 @@ protected:
 
 private:
 	static UrlManager& instance();
-	QSharedPointer<QFile> output_file_;
+	QSharedPointer<QFile> backup_file_;
 	QMutex mutex_;
 	QMap<QString, UrlEntity> url_storage_;
 };

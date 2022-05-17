@@ -390,6 +390,11 @@ int main(int argc, char **argv)
 		return app.exec();
 	}
 
+	Log::info("Restore previous sessions");
+	SessionManager::restoreFromFile();
+	Log::info("Restore previous URLs");
+	UrlManager::restoreFromFile();
+
 	Log::info("SSL version used for the build: " + QSslSocket::sslLibraryBuildVersionString());
 	ServerWrapper https_server(https_port_setting);
 	if (!https_server.isRunning())
@@ -417,10 +422,6 @@ int main(int argc, char **argv)
 		app.exit(EXIT_FAILURE);
 		return app.exec();
 	}
-
-	Log::info("Restore previous state");
-	SessionManager::restoreFromFile(false);
-	UrlManager::restoreFromFile(false);
 
 	return app.exec();
 }
