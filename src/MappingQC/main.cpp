@@ -36,6 +36,7 @@ public:
 		addInfile("somatic_custom_bed", "Somatic custom region of interest (subpanel of actual roi). If specified, additional depth metrics will be calculated.", true, true);
 
 		//changelog
+		changeLog(2022,  5, 17, "Added new QC metrics to WGS mode with support for a ROI.");
 		changeLog(2021,  2,  9, "Added new QC metrics for uniformity of coverage (QC:2000057-QC:2000061).");
 		changeLog(2020, 11, 27, "Added CRAM support.");
 		changeLog(2018,  7, 11, "Added build switch for hg38 support.");
@@ -62,10 +63,10 @@ public:
 		QString somatic_custom_roi_file = getInfile("somatic_custom_bed");
 
         // check that just one of roi_file, wgs, rna is set
-        int parameters_set =  (roi_file!="" ? 1 : 0) +  wgs + rna;
+		int parameters_set =  std::max((roi_file!="" ? 1 : 0) + rna, wgs + rna);
         if (parameters_set!=1)
         {
-            THROW(CommandLineParsingException, "You have to use exactly one of the parameters 'roi', 'wgs', or 'rna' !");
+			THROW(CommandLineParsingException, "You have to use the parameters 'roi', or 'rna', or 'wgs', or 'wgs' + 'roi'!");
         }
 		if (cfdna && (roi_file == ""))
 		{
@@ -76,10 +77,14 @@ public:
 		QCCollection metrics;
 		if (wgs)
         {
-			metrics = Statistics::mapping_wgs(in, min_mapq, ref_file);
+			metrics = Statistics::mapping_wgs(in, roi_file, min_mapq, ref_file);
 
 			//parameters
 			parameters << "-wgs";
+			if (roi_file != "")
+			{
+				parameters << "-roi" << QFileInfo(roi_file).fileName();
+			}
 		}
         else if(rna)
 		{

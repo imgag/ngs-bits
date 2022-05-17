@@ -706,61 +706,60 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 }
 
 
-QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, const QString& ref_file)
+QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bedpath, int min_mapq, const QString& ref_file)
 {
+	qDebug() << "Entered mapping_wgs function";
+	QTime timer;
+	timer.start();
+
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
-
-	//find index of chr22
-	int idx_chr22 =  -1;
-	for (int i=0; i<reader.chromosomes().length(); i++)
-	{
-		if (reader.chromosomes()[i].strNormalized(true) == "chr22")
-		{
-			idx_chr22 = i;
-		}
-	}
-	if (idx_chr22 == -1)
-	{
-		THROW(ArgumentException, "Couldn't find chromosome 22 in the BAM file: " + bam_file);
-	}
-
 	FastaFileIndex ref_idx(ref_file);
-
-	//find mappable regions of chr22
-	Sequence seq_chr22 = ref_idx.seq(reader.chromosome(idx_chr22));
-	BedFile chr22_mappable_regions;
-	int start = -1;
-	for (int i=0; i<seq_chr22.size(); i++)
+	bool roi_available = false;
+	BedFile roi;
+	if (bedpath != "")
 	{
-		if (start == -1)
+		roi_available = true;
+		roi.load(bedpath, false);
+
+		//check target region is merged/sorted and create index
+		if (!roi.isMergedAndSorted())
 		{
-			if (seq_chr22.at(i) == 'N')
-			{
-				continue;
-			}
-			else
-			{
-				start = i+1;
-			}
-		}
-		else
-		{
-			if (seq_chr22.at(i) == 'N')
-			{
-				chr22_mappable_regions.append(BedLine(reader.chromosome(idx_chr22), start, i));
-				start = -1;
-			}
-			else
-			{
-				continue;
-			}
+			roi.merge();
+			roi.sort();
 		}
 	}
+
+	ChromosomalIndex<BedFile> roi_index(roi);
+
+	qDebug() << "Loaded files to indices";
+
+	//create coverage statistics data structure
+	long long roi_bases = 0;
+	QHash<int, QMap<int, int> > roi_cov;
+	qDebug() << "Regions count " << roi.count();
+	qDebug() << "Regions bases: " << roi.baseCount();
+	for (int i=0; i<roi.count(); ++i)
+	{
+		const BedLine& line = roi[i];
+		int chr_num = line.chr().num();
+		if (!roi_cov.contains(chr_num))
+		{
+			roi_cov.insert(chr_num, QMap<int, int>());
+		}
+
+		for(int p=line.start(); p<=line.end(); ++p)
+		{
+			roi_cov[chr_num].insert(p, 0);
+		}
+		roi_bases += line.length();
+	}
+
+	qDebug() << "created coverage structure";
 
 	//prepare At/GC dropout data structure
 	BedFile dropout;
-	dropout.add(chr22_mappable_regions);
+	dropout.add(roi);
 	dropout.chunk(100);
 	QHash<int, double> gc_roi;
 	QHash<int, double> gc_reads;
@@ -783,8 +782,9 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, cons
 	}
 	ChromosomalIndex<BedFile> dropout_index(dropout);
 
+	qDebug() << "created data structures.";
+
 	//init counts
-	QVector<int> depth(reader.chromosomeSize(reader.chromosome(idx_chr22)), 0); // base level depth counts
 
 	long long al_total = 0;
 	long long al_mapped = 0;
@@ -797,7 +797,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, cons
 	double insert_size_sum = 0;
 	Histogram insert_dist(0, 999, 5);
 	long long bases_usable = 0;
-	long long bases_usable_chr22 = 0;
+	long long bases_usable_roi = 0;
 
 	int max_length = 0;
 	bool paired_end = false;
@@ -843,15 +843,19 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, cons
 				{
 					bases_usable += al.length();
 
-					//calculate base resolution Coverage statistics over chromosome 22:
-					if (al.chromosomeID() == idx_chr22)
+					//calculate usable bases and base-resolution coverage on target region
+					Chromosome chr = reader.chromosome(al.chromosomeID());
+					QVector<int> indices = roi_index.matchingIndices(chr, al.start(), al.end());
+					foreach(int index, indices)
 					{
-						long long length = al.end() - al.start() + 1;
-						bases_usable_chr22 += length;
-
-						for (int i=al.start()-1; i<al.end(); i++)
+						const int ol_start = std::max(roi[index].start(), al.start());
+						const int ol_end = std::min(roi[index].end(), al.end());
+						auto it = roi_cov[chr.num()].lowerBound(ol_start);
+						auto end = roi_cov[chr.num()].upperBound(ol_end);
+						while (it!=end)
 						{
-							depth[i] += 1;
+							(*it)++;
+							++it;
 						}
 					}
 				}
@@ -898,22 +902,29 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, cons
 			++al_dup;
 		}
 	}
+	qDebug() << "finished iterating through alignments";
 
 	//calculate coverage depth statistics
-	double avg_depth = (double) bases_usable_chr22 / chr22_mappable_regions.baseCount();
+	double avg_depth = (double) bases_usable_roi / roi_bases;
 	int half_depth = std::round(0.5*avg_depth);
 	long long bases_covered_at_least_half_depth = 0;
 	int hist_max = 599;
 	int hist_step = 5;
 
 	Histogram depth_dist(0, hist_max, hist_step);
-	for (int r=0; r<chr22_mappable_regions.count(); r++)
+	QHashIterator<int, QMap<int, int> > it(roi_cov);
+	while(it.hasNext())
 	{
-		BedLine region = chr22_mappable_regions[r];
-		for (int i=region.start()-1; i<region.end(); i++)
+		it.next();
+		QMapIterator<int, int> it2(it.value());
+		while(it2.hasNext())
 		{
-			depth_dist.inc(depth[i], true);
-			if(depth[i]>=half_depth)
+			it2.next();
+
+			int depth = it2.value();
+			depth_dist.inc(depth, true);
+
+			if(depth>=half_depth)
 			{
 				++bases_covered_at_least_half_depth;
 			}
@@ -949,7 +960,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, cons
 			}
 		}
 	}
-
+	qDebug() << "computed statistics";
 	//output
 	QCCollection output;
 	addQcValue(output, "QC:2000019", "trimmed base percentage", 100.0 * bases_trimmed / al_total / max_length);
@@ -977,34 +988,38 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, cons
 	addQcValue(output, "QC:2000050", "bases usable (MB)", (double) bases_usable / 1000000.0);
 	addQcValue(output, "QC:2000025", "target region read depth", (double) bases_usable / reader.genomeSize(false));
 
-	QVector<int> depth_values;
-	depth_values << 10 << 20 << 30 << 50 << 60 << 100 << 200 << 500;
-	QVector<QByteArray> accessions;
-	accessions << "QC:2000026" << "QC:2000027" << "QC:2000028" << "QC:2000029" << "QC:2000099" << "QC:2000030" << "QC:2000031" << "QC:2000032";
-
-	for (int i=0; i<depth_values.count(); ++i)
+	if (roi_available)
 	{
-		double cov_bases = 0.0;
-		for (int bin=depth_dist.binIndex(depth_values[i]); bin<depth_dist.binCount(); ++bin) cov_bases += depth_dist.binValue(bin);
-		addQcValue(output, accessions[i], "target region " + QByteArray::number(depth_values[i]) + "x percentage", 100.0 * cov_bases / chr22_mappable_regions.baseCount());
+		QVector<int> depth_values;
+		depth_values << 10 << 20 << 30 << 50 << 60 << 100 << 200 << 500;
+		QVector<QByteArray> accessions;
+		accessions << "QC:2000026" << "QC:2000027" << "QC:2000028" << "QC:2000029" << "QC:2000099" << "QC:2000030" << "QC:2000031" << "QC:2000032";
+
+		for (int i=0; i<depth_values.count(); ++i)
+		{
+			double cov_bases = 0.0;
+			for (int bin=depth_dist.binIndex(depth_values[i]); bin<depth_dist.binCount(); ++bin) cov_bases += depth_dist.binValue(bin);
+			addQcValue(output, accessions[i], "target region " + QByteArray::number(depth_values[i]) + "x percentage", 100.0 * cov_bases / roi.baseCount());
+		}
+		addQcValue(output, "QC:2000058", "target region half depth percentage", 100.0 * bases_covered_at_least_half_depth / roi.baseCount());
+		addQcValue(output, "QC:2000059", "AT dropout", at_dropout);
+		addQcValue(output, "QC:2000060", "GC dropout", gc_dropout);
 	}
-	addQcValue(output, "QC:2000058", "target region half depth percentage", 100.0 * bases_covered_at_least_half_depth / chr22_mappable_regions.baseCount());
-	addQcValue(output, "QC:2000059", "AT dropout", at_dropout);
-	addQcValue(output, "QC:2000060", "GC dropout", gc_dropout);
 
-
-
-	//add depth distribtion plot
-	LinePlot plot;
-	plot.setXLabel("depth of coverage");
-	plot.setYLabel("chromosome 22 [%]");
-	plot.setXValues(depth_dist.xCoords());
-	plot.addLine(depth_dist.yCoords(true));
-	QString plotname = Helper::tempFileName(".png");
-	plot.store(plotname);
-	addQcPlot(output, "QC:2000037", "depth distribution plot", plotname);
-	QFile::remove(plotname);
-	plot.store("/mnt/users/ahott1a1/depth_of_coverage.png");
+	if (roi_available)
+	{
+		//add depth distribtion plot
+		LinePlot plot;
+		plot.setXLabel("depth of coverage");
+		plot.setYLabel("chromosome 22 [%]");
+		plot.setXValues(depth_dist.xCoords());
+		plot.addLine(depth_dist.yCoords(true));
+		QString plotname = Helper::tempFileName(".png");
+		plot.store(plotname);
+		addQcPlot(output, "QC:2000037", "depth distribution plot", plotname);
+		QFile::remove(plotname);
+		plot.store("/mnt/users/ahott1a1/depth_of_coverage.png");
+	}
 
 	//add insert size distribution plot
 	if (paired_end)
@@ -1029,19 +1044,23 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, int min_mapq, cons
 		}
 	}
 
-	//add GC bias plot
-	LinePlot plot3;
-	plot3.setXLabel("GC bin");
-	plot3.setYLabel("count [%]");
-	plot3.setXValues(BasicStatistics::range(0.0, 100.0, 1.0));
-	plot3.addLine(gc_roi_percentages, "target region");
-	plot3.addLine(gc_read_percentages, "reads");
-	plotname = Helper::tempFileName(".png");
-	plot3.store(plotname);
-	addQcPlot(output, "QC:2000061","GC bias plot", plotname);
-	QFile::remove(plotname);
-	plot3.store("/mnt/users/ahott1a1/gc_dropout.png");
+	if (roi_available)
+	{
+		//add GC bias plot
+		LinePlot plot3;
+		plot3.setXLabel("GC bin");
+		plot3.setYLabel("count [%]");
+		plot3.setXValues(BasicStatistics::range(0.0, 100.0, 1.0));
+		plot3.addLine(gc_roi_percentages, "target region");
+		plot3.addLine(gc_read_percentages, "reads");
+		QString plotname = Helper::tempFileName(".png");
+		plot3.store(plotname);
+		addQcPlot(output, "QC:2000061","GC bias plot", plotname);
+		QFile::remove(plotname);
+		plot3.store("/mnt/users/ahott1a1/gc_dropout.png");
+	}
 
+	qDebug() << "Time taken: " << timer.elapsed()/1000.0/60.0 << "min.";
 	return output;
 }
 

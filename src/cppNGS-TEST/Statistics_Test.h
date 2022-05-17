@@ -373,7 +373,7 @@ TEST_CLASS(Statistics_Test)
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
-		QCCollection stats = Statistics::mapping_wgs(TESTDATA("data_in/close_exons.bam"), 1, ref_file);
+		QCCollection stats = Statistics::mapping_wgs(TESTDATA("data_in/close_exons.bam"), "", 1, ref_file);
 		S_EQUAL(stats[0].name(), QString("trimmed base percentage"));
 		S_EQUAL(stats[0].toString(), QString("20.88"));
 		S_EQUAL(stats[1].name(), QString("clipped base percentage"));
