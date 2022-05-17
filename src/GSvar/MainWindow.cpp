@@ -1820,6 +1820,27 @@ void MainWindow::delayedInitialization()
 	{
 		LoginDialog dlg(this);
 		dlg.exec();
+
+		if (LoginManager::active())
+		{
+			try
+			{
+				ui_.filters->loadTargetRegions();
+			}
+			catch(Exception& e)
+			{
+				Log::warn("Target region data for filter widget could not be loaded from NGSD: " + e.message());
+			}
+
+			try
+			{
+				ui_.filters->loadFilters();
+			}
+			catch(Exception& e)
+			{
+				QMessageBox::warning(this, "Filter load failed", "Filter file could not be opened:\n" + e.message());
+			}
+		}
 	}
 
 	//init GUI

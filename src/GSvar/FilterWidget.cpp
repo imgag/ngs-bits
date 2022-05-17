@@ -55,26 +55,6 @@ FilterWidget::FilterWidget(QWidget *parent)
 	ui_.clearn_btn->setMenu(new QMenu());
 	ui_.clearn_btn->menu()->addAction("Clear filters", this, SLOT(clearFilters()));
 	ui_.clearn_btn->menu()->addAction("Clear filters and ROI", this, SLOT(clearFiltersAndRoi()));
-
-	try
-	{
-		loadTargetRegions();
-	}
-	catch(Exception& e)
-	{
-		Log::warn("Target region data for filter widget could not be loaded from NGSD: " + e.message());
-	}
-
-	try
-	{
-		loadFilters();
-	}
-	catch(Exception& e)
-	{
-		QMessageBox::warning(this, "Filter load failed", "Filter file could not be opened:\n" + e.message());
-	}
-
-	reset(true);
 }
 
 void FilterWidget::setValidFilterEntries(const QStringList& filter_entries)

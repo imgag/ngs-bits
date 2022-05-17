@@ -18,6 +18,9 @@ enum class ReportConfigFilter
 };
 
 //Filter manager dock widget
+//The filter list is not populated automatically, since we need to get the database
+//credentials first. As soon as the user logs in, the app  call serverloadTargetRegions()
+//and loadFilters()
 class FilterWidget
 	: public QWidget
 {
@@ -72,6 +75,8 @@ public:
 
 	/// Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)
 	void loadTargetRegions();
+	//Loads filters
+	void loadFilters();
 	/// Helper for loading target regions (also in CNV/SV widget)
 	static void loadTargetRegions(QComboBox* box);
 	/// Helper for loading target region data. Throws an exception of the target region file is missing!
@@ -128,8 +133,6 @@ protected slots:
 	void clearFiltersAndRoi();
 
 private:
-	//Loads filters
-	void loadFilters();
 	//Resets the filters without blocking signals.
 	void resetSignalsUnblocked(bool clear_roi);
 
