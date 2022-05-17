@@ -418,5 +418,9 @@ int main(int argc, char **argv)
 		return app.exec();
 	}
 
+	Log::info("Restore previous state");
+	SessionManager::restoreFromFile(false);
+	UrlManager::restoreFromFile(false);
+
 	return app.exec();
 }

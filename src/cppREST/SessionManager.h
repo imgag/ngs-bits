@@ -38,7 +38,10 @@ struct CPPRESTSHARED_EXPORT Session
 class CPPRESTSHARED_EXPORT SessionManager
 {
 public:
-	static void addNewSession(QString id, Session in);
+	static void saveEverythingToFile();
+	static void saveSessionToFile(QString id, Session in);
+	static void restoreFromFile(bool remove_backup);
+	static void addNewSession(QString id, Session in, bool save_to_file = true);
 	static void removeSession(QString id);
 	static void removeSession(int user_id, QDateTime login_time);
 	static Session getSessionByUserId(QString id);
@@ -50,9 +53,9 @@ protected:
 	SessionManager();
 
 private:
-	QMutex mutex_;
-
 	static SessionManager& instance();
+	QSharedPointer<QFile> output_file_;
+	QMutex mutex_;
 	QMap<QString, Session> session_store_;
 };
 

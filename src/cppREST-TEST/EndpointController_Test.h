@@ -12,7 +12,7 @@ private slots:
 		QByteArray file = TESTDATA("data_in/text.txt");
 		IS_FALSE(UrlManager::isInStorageAlready(file));
 
-		UrlManager::addUrlToStorage(url_id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file);
+		UrlManager::addNewUrl(url_id, UrlEntity(QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, url_id, QDateTime::currentDateTime()));
 		IS_TRUE(UrlManager::isInStorageAlready(file));
 
 		Session cur_session(1, QDateTime::currentDateTime());
@@ -80,7 +80,7 @@ private slots:
 	{
 		QString url_id = ServerHelper::generateUniqueStr();
 		QByteArray file = TESTDATA("data_in/text.txt");
-		UrlManager::addUrlToStorage(url_id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file);
+		UrlManager::addNewUrl(url_id, UrlEntity(QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, url_id, QDateTime::currentDateTime()));
 
 		Session cur_session(1, QDateTime::currentDateTime());
 		SessionManager::addNewSession("token", cur_session);
