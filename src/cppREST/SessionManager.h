@@ -40,13 +40,15 @@ class CPPRESTSHARED_EXPORT SessionManager
 public:
 	static void saveEverythingToFile();
 	static void saveSessionToFile(QString id, Session in);
-	static void restoreFromFile(bool remove_backup);
+	static void restoreFromFile();
 	static void addNewSession(QString id, Session in, bool save_to_file = true);
 	static void removeSession(QString id);
 	static void removeSession(int user_id, QDateTime login_time);
 	static Session getSessionByUserId(QString id);
 	static Session getSessionBySecureToken(QString token);
+	static bool isSessionExpired(Session in);
 	static bool isSessionExpired(QString token);
+
 	static bool isTokenReal(QString token);
 
 protected:
@@ -54,7 +56,7 @@ protected:
 
 private:
 	static SessionManager& instance();
-	QSharedPointer<QFile> output_file_;
+	QSharedPointer<QFile> backup_file_;
 	QMutex mutex_;
 	QMap<QString, Session> session_store_;
 };
