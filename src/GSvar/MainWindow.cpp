@@ -5507,7 +5507,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	}
 
 	//Alamut
-	if (Settings::string("Alamut")!="")
+	if (Settings::contains("alamut_host") && Settings::contains("alamut_institution") && Settings::contains("alamut_apikey"))
 	{
 		sub_menu = menu.addMenu(QIcon("://Icons/Alamut.png"), "Alamut");
 
@@ -5711,7 +5711,10 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 
 			try
 			{
-				HttpHandler(HttpRequestHandler::NONE).get(Settings::string("Alamut")+"/show?request="+value);
+				QString host = Settings::string("alamut_host");
+				QString institution = Settings::string("alamut_institution");
+				QString apikey = Settings::string("alamut_apikey");
+				HttpHandler(HttpRequestHandler::NONE).get(host+"/search?institution="+institution+"&apikey="+apikey+"&request="+value);
 			}
 			catch (Exception& e)
 			{
