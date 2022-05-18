@@ -1,5 +1,5 @@
 ### CfDnaQC tool help
-	CfDnaQC (2021_12-170-g1acf8802)
+	CfDnaQC (2022_04-62-gc5232248)
 	
 	Calculates QC metrics for cfDNA samples.
 	
@@ -23,6 +23,8 @@
 	                           Default value: ''
 	  -min_mapq <int>          Set minimal mapping quality (default:0)
 	                           Default value: '0'
+	  -txt                     Writes TXT format instead of qcML.
+	                           Default value: 'false'
 	
 	Special parameters:
 	  --help                   Shows this help and exits.
@@ -31,7 +33,7 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### CfDnaQC changelog
-	CfDnaQC 2021_12-170-g1acf8802
+	CfDnaQC 2022_04-62-gc5232248
 	
 	2021-12-03 Added correllation between cfDNA samples.
 	2021-10-22 Initial version.

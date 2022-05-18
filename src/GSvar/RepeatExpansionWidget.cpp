@@ -10,6 +10,7 @@
 #include "TsvFile.h"
 #include "VcfFile.h"
 #include "GlobalServiceProvider.h"
+#include "GeneInfoDBs.h"
 
 NumericWidgetItem::NumericWidgetItem(QString text):
 	QTableWidgetItem(text)
@@ -59,6 +60,7 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	QMenu menu(ui_.repeat_expansions);
 	QAction* a_show_svg = menu.addAction("Show image of repeat");
 	a_show_svg->setEnabled(image_loc.exists);
+	QAction* a_omim = menu.addAction(QIcon(":/Icons/OMIM.png"), "Open OMIM page");
 	menu.addSeparator();
 	QAction* a_copy = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy all");
 	QAction* a_copy_sel = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy selection");
@@ -78,6 +80,12 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	else if (action==a_copy_sel)
 	{
 		GUIHelper::copyToClipboard(ui_.repeat_expansions, true);
+	}
+	else if (action==a_omim)
+	{
+		QString repeat_id = ui_.repeat_expansions->item(row, 3)->text();
+		QString gene = repeat_id.contains("_") ? repeat_id.left(repeat_id.indexOf("_")) : repeat_id;
+		GeneInfoDBs::openUrl("OMIM", gene);
 	}
 }
 

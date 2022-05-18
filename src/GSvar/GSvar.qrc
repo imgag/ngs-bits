@@ -122,5 +122,6 @@
         <file>Icons/Lock.png</file>
         <file>Icons/MosaicVariant.png</file>
         <file>Icons/Report_info.png</file>
+        <file>Icons/settings.png</file>
     </qresource>
 </RCC>

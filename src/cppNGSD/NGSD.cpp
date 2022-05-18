@@ -4634,7 +4634,7 @@ GeneSet NGSD::phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype
 	return genes;
 }
 
-GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QList<PhenotypeSource::Source> allowedSources, QList<PhenotypeEvidence::Evidence> allowedEvidences, bool recursive, bool ignore_non_phenotype_terms)
+GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QSet<PhenotypeSource> allowed_sources, QSet<PhenotypeEvidenceLevel> allowed_evidences, bool recursive, bool ignore_non_phenotype_terms)
 {
 	//prepare ignored terms
 	QSet<int> ignored_terms_ids;
@@ -4675,24 +4675,24 @@ GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QList<PhenotypeSource:
 		if (ignore_non_phenotype_terms && ignored_terms_ids.contains(id)) continue;
 		QString query = QString("SELECT gene FROM hpo_genes WHERE hpo_term_id=%1").arg(id);
 
-		if (allowedSources.length() > 0 && allowedSources.count() < PhenotypeSource::allSourceValues().count())
+		if (allowed_sources.size() > 0 && allowed_sources.count() < Phenotype::allSourceValues().count())
 		{
 			query += " and (";
-			foreach (PhenotypeSource::Source s, allowedSources)
+			foreach (PhenotypeSource s, allowed_sources)
 			{
-				query += "details like \"%" + PhenotypeSource::sourceToString(s) + "%\" or ";
+				query += "details like \"%" + Phenotype::sourceToString(s) + "%\" or ";
 			}
 			query.chop(4);
 			query.append(")");
 		}
 
-		if (allowedEvidences.length() > 0 && allowedEvidences.count() < PhenotypeEvidence::allEvidenceValues(false).count())
+		if (allowed_evidences.size() > 0 && allowed_evidences.count() < Phenotype::allEvidenceValues(false).count())
 		{
 			query += " and (";
 
-			foreach (PhenotypeEvidence::Evidence e, allowedEvidences)
+			foreach (PhenotypeEvidenceLevel e, allowed_evidences)
 			{
-				query += "evidence= \"" + PhenotypeEvidence::evidenceToString(e) + "\" or ";
+				query += "evidence= \"" + Phenotype::evidenceToString(e) + "\" or ";
 			}
 			query.chop(4);
 			query.append(")");
