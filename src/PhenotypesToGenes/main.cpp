@@ -17,18 +17,14 @@ public:
 		setDescription("Converts a phenotype list to a list of matching genes.");
 		setExtendedDescription(QStringList() << "For each given HPO term, the genes associated with the term itself and the genes associated with any sub-term are returned.");
 
-		QStringList sources;
-		sources << "ALL" << "HPO" << "OMIM" << "CLINVAR" << "DECIPHER" << "HGMC" << "GENCC";
-		addEnum("source", "Source database.", true, sources, "ALL");
-		QStringList evidences;
-		evidences << "ALL"  << "NA" << "LOW" << "MED" << "HIGH";
-		addEnum("evidence", "The level of evidence from the database.", true, evidences, "ALL");
-
 		addString("in", "Input file, containing one HPO term identifier per line, e.g. HP:0002066. Text after the identifier is ignored. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output TSV file with genes (column 1) and matched phenotypes (column 2). If unset, writes to STDOUT.", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("ignore_invalid", "Ignores invalid HPO identifiers instead of throwing an error.");
 		addFlag("ignore_non_phenotype", "Ignores HPO identifiers that are sub-terms of 'Mode of inheritance' or 'Frequency'");
+
+		addString("source", "Comma-separated list of phenotype-gene source databases.", true, "HPO,OMIM,ClinVar,Decipher,HGMD,GenCC");
+		addString("evidence", "Comma-separated list of phenotype-gene evidence levels.", true, "n/a,low,medium,high");
 
 		changeLog(2020, 11, 23, "Added parameter 'ignore_invalid'.");
 		changeLog(2020,  5, 24, "First version.");
@@ -67,25 +63,21 @@ public:
 
 				THROW(ArgumentException, "Cannot find HPO phenotype with accession '" + hpo_id + "' in NGSD!");
 			}
-			QList<PhenotypeEvidence::Evidence> evidences;
-			QList<PhenotypeSource::Source> sources;
 
-			if (getEnum("evidence") == "ALL")
+			QSet<PhenotypeSource> sources;
+			foreach(QString s, getString("source").split(','))
 			{
-				evidences = PhenotypeEvidence::allEvidenceValues(false);
-			}
-			else
-			{
-				evidences.append(PhenotypeEvidence::evidenceFromString(getEnum("evidence")));
+				s = s.trimmed();
+				if (s.isEmpty()) continue;
+				sources << Phenotype::sourceFromString(s);
 			}
 
-			if (getEnum("source") == "ALL")
+			QSet<PhenotypeEvidenceLevel> evidences;
+			foreach(QString e, getString("evidence").split(','))
 			{
-				sources = PhenotypeSource::allSourceValues();
-			}
-			else
-			{
-				sources.append(PhenotypeSource::sourceFromString(getEnum("source")));
+				e = e.trimmed();
+				if (e.isEmpty()) continue;
+				evidences << Phenotype::evidenceFromString(e);
 			}
 
 			GeneSet genes = db.phenotypeToGenesbySourceAndEvidence(id, sources, evidences, true, ignore_non_phenotype);

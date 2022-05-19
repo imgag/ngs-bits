@@ -23,7 +23,9 @@ analysis_steps_cfdna=ma - mapping, vc - SNV/InDel calling + annotation, db - dat
 
 #webservice URLs
 PrimerDesign = ""
-Alamut = ""
+alamut_host = ""
+alamut_institution = ""
+alamut_apikey = ""
 
 #proxy settings for GSvar
 proxy_host = ""

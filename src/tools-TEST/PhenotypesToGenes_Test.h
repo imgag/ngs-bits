@@ -46,7 +46,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/PhenotypesToGenes_init.sql"));
 
 		//test
-		EXECUTE("PhenotypesToGenes", "-test -in " + TESTDATA("data_in/PhenotypesToGenes_in1.txt") + " -evidence HIGH -ignore_invalid -out out/PhenotypesToGenes_out3.txt");
+		EXECUTE("PhenotypesToGenes", "-test -in " + TESTDATA("data_in/PhenotypesToGenes_in1.txt") + " -evidence high -ignore_invalid -out out/PhenotypesToGenes_out3.txt");
 		COMPARE_FILES("out/PhenotypesToGenes_out3.txt", TESTDATA("data_out/PhenotypesToGenes_out3.txt"));
 	}
 
@@ -60,7 +60,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/PhenotypesToGenes_init.sql"));
 
 		//test
-		EXECUTE("PhenotypesToGenes", "-test -in " + TESTDATA("data_in/PhenotypesToGenes_in1.txt") + " -source GENCC -evidence MED -ignore_invalid -out out/PhenotypesToGenes_out4.txt");
+		EXECUTE("PhenotypesToGenes", "-test -in " + TESTDATA("data_in/PhenotypesToGenes_in1.txt") + " -source GenCC -evidence medium -ignore_invalid -out out/PhenotypesToGenes_out4.txt");
 		COMPARE_FILES("out/PhenotypesToGenes_out4.txt", TESTDATA("data_out/PhenotypesToGenes_out4.txt"));
 	}
 };
