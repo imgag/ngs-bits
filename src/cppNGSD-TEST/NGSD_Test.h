@@ -2284,7 +2284,7 @@ private slots:
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in3.sql"));
 		//import hgnc genes:
-		EXECUTE("NGSDImportHGNC", "-test -in " + TESTDATA("data_in/NGSD_import_hgnc_set.tsv") + " -ensembl " + TESTDATA("data_in/NGSD_import_hgnc_set.tsv"));
+		EXECUTE("NGSDImportHGNC", "-test -in " + TESTDATA("data_in/NGSD_import_hgnc_set.tsv") + " -ensembl " + TESTDATA("data_in/NGSD_import_hgnc_set.tsv")); //TODO Remove dependency to tool > Leon
 
 		//Test ENSG->gene_id mapping
 		QMap<QByteArray, int> ensg_gene_mapping = db.getEnsemblGeneIdMapping();

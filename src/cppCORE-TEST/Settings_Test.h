@@ -35,6 +35,44 @@ private slots:
 		IS_FALSE(Settings::contains(key));
 	}
 
+	void stringList()
+	{
+		QString key = "unit_test_stringlist";
+
+		QStringList random;
+		random << "str_" + QString::number(Helper::randomNumber(1,1000));
+		random << "str_" + QString::number(Helper::randomNumber(1,1000));
+		random << "str_" + QString::number(Helper::randomNumber(1,1000));
+		Settings::setStringList(key, random);
+		I_EQUAL(Settings::stringList(key).count(), 3)
+		S_EQUAL(Settings::stringList(key)[0], random[0])
+		S_EQUAL(Settings::stringList(key)[1], random[1])
+		S_EQUAL(Settings::stringList(key)[2], random[2])
+
+		IS_TRUE(Settings::contains(key));
+		Settings::remove(key);
+		IS_FALSE(Settings::contains(key));
+	}
+
+	void map()
+	{
+		QString key = "unit_test_map";
+
+		QMap<QString, QVariant> random;
+		random.insert("0", QVariant((int)Helper::randomNumber(1,100)));
+		random.insert("1", QVariant(Helper::randomNumber(1,100)));
+		random.insert("2", QVariant("str_" + QString::number(Helper::randomNumber(1,1000))));
+		Settings::setMap(key, random);
+		I_EQUAL(Settings::map(key).count(), 3)
+		IS_TRUE(Settings::map(key)["0"]==random["0"])
+		IS_TRUE(Settings::map(key)["1"]==random["1"])
+		IS_TRUE(Settings::map(key)["2"]==random["2"])
+
+		IS_TRUE(Settings::contains(key));
+		Settings::remove(key);
+		IS_FALSE(Settings::contains(key));
+	}
+
 	void boolean()
 	{
 		QString key = "unit_test_boolean";
@@ -50,7 +88,8 @@ private slots:
 	void path()
 	{
 		QString key = "unit_test_path";
-		QString path = QCoreApplication::applicationDirPath();
+		QString path = Helper::canonicalPath(QCoreApplication::applicationDirPath());
+		if (!path.endsWith(QDir::separator())) path += QDir::separator();
 		Settings::setPath(key, path);
 		S_EQUAL(Settings::path(key), path)
 
@@ -61,20 +100,12 @@ private slots:
 
 	void allKeys_clear()
 	{
+		Settings::setBoolean("unit_test_boolean", 1);
 		QStringList keys = Settings::allKeys();
+		IS_TRUE(keys.contains("unit_test_boolean"));
 
 		Settings::clear();
-		IS_TRUE(Settings::allKeys().count() < keys.count()-1); //not 0 because clear() only deletes user-specific settings
+		IS_TRUE(Settings::allKeys().count() <= keys.count()); //not 0 because clear() only deletes user-specific settings
 	}
 };
 
-
-/*
-	public:
-
-	static QStringList stringList(QString key, bool optional=false);
-	static void setStringList(QString key, QStringList value);
-
-	static QMap<QString,QVariant> map(QString key, bool optional=false);
-	static void setMap(QString key, QMap<QString,QVariant> value);s
-*/
