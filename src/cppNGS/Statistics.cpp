@@ -736,7 +736,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 
 	//create coverage statistics data structure
 	long long roi_bases = 0;
-	QHash<int, QMap<int, int> > roi_cov;
+	QHash<int, QHash<int, int> > roi_cov;
 	qDebug() << "Regions count " << roi.count();
 	qDebug() << "Regions bases: " << roi.baseCount();
 	for (int i=0; i<roi.count(); ++i)
@@ -745,7 +745,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		int chr_num = line.chr().num();
 		if (!roi_cov.contains(chr_num))
 		{
-			roi_cov.insert(chr_num, QMap<int, int>());
+			roi_cov.insert(chr_num, QHash<int, int>());
 		}
 
 		for(int p=line.start(); p<=line.end(); ++p)
@@ -850,12 +850,10 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 					{
 						const int ol_start = std::max(roi[index].start(), al.start());
 						const int ol_end = std::min(roi[index].end(), al.end());
-						auto it = roi_cov[chr.num()].lowerBound(ol_start);
-						auto end = roi_cov[chr.num()].upperBound(ol_end);
-						while (it!=end)
+
+						for (int b=ol_start; b<ol_end; ++b)
 						{
-							(*it)++;
-							++it;
+							roi_cov[chr.num()][b]++;
 						}
 					}
 				}
@@ -912,11 +910,11 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 	int hist_step = 5;
 
 	Histogram depth_dist(0, hist_max, hist_step);
-	QHashIterator<int, QMap<int, int> > it(roi_cov);
+	QHashIterator<int, QHash<int, int> > it(roi_cov);
 	while(it.hasNext())
 	{
 		it.next();
-		QMapIterator<int, int> it2(it.value());
+		QHashIterator<int, int> it2(it.value());
 		while(it2.hasNext())
 		{
 			it2.next();
