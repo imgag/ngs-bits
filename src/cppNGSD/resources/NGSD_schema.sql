@@ -2192,6 +2192,8 @@ CREATE TABLE IF NOT EXISTS `expression`
   `gene_id` INT(11) UNSIGNED NOT NULL,
   `tpm` FLOAT NOT NULL,
   PRIMARY KEY (`id`),
+  INDEX(`processed_sample_id`),
+  INDEX(`gene_id`),
   UNIQUE INDEX `expression_UNIQUE` (`processed_sample_id` ASC, `gene_id` ASC),
   CONSTRAINT `fk_expression_processed_sample_id`
     FOREIGN KEY (`processed_sample_id` )
@@ -2206,4 +2208,3 @@ CREATE TABLE IF NOT EXISTS `expression`
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
-

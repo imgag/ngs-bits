@@ -2328,19 +2328,18 @@ private slots:
 		//Test expression stats:
 		QMap<QByteArray, ExpressionStats> expression_stats = db.calculateExpressionStatistics(1, "Blood");
 		F_EQUAL2(expression_stats.value("ENSG00000232596").mean, 121.091, 0.001);
-		F_EQUAL2(expression_stats.value("ENSG00000011021").stdev, 133.406, 0.001);
+		F_EQUAL2(expression_stats.value("ENSG00000011021").stddev, 133.406, 0.001);
 		F_EQUAL2(expression_stats.value("ENSG00000049245").mean, 0.0, 0.001);
-		F_EQUAL2(expression_stats.value("ENSG00000049249").stdev, 93.0873, 0.001);
+		F_EQUAL2(expression_stats.value("ENSG00000049249").stddev, 93.0873, 0.001);
 
 		expression_stats = db.calculateExpressionStatistics(1, "Skin");
 		F_EQUAL2(expression_stats.value("ENSG00000157916").mean, 47.9532, 0.001);
-		F_EQUAL2(expression_stats.value("ENSG00000049249").stdev, 151.291, 0.001);
+		F_EQUAL2(expression_stats.value("ENSG00000049249").stddev, 151.291, 0.001);
 		F_EQUAL2(expression_stats.value("ENSG00000283234").mean, 0.0, 0.001);
-		F_EQUAL2(expression_stats.value("ENSG00000159189").stdev, 88.6637, 0.001);
+		F_EQUAL2(expression_stats.value("ENSG00000159189").stddev, 88.6637, 0.001);
 
 
 	}
-
 	//Test for debugging (without initialization because of speed)
 	/*
 	void debug()

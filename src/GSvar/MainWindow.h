@@ -396,9 +396,6 @@ public slots:
 	///Updates somatic variant interpreation annotation for specific variant of GSvar file
 	void updateSomaticVariantInterpretationAnno(int index, QString vicc_interpretation, QString vicc_comment);
 
-    ///Updates current allowed sources and evidences and starts filters if changed
-    void updateAllowedSourcesAndEvidences(QList<PhenotypeEvidence::Evidence> new_evidences, QList<PhenotypeSource::Source> new_sources);
-
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
 	virtual void dropEvent(QDropEvent* e);
@@ -430,11 +427,9 @@ private:
 	VariantList mosaics_;
 	FilterResult filter_result_;
 	QString last_report_path_;
-	bool filter_phenos_;
-	PhenotypeList last_phenos_;
-	QList<PhenotypeEvidence::Evidence> last_phenotype_evidences_;
-	QList<PhenotypeSource::Source> last_phenotype_sources_;
-	BedFile last_phenos_roi_;
+	PhenotypeList last_phenos_; //phenotypes used to generate phenotype ROI (needed to check if they changed)
+	PhenotypeSettings last_pheno_settings_; //phenotype settings used to generate phenotype ROI (needed to check if they changed)
+	BedFile phenotype_roi_;
 	QHash<QByteArray, BedFile> gene2region_cache_;
 	ReportSettings report_settings_;
 	QString germline_report_ps_;

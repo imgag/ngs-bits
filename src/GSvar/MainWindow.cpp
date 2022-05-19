@@ -201,7 +201,6 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.actionDesignSubpanel, SIGNAL(triggered()), this, SLOT(openSubpanelDesignDialog()));
 	connect(ui_.filters, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 	connect(ui_.filters, SIGNAL(phenotypeSubPanelRequested()), this, SLOT(createSubPanelFromPhenotypeFilter()));
-    connect(ui_.filters, SIGNAL(phenotypeSourcesAndEvidencesChanged(QList<PhenotypeEvidence::Evidence>,QList<PhenotypeSource::Source>)), this, SLOT(updateAllowedSourcesAndEvidences(QList<PhenotypeEvidence::Evidence>,QList<PhenotypeSource::Source>)));
 
 	//variants tool bar
 	connect(ui_.vars_copy_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(copyToClipboard()));
@@ -249,15 +248,6 @@ MainWindow::MainWindow(QWidget *parent)
 	//init cache in background thread (it takes about 6 seconds)
 	CacheInitWorker* worker = new CacheInitWorker();
 	worker->start();
-
-	//init phenotype filter to accept all Values
-	last_phenotype_evidences_ = PhenotypeEvidence::allEvidenceValues(false);
-	last_phenotype_sources_ = PhenotypeSource::allSourceValues();
-	filter_phenos_ = false;
-	//give the filter widget the current state and update the tooltip:
-	ui_.filters->setAllowedPhenotypeEvidences(last_phenotype_evidences_);
-	ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
-	ui_.filters->phenotypesChanged();
 
 	// Setting a value for the current working directory. On Linux it is defined in the TMPDIR environment
 	// variable or /tmp if TMPDIR is not set. On Windows it is saved in the TEMP or TMP environment variable.
@@ -1487,7 +1477,10 @@ void MainWindow::on_actionExpressionData_triggered()
 		if (!ok) return;
 	}
 
-	ExpressionDataWidget* widget = new ExpressionDataWidget(count_file, this);
+	int sys_id = db.processingSystemIdFromProcessedSample(germlineReportSample());
+	QString tissue = db.getSampleData(sample_id).tissue;
+
+	ExpressionDataWidget* widget = new ExpressionDataWidget(count_file, sys_id, tissue, this);
 	auto dlg = GUIHelper::createDialog(widget, "Expression Data");
 	addModelessDialog(dlg, false);
 }
@@ -5179,8 +5172,6 @@ void MainWindow::on_actionPhenoToGenes_triggered()
 	try
 	{
 		PhenoToGenesDialog dlg(this);
-		dlg.setAllowedEvidences(last_phenotype_evidences_);
-		dlg.setAllowedSources(last_phenotype_sources_);
 		dlg.exec();
 	}
 	catch (DatabaseException& e)
@@ -5516,7 +5507,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	}
 
 	//Alamut
-	if (Settings::string("Alamut")!="")
+	if (Settings::contains("alamut_host") && Settings::contains("alamut_institution") && Settings::contains("alamut_apikey"))
 	{
 		sub_menu = menu.addMenu(QIcon("://Icons/Alamut.png"), "Alamut");
 
@@ -5720,7 +5711,10 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 
 			try
 			{
-				HttpHandler(HttpRequestHandler::NONE).get(Settings::string("Alamut")+"/show?request="+value);
+				QString host = Settings::string("alamut_host");
+				QString institution = Settings::string("alamut_institution");
+				QString apikey = Settings::string("alamut_apikey");
+				HttpHandler(HttpRequestHandler::NONE).get(host+"/search?institution="+institution+"&apikey="+apikey+"&request="+value);
 			}
 			catch (Exception& e)
 			{
@@ -5930,22 +5924,6 @@ void MainWindow::updateSomaticVariantInterpretationAnno(int index, QString vicc_
 	//update details widget and filtering
 	ui_.variant_details->updateVariant(variants_, index);
 	refreshVariantTable();
-}
-
-void MainWindow::updateAllowedSourcesAndEvidences(QList<PhenotypeEvidence::Evidence> new_evidences, QList<PhenotypeSource::Source> new_sources)
-{
-    if (last_phenotype_evidences_ != new_evidences)
-    {
-        filter_phenos_ = true;
-        last_phenotype_evidences_ = new_evidences;
-    }
-
-    if (last_phenotype_sources_ != new_sources)
-    {
-        filter_phenos_ = true;
-        last_phenotype_sources_ = new_sources;
-    }
-    refreshVariantTable();
 }
 
 void MainWindow::on_actionAnnotateSomaticVariantInterpretation_triggered()
@@ -6570,21 +6548,33 @@ void MainWindow::applyFilters(bool debug_time)
 		}
 		//phenotype selection changed => update ROI
 		const PhenotypeList& phenos = ui_.filters->phenotypes();
-		if ((phenos!=last_phenos_) | filter_phenos_)
+		const PhenotypeSettings& pheno_settings = ui_.filters->phenotypeSettings();
+		if (phenos!=last_phenos_ || pheno_settings!=last_pheno_settings_)
 		{
-			filter_phenos_ = false;
 			last_phenos_ = phenos;
+			last_pheno_settings_ = pheno_settings;
 
 			//convert phenotypes to genes
 			NGSD db;
 			GeneSet pheno_genes;
+			int i = 0;
 			foreach(const Phenotype& pheno, phenos)
 			{
-				pheno_genes << db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(pheno.accession()), last_phenotype_sources_, last_phenotype_evidences_, true, false);
+				GeneSet genes = db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(pheno.accession()), pheno_settings.sources, pheno_settings.evidence_levels, true, false);
+
+				if (pheno_settings.mode==PhenotypeCombimnationMode::MERGE || (pheno_settings.mode==PhenotypeCombimnationMode::INTERSECT && i==0))
+				{
+					pheno_genes << genes;
+				}
+				else
+				{
+					pheno_genes = pheno_genes.intersect(genes);
+				}
+				++i;
 			}
 
 			//convert genes to ROI (using a cache to speed up repeating queries)
-			last_phenos_roi_.clear();
+			phenotype_roi_.clear();
 			foreach(const QByteArray& gene, pheno_genes)
 			{
 				if (!gene2region_cache_.contains(gene))
@@ -6595,9 +6585,9 @@ void MainWindow::applyFilters(bool debug_time)
 					tmp.merge();
 					gene2region_cache_[gene] = tmp;
 				}
-				last_phenos_roi_.add(gene2region_cache_[gene]);
+				phenotype_roi_.add(gene2region_cache_[gene]);
 			}
-			last_phenos_roi_.merge();
+			phenotype_roi_.merge();
 
 			if (debug_time)
 			{
@@ -6607,9 +6597,9 @@ void MainWindow::applyFilters(bool debug_time)
 		}
 
 		//phenotype filter
-		if (!last_phenos_.isEmpty())
+		if (!phenotype_roi_.isEmpty())
 		{
-			FilterRegions::apply(variants_, last_phenos_roi_, filter_result_);
+			FilterRegions::apply(variants_, phenotype_roi_, filter_result_);
 
 			if (debug_time)
 			{

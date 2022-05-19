@@ -513,9 +513,8 @@ struct CPPNGSDSHARED_EXPORT ImportStatusGermline
 struct ExpressionStats
 {
 	double mean;
-	double stdev;
+	double stddev;
 };
-
 /// NGSD accessor.
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
@@ -644,10 +643,10 @@ public:
 	PhenotypeList phenotypes(const QByteArray& symbol);
 	///Returns all phenotypes matching the given search terms (or all terms if no search term is given)
 	PhenotypeList phenotypes(QStringList search_terms);
-	///Returns all genes associated to a phenotype. If "ignore_non_phenotype_terms" is set terms of the following parent terms are ignored: "Mode of inheritance", "Frequency"
+	///Returns all genes associated to a phenotype. If 'ignore_non_phenotype_terms' is set, only children of 'Phenotypic abnormality' are returned.
 	GeneSet phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype_terms=true);
-	///Returns all genes associated with a phenotype that fullfil the allowed Sources and Evidences criteria. If "ignore_non_phenotype_terms" is set terms of the following parent terms are ignored: "Mode of inheritance", "Frequency"
-	GeneSet phenotypeToGenesbySourceAndEvidence(int id, QList<PhenotypeSource::Source> allowedSources, QList<PhenotypeEvidence::Evidence> allowedEvidences, bool recursive, bool ignore_non_phenotype_terms);
+	///Returns all genes associated with a phenotype that fullfil the allowed source/evidence criteria. If 'ignore_non_phenotype_terms' is set, only children of 'Phenotypic abnormality' are returned.
+	GeneSet phenotypeToGenesbySourceAndEvidence(int id, QSet<PhenotypeSource> allowed_sources, QSet<PhenotypeEvidenceLevel> allowed_evidences, bool recursive, bool ignore_non_phenotype_terms=true);
 	///Returns all child terms of the given phenotype
 	PhenotypeList phenotypeChildTerms(int term_id, bool recursive);
 	///Returns all parent terms of the given phenotype

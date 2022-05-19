@@ -1,5 +1,5 @@
 ### NGSDExportSamples tool help
-	NGSDExportSamples (2021_12-170-g1acf8802)
+	NGSDExportSamples (2022_04-62-gc5232248)
 	
 	Lists processed samples from the NGSD.
 	
@@ -56,7 +56,7 @@
 	                           Default value: 'false'
 	  -add_path <enum>         Adds a column with the given path type.
 	                           Default value: ''
-	                           Valid: ',SAMPLE_FOLDER,BAM,VCF,GSVAR,COPY_NUMBER_CALLS,STRUCTURAL_VARIANTS'
+	                           Valid: ',SAMPLE_FOLDER,BAM,VCF,GSVAR,COPY_NUMBER_CALLS,STRUCTURAL_VARIANTS,MOSAIC_VARIANTS'
 	  -add_report_config       Adds a column with report configuration information (exists/has_small_variants/has_cnvs).
 	                           Default value: 'false'
 	  -add_comments            Adds sample and processed sample comments columns.
@@ -71,7 +71,7 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportSamples changelog
-	NGSDExportSamples 2021_12-170-g1acf8802
+	NGSDExportSamples 2022_04-62-gc5232248
 	
 	2022-03-03 Added 'disease_group', 'disease_status', 'project_type' and 'tissue' filter options.
 	2021-04-29 Added 'run_before' filter option.
