@@ -18,6 +18,8 @@ enum class ReportConfigFilter
 };
 
 //Filter manager dock widget
+//The filter list is not populated automatically, since we need to get the database
+//credentials first. As soon as the user logs in, the app calls loadTargetRegions()
 class FilterWidget
 	: public QWidget
 {
