@@ -11,6 +11,8 @@
 #include <QMessageBox>
 #include "RepeatExpansionWidget.h"
 #include "LoginManager.h"
+#include <QChartView>
+QT_CHARTS_USE_NAMESPACE
 
 
 
@@ -35,6 +37,7 @@ ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, int sys_id, QSt
 	connect(ui_->expression_data->horizontalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(applyFilters()));
 	connect(ui_->btn_copy_table,SIGNAL(clicked()),this,SLOT(copyToClipboard()));
 	connect(ui_->sa_biotype,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showBiotypeContextMenu(QPoint)));
+	connect(ui_->expression_data,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showExpressionTableContextMenu(QPoint)));
 
 	// set context menus for biotype filter
 	ui_->sa_biotype->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -373,6 +376,51 @@ void ExpressionDataWidget::selectAllBiotypes(bool deselect)
 	foreach (QCheckBox* cb_biotype, ui_->sawc_biotype->findChildren<QCheckBox*>())
 	{
 		cb_biotype->setChecked(!deselect);
+	}
+}
+
+void ExpressionDataWidget::showHistogram(int row_idx)
+{
+	QString ensg = ui_->expression_data->item(row_idx, 0)->text();
+	QVector<double> expr_values = NGSD().getExpressionValues(ensg, sys_id_, tissue_);
+	//create histogram
+	std::sort(expr_values.begin(), expr_values.end());
+	double median = BasicStatistics::median(expr_values,false);
+	double max = ceil(median*2+0.0001);
+	Histogram hist(0.0, max, max/40);
+	foreach(double expr_value, expr_values)
+	{
+		hist.inc(expr_value, true);
+	}
+
+	//show chart
+	QChartView* view = GUIHelper::histogramChart(hist, "Expression value distribution (TPM)");
+	auto dlg = GUIHelper::createDialog(view, "Expression value distribution (" + ensg + ")");
+	dlg->exec();
+}
+
+void ExpressionDataWidget::showExpressionTableContextMenu(QPoint pos)
+{
+	qDebug() << "Here";
+	// get row
+	QModelIndexList rows = ui_->expression_data->selectionModel()->selectedRows();
+	if(rows.count() != 1) return;
+	int row = rows.at(0).row();
+
+	// create menu
+	QMenu menu(ui_->expression_data);
+	QAction* a_show_histogram = menu.addAction("Show histogram");
+	// execute menu
+	QAction* action = menu.exec(ui_->sa_biotype->viewport()->mapToGlobal(pos));
+	if (action == nullptr) return;
+	// react
+	if (action == a_show_histogram)
+	{
+		showHistogram(row);
+	}
+	else
+	{
+		THROW(ProgrammingException, "Invalid menu action in context menu selected!")
 	}
 }
 

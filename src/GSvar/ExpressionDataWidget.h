@@ -21,6 +21,8 @@ private slots:
 	void copyToClipboard();
 	void showBiotypeContextMenu(QPoint pos);
 	void selectAllBiotypes(bool deselect=false);
+	void showHistogram(int row_idx);
+	void showExpressionTableContextMenu(QPoint pos);
 
 private:
 	void loadExpressionData();
