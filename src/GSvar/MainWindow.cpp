@@ -3290,6 +3290,29 @@ void MainWindow::checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues)
 			}
 		}
 	}
+
+	//check GenLab Labornummer is present (for diagnostic samples only)
+	if (GenLabDB::isAvailable() || NGSD::isAvailable())
+	{
+		NGSD db;
+		foreach(const SampleInfo& info, variants_.getSampleHeader())
+		{
+			QString ps_name = info.id;
+			QString ps_id = db.processedSampleId(ps_name, false);
+			if (ps_id=="") continue; //not in NGSD
+
+			QString project_type = db.getValue("SELECT p.type FROM processed_sample ps, project p WHERE p.id=ps.project_id AND ps.id=" + ps_id).toString();
+			if (project_type=="diagnostic")
+			{
+				GenLabDB genlab;
+				QString genlab_patient_id = genlab.patientIdentifier(ps_name);
+				if (genlab_patient_id.isEmpty())
+				{
+					issues << qMakePair(Log::LOG_WARNING, QString("GenLab Labornummer probably not set correctly for dianostic sample '" + ps_name + "'. Please correct the Labornummer in GenLab!"));
+				}
+			}
+		}
+	}
 }
 
 void MainWindow::checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>>& issues)

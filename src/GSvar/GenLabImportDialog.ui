@@ -6,20 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>900</width>
-    <height>400</height>
+    <width>1200</width>
+    <height>500</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>900</width>
-    <height>400</height>
+    <width>1200</width>
+    <height>500</height>
    </size>
   </property>
   <property name="windowTitle">
    <string>GenLab import</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <layout class="QGridLayout" name="gridLayout" rowstretch="0,1,0" columnstretch="1,0,0">
    <property name="leftMargin">
     <number>3</number>
    </property>
@@ -36,6 +36,26 @@
     <number>3</number>
    </property>
    <item row="0" column="0" colspan="2">
+    <widget class="QLabel" name="label">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>This dialog imports sample meta data from GenLab, if it is not already in the NGSD. Please check the lines you want to import.</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
+    <widget class="QCheckBox" name="show_in_ngsd">
+     <property name="text">
+      <string>also show data already in NGSD</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="3">
     <widget class="QTableWidget" name="table">
      <property name="editTriggers">
       <set>QAbstractItemView::NoEditTriggers</set>
@@ -71,8 +91,11 @@
      </column>
     </widget>
    </item>
-   <item row="1" column="0" colspan="2">
+   <item row="2" column="0" colspan="3">
     <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
@@ -92,8 +115,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>221</x>
+     <y>488</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -108,8 +131,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>289</x>
+     <y>494</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
