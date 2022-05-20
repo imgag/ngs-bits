@@ -83,7 +83,7 @@ struct RegionDepth
 
 	int count()
 	{
-		return start_-end_;
+		return end_-start_;
 	}
 };
 
@@ -967,14 +967,18 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 	Histogram depth_dist(0, hist_max, hist_step);
 	for(int i=0; i<roi_cov.count(); ++i)
 	{
-		if (std::accumulate(roi_cov[i].depth_.begin(), roi_cov[i].depth_.end(), 0) != 0)
-		{
-//			qDebug() << roi_cov[i].depth_;
-		}
-
+		int count_all = 0;
+		int count_non_zero = 0;
+		long long total_depth_bases = 0;
 		for(int j=0; j<roi_cov[i].count(); ++j)
 		{
-			int depth = roi_cov[i][j];
+			int depth = roi_cov[i].depth_[j];
+			count_all++;
+			if (depth != 0)
+			{
+				count_non_zero++;
+				total_depth_bases += depth;
+			}
 			depth_dist.inc(depth, true);
 
 			if(depth>=half_depth)
@@ -982,6 +986,10 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 				++bases_covered_at_least_half_depth;
 			}
 		}
+		qDebug() <<"region length: " << count_all;
+		qDebug() <<"region non zero depth: " << count_non_zero;
+		qDebug() <<"Total non zero depth: " << total_depth_bases;
+
 	}
 
 	//calculate AT/GC dropout
