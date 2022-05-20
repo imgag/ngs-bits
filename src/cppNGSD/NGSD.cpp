@@ -1556,10 +1556,10 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id
 		THROW(ArgumentException, "'" +  tissue_type + "' is not a valid tissue type in the NGSD!")
 	}
 
-	//get ENSG -> id mapping
-	QMap<QByteArray,int> gene_mapping = getEnsemblGeneIdMapping();
-	qDebug() << "Get ENSG --> gene_id mapping: " << Helper::elapsedTime(timer);
-	timer.restart();
+//	//get ENSG -> id mapping
+//	QMap<QByteArray,int> gene_mapping = getEnsemblGeneIdMapping();
+//	qDebug() << "Get ENSG --> gene_id mapping: " << Helper::elapsedTime(timer);
+//	timer.restart();
 
 
 //	//prepare queries

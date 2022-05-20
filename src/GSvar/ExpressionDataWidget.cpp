@@ -513,6 +513,7 @@ void ExpressionDataWidget::loadExpressionData()
 	ui_->expression_data->setRowCount(expression_data.rowCount());
 	for(int row_idx=0; row_idx<expression_data.rowCount(); ++row_idx)
 	{
+
 		QStringList row = expression_data.row(row_idx);
 		QByteArray ensg = row.at(column_indices.at(0)).toUtf8();
 		double tpm = Helper::toDouble(row.at(column_indices.at(column_names_.indexOf("tpm"))), "tpm", QString::number(row_idx));
