@@ -173,7 +173,9 @@ QByteArray DatabaseServiceRemote::makeGetApiCall(QString url_param, bool ignore_
 {	
 	try
 	{		
-		return HttpRequestHandler(HttpRequestHandler::NONE).get(NGSHelper::serverApiUrl() + url_param + getTokenIfExists(), defaultHeaders());
+		HttpHeaders get_headers = defaultHeaders();
+		get_headers.insert("Content-Type", "text/plain");
+		return HttpRequestHandler(HttpRequestHandler::NONE).get(NGSHelper::serverApiUrl() + url_param + getTokenIfExists(), get_headers);
 	}
 	catch (Exception& e)
 	{
@@ -190,7 +192,9 @@ QByteArray DatabaseServiceRemote::makePostApiCall(QString url_param, QString con
 {
 	try
 	{
-		return HttpRequestHandler(HttpRequestHandler::NONE).post(NGSHelper::serverApiUrl() + url_param + getTokenIfExists(), content.toLocal8Bit(), defaultHeaders());
+		HttpHeaders post_headers = defaultHeaders();
+		post_headers.insert("Content-Type", "application/x-www-form-urlencoded");
+		return HttpRequestHandler(HttpRequestHandler::NONE).post(NGSHelper::serverApiUrl() + url_param + getTokenIfExists(), content.toLocal8Bit(), post_headers);
 	}
 	catch (Exception& e)
 	{

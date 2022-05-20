@@ -1813,6 +1813,18 @@ void MainWindow::delayedInitialization()
 	{
 		LoginDialog dlg(this);
 		dlg.exec();
+
+		if (LoginManager::active())
+		{
+			try
+			{
+				ui_.filters->loadTargetRegions();
+			}
+			catch(Exception& e)
+			{
+				Log::warn("Target region data for filter widget could not be loaded from NGSD: " + e.message());
+			}
+		}
 	}
 
 	//init GUI
@@ -5518,7 +5530,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		}
 
 		//genomic location
-		QString loc = buildToString(GSvarHelper::build()) + ":" + variant.chr().str() + ":" + QByteArray::number(variant.start());
+		QString loc = variant.chr().str() + ":" + QByteArray::number(variant.start());
 		loc.replace("chrMT", "chrM");
 		sub_menu->addAction(loc);
 		sub_menu->addAction(loc + variant.ref() + ">" + variant.obs());

@@ -43,6 +43,8 @@ void UrlManager::saveUrlToFile(QString id, UrlEntity in)
 
 void UrlManager::restoreFromFile()
 {
+	// the method is not intended to be used when the server is running, since
+	// we do not handle concurrency
 	if (QFile(ServerHelper::getUrlStorageBackupFileName()).exists())
 	{
 		if (instance().backup_file_.data()->isOpen()) instance().backup_file_.data()->close();
@@ -120,10 +122,11 @@ UrlEntity UrlManager::getURLById(const QString& id)
 
 void UrlManager::removeExpiredUrls()
 {	
+	// URL lifetime in seconds
 	int url_lifetime = ServerHelper::getNumSettingsValue("url_lifetime");
 	if (url_lifetime == 0)
 	{
-		url_lifetime = 1;
+		url_lifetime = 600; // default value, if not set in the config
 	}
 
 	QList<QString> to_be_removed {};
