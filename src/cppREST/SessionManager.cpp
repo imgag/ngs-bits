@@ -43,6 +43,7 @@ void SessionManager::restoreFromFile()
 {
 	if (QFile(ServerHelper::getSessionBackupFileName()).exists())
 	{		
+		int restored_items = 0;
 		if (instance().backup_file_.data()->isOpen()) instance().backup_file_.data()->close();
 		instance().backup_file_ = Helper::openFileForReading(ServerHelper::getSessionBackupFileName());
 		while(!instance().backup_file_.data()->atEnd())
@@ -53,9 +54,11 @@ void SessionManager::restoreFromFile()
 			QList<QString> line_list = line.split("\t");
 			if (line_list.count() > 3)
 			{
+				restored_items++;
 				addNewSession(line_list[0], Session(line_list[1].toInt(), QDateTime::fromString(line_list[2]), line_list[3].toInt()), false);
 			}
 		}
+		Log::info("Number of restored sessions: " + QString::number(restored_items));
 		instance().backup_file_.data()->close();
 
 		instance().backup_file_ = Helper::openFileForWriting(ServerHelper::getSessionBackupFileName(), false, false);
@@ -70,7 +73,7 @@ void SessionManager::restoreFromFile()
 	}
 	else
 	{
-		Log::info("Session backup has not been found");
+		Log::info("Session backup has not been found: nothing to restore");
 	}
 }
 
@@ -141,12 +144,12 @@ Session SessionManager::getSessionBySecureToken(QString token)
 
 bool SessionManager::isSessionExpired(Session in)
 {
+	// Session lifetime in seconds
 	qint64 valid_period = ServerHelper::getNumSettingsValue("session_duration");
-	if (valid_period == 0) valid_period = 3600;
+	if (valid_period == 0) valid_period = 3600; // default value, if not set in the config
 
 	if (in.login_time.addSecs(valid_period).toSecsSinceEpoch() < QDateTime::currentDateTime().toSecsSinceEpoch())
-	{
-		qDebug() << "Secure token has expired. Session is being removed";
+	{		
 		removeSession(in.user_id, in.login_time);
 		return true;
 	}
