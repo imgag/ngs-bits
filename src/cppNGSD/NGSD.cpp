@@ -549,7 +549,6 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 		output.sample_groups << SampleGroup{ group_query.value(0).toString(), group_query.value(0).toString() };
 	}
 
-
 	return output;
 }
 
