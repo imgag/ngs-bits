@@ -49,7 +49,7 @@ public:
 		//init
 		QString roi_file = getInfile("roi");
 		bool wgs = getFlag("wgs");
-        bool rna = getFlag("rna");
+		bool rna = getFlag("rna");
 		QString in = getInfile("in");
 		QString ref_file = getInfile("ref");
 		if (ref_file=="") ref_file = Settings::string("reference_genome", true);
@@ -62,12 +62,12 @@ public:
 
 		QString somatic_custom_roi_file = getInfile("somatic_custom_bed");
 
-        // check that just one of roi_file, wgs, rna is set
+		// check that just one of roi_file, wgs, rna is set
 		int parameters_set =  std::max((roi_file!="" ? 1 : 0) + rna, wgs + rna);
-        if (parameters_set!=1)
-        {
+		if (parameters_set!=1)
+		{
 			THROW(CommandLineParsingException, "You have to use the parameters 'roi', or 'rna', or 'wgs', or 'wgs' + 'roi'!");
-        }
+		}
 		if (cfdna && (roi_file == ""))
 		{
 			 THROW(CommandLineParsingException, "The flag 'cfdna' can only be used with parameter 'roi'!");
@@ -76,7 +76,7 @@ public:
 		QStringList parameters;
 		QCCollection metrics;
 		if (wgs)
-        {
+		{
 			metrics = Statistics::mapping_wgs(in, roi_file, min_mapq, ref_file);
 
 			//parameters
@@ -86,17 +86,17 @@ public:
 				parameters << "-roi" << QFileInfo(roi_file).fileName();
 			}
 		}
-        else if(rna)
+		else if(rna)
 		{
 			metrics = Statistics::mapping(in, min_mapq, ref_file);
 
-            //parameters
-            parameters << "-rna";
-        }
-        else
-        {
+			//parameters
+			parameters << "-rna";
+		}
+		else
+		{
 			//load ROI
-            BedFile roi;
+			BedFile roi;
 			roi.load(roi_file);
 			roi.merge();
 
@@ -106,7 +106,7 @@ public:
 			//parameters
 			parameters << "-roi" << QFileInfo(roi_file).fileName();
 			if (cfdna) parameters << "-cfdna";
-        }
+		}
 
 		//sample contamination
 		QCCollection metrics_cont;

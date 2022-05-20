@@ -20,6 +20,75 @@
 #include "FilterCascade.h"
 #include "ToolBase.h"
 
+
+struct RegionDepth
+{
+	Chromosome chr_;
+	int start_;
+	int end_;
+	QVector<int> depth_;
+
+	RegionDepth(Chromosome chr, int start, int end):
+	  chr_(chr)
+	, start_(start)
+	, end_(end)
+	{
+		depth_ = QVector<int>(end_-start_);
+		depth_.fill(0);
+	}
+
+	//for QContainers
+	RegionDepth()
+	{
+		chr_ = Chromosome();
+		start_ = -1;
+		end_ = -1;
+		depth_ = QVector<int>();
+	}
+
+	~RegionDepth()
+	{
+	}
+
+	void increment_region(int start, int end)
+	{
+		int idx_start = std::max(start, start_) - start_;
+		int idx_end = std::min(end, end_) - start_;
+		for (int i=idx_start; i<idx_end; ++i)
+		{
+			depth_[i] += 1;
+		}
+	}
+
+	int operator[](int index)
+	{
+		return depth_[index];
+	}
+
+	//Interface for ChromosomalIndex
+	Chromosome chr()
+	{
+		return chr_;
+	}
+
+	int start()
+	{
+		return start_;
+	}
+
+	int end()
+	{
+		return end_;
+	}
+
+	int count()
+	{
+		return start_-end_;
+	}
+};
+
+
+
 QCCollection Statistics::variantList(VcfFile variants, bool filter)
 {
 	//support only single sample vcf files
@@ -27,7 +96,6 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 	{
 		THROW(FileParseException, "Can not generate QCCollection for a vcf file with multiple samples.");
 	}
-
 
 	QCCollection output;
 
@@ -735,26 +803,19 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 	qDebug() << "Loaded files to indices";
 
 	//create coverage statistics data structure
-	long long roi_bases = 0;
-	QHash<int, QHash<int, int> > roi_cov;
+//	QHash<int, QHash<int, int> > roi_cov;
 	qDebug() << "Regions count " << roi.count();
 	qDebug() << "Regions bases: " << roi.baseCount();
+	long long roi_bases = 0;
+	QVector<RegionDepth> roi_cov(roi.count());
+
 	for (int i=0; i<roi.count(); ++i)
 	{
 		const BedLine& line = roi[i];
-		int chr_num = line.chr().num();
-		if (!roi_cov.contains(chr_num))
-		{
-			roi_cov.insert(chr_num, QHash<int, int>());
-		}
-
-		for(int p=line.start(); p<=line.end(); ++p)
-		{
-			roi_cov[chr_num].insert(p, 0);
-		}
+		roi_cov[i] = RegionDepth(line.chr(), line.start(), line.end());
 		roi_bases += line.length();
 	}
-
+	qDebug() << "Roi bases calculated: " << roi_bases;
 	qDebug() << "created coverage structure";
 
 	//prepare At/GC dropout data structure
@@ -848,13 +909,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 					QVector<int> indices = roi_index.matchingIndices(chr, al.start(), al.end());
 					foreach(int index, indices)
 					{
-						const int ol_start = std::max(roi[index].start(), al.start());
-						const int ol_end = std::min(roi[index].end(), al.end());
-
-						for (int b=ol_start; b<ol_end; ++b)
-						{
-							roi_cov[chr.num()][b]++;
-						}
+						roi_cov[index].increment_region(al.start(), al.end());
 					}
 				}
 
@@ -903,23 +958,23 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 	qDebug() << "finished iterating through alignments";
 
 	//calculate coverage depth statistics
-	double avg_depth = (double) bases_usable_roi / roi_bases;
+	double avg_depth = (double) bases_usable_roi / roi.baseCount();
 	int half_depth = std::round(0.5*avg_depth);
 	long long bases_covered_at_least_half_depth = 0;
 	int hist_max = 599;
 	int hist_step = 5;
 
 	Histogram depth_dist(0, hist_max, hist_step);
-	QHashIterator<int, QHash<int, int> > it(roi_cov);
-	while(it.hasNext())
+	for(int i=0; i<roi_cov.count(); ++i)
 	{
-		it.next();
-		QHashIterator<int, int> it2(it.value());
-		while(it2.hasNext())
+		if (std::accumulate(roi_cov[i].depth_.begin(), roi_cov[i].depth_.end(), 0) != 0)
 		{
-			it2.next();
+//			qDebug() << roi_cov[i].depth_;
+		}
 
-			int depth = it2.value();
+		for(int j=0; j<roi_cov[i].count(); ++j)
+		{
+			int depth = roi_cov[i][j];
 			depth_dist.inc(depth, true);
 
 			if(depth>=half_depth)
