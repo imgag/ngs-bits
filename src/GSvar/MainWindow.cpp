@@ -1477,10 +1477,29 @@ void MainWindow::on_actionExpressionData_triggered()
 		if (!ok) return;
 	}
 
-	int sys_id = db.processingSystemIdFromProcessedSample(germlineReportSample());
-	QString tissue = db.getSampleData(sample_id).tissue;
+	int rna_sys_id = db.processingSystemIdFromProcessedSample(count_file);
+	QString tissue = db.getSampleData(db.sampleId(count_file)).tissue;
 
-	ExpressionDataWidget* widget = new ExpressionDataWidget(count_file, sys_id, tissue, this);
+	GeneSet genes;
+	if(ui_.filters->genes().count() > 0)
+	{
+		genes = ui_.filters->genes();
+	}
+	else if(ui_.filters->phenotypes().count() > 0)
+	{
+		foreach (const Phenotype& phenotype, ui_.filters->phenotypes())
+		{
+			genes << db.phenotypeToGenes(db.phenotypeIdByAccession(phenotype.accession()), false);
+		}
+	}
+	else if(ui_.filters->targetRegion().isValid())
+	{
+		genes = ui_.filters->targetRegion().genes;
+	}
+
+
+
+	ExpressionDataWidget* widget = new ExpressionDataWidget(count_file, rna_sys_id, tissue, genes.toStringList().join(", "), this);
 	auto dlg = GUIHelper::createDialog(widget, "Expression Data");
 	addModelessDialog(dlg, false);
 }

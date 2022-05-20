@@ -727,7 +727,7 @@ public:
 	///Creates a mapping from ENSG ensembl identifier to NGSD gene ids
 	QMap<QByteArray, int> getEnsemblGeneIdMapping();
 	///Returns a list of all expression values for a given ENSG
-	QVector<double> getExpressionValues(const QString& ensg, int sys_id, const QString& tissue_type);
+	QVector<double> getExpressionValues(const QString& ensg, int sys_id, const QString& tissue_type, bool allow_empty=false);
 
 	/***User handling functions ***/
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.

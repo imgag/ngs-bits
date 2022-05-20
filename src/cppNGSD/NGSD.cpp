@@ -1528,14 +1528,17 @@ QMap<QByteArray, int> NGSD::getEnsemblGeneIdMapping()
 	return mapping;
 }
 
-QVector<double> NGSD::getExpressionValues(const QString& ensg, int sys_id, const QString& tissue_type)
+QVector<double> NGSD::getExpressionValues(const QString& ensg, int sys_id, const QString& tissue_type, bool allow_empty)
 {
-	int gene_id = getValue("SELECT id FROM gene WHERE ensembl_id=:0", false, ensg).toInt();
+	QVector<double> expr_values;
+	QString gene_id = getValue("SELECT id FROM gene WHERE ensembl_id=:0", allow_empty, ensg).toString();
+	if (gene_id.isEmpty()) return expr_values;
+
 	QStringList expr_values_str = getValues(QString() + "SELECT ev.tpm FROM `expression` ev "
 											  + "INNER JOIN `processed_sample` ps ON ev.processed_sample_id = ps.id "
 											  + "INNER JOIN `sample` s ON ps.sample_id = s.id "
-											  + "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue=:0 AND ev.gene_id=" + QString::number(gene_id), tissue_type);
-	QVector<double> expr_values;
+											  + "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue=:0 AND ev.gene_id=" + gene_id, tissue_type);
+
 	foreach (const QString& value, expr_values_str)
 	{
 		expr_values << Helper::toDouble(value);
