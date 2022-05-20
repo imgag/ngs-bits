@@ -7,7 +7,6 @@
 #include "SomaticReportSettings.h"
 #include "NGSD.h"
 #include "XmlHelper.h"
-#include "GenLabDB.h"
 #include "SomaticXmlReportGenerator.h"
 #include "SomaticVariantInterpreter.h"
 #include "LoginManager.h"
