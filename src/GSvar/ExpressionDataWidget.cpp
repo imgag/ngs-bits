@@ -404,7 +404,7 @@ void ExpressionDataWidget::showHistogram(int row_idx)
 	}
 
 	//show chart
-	QChartView* view = GUIHelper::histogramChart(hist, "Expression value distribution (TPM)");
+	QChartView* view = GUIHelper::histogramChart(hist, "Expression value distribution (TPM, " + expr_values + " samples)");
 	auto dlg = GUIHelper::createDialog(view, "Expression value distribution (" + ensg + ")");
 	dlg->exec();
 }
