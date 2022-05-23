@@ -11,13 +11,14 @@
 #include "DBEditor.h"
 #include "GSvarHelper.h"
 #include "LoginManager.h"
-#include "GenLabDB.h"
 #include "GlobalServiceProvider.h"
 #include <QMessageBox>
 #include "GlobalServiceProvider.h"
 #include "AnalysisInformationWidget.h"
 #include "ExpressionDataWidget.h"
 #include "FusionWidget.h"
+#include "GenLabImportDialog.h"
+#include "GenLabDB.h"
 
 ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	: QWidget(parent)
@@ -47,8 +48,8 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(ui_->normal_sample, SIGNAL(linkActivated(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(ui_->reanalyze_btn, SIGNAL(clicked(bool)), this, SLOT(queueSampleAnalysis()));
 	connect(ui_->analysis_info_btn, SIGNAL(clicked(bool)), this, SLOT(showAnalysisInfo()));
-	connect(ui_->genlab_disease_btn, SIGNAL(clicked(bool)), this, SLOT(editDiseaseGroupAndInfo()));
-	connect(ui_->genlab_relations_btn, SIGNAL(clicked(bool)), this, SLOT(importSampleRelations()));
+	connect(ui_->genlab_import_btn, SIGNAL(clicked(bool)), this, SLOT(genLabImportDialog()));
+	ui_->genlab_import_btn->setEnabled(GenLabDB::isAvailable());
 
 	//check user has access rights
 	NGSD db;
@@ -707,21 +708,6 @@ void ProcessedSampleWidget::editDiagnosticStatus()
 	updateGUI();
 }
 
-void ProcessedSampleWidget::editDiseaseGroupAndInfo()
-{
-	NGSD db;
-
-	QString ps_name = processedSampleName();
-	QString sample_id = db.sampleId(ps_name);
-
-	DiseaseInfoWidget* widget = new DiseaseInfoWidget(ps_name, sample_id, this);
-	auto dlg = GUIHelper::createDialog(widget, "Disease information", "", true);
-	if (dlg->exec() != QDialog::Accepted) return;
-
-	db.setSampleDiseaseData(sample_id, widget->diseaseGroup(), widget->diseaseStatus());
-	updateGUI();
-}
-
 void ProcessedSampleWidget::editDiseaseDetails()
 {
 	NGSD db;
@@ -737,34 +723,21 @@ void ProcessedSampleWidget::editDiseaseDetails()
 	updateGUI();
 }
 
-void ProcessedSampleWidget::importSampleRelations()
+void ProcessedSampleWidget::genLabImportDialog()
 {
-	//init
-	NGSD db;
-	QString ps_name = db.processedSampleName(ps_id_);
-	int s_id = db.sampleId(ps_name).toInt();
-
-	//import
-	int c_before = db.relatedSamples(s_id).count();
-	QString error;
 	try
 	{
-		QList<SampleRelation> relations = GenLabDB().relatives(ps_name);
-		foreach(const SampleRelation& rel, relations)
+		GenLabImportDialog dlg(ps_id_, this);
+
+		if (dlg.exec()==QDialog::Accepted)
 		{
-			db.addSampleRelation(rel);
+			dlg.importSelectedData();
 		}
 	}
-	catch (Exception& e)
+	catch(Exception& e)
 	{
-		error = "\n\nWarning: An error occurred:\n" + e.message();
+		GUIHelper::showException(this, e, "GenLab data import");
 	}
-
-	//show result to user
-	int c_after = db.getValue("SELECT count(*) FROM sample_relations WHERE sample1_id='"+QString::number(s_id)+"' OR sample2_id='"+QString::number(s_id)+"'").toInt();
-	QMessageBox::information(this, "Sample relation import", "Imported " + QString::number(c_after-c_before) + " sample relations from GenLab!" + error);
-
-	updateGUI();
 }
 
 void ProcessedSampleWidget::edit()

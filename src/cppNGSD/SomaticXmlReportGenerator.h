@@ -4,7 +4,6 @@
 #include "cppNGSD_global.h"
 #include "NGSD.h"
 #include "GeneSet.h"
-#include "GenLabDB.h"
 #include "SomaticReportConfiguration.h"
 #include "SomaticReportSettings.h"
 #include "RtfDocument.h"

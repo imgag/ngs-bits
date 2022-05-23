@@ -47,6 +47,7 @@ void UrlManager::restoreFromFile()
 	// we do not handle concurrency
 	if (QFile(ServerHelper::getUrlStorageBackupFileName()).exists())
 	{
+		int restored_items = 0;
 		if (instance().backup_file_.data()->isOpen()) instance().backup_file_.data()->close();
 		instance().backup_file_ = Helper::openFileForReading(ServerHelper::getUrlStorageBackupFileName());
 		while(!instance().backup_file_.data()->atEnd())
@@ -58,9 +59,11 @@ void UrlManager::restoreFromFile()
 			if (line_list.count() > 4)
 			{
 				bool ok;
+				restored_items++;
 				addNewUrl(line_list[0], UrlEntity(line_list[1], line_list[2], line_list[3], line_list[4], QDateTime::fromSecsSinceEpoch(line_list[5].toLongLong(&ok,10))), false);
 			}
 		}
+		Log::info("Number of restored URLs: " + QString::number(restored_items));
 		instance().backup_file_.data()->close();
 
 		removeExpiredUrls();
@@ -75,7 +78,7 @@ void UrlManager::restoreFromFile()
 	}
 	else
 	{
-		Log::info("URL backup has not been found");
+		Log::info("URL backup has not been found: nothing to restore");
 	}
 }
 

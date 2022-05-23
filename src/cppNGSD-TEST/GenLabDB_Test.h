@@ -148,12 +148,22 @@ private slots:
 
 	void patientIdentifier()
 	{
-
 		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab Database!");
 
 		GenLabDB db;
 		S_EQUAL(db.patientIdentifier("DXtest1"), "179158");
 		S_EQUAL(db.patientIdentifier("DXtest2"), "179159");
+	}
+
+	void studies()
+	{
+		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab Database!");
+
+		GenLabDB db;
+		I_EQUAL(db.studies("DXtest1").count(), 2);
+		S_EQUAL(db.studies("DXtest1")[0], "DISCO-TWIN");
+		S_EQUAL(db.studies("DXtest1")[1], "Genome+");
+		I_EQUAL(db.studies("DXtest2").count(), 0);
 	}
 };
 

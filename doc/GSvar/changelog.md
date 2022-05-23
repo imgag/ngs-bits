@@ -1,5 +1,13 @@
 # GSvar change log
 
+### 2222_04-109 (20.05.22)
+- General: Added support for mosaic variants (called in gene exon and splice regions only).
+- General: Variant tab can now be opened using different notations (GSvar, VCF, gnomAD and HGVS.c).
+- Small variant filters: added phenotype settings (source, evidence level, intersection)
+- Phenotype selection: added context menu entry to add parents of selected phenotype.
+- Small variant details: removed 1000g AF and added gnomAD het/wt counts.
+- Small variant details: RefSeq matches to Ensembl transcripts are now shown.
+
 ### 2022_04-10 (21.04.22)
 - Report: added functionality to document causal varaints that are not small variants, CNVs or SVs.
 

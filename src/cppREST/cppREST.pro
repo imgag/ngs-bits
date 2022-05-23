@@ -76,7 +76,6 @@ HEADERS += \
     SslServer.h \
     UrlManager.h
 
-RESOURCES += \
-    cppREST.qrc
+RESOURCES +=
 
 DISTFILES +=
