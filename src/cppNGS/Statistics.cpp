@@ -60,7 +60,8 @@ struct RegionDepth
 		}
 	}
 
-	int operator[](int index)
+	//read write access
+	int& operator[](int index)
 	{
 		return depth_[index];
 	}
@@ -816,7 +817,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		roi_bases += line.length();
 	}
 	qDebug() << "Roi bases calculated: " << roi_bases;
-	qDebug() << "created coverage structure";
+	qDebug() << "created coverage structure " << timer.elapsed() / 1000.0 << "s";
 
 	//prepare At/GC dropout data structure
 	BedFile dropout;
@@ -843,7 +844,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 	}
 	ChromosomalIndex<BedFile> dropout_index(dropout);
 
-	qDebug() << "created data structures.";
+	qDebug() << "created data structures. "  << timer.elapsed() / 1000.0 << "s";
 
 	//init counts
 
@@ -955,7 +956,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 			++al_dup;
 		}
 	}
-	qDebug() << "finished iterating through alignments";
+	qDebug() << "finished iterating through alignments "  << timer.elapsed() / 1000.0/60.0 << "min";
 
 	//calculate coverage depth statistics
 	double avg_depth = (double) bases_usable_roi / roi.baseCount();
