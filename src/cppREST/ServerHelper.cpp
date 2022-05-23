@@ -1,4 +1,6 @@
 #include "ServerHelper.h"
+#include <QStandardPaths>
+#include <QDir>
 
 ServerHelper::ServerHelper()
 {
@@ -102,8 +104,36 @@ QString ServerHelper::getServerUrl(const bool& return_http)
 			ServerHelper::getUrlPort(return_http);
 }
 
+QString ServerHelper::getSessionBackupFileName()
+{	
+	return getStandardFileLocation() + QCoreApplication::applicationName() + "_sessions.txt";
+}
+
+QString ServerHelper::getUrlStorageBackupFileName()
+{	
+	return getStandardFileLocation() + QCoreApplication::applicationName() + "_urls.txt";
+}
+
 ServerHelper& ServerHelper::instance()
 {
 	static ServerHelper server_helper;
 	return server_helper;
+}
+
+QString ServerHelper::getStandardFileLocation()
+{
+	QString path = QDir::tempPath();
+	QStringList default_paths = QStandardPaths::standardLocations(QStandardPaths::AppLocalDataLocation);
+	if(default_paths.isEmpty())
+	{
+		Log::warn("No local application data path was found!");
+	}
+	else
+	{
+		path = default_paths[0];
+	}
+	if (!QDir().exists(path)) return "";
+
+	if (!path.endsWith(QDir::separator())) path = path + QDir::separator();
+	return path;
 }

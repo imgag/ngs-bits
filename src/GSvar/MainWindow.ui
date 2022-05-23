@@ -572,15 +572,15 @@
    </attribute>
    <addaction name="actionAnnotateSomaticVariantInterpretation"/>
    <addaction name="separator"/>
+   <addaction name="actionSampleSearch"/>
+   <addaction name="actionRunOverview"/>
+   <addaction name="separator"/>
    <addaction name="actionOpenProcessedSampleTabByName"/>
    <addaction name="actionOpenSequencingRunTabByName"/>
    <addaction name="actionOpenGeneTabByName"/>
    <addaction name="actionOpenVariantTab"/>
    <addaction name="actionOpenProjectTab"/>
    <addaction name="actionOpenProcessingSystemTab"/>
-   <addaction name="separator"/>
-   <addaction name="actionSampleSearch"/>
-   <addaction name="actionRunOverview"/>
    <addaction name="separator"/>
    <addaction name="actionAnalysisStatus"/>
    <addaction name="actionReanalyze"/>

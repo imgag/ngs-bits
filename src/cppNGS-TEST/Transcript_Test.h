@@ -386,6 +386,13 @@ private slots:
 		I_EQUAL(variant.start(), 195583878);
 		S_EQUAL(variant.ref(), "C");
 		S_EQUAL(variant.obs(), "TGTGTGT");
+
+		variant = t.hgvsToVariant("c.-35delGinsACACACA", reference);
+		S_EQUAL(variant.chr().str(), "chr3");
+		I_EQUAL(variant.end(), 195583878);
+		I_EQUAL(variant.start(), 195583878);
+		S_EQUAL(variant.ref(), "C");
+		S_EQUAL(variant.obs(), "TGTGTGT");
 	}
 
 	void exonNumber()

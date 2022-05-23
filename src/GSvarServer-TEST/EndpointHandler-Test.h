@@ -32,7 +32,7 @@ private slots:
 		QString file_copy = TESTDATA(copy_name.toLocal8Bit());
 
 		IS_FALSE(UrlManager::isInStorageAlready(file_copy));
-		UrlManager::addUrlToStorage(url_id, QFileInfo(file_copy).fileName(), QFileInfo(file_copy).absolutePath(), file_copy);
+		UrlManager::addNewUrl(url_id, UrlEntity(QFileInfo(file_copy).fileName(), QFileInfo(file_copy).absolutePath(), file_copy, url_id, QDateTime::currentDateTime()));
 		IS_TRUE(UrlManager::isInStorageAlready(file_copy));
 
 		QJsonDocument json_doc = QJsonDocument();
@@ -71,7 +71,7 @@ private slots:
 		QByteArray upload_file = TESTDATA("data/to_upload.txt");
 
 		IS_FALSE(UrlManager::isInStorageAlready(upload_file));
-		UrlManager::addUrlToStorage(url_id, QFileInfo(upload_file).fileName(), QFileInfo(upload_file).absolutePath(), upload_file);
+		UrlManager::addNewUrl(url_id, UrlEntity(QFileInfo(upload_file).fileName(), QFileInfo(upload_file).absolutePath(), upload_file, url_id, QDateTime::currentDateTime()));
 		IS_TRUE(UrlManager::isInStorageAlready(upload_file));
 
 		Session cur_session(1, QDateTime::currentDateTime());

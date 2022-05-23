@@ -509,6 +509,12 @@ struct CPPNGSDSHARED_EXPORT ImportStatusGermline
 	int qc_terms = 0;
 };
 
+/// statistics data on RNA expression
+struct ExpressionStats
+{
+	double mean;
+	double stddev;
+};
 /// NGSD accessor.
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
@@ -637,10 +643,10 @@ public:
 	PhenotypeList phenotypes(const QByteArray& symbol);
 	///Returns all phenotypes matching the given search terms (or all terms if no search term is given)
 	PhenotypeList phenotypes(QStringList search_terms);
-	///Returns all genes associated to a phenotype. If "ignore_non_phenotype_terms" is set terms of the following parent terms are ignored: "Mode of inheritance", "Frequency"
+	///Returns all genes associated to a phenotype. If 'ignore_non_phenotype_terms' is set, only children of 'Phenotypic abnormality' are returned.
 	GeneSet phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype_terms=true);
-	///Returns all genes associated with a phenotype that fullfil the allowed Sources and Evidences criteria. If "ignore_non_phenotype_terms" is set terms of the following parent terms are ignored: "Mode of inheritance", "Frequency"
-	GeneSet phenotypeToGenesbySourceAndEvidence(int id, QList<PhenotypeSource::Source> allowedSources, QList<PhenotypeEvidence::Evidence> allowedEvidences, bool recursive, bool ignore_non_phenotype_terms);
+	///Returns all genes associated with a phenotype that fullfil the allowed source/evidence criteria. If 'ignore_non_phenotype_terms' is set, only children of 'Phenotypic abnormality' are returned.
+	GeneSet phenotypeToGenesbySourceAndEvidence(int id, QSet<PhenotypeSource> allowed_sources, QSet<PhenotypeEvidenceLevel> allowed_evidences, bool recursive, bool ignore_non_phenotype_terms=true);
 	///Returns all child terms of the given phenotype
 	PhenotypeList phenotypeChildTerms(int term_id, bool recursive);
 	///Returns all parent terms of the given phenotype
@@ -713,6 +719,13 @@ public:
 
 	///Returns the germline import status.
 	ImportStatusGermline importStatus(const QString& ps_id);
+
+	///Imports expression data to the NGSD
+	void importExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
+	///Calculates statistics on all expression values of the same processing system and tissue
+	QMap<QByteArray, ExpressionStats> calculateExpressionStatistics(int sys_id, const QString& tissue_type);
+	///Creates a mapping from ENSG ensembl identifier to NGSD gene ids
+	QMap<QByteArray, int> getEnsemblGeneIdMapping();
 
 	/***User handling functions ***/
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.

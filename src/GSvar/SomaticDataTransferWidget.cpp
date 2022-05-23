@@ -12,7 +12,6 @@
 #include "Helper.h"
 #include "NGSD.h"
 #include "Settings.h"
-#include "GenLabDB.h"
 
 #include "ui_SomaticDataTransferWidget.h"
 

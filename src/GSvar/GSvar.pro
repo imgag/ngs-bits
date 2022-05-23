@@ -104,13 +104,14 @@ SOURCES += main.cpp\
     CacheInitWorker.cpp \
     BlatWidget.cpp \
     AnalysisInformationWidget.cpp \
-    PhenotypeSourceEvidenceSelector.cpp \
     FusionWidget.cpp \
     CohortExpressionDataWidget.cpp \
     GapClosingEditDialog.cpp \
     CausalVariantEditDialog.cpp \
     MosaicWidget.cpp \
-    VariantOpenDialog.cpp
+    VariantOpenDialog.cpp \
+    PhenotypeSettingsDialog.cpp \
+    GenLabImportDialog.cpp
 
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
@@ -210,13 +211,14 @@ HEADERS += MainWindow.h \
     BlatWidget.h \
     AnalysisInformationWidget.h \
     CacheInitWorker.h \
-    PhenotypeSourceEvidenceSelector.h \
     FusionWidget.h \
     CohortExpressionDataWidget.h \
     GapClosingEditDialog.h \
     CausalVariantEditDialog.h \
     MosaicWidget.h \
-    VariantOpenDialog.h
+    VariantOpenDialog.h \
+    PhenotypeSettingsDialog.h \
+    GenLabImportDialog.h
 
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
@@ -302,13 +304,15 @@ FORMS    += MainWindow.ui \
     BlatWidget.ui \
     AnalysisInformationWidget.ui \
     LiftOverWidget.ui \
-    PhenotypeSourceEvidenceSelector.ui \
     FusionWidget.ui \
     CohortExpressionDataWidget.ui \
     GapClosingEditDialog.ui \
     CausalVariantEditDialog.ui \
     MosaicWidget.ui \
-    VariantOpenDialog.ui
+    VariantOpenDialog.ui \
+    PhenotypeSettingsDialog.ui \
+    GenLabImportDialog.ui
+
 include("../app_gui.pri")
 
 #include NGSD library

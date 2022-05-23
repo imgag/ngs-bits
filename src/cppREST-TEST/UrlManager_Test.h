@@ -14,12 +14,12 @@ private slots:
 
 		IS_FALSE(UrlManager::isInStorageAlready(file));
 
-		UrlManager::addUrlToStorage(url_id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file);
+		UrlManager::addNewUrl(url_id, UrlEntity(QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, url_id, QDateTime::currentDateTime()));
 		IS_TRUE(UrlManager::isInStorageAlready(file));
 
 		S_EQUAL(UrlManager::getURLById(url_id).filename_with_path, file);
 
-		UrlManager::removeUrlFromStorage(url_id);
+		UrlManager::removeUrl(url_id);
 		IS_FALSE(UrlManager::isInStorageAlready(file));
 	}
 };
