@@ -777,10 +777,6 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 
 QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bedpath, int min_mapq, const QString& ref_file)
 {
-	qDebug() << "Entered mapping_wgs function";
-	QTime timer;
-	timer.start();
-
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
 	FastaFileIndex ref_idx(ref_file);
@@ -791,20 +787,15 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		roi_available = true;
 		roi.load(bedpath, false);
 
-		//check target region is merged/sorted and create index
+		//check target region is merged/sorted
 		if (!roi.isMergedAndSorted())
 		{
-			roi.merge();
 			roi.sort();
+			roi.merge();
 		}
 	}
 
-	qDebug() << "Loaded files to indices";
-
 	//create coverage statistics data structure
-//	QHash<int, QHash<int, int> > roi_cov;
-	qDebug() << "Regions count " << roi.count();
-	qDebug() << "Regions bases: " << roi.baseCount();
 	long long roi_bases = 0;
 	QVector<RegionDepth> roi_cov(roi.count());
 
@@ -814,8 +805,6 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		roi_cov[i] = RegionDepth(line.chr(), line.start(), line.end());
 		roi_bases += line.length();
 	}
-	qDebug() << "Roi bases calculated: " << roi_bases;
-	qDebug() << "created coverage structure " << timer.elapsed() / 1000.0 << "s";
 
 	//prepare At/GC dropout data structure
 	BedFile dropout;
@@ -841,8 +830,6 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		}
 	}
 	ChromosomalIndex<BedFile> dropout_index(dropout);
-
-	qDebug() << "created data structures. "  << timer.elapsed() / 1000.0 << "s";
 
 	//init counts
 	long long al_total = 0;
@@ -934,7 +921,6 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 			++al_dup;
 		}
 	}
-	qDebug() << "finished iterating through alignments the first time: "  << timer.elapsed() / 1000.0/60.0 << "min";
 
 	for (int i=0; i<roi.count(); ++i)
 	{
@@ -964,8 +950,6 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 			}
 		}
 	}
-	qDebug() << "finished iterating through alignments the second time: "  << timer.elapsed() / 1000.0/60.0 << "min";
-
 
 	//calculate coverage depth statistics
 	double avg_depth = (double) bases_usable_roi / roi.baseCount();
@@ -996,10 +980,6 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 				++bases_covered_at_least_half_depth;
 			}
 		}
-		qDebug() <<"region length: " << count_all;
-		qDebug() <<"region non zero depth: " << count_non_zero;
-		qDebug() <<"Total non zero depth: " << total_depth_bases;
-
 	}
 
 	//calculate AT/GC dropout
@@ -1031,7 +1011,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 			}
 		}
 	}
-	qDebug() << "computed statistics";
+
 	//output
 	QCCollection output;
 	addQcValue(output, "QC:2000019", "trimmed base percentage", 100.0 * bases_trimmed / al_total / max_length);
@@ -1131,7 +1111,6 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		plot3.store("/mnt/users/ahott1a1/gc_dropout.png");
 	}
 
-	qDebug() << "Time taken: " << timer.elapsed()/1000.0/60.0 << "min.";
 	return output;
 }
 
