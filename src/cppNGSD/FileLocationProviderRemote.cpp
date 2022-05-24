@@ -238,3 +238,8 @@ FileLocation FileLocationProviderRemote::getSomaticIgvScreenshotFile() const
 {
 	return getOneFileLocationByType(PathType::IGV_SCREENSHOT, "");
 }
+
+FileLocation FileLocationProviderRemote::getSomaticCfdnaCandidateFile() const
+{
+	return getOneFileLocationByType(PathType::CFDNA_CANDIDATES, "");
+}
