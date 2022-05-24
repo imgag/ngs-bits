@@ -799,8 +799,6 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		}
 	}
 
-	ChromosomalIndex<BedFile> roi_index(roi);
-
 	qDebug() << "Loaded files to indices";
 
 	//create coverage statistics data structure
@@ -847,7 +845,6 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 	qDebug() << "created data structures. "  << timer.elapsed() / 1000.0 << "s";
 
 	//init counts
-
 	long long al_total = 0;
 	long long al_mapped = 0;
 	long long al_ontarget = 0;
@@ -897,32 +894,13 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 			}
 
 			//usable
-			if (reader.chromosome(al.chromosomeID()).isNonSpecial())
+			Chromosome chr = reader.chromosome(al.chromosomeID());
+			if (chr.isNonSpecial())
 			{
 				++al_ontarget;
-
 				if (!al.isDuplicate() && al.mappingQuality()>=min_mapq)
 				{
 					bases_usable += al.length();
-
-					//calculate usable bases and base-resolution coverage on target region
-					Chromosome chr = reader.chromosome(al.chromosomeID());
-					QVector<int> indices = roi_index.matchingIndices(chr, al.start(), al.end());
-					foreach(int index, indices)
-					{
-						roi_cov[index].increment_region(al.start(), al.end());
-					}
-				}
-
-				//calcualte GC statistics
-				QVector<int> indices = dropout_index.matchingIndices(reader.chromosome(al.chromosomeID()), al.start(), al.end());
-				foreach(int index, indices)
-				{
-					int bin = gc_index_to_bin_map[index];
-					if (bin>=0)
-					{
-						gc_reads[bin] += 1.0/indices.count();
-					}
 				}
 			}
 		}
@@ -956,7 +934,38 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 			++al_dup;
 		}
 	}
-	qDebug() << "finished iterating through alignments "  << timer.elapsed() / 1000.0/60.0 << "min";
+	qDebug() << "finished iterating through alignments the first time: "  << timer.elapsed() / 1000.0/60.0 << "min";
+
+	for (int i=0; i<roi.count(); ++i)
+	{
+		reader.setRegion(roi[i].chr(), roi[i].start(), roi[i].end());
+
+		BamAlignment al;
+		while (reader.getNextAlignment(al))
+		{
+			//skip secondary alignments
+			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment() || al.isUnmapped()) continue;
+
+			//calcualte GC statistics
+			QVector<int> indices = dropout_index.matchingIndices(reader.chromosome(al.chromosomeID()), al.start(), al.end());
+			foreach(int index, indices)
+			{
+				int bin = gc_index_to_bin_map[index];
+				if (bin>=0)
+				{
+					gc_reads[bin] += 1.0/indices.count();
+				}
+			}
+
+			if (!al.isDuplicate() && al.mappingQuality()>=min_mapq)
+			{
+				//calculate usable bases and base-resolution coverage on target region
+				roi_cov[i].increment_region(al.start(), al.end());
+			}
+		}
+	}
+	qDebug() << "finished iterating through alignments the second time: "  << timer.elapsed() / 1000.0/60.0 << "min";
+
 
 	//calculate coverage depth statistics
 	double avg_depth = (double) bases_usable_roi / roi.baseCount();
