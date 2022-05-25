@@ -732,6 +732,7 @@ void ProcessedSampleWidget::genLabImportDialog()
 		if (dlg.exec()==QDialog::Accepted)
 		{
 			dlg.importSelectedData();
+			updateGUI();
 		}
 	}
 	catch(Exception& e)
