@@ -167,6 +167,8 @@ public slots:
 	void on_actionPreferredTranscripts_triggered();
 	///Somatic gene roles
 	void on_actionEditSomaticGeneRoles_triggered();
+	///Somatic gene pathways
+	void on_actionEditSomaticPathways_triggered();
 	///Opens online documentation
 	void on_actionOpenDocumentation_triggered();
 	///Approved symbols dialog

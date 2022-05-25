@@ -472,6 +472,7 @@
      <addaction name="separator"/>
      <addaction name="actionPreferredTranscripts"/>
      <addaction name="actionEditSomaticGeneRoles"/>
+     <addaction name="actionEditSomaticPathways"/>
     </widget>
     <widget class="QMenu" name="menuPhenotypes_2">
      <property name="title">
@@ -1395,6 +1396,11 @@
    </property>
    <property name="toolTip">
     <string>Show mosaic variants of the current sample (called only on exon/splice regions).</string>
+   </property>
+  </action>
+  <action name="actionEditSomaticPathways">
+   <property name="text">
+    <string>Edit somatic pathways</string>
    </property>
   </action>
  </widget>
