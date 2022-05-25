@@ -84,7 +84,7 @@ struct RegionDepth
 
 	int count()
 	{
-		return end_-start_;
+		return end_-start_+1;
 	}
 };
 
@@ -335,8 +335,8 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 					{
 						foreach(int index, indices)
 						{
-							const int ol_start = std::max(bed_file[index].start(), al.start());
-							const int ol_end = std::min(bed_file[index].end(), al.end());
+							const int ol_start = std::max(bed_file[index].start(), start_pos);
+							const int ol_end = std::min(bed_file[index].end(), end_pos);
 							bases_usable += ol_end - ol_start + 1;
 							bases_usable_dp[std::min(dp, 4)] += ol_end - ol_start + 1;
 							bases_usable_raw += (ol_end - ol_start + 1)  * (dp + 1);
@@ -448,9 +448,9 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	for(int i=0; i< roi_cov.count(); ++i)
 	{
 		RegionDepth& region = roi_cov[i];
-		for(int j=0; j<region.depth_.count(); ++j)
+		for(int j=0; j<region.count(); ++j)
 		{
-			int depth = region.depth_[j];
+			int depth = region[j];
 			depth_dist.inc(depth, true);
 
 			if(depth>=half_depth)
@@ -609,7 +609,6 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	return output;
 }
 
-
 QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QString& ref_file)
 {
 	//open BAM file
@@ -755,7 +754,6 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 
 	return output;
 }
-
 
 QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bedpath, int min_mapq, const QString& ref_file)
 {
@@ -944,20 +942,10 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 	Histogram depth_dist(0, hist_max, hist_step);
 	for(int i=0; i<roi_cov.count(); ++i)
 	{
-		int count_all = 0;
-		int count_non_zero = 0;
-		long long total_depth_bases = 0;
 		for(int j=0; j<roi_cov[i].count(); ++j)
 		{
-			int depth = roi_cov[i].depth_[j];
-			count_all++;
-			if (depth != 0)
-			{
-				count_non_zero++;
-				total_depth_bases += depth;
-			}
+			int depth = roi_cov[i][j];
 			depth_dist.inc(depth, true);
-
 			if(depth>=half_depth)
 			{
 				++bases_covered_at_least_half_depth;

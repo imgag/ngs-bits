@@ -36,7 +36,7 @@ public:
 		addInfile("somatic_custom_bed", "Somatic custom region of interest (subpanel of actual roi). If specified, additional depth metrics will be calculated.", true, true);
 
 		//changelog
-		changeLog(2022,  5, 17, "Added new QC metrics to WGS mode with support for a ROI.");
+		changeLog(2022,  5, 25, "Added new QC metrics to WGS mode.");
 		changeLog(2021,  2,  9, "Added new QC metrics for uniformity of coverage (QC:2000057-QC:2000061).");
 		changeLog(2020, 11, 27, "Added CRAM support.");
 		changeLog(2018,  7, 11, "Added build switch for hg38 support.");
