@@ -744,6 +744,22 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
+-- Table `somatic_gene_pathway`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `somatic_gene_pathway`
+(
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `symbol` VARCHAR(40) NOT NULL,
+  `pathway` TEXT NOT NULL,
+  `significance` ENUM ('high', 'medium', 'low') NOT NULL,
+  `comment` TEXT NULL DEFAULT NULL,
+PRIMARY KEY (`id`),
+KEY (`symbol`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
 -- Table `detected_variant`
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `detected_variant`
