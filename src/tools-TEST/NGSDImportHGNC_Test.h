@@ -58,6 +58,17 @@ private slots:
 		I_EQUAL(somatic_gene_roles.count(), 2);
 		S_EQUAL(somatic_gene_roles[0], "BRCA1");
 		S_EQUAL(somatic_gene_roles[1], "BRCA2");
+
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT CONCAT(symbol, '\t', pathway, '\t', significance) FROM somatic_gene_pathway");
+		I_EQUAL( query.size(), 3 );
+		query.next();
+		S_EQUAL(query.value(0).toString(), "BRCA1\tDNA Damage Repair\thigh");
+		query.next();
+		S_EQUAL(query.value(0).toString(), "BRCA2\tDNA Damage Repair\tmedium");
+		query.next();
+		S_EQUAL(query.value(0).toString(), "BRCA2\talternative pathway\tlow");
+
 	}
 
 };
