@@ -222,6 +222,7 @@ struct FileLocation
 		if (in_upper == "FUSIONS_BAM") return PathType::FUSIONS_BAM;
 		if (in_upper == "SPLICING_BED") return PathType::SPLICING_BED;
 		if (in_upper == "MANTA_FUSIONS") return PathType::MANTA_FUSIONS;
+		if (in_upper == "FUSIONS_PIC_DIR") return PathType::FUSIONS_PIC_DIR;
 		if (in_upper == "COUNTS") return PathType::COUNTS;
 		if (in_upper == "VIRAL") return PathType::VIRAL;
 		if (in_upper == "VCF_CF_DNA") return PathType::VCF_CF_DNA;
@@ -230,6 +231,7 @@ struct FileLocation
 		if (in_upper == "EXPRESSION") return PathType::EXPRESSION;
 		if (in_upper == "EXPRESSION_COHORT") return PathType::EXPRESSION_COHORT;
 		if (in_upper == "EXPRESSION_CORR") return PathType::EXPRESSION_CORR;
+		if (in_upper == "EXPRESSION_STATS") return PathType::EXPRESSION_STATS;
 		if (in_upper == "MRD_CF_DNA") return PathType::MRD_CF_DNA;
 		if (in_upper == "CFDNA_CANDIDATES") return PathType::CFDNA_CANDIDATES;
 		if (in_upper == "IGV_SCREENSHOT") return PathType::IGV_SCREENSHOT;
