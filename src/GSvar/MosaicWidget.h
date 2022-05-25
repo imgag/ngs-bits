@@ -4,16 +4,6 @@
 #include "ui_MosaicWidget.h"
 #include <QWidget>
 #include <QTableWidgetItem>
-#include <QMenu>
-#include "CnvList.h"
-#include "GeneSet.h"
-#include "FilterWidget.h"
-#include "VariantTable.h"
-#include "Settings.h"
-
-namespace Ui {
-class MosaicWidget;
-}
 
 ///Widget for visualization and filtering of mosaic variants.
 class MosaicWidget
@@ -23,7 +13,6 @@ class MosaicWidget
 
 public:
 	MosaicWidget(const VariantList& variants, ReportSettings rep_settings, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
-	~MosaicWidget();
 
 private slots:
 	void applyFilters(bool debug_time=false);
@@ -32,12 +21,12 @@ private slots:
 	void updateStatus(int num);
 	void updateGUI(bool keep_widths =  false);
 	void variantDoubleClicked(QTableWidgetItem *item);
-
+	void updateVariantDetails();
 
 private:
 	void initGUI();
 
-	Ui::MosaicWidget* ui_;
+	Ui::MosaicWidget ui_;
 	const VariantList& variants_;
 	FilterResult filter_result_;
 	ReportSettings report_settings_;
