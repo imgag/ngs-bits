@@ -306,9 +306,9 @@ bool MainWindow::isServerRunning()
 	QJsonDocument json_doc = QJsonDocument::fromJson(response);	;
 	if (!json_doc.isObject()) return false;
 
-	if (ToolBase::version() != json_doc.object()["version"].toString())
+	if (NGSHelper::serverApiVersion() != json_doc.object()["api_version"].toString())
 	{
-		QMessageBox::warning(this, "Version mismatch", "GSvar and the server have different versions. No stable work can be guaranteed. The application will be closed");
+		QMessageBox::warning(this, "Version mismatch", "GSvar uses API " + NGSHelper::serverApiVersion() + ", while the server uses API " + json_doc.object()["api_version"].toString() + ". No stable work can be guaranteed. The application will be closed");
 		return false;
 	}
 

@@ -355,8 +355,9 @@ HttpResponse ServerController::getAnalysisJobLastUpdate(const HttpRequest& reque
 	if (!log_info.isEmpty())
 	{
 		last_update_as_json_object.insert("latest_file", log_info.file_name);
-		last_update_as_json_object.insert("latest_mod", log_info.last_modiefied.secsTo(QDateTime::currentDateTime()));
-		last_update_as_json_object.insert("latest_created", log_info.created.toSecsSinceEpoch());
+		last_update_as_json_object.insert("latest_file_with_path", log_info.file_name_with_path);
+		last_update_as_json_object.insert("latest_mod", QString::number(log_info.last_modiefied.toSecsSinceEpoch()));
+		last_update_as_json_object.insert("latest_created", QString::number(log_info.created.toSecsSinceEpoch()));
 	}
 	json_doc_output.setObject(last_update_as_json_object);
 
@@ -378,11 +379,7 @@ HttpResponse ServerController::getAnalysisJobLog(const HttpRequest& request)
 		int job_id = request.getUrlParams()["job_id"].toInt();
 		AnalysisJob job = db.analysisInfo(job_id, true);
 		QString id = db.processedSampleName(db.processedSampleId(job.samples[0].name));
-		QString log = NGSD().analysisJobLatestLogInfo(job_id).file_name;
-
-		//prepend folder
-		QString folder = db.analysisJobFolder(job_id);
-		log = folder + log;
+		QString log = NGSD().analysisJobLatestLogInfo(job_id).file_name_with_path;
 
 		analysis_job_log_file = FileLocation(id, PathType::OTHER, createFileTempUrl(log, request.getUrlParams()["token"], false), QFile::exists(log));
 	}

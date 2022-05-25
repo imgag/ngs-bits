@@ -3705,6 +3705,7 @@ FileInfo NGSD::analysisJobLatestLogInfo(int job_id)
 				if (output.last_modiefied.isNull() || mod_time>output.last_modiefied)
 				{
 					output.file_name = file_info.fileName();
+					output.file_name_with_path = file_info.filePath();
 					output.created = file_info.created();
 					output.last_modiefied = mod_time;
 				}

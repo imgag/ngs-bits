@@ -380,6 +380,12 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	}
 	if (text=="Open analysis folder(s)")
 	{
+		if (NGSHelper::isCliendServerMode())
+		{
+			QMessageBox::warning(this, "No access", "Analysis folder browsing is not available in client-server mode");
+			return;
+		}
+
 		NGSD db;
 		foreach(int row, rows)
 		{
@@ -392,6 +398,12 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	}
 	if (text=="Open sample folders")
 	{
+		if (NGSHelper::isCliendServerMode())
+		{
+			QMessageBox::warning(this, "No access", "Sample folder browsing is not available in client-server mode");
+			return;
+		}
+
 		NGSD db;
 		foreach(const AnalysisJobSample& sample, samples)
 		{
@@ -408,7 +420,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 			if (last_edit.isEmpty() || !last_edit.contains("(")) continue;
 
 			FileLocation log_location = GlobalServiceProvider::database().analysisJobLogFile(jobs_[row].ngsd_id);
-			if (!QDesktopServices::openUrl(log_location.fileName()))
+			if (!QDesktopServices::openUrl(log_location.filename))
 			{
 				QMessageBox::warning(this, "Error opening log file", "Log file could not be opened:\n" + log_location.fileName());
 			}

@@ -140,11 +140,12 @@ FileInfo DatabaseServiceRemote::analysisJobLatestLogInfo(const int& job_id) cons
 	QJsonDocument json_doc = QJsonDocument::fromJson(reply);
 	QJsonObject json_object = json_doc.object();
 
-	if (json_object.contains("file_name") && json_object.contains("created") && json_object.contains("last_modiefied"))
+	if (json_object.contains("latest_file") && json_object.contains("latest_file_with_path") && json_object.contains("latest_created") && json_object.contains("latest_mod"))
 	{
-		return FileInfo(json_object.value("file_name").toString(),
-						QDateTime().fromSecsSinceEpoch(json_object.value("created").toString().toLongLong()),
-						QDateTime().fromSecsSinceEpoch(json_object.value("last_modiefied").toString().toLongLong()));
+		return FileInfo(json_object.value("latest_file").toString(),
+						json_object.value("latest_file_with_path").toString(),
+						QDateTime().fromSecsSinceEpoch(json_object.value("latest_created").toString().toLongLong()),
+						QDateTime().fromSecsSinceEpoch(json_object.value("latest_mod").toString().toLongLong()));
 	}
 
 	return output;

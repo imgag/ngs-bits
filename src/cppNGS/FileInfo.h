@@ -9,18 +9,21 @@
 struct CPPNGSSHARED_EXPORT FileInfo
 {
 	QString file_name;
+	QString file_name_with_path;
 	QDateTime created;
 	QDateTime last_modiefied;
 
 	FileInfo()
 		: file_name()
+		, file_name_with_path()
 		, created()
 		, last_modiefied()
 	{
 	}
 
-	FileInfo(const QString& file_name_, const QDateTime created_, const QDateTime& last_modiefied_)
+	FileInfo(const QString& file_name_, const QString& file_name_with_path_, const QDateTime created_, const QDateTime& last_modiefied_)
 		: file_name(file_name_)
+		, file_name_with_path(file_name_with_path_)
 		, created(created_)
 		, last_modiefied(last_modiefied_)
 	{
