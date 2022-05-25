@@ -1,6 +1,7 @@
 #ifndef EXPRESSIONDATAWIDGET_H
 #define EXPRESSIONDATAWIDGET_H
 
+#include <GeneSet.h>
 #include <QTableWidget>
 #include <QWidget>
 
@@ -13,7 +14,7 @@ class ExpressionDataWidget : public QWidget
 	Q_OBJECT
 
 public:
-	ExpressionDataWidget(QString tsv_filename, int sys_id, QString tissue_, const QString& genes = "", QWidget *parent = 0);
+	ExpressionDataWidget(QString tsv_filename, int sys_id, QString tissue, const QString& variant_gene_filter = "", const GeneSet& variant_gene_set = GeneSet(), QWidget *parent = 0);
 	~ExpressionDataWidget();
 
 private slots:
@@ -29,7 +30,9 @@ private:
 	QString tsv_filename_;
 	int sys_id_;
 	QString tissue_;
+	GeneSet variant_gene_set_;
 	Ui::ExpressionDataWidget *ui_;
+
 
 	//table info
 	QStringList column_names_;

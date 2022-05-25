@@ -16,11 +16,12 @@ QT_CHARTS_USE_NAMESPACE
 
 
 
-ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, int sys_id, QString tissue, const QString& genes, QWidget *parent) :
+ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, int sys_id, QString tissue, const QString& variant_gene_filter, const GeneSet& variant_gene_set, QWidget *parent) :
 	QWidget(parent),
 	tsv_filename_(tsv_filename),
 	sys_id_(sys_id),
 	tissue_(tissue),
+	variant_gene_set_(variant_gene_set),
 	ui_(new Ui::ExpressionDataWidget)
 
 {
@@ -43,14 +44,38 @@ ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, int sys_id, QSt
 	// set context menus for biotype filter
 	ui_->sa_biotype->setContextMenuPolicy(Qt::CustomContextMenu);
 
-	loadExpressionData();
+	//(de-)activate varaint list gene filter
+	if (!variant_gene_set_.isEmpty())
+	{
+		ui_->cb_filter_by_var_list->setEnabled(true);
+		ui_->cb_filter_by_var_list->setChecked(true);
+
+		//Add tool tip
+		QString tool_tip = QString("<p>") + QString::number(variant_gene_set_.count()) + " genes selected:<br><br>";
+		QStringList genes;
+		int i = 0;
+		foreach (const QString& gene, variant_gene_set_.toStringList())
+		{
+			genes << gene;
+			i++;
+			if(i > 100) break;
+		}
+		if(genes.size() < variant_gene_set_.count()) genes << "...</p>";
+		tool_tip += genes.join(", ");
+		ui_->cb_filter_by_var_list->setToolTip(tool_tip);
+	}
 
 	//set gene filter
-	if (!genes.isEmpty())
+	if(!variant_gene_filter.isEmpty())
 	{
-		ui_->gene_filter->setText(genes);
-		applyFilters();
+		ui_->gene_filter->setText(variant_gene_filter);
 	}
+
+	loadExpressionData();
+
+	applyFilters();
+
+
 }
 
 ExpressionDataWidget::~ExpressionDataWidget()
@@ -65,6 +90,27 @@ void ExpressionDataWidget::applyFilters()
 	if (row_count==0) return;
 
 	FilterResult filter_result(row_count);
+
+
+	//filter by variant list gene filter
+	if (!variant_gene_set_.isEmpty() && (ui_->cb_filter_by_var_list->checkState() == Qt::Checked))
+	{
+		// get column index of 'GENES' column
+		int gene_idx = column_names_.indexOf("gene_name");
+		if (gene_idx == -1)
+		{
+			QMessageBox::warning(this, "Filtering error", "Table does not contain a 'gene_name' column! \nFiltering based on selected genes of the variant list is not possible.");
+		}
+		else
+		{
+			for(int row_idx=0; row_idx<row_count; ++row_idx)
+			{
+				if (!filter_result.flags()[row_idx]) continue;
+
+				filter_result.flags()[row_idx] = variant_gene_set_.contains(ui_->expression_data->item(row_idx, gene_idx)->text().toUtf8().trimmed());
+			}
+		}
+	}
 
 	//filter by genes
 	GeneSet gene_whitelist = GeneSet::createFromText(ui_->gene_filter->text().toLatin1(), ',');
@@ -276,44 +322,6 @@ void ExpressionDataWidget::applyFilters()
 		}
 	}
 
-	//filter by p-value
-	if (!ui_->pvalue->text().isEmpty())
-	{
-		int idx = column_names_.indexOf("pvalue");
-
-		if (idx == -1)
-		{
-			QMessageBox::warning(this, "Filtering error", "Table does not contain a 'pvalue' column! \nFiltering based on p-value is not possible.");
-		}
-		else
-		{
-			try
-			{
-				int max_pvalue = Helper::toDouble(ui_->pvalue->text().replace(",", "."), "p-value filter entry");
-				for(int row_idx=0; row_idx<row_count; ++row_idx)
-				{
-					//skip already filtered
-					if (!filter_result.flags()[row_idx]) continue;
-
-					QString value = ui_->expression_data->item(row_idx, idx)->text();
-					if (value.isEmpty() || value == "n/a")
-					{
-						filter_result.flags()[row_idx] = false;
-					}
-					else
-					{
-						double pvalue = Helper::toDouble(value);
-						filter_result.flags()[row_idx] = pvalue <= max_pvalue;
-					}
-				}
-			}
-			catch (Exception e)
-			{
-				QMessageBox::warning(this, "Invalid p-value", "Couldn't convert given p-value to number!\n" + e.message());
-			}
-		}
-	}
-
 	//filter by biotype
 	QSet<QString> selected_biotypes;
 
@@ -404,7 +412,7 @@ void ExpressionDataWidget::showHistogram(int row_idx)
 	}
 
 	//show chart
-	QChartView* view = GUIHelper::histogramChart(hist, "Expression value distribution (TPM, " + expr_values + " samples)");
+	QChartView* view = GUIHelper::histogramChart(hist, "Expression value distribution (TPM, " + QString::number(expr_values.size()) + " samples)");
 	auto dlg = GUIHelper::createDialog(view, "Expression value distribution (" + ensg + ")");
 	dlg->exec();
 }
@@ -415,7 +423,7 @@ void ExpressionDataWidget::showExpressionTableContextMenu(QPoint pos)
 	int row_idx = ui_->expression_data->itemAt(pos)->row();
 	QMenu menu(ui_->expression_data);
 	QAction* a_show_histogram = menu.addAction("Show histogram");
-	QString tpm_mean = ui_->expression_data->item(row_idx, column_names_.indexOf("db_tpm_mean"))->text();
+	QString tpm_mean = ui_->expression_data->item(row_idx, column_names_.indexOf("cohort_mean"))->text();
 	if(tpm_mean=="") a_show_histogram->setEnabled(false);
 
 	// execute menu
@@ -479,13 +487,9 @@ void ExpressionDataWidget::loadExpressionData()
 	precision_.clear();
 
 	//default columns
-	column_names_ << "gene_id" << "gene_name" << "gene_biotype" << "raw" << "tpm";
-	numeric_columns_  << false << false << false << true << true;
-	precision_ << -1 << -1 << -1 << 0 << 2;
-
-	column_names_ << "log2tpm" << "cohort_mean" << "cohort_meanlog2" << "log2fc" << "zscore";
-	numeric_columns_  << true << true << true << true << true;
-	precision_ << 2 << 2 << 2 << 2 << 2;
+	column_names_ << "gene_id" << "gene_name" << "gene_biotype" << "raw" << "tpm" << "log2tpm";
+	numeric_columns_  << false << false << false << true << true << true;
+	precision_ << -1 << -1 << -1 << 0 << 2 << 2;
 
 	//determine col indices for table columns in tsv file
 	QVector<int> column_indices;
@@ -496,10 +500,10 @@ void ExpressionDataWidget::loadExpressionData()
 
 	//db columns
 
-	QStringList db_column_names = QStringList()  << "db_tpm_mean" << "db_tpm_stddev" << "db_tpm_zscore" <<  "db_cohort_meanlog2" << "db_log2fc";
+	QStringList db_column_names = QStringList()  << "cohort_mean" << "cohort_meanlog2" << "log2fc" << "zscore";
 	column_names_ << db_column_names;
-	numeric_columns_  << true << true << true << true << true;
-	precision_ << 3 << 3 << 3 << 3 << 3;
+	numeric_columns_  << true << true << true << true;
+	precision_ << 3 << 3 << 3 << 3;
 
 
 	//create header
@@ -526,28 +530,24 @@ void ExpressionDataWidget::loadExpressionData()
 				if(expression_stats.contains(ensg))
 				{
 					ExpressionStats gene_stats = expression_stats.value(ensg);
-					if(column_names_.at(col_idx) == "db_tpm_mean")
+					if(column_names_.at(col_idx) == "cohort_mean")
 					{
 						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(gene_stats.mean, 'f', precision_.at(col_idx))));
 					}
-					else if(column_names_.at(col_idx) == "db_tpm_stddev")
-					{
-						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(gene_stats.stddev, 'f', precision_.at(col_idx))));
-					}
-					else if(column_names_.at(col_idx) == "db_tpm_zscore")
-					{
-						double zscore = (log2_tpm - std::log2(gene_stats.mean)) / std::log2(gene_stats.stddev);
-						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(zscore, 'f', precision_.at(col_idx))));
-					}
-					else if(column_names_.at(col_idx) == "db_cohort_meanlog2")
+					else if(column_names_.at(col_idx) == "cohort_meanlog2")
 					{
 						double mean_log2 = std::log2(gene_stats.mean);
 						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(mean_log2, 'f', precision_.at(col_idx))));
 					}
-					else if(column_names_.at(col_idx) == "db_log2fc")
+					else if(column_names_.at(col_idx) == "log2fc")
 					{
 						double log2fc = log2_tpm - std::log2(gene_stats.mean);
 						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(log2fc, 'f', precision_.at(col_idx))));
+					}
+					else if(column_names_.at(col_idx) == "zscore")
+					{
+						double zscore = (log2_tpm - std::log2(gene_stats.mean)) / std::log2(gene_stats.stddev);
+						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(zscore, 'f', precision_.at(col_idx))));
 					}
 					else
 					{

@@ -1480,26 +1480,30 @@ void MainWindow::on_actionExpressionData_triggered()
 	int rna_sys_id = db.processingSystemIdFromProcessedSample(count_file);
 	QString tissue = db.getSampleData(db.sampleId(count_file)).tissue;
 
-	GeneSet genes;
-	if(ui_.filters->genes().count() > 0)
-	{
-		genes = ui_.filters->genes();
-	}
-	else if(ui_.filters->phenotypes().count() > 0)
+	GeneSet variant_target_region;
+	if(ui_.filters->phenotypes().count() > 0)
 	{
 		foreach (const Phenotype& phenotype, ui_.filters->phenotypes())
 		{
-			genes << db.phenotypeToGenes(db.phenotypeIdByAccession(phenotype.accession()), false);
+			variant_target_region << db.phenotypeToGenes(db.phenotypeIdByAccession(phenotype.accession()), false);
 		}
 	}
-	else if(ui_.filters->targetRegion().isValid())
+
+	if(ui_.filters->targetRegion().isValid())
 	{
-		genes = ui_.filters->targetRegion().genes;
+		if (variant_target_region.isEmpty())
+		{
+			variant_target_region = ui_.filters->targetRegion().genes;
+		}
+		else
+		{
+			variant_target_region = ui_.filters->targetRegion().genes.intersect(variant_target_region);
+		}
 	}
 
 
 
-	ExpressionDataWidget* widget = new ExpressionDataWidget(count_file, rna_sys_id, tissue, genes.toStringList().join(", "), this);
+	ExpressionDataWidget* widget = new ExpressionDataWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, this);
 	auto dlg = GUIHelper::createDialog(widget, "Expression Data");
 	addModelessDialog(dlg, false);
 }
