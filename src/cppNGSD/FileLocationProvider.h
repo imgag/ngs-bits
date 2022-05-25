@@ -73,6 +73,8 @@ public:
 	virtual FileLocation getSomaticMsiFile() const = 0;
 	//Returns the somatic IGV screenshot in PNG format (throws an exception if not SOMATIC_PAIR or SOMATIC_SINGLE)
 	virtual FileLocation getSomaticIgvScreenshotFile() const = 0;
+	//Returns the pre-selection of monitoring variants for cfDNA panel design in VCF (throws an exception if not SOMATIC_PAIR or SOMATIC_SINGLE)
+	virtual FileLocation getSomaticCfdnaCandidateFile() const = 0;
 };
 
 #endif // FILELOCATIONPROVIDER_H

@@ -48,6 +48,7 @@ enum class PathType
 	VIRAL, //viral DNA detected in tumor samples (TSV format)
 	VCF_CF_DNA, //cfDNA variants file (VCF format)
 	MRD_CF_DNA, // measurable residual disease file of a cfDNA analysis (UmiVar2)
+	CFDNA_CANDIDATES, // VCF containing preselected variants for cfDNA panel design
 	QC, // variant list QC (qcML) files
 	IGV_SCREENSHOT, //screenshot taken from IGV
 	OTHER // everything else
@@ -178,6 +179,8 @@ struct FileLocation
 				return "EXPRESSION_COHORT";
 			case PathType::MRD_CF_DNA:
 				return "MRD_CF_DNA";
+			case PathType::CFDNA_CANDIDATES:
+				return "CFDNA_CANDIDATES";
 			case PathType::IGV_SCREENSHOT:
 				return "IGV_SCREENSHOT";
 		}
@@ -221,6 +224,7 @@ struct FileLocation
 		if (in_upper == "EXPRESSION") return PathType::EXPRESSION;
 		if (in_upper == "EXPRESSION_COHORT") return PathType::EXPRESSION_COHORT;
 		if (in_upper == "MRD_CF_DNA") return PathType::MRD_CF_DNA;
+		if (in_upper == "CFDNA_CANDIDATES") return PathType::CFDNA_CANDIDATES;
 		if (in_upper == "IGV_SCREENSHOT") return PathType::IGV_SCREENSHOT;
 		THROW(ProgrammingException, "Unhandled path type string '" + in_upper + "' in stringToType()!");
 	}
@@ -297,6 +301,8 @@ struct FileLocation
 				return "RNA relative expression of cohort";
 			case PathType::MRD_CF_DNA:
 				return "measurable residual disease value (umiVar 2)";
+			case PathType::CFDNA_CANDIDATES:
+				return "pre-selected variants for cfDNA panel design.";
 			case PathType::IGV_SCREENSHOT:
 				return "IGV screenshot";
 		}

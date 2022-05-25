@@ -5813,14 +5813,20 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		{
 			QByteArray protein_change = hgvs_p.mid(2).trimmed();
 			query += " OR \"" + protein_change + "\"";
-			if (protein_change.length()>6)
+			if (QRegExp("[A-Za-z]{3}[0-9]+[A-Za-z]{3}").exactMatch(protein_change))
 			{
 				QByteArray aa1 = protein_change.left(3);
 				QByteArray aa2 = protein_change.right(3);
 				QByteArray pos = protein_change.mid(3, protein_change.length()-6);
-				qDebug() << protein_change << ":" << aa1 << pos << aa2;
 
 				query += QByteArray(" OR \"") + NGSHelper::oneLetterCode(aa1) + pos + NGSHelper::oneLetterCode(aa2) + "\"";
+			}
+			else if (protein_change.endsWith("=")) //special handling of synonymous variants
+			{
+				QByteArray aa1 = protein_change.left(3);
+				QByteArray rest = protein_change.mid(3);
+
+				query += QByteArray(" OR \"") + NGSHelper::oneLetterCode(aa1) + rest + "\"";
 			}
 		}
 		QByteArray dbsnp = variant.annotations()[i_dbsnp].trimmed();
@@ -6676,7 +6682,7 @@ void MainWindow::applyFilters(bool debug_time)
 		}
 
 		//phenotype filter
-		if (!phenotype_roi_.isEmpty())
+		if (!last_phenos_.isEmpty())
 		{
 			FilterRegions::apply(variants_, phenotype_roi_, filter_result_);
 
