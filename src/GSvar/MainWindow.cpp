@@ -4946,7 +4946,7 @@ void MainWindow::on_actionSampleAncestry_triggered()
 
 void MainWindow::on_actionAnalysisStatus_triggered()
 {
-	//check if alread open
+	//check if already open
 	for (int t=0; t<ui_.tabs->count(); ++t)
 	{
 		if (ui_.tabs->tabText(t)=="Analysis status")

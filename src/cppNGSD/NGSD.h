@@ -25,6 +25,7 @@
 #include "SomaticCnvInterpreter.h"
 #include "NGSHelper.h"
 #include "FileLocation.h"
+#include "FileInfo.h"
 
 ///Sample relation datastructure
 struct CPPNGSDSHARED_EXPORT SampleRelation
@@ -925,6 +926,8 @@ public:
 	bool deleteAnalysis(int job_id);
 	///Returns the folder of an analysis job.
 	QString analysisJobFolder(int job_id);
+	///Return metdata for the logs of an analysis job by its id
+	FileInfo analysisJobLatestLogInfo(int job_id);
 	///Returns the GSVar file of an analysis job.
 	QString analysisJobGSvarFile(int job_id);
 

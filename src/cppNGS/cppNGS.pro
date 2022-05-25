@@ -78,6 +78,7 @@ SOURCES += BedFile.cpp \
 
 HEADERS += BedFile.h \
     Chromosome.h \
+    FileInfo.h \
     VariantList.h \
     ChromosomalIndex.h \
     Statistics.h \

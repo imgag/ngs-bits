@@ -204,28 +204,12 @@ void AnalysisStatusWidget::refreshStatus()
 			QColor bg_color = Qt::transparent;
 			if (status.startsWith("started ("))
 			{
-				QString folder = db.analysisJobFolder(job_id);
-				if (QFile::exists(folder))
+				FileInfo info = GlobalServiceProvider::database().analysisJobLatestLogInfo(job_id);
+				if (!info.isEmpty())
 				{
-					QStringList files = Helper::findFiles(folder, "*.log", false);
-					if (!files.isEmpty())
-					{
-						QString latest_file;
-						QDateTime latest_mod;
-						foreach(QString file, files)
-						{
-							QFileInfo file_info(file);
-							QDateTime mod_time = file_info.lastModified();
-							if (latest_mod.isNull() || mod_time>latest_mod)
-							{
-								latest_file = file_info.fileName();
-								latest_mod = mod_time;
-							}
-						}
-						int sec = latest_mod.secsTo(QDateTime::currentDateTime());
-						if (sec>36000) bg_color = QColor("#FFC45E"); //36000s ~ 10h
-						last_update = timeHumanReadable(sec) + " ago (" + latest_file + ")";
-					}
+					int sec = info.last_modiefied.secsTo(QDateTime::currentDateTime());
+					if (sec>36000) bg_color = QColor("#FFC45E"); //36000s ~ 10h
+					last_update = timeHumanReadable(sec) + " ago (" + info.file_name + ")";
 				}
 			}
 			addItem(ui_.analyses, row, 8, last_update, bg_color);
@@ -416,7 +400,6 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	}
 	if (text=="Open log file")
 	{
-		NGSD db;
 		foreach(int row, rows)
 		{
 			QTableWidgetItem* item = ui_.analyses->item(row, 8);
@@ -424,19 +407,10 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 			QString last_edit = item->text().trimmed();
 			if (last_edit.isEmpty() || !last_edit.contains("(")) continue;
 
-			//determin log file
-			int start = last_edit.indexOf("(") + 1;
-			int end = last_edit.indexOf(")");
-			QString log = last_edit.mid(start, end-start);
-
-			//prepend folder
-			QString folder = db.analysisJobFolder(jobs_[row].ngsd_id);
-			log = folder + log;
-
-			//open
-			if (!QDesktopServices::openUrl(log))
+			FileLocation log_location = GlobalServiceProvider::database().analysisJobLogFile(jobs_[row].ngsd_id);
+			if (!QDesktopServices::openUrl(log_location.fileName()))
 			{
-				QMessageBox::warning(this, "Error opening log file", "Log file could not be opened:\n" + log);
+				QMessageBox::warning(this, "Error opening log file", "Log file could not be opened:\n" + log_location.fileName());
 			}
 		}
 	}

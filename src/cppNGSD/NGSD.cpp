@@ -3687,6 +3687,33 @@ QString NGSD::analysisJobFolder(int job_id)
 	return QFileInfo(output).absoluteFilePath();
 }
 
+FileInfo NGSD::analysisJobLatestLogInfo(int job_id)
+{
+	FileInfo output;
+	QString folder = analysisJobFolder(job_id);
+	if (QFile::exists(folder))
+	{
+		QStringList files = Helper::findFiles(folder, "*.log", false);
+		if (!files.isEmpty())
+		{
+			QString latest_file;
+			QDateTime latest_mod;
+			foreach(QString file, files)
+			{
+				QFileInfo file_info(file);
+				QDateTime mod_time = file_info.lastModified();
+				if (output.last_modiefied.isNull() || mod_time>output.last_modiefied)
+				{
+					output.file_name = file_info.fileName();
+					output.created = file_info.created();
+					output.last_modiefied = mod_time;
+				}
+			}
+		}
+	}
+	return output;
+}
+
 QString NGSD::analysisJobGSvarFile(int job_id)
 {
 	AnalysisJob job = analysisInfo(job_id);
