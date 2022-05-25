@@ -6638,7 +6638,7 @@ void MainWindow::applyFilters(bool debug_time)
 		}
 
 		//phenotype filter
-		if (!phenotype_roi_.isEmpty())
+		if (!last_phenos_.isEmpty())
 		{
 			FilterRegions::apply(variants_, phenotype_roi_, filter_result_);
 

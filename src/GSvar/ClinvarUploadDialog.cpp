@@ -849,9 +849,8 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
 
                         if (chromosome_coordinates.contains("start"))
                         {
-							bool ok = false;
-							chromosome_coordinates.value("start").toString().toInt(&ok);
-                            if (!ok)
+							int valid_int = chromosome_coordinates.value("start").toInt(-1);
+							if (valid_int < 0)
                             {
                                 errors << "Invalid entry '" + chromosome_coordinates.value("start").toString() + "' in 'start'!";
                                 is_valid = false;
@@ -865,9 +864,8 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
 
                         if (chromosome_coordinates.contains("stop"))
                         {
-							bool ok = false;
-							chromosome_coordinates.value("stop").toString().toInt(&ok);
-                            if (!ok)
+							int valid_int = chromosome_coordinates.value("stop").toInt(-1);
+							if (valid_int < 0)
                             {
                                 errors << "Invalid entry '" + chromosome_coordinates.value("stop").toString() + "' in 'stop'!";
                                 is_valid = false;
