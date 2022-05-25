@@ -269,7 +269,9 @@ public:
 
 		//update gene symbols in geneinfo_germline and somatic_gene_role table
 		updateTable(db, "geneinfo_germline");
+
 		updateTable(db, "somatic_gene_role");
+		updateTable(db, "somatic_gene_pathway");
 
 		//commit changes
 		db.commit();
