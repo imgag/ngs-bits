@@ -21,13 +21,13 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 	dna_cnvs_ = SomaticRnaReportData::filterCnvs(cnv_list, data);
 
 
-	//Get RNA processed sample name and resolve path to RNA directory
-	ref_tissue_type_ = refTissueType(dna_snvs_);
-
-
 	if(!QFile::exists(data.rna_fusion_file))
 	{
 		THROW(FileAccessException, "RNA fusions file does not exist: " + data.rna_fusion_file);
+	}
+	if( !QFile::exists(data.rna_counts_file) )
+	{
+		THROW(FileAccessException, "RNA counts file does not exist: " + data.rna_counts_file);
 	}
 
 	if(!checkRequiredSNVAnnotations(snv_list) && dna_snvs_.count() > 0)
@@ -62,6 +62,35 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 	{
 	}
 
+
+	try
+	{
+		TSVFileStream in_pathways(":/resources/somatic_gene_pathways.tsv");
+		while(!in_pathways.atEnd())
+		{
+			QByteArrayList parts = in_pathways.readLine();
+			if(parts.isEmpty()) continue;
+			if(parts[0].startsWith("#")) continue;
+			pathway_info tmp;
+			tmp.pathogenicity = parts[0];
+			tmp.pathway = parts[1];
+			pathway_infos_.insert(parts[0], tmp);
+		}
+
+		TSVFileStream in_counts(data.rna_counts_file);
+
+		while(!in_counts.atEnd())
+		{
+			QByteArrayList parts = in_counts.readLine();
+			if(parts.isEmpty()) continue;
+			if(parts[0].startsWith("#")) continue;
+		}
+
+
+	}
+	catch(Exception&)
+	{
+	}
 
 }
 
@@ -165,7 +194,7 @@ RtfTable SomaticRnaReport::partFusions()
 		temp.addCell( 1400, sv.breakpoint_left , RtfParagraph().setFontSize(16) );
 		temp.addCell( 1800, sv.transcipt_right, RtfParagraph().setFontSize(16) );
 		temp.addCell( 1400, sv.breakpoint_right, RtfParagraph().setFontSize(16) );
-		temp.addCell( 1921, sv.type, RtfParagraph().setFontSize(16) );
+		temp.addCell( 1921, trans(sv.type), RtfParagraph().setFontSize(16) );
 		fusion_table.addRow( temp );
 	}
 
@@ -205,7 +234,7 @@ RtfSourceCode SomaticRnaReport::partExpressionPics()
 	desc += RtfText("X").setFontSize(16).setFontColor(5).RtfCode();
 	desc += "), in der Vergleichskohorte gleicher Tumorentität (Boxplot mit Quartil, SD und individuelle Expressionswerte) und als Mittelwert von Normalgewebe in der Literatur (" + RtfText("□").setFontSize(16).setBold(true).RtfCode() + ", Human Protein Altas). ";
 	desc += "Die angegebenen Expressionswerte hängen unter anderem vom Tumorgehalt ab und sind daher nur mit Vorbehalt mit anderen Proben vergleichbar. ";
-	desc += "Dargestellt sind die in Hinblick auf eine Therapie wichtigsten Signalkaskaden. Weitere Daten können auf Anfrage zur Verfügung gestellt werden. )";
+	desc += "Dargestellt sind die in Hinblick auf eine Therapie wichtigsten Signalkaskaden. Weitere Daten können auf Anfrage zur Verfügung gestellt werden.";
 	desc += "\n\\line\n";
 
 	out << RtfParagraph(desc).setFontSize(16).setHorizontalAlignment("j").RtfCode();
@@ -236,7 +265,7 @@ RtfTable SomaticRnaReport::partSVs()
 		temp.addCell( 1800, sv.transcipt_right, RtfParagraph().setFontSize(16) );
 		temp.addCell( 1400, sv.breakpoint_left , RtfParagraph().setFontSize(16) );
 		temp.addCell( 1800, sv.breakpoint_right, RtfParagraph().setFontSize(16) );
-		temp.addCell( 3321, sv.type, RtfParagraph().setFontSize(16));
+		temp.addCell( 3321, trans(sv.type), RtfParagraph().setFontSize(16));
 
 		fusion_table.addRow( temp );
 	}
@@ -422,6 +451,32 @@ RtfParagraph SomaticRnaReport::partVarExplanation()
 	return RtfParagraph(out).setFontSize(16).setHorizontalAlignment("j");
 }
 
+RtfTable SomaticRnaReport::partGeneExpression()
+{
+	RtfTable out;
+
+
+
+	return out;
+}
+
+RtfTable SomaticRnaReport::partGeneralInfo()
+{
+	RtfTable table;
+
+	table.addRow( RtfTableRow({"Allgemeine Informationen", "Qualitätsparameter"}, {4461, 5461}, RtfParagraph().setFontSize(18).setBold(true)).setHeader() );
+
+	table.addRow( RtfTableRow( {"Auswertungsdatum:", QDate::currentDate().toString("dd.MM.yyyy").toUtf8(), "Analysepipeline:", dna_snvs_.getPipeline().toUtf8()}, {2000,2461,2500,2961}, RtfParagraph().setFontSize(14)) );
+	table.addRow( RtfTableRow( {"Proben-ID (Tumor-DNA):", data_.tumor_ps.toUtf8(), "Auswertungssoftware:",  QCoreApplication::applicationName().toUtf8() + " " + QCoreApplication::applicationVersion().toUtf8()}, {2000, 2461, 2500, 2961}, RtfParagraph().setFontSize(14)) );
+	table.addRow( RtfTableRow( {"Proben-ID (Tumor-RNA):", data_.rna_ps_name.toUtf8(), "Anzahl Reads (MB)", data_.rna_qcml_data.value("QC:2000005",true).toString().toUtf8()}, {2000,2461,2500,2961}, RtfParagraph().setFontSize(14)) );
+	table.addRow( RtfTableRow( {"Prozessierungssystem:", db_.getProcessingSystemData( db_.processingSystemIdFromProcessedSample(data_.rna_ps_name) ).name.toUtf8(), "On-Target Read Percentage:", data_.rna_qcml_data.value("QC:2000021",true).toString().toUtf8() + "\%"}, {2000,2461,2500,2961}, RtfParagraph().setFontSize(14)) );
+	table.addRow( RtfTableRow( {"ICD10:", data_.icd10.toUtf8(), "Target Region Read Depth:", data_.rna_qcml_data.value("QC:2000025",true).toString().toUtf8() +"x"}, {2000,2461,2500,2961}, RtfParagraph().setFontSize(14)) );
+	table.addRow( RtfTableRow( {"Tumortyp:", data_.phenotype.toUtf8(), "House Keeping Genes Read Depth:", data_.rna_qcml_data.value("QC:2000101",true).toString().toUtf8() + "x"}, {2000,2461,2500,2961}, RtfParagraph().setFontSize(14)) );
+	table.addRow( RtfTableRow( {"Korrelation der Expression mit der Tumorentität:", QByteArray::number(data_.expression_correlation, 'f', 2), "House Keeping Genes Read Percentage:", data_.rna_qcml_data.value("QC:2000100",true).toString().toUtf8() + "\%"}, {2000,2461,2500,2961}, RtfParagraph().setFontSize(14) ) );
+
+	return table;
+}
+
 RtfPicture SomaticRnaReport::pngToRtf(std::tuple<QByteArray, int, int> tuple, int width_goal)
 {
 	QByteArray data;
@@ -518,6 +573,12 @@ RtfSourceCode SomaticRnaReport::trans(QString orig_entry) const
 		dict["likely_inactivating"] = "möglicherweise inaktivierend";
 		dict["unclear"] = "unklare Bedeutung";
 		dict["test_dependent"] = "testabhängige Bedeutung";
+		dict["translocation"] = "Translokation";
+		dict["inversion"] = "Inversion";
+		dict["inversion/3'-3'"] = "Inversion/3'-3'";
+		dict["duplication"] = "Duplikation";
+		dict["deletion/read-through"] = "Deletion/Read-through";
+		dict["deletion"] = "Deletion";
 	}
 
 	if(!dict.contains(orig_entry)) //Return highlighted original entry if not found
@@ -540,7 +601,11 @@ void SomaticRnaReport::writeRtf(QByteArray out_file)
 	doc_.addColor(242, 242, 242);
 	doc_.addColor(255,0,0);
 
-	if(dna_snvs_.count() > 0) doc_.addPart(partSnvTable().RtfCode());
+	if(dna_snvs_.count() > 0)
+	{
+		doc_.addPart(RtfParagraph("Potentiell relevante somatische Veränderungen:").setFontSize(18).setBold(true).RtfCode());
+		doc_.addPart(partSnvTable().RtfCode());
+	}
 	else doc_.addPart(RtfParagraph("Es wurden keine SNVs detektiert.").RtfCode());
 
 
@@ -554,28 +619,39 @@ void SomaticRnaReport::writeRtf(QByteArray out_file)
 	doc_.addPart(partVarExplanation().RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
 
+	doc_.newPage();
+	doc_.addPart(RtfParagraph("").RtfCode());
+
 	if(svs_.count() > 0)
 	{
 		doc_.addPart(partFusions().RtfCode());
 		doc_.addPart(RtfParagraph("").RtfCode());
 	}
+	else doc_.addPart(RtfParagraph("Es wurden keine Strukturvarianten detektiert.").RtfCode());
 
 	if(svs_.count() > 0)
 	{
 		doc_.addPart(partSVs().RtfCode());
+		doc_.addPart(RtfParagraph("").RtfCode());
 		doc_.newPage();
 	}
+	else doc_.addPart(RtfParagraph("Es wurden keine Fusionen detektiert.").RtfCode());
 
 	if(data_.fusion_pics.count() > 0)
 	{
 		doc_.addPart(partFusionPics());
+		doc_.addPart(RtfParagraph("").RtfCode());
 		doc_.newPage();
 	}
 
 	if(data_.expression_plots.count() > 0)
 	{
 		doc_.addPart(partExpressionPics());
+		doc_.addPart(RtfParagraph("").RtfCode());
+		doc_.newPage();
 	}
+
+	doc_.addPart(partGeneralInfo().RtfCode());
 
 
 	doc_.save(out_file);

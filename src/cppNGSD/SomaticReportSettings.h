@@ -20,6 +20,12 @@ struct CPPNGSDSHARED_EXPORT SomaticReportSettings
 	QString msi_file;
 	QString viral_file;
 
+	//ICD10 diagnosis
+	QString icd10;
+
+	//Clinical phenotype
+	QString phenotype;
+
 	//hex representation of IGV snapshot
 	QByteArray igv_snapshot_png_hex_image;
 	//width of IGV snapshot in pixels

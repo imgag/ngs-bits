@@ -3950,6 +3950,16 @@ void MainWindow::generateReportSomaticRTF()
 		somatic_report_settings_.report_config.setHrdScore(0);
 	}
 
+	//Get ICD10 diagnoses from NGSD
+	QStringList tmp_icd10;
+	QStringList tmp_phenotype;
+	for( const auto& entry : db.getSampleDiseaseInfo(db.sampleId(ps_tumor)) )
+	{
+		if(entry.type == "ICD10 code") tmp_icd10.append(entry.disease_info);
+		if(entry.type == "clinical phenotype (free text)") tmp_phenotype.append(entry.disease_info);
+	}
+	somatic_report_settings_.icd10 = tmp_icd10.join(", ");
+	somatic_report_settings_.phenotype = tmp_phenotype.join(", ");
 
 	SomaticReportDialog dlg(filename_, somatic_report_settings_, cnvs_, somatic_control_tissue_variants_, this); //widget for settings
 
@@ -4064,38 +4074,60 @@ void MainWindow::generateReportSomaticRTF()
 			SomaticRnaReportData rna_report_data = somatic_report_settings_;
 			rna_report_data.rna_ps_name = dlg.getRNAid();
 			rna_report_data.rna_fusion_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::FUSIONS).filename;
+			rna_report_data.rna_counts_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::COUNTS).filename;
+			rna_report_data.rna_stats_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::EXPRESSION_STATS).filename;
 
 			try
 			{
-				//transforms png data into list of tuples (png data in hex format, width, height)
-				auto pngFromFile = [](QStringList files)
-				{
-					QList<std::tuple<QByteArray,int,int>> pic_list;
-					for(QString path : files)
-					{
-						QImage pic = QImage(path);
-						//set maximum width/height in pixels
-						if( (uint)pic.width() > 1200 ) pic = pic.scaledToWidth(1200, Qt::TransformationMode::SmoothTransformation);
-						if( (uint)pic.height() > 1200 ) pic = pic.scaledToHeight(1200, Qt::TransformationMode::SmoothTransformation);
+				QSharedPointer<QFile> corr_file =  Helper::openFileForReading( GlobalServiceProvider::database().processedSamplePath( db.processedSampleId(dlg.getRNAid()), PathType::EXPRESSION_CORR ).filename );
+				rna_report_data.expression_correlation = Helper::toDouble(corr_file->readAll());
+			}
+			catch(Exception)
+			{
+				rna_report_data.expression_correlation = std::numeric_limits<double>::quiet_NaN();
+			}
 
-						QByteArray png_data = "";
-						if(!pic.isNull())
+			rna_report_data.rna_qcml_data = db.getQCData(db.processedSampleId(dlg.getRNAid()));
+
+			//transforms png data into list of tuples (png data in hex format, width, height)
+			auto pngFromFile = [](QStringList files)
+			{
+				QList<std::tuple<QByteArray,int,int>> pic_list;
+				for(QString path : files)
+				{
+					QImage pic = QImage(path);
+					//set maximum width/height in pixels
+					if( (uint)pic.width() > 1200 ) pic = pic.scaledToWidth(1200, Qt::TransformationMode::SmoothTransformation);
+					if( (uint)pic.height() > 1200 ) pic = pic.scaledToHeight(1200, Qt::TransformationMode::SmoothTransformation);
+
+					QByteArray png_data = "";
+					if(!pic.isNull())
+					{
+						QBuffer buffer(&png_data);
+						buffer.open(QIODevice::WriteOnly);
+						if(pic.save(&buffer, "PNG"))
 						{
-							QBuffer buffer(&png_data);
-							buffer.open(QIODevice::WriteOnly);
-							if(pic.save(&buffer, "PNG"))
-							{
-								pic_list << std::make_tuple(png_data.toHex(), pic.width(), pic.height());
-							}
+							pic_list << std::make_tuple(png_data.toHex(), pic.width(), pic.height());
 						}
 					}
-					return pic_list;
-				};
+				}
+				return pic_list;
+			};
 
+			//Add data from fusion pics
+			try
+			{
 				rna_report_data.fusion_pics = pngFromFile( Helper::findFiles(GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::FUSIONS_PIC_DIR).filename, "*.png", false) );
-				rna_report_data.expression_plots = pngFromFile( Helper::findFiles(GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::SAMPLE_FOLDER).filename, dlg.getRNAid() + "_expr.*.png", false) );
 			}
 			catch(Exception) //Nothing to do here
+			{
+			}
+			//Add data from expression plots
+			try
+			{
+				rna_report_data.expression_plots = pngFromFile( Helper::findFiles(GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::SAMPLE_FOLDER).filename, dlg.getRNAid() + "_expr.*.png", false) );
+			}
+			catch(Exception)
 			{
 			}
 

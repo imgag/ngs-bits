@@ -17,10 +17,20 @@ struct CPPNGSDSHARED_EXPORT SomaticRnaReportData : public SomaticReportSettings
 	QString rna_ps_name;
 	QString rna_fusion_file;
 
+	//path to RNA expression counts.tsv file.
+	QString rna_counts_file;
+	QString rna_stats_file;
+
 	//list for fusions pics containing hex png data, width and height
 	QList<std::tuple<QByteArray,int,int>> fusion_pics;
 
 	QList<std::tuple<QByteArray,int,int>> expression_plots;
+
+	//QCML data of RNA
+	QCCollection rna_qcml_data;
+
+	//Correlation of expression to cohort
+	double expression_correlation;
 };
 
 
@@ -65,7 +75,6 @@ public:
 private:
 	NGSD db_;
 
-
 	const SomaticRnaReportData& data_;
 
 	//Somatic DNA SNVs
@@ -75,8 +84,17 @@ private:
 	//Somatic RNA fusions
 	QList<arriba_sv> svs_;
 
-	//Tissue type for RNA reference TPM in SNV list
-	QString ref_tissue_type_ = "";
+	struct pathway_info
+	{
+		QByteArray gene;
+		QByteArray pathogenicity;
+		QByteArray pathway;
+
+		double tumor_tpm;
+		double ref_tpm;
+	};
+
+	QMap<QByteArray, pathway_info> pathway_infos_;
 
 	///Creates table that containts fusions from RNA data
 	RtfTable partFusions();
@@ -93,6 +111,12 @@ private:
 	///Creates explanation text for SNV and CNV table
 	RtfParagraph partVarExplanation();
 
+	///Gene expression table of pre-selected  genes
+	RtfTable partGeneExpression();
+
+	///general information
+	RtfTable partGeneralInfo();
+
 	//returns RtfPicture from tuple with PNG data <QByteArrayhex,int,int>
 	RtfPicture pngToRtf(std::tuple<QByteArray,int,int> tuple, int width_goal);
 
@@ -105,6 +129,7 @@ private:
 	RtfSourceCode formatDigits(QByteArray in, int digits=1);
 
 	RtfDocument doc_;
+
 };
 
 #endif // SOMATICRNAREPORT_H
