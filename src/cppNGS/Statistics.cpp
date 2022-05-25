@@ -21,13 +21,9 @@
 #include "ToolBase.h"
 
 
-struct RegionDepth
+class RegionDepth
 {
-	Chromosome chr_;
-	int start_;
-	int end_;
-	QVector<int> depth_;
-
+public:
 	RegionDepth(Chromosome chr, int start, int end):
 	  chr_(chr)
 	, start_(start)
@@ -46,11 +42,7 @@ struct RegionDepth
 		depth_ = QVector<int>();
 	}
 
-	~RegionDepth()
-	{
-	}
-
-	void increment_region(int start, int end)
+	void incrementRegion(int start, int end)
 	{
 		int idx_start = std::max(start, start_) - start_;
 		int idx_end = std::min(end, end_) - start_;
@@ -60,32 +52,43 @@ struct RegionDepth
 		}
 	}
 
-	//read write access
-	int& operator[](int index)
+	//read access
+	int operator[](int pos) const
 	{
-		return depth_[index];
+		if (pos < start_ || end_ < pos)
+		{
+			THROW(ArgumentException, "Access outside of valid region. Position " + QString::number(pos) + " not in region: " + QString::number(start_) + "-"  + QString::number(end_) + ".");
+		}
+
+		return depth_[pos-start_];
 	}
 
 	//Interface for ChromosomalIndex
-	Chromosome chr()
+	const Chromosome& chr() const
 	{
 		return chr_;
 	}
 
-	int start()
+	int start() const
 	{
 		return start_;
 	}
 
-	int end()
+	int end() const
 	{
 		return end_;
 	}
 
-	int count()
+	int count() const
 	{
 		return end_-start_+1;
 	}
+
+private:
+	Chromosome chr_;
+	int start_;
+	int end_;
+	QVector<int> depth_;
 };
 
 
@@ -340,7 +343,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 							bases_usable += ol_end - ol_start + 1;
 							bases_usable_dp[std::min(dp, 4)] += ol_end - ol_start + 1;
 							bases_usable_raw += (ol_end - ol_start + 1)  * (dp + 1);
-							roi_cov[index].increment_region(ol_start, ol_end);
+							roi_cov[index].incrementRegion(ol_start, ol_end);
 						}
 					}
 
@@ -448,7 +451,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	for(int i=0; i< roi_cov.count(); ++i)
 	{
 		RegionDepth& region = roi_cov[i];
-		for(int j=0; j<region.count(); ++j)
+		for(int j=roi_cov[i].start(); j<=roi_cov[i].end(); ++j)
 		{
 			int depth = region[j];
 			depth_dist.inc(depth, true);
@@ -927,7 +930,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 			{
 				//calculate usable bases and base-resolution coverage on target region
 				bases_usable_roi += al.length();
-				roi_cov[i].increment_region(al.start(), al.end());
+				roi_cov[i].incrementRegion(al.start(), al.end());
 			}
 		}
 	}
@@ -942,7 +945,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 	Histogram depth_dist(0, hist_max, hist_step);
 	for(int i=0; i<roi_cov.count(); ++i)
 	{
-		for(int j=0; j<roi_cov[i].count(); ++j)
+		for(int j=roi_cov[i].start(); j<=roi_cov[i].end(); ++j)
 		{
 			int depth = roi_cov[i][j];
 			depth_dist.inc(depth, true);

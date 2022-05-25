@@ -77,11 +77,11 @@ public:
 		if (wgs)
 		{
 			QString genome_region = "";
-			if (getEnum("build") == "hg19")
+			if (build == GenomeBuild::HG19)
 			{
 				genome_region = "://resources/hg19_439_omim_genes.bed";
 			}
-			else if (getEnum("build") == "hg38")
+			else if (build == GenomeBuild::HG38)
 			{
 				genome_region = "://resources/hg38_440_omim_genes.bed";
 			}
@@ -89,7 +89,7 @@ public:
 			metrics = Statistics::mapping_wgs(in, genome_region, min_mapq, ref_file);
 
 			//parameters
-			parameters << "-wgs " << QFileInfo(roi_file).fileName();
+			parameters << "-wgs";
 		}
 		else if(rna)
 		{
