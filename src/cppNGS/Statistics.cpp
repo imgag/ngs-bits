@@ -33,7 +33,7 @@ struct RegionDepth
 	, start_(start)
 	, end_(end)
 	{
-		depth_ = QVector<int>(end_-start_);
+		depth_ = QVector<int>(end_-start_+1);
 		depth_.fill(0);
 	}
 
@@ -54,7 +54,7 @@ struct RegionDepth
 	{
 		int idx_start = std::max(start, start_) - start_;
 		int idx_end = std::min(end, end_) - start_;
-		for (int i=idx_start; i<idx_end; ++i)
+		for (int i=idx_start; i<=idx_end; ++i)
 		{
 			depth_[i] += 1;
 		}
@@ -220,20 +220,12 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 
 	//create coverage statistics data structure
 	long long roi_bases = 0;
-	QHash<int, QMap<int, int> > roi_cov;
+
+	QVector<RegionDepth> roi_cov(bed_file.count());
 	for (int i=0; i<bed_file.count(); ++i)
 	{
 		const BedLine& line = bed_file[i];
-		int chr_num = line.chr().num();
-		if (!roi_cov.contains(chr_num))
-		{
-			roi_cov.insert(chr_num, QMap<int, int>());
-		}
-
-		for(int p=line.start(); p<=line.end(); ++p)
-		{
-			roi_cov[chr_num].insert(p, 0);
-		}
+		roi_cov[i] = RegionDepth(line.chr(), line.start(), line.end());
 		roi_bases += line.length();
 	}
 
@@ -343,18 +335,12 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 					{
 						foreach(int index, indices)
 						{
-							const int ol_start = std::max(bed_file[index].start(), start_pos);
-							const int ol_end = std::min(bed_file[index].end(), end_pos);
+							const int ol_start = std::max(bed_file[index].start(), al.start());
+							const int ol_end = std::min(bed_file[index].end(), al.end());
 							bases_usable += ol_end - ol_start + 1;
 							bases_usable_dp[std::min(dp, 4)] += ol_end - ol_start + 1;
 							bases_usable_raw += (ol_end - ol_start + 1)  * (dp + 1);
-							auto it = roi_cov[chr.num()].lowerBound(ol_start);
-							auto end = roi_cov[chr.num()].upperBound(ol_end);
-							while (it!=end)
-							{
-								(*it)++;
-								++it;
-							}
+							roi_cov[index].increment_region(ol_start, ol_end);
 						}
 					}
 
@@ -459,16 +445,12 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 		hist_step = 500;
 	}
 	Histogram depth_dist(0, hist_max, hist_step);
-	QHashIterator<int, QMap<int, int> > it(roi_cov);
-	while(it.hasNext())
+	for(int i=0; i< roi_cov.count(); ++i)
 	{
-		it.next();
-		QMapIterator<int, int> it2(it.value());
-		while(it2.hasNext())
+		RegionDepth& region = roi_cov[i];
+		for(int j=0; j<region.depth_.count(); ++j)
 		{
-			it2.next();
-
-			int depth = it2.value();
+			int depth = region.depth_[j];
 			depth_dist.inc(depth, true);
 
 			if(depth>=half_depth)
