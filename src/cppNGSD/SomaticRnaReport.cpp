@@ -63,33 +63,44 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 	}
 
 
+	//Load pathway data
+	for(QString pathway : db_.getValues("SELECT CONCAT(symbol, '\t', pathway, '\t', significance) FROM somatic_gene_pathway"))
+	{
+		QByteArrayList parts = pathway.toUtf8().split('\t');
+		const QByteArray& gene = parts[0];
+
+		pathway_data tmp_data;
+		tmp_data.pathway = parts[1];
+		tmp_data.significance = parts[2];
+
+		SomaticGeneRole gene_role = db_.getSomaticGeneRole(gene, false);
+		if(gene_role.role == SomaticGeneRole::Role::ACTIVATING) tmp_data.role = "AMP";
+		else if(gene_role.role == SomaticGeneRole::Role::LOSS_OF_FUNCTION) tmp_data.role = "DEL";
+		else tmp_data.role = "n/a";
+
+		pathways_.insert(gene, tmp_data);
+	}
+
 	try
 	{
-		TSVFileStream in_pathways(":/resources/somatic_gene_pathways.tsv");
-		while(!in_pathways.atEnd())
+		TSVFileStream in_file(data.rna_counts_file);
+		int i_tpm = in_file.colIndex( "tpm", true );
+		int i_gene = in_file.colIndex( "gene_name", true );
+		while( !in_file.atEnd() )
 		{
-			QByteArrayList parts = in_pathways.readLine();
-			if(parts.isEmpty()) continue;
-			if(parts[0].startsWith("#")) continue;
-			pathway_info tmp;
-			tmp.pathogenicity = parts[0];
-			tmp.pathway = parts[1];
-			pathway_infos_.insert(parts[0], tmp);
+			QByteArrayList parts = in_file.readLine();
+			if(!pathways_.keys().contains(parts[i_gene])) continue;
+
+			for(pathway_data& value :  pathways_.values(parts[i_gene]) )
+			{
+				value.tumor_tpm = parts[i_tpm].toDouble();
+			}
+
 		}
-
-		TSVFileStream in_counts(data.rna_counts_file);
-
-		while(!in_counts.atEnd())
-		{
-			QByteArrayList parts = in_counts.readLine();
-			if(parts.isEmpty()) continue;
-			if(parts[0].startsWith("#")) continue;
-		}
-
-
 	}
 	catch(Exception&)
 	{
+		;
 	}
 
 }
@@ -457,6 +468,7 @@ RtfTable SomaticRnaReport::partGeneExpression()
 
 
 
+
 	return out;
 }
 
@@ -650,6 +662,10 @@ void SomaticRnaReport::writeRtf(QByteArray out_file)
 		doc_.addPart(RtfParagraph("").RtfCode());
 		doc_.newPage();
 	}
+
+	doc_.addPart(partGeneExpression().RtfCode());
+	doc_.addPart(RtfParagraph("").RtfCode());
+	doc_.newPage();
 
 	doc_.addPart(partGeneralInfo().RtfCode());
 

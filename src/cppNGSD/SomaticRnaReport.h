@@ -1,6 +1,7 @@
 #ifndef SOMATICRNAREPORT_H
 #define SOMATICRNAREPORT_H
 
+#include <QMultiMap>
 #include "RtfDocument.h"
 #include "NGSD.h"
 #include "FilterCascade.h"
@@ -84,17 +85,19 @@ private:
 	//Somatic RNA fusions
 	QList<arriba_sv> svs_;
 
-	struct pathway_info
+	struct pathway_data
 	{
-		QByteArray gene;
-		QByteArray pathogenicity;
 		QByteArray pathway;
+		QByteArray significance;
 
-		double tumor_tpm;
+		QByteArray role = "n/a"; //to be determined from somatic gene role
+
+		double tumor_tpm = std::numeric_limits<double>::quiet_NaN();
 		double ref_tpm;
 	};
 
-	QMap<QByteArray, pathway_info> pathway_infos_;
+
+	QMultiMap<QByteArray, pathway_data> pathways_;
 
 	///Creates table that containts fusions from RNA data
 	RtfTable partFusions();
