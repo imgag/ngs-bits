@@ -38,6 +38,7 @@ private slots:
 	void updateSystemSelection();
 	void writePanelToFile();
 	void storePanelInNGSD();
+	void addVariant();
 
 private:
 	void loadPreviousPanels();
@@ -53,6 +54,7 @@ private:
 	const FilterResult& filter_result_;
 	const SomaticReportConfiguration& somatic_report_configuration_;
 	QMap<QString, bool> prev_vars_;
+	QMap<QString, bool> candidate_vars_;
 	QSet<QString> prev_genes_;
 	bool prev_id_snp_;
 	QMap<QString, bool> prev_hotspots_;

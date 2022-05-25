@@ -353,6 +353,15 @@ FileLocation FileLocationProviderLocal::getSomaticIgvScreenshotFile() const
 	return FileLocation{name, PathType::IGV_SCREENSHOT, file, QFile::exists(file)};
 }
 
+FileLocation FileLocationProviderLocal::getSomaticCfdnaCandidateFile() const
+{
+	if (analysis_type_ != SOMATIC_SINGLESAMPLE && analysis_type_ != SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCfdnaCandidateFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+	QString name = QFileInfo(gsvar_file_).baseName();
+	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_cfDNA_candidates" + QDir::separator() + "monitoring.vcf";
+
+	return FileLocation{name, PathType::CFDNA_CANDIDATES, file, QFile::exists(file)};
+}
+
 QString FileLocationProviderLocal::getAnalysisPath() const
 {
 	return QFileInfo(gsvar_file_).absolutePath();
