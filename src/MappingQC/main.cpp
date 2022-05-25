@@ -63,28 +63,33 @@ public:
 		QString somatic_custom_roi_file = getInfile("somatic_custom_bed");
 
 		// check that just one of roi_file, wgs, rna is set
-		int parameters_set =  std::max((roi_file!="" ? 1 : 0) + rna, wgs + rna);
+		int parameters_set =  (roi_file!="" ? 1 : 0) +  wgs + rna;
 		if (parameters_set!=1)
 		{
-			THROW(CommandLineParsingException, "You have to use the parameters 'roi', or 'rna', or 'wgs', or 'wgs' + 'roi'!");
+			THROW(CommandLineParsingException, "You have to use exactly one of the parameters 'roi', 'wgs', or 'rna' !");
 		}
 		if (cfdna && (roi_file == ""))
 		{
 			 THROW(CommandLineParsingException, "The flag 'cfdna' can only be used with parameter 'roi'!");
 		}
-
 		QStringList parameters;
 		QCCollection metrics;
 		if (wgs)
 		{
-			metrics = Statistics::mapping_wgs(in, roi_file, min_mapq, ref_file);
+			QString genome_region = "";
+			if (getEnum("build") == "hg19")
+			{
+				genome_region = "://resources/hg19_439_omim_genes.bed";
+			}
+			else if (getEnum("build") == "hg38")
+			{
+				genome_region = "://resources/hg38_440_omim_genes.bed";
+			}
+
+			metrics = Statistics::mapping_wgs(in, genome_region, min_mapq, ref_file);
 
 			//parameters
-			parameters << "-wgs";
-			if (roi_file != "")
-			{
-				parameters << "-roi" << QFileInfo(roi_file).fileName();
-			}
+			parameters << "-wgs " << QFileInfo(roi_file).fileName();
 		}
 		else if(rna)
 		{

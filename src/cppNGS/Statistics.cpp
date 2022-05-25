@@ -946,6 +946,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 			if (!al.isDuplicate() && al.mappingQuality()>=min_mapq)
 			{
 				//calculate usable bases and base-resolution coverage on target region
+				bases_usable_roi += al.length();
 				roi_cov[i].increment_region(al.start(), al.end());
 			}
 		}

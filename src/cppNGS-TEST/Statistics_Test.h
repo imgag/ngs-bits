@@ -435,7 +435,7 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[16].name(), QString("target region 500x percentage"));
 		S_EQUAL(stats[16].toString(), QString("0.00"));
 		S_EQUAL(stats[17].name(), QString("target region half depth percentage"));
-		S_EQUAL(stats[17].toString(), QString("100.00"));
+		S_EQUAL(stats[17].toString(), QString("26.92"));
 		S_EQUAL(stats[18].name(), QString("AT dropout"));
 		S_EQUAL(stats[18].toString(), QString("5.47"));
 		S_EQUAL(stats[19].name(), QString("GC dropout"));
