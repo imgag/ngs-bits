@@ -1,18 +1,5 @@
 #include "VariantHgvsAnnotator.h"
 
-VariantHgvsAnnotator::VariantHgvsAnnotator()
-    : VariantHgvsAnnotator::VariantHgvsAnnotator(5000, 3, 8, 8)
-{
-}
-
-VariantHgvsAnnotator::VariantHgvsAnnotator(int max_dist_to_transcript, int splice_region_ex, int splice_region_in)
-    : max_dist_to_transcript_(max_dist_to_transcript)
-    , splice_region_ex_(splice_region_ex)
-    , splice_region_in_5_(splice_region_in)
-    , splice_region_in_3_(splice_region_in)
-{
-}
-
 VariantHgvsAnnotator::VariantHgvsAnnotator(int max_dist_to_transcript, int splice_region_ex, int splice_region_in_5, int splice_region_in_3)
     : max_dist_to_transcript_(max_dist_to_transcript)
     , splice_region_ex_(splice_region_ex)

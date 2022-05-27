@@ -102,6 +102,62 @@ public:
 		strand_ = strand;
 	}
 
+	enum BIOTYPE
+	{
+		IG_C_GENE,
+		IG_C_PSEUDOGENE,
+		IG_D_GENE,
+		IG_J_GENE,
+		IG_J_PSEUDOGENE,
+		IG_V_GENE,
+		IG_V_PSEUDOGENE,
+		IG_PSEUDOGENE,
+		MT_RRNA,
+		MT_TRNA,
+		TEC,
+		TR_C_GENE,
+		TR_D_GENE,
+		TR_J_GENE,
+		TR_J_PSEUDOGENE,
+		TR_V_GENE,
+		TR_V_PSEUDOGENE,
+		LNCRNA,
+		MIRNA,
+		MISC_RNA,
+		NON_STOP_DECAY,
+		NONSENSE_MEDIATED_DECAY,
+		POLYMORPHIC_PSEUDOGENE,
+		PROCESSED_PSEUDOGENE,
+		PROCESSED_TRANSCRIPT,
+		PROTEIN_CODING,
+		PSEUDOGENE,
+		RRNA,
+		RRNA_PSEUDOGENE,
+		RETAINED_INTRON,
+		RIBOZYME,
+		SRNA,
+		SCRNA,
+		SCARNA,
+		SNRNA,
+		SNORNA,
+		TRANSCRIBED_PROCESSED_PSEUDOGENE,
+		TRANSCRIBED_UNITARY_PSEUDOGENE,
+		TRANSCRIBED_UNPROCESSED_PSEUDOGENE,
+		TRANSLATED_PROCESSED_PSEUDOGENE,
+		TRANSLATED_UNPROCESSED_PSEUDOGENE,
+		UNITARY_PSEUDOGENE,
+		UNPROCESSED_PSEUDOGENE,
+		VAULTRNA
+	};
+	BIOTYPE biotype() const
+	{
+		return biotype_;
+	}
+	void setBiotype(BIOTYPE biotype)
+	{
+		biotype_ = biotype;
+	}
+
 	const Chromosome& chr() const
 	{
 		return chr_;
@@ -113,15 +169,6 @@ public:
 	int end() const
 	{
 		return end_;
-	}
-
-	bool isPreferredTranscript() const
-	{
-		return is_preferred_transcript_;
-	}
-	void setPreferredTranscript(bool is_preferred_transcript)
-	{
-		is_preferred_transcript_ = is_preferred_transcript;
 	}
 
 	const BedFile& regions() const
@@ -175,6 +222,11 @@ public:
 	///Converts string to strand enum.
     static STRAND stringToStrand(QByteArray strand);
 
+	///Converts biotype enum to string value.
+	static QByteArray biotypeToString(BIOTYPE biotype);
+	///Converts string to biotype enum.
+	static BIOTYPE stringToBiotype(QByteArray biotype);
+
 	///Converts a cDNA coordinate to genomic coordinates. Throws an exception if the coordinate is not valid.
 	int cDnaToGenomic(int coord) const;
 	///Converts a non-coding DNA coordinate to genomic coordinates. Throws an exception if the coordinate is not valid.
@@ -198,10 +250,10 @@ protected:
     QByteArray name_ccds_;
 	SOURCE source_;
 	STRAND strand_;
+	BIOTYPE biotype_;
 	Chromosome chr_;
 	int start_;
 	int end_;
-	bool is_preferred_transcript_;
 	BedFile regions_;
 	int coding_start_;
 	int coding_end_;

@@ -30,6 +30,12 @@ private slots:
 		count = db.getValue("SELECT count(*) FROM gene_transcript WHERE start_coding IS NULL AND end_coding IS NULL").toInt();
 		I_EQUAL(count, 2);
 
+		//check transcript biotype
+		QString biotype = db.getValue("SELECT biotype FROM gene_transcript WHERE name='ENST00000456328'").toString();
+		S_EQUAL(biotype, "processed transcript");
+		biotype = db.getValue("SELECT biotype FROM gene_transcript WHERE name='ENST00000306125'").toString();
+		S_EQUAL(biotype, "protein coding");
+
 		//check exons
 		count = db.getValue("SELECT count(ge.start) FROM gene_exon ge, gene_transcript gt, gene g WHERE g.id=gt.gene_id AND ge.transcript_id=gt.id AND g.symbol='DDX11L1'").toInt();
 		I_EQUAL(count, 3);
