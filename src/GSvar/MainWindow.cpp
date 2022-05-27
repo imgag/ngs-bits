@@ -5214,6 +5214,13 @@ void MainWindow::on_actionEditSomaticGeneRoles_triggered()
 	addModelessDialog(dlg);
 }
 
+void MainWindow::on_actionEditSomaticPathways_triggered()
+{
+	DBTableAdministration* table = new DBTableAdministration("somatic_gene_pathway");
+	auto dlg = GUIHelper::createDialog(table, "Somatic Gene Pathways");
+	addModelessDialog(dlg);
+}
+
 void MainWindow::on_actionOpenDocumentation_triggered()
 {
 	QDesktopServices::openUrl(QUrl("https://github.com/imgag/ngs-bits/tree/master/doc/GSvar/index.md"));
