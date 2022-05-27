@@ -290,8 +290,8 @@ public:
 
     virtual void setup()
     {
-        setDescription("Adds variant effect predictions to a VCF file.");
-        addInfile("in", "Input VCF file.", false);
+		setDescription("Adds transcript-specific consequence predictions to a VCF file.");
+		addInfile("in", "Input VCF file to annotate.", false);
 		addInfile("gff", "Ensembl-style GFF file with transcripts, e.g. from ftp://ftp.ensembl.org/pub/release-104/gff3/homo_sapiens/Homo_sapiens.GRCh38.104.chr.gff3.gz.", false);
 
         //optional
@@ -299,10 +299,10 @@ public:
 		addOutfile("out", "Output VCF file annotated with predicted consequences for each variant.", false);
 		addFlag("all", "If set, all transcripts are imported (the default is to skip transcripts not labeled with the 'GENCODE basic' tag).");
 		addString("tag", "Tag that is used for the consequence annotation.", true, "CSQ");
-		addInt("dist-to-trans", "Maximum distance between variant and transcript.", true, 5000);
-		addInt("splice-region-ex", "Number of bases at exon boundaries that are considered to be in the splice region.", true, 3);
-		addInt("splice-region-in-5", "Number of bases at intron boundaries (5') that are considered to be in the splice region", true, 8);
-		addInt("splice-region-in-3", "Number of bases at intron boundaries (3') that are considered to be in the splice region", true, 8);
+		addInt("max_dist_to_trans", "Maximum distance between variant and transcript.", true, 5000);
+		addInt("splice_region_ex", "Number of bases at exon boundaries that are considered to be part of the splice region.", true, 3);
+		addInt("splice_region_in5", "Number of bases at intron boundaries (5') that are considered to be part of the splice region.", true, 20);
+		addInt("splice_region_in3", "Number of bases at intron boundaries (3') that are considered to be part of the splice region.", true, 20);
     }
 
     virtual void main()
@@ -319,10 +319,10 @@ public:
         bool all = getFlag("all");
         QByteArray tag = getString("tag").toUtf8();
 
-        int max_dist_to_trans = getInt("dist-to-trans");
-        int splice_region_ex = getInt("splice-region-ex");
-        int splice_region_in_5 = getInt("splice-region-in-5");
-        int splice_region_in_3 = getInt("splice-region-in-3");
+		int max_dist_to_trans = getInt("max_dist_to_trans");
+		int splice_region_ex = getInt("splice_region_ex");
+		int splice_region_in_5 = getInt("splice_region_in5");
+		int splice_region_in_3 = getInt("splice_region_in3");
 
         if(max_dist_to_trans <= 0 || splice_region_ex <= 0 || splice_region_in_5 <= 0 || splice_region_in_3 <= 0)
         {

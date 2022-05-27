@@ -8,6 +8,7 @@ Transcript::Transcript()
 	, strand_(INVALID)
 	, start_(-1)
 	, end_(-1)
+	, is_preferred_transcript_(false)
 	, coding_start_(0)
 	, coding_end_(0)
 {

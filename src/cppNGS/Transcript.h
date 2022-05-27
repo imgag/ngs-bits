@@ -171,6 +171,15 @@ public:
 		return end_;
 	}
 
+	bool isPreferredTranscript() const
+	{
+		return is_preferred_transcript_;
+	}
+	void setPreferredTranscript(bool is_preferred_transcript)
+	{
+		is_preferred_transcript_ = is_preferred_transcript;
+	}
+
 	const BedFile& regions() const
 	{
 		return regions_;
@@ -254,6 +263,7 @@ protected:
 	Chromosome chr_;
 	int start_;
 	int end_;
+	bool is_preferred_transcript_;
 	BedFile regions_;
 	int coding_start_;
 	int coding_end_;

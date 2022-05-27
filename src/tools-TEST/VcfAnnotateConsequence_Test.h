@@ -13,7 +13,7 @@ private slots:
         QString ref_file = Settings::string("reference_genome", true);
         if (ref_file=="") SKIP("Test needs the reference genome!");
 
-		EXECUTE("VcfAnnotateConsequence", "-in " + TESTDATA("data_in/VcfAnnotateConsequence_in1.vcf") + " -gff " + TESTDATA("data_in/VcfAnnotateConsequence_transcripts.gff3") + " -out out/VcfAnnotateConsequence_out1.vcf");
+		EXECUTE("VcfAnnotateConsequence", "-in " + TESTDATA("data_in/VcfAnnotateConsequence_in1.vcf") + " -gff " + TESTDATA("data_in/VcfAnnotateConsequence_transcripts.gff3") + " -out out/VcfAnnotateConsequence_out1.vcf") + " -splice_region_in5 8 -splice_region_in3 8";
 
 		IS_TRUE(QFile::exists("out/VcfAnnotateConsequence_out1.vcf"));
         COMPARE_FILES("out/VcfAnnotateConsequence_out1.vcf", TESTDATA("data_out/VcfAnnotateConsequence_out1.vcf"));
@@ -25,7 +25,7 @@ private slots:
         QString ref_file = Settings::string("reference_genome", true);
         if (ref_file=="") SKIP("Test needs the reference genome!");
 
-		EXECUTE("VcfAnnotateConsequence", "-in " + TESTDATA("data_in/VcfAnnotateConsequence_in2.vcf") + " -gff " + TESTDATA("data_in/VcfAnnotateConsequence_transcripts.gff3") + " -out out/VcfAnnotateConsequence_out2.vcf" + " -tag CSQ_2");
+		EXECUTE("VcfAnnotateConsequence", "-in " + TESTDATA("data_in/VcfAnnotateConsequence_in2.vcf") + " -gff " + TESTDATA("data_in/VcfAnnotateConsequence_transcripts.gff3") + " -out out/VcfAnnotateConsequence_out2.vcf" + " -tag CSQ_2 -splice_region_in5 8 -splice_region_in3 8");
 
 		IS_TRUE(QFile::exists("out/VcfAnnotateConsequence_out2.vcf"));
         COMPARE_FILES("out/VcfAnnotateConsequence_out2.vcf", TESTDATA("data_out/VcfAnnotateConsequence_out2.vcf"));
@@ -37,7 +37,7 @@ private slots:
         QString ref_file = Settings::string("reference_genome", true);
         if (ref_file=="") SKIP("Test needs the reference genome!");
 
-		EXECUTE("VcfAnnotateConsequence", "-in " + TESTDATA("data_in/VcfAnnotateConsequence_in2.vcf") + " -gff " + TESTDATA("data_in/VcfAnnotateConsequence_transcripts.gff3") + " -out out/VcfAnnotateConsequence_out3.vcf" + " -tag CSQ -all");
+		EXECUTE("VcfAnnotateConsequence", "-in " + TESTDATA("data_in/VcfAnnotateConsequence_in2.vcf") + " -gff " + TESTDATA("data_in/VcfAnnotateConsequence_transcripts.gff3") + " -out out/VcfAnnotateConsequence_out3.vcf" + " -tag CSQ -all -splice_region_in5 8 -splice_region_in3 8");
 
 		IS_TRUE(QFile::exists("out/VcfAnnotateConsequence_out3.vcf"));
         COMPARE_FILES("out/VcfAnnotateConsequence_out3.vcf", TESTDATA("data_out/VcfAnnotateConsequence_out3.vcf"));
@@ -49,7 +49,7 @@ private slots:
         QString ref_file = Settings::string("reference_genome", true);
         if (ref_file=="") SKIP("Test needs the reference genome!");
 
-		EXECUTE("VcfAnnotateConsequence", "-in " + TESTDATA("data_in/VcfAnnotateConsequence_in1.vcf") + " -gff " + TESTDATA("data_in/VcfAnnotateConsequence_transcripts.gff3") + " -out out/VcfAnnotateConsequence_out4.vcf" + " -dist-to-trans 1000");
+		EXECUTE("VcfAnnotateConsequence", "-in " + TESTDATA("data_in/VcfAnnotateConsequence_in1.vcf") + " -gff " + TESTDATA("data_in/VcfAnnotateConsequence_transcripts.gff3") + " -out out/VcfAnnotateConsequence_out4.vcf" + " -max_dist_to_trans 1000 -splice_region_in5 8 -splice_region_in3 8");
 
         IS_TRUE(QFile::exists("out/VcfAnnotateConsequence_out4.vcf"));
         COMPARE_FILES("out/VcfAnnotateConsequence_out4.vcf", TESTDATA("data_out/VcfAnnotateConsequence_out4.vcf"));
@@ -61,7 +61,7 @@ private slots:
         QString ref_file = Settings::string("reference_genome", true);
         if (ref_file=="") SKIP("Test needs the reference genome!");
 
-		EXECUTE("VcfAnnotateConsequence", "-in " + TESTDATA("data_in/VcfAnnotateConsequence_in1.vcf") + " -gff " + TESTDATA("data_in/VcfAnnotateConsequence_transcripts.gff3") + " -out out/VcfAnnotateConsequence_out5.vcf" + " -splice-region-ex 1 -splice-region-in-5 4 -splice-region-in-3 4");
+		EXECUTE("VcfAnnotateConsequence", "-in " + TESTDATA("data_in/VcfAnnotateConsequence_in1.vcf") + " -gff " + TESTDATA("data_in/VcfAnnotateConsequence_transcripts.gff3") + " -out out/VcfAnnotateConsequence_out5.vcf" + " -splice_region_ex 1 -splice_region_in5 4 -splice_region_in3 4");
 
 		IS_TRUE(QFile::exists("out/VcfAnnotateConsequence_out5.vcf"));
         COMPARE_FILES("out/VcfAnnotateConsequence_out5.vcf", TESTDATA("data_out/VcfAnnotateConsequence_out5.vcf"));
@@ -73,7 +73,7 @@ private slots:
         QString ref_file = Settings::string("reference_genome", true);
         if (ref_file=="") SKIP("Test needs the reference genome!");
 
-		EXECUTE("VcfAnnotateConsequence", "-in " + TESTDATA("data_in/VcfAnnotateConsequence_in1.vcf") + " -gff " + TESTDATA("data_in/VcfAnnotateConsequence_transcripts.gff3") + " -out out/VcfAnnotateConsequence_out6.vcf" + " -splice-region-ex 5 -splice-region-in-5 25 -splice-region-in-3 25");
+		EXECUTE("VcfAnnotateConsequence", "-in " + TESTDATA("data_in/VcfAnnotateConsequence_in1.vcf") + " -gff " + TESTDATA("data_in/VcfAnnotateConsequence_transcripts.gff3") + " -out out/VcfAnnotateConsequence_out6.vcf" + " -splice_region_ex 5 -splice_region_in5 25 -splice_region_in3 25");
 
 		IS_TRUE(QFile::exists("out/VcfAnnotateConsequence_out6.vcf"));
         COMPARE_FILES("out/VcfAnnotateConsequence_out6.vcf", TESTDATA("data_out/VcfAnnotateConsequence_out6.vcf"));
