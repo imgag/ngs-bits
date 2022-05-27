@@ -617,7 +617,7 @@ void ExpressionDataWidget::loadExpressionData()
 	foreach (const QString& biotype, sorted_biotypes)
 	{
 		QCheckBox* cb_biotype = new QCheckBox(biotype);
-		cb_biotype->setChecked(true);
+		cb_biotype->setChecked((biotype == "protein_coding"));
 		vbox->addWidget(cb_biotype);
 	}
 	ui_->sawc_biotype->setLayout(vbox);

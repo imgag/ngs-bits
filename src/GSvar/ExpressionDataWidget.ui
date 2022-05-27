@@ -89,14 +89,14 @@
       <string>Filter</string>
      </property>
      <layout class="QFormLayout" name="formLayout">
-      <item row="0" column="0">
+      <item row="2" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
          <string>Gene(s):</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="0" colspan="2">
+      <item row="3" column="0" colspan="2">
        <widget class="QLineEdit" name="gene_filter">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -112,14 +112,14 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
+      <item row="4" column="0">
        <widget class="QLabel" name="label_3">
         <property name="text">
          <string>Minimal absolute log fold change:</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
+      <item row="4" column="1">
        <widget class="QLineEdit" name="abs_log_fc">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -132,14 +132,14 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
+      <item row="5" column="0">
        <widget class="QLabel" name="label_4">
         <property name="text">
          <string>Minimal absolute z-score:</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
+      <item row="5" column="1">
        <widget class="QLineEdit" name="abs_zscore">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -152,14 +152,14 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="0">
+      <item row="6" column="0">
        <widget class="QLabel" name="l_raw">
         <property name="text">
          <string>Minimum raw counts:</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
+      <item row="6" column="1">
        <widget class="QLineEdit" name="raw_counts">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -172,14 +172,14 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
+      <item row="7" column="0">
        <widget class="QLabel" name="l_tpm">
         <property name="text">
          <string>Minimal tpm value:</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
+      <item row="7" column="1">
        <widget class="QLineEdit" name="tpm_value">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -192,7 +192,7 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="0" colspan="2">
+      <item row="8" column="0" colspan="2">
        <widget class="QGroupBox" name="gb_biotype">
         <property name="maximumSize">
          <size>
@@ -227,14 +227,14 @@
         </layout>
        </widget>
       </item>
-      <item row="9" column="0">
+      <item row="11" column="0">
        <widget class="QPushButton" name="apply_filters">
         <property name="text">
          <string>apply filters</string>
         </property>
        </widget>
       </item>
-      <item row="11" column="0">
+      <item row="13" column="0">
        <widget class="QLabel" name="label_2">
         <property name="text">
          <string>Note: The table can be sorted by clicking on the corresponding table headers. </string>
@@ -244,7 +244,7 @@
         </property>
        </widget>
       </item>
-      <item row="8" column="0" colspan="2">
+      <item row="10" column="0" colspan="2">
        <widget class="QCheckBox" name="cb_filter_by_var_list">
         <property name="enabled">
          <bool>false</bool>
@@ -253,6 +253,36 @@
          <string>apply gene filter from the variant list 
 (selected phenotypes and  target region/sub-panel)</string>
         </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="QGroupBox" name="groupBox_2">
+        <property name="title">
+         <string>Cohort determination</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <item>
+          <widget class="QRadioButton" name="rb_germline_tissue">
+           <property name="text">
+            <string>germline (tissue based)</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="rb_germline_project">
+           <property name="text">
+            <string>germline (project based)</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="rb_somatic">
+           <property name="text">
+            <string>somatic (HPO or ICD10 based)</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
      </layout>
