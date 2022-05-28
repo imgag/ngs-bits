@@ -84,8 +84,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportEnsembl_init.sql"));
 
 		//test
-		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDImportEnsembl_in.gff3") + " -pseudogenes " + TESTDATA("data_in/NGSDImportEnsembl_in_pseudogenes.txt") + " "
-				+  TESTDATA("data_in/NGSDImportEnsembl_in_pseudogenes.txt"));
+		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDImportEnsembl_in.gff3") + " -pseudogenes " + TESTDATA("data_in/NGSDImportEnsembl_in_pseudogenes.txt") + " " +  TESTDATA("data_in/NGSDImportEnsembl_in_pseudogenes.txt"));
 
 		//check pseudogenes
 		int n_pseudogenes = db.getValue("SELECT COUNT(*) FROM gene_pseudogene_relation").toInt();
@@ -116,8 +115,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportEnsembl_init.sql"));
 
 		//test
-		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDImportEnsembl_in.gff3") + " -pseudogenes " + TESTDATA("data_in/NGSDImportEnsembl_in_pseudogenes_s1.txt") + " "
-				+  TESTDATA("data_in/NGSDImportEnsembl_in_pseudogenes_s2.txt"));
+		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDImportEnsembl_in.gff3") + " -pseudogenes " + TESTDATA("data_in/NGSDImportEnsembl_in_pseudogenes_s1.txt") + " " +  TESTDATA("data_in/NGSDImportEnsembl_in_pseudogenes_s2.txt"));
 
 		//check pseudogenes
 		int n_pseudogenes = db.getValue("SELECT COUNT(*) FROM gene_pseudogene_relation").toInt();
@@ -136,6 +134,41 @@ private slots:
 		parent_gene_id = db.getValue("SELECT parent_gene_id FROM gene_pseudogene_relation WHERE pseudogene_gene_id=" + QByteArray::number(pseudogene_id)).toInt();
 		QByteArray parent_gene = db.geneSymbol(parent_gene_id);
 		S_EQUAL(parent_gene, "ABCD1");
+	}
+
+	void with_parameter_all()
+	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportEnsembl_init.sql"));
+
+		//test
+		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDImportEnsembl_in.gff3") + " -all");
+
+		//check transcripts
+		int count = db.getValue("SELECT count(*) FROM gene_transcript").toInt();
+		I_EQUAL(count, 26);
+		count = db.getValue("SELECT count(*) FROM gene_transcript WHERE source='ensembl'").toInt();
+		I_EQUAL(count, 22);
+		count = db.getValue("SELECT count(*) FROM gene_transcript WHERE source='ccds'").toInt();
+		I_EQUAL(count, 4);
+		count = db.getValue("SELECT count(*) FROM gene_transcript WHERE start_coding IS NULL AND end_coding IS NULL").toInt();
+		I_EQUAL(count, 11);
+
+		//check flags
+		bool is_gencode_basic = db.getValue("SELECT is_gencode_basic FROM gene_transcript WHERE name='ENST00000456328'").toBool();
+		IS_TRUE(is_gencode_basic);
+		is_gencode_basic = db.getValue("SELECT is_gencode_basic FROM gene_transcript WHERE name='ENST00000515242'").toBool();
+		IS_FALSE(is_gencode_basic);
+
+		//check exons
+		count = db.getValue("SELECT count(ge.start) FROM gene_exon ge, gene_transcript gt, gene g WHERE g.id=gt.gene_id AND ge.transcript_id=gt.id AND g.symbol='DDX11L1'").toInt();
+		I_EQUAL(count, 16);
+		count = db.getValue("SELECT count(ge.start) FROM gene_exon ge, gene_transcript gt WHERE ge.transcript_id=gt.id AND gt.name='CCDS9344.1'").toInt();
+		I_EQUAL(count, 26);
 	}
 
 };
