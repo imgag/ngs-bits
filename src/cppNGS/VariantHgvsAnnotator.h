@@ -9,12 +9,13 @@
 #include "Transcript.h"
 #include "Sequence.h"
 #include "NGSHelper.h"
+#include "Exceptions.h"
 #include <QString>
 #include <QHash>
 #include <QSet>
 
 ///Representation of the effect of a variant
-enum class VariantConsequenceType
+enum class VariantConsequenceType : int
 {
     INTERGENIC_VARIANT,
     DOWNSTREAM_GENE_VARIANT,
@@ -42,9 +43,9 @@ enum class VariantConsequenceType
     SPLICE_ACCEPTOR_VARIANT
 };
 
-inline uint qHash(VariantConsequenceType key, uint seed)
+inline uint qHash(VariantConsequenceType key)
 {
-    return ::qHash(static_cast<uint>(key), seed);
+	return qHash(static_cast<int>(key));
 }
 
 ///Representation of the level of impact of a variant
@@ -104,10 +105,9 @@ struct CPPNGSSHARED_EXPORT HgvsNomenclature
             case VariantConsequenceType::INTERGENIC_VARIANT:
                 return VariantImpact::MODIFIER;
                 break;
-            default:
-                return VariantImpact::LOW;
         }
-    }
+		THROW(ProgrammingException, "Unhandled variant consequence type " + QString::number(static_cast<int>(type)) + "!");
+	}
 
     QString consequenceTypeToString(VariantConsequenceType type) const
     {
@@ -137,51 +137,49 @@ struct CPPNGSSHARED_EXPORT HgvsNomenclature
             case VariantConsequenceType::UPSTREAM_GENE_VARIANT: return "upstream_gene_variant";
             case VariantConsequenceType::DOWNSTREAM_GENE_VARIANT: return "downstream_gene_variant";
             case VariantConsequenceType::INTERGENIC_VARIANT: return "intergenic_variant";
-        }
-        return "";
+		}
+
+		THROW(ProgrammingException, "Unhandled variant consequence type " + QString::number(static_cast<int>(type)) + "!");
     }
 };
 
 ///Class for generating HGVS nomenclature and variant effect from VCF/GSVar
 class CPPNGSSHARED_EXPORT VariantHgvsAnnotator
 {
-private:
-    //How far upstream or downstream can the variant be from the transcript
-    int max_dist_to_transcript_;
-
-    //How far the splice region extends into exon/intron
-    int splice_region_ex_;
-    int splice_region_in_5_;
-    int splice_region_in_3_;
-
-    QString annotateRegionsCoding(const Transcript& transcript, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand, bool is_dup = false);
-    QString annotateRegionsNonCoding(const Transcript& transcript, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand, bool is_dup = false);
-    QString getHgvsPosition(const BedFile& regions, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand, const BedFile& coding_regions, bool utr_5 = false, int first_region = 0);
-    QString getPositionInIntron(const BedFile& regions, HgvsNomenclature& hgvs, int genomic_position, bool plus_strand, const BedFile &coding_regions, bool utr_5 = false, int first_region = 0);
-    QString getHgvsProteinAnnotation(const VcfLine& variant, const FastaFileIndex& genome_idx, const QString& pos_hgvs_c, const Transcript& transcript, bool plus_strand);
-
-	QByteArray toThreeLetterCode(char aa_one_letter_code);
-
-    void annotateSpliceRegion(HgvsNomenclature& hgvs, const Transcript& transcript, int start, int end, bool plus_strand, bool insertion);
-
-    void annotateProtSeqCsqSnv(HgvsNomenclature& hgvs);
-
 public:
     ///Default constructor
     VariantHgvsAnnotator();
-
-    ///Constructor to change parameters for detecting up/downstream and splice region variants: same for 5 and 3 prime site intron
-    VariantHgvsAnnotator(int max_dist_to_transcript, int splice_region_ex, int splice_region_in);
 
     ///Constructor to change parameters for detecting up/downstream and splice region variants: different for 5 and 3 prime site intron
     VariantHgvsAnnotator(int max_dist_to_transcript, int splice_region_ex, int splice_region_in_5, int splice_region_in_3);
 
     ///Converts a variant in VCF format to HGVS nomenclature
-    HgvsNomenclature variantToHgvs(const Transcript& transcript, VcfLine &variant, const FastaFileIndex& genome_idx);
+	HgvsNomenclature variantToHgvs(const Transcript& transcript, VcfLine& variant, const FastaFileIndex& genome_idx);
     HgvsNomenclature variantToHgvs(const Transcript& transcript, Variant& variant, const FastaFileIndex& genome_idx);
 
     QByteArray translate(const Sequence& seq, bool is_mito = false, bool end_at_stop = true);
     Sequence getCodingSequence(const Transcript& trans, const FastaFileIndex& genome_idx, bool add_utr_3 = false);
+
+private:
+	//How far upstream or downstream can the variant be from the transcript
+	int max_dist_to_transcript_;
+
+	//How far the splice region extends into exon/intron
+	int splice_region_ex_;
+	int splice_region_in_5_;
+	int splice_region_in_3_;
+
+	QString annotateRegionsCoding(const Transcript& transcript, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand, bool is_dup = false);
+	QString annotateRegionsNonCoding(const Transcript& transcript, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand, bool is_dup = false);
+	QString getHgvsPosition(const BedFile& regions, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand, const BedFile& coding_regions, bool utr_5 = false, int first_region = 0);
+	QString getPositionInIntron(const BedFile& regions, HgvsNomenclature& hgvs, int genomic_position, bool plus_strand, const BedFile &coding_regions, bool utr_5 = false, int first_region = 0);
+	QString getHgvsProteinAnnotation(const VcfLine& variant, const FastaFileIndex& genome_idx, const QString& pos_hgvs_c, const Transcript& transcript, bool plus_strand);
+
+	QByteArray toThreeLetterCode(char aa_one_letter_code);
+
+	void annotateSpliceRegion(HgvsNomenclature& hgvs, const Transcript& transcript, int start, int end, bool plus_strand, bool insertion);
+
+	void annotateProtSeqCsqSnv(HgvsNomenclature& hgvs);
 };
 
 #endif // VARIANTHGVSANNOTATOR_H

@@ -22,10 +22,11 @@ public:
 	{
 		setDescription("Imports Ensembl/CCDS transcript information into NGSD.");
 		addInfile("in", "Ensembl transcript file (download and unzip ftp://ftp.ensembl.org/pub/grch37/release-87/gff3/homo_sapiens/Homo_sapiens.GRCh37.87.chr.gff3.gz for GRCh37 and ftp://ftp.ensembl.org/pub/release-104/gff3/homo_sapiens/Homo_sapiens.GRCh38.104.chr.gff3.gz for GRCh38).", false);
-
+		addInfile("ensembl_canonical", "Ensembl canonical transcript TSF file (download and unzip from https://ftp.ensembl.org/pub/release-105/tsv/homo_sapiens/Homo_sapiens.GRCh38.105.canonical.tsv.gz", false);
+		addInfile("mane", "GFF file with MANE information (download and unzip from https://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/release_1.0/MANE.GRCh38.v1.0.ensembl_genomic.gff.gz", false);
 		//optional
 		addInfileList("pseudogenes", "Pseudogene flat file(s) (download from http://pseudogene.org/psidr/psiDR.v0.txt).", true);
-		addFlag("all", "If set, all transcripts are imported (the default is to skip transcripts not labeled as with the 'GENCODE basic' tag).");
+		addFlag("all", "If set, all transcripts are imported (the default is to skip transcripts that do not have at least one of the flags 'GENCODE basic', 'Ensembl canonical', 'MANE select' or 'MANE plus clinical').");
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
 
@@ -34,6 +35,60 @@ public:
 		changeLog(2021,  1, 20, "Added import of pseudogene relations");
         changeLog(2019,  8, 12, "Added handling of HGNC identifiers to resolve ambiguous gene names");
 		changeLog(2017,  7,  6, "Added first version");
+	}
+
+	void loadEnsemblCanonical(QString filename, QSet<QByteArray>& ensembl_canonical)
+	{
+		QSharedPointer<QFile> file = Helper::openFileForReading(filename);
+		while(!file->atEnd())
+		{
+			QByteArray line = file->readLine().trimmed();
+			if (line.isEmpty() || line.startsWith("gene_stable_id")) continue;
+
+			QByteArrayList parts = line.split('\t');
+			if (parts.count()<3) continue;
+
+			QByteArray transcript_id = parts[1];
+			if (transcript_id.contains('.'))
+			{
+				transcript_id = transcript_id.split('.')[0];
+			}
+
+			ensembl_canonical << transcript_id;
+		}
+	}
+
+	void loadMane(QString filename, QSet<QByteArray>& mane_select, QSet<QByteArray>& mane_plus_clinical)
+	{
+		QSharedPointer<QFile> file = Helper::openFileForReading(filename);
+		while(!file->atEnd())
+		{
+			QByteArrayList parts = file->readLine().split('\t');
+			if (parts.count()<9) continue;
+
+			if (!parts[8].startsWith("ID=ENST")) continue;
+
+			QByteArray transcript_id;
+			foreach(const QByteArray& part, parts[8].split(';'))
+			{
+				//parse transcript id
+				if (part.startsWith("ID="))
+				{
+					transcript_id = part.mid(3);
+					if (transcript_id.contains('.'))
+					{
+						transcript_id = transcript_id.split('.')[0];
+					}
+				}
+
+				//parse tags
+				if (part.startsWith("tag="))
+				{
+					if (part.contains("MANE_Select")) mane_select << transcript_id;
+					if (part.contains("MANE_Plus_Clinical")) mane_plus_clinical << transcript_id;
+				}
+			}
+		}
 	}
 
     int geneByHGNC(SqlQuery& query, const QByteArray& hgnc_id)
@@ -50,7 +105,7 @@ public:
 		return query.value(0).toInt();
 	}
 
-    int addTranscript(SqlQuery& query, int gene_id, const QByteArray& name, const QByteArray& source, const Transcript& t)
+	int addTranscript(SqlQuery& query, int gene_id, const QByteArray& name, const QByteArray& source, const Transcript& t, bool is_gencode_basic, bool is_ensembl_canonical, bool is_mane_select, bool is_mane_plus_clinical)
 	{
 		//QTextStream(stdout) << "Adding transcript name=" << name << " source=" << source << " gene=" << t_data.ngsd_gene_id << " start_coding=" << t_data.start_coding << " end_coding=" << t_data.end_coding << endl;
 		query.bindValue(0, gene_id);
@@ -72,6 +127,11 @@ public:
 		}
         QByteArray strand = t.strand() == Transcript::PLUS ? "+" : "-";
         query.bindValue(6, strand);
+		query.bindValue(7, Transcript::biotypeToString(t.biotype()));
+		query.bindValue(8, is_gencode_basic);
+		query.bindValue(9, is_ensembl_canonical);
+		query.bindValue(10, is_mane_select);
+		query.bindValue(11, is_mane_plus_clinical);
 		query.exec();
 
 		return query.lastInsertId().toInt();
@@ -90,16 +150,11 @@ public:
 		}
 	}
 
-	void importPseudogenes(const QMap<QByteArray, QByteArray>& transcript_gene_relation, const QMap<QByteArray, QByteArray>& gene_name_relation, QString pseudogene_file_path)
+	void importPseudogenes(const QHash<QByteArray, QByteArray>& enst2ensg, const QHash<QByteArray, QByteArray>& ensg2symbol, QString pseudogene_file_path)
 	{
 		//init
 		NGSD db(getFlag("test"));
 		QTextStream out(stdout);
-
-		// prepare db queries
-//		SqlQuery q_select_pseudogene = db.getQuery();
-//		q_select_pseudogene.prepare("SELECT id FROM gene_pseudogene_relation WHERE parent_gene_id=:0 AND pseudogene_gene_id=:1");
-//		SqlQuery q_select_genename = db.getQuery();
 
 		SqlQuery q_insert_pseudogene = db.getQuery();
 		q_insert_pseudogene.prepare("INSERT INTO gene_pseudogene_relation (parent_gene_id, pseudogene_gene_id, gene_name) VALUES (:0, :1, :2);");
@@ -176,13 +231,13 @@ public:
 			{
 				n_missing_pseudogene_transcript_id++;
 
-				if (transcript_gene_relation.contains(pseudogene_transcript_ensembl_id))
+				if (enst2ensg.contains(pseudogene_transcript_ensembl_id))
 				{
-					QByteArray ensembl_gene_id = transcript_gene_relation.value(pseudogene_transcript_ensembl_id);
-					if (gene_name_relation.contains(ensembl_gene_id))
+					QByteArray ensembl_gene_id = enst2ensg.value(pseudogene_transcript_ensembl_id);
+					if (ensg2symbol.contains(ensembl_gene_id))
 					{
-						QByteArray gene_name = gene_name_relation.value(ensembl_gene_id).split('.').at(0).trimmed();
-						pseudogene_gene_id = db.geneToApprovedID(gene_name);
+						QByteArray gene_symbol = ensg2symbol.value(ensembl_gene_id).split('.').at(0).trimmed();
+						pseudogene_gene_id = db.geneToApprovedID(gene_symbol);
 
 						// try to match by gene name
 						if (pseudogene_gene_id != -1)
@@ -205,12 +260,12 @@ public:
 						else // fallback 2: annotate parent with pseudogene name and ensembl id
 						{
 							// check existance
-							if(db.getValue("SELECT id FROM gene_pseudogene_relation WHERE parent_gene_id=" + QString::number(parent_gene_id) + " AND gene_name='" +  ensembl_gene_id + ";" + gene_name + "'", true) == QVariant())
+							if(db.getValue("SELECT id FROM gene_pseudogene_relation WHERE parent_gene_id=" + QString::number(parent_gene_id) + " AND gene_name='" +  ensembl_gene_id + ";" + gene_symbol + "'", true) == QVariant())
 							{
 								// execute SQL query
 								q_insert_pseudogene.bindValue(0, parent_gene_id);
 								q_insert_pseudogene.bindValue(1, QVariant());
-								q_insert_pseudogene.bindValue(2, ensembl_gene_id + ";" + gene_name);
+								q_insert_pseudogene.bindValue(2, ensembl_gene_id + ";" + gene_symbol);
 								q_insert_pseudogene.exec();
 								n_found_gene_name_relations++;
 							}
@@ -232,9 +287,9 @@ public:
 					n_unknown_transcript++;
 				}
 			}
-
 		}
-		// print stats:
+
+		// print stats
 		out << "pseudogene flat file: " << filename << "\n";
 		out << "\t missing parent transcript ids in File: " << n_missing_parent_in_file << "\n";
 		out << "\t missing pseudogene transcript ids in NGSD: " << n_missing_pseudogene_transcript_id << "\n";
@@ -245,7 +300,6 @@ public:
 		out << "\t pseudogenes with no gene name: " << n_missing_gene_name << "\n";
 		out << "\t pseudogenes with unknown transcript: " << n_unknown_transcript << "\n";
 		out << "\t pseudogenes already in database: " << n_duplicate_pseudogenes << "\n";
-
 	}
 
 	virtual void main()
@@ -279,7 +333,7 @@ public:
 
 		// prepare queries
 		SqlQuery q_trans = db.getQuery();
-		q_trans.prepare("INSERT INTO gene_transcript (gene_id, name, source, chromosome, start_coding, end_coding, strand) VALUES (:0, :1, :2, :3, :4, :5, :6);");
+		q_trans.prepare("INSERT INTO gene_transcript (gene_id, name, source, chromosome, start_coding, end_coding, strand, biotype, is_gencode_basic, is_ensembl_canonical, is_mane_select, is_mane_plus_clinical) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11)");
 
 		SqlQuery q_exon = db.getQuery();
 		q_exon.prepare("INSERT INTO gene_exon (transcript_id, start, end) VALUES (:0, :1, :2);");
@@ -287,19 +341,30 @@ public:
 		SqlQuery q_gene = db.getQuery();
 		q_gene.prepare("SELECT id FROM gene WHERE hgnc_id=:0;");
 
-		// store trancript_id->gene_id and gene_id->gene_name relation for fallback in pseudogene db table
-		QMap<QByteArray, QByteArray> transcript_gene_relation;
-		QMap<QByteArray, QByteArray> gene_name_relation;
+		//load tag data
+		QSet<QByteArray> ensembl_canonical;
+		loadEnsemblCanonical(getInfile("ensembl_canonical"), ensembl_canonical);
+		QSet<QByteArray> mane_select;
+		QSet<QByteArray> mane_plus_clinical;
+		loadMane(getInfile("mane"), mane_select, mane_plus_clinical);
 
 		//parse input - format description at https://www.gencodegenes.org/data_format.html and http://www.ensembl.org/info/website/upload/gff3.html
-        TranscriptList trans_list = NGSHelper::loadGffFile(getInfile("in"), transcript_gene_relation, gene_name_relation, all);
-
+		GffData data;
+		NGSHelper::loadGffFile(getInfile("in"), data);
         QSet<QByteArray> ccds_transcripts_added;
-
-        foreach(Transcript t, trans_list)
+		foreach(const Transcript& t, data.transcripts)
         {
+			QByteArray transcript_id = t.name();
+			bool is_gencode_basic = data.gencode_basic.contains(transcript_id);
+			bool is_ensembl_canonical = ensembl_canonical.contains(transcript_id);
+			bool is_mane_select = mane_select.contains(transcript_id);
+			bool is_mane_plus_clinical = mane_plus_clinical.contains(transcript_id);
+
+			//if not 'all' or has important flag > skip it
+			if (!all && !is_gencode_basic && !is_ensembl_canonical && !is_mane_select && !is_mane_plus_clinical) continue;
+
             //transform gene name to approved gene ID
-            QByteArray gene = gene_name_relation[t.geneId()];
+			QByteArray gene = t.gene();
             int ngsd_gene_id = db.geneToApprovedID(gene);
             if(ngsd_gene_id==-1) //fallback to HGNC ID
             {
@@ -316,17 +381,17 @@ public:
                 continue;
             }
 
-            //add Ensembl transcript
-            int trans_id = addTranscript(q_trans, ngsd_gene_id, t.name(), "ensembl", t);
+			//add Ensembl transcript
+			int trans_id = addTranscript(q_trans, ngsd_gene_id, transcript_id, "ensembl", t, is_gencode_basic, is_ensembl_canonical, is_mane_select, is_mane_plus_clinical);
             //add exons
             addExons(q_exon, trans_id, t.regions());
 
             //add CCDS transcript as well (only once)
             if(t.nameCcds()!="" && !ccds_transcripts_added.contains(t.nameCcds()))
             {
-                int trans_id_ccds = addTranscript(q_trans, ngsd_gene_id, t.nameCcds() , "ccds", t);
+				int trans_id_ccds = addTranscript(q_trans, ngsd_gene_id, t.nameCcds() , "ccds", t, false, false, false, false);
                 //add exons (only coding part)
-                BedFile exons = t.regions();
+				BedFile exons = t.regions();
                 //Transcript class encodes actual coding start (ATG), but coding_start < coding_end is required here
                 int coding_start = std::min(t.codingStart(), t.codingEnd());
                 int coding_end = std::max(t.codingStart(), t.codingEnd());
@@ -341,10 +406,9 @@ public:
 		QStringList pseudogene_file_paths = getInfileList("pseudogenes");
 		foreach (const QString& file_path, pseudogene_file_paths)
 		{
-			importPseudogenes(transcript_gene_relation, gene_name_relation, file_path);
+			importPseudogenes(data.enst2ensg, data.ensg2symbol, file_path);
 		}
-
-    }
+	}
 };
 
 #include "main.moc"
