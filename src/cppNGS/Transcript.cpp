@@ -298,6 +298,7 @@ Transcript::BIOTYPE Transcript::stringToBiotype(QByteArray biotype_orig)
 	else if (biotype=="UNITARY_PSEUDOGENE") return UNITARY_PSEUDOGENE;
 	else if (biotype=="UNPROCESSED_PSEUDOGENE") return UNPROCESSED_PSEUDOGENE;
 	else if (biotype=="VAULTRNA") return VAULTRNA;
+	else if (biotype=="VAULT_RNA") return VAULTRNA; //bug in Ensembl GFF in version 105
 
 	THROW(ProgrammingException, "Unknown transcript biotype string '" + biotype_orig + "!");
 }
