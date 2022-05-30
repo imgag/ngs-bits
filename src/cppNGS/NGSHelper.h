@@ -37,21 +37,20 @@ struct TargetRegionInfo
 
 };
 
-//Transcript data for GFF parsing
-struct TranscriptData
+//Output of Ensembl GFF file parser.
+struct GffData
 {
-    QByteArray name;
-    int version;
-    QByteArray name_ccds;
-    QByteArray gene_symbol;
-    QByteArray gene_id;
-    QByteArray hgnc_id;
-    QByteArray chr;
-    int start_coding = 0;
-    int end_coding = 0;
-    QByteArray strand;
+	//Transcripts
+	TranscriptList transcripts;
 
-    BedFile exons;
+	//Map from ENST to ENSG.
+	QHash<QByteArray, QByteArray> enst2ensg;
+
+	//Map from ENSG to gene symbol
+	QHash<QByteArray, QByteArray> ensg2symbol;
+
+	//Set of ENST identifiers that are flagged as GENCODE basic
+	QSet<QByteArray> gencode_basic;
 };
 
 ///Helper class for NGS-specific stuff.
@@ -75,7 +74,7 @@ public:
 	static QByteArray threeLetterCode(char aa_one_letter_code);
 
 	///Converts a 3-letter amino acid code to a 1-letter amino acid code
-	static char oneLetterCode(QByteArray aa_tree_letter_code);
+	static char oneLetterCode(const QByteArray& aa_tree_letter_code);
 
 	///Returns the pseudoautomal regions on gnosomes.
 	static const BedFile& pseudoAutosomalRegion(GenomeBuild build);
@@ -100,11 +99,8 @@ public:
 	///Converts the 3letter ancestry code to a human-readable text, see http://m.ensembl.org/Help/Faq?id=532
 	static QString populationCodeToHumanReadable(QString code);
 
-    ///Fills a TranscriptList with features from a GFF file
-	static TranscriptList loadGffFile(QString filename, QMap<QByteArray, QByteArray>& transcript_gene_relation, QMap<QByteArray, QByteArray>& gene_name_relation, bool all = false);
-
-    ///Parse attributes in GFF file line
-    static QMap<QByteArray, QByteArray> parseGffAttributes(const QByteArray& attributes);
+	///Returns transcripts with features from a Ensembl GFF file, transcript_gene_relation (ENST>ENSG) and gene_name_relation (ENSG>gene symbol).
+	static void loadGffFile(QString filename, GffData& output);
 
 	///Returns if the application is running in client-server mode (mainly used for GSvar).
 	static bool isCliendServerMode();
