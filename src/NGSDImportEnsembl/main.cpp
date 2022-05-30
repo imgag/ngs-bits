@@ -25,12 +25,13 @@ public:
 		addInfile("ensembl_canonical", "Ensembl canonical transcript TSF file (download and unzip from https://ftp.ensembl.org/pub/release-105/tsv/homo_sapiens/Homo_sapiens.GRCh38.105.canonical.tsv.gz", false);
 		addInfile("mane", "GFF file with MANE information (download and unzip from https://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/release_1.0/MANE.GRCh38.v1.0.ensembl_genomic.gff.gz", false);
 		//optional
-		addInfileList("pseudogenes", "Pseudogene flat file(s) (download from http://pseudogene.org/psidr/psiDR.v0.txt).", true);
+		addInfileList("pseudogenes", "Pseudogene flat file(s) (download from http://pseudogene.org/psidr/psiDR.v0.txt and http://pseudogene.org/psicube/data/gencode.v10.pgene.parents.txt).", true);
 		addFlag("all", "If set, all transcripts are imported (the default is to skip transcripts that do not have at least one of the flags 'GENCODE basic', 'Ensembl canonical', 'MANE select' or 'MANE plus clinical').");
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
 
-		changeLog(2021,  6, 9, "Added support for multiple pseudogene files and duplication check.");
+		changeLog(2022,  5, 29, "Added parameters 'ensembl_canonical' and 'mane'.");
+		changeLog(2021,  6,  9, "Added support for multiple pseudogene files and duplication check.");
         changeLog(2021,  1, 25, "Made pseudogene file optional");
 		changeLog(2021,  1, 20, "Added import of pseudogene relations");
         changeLog(2019,  8, 12, "Added handling of HGNC identifiers to resolve ambiguous gene names");
