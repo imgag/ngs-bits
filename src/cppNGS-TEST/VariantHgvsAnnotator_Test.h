@@ -144,7 +144,7 @@ private slots:
         if (ref_file=="") SKIP("Test needs the reference genome!");
         FastaFileIndex reference(ref_file);
 
-        VariantHgvsAnnotator var_hgvs_anno;
+		VariantHgvsAnnotator var_hgvs_anno(5000, 3, 8, 8);
         Transcript t = trans_SLC51A();
 
         //SNV exon synonymous
@@ -607,7 +607,7 @@ private slots:
         if (ref_file=="") SKIP("Test needs the reference genome!");
         FastaFileIndex reference(ref_file);
 
-        VariantHgvsAnnotator var_hgvs_anno;
+		VariantHgvsAnnotator var_hgvs_anno(5000, 3, 8, 8);
         Transcript t = trans_APOD();
         Transcript t_CALCA = trans_CALCA();
 
@@ -1012,7 +1012,7 @@ private slots:
         if (ref_file=="") SKIP("Test needs the reference genome!");
         FastaFileIndex reference(ref_file);
 
-        VariantHgvsAnnotator var_hgvs_anno;
+		VariantHgvsAnnotator var_hgvs_anno(5000, 3, 8, 8);
         Transcript t = trans_APOD();
 
         //delins intron
@@ -1175,7 +1175,7 @@ private slots:
         if (ref_file=="") SKIP("Test needs the reference genome!");
         FastaFileIndex reference(ref_file);
 
-        VariantHgvsAnnotator var_hgvs_anno;
+		VariantHgvsAnnotator var_hgvs_anno(5000, 3, 8, 8);
         Transcript t = trans_DECR1();
 
         //SNV 5 prime utr intron plus strand
@@ -1238,7 +1238,7 @@ private slots:
         if (ref_file=="") SKIP("Test needs the reference genome!");
         FastaFileIndex reference(ref_file);
 
-        VariantHgvsAnnotator var_hgvs_anno;
+		VariantHgvsAnnotator var_hgvs_anno(5000, 3, 8, 8);
         Transcript t = trans_NEAT1();
 
         // non-coding intron SNV
@@ -1287,7 +1287,7 @@ private slots:
 
     void translateDnaSequence()
     {
-        VariantHgvsAnnotator annotator;
+		VariantHgvsAnnotator annotator(5000, 3, 8, 8);
         Sequence dna_seq = "TTTTTCTTATTGCTTCTCCTACTGTCTTCCTCATCGAGTAGCTATTACTAATAG"
                            "TGATGTTGCTGGCCTCCCCCACCGCATCACCAACAGCGTCGCCGACGGAGAAGG"
                            "ATTATCATAATGACTACCACAACGAATAACAAAAAGGTTGTCGTAGTGGCTGCC"

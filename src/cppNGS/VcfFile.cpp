@@ -119,7 +119,7 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 	{
 		THROW(ArgumentException, "Invalid variant chromosome string in line " + QString::number(line_number) + ": " + vcf_line->chr().str() + ".");
 	}
-	vcf_line->setPos(atoi(line_parts[POS]));
+	vcf_line->setPos(Helper::toInt(line_parts[POS], "VCF position"));
 	if(vcf_line->start() < 0)
 	{
 		THROW(ArgumentException, "Invalid variant position range in line " + QString::number(line_number) + ": " + QString::number(vcf_line->start()) + ".");

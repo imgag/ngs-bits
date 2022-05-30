@@ -66,7 +66,11 @@ CREATE TABLE IF NOT EXISTS `gene_transcript`
 `start_coding` int(10) unsigned NULL,
 `end_coding` int(10) unsigned NULL,
 `strand` enum('+', '-') NOT NULL,
-
+`biotype` enum('IG C gene', 'IG C pseudogene', 'IG D gene', 'IG J gene', 'IG J pseudogene', 'IG V gene', 'IG V pseudogene', 'IG pseudogene', 'Mt rRNA', 'Mt tRNA', 'TEC', 'TR C gene', 'TR D gene', 'TR J gene', 'TR J pseudogene', 'TR V gene', 'TR V pseudogene', 'lncRNA', 'miRNA', 'misc RNA', 'non stop decay', 'nonsense mediated decay', 'polymorphic pseudogene', 'processed pseudogene', 'processed transcript', 'protein coding', 'pseudogene', 'rRNA', 'rRNA pseudogene', 'retained intron', 'ribozyme', 'sRNA', 'scRNA', 'scaRNA', 'snRNA', 'snoRNA', 'transcribed processed pseudogene', 'transcribed unitary pseudogene', 'transcribed unprocessed pseudogene', 'translated processed pseudogene', 'translated unprocessed pseudogene', 'unitary pseudogene', 'unprocessed pseudogene', 'vaultRNA') NOT NULL,
+`is_gencode_basic` TINYINT(1) NOT NULL DEFAULT 0,
+`is_ensembl_canonical` TINYINT(1) NOT NULL DEFAULT 0,
+`is_mane_select` TINYINT(1) NOT NULL DEFAULT 0,
+`is_mane_plus_clinical` TINYINT(1) NOT NULL DEFAULT 0,
 PRIMARY KEY (`id`),
 CONSTRAINT `fk_gene_id3`
   FOREIGN KEY (`gene_id` )
@@ -2205,20 +2209,15 @@ CREATE TABLE IF NOT EXISTS `expression`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
-  `gene_id` INT(11) UNSIGNED NOT NULL,
+  `symbol` VARCHAR(40) NOT NULL,
   `tpm` FLOAT NOT NULL,
   PRIMARY KEY (`id`),
   INDEX(`processed_sample_id`),
-  INDEX(`gene_id`),
-  UNIQUE INDEX `expression_UNIQUE` (`processed_sample_id` ASC, `gene_id` ASC),
+  INDEX(`symbol`),
+  UNIQUE INDEX `expression_UNIQUE` (`processed_sample_id` ASC, `symbol` ASC),
   CONSTRAINT `fk_expression_processed_sample_id`
     FOREIGN KEY (`processed_sample_id` )
     REFERENCES `processed_sample` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_expression_gene_id`
-    FOREIGN KEY (`gene_id` )
-    REFERENCES `gene` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
 )

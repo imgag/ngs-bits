@@ -1,63 +1,33 @@
 #include "MosaicWidget.h"
-#include "Helper.h"
-#include "Exceptions.h"
-#include "GUIHelper.h"
-#include "GSvarHelper.h"
-#include "VariantDetailsDockWidget.h"
-#include "NGSD.h"
-#include "Settings.h"
-#include "Log.h"
-#include "ProcessedSampleWidget.h"
-#include "Histogram.h"
-#include "ReportVariantDialog.h"
 #include "LoginManager.h"
-#include "GeneInfoDBs.h"
-#include "ValidationDialog.h"
+#include "GUIHelper.h"
 #include "GlobalServiceProvider.h"
-#include <QMessageBox>
-#include <QFileInfo>
-#include <QBitArray>
-#include <QClipboard>
-#include <QMenu>
-#include <QDesktopServices>
-#include <QUrl>
-#include <QDir>
-#include <QInputDialog>
-#include <QChartView>
-QT_CHARTS_USE_NAMESPACE
-
 
 MosaicWidget::MosaicWidget(const VariantList& variants, ReportSettings rep_settings, QHash<QByteArray, BedFile>& cache, QWidget* parent)
 	: QWidget(parent)
-	, ui_(new Ui::MosaicWidget)
+	, ui_()
 	, variants_(variants)
 	, filter_result_()
-	, report_settings_()
+	, report_settings_(rep_settings)
 	, gene2region_cache_(cache)
 {
-	ui_->setupUi(this);
+	ui_.setupUi(this);
+	GUIHelper::styleSplitter(ui_.splitter);
 
-	connect(ui_->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
-	connect(ui_->mosaics,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(variantDoubleClicked(QTableWidgetItem*)));
-	ui_->filter_widget->setValidFilterEntries(variants_.filters().keys());
-	report_settings_ = rep_settings;
-	initGUI();
-}
+	connect(ui_.filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
+	connect(ui_.mosaics,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(variantDoubleClicked(QTableWidgetItem*)));
+	connect(ui_.mosaics, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
 
-void MosaicWidget::initGUI()
-{
+	ui_.filter_widget->setValidFilterEntries(variants_.filters().keys());
+
+	if (LoginManager::active())
+	{
+		ui_.filter_widget->loadTargetRegions();
+	}
+
 	//set up GUI
 	updateGUI();
-
-	//apply filters
-	applyFilters();
 }
-
-MosaicWidget::~MosaicWidget()
-{
-	delete ui_;
-}
-
 
 void MosaicWidget::variantDoubleClicked(QTableWidgetItem *item)
 {
@@ -65,8 +35,25 @@ void MosaicWidget::variantDoubleClicked(QTableWidgetItem *item)
 
 	int row = item->row();
 
-	const Variant& v = variants_[ui_->mosaics->rowToVariantIndex(row)];
+	const Variant& v = variants_[ui_.mosaics->rowToVariantIndex(row)];
 	GlobalServiceProvider::gotoInIGV(v.chr().str() + ":" + QString::number(v.start()) + "-" + QString::number(v.end()), true);
+}
+
+void MosaicWidget::updateVariantDetails()
+{
+	static int var_last = -1; //static
+
+	int var_current = ui_.mosaics->selectedVariantIndex();
+	if (var_current==-1) //no several variant => clear
+	{
+		ui_.variant_details->clear();
+	}
+	else if (var_current!=var_last) //update variant details (if changed)
+	{
+		ui_.variant_details->updateVariant(variants_, var_current);
+	}
+
+	var_last = var_current;
 }
 
 
@@ -80,9 +67,9 @@ void MosaicWidget::applyFilters(bool debug_time)
 		timer.start();
 
 		//apply main filter
-		const FilterCascade& filter_cascade = ui_->filter_widget->filters();
+		const FilterCascade& filter_cascade = ui_.filter_widget->filters();
 		filter_result_ = filter_cascade.apply(variants_, false, debug_time);
-		ui_->filter_widget->markFailedFilters();
+		ui_.filter_widget->markFailedFilters();
 
 		if (debug_time)
 		{
@@ -91,7 +78,7 @@ void MosaicWidget::applyFilters(bool debug_time)
 		}
 
 		//filter by report config
-		ReportConfigFilter rc_filter = ui_->filter_widget->reportConfigurationFilter();
+		ReportConfigFilter rc_filter = ui_.filter_widget->reportConfigurationFilter();
 		if (rc_filter!=ReportConfigFilter::NONE)
 		{
 			for(int r=0; r<rows; ++r)
@@ -114,7 +101,7 @@ void MosaicWidget::applyFilters(bool debug_time)
 		}
 
 		//filter by genes
-		GeneSet genes = ui_->filter_widget->genes();
+		GeneSet genes = ui_.filter_widget->genes();
 		if (!genes.isEmpty())
 		{
 			FilterGenes filter;
@@ -129,18 +116,18 @@ void MosaicWidget::applyFilters(bool debug_time)
 		}
 
 		//filter by ROI
-		if (ui_->filter_widget->targetRegion().isValid())
+		if (ui_.filter_widget->targetRegion().isValid())
 		{
 			for(int r=0; r<rows; ++r)
 			{
 				if (!filter_result_.flags()[r]) continue;
 
-				filter_result_.flags()[r] = ui_->filter_widget->targetRegion().regions.overlapsWith(variants_[r].chr(), variants_[r].start(), variants_[r].end());
+				filter_result_.flags()[r] = ui_.filter_widget->targetRegion().regions.overlapsWith(variants_[r].chr(), variants_[r].start(), variants_[r].end());
 			}
 		}
 
 		//filter by region
-		QString region_text = ui_->filter_widget->region();
+		QString region_text = ui_.filter_widget->region();
 		BedLine region = BedLine::fromString(region_text);
 		if (!region.isValid()) //check if valid chr
 		{
@@ -163,7 +150,7 @@ void MosaicWidget::applyFilters(bool debug_time)
 		}
 
 		//filter by phenotype (via genes, not genomic regions)
-		PhenotypeList phenotypes = ui_->filter_widget->phenotypes();
+		PhenotypeList phenotypes = ui_.filter_widget->phenotypes();
 		if (!phenotypes.isEmpty())
 		{
 			//convert phenotypes to genes
@@ -199,7 +186,7 @@ void MosaicWidget::applyFilters(bool debug_time)
 		}
 
 		//filter annotations by text
-		QByteArray text = ui_->filter_widget->text().trimmed().toLower();
+		QByteArray text = ui_.filter_widget->text().trimmed().toLower();
 		if (text!="")
 		{
 			for(int r=0; r<rows; ++r)
@@ -222,7 +209,7 @@ void MosaicWidget::applyFilters(bool debug_time)
 	}
 	catch(Exception& e)
 	{
-		QMessageBox::warning(this, "Filtering error", e.message() + "\nA possible reason for this error is an outdated variant list.\nTry re-annotating the NGSD columns.\n If re-annotation does not help, please re-analyze the sample (starting from annotation) in the sample information dialog!");
+		GUIHelper::showException(this, e, "Filtering error");
 
 		filter_result_ = FilterResult(variants_.count(), false);
 	}
@@ -230,7 +217,7 @@ void MosaicWidget::applyFilters(bool debug_time)
 	//update GUI
 	for(int r=0; r<rows; ++r)
 	{
-		ui_->mosaics->setRowHidden(r, !filter_result_.flags()[r]);
+		ui_.mosaics->setRowHidden(r, !filter_result_.flags()[r]);
 	}
 	updateStatus(filter_result_.countPassing());
 }
@@ -238,9 +225,6 @@ void MosaicWidget::applyFilters(bool debug_time)
 void MosaicWidget::updateGUI(bool keep_widths)
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
-
-	QTime timer;
-	timer.start();
 
 	//apply filters
 	applyFilters();
@@ -251,51 +235,48 @@ void MosaicWidget::updateGUI(bool keep_widths)
 	{
 		status += " Displaying " + QString::number(max_variants) + " variants only!";
 	}
-	ui_->status->setText(status);
-
-	Log::perf("Applying all filters took ", timer);
-	timer.start();
+	ui_.status->setText(status);
 
 	//update variant table
-	QList<int> col_widths = ui_->mosaics->columnWidths();
+	QList<int> col_widths = ui_.mosaics->columnWidths();
 	AnalysisType type = variants_.type();
 
 	if (type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE)
 	{
-		ui_->mosaics->update(variants_, filter_result_, report_settings_, max_variants);
+		ui_.mosaics->update(variants_, filter_result_, report_settings_, max_variants);
 	}
 	else
 	{
 		THROW(ProgrammingException, "Unsupported analysis type in refreshVariantTable!");
 	}
 
-	ui_->mosaics->adaptRowHeights();
+	ui_.mosaics->adaptRowHeights();
 	if (keep_widths)
 	{
-		ui_->mosaics->setColumnWidths(col_widths);
+		ui_.mosaics->setColumnWidths(col_widths);
 	}
 	else
 	{
-		ui_->mosaics->adaptColumnWidths();
+		ui_.mosaics->adaptColumnWidths();
 	}
-	QApplication::restoreOverrideCursor();
 
+	QApplication::restoreOverrideCursor();
 }
 
 void MosaicWidget::copyToClipboard()
 {
-	GUIHelper::copyToClipboard(ui_->mosaics);
+	GUIHelper::copyToClipboard(ui_.mosaics);
 }
 
 void MosaicWidget::copyVariantsToClipboard()
 {
-	GUIHelper::copyToClipboard(ui_->mosaics, true);
+	GUIHelper::copyToClipboard(ui_.mosaics, true);
 }
 
 
 void MosaicWidget::updateStatus(int shown)
 {
 	QString text = QString::number(shown) + "/" + QString::number(variants_.count()) + " passing filter(s)";
-	ui_->status->setText(text);
+	ui_.status->setText(text);
 }
 
