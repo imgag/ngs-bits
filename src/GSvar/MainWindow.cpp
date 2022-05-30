@@ -328,6 +328,22 @@ void MainWindow::on_actionDebug_triggered()
 		QTime timer;
 		timer.start();
 
+		//show genes without transcripts
+		/*
+		NGSD db;
+		QSet<int> gene_ids = db.getValuesInt("SELECT id FROM gene").toSet();
+		qDebug() << gene_ids.count();
+		QSet<int> gene_ids_with_transcript = db.getValuesInt("SELECT DISTINCT gene_id FROM gene_transcript").toSet();
+		qDebug() << gene_ids_with_transcript.count();
+		gene_ids.subtract(gene_ids_with_transcript);
+		qDebug() << gene_ids.count();
+		foreach(int gene_id, gene_ids)
+		{
+			QString type = db.getValue("SELECT type FROM gene WHERE id="+QString::number(gene_id)).toString();
+			if (type=="protein-coding gene") QTextStream(stdout) << db.getValue("SELECT symbol FROM gene WHERE id="+QString::number(gene_id)).toString() << "\t" << type << endl;
+		}
+		*/
+
 		//Delete variant that are not used
 		/*
 		QStringList ref_tables;

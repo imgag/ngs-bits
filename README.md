@@ -87,6 +87,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [VariantQC](doc/tools/VariantQC.md) - Quality control tool for a VCF file.
 * [SomaticQC](doc/tools/SomaticQC.md) - Quality control tool for tumor-normal pairs ([paper](https://www.ncbi.nlm.nih.gov/pubmed/28130233) and [example output data](doc/data/somatic_qc.zip?raw=true)).
 * [TrioMaternalContamination](doc/tools/TrioMaternalContamination/index.md) - Detects maternal contamination of a child using SNPs from parents.
+* [RnaQC](doc/tools/RnaQC.md) - Calculates QC metrics for RNA samples.
 
 ### BAM tools
 
@@ -135,6 +136,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 ### VCF tools (small variants)
 
+* [VcfAnnotateConsequence](doc/tools/VcfAnnotateConsequence.md) - Adds transcript-specific consequence predictions to a VCF file (similar to Ensembl VEP).
 * [VcfAnnotateFromBed](doc/tools/VcfAnnotateFromBed.md) - Annotates the INFO column of a VCF with data from a BED file.
 * [VcfAnnotateFromBigWig](doc/tools/VcfAnnotateFromBigWig.md) - Annotates the INFO column of a VCF with data from a BED file.
 * [VcfAnnotateFromVcf](doc/tools/VcfAnnotateFromVcf.md) - Annotates the INFO column of a VCF with data from another VCF file (or multiple VCF files if config file is provided)
@@ -175,4 +177,4 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file.
-* [HgvsToVcf](doc/tools/HgvsToVcf.md) - Transforms a TSV file with transcript ID and HGVS.c change into a VCF file  (needs [NGSD](doc/install_ngsd.md)).
+* [HgvsToVcf](doc/tools/HgvsToVcf.md) - Transforms a TSV file with transcript ID and HGVS.c change into a VCF file (needs [NGSD](doc/install_ngsd.md)).
