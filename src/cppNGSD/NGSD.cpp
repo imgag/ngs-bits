@@ -27,7 +27,7 @@ NGSD::NGSD(bool test_db, QString name_suffix)
 
 	//connect to DB
 	QString db_name;
-	if (!test_db_ && NGSHelper::isCliendServerMode() && !NGSHelper::isRunningOnServer())
+	if (!test_db_ && NGSHelper::isClientServerMode() && !NGSHelper::isRunningOnServer())
 	{
 		db_->setHostName(LoginManager::ngsdHostName());
 		db_->setPort(LoginManager::ngsdPort());
@@ -57,7 +57,7 @@ NGSD::NGSD(bool test_db, QString name_suffix)
 
 bool NGSD::isAvailable(bool test_db)
 {
-	if (!test_db && NGSHelper::isCliendServerMode() && !NGSHelper::isRunningOnServer())
+	if (!test_db && NGSHelper::isClientServerMode() && !NGSHelper::isRunningOnServer())
 	{
 		return true;
 	}

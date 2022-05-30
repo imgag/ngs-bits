@@ -103,7 +103,7 @@ public:
 	static void loadGffFile(QString filename, GffData& output);
 
 	///Returns if the application is running in client-server mode (mainly used for GSvar).
-	static bool isCliendServerMode();
+	static bool isClientServerMode();
 	///Checks if the application is running on the server or on a client machine
 	static bool isRunningOnServer();
 

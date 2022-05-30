@@ -259,7 +259,7 @@ MainWindow::MainWindow(QWidget *parent)
 	QDir::setCurrent(QDir::tempPath());
 
 	//enable timers needed in client-server mode
-	if (NGSHelper::isCliendServerMode())
+	if (NGSHelper::isClientServerMode())
 	{
 		QTimer *login_timer = new QTimer(this);
 		connect(login_timer, &QTimer::timeout, this, &LoginManager::renewLogin);
@@ -1799,7 +1799,7 @@ void MainWindow::delayedInitialization()
 	}
 
 	// Setting a timer to renew secure tokens for the server API
-	if (NGSHelper::isCliendServerMode())
+	if (NGSHelper::isClientServerMode())
 	{
 		if (!isServerRunning())
 		{

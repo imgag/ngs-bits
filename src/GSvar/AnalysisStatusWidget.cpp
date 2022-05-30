@@ -380,7 +380,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	}
 	if (text=="Open analysis folder(s)")
 	{
-		if (NGSHelper::isCliendServerMode())
+		if (NGSHelper::isClientServerMode())
 		{
 			QMessageBox::warning(this, "No access", "Analysis folder browsing is not available in client-server mode");
 			return;
@@ -398,7 +398,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	}
 	if (text=="Open sample folders")
 	{
-		if (NGSHelper::isCliendServerMode())
+		if (NGSHelper::isClientServerMode())
 		{
 			QMessageBox::warning(this, "No access", "Sample folder browsing is not available in client-server mode");
 			return;
