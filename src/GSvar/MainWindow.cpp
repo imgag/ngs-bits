@@ -1478,7 +1478,9 @@ void MainWindow::on_actionExpressionData_triggered()
 	}
 
 	int rna_sys_id = db.processingSystemIdFromProcessedSample(count_file);
+	QString rna_ps_id = db.processedSampleId(count_file);
 	QString tissue = db.getSampleData(db.sampleId(count_file)).tissue;
+	QString project = db.getProcessedSampleData(rna_ps_id).project_name;
 
 	GeneSet variant_target_region;
 	if(ui_.filters->phenotypes().count() > 0)
@@ -1501,9 +1503,17 @@ void MainWindow::on_actionExpressionData_triggered()
 		}
 	}
 
+	RnaCohortDeterminationStategy cohort_type;
+	if (germlineReportSupported())
+	{
+		cohort_type = RNA_COHORT_GERMLINE;
+	}
+	else
+	{
+		cohort_type = RNA_COHORT_SOMATIC;
+	}
 
-
-	ExpressionDataWidget* widget = new ExpressionDataWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, this);
+	ExpressionDataWidget* widget = new ExpressionDataWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, project, rna_ps_id, cohort_type, this);
 	auto dlg = GUIHelper::createDialog(widget, "Expression Data");
 	addModelessDialog(dlg, false);
 }

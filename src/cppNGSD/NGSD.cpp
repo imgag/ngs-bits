@@ -1546,102 +1546,52 @@ QVector<double> NGSD::getExpressionValues(const QString& ensg, int sys_id, const
 	return expr_values;
 }
 
-QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id, const QString& tissue_type)
+QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id, const QString& tissue_type, const QString& project, const QString& ps_id, RnaCohortDeterminationStategy cohort_type)
 {
 	QTime timer;
 	timer.start();
-	// check tissue
-	if (!getEnum("sample", "tissue").contains(tissue_type))
-	{
-		THROW(ArgumentException, "'" +  tissue_type + "' is not a valid tissue type in the NGSD!")
-	}
-
-//	//get ENSG -> id mapping
-//	QMap<QByteArray,int> gene_mapping = getEnsemblGeneIdMapping();
-//	qDebug() << "Get ENSG --> gene_id mapping: " << Helper::elapsedTime(timer);
-//	timer.restart();
-
-
-//	//prepare queries
-//	SqlQuery query = getQuery();
-//	query.prepare(QString() + "SELECT ev.tpm FROM `expression` ev "
-//				  + "INNER JOIN `processed_sample` ps ON ev.processed_sample_id = ps.id "
-//				  + "INNER JOIN `sample` s ON ps.sample_id = s.id "
-//				  + "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue='" + tissue_type + "' AND ev.gene_id=:0");
-//	SqlQuery mean_query = getQuery();
-//	mean_query.prepare(QString() + "SELECT AVG(ev.tpm) FROM `expression` ev "
-//					   + "INNER JOIN `processed_sample` ps ON ev.processed_sample_id = ps.id "
-//					   + "INNER JOIN `sample` s ON ps.sample_id = s.id "
-//					   + "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue='" + tissue_type + "' AND ev.gene_id=:0");
-//	SqlQuery stddev_query = getQuery();
-//	stddev_query.prepare(QString() + "SELECT STD(ev.tpm) FROM `expression` ev "
-//						 + "INNER JOIN `processed_sample` ps ON ev.processed_sample_id = ps.id "
-//						 + "INNER JOIN `sample` s ON ps.sample_id = s.id "
-//						 + "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue='" + tissue_type + "' AND ev.gene_id=:0");
-//	SqlQuery combined_query = getQuery();
-//	combined_query.prepare(QString() + "SELECT AVG(ev.tpm), STD(ev.tpm) FROM `expression` ev "
-//						   + "INNER JOIN `processed_sample` ps ON ev.processed_sample_id = ps.id "
-//						   + "INNER JOIN `sample` s ON ps.sample_id = s.id "
-//						   + "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue='" + tissue_type + "' AND ev.gene_id=:0");
 
 	QMap<QByteArray, ExpressionStats> expression_stats;
-	//get expression data
-	SqlQuery q = getQuery();
-	q.exec(QString() + "SELECT g.ensembl_id, AVG(ev.tpm), STD(ev.tpm) FROM `expression` ev "
-		   + "INNER JOIN `processed_sample` ps ON ev.processed_sample_id = ps.id "
-		   + "INNER JOIN `sample` s ON ps.sample_id = s.id "
-		   + "INNER JOIN `gene` g ON ev.gene_id = g.id "
-		   + "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue='" + tissue_type + "' GROUP BY ev.gene_id");
 
-	while(q.next())
+	if ((cohort_type == RNA_COHORT_GERMLINE) || (cohort_type == RNA_COHORT_GERMLINE_PROJECT))
 	{
-		ExpressionStats stats;
-		stats.mean = q.value(1).toDouble();
-		stats.stddev = q.value(2).toDouble();
-		expression_stats.insert(q.value(0).toByteArray(), stats);
+		// check tissue
+		if (!getEnum("sample", "tissue").contains(tissue_type))
+		{
+			THROW(ArgumentException, "'" +  tissue_type + "' is not a valid tissue type in the NGSD!")
+		}
+
+		//get expression data
+		SqlQuery q = getQuery();
+		QString query_string;
+		query_string = QString("SELECT g.ensembl_id, AVG(ev.tpm), STD(ev.tpm) FROM `expression` ev ")
+						+ "INNER JOIN `processed_sample` ps ON ev.processed_sample_id = ps.id "
+						+ "INNER JOIN `sample` s ON ps.sample_id = s.id "
+						+ "INNER JOIN `gene` g ON ev.gene_id = g.id "
+						+ "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue='" + tissue_type + "' ";
+		if (cohort_type == RNA_COHORT_GERMLINE_PROJECT) query_string += " AND s.project='" + project + "' ";
+		query_string += "GROUP BY ev.gene_id";
+
+		q.exec(query_string);
+
+		while(q.next())
+		{
+			ExpressionStats stats;
+			stats.mean = q.value(1).toDouble();
+			stats.stddev = q.value(2).toDouble();
+			expression_stats.insert(q.value(0).toByteArray(), stats);
+		}
 	}
-//	//parse database
-//	QMap<QByteArray, ExpressionStats> expression_stats;
-//	foreach (const QByteArray& ensg, gene_mapping.keys())
-//	{
-//		ExpressionStats stats;
-//		stats.mean = 0.0;
-//		stats.stddev = 0.0;
+	else if (cohort_type == RNA_COHORT_SOMATIC)
+	{
+		THROW(NotImplementedException, "Implement somatic cohort determination");
+		//TODO: implement
+	}
+	else
+	{
+		THROW(ArgumentException, "Invalid cohort type!");
+	}
 
-////		query.bindValue(0, gene_mapping.value(ensg));
-////		query.exec();
-
-////		QVector<double> expression_values;
-
-////		while(query.next())
-////		{
-////			expression_values << query.value(0).toDouble();
-////		}
-////		if (expression_values.size() > 0)
-////		{
-////			stats.mean = BasicStatistics::mean(expression_values);
-////			stats.stddev = BasicStatistics::stdev(expression_values, stats.mean);
-////		}
-
-//		//calculate mean/std dev in database
-////		mean_query.bindValue(0, gene_mapping.value(ensg));
-////		mean_query.exec();
-////		mean_query.next();
-////		stats.mean = mean_query.value(0).toDouble();
-
-////		stddev_query.bindValue(0, gene_mapping.value(ensg));
-////		stddev_query.exec();
-////		stddev_query.next();
-////		stats.stddev = stddev_query.value(0).toDouble();
-
-//		combined_query.bindValue(0, gene_mapping.value(ensg));
-//		combined_query.exec();
-//		combined_query.next();
-//		stats.mean = combined_query.value(0).toDouble();
-//		stats.stddev = combined_query.value(1).toDouble();
-
-//		expression_stats.insert(ensg, stats);
-//	}
 
 	qDebug() << "Get expression stats: " << Helper::elapsedTime(timer);
 

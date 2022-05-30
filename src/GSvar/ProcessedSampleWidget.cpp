@@ -656,7 +656,7 @@ void ProcessedSampleWidget::openExpressionWidget()
 		NGSD db;
 		int sys_id = db.processingSystemIdFromProcessedSample(processedSampleName());
 		QString tissue = db.getSampleData(db.sampleId(sampleName())).tissue;
-		ExpressionDataWidget* widget = new ExpressionDataWidget(file_location.filename, sys_id, tissue, "", GeneSet(), this);
+		ExpressionDataWidget* widget = new ExpressionDataWidget(file_location.filename, sys_id, tissue, "", GeneSet(), db.getProcessedSampleData(ps_id_).project_name, ps_id_, RNA_COHORT_GERMLINE, this);
 		auto dlg = GUIHelper::createDialog(widget, "Expression Data");
 		dlg->exec();
 	}

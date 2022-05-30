@@ -16,12 +16,16 @@ QT_CHARTS_USE_NAMESPACE
 
 
 
-ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, int sys_id, QString tissue, const QString& variant_gene_filter, const GeneSet& variant_gene_set, QWidget *parent) :
+ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, int sys_id, QString tissue, const QString& variant_gene_filter, const GeneSet& variant_gene_set, const QString& project,
+										   const QString& ps_id, RnaCohortDeterminationStategy cohort_type, QWidget *parent) :
 	QWidget(parent),
 	tsv_filename_(tsv_filename),
 	sys_id_(sys_id),
 	tissue_(tissue),
 	variant_gene_set_(variant_gene_set),
+	project_(project),
+	ps_id_(ps_id),
+	cohort_type_(cohort_type),
 	ui_(new Ui::ExpressionDataWidget)
 
 {
@@ -43,6 +47,12 @@ ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, int sys_id, QSt
 
 	// set context menus for biotype filter
 	ui_->sa_biotype->setContextMenuPolicy(Qt::CustomContextMenu);
+
+	// set initial cohort determination strategy
+	if (cohort_type == RNA_COHORT_GERMLINE) ui_->rb_germline_tissue->setChecked(true);
+	if (cohort_type == RNA_COHORT_GERMLINE_PROJECT) ui_->rb_germline_project->setChecked(true);
+	if (cohort_type == RNA_COHORT_SOMATIC) ui_->rb_somatic->setChecked(true);
+
 
 	//(de-)activate varaint list gene filter
 	if (!variant_gene_set_.isEmpty())
@@ -90,6 +100,37 @@ void ExpressionDataWidget::applyFilters()
 	if (row_count==0) return;
 
 	FilterResult filter_result(row_count);
+
+	//update filter strategy
+	RnaCohortDeterminationStategy cohort_type;
+	if (ui_->rb_germline_tissue->isChecked())
+	{
+		cohort_type = RNA_COHORT_GERMLINE;
+	}
+	else if (ui_->rb_germline_project->isChecked())
+	{
+		cohort_type = RNA_COHORT_GERMLINE_PROJECT;
+	}
+	else if (ui_->rb_somatic->isChecked())
+	{
+		cohort_type = RNA_COHORT_SOMATIC;
+	}
+	else
+	{
+		THROW(ArgumentException, "Invalid cohort type!");
+	}
+
+	if (cohort_type != cohort_type_)
+	{
+		//update cohort determination strategy
+		cohort_type_ = cohort_type;
+
+		//rebuild table
+		loadExpressionData();
+	}
+
+
+
 
 
 	//filter by variant list gene filter
@@ -500,10 +541,10 @@ void ExpressionDataWidget::loadExpressionData()
 
 	//db columns
 
-	QStringList db_column_names = QStringList()  << "cohort_mean" << "cohort_meanlog2" << "log2fc" << "zscore";
+	QStringList db_column_names = QStringList()  << "cohort_mean" << "cohort_meanlog2" << "log2fc" << "zscore" << "p-value";
 	column_names_ << db_column_names;
-	numeric_columns_  << true << true << true << true;
-	precision_ << 3 << 3 << 3 << 3;
+	numeric_columns_  << true << true << true << true << true;
+	precision_ << 3 << 3 << 3 << 3 << 3;
 
 
 	//create header
@@ -548,6 +589,12 @@ void ExpressionDataWidget::loadExpressionData()
 					{
 						double zscore = (log2_tpm - std::log2(gene_stats.mean)) / std::log2(gene_stats.stddev);
 						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(zscore, 'f', precision_.at(col_idx))));
+					}
+					else if(column_names_.at(col_idx) == "p-value")
+					{
+						double zscore = (log2_tpm - std::log2(gene_stats.mean)) / std::log2(gene_stats.stddev);
+						double p_value = std::erf(1 + ((- abs(zscore))/(std::sqrt(2))));
+						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(p_value, 'f', precision_.at(col_idx))));
 					}
 					else
 					{
