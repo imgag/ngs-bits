@@ -603,7 +603,7 @@ void ExpressionDataWidget::loadExpressionData()
 				}
 				else
 				{
-					ui_->expression_data->setItem(row_idx, col_idx, new QTableWidgetItem(""));
+					ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(""));
 				}
 			}
 			else

@@ -2285,13 +2285,13 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in3.sql"));
 
 		//Test ENSG->gene_id mapping
-		QMap<QByteArray, int> ensg_gene_mapping = db.getEnsemblGeneIdMapping();
-		I_EQUAL(ensg_gene_mapping.value("ENSG00000204518"), 1);
-		I_EQUAL(ensg_gene_mapping.value("ENSG00000171735"), 11);
-		I_EQUAL(ensg_gene_mapping.value("ENSG00000127463"), 24);
-		I_EQUAL(ensg_gene_mapping.value("ENSG00000231510"), 36);
-		I_EQUAL(ensg_gene_mapping.value("ENSG00000263793"), 47);
-		I_EQUAL(ensg_gene_mapping.value("ENSG00000187583"), 66);
+		QMap<QByteArray, QByteArray> ensg_gene_mapping = db.getEnsemblGeneMapping();
+		S_EQUAL(ensg_gene_mapping.value("ENSG00000204518"), "AADACL4");
+		S_EQUAL(ensg_gene_mapping.value("ENSG00000171735"), "CAMTA1");
+		S_EQUAL(ensg_gene_mapping.value("ENSG00000127463"), "EMC1");
+		S_EQUAL(ensg_gene_mapping.value("ENSG00000231510"), "LINC02782");
+		S_EQUAL(ensg_gene_mapping.value("ENSG00000263793"), "MIR3115");
+		S_EQUAL(ensg_gene_mapping.value("ENSG00000187583"), "PLEKHN1");
 
 		//Test expression data import
 		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in1.tsv"), "RX001_01", false, false);

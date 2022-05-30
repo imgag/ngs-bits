@@ -26,13 +26,13 @@ bool NumericWidgetItem::operator<(const QTableWidgetItem& other) const
 	if (text().trimmed().isEmpty()) return false;
 	if (other.text().trimmed().isEmpty()) return true;
 
-	//handle numeric limits
-	if (text() == "nan") return true;
-	if (other.text() == "nan") return false;
-	if (text() == "-inf") return true;
-	if (other.text() == "-inf") return false;
-	if (text() == "inf") return false;
-	if (other.text() == "inf") return true;
+//	//handle numeric limits
+//	if (text() == "nan") return true;
+//	if (other.text() == "nan") return false;
+//	if (text() == "-inf") return true;
+//	if (other.text() == "-inf") return false;
+//	if (text() == "inf") return false;
+//	if (other.text() == "inf") return true;
 
 	//convert text to double
 	double this_value = Helper::toDouble(text());

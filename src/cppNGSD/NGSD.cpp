@@ -1471,11 +1471,11 @@ void NGSD::importExpressionData(const QString& expression_data_file_path, const 
 	}
 
 	//get ENSG -> id mapping
-	QMap<QByteArray,int> gene_mapping = getEnsemblGeneIdMapping();
+	QMap<QByteArray,QByteArray> gene_mapping = getEnsemblGeneMapping();
 
 	// prepare query
 	SqlQuery query = getQuery();
-	query.prepare("INSERT INTO `expression`(`processed_sample_id`, `gene_id`, `tpm`) VALUES ('" + ps_id + "',:0,:1)");
+	query.prepare("INSERT INTO `expression`(`processed_sample_id`, `symbol`, `tpm`) VALUES ('" + ps_id + "',:0,:1)");
 
 
 	// open file and iterate over expression values
@@ -1514,14 +1514,14 @@ void NGSD::importExpressionData(const QString& expression_data_file_path, const 
 }
 
 
-QMap<QByteArray, int> NGSD::getEnsemblGeneIdMapping()
+QMap<QByteArray, QByteArray> NGSD::getEnsemblGeneMapping()
 {
-	QMap<QByteArray, int> mapping;
+	QMap<QByteArray, QByteArray> mapping;
 	SqlQuery query = getQuery();
-	query.exec("SELECT id, ensembl_id FROM gene WHERE ensembl_id IS NOT NULL");
+	query.exec("SELECT symbol, ensembl_id FROM gene WHERE ensembl_id IS NOT NULL");
 	while(query.next())
 	{
-		mapping.insert(query.value(1).toByteArray(), query.value(0).toInt());
+		mapping.insert(query.value(1).toByteArray(), query.value(0).toByteArray());
 	}
 
 	return mapping;
@@ -1550,7 +1550,6 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id
 {
 	QTime timer;
 	timer.start();
-
 	QMap<QByteArray, ExpressionStats> expression_stats;
 
 	if ((cohort_type == RNA_COHORT_GERMLINE) || (cohort_type == RNA_COHORT_GERMLINE_PROJECT))
@@ -1560,7 +1559,6 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id
 		{
 			THROW(ArgumentException, "'" +  tissue_type + "' is not a valid tissue type in the NGSD!")
 		}
-
 		//get expression data
 		SqlQuery q = getQuery();
 		QString query_string;
@@ -1571,7 +1569,6 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id
 						+ "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue='" + tissue_type + "' ";
 		if (cohort_type == RNA_COHORT_GERMLINE_PROJECT) query_string += " AND s.project='" + project + "' ";
 		query_string += "GROUP BY ev.gene_id";
-
 		q.exec(query_string);
 
 		while(q.next())
@@ -1591,7 +1588,6 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id
 	{
 		THROW(ArgumentException, "Invalid cohort type!");
 	}
-
 
 	qDebug() << "Get expression stats: " << Helper::elapsedTime(timer);
 
