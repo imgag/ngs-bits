@@ -1,18 +1,5 @@
 #include "VariantHgvsAnnotator.h"
 
-VariantHgvsAnnotator::VariantHgvsAnnotator()
-    : VariantHgvsAnnotator::VariantHgvsAnnotator(5000, 3, 8, 8)
-{
-}
-
-VariantHgvsAnnotator::VariantHgvsAnnotator(int max_dist_to_transcript, int splice_region_ex, int splice_region_in)
-    : max_dist_to_transcript_(max_dist_to_transcript)
-    , splice_region_ex_(splice_region_ex)
-    , splice_region_in_5_(splice_region_in)
-    , splice_region_in_3_(splice_region_in)
-{
-}
-
 VariantHgvsAnnotator::VariantHgvsAnnotator(int max_dist_to_transcript, int splice_region_ex, int splice_region_in_5, int splice_region_in_3)
     : max_dist_to_transcript_(max_dist_to_transcript)
     , splice_region_ex_(splice_region_ex)
@@ -583,8 +570,7 @@ QString VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& transcr
 }
 
 //determine the HGVS position string for a single genomic position in any part of the transcript
-QString VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand,
-                                              const BedFile& coding_regions, bool utr_5, int first_region)
+QString VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand, const BedFile& coding_regions, bool utr_5, int first_region)
 {
     bool in_exon = false;
 
@@ -635,8 +621,7 @@ QString VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, HgvsNomenc
 }
 
 //determine the HGVS position string for a single genomic position in an intron
-QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, HgvsNomenclature& hgvs, int genomic_position, bool plus_strand,
-                                                  const BedFile& coding_regions, bool utr_5, int first_region)
+QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, HgvsNomenclature& hgvs, int genomic_position, bool plus_strand, const BedFile& coding_regions, bool utr_5, int first_region)
 {
     QString pos_in_intron;
     int closest_exon_pos = 0;
@@ -844,8 +829,7 @@ QByteArray VariantHgvsAnnotator::translate(const Sequence& seq, bool is_mito, bo
 }
 
 //determine the annotation of the variant according to the HGVS nomenclature for proteins
-QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, const FastaFileIndex& genome_idx,
-                                                       const QString& pos_hgvs_c, const Transcript& transcript, bool plus_strand)
+QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, const FastaFileIndex& genome_idx, const QString& pos_hgvs_c, const Transcript& transcript, bool plus_strand)
 {
     QString hgvs_p("p.");
     int pos_trans_start = 0;

@@ -798,8 +798,8 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 
 		//Skip variants that are not in the target region (if given)
 		Chromosome chr = fields[0];
-		int start = atoi(fields[1]);
-		int end = atoi(fields[2]);
+		int start = Helper::toInt(fields[1], "genomic start position");
+		int end = Helper::toInt(fields[2], "genomic end position");
 		if (roi_idx!=nullptr)
 		{
 			bool in_roi = roi_idx->matchingIndex(chr, start, end)!=-1;
