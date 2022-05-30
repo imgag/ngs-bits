@@ -69,6 +69,22 @@ private slots:
 		query.next();
 		S_EQUAL(query.value(0).toString(), "BRCA2\talternative pathway\tlow");
 
+		//expression data
+		query.exec("SELECT symbol, processed_sample_id, tpm FROM expression");
+		I_EQUAL( query.size(), 3 );
+		query.next();
+		S_EQUAL(query.value(0).toString(), "BRCA1");
+		I_EQUAL(query.value(1).toInt(), 3999);
+		F_EQUAL2(query.value(2).toFloat(), 8.765, 0.001);
+		query.next();
+		S_EQUAL(query.value(0).toString(), "BRCA2");
+		I_EQUAL(query.value(1).toInt(), 3999);
+		F_EQUAL2(query.value(2).toFloat(), 2.3456, 0.0001);
+		query.next();
+		S_EQUAL(query.value(0).toString(), "BRCA2");
+		I_EQUAL(query.value(1).toInt(), 4000);
+		F_EQUAL2(query.value(2).toFloat(), 1.23456, 0.00001);
+
 	}
 
 };
