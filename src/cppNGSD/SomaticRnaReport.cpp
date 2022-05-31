@@ -10,14 +10,13 @@ SomaticRnaReportData::SomaticRnaReportData(const SomaticReportSettings& other)
 {
 }
 
-
-
 SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& cnv_list, const SomaticRnaReportData& data)
 	: db_()
 	, data_(data)
 {
 	//filter DNA variants according somatic report configuration
 	dna_snvs_ = SomaticRnaReportData::filterVariants(snv_list, data);
+	//filter CNVs
 	dna_cnvs_ = SomaticRnaReportData::filterCnvs(cnv_list, data);
 
 
@@ -25,9 +24,9 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 	{
 		THROW(FileAccessException, "RNA fusions file does not exist: " + data.rna_fusion_file);
 	}
-	if( !QFile::exists(data.rna_counts_file) )
+	if( !QFile::exists(data.rna_expression_file) )
 	{
-		THROW(FileAccessException, "RNA counts file does not exist: " + data.rna_counts_file);
+		THROW(FileAccessException, "RNA expression file does not exist: " + data.rna_expression_file);
 	}
 
 	if(!checkRequiredSNVAnnotations(snv_list) && dna_snvs_.count() > 0)
@@ -62,45 +61,96 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 	{
 	}
 
-
-	//Load pathway data
-	for(QString pathway : db_.getValues("SELECT CONCAT(symbol, '\t', pathway, '\t', significance) FROM somatic_gene_pathway"))
+	//Load pathway data from NGSD
+	QByteArrayList pathway_genes;
+	for( QString pathway : db_.getValues("SELECT CONCAT(spg.symbol, '\t', sp.name) FROM somatic_pathway_gene as spg, somatic_pathway as sp WHERE sp.id = spg.pathway_id") )
 	{
 		QByteArrayList parts = pathway.toUtf8().split('\t');
-		const QByteArray& gene = parts[0];
-
-		pathway_data tmp_data;
+		expression_data tmp_data;
+		tmp_data.symbol = parts[0];
 		tmp_data.pathway = parts[1];
-		tmp_data.significance = parts[2];
 
-		SomaticGeneRole gene_role = db_.getSomaticGeneRole(gene, false);
-		if(gene_role.role == SomaticGeneRole::Role::ACTIVATING) tmp_data.role = "AMP";
-		else if(gene_role.role == SomaticGeneRole::Role::LOSS_OF_FUNCTION) tmp_data.role = "DEL";
-		else tmp_data.role = "n/a";
+		tmp_data.role = db_.getSomaticGeneRole(parts[0], false);
 
-		pathways_.insert(gene, tmp_data);
+		pathways_ << tmp_data;
+		if( !pathway_genes.contains(parts[0]) ) pathway_genes << parts[0];
 	}
 
-	try
+	//genes that have SNV/Indel/CNVs
+	QByteArrayList genes_with_var;
+	int i_co_sp = dna_snvs_.annotationIndexByName("coding_and_splicing");
+	for(int i=0;i<dna_snvs_.count(); ++i)
 	{
-		TSVFileStream in_file(data.rna_counts_file);
-		int i_tpm = in_file.colIndex( "tpm", true );
-		int i_gene = in_file.colIndex( "gene_name", true );
-		while( !in_file.atEnd() )
+		QByteArray gene = SomaticReportHelper::selectSomaticTranscript(dna_snvs_[i], data_, i_co_sp).gene;
+		if(!genes_with_var.contains(gene))
 		{
-			QByteArrayList parts = in_file.readLine();
-			if(!pathways_.keys().contains(parts[i_gene])) continue;
-
-			for(pathway_data& value :  pathways_.values(parts[i_gene]) )
-			{
-				value.tumor_tpm = parts[i_tpm].toDouble();
-			}
-
+			genes_with_var << gene;
 		}
 	}
-	catch(Exception&)
+	for(int i=0; i<dna_cnvs_.count(); ++i)
 	{
-		;
+		GeneSet genes = dna_cnvs_[i].genes().intersect(data_.target_region_filter.genes);
+		for(const auto& gene : genes)
+		{
+			if(db_.getSomaticGeneRoleId(gene) == -1 ) continue;
+			SomaticGeneRole role = db_.getSomaticGeneRole(gene, true);
+
+			if( !SomaticCnvInterpreter::includeInReport(dna_cnvs_, dna_cnvs_[i], role) ) continue;
+			if( !role.high_evidence) continue;
+
+			if( !genes_with_var.contains(gene) ) genes_with_var << gene;
+		}
+	}
+
+
+	//Get expression data for pathways andRNA sample from expression file
+	TSVFileStream in_file(data.rna_expression_file);
+
+	int i_gene = in_file.colIndex( "gene_name", true );
+	int i_tpm = in_file.colIndex( "tpm", true );
+	int i_hpa = in_file.colIndex( "hpa_tissue_tpm", true);
+
+	int i_cohort_mean = in_file.colIndex( "cohort_mean", true);
+	int i_log2fc = in_file.colIndex("log2fc", true);
+	int i_pvalue = in_file.colIndex("pval", true);
+
+	auto toDouble = [](QByteArray in)
+	{
+		bool ok = false;
+		double res = in.toDouble(&ok);
+		if(ok) return res;
+		else return std::numeric_limits<double>::quiet_NaN();
+	};
+
+	while( !in_file.atEnd() )
+	{
+		QByteArrayList parts = in_file.readLine();
+
+		if( pathway_genes.contains(parts[i_gene]) )
+		{
+			for(expression_data& data : pathways_)
+			{
+				if(data.symbol != parts[i_gene]) continue;
+				data.tumor_tpm = toDouble(parts[i_tpm]);
+				data.hpa_ref_tpm = toDouble(parts[i_hpa]);
+				data.cohort_mean_tpm = toDouble(parts[i_cohort_mean]);
+				data.log2fc = toDouble(parts[i_log2fc]);
+				data.pvalue = toDouble(parts[i_pvalue]);
+			}
+		}
+
+		if( genes_with_var.contains(parts[i_gene]) )
+		{
+			expression_data data;
+			data.symbol = parts[i_gene];
+			data.tumor_tpm = toDouble(parts[i_tpm]);
+			data.hpa_ref_tpm = toDouble(parts[i_hpa]);
+			data.cohort_mean_tpm = toDouble(parts[i_cohort_mean]);
+			data.log2fc = toDouble(parts[i_log2fc]);
+			data.pvalue = toDouble(parts[i_pvalue]);
+
+			expression_per_gene_.insert(parts[i_gene], data);
+		}
 	}
 
 }
@@ -113,13 +163,6 @@ bool SomaticRnaReport::checkRequiredSNVAnnotations(const VariantList& variants)
 	{
 		if(variants.annotationIndexByName(an, true, false) == -1) return false;
 	}
-	//neccessary RNA annotation (from RNA samples), (no exact match, because multiple RNA annotations possible)
-	const QByteArrayList an_names_rna = {"_rna_depth", "_rna_af", "_rna_tpm", "_hpa_tissue_tpm", "_cohort_mean_tpm", "_log2fc", "_pvalue"};
-	for(QByteArray an : an_names_rna)
-	{
-		if(variants.annotationIndexByName(an,false, false) == -1) return false;
-	}
-
 	return true;
 }
 
@@ -129,12 +172,6 @@ bool SomaticRnaReport::checkRequiredCNVAnnotations(const CnvList &cnvs)
 	for(QByteArray an : an_names_dna)
 	{
 		if(cnvs.annotationIndexByName(an, false) < 0) return false;
-	}
-
-	QByteArrayList an_names_rna = {"_rna_data"};
-	for(QByteArray an : an_names_rna)
-	{
-		if(cnvs.annotationIndexByName(an, false, true) == -1) return false;
 	}
 
 	return true;
@@ -293,18 +330,11 @@ RtfTable SomaticRnaReport::partSnvTable()
 	int i_co_sp = dna_snvs_.annotationIndexByName("coding_and_splicing");
 	int i_tum_af = dna_snvs_.annotationIndexByName("tumor_af");
 
-	int i_rna_tpm = dna_snvs_.annotationIndexByName(data_.rna_ps_name + "_rna_tpm");
-	int i_rna_af = dna_snvs_.annotationIndexByName(data_.rna_ps_name + "_rna_af");
-
-	int i_hpa_tissue_tpm = dna_snvs_.annotationIndexByName(data_.rna_ps_name + "_hpa_tissue_tpm");
-	int i_cohort_mean_tpm = dna_snvs_.annotationIndexByName(data_.rna_ps_name + "_cohort_mean_tpm");
-	int i_pval = dna_snvs_.annotationIndexByName(data_.rna_ps_name + "_pvalue");
-
+	BamReader bam_file(data_.rna_bam_file, data_.ref_genome_fasta_file);
 
 	for(int i=0; i<dna_snvs_.count(); ++i)
 	{
 		const Variant& var = dna_snvs_[i];
-
 
 		if(db_.getSomaticViccId(var) == -1) continue;
 		SomaticViccData vicc_data = db_.getSomaticViccData(var);
@@ -313,24 +343,27 @@ RtfTable SomaticRnaReport::partSnvTable()
 
 		VariantTranscript trans = SomaticReportHelper::selectSomaticTranscript(var, data_, i_co_sp);
 
+		expression_data data = expression_per_gene_.value(trans.gene, expression_data());
+
+		VariantDetails var_details = bam_file.getVariantDetails(FastaFileIndex(data_.ref_genome_fasta_file), var );
+
 		RtfTableRow row;
 
 		//DNA data
 		row.addCell(800, trans.gene, RtfParagraph().setItalic(true).setBold(true).setFontSize(16));//4400
 		row.addCell({RtfText(trans.hgvs_c + ":" + trans.hgvs_p).setFontSize(16).RtfCode(), RtfText(trans.id).setFontSize(14).RtfCode()}, 1800);
 		row.addCell(1200, trans.type.replace("_variant",""), RtfParagraph().setFontSize(16));
-		row.addCell(600, QByteArray::number(var.annotations()[i_tum_af].toDouble(), 'f', 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
+		row.addCell(600, formatDigits(var.annotations()[i_tum_af].toDouble()), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
 
 		//RNA data
-		row.addCell( 600, var.annotations()[i_rna_af], RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-		row.addCell( 1100, formatDigits(var.annotations()[i_rna_tpm]) , RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-		row.addCell( 1100, formatDigits(var.annotations()[i_hpa_tissue_tpm]), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-		row.addCell( 900, formatDigits(var.annotations()[i_cohort_mean_tpm]), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+		row.addCell( 600, formatDigits(var_details.frequency), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+		row.addCell( 1100, formatDigits(data.tumor_tpm) , RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+		row.addCell( 1100, formatDigits(data.hpa_ref_tpm), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+		row.addCell( 900, formatDigits(data.cohort_mean_tpm), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 
-		double log_change = var.annotations()[i_rna_tpm].toDouble() / var.annotations()[i_cohort_mean_tpm].toDouble();
-		row.addCell( 1000, (BasicStatistics::isValidFloat(log_change) ? QByteArray::number(log_change, 'f', 1) : "n/a" ), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+		row.addCell( 1000, formatDigits(data.log2fc), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 
-		row.addCell( 821, var.annotations()[i_pval], RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+		row.addCell( 821, formatDigits(data.pvalue), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 
 		for(int i=4; i<row.count(); ++i) row[i].setBackgroundColor(4);
 		table.addRow(row);
@@ -355,9 +388,6 @@ RtfTable SomaticRnaReport::partCnvTable()
 	int i_tum_clonality = dna_cnvs_.annotationIndexByName("tumor_clonality", true);
 	int i_size_desc = dna_cnvs_.annotationIndexByName("cnv_type", true);
 	//RNA annotations indices
-	int i_rna_data = dna_cnvs_.annotationIndexByName(data_.rna_ps_name.toUtf8() + "_rna_data", true);
-
-
 
 	RtfTable table;
 	for(int i=0; i<dna_cnvs_.count(); ++i)
@@ -374,6 +404,8 @@ RtfTable SomaticRnaReport::partCnvTable()
 			if( !SomaticCnvInterpreter::includeInReport(dna_cnvs_,cnv, role) ) continue;
 			if( !role.high_evidence) continue;
 
+			expression_data expr_data = expression_per_gene_.value(gene, expression_data());
+
 
 			RtfTableRow temp;
 			temp.addCell(800, gene, RtfParagraph().setBold(true).setItalic(true).setFontSize(16));
@@ -384,26 +416,19 @@ RtfTable SomaticRnaReport::partCnvTable()
 
 			temp.addCell(600, QByteArray::number(cnv.annotations().at(i_tum_clonality).toDouble(), 'f', 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
 
-			const QByteArray& rna_data_field = cnv.annotations().at(i_rna_data);
-			double tpm = getRnaData(gene, rna_data_field , "tpm");
-			temp.addCell(1000, (BasicStatistics::isValidFloat(tpm) ? QByteArray::number( tpm, 'f', 2 ) : "n/a"), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+			temp.addCell(1000, formatDigits( expr_data.tumor_tpm), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
-			double hpa_tissue_tpm = getRnaData(gene, rna_data_field, "hpa_tissue_tpm");
-			temp.addCell(900, (BasicStatistics::isValidFloat(hpa_tissue_tpm) ? QByteArray::number( hpa_tissue_tpm, 'f', 2 ) : "n/a"), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+			temp.addCell(900, formatDigits( expr_data.hpa_ref_tpm), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
 			//Determine oncogenetic rank of expression change
-			int rank = rankCnv( tpm , hpa_tissue_tpm, role.role );
+			int rank = rankCnv( expr_data.tumor_tpm , expr_data.hpa_ref_tpm, role.role );
 			temp.addCell( 900 , QByteArray::number(rank) , RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+			temp.addCell(900, formatDigits( expr_data.cohort_mean_tpm), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
-			double cohort_mean_tpm = getRnaData(gene, rna_data_field, "cohort_mean");
-			temp.addCell(900, (BasicStatistics::isValidFloat(cohort_mean_tpm) ? QByteArray::number( cohort_mean_tpm, 'f', 2 ) : "n/a"), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
-			//double log2fc = getRnaData(gene, rna_data_field, "log2fc");
-			double fold_change = tpm / cohort_mean_tpm;
-			temp.addCell(1000, (BasicStatistics::isValidFloat(fold_change) ? QByteArray::number( fold_change, 'f', 1 ) : "n/a") , RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+			temp.addCell(1000, formatDigits( expr_data.log2fc) , RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
-			double pval = getRnaData(gene, rna_data_field, "pval");
-			temp.addCell(821, (BasicStatistics::isValidFloat(pval) ? QByteArray::number( pval, 'f', 2 ) : "n/a") , RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+			temp.addCell(821, formatDigits(expr_data.pvalue), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
 			for(int i=4; i< temp.count(); ++i) temp[i].setBackgroundColor(4);
 
@@ -429,7 +454,6 @@ RtfTable SomaticRnaReport::partCnvTable()
 
 RtfParagraph SomaticRnaReport::partVarExplanation()
 {
-
 	auto bold = [](RtfSourceCode text)
 	{
 		return RtfText(text).setBold(true).setFontSize(16).RtfCode();
@@ -464,12 +488,38 @@ RtfParagraph SomaticRnaReport::partVarExplanation()
 
 RtfTable SomaticRnaReport::partGeneExpression()
 {
-	RtfTable out;
+	RtfTable table;
 
+	table.addRow( RtfTableRow({"Expression bestimmter Gene"}, {9921}, RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
+	table.addRow(RtfTableRow({"Gen", "Pathogenität", "Signalweg", "Tumorprobe TPM", "Referenz HPA-TPM", "Bewertung", "Tumortyp MW TPM", "Veränderung (-fach)", "p-Wert"}, {1100, 1100, 1121, 1100, 1100, 1100, 1100, 1100, 1100}, RtfParagraph().setHorizontalAlignment("c").setBold(true)).setHeader().setBorders(1, "brdrhair", 2));
 
+	for(const auto& data : pathways_)
+	{
+		RtfTableRow row;
+		row.addCell(1100, data.symbol );
 
-	return out;
+		QByteArray pathogenicity = "n/a";
+		if(data.role.role == SomaticGeneRole::Role::ACTIVATING) pathogenicity = "AMP";
+		else if(data.role.role == SomaticGeneRole::Role::LOSS_OF_FUNCTION) pathogenicity = "DEL";
+
+		row.addCell(1100, pathogenicity  );
+		row.addCell(1121, data.pathway);
+		row.addCell(1100, formatDigits(data.tumor_tpm) );
+		row.addCell(1100, formatDigits(data.hpa_ref_tpm) );
+
+		row.addCell(1100, QByteArray::number(rankCnv(data.tumor_tpm, data.hpa_ref_tpm, data.role.role)) );
+		row.addCell(1100, formatDigits(data.cohort_mean_tpm) );
+		row.addCell(1100, formatDigits(data.log2fc) );
+		row.addCell(1100, formatDigits(data.pvalue) );
+
+		row.setBorders(1, "brdrhair", 2);
+
+		table.addRow(row);
+	}
+
+	table.setUniqueFontSize(16);
+	return table;
 }
 
 RtfTable SomaticRnaReport::partGeneralInfo()
@@ -606,7 +656,6 @@ void SomaticRnaReport::writeRtf(QByteArray out_file)
 	doc_.setMargins( RtfDocument::cm2twip(2.3) , 1134 , RtfDocument::cm2twip(1.2) , 1134 );
 	doc_.setDefaultFontSize(16);
 
-
 	doc_.addColor(191,191,191);
 	doc_.addColor(161,161,161);
 	doc_.addColor(255,255,0);
@@ -673,10 +722,8 @@ void SomaticRnaReport::writeRtf(QByteArray out_file)
 	doc_.save(out_file);
 }
 
-RtfSourceCode SomaticRnaReport::formatDigits(QByteArray in, int digits)
+RtfSourceCode SomaticRnaReport::formatDigits(double in, int digits)
 {
-	bool ok = false;
-	RtfSourceCode tpm_formatted = QByteArray::number(in.toDouble(&ok), 'f', digits);
-	if(!ok) tpm_formatted = "n/a";
-	return tpm_formatted;
+	if(!BasicStatistics::isValidFloat(in)) return "n/a";
+	return QByteArray::number(in, 'f', digits);
 }

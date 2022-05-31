@@ -4090,8 +4090,9 @@ void MainWindow::generateReportSomaticRTF()
 			SomaticRnaReportData rna_report_data = somatic_report_settings_;
 			rna_report_data.rna_ps_name = dlg.getRNAid();
 			rna_report_data.rna_fusion_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::FUSIONS).filename;
-			rna_report_data.rna_counts_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::COUNTS).filename;
-			rna_report_data.rna_stats_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::EXPRESSION_STATS).filename;
+			rna_report_data.rna_expression_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::EXPRESSION).filename;
+			rna_report_data.rna_bam_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::BAM).filename;
+			rna_report_data.ref_genome_fasta_file = Settings::string("reference_genome");
 
 			try
 			{
@@ -4146,8 +4147,6 @@ void MainWindow::generateReportSomaticRTF()
 			catch(Exception)
 			{
 			}
-
-
 
 			SomaticRnaReport rna_report(variants_, cnvs_, rna_report_data);
 
