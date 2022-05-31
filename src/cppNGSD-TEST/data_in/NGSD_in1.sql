@@ -578,11 +578,17 @@ INSERT INTO `somatic_vicc_interpretation` (`id`, `variant_id`, `null_mutation_in
 (3, 2407600,  true, false, false, true, true, null, true, false, null, false, true, false, false, false, false, null, 'this variant was evaluated as an oncogenic variant', 99, '2021-01-05 13:06:13', 101, '2021-02-07 11:06:10'),
 (4, 2407601,  false, false, false, false, true, null, true, false, null, false, true, true, true, false, false, null, 'this variant was evaluated as an oncogenic variant', 99, '2021-02-06 11:06:14', 101, '2021-02-08 13:06:10');
 
--- somatic_gene_pathway
-INSERT INTO `somatic_gene_pathway` (`id`, `symbol`, `pathway`, `significance`, `comment`) VALUES
-(1, 'SMARCA1', 'DNA damage repair', 'high', 'SMARCA1 is in DNA damage repair pathway'),
-(2, 'SMARCA1', 'chromatin remodeling', 'low', 'SMARCA1 is also in another pathway'),
-(3, 'BRAF', 'Hedgehog', 'low', 'test pathway of BRAF.');
+-- somatic_pathway
+INSERT INTO `somatic_pathway` (`id`, `name`, `significance`) VALUES
+(1, 'DNA damage repair', 'high'),
+(2, 'chromatin remodeling', 'low'),
+(3, 'Hedgehog', 'low');
+
+-- somatic_pathway_gene
+INSERT INTO `somatic_pathway_gene` (`id`, `symbol`, `pathway_id`) VALUES
+(1, 'SMARCA1', 1),
+(2, 'SMARCA1', 2),
+(3, 'BRAF', 3);
 
 -- omim
 INSERT INTO `omim_gene` (`id`, `gene`, `mim`) VALUES

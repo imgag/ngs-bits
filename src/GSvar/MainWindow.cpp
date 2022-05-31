@@ -5209,8 +5209,15 @@ void MainWindow::on_actionEditSomaticGeneRoles_triggered()
 
 void MainWindow::on_actionEditSomaticPathways_triggered()
 {
-	DBTableAdministration* table = new DBTableAdministration("somatic_gene_pathway");
-	auto dlg = GUIHelper::createDialog(table, "Somatic Gene Pathways");
+	DBTableAdministration* table = new DBTableAdministration("somatic_pathway");
+	auto dlg = GUIHelper::createDialog(table, "Somatic pathways");
+	addModelessDialog(dlg);
+}
+
+void MainWindow::on_actionEditSomaticPathwayGeneAssociations_triggered()
+{
+	DBTableAdministration* table = new DBTableAdministration("somatic_pathway_gene");
+	auto dlg = GUIHelper::createDialog(table, "Somatic pathways-gene associations");
 	addModelessDialog(dlg);
 }
 

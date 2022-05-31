@@ -748,17 +748,34 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
--- Table `somatic_gene_pathway`
+-- Table `somatic_pathway`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `somatic_gene_pathway`
+CREATE TABLE IF NOT EXISTS `somatic_pathway`
+(
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(100) NOT NULL,
+  `significance` ENUM ('high', 'medium', 'low') NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY (`name`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `somatic_pathway_gene`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `somatic_pathway_gene`
 (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `symbol` VARCHAR(40) NOT NULL,
-  `pathway` TEXT NOT NULL,
-  `significance` ENUM ('high', 'medium', 'low') NOT NULL,
-  `comment` TEXT NULL DEFAULT NULL,
-PRIMARY KEY (`id`),
-KEY (`symbol`)
+  `pathway_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY (`symbol`),
+  UNIQUE KEY (`symbol`, `pathway_id`),
+  FOREIGN KEY (`pathway_id`)
+  REFERENCES `somatic_pathway` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
