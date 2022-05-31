@@ -463,6 +463,7 @@ RtfTable SomaticRnaReport::partGeneExpression()
 	table.addRow( RtfTableRow({"Expression bestimmter Gene"}, {9921}, RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
 	table.addRow(RtfTableRow({"Gen", "Pathogenität", "Signalweg", "Tumorprobe TPM", "Referenz HPA-TPM", "Bewertung", "Tumortyp MW TPM", "Veränderung (-fach)", "p-Wert"}, {1100, 1100, 1121, 1100, 1100, 1100, 1100, 1100, 1100}, RtfParagraph().setHorizontalAlignment("c").setBold(true)).setHeader().setBorders(1, "brdrhair", 2));
+	for(int i=2; i<table[1].count(); ++i) table[1][i].setBackgroundColor(4);
 
 	for(const auto& data : pathways_)
 	{
@@ -482,8 +483,9 @@ RtfTable SomaticRnaReport::partGeneExpression()
 		row.addCell(1100, formatDigits(data.cohort_mean_tpm) );
 		row.addCell(1100, formatDigits(data.log2fc) );
 		row.addCell(1100, formatDigits(data.pvalue) );
-
 		row.setBorders(1, "brdrhair", 2);
+
+		for(int i=2; i<row.count(); ++i) row[i].setBackgroundColor(4);
 
 		table.addRow(row);
 	}
