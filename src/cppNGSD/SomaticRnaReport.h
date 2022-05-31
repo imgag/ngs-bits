@@ -65,12 +65,6 @@ public:
 	///Checks whether all annotations neccessary for creating RNA CNV table are available
 	static bool checkRequiredCNVAnnotations(const CnvList& cnvs);
 
-	///Returns reference tissue, resolved from variant list variants
-	static QString refTissueType(const VariantList& variants);
-
-	///Checks whether reference tissue is unique in NGSD and is same as in GSVar file
-	void checkRefTissueTypeInNGSD(QString ref_type, QString tumor_dna_ps_id);
-
 	///Calculates a rank for CNVs (=1 high or =2 low) depending on gene expression and gene role
 	static int rankCnv(double tpm, double mean_tpm, SomaticGeneRole::Role gene_role);
 

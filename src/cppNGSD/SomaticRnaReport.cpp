@@ -102,7 +102,6 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 		}
 	}
 
-
 	//Get expression data for pathways andRNA sample from expression file
 	TSVFileStream in_file(data.rna_expression_file);
 
@@ -175,35 +174,6 @@ bool SomaticRnaReport::checkRequiredCNVAnnotations(const CnvList &cnvs)
 	}
 
 	return true;
-}
-
-QString SomaticRnaReport::refTissueType(const VariantList &variants)
-{
-	QString ref_tissue_type = "";
-	for(QString comment: variants.comments())
-	{
-		if(comment.contains("RNA_REF_TPM_TISSUE="))
-		{
-			ref_tissue_type = comment.split('=')[1];
-			break;
-		}
-	}
-	return ref_tissue_type;
-}
-
-void SomaticRnaReport::checkRefTissueTypeInNGSD(QString ref_type, QString tumor_dna_ps_id)
-{
-	QString sample_id = db_.getValue("SELECT ps.sample_id FROM processed_sample as ps  WHERE ps.id = " + db_.processedSampleId(tumor_dna_ps_id) ).toString();
-	QList<SampleDiseaseInfo> disease_info = db_.getSampleDiseaseInfo(sample_id, "RNA reference tissue");
-
-	if(disease_info.count() != 1)
-	{
-		THROW(DatabaseException, "Found multiple or no RNA reference tissue for processed sample id " + tumor_dna_ps_id + " in NGSD.");
-	}
-	if(disease_info[0].disease_info != ref_type)
-	{
-		THROW(DatabaseException, "Found RNA reference tissue " + disease_info[0].disease_info + " in NGSD but " + ref_type + " in somatic GSVAR file.");
-	}
 }
 
 int SomaticRnaReport::rankCnv(double tpm, double mean_tpm, SomaticGeneRole::Role gene_role)

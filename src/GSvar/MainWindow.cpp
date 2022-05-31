@@ -4150,8 +4150,6 @@ void MainWindow::generateReportSomaticRTF()
 
 			SomaticRnaReport rna_report(variants_, cnvs_, rna_report_data);
 
-			rna_report.checkRefTissueTypeInNGSD(rna_report.refTissueType(variants_),somatic_report_settings_.tumor_ps);
-
 			rna_report.writeRtf(temp_filename);
 			ReportWorker::moveReport(temp_filename, file_rep);
 			QApplication::restoreOverrideCursor();
