@@ -1514,7 +1514,7 @@ void MainWindow::on_actionExpressionData_triggered()
 	}
 
 	ExpressionDataWidget* widget = new ExpressionDataWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, project, rna_ps_id, cohort_type, this);
-	auto dlg = GUIHelper::createDialog(widget, "Expression Data");
+	auto dlg = GUIHelper::createDialog(widget, "Expression Data of " + db.processedSampleName(rna_ps_id));
 	addModelessDialog(dlg, false);
 }
 

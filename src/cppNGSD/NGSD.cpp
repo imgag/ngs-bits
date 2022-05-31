@@ -1527,20 +1527,28 @@ QMap<QByteArray, QByteArray> NGSD::getEnsemblGeneMapping()
 	return mapping;
 }
 
-QVector<double> NGSD::getExpressionValues(const QString& ensg, int sys_id, const QString& tissue_type, bool allow_empty)
+QVector<double> NGSD::getExpressionValues(const QString& ensg, int sys_id, const QString& tissue_type, bool log2, bool allow_empty)
 {
 	QVector<double> expr_values;
-	QString gene_id = getValue("SELECT id FROM gene WHERE ensembl_id=:0", allow_empty, ensg).toString();
-	if (gene_id.isEmpty()) return expr_values;
+	QString gene_symbol = getValue("SELECT symbol FROM gene WHERE ensembl_id=:0", allow_empty, ensg).toString();
+	if (gene_symbol.isEmpty()) return expr_values;
 
 	QStringList expr_values_str = getValues(QString() + "SELECT ev.tpm FROM `expression` ev "
 											  + "INNER JOIN `processed_sample` ps ON ev.processed_sample_id = ps.id "
 											  + "INNER JOIN `sample` s ON ps.sample_id = s.id "
-											  + "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue=:0 AND ev.gene_id=" + gene_id, tissue_type);
+											  + "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue=:0 AND ev.symbol='" + gene_symbol + "'", tissue_type);
 
 	foreach (const QString& value, expr_values_str)
 	{
-		expr_values << Helper::toDouble(value);
+		if(log2)
+		{
+			expr_values << std::log2(Helper::toDouble(value) + 1);
+		}
+		else
+		{
+			expr_values << Helper::toDouble(value);
+		}
+
 	}
 
 	return expr_values;
@@ -1562,13 +1570,13 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id
 		//get expression data
 		SqlQuery q = getQuery();
 		QString query_string;
-		query_string = QString("SELECT g.ensembl_id, AVG(ev.tpm), STD(ev.tpm) FROM `expression` ev ")
+		query_string = QString("SELECT g.ensembl_id, AVG(ev.tpm), STD(ev.tpm), AVG(LOG2(ev.tpm+1)), STD(LOG2(ev.tpm+1)) FROM `expression` ev ")
 						+ "INNER JOIN `processed_sample` ps ON ev.processed_sample_id = ps.id "
 						+ "INNER JOIN `sample` s ON ps.sample_id = s.id "
-						+ "INNER JOIN `gene` g ON ev.gene_id = g.id "
-						+ "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue='" + tissue_type + "' ";
+						+ "INNER JOIN `gene` g ON ev.symbol = g.symbol "
+						+ "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue='" + tissue_type + "' AND ps.quality != 'bad'";
 		if (cohort_type == RNA_COHORT_GERMLINE_PROJECT) query_string += " AND s.project='" + project + "' ";
-		query_string += "GROUP BY ev.gene_id";
+		query_string += "GROUP BY g.ensembl_id";
 		q.exec(query_string);
 
 		while(q.next())
@@ -1576,6 +1584,8 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id
 			ExpressionStats stats;
 			stats.mean = q.value(1).toDouble();
 			stats.stddev = q.value(2).toDouble();
+			stats.mean_log2 = q.value(3).toDouble();
+			stats.stddev_log2 = q.value(4).toDouble();
 			expression_stats.insert(q.value(0).toByteArray(), stats);
 		}
 	}
@@ -1583,6 +1593,60 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id
 	{
 		THROW(NotImplementedException, "Implement somatic cohort determination");
 		//TODO: implement
+
+		QString s_id = sampleId(processedSampleName(ps_id));
+
+		//get sample ids of related samples
+		QSet<int> sample_ids = relatedSamples(Helper::toInt(s_id), "same_sample", "DNA");
+		sample_ids.insert(Helper::toInt(s_id));
+
+		//get ICD10 and HPO of sample and related sample
+		QSet<QString> icd10_disease_info;
+		QSet<QString> hpo_disease_info;
+		foreach (int id, sample_ids)
+		{
+			QList<SampleDiseaseInfo> icd10 = getSampleDiseaseInfo(QString::number(id), "ICD10 code");
+			foreach (const SampleDiseaseInfo& info, icd10)
+			{
+				icd10_disease_info << info.disease_info;
+			}
+			QList<SampleDiseaseInfo> hpo = getSampleDiseaseInfo(QString::number(id), "HPO term id");
+			foreach (const SampleDiseaseInfo& info, hpo)
+			{
+				hpo_disease_info << info.disease_info;
+			}
+		}
+
+		if(icd10_disease_info.size() > 1) THROW(DatabaseException, "Sample contains more than 1 ICD10, cannot create sample cohort");
+		if(hpo_disease_info.size() > 1) THROW(DatabaseException, "Sample contains more than 1 HPO term, cannot create sample cohort");
+		if((icd10_disease_info.size() + hpo_disease_info.size()) <1) THROW(DatabaseException, "Sample contains more than 1 HPO term, cannot create sample cohort");
+
+
+		QStringList cohort_ps_ids = getValues(QString() + "SELECT DISTINCT ps.id FROM processed_sample ps LEFT JOIN sample s on ps.sample_id=s.id	"
+												+ "LEFT JOIN sample_relations sr ON s.id=sr.sample1_id OR s.id=sr.sample2_id "
+												+ "LEFT JOIN sample_disease_info sdi ON s.id=sdi.sample_id OR sr.sample1_id=sdi.sample_id OR sr.sample2_id=sdi.sample_id "
+												+ "WHERE ps.processing_system_id=" + QString::number(sys_id) + " "
+												+ "AND ps.project_id=:project_id "
+												+ "AND ps.quality != 'bad' "
+												+ "AND (sr.relation='same sample' OR sr.relation IS NULL) "
+												+ "AND ((sdi.type='ICD10 code' AND sdi.disease_info=:icd10) OR (sdi.type='HPO term id' AND sdi.disease_info=:hpo))");
+
+		//get expression data
+		SqlQuery q = getQuery();
+		QString query_string;
+		query_string = QString("SELECT g.ensembl_id, AVG(ev.tpm), STD(ev.tpm), AVG(LOG2(ev.tpm+1)), STD(LOG2(ev.tpm+1)) FROM `expression` ev INNER JOIN `gene` g ON ev.symbol = g.symbol ")
+						+ "WHERE ev.processed_sample_id IN (" + cohort_ps_ids.join(", ") + ") GROUP BY g.ensembl_id"
+						+ "INNER JOIN `processed_sample` ps ON ev.processed_sample_id = ps.id "
+						+ "INNER JOIN `sample` s ON ps.sample_id = s.id "
+						+ "INNER JOIN `gene` g ON ev.symbol = g.symbol "
+						+ "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue='" + tissue_type + "' AND ps.quality != 'bad'";
+
+		query_string += "GROUP BY g.ensembl_id";
+		q.exec(query_string);
+
+
+
+
 	}
 	else
 	{

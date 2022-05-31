@@ -44,6 +44,11 @@ ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, int sys_id, QSt
 	connect(ui_->sa_biotype,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showBiotypeContextMenu(QPoint)));
 	ui_->expression_data->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui_->expression_data,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showExpressionTableContextMenu(QPoint)));
+	connect(ui_->gene_filter, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
+	connect(ui_->abs_log_fc, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
+	connect(ui_->abs_zscore, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
+	connect(ui_->raw_counts, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
+	connect(ui_->tpm_value, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
 
 	// set context menus for biotype filter
 	ui_->sa_biotype->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -99,302 +104,320 @@ void ExpressionDataWidget::applyFilters()
 	int row_count = ui_->expression_data->rowCount();
 	if (row_count==0) return;
 
-	FilterResult filter_result(row_count);
-
-	//update filter strategy
-	RnaCohortDeterminationStategy cohort_type;
-	if (ui_->rb_germline_tissue->isChecked())
+	try
 	{
-		cohort_type = RNA_COHORT_GERMLINE;
-	}
-	else if (ui_->rb_germline_project->isChecked())
-	{
-		cohort_type = RNA_COHORT_GERMLINE_PROJECT;
-	}
-	else if (ui_->rb_somatic->isChecked())
-	{
-		cohort_type = RNA_COHORT_SOMATIC;
-	}
-	else
-	{
-		THROW(ArgumentException, "Invalid cohort type!");
-	}
+		QApplication::setOverrideCursor(Qt::BusyCursor);
 
-	if (cohort_type != cohort_type_)
-	{
-		//update cohort determination strategy
-		cohort_type_ = cohort_type;
+		FilterResult filter_result(row_count);
 
-		//rebuild table
-		loadExpressionData();
-	}
-
-
-
-
-
-	//filter by variant list gene filter
-	if (!variant_gene_set_.isEmpty() && (ui_->cb_filter_by_var_list->checkState() == Qt::Checked))
-	{
-		// get column index of 'GENES' column
-		int gene_idx = column_names_.indexOf("gene_name");
-		if (gene_idx == -1)
+		//update filter strategy
+		RnaCohortDeterminationStategy cohort_type;
+		if (ui_->rb_germline_tissue->isChecked())
 		{
-			QMessageBox::warning(this, "Filtering error", "Table does not contain a 'gene_name' column! \nFiltering based on selected genes of the variant list is not possible.");
+			cohort_type = RNA_COHORT_GERMLINE;
+		}
+		else if (ui_->rb_germline_project->isChecked())
+		{
+			cohort_type = RNA_COHORT_GERMLINE_PROJECT;
+		}
+		else if (ui_->rb_somatic->isChecked())
+		{
+			cohort_type = RNA_COHORT_SOMATIC;
 		}
 		else
 		{
-			for(int row_idx=0; row_idx<row_count; ++row_idx)
-			{
-				if (!filter_result.flags()[row_idx]) continue;
+			THROW(ArgumentException, "Invalid cohort type!");
+		}
 
-				filter_result.flags()[row_idx] = variant_gene_set_.contains(ui_->expression_data->item(row_idx, gene_idx)->text().toUtf8().trimmed());
+		if (cohort_type != cohort_type_)
+		{
+			//update cohort determination strategy
+			cohort_type_ = cohort_type;
+
+			//rebuild table
+			loadExpressionData();
+
+		}
+
+
+		//filter by variant list gene filter
+		if (!variant_gene_set_.isEmpty() && (ui_->cb_filter_by_var_list->checkState() == Qt::Checked))
+		{
+			qDebug() << "filter by variant gene filter";
+			// get column index of 'GENES' column
+			int gene_idx = column_names_.indexOf("gene_name");
+			if (gene_idx == -1)
+			{
+				QMessageBox::warning(this, "Filtering error", "Table does not contain a 'gene_name' column! \nFiltering based on selected genes of the variant list is not possible.");
 			}
-		}
-	}
-
-	//filter by genes
-	GeneSet gene_whitelist = GeneSet::createFromText(ui_->gene_filter->text().toLatin1(), ',');
-	if (!gene_whitelist.isEmpty())
-	{
-		QByteArray genes_joined = gene_whitelist.join('|');
-
-		// get column index of 'GENES' column
-		int gene_idx = column_names_.indexOf("gene_name");
-		if (gene_idx == -1)
-		{
-			QMessageBox::warning(this, "Filtering error", "Table does not contain a 'gene_name' column! \nFiltering based on genes is not possible.");
-		}
-		else
-		{
-			if (genes_joined.contains("*")) //with wildcards
+			else
 			{
-				QRegExp reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
 				for(int row_idx=0; row_idx<row_count; ++row_idx)
 				{
 					if (!filter_result.flags()[row_idx]) continue;
 
-					// generate GeneSet from column text
-					GeneSet sv_genes = GeneSet::createFromText(ui_->expression_data->item(row_idx, gene_idx)->text().toLatin1(), ',');
+					filter_result.flags()[row_idx] = variant_gene_set_.contains(ui_->expression_data->item(row_idx, gene_idx)->text().toUtf8().trimmed());
+				}
+			}
+		}
 
-					bool match_found = false;
-					foreach(const QByteArray& sv_gene, sv_genes)
+		//filter by genes
+		GeneSet gene_whitelist = GeneSet::createFromText(ui_->gene_filter->text().toLatin1(), ',');
+		if (!gene_whitelist.isEmpty())
+		{
+			qDebug() << "filter by gene filter";
+			QByteArray genes_joined = gene_whitelist.join('|');
+
+			// get column index of 'GENES' column
+			int gene_idx = column_names_.indexOf("gene_name");
+			if (gene_idx == -1)
+			{
+				QMessageBox::warning(this, "Filtering error", "Table does not contain a 'gene_name' column! \nFiltering based on genes is not possible.");
+			}
+			else
+			{
+				if (genes_joined.contains("*")) //with wildcards
+				{
+					QRegExp reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+					for(int row_idx=0; row_idx<row_count; ++row_idx)
 					{
-						if (reg.exactMatch(sv_gene))
+						if (!filter_result.flags()[row_idx]) continue;
+
+						// generate GeneSet from column text
+						GeneSet sv_genes = GeneSet::createFromText(ui_->expression_data->item(row_idx, gene_idx)->text().toLatin1(), ',');
+
+						bool match_found = false;
+						foreach(const QByteArray& sv_gene, sv_genes)
 						{
-							match_found = true;
-							break;
+							if (reg.exactMatch(sv_gene))
+							{
+								match_found = true;
+								break;
+							}
+						}
+						filter_result.flags()[row_idx] = match_found;
+					}
+				}
+				else //without wildcards
+				{
+					for(int row_idx=0; row_idx<row_count; ++row_idx)
+					{
+						if (!filter_result.flags()[row_idx]) continue;
+
+						// generate GeneSet from column text
+						GeneSet sv_genes = GeneSet::createFromText(ui_->expression_data->item(row_idx, gene_idx)->text().toLatin1(), ',');
+
+						filter_result.flags()[row_idx] = sv_genes.intersectsWith(gene_whitelist);
+					}
+				}
+			}
+		}
+
+		//filter by log fold change
+		QString logfc = ui_->abs_log_fc->text().replace(",", ".");
+		if (!logfc.isEmpty())
+		{
+			qDebug() << "filter by log fc";
+			int idx = column_names_.indexOf("log2fc");
+
+			if (idx == -1)
+			{
+				QMessageBox::warning(this, "Filtering error", "Table does not contain a 'log2fc' column! \nFiltering based on fold change is not possible.");
+				ui_->abs_log_fc->setText("");
+			}
+			else
+			{
+				try
+				{
+					double logfc_cutoff = Helper::toDouble(logfc);
+					for(int row_idx=0; row_idx<row_count; ++row_idx)
+					{
+						//skip already filtered
+						if (!filter_result.flags()[row_idx]) continue;
+
+						QString value = ui_->expression_data->item(row_idx, idx)->text();
+						if (value.isEmpty() || value == "n/a")
+						{
+							filter_result.flags()[row_idx] = false;
+						}
+						else
+						{
+							double value_dbl = Helper::toDouble(value);
+							filter_result.flags()[row_idx] = fabs(value_dbl) >= logfc_cutoff;
 						}
 					}
-					filter_result.flags()[row_idx] = match_found;
 				}
-			}
-			else //without wildcards
-			{
-				for(int row_idx=0; row_idx<row_count; ++row_idx)
+				catch (Exception e)
 				{
-					if (!filter_result.flags()[row_idx]) continue;
-
-					// generate GeneSet from column text
-					GeneSet sv_genes = GeneSet::createFromText(ui_->expression_data->item(row_idx, gene_idx)->text().toLatin1(), ',');
-
-					filter_result.flags()[row_idx] = sv_genes.intersectsWith(gene_whitelist);
+					QMessageBox::warning(this, "Invalid log fold change value", "Couldn't convert given fold change value to number!\n" + e.message());
+					return;
 				}
 			}
 		}
-	}
 
-	//filter by log fold change
-	QString logfc = ui_->abs_log_fc->text().replace(",", ".");
-	if (!logfc.isEmpty())
-	{
-		int idx = column_names_.indexOf("log2fc");
+		//filter by cohort z-score
+		QString zscore = ui_->abs_zscore->text().replace(",", ".");
+		if (!zscore.isEmpty())
+		{
+			qDebug() << "filter by zscore";
+			int idx = column_names_.indexOf("zscore");
 
-		if (idx == -1)
-		{
-			QMessageBox::warning(this, "Filtering error", "Table does not contain a 'log2fc' column! \nFiltering based on fold change is not possible.");
-			ui_->abs_log_fc->setText("");
-		}
-		else
-		{
-			try
+			if (idx == -1)
 			{
-				double logfc_cutoff = Helper::toDouble(logfc);
-				for(int row_idx=0; row_idx<row_count; ++row_idx)
+				QMessageBox::warning(this, "Filtering error", "Table does not contain a 'zscore' column! \nFiltering based on z-score is not possible.");
+				ui_->abs_zscore->setText("");
+			}
+			else
+			{
+				try
 				{
-					//skip already filtered
-					if (!filter_result.flags()[row_idx]) continue;
+					double zscore_cutoff = Helper::toDouble(zscore);
+					for(int row_idx=0; row_idx<row_count; ++row_idx)
+					{
+						//skip already filtered
+						if (!filter_result.flags()[row_idx]) continue;
 
-					QString value = ui_->expression_data->item(row_idx, idx)->text();
-					if (value.isEmpty() || value == "n/a")
-					{
-						filter_result.flags()[row_idx] = false;
-					}
-					else
-					{
-						double value_dbl = Helper::toDouble(value);
-						filter_result.flags()[row_idx] = fabs(value_dbl) >= logfc_cutoff;
+						QString value = ui_->expression_data->item(row_idx, idx)->text();
+						if (value.isNull() || value.isEmpty() || value == "n/a")
+						{
+							filter_result.flags()[row_idx] = false;
+						}
+						else
+						{
+							double value_dbl = Helper::toDouble(value);
+							filter_result.flags()[row_idx] = fabs(value_dbl) >= zscore_cutoff;
+						}
 					}
 				}
-			}
-			catch (Exception e)
-			{
-				QMessageBox::warning(this, "Invalid log fold change value", "Couldn't convert given fold change value to number!\n" + e.message());
-				return;
-			}
-		}
-	}
-
-	//filter by cohort z-score
-	QString zscore = ui_->abs_zscore->text().replace(",", ".");
-	if (!zscore.isEmpty())
-	{
-		int idx = column_names_.indexOf("zscore");
-
-		if (idx == -1)
-		{
-			QMessageBox::warning(this, "Filtering error", "Table does not contain a 'zscore' column! \nFiltering based on z-score is not possible.");
-			ui_->abs_zscore->setText("");
-		}
-		else
-		{
-			try
-			{
-				double zscore_cutoff = Helper::toDouble(zscore);
-				for(int row_idx=0; row_idx<row_count; ++row_idx)
+				catch (Exception e)
 				{
-					//skip already filtered
-					if (!filter_result.flags()[row_idx]) continue;
-
-					QString value = ui_->expression_data->item(row_idx, idx)->text();
-					if (value.isNull() || value.isEmpty() || value == "n/a")
-					{
-						filter_result.flags()[row_idx] = false;
-					}
-					else
-					{
-						double value_dbl = Helper::toDouble(value);
-						filter_result.flags()[row_idx] = fabs(value_dbl) >= zscore_cutoff;
-					}
+					QMessageBox::warning(this, "Invalid zscore value", "Couldn't convert given zscore value to number!\n" + e.message());
+					return;
 				}
 			}
-			catch (Exception e)
+		}
+
+		//filter by raw counts
+		if (!ui_->raw_counts->text().isEmpty())
+		{
+			qDebug() << "filter by raw counts";
+			int idx = column_names_.indexOf("raw");
+
+			if (idx == -1)
 			{
-				QMessageBox::warning(this, "Invalid zscore value", "Couldn't convert given zscore value to number!\n" + e.message());
-				return;
+				QMessageBox::warning(this, "Filtering error", "Table does not contain a 'raw' column! \nFiltering based on raw counts is not possible.");
+				ui_->raw_counts->setText("");
 			}
-		}
-	}
-
-	//filter by raw counts
-	if (!ui_->raw_counts->text().isEmpty())
-	{
-		int idx = column_names_.indexOf("raw");
-
-		if (idx == -1)
-		{
-			QMessageBox::warning(this, "Filtering error", "Table does not contain a 'raw' column! \nFiltering based on raw counts is not possible.");
-			ui_->raw_counts->setText("");
-		}
-		else
-		{
-			try
+			else
 			{
-				int min_raw_count = Helper::toInt(ui_->raw_counts->text(), "Raw count filter entry");
-				for(int row_idx=0; row_idx<row_count; ++row_idx)
+				try
 				{
-					//skip already filtered
-					if (!filter_result.flags()[row_idx]) continue;
+					int min_raw_count = Helper::toInt(ui_->raw_counts->text(), "Raw count filter entry");
+					for(int row_idx=0; row_idx<row_count; ++row_idx)
+					{
+						//skip already filtered
+						if (!filter_result.flags()[row_idx]) continue;
 
-					QString value = ui_->expression_data->item(row_idx, idx)->text();
-					if (value.isEmpty() || value == "n/a")
-					{
-						filter_result.flags()[row_idx] = false;
-					}
-					else
-					{
-						double raw_count = Helper::toDouble(value, "raw count in expression data", QString::number(row_idx+1));
-						filter_result.flags()[row_idx] = raw_count >= min_raw_count;
+						QString value = ui_->expression_data->item(row_idx, idx)->text();
+						if (value.isEmpty() || value == "n/a")
+						{
+							filter_result.flags()[row_idx] = false;
+						}
+						else
+						{
+							double raw_count = Helper::toDouble(value, "raw count in expression data", QString::number(row_idx+1));
+							filter_result.flags()[row_idx] = raw_count >= min_raw_count;
+						}
 					}
 				}
-			}
-			catch (Exception e)
-			{
-				QMessageBox::warning(this, "Invalid raw count value", "Couldn't convert given raw count value to number!\n" + e.message());
-			}
-		}
-	}
-
-	//filter by tpm value
-	if (!ui_->tpm_value->text().isEmpty())
-	{
-		int idx = column_names_.indexOf("tpm");
-
-		if (idx == -1)
-		{
-			QMessageBox::warning(this, "Filtering error", "Table does not contain a 'tpm' column! \nFiltering based on tpm value is not possible.");
-		}
-		else
-		{
-			try
-			{
-				int min_tpm_value = Helper::toDouble(ui_->tpm_value->text().replace(",", "."), "TPM filter entry");
-				for(int row_idx=0; row_idx<row_count; ++row_idx)
+				catch (Exception e)
 				{
-					//skip already filtered
-					if (!filter_result.flags()[row_idx]) continue;
-
-					QString value = ui_->expression_data->item(row_idx, idx)->text();
-					if (value.isEmpty() || value == "n/a")
-					{
-						filter_result.flags()[row_idx] = false;
-					}
-					else
-					{
-						double tpm_value = Helper::toDouble(value);
-						filter_result.flags()[row_idx] = tpm_value >= min_tpm_value;
-					}
+					QMessageBox::warning(this, "Invalid raw count value", "Couldn't convert given raw count value to number!\n" + e.message());
 				}
 			}
-			catch (Exception e)
+		}
+
+		//filter by tpm value
+		if (!ui_->tpm_value->text().isEmpty())
+		{
+			qDebug() << "filter by tpm";
+			int idx = column_names_.indexOf("tpm");
+
+			if (idx == -1)
 			{
-				QMessageBox::warning(this, "Invalid tpm value", "Couldn't convert given tpm value to number!\n" + e.message());
+				QMessageBox::warning(this, "Filtering error", "Table does not contain a 'tpm' column! \nFiltering based on tpm value is not possible.");
+			}
+			else
+			{
+				try
+				{
+					int min_tpm_value = Helper::toDouble(ui_->tpm_value->text().replace(",", "."), "TPM filter entry");
+					for(int row_idx=0; row_idx<row_count; ++row_idx)
+					{
+						//skip already filtered
+						if (!filter_result.flags()[row_idx]) continue;
+
+						QString value = ui_->expression_data->item(row_idx, idx)->text();
+						if (value.isEmpty() || value == "n/a")
+						{
+							filter_result.flags()[row_idx] = false;
+						}
+						else
+						{
+							double tpm_value = Helper::toDouble(value);
+							filter_result.flags()[row_idx] = tpm_value >= min_tpm_value;
+						}
+					}
+				}
+				catch (Exception e)
+				{
+					QMessageBox::warning(this, "Invalid tpm value", "Couldn't convert given tpm value to number!\n" + e.message());
+				}
 			}
 		}
-	}
 
-	//filter by biotype
-	QSet<QString> selected_biotypes;
+		//filter by biotype
+		QSet<QString> selected_biotypes;
+		qDebug() << "filter by biotype";
 
-	//get selected biotypes
-	foreach (QCheckBox* cb_biotype, ui_->sawc_biotype->findChildren<QCheckBox*>())
-	{
-		if (cb_biotype->isChecked())
+		//get selected biotypes
+		foreach (QCheckBox* cb_biotype, ui_->sawc_biotype->findChildren<QCheckBox*>())
 		{
-			selected_biotypes.insert(cb_biotype->text());
+			if (cb_biotype->isChecked())
+			{
+				selected_biotypes.insert(cb_biotype->text());
+			}
 		}
-	}
 
-	//filter data
-	int idx = column_names_.indexOf("gene_biotype");
-	for(int row_idx=0; row_idx<row_count; ++row_idx)
+		//filter data
+		int idx = column_names_.indexOf("gene_biotype");
+		for(int row_idx=0; row_idx<row_count; ++row_idx)
+		{
+			//skip already filtered
+			if (!filter_result.flags()[row_idx]) continue;
+
+			QString biotype = ui_->expression_data->item(row_idx, idx)->text();
+			filter_result.flags()[row_idx] = selected_biotypes.contains(biotype);
+		}
+
+
+		//hide rows not passing filters
+		for(int row=0; row<row_count; ++row)
+		{
+			ui_->expression_data->setRowHidden(row, !filter_result.flags()[row]);
+		}
+
+		//set number of filtered / total rows
+		ui_->filtered_rows->setText(QByteArray::number(filter_result.flags().count(true)) + " / " + QByteArray::number(row_count));
+
+
+		QApplication::restoreOverrideCursor();
+	}
+	catch (Exception& e)
 	{
-		//skip already filtered
-		if (!filter_result.flags()[row_idx]) continue;
-
-		QString biotype = ui_->expression_data->item(row_idx, idx)->text();
-		filter_result.flags()[row_idx] = selected_biotypes.contains(biotype);
+		GUIHelper::showException(this, e, "Error opening RNA expression file.");
 	}
 
-
-	//hide rows not passing filters
-	for(int row=0; row<row_count; ++row)
-	{
-		ui_->expression_data->setRowHidden(row, !filter_result.flags()[row]);
-	}
-
-	//set number of filtered / total rows
-	ui_->filtered_rows->setText(QByteArray::number(filter_result.flags().count(true)) + " / " + QByteArray::number(row_count));
 
 }
 
@@ -439,7 +462,7 @@ void ExpressionDataWidget::selectAllBiotypes(bool deselect)
 void ExpressionDataWidget::showHistogram(int row_idx)
 {
 	QString ensg = ui_->expression_data->item(row_idx, 0)->text();
-	QVector<double> expr_values = NGSD().getExpressionValues(ensg, sys_id_, tissue_);
+	QVector<double> expr_values = NGSD().getExpressionValues(ensg, sys_id_, tissue_, true, true);
 
 	if(expr_values.size() == 0) return;
 	//create histogram
@@ -453,7 +476,7 @@ void ExpressionDataWidget::showHistogram(int row_idx)
 	}
 
 	//show chart
-	QChartView* view = GUIHelper::histogramChart(hist, "Expression value distribution (TPM, " + QString::number(expr_values.size()) + " samples)");
+	QChartView* view = GUIHelper::histogramChart(hist, "Expression value distribution (log2_TPM, " + QString::number(expr_values.size()) + " samples)");
 	auto dlg = GUIHelper::createDialog(view, "Expression value distribution (" + ensg + ")");
 	dlg->exec();
 }
@@ -483,142 +506,132 @@ void ExpressionDataWidget::showExpressionTableContextMenu(QPoint pos)
 
 void ExpressionDataWidget::loadExpressionData()
 {
-	//skip without database
-	if (!LoginManager::active()) return;
-
-	//load TSV file
-	TsvFile expression_data;
-	QSharedPointer<VersatileFile> expression_data_file = Helper::openVersatileFileForReading(tsv_filename_, false);
-
-	//parse TSV file
-	while (!expression_data_file->atEnd())
+	try
 	{
-		QString line = expression_data_file->readLine().trimmed();
-		if (line == "")
+		QApplication::setOverrideCursor(Qt::BusyCursor);
+		QTime timer;
+		timer.start();
+		qDebug() << "load expression file...";
+
+		//skip without database
+		if (!LoginManager::active()) return;
+
+		//load TSV file
+		TsvFile expression_data;
+		QSharedPointer<VersatileFile> expression_data_file = Helper::openVersatileFileForReading(tsv_filename_, false);
+
+		//parse TSV file
+		while (!expression_data_file->atEnd())
 		{
-			// skip empty lines
-			continue;
-		}
-		else if	(line.startsWith("##"))
-		{
-			expression_data.addComment(line.mid(2));
-		}
-		else if (line.startsWith("#"))
-		{
-			foreach (const QString& header, line.mid(1).split('\t'))
+			QString line = expression_data_file->readLine().trimmed();
+			if (line == "")
 			{
-				expression_data.addHeader(header.trimmed());
+				// skip empty lines
+				continue;
 			}
-		}
-		else
-		{
-			expression_data.addRow(line.split('\t'));
-		}
-	}
-
-	//collect biotypes
-	QSet<QString> biotypes;
-
-	//get RNA stats from NGSD
-	QMap<QByteArray, ExpressionStats> expression_stats = NGSD().calculateExpressionStatistics(sys_id_, tissue_);
-
-
-	column_names_.clear();
-	numeric_columns_.clear();
-	precision_.clear();
-
-	//default columns
-	column_names_ << "gene_id" << "gene_name" << "gene_biotype" << "raw" << "tpm" << "log2tpm";
-	numeric_columns_  << false << false << false << true << true << true;
-	precision_ << -1 << -1 << -1 << 0 << 2 << 2;
-
-	//determine col indices for table columns in tsv file
-	QVector<int> column_indices;
-	foreach (const QString& col_name, column_names_)
-	{
-		column_indices << expression_data.columnIndex(col_name);
-	}
-
-	//db columns
-
-	QStringList db_column_names = QStringList()  << "cohort_mean" << "cohort_meanlog2" << "log2fc" << "zscore" << "p-value";
-	column_names_ << db_column_names;
-	numeric_columns_  << true << true << true << true << true;
-	precision_ << 3 << 3 << 3 << 3 << 3;
-
-
-	//create header
-	ui_->expression_data->setColumnCount(column_names_.size());
-	for (int col_idx = 0; col_idx < column_names_.size(); ++col_idx)
-	{
-		ui_->expression_data->setHorizontalHeaderItem(col_idx, new QTableWidgetItem(column_names_.at(col_idx)));
-	}
-
-	//fill table widget with expression data
-	ui_->expression_data->setRowCount(expression_data.rowCount());
-	for(int row_idx=0; row_idx<expression_data.rowCount(); ++row_idx)
-	{
-
-		QStringList row = expression_data.row(row_idx);
-		QByteArray ensg = row.at(column_indices.at(0)).toUtf8();
-		double tpm = Helper::toDouble(row.at(column_indices.at(column_names_.indexOf("tpm"))), "tpm", QString::number(row_idx));
-		double log2_tpm = std::log2(tpm + 1);
-		for (int col_idx = 0; col_idx < column_names_.size(); ++col_idx)
-		{
-			if(db_column_names.contains(column_names_.at(col_idx)))
+			else if	(line.startsWith("##"))
 			{
-				//get value from NGSD
-				if(expression_stats.contains(ensg))
+				expression_data.addComment(line.mid(2));
+			}
+			else if (line.startsWith("#"))
+			{
+				foreach (const QString& header, line.mid(1).split('\t'))
 				{
-					ExpressionStats gene_stats = expression_stats.value(ensg);
-					if(column_names_.at(col_idx) == "cohort_mean")
-					{
-						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(gene_stats.mean, 'f', precision_.at(col_idx))));
-					}
-					else if(column_names_.at(col_idx) == "cohort_meanlog2")
-					{
-						double mean_log2 = std::log2(gene_stats.mean);
-						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(mean_log2, 'f', precision_.at(col_idx))));
-					}
-					else if(column_names_.at(col_idx) == "log2fc")
-					{
-						double log2fc = log2_tpm - std::log2(gene_stats.mean);
-						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(log2fc, 'f', precision_.at(col_idx))));
-					}
-					else if(column_names_.at(col_idx) == "zscore")
-					{
-						double zscore = (log2_tpm - std::log2(gene_stats.mean)) / std::log2(gene_stats.stddev);
-						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(zscore, 'f', precision_.at(col_idx))));
-					}
-					else if(column_names_.at(col_idx) == "p-value")
-					{
-						double zscore = (log2_tpm - std::log2(gene_stats.mean)) / std::log2(gene_stats.stddev);
-						double p_value = std::erf(1 + ((- abs(zscore))/(std::sqrt(2))));
-						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(p_value, 'f', precision_.at(col_idx))));
-					}
-					else
-					{
-						THROW(ArgumentException, "Invalid db column '" + column_names_.at(col_idx) + "'!");
-					}
-				}
-				else
-				{
-					ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(""));
+					expression_data.addHeader(header.trimmed());
 				}
 			}
 			else
 			{
-				//get value from file
-				if(numeric_columns_.at(col_idx))
+				expression_data.addRow(line.split('\t'));
+			}
+		}
+
+		//collect biotypes
+		QSet<QString> biotypes;
+
+		//get RNA stats from NGSD
+		QMap<QByteArray, ExpressionStats> expression_stats = NGSD().calculateExpressionStatistics(sys_id_, tissue_);
+
+
+		column_names_.clear();
+		numeric_columns_.clear();
+		precision_.clear();
+
+		//disable sorting
+		ui_->expression_data->setSortingEnabled(false);
+
+		//default columns
+		column_names_ << "gene_id" << "gene_name" << "gene_biotype" << "raw" << "tpm" << "log2tpm";
+		numeric_columns_  << false << false << false << true << true << true;
+		precision_ << -1 << -1 << -1 << 0 << 2 << 2;
+
+		//determine col indices for table columns in tsv file
+		QVector<int> column_indices;
+		foreach (const QString& col_name, column_names_)
+		{
+			column_indices << expression_data.columnIndex(col_name);
+		}
+
+		//db columns
+
+		QStringList db_column_names = QStringList()  << "cohort_mean" << "cohort_meanlog2" << "log2fc" << "zscore" << "pvalue";
+		column_names_ << db_column_names;
+		numeric_columns_  << true << true << true << true << true;
+		precision_ << 3 << 3 << 3 << 3 << 3;
+
+
+		//create header
+		ui_->expression_data->setColumnCount(column_names_.size());
+		for (int col_idx = 0; col_idx < column_names_.size(); ++col_idx)
+		{
+			ui_->expression_data->setHorizontalHeaderItem(col_idx, new QTableWidgetItem(column_names_.at(col_idx)));
+		}
+
+		//fill table widget with expression data
+		ui_->expression_data->setRowCount(expression_data.rowCount());
+		for(int row_idx=0; row_idx<expression_data.rowCount(); ++row_idx)
+		{
+
+			QStringList row = expression_data.row(row_idx);
+			QByteArray ensg = row.at(column_indices.at(0)).toUtf8();
+			double tpm = Helper::toDouble(row.at(column_indices.at(column_names_.indexOf("tpm"))), "tpm", QString::number(row_idx));
+			double log2_tpm = std::log2(tpm+1);
+			for (int col_idx = 0; col_idx < column_names_.size(); ++col_idx)
+			{
+				if(db_column_names.contains(column_names_.at(col_idx)))
 				{
-					// add numeric QTableWidgetItem
-					QString value = row.at(column_indices.at(col_idx));
-					if (value != "n/a" && !value.isEmpty())
+					//get value from NGSD
+					if(expression_stats.contains(ensg))
 					{
-						QString rounded_number = QString::number(Helper::toDouble(value,
-																				  "TSV column " + QString::number(col_idx),
-																				  QString::number(row_idx)), 'f', precision_.at(col_idx));
-						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(rounded_number));
+						ExpressionStats gene_stats = expression_stats.value(ensg);
+						if(column_names_.at(col_idx) == "cohort_mean")
+						{
+							ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(gene_stats.mean, 'f', precision_.at(col_idx))));
+						}
+						else if(column_names_.at(col_idx) == "cohort_meanlog2")
+						{
+							ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(gene_stats.mean_log2, 'f', precision_.at(col_idx))));
+						}
+						else if(column_names_.at(col_idx) == "log2fc")
+						{
+							double log2fc = log2_tpm - gene_stats.mean_log2;
+							ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(log2fc, 'f', precision_.at(col_idx))));
+						}
+						else if(column_names_.at(col_idx) == "zscore")
+						{
+							double zscore = (log2_tpm - gene_stats.mean_log2) / gene_stats.stddev_log2;
+							ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(zscore, 'f', precision_.at(col_idx))));
+						}
+						else if(column_names_.at(col_idx) == "pvalue")
+						{
+							double zscore = (log2_tpm - gene_stats.mean_log2) / gene_stats.stddev_log2;
+							double p_value = std::erf(1 + ((- abs(zscore))/(std::sqrt(2))));
+							ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(p_value, 'f', precision_.at(col_idx))));
+						}
+						else
+						{
+							THROW(ArgumentException, "Invalid db column '" + column_names_.at(col_idx) + "'!");
+						}
 					}
 					else
 					{
@@ -627,47 +640,75 @@ void ExpressionDataWidget::loadExpressionData()
 				}
 				else
 				{
-					// add standard QTableWidgetItem
-					ui_->expression_data->setItem(row_idx, col_idx, new QTableWidgetItem(row.at(column_indices.at(col_idx))));
+					//get value from file
+					if(numeric_columns_.at(col_idx))
+					{
+						// add numeric QTableWidgetItem
+						QString value = row.at(column_indices.at(col_idx));
+						if (value != "n/a" && !value.isEmpty())
+						{
+							QString rounded_number = QString::number(Helper::toDouble(value,
+																					  "TSV column " + QString::number(col_idx),
+																					  QString::number(row_idx)), 'f', precision_.at(col_idx));
+							ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(rounded_number));
+						}
+						else
+						{
+							ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(""));
+						}
+					}
+					else
+					{
+						// add standard QTableWidgetItem
+						ui_->expression_data->setItem(row_idx, col_idx, new QTableWidgetItem(row.at(column_indices.at(col_idx))));
+					}
+
+					//extract gene biotype
+					if (column_names_.at(col_idx) == "gene_biotype")
+					{
+						biotypes.insert(row.at(column_indices.at(col_idx)));
+					}
 				}
 
-				//extract gene biotype
-				if (column_names_.at(col_idx) == "gene_biotype")
-				{
-					biotypes.insert(row.at(column_indices.at(col_idx)));
-				}
+
 			}
 
 
 		}
 
+		//hide vertical header
+		ui_->expression_data->verticalHeader()->setVisible(false);
 
+		//enable sorting
+		ui_->expression_data->setSortingEnabled(true);
+
+		//optimize table view
+		GUIHelper::resizeTableCells(ui_->expression_data, 200, true, 1000);
+
+		//Set number of filtered / total rows
+		ui_->filtered_rows->setText(QByteArray::number(expression_data.rowCount()) + " / " + QByteArray::number(expression_data.rowCount()));
+
+		//init/update filter column
+		//biotypes
+		QList<QString> sorted_biotypes = biotypes.toList();
+		std::sort(sorted_biotypes.begin(), sorted_biotypes.end());
+		QVBoxLayout* vbox = new QVBoxLayout;
+		foreach (const QString& biotype, sorted_biotypes)
+		{
+			QCheckBox* cb_biotype = new QCheckBox(biotype);
+			cb_biotype->setChecked((biotype == "protein_coding"));
+			vbox->addWidget(cb_biotype);
+		}
+		ui_->sawc_biotype->setLayout(vbox);
+
+		qDebug() << QString() + "\t ... done(" + Helper::elapsedTime(timer) + ")";
+
+		QApplication::restoreOverrideCursor();
 	}
-
-	//hide vertical header
-	ui_->expression_data->verticalHeader()->setVisible(false);
-
-	//enable sorting
-	ui_->expression_data->setSortingEnabled(true);
-
-	//optimize table view
-	GUIHelper::resizeTableCells(ui_->expression_data, 200, true, 1000);
-
-	//Set number of filtered / total rows
-	ui_->filtered_rows->setText(QByteArray::number(expression_data.rowCount()) + " / " + QByteArray::number(expression_data.rowCount()));
-
-	//init/update filter column
-	//biotypes
-	QList<QString> sorted_biotypes = biotypes.toList();
-	std::sort(sorted_biotypes.begin(), sorted_biotypes.end());
-	QVBoxLayout* vbox = new QVBoxLayout;
-	foreach (const QString& biotype, sorted_biotypes)
+	catch (Exception& e)
 	{
-		QCheckBox* cb_biotype = new QCheckBox(biotype);
-		cb_biotype->setChecked((biotype == "protein_coding"));
-		vbox->addWidget(cb_biotype);
+		GUIHelper::showException(this, e, "Error opening RNA expression file.");
 	}
-	ui_->sawc_biotype->setLayout(vbox);
 }
 
 
