@@ -19,7 +19,7 @@ GenLabDB::GenLabDB()
 	QString pass;
 
 	//get settings
-	if (NGSHelper::isCliendServerMode() && !NGSHelper::isRunningOnServer())
+	if (NGSHelper::isClientServerMode() && !NGSHelper::isRunningOnServer())
 	{
 		genlab_mssql = LoginManager::genlab_mssql();
 		host = LoginManager::genlabHost();
@@ -76,7 +76,7 @@ bool GenLabDB::isOpen() const
 
 bool GenLabDB::isAvailable()
 {
-	if (NGSHelper::isCliendServerMode() && !NGSHelper::isRunningOnServer())
+	if (NGSHelper::isClientServerMode() && !NGSHelper::isRunningOnServer())
 	{
 		return true;
 	}

@@ -34,8 +34,12 @@ public:
 	static HttpResponse locateFileByType(const HttpRequest& request);
 	/// Returns the location of the processed sample
 	static HttpResponse getProcessedSamplePath(const HttpRequest& request);
-	/// Lcoates a GSvar file related to the specified job
+	/// Locates a GSvar file related to the specified job
 	static HttpResponse getAnalysisJobGSvarFile(const HttpRequest& request);
+	/// Date and time of the last modification of a log file for a specific job
+	static HttpResponse getAnalysisJobLastUpdate(const HttpRequest& request);
+	/// Locates a log file for a specific job
+	static HttpResponse getAnalysisJobLog(const HttpRequest& request);
 	/// Saves changes to the project file
 	static HttpResponse saveProjectFile(const HttpRequest& request);
 	/// Saves qbic files in the folder on the server

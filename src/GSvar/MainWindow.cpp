@@ -259,7 +259,7 @@ MainWindow::MainWindow(QWidget *parent)
 	QDir::setCurrent(QDir::tempPath());
 
 	//enable timers needed in client-server mode
-	if (NGSHelper::isCliendServerMode())
+	if (NGSHelper::isClientServerMode())
 	{
 		QTimer *login_timer = new QTimer(this);
 		connect(login_timer, &QTimer::timeout, this, &LoginManager::renewLogin);
@@ -306,9 +306,9 @@ bool MainWindow::isServerRunning()
 	QJsonDocument json_doc = QJsonDocument::fromJson(response);	;
 	if (!json_doc.isObject()) return false;
 
-	if (ToolBase::version() != json_doc.object()["version"].toString())
+	if (NGSHelper::serverApiVersion() != json_doc.object()["api_version"].toString())
 	{
-		QMessageBox::warning(this, "Version mismatch", "GSvar and the server have different versions. No stable work can be guaranteed. The application will be closed");
+		QMessageBox::warning(this, "Version mismatch", "GSvar uses API " + NGSHelper::serverApiVersion() + ", while the server uses API " + json_doc.object()["api_version"].toString() + ". No stable work can be guaranteed. The application will be closed");
 		return false;
 	}
 
@@ -1815,7 +1815,7 @@ void MainWindow::delayedInitialization()
 	}
 
 	// Setting a timer to renew secure tokens for the server API
-	if (NGSHelper::isCliendServerMode())
+	if (NGSHelper::isClientServerMode())
 	{
 		if (!isServerRunning())
 		{
@@ -4962,7 +4962,7 @@ void MainWindow::on_actionSampleAncestry_triggered()
 
 void MainWindow::on_actionAnalysisStatus_triggered()
 {
-	//check if alread open
+	//check if already open
 	for (int t=0; t<ui_.tabs->count(); ++t)
 	{
 		if (ui_.tabs->tabText(t)=="Analysis status")

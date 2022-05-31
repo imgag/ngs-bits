@@ -126,11 +126,35 @@ FileLocation DatabaseServiceRemote::processedSamplePath(const QString& processed
 	return output;
 }
 
+FileInfo DatabaseServiceRemote::analysisJobLatestLogInfo(const int& job_id) const
+{
+	checkEnabled(__PRETTY_FUNCTION__);
+
+	FileInfo output;
+	QByteArray reply = makeGetApiCall("analysis_job_last_update?job_id=" + QString::number(job_id), true);
+	if (reply.length() == 0)
+	{
+		THROW(Exception, "Could not get the latest update info for the job id " + QString::number(job_id));
+	}
+
+	QJsonDocument json_doc = QJsonDocument::fromJson(reply);
+	QJsonObject json_object = json_doc.object();
+
+	if (json_object.contains("latest_file") && json_object.contains("latest_file_with_path") && json_object.contains("latest_created") && json_object.contains("latest_mod"))
+	{
+		return FileInfo(json_object.value("latest_file").toString(),
+						json_object.value("latest_file_with_path").toString(),
+						QDateTime().fromSecsSinceEpoch(json_object.value("latest_created").toString().toLongLong()),
+						QDateTime().fromSecsSinceEpoch(json_object.value("latest_mod").toString().toLongLong()));
+	}
+
+	return output;
+}
+
 FileLocation DatabaseServiceRemote::analysisJobGSvarFile(const int& job_id) const
 {
 	checkEnabled(__PRETTY_FUNCTION__);
 
-	FileLocation output;
 	QByteArray reply = makeGetApiCall("analysis_job_gsvar_file?job_id=" + QString::number(job_id), true);
 	if (reply.length() == 0)
 	{
@@ -145,7 +169,28 @@ FileLocation DatabaseServiceRemote::analysisJobGSvarFile(const int& job_id) cons
 		return FileLocation(json_object.value("id").toString(), FileLocation::stringToType(json_object.value("type").toString()), json_object.value("filename").toString(), json_object.value("exists").toBool());
 	}
 
-	return output;
+	return FileLocation{};
+}
+
+FileLocation DatabaseServiceRemote::analysisJobLogFile(const int& job_id) const
+{
+	checkEnabled(__PRETTY_FUNCTION__);
+
+	QByteArray reply = makeGetApiCall("analysis_job_log?job_id=" + QString::number(job_id), true);
+	if (reply.length() == 0)
+	{
+		THROW(Exception, "Could not get a log file for the job id " + QString::number(job_id));
+	}
+
+	QJsonDocument json_doc = QJsonDocument::fromJson(reply);
+	QJsonObject json_object = json_doc.object();
+
+	if (json_object.contains("id") && json_object.contains("type") && json_object.contains("filename") && json_object.contains("exists"))
+	{
+		return FileLocation(json_object.value("id").toString(), FileLocation::stringToType(json_object.value("type").toString()), json_object.value("filename").toString(), json_object.value("exists").toBool());
+	}
+
+	return FileLocation{};
 }
 
 HttpHeaders DatabaseServiceRemote::defaultHeaders() const
