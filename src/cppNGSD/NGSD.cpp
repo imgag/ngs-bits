@@ -27,7 +27,7 @@ NGSD::NGSD(bool test_db, QString name_suffix)
 
 	//connect to DB
 	QString db_name;
-	if (!test_db_ && NGSHelper::isCliendServerMode() && !NGSHelper::isRunningOnServer())
+	if (!test_db_ && NGSHelper::isClientServerMode() && !NGSHelper::isRunningOnServer())
 	{
 		db_->setHostName(LoginManager::ngsdHostName());
 		db_->setPort(LoginManager::ngsdPort());
@@ -57,7 +57,7 @@ NGSD::NGSD(bool test_db, QString name_suffix)
 
 bool NGSD::isAvailable(bool test_db)
 {
-	if (!test_db && NGSHelper::isCliendServerMode() && !NGSHelper::isRunningOnServer())
+	if (!test_db && NGSHelper::isClientServerMode() && !NGSHelper::isRunningOnServer())
 	{
 		return true;
 	}
@@ -3649,6 +3649,34 @@ QString NGSD::analysisJobFolder(int job_id)
 	output += QDir::separator();
 
 	return QFileInfo(output).absoluteFilePath();
+}
+
+FileInfo NGSD::analysisJobLatestLogInfo(int job_id)
+{
+	FileInfo output;
+	QString folder = analysisJobFolder(job_id);
+	if (QFile::exists(folder))
+	{
+		QStringList files = Helper::findFiles(folder, "*.log", false);
+		if (!files.isEmpty())
+		{
+			QString latest_file;
+			QDateTime latest_mod;
+			foreach(QString file, files)
+			{
+				QFileInfo file_info(file);
+				QDateTime mod_time = file_info.lastModified();
+				if (output.last_modiefied.isNull() || mod_time>output.last_modiefied)
+				{
+					output.file_name = file_info.fileName();
+					output.file_name_with_path = file_info.filePath();
+					output.created = file_info.created();
+					output.last_modiefied = mod_time;
+				}
+			}
+		}
+	}
+	return output;
 }
 
 QString NGSD::analysisJobGSvarFile(int job_id)

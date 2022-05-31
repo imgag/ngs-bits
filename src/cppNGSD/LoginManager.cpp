@@ -100,7 +100,7 @@ bool LoginManager::active()
 void LoginManager::login(QString user, QString password, bool test_db)
 {
 	LoginManager& manager = instance();
-	if (NGSHelper::isCliendServerMode())
+	if (NGSHelper::isClientServerMode())
 	{
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");
