@@ -1,6 +1,10 @@
 # GSvar change log
 
-### 2222_04-109 (20.05.22)
+### 2022_04-127 (30.05.22)
+- Gene tab: Added transcript biotype and transcript flags.
+- General: Several bugfixes.
+
+### 2022_04-109 (20.05.22)
 - General: Added support for mosaic variants (called in gene exon and splice regions only).
 - General: Variant tab can now be opened using different notations (GSvar, VCF, gnomAD and HGVS.c).
 - Small variant filters: added phenotype settings (source, evidence level, intersection)

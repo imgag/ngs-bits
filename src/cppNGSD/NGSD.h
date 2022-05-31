@@ -355,8 +355,7 @@ struct CPPNGSDSHARED_EXPORT PathwayInfo
 {
 	QString symbol;
 	QString pathway;
-	QString significance;
-	QString comment;
+	QString pathway_significance;
 };
 
 

@@ -2212,21 +2212,16 @@ private slots:
 		I_EQUAL(pathways.count(), 2);
 		S_EQUAL(pathways[0].symbol, "SMARCA1");
 		S_EQUAL(pathways[0].pathway, "DNA damage repair");
-		S_EQUAL(pathways[0].significance, "high");
-		S_EQUAL(pathways[0].comment, "SMARCA1 is in DNA damage repair pathway");
+		S_EQUAL(pathways[0].pathway_significance, "high");
 
 		S_EQUAL(pathways[1].symbol, "SMARCA1");
 		S_EQUAL(pathways[1].pathway, "chromatin remodeling");
-		S_EQUAL(pathways[1].significance, "low");
-		S_EQUAL(pathways[1].comment, "SMARCA1 is also in another pathway");
+		S_EQUAL(pathways[1].pathway_significance, "low");
 
 		QList<PathwayInfo> pathways_qars = db.getSomaticPathways("BRAF");
 		S_EQUAL(pathways_qars[0].symbol, "BRAF");
 		S_EQUAL(pathways_qars[0].pathway, "Hedgehog");
-		S_EQUAL(pathways_qars[0].significance, "low");
-		S_EQUAL(pathways_qars[0].comment, "test pathway of BRAF.");
-
-
+		S_EQUAL(pathways_qars[0].pathway_significance, "low");
 	}
 
 	//Test tumor only RTF report generation

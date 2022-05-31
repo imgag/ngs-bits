@@ -472,7 +472,7 @@
      <addaction name="separator"/>
      <addaction name="actionPreferredTranscripts"/>
      <addaction name="actionEditSomaticGeneRoles"/>
-     <addaction name="actionEditSomaticPathways"/>
+     <addaction name="actionEditSomaticPathwayGeneAssociations"/>
     </widget>
     <widget class="QMenu" name="menuPhenotypes_2">
      <property name="title">
@@ -501,12 +501,12 @@
      <addaction name="actionSender"/>
      <addaction name="actionSpecies"/>
      <addaction name="actionStudy"/>
+     <addaction name="actionEditSomaticPathways"/>
      <addaction name="separator"/>
      <addaction name="actionUsers"/>
      <addaction name="actionChangePassword"/>
      <addaction name="separator"/>
      <addaction name="actionReplicateNGSD"/>
-     <addaction name="separator"/>
     </widget>
     <widget class="QMenu" name="menuBatch_import">
      <property name="title">
@@ -828,7 +828,7 @@
   </action>
   <action name="actionPreferredTranscripts">
    <property name="text">
-    <string>Show/edit preferred transcripts</string>
+    <string>Edit preferred transcripts</string>
    </property>
   </action>
   <action name="actionROH">
@@ -1398,9 +1398,14 @@
     <string>Show mosaic variants of the current sample (called only on exon/splice regions).</string>
    </property>
   </action>
+  <action name="actionEditSomaticPathwayGeneAssociations">
+   <property name="text">
+    <string>Edit somatic pathway-gene associations</string>
+   </property>
+  </action>
   <action name="actionEditSomaticPathways">
    <property name="text">
-    <string>Edit somatic pathways</string>
+    <string>Somatic pathways</string>
    </property>
   </action>
  </widget>
