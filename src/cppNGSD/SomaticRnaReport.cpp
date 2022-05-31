@@ -1,4 +1,5 @@
 #include <QDebug>
+#include <cmath>
 #include "NGSD.h"
 #include "SomaticRnaReport.h"
 #include "SomaticReportHelper.h"
@@ -331,9 +332,9 @@ RtfTable SomaticRnaReport::partSnvTable()
 		row.addCell( 1100, formatDigits(data.hpa_ref_tpm), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 		row.addCell( 900, formatDigits(data.cohort_mean_tpm), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 
-		row.addCell( 1000, formatDigits(data.log2fc), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+		row.addCell( 1000, formatDigits(std::pow(2., data.log2fc), 1), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 
-		row.addCell( 821, formatDigits(data.pvalue), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+		row.addCell( 821, formatDigits(data.pvalue, 2), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 
 		for(int i=4; i<row.count(); ++i) row[i].setBackgroundColor(4);
 		table.addRow(row);
@@ -396,9 +397,9 @@ RtfTable SomaticRnaReport::partCnvTable()
 			temp.addCell(900, formatDigits( expr_data.cohort_mean_tpm), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
 
-			temp.addCell(1000, formatDigits( expr_data.log2fc) , RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+			temp.addCell(1000, formatDigits( std::pow(2.,expr_data.log2fc) , 1) , RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
-			temp.addCell(821, formatDigits(expr_data.pvalue), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+			temp.addCell(821, formatDigits(expr_data.pvalue, 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
 			for(int i=4; i< temp.count(); ++i) temp[i].setBackgroundColor(4);
 
@@ -462,7 +463,7 @@ RtfTable SomaticRnaReport::partGeneExpression()
 
 	table.addRow( RtfTableRow({"Expression bestimmter Gene"}, {9921}, RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
-	table.addRow(RtfTableRow({"Gen", "Pathogenität", "Signalweg", "Tumorprobe TPM", "Referenz HPA-TPM", "Bewertung", "Tumortyp MW TPM", "Veränderung (-fach)", "p-Wert"}, {1100, 1100, 1121, 1100, 1100, 1100, 1100, 1100, 1100}, RtfParagraph().setHorizontalAlignment("c").setBold(true)).setHeader().setBorders(1, "brdrhair", 2));
+	table.addRow(RtfTableRow({"Gen", "Pathogenität", "Signalweg", "Tumorprobe TPM", "Referenz HPA-TPM", "Bewertung", "Tumortyp MW TPM", "Veränderung (-fach)", "p-Wert"}, {1100, 1100, 1621, 1100, 1100, 600, 1100, 1100, 1100}, RtfParagraph().setHorizontalAlignment("c").setBold(true)).setHeader().setBorders(1, "brdrhair", 2));
 	for(int i=2; i<table[1].count(); ++i) table[1][i].setBackgroundColor(4);
 
 	for(const auto& data : pathways_)
@@ -475,14 +476,14 @@ RtfTable SomaticRnaReport::partGeneExpression()
 		else if(data.role.role == SomaticGeneRole::Role::LOSS_OF_FUNCTION) pathogenicity = "DEL";
 
 		row.addCell(1100, pathogenicity  );
-		row.addCell(1121, data.pathway);
-		row.addCell(1100, formatDigits(data.tumor_tpm) );
-		row.addCell(1100, formatDigits(data.hpa_ref_tpm) );
+		row.addCell(1621, trans(data.pathway) );
+		row.addCell(1100, formatDigits(data.tumor_tpm), RtfParagraph().setHorizontalAlignment("c") );
+		row.addCell(1100, formatDigits(data.hpa_ref_tpm) , RtfParagraph().setHorizontalAlignment("c"));
 
-		row.addCell(1100, QByteArray::number(rankCnv(data.tumor_tpm, data.hpa_ref_tpm, data.role.role)) );
-		row.addCell(1100, formatDigits(data.cohort_mean_tpm) );
-		row.addCell(1100, formatDigits(data.log2fc) );
-		row.addCell(1100, formatDigits(data.pvalue) );
+		row.addCell(600, QByteArray::number(rankCnv(data.tumor_tpm, data.hpa_ref_tpm, data.role.role)) , RtfParagraph().setHorizontalAlignment("c"));
+		row.addCell(1100, formatDigits(data.cohort_mean_tpm) , RtfParagraph().setHorizontalAlignment("c"));
+		row.addCell(1100, formatDigits(pow(2., data.log2fc), 1) , RtfParagraph().setHorizontalAlignment("c"));
+		row.addCell(1100, formatDigits(data.pvalue, 2) , RtfParagraph().setHorizontalAlignment("c"));
 		row.setBorders(1, "brdrhair", 2);
 
 		for(int i=2; i<row.count(); ++i) row[i].setBackgroundColor(4);
@@ -613,6 +614,17 @@ RtfSourceCode SomaticRnaReport::trans(QString orig_entry) const
 		dict["duplication"] = "Duplikation";
 		dict["deletion/read-through"] = "Deletion/Read-through";
 		dict["deletion"] = "Deletion";
+		dict["FGFR signaling pathway"] = "FGFR Signalweg";
+		dict["immune response"] = "Immunantwort";
+		dict["promoter activity"] = "Promotoraktivität";
+		dict["RAS signaling pathway"] = "RAS Signalweg";
+		dict["RTK signaling pathway"] = "RTK Signalweg";
+		dict["TNF signaling pathway"] = "TNF Signalweg";
+		dict["DNA repair"] = "DNA-Reparatur";
+		dict["DNA replication"] = "DNA-Replikation";
+		dict["epigenetics"] = "Epigenetik";
+		dict["CDK4/6 signaling pathway"] = "CDK4/6 Signalweg";
+		dict["mTOR signaling pathway"] = "mTOR Signalweg";
 	}
 
 	if(!dict.contains(orig_entry)) //Return highlighted original entry if not found
@@ -697,5 +709,6 @@ void SomaticRnaReport::writeRtf(QByteArray out_file)
 RtfSourceCode SomaticRnaReport::formatDigits(double in, int digits)
 {
 	if(!BasicStatistics::isValidFloat(in)) return "n/a";
+
 	return QByteArray::number(in, 'f', digits);
 }

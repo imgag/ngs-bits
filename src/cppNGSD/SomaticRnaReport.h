@@ -140,7 +140,7 @@ private:
 	RtfSourceCode trans(QString orig_entry) const;
 
 	///Formats double to float, in case it fails to "n/a"
-	RtfSourceCode formatDigits(double in, int digits=2);
+	RtfSourceCode formatDigits(double in, int digits=0);
 
 	RtfDocument doc_;
 
