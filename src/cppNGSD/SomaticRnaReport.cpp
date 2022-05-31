@@ -260,7 +260,7 @@ RtfSourceCode SomaticRnaReport::partExpressionPics()
 
 	for(int i=0; i<data_.expression_plots.count(); ++i)
 	{
-		out << pngToRtf(data_.expression_plots[i], doc_.maxWidth() / 2 - 50).RtfCode();
+		out << pngToRtf(data_.expression_plots[i], doc_.maxWidth() / 2 - 400).RtfCode();
 		if((i+1)%2==0) out << RtfParagraph("").RtfCode();
 	}
 
@@ -463,7 +463,7 @@ RtfTable SomaticRnaReport::partGeneExpression()
 
 	table.addRow( RtfTableRow({"Expression bestimmter Gene"}, {9921}, RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
-	table.addRow(RtfTableRow({"Gen", "Pathogenität", "Signalweg", "Tumorprobe TPM", "Referenz HPA-TPM", "Bewertung", "Tumortyp MW TPM", "Veränderung (-fach)", "p-Wert"}, {1100, 1100, 1621, 1100, 1100, 600, 1100, 1100, 1100}, RtfParagraph().setHorizontalAlignment("c").setBold(true)).setHeader().setBorders(1, "brdrhair", 2));
+	table.addRow(RtfTableRow({"Gen", "Pathogenität", "Signalweg", "Tumorprobe TPM", "Referenz HPA-TPM", "Bewertung", "Tumortyp MW TPM", "Veränderung (-fach)", "p-Wert"}, {1100, 1100, 1621, 1000, 1000, 800, 1100, 1100, 1100}, RtfParagraph().setHorizontalAlignment("c").setBold(true)).setHeader().setBorders(1, "brdrhair", 2));
 	for(int i=2; i<table[1].count(); ++i) table[1][i].setBackgroundColor(4);
 
 	for(const auto& data : pathways_)
@@ -477,10 +477,10 @@ RtfTable SomaticRnaReport::partGeneExpression()
 
 		row.addCell(1100, pathogenicity  );
 		row.addCell(1621, trans(data.pathway) );
-		row.addCell(1100, formatDigits(data.tumor_tpm), RtfParagraph().setHorizontalAlignment("c") );
-		row.addCell(1100, formatDigits(data.hpa_ref_tpm) , RtfParagraph().setHorizontalAlignment("c"));
+		row.addCell(1000, formatDigits(data.tumor_tpm), RtfParagraph().setHorizontalAlignment("c") );
+		row.addCell(1000, formatDigits(data.hpa_ref_tpm) , RtfParagraph().setHorizontalAlignment("c"));
 
-		row.addCell(600, QByteArray::number(rankCnv(data.tumor_tpm, data.hpa_ref_tpm, data.role.role)) , RtfParagraph().setHorizontalAlignment("c"));
+		row.addCell(800, QByteArray::number(rankCnv(data.tumor_tpm, data.hpa_ref_tpm, data.role.role)) , RtfParagraph().setHorizontalAlignment("c"));
 		row.addCell(1100, formatDigits(data.cohort_mean_tpm) , RtfParagraph().setHorizontalAlignment("c"));
 		row.addCell(1100, formatDigits(pow(2., data.log2fc), 1) , RtfParagraph().setHorizontalAlignment("c"));
 		row.addCell(1100, formatDigits(data.pvalue, 2) , RtfParagraph().setHorizontalAlignment("c"));
