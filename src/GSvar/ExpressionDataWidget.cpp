@@ -628,7 +628,7 @@ void ExpressionDataWidget::loadExpressionData()
 						}
 						else if(column_names_.at(col_idx) == "log2fc")
 						{
-							double log2fc = log2_tpm - gene_stats.mean_log2;
+							double log2fc = std::log2(tpm) - std::log2(gene_stats.mean);
 							ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(log2fc, 'f', precision_.at(col_idx))));
 						}
 						else if(column_names_.at(col_idx) == "zscore")
@@ -639,7 +639,7 @@ void ExpressionDataWidget::loadExpressionData()
 						else if(column_names_.at(col_idx) == "pvalue")
 						{
 							double zscore = (log2_tpm - gene_stats.mean_log2) / gene_stats.stddev_log2;
-							double p_value = std::erf(1 + ((- abs(zscore))/(std::sqrt(2))));
+							double p_value = 1 + std::erf(- std::abs(zscore) / std::sqrt(2));
 							ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(p_value, 'f', precision_.at(col_idx))));
 						}
 						else
