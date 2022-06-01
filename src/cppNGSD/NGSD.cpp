@@ -1570,45 +1570,33 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id
 		{
 			THROW(ArgumentException, "'" +  tissue_type + "' is not a valid tissue type in the NGSD!")
 		}
-		//get expression data
-		SqlQuery q_expr = getQuery();
-		QString query_string;
-		query_string = QString("SELECT g.ensembl_id, AVG(ev.tpm), STD(ev.tpm), AVG(LOG2(ev.tpm+1)), STD(LOG2(ev.tpm+1)) FROM `expression` ev ")
-						+ "INNER JOIN `processed_sample` ps ON ev.processed_sample_id = ps.id "
-						+ "INNER JOIN `sample` s ON ps.sample_id = s.id "
-						+ "INNER JOIN `gene` g ON ev.symbol = g.symbol "
-						+ "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue='" + tissue_type + "' AND ps.quality != 'bad'";
 
+		QString query_string_cohort = QString(
+					"SELECT ps.id "
+					"FROM processed_sample ps "
+					"         LEFT JOIN sample s on ps.sample_id = s.id "
+					"WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " "
+					"  AND s.tissue = '" + tissue_type + "' "
+					"  AND ps.quality != 'bad' ;"
+					);
 
 		if (cohort_type == RNA_COHORT_GERMLINE_PROJECT)
 		{
-
 			int project_id = getValue("SELECT id FROM project WHERE name=:0", false, project).toInt();
-			query_string += " AND ps.project_id=" + QString::number(project_id) + " ";
-		}
-		query_string += "GROUP BY g.ensembl_id";
-		q_expr.exec(query_string);
-
-		while(q_expr.next())
-		{
-			ExpressionStats stats;
-			stats.mean = q_expr.value(1).toDouble();
-			stats.stddev = q_expr.value(2).toDouble();
-			stats.mean_log2 = q_expr.value(3).toDouble();
-			stats.stddev_log2 = q_expr.value(4).toDouble();
-			expression_stats.insert(q_expr.value(0).toByteArray(), stats);
-		}
-
-		QString query_string_cohort = QString() + "SELECT DISTINCT ev.processed_sample_id FROM `expression` ev INNER JOIN `processed_sample` ps ON ev.processed_sample_id = ps.id "
-				+ "INNER JOIN `sample` s ON ps.sample_id = s.id INNER JOIN `gene` g ON ev.symbol = g.symbol "
-				+ "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue='" + tissue_type + "' AND ps.quality != 'bad'";
-		if (cohort_type == RNA_COHORT_GERMLINE_PROJECT)
-		{
-			int project_id = getValue("SELECT id FROM project WHERE name=:0", false, project).toInt();
-			query_string_cohort += " AND ps.project_id=" + QString::number(project_id) + " ";
+			query_string_cohort = QString(
+								"SELECT ps.id "
+								"FROM processed_sample ps "
+								"         LEFT JOIN sample s on ps.sample_id = s.id "
+								"         LEFT JOIN project p on ps.project_id = p.id "
+								"WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " "
+								"  AND s.tissue = '" + tissue_type + "' "
+								"  AND p.id = " + QByteArray::number(project_id) + " "
+								"  AND ps.quality != 'bad'; "
+								);
 		}
 
 		cohort = getValuesInt(query_string_cohort).toSet();
+
 	}
 	else if (cohort_type == RNA_COHORT_SOMATIC)
 	{
@@ -1671,44 +1659,47 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id
 		timer.restart();
 
 		if(cohort.size() < 1) THROW(DatabaseException, "No matching samples for cohort found. Cannot create statistics.");
-
-		//get expression data
-		SqlQuery q = getQuery();
-		QString query_string;
-		QStringList cohort_string;
-		foreach (int i, cohort)
-		{
-			cohort_string << QString::number(i);
-		}
-		query_string = QString("SELECT g.ensembl_id, AVG(ev.tpm), STD(ev.tpm), AVG(LOG2(ev.tpm+1)), STD(LOG2(ev.tpm+1)) FROM `expression` ev INNER JOIN `gene` g ON ev.symbol = g.symbol ")
-						+ "WHERE ev.processed_sample_id IN (" + cohort_string.join(", ") + ") GROUP BY g.ensembl_id ";
-
-		q.exec(query_string);
-		while(q.next())
-		{
-			ExpressionStats stats;
-			stats.mean = q.value(1).toDouble();
-			stats.stddev = q.value(2).toDouble();
-			stats.mean_log2 = q.value(3).toDouble();
-			stats.stddev_log2 = q.value(4).toDouble();
-			expression_stats.insert(q.value(0).toByteArray(), stats);
-		}
-
-		qDebug() << "get expression stats" << Helper::elapsedTime(timer);
-		timer.restart();
-
 	}
 	else
 	{
 		THROW(ArgumentException, "Invalid cohort type!");
 	}
 
+	//processed sample IDs as string list
+	QStringList cohort_ids_str;
+	foreach (int id, cohort)
+	{
+		cohort_ids_str << QString::number(id);
+	}
+	qDebug() << "Get psample ids: " << Helper::elapsedTime(timer);
+
+	//get expression data
+	SqlQuery q_expr = getQuery();
+	QString query_string;
+	query_string = QString(
+				"SELECT e.symbol, AVG(e.tpm), AVG(LOG2(e.tpm+1)), STD(LOG2(e.tpm+1)) "
+				"FROM expression e "
+				"WHERE e.processed_sample_id IN (" + cohort_ids_str.join(", ") + ") "
+				"GROUP BY e.symbol; "
+				);
+	qDebug() << query_string;
+	qDebug() << QString("go");
+	q_expr.exec(query_string);
+	qDebug() << "Get expression from SQL: " << Helper::elapsedTime(timer);
+
+	while(q_expr.next())
+	{
+		ExpressionStats stats;
+		stats.mean = q_expr.value(1).toDouble();
+		stats.mean_log2 = q_expr.value(2).toDouble();
+		stats.stddev_log2 = q_expr.value(3).toDouble();
+		expression_stats.insert(q_expr.value(0).toByteArray(), stats);
+	}
 	qDebug() << "Get expression stats: " << Helper::elapsedTime(timer);
 
 	return expression_stats;
-
-
 }
+
 CopyNumberVariant NGSD::cnv(int cnv_id)
 {
 	SqlQuery query = getQuery();

@@ -575,9 +575,9 @@ void ExpressionDataWidget::loadExpressionData()
 		ui_->expression_data->setSortingEnabled(false);
 
 		//default columns
-		column_names_ << "gene_id" << "gene_name" << "gene_biotype" << "raw" << "tpm" << "log2tpm";
-		numeric_columns_  << false << false << false << true << true << true;
-		precision_ << -1 << -1 << -1 << 0 << 2 << 2;
+		column_names_ << "gene_id" << "gene_name" << "gene_biotype" << "raw" << "tpm";
+		numeric_columns_  << false << false << false << true << true;
+		precision_ << -1 << -1 << -1 << 0 << 2;
 
 		//determine col indices for table columns in tsv file
 		QVector<int> column_indices;
@@ -588,10 +588,10 @@ void ExpressionDataWidget::loadExpressionData()
 
 		//db columns
 
-		QStringList db_column_names = QStringList()  << "cohort_mean" << "cohort_meanlog2" << "log2fc" << "zscore" << "pvalue";
+		QStringList db_column_names = QStringList()  << "cohort_mean" << "log2fc" << "zscore" << "pvalue";
 		column_names_ << db_column_names;
-		numeric_columns_  << true << true << true << true << true;
-		precision_ << 3 << 3 << 3 << 3 << 3;
+		numeric_columns_  << true << true << true << true;
+		precision_ << 3 << 3 << 3 << 3;
 
 
 		//create header
@@ -607,7 +607,7 @@ void ExpressionDataWidget::loadExpressionData()
 		{
 
 			QStringList row = expression_data.row(row_idx);
-			QByteArray ensg = row.at(column_indices.at(0)).toUtf8();
+			QByteArray symbol = row.at(column_indices.at(1)).toUtf8();
 			double tpm = Helper::toDouble(row.at(column_indices.at(column_names_.indexOf("tpm"))), "tpm", QString::number(row_idx));
 			double log2_tpm = std::log2(tpm+1);
 			for (int col_idx = 0; col_idx < column_names_.size(); ++col_idx)
@@ -615,9 +615,9 @@ void ExpressionDataWidget::loadExpressionData()
 				if(db_column_names.contains(column_names_.at(col_idx)))
 				{
 					//get value from NGSD
-					if(expression_stats.contains(ensg))
+					if(expression_stats.contains(symbol))
 					{
-						ExpressionStats gene_stats = expression_stats.value(ensg);
+						ExpressionStats gene_stats = expression_stats.value(symbol);
 						if(column_names_.at(col_idx) == "cohort_mean")
 						{
 							ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(gene_stats.mean, 'f', precision_.at(col_idx))));
@@ -628,7 +628,7 @@ void ExpressionDataWidget::loadExpressionData()
 						}
 						else if(column_names_.at(col_idx) == "log2fc")
 						{
-							double log2fc = std::log2(tpm) - std::log2(gene_stats.mean);
+							double log2fc = std::log2(tpm + 1) - std::log2(gene_stats.mean + 1);
 							ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(log2fc, 'f', precision_.at(col_idx))));
 						}
 						else if(column_names_.at(col_idx) == "zscore")
