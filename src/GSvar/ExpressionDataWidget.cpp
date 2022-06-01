@@ -683,11 +683,7 @@ void ExpressionDataWidget::loadExpressionData()
 						biotypes.insert(row.at(column_indices.at(col_idx)));
 					}
 				}
-
-
 			}
-
-
 		}
 
 		//hide vertical header
@@ -701,6 +697,9 @@ void ExpressionDataWidget::loadExpressionData()
 
 		//Set number of filtered / total rows
 		ui_->filtered_rows->setText(QByteArray::number(expression_data.rowCount()) + " / " + QByteArray::number(expression_data.rowCount()));
+
+		//Set cohort size
+		ui_->l_cohort_size->setText("Cohort size: \t " + QString::number(cohort_.size()));
 
 		//init/update filter column
 		//biotypes

@@ -10,7 +10,8 @@ INSERT INTO `sender` (`id`, `name`) VALUES
 (1, 'Coriell');
 
 INSERT INTO `project` (`id`, `name`, `type`, `internal_coordinator_id`, `analysis`) VALUES
-(1, 'KontrollDNACoriell', 'test', 1, 'variants');
+(1, 'KontrollDNACoriell', 'test', 1, 'variants'),
+(2, 'KontrollDNACoriell2', 'test', 1, 'variants');
 
 INSERT INTO `sequencing_run` (`id`, `name`, `fcid`, `device_id`, `recipe`, `status`) VALUES
 (1, '#00372', 'AB2J9', 1, '158+8+158', 'analysis_finished');
@@ -30,13 +31,13 @@ INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapt
 
 INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`, `quality`, `comment`, `normal_id`) VALUES
 (5001, 1, 1, 1, '1', 1, 1, 'medium', 'comment_ps1', null),
-(5002, 2, 1, 1, '1', 1, 1, 'good', 'comment_ps2', null),
+(5002, 2, 1, 1, '1', 1, 2, 'good', 'comment_ps2', null),
 (5003, 3, 1, 1, '1', 1, 1, 'medium', 'comment_ps3', null),
-(5004, 4, 1, 1, '1', 1, 1, 'good', 'comment_ps4', null),
+(5004, 4, 1, 1, '1', 1, 2, 'good', 'comment_ps4', null),
 (5005, 5, 1, 1, '1', 1, 1, 'medium', 'comment_ps5', null),
-(5006, 6, 1, 1, '1', 1, 1, 'good', 'comment_ps6', null),
+(5006, 6, 1, 1, '1', 1, 2, 'good', 'comment_ps6', null),
 (5007, 7, 1, 1, '1', 1, 1, 'medium', 'comment_ps7', null),
-(5008, 8, 1, 1, '1', 1, 1, 'good', 'comment_ps8', null);
+(5008, 8, 1, 1, '1', 1, 2, 'good', 'comment_ps8', null);
 
 INSERT INTO `gene` (`id`, `hgnc_id`, `symbol`, `name`, `type`, `ensembl_id`) VALUES
 (1, 32038, 'AADACL4', 'arylacetamide deacetylase like 4', 'protein-coding gene', 'ENSG00000204518'),

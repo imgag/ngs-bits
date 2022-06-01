@@ -234,7 +234,7 @@
         </property>
        </widget>
       </item>
-      <item row="13" column="0">
+      <item row="14" column="0">
        <widget class="QLabel" name="label_2">
         <property name="text">
          <string>Note: The table can be sorted by clicking on the corresponding table headers. </string>
@@ -289,6 +289,13 @@
        <widget class="QPushButton" name="show_cohort">
         <property name="text">
          <string>show cohort samples</string>
+        </property>
+       </widget>
+      </item>
+      <item row="13" column="0">
+       <widget class="QLabel" name="l_cohort_size">
+        <property name="text">
+         <string>Cohort size: -</string>
         </property>
        </widget>
       </item>
