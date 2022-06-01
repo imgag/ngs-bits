@@ -259,7 +259,7 @@ MainWindow::MainWindow(QWidget *parent)
 	QDir::setCurrent(QDir::tempPath());
 
 	//enable timers needed in client-server mode
-	if (NGSHelper::isCliendServerMode())
+	if (NGSHelper::isClientServerMode())
 	{
 		QTimer *login_timer = new QTimer(this);
 		connect(login_timer, &QTimer::timeout, this, &LoginManager::renewLogin);
@@ -306,9 +306,9 @@ bool MainWindow::isServerRunning()
 	QJsonDocument json_doc = QJsonDocument::fromJson(response);	;
 	if (!json_doc.isObject()) return false;
 
-	if (ToolBase::version() != json_doc.object()["version"].toString())
+	if (NGSHelper::serverApiVersion() != json_doc.object()["api_version"].toString())
 	{
-		QMessageBox::warning(this, "Version mismatch", "GSvar and the server have different versions. No stable work can be guaranteed. The application will be closed");
+		QMessageBox::warning(this, "Version mismatch", "GSvar uses API " + NGSHelper::serverApiVersion() + ", while the server uses API " + json_doc.object()["api_version"].toString() + ". No stable work can be guaranteed. The application will be closed");
 		return false;
 	}
 
@@ -327,6 +327,22 @@ void MainWindow::on_actionDebug_triggered()
 	{
 		QTime timer;
 		timer.start();
+
+		//show genes without transcripts
+		/*
+		NGSD db;
+		QSet<int> gene_ids = db.getValuesInt("SELECT id FROM gene").toSet();
+		qDebug() << gene_ids.count();
+		QSet<int> gene_ids_with_transcript = db.getValuesInt("SELECT DISTINCT gene_id FROM gene_transcript").toSet();
+		qDebug() << gene_ids_with_transcript.count();
+		gene_ids.subtract(gene_ids_with_transcript);
+		qDebug() << gene_ids.count();
+		foreach(int gene_id, gene_ids)
+		{
+			QString type = db.getValue("SELECT type FROM gene WHERE id="+QString::number(gene_id)).toString();
+			if (type=="protein-coding gene") QTextStream(stdout) << db.getValue("SELECT symbol FROM gene WHERE id="+QString::number(gene_id)).toString() << "\t" << type << endl;
+		}
+		*/
 
 		//Delete variant that are not used
 		/*
@@ -1832,7 +1848,7 @@ void MainWindow::delayedInitialization()
 	}
 
 	// Setting a timer to renew secure tokens for the server API
-	if (NGSHelper::isCliendServerMode())
+	if (NGSHelper::isClientServerMode())
 	{
 		if (!isServerRunning())
 		{
@@ -4979,7 +4995,7 @@ void MainWindow::on_actionSampleAncestry_triggered()
 
 void MainWindow::on_actionAnalysisStatus_triggered()
 {
-	//check if alread open
+	//check if already open
 	for (int t=0; t<ui_.tabs->count(); ++t)
 	{
 		if (ui_.tabs->tabText(t)=="Analysis status")
@@ -5226,8 +5242,15 @@ void MainWindow::on_actionEditSomaticGeneRoles_triggered()
 
 void MainWindow::on_actionEditSomaticPathways_triggered()
 {
-	DBTableAdministration* table = new DBTableAdministration("somatic_gene_pathway");
-	auto dlg = GUIHelper::createDialog(table, "Somatic Gene Pathways");
+	DBTableAdministration* table = new DBTableAdministration("somatic_pathway");
+	auto dlg = GUIHelper::createDialog(table, "Somatic pathways");
+	addModelessDialog(dlg);
+}
+
+void MainWindow::on_actionEditSomaticPathwayGeneAssociations_triggered()
+{
+	DBTableAdministration* table = new DBTableAdministration("somatic_pathway_gene");
+	auto dlg = GUIHelper::createDialog(table, "Somatic pathways-gene associations");
 	addModelessDialog(dlg);
 }
 
@@ -6420,7 +6443,7 @@ void MainWindow::storeCurrentVariantList()
 			add_headers.insert("Content-Length", QByteArray::number(json_doc.toJson().count()));
 
 			QString reply = HttpHandler(HttpRequestHandler::NONE).put(
-						NGSHelper::serverApiUrl() + "project_file?ps_url_id=" + ps_url_id,
+						NGSHelper::serverApiUrl() + "project_file?ps_url_id=" + ps_url_id + "&token=" + LoginManager::userToken(),
 						json_doc.toJson(),
 						add_headers
 					);

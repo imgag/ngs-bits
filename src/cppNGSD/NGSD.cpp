@@ -27,7 +27,7 @@ NGSD::NGSD(bool test_db, QString name_suffix)
 
 	//connect to DB
 	QString db_name;
-	if (!test_db_ && NGSHelper::isCliendServerMode() && !NGSHelper::isRunningOnServer())
+	if (!test_db_ && NGSHelper::isClientServerMode() && !NGSHelper::isRunningOnServer())
 	{
 		db_->setHostName(LoginManager::ngsdHostName());
 		db_->setPort(LoginManager::ngsdPort());
@@ -57,7 +57,7 @@ NGSD::NGSD(bool test_db, QString name_suffix)
 
 bool NGSD::isAvailable(bool test_db)
 {
-	if (!test_db && NGSHelper::isCliendServerMode() && !NGSHelper::isRunningOnServer())
+	if (!test_db && NGSHelper::isClientServerMode() && !NGSHelper::isRunningOnServer())
 	{
 		return true;
 	}
@@ -2646,6 +2646,13 @@ const TableInfo& NGSD::tableInfo(const QString& table, bool use_cache) const
 							info.fk_name_sql = "name";
 						}
 					}
+					else if (table=="somatic_pathway_gene")
+					{
+						if (info.name=="pathway_id")
+						{
+							info.fk_name_sql = "name";
+						}
+					}
 				}
 			}
 
@@ -3374,6 +3381,29 @@ void NGSD::setSomaticViccData(const Variant& variant, const SomaticViccData& vic
 	}
 }
 
+
+QList<PathwayInfo> NGSD::getSomaticPathways(QByteArray gene)
+{
+	SqlQuery query = getQuery();
+	query.prepare("SELECT sgp.symbol, sp.name, sp.significance FROM somatic_pathway_gene sgp, somatic_pathway sp WHERE sgp.pathway_id=sp.id AND sgp.symbol = '" + geneToApproved(gene, true) + "'");
+	query.exec();
+
+	QList<PathwayInfo> results;
+
+	while(query.next())
+	{
+		PathwayInfo info;
+		info.symbol = query.value("symbol").toString();
+		info.pathway = query.value("name").toString();
+		info.pathway_significance = query.value("significance").toString();
+
+		results << info;
+	}
+
+	return results;
+}
+
+
 int NGSD::getSomaticGeneRoleId(QByteArray gene_symbol)
 {
 	QString query ="SELECT somatic_gene_role.id FROM somatic_gene_role WHERE symbol = '" + geneToApproved(gene_symbol, true) + "'";
@@ -3714,6 +3744,34 @@ QString NGSD::analysisJobFolder(int job_id)
 	output += QDir::separator();
 
 	return QFileInfo(output).absoluteFilePath();
+}
+
+FileInfo NGSD::analysisJobLatestLogInfo(int job_id)
+{
+	FileInfo output;
+	QString folder = analysisJobFolder(job_id);
+	if (QFile::exists(folder))
+	{
+		QStringList files = Helper::findFiles(folder, "*.log", false);
+		if (!files.isEmpty())
+		{
+			QString latest_file;
+			QDateTime latest_mod;
+			foreach(QString file, files)
+			{
+				QFileInfo file_info(file);
+				QDateTime mod_time = file_info.lastModified();
+				if (output.last_modiefied.isNull() || mod_time>output.last_modiefied)
+				{
+					output.file_name = file_info.fileName();
+					output.file_name_with_path = file_info.filePath();
+					output.created = file_info.created();
+					output.last_modiefied = mod_time;
+				}
+			}
+		}
+	}
+	return output;
 }
 
 QString NGSD::analysisJobGSvarFile(int job_id)

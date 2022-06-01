@@ -211,6 +211,32 @@ int main(int argc, char **argv)
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
+						"analysis_job_last_update",
+						QMap<QString, ParamProps> {
+						   {"job_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Analysis job id"}},
+						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+						},
+						RequestMethod::GET,
+						ContentType::APPLICATION_JSON,
+						AuthType::USER_TOKEN,
+						"Date and time (in seconds) of the last log file modification for the specific analysis job",
+						&ServerController::getAnalysisJobLastUpdate
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
+						"analysis_job_log",
+						QMap<QString, ParamProps> {
+						   {"job_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Analysis job id"}},
+						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+						},
+						RequestMethod::GET,
+						ContentType::APPLICATION_JSON,
+						AuthType::USER_TOKEN,
+						"Analysis job log file",
+						&ServerController::getAnalysisJobLog
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
 						"project_file",
 						QMap<QString, ParamProps> {
 						   {"ps_url_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "An id of a temporary URL pointing to a specific processed sample"}},

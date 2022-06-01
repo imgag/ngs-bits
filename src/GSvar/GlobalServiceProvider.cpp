@@ -10,7 +10,7 @@ GlobalServiceProvider::GlobalServiceProvider()
   : file_location_provider_()
   , database_service_()
 {
-	if (NGSHelper::isCliendServerMode())
+	if (NGSHelper::isClientServerMode())
 	{		
 		database_service_ = QSharedPointer<DatabaseService>(new DatabaseServiceRemote());
 	}

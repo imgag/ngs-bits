@@ -38,14 +38,19 @@ INSERT INTO `somatic_gene_role` (`symbol`, `gene_role`, `high_evidence`, `commen
 ('BLABLA', 'ambiguous', false, 'unknown => delete'),
 ('FANCD1', 'loss_of_function', true, 'old name of BRCA2 => update');
 
+-- somatic_pathway
+INSERT INTO `somatic_pathway` (`id`, `name`, `significance`) VALUES
+(1, 'DNA Damage Repair', 'high'),
+(2, 'DNA Damage Repair old', 'high'),
+(3, 'unknown pathway', 'low'),
+(4, 'alternative pathway', 'low');
 
-INSERT INTO `somatic_gene_pathway` (`symbol`, `pathway`, `significance`, `comment`) VALUES
-('BRCA1', 'DNA Damage Repair', 'high', 'interesting pathway'),
-('RNF53', 'DNA Damage Repair old', 'high', 'old name of BRCA1 => delete'),
-('BLABLA', 'unknown pathway', 'low', 'unknown => delete'),
-('FANCD1', 'DNA Damage Repair', 'medium', 'old name of BRCA2 => update'),
-('FANCD1', 'alternative pathway', 'low', 'old name of BRCA2 => update');
-
+INSERT INTO `somatic_pathway_gene` (`symbol`, `pathway_id`) VALUES
+('BRCA1', 1),
+('RNF53', 2),
+('BLABLA', 3),
+('FANCD1', 1),
+('FANCD1', 4);
 
 INSERT INTO `expression` (`symbol`, `processed_sample_id`, `tpm`) VALUES
 ('BRCA1', 3999, 8.765),

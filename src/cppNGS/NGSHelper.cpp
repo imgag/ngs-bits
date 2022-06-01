@@ -762,7 +762,7 @@ void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_r
 	al.setCigarData(new_CIGAR);
 }
 
-bool NGSHelper::isCliendServerMode()
+bool NGSHelper::isClientServerMode()
 {
 	return !Settings::string("server_host", true).trimmed().isEmpty() && !Settings::string("https_server_port", true).trimmed().isEmpty();
 }

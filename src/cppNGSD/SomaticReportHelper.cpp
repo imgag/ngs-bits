@@ -771,7 +771,7 @@ RtfTableRow SomaticReportHelper::overlappingCnv(const CopyNumberVariant &cnv, QB
 
 void SomaticReportHelper::saveReportData(QString filename, QString path, QString content)
 {
-	if (!NGSHelper::isCliendServerMode())
+	if (!NGSHelper::isClientServerMode())
 	{
 		if(!QDir(path).exists()) QDir().mkdir(path);
 

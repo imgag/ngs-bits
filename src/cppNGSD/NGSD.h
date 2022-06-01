@@ -25,6 +25,7 @@
 #include "SomaticCnvInterpreter.h"
 #include "NGSHelper.h"
 #include "FileLocation.h"
+#include "FileInfo.h"
 
 ///Sample relation datastructure
 struct CPPNGSDSHARED_EXPORT SampleRelation
@@ -348,6 +349,14 @@ struct CPPNGSDSHARED_EXPORT ClassificationInfo
 {
 	QString classification;
 	QString comments;
+};
+
+///Gene pathway info
+struct CPPNGSDSHARED_EXPORT PathwayInfo
+{
+	QString symbol;
+	QString pathway;
+	QString pathway_significance;
 };
 
 
@@ -855,6 +864,9 @@ public:
 	int getSomaticViccId(const Variant& variant);
 	void setSomaticViccData(const Variant& variant, const SomaticViccData& vicc_data, QString user_name);
 
+	///Get somatic pathways for gene. Returns empty list if not found
+	QList<PathwayInfo> getSomaticPathways(QByteArray gene);
+
 
 	///retrieve ID of somatic gene role
 	int getSomaticGeneRoleId(QByteArray gene_symbol);
@@ -938,6 +950,8 @@ public:
 	bool deleteAnalysis(int job_id);
 	///Returns the folder of an analysis job.
 	QString analysisJobFolder(int job_id);
+	///Return metdata for the logs of an analysis job by its id
+	FileInfo analysisJobLatestLogInfo(int job_id);
 	///Returns the GSVar file of an analysis job.
 	QString analysisJobGSvarFile(int job_id);
 

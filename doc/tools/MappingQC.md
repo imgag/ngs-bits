@@ -1,5 +1,5 @@
 ### MappingQC tool help
-	MappingQC (2021_12-170-g1acf8802)
+	MappingQC (2022_04-120-g0b2ddab9)
 	
 	Calculates QC metrics based on mapped NGS reads.
 	
@@ -40,8 +40,9 @@
 	  --tdx                      Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### MappingQC changelog
-	MappingQC 2021_12-170-g1acf8802
+	MappingQC 2022_04-120-g0b2ddab9
 	
+	2022-05-25 Added new QC metrics to WGS mode.
 	2021-02-09 Added new QC metrics for uniformity of coverage (QC:2000057-QC:2000061).
 	2020-11-27 Added CRAM support.
 	2018-07-11 Added build switch for hg38 support.

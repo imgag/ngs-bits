@@ -393,6 +393,15 @@ void DBEditor::check(QString field)
 		QString value = edit->text().trimmed();
 		errors = db_.checkValue(table_, field, value, id_==-1);
 
+		//special handling of gene columns
+		if ((field=="symbol" && table_=="somatic_pathway_gene") || (field=="symbol" && table_=="somatic_gene_role"))
+		{
+			if (db_.geneToApprovedID(value.toUtf8())==-1)
+			{
+				errors << "Gene name '" + value + "' is not a HGNC-approved gene name!";
+			}
+		}
+
 		//update GUI
 		edit->setToolTip(errors.join("\n"));
 		edit->setStyleSheet(errors.isEmpty() ?  "" : "QLineEdit {border: 2px solid red;}");
