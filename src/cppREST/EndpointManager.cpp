@@ -74,7 +74,7 @@ HttpResponse EndpointManager::getUserTokenAuthStatus(const HttpRequest& request)
 	qDebug() << "Check user token status";
 	if (!isAuthorizedWithToken(request))
 	{
-		return HttpResponse(ResponseStatus::FORBIDDEN, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+		return HttpResponse(ResponseStatus::FORBIDDEN, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized with a valid user token");
 	}
 
 	QString token;
@@ -93,7 +93,7 @@ HttpResponse EndpointManager::getDbTokenAuthStatus(const HttpRequest& request)
 	qDebug() << "Check db token status";
 	if (!isAuthorizedWithToken(request))
 	{
-		return HttpResponse(ResponseStatus::FORBIDDEN, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized");
+		return HttpResponse(ResponseStatus::FORBIDDEN, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized with a valid database token");
 	}
 
 	if (SessionManager::isSessionExpired(request.getFormUrlEncoded()["dbtoken"]))
