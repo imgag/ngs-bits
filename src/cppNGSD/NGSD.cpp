@@ -3290,7 +3290,7 @@ void NGSD::setSomaticViccData(const Variant& variant, const SomaticViccData& vic
 QList<PathwayInfo> NGSD::getSomaticPathways(QByteArray gene)
 {
 	SqlQuery query = getQuery();
-	query.prepare("SELECT sgp.symbol, sp.name, sp.significance FROM somatic_pathway_gene sgp, somatic_pathway sp WHERE sgp.pathway_id=sp.id AND sgp.symbol = '" + geneToApproved(gene, true) + "'");
+	query.prepare("SELECT sgp.symbol, sp.name FROM somatic_pathway_gene sgp, somatic_pathway sp WHERE sgp.pathway_id=sp.id AND sgp.symbol = '" + geneToApproved(gene, true) + "'");
 	query.exec();
 
 	QList<PathwayInfo> results;
@@ -3300,7 +3300,6 @@ QList<PathwayInfo> NGSD::getSomaticPathways(QByteArray gene)
 		PathwayInfo info;
 		info.symbol = query.value("symbol").toString();
 		info.pathway = query.value("name").toString();
-		info.pathway_significance = query.value("significance").toString();
 
 		results << info;
 	}

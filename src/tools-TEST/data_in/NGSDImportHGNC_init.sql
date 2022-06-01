@@ -39,11 +39,11 @@ INSERT INTO `somatic_gene_role` (`symbol`, `gene_role`, `high_evidence`, `commen
 ('FANCD1', 'loss_of_function', true, 'old name of BRCA2 => update');
 
 -- somatic_pathway
-INSERT INTO `somatic_pathway` (`id`, `name`, `significance`) VALUES
-(1, 'DNA Damage Repair', 'high'),
-(2, 'DNA Damage Repair old', 'high'),
-(3, 'unknown pathway', 'low'),
-(4, 'alternative pathway', 'low');
+INSERT INTO `somatic_pathway` (`id`, `name`) VALUES
+(1, 'DNA Damage Repair'),
+(2, 'DNA Damage Repair old'),
+(3, 'unknown pathway'),
+(4, 'alternative pathway');
 
 INSERT INTO `somatic_pathway_gene` (`symbol`, `pathway_id`) VALUES
 ('BRCA1', 1),
