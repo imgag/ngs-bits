@@ -324,10 +324,10 @@ RtfTable SomaticRnaReport::partSnvTable()
 		row.addCell(800, trans.gene, RtfParagraph().setItalic(true).setBold(true).setFontSize(16));//4400
 		row.addCell({RtfText(trans.hgvs_c + ":" + trans.hgvs_p).setFontSize(16).RtfCode(), RtfText(trans.id).setFontSize(14).RtfCode()}, 1800);
 		row.addCell(1200, trans.type.replace("_variant",""), RtfParagraph().setFontSize(16));
-		row.addCell(600, formatDigits(var.annotations()[i_tum_af].toDouble()), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
+		row.addCell(600, formatDigits(var.annotations()[i_tum_af].toDouble(), 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
 
 		//RNA data
-		row.addCell( 600, formatDigits(var_details.frequency), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+		row.addCell( 600, formatDigits(var_details.frequency, 2), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 		row.addCell( 1100, formatDigits(data.tumor_tpm) , RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 		row.addCell( 1100, formatDigits(data.hpa_ref_tpm), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 		row.addCell( 900, formatDigits(data.cohort_mean_tpm), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
