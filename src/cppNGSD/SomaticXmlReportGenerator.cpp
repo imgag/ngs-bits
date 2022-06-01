@@ -84,6 +84,9 @@ void SomaticXmlReportGenerator::checkSomaticVariantAnnotation(const VariantList 
 
 void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData &data, QSharedPointer<QFile> out_file, NGSD& db, bool test)
 {
+	QString tumor_ps_id = db.processedSampleId(data.settings.tumor_ps);
+	QString normal_ps_id = db.processedSampleId(data.settings.normal_ps);
+
 	QXmlStreamWriter w(out_file.data());
 
 	w.setAutoFormatting(true);
@@ -133,17 +136,13 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	//Element TumorSample
 	w.writeStartElement("TumorSample");
 	w.writeAttribute("name", data.settings.tumor_ps);
-
-	ProcessedSampleData t_ps_data = db.getProcessedSampleData(db.processedSampleId(data.settings.tumor_ps));
+	ProcessedSampleData t_ps_data = db.getProcessedSampleData(tumor_ps_id);
 	w.writeAttribute("processing_system", t_ps_data.processing_system);
 	w.writeAttribute("processing_system_type", t_ps_data.processing_system_type);
 	w.writeAttribute("sequencer", db.getValue("SELECT d.type FROM device as d, sequencing_run as sr WHERE d.id = sr.device_id AND sr.name = '" + t_ps_data.run_name +  "'", false).toString());
-
-	QCCollection t_qc = db.getQCData(db.processedSampleId(data.settings.tumor_ps));
+	QCCollection t_qc = db.getQCData(tumor_ps_id);
 	w.writeAttribute("average_depth", t_qc.value("QC:2000025", true).asString() );
-
 	if( data.settings.report_config.tumContentByHistological()) w.writeAttribute("tumor_content_histology", QByteArray::number(data.tumor_content_histology, 'f', 3) );
-
 	if( data.settings.report_config.tumContentByClonality() )
 	{
 		w.writeAttribute("tumor_content_bioinformatic",  QString::number(data.tumor_content_clonality, 'f', 3));
@@ -152,26 +151,51 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	{
 		w.writeAttribute("tumor_content_bioinformatic",  QString::number(data.tumor_content_snvs, 'f', 3));
 	}
-
 	w.writeAttribute( "mutation_burden", QString::number(data.tumor_mutation_burden,'f', 2) );
 	if( data.settings.report_config.msiStatus() ) w.writeAttribute( "microsatellite_instability",  QString::number(data.mantis_msi, 'f', 2) );
 	w.writeAttribute("hrd_score", QString::number(data.settings.report_config.hrdScore()) );
 	w.writeAttribute("hrd_score_chromo", QString::number(data.settings.report_config.cnvLohCount() + data.settings.report_config.cnvTaiCount() + data.settings.report_config.cnvLstCount()));
+
+	//QC data
+	QCCollection qc_data = db.getQCData(tumor_ps_id);
+	for (int i=0; i<qc_data.count(); ++i)
+	{
+		const QCValue& term = qc_data[i];
+		if (term.type()==QVariant::ByteArray) continue; //skip plots
+		w.writeStartElement("QcTerm");
+		w.writeAttribute("id", term.accession());
+		w.writeAttribute("name", term.name());
+		w.writeAttribute("def", term.description());
+		w.writeAttribute("value", term.toString());
+		w.writeEndElement();
+	}
+
 	w.writeEndElement();
 
 
 	//Element NormalSample
 	w.writeStartElement("NormalSample");
 	w.writeAttribute("name", data.settings.normal_ps);
-
-	ProcessedSampleData n_ps_data = db.getProcessedSampleData( db.processedSampleId(data.settings.normal_ps) );
+	ProcessedSampleData n_ps_data = db.getProcessedSampleData(normal_ps_id);
 	w.writeAttribute("processing_system", n_ps_data.processing_system);
 	w.writeAttribute("processing_system_type", n_ps_data.processing_system_type);
 	w.writeAttribute("sequencer", db.getValue("SELECT d.type FROM device as d, sequencing_run as sr WHERE d.id = sr.device_id AND sr.name = '" + n_ps_data.run_name +  "'", false).toString() );
-
-	QCCollection n_qc = db.getQCData(db.processedSampleId(data.settings.normal_ps) );
+	QCCollection n_qc = db.getQCData(normal_ps_id);
 	w.writeAttribute("average_depth", n_qc.value("QC:2000025", true).asString() );
 
+	//QC data
+	qc_data = db.getQCData(normal_ps_id);
+	for (int i=0; i<qc_data.count(); ++i)
+	{
+		const QCValue& term = qc_data[i];
+		if (term.type()==QVariant::ByteArray) continue; //skip plots
+		w.writeStartElement("QcTerm");
+		w.writeAttribute("id", term.accession());
+		w.writeAttribute("name", term.name());
+		w.writeAttribute("def", term.description());
+		w.writeAttribute("value", term.toString());
+		w.writeEndElement();
+	}
 
 	w.writeEndElement();
 
