@@ -3969,26 +3969,34 @@ void MainWindow::generateReportSomaticRTF()
 	//Get ICD10 diagnoses from NGSD
 	QStringList tmp_icd10;
 	QStringList tmp_phenotype;
+	QStringList tmp_rna_ref_tissue;
 	for( const auto& entry : db.getSampleDiseaseInfo(db.sampleId(ps_tumor)) )
 	{
 		if(entry.type == "ICD10 code") tmp_icd10.append(entry.disease_info);
 		if(entry.type == "clinical phenotype (free text)") tmp_phenotype.append(entry.disease_info);
+		if(entry.type == "RNA reference tissue") tmp_rna_ref_tissue.append(entry.disease_info);
 	}
 	somatic_report_settings_.icd10 = tmp_icd10.join(", ");
 	somatic_report_settings_.phenotype = tmp_phenotype.join(", ");
 
 	SomaticReportDialog dlg(filename_, somatic_report_settings_, cnvs_, somatic_control_tissue_variants_, this); //widget for settings
 
-	if(SomaticRnaReport::checkRequiredSNVAnnotations(variants_))
+
+	//Fill in RNA processed sample ids into somatic report dialog
+	QSet<int> rna_ids =   db.relatedSamples(db.sampleId(ps_tumor).toInt(), "same sample", "RNA");
+	if(!rna_ids.isEmpty())
 	{
 		dlg.enableChoiceReportType(true);
-		//get RNA ids annotated to GSvar file
-		QStringList rna_ids;
-		for(const auto& an : variants_.annotations())
+
+		QStringList rna_names;
+		for(int rna_id : rna_ids)
 		{
-			if(an.name().contains("_rna_tpm")) rna_ids << QString(an.name()).replace("_rna_tpm", "");
+			for ( const auto& rna_ps_id : db.getValues("SELECT id FROM processed_sample WHERE sample_id=" + QString::number(rna_id)) )
+			{
+				rna_names << db.processedSampleName(rna_ps_id);
+			}
 		}
-		dlg.setRNAids(rna_ids);
+		dlg.setRNAids(rna_names);
 	}
 
 	if(!dlg.exec())
@@ -4147,6 +4155,14 @@ void MainWindow::generateReportSomaticRTF()
 			catch(Exception)
 			{
 			}
+
+			//Look in tumor sample for HPA reference tissue
+			for( const auto& entry : db.getSampleDiseaseInfo(db.sampleId(dlg.getRNAid())) )
+			{
+				if(entry.type == "RNA reference tissue") tmp_rna_ref_tissue.append(entry.disease_info);
+			}
+			tmp_rna_ref_tissue.removeDuplicates();
+			rna_report_data.rna_hpa_ref_tissue = tmp_rna_ref_tissue.join(", ");
 
 			SomaticRnaReport rna_report(variants_, cnvs_, rna_report_data);
 

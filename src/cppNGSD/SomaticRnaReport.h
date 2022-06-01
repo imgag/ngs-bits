@@ -23,6 +23,10 @@ struct CPPNGSDSHARED_EXPORT SomaticRnaReportData : public SomaticReportSettings
 	//path to RNA expression file
 	QString rna_expression_file;
 
+	//reference tissue which was used for HPA annotation
+	QString rna_hpa_ref_tissue;
+
+
 	//list for fusions pics containing hex png data, width and height
 	QList<std::tuple<QByteArray,int,int>> fusion_pics;
 

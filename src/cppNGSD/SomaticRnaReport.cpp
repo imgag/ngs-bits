@@ -446,7 +446,7 @@ RtfParagraph SomaticRnaReport::partVarExplanation()
 	out += bold("Anteil:") + " Anteil der Allele mit der gelisteten Variante (SNV, INDEL) bzw. Anteil derZellen mit der entsprechenden CNV in der untersuchten Probe; ";
 	out += bold("CN:") + " Copy Number, ";
 	out += bold("TPM:") + " Normalisierte Expression des Gens als Transkriptanzahl pro Kilobase und pro Million Reads. ";
-	out += bold("Referenz HSA-TPM: ") + "Expression des Gens als Mittelwert TPM in Vergleichsproben aus Zellen aus der Großhirnrinde (The Human Protein Atlas).";
+	out += bold("Referenz HSA-TPM: ") + "Expression des Gens als Mittelwert TPM in Vergleichsproben aus Zellen aus " + trans(data_.rna_hpa_ref_tissue) + " (The Human Protein Atlas).";
 	out += bold("n/a:") + " Falls keine geeignete Referenzprobe vorhanden. ";
 	out += bold("Bewertung (1):") + " Die Expression eines Gens mit beschriebenem Funtionsgewinn (Gain of Function) ist in der Probe erhöht oder die Expression eines Gens mit Funktionsverlust (LoF) ist in der Probe reduziert. ";
 	out += bold("(2):") + " Die Expression ist in der Probe und in der Kontrolle ähnlich oder die Rolle des Gens in der Onkogenese ist nicht eindeutig. ";
