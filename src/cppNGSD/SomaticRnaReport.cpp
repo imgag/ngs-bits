@@ -407,7 +407,7 @@ RtfTable SomaticRnaReport::partCnvTable()
 		}
 	}
 
-	table.sortbyCols({8,0}); //sort by rank tean by gene symbol
+	table.sortbyCols({6,0}); //sort by rank tean by gene symbol
 
 	RtfTableRow header = RtfTableRow({"Gen", "Position", "CNV", "Anteil", "Tumorprobe TPM", "Referenz HPA-TPM", "Bewertung", "Tumortyp MW TPM", "Veränderung (x-fach)", "p-Wert"},{800, 1800, 1200, 600, 1000, 900,900, 900, 1000, 821}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader();
 	for(int i=4; i< header.count(); ++i) header[i].setBackgroundColor(4);
@@ -443,10 +443,10 @@ RtfParagraph SomaticRnaReport::partVarExplanation()
 	out += bold("AMP:") + " Amplifikation, " + bold("DEL:") + " Deletion, " + bold("LOH:") + " Kopienzahlneutraler Verlust der Heterozygotie (Loss of Heterozygosity), ";
 	out += "WT: Wildtypallel, MUT: mutiertes Allel; ";
 	out += bold("Typ:") + " Art der SNV oder Größe und Ausdehnung der CNV: focal (bis zu drei Gene), Cluster (weniger als 25% des Chromosomenarms), non-focal (großer Anteil des Chromosoms); ";
-	out += bold("Anteil:") + " Anteil der Allele mit der gelisteten Variante (SNV, INDEL) bzw. Anteil derZellen mit der entsprechenden CNV in der untersuchten Probe; ";
+	out += bold("Anteil:") + " Anteil der Allele mit der gelisteten Variante (SNV, INDEL) bzw. Anteil der Zellen mit der entsprechenden CNV in der untersuchten Probe; ";
 	out += bold("CN:") + " Copy Number, ";
 	out += bold("TPM:") + " Normalisierte Expression des Gens als Transkriptanzahl pro Kilobase und pro Million Reads. ";
-	out += bold("Referenz HSA-TPM: ") + "Expression des Gens als Mittelwert TPM in Vergleichsproben aus Zellen aus " + trans(data_.rna_hpa_ref_tissue) + " (The Human Protein Atlas).";
+	out += bold("Referenz HSA-TPM: ") + "Expression des Gens als Mittelwert TPM in Vergleichsproben aus Zellen aus " + trans(data_.rna_hpa_ref_tissue) + " (The Human Protein Atlas). ";
 	out += bold("n/a:") + " Falls keine geeignete Referenzprobe vorhanden. ";
 	out += bold("Bewertung (1):") + " Die Expression eines Gens mit beschriebenem Funtionsgewinn (Gain of Function) ist in der Probe erhöht oder die Expression eines Gens mit Funktionsverlust (LoF) ist in der Probe reduziert. ";
 	out += bold("(2):") + " Die Expression ist in der Probe und in der Kontrolle ähnlich oder die Rolle des Gens in der Onkogenese ist nicht eindeutig. ";
