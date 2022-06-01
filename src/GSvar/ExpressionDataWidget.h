@@ -26,6 +26,7 @@ private slots:
 	void selectAllBiotypes(bool deselect=false);
 	void showHistogram(int row_idx);
 	void showExpressionTableContextMenu(QPoint pos);
+	void showCohort();
 
 private:
 	void loadExpressionData();
@@ -36,6 +37,7 @@ private:
 	QString project_;
 	QString ps_id_;
 	RnaCohortDeterminationStategy cohort_type_;
+	QSet<int> cohort_;
 	Ui::ExpressionDataWidget *ui_;
 
 

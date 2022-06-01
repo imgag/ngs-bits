@@ -285,6 +285,13 @@
         </layout>
        </widget>
       </item>
+      <item row="12" column="0">
+       <widget class="QPushButton" name="show_cohort">
+        <property name="text">
+         <string>show cohort samples</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>

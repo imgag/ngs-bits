@@ -49,6 +49,8 @@ ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, int sys_id, QSt
 	connect(ui_->abs_zscore, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
 	connect(ui_->raw_counts, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
 	connect(ui_->tpm_value, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
+	connect(ui_->show_cohort, SIGNAL(clicked(bool)), this, SLOT(showCohort()));
+
 
 	// set context menus for biotype filter
 	ui_->sa_biotype->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -504,6 +506,18 @@ void ExpressionDataWidget::showExpressionTableContextMenu(QPoint pos)
 	}
 }
 
+void ExpressionDataWidget::showCohort()
+{
+	if (!LoginManager::active()) return;
+	NGSD db;
+	QStringList cohort_samples;
+	foreach (int i, cohort_)
+	{
+		cohort_samples << db.processedSampleName(QString::number(i));
+	}
+	GUIHelper::showMessage("Cohort samples", "The selected cohort contains the following samples: \n" + cohort_samples.join(", "));
+}
+
 void ExpressionDataWidget::loadExpressionData()
 {
 	try
@@ -550,7 +564,7 @@ void ExpressionDataWidget::loadExpressionData()
 		QSet<QString> biotypes;
 
 		//get RNA stats from NGSD
-		QMap<QByteArray, ExpressionStats> expression_stats = NGSD().calculateExpressionStatistics(sys_id_, tissue_);
+		QMap<QByteArray, ExpressionStats> expression_stats = NGSD().calculateExpressionStatistics(sys_id_, tissue_,  cohort_, project_, ps_id_, cohort_type_);
 
 
 		column_names_.clear();
