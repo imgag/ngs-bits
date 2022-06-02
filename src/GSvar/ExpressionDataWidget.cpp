@@ -464,7 +464,7 @@ void ExpressionDataWidget::selectAllBiotypes(bool deselect)
 void ExpressionDataWidget::showHistogram(int row_idx)
 {
 	QString ensg = ui_->expression_data->item(row_idx, 0)->text();
-	QVector<double> expr_values = NGSD().getExpressionValues(ensg, sys_id_, tissue_, true, true);
+	QVector<double> expr_values = NGSD().getExpressionValues(ensg, cohort_, true, true);
 
 	if(expr_values.size() == 0) return;
 	//create histogram

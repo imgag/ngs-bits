@@ -39,6 +39,19 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 (5007, 7, 1, 1, '1', 1, 1, 'medium', 'comment_ps7', null),
 (5008, 8, 1, 1, '1', 1, 2, 'good', 'comment_ps8', null);
 
+INSERT INTO `sample_disease_info` (`id`, `sample_id`, `disease_info`, `type`) VALUES
+(1, 1, 'HPO:0123456', 'HPO term id'),
+(2, 1, 'ICD10 test code 001', 'ICD10 code'),
+(3, 2, 'HPO:6543210', 'HPO term id'),
+(4, 2, 'ICD10 test code 002', 'ICD10 code'),
+(5, 3, 'HPO:0123456', 'HPO term id'),
+(6, 4, 'ICD10 test code 002', 'ICD10 code'),
+(7, 5, 'ICD10 test code 001', 'ICD10 code'),
+(8, 6, 'HPO:6543210', 'HPO term id'),
+(9, 7, 'ICD10 test code 001', 'ICD10 code'),
+(10, 8, 'ICD10 test code 002', 'ICD10 code');
+
+
 INSERT INTO `gene` (`id`, `hgnc_id`, `symbol`, `name`, `type`, `ensembl_id`) VALUES
 (1, 32038, 'AADACL4', 'arylacetamide deacetylase like 4', 'protein-coding gene', 'ENSG00000204518'),
 (2, 16754, 'ACAP3', 'ArfGAP with coiled-coil, ankyrin repeat and PH domains 3', 'protein-coding gene', 'ENSG00000131584'),

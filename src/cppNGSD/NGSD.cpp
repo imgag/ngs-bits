@@ -1554,6 +1554,39 @@ QVector<double> NGSD::getExpressionValues(const QString& ensg, int sys_id, const
 	return expr_values;
 }
 
+QVector<double> NGSD::getExpressionValues(const QString& ensg, QSet<int> cohort, bool log2, bool allow_empty)
+{
+	QVector<double> expr_values;
+	QString gene_symbol = getValue("SELECT symbol FROM gene WHERE ensembl_id=:0", allow_empty, ensg).toString();
+	if (gene_symbol.isEmpty()) return expr_values;
+
+	QList<int> cohort_sorted = cohort.toList();
+	std::sort(cohort_sorted.begin(), cohort_sorted.end());
+	QStringList cohort_str;
+	foreach (int i , cohort_sorted)
+	{
+		cohort_str << QString::number(i);
+	}
+
+
+	QStringList expr_values_str = getValues(QString() + "SELECT ev.tpm FROM `expression` ev WHERE ev.symbol='" + gene_symbol + "' AND ev.processed_sample_id IN (" + cohort_str.join(", ") +  ")");
+
+	foreach (const QString& value, expr_values_str)
+	{
+		if(log2)
+		{
+			expr_values << std::log2(Helper::toDouble(value) + 1);
+		}
+		else
+		{
+			expr_values << Helper::toDouble(value);
+		}
+
+	}
+
+	return expr_values;
+}
+
 QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id, const QString& tissue_type, QSet<int>& cohort, const QString& project, const QString& ps_id,
 																	  RnaCohortDeterminationStategy cohort_type)
 {
@@ -1562,6 +1595,11 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id
 	timer.start();
 	QMap<QByteArray, ExpressionStats> expression_stats;
 	cohort.clear();
+
+	//get all available ps ids with expression data
+	QSet<int> all_ps_ids = getValuesInt("SELECT DISTINCT e.processed_sample_id FROM expression e").toSet();
+	qDebug() << "Get all psample ids with expression data: " << Helper::elapsedTime(timer);
+
 
 	if ((cohort_type == RNA_COHORT_GERMLINE) || (cohort_type == RNA_COHORT_GERMLINE_PROJECT))
 	{
@@ -1577,7 +1615,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id
 					"         LEFT JOIN sample s on ps.sample_id = s.id "
 					"WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " "
 					"  AND s.tissue = '" + tissue_type + "' "
-					"  AND ps.quality != 'bad' ;"
+					"  AND ps.quality != 'bad'"
 					);
 
 		if (cohort_type == RNA_COHORT_GERMLINE_PROJECT)
@@ -1587,11 +1625,10 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id
 								"SELECT ps.id "
 								"FROM processed_sample ps "
 								"         LEFT JOIN sample s on ps.sample_id = s.id "
-								"         LEFT JOIN project p on ps.project_id = p.id "
 								"WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " "
+								"  AND ps.project_id = " + QByteArray::number(project_id) + " "
+								"  AND ps.quality != 'bad'"
 								"  AND s.tissue = '" + tissue_type + "' "
-								"  AND p.id = " + QByteArray::number(project_id) + " "
-								"  AND ps.quality != 'bad'; "
 								);
 		}
 
@@ -1665,9 +1702,13 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id
 		THROW(ArgumentException, "Invalid cohort type!");
 	}
 
+	//consider only ps_ids which have expression data
+	cohort = cohort.intersect(all_ps_ids);
 	//processed sample IDs as string list
+	QList<int> cohort_sorted = cohort.toList();
+	std::sort(cohort_sorted.begin(), cohort_sorted.end());
 	QStringList cohort_ids_str;
-	foreach (int id, cohort)
+	foreach (int id, cohort_sorted)
 	{
 		cohort_ids_str << QString::number(id);
 	}
@@ -1680,7 +1721,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id
 				"SELECT e.symbol, AVG(e.tpm), AVG(LOG2(e.tpm+1)), STD(LOG2(e.tpm+1)) "
 				"FROM expression e "
 				"WHERE e.processed_sample_id IN (" + cohort_ids_str.join(", ") + ") "
-				"GROUP BY e.symbol; "
+				"GROUP BY e.symbol"
 				);
 	qDebug() << query_string;
 	qDebug() << QString("go");

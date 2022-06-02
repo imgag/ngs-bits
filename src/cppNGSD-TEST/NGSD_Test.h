@@ -2368,7 +2368,20 @@ private slots:
 		F_EQUAL2(expression_stats.value("ENSG00000159189").stddev, 0.0, 0.001);
 		I_EQUAL(cohort.size(), 2);
 
-		//TODO: add test for somatic cohort
+		//test for somatic cohort
+		expression_stats = db.calculateExpressionStatistics(1, "", cohort, "KontrollDNACoriell", "5001", RNA_COHORT_SOMATIC);
+		F_EQUAL2(expression_stats.value("ENSG00000232596").mean, 204.681, 0.001);
+		F_EQUAL2(expression_stats.value("ENSG00000011021").stddev, 0.0, 0.001);
+		F_EQUAL2(expression_stats.value("ENSG00000049245").mean, 0.0, 0.001);
+		F_EQUAL2(expression_stats.value("ENSG00000049249").stddev, 0.0, 0.001);
+		I_EQUAL(cohort.size(), 2);
+
+		expression_stats = db.calculateExpressionStatistics(1, "", cohort, "KontrollDNACoriell", "5002", RNA_COHORT_SOMATIC);
+		F_EQUAL2(expression_stats.value("ENSG00000157916").mean, 95.9063, 0.001);
+		F_EQUAL2(expression_stats.value("ENSG00000049249").stddev, 0.0, 0.001);
+		F_EQUAL2(expression_stats.value("ENSG00000283234").mean, 0.0, 0.001);
+		F_EQUAL2(expression_stats.value("ENSG00000159189").stddev, 0.0, 0.001);
+		I_EQUAL(cohort.size(), 2);
 
 
 	}
