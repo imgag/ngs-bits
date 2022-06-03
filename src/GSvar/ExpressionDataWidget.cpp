@@ -564,7 +564,7 @@ void ExpressionDataWidget::loadExpressionData()
 		QSet<QString> biotypes;
 
 		//get RNA stats from NGSD
-		QMap<QByteArray, ExpressionStats> expression_stats = NGSD().calculateExpressionStatistics(sys_id_, tissue_,  cohort_, project_, ps_id_, cohort_type_);
+		QMap<QByteArray, ExpressionStats> expression_stats = NGSD().calculateCohortExpressionStatistics(sys_id_, tissue_,  cohort_, project_, ps_id_, cohort_type_);
 
 
 		column_names_.clear();
@@ -605,41 +605,43 @@ void ExpressionDataWidget::loadExpressionData()
 		ui_->expression_data->setRowCount(expression_data.rowCount());
 		for(int row_idx=0; row_idx<expression_data.rowCount(); ++row_idx)
 		{
-
 			QStringList row = expression_data.row(row_idx);
 			QByteArray symbol = row.at(column_indices.at(1)).toUtf8();
 			double tpm = Helper::toDouble(row.at(column_indices.at(column_names_.indexOf("tpm"))), "tpm", QString::number(row_idx));
-			double log2_tpm = std::log2(tpm+1);
+			double log2p1tpm = std::log2(tpm + 1);
+
+			ExpressionStats gene_stats;
+			double log2fc, zscore, p_value;
+			bool symbol_in_ngsd = expression_stats.contains(symbol);
+			if (symbol_in_ngsd)
+			{
+				gene_stats = expression_stats.value(symbol);
+				log2fc = log2p1tpm - std::log2(gene_stats.mean + 1);
+				zscore = (log2p1tpm - gene_stats.mean_log2) / gene_stats.stddev_log2;
+				p_value = 1 + std::erf(- std::abs(zscore) / std::sqrt(2));
+			}
+
 			for (int col_idx = 0; col_idx < column_names_.size(); ++col_idx)
 			{
 				if(db_column_names.contains(column_names_.at(col_idx)))
 				{
 					//get value from NGSD
-					if(expression_stats.contains(symbol))
+					if(symbol_in_ngsd)
 					{
-						ExpressionStats gene_stats = expression_stats.value(symbol);
 						if(column_names_.at(col_idx) == "cohort_mean")
 						{
 							ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(gene_stats.mean, 'f', precision_.at(col_idx))));
 						}
-						else if(column_names_.at(col_idx) == "cohort_meanlog2")
-						{
-							ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(gene_stats.mean_log2, 'f', precision_.at(col_idx))));
-						}
 						else if(column_names_.at(col_idx) == "log2fc")
 						{
-							double log2fc = std::log2(tpm + 1) - std::log2(gene_stats.mean + 1);
 							ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(log2fc, 'f', precision_.at(col_idx))));
 						}
 						else if(column_names_.at(col_idx) == "zscore")
 						{
-							double zscore = (log2_tpm - gene_stats.mean_log2) / gene_stats.stddev_log2;
 							ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(zscore, 'f', precision_.at(col_idx))));
 						}
 						else if(column_names_.at(col_idx) == "pvalue")
 						{
-							double zscore = (log2_tpm - gene_stats.mean_log2) / gene_stats.stddev_log2;
-							double p_value = 1 + std::erf(- std::abs(zscore) / std::sqrt(2));
 							ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(p_value, 'f', precision_.at(col_idx))));
 						}
 						else
@@ -714,7 +716,7 @@ void ExpressionDataWidget::loadExpressionData()
 		}
 		ui_->sawc_biotype->setLayout(vbox);
 
-		qDebug() << QString() + "\t ... done(" + Helper::elapsedTime(timer) + ")";
+		qDebug() << QString() + "... done(" + Helper::elapsedTime(timer) + ")";
 
 		QApplication::restoreOverrideCursor();
 	}

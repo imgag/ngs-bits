@@ -1587,7 +1587,69 @@ QVector<double> NGSD::getExpressionValues(const QString& ensg, QSet<int> cohort,
 	return expr_values;
 }
 
-QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id, const QString& tissue_type, QSet<int>& cohort, const QString& project, const QString& ps_id,
+QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(QList<int>& ps_ids)
+{
+	QTime timer;
+	timer.start();
+
+	QMap<QByteArray, ExpressionStats> gene_stats;
+
+	//processed sample IDs as string list
+	QStringList ps_ids_str;
+	foreach (int id, ps_ids)
+	{
+		ps_ids_str << QString::number(id);
+	}
+
+	//get expression data, ungrouped/long format
+	SqlQuery q = getQuery();
+	QString q_str = QString(
+				"SELECT e.symbol, e.tpm "
+				"FROM expression e "
+				"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") "
+				"ORDER BY e.symbol; "
+				);
+	q.exec(q_str);
+	qDebug() << "Get expression data from SQL server: " << Helper::elapsedTime(timer);
+
+	//cache for values from current symbol
+	QByteArray current_symbol;
+	QVector<double> cache;
+	QVector<double> cache_log2p1;
+	while (q.next())
+	{
+		QByteArray symbol = q.value(0).toByteArray();
+		double tpm = q.value(1).toFloat();
+		if (symbol == current_symbol)
+		{
+			//collect tpm
+			cache.append(tpm);
+			cache_log2p1.append(std::log2(tpm + 1));
+		}
+		else if ((symbol != current_symbol) || q.last())
+		{
+			if (!current_symbol.isEmpty())
+			{
+				//calculate statistics for 'current_symbol'
+				ExpressionStats stats;
+				stats.mean = BasicStatistics::mean(cache);
+				stats.mean_log2 = BasicStatistics::mean(cache_log2p1);
+				stats.stddev_log2 = BasicStatistics::stdev(cache_log2p1, stats.mean_log2);
+				gene_stats.insert(current_symbol, stats);
+
+				//clear cache
+				cache.clear();
+				cache_log2p1.clear();
+			}
+			current_symbol = symbol;
+		}
+	}
+	qDebug() << "Statistics calculated: " << Helper::elapsedTime(timer);
+
+	return gene_stats;
+}
+
+QMap<QByteArray, ExpressionStats> NGSD::calculateCohortExpressionStatistics(int sys_id, const QString& tissue_type, QSet<int>& cohort, const QString& project, const QString& ps_id,
 																	  RnaCohortDeterminationStategy cohort_type)
 {
 	qDebug() << "Cohort determination: " << cohort_type;
@@ -1707,37 +1769,11 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(int sys_id
 	//processed sample IDs as string list
 	QList<int> cohort_sorted = cohort.toList();
 	std::sort(cohort_sorted.begin(), cohort_sorted.end());
-	QStringList cohort_ids_str;
-	foreach (int id, cohort_sorted)
-	{
-		cohort_ids_str << QString::number(id);
-	}
 	qDebug() << "Get psample ids: " << Helper::elapsedTime(timer);
 
-	//get expression data
-	SqlQuery q_expr = getQuery();
-	QString query_string;
-	query_string = QString(
-				"SELECT e.symbol, AVG(e.tpm), AVG(LOG2(e.tpm+1)), STD(LOG2(e.tpm+1)) "
-				"FROM expression e "
-				"WHERE e.processed_sample_id IN (" + cohort_ids_str.join(", ") + ") "
-				"GROUP BY e.symbol"
-				);
-	qDebug() << query_string;
-	qDebug() << QString("go");
-	q_expr.exec(query_string);
-	qDebug() << "Get expression from SQL: " << Helper::elapsedTime(timer);
+	expression_stats = NGSD::calculateExpressionStatistics(cohort_sorted);
 
-	while(q_expr.next())
-	{
-		ExpressionStats stats;
-		stats.mean = q_expr.value(1).toDouble();
-		stats.mean_log2 = q_expr.value(2).toDouble();
-		stats.stddev_log2 = q_expr.value(3).toDouble();
-		expression_stats.insert(q_expr.value(0).toByteArray(), stats);
-	}
 	qDebug() << "Get expression stats: " << Helper::elapsedTime(timer);
-
 	return expression_stats;
 }
 

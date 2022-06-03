@@ -522,7 +522,6 @@ struct CPPNGSDSHARED_EXPORT ImportStatusGermline
 struct ExpressionStats
 {
 	double mean;
-	double stddev;
 	double mean_log2;
 	double stddev_log2;
 };
@@ -742,8 +741,10 @@ public:
 
 	///Imports expression data to the NGSD
 	void importExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
+	///Calculates statistics on all expression values for a list of processed sample ids
+	QMap<QByteArray, ExpressionStats> calculateExpressionStatistics(QList<int>& ps_ids);
 	///Calculates statistics on all expression values of the same processing system and tissue
-	QMap<QByteArray, ExpressionStats> calculateExpressionStatistics(int sys_id, const QString& tissue_type, QSet<int>& cohort, const QString& project="", const QString& ps_id="",
+	QMap<QByteArray, ExpressionStats> calculateCohortExpressionStatistics(int sys_id, const QString& tissue_type, QSet<int>& cohort, const QString& project="", const QString& ps_id="",
 																	RnaCohortDeterminationStategy cohort_type=RNA_COHORT_GERMLINE);
 	///Creates a mapping from ENSG ensembl identifier to NGSD gene ids
 	QMap<QByteArray, QByteArray> getEnsemblGeneMapping();
