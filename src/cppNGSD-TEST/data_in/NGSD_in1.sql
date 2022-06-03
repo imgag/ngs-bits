@@ -579,10 +579,10 @@ INSERT INTO `somatic_vicc_interpretation` (`id`, `variant_id`, `null_mutation_in
 (4, 2407601,  false, false, false, false, true, null, true, false, null, false, true, true, true, false, false, null, 'this variant was evaluated as an oncogenic variant', 99, '2021-02-06 11:06:14', 101, '2021-02-08 13:06:10');
 
 -- somatic_pathway
-INSERT INTO `somatic_pathway` (`id`, `name`, `significance`) VALUES
-(1, 'DNA damage repair', 'high'),
-(2, 'chromatin remodeling', 'low'),
-(3, 'Hedgehog', 'low');
+INSERT INTO `somatic_pathway` (`id`, `name`) VALUES
+(1, 'DNA damage repair'),
+(2, 'chromatin remodeling'),
+(3, 'Hedgehog');
 
 -- somatic_pathway_gene
 INSERT INTO `somatic_pathway_gene` (`id`, `symbol`, `pathway_id`) VALUES

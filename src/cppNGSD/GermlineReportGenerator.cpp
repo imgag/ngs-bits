@@ -567,6 +567,20 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeAttribute("ancestry", ancestry);
 	}
 
+	//QC data
+	QCCollection qc_data = db_.getQCData(ps_id_);
+	for (int i=0; i<qc_data.count(); ++i)
+	{
+		const QCValue& term = qc_data[i];
+		if (term.type()==QVariant::ByteArray) continue; //skip plots
+		w.writeStartElement("QcTerm");
+		w.writeAttribute("id", term.accession());
+		w.writeAttribute("name", term.name());
+		w.writeAttribute("def", term.description());
+		w.writeAttribute("value", term.toString());
+		w.writeEndElement();
+	}
+
 	w.writeEndElement();
 
 	//element TargetRegion (optional)

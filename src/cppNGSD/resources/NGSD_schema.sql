@@ -754,7 +754,6 @@ CREATE TABLE IF NOT EXISTS `somatic_pathway`
 (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(100) NOT NULL,
-  `significance` ENUM ('high', 'medium', 'low') NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY (`name`)
 )
