@@ -12,6 +12,7 @@
 #include "RepeatExpansionWidget.h"
 #include "LoginManager.h"
 #include <QChartView>
+#include <QSignalMapper>
 QT_CHARTS_USE_NAMESPACE
 
 
@@ -510,12 +511,63 @@ void ExpressionDataWidget::showCohort()
 {
 	if (!LoginManager::active()) return;
 	NGSD db;
-	QStringList cohort_samples;
-	foreach (int i, cohort_)
+	try
 	{
-		cohort_samples << db.processedSampleName(QString::number(i));
+		QDialog cohort_dialog(this);
+		cohort_dialog.setWindowFlags(Qt::Window);
+		cohort_dialog.setWindowTitle("Cohort of Sample " + db.processedSampleName(ps_id_));
+		cohort_dialog.setLayout(new QBoxLayout(QBoxLayout::TopToBottom));
+		cohort_dialog.layout()->setMargin(3);
+
+		//add description:
+		QLabel* description = new QLabel("The cohort contains the following samples:");
+		cohort_dialog.layout()->addWidget(description);
+
+		//add table
+		cohort_table_ = new QTableWidget(cohort_.size(), 1);
+		cohort_dialog.layout()->addWidget(cohort_table_);
+
+		//fill table
+		cohort_table_->setHorizontalHeaderItem(0, GUIHelper::createTableItem("Processed sample names"));
+		QStringList cohort_samples;
+		foreach (int i, cohort_)
+		{
+			cohort_samples << db.processedSampleName(QString::number(i));
+		}
+		std::sort(cohort_samples.begin(), cohort_samples.end());
+		for (int r = 0; r < cohort_samples.size(); ++r)
+		{
+			cohort_table_->setItem(r, 0, GUIHelper::createTableItem(cohort_samples.at(r)));
+		}
+		GUIHelper::resizeTableCells(cohort_table_);
+
+		//add copy button
+		QWidget* h_box = new QWidget();
+		QHBoxLayout* h_layout = new QHBoxLayout();
+		QSpacerItem* h_spacer = new QSpacerItem(40, 20, QSizePolicy::Expanding);
+		QPushButton* copy_button = new QPushButton(QIcon(":/Icons/CopyClipboard.png"), "");
+		connect(copy_button,SIGNAL(clicked()),this, SLOT(copyCohortToClipboard()));
+
+		h_layout->addItem(h_spacer);
+		h_layout->addWidget(copy_button);
+		h_box->setLayout(h_layout);
+		cohort_dialog.layout()->setMargin(0);
+		cohort_dialog.layout()->addWidget(h_box);
+
+
+		//show dialog
+		cohort_dialog.exec();
 	}
-	GUIHelper::showMessage("Cohort samples", "The selected cohort contains the following samples: \n" + cohort_samples.join(", "));
+	catch (Exception& e)
+	{
+		GUIHelper::showException(this, e, "Error opening RNA expression file.");
+	}
+}
+
+void ExpressionDataWidget::copyCohortToClipboard()
+{
+	if (cohort_table_ == nullptr) return;
+	GUIHelper::copyToClipboard(cohort_table_);
 }
 
 void ExpressionDataWidget::loadExpressionData()

@@ -27,6 +27,7 @@ private slots:
 	void showHistogram(int row_idx);
 	void showExpressionTableContextMenu(QPoint pos);
 	void showCohort();
+	void copyCohortToClipboard();
 
 private:
 	void loadExpressionData();
@@ -38,6 +39,7 @@ private:
 	QString ps_id_;
 	RnaCohortDeterminationStategy cohort_type_;
 	QSet<int> cohort_;
+	QTableWidget* cohort_table_ = nullptr;
 	Ui::ExpressionDataWidget *ui_;
 
 
