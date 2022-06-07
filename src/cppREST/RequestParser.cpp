@@ -51,6 +51,7 @@ HttpRequest RequestParser::parse(QByteArray *request) const
 	}
 
 	parsed_request.setBody(getRequestBody(*request).trimmed());
+	qDebug() << "getRequestBody(*request).trimmed()" << getRequestBody(*request).trimmed();
 	parsed_request.setContentType(ContentType::TEXT_HTML); // default type, if the header is not found
 
 	if (parsed_request.getHeaders().contains("content-type"))

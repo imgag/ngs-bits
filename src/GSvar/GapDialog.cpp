@@ -97,7 +97,10 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 			output << "Low-coverage statistics had to be re-calculated!";
 			output << "Pre-calculated gap file could not be used because:";
 			output << e.message();
-			low_cov = Statistics::lowCoverage(roi_, bam_, cutoff);
+//			low_cov = Statistics::lowCoverage(roi_, bam_, cutoff);
+
+			low_cov = GlobalServiceProvider::statistics().lowCoverage(roi_, bam_, cutoff);
+
 		}
 	}
 

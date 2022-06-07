@@ -1,6 +1,7 @@
 #include "ServerController.h"
 #include "FileLocationProviderLocal.h"
 #include "ToolBase.h"
+#include "Statistics.h"
 
 ServerController::ServerController()
 {
@@ -607,6 +608,27 @@ HttpResponse ServerController::uploadFile(const HttpRequest& request)
 	return HttpResponse(ResponseStatus::BAD_REQUEST, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Parameters have not been provided");
 }
 
+HttpResponse ServerController::startLowCoverageCalculation(const HttpRequest& request)
+{
+
+	BedFile roi;
+	QString bam_file_name = "bamfile.bam";
+	int cutoff = 0;
+
+	BedFile low_cov = Statistics::lowCoverage(roi, bam_file_name, cutoff);
+
+	if(!low_cov.isEmpty())
+	{
+		QByteArray body = low_cov.toText().toLocal8Bit();
+
+		BasicResponseData response_data;
+		response_data.length = body.length();
+		response_data.content_type = request.getContentType();
+		response_data.is_downloadable = false;
+		return HttpResponse(response_data, body);
+	}
+	return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, request.getContentType(), "Low coverage regions are empty");
+}
 
 HttpResponse ServerController::performLogin(const HttpRequest& request)
 {

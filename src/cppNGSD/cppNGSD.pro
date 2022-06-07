@@ -38,6 +38,7 @@ LIBS += -L$$PWD/../../htslib/lib/ -lhts
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 SOURCES += \
+    ApiCaller.cpp \
     FileLocationList.cpp \
     FileLocationProviderLocal.cpp \
     FileLocationProviderRemote.cpp \
@@ -52,11 +53,14 @@ SOURCES += \
     SomaticReportSettings.cpp \
     ReportSettings.cpp \
     GermlineReportGenerator.cpp \
+    StatisticsServiceLocal.cpp \
+    StatisticsServiceRemote.cpp \
     TumorOnlyReportWorker.cpp \
     SomaticReportHelper.cpp \
     SomaticRnaReport.cpp
 
 HEADERS += \
+    ApiCaller.h \
     FileLocation.h \
     FileLocationList.h \
     FileLocationProvider.h \
@@ -73,6 +77,9 @@ HEADERS += \
     SomaticReportSettings.h \
     ReportSettings.h \
     GermlineReportGenerator.h \
+    StatisticsService.h \
+    StatisticsServiceLocal.h \
+    StatisticsServiceRemote.h \
     TumorOnlyReportWorker.h \
     SomaticReportHelper.h \
     SomaticRnaReport.h \

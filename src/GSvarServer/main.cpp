@@ -316,6 +316,22 @@ int main(int argc, char **argv)
 						"Save QBic data report files",
 						&ServerController::saveQbicFiles
 					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"low_coverage_regions",
+						QMap<QString, ParamProps>{
+
+							{"roi", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "Regions of interest"}},
+							{"bam_url_id", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "An id of a temporary URL pointing to a BAM file"}},
+							{"cutoff", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "Cutoff value"}},
+
+							{"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::TEXT_PLAIN,
+						AuthType::NONE,
+						"Starts the calculation of low coverage regions",
+						&ServerController::startLowCoverageCalculation
+					});
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"upload",
