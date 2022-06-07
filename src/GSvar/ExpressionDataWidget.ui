@@ -72,128 +72,276 @@
     </layout>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>300</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="title">
-      <string>Filter</string>
-     </property>
-     <layout class="QFormLayout" name="formLayout">
-      <item row="2" column="0">
-       <widget class="QLabel" name="label">
+    <layout class="QVBoxLayout" name="verticalLayout_2"/>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout_5">
+     <item>
+      <widget class="QGroupBox" name="groupBox_2">
+       <property name="minimumSize">
+        <size>
+         <width>300</width>
+         <height>220</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>220</height>
+        </size>
+       </property>
+       <property name="title">
+        <string>Cohort</string>
+       </property>
+       <widget class="QGroupBox" name="groupBox_3">
+        <property name="geometry">
+         <rect>
+          <x>1</x>
+          <y>31</y>
+          <width>252</width>
+          <height>114</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>Cohort determination</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <item>
+          <widget class="QRadioButton" name="rb_germline_tissue">
+           <property name="text">
+            <string>germline (same tissue)</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="rb_germline_project">
+           <property name="text">
+            <string>germline (same tissue and project)</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="rb_somatic">
+           <property name="text">
+            <string>somatic (HPO/ICD10 based)</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QPushButton" name="show_cohort">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>170</y>
+          <width>130</width>
+          <height>28</height>
+         </rect>
+        </property>
         <property name="text">
-         <string>Gene(s):</string>
+         <string>show cohort samples</string>
         </property>
        </widget>
-      </item>
-      <item row="3" column="0" colspan="2">
-       <widget class="QLineEdit" name="gene_filter">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+       <widget class="QLabel" name="l_cohort_size">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>150</y>
+          <width>78</width>
+          <height>16</height>
+         </rect>
         </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma-separated list of gene names.&lt;br/&gt;&lt;br/&gt;Notes:&lt;br/&gt;- You can use '*' as a wildcard. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="maxLength">
-         <number>5000000</number>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>Minimal absolute log fold change:</string>
+         <string>Cohort size: -</string>
         </property>
        </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QLineEdit" name="abs_log_fc">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox_4">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>500</height>
+        </size>
+       </property>
+       <property name="title">
+        <string>Filter</string>
+       </property>
+       <widget class="QWidget" name="layoutWidget">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>30</y>
+          <width>270</width>
+          <height>191</height>
+         </rect>
         </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Lower absolute cutoff for log fold change (float value)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
+        <layout class="QFormLayout" name="formLayout">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Gene(s):</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="gene_filter">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma-separated list of gene names.&lt;br/&gt;&lt;br/&gt;Notes:&lt;br/&gt;- You can use '*' as a wildcard. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="maxLength">
+            <number>5000000</number>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>min. abs. logFC:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>min. abs. z-score:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="l_tpm">
+           <property name="text">
+            <string>min. TPM (sample):</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="minTPMCohortLabel">
+           <property name="text">
+            <string>min. TPM (cohort):</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QDoubleSpinBox" name="tpm_cohort_value">
+           <property name="maximum">
+            <double>1000000.000000000000000</double>
+           </property>
+           <property name="singleStep">
+            <double>0.010000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QDoubleSpinBox" name="tpm_value">
+           <property name="maximum">
+            <double>1000000.000000000000000</double>
+           </property>
+           <property name="singleStep">
+            <double>0.100000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="lowExpressionLabel">
+           <property name="text">
+            <string>low expression (TPM):</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QDoubleSpinBox" name="low_expr_tpm">
+           <property name="maximum">
+            <double>1000000.000000000000000</double>
+           </property>
+           <property name="singleStep">
+            <double>0.100000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.100000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QDoubleSpinBox" name="abs_logfc">
+           <property name="minimum">
+            <double>-9999.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>9999.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QDoubleSpinBox" name="abs_zscore">
+           <property name="value">
+            <double>2.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
-      </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="label_4">
+       <widget class="QPushButton" name="apply_filters">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>510</y>
+          <width>93</width>
+          <height>28</height>
+         </rect>
+        </property>
         <property name="text">
-         <string>Minimal absolute z-score:</string>
+         <string>apply filters</string>
+        </property>
+        <property name="flat">
+         <bool>false</bool>
         </property>
        </widget>
-      </item>
-      <item row="5" column="1">
-       <widget class="QLineEdit" name="abs_zscore">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+       <widget class="QCheckBox" name="cb_filter_by_var_list">
+        <property name="enabled">
+         <bool>false</bool>
         </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Lower absolute cutoff forz-Score (float value)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>460</y>
+          <width>276</width>
+          <height>36</height>
+         </rect>
         </property>
-       </widget>
-      </item>
-      <item row="6" column="0">
-       <widget class="QLabel" name="l_raw">
         <property name="text">
-         <string>Minimum raw counts:</string>
+         <string>apply gene filter from the variant list 
+(selected phenotypes and  target region/sub-panel)</string>
         </property>
        </widget>
-      </item>
-      <item row="6" column="1">
-       <widget class="QLineEdit" name="raw_counts">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Lower cutoff for raw counts (integer value)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="0">
-       <widget class="QLabel" name="l_tpm">
-        <property name="text">
-         <string>Minimal tpm value:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="1">
-       <widget class="QLineEdit" name="tpm_value">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Lower cutoff for tpm value (float value)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="0" colspan="2">
        <widget class="QGroupBox" name="gb_biotype">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>230</y>
+          <width>276</width>
+          <height>200</height>
+         </rect>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>200</height>
+         </size>
+        </property>
         <property name="maximumSize">
          <size>
           <width>16777215</width>
@@ -203,7 +351,7 @@
         <property name="title">
          <string>Biotype:</string>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout_2">
+        <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
           <widget class="QScrollArea" name="sa_biotype">
            <property name="toolTip">
@@ -217,8 +365,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>258</width>
-              <height>69</height>
+              <width>250</width>
+              <height>158</height>
              </rect>
             </property>
            </widget>
@@ -226,81 +374,9 @@
          </item>
         </layout>
        </widget>
-      </item>
-      <item row="11" column="0">
-       <widget class="QPushButton" name="apply_filters">
-        <property name="text">
-         <string>apply filters</string>
-        </property>
-       </widget>
-      </item>
-      <item row="14" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>Note: The table can be sorted by clicking on the corresponding table headers. </string>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="10" column="0" colspan="2">
-       <widget class="QCheckBox" name="cb_filter_by_var_list">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="text">
-         <string>apply gene filter from the variant list 
-(selected phenotypes and  target region/sub-panel)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0" colspan="2">
-       <widget class="QGroupBox" name="groupBox_2">
-        <property name="title">
-         <string>Cohort determination</string>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_3">
-         <item>
-          <widget class="QRadioButton" name="rb_germline_tissue">
-           <property name="text">
-            <string>germline (tissue based)</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="rb_germline_project">
-           <property name="text">
-            <string>germline (project based)</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="rb_somatic">
-           <property name="text">
-            <string>somatic (HPO or ICD10 based)</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="12" column="0">
-       <widget class="QPushButton" name="show_cohort">
-        <property name="text">
-         <string>show cohort samples</string>
-        </property>
-       </widget>
-      </item>
-      <item row="13" column="0">
-       <widget class="QLabel" name="l_cohort_size">
-        <property name="text">
-         <string>Cohort size: -</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>

@@ -1600,6 +1600,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(QList<int>
 	{
 		ps_ids_str << QString::number(id);
 	}
+	qDebug() << "Cohort size: " << QString::number(ps_ids.size());
 
 	//get expression data, ungrouped/long format
 	SqlQuery q = getQuery();
@@ -1609,6 +1610,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(QList<int>
 				"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") "
 				"ORDER BY e.symbol; "
 				);
+	qDebug() << "Query SQL server: " << q_str;
 	q.exec(q_str);
 	qDebug() << "Get expression data from SQL server: " << Helper::elapsedTime(timer);
 

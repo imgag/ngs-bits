@@ -12,6 +12,7 @@
 #include "RepeatExpansionWidget.h"
 #include "LoginManager.h"
 #include <QChartView>
+#include <FilterWidget.h>
 QT_CHARTS_USE_NAMESPACE
 
 
@@ -45,10 +46,11 @@ ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, int sys_id, QSt
 	ui_->expression_data->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui_->expression_data,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showExpressionTableContextMenu(QPoint)));
 	connect(ui_->gene_filter, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
-	connect(ui_->abs_log_fc, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
+	connect(ui_->abs_logfc, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
 	connect(ui_->abs_zscore, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
-	connect(ui_->raw_counts, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
 	connect(ui_->tpm_value, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
+	connect(ui_->tpm_cohort_value, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
+	connect(ui_->low_expr_tpm, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
 	connect(ui_->show_cohort, SIGNAL(clicked(bool)), this, SLOT(showCohort()));
 
 
@@ -216,8 +218,7 @@ void ExpressionDataWidget::applyFilters()
 		}
 
 		//filter by log fold change
-		QString logfc = ui_->abs_log_fc->text().replace(",", ".");
-		if (!logfc.isEmpty())
+		if (!ui_->abs_logfc->text().isEmpty())
 		{
 			qDebug() << "filter by log fc";
 			int idx = column_names_.indexOf("log2fc");
@@ -225,13 +226,12 @@ void ExpressionDataWidget::applyFilters()
 			if (idx == -1)
 			{
 				QMessageBox::warning(this, "Filtering error", "Table does not contain a 'log2fc' column! \nFiltering based on fold change is not possible.");
-				ui_->abs_log_fc->setText("");
 			}
 			else
 			{
 				try
 				{
-					double logfc_cutoff = Helper::toDouble(logfc);
+					double logfc_cutoff = ui_->abs_logfc->value();
 					for(int row_idx=0; row_idx<row_count; ++row_idx)
 					{
 						//skip already filtered
@@ -258,22 +258,19 @@ void ExpressionDataWidget::applyFilters()
 		}
 
 		//filter by cohort z-score
-		QString zscore = ui_->abs_zscore->text().replace(",", ".");
-		if (!zscore.isEmpty())
+		if (!ui_->abs_zscore->text().isEmpty())
 		{
-			qDebug() << "filter by zscore";
 			int idx = column_names_.indexOf("zscore");
 
 			if (idx == -1)
 			{
 				QMessageBox::warning(this, "Filtering error", "Table does not contain a 'zscore' column! \nFiltering based on z-score is not possible.");
-				ui_->abs_zscore->setText("");
 			}
 			else
 			{
 				try
 				{
-					double zscore_cutoff = Helper::toDouble(zscore);
+					double zscore_cutoff = ui_->abs_zscore->value();
 					for(int row_idx=0; row_idx<row_count; ++row_idx)
 					{
 						//skip already filtered
@@ -299,46 +296,6 @@ void ExpressionDataWidget::applyFilters()
 			}
 		}
 
-		//filter by raw counts
-		if (!ui_->raw_counts->text().isEmpty())
-		{
-			qDebug() << "filter by raw counts";
-			int idx = column_names_.indexOf("raw");
-
-			if (idx == -1)
-			{
-				QMessageBox::warning(this, "Filtering error", "Table does not contain a 'raw' column! \nFiltering based on raw counts is not possible.");
-				ui_->raw_counts->setText("");
-			}
-			else
-			{
-				try
-				{
-					int min_raw_count = Helper::toInt(ui_->raw_counts->text(), "Raw count filter entry");
-					for(int row_idx=0; row_idx<row_count; ++row_idx)
-					{
-						//skip already filtered
-						if (!filter_result.flags()[row_idx]) continue;
-
-						QString value = ui_->expression_data->item(row_idx, idx)->text();
-						if (value.isEmpty() || value == "n/a")
-						{
-							filter_result.flags()[row_idx] = false;
-						}
-						else
-						{
-							double raw_count = Helper::toDouble(value, "raw count in expression data", QString::number(row_idx+1));
-							filter_result.flags()[row_idx] = raw_count >= min_raw_count;
-						}
-					}
-				}
-				catch (Exception e)
-				{
-					QMessageBox::warning(this, "Invalid raw count value", "Couldn't convert given raw count value to number!\n" + e.message());
-				}
-			}
-		}
-
 		//filter by tpm value
 		if (!ui_->tpm_value->text().isEmpty())
 		{
@@ -353,7 +310,7 @@ void ExpressionDataWidget::applyFilters()
 			{
 				try
 				{
-					int min_tpm_value = Helper::toDouble(ui_->tpm_value->text().replace(",", "."), "TPM filter entry");
+					double min_tpm_value = ui_->tpm_value->value();
 					for(int row_idx=0; row_idx<row_count; ++row_idx)
 					{
 						//skip already filtered
@@ -374,6 +331,55 @@ void ExpressionDataWidget::applyFilters()
 				catch (Exception e)
 				{
 					QMessageBox::warning(this, "Invalid tpm value", "Couldn't convert given tpm value to number!\n" + e.message());
+				}
+			}
+		}
+
+		//filter by cohort tpm value
+		if (!ui_->tpm_cohort_value->text().isEmpty())
+		{
+			int idx = column_names_.indexOf("cohort_mean");
+			double min_tpm_value = ui_->tpm_cohort_value->value();
+
+			for(int row_idx=0; row_idx<row_count; ++row_idx)
+			{
+				//skip already filtered
+				if (!filter_result.flags()[row_idx]) continue;
+
+				QString value = ui_->expression_data->item(row_idx, idx)->text();
+				if (value.isEmpty() || value == "n/a")
+				{
+					filter_result.flags()[row_idx] = false;
+				}
+				else
+				{
+					double tpm_value = Helper::toDouble(value);
+					filter_result.flags()[row_idx] = tpm_value >= min_tpm_value;
+				}
+			}
+		}
+
+		//filter by low expression tpm value
+		if (!ui_->low_expr_tpm->text().isEmpty())
+		{
+			double low_expr_tpm = ui_->low_expr_tpm->value();
+
+			for(int row_idx=0; row_idx<row_count; ++row_idx)
+			{
+				//skip already filtered
+				if (!filter_result.flags()[row_idx]) continue;
+
+				QString value_sample = ui_->expression_data->item(row_idx, column_names_.indexOf("tpm"))->text();
+				QString value_cohort = ui_->expression_data->item(row_idx, column_names_.indexOf("cohort_mean"))->text();
+				if (value_sample.isEmpty() || value_sample == "n/a" || value_cohort.isEmpty() || value_cohort == "n/a")
+				{
+					filter_result.flags()[row_idx] = false;
+				}
+				else
+				{
+					double tpm_sample = Helper::toDouble(value_sample);
+					double tpm_cohort = Helper::toDouble(value_cohort);
+					filter_result.flags()[row_idx] = (tpm_sample >= low_expr_tpm) || (tpm_cohort >= low_expr_tpm);
 				}
 			}
 		}
@@ -591,7 +597,7 @@ void ExpressionDataWidget::loadExpressionData()
 		QStringList db_column_names = QStringList()  << "cohort_mean" << "log2fc" << "zscore" << "pvalue";
 		column_names_ << db_column_names;
 		numeric_columns_  << true << true << true << true;
-		precision_ << 3 << 3 << 3 << 3;
+		precision_ << 2 << 2 << 3 << 3;
 
 
 		//create header
