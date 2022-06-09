@@ -624,6 +624,7 @@ void ExpressionDataWidget::loadExpressionData()
 		QMap<QByteArray, ExpressionStats> expression_stats = NGSD().calculateCohortExpressionStatistics(sys_id_, tissue_,  cohort_, project_, ps_id_, cohort_type_);
 
 
+
 		column_names_.clear();
 		numeric_columns_.clear();
 		precision_.clear();
@@ -750,6 +751,9 @@ void ExpressionDataWidget::loadExpressionData()
 
 		//enable sorting
 		ui_->expression_data->setSortingEnabled(true);
+
+		//sort by zscore on default
+		ui_->expression_data->sortByColumn(7, Qt::DescendingOrder);
 
 		//optimize table view
 		GUIHelper::resizeTableCells(ui_->expression_data, 200, true, 1000);

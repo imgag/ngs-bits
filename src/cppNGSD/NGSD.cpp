@@ -1773,7 +1773,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateCohortExpressionStatistics(int 
 	std::sort(cohort_sorted.begin(), cohort_sorted.end());
 	qDebug() << "Get psample ids: " << Helper::elapsedTime(timer);
 
-	expression_stats = NGSD::calculateExpressionStatistics(cohort_sorted);
+	expression_stats = calculateExpressionStatistics(cohort_sorted);
 
 	qDebug() << "Get expression stats: " << Helper::elapsedTime(timer);
 	return expression_stats;
