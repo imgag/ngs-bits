@@ -3,7 +3,7 @@
 #include "GUIHelper.h"
 #include "GlobalServiceProvider.h"
 
-MosaicWidget::MosaicWidget(const VariantList& variants, ReportSettings rep_settings, QHash<QByteArray, BedFile>& cache, QWidget* parent)
+MosaicWidget::MosaicWidget(VariantList& variants, ReportSettings rep_settings, QHash<QByteArray, BedFile>& cache, QWidget* parent)
 	: QWidget(parent)
 	, ui_()
 	, variants_(variants)
@@ -18,6 +18,9 @@ MosaicWidget::MosaicWidget(const VariantList& variants, ReportSettings rep_setti
 	connect(ui_.mosaics,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(variantDoubleClicked(QTableWidgetItem*)));
 	connect(ui_.mosaics, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
 
+	ui_.mosaics->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
+	connect(ui_.mosaics, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customContextMenu(QPoint)));
+
 	ui_.filter_widget->setValidFilterEntries(variants_.filters().keys());
 
 	if (LoginManager::active())
@@ -27,6 +30,28 @@ MosaicWidget::MosaicWidget(const VariantList& variants, ReportSettings rep_setti
 
 	//set up GUI
 	updateGUI();
+}
+
+void MosaicWidget::customContextMenu(QPoint pos)
+{
+	pos = ui_.mosaics->viewport()->mapToGlobal(pos);
+
+	QList<int> indices = ui_.mosaics->selectedVariantsIndices();
+	if (indices.count()!=1)
+	{
+		return;
+	}
+	int index = indices[0];
+
+	QMenu menu(ui_.mosaics);
+	ui_.mosaics->addToContextMenu(menu, index);
+
+	//execute menu
+	QAction* action = menu.exec(pos);
+	if (!action) return;
+
+	ui_.mosaics->execContextMenu(action, index);
+
 }
 
 void MosaicWidget::variantDoubleClicked(QTableWidgetItem *item)

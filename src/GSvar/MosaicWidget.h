@@ -12,9 +12,10 @@ class MosaicWidget
 	Q_OBJECT
 
 public:
-	MosaicWidget(const VariantList& variants, ReportSettings rep_settings, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
+	MosaicWidget(VariantList& variants, ReportSettings rep_settings, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
 
 private slots:
+	void customContextMenu(QPoint point);
 	void applyFilters(bool debug_time=false);
 	void copyToClipboard();
 	void copyVariantsToClipboard();
@@ -27,7 +28,7 @@ private:
 	void initGUI();
 
 	Ui::MosaicWidget ui_;
-	const VariantList& variants_;
+	VariantList& variants_;
 	FilterResult filter_result_;
 	ReportSettings report_settings_;
 

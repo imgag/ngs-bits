@@ -3,24 +3,362 @@
 #include "Exceptions.h"
 #include "GSvarHelper.h"
 #include "GUIHelper.h"
+#include "GeneInfoDBs.h"
+#include "HttpHandler.h"
+#include "LoginManager.h"
 
 #include <QBitArray>
 #include <QApplication>
 #include <QClipboard>
 #include <QMessageBox>
 #include <QHeaderView>
+#include <QDesktopServices>
+#include <QMenu>
 
 VariantTable::VariantTable(QWidget* parent)
 	: QTableWidget(parent)
+	, execRegistered_()
+	, add_clinvar_(true)
+	, base_(this)
 {
 	//make sure the selection is visible when the table looses focus
 	QString fg = GUIHelper::colorToQssFormat(palette().color(QPalette::Active, QPalette::HighlightedText));
 	QString bg = GUIHelper::colorToQssFormat(palette().color(QPalette::Active, QPalette::Highlight));
 	setStyleSheet(QString("QTableWidget:!active { selection-color: %1; selection-background-color: %2; }").arg(fg).arg(bg));
+
+//	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customContextMenu(QPoint)));
 }
 
-void VariantTable::updateTable(const VariantList& variants, const FilterResult& filter_result, const QHash<int,bool>& index_show_report_icon, const QSet<int>& index_causal, int max_variants)
+void VariantTable::addToContextMenu(QMenu& menu, int index, bool add_clinvar)
 {
+	bool  ngsd_user_logged_in = LoginManager::active();
+	const Variant variant = (*variants_)[index];
+	int i_gene = variants_->annotationIndexByName("gene", true, true);
+	GeneSet genes = GeneSet::createFromText(variant.annotations()[i_gene], ',');
+	int i_co_sp = variants_->annotationIndexByName("coding_and_splicing", true, true);
+	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(i_co_sp);
+//	int i_dbsnp = variants_->annotationIndexByName("dbSNP", true, true);
+	const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
+
+
+	//Google and Google Scholar
+	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/Google.png"), "Google");
+	QMenu* sub_menu2 = menu.addMenu(QIcon("://Icons/GoogleScholar.png"), "Google Scholar");
+	foreach(const VariantTranscript& trans, transcripts)
+	{
+		QAction* action = sub_menu->addAction(trans.gene + " " + trans.idWithoutVersion() + " " + trans.hgvs_c + " " + trans.hgvs_p);
+		QAction* action2 = sub_menu2->addAction(trans.gene + " " + trans.idWithoutVersion() + " " + trans.hgvs_c + " " + trans.hgvs_p);
+		if (preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion()))
+		{
+			QFont font = action->font();
+			font.setBold(true);
+			action->setFont(font);
+			action2->setFont(font);
+		}
+	}
+	//UCSC
+	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
+
+	//LOVD
+	menu.addAction(QIcon("://Icons/LOVD.png"), "Find in LOVD");
+
+	//MitoMap
+	QAction* a_mitomap = menu.addAction(QIcon("://Icons/MitoMap.png"), "Open in MitoMap");
+	a_mitomap->setEnabled(variant.chr().isM());
+	//varsome
+	menu.addAction(QIcon("://Icons/VarSome.png"), "VarSome");
+
+	//PubMed
+	sub_menu = menu.addMenu(QIcon("://Icons/PubMed.png"), "PubMed");
+	if (ngsd_user_logged_in)
+	{
+		NGSD db;
+		QString ps = variants_->mainSampleName();
+		QString sample_id = db.sampleId(ps, false);
+		if (sample_id!="")
+		{
+			//get disease list (HPO )
+			QByteArrayList diseases;
+			QList<SampleDiseaseInfo> infos = db.getSampleDiseaseInfo(sample_id);
+			foreach(const SampleDiseaseInfo& info, infos)
+			{
+				if (info.type=="HPO term id")
+				{
+					int id = db.phenotypeIdByAccession(info.disease_info.toLatin1(), false);
+					if (id!=-1)
+					{
+						QByteArray disease = db.phenotype(id).name().trimmed();
+						if (!diseases.contains(disease))
+						{
+							diseases << disease;
+						}
+					}
+				}
+			}
+
+			//create links for each gene/disease
+			foreach(const QByteArray& g, genes)
+			{
+				foreach(const QByteArray& d, diseases)
+				{
+					sub_menu->addAction(g + " AND \"" + d + "\"");
+				}
+			}
+		}
+	}
+	else
+	{
+		sub_menu->setEnabled(ngsd_user_logged_in);
+	}
+
+	if (add_clinvar)
+	{
+		//ClinVar upload/search
+		menu.addAction(QIcon("://Icons/ClinGen.png"), "Find in ClinVar");
+	}
+}
+
+void VariantTable::execContextMenu(QAction* action, int index)
+{
+	const Variant variant = (*variants_)[index];
+
+	QByteArray text = action->text().toLatin1();
+	QMenu* parent_menu = qobject_cast<QMenu*>(action->parent());
+
+	//perform actions
+	qDebug() << "performing actions in VariantTable! -> " << text;
+	if (parent_menu && (parent_menu->title()=="Google" || parent_menu->title()=="Google Scholar"))
+	{
+		QByteArray query;
+		QByteArrayList parts = text.split(' ');
+		QByteArray gene = parts[0].trimmed();
+		QByteArray hgvs_c = parts[2].trimmed();
+		QByteArray hgvs_p = parts[3].trimmed();
+		query = gene + " AND (\"" + hgvs_c.mid(2) + "\" OR \"" + hgvs_c.mid(2).replace(">", "->") + "\" OR \"" + hgvs_c.mid(2).replace(">", "-->") + "\" OR \"" + hgvs_c.mid(2).replace(">", "/") + "\"";
+		if (hgvs_p!="")
+		{
+			QByteArray protein_change = hgvs_p.mid(2).trimmed();
+			query += " OR \"" + protein_change + "\"";
+			if (QRegExp("[A-Za-z]{3}[0-9]+[A-Za-z]{3}").exactMatch(protein_change))
+			{
+				QByteArray aa1 = protein_change.left(3);
+				QByteArray aa2 = protein_change.right(3);
+				QByteArray pos = protein_change.mid(3, protein_change.length()-6);
+
+				query += QByteArray(" OR \"") + NGSHelper::oneLetterCode(aa1) + pos + NGSHelper::oneLetterCode(aa2) + "\"";
+			}
+			else if (protein_change.endsWith("=")) //special handling of synonymous variants
+			{
+				QByteArray aa1 = protein_change.left(3);
+				QByteArray rest = protein_change.mid(3);
+
+				query += QByteArray(" OR \"") + NGSHelper::oneLetterCode(aa1) + rest + "\"";
+			}
+		}
+
+
+		int i_dbsnp = variants_->annotationIndexByName("dbSNP", true, true);
+		QByteArray dbsnp = (*variants_)[index].annotations()[i_dbsnp].trimmed();
+		if (dbsnp!="")
+		{
+			query += " OR \"" + dbsnp + "\"";
+		}
+		query += ")";
+
+		QString base_url = parent_menu->title()=="Google" ? "https://www.google.com/search?q=" : "https://scholar.google.de/scholar?q=";
+		QDesktopServices::openUrl(QUrl(base_url + query.replace("+", "%2B").replace(' ', '+')));
+	}
+	else if (text=="Open in UCSC browser")
+	{
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db="+buildToString(GSvarHelper::build())+"&position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)));
+	}
+	else if (text=="Find in LOVD")
+	{
+		int pos = variant.start();
+		if (variant.ref()=="-") pos += 1;
+		QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants#search_chromosome=" + variant.chr().strNormalized(false)+"&search_VariantOnGenome/DNA"+(GSvarHelper::build()==GenomeBuild::HG38 ? "/hg38" : "")+"=g." + QString::number(pos)));
+	}
+	else if (text=="Find in ClinVar")
+	{
+		QDesktopServices::openUrl(QUrl("https://www.ncbi.nlm.nih.gov/clinvar/?term=" + variant.chr().strNormalized(false)+"[chr]+AND+" + QString::number(variant.start()) + "%3A" + QString::number(variant.end()) + (GSvarHelper::build()==GenomeBuild::HG38? "[chrpos38] " : "[chrpos37] ")));
+	}
+	else if (text=="Open in MitoMap")
+	{
+		QDesktopServices::openUrl(QUrl("https://www.mitomap.org/cgi-bin/search_allele?starting="+QString::number(variant.start())+"&ending="+QString::number(variant.end())));
+	}
+	else if (text=="VarSome")
+	{
+		QString ref = variant.ref();
+		ref.replace("-", "");
+		QString obs = variant.obs();
+		obs.replace("-", "");
+		QString var = variant.chr().str() + "-" + QString::number(variant.start()) + "-" +  ref + "-" + obs;
+		QString genome = variant.chr().isM() ? "hg38" : buildToString(GSvarHelper::build());
+		QDesktopServices::openUrl(QUrl("https://varsome.com/variant/" + genome + "/" + var));
+	}
+	else if (parent_menu && parent_menu->title()=="PubMed")
+	{
+		QDesktopServices::openUrl(QUrl("https://pubmed.ncbi.nlm.nih.gov/?term=" + text));
+	}
+}
+
+//void VariantTable::registerContextMenuBase(std::function<QMenu*()> createBaseMenu, std::function<void(QMenu* parent_menu, QAction* action, int index)> execRegistered, bool add_clinvar)
+//{
+//	createBaseMenu_ = createBaseMenu;
+//	execRegistered_ = execRegistered;
+//	add_clinvar_ = add_clinvar;
+//}
+
+//void VariantTable::customContextMenu(QPoint pos)
+//{
+//	pos = viewport()->mapToGlobal(pos);
+
+//	QList<int> indices = selectedVariantsIndices();
+//	if (indices.count()!=1)
+//	{
+//		return;
+//	}
+//	int index = indices[0];
+
+
+//	bool  ngsd_user_logged_in = LoginManager::active();
+//	const Variant variant = (*variants_)[index];
+//	int i_gene = variants_->annotationIndexByName("gene", true, true);
+//	GeneSet genes = GeneSet::createFromText(variant.annotations()[i_gene], ',');
+//	int i_co_sp = variants_->annotationIndexByName("coding_and_splicing", true, true);
+//	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(i_co_sp);
+////	int i_dbsnp = variants_->annotationIndexByName("dbSNP", true, true);
+//	const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
+
+//	QMenu* context_menu_(this);
+//	if (createBaseMenu_)
+//	{
+//		context_menu_ =createBaseMenu_();
+//	}
+//	else
+//	{
+//		context_menu_=
+//	}
+
+//	//Google and Google Scholar
+//	QMenu* sub_menu = context_menu_->addMenu(QIcon("://Icons/Google.png"), "Google");
+//	QMenu* sub_menu2 = context_menu_->addMenu(QIcon("://Icons/GoogleScholar.png"), "Google Scholar");
+//	foreach(const VariantTranscript& trans, transcripts)
+//	{
+//		QAction* action = sub_menu->addAction(trans.gene + " " + trans.idWithoutVersion() + " " + trans.hgvs_c + " " + trans.hgvs_p);
+//		QAction* action2 = sub_menu2->addAction(trans.gene + " " + trans.idWithoutVersion() + " " + trans.hgvs_c + " " + trans.hgvs_p);
+//		if (preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion()))
+//		{
+//			QFont font = action->font();
+//			font.setBold(true);
+//			action->setFont(font);
+//			action2->setFont(font);
+//		}
+//	}
+//	//UCSC
+//	context_menu_->addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
+
+//	//LOVD
+//	context_menu_->addAction(QIcon("://Icons/LOVD.png"), "Find in LOVD");
+
+//	//MitoMap
+//	QAction* a_mitomap = context_menu_->addAction(QIcon("://Icons/MitoMap.png"), "Open in MitoMap");
+//	a_mitomap->setEnabled(variant.chr().isM());
+//	//varsome
+//	context_menu_->addAction(QIcon("://Icons/VarSome.png"), "VarSome");
+
+
+
+
+
+
+//	//execute menu:
+//	QAction* action = context_menu_->exec(pos);
+//	if (!action) return;
+
+
+//	QByteArray text = action->text().toLatin1();
+//	QMenu* parent_menu = qobject_cast<QMenu*>(action->parent());
+
+//	//perform actions
+//	qDebug() << "performing actions in VariantTable!";
+//	if (parent_menu && (parent_menu->title()=="Google" || parent_menu->title()=="Google Scholar"))
+//	{
+//		QByteArray query;
+//		QByteArrayList parts = text.split(' ');
+//		QByteArray gene = parts[0].trimmed();
+//		QByteArray hgvs_c = parts[2].trimmed();
+//		QByteArray hgvs_p = parts[3].trimmed();
+//		query = gene + " AND (\"" + hgvs_c.mid(2) + "\" OR \"" + hgvs_c.mid(2).replace(">", "->") + "\" OR \"" + hgvs_c.mid(2).replace(">", "-->") + "\" OR \"" + hgvs_c.mid(2).replace(">", "/") + "\"";
+//		if (hgvs_p!="")
+//		{
+//			QByteArray protein_change = hgvs_p.mid(2).trimmed();
+//			query += " OR \"" + protein_change + "\"";
+//			if (QRegExp("[A-Za-z]{3}[0-9]+[A-Za-z]{3}").exactMatch(protein_change))
+//			{
+//				QByteArray aa1 = protein_change.left(3);
+//				QByteArray aa2 = protein_change.right(3);
+//				QByteArray pos = protein_change.mid(3, protein_change.length()-6);
+
+//				query += QByteArray(" OR \"") + NGSHelper::oneLetterCode(aa1) + pos + NGSHelper::oneLetterCode(aa2) + "\"";
+//			}
+//			else if (protein_change.endsWith("=")) //special handling of synonymous variants
+//			{
+//				QByteArray aa1 = protein_change.left(3);
+//				QByteArray rest = protein_change.mid(3);
+
+//				query += QByteArray(" OR \"") + NGSHelper::oneLetterCode(aa1) + rest + "\"";
+//			}
+//		}
+
+
+//		int i_dbsnp = variants_->annotationIndexByName("dbSNP", true, true);
+//		QByteArray dbsnp = (*variants_)[index].annotations()[i_dbsnp].trimmed();
+//		if (dbsnp!="")
+//		{
+//			query += " OR \"" + dbsnp + "\"";
+//		}
+//		query += ")";
+
+//		QString base_url = parent_menu->title()=="Google" ? "https://www.google.com/search?q=" : "https://scholar.google.de/scholar?q=";
+//		QDesktopServices::openUrl(QUrl(base_url + query.replace("+", "%2B").replace(' ', '+')));
+//	}
+//	else if (text=="Open in UCSC browser")
+//	{
+//		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db="+buildToString(GSvarHelper::build())+"&position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)));
+//	}
+//	else if (text=="Find in LOVD")
+//	{
+//		int pos = variant.start();
+//		if (variant.ref()=="-") pos += 1;
+//		QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants#search_chromosome=" + variant.chr().strNormalized(false)+"&search_VariantOnGenome/DNA"+(GSvarHelper::build()==GenomeBuild::HG38 ? "/hg38" : "")+"=g." + QString::number(pos)));
+//	}
+//	else if (text=="Open in MitoMap")
+//	{
+//		QDesktopServices::openUrl(QUrl("https://www.mitomap.org/cgi-bin/search_allele?starting="+QString::number(variant.start())+"&ending="+QString::number(variant.end())));
+//	}
+//	else if (text=="VarSome")
+//	{
+//		QString ref = variant.ref();
+//		ref.replace("-", "");
+//		QString obs = variant.obs();
+//		obs.replace("-", "");
+//		QString var = variant.chr().str() + "-" + QString::number(variant.start()) + "-" +  ref + "-" + obs;
+//		QString genome = variant.chr().isM() ? "hg38" : buildToString(GSvarHelper::build());
+//		QDesktopServices::openUrl(QUrl("https://varsome.com/variant/" + genome + "/" + var));
+//	}
+
+//	if (execRegistered_)
+//	{
+//		execRegistered_(parent_menu, action, index);
+//	}
+//}
+
+void VariantTable::updateTable(VariantList& variants, const FilterResult& filter_result, const QHash<int,bool>& index_show_report_icon, const QSet<int>& index_causal, int max_variants)
+{
+	//update local reference to the variants
+	variants_ = &variants;
+
 	//set rows and cols
 	int row_count_new = std::min(filter_result.countPassing(), max_variants);
 	int col_count_new = 5 + variants.annotations().count();
@@ -233,7 +571,7 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 	}
 }
 
-void VariantTable::update(const VariantList& variants, const FilterResult& filter_result, const ReportSettings& report_settings, int max_variants)
+void VariantTable::update(VariantList& variants, const FilterResult& filter_result, const ReportSettings& report_settings, int max_variants)
 {
 	//init
 	QHash<int, bool> index_show_report_icon;
@@ -248,7 +586,7 @@ void VariantTable::update(const VariantList& variants, const FilterResult& filte
 	updateTable(variants, filter_result, index_show_report_icon, index_causal, max_variants);
 }
 
-void VariantTable::update(const VariantList& variants, const FilterResult& filter_result, const SomaticReportSettings& report_settings, int max_variants)
+void VariantTable::update(VariantList& variants, const FilterResult& filter_result, const SomaticReportSettings& report_settings, int max_variants)
 {
 	//init
 	QHash<int, bool> index_show_report_icon;
