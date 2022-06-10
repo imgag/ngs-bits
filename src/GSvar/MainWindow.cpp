@@ -5524,7 +5524,6 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	GeneSet genes = GeneSet::createFromText(variant.annotations()[i_gene], ',');
 	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
 	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(i_co_sp);
-	int i_dbsnp = variants_.annotationIndexByName("dbSNP", true, true);
 	const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
 
 	//create context menu

@@ -7,7 +7,6 @@
 #include "ReportSettings.h"
 #include "SomaticReportSettings.h"
 #include <QMenu>
-#include <functional>
 
 //GUI representation of (filtered) variant table
 class VariantTable
@@ -81,8 +80,6 @@ public slots:
 	///Copy table to clipboard
 	void copyToClipboard(bool split_quality=false, bool include_header_one_row=false);
 
-//	void customContextMenu(QPoint pos);
-
 protected:
 
 	///This method provides generic functionality independent of ReportSettings/SomaticReportSettings
@@ -92,12 +89,7 @@ protected:
 	void keyPressEvent(QKeyEvent* event) override;
 
 private:
-	std::function<QMenu()> createBaseMenu_;
-	std::function<void(QMenu* parent_menu, QAction* action, int index)> execRegistered_;
-	bool add_clinvar_;
 	VariantList* variants_;
-	QMenu base_;
-
 };
 
 #endif // VARIANTTABLE_H
