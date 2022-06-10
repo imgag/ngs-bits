@@ -1642,6 +1642,9 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(QList<int>
 				//clear cache
 				cache.clear();
 				cache_log2p1.clear();
+				//collect tpm
+				cache.append(tpm);
+				cache_log2p1.append(std::log2(tpm + 1));
 			}
 			current_symbol = symbol;
 		}
@@ -1731,14 +1734,14 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateCohortExpressionStatistics(int 
 				hpo_disease_info << info.disease_info;
 			}
 		}
-
+		qDebug() << sample_ids;
 		qDebug() << "HPO: " << hpo_disease_info;
 		qDebug() << "ICD10: " << icd10_disease_info;
 
-		if(icd10_disease_info.size() > 1) THROW(DatabaseException, "Sample contains more than 1 ICD10 code, cannot create sample cohort");
-		if(hpo_disease_info.size() > 1) THROW(DatabaseException, "Sample contains more than 1 HPO term, cannot create sample cohort");
-		if(icd10_disease_info.size() <1) THROW(DatabaseException, "Sample does not contain ICD10 code, cannot create sample cohort");
-		if(hpo_disease_info.size() < 1) THROW(DatabaseException, "Sample does not contain HPO term, cannot create sample cohort");
+		if(icd10_disease_info.size() > 1) THROW(DatabaseException, "Sample " + processedSampleName(ps_id) + " contains more than 1 ICD10 code, cannot create sample cohort");
+		if(hpo_disease_info.size() > 1) THROW(DatabaseException, "Sample " + processedSampleName(ps_id) + " contains more than 1 HPO term, cannot create sample cohort");
+		if(icd10_disease_info.size() <1) THROW(DatabaseException, "Sample " + processedSampleName(ps_id) + " does not contain ICD10 code, cannot create sample cohort");
+		if(hpo_disease_info.size() < 1) THROW(DatabaseException, "Sample " + processedSampleName(ps_id) + " does not contain HPO term, cannot create sample cohort");
 
 
 		qDebug() << "get disease info" << Helper::elapsedTime(timer);

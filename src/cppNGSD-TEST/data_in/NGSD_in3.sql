@@ -24,7 +24,25 @@ INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `tissue`, `s
 (5, 'RX005', 'ex5', 'RNA', 'Blood', 1, 'female', 'good', 0 ,0, 1, 'comment_s5', 'n/a', 'Affected'),
 (6, 'RX006', 'ex6', 'RNA', 'Blood', 1, 'female', 'good', 0 ,0, 1, 'comment_s6', 'n/a', 'Affected'),
 (7, 'RX007', 'ex7', 'RNA', 'Blood', 1, 'male', 'good', 0 ,0, 1, 'comment_s7', 'n/a', 'Affected'),
-(8, 'RX008', 'ex8', 'RNA', 'Blood', 1, 'male', 'good', 0 ,0, 1, 'comment_s8', 'n/a', 'Affected');
+(8, 'RX008', 'ex8', 'RNA', 'Blood', 1, 'male', 'good', 0 ,0, 1, 'comment_s8', 'n/a', 'Affected'),
+(11, 'DX001', 'ex1', 'DNA', 'Skin', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'n/a', 'Affected'),
+(12, 'DX002', 'ex2', 'DNA', 'Skin', 1, 'female', 'good', 0 ,0, 1, 'comment_s2', 'n/a', 'Affected'),
+(13, 'DX003', 'ex3', 'DNA', 'Skin', 1, 'male', 'good', 0 ,0, 1, 'comment_s3', 'n/a', 'Affected'),
+(14, 'DX004', 'ex4', 'DNA', 'Skin', 1, 'male', 'good', 0 ,0, 1, 'comment_s4', 'n/a', 'Affected'),
+(15, 'DX005', 'ex5', 'DNA', 'Blood', 1, 'female', 'good', 0 ,0, 1, 'comment_s5', 'n/a', 'Affected'),
+(16, 'DX006', 'ex6', 'DNA', 'Blood', 1, 'female', 'good', 0 ,0, 1, 'comment_s6', 'n/a', 'Affected'),
+(17, 'DX007', 'ex7', 'DNA', 'Blood', 1, 'male', 'good', 0 ,0, 1, 'comment_s7', 'n/a', 'Affected'),
+(18, 'DX008', 'ex8', 'DNA', 'Blood', 1, 'male', 'good', 0 ,0, 1, 'comment_s8', 'n/a', 'Affected');
+
+INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES
+(1, 'same sample', 11),
+(2, 'same sample', 12),
+(3, 'same sample', 13),
+(4, 'same sample', 14),
+(5, 'same sample', 15),
+(6, 'same sample', 16),
+(7, 'same sample', 17),
+(8, 'same sample', 18);
 
 INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapter1_p5`, `adapter2_p7`, `type`, `shotgun`, `target_file`, `genome_id`) VALUES
 (1, 'nebRNAU2_mrna', 'NEBNext Ultra II Directional RNA mRNA', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'RNA', 1, 'nebRNAU2_mrna_2021_12_13.bed', 1);
@@ -37,19 +55,27 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 (5005, 5, 1, 1, '1', 1, 1, 'medium', 'comment_ps5', null),
 (5006, 6, 1, 1, '1', 1, 2, 'good', 'comment_ps6', null),
 (5007, 7, 1, 1, '1', 1, 1, 'medium', 'comment_ps7', null),
-(5008, 8, 1, 1, '1', 1, 2, 'good', 'comment_ps8', null);
+(5008, 8, 1, 1, '1', 1, 2, 'good', 'comment_ps8', null),
+(6001, 11, 1, 1, '1', 1, 1, 'medium', 'comment_ps1', null),
+(6002, 12, 1, 1, '1', 1, 2, 'good', 'comment_ps2', null),
+(6003, 13, 1, 1, '1', 1, 1, 'medium', 'comment_ps3', null),
+(6004, 14, 1, 1, '1', 1, 2, 'good', 'comment_ps4', null),
+(6005, 15, 1, 1, '1', 1, 1, 'medium', 'comment_ps5', null),
+(6006, 16, 1, 1, '1', 1, 2, 'good', 'comment_ps6', null),
+(6007, 17, 1, 1, '1', 1, 1, 'medium', 'comment_ps7', null),
+(6008, 18, 1, 1, '1', 1, 2, 'good', 'comment_ps8', null);
 
-INSERT INTO `sample_disease_info` (`id`, `sample_id`, `disease_info`, `type`) VALUES
-(1, 1, 'HPO:0123456', 'HPO term id'),
-(2, 1, 'ICD10 test code 001', 'ICD10 code'),
-(3, 2, 'HPO:6543210', 'HPO term id'),
-(4, 2, 'ICD10 test code 002', 'ICD10 code'),
-(5, 3, 'HPO:0123456', 'HPO term id'),
-(6, 4, 'ICD10 test code 002', 'ICD10 code'),
-(7, 5, 'ICD10 test code 001', 'ICD10 code'),
-(8, 6, 'HPO:6543210', 'HPO term id'),
-(9, 7, 'ICD10 test code 001', 'ICD10 code'),
-(10, 8, 'ICD10 test code 002', 'ICD10 code');
+INSERT INTO `sample_disease_info` (`id`, `sample_id`, `disease_info`, `type`, `user_id`) VALUES
+(1, 1, 'HPO:0123456', 'HPO term id', 99),
+(2, 1, 'ICD10 test code 001', 'ICD10 code', 99),
+(3, 2, 'HPO:6543210', 'HPO term id', 99),
+(4, 2, 'ICD10 test code 002', 'ICD10 code', 99),
+(5, 3, 'HPO:0123456', 'HPO term id', 99),
+(6, 4, 'ICD10 test code 002', 'ICD10 code', 99),
+(7, 15, 'ICD10 test code 001', 'ICD10 code', 99),
+(8, 16, 'HPO:6543210', 'HPO term id', 99),
+(9, 17, 'ICD10 test code 001', 'ICD10 code', 99),
+(10, 18, 'ICD10 test code 002', 'ICD10 code', 99);
 
 
 INSERT INTO `gene` (`id`, `hgnc_id`, `symbol`, `name`, `type`, `ensembl_id`) VALUES
