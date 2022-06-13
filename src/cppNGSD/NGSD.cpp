@@ -1611,7 +1611,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(QSet<int>&
 					"SELECT e.symbol, e.tpm "
 					"FROM expression e "
 					"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") "
-					"ORDER BY e.symbol; "
+					"ORDER BY e.symbol;"
 					);
 	}
 	else
@@ -1624,7 +1624,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(QSet<int>&
 					"SELECT e.symbol, e.tpm "
 					"FROM expression e "
 					"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") "
-					"AND e.symbol='" + geneSymbol(gene_id) + "'; "
+					"AND e.symbol='" + geneSymbol(gene_id) + "';"
 					);
 	}
 
@@ -1647,7 +1647,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(QSet<int>&
 			cache.append(tpm);
 			cache_log2p1.append(std::log2(tpm + 1));
 		}
-		else if ((symbol != current_symbol) || q.last())
+		else if (symbol != current_symbol)
 		{
 			if (!current_symbol.isEmpty())
 			{
@@ -1661,14 +1661,25 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(QSet<int>&
 				//clear cache
 				cache.clear();
 				cache_log2p1.clear();
-				//collect tpm
-				cache.append(tpm);
-				cache_log2p1.append(std::log2(tpm + 1));
 			}
+			//collect tpm
+			cache.append(tpm);
+			cache_log2p1.append(std::log2(tpm + 1));
+			//update symbol
 			current_symbol = symbol;
 		}
 	}
+
+	//store last symbol
+	ExpressionStats stats;
+	stats.mean = BasicStatistics::mean(cache);
+	stats.mean_log2 = BasicStatistics::mean(cache_log2p1);
+	stats.stddev_log2 = BasicStatistics::stdev(cache_log2p1, stats.mean_log2);
+	gene_stats.insert(current_symbol, stats);
+
+
 	qDebug() << "Statistics calculated: " << Helper::elapsedTime(timer);
+	qDebug() << "gene_stats: " << gene_stats.size();
 
 	return gene_stats;
 }

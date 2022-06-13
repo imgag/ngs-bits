@@ -2367,6 +2367,7 @@ private slots:
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000049245")).stddev_log2, 0, 0.001);
 		I_EQUAL(cohort.size(), 4);
 
+
 		expression_stats = db.calculateCohortExpressionStatistics(1, "Blood", cohort, "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE_PROJECT);
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000232596")).mean, 204.681, 0.001);
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000232596")).mean_log2, 7.6221, 0.001);
@@ -2418,6 +2419,38 @@ private slots:
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000283234")).stddev_log2, 0, 0.001);
 		I_EQUAL(cohort.size(), 4);
 
+
+		//Test limited expresion stats:
+		cohort = db.getRNACohort(1, "Blood");
+		expression_stats = db.calculateExpressionStatistics(cohort, "LINC01646");
+		I_EQUAL(expression_stats.size(), 1);
+		F_EQUAL2(expression_stats.value("LINC01646").mean, 121.091, 0.001);
+		F_EQUAL2(expression_stats.value("LINC01646").mean_log2, 5.373, 0.001);
+		F_EQUAL2(expression_stats.value("LINC01646").stddev_log2, 3.167, 0.001);
+		expression_stats = db.calculateExpressionStatistics(cohort, "VAMP3");
+		I_EQUAL(expression_stats.size(), 1);
+		F_EQUAL2(expression_stats.value("VAMP3").mean, 0, 0.001);
+		F_EQUAL2(expression_stats.value("VAMP3").mean_log2, 0, 0.001);
+		F_EQUAL2(expression_stats.value("VAMP3").stddev_log2, 0, 0.001);
+
+		cohort = db.getRNACohort(1, "Blood", "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE_PROJECT);
+		expression_stats = db.calculateExpressionStatistics(cohort, "LINC01646");
+		I_EQUAL(expression_stats.size(), 1);
+		F_EQUAL2(expression_stats.value("LINC01646").mean, 204.681, 0.001);
+		F_EQUAL2(expression_stats.value("LINC01646").mean_log2, 7.6221, 0.001);
+		F_EQUAL2(expression_stats.value("LINC01646").stddev_log2, 0.427, 0.001);
+		expression_stats = db.calculateExpressionStatistics(cohort, "VAMP3");
+		I_EQUAL(expression_stats.size(), 1);
+		F_EQUAL2(expression_stats.value("VAMP3").mean, 0.0, 0.001);
+		F_EQUAL2(expression_stats.value("VAMP3").mean_log2, 0.0, 0.001);
+		F_EQUAL2(expression_stats.value("VAMP3").stddev_log2, 0.0, 0.001);
+
+		cohort = db.getRNACohort(1, "", "KontrollDNACoriell2", "5002", RNA_COHORT_SOMATIC);
+		expression_stats = db.calculateExpressionStatistics(cohort, "RER1");
+		I_EQUAL(expression_stats.size(), 1);
+		F_EQUAL2(expression_stats.value("RER1").mean, 27.191, 0.001);
+		F_EQUAL2(expression_stats.value("RER1").mean_log2, 1.695, 0.001);
+		F_EQUAL2(expression_stats.value("RER1").stddev_log2, 2.935, 0.001);
 
 	}
 	//Test for debugging (without initialization because of speed)
