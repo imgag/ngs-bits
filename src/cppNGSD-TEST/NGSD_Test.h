@@ -2334,9 +2334,30 @@ private slots:
 		count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 816);
 
+		//Test cohort determination:
+		QSet<int> cohort = db.getRNACohort(1, "Blood");
+		I_EQUAL(cohort.size(), 4);
+		IS_TRUE(cohort.contains(5005));
+		IS_TRUE(cohort.contains(5006));
+		IS_TRUE(cohort.contains(5007));
+		IS_TRUE(cohort.contains(5008));
+
+		cohort = db.getRNACohort(1, "Skin", "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE_PROJECT);
+		I_EQUAL(cohort.size(), 2);
+		IS_TRUE(cohort.contains(5001));
+		IS_TRUE(cohort.contains(5003));
+
+		cohort = db.getRNACohort(1, "", "KontrollDNACoriell", "5001", RNA_COHORT_SOMATIC);
+		I_EQUAL(cohort.size(), 4);
+		IS_TRUE(cohort.contains(5001));
+		IS_TRUE(cohort.contains(5003));
+		IS_TRUE(cohort.contains(5005));
+		IS_TRUE(cohort.contains(5007));
+
+
+
 
 		//Test expression stats:
-		QSet<int> cohort;
 		QMap<QByteArray, ExpressionStats> expression_stats = db.calculateCohortExpressionStatistics(1, "Blood", cohort);
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000232596")).mean, 121.091, 0.001);
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000232596")).mean_log2, 5.373, 0.001);
@@ -2388,14 +2409,14 @@ private slots:
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000049245")).stddev_log2, 3.149, 0.001);
 		I_EQUAL(cohort.size(), 4);
 
-//		expression_stats = db.calculateCohortExpressionStatistics(1, "", cohort, "KontrollDNACoriell", "5002", RNA_COHORT_SOMATIC);
-//		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).mean, 27.191, 0.001);
-//		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).mean_log2, 1.695, 0.001);
-//		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).stddev_log2, 2.935, 0.001);
-//		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000283234")).mean, 0, 0.001);
-//		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000283234")).mean_log2, 0, 0.001);
-//		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000283234")).stddev_log2, 0, 0.001);
-//		I_EQUAL(cohort.size(), 4);
+		expression_stats = db.calculateCohortExpressionStatistics(1, "", cohort, "KontrollDNACoriell2", "5002", RNA_COHORT_SOMATIC);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).mean, 27.191, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).mean_log2, 1.695, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).stddev_log2, 2.935, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000283234")).mean, 0, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000283234")).mean_log2, 0, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000283234")).stddev_log2, 0, 0.001);
+		I_EQUAL(cohort.size(), 4);
 
 
 	}
