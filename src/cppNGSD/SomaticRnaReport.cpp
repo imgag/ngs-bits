@@ -446,12 +446,12 @@ RtfParagraph SomaticRnaReport::partVarExplanation()
 	out += bold("Anteil:") + " Anteil der Allele mit der gelisteten Variante (SNV, INDEL) bzw. Anteil der Zellen mit der entsprechenden CNV in der untersuchten Probe; ";
 	out += bold("CN:") + " Copy Number, ";
 	out += bold("TPM:") + " Normalisierte Expression des Gens als Transkriptanzahl pro Kilobase und pro Million Reads. ";
-	out += bold("Referenz HSA-TPM: ") + "Expression des Gens als Mittelwert TPM in Vergleichsproben aus Zellen aus " + trans(data_.rna_hpa_ref_tissue) + " (The Human Protein Atlas). ";
+	out += bold("Referenz HPA-TPM: ") + "Expression des Gens als Mittelwert TPM in Vergleichsproben aus Zellen aus " + trans(data_.rna_hpa_ref_tissue) + " (The Human Protein Atlas). ";
 	out += bold("n/a:") + " Falls keine geeignete Referenzprobe vorhanden. ";
-	out += bold("Bewertung (1):") + " Die Expression eines Gens mit beschriebenem Funtionsgewinn (Gain of Function) ist in der Probe erhöht oder die Expression eines Gens mit Funktionsverlust (LoF) ist in der Probe reduziert. ";
+	out += bold("Bewertung (1):") + " Die Expression eines Gens mit beschriebenem Funktionsgewinn (Gain of Function) ist in der Probe erhöht oder die Expression eines Gens mit Funktionsverlust (LoF) ist in der Probe reduziert im Vergleich zu Referenz HPA-TPM. ";
 	out += bold("(2):") + " Die Expression ist in der Probe und in der Kontrolle ähnlich oder die Rolle des Gens in der Onkogenese ist nicht eindeutig. ";
 	out += bold("Tumortyp MW-TPM:") + " Expression des Gens als Mittelwert TPM in Tumorproben gleicher Entität (in-house Datenbank). Bei weniger als fünf Tumorproben gleicher Entität ist kein Vergleich sinnvoll (n/a). ";
-	out += bold("Veränderung (-fach):") + " Relative Expression in der Tumorprobe gegenüber der mittleren Expression in der in-house Vergleichskohorte gleicher Tumorentiät. ";
+	out += bold("Veränderung (x-fach):") + " Relative Expression in der Tumorprobe gegenüber der mittleren Expression in der in-house Vergleichskohorte gleicher Tumorentität. ";
 	out += bold("p-Wert:") + " Signifikanztest nach Fisher. " + bold("n/a:") + " nicht anwendbar.";
 
 	return RtfParagraph(out).setFontSize(16).setHorizontalAlignment("j");
