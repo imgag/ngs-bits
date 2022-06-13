@@ -2355,8 +2355,6 @@ private slots:
 		IS_TRUE(cohort.contains(5007));
 
 
-
-
 		//Test expression stats:
 		QMap<QByteArray, ExpressionStats> expression_stats = db.calculateCohortExpressionStatistics(1, "Blood", cohort);
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000232596")).mean, 121.091, 0.001);
@@ -2366,7 +2364,6 @@ private slots:
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000049245")).mean_log2, 0, 0.001);
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000049245")).stddev_log2, 0, 0.001);
 		I_EQUAL(cohort.size(), 4);
-
 
 		expression_stats = db.calculateCohortExpressionStatistics(1, "Blood", cohort, "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE_PROJECT);
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000232596")).mean, 204.681, 0.001);

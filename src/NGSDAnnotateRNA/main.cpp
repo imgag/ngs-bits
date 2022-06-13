@@ -22,7 +22,6 @@ public:
 	virtual void setup()
 	{
 		setDescription("Annotates a RNA expression TSV file with cohort information.");
-		addInfile("bed", "BED file that is used as annotation source.", false);
 		addString("ps", "Processed sample name of the input file.", false);
 
 
