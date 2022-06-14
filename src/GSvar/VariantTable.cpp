@@ -25,7 +25,7 @@ VariantTable::VariantTable(QWidget* parent)
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customContextMenu(QPoint)));
 }
 
-void VariantTable::registerContextMenuBase(std::function<QMenu*(int)> createBaseMenu, std::function<void(QAction* action, int index)> execRegistered, bool add_clinvar)
+void VariantTable::registerContextMenuBase(std::function<std::shared_ptr<QMenu>(int)> createBaseMenu, std::function<void(QAction* action, int index)> execRegistered, bool add_clinvar)
 {
 	getBaseMenu_ = createBaseMenu;
 	execRegistered_ = execRegistered;
@@ -43,14 +43,14 @@ void VariantTable::customContextMenu(QPoint pos)
 	}
 	int index = indices[0];
 
-	QMenu* menu;
+	std::shared_ptr<QMenu> menu;
 	if (getBaseMenu_  && execRegistered_)
 	{
 		menu = getBaseMenu_(index);
 	}
 	else
 	{
-		menu = new QMenu(this);
+		menu = std::make_shared<QMenu>(this);
 	}
 
 	//add searches
@@ -67,10 +67,6 @@ void VariantTable::customContextMenu(QPoint pos)
 	if (getBaseMenu_ && execRegistered_)
 	{
 		execRegistered_(action, index);
-	}
-	else
-	{
-		delete menu;
 	}
 }
 

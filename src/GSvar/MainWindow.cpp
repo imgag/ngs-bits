@@ -145,7 +145,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, igv_initialized_(false)
 	, variants_changed_()
 	, last_report_path_(QDir::homePath())
-	, variant_context_menu_(this)
+	, variant_context_menu_(new QMenu(this))
 	, init_timer_(this, true)
 {
 	//setup GUI
@@ -272,7 +272,7 @@ MainWindow::MainWindow(QWidget *parent)
 	}
 
 	//variant context menu
-	std::function<QMenu*(int)> createBase = std::bind(&MainWindow::createBaseContextMenu, this ,std::placeholders::_1);
+	std::function<std::shared_ptr<QMenu>(int)> createBase = std::bind(&MainWindow::createBaseContextMenu, this ,std::placeholders::_1);
 	std::function<void(QAction*, int)> execAction = std::bind(&MainWindow::execContextMenuAction, this ,std::placeholders::_1, std::placeholders::_2);
 	ui_.vars->registerContextMenuBase(createBase, execAction, false);
 }
@@ -5521,7 +5521,7 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 	}
 }
 
-QMenu* MainWindow::createBaseContextMenu(int index)
+std::shared_ptr<QMenu> MainWindow::createBaseContextMenu(int index)
 {
 	//init
 	bool  ngsd_user_logged_in = LoginManager::active();
@@ -5532,37 +5532,37 @@ QMenu* MainWindow::createBaseContextMenu(int index)
 	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(i_co_sp);
 	const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
 
-	variant_context_menu_.clear();
+	variant_context_menu_->clear();
 
 	//NGSD report configuration
-	QAction* a_report_edit = variant_context_menu_.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
+	QAction* a_report_edit = variant_context_menu_->addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
 	a_report_edit->setEnabled(ngsd_user_logged_in);
-	QAction* a_report_del = variant_context_menu_.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
+	QAction* a_report_del = variant_context_menu_->addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
 	a_report_del->setEnabled(ngsd_user_logged_in && ((!report_settings_.report_config->isFinalized() && report_settings_.report_config->exists(VariantType::SNVS_INDELS, index)) || somatic_report_settings_.report_config.exists(VariantType::SNVS_INDELS, index)));
-	variant_context_menu_.addSeparator();
+	variant_context_menu_->addSeparator();
 
 	//NGSD variant options
-	QAction* a_var_class = variant_context_menu_.addAction("Edit classification");
+	QAction* a_var_class = variant_context_menu_->addAction("Edit classification");
 	a_var_class->setEnabled(ngsd_user_logged_in);
-	QAction* a_var_class_somatic = variant_context_menu_.addAction("Edit classification  (somatic)");
+	QAction* a_var_class_somatic = variant_context_menu_->addAction("Edit classification  (somatic)");
 	a_var_class_somatic->setEnabled(ngsd_user_logged_in);
-	QAction * a_var_interpretation_somatic = variant_context_menu_.addAction("Edit VICC interpretation (somatic)");
+	QAction * a_var_interpretation_somatic = variant_context_menu_->addAction("Edit VICC interpretation (somatic)");
 	a_var_interpretation_somatic->setEnabled(ngsd_user_logged_in);
-	QAction* a_var_comment = variant_context_menu_.addAction("Edit comment");
+	QAction* a_var_comment = variant_context_menu_->addAction("Edit comment");
 	a_var_comment->setEnabled(ngsd_user_logged_in);
-	QAction* a_var_val = variant_context_menu_.addAction("Perform variant validation");
+	QAction* a_var_val = variant_context_menu_->addAction("Perform variant validation");
 	a_var_val->setEnabled(ngsd_user_logged_in);
-	variant_context_menu_.addSeparator();
+	variant_context_menu_->addSeparator();
 
-	QAction* a_visual = variant_context_menu_.addAction("Visualize");
+	QAction* a_visual = variant_context_menu_->addAction("Visualize");
 	a_visual->setEnabled(Settings::boolean("debug_mode_enabled", true));
-	variant_context_menu_.addSeparator();
+	variant_context_menu_->addSeparator();
 
 	QMenu* sub_menu;
 	//Alamut
 	if (Settings::contains("alamut_host") && Settings::contains("alamut_institution") && Settings::contains("alamut_apikey"))
 	{
-		sub_menu = variant_context_menu_.addMenu(QIcon("://Icons/Alamut.png"), "Alamut");
+		sub_menu = variant_context_menu_->addMenu(QIcon("://Icons/Alamut.png"), "Alamut");
 
 		//BAM
 		if (variants_.type()==GERMLINE_SINGLESAMPLE)
@@ -5599,17 +5599,17 @@ QMenu* MainWindow::createBaseContextMenu(int index)
 				}
 			}
 		}
-		variant_context_menu_.addSeparator();
+		variant_context_menu_->addSeparator();
 	}
 
 
 	//add gene databases
 	if (!genes.isEmpty())
 	{
-		variant_context_menu_.addSeparator();
+		variant_context_menu_->addSeparator();
 		foreach(const QByteArray& g, genes)
 		{
-			sub_menu = variant_context_menu_.addMenu(g);
+			sub_menu = variant_context_menu_->addMenu(g);
 			sub_menu->addAction(QIcon("://Icons/NGSD_gene.png"), "Gene tab")->setEnabled(ngsd_user_logged_in);
 			sub_menu->addAction(QIcon("://Icons/Google.png"), "Google");
 			foreach(const GeneDB& db, GeneInfoDBs::all())
@@ -5623,7 +5623,7 @@ QMenu* MainWindow::createBaseContextMenu(int index)
 	QString custom_menu_small_variants = Settings::string("custom_menu_small_variants", true).trimmed();
 	if (!custom_menu_small_variants.isEmpty())
 	{
-		sub_menu = variant_context_menu_.addMenu("Custom");
+		sub_menu = variant_context_menu_->addMenu("Custom");
 		QStringList custom_entries = custom_menu_small_variants.split("\t");
 		foreach(QString custom_entry, custom_entries)
 		{
@@ -5635,16 +5635,15 @@ QMenu* MainWindow::createBaseContextMenu(int index)
 		}
 	}
 
-	variant_context_menu_.addSeparator();
+	variant_context_menu_->addSeparator();
 
 	//ClinVar upload/search
-	sub_menu = variant_context_menu_.addMenu(QIcon("://Icons/ClinGen.png"), "ClinVar");
+	sub_menu = variant_context_menu_->addMenu(QIcon("://Icons/ClinGen.png"), "ClinVar");
 	sub_menu->addAction("Find in ClinVar");
 	QAction* a_clinvar_pub = sub_menu->addAction("Publish in ClinVar");
 	a_clinvar_pub->setEnabled(ngsd_user_logged_in);
 
-	return &variant_context_menu_;
-
+	return variant_context_menu_;
 }
 
 

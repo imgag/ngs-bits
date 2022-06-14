@@ -49,7 +49,7 @@ public:
 		return new QTableWidgetItem(text);
 	}
 	///register a base context menu that is expanded by the search options
-	void registerContextMenuBase(std::function<QMenu*(int)> createBaseMenu, std::function<void(QAction* action, int index)> execRegistered, bool add_clinvar=true);
+	void registerContextMenuBase(std::function<std::shared_ptr<QMenu>(int)> createBaseMenu, std::function<void(QAction* action, int index)> execRegistered, bool add_clinvar=true);
 
 	///Returns the current column widths.
 	QList<int> columnWidths() const;
@@ -93,7 +93,7 @@ private:
 
 	VariantList* variants_;
 	bool add_clinvar_;
-	std::function<QMenu*(int index)> getBaseMenu_;
+	std::function<std::shared_ptr<QMenu>(int index)> getBaseMenu_;
 	std::function<void(QAction* action, int index)> execRegistered_;
 };
 
