@@ -49,10 +49,7 @@ public:
 		return new QTableWidgetItem(text);
 	}
 	///register a base context menu that is expanded by the search options
-	void registerContextMenuBase(std::function<QMenu()> createBaseMenu, std::function<void(QMenu* parent_menu, QAction* action, int index)> execRegistered, bool add_clinvar);
-
-	void addToContextMenu(QMenu& menu, int index, bool add_clinvar=true);
-	void execContextMenu(QAction* action, int index);
+	void registerContextMenuBase(std::function<QMenu*(int)> createBaseMenu, std::function<void(QAction* action, int index)> execRegistered, bool add_clinvar=true);
 
 	///Returns the current column widths.
 	QList<int> columnWidths() const;
@@ -65,6 +62,8 @@ public:
 
 
 public slots:
+	void customContextMenu(QPoint pos);
+
 	///Clear contents
 	void clearContents();
 
@@ -89,7 +88,13 @@ protected:
 	void keyPressEvent(QKeyEvent* event) override;
 
 private:
+	void createContextMenu(QMenu& menu, int index, bool add_clinvar=true);
+	void execContextMenuAction(QAction* action, int index);
+
 	VariantList* variants_;
+	bool add_clinvar_;
+	std::function<QMenu*(int index)> getBaseMenu_;
+	std::function<void(QAction* action, int index)> execRegistered_;
 };
 
 #endif // VARIANTTABLE_H

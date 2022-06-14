@@ -15,16 +15,66 @@
 
 VariantTable::VariantTable(QWidget* parent)
 	: QTableWidget(parent)
+	, add_clinvar_(true)
 {
 	//make sure the selection is visible when the table looses focus
 	QString fg = GUIHelper::colorToQssFormat(palette().color(QPalette::Active, QPalette::HighlightedText));
 	QString bg = GUIHelper::colorToQssFormat(palette().color(QPalette::Active, QPalette::Highlight));
 	setStyleSheet(QString("QTableWidget:!active { selection-color: %1; selection-background-color: %2; }").arg(fg).arg(bg));
-
-//	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customContextMenu(QPoint)));
+	setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
+	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customContextMenu(QPoint)));
 }
 
-void VariantTable::addToContextMenu(QMenu& menu, int index, bool add_clinvar)
+void VariantTable::registerContextMenuBase(std::function<QMenu*(int)> createBaseMenu, std::function<void(QAction* action, int index)> execRegistered, bool add_clinvar)
+{
+	getBaseMenu_ = createBaseMenu;
+	execRegistered_ = execRegistered;
+	add_clinvar_ = add_clinvar;
+}
+
+void VariantTable::customContextMenu(QPoint pos)
+{
+	pos = viewport()->mapToGlobal(pos);
+
+	QList<int> indices = selectedVariantsIndices();
+	if (indices.count() != 1)
+	{
+		return;
+	}
+	int index = indices[0];
+
+	QMenu* menu;
+	if (getBaseMenu_  && execRegistered_)
+	{
+		menu = getBaseMenu_(index);
+	}
+	else
+	{
+		menu = new QMenu(this);
+	}
+
+	//add searches
+	createContextMenu(*menu, index, add_clinvar_);
+
+	//execute menu
+	QAction* action = menu->exec(pos);
+	if (!action) return;
+
+
+	//perform actions:
+	execContextMenuAction(action, index);
+
+	if (getBaseMenu_ && execRegistered_)
+	{
+		execRegistered_(action, index);
+	}
+	else
+	{
+		delete menu;
+	}
+}
+
+void VariantTable::createContextMenu(QMenu& menu, int index, bool add_clinvar)
 {
 	bool  ngsd_user_logged_in = LoginManager::active();
 	const Variant variant = (*variants_)[index];
@@ -34,22 +84,12 @@ void VariantTable::addToContextMenu(QMenu& menu, int index, bool add_clinvar)
 	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(i_co_sp);
 	const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
 
-
-	//Google and Google Scholar
-	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/Google.png"), "Google");
-	QMenu* sub_menu2 = menu.addMenu(QIcon("://Icons/GoogleScholar.png"), "Google Scholar");
-	foreach(const VariantTranscript& trans, transcripts)
+	if (add_clinvar)
 	{
-		QAction* action = sub_menu->addAction(trans.gene + " " + trans.idWithoutVersion() + " " + trans.hgvs_c + " " + trans.hgvs_p);
-		QAction* action2 = sub_menu2->addAction(trans.gene + " " + trans.idWithoutVersion() + " " + trans.hgvs_c + " " + trans.hgvs_p);
-		if (preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion()))
-		{
-			QFont font = action->font();
-			font.setBold(true);
-			action->setFont(font);
-			action2->setFont(font);
-		}
+		//ClinVar upload/search
+		menu.addAction(QIcon("://Icons/ClinGen.png"), "Find in ClinVar");
 	}
+
 	//UCSC
 	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
 
@@ -63,7 +103,7 @@ void VariantTable::addToContextMenu(QMenu& menu, int index, bool add_clinvar)
 	menu.addAction(QIcon("://Icons/VarSome.png"), "VarSome");
 
 	//PubMed
-	sub_menu = menu.addMenu(QIcon("://Icons/PubMed.png"), "PubMed");
+	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/PubMed.png"), "PubMed");
 	if (ngsd_user_logged_in)
 	{
 		NGSD db;
@@ -105,14 +145,24 @@ void VariantTable::addToContextMenu(QMenu& menu, int index, bool add_clinvar)
 		sub_menu->setEnabled(ngsd_user_logged_in);
 	}
 
-	if (add_clinvar)
+	//Google and Google Scholar
+	sub_menu = menu.addMenu(QIcon("://Icons/Google.png"), "Google");
+	QMenu* sub_menu2 = menu.addMenu(QIcon("://Icons/GoogleScholar.png"), "Google Scholar");
+	foreach(const VariantTranscript& trans, transcripts)
 	{
-		//ClinVar upload/search
-		menu.addAction(QIcon("://Icons/ClinGen.png"), "Find in ClinVar");
+		QAction* action = sub_menu->addAction(trans.gene + " " + trans.idWithoutVersion() + " " + trans.hgvs_c + " " + trans.hgvs_p);
+		QAction* action2 = sub_menu2->addAction(trans.gene + " " + trans.idWithoutVersion() + " " + trans.hgvs_c + " " + trans.hgvs_p);
+		if (preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion()))
+		{
+			QFont font = action->font();
+			font.setBold(true);
+			action->setFont(font);
+			action2->setFont(font);
+		}
 	}
 }
 
-void VariantTable::execContextMenu(QAction* action, int index)
+void VariantTable::execContextMenuAction(QAction* action, int index)
 {
 	const Variant variant = (*variants_)[index];
 
@@ -120,7 +170,6 @@ void VariantTable::execContextMenu(QAction* action, int index)
 	QMenu* parent_menu = qobject_cast<QMenu*>(action->parent());
 
 	//perform actions
-	qDebug() << "performing actions in VariantTable! -> " << text;
 	if (parent_menu && (parent_menu->title()=="Google" || parent_menu->title()=="Google Scholar"))
 	{
 		QByteArray query;
@@ -172,7 +221,7 @@ void VariantTable::execContextMenu(QAction* action, int index)
 		if (variant.ref()=="-") pos += 1;
 		QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants#search_chromosome=" + variant.chr().strNormalized(false)+"&search_VariantOnGenome/DNA"+(GSvarHelper::build()==GenomeBuild::HG38 ? "/hg38" : "")+"=g." + QString::number(pos)));
 	}
-	else if (text=="Find in ClinVar")
+	else if (add_clinvar_ && text=="Find in ClinVar")
 	{
 		QDesktopServices::openUrl(QUrl("https://www.ncbi.nlm.nih.gov/clinvar/?term=" + variant.chr().strNormalized(false)+"[chr]+AND+" + QString::number(variant.start()) + "%3A" + QString::number(variant.end()) + (GSvarHelper::build()==GenomeBuild::HG38? "[chrpos38] " : "[chrpos37] ")));
 	}

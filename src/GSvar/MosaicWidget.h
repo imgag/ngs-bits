@@ -15,7 +15,6 @@ public:
 	MosaicWidget(VariantList& variants, ReportSettings rep_settings, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
 
 private slots:
-	void customContextMenu(QPoint point);
 	void applyFilters(bool debug_time=false);
 	void copyToClipboard();
 	void copyVariantsToClipboard();

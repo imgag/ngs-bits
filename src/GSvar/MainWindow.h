@@ -407,6 +407,9 @@ protected:
 	///Determines normal sample name from filename_, return "" otherwise (tumor-normal pairs)
 	QString normalSampleName();
 
+	QMenu* createBaseContextMenu(int index);
+	void execContextMenuAction(QAction* action, int index);
+
 private:
 	//GUI
 	Ui::MainWindow ui_;
@@ -444,6 +447,7 @@ private:
 	QToolButton* rna_menu_btn_;
 	QToolButton* cfdna_menu_btn_;
 	int igv_port_manual = -1;
+	QMenu variant_context_menu_;
 
 	//SPECIAL
 	DelayedInitializationTimer init_timer_;
