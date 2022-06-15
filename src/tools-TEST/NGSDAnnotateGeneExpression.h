@@ -27,7 +27,7 @@ private slots:
 		db.importExpressionData(TESTDATA("data_in/NGSDAnnotateRNA_expr_in8.tsv"), "RX008_01", false, false);
 
 		EXECUTE("NGSDAnnotateGeneExpression", "-test -rna_ps RX001_01 -in " + TESTDATA("data_in/NGSDAnnotateGeneExpression_in1.GSvar") + " -out out/NGSDAnnotateGeneExpression_out1.GSvar");
-		COMPARE_FILES("outNGSDAnnotateGeneExpression_out1.GSvar", TESTDATA("data_out/NGSDAnnotateGeneExpression_out1.GSvar"))
+		COMPARE_FILES("out/NGSDAnnotateGeneExpression_out1.GSvar", TESTDATA("data_out/NGSDAnnotateGeneExpression_out1.GSvar"))
 	}
 
 	void germline_project()
@@ -51,7 +51,7 @@ private slots:
 
 		EXECUTE("NGSDAnnotateGeneExpression", "-test -cohort_strategy RNA_COHORT_GERMLINE_PROJECT -rna_ps RX001_01 -in " + TESTDATA("data_in/NGSDAnnotateGeneExpression_in1.GSvar")
 				+ " -out out/NGSDAnnotateGeneExpression_out2.GSvar");
-		COMPARE_FILES("outNGSDAnnotateGeneExpression_out2.GSvar", TESTDATA("data_out/NGSDAnnotateGeneExpression_out2.GSvar"))
+		COMPARE_FILES("out/NGSDAnnotateGeneExpression_out2.GSvar", TESTDATA("data_out/NGSDAnnotateGeneExpression_out2.GSvar"))
 	}
 
 	void somatic()
@@ -75,7 +75,7 @@ private slots:
 
 		EXECUTE("NGSDAnnotateGeneExpression", "-test -cohort_strategy RNA_COHORT_SOMATIC -rna_ps RX001_01 -in " + TESTDATA("data_in/NGSDAnnotateGeneExpression_in1.GSvar")
 				+ " -out out/NGSDAnnotateGeneExpression_out3.GSvar");
-		COMPARE_FILES("outNGSDAnnotateGeneExpression_out3.GSvar", TESTDATA("data_out/NGSDAnnotateGeneExpression_out3.GSvar"))
+		COMPARE_FILES("out/NGSDAnnotateGeneExpression_out3.GSvar", TESTDATA("data_out/NGSDAnnotateGeneExpression_out3.GSvar"))
 	}
 
 
