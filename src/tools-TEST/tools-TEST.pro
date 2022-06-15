@@ -139,7 +139,8 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     HgvsToVcf_Test.h\
     RnaQC_Test.h \
     NGSDImportImportExpressionData_Test.h \
-    NGSDAnnotateRNA_Test.h
+    NGSDAnnotateRNA_Test.h \
+    NGSDAnnotateGeneExpression.h
 
 SOURCES += \
     main.cpp

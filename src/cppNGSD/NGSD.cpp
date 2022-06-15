@@ -1587,6 +1587,24 @@ QVector<double> NGSD::getExpressionValues(const QString& ensg, QSet<int> cohort,
 	return expr_values;
 }
 
+QMap<QByteArray, double> NGSD::getExpressionValuesOfSample(const QString& ps_id, bool allow_empty)
+{
+	QMap<QByteArray, double> expression_data;
+
+	SqlQuery query = getQuery();
+	query.prepare("SELECT symbol, tpm FROM expression WHERE processed_sample_id=:0");
+	query.bindValue(0, ps_id);
+	query.exec();
+
+	if(!allow_empty && query.size() < 1) THROW(ArgumentException, "No expression data found for processed sample '" + processedSampleName(ps_id) + "'!");
+
+	while(query.next())
+	{
+		expression_data.insert(query.value(0).toByteArray(), query.value(1).toDouble());
+	}
+	return expression_data;
+}
+
 QMap<QByteArray, ExpressionStats> NGSD::calculateExpressionStatistics(QSet<int>& cohort, QByteArray gene_symbol)
 {
 	QTime timer;

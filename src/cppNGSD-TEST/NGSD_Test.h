@@ -2449,6 +2449,19 @@ private slots:
 		F_EQUAL2(expression_stats.value("RER1").mean_log2, 1.695, 0.001);
 		F_EQUAL2(expression_stats.value("RER1").stddev_log2, 2.935, 0.001);
 
+		//Test sample expression values
+		QMap<QByteArray, double> sample_expression_data = db.getExpressionValuesOfSample("5001", false);
+		I_EQUAL(sample_expression_data.size(), 102);
+		F_EQUAL2(sample_expression_data.value("BRWD1P1"), 51.7352, 0.001);
+		F_EQUAL2(sample_expression_data.value("CASP9"), 28.8433, 0.001);
+		F_EQUAL2(sample_expression_data.value("TMEM201"), 58.3165, 0.001);
+		F_EQUAL2(sample_expression_data.value("USP48"), 0.0000, 0.001);
+
+
+
+		sample_expression_data = db.getExpressionValuesOfSample("123456", true);
+		I_EQUAL(sample_expression_data.size(), 0);
+
 	}
 	//Test for debugging (without initialization because of speed)
 	/*

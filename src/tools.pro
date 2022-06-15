@@ -487,3 +487,7 @@ NGSDImportExpressionData.depends = cppNGSD
 SUBDIRS += NGSDAnnotateRNA
 tools-TEST.depends += NGSDAnnotateRNA
 NGSDAnnotateRNA.depends = cppNGSD
+
+SUBDIRS += NGSDAnnotateGeneExpression
+tools-TEST.depends += NGSDAnnotateGeneExpression
+NGSDAnnotateGeneExpression.depends = cppNGSD

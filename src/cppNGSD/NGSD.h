@@ -753,6 +753,8 @@ public:
 	///Returns a list of all expression values for a given ENSG
 	QVector<double> getExpressionValues(const QString& ensg, int sys_id, const QString& tissue_type, bool log2=false, bool allow_empty=false);
 	QVector<double> getExpressionValues(const QString& ensg, QSet<int> cohort, bool log2=false, bool allow_empty=false);
+	///Returns the expression values fo a single sample
+	QMap<QByteArray, double> getExpressionValuesOfSample(const QString& ps_id, bool allow_empty=false);
 
 	/***User handling functions ***/
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.
