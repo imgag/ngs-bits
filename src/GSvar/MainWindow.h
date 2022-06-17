@@ -50,9 +50,6 @@ public:
 	///Upload variant to Clinvar
 	void uploadToClinvar(int variant_index);
 
-	///Context menu for single variant
-	void contextMenuSingleVariant(QPoint pos, int index);
-
 	///Edit classification of a variant
 	void editVariantClassification(VariantList& variant, int index, bool is_somatic = false);
 
@@ -289,8 +286,6 @@ public slots:
 	void reportGenerationFinished(bool success);
 
 
-	///Shows the variant list context menu
-	void varsContextMenu(QPoint pos);
 	///Shows the variant header context menu
 	void varHeaderContextMenu(QPoint pos);
 	///Updated the variant context menu
@@ -407,9 +402,6 @@ protected:
 	///Determines normal sample name from filename_, return "" otherwise (tumor-normal pairs)
 	QString normalSampleName();
 
-	std::shared_ptr<QMenu> createBaseContextMenu(int index);
-	void execContextMenuAction(QAction* action, int index);
-
 private:
 	//GUI
 	Ui::MainWindow ui_;
@@ -447,7 +439,11 @@ private:
 	QToolButton* rna_menu_btn_;
 	QToolButton* cfdna_menu_btn_;
 	int igv_port_manual = -1;
+
+	//single vars context menu
 	std::shared_ptr<QMenu> variant_context_menu_;
+	std::shared_ptr<QMenu> createBaseContextMenu(int index) const;
+	void execContextMenuAction(QAction* action, int index);
 
 	//SPECIAL
 	DelayedInitializationTimer init_timer_;

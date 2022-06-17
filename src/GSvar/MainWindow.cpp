@@ -5460,16 +5460,6 @@ void MainWindow::refreshVariantTable(bool keep_widths)
 	Log::perf("Updating variant table took ", timer);
 }
 
-void MainWindow::varsContextMenu(QPoint pos)
-{
-	pos = ui_.vars->viewport()->mapToGlobal(pos);
-
-	QList<int> indices = ui_.vars->selectedVariantsIndices();
-	if (indices.count()==1)
-	{
-//		contextMenuSingleVariant(pos, indices[0]);
-	}
-}
 
 void MainWindow::varHeaderContextMenu(QPoint pos)
 {
@@ -5521,7 +5511,7 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 	}
 }
 
-std::shared_ptr<QMenu> MainWindow::createBaseContextMenu(int index)
+std::shared_ptr<QMenu> MainWindow::createBaseContextMenu(int index) const
 {
 	//init
 	bool  ngsd_user_logged_in = LoginManager::active();
