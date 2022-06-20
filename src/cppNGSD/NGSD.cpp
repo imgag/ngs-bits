@@ -1558,7 +1558,7 @@ void NGSD::importTranscriptExpressionData(const QString& expression_data_file_pa
 	int n_imported = 0;
 	int n_skipped = 0;
 
-	QSet<QString> valid_transcripts = getValues("SELECT `name` FROM `transcript`").toSet();
+	QSet<QString> valid_transcripts = getValues("SELECT `name` FROM `gene_transcript`").toSet();
 
 	while (!tsv_file.atEnd())
 	{
@@ -1579,8 +1579,8 @@ void NGSD::importTranscriptExpressionData(const QString& expression_data_file_pa
 		// import value
 		query.bindValue(0, name);
 		query.bindValue(1, raw);
-		query.bindValue(1, rpb);
-		query.bindValue(1, srpb);
+		query.bindValue(2, rpb);
+		query.bindValue(3, srpb);
 		query.exec();
 		n_imported++;
 	}

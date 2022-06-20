@@ -2334,7 +2334,19 @@ private slots:
 		count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 816);
 
-		//TODO: add tests for transcripts
+		//Test transcript expression data import
+		db.importTranscriptExpressionData(TESTDATA("data_in/NGSD_expr_transcript_in1.tsv"), "RX001_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression_transcript").toInt();
+		I_EQUAL(count, 25);
+		db.importTranscriptExpressionData(TESTDATA("data_in/NGSD_expr_transcript_in2.tsv"), "RX002_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression_transcript").toInt();
+		I_EQUAL(count, 50);
+		db.importTranscriptExpressionData(TESTDATA("data_in/NGSD_expr_transcript_in3.tsv"), "RX003_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression_transcript").toInt();
+		I_EQUAL(count, 75);
+		db.importTranscriptExpressionData(TESTDATA("data_in/NGSD_expr_transcript_in3.tsv"), "RX003_01", true, false);
+		count = db.getValue("SELECT count(*) FROM expression_transcript").toInt();
+		I_EQUAL(count, 75);
 
 		//Test cohort determination:
 		QSet<int> cohort = db.getRNACohort(1, "Blood");

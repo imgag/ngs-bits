@@ -2243,7 +2243,7 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 -- Table `expression_transcript`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `expression`
+CREATE TABLE IF NOT EXISTS `expression_transcript`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
@@ -2254,8 +2254,8 @@ CREATE TABLE IF NOT EXISTS `expression`
   PRIMARY KEY (`id`),
   INDEX(`processed_sample_id`),
   INDEX(`name`),
-  UNIQUE INDEX `expression_UNIQUE` (`processed_sample_id` ASC, `name` ASC),
-  CONSTRAINT `fk_expression_processed_sample_id`
+  UNIQUE INDEX `expression_transcript_UNIQUE` (`processed_sample_id` ASC, `name` ASC),
+  CONSTRAINT `fk_expression_transcript_processed_sample_id`
     FOREIGN KEY (`processed_sample_id` )
     REFERENCES `processed_sample` (`id` )
     ON DELETE NO ACTION

@@ -182,3 +182,32 @@ INSERT INTO `gene` (`id`, `hgnc_id`, `symbol`, `name`, `type`, `ensembl_id`) VAL
 (101, 12783, 'WNT4', 'Wnt family member 4', 'protein-coding gene', 'ENSG00000162552'),
 (102, 29045, 'ZBTB40', 'zinc finger and BTB domain containing 40', 'protein-coding gene', 'ENSG00000184677');
 
+
+INSERT INTO `gene_transcript` (`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`, `biotype`, `is_gencode_basic`, `is_ensembl_canonical`, `is_mane_select`, `is_mane_plus_clinical`) VALUES
+(1, 1, 'ENST00000005082', 'ensembl', '11', 3359118, 3379040, '-', 'protein coding', 1, 0, 0, 0),
+(2, 2, 'ENST00000007699', 'ensembl', '17', 7288788, 7294500, '-', 'protein coding', 1, 1, 1, 0),
+(3, 3, 'ENST00000003302', 'ensembl', '11', 113799240, 113875501, '-', 'protein coding', 1, 1, 0, 0),
+(4, 4, 'ENST00000005226', 'ensembl', '11', 17494332, 17544307, '-', 'protein coding', 1, 1, 1, 0),
+(5, 5, 'ENST00000007390', 'ensembl', '16', 1349437, 1351804, '-', 'protein coding', 1, 1, 1, 0),
+(6, 6, 'ENST00000006275', 'ensembl', '19', 45163192, 45178218, '-', 'protein coding', 1, 0, 0, 0),
+(7, 7, 'ENST00000004103', 'ensembl', '7', 150801551, 150804868, '+', 'protein coding', 1, 1, 1, 0),
+(8, 8, 'ENST00000005286', 'ensembl', '11', 60924634, 60936907, '+', 'protein coding', 1, 0, 0, 0),
+(9, 9, 'ENST00000003583', 'ensembl', '1', 24358543, 24401366, '-', 'protein coding', 1, 0, 0, 0),
+(10, 10, 'ENST00000008440', 'ensembl', '1', 231338384, 231351606, '+', 'protein coding', 1, 0, 0, 0),
+(11, 11, 'ENST00000006658', 'ensembl', '17', 50547209, 50555662, '+', 'protein coding', 1, 1, 1, 0),
+(12, 12, 'ENST00000004531', 'ensembl', '8', 17538825, 17565146, '+', 'protein coding', 1, 0, 0, 0),
+(13, 13, 'ENST00000002829', 'ensembl', '3', 50159623, 50188115, '+', 'protein coding', 1, 1, 1, 0),
+(14, 14, 'ENST00000007264', 'ensembl', '16', 785950, 787737, '-', 'protein coding', 1, 1, 1, 0),
+(15, 15, 'ENST00000009589', 'ensembl', '8', 56073090, 56074383, '-', 'protein coding', 1, 1, 1, 0),
+(16, 16, 'ENST00000005386', 'ensembl', '12', 47663505, 47702840, '-', 'protein coding', 1, 1, 1, 0),
+(17, 17, 'ENST00000006777', 'ensembl', '7', 75879083, 75888349, '+', 'protein coding', 1, 1, 1, 0),
+(18, 18, 'ENST00000005257', 'ensembl', '7', 39686668, 39706245, '+', 'protein coding', 1, 1, 1, 0),
+(19, 19, 'ENST00000005995', 'ensembl', '16', 2817269, 2821605, '+', 'protein coding', 1, 1, 1, 0),
+(20, 20, 'ENST00000006251', 'ensembl', '22', 44702502, 44737247, '+', 'protein coding', 1, 0, 0, 0),
+(21, 21, 'ENST00000008938', 'ensembl', '19', 46019238, 46023021, '-', 'protein coding', 1, 1, 1, 0),
+(22, 22, 'ENST00000005178', 'ensembl', '7', 95585641, 95596293, '-', 'protein coding', 1, 1, 1, 0),
+(23, 23, 'ENST00000007708', 'ensembl', '17', 50097497, 50110097, '+', 'protein coding', 1, 0, 0, 0),
+(24, 24, 'ENST00000007414', 'ensembl', '17', 47808291, 47820278, '-', 'protein coding', 1, 1, 1, 0),
+(25, 25, 'ENST00000003912', 'ensembl', '1', 24442139, 24469185, '+', 'protein coding', 1, 0, 0, 0);
+
+

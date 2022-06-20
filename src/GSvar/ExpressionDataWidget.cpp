@@ -651,8 +651,6 @@ void ExpressionDataWidget::loadExpressionData()
 		//TODO stats for transcripts
 
 
-
-
 		column_names_.clear();
 		numeric_columns_.clear();
 		precision_.clear();
@@ -679,8 +677,6 @@ void ExpressionDataWidget::loadExpressionData()
 		{
 			THROW(ArgumentException, "Invalid mode '" + mode_ + "' given!");
 		}
-
-
 
 		//determine col indices for table columns in tsv file
 		QVector<int> column_indices;
