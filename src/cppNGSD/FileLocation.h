@@ -43,6 +43,7 @@ enum class PathType
 	COUNTS, //gene/transcript counts from RNA (TSV format)
 	EXPRESSION, //relative RNA expressions values from RNA (TSV format)
 	EXPRESSION_COHORT, //relative RNA expressions values from RNA cohort of this sample (TSV format)
+	EXPRESSION_TRANSCRIPT, //relative transcript RNA expressions values from RNA (TSV format)
 	SPLICING_BED, //splicing junctions from RNA (BED format)
 	VIRAL, //viral DNA detected in tumor samples (TSV format)
 	VCF_CF_DNA, //cfDNA variants file (VCF format)
@@ -174,6 +175,8 @@ struct FileLocation
 				return "EXPRESSION";
 			case PathType::EXPRESSION_COHORT:
 				return "EXPRESSION_COHORT";
+			case PathType::EXPRESSION_TRANSCRIPT:
+				return "EXPRESSION_TRANSCRIPT";
 			case PathType::MRD_CF_DNA:
 				return "MRD_CF_DNA";
 			case PathType::CFDNA_CANDIDATES:
@@ -220,6 +223,7 @@ struct FileLocation
 		if (in_upper == "OTHER") return PathType::OTHER;
 		if (in_upper == "EXPRESSION") return PathType::EXPRESSION;
 		if (in_upper == "EXPRESSION_COHORT") return PathType::EXPRESSION_COHORT;
+		if (in_upper == "EXPRESSION_TRANSCRIPT") return PathType::EXPRESSION_TRANSCRIPT;
 		if (in_upper == "MRD_CF_DNA") return PathType::MRD_CF_DNA;
 		if (in_upper == "CFDNA_CANDIDATES") return PathType::CFDNA_CANDIDATES;
 		if (in_upper == "IGV_SCREENSHOT") return PathType::IGV_SCREENSHOT;
@@ -294,6 +298,8 @@ struct FileLocation
 				return "RNA relative expression";
 			case PathType::EXPRESSION_COHORT:
 				return "RNA relative expression of cohort";
+			case PathType::EXPRESSION_TRANSCRIPT:
+				return "RNA relative transcript expression";
 			case PathType::MRD_CF_DNA:
 				return "measurable residual disease value (umiVar 2)";
 			case PathType::CFDNA_CANDIDATES:

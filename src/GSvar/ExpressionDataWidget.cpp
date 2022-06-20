@@ -18,7 +18,7 @@ QT_CHARTS_USE_NAMESPACE
 
 
 ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, int sys_id, QString tissue, const QString& variant_gene_filter, const GeneSet& variant_gene_set, const QString& project,
-										   const QString& ps_id, RnaCohortDeterminationStategy cohort_type, QWidget *parent) :
+										   const QString& ps_id, RnaCohortDeterminationStategy cohort_type, QString mode, QWidget *parent) :
 	QWidget(parent),
 	tsv_filename_(tsv_filename),
 	sys_id_(sys_id),
@@ -27,6 +27,7 @@ ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, int sys_id, QSt
 	project_(project),
 	ps_id_(ps_id),
 	cohort_type_(cohort_type),
+	mode_(mode),
 	ui_(new Ui::ExpressionDataWidget)
 
 {
@@ -37,6 +38,9 @@ ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, int sys_id, QSt
 		return;
 	}
 	ui_->setupUi(this);
+
+	//check mode
+	if(!((mode_ == "genes") || (mode_ == "transcripts"))) THROW(ArgumentException, "Invalid mode '" + mode_ + "' given!");
 
 	//connect signals and slots
 	connect(ui_->apply_filters, SIGNAL(clicked(bool)), this, SLOT(applyFilters()));
@@ -143,18 +147,28 @@ void ExpressionDataWidget::applyFilters()
 
 		}
 
+		// get column index of 'GENES' column
+		int gene_idx = -1;
+		if (mode_ == "genes")
+		{
+			gene_idx = column_names_.indexOf("gene_name");
+		}
+		else if(mode_ == "transcripts")
+		{
+			gene_idx = column_names_.indexOf("symbol");
+		}
+		if (gene_idx == -1)
+		{
+			QMessageBox::warning(this, "Filtering error", "Table does not contain a 'gene_name' column! \nFiltering based on selected genes of the variant list is not possible.");
+		}
+
 
 		//filter by variant list gene filter
 		if (!variant_gene_set_.isEmpty() && (ui_->cb_filter_by_var_list->checkState() == Qt::Checked))
 		{
 			qDebug() << "filter by variant gene filter";
-			// get column index of 'GENES' column
-			int gene_idx = column_names_.indexOf("gene_name");
-			if (gene_idx == -1)
-			{
-				QMessageBox::warning(this, "Filtering error", "Table does not contain a 'gene_name' column! \nFiltering based on selected genes of the variant list is not possible.");
-			}
-			else
+
+			if (gene_idx != -1)
 			{
 				for(int row_idx=0; row_idx<row_count; ++row_idx)
 				{
@@ -173,12 +187,7 @@ void ExpressionDataWidget::applyFilters()
 			QByteArray genes_joined = gene_whitelist.join('|');
 
 			// get column index of 'GENES' column
-			int gene_idx = column_names_.indexOf("gene_name");
-			if (gene_idx == -1)
-			{
-				QMessageBox::warning(this, "Filtering error", "Table does not contain a 'gene_name' column! \nFiltering based on genes is not possible.");
-			}
-			else
+			if (gene_idx != -1)
 			{
 				if (genes_joined.contains("*")) //with wildcards
 				{
@@ -217,171 +226,175 @@ void ExpressionDataWidget::applyFilters()
 			}
 		}
 
-		//filter by log fold change
-		if (!ui_->abs_logfc->text().isEmpty())
+		if (mode_ == "genes")
 		{
-			qDebug() << "filter by log fc";
-			int idx = column_names_.indexOf("log2fc");
-
-			if (idx == -1)
+			//filter by log fold change
+			if (!ui_->abs_logfc->text().isEmpty())
 			{
-				QMessageBox::warning(this, "Filtering error", "Table does not contain a 'log2fc' column! \nFiltering based on fold change is not possible.");
-			}
-			else
-			{
-				try
+				qDebug() << "filter by log fc";
+				int idx = column_names_.indexOf("log2fc");
+
+				if (idx == -1)
 				{
-					double logfc_cutoff = ui_->abs_logfc->value();
-					for(int row_idx=0; row_idx<row_count; ++row_idx)
-					{
-						//skip already filtered
-						if (!filter_result.flags()[row_idx]) continue;
-
-						QString value = ui_->expression_data->item(row_idx, idx)->text();
-						if (value.isEmpty() || value == "n/a")
-						{
-							filter_result.flags()[row_idx] = false;
-						}
-						else
-						{
-							double value_dbl = Helper::toDouble(value);
-							filter_result.flags()[row_idx] = fabs(value_dbl) >= logfc_cutoff;
-						}
-					}
-				}
-				catch (Exception e)
-				{
-					QMessageBox::warning(this, "Invalid log fold change value", "Couldn't convert given fold change value to number!\n" + e.message());
-					return;
-				}
-			}
-		}
-
-		//filter by cohort z-score
-		if (!ui_->abs_zscore->text().isEmpty())
-		{
-			int idx = column_names_.indexOf("zscore");
-
-			if (idx == -1)
-			{
-				QMessageBox::warning(this, "Filtering error", "Table does not contain a 'zscore' column! \nFiltering based on z-score is not possible.");
-			}
-			else
-			{
-				try
-				{
-					double zscore_cutoff = ui_->abs_zscore->value();
-					for(int row_idx=0; row_idx<row_count; ++row_idx)
-					{
-						//skip already filtered
-						if (!filter_result.flags()[row_idx]) continue;
-
-						QString value = ui_->expression_data->item(row_idx, idx)->text();
-						if (value.isNull() || value.isEmpty() || value == "n/a")
-						{
-							filter_result.flags()[row_idx] = false;
-						}
-						else
-						{
-							double value_dbl = Helper::toDouble(value);
-							filter_result.flags()[row_idx] = fabs(value_dbl) >= zscore_cutoff;
-						}
-					}
-				}
-				catch (Exception e)
-				{
-					QMessageBox::warning(this, "Invalid zscore value", "Couldn't convert given zscore value to number!\n" + e.message());
-					return;
-				}
-			}
-		}
-
-		//filter by tpm value
-		if (!ui_->tpm_value->text().isEmpty())
-		{
-			qDebug() << "filter by tpm";
-			int idx = column_names_.indexOf("tpm");
-
-			if (idx == -1)
-			{
-				QMessageBox::warning(this, "Filtering error", "Table does not contain a 'tpm' column! \nFiltering based on tpm value is not possible.");
-			}
-			else
-			{
-				try
-				{
-					double min_tpm_value = ui_->tpm_value->value();
-					for(int row_idx=0; row_idx<row_count; ++row_idx)
-					{
-						//skip already filtered
-						if (!filter_result.flags()[row_idx]) continue;
-
-						QString value = ui_->expression_data->item(row_idx, idx)->text();
-						if (value.isEmpty() || value == "n/a")
-						{
-							filter_result.flags()[row_idx] = false;
-						}
-						else
-						{
-							double tpm_value = Helper::toDouble(value);
-							filter_result.flags()[row_idx] = tpm_value >= min_tpm_value;
-						}
-					}
-				}
-				catch (Exception e)
-				{
-					QMessageBox::warning(this, "Invalid tpm value", "Couldn't convert given tpm value to number!\n" + e.message());
-				}
-			}
-		}
-
-		//filter by cohort tpm value
-		if (!ui_->tpm_cohort_value->text().isEmpty())
-		{
-			int idx = column_names_.indexOf("cohort_mean");
-			double min_tpm_value = ui_->tpm_cohort_value->value();
-
-			for(int row_idx=0; row_idx<row_count; ++row_idx)
-			{
-				//skip already filtered
-				if (!filter_result.flags()[row_idx]) continue;
-
-				QString value = ui_->expression_data->item(row_idx, idx)->text();
-				if (value.isEmpty() || value == "n/a")
-				{
-					filter_result.flags()[row_idx] = false;
+					QMessageBox::warning(this, "Filtering error", "Table does not contain a 'log2fc' column! \nFiltering based on fold change is not possible.");
 				}
 				else
 				{
-					double tpm_value = Helper::toDouble(value);
-					filter_result.flags()[row_idx] = tpm_value >= min_tpm_value;
+					try
+					{
+						double logfc_cutoff = ui_->abs_logfc->value();
+						for(int row_idx=0; row_idx<row_count; ++row_idx)
+						{
+							//skip already filtered
+							if (!filter_result.flags()[row_idx]) continue;
+
+							QString value = ui_->expression_data->item(row_idx, idx)->text();
+							if (value.isEmpty() || value == "n/a")
+							{
+								filter_result.flags()[row_idx] = false;
+							}
+							else
+							{
+								double value_dbl = Helper::toDouble(value);
+								filter_result.flags()[row_idx] = fabs(value_dbl) >= logfc_cutoff;
+							}
+						}
+					}
+					catch (Exception e)
+					{
+						QMessageBox::warning(this, "Invalid log fold change value", "Couldn't convert given fold change value to number!\n" + e.message());
+						return;
+					}
 				}
 			}
-		}
 
-		//filter by low expression tpm value
-		if (!ui_->low_expr_tpm->text().isEmpty())
-		{
-			double low_expr_tpm = ui_->low_expr_tpm->value();
-
-			for(int row_idx=0; row_idx<row_count; ++row_idx)
+			//filter by cohort z-score
+			if (!ui_->abs_zscore->text().isEmpty())
 			{
-				//skip already filtered
-				if (!filter_result.flags()[row_idx]) continue;
+				int idx = column_names_.indexOf("zscore");
 
-				QString value_sample = ui_->expression_data->item(row_idx, column_names_.indexOf("tpm"))->text();
-				QString value_cohort = ui_->expression_data->item(row_idx, column_names_.indexOf("cohort_mean"))->text();
-				if (value_sample.isEmpty() || value_sample == "n/a" || value_cohort.isEmpty() || value_cohort == "n/a")
+				if (idx == -1)
 				{
-					filter_result.flags()[row_idx] = false;
+					QMessageBox::warning(this, "Filtering error", "Table does not contain a 'zscore' column! \nFiltering based on z-score is not possible.");
 				}
 				else
 				{
-					double tpm_sample = Helper::toDouble(value_sample);
-					double tpm_cohort = Helper::toDouble(value_cohort);
-					filter_result.flags()[row_idx] = (tpm_sample >= low_expr_tpm) || (tpm_cohort >= low_expr_tpm);
+					try
+					{
+						double zscore_cutoff = ui_->abs_zscore->value();
+						for(int row_idx=0; row_idx<row_count; ++row_idx)
+						{
+							//skip already filtered
+							if (!filter_result.flags()[row_idx]) continue;
+
+							QString value = ui_->expression_data->item(row_idx, idx)->text();
+							if (value.isNull() || value.isEmpty() || value == "n/a")
+							{
+								filter_result.flags()[row_idx] = false;
+							}
+							else
+							{
+								double value_dbl = Helper::toDouble(value);
+								filter_result.flags()[row_idx] = fabs(value_dbl) >= zscore_cutoff;
+							}
+						}
+					}
+					catch (Exception e)
+					{
+						QMessageBox::warning(this, "Invalid zscore value", "Couldn't convert given zscore value to number!\n" + e.message());
+						return;
+					}
 				}
 			}
+
+			//filter by tpm value
+			if (!ui_->tpm_value->text().isEmpty())
+			{
+				qDebug() << "filter by tpm";
+				int idx = column_names_.indexOf("tpm");
+
+				if (idx == -1)
+				{
+					QMessageBox::warning(this, "Filtering error", "Table does not contain a 'tpm' column! \nFiltering based on tpm value is not possible.");
+				}
+				else
+				{
+					try
+					{
+						double min_tpm_value = ui_->tpm_value->value();
+						for(int row_idx=0; row_idx<row_count; ++row_idx)
+						{
+							//skip already filtered
+							if (!filter_result.flags()[row_idx]) continue;
+
+							QString value = ui_->expression_data->item(row_idx, idx)->text();
+							if (value.isEmpty() || value == "n/a")
+							{
+								filter_result.flags()[row_idx] = false;
+							}
+							else
+							{
+								double tpm_value = Helper::toDouble(value);
+								filter_result.flags()[row_idx] = tpm_value >= min_tpm_value;
+							}
+						}
+					}
+					catch (Exception e)
+					{
+						QMessageBox::warning(this, "Invalid tpm value", "Couldn't convert given tpm value to number!\n" + e.message());
+					}
+				}
+			}
+
+			//filter by cohort tpm value
+			if (!ui_->tpm_cohort_value->text().isEmpty())
+			{
+				int idx = column_names_.indexOf("cohort_mean");
+				double min_tpm_value = ui_->tpm_cohort_value->value();
+
+				for(int row_idx=0; row_idx<row_count; ++row_idx)
+				{
+					//skip already filtered
+					if (!filter_result.flags()[row_idx]) continue;
+
+					QString value = ui_->expression_data->item(row_idx, idx)->text();
+					if (value.isEmpty() || value == "n/a")
+					{
+						filter_result.flags()[row_idx] = false;
+					}
+					else
+					{
+						double tpm_value = Helper::toDouble(value);
+						filter_result.flags()[row_idx] = tpm_value >= min_tpm_value;
+					}
+				}
+			}
+
+			//filter by low expression tpm value
+			if (!ui_->low_expr_tpm->text().isEmpty())
+			{
+				double low_expr_tpm = ui_->low_expr_tpm->value();
+
+				for(int row_idx=0; row_idx<row_count; ++row_idx)
+				{
+					//skip already filtered
+					if (!filter_result.flags()[row_idx]) continue;
+
+					QString value_sample = ui_->expression_data->item(row_idx, column_names_.indexOf("tpm"))->text();
+					QString value_cohort = ui_->expression_data->item(row_idx, column_names_.indexOf("cohort_mean"))->text();
+					if (value_sample.isEmpty() || value_sample == "n/a" || value_cohort.isEmpty() || value_cohort == "n/a")
+					{
+						filter_result.flags()[row_idx] = false;
+					}
+					else
+					{
+						double tpm_sample = Helper::toDouble(value_sample);
+						double tpm_cohort = Helper::toDouble(value_cohort);
+						filter_result.flags()[row_idx] = (tpm_sample >= low_expr_tpm) || (tpm_cohort >= low_expr_tpm);
+					}
+				}
+			}
+
 		}
 
 		//filter by biotype
@@ -398,13 +411,22 @@ void ExpressionDataWidget::applyFilters()
 		}
 
 		//filter data
-		int idx = column_names_.indexOf("gene_biotype");
+		int idx_biotype;
+		if (mode_ == "genes")
+		{
+			idx_biotype = column_names_.indexOf("gene_biotype");
+		}
+		else
+		{
+			idx_biotype = column_names_.indexOf("biotype");
+		}
+
 		for(int row_idx=0; row_idx<row_count; ++row_idx)
 		{
 			//skip already filtered
 			if (!filter_result.flags()[row_idx]) continue;
 
-			QString biotype = ui_->expression_data->item(row_idx, idx)->text();
+			QString biotype = ui_->expression_data->item(row_idx, idx_biotype)->text();
 			filter_result.flags()[row_idx] = selected_biotypes.contains(biotype);
 		}
 
@@ -602,7 +624,7 @@ void ExpressionDataWidget::loadExpressionData()
 			}
 			else if	(line.startsWith("##"))
 			{
-				expression_data.addComment(line.mid(2));
+				expression_data.addComment(line);
 			}
 			else if (line.startsWith("#"))
 			{
@@ -621,7 +643,13 @@ void ExpressionDataWidget::loadExpressionData()
 		QSet<QString> biotypes;
 
 		//get RNA stats from NGSD
-		QMap<QByteArray, ExpressionStats> expression_stats = NGSD().calculateCohortExpressionStatistics(sys_id_, tissue_,  cohort_, project_, ps_id_, cohort_type_);
+		QMap<QByteArray, ExpressionStats> expression_stats;
+		if (mode_ == "genes")
+		{
+			expression_stats = NGSD().calculateCohortExpressionStatistics(sys_id_, tissue_,  cohort_, project_, ps_id_, cohort_type_);
+		}
+		//TODO stats for transcripts
+
 
 
 
@@ -632,10 +660,27 @@ void ExpressionDataWidget::loadExpressionData()
 		//disable sorting
 		ui_->expression_data->setSortingEnabled(false);
 
-		//default columns
-		column_names_ << "gene_id" << "gene_name" << "gene_biotype" << "raw" << "tpm";
-		numeric_columns_  << false << false << false << true << true;
-		precision_ << -1 << -1 << -1 << 0 << 2;
+		//set default columns for different modes
+		if (mode_ == "genes")
+		{
+			//default columns
+			column_names_ << "gene_id" << "gene_name" << "gene_biotype" << "raw" << "tpm";
+			numeric_columns_  << false << false << false << true << true;
+			precision_ << -1 << -1 << -1 << 0 << 2;
+		}
+		else if(mode_ == "transcripts")
+		{
+			//default columns
+			column_names_ << "transcript_id" << "gene_id" << "symbol" << "biotype" << "raw" << "rpb" << "raw" << "srpb";
+			numeric_columns_  << false << false << false << false << true << true << true << true;
+			precision_ << -1 << -1 << -1 << -1 << 0 << 3 << 3 << 3;
+		}
+		else
+		{
+			THROW(ArgumentException, "Invalid mode '" + mode_ + "' given!");
+		}
+
+
 
 		//determine col indices for table columns in tsv file
 		QVector<int> column_indices;
@@ -645,12 +690,18 @@ void ExpressionDataWidget::loadExpressionData()
 		}
 
 		//db columns
+		QStringList db_column_names;
+		bool symbol_in_ngsd = false;
+		ExpressionStats gene_stats;
+		double log2fc=0, zscore=0, p_value=0;
 
-		QStringList db_column_names = QStringList()  << "cohort_mean" << "log2fc" << "zscore" << "pvalue";
-		column_names_ << db_column_names;
-		numeric_columns_  << true << true << true << true;
-		precision_ << 2 << 2 << 3 << 3;
-
+		if (mode_ == "genes")
+		{
+			db_column_names = QStringList()  << "cohort_mean" << "log2fc" << "zscore" << "pvalue";
+			column_names_ << db_column_names;
+			numeric_columns_  << true << true << true << true;
+			precision_ << 2 << 2 << 3 << 3;
+		}
 
 		//create header
 		ui_->expression_data->setColumnCount(column_names_.size());
@@ -664,20 +715,23 @@ void ExpressionDataWidget::loadExpressionData()
 		for(int row_idx=0; row_idx<expression_data.rowCount(); ++row_idx)
 		{
 			QStringList row = expression_data.row(row_idx);
-			QByteArray symbol = row.at(column_indices.at(1)).toUtf8();
-			double tpm = Helper::toDouble(row.at(column_indices.at(column_names_.indexOf("tpm"))), "tpm", QString::number(row_idx));
-			double log2p1tpm = std::log2(tpm + 1);
-
-			ExpressionStats gene_stats;
-			double log2fc, zscore, p_value;
-			bool symbol_in_ngsd = expression_stats.contains(symbol);
-			if (symbol_in_ngsd)
+			if (mode_ == "genes")
 			{
-				gene_stats = expression_stats.value(symbol);
-				log2fc = log2p1tpm - std::log2(gene_stats.mean + 1);
-				zscore = (log2p1tpm - gene_stats.mean_log2) / gene_stats.stddev_log2;
-				p_value = 1 + std::erf(- std::abs(zscore) / std::sqrt(2));
+				QByteArray symbol = row.at(column_indices.at(1)).toUtf8();
+				double tpm = Helper::toDouble(row.at(column_indices.at(column_names_.indexOf("tpm"))), "tpm", QString::number(row_idx));
+				double log2p1tpm = std::log2(tpm + 1);
+
+				symbol_in_ngsd = expression_stats.contains(symbol);
+				if (symbol_in_ngsd)
+				{
+					gene_stats = expression_stats.value(symbol);
+					log2fc = log2p1tpm - std::log2(gene_stats.mean + 1);
+					zscore = (log2p1tpm - gene_stats.mean_log2) / gene_stats.stddev_log2;
+					p_value = 1 + std::erf(- std::abs(zscore) / std::sqrt(2));
+				}
+
 			}
+			//TODO compute transcripts stats
 
 			for (int col_idx = 0; col_idx < column_names_.size(); ++col_idx)
 			{
@@ -738,7 +792,7 @@ void ExpressionDataWidget::loadExpressionData()
 					}
 
 					//extract gene biotype
-					if (column_names_.at(col_idx) == "gene_biotype")
+					if ((column_names_.at(col_idx) == "gene_biotype") || (column_names_.at(col_idx) == "biotype"))
 					{
 						biotypes.insert(row.at(column_indices.at(col_idx)));
 					}

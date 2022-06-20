@@ -2306,33 +2306,35 @@ private slots:
 		S_EQUAL(ensg_gene_mapping.value("ENSG00000187583"), "PLEKHN1");
 
 		//Test expression data import
-		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in1.tsv"), "RX001_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in1.tsv"), "RX001_01", false, false);
 		int count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 102);
-		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in2.tsv"), "RX002_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in2.tsv"), "RX002_01", false, false);
 		count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 204);
-		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in3.tsv"), "RX003_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in3.tsv"), "RX003_01", false, false);
 		count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 306);
-		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in4.tsv"), "RX004_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in4.tsv"), "RX004_01", false, false);
 		count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 408);
-		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in5.tsv"), "RX005_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in5.tsv"), "RX005_01", false, false);
 		count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 510);
-		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in6.tsv"), "RX006_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in6.tsv"), "RX006_01", false, false);
 		count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 612);
-		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in7.tsv"), "RX007_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in7.tsv"), "RX007_01", false, false);
 		count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 714);
-		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in8.tsv"), "RX008_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in8.tsv"), "RX008_01", false, false);
 		count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 816);
-		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in8.tsv"), "RX008_01", true, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in8.tsv"), "RX008_01", true, false);
 		count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 816);
+
+		//TODO: add tests for transcripts
 
 		//Test cohort determination:
 		QSet<int> cohort = db.getRNACohort(1, "Blood");
@@ -2419,31 +2421,31 @@ private slots:
 
 		//Test limited expresion stats:
 		cohort = db.getRNACohort(1, "Blood");
-		expression_stats = db.calculateExpressionStatistics(cohort, "LINC01646");
+		expression_stats = db.calculateGeneExpressionStatistics(cohort, "LINC01646");
 		I_EQUAL(expression_stats.size(), 1);
 		F_EQUAL2(expression_stats.value("LINC01646").mean, 121.091, 0.001);
 		F_EQUAL2(expression_stats.value("LINC01646").mean_log2, 5.373, 0.001);
 		F_EQUAL2(expression_stats.value("LINC01646").stddev_log2, 3.167, 0.001);
-		expression_stats = db.calculateExpressionStatistics(cohort, "VAMP3");
+		expression_stats = db.calculateGeneExpressionStatistics(cohort, "VAMP3");
 		I_EQUAL(expression_stats.size(), 1);
 		F_EQUAL2(expression_stats.value("VAMP3").mean, 0, 0.001);
 		F_EQUAL2(expression_stats.value("VAMP3").mean_log2, 0, 0.001);
 		F_EQUAL2(expression_stats.value("VAMP3").stddev_log2, 0, 0.001);
 
 		cohort = db.getRNACohort(1, "Blood", "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE_PROJECT);
-		expression_stats = db.calculateExpressionStatistics(cohort, "LINC01646");
+		expression_stats = db.calculateGeneExpressionStatistics(cohort, "LINC01646");
 		I_EQUAL(expression_stats.size(), 1);
 		F_EQUAL2(expression_stats.value("LINC01646").mean, 204.681, 0.001);
 		F_EQUAL2(expression_stats.value("LINC01646").mean_log2, 7.6221, 0.001);
 		F_EQUAL2(expression_stats.value("LINC01646").stddev_log2, 0.427, 0.001);
-		expression_stats = db.calculateExpressionStatistics(cohort, "VAMP3");
+		expression_stats = db.calculateGeneExpressionStatistics(cohort, "VAMP3");
 		I_EQUAL(expression_stats.size(), 1);
 		F_EQUAL2(expression_stats.value("VAMP3").mean, 0.0, 0.001);
 		F_EQUAL2(expression_stats.value("VAMP3").mean_log2, 0.0, 0.001);
 		F_EQUAL2(expression_stats.value("VAMP3").stddev_log2, 0.0, 0.001);
 
 		cohort = db.getRNACohort(1, "", "KontrollDNACoriell2", "5002", RNA_COHORT_SOMATIC);
-		expression_stats = db.calculateExpressionStatistics(cohort, "RER1");
+		expression_stats = db.calculateGeneExpressionStatistics(cohort, "RER1");
 		I_EQUAL(expression_stats.size(), 1);
 		F_EQUAL2(expression_stats.value("RER1").mean, 27.191, 0.001);
 		F_EQUAL2(expression_stats.value("RER1").mean_log2, 1.695, 0.001);

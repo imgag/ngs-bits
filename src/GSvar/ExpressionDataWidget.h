@@ -16,7 +16,7 @@ class ExpressionDataWidget : public QWidget
 
 public:
 	ExpressionDataWidget(QString tsv_filename, int sys_id, QString tissue, const QString& variant_gene_filter = "", const GeneSet& variant_gene_set = GeneSet(), const QString& project = "",
-						 const QString& ps_id = "", RnaCohortDeterminationStategy cohort_type_=RNA_COHORT_GERMLINE, QWidget *parent = 0);
+						 const QString& ps_id = "", RnaCohortDeterminationStategy cohort_type_=RNA_COHORT_GERMLINE, QString mode = "genes", QWidget *parent = 0);
 	~ExpressionDataWidget();
 
 private slots:
@@ -38,6 +38,7 @@ private:
 	QString project_;
 	QString ps_id_;
 	RnaCohortDeterminationStategy cohort_type_;
+	QString mode_;
 	QSet<int> cohort_;
 	QTableWidget* cohort_table_ = nullptr;
 	Ui::ExpressionDataWidget *ui_;

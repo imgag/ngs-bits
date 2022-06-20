@@ -739,10 +739,14 @@ public:
 	ImportStatusGermline importStatus(const QString& ps_id);
 
 	/* RNA related functions */
-	///Imports expression data to the NGSD
-	void importExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
-	///Calculates statistics on all expression values for a list of processed sample ids
-	QMap<QByteArray, ExpressionStats> calculateExpressionStatistics(QSet<int>& cohort, QByteArray gene="");
+	///Imports gene expression data to the NGSD
+	void importGeneExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
+	///Imports transcript expression data to the NGSD
+	void importTranscriptExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
+	///Calculates statistics on all gene expression values for a list of processed sample ids
+	QMap<QByteArray, ExpressionStats> calculateGeneExpressionStatistics(QSet<int>& cohort, QByteArray gene="");
+	///Calculates statistics on all gene expression values for a list of processed sample ids
+	QMap<QByteArray, ExpressionStats> calculateTranscriptExpressionStatistics(QSet<int>& cohort, QByteArray transcript="");
 	///Calculates statistics on all expression values of the same processing system and tissue
 	QMap<QByteArray, ExpressionStats> calculateCohortExpressionStatistics(int sys_id, const QString& tissue_type, QSet<int>& cohort, const QString& project="", const QString& ps_id="",
 																	RnaCohortDeterminationStategy cohort_type=RNA_COHORT_GERMLINE);
