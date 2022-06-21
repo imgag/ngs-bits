@@ -5577,7 +5577,7 @@ void MainWindow::execContextMenuAction(QAction* action, int index)
 		}
 		else
 		{
-			QMessageBox::information(this, "Report configuration error", "This variant isn't part of the report configuration. Can't delete this variant from the report!");
+			QMessageBox::information(this, "Report configuration error", "This variant is not part of the report configuration. It can not be deleted from the report!");
 		}
 	}
 	else if (action == context_menu_actions_.a_var_class)
