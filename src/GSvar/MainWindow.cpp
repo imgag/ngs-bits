@@ -145,7 +145,6 @@ MainWindow::MainWindow(QWidget *parent)
 	, igv_initialized_(false)
 	, variants_changed_()
 	, last_report_path_(QDir::homePath())
-	, variant_context_menu_(new QMenu(this))
 	, init_timer_(this, true)
 {
 	//setup GUI
@@ -271,10 +270,8 @@ MainWindow::MainWindow(QWidget *parent)
 		server_ping_timer->start(600 * 1000); // every 10 minutes
 	}
 
-	//variant context menu
-	std::function<std::shared_ptr<QMenu>(int)> createBase = std::bind(&MainWindow::createBaseContextMenu, this ,std::placeholders::_1);
-	std::function<void(QAction*, int)> execAction = std::bind(&MainWindow::execContextMenuAction, this ,std::placeholders::_1, std::placeholders::_2);
-	ui_.vars->registerContextMenuBase(createBase, execAction, false);
+	ui_.vars->enableClinvarPublish(true);
+	connect(ui_.vars, SIGNAL(publishToClinvarTriggered(int)), this, SLOT(uploadToClinvar(int)));
 }
 
 QString MainWindow::appName() const
@@ -1853,6 +1850,7 @@ void MainWindow::delayedInitialization()
 	updateRecentSampleMenu();
 	updateIGVMenu();
 	updateNGSDSupport();
+	registerCustomContextMenuActions();
 
 	//parse arguments
 	for (int i=1; i<QApplication::arguments().count(); ++i)
@@ -5511,270 +5509,97 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 	}
 }
 
-std::shared_ptr<QMenu> MainWindow::createBaseContextMenu(int index) const
+void MainWindow::registerCustomContextMenuActions()
 {
 	//init
 	bool  ngsd_user_logged_in = LoginManager::active();
-	const Variant& variant = variants_[index];
-	int i_gene = variants_.annotationIndexByName("gene", true, true);
-	GeneSet genes = GeneSet::createFromText(variant.annotations()[i_gene], ',');
-	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
-	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(i_co_sp);
-	const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
 
-	variant_context_menu_->clear();
+	QList<QSharedPointer<QAction>> actions;
+	context_menu_actions_.seperator = QSharedPointer<QAction>(new QAction("---"));
 
 	//NGSD report configuration
-	QAction* a_report_edit = variant_context_menu_->addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
-	a_report_edit->setEnabled(ngsd_user_logged_in);
-	QAction* a_report_del = variant_context_menu_->addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
-	a_report_del->setEnabled(ngsd_user_logged_in && ((!report_settings_.report_config->isFinalized() && report_settings_.report_config->exists(VariantType::SNVS_INDELS, index)) || somatic_report_settings_.report_config.exists(VariantType::SNVS_INDELS, index)));
-	variant_context_menu_->addSeparator();
+	context_menu_actions_.a_report_edit = QSharedPointer<QAction>(new QAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration"));
+	context_menu_actions_.a_report_edit->setEnabled(ngsd_user_logged_in);
+	actions << context_menu_actions_.a_report_edit;
+
+	context_menu_actions_.a_report_del = QSharedPointer<QAction>(new QAction(QIcon(":/Icons/Remove.png"), "Delete report configuration"));
+	context_menu_actions_.a_report_del->setEnabled(ngsd_user_logged_in);
+	actions << context_menu_actions_.a_report_del;
+	actions << context_menu_actions_.seperator;
 
 	//NGSD variant options
-	QAction* a_var_class = variant_context_menu_->addAction("Edit classification");
-	a_var_class->setEnabled(ngsd_user_logged_in);
-	QAction* a_var_class_somatic = variant_context_menu_->addAction("Edit classification  (somatic)");
-	a_var_class_somatic->setEnabled(ngsd_user_logged_in);
-	QAction * a_var_interpretation_somatic = variant_context_menu_->addAction("Edit VICC interpretation (somatic)");
-	a_var_interpretation_somatic->setEnabled(ngsd_user_logged_in);
-	QAction* a_var_comment = variant_context_menu_->addAction("Edit comment");
-	a_var_comment->setEnabled(ngsd_user_logged_in);
-	QAction* a_var_val = variant_context_menu_->addAction("Perform variant validation");
-	a_var_val->setEnabled(ngsd_user_logged_in);
-	variant_context_menu_->addSeparator();
+	context_menu_actions_.a_var_class = QSharedPointer<QAction>(new QAction("Edit classification"));
+	context_menu_actions_.a_var_class->setEnabled(ngsd_user_logged_in);
+	actions << context_menu_actions_.a_var_class;
 
-	QAction* a_visual = variant_context_menu_->addAction("Visualize");
-	a_visual->setEnabled(Settings::boolean("debug_mode_enabled", true));
-	variant_context_menu_->addSeparator();
+	context_menu_actions_.a_var_class_somatic = QSharedPointer<QAction>(new QAction("Edit classification  (somatic)"));
+	context_menu_actions_.a_var_class_somatic->setEnabled(ngsd_user_logged_in);
+	actions << context_menu_actions_.a_var_class_somatic;
+	context_menu_actions_.a_var_interpretation_somatic = QSharedPointer<QAction>(new QAction("Edit VICC interpretation (somatic)"));
+	context_menu_actions_.a_var_interpretation_somatic->setEnabled(ngsd_user_logged_in);
+	actions << context_menu_actions_.a_var_interpretation_somatic;
 
-	QMenu* sub_menu;
-	//Alamut
-	if (Settings::contains("alamut_host") && Settings::contains("alamut_institution") && Settings::contains("alamut_apikey"))
-	{
-		sub_menu = variant_context_menu_->addMenu(QIcon("://Icons/Alamut.png"), "Alamut");
+	context_menu_actions_.a_var_comment = QSharedPointer<QAction>(new QAction("Edit comment"));
+	context_menu_actions_.a_var_comment->setEnabled(ngsd_user_logged_in);
+	actions << context_menu_actions_.a_var_comment;
+	context_menu_actions_.a_var_val = QSharedPointer<QAction>(new QAction("Perform variant validation"));
+	context_menu_actions_.a_var_val->setEnabled(ngsd_user_logged_in);
+	actions << context_menu_actions_.a_var_val;
+	actions << context_menu_actions_.seperator;
 
-		//BAM
-		if (variants_.type()==GERMLINE_SINGLESAMPLE)
-		{
-			sub_menu->addAction("BAM");
-		}
-
-		//genomic location
-		QString loc = variant.chr().str() + ":" + QByteArray::number(variant.start());
-		loc.replace("chrMT", "chrM");
-		sub_menu->addAction(loc);
-		sub_menu->addAction(loc + variant.ref() + ">" + variant.obs());
-
-		//genes
-		foreach(const QByteArray& g, genes)
-		{
-			sub_menu->addAction(g);
-		}
-		sub_menu->addSeparator();
-
-		//transcripts
-		foreach(const VariantTranscript& transcript, transcripts)
-		{
-			if  (transcript.id!="" && transcript.hgvs_c!="")
-			{
-				QAction* action = sub_menu->addAction(transcript.idWithoutVersion() + ":" + transcript.hgvs_c + " (" + transcript.gene + ")");
-
-				//highlight preferred transcripts
-				if (preferred_transcripts.value(transcript.gene).contains(transcript.idWithoutVersion()))
-				{
-					QFont font = action->font();
-					font.setBold(true);
-					action->setFont(font);
-				}
-			}
-		}
-		variant_context_menu_->addSeparator();
-	}
-
-
-	//add gene databases
-	if (!genes.isEmpty())
-	{
-		variant_context_menu_->addSeparator();
-		foreach(const QByteArray& g, genes)
-		{
-			sub_menu = variant_context_menu_->addMenu(g);
-			sub_menu->addAction(QIcon("://Icons/NGSD_gene.png"), "Gene tab")->setEnabled(ngsd_user_logged_in);
-			sub_menu->addAction(QIcon("://Icons/Google.png"), "Google");
-			foreach(const GeneDB& db, GeneInfoDBs::all())
-			{
-				sub_menu->addAction(db.icon, db.name);
-			}
-		}
-	}
-
-	//add custom entries
-	QString custom_menu_small_variants = Settings::string("custom_menu_small_variants", true).trimmed();
-	if (!custom_menu_small_variants.isEmpty())
-	{
-		sub_menu = variant_context_menu_->addMenu("Custom");
-		QStringList custom_entries = custom_menu_small_variants.split("\t");
-		foreach(QString custom_entry, custom_entries)
-		{
-			QStringList parts = custom_entry.split("|");
-			if (parts.count()==2)
-			{
-				sub_menu->addAction(parts[0]);
-			}
-		}
-	}
-
-	variant_context_menu_->addSeparator();
-
-	//ClinVar upload/search
-	sub_menu = variant_context_menu_->addMenu(QIcon("://Icons/ClinGen.png"), "ClinVar");
-	sub_menu->addAction("Find in ClinVar");
-	QAction* a_clinvar_pub = sub_menu->addAction("Publish in ClinVar");
-	a_clinvar_pub->setEnabled(ngsd_user_logged_in);
-
-	return variant_context_menu_;
+	ui_.vars->addCustomContextMenuActions(actions);
+	connect(ui_.vars, SIGNAL(customActionTriggered(QAction*,int)), this, SLOT(execContextMenuAction(QAction*,int)));
 }
 
 
 void MainWindow::execContextMenuAction(QAction* action, int index)
 {
-	//init
-	const Variant& variant = variants_[index];
-	int i_gene = variants_.annotationIndexByName("gene", true, true);
-	GeneSet genes = GeneSet::createFromText(variant.annotations()[i_gene], ',');
-
 	//perform actions
-	QByteArray text = action->text().toLatin1();
-	QMenu* parent_menu = qobject_cast<QMenu*>(action->parent());
-
-	if (text=="Edit classification")
-	{
-		editVariantClassification(variants_, index);
-	}
-	else if (text=="Edit classification  (somatic)")
-	{
-		editVariantClassification(variants_, index, true);
-	}
-	else if (text=="Edit VICC interpretation (somatic)")
-	{
-		editSomaticVariantInterpretation(variants_, index);
-	}
-	else if (text=="Edit comment")
-	{
-		editVariantComment(index);
-	}
-	else if (text=="Perform variant validation")
-	{
-		editVariantValidation(index);
-	}
-	else if (text=="Find in ClinVar")
-	{
-		QDesktopServices::openUrl(QUrl("https://www.ncbi.nlm.nih.gov/clinvar/?term=" + variant.chr().strNormalized(false)+"[chr]+AND+" + QString::number(variant.start()) + "%3A" + QString::number(variant.end()) + (GSvarHelper::build()==GenomeBuild::HG38? "[chrpos38] " : "[chrpos37] ")));
-	}
-	else if (text=="Publish in ClinVar")
-	{
-		uploadToClinvar(index);
-	}
-	else if (parent_menu && parent_menu->title()=="Alamut")
-	{
-		//documentation of the alamut API:
-		// - http://www.interactive-biosoftware.com/doc/alamut-visual/2.14/accessing.html
-		// - http://www.interactive-biosoftware.com/doc/alamut-visual/2.11/Alamut-HTTP.html
-		// - http://www.interactive-biosoftware.com/doc/alamut-visual/2.14/programmatic-access.html
-		QStringList parts = action->text().split(" ");
-		if (parts.count()>=1)
-		{
-			QString value = parts[0];
-			if (value=="BAM")
-			{
-				QStringList bams = GlobalServiceProvider::fileLocationProvider().getBamFiles(false).filterById(germlineReportSample()).asStringList();
-				if (bams.empty()) return;
-				value = "BAM<" + bams[0];
-			}
-
-			try
-			{
-				QString host = Settings::string("alamut_host");
-				QString institution = Settings::string("alamut_institution");
-				QString apikey = Settings::string("alamut_apikey");
-				HttpHandler(HttpRequestHandler::NONE).get(host+"/search?institution="+institution+"&apikey="+apikey+"&request="+value);
-			}
-			catch (Exception& e)
-			{
-				QMessageBox::warning(this, "Communication with Alamut failed!", e.message());
-			}
-		}
-	}
-	else if (text=="Add/edit report configuration")
+	if (action == context_menu_actions_.a_report_edit)
 	{
 		editVariantReportConfiguration(index);
 	}
-	else if (text=="Delete report configuration")
+	else if (action == context_menu_actions_.a_report_del)
 	{
-		if(germlineReportSupported())
+		if ((!report_settings_.report_config->isFinalized() && report_settings_.report_config->exists(VariantType::SNVS_INDELS, index)) || somatic_report_settings_.report_config.exists(VariantType::SNVS_INDELS, index))
 		{
-			report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
-		}
-		else if(somaticReportSupported())
-		{
-			somatic_report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
-			storeSomaticReportConfig();
-		}
-
-		updateReportConfigHeaderIcon(index);
-	}
-	else if (text=="Visualize")
-	{
-		FastaFileIndex genome_idx(Settings::string("reference_genome", false));
-		GenomeVisualizationWidget* widget = new GenomeVisualizationWidget(this, genome_idx, NGSD().transcripts());
-		widget->setRegion(variant.chr(), variant.start(), variant.end());
-		auto dlg = GUIHelper::createDialog(widget, "GSvar Genome Viewer");
-		dlg->exec();
-	}
-	else if (parent_menu && parent_menu->title()=="Custom")
-	{
-		QStringList custom_entries = Settings::string("custom_menu_small_variants", true).trimmed().split("\t");
-		foreach(QString custom_entry, custom_entries)
-		{
-			QStringList parts = custom_entry.split("|");
-			if (parts.count()==2 && parts[0]==text)
+			if(germlineReportSupported())
 			{
-				QString url = parts[1];
-				url.replace("[chr]", variant.chr().strNormalized(true));
-				url.replace("[start]", QString::number(variant.start()));
-				url.replace("[end]", QString::number(variant.end()));
-				url.replace("[ref]", variant.ref());
-				url.replace("[obs]", variant.obs());
-				QDesktopServices::openUrl(QUrl(url));
+				report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
 			}
-		}
-	}
-	else if (parent_menu && genes.contains(parent_menu->title().toLatin1())) //gene menus
-	{
-		QString gene = parent_menu->title();
-
-		if (text=="Gene tab")
-		{
-			openGeneTab(gene);
-		}
-		else if (text=="Google")
-		{
-			QString query = gene + " AND (mutation";
-			foreach(const Phenotype& pheno, ui_.filters->phenotypes())
+			else if(somaticReportSupported())
 			{
-				query += " OR \"" + pheno.name() + "\"";
+				somatic_report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
+				storeSomaticReportConfig();
 			}
-			query += ")";
 
-			QDesktopServices::openUrl(QUrl("https://www.google.com/search?q=" + query.replace("+", "%2B").replace(' ', '+')));
+			updateReportConfigHeaderIcon(index);
 		}
-		else //other databases
+		else
 		{
-			GeneInfoDBs::openUrl(text, gene);
+			QMessageBox::information(this, "Report configuration error", "This variant isn't part of the report configuration. Can't delete this variant from the report!");
 		}
 	}
-
+	else if (action == context_menu_actions_.a_var_class)
+	{
+		editVariantClassification(variants_, index);
+	}
+	else if (action == context_menu_actions_.a_var_class_somatic)
+	{
+		editVariantClassification(variants_, index, true);
+	}
+	else if (action == context_menu_actions_.a_var_interpretation_somatic)
+	{
+		editSomaticVariantInterpretation(variants_, index);
+	}
+	else if (action == context_menu_actions_.a_var_comment)
+	{
+		editVariantComment(index);
+	}
+	else if (action == context_menu_actions_.a_var_val)
+	{
+		editVariantValidation(index);
+	}
 }
 
 
@@ -6488,6 +6313,10 @@ void MainWindow::applyFilters(bool debug_time)
 		}
 		//phenotype selection changed => update ROI
 		const PhenotypeList& phenos = ui_.filters->phenotypes();
+
+		//update phenotypes for variant context menu search:
+		ui_.vars->updateActivePhenotypes(phenos);
+
 		const PhenotypeSettings& pheno_settings = ui_.filters->phenotypeSettings();
 		if (phenos!=last_phenos_ || pheno_settings!=last_pheno_settings_)
 		{

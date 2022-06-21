@@ -47,8 +47,6 @@ public:
 	void updateNGSDSupport();
 	///Returns 'nobr' paragraph start for Qt tooltips
 	static QString nobr();
-	///Upload variant to Clinvar
-	void uploadToClinvar(int variant_index);
 
 	///Edit classification of a variant
 	void editVariantClassification(VariantList& variant, int index, bool is_somatic = false);
@@ -74,6 +72,8 @@ public:
 	int igvPort() const;
 
 public slots:
+	///Upload variant to Clinvar
+	void uploadToClinvar(int variant_index);
 	/// Checks (only in clinet-server mode) if the server is currently running
 	void checkServerAvailability();
 	///Loads a variant list. Unloads the variant list if no file name is given
@@ -394,6 +394,8 @@ public slots:
 	void editSomaticVariantInterpretation(const VariantList& vl, int index);
 	///Updates somatic variant interpreation annotation for specific variant of GSvar file
 	void updateSomaticVariantInterpretationAnno(int index, QString vicc_interpretation, QString vicc_comment);
+	///Execute custom context menu actions (see also registerCustomContextMenuActions())
+	void execContextMenuAction(QAction* action, int index);
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
@@ -441,9 +443,19 @@ private:
 	int igv_port_manual = -1;
 
 	//single vars context menu
-	std::shared_ptr<QMenu> variant_context_menu_;
-	std::shared_ptr<QMenu> createBaseContextMenu(int index) const;
-	void execContextMenuAction(QAction* action, int index);
+	struct ContextMenuActions
+	{
+		QSharedPointer<QAction> a_report_edit;
+		QSharedPointer<QAction> a_report_del;
+		QSharedPointer<QAction> a_var_class;
+		QSharedPointer<QAction> a_var_class_somatic;
+		QSharedPointer<QAction> a_var_interpretation_somatic;
+		QSharedPointer<QAction> a_var_comment;
+		QSharedPointer<QAction> a_var_val;
+		QSharedPointer<QAction> seperator;
+	};
+	ContextMenuActions context_menu_actions_;
+	void registerCustomContextMenuActions();
 
 	//SPECIAL
 	DelayedInitializationTimer init_timer_;

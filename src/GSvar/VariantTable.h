@@ -48,8 +48,11 @@ public:
 
 		return new QTableWidgetItem(text);
 	}
-	///register a base context menu that is expanded by the search options
-	void registerContextMenuBase(std::function<std::shared_ptr<QMenu>(int)> createBaseMenu, std::function<void(QAction* action, int index)> execRegistered, bool add_clinvar=true);
+
+	//Enable the context menu action: "Publish to ClinVar". (User still has to be logged in)
+	void enableClinvarPublish(bool enable);
+	///Add custom context menu actions
+	void addCustomContextMenuActions(QList<QSharedPointer<QAction>> actions);
 
 	///Returns the current column widths.
 	QList<int> columnWidths() const;
@@ -79,6 +82,15 @@ public slots:
 	///Copy table to clipboard
 	void copyToClipboard(bool split_quality=false, bool include_header_one_row=false);
 
+	///Update phenotypes that are currently active in the filter
+	void updateActivePhenotypes(PhenotypeList phenotypes);
+
+signals:
+	///An added context menu action was triggered
+	void customActionTriggered(QAction* action, int var_index);
+	///Publish to Clinvar menu action triggered
+	void publishToClinvarTriggered(int var_index);
+
 protected:
 
 	///This method provides generic functionality independent of ReportSettings/SomaticReportSettings
@@ -88,13 +100,11 @@ protected:
 	void keyPressEvent(QKeyEvent* event) override;
 
 private:
-	void createContextMenu(QMenu& menu, int index, bool add_clinvar=true);
-	void execContextMenuAction(QAction* action, int index);
-
 	VariantList* variants_;
-	bool add_clinvar_;
-	std::function<std::shared_ptr<QMenu>(int index)> getBaseMenu_;
-	std::function<void(QAction* action, int index)> execRegistered_;
+	QList<QSharedPointer<QAction>> registered_actions_;
+	PhenotypeList active_phenotypes_;
+	bool clinvar_publish_;
+
 };
 
 #endif // VARIANTTABLE_H
