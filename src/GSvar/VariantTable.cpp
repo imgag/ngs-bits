@@ -20,8 +20,8 @@ VariantTable::VariantTable(QWidget* parent)
 	: QTableWidget(parent)
 	, registered_actions_()
 	, active_phenotypes_()
-	, clinvar_publish_(false)
-	, alamut_active_(false)
+	, clinvar_publish_connected_(false)
+	, alamut_connected_(false)
 {
 	//make sure the selection is visible when the table looses focus
 	QString fg = GUIHelper::colorToQssFormat(palette().color(QPalette::Active, QPalette::HighlightedText));
@@ -34,10 +34,10 @@ VariantTable::VariantTable(QWidget* parent)
 void VariantTable::connectNotify(const QMetaMethod &signal)
 {
 	if (signal == QMetaMethod::fromSignal(&VariantTable::publishToClinvarTriggered)) {
-		clinvar_publish_ = true;
+		clinvar_publish_connected_ = true;
 	}
 	if (signal == QMetaMethod::fromSignal(&VariantTable::alamutTriggered)) {
-		alamut_active_ = true;
+		alamut_connected_ = true;
 	}
 }
 
@@ -148,7 +148,7 @@ void VariantTable::customContextMenu(QPoint pos)
 				}
 			}
 		}
-		sub_menu->setEnabled(alamut_active_);
+		sub_menu->setEnabled(alamut_connected_);
 	}
 
 	//UCSC
@@ -161,7 +161,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	sub_menu = menu.addMenu(QIcon("://Icons/ClinGen.png"), "ClinVar");
 	QAction* a_clinvar_find = sub_menu->addAction("Find in ClinVar");
 	QAction* a_clinvar_pub = sub_menu->addAction("Publish in ClinVar");
-	a_clinvar_pub->setEnabled(ngsd_user_logged_in && clinvar_publish_ && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty());
+	a_clinvar_pub->setEnabled(ngsd_user_logged_in && clinvar_publish_connected_ && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty());
 
 	//MitoMap
 	QAction* a_mitomap = menu.addAction(QIcon("://Icons/MitoMap.png"), "Open in MitoMap");

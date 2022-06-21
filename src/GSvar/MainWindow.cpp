@@ -133,7 +133,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "CausalVariantEditDialog.h"
 #include "MosaicWidget.h"
 #include "VariantOpenDialog.h"
-#include <functional>
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -5511,7 +5510,6 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 
 void MainWindow::registerCustomContextMenuActions()
 {
-	//init
 	bool  ngsd_user_logged_in = LoginManager::active();
 
 	QList<QSharedPointer<QAction>> actions;

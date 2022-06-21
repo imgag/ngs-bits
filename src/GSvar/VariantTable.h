@@ -108,8 +108,8 @@ private:
 	VariantList* variants_;
 	QList<QSharedPointer<QAction>> registered_actions_;
 	PhenotypeList active_phenotypes_;
-	bool clinvar_publish_;
-	bool alamut_active_;
+	bool clinvar_publish_connected_;
+	bool alamut_connected_;
 
 };
 
