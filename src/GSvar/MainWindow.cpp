@@ -270,8 +270,8 @@ MainWindow::MainWindow(QWidget *parent)
 		server_ping_timer->start(600 * 1000); // every 10 minutes
 	}
 
-	ui_.vars->enableClinvarPublish(true);
 	connect(ui_.vars, SIGNAL(publishToClinvarTriggered(int)), this, SLOT(uploadToClinvar(int)));
+	connect(ui_.vars, SIGNAL(alamutTriggered(QAction*)), this, SLOT(openAlamut(QAction*)));
 }
 
 QString MainWindow::appName() const
@@ -5599,6 +5599,37 @@ void MainWindow::execContextMenuAction(QAction* action, int index)
 	else if (action == context_menu_actions_.a_var_val)
 	{
 		editVariantValidation(index);
+	}
+}
+
+void MainWindow::openAlamut(QAction* action)
+{
+	//documentation of the alamut API:
+	// - http://www.interactive-biosoftware.com/doc/alamut-visual/2.14/accessing.html
+	// - http://www.interactive-biosoftware.com/doc/alamut-visual/2.11/Alamut-HTTP.html
+	// - http://www.interactive-biosoftware.com/doc/alamut-visual/2.14/programmatic-access.html
+	QStringList parts = action->text().split(" ");
+	if (parts.count()>=1)
+	{
+		QString value = parts[0];
+		if (value=="BAM")
+		{
+			QStringList bams = GlobalServiceProvider::fileLocationProvider().getBamFiles(false).filterById(germlineReportSample()).asStringList();
+			if (bams.empty()) return;
+			value = "BAM<" + bams[0];
+		}
+
+		try
+		{
+			QString host = Settings::string("alamut_host");
+			QString institution = Settings::string("alamut_institution");
+			QString apikey = Settings::string("alamut_apikey");
+			HttpHandler(HttpRequestHandler::NONE).get(host+"/search?institution="+institution+"&apikey="+apikey+"&request="+value);
+		}
+		catch (Exception& e)
+		{
+			QMessageBox::warning(this, "Communication with Alamut failed!", e.message());
+		}
 	}
 }
 

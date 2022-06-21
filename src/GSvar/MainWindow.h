@@ -396,6 +396,8 @@ public slots:
 	void updateSomaticVariantInterpretationAnno(int index, QString vicc_interpretation, QString vicc_comment);
 	///Execute custom context menu actions (see also registerCustomContextMenuActions())
 	void execContextMenuAction(QAction* action, int index);
+	//Open Alamut visualization
+	void openAlamut(QAction* action);
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);

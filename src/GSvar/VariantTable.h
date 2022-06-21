@@ -7,6 +7,7 @@
 #include "ReportSettings.h"
 #include "SomaticReportSettings.h"
 #include <QMenu>
+#include <QMetaMethod>
 
 //GUI representation of (filtered) variant table
 class VariantTable
@@ -89,7 +90,9 @@ signals:
 	///An added context menu action was triggered
 	void customActionTriggered(QAction* action, int var_index);
 	///Publish to Clinvar menu action triggered
-	void publishToClinvarTriggered(int var_index);
+	void publishToClinvarTriggered(int index);
+
+	void alamutTriggered(QAction* action);
 
 protected:
 
@@ -99,11 +102,14 @@ protected:
 	///Override copy command
 	void keyPressEvent(QKeyEvent* event) override;
 
+	void connectNotify(const QMetaMethod& signal) override;
+
 private:
 	VariantList* variants_;
 	QList<QSharedPointer<QAction>> registered_actions_;
 	PhenotypeList active_phenotypes_;
 	bool clinvar_publish_;
+	bool alamut_active_;
 
 };
 

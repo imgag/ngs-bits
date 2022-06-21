@@ -21,6 +21,7 @@ VariantTable::VariantTable(QWidget* parent)
 	, registered_actions_()
 	, active_phenotypes_()
 	, clinvar_publish_(false)
+	, alamut_active_(false)
 {
 	//make sure the selection is visible when the table looses focus
 	QString fg = GUIHelper::colorToQssFormat(palette().color(QPalette::Active, QPalette::HighlightedText));
@@ -30,9 +31,14 @@ VariantTable::VariantTable(QWidget* parent)
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customContextMenu(QPoint)));
 }
 
-void VariantTable::enableClinvarPublish(bool enable)
+void VariantTable::connectNotify(const QMetaMethod &signal)
 {
-	clinvar_publish_ = enable;
+	if (signal == QMetaMethod::fromSignal(&VariantTable::publishToClinvarTriggered)) {
+		clinvar_publish_ = true;
+	}
+	if (signal == QMetaMethod::fromSignal(&VariantTable::alamutTriggered)) {
+		alamut_active_ = true;
+	}
 }
 
 void VariantTable::addCustomContextMenuActions(QList<QSharedPointer<QAction>> actions)
@@ -100,6 +106,49 @@ void VariantTable::customContextMenu(QPoint pos)
 			action->setFont(font);
 			action2->setFont(font);
 		}
+	}
+
+	//Alamut
+	if (Settings::contains("alamut_host") && Settings::contains("alamut_institution") && Settings::contains("alamut_apikey"))
+	{
+		sub_menu = menu.addMenu(QIcon("://Icons/Alamut.png"), "Alamut");
+
+		//BAM
+		if (variants_->type()==GERMLINE_SINGLESAMPLE)
+		{
+			sub_menu->addAction("BAM");
+		}
+
+		//genomic location
+		QString loc = variant.chr().str() + ":" + QByteArray::number(variant.start());
+		loc.replace("chrMT", "chrM");
+		sub_menu->addAction(loc);
+		sub_menu->addAction(loc + variant.ref() + ">" + variant.obs());
+
+		//genes
+		foreach(const QByteArray& g, genes)
+		{
+			sub_menu->addAction(g);
+		}
+		sub_menu->addSeparator();
+
+		//transcripts
+		foreach(const VariantTranscript& transcript, transcripts)
+		{
+			if  (transcript.id!="" && transcript.hgvs_c!="")
+			{
+				QAction* action = sub_menu->addAction(transcript.idWithoutVersion() + ":" + transcript.hgvs_c + " (" + transcript.gene + ")");
+
+				//highlight preferred transcripts
+				if (preferred_transcripts.value(transcript.gene).contains(transcript.idWithoutVersion()))
+				{
+					QFont font = action->font();
+					font.setBold(true);
+					action->setFont(font);
+				}
+			}
+		}
+		sub_menu->setEnabled(alamut_active_);
 	}
 
 	//UCSC
@@ -253,6 +302,10 @@ void VariantTable::customContextMenu(QPoint pos)
 
 		QString base_url = parent_menu->title()=="Google" ? "https://www.google.com/search?q=" : "https://scholar.google.de/scholar?q=";
 		QDesktopServices::openUrl(QUrl(base_url + query.replace("+", "%2B").replace(' ', '+')));
+	}
+	else if (parent_menu && parent_menu->title()=="Alamut")
+	{
+		emit alamutTriggered(action);
 	}
 	else if (action == a_ucsc)
 	{
