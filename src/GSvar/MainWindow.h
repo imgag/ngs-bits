@@ -122,6 +122,7 @@ public slots:
 	void on_actionSender_triggered();
 	void on_actionSpecies_triggered();
 	void on_actionUsers_triggered();
+	void on_actionDatabaseOperations_triggered();
 	void on_actionImportMids_triggered();
 	void on_actionImportStudy_triggered();
 	void on_actionImportSamples_triggered();

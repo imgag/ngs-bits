@@ -6756,6 +6756,34 @@ QString NGSD::escapeText(QString text)
 	return db_->driver()->formatValue(f);
 }
 
+QString NGSD::exportTable(const QString& table) const
+{
+	QString output;
+
+	if (!table.isEmpty())
+	{
+		TableInfo table_info = NGSD().tableInfo(table);
+		int field_count = table_info.fieldCount();
+		QStringList field_names = table_info.fieldNames();
+
+		SqlQuery query = getQuery();
+		query.exec("SELECT * FROM " + table);
+		while(query.next())
+		{
+			QStringList values;
+			for (int i=0; i<field_count; i++)
+			{
+				values.append(query.value(field_names[i]).toString());
+			}
+
+			output += "INSERT INTO `" + table + "` (`" + field_names.join("`, `") + "`) "
+						"VALUES ('" + values.join("', '") + "');\n";
+		}
+	}
+
+	return output;
+}
+
 
 NGSD::Cache& NGSD::getCache()
 {

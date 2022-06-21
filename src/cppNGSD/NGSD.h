@@ -549,6 +549,9 @@ public:
 	///Escapes SQL special characters in a text
 	QString escapeText(QString text);
 
+	///Creates a SQL dump for a given table
+	QString exportTable(const QString& table) const;
+
 	///Creates a DBTable with data from an SQL query.
 	DBTable createTable(QString table, QString query, int pk_col_index=0);
 	///Creates a DBTable with all rows of a table.

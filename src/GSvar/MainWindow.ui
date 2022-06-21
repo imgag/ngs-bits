@@ -507,6 +507,7 @@
      <addaction name="actionChangePassword"/>
      <addaction name="separator"/>
      <addaction name="actionReplicateNGSD"/>
+     <addaction name="actionDatabaseOperations"/>
     </widget>
     <widget class="QMenu" name="menuBatch_import">
      <property name="title">
@@ -1406,6 +1407,11 @@
   <action name="actionEditSomaticPathways">
    <property name="text">
     <string>Somatic pathways</string>
+   </property>
+  </action>
+  <action name="actionDatabaseOperations">
+   <property name="text">
+    <string>Database</string>
    </property>
   </action>
  </widget>

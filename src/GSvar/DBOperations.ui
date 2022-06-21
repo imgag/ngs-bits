@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DbOperations</class>
+ <widget class="QWidget" name="DbOperations">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>520</width>
+    <height>400</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>520</width>
+    <height>400</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QListWidget" name="table_list">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>30</y>
+     <width>501</width>
+     <height>321</height>
+    </rect>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>500</width>
+     <height>300</height>
+    </size>
+   </property>
+  </widget>
+  <widget class="QLabel" name="table_list_label">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>171</width>
+     <height>19</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>List of database tables:</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="export_table_btn">
+   <property name="geometry">
+    <rect>
+     <x>170</x>
+     <y>360</y>
+     <width>181</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Export selected tables</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

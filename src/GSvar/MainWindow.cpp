@@ -83,6 +83,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "DBEditor.h"
 #include "TsvTableWidget.h"
 #include "DBTableAdministration.h"
+#include "DBOperations.h"
 #include "SequencingRunOverview.h"
 #include "MidCheckWidget.h"
 #include "CnvSearchWidget.h"
@@ -4796,6 +4797,23 @@ void MainWindow::on_actionUsers_triggered()
 	//show user table
 	DBTableAdministration* widget = new DBTableAdministration("user");
 	auto dlg = GUIHelper::createDialog(widget, "User administration");
+	addModelessDialog(dlg);
+}
+
+void MainWindow::on_actionDatabaseOperations_triggered()
+{
+	try
+	{
+		LoginManager::checkRoleIn(QStringList{"admin"});
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, "Permissions error", e.message());
+		return;
+	}
+
+	DBOperations* widget = new DBOperations();
+	auto dlg = GUIHelper::createDialog(widget, "Databse table export");
 	addModelessDialog(dlg);
 }
 
