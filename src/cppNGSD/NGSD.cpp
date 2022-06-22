@@ -1476,13 +1476,14 @@ void NGSD::importGeneExpressionData(const QString& expression_data_file_path, co
 
 	// prepare query
 	SqlQuery query = getQuery();
-	query.prepare("INSERT INTO `expression`(`processed_sample_id`, `symbol`, `tpm`) VALUES ('" + ps_id + "',:0,:1)");
+	query.prepare("INSERT INTO `expression`(`processed_sample_id`, `symbol`, `tpm`, `raw`) VALUES ('" + ps_id + "', :0, :1, :2)");
 
 
 	// open file and iterate over expression values
 	TSVFileStream tsv_file(expression_data_file_path);
 	int idx_ensg = tsv_file.colIndex("gene_id", true);
 	int idx_tpm = tsv_file.colIndex("tpm", true);
+	int idx_raw = tsv_file.colIndex("raw", true);
 	int n_imported = 0;
 	int n_skipped = 0;
 
@@ -1491,6 +1492,7 @@ void NGSD::importGeneExpressionData(const QString& expression_data_file_path, co
 		QByteArrayList tsv_line = tsv_file.readLine();
 		QByteArray ensg = tsv_line.at(idx_ensg);
 		double tpm = Helper::toDouble(tsv_line.at(idx_tpm), "TPM value");
+		double raw = Helper::toInt(tsv_line.at(idx_raw), "raw value");
 
 		//skip ENSG ids which are not in the NGSD
 		if (!gene_mapping.contains(ensg))
@@ -1502,6 +1504,7 @@ void NGSD::importGeneExpressionData(const QString& expression_data_file_path, co
 		// import value
 		query.bindValue(0, gene_mapping.value(ensg));
 		query.bindValue(1, tpm);
+		query.bindValue(2, raw);
 		query.exec();
 		n_imported++;
 	}

@@ -2334,6 +2334,14 @@ private slots:
 		count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 816);
 
+		//check imported values
+		I_EQUAL(db.getValue("SELECT raw FROM expression WHERE processed_sample_id=5001 AND symbol='" + ensg_gene_mapping.value("ENSG00000049249") + "'").toInt(), 20934);
+		F_EQUAL2(db.getValue("SELECT tpm FROM expression WHERE processed_sample_id=5001 AND symbol='" + ensg_gene_mapping.value("ENSG00000215720") + "'").toFloat(), 116.816, 0.001);
+		I_EQUAL(db.getValue("SELECT raw FROM expression WHERE processed_sample_id=5002 AND symbol='" + ensg_gene_mapping.value("ENSG00000229716") + "'").toInt(), 1371);
+		F_EQUAL2(db.getValue("SELECT tpm FROM expression WHERE processed_sample_id=5002 AND symbol='" + ensg_gene_mapping.value("ENSG00000159189") + "'").toFloat(), 204.76, 0.001);
+		I_EQUAL(db.getValue("SELECT raw FROM expression WHERE processed_sample_id=5005 AND symbol='" + ensg_gene_mapping.value("ENSG00000227634") + "'").toInt(), 15679);
+		F_EQUAL2(db.getValue("SELECT tpm FROM expression WHERE processed_sample_id=5005 AND symbol='" + ensg_gene_mapping.value("ENSG00000282740") + "'").toFloat(), 0.0, 0.001);
+
 		//Test transcript expression data import
 		db.importTranscriptExpressionData(TESTDATA("data_in/NGSD_expr_transcript_in1.tsv"), "RX001_01", false, false);
 		count = db.getValue("SELECT count(*) FROM expression_transcript").toInt();
