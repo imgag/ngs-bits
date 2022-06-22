@@ -447,14 +447,14 @@ private:
 	//single vars context menu
 	struct ContextMenuActions
 	{
-		QSharedPointer<QAction> a_report_edit;
-		QSharedPointer<QAction> a_report_del;
-		QSharedPointer<QAction> a_var_class;
-		QSharedPointer<QAction> a_var_class_somatic;
-		QSharedPointer<QAction> a_var_interpretation_somatic;
-		QSharedPointer<QAction> a_var_comment;
-		QSharedPointer<QAction> a_var_val;
-		QSharedPointer<QAction> seperator;
+		QAction* a_report_edit;
+		QAction* a_report_del;
+		QAction* a_var_class;
+		QAction* a_var_class_somatic;
+		QAction* a_var_interpretation_somatic;
+		QAction* a_var_comment;
+		QAction* a_var_val;
+		QAction* seperator;
 	};
 	ContextMenuActions context_menu_actions_;
 	void registerCustomContextMenuActions();

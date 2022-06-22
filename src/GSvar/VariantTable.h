@@ -53,7 +53,7 @@ public:
 	//Enable the context menu action: "Publish to ClinVar". (User still has to be logged in)
 	void enableClinvarPublish(bool enable);
 	///Add custom context menu actions
-	void addCustomContextMenuActions(QList<QSharedPointer<QAction>> actions);
+	void addCustomContextMenuActions(QList<QAction*> actions);
 
 	///Returns the current column widths.
 	QList<int> columnWidths() const;
@@ -91,7 +91,7 @@ signals:
 	void customActionTriggered(QAction* action, int var_index);
 	///Publish to Clinvar menu action triggered
 	void publishToClinvarTriggered(int index);
-
+	///Signal emitted when Alamut should be opened
 	void alamutTriggered(QAction* action);
 
 protected:
@@ -102,15 +102,10 @@ protected:
 	///Override copy command
 	void keyPressEvent(QKeyEvent* event) override;
 
-	void connectNotify(const QMetaMethod& signal) override;
-
 private:
 	VariantList* variants_;
-	QList<QSharedPointer<QAction>> registered_actions_;
+	QList<QAction*> registered_actions_;
 	PhenotypeList active_phenotypes_;
-	bool clinvar_publish_connected_;
-	bool alamut_connected_;
-
 };
 
 #endif // VARIANTTABLE_H

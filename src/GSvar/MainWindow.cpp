@@ -5512,35 +5512,35 @@ void MainWindow::registerCustomContextMenuActions()
 {
 	bool  ngsd_user_logged_in = LoginManager::active();
 
-	QList<QSharedPointer<QAction>> actions;
-	context_menu_actions_.seperator = QSharedPointer<QAction>(new QAction("---"));
+	QList<QAction*> actions;
+	context_menu_actions_.seperator = new QAction("---");
 
 	//NGSD report configuration
-	context_menu_actions_.a_report_edit = QSharedPointer<QAction>(new QAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration"));
+	context_menu_actions_.a_report_edit = new QAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
 	context_menu_actions_.a_report_edit->setEnabled(ngsd_user_logged_in);
 	actions << context_menu_actions_.a_report_edit;
 
-	context_menu_actions_.a_report_del = QSharedPointer<QAction>(new QAction(QIcon(":/Icons/Remove.png"), "Delete report configuration"));
+	context_menu_actions_.a_report_del = new QAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
 	context_menu_actions_.a_report_del->setEnabled(ngsd_user_logged_in);
 	actions << context_menu_actions_.a_report_del;
 	actions << context_menu_actions_.seperator;
 
 	//NGSD variant options
-	context_menu_actions_.a_var_class = QSharedPointer<QAction>(new QAction("Edit classification"));
+	context_menu_actions_.a_var_class = new QAction("Edit classification");
 	context_menu_actions_.a_var_class->setEnabled(ngsd_user_logged_in);
 	actions << context_menu_actions_.a_var_class;
 
-	context_menu_actions_.a_var_class_somatic = QSharedPointer<QAction>(new QAction("Edit classification  (somatic)"));
+	context_menu_actions_.a_var_class_somatic = new QAction("Edit classification  (somatic)");
 	context_menu_actions_.a_var_class_somatic->setEnabled(ngsd_user_logged_in);
 	actions << context_menu_actions_.a_var_class_somatic;
-	context_menu_actions_.a_var_interpretation_somatic = QSharedPointer<QAction>(new QAction("Edit VICC interpretation (somatic)"));
+	context_menu_actions_.a_var_interpretation_somatic = new QAction("Edit VICC interpretation (somatic)");
 	context_menu_actions_.a_var_interpretation_somatic->setEnabled(ngsd_user_logged_in);
 	actions << context_menu_actions_.a_var_interpretation_somatic;
 
-	context_menu_actions_.a_var_comment = QSharedPointer<QAction>(new QAction("Edit comment"));
+	context_menu_actions_.a_var_comment = new QAction("Edit comment");
 	context_menu_actions_.a_var_comment->setEnabled(ngsd_user_logged_in);
 	actions << context_menu_actions_.a_var_comment;
-	context_menu_actions_.a_var_val = QSharedPointer<QAction>(new QAction("Perform variant validation"));
+	context_menu_actions_.a_var_val = new QAction("Perform variant validation");
 	context_menu_actions_.a_var_val->setEnabled(ngsd_user_logged_in);
 	actions << context_menu_actions_.a_var_val;
 	actions << context_menu_actions_.seperator;
@@ -5626,7 +5626,7 @@ void MainWindow::openAlamut(QAction* action)
 		}
 		catch (Exception& e)
 		{
-			QMessageBox::warning(this, "Communication with Alamut failed!", e.message());
+			GUIHelper::showException(this, e, "Communication with Alamut failed!");
 		}
 	}
 }

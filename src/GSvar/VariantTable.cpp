@@ -20,8 +20,6 @@ VariantTable::VariantTable(QWidget* parent)
 	: QTableWidget(parent)
 	, registered_actions_()
 	, active_phenotypes_()
-	, clinvar_publish_connected_(false)
-	, alamut_connected_(false)
 {
 	//make sure the selection is visible when the table looses focus
 	QString fg = GUIHelper::colorToQssFormat(palette().color(QPalette::Active, QPalette::HighlightedText));
@@ -31,17 +29,7 @@ VariantTable::VariantTable(QWidget* parent)
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customContextMenu(QPoint)));
 }
 
-void VariantTable::connectNotify(const QMetaMethod &signal)
-{
-	if (signal == QMetaMethod::fromSignal(&VariantTable::publishToClinvarTriggered)) {
-		clinvar_publish_connected_ = true;
-	}
-	if (signal == QMetaMethod::fromSignal(&VariantTable::alamutTriggered)) {
-		alamut_connected_ = true;
-	}
-}
-
-void VariantTable::addCustomContextMenuActions(QList<QSharedPointer<QAction>> actions)
+void VariantTable::addCustomContextMenuActions(QList<QAction*> actions)
 {
 	registered_actions_ = actions;
 }
@@ -66,7 +54,7 @@ void VariantTable::customContextMenu(QPoint pos)
 
 	if (registered_actions_.count() > 0)
 	{
-		foreach (QSharedPointer<QAction> action, registered_actions_)
+		foreach (QAction* action, registered_actions_)
 		{
 			if (action->text() == "---")
 			{
@@ -74,7 +62,7 @@ void VariantTable::customContextMenu(QPoint pos)
 			}
 			else
 			{
-				menu.insertAction(0, action.data());
+				menu.insertAction(0, action);
 			}
 		}
 		menu.addSeparator();
@@ -148,7 +136,8 @@ void VariantTable::customContextMenu(QPoint pos)
 				}
 			}
 		}
-		sub_menu->setEnabled(alamut_connected_);
+		QMetaMethod signal = QMetaMethod::fromSignal(&VariantTable::alamutTriggered);
+		sub_menu->setEnabled(isSignalConnected(signal));
 	}
 
 	//UCSC
@@ -161,7 +150,8 @@ void VariantTable::customContextMenu(QPoint pos)
 	sub_menu = menu.addMenu(QIcon("://Icons/ClinGen.png"), "ClinVar");
 	QAction* a_clinvar_find = sub_menu->addAction("Find in ClinVar");
 	QAction* a_clinvar_pub = sub_menu->addAction("Publish in ClinVar");
-	a_clinvar_pub->setEnabled(ngsd_user_logged_in && clinvar_publish_connected_ && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty());
+	QMetaMethod signal = QMetaMethod::fromSignal(&VariantTable::publishToClinvarTriggered);
+	a_clinvar_pub->setEnabled(ngsd_user_logged_in && isSignalConnected(signal) && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty());
 
 	//MitoMap
 	QAction* a_mitomap = menu.addAction(QIcon("://Icons/MitoMap.png"), "Open in MitoMap");
