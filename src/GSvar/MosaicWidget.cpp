@@ -3,7 +3,7 @@
 #include "GUIHelper.h"
 #include "GlobalServiceProvider.h"
 
-MosaicWidget::MosaicWidget(const VariantList& variants, ReportSettings rep_settings, QHash<QByteArray, BedFile>& cache, QWidget* parent)
+MosaicWidget::MosaicWidget(VariantList& variants, ReportSettings rep_settings, QHash<QByteArray, BedFile>& cache, QWidget* parent)
 	: QWidget(parent)
 	, ui_()
 	, variants_(variants)
@@ -151,6 +151,10 @@ void MosaicWidget::applyFilters(bool debug_time)
 
 		//filter by phenotype (via genes, not genomic regions)
 		PhenotypeList phenotypes = ui_.filter_widget->phenotypes();
+
+		//update phenotypes for variant context menu search:
+		ui_.mosaics->updateActivePhenotypes(phenotypes);
+
 		if (!phenotypes.isEmpty())
 		{
 			//convert phenotypes to genes
