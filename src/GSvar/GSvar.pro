@@ -8,7 +8,6 @@ RC_FILE	 = icon.rc
 
 SOURCES += main.cpp\
     CfDNAPanelBatchImport.cpp \
-    DBOperations.cpp \
     DatabaseServiceRemote.cpp \
     GlobalServiceProvider.cpp \
     MainWindow.cpp \
@@ -116,7 +115,6 @@ SOURCES += main.cpp\
 
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
-    DBOperations.h \
     DatabaseServiceRemote.h \
     ExternalToolDialog.h \
     GlobalServiceProvider.h \
@@ -224,7 +222,6 @@ HEADERS += MainWindow.h \
 
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
-    DBOperations.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
     TrioDialog.ui \

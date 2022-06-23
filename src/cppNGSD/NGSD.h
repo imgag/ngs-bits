@@ -550,7 +550,9 @@ public:
 	QString escapeText(QString text);
 
 	///Creates a SQL dump for a given table
-	QString exportTable(const QString& table) const;
+	void exportTable(const QString& table, QTextStream& out, QList<QString>& sql_history, QString where_clause = "") const;
+	///Checks if Sample table has records
+	bool hasSamples() const;
 
 	///Creates a DBTable with data from an SQL query.
 	DBTable createTable(QString table, QString query, int pk_col_index=0);
@@ -674,6 +676,12 @@ public:
 	QString sampleId(const QString& filename, bool throw_if_fails = true);
 	///Returns the NGSD processed sample ID from a file name or processed sample name. Throws an exception if it could not be determined.
 	QString processedSampleId(const QString& filename, bool throw_if_fails = true);
+	///Returns the project type for the given processed sample id
+	QString processedSampleProjectType(const QString& processed_sample_id);
+	///Returns CNV callset for the given processed sample id
+	QString processedSampleCnvCallset(const QString& processed_sample_id);
+	///Removes init data for the database
+	void removeInitData();
 
 	///Returns the project folder for a project type
 	QString projectFolder(QString type);

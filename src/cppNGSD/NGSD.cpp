@@ -970,6 +970,28 @@ QString NGSD::processedSampleId(const QString& filename, bool throw_if_fails)
 	return query.value(0).toString();
 }
 
+QString NGSD::processedSampleProjectType(const QString& processed_sample_id)
+{
+	return getValue("SELECT p.type FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.id='" +processed_sample_id + "'").toString();
+}
+
+QString NGSD::processedSampleCnvCallset(const QString& processed_sample_id)
+{
+	return getValue("SELECT id FROM cnv_callset WHERE processed_sample_id='" +processed_sample_id + "'").toString();
+}
+
+void NGSD::removeInitData()
+{
+	getQuery().exec("DELETE FROM user WHERE user_id='admin'");
+	getQuery().exec("DELETE FROM user WHERE user_id='genlab_import'");
+	getQuery().exec("DELETE FROM user WHERE user_id='unknown'");
+
+	getQuery().exec("DELETE FROM species WHERE name='human'");
+
+	getQuery().exec("DELETE FROM genome WHERE build='GRCh37'");
+	getQuery().exec("DELETE FROM genome WHERE build='GRCh38'");
+}
+
 QString NGSD::projectFolder(QString type)
 {
 	//current type-specific project folder settings
@@ -6756,32 +6778,66 @@ QString NGSD::escapeText(QString text)
 	return db_->driver()->formatValue(f);
 }
 
-QString NGSD::exportTable(const QString& table) const
+void NGSD::exportTable(const QString& table, QTextStream& out, QList<QString>& sql_history, QString where_clause) const
 {
-	QString output;
-
 	if (!table.isEmpty())
 	{
+		Log::info("Exporting `" + table + "`");
 		TableInfo table_info = NGSD().tableInfo(table);
 		int field_count = table_info.fieldCount();
 		QStringList field_names = table_info.fieldNames();
 
 		SqlQuery query = getQuery();
-		query.exec("SELECT * FROM " + table);
+		QString where;
+		if (!where_clause.isEmpty()) where = " WHERE(" + where_clause + ")";
+		QString sql_query = "SELECT * FROM " + table + where;
+		if (sql_history.contains(sql_query)) return;
+		query.exec(sql_query);
+		sql_history.append(sql_query);
+
+		out << "--\n-- TABLE `" + table + "`\n--\n";
+		if (query.size() <= 0) out << "-- No records found --\n";
+
+		QString query_prefix = "INSERT INTO `" + table + "` (`" + field_names.join("`, `") + "`) VALUES ";
+		int row_count = 0;
 		while(query.next())
 		{
+			if ((row_count>0) && (row_count<1000)) out << ", ";
+			row_count++;
+			if (row_count == 1)
+			{
+				out << query_prefix;
+			}
 			QStringList values;
 			for (int i=0; i<field_count; i++)
 			{
-				values.append(query.value(field_names[i]).toString());
+				QString field_value = query.value(field_names[i]).toString();
+				if (((field_value.isEmpty()) || (field_value=="0")) && (table_info.fieldInfo()[i].is_nullable)) field_value = "NULL";
+				field_value = field_value.replace("'", "\\'");
+				field_value = field_value.replace("\"", "\\\"");
+				field_value = field_value.replace("\r", "\\r");
+				field_value = field_value.replace("\n", "\\n");
+				values.append(field_value);
 			}
 
-			output += "INSERT INTO `" + table + "` (`" + field_names.join("`, `") + "`) "
-						"VALUES ('" + values.join("', '") + "');\n";
-		}
-	}
+			QString insert_query =  "('" + values.join("', '") + "')";
+			insert_query = insert_query.replace("'NULL'", "NULL");
+			out << insert_query;
 
-	return output;
+			if (row_count>=1000)
+			{
+				row_count = 0;
+				out << ";\n";
+			}
+		}
+		if ((row_count>0) && (row_count<=1000)) out << ";\n";
+		out << "\n";
+	}
+}
+
+bool NGSD::hasSamples() const
+{
+	return (getValue("SELECT COUNT(id) FROM sample", false).toInt() > 0);
 }
 
 

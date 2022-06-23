@@ -83,7 +83,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "DBEditor.h"
 #include "TsvTableWidget.h"
 #include "DBTableAdministration.h"
-#include "DBOperations.h"
 #include "SequencingRunOverview.h"
 #include "MidCheckWidget.h"
 #include "CnvSearchWidget.h"
@@ -4803,11 +4802,11 @@ void MainWindow::on_actionUsers_triggered()
 	addModelessDialog(dlg);
 }
 
-void MainWindow::on_actionDatabaseOperations_triggered()
+void MainWindow::on_actionExportTestData_triggered()
 {
 	try
 	{
-		LoginManager::checkRoleIn(QStringList{"admin"});
+		LoginManager::checkRoleIn(QStringList{"admin", "user"});
 	}
 	catch (Exception& e)
 	{
@@ -4815,9 +4814,176 @@ void MainWindow::on_actionDatabaseOperations_triggered()
 		return;
 	}
 
-	DBOperations* widget = new DBOperations();
-	auto dlg = GUIHelper::createDialog(widget, "Databse table export");
-	addModelessDialog(dlg);
+
+	QPlainTextEdit* text_edit = new QPlainTextEdit(this);
+	text_edit->setMinimumSize(400, 150);
+	text_edit->setWordWrapMode(QTextOption::WordWrap);
+	text_edit->appendPlainText("List the processed samples separated by semi-colon character");
+	text_edit->selectAll();
+
+	QApplication::restoreOverrideCursor();
+
+	auto dlg = GUIHelper::createDialog(text_edit, "Export test data", "", true);
+
+	if (dlg->exec()==QDialog::Accepted)
+	{
+		QStringList ps_list = text_edit->toPlainText().split(";");
+		if (ps_list.count() == 0) return;
+
+		QString file_name = QFileDialog::getSaveFileName(this, "Export database tables", QDir::homePath()+QDir::separator()+"db_data_"+QDateTime::currentDateTime().toString("dd_MM_yyyy")+".sql", "SQL (*.sql);;All files (*.*)");
+		if (file_name.isEmpty()) return;
+
+		QSharedPointer<QFile> file = Helper::openFileForWriting(file_name, false);
+		QTextStream output_stream(file.data());
+
+		NGSD db;
+		QList<QString> sql_history;
+		QMessageBox export_options_dialog;
+		export_options_dialog.setText("Base tables data can be relatively large. Saving this data may slow down the export/import process. Base tables are essential for the proper work of the application.");
+		export_options_dialog.setInformativeText("Do you want to include base tables data?");
+		export_options_dialog.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+		export_options_dialog.setDefaultButton(QMessageBox::Yes);
+		int selected_export_option = export_options_dialog.exec();
+		if (selected_export_option == QMessageBox::Yes)
+		{
+			Log::info("Exporting complete base tables");
+			QStringList base_tables = {
+				"user",
+				"device",
+				"gene",
+				"gene_alias",
+				"gene_transcript",
+				"gene_exon",
+				"geneinfo_germline",
+				"genome",
+				"hpo_term",
+				"hpo_parent",
+				"hpo_genes",
+				"mid",
+				"omim_gene",
+				"omim_phenotype",
+				"processing_system",
+				"project",
+				"qc_terms",
+				"sender",
+				"sequencing_run",
+				"runqc_read",
+				"runqc_lane",
+				"species"
+			};
+
+			for (int i = 0; i < base_tables.count(); i++)
+			{
+				ui_.statusBar->showMessage("Exporting table \"" + base_tables[i] + "\"");
+				db.exportTable(base_tables[i], output_stream, sql_history);
+			}
+		}
+		else if (selected_export_option == QMessageBox::No)
+		{
+			Log::info("Skipping base tables");
+		}
+		else if (selected_export_option == QMessageBox::Cancel)
+		{
+			return;
+		}
+
+		Log::info("Exporting processed sample related tables");
+		ui_.statusBar->showMessage("Exporting tables with the processed sample specific data");
+		for (int i = 0; i < ps_list.count(); i++)
+		{
+			QString s_id;
+			QString ps_id;
+			QString ps_type;
+			QString ps_cnv_id;
+			try
+			{
+				s_id = db.sampleId(ps_list[i]);
+				ps_id = db.processedSampleId(ps_list[i]);
+				ps_type = db.processedSampleProjectType(ps_id);
+				ps_cnv_id = db.processedSampleCnvCallset(ps_id);
+			}
+			catch (DatabaseException& e)
+			{
+				Log::error("Database error: " + e.message());
+			}
+
+			if (s_id.isEmpty())
+			{
+				QMessageBox::warning(this, "Error while searching for the sample id", "`" + ps_list[i] + "` could not be found");
+				continue;
+			}
+			if (ps_id.isEmpty())
+			{
+				QMessageBox::warning(this, "Error while searching for the processed sample", "`" + ps_list[i] + "` could not be found");
+				continue;
+			}
+			if (ps_type.toLower() != "test")
+			{
+				QMessageBox::warning(this, "Incorrect type of the processed sample", "Only test project samples are allowed to be exported");
+				continue;
+			}
+
+			db.exportTable("sample", output_stream, sql_history, "id='"+s_id+"'");
+			db.exportTable("sample_disease_info", output_stream, sql_history, "sample_id='"+s_id+"'");
+
+			db.exportTable("processed_sample", output_stream, sql_history, "id='"+ps_id+"'");
+			db.exportTable("processed_sample_qc", output_stream, sql_history, "processed_sample_id='"+ps_id+"'");
+			db.exportTable("diag_status", output_stream, sql_history, "processed_sample_id='"+ps_id+"'");
+			db.exportTable("cnv_callset", output_stream, sql_history, "processed_sample_id='"+ps_id+"'");
+			db.exportTable("cnv", output_stream, sql_history, "cnv_callset_id='"+ps_cnv_id+"'");
+		}
+
+		ui_.statusBar->showMessage("Done");
+		QMessageBox::information(this, "Table export", "Exported " + QString::number(sql_history.count()) + " table(s) to " + file_name);		
+	}
+}
+
+void MainWindow::on_actionImportTestData_triggered()
+{
+	Log::info("Import test data");
+	NGSD db;
+	if (db.hasSamples())
+	{
+		QMessageBox::warning(this, "Test data import", "Cannot import the data because the database is not empty (Sample table has records)");
+		return;
+	}
+
+	Log::info("Removing init data...");
+	db.removeInitData();
+
+	QString file_name = QFileDialog::getOpenFileName(this, "Export database tables", QDir::homePath(), "SQL (*.sql);;All files (*.*)");
+	if (file_name.isEmpty()) return;
+
+	Log::info("Import in progress");
+	QSharedPointer<QFile> file = Helper::openFileForReading(file_name, false);
+	while(!file->atEnd())
+	{
+		QString line = file->readLine().trimmed();
+		if (line.startsWith("--"))
+		{
+			line = line.replace("--", "").trimmed();
+			if (!line.isEmpty())
+			{
+				Log::info(line);
+				ui_.statusBar->showMessage("Importing \"" + line + "\"");
+			}
+			continue;
+		}
+
+		if (line.isEmpty()) continue;
+
+		try
+		{
+			db.getQuery().exec(line);
+		}
+		catch (DatabaseException& e)
+		{
+			Log::error("Import error: " + e.message());
+		}
+	}
+	Log::info("Test data import is complete");
+	ui_.statusBar->showMessage("Done");
+	QMessageBox::information(this, "Test data import", "Import is complete");
 }
 
 void MainWindow::on_actionImportMids_triggered()
