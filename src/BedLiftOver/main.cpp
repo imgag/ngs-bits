@@ -79,11 +79,22 @@ public:
 		int unlifted_count = 0;
 		long long lifted_length = 0;
 
-
+		//write BedLiftOver header
+		QStringList from_to = getString("chain").split("_");
+		QString header_line = "#BedLiftOver: Lifted file '" + in + "' from " + from_to[0] + " to " + from_to[1] + "\n";
+		lifted->write(header_line.toLatin1());
 
 		while(! bed->atEnd())
 		{
-			BedLine l = BedLine::fromString(bed->readLine());
+			QByteArray line = bed->readLine();
+			//write out headers
+			if (line.startsWith("#") || line.startsWith("track ") || line.startsWith("browser "))
+			{
+				lifted->write(line);
+				continue;
+			}
+
+			BedLine l = BedLine::fromString(line);
 			in_count++;
 			in_length += l.length();
 
