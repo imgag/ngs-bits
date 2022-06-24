@@ -91,6 +91,7 @@ QByteArrayList TabixIndexedFile::getMatchingLines(const Chromosome& chr, int sta
 		tbx_itr_destroy(itr);
 		if (r < -1)
 		{
+			free(str.s);
 			THROW(FileParseException, "Error while accessing file through the index file for " + filename_ + ".");
 		}
 	}
