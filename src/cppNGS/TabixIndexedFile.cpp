@@ -83,11 +83,22 @@ QByteArrayList TabixIndexedFile::getMatchingLines(const Chromosome& chr, int sta
 	hts_itr_t* itr = tbx_itr_queryi(tbx_, chr_id, start-1, end);
 	if (itr)
 	{
-		while (tbx_itr_next(file_, tbx_, itr, &str) >= 0)
+		int r;
+		while(r=tbx_itr_next(file_, tbx_, itr, &str), r>=0)
 		{
 			output << QByteArray(str.s);
 		}
 		tbx_itr_destroy(itr);
+		if (r < -1)
+		{
+			free(str.s);
+			THROW(FileParseException, "Error while accessing file through the index file for " + filename_ + ".");
+		}
+	}
+	else
+	{
+		free(str.s);
+		THROW(FileParseException, "Error while parsing the index file for " + filename_ + ".");
 	}
 	free(str.s);
 
