@@ -132,6 +132,9 @@ private:
 	RtfParagraph partVarExplanation();
 	///Gene expression table of pre-selected  genes
 	RtfTable partGeneExpression();
+	///Creates explanation text for SNV and CNV table
+	RtfParagraph partGeneExprExplanation();
+
 	///general information
 	RtfTable partGeneralInfo();
 

@@ -179,7 +179,7 @@ bool SomaticRnaReport::checkRequiredCNVAnnotations(const CnvList &cnvs)
 
 int SomaticRnaReport::rankCnv(double tpm, double mean_tpm, SomaticGeneRole::Role gene_role)
 {
-	if(!BasicStatistics::isValidFloat(tpm) || !BasicStatistics::isValidFloat(mean_tpm)) return 2;
+	if(!BasicStatistics::isValidFloat(tpm) || !BasicStatistics::isValidFloat(mean_tpm) || tpm < 10 ) return 3;
 
 	double ratio = tpm/mean_tpm;
 
@@ -216,6 +216,8 @@ RtfTable SomaticRnaReport::partFusions()
 		temp.addCell( 1921, trans(sv.type), RtfParagraph().setFontSize(16) );
 		fusion_table.addRow( temp );
 	}
+
+
 
 	fusion_table.setUniqueBorder(1,"brdrhair",2);
 
@@ -270,7 +272,7 @@ RtfSourceCode SomaticRnaReport::partExpressionPics()
 RtfTable SomaticRnaReport::partSVs()
 {
 	RtfTable fusion_table;
-	fusion_table.addRow(RtfTableRow("Strukturvariante", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1));
+	fusion_table.addRow(RtfTableRow("Strukturvarianten", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1));
 
 	fusion_table.addRow(RtfTableRow({"Gen", "Transkript", "Bruchpunkt 1", "Bruchpunkt 2", "Beschreibung"},{1600,1800,1400,1800,3321}, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)).setHeader());
 
@@ -288,6 +290,8 @@ RtfTable SomaticRnaReport::partSVs()
 
 		fusion_table.addRow( temp );
 	}
+	if(fusion_table.count() == 2) return RtfTable();
+
 	fusion_table.setUniqueBorder(1,"brdrhair",2);
 
 	return fusion_table;
@@ -322,29 +326,27 @@ RtfTable SomaticRnaReport::partSnvTable()
 
 		//DNA data
 		row.addCell(800, trans.gene, RtfParagraph().setItalic(true).setBold(true).setFontSize(16));//4400
-		row.addCell({RtfText(trans.hgvs_c + ":" + trans.hgvs_p).setFontSize(16).RtfCode(), RtfText(trans.id).setFontSize(14).RtfCode()}, 1800);
-		row.addCell(1200, trans.type.replace("_variant",""), RtfParagraph().setFontSize(16));
-		row.addCell(600, formatDigits(var.annotations()[i_tum_af].toDouble(), 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
+		row.addCell({RtfText(trans.hgvs_c + ":" + trans.hgvs_p).setFontSize(16).RtfCode(), RtfText(trans.id).setFontSize(14).RtfCode()}, 1900);
+		row.addCell(1300, trans.type.replace("_variant",""), RtfParagraph().setFontSize(16));
+		row.addCell(700, formatDigits(var.annotations()[i_tum_af].toDouble(), 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
 
 		//RNA data
-		row.addCell( 600, formatDigits(var_details.frequency, 2), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-		row.addCell( 1100, formatDigits(data.tumor_tpm) , RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-		row.addCell( 1100, formatDigits(data.hpa_ref_tpm), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-		row.addCell( 900, formatDigits(data.cohort_mean_tpm), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+		row.addCell( 700, formatDigits(var_details.frequency, 2), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+		row.addCell( 1200, formatDigits(data.tumor_tpm) , RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+		row.addCell( 1200, formatDigits(data.hpa_ref_tpm), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+		row.addCell( 1000, formatDigits(data.cohort_mean_tpm), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 
-		row.addCell( 1000, formatDigits(std::pow(2., data.log2fc), 1), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
-
-		row.addCell( 821, formatDigits(data.pvalue, 2), RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
+		row.addCell( 1121, (data.pvalue < 0.05 ? formatDigits(std::pow(2., data.log2fc), 1) + "\\super#" : "-") , RtfParagraph().setHorizontalAlignment("c").setFontSize(16) );
 
 		for(int i=4; i<row.count(); ++i) row[i].setBackgroundColor(4);
 		table.addRow(row);
 	}
 	table.sortByCol(0);
 
-	RtfTableRow header = RtfTableRow({"Gen", "Veränderung", "Typ", "Anteil", "Anteil", "Tumorprobe TPM", "Referenz HPA-TPM", "Tumortyp MW-TPM", "Veränderung (x-fach)", "p-Wert"},{800,1800,1200,600,600,1100,1100, 900, 1000, 821}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBorders(1, "brdrhair", 2);
+	RtfTableRow header = RtfTableRow({"Gen", "Veränderung", "Typ", "Anteil", "Anteil", "Tumorprobe TPM", "Normalprobe TPM", "Tumortyp MW-TPM", "Veränderung (x-fach)"},{800,1900,1300,700,700,1200,1200, 1000, 1121}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBorders(1, "brdrhair", 2);
 	for(int i=4; i<header.count(); ++i) header[i].setBackgroundColor(4);
 	table.prependRow( header );
-	RtfTableRow sub_header = RtfTableRow({"DNA", "RNA"}, {4400, 5521}, RtfParagraph().setFontSize(16).setHorizontalAlignment("c").setBold(true)).setBorders(1, "brdrhair", 2);
+	RtfTableRow sub_header = RtfTableRow({"DNA", "RNA"}, {4700, 5221}, RtfParagraph().setFontSize(16).setHorizontalAlignment("c").setBold(true)).setBorders(1, "brdrhair", 2);
 	sub_header[1].setBackgroundColor(4);
 	table.prependRow(sub_header);
 	table.prependRow(RtfTableRow("Punktmutationen (SNVs) und kleine Insertionen/Deletionen (INDELs) (" + data_.rna_ps_name.toUtf8() + "-" + data_.tumor_ps.toUtf8() + "-" + data_.normal_ps.toUtf8() + ")", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
@@ -380,26 +382,22 @@ RtfTable SomaticRnaReport::partCnvTable()
 
 			RtfTableRow temp;
 			temp.addCell(800, gene, RtfParagraph().setBold(true).setItalic(true).setFontSize(16));
-			temp.addCell(1800, cnv.chr().str() + " (" + cnv.annotations().at(i_size_desc).trimmed() + ")", RtfParagraph().setFontSize(16));
+			temp.addCell(1900, cnv.chr().str() + " (" + cnv.annotations().at(i_size_desc).trimmed() + ")", RtfParagraph().setFontSize(16));
 
 			int tumor_cn = cnv.copyNumber(dna_cnvs_.annotationHeaders());
-			temp.addCell(1200, SomaticReportHelper::CnvTypeDescription(tumor_cn), RtfParagraph().setFontSize(16));
+			temp.addCell(1300, SomaticReportHelper::CnvTypeDescription(tumor_cn), RtfParagraph().setFontSize(16));
 
-			temp.addCell(600, QByteArray::number(cnv.annotations().at(i_tum_clonality).toDouble(), 'f', 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
+			temp.addCell(700, QByteArray::number(cnv.annotations().at(i_tum_clonality).toDouble(), 'f', 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
 
-			temp.addCell(1000, formatDigits( expr_data.tumor_tpm), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+			temp.addCell(1100, formatDigits( expr_data.tumor_tpm), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
-			temp.addCell(900, formatDigits( expr_data.hpa_ref_tpm), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+			temp.addCell(1000, formatDigits( expr_data.hpa_ref_tpm), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
 			//Determine oncogenetic rank of expression change
 			int rank = rankCnv( expr_data.tumor_tpm , expr_data.hpa_ref_tpm, role.role );
-			temp.addCell( 900 , QByteArray::number(rank) , RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
-			temp.addCell(900, formatDigits( expr_data.cohort_mean_tpm), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
-
-
-			temp.addCell(1000, formatDigits( std::pow(2.,expr_data.log2fc) , 1) , RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
-
-			temp.addCell(821, formatDigits(expr_data.pvalue, 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+			temp.addCell( 1000 , QByteArray::number(rank) , RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+			temp.addCell(1000, formatDigits( expr_data.cohort_mean_tpm), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+			temp.addCell(1121, (expr_data.pvalue < 0.05 ? formatDigits(std::pow(2., expr_data.log2fc), 1) + "\\super#" : "-") , RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
 			for(int i=4; i< temp.count(); ++i) temp[i].setBackgroundColor(4);
 
@@ -407,13 +405,13 @@ RtfTable SomaticRnaReport::partCnvTable()
 		}
 	}
 
-	table.sortbyCols({6,0}); //sort by rank tean by gene symbol
+	table.sortbyCols({0,6}); //sort by gene symbol, then by rank
 
-	RtfTableRow header = RtfTableRow({"Gen", "Position", "CNV", "Anteil", "Tumorprobe TPM", "Referenz HPA-TPM", "Bewertung", "Tumortyp MW TPM", "Veränderung (x-fach)", "p-Wert"},{800, 1800, 1200, 600, 1000, 900,900, 900, 1000, 821}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader();
+	RtfTableRow header = RtfTableRow({"Gen", "Position", "CNV", "Anteil", "Tumorprobe TPM", "Normalprobe TPM", "Bewertung", "Tumortyp MW TPM", "Veränderung (x-fach)"},{800, 1900, 1300, 700, 1100, 1000,1000, 1000, 1121, }, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader();
 	for(int i=4; i< header.count(); ++i) header[i].setBackgroundColor(4);
 	table.prependRow(header);
 
-	RtfTableRow subheader = RtfTableRow({"DNA", "RNA"},{4400, 5521}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader();
+	RtfTableRow subheader = RtfTableRow({"DNA", "RNA"},{4700, 5221}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader();
 	subheader[1].setBackgroundColor(4);
 	table.prependRow( subheader);
 	table.prependRow(RtfTableRow("Kopienzahlveränderungen (CNVs)", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
@@ -446,13 +444,14 @@ RtfParagraph SomaticRnaReport::partVarExplanation()
 	out += bold("Anteil:") + " Anteil der Allele mit der gelisteten Variante (SNV, INDEL) bzw. Anteil der Zellen mit der entsprechenden CNV in der untersuchten Probe; ";
 	out += bold("CN:") + " Copy Number, ";
 	out += bold("TPM:") + " Normalisierte Expression des Gens als Transkriptanzahl pro Kilobase und pro Million Reads. ";
-	out += bold("Referenz HPA-TPM: ") + "Expression des Gens als Mittelwert TPM in Vergleichsproben aus Zellen aus " + trans(data_.rna_hpa_ref_tissue) + " (The Human Protein Atlas). ";
+	out += bold("Normalprobe TPM: ") + "Expression des Gens als Mittelwert TPM in Vergleichsproben aus Zellen aus " + bold(trans(data_.rna_hpa_ref_tissue)) + " (The Human Protein Atlas). ";
 	out += bold("n/a:") + " Falls keine geeignete Referenzprobe vorhanden. ";
-	out += bold("Bewertung (1):") + " Die Expression eines Gens mit beschriebenem Funktionsgewinn (Gain of Function) ist in der Probe erhöht oder die Expression eines Gens mit Funktionsverlust (LoF) ist in der Probe reduziert im Vergleich zu Referenz HPA-TPM. ";
+	out += bold("Bewertung (1):") + " Die Expression eines Gens mit beschriebenem Funktionsgewinn (Gain of Function) ist in der Probe erhöht oder die Expression eines Gens mit Funktionsverlust (LoF) ist in der Probe reduziert im Vergleich zu Normalprobe TPM. ";
 	out += bold("(2):") + " Die Expression ist in der Probe und in der Kontrolle ähnlich oder die Rolle des Gens in der Onkogenese ist nicht eindeutig. ";
+	out += bold("(3):") + " Eine differenzielle Expression kann nicht bewertet werden. ";
 	out += bold("Tumortyp MW-TPM:") + " Expression des Gens als Mittelwert TPM in Tumorproben gleicher Entität (in-house Datenbank). Bei weniger als fünf Tumorproben gleicher Entität ist kein Vergleich sinnvoll (n/a). ";
-	out += bold("Veränderung (x-fach):") + " Relative Expression in der Tumorprobe gegenüber der mittleren Expression in der in-house Vergleichskohorte gleicher Tumorentität. ";
-	out += bold("p-Wert:") + " Signifikanztest nach Fisher. " + bold("n/a:") + " nicht anwendbar.";
+	out += bold("Veränderung (x-fach):") + " Relative Expression in der Tumorprobe gegenüber der mittleren Expression in der in-house Vergleichskohorte gleicher Tumorentität. " + bold("-:") + " Die Anzahl der Proben in der Tumorkohorte erlaubt keine statistische Bewertung. ";
+	out += bold("# p<0.05:") + " Signifikanztest nach Fisher. " + bold("n/a:") + " nicht anwendbar. ";
 
 	return RtfParagraph(out).setFontSize(16).setHorizontalAlignment("j");
 }
@@ -463,27 +462,26 @@ RtfTable SomaticRnaReport::partGeneExpression()
 
 	table.addRow( RtfTableRow({"Expression bestimmter Gene"}, {9921}, RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
-	table.addRow(RtfTableRow({"Gen", "Pathogenität", "Signalweg", "Tumorprobe TPM", "Referenz HPA-TPM", "Bewertung", "Tumortyp MW TPM", "Veränderung (-fach)", "p-Wert"}, {1100, 1100, 1621, 1000, 1000, 800, 1100, 1100, 1100}, RtfParagraph().setHorizontalAlignment("c").setBold(true)).setHeader().setBorders(1, "brdrhair", 2));
+	table.addRow(RtfTableRow({"Gen", "Pathogenität", "Signalweg", "Tumorprobe TPM", "Referenz HPA-TPM", "Bewertung", "Tumortyp MW TPM", "Veränderung (-fach)"},	{1237, 1237, 1758, 1137, 1137, 937, 1237, 1241}, RtfParagraph().setHorizontalAlignment("c").setBold(true)).setHeader().setBorders(1, "brdrhair", 2));
 	for(int i=2; i<table[1].count(); ++i) table[1][i].setBackgroundColor(4);
 
 	for(const auto& data : pathways_)
 	{
 		RtfTableRow row;
-		row.addCell(1100, data.symbol );
+		row.addCell(1237, data.symbol );
 
 		QByteArray pathogenicity = "n/a";
 		if(data.role.role == SomaticGeneRole::Role::ACTIVATING) pathogenicity = "AMP";
 		else if(data.role.role == SomaticGeneRole::Role::LOSS_OF_FUNCTION) pathogenicity = "DEL";
 
-		row.addCell(1100, pathogenicity  );
-		row.addCell(1621, trans(data.pathway) );
-		row.addCell(1000, formatDigits(data.tumor_tpm), RtfParagraph().setHorizontalAlignment("c") );
-		row.addCell(1000, formatDigits(data.hpa_ref_tpm) , RtfParagraph().setHorizontalAlignment("c"));
+		row.addCell(1237, pathogenicity  );
+		row.addCell(1758, trans(data.pathway) );
+		row.addCell(1137, formatDigits(data.tumor_tpm), RtfParagraph().setHorizontalAlignment("c") );
+		row.addCell(1137, formatDigits(data.hpa_ref_tpm) , RtfParagraph().setHorizontalAlignment("c"));
 
-		row.addCell(800, QByteArray::number(rankCnv(data.tumor_tpm, data.hpa_ref_tpm, data.role.role)) , RtfParagraph().setHorizontalAlignment("c"));
-		row.addCell(1100, formatDigits(data.cohort_mean_tpm) , RtfParagraph().setHorizontalAlignment("c"));
-		row.addCell(1100, formatDigits(pow(2., data.log2fc), 1) , RtfParagraph().setHorizontalAlignment("c"));
-		row.addCell(1100, formatDigits(data.pvalue, 2) , RtfParagraph().setHorizontalAlignment("c"));
+		row.addCell(937, QByteArray::number(rankCnv(data.tumor_tpm, data.hpa_ref_tpm, data.role.role)) , RtfParagraph().setHorizontalAlignment("c"));
+		row.addCell(1237, formatDigits(data.cohort_mean_tpm) , RtfParagraph().setHorizontalAlignment("c"));
+		row.addCell(1241, (data.pvalue < 0.05 ? formatDigits(std::pow(2., data.log2fc), 1) + "\\super#" : "-") , RtfParagraph().setHorizontalAlignment("c"));
 		row.setBorders(1, "brdrhair", 2);
 
 		for(int i=2; i<row.count(); ++i) row[i].setBackgroundColor(4);
@@ -493,6 +491,37 @@ RtfTable SomaticRnaReport::partGeneExpression()
 
 	table.setUniqueFontSize(16);
 	return table;
+}
+
+RtfParagraph SomaticRnaReport::partGeneExprExplanation()
+{
+	auto bold = [](RtfSourceCode text)
+	{
+		return RtfText(text).setBold(true).setFontSize(16).RtfCode();
+	};
+
+	RtfSourceCode out = "";
+
+	out += bold("Pathogenität:");
+	out += "DEL (Verlust) oder AMP (Zugewinn) der Funktion oder reduzierte bzw. erhöhte Expression ist Pathomechanismus, ";
+	out += bold("TPM:") + " Normierte Expression des Gens als Transkripte pro Kilobase pro Million Reads. ";
+	out += bold("Normalprobe TPM:") + " Expression des Gens als Mittelwert TPM in Vergleichsproben von Zellen aus " + bold(trans(data_.rna_hpa_ref_tissue)) + " (The Human Protein Atlas). ";
+	out += bold("n/a:") + " Falls keine geeignete Referenzprobe vorhanden ist. ";
+	out += bold("Bewertung (1):") + " Die Expression eines Gens mit beschriebenem Funktionsgewinn (Gain of Function) ist in der Probe erhöht oder die Expression eines Gens mit Funktionsverlust (LoF) ist in der Probe reduziert im Vergleich zur Normalprobe. ";
+	out += bold("(2):") + " Die Expression ist in der Probe und in der Kontrolle ähnlich oder die Rolle des Gens in der Onkogenese ist nicht eindeutig. ";
+	out += bold("(3):") + " Eine differenzielle Expression kann nicht bewertet werden. ";
+	out += bold("Tumortyp MW-TPM:") + " Expression des Gens als Mittelwert TPM in Tumorproben gleicher Entität (in-house Datenbank). Bei weniger alf fünf Tumorproben gleicheer Entität ist kein Vergleich sinnvoll (-). ";
+	out += bold("Verändeurng (-fach): ") + " Relative Expression in der Tumorprobe gegenüber der mittleren Expression in der in-house Vergleichskohorte gleicher Tumorentität. ";
+	out += bold("# p<0.05") + " (Signifikanztest nach Fisher). " + bold("n/a:") + " nicht anwendbar. " + bold("-:") + " Die Anzahl der Proben in der Tumorkohorte erlaubt keine statistische Bewertung";
+
+
+
+/*
+(1)  (2)
+
+		Veränderung (-fach):  p-Wert: Signifikanz nach Fischer T-test.""
+*/
+	return RtfParagraph(out).setFontSize(16).setHorizontalAlignment("j");
 }
 
 RtfTable SomaticRnaReport::partGeneralInfo()
@@ -609,6 +638,7 @@ RtfSourceCode SomaticRnaReport::trans(QString orig_entry) const
 		dict["unclear"] = "unklare Bedeutung";
 		dict["test_dependent"] = "testabhängige Bedeutung";
 		dict["translocation"] = "Translokation";
+		dict["translocation/5'-5'"] = "Translokation/5'-5'";
 		dict["inversion"] = "Inversion";
 		dict["inversion/3'-3'"] = "Inversion/3'-3'";
 		dict["duplication"] = "Duplikation";
@@ -667,6 +697,22 @@ void SomaticRnaReport::writeRtf(QByteArray out_file)
 	doc_.newPage();
 	doc_.addPart(RtfParagraph("").RtfCode());
 
+
+	if(svs_.count() > 0)
+	{
+		doc_.addPart(RtfParagraph("Strukturvarianten:").setFontSize(18).setBold(true).RtfCode());
+		doc_.addPart(RtfParagraph("Es wurden keine therapierelevanten Fusionen nachgewiesen.").setFontSize(16).highlight(3).RtfCode());
+		doc_.addPart(RtfParagraph("Die Sequenzierung der Tumor-DNA gibt Hinweise auf die aktive Form EGFRvIII. Die Transkriptomdaten zeigen eine Überexpression von EGFR, bestätigen jedoch nicht die Deletion der Exons 2-7 der Form EGFRvIII.").setFontSize(16).highlight(3).RtfCode());
+		doc_.addPart(RtfParagraph("Die in der DNA-Sequenzierung gefundene Fusion konnte bestätigt werden.").setFontSize(16).highlight(3).RtfCode());
+
+		RtfSourceCode text = "Es wurde eine möglicherweise therapierelevante Fusion zwischen ";
+		text += RtfText("XXXX").highlight(3).setFontSize(16).RtfCode() + " und " + RtfText("XXXX").highlight(3).setFontSize(16).RtfCode() + " nachgewiesen (s. Abbildung unten). ";
+		text += "Es wurde eine möglicherweise therapierelevante Deletion innerhalb von ";
+		text += RtfText("XXXX").highlight(3).setFontSize(16).RtfCode() + " nachgewiesen, die zu einem möglichen Verlust der Splice-Region nach " + RtfText("Exon X").highlight(3).setFontSize(16).RtfCode() + " führen könnte (s. Abbildung unten).";
+		doc_.addPart(RtfParagraph(text).setFontSize(16).RtfCode());
+
+	}
+
 	if(svs_.count() > 0)
 	{
 		doc_.addPart(partFusions().RtfCode());
@@ -697,6 +743,9 @@ void SomaticRnaReport::writeRtf(QByteArray out_file)
 	}
 
 	doc_.addPart(partGeneExpression().RtfCode());
+	doc_.addPart(RtfParagraph("").RtfCode());
+	doc_.addPart(partGeneExprExplanation().RtfCode());
+
 	doc_.addPart(RtfParagraph("").RtfCode());
 	doc_.newPage();
 
