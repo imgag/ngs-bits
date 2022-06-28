@@ -90,8 +90,6 @@ private:
 
 		QByteArray pathway;
 
-		QByteArray significance;
-
 		SomaticGeneRole role; //to be determined from somatic gene role
 
 		//expression in tumor
@@ -111,9 +109,14 @@ private:
 	};
 
 
+	//expression data per gene, will be filled only with genes that have a DNA variant
 	QMap<QByteArray, expression_data> expression_per_gene_;
 
+	//expression data per pathways, taken from NGSD
 	QList<expression_data> pathways_;
+
+	//expression data for genes with a pvalue < 0.05
+	QList<expression_data> high_confidence_expression_;
 
 
 	///Creates table that containts fusions from RNA data
@@ -134,6 +137,9 @@ private:
 	RtfTable partGeneExpression();
 	///Creates explanation text for SNV and CNV table
 	RtfParagraph partGeneExprExplanation();
+
+	///Creates a table that contains the top 10 of the strongest altered genes
+	RtfSourceCode partTop10Expression();
 
 	///general information
 	RtfTable partGeneralInfo();
