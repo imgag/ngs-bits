@@ -69,8 +69,8 @@ public:
 	///Checks whether all annotations neccessary for creating RNA CNV table are available
 	static bool checkRequiredCNVAnnotations(const CnvList& cnvs);
 
-	///Calculates a rank for CNVs (=1 high or =2 low) depending on gene expression and gene role
-	static int rankCnv(double tpm, double mean_tpm, SomaticGeneRole::Role gene_role);
+	///Calculates a rank for expression  (=1 high or =2 low) depending on gene expression and gene role
+	static int rank(double tpm, double mean_tpm, SomaticGeneRole::Role gene_role);
 
 private:
 	NGSD db_;

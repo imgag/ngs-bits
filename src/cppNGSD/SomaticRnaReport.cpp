@@ -204,7 +204,7 @@ bool SomaticRnaReport::checkRequiredCNVAnnotations(const CnvList &cnvs)
 	return true;
 }
 
-int SomaticRnaReport::rankCnv(double tpm, double mean_tpm, SomaticGeneRole::Role gene_role)
+int SomaticRnaReport::rank(double tpm, double mean_tpm, SomaticGeneRole::Role gene_role)
 {
 	if(!BasicStatistics::isValidFloat(tpm) || !BasicStatistics::isValidFloat(mean_tpm) || tpm < 10 ) return 3;
 
@@ -421,8 +421,7 @@ RtfTable SomaticRnaReport::partCnvTable()
 			temp.addCell(1000, formatDigits( expr_data.hpa_ref_tpm), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
 			//Determine oncogenetic rank of expression change
-			int rank = rankCnv( expr_data.tumor_tpm , expr_data.hpa_ref_tpm, role.role );
-			temp.addCell( 1000 , QByteArray::number(rank) , RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+			temp.addCell( 1000 , QByteArray::number( rank( expr_data.tumor_tpm , expr_data.hpa_ref_tpm, role.role ) ) , RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 			temp.addCell(1000, formatDigits( expr_data.cohort_mean_tpm), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 			temp.addCell(1121, (expr_data.pvalue < 0.05 ? formatDigits(std::pow(2., expr_data.log2fc), 1) + "\\super#" : "-") , RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
@@ -478,7 +477,7 @@ RtfParagraph SomaticRnaReport::partVarExplanation()
 	out += bold("(3):") + " Eine differenzielle Expression kann nicht bewertet werden. ";
 	out += bold("Tumortyp MW-TPM:") + " Expression des Gens als Mittelwert TPM in Tumorproben gleicher Entität (in-house Datenbank). Bei weniger als fünf Tumorproben gleicher Entität ist kein Vergleich sinnvoll (n/a). ";
 	out += bold("Veränderung (x-fach):") + " Relative Expression in der Tumorprobe gegenüber der mittleren Expression in der in-house Vergleichskohorte gleicher Tumorentität. " + bold("-:") + " Die Anzahl der Proben in der Tumorkohorte erlaubt keine statistische Bewertung. ";
-	out += bold("# p<0.05:") + " Signifikanztest nach Fisher. " + bold("n/a:") + " nicht anwendbar. ";
+	out += bold("#: p<0.05:") + " Signifikanztest nach Fisher. " + bold("n/a:") + " nicht anwendbar. ";
 
 	return RtfParagraph(out).setFontSize(16).setHorizontalAlignment("j");
 }
@@ -506,7 +505,7 @@ RtfTable SomaticRnaReport::partGeneExpression()
 		row.addCell(1137, formatDigits(data.tumor_tpm), RtfParagraph().setHorizontalAlignment("c") );
 		row.addCell(1137, formatDigits(data.hpa_ref_tpm) , RtfParagraph().setHorizontalAlignment("c"));
 
-		row.addCell(937, QByteArray::number(rankCnv(data.tumor_tpm, data.hpa_ref_tpm, data.role.role)) , RtfParagraph().setHorizontalAlignment("c"));
+		row.addCell(937, QByteArray::number(rank(data.tumor_tpm, data.hpa_ref_tpm, data.role.role)) , RtfParagraph().setHorizontalAlignment("c"));
 		row.addCell(1237, formatDigits(data.cohort_mean_tpm) , RtfParagraph().setHorizontalAlignment("c"));
 		row.addCell(1241, (data.pvalue < 0.05 ? formatDigits(std::pow(2., data.log2fc), 1) + "\\super#" : "-") , RtfParagraph().setHorizontalAlignment("c"));
 		row.setBorders(1, "brdrhair", 2);
@@ -530,16 +529,16 @@ RtfParagraph SomaticRnaReport::partGeneExprExplanation()
 	RtfSourceCode out = "";
 
 	out += bold("Pathogenität:");
-	out += "DEL (Verlust) oder AMP (Zugewinn) der Funktion oder reduzierte bzw. erhöhte Expression ist Pathomechanismus, ";
+	out += " DEL (Verlust) oder AMP (Zugewinn) der Funktion oder reduzierte bzw. erhöhte Expression ist Pathomechanismus, ";
 	out += bold("TPM:") + " Normierte Expression des Gens als Transkripte pro Kilobase pro Million Reads. ";
 	out += bold("Normalprobe TPM:") + " Expression des Gens als Mittelwert TPM in Vergleichsproben von Zellen aus " + bold(trans(data_.rna_hpa_ref_tissue)) + " (The Human Protein Atlas). ";
 	out += bold("n/a:") + " Falls keine geeignete Referenzprobe vorhanden ist. ";
 	out += bold("Bewertung (1):") + " Die Expression eines Gens mit beschriebenem Funktionsgewinn (Gain of Function) ist in der Probe erhöht oder die Expression eines Gens mit Funktionsverlust (LoF) ist in der Probe reduziert im Vergleich zur Normalprobe. ";
 	out += bold("(2):") + " Die Expression ist in der Probe und in der Kontrolle ähnlich oder die Rolle des Gens in der Onkogenese ist nicht eindeutig. ";
 	out += bold("(3):") + " Eine differenzielle Expression kann nicht bewertet werden. ";
-	out += bold("Tumortyp MW-TPM:") + " Expression des Gens als Mittelwert TPM in Tumorproben gleicher Entität (in-house Datenbank). Bei weniger alf fünf Tumorproben gleicheer Entität ist kein Vergleich sinnvoll (-). ";
+	out += bold("Tumortyp MW-TPM:") + " Expression des Gens als Mittelwert TPM in Tumorproben gleicher Entität (in-house Datenbank). Bei weniger als fünf Tumorproben gleicheer Entität ist kein Vergleich sinnvoll (-). ";
 	out += bold("Verändeurng (-fach): ") + " Relative Expression in der Tumorprobe gegenüber der mittleren Expression in der in-house Vergleichskohorte gleicher Tumorentität. ";
-	out += bold("# p<0.05") + " (Signifikanztest nach Fisher). " + bold("n/a:") + " nicht anwendbar. " + bold("-:") + " Die Anzahl der Proben in der Tumorkohorte erlaubt keine statistische Bewertung";
+	out += bold("#: p<0.05") + " (Signifikanztest nach Fisher). " + bold("n/a:") + " nicht anwendbar. " + bold("-:") + " Die Anzahl der Proben in der Tumorkohorte erlaubt keine statistische Bewertung";
 
 	return RtfParagraph(out).setFontSize(16).setHorizontalAlignment("j");
 }
@@ -563,9 +562,12 @@ RtfSourceCode SomaticRnaReport::partTop10Expression()
 	QList<expression_data> genes_to_be_reported;
 	genes_to_be_reported << activating_genes.mid(0, 10) << lof_genes.mid(0, 10);
 
-	table.addRow( RtfTableRow({"Expression bestimmter Gene"}, {9921}, RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
+	table.addRow( RtfTableRow({"Expression bestimmter Gene"}, {9921}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
-	table.addRow(RtfTableRow({"Gen", "Pathogenität", "Tumorprobe TPM", "Normalprobe TPM", "Bewertung", "Tumortyp MW TPM", "Veränderung (-fach)"},	{1488, 1488, 1388, 1388, 1188, 1488, 1492}, RtfParagraph().setHorizontalAlignment("c").setBold(true)).setHeader().setBorders(1, "brdrhair", 2));
+
+	table.addRow(RtfTableRow({"Gen", "Pathogenität", "Tumorprobe TPM", "Normalprobe TPM", "Bewertung", "Tumortyp MW TPM", "Veränderung (-fach)"},	{1488, 1488, 1388, 1388, 1188, 1488, 1492}, RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader().setBorders(1, "brdrhair", 2));
+	for(int i=2; i<table.last().count(); ++i) table.last()[i].setBackgroundColor(4);
+
 
 	for(const auto& data : genes_to_be_reported)
 	{
@@ -582,12 +584,15 @@ RtfSourceCode SomaticRnaReport::partTop10Expression()
 
 		row.addCell( 1388, formatDigits(data.hpa_ref_tpm), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
-		int rank = rankCnv( data.tumor_tpm , data.hpa_ref_tpm, data.role.role );
-		row.addCell( 1188 , QByteArray::number(rank), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+		row.addCell( 1188 , QByteArray::number( rank( data.tumor_tpm , data.hpa_ref_tpm, data.role.role ) ), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
 		row.addCell( 1488, formatDigits(data.cohort_mean_tpm), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
 		row.addCell( 1492, formatDigits(std::pow(2., data.log2fc), 1), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+
+		for(int i=2; i<row.count(); ++i) row[i].setBackgroundColor(4);
+
+		row.setBorders(1, "brdrhair", 2);
 
 		table.addRow(row);
 	}
@@ -612,7 +617,7 @@ RtfSourceCode SomaticRnaReport::partTop10Expression()
 	RtfSourceCode intro = RtfParagraph("Top 10 Genlisten mit veränderter Expression").setFontSize(18).setBold(true).RtfCode();
 	intro += RtfParagraph("Die Tabelle zeigt 10 Gene, deren Pathogenität Gain-of-Function (GoF) ist und deren relative Expression in der Tumorprobe gegenüber der mittleren Expression in der in-house Vergleichskohorte gleicher Tumorentität am höchsten ist. Die Liste enthält nur Gene, mit Tumor TPM > 10 und einem p-Wert < 0.05. Die Tabelle enthält weiterhin diejenigen 10 Gene mit Funktionsverlust (LoF), deren Expression gegenüber der Vergleichskohorte am niedrigsten ist.").setFontSize(16).setHorizontalAlignment("j").RtfCode();
 
-	return intro + "\n" + RtfParagraph("").RtfCode() + "\n" + table.RtfCode() + "\n" + RtfParagraph(expl).setFontSize(16).RtfCode();
+	return intro + "\n" + table.RtfCode() + "\n" + RtfParagraph(expl).setFontSize(16).RtfCode();
 }
 
 RtfTable SomaticRnaReport::partGeneralInfo()
@@ -780,8 +785,6 @@ void SomaticRnaReport::writeRtf(QByteArray out_file)
 	if(dna_cnvs_.count() > 0) doc_.addPart(partCnvTable().RtfCode());
 	else doc_.addPart(RtfParagraph("Es wurden keine CNVs detektiert.").RtfCode());
 
-	doc_.addPart(RtfParagraph("").RtfCode());
-
 	doc_.addPart(partVarExplanation().RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
 
@@ -834,7 +837,6 @@ void SomaticRnaReport::writeRtf(QByteArray out_file)
 	}
 
 	doc_.addPart(partGeneExpression().RtfCode());
-	doc_.addPart(RtfParagraph("").RtfCode());
 	doc_.addPart(partGeneExprExplanation().RtfCode());
 
 
