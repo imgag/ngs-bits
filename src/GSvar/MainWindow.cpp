@@ -3333,6 +3333,17 @@ void MainWindow::checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>
 		{
 			issues << qMakePair(Log::LOG_WARNING, "Quality of processed sample '" + ps + "' is 'bad'!");
 		}
+		else if (quality=="n/a")
+		{
+			issues << qMakePair(Log::LOG_WARNING, "Quality of processed sample '" + ps + "' is not set!");
+		}
+
+		//check sequencing run is marked as analyzed
+		QString run_status = db.getValue("SELECT r.status FROM sequencing_run r, processed_sample ps WHERE r.id=ps.sequencing_run_id AND ps.id=" + ps_id).toString();
+		if (run_status!="analysis_finished")
+		{
+			issues << qMakePair(Log::LOG_WARNING, "Sequencing run of the sample '" + ps + "' does not have status 'analysis_finished'!");
+		}
 
 		//check KASP result
 		bool ok = true;
