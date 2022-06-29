@@ -2535,9 +2535,9 @@ void MainWindow::importPhenotypesFromNGSD()
 
 		ui_.filters->setPhenotypes(phenotypes);
 	}
-	catch(Exception& /*e*/)
+	catch(Exception& e)
 	{
-		QMessageBox::warning(this, "Error loading phenotypes", "Cannot load phenotypes from NGSD for " + variants_.analysisName() + "!");
+		GUIHelper::showException(this, e, "Error loading phenotype data from NGSD");
 	}
 }
 
@@ -3332,6 +3332,17 @@ void MainWindow::checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>
 		if (quality=="bad")
 		{
 			issues << qMakePair(Log::LOG_WARNING, "Quality of processed sample '" + ps + "' is 'bad'!");
+		}
+		else if (quality=="n/a")
+		{
+			issues << qMakePair(Log::LOG_WARNING, "Quality of processed sample '" + ps + "' is not set!");
+		}
+
+		//check sequencing run is marked as analyzed
+		QString run_status = db.getValue("SELECT r.status FROM sequencing_run r, processed_sample ps WHERE r.id=ps.sequencing_run_id AND ps.id=" + ps_id).toString();
+		if (run_status!="analysis_finished")
+		{
+			issues << qMakePair(Log::LOG_WARNING, "Sequencing run of the sample '" + ps + "' does not have status 'analysis_finished'!");
 		}
 
 		//check KASP result

@@ -15,6 +15,7 @@ MosaicWidget::MosaicWidget(VariantList& variants, ReportSettings rep_settings, Q
 	GUIHelper::styleSplitter(ui_.splitter);
 
 	connect(ui_.filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
+	connect(ui_.filter_widget, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 	connect(ui_.mosaics,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(variantDoubleClicked(QTableWidgetItem*)));
 	connect(ui_.mosaics, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
 
@@ -54,6 +55,23 @@ void MosaicWidget::updateVariantDetails()
 	}
 
 	var_last = var_current;
+}
+
+void MosaicWidget::importPhenotypesFromNGSD()
+{
+	QString ps_name = variants_.mainSampleName();
+	try
+	{
+		NGSD db;
+		QString sample_id = db.sampleId(ps_name);
+		PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
+
+		ui_.filter_widget->setPhenotypes(phenotypes);
+	}
+	catch(Exception& e)
+	{
+		GUIHelper::showException(this, e, "Error loading phenotype data from NGSD");
+	}
 }
 
 
