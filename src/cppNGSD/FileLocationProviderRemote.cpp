@@ -181,7 +181,7 @@ FileLocationList FileLocationProviderRemote::getExpressionFiles(bool return_if_m
 
 FileLocationList FileLocationProviderRemote::getTranscriptExpressionFiles(bool return_if_missing) const
 {
-	return getFileLocationsByType(PathType::EXPRESSION_TRANSCRIPT, return_if_missing);
+	return getFileLocationsByType(PathType::EXPRESSION_EXON, return_if_missing);
 }
 
 FileLocationList FileLocationProviderRemote::getVcfFiles(bool return_if_missing) const

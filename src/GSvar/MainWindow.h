@@ -220,6 +220,8 @@ public slots:
 	void on_actionShowRnaFusions_triggered();
 	///Open cohort expression data widget
 	void on_actionShowCohortExpressionData_triggered();
+	///Open expression stats of processing systems
+	void on_actionShowProcessingSystemCoverage_triggered();
 	///Open gene OMIM info dialog.
 	void on_actionGeneOmimInfo_triggered();
 	///Open folder of variant list in explorer.

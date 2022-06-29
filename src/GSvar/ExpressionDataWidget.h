@@ -31,6 +31,7 @@ private slots:
 
 private:
 	void loadExpressionData();
+	void initBiotypeList();
 	QString tsv_filename_;
 	int sys_id_;
 	QString tissue_;

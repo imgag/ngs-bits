@@ -94,6 +94,8 @@ ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, int sys_id, QSt
 		ui_->gene_filter->setText(variant_gene_filter);
 	}
 
+	initBiotypeList();
+
 	loadExpressionData();
 
 	applyFilters();
@@ -491,8 +493,9 @@ void ExpressionDataWidget::selectAllBiotypes(bool deselect)
 
 void ExpressionDataWidget::showHistogram(int row_idx)
 {
-	QString ensg = ui_->expression_data->item(row_idx, 0)->text();
-	QVector<double> expr_values = NGSD().getExpressionValues(ensg, cohort_, true, true);
+	NGSD db;
+	QByteArray ensg = ui_->expression_data->item(row_idx, 0)->text().toUtf8();
+	QVector<double> expr_values = db.getExpressionValues(db.getEnsemblGeneMapping().value(ensg), cohort_, true, true);
 
 	if(expr_values.size() == 0) return;
 	//create histogram
@@ -790,7 +793,11 @@ void ExpressionDataWidget::loadExpressionData()
 					//extract gene biotype
 					if ((column_names_.at(col_idx) == "gene_biotype") || (column_names_.at(col_idx) == "biotype"))
 					{
-						biotypes.insert(row.at(column_indices.at(col_idx)));
+//						QString biotype = row.at(column_indices.at(col_idx));
+//						biotypes.insert(biotype.replace('_', ' '));
+
+						//replace '_'
+						ui_->expression_data->item(row_idx, col_idx)->setText(ui_->expression_data->item(row_idx, col_idx)->text().replace('_', ' '));
 					}
 				}
 			}
@@ -814,20 +821,16 @@ void ExpressionDataWidget::loadExpressionData()
 		//Set cohort size
 		ui_->l_cohort_size->setText("Cohort size: \t " + QString::number(cohort_.size()));
 
-		//init/update filter column
-		//biotypes
-		QList<QString> sorted_biotypes = biotypes.toList();
-		std::sort(sorted_biotypes.begin(), sorted_biotypes.end());
-		QVBoxLayout* vbox = new QVBoxLayout;
-		foreach (const QString& biotype, sorted_biotypes)
-		{
-			QCheckBox* cb_biotype = new QCheckBox(biotype);
-			cb_biotype->setChecked((biotype == "protein_coding"));
-			vbox->addWidget(cb_biotype);
-		}
-		ui_->sawc_biotype->setLayout(vbox);
 
 		qDebug() << QString() + "... done(" + Helper::elapsedTime(timer) + ")";
+
+//		qDebug() << "Biotypes:";
+//		qDebug() << "file: " << biotypes;
+//		qDebug() << "NGSD: " << NGSD().getEnum("gene_transcript", "biotype").toSet();
+//		qDebug() << "Diff: " << biotypes.subtract(NGSD().getEnum("gene_transcript", "biotype").toSet());
+
+
+
 
 		QApplication::restoreOverrideCursor();
 	}
@@ -835,6 +838,21 @@ void ExpressionDataWidget::loadExpressionData()
 	{
 		GUIHelper::showException(this, e, "Error opening RNA expression file.");
 	}
+}
+
+void ExpressionDataWidget::initBiotypeList()
+{
+	//biotypes
+	QStringList sorted_biotypes = NGSD().getEnum("gene_transcript", "biotype");
+	std::sort(sorted_biotypes.begin(), sorted_biotypes.end());
+	QVBoxLayout* vbox = new QVBoxLayout;
+	foreach (const QString& biotype, sorted_biotypes)
+	{
+		QCheckBox* cb_biotype = new QCheckBox(biotype);
+		cb_biotype->setChecked((biotype == "protein coding"));
+		vbox->addWidget(cb_biotype);
+	}
+	ui_->sawc_biotype->setLayout(vbox);
 }
 
 

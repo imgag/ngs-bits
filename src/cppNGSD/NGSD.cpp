@@ -1025,7 +1025,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==PathType::COUNTS) output += ps_name + "_counts.tsv";
 	else if (type==PathType::EXPRESSION) output += ps_name + "_expr.tsv";
 	else if (type==PathType::EXPRESSION_COHORT) output += ps_name + "_expr.cohort.tsv";
-	else if (type==PathType::EXPRESSION_TRANSCRIPT) output += ps_name + "_counts_transcript.tsv";
+	else if (type==PathType::EXPRESSION_EXON) output += ps_name + "_counts_exons.tsv";
 	else if (type==PathType::MRD_CF_DNA) output += QString("umiVar") + QDir::separator() + ps_name + ".mrd";
 	else if (type!=PathType::SAMPLE_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
 
@@ -1610,16 +1610,20 @@ QMap<QByteArray, QByteArray> NGSD::getEnsemblGeneMapping()
 	return mapping;
 }
 
-QVector<double> NGSD::getExpressionValues(const QString& ensg, int sys_id, const QString& tissue_type, bool log2, bool allow_empty)
+QVector<double> NGSD::getExpressionValues(const QByteArray& gene, int sys_id, const QString& tissue_type, bool log2)
 {
+	// debug
+	QTime timer;
+	timer.start();
+
 	QVector<double> expr_values;
-	QString gene_symbol = getValue("SELECT symbol FROM gene WHERE ensembl_id=:0", allow_empty, ensg).toString();
-	if (gene_symbol.isEmpty()) return expr_values;
+	QByteArray gene_approved = geneToApproved(gene);
+	if (gene_approved.isEmpty()) return expr_values;
 
 	QStringList expr_values_str = getValues(QString() + "SELECT ev.tpm FROM `expression` ev "
 											  + "INNER JOIN `processed_sample` ps ON ev.processed_sample_id = ps.id "
 											  + "INNER JOIN `sample` s ON ps.sample_id = s.id "
-											  + "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue=:0 AND ev.symbol='" + gene_symbol + "'", tissue_type);
+											  + "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue=:0 AND ev.symbol='" + gene_approved + "'", tissue_type);
 
 	foreach (const QString& value, expr_values_str)
 	{
@@ -1634,14 +1638,20 @@ QVector<double> NGSD::getExpressionValues(const QString& ensg, int sys_id, const
 
 	}
 
+	qDebug() << "Get expression values (single query): " << Helper::elapsedTime(timer);
+
 	return expr_values;
 }
 
-QVector<double> NGSD::getExpressionValues(const QString& ensg, QSet<int> cohort, bool log2, bool allow_empty)
+QVector<double> NGSD::getExpressionValues(const QByteArray& gene, QSet<int> cohort, bool log2, bool allow_empty)
 {
+//	// debug
+//	QTime timer;
+//	timer.start();
+
 	QVector<double> expr_values;
-	QString gene_symbol = getValue("SELECT symbol FROM gene WHERE ensembl_id=:0", allow_empty, ensg).toString();
-	if (gene_symbol.isEmpty()) return expr_values;
+	QByteArray gene_approved = geneToApproved(gene);
+	if (gene_approved.isEmpty()) return expr_values;
 
 	QList<int> cohort_sorted = cohort.toList();
 	std::sort(cohort_sorted.begin(), cohort_sorted.end());
@@ -1652,7 +1662,7 @@ QVector<double> NGSD::getExpressionValues(const QString& ensg, QSet<int> cohort,
 	}
 
 
-	QStringList expr_values_str = getValues(QString() + "SELECT ev.tpm FROM `expression` ev WHERE ev.symbol='" + gene_symbol + "' AND ev.processed_sample_id IN (" + cohort_str.join(", ") +  ")");
+	QStringList expr_values_str = getValues(QString() + "SELECT ev.tpm FROM `expression` ev WHERE ev.symbol='" + gene_approved + "' AND ev.processed_sample_id IN (" + cohort_str.join(", ") +  ")");
 
 	foreach (const QString& value, expr_values_str)
 	{
@@ -1666,6 +1676,8 @@ QVector<double> NGSD::getExpressionValues(const QString& ensg, QSet<int> cohort,
 		}
 
 	}
+
+//	qDebug() << "Get expression values: " << Helper::elapsedTime(timer);
 
 	return expr_values;
 }
@@ -1706,10 +1718,11 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<i
 	//get expression data, ungrouped/long format
 	SqlQuery q = getQuery();
 	QString q_str;
+	//TODO: remove SQL_NO_CACHE
 	if (gene_symbol.isEmpty())
 	{
 		q_str = QString(
-					"SELECT e.symbol, e.tpm "
+					"SELECT SQL_NO_CACHE e.symbol, e.tpm "
 					"FROM expression e "
 					"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") "
 					"ORDER BY e.symbol;"
@@ -1722,7 +1735,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<i
 		if (gene_id < 0 ) THROW(ArgumentException, "'" + gene_symbol + "' is not an approved gene symbol!");
 
 		q_str = QString(
-					"SELECT e.symbol, e.tpm "
+					"SELECT SQL_NO_CACHE e.symbol, e.tpm "
 					"FROM expression e "
 					"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") "
 					"AND e.symbol='" + geneSymbol(gene_id) + "';"

@@ -133,6 +133,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "CausalVariantEditDialog.h"
 #include "MosaicWidget.h"
 #include "VariantOpenDialog.h"
+#include "GeneSelectionDialog.h"
+#include "ExpressionLevelWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -168,8 +170,9 @@ MainWindow::MainWindow(QWidget *parent)
 	rna_menu_btn_->menu()->addAction(ui_.actionExpressionDataTranscript);
 	rna_menu_btn_->menu()->addAction(ui_.actionShowRnaFusions);
 	rna_menu_btn_->menu()->addAction(ui_.actionShowCohortExpressionData);
+	rna_menu_btn_->menu()->addAction(ui_.actionShowProcessingSystemCoverage);
 	rna_menu_btn_->setPopupMode(QToolButton::InstantPopup);
-	rna_menu_btn_->setEnabled(false);
+//	rna_menu_btn_->setEnabled(false);
 	ui_.tools->addWidget(rna_menu_btn_);
 
 
@@ -1563,7 +1566,7 @@ void MainWindow::on_actionExpressionDataTranscript_triggered()
 	QStringList rna_count_files;
 	foreach (QString rna_ps_id, rna_ps_ids)
 	{
-		FileLocation file_location = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_TRANSCRIPT);
+		FileLocation file_location = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_EXON);
 		if (file_location.exists) rna_count_files << file_location.filename;
 	}
 	rna_count_files.removeDuplicates();
@@ -1720,6 +1723,31 @@ void MainWindow::on_actionShowCohortExpressionData_triggered()
 
 	auto dlg = GUIHelper::createDialog(cohort_expression_widget, "Cohort RNA expression of " + variants_.analysisName());
 	addModelessDialog(dlg);
+}
+
+void MainWindow::on_actionShowProcessingSystemCoverage_triggered()
+{
+	qDebug() << "on_actionShowProcessingSystemCoverage_triggered()";
+	// open gene selection menu
+	auto gene_selection_dialog = new GeneSelectionDialog(this);
+
+	//TODO:set filter widget
+
+
+	if (gene_selection_dialog->exec() == QDialog::Accepted)
+	{
+		qDebug() << "accepted";
+		GeneSet selected_genes = gene_selection_dialog->geneSet();
+
+
+		auto expression_level_widget = new ExpressionLevelWidget(selected_genes, this);
+
+		auto dlg = GUIHelper::createDialog(expression_level_widget, "Expression of processing systems");
+		addModelessDialog(dlg);
+	}
+
+	delete gene_selection_dialog;
+
 }
 
 void MainWindow::on_actionRE_triggered()
@@ -3285,8 +3313,9 @@ void MainWindow::loadFile(QString filename)
 	}
 
 	//activate RNA menu
-	rna_menu_btn_->setEnabled(false);
+//	rna_menu_btn_->setEnabled(false);
 	ui_.actionExpressionData->setEnabled(false);
+	ui_.actionExpressionDataTranscript->setEnabled(false);
 	ui_.actionShowRnaFusions->setEnabled(false);
 	ui_.actionShowCohortExpressionData->setEnabled(false);
 	if (LoginManager::active())
@@ -3304,9 +3333,13 @@ void MainWindow::loadFile(QString filename)
 				// check for required files
 				foreach (const QString& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", QString::number(rna_sample_id)))
 				{
-					// search for count file
+					// search for gene count file
 					FileLocation rna_count_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION);
 					if (rna_count_file.exists) ui_.actionExpressionData->setEnabled(true);
+
+					// search for transcript count file
+					FileLocation rna_transcript_count_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_EXON);
+					if (rna_transcript_count_file.exists) ui_.actionExpressionDataTranscript->setEnabled(true);
 
 					// search for arriba fusion file
 					FileLocation arriba_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS);
