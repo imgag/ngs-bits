@@ -284,6 +284,7 @@ private slots:
 		S_EQUAL(processed_sample_data.gender, "female");
 		S_EQUAL(processed_sample_data.comments, "comment_ps1");
 		S_EQUAL(processed_sample_data.project_name, "KontrollDNACoriell");
+		S_EQUAL(processed_sample_data.project_type, "test");
 		S_EQUAL(processed_sample_data.run_name, "#00372");
 		S_EQUAL(processed_sample_data.normal_sample_name, "");
 		S_EQUAL(processed_sample_data.processing_system, "HaloPlex HBOC v5");

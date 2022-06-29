@@ -281,6 +281,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleData
 	QString gender;
 	QString comments;
 	QString project_name;
+	QString project_type;
 	QString run_name;
 	QString normal_sample_name;
 	QString lab_operator;
@@ -550,7 +551,7 @@ public:
 	QString escapeText(QString text);
 
 	///Creates a SQL dump for a given table
-	void exportTable(const QString& table, QTextStream& out, QList<QString>& sql_history, QString where_clause = "") const;
+	void exportTable(const QString& table, QTextStream& out, QString where_clause = "", QMap<QString, QSet<int>> *sql_history = nullptr) const;
 	///Checks if Sample table has records
 	bool hasSamples() const;
 
@@ -675,9 +676,7 @@ public:
 	///Returns the NGSD sample ID file name. Throws an exception if it could not be determined.
 	QString sampleId(const QString& filename, bool throw_if_fails = true);
 	///Returns the NGSD processed sample ID from a file name or processed sample name. Throws an exception if it could not be determined.
-	QString processedSampleId(const QString& filename, bool throw_if_fails = true);
-	///Returns the project type for the given processed sample id
-	QString processedSampleProjectType(const QString& processed_sample_id);
+	QString processedSampleId(const QString& filename, bool throw_if_fails = true);	
 	///Returns CNV callset for the given processed sample id
 	QString processedSampleCnvCallset(const QString& processed_sample_id);
 	///Removes init data for the database
