@@ -1034,7 +1034,12 @@
 						</xs:attribute>
 						<xs:attribute name="number_of_hq_cnvs" type="xs:int">
 							<xs:annotation>
-								<xs:documentation>number of high-quality CNV calls, i.e. log-likelihood>20 (for ClinCNV caller only)</xs:documentation>
+								<xs:documentation>number of high-quality CNV calls, i.e. log-likelihood>20 for ClinCNV</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="correlation_ref_samples" type="xs:float">
+							<xs:annotation>
+								<xs:documentation>correlation of sample coverage profile to reference pool coverage profile</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
 					</xs:complexType>
