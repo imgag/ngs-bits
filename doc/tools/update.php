@@ -57,9 +57,11 @@ if (PHP_OS=="WINNT")
 }
 
 //get tool list
-$tools_done = array();
+$tools_done = array("");
 foreach($tools as $tool)
 {
+	if (PHP_OS=="WINNT" && strpos($tool, "NGSDUpdateSvGenotype")!==FALSE) continue;
+	
 	//print tool name
 	$tools_done[] = $tool;
 	$exe = "{$dir}/../../bin/{$tool}";

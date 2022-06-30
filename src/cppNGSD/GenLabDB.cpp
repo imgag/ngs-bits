@@ -19,7 +19,7 @@ GenLabDB::GenLabDB()
 	QString pass;
 
 	//get settings
-	if (NGSHelper::isCliendServerMode() && !NGSHelper::isRunningOnServer())
+	if (NGSHelper::isClientServerMode() && !NGSHelper::isRunningOnServer())
 	{
 		genlab_mssql = LoginManager::genlab_mssql();
 		host = LoginManager::genlabHost();
@@ -76,7 +76,7 @@ bool GenLabDB::isOpen() const
 
 bool GenLabDB::isAvailable()
 {
-	if (NGSHelper::isCliendServerMode() && !NGSHelper::isRunningOnServer())
+	if (NGSHelper::isClientServerMode() && !NGSHelper::isRunningOnServer())
 	{
 		return true;
 	}
@@ -338,6 +338,7 @@ QString GenLabDB::sapID(QString ps_name)
 
 QList<SampleRelation> GenLabDB::relatives(QString ps_name)
 {
+	NGSD db;
 	QList<SampleRelation> output;
 
 	foreach(QString name, names(ps_name))
@@ -362,6 +363,8 @@ QList<SampleRelation> GenLabDB::relatives(QString ps_name)
 			{
 				sample2 = sample2.split('_')[0];
 			}
+			//skip if sample is not (yet) contained in NGSD, e.g. a RNA that still has to be sequenced
+			if (db.sampleId(sample2, false).isEmpty()) continue;
 
 			QByteArray sample = ps_name.toLatin1();
 			if (sample.contains('_'))

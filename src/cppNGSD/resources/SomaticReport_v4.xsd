@@ -86,6 +86,35 @@
 						<xs:documentation>Information about the tumor sample</xs:documentation>
 					</xs:annotation>
 					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="QcTerm" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>QC terms of the sample as defined in https://github.com/imgag/ngs-bits/blob/master/src/cppNGS/Resources/qcML.obo</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="id" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>accession of the term</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="name" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>name of the term</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="def" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>extended description of the term</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="value" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>QC metric value</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
 						<xs:attribute name="name" use="required">
 							<xs:annotation>
 								<xs:documentation>sample name/identifier</xs:documentation>
@@ -194,6 +223,35 @@
 						<xs:documentation>Information about the normal sample used as reference for the tumor sample</xs:documentation>
 					</xs:annotation>
 					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="QcTerm" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>QC terms of the sample as defined in https://github.com/imgag/ngs-bits/blob/master/src/cppNGS/Resources/qcML.obo</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="id" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>accession of the term</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="name" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>name of the term</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="def" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>extended description of the term</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="value" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>QC metric value</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
 						<xs:attribute name="name" use="required">
 							<xs:annotation>
 								<xs:documentation>sample name/identifier</xs:documentation>

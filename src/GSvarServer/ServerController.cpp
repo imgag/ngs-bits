@@ -344,6 +344,68 @@ HttpResponse ServerController::getAnalysisJobGSvarFile(const HttpRequest& reques
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
+HttpResponse ServerController::getAnalysisJobLastUpdate(const HttpRequest& request)
+{
+	int job_id = request.getUrlParams()["job_id"].toInt();
+	QString last_update;
+	QJsonDocument json_doc_output;
+	QJsonObject last_update_as_json_object;
+	FileInfo log_info = NGSD().analysisJobLatestLogInfo(job_id);
+
+	if (!log_info.isEmpty())
+	{
+		last_update_as_json_object.insert("latest_file", log_info.file_name);
+		last_update_as_json_object.insert("latest_file_with_path", log_info.file_name_with_path);
+		last_update_as_json_object.insert("latest_mod", QString::number(log_info.last_modiefied.toSecsSinceEpoch()));
+		last_update_as_json_object.insert("latest_created", QString::number(log_info.created.toSecsSinceEpoch()));
+	}
+	json_doc_output.setObject(last_update_as_json_object);
+
+	BasicResponseData response_data;
+	response_data.length = json_doc_output.toJson().length();
+	response_data.content_type = request.getContentType();
+	response_data.is_downloadable = false;
+	return HttpResponse(response_data, json_doc_output.toJson());
+}
+
+HttpResponse ServerController::getAnalysisJobLog(const HttpRequest& request)
+{
+	qDebug() << "Analysis job log file";
+	FileLocation analysis_job_log_file;
+
+	try
+	{
+		NGSD db;
+		int job_id = request.getUrlParams()["job_id"].toInt();
+		AnalysisJob job = db.analysisInfo(job_id, true);
+		QString id = db.processedSampleName(db.processedSampleId(job.samples[0].name));
+		QString log = NGSD().analysisJobLatestLogInfo(job_id).file_name_with_path;
+
+		analysis_job_log_file = FileLocation(id, PathType::OTHER, createFileTempUrl(log, request.getUrlParams()["token"], false), QFile::exists(log));
+	}
+	catch (Exception& e)
+	{
+		Log::error("Error while looking for the analysis job log file:" + e.message());
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), e.message());
+	}
+
+	QJsonDocument json_doc_output;
+	QJsonObject file_location_as_json_object;
+
+	file_location_as_json_object.insert("id", analysis_job_log_file.id);
+	file_location_as_json_object.insert("type", analysis_job_log_file.typeAsString());
+	file_location_as_json_object.insert("filename", analysis_job_log_file.filename);
+	file_location_as_json_object.insert("exists", analysis_job_log_file.exists);
+	json_doc_output.setObject(file_location_as_json_object);
+
+	BasicResponseData response_data;
+	response_data.byte_ranges = QList<ByteRange>{};
+	response_data.length = json_doc_output.toJson().length();
+	response_data.content_type = request.getContentType();
+	response_data.is_downloadable = false;
+	return HttpResponse(response_data, json_doc_output.toJson());
+}
+
 HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 {
 	QString ps_url_id = request.getUrlParams()["ps_url_id"];

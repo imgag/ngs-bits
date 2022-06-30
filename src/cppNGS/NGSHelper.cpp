@@ -372,7 +372,7 @@ QByteArray NGSHelper::threeLetterCode(char one_letter_code)
 	return dictionary[one_letter_code];
 }
 
-char NGSHelper::oneLetterCode(QByteArray aa_tree_letter_code)
+char NGSHelper::oneLetterCode(const QByteArray& aa_tree_letter_code)
 {
 	//init
 	const static QHash<QByteArray,char> dictionary = { {"Ala",'A'},{"Arg",'R'},{"Asn",'N'},{"Asp",'D'},{"Cys",'C'},{"Glu",'E'}, {"Gln",'Q'},{"Gly",'G'},
@@ -762,21 +762,7 @@ void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_r
 	al.setCigarData(new_CIGAR);
 }
 
-QMap<QByteArray, QByteArray> NGSHelper::parseGffAttributes(const QByteArray& attributes)
-{
-    QMap<QByteArray, QByteArray> output;
-
-    QByteArrayList parts = attributes.split(';');
-    foreach(QByteArray part, parts)
-    {
-        int split_index = part.indexOf('=');
-        output[part.left(split_index)] = part.mid(split_index+1);
-    }
-
-	return output;
-}
-
-bool NGSHelper::isCliendServerMode()
+bool NGSHelper::isClientServerMode()
 {
 	return !Settings::string("server_host", true).trimmed().isEmpty() && !Settings::string("https_server_port", true).trimmed().isEmpty();
 }
@@ -822,14 +808,49 @@ const QMap<QByteArray, QByteArrayList>& NGSHelper::transcriptMatches(GenomeBuild
 	return output[build];
 }
 
-TranscriptList NGSHelper::loadGffFile(QString filename, QMap<QByteArray, QByteArray>& transcript_gene_relation,
-                                      QMap<QByteArray, QByteArray>& gene_name_relation, bool all)
+//Helper struct for GFF parsing
+struct TranscriptData
 {
-    transcript_gene_relation.clear();
-    gene_name_relation.clear();
+	QByteArray name;
+	int version;
+	QByteArray name_ccds;
+	QByteArray gene_symbol;
+	QByteArray gene_id;
+	QByteArray hgnc_id;
+	QByteArray chr;
+	int start_coding = 0;
+	int end_coding = 0;
+	QByteArray strand;
+	QByteArray biotype;
+
+	BedFile exons;
+};
+
+
+QHash<QByteArray, QByteArray> parseGffAttributes(const QByteArray& attributes)
+{
+	QHash<QByteArray, QByteArray> output;
+
+	QByteArrayList parts = attributes.split(';');
+	foreach(const QByteArray& part, parts)
+	{
+		int split_index = part.indexOf('=');
+		QByteArray key = part.left(split_index).trimmed();
+		QByteArray value = part.mid(split_index+1).trimmed();
+		output[key] = value;
+	}
+
+	return output;
+}
+
+void NGSHelper::loadGffFile(QString filename, GffData& output)
+{
+	output.transcripts.clear();
+	output.ensg2symbol.clear();
+	output.enst2ensg.clear();
+	output.gencode_basic.clear();
 
     QMap<QByteArray, TranscriptData> transcripts;
-    TranscriptList trans_list;
 
     QMap<QByteArray, QByteArray> gene_to_hgnc;
 
@@ -857,7 +878,8 @@ TranscriptList NGSHelper::loadGffFile(QString filename, QMap<QByteArray, QByteAr
                 t.setVersion(t_data.version);
                 t.setNameCcds(t_data.name_ccds);
                 t.setSource(Transcript::ENSEMBL);
-                t.setStrand(t_data.strand == "+" ? Transcript::PLUS : Transcript::MINUS);
+				t.setStrand(Transcript::stringToStrand(t_data.strand));
+				t.setBiotype(Transcript::stringToBiotype(t_data.biotype));
 
                 int coding_start = t_data.start_coding;
                 int coding_end = t_data.end_coding;
@@ -868,7 +890,7 @@ TranscriptList NGSHelper::loadGffFile(QString filename, QMap<QByteArray, QByteAr
                    coding_end = temp;
                 }
                 t.setRegions(t_data.exons, coding_start, coding_end);
-                trans_list.append(t);
+				output.transcripts << t;
                 ++it;
             }
 
@@ -882,7 +904,7 @@ TranscriptList NGSHelper::loadGffFile(QString filename, QMap<QByteArray, QByteAr
 
         QByteArrayList parts = line.split('\t');
         QByteArray type = parts[2];
-        QMap<QByteArray, QByteArray> data = parseGffAttributes(parts[8]);
+		QHash<QByteArray, QByteArray> data = parseGffAttributes(parts[8]);
 
         //gene line
         if (data.contains("gene_id"))
@@ -890,7 +912,7 @@ TranscriptList NGSHelper::loadGffFile(QString filename, QMap<QByteArray, QByteAr
             QByteArray gene = data["Name"];
 
             // store mapping for pseudogene table
-            gene_name_relation.insert(data["gene_id"], gene);
+			output.ensg2symbol.insert(data["gene_id"], gene);
 
             if (!Chromosome(parts[0]).isNonSpecial())
             {
@@ -917,27 +939,31 @@ TranscriptList NGSHelper::loadGffFile(QString filename, QMap<QByteArray, QByteAr
         else if (data.contains("transcript_id"))
         {
             // store mapping for pseudogene table
-            transcript_gene_relation.insert(data["transcript_id"], data["Parent"].split(':').at(1));
+			output.enst2ensg.insert(data["transcript_id"], data["Parent"].split(':').at(1));
 
-            if (all || data.value("tag")=="basic")
-            {
-                QByteArray parent_id = data["Parent"].split(':').at(1);
+			// store GENCODE basic data
+			if (data.value("tag")=="basic")
+			{
+				output.gencode_basic << data["transcript_id"];
+			}
 
-                //skip transcripts of unhandled genes (special chromosomes)
-                if(!gene_to_hgnc.contains(parent_id)) continue;
+			QByteArray parent_id = data["Parent"].split(':').at(1);
 
-                TranscriptData tmp;
-                tmp.name = data["transcript_id"];
-                tmp.version = data["version"].toInt();
-                tmp.name_ccds = data.value("ccdsid", "");
-                tmp.gene_symbol = gene_name_relation[parent_id];
-                tmp.gene_id = parent_id;
-                tmp.hgnc_id = gene_to_hgnc[parent_id];
-                tmp.chr = parts[0];
-                tmp.strand = parts[6];
-                transcripts[data["ID"]] = tmp;
-            }
-        }
+			//skip transcripts of unhandled genes (special chromosomes)
+			if(!gene_to_hgnc.contains(parent_id)) continue;
+
+			TranscriptData tmp;
+			tmp.name = data["transcript_id"];
+			tmp.version = data["version"].toInt();
+			tmp.name_ccds = data.value("ccdsid", "");
+			tmp.gene_symbol = output.ensg2symbol[parent_id];
+			tmp.gene_id = parent_id;
+			tmp.hgnc_id = gene_to_hgnc[parent_id];
+			tmp.chr = parts[0];
+			tmp.strand = parts[6];
+			tmp.biotype = data["biotype"];
+			transcripts[data["ID"]] = tmp;
+		}
 
         //exon lines
         else if (type=="CDS" || type=="exon" || type=="three_prime_UTR" || type=="five_prime_UTR" )
@@ -969,7 +995,6 @@ TranscriptList NGSHelper::loadGffFile(QString filename, QMap<QByteArray, QByteAr
             t_data.exons.append(BedLine(chr, start, end));
         }
     }
-    return trans_list;
 }
 
 bool SampleInfo::isAffected() const

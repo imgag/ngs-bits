@@ -1036,14 +1036,13 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		//add depth distribtion plot
 		LinePlot plot;
 		plot.setXLabel("depth of coverage");
-		plot.setYLabel("chromosome 22 [%]");
+		plot.setYLabel("target region [%]");
 		plot.setXValues(depth_dist.xCoords());
 		plot.addLine(depth_dist.yCoords(true));
 		QString plotname = Helper::tempFileName(".png");
 		plot.store(plotname);
 		addQcPlot(output, "QC:2000037", "depth distribution plot", plotname);
 		QFile::remove(plotname);
-		plot.store("/mnt/users/ahott1a1/depth_of_coverage.png");
 	}
 
 	//add insert size distribution plot
@@ -1061,7 +1060,6 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 			plot2.store(plotname);
 			addQcPlot(output, "QC:2000038", "insert size distribution plot", plotname);
 			QFile::remove(plotname);
-			plot2.store("/mnt/users/ahott1a1/insert_size_dist.png");
 		}
 		else
 		{
@@ -1082,7 +1080,6 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		plot3.store(plotname);
 		addQcPlot(output, "QC:2000061","GC bias plot", plotname);
 		QFile::remove(plotname);
-		plot3.store("/mnt/users/ahott1a1/gc_dropout.png");
 	}
 
 	return output;
