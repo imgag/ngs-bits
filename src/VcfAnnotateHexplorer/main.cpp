@@ -24,12 +24,11 @@ public:
 
 	virtual void setup()
 	{
-        setDescription("Calculate HEXplorer & HBOND splicing scores.");
-        //required
-        addOutfile("out", "Output file containing HEXplorer & HBOND scores. For vcf file input the scores will be the in INFO column and the HEXplorer scores will be the change between WT and MT (HEXplorer score normalized by sequence length MT-WT).", false);
+        setDescription("Annotates a VCF with Hexplorer and HBond scores.");
+        addOutfile("out", "Output VCF file containing HEXplorer and HBOND scores in the INFO column.", false);
 		//optional
+        addInfile("in", "Input VCF file. If unset, reads from STDIN.", true);
         addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true);
-        addInfile("in", "Input file. If this is not a vcf file it should contain one sequence per line. If unset, reads from STDIN.", true);
 
 	}
 
@@ -264,12 +263,12 @@ public:
                 float delta_hzei = hzei_mut - hzei_wt;
                 float delta_hzei_rev = hzei_mut_rev - hzei_wt_rev;
 
-                info = collect_info(info, QByteArray::fromStdString("hexplorer_delta="), QByteArray::number(delta_hzei));
-                info = collect_info(info, QByteArray::fromStdString("hexplorer_mut="), QByteArray::number(hzei_mut));
-                info = collect_info(info, QByteArray::fromStdString("hexplorer_wt="), QByteArray::number(hzei_wt));
-                info = collect_info(info, QByteArray::fromStdString("hexplorer_delta_rev="), QByteArray::number(delta_hzei_rev));
-                info = collect_info(info, QByteArray::fromStdString("hexplorer_mut_rev="), QByteArray::number(hzei_mut_rev));
-                info = collect_info(info, QByteArray::fromStdString("hexplorer_wt_rev="), QByteArray::number(hzei_wt_rev));
+				info = collect_info(info, "hexplorer_delta=", QByteArray::number(delta_hzei, 'f', 2));
+				info = collect_info(info, "hexplorer_mut=", QByteArray::number(hzei_mut, 'f', 2));
+				info = collect_info(info, "hexplorer_wt=", QByteArray::number(hzei_wt, 'f', 2));
+				info = collect_info(info, "hexplorer_delta_rev=", QByteArray::number(delta_hzei_rev, 'f', 2));
+				info = collect_info(info, "hexplorer_mut_rev=", QByteArray::number(hzei_mut_rev, 'f', 2));
+				info = collect_info(info, "hexplorer_wt_rev=", QByteArray::number(hzei_wt_rev, 'f', 2));
             }
 
             if (add_hbond_score) {
@@ -282,26 +281,26 @@ public:
                 float maxHbondScoreWTRev = getMaxHBondScores(wt_seq);
                 float maxHbondScoreMUTRev = getMaxHBondScores(mut_seq);
 
-                float deltaHbondScore = maxHbondScoreMUT - maxHbondScoreWT;
+				float deltaHbondScore = maxHbondScoreMUT - maxHbondScoreWT;
                 float deltaHbondScoreRev = maxHbondScoreMUTRev - maxHbondScoreWTRev;
 
                 if (maxHbondScoreMUT > 0 || maxHbondScoreWT > 0) {
-                    info = collect_info(info, QByteArray::fromStdString("max_hbond_delta="), QByteArray::number(deltaHbondScore));
+					info = collect_info(info, "max_hbond_delta=", QByteArray::number(deltaHbondScore, 'f', 2));
                 }
                 if (maxHbondScoreMUT > 0) {
-                    info = collect_info(info, QByteArray::fromStdString("max_hbond_mut="), QByteArray::number(maxHbondScoreMUT));
+					info = collect_info(info, "max_hbond_mut=", QByteArray::number(maxHbondScoreMUT, 'f', 2));
                 }
                 if (maxHbondScoreWT > 0) {
-                    info = collect_info(info, QByteArray::fromStdString("max_hbond_wt="), QByteArray::number(maxHbondScoreWT));
+					info = collect_info(info, "max_hbond_wt=", QByteArray::number(maxHbondScoreWT, 'f', 2));
                 }
                 if (maxHbondScoreMUTRev > 0 || maxHbondScoreWTRev > 0) {
-                    info = collect_info(info, QByteArray::fromStdString("max_hbond_delta_rev="), QByteArray::number(deltaHbondScoreRev));
+					info = collect_info(info, "max_hbond_delta_rev=", QByteArray::number(deltaHbondScoreRev, 'f', 2));
                 }
                 if (maxHbondScoreMUTRev > 0) {
-                    info = collect_info(info, QByteArray::fromStdString("max_hbond_mut_rev="), QByteArray::number(maxHbondScoreMUTRev));
+					info = collect_info(info, "max_hbond_mut_rev=", QByteArray::number(maxHbondScoreMUTRev, 'f', 2));
                 }
                 if (maxHbondScoreWTRev > 0) {
-                    info = collect_info(info, QByteArray::fromStdString("max_hbond_wt_rev="), QByteArray::number(maxHbondScoreWTRev));
+					info = collect_info(info, "max_hbond_wt_rev=", QByteArray::number(maxHbondScoreWTRev, 'f', 2));
                 }
             }
 

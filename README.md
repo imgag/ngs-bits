@@ -140,6 +140,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [VcfAnnotateFromBed](doc/tools/VcfAnnotateFromBed.md) - Annotates the INFO column of a VCF with data from a BED file.
 * [VcfAnnotateFromBigWig](doc/tools/VcfAnnotateFromBigWig.md) - Annotates the INFO column of a VCF with data from a BED file.
 * [VcfAnnotateFromVcf](doc/tools/VcfAnnotateFromVcf.md) - Annotates the INFO column of a VCF with data from another VCF file (or multiple VCF files if config file is provided)
+* [VcfAnnotateHexplorer](doc/tools/VcfAnnotateHexplorer.md) - Annotates a VCF with Hexplorer and HBond scores.
 * [VcfBreakMulti](doc/tools/VcfBreakMulti.md) - Breaks multi-allelic variants into several lines, making sure that allele-specific INFO/SAMPLE fields are still valid.
 * [VcfCalculatePRS](doc/tools/VcfCalculatePRS.md) - Calculates the Polgenic Risk Score(s) for a sample.
 * [VcfCheck](doc/tools/VcfCheck.md) - Checks a VCF file for errors.
@@ -178,4 +179,3 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file.
 * [HgvsToVcf](doc/tools/HgvsToVcf.md) - Transforms a TSV file with transcript ID and HGVS.c change into a VCF file (needs [NGSD](doc/install_ngsd.md)).
-* [Hexplorer](doc/tools/Hexplorer.md) - Calculates Hexplorer & HBond scores for a VCF file.

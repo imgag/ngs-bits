@@ -484,6 +484,6 @@ SUBDIRS += NGSDImportExpressionData
 tools-TEST.depends += NGSDImportExpressionData
 NGSDImportExpressionData.depends = cppNGSD
 
-SUBDIRS += Hexplorer
-tools-TEST.depends += Hexplorer
-Hexplorer.depends = cppNGS
+SUBDIRS += VcfAnnotateHexplorer
+tools-TEST.depends += VcfAnnotateHexplorer
+VcfAnnotateHexplorer.depends = cppNGS
