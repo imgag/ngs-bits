@@ -123,6 +123,8 @@ private:
 	RtfSourceCode partPharmacoGenetics();
 	///generates meta data (e.g. coverage, depth)
 	RtfSourceCode partMetaData();
+	///generates pathway table
+	RtfSourceCode partPathways();
 	///generates with billing informationen (gene names in first table + OMIM numbers) for health funds according EBM
 	RtfSourceCode partBillingTable();
 	///Generates table with virus information

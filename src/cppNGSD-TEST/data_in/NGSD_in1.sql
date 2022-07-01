@@ -588,7 +588,9 @@ INSERT INTO `somatic_pathway` (`id`, `name`) VALUES
 INSERT INTO `somatic_pathway_gene` (`id`, `symbol`, `pathway_id`) VALUES
 (1, 'SMARCA1', 1),
 (2, 'SMARCA1', 2),
-(3, 'BRAF', 3);
+(3, 'BRAF', 3),
+(4, 'BRCA1', 1),
+(5, 'BRCA2', 1);
 
 -- omim
 INSERT INTO `omim_gene` (`id`, `gene`, `mim`) VALUES

@@ -831,10 +831,9 @@ double SomaticReportHelper::getTumorContentBySNVs()
 
 RtfSourceCode SomaticReportHelper::partMetaData()
 {
+	RtfSourceCode out = RtfParagraph("Allgemeine Informationen").setBold(true).RtfCode();
+
 	RtfTable metadata;
-	metadata.addRow( RtfTableRow("Allgemeine Informationen", 9921, RtfParagraph().setBold(true).setFontSize(16)) );
-
-
 	metadata.addRow(RtfTableRow( {"", RtfText("Tumor").setFontSize(14).setUnderline(true).RtfCode(), RtfText("Normal").setFontSize(14).setUnderline(true).RtfCode(), "Prozessierungssystem:", processing_system_data_.name.toUtf8()}, {2000,1480,1480,1480,3481}, RtfParagraph().setFontSize(14)) );
 
 	if(settings_.target_region_filter.name == "")
@@ -896,7 +895,9 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 	metadata.addRow(RtfTableRow("In Regionen mit einer Abdeckung >60 können somatische Varianten mit einer Frequenz >5% im Tumorgewebe mit einer Sensitivität >95,0% und einem Positive Prediction Value PPW >99% bestimmt werden. Für mindestens 95% aller untersuchten Gene kann die Kopienzahl korrekt unter diesen Bedingungen bestimmt werden.", doc_.maxWidth()) );
 
 	metadata.setUniqueFontSize(14);
-	return metadata.RtfCode();
+	out.append(metadata.RtfCode());
+
+	return out;
 }
 
 RtfSourceCode SomaticReportHelper::partVirusTable()
@@ -1359,6 +1360,12 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	doc_.addPart(partMetaData());
 	doc_.addPart(RtfParagraph("").RtfCode());
 
+	/*******************
+	 * PATHWAY SUMMARY *
+	 *******************/
+	doc_.addPart(partPathways());
+	doc_.addPart(RtfParagraph("").RtfCode());
+
 	/******************
 	 * IGV SCREENSHOT *
 	 ******************/
@@ -1675,5 +1682,37 @@ RtfSourceCode SomaticReportHelper::partRelevantVariants()
 	out << RtfParagraph(snv_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setHorizontalAlignment("j").RtfCode();
 
 	return out.join("\n");
+}
+
+RtfSourceCode SomaticReportHelper::partPathways()
+{
+	RtfSourceCode out = RtfParagraph("Pathway-Informationen").setBold(true).RtfCode();
+
+	//determine pathways
+	NGSD db;
+	QByteArrayList pathways = db.getSomaticPathways();
+
+	//create table
+	RtfTable table;
+	for (int i=0; i<=pathways.count(); i+=4)
+	{
+		//add header
+		QByteArrayList headers;
+		for (int j=i; j<i+4; ++j)
+		{
+			headers << (j<pathways.count() ? pathways[j] : "");
+		}
+		table.addRow(RtfTableRow(headers,{2480,2480,2480,2480},RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader().setBorders(1,"brdrhair",4));
+
+		//add content
+		QByteArrayList contents;
+		contents << "";
+		contents << "";
+		contents << "";
+		contents << "";
+		table.addRow(RtfTableRow(contents,{2480,2480,2480,2480},RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader().setBorders(1,"brdrhair",4));
+	}
+	out.append(table.RtfCode());
+	return out;
 }
 

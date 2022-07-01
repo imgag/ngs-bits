@@ -17,7 +17,7 @@ RtfSourceCode RtfPicture::RtfCode()
 
 	//Split one line PNG data into many smaller lines
 	int pos = 0;
-	QList<QByteArray> parts;
+	QByteArrayList parts;
 	while( pos < png_data_.size() )
 	{
 		QByteArray part = png_data_.mid(pos, 128);
@@ -292,7 +292,7 @@ RtfTableRow::RtfTableRow(QByteArray cell_content, int width, const RtfParagraph&
 	addCell(width,temp_par);
 }
 
-RtfTableRow::RtfTableRow(const QList<QByteArray>& cell_contents, const QList<int>& cell_widths, const RtfParagraph& format)
+RtfTableRow::RtfTableRow(const QByteArrayList& cell_contents, const QList<int>& cell_widths, const RtfParagraph& format)
 {
 	if(cell_contents.count() != cell_widths.count()) //Create empty instance if no does not match
 	{
@@ -371,7 +371,7 @@ RtfTable::RtfTable()
 
 }
 
-RtfTable::RtfTable(const QList< QList<QByteArray> >& contents, const QList< QList<int> >& widths, const RtfParagraph& format)
+RtfTable::RtfTable(const QList<QByteArrayList>& contents, const QList< QList<int> >& widths, const RtfParagraph& format)
 {
 	for(int i=0;i<contents.count();++i)
 	{

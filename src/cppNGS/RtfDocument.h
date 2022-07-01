@@ -421,7 +421,7 @@ public:
 	RtfTableRow(QByteArray cell_content, int width, const RtfParagraph& format = RtfParagraph());
 
 	///Constructor creates a row, content and cell widths according parameter lists
-	RtfTableRow(const QList<QByteArray>& cell_contents, const QList<int>& cell_widths,const RtfParagraph& format = RtfParagraph());
+	RtfTableRow(const QByteArrayList& cell_contents, const QList<int>& cell_widths,const RtfParagraph& format = RtfParagraph());
 
 	///Add cell using predefined cell format settings
 	void addCell(int width, const RtfParagraph& paragraph);
@@ -514,7 +514,7 @@ public:
 	RtfTable();
 
 	///Constructor initializes table using unique format
-	RtfTable(const QList< QList<QByteArray> >& contents, const QList< QList<int> >& widths, const RtfParagraph& format = RtfParagraph());
+	RtfTable(const QList<QByteArrayList>& contents, const QList< QList<int> >& widths, const RtfParagraph& format = RtfParagraph());
 
 	void addRow(const RtfTableRow& row)
 	{
