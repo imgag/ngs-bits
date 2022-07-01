@@ -133,15 +133,15 @@ private:
 	RtfSourceCode partIgvScreenshot();
 
 	///creates table with SNVs, relevant germline SNPs (class 4/5) and overlapping CNVs
-	RtfTable snvTable(const VariantList& vl, bool include_germline = true, bool include_cnvs = true);
+	RtfTable snvTable(const QSet<int>& indices, bool include_germline = true, bool include_cnvs = true);
 
 	//skipped amplifications in somaticalterationtable
 	GeneSet skipped_amp_ = {};
+
 	//Somatic SNVs/INDELs
 	VariantList somatic_vl_;
-
-	VariantList somatic_high_impact_vl_;
-	VariantList somatic_low_impact_vl_;
+	QSet<int> somatic_vl_high_impact_indices_;
+	QSet<int> somatic_vl_low_impact_indices_;
 
 	GenomeBuild build_;
 

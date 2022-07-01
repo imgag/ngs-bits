@@ -174,80 +174,52 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 	//Assign SNV annotation indices
 	snv_index_coding_splicing_ = variants.annotationIndexByName("coding_and_splicing");
 	somatic_vl_ = SomaticReportSettings::filterVariants(variants, settings); //filtered out snvs flagged as artefacts
+	somatic_vl_.sortByAnnotation(somatic_vl_.annotationIndexByName("gene"));
 
-
-	//Create list with variants of low impact and another one with variants of low impact
+	//high significance genes: VICC classification
+	GeneSet important_genes;
 	int i_som_vicc = somatic_vl_.annotationIndexByName("NGSD_som_vicc_interpretation");
-	somatic_high_impact_vl_.copyMetaData(somatic_vl_);
-	//fill variant list of high significance
-	GeneSet high_significance_genes; //all genes that are highly significant e.g. because they have a SNV of high significance
-
-	//high significance table
 	for(int i=0; i<somatic_vl_.count(); ++i)
 	{
-		const Variant& snv = somatic_vl_[i];
-		QByteArray vicc = snv.annotations()[i_som_vicc];
+		const Variant& variant = somatic_vl_[i];
+		QByteArray vicc = variant.annotations()[i_som_vicc];
 		if(vicc == "ONCOGENIC" || vicc == "LIKELY_ONCOGENIC")
 		{
-			somatic_high_impact_vl_.append(snv);
-			high_significance_genes << selectSomaticTranscript(snv).gene;
+			important_genes << selectSomaticTranscript(variant).gene;
 		}
+	}
 
-	}
-	//high significance: SNVs of uncertain significance that have another SNV of high confidence in the same gene
-	for(int i=0; i<somatic_vl_.count(); ++i)
-	{
-		const Variant& snv = somatic_vl_[i];
-		QByteArray gene = selectSomaticTranscript(snv).gene;
-		if(high_significance_genes.contains(gene) && !somatic_high_impact_vl_.contains(snv))
-		{
-			somatic_high_impact_vl_.append(snv);
-		}
-	}
-	//high significance: SNVs that lie in a gene that is to be included in
+	//high significance genes: with reported CNV
 	for(int i=0; i<cnvs_.count(); ++i)
 	{
 		const CopyNumberVariant& cnv = cnvs_[i];
-		GeneSet genes = cnv.genes();
-		for(const auto& gene : genes)
+		for(const QByteArray& gene : cnv.genes())
 		{
-			if( db_.getSomaticGeneRoleId(gene) == -1) continue;
-			SomaticGeneRole  role = db_.getSomaticGeneRole(gene);
+			//only genes with high evidence role
+			if(db_.getSomaticGeneRoleId(gene) == -1) continue;
+			SomaticGeneRole role = db_.getSomaticGeneRole(gene);
+			if (!role.high_evidence) continue;
 
-			if(SomaticCnvInterpreter::includeInReport(cnvs_, cnv, role) && role.high_evidence) //CNA gene is of high significance
-			{
-				for(int j=0; j<somatic_vl_.count(); ++j)
-				{
-					const Variant& snv = somatic_vl_[j];
+			//only if included in report
+			if(!SomaticCnvInterpreter::includeInReport(cnvs_, cnv, role)) continue;
 
-					if(gene == selectSomaticTranscript(snv).gene && !somatic_high_impact_vl_.contains(snv))
-					{
-						somatic_high_impact_vl_.append(snv);
-						break;
-					}
-				}
-			}
+			important_genes << gene;
 		}
 	}
-	somatic_high_impact_vl_.sortByAnnotation(somatic_high_impact_vl_.annotationIndexByName("gene"));
 
-	//SNVs of low significance
-	somatic_low_impact_vl_.copyMetaData(somatic_vl_);
+	//crete lists of important and not imporant variants
 	for(int i=0; i<somatic_vl_.count(); ++i)
 	{
-		const Variant& var = somatic_vl_[i];
-		if(!somatic_high_impact_vl_.contains(var))
+		QByteArray gene = selectSomaticTranscript(somatic_vl_[i]).gene;
+		if(important_genes.contains(gene))
 		{
-			somatic_low_impact_vl_.append(var);
+			somatic_vl_high_impact_indices_ << i;
+		}
+		else
+		{
+			somatic_vl_low_impact_indices_ << i;
 		}
 	}
-	somatic_low_impact_vl_.sortByAnnotation(somatic_low_impact_vl_.annotationIndexByName("gene"));
-
-
-
-
-
-
 
 	//Filter CNVs according report configuration settings
 	cnvs_ = SomaticReportSettings::filterCnvs(cnvs, settings);
@@ -1044,7 +1016,7 @@ RtfSourceCode SomaticReportHelper::partPharmacoGenetics()
 	return table.RtfCode();
 }
 
-RtfTable SomaticReportHelper::snvTable(const VariantList &vl, bool include_germline, bool include_cnvs)
+RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool include_germline, bool include_cnvs)
 {
 	RtfTable table;
 
@@ -1122,13 +1094,13 @@ RtfTable SomaticReportHelper::snvTable(const VariantList &vl, bool include_germl
 
 
 	//somatic SNVs
-	int i_som_rep_alt = vl.annotationIndexByName("alt_var_alteration", true, false);
-	int i_som_rep_desc = vl.annotationIndexByName("alt_var_description", true, false);
-	int i_tum_af = vl.annotationIndexByName("tumor_af");
-	int i_vicc = vl.annotationIndexByName("NGSD_som_vicc_interpretation");
-	for(int i=0; i<vl.count();++i)
+	int i_som_rep_alt = somatic_vl_.annotationIndexByName("alt_var_alteration", true, false);
+	int i_som_rep_desc = somatic_vl_.annotationIndexByName("alt_var_description", true, false);
+	int i_tum_af = somatic_vl_.annotationIndexByName("tumor_af");
+	int i_vicc = somatic_vl_.annotationIndexByName("NGSD_som_vicc_interpretation");
+	foreach(int i, indices)
 	{
-		const Variant& snv = vl[i];
+		const Variant& snv = somatic_vl_[i];
 
 		VariantTranscript transcript = selectSomaticTranscript(snv);
 		transcript.type = transcript.type.replace("_variant","");
@@ -1610,7 +1582,7 @@ RtfSourceCode SomaticReportHelper::partUnclearVariants()
 {
 	RtfSourceCode out;
 	out.append(RtfParagraph("Varianten unklarer Onkogenität:").setBold(true).setIndent(0,0,0).setSpaceBefore(250).RtfCode());
-	out.append(snvTable(somatic_low_impact_vl_, false, false).RtfCode());
+	out.append(snvTable(somatic_vl_low_impact_indices_, false, false).RtfCode());
 	return out;
 }
 
@@ -1620,31 +1592,21 @@ RtfSourceCode SomaticReportHelper::partRelevantVariants()
 	QList<RtfSourceCode> out;
 
 	out << RtfParagraph("Potentiell relevante somatische Veränderungen:").setBold(true).setIndent(0,0,0).setSpaceBefore(250).RtfCode();
-	RtfTable high_significant_table = snvTable(somatic_high_impact_vl_, true, true);
+	RtfTable high_significant_table = snvTable(somatic_vl_high_impact_indices_, true, true);
 	out << high_significant_table.RtfCode();
 	out << RtfParagraph("").RtfCode();
 
 	//Write hint in case of unclassified variants
-	int i_som_vicc = somatic_vl_.annotationIndexByName("NGSD_som_vicc_interpretation");
 	bool unclassified_snvs = false;
-	for(int i=0; i<somatic_high_impact_vl_.count();++i)
+	int i_som_vicc = somatic_vl_.annotationIndexByName("NGSD_som_vicc_interpretation");
+	for(int i=0; i<somatic_vl_.count(); ++i)
 	{
-		if(somatic_high_impact_vl_[i].annotations()[i_som_vicc].trimmed().isEmpty())
+		if(somatic_vl_[i].annotations()[i_som_vicc].trimmed().isEmpty())
 		{
 			unclassified_snvs = true;
 			break;
 		}
 	}
-
-	for(int i=0; i<somatic_low_impact_vl_.count(); ++i)
-	{
-		if(somatic_low_impact_vl_[i].annotations()[i_som_vicc].trimmed().isEmpty())
-		{
-			unclassified_snvs = true;
-			break;
-		}
-	}
-
 	if(unclassified_snvs)
 	{
 		out << RtfParagraph("Es wurden sehr viele somatische Varianten nachgewiesen, die zu einer hohen Mutationslast führen. Da die Wechselwirkungen aller Varianten nicht eingeschätzt werden können, wird von der funktionellen Bewertung einzelner Varianten abgesehen. Falls erforderlich kann die Bewertung nachgereicht werden.").setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).highlight(3).RtfCode();
@@ -1684,11 +1646,19 @@ RtfSourceCode SomaticReportHelper::partRelevantVariants()
 	return out.join("\n");
 }
 
+struct PathwaysEntry
+{
+	QByteArray gene;
+	QByteArray alteration;
+	bool highlight = false;
+};
+
 RtfSourceCode SomaticReportHelper::partPathways()
 {
 	RtfSourceCode out = RtfParagraph("Pathway-Informationen").setBold(true).RtfCode();
 
-	//determine pathways
+	//init
+	int i_som_rep_alt = somatic_vl_.annotationIndexByName("alt_var_alteration", true, false);
 	NGSD db;
 	QByteArrayList pathways = db.getSomaticPathways();
 
@@ -1696,21 +1666,70 @@ RtfSourceCode SomaticReportHelper::partPathways()
 	RtfTable table;
 	for (int i=0; i<=pathways.count(); i+=4)
 	{
-		//add header
 		QByteArrayList headers;
+		QByteArrayList contents;
 		for (int j=i; j<i+4; ++j)
 		{
-			headers << (j<pathways.count() ? pathways[j] : "");
+			if (j<pathways.count())
+			{
+				//header
+				QByteArray pathway = pathways[j];
+				headers << pathway;
+
+				//determine entries for small variants
+				QList<PathwaysEntry> entries;
+				GeneSet genes = db.getSomaticPathwayGenes(pathway);
+				for(int v=0; v<somatic_vl_.count(); ++v)
+				{
+					const Variant& variant = somatic_vl_[v];
+					VariantTranscript transcript = selectSomaticTranscript(variant);
+					if (genes.contains(transcript.gene))
+					{
+						QByteArray variant_text;
+						if (i_som_rep_alt > -1 && !variant.annotations().at(i_som_rep_alt).trimmed().isEmpty())
+						{
+							variant_text = variant.annotations()[i_som_rep_alt];
+						}
+						else if(!transcript.hgvs_p.trimmed().isEmpty())
+						{
+							variant_text = transcript.hgvs_p;
+						}
+						else if(!transcript.hgvs_c.trimmed().isEmpty())
+						{
+							variant_text = transcript.hgvs_c;
+						}
+						if (!variant_text.isEmpty())
+						{
+							PathwaysEntry entry;
+							entry.gene = transcript.gene;
+							entry.alteration = variant_text;
+							entry.highlight = somatic_vl_high_impact_indices_.contains(v);
+							entries.append(entry);
+						}
+					}
+				}
+
+				//determine entries for CNVs (del/dup, amp, ...)
+				//TODO
+
+				//convert entries to sub-table
+				QByteArrayList rtf_text;
+				foreach(const PathwaysEntry& entry, entries)
+				{
+					RtfText tmp(entry.gene + " " + entry.alteration);
+					tmp.setBold(entry.highlight);
+					rtf_text << tmp.RtfCode();
+				}
+				contents << rtf_text.join("\\line\n");
+			}
+			else
+			{
+				headers << "";
+				contents << "";
+			}
 		}
 		table.addRow(RtfTableRow(headers,{2480,2480,2480,2480},RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader().setBorders(1,"brdrhair",4));
-
-		//add content
-		QByteArrayList contents;
-		contents << "";
-		contents << "";
-		contents << "";
-		contents << "";
-		table.addRow(RtfTableRow(contents,{2480,2480,2480,2480},RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader().setBorders(1,"brdrhair",4));
+		table.addRow(RtfTableRow(contents,{2480,2480,2480,2480},RtfParagraph().setHorizontalAlignment("c")).setHeader().setBorders(1,"brdrhair",4));
 	}
 	out.append(table.RtfCode());
 	return out;
