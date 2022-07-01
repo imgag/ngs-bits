@@ -10,6 +10,12 @@
     <height>600</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>640</width>
+    <height>0</height>
+   </size>
+  </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
@@ -17,7 +23,14 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QPlainTextEdit" name="te_genes"/>
+      <widget class="QPlainTextEdit" name="te_genes">
+       <property name="minimumSize">
+        <size>
+         <width>250</width>
+         <height>0</height>
+        </size>
+       </property>
+      </widget>
      </item>
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -91,6 +104,13 @@
         </layout>
        </item>
        <item>
+        <widget class="QPushButton" name="b_apply">
+         <property name="text">
+          <string>&lt;&lt; Import genes from phenotype/target region</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -105,13 +125,6 @@
           </size>
          </property>
         </spacer>
-       </item>
-       <item>
-        <widget class="QPushButton" name="b_apply">
-         <property name="text">
-          <string>Extract genes</string>
-         </property>
-        </widget>
        </item>
       </layout>
      </item>

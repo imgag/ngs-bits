@@ -756,7 +756,7 @@ public:
 	QMap<QByteArray, QByteArray> getEnsemblGeneMapping();
 	///Returns a list of all expression values for a given ENSG
 	QVector<double> getExpressionValues(const QByteArray& gene, int sys_id, const QString& tissue_type, bool log2=false);
-	QVector<double> getExpressionValues(const QByteArray& gene, QSet<int> cohort, bool log2=false, bool allow_empty=false);
+	QVector<double> getExpressionValues(const QByteArray& gene, QSet<int> cohort, bool log2=false);
 	///Returns the expression values fo a single sample
 	QMap<QByteArray, double> getExpressionValuesOfSample(const QString& ps_id, bool allow_empty=false);
 

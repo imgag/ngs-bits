@@ -21,10 +21,8 @@ public:
 	~GeneSelectionDialog();
 
 	GeneSet geneSet();
-	void setVariantFilterWidget(FilterWidget* filter_widget);
+	void setVariantFilterWidget(FilterWidget* variant_filter_widget);
 
-signals:
-	void genesChanged();
 
 protected slots:
 	void phenotypesChanged();
@@ -43,7 +41,7 @@ private:
 	TargetRegionInfo roi_;
 	GeneSet last_genes_;
 	PhenotypeList phenotypes_;
-	FilterWidget* filter_widget_;
+	FilterWidget* variant_filter_widget_;
 
 	void loadTargetRegions();
 

@@ -18,10 +18,10 @@ public:
 	~ExpressionExonWidget();
 
 private:
-	Ui::ExpressionExonWidget *ui_;
-
 	QString tsv_filename_;
 	GeneSet variant_gene_set_;
+
+	Ui::ExpressionExonWidget *ui_;
 
 	//table info
 	QStringList column_names_;

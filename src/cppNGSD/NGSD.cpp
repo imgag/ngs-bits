@@ -1643,11 +1643,11 @@ QVector<double> NGSD::getExpressionValues(const QByteArray& gene, int sys_id, co
 	return expr_values;
 }
 
-QVector<double> NGSD::getExpressionValues(const QByteArray& gene, QSet<int> cohort, bool log2, bool allow_empty)
+QVector<double> NGSD::getExpressionValues(const QByteArray& gene, QSet<int> cohort, bool log2)
 {
-//	// debug
-//	QTime timer;
-//	timer.start();
+	// debug
+	QTime timer;
+	timer.start();
 
 	QVector<double> expr_values;
 	QByteArray gene_approved = geneToApproved(gene);
@@ -1677,7 +1677,7 @@ QVector<double> NGSD::getExpressionValues(const QByteArray& gene, QSet<int> coho
 
 	}
 
-//	qDebug() << "Get expression values: " << Helper::elapsedTime(timer);
+	qDebug() << "Get expression values: " << Helper::elapsedTime(timer);
 
 	return expr_values;
 }

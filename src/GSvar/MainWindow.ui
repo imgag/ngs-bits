@@ -1408,15 +1408,6 @@
     <string>Somatic pathways</string>
    </property>
   </action>
-  <action name="actionExpressionDataTranscript">
-   <property name="icon">
-    <iconset resource="GSvar.qrc">
-     <normaloff>:/Icons/RNA.png</normaloff>:/Icons/RNA.png</iconset>
-   </property>
-   <property name="text">
-    <string>Show Expression Data (transcripts)</string>
-   </property>
-  </action>
   <action name="actionShowProcessingSystemCoverage">
    <property name="icon">
     <iconset resource="GSvar.qrc">

@@ -9,13 +9,14 @@
 GeneSelectionDialog::GeneSelectionDialog(QWidget *parent) :
 	QDialog(parent),
 	ui_(new Ui::GeneSelectionDialog),
-	filter_widget_(nullptr)
+	variant_filter_widget_(nullptr)
 {
 	ui_->setupUi(this);
 
 	loadTargetRegions();
 
 	connect(ui_->b_apply, SIGNAL(clicked(bool)), this, SLOT(determineGenes()));
+	connect(ui_->le_hpo, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
 }
 
 GeneSelectionDialog::~GeneSelectionDialog()
@@ -33,9 +34,9 @@ GeneSet GeneSelectionDialog::geneSet()
 	return genes;
 }
 
-void GeneSelectionDialog::setVariantFilterWidget(FilterWidget* filter_widget)
+void GeneSelectionDialog::setVariantFilterWidget(FilterWidget* variant_filter_widget)
 {
-	filter_widget_ = filter_widget;
+	variant_filter_widget_ = variant_filter_widget;
 }
 
 void GeneSelectionDialog::phenotypesChanged()
@@ -60,8 +61,6 @@ void GeneSelectionDialog::phenotypesChanged()
 		}
 	}
 	ui_->le_hpo->setToolTip(tooltip);
-
-	emit genesChanged();
 }
 
 void GeneSelectionDialog::editPhenotypes()
@@ -87,19 +86,18 @@ void GeneSelectionDialog::setPhenotypes(const PhenotypeList& phenotypes)
 
 void GeneSelectionDialog::importHPO()
 {
-	if(filter_widget_!=nullptr)
+	if(variant_filter_widget_!=nullptr)
 	{
-		phenotypes_ = filter_widget_->phenotypes();
+		phenotypes_ = variant_filter_widget_->phenotypes();
 		phenotypesChanged();
 	}
 }
 
 void GeneSelectionDialog::importROI()
 {
-	if(filter_widget_!=nullptr)
+	if(variant_filter_widget_!=nullptr)
 	{
-		ui_->cb_target_region->setCurrentText(filter_widget_->targetRegionDisplayName());
-		genesChanged();
+		ui_->cb_target_region->setCurrentText(variant_filter_widget_->targetRegionDisplayName());
 	}
 }
 

@@ -112,9 +112,9 @@ SOURCES += main.cpp\
     VariantOpenDialog.cpp \
     PhenotypeSettingsDialog.cpp \
     GenLabImportDialog.cpp \
-    ExpressionLevelWidget.cpp \
     ExpressionExonWidget.cpp \
-    GeneSelectionDialog.cpp
+    GeneSelectionDialog.cpp \
+    ExpressionOverviewWidget.cpp
 
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
@@ -222,9 +222,9 @@ HEADERS += MainWindow.h \
     VariantOpenDialog.h \
     PhenotypeSettingsDialog.h \
     GenLabImportDialog.h \
-    ExpressionLevelWidget.h \
     ExpressionExonWidget.h \
-    GeneSelectionDialog.h
+    GeneSelectionDialog.h \
+    ExpressionOverviewWidget.h
 
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
@@ -318,9 +318,9 @@ FORMS    += MainWindow.ui \
     VariantOpenDialog.ui \
     PhenotypeSettingsDialog.ui \
     GenLabImportDialog.ui \
-    ExpressionLevelWidget.ui \
     ExpressionExonWidget.ui \
-    GeneSelectionDialog.ui
+    GeneSelectionDialog.ui \
+    ExpressionOverviewWidget.ui
 
 include("../app_gui.pri")
 
