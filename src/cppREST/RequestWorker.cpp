@@ -48,14 +48,14 @@ void RequestWorker::run()
 	}
 
 	if (is_secure_)
-	{		
+	{
 		ssl_socket->startServerEncryption();
 	}
 
 	QByteArray all_request_parts;
 
 	if (!ssl_socket->isOpen()) return;
-	qDebug() << "Wait for the socket to be ready";	
+	qDebug() << "Wait for the socket to be ready";
 
 	bool finished_reading_headers = false;
 	bool finished_reading_body = false;
@@ -63,7 +63,7 @@ void RequestWorker::run()
 	qint64 request_body_size = 0;
 
 	while (ssl_socket->waitForReadyRead())
-	{		
+	{
 		qDebug() << "Start request processing";
 
 		if (is_secure_) ssl_socket->waitForEncrypted();
@@ -104,7 +104,7 @@ void RequestWorker::run()
 
 	if (all_request_parts.size() == 0)
 	{
-		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_PLAIN, "Request could not be processed"));		
+		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_PLAIN, "Request could not be processed"));
 		Log::error("Was not able to read from the socket. Exiting. " + ssl_socket->errorString());
 		return;
 	}
@@ -243,7 +243,7 @@ void RequestWorker::run()
 			{
 				if ((is_terminated_) || (ssl_socket->state() == QSslSocket::SocketState::UnconnectedState) || (ssl_socket->state() == QSslSocket::SocketState::ClosingState))
 				{
-					qDebug() << "Killing the request process";
+					qDebug() << "Killing the range streaming request process";
 					return;
 				}
 
@@ -281,9 +281,12 @@ void RequestWorker::run()
 		{
 			while(!streamed_file.atEnd())
 			{
-				if (is_terminated_) return;
+				if ((pos > file_size) || (is_terminated_) || (ssl_socket->state() == QSslSocket::SocketState::UnconnectedState) || (ssl_socket->state() == QSslSocket::SocketState::ClosingState))
+				{
+					qDebug() << "Killing the regular streaming request process";
+					return;
+				}
 
-				if (pos > file_size) return;
 				streamed_file.seek(pos);
 				data = streamed_file.read(chunk_size);
 				pos = pos + chunk_size;
