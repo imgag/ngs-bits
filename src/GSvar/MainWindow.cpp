@@ -6452,7 +6452,7 @@ void MainWindow::applyFilters(bool debug_time)
 		//phenotype selection changed => update ROI
 		const PhenotypeList& phenos = ui_.filters->phenotypes();
 
-		//update phenotypes for variant context menu search:
+		//update phenotypes for variant context menu search
 		ui_.vars->updateActivePhenotypes(phenos);
 
 		const PhenotypeSettings& pheno_settings = ui_.filters->phenotypeSettings();
