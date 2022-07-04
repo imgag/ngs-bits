@@ -461,30 +461,29 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 			GeneSet oncogenes = db.genesToApproved(GeneSet::createFromText( cnv.annotations()[i_oncogene], ',' ), true);
 			for(const auto& gene : genes)
 			{
-				GeneInfo gene_info = db.geneInfo(gene);
-
-				if(gene_info.symbol.isEmpty()) continue;
-				if(gene_info.hgnc_id.isEmpty()) continue; //genes that were withdrawn or cannot uniquely mapped to approved symbol
+				QByteArray gene_symbol = db.geneToApproved(gene).trimmed();
+				if (gene_symbol.isEmpty()) continue; //no approved symbol
 
 				if(!data.settings.target_region_filter.genes.contains(gene)) continue; //Include genes from target filter only
 
 				w.writeStartElement("Gene");
-				w.writeAttribute("name", gene_info.symbol);
-				w.writeAttribute("id", gene_info.hgnc_id);
+				w.writeAttribute("name", gene_symbol);
+				w.writeAttribute("id", "HGNC:" + db.getValue("SELECT hgnc_id FROM gene WHERE symbol = '" + gene_symbol + "'").toString());
 
 				if(db.getSomaticGeneRoleId(gene) != -1)
 				{
 					w.writeAttribute("role",  db.getSomaticGeneRole(gene).roleAsString());
 				}
 
-				if(tsg.contains(gene_info.symbol.toUtf8()))
+				if(tsg.contains(gene_symbol))
 				{
 					w.writeStartElement("IsTumorSuppressor");
 					w.writeAttribute("source", "Network of Cancer Genes");
 					w.writeAttribute("source_version", "6.0");
 					w.writeEndElement();
 				}
-				if(oncogenes.contains(gene_info.symbol.toUtf8()))
+
+				if(oncogenes.contains(gene_symbol))
 				{
 					w.writeStartElement("IsOncoGene");
 					w.writeAttribute("source", "Network of Cancer Genes");

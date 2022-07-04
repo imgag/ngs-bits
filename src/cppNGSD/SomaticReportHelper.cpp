@@ -578,7 +578,6 @@ VariantTranscript SomaticReportHelper::selectSomaticTranscript(const Variant& va
 {
 	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(index_co_sp);
 
-
 	//use preferred transcript that is coding or splicing if available
 	foreach(const VariantTranscript& trans, transcripts)
 	{
@@ -1075,7 +1074,9 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool include_ge
 	int i_som_rep_desc = somatic_vl_.annotationIndexByName("alt_var_description", true, false);
 	int i_tum_af = somatic_vl_.annotationIndexByName("tumor_af");
 	int i_vicc = somatic_vl_.annotationIndexByName("NGSD_som_vicc_interpretation");
-	foreach(int i, indices)
+	QList<int> indices_sorted_by_gene = indices.toList();
+	std::sort(indices_sorted_by_gene.begin(), indices_sorted_by_gene.end());
+	foreach(int i, indices_sorted_by_gene)
 	{
 		const Variant& snv = somatic_vl_[i];
 
@@ -1357,7 +1358,6 @@ void SomaticReportHelper::storeXML(QString file_name)
 
 	QSharedPointer<QFile> out_file = Helper::openFileForWriting(file_name);
 	SomaticXmlReportGenerator::generateXML(data, out_file, db_, false);
-
 	out_file->close();
 
 	SomaticXmlReportGenerator::validateXml(file_name);
@@ -1659,7 +1659,7 @@ RtfSourceCode SomaticReportHelper::partPathways()
 				for(int v=0; v<somatic_vl_.count(); ++v)
 				{
 					const Variant& variant = somatic_vl_[v];
-					VariantTranscript transcript = selectSomaticTranscript(variant);
+					VariantTranscript transcript = selectSomaticTranscript(variant, settings_, snv_index_coding_splicing_);
 					if (genes.contains(transcript.gene))
 					{
 						QByteArray variant_text;
