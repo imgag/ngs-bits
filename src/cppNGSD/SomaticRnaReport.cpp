@@ -64,6 +64,19 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 
 	//Load pathway data from NGSD
 	QByteArrayList pathway_genes;
+
+	GeneSet genes_of_interest = GeneSet::createFromStringList({
+								"AKT1", "AKT2", "ATM", "ATR", "BAP1", "BRAF", "BRCA1", "BRCA2", "CCND1", "CCND2", "CCND3",
+								"CCNE1", "CD274", "CDK12", "CDK4", "CDK6", "CDKN1A", "CDKN1B", "CDKN2A", "CDKN2B", "CDKN2C",
+								"CDKN3B", "CHEK2", "EGFR", "EPHA3", "ERBB2", "ERCC1", "FANCA", "FANCC", "FANCD2", "FBXW7",
+								"FGF19", "FGF3", "FGF4", "FGFR1", "FGFR2", "FGFR3", "FRS2", "INPP4B", "JAK2", "JUN", "KDR",
+								"KIT", "MAP2K4", "MEN1", "MET", "MITF", "MLH1", "MSH2", "MTOR", "MYC", "NF1", "NF2", "PAK1",
+								"PDGFRA", "PDPK1", "PIK3CA", "PTEN", "RB1", "RICTOR", "RPS6", "SETD2", "SH2B3", "SMARCA4",
+								"SMARCB1", "STK11", "SYK", "TACSTD2", "TNFAIP3", "TSC1", "TSC2"
+	});
+
+	genes_of_interest = db_.genesToApproved(genes_of_interest);
+
 	for( QString pathway : db_.getValues("SELECT CONCAT(spg.symbol, '\t', sp.name) FROM somatic_pathway_gene as spg, somatic_pathway as sp WHERE sp.id = spg.pathway_id") )
 	{
 		QByteArrayList parts = pathway.toUtf8().split('\t');
@@ -72,6 +85,10 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 		tmp_data.pathway = parts[1];
 
 		tmp_data.role = db_.getSomaticGeneRole(parts[0], false);
+
+
+		if(!genes_of_interest.contains(tmp_data.symbol)) continue;
+
 
 		pathways_ << tmp_data;
 		if( !pathway_genes.contains(parts[0]) ) pathway_genes << parts[0];
@@ -499,7 +516,7 @@ RtfTable SomaticRnaReport::partGeneExpression()
 		else if(data.role.role == SomaticGeneRole::Role::LOSS_OF_FUNCTION) pathogenicity = "LoF";
 
 		row.addCell(1237, pathogenicity  );
-		row.addCell(1758, trans(data.pathway) );
+		row.addCell(1758, data.pathway );
 		row.addCell(1137, formatDigits(data.tumor_tpm), RtfParagraph().setHorizontalAlignment("c") );
 		row.addCell(1137, formatDigits(data.hpa_ref_tpm) , RtfParagraph().setHorizontalAlignment("c"));
 
