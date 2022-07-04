@@ -37,6 +37,8 @@ struct CPPNGSDSHARED_EXPORT SomaticRnaReportData : public SomaticReportSettings
 
 	//Correlation of expression to cohort
 	double expression_correlation;
+
+	int cohort_size = 0;
 };
 
 
@@ -154,6 +156,9 @@ private:
 
 	///Formats double to float, in case it fails to "n/a"
 	RtfSourceCode formatDigits(double in, int digits=0);
+
+
+	RtfSourceCode expressionChange(const expression_data& data);
 
 	RtfDocument doc_;
 

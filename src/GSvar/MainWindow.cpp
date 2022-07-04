@@ -4126,6 +4126,15 @@ void MainWindow::generateReportSomaticRTF()
 				rna_report_data.expression_correlation = std::numeric_limits<double>::quiet_NaN();
 			}
 
+			try
+			{
+				TSVFileStream cohort_file( GlobalServiceProvider::database().processedSamplePath( db.processedSampleId(dlg.getRNAid()), PathType::EXPRESSION_COHORT ).filename );
+				rna_report_data.cohort_size = cohort_file.header().count()-1;
+			}
+			catch(Exception)
+			{
+			}
+
 			rna_report_data.rna_qcml_data = db.getQCData(db.processedSampleId(dlg.getRNAid()));
 
 			//transforms png data into list of tuples (png data in hex format, width, height)
