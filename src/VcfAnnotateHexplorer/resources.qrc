@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resources/H_Bond_score_table.csv</file>
+        <file>resources/HEXplorer_Z_scores.csv</file>
+    </qresource>
+</RCC>

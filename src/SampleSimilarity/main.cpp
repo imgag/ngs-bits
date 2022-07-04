@@ -39,7 +39,8 @@ public:
 		addFlag("debug", "Print debug output.");
 
 		//changelog
-		changeLog(2020,  11, 27, "Added CRAM support.");
+		changeLog(2022,  6, 30, "Changed GSvar mode: MODIFIER impact variants are now ingnored to make scores more similar between exomes and genomes.");
+		changeLog(2020, 11, 27, "Added CRAM support.");
 		changeLog(2019,  2,  8, "Massive speed-up by caching of variants/genotypes instead of loading them again for each comparison.");
 		changeLog(2018, 11, 26, "Add flag 'skip_multi' to ignore multi-allelic sites.");
 		changeLog(2018,  7, 11, "Added build switch for hg38 support.");

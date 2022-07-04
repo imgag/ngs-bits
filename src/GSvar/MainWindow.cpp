@@ -2536,9 +2536,9 @@ void MainWindow::importPhenotypesFromNGSD()
 
 		ui_.filters->setPhenotypes(phenotypes);
 	}
-	catch(Exception& /*e*/)
+	catch(Exception& e)
 	{
-		QMessageBox::warning(this, "Error loading phenotypes", "Cannot load phenotypes from NGSD for " + variants_.analysisName() + "!");
+		GUIHelper::showException(this, e, "Error loading phenotype data from NGSD");
 	}
 }
 

@@ -22,6 +22,7 @@ private slots:
 	void updateGUI(bool keep_widths =  false);
 	void variantDoubleClicked(QTableWidgetItem *item);
 	void updateVariantDetails();
+	void importPhenotypesFromNGSD();
 
 private:
 	void initGUI();
