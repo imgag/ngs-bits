@@ -1,6 +1,7 @@
 #ifndef SOMATICRNAREPORT_H
 #define SOMATICRNAREPORT_H
 
+#include <QMultiMap>
 #include "RtfDocument.h"
 #include "NGSD.h"
 #include "FilterCascade.h"
@@ -16,6 +17,28 @@ struct CPPNGSDSHARED_EXPORT SomaticRnaReportData : public SomaticReportSettings
 
 	QString rna_ps_name;
 	QString rna_fusion_file;
+	QString rna_bam_file;
+	QString ref_genome_fasta_file;
+
+	//path to RNA expression file
+	QString rna_expression_file;
+
+	//reference tissue which was used for HPA annotation
+	QString rna_hpa_ref_tissue;
+
+
+	//list for fusions pics containing hex png data, width and height
+	QList<std::tuple<QByteArray,int,int>> fusion_pics;
+
+	QList<std::tuple<QByteArray,int,int>> expression_plots;
+
+	//QCML data of RNA
+	QCCollection rna_qcml_data;
+
+	//Correlation of expression to cohort
+	double expression_correlation;
+
+	int cohort_size = 0;
 };
 
 
@@ -28,17 +51,17 @@ public:
 	///write RTF to file
 	void writeRtf(QByteArray out_file);
 
-	//struct holding data from fusion input file
-	struct fusion
+	//struct holding data from arriba fusion input file
+	struct arriba_sv
 	{
-		QByteArray genes;
+		QByteArray gene_left;
+		QByteArray gene_right;
 
-		QByteArray transcipt_id_left;
-		QByteArray transcipt_id_right;
+		QByteArray transcipt_left;
+		QByteArray transcipt_right;
 
-		//amino acids
-		QByteArray aa_left;
-		QByteArray aa_right;
+		QByteArray breakpoint_left;
+		QByteArray breakpoint_right;
 
 		QByteArray type;
 	};
@@ -48,18 +71,11 @@ public:
 	///Checks whether all annotations neccessary for creating RNA CNV table are available
 	static bool checkRequiredCNVAnnotations(const CnvList& cnvs);
 
-	///Returns reference tissue, resolved from variant list variants
-	static QString refTissueType(const VariantList& variants);
-
-	///Checks whether reference tissue is unique in NGSD and is same as in GSVar file
-	void checkRefTissueTypeInNGSD(QString ref_type, QString tumor_dna_ps_id);
-
-	///Calculates a rank for CNVs (=1 high or =2 low) depending on gene expression and gene role
-	static int rankCnv(double tpm, double mean_tpm, SomaticGeneRole::Role gene_role, bool oncogene, bool tsg);
+	///Calculates a rank for expression  (=1 high or =2 low) depending on gene expression and gene role
+	static int rank(double tpm, double mean_tpm, SomaticGeneRole::Role gene_role);
 
 private:
 	NGSD db_;
-
 
 	const SomaticRnaReportData& data_;
 
@@ -68,23 +84,84 @@ private:
 	//Somatic DNA CNVs
 	CnvList dna_cnvs_;
 	//Somatic RNA fusions
-	QList<fusion> fusions_;
+	QList<arriba_sv> svs_;
 
-	//Tissue type for RNA reference TPM in SNV list
-	QString ref_tissue_type_ = "";
+	struct expression_data
+	{
+		QByteArray symbol;
+
+		QByteArray pathway;
+
+		SomaticGeneRole role; //to be determined from somatic gene role
+
+		//expression in tumor
+		double tumor_tpm = std::numeric_limits<double>::quiet_NaN();
+
+		//reference tpm from human protein atlas HPA
+		double hpa_ref_tpm = std::numeric_limits<double>::quiet_NaN();
+
+		//cohort mean tpm
+		double cohort_mean_tpm = std::numeric_limits<double>::quiet_NaN();
+
+		//log2fold change between log sample tpm and log cohort tpm
+		double log2fc = std::numeric_limits<double>::quiet_NaN();
+
+		//pvalue for log2fc between cohort and sample
+		double pvalue = std::numeric_limits<double>::quiet_NaN();
+	};
+
+
+	//expression data per gene, will be filled only with genes that have a DNA variant
+	QMap<QByteArray, expression_data> expression_per_gene_;
+
+	//expression data per pathways, taken from NGSD
+	QList<expression_data> pathways_;
+
+	//expression data for genes with a pvalue < 0.05
+	QList<expression_data> high_confidence_expression_;
+
 
 	///Creates table that containts fusions from RNA data
-	RtfTable fusions();
+	RtfTable partFusions();
+	///Creates table with structural variants;
+	RtfTable partSVs();
+	///Creates block with fusion pictures from arriba
+	RtfSourceCode partFusionPics();
+	///Creates block with gene expression pictures
+	RtfSourceCode partExpressionPics();
 	///Creates table that contains expression of detected somatic variants from DNA/RNA data
-	RtfTable snvTable();
+	RtfTable partSnvTable();
 	///Creates table that contains CN altered genes and their TPM
-	RtfTable cnvTable();
+	RtfTable partCnvTable();
+	///Creates explanation text for SNV and CNV table
+	RtfParagraph partVarExplanation();
+	///Gene expression table of pre-selected  genes
+	RtfTable partGeneExpression();
+	///Creates explanation text for SNV and CNV table
+	RtfParagraph partGeneExprExplanation();
+
+	///Creates a table that contains the top 10 of the strongest altered genes
+	RtfSourceCode partTop10Expression();
+
+	///general information
+	RtfTable partGeneralInfo();
+
+	///returns RtfPicture from tuple with PNG data <QByteArrayhex,int,int>
+	RtfPicture pngToRtf(std::tuple<QByteArray,int,int> tuple, int width_goal);
+
 	///Returns TPM from annotation field, orig. entry has the form gene1=0.00,gene2=2.21,gene3=..., if not found it returns -1.
-	double getTpm(QByteArray gene, QByteArray field);
+	double getRnaData(QByteArray gene, QString field, QString key);
 	///Translates reference tissue type into German
 	RtfSourceCode trans(QString orig_entry) const;
 
+	///Formats double to float, in case it fails to "n/a"
+	RtfSourceCode formatDigits(double in, int digits=0);
+
+
+	RtfSourceCode expressionChange(const expression_data& data);
+
 	RtfDocument doc_;
+
 };
 
 #endif // SOMATICRNAREPORT_H

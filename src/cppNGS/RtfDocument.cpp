@@ -1,9 +1,22 @@
 #include "RtfDocument.h"
 #include "Helper.h"
 
+RtfPicture::RtfPicture()
+	: png_data_("")
+{
+}
+
 RtfPicture::RtfPicture(QByteArray png_data)
 	: png_data_(png_data)
 {
+}
+
+RtfPicture::RtfPicture(QByteArray png_data, int width, int height)
+	: png_data_(png_data)
+	, width_(width)
+	, height_(height)
+{
+
 }
 
 RtfSourceCode RtfPicture::RtfCode()
@@ -160,6 +173,7 @@ RtfSourceCode RtfDocument::escapeUmlauts(const QByteArray &text)
 	output.replace("Ö","\\u214;");
 	output.replace("Ü","\\u220;");
 	output.replace(">","\\u62;");
+	output.replace("□", "\\u9633;");
 	return output;
 }
 

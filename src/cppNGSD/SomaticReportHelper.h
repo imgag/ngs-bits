@@ -92,13 +92,13 @@ public:
 		return trans( QString(text) ).toUtf8();
 	}
 
+	///returns best matching transcript - or an empty transcript
+	static VariantTranscript selectSomaticTranscript(const Variant& variant, const SomaticReportSettings& settings, int index_co_sp);
+
 
 private:
 	///transforms GSVar coordinates of Variants to VCF INDEL-standard
 	VariantList gsvarToVcf(const VariantList& gsvar_list, const QString& orig_name);
-
-	///returns best matching transcript - or an empty transcript
-	VariantTranscript selectSomaticTranscript(const Variant& variant);
 
 	///Parses CN to description
 	RtfSourceCode CnvDescription(const CopyNumberVariant& cnv, const SomaticGeneRole& role);
@@ -149,9 +149,6 @@ private:
 
 	//Microsatellite instability MANTIS step-wise-difference metric
 	double mantis_msi_swd_value_;
-
-	//Sequence ontology that contains the SO IDs of coding and splicing transcripts
-	OntologyTermCollection obo_terms_coding_splicing_;
 
 	//CNVList for somatic (filtered) copy-number altered variants
 	CnvList cnvs_;

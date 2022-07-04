@@ -11,7 +11,9 @@ typedef QByteArray RtfSourceCode;
 class CPPNGSSHARED_EXPORT RtfPicture
 {
 public:
+	RtfPicture();
 	RtfPicture(QByteArray png_data);
+	RtfPicture(QByteArray png_data, int width, int height);
 
 	RtfSourceCode RtfCode();
 
@@ -90,6 +92,12 @@ public:
 	virtual RtfText& highlight(int color_number)
 	{
 		highlight_color_ = color_number;
+		return *this;
+	}
+
+	virtual RtfText& setFontColor(int color_number)
+	{
+		font_color_ = color_number;
 		return *this;
 	}
 
