@@ -873,6 +873,9 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 		QString high_quality_cnvs = qc_metrics["high-quality cnvs"].trimmed();
 		if(!high_quality_cnvs.isEmpty()) w.writeAttribute("number_of_hq_cnvs", high_quality_cnvs);
+
+		QString correlation_ref_samples = qc_metrics["mean correlation to reference samples"].trimmed();
+		if(!correlation_ref_samples.isEmpty()) w.writeAttribute("correlation_ref_samples", correlation_ref_samples);
 	}
 
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())

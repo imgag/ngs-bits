@@ -347,7 +347,7 @@ CREATE  TABLE IF NOT EXISTS `user_permissions`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `user_id` INT(11) NOT NULL,
-  `permission` ENUM('meta_data','project','project_type', 'study','sample') NOT NULL,
+  `permission` ENUM('project','project_type', 'study','sample') NOT NULL,
   `data` VARCHAR(100) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `user_id` (`user_id` ASC),
@@ -615,7 +615,7 @@ CREATE  TABLE IF NOT EXISTS `variant_publication`
   `sample_id` INT(11) NOT NULL,
   `variant_id` INT(11) NOT NULL,
   `db` ENUM('LOVD','ClinVar') NOT NULL,
-  `class` ENUM('1','2','3','4','5', 'M') NOT NULL,
+  `class` ENUM('1','2','3','4','5') NOT NULL,
   `details` TEXT NOT NULL,
   `user_id` INT(11) NOT NULL,
   `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1003,7 +1003,7 @@ CREATE TABLE IF NOT EXISTS `hpo_genes`
 (
   `hpo_term_id` INT(10) UNSIGNED NOT NULL,
   `gene` VARCHAR(40) CHARACTER SET 'utf8' NOT NULL,
-  `details` TEXT COMMENT 'Semicolon seperated pairs of database sources with evidences of where the connection was found (Source, Original Evidence, Evidence translated; Source2, ....)',
+  `details` TEXT COMMENT 'Semicolon seperated pairs of database sources with evidences of where the connection was found (Source, Original Evidence, Evidence translated; Source2, ....)' NULL,
   `evidence` ENUM('n/a','low','medium','high') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`hpo_term_id`, `gene`),
   CONSTRAINT `hpo_genes_ibfk_1`

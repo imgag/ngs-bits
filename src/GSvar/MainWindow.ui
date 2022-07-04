@@ -1417,6 +1417,21 @@
     <string>Show Processing System Coverage</string>
    </property>
   </action>
+  <action name="actionExonExpressionData">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/RNA.png</normaloff>:/Icons/RNA.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show Expression Data (Exon)</string>
+   </property>
+   <property name="toolTip">
+    <string>Show Expression Data of Exons</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>

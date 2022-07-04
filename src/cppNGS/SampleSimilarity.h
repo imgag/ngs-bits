@@ -15,10 +15,11 @@ public:
 	//Variant representation.
 	typedef QHash<const QChar*, float> VariantGenotypes;
 
-	//Extract genotypes from VCF/GSvar file (no WT genotype).
+	//Extract genotypes from VCF (no WT genotype).
 	static VariantGenotypes genotypesFromVcf(QString filename, bool include_gonosomes, bool skip_multi, const BedFile& roi);
 	static VariantGenotypes genotypesFromVcf(QString filename, bool include_gonosomes, bool skip_multi);
 
+	//Extract genotypes from GSvar (no WT genotype, includes only HIGH/MODERATE/LOW impact variants because only rare or known pathogenic intronic/intergenic are stored in GSvar files for WGS).
 	static VariantGenotypes genotypesFromGSvar(QString filename, bool include_gonosomes, const BedFile& roi);
 	static VariantGenotypes genotypesFromGSvar(QString filename, bool include_gonosomes);
 

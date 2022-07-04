@@ -214,6 +214,8 @@ public slots:
 	void on_actionCfDNAAddExcludedRegions_triggered();
 	///Open expression data widget
 	void on_actionExpressionData_triggered();
+	///Open exon expression data widget
+	void on_actionExonExpressionData_triggered();
 	///Open RNA fusion widget
 	void on_actionShowRnaFusions_triggered();
 	///Open cohort expression data widget

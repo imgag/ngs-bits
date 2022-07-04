@@ -42,20 +42,22 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesVcf(const VcfFile&
 
 SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesGSvar(VariantList variants, QString filename, bool include_gonosomes)
 {
+	//determine genotype column
 	int geno_col = -1;
-
 	QList<int> affected_cols = variants.getSampleHeader().sampleColumns(true);
 	if (affected_cols.count()==1)
 	{
 		geno_col = affected_cols[0];
 	}
-
-
 	if (geno_col==-1)
 	{
 		THROW(FileParseException, "Could not determine genotype column for variant list " + filename);
 	}
 
+	//get index of consequence column
+	int i_cons = variants.annotationIndexByName("coding_and_splicing", true, true);
+
+	//convert data
 	VariantGenotypes output;
 	for (int i=0; i<variants.count(); ++i)
 	{
@@ -63,6 +65,10 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesGSvar(VariantList 
 
 		//skip variants not on autosomes
 		if(!variant.chr().isAutosome() && !include_gonosomes) continue;
+
+		//skip MODIFIER impact variants (only rare or known pathogenic intronic/intergenic are stored in GSvar files for WGS)
+		QByteArray consequence_text = variant.annotations()[i_cons];
+		if(!consequence_text.contains(":HIGH:") && !consequence_text.contains(":MODERATE:") && !consequence_text.contains(":LOW:")) continue;
 
 		output[strToPointer(variant.toString())] = genoToDouble(variant.annotations()[geno_col]);
 	}
