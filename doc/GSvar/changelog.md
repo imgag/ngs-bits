@@ -1,5 +1,11 @@
 # GSvar change log
 
+
+### 2022_04-159 (01.07.22)
+- Batch import: add tissue to sample batch import.
+- Mosaic variants: loading phenotypes from NGSD now works in mosaic widget.
+- Several minor bug fixes.
+
 ### 2022_04-127 (30.05.22)
 - Gene tab: Added transcript biotype and transcript flags.
 - General: Several bugfixes.

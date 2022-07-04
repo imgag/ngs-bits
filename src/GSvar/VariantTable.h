@@ -50,8 +50,6 @@ public:
 		return new QTableWidgetItem(text);
 	}
 
-	//Enable the context menu action: "Publish to ClinVar". (User still has to be logged in)
-	void enableClinvarPublish(bool enable);
 	///Add custom context menu actions
 	void addCustomContextMenuActions(QList<QAction*> actions);
 
