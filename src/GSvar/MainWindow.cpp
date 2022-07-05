@@ -4059,11 +4059,16 @@ void MainWindow::generateReportSomaticRTF()
 			SomaticReportHelper report(GSvarHelper::build(), variants_, cnvs_, somatic_control_tissue_variants_, somatic_report_settings_);
 
 			//Store XML file with the same somatic report configuration settings
+			QTime timer;
+
 			try
 			{
+				timer.start();
 				QString tmp_xml = Helper::tempFileName(".xml");
 				report.storeXML(tmp_xml);
 				ReportWorker::moveReport(tmp_xml, Settings::path("gsvar_xml_folder") + "\\" + somatic_report_settings_.tumor_ps + "-" + somatic_report_settings_.normal_ps + ".xml");
+
+				Log::perf("Generating somatic report XML took ", timer);
 			}
 			catch(Exception e)
 			{
@@ -4071,15 +4076,18 @@ void MainWindow::generateReportSomaticRTF()
 			}
 
 			//Generate RTF
+			timer.start();
 			QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
-
 			report.storeRtf(temp_filename);
 			ReportWorker::moveReport(temp_filename, file_rep);
+			Log::perf("Generating somatic report RTF took ", timer);
 
 			//Generate files for QBIC upload
+			timer.start();
 			QString path = Settings::string("qbic_data_path") + "/" + ps_tumor + "-" + ps_normal;
 			if (!GlobalServiceProvider::fileLocationProvider().isLocal()) path = ps_tumor + "-" + ps_normal;
 			report.storeQbicData(path);
+			Log::perf("Generating somatic report QBIC data took ", timer);
 
 			QApplication::restoreOverrideCursor();
 		}
