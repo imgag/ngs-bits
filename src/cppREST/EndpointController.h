@@ -48,9 +48,6 @@ private:
 	static QString generateHelpPage(const QString& path);
 	static QString getServedTempPath(QList<QString> path_parts);
 	static QString getServedRootPath(const QList<QString>& path_parts);
-
-	static StaticFile readFileContent(const QString& filename, const QList<ByteRange>& byte_ranges);
-	static QString addFileToCache(const QString& filename);
 	static bool hasOverlappingRanges(const QList<ByteRange> ranges);
 };
 
