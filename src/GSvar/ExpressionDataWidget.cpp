@@ -735,9 +735,6 @@ void ExpressionDataWidget::loadExpressionData()
 					//extract gene biotype
 					if ((column_names_.at(col_idx) == "gene_biotype") || (column_names_.at(col_idx) == "biotype"))
 					{
-//						QString biotype = row.at(column_indices.at(col_idx));
-//						biotypes.insert(biotype.replace('_', ' '));
-
 						//replace '_'
 						ui_->expression_data->item(row_idx, col_idx)->setText(ui_->expression_data->item(row_idx, col_idx)->text().replace('_', ' '));
 					}

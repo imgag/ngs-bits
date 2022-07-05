@@ -1,8 +1,10 @@
 #ifndef EXPRESSIONEXONWIDGET_H
 #define EXPRESSIONEXONWIDGET_H
 
+#include <FilterCascade.h>
 #include <QWidget>
 
+#include "TsvFile.h"
 #include "GeneSet.h"
 
 namespace Ui {
@@ -19,7 +21,10 @@ public:
 
 private:
 	QString tsv_filename_;
+	QString variant_gene_filter_;
 	GeneSet variant_gene_set_;
+	TsvFile expression_data_;
+	FilterResult filter_result_;
 
 	Ui::ExpressionExonWidget *ui_;
 
@@ -30,7 +35,14 @@ private:
 
 
 	void loadExpressionFile();
+	void initFilter();
+	void initTable();
+	void updateTable(int max_rows = 10000);
 	void initBiotypeList();
+
+private slots:
+	void applyFilters();
+
 };
 
 #endif // EXPRESSIONEXONWIDGET_H
