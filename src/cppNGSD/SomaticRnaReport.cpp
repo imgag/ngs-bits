@@ -84,7 +84,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 		tmp_data.symbol = parts[0];
 		tmp_data.pathway = parts[1];
 
-		tmp_data.role = db_.getSomaticGeneRole(parts[0], false);
+		tmp_data.role = db_.getSomaticGeneRole(parts[0]);
 
 
 		if(!genes_of_interest.contains(tmp_data.symbol)) continue;
@@ -110,8 +110,8 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 		GeneSet genes = dna_cnvs_[i].genes().intersect(data_.target_region_filter.genes);
 		for(const auto& gene : genes)
 		{
-			if(db_.getSomaticGeneRoleId(gene) == -1 ) continue;
-			SomaticGeneRole role = db_.getSomaticGeneRole(gene, true);
+			SomaticGeneRole role = db_.getSomaticGeneRole(gene);
+			if (!role.isValid()) continue;
 
 			if( !SomaticCnvInterpreter::includeInReport(dna_cnvs_, dna_cnvs_[i], role) ) continue;
 			if( !role.high_evidence) continue;
@@ -174,7 +174,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 		{
 			expression_data data;
 			data.symbol = parts[i_gene];
-			data.role = db_.getSomaticGeneRole(parts[i_gene], false);
+			data.role = db_.getSomaticGeneRole(parts[i_gene]);
 			data.tumor_tpm = toDouble(parts[i_tpm]);
 			data.hpa_ref_tpm = toDouble(parts[i_hpa]);
 			data.cohort_mean_tpm = toDouble(parts[i_cohort_mean]);
@@ -413,8 +413,8 @@ RtfTable SomaticRnaReport::partCnvTable()
 
 		for(const auto& gene : genes)
 		{
-			if(db_.getSomaticGeneRoleId(gene) == -1 ) continue;
 			SomaticGeneRole role = db_.getSomaticGeneRole(gene, true);
+			if (!role.isValid()) continue;
 
 			if( !SomaticCnvInterpreter::includeInReport(dna_cnvs_,cnv, role) ) continue;
 			if( !role.high_evidence) continue;

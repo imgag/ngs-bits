@@ -306,9 +306,10 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 					w.writeAttribute("name", gene_info.symbol);
 					w.writeAttribute("id", gene_info.hgnc_id);
 
-					if(db.getSomaticGeneRoleId(gene_info.symbol.toUtf8()) != -1)
+					SomaticGeneRole gene_role = db.getSomaticGeneRole(gene_info.symbol.toUtf8());
+					if(gene_role.isValid())
 					{
-						w.writeAttribute("role",  db.getSomaticGeneRole(gene_info.symbol.toUtf8()).roleAsString());
+						w.writeAttribute("role", gene_role.asString());
 					}
 
 					if(tsg[j].contains("1"))
@@ -470,9 +471,10 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 				w.writeAttribute("name", gene_symbol);
 				w.writeAttribute("id", "HGNC:" + db.getValue("SELECT hgnc_id FROM gene WHERE symbol = '" + gene_symbol + "'").toString());
 
-				if(db.getSomaticGeneRoleId(gene) != -1)
+				SomaticGeneRole gene_role = db.getSomaticGeneRole(gene);
+				if(gene_role.isValid())
 				{
-					w.writeAttribute("role",  db.getSomaticGeneRole(gene).roleAsString());
+					w.writeAttribute("role",  gene_role.asString());
 				}
 
 				if(tsg.contains(gene_symbol))

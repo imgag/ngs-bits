@@ -196,9 +196,8 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 		for(const QByteArray& gene : cnv.genes())
 		{
 			//only genes with high evidence role
-			if(db_.getSomaticGeneRoleId(gene) == -1) continue;
 			SomaticGeneRole role = db_.getSomaticGeneRole(gene);
-			if (!role.high_evidence) continue;
+			if (!role.isValid() || !role.high_evidence) continue;
 
 			//only if included in report
 			if(!SomaticCnvInterpreter::includeInReport(cnvs_, cnv, role)) continue;
@@ -383,21 +382,24 @@ void SomaticReportHelper::somaticSnvForQbic(QString path_target_folder)
 
 		//effect
 		QByteArray effect = "NA";
-		if(db_.getSomaticViccId(variant) != -1 && db_.getSomaticGeneRoleId(transcript.gene) != -1)
+		if(db_.getSomaticViccId(variant)!= -1)
 		{
-			SomaticVariantInterpreter::Result result = SomaticVariantInterpreter::viccScore(db_.getSomaticViccData(variant));
 			SomaticGeneRole gene_role = db_.getSomaticGeneRole(transcript.gene);
-			if(gene_role.role == SomaticGeneRole::Role::ACTIVATING && (result == SomaticVariantInterpreter::Result::ONCOGENIC || result == SomaticVariantInterpreter::Result::LIKELY_ONCOGENIC) )
+			if (gene_role.isValid())
 			{
-				effect = "activating";
-			}
-			else if(gene_role.role == SomaticGeneRole::Role::LOSS_OF_FUNCTION && (result == SomaticVariantInterpreter::Result::ONCOGENIC || result == SomaticVariantInterpreter::Result::LIKELY_ONCOGENIC) )
-			{
-				effect = "inactivating";
-			}
-			else
-			{
-				effect = "ambiguous";
+				SomaticVariantInterpreter::Result result = SomaticVariantInterpreter::viccScore(db_.getSomaticViccData(variant));
+				if(gene_role.role == SomaticGeneRole::Role::ACTIVATING && (result == SomaticVariantInterpreter::Result::ONCOGENIC || result == SomaticVariantInterpreter::Result::LIKELY_ONCOGENIC) )
+				{
+					effect = "activating";
+				}
+				else if(gene_role.role == SomaticGeneRole::Role::LOSS_OF_FUNCTION && (result == SomaticVariantInterpreter::Result::ONCOGENIC || result == SomaticVariantInterpreter::Result::LIKELY_ONCOGENIC) )
+				{
+					effect = "inactivating";
+				}
+				else
+				{
+					effect = "ambiguous";
+				}
 			}
 
 		}
@@ -496,21 +498,21 @@ void SomaticReportHelper::somaticCnvForQbic(QString path_target_folder)
 		QByteArrayList gene_effects;
 		for(const auto& gene : genes)
 		{
-			if(db_.getSomaticGeneRoleId(gene) == -1) continue;
-
-			SomaticGeneRole::Role role = db_.getSomaticGeneRole(gene).role;
+			SomaticGeneRole gene_role = db_.getSomaticGeneRole(gene);
+			if (!gene_role.isValid()) continue;
 
 			QByteArray effect = "";
+			int cn = variant.copyNumber(cnvs_.annotationHeaders());
 
-			if(variant.copyNumber(cnvs_.annotationHeaders()) > 2 && role == SomaticGeneRole::Role::ACTIVATING)
+			if(cn > 2 && gene_role.role == SomaticGeneRole::Role::ACTIVATING)
 			{
 				effect = "activating";
 			}
-			else if(variant.copyNumber(cnvs_.annotationHeaders()) < 2 && role == SomaticGeneRole::Role::LOSS_OF_FUNCTION)
+			else if(cn < 2 && gene_role.role == SomaticGeneRole::Role::LOSS_OF_FUNCTION)
 			{
 				effect = "inactivating";
 			}
-			else if(role == SomaticGeneRole::Role::AMBIGUOUS)
+			else if(gene_role.role == SomaticGeneRole::Role::AMBIGUOUS)
 			{
 				effect = "ambiguous";
 			}
@@ -1173,9 +1175,9 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool include_ge
 
 			for(const auto& gene : genes)
 			{
-				if(db_.getSomaticGeneRoleId(gene) == -1) continue; //Do not include genes without defined gene role
-
+				//skip genes without defined gene role
 				SomaticGeneRole gene_role = db_.getSomaticGeneRole(gene);
+				if (!gene_role.isValid()) continue;
 
 				if( !SomaticCnvInterpreter::includeInReport(cnvs_, cnv, gene_role) ) continue;
 
@@ -1655,12 +1657,12 @@ RtfSourceCode SomaticReportHelper::partPathways()
 
 				//determine entries for small variants
 				QList<PathwaysEntry> entries;
-				GeneSet genes = db.getSomaticPathwayGenes(pathway);
+				GeneSet genes_pathway = db.getSomaticPathwayGenes(pathway);
 				for(int v=0; v<somatic_vl_.count(); ++v)
 				{
 					const Variant& variant = somatic_vl_[v];
 					VariantTranscript transcript = selectSomaticTranscript(variant, settings_, snv_index_coding_splicing_);
-					if (genes.contains(transcript.gene))
+					if (genes_pathway.contains(transcript.gene))
 					{
 						QByteArray variant_text;
 						if (i_som_rep_alt > -1 && !variant.annotations().at(i_som_rep_alt).trimmed().isEmpty())
@@ -1687,9 +1689,45 @@ RtfSourceCode SomaticReportHelper::partPathways()
 				}
 
 				//determine entries for CNVs (del/dup, amp, ...)
-				//TODO
+				for(int i=0;i<cnvs_.count();++i)
+				{
+					const CopyNumberVariant& cnv = cnvs_[i];
+					int cn = cnv.copyNumber(cnvs_.annotationHeaders());
 
-				//convert entries to sub-table
+					//target region from GSvar filter widget
+					if(settings_.target_region_filter.isValid() && !settings_.target_region_filter.regions.overlapsWith(cnv.chr(), cnv.start(), cnv.end())) continue;
+
+					GeneSet genes_cnv = db_.genesToApproved(cnv.genes());
+					for(const QByteArray& gene : genes_cnv)
+					{
+						if (!genes_pathway.contains(gene)) continue;
+
+						SomaticGeneRole gene_role = db_.getSomaticGeneRole(gene);
+						if (!SomaticCnvInterpreter::includeInReport(cnvs_, cnv, gene_role)) continue;
+
+						PathwaysEntry entry;
+						entry.gene = gene;
+						entry.alteration = CnvTypeDescription(cn);
+						entry.highlight = gene_role.high_evidence;
+						entries.append(entry);
+					}
+				}
+
+
+				/*
+				if(!gene_role.high_evidence) continue; //Skip genes that are not high evidence
+
+				//Skip low cna genes, these will be printed in text hint.
+				if(cn == 3)
+				{
+					skipped_amp_ << gene;
+					continue;
+				}
+				*/
+
+
+
+				//add entries to content table cell
 				QByteArrayList rtf_text;
 				foreach(const PathwaysEntry& entry, entries)
 				{
