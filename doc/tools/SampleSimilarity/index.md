@@ -34,12 +34,31 @@ Example data for an genome samples (Illumina TruSeq DNA PCR-Free) in VCF mode is
 
 ## Example data: genome (GSvar)
 
-
 The score distribution in GSvar mode is very similar, although variants with [MODIFIER impact](https://www.ensembl.org/info/genome/variation/prediction/predicted_data.html) are ignored in this mode.
 
 This plot shows the metrics of the same samples as above in GSvar mode:
 
 ![sample correlation image](tsPCRfree_sample_correlation_gsvar.png) 
+
+
+## Example data: exome (BAM)
+
+The score distribution in BAM mode is different from VCF/GSvar mode.  
+The reason is that all known SNPs are considered, even when both samples are wildtype.
+
+This plot shows the correlation histogram of unrelated (red) and related (blue) samples:
+
+![sample correlation image](ssHAEv7_sample_correlation_bam.png) 
+
+
+## Example data: genome (BAM)
+
+The score distribution in BAM mode is different from VCF/GSvar mode.  
+The reason is that all known SNPs are considered, even when both samples are wildtype.
+
+This plot shows the correlation histogram of unrelated samples:
+
+![sample correlation image](tsPCRfree_sample_correlation_bam.png) 
 
 
 ## Help and ChangeLog
