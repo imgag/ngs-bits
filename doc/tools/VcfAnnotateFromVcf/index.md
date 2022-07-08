@@ -27,10 +27,10 @@ If you want to annotate information from several source VCF files, you can provi
 The config file is a tab-separated file that contains one line for each annoatation source file.  
 The following columns are required in each line:
 
-	- source VCF file (parameter 'source')
-	- output name prefix (parameter 'prefix')
-	- INFO key names (parameter 'info_keys')
-	- ID column name (parameter 'id_column')
+	- source VCF file (see parameter 'source')
+	- output name prefix (see parameter 'prefix', optional)
+	- INFO key names (see parameter 'info_keys', optional)
+	- ID column name (see parameter 'id_column', optional)
 
 ## Help and ChangeLog
 

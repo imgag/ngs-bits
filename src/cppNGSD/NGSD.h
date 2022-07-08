@@ -854,9 +854,9 @@ public:
 	QList<PathwayInfo> getSomaticPathways(QByteArray gene);
 
 
-	///retrieve ID of somatic gene role
+	///Returns the NGSD id of a somatic gene role
 	int getSomaticGeneRoleId(QByteArray gene_symbol);
-	///retrieve somatic gene role data
+	///Returns the somatic gene role data for a gene. If there is no gene role definition and throw_on_fail=false, a invalid SomaticGeneRole instance is returned.
 	SomaticGeneRole getSomaticGeneRole(QByteArray gene, bool throw_on_fail = false);
 	///stores/updates somatic gene role data. "gene_role" has to contain valid gene
 	void setSomaticGeneRole(const SomaticGeneRole& gene_role);

@@ -3310,19 +3310,12 @@ QList<PathwayInfo> NGSD::getSomaticPathways(QByteArray gene)
 
 int NGSD::getSomaticGeneRoleId(QByteArray gene_symbol)
 {
-	QString query ="SELECT somatic_gene_role.id FROM somatic_gene_role WHERE symbol = '" + geneToApproved(gene_symbol, true) + "'";
-	QVariant id = getValue(query, true);
+	QVariant id = getValue("SELECT id FROM somatic_gene_role WHERE symbol = '" + geneToApproved(gene_symbol, true) + "'", true);
 	return id.isValid() ? id.toInt() : -1;
 }
 
 SomaticGeneRole NGSD::getSomaticGeneRole(QByteArray gene, bool throw_on_fail)
 {
-	SqlQuery query = getQuery();
-
-	//Initialize output without gene symbol (in case it fails and method shall not throw error)
-	SomaticGeneRole out;
-
-
 	int gene_role_id = getSomaticGeneRoleId(gene);
 	if(gene_role_id == -1)
 	{
@@ -3332,41 +3325,25 @@ SomaticGeneRole NGSD::getSomaticGeneRole(QByteArray gene, bool throw_on_fail)
 		}
 		else
 		{
-			return out; //return empty data
+			return SomaticGeneRole(); //return invalid data
 		}
 	}
 
-	query.prepare("SELECT gene_role, high_evidence, comment FROM somatic_gene_role WHERE somatic_gene_role.id = " + QByteArray::number(gene_role_id));
-	query.exec();
-
-	if(query.size() != 1)
-	{
-		if(throw_on_fail)
-		{
-			THROW(DatabaseException, "Could not or found multiple somatic gene roles for " + gene);
-		}
-		else
-		{
-			return out; //return empty data
-		}
-	}
-
-
+	SqlQuery query = getQuery();
+	query.exec("SELECT gene_role, high_evidence, comment FROM somatic_gene_role WHERE somatic_gene_role.id = " + QByteArray::number(gene_role_id));
 	query.next();
 
+	SomaticGeneRole out;
 	out.gene = gene;
 
-	//set gene role
-	if(query.value(0).toString() == "activating") out.role = SomaticGeneRole::Role::ACTIVATING;
-	else if(query.value(0).toString() == "loss_of_function") out.role = SomaticGeneRole::Role::LOSS_OF_FUNCTION;
-	else if(query.value(0).toString() == "ambiguous") out.role = SomaticGeneRole::Role::AMBIGUOUS;
-	else THROW(DatabaseException, "Unknown gene role '" + query.value(0).toString() + "' in relation 'somatic_gene_role'.");
+	QString role = query.value(0).toString();
+	if(role == "activating") out.role = SomaticGeneRole::Role::ACTIVATING;
+	else if(role == "loss_of_function") out.role = SomaticGeneRole::Role::LOSS_OF_FUNCTION;
+	else if(role == "ambiguous") out.role = SomaticGeneRole::Role::AMBIGUOUS;
+	else THROW(DatabaseException, "Unknown gene role '" + role + "' in relation 'somatic_gene_role'.");
 
-	//evidence
 	out.high_evidence = query.value(1).toBool();
-
 	out.comment = query.value(2).toString();
-
 
 	return out;
 }

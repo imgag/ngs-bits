@@ -4523,6 +4523,22 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 				}
 			}
 
+			//special handling of study-sample relation
+			if (table=="study_sample")
+			{
+				//skip duplicates
+				QString study = row[0].trimmed();
+				QString study_id = db.getValue("SELECT id FROM study WHERE name=:0", true, study).toString();
+				QString ps = row[1].trimmed();
+				QString ps_id = db.processedSampleId(ps, false);
+				QList<int> duplicate_ids = db.getValuesInt("SELECT id FROM study_sample ss WHERE processed_sample_id='"+ps_id+"' AND study_id='"+study_id+"'");
+				if (!duplicate_ids.isEmpty())
+				{
+					duplicates << study+"/"+ps;
+					continue;
+				}
+			}
+
 			//check tab-separated parts count
 			if (row.count()!=fields.count()) THROW(ArgumentException, "Error: line with more/less than " + QString::number(fields.count()) + " tab-separated parts.");
 			//check and bind
