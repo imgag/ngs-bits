@@ -24,22 +24,23 @@ public:
 
     virtual void setup()
     {
-        setDescription("Annotates the INFO column of a VCF with data from another VCF file (or multiple VCF files if config file is provided).");
+		setDescription("Annotates a VCF file with data from one or more source VCF files.");
 
         //optional
-		addInfile("in", "Input VCF(.GZ) file. If unset, reads from STDIN.", true, true);
-		addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
-		addInfile("config_file", "TSV file containing the annotation file path, the prefix, the INFO ids and the id column for multiple annotations.", true);
-        addInfile("annotation_file", "Tabix indexed VCF.GZ file used for annotation.", true, true);
-        addString("info_ids", "INFO id(s) in annotation VCF file (Multiple ids can be separated by ',', optional new id names in output file can be added by '=': original_id=new_id).", true, "");
-        addString("id_column", "Name of the ID column in annotation file. (If "" it will be ignored in output file, alternative output name can be specified by old_id_column_name=new_name", true, "");
-        addString("id_prefix", "Prefix for INFO id(s) in output VCF file.", true, "");
-		addFlag("allow_missing_header", "If set the execution is not aborted if a INFO header is missing in annotation file.");
+		addInfile("in", "Input VCF(.GZ) file that is annotated. If unset, reads from STDIN.", true, true);
+		addOutfile("out", "Output VCF file. If unset, writes to STDOUT.", true, true);
+		addInfile("config_file", "TSV file for annotation from multiple source files. For each source file, these tab-separated columns have to be given: source file name, prefix, INFO keys, ID column.", true);
+		addInfile("source", "Tabix indexed VCF.GZ file that is the source of the annotated data.", true, true);
+		addString("info_keys", "INFO key(s) in 'source' that should be annotated (Multiple keys are be separated by ',', optional keys can be renamed using this syntax: 'original_key=new_key').", true, "");
+		addString("id_column", "ID column in 'source' (must be 'ID'). If unset, the ID column is not annotated. Alternative output name can be specified by using 'ID=new_name'.", true, "");
+		addString("prefix", "Prefix added to all annotations in the output VCF file.", true, "");
+		addFlag("allow_missing_header", "If set the execution is not aborted if a INFO header is missing in the source file.");
 		addInt("threads", "The number of threads used to process VCF lines.", true, 1);
 		addInt("block_size", "Number of lines processed in one chunk.", true, 10000);
 		addInt("prefetch", "Maximum number of chunks that may be pre-fetched into memory.", true, 64);
 		addFlag("debug", "Enables debug output (use only with one thread).");
 
+		changeLog(2022, 7,  8, "Usability: changed parameter names and updated documentation.");
 		changeLog(2022, 2, 24, "Refactoring and change to event-driven implementation (improved scaling with many threads)");
 		changeLog(2021, 9, 20, "Prefetch only part of input file (to save memory).");
 		changeLog(2020, 4, 11, "Added multithread support.");
@@ -57,11 +58,11 @@ public:
 		Parameters params;
 		params.in = getInfile("in");
 		params.out = getOutfile("out");
-        QString config_file_path = getInfile("config_file");
-        QString annotation_file_path = getInfile("annotation_file");
-        QByteArray info_id_string = getString("info_ids").toLatin1().trimmed();
+		QString file_path = getInfile("config_file").trimmed();
+		QString source = getInfile("source").trimmed();
+		QByteArray info_keys = getString("info_keys").toLatin1().trimmed();
         QByteArray id_column = getString("id_column").toLatin1().trimmed();
-        QByteArray id_prefix = getString("id_prefix").toLatin1().trimmed();
+		QByteArray prefix = getString("prefix").toLatin1().trimmed();
 		bool allow_missing_header = getFlag("allow_missing_header");
 		params.threads = getInt("threads");
 		params.prefetch = getInt("prefetch");
@@ -76,10 +77,10 @@ public:
 
 		//get meta data
 		MetaData meta;
-		if (config_file_path != "") //from file
+		if (file_path != "") //from file
         {
             // parse config file line by line
-            QSharedPointer<QFile> config_file = Helper::openFileForReading(config_file_path, false);
+			QSharedPointer<QFile> config_file = Helper::openFileForReading(file_path, false);
 			while (!config_file->atEnd())
             {
 				QByteArray line = config_file->readLine();
@@ -88,7 +89,7 @@ public:
                 QByteArrayList columns = line.split('\t');
                 if (columns.size() < 4)
                 {
-					THROW(FileParseException, QByteArray() + "Invalid number of columns! "  + "File name, prefix, INFO ids and id column name are required:\n"  + line.replace("\t", " -> ").trimmed());
+					THROW(FileParseException, QByteArray() + "Config file line does not contain 4 tab-separated columns (source file name, prefix, INFO keys, ID column). Found:\n"  + line.replace("\t", " -> ").trimmed());
                 }
 
 				meta.annotation_file_list.append(columns[0].trimmed());
@@ -126,24 +127,22 @@ public:
         }
 		else //from CLI parameters
         {
-			meta.annotation_file_list.append(annotation_file_path.toLatin1().trimmed());
+			meta.annotation_file_list.append(source.toLatin1());
 
-            if (info_id_string.trimmed() == "")
-            {
-                THROW(ArgumentException,
-                      "The \"info_id\" parameter is required if no config file is provided");
-            }
+			if (info_keys.isEmpty() && id_column.isEmpty()) THROW(ArgumentException, "The 'info_keys' parameter or the 'id_column' parameter is required if no config file is provided!");
+			if (source.isEmpty()) THROW(ArgumentException, "The 'source' parameter is required if no config file is provided!");
+
             QByteArrayList info_ids;
             QByteArrayList out_info_ids;
-            parseInfoIds(info_ids, out_info_ids, info_id_string, id_prefix);
+			parseInfoIds(info_ids, out_info_ids, info_keys, prefix);
 
-			meta.prefix_list.append(id_prefix);
+			meta.prefix_list.append(prefix);
 			meta.info_id_list.append(info_ids);
 			meta.out_info_id_list.append(out_info_ids);
 
             QByteArray id_column_name;
             QByteArray out_id_column_name;
-            parseIdColumn(id_column_name, out_id_column_name, id_column, id_prefix);
+			parseIdColumn(id_column_name, out_id_column_name, id_column, prefix);
 
 			meta.id_column_name_list.append(id_column_name);
 			meta.out_id_column_name_list.append(out_id_column_name);
@@ -196,25 +195,27 @@ private:
 	void parseInfoIds(QByteArrayList &info_ids, QByteArrayList &out_info_ids, const QByteArray &input_string, const QByteArray &prefix)
     {
         // iterate over all info ids
-        foreach(QByteArray raw_string, input_string.split(','))
+		foreach(QByteArray entry, input_string.split(','))
         {
+			entry = entry.trimmed();
+			if (entry.isEmpty()) continue;
+
             QByteArray out_info_id;
-            QByteArrayList in_out_info_id = raw_string.split('=');
-            info_ids.append(in_out_info_id[0].trimmed());
-            if (in_out_info_id.size() == 1)
+			QByteArrayList parts = entry.split('=');
+			info_ids.append(parts[0].trimmed());
+			if (parts.size() == 1)
             {
                 // id in annotation file and output file are identical
-                out_info_id = in_out_info_id[0].trimmed();
+				out_info_id = parts[0].trimmed();
             }
-            else if (in_out_info_id.size() == 2)
+			else if (parts.size() == 2)
             {
                 // id in annotation file and output file differ
-                out_info_id = in_out_info_id[1].trimmed();
+				out_info_id = parts[1].trimmed();
             }
             else
             {
-                THROW(ArgumentException, "Error while parsing \"info_ids\" entry \"" + raw_string
-                      + "\"!")
+				THROW(ArgumentException, "Error while parsing \"info_ids\" entry \"" + entry + "\"!")
             }
 
             // extend output ids by the given prefix
@@ -237,21 +238,23 @@ private:
             return;
         }
 
-        QByteArrayList id_column_parameter = input_string.split('=');
-        id_column_name = id_column_parameter[0].trimmed();
-        if (id_column_parameter.size() == 1)
+		//check name
+		QByteArrayList parts = input_string.trimmed().split('=');
+		if (parts[0]!="ID")
+		{
+			THROW(ArgumentException, "Parameter \"id_column\" is '" + input_string + "', but column name must be 'ID'!")
+		}
+
+		id_column_name = "ID";
+		out_id_column_name = "ID";
+		if (parts.size()==2) // alternative id name given
         {
-            // no optional name given
-            out_id_column_name = "ID";
+
+			out_id_column_name = parts[1].trimmed();
         }
-        else if (id_column_parameter.size() == 2)
+		else if (parts.count()>2)
         {
-            // alternative id name given
-            out_id_column_name = id_column_parameter[1].trimmed();
-        }
-        else
-        {
-            THROW(ArgumentException, "Error while parsing \"id_column\" parameter!")
+			THROW(ArgumentException, "Parameter \"id_column\" contains more than one '='!")
         }
 
         // extend output ids by the given prefix
