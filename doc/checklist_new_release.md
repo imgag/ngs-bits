@@ -18,7 +18,7 @@
 	> make test\_tarball T=[tag] 
 
 1. Add the tarball to the GitHub release.
-1. Create a [new bioconda release](https://bioconda.github.io/contribute-a-recipe.html#update-repo) based on the release tarball.
+1. Create a [new bioconda release](https://bioconda.github.io/contributor/workflow.html#create-a-pull-request) based on the release tarball.
 	* Update bioconda-recipes:
 			
 			> git checkout master

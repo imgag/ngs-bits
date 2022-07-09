@@ -37,7 +37,7 @@ Changes in release 2022_07:
 * added tools: VcfAnnotateHexplorer, HgvsToVcf, VcfAnnotateConsequence 
 * NGSD:
 	* transcript: added biotype, MANE Select flag, MANE Plus Clinical flag, Ensembl canonical flag.
-	* variant: removed 1000g AF and added gnomAD het/wt counts.
+	* variant: removed 1000g AF.
 	* sample: added patient identifer, added tissue enum.
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
