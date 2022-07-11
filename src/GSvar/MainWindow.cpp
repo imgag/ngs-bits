@@ -5060,6 +5060,14 @@ void MainWindow::on_actionExportTestData_triggered()
 		QStringList variant_id_list = db.getValues("SELECT variant_id FROM detected_variant WHERE processed_sample_id='"+ps_id+"'");
 		db.exportTable("variant", output_stream, "id IN ("+variant_id_list.join(", ")+")", &sql_history);
 		db.exportTable("detected_variant", output_stream, "processed_sample_id='"+ps_id+"'", &sql_history);
+
+		QStringList sv_callset_id_list = db.getValues("SELECT id FROM sv_callset WHERE processed_sample_id='"+ps_id+"'");
+		db.exportTable("sv_callset", output_stream, "id IN ("+sv_callset_id_list.join(", ")+")", &sql_history);
+		db.exportTable("sv_deletion", output_stream, "sv_callset_id IN ("+sv_callset_id_list.join(", ")+")", &sql_history);
+		db.exportTable("sv_duplication", output_stream, "sv_callset_id IN ("+sv_callset_id_list.join(", ")+")", &sql_history);
+		db.exportTable("sv_insertion", output_stream, "sv_callset_id IN ("+sv_callset_id_list.join(", ")+")", &sql_history);
+		db.exportTable("sv_inversion", output_stream, "sv_callset_id IN ("+sv_callset_id_list.join(", ")+")", &sql_history);
+		db.exportTable("sv_translocation", output_stream, "sv_callset_id IN ("+sv_callset_id_list.join(", ")+")", &sql_history);
 	}
 
 	ui_.statusBar->showMessage("Done");
