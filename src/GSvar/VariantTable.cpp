@@ -161,45 +161,14 @@ void VariantTable::customContextMenu(QPoint pos)
 
 	//PubMed
 	sub_menu = menu.addMenu(QIcon("://Icons/PubMed.png"), "PubMed");
-	if (ngsd_user_logged_in)
+	//create links for each gene/disease
+	foreach(const QByteArray& g, genes)
 	{
-		NGSD db;
-		QString ps = variants_->mainSampleName();
-		QString sample_id = db.sampleId(ps, false);
-		if (sample_id!="")
+		sub_menu->addAction(g + " AND \"mutation\"");
+		foreach(const Phenotype& p, active_phenotypes_)
 		{
-			//get disease list (HPO )
-			QByteArrayList diseases;
-			QList<SampleDiseaseInfo> infos = db.getSampleDiseaseInfo(sample_id);
-			foreach(const SampleDiseaseInfo& info, infos)
-			{
-				if (info.type=="HPO term id")
-				{
-					int id = db.phenotypeIdByAccession(info.disease_info.toLatin1(), false);
-					if (id!=-1)
-					{
-						QByteArray disease = db.phenotype(id).name().trimmed();
-						if (!diseases.contains(disease))
-						{
-							diseases << disease;
-						}
-					}
-				}
-			}
-
-			//create links for each gene/disease
-			foreach(const QByteArray& g, genes)
-			{
-				foreach(const QByteArray& d, diseases)
-				{
-					sub_menu->addAction(g + " AND \"" + d + "\"");
-				}
-			}
+			sub_menu->addAction(g + " AND \"" + p.name().trimmed() + "\"");
 		}
-	}
-	else
-	{
-		sub_menu->setEnabled(ngsd_user_logged_in);
 	}
 
 	//add gene databases

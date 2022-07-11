@@ -1035,6 +1035,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==PathType::COPY_NUMBER_RAW_DATA) output += ps_name + "_cnvs_clincnv.seg";
 	else if (type==PathType::COPY_NUMBER_CALLS) output += ps_name + "_cnvs_clincnv.tsv";
 	else if (type==PathType::FUSIONS) output += ps_name + "_fusions_arriba.tsv";
+	else if (type==PathType::FUSIONS_PIC_DIR) output += ps_name + "_fusions_arriba_pics";
 	else if (type==PathType::STAR_FUSIONS) output += ps_name + "_var_fusions.tsv";
 	else if (type==PathType::FUSIONS_BAM) output += ps_name + "_fusions_arriba.bam";
 	else if (type==PathType::SPLICING_BED) output += ps_name + "_splicing.bed";
@@ -1043,6 +1044,8 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==PathType::COUNTS) output += ps_name + "_counts.tsv";
 	else if (type==PathType::EXPRESSION) output += ps_name + "_expr.tsv";
 	else if (type==PathType::EXPRESSION_COHORT) output += ps_name + "_expr.cohort.tsv";
+	else if (type==PathType::EXPRESSION_STATS) output += ps_name + "_expr.stats.tsv";
+	else if (type==PathType::EXPRESSION_CORR) output += ps_name + "_expr.corr.txt";
 	else if (type==PathType::MRD_CF_DNA) output += QString("umiVar") + QDir::separator() + ps_name + ".mrd";
 	else if (type!=PathType::SAMPLE_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
 
@@ -3325,19 +3328,12 @@ QList<PathwayInfo> NGSD::getSomaticPathways(QByteArray gene)
 
 int NGSD::getSomaticGeneRoleId(QByteArray gene_symbol)
 {
-	QString query ="SELECT somatic_gene_role.id FROM somatic_gene_role WHERE symbol = '" + geneToApproved(gene_symbol, true) + "'";
-	QVariant id = getValue(query, true);
+	QVariant id = getValue("SELECT id FROM somatic_gene_role WHERE symbol = '" + geneToApproved(gene_symbol, true) + "'", true);
 	return id.isValid() ? id.toInt() : -1;
 }
 
 SomaticGeneRole NGSD::getSomaticGeneRole(QByteArray gene, bool throw_on_fail)
 {
-	SqlQuery query = getQuery();
-
-	//Initialize output without gene symbol (in case it fails and method shall not throw error)
-	SomaticGeneRole out;
-
-
 	int gene_role_id = getSomaticGeneRoleId(gene);
 	if(gene_role_id == -1)
 	{
@@ -3347,41 +3343,25 @@ SomaticGeneRole NGSD::getSomaticGeneRole(QByteArray gene, bool throw_on_fail)
 		}
 		else
 		{
-			return out; //return empty data
+			return SomaticGeneRole(); //return invalid data
 		}
 	}
 
-	query.prepare("SELECT gene_role, high_evidence, comment FROM somatic_gene_role WHERE somatic_gene_role.id = " + QByteArray::number(gene_role_id));
-	query.exec();
-
-	if(query.size() != 1)
-	{
-		if(throw_on_fail)
-		{
-			THROW(DatabaseException, "Could not or found multiple somatic gene roles for " + gene);
-		}
-		else
-		{
-			return out; //return empty data
-		}
-	}
-
-
+	SqlQuery query = getQuery();
+	query.exec("SELECT gene_role, high_evidence, comment FROM somatic_gene_role WHERE somatic_gene_role.id = " + QByteArray::number(gene_role_id));
 	query.next();
 
+	SomaticGeneRole out;
 	out.gene = gene;
 
-	//set gene role
-	if(query.value(0).toString() == "activating") out.role = SomaticGeneRole::Role::ACTIVATING;
-	else if(query.value(0).toString() == "loss_of_function") out.role = SomaticGeneRole::Role::LOSS_OF_FUNCTION;
-	else if(query.value(0).toString() == "ambiguous") out.role = SomaticGeneRole::Role::AMBIGUOUS;
-	else THROW(DatabaseException, "Unknown gene role '" + query.value(0).toString() + "' in relation 'somatic_gene_role'.");
+	QString role = query.value(0).toString();
+	if(role == "activating") out.role = SomaticGeneRole::Role::ACTIVATING;
+	else if(role == "loss_of_function") out.role = SomaticGeneRole::Role::LOSS_OF_FUNCTION;
+	else if(role == "ambiguous") out.role = SomaticGeneRole::Role::AMBIGUOUS;
+	else THROW(DatabaseException, "Unknown gene role '" + role + "' in relation 'somatic_gene_role'.");
 
-	//evidence
 	out.high_evidence = query.value(1).toBool();
-
 	out.comment = query.value(2).toString();
-
 
 	return out;
 }

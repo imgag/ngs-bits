@@ -33,12 +33,14 @@ public:
 		addFlag("include_gonosomes", "Includes gonosomes into calculation (by default only variants on autosomes are considered).");
 		addFlag("skip_multi", "Skip multi-allelic variants instead of throwing an error (VCF mode).");
 		addInt("min_cov",  "Minimum coverage to consider a SNP for the analysis (BAM mode).",  true,  30);
-		addInt("max_snps",  "The maximum number of high-coverage SNPs to extract from BAM/CRAM. 0 means unlimited (BAM mode).",  true, 2000);
+		addInt("max_snps",  "The maximum number of high-coverage SNPs to extract from BAM/CRAM. 0 means unlimited (BAM mode).",  true, 5000);
 		addEnum("build", "Genome build used to generate the input (BAM mode).", true, QStringList() << "hg19" << "hg38", "hg38");
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addFlag("debug", "Print debug output.");
 
 		//changelog
+		changeLog(2022,  7,  7, "Changed BAM mode: max_snps is now 5000 by default because this results in a better separation of related and unrelated samples.");
+		changeLog(2022,  6, 30, "Changed GSvar mode: MODIFIER impact variants are now ingnored to make scores more similar between exomes and genomes.");
 		changeLog(2020, 11, 27, "Added CRAM support.");
 		changeLog(2019,  2,  8, "Massive speed-up by caching of variants/genotypes instead of loading them again for each comparison.");
 		changeLog(2018, 11, 26, "Add flag 'skip_multi' to ignore multi-allelic sites.");

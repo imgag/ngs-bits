@@ -913,6 +913,7 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahgscha1")
 	{
+		qDebug() << GlobalServiceProvider::fileLocationProvider().getExpressionFiles(true).asStringList();
 	}
 }
 
@@ -3939,7 +3940,15 @@ void MainWindow::generateReportSomaticRTF()
 
 	somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
 
-
+	//load obo terms for filtering coding/splicing variants
+	OntologyTermCollection obo_terms("://Resources/so-xp_3_0_0.obo",true);
+	QList<QByteArray> ids;
+	ids << obo_terms.childIDs("SO:0001580",true); //coding variants
+	ids << obo_terms.childIDs("SO:0001568",true); //splicing variants
+	foreach(const QByteArray& id, ids)
+	{
+		somatic_report_settings_.obo_terms_coding_splicing.add(obo_terms.getByID(id));
+	}
 
 	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
 	if(!ui_.filters->targetRegion().isValid()) //use processing system data in case no filter is set
@@ -3971,19 +3980,37 @@ void MainWindow::generateReportSomaticRTF()
 		somatic_report_settings_.report_config.setHrdScore(0);
 	}
 
+	//Get ICD10 diagnoses from NGSD
+	QStringList tmp_icd10;
+	QStringList tmp_phenotype;
+	QStringList tmp_rna_ref_tissue;
+	for( const auto& entry : db.getSampleDiseaseInfo(db.sampleId(ps_tumor)) )
+	{
+		if(entry.type == "ICD10 code") tmp_icd10.append(entry.disease_info);
+		if(entry.type == "clinical phenotype (free text)") tmp_phenotype.append(entry.disease_info);
+		if(entry.type == "RNA reference tissue") tmp_rna_ref_tissue.append(entry.disease_info);
+	}
+	somatic_report_settings_.icd10 = tmp_icd10.join(", ");
+	somatic_report_settings_.phenotype = tmp_phenotype.join(", ");
 
 	SomaticReportDialog dlg(filename_, somatic_report_settings_, cnvs_, somatic_control_tissue_variants_, this); //widget for settings
 
-	if(SomaticRnaReport::checkRequiredSNVAnnotations(variants_))
+
+	//Fill in RNA processed sample ids into somatic report dialog
+	QSet<int> rna_ids =   db.relatedSamples(db.sampleId(ps_tumor).toInt(), "same sample", "RNA");
+	if(!rna_ids.isEmpty())
 	{
 		dlg.enableChoiceReportType(true);
-		//get RNA ids annotated to GSvar file
-		QStringList rna_ids;
-		for(const auto& an : variants_.annotations())
+
+		QStringList rna_names;
+		for(int rna_id : rna_ids)
 		{
-			if(an.name().contains("_rna_tpm")) rna_ids << QString(an.name()).replace("_rna_tpm", "");
+			for ( const auto& rna_ps_id : db.getValues("SELECT id FROM processed_sample WHERE sample_id=" + QString::number(rna_id)) )
+			{
+				rna_names << db.processedSampleName(rna_ps_id);
+			}
 		}
-		dlg.setRNAids(rna_ids);
+		dlg.setRNAids(rna_names);
 	}
 
 	if(!dlg.exec())
@@ -4082,14 +4109,85 @@ void MainWindow::generateReportSomaticRTF()
 		{
 			QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
 
-
 			SomaticRnaReportData rna_report_data = somatic_report_settings_;
 			rna_report_data.rna_ps_name = dlg.getRNAid();
-			rna_report_data.rna_fusion_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::STAR_FUSIONS).filename;
+			rna_report_data.rna_fusion_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::FUSIONS).filename;
+			rna_report_data.rna_expression_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::EXPRESSION).filename;
+			rna_report_data.rna_bam_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::BAM).filename;
+			rna_report_data.ref_genome_fasta_file = Settings::string("reference_genome");
+
+			try
+			{
+				QSharedPointer<QFile> corr_file =  Helper::openFileForReading( GlobalServiceProvider::database().processedSamplePath( db.processedSampleId(dlg.getRNAid()), PathType::EXPRESSION_CORR ).filename );
+				rna_report_data.expression_correlation = Helper::toDouble(corr_file->readAll());
+			}
+			catch(Exception)
+			{
+				rna_report_data.expression_correlation = std::numeric_limits<double>::quiet_NaN();
+			}
+
+			try
+			{
+				TSVFileStream cohort_file( GlobalServiceProvider::database().processedSamplePath( db.processedSampleId(dlg.getRNAid()), PathType::EXPRESSION_COHORT ).filename );
+				rna_report_data.cohort_size = cohort_file.header().count()-1;
+			}
+			catch(Exception)
+			{
+			}
+
+			rna_report_data.rna_qcml_data = db.getQCData(db.processedSampleId(dlg.getRNAid()));
+
+			//transforms png data into list of tuples (png data in hex format, width, height)
+			auto pngFromFile = [](QStringList files)
+			{
+				QList<std::tuple<QByteArray,int,int>> pic_list;
+				for(QString path : files)
+				{
+					QImage pic = QImage(path);
+					//set maximum width/height in pixels
+					if( (uint)pic.width() > 1200 ) pic = pic.scaledToWidth(1200, Qt::TransformationMode::SmoothTransformation);
+					if( (uint)pic.height() > 1200 ) pic = pic.scaledToHeight(1200, Qt::TransformationMode::SmoothTransformation);
+
+					QByteArray png_data = "";
+					if(!pic.isNull())
+					{
+						QBuffer buffer(&png_data);
+						buffer.open(QIODevice::WriteOnly);
+						if(pic.save(&buffer, "PNG"))
+						{
+							pic_list << std::make_tuple(png_data.toHex(), pic.width(), pic.height());
+						}
+					}
+				}
+				return pic_list;
+			};
+
+			//Add data from fusion pics
+			try
+			{
+				rna_report_data.fusion_pics = pngFromFile( Helper::findFiles(GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::FUSIONS_PIC_DIR).filename, "*.png", false) );
+			}
+			catch(Exception) //Nothing to do here
+			{
+			}
+			//Add data from expression plots
+			try
+			{
+				rna_report_data.expression_plots = pngFromFile( Helper::findFiles(GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::SAMPLE_FOLDER).filename, dlg.getRNAid() + "_expr.*.png", false) );
+			}
+			catch(Exception)
+			{
+			}
+
+			//Look in tumor sample for HPA reference tissue
+			for( const auto& entry : db.getSampleDiseaseInfo(db.sampleId(dlg.getRNAid())) )
+			{
+				if(entry.type == "RNA reference tissue") tmp_rna_ref_tissue.append(entry.disease_info);
+			}
+			tmp_rna_ref_tissue.removeDuplicates();
+			rna_report_data.rna_hpa_ref_tissue = tmp_rna_ref_tissue.join(", ");
 
 			SomaticRnaReport rna_report(variants_, cnvs_, rna_report_data);
-
-			rna_report.checkRefTissueTypeInNGSD(rna_report.refTissueType(variants_),somatic_report_settings_.tumor_ps);
 
 			rna_report.writeRtf(temp_filename);
 			ReportWorker::moveReport(temp_filename, file_rep);
@@ -4421,6 +4519,22 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 				if (!duplicate_ids.isEmpty())
 				{
 					duplicates << sample_name+"/"+hpo_id;
+					continue;
+				}
+			}
+
+			//special handling of study-sample relation
+			if (table=="study_sample")
+			{
+				//skip duplicates
+				QString study = row[0].trimmed();
+				QString study_id = db.getValue("SELECT id FROM study WHERE name=:0", true, study).toString();
+				QString ps = row[1].trimmed();
+				QString ps_id = db.processedSampleId(ps, false);
+				QList<int> duplicate_ids = db.getValuesInt("SELECT id FROM study_sample ss WHERE processed_sample_id='"+ps_id+"' AND study_id='"+study_id+"'");
+				if (!duplicate_ids.isEmpty())
+				{
+					duplicates << study+"/"+ps;
 					continue;
 				}
 			}
@@ -6551,7 +6665,7 @@ void MainWindow::applyFilters(bool debug_time)
 		//phenotype selection changed => update ROI
 		const PhenotypeList& phenos = ui_.filters->phenotypes();
 
-		//update phenotypes for variant context menu search:
+		//update phenotypes for variant context menu search
 		ui_.vars->updateActivePhenotypes(phenos);
 
 		const PhenotypeSettings& pheno_settings = ui_.filters->phenotypeSettings();

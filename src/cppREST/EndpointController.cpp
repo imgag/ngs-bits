@@ -78,9 +78,9 @@ HttpResponse EndpointController::createStaticFileRangeResponse(QString filename,
 HttpResponse EndpointController::createStaticStreamResponse(QString filename, bool is_downloadable)
 {
 	BasicResponseData response_data;
-	response_data.length = QFileInfo(filename).size();
+	response_data.length = QFile(filename).size();
 	response_data.filename = filename;
-	response_data.file_size = QFileInfo(filename).size();
+	response_data.file_size = response_data.length;
 	response_data.is_stream = true;
 	response_data.content_type = HttpProcessor::getContentTypeByFilename(filename);
 	response_data.is_downloadable = is_downloadable;
@@ -159,7 +159,7 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 		return HttpResponse(ResponseStatus::NOT_FOUND, content_type, "Requested file could not be found");
 	}
 
-	quint64 file_size = QFileInfo(filename).size();
+	quint64 file_size = QFile(filename).size();
 
 	// Client wants to see only the size of the requested file (not its content)
 	if (method == RequestMethod::HEAD)
@@ -324,20 +324,16 @@ QString EndpointController::generateHelpPage(const QString& path)
 
 QString EndpointController::getServedTempPath(QList<QString> path_parts)
 {
-	QString full_entity_path = "";
-	if (path_parts.size() < 1)
-	{
-		return full_entity_path;
-	}
+	if (path_parts.isEmpty()) return "";
 
 	UrlEntity url_entity = UrlManager::getURLById(path_parts[0]);
 	if (!url_entity.filename_with_path.isEmpty())
 	{
 		path_parts.removeAt(0);
-		full_entity_path = QFileInfo(url_entity.filename_with_path).absolutePath() + QDir::separator() + path_parts.join(QDir::separator());
+		return QFileInfo(url_entity.filename_with_path).absolutePath() + QDir::separator() + path_parts.join(QDir::separator());
 	}
 
-	return full_entity_path;
+	return "";
 }
 
 QString EndpointController::getServedRootPath(const QList<QString>& path_parts)
@@ -355,44 +351,6 @@ QString EndpointController::getServedRootPath(const QList<QString>& path_parts)
 	if (QFile(served_file).exists()) return served_file;
 
 	return "";
-}
-
-StaticFile EndpointController::readFileContent(const QString& filename, const QList<ByteRange>& byte_ranges)
-{
-	StaticFile static_file {};
-	static_file.filename_with_path = filename;
-	static_file.modified = QFileInfo(filename).lastModified();
-
-	QFile file(filename);
-	static_file.size = file.size();
-	if (!file.open(QIODevice::ReadOnly))
-	{
-		THROW(FileAccessException, "File could not be found: " + filename);
-	}
-
-	if ((!file.atEnd()) && (byte_ranges.length() == 0))
-	{
-		try
-		{
-			static_file.content = file.readAll();
-		}
-		catch (FileAccessException& e)
-		{
-			THROW(FileAccessException, "File cannot be processed (possibly due to the large size)");
-		}
-	}
-
-	for (int i = 0; i < byte_ranges.count(); ++i)
-	{
-		if ((!file.atEnd()) && (byte_ranges[i].length > 0) && (file.seek(byte_ranges[i].start)))
-		{
-			static_file.content.append(file.read(byte_ranges[i].length));
-		}
-	}
-
-	file.close();
-
-	return static_file;
 }
 
 bool EndpointController::hasOverlappingRanges(const QList<ByteRange> ranges)

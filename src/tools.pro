@@ -483,3 +483,7 @@ RnaQC.depends = cppNGS
 SUBDIRS += NGSDImportExpressionData
 tools-TEST.depends += NGSDImportExpressionData
 NGSDImportExpressionData.depends = cppNGSD
+
+SUBDIRS += VcfAnnotateHexplorer
+tools-TEST.depends += VcfAnnotateHexplorer
+VcfAnnotateHexplorer.depends = cppNGS

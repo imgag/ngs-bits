@@ -170,7 +170,7 @@ void MosaicWidget::applyFilters(bool debug_time)
 		//filter by phenotype (via genes, not genomic regions)
 		PhenotypeList phenotypes = ui_.filter_widget->phenotypes();
 
-		//update phenotypes for variant context menu search:
+		//update phenotypes for variant context menu search
 		ui_.mosaics->updateActivePhenotypes(phenotypes);
 
 		if (!phenotypes.isEmpty())
