@@ -34,6 +34,6 @@ The following columns are required in each line:
 
 ## Help and ChangeLog
 
-The fill parameter list and changelog can be found [here](../VcfAnnotateFromVcf.md).
+The full parameter list and changelog can be found [here](../VcfAnnotateFromVcf.md).
 
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
