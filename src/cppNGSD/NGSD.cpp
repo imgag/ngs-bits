@@ -6837,12 +6837,6 @@ void NGSD::exportTable(const QString& table, QTextStream& out, QString where_cla
 	}
 }
 
-bool NGSD::hasSamples() const
-{
-	return (getValue("SELECT COUNT(id) FROM sample", false).toInt() > 0);
-}
-
-
 NGSD::Cache& NGSD::getCache()
 {
 	static Cache cache_instance;

@@ -4966,7 +4966,7 @@ void MainWindow::on_actionImportTestData_triggered()
 
 	Log::info("Import test data");
 	NGSD db;
-	if (db.hasSamples())
+	if (db.getValue("SELECT COUNT(id) FROM sample", false).toInt() > 0)
 	{
 		QMessageBox::warning(this, "Test data import", "Cannot import the data because the database is not empty (Sample table has records)");
 		return;

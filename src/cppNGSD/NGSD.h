@@ -551,9 +551,11 @@ public:
 	QString escapeText(QString text);
 
 	///Creates a SQL dump for a given table
-	void exportTable(const QString& table, QTextStream& out, QString where_clause = "", QMap<QString, QSet<int>> *sql_history = nullptr) const;
-	///Checks if Sample table has records
-	bool hasSamples() const;
+	/// table - the name of the database table
+	/// out - text output stream
+	/// where_clause - WHERE condition to be added to the sql query
+	/// sql_history - hash table that keeps track of already exported records: QString - table name, QSet<int> - list of IDs
+	void exportTable(const QString& table, QTextStream& out, QString where_clause = "", QMap<QString, QSet<int>> *sql_history = nullptr) const;	
 
 	///Creates a DBTable with data from an SQL query.
 	DBTable createTable(QString table, QString query, int pk_col_index=0);
