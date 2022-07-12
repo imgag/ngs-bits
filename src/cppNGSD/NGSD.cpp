@@ -1450,6 +1450,8 @@ ImportStatusGermline NGSD::importStatus(const QString& ps_id)
 void NGSD::importGeneExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug)
 {
 	QTextStream outstream(stdout);
+	QTime timer;
+	timer.start();
 	//check ps_name
 	QString ps_id = processedSampleId(ps_name);
 	if(debug) outstream << "Processed sample: " << ps_name << endl;
@@ -1516,6 +1518,7 @@ void NGSD::importGeneExpressionData(const QString& expression_data_file_path, co
 	// commit
 	commit();
 
+	if(debug) outstream << "runtime: " << Helper::elapsedTime(timer) << endl;
 	if(debug) outstream << QByteArray::number(n_imported) + " expression values imported into the NGSD." << endl;
 	if(debug) outstream << QByteArray::number(n_skipped) + " expression values skipped." << endl;
 }
@@ -1524,6 +1527,8 @@ void NGSD::importTranscriptExpressionData(const QString& expression_data_file_pa
 {
 
 	QTextStream outstream(stdout);
+	QTime timer;
+	timer.start();
 	//check ps_name
 	QString ps_id = processedSampleId(ps_name);
 	if(debug) outstream << "Processed sample: " << ps_name << endl;
@@ -1595,8 +1600,124 @@ void NGSD::importTranscriptExpressionData(const QString& expression_data_file_pa
 	// commit
 	commit();
 
+	if(debug) outstream << "runtime: " << Helper::elapsedTime(timer) << endl;
 	if(debug) outstream << QByteArray::number(n_imported) + " expression values imported into the NGSD." << endl;
 	if(debug) outstream << QByteArray::number(n_skipped) + " expression values skipped." << endl;
+}
+
+void NGSD::importExonExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug)
+{
+	QTextStream outstream(stdout);
+	QTime timer;
+	timer.start();
+	//check ps_name
+	QString ps_id = processedSampleId(ps_name);
+	if(debug) outstream << "Processed sample: " << ps_name << endl;
+
+	// check if already imported
+	int n_prev_entries = getValue("SELECT COUNT(`id`) FROM `expression_exon` WHERE `processed_sample_id`=:0", false, ps_id).toInt();
+	if(debug) outstream << "Previously imported expression values: " << n_prev_entries << endl;
+
+	if (!force && (n_prev_entries > 0))
+	{
+		THROW(DatabaseException, "Expression values for sample '" + ps_name + "' already imported and method called without '-force' parameter: Cannot import data!");
+	}
+
+	// start transaction
+	transaction();
+
+	// delete old entries
+	if (n_prev_entries > 0)
+	{
+		SqlQuery query = getQuery();
+		query.exec("DELETE FROM `expression_exon` WHERE `processed_sample_id`='"+ps_id+"'");
+		if(debug) outstream << QByteArray::number(n_prev_entries) + " previously imported expression values deleted." << endl;
+	}
+
+
+	// prepare query
+	SqlQuery query = getQuery();
+	query.prepare("INSERT INTO `expression_exon`(`processed_sample_id`, `chr`, `start`, `end`, `raw`, `rpb`, `srpb`) VALUES ('" + ps_id + "', :0, :1, :2, :3, :4, :5)");
+
+
+	// open file and iterate over expression values
+	TSVFileStream tsv_file(expression_data_file_path);
+	int idx_exon = tsv_file.colIndex("exon", true);
+	int idx_raw = tsv_file.colIndex("raw", true);
+	int idx_rpb = tsv_file.colIndex("rpb", true);
+	int idx_srpb = tsv_file.colIndex("srpb", true);
+
+	int n_imported = 0;
+	int n_skipped = 0;
+	int n_duplicates = 0;
+	int line_idx = 0;
+
+
+	//get all valid exons
+	QSet<QByteArray> valid_exons;
+	SqlQuery query_exon = getQuery();
+	query_exon.exec("SELECT DISTINCT gt.chromosome, ge.start, ge.end FROM `gene_exon` ge INNER JOIN `gene_transcript` gt ON ge.transcript_id = gt.id;");
+
+	while(query_exon.next())
+	{
+		BedLine exon = BedLine(Chromosome("chr" + query_exon.value(0).toString()), query_exon.value(1).toInt(), query_exon.value(2).toInt());
+		valid_exons << exon.toString(true).toUtf8();
+	}
+
+	if(debug) outstream << QByteArray::number(valid_exons.size()) << " unique exons stored in the NGSD (" << Helper::elapsedTime(timer) << ") " << endl;
+
+
+
+
+	QSet<QByteArray> imported_exons;
+	while (!tsv_file.atEnd())
+	{
+		QByteArrayList tsv_line = tsv_file.readLine();
+		BedLine exon = BedLine::fromString(tsv_line.at(idx_exon));
+
+
+		if(imported_exons.contains(exon.toString(true).toUtf8()))
+		{
+			n_duplicates++;
+			continue;
+		}
+
+		int raw = Helper::toInt(tsv_line.at(idx_raw), "raw value");
+		double rpb = Helper::toDouble(tsv_line.at(idx_rpb), "rpb value");
+		double srpb = Helper::toDouble(tsv_line.at(idx_srpb), "srpb value");
+
+		//skip exons which are not in the NGSD
+		if (!valid_exons.contains(exon.toString(true).toUtf8()))
+		{
+			n_skipped++;
+			continue;
+		}
+
+		// import value
+		query.bindValue(0, exon.chr().strNormalized(true));
+		query.bindValue(1, exon.start());
+		query.bindValue(2, exon.end());
+		query.bindValue(3, raw);
+		query.bindValue(4, rpb);
+		query.bindValue(5, srpb);
+		query.exec();
+		n_imported++;
+		imported_exons.insert(exon.toString(true).toUtf8());
+
+		line_idx++;
+		if(debug && (line_idx % 100000 == 0))
+		{
+			outstream << QByteArray::number(line_idx) << " lines parsed..." << endl;
+		}
+	}
+
+
+	// commit
+	commit();
+	if(debug) outstream << "runtime: " << Helper::elapsedTime(timer) << endl;
+	if(debug) outstream << QByteArray::number(n_imported) + " expression values imported into the NGSD." << endl;
+	if(debug) outstream << QByteArray::number(n_skipped) + " expression values skipped (not in NGSD)." << endl;
+	if(debug) outstream << QByteArray::number(n_duplicates) + " expression values skipped (duplicates)." << endl;
 }
 
 
@@ -1725,7 +1846,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<i
 	if (gene_symbol.isEmpty())
 	{
 		q_str = QString(
-					"SELECT SQL_NO_CACHE e.symbol, e.tpm "
+					"SELECT e.symbol, e.tpm "
 					"FROM expression e "
 					"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") "
 					"ORDER BY e.symbol;"
@@ -1738,7 +1859,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<i
 		if (gene_id < 0 ) THROW(ArgumentException, "'" + gene_symbol + "' is not an approved gene symbol!");
 
 		q_str = QString(
-					"SELECT SQL_NO_CACHE e.symbol, e.tpm "
+					"SELECT e.symbol, e.tpm "
 					"FROM expression e "
 					"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") "
 					"AND e.symbol='" + geneSymbol(gene_id) + "';"
@@ -1896,6 +2017,223 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateTranscriptExpressionStatistics(
 	return transcript_stats;
 }
 
+QMap<QByteArray, ExpressionStats> NGSD::calculateExonExpressionStatistics(QSet<int>& cohort, const BedLine& exon)
+{
+	QTime timer;
+	timer.start();
+
+	QMap<QByteArray, ExpressionStats> exon_stats;
+
+	//processed sample IDs as string list
+	QStringList ps_ids_str;
+	foreach (int id, cohort)
+	{
+		ps_ids_str << QString::number(id);
+	}
+	qDebug() << "Cohort size: " << QString::number(cohort.size());
+
+	//get expression data, ungrouped/long format
+	SqlQuery q = getQuery();
+	QString q_str;
+	if (exon.isValid())
+	{
+		// limit output to specific exon
+		q_str = QString(
+					"SELECT e.chr, e.start, e.end, e.srpb "
+					"FROM expression_exon e "
+					"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") "
+					"AND e.chr='" + exon.chr().strNormalized(true) + "' "
+					"AND e.start=" + QByteArray::number(exon.start()) + " "
+					"AND e.end=" + QByteArray::number(exon.end()) + " "
+					"ORDER BY e.chr ASC, e.start ASC, e.end ASC;"
+					);
+	}
+	else
+	{
+		// get expression values of all exons
+		q_str = QString(
+					"SELECT e.chr, e.start, e.end, e.srpb "
+					"FROM expression_exon e "
+					"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") "
+					"ORDER BY e.chr ASC, e.start ASC, e.end ASC;"
+					);
+	}
+
+
+	qDebug() << "Query SQL server: " << q_str;
+	q.exec(q_str);
+	qDebug() << "Get expression data from SQL server: " << Helper::elapsedTime(timer);
+
+	//cache for values from current symbol
+	BedLine current_exon;
+	QVector<double> cache;
+	QVector<double> cache_log2p1;
+	while (q.next())
+	{
+		BedLine exon = BedLine(Chromosome(q.value(0).toByteArray()), q.value(1).toInt(), q.value(2).toInt());
+		double srpb = q.value(3).toFloat();
+		if (exon == current_exon)
+		{
+			//collect tpm
+			qDebug() << srpb;
+			cache.append(srpb);
+			cache_log2p1.append(std::log2(srpb + 1));
+		}
+		else if (!(exon == current_exon))
+		{
+			if (current_exon.isValid())
+			{
+				//calculate statistics for 'current_transcript'
+				ExpressionStats stats;
+				stats.mean = BasicStatistics::mean(cache);
+				stats.mean_log2 = BasicStatistics::mean(cache_log2p1);
+				stats.stddev_log2 = BasicStatistics::stdev(cache_log2p1, stats.mean_log2);
+				exon_stats.insert(current_exon.toString(true).toUtf8(), stats);
+
+				//clear cache
+				cache.clear();
+				cache_log2p1.clear();
+			}
+			//collect tpm
+			cache.append(srpb);
+			cache_log2p1.append(std::log2(srpb + 1));
+			//update symbol
+			current_exon = exon;
+		}
+	}
+
+	//store last symbol
+	ExpressionStats stats;
+	if(cache.size() > 0)
+	{
+		stats.mean = BasicStatistics::mean(cache);
+		stats.mean_log2 = BasicStatistics::mean(cache_log2p1);
+		stats.stddev_log2 = BasicStatistics::stdev(cache_log2p1, stats.mean_log2);
+		exon_stats.insert(current_exon.toString(true).toUtf8(), stats);
+	}
+
+
+	qDebug() << "Statistics calculated: " << Helper::elapsedTime(timer);
+	qDebug() << "exon_stats: " << exon_stats.size();
+
+	return exon_stats;
+}
+
+ExpressionStats NGSD::calculateSingleExonExpressionStatistics(QSet<int>& cohort, const BedLine& exon)
+{
+//	QTime timer;
+//	timer.start();
+
+//	ExpressionStats exon_stats;
+
+//	//processed sample IDs as string list
+//	QStringList ps_ids_str;
+//	foreach (int id, cohort)
+//	{
+//		ps_ids_str << QString::number(id);
+//	}
+//	qDebug() << "Cohort size: " << QString::number(cohort.size());
+
+//	//create query
+//	QString query_str = QString(
+//							"SELECT e.srpb "
+//							"FROM expression_exon e "
+//							"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") "
+//							"AND e.chr='" + exon.chr().strNormalized(true) + "' "
+//							"AND e.start=" + QByteArray::number(exon.start()) + " "
+//							"AND e.end=" + QByteArray::number(exon.end()) + " "
+//							);
+
+
+
+
+//	//get expression data, ungrouped/long format
+//	SqlQuery q = getQuery();
+//	QString q_str;
+//	if (exon.isValid())
+//	{
+//		// limit output to specific exon
+//		q_str = QString(
+//					"SELECT e.chr, e.start, e.end, e.srpb "
+//					"FROM expression_exon e "
+//					"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") "
+//					"AND e.chr='" + exon.chr().strNormalized(true) + "' "
+//					"AND e.start=" + QByteArray::number(exon.start()) + " "
+//					"AND e.end=" + QByteArray::number(exon.end()) + " "
+//					"ORDER BY e.chr ASC, e.start ASC, e.end ASC;"
+//					);
+//	}
+//	else
+//	{
+//		// get expression values of all exons
+//		q_str = QString(
+//					"SELECT e.chr, e.start, e.end, e.srpb "
+//					"FROM expression_exon e "
+//					"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") "
+//					"ORDER BY e.chr ASC, e.start ASC, e.end ASC;"
+//					);
+//	}
+
+
+//	qDebug() << "Query SQL server: " << q_str;
+//	q.exec(q_str);
+//	qDebug() << "Get expression data from SQL server: " << Helper::elapsedTime(timer);
+
+//	//cache for values from current symbol
+//	BedLine current_exon;
+//	QVector<double> cache;
+//	QVector<double> cache_log2p1;
+//	while (q.next())
+//	{
+//		BedLine exon = BedLine(Chromosome(q.value(0).toByteArray()), q.value(1).toInt(), q.value(2).toInt());
+//		double srpb = q.value(3).toFloat();
+//		if (exon == current_exon)
+//		{
+//			//collect tpm
+//			qDebug() << srpb;
+//			cache.append(srpb);
+//			cache_log2p1.append(std::log2(srpb + 1));
+//		}
+//		else if (!(exon == current_exon))
+//		{
+//			if (current_exon.isValid())
+//			{
+//				//calculate statistics for 'current_transcript'
+//				ExpressionStats stats;
+//				stats.mean = BasicStatistics::mean(cache);
+//				stats.mean_log2 = BasicStatistics::mean(cache_log2p1);
+//				stats.stddev_log2 = BasicStatistics::stdev(cache_log2p1, stats.mean_log2);
+//				exon_stats.insert(current_exon.toString(true).toUtf8(), stats);
+
+//				//clear cache
+//				cache.clear();
+//				cache_log2p1.clear();
+//			}
+//			//collect tpm
+//			cache.append(srpb);
+//			cache_log2p1.append(std::log2(srpb + 1));
+//			//update symbol
+//			current_exon = exon;
+//		}
+//	}
+
+//	//store last symbol
+//	ExpressionStats stats;
+//	if(cache.size() > 0)
+//	{
+//		stats.mean = BasicStatistics::mean(cache);
+//		stats.mean_log2 = BasicStatistics::mean(cache_log2p1);
+//		stats.stddev_log2 = BasicStatistics::stdev(cache_log2p1, stats.mean_log2);
+//		exon_stats.insert(current_exon.toString(true).toUtf8(), stats);
+//	}
+
+
+//	qDebug() << "Statistics calculated: " << Helper::elapsedTime(timer);
+//	qDebug() << "exon_stats: " << exon_stats.size();
+
+//	return exon_stats;
+}
+
 QMap<QByteArray, ExpressionStats> NGSD::calculateCohortExpressionStatistics(int sys_id, const QString& tissue_type, QSet<int>& cohort, const QString& project, const QString& ps_id,
 																	  RnaCohortDeterminationStategy cohort_type)
 {
@@ -1911,14 +2249,27 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateCohortExpressionStatistics(int 
 	return expression_stats;
 }
 
-QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QString& project, const QString& ps_id, RnaCohortDeterminationStategy cohort_type)
+QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QString& project, const QString& ps_id, RnaCohortDeterminationStategy cohort_type, const QByteArray& mode)
 {
 	QTime timer;
 	timer.start();
 	QSet<int> cohort;
 
 	//get all available ps ids with expression data
-	QSet<int> all_ps_ids = getValuesInt("SELECT DISTINCT e.processed_sample_id FROM expression e").toSet();
+	QSet<int> all_ps_ids;
+	if (mode == "genes")
+	{
+		all_ps_ids = getValuesInt("SELECT DISTINCT e.processed_sample_id FROM expression e").toSet();
+	}
+	else if (mode == "exons")
+	{
+		all_ps_ids = getValuesInt("SELECT DISTINCT e.processed_sample_id FROM expression_exon e").toSet();
+	}
+	else
+	{
+		THROW(ArgumentException, "Invalid mode '" + mode + "' given! Valid modes are 'genes' or 'exons'");
+	}
+
 	qDebug() << "Get all psample ids with expression data: " << Helper::elapsedTime(timer);
 
 
@@ -5809,6 +6160,7 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 		var_conf.exclude_other = query.value("exclude_other").toBool();
 		var_conf.comments = query.value("comments").toString();
 		var_conf.comments2 = query.value("comments2").toString();
+		var_conf.rna_info = query.value("rna_info").toString();
 
 		output->set(var_conf);
 	}
@@ -5849,6 +6201,7 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 		var_conf.exclude_other = query.value("exclude_other").toBool();
 		var_conf.comments = query.value("comments").toString();
 		var_conf.comments2 = query.value("comments2").toString();
+		var_conf.rna_info = query.value("rna_info").toString();
 
 		output->set(var_conf);
 	}
@@ -5921,6 +6274,7 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 			var_conf.exclude_other = query.value("exclude_other").toBool();
 			var_conf.comments = query.value("comments").toString();
 			var_conf.comments2 = query.value("comments2").toString();
+			var_conf.rna_info = query.value("rna_info").toString();
 
 			output->set(var_conf);
 		}
@@ -5988,11 +6342,11 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 
 		//store variant data
 		SqlQuery query_var = getQuery();
-		query_var.prepare("INSERT INTO `report_configuration_variant`(`report_configuration_id`, `variant_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14)");
+		query_var.prepare("INSERT INTO `report_configuration_variant`(`report_configuration_id`, `variant_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`, `rna_info`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15)");
 		SqlQuery query_cnv = getQuery();
-		query_cnv.prepare("INSERT INTO `report_configuration_cnv`(`report_configuration_id`, `cnv_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15)");
+		query_cnv.prepare("INSERT INTO `report_configuration_cnv`(`report_configuration_id`, `cnv_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`, `rna_info`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16)");
 		SqlQuery query_sv = getQuery();
-		query_sv.prepare("INSERT INTO `report_configuration_sv`(`report_configuration_id`, `sv_deletion_id`, `sv_duplication_id`, `sv_insertion_id`, `sv_inversion_id`, `sv_translocation_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19)");
+		query_sv.prepare("INSERT INTO `report_configuration_sv`(`report_configuration_id`, `sv_deletion_id`, `sv_duplication_id`, `sv_insertion_id`, `sv_inversion_id`, `sv_translocation_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`, `rna_info`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20)");
 		foreach(const ReportVariantConfiguration& var_conf, config->variantConfig())
 		{
 			if (var_conf.variant_type==VariantType::SNVS_INDELS)
@@ -6032,6 +6386,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 				query_var.bindValue(12, var_conf.exclude_other);
 				query_var.bindValue(13, var_conf.comments.isEmpty() ? "" : var_conf.comments);
 				query_var.bindValue(14, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
+				query_var.bindValue(15, var_conf.rna_info.isEmpty() ? "n/a" : var_conf.rna_info);
 
 				query_var.exec();
 			}
@@ -6074,6 +6429,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 				query_cnv.bindValue(13, var_conf.exclude_other);
 				query_cnv.bindValue(14, var_conf.comments.isEmpty() ? "" : var_conf.comments);
 				query_cnv.bindValue(15, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
+				query_cnv.bindValue(16, var_conf.rna_info.isEmpty() ? "n/a" : var_conf.rna_info);
 
 				query_cnv.exec();
 
@@ -6122,6 +6478,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 				query_sv.bindValue(17, var_conf.exclude_other);
 				query_sv.bindValue(18, var_conf.comments.isEmpty() ? "" : var_conf.comments);
 				query_sv.bindValue(19, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
+				query_sv.bindValue(20, var_conf.rna_info.isEmpty() ? "n/a" : var_conf.rna_info);
 
 				// set SV id
 				switch (sv.type())

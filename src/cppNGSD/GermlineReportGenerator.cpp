@@ -171,7 +171,8 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<td><b>" << trans("Vater") << "</b></td>";
 		stream << "<td><b>" << trans("Mutter") << "</b></td>";
 	}
-	stream << "<td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>gnomAD</b></td></tr>" << endl;
+	stream << "<td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung")
+		   << "</b></td><td><b>gnomAD</b></td><td><b>RNA</b></td></tr>" << endl;
 
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
@@ -214,6 +215,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<td>" << var_conf.inheritance << "</td>" << endl;
 		QByteArray freq = variant.annotations().at(i_gnomad).trimmed();
 		stream << "<td>" << (freq.isEmpty() ? "n/a" : freq) << "</td>" << endl;
+		stream << "<td>" << trans(var_conf.rna_info) << "</td>" << endl;
 		stream << "</tr>" << endl;
 
 		//OMIM and comment line
@@ -243,7 +245,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	stream << "<p>&nbsp;</p>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><td><b>" << trans("CNV") << "</b></td><td><b>" << trans("Regionen") << "</b></td><td><b>" << trans("CN") << "</b></td><td><b>"
-		   << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td></tr>" << endl;
+		   << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>RNA</b></td></tr>" << endl;
 
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
@@ -264,6 +266,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<td>" << cnv.genes().join(", ") << "</td>" << endl;
 		stream << "<td>" << var_conf.classification << "</td>" << endl;
 		stream << "<td>" << var_conf.inheritance << "</td>" << endl;
+		stream << "<td>" << trans(var_conf.rna_info) << "</td>" << endl;
 		stream << "</tr>" << endl;
 	}
 	stream << "</table>" << endl;
@@ -273,7 +276,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	stream << "<p>&nbsp;</p>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><td><b>" << trans("SV") << "</b></td><td><b>" << trans("Position") << "</b></td><td><b>" << trans("Genotyp") << "</b></td><td><b>"
-		   << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td></tr>" << endl;
+		   << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>RNA</b></td></tr>" << endl;
 
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
@@ -339,6 +342,9 @@ void GermlineReportGenerator::writeHTML(QString filename)
 
 		//inheritance
 		stream << "<td>" << var_conf.inheritance << "</td>" << endl;
+
+		//RNA info
+		stream << "<td>" << trans(var_conf.rna_info) << "</td>" << endl;
 		stream << "</tr>" << endl;
 	}
 	stream << "</table>" << endl;
@@ -1262,6 +1268,9 @@ QString GermlineReportGenerator::trans(const QString& text)
 	{
 		en2de["male"] = "m&auml;nnlich";
 		en2de["female"] = "weiblich";
+		en2de["splicing effect validated by RNA dataset"] = "Splicing-Effekt mit RNA-Daten validiert";
+		en2de["no splicing effect found in RNA dataset"] = "kein Splicing-Effekt in RNA-Daten gefunden";
+		en2de["RNA dataset not usable"] = "RNA-Daten nicht nutzbar";
 	}
 
 	static QHash<QString, QString> de2en;
@@ -2076,6 +2085,7 @@ void GermlineReportGenerator::printVariantSheetRowHeader(QTextStream& stream, bo
 	stream << "       <th style='white-space: nowrap'>Kommentar 2. Auswerter</th>" << endl;
 	stream << "       <th>Klasse</th>" << endl;
 	stream << "       <th style='white-space: nowrap'>In Report</th>" << endl;
+	stream << "       <th>RNA</th>" << endl;
 	stream << "     </tr>" << endl;
 }
 
@@ -2149,6 +2159,7 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 	stream << "       <td>" << conf.comments2 << "</td>" << endl;
 	stream << "       <td>" << v.annotations()[i_class] << "</td>" << endl;
 	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << " (" << conf.report_type << ")</td>" << endl;
+	stream << "       <td>" << conf.rna_info << "</td>" << endl;
 	stream << "     </tr>" << endl;
 }
 
@@ -2171,6 +2182,7 @@ void GermlineReportGenerator::printVariantSheetRowHeaderCnv(QTextStream& stream,
 	stream << "       <th style='white-space: nowrap'>Kommentar 2. Auswerter</th>" << endl;
 	stream << "       <th>Klasse</th>" << endl;
 	stream << "       <th style='white-space: nowrap'>In Report</th>" << endl;
+	stream << "       <th>RNA</th>" << endl;
 	stream << "     </tr>" << endl;
 }
 
@@ -2194,6 +2206,7 @@ void GermlineReportGenerator::printVariantSheetRowCnv(QTextStream& stream, const
 	stream << "       <td>" << conf.comments2 << "</td>" << endl;
 	stream << "       <td>" << conf.classification << "</td>" << endl;
 	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << " (" << conf.report_type << ")</td>" << endl;
+	stream << "       <td>" << conf.rna_info << "</td>" << endl;
 	stream << "     </tr>" << endl;
 }
 
@@ -2216,6 +2229,7 @@ void GermlineReportGenerator::printVariantSheetRowHeaderSv(QTextStream& stream, 
 	stream << "       <th style='white-space: nowrap'>Kommentar 2. Auswerter</th>" << endl;
 	stream << "       <th>Klasse</th>" << endl;
 	stream << "       <th style='white-space: nowrap'>In Report</th>" << endl;
+	stream << "       <th>RNA</th>" << endl;
 	stream << "     </tr>" << endl;
 }
 
@@ -2242,6 +2256,7 @@ void GermlineReportGenerator::printVariantSheetRowSv(QTextStream& stream, const 
 	stream << "       <td>" << conf.comments2 << "</td>" << endl;
 	stream << "       <td>" << conf.classification << "</td>" << endl;
 	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << " (" << conf.report_type << ")</td>" << endl;
+	stream << "       <td>" << conf.rna_info << "</td>" << endl;
 	stream << "     </tr>" << endl;
 }
 

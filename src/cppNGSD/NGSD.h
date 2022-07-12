@@ -743,15 +743,22 @@ public:
 	void importGeneExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
 	///Imports transcript expression data to the NGSD
 	void importTranscriptExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
+	///Imports exon expression data to the NGSD
+	void importExonExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
 	///Calculates statistics on all gene expression values for a list of processed sample ids
 	QMap<QByteArray, ExpressionStats> calculateGeneExpressionStatistics(QSet<int>& cohort, QByteArray gene="");
-	///Calculates statistics on all gene expression values for a list of processed sample ids
+	///Calculates statistics on all transcript expression values for a list of processed sample ids
 	QMap<QByteArray, ExpressionStats> calculateTranscriptExpressionStatistics(QSet<int>& cohort, QByteArray transcript="");
+	///Calculates statistics on all exon expression values for a list of processed sample ids
+	QMap<QByteArray, ExpressionStats> calculateExonExpressionStatistics(QSet<int>& cohort, const BedLine& exon=BedLine());
+	///Calculates expression statistics on a aingle exon for a list of processed sample ids
+	ExpressionStats calculateSingleExonExpressionStatistics(QSet<int>& cohort, const BedLine& exon=BedLine());
 	///Calculates statistics on all expression values of the same processing system and tissue
 	QMap<QByteArray, ExpressionStats> calculateCohortExpressionStatistics(int sys_id, const QString& tissue_type, QSet<int>& cohort, const QString& project="", const QString& ps_id="",
 																	RnaCohortDeterminationStategy cohort_type=RNA_COHORT_GERMLINE);
 	///Determines the sample cohort for a given sample
-	QSet<int> getRNACohort(int sys_id, const QString& tissue_type, const QString& project="", const QString& ps_id="", RnaCohortDeterminationStategy cohort_type=RNA_COHORT_GERMLINE);
+	QSet<int> getRNACohort(int sys_id, const QString& tissue_type, const QString& project="", const QString& ps_id="", RnaCohortDeterminationStategy cohort_type=RNA_COHORT_GERMLINE,
+						   const QByteArray& mode = "genes");
 	///Creates a mapping from ENSG ensembl identifier to NGSD gene ids
 	QMap<QByteArray, QByteArray> getEnsemblGeneMapping();
 	///Returns a list of all expression values for a given ENSG

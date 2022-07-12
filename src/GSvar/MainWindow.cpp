@@ -1618,17 +1618,10 @@ void MainWindow::on_actionExonExpressionData_triggered()
 		}
 	}
 
-	RnaCohortDeterminationStategy cohort_type;
-	if (germlineReportSupported())
-	{
-		cohort_type = RNA_COHORT_GERMLINE;
-	}
-	else
-	{
-		cohort_type = RNA_COHORT_SOMATIC;
-	}
+	RnaCohortDeterminationStategy cohort_type = RNA_COHORT_GERMLINE;
+	if (somaticReportSupported()) cohort_type = RNA_COHORT_SOMATIC;
 
-	ExpressionExonWidget* widget = new ExpressionExonWidget(count_file, ui_.filters->genes().toStringList().join(", "), variant_target_region, this);
+	ExpressionExonWidget* widget = new ExpressionExonWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, project, rna_ps_id, cohort_type, this);
 	auto dlg = GUIHelper::createDialog(widget, "Expression Data of " + db.processedSampleName(rna_ps_id));
 	addModelessDialog(dlg, false);
 

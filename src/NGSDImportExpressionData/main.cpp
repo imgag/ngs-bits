@@ -21,7 +21,7 @@ public:
 		addString("ps", "Processed sample name of the expression data.", false);
 
 		//optional
-		QStringList mode = QStringList() << "genes" << "transcripts";
+		QStringList mode = QStringList() << "genes" << "transcripts" << "exon";
 		addEnum("mode", "Determines which kind of expression data should be imported.", true, mode, "genes");
 		addFlag("force", "Import data even if already imported and overwrite data in the NGSD.");
 		addFlag("test", "Uses the test database instead of on the production database.");
@@ -43,6 +43,10 @@ public:
 		else if(mode == "transcripts")
 		{
 			db.importTranscriptExpressionData(getInfile("expression"), getString("ps"), getFlag("force"), getFlag("debug"));
+		}
+		else if(mode == "exon")
+		{
+			db.importExonExpressionData(getInfile("expression"), getString("ps"), getFlag("force"), getFlag("debug"));
 		}
 		else
 		{
