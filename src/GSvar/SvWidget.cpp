@@ -916,6 +916,7 @@ void SvWidget::svHeaderContextMenu(QPoint pos)
 
 void SvWidget::updateReportConfigHeaderIcon(int row)
 {
+	QApplication::setOverrideCursor(Qt::BusyCursor);
 	//report config-based filter is on => update whole variant list
 	if (ui->filter_widget->reportConfigurationFilter()!=ReportConfigFilter::NONE)
 	{
@@ -931,6 +932,7 @@ void SvWidget::updateReportConfigHeaderIcon(int row)
 		}
 		ui->svs->verticalHeaderItem(row)->setIcon(report_icon);
 	}
+	QApplication::restoreOverrideCursor();
 }
 
 void SvWidget::editReportConfiguration(int row)

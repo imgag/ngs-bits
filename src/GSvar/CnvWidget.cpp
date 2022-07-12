@@ -809,6 +809,7 @@ void CnvWidget::showQcMetricHistogram()
 
 void CnvWidget::updateReportConfigHeaderIcon(int row)
 {
+	QApplication::setOverrideCursor(Qt::BusyCursor);
 	//report config-based filter is on => update whole variant list
 	if (ui->filter_widget->reportConfigurationFilter()!=ReportConfigFilter::NONE)
 	{
@@ -828,6 +829,7 @@ void CnvWidget::updateReportConfigHeaderIcon(int row)
 		}
 		ui->cnvs->verticalHeaderItem(row)->setIcon(report_icon);
 	}
+	QApplication::restoreOverrideCursor();
 }
 
 void CnvWidget::cnvHeaderDoubleClicked(int row)
