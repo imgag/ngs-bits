@@ -350,6 +350,7 @@ void CnvWidget::updateGUI()
 
 void CnvWidget::applyFilters(bool debug_time)
 {
+	QApplication::setOverrideCursor(Qt::BusyCursor);
 	const int rows = cnvs_.count();
 	FilterResult filter_result(rows);
 
@@ -552,6 +553,7 @@ void CnvWidget::applyFilters(bool debug_time)
 		ui->cnvs->setRowHidden(r, !filter_result.flags()[r]);
 	}
 	updateStatus(filter_result.countPassing());
+	QApplication::restoreOverrideCursor();
 }
 
 void CnvWidget::copyToClipboard()
@@ -809,7 +811,6 @@ void CnvWidget::showQcMetricHistogram()
 
 void CnvWidget::updateReportConfigHeaderIcon(int row)
 {
-	QApplication::setOverrideCursor(Qt::BusyCursor);
 	//report config-based filter is on => update whole variant list
 	if (ui->filter_widget->reportConfigurationFilter()!=ReportConfigFilter::NONE)
 	{
@@ -829,7 +830,6 @@ void CnvWidget::updateReportConfigHeaderIcon(int row)
 		}
 		ui->cnvs->verticalHeaderItem(row)->setIcon(report_icon);
 	}
-	QApplication::restoreOverrideCursor();
 }
 
 void CnvWidget::cnvHeaderDoubleClicked(int row)

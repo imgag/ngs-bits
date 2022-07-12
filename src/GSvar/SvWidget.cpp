@@ -318,6 +318,7 @@ void SvWidget::resizeQTableWidget(QTableWidget *table_widget)
 
 void SvWidget::applyFilters(bool debug_time)
 {
+	QApplication::setOverrideCursor(Qt::BusyCursor);
 	//skip if not necessary
 	if (loading_svs_) return;
 	int row_count = ui->svs->rowCount();
@@ -547,6 +548,7 @@ void SvWidget::applyFilters(bool debug_time)
 
 	//Set number of filtered / total SVs
 	ui->number_of_svs->setText(QByteArray::number(filter_result.flags().count(true)) + "/" + QByteArray::number(row_count));
+	QApplication::restoreOverrideCursor();
 }
 
 int SvWidget::colIndexbyName(const QString& name)
@@ -916,7 +918,6 @@ void SvWidget::svHeaderContextMenu(QPoint pos)
 
 void SvWidget::updateReportConfigHeaderIcon(int row)
 {
-	QApplication::setOverrideCursor(Qt::BusyCursor);
 	//report config-based filter is on => update whole variant list
 	if (ui->filter_widget->reportConfigurationFilter()!=ReportConfigFilter::NONE)
 	{
@@ -932,7 +933,6 @@ void SvWidget::updateReportConfigHeaderIcon(int row)
 		}
 		ui->svs->verticalHeaderItem(row)->setIcon(report_icon);
 	}
-	QApplication::restoreOverrideCursor();
 }
 
 void SvWidget::editReportConfiguration(int row)
