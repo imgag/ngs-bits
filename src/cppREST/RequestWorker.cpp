@@ -20,20 +20,19 @@ RequestWorker::RequestWorker(qintptr socket)
 void RequestWorker::run()
 {
 	QString tid = ServerHelper::generateUniqueStr();
-	qDebug() << "Start processing an incomming connection in a new separate worker thread" << tid;
 	QSslSocket *ssl_socket = new QSslSocket();
 	ssl_socket->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
 
 	if (!ssl_socket)
 	{
-		qCritical() << "Could not create a socket";
+		Log::error("Could not create a socket: " + ssl_socket->errorString());
 		return;
 	}
 	if (is_secure_) ssl_socket->setSslConfiguration(ssl_configuration_);
 
 	if (!ssl_socket->setSocketDescriptor(socket_))
 	{
-		qCritical() << "Could not set a socket descriptor";
+		Log::error("Could not set a socket descriptor: " + ssl_socket->errorString());
 		delete ssl_socket;
 		return;
 	}
@@ -50,14 +49,13 @@ void RequestWorker::run()
 
 	if (is_secure_)
 	{
-		qDebug() << "Starting the encryption";
 		ssl_socket->startServerEncryption();
 	}
 
 	QByteArray all_request_parts;
 
 	if (!ssl_socket->isOpen()) return;
-	qDebug() << "Wait for the socket to be ready";	
+	qDebug() << "Wait for the socket to be ready";
 
 	bool finished_reading_headers = false;
 	bool finished_reading_body = false;
@@ -65,14 +63,14 @@ void RequestWorker::run()
 	qint64 request_body_size = 0;
 
 	while (ssl_socket->waitForReadyRead())
-	{		
+	{
 		qDebug() << "Start request processing";
 
 		if (is_secure_) ssl_socket->waitForEncrypted();
 
 		if ((is_secure_ && !ssl_socket->isEncrypted()) || (ssl_socket->state() == QSslSocket::SocketState::UnconnectedState))
 		{
-			qDebug() << "Connection cannot be continued";
+			qDebug() << "Connection cannot be continued: " + ssl_socket->errorString();
 			closeAndDeleteSocket(ssl_socket);
 			return;
 		}
@@ -87,7 +85,7 @@ void RequestWorker::run()
 			}
 
 			all_request_parts.append(line);
-			if (line.trimmed().size() == 0)
+			if ((line.trimmed().size() == 0) && (!finished_reading_headers))
 			{
 				finished_reading_headers = true;
 				request_headers_size = all_request_parts.size();
@@ -107,11 +105,10 @@ void RequestWorker::run()
 	if (all_request_parts.size() == 0)
 	{
 		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_PLAIN, "Request could not be processed"));
-		qDebug() << "Was not able to read from the socket. Exiting";
+		Log::error("Was not able to read from the socket. Exiting. " + ssl_socket->errorString());
 		return;
 	}
 
-	qDebug() << "Client address" << ssl_socket->peerAddress().toString();
 	HttpRequest parsed_request;
 	RequestParser *parser = new RequestParser();
 	try
@@ -140,17 +137,24 @@ void RequestWorker::run()
 	}
 	catch (ArgumentException& e)
 	{
-		qDebug() << "Parameter validation has failed";
+		Log::warn("Parameter validation has failed: " + e.message());
 		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::BAD_REQUEST, error_type, e.message()));
 		return;
 	}
 
-	if (current_endpoint.is_password_protected)
+	if (current_endpoint.authentication_type != AuthType::NONE)
 	{
 		qDebug() << "Accessing password protected area";
-		HttpResponse auth_response = EndpointManager::blockInvalidUsers(parsed_request);
-		if (auth_response.getStatusCode() == 401)
+		HttpResponse auth_response;
+
+		if (current_endpoint.authentication_type == AuthType::HTTP_BASIC_AUTH) auth_response = EndpointManager::getBasicHttpAuthStatus(parsed_request);
+		if (current_endpoint.authentication_type == AuthType::USER_TOKEN) auth_response = EndpointManager::getUserTokenAuthStatus(parsed_request);
+		if (current_endpoint.authentication_type == AuthType::DB_TOKEN) auth_response = EndpointManager::getDbTokenAuthStatus(parsed_request);
+
+		qDebug() << "Response code: " << HttpProcessor::convertResponseStatusToStatusCodeNumber(auth_response.getStatus());
+		if (auth_response.getStatus() != ResponseStatus::OK)
 		{
+			qDebug() << "Token check failed";
 			sendEntireResponse(ssl_socket, auth_response);
 			return;
 		}
@@ -165,10 +169,12 @@ void RequestWorker::run()
 	}
 	catch (Exception& e)
 	{
-		qDebug() << "Error while executing an action" << e.message();
-		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, error_type, "Could not process endpoint action"));
+		Log::error("Error while executing an action: " + e.message());
+		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, error_type, "Could not process endpoint action: " + e.message()));
 		return;
 	}
+
+	Log::info(HttpProcessor::convertMethodTypeToString(current_endpoint.method).toUpper() + " " + current_endpoint.url + " - " + current_endpoint.comment);
 
 	if (response.isStream())
 	{
@@ -181,29 +187,23 @@ void RequestWorker::run()
 			return;
 		}
 
-		QFile streamed_file(response.getFilename());
-		if (!streamed_file.exists())
+		QSharedPointer<QFile> streamed_file = QSharedPointer<QFile>(new QFile(response.getFilename()));
+		if (!streamed_file.data()->exists())
 		{
 			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, error_type, "Requested file does not exist"));
 			return;
 		}
 
-		QFile::OpenMode mode = QFile::ReadOnly;
-
-		try
+		if (!streamed_file.data()->open(QFile::ReadOnly))
 		{
-			streamed_file.open(mode);
-		}
-		catch (Exception& e)
-		{
-			qDebug() << "Error while opening a file for streaming";
+			Log::error("Error while opening a file for streaming: " + response.getFilename());
 			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, error_type, "Could not open a file for streaming: " + response.getFilename()));
 			return;
 		}
 
-		if (!streamed_file.isOpen())
+		if (!streamed_file.data()->isOpen())
 		{
-			qDebug() << "File is not open";
+			qDebug() << "File is not open: " << response.getFilename();
 			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, error_type, "File is not open: " + response.getFilename()));
 			return;
 		}
@@ -212,7 +212,7 @@ void RequestWorker::run()
 		sendResponseDataPart(ssl_socket, response.getHeaders());
 
 		quint64 pos = 0;
-		quint64 file_size = streamed_file.size();
+		quint64 file_size = streamed_file.data()->size();
 		bool transfer_encoding_chunked = false;
 
 		if (!parsed_request.getHeaderByName("Transfer-Encoding").isEmpty())
@@ -245,12 +245,13 @@ void RequestWorker::run()
 			{
 				if ((is_terminated_) || (ssl_socket->state() == QSslSocket::SocketState::UnconnectedState) || (ssl_socket->state() == QSslSocket::SocketState::ClosingState))
 				{
-					qDebug() << "Killing the request process";
+					qDebug() << "Killing the range streaming request process";
+					streamed_file.data()->close();
 					return;
 				}
 
 				if (pos > file_size) break;
-				streamed_file.seek(pos);
+				streamed_file.data()->seek(pos);
 
 				if ((pos+chunk_size)>(ranges[i].end+1))
 				{
@@ -261,7 +262,7 @@ void RequestWorker::run()
 				{
 					break;
 				}
-				data = streamed_file.read(chunk_size);
+				data = streamed_file.data()->read(chunk_size);
 				sendResponseDataPart(ssl_socket, data);
 				pos = pos + chunk_size;
 			}
@@ -273,7 +274,7 @@ void RequestWorker::run()
 			sendResponseDataPart(ssl_socket, "\r\n");
 			if ((i == (ranges_count-1)) && (ranges_count > 1))
 			{
-				sendResponseDataPart(ssl_socket, "--"+response.getBoundary()+"--\r\n");
+				sendResponseDataPart(ssl_socket, "--" + response.getBoundary() + "--\r\n");
 			}
 
 		}
@@ -281,13 +282,17 @@ void RequestWorker::run()
 		// Regular stream
 		if (ranges_count == 0)
 		{
-			while(!streamed_file.atEnd())
+			while(!streamed_file.data()->atEnd())
 			{
-				if (is_terminated_) return;
+				if ((pos > file_size) || (is_terminated_) || (ssl_socket->state() == QSslSocket::SocketState::UnconnectedState) || (ssl_socket->state() == QSslSocket::SocketState::ClosingState))
+				{
+					qDebug() << "Killing the regular streaming request process";
+					streamed_file.data()->close();
+					return;
+				}
 
-				if (pos > file_size) return;
-				streamed_file.seek(pos);
-				data = streamed_file.read(chunk_size);
+				streamed_file.data()->seek(pos);
+				data = streamed_file.data()->read(chunk_size);
 				pos = pos + chunk_size;
 
 				if (transfer_encoding_chunked)
@@ -305,7 +310,7 @@ void RequestWorker::run()
 		}
 
 
-		streamed_file.close();
+		streamed_file.data()->close();
 
 		// Should be used for chunked transfer (without content-lenght)
 		if (transfer_encoding_chunked)
@@ -394,7 +399,7 @@ void RequestWorker::sendResponseDataPart(QSslSocket* socket, QByteArray data)
 
 void RequestWorker::sendEntireResponse(QSslSocket* socket, HttpResponse response)
 {
-	qDebug() << "Writing an entire response";
+	qDebug() << "Writing an entire response: code " << response.getStatusCode() << " - " << HttpProcessor::convertResponseStatusToReasonPhrase(response.getStatus());
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState)
 	{
 		socket->write(response.getStatusLine());

@@ -10,8 +10,7 @@ private slots:
 	//NOTE: merged sample processing is not tested
 	void check_and_fix()
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
 		//init
 		NGSD db(true);

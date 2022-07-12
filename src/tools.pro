@@ -444,3 +444,46 @@ CfDnaQC.depends = cppNGS
 SUBDIRS += VcfAnnotateFromBigWig
 tools-TEST.depends += VcfAnnotateFromBigWig
 VcfAnnotateFromBigWig.depends = cppNGS
+
+SUBDIRS += BedLiftOver
+tools-TEST.depends += BedLiftOver
+BedLiftOver.depends = cppNGS
+SUBDIRS += NGSDExportSV
+tools-TEST.depends += NGSDExportSV
+NGSDExportSV.depends = cppNGSD
+
+SUBDIRS += BedpeAnnotateCounts
+tools-TEST.depends += BedpeAnnotateCounts
+BedpeAnnotateCounts.depends = cppNGS
+
+SUBDIRS += BedpeSort
+tools-TEST.depends += BedpeSort
+BedpeSort.depends = cppNGS
+
+SUBDIRS += BedpeAnnotateBreakpointDensity
+tools-TEST.depends += BedpeAnnotateBreakpointDensity
+BedpeAnnotateBreakpointDensity.depends = cppNGS
+
+SUBDIRS += NGSDUpdateSvGenotype
+tools-TEST.depends += NGSDUpdateSvGenotype
+NGSDUpdateSvGenotype.depends = cppNGSD
+
+SUBDIRS += HgvsToVcf
+tools-TEST.depends += HgvsToVcf
+HgvsToVcf.depends = cppNGSD
+
+SUBDIRS += VcfAnnotateConsequence
+tools-TEST.depends += VcfAnnotateConsequence
+VcfAnnotateConsequence.depends = cppNGS
+
+SUBDIRS += RnaQC
+tools-TEST.depends += RnaQC
+RnaQC.depends = cppNGS
+
+SUBDIRS += NGSDImportExpressionData
+tools-TEST.depends += NGSDImportExpressionData
+NGSDImportExpressionData.depends = cppNGSD
+
+SUBDIRS += VcfAnnotateHexplorer
+tools-TEST.depends += VcfAnnotateHexplorer
+VcfAnnotateHexplorer.depends = cppNGS

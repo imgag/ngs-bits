@@ -18,7 +18,7 @@ public:
 
 		output << "";
 
-		foreach(PathType type, QList<PathType>() << PathType::SAMPLE_FOLDER << PathType::BAM << PathType::VCF << PathType::GSVAR << PathType::COPY_NUMBER_CALLS << PathType::STRUCTURAL_VARIANTS)
+		foreach(PathType type, QList<PathType>() << PathType::SAMPLE_FOLDER << PathType::BAM << PathType::VCF << PathType::GSVAR << PathType::COPY_NUMBER_CALLS << PathType::STRUCTURAL_VARIANTS << PathType::MOSAIC_VARIANTS)
 		{
 			output << FileLocation::typeToString(type);
 		}
@@ -37,10 +37,15 @@ public:
 		addFlag("match_external_names", "If set, also samples for which the external name matches 'sample' are exported.");
 		addFlag("with_merged", "If set, processed samples that were merged into another sample are included.");
 		addString("species", "Species filter.", true, "");
+		addString("tissue", "Tissue filter.", true, "");
+		addString("disease_group", "Disease group filter", true, "");
+		addString("disease_status", "Disease status filter", true, "");
 		addString("sender", "Sample sender filter.", true, "");
 		addString("study", "Processed sample study filter.", true, "");
 		addString("project", "Project name filter.", true, "");
+		addString("project_type", "Project type filter", true, "");
 		addString("system", "Processing system name filter (short name).", true, "");
+		addString("system_type", "Type of processing system filter", true, "");
 		addString("run", "Sequencing run name filter.", true, "");
 		addFlag("run_finished", "Only show samples where the analysis of the run is finished.");
 		addString("run_device", "Sequencing run device name filter.", true, "");
@@ -54,6 +59,7 @@ public:
 		addFlag("add_comments", "Adds sample and processed sample comments columns.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
+		changeLog(2022,  3,  3, "Added 'disease_group', 'disease_status', 'project_type' and 'tissue' filter options.");
 		changeLog(2021,  4, 29, "Added 'run_before' filter option.");
 		changeLog(2021,  4, 16, "Added ancestry column.");
 		changeLog(2021,  4, 13, "Changed 'add_path' parameter to support different file/folder types.");
@@ -77,13 +83,18 @@ public:
 		params.s_name_ext = getFlag("match_external_names");
 		params.s_species = getString("species");
 		params.s_sender = getString("sender");
+		params.s_tissue = getString("tissue");
+		params.s_disease_group = getString("disease_group");
+		params.s_disease_status = getString("disease_status");
 		params.s_study = getString("study");
 		params.include_bad_quality_samples = !getFlag("no_bad_samples");
 		params.include_tumor_samples = !getFlag("no_tumor");
 		params.include_ffpe_samples = !getFlag("no_ffpe");
 		params.include_merged_samples = getFlag("with_merged");
 		params.p_name = getString("project");
+		params.p_type = getString("project_type");
 		params.sys_name = getString("system");
+		params.sys_type = getString("system_type");
 		params.r_name = getString("run");
 		params.include_bad_quality_runs = !getFlag("no_bad_runs");
 		params.run_finished = getFlag("run_finished");
@@ -111,7 +122,17 @@ public:
 			QVariant tmp = db.getValue("SELECT id FROM project WHERE name=:0", true, params.p_name);
 			if (tmp.isNull())
 			{
-				THROW(DatabaseException, "Invalid project name '" + params.p_name + ".\nValid names are: " + db.getValues("SELECT name FROM project ORDER BY name ASC").join(", "));
+				THROW(DatabaseException, "Invalid project name '" + params.p_name + "'.\nValid names are: " + db.getValues("SELECT name FROM project ORDER BY name ASC").join(", "));
+			}
+		}
+
+		if (params.p_type!="")
+		{
+			//check that type is valid
+			QStringList values = db.getEnum("project", "type");
+			if (! values.contains(params.p_type))
+			{
+				THROW(DatabaseException, "Invalid project type '" + params.p_type + "'.\nValid types are: " + values.join(", "));
 			}
 		}
 
@@ -125,13 +146,23 @@ public:
 			}
 		}
 
+		if (params.sys_type!="")
+		{
+			//check that type is valid
+			QStringList values = db.getEnum("processing_system", "type");
+			if (! values.contains(params.sys_type))
+			{
+				THROW(DatabaseException, "Invalid processing system type '" + params.sys_type + "'.\nValid types are: " + values.join(", "));
+			}
+		}
+
 		if (params.r_name!="")
 		{
 			//check that name is valid
 			QVariant tmp = db.getValue("SELECT id FROM sequencing_run WHERE name=:0", true, params.r_name);
 			if (tmp.isNull())
 			{
-				THROW(DatabaseException, "Invalid sequencing run name '"+params.r_name+".\nValid names are: " + db.getValues("SELECT name FROM sequencing_run ORDER BY name ASC").join(", "));
+				THROW(DatabaseException, "Invalid sequencing run name '"+params.r_name+"'.\nValid names are: " + db.getValues("SELECT name FROM sequencing_run ORDER BY name ASC").join(", "));
 			}
 		}
 
@@ -141,7 +172,7 @@ public:
 			QVariant tmp = db.getValue("SELECT id FROM device WHERE name=:0", true, params.r_device_name);
 			if (tmp.isNull())
 			{
-				THROW(DatabaseException, "Invalid sequencing run device name '"+params.r_device_name+".\nValid names are: " + db.getValues("SELECT name FROM device ORDER BY name ASC").join(", "));
+				THROW(DatabaseException, "Invalid sequencing run device name '"+params.r_device_name+"'.\nValid names are: " + db.getValues("SELECT name FROM device ORDER BY name ASC").join(", "));
 			}
 		}
 
@@ -151,7 +182,7 @@ public:
 			QString tmp = db.getValue("SELECT id FROM species WHERE name=:0", true, params.s_species).toString();
 			if (tmp.isNull())
 			{
-				THROW(DatabaseException, "Invalid species name '"+params.s_species+".\nValid names are: " + db.getValues("SELECT name FROM species ORDER BY name ASC").join(", "));
+				THROW(DatabaseException, "Invalid species name '"+params.s_species+"'.\nValid names are: " + db.getValues("SELECT name FROM species ORDER BY name ASC").join(", "));
 			}
 		}
 
@@ -161,7 +192,7 @@ public:
 			QString tmp = db.getValue("SELECT id FROM sender WHERE name=:0", true, params.s_sender).toString();
 			if (tmp.isNull())
 			{
-				THROW(DatabaseException, "Invalid sender name '"+params.s_sender+".\nValid names are: " + db.getValues("SELECT name FROM sender ORDER BY name ASC").join(", "));
+				THROW(DatabaseException, "Invalid sender name '"+params.s_sender+"'.\nValid names are: " + db.getValues("SELECT name FROM sender ORDER BY name ASC").join(", "));
 			}
 		}
 
@@ -171,7 +202,34 @@ public:
 			QString tmp = db.getValue("SELECT id FROM study WHERE name=:0", true, params.s_study).toString();
 			if (tmp.isNull())
 			{
-				THROW(DatabaseException, "Invalid study name '"+params.s_study+".\nValid names are: " + db.getValues("SELECT name FROM study ORDER BY name ASC").join(", "));
+				THROW(DatabaseException, "Invalid study name '"+params.s_study+"'.\nValid names are: " + db.getValues("SELECT name FROM study ORDER BY name ASC").join(", "));
+			}
+		}
+
+		if (params.s_tissue !="")
+		{
+			QStringList values = db.getEnum("sample", "tissue");
+			if (! values.contains(params.s_tissue))
+			{
+				THROW(DatabaseException, "Invalid sample tissue '"+params.s_tissue+"'.\nValid tissues are: " + values.join(", "));
+			}
+		}
+
+		if (params.s_disease_group !="")
+		{
+			QStringList values = db.getEnum("sample", "disease_group");
+			if (! values.contains(params.s_disease_group))
+			{
+				THROW(DatabaseException, "Invalid sample disease group '"+params.s_disease_group+"'.\nValid groups are: " + values.join(", "));
+			}
+		}
+
+		if (params.s_disease_status !="")
+		{
+			QStringList values = db.getEnum("sample", "disease_status");
+			if (! values.contains(params.s_disease_status))
+			{
+				THROW(DatabaseException, "Invalid sample disease status '"+params.s_disease_status+"'.\nValid statuses are: " + values.join(", "));
 			}
 		}
 

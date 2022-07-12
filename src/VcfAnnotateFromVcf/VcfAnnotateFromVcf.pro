@@ -11,11 +11,15 @@ CONFIG   -= app_bundle
 
 SOURCES += main.cpp \
     ChunkProcessor.cpp \
-    OutputWorker.cpp
+    OutputWorker.cpp \
+    ThreadCoordinator.cpp \
+    InputWorker.cpp
 
 include("../app_cli.pri")
 
 HEADERS += \
     Auxilary.h \
     ChunkProcessor.h \
-    OutputWorker.h
+    OutputWorker.h \
+    ThreadCoordinator.h \
+    InputWorker.h

@@ -3,6 +3,8 @@
 #include "Chromosome.h"
 #include "Helper.h"
 #include "NGSHelper.h"
+#include "LoginManager.h"
+#include "GUIHelper.h"
 #include "GlobalServiceProvider.h"
 #include <QJsonDocument>
 #include <QJsonArray>
@@ -51,6 +53,9 @@ void CnvSearchWidget::search()
 
 	try
 	{
+		//not for restricted users
+		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
+
 		//prepared SQL query
 		QString query_str = "SELECT c.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as sample, ps.quality as quality_sample, sys.name_manufacturer as system, s.disease_group, s.disease_status, s.id as 'HPO terms', ds.outcome, cs.caller, cs.quality as quality_callset, cs.quality_metrics as callset_metrics, c.chr, c.start, c.end, c.cn, (c.end-c.start)/1000.0 as size_kb, c.quality_metrics as cnv_metrics, rc.class, CONCAT(rc.comments, ' // ', rc.comments2) as report_config_comments"
 							" FROM cnv_callset cs, processed_sample ps LEFT JOIN diag_status ds ON ds.processed_sample_id=ps.id, processing_system sys, sample s, cnv c LEFT JOIN report_configuration_cnv rc ON rc.cnv_id=c.id, project p"
@@ -285,14 +290,13 @@ void CnvSearchWidget::search()
 		ui_.table->showTextAsTooltip("report_config_comments");
 
 		ui_.message->setText("Found " + QString::number(table.rowCount()) + " matching CNVs in NGSD.");
+
+		QApplication::restoreOverrideCursor();
 	}
 	catch(Exception& e)
 	{
-		ui_.message->setText("Error: Search could not be performed:\t" + e.message());
-		QMessageBox::warning(this, "CNV search", "Error: Search could not be performed:\n" + e.message());
+		GUIHelper::showException(this, e, "CNV search could not be performed");
 	}
-
-	QApplication::restoreOverrideCursor();
 }
 
 void CnvSearchWidget::copyCoodinatesToClipboard()

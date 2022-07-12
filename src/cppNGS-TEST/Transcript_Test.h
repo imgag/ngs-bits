@@ -174,7 +174,21 @@ private slots:
 		S_EQUAL(variant.ref(), "-");
 		S_EQUAL(variant.obs(), "A");
 
+		variant = t.hgvsToVariant("c.39-286dupA", reference);
+		S_EQUAL(variant.chr().str(), "chr3");
+		I_EQUAL(variant.start(), 196217547);
+		I_EQUAL(variant.end(), 196217547);
+		S_EQUAL(variant.ref(), "-");
+		S_EQUAL(variant.obs(), "A");
+
 		variant = t.hgvsToVariant("c.289-102_289-100dup", reference);
+		S_EQUAL(variant.chr().str(), "chr3");
+		I_EQUAL(variant.start(), 196227560);
+		I_EQUAL(variant.end(), 196227560);
+		S_EQUAL(variant.ref(), "-");
+		S_EQUAL(variant.obs(), "CCT");
+
+		variant = t.hgvsToVariant("c.289-102_289-100dupCCT", reference);
 		S_EQUAL(variant.chr().str(), "chr3");
 		I_EQUAL(variant.start(), 196227560);
 		I_EQUAL(variant.end(), 196227560);
@@ -188,7 +202,21 @@ private slots:
 		S_EQUAL(variant.ref(), "A");
 		S_EQUAL(variant.obs(), "-");
 
+		variant = t.hgvsToVariant("c.134-3651delA", reference);
+		S_EQUAL(variant.chr().str(), "chr3");
+		I_EQUAL(variant.start(), 196223314);
+		I_EQUAL(variant.end(), 196223314);
+		S_EQUAL(variant.ref(), "A");
+		S_EQUAL(variant.obs(), "-");
+
 		variant = t.hgvsToVariant("c.134-1926_134-1925del", reference);
+		S_EQUAL(variant.chr().str(), "chr3");
+		I_EQUAL(variant.start(), 196225026);
+		I_EQUAL(variant.end(), 196225027);
+		S_EQUAL(variant.ref(), "TT");
+		S_EQUAL(variant.obs(), "-");
+
+		variant = t.hgvsToVariant("c.134-1926_134-1925delTT", reference);
 		S_EQUAL(variant.chr().str(), "chr3");
 		I_EQUAL(variant.start(), 196225026);
 		I_EQUAL(variant.end(), 196225027);
@@ -353,6 +381,13 @@ private slots:
 		S_EQUAL(variant.obs(), "TGTGTGT");
 
 		variant = t.hgvsToVariant("c.-35delinsACACACA", reference);
+		S_EQUAL(variant.chr().str(), "chr3");
+		I_EQUAL(variant.end(), 195583878);
+		I_EQUAL(variant.start(), 195583878);
+		S_EQUAL(variant.ref(), "C");
+		S_EQUAL(variant.obs(), "TGTGTGT");
+
+		variant = t.hgvsToVariant("c.-35delGinsACACACA", reference);
 		S_EQUAL(variant.chr().str(), "chr3");
 		I_EQUAL(variant.end(), 195583878);
 		I_EQUAL(variant.start(), 195583878);

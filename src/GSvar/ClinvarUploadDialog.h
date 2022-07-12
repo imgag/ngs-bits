@@ -55,7 +55,6 @@ private:
     NGSD db_;
     ClinvarUploadData clinvar_upload_data_;
 
-
     QJsonObject createJson();
     bool validateJson(const QJsonObject& json, QStringList& errors);
 

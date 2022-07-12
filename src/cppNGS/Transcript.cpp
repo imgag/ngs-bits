@@ -4,7 +4,11 @@
 #include <QRegularExpression>
 
 Transcript::Transcript()
-	: strand_(INVALID)
+	: version_(-1)
+	, strand_(INVALID)
+	, start_(-1)
+	, end_(-1)
+	, is_preferred_transcript_(false)
 	, coding_start_(0)
 	, coding_end_(0)
 {
@@ -147,7 +151,7 @@ QString Transcript::sourceToString(Transcript::SOURCE source)
 			return "ENSEMBL";
 	}
 
-	THROW(ProgrammingException, "Unknown transcript source enum value '" + QString::number(source) + "!");
+	THROW(ProgrammingException, "Unhandled transcript source enum value '" + QString::number(source) + "!");
 }
 
 Transcript::SOURCE Transcript::stringToSource(QString source)
@@ -177,7 +181,7 @@ QByteArray Transcript::strandToString(Transcript::STRAND strand)
 			return "n/a";
 	}
 
-	THROW(ProgrammingException, "Unknown transcript strand enum value '" + QString::number(strand) + "!");
+	THROW(ProgrammingException, "Unhandled transcript strand enum value '" + QString::number(strand) + "!");
 }
 
 Transcript::STRAND Transcript::stringToStrand(QByteArray strand)
@@ -193,6 +197,110 @@ Transcript::STRAND Transcript::stringToStrand(QByteArray strand)
 	}
 
 	THROW(ProgrammingException, "Unknown transcript strand string '" + strand + "!");
+}
+
+QByteArray Transcript::biotypeToString(Transcript::BIOTYPE biotype)
+{
+	if (biotype==IG_C_GENE) return "IG C gene";
+	else if (biotype==IG_C_PSEUDOGENE) return "IG C pseudogene";
+	else if (biotype==IG_D_GENE) return "IG D gene";
+	else if (biotype==IG_J_GENE) return "IG J gene";
+	else if (biotype==IG_J_PSEUDOGENE) return "IG J pseudogene";
+	else if (biotype==IG_V_GENE) return "IG V gene";
+	else if (biotype==IG_V_PSEUDOGENE) return "IG V pseudogene";
+	else if (biotype==IG_PSEUDOGENE) return "IG pseudogene";
+	else if (biotype==MT_RRNA) return "Mt rRNA";
+	else if (biotype==MT_TRNA) return "Mt tRNA";
+	else if (biotype==TEC) return "TEC";
+	else if (biotype==TR_C_GENE) return "TR C gene";
+	else if (biotype==TR_D_GENE) return "TR D gene";
+	else if (biotype==TR_J_GENE) return "TR J gene";
+	else if (biotype==TR_J_PSEUDOGENE) return "TR J pseudogene";
+	else if (biotype==TR_V_GENE) return "TR V gene";
+	else if (biotype==TR_V_PSEUDOGENE) return "TR V pseudogene";
+	else if (biotype==LNCRNA) return "lncRNA";
+	else if (biotype==MIRNA) return "miRNA";
+	else if (biotype==MISC_RNA) return "misc RNA";
+	else if (biotype==NON_STOP_DECAY) return "non stop decay";
+	else if (biotype==NONSENSE_MEDIATED_DECAY) return "nonsense mediated decay";
+	else if (biotype==POLYMORPHIC_PSEUDOGENE) return "polymorphic pseudogene";
+	else if (biotype==PROCESSED_PSEUDOGENE) return "processed pseudogene";
+	else if (biotype==PROCESSED_TRANSCRIPT) return "processed transcript";
+	else if (biotype==PROTEIN_CODING) return "protein coding";
+	else if (biotype==PSEUDOGENE) return "pseudogene";
+	else if (biotype==RRNA) return "rRNA";
+	else if (biotype==RRNA_PSEUDOGENE) return "rRNA pseudogene";
+	else if (biotype==RETAINED_INTRON) return "retained intron";
+	else if (biotype==RIBOZYME) return "ribozyme";
+	else if (biotype==SRNA) return "sRNA";
+	else if (biotype==SCRNA) return "scRNA";
+	else if (biotype==SCARNA) return "scaRNA";
+	else if (biotype==SNRNA) return "snRNA";
+	else if (biotype==SNORNA) return "snoRNA";
+	else if (biotype==TRANSCRIBED_PROCESSED_PSEUDOGENE) return "transcribed processed pseudogene";
+	else if (biotype==TRANSCRIBED_UNITARY_PSEUDOGENE) return "transcribed unitary pseudogene";
+	else if (biotype==TRANSCRIBED_UNPROCESSED_PSEUDOGENE) return "transcribed unprocessed pseudogene";
+	else if (biotype==TRANSLATED_PROCESSED_PSEUDOGENE) return "translated processed pseudogene";
+	else if (biotype==TRANSLATED_UNPROCESSED_PSEUDOGENE) return "translated unprocessed pseudogene";
+	else if (biotype==UNITARY_PSEUDOGENE) return "unitary pseudogene";
+	else if (biotype==UNPROCESSED_PSEUDOGENE) return "unprocessed pseudogene";
+	else if (biotype==VAULTRNA) return "vaultRNA";
+
+	THROW(ProgrammingException, "Unhandled transcript biotype enum value '" + QString::number(biotype) + "!");
+}
+
+Transcript::BIOTYPE Transcript::stringToBiotype(QByteArray biotype_orig)
+{
+	QByteArray biotype = biotype_orig.toUpper();
+	biotype.replace(' ', '_');
+
+	if (biotype=="IG_C_GENE") return IG_C_GENE;
+	else if (biotype=="IG_C_PSEUDOGENE") return IG_C_PSEUDOGENE;
+	else if (biotype=="IG_D_GENE") return IG_D_GENE;
+	else if (biotype=="IG_J_GENE") return IG_J_GENE;
+	else if (biotype=="IG_J_PSEUDOGENE") return IG_J_PSEUDOGENE;
+	else if (biotype=="IG_V_GENE") return IG_V_GENE;
+	else if (biotype=="IG_V_PSEUDOGENE") return IG_V_PSEUDOGENE;
+	else if (biotype=="IG_PSEUDOGENE") return IG_PSEUDOGENE;
+	else if (biotype=="MT_RRNA") return MT_RRNA;
+	else if (biotype=="MT_TRNA") return MT_TRNA;
+	else if (biotype=="TEC") return TEC;
+	else if (biotype=="TR_C_GENE") return TR_C_GENE;
+	else if (biotype=="TR_D_GENE") return TR_D_GENE;
+	else if (biotype=="TR_J_GENE") return TR_J_GENE;
+	else if (biotype=="TR_J_PSEUDOGENE") return TR_J_PSEUDOGENE;
+	else if (biotype=="TR_V_GENE") return TR_V_GENE;
+	else if (biotype=="TR_V_PSEUDOGENE") return TR_V_PSEUDOGENE;
+	else if (biotype=="LNCRNA") return LNCRNA;
+	else if (biotype=="MIRNA") return MIRNA;
+	else if (biotype=="MISC_RNA") return MISC_RNA;
+	else if (biotype=="NON_STOP_DECAY") return NON_STOP_DECAY;
+	else if (biotype=="NONSENSE_MEDIATED_DECAY") return NONSENSE_MEDIATED_DECAY;
+	else if (biotype=="POLYMORPHIC_PSEUDOGENE") return POLYMORPHIC_PSEUDOGENE;
+	else if (biotype=="PROCESSED_PSEUDOGENE") return PROCESSED_PSEUDOGENE;
+	else if (biotype=="PROCESSED_TRANSCRIPT") return PROCESSED_TRANSCRIPT;
+	else if (biotype=="PROTEIN_CODING") return PROTEIN_CODING;
+	else if (biotype=="PSEUDOGENE") return PSEUDOGENE;
+	else if (biotype=="RRNA") return RRNA;
+	else if (biotype=="RRNA_PSEUDOGENE") return RRNA_PSEUDOGENE;
+	else if (biotype=="RETAINED_INTRON") return RETAINED_INTRON;
+	else if (biotype=="RIBOZYME") return RIBOZYME;
+	else if (biotype=="SRNA") return SRNA;
+	else if (biotype=="SCRNA") return SCRNA;
+	else if (biotype=="SCARNA") return SCARNA;
+	else if (biotype=="SNRNA") return SNRNA;
+	else if (biotype=="SNORNA") return SNORNA;
+	else if (biotype=="TRANSCRIBED_PROCESSED_PSEUDOGENE") return TRANSCRIBED_PROCESSED_PSEUDOGENE;
+	else if (biotype=="TRANSCRIBED_UNITARY_PSEUDOGENE") return TRANSCRIBED_UNITARY_PSEUDOGENE;
+	else if (biotype=="TRANSCRIBED_UNPROCESSED_PSEUDOGENE") return TRANSCRIBED_UNPROCESSED_PSEUDOGENE;
+	else if (biotype=="TRANSLATED_PROCESSED_PSEUDOGENE") return TRANSLATED_PROCESSED_PSEUDOGENE;
+	else if (biotype=="TRANSLATED_UNPROCESSED_PSEUDOGENE") return TRANSLATED_UNPROCESSED_PSEUDOGENE;
+	else if (biotype=="UNITARY_PSEUDOGENE") return UNITARY_PSEUDOGENE;
+	else if (biotype=="UNPROCESSED_PSEUDOGENE") return UNPROCESSED_PSEUDOGENE;
+	else if (biotype=="VAULTRNA") return VAULTRNA;
+	else if (biotype=="VAULT_RNA") return VAULTRNA; //bug in Ensembl GFF in version 105
+
+	THROW(ProgrammingException, "Unknown transcript biotype string '" + biotype_orig + "!");
 }
 
 int Transcript::cDnaToGenomic(int coord) const
@@ -306,6 +414,10 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 	int length = hgvs_c.length();
 	if (length<4) THROW(ProgrammingException, "Invalid cDNA change '" + hgvs_c + "'!");
 	//qDebug() << "### cDNA:" << hgvs_c << "###";
+
+	//fix unneeded base sequence at the end of 'dup' and 'del' entries
+	hgvs_c.replace(QRegExp("dup[ACGTN]+"), "dup");
+	hgvs_c.replace(QRegExp("del[ACGTN]+"), "del");
 
 	//SNV
 	if(hgvs_c.at(length-4).isDigit() && hgvs_c.at(length-3).isLetter() && hgvs_c.at(length-2)=='>' && hgvs_c.at(length-1).isLetter())
@@ -447,6 +559,8 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 	{
 		int ins_pos = hgvs_c.indexOf("ins");
 
+		if (hgvs_c.mid(ins_pos+3) == "") THROW(ArgumentException, "Insertion '" + hgvs_c + "' does not specify what was inserted!")
+
 		//coordinates
 		QString position = hgvs_c.left(ins_pos);
 		int pos_underscore = position.indexOf('_');
@@ -481,7 +595,7 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 	{
 		QStringList lines;
 		lines << "Unsupported cDNA change '" + hgvs_c + "'. Please note:";
-		lines << "- Adjacent SNVs changes e.g. 'c.1234CA>TC' are not supported. Spit them in single base changes or format them as 'delins'.";
+		lines << "- Adjacent SNVs changes e.g. 'c.1234CA>TC' are not supported. Spit them in single base changes or format them as 'delins'."; //TODO implement?
 		lines << "- Duplication must end with 'dup'. Remove everyhing after.";
 		lines << "- Deletions must end with 'del'. Remove everyhing after.";
 		THROW(ArgumentException, lines.join("\n"));

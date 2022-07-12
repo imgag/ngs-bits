@@ -21,7 +21,7 @@ void ReportWorker::process()
 	QString archive_folder = Settings::path("gsvar_report_archive");
 	if (archive_folder!="")
 	{
-		QString file_rep_copy = archive_folder + "\\" + data_.ps;
+		QString file_rep_copy = archive_folder + "\\" + QFileInfo(filename_).fileName();
 		if (QFile::exists(file_rep_copy) && !QFile::remove(file_rep_copy))
 		{
 			THROW(FileAccessException, "Could not remove previous report in archive folder: " + file_rep_copy);
@@ -36,11 +36,18 @@ void ReportWorker::process()
 	QString gsvar_xml_folder = Settings::path("gsvar_xml_folder");
 	if (gsvar_xml_folder!="")
 	{
-		temp_filename = Helper::tempFileName(".xml");
-		report_generator.writeXML(temp_filename, filename_);
+		try
+		{
+			temp_filename = Helper::tempFileName(".xml");
+			report_generator.writeXML(temp_filename, filename_);
 
-		QString xml_file = gsvar_xml_folder + "/" + QFileInfo(filename_).fileName().replace(".html", ".xml");
-		moveReport(temp_filename, xml_file);
+			QString xml_file = gsvar_xml_folder + "/" + QFileInfo(filename_).fileName().replace(".html", ".xml");
+			moveReport(temp_filename, xml_file);
+		}
+		catch (Exception& e)
+		{
+			THROW(Exception, "XML generation failed: " + e.message());
+		}
 	}
 }
 

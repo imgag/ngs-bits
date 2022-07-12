@@ -9,8 +9,7 @@ private slots:
 
 	void test1()
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
 		NGSD db(true);
 		db.init();

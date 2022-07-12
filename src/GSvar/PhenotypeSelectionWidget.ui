@@ -58,6 +58,9 @@
    </item>
    <item row="1" column="1" rowspan="3">
     <widget class="QListWidget" name="pheno_list">
+     <property name="contextMenuPolicy">
+      <enum>Qt::ActionsContextMenu</enum>
+     </property>
      <property name="toolTip">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Selected phenotypes.&lt;/p&gt;&lt;p&gt;Double-click a phenotype to remove it.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>

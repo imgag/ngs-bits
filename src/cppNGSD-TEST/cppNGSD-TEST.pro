@@ -47,7 +47,10 @@ LIBS += -lz
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 HEADERS += \
-        NGSD_Test.h
+        NGSD_Test.h \
+        FileLocationProvider_Test.h \
+        FileLocation_Test.h \
+    GenLabDB_Test.h
 
 SOURCES += \
         main.cpp

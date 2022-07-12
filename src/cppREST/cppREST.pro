@@ -48,7 +48,6 @@ QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 SOURCES += \
     EndpointController.cpp \
     EndpointManager.cpp \
-    FileCache.cpp \
     HtmlEngine.cpp \
     HttpProcessor.cpp \
     HttpRequest.cpp \
@@ -57,13 +56,13 @@ SOURCES += \
     RequestWorker.cpp \
     ServerHelper.cpp \
     ServerWrapper.cpp \
+    SessionManager.cpp \
     SslServer.cpp \
     UrlManager.cpp
 
 HEADERS += \
     EndpointController.h \
     EndpointManager.h \
-    FileCache.h \
     HtmlEngine.h \
     HttpParts.h \
     HttpProcessor.h \
@@ -73,10 +72,10 @@ HEADERS += \
     RequestWorker.h \
     ServerHelper.h \
     ServerWrapper.h \
+    SessionManager.h \
     SslServer.h \
     UrlManager.h
 
-RESOURCES += \
-    cppREST.qrc
+RESOURCES +=
 
 DISTFILES +=

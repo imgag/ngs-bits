@@ -9,8 +9,7 @@ private slots:
 	
 	void default_parameters()
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
 		//init
 		NGSD db(true);
@@ -18,7 +17,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportHGNC_init.sql"));
 
 		//test
-		EXECUTE("NGSDImportHGNC", "-test -in " + TESTDATA("data_in/NGSDImportHGNC_in1.txt"));
+		EXECUTE("NGSDImportHGNC", "-test -in " + TESTDATA("data_in/NGSDImportHGNC_in1.txt") + " -ensembl " + TESTDATA("data_in/NGSDImportEnsembl_in.gff3"));
 
 		//check counts
 		int gene_count = db.getValue("SELECT count(*) FROM gene").toInt();
@@ -59,6 +58,33 @@ private slots:
 		I_EQUAL(somatic_gene_roles.count(), 2);
 		S_EQUAL(somatic_gene_roles[0], "BRCA1");
 		S_EQUAL(somatic_gene_roles[1], "BRCA2");
+
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT CONCAT(spg.symbol, '\t', sp.name) FROM somatic_pathway_gene spg, somatic_pathway sp WHERE sp.id=spg.pathway_id");
+		I_EQUAL( query.size(), 3 );
+		query.next();
+		S_EQUAL(query.value(0).toString(), "BRCA1\tDNA Damage Repair");
+		query.next();
+		S_EQUAL(query.value(0).toString(), "BRCA2\tDNA Damage Repair");
+		query.next();
+		S_EQUAL(query.value(0).toString(), "BRCA2\talternative pathway");
+
+		//expression data
+		query.exec("SELECT symbol, processed_sample_id, tpm FROM expression");
+		I_EQUAL( query.size(), 3 );
+		query.next();
+		S_EQUAL(query.value(0).toString(), "BRCA1");
+		I_EQUAL(query.value(1).toInt(), 3999);
+		F_EQUAL2(query.value(2).toFloat(), 8.765, 0.001);
+		query.next();
+		S_EQUAL(query.value(0).toString(), "BRCA2");
+		I_EQUAL(query.value(1).toInt(), 3999);
+		F_EQUAL2(query.value(2).toFloat(), 2.3456, 0.0001);
+		query.next();
+		S_EQUAL(query.value(0).toString(), "BRCA2");
+		I_EQUAL(query.value(1).toInt(), 4000);
+		F_EQUAL2(query.value(2).toFloat(), 1.23456, 0.00001);
+
 	}
 
 };

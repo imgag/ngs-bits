@@ -4,6 +4,7 @@
 #include "SingleSampleAnalysisDialog.h"
 #include "GlobalServiceProvider.h"
 #include "GSvarHelper.h"
+#include "LoginManager.h"
 #include <QMessageBox>
 #include <QAction>
 
@@ -41,6 +42,8 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	ui_.s_disease_group->addItems(db_.getEnum("sample", "disease_group"));
 	ui_.s_disease_status->addItem("");
 	ui_.s_disease_status->addItems(db_.getEnum("sample", "disease_status"));
+	ui_.s_tissue->addItem("");
+	ui_.s_tissue->addItems(db_.getEnum("sample", "tissue"));
 
 	//project
 	ui_.p_name->fill(db_.createTable("project", "SELECT id, name FROM project"), true);
@@ -79,11 +82,13 @@ void SampleSearchWidget::search()
 		params.s_name_ext = ui_.s_name_ext->isChecked();
 		params.s_name_comments = ui_.s_name_comments->isChecked();
 		params.s_species = ui_.s_species->text();
+		params.s_patient_identifier = ui_.s_patient_identifier->text();
 		params.s_type = ui_.s_type->currentText();
 		params.s_sender = ui_.s_sender->text();
 		params.s_study = ui_.s_study->text();
 		params.s_disease_group = ui_.s_disease_group->currentText();
 		params.s_disease_status = ui_.s_disease_status->currentText();
+		params.s_tissue = ui_.s_tissue->currentText();
 		params.include_bad_quality_samples = ui_.s_bad_quality->isChecked();
 		params.include_tumor_samples = ui_.s_tumor->isChecked();
 		params.include_ffpe_samples = ui_.s_ffpe->isChecked();
@@ -116,6 +121,11 @@ void SampleSearchWidget::search()
 		params.add_qc = ui_.add_qc->isChecked();
 		params.add_report_config = ui_.add_report_config->isChecked();
 		params.add_comments = ui_.add_comments->isChecked();
+
+		if (LoginManager::userRole()=="user_restricted")
+		{
+			params.restricted_user = LoginManager::userLogin();
+		}
 
 		//execute query
 		DBTable ps_table = db_.processedSampleSearch(params);

@@ -3,15 +3,15 @@
 HttpResponse EndpointController::serveEndpointHelp(const HttpRequest& request)
 {
 	QByteArray body;
-	if (request.getPathParams().count() == 2)
+	if (request.getPathItems().count() == 2)
 	{
 		// Locate endpoint by URL and request method
-		body = generateHelpPage(request.getPathParams()[0], HttpProcessor::getMethodTypeFromString(request.getPathParams()[1])).toLocal8Bit();
+		body = generateHelpPage(request.getPathItems()[0], HttpProcessor::getMethodTypeFromString(request.getPathItems()[1])).toLocal8Bit();
 	}
-	else if (request.getPathParams().count() == 1)
+	else if (request.getPathItems().count() == 1)
 	{
 		// For the same URL several request methods may be used: e.g. GET and POST
-		body = generateHelpPage(request.getPathParams()[0]).toLocal8Bit();
+		body = generateHelpPage(request.getPathItems()[0]).toLocal8Bit();
 	}
 	else
 	{
@@ -21,14 +21,14 @@ HttpResponse EndpointController::serveEndpointHelp(const HttpRequest& request)
 
 	BasicResponseData response_data;
 	response_data.length = body.length();
-	response_data.content_type = ContentType::TEXT_HTML;
+	response_data.content_type = request.getContentType();
 	response_data.is_downloadable = false;
 	return HttpResponse(response_data, body);
 }
 
 HttpResponse EndpointController::serveStaticFromServerRoot(const HttpRequest& request)
 {
-	QString served_file = getServedRootPath(request.getPathParams());
+	QString served_file = getServedRootPath(request.getPathItems());
 
 	if (served_file.isEmpty())
 	{
@@ -37,75 +37,22 @@ HttpResponse EndpointController::serveStaticFromServerRoot(const HttpRequest& re
 
 	if (QFileInfo(served_file).isDir())
 	{
-		return serveFolderContent(served_file, request.getPrefix(), request.getPath(), request.getPathParams());
+		return serveFolderContent(served_file, request);
 	}
 
-	return serveStaticFile(served_file, request.getMethod(), request.getHeaders());
+	return serveStaticFile(served_file, request.getMethod(), request.getContentType(), request.getHeaders());
 }
 
 HttpResponse EndpointController::serveStaticForTempUrl(const HttpRequest& request)
 {
-	QString served_file;
-	try
+	QString full_entity_path = getServedTempPath(request.getPathItems());
+
+	if ((!full_entity_path.isEmpty()) && (QFileInfo(full_entity_path).isDir()))
 	{
-		served_file = getServedTempPath(request.getPathParams());
-	}
-	catch(Exception& e)
-	{
-		return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), e.message());
+		return serveFolderContent(full_entity_path, request);
 	}
 
-	if (QFileInfo(served_file).isDir())
-	{
-		return serveFolderContent(served_file, request.getPrefix(), request.getPath(), request.getPathParams());
-	}
-
-	return serveStaticFile(served_file, request.getMethod(), request.getHeaders());
-}
-
-HttpResponse EndpointController::serveStaticFileFromCache(const HttpRequest& request)
-{
-	QString filename = FileCache::getFileById(request.getPathParams()[0]).filename_with_path;
-	return createStaticFromCacheResponse(filename, QList<ByteRange>{}, HttpProcessor::getContentTypeByFilename(filename), false);
-}
-
-HttpResponse EndpointController::getFileInfo(const HttpRequest& request)
-{
-	QString filename = request.getUrlParams()["file"];
-	if (request.getUrlParams()["file"].toLower().startsWith("http"))
-	{
-		QList<QString> url_parts = request.getUrlParams()["file"].split("/");
-		if (url_parts.size() > 0)
-		{
-			UrlEntity current_entity = UrlManager::getURLById(url_parts[url_parts.size()-2]);
-			if (!current_entity.path.isEmpty())
-			{
-				filename = current_entity.path + QDir::separator() + url_parts[url_parts.size()-1];
-			}
-		}
-	}
-
-	if (!QFile(filename).exists())
-	{
-		return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "File does not exist: " + filename);
-	}
-
-	QJsonDocument json_doc_output {};
-	QJsonObject json_object {};
-	json_object.insert("absolute_path", QFileInfo(filename).absolutePath());
-	json_object.insert("base_name", QFileInfo(filename).baseName());
-	json_object.insert("file_name", QFileInfo(filename).fileName());
-	json_object.insert("last_modified", QString::number(QFileInfo(filename).lastModified().toSecsSinceEpoch()));
-	json_object.insert("exists", QFileInfo(filename).exists());
-
-	json_doc_output.setObject(json_object);
-
-	BasicResponseData response_data;
-	response_data.length = json_doc_output.toJson().length();
-	response_data.content_type = ContentType::APPLICATION_JSON;
-	response_data.is_downloadable = false;
-
-	return HttpResponse(response_data, json_doc_output.toJson());
+	return serveStaticFile(full_entity_path, request.getMethod(), HttpProcessor::getContentTypeByFilename(full_entity_path), request.getHeaders());
 }
 
 HttpResponse EndpointController::createStaticFileRangeResponse(QString filename, QList<ByteRange> byte_ranges, ContentType type, bool is_downloadable)
@@ -131,34 +78,14 @@ HttpResponse EndpointController::createStaticFileRangeResponse(QString filename,
 HttpResponse EndpointController::createStaticStreamResponse(QString filename, bool is_downloadable)
 {
 	BasicResponseData response_data;
-	response_data.length = QFileInfo(filename).size();
+	response_data.length = QFile(filename).size();
 	response_data.filename = filename;
-	response_data.file_size = QFileInfo(filename).size();
+	response_data.file_size = response_data.length;
 	response_data.is_stream = true;
 	response_data.content_type = HttpProcessor::getContentTypeByFilename(filename);
 	response_data.is_downloadable = is_downloadable;
 
 	return HttpResponse(response_data);
-}
-
-HttpResponse EndpointController::createStaticFromCacheResponse(QString id, QList<ByteRange> byte_ranges, ContentType type, bool is_downloadable)
-{
-	StaticFile static_file = FileCache::getFileById(id);
-
-	if (static_file.content.isEmpty() || static_file.content.isNull())
-	{
-		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Empty or corrpupted file");
-	}
-
-	BasicResponseData response_data;
-	response_data.filename = FileCache::getFileById(id).filename_with_path;
-	response_data.length = static_file.content.length();
-	response_data.byte_ranges = byte_ranges;
-	response_data.file_size = static_file.size;
-	response_data.content_type = type;
-	response_data.is_downloadable = is_downloadable;
-
-	return HttpResponse(response_data, static_file.content);
 }
 
 EndpointController::EndpointController()
@@ -171,7 +98,7 @@ EndpointController& EndpointController::instance()
 	return endpoint_controller;
 }
 
-HttpResponse EndpointController::serveFolderContent(QString path, QString request_prefix, QString request_path, QList<QString> request_path_params)
+HttpResponse EndpointController::serveFolderContent(const QString path, const HttpRequest& request)
 {
 	if (!Settings::boolean("allow_folder_listing", true))
 	{
@@ -184,21 +111,21 @@ HttpResponse EndpointController::serveFolderContent(QString path, QString reques
 		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_HTML, "Requested folder does not exist");
 	}
 
-	QString base_folder_url = ServerHelper::getUrlProtocol(false) + ServerHelper::getStringSettingsValue("server_host") + ":" + QString::number(ServerHelper::getNumSettingsValue("https_server_port")) + "/" + request_prefix + "/" + request_path;
+	QString base_folder_url = ServerHelper::getUrlProtocol(false) + ServerHelper::getStringSettingsValue("server_host") + ":" + QString::number(ServerHelper::getNumSettingsValue("https_server_port")) + "/" + request.getPrefix() + "/" + request.getPath();
 	if (!base_folder_url.endsWith("/"))
 	{
 		base_folder_url = base_folder_url + "/";
 	}
-	QString cur_folder_url = base_folder_url + request_path_params.join("/");
+	QString cur_folder_url = base_folder_url + request.getPathItems().join("/");
 	if (!cur_folder_url.endsWith("/"))
 	{
 		cur_folder_url = cur_folder_url + "/";
 	}
-	if (request_path_params.size()>0)
+	if (request.getPathItems().size()>0)
 	{
-		request_path_params.removeAt(request_path_params.size()-1);
+		request.getPathItems().removeAt(request.getPathItems().size()-1);
 	}
-	QString parent_folder_url = base_folder_url + request_path_params.join("/");
+	QString parent_folder_url = base_folder_url + request.getPathItems().join("/");
 
 	dir.setFilter(QDir::Dirs | QDir::Files | QDir::NoSymLinks);
 	QFileInfoList list = dir.entryInfoList();
@@ -214,18 +141,33 @@ HttpResponse EndpointController::serveFolderContent(QString path, QString reques
 		current_item.is_folder = fileInfo.isDir() ? true : false;
 		files.append(current_item);
 	}
-	return serveFolderListing(dir.dirName(), cur_folder_url, parent_folder_url, files);
+	QString token;
+	if (!request.getFormUrlEncoded().contains("token")) token = request.getUrlParams()["token"];
+	return serveFolderListing(dir.dirName(), cur_folder_url, parent_folder_url, files, token);
 }
 
-HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod method, QMap<QString, QList<QString>> headers)
+HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod method, ContentType content_type, QMap<QString, QList<QString>> headers)
 {
-	if (filename.isEmpty())
+	if ((filename.isEmpty()) || ((!filename.isEmpty()) && (!QFile::exists(filename))))
 	{
-		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::APPLICATION_JSON, "Requested file does not exist");
+		// Special case, when sending HEAD request for a file that does not exist
+		if (method == RequestMethod::HEAD)
+		{
+			return HttpResponse(ResponseStatus::NOT_FOUND, content_type, 0.0);
+		}
+
+		return HttpResponse(ResponseStatus::NOT_FOUND, content_type, "Requested file could not be found");
 	}
 
-	quint64 file_size = QFileInfo(filename).size();
+	quint64 file_size = QFile(filename).size();
 
+	// Client wants to see only the size of the requested file (not its content)
+	if (method == RequestMethod::HEAD)
+	{
+		return HttpResponse(ResponseStatus::OK, HttpProcessor::getContentTypeByFilename(filename), file_size);
+	}
+
+	// Random read functionality based on byte-range headers
 	if (headers.contains("range"))
 	{
 		QList<ByteRange> byte_ranges;
@@ -279,12 +221,12 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 
 				if ((!is_start_set) && (!is_end_set))
 				{
-					return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, ContentType::APPLICATION_JSON, "Range limits have not been specified");
+					return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, content_type, "Range limits have not been specified");
 				}
 
 				if (current_range.start > current_range.end)
 				{
-					return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, ContentType::APPLICATION_JSON, "The requested range start position is greater than its end position");
+					return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, content_type, "The requested range start position is greater than its end position");
 				}
 			}
 
@@ -294,29 +236,18 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 		}
 		if (hasOverlappingRanges(byte_ranges))
 		{
-			return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, ContentType::APPLICATION_JSON, "Overlapping ranges have been detected");
+			return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, content_type, "Overlapping ranges have been detected");
 		}
 
 		return createStaticFileRangeResponse(filename, byte_ranges, HttpProcessor::getContentTypeByFilename(filename), false);
 	}
 
-	// Client wants to see only the size of the requested file (not its content)
-	if (method == RequestMethod::HEAD)
-	{
-		BasicResponseData response_data;
-		response_data.length = QFileInfo(filename).size();
-		response_data.filename = filename;
-		response_data.file_size = QFileInfo(filename).size();
-		response_data.content_type = HttpProcessor::getContentTypeByFilename(filename);
-		response_data.is_stream = false;
 
-		return HttpResponse(response_data);
-	}
-
+	// Stream the content of the entire file
 	return createStaticStreamResponse(filename, false);
 }
 
-HttpResponse EndpointController::serveFolderListing(QString folder_title, QString cur_folder_url, QString parent_folder_url, QList<FolderItem> items)
+HttpResponse EndpointController::serveFolderListing(QString folder_title, QString cur_folder_url, QString parent_folder_url, QList<FolderItem> items, QString token)
 {
 	HttpResponse response;
 
@@ -325,7 +256,7 @@ HttpResponse EndpointController::serveFolderListing(QString folder_title, QStrin
 	stream << HtmlEngine::getPageHeader("Folder content: " + folder_title);
 	stream << HtmlEngine::getFolderIcons();
 	stream << HtmlEngine::createFolderListingHeader(folder_title, parent_folder_url);
-	stream << HtmlEngine::createFolderListingElements(items, cur_folder_url);
+	stream << HtmlEngine::createFolderListingElements(items, cur_folder_url, token);
 	stream << HtmlEngine::getPageFooter();
 
 	BasicResponseData response_data;
@@ -393,10 +324,7 @@ QString EndpointController::generateHelpPage(const QString& path)
 
 QString EndpointController::getServedTempPath(QList<QString> path_parts)
 {
-	if (path_parts.size() < 1)
-	{
-		THROW(Exception, "Not path has been provided in temporary URL");
-	}
+	if (path_parts.isEmpty()) return "";
 
 	UrlEntity url_entity = UrlManager::getURLById(path_parts[0]);
 	if (!url_entity.filename_with_path.isEmpty())
@@ -415,78 +343,14 @@ QString EndpointController::getServedRootPath(const QList<QString>& path_parts)
 	{
 		server_root = server_root + QDir::separator();
 	}
-
 	QString served_file = server_root.trimmed() + path_parts.join(QDir::separator());
-	served_file = QUrl::fromEncoded(served_file.toLocal8Bit()).toString(); // handling browser endcoding, e.g. spaces and other characters in names
 
-	if (QFile(served_file).exists())
-	{
-		return served_file;
-	}
+	served_file = QUrl::fromEncoded(served_file.toLocal8Bit()).toString(); // handling browser endcoding, e.g. spaces and other characters in names
+	int param_pos = served_file.indexOf("?");
+	if (param_pos > -1) served_file = served_file.left(param_pos);
+	if (QFile(served_file).exists()) return served_file;
 
 	return "";
-}
-
-StaticFile EndpointController::readFileContent(const QString& filename, const QList<ByteRange>& byte_ranges)
-{
-	StaticFile static_file {};
-	static_file.filename_with_path = filename;
-	static_file.modified = QFileInfo(filename).lastModified();
-
-	QString found_id = FileCache::getFileIdIfInCache(filename);
-	if (found_id.length() > 0)
-	{
-		return FileCache::getFileById(found_id);
-	}
-
-	QFile file(filename);
-	static_file.size = file.size();
-	if (!file.open(QIODevice::ReadOnly))
-	{
-		THROW(FileAccessException, "File could not be found: " + filename);
-	}
-
-	if ((!file.atEnd()) && (byte_ranges.length() == 0))
-	{
-		try
-		{
-			static_file.content = file.readAll();
-		}
-		catch (FileAccessException& e)
-		{
-			THROW(FileAccessException, "File cannot be processed (possibly due to the large size)");
-		}
-	}
-
-	for (int i = 0; i < byte_ranges.count(); ++i)
-	{
-		if ((!file.atEnd()) && (byte_ranges[i].length > 0) && (file.seek(byte_ranges[i].start)))
-		{
-			static_file.content.append(file.read(byte_ranges[i].length));
-		}
-	}
-
-	if ((!static_file.content.isEmpty()) && (Settings::boolean("static_cache", true)))
-	{
-		try
-		{
-			FileCache::addFileToCache(ServerHelper::generateUniqueStr(), filename, static_file.content, static_file.content.size());
-		}
-		catch (Exception& e)
-		{
-			qDebug() << "Could not add " << filename << " to the cache:" << e.message();
-		}
-	}
-
-	file.close();
-
-	return static_file;
-}
-
-QString EndpointController::addFileToCache(const QString& filename)
-{
-	readFileContent(filename, QList<ByteRange>{});
-	return FileCache::getFileIdIfInCache(filename);
 }
 
 bool EndpointController::hasOverlappingRanges(const QList<ByteRange> ranges)
@@ -509,5 +373,3 @@ bool EndpointController::hasOverlappingRanges(const QList<ByteRange> ranges)
 
 	return false;
 }
-
-

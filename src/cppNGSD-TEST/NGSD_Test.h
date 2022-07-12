@@ -24,8 +24,7 @@ private slots:
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex idx(ref_file);
 
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 		NGSD db;
 
 		QHash<QString, Transcript> transcrips;
@@ -96,8 +95,7 @@ private slots:
 	//Because initializing the database takes very long, all NGSD functionality is tested in one slot.
 	void main_tests()
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
 		//init
 		NGSD db(true);
@@ -105,10 +103,23 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in1.sql"));
 
 		//log in user
-		LoginManager::login("ahmustm1", true);
+		LoginManager::login("ahmustm1", "", true);
 
 		//escapeText
 		S_EQUAL(db.escapeText("; '"), "'; '''");
+
+		//tableExists
+		IS_TRUE(db.tableExists("user", false));
+		IS_FALSE(db.tableExists("user_missing", false));
+
+		//tableEmpty
+		IS_FALSE(db.tableEmpty("user"));
+		IS_TRUE(db.tableEmpty("gaps"));
+
+		//rowExists
+		IS_TRUE(db.rowExists("user", 99)); //ahmustm1
+		IS_TRUE(db.rowExists("user", 101)); //ahkerra1
+		IS_FALSE(db.rowExists("user", 666));
 
 		//getEnum
 		QStringList enum_values = db.getEnum("sample", "disease_group");
@@ -242,6 +253,7 @@ private slots:
 		SampleData sample_data = db.getSampleData(sample_id);
 		S_EQUAL(sample_data.name, "NA12878");
 		S_EQUAL(sample_data.name_external, "ex1");
+		S_EQUAL(sample_data.patient_identifier, "pat1");
 		S_EQUAL(sample_data.quality, "good");
 		S_EQUAL(sample_data.comments, "comment_s1");
 		S_EQUAL(sample_data.disease_group, "Diseases of the blood or blood-forming organs");
@@ -254,6 +266,7 @@ private slots:
 		sample_data = db.getSampleData(sample_id);
 		S_EQUAL(sample_data.name, "NA12345");
 		S_EQUAL(sample_data.name_external, "ex3");
+		S_EQUAL(sample_data.patient_identifier, "pat3");
 		S_EQUAL(sample_data.quality, "bad");
 		S_EQUAL(sample_data.comments, "comment_s3");
 		S_EQUAL(sample_data.disease_group, "Diseases of the immune system");
@@ -271,6 +284,7 @@ private slots:
 		S_EQUAL(processed_sample_data.gender, "female");
 		S_EQUAL(processed_sample_data.comments, "comment_ps1");
 		S_EQUAL(processed_sample_data.project_name, "KontrollDNACoriell");
+		S_EQUAL(processed_sample_data.project_type, "test");
 		S_EQUAL(processed_sample_data.run_name, "#00372");
 		S_EQUAL(processed_sample_data.normal_sample_name, "");
 		S_EQUAL(processed_sample_data.processing_system, "HaloPlex HBOC v5");
@@ -549,6 +563,20 @@ private slots:
 		phenos = db.phenotypeChildTerms(db.phenotypeIdByName("Mitochondrial inheritance"), false);
 		I_EQUAL(phenos.count(), 0);
 
+		//phenotypeParentTerms
+		phenos = db.phenotypeParentTerms(db.phenotypeIdByName("All"), false);
+		I_EQUAL(phenos.count(), 0);
+		phenos = db.phenotypeParentTerms(db.phenotypeIdByName("All"), true);
+		I_EQUAL(phenos.count(), 0);
+		phenos = db.phenotypeParentTerms(db.phenotypeIdByName("X-linked recessive inheritance"), false);
+		I_EQUAL(phenos.count(), 1);
+		IS_TRUE(phenos.containsAccession("HP:0001417")); //X-linked inheritance
+		phenos = db.phenotypeParentTerms(db.phenotypeIdByName("X-linked recessive inheritance"), true);
+		I_EQUAL(phenos.count(), 3);
+		IS_TRUE(phenos.containsAccession("HP:0001417")); //X-linked inheritance
+		IS_TRUE(phenos.containsAccession("HP:0000005")); //Mode of inheritance
+		IS_TRUE(phenos.containsAccession("HP:0000001")); //All
+
 		//getDiagnosticStatus
 		DiagnosticStatusData diag_status = db.getDiagnosticStatus(db.processedSampleId("NA12878_03"));
 		S_EQUAL(diag_status.date.toString(Qt::ISODate), "2014-07-29T09:40:49");
@@ -655,16 +683,16 @@ private slots:
 		S_EQUAL(som_class_info.classification, "inactivating");
 		S_EQUAL(som_class_info.comments, "som_class_comm2");
 
-		//set PubMed ids
+		//addPubmedId
 		db.addPubmedId(199844, "12345678");
 		db.addPubmedId(199844, "87654321");
 		QStringList pubmed_ids = db.pubmedIds("199844");
 		pubmed_ids.sort();
 		S_EQUAL(pubmed_ids.at(0), "12345678");
 		S_EQUAL(pubmed_ids.at(1), "87654321");
-
-
-
+		//check that duplicate entries are ignored
+		db.addPubmedId(199844, "12345678");
+		I_EQUAL(db.pubmedIds("199844").count(), 2);
 
 		//analysisInfo
 		AnalysisJob analysis_job = db.analysisInfo(-1, false);
@@ -820,51 +848,51 @@ private slots:
 		ProcessedSampleSearchParameters params;
 		DBTable ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 19);
+		I_EQUAL(ps_table.columnCount(), 20);
 		//add path
 		params.add_path = "SAMPLE_FOLDER";
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 20);
+		I_EQUAL(ps_table.columnCount(), 21);
 		//add outcome
 		params.add_outcome = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 22);
+		I_EQUAL(ps_table.columnCount(), 23);
 		//add disease details
 		params.add_disease_details = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 31);
+		I_EQUAL(ps_table.columnCount(), 32);
 		//add QC
 		params.add_qc = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 70);
+		I_EQUAL(ps_table.columnCount(), 71);
 		//add report config
 		params.add_report_config = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 71);
-		S_EQUAL(ps_table.row(0).value(70), "");
-		S_EQUAL(ps_table.row(4).value(70), "exists, causal variant: chr9:98232224-98232224 A>- (genotype:het genes:PTCH1), causal CNV: chr1:3000-4000 (cn:1 classification:4)");
+		I_EQUAL(ps_table.columnCount(), 72);
+		S_EQUAL(ps_table.row(0).value(71), "");
+		S_EQUAL(ps_table.row(4).value(71), "exists, causal variant: chr9:98232224-98232224 A>- (genotype:het genes:PTCH1), causal CNV: chr1:3000-4000 (cn:1 classification:4), causal uncalled CNV: chr2:123456-789012 (genes: EPRS)");
 		//add comments
 		params.add_comments = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 73);
-		S_EQUAL(ps_table.headers().at(19), "comment_sample");
-		S_EQUAL(ps_table.headers().at(20), "comment_processed_sample");
-		S_EQUAL(ps_table.row(0).value(19), "comment_s6");
-		S_EQUAL(ps_table.row(0).value(20), "comment_ps7");
-
-
+		I_EQUAL(ps_table.columnCount(), 74);
+		S_EQUAL(ps_table.headers().at(20), "comment_sample");
+		S_EQUAL(ps_table.headers().at(21), "comment_processed_sample");
+		S_EQUAL(ps_table.row(0).value(20), "comment_s6");
+		S_EQUAL(ps_table.row(0).value(21), "comment_ps7");
 		//apply all search parameters
 		params.s_name = "NA12878";
 		params.s_species = "human";
+		params.s_patient_identifier = "pat1";
 		params.s_type = "DNA";
 		params.s_sender = "Coriell";
 		params.s_study = "SomeStudy";
+		params.s_tissue = "Blood";
 		params.include_bad_quality_samples = false;
 		params.include_tumor_samples = false;
 		params.include_ffpe_samples = false;
@@ -879,7 +907,12 @@ private slots:
 		params.r_before = QDate::fromString("2021-02-19", Qt::ISODate);
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 2);
-		I_EQUAL(ps_table.columnCount(), 73);
+		I_EQUAL(ps_table.columnCount(), 74);
+		//filter based on access rights (restricted user)
+		params = ProcessedSampleSearchParameters();
+		params.restricted_user = "ahkerra1";
+		ps_table = db.processedSampleSearch(params);
+		I_EQUAL(ps_table.rowCount(), 4);
 
 		//reportConfigId
 		QString ps_id = db.processedSampleId("NA12878_03");
@@ -1263,10 +1296,13 @@ private slots:
 
 		//sameSample
 		I_EQUAL(db.sameSamples(99).count(), 0);
-		I_EQUAL(db.sameSamples(2).count(), 1);
+		I_EQUAL(db.sameSamples(2).count(), 2);
 		IS_TRUE(db.sameSamples(2).contains(4));
+		IS_TRUE(db.sameSamples(2).contains(7));
 		I_EQUAL(db.sameSamples(4).count(), 1);
 		IS_TRUE(db.sameSamples(4).contains(2));
+		I_EQUAL(db.sameSamples(7).count(), 1);
+		IS_TRUE(db.sameSamples(7).contains(2));
 
 		//relatedSamples
 		I_EQUAL(db.relatedSamples(99).count(), 0);
@@ -1285,6 +1321,23 @@ private slots:
 		S_EQUAL(db.omimPreferredPhenotype("ATM", "Diseases of the immune system"), "");
 		S_EQUAL(db.omimPreferredPhenotype("ATM", "Neoplasms"), "114480");
 
+		//userRoleIn
+		IS_TRUE(db.userRoleIn("ahmustm1", QStringList{"user"}));
+		IS_FALSE(db.userRoleIn("ahmustm1", QStringList{"user_restricted"}));
+
+		IS_FALSE(db.userRoleIn("ahkerra1", QStringList{"user"}));
+		IS_TRUE(db.userRoleIn("ahkerra1", QStringList{"user_restricted"}));
+
+		int user_id = db.userId("ahkerra1");
+		IS_FALSE(db.userCanAccess(user_id, 3999));
+		IS_FALSE(db.userCanAccess(user_id, 4001));
+		IS_FALSE(db.userCanAccess(user_id, 4002));
+		IS_FALSE(db.userCanAccess(user_id, 5));
+		IS_FALSE(db.userCanAccess(user_id, 6));
+		IS_TRUE(db.userCanAccess(user_id, 4000)); //access via study 'SecondStudy'
+		IS_TRUE(db.userCanAccess(user_id, 4003)); //access via sample 'NA12123repeat'
+		IS_TRUE(db.userCanAccess(user_id, 7)); //access via project 'Diagnostik'
+		IS_TRUE(db.userCanAccess(user_id, 8)); //access via project 'Diagnostik'
 
 		//cfDNA panels
 		CfdnaPanelInfo panel_info;
@@ -1362,13 +1415,22 @@ private slots:
 		IS_THROWN(DatabaseException, db.updateVariantPublicationResult(-42, "processed;SCV12345678"));
 		IS_THROWN(DatabaseException, db.flagVariantPublicationAsReplaced(-42));
 
+		//############################### gaps ###############################
+		int gap_id = db.addGap(3999, "chr1", 5000, 6000, "to close");
+		I_EQUAL(db.gapId(3999, "chr1", 5000, 6000), gap_id);
+		I_EQUAL(db.gapId(3999, "chr2", 5001, 6001), -1);
 
+		db.updateGapStatus(gap_id, "closed");
+		db.updateGapStatus(gap_id, "closed");
+		IS_TRUE(db.getValue("SELECT history FROM gaps WHERE id=" + QString::number(gap_id)).toString().contains("closed"));
+
+		db.addGapComment(gap_id, "my_comment");
+		IS_TRUE(db.getValue("SELECT history FROM gaps WHERE id=" + QString::number(gap_id)).toString().contains("my_comment"));
 	}
 
 	inline void report_germline()
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
@@ -1376,7 +1438,7 @@ private slots:
 		NGSD db(true);
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in2.sql"));
-		LoginManager::login("ahmustm1", true);
+		LoginManager::login("ahmustm1", "", true);
 
 		QDate report_date = QDate::fromString("2021-02-19", Qt::ISODate);
 
@@ -1386,7 +1448,8 @@ private slots:
 		CnvList cnvs;
 		cnvs.load(TESTDATA("../cppNGS-TEST/data_in/panel_cnvs_clincnv.tsv"));
 		BedpeFile svs;
-		svs.load(TESTDATA("../cppNGS-TEST/data_in/panel_svs.bedpe"));
+		svs.load(TESTDATA("/data_in/sv_manta.bedpe"));
+
 		PrsTable prs;
 		prs.load(TESTDATA("../cppNGS-TEST/data_in/panel_prs.tsv"));
 		ReportSettings report_settings;
@@ -1453,15 +1516,46 @@ private slots:
 			var_conf.report_type = "diagnostic variant";
 			report_settings.report_config->set(var_conf);
 
-			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 0)); //SV - breakpoint
+			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 3)); //SV - Insertion
 			var_conf.variant_type = VariantType::SVS;
-			var_conf.variant_index = 0;
+			var_conf.variant_index = 3;
 			var_conf.causal = false;
 			var_conf.mosaic = false;
 			var_conf.de_novo = false;
 			var_conf.comp_het = false;
 			var_conf.report_type = "diagnostic variant";
 			report_settings.report_config->set(var_conf);
+
+			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 12)); //SV - breakpoint
+			var_conf.variant_type = VariantType::SVS;
+			var_conf.variant_index = 12;
+			var_conf.causal = false;
+			var_conf.mosaic = false;
+			var_conf.de_novo = false;
+			var_conf.comp_het = false;
+			var_conf.report_type = "diagnostic variant";
+			report_settings.report_config->set(var_conf);
+
+			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 16)); //SV - Deletion
+			var_conf.variant_type = VariantType::SVS;
+			var_conf.variant_index = 16;
+			var_conf.causal = false;
+			var_conf.mosaic = false;
+			var_conf.de_novo = false;
+			var_conf.comp_het = false;
+			var_conf.report_type = "diagnostic variant";
+			report_settings.report_config->set(var_conf);
+
+			OtherCausalVariant causal_variant;
+			causal_variant.coordinates = "chr2:123456-789012";
+			causal_variant.gene = "EPRS";
+			causal_variant.type = "uncalled CNV";
+			causal_variant.inheritance = "AR";
+			causal_variant.comment = "This is a comment!\n And it has\n multiple lines!\n";
+			causal_variant.comment_reviewer1 = "This is a comment from reviewer1!";
+			causal_variant.comment_reviewer2 = "This is a comment from reviewer2!";
+			report_settings.report_config->setOtherCausalVariant(causal_variant);
+			report_settings.select_other_causal_variant = true;
 
 			report_settings.show_coverage_details = true;
 			report_settings.roi_low_cov = true;
@@ -1484,7 +1578,6 @@ private slots:
 			COMPARE_FILES("out/germline_report2.xml", TESTDATA("data_out/germline_report2.xml"));
 		}
 
-
 		//############################### TEST 3 - english ###############################
 		{
 			report_settings.language = "english";
@@ -1496,8 +1589,21 @@ private slots:
 			COMPARE_FILES("out/germline_report3.html", TESTDATA("data_out/germline_report3.html"));
 		}
 
+		//############################### TEST 4 - report type 'all' ###############################
+		{
+			report_settings.report_type = "all";
+			report_settings.language = "german";
 
-		//############################### TEST 4 - evaluation sheet ###############################
+			GermlineReportGenerator generator(data, true);
+			generator.overrideDate(report_date);
+
+			generator.writeHTML("out/germline_report4.html");
+			COMPARE_FILES("out/germline_report4.html", TESTDATA("data_out/germline_report4.html"));
+			generator.writeXML("out/germline_report4.xml", "out/germline_report4.html");
+			COMPARE_FILES("out/germline_report4.xml", TESTDATA("data_out/germline_report4.xml"));
+		}
+
+		//############################### TEST 5 - evaluation sheet ###############################
 		{
 			GermlineReportGenerator generator(data, true);
 			generator.overrideDate(report_date);
@@ -1535,8 +1641,7 @@ private slots:
 	//Tests for SomaticReportConfiguration and specific somatic variants
 	inline void report_somatic()
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
 		QCoreApplication::setApplicationVersion("0.1-cppNGSD-TEST-Version"); //application version (is written into somatic xml report)
 		//init
@@ -1544,7 +1649,7 @@ private slots:
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in1.sql"));
 		//log in user
-		LoginManager::login("ahmustm1", true);
+		LoginManager::login("ahmustm1", "", true);
 
 
 
@@ -1856,6 +1961,9 @@ private slots:
 		settings.report_config = res_config;
 		settings.tumor_ps = "DX184894_01";
 		settings.normal_ps = "DX184263_01";
+		settings.target_region_filter.name = "SureSelect Somatic vTEST";
+		settings.target_region_filter.genes = GeneSet::createFromFile(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test_genes.txt"));;
+		settings.target_region_filter.regions.load(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test.bed"));
 
 
 		//Test somatic XML report
@@ -1865,8 +1973,8 @@ private slots:
 		CnvList cnvs_filtered = SomaticReportSettings::filterCnvs(cnvs,settings);
 
 		SomaticXmlReportGeneratorData xml_data(GenomeBuild::HG19, settings, vl_filtered, vl_germl_filtered, cnvs_filtered);
-		xml_data.processing_system_roi.load(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test.bed"));
-		xml_data.processing_system_genes = GeneSet::createFromFile(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test_genes.txt"));
+
+
 		IS_THROWN(ArgumentException, xml_data.check());
 
 		xml_data.mantis_msi = 0.74;
@@ -1875,10 +1983,22 @@ private slots:
 		xml_data.tumor_content_clonality = 0.8;
 		xml_data.tumor_content_snvs = 0.73;
 
+		xml_data.rtf_part_summary = "I am the summary part of the RTF report";
+		xml_data.rtf_part_relevant_variants = "relevant SNVs and INDELs";
+		xml_data.rtf_part_unclear_variants = "unclear SNVs";
+		xml_data.rtf_part_cnvs = "chromosomal aberrations";
+		xml_data.rtf_part_svs = "Fusions";
+		xml_data.rtf_part_pharmacogenetics = "RTF pharmacogenomics table";
+		xml_data.rtf_part_general_info = "general meta data";
+		xml_data.rtf_part_igv_screenshot = "89504E470D0A1A0A0000000D4948445200000002000000020802000000FDD49A73000000097048597300002E2300002E230178A53F76000000164944415408D763606060686E6E66F8FFFFFF7F0606001FCD0586CC377DEC0000000049454E44AE426082";
+		xml_data.rtf_part_mtb_summary = "MTB summary";
 
-		QString out = SomaticXmlReportGenerator::generateXML(xml_data, db, true);
 
-		Helper::storeTextFile("out/somatic_report.xml", out.split("\n"));
+
+		QSharedPointer<QFile> out_file = Helper::openFileForWriting("out/somatic_report.xml");
+		SomaticXmlReportGenerator::generateXML(xml_data, out_file, db, true);
+		out_file->close();
+
 		COMPARE_FILES("out/somatic_report.xml", TESTDATA("data_out/somatic_report.xml"));
 
 
@@ -2088,13 +2208,24 @@ private slots:
 		I_EQUAL(subpanel_regions.count(), 20);
 		I_EQUAL(subpanel_regions.baseCount(), 2508);
 
+
+		QList<PathwayInfo> pathways = db.getSomaticPathways("SMARCA1");
+		I_EQUAL(pathways.count(), 2);
+		S_EQUAL(pathways[0].symbol, "SMARCA1");
+		S_EQUAL(pathways[0].pathway, "DNA damage repair");
+
+		S_EQUAL(pathways[1].symbol, "SMARCA1");
+		S_EQUAL(pathways[1].pathway, "chromatin remodeling");
+
+		QList<PathwayInfo> pathways_qars = db.getSomaticPathways("BRAF");
+		S_EQUAL(pathways_qars[0].symbol, "BRAF");
+		S_EQUAL(pathways_qars[0].pathway, "Hedgehog");
 	}
 
 	//Test tumor only RTF report generation
 	void report_tumor_only()
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
 		NGSD db(true);
 		db.init();
@@ -2156,13 +2287,75 @@ private slots:
 		COMPARE_FILES("out/tumor_only_report.xml",  TESTDATA("data_out/tumor_only_report.xml") );
 	}
 
+	//Test for RNA expression data
+	void rna_expression()
+	{
+		QString host = Settings::string("ngsd_test_host", true);
+		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in3.sql"));
+
+		//Test ENSG->gene_id mapping
+		QMap<QByteArray, QByteArray> ensg_gene_mapping = db.getEnsemblGeneMapping();
+		S_EQUAL(ensg_gene_mapping.value("ENSG00000204518"), "AADACL4");
+		S_EQUAL(ensg_gene_mapping.value("ENSG00000171735"), "CAMTA1");
+		S_EQUAL(ensg_gene_mapping.value("ENSG00000127463"), "EMC1");
+		S_EQUAL(ensg_gene_mapping.value("ENSG00000231510"), "LINC02782");
+		S_EQUAL(ensg_gene_mapping.value("ENSG00000263793"), "MIR3115");
+		S_EQUAL(ensg_gene_mapping.value("ENSG00000187583"), "PLEKHN1");
+
+		//Test expression data import
+		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in1.tsv"), "RX001_01", false, false);
+		int count = db.getValue("SELECT count(*) FROM expression").toInt();
+		I_EQUAL(count, 102);
+		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in2.tsv"), "RX002_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		I_EQUAL(count, 204);
+		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in3.tsv"), "RX003_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		I_EQUAL(count, 306);
+		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in4.tsv"), "RX004_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		I_EQUAL(count, 408);
+		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in5.tsv"), "RX005_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		I_EQUAL(count, 510);
+		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in6.tsv"), "RX006_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		I_EQUAL(count, 612);
+		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in7.tsv"), "RX007_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		I_EQUAL(count, 714);
+		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in8.tsv"), "RX008_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		I_EQUAL(count, 816);
+		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in8.tsv"), "RX008_01", true, false);
+		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		I_EQUAL(count, 816);
+
+
+		//Test expression stats:
+		QMap<QByteArray, ExpressionStats> expression_stats = db.calculateExpressionStatistics(1, "Blood");
+		F_EQUAL2(expression_stats.value("ENSG00000232596").mean, 121.091, 0.001);
+		F_EQUAL2(expression_stats.value("ENSG00000011021").stddev, 133.406, 0.001);
+		F_EQUAL2(expression_stats.value("ENSG00000049245").mean, 0.0, 0.001);
+		F_EQUAL2(expression_stats.value("ENSG00000049249").stddev, 93.0873, 0.001);
+
+		expression_stats = db.calculateExpressionStatistics(1, "Skin");
+		F_EQUAL2(expression_stats.value("ENSG00000157916").mean, 47.9532, 0.001);
+		F_EQUAL2(expression_stats.value("ENSG00000049249").stddev, 151.291, 0.001);
+		F_EQUAL2(expression_stats.value("ENSG00000283234").mean, 0.0, 0.001);
+		F_EQUAL2(expression_stats.value("ENSG00000159189").stddev, 88.6637, 0.001);
+
+
+	}
 	//Test for debugging (without initialization because of speed)
 	/*
 	void debug()
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 		NGSD db(true);
 
 		//getProcessingSystem

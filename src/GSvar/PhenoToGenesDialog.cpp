@@ -1,5 +1,6 @@
 #include "PhenoToGenesDialog.h"
 #include "Helper.h"
+#include "PhenotypeSettingsDialog.h"
 #include <QClipboard>
 #include <QFileDialog>
 #include <QMenu>
@@ -7,27 +8,19 @@
 PhenoToGenesDialog::PhenoToGenesDialog(QWidget *parent)
 	: QDialog(parent)
 	, ui()
+	, phenotype_settings_()
 {
 	ui.setupUi(this);
 
 	connect(ui.tabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 	connect(ui.store_btn, SIGNAL(pressed()), this, SLOT(storeGenesAsTSV()));
+	connect(ui.settings_btn, SIGNAL(pressed()), this, SLOT(showSettings()));
+
 	QMenu* menu = new QMenu();
 	menu->addAction("tab-separated table", this, SLOT(copyGenesToClipboardAsTable()));
 	menu->addAction("comma-separated gene list", this, SLOT(copyGenesToClipboardAsList()));
 	ui.clip_btn->setMenu(menu);
 }
-
-void PhenoToGenesDialog::setAllowedEvidences(QList<PhenotypeEvidence::Evidence> allowedEvidences)
-{
-	ui.options_selector->setEvidences(allowedEvidences);
-}
-
-void PhenoToGenesDialog::setAllowedSources(QList<PhenotypeSource::Source> allowedSources)
-{
-	ui.options_selector->setSources(allowedSources);
-}
-
 
 void PhenoToGenesDialog::copyGenesToClipboardAsTable()
 {
@@ -60,6 +53,20 @@ void PhenoToGenesDialog::storeGenesAsTSV()
 	file_prt->write(ui.genes->toPlainText().toLatin1());
 }
 
+void PhenoToGenesDialog::showSettings()
+{
+	PhenotypeSettingsDialog dlg(this);
+	dlg.setCombinationModeEnabled(false);
+	dlg.set(phenotype_settings_);
+
+	//update
+	if (dlg.exec()==QDialog::Accepted)
+	{
+		phenotype_settings_ = dlg.get();
+		emit tabChanged(1);
+	}
+}
+
 void PhenoToGenesDialog::tabChanged(int num)
 {
 	//update genes
@@ -72,7 +79,7 @@ void PhenoToGenesDialog::tabChanged(int num)
 		PhenotypeList phenos = ui.pheno_selector->selectedPhenotypes();
 		for (int i=0; i<phenos.count(); ++i)
 		{
-			GeneSet genes = db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(phenos[i].accession()), ui.options_selector->selectedSources(), ui.options_selector->selectedEvidences(), true, false);
+			GeneSet genes = db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(phenos[i].accession()), phenotype_settings_.sources, phenotype_settings_.evidence_levels, true, false);
 			foreach(QByteArray gene, genes)
 			{
 				gene2pheno[gene].append(phenos[i].name());

@@ -485,6 +485,34 @@ bool VcfLine::isInDel() const
 	return false;
 }
 
+bool VcfLine::isIns() const
+{
+    if(alt().count() > 1)
+    {
+        THROW(NotImplementedException, "Can not determine if multi allelic variant is insertion");
+    }
+
+    if(alt(0).length() > 1 && ref().length() == 1 && alt(0).at(0) == ref().at(0))
+    {
+        return true;
+    }
+    return false;
+}
+
+bool VcfLine::isDel() const
+{
+    if(alt().count() > 1)
+    {
+        THROW(NotImplementedException, "Can not determine if multi allelic variant is deletion")
+    }
+
+    if(alt(0).length() == 1 && ref().length() > 1 && alt(0).at(0) == ref().at(0))
+    {
+        return true;
+    }
+    return false;
+}
+
 //returns all not passed filters
 QByteArrayList VcfLine::failedFilters() const
 {
@@ -524,6 +552,148 @@ bool VcfLine::operator<(const VcfLine& rhs) const
 	return false;
 }
 
+void VcfLine::normalize(ShiftDirection shift_dir, const FastaFileIndex& reference)
+{
+    //skip multi-allelic and empty variants
+    if(isMultiAllelic() || alt().empty())	return;
+
+    //write out SNVs unchanged
+    if (ref_.length()==1 && alt_[0].length()==1)
+    {
+        return;
+    }
+
+    //skip all variants starting at first/ending at last base of chromosome
+    if ((pos_ == 1 && shift_dir == ShiftDirection::LEFT) || (pos_ + ref_.length() - 1 == reference.lengthOf(chr_) && shift_dir == ShiftDirection::RIGHT))
+    {
+        return;
+    }
+
+    //skip SNVs disguised as indels (e.g. ACGT => AXGT)
+    Variant::normalize(pos_, ref_, alt_[0]);
+
+    if (ref_.length()==1 && alt(0).length()==1)
+    {
+        return;
+    }
+
+    //skip complex indels (e.g. ACGT => CA)
+    //only prepend common reference base; also if no shift is desired
+    if ((ref_.length()!=0 && alt(0).length()!=0) || shift_dir == ShiftDirection::NONE)
+    {
+        pos_ -= 1;
+        ref_ = reference.seq(chr_, pos_, 1) + ref_;
+        alt_[0] = reference.seq(chr_, pos_, 1) + alt_[0];
+        return;
+    }
+
+    if (shift_dir == ShiftDirection::LEFT)
+    {
+        //left-align INSERTION
+        if (ref_.length()==0)
+        {
+            //shift block to the left
+            Sequence block = Variant::minBlock(alt(0));
+            pos_ -= block.length();
+            while(pos_ > 0 && reference.seq(chr_, pos_, block.length())==block)
+            {
+                pos_ -= block.length();
+            }
+            pos_ += block.length();
+
+            //prepend prefix base
+            pos_ -= 1;
+            ref_ = reference.seq(chr_, pos_, 1);
+            setSingleAlt(ref_ + alt(0));
+
+            //shift single-base to the left
+            while(ref_[0]==alt(0)[alt(0).count()-1])
+            {
+                pos_ -= 1;
+                ref_ = reference.seq(chr_, pos_, 1);
+                setSingleAlt(ref_ + alt(0).left(alt(0).length()-1));
+            }
+        }
+
+        //left-align DELETION
+        else
+        {
+            //shift block to the left
+            Sequence block = Variant::minBlock(ref_);
+            while(pos_ >= 1 && reference.seq(chr_, pos_, block.length())==block)
+            {
+                pos_ -= block.length();
+            }
+            pos_ += block.length();
+            //prepend prefix base
+            pos_ -= 1;
+            setSingleAlt(reference.seq(chr_, pos_, 1));
+            ref_ = alt(0) + ref_;
+
+            //shift single-base to the left
+            while(ref_[ref_.count()-1]==alt(0)[0])
+            {
+                pos_ -= 1;
+                setSingleAlt(reference.seq(chr_, pos_, 1));
+                ref_ = alt(0) + ref_.left(ref_.length()-1);
+            }
+        }
+    }
+    else if (shift_dir == ShiftDirection::RIGHT)
+    {
+        //right-align INSERTION
+        if (ref_.length()==0)
+        {
+            //shift block to the right
+            Sequence block = Variant::minBlock(alt(0));
+            pos_ += block.length() - 1;
+            while(pos_ < reference.lengthOf(chr_) - block.length() && reference.seq(chr_, pos_, block.length())==block)
+            {
+                pos_ += block.length();
+            }
+            pos_ -= block.length() - 1;
+
+            //prepend prefix base
+            pos_ -= 1;
+            ref_ = reference.seq(chr_, pos_, 1);
+            setSingleAlt(ref_ + alt(0));
+
+            //shift single-base to the right
+            while(reference.seq(chr_, pos_ + 1, 1)[0]==alt(0)[1])
+            {
+                pos_ += 1;
+                ref_ = reference.seq(chr_, pos_, 1);
+                setSingleAlt(ref_ + alt(0).right(alt(0).length()-2) + reference.seq(chr_, pos_, 1));
+            }
+        }
+
+        //right-align DELETION
+        else
+        {
+            //shift block to the right
+            Sequence block = Variant::minBlock(ref_);
+            while(pos_ < reference.lengthOf(chr_) - block.length() && reference.seq(chr_, pos_, block.length())==block)
+            {
+                pos_ += block.length();
+            }
+            pos_ -= ref_.length();
+
+            //prepend prefix base
+            pos_ -= 1;
+            setSingleAlt(reference.seq(chr_, pos_, 1));
+            ref_ = alt(0) + ref_;
+
+            //shift single-base to the right
+            while(ref_[1]==reference.seq(chr_, pos_ + ref_.length(), 1)[0])
+            {
+                pos_ += 1;
+                setSingleAlt(reference.seq(chr_, pos_, 1));
+                ref_ = reference.seq(chr_, pos_, ref_.length());
+            }
+        }
+    }
+}
+
 void VcfLine::normalize(const Sequence& empty_seq, bool to_gsvar_format)
 {
 	//skip multi-allelic and empty variants
@@ -546,11 +716,8 @@ void VcfLine::normalize(const Sequence& empty_seq, bool to_gsvar_format)
 	}
 }
 
-void VcfLine::leftNormalize(QString reference_genome)
+void VcfLine::leftNormalize(FastaFileIndex& reference)
 {
-
-	FastaFileIndex reference(reference_genome);
-
 	//leave multi-allelic variants unchanged
 	if (isMultiAllelic())
 	{

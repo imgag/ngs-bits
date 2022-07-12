@@ -28,7 +28,8 @@ QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 HEADERS += \
         Helper_Test.h \
         BasicStatistics_Test.h \
-        TSVFileStream_Test.h
+        TSVFileStream_Test.h \
+        Settings_Test.h
 
 SOURCES += \
         main.cpp

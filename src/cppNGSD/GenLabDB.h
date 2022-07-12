@@ -8,7 +8,7 @@
 #include "PhenotypeList.h"
 #include "NGSD.h"
 
-/// GenLabDB accessor
+/// GenLab database access (only views that serve as API)
 class CPPNGSDSHARED_EXPORT GenLabDB
 		: public QObject
 {
@@ -22,10 +22,8 @@ public:
 	///Returns if the database connection is (still) open
 	bool isOpen() const;
 
-	///Returns all tables in the database
-	QStringList tables() const;
-	///Returns table meta data.
-	const TableInfo& tableInfo(const QString& table) const;
+	///Returns if the database is available (i.e. the credentials are in the settings file)
+	static bool isAvailable();
 
 	///Returns HPO phenotypes of a sample
 	PhenotypeList phenotypes(QString ps_name);
@@ -57,11 +55,14 @@ public:
 	///Returns sample relations
 	QList<SampleRelation> relatives(QString ps_name);
 
-	///Returns the sample gender
+	///Returns the sample gender, or an empty string if unknown.
 	QString gender(QString ps_name);
 
-	///Imports missing sample meta data (disease group/status/details) for a sample into NGSD
-	void addMissingMetaDataToNGSD(QString ps_name, bool log=false, bool add_disease_group_status=true, bool add_disease_details=true, bool add_gender=true, bool add_relations=true);
+	///Returns the patient identifier, or an empty string if it could not be determined (tries sample name if processed sample name is not found)
+	QString patientIdentifier(QString ps_name);
+
+	///Returns the list of studies the sample is part of.
+	QStringList studies(QString ps_name);
 
 protected:
 	///Copy constructor "declared away".
@@ -73,15 +74,11 @@ protected:
 		return SqlQuery(*db_);
 	}
 
-	///Adds a disease info item to the list, if it is missing. Returns if an item was added.
-	static bool addDiseaseInfoIfMissing(QString type, QString value, QDateTime date, QString user, QList<SampleDiseaseInfo>& disease_details);
-
 	///Returns the sample and processed sample name
 	static QStringList names(QString ps_name);
 
 	///The database adapter
 	QSharedPointer<QSqlDatabase> db_;
-	bool is_open_;
 
 	static QMap<QString, TableInfo> infos_;
 };

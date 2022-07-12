@@ -25,6 +25,7 @@
 #include "SomaticCnvInterpreter.h"
 #include "NGSHelper.h"
 #include "FileLocation.h"
+#include "FileInfo.h"
 
 ///Sample relation datastructure
 struct CPPNGSDSHARED_EXPORT SampleRelation
@@ -154,7 +155,7 @@ class CPPNGSDSHARED_EXPORT TableInfo
 			return output;
 		}
 
-		bool fieldExists(const QString& field_name)
+		bool fieldExists(const QString& field_name) const
 		{
 			foreach(const TableFieldInfo& entry, field_infos_)
 			{
@@ -243,12 +244,14 @@ struct CPPNGSDSHARED_EXPORT SampleData
 {
 	QString name;
 	QString name_external;
+	QString patient_identifier;
 	QString type;
 	QString gender;
 	QString quality;
 	QString comments;
 	QString disease_group;
 	QString disease_status;
+	QString tissue;
 	PhenotypeList phenotypes;
 	bool is_tumor;
 	bool is_ffpe;
@@ -278,6 +281,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleData
 	QString gender;
 	QString comments;
 	QString project_name;
+	QString project_type;
 	QString run_name;
 	QString normal_sample_name;
 	QString lab_operator;
@@ -348,6 +352,13 @@ struct CPPNGSDSHARED_EXPORT ClassificationInfo
 	QString comments;
 };
 
+///Gene pathway info
+struct CPPNGSDSHARED_EXPORT PathwayInfo
+{
+	QString symbol;
+	QString pathway;
+};
+
 
 ///Diagnostic status and report outcome information
 struct CPPNGSDSHARED_EXPORT DiagnosticStatusData
@@ -369,12 +380,14 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	QString s_name;
 	bool s_name_ext = false;
 	bool s_name_comments = false;
+	QString s_patient_identifier;
 	QString s_species;
 	QString s_type;
 	QString s_sender;
 	QString s_study;
 	QString s_disease_group;
 	QString s_disease_status;
+	QString s_tissue;
 	bool include_bad_quality_samples = true;
 	bool include_tumor_samples = true;
 	bool include_ffpe_samples = true;
@@ -394,6 +407,9 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool run_finished = false;
 	QDate r_before = QDate();
 	QString r_device_name;
+
+	//filter output to processed samples that user has access to
+	QString restricted_user;
 
 	//output options
 	QString add_path;
@@ -502,6 +518,12 @@ struct CPPNGSDSHARED_EXPORT ImportStatusGermline
 	int qc_terms = 0;
 };
 
+/// statistics data on RNA expression
+struct ExpressionStats
+{
+	double mean;
+	double stddev;
+};
 /// NGSD accessor.
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
@@ -516,6 +538,9 @@ public:
 	///Returns if the database connection is (still) open
 	bool isOpen() const;
 
+	///Returns if the database is available (i.e. the credentials are in the settings file or the application is in client-server mode)
+	static bool isAvailable(bool test_db=false);
+
 	///Returns the table list.
 	QStringList tables() const;
 	///Returns information about all fields of a table.
@@ -524,6 +549,9 @@ public:
 	QStringList checkValue(const QString& table, const QString& field, const QString& value, bool check_unique) const;
 	///Escapes SQL special characters in a text
 	QString escapeText(QString text);
+
+	///Creates a SQL dump for a given table. sql_history is a hash table that keeps track of already exported records: table name > exported IDs set.
+	void exportTable(const QString& table, QTextStream& out, QString where_clause = "", QMap<QString, QSet<int>> *sql_history = nullptr) const;	
 
 	///Creates a DBTable with data from an SQL query.
 	DBTable createTable(QString table, QString query, int pk_col_index=0);
@@ -558,9 +586,11 @@ public:
 	///Returns all possible values for a enum column.
 	QStringList getEnum(QString table, QString column) const;
 	///Checks if a table exists.
-	void tableExists(QString table);
+	bool tableExists(QString table, bool throw_error_if_not_existing=true) const;
+	///Checks if a row the the given id exists in the table.
+	bool rowExists(QString table, int id) const;
 	///Checks if a table is empty.
-	bool tableEmpty(QString table);
+	bool tableEmpty(QString table) const;
 	///Clears all contents from a table.
 	void clearTable(QString table);
 
@@ -573,8 +603,10 @@ public:
 	/*** gene/transcript handling ***/
 	///Returns the gene ID, or -1 if none approved gene name could be found. Checks approved symbols, previous symbols and synonyms.
 	int geneToApprovedID(const QByteArray& gene);
-	///Returns the gene symbol for a gene ID
+	///Returns the gene symbol for a gene ID.
 	QByteArray geneSymbol(int id);
+	///Returns the HGNC identifier of a gene.
+	QByteArray geneHgncId(int id);
 	///Returns the the approved gene symbol or "" if it could not be determined.
 	QByteArray geneToApproved(QByteArray gene, bool return_input_when_unconvertable=false);
 	///Returns the the approved gene symbols.
@@ -604,7 +636,7 @@ public:
 	///Returns transcripts of a gene (if @p coding_only is set, only coding transcripts).
 	TranscriptList transcripts(int gene_id, Transcript::SOURCE source, bool coding_only);
 	///Returns longest coding transcript of a gene.
-	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source=false, bool fallback_alt_source_nocoding=false);
+	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source=false, bool fallback_noncoding=false);
 	///Returns the list of all approved gene names
 	const GeneSet& approvedGeneNames();
 	///Returns the map of gene to preferred transcripts
@@ -623,12 +655,14 @@ public:
 	PhenotypeList phenotypes(const QByteArray& symbol);
 	///Returns all phenotypes matching the given search terms (or all terms if no search term is given)
 	PhenotypeList phenotypes(QStringList search_terms);
-	///Returns all genes associated to a phenotype. If "ignore_non_phenotype_terms" is set terms of the following parent terms are ignored: "Mode of inheritance", "Frequency"
+	///Returns all genes associated to a phenotype. If 'ignore_non_phenotype_terms' is set, only children of 'Phenotypic abnormality' are returned.
 	GeneSet phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype_terms=true);
-	///Returns all genes associated with a phenotype that fullfil the allowed Sources and Evidences criteria. If "ignore_non_phenotype_terms" is set terms of the following parent terms are ignored: "Mode of inheritance", "Frequency"
-	GeneSet phenotypeToGenesbySourceAndEvidence(int id, QList<PhenotypeSource::Source> allowedSources, QList<PhenotypeEvidence::Evidence> allowedEvidences, bool recursive, bool ignore_non_phenotype_terms);
+	///Returns all genes associated with a phenotype that fullfil the allowed source/evidence criteria. If 'ignore_non_phenotype_terms' is set, only children of 'Phenotypic abnormality' are returned.
+	GeneSet phenotypeToGenesbySourceAndEvidence(int id, QSet<PhenotypeSource> allowed_sources, QSet<PhenotypeEvidenceLevel> allowed_evidences, bool recursive, bool ignore_non_phenotype_terms=true);
 	///Returns all child terms of the given phenotype
 	PhenotypeList phenotypeChildTerms(int term_id, bool recursive);
+	///Returns all parent terms of the given phenotype
+	PhenotypeList phenotypeParentTerms(int term_id, bool recursive);
 	///Returns OMIM information for a gene. Several OMIM entries per gene are rare, but happen e.g. in the PAR region.
 	QList<OmimInfo> omimInfo(const QByteArray& symbol);
 	///Returns the accession (6 digit number) of the preferred OMIM phenotype for a gene. If unset, an empty string is returned.
@@ -640,7 +674,9 @@ public:
 	///Returns the NGSD sample ID file name. Throws an exception if it could not be determined.
 	QString sampleId(const QString& filename, bool throw_if_fails = true);
 	///Returns the NGSD processed sample ID from a file name or processed sample name. Throws an exception if it could not be determined.
-	QString processedSampleId(const QString& filename, bool throw_if_fails = true);
+	QString processedSampleId(const QString& filename, bool throw_if_fails = true);	
+	///Removes init data for the database
+	void removeInitData();
 
 	///Returns the project folder for a project type
 	QString projectFolder(QString type);
@@ -685,7 +721,7 @@ public:
 	QString svId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bool throw_if_fails = true);
 	///Returns the SV corresponding to the given identifiers or throws an exception if the ID does not exist.
 	///		'no_annotation' will only return the SV position
-	BedpeLine structuralVariant(int sv_id, StructuralVariantType type, const BedpeFile& svs, bool no_annotation = false);
+	BedpeLine structuralVariant(int sv_id, StructuralVariantType type, const BedpeFile& svs, bool no_annotation = false, int* callset_id = 0);
 	///Returns the SQL table name for a given StructuralVariantType
 	static QString svTableName(StructuralVariantType type);
 
@@ -697,6 +733,13 @@ public:
 
 	///Returns the germline import status.
 	ImportStatusGermline importStatus(const QString& ps_id);
+
+	///Imports expression data to the NGSD
+	void importExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
+	///Calculates statistics on all expression values of the same processing system and tissue
+	QMap<QByteArray, ExpressionStats> calculateExpressionStatistics(int sys_id, const QString& tissue_type);
+	///Creates a mapping from ENSG ensembl identifier to NGSD gene ids
+	QMap<QByteArray, QByteArray> getEnsemblGeneMapping();
 
 	/***User handling functions ***/
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.
@@ -714,6 +757,10 @@ public:
 	QString checkPassword(QString user_name, QString password, bool only_active=true);
 	///Sets the password for a NGSD user using a new random salt.
 	void setPassword(int user_id, QString password);
+	///Checks if the user has one of the given roles.
+	bool userRoleIn(QString user, QStringList roles);
+	///Checks if the user can access the processed sample. Use for users with role 'restricted_user' only, or it will be slow because the user role has to be checked every time. Uses caching for massive speed-up.
+	bool userCanAccess(int user_id, int ps_id);
 
 	/*** Main NGSD functions ***/
 	///Search for processed samples
@@ -809,10 +856,13 @@ public:
 	int getSomaticViccId(const Variant& variant);
 	void setSomaticViccData(const Variant& variant, const SomaticViccData& vicc_data, QString user_name);
 
+	///Get somatic pathways for gene. Returns empty list if not found
+	QList<PathwayInfo> getSomaticPathways(QByteArray gene);
 
-	///retrieve ID of somatic gene role
+
+	///Returns the NGSD id of a somatic gene role
 	int getSomaticGeneRoleId(QByteArray gene_symbol);
-	///retrieve somatic gene role data
+	///Returns the somatic gene role data for a gene. If there is no gene role definition and throw_on_fail=false, a invalid SomaticGeneRole instance is returned.
 	SomaticGeneRole getSomaticGeneRole(QByteArray gene, bool throw_on_fail = false);
 	///stores/updates somatic gene role data. "gene_role" has to contain valid gene
 	void setSomaticGeneRole(const SomaticGeneRole& gene_role);
@@ -892,15 +942,19 @@ public:
 	bool deleteAnalysis(int job_id);
 	///Returns the folder of an analysis job.
 	QString analysisJobFolder(int job_id);
+	///Return metdata for the logs of an analysis job by its id
+	FileInfo analysisJobLatestLogInfo(int job_id);
 	///Returns the GSVar file of an analysis job.
 	QString analysisJobGSvarFile(int job_id);
 
 	///Adds a gap for a sample and returns the gap ID.
-	int addGap(const QString& ps_id, const Chromosome& chr, int start, int end, const QString& status);
+	int addGap(int ps_id, const Chromosome& chr, int start, int end, const QString& status);
 	///Returns the gap ID. If no matching gap is found, -1 is returned.
-	int gapId(const QString& ps_id, const Chromosome& chr, int start, int end, bool exact_match=true);
+	int gapId(int ps_id, const Chromosome& chr, int start, int end);
 	///Updates the status of a gap.
 	void updateGapStatus(int id, const QString& status);
+	///Add a comment to the gap history.
+	void addGapComment(int id, const QString& comment);
 
 	///Returns quality metric for a CNV callsets (all metrics for a single sample)
 	QHash<QString, QString> cnvCallsetMetrics(int callset_id);
@@ -950,6 +1004,7 @@ protected:
 		QMap<QByteArray, QByteArray> non_approved_to_approved_gene_names;
 		QHash<int, Phenotype> phenotypes_by_id;
 		QHash<QByteArray, int> phenotypes_accession_to_id;
+		QHash<int, QSet<int>> user_access_ps; //user id => ps id set
 
 		TranscriptList gene_transcripts;
 		ChromosomalIndex<TranscriptList> gene_transcripts_index;

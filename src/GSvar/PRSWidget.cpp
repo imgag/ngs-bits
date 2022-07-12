@@ -22,8 +22,8 @@ PRSWidget::PRSWidget(QString filename, QWidget *parent)
 void PRSWidget::showContextMenu(QPoint pos)
 {
 	int row = ui_.prs->itemAt(pos)->row();
-	QString pgs = ui_.prs->item(row, prs_table_.headers().indexOf("pgs_id"))->text();
-	QString pgp = ui_.prs->item(row, prs_table_.headers().indexOf("pgp_id"))->text();
+	QString pgs = ui_.prs->item(row, prs_table_.columnIndex("pgs_id"))->text();
+	QString pgp = ui_.prs->item(row, prs_table_.columnIndex("pgp_id"))->text();
 
 
 	//create context menu based on PRS entry
@@ -50,7 +50,7 @@ void PRSWidget::showContextMenu(QPoint pos)
 	}
 	else if (action == a_citation)
 	{
-		QString citation = ui_.prs->item(row, prs_table_.headers().indexOf("citation"))->text();
+		QString citation = ui_.prs->item(row, prs_table_.columnIndex("citation"))->text();
 		if (citation.startsWith("CanRisk ("))
 		{
 			//special handling of CanRisk PRS scores

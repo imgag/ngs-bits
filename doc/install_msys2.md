@@ -1,5 +1,5 @@
 # Building ngs-bits from sources (on Windows using MSYS2 and MinGW)
-The most complicated thing with the WIndows build is the support of HTTPS. Configured incorrectly it will make impossible the use of the server API.
+The most complicated thing with the Windows build is the support of HTTPS. Configured incorrectly it will make impossible the use of the server API.
 
 ## Dependencies
 
@@ -14,8 +14,8 @@ The following depdendemcies have to be installed:
 ## htslib
 
 [This issue](https://github.com/samtools/htslib/issues/907) from the [official github repository](https://github.com/samtools/htslib) provides a lot of information about some potential problems with the Windows build. However, it should be sufficient to follow these steps:
-* Download [the latest release of htslib](https://github.com/samtools/htslib/releases/download/1.13/htslib-1.13.tar.bz2) (github page has a section with releases)
-* Unpack htslib: *tar -xjf htslib-1.13.tar.bz2*
+* Download [the latest release of htslib](https://github.com/samtools/htslib/releases/download/1.15/htslib-1.15.tar.bz2) (github page has a section with releases)
+* Unpack htslib: *tar -xjf htslib-[VERSION].tar.bz2*
 * Configure htslib to enable HTTPS support: `./configure --enable-libcurl --enable-plugins`
 * Compile the library: `make`
 * Install it into the system (you can copy the binary files to use the libary on a different system): `make install`
@@ -27,7 +27,7 @@ Clone the most recent release of ngs-bits (the source code package of GitHub doe
 
     git clone --recursive https://github.com/imgag/ngs-bits.git
 	cd ngs-bits
-	git checkout 2021_12
+	git checkout 2022_04
 	git submodule update --recursive --init
 
 ## Build

@@ -1,6 +1,6 @@
 #include "TestFramework.h"
-#include "EndpointHandler.h"
-#include "EndpointHandler.cpp"
+#include "ServerController.h"
+#include "ServerController.cpp"
 
 TEST_CLASS(EndpointHandler_Test)
 {
@@ -14,9 +14,13 @@ private slots:
 		request.setPrefix("v1");
 		request.setPath("info");
 
-		HttpResponse response = EndpointHandler::serveApiInfo(request);
+		HttpResponse response = ServerController::serveResourceAsset(request);
+		QJsonDocument json_doc = QJsonDocument::fromJson(response.getPayload());	;
+
 		IS_TRUE(response.getStatusLine().contains("200"));
-		IS_TRUE(response.getFilename().contains("api.json"));
+		S_EQUAL(json_doc.object()["name"].toString(), ToolBase::applicationName());
+		S_EQUAL(json_doc.object()["version"].toString(), ToolBase::version());
+		S_EQUAL(json_doc.object()["api_version"].toString(), NGSHelper::serverApiVersion());
     }
 
 	void test_saving_gsvar_file()
@@ -28,7 +32,7 @@ private slots:
 		QString file_copy = TESTDATA(copy_name.toLocal8Bit());
 
 		IS_FALSE(UrlManager::isInStorageAlready(file_copy));
-		UrlManager::addUrlToStorage(url_id, QFileInfo(file_copy).fileName(), QFileInfo(file_copy).absolutePath(), file_copy);
+		UrlManager::addNewUrl(url_id, UrlEntity(QFileInfo(file_copy).fileName(), QFileInfo(file_copy).absolutePath(), file_copy, url_id, QDateTime::currentDateTime()));
 		IS_TRUE(UrlManager::isInStorageAlready(file_copy));
 
 		QJsonDocument json_doc = QJsonDocument();
@@ -40,6 +44,10 @@ private slots:
 		json_array.append(json_object);
 		json_doc.setArray(json_array);
 
+
+		Session cur_session(1, QDateTime::currentDateTime());
+		SessionManager::addNewSession("token", cur_session);
+
 		HttpRequest request;
 		request.setMethod(RequestMethod::PUT);
 		request.setContentType(ContentType::TEXT_HTML);
@@ -47,11 +55,48 @@ private slots:
 		request.setPath("project_file");
 		request.addUrlParam("ps_url_id", url_id);
 		request.setBody(json_doc.toJson());
+		request.addUrlParam("token", "token");
 
-		HttpResponse response = EndpointHandler::saveProjectFile(request);
+		HttpResponse response = ServerController::saveProjectFile(request);
 		IS_TRUE(response.getStatusLine().contains("200"));
 		COMPARE_FILES(file_copy, TESTDATA("data/sample_saved_changes.gsvar"));
 		QFile::remove(copy_name);
 	}
 
+	void test_uploading_file()
+	{
+		QString url_id = ServerHelper::generateUniqueStr();
+		QString file = TESTDATA("data/sample.gsvar");
+		QString copy_name = "uploaded_file.txt";
+		QByteArray upload_file = TESTDATA("data/to_upload.txt");
+
+		IS_FALSE(UrlManager::isInStorageAlready(upload_file));
+		UrlManager::addNewUrl(url_id, UrlEntity(QFileInfo(upload_file).fileName(), QFileInfo(upload_file).absolutePath(), upload_file, url_id, QDateTime::currentDateTime()));
+		IS_TRUE(UrlManager::isInStorageAlready(upload_file));
+
+		Session cur_session(1, QDateTime::currentDateTime());
+		SessionManager::addNewSession("token", cur_session);
+
+		HttpRequest request;
+		request.setMethod(RequestMethod::POST);
+		request.setContentType(ContentType::MULTIPART_FORM_DATA);
+		request.setPrefix("v1");
+		request.setPath("upload");
+		request.addUrlParam("token", "token");
+
+		request.setMultipartFileName(copy_name);
+		request.setMultipartFileContent(Helper::loadTextFile(upload_file)[0].toLocal8Bit());
+
+		request.addHeader("Accept", "*/*");
+		request.addHeader("Content-Type", "multipart/form-data; boundary=------------------------2cb4f6c221043bbe");
+
+		HttpResponse response = ServerController::uploadFile(request);
+		IS_TRUE(response.getStatusLine().contains("400"));
+		request.addFormDataParam("ps_url_id", url_id);
+		response = ServerController::uploadFile(request);
+		IS_TRUE(response.getStatusLine().contains("200"));
+		QString file_copy = TESTDATA("data/" + copy_name.toLocal8Bit());
+		COMPARE_FILES(file_copy, upload_file);
+		QFile::remove(file_copy);
+	}
 };

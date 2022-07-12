@@ -4,10 +4,11 @@
 #include "cppNGSD_global.h"
 #include "NGSD.h"
 #include "GeneSet.h"
-#include "GenLabDB.h"
 #include "SomaticReportConfiguration.h"
 #include "SomaticReportSettings.h"
+#include "RtfDocument.h"
 #include <QDate>
+#include <QXmlStreamWriter>
 
 ///Container for XML data exchange format
 struct CPPNGSDSHARED_EXPORT SomaticXmlReportGeneratorData
@@ -28,9 +29,17 @@ struct CPPNGSDSHARED_EXPORT SomaticXmlReportGeneratorData
 	double tumor_mutation_burden;
 	double mantis_msi;
 
-	//processing system information
-	BedFile processing_system_roi;
-	GeneSet processing_system_genes;
+
+	RtfSourceCode rtf_part_summary;
+	RtfSourceCode rtf_part_relevant_variants;
+	RtfSourceCode rtf_part_unclear_variants;
+	RtfSourceCode rtf_part_cnvs;
+	RtfSourceCode rtf_part_svs;
+	RtfSourceCode rtf_part_pharmacogenetics;
+	RtfSourceCode rtf_part_general_info;
+	QByteArray rtf_part_igv_screenshot;
+	RtfSourceCode rtf_part_mtb_summary;
+
 
 	//Check whether all neccessary data is set up consistently
 	void check() const;
@@ -42,15 +51,17 @@ class CPPNGSDSHARED_EXPORT SomaticXmlReportGenerator
 public:
 	SomaticXmlReportGenerator();
 
-	static QString generateXML(const SomaticXmlReportGeneratorData &data, NGSD& db, bool test=false);
-
 	static void checkSomaticVariantAnnotation(const VariantList& vl);
 
-private:
-	static void generateXML(const SomaticXmlReportGeneratorData& data, QString& output, NGSD& db, bool test=false);
+	static void generateXML(const SomaticXmlReportGeneratorData& data, QSharedPointer<QFile> out_file, NGSD& db, bool test=false);
 
-	//validates somatic xml report against .xsd file in resources dir
-	static void validateXml(const QString& xml);
+	///validates somatic xml report against .xsd file in resources dir
+	static void validateXml(QString file_name);
+
+	///writes a ReportDocumentParts element
+	static void writeReportPartsElement(QXmlStreamWriter& w, QString name, RtfSourceCode rtf_part);
+
+
 };
 
 #endif // SOMATICXMLREPORTGENERATOR_H

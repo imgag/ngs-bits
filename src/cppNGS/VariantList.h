@@ -201,7 +201,7 @@ public:
 	///Checks if the variant is valid (without annotations). Throws ArgumentException if not.
 	void checkValid() const;
 	///Checks if the reference sequence matches the reference genome. Throws ArgumentException if not.
-	void checkReferenceSequence(const FastaFileIndex& reference);
+	void checkReferenceSequence(const FastaFileIndex& reference) const;
 
 	/// Left-align indels in repeat regions. Works for GSvar files only - assumes the variants are normalized.
 	void leftAlign(const FastaFileIndex& reference);
@@ -257,9 +257,9 @@ enum AnalysisType
 	CFDNA
 };
 ///Returns the string repesentation of the analysis type (or a human-readable version).
-QString analysisTypeToString(AnalysisType type, bool human_readable=false);
+QString CPPNGSSHARED_EXPORT analysisTypeToString(AnalysisType type, bool human_readable=false);
 ///Returns a the  repesentation of the analysis type (does not support the human-readable version).
-AnalysisType stringToAnalysisType(QString type);
+AnalysisType CPPNGSSHARED_EXPORT stringToAnalysisType(QString type);
 
 ///A list of genetic variants
 class CPPNGSSHARED_EXPORT VariantList

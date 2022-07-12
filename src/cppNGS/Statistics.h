@@ -37,14 +37,20 @@ public:
 	static QCCollection variantList(VcfFile variants, bool filter);
 	///Calculates mapping QC metrics for a target region from a BAM file. The input BED file must be merged!
 	static QCCollection mapping(const BedFile& bed_file, const QString& bam_file, const QString& ref_file, int min_mapq=1, bool is_cfdna = false);
-    ///Calculates mapping QC metrics for RNA from a BAM file.
-	static QCCollection mapping_rna(const QString& bam_file, int min_mapq=1, const QString& ref_file = QString());
-	///Calculates mapping QC metrics for WGS from a BAM file.
+	///Calculates mapping QC metrics from a BAM file.
 	static QCCollection mapping(const QString& bam_file, int min_mapq=1, const QString& ref_file = QString());
+	///Calculates mapping QC metrics for WGS from a BAM file.
+	static QCCollection mapping_wgs(const QString& bam_file, const QString& bedpath="", int min_mapq=1, const QString& ref_file = QString());
+	///Calculates mapping QC metrics for a housekeeping genes exon region from a BAM file. The input BED file must be merged!
+	static QCCollection mapping_housekeeping(const BedFile& bed_file, const QString& bam_file, const QString& ref_file, int min_mapq=1);
 	///Calculates target region statistics (term-value pairs). @p merge determines if overlapping regions are merged before calculating the statistics.
 	static QCCollection region(const BedFile& bed_file, bool merge);
 	///Calculates somatic QC metrics from BAM and VCF file
-	static QCCollection somatic(GenomeBuild build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots = false, const QString& ref_file_cram = QString());
+	static QCCollection somatic(GenomeBuild build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots = false);
+
+	///Calculates QC depths for somatic custom panel
+	static QCCollection somaticCustomDepth(const BedFile& bed_file, QString bam_file, QString ref_file, int min_mapq=1);
+
 	///Calculates mutation burden metric from somatic VCF normalized to Exome Size
 	static QCValue mutationBurdenNormalized(QString somatic_vcf, QString exons, QString target, QString tsg, QString blacklist);
 	///Calculates unnormalized raw mutation burden

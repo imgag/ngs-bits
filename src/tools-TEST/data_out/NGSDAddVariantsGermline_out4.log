@@ -1,0 +1,34 @@
+
+### importing small variants for NA12878_38 ###
+Found 0 variants already imported into NGSD!
+DEBUG: Found 0 class 4/5 variants
+Imported variants (added:36 updated:0)
+Imported 36 detected variants
+DEBUG: Skipped 18 high-AF variants!
+
+### importing CNVs for NA12878_38 ###
+caller: ClinCNV
+caller version: v1.16.1
+DEBUG: callset quality: {"fraction of outliers":"0.039","gender of sample":"F","high-quality cnvs":"49","number of iterations":"1","quality used at final iteration":"20","was it outlier after clustering":"FALSE"}
+DEBUG: chr1:248756110-248790449 cn:0 quality: {"loglikelihood":"200","qvalue":"0","regions":"2"}
+DEBUG: chr2:89156855-89160453 cn:1 quality: {"loglikelihood":"98","qvalue":"0","regions":"3"}
+DEBUG: chr2:89160714-89161453 cn:0 quality: {"loglikelihood":"217","qvalue":"0","regions":"3"}
+DEBUG: chr2:89196792-89197318 cn:0 quality: {"loglikelihood":"139","qvalue":"0","regions":"2"}
+DEBUG: chr2:89246800-89545067 cn:1 quality: {"loglikelihood":"341","qvalue":"0","regions":"35"}
+DEBUG: chr4:69403322-69434222 cn:0 quality: {"loglikelihood":"64","qvalue":"0","regions":"6"}
+DEBUG: chr7:141765495-141794474 cn:1 quality: {"loglikelihood":"52","qvalue":"7e-5","regions":"24"}
+DEBUG: chr9:39073866-39906177 cn:3 quality: {"loglikelihood":"64","qvalue":"0","regions":"34"}
+DEBUG: chr14:22591466-22992645 cn:3 quality: {"loglikelihood":"116","qvalue":"0.0012","regions":"84"}
+DEBUG: chr14:24436399-24473620 cn:1 quality: {"loglikelihood":"83","qvalue":"0","regions":"11"}
+DEBUG: chr14:106185938-106303953 cn:1 quality: {"loglikelihood":"453","qvalue":"0","regions":"16"}
+DEBUG: chr14:106304718-106311277 cn:0 quality: {"loglikelihood":"185","qvalue":"0","regions":"5"}
+DEBUG: chr14:106311689-106321357 cn:1 quality: {"loglikelihood":"227","qvalue":"0","regions":"4"}
+DEBUG: chr14:106321992-106330864 cn:1 quality: {"loglikelihood":"100","qvalue":"0","regions":"6"}
+DEBUG: chr14:106331388-106368547 cn:0 quality: {"loglikelihood":"944","qvalue":"0","regions":"17"}
+DEBUG: chr14:106369455-106668051 cn:1 quality: {"loglikelihood":"433","qvalue":"0","regions":"45"}
+DEBUG: chr15:20770436-22706789 cn:1 quality: {"loglikelihood":"72","qvalue":"0.12978","regions":"75"}
+DEBUG: chr20:1585367-1585725 cn:8 quality: {"loglikelihood":"52","qvalue":"0","regions":"1"}
+DEBUG: chr22:22453137-23223594 cn:1 quality: {"loglikelihood":"1354","qvalue":"0","regions":"88"}
+DEBUG: chr22:23228428-23237894 cn:0 quality: {"loglikelihood":"213","qvalue":"0","regions":"4"}
+Imported cnvs: 20
+Skipped low-quality cnvs: 1

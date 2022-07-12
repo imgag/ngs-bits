@@ -1,7 +1,7 @@
 /// @file htslib/hfile.h
 /// Buffered low-level input/output streams.
 /*
-    Copyright (C) 2013-2019 Genome Research Ltd.
+    Copyright (C) 2013-2021 Genome Research Ltd.
 
     Author: John Marshall <jm18@sanger.ac.uk>
 
@@ -31,6 +31,13 @@ DEALINGS IN THE SOFTWARE.  */
 #include <sys/types.h>
 
 #include "hts_defs.h"
+
+// Ensure ssize_t exists within this header. All #includes must precede this,
+// and ssize_t must be undefined again at the end of this header.
+#if defined _MSC_VER && defined _INTPTR_T_DEFINED && !defined _SSIZE_T_DEFINED && !defined ssize_t
+#define HTSLIB_SSIZE_T
+#define ssize_t intptr_t
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -316,8 +323,61 @@ purpose other than closing.
 HTSLIB_EXPORT
 char *hfile_mem_steal_buffer(hFILE *file, size_t *length);
 
+/// Fills out sc_list[] with the list of known URL schemes.
+/**
+ * @param plugin   [in]     Restricts schemes to only those from 'plugin.
+ * @param sc_list  [out]    Filled out with the scheme names
+ * @param nschemes [in/out] Size of sc_list (in) and number returned (out)
+ *
+ * Plugin may be passed in as NULL in which case all schemes are returned.
+ * Use plugin "built-in" to list the built in schemes.
+ * The size of sc_list is determined by the input value of *nschemes.
+ * This is updated to return the output size.  It is up to the caller to
+ * determine whether to call again with a larger number if this is too small.
+ *
+ * The return value represents the total number found matching plugin, which
+ * may be larger than *nschemes if too small a value was specified.
+ *
+ * @return the number of schemes found on success.
+ *         -1 on failure
+ */
+HTSLIB_EXPORT
+int hfile_list_schemes(const char *plugin, const char *sc_list[], int *nschemes);
+
+/// Fills out plist[] with the list of known hFILE plugins.
+/*
+ * @param plist    [out]    Filled out with the plugin names
+ * @param nplugins [in/out] Size of plist (in) and number returned (out)
+ *
+ * The size of plist is determined by the input value of *nplugins.
+ * This is updated to return the output size.  It is up to the caller to
+ * determine whether to call again with a larger number if this is too small.
+ *
+ * The return value represents the total number found, which may be
+ * larger than *nplugins if too small a value was specified.
+ *
+ * @return the number of plugins found on success.
+ *         -1 on failure
+ */
+HTSLIB_EXPORT
+int hfile_list_plugins(const char *plist[], int *nplugins);
+
+/// Tests for the presence of a specific hFILE plugin.
+/*
+ * @param name     The name of the plugin to query.
+ *
+ * @return 1 if found, 0 otherwise.
+ */
+HTSLIB_EXPORT
+int hfile_has_plugin(const char *name);
+
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef HTSLIB_SSIZE_T
+#undef HTSLIB_SSIZE_T
+#undef ssize_t
 #endif
 
 #endif

@@ -29,7 +29,7 @@ void PasswordDialog::checkValid()
 	bool ok = true;
 
 	//check old password
-	QString msg_old = db_.checkPassword(LoginManager::user(), ui_.old->text().trimmed());
+	QString msg_old = db_.checkPassword(LoginManager::userLogin(), ui_.old->text().trimmed());
 	if (!msg_old.isEmpty())
 	{
 		ui_.old->setToolTip("The given password is not correct!");

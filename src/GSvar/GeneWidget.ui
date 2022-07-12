@@ -678,7 +678,7 @@
         </column>
         <column>
          <property name="text">
-          <string>preferred transcipt</string>
+          <string>biotype</string>
          </property>
         </column>
         <column>
@@ -689,6 +689,11 @@
         <column>
          <property name="text">
           <string>RefSeq</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>flags</string>
          </property>
         </column>
        </widget>

@@ -28,9 +28,9 @@ INSERT INTO processing_system (id, name_manufacturer, shotgun, name_short, genom
 (2, 'SureSelect Human All Exon v5', '1', 'ssHAEv5', 1);
 
 -- sample
-INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, quality, disease_group, disease_status) VALUES
-(1, 'NA12878', 'DNA', 1, 'female', '0', '0', 1, 'good', 'Neoplasms', 'Affected'),
-(2, 'NA12880', 'DNA', 1, 'female', '1', '0', 1, 'good', 'n/a', 'n/a');
+INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, quality, disease_group, disease_status, tissue) VALUES
+(1, 'NA12878', 'DNA', 1, 'female', '0', '0', 1, 'good', 'Neoplasms', 'Affected', 'Blood'),
+(2, 'NA12880', 'DNA', 1, 'female', '1', '0', 1, 'good', 'n/a', 'n/a', 'Skin');
 
 -- processed_sample
 INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id, quality) VALUES
@@ -91,8 +91,8 @@ INSERT INTO `report_configuration`(`id`, `processed_sample_id`, `created_by`, `c
 (1,2,99,'2019-12-11 15:19:26'),
 (2,3,99,'2019-12-11 15:19:26');
 
-INSERT INTO `variant` (`id`, `chr`, `start`, `end`, `ref`, `obs`, `1000g`, `gnomad`, `coding`, `comment`) VALUES
-(1, 'chr1', 115256554, 115256554, 'A', 'G', NULL, NULL, 'NRAS:ENST00000369535:synonymous_variant:LOW:exon3/7:c.157T>C:p.Leu53=:PF00071', NULL);
+INSERT INTO `variant` (`id`, `chr`, `start`, `end`, `ref`, `obs`, `gnomad`, `coding`, `comment`) VALUES
+(1, 'chr1', 115256554, 115256554, 'A', 'G', NULL, 'NRAS:ENST00000369535:synonymous_variant:LOW:exon3/7:c.157T>C:p.Leu53=:PF00071', NULL);
 
 INSERT INTO `report_configuration_variant` (`id`, `report_configuration_id`, `variant_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES
 (1, 1, 1, 'diagnostic variant', 1, 'n/a', 0, 0, 0, 0, 0, 0, 0, 0, '', '');

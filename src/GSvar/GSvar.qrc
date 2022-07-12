@@ -73,8 +73,9 @@
         <file>Icons/Link.png</file>
         <file>Icons/Decipher.png</file>
         <file>Icons/Table.png</file>
-        <file>Icons/Report exclude.png</file>
+        <file>Icons/Report_exclude.png</file>
         <file>Icons/Report_add.png</file>
+        <file>Icons/Report_add_causal.png</file>
         <file>Icons/NGSD_gene.png</file>
         <file>Icons/Filter_clear.png</file>
         <file>Icons/File.png</file>
@@ -116,5 +117,11 @@
         <file>Icons/QC.png</file>
         <file>Icons/analysis_info.png</file>
         <file>Icons/GoogleScholar.png</file>
+        <file>Icons/Report_exclude_visible.png</file>
+        <file>Icons/Comment.png</file>
+        <file>Icons/Lock.png</file>
+        <file>Icons/MosaicVariant.png</file>
+        <file>Icons/Report_info.png</file>
+        <file>Icons/settings.png</file>
     </qresource>
 </RCC>

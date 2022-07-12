@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resources/hg19_439_omim_genes.bed</file>
+        <file>resources/hg38_440_omim_genes.bed</file>
+    </qresource>
+</RCC>

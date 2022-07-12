@@ -39,7 +39,7 @@ void HttpRequest::addHeader(QString key, QString value)
 	}
 	if (!headers_[key].contains(value.toLower()))
 	{
-		headers_[key].append(value.trimmed().toLower());
+		headers_[key].append(value.trimmed());
 	}
 }
 
@@ -66,6 +66,36 @@ void HttpRequest::setBody(QByteArray body)
 QByteArray HttpRequest::getBody() const
 {
 	return body_;
+}
+
+void HttpRequest::addFormDataParam(QString key, QString value)
+{
+	form_data_params_.insert(key, value);
+}
+
+QMap<QString, QString> HttpRequest::getFormDataParams() const
+{
+	return form_data_params_;
+}
+
+void HttpRequest::setMultipartFileName(QString file)
+{
+	multipart_file_name_ = file;
+}
+
+QString HttpRequest::getMultipartFileName() const
+{
+	return multipart_file_name_;
+}
+
+void HttpRequest::setMultipartFileContent(QByteArray content)
+{
+	multipart_file_content_ = content;
+}
+
+QByteArray HttpRequest::getMultipartFileContent() const
+{
+	return multipart_file_content_;
 }
 
 void HttpRequest::setPrefix(QString prefix)
@@ -134,17 +164,17 @@ QMap<QString, QString> HttpRequest::getFormUrlEncoded() const
 	return form_urlencoded_;
 }
 
-void HttpRequest::addPathParam(QString param)
+void HttpRequest::addPathItem(QString param)
 {
-	path_params_.append(param);
+	path_items_.append(param);
 }
 
-void HttpRequest::setPathParams(QList<QString> params)
+void HttpRequest::setPathItems(QList<QString> params)
 {
-	path_params_ = params;
+	path_items_ = params;
 }
 
-QList<QString> HttpRequest::getPathParams() const
+QList<QString> HttpRequest::getPathItems() const
 {
-	return path_params_;
+	return path_items_;
 }

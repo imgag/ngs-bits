@@ -19,8 +19,8 @@ public:
 	{
 		setDescription("Calculate somatic CNV metrics based on CNV file.");
 		addInfile("in", "Input somatic ClinCNV file in TSV format.", false);
-		addOutfile("out", "Output qcML file.", false);
 		//optoinal
+		addOutfile("out", "Output qcML file. Writes to stdout otherwise.", true);
 		addEnum("build", "Reference genome to be used.", true, QStringList() << "hg19" << "hg38", "hg38");
 		addString("tid", "Tumor processed sample ID (for retrieving CNVs flagged as artefact from NGSD.)", true);
 		addString("nid", "Normal processed sample ID (for retrieving CNVs flagged as artefact from NGSD.)", true);
@@ -62,7 +62,28 @@ public:
 		QString parameters = "-build " + buildToString(build);
 		if( !t_ps.isEmpty() ) parameters += " -tid " + t_ps;
 		if( !n_ps.isEmpty() ) parameters += " -nid " + n_ps;
-		result.storeToQCML(out, QStringList(), parameters, QMap< QString, int >(), metadata);
+		if( !out.isEmpty() ) parameters += " -out " +out;
+
+		if(!out.isEmpty())
+		{
+			result.storeToQCML(out, QStringList(), parameters, QMap< QString, int >(), metadata);
+		}
+		else
+		{
+			QTextStream ostream(stdout);
+			//header
+			ostream << "#" << "FILE"  << (t_ps.isEmpty() ? "" : "\tTID") << (n_ps.isEmpty() ? "" : "\tNID") << "\t" << "LOH" << "\t" << "TAI" << "\t" << "LST" << endl;
+
+			QStringList res;
+			res << QFileInfo(in).fileName();
+			if(!t_ps.isEmpty()) res << t_ps;
+			if(!n_ps.isEmpty()) res << n_ps;
+			res << QString::number(result.value("QC:2000062", true).asInt()); //LOH
+			res << QString::number(result.value("QC:2000063", true).asInt()); //TAI
+			res << QString::number(result.value("QC:2000064", true).asInt()); //LST
+
+			ostream << res.join("\t") << endl;
+		}
 	}
 };
 

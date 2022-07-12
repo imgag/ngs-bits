@@ -535,25 +535,14 @@ QByteArrayList BamReader::headerLines() const
 	return output;
 }
 
-QByteArray BamReader::build() const
+GenomeBuild BamReader::build() const
 {
-	foreach(const QByteArray& line, headerLines())
-	{
-		if (line.startsWith("@PG"))
-		{
-			foreach(QByteArray part, line.split(' '))
-			{
-				if (part.endsWith(".fa"))
-				{
-					QByteArray genome = part.split('/').last();
-					genome.truncate(genome.length()-3);
-					return genome;
-				}
-			}
-		}
-	}
+	int chr1_size = chromosomeSize(Chromosome("chr1"));
 
-	return "";
+	if (chr1_size==249250621) return GenomeBuild::HG19;
+	if (chr1_size==248956422) return GenomeBuild::HG38;
+
+	THROW(Exception, "Could not determine genome build of BAM file '" + bam_file_ + "'!");
 }
 
 void BamReader::setRegion(const Chromosome& chr, int start, int end)

@@ -54,7 +54,7 @@ QStringList ReportVariantConfiguration::getClassificationOptions()
 
 ReportConfiguration::ReportConfiguration()
 	: variant_config_()
-	, created_by_(LoginManager::user())
+	, created_by_(LoginManager::userLogin())
 	, created_at_(QDateTime::currentDateTime())
 	, last_updated_by_()
 	, last_updated_at_(QDateTime())
@@ -76,7 +76,7 @@ QList<int> ReportConfiguration::variantIndices(VariantType type, bool only_selec
 	{
 		if (var_conf.variant_type!=type) continue;
 		if (only_selected && !var_conf.showInReport()) continue;
-		if (!report_type.isNull() && var_conf.report_type!=report_type) continue;
+		if (!report_type.isNull() && report_type!="all" && var_conf.report_type!=report_type) continue;
 
 		output << var_conf.variant_index;
 	}
@@ -104,6 +104,17 @@ const ReportVariantConfiguration& ReportConfiguration::get(VariantType type, int
 	}
 
 	THROW(ArgumentException, "Report configuration not found for variant with index '" + QString::number(index) + "'!");
+}
+
+OtherCausalVariant ReportConfiguration::otherCausalVariant()
+{
+	return other_causal_variant_;
+}
+
+void ReportConfiguration::setOtherCausalVariant(const OtherCausalVariant& causal_variant)
+{
+	other_causal_variant_ = causal_variant;
+	emit variantsChanged();
 }
 
 void ReportConfiguration::set(const ReportVariantConfiguration& config)
@@ -235,6 +246,15 @@ QString ReportConfiguration::variantSummary() const
 	if (c_cnv_causal>0) output.last().append(" (" + QString::number(c_cnv_causal) + " causal)");
 	output << ("SVs: " + QString::number(c_sv));
 	if (c_sv_causal>0) output.last().append(" (" + QString::number(c_sv_causal) + " causal)");
+	OtherCausalVariant test = other_causal_variant_;
+	if (other_causal_variant_.isValid())
+	{
+		output << "other causal variant: 1";
+	}
+	else
+	{
+		output << "other causal variant: 0";
+	}
 
 	return output.join("\n");
 }

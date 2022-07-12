@@ -1,0 +1,12 @@
+housekeeping genes read percentage: 9.92
+housekeeping genes read depth: 37.07
+housekeeping genes 10x percentage: 100.00
+housekeeping genes 20x percentage: 48.05
+housekeeping genes 30x percentage: 43.28
+housekeeping genes 50x percentage: 32.36
+housekeeping genes 100x percentage: 2.09
+housekeeping genes 200x percentage: 0.93
+housekeeping genes 500x percentage: 0.00
+aberrant spliced gene count: 3
+outlier gene count: 3
+covered gene count: 36

@@ -6,6 +6,8 @@
 #include "NGSD.h"
 #include "BamReader.h"
 #include "ui_SomaticReportDialog.h"
+#include "MainWindow.h"
+#include "HttpHandler.h"
 
 class SomaticReportDialog
 		: public QDialog
@@ -14,7 +16,7 @@ class SomaticReportDialog
 
 public:
 	///constructor
-	SomaticReportDialog(SomaticReportSettings& settings, const CnvList& cnvs, const VariantList& germl_variants, QWidget* parent = 0);
+	SomaticReportDialog(QString project_filename, SomaticReportSettings& settings, const CnvList& cnvs, const VariantList& germl_variants, QWidget* parent = 0);
 
 	enum report_type
 	{
@@ -47,6 +49,7 @@ private:
 	double tum_cont_histological_;
 
 	QString limitations_;
+	QString project_filename_;
 
 
 public slots:
@@ -71,8 +74,15 @@ private slots:
 	///Disable/Enable limitations text field
 	void limitationState();
 
+	///Creates screenshot with somatic tracks from IGV
+	void createIgvScreenshot();
+
+	///Updates hint whether IGV snapshot file is available.
+	void updateIgvText();
+
 	///Returns list of all chromosomes checked in CIN tab
 	QList<QString> resolveCIN();
+
 };
 
 #endif // SOMATICREPORTDIALOG_H

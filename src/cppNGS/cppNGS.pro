@@ -38,9 +38,6 @@ QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 SOURCES += BedFile.cpp \
     Chromosome.cpp \
-    FileLocationList.cpp \
-    FileLocationProviderLocal.cpp \
-    FileLocationProviderRemote.cpp \
     VariantList.cpp \
     Statistics.cpp \
     Pileup.cpp \
@@ -75,15 +72,13 @@ SOURCES += BedFile.cpp \
     PrsTable.cpp \
     RtfDocument.cpp \
     GenomeBuild.cpp \
-    BigWigReader.cpp
+    ChainFileReader.cpp \
+    BigWigReader.cpp \
+    VariantHgvsAnnotator.cpp
 
 HEADERS += BedFile.h \
     Chromosome.h \
-    FileLocation.h \
-    FileLocationList.h \
-    FileLocationProvider.h \
-    FileLocationProviderLocal.h \
-    FileLocationProviderRemote.h \
+    FileInfo.h \
     VariantList.h \
     ChromosomalIndex.h \
     Statistics.h \
@@ -124,7 +119,9 @@ HEADERS += BedFile.h \
     GraphNode.h \
     GraphEdge.h \
     GenomeBuild.h \
-    BigWigReader.h
+    ChainFileReader.h \
+    BigWigReader.h \
+    VariantHgvsAnnotator.h
 
 RESOURCES += \
     cppNGS.qrc

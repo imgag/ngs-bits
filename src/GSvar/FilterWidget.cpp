@@ -5,7 +5,7 @@
 #include "Log.h"
 #include "ScrollableTextDialog.h"
 #include "PhenotypeSelectionWidget.h"
-#include "PhenotypeSourceEvidenceSelector.h"
+#include "PhenotypeSettingsDialog.h"
 #include "GUIHelper.h"
 #include "GSvarHelper.h"
 #include "DBSelector.h"
@@ -43,7 +43,7 @@ FilterWidget::FilterWidget(QWidget *parent)
 	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
 	connect(ui_.report_config, SIGNAL(currentIndexChanged(int)), this, SLOT(reportConfigFilterChanged()));
 
-	QAction* action = new QAction("clear", this);
+	QAction* action = new QAction(QIcon(":/Icons/Trash.png"), "clear");
 	connect(action, &QAction::triggered, this, &FilterWidget::clearTargetRegion);
 	ui_.roi->addAction(action);
 
@@ -58,22 +58,12 @@ FilterWidget::FilterWidget(QWidget *parent)
 
 	try
 	{
-		loadTargetRegions();
-	}
-	catch(Exception& e)
-	{
-		Log::warn("Target region data for filter widget could not be loaded from NGSD: " + e.message());
-	}
-
-	try
-	{
 		loadFilters();
 	}
 	catch(Exception& e)
 	{
 		QMessageBox::warning(this, "Filter load failed", "Filter file could not be opened:\n" + e.message());
 	}
-
 	reset(true);
 }
 
@@ -184,6 +174,35 @@ void FilterWidget::loadTargetRegionData(TargetRegionInfo& roi, QString name)
 		{
 			roi.genes = GeneSet::createFromFile(genes_file);
 		}
+	}
+}
+
+void FilterWidget::checkGeneNames(const GeneSet& genes, QLineEdit* widget)
+{
+	if (!GlobalServiceProvider::database().enabled()) return;
+
+	QStringList errors;
+	NGSD db;
+	foreach(const QByteArray& gene, genes)
+	{
+		if (!db.approvedGeneNames().contains(gene))
+		{
+			QByteArray approved = db.geneToApproved(gene, false);
+			if (approved!="")
+			{
+				errors << "Gene symbol " + gene + " is not an approved HGNC symbol! Please use " + approved + "!";
+			}
+		}
+	}
+	if (errors.isEmpty())
+	{
+		widget->setToolTip("");
+		widget->setStyleSheet("");
+	}
+	else
+	{
+		widget->setToolTip(errors.join("\n"));
+		widget->setStyleSheet("QLineEdit {border: 2px solid red;}");
 	}
 }
 
@@ -333,27 +352,16 @@ void FilterWidget::setPhenotypes(const PhenotypeList& phenotypes)
 	phenotypesChanged();
 }
 
-const QList<PhenotypeSource::Source>& FilterWidget::allowedPhenotypeSources() const
+const PhenotypeSettings&FilterWidget::phenotypeSettings() const
 {
-	return allowed_phenotype_sources_;
+	return phenotype_settings_;
 }
 
-const QList<PhenotypeEvidence::Evidence>& FilterWidget::allowedPhenotypeEvidences() const
+void FilterWidget::setPhenotypeSettings(const PhenotypeSettings& settings)
 {
-	return allowed_phenotype_evidences_;
+	phenotype_settings_ = settings;
+	phenotypesChanged();
 }
-
-void FilterWidget::setAllowedPhenotypeSources(QList<PhenotypeSource::Source> sources)
-{
-	allowed_phenotype_sources_ = sources;
-}
-
-
-void FilterWidget::setAllowedPhenotypeEvidences(QList<PhenotypeEvidence::Evidence> evidences)
-{
-	allowed_phenotype_evidences_ = evidences;
-}
-
 
 const FilterCascade& FilterWidget::filters() const
 {
@@ -458,6 +466,7 @@ void FilterWidget::geneChanged()
 	if (genes()!=last_genes_)
 	{
 		last_genes_ = genes();
+		checkGeneNames(last_genes_, ui_.gene);
 		emit filtersChanged();
 	}
 }
@@ -479,56 +488,57 @@ void FilterWidget::reportConfigFilterChanged()
 
 void FilterWidget::phenotypesChanged()
 {
-	//update GUI
+	//update phenotype list
 	QByteArrayList tmp;
 	foreach(const Phenotype& pheno, phenotypes_)
 	{
 		tmp << pheno.name();
 	}
-
 	ui_.hpo_terms->setText(tmp.join("; "));
 
-	QString tooltip = "Phenotype/inheritance filter based on HPO terms.<br><br>Notes:<br>- This functionality is only available when NGSD is enabled.<br>- Filters based on the phenotype-associated gene loci including 5000 flanking bases.";
-
-	if ( (!phenotypes_.isEmpty()) | (! allowed_phenotype_evidences_.isEmpty()) | (! allowed_phenotype_sources_.isEmpty()))
-	{
-		tooltip += "<br>";
-	}
-
+	//update tooltip
+	QString tooltip = "Phenotype filter based on HPO terms.<br><br>Notes:<br>- This functionality is only available when NGSD is enabled.<br>- Filters based on phenotype-associated gene loci including 5000 flanking bases.";
 	if (!phenotypes_.isEmpty())
 	{
-		tooltip += "<br><nobr>Currently selected HPO terms:</nobr>";
+		tooltip += "<br><br><nobr>Selected HPO terms:</nobr>";
 		foreach(const Phenotype& pheno, phenotypes_)
 		{
 			tooltip += "<br><nobr>" + pheno.toString() + "</nobr>";
 		}
-	}
 
-	if (! allowed_phenotype_evidences_.isEmpty())
-	{
-		tooltip += "<br><nobr>Currently selected evidences:</nobr>";
+		tooltip += "<br><br><nobr>Selected phenotype-gene sources:</nobr>";
 		tooltip += "<br><nobr>";
-		foreach(const PhenotypeEvidence::Evidence& e, allowed_phenotype_evidences_)
+		foreach(const PhenotypeSource& s, phenotype_settings_.sources)
 		{
-			tooltip += PhenotypeEvidence::evidenceToString(e) + ", ";
+			tooltip += Phenotype::sourceToString(s) + ", ";
 		}
 		tooltip.chop(2);
 		tooltip += "</nobr>";
-	}
 
-	if (! allowed_phenotype_sources_.isEmpty())
-	{
-		tooltip += "<br><nobr>Currently selected Sources:</nobr>";
+		tooltip += "<br><br><nobr>Selected phenotype-gene evidence levels:</nobr>";
 		tooltip += "<br><nobr>";
-		foreach(const PhenotypeSource::Source& s, allowed_phenotype_sources_)
+		foreach(const PhenotypeEvidenceLevel& e, phenotype_settings_.evidence_levels)
 		{
-			tooltip += PhenotypeSource::sourceToString(s) + ", ";
+			tooltip += Phenotype::evidenceToString(e) + ", ";
 		}
 		tooltip.chop(2);
 		tooltip += "</nobr>";
-	}
 
+		tooltip += "<br><br><nobr>Selected phenotype combination mode:</nobr>";
+		tooltip += QString("<br>") + (phenotype_settings_.mode==PhenotypeCombimnationMode::MERGE ? "merge" : "intersect");
+	}
 	ui_.hpo_terms->setToolTip(tooltip);
+
+	//show icon if settings are changed
+	static QAction* settings_action = new QAction(QIcon(":/Icons/settings.png"), "");
+	if (phenotype_settings_!=PhenotypeSettings())
+	{
+		ui_.hpo_terms->addAction(settings_action, QLineEdit::TrailingPosition);
+	}
+	else
+	{
+		ui_.hpo_terms->removeAction(settings_action);
+	}
 
 	emit filtersChanged();
 }
@@ -632,50 +642,39 @@ void FilterWidget::showPhenotypeContextMenu(QPoint pos)
 {
 	//set up
 	QMenu menu;
-	if (LoginManager::active())
-	{
-		menu.addAction("load from NGSD");
-		menu.addAction("create sub-panel");
-		menu.addSeparator();
-		menu.addAction("options");
-		menu.addSeparator();
-	}
-	if (!phenotypes_.isEmpty())
-	{
-		menu.addAction("clear");
-	}
+	QAction* a_load = LoginManager::active() ? menu.addAction(QIcon(":/Icons/NGSD.png"), "load from NGSD") : nullptr;
+	QAction* a_subpanel = LoginManager::active() ? menu.addAction("create sub-panel") : nullptr;
+	menu.addSeparator();
+	QAction* a_settings = menu.addAction(QIcon(":/Icons/settings.png"), "settings");
+	QAction* a_clear = phenotypes_.isEmpty() ? nullptr : menu.addAction(QIcon(":/Icons/Trash.png"), "clear");
 
 	//exec
 	QAction* action = menu.exec(ui_.hpo_terms->mapToGlobal(pos));
 	if (action==nullptr) return;
 
-	if (action->text()=="clear")
+	if (action==a_clear)
 	{
 		phenotypes_.clear();
+		phenotype_settings_.revert();
 		phenotypesChanged();
 	}
-	else if (action->text()=="load from NGSD")
+	else if (action==a_load)
 	{
 		emit phenotypeImportNGSDRequested();
 	}
-	else if (action->text()=="create sub-panel")
+	else if (action==a_subpanel)
 	{
 		emit phenotypeSubPanelRequested();
 	}
-	else if (action->text()=="options")
+	else if (action==a_settings)
 	{
-		PhenotypeSourceEvidenceSelector* selector = new PhenotypeSourceEvidenceSelector(this);
-		selector->setEvidences(allowedPhenotypeEvidences());
-		selector->setSources(allowedPhenotypeSources());
-
-		auto dlg = GUIHelper::createDialog(selector, "Phenotype Filter Options", "", true);
+		PhenotypeSettingsDialog dlg(this);
+		dlg.set(phenotype_settings_);
 
 		//update
-		if (dlg->exec()==QDialog::Accepted)
+		if (dlg.exec()==QDialog::Accepted)
 		{
-			allowed_phenotype_evidences_ = selector->selectedEvidences();
-			allowed_phenotype_sources_ = selector->selectedSources();
-			emit phenotypeSourcesAndEvidencesChanged(allowed_phenotype_evidences_, allowed_phenotype_sources_);
+			phenotype_settings_ = dlg.get();
 			phenotypesChanged();
 		}
 	}

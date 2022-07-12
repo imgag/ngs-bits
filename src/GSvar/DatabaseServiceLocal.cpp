@@ -2,13 +2,20 @@
 #include "Settings.h"
 
 DatabaseServiceLocal::DatabaseServiceLocal()
-	: enabled_(Settings::boolean("NGSD_enabled"))
+	: enabled_(Settings::boolean("NGSD_enabled", true))
 {
 }
 
 bool DatabaseServiceLocal::enabled() const
 {
 	return enabled_;
+}
+
+QString DatabaseServiceLocal::checkPassword(const QString user_name, const QString password) const
+{
+	checkEnabled(__PRETTY_FUNCTION__);
+
+	return NGSD().checkPassword(user_name, password);
 }
 
 BedFile DatabaseServiceLocal::processingSystemRegions(int sys_id, bool ignore_if_missing) const
@@ -59,6 +66,13 @@ FileLocation DatabaseServiceLocal::processedSamplePath(const QString& processed_
 	return FileLocation(id, type, filename, QFile::exists(filename));
 }
 
+FileInfo DatabaseServiceLocal::analysisJobLatestLogInfo(const int& job_id) const
+{
+	checkEnabled(__PRETTY_FUNCTION__);
+
+	return NGSD().analysisJobLatestLogInfo(job_id);
+}
+
 FileLocation DatabaseServiceLocal::analysisJobGSvarFile(const int& job_id) const
 {
 	checkEnabled(__PRETTY_FUNCTION__);
@@ -68,4 +82,20 @@ FileLocation DatabaseServiceLocal::analysisJobGSvarFile(const int& job_id) const
 	QString id = db.processedSampleName(db.processedSampleId(job.samples[0].name));
 	QString filename = db.analysisJobGSvarFile(job_id);
 	return FileLocation(id, PathType::GSVAR, filename, QFile::exists(filename));
+}
+
+FileLocation DatabaseServiceLocal::analysisJobLogFile(const int& job_id) const
+{
+	checkEnabled(__PRETTY_FUNCTION__);
+
+	NGSD db;
+	AnalysisJob job = db.analysisInfo(job_id, true);
+	QString id = db.processedSampleName(db.processedSampleId(job.samples[0].name));
+	QString log = analysisJobLatestLogInfo(job_id).file_name;
+
+	//prepend folder
+	QString folder = db.analysisJobFolder(job_id);
+	log = folder + log;
+
+	return FileLocation(id, PathType::OTHER, log, QFile::exists(log));
 }

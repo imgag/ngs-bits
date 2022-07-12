@@ -252,6 +252,11 @@
           <string>classification</string>
          </property>
         </column>
+        <column>
+         <property name="text">
+          <string>comment</string>
+         </property>
+        </column>
        </widget>
       </item>
      </layout>

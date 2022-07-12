@@ -479,7 +479,7 @@ private:
 		SqlQuery ngsd_count_query = db.getQuery();
 		ngsd_count_query.prepare("SELECT s.id, s.disease_status, s.disease_group, dv.genotype FROM detected_variant dv, processed_sample ps, sample s WHERE dv.variant_id=:0 AND ps.sample_id=s.id AND ps.quality!='bad' AND dv.processed_sample_id=ps.id");
 		SqlQuery variant_query = db.getQuery();
-		variant_query.prepare("SELECT chr, start, end, ref, obs, 1000g, gnomad, comment, germline_het, germline_hom FROM variant WHERE id=:0");
+		variant_query.prepare("SELECT chr, start, end, ref, obs, gnomad, comment, germline_het, germline_hom FROM variant WHERE id=:0");
 
 		//timers
 		QElapsedTimer chr_timer;
@@ -565,11 +565,10 @@ private:
 				variant.setEnd(variant_query.value(2).toInt());
 				variant.setRef(variant_query.value(3).toByteArray());
 				variant.setObs(variant_query.value(4).toByteArray());
-				QByteArray one_thousand_g = variant_query.value(5).toByteArray();
-				QByteArray gnomad = variant_query.value(6).toByteArray();
-				QByteArray comment = variant_query.value(7).toByteArray();
-				int germline_het = variant_query.value(8).toInt();
-				int germline_hom = variant_query.value(9).toInt();
+				QByteArray gnomad = variant_query.value(5).toByteArray();
+				QByteArray comment = variant_query.value(6).toByteArray();
+				int germline_het = variant_query.value(7).toInt();
+				int germline_hom = variant_query.value(8).toInt();
 
 				// modify sequence if deletion or insertion occurs (to fit VCF specification)
 				if ((variant.ref() == "-") || (variant.obs() == "-"))
@@ -622,7 +621,7 @@ private:
 
 				QByteArrayList info_column;
 
-				if((one_thousand_g.toDouble() <= max_allel_frequency_) && (gnomad.toDouble() <= max_allel_frequency_))
+				if(gnomad.toDouble() <= max_allel_frequency_)
 				{
 					// calculate NGSD counts for each variant
 					int count_het = 0;

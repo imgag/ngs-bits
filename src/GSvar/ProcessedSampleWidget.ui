@@ -495,6 +495,17 @@
              </widget>
             </item>
             <item>
+             <widget class="QToolButton" name="genlab_import_btn">
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="GSvar.qrc">
+                <normaloff>:/Icons/GenLab.png</normaloff>:/Icons/GenLab.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QWidget" name="widget_5" native="true"/>
             </item>
            </layout>
@@ -600,7 +611,7 @@
               </property>
              </widget>
             </item>
-            <item row="2" column="0">
+            <item row="3" column="0">
              <widget class="QLabel" name="label_9">
               <property name="toolTip">
                <string>Sample sender and date/person the sample was received (by).</string>
@@ -610,7 +621,7 @@
               </property>
              </widget>
             </item>
-            <item row="2" column="1">
+            <item row="3" column="1">
              <widget class="QLabel" name="sender">
               <property name="text">
                <string>TextLabel</string>
@@ -620,14 +631,14 @@
               </property>
              </widget>
             </item>
-            <item row="3" column="0">
+            <item row="4" column="0">
              <widget class="QLabel" name="label_12">
               <property name="text">
                <string>species / type:</string>
               </property>
              </widget>
             </item>
-            <item row="3" column="1">
+            <item row="4" column="1">
              <widget class="QLabel" name="species_type">
               <property name="text">
                <string>TextLabel</string>
@@ -637,14 +648,14 @@
               </property>
              </widget>
             </item>
-            <item row="4" column="0">
+            <item row="5" column="0">
              <widget class="QLabel" name="label_8">
               <property name="text">
                <string>tumor/ FFPE:</string>
               </property>
              </widget>
             </item>
-            <item row="4" column="1">
+            <item row="5" column="1">
              <widget class="QLabel" name="tumor_ffpe">
               <property name="text">
                <string>TextLabel</string>
@@ -654,14 +665,14 @@
               </property>
              </widget>
             </item>
-            <item row="5" column="0">
+            <item row="6" column="0">
              <widget class="QLabel" name="label_7">
               <property name="text">
                <string>gender:</string>
               </property>
              </widget>
             </item>
-            <item row="5" column="1">
+            <item row="6" column="1">
              <widget class="QLabel" name="gender">
               <property name="text">
                <string>TextLabel</string>
@@ -671,7 +682,7 @@
               </property>
              </widget>
             </item>
-            <item row="6" column="0">
+            <item row="7" column="0">
              <widget class="QLabel" name="label_11">
               <property name="toolTip">
                <string>Disease group and status.</string>
@@ -681,7 +692,7 @@
               </property>
              </widget>
             </item>
-            <item row="6" column="1">
+            <item row="7" column="1">
              <widget class="QLabel" name="disease_group_status">
               <property name="text">
                <string>TextLabel</string>
@@ -691,21 +702,21 @@
               </property>
              </widget>
             </item>
-            <item row="7" column="0">
+            <item row="8" column="0">
              <widget class="QLabel" name="label_15">
               <property name="text">
                <string>sample groups:</string>
               </property>
              </widget>
             </item>
-            <item row="7" column="1">
+            <item row="8" column="1">
              <widget class="QLabel" name="sample_groups">
               <property name="text">
                <string>TextLabel</string>
               </property>
              </widget>
             </item>
-            <item row="8" column="0">
+            <item row="10" column="0">
              <widget class="QLabel" name="label_2">
               <property name="text">
                <string>comments:</string>
@@ -715,8 +726,39 @@
               </property>
              </widget>
             </item>
-            <item row="8" column="1">
+            <item row="10" column="1">
              <widget class="QLabel" name="comments_sample">
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+              <property name="textInteractionFlags">
+               <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+              </property>
+             </widget>
+            </item>
+            <item row="9" column="1">
+             <widget class="QLabel" name="tissue">
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+             </widget>
+            </item>
+            <item row="9" column="0">
+             <widget class="QLabel" name="label_29">
+              <property name="text">
+               <string>tissue:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_28">
+              <property name="text">
+               <string>patient identifier:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLabel" name="patient_identifier">
               <property name="text">
                <string>TextLabel</string>
               </property>
@@ -743,20 +785,6 @@
               <property name="icon">
                <iconset resource="GSvar.qrc">
                 <normaloff>:/Icons/Edit.png</normaloff>:/Icons/Edit.png</iconset>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="genlab_disease_btn">
-              <property name="toolTip">
-               <string>Import disease group/status from GenLab.</string>
-              </property>
-              <property name="text">
-               <string>...</string>
-              </property>
-              <property name="icon">
-               <iconset resource="GSvar.qrc">
-                <normaloff>:/Icons/GenLab.png</normaloff>:/Icons/GenLab.png</iconset>
               </property>
              </widget>
             </item>
@@ -953,6 +981,9 @@
               <height>0</height>
              </size>
             </property>
+            <property name="toolTip">
+             <string>Number of SNPs matching between KASP assay and NGS.</string>
+            </property>
             <property name="text">
              <string>SNPs matching:</string>
             </property>
@@ -967,6 +998,9 @@
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_19">
+            <property name="toolTip">
+             <string>Probability that the number of matching SNPs (or more) occurs when comparing random samples.</string>
+            </property>
             <property name="text">
              <string>swap probability:</string>
             </property>
@@ -1144,28 +1178,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QWidget" name="widget_3" native="true">
-              <widget class="QToolButton" name="genlab_relations_btn">
-               <property name="geometry">
-                <rect>
-                 <x>0</x>
-                 <y>0</y>
-                 <width>23</width>
-                 <height>22</height>
-                </rect>
-               </property>
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Import sample relations from GenLab.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string>...</string>
-               </property>
-               <property name="icon">
-                <iconset resource="GSvar.qrc">
-                 <normaloff>:/Icons/GenLab.png</normaloff>:/Icons/GenLab.png</iconset>
-               </property>
-              </widget>
-             </widget>
+             <widget class="QWidget" name="widget_3" native="true"/>
             </item>
            </layout>
           </item>

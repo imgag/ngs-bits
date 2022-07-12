@@ -17,7 +17,6 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	: QWidget(parent)
 	, ui_(new Ui::SequencingRunWidget)
 	, run_id_(run_id)
-	, qc_metric_accessions_(QStringList() << "QC:2000005" << "QC:2000023" << "QC:2000021" << "QC:2000024" << "QC:2000025" << "QC:2000027" << "QC:2000013" << "QC:2000014" << "QC:2000051")
 {
 	ui_->setupUi(this);
 	GUIHelper::styleSplitter(ui_->splitter);
@@ -36,16 +35,6 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	action = new QAction("Set quality", this);
 	ui_->samples->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(setQuality()));
-
-	//QC plot button
-	NGSD db;
-	ui_->plot_btn->setMenu(new QMenu());
-	foreach(QString accession, qc_metric_accessions_)
-	{
-		QString name = db.getValue("SELECT name FROM qc_terms WHERE qcml_id=:0", true, accession).toString();
-		name.replace("percentage", "%");
-		ui_->plot_btn->menu()->addAction(name, this, SLOT(showPlot()))->setData(accession);
-	}
 
 	updateGUI();
 }
@@ -103,16 +92,29 @@ void SequencingRunWidget::updateRunSampleTable()
 {
 	//get data from NGSD
 	QStringList headers;
-	headers << "lane" << "quality" << "sample" << "name external" << "is_tumor" << "is_ffpe" << "project" << "MID i7" << "MID i5" << "species" << "processing system" << "input [ng]" << "operator" << "comments";
+	headers << "lane" << "quality" << "sample" << "name external" << "is_tumor" << "is_ffpe" << "sample type" << "project" << "MID i7" << "MID i5" << "species" << "processing system" << "input [ng]" << "operator" << "comments";
 
 	NGSD db;
-	DBTable samples = db.createTable("processed_sample", "SELECT ps.id, ps.lane, ps.quality, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, (SELECT CONCAT(name, ' (', type, ')') FROM project WHERE id=ps.project_id), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid2_i5), (SELECT name FROM species WHERE id=s.species_id), (SELECT name_manufacturer FROM processing_system WHERE id=ps.processing_system_id), ps.processing_input, (SELECT name FROM user WHERE id=ps.operator_id), ps.comment "
+	DBTable samples = db.createTable("processed_sample", "SELECT ps.id, ps.lane, ps.quality, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, s.sample_type, (SELECT CONCAT(name, ' (', type, ')') FROM project WHERE id=ps.project_id), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid2_i5), (SELECT name FROM species WHERE id=s.species_id), (SELECT name_manufacturer FROM processing_system WHERE id=ps.processing_system_id), ps.processing_input, (SELECT name FROM user WHERE id=ps.operator_id), ps.comment "
 														  " FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id='" + run_id_ + "' "
-														  " ORDER BY ps.lane ASC, s.name ASC, ps.process_id");
+														  " ORDER BY ps.lane ASC, ps.processing_system_id ASC, s.name ASC, ps.process_id");
 
 	//format columns
 	samples.formatBooleanColumn(samples.columnIndex("tumor"));
 	samples.formatBooleanColumn(samples.columnIndex("ffpe"));
+
+	// determine QC parameter based on sample types
+	QSet<QString> sample_types = samples.extractColumn(samples.columnIndex("sample_type")).toSet();
+	setQCMetricAccessions(sample_types);
+
+	// update QC plot button
+	ui_->plot_btn->setMenu(new QMenu());
+	foreach(QString accession, qc_metric_accessions_)
+	{
+		QString name = db.getValue("SELECT name FROM qc_terms WHERE qcml_id=:0", true, accession).toString();
+		name.replace("percentage", "%");
+		ui_->plot_btn->menu()->addAction(name, this, SLOT(showPlot()))->setData(accession);
+	}
 
 	//add QC data
 	const QStringList& accessions = qc_metric_accessions_;
@@ -222,6 +224,16 @@ void SequencingRunWidget::updateRunSampleTable()
 			{
 				ui_->samples->setBackgroundColorIfLt(header, orange, 50);
 				ui_->samples->setBackgroundColorIfLt(header, red, 25);
+			}
+			if (accession=="QC:2000071") //target region read depth 2-fold duplication
+			{
+				ui_->samples->setBackgroundColorIfLt(header, orange, 1000);
+				ui_->samples->setBackgroundColorIfLt(header, red, 500);
+			}
+			if (accession=="QC:2000083") //cfDNA-tumor correlation
+			{
+				ui_->samples->setBackgroundColorIfLt(header, orange, 0.9);
+				ui_->samples->setBackgroundColorIfLt(header, red, 0.75);
 			}
 		}
 	}
@@ -413,6 +425,54 @@ void SequencingRunWidget::checkMids()
 	catch (Exception& e)
 	{
 		QMessageBox::warning(this, "MID clash detection", "Error: MID clash detection could not be performed:\n" + e.message());
+	}
+}
+
+void SequencingRunWidget::setQCMetricAccessions(const QSet<QString>& sample_types)
+{
+	// determine QC parameter based on sample types
+	qc_metric_accessions_.clear();
+	qc_metric_accessions_ << "QC:2000005"; // read count
+	qc_metric_accessions_ << "QC:2000023"; // insert size
+	qc_metric_accessions_ << "QC:2000021"; // on-target read percentage
+	qc_metric_accessions_ << "QC:2000024"; // duplicate read percentage
+	qc_metric_accessions_ << "QC:2000025"; // target region read depth
+	if (sample_types.contains("DNA") || sample_types.contains("RNA") || sample_types.contains("DNA (amplicon)") || sample_types.contains("DNA (native)"))
+	{
+		qc_metric_accessions_ << "QC:2000027"; // target region 20x percentage
+	}
+	if (sample_types.contains("cfDNA"))
+	{
+		qc_metric_accessions_ << "QC:2000065"; // target region 1000x percentage
+		qc_metric_accessions_ << "QC:2000071"; // target region read depth 2-fold duplication
+		qc_metric_accessions_ << "QC:2000073"; // target region read depth 4-fold duplication
+	}
+	if (sample_types.contains("RNA"))
+	{
+		qc_metric_accessions_ << "QC:2000101"; // housekeeping genes read depth
+		qc_metric_accessions_ << "QC:2000103"; // housekeeping genes 20x percentage
+	}
+	if (sample_types.contains("DNA") || sample_types.contains("DNA (amplicon)") || sample_types.contains("DNA (native)"))
+	{
+		qc_metric_accessions_ << "QC:2000013"; // variant count
+		qc_metric_accessions_ << "QC:2000014"; // known variants percentage
+	}
+	if (sample_types.contains("DNA") || sample_types.contains("RNA") || sample_types.contains("DNA (amplicon)") || sample_types.contains("DNA (native)"))
+	{
+		qc_metric_accessions_ << "QC:2000051"; // SNV allele frequency deviation
+	}
+	if (sample_types.contains("RNA"))
+	{
+		qc_metric_accessions_ << "QC:2000109"; // covered gene count
+		qc_metric_accessions_ << "QC:2000110"; // aberrant spliced gene count
+		qc_metric_accessions_ << "QC:2000111"; // outlier gene count
+	}
+	if (sample_types.contains("cfDNA"))
+	{
+		qc_metric_accessions_ << "QC:2000077"; // monitoring variant read depth
+		qc_metric_accessions_ << "QC:2000079"; // monitoring variant count
+		qc_metric_accessions_ << "QC:2000080"; // monitoring variant 250x percentage
+		qc_metric_accessions_ << "QC:2000083"; // cfDNA-tumor correlation
 	}
 }
 

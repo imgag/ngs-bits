@@ -10,8 +10,7 @@ private slots:
 	
 	void default_parameters()
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
 		//init
 		NGSD db(true);
@@ -25,8 +24,7 @@ private slots:
 
 	void with_all_optional_output()
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
 		//init
 		NGSD db(true);
@@ -40,8 +38,7 @@ private slots:
 
 	void with_all_search_parameters()
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
 		//init
 		NGSD db(true);
@@ -49,7 +46,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExportSamples_init.sql"));
 
 		//test
-		EXECUTE("NGSDExportSamples", "-test -sample NA12878 -species human -no_bad_samples -no_tumor -no_ffpe -project Second_project -system ssHAEv5 -run run2 -no_bad_runs -run_device Morpheus -out out/NGSDExportSamples_out3.tsv -sender Klaus-Erhard -study SomeStudy");
+		EXECUTE("NGSDExportSamples", "-test -sample NA12878 -species human -disease_group Neoplasms -disease_status Affected -tissue Blood -no_bad_samples -no_tumor -no_ffpe -project Second_project -project_type diagnostic -system ssHAEv5 -system_type WGS -run run2 -no_bad_runs -run_device Morpheus -out out/NGSDExportSamples_out3.tsv -sender Klaus-Erhard -study SomeStudy");
 		COMPARE_FILES("out/NGSDExportSamples_out3.tsv", TESTDATA("data_out/NGSDExportSamples_out3.tsv"));
 	}
 };

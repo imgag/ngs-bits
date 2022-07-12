@@ -1,7 +1,6 @@
 ##ANALYSISTYPE=SOMATIC_PAIR
 ##SAMPLE=<ID=Sample1_01>
 ##SAMPLE=<ID=Sample2_01>
-##VariantAnnotateASE_BAM=../src/tools-TEST/data_in/rnaseq.bam
 ##DESCRIPTION=tumor_af=Mutant allele frequency in tumor
 ##DESCRIPTION=tumor_dp=Tumor Depth
 ##DESCRIPTION=normal_af=Mutant allele frequency in normal

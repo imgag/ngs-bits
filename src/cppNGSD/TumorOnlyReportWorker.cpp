@@ -51,184 +51,201 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 	w.writeStartDocument();
 	w.setAutoFormatting(true);
 
-
 	w.writeStartElement("DiagnosticNgsReport");
 	w.writeAttribute("version", "1");
 	w.writeAttribute("genome_build", buildToString( config_.build, true) );
 
 
 	w.writeStartElement("ReportGeneration");
-
-		w.writeAttribute("date", (test ? "2022-01-30" : QDate::currentDate().toString("yyyy-MM-dd")) );
-		w.writeAttribute("user_name", (test ? "ahtest1" : LoginManager::user() ) );
-		w.writeAttribute("software",  (test ? "cppNGSD-TEST-CASE" : QCoreApplication::applicationName()+ " " + QCoreApplication::applicationVersion()) );
-
-	//end element ReportGeneration
+	w.writeAttribute("date", (test ? "2022-01-30" : QDate::currentDate().toString("yyyy-MM-dd")) );
+	w.writeAttribute("user_name", (test ? "ahtest1" : LoginManager::userLogin() ) );
+	w.writeAttribute("software",  (test ? "cppNGSD-TEST-CASE" : QCoreApplication::applicationName()+ " " + QCoreApplication::applicationVersion()) );
 	w.writeEndElement();
 
 
+	//sample
 	w.writeStartElement("Sample");
+	w.writeAttribute("name", config_.ps_data.name);
+	w.writeAttribute("processing_system", config_.sys.name);
+	w.writeAttribute("processing_system_type", config_.sys.type);
+	w.writeAttribute("comments", config_.ps_data.comments);
 
-		w.writeAttribute("name", config_.ps_data.name);
-		w.writeAttribute("processing_system", config_.sys.name);
+	//QC data
+	QCCollection qc_data = db_.getQCData(db_.processedSampleId(config_.ps_data.name));
+	for (int i=0; i<qc_data.count(); ++i)
+	{
+		const QCValue& term = qc_data[i];
+		if (term.type()==QVariant::ByteArray) continue; //skip plots
+		w.writeStartElement("QcTerm");
+		w.writeAttribute("id", term.accession());
+		w.writeAttribute("name", term.name());
+		w.writeAttribute("def", term.description());
+		w.writeAttribute("value", term.toString());
+		w.writeEndElement();
+	}
 
-		w.writeAttribute("processing_system_type", config_.sys.type);
-		w.writeAttribute("comment", config_.ps_data.comments);
-
-	//end element Sample
 	w.writeEndElement();
 
 	w.writeStartElement("AnalysisPipeline");
-
-		w.writeAttribute("name", "megSAP");
-		w.writeAttribute("version", variants_.getPipeline().replace("megSAP","").trimmed() );
-
-	//end element AnalysisPipeline
+	w.writeAttribute("name", "megSAP");
+	w.writeAttribute("version", variants_.getPipeline().replace("megSAP","").trimmed() );
 	w.writeEndElement();
 
 
 	w.writeStartElement("TargetRegion");
-		w.writeAttribute("name", config_.roi.name);
+	w.writeAttribute("name", config_.roi.name);
+	for(int i=0; i<config_.roi.regions.count(); ++i)
+	{
+		const auto& line = config_.roi.regions[i];
+		w.writeStartElement("Region");
+		w.writeAttribute( "chr", line.chr().str() );
+		w.writeAttribute( "start", QString::number( line.start() ) );
+		w.writeAttribute( "end", QString::number( line.end() ) );
+		w.writeEndElement();
+	}
 
-		for(int i=0; i<config_.roi.regions.count(); ++i)
+	//group gaps by gene
+	QMap<QByteArray, BedFile> gaps_by_gene;
+	if(QFileInfo::exists(config_.low_coverage_file))
+	{
+		BedFile low_cov;
+		low_cov.load(config_.low_coverage_file);
+		low_cov.intersect(config_.roi.regions);
+		for(int i=0; i<low_cov.count(); ++i)
 		{
-			const auto& line = config_.roi.regions[i];
-			w.writeStartElement("Region");
-				w.writeAttribute( "chr", line.chr().str() );
-				w.writeAttribute( "start", QString::number( line.start() ) );
-				w.writeAttribute( "end", QString::number( line.end() ) );
-			//end element Region
+			const BedLine& line = low_cov[i];
+			GeneSet genes = db_.genesOverlapping(line.chr(), line.start(), line.end(), 20); //extend by 20 to annotate splicing regions as well
+			foreach(const QByteArray& gene, genes)
+			{
+				gaps_by_gene[gene].append(line);
+			}
+		}
+	}
+
+	for(QByteArray gene : config_.roi.genes)
+	{
+		GeneInfo gene_info = db_.geneInfo(gene);
+		if(gene_info.symbol.isEmpty()) continue;
+		if(gene_info.hgnc_id.isEmpty()) continue;
+		gene = gene_info.symbol.toLatin1();
+
+		w.writeStartElement("Gene");
+		w.writeAttribute("name", gene);
+		w.writeAttribute("id", gene_info.hgnc_id);
+		int gene_id = db_.geneToApprovedID(gene);
+		Transcript transcript = db_.longestCodingTranscript(gene_id, Transcript::ENSEMBL, true, true);
+		w.writeAttribute("bases", QString::number(transcript.regions().baseCount()));
+
+		//omim info
+		QList<OmimInfo> omim_infos = db_.omimInfo(gene);
+		foreach(const OmimInfo& omim_info, omim_infos)
+		{
+			foreach(const Phenotype& pheno, omim_info.phenotypes)
+			{
+				w.writeStartElement("Omim");
+				w.writeAttribute("gene", omim_info.mim);
+				w.writeAttribute("phenotype", pheno.name());
+				if (!pheno.accession().isEmpty())
+				{
+					w.writeAttribute("phenotype_number", pheno.accession());
+				}
+				w.writeEndElement();
+			}
+		}
+
+		//gaps
+		const BedFile& gaps = gaps_by_gene[gene];
+		for(int i=0; i<gaps.count(); ++i)
+		{
+			const BedLine& line = gaps[i];
+			w.writeStartElement("Gap");
+			w.writeAttribute("chr", line.chr().str());
+			w.writeAttribute("start", QString::number(line.start()));
+			w.writeAttribute("end", QString::number(line.end()));
 			w.writeEndElement();
 		}
 
-		for(QString gene : config_.roi.genes)
-		{
-			GeneInfo gene_info = db_.geneInfo(gene.toUtf8());
-			if(gene_info.symbol.isEmpty()) continue;
-			if(gene_info.hgnc_id.isEmpty()) continue;
-
-			w.writeStartElement("Gene");
-				w.writeAttribute("name", gene_info.symbol);
-				w.writeAttribute("id", gene_info.hgnc_id);
-			w.writeEndElement();
-		}
-
-	//end element TargetRegion
+		w.writeEndElement();
+	}
 	w.writeEndElement();
 
 
 	w.writeStartElement("VariantList");
 
 
-		for(int i=0; i<variants_.count(); ++i)
+	for(int i=0; i<variants_.count(); ++i)
+	{
+		const Variant& var = variants_[i];
+
+		if(!config_.filter_result.passing(i)) continue;
+
+		w.writeStartElement("Variant");
+
+		w.writeAttribute("chr", var.chr().str());
+		w.writeAttribute("start", QString::number(var.start()) );
+		w.writeAttribute("end", QString::number(var.end()) );
+		w.writeAttribute("ref", var.ref());
+		w.writeAttribute("obs", var.obs());
+		w.writeAttribute("allele_frequency", var.annotations()[i_tum_af_]);
+		w.writeAttribute("depth", var.annotations()[i_tum_dp_]);
+		if( !var.annotations()[i_germl_class_].isEmpty() ) w.writeAttribute("germline_class" , var.annotations()[i_germl_class_] );
+		if( !var.annotations()[i_somatic_class_].isEmpty() ) w.writeAttribute("somatic_class", var.annotations()[i_somatic_class_] );
+		QByteArrayList genes = var.annotations()[i_gene_].split(',');
+		QByteArrayList oncogenes = var.annotations()[i_ncg_oncogene_].split(',');
+		QByteArrayList tsg = var.annotations()[i_ncg_tsg_].split(',');
+
+		for(int j=0; j < genes.count(); ++j)
 		{
-			const Variant& var = variants_[i];
-
-			if(!config_.filter_result.passing(i)) continue;
-
-			w.writeStartElement("Variant");
-
-				w.writeAttribute("chr", var.chr().str());
-				w.writeAttribute("start", QString::number(var.start()) );
-				w.writeAttribute("end", QString::number(var.end()) );
-				w.writeAttribute("ref", var.ref());
-				w.writeAttribute("obs", var.obs());
-				w.writeAttribute("allele_frequency", var.annotations()[i_tum_af_]);
-				w.writeAttribute("depth", var.annotations()[i_tum_dp_]);
-
-
-				if( !var.annotations()[i_germl_class_].isEmpty() ) w.writeAttribute("germline_class" , var.annotations()[i_germl_class_] );
-
-				if( !var.annotations()[i_somatic_class_].isEmpty() ) w.writeAttribute("somatic_class", var.annotations()[i_somatic_class_] );
-
-
-
-
-				QByteArrayList genes = var.annotations()[i_gene_].split(',');
-				QByteArrayList oncogenes = var.annotations()[i_ncg_oncogene_].split(',');
-				QByteArrayList tsg = var.annotations()[i_ncg_tsg_].split(',');
-
-				for(int j=0; j < genes.count(); ++j)
-				{
-					GeneInfo gene_info = db_.geneInfo(genes[j]);
-					if(gene_info.symbol.isEmpty()) continue;
-					if(gene_info.hgnc_id.isEmpty()) continue; //genes that have been withdrawn or cannot be mapped to a unique approved symbol
-					w.writeStartElement("Gene");
-						w.writeAttribute("name", gene_info.symbol);
-						w.writeAttribute("id", gene_info.hgnc_id);
-
-						if(tsg[j].contains("1"))
-						{
-							w.writeStartElement("IsTumorSuppressor");
-								w.writeAttribute("source", "Network of Cancer Genes");
-								w.writeAttribute("source_version", "6.0");
-							w.writeEndElement();
-						}
-
-						if(oncogenes[j].contains("1"))
-						{
-							w.writeStartElement("IsOncoGene");
-								w.writeAttribute("source", "Network of Cancer Genes");
-								w.writeAttribute("source_version", "6.0");
-							w.writeEndElement();
-						}
-					//end element gene
-					w.writeEndElement();
-				}
-
-
-				//Elements transcript information
-				for(int i=0; i < var.transcriptAnnotations(i_co_sp_).count(); ++i )
-				{
-
-					const auto trans = var.transcriptAnnotations(i_co_sp_)[i];
-					w.writeStartElement("TranscriptInformation");
-
-						w.writeAttribute("transcript_id", QString(trans.id));
-
-						w.writeAttribute("gene", QString(trans.gene) );
-						w.writeAttribute("type", QString(trans.type) );
-						w.writeAttribute("hgvs_c", QString(trans.hgvs_c) );
-						w.writeAttribute("hgvs_p", QString(trans.hgvs_p) );
-						w.writeAttribute("exon", QString(trans.exon) ) ;
-						w.writeAttribute("variant_type", QString(trans.type) );
-
-						bool is_main_transcript = false;
-						if( config_.preferred_transcripts.contains(trans.gene) )
-						{
-							if( config_.preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion()) )
-							{
-								is_main_transcript = true;
-							}
-						}
-						else if(i == 0)
-						{
-							is_main_transcript = true; //first transcript otherwise
-						}
-
-						if(is_main_transcript)
-						{
-							w.writeAttribute("main_transcript", "true");
-						}
-						else
-						{
-							w.writeAttribute("main_transcript", "false");
-						}
-
-					//end element transcript information
-					w.writeEndElement();
-				}
-
-			//end element Variant
+			GeneInfo gene_info = db_.geneInfo(genes[j]);
+			if(gene_info.symbol.isEmpty()) continue;
+			if(gene_info.hgnc_id.isEmpty()) continue; //genes that have been withdrawn or cannot be mapped to a unique approved symbol
+			w.writeStartElement("Gene");
+			w.writeAttribute("name", gene_info.symbol);
+			w.writeAttribute("id", gene_info.hgnc_id);
+			if(tsg[j].contains("1"))
+			{
+				w.writeStartElement("IsTumorSuppressor");
+				w.writeAttribute("source", "Network of Cancer Genes");
+				w.writeAttribute("source_version", "6.0");
+				w.writeEndElement();
+			}
+			if(oncogenes[j].contains("1"))
+			{
+				w.writeStartElement("IsOncoGene");
+				w.writeAttribute("source", "Network of Cancer Genes");
+				w.writeAttribute("source_version", "6.0");
+				w.writeEndElement();
+			}
 			w.writeEndElement();
 		}
-	//end element VariantList
+
+
+		//Elements transcript information
+		for(int i=0; i < var.transcriptAnnotations(i_co_sp_).count(); ++i )
+		{
+
+			const auto trans = var.transcriptAnnotations(i_co_sp_)[i];
+			w.writeStartElement("TranscriptInformation");
+			w.writeAttribute("transcript_id", QString(trans.id));
+			w.writeAttribute("gene", QString(trans.gene) );
+			w.writeAttribute("type", QString(trans.type) );
+			w.writeAttribute("hgvs_c", QString(trans.hgvs_c) );
+			w.writeAttribute("hgvs_p", QString(trans.hgvs_p) );
+			w.writeAttribute("exon", QString(trans.exon) ) ;
+			w.writeAttribute("variant_type", QString(trans.type) );
+
+			bool is_main_transcript = config_.preferred_transcripts.contains(trans.gene) && config_.preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion());
+			w.writeAttribute("main_transcript", is_main_transcript ? "true" : "false");
+			w.writeEndElement();
+		}
+		w.writeEndElement();
+	}
 	w.writeEndElement();
 
 
 	//Element ReportDocument
 	w.writeStartElement("ReportDocument");
-		w.writeAttribute("format", "RTF");
+	w.writeAttribute("format", "RTF");
 	w.writeEndElement();
 
 	//end element DiagnosticNgsReport
@@ -239,10 +256,9 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 
 	//validate written XML file
 	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/TumorOnlyNGSReport_v1.xsd");
-
 	if (xml_error!="")
 	{
-		THROW(ProgrammingException, "Invalid tumor only report XML file gererated: " + xml_error);
+		THROW(ProgrammingException, "Invalid tumor only report XML file " + filename + " generated:\n" + xml_error);
 	}
 }
 

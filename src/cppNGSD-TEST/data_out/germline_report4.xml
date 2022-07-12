@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DiagnosticNgsReport version="7" type="all">
+    <ReportGeneration date="2021-02-19" user_name="ahmustm1" software="cppNGSD-TEST " outcome="no significant findings"/>
+    <ChromosomeAliases>
+        <Chromosome chr="chr1" refseq="NC_000001.11"/>
+        <Chromosome chr="chr2" refseq="NC_000002.12"/>
+        <Chromosome chr="chr3" refseq="NC_000003.12"/>
+        <Chromosome chr="chr4" refseq="NC_000004.12"/>
+        <Chromosome chr="chr5" refseq="NC_000005.10"/>
+        <Chromosome chr="chr6" refseq="NC_000006.12"/>
+        <Chromosome chr="chr7" refseq="NC_000007.14"/>
+        <Chromosome chr="chr8" refseq="NC_000008.11"/>
+        <Chromosome chr="chr9" refseq="NC_000009.12"/>
+        <Chromosome chr="chr10" refseq="NC_000010.11"/>
+        <Chromosome chr="chr11" refseq="NC_000011.10"/>
+        <Chromosome chr="chr12" refseq="NC_000012.12"/>
+        <Chromosome chr="chr13" refseq="NC_000013.11"/>
+        <Chromosome chr="chr14" refseq="NC_000014.9"/>
+        <Chromosome chr="chr15" refseq="NC_000015.10"/>
+        <Chromosome chr="chr16" refseq="NC_000016.10"/>
+        <Chromosome chr="chr17" refseq="NC_000017.11"/>
+        <Chromosome chr="chr18" refseq="NC_000018.10"/>
+        <Chromosome chr="chr19" refseq="NC_000019.10"/>
+        <Chromosome chr="chr20" refseq="NC_000020.11"/>
+        <Chromosome chr="chr21" refseq="NC_000021.9"/>
+        <Chromosome chr="chr22" refseq="NC_000022.11"/>
+        <Chromosome chr="chrX" refseq="NC_000023.11"/>
+        <Chromosome chr="chrY" refseq="NC_000024.10"/>
+        <Chromosome chr="chrMT" refseq="NC_012920.1"/>
+    </ChromosomeAliases>
+    <Sample name="NA12878_03" name_external="ex1" processing_system="HaloPlex HSP v2" processing_system_type="Panel Haloplex" comments="comment_ps1" ancestry="EUR">
+        <QcTerm id="QC:2000027" name="target region 20x percentage" def="Percentage of the target region that is covered at..." value="95.96"/>
+        <QcTerm id="QC:2000025" name="target region read depth" def="Average sequencing depth in target region." value="103.24"/>
+        <QcTerm id="NONE" name="kasp" def="" value="0.0977%"/>
+    </Sample>
+    <TargetRegion name="panel" regions="1532" bases="271536" gap_cutoff="20" gap_percentage="5.69" ccds_bases_sequenced="4347">
+        <Gene name="CYP7B1" identifier="HGNC:2652" bases="2202">
+            <Omim gene="603711" phenotype="Bile acid synthesis defect, congenital, 3, 613812 (3)" phenotype_number="613812"/>
+            <Omim gene="603711" phenotype="Spastic paraplegia 5A, autosomal recessive, 270800 (3)" phenotype_number="270800"/>
+            <Gap chr="chr8" start="64615713" end="64615740"/>
+            <Gap chr="chr8" start="64616216" end="64616218"/>
+            <Gap chr="chr8" start="64624393" end="64624515"/>
+            <Gap chr="chr8" start="64798456" end="64798544"/>
+        </Gene>
+        <Gene name="SLC25A15" identifier="HGNC:10985" bases="1586">
+            <Omim gene="603861" phenotype="Hyperornithinemia-hyperammonemia-homocitrullinemia syndrome, 238970 (3)" phenotype_number="238970"/>
+            <Gap chr="chr13" start="40799186" end="40799314"/>
+        </Gene>
+        <Gene name="SPG7" identifier="HGNC:11237" bases="3076">
+            <Omim gene="602783" phenotype="Spastic paraplegia 7, autosomal recessive, 607259 (3)" phenotype_number="607259"/>
+            <Gap chr="chr16" start="89524046" end="89524104"/>
+            <Gap chr="chr16" start="89554476" end="89554542"/>
+        </Gene>
+    </TargetRegion>
+    <VariantList overall_number="319" genome_build="GRCh38">
+        <Variant chr="chr13" start="40793234" end="40793234" ref="C" obs="G" allele_frequency="0.48" depth="268" genotype="het" causal="false" de_novo="false" comp_het="true" mosaic="false" report_type="diagnostic variant">
+            <TranscriptInformation gene="SLC25A15" gene_identifier="HGNC:10985" transcript_id="ENST00000338625.4" type="missense_variant" hgvs_c="8C&gt;G" hgvs_p="Ser3Cys" exon="Exon 2/7" main_transcript="false"/>
+        </Variant>
+        <Variant chr="chr16" start="89531961" end="89531961" ref="G" obs="A" allele_frequency="0.28" depth="43" genotype="het" causal="true" de_novo="true" comp_het="false" mosaic="true" report_type="diagnostic variant">
+            <TranscriptInformation gene="SPG7" gene_identifier="HGNC:11237" transcript_id="ENST00000268704.2" type="missense_variant" hgvs_c="1045G&gt;A" hgvs_p="Gly349Ser" exon="Exon 8/17" main_transcript="true"/>
+            <TranscriptInformation gene="SPG7" gene_identifier="HGNC:11237" transcript_id="ENST00000341316.2" type="missense_variant" hgvs_c="1045G&gt;A" hgvs_p="Gly349Ser" exon="Exon 8/10" main_transcript="false"/>
+            <GeneDiseaseInformation gene="SPG7" gene_identifier="HGNC:11237" source="OMIM gene" identifier="602783" name="SPG7"/>
+            <GeneDiseaseInformation gene="SPG7" gene_identifier="HGNC:11237" source="OMIM phenotype" identifier="607259" name="Spastic paraplegia 7, autosomal recessive, 607259 (3)"/>
+        </Variant>
+    </VariantList>
+    <CnvList cnv_caller="ClinCNV" overall_number="1" genome_build="GRCh38" quality="good" number_of_iterations="1" number_of_hq_cnvs="127" correlation_ref_samples="0.996">
+        <Cnv chr="chr21" start="10541092" end="10649856" start_band="21p11.2" end_band="21p11.2" type="del" cn="1" regions="22" causal="false" de_novo="false" comp_het="true" mosaic="false" report_type="diagnostic variant">
+            <Gene name="IGHV1OR21-1" identifier="n/a"/>
+            <Gene name="TPTE" identifier="n/a"/>
+            <ExternalLink url="http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg38/?name=chr21:10541092-10649856" type="DGV"/>
+            <ExternalLink url="https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&amp;position=chr21:10541092-10649856" type="UCSC"/>
+        </Cnv>
+    </CnvList>
+    <SvList sv_caller="Manta" overall_number="87" genome_build="GRCh38">
+        <Sv type="Insertion" chr="chr1" start="934143" end="934144" start_band="1p36.33" end_band="1p36.33" genotype="hom" ins_sequence="GGGAGGGCGCGGAGCGGAGGGGAGGGCGCGGAGCGGAGGGGAGGGCGCGGAGCGGAGG" causal="false" de_novo="false" comp_het="false" mosaic="false" report_type="diagnostic variant">
+            <Gene name="HES4" identifier="n/a"/>
+        </Sv>
+        <Sv type="Breakend" chr="chr1" start="1584546" end="1584546" start_band="1p36.33" end_band="19p13.3" genotype="het" bnd_chr2="chr19" bnd_start2="2301862" bnd_end2="2301862" causal="false" de_novo="false" comp_het="false" mosaic="false" report_type="diagnostic variant">
+            <Gene name="CDK11B" identifier="n/a"/>
+            <Gene name="LINGO3" identifier="n/a"/>
+        </Sv>
+        <Sv type="Deletion" chr="chr1" start="1598413" end="1598580" start_band="1p36.33" end_band="1p36.33" genotype="hom" causal="false" de_novo="false" comp_het="false" mosaic="false" report_type="diagnostic variant">
+            <Gene name="SLC35E2B" identifier="n/a"/>
+        </Sv>
+    </SvList>
+    <PrsList>
+        <Prs id="PGS000004" trait="Breast Cancer" citation="Mavaddat N et al. Am J Hum Genet (2018). doi:10.1016/j.ajhg.2018.11.002" score="-0.2773" percentile="53"/>
+    </PrsList>
+    <OtherCausalVariant type="uncalled_cnv" coordinates="chr2:123456-789012" gene="EPRS" inheritance="AR" comments="This is a comment!&#10; And it has&#10; multiple lines!&#10;"/>
+    <ReportDocument format="HTML"></ReportDocument>
+</DiagnosticNgsReport>

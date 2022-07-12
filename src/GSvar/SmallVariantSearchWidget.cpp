@@ -3,6 +3,7 @@
 #include "GUIHelper.h"
 #include "NGSHelper.h"
 #include "GlobalServiceProvider.h"
+#include "LoginManager.h"
 #include <QApplication>
 #include <QClipboard>
 #include <QMessageBox>
@@ -47,6 +48,9 @@ void SmallVariantSearchWidget::updateVariants()
 	try
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
+
+		//not for restricted users
+		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
 
 		//process genes/region
 		QStringList comments;
@@ -122,9 +126,7 @@ void SmallVariantSearchWidget::updateVariants()
 	}
 	catch(Exception& e)
 	{
-		QApplication::restoreOverrideCursor();
-
-		QMessageBox::critical(this, "Error", e.message());
+		GUIHelper::showException(this, e, "Small variants search error");
 	}
 }
 
@@ -159,6 +161,19 @@ void SmallVariantSearchWidget::variantContextMenu(QPoint pos)
 		Variant v = Variant::fromString(variant_string);
 		QApplication::clipboard()->setText(v.toString());
 	}
+}
+
+int SmallVariantSearchWidget::columnIndex(QString name) const
+{
+	for (int c=0; c<ui_.variants->columnCount(); ++c)
+	{
+		if (ui_.variants->horizontalHeaderItem(c)->text()==name)
+		{
+			return c;
+		}
+	}
+
+	THROW(ArgumentException, "Column with name '" + name + "' not found in table!");
 }
 
 void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, int end, QByteArray gene, const GeneSet& gene_symbols, QList<QStringList>& output, QStringList& messages)
@@ -209,7 +224,6 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 	double max_af = ui_.filter_af->value()/100.0;
 	if (max_af<1.0)
 	{
-		constraints << "(1000g IS NULL OR 1000g<=" + QString::number(max_af) + ")";
 		constraints << "(gnomad IS NULL OR gnomad<=" + QString::number(max_af) + ")";
 	}
 
@@ -223,7 +237,8 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 	{
 		QString var = query.value("chr").toString() + ":" + query.value("start").toString() + "-" + query.value("end").toString() + " " + query.value("ref").toString() + " > " + query.value("obs").toString();
 		QString gnomad = QString::number(query.value("gnomad").toDouble(), 'f', 4);
-		QString tg = QString::number(query.value("1000g").toDouble(), 'f', 4);
+		QString cadd = query.value("cadd").isNull() ? "" : QString::number(query.value("cadd").toDouble(), 'f', 2);
+		QString spliceai = query.value("spliceai").isNull() ? "" : QString::number(query.value("spliceai").toDouble(), 'f', 2);
 
 		//filter by impact
 		QStringList parts = query.value("coding").toString().split(",");
@@ -322,7 +337,7 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 
 			//add variant line to output
 			vars_distinct << variant_id;
-			var_data.append(QStringList() << gene << var << QString::number(germline_het) << QString::number(germline_hom) << gnomad << tg << type << coding << query2.value("ps_name").toString() << query2.value("name_external").toString()  << query2.value("genotype").toString() + denovo << query2.value("sys_name").toString()<< query2.value("p_name").toString() << query2.value("disease_group").toString() << query2.value("disease_status").toString() << phenotypes.toString() << query2.value("class").toString() << query2.value("outcome").toString() << query2.value("comment").toString().replace("\n", " ") << genes_causal.join(',') << genes_candidate.join(',')<< related_samples.join(", "));
+			var_data.append(QStringList() << gene << var << QString::number(germline_het) << QString::number(germline_hom) << gnomad << cadd << spliceai << type << coding << query2.value("ps_name").toString() << query2.value("name_external").toString()  << query2.value("genotype").toString() + denovo << query2.value("sys_name").toString()<< query2.value("p_name").toString() << query2.value("disease_group").toString() << query2.value("disease_status").toString() << phenotypes.toString() << query2.value("class").toString() << query2.value("outcome").toString() << query2.value("comment").toString().replace("\n", " ") << genes_causal.join(',') << genes_candidate.join(',')<< related_samples.join(", "));
 		}
 	}
 	QString comment = gene + " - " + QString::number(vars_distinct.count()) + " distinct variants in " + QString::number(var_data.count()) + " hits";
@@ -330,8 +345,8 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 	//only variants that fit recessive inheritance mode
 	if (ui_.filter_recessive->isChecked())
 	{
-		int i_ps = 8;
-		int i_geno = 10;
+		int i_ps = columnIndex("processed sample");
+		int i_geno = columnIndex("genotype");
 
 		//count heterozygous hits per sample
 		QMap<QString, int> het_hits;
@@ -353,7 +368,7 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 	//only variants that fit de-novo inheritance mode
 	if (ui_.filter_denovo->isChecked())
 	{
-		int i_geno = 10;
+		int i_geno = columnIndex("genotype");
 
 		var_data.erase(std::remove_if(var_data.begin(), var_data.end(), [i_geno](const QStringList& line){return !line[i_geno].contains("(de-novo)");}), var_data.end());
 

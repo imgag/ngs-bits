@@ -1,4 +1,0 @@
-
-### importing CNVs for NA12878_45 ###
-filename: ../src/tools-TEST/data_in/NGSDAddVariantsGermline_in1.tsv
-Skipped import of CNVs for sample NA12878_45: a report configuration with CNVs exists for this sample!

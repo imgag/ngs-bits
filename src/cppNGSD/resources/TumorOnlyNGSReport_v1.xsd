@@ -44,6 +44,35 @@
 						<xs:documentation>Information about the tumor sample</xs:documentation>
 					</xs:annotation>
 					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="QcTerm" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>QC terms of the sample as defined in https://github.com/imgag/ngs-bits/blob/master/src/cppNGS/Resources/qcML.obo</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="id" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>accession of the term</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="name" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>name of the term</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="def" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>extended description of the term</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="value" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>QC metric value</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
 						<xs:attribute name="name" use="required">
 							<xs:annotation>
 								<xs:documentation>sample name/identifier</xs:documentation>
@@ -71,7 +100,7 @@
 								</xs:restriction>
 							</xs:simpleType>
 						</xs:attribute>
-						<xs:attribute name="comment" type="xs:string">
+						<xs:attribute name="comments" type="xs:string">
 							<xs:annotation>
 								<xs:documentation>Additional information about the sample</xs:documentation>
 							</xs:annotation>
@@ -141,6 +170,106 @@
 									<xs:documentation>List of genes contained in target region.</xs:documentation>
 								</xs:annotation>
 								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="Omim" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Omim information about the gene</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="gene" use="required">
+													<xs:annotation>
+														<xs:documentation>OMIM  gene number</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="phenotype" use="required">
+													<xs:annotation>
+														<xs:documentation>OMIM  phenotype</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="phenotype_number">
+													<xs:annotation>
+														<xs:documentation>OMIM  phenotype number</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="Gap" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Gap overlapping with the gene</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="chr" use="required">
+													<xs:annotation>
+														<xs:documentation>chromosome</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:enumeration value="chr1"/>
+															<xs:enumeration value="chr2"/>
+															<xs:enumeration value="chr3"/>
+															<xs:enumeration value="chr4"/>
+															<xs:enumeration value="chr5"/>
+															<xs:enumeration value="chr6"/>
+															<xs:enumeration value="chr7"/>
+															<xs:enumeration value="chr8"/>
+															<xs:enumeration value="chr9"/>
+															<xs:enumeration value="chr10"/>
+															<xs:enumeration value="chr11"/>
+															<xs:enumeration value="chr12"/>
+															<xs:enumeration value="chr13"/>
+															<xs:enumeration value="chr14"/>
+															<xs:enumeration value="chr15"/>
+															<xs:enumeration value="chr16"/>
+															<xs:enumeration value="chr17"/>
+															<xs:enumeration value="chr18"/>
+															<xs:enumeration value="chr19"/>
+															<xs:enumeration value="chr20"/>
+															<xs:enumeration value="chr21"/>
+															<xs:enumeration value="chr22"/>
+															<xs:enumeration value="chrX"/>
+															<xs:enumeration value="chrY"/>
+															<xs:enumeration value="chrMT"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="start" use="required">
+													<xs:annotation>
+														<xs:documentation>start of gap</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:int">
+															<xs:minInclusive value="0"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="end" use="required">
+													<xs:annotation>
+														<xs:documentation>end of gap</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:int">
+															<xs:minInclusive value="0"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
 									<xs:attribute name="name" use="required">
 										<xs:annotation>
 											<xs:documentation>Gene symbol (HGNC)</xs:documentation>
@@ -159,6 +288,14 @@
 											<xs:restriction base="xs:string">
 												<xs:minLength value="1"/>
 											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="bases">
+										<xs:annotation>
+											<xs:documentation>Bases of the longest (coding) transcript</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:int"/>
 										</xs:simpleType>
 									</xs:attribute>
 								</xs:complexType>

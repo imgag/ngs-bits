@@ -9,8 +9,7 @@ private slots:
 
 	void test_germline_default()
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 		if (Settings::string("reference_genome", true)=="") SKIP("Test needs access to the reference genome!");
 
 		//init
@@ -30,8 +29,7 @@ private slots:
 
 	void test_somatic_default()
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 		if (Settings::string("reference_genome", true)=="") SKIP("Test needs access to the reference genome!");
 
 		//init

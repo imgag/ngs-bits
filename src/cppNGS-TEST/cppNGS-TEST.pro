@@ -44,8 +44,6 @@ HEADERS += \
         Chromosome_Test.h \
         BedLine_Test.h \
         BedFile_Test.h \
-    FileLocationProvider_Test.h \
-    FileLocation_Test.h \
         VariantList_Test.h \
         FilterCascade_Test.h \
         ChromosomalIndex_Test.h \
@@ -72,7 +70,10 @@ HEADERS += \
     BamWriter_Test.h \
     SomaticVariantInterpreter_Test.h \
     Graph_Test.h \
-    BigWigReader_Test.h
+    ChainFileReader_Test.h \
+    BigWigReader_Test.h \
+    VariantHgvsAnnotator_Test.h \
+    TabIndexedFile_Test.h
 
 SOURCES += \
         main.cpp

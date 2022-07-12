@@ -13,7 +13,7 @@ FastaFileIndex::FastaFileIndex(QString fasta_file)
 	, index_name_(fasta_file + ".fai")
 	, file_(fasta_file)
 {
-	if (!isFastaFileLocal())
+	if (!isLocal())
 	{
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");
@@ -61,7 +61,7 @@ FastaFileIndex::FastaFileIndex(QString fasta_file)
 
 FastaFileIndex::~FastaFileIndex()
 {
-	if (isFastaFileLocal())
+	if (isLocal())
 	{
 		file_.close();
 	}
@@ -71,7 +71,7 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, bool to_upper) const
 {
 	const FastaIndexEntry& entry = index(chr);
 
-	if (isFastaFileLocal())
+	if (isLocal())
 	{
 		//jump to postion
 		if (!file_.seek(entry.offset))
@@ -85,7 +85,7 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, bool to_upper) const
 	int seqlen = newlines_in_sequence  + entry.length;
 	Sequence output {};
 
-	if (isFastaFileLocal())
+	if (isLocal())
 	{
 		output = file_.read(seqlen).replace('\n', "");
 	}
@@ -127,7 +127,7 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, int start, int length, bool 
 	//jump to postion
 	int newlines_before = start > 0 ? (start - 1) / entry.line_blen : 0;
 	qint64 read_start_pos = entry.offset + newlines_before + start;
-	if (isFastaFileLocal())
+	if (isLocal())
 	{
 		if (!file_.seek(read_start_pos))
 		{
@@ -141,7 +141,7 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, int start, int length, bool 
 	int seqlen = length + newlines_inside;
 	Sequence output {};
 
-	if (isFastaFileLocal())
+	if (isLocal())
 	{
 		output = file_.read(seqlen).replace('\n', "");
 	}
@@ -169,9 +169,9 @@ const FastaFileIndex::FastaIndexEntry& FastaFileIndex::index(const Chromosome& c
 	return it.value();
 }
 
-bool FastaFileIndex::isFastaFileLocal() const
+bool FastaFileIndex::isLocal() const
 {
-	return !fasta_name_.startsWith("http", Qt::CaseInsensitive);
+	return !Helper::isHttpUrl(fasta_name_);
 }
 
 void FastaFileIndex::saveEntryToIndex(const QList<QByteArray>& fields)

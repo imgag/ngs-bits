@@ -67,6 +67,7 @@ public:
 	{
 		return filename_;
 	}
+
 protected:
 	QString filename_;
 	gzFile gzfile_;

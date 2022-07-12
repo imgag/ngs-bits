@@ -38,7 +38,14 @@ void ProcessingSystemWidget::updateGUI()
 	ui_.type->setText(ps_data.type);
 	ui_.shotgun->setText(ps_data.shotgun ? "yes" : "no");
 	ui_.umi->setText(ps_data.umi_type);
-	ui_.genome->setText(ps_data.genome);
+
+	//genome build
+	QString build = ps_data.genome;
+	if (GSvarHelper::build()==GenomeBuild::HG38 && build=="GRCh37")
+	{
+		build = "<font color='red'>" + build + "</font>";
+	}
+	ui_.genome->setText(build);
 
 	//###target region infos###
 	try

@@ -29,7 +29,7 @@ DEALINGS IN THE SOFTWARE.  */
 #include "htslib/hts.h"
 #include "textutils_internal.h"
 
-#define HTS_MAX_EXT_LEN 8
+#define HTS_MAX_EXT_LEN 9
 
 #ifdef __cplusplus
 extern "C" {
@@ -104,6 +104,7 @@ plugin_void_func *load_plugin(void **pluginp, const char *filename, const char *
 void *plugin_sym(void *plugin, const char *name, const char **errmsg);
 plugin_void_func *plugin_func(void *plugin, const char *name, const char **errmsg);
 void close_plugin(void *plugin);
+const char *hts_plugin_path(void);
 
 /*
  * Buffers up arguments to hts_idx_push for later use, once we've written all bar
@@ -138,7 +139,8 @@ static inline int find_file_extension(const char *fn, char ext_out[static HTS_MA
     {
         for (ext--; ext > fn && *ext != '.' && *ext != '/'; --ext) {}
     }
-    if (*ext != '.' || delim - ext > HTS_MAX_EXT_LEN || delim - ext < 4) return -1;
+    if (*ext != '.' || delim - ext > HTS_MAX_EXT_LEN || delim - ext < 3)
+        return -1;
     memcpy(ext_out, ext + 1, delim - ext - 1);
     ext_out[delim - ext - 1] = '\0';
     return 0;

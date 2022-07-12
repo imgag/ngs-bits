@@ -1,4 +1,5 @@
 #include "HtmlEngine.h"
+#include "ToolBase.h"
 
 HtmlEngine::HtmlEngine()
 {
@@ -102,7 +103,7 @@ QString HtmlEngine::getPageFooter()
 	QString output;
 	QTextStream stream(&output);
 	stream << "			<hr>\n";
-	stream << "			<p>GSvarServer v.1.0</p>\n";
+	stream << "			<p>" << ToolBase::applicationName() << " version " << ToolBase::version() << "</p>\n";
 	stream << "		</body>\n";
 	stream << "</html>\n";
 	return output;
@@ -207,7 +208,7 @@ QString HtmlEngine::createFolderListingHeader(const QString& folder_name, const 
 	return output;
 }
 
-QString HtmlEngine::createFolderListingElements(const QList<FolderItem>& in, const QString& cur_folder_url)
+QString HtmlEngine::createFolderListingElements(const QList<FolderItem>& in, const QString& cur_folder_url, const QString token)
 {
 	QString output;
 	QTextStream stream(&output);
@@ -235,7 +236,7 @@ QString HtmlEngine::createFolderListingElements(const QList<FolderItem>& in, con
 		}
 
 		stream << "			<div class=\"row\">\n";
-		stream << "				<div class=\"column-33\">" << HtmlEngine::createFolderItemLink(in[i].name, cur_folder_url + in[i].name, HtmlEngine::getIconType(in[i])) << "</div>\n";
+		stream << "				<div class=\"column-33\">" << HtmlEngine::createFolderItemLink(in[i].name, cur_folder_url + in[i].name + "?token=" + token, HtmlEngine::getIconType(in[i])) << "</div>\n";
 		stream << "				<div class=\"column-33\">" << QString::number(size, 'g', 5) << " " << size_units <<"</div>\n";
 		stream << "				<div class=\"column-33\">" << in[i].modified.toUTC().toString("hh:mm:ss dd.MM.yyyy") << "</div>\n";
 		stream << "			</div>\n";

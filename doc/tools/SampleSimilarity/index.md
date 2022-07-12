@@ -2,23 +2,63 @@
 
 SampleSimilarity calculates several metrics that measure sample similarity:
 
- * overlap: Percentage of variants that occur in both samples - not considering the genotype (only in VCF mode).
- * correlation: Correlation of variant genotypes.
+ * overlap\_percent: Overlap of the variant lists, i.e. percentage of variants found in both samples - not considering the genotype (only in VCF and GSvar mode).
+ * correlation: Correlation of variant genotypes for variants found in both samples.
  * ibs0: Percentage of variants with zero IBS, e.g. AA and CC (only in BAM mode).
  * ibs2: Percentage of variants with complete IBS, e.g. AA and AA.
 
-Absolute cutoffs values for for same sample, parent-child pairs etc. do not exist, since they depend on ehtnicity, enrichment kit, etc.   
-Example data for the *Agilent SureSelect Human All Exon V6 exome* kit is shown here:
+General cutoffs values for certain sample relations do not exist, as theses metrics depend on ethnicity, enrichment kit, etc.  
+Still the metrics for exomes and genomes are quite similar, even when calcualted in different modes (details below).
 
-![sample correlation image](ssHAEv6_sample_correlation.png) 
+## Example data: exome (VCF)
 
-For the *Agilent SureSelect Human All Exon V7* kit it look similar:
+Example data for an exome samples (Agilent SureSelect Human All Exon V7) in VCF mode is shown here:
 
-![sample correlation image](ssHAEv7_sample_correlation.png) 
+![sample correlation image](ssHAEv7_sample_correlation_vcf.png) 
 
-As well as for the *Illumina TruSeq DNA PCR-Free* kit:
+## Example data: exome (GSvar)
 
-![sample correlation image](tsPCRfree_sample_correlation.png) 
+The score distribution in GSvar mode is very similar, although variants with [MODIFIER impact](https://www.ensembl.org/info/genome/variation/prediction/predicted_data.html) are ignored in this mode.
+
+This plot shows the metrics of the same samples as above in GSvar mode:
+
+![sample correlation image](ssHAEv7_sample_correlation_gsvar.png) 
+
+
+## Example data: genome (VCF)
+
+Example data for an genome samples (Illumina TruSeq DNA PCR-Free) in VCF mode is shown here:
+
+![sample correlation image](tsPCRfree_sample_correlation_vcf.png) 
+
+
+## Example data: genome (GSvar)
+
+The score distribution in GSvar mode is very similar, although variants with [MODIFIER impact](https://www.ensembl.org/info/genome/variation/prediction/predicted_data.html) are ignored in this mode.
+
+This plot shows the metrics of the same samples as above in GSvar mode:
+
+![sample correlation image](tsPCRfree_sample_correlation_gsvar.png) 
+
+
+## Example data: exome (BAM)
+
+The score distribution in BAM mode is different from VCF/GSvar mode.  
+The reason is that all known SNPs are considered, even when both samples are wildtype.
+
+This plot shows the correlation histogram of unrelated (red) and related (blue) samples:
+
+![sample correlation image](ssHAEv7_sample_correlation_bam.png) 
+
+
+## Example data: genome (BAM)
+
+The score distribution in BAM mode is different from VCF/GSvar mode.  
+The reason is that all known SNPs are considered, even when both samples are wildtype.
+
+This plot shows the correlation histogram of unrelated samples:
+
+![sample correlation image](tsPCRfree_sample_correlation_bam.png) 
 
 
 ## Help and ChangeLog

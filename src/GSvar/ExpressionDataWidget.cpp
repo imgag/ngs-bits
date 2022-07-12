@@ -4,20 +4,30 @@
 #include "Helper.h"
 #include "GUIHelper.h"
 #include "FilterCascade.h"
+#include <NGSD.h>
 #include <QCheckBox>
 #include <QFile>
 #include <QMenu>
 #include <QMessageBox>
 #include "RepeatExpansionWidget.h"
+#include "LoginManager.h"
 
 
 
-ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, QWidget *parent) :
+ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, int sys_id, QString tissue, QWidget *parent) :
 	QWidget(parent),
 	tsv_filename_(tsv_filename),
+	sys_id_(sys_id),
+	tissue_(tissue),
 	ui_(new Ui::ExpressionDataWidget)
 
 {
+	// skipp if no NGSD is available
+	if (!LoginManager::active())
+	{
+		QMessageBox::warning(this, "Expression data widget", "Widget requires NGSD access!");
+		return;
+	}
 	ui_->setupUi(this);
 
 	//connect signals and slots
@@ -368,6 +378,9 @@ void ExpressionDataWidget::selectAllBiotypes(bool deselect)
 
 void ExpressionDataWidget::loadExpressionData()
 {
+	//skip without database
+	if (!LoginManager::active()) return;
+
 	//load TSV file
 	TsvFile expression_data;
 	QSharedPointer<VersatileFile> expression_data_file = Helper::openVersatileFileForReading(tsv_filename_, false);
@@ -398,9 +411,6 @@ void ExpressionDataWidget::loadExpressionData()
 		}
 	}
 
-	QStringList tsv_header = expression_data.headers();
-
-
 	//collect biotypes
 	QSet<QString> biotypes;
 
@@ -421,12 +431,7 @@ void ExpressionDataWidget::loadExpressionData()
 	QVector<int> column_indices;
 	foreach (const QString& col_name, column_names_)
 	{
-		int column_index = tsv_header.indexOf(col_name);
-		if (column_index < 0)
-		{
-			THROW(FileParseException, "Column name \"" + col_name + "\" not found in TSV file!");
-		}
-		column_indices << column_index;
+		column_indices << expression_data.columnIndex(col_name);
 	}
 
 	//create header
@@ -443,6 +448,7 @@ void ExpressionDataWidget::loadExpressionData()
 		QStringList row = expression_data.row(row_idx);
 		for (int col_idx = 0; col_idx < column_names_.size(); ++col_idx)
 		{
+			//get value from file
 			if(numeric_columns_.at(col_idx))
 			{
 				// add numeric QTableWidgetItem
@@ -470,6 +476,7 @@ void ExpressionDataWidget::loadExpressionData()
 			{
 				biotypes.insert(row.at(column_indices.at(col_idx)));
 			}
+
 		}
 
 

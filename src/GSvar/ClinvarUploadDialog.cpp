@@ -21,11 +21,13 @@ ClinvarUploadDialog::ClinvarUploadDialog(QWidget *parent)
     : QDialog(parent)
     , ui_()
 {
-    if (!LoginManager::active())
-    {
-        QMessageBox::warning(this, "No NGSD connection", "ClinVar Upload requires access to the NGSD");
-        return;
-    }
+	if (!LoginManager::active())
+	{
+		INFO(DatabaseException, "ClinVar Upload requires logging in into NGSD!");
+	}
+
+	LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
+
     ui_.setupUi(this);
 
     initGui();
@@ -268,7 +270,7 @@ void ClinvarUploadDialog::upload()
 			{
 				details << "reupload=true";
 				details << "previous_publication_id=" + QString::number(clinvar_upload_data_.variant_publication_id);
-				details << "reupload_by=" + LoginManager::user();
+				details << "reupload_by=" + LoginManager::userLogin();
 			}
 
             // log publication in NGSD
@@ -288,11 +290,11 @@ void ClinvarUploadDialog::upload()
 			// log original submitter for reuploads
 			if (clinvar_upload_data_.user_id > 0)
 			{
-				lines << "user: " + db_.userLogin(clinvar_upload_data_.user_id) + " (Reupload by " + LoginManager::user() + ")";
+				lines << "user: " + db_.userLogin(clinvar_upload_data_.user_id) + " (Reupload by " + LoginManager::userLogin() + ")";
 			}
 			else
 			{
-				lines << "user: " + LoginManager::user();
+				lines << "user: " + LoginManager::userLogin();
 			}
             lines << "date: " + Helper::dateTime();
             lines << "";
@@ -411,7 +413,6 @@ bool ClinvarUploadDialog::checkGuiData()
 	{
 		upload_comment_text << "<font color='red'>WARNING: This variant has already been uploaded to ClinVar! Are you sure you want to upload it again? </font><br>" + upload_details.replace("\n", "<br>");
 	}
-
 
     //show error or enable upload button
     if (errors.count()>0)
@@ -544,7 +545,6 @@ QJsonObject ClinvarUploadDialog::createJson()
                     {
                         THROW(ArgumentException, "Invalid disease info '" + ui_.tw_disease_info->item(row_idx, 0)->text() + "' in disease info table!");
                     }
-
                 }
             }
             condition_set.insert("condition", condition);
@@ -574,6 +574,7 @@ QJsonObject ClinvarUploadDialog::createJson()
                     QJsonObject feature;
                     feature.insert("db", "HP");
                     feature.insert("id", QString(phenotype.accession()));
+					feature.insert("clinicalFeaturesAffectedStatus", "present");
                     clinical_features.append(feature);
 
                 }
@@ -848,9 +849,8 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
 
                         if (chromosome_coordinates.contains("start"))
                         {
-                            bool* ok = new bool();
-                            chromosome_coordinates.value("start").toString().toInt(ok);
-                            if (!ok)
+							int valid_int = chromosome_coordinates.value("start").toInt(-1);
+							if (valid_int < 0)
                             {
                                 errors << "Invalid entry '" + chromosome_coordinates.value("start").toString() + "' in 'start'!";
                                 is_valid = false;
@@ -864,9 +864,8 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
 
                         if (chromosome_coordinates.contains("stop"))
                         {
-                            bool* ok = new bool();
-                            chromosome_coordinates.value("stop").toString().toInt(ok);
-                            if (!ok)
+							int valid_int = chromosome_coordinates.value("stop").toInt(-1);
+							if (valid_int < 0)
                             {
                                 errors << "Invalid entry '" + chromosome_coordinates.value("stop").toString() + "' in 'stop'!";
                                 is_valid = false;

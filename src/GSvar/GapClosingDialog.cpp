@@ -3,9 +3,12 @@
 #include "GUIHelper.h"
 #include "LoginManager.h"
 #include "GSvarHelper.h"
+#include "GapClosingEditDialog.h"
 #include <QDesktopServices>
-#include <QClipboard>
 #include <QAction>
+#include <QClipboard>
+#include <QMessageBox>
+#include <QInputDialog>
 
 GapClosingDialog::GapClosingDialog(QWidget* parent)
 	: QDialog(parent)
@@ -23,29 +26,24 @@ GapClosingDialog::GapClosingDialog(QWidget* parent)
 	connect(ui_.f_status, SIGNAL(currentIndexChanged(QString)), this, SLOT(updateTable()));
 	connect(ui_.f_user, SIGNAL(currentIndexChanged(QString)), this, SLOT(updateTable()));
 
-	//primer gap
+	//context menu
 	QAction* action = new QAction(QIcon(":/Icons/CopyClipboard.png"), "Copy for PrimerGap", this);
 	ui_.table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(copyForPrimerGap()));
 
-	//primer design link
 	action = new QAction(QIcon("://Icons/WebService.png"), "PrimerDesign", this);
 	ui_.table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openPrimerDesign()));
 	action->setEnabled(Settings::string("PrimerDesign")!="");
 
-	//status
-	action = new QAction("Set status: to close", this);
+	action = new QAction(QIcon(":/Icons/Edit.png"), "Edit", this);
 	ui_.table->addAction(action);
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(setStatus()));
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(edit()));
+	connect(ui_.table, SIGNAL(rowDoubleClicked(int)), this, SLOT(edit(int)));
 
-	action = new QAction("Set status: in progress", this);
+	action = new QAction(QIcon(":/Icons/Comment.png"), "Add comment", this);
 	ui_.table->addAction(action);
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(setStatus()));
-
-	action = new QAction("Set status: closed", this);
-	ui_.table->addAction(action);
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(setStatus()));
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(addComment()));
 }
 
 void GapClosingDialog::delayedInitialization()
@@ -109,6 +107,7 @@ QString GapClosingDialog::exonNumber(const QByteArray& gene, int start, int end)
 
 void GapClosingDialog::updateTable()
 {
+
 	//clear
 	ui_.table->setRowCount(0);
 	ui_.errors->setVisible(false);
@@ -137,6 +136,8 @@ void GapClosingDialog::updateTable()
 		ui_.errors->setVisible(true);
 		return;
 	}
+
+	QApplication::setOverrideCursor(Qt::BusyCursor);
 
 	//create table
 	table_ = db_.createTable("gaps", "SELECT g.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as processed_sample, CONCAT(g.chr, ':', g.start, '-', g.end) as gap, g.status, g.history FROM gaps g, processed_sample ps, sample s WHERE g.processed_sample_id=ps.id AND ps.sample_id=s.id AND " + conditions.join(" AND "));
@@ -167,6 +168,54 @@ void GapClosingDialog::updateTable()
 
 	//show table in GUI
 	ui_.table->setData(table_, 300);
+
+	QApplication::restoreOverrideCursor();
+}
+
+void GapClosingDialog::edit()
+{
+	//check
+	QSet<int> rows = ui_.table->selectedRows();
+	if (rows.count()!=1)
+	{
+		QMessageBox::information(this, "Selection error", "Please select exactly one item!");
+		return;
+	}
+
+	edit(rows.toList().first());
+}
+
+void GapClosingDialog::edit(int row)
+{
+	//edit
+	int id = ui_.table->getId(row).toInt();
+	GapClosingEditDialog dlg(this, id);
+	if (!dlg.exec()) return;
+
+	dlg.store();
+	updateTable();
+}
+
+void GapClosingDialog::addComment()
+{
+
+	//check
+	QSet<int> rows = ui_.table->selectedRows();
+	if (rows.count()!=1)
+	{
+		QMessageBox::information(this, "Selection error", "Please select exactly one item!");
+		return;
+	}
+
+	//get text
+	QString comment = QInputDialog::getText(this, "Comment", "Comment text:").trimmed();
+	if (comment.isEmpty()) return;
+
+	int row = rows.toList().first();
+	int id = ui_.table->getId(row).toInt();
+	db_.addGapComment(id, comment);
+
+	updateTable();
 }
 
 void GapClosingDialog::openPrimerDesign()
@@ -191,7 +240,7 @@ void GapClosingDialog::openPrimerDesign()
 				end = region.end();
 			}
 
-			QString url = Settings::string("PrimerDesign")+"/index.php?user="+LoginManager::user()+"&sample="+ps+"&chr="+chr.strNormalized(true)+"&start="+QString::number(start)+"&end="+QString::number(end)+"";
+			QString url = Settings::string("PrimerDesign")+"/index.php?user="+LoginManager::userLogin()+"&sample="+ps+"&chr="+chr.strNormalized(true)+"&start="+QString::number(start)+"&end="+QString::number(end)+"";
 			QDesktopServices::openUrl(QUrl(url));
 		}
 	}
@@ -226,38 +275,4 @@ void GapClosingDialog::copyForPrimerGap()
 		GUIHelper::showMessage("PrimerGap error", e.message());
 		return;
 	}
-}
-
-void GapClosingDialog::setStatus()
-{
-	try
-	{
-		QString status_new = qobject_cast<QAction*>(sender())->text().split(":")[1].trimmed();
-
-		QSet<int> rows = ui_.table->selectedRows();
-		foreach(int row, rows)
-		{
-			QString gap_id = ui_.table->getId(row);
-
-			//check current status
-			QString status = db_.getValue("SELECT status FROM gaps WHERE id=" + gap_id).toString();
-			if (status!="to close" && status!="in progress" && status!="closed")
-			{
-				THROW(ArgumentException, "Status of gap " + ui_.table->item(row, 1)->text() + " of sample '" + ui_.table->item(row, 0)->text() + "' is '" + status + "'. It cannot be changed!");
-			}
-
-			if (status_new!=status)
-			{
-				db_.updateGapStatus(gap_id.toInt(), status_new);
-			}
-		}
-	}
-	catch (Exception& e)
-	{
-		GUIHelper::showMessage("Error setting status", e.message());
-		return;
-	}
-
-	//update GUI
-	updateTable();
 }

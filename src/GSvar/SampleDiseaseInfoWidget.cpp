@@ -2,7 +2,6 @@
 #include "ui_SampleDiseaseInfoWidget.h"
 #include "GUIHelper.h"
 #include "PhenotypeSelectionWidget.h"
-#include "GenLabDB.h"
 #include <QMenu>
 #include <QInputDialog>
 #include <QMessageBox>
@@ -15,7 +14,6 @@ SampleDiseaseInfoWidget::SampleDiseaseInfoWidget(QString ps_name, QWidget *paren
 {
 	ui_->setupUi(this);
 	connect(ui_->remove_btn, SIGNAL(clicked(bool)), this, SLOT(removeDiseaseInfo()));
-	connect(ui_->genlab_btn, SIGNAL(clicked(bool)), this, SLOT(importDiseaseInfoFromGenLab()));
 
 	//add button
 	QMenu* menu = new QMenu();
@@ -77,7 +75,7 @@ void SampleDiseaseInfoWidget::addDiseaseInfo()
 	//preprare entry
 	SampleDiseaseInfo tmp;
 	tmp.type = type;
-	tmp.user = LoginManager::user();
+	tmp.user = LoginManager::userLogin();
 	tmp.date = QDateTime::currentDateTime();
 
 	//get info from user
@@ -132,20 +130,3 @@ void SampleDiseaseInfoWidget::removeDiseaseInfo()
 	updateDiseaseInfoTable();
 }
 
-void SampleDiseaseInfoWidget::importDiseaseInfoFromGenLab()
-{
-	QApplication::setOverrideCursor(Qt::BusyCursor);
-
-	//import disease details to NGSD
-	GenLabDB genlab_db;
-	genlab_db.addMissingMetaDataToNGSD(ps_name_, false, false, true, false, false);
-
-	//load them from NGSD into the local datastructure
-	QString sample_id = db_.sampleId(ps_name_);
-	disease_info_ = db_.getSampleDiseaseInfo(sample_id);
-
-	//update GUI
-	updateDiseaseInfoTable();
-
-	QApplication::restoreOverrideCursor();
-}

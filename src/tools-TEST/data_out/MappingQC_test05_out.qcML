@@ -16,7 +16,22 @@
     <qualityParameter ID="qp0007" name="duplicate read percentage" description="Percentage of reads removed because they were duplicates (PCR, optical, etc)." value="n/a (duplicates not marked or removed during data analysis)" cvRef="QC" accession="QC:2000024"/>
     <qualityParameter ID="qp0008" name="bases usable (MB)" description="Bases sequenced that are usable for variant calling (in megabases)." value="0.36" cvRef="QC" accession="QC:2000050"/>
     <qualityParameter ID="qp0009" name="target region read depth" description="Average sequencing depth in target region." value="0.00" cvRef="QC" accession="QC:2000025"/>
-    <qualityParameter ID="qp0010" name="SNV allele frequency deviation" description="Percentage of common SNPs that deviate from the expected allele frequency (i.e. 0.0, 0.5 or 1.0 for diploid organisms)." value="n/a" cvRef="QC" accession="QC:2000051"/>
+    <qualityParameter ID="qp0010" name="target region 10x percentage" description="Percentage of the target region that is covered at least 10-fold." value="0.00" cvRef="QC" accession="QC:2000026"/>
+    <qualityParameter ID="qp0011" name="target region 20x percentage" description="Percentage of the target region that is covered at least 20-fold." value="0.00" cvRef="QC" accession="QC:2000027"/>
+    <qualityParameter ID="qp0012" name="target region 30x percentage" description="Percentage of the target region that is covered at least 30-fold." value="0.00" cvRef="QC" accession="QC:2000028"/>
+    <qualityParameter ID="qp0013" name="target region 50x percentage" description="Percentage of the target region that is covered at least 50-fold." value="0.00" cvRef="QC" accession="QC:2000029"/>
+    <qualityParameter ID="qp0014" name="target region 60x percentage" description="Percentage of the target region that is covered at least 60-fold." value="0.00" cvRef="QC" accession="QC:2000099"/>
+    <qualityParameter ID="qp0015" name="target region 100x percentage" description="Percentage of the target region that is covered at least 100-fold." value="0.00" cvRef="QC" accession="QC:2000030"/>
+    <qualityParameter ID="qp0016" name="target region 200x percentage" description="Percentage of the target region that is covered at least 200-fold." value="0.00" cvRef="QC" accession="QC:2000031"/>
+    <qualityParameter ID="qp0017" name="target region 500x percentage" description="Percentage of the target region that is covered at least 500-fold." value="0.00" cvRef="QC" accession="QC:2000032"/>
+    <qualityParameter ID="qp0018" name="target region half depth percentage" description="Percentage of the target region that is covered at least with half of the target region average depth. This is a measure of coverage uniformity." value="100.00" cvRef="QC" accession="QC:2000058"/>
+    <qualityParameter ID="qp0019" name="AT dropout" description="Illumina-style AT dropout metric. Calculated by taking each GC bin independently and calculating (%ref_at_gc - %reads_at_gc) and summing all positive values for GC=[0..50]." value="0.00" cvRef="QC" accession="QC:2000059"/>
+    <qualityParameter ID="qp0020" name="GC dropout" description="Illumina-style GC dropout metric. Calculated by taking each GC bin independently and calculating (%ref_at_gc - %reads_at_gc) and summing all positive values for GC=[50..100]." value="0.00" cvRef="QC" accession="QC:2000060"/>
+    <qualityParameter ID="qp0023" name="SNV allele frequency deviation" description="Percentage of common SNPs that deviate from the expected allele frequency (i.e. 0.0, 0.5 or 1.0 for diploid organisms)." value="n/a" cvRef="QC" accession="QC:2000051"/>
+    <attachment ID="qp0021" name="depth distribution plot" description="Plots the depth of coverage against the percentage of the target region coverated at the specific depth." cvRef="QC" accession="QC:2000037">
+    </attachment>
+    <attachment ID="qp0022" name="GC bias plot" description="Plots the percentage of target regions and reads per GC bin [0-100]." cvRef="QC" accession="QC:2000061">
+    </attachment>
   </runQuality>
   <cvList>
     <cv uri="https://raw.githubusercontent.com/imgag/ngs-bits/master/src/cppNGS/Resources/qcML.obo" ID="QC" fullName="QC" version="0.1"/>

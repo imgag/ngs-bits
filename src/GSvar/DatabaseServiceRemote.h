@@ -3,6 +3,7 @@
 
 #include "DatabaseService.h"
 #include "Exceptions.h"
+#include "LoginManager.h"
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -15,6 +16,7 @@ public:
 	virtual ~DatabaseServiceRemote() {}
 
 	virtual bool enabled() const override;
+	virtual QString checkPassword(const QString user_name, const QString password) const override;
 
 	virtual BedFile processingSystemRegions(int sys_id, bool ignore_if_missing) const override;
 	virtual BedFile processingSystemAmplicons(int sys_id, bool ignore_if_missing) const override;
@@ -22,10 +24,15 @@ public:
 	virtual QStringList secondaryAnalyses(QString processed_sample_name, QString analysis_type) const override;
 
 	virtual FileLocation processedSamplePath(const QString& processed_sample_id, PathType type) const override;
+	virtual FileInfo analysisJobLatestLogInfo(const int& job_id) const override;
 	virtual FileLocation analysisJobGSvarFile(const int& job_id) const override;
+	virtual FileLocation analysisJobLogFile(const int& job_id) const override;
 
 protected:
-	QByteArray makeApiCall(QString url_param, bool ignore_if_missing) const;
+	HttpHeaders defaultHeaders() const;
+	QString getTokenIfExists() const;
+	QByteArray makeGetApiCall(QString url_param, bool ignore_if_missing) const;
+	QByteArray makePostApiCall(QString url_param, QString content, bool ignore_if_missing) const;
 
 	//Throws an error if NGSD is not enabled
 	void checkEnabled(QString function) const

@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2021_12-80-g5ff26d8f)
+	VariantFilterAnnotations (2022_04-156-ga57fe9df)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -14,7 +14,7 @@
 	  KEEP - Force variants to be kept, even if filtered out by previous filter steps.
 	
 	The following filters are supported:
-	Allele frequency                   Filter based on overall allele frequency given by 1000 Genomes and gnomAD.
+	Allele frequency                   Filter based on overall allele frequency given by gnomAD and if available 1000g.
 	                                   Parameters:
 	                                     max_af - Maximum allele frequency in % [default=1] [min=0.0] [max=100.0]
 	Allele frequency (sub-populations) Filter based on sub-population allele frequency given by gnomAD.
@@ -141,8 +141,8 @@
 	                                     build - Genome build used for pseudoautosomal region coordinates [default=hg38] [valid=hg19,hg38]
 	Tumor zygosity                     Filter based on the zygosity of tumor-only samples. Filters out germline het/hom calls.
 	                                   Parameters:
-	                                     het_af_range - Consider allele frequencies of 50% ± het_af_range as heterozygous and thus as germline. [default=0] [min=0] [max=49.9]
-	                                     hom_af_range - Consider allele frequencies of 100% ± hom_af_range as homozygous and thus as germline. [default=0] [min=0] [max=99.9]
+	                                     het_af_range - Consider allele frequencies of 50% Â± het_af_range as heterozygous and thus as germline. [default=0] [min=0] [max=49.9]
+	                                     hom_af_range - Consider allele frequencies of 100% Â± hom_af_range as homozygous and thus as germline. [default=0] [min=0] [max=99.9]
 	Variant quality                    Filter for variant quality
 	                                   Parameters:
 	                                     qual - Minimum variant quality score (Phred) [default=250] [min=0]
@@ -150,6 +150,9 @@
 	                                     mapq - Minimum mapping quality of alternate allele (Phred) [default=40] [min=0]
 	                                     strand_bias - Maximum strand bias Phred score of alternate allele (set -1 to disable) [default=20] [min=-1]
 	                                     allele_balance - Maximum allele balance Phred score (set -1 to disable) [default=40] [min=-1]
+	                                     min_occurences - Minimum occurences of the variant per strand [default=1] [min=0]
+	                                     min_af - Minimum allele frequency of the variant in the sample [default=0] [min=0.0] [max=1.0]
+	                                     max_af - Maximum allele frequency of the variant in the sample [default=1] [min=0.0] [max=1.0]
 	Variant type                       Filter for variant types as defined by sequence ontology.
 	                                   For details see http://www.sequenceontology.org/browser/obob.cgi
 	                                   Parameters:
@@ -170,7 +173,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2021_12-80-g5ff26d8f
+	VariantFilterAnnotations 2022_04-156-ga57fe9df
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

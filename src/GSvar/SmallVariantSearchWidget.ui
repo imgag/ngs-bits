@@ -578,7 +578,7 @@
       <bool>false</bool>
      </property>
      <property name="columnCount">
-      <number>22</number>
+      <number>23</number>
      </property>
      <attribute name="verticalHeaderVisible">
       <bool>false</bool>
@@ -610,7 +610,12 @@
      </column>
      <column>
       <property name="text">
-       <string>1000g AF</string>
+       <string>CADD</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>SpliceAI</string>
       </property>
      </column>
      <column>

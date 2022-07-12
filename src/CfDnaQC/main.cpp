@@ -31,8 +31,8 @@ public:
 		addInfile("error_rates", "Input TSV containing umiVar error rates.", true, true);
 		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg38");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
-		addString("ref_cram", "Reference genome for CRAM support (mandatory if CRAM is used). If set, it is used for tumor and normal file.", true);
 		addInt("min_mapq", "Set minimal mapping quality (default:0)", true, 0);
+		addFlag("txt", "Writes TXT format instead of qcML.");
 
 
 		//changelog
@@ -157,7 +157,11 @@ public:
 
 				//parse line
 				QStringList columns = line.split("\t");
-				double error_rate = Helper::toDouble(columns.at(0), "Error rate");
+				double error_rate = std::numeric_limits<double>::quiet_NaN();
+				if (columns.at(0).trimmed() != "NA")
+				{
+					error_rate = Helper::toDouble(columns.at(0), "Error rate");
+				}
 				QString duplication_rate = columns.at(4).trimmed();
 				umivar_error_rates.insert(duplication_rate, error_rate);
 			}
@@ -232,8 +236,16 @@ public:
 		}
 		if(!umivar_error_rate_file.isEmpty()) parameters += " -error_rates " + umivar_error_rate_file;
 
-		metrics.storeToQCML(out, QStringList(), parameters, precision_overwrite, metadata);
-
+		if (getFlag("txt"))
+		{
+			QStringList output;
+			metrics.appendToStringList(output);
+			Helper::storeTextFile(Helper::openFileForWriting(out, true), output);
+		}
+		else
+		{
+			metrics.storeToQCML(out, QStringList(), parameters, precision_overwrite, metadata);
+		}
 	}
 };
 

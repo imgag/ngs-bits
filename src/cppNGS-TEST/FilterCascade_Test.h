@@ -48,6 +48,23 @@ private slots:
 		IS_TRUE(result.flags()[120]);
 	}
 
+	void FilterAlleleFrequency_apply_without_1000g()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_no1000g_in.GSvar"));
+
+		FilterResult result(vl.count());
+		FilterAlleleFrequency filter;
+		filter.setDouble("max_af", 1.0);
+		filter.apply(vl, result);
+
+		I_EQUAL(result.countPassing(), 29);
+		IS_TRUE(result.flags()[70]);
+		IS_TRUE(result.flags()[74]);
+		IS_TRUE(result.flags()[101]);
+		IS_TRUE(result.flags()[120]);
+	}
+
 	void FilterSubpopulationAlleleFrequency_apply()
 	{
 		VariantList vl;
@@ -694,6 +711,9 @@ private slots:
 		filter.setInteger("mapq", 0);
 		filter.setInteger("strand_bias", -1);
 		filter.setInteger("allele_balance", -1);
+		filter.setInteger("min_occurences", 0);
+		filter.setDouble("min_af", 0);
+		filter.setDouble("max_af", 1);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 138);
 
@@ -704,6 +724,9 @@ private slots:
 		filter.setInteger("mapq", 0);
 		filter.setInteger("strand_bias", -1);
 		filter.setInteger("allele_balance", -1);
+		filter.setInteger("min_occurences", 0);
+		filter.setDouble("min_af", 0);
+		filter.setDouble("max_af", 1);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 136);
 
@@ -714,6 +737,9 @@ private slots:
 		filter.setInteger("mapq", 55);
 		filter.setInteger("strand_bias", -1);
 		filter.setInteger("allele_balance", -1);
+		filter.setInteger("min_occurences", 0);
+		filter.setDouble("min_af", 0);
+		filter.setDouble("max_af", 1);
 
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 131);
@@ -725,6 +751,9 @@ private slots:
 		filter.setInteger("mapq", 0);
 		filter.setInteger("strand_bias", 20);
 		filter.setInteger("allele_balance", -1);
+		filter.setInteger("min_occurences", 0);
+		filter.setDouble("min_af", 0);
+		filter.setDouble("max_af", 1);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 142);
 
@@ -735,6 +764,9 @@ private slots:
 		filter.setInteger("mapq", 0);
 		filter.setInteger("strand_bias", -1);
 		filter.setInteger("allele_balance", 20);
+		filter.setInteger("min_occurences", 0);
+		filter.setDouble("min_af", 0);
+		filter.setDouble("max_af", 1);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 142);
 
@@ -745,8 +777,43 @@ private slots:
 		filter.setInteger("mapq", 55);
 		filter.setInteger("strand_bias", 20);
 		filter.setInteger("allele_balance", 20);
+		filter.setDouble("min_af", 0);
+		filter.setDouble("max_af", 1);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 113);
+
+		// new test File
+		vl.clear();
+		vl.load(TESTDATA("data_in/VariantFilter_in1.GSvar"));
+		result = FilterResult(vl.count());
+
+		//min occurences per strand
+		result.reset();
+		filter.setInteger("qual", 0);
+		filter.setInteger("depth", 0);
+		filter.setInteger("mapq", 0);
+		filter.setInteger("strand_bias", -1);
+		filter.setInteger("allele_balance", -1);
+		filter.setInteger("min_occurences", 3);
+		filter.setDouble("min_af", 0);
+		filter.setDouble("max_af", 1);
+
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 6);
+
+
+		//Allele frequency
+		result.reset();
+		filter.setInteger("qual", 0);
+		filter.setInteger("depth", 0);
+		filter.setInteger("mapq", 0);
+		filter.setInteger("strand_bias", -1);
+		filter.setInteger("allele_balance", -1);
+		filter.setInteger("min_occurences", 0);
+		filter.setDouble("min_af", 0.02);
+		filter.setDouble("max_af", 0.1);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 6);
 	}
 
 	void FilterVariantQC_apply_multiSample()
@@ -1050,6 +1117,7 @@ private slots:
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 18);
 	}
+
 
 	/********************************************* Filters for small variants (somatic tumor-only) *********************************************/
 
@@ -1745,10 +1813,10 @@ private slots:
 		// default
 		FilterSvCountNGSD filter1;
 		filter1.apply(svs, result);
-		I_EQUAL(result.countPassing(), 24);
+		I_EQUAL(result.countPassing(), 84);
 	}
 
-	void FilterrSvCountNGSD_apply_overlap()
+	void FilterSvCountNGSD_apply_ignore_genotype()
 	{
 		BedpeFile svs;
 		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
@@ -1757,14 +1825,13 @@ private slots:
 
 		// overlap
 		FilterSvCountNGSD filter;
-		filter.setBool("overlap_matches", true);
+		filter.setBool("ignore_genotype", true);
 		filter.apply(svs, result);
-		I_EQUAL(result.countPassing(), 22);
-
+		I_EQUAL(result.countPassing(), 76);
 
 	}
 
-	void FilterrSvCountNGSD_apply_custom()
+	void FilterSvCountNGSD_apply_custom()
 	{
 
 		BedpeFile svs;
@@ -1775,11 +1842,12 @@ private slots:
 		// custom maximum
 		FilterSvCountNGSD filter;
 		filter.setInteger("max_count", 10);
+		filter.setBool("ignore_genotype", true);
 		filter.apply(svs, result);
-		I_EQUAL(result.countPassing(), 22);
+		I_EQUAL(result.countPassing(), 71);
 	}
 
-	void FilterrSvAfNGSD_apply_default()
+	void FilterSvAfNGSD_apply_default()
 	{
 
 		BedpeFile svs;
@@ -1787,13 +1855,13 @@ private slots:
 
 		FilterResult result(svs.count());
 
-		// custom maximum
+		// default maximum
 		FilterSvAfNGSD filter;
 		filter.apply(svs, result);
-		I_EQUAL(result.countPassing(), 18);
+		I_EQUAL(result.countPassing(), 78);
 	}
 
-	void FilterrSvAfNGSD_apply_custom()
+	void FilterSvAfNGSD_apply_custom()
 	{
 
 		BedpeFile svs;
@@ -1805,7 +1873,37 @@ private slots:
 		FilterSvAfNGSD filter;
 		filter.setDouble("max_af", 50.0);
 		filter.apply(svs, result);
-		I_EQUAL(result.countPassing(), 55);
+		I_EQUAL(result.countPassing(), 83);
+	}
+
+	void FilterSvBreakpointDensityNGSD_default()
+	{
+
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		// default maximum
+		FilterSvBreakpointDensityNGSD filter;
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 70);
+	}
+
+	void FilterSvBreakpointDensityNGSD_custom()
+	{
+
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		// custom maximum
+		FilterSvBreakpointDensityNGSD filter;
+		filter.setInteger("max_density", 257);
+		filter.setBool("remove_strict", true);
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 73);
 	}
 
 	void FilterSvTrio_apply()

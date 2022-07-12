@@ -170,6 +170,9 @@
         </property>
         <item>
          <widget class="QPushButton" name="roi_add_temp">
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
           <property name="toolTip">
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add target region temporarily&lt;br/&gt;(until GSvar is closed)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
@@ -191,6 +194,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="roi_add">
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
           <property name="toolTip">
            <string>Add target region permanently</string>
           </property>
@@ -205,6 +211,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="roi_remove">
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
           <property name="toolTip">
            <string>Remove current target region permanently</string>
           </property>
@@ -263,6 +272,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="roi_details">
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
           <property name="toolTip">
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show detail information about the selected target region.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
@@ -401,6 +413,9 @@
       </item>
       <item row="2" column="3">
        <widget class="QToolButton" name="clearn_btn">
+        <property name="focusPolicy">
+         <enum>Qt::NoFocus</enum>
+        </property>
         <property name="text">
          <string>...</string>
         </property>

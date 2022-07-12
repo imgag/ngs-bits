@@ -13,8 +13,8 @@ class LoginDialog
 public:
 	LoginDialog(QWidget *parent = 0);
 
-	//Returns the user name that successfully logged in.
-	QString userName() const;
+protected:
+	void showMessage(QString message, bool reset_password = false);
 
 protected slots:
 	void clear();
@@ -22,7 +22,6 @@ protected slots:
 
 private:
 	Ui::LoginDialog ui_;
-	QString user_name_;
 };
 
 #endif // LOGINDIALOG_H

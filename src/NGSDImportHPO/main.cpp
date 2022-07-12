@@ -45,56 +45,56 @@ public:
 
 	/// simple sruct to keep a set of source databases
 	struct SourceDetails {
-		QList<PhenotypeSource::Source> sources;
+		QList<PhenotypeSource> sources;
 		QStringList original_evidence;
-		QList<PhenotypeEvidence::Evidence> translated_evidence;
+		QList<PhenotypeEvidenceLevel> translated_evidence;
 
 		SourceDetails()
 		{
-			sources = QList<PhenotypeSource::Source>();
+			sources = QList<PhenotypeSource>();
 		}
 
-		SourceDetails(const QByteArray& s, const QByteArray& original_evi, PhenotypeEvidence::Evidence translated_evi=PhenotypeEvidence::Evidence::NA)
+		SourceDetails(const QByteArray& s, const QByteArray& original_evi, PhenotypeEvidenceLevel translated_evi=PhenotypeEvidenceLevel::NA)
 		{
-			sources = QList<PhenotypeSource::Source>();
+			sources = QList<PhenotypeSource>();
 			original_evidence = QStringList();
-			translated_evidence = QList<PhenotypeEvidence::Evidence>();
+			translated_evidence = QList<PhenotypeEvidenceLevel>();
 
-			sources.append(PhenotypeSource::sourceFromString(s));
+			sources.append(Phenotype::sourceFromString(s));
 			original_evidence.append(QString(original_evi));
 			translated_evidence.append(translated_evi);
 		}
 
-		bool contains(const PhenotypeSource::Source& s)
+		bool contains(const PhenotypeSource& s)
 		{
 			return sources.contains(s);
 		}
 
 		bool contains(const QByteArray& s)
 		{
-			return sources.contains(PhenotypeSource::sourceFromString(s));
+			return sources.contains(Phenotype::sourceFromString(s));
 		}
 
 		bool contains(const QString& s)
 		{
-			return sources.contains(PhenotypeSource::sourceFromString(s));
+			return sources.contains(Phenotype::sourceFromString(s));
 		}
 
-		int getIndexOfSource(const PhenotypeSource::Source& s)
+		int getIndexOfSource(const PhenotypeSource& s)
 		{
 			return sources.indexOf(s);
 		}
 
-		void append(const PhenotypeSource::Source& s,const QString& original_evi, PhenotypeEvidence::Evidence translated_evi)
+		void append(const PhenotypeSource& s,const QString& original_evi, PhenotypeEvidenceLevel translated_evi)
 		{
 			sources.append(s);
 			original_evidence.append(original_evi);
 			translated_evidence.append(translated_evi);
 		}
 
-		void append(const QByteArray& s, const QString& original_evi, PhenotypeEvidence::Evidence translated_evi)
+		void append(const QByteArray& s, const QString& original_evi, PhenotypeEvidenceLevel translated_evi)
 		{
-			sources.append(PhenotypeSource::sourceFromString(s));
+			sources.append(Phenotype::sourceFromString(s));
 			original_evidence.append(original_evi);
 			translated_evidence.append(translated_evi);
 		}
@@ -127,11 +127,11 @@ public:
 			{
 				if (i == 0)
 				{
-					s= "(" + PhenotypeSource::sourceToString(sources[i]) + ", " + original_evidence[i] + ", " + PhenotypeEvidence::evidenceToString(translated_evidence[i]) + ")";
+					s= "(" + Phenotype::sourceToString(sources[i]) + ", " + original_evidence[i] + ", " + Phenotype::evidenceToString(translated_evidence[i]) + ")";
 				}
 				else
 				{
-					s += "; (" + PhenotypeSource::sourceToString(sources[i]) + ", " + original_evidence[i] + ", " + PhenotypeEvidence::evidenceToString(translated_evidence[i]) + ")";
+					s += "; (" + Phenotype::sourceToString(sources[i]) + ", " + original_evidence[i] + ", " + Phenotype::evidenceToString(translated_evidence[i]) + ")";
 				}
 			}
 			return s;
@@ -188,28 +188,28 @@ public:
 	{
 		QByteArray item;
 		SourceDetails src;
-		PhenotypeEvidence::Evidence evi;
+		PhenotypeEvidenceLevel evi;
 		ExactSources exactSources; // for debuging and testing
 
 		AnnotatedItem()
 		{
 		}
 
-		AnnotatedItem(const QByteArray& item, const QByteArray& s, const QByteArray& original_evi, PhenotypeEvidence::Evidence evi):
+		AnnotatedItem(const QByteArray& item, const QByteArray& s, const QByteArray& original_evi, PhenotypeEvidenceLevel evi):
 			item(item)
 		  , evi(evi)
 		{
 			src = SourceDetails(s, original_evi, evi);
 		}
 
-		AnnotatedItem(const QByteArray& item, SourceDetails src, PhenotypeEvidence::Evidence evi):
+		AnnotatedItem(const QByteArray& item, SourceDetails src, PhenotypeEvidenceLevel evi):
 			item(item)
 		  , src(src)
 		  , evi(evi)
 		{
 		}
 
-		AnnotatedItem(const QByteArray& item, SourceDetails src, PhenotypeEvidence::Evidence evi, ExactSources exactSources):
+		AnnotatedItem(const QByteArray& item, SourceDetails src, PhenotypeEvidenceLevel evi, ExactSources exactSources):
 			item(item)
 		  , src(src)
 		  , evi(evi)
@@ -227,12 +227,12 @@ public:
 	class AnnotatedList
 	{
 		public:
-			void add(const QByteArray& item, const QByteArray& source, const QByteArray& original_evi, PhenotypeEvidence::Evidence evidence=PhenotypeEvidence::NA, ExactSources exactSource=ExactSources())
+			void add(const QByteArray& item, const QByteArray& source, const QByteArray& original_evi, PhenotypeEvidenceLevel evidence=PhenotypeEvidenceLevel::NA, ExactSources exactSource=ExactSources())
 			{
 				add(item, SourceDetails(source, original_evi, evidence), evidence, exactSource);
 			}
 
-			void add(const QByteArray& item, SourceDetails source, PhenotypeEvidence::Evidence evidence=PhenotypeEvidence::NA, ExactSources exactSource=ExactSources())
+			void add(const QByteArray& item, SourceDetails source, PhenotypeEvidenceLevel evidence=PhenotypeEvidenceLevel::NA, ExactSources exactSource=ExactSources())
 			{
 				if (hash.contains(item))
 				{
@@ -351,11 +351,11 @@ public:
 			{
 				ExactSources e_src = ExactSources();
 				e_src.term2disease = QString("hpoPhen line ") + QString::number(lineCount);
-				term2diseases[term_id].add(disease, "HPO", evidence,  PhenotypeEvidence::translateHpoEvidence(evidence), e_src);
+				term2diseases[term_id].add(disease, "HPO", evidence,  translateHpoEvidence(evidence), e_src);
 				added++;
 				if (getFlag("debug"))
 				{
-					out << "Imported term2disease relation:\t" << term << "-" << disease << ":\t" << evidence << "\t fin_evi:\t" << PhenotypeEvidence::evidenceToString(PhenotypeEvidence::translateHpoEvidence(evidence)) << "\n";
+					out << "Imported term2disease relation:\t" << term << "-" << disease << ":\t" << evidence << "\t fin_evi:\t" << Phenotype::evidenceToString(translateHpoEvidence(evidence)) << "\n";
 				}
 			}
 		}
@@ -397,7 +397,7 @@ public:
 			QByteArray disease_num = parts[3].trimmed();
 			QByteArray disease = "OMIM:" + parts[3].trimmed();
 			QByteArray decipher_evi = parts[4].trimmed();
-			PhenotypeEvidence::Evidence evidence = PhenotypeEvidence::translateDecipherEvidence(decipher_evi);
+			PhenotypeEvidenceLevel evidence = translateDecipherEvidence(decipher_evi);
 			QByteArrayList hpo_terms = parts[7].trimmed().split(';');
 
 			//verify information
@@ -496,9 +496,9 @@ public:
 			QByteArray gene_symbol = parts[2].replace('"', ' ').trimmed();
 			QByteArray disease = parts[5].replace('"', ' ').trimmed(); // OMIM:XXXXXX, MONDO:XXXXXXX, Orphanet:XXXXX needs mapping from Orphanet and Mondo to Omim
 			QByteArray gencc_evi = parts[8].replace('"', ' ').trimmed();
-			PhenotypeEvidence::Evidence evidence = PhenotypeEvidence::translateGenccEvidence(gencc_evi);
+			PhenotypeEvidenceLevel evidence = translateGenccEvidence(gencc_evi);
 
-			if (evidence == PhenotypeEvidence::NA || evidence == PhenotypeEvidence::AGAINST)
+			if (evidence == PhenotypeEvidenceLevel::NA || evidence == PhenotypeEvidenceLevel::AGAINST)
 			{
 				continue;
 			}
@@ -553,6 +553,151 @@ public:
 		}
 
 		return parts;
+	}
+
+	/// turns a given HPO Evidence value into one from the Evidences enum
+	static PhenotypeEvidenceLevel translateHpoEvidence(const QString& hpo_evi)
+	{
+		//IEA (inferred from electronic annotation): Annotations extracted by parsing the Clinical Features sections of the Online Mendelian Inheritance in Man resource are assigned the evidence code “IEA”.
+		//PCS (published clinical study) is used for used for information extracted from articles in the medical literature. Generally, annotations of this type will include the pubmed id of the published study in the DB_Reference field.
+		//TAS (traceable author statement) is used for information gleaned from knowledge bases such as OMIM or Orphanet that have derived the information from a published source..
+		if (hpo_evi == "IEA")
+		{
+			return PhenotypeEvidenceLevel::LOW;
+		}
+		else if (hpo_evi == "TAS")
+		{
+			return PhenotypeEvidenceLevel::MEDIUM;
+		}
+		else if (hpo_evi == "PCS")
+		{
+			return PhenotypeEvidenceLevel::HIGH;
+		}
+		else
+		{
+			THROW(ArgumentException, "Given Evidence is not a HPO evidence value: " + QString(hpo_evi));
+		}
+	}
+
+	/// turns a given OMIM Evidence value into one from the Evidences enum
+	static PhenotypeEvidenceLevel translateOmimEvidence(const QByteArray& omim_evi)
+	{
+			//# Phenotype Mapping key - Appears in parentheses after a disorder :
+			//# -----------------------------------------------------------------
+			//#
+			//# 1 - The disorder is placed on the map based on its association with
+			//# a gene, but the underlying defect is not known.
+			//# 2 - The disorder has been placed on the map by linkage or other
+			//# statistical method; no mutation has been found.
+			//# 3 - The molecular basis for the disorder is known; a mutation has been
+			//# found in the gene.
+			//# 4 - A contiguous gene deletion or duplication syndrome, multiple genes
+			//# are deleted or duplicated causing the phenotype.
+		if (omim_evi == "(1)")
+		{
+			return PhenotypeEvidenceLevel::LOW;
+		}
+		else if (omim_evi == "(2)")
+		{
+			return PhenotypeEvidenceLevel::LOW;
+		}
+		else if (omim_evi == "(3)")
+		{
+			return PhenotypeEvidenceLevel::HIGH;
+		}
+		else if (omim_evi == "(4)")
+		{
+			return PhenotypeEvidenceLevel::HIGH;
+		}
+		else
+		{
+			THROW(ArgumentException, "Given Evidence is not a Omim evidence value: " + QString(omim_evi));
+		}
+	}
+	/// turns a given Decipher Evidence value into one from the Evidences enum
+	static PhenotypeEvidenceLevel translateDecipherEvidence(const QByteArray& decipher_evi)
+	{
+		//disease confidence: One value from the list of possible categories: both DD and IF, confirmed, possible, probable
+		// Confirmed 	Plausible disease-causing mutations* within, affecting or encompassing an interpretable functional region** of a single gene identified in multiple (>3) unrelated cases/families with a developmental disorder***
+		//				Plausible disease-causing mutations within, affecting or encompassing cis-regulatory elements convincingly affecting the expression of a single gene identified in multiple (>3) unrelated cases/families with a developmental disorder
+		//				As definition 1 and 2 of Probable Gene (see below) with addition of convincing bioinformatic or functional evidence of causation e.g. known inborn error of metabolism with mutation in orthologous gene which is known to have the relevant deficient enzymatic activity in other species; existence of animal mode which recapitulates the human phenotype
+		//   Probable 	Plausible disease-causing mutations within, affecting or encompassing an interpretable functional region of a single gene identified in more than one (2 or 3) unrelated cases/families or segregation within multiple individuals within a single large family with a developmental disorder
+		//				Plausible disease-causing mutations within, affecting or encompassing cis-regulatory elements convincingly affecting the expression of a single gene identified in in more than one (2 or 3) unrelated cases/families with a developmental disorder
+		//				As definitions of Possible Gene (see below) with addition of convincing bioinformatic or functional evidence of causation e.g. known inborn error of metabolism with mutation in orthologous gene which is known to have the relevant deficient enzymatic activity in other species; existence of animal mode which recapitulates the human phenotype
+		//   Possible 	Plausible disease-causing mutations within, affecting or encompassingan interpretable functional region of a single gene identified in one case or segregation within multiple individuals within a small family with a developmental disorder
+		//				Plausible disease-causing mutations within, affecting or encompassing cis-regulatory elements convincingly affecting the expression of a single gene identified in one case/family with a developmental disorder
+		//				Possible disease-causing mutations within, affecting or encompassing an interpretable functional region of a single gene identified in more than one unrelated cases/families or segregation within multiple individuals within a single large family with a developmental disorder
+		//   Both RD and IF 	Plausible disease-causing mutations within, affecting or encompassing the coding region of a single gene identified in multiple (>3) unrelated cases/families with both the relevant disease (RD) and an incidental disorder
+		if (decipher_evi == "\"both RD and IF\"")
+		{ // meaning?
+			return PhenotypeEvidenceLevel::LOW;
+		}
+		else if (decipher_evi == "possible" || decipher_evi == "limited" || decipher_evi == "supportive")
+		{
+			return PhenotypeEvidenceLevel::LOW;
+		}
+		else if (decipher_evi == "probable" || decipher_evi == "moderate")
+		{
+			return PhenotypeEvidenceLevel::MEDIUM;
+		}
+		else if (decipher_evi == "confirmed" || decipher_evi == "definitive" || decipher_evi == "strong")
+		{
+			return PhenotypeEvidenceLevel::HIGH;
+		}
+		else
+		{
+			THROW(ArgumentException, "Given Evidence is not a Decipher evidence value.: " + QString(decipher_evi));
+		}
+	}
+
+	/// turns a given GenCC Evidence value into one from the Evidences enum
+	static PhenotypeEvidenceLevel translateGenccEvidence(const QByteArray& gencc_evi)
+	{
+		//Definitive, Strong, Moderate, Supportive, Limited, Disputed, Refuted, Animal, No Known
+		if (gencc_evi == "No Known")
+		{
+			return PhenotypeEvidenceLevel::NA;
+		}
+		else if (gencc_evi == "No Known Disease Relationship")
+		{
+			return PhenotypeEvidenceLevel::NA;
+		}
+		else if (gencc_evi == "Animal")
+		{
+			return PhenotypeEvidenceLevel::LOW;
+		}
+		else if (gencc_evi == "Refuted" || gencc_evi == "Refuted Evidence")
+		{
+			return PhenotypeEvidenceLevel::AGAINST;
+		}
+		else if (gencc_evi == "Disputed" || gencc_evi == "Disputed Evidence")
+		{
+			return PhenotypeEvidenceLevel::AGAINST;
+		}
+		else if (gencc_evi == "Limited")
+		{
+			return PhenotypeEvidenceLevel::LOW;
+		}
+		else if (gencc_evi == "Supportive")
+		{
+			return PhenotypeEvidenceLevel::LOW;
+		}
+		else if (gencc_evi == "Moderate")
+		{
+			return PhenotypeEvidenceLevel::MEDIUM;
+		}
+		else if (gencc_evi == "Strong")
+		{
+			return PhenotypeEvidenceLevel::HIGH;
+		}
+		else if (gencc_evi == "Definitive")
+		{
+			return PhenotypeEvidenceLevel::HIGH;
+		}
+		else
+		{
+			THROW(ArgumentException, "Given Evidence is not a GenCC evidence value: " + QString(gencc_evi));
+		}
 	}
 
 	virtual void main()
@@ -643,7 +788,7 @@ public:
 
 						ExactSources e_src = ExactSources();
 						e_src.term2gene = exactSource;
-						term2genes[term_db_id].add(db.geneSymbol(gene_db_id), "HPO", "", PhenotypeEvidence::NA, e_src);
+						term2genes[term_db_id].add(db.geneSymbol(gene_db_id), "HPO", "", PhenotypeEvidenceLevel::NA, e_src);
 					}
 				}
 				else
@@ -652,7 +797,7 @@ public:
 
 					ExactSources e_src = ExactSources();
 					e_src.term2disease = exactSource;
-					term2diseases[term_db_id].add(disease, "HPO", "", PhenotypeEvidence::NA, e_src);
+					term2diseases[term_db_id].add(disease, "HPO", "", PhenotypeEvidenceLevel::NA, e_src);
 				}
 			}
 
@@ -662,7 +807,7 @@ public:
 
 				ExactSources e_src = ExactSources();
 				e_src.disease2gene = exactSource;
-				disease2genes[disease].add(db.geneSymbol(gene_db_id), "HPO", "", PhenotypeEvidence::NA, e_src);
+				disease2genes[disease].add(db.geneSymbol(gene_db_id), "HPO", "", PhenotypeEvidenceLevel::NA, e_src);
 			}
 			else
 			{
@@ -726,7 +871,7 @@ public:
 
 					ExactSources e_src = ExactSources();
 					e_src.disease2gene = QString("OMIM line ") + QString::number(lineCount);
-					disease2genes["OMIM:"+mim_number].add(db.geneSymbol(approved_id), "OMIM", omim_evi, PhenotypeEvidence::translateOmimEvidence(omim_evi), e_src);
+					disease2genes["OMIM:"+mim_number].add(db.geneSymbol(approved_id), "OMIM", omim_evi, translateOmimEvidence(omim_evi), e_src);
 					count++;
 				}
 			}
@@ -809,7 +954,7 @@ public:
 
 						ExactSources e_src = ExactSources();
 						e_src.disease2gene = QString("ClinVar line ") + QString::number(lineCount);
-						disease2genes[disease].add(gene_approved, "ClinVar", "", PhenotypeEvidence::NA, e_src);
+						disease2genes[disease].add(gene_approved, "ClinVar", "", PhenotypeEvidenceLevel::NA, e_src);
 					}
 					foreach(const QByteArray& hpo, hpos)
 					{
@@ -819,7 +964,7 @@ public:
 						{
 							ExactSources e_src = ExactSources();
 							e_src.term2gene = QString("ClinVar line ") + QString::number(lineCount);
-							term2genes[term_db_id].add(gene_approved, "ClinVar", "", PhenotypeEvidence::NA, e_src);
+							term2genes[term_db_id].add(gene_approved, "ClinVar", "", PhenotypeEvidenceLevel::NA, e_src);
 						}
 					}
 				}
@@ -990,7 +1135,7 @@ public:
 							{
 								ExactSources e_src = ExactSources();
 								e_src.term2gene = QString("HGMD unknown line");
-								term2genes[term_db_id].add(gene_approved, "HGMD", "", PhenotypeEvidence::NA, e_src); // is there some evidence in the file that could be parsed?
+								term2genes[term_db_id].add(gene_approved, "HGMD", "", PhenotypeEvidenceLevel::NA, e_src); // is there some evidence in the file that could be parsed?
 							}
 						}
 					}
@@ -1014,12 +1159,12 @@ public:
 				foreach (const AnnotatedItem& gene, disease2genes[disease.item].items())
 				{
 					// if one of the evidencess is NA take the other one. If both have a value take the lower ranked one.
-					PhenotypeEvidence::Evidence evi;
-					if (disease.evi == PhenotypeEvidence::NA)
+					PhenotypeEvidenceLevel evi;
+					if (disease.evi == PhenotypeEvidenceLevel::NA)
 					{
 						evi = gene.evi;
 					}
-					else if (gene.evi == PhenotypeEvidence::NA)
+					else if (gene.evi == PhenotypeEvidenceLevel::NA)
 					{
 						evi = disease.evi;
 					}
@@ -1048,9 +1193,9 @@ public:
 			{
 				if (getFlag("debug"))
 				{
-					out << "Gene:\t" << gene.item << "\tHPO term id:\t" << term_id << "\t" << "final evidence:\t" << PhenotypeEvidence::evidenceToString(gene.evi) << "  \torigin:\t" << gene.exactSources.toString() << "\n";
+					out << "Gene:\t" << gene.item << "\tHPO term id:\t" << term_id << "\t" << "final evidence:\t" << Phenotype::evidenceToString(gene.evi) << "  \torigin:\t" << gene.exactSources.toString() << "\n";
 				}
-				tuples << QString("(%1, '%2', '%3', '%4')").arg(QString::number(term_id), QString(gene.item), gene.src.toCsvString(), PhenotypeEvidence::evidenceToString(gene.evi));
+				tuples << QString("(%1, '%2', '%3', '%4')").arg(QString::number(term_id), QString(gene.item), gene.src.toCsvString(), Phenotype::evidenceToString(gene.evi));
 			}
 		}
 		//import

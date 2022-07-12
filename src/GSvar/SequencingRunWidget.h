@@ -34,6 +34,7 @@ private:
 	Ui::SequencingRunWidget* ui_;
 	QString run_id_;
 	QStringList qc_metric_accessions_;
+	void setQCMetricAccessions(const QSet<QString>& sample_types);
 
 	static void highlightItem(QTableWidgetItem* item);
 };

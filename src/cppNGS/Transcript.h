@@ -26,6 +26,25 @@ public:
 		gene_ = symbol;
 	}
 
+    const QByteArray& geneId() const
+    {
+        return gene_id_;
+    }
+    void setGeneId(const QByteArray& gene_id)
+    {
+        gene_id_ = gene_id;
+    }
+
+    const QByteArray& hgncId() const
+    {
+        return hgnc_id_;
+    }
+
+    void setHgncId(const QByteArray& hgnc_id)
+    {
+        hgnc_id_ = hgnc_id;
+    }
+
     const QByteArray& name() const
 	{
 		return name_;
@@ -34,6 +53,25 @@ public:
 	{
 		name_ = name;
 	}
+
+    const int& version() const
+    {
+        return version_;
+    }
+
+    void setVersion(const int& version)
+    {
+        version_ = version;
+    }
+
+    const QByteArray& nameCcds() const
+    {
+        return name_ccds_;
+    }
+    void setNameCcds(const QByteArray& name_ccds)
+    {
+        name_ccds_ = name_ccds;
+    }
 
 	enum SOURCE
 	{
@@ -62,6 +100,62 @@ public:
 	void setStrand(STRAND strand)
 	{
 		strand_ = strand;
+	}
+
+	enum BIOTYPE
+	{
+		IG_C_GENE,
+		IG_C_PSEUDOGENE,
+		IG_D_GENE,
+		IG_J_GENE,
+		IG_J_PSEUDOGENE,
+		IG_V_GENE,
+		IG_V_PSEUDOGENE,
+		IG_PSEUDOGENE,
+		MT_RRNA,
+		MT_TRNA,
+		TEC,
+		TR_C_GENE,
+		TR_D_GENE,
+		TR_J_GENE,
+		TR_J_PSEUDOGENE,
+		TR_V_GENE,
+		TR_V_PSEUDOGENE,
+		LNCRNA,
+		MIRNA,
+		MISC_RNA,
+		NON_STOP_DECAY,
+		NONSENSE_MEDIATED_DECAY,
+		POLYMORPHIC_PSEUDOGENE,
+		PROCESSED_PSEUDOGENE,
+		PROCESSED_TRANSCRIPT,
+		PROTEIN_CODING,
+		PSEUDOGENE,
+		RRNA,
+		RRNA_PSEUDOGENE,
+		RETAINED_INTRON,
+		RIBOZYME,
+		SRNA,
+		SCRNA,
+		SCARNA,
+		SNRNA,
+		SNORNA,
+		TRANSCRIBED_PROCESSED_PSEUDOGENE,
+		TRANSCRIBED_UNITARY_PSEUDOGENE,
+		TRANSCRIBED_UNPROCESSED_PSEUDOGENE,
+		TRANSLATED_PROCESSED_PSEUDOGENE,
+		TRANSLATED_UNPROCESSED_PSEUDOGENE,
+		UNITARY_PSEUDOGENE,
+		UNPROCESSED_PSEUDOGENE,
+		VAULTRNA
+	};
+	BIOTYPE biotype() const
+	{
+		return biotype_;
+	}
+	void setBiotype(BIOTYPE biotype)
+	{
+		biotype_ = biotype;
 	}
 
 	const Chromosome& chr() const
@@ -137,6 +231,11 @@ public:
 	///Converts string to strand enum.
     static STRAND stringToStrand(QByteArray strand);
 
+	///Converts biotype enum to string value.
+	static QByteArray biotypeToString(BIOTYPE biotype);
+	///Converts string to biotype enum.
+	static BIOTYPE stringToBiotype(QByteArray biotype);
+
 	///Converts a cDNA coordinate to genomic coordinates. Throws an exception if the coordinate is not valid.
 	int cDnaToGenomic(int coord) const;
 	///Converts a non-coding DNA coordinate to genomic coordinates. Throws an exception if the coordinate is not valid.
@@ -153,9 +252,14 @@ public:
 
 protected:
 	QByteArray gene_;
+    QByteArray gene_id_;
+    QByteArray hgnc_id_;
     QByteArray name_;
+    int version_;
+    QByteArray name_ccds_;
 	SOURCE source_;
 	STRAND strand_;
+	BIOTYPE biotype_;
 	Chromosome chr_;
 	int start_;
 	int end_;

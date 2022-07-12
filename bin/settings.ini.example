@@ -4,6 +4,8 @@
 
 #Path to the reference genome FASTA file
 reference_genome = ""
+liftover_hg19_hg38 = ""
+liftover_hg38_hg19 = ""
 
 ############################ internal settings ############################
 #   If you do not know what these settings mean, leave them unchanged!    #

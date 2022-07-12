@@ -8,7 +8,8 @@ VcfFile::VcfFile()
 	, column_headers_()
 	, sample_id_to_idx_()
 	, format_id_to_idx_list_()
-	, info_id_to_idx_list_()
+	, info_id_to_idx_list_()	
+	, samples_exist_(false)
 {
 }
 
@@ -21,6 +22,8 @@ void VcfFile::clear()
 	sample_id_to_idx_.clear();
 	format_id_to_idx_list_.clear();
 	info_id_to_idx_list_.clear();
+
+	samples_exist_ = false;
 }
 
 void VcfFile::parseVcfHeader(int line_number, const QByteArray& line)
@@ -73,6 +76,12 @@ void VcfFile::parseHeaderFields(const QByteArray& line, bool allow_multi_sample)
 		{
 			THROW(FileParseException, "VCF file header line with an inaccurately named FORMAT column: '" + line.trimmed() + "'");
 		}
+		if (header_fields.count() == 9)
+		{
+			THROW(FileParseException, "VCF file header line has only FORMAT column but no sample columns.");
+		}
+
+		samples_exist_ = header_fields.count() >= 10;
 
 		int header_count;
 		allow_multi_sample ? header_count=header_fields.count() : header_count=std::min(10, header_fields.count());
@@ -90,17 +99,6 @@ void VcfFile::parseHeaderFields(const QByteArray& line, bool allow_multi_sample)
 			{
 				sample_id_to_idx_->push_back(column_headers_.at(i), i-9);
 			}
-		}
-		else if(header_fields.count()==9) //if we have a FORMAT column with no sample
-		{
-			column_headers_.push_back("Sample");
-			sample_id_to_idx_->push_back("Sample", 0);
-		}
-		else if(header_fields.count()==8)
-		{
-			column_headers_.push_back("FORMAT");
-			column_headers_.push_back("Sample");
-			sample_id_to_idx_->push_back("Sample", 0);
 		}
 	}
 }
@@ -121,7 +119,7 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 	{
 		THROW(ArgumentException, "Invalid variant chromosome string in line " + QString::number(line_number) + ": " + vcf_line->chr().str() + ".");
 	}
-	vcf_line->setPos(atoi(line_parts[POS]));
+	vcf_line->setPos(Helper::toInt(line_parts[POS], "VCF position"));
 	if(vcf_line->start() < 0)
 	{
 		THROW(ArgumentException, "Invalid variant position range in line " + QString::number(line_number) + ": " + QString::number(vcf_line->start()) + ".");
@@ -389,7 +387,7 @@ void VcfFile::loadFromVCFGZ(const QString& filename, bool allow_multi_sample, Ch
 	QSet<QByteArray> format_ids_in_header;
 	QSet<QByteArray> filter_ids_in_header;
 
-	if (filename.startsWith("http", Qt::CaseInsensitive))
+	if (Helper::isHttpUrl(filename))
 	{
 		// Temporary solution to handle remote VCF files (we assume that there are no *.vcg.gz files)
 		if (filename.toLower().endsWith(".vcg.gz"))
@@ -551,16 +549,6 @@ void VcfFile::storeAsTsv(const QString& filename)
 	}
 }
 
-void writeZipped(gzFile& gz_file, QString& vcf_file_data, const QString& filename)
-{
-	int written = gzputs(gz_file, vcf_file_data.toLocal8Bit().data());
-	if (written==0)
-	{
-		THROW(FileAccessException, "Could not write to file '" + filename + "'!");
-	}
-	vcf_file_data.clear();
-}
-
 void writeBGZipped(BGZF* instream, QString& vcf_file_data)
 {
 	const QByteArray utf8String = vcf_file_data.toUtf8();
@@ -636,9 +624,11 @@ void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int comp
 
 void VcfFile::leftNormalize(QString reference_genome)
 {
+	FastaFileIndex reference(reference_genome);
+
 	for(VcfLinePtr& variant_line : vcfLines())
 	{
-		variant_line->leftNormalize(reference_genome);
+		variant_line->leftNormalize(reference);
 	}
 }
 
@@ -803,45 +793,53 @@ void VcfFile::storeLineInformation(QTextStream& stream, VcfLine line) const
 	}
 
 	//if format exists
-	if(!line.formatKeys().empty())
+	if (samples_exist_)
 	{
-		QString all_format_keys = line.formatKeys().join(":");
-		stream << "\t" << all_format_keys;
-	}
-	else
-	{
-		stream << "\t.";
-	}
-
-	//if sample exists
-	if(!line.samples().empty())
-	{
-		//for every sample
-		for(int sample_idx = 0; sample_idx < line.samples().size(); ++sample_idx)
+		if(!line.formatKeys().empty())
 		{
-			QByteArrayList sample_entry = line.sample(sample_idx);
-			if(sample_entry.empty())
-			{
-				stream << "\t.";
-			}
-			else
-			{
-				//for all entries in the sample (e.g. 'GT':'DP':...)
-				QByteArrayList values;
-				for(int sample_entry_id = 0; sample_entry_id < sample_entry.size(); ++sample_entry_id)
-				{
-					QByteArray value = ".";
-					if(sample_entry.at(sample_entry_id) != "") value = sample_entry.at(sample_entry_id);
-					values.append(value);
-				}
-				stream << "\t" << values.join(":");
-			}
+			QString all_format_keys = line.formatKeys().join(":");
+			stream << "\t" << all_format_keys;
+		}
+		else
+		{
+			stream << "\t.";
 		}
 	}
-	else
+
+
+	//if sample exists
+	if (samples_exist_)
 	{
-		stream << "\t.";
+		if(!line.samples().empty())
+		{
+			//for every sample
+			for(int sample_idx = 0; sample_idx < line.samples().size(); ++sample_idx)
+			{
+				QByteArrayList sample_entry = line.sample(sample_idx);
+				if(sample_entry.empty())
+				{
+					stream << "\t.";
+				}
+				else
+				{
+					//for all entries in the sample (e.g. 'GT':'DP':...)
+					QByteArrayList values;
+					for(int sample_entry_id = 0; sample_entry_id < sample_entry.size(); ++sample_entry_id)
+					{
+						QByteArray value = ".";
+						if(sample_entry.at(sample_entry_id) != "") value = sample_entry.at(sample_entry_id);
+						values.append(value);
+					}
+					stream << "\t" << values.join(":");
+				}
+			}
+		}
+		else
+		{
+			stream << "\t.";
+		}
 	}
+
 	stream << "\n";
 }
 
@@ -859,13 +857,38 @@ void VcfFile::storeHeaderColumns(QTextStream &stream) const
 	{
 		THROW(ArgumentException, "Number of column headers is " + QString::number(vcfColumnHeader().count()) + ", but the minimum expected number of columns is: " + QString::number(MIN_COLS) + ".");
 	}
+	QVector<QByteArray> headers(column_headers_);
+	// if column headers are missing FORMAT and or sample headers.
+	if (headers.count() < 10)
+	{
+		samples_exist_ = false;
+
+		foreach (VcfLinePtr line, vcf_lines_)
+		{
+			if (line->samples().count() > 0)
+			{
+				samples_exist_ = true;
+
+				headers.append("FORMAT");
+
+				for(int i=0; i<line->samples().count(); i++)
+				{
+					headers.append("Sample_" + QByteArray::number(i+1));
+				}
+				// when one with samples was found no other line can have more samples as it would break writing the file
+				break;
+			}
+		}
+	}
 
 	stream << "#";
-	for(int i = 0; i < column_headers_.count() - 1; ++i)
+	for(int i = 0; i < headers.count() - 1; ++i)
 	{
-		stream << column_headers_.at(i) << "\t";
+		stream << headers.at(i) << "\t";
 	}
-	stream << column_headers_.at(column_headers_.count() - 1) << "\n";
+
+
+	stream << headers.at(headers.count() - 1) << "\n";
 }
 
 void VcfFile::copyMetaDataForSubsetting(const VcfFile& rhs)
@@ -1007,6 +1030,7 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 	//write genotype Format into header
 	if(!genotype_columns.empty())
 	{
+		vcf_file.samples_exist_ = true;
 		for(const SampleInfo& genotype : genotype_columns)
 		{
 			vcf_file.column_headers_ << genotype.column_name.toUtf8();

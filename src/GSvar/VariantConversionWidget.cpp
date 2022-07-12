@@ -116,6 +116,7 @@ void VariantConversionWidget::convert()
 		{
 			NGSD db;
 
+			const QMap<QByteArray, QByteArrayList>& matches = NGSHelper::transcriptMatches(GSvarHelper::build());
 			foreach(QString line, lines)
 			{
 				line = line.trimmed();
@@ -127,11 +128,11 @@ void VariantConversionWidget::convert()
 
 				int sep_pos = line.indexOf(':');
 				if (sep_pos==-1) THROW(ArgumentException, "Invalid HGVS.c variant '" + line + "' - the format is [transcipt name]:[variant]");
-				QString transcript_name = line.left(sep_pos);
+				QString transcript_name = line.left(sep_pos).trimmed();
 				QString hgvs_c = line.mid(sep_pos+1);
 
 				int trans_id = db.transcriptId(transcript_name, false);
-				if (trans_id==-1) //not found > try to match CCDS/RefSeq toEnsembl
+				if (trans_id==-1) //not found > try to match CCDS/RefSeq to Ensembl
 				{
 					//remove version number (if present)
 					if (transcript_name.contains("."))
@@ -139,24 +140,16 @@ void VariantConversionWidget::convert()
 						transcript_name = transcript_name.left(transcript_name.indexOf('.'));
 					}
 
-					QString transcript_name2 = "";
-					const QMap<QByteArray, QByteArrayList>& matches = GSvarHelper::transcriptMatches();
-					for (auto it=matches.begin(); it!=matches.end(); ++it)
+					foreach(const QByteArray& match, matches[transcript_name.toLocal8Bit()])
 					{
-						foreach(const QByteArray& trans, it.value())
+						int match_id = db.transcriptId(match, false);
+						if (match_id!=-1)
 						{
-							if (trans==transcript_name)
-							{
-								transcript_name2 = it.key();
-							}
+							trans_id = match_id;
 						}
 					}
-					if (transcript_name2!="")
-					{
-						trans_id = db.transcriptId(transcript_name2, false);
-					}
+					if (trans_id==-1) THROW(ArgumentException, "Cannot find Ensembl transcript in NGSD for transcript identifier '" + transcript_name + "'!");
 				}
-				if (trans_id==-1) THROW(ArgumentException, "Cannot determine Ensembl transcript for CCDS/RefSeq/Ensembl transcript identifier '" + transcript_name + "'!");
 				Transcript transcript = db.transcript(trans_id);
 				Variant variant = transcript.hgvsToVariant(hgvs_c, ref_genome_idx);
 
@@ -196,7 +189,7 @@ void VariantConversionWidget::convert()
 	}
 	catch(Exception& e)
 	{
-		QMessageBox::warning(this, "Conversion error", e.message());
+		GUIHelper::showException(this, e, "Variant conversion");
 	}
 }
 

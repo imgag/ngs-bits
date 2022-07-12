@@ -287,8 +287,8 @@ class CPPNGSSHARED_EXPORT BamReader
 
 		//Returns the BAM header lines
 		QByteArrayList headerLines() const;
-		//Returns the genome build used in @PG header lines or a empty string if no genome FASTA file was found in the headers.
-		QByteArray build() const;
+		//Returns the genome build based on the length of the chr1 (works for human only). Throws an exception if it could not be determined.
+		GenomeBuild build() const;
 
 		//Set region for alignment retrieval (1-based coordinates).
 		void setRegion(const Chromosome& chr, int start, int end);

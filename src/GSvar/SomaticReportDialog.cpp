@@ -1,9 +1,11 @@
 #include "SomaticReportDialog.h"
 #include "NGSD.h"
 #include "SomaticReportHelper.h"
-#include <QMessageBox>
 #include "GlobalServiceProvider.h"
 #include "Statistics.h"
+#include "MainWindow.h"
+#include <QMessageBox>
+#include <QBuffer>
 
 //struct holding reference data for tumor mutation burden (DOI:10.1186/s13073-017-0424-2)
 struct tmbInfo
@@ -45,7 +47,7 @@ struct tmbInfo
 	}
 };
 
-SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const CnvList &cnvs, const VariantList& germl_variants, QWidget *parent)
+SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReportSettings &settings, const CnvList &cnvs, const VariantList& germl_variants, QWidget *parent)
 	: QDialog(parent)
 	, ui_()
 	, db_()
@@ -56,6 +58,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	, tum_cont_max_clonality_(std::numeric_limits<double>::quiet_NaN())
 	, tum_cont_histological_(std::numeric_limits<double>::quiet_NaN())
 	, limitations_()
+	, project_filename_(project_filename)
 {
 
 	cnvs_ = SomaticReportSettings::filterCnvs(cnvs, settings_);
@@ -71,6 +74,8 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 
 	connect(ui_.include_cnv_burden, SIGNAL(stateChanged(int)), this, SLOT(cinState()));
 	connect(ui_.limitations_check, SIGNAL(stateChanged(int)), this, SLOT(limitationState()));
+
+	connect( ui_.label_hint_igv_screenshot_available, SIGNAL(linkActivated(QString)), this, SLOT(createIgvScreenshot()) );
 
 
 	//Resolve tumor content estimate from NGSD
@@ -97,7 +102,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 		}
 	}
 
-	tum_cont_max_clonality_ = SomaticReportHelper::getCnvMaxTumorClonality(cnvs);
+	tum_cont_max_clonality_ = SomaticReportHelper::getCnvMaxTumorClonality(cnvs_);
 
 	//Load HPO terms from database
 	QStringList hpos_ngsd;
@@ -277,6 +282,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	else
 	{
 		ui_.include_max_clonality->setCheckable(false);
+		ui_.include_max_clonality->setEnabled(false);
 	}
 
 	if(BasicStatistics::isValidFloat( tum_cont_histological_) && tum_cont_histological_ > 0.)
@@ -307,6 +313,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	else
 	{
 		ui_.include_cnv_burden->setCheckable(false);
+		ui_.include_cnv_burden->setEnabled(false);
 	}
 
 	if(cnvs_.count() > 0)
@@ -362,6 +369,8 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 		}
 	}
 
+
+	updateIgvText();
 }
 
 void SomaticReportDialog::disableGUI()
@@ -457,6 +466,44 @@ void SomaticReportDialog::writeBackSettings()
 		settings_.report_config.setLimitations("");
 	}
 
+	//IGV data
+	if(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().exists)
+	{
+		QImage picture;
+		if (GlobalServiceProvider::fileLocationProvider().isLocal())
+		{
+			picture = QImage(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename);
+		}
+		else
+		{
+			try
+			{
+				QByteArray response = HttpHandler(HttpRequestHandler::NONE).get(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename);
+				if (!response.isEmpty()) picture.loadFromData(response);
+			}
+			catch (Exception& e)
+			{
+				QMessageBox::warning(this, "Could not retrieve the screenshot from the server", e.message());
+			}
+		}
+
+		if( (uint)picture.width() > 1200 ) picture = picture.scaledToWidth(1200, Qt::TransformationMode::SmoothTransformation);
+		if( (uint)picture.height() > 1200 ) picture = picture.scaledToHeight(1200, Qt::TransformationMode::SmoothTransformation);
+
+		QByteArray png_data = "";
+
+		if(!picture.isNull())
+		{
+			QBuffer buffer(&png_data);
+			buffer.open(QIODevice::WriteOnly);
+			if(picture.save(&buffer, "PNG"))
+			{
+				settings_.igv_snapshot_png_hex_image = png_data.toHex();
+				settings_.igv_snapshot_width = picture.width();
+				settings_.igv_snapshot_height = picture.height();
+			}
+		}
+	}
 }
 
 SomaticReportDialog::report_type SomaticReportDialog::getReportType()
@@ -512,6 +559,101 @@ void SomaticReportDialog::limitationState()
 	else ui_.limitations_text->setEnabled(false);
 }
 
+void SomaticReportDialog::createIgvScreenshot()
+{
+	//create commands
+	QStringList commands;
+	commands << "genome " + Settings::path("igv_genome");
+	for(auto loc : GlobalServiceProvider::fileLocationProvider().getBafFiles(false))
+	{
+		if (!loc.exists) continue;
+		if (!loc.id.contains("somatic")) continue;
+
+		commands  << "load " + Helper::canonicalPath(loc.filename);
+	}
+
+	FileLocation loc = GlobalServiceProvider::fileLocationProvider().getSomaticCnvCoverageFile();
+	if (loc.exists) commands << "load " + Helper::canonicalPath(loc.filename);
+
+	loc = GlobalServiceProvider::fileLocationProvider().getSomaticCnvCallFile();
+	if (loc.exists) commands << "load " + Helper::canonicalPath(loc.filename);
+
+	QString screenshot_file_location = Helper::canonicalPath(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename);
+	if (!GlobalServiceProvider::fileLocationProvider().isLocal())
+	{
+		// For client-server mode we create a temporary file locally first
+		screenshot_file_location = QDir(QDir::tempPath()).filePath(screenshot_file_location);
+	}
+
+	commands << "maxPanelHeight 400";
+	commands << "snapshot " + screenshot_file_location;
+
+	//create screenshot
+	try
+	{
+		for(QWidget* widget : QApplication::topLevelWidgets())
+		{
+			MainWindow* main_window = qobject_cast<MainWindow*>(widget);
+			if (main_window!=nullptr)
+			{
+				main_window->executeIGVCommands(commands, false);
+			}
+		}
+
+		QMessageBox::information(this, "IGV screenshot", "IGV screenshot was created.");
+
+		updateIgvText();
+	}
+	catch(Exception e)
+	{
+		QMessageBox::warning(this, "IGV screenshot", "Could not create IGV screenshot. Error message: " + e.message());
+	}
+
+	// Upload screenshot to the server, if the client-server mode is activated
+	if (!GlobalServiceProvider::fileLocationProvider().isLocal())
+	{
+		QFile *file = new QFile(screenshot_file_location);
+		if (!file->exists())
+		{
+			QMessageBox::warning(this, "Screenshot file error", "Could not find the screenshot file!");
+		}
+
+		QList<QString> filename_parts = project_filename_.split("/");
+		if (filename_parts.size()<=3)
+		{
+			QMessageBox::warning(this, "Processed sample error", "Could not find find the location of the processed sample!");
+			return;
+		}
+
+		QHttpMultiPart* multipart_form = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+		QHttpPart text_form_data;
+		text_form_data.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"ps_url_id\""));
+		text_form_data.setBody(filename_parts[filename_parts.size()-2].toLocal8Bit());
+
+		QHttpPart binary_form_data;
+		binary_form_data.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("image/png"));
+		binary_form_data.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"image\"; filename=\"" + QFileInfo(screenshot_file_location).fileName() + "\""));
+
+		file->open(QIODevice::ReadOnly);
+		binary_form_data.setBodyDevice(file);
+		file->setParent(multipart_form);
+		multipart_form->append(text_form_data);
+		multipart_form->append(binary_form_data);
+
+		try
+		{
+			HttpHandler(HttpRequestHandler::NONE).post(NGSHelper::serverApiUrl() + "upload?token=" + LoginManager::userToken(), multipart_form);
+		}
+		catch (Exception& e)
+		{
+			QMessageBox::warning(this, "File upload failed", e.message());
+		}
+	}
+
+	updateIgvText();
+
+}
+
 QList<QString> SomaticReportDialog::resolveCIN()
 {
 	QList<QString> out = {};
@@ -525,4 +667,17 @@ QList<QString> SomaticReportDialog::resolveCIN()
 bool SomaticReportDialog::skipNGSD()
 {
 	return ui_.no_ngsd->isChecked();
+}
+
+
+void SomaticReportDialog::updateIgvText()
+{
+	if(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().exists)
+	{
+		ui_.label_hint_igv_screenshot_available->setText("<span style=\"color:#000000;\">available</span>");
+	}
+	else
+	{
+		ui_.label_hint_igv_screenshot_available->setText("<span style=\"color:#ff0000;\">not available</span> <a href='bal'>[create]</a>");
+	}
 }

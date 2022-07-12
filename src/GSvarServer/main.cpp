@@ -1,72 +1,20 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QFile>
-#include <QTextStream>
 #include <QCommandLineParser>
+#include "Log.h"
 #include "ServerWrapper.h"
 #include "ServerHelper.h"
 #include "EndpointController.h"
-#include "EndpointHandler.h"
-
-int log_level = 3;
-
-QFile gsvar_server_log_file("gsvar-server-log.txt");
-
-void interceptLogMessage(QtMsgType type, const QMessageLogContext &, const QString &msg)
-{
-	QString time_stamp = QDate::currentDate().toString("dd/MM/yyyy") + " " + QTime::currentTime().toString("hh:mm:ss:zzz");
-	QString log_statement = "";
-	int msg_level = 0;
-	switch (type) {
-		case QtCriticalMsg:
-			msg_level = 0;
-			log_statement = QString("%1 - [Critical] %2").arg(time_stamp, msg);
-			break;
-		case QtFatalMsg:
-			msg_level = 0;
-			log_statement = QString("%1 - [Fatal] %2").arg(time_stamp, msg);
-			break;
-		case QtInfoMsg:
-			msg_level = 1;
-			log_statement = QString("%1 - [Info] %2").arg(time_stamp, msg);
-			break;
-		case QtWarningMsg:
-			msg_level = 2;
-			log_statement = QString("%1 - [Warning] %2").arg(time_stamp, msg);
-			break;
-		case QtDebugMsg:
-		default:
-			msg_level = 3;
-			log_statement = QString("%1 - [Debug] %2").arg(time_stamp, msg);
-	}
-
-	// Log levels:
-	// 0: only critical and fatal
-	// 1: += info
-	// 2: += warning
-	// 3: += debug
-	if (msg_level <= log_level)
-	{
-		printf("%s", qUtf8Printable(log_statement.replace("\"", "")));
-		printf("\n");
-
-		QTextStream out_stream(&gsvar_server_log_file);
-		out_stream.setCodec("UTF-8");
-		out_stream.setGenerateByteOrderMark(false);
-		out_stream << log_statement << endl;
-	}
-
-	if (type == QtFatalMsg)
-	{
-		abort();
-	}
-}
+#include "ServerController.h"
 
 int main(int argc, char **argv)
 {
-	gsvar_server_log_file.open(QIODevice::WriteOnly | QIODevice::Append);
-
 	QCoreApplication app(argc, argv);
+	QCoreApplication::setApplicationVersion(SERVER_VERSION);
+	Log::setFileName(QCoreApplication::applicationFilePath().replace(".exe", "") + ".log");
+	Log::setCMDEnabled(true);
+	Log::appInfo();
 
 	QCommandLineParser parser;
 	parser.setApplicationDescription("GSvar file server");
@@ -89,53 +37,65 @@ int main(int argc, char **argv)
 	QString http_port = parser.value(httpServerPortOption);
 	QString log_level_option = parser.value(logLevelOption);
 
-	if (!log_level_option.isEmpty())
-	{
-		qInfo().noquote() << "Log level parameter has been provided through the command line arguments:" + log_level_option;
-		log_level = log_level_option.toInt();
-	}
-	else {
-		qInfo().noquote() << "Using log level from the application settings:" + QString::number(ServerHelper::getNumSettingsValue("log_level"));
-		log_level = ServerHelper::getNumSettingsValue("log_level");
-	}
-
-	qInstallMessageHandler(interceptLogMessage);
-
 	EndpointManager::appendEndpoint(Endpoint{
 						"",
 						QMap<QString, ParamProps>{},
 						RequestMethod::GET,
 						ContentType::TEXT_HTML,
-						false,
+						AuthType::NONE,
 						"Index page with general information",
-						&EndpointHandler::serveIndexPage
+						&ServerController::serveResourceAsset
 					});
 	EndpointManager::appendEndpoint(Endpoint{
 						"favicon.ico",
 						QMap<QString, ParamProps>{},
 						RequestMethod::GET,
 						ContentType::IMAGE_PNG,
-						false,
+						AuthType::NONE,
 						"Favicon to avoid warnings from the browser",
-						&EndpointHandler::serveFavicon
+						&ServerController::serveResourceAsset
 					});
 	EndpointManager::appendEndpoint(Endpoint{
 						"info",
 						QMap<QString, ParamProps>{},
 						RequestMethod::GET,
 						ContentType::APPLICATION_JSON,
-						false,
+						AuthType::NONE,
 						"General information about this API",
-						&EndpointHandler::serveApiInfo
+						&ServerController::serveResourceAsset
 					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"bam",
+						QMap<QString, ParamProps>{
+						   {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, true, "Name of the BAM file to be served"}}
+						},
+						RequestMethod::GET,
+						ContentType::APPLICATION_OCTET_STREAM,
+						AuthType::NONE,
+						"BAM file used for the testing purposes",
+						&ServerController::serveResourceAsset
+				   });
+	EndpointManager::appendEndpoint(Endpoint{
+						"bam",
+						QMap<QString, ParamProps>{
+						   {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, false, "Name of the BAM file to be served"}}
+						},
+						RequestMethod::HEAD,
+						ContentType::APPLICATION_OCTET_STREAM,
+						AuthType::NONE,
+						"Size of the BAM file used for the testing purposes",
+						&ServerController::serveResourceAsset
+				   });
+
 	EndpointManager::appendEndpoint(Endpoint{
 						"static",
 						QMap<QString, ParamProps>{
-						   {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, true, "Name of the file to be served"}}
+						   {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, true, "Name of the file to be served"}},
+						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_HTML,
-						false,
+						AuthType::USER_TOKEN,
 						"Static content served from the server root folder (defined in the config file)",
 						&EndpointController::serveStaticFromServerRoot
 				   });
@@ -143,11 +103,12 @@ int main(int argc, char **argv)
 	EndpointManager::appendEndpoint(Endpoint{
 						"static",
 						QMap<QString, ParamProps>{
-						   {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, false, "Name of the file to be served"}}
+						   {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, false, "Name of the file to be served"}},
+						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
 						},
 						RequestMethod::HEAD,
 						ContentType::TEXT_HTML,
-						false,
+						AuthType::USER_TOKEN,
 						"Size of the static content served from the server root folder (defined in the config file)",
 						&EndpointController::serveStaticFromServerRoot
 				   });
@@ -159,30 +120,20 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_HTML,
-						true,
+						AuthType::HTTP_BASIC_AUTH,
 						"Protected static files",
 						&EndpointController::serveStaticFromServerRoot
 				   });
 
 	EndpointManager::appendEndpoint(Endpoint{
-						"cache",
-						QMap<QString, ParamProps>{
-						   {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, false, "Name of the file to be served"}}
-						},
-						RequestMethod::GET,
-						ContentType::TEXT_HTML,
-						false,
-						"Static content served from the server cache",
-						&EndpointController::serveStaticFileFromCache
-				   });
-	EndpointManager::appendEndpoint(Endpoint{
 						"temp",
 						QMap<QString, ParamProps>{
-						   {"id", ParamProps{ParamProps::ParamCategory::PATH_PARAM, false, "Unique id pointing to a file"}}
+						   {"id", ParamProps{ParamProps::ParamCategory::PATH_PARAM, false, "Unique id pointing to a file"}},
+						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_HTML,
-						false,
+						AuthType::USER_TOKEN,
 						"Static file served via secure temporary URL",
 						&EndpointController::serveStaticForTempUrl
 				   });
@@ -191,11 +142,12 @@ int main(int argc, char **argv)
 						"temp",
 						QMap<QString, ParamProps>{
 							{"id", ParamProps{ParamProps::ParamCategory::PATH_PARAM, false, "Unique id pointing to a folder"}},
-							{"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, true, "Filename in a folder with a temporary URL"}}
+							{"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, true, "Filename in a folder with a temporary URL"}},
+							{"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
 						},
 						RequestMethod::HEAD,
 						ContentType::TEXT_HTML,
-						false,
+						AuthType::USER_TOKEN,
 						"Size of the static file served via secure temporary URL",
 						&EndpointController::serveStaticForTempUrl
 				   });
@@ -208,7 +160,7 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_HTML,
-						false,
+						AuthType::NONE,
 						"Help page on the usage of the endpoints",
 						&EndpointController::serveEndpointHelp
 					});
@@ -221,126 +173,232 @@ int main(int argc, char **argv)
 						   {"path", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Returns an absolute path on the server, if set to 'absolute'"}},
 						   {"locus", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Locus for repeat expansion image"}},
 						   {"multiple_files", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Flag indicating that we expect a single file/list of files"}},
-						   {"return_if_missing", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Return file info, if the file is missing"}}
+						   {"return_if_missing", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Return file info, if the file is missing"}},
+						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
 						},
 						RequestMethod::GET,
 						ContentType::APPLICATION_JSON,
-						false,
+						AuthType::USER_TOKEN,
 						"Retrieve file location information for specific file types",
-						&EndpointHandler::locateFileByType
+						&ServerController::locateFileByType
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"processed_sample_path",
 						QMap<QString, ParamProps> {
 						   {"ps_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processed sample id"}},
-						   {"type", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "File type"}}
+						   {"type", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "File type"}},
+						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
 						},
 						RequestMethod::GET,
-						ContentType::TEXT_PLAIN,
-						false,
+						ContentType::APPLICATION_JSON,
+						AuthType::USER_TOKEN,
 						"Temporary URL leading to a specific project file (based on the processed sample id)",
-						&EndpointHandler::getProcessedSamplePath
+						&ServerController::getProcessedSamplePath
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"analysis_job_gsvar_file",
 						QMap<QString, ParamProps> {
-						   {"job_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Analysis job id"}}
+						   {"job_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Analysis job id"}},
+						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
 						},
 						RequestMethod::GET,
 						ContentType::APPLICATION_JSON,
-						false,
+						AuthType::USER_TOKEN,
 						"FileLocation object with the information about GSvar for the corresponding analysis job",
-						&EndpointHandler::getAnalysisJobGSvarFile
+						&ServerController::getAnalysisJobGSvarFile
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
+						"analysis_job_last_update",
+						QMap<QString, ParamProps> {
+						   {"job_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Analysis job id"}},
+						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+						},
+						RequestMethod::GET,
+						ContentType::APPLICATION_JSON,
+						AuthType::USER_TOKEN,
+						"Date and time (in seconds) of the last log file modification for the specific analysis job",
+						&ServerController::getAnalysisJobLastUpdate
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
+						"analysis_job_log",
+						QMap<QString, ParamProps> {
+						   {"job_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Analysis job id"}},
+						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+						},
+						RequestMethod::GET,
+						ContentType::APPLICATION_JSON,
+						AuthType::USER_TOKEN,
+						"Analysis job log file",
+						&ServerController::getAnalysisJobLog
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"project_file",
 						QMap<QString, ParamProps> {
-						   {"ps_url_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "An id of a temporary URL pointing to a specific processed sample"}}
+						   {"ps_url_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "An id of a temporary URL pointing to a specific processed sample"}},
+						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
 						},
 						RequestMethod::PUT,
 						ContentType::APPLICATION_JSON,
-						false,
+						AuthType::USER_TOKEN,
 						"Update an existing project file (GSvar file)",
-						&EndpointHandler::saveProjectFile
+						&ServerController::saveProjectFile
 					});
-
-	EndpointManager::appendEndpoint(Endpoint{
-						"file_info",
-						QMap<QString, ParamProps> {
-						   {"file", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Filename with its full path"}}
-						},
-						RequestMethod::GET,
-						ContentType::APPLICATION_JSON,
-						false,
-						"Detailed information about a specific file",
-						&EndpointController::getFileInfo
-					});
-
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"ps_regions",
 						QMap<QString, ParamProps> {
-						   {"sys_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processing system id"}}
+						   {"sys_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processing system id"}},
+						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_PLAIN,
-						false,
+						AuthType::USER_TOKEN,
 						"Processing system regions",
-						&EndpointHandler::getProcessingSystemRegions
+						&ServerController::getProcessingSystemRegions
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"ps_amplicons",
 						QMap<QString, ParamProps> {
-						   {"sys_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processing system id"}}
+						   {"sys_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processing system id"}},
+						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_PLAIN,
-						false,
+						AuthType::USER_TOKEN,
 						"Processing system amplicons",
-						&EndpointHandler::getProcessingSystemAmplicons
+						&ServerController::getProcessingSystemAmplicons
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"ps_genes",
 						QMap<QString, ParamProps> {
-						   {"sys_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processing system id"}}
+						   {"sys_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processing system id"}},
+						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_PLAIN,
-						false,
+						AuthType::USER_TOKEN,
 						"Processing system genes",
-						&EndpointHandler::getProcessingSystemGenes
+						&ServerController::getProcessingSystemGenes
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"secondary_analyses",
 						QMap<QString, ParamProps> {
 							{"ps_name", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processed sample name"}},
-							{"type", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Analysis type"}}
+							{"type", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Analysis type"}},
+							{"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
 						},
 						RequestMethod::GET,
 						ContentType::APPLICATION_JSON,
-						false,
+						AuthType::USER_TOKEN,
 						"Secondary analyses list",
-						&EndpointHandler::getSecondaryAnalyses
+						&ServerController::getSecondaryAnalyses
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"qbic_report_data",
 						QMap<QString, ParamProps> {
 							{"filename", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "QBic data report file"}},
-							{"path", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Path to the QBic data report file"}},
-							{"content", ParamProps{ParamProps::ParamCategory::POST_OCTET_STREAM, false, "QBic report data to be saved in a file"}}
+							{"id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Location id of the QBic data report file"}},
+							{"content", ParamProps{ParamProps::ParamCategory::POST_OCTET_STREAM, false, "QBic report data to be saved in a file"}},
+							{"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
 						},
 						RequestMethod::POST,
 						ContentType::APPLICATION_JSON,
-						false,
+						AuthType::USER_TOKEN,
 						"Save QBic data report files",
-						&EndpointHandler::saveQbicFiles
+						&ServerController::saveQbicFiles
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
+						"upload",
+						QMap<QString, ParamProps>{
+							{"ps_url_id", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "An id of a temporary URL pointing to a specific processed sample"}},
+							{"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::APPLICATION_OCTET_STREAM,
+						AuthType::USER_TOKEN,
+						"File upload to a folder on the server",
+						&ServerController::uploadFile
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
+						"login",
+						QMap<QString, ParamProps>{
+							{"name", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "User name"}},
+							{"password", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "Password"}}
+						},
+						RequestMethod::POST,
+						ContentType::TEXT_PLAIN,
+						AuthType::NONE,
+						"Secure token generation, the token will be used to access protected resources and to perform  certain API calls",
+						&ServerController::performLogin
+					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"validate_credentials",
+						QMap<QString, ParamProps>{
+							{"name", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "User name"}},
+							{"password", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "Password"}}
+						},
+						RequestMethod::POST,
+						ContentType::TEXT_PLAIN,
+						AuthType::NONE,
+						"Checks if provided GSvar credentials are valid",
+						&ServerController::validateCredentials
+					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"db_token",
+						QMap<QString, ParamProps>{
+							{"token", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "User name"}}
+						},
+						RequestMethod::POST,
+						ContentType::TEXT_PLAIN,
+						AuthType::USER_TOKEN,
+						"Secure token generation for accessing the database credentials",
+						&ServerController::getDbToken
+					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"ngsd_credentials",
+						QMap<QString, ParamProps>{
+							{"dbtoken", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "Secure token for the database credentials"}},
+							{"secret", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "Secret known to a client and to the server"}}
+						},
+						RequestMethod::POST,
+						ContentType::APPLICATION_JSON,
+						AuthType::DB_TOKEN,
+						"Sends NGSD credentials to the GSvar client application",
+						&ServerController::getNgsdCredentials
+					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"genlab_credentials",
+						QMap<QString, ParamProps>{
+							{"dbtoken", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "Secure token for the database credentials"}},
+							{"secret", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "Secret known to a client and to the server"}}
+						},
+						RequestMethod::POST,
+						ContentType::APPLICATION_JSON,
+						AuthType::DB_TOKEN,
+						"Sends Genlab database credentials to the GSvar client application",
+						&ServerController::getGenlabCredentials
+					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"logout",
+						QMap<QString, ParamProps>{
+							{"token", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::TEXT_PLAIN,
+						AuthType::USER_TOKEN,
+						"Secure token invalidation, after this step the token cannot longer be used",
+						&ServerController::performLogout
 					});
 
 	int https_port_setting = ServerHelper::getNumSettingsValue("https_server_port");
@@ -348,30 +406,48 @@ int main(int argc, char **argv)
 
 	if (!https_port.isEmpty())
 	{
-		qInfo() << "HTTPS server port has been provided through the command line arguments:" + https_port;
+		Log::info("HTTPS server port has been provided through the command line arguments:" + https_port);
 		https_port_setting = https_port.toInt();
 	}
 	if (https_port_setting == 0)
 	{
-		qInfo() << "HTTPS port number is invalid";
+		Log::error("HTTPS port number is invalid");
 		app.exit(EXIT_FAILURE);
+		return app.exec();
 	}
 
-	qInfo() << "SSL version used for build: " << QSslSocket::sslLibraryBuildVersionString();
+	Log::info("Restore previous sessions");
+	SessionManager::restoreFromFile();
+	Log::info("Restore previous URLs");
+	UrlManager::restoreFromFile();
+
+	Log::info("SSL version used for the build: " + QSslSocket::sslLibraryBuildVersionString());
 	ServerWrapper https_server(https_port_setting);
+	if (!https_server.isRunning())
+	{
+		Log::error("HTTPS is not running. Exiting");
+		app.exit(EXIT_FAILURE);
+		return app.exec();
+	}
 
 	if (!http_port.isEmpty())
 	{
-		qInfo() << "HTTP server port has been provided through the command line arguments:" + http_port;
+		Log::info("HTTP server port has been provided through the command line arguments:" + http_port);
 		http_port_setting = https_port.toInt();
 	}
-
 	if (http_port_setting == 0)
 	{
-		qInfo() << "HTTP port number is invalid";
+		Log::error("HTTP port number is invalid");
 		app.exit(EXIT_FAILURE);
+		return app.exec();
 	}
 	ServerWrapper http_server(http_port_setting, true);
+	if (!http_server.isRunning())
+	{
+		Log::error("HTTP is not running. Exiting");
+		app.exit(EXIT_FAILURE);
+		return app.exec();
+	}
 
 	return app.exec();
 }

@@ -79,31 +79,31 @@
         <property name="bottomMargin">
          <number>3</number>
         </property>
-        <item row="3" column="0">
+        <item row="4" column="0">
          <widget class="QLabel" name="label_4">
           <property name="text">
            <string>species:</string>
           </property>
          </widget>
         </item>
-        <item row="9" column="0">
+        <item row="11" column="0">
          <widget class="QLabel" name="label_5">
           <property name="text">
            <string>include bad quality:</string>
           </property>
          </widget>
         </item>
-        <item row="3" column="1">
+        <item row="4" column="1">
          <widget class="DBSelector" name="s_species"/>
         </item>
-        <item row="10" column="0">
+        <item row="12" column="0">
          <widget class="QLabel" name="label_6">
           <property name="text">
            <string>include tumor:</string>
           </property>
          </widget>
         </item>
-        <item row="11" column="0">
+        <item row="13" column="0">
          <widget class="QLabel" name="label_7">
           <property name="text">
            <string>include ffpe:</string>
@@ -120,7 +120,7 @@
         <item row="0" column="1">
          <widget class="DBSelector" name="s_name"/>
         </item>
-        <item row="11" column="1">
+        <item row="13" column="1">
          <widget class="QCheckBox" name="s_ffpe">
           <property name="text">
            <string/>
@@ -130,7 +130,7 @@
           </property>
          </widget>
         </item>
-        <item row="10" column="1">
+        <item row="12" column="1">
          <widget class="QCheckBox" name="s_tumor">
           <property name="text">
            <string/>
@@ -140,7 +140,7 @@
           </property>
          </widget>
         </item>
-        <item row="9" column="1">
+        <item row="11" column="1">
          <widget class="QCheckBox" name="s_bad_quality">
           <property name="text">
            <string/>
@@ -150,38 +150,38 @@
           </property>
          </widget>
         </item>
-        <item row="12" column="0">
+        <item row="14" column="0">
          <widget class="QLabel" name="label_12">
           <property name="text">
            <string>include merged:</string>
           </property>
          </widget>
         </item>
-        <item row="12" column="1">
+        <item row="14" column="1">
          <widget class="QCheckBox" name="s_merged">
           <property name="text">
            <string/>
           </property>
          </widget>
         </item>
-        <item row="7" column="0">
+        <item row="8" column="0">
          <widget class="QLabel" name="label_14">
           <property name="text">
            <string>disease group:</string>
           </property>
          </widget>
         </item>
-        <item row="8" column="0">
+        <item row="9" column="0">
          <widget class="QLabel" name="label_15">
           <property name="text">
            <string>disease status:</string>
           </property>
          </widget>
         </item>
-        <item row="7" column="1">
+        <item row="8" column="1">
          <widget class="QComboBox" name="s_disease_group"/>
         </item>
-        <item row="8" column="1">
+        <item row="9" column="1">
          <widget class="QComboBox" name="s_disease_status"/>
         </item>
         <item row="1" column="1">
@@ -201,35 +201,55 @@
           </property>
          </widget>
         </item>
-        <item row="5" column="0">
+        <item row="6" column="0">
          <widget class="QLabel" name="label_17">
           <property name="text">
            <string>sender:</string>
           </property>
          </widget>
         </item>
-        <item row="6" column="0">
+        <item row="7" column="0">
          <widget class="QLabel" name="label_18">
           <property name="text">
            <string>study:</string>
           </property>
          </widget>
         </item>
-        <item row="5" column="1">
+        <item row="6" column="1">
          <widget class="DBSelector" name="s_sender"/>
         </item>
-        <item row="6" column="1">
+        <item row="7" column="1">
          <widget class="DBSelector" name="s_study"/>
         </item>
-        <item row="4" column="0">
+        <item row="5" column="0">
          <widget class="QLabel" name="label_20">
           <property name="text">
            <string>type:</string>
           </property>
          </widget>
         </item>
-        <item row="4" column="1">
+        <item row="5" column="1">
          <widget class="QComboBox" name="s_type"/>
+        </item>
+        <item row="10" column="0">
+         <widget class="QLabel" name="label_21">
+          <property name="text">
+           <string>tissue:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="10" column="1">
+         <widget class="QComboBox" name="s_tissue"/>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_22">
+          <property name="text">
+           <string>patient identifier:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="s_patient_identifier"/>
         </item>
        </layout>
       </widget>

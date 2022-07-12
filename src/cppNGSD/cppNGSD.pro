@@ -38,6 +38,9 @@ LIBS += -L$$PWD/../../htslib/lib/ -lhts
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 SOURCES += \
+    FileLocationList.cpp \
+    FileLocationProviderLocal.cpp \
+    FileLocationProviderRemote.cpp \
     SqlQuery.cpp\
     NGSD.cpp \
     GenLabDB.cpp \
@@ -51,9 +54,14 @@ SOURCES += \
     GermlineReportGenerator.cpp \
     TumorOnlyReportWorker.cpp \
     SomaticReportHelper.cpp \
-    SomaticRnaReport.cpp \
+    SomaticRnaReport.cpp
 
 HEADERS += \
+    FileLocation.h \
+    FileLocationList.h \
+    FileLocationProvider.h \
+    FileLocationProviderLocal.h \
+    FileLocationProviderRemote.h \
     SqlQuery.h \
     NGSD.h \
     GenLabDB.h \
@@ -67,7 +75,8 @@ HEADERS += \
     GermlineReportGenerator.h \
     TumorOnlyReportWorker.h \
     SomaticReportHelper.h \
-    SomaticRnaReport.h
+    SomaticRnaReport.h \
+    UserPermissionList.h
 
 RESOURCES += \
     cppNGSD.qrc

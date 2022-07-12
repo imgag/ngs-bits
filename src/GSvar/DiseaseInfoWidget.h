@@ -18,9 +18,6 @@ public:
 
 	bool diseaseInformationMissing() const;
 
-private slots:
-	void importGenLab();
-
 private:
 	Ui::DiseaseInfoWidget ui_;
 	QString ps_name_;

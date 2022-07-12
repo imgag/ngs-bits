@@ -60,7 +60,9 @@ private slots:
 	void clearTooltips();
 
 	///Flags all filtered (=currently invisible) CNVs as artefacts in somatic report configuration
-	void flagSomaticArtefacts();
+	void flagInvisibleSomaticCnvsAsArtefacts();
+	///Flags all unfiltered (=currently visible) CNVs as artefacts in somatic report configuration
+	void flagVisibleSomaticCnvsAsArtefacts();
 
 private:
 	void initGUI();

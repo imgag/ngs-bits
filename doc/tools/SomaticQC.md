@@ -1,5 +1,5 @@
 ### SomaticQC tool help
-	SomaticQC (2021_12-80-g5ff26d8f)
+	SomaticQC (2021_12-170-g1acf8802)
 	
 	Calculates QC metrics based on tumor-normal pairs.
 	
@@ -31,8 +31,6 @@
 	  -build <enum>        Genome build used to generate the input.
 	                       Default value: 'hg38'
 	                       Valid: 'hg19,hg38'
-	  -ref_cram <string>   Reference genome for CRAM support (mandatory if CRAM is used). If set, it is used for tumor and normal file.
-	                       Default value: ''
 	
 	Special parameters:
 	  --help               Shows this help and exits.
@@ -41,7 +39,7 @@
 	  --tdx                Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SomaticQC changelog
-	SomaticQC 2021_12-80-g5ff26d8f
+	SomaticQC 2021_12-170-g1acf8802
 	
 	2020-11-27 Added CRAM support.
 	2018-07-11 Added build switch for hg38 support.

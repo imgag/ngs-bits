@@ -3,25 +3,25 @@ Columns: 22
 Rows   : 99
 
 Column details:
- 1: chr
- 2: start (N)
- 3: end (N)
- 4: ref
- 5: obs
- 6: genotype
- 7: snp_q (N)
- 8: depth (N)
- 9: map_q (N)
-10: variant
-11: variant_frequency (N)
-12: region
-13: gene
-14: variant_details
-15: coding
-16: snp_1000g2012feb_all
-17: snp_snp135
-18: ljb_phylop
-19: ljb_mt
-20: esp6500_ea
-21: repeatmasker
-22: quality_filter
+ 0: chr
+ 1: start (N)
+ 2: end (N)
+ 3: ref
+ 4: obs
+ 5: genotype
+ 6: snp_q (N)
+ 7: depth (N)
+ 8: map_q (N)
+ 9: variant
+10: variant_frequency (N)
+11: region
+12: gene
+13: variant_details
+14: coding
+15: snp_1000g2012feb_all
+16: snp_snp135
+17: ljb_phylop
+18: ljb_mt
+19: esp6500_ea
+20: repeatmasker
+21: quality_filter

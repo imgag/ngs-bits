@@ -1,16 +1,56 @@
 # GSvar change log
 
 
+### 2022_04-159 (01.07.22)
+- Batch import: add tissue to sample batch import.
+- Mosaic variants: loading phenotypes from NGSD now works in mosaic widget.
+- Several minor bug fixes.
+
+### 2022_04-127 (30.05.22)
+- Gene tab: Added transcript biotype and transcript flags.
+- General: Several bugfixes.
+
+### 2022_04-109 (20.05.22)
+- General: Added support for mosaic variants (called in gene exon and splice regions only).
+- General: Variant tab can now be opened using different notations (GSvar, VCF, gnomAD and HGVS.c).
+- Small variant filters: added phenotype settings (source, evidence level, intersection)
+- Phenotype selection: added context menu entry to add parents of selected phenotype.
+- Small variant details: removed 1000g AF and added gnomAD het/wt counts.
+- Small variant details: RefSeq matches to Ensembl transcripts are now shown.
+
+### 2022_04-10 (21.04.22)
+- Report: added functionality to document causal varaints that are not small variants, CNVs or SVs.
+
+### 2021_12-180 (04.04.22)
+- General: Added GUI to change the permissions of restricted users.
+- Report: Added gap percentage after closing gaps to germline report.
+
+### 2021_12-162 (28.03.22)
+- Gaps: gaps in closing dialog can now be opened for editing and details by double-clicking or through the context menu.
+
+### 2021_12-138 (14.03.22)
+- General: added support for somatic WES.
+- NGSD: added tissue to sample table.
+- Published variants: added search by gene and variant tab context menu entry.
+- Small variants search: added CADD and SpliceAI to output table.
+- Gaps: added context menu entry to copy coordinates.
+
+### 2021_12-126 (03.03.22)
+- General: added disease group and status to batch sample import.
+- General: added batch import of sample HPO terms.
+
+### 2021_12-112 (21.02.22)
+- SVs are now contained in the XML report (germline).
+- Genome coordinate lift-over is now built-in. The liftover webservice is no longer needed.
+
 ### 2021_12-100 (10.02.22)
 - Added PubMed identifiers (variant details and variant tab).
 - Added upload status and re-upload for ClinVar upload.
 - RNA: improved integration.
 
-
 ### 2021_12-64 (17.01.22)
 - General: Removed support for dbscSNV and MMsplice annotations.
 - General: Added Google Scholar search for variants.
-
 
 ### 2021_12-33 (14.12.21)
 - General: Added analysis information dialog to processed sample tab and analysis status tab.

@@ -40,7 +40,6 @@ public:
 		addFlag("skip_plots", "Skip plots (intended to increase speed of automated tests).");
 		setExtendedDescription(QStringList() << "SomaticQC integrates the output of the other QC tools and adds several metrics specific for tumor-normal pairs." << "All tools produce qcML, a generic XML format for QC of -omics experiments, which we adapted for NGS.");
 		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg38");
-		addString("ref_cram", "Reference genome for CRAM support (mandatory if CRAM is used). If set, it is used for tumor and normal file.", true);
 
 		//changelog
 		changeLog(2020,  11, 27, "Added CRAM support.");
@@ -98,7 +97,7 @@ public:
 		}
 
 		QCCollection metrics;
-		metrics = Statistics::somatic(build, tumor_bam, normal_bam, somatic_vcf, ref, target_bed_file, skip_plots, getString("ref_cram"));
+		metrics = Statistics::somatic(build, tumor_bam, normal_bam, somatic_vcf, ref, target_bed_file, skip_plots);
 
 		//mutation burden corrected for TSG and exome size
 		QCValue tmb = Statistics::mutationBurdenNormalized(somatic_vcf, target_exons, target_bed, tsg_bed, blacklist);

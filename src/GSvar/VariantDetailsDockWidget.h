@@ -52,9 +52,6 @@ private slots:
 	void transcriptClicked(QString link);
 	void pubmedClicked(QString link);
 	void variantButtonClicked();
-	void nextSomDetails();
-	void previousSomDetails();
-	void enableSomDetailsArrows();
 	void gnomadContextMenu(QPoint pos);
 
 private:

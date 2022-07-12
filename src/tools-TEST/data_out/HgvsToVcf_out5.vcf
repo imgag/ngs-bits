@@ -1,0 +1,14 @@
+##fileformat=VCFv4.2
+##source=ngs-bits:HgvsToVcf
+##INFO=<ID=HGVSc,Number=1,Type=String,Description="Input transcript name and HGVS.c change.">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+chr1	27359572	.	G	C	.	.	HGVSc=CCDS299.1:c.2320-50C>G;count=1
+chr1	27360975	.	G	T	.	.	HGVSc=CCDS299.1:c.1866C>A;count=2
+chr1	27363868	.	T	C	.	.	HGVSc=CCDS299.1:c.864+49A>G;count=3
+chr1	62273232	.	T	C	.	.	HGVSc=CCDS81334.1:c.17-1643A>G;count=4
+chr1	62273526	.	G	A	.	.	HGVSc=CCDS81334.1:c.17-1937C>T;count=5
+chr1	62274393	.	A	G	.	.	HGVSc=CCDS81334.1:c.17-2804T>C;count=6
+chr1	62274774	.	T	C	.	.	HGVSc=CCDS81334.1:c.17-3185A>G;count=7
+chr1	62274777	.	T	C	.	.	HGVSc=CCDS81334.1:c.17-3188A>G;count=8
+chr1	62275108	.	TA	T	.	.	HGVSc=CCDS81334.1:c.17-3520del;count=9
+chr1	78112493	.	T	C	.	.	HGVSc=CCDS685.1:c.608-6900T>C;count=10

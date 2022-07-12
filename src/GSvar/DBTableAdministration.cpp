@@ -5,6 +5,7 @@
 #include "LoginManager.h"
 #include "EmailDialog.h"
 #include "GlobalServiceProvider.h"
+#include "UserPermissionsEditor.h"
 #include <QMessageBox>
 #include <QAction>
 
@@ -26,6 +27,13 @@ DBTableAdministration::DBTableAdministration(QString table, QWidget* parent)
 	QAction* action = new QAction(QIcon(":/Icons/Edit.png"), "Edit", this);
 	ui_.table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(edit()));
+
+	if (table_=="user")
+	{
+		action = new QAction(QIcon(":/Icons/Lock.png"), "Edit permissions", this);
+		ui_.table->addAction(action);
+		connect(action, SIGNAL(triggered(bool)), this, SLOT(changeUserPermissions()));
+	}
 
 	action = new QAction(QIcon(":/Icons/Remove.png"), "Delete", this);
 	ui_.table->addAction(action);
@@ -130,6 +138,37 @@ void DBTableAdministration::edit(int row)
 		{
 			QMessageBox::warning(this, "Error storing item", "Could not store the item.\n\nDatabase error:\n" + e.message());
 		}
+	}
+}
+
+void DBTableAdministration::changeUserPermissions()
+{
+	//check
+	try
+	{
+		//check selection
+		QSet<int> rows = ui_.table->selectedRows();
+		if (rows.count()!=1)
+		{
+			INFO(ArgumentException, "Please select exactly one user!");
+		}
+
+		//check user role
+		QString user_id = ui_.table->getId(rows.values()[0]);
+		QString user_role = NGSD().getValue("SELECT user_role FROM user WHERE id=" + user_id).toString().toLower();
+		if (user_role!="user_restricted")
+		{
+			INFO(ArgumentException, "Setting permissions is availabe for the users with role 'user_restricted' only!");
+		}
+
+		//show dialog
+		UserPermissionsEditor* widget = new UserPermissionsEditor("user_permissions", ui_.table->getId(rows.values()[0]), this);
+		auto dlg = GUIHelper::createDialog(widget, "User permissions", "", false);
+		dlg->exec();
+	}
+	catch (Exception& e)
+	{
+		GUIHelper::showException(this, e, "Changing user permissions error");
 	}
 }
 

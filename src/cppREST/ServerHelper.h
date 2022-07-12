@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QUuid>
 #include <QDate>
+#include "Log.h"
 #include "Exceptions.h"
 #include "Settings.h"
 
@@ -23,11 +24,18 @@ public:
 	static QString getUrlProtocol(const bool& return_http);
 	static QString getUrlPort(const bool& return_http);
 
+	static bool hasBasicSettings();
+	static QString getServerUrl(const bool& return_http);
+	static QString getSessionBackupFileName();
+	static QString getUrlStorageBackupFileName();
+
+
 protected:
 	ServerHelper();
 
 private:	
 	static ServerHelper& instance();
+	static QString getStandardFileLocation();
 
 
 };

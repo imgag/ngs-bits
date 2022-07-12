@@ -25,7 +25,6 @@ protected slots:
 	void updateDiseaseInfoTable();
 	void addDiseaseInfo();
 	void removeDiseaseInfo();
-	void importDiseaseInfoFromGenLab();
 
 private:
 	Ui::SampleDiseaseInfoWidget* ui_;

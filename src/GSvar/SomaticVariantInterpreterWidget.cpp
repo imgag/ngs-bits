@@ -188,7 +188,7 @@ void SomaticVariantInterpreterWidget::storeInNGSD()
 			THROW(ArgumentException, "VICC data is not valid!");
 		}
 
-		NGSD().setSomaticViccData(snv_, vicc_data, LoginManager::user());
+		NGSD().setSomaticViccData(snv_, vicc_data, LoginManager::userLogin());
 	}
 	catch(Exception e)
 	{

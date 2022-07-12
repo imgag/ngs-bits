@@ -217,8 +217,8 @@ void SvWidget::initGUI()
 		QTableWidgetItem* header_item = GUIHelper::createTableItem(QByteArray::number(row+1));
 		if (report_variant_indices.contains(row))
 		{
-			bool show_report_icon = report_config_->get(VariantType::SVS, row).showInReport();
-			header_item->setIcon(VariantTable::reportIcon(show_report_icon));
+			const ReportVariantConfiguration& rc = report_config_->get(VariantType::SVS, row);
+			header_item->setIcon(VariantTable::reportIcon(rc.showInReport(), rc.causal));
 		}
 		ui->svs->setVerticalHeaderItem(row, header_item);
 
@@ -926,7 +926,8 @@ void SvWidget::updateReportConfigHeaderIcon(int row)
 		QIcon report_icon;
 		if (!is_somatic_ && report_config_->exists(VariantType::SVS, row))
 		{
-			report_icon = VariantTable::reportIcon(report_config_->get(VariantType::SVS, row).showInReport());
+			const ReportVariantConfiguration& rc = report_config_->get(VariantType::SVS, row);
+			report_icon = VariantTable::reportIcon(rc.showInReport(), rc.causal);
 		}
 		ui->svs->verticalHeaderItem(row)->setIcon(report_icon);
 	}

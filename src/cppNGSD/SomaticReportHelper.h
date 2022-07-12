@@ -63,14 +63,6 @@ public:
 	///write Rtf File
 	void storeRtf(const QByteArray& out_file);
 
-	///creates table with SNVs, relevant germline SNPs (class 4/5) and overlapping CNVs
-	RtfTable snvTable(const VariantList& vl, bool include_germline = true, bool include_cnvs = true);
-	///generates table with CNVs
-	RtfTable cnvTable();
-
-	///generates with billing informationen (gene names in first table + OMIM numbers) for health funds according EBM
-	RtfTable billingTable();
-
 	///write XML file
 	void storeXML(QString file_name);
 
@@ -100,17 +92,13 @@ public:
 		return trans( QString(text) ).toUtf8();
 	}
 
+	///returns best matching transcript - or an empty transcript
+	static VariantTranscript selectSomaticTranscript(const Variant& variant, const SomaticReportSettings& settings, int index_co_sp);
+
 
 private:
 	///transforms GSVar coordinates of Variants to VCF INDEL-standard
 	VariantList gsvarToVcf(const VariantList& gsvar_list, const QString& orig_name);
-
-	///returns best matching transcript - or an empty transcript
-	VariantTranscript selectSomaticTranscript(const Variant& variant);
-
-	///Creates table containing alterations relevant in pharmacogenomics (from normal sample)
-	RtfTable pharamacogeneticsTable();
-
 
 	///Parses CN to description
 	RtfSourceCode CnvDescription(const CopyNumberVariant& cnv, const SomaticGeneRole& role);
@@ -120,11 +108,38 @@ private:
 
 	RtfTableRow overlappingCnv(const CopyNumberVariant& cnv, QByteArray gene, double snv_af);
 
+	///parts of the report
+	///Generates table with genral information
+	RtfSourceCode partSummary();
+	///Generates table with classified most relevant variants
+	RtfSourceCode partRelevantVariants();
+	///Generates table with variants of unknown significance
+	RtfSourceCode partUnclearVariants();
+	///Generates table with chromosomal aberratons
+	RtfSourceCode partCnvTable();
+	///Generates table for fusions
+	RtfSourceCode partFusions();
+	///generates table with germline SNPs
+	RtfSourceCode partPharmacoGenetics();
+	///generates meta data (e.g. coverage, depth)
+	RtfSourceCode partMetaData();
+	///generates with billing informationen (gene names in first table + OMIM numbers) for health funds according EBM
+	RtfSourceCode partBillingTable();
+	///Generates table with virus information
+	RtfSourceCode partVirusTable();
+	///Generates part with somatic IGV snapshot
+	RtfSourceCode partIgvScreenshot();
+
+	///creates table with SNVs, relevant germline SNPs (class 4/5) and overlapping CNVs
+	RtfTable snvTable(const VariantList& vl, bool include_germline = true, bool include_cnvs = true);
 
 	//skipped amplifications in somaticalterationtable
 	GeneSet skipped_amp_ = {};
 	//Somatic SNVs/INDELs
 	VariantList somatic_vl_;
+
+	VariantList somatic_high_impact_vl_;
+	VariantList somatic_low_impact_vl_;
 
 	GenomeBuild build_;
 
@@ -134,9 +149,6 @@ private:
 
 	//Microsatellite instability MANTIS step-wise-difference metric
 	double mantis_msi_swd_value_;
-
-	//Sequence ontology that contains the SO IDs of coding and splicing transcripts
-	OntologyTermCollection obo_terms_coding_splicing_;
 
 	//CNVList for somatic (filtered) copy-number altered variants
 	CnvList cnvs_;
@@ -160,16 +172,13 @@ private:
 	//histologic tumor fraction according genlab
 	double histol_tumor_fraction_;
 
-	//HPO term listed in NGSD
-	QString hpo_term_;
-
 	double mutation_burden_;
 
-	///indices for somatic variant file
+	//indices for somatic variant file
 	int snv_index_coding_splicing_;
 
 
-	///indices for somatic CNV file
+	//indices for somatic CNV file
 	int cnv_index_cn_change_;
 	int cnv_index_cnv_type_;
 	int cnv_index_state_;

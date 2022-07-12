@@ -4,12 +4,13 @@
 #include "DatabaseServiceLocal.h"
 #include "DatabaseServiceRemote.h"
 #include "MainWindow.h"
+#include "GSvarHelper.h"
 
 GlobalServiceProvider::GlobalServiceProvider()
   : file_location_provider_()
   , database_service_()
 {
-	if (Settings::string("server_host",true).trimmed()!="" && Settings::string("https_server_port").trimmed()!="")
+	if (NGSHelper::isClientServerMode())
 	{		
 		database_service_ = QSharedPointer<DatabaseService>(new DatabaseServiceRemote());
 	}
@@ -146,10 +147,7 @@ void GlobalServiceProvider::gotoInIGV(QString region, bool init_if_not_done)
 void GlobalServiceProvider::loadFileInIGV(QString filename, bool init_if_not_done)
 {
 	//normalize local files
-	if (!filename.startsWith("http"))
-	{
-		filename = Helper::canonicalPath(filename);
-	}
+	filename = Helper::canonicalPath(filename);
 
 	foreach(QWidget* widget, QApplication::topLevelWidgets())
 	{

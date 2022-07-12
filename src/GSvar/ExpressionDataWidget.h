@@ -13,7 +13,7 @@ class ExpressionDataWidget : public QWidget
 	Q_OBJECT
 
 public:
-	ExpressionDataWidget(QString tsv_filename, QWidget *parent = 0);
+	ExpressionDataWidget(QString tsv_filename, int sys_id, QString tissue_, QWidget *parent = 0);
 	~ExpressionDataWidget();
 
 private slots:
@@ -25,6 +25,8 @@ private slots:
 private:
 	void loadExpressionData();
 	QString tsv_filename_;
+	int sys_id_;
+	QString tissue_;
 	Ui::ExpressionDataWidget *ui_;
 
 	//table info

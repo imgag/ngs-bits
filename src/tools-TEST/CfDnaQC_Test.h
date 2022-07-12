@@ -27,6 +27,15 @@ private slots:
 		COMPARE_FILES("out/CfDnaQC_out2.qcML", TESTDATA("data_out/CfDnaQC_out2.qcML"));
 	}
 
+	void text_test()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		EXECUTE("CfDnaQC", "-bam " + TESTDATA("data_in/CfDnaQC_in_cfdna2.bam") + " -cfdna_panel " + TESTDATA("data_in/CfDnaQC_in_panel.bed") + " -build hg19 -txt -out out/CfDnaQC_out2.txt");
+		COMPARE_FILES("out/CfDnaQC_out2.txt", TESTDATA("data_out/CfDnaQC_out2.txt"));
+	}
+
 	void tumor_test()
 	{
 		QString ref_file = Settings::string("reference_genome", true);

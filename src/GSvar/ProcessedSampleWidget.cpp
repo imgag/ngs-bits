@@ -11,13 +11,14 @@
 #include "DBEditor.h"
 #include "GSvarHelper.h"
 #include "LoginManager.h"
-#include "GenLabDB.h"
 #include "GlobalServiceProvider.h"
 #include <QMessageBox>
 #include "GlobalServiceProvider.h"
 #include "AnalysisInformationWidget.h"
 #include "ExpressionDataWidget.h"
 #include "FusionWidget.h"
+#include "GenLabImportDialog.h"
+#include "GenLabDB.h"
 
 ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	: QWidget(parent)
@@ -47,8 +48,16 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(ui_->normal_sample, SIGNAL(linkActivated(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(ui_->reanalyze_btn, SIGNAL(clicked(bool)), this, SLOT(queueSampleAnalysis()));
 	connect(ui_->analysis_info_btn, SIGNAL(clicked(bool)), this, SLOT(showAnalysisInfo()));
-	connect(ui_->genlab_disease_btn, SIGNAL(clicked(bool)), this, SLOT(editDiseaseGroupAndInfo()));
-	connect(ui_->genlab_relations_btn, SIGNAL(clicked(bool)), this, SLOT(importSampleRelations()));
+	connect(ui_->genlab_import_btn, SIGNAL(clicked(bool)), this, SLOT(genLabImportDialog()));
+	ui_->genlab_import_btn->setEnabled(GenLabDB::isAvailable());
+
+	//check user has access rights
+	NGSD db;
+	if (!db.userCanAccess(LoginManager::userId(), ps_id.toInt()))
+	{
+		INFO(AccessDeniedException, "You do not have permissions to open this sample!");
+	}
+
 
 	//QC value > plot
 	QAction* action = new QAction(QIcon(":/Icons/chart.png"), "Plot", this);
@@ -66,7 +75,6 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openExternalDiseaseDatabase()));
 
 	// determine sample type
-	NGSD db;
 	QString sample_type = db.getSampleData(db.sampleId(db.processedSampleName(ps_id_))).type;
 
 	QMenu* menu = new QMenu();
@@ -182,11 +190,13 @@ void ProcessedSampleWidget::updateGUI()
 	styleQualityLabel(ui_->s_quality, s_data.quality);
 	ui_->s_name->setText(s_data.name);
 	ui_->name_external->setText(s_data.name_external);
+	ui_->patient_identifier->setText(s_data.patient_identifier);
 	ui_->sender->setText(s_data.sender + " (received on " + s_data.received + " by " + s_data.received_by +")");
 	ui_->species_type->setText(s_data.species + " / " + s_data.type);
 	ui_->tumor_ffpe->setText(QString(s_data.is_tumor ? "<font color=red>yes</font>" : "no") + " / " + (s_data.is_ffpe ? "<font color=red>yes</font>" : "no"));
 	ui_->gender->setText(s_data.gender);
 	ui_->disease_group_status->setText(s_data.disease_group + " (" + s_data.disease_status + ")");
+	ui_->tissue->setText(s_data.tissue);
 	ui_->comments_sample->setText(s_data.comments);
 	QStringList groups;
 	foreach(SampleGroup group, s_data.sample_groups)
@@ -262,14 +272,18 @@ void ProcessedSampleWidget::updateQCMetrics()
 {
 	try
 	{
+		NGSD db;
+		QString sample_type = db.getSampleData(db.sampleId(db.processedSampleName(ps_id_))).type;
+
+		//create table
 		QString conditions;
 		if (!ui_->qc_all->isChecked())
 		{
-			conditions = "AND (t.qcml_id='QC:2000007' OR 'QC:2000008' OR t.qcml_id='QC:2000010' OR t.qcml_id='QC:2000013' OR t.qcml_id='QC:2000014' OR t.qcml_id='QC:2000015' OR t.qcml_id='QC:2000016' OR t.qcml_id='QC:2000017' OR t.qcml_id='QC:2000018' OR t.qcml_id='QC:2000020' OR t.qcml_id='QC:2000021' OR t.qcml_id='QC:2000022' OR t.qcml_id='QC:2000023' OR t.qcml_id='QC:2000024' OR t.qcml_id='QC:2000025' OR t.qcml_id='QC:2000027' OR t.qcml_id='QC:2000049' OR t.qcml_id='QC:2000050' OR t.qcml_id='QC:2000051')";
+			QStringList preferred_qc_parameters = limitedQCParameter(sample_type);
+			conditions = "AND (t.qcml_id IN ('" + preferred_qc_parameters.join("', '") + "'))";
+//			conditions = "AND (t.qcml_id='QC:2000007' OR 'QC:2000008' OR t.qcml_id='QC:2000010' OR t.qcml_id='QC:2000013' OR t.qcml_id='QC:2000014' OR t.qcml_id='QC:2000015' OR t.qcml_id='QC:2000016' OR t.qcml_id='QC:2000017' OR t.qcml_id='QC:2000018' OR t.qcml_id='QC:2000020' OR t.qcml_id='QC:2000021' OR t.qcml_id='QC:2000022' OR t.qcml_id='QC:2000023' OR t.qcml_id='QC:2000024' OR t.qcml_id='QC:2000025' OR t.qcml_id='QC:2000027' OR t.qcml_id='QC:2000049' OR t.qcml_id='QC:2000050' OR t.qcml_id='QC:2000051')";
 		}
-
-		//create table
-		DBTable qc_table = NGSD().createTable("processed_sample_qc", "SELECT qc.id, t.qcml_id, t.name, qc.value, t.description FROM processed_sample_qc qc, qc_terms t WHERE qc.qc_terms_id=t.id AND t.obsolete=0 AND qc.processed_sample_id='" + ps_id_ + "' " + conditions + " ORDER BY t.qcml_id ASC");
+		DBTable qc_table = db.createTable("processed_sample_qc", "SELECT qc.id, t.qcml_id, t.name, qc.value, t.description FROM processed_sample_qc qc, qc_terms t WHERE qc.qc_terms_id=t.id AND t.obsolete=0 AND qc.processed_sample_id='" + ps_id_ + "' " + conditions + " ORDER BY t.qcml_id ASC");
 
 		//use descriptions as tooltip
 		QStringList descriptions = qc_table.takeColumn(qc_table.columnIndex("description"));
@@ -277,6 +291,7 @@ void ProcessedSampleWidget::updateQCMetrics()
 		ui_->qc_table->setColumnTooltips("name", descriptions);
 
 		//colors
+		QString sys_type = db.getValue("SELECT sys.type FROM processed_sample ps, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.id='"+ps_id_+"'").toString();
 		QColor orange = QColor(255,150,0,125);
 		QColor red = QColor(255,0,0,125);
 		QList<QColor> colors;
@@ -295,8 +310,16 @@ void ProcessedSampleWidget::updateQCMetrics()
 				}
 				else if (accession=="QC:2000025") //avg depth
 				{
-					if (value<80) color = orange;
-					if (value<30) color = red;
+					if (sys_type=="WGS")
+					{
+						if (value<35) color = orange;
+						if (value<30) color = red;
+					}
+					else
+					{
+						if (value<80) color = orange;
+						if (value<50) color = red;
+					}
 				}
 				else if (accession=="QC:2000027") //cov 20x
 				{
@@ -357,18 +380,18 @@ void ProcessedSampleWidget::showPlot()
 
 void ProcessedSampleWidget::openSampleFolder()
 {
-	QString folder = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER).filename;
-	if (folder.toLower().startsWith("http"))
+	FileLocation folder = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER);
+	if (folder.isHttpUrl())
 	{
 		QMessageBox::information(this, "Open processed sample folder", "Cannot open processed sample folder in client-server mode!");
 		return;
 	}
-	else if (!QFile::exists(folder))
+	else if (!QFile::exists(folder.filename))
 	{
-		QMessageBox::warning(this, "Error opening processed sample folder", "Folder does not exist:\n" + folder);
+		QMessageBox::warning(this, "Error opening processed sample folder", "Folder does not exist:\n" + folder.filename);
 		return;
 	}
-	QDesktopServices::openUrl(QUrl(folder));
+	QDesktopServices::openUrl(QUrl(folder.filename));
 }
 
 void ProcessedSampleWidget::openSampleTab()
@@ -630,7 +653,10 @@ void ProcessedSampleWidget::openExpressionWidget()
 	FileLocation file_location = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::EXPRESSION);
 	if (file_location.exists)
 	{
-		ExpressionDataWidget* widget = new ExpressionDataWidget(file_location.filename, this);
+		NGSD db;
+		int sys_id = db.processingSystemIdFromProcessedSample(processedSampleName());
+		QString tissue = db.getSampleData(db.sampleId(sampleName())).tissue;
+		ExpressionDataWidget* widget = new ExpressionDataWidget(file_location.filename, sys_id, tissue, this);
 		auto dlg = GUIHelper::createDialog(widget, "Expression Data");
 		dlg->exec();
 	}
@@ -682,21 +708,6 @@ void ProcessedSampleWidget::editDiagnosticStatus()
 	updateGUI();
 }
 
-void ProcessedSampleWidget::editDiseaseGroupAndInfo()
-{
-	NGSD db;
-
-	QString ps_name = processedSampleName();
-	QString sample_id = db.sampleId(ps_name);
-
-	DiseaseInfoWidget* widget = new DiseaseInfoWidget(ps_name, sample_id, this);
-	auto dlg = GUIHelper::createDialog(widget, "Disease information", "", true);
-	if (dlg->exec() != QDialog::Accepted) return;
-
-	db.setSampleDiseaseData(sample_id, widget->diseaseGroup(), widget->diseaseStatus());
-	updateGUI();
-}
-
 void ProcessedSampleWidget::editDiseaseDetails()
 {
 	NGSD db;
@@ -712,34 +723,22 @@ void ProcessedSampleWidget::editDiseaseDetails()
 	updateGUI();
 }
 
-void ProcessedSampleWidget::importSampleRelations()
+void ProcessedSampleWidget::genLabImportDialog()
 {
-	//init
-	NGSD db;
-	QString ps_name = db.processedSampleName(ps_id_);
-	int s_id = db.sampleId(ps_name).toInt();
-
-	//import
-	int c_before = db.relatedSamples(s_id).count();
-	QString error;
 	try
 	{
-		QList<SampleRelation> relations = GenLabDB().relatives(ps_name);
-		foreach(const SampleRelation& rel, relations)
+		GenLabImportDialog dlg(ps_id_, this);
+
+		if (dlg.exec()==QDialog::Accepted)
 		{
-			db.addSampleRelation(rel);
+			dlg.importSelectedData();
+			updateGUI();
 		}
 	}
-	catch (Exception& e)
+	catch(Exception& e)
 	{
-		error = "\n\nWarning: An error occurred:\n" + e.message();
+		GUIHelper::showException(this, e, "GenLab data import");
 	}
-
-	//show result to user
-	int c_after = db.relatedSamples(s_id).count();
-	QMessageBox::information(this, "Sample relation import", "Imported " + QString::number(c_after-c_before) + " sample relations from GenLab!" + error);
-
-	updateGUI();
 }
 
 void ProcessedSampleWidget::edit()
@@ -786,6 +785,65 @@ QString ProcessedSampleWidget::mergedSamples() const
 	}
 
 	return output.join(", ");
+}
+
+QStringList ProcessedSampleWidget::limitedQCParameter(const QString& sample_type)
+{
+	QStringList parameter_list;
+
+	// add common parameter
+	parameter_list << "QC:2000007"; // Q20 read percentage
+	parameter_list << "QC:2000008"; // Q30 base percentage
+	parameter_list << "QC:2000010"; // gc content percentage
+	parameter_list << "QC:2000020"; // mapped read percentage
+	parameter_list << "QC:2000021"; // on-target read percentage
+	parameter_list << "QC:2000025"; // target region read depth
+	parameter_list << "QC:2000049"; // bases sequenced (MB)
+	parameter_list << "QC:2000050"; // bases usable (MB)
+
+	// add type-specific parameter
+	if (sample_type == "DNA" || sample_type == "DNA (amplicon)" || sample_type == "DNA (native)")
+	{
+		parameter_list << "QC:2000013"; // variant count
+		parameter_list << "QC:2000014"; // known variants percentage
+		parameter_list << "QC:2000015"; // high-impact variants percentage
+		parameter_list << "QC:2000016"; // homozygous variants percentage
+		parameter_list << "QC:2000017"; // indel variants percentage
+		parameter_list << "QC:2000018"; // transition/transversion ratio
+		parameter_list << "QC:2000022"; // properly-paired read percentage
+		parameter_list << "QC:2000023"; // insert size
+		parameter_list << "QC:2000024"; // duplicate read percentage
+		parameter_list << "QC:2000027"; // target region 20x percentage
+		parameter_list << "QC:2000051"; // SNV allele frequency deviation
+	}
+	else if(sample_type == "cfDNA")
+	{
+		parameter_list << "QC:2000065"; // target region 1000x percentage
+		parameter_list << "QC:2000067"; // target region 5000x percentage
+		parameter_list << "QC:2000069"; // target region 10000x percentage
+		parameter_list << "QC:2000071"; // target region read depth 2-fold duplication
+		parameter_list << "QC:2000073"; // target region read depth 4-fold duplication
+		parameter_list << "QC:2000077"; // monitoring variant read depth
+		parameter_list << "QC:2000078"; // ID variant read depth
+		parameter_list << "QC:2000079"; // monitoring variant count
+		parameter_list << "QC:2000080"; // monitoring variant 250x percentage
+		parameter_list << "QC:2000081"; // ID variant count
+		parameter_list << "QC:2000082"; // ID variant 250x percentage
+		parameter_list << "QC:2000083"; // cfDNA-tumor correlation
+		parameter_list << "QC:2000084"; // cfDNA-cfDNA correlation
+
+	}
+	else if(sample_type == "RNA")
+	{
+		parameter_list << "QC:2000027"; // target region 20x percentage
+		parameter_list << "QC:2000100"; // housekeeping genes read percentage
+		parameter_list << "QC:2000101"; // housekeeping genes read depth
+		parameter_list << "QC:2000103"; // housekeeping genes 20x percentage
+		parameter_list << "QC:2000109"; // covered gene count
+		parameter_list << "QC:2000110"; // aberrant spliced gene count
+		parameter_list << "QC:2000111"; // outlier gene count
+	}
+	return parameter_list;
 }
 
 void ProcessedSampleWidget::queueSampleAnalysis()

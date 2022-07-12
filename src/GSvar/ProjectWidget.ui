@@ -193,7 +193,7 @@
       <item row="5" column="0">
        <widget class="QLabel" name="label_6">
         <property name="text">
-         <string>internal cooridinator:</string>
+         <string>internal coordinator:</string>
         </property>
        </widget>
       </item>

@@ -32,18 +32,11 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	connect(ui->gnomad, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(gnomadContextMenu(QPoint)));
 	connect(ui->var_btn, SIGNAL(clicked(bool)), this, SLOT(variantButtonClicked()));
 	connect(ui->trans, SIGNAL(linkActivated(QString)), this, SLOT(transcriptClicked(QString)));
-	connect(ui->som_details_prev, SIGNAL(clicked(bool)), this, SLOT(previousSomDetails()));
-	connect(ui->som_details_next, SIGNAL(clicked(bool)), this, SLOT(nextSomDetails()) );
 	connect(ui->pubmed, SIGNAL(linkActivated(QString)), this, SLOT(pubmedClicked(QString)));
 
 	//set up transcript buttons
 	ui->trans_prev->setStyleSheet("QPushButton {border: none; margin: 0px;padding: 0px;}");
 	ui->trans_next->setStyleSheet("QPushButton {border: none; margin: 0px;padding: 0px;}");
-
-	//set up somatic detail buttons
-	ui->som_details_prev->setStyleSheet("QPushButton {border: none; margin: 0px;padding: 0px;}");
-	ui->som_details_next->setStyleSheet("QPushButton {border: none; margin: 0px;padding: 0px;}");
-	enableSomDetailsArrows();
 
 	//set up content label properties
 	QList<QLabel*> labels = findChildren<QLabel*>();
@@ -80,10 +73,11 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_pubmed->setToolTip(vl.annotationDescriptionByName("PubMed", false).description()); //optional
 
 	//AFs
-	ui->label_tg->setToolTip(vl.annotationDescriptionByName("1000g").description());
 	ui->label_gnomad->setToolTip(vl.annotationDescriptionByName("gnomAD").description());
-	ui->label_gnomad_hom_hemi->setToolTip(vl.annotationDescriptionByName("gnomAD_hom_hemi").description());
 	ui->label_gnomad_sub->setToolTip(vl.annotationDescriptionByName("gnomAD_sub").description());
+	ui->label_gnomad_hom_hemi->setToolTip(vl.annotationDescriptionByName("gnomAD_hom_hemi").description());
+	ui->label_gnomad_het->setToolTip(vl.annotationDescriptionByName("gnomAD_het", false).description()); // optional
+	ui->label_gnomad_wt->setToolTip(vl.annotationDescriptionByName("gnomAD_wt", false).description()); // optional
 
 	//pathogenicity predictions
 	ui->label_phylop->setToolTip(vl.annotationDescriptionByName("phyloP").description());
@@ -175,10 +169,12 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->pubmed, vl, index, "PubMed");
 
 	//public allel frequencies
-	setAnnotation(ui->tg, vl, index, "1000g");
 	setAnnotation(ui->gnomad, vl, index, "gnomAD");
-	setAnnotation(ui->gnomad_hom_hemi, vl, index, "gnomAD_hom_hemi");
 	setAnnotation(ui->gnomad_sub, vl, index, "gnomAD_sub");
+	setAnnotation(ui->gnomad_hom_hemi, vl, index, "gnomAD_hom_hemi");
+	setAnnotation(ui->gnomad_het, vl, index, "gnomAD_het");
+	setAnnotation(ui->gnomad_wt, vl, index, "gnomAD_wt");
+
 
 	//pathogenity predictions
 	setAnnotation(ui->phylop, vl, index, "phyloP");
@@ -227,7 +223,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	//somatic VICC data from NGSD
 	setAnnotation(ui->somatic_vicc_score, vl, index, "NGSD_som_vicc_interpretation");
 
-	//RNAseq
+	//RNA (ASE)
 	QString rna_ase = "";
 	int ase_af_idx = vl.annotationIndexByName("ASE_af", true, false);
 	int ase_pval_idx = vl.annotationIndexByName("ASE_pval", true, false);
@@ -241,15 +237,14 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 		}
 	}
 	ui->rna_ase->setText(rna_ase);
-
 	setAnnotation(ui->rna_splicing, vl, index, "aberrant_splicing");
-
 	setAnnotation(ui->rna_tpm, vl, index, "tpm");
 
+	//RNA (fold-change)
 	QString rna_rel = "";
 	int expr_log2fc_idx = vl.annotationIndexByName("expr_log2fc", true, false);
 	int expr_zscore_idx = vl.annotationIndexByName("expr_zscore", true, false);
-	if(ase_af_idx!=-1 && ase_pval_idx!=-1)
+	if(expr_log2fc_idx!=-1 && expr_zscore_idx!=-1)
 	{
 		QString expr_log2fc = vl[index].annotations()[expr_log2fc_idx];
 		QString expr_zscore = vl[index].annotations()[expr_zscore_idx];
@@ -472,7 +467,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				tooltip = vl[index].annotations()[c_index];
 			}
 		}
-		else if(name=="1000g" || name=="gnomAD")
+		else if(name=="gnomAD")
 		{
 			if (anno=="")
 			{
@@ -499,18 +494,27 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			}
 			else
 			{
-				bool high_af = false;
+				QStringList pops = {"AFR", "AMR", "EAS", "NFE", "SAS"};
 				QStringList parts = anno.split(",");
-				foreach(QString part, parts)
+				if (parts.count()!=pops.count()) qDebug() << "Invalid gnomAD sub-population count!";
+
+				QStringList tt_parts;
+				double max_af = 0.0;
+				for(int i=0; i<parts.count(); ++i)
 				{
+					QString part = parts[i].trimmed();
+
 					bool ok = true;
-					double value = part.toDouble(&ok);
-					if (ok && value>=0.05)
-					{
-						high_af = true;
-					}
+					double af = part.toDouble(&ok);
+					if (ok) max_af = std::max(max_af, af);
+
+					if (i<pops.count()) tt_parts << pops[i]+": "+part;
 				}
-				text = high_af ? formatText(anno, GREEN) : anno;
+
+				text = QString::number(max_af, 'g', 4);
+				if (max_af>=0.05) text = formatText(text, GREEN);
+
+				tooltip = tt_parts.join("\n");
 			}
 		}
 		else if(name=="comment")
@@ -553,11 +557,46 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			double value = anno.toDouble(&ok);
 			if (ok && value >= 0.5)
 			{
-				text = formatText(anno, RED);
+				text = formatText(anno, ORANGE);
 			}
 			else
 			{
 				text = anno;
+			}
+		}
+		else if(name=="MaxEntScan")
+		{
+			if (anno != "")
+			{
+				QString new_anno = "";
+
+				QList<double> percentages;
+				QList<double> abs_values;
+
+				bool color = GSvarHelper::colorMaxEntScan(anno, percentages, abs_values);
+				QStringList values = anno.split(',');
+				for (int i=0; i<values.size(); i++)
+				{
+					if (abs_values[i] > 0.5)
+					{
+						new_anno += values[i] + "(" + QString::number(percentages[i]*100, 'f', 1) + "%), ";
+					}
+					else
+					{
+						new_anno += values[i] + ", ";
+					}
+				}
+				new_anno.chop(2);
+
+				//color item
+				if (color)
+				{
+					text = formatText(new_anno, ORANGE);
+				}
+				else
+				{
+					text = new_anno;
+				}
 			}
 		}
 		else if(name=="PubMed")
@@ -596,17 +635,7 @@ double VariantDetailsDockWidget::maxAlleleFrequency(const VariantList& vl, int i
 	bool ok;
 	double value;
 
-	int idx = vl.annotationIndexByName("1000g", true, false);
-	if (idx!=-1)
-	{
-		value = vl[index].annotations()[idx].toDouble(&ok);
-		if (ok)
-		{
-			output = std::max(output, value);
-		}
-	}
-
-	idx = vl.annotationIndexByName("gnomAD", true, false);
+	int idx = vl.annotationIndexByName("gnomAD", true, false);
 	if (idx!=-1)
 	{
 		value = vl[index].annotations()[idx].toDouble(&ok);
@@ -725,6 +754,16 @@ void VariantDetailsDockWidget::setTranscript(int index)
 	}
 	ui->trans->setText("<span style=\"font-weight:600; color:#222222;\">" + text + "<span>");
 
+	//RefSeq match
+	const QMap<QByteArray, QByteArrayList>& transcript_matches = NGSHelper::transcriptMatches(GSvarHelper::build());
+	QStringList refseq_links;
+	foreach(QByteArray transcript_match, transcript_matches[trans.idWithoutVersion()])
+	{
+		if (transcript_match.startsWith("CCDS")) continue;
+		refseq_links << formatLink(transcript_match, "https://www.ncbi.nlm.nih.gov/nuccore/" + transcript_match);
+	}
+	ui->trans_refseq->setText(refseq_links.join(", "));
+
 	//set detail labels
 	if (trans.impact=="HIGH")
 	{
@@ -827,7 +866,7 @@ void VariantDetailsDockWidget::gnomadClicked(QString variant_string)
 
 void VariantDetailsDockWidget::transcriptClicked(QString link)
 {
-	if (link.startsWith("http")) //transcript
+	if (Helper::isHttpUrl(link)) //transcript
 	{
 		QDesktopServices::openUrl(QUrl(link));
 	}
@@ -839,7 +878,7 @@ void VariantDetailsDockWidget::transcriptClicked(QString link)
 
 void VariantDetailsDockWidget::pubmedClicked(QString link)
 {
-	if (link.startsWith("http")) //transcript
+	if (Helper::isHttpUrl(link)) //transcript
 	{
 		QDesktopServices::openUrl(QUrl(link));
 	}
@@ -859,24 +898,6 @@ void VariantDetailsDockWidget::variantButtonClicked()
 	if (variant_str.isEmpty()) return;
 
 	GlobalServiceProvider::openVariantTab(Variant::fromString(variant_str));
-}
-
-void VariantDetailsDockWidget::nextSomDetails()
-{
-	ui->somaticDetailsWidget->setCurrentIndex(ui->somaticDetailsWidget->currentIndex()+1);
-	enableSomDetailsArrows();
-}
-
-void VariantDetailsDockWidget::previousSomDetails()
-{
-	ui->somaticDetailsWidget->setCurrentIndex(ui->somaticDetailsWidget->currentIndex()-1);
-	enableSomDetailsArrows();
-}
-
-void VariantDetailsDockWidget::enableSomDetailsArrows()
-{
-	ui->som_details_prev->setEnabled(ui->somaticDetailsWidget->widget(ui->somaticDetailsWidget->currentIndex()-1) != nullptr);
-	ui->som_details_next->setEnabled(ui->somaticDetailsWidget->widget(ui->somaticDetailsWidget->currentIndex()+1) != nullptr);
 }
 
 QList<KeyValuePair> VariantDetailsDockWidget::DBEntry::splitByName() const
@@ -954,7 +975,7 @@ void VariantDetailsDockWidget::showOverviewTable(QString title, QString text, ch
 			int col = headers.indexOf(pair.key);
 
 			QString text = pair.value.trimmed();
-			if (text.startsWith("http://") || text.startsWith("https://")) //URL
+			if (Helper::isHttpUrl(text)) //URL
 			{
 				QLabel* label = GUIHelper::createLinkLabel("<a href='" + text + "'>" + text + "</a>");
 				table->setCellWidget(row, col, label);
@@ -983,7 +1004,7 @@ void VariantDetailsDockWidget::gnomadContextMenu(QPoint pos)
 	if (GSvarHelper::build()!=GenomeBuild::HG38) return;
 
 	QMenu menu;
-	QAction* a_v2 = menu.addAction("Lift-over to gnomaAD 2.1");
+	QAction* a_v2 = menu.addAction("Lift-over to gnomAD 2.1");
 
 	QAction* action = menu.exec(ui->gnomad->mapToGlobal(pos));
 	if (action==nullptr) return;

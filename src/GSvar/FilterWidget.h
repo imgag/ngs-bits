@@ -18,6 +18,8 @@ enum class ReportConfigFilter
 };
 
 //Filter manager dock widget
+//The filter list is not populated automatically, since we need to get the database
+//credentials first. As soon as the user logs in, the app calls loadTargetRegions()
 class FilterWidget
 	: public QWidget
 {
@@ -61,14 +63,11 @@ public:
 	const PhenotypeList& phenotypes() const;
 	///Sets selected phenotype terms.
 	void setPhenotypes(const PhenotypeList& phenotypes);
-	///Returns selected database sources
-	const QList<PhenotypeSource::Source>& allowedPhenotypeSources() const;
-	/// sets the allowed phenotypeSources for the PhenotypeFilter tooltip
-	void setAllowedPhenotypeSources(QList<PhenotypeSource::Source> sources);
-	///Returns selected Evidence levels
-	const QList<PhenotypeEvidence::Evidence>& allowedPhenotypeEvidences() const;
-	/// sets the allowed phenotypeEvidences for the PhenotypeFilter tooltip
-	void setAllowedPhenotypeEvidences(QList<PhenotypeEvidence::Evidence> evidences);
+
+	///Returns selected phenotype terms.
+	const PhenotypeSettings& phenotypeSettings() const;
+	///Sets selected phenotype terms.
+	void setPhenotypeSettings(const PhenotypeSettings& settings);
 
 	/// Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)
 	void loadTargetRegions();
@@ -76,6 +75,8 @@ public:
 	static void loadTargetRegions(QComboBox* box);
 	/// Helper for loading target region data. Throws an exception of the target region file is missing!
 	static void loadTargetRegionData(TargetRegionInfo& roi, QString name);
+	/// Helper for checking that gene names are approved symbols (also in CNV/SV widget)
+	static void checkGeneNames(const GeneSet& genes, QLineEdit* widget);
 
 	///Returns the filter INI file name
 	static QString filterFileName();
@@ -97,14 +98,9 @@ signals:
 	void phenotypeImportNGSDRequested();
 	/// Signal that a sub-panel should be created using the phenotypes
 	void phenotypeSubPanelRequested();
-    // Signal that the allowed sources or evidences changed
-    void phenotypeSourcesAndEvidencesChanged(QList<PhenotypeEvidence::Evidence> evidences, QList<PhenotypeSource::Source> sources);
-
-
-public slots:
-		void phenotypesChanged();
 
 protected slots:
+	void phenotypesChanged();
 	void addRoi();
 	void addRoiTemp();
 	void removeRoi();
@@ -135,9 +131,7 @@ private:
 	TargetRegionInfo roi_;
 	GeneSet last_genes_;
 	PhenotypeList phenotypes_;
-	QList<PhenotypeSource::Source> allowed_phenotype_sources_;
-	QList<PhenotypeEvidence::Evidence> allowed_phenotype_evidences_;
-
+	PhenotypeSettings phenotype_settings_;
 };
 
 #endif // FILTERWIDGET_H

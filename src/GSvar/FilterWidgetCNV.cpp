@@ -41,7 +41,7 @@ FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 	connect(ui_.report_config, SIGNAL(currentIndexChanged(int)), this, SIGNAL(filtersChanged()));
 	connect(ui_.calculate_gene_overlap, SIGNAL(clicked(bool)), this, SIGNAL(calculateGeneTargetRegionOverlap()));
 
-	QAction* action = new QAction("clear", this);
+	QAction* action = new QAction(QIcon(":/Icons/Trash.png"), "clear");
 	connect(action, &QAction::triggered, this, &FilterWidgetCNV::clearTargetRegion);
 	ui_.roi->addAction(action);
 
@@ -210,6 +210,7 @@ void FilterWidgetCNV::geneChanged()
 	if (genes()!=last_genes_)
 	{
 		last_genes_ = genes();
+		FilterWidget::checkGeneNames(last_genes_, ui_.gene);
 		emit filtersChanged();
 	}
 }

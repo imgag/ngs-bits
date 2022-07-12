@@ -58,7 +58,27 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="flag_artefacts">
+      <widget class="QPushButton" name="flag_visible_cnvs_artefacts">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Flag all unfiltered (=visible) somatic CNVs as artefacts.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="GSvar.qrc">
+         <normaloff>:/Icons/Report_exclude_visible.png</normaloff>:/Icons/Report_exclude_visible.png</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="flag_invisible_cnvs_artefacts">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -76,7 +96,7 @@
        </property>
        <property name="icon">
         <iconset resource="GSvar.qrc">
-         <normaloff>:/Icons/Report exclude.png</normaloff>:/Icons/Report exclude.png</iconset>
+         <normaloff>:/Icons/Report_exclude.png</normaloff>:/Icons/Report_exclude.png</iconset>
        </property>
       </widget>
      </item>

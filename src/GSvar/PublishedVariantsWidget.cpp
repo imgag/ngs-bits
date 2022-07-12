@@ -9,7 +9,8 @@
 #include "NGSD.h"
 #include "NGSHelper.h"
 #include "GSvarHelper.h"
-#include <QAction>
+#include "GlobalServiceProvider.h"
+#include "GUIHelper.h"
 
 PublishedVariantsWidget::PublishedVariantsWidget(QWidget* parent)
 	: QWidget(parent)
@@ -37,10 +38,14 @@ PublishedVariantsWidget::PublishedVariantsWidget(QWidget* parent)
 	ui_->table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(searchForVariantInClinVar()));
 
-	//rebumit to ClinVar
+	//resumit to ClinVar
 	action = new QAction(QIcon(":/Icons/ClinGen.png"), "Edit/retry ClinVar submission", this);
 	ui_->table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(retryClinvarSubmission()));
+
+	action = new QAction(QIcon(":/Icons/NGSD_variant.png"), "Open variant tab", this);
+	ui_->table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(openVariantTab()));
 }
 
 PublishedVariantsWidget::~PublishedVariantsWidget()
@@ -73,6 +78,26 @@ void PublishedVariantsWidget::updateTable()
 		constraints << "user_id='" + ui_->f_published->getId() + "'";
 	}
 	ui_->f_published->showVisuallyIfValid(true);
+
+	//filter "gene"
+	try
+	{
+		if (!ui_->f_gene->text().trimmed().isEmpty())
+		{
+			QByteArray gene = ui_->f_gene->text().trimmed().toLatin1();
+			BedFile roi = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
+			roi.extend(5000);
+			roi.merge();
+			if (roi.count()!=1 || roi.baseCount()==0) THROW(ArgumentException, "Could not convert gene to (single) region!");
+			constraints << ("variant_id IN (SELECT id FROM variant where chr='" + roi[0].chr().strNormalized(true) + "' AND start>=" + QString::number(roi[0].start()) + " AND end<=" + QString::number(roi[0].end()) + ")");
+
+			ui_->f_gene->setStyleSheet("");
+		}
+	}
+	catch (...)
+	{
+		ui_->f_gene->setStyleSheet("QLineEdit {border: 2px solid red;}");
+	}
 
 	//filter "region"
 	try
@@ -119,7 +144,7 @@ void PublishedVariantsWidget::updateTable()
 	{
 		constraints_str = " WHERE (" + constraints.join(") AND (") + ")";
 	}
-	DBTable table = db.createTable("variant_publication", "SELECT * FROM variant_publication" + constraints_str + " ORDER BY id ASC");
+	DBTable table = db.createTable("variant_publication", "SELECT * FROM variant_publication" + constraints_str + " ORDER BY date DESC");
 
 	//replace foreign keys
 	db.replaceForeignKeyColumn(table, table.columnIndex("sample_id"), "sample", "name");
@@ -340,23 +365,21 @@ void PublishedVariantsWidget::retryClinvarSubmission()
 	try
 	{
 		QSet<int> rows = ui_->table->selectedRows();
-		if (rows.size() != 1)
+		if (rows.size() != 1) //only available if a single line is selected
 		{
-			//only available if a singel line is selected
-			QMessageBox::warning(this, "Invalid variant selection", "Please select exactly 1 varaint for re-upload!");
-			return;
+			INFO(ArgumentException, "Please select exactly one varaint for re-upload!");
 		}
+
 		int row_idx = rows.values().at(0);
 		int status_idx = ui_->table->columnIndex("ClinVar submission status");
 		int accession_idx = ui_->table->columnIndex("ClinVar accession id");
 
 		//get status
 		QString status = ui_->table->item(row_idx, status_idx)->text().trimmed();
-		if ((status != "processed") && (status != "error"))
+		if (status!="processed" && status!="error") //only available for already submitted variants
 		{
-			//only available for already submitted variants
-			QMessageBox::warning(this, "Invalid variant selected", "Reupload is only supported for variants which are submitted to ClinVar and are already processed.");
-			return;
+
+			INFO(ArgumentException, "Reupload is only supported for variants which are submitted to ClinVar and are already processed.");
 		}
 
 		// get publication id
@@ -364,11 +387,9 @@ void PublishedVariantsWidget::retryClinvarSubmission()
 
 		// get ClinVar upload data
 		ClinvarUploadData data = getClinvarUploadData(var_pub_id);
-
 		if (data.processed_sample.isEmpty())
 		{
-			QMessageBox::warning(this, "Upload data incomplete", "The ClinVar upload data is incomplete. Cannot perform reupload.");
-			return;
+			INFO(ArgumentException,  "The ClinVar upload data is incomplete: Processed sample not set!");
 		}
 
 		//add stable id
@@ -377,17 +398,33 @@ void PublishedVariantsWidget::retryClinvarSubmission()
 			data.stable_id = ui_->table->item(row_idx, accession_idx)->text();
 		}
 
-
 		// show dialog
 		ClinvarUploadDialog dlg(this);
 		dlg.setData(data);
 		dlg.exec();
-
-
 	}
 	catch(Exception& e)
 	{
-		QMessageBox::critical(this, "ClinVar resubmission error", e.message());
+		GUIHelper::showException(this, e, "ClinVar submission error");
+	}
+}
+
+void PublishedVariantsWidget::openVariantTab()
+{
+	try
+	{
+		int col = ui_->table->columnIndex("variant");
+
+		QSet<int> rows = ui_->table->selectedRows();
+		foreach (int row, rows)
+		{
+			QString variant_text = ui_->table->item(row, col)->text();
+			GlobalServiceProvider::openVariantTab(Variant::fromString(variant_text));
+		}
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::critical(this, "Error opening variant tab", e.message());
 	}
 }
 

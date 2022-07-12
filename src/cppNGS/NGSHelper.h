@@ -5,6 +5,7 @@
 #include "BamReader.h"
 #include "FilterCascade.h"
 #include "GenomeBuild.h"
+#include "Transcript.h"
 
 //Helper datastructure for gene impringing info.
 struct ImprintingInfo
@@ -36,6 +37,22 @@ struct TargetRegionInfo
 
 };
 
+//Output of Ensembl GFF file parser.
+struct GffData
+{
+	//Transcripts
+	TranscriptList transcripts;
+
+	//Map from ENST to ENSG.
+	QHash<QByteArray, QByteArray> enst2ensg;
+
+	//Map from ENSG to gene symbol
+	QHash<QByteArray, QByteArray> ensg2symbol;
+
+	//Set of ENST identifiers that are flagged as GENCODE basic
+	QSet<QByteArray> gencode_basic;
+};
+
 ///Helper class for NGS-specific stuff.
 class CPPNGSSHARED_EXPORT NGSHelper
 {
@@ -51,10 +68,13 @@ public:
 	static void createSampleOverview(QStringList in, QString out, int indel_window=100, bool cols_auto=true, QStringList cols = QStringList());
 
 	///Translates a codon to the 1-letter amino acid code
-	static QChar translateCodon(const QByteArray& codon, bool use_mito_table=false);
+	static char translateCodon(const QByteArray& codon, bool use_mito_table=false);
 
 	///Converts a 1-letter amino acid code to a 3-letter amino acid code
-	static QByteArray threeLetterCode(QChar aa_one_letter_code);
+	static QByteArray threeLetterCode(char aa_one_letter_code);
+
+	///Converts a 3-letter amino acid code to a 1-letter amino acid code
+	static char oneLetterCode(const QByteArray& aa_tree_letter_code);
 
 	///Returns the pseudoautomal regions on gnosomes.
 	static const BedFile& pseudoAutosomalRegion(GenomeBuild build);
@@ -78,6 +98,23 @@ public:
 
 	///Converts the 3letter ancestry code to a human-readable text, see http://m.ensembl.org/Help/Faq?id=532
 	static QString populationCodeToHumanReadable(QString code);
+
+	///Returns transcripts with features from a Ensembl GFF file, transcript_gene_relation (ENST>ENSG) and gene_name_relation (ENSG>gene symbol).
+	static void loadGffFile(QString filename, GffData& output);
+
+	///Returns if the application is running in client-server mode (mainly used for GSvar).
+	static bool isClientServerMode();
+	///Checks if the application is running on the server or on a client machine
+	static bool isRunningOnServer();
+
+	///Returns the server API version. Used to check that the server and the client have the same version.
+	static QString serverApiVersion();
+
+	///Retunrs the URL used for sending requests to the GSvar server (use only when in client-server mode)
+	static QString serverApiUrl(const bool& return_http = false);
+
+	///Returns a map with matching Ensembl, RefSeq and CCDS transcript identifiers (without version numbers).
+	static const QMap<QByteArray, QByteArrayList>& transcriptMatches(GenomeBuild build);
 
 private:
 	///Constructor declared away

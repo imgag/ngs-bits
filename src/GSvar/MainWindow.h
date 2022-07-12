@@ -30,6 +30,9 @@ public:
 	///Returns the application name
 	QString appName() const;
 
+	/// Gets server API information to make sure ther the server is currently running
+	bool isServerRunning();
+
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
 	///Returns the LOG files corresponding to the variant list.
@@ -40,15 +43,10 @@ public:
 	void updateRecentSampleMenu();
 	///Updates IGV menu
     void updateIGVMenu();
-	///Updates menu and toolbar according to NGSD-support
+	///Enabled/disables actions/buttons depending if NGSD is enabled or disabled.
 	void updateNGSDSupport();
 	///Returns 'nobr' paragraph start for Qt tooltips
 	static QString nobr();
-	///Upload variant to Clinvar
-	void uploadToClinvar(int variant_index);
-
-	///Context menu for single variant
-	void contextMenuSingleVariant(QPoint pos, int index);
 
 	///Edit classification of a variant
 	void editVariantClassification(VariantList& variant, int index, bool is_somatic = false);
@@ -74,6 +72,10 @@ public:
 	int igvPort() const;
 
 public slots:
+	///Upload variant to Clinvar
+	void uploadToClinvar(int variant_index);
+	/// Checks (only in clinet-server mode) if the server is currently running
+	void checkServerAvailability();
 	///Loads a variant list. Unloads the variant list if no file name is given
 	void loadFile(QString filename="");
 	///Checks if variant list is outdated
@@ -117,11 +119,14 @@ public slots:
 	void on_actionSender_triggered();
 	void on_actionSpecies_triggered();
 	void on_actionUsers_triggered();
+	void on_actionExportTestData_triggered();
+	void on_actionImportTestData_triggered();
 	void on_actionImportMids_triggered();
 	void on_actionImportStudy_triggered();
 	void on_actionImportSamples_triggered();
 	void on_actionImportProcessedSamples_triggered();
 	void on_actionImportSampleRelations_triggered();
+	void on_actionImportSampleHpoTerms_triggered();
 	void on_actionImportCfDNAPanels_triggered();
 	void on_actionMidClashDetection_triggered();
 	void on_actionVariantValidation_triggered();
@@ -161,6 +166,10 @@ public slots:
 	void on_actionPreferredTranscripts_triggered();
 	///Somatic gene roles
 	void on_actionEditSomaticGeneRoles_triggered();
+	///Somatic pathways
+	void on_actionEditSomaticPathways_triggered();
+	///Somatic pathways-gene association
+	void on_actionEditSomaticPathwayGeneAssociations_triggered();
 	///Opens online documentation
 	void on_actionOpenDocumentation_triggered();
 	///Approved symbols dialog
@@ -187,6 +196,8 @@ public slots:
 	void on_actionROH_triggered();
 	///Open SV dialog
 	void on_actionSV_triggered();
+	///Open Mosaic dialog
+	void on_actionMosaic_triggered();
 	///Open gene picker dialog
 	void on_actionGeneSelector_triggered();
 	///Open Circos plot
@@ -259,6 +270,10 @@ public slots:
 	void transferSomaticData();
 	///Shows information about the report config
 	void showReportConfigInfo();
+	///Add/edit other causal Variant
+	void editOtherCausalVariant();
+	///Delete other causal Variant
+	void deleteOtherCausalVariant();
 	///Finalize report configuration
 	void finalizeReportConfig();
 	///Generate report
@@ -272,8 +287,7 @@ public slots:
 	///Finished the report generation (germline)
 	void reportGenerationFinished(bool success);
 
-	///Shows the variant list context menu
-	void varsContextMenu(QPoint pos);
+
 	///Shows the variant header context menu
 	void varHeaderContextMenu(QPoint pos);
 	///Updated the variant context menu
@@ -382,9 +396,10 @@ public slots:
 	void editSomaticVariantInterpretation(const VariantList& vl, int index);
 	///Updates somatic variant interpreation annotation for specific variant of GSvar file
 	void updateSomaticVariantInterpretationAnno(int index, QString vicc_interpretation, QString vicc_comment);
-
-    ///Updates current allowed sources and evidences and starts filters if changed
-    void updateAllowedSourcesAndEvidences(QList<PhenotypeEvidence::Evidence> new_evidences, QList<PhenotypeSource::Source> new_sources);
+	///Execute custom context menu actions (see also registerCustomContextMenuActions())
+	void execContextMenuAction(QAction* action, int index);
+	//Open Alamut visualization
+	void openAlamut(QAction* action);
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
@@ -414,13 +429,12 @@ private:
 	QList<VariantListChange> variants_changed_;
 	CnvList cnvs_;
 	BedpeFile svs_;
+	VariantList mosaics_;
 	FilterResult filter_result_;
 	QString last_report_path_;
-	bool filter_phenos_;
-	PhenotypeList last_phenos_;
-	QList<PhenotypeEvidence::Evidence> last_phenotype_evidences_;
-	QList<PhenotypeSource::Source> last_phenotype_sources_;
-	BedFile last_phenos_roi_;
+	PhenotypeList last_phenos_; //phenotypes used to generate phenotype ROI (needed to check if they changed)
+	PhenotypeSettings last_pheno_settings_; //phenotype settings used to generate phenotype ROI (needed to check if they changed)
+	BedFile phenotype_roi_;
 	QHash<QByteArray, BedFile> gene2region_cache_;
 	ReportSettings report_settings_;
 	QString germline_report_ps_;
@@ -431,6 +445,21 @@ private:
 	QToolButton* rna_menu_btn_;
 	QToolButton* cfdna_menu_btn_;
 	int igv_port_manual = -1;
+
+	//single vars context menu
+	struct ContextMenuActions
+	{
+		QAction* a_report_edit;
+		QAction* a_report_del;
+		QAction* a_var_class;
+		QAction* a_var_class_somatic;
+		QAction* a_var_interpretation_somatic;
+		QAction* a_var_comment;
+		QAction* a_var_val;
+		QAction* seperator;
+	};
+	ContextMenuActions context_menu_actions_;
+	void registerCustomContextMenuActions();
 
 	//SPECIAL
 	DelayedInitializationTimer init_timer_;

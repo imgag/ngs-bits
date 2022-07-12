@@ -34,6 +34,7 @@ private slots:
 	void searchForVariantInLOVD();
 	void searchForVariantInClinVar();
 	void retryClinvarSubmission();
+	void openVariantTab();
 
 private:
 	Ui::PublishedVariantsWidget* ui_;

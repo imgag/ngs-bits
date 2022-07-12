@@ -5,6 +5,8 @@
 #include "FilterCascade.h"
 #include "NGSHelper.h"
 #include "GlobalServiceProvider.h"
+#include "LoginManager.h"
+#include "GUIHelper.h"
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -57,15 +59,18 @@ void SvSearchWidget::search()
 
 	try
 	{
+		//not for restricted users
+		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
+
 		// SV type/table
 		StructuralVariantType type = BedpeFile::stringToType(ui_.svType->currentText().toUtf8());
 		QString sv_table = db_.svTableName(type);
 
 		// define table columns
 		QByteArrayList selected_columns;
-		selected_columns << "sv.id" << "CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as sample" << "ps.quality as quality_sample "
+		selected_columns << "sv.id" << "CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as sample" << "s.gender" << "ps.quality as quality_sample "
 						 << "sys.name_manufacturer as system" << "s.disease_group" << "s.disease_status" << "s.id as 'HPO terms'" << "ds.outcome" << "sc.caller" << "sc.caller_version"
-						 << "\"" + BedpeFile::typeToString(type) + "\" AS type";
+						 << "\"" + BedpeFile::typeToString(type) + "\" AS type" << "sv.genotype";
 
 		// define type specific table columns
 		if(type==StructuralVariantType::BND) selected_columns << "sv.chr1" << "sv.start1" << "sv.end1" << "sv.chr2" << "sv.start2" << "sv.end2";
@@ -295,14 +300,13 @@ void SvSearchWidget::search()
 		ui_.table->setData(table);
 		ui_.table->showTextAsTooltip("report_config_comments");
 		ui_.message->setText("Found " + QString::number(ui_.table->rowCount()) + " matching SVs in NGSD.");
+
+		QApplication::restoreOverrideCursor();
 	}
 	catch(Exception& e)
 	{
-		ui_.message->setText("Error: Search could not be performed:\t" + e.message());
-		QMessageBox::warning(this, "SV search", "Error: Search could not be performed:\n" + e.message());
+		GUIHelper::showException(this, e, "SV search could not be performed");
 	}
-
-	QApplication::restoreOverrideCursor();
 }
 
 void SvSearchWidget::changeSearchType()

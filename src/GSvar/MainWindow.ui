@@ -357,7 +357,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>21</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -472,6 +472,7 @@
      <addaction name="separator"/>
      <addaction name="actionPreferredTranscripts"/>
      <addaction name="actionEditSomaticGeneRoles"/>
+     <addaction name="actionEditSomaticPathwayGeneAssociations"/>
     </widget>
     <widget class="QMenu" name="menuPhenotypes_2">
      <property name="title">
@@ -500,12 +501,14 @@
      <addaction name="actionSender"/>
      <addaction name="actionSpecies"/>
      <addaction name="actionStudy"/>
+     <addaction name="actionEditSomaticPathways"/>
      <addaction name="separator"/>
      <addaction name="actionUsers"/>
      <addaction name="actionChangePassword"/>
      <addaction name="separator"/>
      <addaction name="actionReplicateNGSD"/>
-     <addaction name="separator"/>
+     <addaction name="actionExportTestData"/>
+     <addaction name="actionImportTestData"/>
     </widget>
     <widget class="QMenu" name="menuBatch_import">
      <property name="title">
@@ -518,6 +521,7 @@
      <addaction name="actionImportSamples"/>
      <addaction name="actionImportProcessedSamples"/>
      <addaction name="actionImportSampleRelations"/>
+     <addaction name="actionImportSampleHpoTerms"/>
      <addaction name="actionImportCfDNAPanels"/>
      <addaction name="separator"/>
      <addaction name="actionImportMids"/>
@@ -574,6 +578,13 @@
    <addaction name="actionSampleSearch"/>
    <addaction name="actionRunOverview"/>
    <addaction name="separator"/>
+   <addaction name="actionOpenProcessedSampleTabByName"/>
+   <addaction name="actionOpenSequencingRunTabByName"/>
+   <addaction name="actionOpenGeneTabByName"/>
+   <addaction name="actionOpenVariantTab"/>
+   <addaction name="actionOpenProjectTab"/>
+   <addaction name="actionOpenProcessingSystemTab"/>
+   <addaction name="separator"/>
    <addaction name="actionAnalysisStatus"/>
    <addaction name="actionReanalyze"/>
    <addaction name="separator"/>
@@ -586,6 +597,7 @@
    <addaction name="actionROH"/>
    <addaction name="actionRE"/>
    <addaction name="actionPRS"/>
+   <addaction name="actionMosaic"/>
    <addaction name="actionCircos"/>
    <addaction name="separator"/>
    <addaction name="actionDebug"/>
@@ -818,7 +830,7 @@
   </action>
   <action name="actionPreferredTranscripts">
    <property name="text">
-    <string>Show/edit preferred transcripts</string>
+    <string>Edit preferred transcripts</string>
    </property>
   </action>
   <action name="actionROH">
@@ -830,7 +842,7 @@
     <string>ROH</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show runs of homozygosity of the current sample.&lt;br/&gt;&lt;br/&gt;For trios, ROHs of the child (index) are shown.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show runs of homozygosity of the current sample.&lt;br/&gt;&lt;br/&gt;For trios, ROHs of the child (index) are shown and also UPDs are shown (if detected).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="actionSV">
@@ -883,7 +895,7 @@
     <string>Processed sample</string>
    </property>
    <property name="toolTip">
-    <string>Open processed sample tab from NGSD.</string>
+    <string>Open processed sample tab.</string>
    </property>
   </action>
   <action name="actionResizeCustom">
@@ -903,7 +915,7 @@
     <string>Sequencing run</string>
    </property>
    <property name="toolTip">
-    <string>Open sequencing run tab from NGSD.</string>
+    <string>Open sequencing run tab.</string>
    </property>
   </action>
   <action name="actionEncrypt">
@@ -943,7 +955,7 @@
     <string>Gene</string>
    </property>
    <property name="toolTip">
-    <string>Open Gene tab from NGSD.</string>
+    <string>Open Gene tab.</string>
    </property>
   </action>
   <action name="actionDebug">
@@ -975,6 +987,9 @@
    <property name="text">
     <string>Variant</string>
    </property>
+   <property name="toolTip">
+    <string>Open variant tab.</string>
+   </property>
   </action>
   <action name="actionOpenProcessingSystemTab">
    <property name="icon">
@@ -985,7 +1000,7 @@
     <string>Processing system</string>
    </property>
    <property name="toolTip">
-    <string>Processing system</string>
+    <string>Open processing system tab.</string>
    </property>
   </action>
   <action name="actionOpenProjectTab">
@@ -997,7 +1012,7 @@
     <string>Project</string>
    </property>
    <property name="toolTip">
-    <string>Project</string>
+    <string>Open project tab.</string>
    </property>
   </action>
   <action name="actionStatistics">
@@ -1143,13 +1158,16 @@
    <property name="text">
     <string>Show Repeat Expansion</string>
    </property>
+   <property name="toolTip">
+    <string>Show repeat expansions of the current sample.</string>
+   </property>
    <property name="shortcutContext">
     <enum>Qt::WidgetShortcut</enum>
    </property>
   </action>
   <action name="actionPRS">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="icon">
     <iconset resource="GSvar.qrc">
@@ -1157,6 +1175,9 @@
    </property>
    <property name="text">
     <string>Show Polygenic Risk Scores</string>
+   </property>
+   <property name="toolTip">
+    <string>Show polygenic risk scores of the current sample.</string>
    </property>
   </action>
   <action name="actionSearchSNVs">
@@ -1360,6 +1381,43 @@
    </property>
    <property name="toolTip">
     <string>Shows the expression data of samples of the same cohort.</string>
+   </property>
+  </action>
+  <action name="actionImportSampleHpoTerms">
+   <property name="text">
+    <string>Sample HPO terms</string>
+   </property>
+  </action>
+  <action name="actionMosaic">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/MosaicVariant.png</normaloff>:/Icons/MosaicVariant.png</iconset>
+   </property>
+   <property name="text">
+    <string>Mosaic</string>
+   </property>
+   <property name="toolTip">
+    <string>Show mosaic variants of the current sample (called only on exon/splice regions).</string>
+   </property>
+  </action>
+  <action name="actionEditSomaticPathwayGeneAssociations">
+   <property name="text">
+    <string>Edit somatic pathway-gene associations</string>
+   </property>
+  </action>
+  <action name="actionEditSomaticPathways">
+   <property name="text">
+    <string>Somatic pathways</string>
+   </property>
+  </action>
+  <action name="actionExportTestData">
+   <property name="text">
+    <string>Export test data</string>
+   </property>
+  </action>
+  <action name="actionImportTestData">
+   <property name="text">
+    <string>Import test data</string>
    </property>
   </action>
  </widget>

@@ -207,7 +207,7 @@ void VariantValidationWidget::openPrimerDesign()
 				end = region.end();
 			}
 
-			QString url = Settings::string("PrimerDesign")+"/index.php?user="+LoginManager::user()+"&sample="+sample+"&chr="+chr.str()+"&start="+QString::number(start)+"&end="+QString::number(end)+"";
+			QString url = Settings::string("PrimerDesign")+"/index.php?user="+LoginManager::userLogin()+"&sample="+sample+"&chr="+chr.str()+"&start="+QString::number(start)+"&end="+QString::number(end)+"";
 			QDesktopServices::openUrl(QUrl(url));
 		}
 	}

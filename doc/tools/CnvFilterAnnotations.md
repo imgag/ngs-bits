@@ -1,5 +1,5 @@
 ### CnvFilterAnnotations tool help
-	CnvFilterAnnotations (2021_06-89-gbbd16264)
+	CnvFilterAnnotations (2021_12-170-g1acf8802)
 	
 	Filter a copy-number variant list in TSV format based on variant annotations.
 	
@@ -20,6 +20,10 @@
 	CNV allele frequency       Filter for CNV allele frequency in the analyzed cohort.
 	                           Parameters:
 	                             max_af - Maximum allele frequency [default=0.05] [min=0.0] [max=1.0]
+	CNV clonality              Filter based on CNV clonality.
+	                           Parameters:
+	                             min_clonality - Minimum Clonality of the CNV  [default=0]
+	                             max_clonality - Maximum Clonality of the CNV  [default=1]
 	CNV compound-heterozygous  Filter for compound-heterozygous CNVs.
 	                           Mode 'CNV-CNV' detects genes with two or more CNV hits.
 	                           Mode 'CNV-SNV/INDEL' detectes genes with exactly one CNV and exactly one small variant hit (after other filters are applied).
@@ -46,6 +50,12 @@
 	                           Parameters:
 	                             min_ll - Minimum log-likelihood [default=20] [min=0.0]
 	                             scale_by_regions - Scale log-likelihood by number of regions. [default=false]
+	CNV maximum log-likelihood Filter for maximum log-likelihood
+	                           Can be used to display artefact CNVs only
+	                           Works only for tumor-normal pairs
+	                           Parameters:
+	                             max_ll - Maixmum log-likelihood [default=200] [min=0.0]
+	                             scale_by_regions - Scale log-likelihood by number of regions. [default=false]
 	CNV pathogenic CNV overlap Filter for overlap with pathogenic CNVs from the NGSD i.e. the 'ngsd_pathogenic_cnvs' column is not empty.
 	CNV polymorphism region    Filter for overlap with CNP regions.
 	                           Parameters:
@@ -63,6 +73,10 @@
 	CNV size                   Filter for CNV size (kilobases).
 	                           Parameters:
 	                             size - Minimum CNV size in kilobases [default=0] [min=0]
+	CNV tumor CN change        Filter based on CNV tumor copy number.
+	                           Parameters:
+	                             min_tumor_cn - Minimum tumor copy number of the CNV [default=0]
+	                             max_tumor_cn - Maximum tumor copy number of the CNV. [default=10]
 	CNV z-score                Filter for CNV z-score.
 	                           The z-score determines to what degee that the region was a statistical outlier when compared to the reference samples.
 	                           Note: for deletions z-scores lower than the negative cutoff pass.
@@ -82,7 +96,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### CnvFilterAnnotations changelog
-	CnvFilterAnnotations 2021_06-89-gbbd16264
+	CnvFilterAnnotations 2021_12-170-g1acf8802
 	
 	2020-05-25 Initial version of the tool. Based on VariantFilterAnnotations.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

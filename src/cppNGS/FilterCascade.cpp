@@ -939,6 +939,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["CNV copy-number"] = &createInstance<FilterCnvCopyNumber>;
 		output["CNV allele frequency"] = &createInstance<FilterCnvAlleleFrequency>;
 		output["CNV z-score"] = &createInstance<FilterCnvZscore>;
+		output["CNV maximum log-likelihood"] = &createInstance<FilterCnvMaxLoglikelihood>;
 		output["CNV log-likelihood"] = &createInstance<FilterCnvLoglikelihood>;
 		output["CNV q-value"] = &createInstance<FilterCnvQvalue>;
 		output["CNV compound-heterozygous"] = &createInstance<FilterCnvCompHet>;
@@ -946,6 +947,8 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["CNV polymorphism region"] = &createInstance<FilterCnvCnpOverlap>;
 		output["CNV gene constraint"] = &createInstance<FilterCnvGeneConstraint>;
 		output["CNV gene overlap"] = &createInstance<FilterCnvGeneOverlap>;
+		output["CNV tumor CN change"] = &createInstance<FilterCnvTumorCopyNumberChange>;
+		output["CNV clonality"] = &createInstance<FilterCnvClonality>;
 		output["SV type"] = &createInstance<FilterSvType>;
 		output["SV remove chr type"] = &createInstance<FilterSvRemoveChromosomeType>;
 		output["SV genotype control"] = &createInstance<FilterSvGenotypeControl>;
@@ -964,6 +967,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["CNV pathogenic CNV overlap"] = &createInstance<FilterCnvPathogenicCnvOverlap>;
 		output["SV count NGSD"] = &createInstance<FilterSvCountNGSD>;
 		output["SV allele frequency NGSD"] = &createInstance<FilterSvAfNGSD>;
+		output["SV break point density NGSD"] = &createInstance<FilterSvBreakpointDensityNGSD>;
         output["SV trio"] = &createInstance<FilterSvTrio>;
 		output["Splice effect"] = &createInstance<FilterSpliceEffect>;
 		output["RNA ASE allele frequency"] = &createInstance<FilterVariantRNAAseAlleleFrequency>;
@@ -984,7 +988,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 FilterAlleleFrequency::FilterAlleleFrequency()
 {
 	name_ = "Allele frequency";
-	description_ = QStringList() << "Filter based on overall allele frequency given by 1000 Genomes and gnomAD.";
+	description_ = QStringList() << "Filter based on overall allele frequency given by gnomAD and if available 1000g.";
 	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximum allele frequency in %");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "100.0";
@@ -1005,16 +1009,28 @@ void FilterAlleleFrequency::apply(const VariantList& variants, FilterResult& res
 	double max_af = getDouble("max_af")/100.0;
 
 	//get column indices
-	int i_1000g = annotationColumn(variants, "1000g");
 	int i_gnomad = annotationColumn(variants, "gnomAD");
+	int i_1000g = annotationColumn(variants, "1000g", false);
 
 	//filter
-	for(int i=0; i<variants.count(); ++i)
+	if (i_1000g == -1)
 	{
-		result.flags()[i] = result.flags()[i]
-			&& variants[i].annotations()[i_1000g].toDouble()<=max_af
-			&& variants[i].annotations()[i_gnomad].toDouble()<=max_af;
+		for(int i=0; i<variants.count(); ++i)
+		{
+			result.flags()[i] = result.flags()[i]
+				&& variants[i].annotations()[i_gnomad].toDouble()<=max_af;
+		}
 	}
+	else
+	{
+		for(int i=0; i<variants.count(); ++i)
+		{
+			result.flags()[i] = result.flags()[i]
+				&& variants[i].annotations()[i_1000g].toDouble()<=max_af
+				&& variants[i].annotations()[i_gnomad].toDouble()<=max_af;
+		}
+	}
+
 }
 
 FilterGenes::FilterGenes()
@@ -2241,13 +2257,21 @@ FilterVariantQC::FilterVariantQC()
 	params_.last().constraints["min"] = "-1";
 	params_ << FilterParameter("allele_balance", FilterParameterType::INT, 40, "Maximum allele balance Phred score (set -1 to disable)");
 	params_.last().constraints["min"] = "-1";
+	params_ << FilterParameter("min_occurences", FilterParameterType::INT, 1, "Minimum occurences of the variant per strand");
+	params_.last().constraints["min"] = "0";
+	params_ << FilterParameter("min_af", FilterParameterType::DOUBLE, 0.0, "Minimum allele frequency of the variant in the sample");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximum allele frequency of the variant in the sample");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
 
 	checkIsRegistered();
 }
 
 QString FilterVariantQC::toText() const
 {
-	return name() + " qual&ge;" + QString::number(getInt("qual", false)) + " depth&ge;" + QString::number(getInt("depth", false)) + " mapq&ge;" + QString::number(getInt("mapq", false)) + " strand_bias&le;" + QString::number(getInt("strand_bias", false)) + " allele_balance&le;" + QString::number(getInt("allele_balance", false));
+	return name() + " qual&ge;" + QString::number(getInt("qual", false)) + " depth&ge;" + QString::number(getInt("depth", false)) + " mapq&ge;" + QString::number(getInt("mapq", false)) + " strand_bias&le;" + QString::number(getInt("strand_bias", false)) + " allele_balance&le;" + QString::number(getInt("allele_balance", false)) + " min_occurences&ge;" + QString::number(getInt("min_occurences", false)) + " min_af&ge;" + QString::number(getDouble("min_af", false)) + " max_af&le;" + QString::number(getDouble("max_af", false));
 }
 
 void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) const
@@ -2260,6 +2284,10 @@ void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) c
 	int mapq = getInt("mapq");
 	int strand_bias = getInt("strand_bias");
 	int allele_balance = getInt("allele_balance");
+	double min_af = getDouble("min_af");
+	double max_af = getDouble("max_af");
+	int min_occ = getInt("min_occurences");
+
 
 	for(int i=0; i<variants.count(); ++i)
 	{
@@ -2316,6 +2344,21 @@ void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) c
 			else if (allele_balance>=0 && part.startsWith("ABP="))
 			{
 				if (part.mid(4).toInt()>allele_balance)
+				{
+					result.flags()[i] = false;
+				}
+			}
+			else if (min_occ > 0 && (part.startsWith("SAR=") || part.startsWith("SAF=")))
+			{
+				if (part.mid(4).toInt() < min_occ)
+				{
+					result.flags()[i] = false;
+				}
+			}
+			else if ((min_af > 0 || max_af < 1) && part.startsWith("AF="))
+			{
+				double af = part.mid(3).toDouble();
+				if (af < min_af || max_af < af)
 				{
 					result.flags()[i] = false;
 				}
@@ -2923,6 +2966,55 @@ void FilterCnvZscore::apply(const CnvList& cnvs, FilterResult& result) const
 	}
 }
 
+FilterCnvMaxLoglikelihood::FilterCnvMaxLoglikelihood()
+{
+	name_ = "CNV maximum log-likelihood";
+	type_ = VariantType::CNVS;
+	description_ << QStringList() << "Filter for maximum log-likelihood" << "Can be used to display artefact CNVs only" << "Works only for tumor-normal pairs" ;
+	params_ << FilterParameter("max_ll", FilterParameterType::DOUBLE, 200.0, "Maixmum log-likelihood");
+	params_.last().constraints["min"] = "0.0";
+	params_ << FilterParameter("scale_by_regions", FilterParameterType::BOOL, false, "Scale log-likelihood by number of regions.");
+	checkIsRegistered();
+}
+
+QString FilterCnvMaxLoglikelihood::toText() const
+{
+	return name() + " max_ll=" + QString::number(getDouble("max_ll"), 'f', 2) + QString(getBool("scale_by_regions")?" (scaled by regions)": "");
+}
+
+void FilterCnvMaxLoglikelihood::apply(const CnvList &cnvs, FilterResult &result) const
+{
+	if(!enabled_) return;
+	if(cnvs.type() != CnvListType::CLINCNV_TUMOR_NORMAL_PAIR) return;
+
+	double max_ll = getDouble("max_ll");
+	bool scale_by_regions = getBool("scale_by_regions");
+	int i_ll = cnvs.annotationIndexByName("loglikelihood", true);
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		if (scale_by_regions)
+		{
+			int number_of_regions = cnvs[i].regions();
+			if (number_of_regions < 0) THROW(FileParseException, "Invalid/unset number of regions!");
+			double scaled_ll = cnvs[i].annotations()[i_ll].toDouble() / number_of_regions;
+			if (scaled_ll > max_ll)
+			{
+				result.flags()[i] = false;
+			}
+		}
+		else
+		{
+			if (cnvs[i].annotations()[i_ll].toDouble() > max_ll)
+			{
+				result.flags()[i] = false;
+			}
+		}
+	}
+}
+
+
 FilterCnvLoglikelihood::FilterCnvLoglikelihood()
 {
 	name_ = "CNV log-likelihood";
@@ -3285,6 +3377,75 @@ void FilterCnvGeneConstraint::apply(const CnvList& cnvs, FilterResult& result) c
 			}
 		}
 		result.flags()[i] = any_gene_passed;
+	}
+}
+
+FilterCnvTumorCopyNumberChange::FilterCnvTumorCopyNumberChange()
+{
+	name_ = "CNV tumor CN change";
+	type_ = VariantType::CNVS;
+	description_ = QStringList() << "Filter based on CNV tumor copy number.";
+	params_ << FilterParameter("min_tumor_cn", FilterParameterType::INT, 0, "Minimum tumor copy number of the CNV");
+	params_ << FilterParameter("max_tumor_cn", FilterParameterType::INT, 10, "Maximum tumor copy number of the CNV.");
+
+	checkIsRegistered();
+}
+
+QString FilterCnvTumorCopyNumberChange::toText() const
+{
+	return name() + " min_tumor_cn=" + QString::number(getInt("min_tumor_cn")) + ", max_tumor_cn=" + QString::number(getInt("max_tumor_cn"));
+
+}
+
+void FilterCnvTumorCopyNumberChange::apply(const CnvList& cnvs, FilterResult &result) const
+{
+	if(!enabled_) return;
+
+	int i_tumor_cn = cnvs.annotationIndexByName("tumor_CN_change", true);
+	int min_cn = getInt("min_tumor_cn");
+	int max_cn = getInt("max_tumor_cn");
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+		bool ok = false;
+		int tumor_cn = cnvs[i].annotations()[i_tumor_cn].trimmed().toDouble(&ok);
+		if(!ok) continue;
+		result.flags()[i] = (tumor_cn >= min_cn) && (tumor_cn <= max_cn);
+	}
+}
+
+FilterCnvClonality::FilterCnvClonality()
+{
+	name_ = "CNV clonality";
+	type_ = VariantType::CNVS;
+	description_ = QStringList() << "Filter based on CNV clonality.";
+	params_ << FilterParameter("min_clonality", FilterParameterType::DOUBLE, 0., "Minimum Clonality of the CNV ");
+	params_ << FilterParameter("max_clonality", FilterParameterType::DOUBLE, 1., "Maximum Clonality of the CNV ");
+
+	checkIsRegistered();
+}
+
+QString FilterCnvClonality::toText() const
+{
+	return name() + " min_clonality=" + QString::number(getDouble("min_clonality")) + ", max_clonality=" + QString::number(getDouble("max_clonality"));
+}
+
+void FilterCnvClonality::apply(const CnvList &cnvs, FilterResult &result) const
+{
+	if(!enabled_) return;
+	int i_clonality = cnvs.annotationIndexByName("tumor_clonality", true);
+	double min_clonality= getDouble("min_clonality");
+	double max_clonality = getDouble("max_clonality");
+
+	//filter
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+		bool ok = false;
+		double tumor_clonality = cnvs[i].annotations()[i_clonality].trimmed().toDouble(&ok);
+		if(!ok) continue;
+
+		result.flags()[i] = (tumor_clonality > min_clonality) && (tumor_clonality < max_clonality);
 	}
 }
 
@@ -4342,17 +4503,17 @@ FilterSvCountNGSD::FilterSvCountNGSD()
 {
 	name_ = "SV count NGSD";
 	type_ = VariantType::SVS;
-	description_ = QStringList() << "Filter based on the occurances of a structural variant in the NGSD.";
+	description_ = QStringList() << "Filter based on the hom/het occurances of a structural variant in the NGSD.";
 	params_ << FilterParameter("max_count", FilterParameterType::INT, 20, "Maximum NGSD SV count");
 	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("overlap_matches", FilterParameterType::BOOL, false, "If set, overlaping SVs are considered also.");
+	params_ << FilterParameter("ignore_genotype", FilterParameterType::BOOL, false, "If set, all NGSD entries are counted independent of the variant genotype. Otherwise, for homozygous variants only homozygous NGSD entries are counted and for heterozygous variants all NGSD entries are counted.");
 
 	checkIsRegistered();
 }
 
 QString FilterSvCountNGSD::toText() const
 {
-	return name() + " &le; " + QString::number(getInt("max_count", false)) + (getBool("overlap_matches") ? " (overlap_matches)" : "");
+	return name() + " &le; " + QString::number(getInt("max_count", false)) + (getBool("ignore_genotype") ? " (ignore genotype)" : "");
 }
 
 void FilterSvCountNGSD::apply(const BedpeFile& svs, FilterResult& result) const
@@ -4360,37 +4521,99 @@ void FilterSvCountNGSD::apply(const BedpeFile& svs, FilterResult& result) const
 	if (!enabled_) return;
 
 	int max_count = getInt("max_count");
-	bool overlap_match = getBool("overlap_matches");
+	bool ignore_genotype = getBool("ignore_genotype");
 
-	int ngsd_col_index;
-	if (overlap_match)
+	//fallback for annotations before 24.03.22
+	int idx_old = svs.annotationIndexByName("NGSD_COUNT", false);
+	if (idx_old!=-1 && svs.annotationIndexByName("NGSD_HOM",false)==-1)
 	{
-		ngsd_col_index = svs.annotationIndexByName("NGSD_COUNT_OVERLAP");
+		for(int i=0; i<svs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
 
+			QString text = svs[i].annotations()[idx_old];
+			if (text.contains('(')) text = text.split('(')[0];
+			int count = Helper::toInt(text, "NGSD count", QString::number(i));
+			result.flags()[i] = count <= max_count;
+		}
+
+		return;
+	}
+
+	int idx_ngsd_hom = svs.annotationIndexByName("NGSD_HOM");
+	int idx_ngsd_het = svs.annotationIndexByName("NGSD_HET");
+
+	if (ignore_genotype)
+	{
+		for(int i=0; i<svs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			int ngsd_count_hom = Helper::toInt(svs[i].annotations()[idx_ngsd_hom], "NGSD count hom", QString::number(i));
+			int ngsd_count_het = Helper::toInt(svs[i].annotations()[idx_ngsd_het], "NGSD count het", QString::number(i));
+			result.flags()[i] = (ngsd_count_hom + ngsd_count_het) <= max_count;
+		}
 	}
 	else
 	{
-		ngsd_col_index = svs.annotationIndexByName("NGSD_COUNT");
-	}
-
-	for(int i=0; i<svs.count(); ++i)
-	{
-		if (!result.flags()[i]) continue;
-
-		int ngsd_count;
-
-		if (overlap_match)
+		//get genotype indices
+		int idx_format = svs.annotationIndexByName("FORMAT");
+		if (idx_format < 0) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to structural variant list without 'FORMAT' column!");
+		QList<int> indices_format_data;
+		indices_format_data << idx_format + 1; //single sample
+		if ((svs.format() == BedpeFileFormat::BEDPE_GERMLINE_MULTI) || (svs.format() == BedpeFileFormat::BEDPE_GERMLINE_TRIO))
 		{
-			ngsd_count = Helper::toInt(svs[i].annotations()[ngsd_col_index], "NGSD count overlap column", QString::number(i));
-		}
-		else
-		{
-			ngsd_count = Helper::toInt(svs[i].annotations()[ngsd_col_index].split('(')[0], "NGSD count column", QString::number(i));
+			indices_format_data = svs.sampleHeaderInfo().sampleColumns(true);
+			indices_format_data.removeAll(-1);
+			if (indices_format_data.isEmpty()) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list without affected samples!");
 		}
 
-		result.flags()[i] = ngsd_count <= max_count;
-	}
+		// iterate over all SVs
+		for(int i=0; i<svs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
 
+			// get format keys and values
+			QByteArrayList format_keys = svs[i].annotations()[idx_format].split(':');
+			int idx_genotype = format_keys.indexOf("GT");
+
+			if(idx_genotype == -1)
+			{
+				THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list because could not find GT field in format column.");
+			}
+
+
+			//get NGSD counts
+			int ngsd_count_hom = Helper::toInt(svs[i].annotations()[idx_ngsd_hom], "NGSD count hom", QString::number(i));
+			int ngsd_count_het = Helper::toInt(svs[i].annotations()[idx_ngsd_het], "NGSD count het", QString::number(i));
+
+			foreach (int idx_format_data, indices_format_data)
+			{
+				QByteArrayList format_values = svs[i].annotations()[idx_format_data].split(':');
+
+				QByteArray sv_genotype_string = format_values[idx_genotype].trimmed();
+				result.flags()[i] = false;
+
+				if (sv_genotype_string == "1/1")
+				{
+					if(ngsd_count_hom <= max_count)
+					{
+						result.flags()[i] = true;
+						break;
+					}
+				}
+				else
+				{
+					if(ngsd_count_het <= max_count)
+					{
+						result.flags()[i] = true;
+						break;
+					}
+				}
+
+			}
+		}
+	}
 }
 
 FilterSvAfNGSD::FilterSvAfNGSD()
@@ -4401,7 +4624,7 @@ FilterSvAfNGSD::FilterSvAfNGSD()
 								 << "Note: this filter should only be used for whole genome samples.";
 	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximum allele frequency in %");
 	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "100.0";
+	params_.last().constraints["max"] = "200.0";
 
 	checkIsRegistered();
 }
@@ -4417,15 +4640,99 @@ void FilterSvAfNGSD::apply(const BedpeFile& svs, FilterResult& result) const
 
 	double max_af = getDouble("max_af")/100.0;
 
-	int ngsd_col_index = svs.annotationIndexByName("NGSD_COUNT");
+	//fallback for annotations before 24.03.22
+	int idx_old = svs.annotationIndexByName("NGSD_COUNT", false);
+	if (idx_old!=-1 && svs.annotationIndexByName("NGSD_AF",false)==-1)
+	{
+		for(int i=0; i<svs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			QString text = svs[i].annotations()[idx_old];
+			if (text.contains('(')) text = text.split('(')[0];
+			if (text.contains(')')) text = text.split(')')[0];
+			double af = Helper::toDouble(text, "NGSD AF", QString::number(i));
+			result.flags()[i] = af <= max_af;
+		}
+
+		return;
+	}
+
+	int idx_ngsd_af = svs.annotationIndexByName("NGSD_AF");
+
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+		//allow empty NGSD af entry
+		if (svs[i].annotations()[idx_ngsd_af].trimmed().isEmpty())
+		{
+			result.flags()[i] = true;
+		}
+		else
+		{
+			result.flags()[i] = Helper::toDouble(svs[i].annotations()[idx_ngsd_af], "NGSD AF") <= max_af;
+		}
+
+	}
+}
+
+FilterSvBreakpointDensityNGSD::FilterSvBreakpointDensityNGSD()
+{
+	name_ = "SV break point density NGSD";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Filter based on the density of SV break points in the NGSD in the CI of the structural variant.";
+	params_ << FilterParameter("max_density", FilterParameterType::INT, 20, "Maximum density in the confidence interval of the SV");
+	params_.last().constraints["min"] = "0";
+	params_ << FilterParameter("remove_strict", FilterParameterType::BOOL, false, "Remove also SVs in which only one break point is above threshold.");
+
+	checkIsRegistered();
+}
+
+QString FilterSvBreakpointDensityNGSD::toText() const
+{
+	return name() + " &le; " + QString::number(getInt("max_density", false)) + QByteArray((getBool("remove_strict"))?" (remove_strict)":"");
+}
+
+void FilterSvBreakpointDensityNGSD::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int max_density = getInt("max_density");
+	bool remove_strict = getBool("remove_strict");
+
+	int idx_ngsd_density = svs.annotationIndexByName("NGSD_SV_BREAKPOINT_DENSITY");
 
 	for(int i=0; i<svs.count(); ++i)
 	{
 		if (!result.flags()[i]) continue;
 
-		result.flags()[i] = Helper::toDouble(svs[i].annotations()[ngsd_col_index].split('(')[1].split(')')[0], "NGSD count column", QString::number(i)) <= max_af;
+		QByteArray density = svs[i].annotations()[idx_ngsd_density];
+
+		if (density.trimmed().isEmpty()) continue; //skip empty entries
+		QByteArrayList densities = density.split('/');
+		if (densities.size() == 1)
+		{
+			//only one break point (INS)
+			result.flags()[i] = Helper::toInt(density, "NGSD_SV_BREAKPOINT_DENSITY") <= max_density;
+		}
+		else
+		{
+			//2 break points
+			if (remove_strict)
+			{
+				result.flags()[i] = (Helper::toInt(densities.at(0), "NGSD_SV_BREAKPOINT_DENSITY (BP1)") <= max_density)
+						&& (Helper::toInt(densities.at(1), "NGSD_SV_BREAKPOINT_DENSITY (BP2)") <= max_density);
+			}
+			else
+			{
+				result.flags()[i] = (Helper::toInt(densities.at(0), "NGSD_SV_BREAKPOINT_DENSITY (BP1)") <= max_density)
+						|| (Helper::toInt(densities.at(1), "NGSD_SV_BREAKPOINT_DENSITY (BP2)") <= max_density);
+			}
+		}
+
 	}
 }
+
 
 FilterSvTrio::FilterSvTrio()
 {
@@ -5324,3 +5631,4 @@ void FilterVariantRNAExpressionZScore::apply(const VariantList& variants, Filter
 		}
 	}
 }
+

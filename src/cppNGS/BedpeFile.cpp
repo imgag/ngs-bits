@@ -217,7 +217,7 @@ GeneSet BedpeLine::genes(const QList<QByteArray>& annotation_headers, bool error
 {
 	int gene_idx = annotation_headers.indexOf("GENES");
 
-	if (gene_idx != -1) return GeneSet() << annotations_.at(gene_idx);
+	if (gene_idx != -1) return GeneSet() << annotations_.at(gene_idx).split(',');
 	if (error_on_mismatch) THROW(ArgumentException, "Column \"GENES\" not found in annotation header!")
 	return GeneSet();
 }

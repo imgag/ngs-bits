@@ -61,12 +61,10 @@ protected slots:
 	void editSample();
 	///Opens a dialog to edit the diagnostic status.
 	void editDiagnosticStatus();
-	///Opens a dialog to edit the disease group/info.
-	void editDiseaseGroupAndInfo();
 	///Opens a dialog to edit the disease details.
 	void editDiseaseDetails();
-	///Import sample relations for GenLab
-	void importSampleRelations();
+	///Opent a dialog to import data from GenLab
+	void genLabImportDialog();
 
 private:
 	Ui::ProcessedSampleWidget* ui_;
@@ -75,6 +73,7 @@ private:
 	QString sampleName() const;
 	QString processedSampleName() const;
 	QString mergedSamples() const;
+	QStringList limitedQCParameter(const QString& sample_type);
 	void addIgvMenuEntry(QMenu* menu, PathType file_type);
 };
 

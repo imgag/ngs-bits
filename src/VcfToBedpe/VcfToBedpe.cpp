@@ -162,7 +162,7 @@ QByteArray VcfToBedpe::getLine()
 		}
 	}
 
-	QByteArray line(buffer_);
+	QByteArray line(char_array);
 	while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
 
 	return line;

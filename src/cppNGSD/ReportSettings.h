@@ -16,6 +16,7 @@ public:
 	QSharedPointer<ReportConfiguration> report_config; //report configuration
 	QString report_type;
 	QList<QPair<VariantType, int>> selected_variants;
+	bool select_other_causal_variant = false;
 
 	bool show_coverage_details; //slow low-coverage details
 	int min_depth; //cutoff for low-coverage statistics

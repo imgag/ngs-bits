@@ -22,9 +22,17 @@ jobs:
       run: sudo pip install matplotlib
     - name: Build project dependencies
       run: make build_3rdparty build_libs_release build_tools_release build_gui_release build_server_release
+    - name: Create a folder for SSL
+      run: mkdir -p $HOME/ssl
+      shell: bash
     - name: Generate SSL certificate-key pair
-      run: openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=DE/ST=BW/L=Tuebingen/O=test-certificate/CN=localhost" -keyout ~/test-key.key -out ~/test-cert.crt
+      run: openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=DE/ST=BW/L=Tuebingen/O=test-certificate/CN=localhost" -keyout $HOME/ssl/test-key.key -out $HOME/ssl/test-cert.crt
+    - name: Create a settings.ini file for tests
+      run: .github/workflows/settings_win_mac.sh
+      shell: bash
+    - name: Download test files
+      run: make download_test_files
     - name: Start GSvar server and run tests
       run: |
-        bin/GSvarServer -p=8443 -l=3 &
+        bin/GSvarServer &
         make -k test_lib test_server test_tools

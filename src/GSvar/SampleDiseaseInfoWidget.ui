@@ -105,27 +105,6 @@
       </widget>
      </item>
      <item>
-      <widget class="Line" name="line_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="genlab_btn">
-       <property name="toolTip">
-        <string>Import disease details from GenLab.</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset resource="GSvar.qrc">
-         <normaloff>:/Icons/GenLab.png</normaloff>:/Icons/GenLab.png</iconset>
-       </property>
-      </widget>
-     </item>
-     <item>
       <spacer name="verticalSpacer">
        <property name="orientation">
         <enum>Qt::Vertical</enum>

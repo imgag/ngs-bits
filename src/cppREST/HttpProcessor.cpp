@@ -24,6 +24,7 @@ ContentType HttpProcessor::getContentTypeFromString(const QString& in)
 	if (in.toLower() == "text/xml") return TEXT_XML;
 	if (in.toLower() == "text/css") return TEXT_CSS;
 	if (in.toLower() == "multipart/form-data") return MULTIPART_FORM_DATA;
+	if (in.toLower() == "application/x-www-form-urlencoded") return APPLICATION_X_WWW_FORM_URLENCODED;
 
 	return APPLICATION_OCTET_STREAM;
 }
@@ -44,6 +45,7 @@ QString HttpProcessor::convertContentTypeToString(const ContentType& in)
 		case TEXT_XML: return "text/xml";
 		case TEXT_CSS: return "text/css";
 		case MULTIPART_FORM_DATA: return "multipart/form-data";
+		case APPLICATION_X_WWW_FORM_URLENCODED: return "application/x-www-form-urlencoded";
 	}
 	return "";
 }

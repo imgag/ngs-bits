@@ -28,9 +28,6 @@ void FusionWidget::loadFusionData()
 	TsvFile fusion_data;
 	fusion_data.load(filename_);
 
-	QStringList tsv_header = fusion_data.headers();
-
-
 	//define columns
 	//default columns
 	column_names_.clear();
@@ -54,12 +51,7 @@ void FusionWidget::loadFusionData()
 	QVector<int> column_indices;
 	foreach (const QString& col_name, column_names_)
 	{
-		int column_index = tsv_header.indexOf(col_name);
-		if (column_index < 0)
-		{
-			THROW(FileParseException, "Column name \"" + col_name + "\" not found in TSV file!");
-		}
-		column_indices << column_index;
+		column_indices << fusion_data.columnIndex(col_name);
 	}
 
 	//create header

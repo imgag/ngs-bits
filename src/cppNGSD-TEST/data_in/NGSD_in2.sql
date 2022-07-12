@@ -26,6 +26,9 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 (3999, 1, 3, 1, '1', 1, 1, 'medium', 'comment_ps1', null),
 (4000, 2, 1, 1, '1', 1, 1, 'good', 'comment_ps2', null);
 
+INSERT INTO `processed_sample_ancestry` (`processed_sample_id`, `num_snps`, `score_afr`, `score_eur`, `score_sas`, `score_eas`, `population`) VALUES
+(3999, 2478, 0.0793, 0.3233, 0.2282, 0.0652, 'EUR');
+
 INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `outcome`, `comment`) VALUES
 (3999, 'done', 99, '2014-07-29 09:40:49', 'no significant findings', "free text");
 
@@ -53,7 +56,7 @@ INSERT INTO `gaps` (`id`, `chr`, `start`, `end`, `processed_sample_id`, `status`
 
 -- cnv_callset (we need the quality)
 INSERT INTO `cnv_callset` (`id`, `processed_sample_id`, `caller`, `caller_version`, `call_date`, `quality_metrics`, `quality`) VALUES
-(1, 3999, 'ClinCNV', 'v 1.16.1', '2019-10-20T09:55:01', '{"fraction of outliers":"0.052","gender of sample":"M","high-quality cnvs":"127","number of iterations":"1","quality used at final iteration":"20","was it outlier after clustering":"FALSE"}', 'good');
+(1, 3999, 'ClinCNV', 'v 1.16.1', '2019-10-20T09:55:01', '{"fraction of outliers":"0.052","gender of sample":"M","high-quality cnvs":"127","mean correlation to reference samples":"0.996","number of iterations":"1","quality used at final iteration":"20","was it outlier after clustering":"FALSE"}', 'good');
 
 -- gene infos
 INSERT INTO `gene` (`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES
@@ -145,14 +148,17 @@ INSERT INTO `gene_exon` (`transcript_id`, `start`, `end`) VALUES
 INSERT INTO `omim_gene` (`id`, `gene`, `mim`) VALUES
 (244380, 'SPG7', '602783'),
 (245171, 'CYP7B1', '603711'),
-(245296, 'SLC25A15', '603861');
+(245296, 'SLC25A15', '603861'),
+(50562, 'MITF', '156845');
 
 
 INSERT INTO `omim_phenotype` (`omim_gene_id`, `phenotype`) VALUES
 (244380, 'Spastic paraplegia 7, autosomal recessive, 607259 (3)'),
 (245171, 'Bile acid synthesis defect, congenital, 3, 613812 (3)'),
 (245171, 'Spastic paraplegia 5A, autosomal recessive, 270800 (3)'),
-(245296, 'Hyperornithinemia-hyperammonemia-homocitrullinemia syndrome, 238970 (3)');
+(245296, 'Hyperornithinemia-hyperammonemia-homocitrullinemia syndrome, 238970 (3)'),
+(50562, 'COMMAD syndrome, 617306 (3)'),
+(50562, '{Melanoma, cutaneous malignant, susceptibility to, 8}, 614456 (3)');
 
 
 INSERT INTO `omim_preferred_phenotype`(`gene`, `disease_group`, `phenotype_accession`) VALUES

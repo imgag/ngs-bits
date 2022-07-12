@@ -7,7 +7,7 @@ Q_OBJECT
 private slots:
 
 	//Test with name and depth arguments
-	void test_01()
+	void gsvar_with_depth_and_name()
 	{
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
@@ -18,7 +18,7 @@ private slots:
 	
 
 	//Test without arguments
-	void test_02()
+	void gsvar_no_arguments()
 	{
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
@@ -28,7 +28,7 @@ private slots:
 	}
 
 	//Test with mapq0 argument
-	void test_03()
+	void gsvar_mapq0()
 	{
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");

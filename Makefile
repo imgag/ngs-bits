@@ -4,10 +4,14 @@ help:
 	@echo "  build_3rdparty        - Builds 3rd party libraries"
 	@echo "  build_libs_release    - Builds base libraries in release mode"
 	@echo "  build_tools_release   - Builds tools in release mode"
+	@echo "  build_gui_release     - Builds GSvar in release mode"
+	@echo "  build_server_release  - Builds GSvar server in release mode"	
 	@echo "  test_lib              - Executes library tests"
 	@echo "  test_tools            - Executes tool tests"
+	@echo "  test_server           - Executes server tests"
 	@echo "  test_release          - Builds libraries and tools in release mode and executes all tests"
 	@echo "  deploy_nobuild        - Deploys current build. Note: execute 'git status' and 'make test_release' first!"
+	@echo "  deploy_server_nobuild - Deploys current server build. Note: execute 'git status' and 'make test_server' first!"
 	@echo "Special targets to speed up development:"
 	@echo "  build_release_noclean - Build libraries and tools in release mode without cleaning up"
 	@echo "  test_single_tool      - Test single tools, e.g. use 'make test_single_tool T=SeqPurge' to execute the tests for SeqPurge only"
@@ -86,6 +90,12 @@ build_server_release:
                 qmake ../src/tools_server.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
                 make -j5;
 	
+build_server_release_noclean:
+	mkdir -p build-GSvarServer-Linux-Release;
+	cd build-GSvarServer-Linux-Release; \
+                qmake ../src/tools_server.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+                make -j5;
+
 #################################### other targets ##################################
 
 clean:
@@ -96,11 +106,17 @@ clean:
 test_lib:
 	cd bin && ./cppCORE-TEST && ./cppNGS-TEST && ./cppNGSD-TEST && ./cppREST-TEST
 
+test_lib_windows:
+	cd bin && ./cppCORE-TEST.exe && ./cppNGS-TEST.exe && ./cppNGSD-TEST.exe && ./cppREST-TEST.exe
+
 test_server:
 	cd bin && ./GSvarServer-TEST
 
 test_tools:
 	cd bin && ./tools-TEST
+
+test_tools_windows:
+	cd bin && ./tools-TEST.exe
 
 test_single_tool:
 	cd bin && ./tools-TEST -s $(T)
@@ -119,18 +135,43 @@ deploy_nobuild:
 	@echo "#Update permissions"
 	chmod 775 $(DEP_PATH)*
 	@echo ""
-	@echo "#Activating"
-	@echo "You can active the new build using the command:"
-	@echo "cd /mnt/share/opt/ && rm ngs-bits-current && ln -s ngs-bits-hg38-$(NGSBITS_VER) ngs-bits-current"
-	@echo ""
 	@echo "#Deploy settings"
 	cp /mnt/share/opt/ngs-bits-settings/settings_hg38.ini $(DEP_PATH)settings.ini
+	@echo ""
+	@echo "#Activating"
+	rm /mnt/share/opt/ngs-bits-current && ln -s /mnt/share/opt/ngs-bits-hg38-$(NGSBITS_VER) /mnt/share/opt/ngs-bits-current
+	@echo ""
+	@echo "#Settings diff:"
 	diff bin/settings.ini $(DEP_PATH)settings.ini
 
+	
+SERVER_DEP_PATH=/mnt/storage2/GRCh38/users/bioinf/GSvarServer/GSvarServer-$(NGSBITS_VER)
+deploy_server_nobuild:
+	@if [ ! -e ./bin/GSvarServer ] ; then echo "Error: bin/GSvarServer is missing!"; false; fi;
+	@if [ ! -e ./src/cppCORE/CRYPT_KEY.txt ] ; then echo "Error: src/cppCORE/CRYPT_KEY.txt is missing!"; false; fi;
+	@echo "#Clean up source"
+	rm -rf bin/out bin/*-TEST
+	@echo ""
+	@echo "#Deploy binaries"
+	mkdir $(SERVER_DEP_PATH)
+	find bin/ -type f  -or -type l | grep -v "settings" | xargs -I{} cp {} $(SERVER_DEP_PATH)
+	@echo ""
+	@echo "#Update permissions"
+	chmod 775 $(SERVER_DEP_PATH)*	
+	@echo ""
+	@echo "#Create a new link"
+	cd /mnt/storage2/GRCh38/users/bioinf/GSvarServer/ && (rm -f GSvarServer-current) && (ln -s GSvarServer-$(NGSBITS_VER) GSvarServer-current)
+	@echo ""
+	@echo "#Create an empty log file"
+	cd /mnt/storage2/GRCh38/users/bioinf/GSvarServer/ && (touch GSvarServer-$(NGSBITS_VER)/GSvarServer.log) && (chmod 775 GSvarServer-$(NGSBITS_VER)/GSvarServer.log)
+	@echo ""
+	@echo "#Deploy settings"
+	cp /mnt/share/opt/ngs-bits-settings/GSvarServer.ini $(SERVER_DEP_PATH)GSvarServer.ini
+	
 test_debug: clean build_libs_debug build_tools_debug test_lib test_tools
 
 test_release:
-	make clean build_libs_release build_tools_release build_gui_release > t.log 2>&1
+	make clean build_libs_release build_tools_release build_gui_release build_server_release > t.log 2>&1
 	@echo "Build done, starting tests"
 	make test_lib test_tools >> t.log 2>&1
 	egrep "FAILED|SKIPPED" t.log
@@ -170,6 +211,10 @@ check_tool_ngsd_dependencies:
 	rm -rf cppNGSD_is cppNGSD_should
 
 dummy:
+
+download_test_files:
+	wget -O ./src/cppNGS-TEST/data_in/hg19ToHg38.over.chain.gz https://hgdownload.cse.ucsc.edu/goldenpath/hg19/liftOver/hg19ToHg38.over.chain.gz
+	wget -O ./src/cppNGS-TEST/data_in/hg38ToHg19.over.chain.gz https://hgdownload.cse.ucsc.edu/goldenpath/hg38/liftOver/hg38ToHg19.over.chain.gz
 
 #################################### 3rd party  ##################################
 

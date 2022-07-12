@@ -191,7 +191,7 @@ void GeneWidget::editComment()
 {
     NGSD db;
     GeneInfo info = db.geneInfo(symbol_);
-	QString text = "[" + QDate::currentDate().toString("dd.MM.yyyy") + " " + LoginManager::user() + "]\nAdd comment here\n\n" + info.comments;
+	QString text = "[" + QDate::currentDate().toString("dd.MM.yyyy") + " " + LoginManager::userLogin() + "]\nAdd comment here\n\n" + info.comments;
 
     bool ok;
     QString text_new = QInputDialog::getMultiLineText(this, "Edit gene comment", "comment:", text, &ok);
@@ -240,7 +240,7 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 {
 	//clear
 	ui_.transcripts->setRowCount(0);
-	const QMap<QByteArray, QByteArrayList>&  matches = GSvarHelper::transcriptMatches();
+	const QMap<QByteArray, QByteArrayList>&  matches = NGSHelper::transcriptMatches(GSvarHelper::build());
 
 	//get transcripts
 	int gene_id = db.geneToApprovedID(symbol_);
@@ -278,9 +278,7 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 		if (transcript.isCoding()) aas = QString::number(transcript.codingRegions().baseCount()/3-1);
 		ui_.transcripts->setItem(row, 4, GUIHelper::createTableItem(aas));
 
-		QString pt = "";
-		if (transcript.isPreferredTranscript()) pt = "yes";
-		ui_.transcripts->setItem(row, 5, GUIHelper::createTableItem(pt));
+		ui_.transcripts->setItem(row, 5, GUIHelper::createTableItem(Transcript::biotypeToString(transcript.biotype())));
 
 		QStringList ccds;
 		QStringList refseq;
@@ -300,6 +298,16 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 
 		ui_.transcripts->setCellWidget(row, 6, GUIHelper::createLinkLabel(ccds.join(", ")));
 		ui_.transcripts->setCellWidget(row, 7, GUIHelper::createLinkLabel(refseq.join(", ")));
+
+		QStringList flags;
+		if (transcript.isPreferredTranscript()) flags += "NGSD preferred transcript";
+		QString transcript_id = db.getValue("SELECT id FROM gene_transcript WHERE name=:0", true, transcript.name()).toString();
+		if (db.getValue("SELECT is_mane_select FROM gene_transcript WHERE id=" + transcript_id).toBool()==true) flags << "MANE select";
+		if (db.getValue("SELECT is_mane_plus_clinical 	 FROM gene_transcript WHERE id=" + transcript_id).toBool()==true) flags << "MANE plus clinical";
+		if (db.getValue("SELECT is_ensembl_canonical FROM gene_transcript WHERE id=" + transcript_id).toBool()==true) flags << "Ensembl canonical";
+		if (db.getValue("SELECT is_gencode_basic FROM gene_transcript WHERE id=" + transcript_id).toBool()==true) flags << "GENCODE basic";
+		ui_.transcripts->setItem(row, 8, GUIHelper::createTableItem(flags.join(", ")));
+
 	}
 
 	GUIHelper::resizeTableCells(ui_.transcripts);

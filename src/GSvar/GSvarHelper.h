@@ -24,11 +24,9 @@ public:
     static const QMap<QByteArray, QByteArrayList>& preferredTranscripts(bool reload=false);
     //Returns a list of special regions that are to be added to sub-panel designs for a given gene
 	static const QMap<QByteArray, QList<BedLine>>& specialRegions();
-	//Returns a list of matching regions for ENST transcripts (no version numbers!)
-	static const QMap<QByteArray, QByteArrayList>& transcriptMatches();
 
 	//Returns the application base name - path and filename
-    static QString applicationBaseName();
+	static QString applicationBaseName();
 	//Returns the genome build used by GSvar.
 	static GenomeBuild build();
 
@@ -38,9 +36,9 @@ public:
 	static void limitLines(QLabel* label, QString text, QString sep="\n", int max_lines=15);
 
 	//Lift-over region from GRCh37 to GRCh38 (or the other way). Throws ArgumentException if conversion not possible.
-	static BedLine liftOver(const Chromosome& chr, int start, int end, bool hg19_to_hg38 = true);
+	static BedLine liftOver(const Chromosome& chr, int start, int end, bool hg19_to_hg38);
 	//Lift-over variant from GRCh37 to GRCh38 (or the other way). Throws ArgumentException if conversion not possible.
-	static Variant liftOverVariant(const Variant& v, bool hg19_to_hg38 = true);
+	static Variant liftOverVariant(const Variant& v, bool hg19_to_hg38);
 
 	//Returns gnomAD link for a variant
 	static QString gnomADLink(Variant v, GenomeBuild build);
@@ -50,6 +48,9 @@ public:
 
 	//Queue the analysis of samples
 	static bool queueSampleAnalysis(AnalysisType type, const QList<AnalysisJobSample>& samples, QWidget* parent = 0);
+
+	//returns if the change of MaxEntScan is large enough to color it in the VariantTable, also provides percent- and abs-changes of MaxEntScan.
+	static bool colorMaxEntScan(QString anno, QList<double>& percentages, QList<double>& absValues);
 
 protected:
 	GSvarHelper() = delete;

@@ -1,7 +1,7 @@
 /// @file htslib/sam.h
 /// High-level SAM/BAM/CRAM sequence file operations.
 /*
-    Copyright (C) 2008, 2009, 2013-2020 Genome Research Ltd.
+    Copyright (C) 2008, 2009, 2013-2021 Genome Research Ltd.
     Copyright (C) 2010, 2012, 2013 Broad Institute.
 
     Author: Heng Li <lh3@sanger.ac.uk>
@@ -27,9 +27,18 @@ DEALINGS IN THE SOFTWARE.  */
 #ifndef HTSLIB_SAM_H
 #define HTSLIB_SAM_H
 
+#include <errno.h>
 #include <stdint.h>
+#include <sys/types.h>
 #include "hts.h"
 #include "hts_endian.h"
+
+// Ensure ssize_t exists within this header. All #includes must precede this,
+// and ssize_t must be undefined again at the end of this header.
+#if defined _MSC_VER && defined _INTPTR_T_DEFINED && !defined _SSIZE_T_DEFINED && !defined ssize_t
+#define HTSLIB_SSIZE_T
+#define ssize_t intptr_t
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -237,7 +246,7 @@ typedef struct bam1_core_t {
     See the bam_cigar_* macros for manipulation.
  4. seq is nibble-encoded according to bam_nt16_table.
     See the bam_seqi macro for retrieving individual bases.
- 5. Per base qualilties are stored in the Phred scale with no +33 offset.
+ 5. Per base qualities are stored in the Phred scale with no +33 offset.
     Ie as per the BAM specification and not the SAM ASCII printable method.
  */
 typedef struct bam1_t {
@@ -902,7 +911,7 @@ void bam_destroy1(bam1_t *b);
 
    if (!recs || !buffer) goto cleanup;
    for (nrecs = 0; nrecs < MAX_RECS; nrecs++) {
-      bam_set_mempolicy(BAM_USER_OWNS_STRUCT|BAM_USER_OWNS_DATA);
+      bam_set_mempolicy(&recs[nrecs], BAM_USER_OWNS_STRUCT|BAM_USER_OWNS_DATA);
 
       // Set data pointer to unused part of buffer
       recs[nrecs].data = &buffer[buff_used];
@@ -935,10 +944,12 @@ void bam_destroy1(bam1_t *b);
    // ... use data ...
 
  cleanup:
-   for (size_t i = 0; i < nrecs; i++)
-     bam_destroy1(i);
+   if (recs) {
+      for (size_t i = 0; i < nrecs; i++)
+         bam_destroy1(&recs[i]);
+      free(recs);
+   }
    free(buffer);
-   free(recs);
 
    \endcode
 */
@@ -1001,6 +1012,37 @@ bam1_t *bam_copy1(bam1_t *bdst, const bam1_t *bsrc) HTS_RESULT_USED;
  */
 HTSLIB_EXPORT
 bam1_t *bam_dup1(const bam1_t *bsrc);
+
+/// Sets all components of an alignment structure
+/**
+   @param bam      Target alignment structure. Must be initialized by a call to bam_init1().
+                   The data field will be reallocated automatically as needed.
+   @param l_qname  Length of the query name. If set to 0, the placeholder query name "*" will be used.
+   @param qname    Query name, may be NULL if l_qname = 0
+   @param flag     Bitwise flag, a combination of the BAM_F* constants.
+   @param tid      Chromosome ID, defined by sam_hdr_t (a.k.a. RNAME).
+   @param pos      0-based leftmost coordinate.
+   @param mapq     Mapping quality.
+   @param n_cigar  Number of CIGAR operations.
+   @param cigar    CIGAR data, may be NULL if n_cigar = 0.
+   @param mtid     Chromosome ID of next read in template, defined by sam_hdr_t (a.k.a. RNEXT).
+   @param mpos     0-based leftmost coordinate of next read in template (a.k.a. PNEXT).
+   @param isize    Observed template length ("insert size") (a.k.a. TLEN).
+   @param l_seq    Length of the query sequence (read) and sequence quality string.
+   @param seq      Sequence, may be NULL if l_seq = 0.
+   @param qual     Sequence quality, may be NULL.
+   @param l_aux    Length to be reserved for auxiliary field data, may be 0.
+
+   @return >= 0 on success (number of bytes written to bam->data), negative (with errno set) on failure.
+*/
+HTSLIB_EXPORT
+int bam_set1(bam1_t *bam,
+             size_t l_qname, const char *qname,
+             uint16_t flag, int32_t tid, hts_pos_t pos, uint8_t mapq,
+             size_t n_cigar, const uint32_t *cigar,
+             int32_t mtid, hts_pos_t mpos, hts_pos_t isize,
+             size_t l_seq, const char *seq, const char *qual,
+             size_t l_aux);
 
 /// Calculate query length from CIGAR data
 /**
@@ -1071,6 +1113,29 @@ char *bam_flag2str(int flag);   /** The string must be freed by the user */
 HTSLIB_EXPORT
 int bam_set_qname(bam1_t *b, const char *qname);
 
+/*! @function
+ @abstract  Parse a CIGAR string into a uint32_t array
+ @param  in      [in]  pointer to the source string
+ @param  end     [out] address of the pointer to the new end of the input string
+                       can be NULL
+ @param  a_cigar [in/out]  address of the destination uint32_t buffer
+ @param  a_mem   [in/out]  address of the allocated number of buffer elements
+ @return         number of processed CIGAR operators; -1 on error
+ */
+HTSLIB_EXPORT
+ssize_t sam_parse_cigar(const char *in, char **end, uint32_t **a_cigar, size_t *a_mem);
+
+/*! @function
+ @abstract  Parse a CIGAR string into a bam1_t struct
+ @param  in      [in]  pointer to the source string
+ @param  end     [out] address of the pointer to the new end of the input string
+                       can be NULL
+ @param  b       [in/out]  address of the destination bam1_t struct
+ @return         number of processed CIGAR operators; -1 on error
+ */
+HTSLIB_EXPORT
+ssize_t bam_parse_cigar(const char *in, char **end, bam1_t *b);
+
 /*************************
  *** BAM/CRAM indexing ***
  *************************/
@@ -1080,7 +1145,7 @@ int bam_set_qname(bam1_t *b, const char *qname);
 #define bam_itr_destroy(iter) hts_itr_destroy(iter)
 #define bam_itr_queryi(idx, tid, beg, end) sam_itr_queryi(idx, tid, beg, end)
 #define bam_itr_querys(idx, hdr, region) sam_itr_querys(idx, hdr, region)
-#define bam_itr_next(htsfp, itr, r) hts_itr_next((htsfp)->fp.bgzf, (itr), (r), 0)
+#define bam_itr_next(htsfp, itr, r) sam_itr_next((htsfp), (itr), (r))
 
 // Load/build .csi or .bai BAM index file.  Does not work with CRAM.
 // It is recommended to use the sam_index_* functions below instead.
@@ -1103,7 +1168,7 @@ int sam_idx_init(htsFile *fp, sam_hdr_t *h, int min_shift, const char *fnidx);
 
 /// Writes the index initialised with sam_idx_init to disk.
 /** @param fp        File handle for the data file being written.
-    @return          0 on success, <0 on filaure.
+    @return          0 on success, <0 on failure.
 */
 HTSLIB_EXPORT
 int sam_idx_save(htsFile *fp) HTS_RESULT_USED;
@@ -1314,6 +1379,7 @@ const char *sam_parse_region(sam_hdr_t *h, const char *s, int *tid,
 
     #define sam_open(fn, mode) (hts_open((fn), (mode)))
     #define sam_open_format(fn, mode, fmt) (hts_open_format((fn), (mode), (fmt)))
+    #define sam_flush(fp) hts_flush((fp))
     #define sam_close(fp) hts_close(fp)
 
     HTSLIB_EXPORT
@@ -1352,6 +1418,19 @@ const char *sam_parse_region(sam_hdr_t *h, const char *s, int *tid,
     HTSLIB_EXPORT
     int sam_write1(samFile *fp, const sam_hdr_t *h, const bam1_t *b) HTS_RESULT_USED;
 
+// Forward declaration, see hts_expr.h for full.
+struct hts_filter_t;
+
+/// sam_passes_filter - Checks whether a record passes an hts_filter.
+/** @param h      Pointer to the header structure previously read
+ *  @param b      Pointer to the BAM record to be checked
+ *  @param filt   Pointer to the filter, created from hts_filter_init.
+ *  @return       1 if passes, 0 if not, and <0 on error.
+ */
+HTSLIB_EXPORT
+int sam_passes_filter(const sam_hdr_t *h, const bam1_t *b,
+                      struct hts_filter_t *filt);
+
     /*************************************
      *** Manipulating auxiliary fields ***
      *************************************/
@@ -1363,7 +1442,7 @@ const char *sam_parse_region(sam_hdr_t *h, const char *s, int *tid,
  * @param type Single letter type code: ACcSsIifHZB.
  * @param tag  Tag data pointer, in BAM format
  * @param end  Pointer to end of bam record (largest extent of tag)
- * @param ks   Kstring to write the formatted tag to
+ * @param ks   kstring to write the formatted tag to
  *
  * @return pointer to end of tag on success,
  *         NULL on failure.
@@ -1422,7 +1501,8 @@ static inline const uint8_t *sam_format_aux1(const uint8_t *key,
         ++s;
     } else if (type == 'f') {
         if (end - s >= 4) {
-            ksprintf(ks, "f:%g", le_to_float(s));
+            // cast to avoid triggering -Wdouble-promotion
+            ksprintf(ks, "f:%g", (double)le_to_float(s));
             s += 4;
         } else goto bad_aux;
 
@@ -1524,7 +1604,8 @@ static inline const uint8_t *sam_format_aux1(const uint8_t *key,
             if (ks_expand(ks, n*8) < 0) goto mem_err;
             for (i = 0; i < n; ++i) {
                 ks->s[ks->l++] = ',';
-                r |= kputd(le_to_float(s), ks) < 0;
+                // cast to avoid triggering -Wdouble-promotion
+                r |= kputd((double)le_to_float(s), ks) < 0;
                 s += 4;
             }
             break;
@@ -1879,10 +1960,13 @@ typedef struct bam_mplp_s *bam_mplp_t;
     /**
      *  bam_plp_constructor() - sets a callback to initialise any per-pileup1_t fields.
      *  @plp:       The bam_plp_t initialised using bam_plp_init.
-     *  @func:      The callback function itself.  When called, it is given the
-     *              data argument (specified in bam_plp_init), the bam structure and
-     *              a pointer to a locally allocated bam_pileup_cd union.  This union
-     *              will also be present in each bam_pileup1_t created.
+     *  @func:      The callback function itself.  When called, it is given
+     *              the data argument (specified in bam_plp_init), the bam
+     *              structure and a pointer to a locally allocated
+     *              bam_pileup_cd union.  This union will also be present in
+     *              each bam_pileup1_t created.
+     *              The callback function should have a negative return
+     *              value to indicate an error. (Similarly for destructor.)
      */
     HTSLIB_EXPORT
     void bam_plp_constructor(bam_plp_t plp,
@@ -1906,6 +1990,36 @@ typedef struct bam_mplp_s *bam_mplp_t;
      */
     HTSLIB_EXPORT
     int bam_plp_insertion(const bam_pileup1_t *p, kstring_t *ins, int *del_len) HTS_RESULT_USED;
+
+
+    /*! @typedef
+     @abstract An opaque type used for caching base modification state between
+     successive calls to bam_mods_* functions.
+    */
+    typedef struct hts_base_mod_state hts_base_mod_state;
+
+    /// Get pileup padded insertion sequence, including base modifications
+    /**
+     * @param p       pileup data
+     * @param m       state data for the base modification finder
+     * @param ins     the kstring where the insertion sequence will be written
+     * @param del_len location for deletion length
+     * @return the number of insertion string on success, with string length
+     *         being accessable via ins->l; -1 on failure.
+     *
+     * Fills out the kstring with the padded insertion sequence for the current
+     * location in 'p'.  If this is not an insertion site, the string is blank.
+     *
+     * The modification state needs to have been previously initialised using
+     * bam_parse_basemod.  It is permitted to be passed in as NULL, in which
+     * case this function outputs identically to bam_plp_insertion.
+     *
+     * If del_len is not NULL, the location pointed to is set to the length of
+     * any deletion immediately following the insertion, or zero if none.
+     */
+    HTSLIB_EXPORT
+    int bam_plp_insertion_mod(const bam_pileup1_t *p, hts_base_mod_state *m,
+                              kstring_t *ins, int *del_len) HTS_RESULT_USED;
 
     /// Create a new bam_mplp_t structure
     /** The struct returned by a successful call should be freed
@@ -1962,6 +2076,21 @@ typedef struct bam_mplp_s *bam_mplp_t;
 HTSLIB_EXPORT
 int sam_cap_mapq(bam1_t *b, const char *ref, hts_pos_t ref_len, int thres);
 
+// Used as flag parameter in sam_prob_realn.
+enum htsRealnFlags {
+    BAQ_APPLY = 1,
+    BAQ_EXTEND = 2,
+    BAQ_REDO = 4,
+
+    // Platform subfield, in bit position 3 onwards
+    BAQ_AUTO = 0<<3,
+    BAQ_ILLUMINA = 1<<3,
+    BAQ_PACBIOCCS = 2<<3,
+    BAQ_PACBIO = 3<<3,
+    BAQ_ONT = 4<<3,
+    BAQ_GENAPSYS = 5<<3
+};
+
 /// Calculate BAQ scores
 /** @param b   BAM record
     @param ref     Reference sequence
@@ -1976,9 +2105,15 @@ This function calculates base alignment quality (BAQ) values using the method
 described in "Improving SNP discovery by base alignment quality", Heng Li,
 Bioinformatics, Volume 27, Issue 8 (https://doi.org/10.1093/bioinformatics/btr076).
 
+The @param flag value can be generated using the htsRealnFlags enum, but for
+backwards compatibilty reasons is retained as an "int".  An example usage
+of the enum could be this, equivalent to flag 19:
+
+    sam_prob_realn(b, ref, len, BAQ_APPLY | BAQ_EXTEND | BAQ_PACBIOCCS);
+
 The following @param flag bits can be used:
 
-Bit 0: Adjust the quality values using the BAQ values
+Bit 0 (BAQ_APPLY): Adjust the quality values using the BAQ values
 
  If set, the data in the BQ:Z tag is used to adjust the quality values, and
  the BQ:Z tag is renamed to ZQ:Z.
@@ -1986,27 +2121,163 @@ Bit 0: Adjust the quality values using the BAQ values
  If clear, and a ZQ:Z tag is present, the quality values are reverted using
  the data in the tag, and the tag is renamed to BQ:Z.
 
-Bit 1: Use "extended" BAQ.
+Bit 1 (BAQ_EXTEND): Use "extended" BAQ.
 
  Changes the BAQ calculation to increase sensitivity at the expense of
  reduced specificity.
 
-Bit 2: Recalculate BAQ, even if a BQ tag is present.
+Bit 2 (BAQ_REDO): Recalculate BAQ, even if a BQ tag is present.
 
  Force BAQ to be recalculated.  Note that a ZQ:Z tag will always disable
  recalculation.
+
+Bits 3-10: Choose parameters tailored to a specific instrument type.
+
+ One of BAQ_AUTO, BAQ_ILLUMINA, BAQ_PACBIOCCS, BAQ_PACBIO, BAQ_ONT and
+ BAQ_GENAPSYS.  The BAQ parameter tuning are still a work in progress and
+ at the time of writing mainly consist of Illumina vs long-read technology
+ adjustments.
 
 @bug
 If the input read has both BQ:Z and ZQ:Z tags, the ZQ:Z one will be removed.
 Depending on what previous processing happened, this may or may not be the
 correct thing to do.  It would be wise to avoid this situation if possible.
 */
-
 HTSLIB_EXPORT
 int sam_prob_realn(bam1_t *b, const char *ref, hts_pos_t ref_len, int flag);
 
+// ---------------------------
+// Base modification retrieval
+
+/*! @typedef
+ @abstract Holds a single base modification.
+ @field modified_base     The short base code (m, h, etc) or -ChEBI (negative)
+ @field canonical_base    The canonical base referred to in the MM tag.
+                          One of A, C, G, T or N.  Note this may not be the
+                          explicit base recorded in the SEQ column (esp. if N).
+ @field stran             0 or 1, indicating + or - strand from MM tag.
+ @field qual              Quality code (256*probability), or -1 if unknown
+
+ @discussion
+ Note this doesn't hold any location data or information on which other
+ modifications may be possible at this site.
+*/
+typedef struct hts_base_mod {
+    int modified_base;
+    int canonical_base;
+    int strand;
+    int qual;
+} hts_base_mod;
+
+/// Allocates an hts_base_mode_state.
+/**
+ * @return An hts_base_mode_state pointer on success,
+ *         NULL on failure.
+ *
+ * This just allocates the memory.  The initialisation of the contents is
+ * done using bam_parse_basemod.  Successive calls may be made to that
+ * without the need to free and allocate a new state.
+ *
+ * The state be destroyed using the hts_base_mode_state_free function.
+ */
+HTSLIB_EXPORT
+hts_base_mod_state *hts_base_mod_state_alloc(void);
+
+/// Destroys an  hts_base_mode_state.
+/**
+ * @param state    The base modification state pointer.
+ *
+ * The should have previously been created by hts_base_mode_state_alloc.
+ */
+HTSLIB_EXPORT
+void hts_base_mod_state_free(hts_base_mod_state *state);
+
+/// Parses the Mm and Ml tags out of a bam record.
+/**
+ * @param b        BAM alignment record
+ * @param state    The base modification state pointer.
+ * @return 0 on success,
+ *         -1 on failure.
+ *
+ * This fills out the contents of the modification state, resetting the
+ * iterator location to the first sequence base.
+ */
+HTSLIB_EXPORT
+int bam_parse_basemod(const bam1_t *b, hts_base_mod_state *state);
+
+/// Returns modification status for the next base position in the query seq.
+/**
+ * @param b        BAM alignment record
+ * @param state    The base modification state pointer.
+ * @param mods     A supplied array for returning base modifications
+ * @param n_mods   The size of the mods array
+ * @return The number of modifications found on success,
+ *         -1 on failure.
+ *
+ * This is intended to be used as an iterator, with one call per location
+ * along the query sequence.
+ *
+ * If no modifications are found, the returned value is zero.
+ * If more than n_mods modifications are found, the total found is returned.
+ * Note this means the caller needs to check whether this is higher than
+ * n_mods.
+ */
+HTSLIB_EXPORT
+int bam_mods_at_next_pos(const bam1_t *b, hts_base_mod_state *state,
+                         hts_base_mod *mods, int n_mods);
+
+/// Finds the next location containing base modifications and returns them
+/**
+ * @param b        BAM alignment record
+ * @param state    The base modification state pointer.
+ * @param mods     A supplied array for returning base modifications
+ * @param n_mods   The size of the mods array
+ * @return The number of modifications found on success,
+ *         0 if no more modifications are present,
+ *         -1 on failure.
+ *
+ * Unlike bam_mods_at_next_pos this skips ahead to the next site
+ * with modifications.
+ *
+ * If more than n_mods modifications are found, the total found is returned.
+ * Note this means the caller needs to check whether this is higher than
+ * n_mods.
+ */
+HTSLIB_EXPORT
+int bam_next_basemod(const bam1_t *b, hts_base_mod_state *state,
+                     hts_base_mod *mods, int n_mods, int *pos);
+
+/// Returns modification status for a specific query position.
+/**
+ * @param b        BAM alignment record
+ * @param state    The base modification state pointer.
+ * @param mods     A supplied array for returning base modifications
+ * @param n_mods   The size of the mods array
+ * @return The number of modifications found on success,
+ *         -1 on failure.
+ *
+ * Note if called multipled times, qpos must be higher than the previous call.
+ * Hence this is suitable for use from a pileup iterator.  If more random
+ * access is required, bam_parse_basemod must be called each time to reset
+ * the state although this has an efficiency cost.
+ *
+ * If no modifications are found, the returned value is zero.
+ * If more than n_mods modifications are found, the total found is returned.
+ * Note this means the caller needs to check whether this is higher than
+ * n_mods.
+ */
+HTSLIB_EXPORT
+int bam_mods_at_qpos(const bam1_t *b, int qpos, hts_base_mod_state *state,
+                     hts_base_mod *mods, int n_mods);
+
+
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef HTSLIB_SSIZE_T
+#undef HTSLIB_SSIZE_T
+#undef ssize_t
 #endif
 
 #endif

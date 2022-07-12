@@ -195,7 +195,7 @@
         <enum>Qt::NoFocus</enum>
        </property>
        <property name="toolTip">
-        <string>Sture current filter to file.</string>
+        <string>Store current filter to file.</string>
        </property>
        <property name="text">
         <string/>

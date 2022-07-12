@@ -170,6 +170,7 @@ TEST_CLASS(VcfLine_Test)
     {
         QString ref_file = Settings::string("reference_genome", true);
         if (ref_file=="") SKIP("Test needs the reference genome!");
+        FastaFileIndex reference(ref_file);
 
         VariantList v_list;
         Variant v;
@@ -191,7 +192,7 @@ TEST_CLASS(VcfLine_Test)
         v_line.setSingleAlt("A");
         v_line.setChromosome("chr17");
         v_line.setPos(41246534);
-        v_line.leftNormalize(ref_file);
+        v_line.leftNormalize(reference);
         I_EQUAL(v_line.start(), 41246534);
         I_EQUAL(v_line.end(), 41246534);
         S_EQUAL(v_line.ref(), "T");
@@ -215,7 +216,7 @@ TEST_CLASS(VcfLine_Test)
         v_line.setSingleAlt("TT");
         v_line.setChromosome("chr17");
         v_line.setPos(41246534);
-        v_line.leftNormalize(ref_file);
+        v_line.leftNormalize(reference);
         I_EQUAL(v_line.start(), 41246532);
         I_EQUAL(v_line.end(), 41246532);
         S_EQUAL(v_line.ref(), "G");
@@ -239,7 +240,7 @@ TEST_CLASS(VcfLine_Test)
         v_line.setSingleAlt("CTTC");
         v_line.setChromosome("chr3");
         v_line.setPos(195307240);
-        v_line.leftNormalize(ref_file);
+        v_line.leftNormalize(reference);
         I_EQUAL(v_line.start(), 195307239);
         I_EQUAL(v_line.end(), 195307239);
         S_EQUAL(v_line.ref(), "C");
@@ -263,7 +264,7 @@ TEST_CLASS(VcfLine_Test)
         v_line.setSingleAlt("G");
         v_line.setChromosome("chr3");
         v_line.setPos(195956746);
-        v_line.leftNormalize(ref_file);
+        v_line.leftNormalize(reference);
         I_EQUAL(v_line.start(), 195956748);
         I_EQUAL(v_line.end(), 195956750);
         S_EQUAL(v_line.ref(), "CAG");
@@ -287,7 +288,7 @@ TEST_CLASS(VcfLine_Test)
         v_line.setSingleAlt("A");
         v_line.setChromosome("chr4");
         v_line.setPos(88536882);
-        v_line.leftNormalize(ref_file);
+        v_line.leftNormalize(reference);
         I_EQUAL(v_line.start(), 88536900);
         I_EQUAL(v_line.end(), 88536918);
         S_EQUAL(v_line.ref(), "GTAGCAGTGACAGCAGCAA");

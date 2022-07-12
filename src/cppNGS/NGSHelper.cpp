@@ -21,7 +21,7 @@ namespace {
 		if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + buildToString(build) + "'!");
 
 		//copy from resource file (gzopen cannot access Qt resources)
-		QString tmp = Helper::tempFileName("_" + ToolBase::version() + "_snps.vcf");
+		QString tmp = Helper::tempFileNameNonRandom(buildToString(build) + "_snps.vcf");
 		QFile::copy(snp_file, tmp);
 
 		return tmp;
@@ -327,10 +327,10 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 	vl_merged.store(out);
 }
 
-QChar NGSHelper::translateCodon(const QByteArray& codon, bool use_mito_table)
+char NGSHelper::translateCodon(const QByteArray& codon, bool use_mito_table)
 {
 	//init
-	const static QHash<QByteArray, QChar> dictionary =   {{"TTT", 'F'}, {"TTC", 'F'}, {"TTA", 'L'}, {"TTG", 'L'}, {"CTT", 'L'}, {"CTC", 'L'},
+	const static QHash<QByteArray, char> dictionary =   {{"TTT", 'F'}, {"TTC", 'F'}, {"TTA", 'L'}, {"TTG", 'L'}, {"CTT", 'L'}, {"CTC", 'L'},
 														  {"CTA", 'L'}, {"CTG", 'L'}, {"TCT", 'S'}, {"TCC", 'S'}, {"TCA", 'S'}, {"TCG", 'S'},
 														  {"AGT", 'S'}, {"AGC", 'S'}, {"TAT", 'Y'}, {"TAC", 'Y'}, {"TAA", '*'}, {"TAG", '*'},
 														  {"TGA", '*'}, {"TGT", 'C'}, {"TGC", 'C'}, {"TGG", 'W'}, {"CCT", 'P'}, {"CCC", 'P'},
@@ -358,10 +358,10 @@ QChar NGSHelper::translateCodon(const QByteArray& codon, bool use_mito_table)
 	return dictionary[codon];
 }
 
-QByteArray NGSHelper::threeLetterCode(QChar one_letter_code)
+QByteArray NGSHelper::threeLetterCode(char one_letter_code)
 {
 	//init
-	const static QHash<QChar,QByteArray> dictionary = {{'A',"Ala"},{'R',"Arg"},{'N',"Asn"},{'D',"Asp"},{'C',"Cys"},{'E',"Glu"},
+	const static QHash<char,QByteArray> dictionary = {{'A',"Ala"},{'R',"Arg"},{'N',"Asn"},{'D',"Asp"},{'C',"Cys"},{'E',"Glu"},
 													   {'Q',"Gln"},{'G',"Gly"},{'H',"His"},{'I',"Ile"},{'L',"Leu"},{'K',"Lys"},{'M',"Met"},{'F',"Phe"},{'P',"Pro"},{'S',"Ser"},
 													   {'T',"Thr"},{'W',"Trp"},{'Y',"Tyr"},{'V',"Val"},{'*',"*"}};
 
@@ -370,6 +370,20 @@ QByteArray NGSHelper::threeLetterCode(QChar one_letter_code)
 
 	//return
 	return dictionary[one_letter_code];
+}
+
+char NGSHelper::oneLetterCode(const QByteArray& aa_tree_letter_code)
+{
+	//init
+	const static QHash<QByteArray,char> dictionary = { {"Ala",'A'},{"Arg",'R'},{"Asn",'N'},{"Asp",'D'},{"Cys",'C'},{"Glu",'E'}, {"Gln",'Q'},{"Gly",'G'},
+														{"His",'H'},{"Ile",'I'},{"Leu",'L'},{"Lys",'K'},{"Met",'M'},{"Phe",'F'},{"Pro",'P'},{"Ser",'S'},
+														{"Thr",'T'},{"Trp",'W'},{"Tyr",'Y'},{"Val",'V'},{"*",'*'},{"Ter",'*'}};
+
+	//check
+	if (!dictionary.contains(aa_tree_letter_code)) THROW(ProgrammingException, "Invalid AA three-letter code: '" + aa_tree_letter_code + "'");
+
+	//return
+	return dictionary[aa_tree_letter_code];
 }
 
 const BedFile& NGSHelper::pseudoAutosomalRegion(GenomeBuild build)
@@ -746,6 +760,241 @@ void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_r
 	}
 
 	al.setCigarData(new_CIGAR);
+}
+
+bool NGSHelper::isClientServerMode()
+{
+	return !Settings::string("server_host", true).trimmed().isEmpty() && !Settings::string("https_server_port", true).trimmed().isEmpty();
+}
+
+bool NGSHelper::isRunningOnServer()
+{
+	return !Settings::string("ssl_certificate",true).trimmed().isEmpty() && !Settings::string("ssl_key",true).trimmed().isEmpty();
+}
+
+QString NGSHelper::serverApiVersion()
+{
+	return "v1";
+}
+
+QString NGSHelper::serverApiUrl(const bool& return_http)
+{
+	QString protocol = return_http ? "http://" : "https://";
+	QString port = return_http ? Settings::string("http_server_port", true) : Settings::string("https_server_port", true);
+
+	return protocol + Settings::string("server_host", true) + ":" + port + "/" + serverApiVersion() + "/";
+}
+
+const QMap<QByteArray, QByteArrayList>& NGSHelper::transcriptMatches(GenomeBuild build)
+{
+	static QMap<GenomeBuild, QMap<QByteArray, QByteArrayList>> output;
+
+	if (!output.contains(build))
+	{
+		QStringList lines = Helper::loadTextFile(":/Resources/"+buildToString(build)+"_ensembl_transcript_matches.tsv", true, '#', true);
+		foreach(const QString& line, lines)
+		{
+			QByteArrayList parts = line.toLatin1().split('\t');
+			if (parts.count()>=2)
+			{
+				QByteArray enst = parts[0];
+				QByteArray other = parts[1];
+				output[build][enst] << other;
+				output[build][other] << enst;
+			}
+		}
+	}
+
+	return output[build];
+}
+
+//Helper struct for GFF parsing
+struct TranscriptData
+{
+	QByteArray name;
+	int version;
+	QByteArray name_ccds;
+	QByteArray gene_symbol;
+	QByteArray gene_id;
+	QByteArray hgnc_id;
+	QByteArray chr;
+	int start_coding = 0;
+	int end_coding = 0;
+	QByteArray strand;
+	QByteArray biotype;
+
+	BedFile exons;
+};
+
+
+QHash<QByteArray, QByteArray> parseGffAttributes(const QByteArray& attributes)
+{
+	QHash<QByteArray, QByteArray> output;
+
+	QByteArrayList parts = attributes.split(';');
+	foreach(const QByteArray& part, parts)
+	{
+		int split_index = part.indexOf('=');
+		QByteArray key = part.left(split_index).trimmed();
+		QByteArray value = part.mid(split_index+1).trimmed();
+		output[key] = value;
+	}
+
+	return output;
+}
+
+void NGSHelper::loadGffFile(QString filename, GffData& output)
+{
+	output.transcripts.clear();
+	output.ensg2symbol.clear();
+	output.enst2ensg.clear();
+	output.gencode_basic.clear();
+
+    QMap<QByteArray, TranscriptData> transcripts;
+
+    QMap<QByteArray, QByteArray> gene_to_hgnc;
+
+    QSharedPointer<QFile> file = Helper::openFileForReading(filename, false);
+    QTextStream out(stdout);
+    while(!file->atEnd())
+    {
+        QByteArray line = file->readLine().trimmed();
+        if (line.isEmpty()) continue;
+
+        //section end => commit data
+        if (line=="###")
+        {
+            //convert from TranscriptData to Transcript and append to list
+            auto it = transcripts.begin();
+            while(it!=transcripts.end())
+            {
+                TranscriptData& t_data = it.value();
+                t_data.exons.merge();
+                Transcript t;
+                t.setGene(t_data.gene_symbol);
+                t.setGeneId(t_data.gene_id);
+                t.setHgncId(t_data.hgnc_id);
+                t.setName(t_data.name);
+                t.setVersion(t_data.version);
+                t.setNameCcds(t_data.name_ccds);
+                t.setSource(Transcript::ENSEMBL);
+				t.setStrand(Transcript::stringToStrand(t_data.strand));
+				t.setBiotype(Transcript::stringToBiotype(t_data.biotype));
+
+                int coding_start = t_data.start_coding;
+                int coding_end = t_data.end_coding;
+                if(t.strand() == Transcript::MINUS)
+                {
+                   int temp = coding_start;
+                   coding_start = coding_end;
+                   coding_end = temp;
+                }
+                t.setRegions(t_data.exons, coding_start, coding_end);
+				output.transcripts << t;
+                ++it;
+            }
+
+            //clear cache
+            transcripts.clear();
+            continue;
+        }
+
+        //skip header lines
+        if (line.startsWith("#")) continue;
+
+        QByteArrayList parts = line.split('\t');
+        QByteArray type = parts[2];
+		QHash<QByteArray, QByteArray> data = parseGffAttributes(parts[8]);
+
+        //gene line
+        if (data.contains("gene_id"))
+        {
+            QByteArray gene = data["Name"];
+
+            // store mapping for pseudogene table
+			output.ensg2symbol.insert(data["gene_id"], gene);
+
+            if (!Chromosome(parts[0]).isNonSpecial())
+            {
+                out << "Notice: Gene " << data["gene_id"] << "/" << gene << " on special chromosome " << parts[0] << " is skipped." << endl;
+                continue;
+            }
+
+            //extract HGNC identifier
+            QByteArray hgnc_id = "";
+            int start = data["description"].indexOf("[Source:HGNC Symbol%3BAcc:");
+            if (start!=-1)
+            {
+                start += 26;
+                int end = data["description"].indexOf("]", start);
+                if (end!=-1)
+                {
+                    hgnc_id = data["description"].mid(start, end-start);
+                }
+            }
+            gene_to_hgnc[data["gene_id"]] = hgnc_id;
+        }
+
+        //transcript line
+        else if (data.contains("transcript_id"))
+        {
+            // store mapping for pseudogene table
+			output.enst2ensg.insert(data["transcript_id"], data["Parent"].split(':').at(1));
+
+			// store GENCODE basic data
+			if (data.value("tag")=="basic")
+			{
+				output.gencode_basic << data["transcript_id"];
+			}
+
+			QByteArray parent_id = data["Parent"].split(':').at(1);
+
+			//skip transcripts of unhandled genes (special chromosomes)
+			if(!gene_to_hgnc.contains(parent_id)) continue;
+
+			TranscriptData tmp;
+			tmp.name = data["transcript_id"];
+			tmp.version = data["version"].toInt();
+			tmp.name_ccds = data.value("ccdsid", "");
+			tmp.gene_symbol = output.ensg2symbol[parent_id];
+			tmp.gene_id = parent_id;
+			tmp.hgnc_id = gene_to_hgnc[parent_id];
+			tmp.chr = parts[0];
+			tmp.strand = parts[6];
+			tmp.biotype = data["biotype"];
+			transcripts[data["ID"]] = tmp;
+		}
+
+        //exon lines
+        else if (type=="CDS" || type=="exon" || type=="three_prime_UTR" || type=="five_prime_UTR" )
+        {
+            QByteArray parent_id = data["Parent"];
+
+            //skip exons of unhandled transcripts (not GENCODE basic)
+            if (!transcripts.contains(parent_id)) continue;
+            TranscriptData& t_data = transcripts[parent_id];
+
+            //check chromosome matches
+            QByteArray chr = parts[0];
+            if (chr!=t_data.chr)
+            {
+                THROW(FileParseException, "Chromosome mismatch between transcript and exon!");
+            }
+
+            //update coding start/end
+            int start = Helper::toInt(parts[3], "start position");
+            int end = Helper::toInt(parts[4], "end position");
+
+            if (type=="CDS")
+            {
+                t_data.start_coding = (t_data.start_coding==0) ? start : std::min(start, t_data.start_coding);
+                t_data.end_coding = (t_data.end_coding==0) ? end : std::max(end, t_data.end_coding);
+            }
+
+            //add coding exon
+            t_data.exons.append(BedLine(chr, start, end));
+        }
+    }
 }
 
 bool SampleInfo::isAffected() const

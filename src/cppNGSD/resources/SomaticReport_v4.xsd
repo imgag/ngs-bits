@@ -1,0 +1,930 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mit XMLSpy v2014 (x64) (http://www.altova.com) von Dr. Peter Bauer (Universitätsklinikum Tübingen) bearbeitet -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" xmlns:altova="http://www.altova.com/xml-schema-extensions" elementFormDefault="qualified" attributeFormDefault="unqualified" vc:minVersion="1.1">
+	<xs:element name="SomaticNgsReport">
+		<xs:annotation>
+			<xs:documentation>Somatic NGS report </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="ReportGeneration">
+					<xs:annotation>
+						<xs:documentation>Meta data about the report generation</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:attribute name="date" type="xs:date" use="required">
+							<xs:annotation>
+								<xs:documentation>date of report creation</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="user_name" use="required">
+							<xs:annotation>
+								<xs:documentation>user that created the report</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="1"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="software" use="required">
+							<xs:annotation>
+								<xs:documentation>software that created the report (including version if possible)</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="1"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="PatientInfo">
+					<xs:annotation>
+						<xs:documentation>Meta data about the patient</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="DiseaseInfo" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Disease and phenotype information of the patient</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="type" use="required">
+										<xs:annotation>
+											<xs:documentation>Source database of the disease/phenotype identifier</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="ICD10"/>
+												<xs:enumeration value="HPO"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="identifier" use="required">
+										<xs:annotation>
+											<xs:documentation>Disease/phenotype identifier</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="sap_patient_identifier" type="xs:string">
+							<xs:annotation>
+								<xs:documentation>SAP patient identifier</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="TumorSample">
+					<xs:annotation>
+						<xs:documentation>Information about the tumor sample</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="QcTerm" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>QC terms of the sample as defined in https://github.com/imgag/ngs-bits/blob/master/src/cppNGS/Resources/qcML.obo</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="id" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>accession of the term</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="name" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>name of the term</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="def" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>extended description of the term</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="value" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>QC metric value</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="name" use="required">
+							<xs:annotation>
+								<xs:documentation>sample name/identifier</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="1"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="processing_system" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>processing system name, e.g. 'Panel XY', etc.</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="processing_system_type" use="required">
+							<xs:annotation>
+								<xs:documentation>processing system type</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:enumeration value="WGS"/>
+									<xs:enumeration value="WES"/>
+									<xs:enumeration value="Panel"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="sequencer" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>Sequencer used for data generation</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="average_depth" use="required">
+							<xs:annotation>
+								<xs:documentation>Average depth of the sample (in the target region)</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:float">
+									<xs:minInclusive value="0"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="tumor_content_histology">
+							<xs:annotation>
+								<xs:documentation>tumor content determined by pathology</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:float">
+									<xs:minInclusive value="0"/>
+									<xs:maxInclusive value="1"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="tumor_content_bioinformatic">
+							<xs:annotation>
+								<xs:documentation>tumor content determined from the data</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:float">
+									<xs:minInclusive value="0"/>
+									<xs:maxInclusive value="1"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="mutation_burden">
+							<xs:annotation>
+								<xs:documentation>tumor mutation burden in mutations per megabase</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:float">
+									<xs:minInclusive value="0"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="microsatellite_instability">
+							<xs:annotation>
+								<xs:documentation>Microsatellite instability score</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:float">
+									<xs:minInclusive value="0"/>
+									<xs:maxInclusive value="2"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="hrd_score">
+							<xs:annotation>
+								<xs:documentation>homologous recombination deficiency score (TOP-ART study)</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:int"/>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="hrd_score_chromo">
+							<xs:annotation>
+								<xs:documentation>homologous recombination deficiency score (sum of LOHs, telomeric allelic imbalances and long state transitions) as used at IMGAG</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:int"/>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="NormalSample" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Information about the normal sample used as reference for the tumor sample</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="QcTerm" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>QC terms of the sample as defined in https://github.com/imgag/ngs-bits/blob/master/src/cppNGS/Resources/qcML.obo</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="id" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>accession of the term</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="name" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>name of the term</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="def" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>extended description of the term</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="value" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>QC metric value</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="name" use="required">
+							<xs:annotation>
+								<xs:documentation>sample name/identifier</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="1"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="processing_system" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>processing system name, e.g. 'Panel XY', etc.</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="processing_system_type" use="required">
+							<xs:annotation>
+								<xs:documentation>processing system type</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:enumeration value="WGS"/>
+									<xs:enumeration value="WES"/>
+									<xs:enumeration value="Panel"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="sequencer" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>Sequencer used for data generation</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="average_depth" use="required">
+							<xs:annotation>
+								<xs:documentation>Average depth of the sample (in the target region)</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:float">
+									<xs:minInclusive value="0"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="AnalysisPipeline">
+					<xs:annotation>
+						<xs:documentation>Information about the used analysis pipeline</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:attribute name="name" use="required">
+							<xs:annotation>
+								<xs:documentation>name of the used analysis pipeline</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="1"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="version" use="required">
+							<xs:annotation>
+								<xs:documentation>version of the analysis pipeline</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="1"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="url">
+							<xs:annotation>
+								<xs:documentation>URL where ithe analysis pipeline is described</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="1"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="comment">
+							<xs:annotation>
+								<xs:documentation>Comments. Here the prpeline can be described and tools for individual steps can be listed. At least the variant caller should be given.</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="TargetRegion">
+					<xs:annotation>
+						<xs:documentation>Information about the traget region used for the analysis</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="Region" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Single target region</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="chr" use="required">
+										<xs:annotation>
+											<xs:documentation>chromosome</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string"/>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="start" type="xs:unsignedInt" use="required">
+										<xs:annotation>
+											<xs:documentation>genomic start position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="end" type="xs:unsignedInt" use="required">
+										<xs:annotation>
+											<xs:documentation>genomic end position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="Gene" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>List of genes contained in target region.</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="name" use="required">
+										<xs:annotation>
+											<xs:documentation>Gene symbol (HGNC)</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="id" use="required">
+										<xs:annotation>
+											<xs:documentation>HGNC gene identifer</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="name" use="required">
+							<xs:annotation>
+								<xs:documentation>target region name</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="1"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="VariantList">
+					<xs:annotation>
+						<xs:documentation>Detected high-quality small variants in the tumor</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="Variant" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Representation of a single variant</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="IsInHotspot" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>The variiant lies in a known hotspot</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="source" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>Sources of the information, e.g. database name</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="source_version" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>Version of the source</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="Gene" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Genes that overlap the variant</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="IsTumorSuppressor" minOccurs="0">
+														<xs:complexType>
+															<xs:attribute name="source" type="xs:string" use="required">
+																<xs:annotation>
+																	<xs:documentation>Sources of the information, e.g. database name</xs:documentation>
+																</xs:annotation>
+															</xs:attribute>
+															<xs:attribute name="source_version" type="xs:string" use="required">
+																<xs:annotation>
+																	<xs:documentation>Version of the source</xs:documentation>
+																</xs:annotation>
+															</xs:attribute>
+														</xs:complexType>
+													</xs:element>
+													<xs:element name="IsOncoGene" minOccurs="0">
+														<xs:complexType>
+															<xs:attribute name="source" type="xs:string" use="required">
+																<xs:annotation>
+																	<xs:documentation>Sources of the information, e.g. database name</xs:documentation>
+																</xs:annotation>
+															</xs:attribute>
+															<xs:attribute name="source_version" type="xs:string" use="required">
+																<xs:annotation>
+																	<xs:documentation>Version of the source</xs:documentation>
+																</xs:annotation>
+															</xs:attribute>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+												<xs:attribute name="name" use="required">
+													<xs:annotation>
+														<xs:documentation>HGNC gene name</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="id" use="required">
+													<xs:annotation>
+														<xs:documentation>HGNC gene identifer</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="role">
+													<xs:annotation>
+														<xs:documentation>Role of the gene in cancer.</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:enumeration value="activating"/>
+															<xs:enumeration value="loss_of_function"/>
+															<xs:enumeration value="ambiguous"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="TranscriptInformation" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Transcript-specific annotation data</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="transcript_id" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>transcript identifier, i.e. RefSeq NM or Ensembl ENST</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="gene" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>HGNC gene name </xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="type" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>variant type, e.g. missense</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="hgvs_c" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>HGVS-compliant  cDNA change</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="hgvs_p" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>HGVS-compliant protein change</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="exon" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>exon number, e.g. 11/27. The second number is the overal number of exons of the transcript</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="variant_type" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>variant type according to sequence ontology, see http://www.sequenceontology.org/</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="main_transcript" type="xs:boolean" use="required">
+													<xs:annotation>
+														<xs:documentation>Most important transcript of the gene that should be used e.g. in a report.</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="Annotation" minOccurs="0" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:attribute name="type" use="required">
+													<xs:annotation>
+														<xs:documentation>Annotation type</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:enumeration value="dbSNP identifier"/>
+															<xs:enumeration value="COSMIC identifier"/>
+															<xs:enumeration value="ClinVar identifier"/>
+															<xs:enumeration value="gnomAD allele-freuqency (exome)"/>
+															<xs:enumeration value="gnomAD allele-frequency (genome)"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="version" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>Version of the annotation, e.g. the database or algorithm version</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="value" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>Sources of the information, e.g. database name</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="chr" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>chromosome</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="start" type="xs:int" use="required">
+										<xs:annotation>
+											<xs:documentation>genomic start position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="end" type="xs:int" use="required">
+										<xs:annotation>
+											<xs:documentation>genomic end position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="ref" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>reference base sequence (VCF style for indels)</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="obs" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>observed base sequence (VCF style for indels)</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="af_tumor" use="required">
+										<xs:annotation>
+											<xs:documentation>Tumor allele frequency</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:float">
+												<xs:minInclusive value="0"/>
+												<xs:maxInclusive value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="depth_tumor" type="xs:int" use="required">
+										<xs:annotation>
+											<xs:documentation>Tumor depth</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="af_normal">
+										<xs:annotation>
+											<xs:documentation>Normal sample frequency</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:float">
+												<xs:minInclusive value="0"/>
+												<xs:maxInclusive value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="depth_normal" type="xs:int">
+										<xs:annotation>
+											<xs:documentation>Normal sample depth</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="effect">
+										<xs:annotation>
+											<xs:documentation>Effect of the variant according VICC standard.</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="oncogenic"/>
+												<xs:enumeration value="likely_oncogenic"/>
+												<xs:enumeration value="uncertain_significance"/>
+												<xs:enumeration value="likely_benign"/>
+												<xs:enumeration value="benign"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="CnvList">
+					<xs:annotation>
+						<xs:documentation>Detected high-quality CNVs in the tumor</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="Cnv" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Representation of a single CNV</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="Gene" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Genes that overlap the CNV</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="IsTumorSuppressor" minOccurs="0">
+														<xs:complexType>
+															<xs:attribute name="source" type="xs:string" use="required">
+																<xs:annotation>
+																	<xs:documentation>Sources of the information, e.g. database name</xs:documentation>
+																</xs:annotation>
+															</xs:attribute>
+															<xs:attribute name="source_version" type="xs:string" use="required">
+																<xs:annotation>
+																	<xs:documentation>Version of the source</xs:documentation>
+																</xs:annotation>
+															</xs:attribute>
+														</xs:complexType>
+													</xs:element>
+													<xs:element name="IsOncoGene" minOccurs="0">
+														<xs:complexType>
+															<xs:attribute name="source" type="xs:string" use="required">
+																<xs:annotation>
+																	<xs:documentation>Sources of the information, e.g. database name</xs:documentation>
+																</xs:annotation>
+															</xs:attribute>
+															<xs:attribute name="source_version" type="xs:string" use="required">
+																<xs:annotation>
+																	<xs:documentation>Version of the source</xs:documentation>
+																</xs:annotation>
+															</xs:attribute>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+												<xs:attribute name="name" use="required">
+													<xs:annotation>
+														<xs:documentation>HGNC gene name</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="id" use="required">
+													<xs:annotation>
+														<xs:documentation>HGNC gene identifer</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="role">
+													<xs:annotation>
+														<xs:documentation>Role of the gene in cancer.</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:enumeration value="activating"/>
+															<xs:enumeration value="loss_of_function"/>
+															<xs:enumeration value="ambiguous"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="chr" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>chromosome</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="start" type="xs:int" use="required">
+										<xs:annotation>
+											<xs:documentation>genomic start position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="end" type="xs:int" use="required">
+										<xs:annotation>
+											<xs:documentation>genomic end position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="start_band" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>cytogenetic band start position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="end_band" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>cytogenetic band end position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="af" use="required">
+										<xs:annotation>
+											<xs:documentation>Allele frequency in tumor sample (not considerung the tumor content)</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:float">
+												<xs:minInclusive value="0"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="alteration" use="required">
+										<xs:annotation>
+											<xs:documentation>Copy number state</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="AMP"/>
+												<xs:enumeration value="DEL"/>
+												<xs:enumeration value="LOH"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="type" use="required">
+										<xs:annotation>
+											<xs:documentation>CNV type</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="chromosome"/>
+												<xs:enumeration value="partial chromosome"/>
+												<xs:enumeration value="p-arm"/>
+												<xs:enumeration value="q-arm"/>
+												<xs:enumeration value="partial p-arm"/>
+												<xs:enumeration value="partial q-arm"/>
+												<xs:enumeration value="focal"/>
+												<xs:enumeration value="cluster"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="cn" use="required">
+										<xs:annotation>
+											<xs:documentation>Estimated copy-number in tumor</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:int">
+												<xs:minInclusive value="0"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="cn_a" use="required">
+										<xs:annotation>
+											<xs:documentation>Estimated copy-number in allele A of tumor</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:int">
+												<xs:minInclusive value="0"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="cn_b" use="required">
+										<xs:annotation>
+											<xs:documentation>Estimated copy-number in allele B of tumor</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:int">
+												<xs:minInclusive value="0"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="ReportDocument" nillable="false">
+					<xs:annotation>
+						<xs:documentation>Generated report text document - base64 encoded</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:simpleContent>
+							<xs:extension base="xs:base64Binary">
+								<xs:attribute name="format" use="required">
+									<xs:annotation>
+										<xs:documentation>Data format of the document</xs:documentation>
+									</xs:annotation>
+									<xs:simpleType>
+										<xs:restriction base="xs:string">
+											<xs:enumeration value="HTML"/>
+											<xs:enumeration value="RTF"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+							</xs:extension>
+						</xs:simpleContent>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="ReportDocumentParts" nillable="false" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>base64-encoded report tables/images for re-use in other software</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:simpleContent>
+							<xs:extension base="xs:base64Binary">
+								<xs:attribute name="name" use="required">
+									<xs:annotation>
+										<xs:documentation>Name of the part.</xs:documentation>
+									</xs:annotation>
+									<xs:simpleType>
+										<xs:restriction base="xs:string">
+											<xs:enumeration value="summary"/>
+											<xs:enumeration value="relevant_variants"/>
+											<xs:enumeration value="unclear_variants"/>
+											<xs:enumeration value="cnvs"/>
+											<xs:enumeration value="svs"/>
+											<xs:enumeration value="pharmaco_genetics"/>
+											<xs:enumeration value="general_info"/>
+											<xs:enumeration value="igv_screenshot"/>
+											<xs:enumeration value="mtb_summary"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+								<xs:attribute name="format" use="required">
+									<xs:annotation>
+										<xs:documentation>Data format of the part.</xs:documentation>
+									</xs:annotation>
+									<xs:simpleType>
+										<xs:restriction base="xs:string">
+											<xs:enumeration value="PNG"/>
+											<xs:enumeration value="RTF"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+							</xs:extension>
+						</xs:simpleContent>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="version" use="required">
+				<xs:annotation>
+					<xs:documentation>version of the format</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:int">
+						<xs:minInclusive value="4"/>
+						<xs:maxInclusive value="4"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="genome_build" use="required">
+				<xs:annotation>
+					<xs:documentation>reference genome build that all variant positions refer to</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="GRCh37"/>
+						<xs:enumeration value="GRCh38"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

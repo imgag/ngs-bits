@@ -256,9 +256,9 @@ public:
 						for (int i=0; i<cn_hist.size(); ++i)
 						{
 							if (i>0) stream << ',';
-							stream << cn_hist[i];
+							stream << (i==2 ? sample_count-matches : cn_hist[i]);
 						}
-						stream << "\t" << QString::number(af, 'f', 2) << "\n";
+						stream << "\t" << QString::number(af, 'f', 4) << "\n";
 					}
 				}
 			}

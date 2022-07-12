@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <DiagnosticNgsReport version="1" genome_build="GRCh37">
     <ReportGeneration date="2022-01-30" user_name="ahtest1" software="cppNGSD-TEST-CASE"/>
-    <Sample name="DX000001_01" processing_system="tumor only test panel" processing_system_type="Panel" comment="MHH_STUFF_IN_COMMENT"/>
+    <Sample name="DX000001_01" processing_system="tumor only test panel" processing_system_type="Panel" comments="MHH_STUFF_IN_COMMENT">
+        <QcTerm id="QC:2000030" name="target region 100x percentage" def="Percentage of the target region that is covered at least 100-fold." value="94.7"/>
+        <QcTerm id="QC:2000032" name="target region 500x percentage" def="Percentage of the target region that is covered at least 500-fold." value="89.87"/>
+        <QcTerm id="QC:2000025" name="target region read depth" def="Average sequencing depth in target region." value="210.3"/>
+        <QcTerm id="NONE" name="kasp" def="" value="n/a"/>
+    </Sample>
     <AnalysisPipeline name="megSAP" version="0.2-413-gaf6ed63"/>
     <TargetRegion name="tum_only_target_filter">
         <Region chr="chr3" start="63611701" end="63611806"/>
@@ -18,11 +23,16 @@
         <Region chr="chr3" start="69956455" end="69956530"/>
         <Region chr="chr3" start="69959273" end="69959420"/>
         <Region chr="chr3" start="69964847" end="69965248"/>
-        <Gene name="MITF" id="HGNC:7105"/>
+        <Gene name="MITF" id="HGNC:7105" bases="4680">
+            <Omim gene="156845" phenotype="COMMAD syndrome, 617306 (3)" phenotype_number="617306"/>
+            <Omim gene="156845" phenotype="{Melanoma, cutaneous malignant, susceptibility to, 8}, 614456 (3)" phenotype_number="614456"/>
+            <Gap chr="chr3" start="69937822" end="69938049"/>
+            <Gap chr="chr3" start="69964847" end="69965248"/>
+        </Gene>
     </TargetRegion>
     <VariantList>
         <Variant chr="chr3" start="63611706" end="63611706" ref="G" obs="A" allele_frequency="0.4063" depth="694">
-            <TranscriptInformation transcript_id="ENST00000295894" gene="SYNPR" type="intron_variant" hgvs_c="c.540+2390G&gt;A" hgvs_p="" exon="intron4/4" variant_type="intron_variant" main_transcript="true"/>
+            <TranscriptInformation transcript_id="ENST00000295894" gene="SYNPR" type="intron_variant" hgvs_c="c.540+2390G&gt;A" hgvs_p="" exon="intron4/4" variant_type="intron_variant" main_transcript="false"/>
             <TranscriptInformation transcript_id="ENST00000460711" gene="SYNPR" type="intron_variant" hgvs_c="c.573+2390G&gt;A" hgvs_p="" exon="intron5/5" variant_type="intron_variant" main_transcript="false"/>
             <TranscriptInformation transcript_id="ENST00000465156" gene="SYNPR" type="intron_variant" hgvs_c="c.349-3518G&gt;A" hgvs_p="" exon="intron3/3" variant_type="intron_variant" main_transcript="false"/>
             <TranscriptInformation transcript_id="ENST00000478300" gene="SYNPR" type="intron_variant" hgvs_c="c.600+2390G&gt;A" hgvs_p="" exon="intron5/5" variant_type="intron_variant" main_transcript="false"/>

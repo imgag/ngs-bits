@@ -9,13 +9,12 @@ private slots:
 	
 	void default_parameters()
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
 		//init
 		NGSD db(true);
 		db.init();
-		EXECUTE("NGSDImportHGNC", "-test -in " + TESTDATA("data_in/NGSDImportHGNC_in1.txt"));
+		EXECUTE("NGSDImportHGNC", "-test -in " + TESTDATA("data_in/NGSDImportHGNC_in1.txt") + " -ensembl " + TESTDATA("data_in/NGSDImportEnsembl_in.gff3"));
 
 		//test
 		EXECUTE("GenesToApproved", "-test -in " + TESTDATA("data_in/GenesToApproved_in1.txt") + " -out out/GenesToApproved_out1.txt");
@@ -24,13 +23,12 @@ private slots:
 
 	void with_report_ambiguous()
 	{
-		QString host = Settings::string("ngsd_test_host", true);
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
 		//init
 		NGSD db(true);
 		db.init();
-		EXECUTE("NGSDImportHGNC", "-test -in " + TESTDATA("data_in/NGSDImportHGNC_in1.txt"));
+		EXECUTE("NGSDImportHGNC", "-test -in " + TESTDATA("data_in/NGSDImportHGNC_in1.txt") + " -ensembl " + TESTDATA("data_in/NGSDImportEnsembl_in.gff3"));
 
 		//test
 		EXECUTE("GenesToApproved", "-test -in " + TESTDATA("data_in/GenesToApproved_in1.txt") + " -report_ambiguous -out out/GenesToApproved_out2.txt");

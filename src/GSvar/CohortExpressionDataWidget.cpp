@@ -78,7 +78,9 @@ void CohortExpressionDataWidget::loadExpressionData()
 			if(col_idx > 0)
 			{
 				// add numeric QTableWidgetItem
-				QString rounded_number = QString::number(Helper::toDouble(row.at(col_idx)), 'f', 3);
+				double value = Helper::toDouble(row.at(col_idx));
+				QString rounded_number = "0";
+				if (value != 0) rounded_number = QString::number(value, 'f', 3);
 				ui_->tw_cohort_data->setItem(row_idx, col_idx, new NumericWidgetItem(rounded_number));
 			}
 			else
@@ -87,6 +89,7 @@ void CohortExpressionDataWidget::loadExpressionData()
 				ui_->tw_cohort_data->setItem(row_idx, col_idx, new QTableWidgetItem(row.at(col_idx)));
 			}
 		}
+
 	}
 
 	//hide vertical header

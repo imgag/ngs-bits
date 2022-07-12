@@ -16,6 +16,7 @@ SOURCES += main.cpp\
     ReportWorker.cpp \
     TrioDialog.cpp \
     HttpHandler.cpp \
+    UserPermissionsEditor.cpp \
     ValidationDialog.cpp \
     ClassificationDialog.cpp \
     ApprovedGenesDialog.cpp \
@@ -31,7 +32,6 @@ SOURCES += main.cpp\
     CnvWidget.cpp \
     GeneSelectorDialog.cpp \
     MultiSampleDialog.cpp \
-    NGSDReannotationDialog.cpp \
     SmallVariantSearchWidget.cpp \
     PhenotypeSelectionWidget.cpp \
     RohWidget.cpp \
@@ -104,9 +104,15 @@ SOURCES += main.cpp\
     CacheInitWorker.cpp \
     BlatWidget.cpp \
     AnalysisInformationWidget.cpp \
-    PhenotypeSourceEvidenceSelector.cpp \
     FusionWidget.cpp \
-    CohortExpressionDataWidget.cpp
+    CohortExpressionDataWidget.cpp \
+    GapClosingEditDialog.cpp \
+    CausalVariantEditDialog.cpp \
+    MosaicWidget.cpp \
+    VariantOpenDialog.cpp \
+    PhenotypeSettingsDialog.cpp \
+    GenLabImportDialog.cpp
+
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
     DatabaseServiceRemote.h \
@@ -116,6 +122,7 @@ HEADERS += MainWindow.h \
     ReportWorker.h \
     TrioDialog.h \
     HttpHandler.h \
+    UserPermissionsEditor.h \
     ValidationDialog.h \
     ClassificationDialog.h \
     ApprovedGenesDialog.h \
@@ -131,7 +138,6 @@ HEADERS += MainWindow.h \
     CnvWidget.h \
     GeneSelectorDialog.h \
     MultiSampleDialog.h \
-    NGSDReannotationDialog.h \
     SmallVariantSearchWidget.h \
     PhenotypeSelectionWidget.h \
     RohWidget.h \
@@ -205,15 +211,22 @@ HEADERS += MainWindow.h \
     BlatWidget.h \
     AnalysisInformationWidget.h \
     CacheInitWorker.h \
-    PhenotypeSourceEvidenceSelector.h \
     FusionWidget.h \
-    CohortExpressionDataWidget.h
+    CohortExpressionDataWidget.h \
+    GapClosingEditDialog.h \
+    CausalVariantEditDialog.h \
+    MosaicWidget.h \
+    VariantOpenDialog.h \
+    PhenotypeSettingsDialog.h \
+    GenLabImportDialog.h
+
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
     TrioDialog.ui \
     ClassificationDialog.ui \
+    UserPermissionsEditor.ui \
     ValidationDialog.ui \
     ApprovedGenesDialog.ui \
     GeneWidget.ui \
@@ -228,7 +241,6 @@ FORMS    += MainWindow.ui \
     CnvWidget.ui \
     GeneSelectorDialog.ui \
     MultiSampleDialog.ui \
-    NGSDReannotationDialog.ui \
     SmallVariantSearchWidget.ui \
     PhenotypeSelectionWidget.ui \
     RohWidget.ui \
@@ -292,9 +304,14 @@ FORMS    += MainWindow.ui \
     BlatWidget.ui \
     AnalysisInformationWidget.ui \
     LiftOverWidget.ui \
-    PhenotypeSourceEvidenceSelector.ui \
     FusionWidget.ui \
-    CohortExpressionDataWidget.ui
+    CohortExpressionDataWidget.ui \
+    GapClosingEditDialog.ui \
+    CausalVariantEditDialog.ui \
+    MosaicWidget.ui \
+    VariantOpenDialog.ui \
+    PhenotypeSettingsDialog.ui \
+    GenLabImportDialog.ui
 
 include("../app_gui.pri")
 

@@ -4,6 +4,7 @@
 #include "BedFile.h"
 #include "GeneSet.h"
 #include "FileLocation.h"
+#include "FileInfo.h"
 
 //Database access service interface.
 class DatabaseService
@@ -11,6 +12,10 @@ class DatabaseService
 public:
 	//Returns if the database is enabled.
 	virtual bool enabled() const = 0;
+
+	//Returns an error message, if the user name and/or password are/is incorrect.
+	//An empty string is returned otherwise.
+	virtual QString checkPassword(const QString user_name, const QString password) const = 0;
 
 	//############################## processing system files ##############################
 	//Returns the processing system target region file.
@@ -24,8 +29,12 @@ public:
 
 	//Returns a FileLocation for a given file type of a processed sample
 	virtual FileLocation processedSamplePath(const QString& processed_sample_id, PathType type) const = 0;
+	//Return metdata for the logs of an analysis job by its id
+	virtual FileInfo analysisJobLatestLogInfo(const int& job_id) const = 0;
 	//Returns a location for a GSvar file based on the corresponding job id
-	virtual FileLocation analysisJobGSvarFile(const int& job_id) const = 0;
+	virtual FileLocation analysisJobGSvarFile(const int& job_id) const = 0;	
+	//Returns a log file location object for a specific job based on its id
+	virtual FileLocation analysisJobLogFile(const int& job_id) const = 0;
 };
 
 #endif // DATABASESERVICE_H

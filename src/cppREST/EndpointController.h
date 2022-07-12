@@ -2,11 +2,12 @@
 #define ENDPOINTCONTROLLER_H
 
 #include "cppREST_global.h"
+#include "Log.h"
 #include "HttpParts.h"
-#include "FileCache.h"
 #include "EndpointManager.h"
 #include "UrlManager.h"
 #include "HttpResponse.h"
+#include "SessionManager.h"
 #include <QUrl>
 #include <QDir>
 
@@ -22,15 +23,15 @@ public:
 	/// Provides a random access to a file or streams it (depending on the headers), as well as displays a folder
 	/// content for a specific project folder linked to a temporary URL
 	static HttpResponse serveStaticForTempUrl(const HttpRequest& request);
-	/// Serves or streams file content saved in the server cache
-	static HttpResponse serveStaticFileFromCache(const HttpRequest& request);
-	/// Returns file information in JSON format for a specific file
-	static HttpResponse getFileInfo(const HttpRequest& request);
 
+	/// Serves a file for a byte range request (i.e. specific fragment of a file)
 	static HttpResponse createStaticFileRangeResponse(QString filename, QList<ByteRange> byte_ranges, ContentType type, bool is_downloadable);
+	/// Serves a stream, used to transfer files
 	static HttpResponse createStaticStreamResponse(QString filename, bool is_downloadable);
+	/// Serves a file from the server cache (not fully implementd and not used yet)
 	static HttpResponse createStaticFromCacheResponse(QString id, QList<ByteRange> byte_ranges, ContentType type, bool is_downloadable);
-	static HttpResponse serveStaticFile(QString filename, RequestMethod method, QMap<QString, QList<QString>> headers);
+	/// Handles all requests for static data
+	static HttpResponse serveStaticFile(QString filename, RequestMethod method, ContentType content_type, QMap<QString, QList<QString>> headers);
 
 protected:
 	EndpointController();
@@ -38,8 +39,8 @@ protected:
 private:
 	static EndpointController& instance();
 
-	static HttpResponse serveFolderContent(QString path, QString request_prefix, QString request_path, QList<QString> request_path_params);
-	static HttpResponse serveFolderListing(QString folder_title, QString cur_folder_url, QString parent_folder_url, QList<FolderItem> items);
+	static HttpResponse serveFolderContent(const QString path, const HttpRequest& request);
+	static HttpResponse serveFolderListing(QString folder_title, QString cur_folder_url, QString parent_folder_url, QList<FolderItem> items, QString token);
 
 	static QString getEndpointHelpTemplate(QList<Endpoint> endpoint_list);
 	static QString generateHelpPage();
@@ -47,9 +48,6 @@ private:
 	static QString generateHelpPage(const QString& path);
 	static QString getServedTempPath(QList<QString> path_parts);
 	static QString getServedRootPath(const QList<QString>& path_parts);
-
-	static StaticFile readFileContent(const QString& filename, const QList<ByteRange>& byte_ranges);
-	static QString addFileToCache(const QString& filename);
 	static bool hasOverlappingRanges(const QList<ByteRange> ranges);
 };
 
