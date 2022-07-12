@@ -2099,6 +2099,8 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 					init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
 				}
 			}
+			init_commands.append("viewaspairs");
+			init_commands.append("colorBy UNEXPECTED_PAIR");
 
 			//execute commands
 			bool debug = false;
