@@ -971,16 +971,12 @@ QString NGSD::processedSampleId(const QString& filename, bool throw_if_fails)
 	return query.value(0).toString();
 }
 
-QString NGSD::processedSampleCnvCallset(const QString& processed_sample_id)
-{
-	return getValue("SELECT id FROM cnv_callset WHERE processed_sample_id='" +processed_sample_id + "'").toString();
-}
-
 void NGSD::removeInitData()
 {
 	getQuery().exec("DELETE FROM user WHERE user_id='admin'");
 	getQuery().exec("DELETE FROM user WHERE user_id='genlab_import'");
 	getQuery().exec("DELETE FROM user WHERE user_id='unknown'");
+	getQuery().exec("DELETE FROM user WHERE user_id='init_date'"); //needing for test database
 
 	getQuery().exec("DELETE FROM species WHERE name='human'");
 
@@ -2025,7 +2021,7 @@ BedpeLine NGSD::structuralVariant(int sv_id, StructuralVariantType type, const B
 		// get SV from the NGSD
 		SqlQuery query = getQuery();
 		query.exec("SELECT * FROM `" + table + "` WHERE id=" + QByteArray::number(sv_id));
-		if (query.size() == 0 ) THROW(DatabaseException, "SV with id '" + QString::number(sv_id) + "'not found in table '" + table + "'!" );
+		if (query.size() == 0 ) THROW(DatabaseException, "SV with id '" + QString::number(sv_id) + "' not found in table '" + table + "'!" );
 		query.next();
 		chr1 = Chromosome(query.value("chr").toByteArray());
 		chr2 = Chromosome(query.value("chr").toByteArray());
@@ -2066,7 +2062,7 @@ BedpeLine NGSD::structuralVariant(int sv_id, StructuralVariantType type, const B
 		// get INS from the NGSD
 		SqlQuery query = getQuery();
 		query.exec("SELECT * FROM `sv_insertion` WHERE id = " + QByteArray::number(sv_id));
-		if (query.size() == 0 ) THROW(DatabaseException, "SV with id '" + QString::number(sv_id) + "'not found in table 'sv_insertion'!" );
+		if (query.size() == 0 ) THROW(DatabaseException, "SV with id '" + QString::number(sv_id) + "' not found in table 'sv_insertion'!" );
 		query.next();
 		Chromosome chr = Chromosome(query.value("chr").toByteArray());
 		int pos = query.value("pos").toInt();
@@ -2827,7 +2823,7 @@ void NGSD::init(QString password)
 	//initilize
 	executeQueriesFromFile(":/resources/NGSD_schema.sql");
 	executeQueriesFromFile(":/resources/NGSD_initial_data.sql");
-	if (test_db_)
+	if (test_db_) //used to speed up tests by clearing tables only instead of re-creating them
 	{
 		getQuery().exec("INSERT INTO user VALUES (NULL, 'init_date', 'pass', 'user', 'some name','some_name@email.de', NOW(), NULL, 0, NULL)");
 	}
@@ -6758,14 +6754,13 @@ void NGSD::exportTable(const QString& table, QTextStream& out, QString where_cla
 {
 	if (!table.isEmpty())
 	{
-		Log::info("Exporting `" + table + "`");
 		TableInfo table_info = NGSD().tableInfo(table);
 		int field_count = table_info.fieldCount();
 		QStringList field_names = table_info.fieldNames();
 
 		SqlQuery query = getQuery();
 		QString where;
-		if (!where_clause.isEmpty()) where = " WHERE(" + where_clause + ")";
+		if (!where_clause.isEmpty()) where = " WHERE (" + where_clause + ")";
 		QString sql_query = "SELECT * FROM " + table + where;
 
 		query.exec(sql_query);

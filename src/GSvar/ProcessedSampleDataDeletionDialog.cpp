@@ -176,6 +176,11 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 		}
 	}
 
+	if (ui_.expression_data->isChecked())
+	{
+		db.getQuery().exec("DELETE FROM expression WHERE processed_sample_id=" + ps_ids_.join(" OR processed_sample_id="));
+	}
+
 	//somatic variants
 	if (ui_.somatic_var_small->isChecked())
 	{

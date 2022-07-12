@@ -550,11 +550,7 @@ public:
 	///Escapes SQL special characters in a text
 	QString escapeText(QString text);
 
-	///Creates a SQL dump for a given table
-	/// table - the name of the database table
-	/// out - text output stream
-	/// where_clause - WHERE condition to be added to the sql query
-	/// sql_history - hash table that keeps track of already exported records: QString - table name, QSet<int> - list of IDs
+	///Creates a SQL dump for a given table. sql_history is a hash table that keeps track of already exported records: table name > exported IDs set.
 	void exportTable(const QString& table, QTextStream& out, QString where_clause = "", QMap<QString, QSet<int>> *sql_history = nullptr) const;	
 
 	///Creates a DBTable with data from an SQL query.
@@ -679,8 +675,6 @@ public:
 	QString sampleId(const QString& filename, bool throw_if_fails = true);
 	///Returns the NGSD processed sample ID from a file name or processed sample name. Throws an exception if it could not be determined.
 	QString processedSampleId(const QString& filename, bool throw_if_fails = true);	
-	///Returns CNV callset for the given processed sample id
-	QString processedSampleCnvCallset(const QString& processed_sample_id);
 	///Removes init data for the database
 	void removeInitData();
 
