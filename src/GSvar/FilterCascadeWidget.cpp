@@ -209,7 +209,7 @@ void FilterCascadeWidget::editSelectedFilter()
 	int index = currentFilterIndex();
 	if (index==-1) return;
 
-	//no paramters => no edit dialog
+	//no parameters => no edit dialog
 	if (filters_[index]->parameters().count()==0) return;
 
 	FilterEditDialog dlg(filters_[index], this);

@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2022_04
+	> git checkout 2022_07
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -26,17 +26,19 @@ Depending on your operating system, building instructions vary slightly:
 
 ## ChangeLog
 
-Changes in release 2022_04:  
+Changes in release 2022_07:  
 
-* general: updated default genome build from 'hg19' to 'hg38' for all tools that require genome builds.
-* added tools: BedLiftOver, BedpeSort, VcfAnnotateFromBigWig.
+* VcfAnnotateFromVcf: refactoring of command line parameters and updated documentation.
+* SampleSimilarity: changed number of SNPs for BAM mode, MODIFIER impact variants are now ignored in GSvar mode to make scores more similar between exomes and genomes, updated documentation.
+* MappingQC: added metrics for uniformity of coverage in WGS mode.
+* HgvsToVcf: Added handling of unnecessary sequences in 'delins', added support for dup/del with trailing sequence.
+* VcfSort: files without FORMAT/SAMPLE columns are can now be processed without adding the column.
+* VcfLeftNormalize: improved runtime when 'stream' parameter is not used.
+* added tools: VcfAnnotateHexplorer, HgvsToVcf, VcfAnnotateConsequence 
 * NGSD:
-	* user: added user type enum value 'restricted_user' and associated table 'user_permissions'.
-	* sample: added sample type enum value 'cfDNA'.
-	* sample: added field 'tissue'.
-	* added table: 'variant_literature' for publications associated with a variant.
-	* sv_deletion/sv_duplication/sv_insertion/sv_inversion/sv_translocation: added field 'genotype'.
-
+	* transcript: added biotype, MANE Select flag, MANE Plus Clinical flag, Ensembl canonical flag.
+	* variant: removed 1000g AF.
+	* sample: added patient identifer, added tissue enum.
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 
@@ -83,7 +85,7 @@ Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 The default output format of the quality control tools is [qcML](https://pubmed.ncbi.nlm.nih.gov/24760958/), an XML-based format for -omics quality control, that consists of an [XML schema](https://github.com/imgag/ngs-bits/blob/master/src/cppNGS/Resources/qcML_0.0.8.xsd), which defined the overall structure of the format, and an [ontology](https://github.com/imgag/ngs-bits/blob/master/src/cppNGS/Resources/qcML.obo) which defines the QC metrics that can be used.
 
 * [ReadQC](doc/tools/ReadQC.md) - Quality control tool for FASTQ files.
-* [MappingQC](doc/tools/MappingQC.md) - Quality control tool for a BAM file.
+* [MappingQC](doc/tools/MappingQC/index.md) - Quality control tool for a BAM file.
 * [VariantQC](doc/tools/VariantQC.md) - Quality control tool for a VCF file.
 * [SomaticQC](doc/tools/SomaticQC.md) - Quality control tool for tumor-normal pairs ([paper](https://www.ncbi.nlm.nih.gov/pubmed/28130233) and [example output data](doc/data/somatic_qc.zip?raw=true)).
 * [TrioMaternalContamination](doc/tools/TrioMaternalContamination/index.md) - Detects maternal contamination of a child using SNPs from parents.
@@ -139,7 +141,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [VcfAnnotateConsequence](doc/tools/VcfAnnotateConsequence.md) - Adds transcript-specific consequence predictions to a VCF file (similar to Ensembl VEP).
 * [VcfAnnotateFromBed](doc/tools/VcfAnnotateFromBed.md) - Annotates the INFO column of a VCF with data from a BED file.
 * [VcfAnnotateFromBigWig](doc/tools/VcfAnnotateFromBigWig.md) - Annotates the INFO column of a VCF with data from a BED file.
-* [VcfAnnotateFromVcf](doc/tools/VcfAnnotateFromVcf.md) - Annotates the INFO column of a VCF with data from another VCF file (or multiple VCF files if config file is provided)
+* [VcfAnnotateFromVcf](doc/tools/VcfAnnotateFromVcf/index.md) - Annotates a VCF file with data from one or more source VCF files.
 * [VcfAnnotateHexplorer](doc/tools/VcfAnnotateHexplorer.md) - Annotates a VCF with Hexplorer and HBond scores.
 * [VcfBreakMulti](doc/tools/VcfBreakMulti.md) - Breaks multi-allelic variants into several lines, making sure that allele-specific INFO/SAMPLE fields are still valid.
 * [VcfCalculatePRS](doc/tools/VcfCalculatePRS.md) - Calculates the Polgenic Risk Score(s) for a sample.

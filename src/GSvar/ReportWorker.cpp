@@ -21,7 +21,7 @@ void ReportWorker::process()
 	QString archive_folder = Settings::path("gsvar_report_archive");
 	if (archive_folder!="")
 	{
-		QString file_rep_copy = archive_folder + "\\" + data_.ps;
+		QString file_rep_copy = archive_folder + "\\" + QFileInfo(filename_).fileName();
 		if (QFile::exists(file_rep_copy) && !QFile::remove(file_rep_copy))
 		{
 			THROW(FileAccessException, "Could not remove previous report in archive folder: " + file_rep_copy);

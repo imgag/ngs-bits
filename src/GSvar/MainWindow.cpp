@@ -4664,6 +4664,22 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 				}
 			}
 
+			//special handling of study-sample relation
+			if (table=="study_sample")
+			{
+				//skip duplicates
+				QString study = row[0].trimmed();
+				QString study_id = db.getValue("SELECT id FROM study WHERE name=:0", true, study).toString();
+				QString ps = row[1].trimmed();
+				QString ps_id = db.processedSampleId(ps, false);
+				QList<int> duplicate_ids = db.getValuesInt("SELECT id FROM study_sample ss WHERE processed_sample_id='"+ps_id+"' AND study_id='"+study_id+"'");
+				if (!duplicate_ids.isEmpty())
+				{
+					duplicates << study+"/"+ps;
+					continue;
+				}
+			}
+
 			//check tab-separated parts count
 			if (row.count()!=fields.count()) THROW(ArgumentException, "Error: line with more/less than " + QString::number(fields.count()) + " tab-separated parts.");
 			//check and bind
@@ -5050,6 +5066,183 @@ void MainWindow::on_actionUsers_triggered()
 	DBTableAdministration* widget = new DBTableAdministration("user");
 	auto dlg = GUIHelper::createDialog(widget, "User administration");
 	addModelessDialog(dlg);
+}
+
+void MainWindow::on_actionExportTestData_triggered()
+{
+	NGSD db;
+	QMap<QString, QSet<int>> sql_history;
+	QTime timer;
+	QStringList base_tables = {
+		"user",
+		"device",
+		"disease_term",
+		"disease_gene",
+		"gene",
+		"gene_alias",
+		"gene_transcript",
+		"gene_exon",
+		"gene_pseudogene_relation",
+		"geneinfo_germline",
+		"genome",
+		"hpo_term",
+		"hpo_parent",
+		"hpo_genes",
+		"mid",
+		"omim_gene",
+		"omim_phenotype",
+		"omim_preferred_phenotype",
+		"preferred_transcripts",
+		"processing_system",
+		"project",
+		"qc_terms",
+		"sender",
+		"sequencing_run",
+		"somatic_pathway",
+		"somatic_pathway_gene",
+		"somatic_gene_role",
+		"runqc_read",
+		"runqc_lane",
+		"species"
+	};
+
+	try
+	{
+		LoginManager::checkRoleIn(QStringList{"admin", "user"});
+
+		//get and check processed sample list
+		QStringList ps_list;
+		QString ps_text = QInputDialog::getMultiLineText(this, "Test data export", "List the processed samples (one per line):");
+		foreach(const QString& ps, ps_text.split("\n"))
+		{
+			QString ps_id = db.processedSampleId(ps);
+			QString project_type = db.getProcessedSampleData(ps_id).project_type;
+			if (project_type!="test")
+			{
+				THROW(ArgumentException, "Processes sample '" + ps + "' has project type '" +project_type + "', but only samples from type 'test' can be exported!");
+			}
+			ps_list << ps;
+		}
+		if (ps_list.count() == 0) return;
+
+		//get and open output file
+		QString file_name = QFileDialog::getSaveFileName(this, "Export database tables", QDir::homePath()+QDir::separator()+"db_data_"+QDateTime::currentDateTime().toString("dd_MM_yyyy")+".sql", "SQL (*.sql);;All files (*.*)");
+		if (file_name.isEmpty()) return;
+
+		QSharedPointer<QFile> file = Helper::openFileForWriting(file_name, false);
+		QTextStream output_stream(file.data());
+
+		QApplication::setOverrideCursor(Qt::BusyCursor);
+
+		timer.start();
+		for (int i = 0; i < base_tables.count(); i++)
+		{
+			ui_.statusBar->showMessage("Exporting table \"" + base_tables[i] + "\"");
+			QApplication::processEvents();
+			db.exportTable(base_tables[i], output_stream);
+		}
+		Log::perf("Exporting base tables took ", timer);
+
+		timer.start();
+		foreach(const QString& ps, ps_list)
+		{
+			ui_.statusBar->showMessage("Exporting data of " + ps);
+			QApplication::processEvents();
+
+			QString s_id = db.sampleId(ps);
+			QString ps_id = db.processedSampleId(ps);
+			db.exportTable("sample", output_stream, "id='"+s_id+"'", &sql_history);
+			db.exportTable("sample_disease_info", output_stream, "sample_id='"+s_id+"'", &sql_history);
+			db.exportTable("processed_sample", output_stream, "id='"+ps_id+"'", &sql_history);
+			db.exportTable("processed_sample_qc", output_stream, "processed_sample_id='"+ps_id+"'", &sql_history);
+
+			QStringList variant_id_list = db.getValues("SELECT variant_id FROM detected_variant WHERE processed_sample_id='"+ps_id+"'");
+			db.exportTable("variant", output_stream, "id IN ("+variant_id_list.join(", ")+")", &sql_history);
+			db.exportTable("detected_variant", output_stream, "processed_sample_id='"+ps_id+"'", &sql_history);
+
+			QString ps_cnv_id = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=:0", true, ps_id).toString();
+			if (!ps_cnv_id.isEmpty())
+			{
+				db.exportTable("cnv_callset", output_stream, "id="+ps_cnv_id, &sql_history);
+				db.exportTable("cnv", output_stream, "cnv_callset_id="+ps_cnv_id, &sql_history);
+			}
+
+			QString sv_callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id='"+ps_id+"'", true).toString();
+			if (!sv_callset_id.isEmpty())
+			{
+				db.exportTable("sv_callset", output_stream, "id="+sv_callset_id, &sql_history);
+				db.exportTable("sv_deletion", output_stream, "sv_callset_id="+sv_callset_id, &sql_history);
+				db.exportTable("sv_duplication", output_stream, "sv_callset_id="+sv_callset_id, &sql_history);
+				db.exportTable("sv_insertion", output_stream, "sv_callset_id="+sv_callset_id, &sql_history);
+				db.exportTable("sv_inversion", output_stream, "sv_callset_id="+sv_callset_id, &sql_history);
+				db.exportTable("sv_translocation", output_stream, "sv_callset_id="+sv_callset_id, &sql_history);
+			}
+		}
+		Log::perf("Exporting processed sample data took ", timer);
+
+		QApplication::restoreOverrideCursor();
+
+		QMessageBox::information(this, "Test data export", "Exported test data to " + file_name);
+	}
+	catch (Exception& e)
+	{
+		GUIHelper::showException(this, e, "NGSD export error");
+	}
+}
+
+void MainWindow::on_actionImportTestData_triggered()
+{
+	NGSD db;
+
+	try
+	{
+		//check role
+		LoginManager::checkRoleIn(QStringList{"admin", "user"});
+
+		//check database is empty to prevent overriding the production database
+		if (db.getValue("SELECT COUNT(id) FROM sample", false).toInt() > 0)
+		{
+			THROW(DatabaseException, "Cannot import the data because the database is not empty (sample table has records). Re-initialize the database before import of data!");
+		}
+
+		//get input file
+		QString file_name = QFileDialog::getOpenFileName(this, "Import SQL data", QDir::homePath(), "SQL (*.sql);;All files (*.*)");
+		if (file_name.isEmpty()) return;
+
+		//import
+		QApplication::setOverrideCursor(Qt::BusyCursor);
+		db.removeInitData();
+
+		QSharedPointer<QFile> file = Helper::openFileForReading(file_name, false);
+		while(!file->atEnd())
+		{
+			QString line = file->readLine().trimmed();
+			if (line.isEmpty()) continue;
+
+			//comments > show in status bar
+			if (line.startsWith("--"))
+			{
+				line = line.replace("--", "").trimmed();
+				if (!line.isEmpty())
+				{
+					ui_.statusBar->showMessage("Importing \"" + line + "\"");
+					QApplication::processEvents();
+				}
+				continue;
+			}
+
+			//import line
+			db.getQuery().exec(line);
+		}
+
+		QApplication::restoreOverrideCursor();
+
+		QMessageBox::information(this, "Test data import", "Import is complete");
+	}
+	catch (Exception& e)
+	{
+		GUIHelper::showException(this, e, "NGSD import error");
+	}
 }
 
 void MainWindow::on_actionImportMids_triggered()

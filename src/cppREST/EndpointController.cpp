@@ -324,20 +324,16 @@ QString EndpointController::generateHelpPage(const QString& path)
 
 QString EndpointController::getServedTempPath(QList<QString> path_parts)
 {
-	QString full_entity_path = "";
-	if (path_parts.size() < 1)
-	{
-		return full_entity_path;
-	}
+	if (path_parts.isEmpty()) return "";
 
 	UrlEntity url_entity = UrlManager::getURLById(path_parts[0]);
 	if (!url_entity.filename_with_path.isEmpty())
 	{
 		path_parts.removeAt(0);
-		full_entity_path = QFileInfo(url_entity.filename_with_path).absolutePath() + QDir::separator() + path_parts.join(QDir::separator());
+		return QFileInfo(url_entity.filename_with_path).absolutePath() + QDir::separator() + path_parts.join(QDir::separator());
 	}
 
-	return full_entity_path;
+	return "";
 }
 
 QString EndpointController::getServedRootPath(const QList<QString>& path_parts)

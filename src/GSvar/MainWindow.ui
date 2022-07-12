@@ -357,7 +357,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>21</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -507,6 +507,8 @@
      <addaction name="actionChangePassword"/>
      <addaction name="separator"/>
      <addaction name="actionReplicateNGSD"/>
+     <addaction name="actionExportTestData"/>
+     <addaction name="actionImportTestData"/>
     </widget>
     <widget class="QMenu" name="menuBatch_import">
      <property name="title">
@@ -1408,8 +1410,16 @@
     <string>Somatic pathways</string>
    </property>
   </action>
-  <action name="actionShowProcessingSystemCoverage">
-   <property name="icon">
+  <action name="actionExportTestData">
+   <property name="text">
+    <string>Export test data</string>
+   </property>
+  </action>
+  <action name="actionImportTestData">
+   <property name="text">
+    <string>Import test data</string>
+   </property>
+  </action>   <property name="icon">
     <iconset resource="GSvar.qrc">
      <normaloff>:/Icons/gnomAD.png</normaloff>:/Icons/gnomAD.png</iconset>
    </property>
@@ -1431,8 +1441,7 @@
    <property name="toolTip">
     <string>Show Expression Data of Exons</string>
    </property>
-  </action>
- </widget>
+  </action> </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
