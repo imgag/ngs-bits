@@ -1820,6 +1820,47 @@ QVector<double> NGSD::getExpressionValues(const QByteArray& gene, QSet<int> coho
 	return expr_values;
 }
 
+QVector<double> NGSD::getExonExpressionValues(const BedLine& exon, QSet<int> cohort, bool log2)
+{
+	// debug
+	QTime timer;
+	timer.start();
+
+	QVector<double> expr_values;
+
+	QList<int> cohort_sorted = cohort.toList();
+	std::sort(cohort_sorted.begin(), cohort_sorted.end());
+	QStringList cohort_str;
+	foreach (int i , cohort_sorted)
+	{
+		cohort_str << QString::number(i);
+	}
+
+
+	QStringList expr_values_str = getValues(QString() + "SELECT ee.srpb FROM `expression_exon` ee "
+											+ "WHERE ee.chr='" + exon.chr().strNormalized(true) + "' "
+											+ "AND ee.start=" + QByteArray::number(exon.start()) + " "
+											+ "AND ee.end=" + QByteArray::number(exon.end()) + " "
+											+ "AND ee.processed_sample_id IN (" + cohort_str.join(", ") +  ")");
+
+	foreach (const QString& value, expr_values_str)
+	{
+		if(log2)
+		{
+			expr_values << std::log2(Helper::toDouble(value) + 1);
+		}
+		else
+		{
+			expr_values << Helper::toDouble(value);
+		}
+
+	}
+
+	qDebug() << "Get expression values: " << Helper::elapsedTime(timer) << " size: " << expr_values.size();
+
+	return expr_values;
+}
+
 QMap<QByteArray, double> NGSD::getExpressionValuesOfSample(const QString& ps_id, bool allow_empty)
 {
 	QMap<QByteArray, double> expression_data;

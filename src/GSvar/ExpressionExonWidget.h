@@ -72,7 +72,7 @@ private:
 	void getDBExpressionData(int line_idx);
 
 private slots:
-	void applyFilters();
+	void applyFilters(int max_rows = 10000);
 	void copyToClipboard();
 	void showBiotypeContextMenu(QPoint pos);
 	void selectAllBiotypes(bool deselect=false);
@@ -80,6 +80,7 @@ private slots:
 	void showExpressionTableContextMenu(QPoint pos);
 	void showCohort();
 	void copyCohortToClipboard();
+	void updateCohort();
 
 
 };

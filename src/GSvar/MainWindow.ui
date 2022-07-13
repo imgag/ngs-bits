@@ -1419,7 +1419,9 @@
    <property name="text">
     <string>Import test data</string>
    </property>
-  </action>   <property name="icon">
+  </action>
+  <action name="actionShowProcessingSystemCoverage">
+  <property name="icon">
     <iconset resource="GSvar.qrc">
      <normaloff>:/Icons/gnomAD.png</normaloff>:/Icons/gnomAD.png</iconset>
    </property>
@@ -1441,7 +1443,8 @@
    <property name="toolTip">
     <string>Show Expression Data of Exons</string>
    </property>
-  </action> </widget>
+  </action> 
+ </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>

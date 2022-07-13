@@ -41,6 +41,17 @@
          </property>
         </spacer>
        </item>
+       <item>
+        <widget class="QPushButton" name="btn_copy_table">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../cppGUI/resources.qrc">
+           <normaloff>:/Icons/Clipboard.png</normaloff>:/Icons/Clipboard.png</iconset>
+         </property>
+        </widget>
+       </item>
       </layout>
      </item>
     </layout>
@@ -102,7 +113,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="b_show_cohort">
+           <widget class="QPushButton" name="btn_show_cohort">
             <property name="text">
              <string>show cohort samples</string>
             </property>
@@ -283,7 +294,7 @@
          <widget class="QCheckBox" name="cb_filter_by_var_list">
           <property name="text">
            <string>apply gene filter from the variant list 
-(selected phenotypes and  target region/sub-panel)</string>
+(selected phenotypes and target region/sub-panel)</string>
           </property>
          </widget>
         </item>
@@ -314,6 +325,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../cppGUI/resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

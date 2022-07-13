@@ -9,8 +9,11 @@
 #include "LoginManager.h"
 #include "BedFile.h"
 
+#include <QChartView>
+#include <QMenu>
 #include <QMessageBox>
 #include <QTime>
+QT_CHARTS_USE_NAMESPACE
 
 ExpressionExonWidget::ExpressionExonWidget(QString tsv_filename, int sys_id, QString tissue, const QString& variant_gene_filter, const GeneSet& variant_gene_set, const QString& project,
 										   const QString& ps_id, RnaCohortDeterminationStategy cohort_type, QWidget* parent):
@@ -42,6 +45,23 @@ ExpressionExonWidget::ExpressionExonWidget(QString tsv_filename, int sys_id, QSt
 
 	//connect signals and slots
 	connect(ui_->b_apply_filters, SIGNAL(clicked(bool)), this, SLOT(applyFilters()));
+	connect(ui_->btn_copy_table,SIGNAL(clicked()),this,SLOT(copyToClipboard()));
+	ui_->sa_biotype->setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(ui_->sa_biotype,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showBiotypeContextMenu(QPoint)));
+	connect(ui_->le_gene_filter, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
+	connect(ui_->sb_min_srpb_sample, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
+	connect(ui_->sb_min_rpb, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
+	ui_->tw_expression_table->setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(ui_->tw_expression_table,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showExpressionTableContextMenu(QPoint)));
+	connect(ui_->btn_show_cohort, SIGNAL(clicked(bool)), this, SLOT(showCohort()));
+	connect(ui_->rb_germline, SIGNAL(clicked(bool)), this, SLOT(updateCohort()));
+	connect(ui_->rb_germline_project, SIGNAL(clicked(bool)), this, SLOT(updateCohort()));
+	connect(ui_->rb_somatic, SIGNAL(clicked(bool)), this, SLOT(updateCohort()));
+
+	//connect(ui_->expression_data->horizontalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(applyFilters()));
+	//connect(ui_->sb_min_logfc, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
+	//connect(ui_->sb_min_zscore, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
+	//connect(ui_->sb_min_srpb_cohort, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
 
 	loadExpressionFile();
 	initFilter();
@@ -117,7 +137,11 @@ void ExpressionExonWidget::initFilter()
 {
 	qDebug() << "Init filter";
 
-	//TODO: set default values for filter
+	//set default values for filter
+	ui_->sb_low_expression->setValue(0.1);
+	ui_->sb_min_zscore->setValue(2.0);
+
+
 	NGSD db;
 
 	//set initial cohort type
@@ -145,6 +169,7 @@ void ExpressionExonWidget::initTable()
 	try
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
+		ui_->tw_expression_table->setEnabled(false);
 		QTime timer;
 		timer.start();
 		qDebug() << "init expression table...";
@@ -182,33 +207,19 @@ void ExpressionExonWidget::initTable()
 
 		qDebug() << "header created";
 
-
-
-		//Set number of filtered / total rows
-//		ui_->filtered_rows->setText(QByteArray::number(expression_data.rowCount()) + " / " + QByteArray::number(expression_data.rowCount()));
-
-//		//Set cohort size
-//		ui_->l_cohort_size->setText("Cohort size: \t " + QString::number(cohort_.size()));
-
-
 		qDebug() << QString() + "... done(" + Helper::elapsedTime(timer) + ")";
 
-//		qDebug() << "Biotypes:";
-//		qDebug() << "file: " << biotypes;
-//		qDebug() << "NGSD: " << NGSD().getEnum("gene_transcript", "biotype").toSet();
-//		qDebug() << "Diff: " << biotypes.subtract(NGSD().getEnum("gene_transcript", "biotype").toSet());
-
-
-
+		ui_->tw_expression_table->setEnabled(true);
 		QApplication::restoreOverrideCursor();
 	}
 	catch (Exception& e)
 	{
+		ui_->tw_expression_table->setEnabled(true);
 		GUIHelper::showException(this, e, "Error creating expression table!");
 	}
 }
 
-void ExpressionExonWidget::applyFilters()
+void ExpressionExonWidget::applyFilters(int max_rows)
 {
 	try
 	{
@@ -386,34 +397,6 @@ void ExpressionExonWidget::applyFilters()
 			filtered_lines = filter_result_.countPassing();
 		}
 
-
-
-//		//filter by low expression srpb value
-//		if (!ui_->sb_low_expression->text().isEmpty())
-//		{
-//			double low_expr_srpb = ui_->sb_low_expression->value();
-
-//			for(int row_idx=0; row_idx<expression_data_.rowCount(); ++row_idx)
-//			{
-//				//skip already filtered
-//				if (!filter_result_.flags()[row_idx]) continue;
-
-//				QString value_sample = expression_data_.row(row_idx).at(column_names_.indexOf("srpb"));
-//				QString value_cohort = expression_data_.row(row_idx).at(column_names_.indexOf("cohort_mean"));
-//				if (value_sample.isEmpty() || value_sample == "n/a" || value_cohort.isEmpty() || value_cohort == "n/a")
-//				{
-//					filter_result_.flags()[row_idx] = false;
-//				}
-//				else
-//				{
-//					double srpb_sample = Helper::toDouble(value_sample);
-//					double srpb_cohort = Helper::toDouble(value_cohort);
-//					filter_result_.flags()[row_idx] = (srpb_sample >= low_expr_srpb) || (srpb_cohort >= low_expr_srpb);
-//				}
-//			}
-//		}
-
-
 		//filter by biotype
 		QSet<QString> selected_biotypes;
 		qDebug() << "filter by biotype";
@@ -474,15 +457,27 @@ void ExpressionExonWidget::applyFilters()
 			foreach (int id, cohort_) ps_ids_str << QByteArray::number(id);
 			exon_query_.prepare("SELECT e.srpb FROM expression_exon e WHERE e.chr=:0 AND e.start=:1 AND e.end=:2 AND e.processed_sample_id IN (" + ps_ids_str.join(", ") + "); ");
 
+			//set cohort size in GUI
+			ui_->l_cohort_size->setText("Cohort: " + QByteArray::number(cohort_.size()));
+			ui_->btn_show_cohort->setEnabled(true);
+
 			cohort_type_ = new_cohort_type;
 			qDebug() << "Cohort changed!";
 		}
 
-		//filter by cohort srpb value
-		if (ui_->sb_min_srpb_cohort->value() != 0.0)
+		//filter by db columns (low expr (2nd part), cohort srpb, logfc, zscore)
+		if ((ui_->sb_low_expression->value() != 0.0)|| (ui_->sb_min_srpb_cohort->value() != 0.0) || (ui_->sb_min_logfc->value() != 0.0) || (!ui_->sb_min_zscore->value() != 0.0))
 		{
-			qDebug() << "filter by cohort srpb";
+			qDebug() << "filter by db columns (low expr (2nd part), cohort srpb, logfc, zscore)";
+
+			//init variables
+			double low_expr_srpb = ui_->sb_low_expression->value();
 			double min_cohort_srpb_value = ui_->sb_min_srpb_cohort->value();
+			double logfc_cutoff = ui_->sb_min_logfc->value();
+			double zscore_cutoff = ui_->sb_min_zscore->value();
+
+			// count number of exons passing filter
+			int exons_to_display = 0;
 
 			for(int row_idx=0; row_idx<expression_data_.rowCount(); ++row_idx)
 			{
@@ -503,7 +498,42 @@ void ExpressionExonWidget::applyFilters()
 
 				if (db_expression_data_.contains(exon_str))
 				{
-					filter_result_.flags()[row_idx] = db_expression_data_.value(exon_str).cohort_mean >= min_cohort_srpb_value;
+					const DBExpressionValues& expression_stats = db_expression_data_.value(exon_str);
+
+					//filter by low expression
+					if ((low_expr_srpb != 0.0) && (expression_stats.cohort_mean < low_expr_srpb))
+					{
+						filter_result_.flags()[row_idx] = false;
+						continue;
+					}
+
+					//filter by cohort mean
+					if ((min_cohort_srpb_value != 0.0) && (expression_stats.cohort_mean < min_cohort_srpb_value))
+					{
+						filter_result_.flags()[row_idx] = false;
+						continue;
+					}
+
+					//filter by log fold chance
+					if ((logfc_cutoff != 0.0) && (fabs(expression_stats.log2fc) < logfc_cutoff))
+					{
+						filter_result_.flags()[row_idx] = false;
+						continue;
+					}
+
+					//filter by zscore
+					if ((zscore_cutoff != 0.0) && (fabs(expression_stats.zscore) < zscore_cutoff))
+					{
+						filter_result_.flags()[row_idx] = false;
+						continue;
+					}
+
+					//exons pass filter
+					exons_to_display++;
+
+					//skip if max number of rows is reached
+					if(exons_to_display > max_rows) break;
+
 				}
 				else
 				{
@@ -515,89 +545,9 @@ void ExpressionExonWidget::applyFilters()
 		}
 
 
-				//filter by log fold change
-				if (ui_->sb_min_logfc->value() != 0.0)
-				{
-					qDebug() << "filter by log fc";
-					int idx = column_names_.indexOf("log2fc");
-
-					if (idx == -1)
-					{
-						QMessageBox::warning(this, "Filtering error", "Table does not contain a 'log2fc' column! \nFiltering based on fold change is not possible.");
-					}
-					else
-					{
-						try
-						{
-							double logfc_cutoff = ui_->abs_logfc->value();
-							for(int row_idx=0; row_idx<row_count; ++row_idx)
-							{
-								//skip already filtered
-								if (!filter_result.flags()[row_idx]) continue;
-
-								QString value = ui_->expression_data->item(row_idx, idx)->text();
-								if (value.isEmpty() || value == "n/a")
-								{
-									filter_result.flags()[row_idx] = false;
-								}
-								else
-								{
-									double value_dbl = Helper::toDouble(value);
-									filter_result.flags()[row_idx] = fabs(value_dbl) >= logfc_cutoff;
-								}
-							}
-						}
-						catch (Exception e)
-						{
-							QMessageBox::warning(this, "Invalid log fold change value", "Couldn't convert given fold change value to number!\n" + e.message());
-							return;
-						}
-					}
-				}
-
-		//		//filter by cohort z-score
-		//		if (!ui_->abs_zscore->text().isEmpty())
-		//		{
-		//			int idx = column_names_.indexOf("zscore");
-
-		//			if (idx == -1)
-		//			{
-		//				QMessageBox::warning(this, "Filtering error", "Table does not contain a 'zscore' column! \nFiltering based on z-score is not possible.");
-		//			}
-		//			else
-		//			{
-		//				try
-		//				{
-		//					double zscore_cutoff = ui_->abs_zscore->value();
-		//					for(int row_idx=0; row_idx<row_count; ++row_idx)
-		//					{
-		//						//skip already filtered
-		//						if (!filter_result.flags()[row_idx]) continue;
-
-		//						QString value = ui_->expression_data->item(row_idx, idx)->text();
-		//						if (value.isNull() || value.isEmpty() || value == "n/a")
-		//						{
-		//							filter_result.flags()[row_idx] = false;
-		//						}
-		//						else
-		//						{
-		//							double value_dbl = Helper::toDouble(value);
-		//							filter_result.flags()[row_idx] = fabs(value_dbl) >= zscore_cutoff;
-		//						}
-		//					}
-		//				}
-		//				catch (Exception e)
-		//				{
-		//					QMessageBox::warning(this, "Invalid zscore value", "Couldn't convert given zscore value to number!\n" + e.message());
-		//					return;
-		//				}
-		//			}
-		//		}
-
-
 
 		//update expression table
-		updateTable();
+		updateTable(max_rows);
 
 
 		QApplication::restoreOverrideCursor();
@@ -610,27 +560,87 @@ void ExpressionExonWidget::applyFilters()
 
 void ExpressionExonWidget::copyToClipboard()
 {
-
+	GUIHelper::copyToClipboard(ui_->tw_expression_table);
 }
 
 void ExpressionExonWidget::showBiotypeContextMenu(QPoint pos)
 {
-
+	// create menu
+	QMenu menu(ui_->sa_biotype);
+	QAction* a_select_all = menu.addAction("Select all biotypes");
+	QAction* a_deselect_all = menu.addAction("Deselect all biotypes");
+	// execute menu
+	QAction* action = menu.exec(ui_->sa_biotype->viewport()->mapToGlobal(pos));
+	if (action == nullptr) return;
+	// react
+	if (action == a_select_all)
+	{
+		selectAllBiotypes(false);
+	}
+	else if (action == a_deselect_all)
+	{
+		selectAllBiotypes(true);
+	}
+	else
+	{
+		THROW(ProgrammingException, "Invalid menu action in context menu selected!")
+	}
 }
 
 void ExpressionExonWidget::selectAllBiotypes(bool deselect)
 {
-
+	//set checked state
+	foreach (QCheckBox* cb_biotype, ui_->sawc_biotype->findChildren<QCheckBox*>())
+	{
+		cb_biotype->setChecked(!deselect);
+	}
 }
 
 void ExpressionExonWidget::showHistogram(int row_idx)
 {
+	NGSD db;
 
+	BedLine exon = BedLine::fromString(expression_data_.row(row_idx).at(expression_data_.columnIndex("exon")));
+	QVector<double> expr_values = db.getExonExpressionValues(exon, cohort_, false);
+
+	if(expr_values.size() == 0) return;
+	//create histogram
+	std::sort(expr_values.begin(), expr_values.end());
+	double median = BasicStatistics::median(expr_values,false);
+	double max = ceil(median*2+0.0001);
+	Histogram hist(0.0, max, max/40);
+	foreach(double expr_value, expr_values)
+	{
+		hist.inc(expr_value, true);
+	}
+
+	//show chart
+	QChartView* view = GUIHelper::histogramChart(hist, "Exon expression value distribution (log2_TPM, " + QString::number(expr_values.size()) + " samples)");
+	auto dlg = GUIHelper::createDialog(view, "Exon expression value distribution (" + exon.toString(true) + ")");
+	dlg->exec();
 }
 
 void ExpressionExonWidget::showExpressionTableContextMenu(QPoint pos)
 {
+	// create menu
+	int row_idx = ui_->tw_expression_table->itemAt(pos)->row();
+	QMenu menu(ui_->tw_expression_table);
+	QAction* a_show_histogram = menu.addAction("Show histogram");
+	QString tpm_mean = ui_->tw_expression_table->item(row_idx, column_names_.indexOf("cohort_mean"))->text();
+	if(tpm_mean=="") a_show_histogram->setEnabled(false);
 
+	// execute menu
+	QAction* action = menu.exec(ui_->tw_expression_table->viewport()->mapToGlobal(pos));
+	if (action == nullptr) return;
+	// react
+	if (action == a_show_histogram)
+	{
+		showHistogram(row_idx);
+	}
+	else
+	{
+		THROW(ProgrammingException, "Invalid menu action in context menu selected!")
+	}
 }
 
 void ExpressionExonWidget::showCohort()
@@ -694,6 +704,24 @@ void ExpressionExonWidget::copyCohortToClipboard()
 {
 	if (cohort_table_ == nullptr) return;
 	GUIHelper::copyToClipboard(cohort_table_);
+}
+
+void ExpressionExonWidget::updateCohort()
+{
+	if (((cohort_type_ == RNA_COHORT_GERMLINE) && ui_->rb_germline->isChecked())
+		|| ((cohort_type_ == RNA_COHORT_GERMLINE) && ui_->rb_germline->isChecked())
+		|| ((cohort_type_ == RNA_COHORT_GERMLINE) && ui_->rb_germline->isChecked()))
+	{
+		ui_->l_cohort_size->setEnabled(true);
+		ui_->l_cohort_size->setText("Cohort: " + QByteArray::number(cohort_.size()));
+		ui_->btn_show_cohort->setEnabled(true);
+	}
+	else
+	{
+		ui_->l_cohort_size->setEnabled(false);
+		ui_->l_cohort_size->setText("Cohort: - ");
+		ui_->btn_show_cohort->setEnabled(false);
+	}
 }
 
 void ExpressionExonWidget::updateTable(int max_rows)
@@ -834,7 +862,6 @@ void ExpressionExonWidget::updateTable(int max_rows)
 
 			}
 
-			if (table_row_idx % 1000 == 0) qDebug() << "Row: " << table_row_idx;
 			//update row
 			table_row_idx++;
 			//abort if max row count is reached
@@ -842,9 +869,7 @@ void ExpressionExonWidget::updateTable(int max_rows)
 		}
 
 
-		//set number of filtered / total rows
-		ui_->l_filtered_rows->setText(QByteArray::number(filter_result_.flags().count(true)) + " / " + QByteArray::number(expression_data_.rowCount())
-									  + " (" + QByteArray::number(ui_->tw_expression_table->rowCount()) + " displayed) " );
+
 
 		// activate sorting if all exons are displayed
 		if (ui_->tw_expression_table->rowCount() == filter_result_.flags().count(true))
@@ -853,7 +878,17 @@ void ExpressionExonWidget::updateTable(int max_rows)
 			ui_->tw_expression_table->setSortingEnabled(true);
 
 			//sort by zscore on default
-	//		ui_->tw_expression_table->sortByColumn(7, Qt::DescendingOrder);
+			ui_->tw_expression_table->sortByColumn(9, Qt::DescendingOrder);
+
+			//set number of filtered / total rows
+			ui_->l_filtered_rows->setText(QByteArray::number(filter_result_.flags().count(true)) + " / " + QByteArray::number(expression_data_.rowCount())
+										  + " (" + QByteArray::number(ui_->tw_expression_table->rowCount()) + " displayed) " );
+		}
+		else
+		{
+			//set number of filtered / total rows
+			ui_->l_filtered_rows->setText(QByteArray::number(max_rows) + "+ / " + QByteArray::number(expression_data_.rowCount())
+										  + " (" + QByteArray::number(ui_->tw_expression_table->rowCount()) + " displayed) " );
 		}
 
 
