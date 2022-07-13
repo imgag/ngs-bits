@@ -225,6 +225,9 @@ void ExpressionOverviewWidget::showExpressionData()
 		//get GeneSet
 		GeneSet gene_set = getGeneSet();
 
+		//skip if no genes are selected
+		if(gene_set.count() < 1) WARNING(ArgumentException, "No genes selected for look-up. Please select at least one gene.");
+
 		//get processing system
 		int sys_id = db.processingSystemId(ui_->cb_processing_system->currentText());
 		ProcessingSystemData sys_info = db.getProcessingSystemData(sys_id);

@@ -48,4 +48,6 @@ private slots:
 		COMPARE_FILES("out/RnaQC_out2.txt", TESTDATA("data_out/RnaQC_out2.txt"));
 	}
 
+	//TODO: Test without housekeeping genes
+
 };

@@ -77,6 +77,9 @@ private slots:
 	}
 
 
+	//TODO: Test exon annotation
+
+
 };
 
 

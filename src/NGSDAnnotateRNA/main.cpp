@@ -28,11 +28,14 @@ public:
 		//optional
 		addInfile("in", "Input TSV file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
+		QStringList valid_modes = QStringList() << "genes" << "exons";
+		addEnum("mode", "Determines if genes or exons should be annotated.", true, valid_modes, "genes");
 		QStringList valid_cohort = QStringList() << "RNA_COHORT_GERMLINE" << "RNA_COHORT_GERMLINE_PROJECT" << "RNA_COHORT_SOMATIC";
 		addEnum("cohort_strategy", "Determines which samples are used as reference cohort.", true, valid_cohort, "RNA_COHORT_GERMLINE");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
-		changeLog(2022, 06, 9, "Initial commit.");
+		changeLog(2022, 6, 9, "Initial commit.");
+		changeLog(2022, 7, 13, "Added support for exons.");
 	}
 
 	virtual void main()
@@ -41,6 +44,7 @@ public:
 		QString in = getInfile("in");
 		QString out = getOutfile("out");
 		QString ps_name = getString("ps");
+		QString mode = getEnum("mode");
 		QString cohort_strategy_str = getEnum("cohort_strategy");
 		RnaCohortDeterminationStategy cohort_strategy;
 		if (cohort_strategy_str == "RNA_COHORT_GERMLINE")
@@ -68,13 +72,21 @@ public:
 		QString s_id = db.sampleId(ps_name);
 		SampleData s_data = db.getSampleData(s_id);
 		int sys_id = db.processingSystemId(ps_data.processing_system);
-		QSet<int> cohort_ps_ids;
 
 
-		QMap<QByteArray, ExpressionStats> expression_stats = db.calculateCohortExpressionStatistics(sys_id, s_data.tissue,  cohort_ps_ids, ps_data.project_name, ps_id, cohort_strategy);
-
-		//get ensg->symbol mapping
-		QMap<QByteArray, QByteArray> ensg_gene_mapping = db.getEnsemblGeneMapping();
+		//get expression
+		QMap<QByteArray, ExpressionStats> expression_stats;
+		QMap<QByteArray, QByteArray> ensg_gene_mapping;
+		QSet<int> cohort = db.getRNACohort(sys_id, s_data.tissue, ps_data.project_name, ps_id, cohort_strategy, mode);
+		if (mode == "genes")
+		{
+			expression_stats = db.calculateGeneExpressionStatistics(cohort);
+			ensg_gene_mapping = db.getEnsemblGeneMapping();
+		}
+		else //exons
+		{
+			expression_stats = db.calculateExonExpressionStatistics(cohort);
+		}
 
 
 		//parse input file
@@ -103,8 +115,18 @@ public:
 		output_buffer << "#" + header.join("\t");
 
 		// get indices for position
-		int i_gene_id = input_file.colIndex("gene_id", true);
-		int i_tpm =  input_file.colIndex("tpm", true);
+		int i_value=-1, i_gene_id=-1, i_exon=-1;
+		if (mode == "genes")
+		{
+			i_value =  input_file.colIndex("tpm", true);
+			i_gene_id = input_file.colIndex("gene_id", true);
+		}
+		else //exon
+		{
+			i_value =  input_file.colIndex("srpb", true);
+			i_exon = input_file.colIndex("exon", true);
+		}
+
 
 		// iterate over input file and annotate each cnv
 		while (!input_file.atEnd())
@@ -114,34 +136,41 @@ public:
 			tsv_line += additional_columns;
 
 			//annotate
-			QByteArray ensg_id = tsv_line.at(i_gene_id).trimmed();
-
-			if(ensg_gene_mapping.contains(ensg_id))
+			QByteArray key;
+			if (mode == "genes")
 			{
-				QByteArray symbol = ensg_gene_mapping.value(ensg_id);
-				if(expression_stats.contains(symbol))
-				{
-					ExpressionStats gene_expression = expression_stats.value(symbol);
-					double tpm = Helper::toDouble(tsv_line.at(i_tpm), "TPM", ensg_id);
-					double log2p1tpm = std::log2(tpm + 1);
+				QByteArray ensg_id = tsv_line.at(i_gene_id).trimmed();
+				if(ensg_gene_mapping.contains(ensg_id)) key = ensg_gene_mapping.value(ensg_id);
+			}
+			else //exons
+			{
+				BedLine exon = BedLine::fromString(tsv_line.at(i_exon));
+				key = exon.toString(true).toUtf8();
+			}
 
-					//cohort mean
-					double cohort_mean = gene_expression.mean;
-					tsv_line[column_indices["cohort_mean"]] = QByteArray::number(cohort_mean);
 
-					//log2fc
-					double log2fc = log2p1tpm - std::log2(gene_expression.mean + 1);
-					tsv_line[column_indices["log2fc"]] = QByteArray::number(log2fc);
+			if((!key.isEmpty()) && (expression_stats.contains(key)))
+			{
+				ExpressionStats gene_expression = expression_stats.value(key);
+				double expr_value = Helper::toDouble(tsv_line.at(i_value), "expression value");
+				double log2p1_expr_value = std::log2(expr_value + 1);
 
-					//zscore
-					double zscore = (log2p1tpm - gene_expression.mean_log2) / gene_expression.stddev_log2;
-					tsv_line[column_indices["zscore"]] = QByteArray::number(zscore);
+				//cohort mean
+				double cohort_mean = gene_expression.mean;
+				tsv_line[column_indices["cohort_mean"]] = QByteArray::number(cohort_mean);
 
-					//pvalue
-					double pvalue = 1 + std::erf(- std::abs(zscore) / std::sqrt(2));
-					tsv_line[column_indices["pvalue"]] = QByteArray::number(pvalue);
+				//log2fc
+				double log2fc = log2p1_expr_value - std::log2(gene_expression.mean + 1);
+				tsv_line[column_indices["log2fc"]] = QByteArray::number(log2fc);
 
-				}
+				//zscore
+				double zscore = (log2p1_expr_value - gene_expression.mean_log2) / gene_expression.stddev_log2;
+				tsv_line[column_indices["zscore"]] = QByteArray::number(zscore);
+
+				//pvalue
+				double pvalue = 1 + std::erf(- std::abs(zscore) / std::sqrt(2));
+				tsv_line[column_indices["pvalue"]] = QByteArray::number(pvalue);
+
 			}
 
 			//write line to buffer

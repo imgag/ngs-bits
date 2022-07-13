@@ -58,11 +58,6 @@ ExpressionExonWidget::ExpressionExonWidget(QString tsv_filename, int sys_id, QSt
 	connect(ui_->rb_germline_project, SIGNAL(clicked(bool)), this, SLOT(updateCohort()));
 	connect(ui_->rb_somatic, SIGNAL(clicked(bool)), this, SLOT(updateCohort()));
 
-	//connect(ui_->expression_data->horizontalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(applyFilters()));
-	//connect(ui_->sb_min_logfc, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
-	//connect(ui_->sb_min_zscore, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
-	//connect(ui_->sb_min_srpb_cohort, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
-
 	loadExpressionFile();
 	initFilter();
 	initTable();
