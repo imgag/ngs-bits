@@ -72,7 +72,8 @@ HEADERS += \
     Graph_Test.h \
     ChainFileReader_Test.h \
     BigWigReader_Test.h \
-    VariantHgvsAnnotator_Test.h
+    VariantHgvsAnnotator_Test.h \
+    TabIndexedFile_Test.h
 
 SOURCES += \
         main.cpp

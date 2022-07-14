@@ -11,6 +11,7 @@ enum class PathType
 {
 	//folders
 	SAMPLE_FOLDER, // folder of a single sample
+	FUSIONS_PIC_DIR, //picture of gene fusions determined by arriba from RNA (PNG format)
 
 	//mapping data
 	BAM, //BAM file
@@ -43,6 +44,8 @@ enum class PathType
 	COUNTS, //gene/transcript counts from RNA (TSV format)
 	EXPRESSION, //relative RNA expressions values from RNA (TSV format)
 	EXPRESSION_COHORT, //relative RNA expressions values from RNA cohort of this sample (TSV format)
+	EXPRESSION_STATS, //statistical summary of ENA expression valuesfrom RNA cohort of tis sample (TSV format),
+	EXPRESSION_CORR, //statistical correlation to other samples of the cohort
 	SPLICING_BED, //splicing junctions from RNA (BED format)
 	VIRAL, //viral DNA detected in tumor samples (TSV format)
 	VCF_CF_DNA, //cfDNA variants file (VCF format)
@@ -154,6 +157,8 @@ struct FileLocation
 				return "REPEAT_EXPANSION_IMAGE";
 			case PathType::FUSIONS:
 				return "FUSIONS";
+			case PathType::FUSIONS_PIC_DIR:
+				return "FUSIONS_PIC_DIR";
 			case PathType::STAR_FUSIONS:
 				return "STAR_FUSIONS";
 			case PathType::FUSIONS_BAM:
@@ -174,6 +179,10 @@ struct FileLocation
 				return "EXPRESSION";
 			case PathType::EXPRESSION_COHORT:
 				return "EXPRESSION_COHORT";
+			case PathType::EXPRESSION_CORR:
+				return "EXPRESSION_CORR";
+			case PathType::EXPRESSION_STATS:
+				return "EXPRESSION_STATS";
 			case PathType::MRD_CF_DNA:
 				return "MRD_CF_DNA";
 			case PathType::CFDNA_CANDIDATES:
@@ -213,6 +222,7 @@ struct FileLocation
 		if (in_upper == "FUSIONS_BAM") return PathType::FUSIONS_BAM;
 		if (in_upper == "SPLICING_BED") return PathType::SPLICING_BED;
 		if (in_upper == "MANTA_FUSIONS") return PathType::MANTA_FUSIONS;
+		if (in_upper == "FUSIONS_PIC_DIR") return PathType::FUSIONS_PIC_DIR;
 		if (in_upper == "COUNTS") return PathType::COUNTS;
 		if (in_upper == "VIRAL") return PathType::VIRAL;
 		if (in_upper == "VCF_CF_DNA") return PathType::VCF_CF_DNA;
@@ -220,6 +230,8 @@ struct FileLocation
 		if (in_upper == "OTHER") return PathType::OTHER;
 		if (in_upper == "EXPRESSION") return PathType::EXPRESSION;
 		if (in_upper == "EXPRESSION_COHORT") return PathType::EXPRESSION_COHORT;
+		if (in_upper == "EXPRESSION_CORR") return PathType::EXPRESSION_CORR;
+		if (in_upper == "EXPRESSION_STATS") return PathType::EXPRESSION_STATS;
 		if (in_upper == "MRD_CF_DNA") return PathType::MRD_CF_DNA;
 		if (in_upper == "CFDNA_CANDIDATES") return PathType::CFDNA_CANDIDATES;
 		if (in_upper == "IGV_SCREENSHOT") return PathType::IGV_SCREENSHOT;
@@ -272,6 +284,8 @@ struct FileLocation
 				return "repeat expansion visualization";
 			case PathType::FUSIONS:
 				return "gene fusions";
+			case PathType::FUSIONS_PIC_DIR:
+				return "arriba fusions pictures directory";
 			case PathType::STAR_FUSIONS:
 				return "Star Fusion RNA fusion calls";
 			case PathType::FUSIONS_BAM:
@@ -294,6 +308,10 @@ struct FileLocation
 				return "RNA relative expression";
 			case PathType::EXPRESSION_COHORT:
 				return "RNA relative expression of cohort";
+			case PathType::EXPRESSION_STATS:
+				return "RNA expression cohort statistics";
+			case PathType::EXPRESSION_CORR:
+				return "RNA epxression correlation to cohort";
 			case PathType::MRD_CF_DNA:
 				return "measurable residual disease value (umiVar 2)";
 			case PathType::CFDNA_CANDIDATES:

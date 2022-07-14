@@ -82,7 +82,7 @@ SampleSimilarity calculates several metrics that measure how similar two samples
  * ibs0: Percentage of variants with zero IBS, e.g. AA and CC (only in BAM mode).
  * ibs2: Percentage of variants with complete IBS, e.g. AA and AA.
 
-Absolute cutoffs values for for same sample, parent-child pairs etc. do not exist, since they depend on ehtnicity, enrichment kit, etc.   
+Absolute cutoffs values for for same sample, parent-child pairs etc. do not exist, since they depend on ethnicity, enrichment kit, etc.
 Example data for exome data (Agilent SureSelect Human All Exon V6) are shown here:
 
 ![alt text](qc_sample_correlation_ssHAEv6.png)

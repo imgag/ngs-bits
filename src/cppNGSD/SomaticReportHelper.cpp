@@ -191,7 +191,7 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 		if(vicc == "ONCOGENIC" || vicc == "LIKELY_ONCOGENIC")
 		{
 			somatic_high_impact_vl_.append(snv);
-			high_significance_genes << selectSomaticTranscript(snv).gene;
+			high_significance_genes << selectSomaticTranscript(snv, settings_, snv_index_coding_splicing_).gene;
 		}
 
 	}
@@ -199,7 +199,7 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 	for(int i=0; i<somatic_vl_.count(); ++i)
 	{
 		const Variant& snv = somatic_vl_[i];
-		QByteArray gene = selectSomaticTranscript(snv).gene;
+		QByteArray gene = selectSomaticTranscript(snv, settings_, snv_index_coding_splicing_).gene;
 		if(high_significance_genes.contains(gene) && !somatic_high_impact_vl_.contains(snv))
 		{
 			somatic_high_impact_vl_.append(snv);
@@ -221,7 +221,7 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 				{
 					const Variant& snv = somatic_vl_[j];
 
-					if(gene == selectSomaticTranscript(snv).gene && !somatic_high_impact_vl_.contains(snv))
+					if(gene == selectSomaticTranscript(snv, settings_, snv_index_coding_splicing_).gene && !somatic_high_impact_vl_.contains(snv))
 					{
 						somatic_high_impact_vl_.append(snv);
 						break;
@@ -243,12 +243,6 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 		}
 	}
 	somatic_low_impact_vl_.sortByAnnotation(somatic_low_impact_vl_.annotationIndexByName("gene"));
-
-
-
-
-
-
 
 	//Filter CNVs according report configuration settings
 	cnvs_ = SomaticReportSettings::filterCnvs(cnvs, settings);
@@ -298,25 +292,12 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 	}
 	catch(...) {} //Nothing to do here
 
-	//load obo terms for filtering coding/splicing variants
-	OntologyTermCollection obo_terms("://Resources/so-xp_3_0_0.obo",true);
-	QList<QByteArray> ids;
-	ids << obo_terms.childIDs("SO:0001580",true); //coding variants
-	ids << obo_terms.childIDs("SO:0001568",true); //splicing variants
-	foreach(const QByteArray& id, ids)
-	{
-		obo_terms_coding_splicing_.add(obo_terms.getByID(id));
-	}
-
-
-
 	//assign CNV annotation indices
 	cnv_index_cn_change_ = cnvs_.annotationIndexByName("CN_change", false);
 	cnv_index_cnv_type_ = cnvs_.annotationIndexByName("cnv_type", false);
 	cnv_index_tumor_clonality_ = cnvs_.annotationIndexByName("tumor_clonality", false);
 	cnv_index_state_ = cnvs_.annotationIndexByName("state", false);
 	cnv_index_cytoband_ = cnvs.annotationIndexByName("cytoband", false);
-
 
 	//load qcml data
 	tumor_qcml_data_ = db_.getQCData(db_.processedSampleId(settings_.tumor_ps));
@@ -332,23 +313,12 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 
 	foreach(const SampleDiseaseInfo& entry, disease_info)
 	{
-		if(entry.type == "ICD10 code") tmp.append(entry.disease_info);
-	}
-	icd10_diagnosis_code_ = tmp.join(", ");
-
-	tmp.clear();
-	foreach(const SampleDiseaseInfo& entry, disease_info)
-	{
 		if(entry.type == "tumor fraction") tmp.append(entry.disease_info);
 	}
 	if(tmp.count() == 1) histol_tumor_fraction_ = tmp[0].toDouble();
 	else histol_tumor_fraction_ = std::numeric_limits<double>::quiet_NaN();
-
 	tmp.clear();
-	foreach(const SampleDiseaseInfo& entry, disease_info)
-	{
-		if(entry.type == "HPO term id") tmp.append(entry.disease_info);
-	}
+
 
 	//get mutation burden
 	try
@@ -420,7 +390,7 @@ void SomaticReportHelper::somaticSnvForQbic(QString path_target_folder)
 		stream << variant.annotations().at(i_tumor_depth) << "\t";
 
 		//determine transcript, usually first coding/splicing
-		VariantTranscript transcript = selectSomaticTranscript(variant);
+		VariantTranscript transcript = selectSomaticTranscript(variant, settings_, snv_index_coding_splicing_);
 
 		//affected gene
 		stream << transcript.gene << "\t";
@@ -600,7 +570,7 @@ void SomaticReportHelper::metaDataForQbic(QString path_target_folder)
 	stream << "chromosomal_instability" << "\t" << "quality_flags" << "\t" << "reference_genome";
 	stream << endl;
 
-	stream << icd10_diagnosis_code_ << "\t" << histol_tumor_fraction_ << "\t";
+	stream << settings_.icd10 << "\t" << histol_tumor_fraction_ << "\t";
 
 	//No report of pathogenic germline variants
 	stream << "NA" << "\t";
@@ -627,14 +597,15 @@ void SomaticReportHelper::metaDataForQbic(QString path_target_folder)
 	saveReportData("QBIC_metadata.tsv", path_target_folder, content);
 }
 
-VariantTranscript SomaticReportHelper::selectSomaticTranscript(const Variant& variant)
+VariantTranscript SomaticReportHelper::selectSomaticTranscript(const Variant& variant, const SomaticReportSettings& settings, int index_co_sp)
 {
-	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(snv_index_coding_splicing_);
+	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(index_co_sp);
+
 
 	//use preferred transcript that is coding or splicing if available
 	foreach(const VariantTranscript& trans, transcripts)
 	{
-		if(settings_.preferred_transcripts.value( trans.gene ).contains(trans.idWithoutVersion()) && trans.typeMatchesTerms(obo_terms_coding_splicing_))
+		if(settings.preferred_transcripts.value( trans.gene ).contains(trans.idWithoutVersion()) && trans.typeMatchesTerms(settings.obo_terms_coding_splicing))
 		{
 			return trans;
 		}
@@ -643,7 +614,7 @@ VariantTranscript SomaticReportHelper::selectSomaticTranscript(const Variant& va
 	//first coding/splicing transcript otherwise
 	foreach(const VariantTranscript& trans, transcripts)
 	{
-		if(trans.typeMatchesTerms(obo_terms_coding_splicing_))
+		if(trans.typeMatchesTerms(settings.obo_terms_coding_splicing))
 		{
 			return trans;
 		}
@@ -890,7 +861,7 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 		{
 		}
 	}
-	metadata.addRow(RtfTableRow({"Coverage Genpanel 60x:", tum_panel_cov_60x , nor_panel_cov_60x, "ICD10: " + icd10_diagnosis_code_.toUtf8(), "MSI-Status: " + (!BasicStatistics::isValidFloat(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3))}, {2000,1480,1480,1480,3481}) );
+	metadata.addRow(RtfTableRow({"Coverage Genpanel 60x:", tum_panel_cov_60x , nor_panel_cov_60x, "ICD10: " + settings_.icd10.toUtf8(), "MSI-Status: " + (!BasicStatistics::isValidFloat(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3))}, {2000,1480,1480,1480,3481}) );
 
 	metadata.addRow(RtfTableRow("In Regionen mit einer Abdeckung >60 können somatische Varianten mit einer Frequenz >5% im Tumorgewebe mit einer Sensitivität >95,0% und einem Positive Prediction Value PPW >99% bestimmt werden. Für mindestens 95% aller untersuchten Gene kann die Kopienzahl korrekt unter diesen Bedingungen bestimmt werden.", doc_.maxWidth()) );
 
@@ -1128,7 +1099,7 @@ RtfTable SomaticReportHelper::snvTable(const VariantList &vl, bool include_germl
 	{
 		const Variant& snv = vl[i];
 
-		VariantTranscript transcript = selectSomaticTranscript(snv);
+		VariantTranscript transcript = selectSomaticTranscript(snv, settings_, snv_index_coding_splicing_);
 		transcript.type = transcript.type.replace("_variant","");
 		transcript.type.replace("&",", ");
 

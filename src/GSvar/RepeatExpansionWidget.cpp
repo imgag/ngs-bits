@@ -11,6 +11,7 @@
 #include "VcfFile.h"
 #include "GlobalServiceProvider.h"
 #include "GeneInfoDBs.h"
+#include "NGSHelper.h"
 
 NumericWidgetItem::NumericWidgetItem(QString text):
 	QTableWidgetItem(text)
@@ -70,7 +71,9 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	if (action==a_show_svg)
     {
         //open SVG in browser
-		QString filename = QFileInfo(image_loc.filename).absoluteFilePath();
+		QString filename = image_loc.filename;
+		if (!NGSHelper::isClientServerMode()) filename = QFileInfo(image_loc.filename).absoluteFilePath();
+
 		QDesktopServices::openUrl(QUrl(filename));
 	}
 	else if (action==a_copy)

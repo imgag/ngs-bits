@@ -21,7 +21,7 @@ struct SomaticGeneRole
 	QString comment = "";
 
 	///returns gene role as string
-	QString roleAsString()
+	QString roleAsString() const
 	{
 		if(role == Role::ACTIVATING) return "activating";
 		else if(role == Role::LOSS_OF_FUNCTION) return "loss_of_function";

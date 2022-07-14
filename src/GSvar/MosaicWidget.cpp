@@ -3,7 +3,7 @@
 #include "GUIHelper.h"
 #include "GlobalServiceProvider.h"
 
-MosaicWidget::MosaicWidget(const VariantList& variants, ReportSettings rep_settings, QHash<QByteArray, BedFile>& cache, QWidget* parent)
+MosaicWidget::MosaicWidget(VariantList& variants, ReportSettings rep_settings, QHash<QByteArray, BedFile>& cache, QWidget* parent)
 	: QWidget(parent)
 	, ui_()
 	, variants_(variants)
@@ -15,6 +15,7 @@ MosaicWidget::MosaicWidget(const VariantList& variants, ReportSettings rep_setti
 	GUIHelper::styleSplitter(ui_.splitter);
 
 	connect(ui_.filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
+	connect(ui_.filter_widget, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 	connect(ui_.mosaics,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(variantDoubleClicked(QTableWidgetItem*)));
 	connect(ui_.mosaics, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
 
@@ -54,6 +55,23 @@ void MosaicWidget::updateVariantDetails()
 	}
 
 	var_last = var_current;
+}
+
+void MosaicWidget::importPhenotypesFromNGSD()
+{
+	QString ps_name = variants_.mainSampleName();
+	try
+	{
+		NGSD db;
+		QString sample_id = db.sampleId(ps_name);
+		PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
+
+		ui_.filter_widget->setPhenotypes(phenotypes);
+	}
+	catch(Exception& e)
+	{
+		GUIHelper::showException(this, e, "Error loading phenotype data from NGSD");
+	}
 }
 
 
@@ -151,6 +169,10 @@ void MosaicWidget::applyFilters(bool debug_time)
 
 		//filter by phenotype (via genes, not genomic regions)
 		PhenotypeList phenotypes = ui_.filter_widget->phenotypes();
+
+		//update phenotypes for variant context menu search
+		ui_.mosaics->updateActivePhenotypes(phenotypes);
+
 		if (!phenotypes.isEmpty())
 		{
 			//convert phenotypes to genes

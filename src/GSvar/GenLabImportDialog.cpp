@@ -84,7 +84,6 @@ void GenLabImportDialog::initTable()
 		}
 
 		//*** sample relations ***
-
 		QList<SampleRelation> relation_list = genlab.relatives(ps_name);
 		foreach (const SampleRelation& relation, relation_list)
 		{

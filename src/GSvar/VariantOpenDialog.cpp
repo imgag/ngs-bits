@@ -91,8 +91,17 @@ Variant VariantOpenDialog::variant() const
 		int sep_pos = text.indexOf(':');
 		if (sep_pos==-1) THROW(ArgumentException, "Invalid HGVS.c variant '" + text + "' - the format is [transcipt name]:[variant]");
 		QString transcript_name = text.left(sep_pos).trimmed();
-		QString hgvs_c = text.mid(sep_pos+1);
-
+		if (transcript_name.contains('(') && transcript_name.endsWith(')')) //remove gene name in brackets if present, e.g. NM_000260.4(MYO7A)
+		{
+			int pos = transcript_name.indexOf('(');
+			transcript_name = transcript_name.left(pos).trimmed();
+		}
+		QString hgvs_c = text.mid(sep_pos+1).trimmed();
+		if (hgvs_c.contains('(') && hgvs_c.endsWith(')')) //remove protein change in brackets if present, e.h. c.1348G>C (p.Glu450Gln)
+		{
+			int pos = hgvs_c.indexOf('(');
+			hgvs_c = hgvs_c.left(pos).trimmed();
+		}
 		int trans_id = db.transcriptId(transcript_name, false);
 		if (trans_id==-1) //not found > try to match CCDS/RefSeq to Ensembl
 		{

@@ -1036,7 +1036,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		//add depth distribtion plot
 		LinePlot plot;
 		plot.setXLabel("depth of coverage");
-		plot.setYLabel("chromosome 22 [%]");
+		plot.setYLabel("target region [%]");
 		plot.setXValues(depth_dist.xCoords());
 		plot.addLine(depth_dist.yCoords(true));
 		QString plotname = Helper::tempFileName(".png");

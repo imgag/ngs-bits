@@ -47,11 +47,6 @@ public:
 	void updateNGSDSupport();
 	///Returns 'nobr' paragraph start for Qt tooltips
 	static QString nobr();
-	///Upload variant to Clinvar
-	void uploadToClinvar(int variant_index);
-
-	///Context menu for single variant
-	void contextMenuSingleVariant(QPoint pos, int index);
 
 	///Edit classification of a variant
 	void editVariantClassification(VariantList& variant, int index, bool is_somatic = false);
@@ -77,6 +72,8 @@ public:
 	int igvPort() const;
 
 public slots:
+	///Upload variant to Clinvar
+	void uploadToClinvar(int variant_index);
 	/// Checks (only in clinet-server mode) if the server is currently running
 	void checkServerAvailability();
 	///Loads a variant list. Unloads the variant list if no file name is given
@@ -122,6 +119,8 @@ public slots:
 	void on_actionSender_triggered();
 	void on_actionSpecies_triggered();
 	void on_actionUsers_triggered();
+	void on_actionExportTestData_triggered();
+	void on_actionImportTestData_triggered();
 	void on_actionImportMids_triggered();
 	void on_actionImportStudy_triggered();
 	void on_actionImportSamples_triggered();
@@ -289,8 +288,6 @@ public slots:
 	void reportGenerationFinished(bool success);
 
 
-	///Shows the variant list context menu
-	void varsContextMenu(QPoint pos);
 	///Shows the variant header context menu
 	void varHeaderContextMenu(QPoint pos);
 	///Updated the variant context menu
@@ -399,6 +396,10 @@ public slots:
 	void editSomaticVariantInterpretation(const VariantList& vl, int index);
 	///Updates somatic variant interpreation annotation for specific variant of GSvar file
 	void updateSomaticVariantInterpretationAnno(int index, QString vicc_interpretation, QString vicc_comment);
+	///Execute custom context menu actions (see also registerCustomContextMenuActions())
+	void execContextMenuAction(QAction* action, int index);
+	//Open Alamut visualization
+	void openAlamut(QAction* action);
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
@@ -444,6 +445,21 @@ private:
 	QToolButton* rna_menu_btn_;
 	QToolButton* cfdna_menu_btn_;
 	int igv_port_manual = -1;
+
+	//single vars context menu
+	struct ContextMenuActions
+	{
+		QAction* a_report_edit;
+		QAction* a_report_del;
+		QAction* a_var_class;
+		QAction* a_var_class_somatic;
+		QAction* a_var_interpretation_somatic;
+		QAction* a_var_comment;
+		QAction* a_var_val;
+		QAction* seperator;
+	};
+	ContextMenuActions context_menu_actions_;
+	void registerCustomContextMenuActions();
 
 	//SPECIAL
 	DelayedInitializationTimer init_timer_;

@@ -1,5 +1,5 @@
 ### SampleSimilarity tool help
-	SampleSimilarity (2021_12-80-g5ff26d8f)
+	SampleSimilarity (2022_04-120-g0b2ddab9)
 	
 	Calculates pairwise sample similarity metrics from VCF/BAM/CRAM files.
 	
@@ -26,7 +26,7 @@
 	  -min_cov <int>      Minimum coverage to consider a SNP for the analysis (BAM mode).
 	                      Default value: '30'
 	  -max_snps <int>     The maximum number of high-coverage SNPs to extract from BAM/CRAM. 0 means unlimited (BAM mode).
-	                      Default value: '2000'
+	                      Default value: '5000'
 	  -build <enum>       Genome build used to generate the input (BAM mode).
 	                      Default value: 'hg38'
 	                      Valid: 'hg19,hg38'
@@ -42,8 +42,10 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleSimilarity changelog
-	SampleSimilarity 2021_12-80-g5ff26d8f
+	SampleSimilarity 2022_04-120-g0b2ddab9
 	
+	2022-07-07 Changed BAM mode: max_snps is now 5000 by default because this results in a better separation of related and unrelated samples.
+	2022-06-30 Changed GSvar mode: MODIFIER impact variants are now ingnored to make scores more similar between exomes and genomes.
 	2020-11-27 Added CRAM support.
 	2019-02-08 Massive speed-up by caching of variants/genotypes instead of loading them again for each comparison.
 	2018-11-26 Add flag 'skip_multi' to ignore multi-allelic sites.

@@ -20,6 +20,12 @@ struct CPPNGSDSHARED_EXPORT SomaticReportSettings
 	QString msi_file;
 	QString viral_file;
 
+	//ICD10 diagnosis
+	QString icd10;
+
+	//Clinical phenotype
+	QString phenotype;
+
 	//hex representation of IGV snapshot
 	QByteArray igv_snapshot_png_hex_image;
 	//width of IGV snapshot in pixels
@@ -28,6 +34,10 @@ struct CPPNGSDSHARED_EXPORT SomaticReportSettings
 	int igv_snapshot_height;
 
 	QMap<QByteArray, QByteArrayList> preferred_transcripts;
+
+	//Sequence ontology that contains the SO IDs of coding and splicing transcripts
+	OntologyTermCollection obo_terms_coding_splicing;
+
 
 	TargetRegionInfo target_region_filter;
 

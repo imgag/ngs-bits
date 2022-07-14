@@ -3,7 +3,6 @@
 
 #include "cppREST_global.h"
 #include <QDebug>
-#include <QFile>
 #include "ServerHelper.h"
 #include "HttpRequest.h"
 #include "HttpResponse.h"

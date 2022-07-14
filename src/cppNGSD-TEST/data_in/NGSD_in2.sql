@@ -56,7 +56,7 @@ INSERT INTO `gaps` (`id`, `chr`, `start`, `end`, `processed_sample_id`, `status`
 
 -- cnv_callset (we need the quality)
 INSERT INTO `cnv_callset` (`id`, `processed_sample_id`, `caller`, `caller_version`, `call_date`, `quality_metrics`, `quality`) VALUES
-(1, 3999, 'ClinCNV', 'v 1.16.1', '2019-10-20T09:55:01', '{"fraction of outliers":"0.052","gender of sample":"M","high-quality cnvs":"127","number of iterations":"1","quality used at final iteration":"20","was it outlier after clustering":"FALSE"}', 'good');
+(1, 3999, 'ClinCNV', 'v 1.16.1', '2019-10-20T09:55:01', '{"fraction of outliers":"0.052","gender of sample":"M","high-quality cnvs":"127","mean correlation to reference samples":"0.996","number of iterations":"1","quality used at final iteration":"20","was it outlier after clustering":"FALSE"}', 'good');
 
 -- gene infos
 INSERT INTO `gene` (`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES

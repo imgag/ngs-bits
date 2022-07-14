@@ -48,11 +48,6 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 
 HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 {
-	if (SessionManager::isSessionExpired(request.getUrlParams()["token"]))
-	{
-		return HttpResponse(ResponseStatus::REQUEST_TIMEOUT, request.getContentType(), "Secure token has expired");
-	}
-
 	qDebug() << "File location service";
 	if (!request.getUrlParams().contains("ps_url_id"))
 	{
