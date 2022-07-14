@@ -757,8 +757,6 @@ public:
 	QMap<QByteArray, ExpressionStats> calculateTranscriptExpressionStatistics(QSet<int>& cohort, QByteArray transcript="");
 	///Calculates statistics on all exon expression values for a list of processed sample ids
 	QMap<QByteArray, ExpressionStats> calculateExonExpressionStatistics(QSet<int>& cohort, const BedLine& exon=BedLine());
-	///Calculates expression statistics on a aingle exon for a list of processed sample ids
-	ExpressionStats calculateSingleExonExpressionStatistics(QSet<int>& cohort, const BedLine& exon=BedLine());
 	///Calculates statistics on all expression values of the same processing system and tissue
 	QMap<QByteArray, ExpressionStats> calculateCohortExpressionStatistics(int sys_id, const QString& tissue_type, QSet<int>& cohort, const QString& project="", const QString& ps_id="",
 																	RnaCohortDeterminationStategy cohort_type=RNA_COHORT_GERMLINE);

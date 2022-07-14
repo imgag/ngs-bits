@@ -6,15 +6,19 @@ INSERT INTO `user`(`id`, `user_id`, `password`, `user_role`, `name`, `email`, `c
 INSERT INTO `device` (`id`, `type`, `name`) VALUES
 (1, 'MiSeq', 'Neo');
 
+
 INSERT INTO `sender` (`id`, `name`) VALUES
 (1, 'Coriell');
+
 
 INSERT INTO `project` (`id`, `name`, `type`, `internal_coordinator_id`, `analysis`) VALUES
 (1, 'KontrollDNACoriell', 'test', 1, 'variants'),
 (2, 'KontrollDNACoriell2', 'test', 1, 'variants');
 
+
 INSERT INTO `sequencing_run` (`id`, `name`, `fcid`, `device_id`, `recipe`, `status`) VALUES
 (1, '#00372', 'AB2J9', 1, '158+8+158', 'analysis_finished');
+
 
 INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `tissue`, `species_id`, `gender`, `quality`, `tumor`, `ffpe`, `sender_id`, `comment`, `disease_group`, `disease_status`) VALUES
 (1, 'RX001', 'ex1', 'RNA', 'Skin', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'n/a', 'Affected'),
@@ -34,6 +38,7 @@ INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `tissue`, `s
 (17, 'DX007', 'ex7', 'DNA', 'Blood', 1, 'male', 'good', 0 ,0, 1, 'comment_s7', 'n/a', 'Affected'),
 (18, 'DX008', 'ex8', 'DNA', 'Blood', 1, 'male', 'good', 0 ,0, 1, 'comment_s8', 'n/a', 'Affected');
 
+
 INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES
 (1, 'same sample', 11),
 (2, 'same sample', 12),
@@ -44,8 +49,10 @@ INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES
 (7, 'same sample', 17),
 (8, 'same sample', 18);
 
+
 INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapter1_p5`, `adapter2_p7`, `type`, `shotgun`, `target_file`, `genome_id`) VALUES
 (1, 'nebRNAU2_mrna', 'NEBNext Ultra II Directional RNA mRNA', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'RNA', 1, 'nebRNAU2_mrna_2021_12_13.bed', 1);
+
 
 INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`, `quality`, `comment`, `normal_id`) VALUES
 (5001, 1, 1, 1, '1', 1, 1, 'medium', 'comment_ps1', null),
@@ -64,6 +71,7 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 (6006, 16, 1, 1, '1', 1, 2, 'good', 'comment_ps6', null),
 (6007, 17, 1, 1, '1', 1, 1, 'medium', 'comment_ps7', null),
 (6008, 18, 1, 1, '1', 1, 2, 'good', 'comment_ps8', null);
+
 
 INSERT INTO `sample_disease_info` (`id`, `sample_id`, `disease_info`, `type`, `user_id`) VALUES
 (1, 1, 'HPO:0123456', 'HPO term id', 99),
@@ -181,4 +189,5 @@ INSERT INTO `gene` (`id`, `hgnc_id`, `symbol`, `name`, `type`, `ensembl_id`) VAL
 (100, 12644, 'VAMP3', 'vesicle associated membrane protein 3', 'protein-coding gene', 'ENSG00000049245'),
 (101, 12783, 'WNT4', 'Wnt family member 4', 'protein-coding gene', 'ENSG00000162552'),
 (102, 29045, 'ZBTB40', 'zinc finger and BTB domain containing 40', 'protein-coding gene', 'ENSG00000184677');
+
 

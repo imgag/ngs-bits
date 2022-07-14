@@ -77,7 +77,28 @@ private slots:
 	}
 
 
-	//TODO: Test exon annotation
+	void germline_exon()
+	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAnnotateRNA_NGSD_init.sql"));
+
+		//import test data
+		db.importExonExpressionData(TESTDATA("data_in/NGSDAnnotateRNA_expr_exon_in1.tsv"), "RX001_01", false, false);
+		db.importExonExpressionData(TESTDATA("data_in/NGSDAnnotateRNA_expr_exon_in2.tsv"), "RX002_01", false, false);
+		db.importExonExpressionData(TESTDATA("data_in/NGSDAnnotateRNA_expr_exon_in3.tsv"), "RX003_01", false, false);
+		db.importExonExpressionData(TESTDATA("data_in/NGSDAnnotateRNA_expr_exon_in4.tsv"), "RX004_01", false, false);
+		db.importExonExpressionData(TESTDATA("data_in/NGSDAnnotateRNA_expr_exon_in5.tsv"), "RX005_01", false, false);
+		db.importExonExpressionData(TESTDATA("data_in/NGSDAnnotateRNA_expr_exon_in6.tsv"), "RX006_01", false, false);
+		db.importExonExpressionData(TESTDATA("data_in/NGSDAnnotateRNA_expr_exon_in7.tsv"), "RX007_01", false, false);
+		db.importExonExpressionData(TESTDATA("data_in/NGSDAnnotateRNA_expr_exon_in8.tsv"), "RX008_01", false, false);
+
+		EXECUTE("NGSDAnnotateRNA", "-test -ps RX001_01 -mode exons -in " + TESTDATA("data_in/NGSDAnnotateRNA_expr_exon_in1.tsv") + " -out out/NGSDAnnotateRNA_expr_out4.tsv");
+		COMPARE_FILES("out/NGSDAnnotateRNA_expr_out4.tsv", TESTDATA("data_out/NGSDAnnotateRNA_expr_exon_out4.tsv"))
+	}
 
 
 };
