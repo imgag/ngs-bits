@@ -6121,6 +6121,7 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 		var_conf.comments2 = query.value("comments2").toString();
 		var_conf.rna_info = query.value("rna_info").toString();
 
+
 		output->set(var_conf);
 	}
 

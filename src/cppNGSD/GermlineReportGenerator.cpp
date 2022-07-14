@@ -1383,6 +1383,9 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Population (gesch&auml;tzt aus NGS)"] = "population (estimated from NGS)";
 		de2en["Die Einsch&auml;tzung der klinischen Bedeutung eines PRS ist nur unter Verwendung eines entsprechenden validierten Risiko-Kalkulations-Programms und unter Ber&uuml;cksichtigung der ethnischen Zugeh&ouml;rigkeit m&ouml;glich (z.B. CanRisk.org f&uuml;r Brustkrebs)."] = "A validated risk estimation program must be used to judge the clinical importance of a PRS, e.g. CanRisk.org for breast cancer. The ethnicity of the patient must also be considered.";
 		de2en["nach L&uuml;ckenschluss"] = "after closing gaps";
+		de2en["splicing effect validated by RNA dataset"] = "splicing effect validated by RNA dataset";
+		de2en["no splicing effect found in RNA dataset"] = "no splicing effect found in RNA dataset";
+		de2en["RNA dataset not usable"] = "RNA dataset not usable";
 	}
 
 	//translate

@@ -1494,6 +1494,7 @@ private slots:
 			var_conf.de_novo = true;
 			var_conf.comp_het = false;
 			var_conf.report_type = "diagnostic variant";
+			var_conf.rna_info = "n/a";
 			report_settings.report_config->set(var_conf);
 
 			report_settings.selected_variants.append(qMakePair(VariantType::SNVS_INDELS, 173)); //small variant - chr13:41367370 C>G (SLC25A15)
@@ -1504,6 +1505,7 @@ private slots:
 			var_conf.de_novo = false;
 			var_conf.comp_het = true;
 			var_conf.report_type = "diagnostic variant";
+			var_conf.rna_info = "splicing effect validated by RNA dataset";
 			report_settings.report_config->set(var_conf);
 
 			report_settings.selected_variants.append(qMakePair(VariantType::CNVS, 0)); //CNV - het deletion
@@ -1514,6 +1516,7 @@ private slots:
 			var_conf.de_novo = false;
 			var_conf.comp_het = true;
 			var_conf.report_type = "diagnostic variant";
+			var_conf.rna_info = "no splicing effect found in RNA dataset";
 			report_settings.report_config->set(var_conf);
 
 			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 3)); //SV - Insertion
@@ -1524,6 +1527,7 @@ private slots:
 			var_conf.de_novo = false;
 			var_conf.comp_het = false;
 			var_conf.report_type = "diagnostic variant";
+			var_conf.rna_info = "RNA dataset not usable";
 			report_settings.report_config->set(var_conf);
 
 			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 12)); //SV - breakpoint
@@ -1534,6 +1538,7 @@ private slots:
 			var_conf.de_novo = false;
 			var_conf.comp_het = false;
 			var_conf.report_type = "diagnostic variant";
+			var_conf.rna_info = "n/a";
 			report_settings.report_config->set(var_conf);
 
 			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 16)); //SV - Deletion
@@ -1544,6 +1549,7 @@ private slots:
 			var_conf.de_novo = false;
 			var_conf.comp_het = false;
 			var_conf.report_type = "diagnostic variant";
+			var_conf.rna_info = "n/a";
 			report_settings.report_config->set(var_conf);
 
 			OtherCausalVariant causal_variant;
