@@ -28,7 +28,7 @@ private:
 	ErrorCorrectionStatistics& ecstats_;
 
 	///Error correction
-	void correctErrors(QTextStream& debug_out);
+	void correctErrors(int r, QTextStream& debug_out);
 };
 
 #endif

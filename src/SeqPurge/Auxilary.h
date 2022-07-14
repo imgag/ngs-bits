@@ -20,25 +20,42 @@ enum AnalysisStatus
 ///Analysis data for worker.
 struct AnalysisJob
 {
-	int index;
-	FastqEntry e1;
-	FastqEntry e2;
-	AnalysisStatus status = DONE;
+	//constructor
+	AnalysisJob() = delete;
+	AnalysisJob(int i, int block_size)
+	{
+		clear();
+
+		index = i;
+
+		r1.resize(block_size);
+		r2.resize(block_size);
+		length_r1_orig.resize(block_size);
+		length_r2_orig.resize(block_size);
+	}
+
+	int index; //index used to identify this job in signal/slots
+
+	QVector<FastqEntry> r1;
+	QVector<FastqEntry> r2;
+	int read_count; //number of reads to process (normally 'block_size', but not for for last job)
+
+	AnalysisStatus status; //only used to write statistics in progress output
 
 	//statistics stuff
-	int length_s1_orig = -1;
-	int length_s2_orig = -1;
-	int reads_trimmed_insert = 0;
-	int reads_trimmed_adapter = 0;
-	int reads_trimmed_q = 0;
-	int reads_trimmed_n = 0;
+	QVector<int> length_r1_orig;
+	QVector<int> length_r2_orig;
+	int reads_trimmed_insert;
+	int reads_trimmed_adapter;
+	int reads_trimmed_q;
+	int reads_trimmed_n;
 
 	void clear()
 	{
+		//note: index, r1, r2, length_r1_orig, length_r2_orig must not be cleared
+		read_count = -1;
 		status = DONE;
 
-		length_s1_orig = -1;
-		length_s2_orig = -1;
 		reads_trimmed_insert = 0;
 		reads_trimmed_adapter = 0;
 		reads_trimmed_q = 0;
@@ -86,6 +103,7 @@ struct TrimmingParameters
 	double mep;
 	int min_len;
 	int prefetch;
+	int block_size;
 	int threads;
 	int progress;
 	int qcut;

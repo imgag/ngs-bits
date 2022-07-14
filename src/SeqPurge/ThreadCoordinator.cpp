@@ -25,9 +25,7 @@ ThreadCoordinator::ThreadCoordinator(QObject* parent, InputStreams streams_in, O
 	//create analysis job pool
 	for (int i=0; i<params_.prefetch; ++i)
 	{
-		AnalysisJob job;
-		job.index = i;
-		job_pool_ << job;
+		job_pool_ << AnalysisJob(i, params_.block_size);
 	}
 
 	//initially fill thread pool with analysis jobs
@@ -67,7 +65,7 @@ void ThreadCoordinator::printStatus()
 void ThreadCoordinator::load(int i)
 {
 	//QTextStream(stdout) << "ThreadCoordinator::load " << i << endl;
-	InputWorker* worker = new InputWorker(job_pool_[i], streams_in_);
+	InputWorker* worker = new InputWorker(job_pool_[i], streams_in_, params_);
 	connect(worker, SIGNAL(error(int,QString)), this, SLOT(error(int,QString)));
 	connect(worker, SIGNAL(done(int)), this, SLOT(analyze(int)));
 	connect(worker, SIGNAL(inputDone(int)), this, SLOT(inputDone(int)));

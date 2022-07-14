@@ -39,14 +39,15 @@ public:
 		addOutfile("out3", "Name prefix of singleton read output files (if only one read of a pair is discarded).", true, false);
 		addOutfile("summary", "Write summary/progress to this file instead of STDOUT.", true, true);
 		addOutfile("qc", "If set, a read QC file in qcML format is created (just like ReadQC).", true, true);
-		addInt("prefetch", "Maximum number of reads that may be pre-fetched into memory to speed up trimming.", true, 1000);
+		addInt("block_size", "Number of FASTQ entries processed in one chunk.", true, 100);
+		addInt("prefetch", "Maximum number of chunks that may be pre-fetched into memory.", true, 100);
 		addFlag("ec", "Enable error-correction of adapter-trimmed reads (only those with insert match).");
 		addFlag("debug", "Enables debug output (use only with one thread).");
 		addInt("progress", "Enables progress output at the given interval in milliseconds (disabled by default).", true, -1);
 		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, Z_BEST_SPEED);
 
 		//changelog
-		changeLog(2022, 2, 16, "Improved scaling with more than 6 threads.");
+		changeLog(2022, 7, 13, "Improved scaling with more than 6 threads.");
 		changeLog(2019, 3, 26, "Added 'compression_level' parameter.");
 		changeLog(2019, 2, 11, "Added writer thread to make SeqPurge scale better when using many threads.");
 		changeLog(2017, 6, 15, "Changed default value of 'min_len' parameter from 15 to 30.");
@@ -70,6 +71,7 @@ public:
 		params.mep = getFloat("mep");
 		params.min_len = getInt("min_len");
 		params.prefetch = getInt("prefetch");
+		params.block_size = getInt("block_size");
 		params.threads = getInt("threads");
 		params.progress = getInt("progress");
 

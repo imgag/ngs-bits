@@ -10,7 +10,7 @@ class InputWorker
 {
 	Q_OBJECT
 public:
-	InputWorker(AnalysisJob& job, InputStreams& streams);
+	InputWorker(AnalysisJob& job, InputStreams& streams, const TrimmingParameters& params);
 	~InputWorker();
 	virtual void run() override;
 
@@ -22,6 +22,7 @@ signals:
 private:
 	AnalysisJob& job_;
 	InputStreams& streams_;
+	const TrimmingParameters& params_;
 };
 
 #endif // INPUTWORKER_H

@@ -24,42 +24,48 @@ void OutputWorker::run()
 	{
 		//write output
 		int reads_removed = 0;
-		if (job_.e1.bases.count()>=params_.min_len && job_.e2.bases.count()>=params_.min_len)
+		for (int r=0; r<job_.read_count; ++r)
 		{
-			streams_.ostream1->write(job_.e1);
-			streams_.ostream2->write(job_.e2);
-		}
-		else if (!streams_.ostream3.isNull() && job_.e1.bases.count()>=params_.min_len)
-		{
-			reads_removed += 1;
-			streams_.ostream3->write(job_.e1);
-		}
-		else if (!streams_.ostream4.isNull() && job_.e2.bases.count()>=params_.min_len)
-		{
-			reads_removed += 1;
-			streams_.ostream4->write(job_.e2);
-		}
-		else
-		{
-			reads_removed += 2;
+			if (job_.r1[r].bases.count()>=params_.min_len && job_.r2[r].bases.count()>=params_.min_len)
+			{
+				streams_.ostream1->write(job_.r1[r]);
+				streams_.ostream2->write(job_.r2[r]);
+			}
+			else if (!streams_.ostream3.isNull() && job_.r1[r].bases.count()>=params_.min_len)
+			{
+				reads_removed += 1;
+				streams_.ostream3->write(job_.r1[r]);
+			}
+			else if (!streams_.ostream4.isNull() && job_.r2[r].bases.count()>=params_.min_len)
+			{
+				reads_removed += 1;
+				streams_.ostream4->write(job_.r2[r]);
+			}
+			else
+			{
+				reads_removed += 2;
+			}
 		}
 
 		//update statistics
-		stats_.read_num += 2;
+		stats_.read_num += 2*job_.read_count;
 		stats_.reads_trimmed_insert += job_.reads_trimmed_insert;
 		stats_.reads_trimmed_adapter += job_.reads_trimmed_adapter;
 		stats_.reads_trimmed_n += job_.reads_trimmed_n;
 		stats_.reads_trimmed_q += job_.reads_trimmed_q;
 		stats_.reads_removed += reads_removed;
-		stats_.bases_remaining[job_.e1.bases.length()] += 1;
-		stats_.bases_remaining[job_.e2.bases.length()] += 1;
-		if (job_.length_s1_orig>0)
+		for (int r=0; r<job_.read_count; ++r)
 		{
-			stats_.bases_perc_trim_sum += (double)(job_.length_s1_orig - job_.e1.bases.count()) / job_.length_s1_orig;
-		}
-		if (job_.length_s2_orig>0)
-		{
-			stats_.bases_perc_trim_sum += (double)(job_.length_s2_orig - job_.e2.bases.count()) / job_.length_s2_orig;
+			stats_.bases_remaining[job_.r1[r].bases.length()] += 1;
+			stats_.bases_remaining[job_.r2[r].bases.length()] += 1;
+			if (job_.length_r1_orig[r]>0)
+			{
+				stats_.bases_perc_trim_sum += (double)(job_.length_r1_orig[r] - job_.r1[r].bases.count()) / job_.length_r1_orig[r];
+			}
+			if (job_.length_r2_orig[r]>0)
+			{
+				stats_.bases_perc_trim_sum += (double)(job_.length_r2_orig[r] - job_.r2[r].bases.count()) / job_.length_r2_orig[r];
+			}
 		}
 
 		//mark job as done
