@@ -451,6 +451,8 @@ void AnalysisWorker::run()
 
 		job_.status = TO_BE_WRITTEN;
 		emit done(job_.index);
+
+		//QTextStream(stdout) << "AnalysisWorker: index:" << job_.index << " elapsed:" << timer.elapsed() << endl;
 	}
 	catch(Exception& e)
 	{

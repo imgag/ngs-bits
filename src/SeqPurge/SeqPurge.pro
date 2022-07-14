@@ -13,7 +13,8 @@ SOURCES += main.cpp \
     AnalysisWorker.cpp \
     OutputWorker.cpp \
     ThreadCoordinator.cpp \
-    InputWorker.cpp
+    InputWorker.cpp \
+	FastqWriter.cpp
 
 include("../app_cli.pri")
 
@@ -25,5 +26,6 @@ HEADERS += \
     Auxilary.h \
     OutputWorker.h \
     ThreadCoordinator.h \
-    InputWorker.h
+    InputWorker.h \
+	FastqWriter.h
 

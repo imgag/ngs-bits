@@ -4,10 +4,10 @@
 #include "AnalysisWorker.h"
 #include "Helper.h"
 
-ThreadCoordinator::ThreadCoordinator(QObject* parent, InputStreams streams_in, OutputStreams streams_out, TrimmingParameters params)
+ThreadCoordinator::ThreadCoordinator(QObject* parent, TrimmingParameters params)
 	: QObject(parent)
-	, streams_in_(streams_in)
-	, streams_out_(streams_out)
+	, streams_in_()
+	, streams_out_()
 	, job_pool_()
 	, thread_pool_read_()
 	, thread_pool_analyze_()
@@ -17,19 +17,38 @@ ThreadCoordinator::ThreadCoordinator(QObject* parent, InputStreams streams_in, O
 {
 	timer_overall_.start();
 
-	//set number of threads
+	//open input streams
+	streams_in_.istream1.reset(new FastqFileStream(params.files_in1[0], false));
+	streams_in_.istream2.reset(new FastqFileStream(params.files_in2[0], false));
+
+	//open output streams
+	streams_out_.summary_file = Helper::openFileForWriting(params.summary, true);
+	streams_out_.summary_stream.reset(new QTextStream(streams_out_.summary_file.data()));
+	streams_out_.ostream1.reset(new FastqOutfileStream(params.out1, params.compression_level));
+	streams_out_.ostream2.reset(new FastqOutfileStream(params.out2, params.compression_level));
+	QString out3_base = params.out3;
+	if (!out3_base.isEmpty())
+	{
+		streams_out_.ostream3.reset(new FastqOutfileStream(out3_base + "_R1.fastq.gz", params.compression_level));
+		streams_out_.ostream4.reset(new FastqOutfileStream(out3_base + "_R2.fastq.gz", params.compression_level));
+	}
+
+	streams_out_.ostream1_thread.setMaxThreadCount(1);
+	streams_out_.ostream2_thread.setMaxThreadCount(1);
+
+	//create threads
 	thread_pool_read_.setMaxThreadCount(1);
 	thread_pool_analyze_.setMaxThreadCount(params_.threads);
 	thread_pool_write_.setMaxThreadCount(1);
 
 	//create analysis job pool
-	for (int i=0; i<params_.prefetch; ++i)
+	for (int i=0; i<params_.block_prefetch; ++i)
 	{
 		job_pool_ << AnalysisJob(i, params_.block_size);
 	}
 
 	//initially fill thread pool with analysis jobs
-	for (int i=0; i<params_.prefetch; ++i)
+	for (int i=0; i<params_.block_prefetch; ++i)
 	{
 		load(i);
 	}
@@ -50,16 +69,16 @@ ThreadCoordinator::~ThreadCoordinator()
 
 void ThreadCoordinator::printStatus()
 {
+	int to_be_loaded = 0;
 	int to_be_analyzed = 0;
 	int to_be_written = 0;
-	int done = 0;
 	for (int i=0; i<job_pool_.count(); ++i)
 	{
-		if (job_pool_[i].status==DONE) ++done;
+		if (job_pool_[i].status==DONE) ++to_be_loaded;
 		if (job_pool_[i].status==TO_BE_ANALYZED) ++to_be_analyzed;
 		if (job_pool_[i].status==TO_BE_WRITTEN) ++to_be_written;
 	}
-	(*streams_out_.summary_stream)<< Helper::dateTime() << " progress - to_be_analyzed: " << to_be_analyzed << " to_be_written: " << to_be_written << " done: " << done << endl;
+	(*streams_out_.summary_stream)<< Helper::dateTime() << " progress - to_be_loaded:" << to_be_loaded << " to_be_analyzed:" << to_be_analyzed << " to_be_written:" << to_be_written << " processed_reads:" << stats_.read_num << endl;
 }
 
 void ThreadCoordinator::load(int i)
@@ -125,7 +144,7 @@ void ThreadCoordinator::checkDone()
 	//write qc output file
 	if (!params_.qc.isEmpty())
 	{
-		stats_.qc.getResult().storeToQCML(params_.qc, QStringList() << in1_files_ << in1_files_, "");
+		stats_.qc.getResult().storeToQCML(params_.qc, QStringList() << params_.files_in1 << params_.files_in2, "");
 	}
 
 	//print error correction statistics

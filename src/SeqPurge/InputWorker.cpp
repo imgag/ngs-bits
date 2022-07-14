@@ -31,15 +31,15 @@ void InputWorker::run()
 			if (streams_.istream1->atEnd() && streams_.istream2->atEnd()) //both at end > open next input file pair
 			{
 				++streams_.current_index;
-				if (streams_.current_index>=streams_.files_in1.count())
+				if (streams_.current_index>=params_.files_in1.count())
 				{
 					end_of_data_reached = true;
 				}
 				else
 				{
 					//QTextStream(stdout) << "InputWorker::run new file pair with index " << streams_.current_index << endl;
-					streams_.istream1.reset(new FastqFileStream(streams_.files_in1[streams_.current_index], false));
-					streams_.istream2.reset(new FastqFileStream(streams_.files_in2[streams_.current_index], false));
+					streams_.istream1.reset(new FastqFileStream(params_.files_in1[streams_.current_index], false));
+					streams_.istream2.reset(new FastqFileStream(params_.files_in2[streams_.current_index], false));
 				}
 			}
 			else if (streams_.istream1->atEnd()) //read number different > error

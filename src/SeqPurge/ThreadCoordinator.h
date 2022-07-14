@@ -13,7 +13,7 @@ class ThreadCoordinator
 {
 	Q_OBJECT
 public:
-	ThreadCoordinator(QObject* parent, InputStreams streams_in, OutputStreams streams_out, TrimmingParameters params);
+	ThreadCoordinator(QObject* parent, TrimmingParameters params);
 	~ThreadCoordinator();
 
 signals:
@@ -37,8 +37,6 @@ private slots:
 	void printStatus();
 
 private:
-	QStringList in1_files_;
-	QStringList in2_files_;
 	InputStreams streams_in_;
 	OutputStreams streams_out_;
 	QList<AnalysisJob> job_pool_;

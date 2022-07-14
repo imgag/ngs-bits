@@ -3,6 +3,7 @@
 
 #include <Pileup.h>
 #include <QFile>
+#include <QThreadPool>
 #include "FastqFileStream.h"
 #include "StatisticsReads.h"
 
@@ -66,8 +67,6 @@ struct AnalysisJob
 //Input stream data
 struct InputStreams
 {
-	QStringList files_in1;
-	QStringList files_in2;
 	int current_index = 0;
 	QSharedPointer<FastqFileStream> istream1;
 	QSharedPointer<FastqFileStream> istream2;
@@ -76,6 +75,7 @@ struct InputStreams
 //Output stream data
 struct OutputStreams
 {
+	//summary stream
 	QSharedPointer<QFile> summary_file;
 	QSharedPointer<QTextStream> summary_stream;
 
@@ -84,6 +84,15 @@ struct OutputStreams
 	QSharedPointer<FastqOutfileStream> ostream2;
 	QSharedPointer<FastqOutfileStream> ostream3;
 	QSharedPointer<FastqOutfileStream> ostream4;
+
+	//parallel writing of osteam1 and ostream2
+
+	bool ostream1_done;
+	bool ostream2_done;
+	QThreadPool ostream1_thread;
+	QThreadPool ostream2_thread;
+	QString ostream1_error;
+	QString ostream2_error;
 };
 
 ///Input parameters datastructure.
@@ -94,6 +103,12 @@ struct TrimmingParameters
 	{
 	}
 
+	QStringList files_in1;
+	QStringList files_in2;
+	QString out1;
+	QString out2;
+	QString out3;
+	QString summary;
 	int adapter_overlap;
 	long max_reads_queued;
 	QByteArray a1;
@@ -102,7 +117,7 @@ struct TrimmingParameters
 	double match_perc;
 	double mep;
 	int min_len;
-	int prefetch;
+	int block_prefetch;
 	int block_size;
 	int threads;
 	int progress;

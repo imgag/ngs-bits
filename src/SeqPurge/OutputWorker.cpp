@@ -1,5 +1,7 @@
 #include "OutputWorker.h"
+#include "FastqWriter.h"
 #include <QThread>
+#include <QTime>
 
 OutputWorker::OutputWorker(AnalysisJob& job, OutputStreams& streams, const TrimmingParameters& params, TrimmingStatistics& stats)
 	: QObject()
@@ -22,14 +24,24 @@ void OutputWorker::run()
 	//QTextStream(stdout) << "OutputWorker:run " << job_.index << " thread: " << QThread::currentThreadId() << endl;
 	try
 	{
-		//write output
+		//write paired reads in separate threads
+		streams_.ostream1_done = false;
+		streams_.ostream1_error.clear();
+		FastqWriter* worker = new FastqWriter(job_, streams_, params_, true);
+		streams_.ostream1_thread.start(worker);
+
+		streams_.ostream2_done = false;
+		streams_.ostream2_error.clear();
+		worker = new FastqWriter(job_, streams_, params_, false);
+		streams_.ostream2_thread.start(worker);
+
+		//write unpaired reads
 		int reads_removed = 0;
 		for (int r=0; r<job_.read_count; ++r)
 		{
 			if (job_.r1[r].bases.count()>=params_.min_len && job_.r2[r].bases.count()>=params_.min_len)
 			{
-				streams_.ostream1->write(job_.r1[r]);
-				streams_.ostream2->write(job_.r2[r]);
+				//nothing to do here as they are written in parallel by separate threads (see above)
 			}
 			else if (!streams_.ostream3.isNull() && job_.r1[r].bases.count()>=params_.min_len)
 			{
@@ -68,9 +80,27 @@ void OutputWorker::run()
 			}
 		}
 
+		//wait until writing is done
+		while(!streams_.ostream1_done || !streams_.ostream2_done)
+		{
+			QThread::usleep(1);
+		}
+
+		//handle errors
+		if (!streams_.ostream1_error.isEmpty())
+		{
+			THROW(Exception, streams_.ostream1_error);
+		}
+		if (!streams_.ostream2_error.isEmpty())
+		{
+			THROW(Exception, streams_.ostream2_error);
+		}
+
 		//mark job as done
-		emit done(job_.index);
 		job_.status = DONE;
+		emit done(job_.index);
+
+		//QTextStream(stdout) << "OutputWorker: index:" << job_.index << " elapsed:" << timer.elapsed() << endl;
 	}
 	catch(Exception& e)
 	{

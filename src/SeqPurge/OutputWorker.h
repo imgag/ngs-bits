@@ -4,7 +4,7 @@
 #include <QRunnable>
 #include "Auxilary.h"
 
-//Output worker
+//Output worker that makes sure that only one job is written at a time (writing to the two main output FASTQs is done in separate threads to double the maximum possible throughput)
 class OutputWorker
 	: public QObject
 	, public QRunnable
