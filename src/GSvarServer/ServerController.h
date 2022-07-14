@@ -47,7 +47,11 @@ public:
 	/// Uploads a file to the sample folder (via multipart form POST request)
 	static HttpResponse uploadFile(const HttpRequest& request);
 	/// Starts the calculation of low coverage regions
-	static HttpResponse startLowCoverageCalculation(const HttpRequest& request);
+	static HttpResponse calculateLowCoverage(const HttpRequest& request);
+	/// Starts the calculation of the average covarage for gaps
+	static HttpResponse calculateAvgCoverage(const HttpRequest& request);
+	/// Calculates target region read depth used in germline report
+	static HttpResponse calculateTargetRegionReadDepth(const HttpRequest& request);
 	/// Returns the status and the results (if available) of the calculation of low coverage regions
 	static HttpResponse getLowCoverageCalculationData(const HttpRequest& request);
 	/// Requests a secure token that is needed for the communication with the server

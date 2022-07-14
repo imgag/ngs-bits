@@ -19,7 +19,7 @@ public:
 	static const DatabaseService& database();
 
 	//statistics service functionality
-	static const StatisticsService& statistics();
+	static StatisticsService& statistics();
 
 	//NGSD tab functionality
 	static void openProcessedSampleTab(QString processed_sample_name);

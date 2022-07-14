@@ -65,7 +65,7 @@ const DatabaseService& GlobalServiceProvider::database()
 	return *(instance().database_service_);
 }
 
-const StatisticsService& GlobalServiceProvider::statistics()
+StatisticsService& GlobalServiceProvider::statistics()
 {
 	if (instance().statistics_service_.isNull())
 	{

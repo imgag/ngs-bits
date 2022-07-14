@@ -1,7 +1,6 @@
 #include "GapDialog.h"
 #include "GUIHelper.h"
 #include "GSvarHelper.h"
-#include "Statistics.h"
 #include "GermlineReportGenerator.h"
 #include "GlobalServiceProvider.h"
 #include <QMessageBox>
@@ -82,7 +81,7 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 	BedFile low_cov;
 	if (lowcov_file_.isEmpty())
 	{
-		low_cov = Statistics::lowCoverage(roi_, bam_, cutoff);
+		low_cov = GlobalServiceProvider::statistics().lowCoverage(roi_, bam_, cutoff);
 	}
 	else
 	{
@@ -97,10 +96,7 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 			output << "Low-coverage statistics had to be re-calculated!";
 			output << "Pre-calculated gap file could not be used because:";
 			output << e.message();
-//			low_cov = Statistics::lowCoverage(roi_, bam_, cutoff);
-
 			low_cov = GlobalServiceProvider::statistics().lowCoverage(roi_, bam_, cutoff);
-
 		}
 	}
 
@@ -112,7 +108,7 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 
 	//calculate average coverage for gaps
 	low_cov.clearAnnotations();
-	Statistics::avgCoverage(low_cov, bam_, 1, false, true);
+	GlobalServiceProvider::statistics().avgCoverage(low_cov, bam_);
 
 	//update data structure
 	GeneSet genes_noncoding;

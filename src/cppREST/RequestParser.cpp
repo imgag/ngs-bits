@@ -31,6 +31,7 @@ HttpRequest RequestParser::parse(QByteArray *request) const
 
 			if (parsed_request.getUrlParams().contains("token"))
 			{
+				// Special case for handling IGV's incorrect processing of URL parameters (it adds some file extensions e.g. TDF to the token)
 				int dot_position = parsed_request.getUrlParams()["token"].lastIndexOf(".");
 				if (dot_position > -1)
 				{
@@ -72,8 +73,7 @@ HttpRequest RequestParser::parse(QByteArray *request) const
 		}
 	}
 
-	parsed_request.setBody(getRequestBody(*request).trimmed());
-	qDebug() << "getRequestBody(*request).trimmed()" << getRequestBody(*request).trimmed();
+	parsed_request.setBody(getRequestBody(*request).trimmed());	
 	parsed_request.setContentType(ContentType::TEXT_HTML); // default type, if the header is not found
 
 	if (parsed_request.getHeaders().contains("content-type"))

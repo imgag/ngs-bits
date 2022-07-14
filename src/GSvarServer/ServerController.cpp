@@ -603,16 +603,29 @@ HttpResponse ServerController::uploadFile(const HttpRequest& request)
 	return HttpResponse(ResponseStatus::BAD_REQUEST, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Parameters have not been provided");
 }
 
-HttpResponse ServerController::startLowCoverageCalculation(const HttpRequest& request)
+HttpResponse ServerController::calculateLowCoverage(const HttpRequest& request)
 {
-
+	qDebug() << "Low coverage calcualtion";
 	BedFile roi;
-	QString bam_file_name = "bamfile.bam";
+	QString bam_file_name;
 	int cutoff = 0;
+
+	if (request.getFormUrlEncoded().contains("roi"))
+	{
+		roi = roi.fromText(request.getFormUrlEncoded()["roi"].toLocal8Bit());
+	}
+	if (request.getFormUrlEncoded().contains("bam_url_id"))
+	{
+		bam_file_name = UrlManager::getURLById(request.getFormUrlEncoded()["bam_url_id"]).filename_with_path;
+	}
+	if (request.getFormUrlEncoded().contains("cutoff"))
+	{
+		cutoff = request.getFormUrlEncoded()["cutoff"].toInt();
+	}
 
 	BedFile low_cov = Statistics::lowCoverage(roi, bam_file_name, cutoff);
 
-	if(!low_cov.isEmpty())
+	if(!low_cov.toText().isEmpty())
 	{
 		QByteArray body = low_cov.toText().toLocal8Bit();
 
@@ -623,6 +636,71 @@ HttpResponse ServerController::startLowCoverageCalculation(const HttpRequest& re
 		return HttpResponse(response_data, body);
 	}
 	return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, request.getContentType(), "Low coverage regions are empty");
+}
+
+HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
+{
+	qDebug() << "Average coverage calcualtion";
+	BedFile low_cov;
+	QString bam_file_name;
+
+	if (request.getFormUrlEncoded().contains("low_cov"))
+	{
+		low_cov = low_cov.fromText(request.getFormUrlEncoded()["low_cov"].toLocal8Bit());
+	}
+	if (request.getFormUrlEncoded().contains("bam_url_id"))
+	{
+		bam_file_name = UrlManager::getURLById(request.getFormUrlEncoded()["bam_url_id"]).filename_with_path;
+	}
+
+	Statistics::avgCoverage(low_cov, bam_file_name, 1, false, true);
+
+	if(!low_cov.toText().isEmpty())
+	{
+		QByteArray body = low_cov.toText().toLocal8Bit();
+
+		BasicResponseData response_data;
+		response_data.length = body.length();
+		response_data.content_type = request.getContentType();
+		response_data.is_downloadable = false;
+		return HttpResponse(response_data, body);
+	}
+	return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, request.getContentType(), "Average coverage for gaps is empty");
+}
+
+HttpResponse ServerController::calculateTargetRegionReadDepth(const HttpRequest& request)
+{
+	qDebug() << "Target region read depth calcualtion";
+	BedFile regions;
+	QString bam_file_name;
+
+	if (request.getFormUrlEncoded().contains("regions"))
+	{
+		regions = regions.fromText(request.getFormUrlEncoded()["regions"].toLocal8Bit());
+	}
+	if (request.getFormUrlEncoded().contains("bam_url_id"))
+	{
+		bam_file_name = UrlManager::getURLById(request.getFormUrlEncoded()["bam_url_id"]).filename_with_path;
+	}
+
+	QString ref_file = Settings::string("reference_genome");
+	QCCollection stats = Statistics::mapping(regions, bam_file_name, ref_file);
+
+	for (int i=0; i<stats.count(); ++i)
+	{
+		if (stats[i].accession()=="QC:2000025")
+		{
+			QByteArray body = stats[i].toString().toLocal8Bit();
+			BasicResponseData response_data;
+			response_data.length = body.length();
+			response_data.content_type = request.getContentType();
+			response_data.is_downloadable = false;
+			return HttpResponse(response_data, body);
+
+		}
+	}
+
+	return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, request.getContentType(), "Could not calculate target region read depth");
 }
 
 HttpResponse ServerController::performLogin(const HttpRequest& request)
