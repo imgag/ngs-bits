@@ -86,6 +86,18 @@ void AnalysisWorker::run()
 	{
 		QTextStream debug_out(stdout);
 
+		//update raw data statistics (before trimming)
+		if (!params_.qc.isEmpty())
+		{
+			stats_.qc_mutex.lock();
+			for (int r=0; r<job_.read_count; ++r)
+			{
+				stats_.qc.update(job_.r1[r], StatisticsReads::FORWARD);
+				stats_.qc.update(job_.r2[r], StatisticsReads::REVERSE);
+			}
+			stats_.qc_mutex.unlock();
+		}
+
 		for (int r=0; r<job_.read_count; ++r)
 		{
 			if (params_.debug)
@@ -123,15 +135,6 @@ void AnalysisWorker::run()
 			if (max_length>=MAXLEN)
 			{
 				THROW(ArgumentException, "Read length unsupported! A maximum read length of " + QString::number(MAXLEN) + " is supported!");
-			}
-
-			//update raw data statistics (before trimming)
-			if (!params_.qc.isEmpty())
-			{
-				stats_.qc_mutex.lock();
-				stats_.qc.update(job_.r1[r], StatisticsReads::FORWARD);
-				stats_.qc.update(job_.r2[r], StatisticsReads::REVERSE);
-				stats_.qc_mutex.unlock();
 			}
 
 			//step 1: trim by insert match
