@@ -47,7 +47,7 @@ public:
 		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, Z_BEST_SPEED);
 
 		//changelog
-		changeLog(2022, 7, 15, "Improved scaling with more than 6 threads.");
+		changeLog(2022, 7, 15, "Improved scaling with more than 4 threads and CPU usage.");
 		changeLog(2019, 3, 26, "Added 'compression_level' parameter.");
 		changeLog(2019, 2, 11, "Added writer thread to make SeqPurge scale better when using many threads.");
 		changeLog(2017, 6, 15, "Changed default value of 'min_len' parameter from 15 to 30.");

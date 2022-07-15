@@ -1,5 +1,5 @@
 ### SeqPurge tool help
-	SeqPurge (2020_03-159-g5c8b2e82)
+	SeqPurge (2022_07-18-gfd880985)
 	
 	Removes adapter sequences from paired-end sequencing data.
 	
@@ -28,7 +28,7 @@
 	                           Default value: '7'
 	  -min_len <int>           Minimum read length after adapter trimming. Shorter reads are discarded.
 	                           Default value: '30'
-	  -threads <int>           The number of threads used for trimming (two additional threads are used for reading and writing).
+	  -threads <int>           The number of threads used for trimming (up to three additional threads are used for reading and writing).
 	                           Default value: '1'
 	  -out3 <file>             Name prefix of singleton read output files (if only one read of a pair is discarded).
 	                           Default value: ''
@@ -36,8 +36,10 @@
 	                           Default value: ''
 	  -qc <file>               If set, a read QC file in qcML format is created (just like ReadQC).
 	                           Default value: ''
-	  -prefetch <int>          Maximum number of reads that may be pre-fetched into memory to speed up trimming.
-	                           Default value: '1000'
+	  -block_size <int>        Number of FASTQ entries processed in one block.
+	                           Default value: '10000'
+	  -block_prefetch <int>    Number of blocks that may be pre-fetched into memory.
+	                           Default value: '32'
 	  -ec                      Enable error-correction of adapter-trimmed reads (only those with insert match).
 	                           Default value: 'false'
 	  -debug                   Enables debug output (use only with one thread).
@@ -54,8 +56,9 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SeqPurge changelog
-	SeqPurge 2020_03-159-g5c8b2e82
+	SeqPurge 2022_07-18-gfd880985
 	
+	2022-07-15 Improved scaling with more than 4 threads and CPU usage.
 	2019-03-26 Added 'compression_level' parameter.
 	2019-02-11 Added writer thread to make SeqPurge scale better when using many threads.
 	2017-06-15 Changed default value of 'min_len' parameter from 15 to 30.
