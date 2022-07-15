@@ -1,9 +1,10 @@
 #ifndef AUXILARY_H
 #define AUXILARY_H
 
-#include "FastqFileStream.h"
 #include <Pileup.h>
-#include <QSharedPointer>
+#include <QFile>
+#include <QThreadPool>
+#include "FastqFileStream.h"
 #include "StatisticsReads.h"
 
 
@@ -14,38 +15,84 @@ enum AnalysisStatus
 {
 	TO_BE_ANALYZED,
 	TO_BE_WRITTEN,
-	ERROR,
 	DONE
 };
 
 ///Analysis data for worker.
 struct AnalysisJob
 {
-	FastqEntry e1;
-	FastqEntry e2;
-	AnalysisStatus status = DONE;
-	QString error_message;
+	//constructor
+	AnalysisJob() = delete;
+	AnalysisJob(int i, int block_size)
+	{
+		clear();
+
+		index = i;
+
+		r1.resize(block_size);
+		r2.resize(block_size);
+		length_r1_orig.resize(block_size);
+		length_r2_orig.resize(block_size);
+	}
+
+	int index; //index used to identify this job in signal/slots
+
+	QVector<FastqEntry> r1;
+	QVector<FastqEntry> r2;
+	int read_count; //number of reads to process (normally 'block_size', but not for for last job)
+
+	AnalysisStatus status; //only used to write statistics in progress output
 
 	//statistics stuff
-	int length_s1_orig = -1;
-	int length_s2_orig = -1;
-	int reads_trimmed_insert = 0;
-	int reads_trimmed_adapter = 0;
-	int reads_trimmed_q = 0;
-	int reads_trimmed_n = 0;
+	QVector<int> length_r1_orig;
+	QVector<int> length_r2_orig;
+	int reads_trimmed_insert;
+	int reads_trimmed_adapter;
+	int reads_trimmed_q;
+	int reads_trimmed_n;
 
 	void clear()
 	{
+		//note: index, r1, r2, length_r1_orig, length_r2_orig must not be cleared
+		read_count = -1;
 		status = DONE;
-		error_message.clear();
 
-		length_s1_orig = -1;
-		length_s2_orig = -1;
 		reads_trimmed_insert = 0;
 		reads_trimmed_adapter = 0;
 		reads_trimmed_q = 0;
 		reads_trimmed_n = 0;
 	}
+};
+
+//Input stream data
+struct InputStreams
+{
+	int current_index = 0;
+	QSharedPointer<FastqFileStream> istream1;
+	QSharedPointer<FastqFileStream> istream2;
+};
+
+//Output stream data
+struct OutputStreams
+{
+	//summary stream
+	QSharedPointer<QFile> summary_file;
+	QSharedPointer<QTextStream> summary_stream;
+
+	//FASTQ output steams
+	QSharedPointer<FastqOutfileStream> ostream1;
+	QSharedPointer<FastqOutfileStream> ostream2;
+	QSharedPointer<FastqOutfileStream> ostream3;
+	QSharedPointer<FastqOutfileStream> ostream4;
+
+	//parallel writing of osteam1 and ostream2
+
+	bool ostream1_done;
+	bool ostream2_done;
+	QThreadPool ostream1_thread;
+	QThreadPool ostream2_thread;
+	QString ostream1_error;
+	QString ostream2_error;
 };
 
 ///Input parameters datastructure.
@@ -56,6 +103,12 @@ struct TrimmingParameters
 	{
 	}
 
+	QStringList files_in1;
+	QStringList files_in2;
+	QString out1;
+	QString out2;
+	QString out3;
+	QString summary;
 	int adapter_overlap;
 	long max_reads_queued;
 	QByteArray a1;
@@ -64,6 +117,10 @@ struct TrimmingParameters
 	double match_perc;
 	double mep;
 	int min_len;
+	int block_prefetch;
+	int block_size;
+	int threads;
+	int progress;
 	int qcut;
 	int qwin;
 	int qoff;

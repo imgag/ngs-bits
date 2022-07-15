@@ -1,10 +1,10 @@
 #include "ToolBase.h"
+#include "ThreadCoordinator.h"
 #include "AnalysisWorker.h"
 #include "OutputWorker.h"
 #include "Helper.h"
 #include "BasicStatistics.h"
 #include <QThreadPool>
-#include <QTime>
 
 class ConcreteTool
 		: public ToolBase
@@ -14,9 +14,8 @@ class ConcreteTool
 public:
 	ConcreteTool(int& argc, char *argv[])
 		: ToolBase(argc, argv)
-		, params_()
-		, stats_()
 	{
+		setExitEventLoopAfterMain(false);
 	}
 
 	virtual void setup()
@@ -36,17 +35,19 @@ public:
 		addInt("qoff", "Quality trimming FASTQ score offset.", true, 33);
 		addInt("ncut", "Number of subsequent Ns to trimmed using a sliding window approach from the front of reads. Set to 0 to disable.", true, 7);
 		addInt("min_len", "Minimum read length after adapter trimming. Shorter reads are discarded.", true, 30);
-		addInt("threads", "The number of threads used for trimming (two additional threads are used for reading and writing).", true, 1);
+		addInt("threads", "The number of threads used for trimming (up to three additional threads are used for reading and writing).", true, 1);
 		addOutfile("out3", "Name prefix of singleton read output files (if only one read of a pair is discarded).", true, false);
 		addOutfile("summary", "Write summary/progress to this file instead of STDOUT.", true, true);
 		addOutfile("qc", "If set, a read QC file in qcML format is created (just like ReadQC).", true, true);
-		addInt("prefetch", "Maximum number of reads that may be pre-fetched into memory to speed up trimming.", true, 1000);
+		addInt("block_size", "Number of FASTQ entries processed in one block.", true, 10000);
+		addInt("block_prefetch", "Number of blocks that may be pre-fetched into memory.", true, 32);
 		addFlag("ec", "Enable error-correction of adapter-trimmed reads (only those with insert match).");
 		addFlag("debug", "Enables debug output (use only with one thread).");
 		addInt("progress", "Enables progress output at the given interval in milliseconds (disabled by default).", true, -1);
 		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, Z_BEST_SPEED);
 
 		//changelog
+		changeLog(2022, 7, 15, "Improved scaling with more than 4 threads and CPU usage.");
 		changeLog(2019, 3, 26, "Added 'compression_level' parameter.");
 		changeLog(2019, 2, 11, "Added writer thread to make SeqPurge scale better when using many threads.");
 		changeLog(2017, 6, 15, "Changed default value of 'min_len' parameter from 15 to 30.");
@@ -58,208 +59,47 @@ public:
 
 	virtual void main()
 	{
-		/* benchmarking of FASTQ read/write
-		QTime timer;
-		timer.start();
-		QTextStream out2(stdout);
-		QList<FastqEntry> entries;
-		FastqFileStream is(getInfileList("in1")[0]);
-		for (int i=0; i<1000000; ++i)
-		{
-			FastqEntry entry;
-			is.readEntry(entry);
-			entries << entry;
-		}
+		//load parameters
+		TrimmingParameters params;
+		params.files_in1 = getInfileList("in1");
+		params.files_in2 = getInfileList("in2");
+		params.out1 = getOutfile("out1");
+		params.out2 = getOutfile("out2");
+		params.out3 = getOutfile("out3");
+		params.summary = getOutfile("summary");
+		if (params.files_in1.count()!=params.files_in2.count()) THROW(CommandLineParsingException, "Input file lists 'in1' and 'in2' differ in counts!");
+		params.a1 = getString("a1").trimmed().toLatin1();
+		if (params.a1.count()<15) THROW(CommandLineParsingException, "Forward adapter " + params.a1 + " too short!");
+		params.a2 = getString("a2").trimmed().toLatin1();
+		if (params.a2.count()<15) THROW(CommandLineParsingException, "Reverse adapter " + params.a2 + " too short!");
+		params.a_size = std::min(20, std::min(params.a1.count(), params.a2.count()));
 
-		out2 << "Reading: " << Helper::elapsedTime(timer) << endl;
-		timer.restart();
+		params.match_perc = getFloat("match_perc");
+		params.mep = getFloat("mep");
+		params.min_len = getInt("min_len");
+		params.block_prefetch = getInt("block_prefetch");
+		params.block_size = getInt("block_size");
+		params.threads = getInt("threads");
+		params.progress = getInt("progress");
 
+		params.qcut = getInt("qcut");
+		params.qwin = getInt("qwin");
+		params.qoff = getInt("qoff");
+		params.ncut = getInt("ncut");
 
-		FastqOutfileStream os(getOutfile("out1"));
-		for (int i=0; i<2; ++i)
-		{
-			foreach(const FastqEntry& entry, entries)
-			{
-				os.write(entry);
-			}
-		}
-		os.close();
-
-		out2 << "Writing: " << Helper::elapsedTime(timer) << endl;
-		return;
-		*/
-
-		//init
-		QStringList in1_files = getInfileList("in1");
-		QStringList in2_files = getInfileList("in2");
-		if (in1_files.count()!=in2_files.count())
-		{
-			THROW(CommandLineParsingException, "Input file lists 'in1' and 'in2' differ in counts!");
-		}
-
-		params_.a1 = getString("a1").trimmed().toLatin1();
-		if (params_.a1.count()<15) THROW(CommandLineParsingException, "Forward adapter " + params_.a1 + " too short!");
-		params_.a2 = getString("a2").trimmed().toLatin1();
-		if (params_.a2.count()<15) THROW(CommandLineParsingException, "Reverse adapter " + params_.a2 + " too short!");
-		params_.a_size = std::min(20, std::min(params_.a1.count(), params_.a2.count()));
-
-		params_.match_perc = getFloat("match_perc");
-		params_.mep = getFloat("mep");
-		params_.min_len = getInt("min_len");
-		int prefetch = getInt("prefetch");
-
-		params_.qcut = getInt("qcut");
-		params_.qwin = getInt("qwin");
-		params_.qoff = getInt("qoff");
-		params_.ncut = getInt("ncut");
-
-		params_.qc = getOutfile("qc");
-		params_.ec = getFlag("ec");
-		params_.debug = getFlag("debug");
-		params_.compression_level = getInt("compression_level");
-
-		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("summary"), true);
-		QTextStream out(outfile.data());
-		int progress = getInt("progress");
+		params.qc = getOutfile("qc");
+		params.ec = getFlag("ec");
+		params.debug = getFlag("debug");
+		params.compression_level = getInt("compression_level");
 
 		//init pre-calculation of factorials
 		BasicStatistics::precalculateFactorials();
 
-		//create analysis job pool
-		QList<AnalysisJob> job_pool;
-		while(job_pool.count() < prefetch)
-		{
-			job_pool << AnalysisJob();
-		}
-
-		//create thread pools
-		QThreadPool analysis_pool;
-		analysis_pool.setMaxThreadCount(getInt("threads")+1);
-		OutputWorker* output_worker = new OutputWorker(job_pool, getOutfile("out1"), getOutfile("out2"), getOutfile("out3"), params_, stats_);
-		analysis_pool.start(output_worker);
-
-		try //we need this block to terminate the output_worker in case something goes wrong...
-		{
-			//process
-			QTime timer;
-			if (progress>0) timer.start();
-			for (int i=0; i<in1_files.count(); ++i)
-			{
-				if (progress>0) out << Helper::dateTime() << " starting - forward: " << in1_files[i] << " reverse: " << in2_files[i] << endl;
-
-				FastqFileStream in1(in1_files[i], false);
-				FastqFileStream in2(in2_files[i], false);
-				while (!in1.atEnd() && !in2.atEnd())
-				{
-					int to_be_analyzed = 0;
-					int to_be_written = 0;
-					int done = 0;
-					for (int j=0; j<job_pool.count(); ++j)
-					{
-						AnalysisJob& job = job_pool[j];
-						switch(job.status)
-						{
-							case TO_BE_ANALYZED:
-								++to_be_analyzed;
-								break;
-							case TO_BE_WRITTEN:
-								++to_be_written;
-								break;
-							case DONE:
-								++done;
-								job.clear();
-								in1.readEntry(job.e1);
-								in2.readEntry(job.e2);
-								job.status = TO_BE_ANALYZED;
-								analysis_pool.start(new AnalysisWorker(job, params_, stats_, ecstats_));
-								break;
-							case ERROR: //handle errors during analayis (must be thrown in the main thread)
-								THROW(Exception, job.error_message);
-						}
-
-						if (in1.atEnd() || in2.atEnd()) break;
-					}
-
-					//progress output
-					if (progress>0 && timer.elapsed()>progress)
-					{
-						out << Helper::dateTime() << " progress - to_be_analyzed: " << to_be_analyzed << " to_be_written: " << to_be_written << " done: " << done << endl;
-						timer.restart();
-					}
-				}
-
-				//check that forward and reverse read file are both at the end
-				if (!in1.atEnd())
-				{
-					THROW(FileParseException, "File " + in1_files[i] + " has more entries than " + in2_files[i] + "!");
-				}
-				if (!in2.atEnd())
-				{
-					THROW(FileParseException, "File " + in2_files[i] + " has more entries than " + in1_files[i] + "!");
-				}
-			}
-
-			//close workers and streams
-			if (progress>0) out << Helper::dateTime() << " input data read completely - waiting for analysis to finish" << endl;
-			int done = 0;
-			while(done < job_pool.count())
-			{
-				done = 0;
-				for (int j=0; j<job_pool.count(); ++j)
-				{
-					AnalysisJob& job = job_pool[j];
-					switch(job.status)
-					{
-						case DONE:
-							++done;
-							break;
-						case ERROR: //handle errors during analayis (must be thrown in the main thread)
-							THROW(Exception, job.error_message);
-							break;
-						default:
-							break;
-					}
-				}
-
-				//progress output
-				if (progress>0 && timer.elapsed()>progress)
-				{
-					out << Helper::dateTime() << " progress - done: " << done << endl;
-					timer.restart();
-				}
-			}
-			if (progress>0) out << Helper::dateTime() << " analysis finished" << endl;
-			output_worker->terminate();
-			delete output_worker; //has to be deleted before the job list > no QScopedPointer is used!
-		}
-		catch(...)
-		{
-			output_worker->terminate();
-			throw;
-		}
-
-		//print trimming statistics
-		if (progress>0) out << Helper::dateTime() << " writing statistics summary" << endl;
-		stats_.writeStatistics(out, params_);
-
-		//write qc output file
-		if (!params_.qc.isEmpty())
-		{
-			stats_.qc.getResult().storeToQCML(getOutfile("qc"), QStringList() << in1_files << in2_files, "");
-		}
-
-		//print error correction statistics
-		if (params_.ec)
-		{
-			if (progress>0) out << Helper::dateTime() << " writing error corrections summary" << endl;
-			ecstats_.writeStatistics(out);
-		}
+		//create cooridinator instance (it starts the processing)
+		ThreadCoordinator* coordinator = new ThreadCoordinator(this, params);
+		connect(coordinator, SIGNAL(finished()), QCoreApplication::instance(), SLOT(quit()));
 	}
 
-private:
-	TrimmingParameters params_;
-	TrimmingStatistics stats_;
-	ErrorCorrectionStatistics ecstats_;
 };
 
 #include "main.moc"
