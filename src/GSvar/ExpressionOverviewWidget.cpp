@@ -255,7 +255,7 @@ void ExpressionOverviewWidget::showExpressionData()
 			foreach (const QByteArray& gene, gene_set)
 			{
 				//get expression data for each gene
-				QVector<double> tpm_values = db.getExpressionValues(gene, current_cohort);
+				QVector<double> tpm_values = db.getGeneExpressionValues(gene, current_cohort);
 
 				if (tpm_values.size() > 0)
 				{

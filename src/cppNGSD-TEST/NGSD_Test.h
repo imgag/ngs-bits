@@ -2349,19 +2349,25 @@ private slots:
 		I_EQUAL(db.getValue("SELECT raw FROM expression WHERE processed_sample_id=5005 AND symbol='" + ensg_gene_mapping.value("ENSG00000227634") + "'").toInt(), 15679);
 		F_EQUAL2(db.getValue("SELECT tpm FROM expression WHERE processed_sample_id=5005 AND symbol='" + ensg_gene_mapping.value("ENSG00000282740") + "'").toFloat(), 0.0, 0.001);
 
-		//Test transcript expression data import
-		db.importTranscriptExpressionData(TESTDATA("data_in/NGSD_expr_transcript_in1.tsv"), "RX001_01", false, false);
-		count = db.getValue("SELECT count(*) FROM expression_transcript").toInt();
-		I_EQUAL(count, 25);
-		db.importTranscriptExpressionData(TESTDATA("data_in/NGSD_expr_transcript_in2.tsv"), "RX002_01", false, false);
-		count = db.getValue("SELECT count(*) FROM expression_transcript").toInt();
-		I_EQUAL(count, 50);
-		db.importTranscriptExpressionData(TESTDATA("data_in/NGSD_expr_transcript_in3.tsv"), "RX003_01", false, false);
-		count = db.getValue("SELECT count(*) FROM expression_transcript").toInt();
-		I_EQUAL(count, 75);
-		db.importTranscriptExpressionData(TESTDATA("data_in/NGSD_expr_transcript_in3.tsv"), "RX003_01", true, false);
-		count = db.getValue("SELECT count(*) FROM expression_transcript").toInt();
-		I_EQUAL(count, 75);
+
+		//Test exon expression data import
+		db.importExonExpressionData(TESTDATA("data_in/NGSD_expr_exon_in1.tsv"), "RX001_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression_exon").toInt();
+		I_EQUAL(count, 71);
+		db.importExonExpressionData(TESTDATA("data_in/NGSD_expr_exon_in2.tsv"), "RX002_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression_exon").toInt();
+		I_EQUAL(count, 142);
+		db.importExonExpressionData(TESTDATA("data_in/NGSD_expr_exon_in3.tsv"), "RX003_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression_exon").toInt();
+		I_EQUAL(count, 213);
+		db.importExonExpressionData(TESTDATA("data_in/NGSD_expr_exon_in4.tsv"), "RX004_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression_exon").toInt();
+		I_EQUAL(count, 284);
+		IS_THROWN(DatabaseException, db.importExonExpressionData(TESTDATA("data_in/NGSD_expr_exon_in1.tsv"), "RX001_01", false, false));
+		db.importExonExpressionData(TESTDATA("data_in/NGSD_expr_exon_in1.tsv"), "RX001_01", true, false);
+		count = db.getValue("SELECT count(*) FROM expression_exon").toInt();
+		I_EQUAL(count, 284);
+
 
 		//Test cohort determination:
 		QSet<int> cohort = db.getRNACohort(1, "Blood");
@@ -2446,7 +2452,7 @@ private slots:
 		I_EQUAL(cohort.size(), 4);
 
 
-		//Test limited expresion stats:
+		//Test limited gene expresion stats:
 		cohort = db.getRNACohort(1, "Blood");
 		expression_stats = db.calculateGeneExpressionStatistics(cohort, "LINC01646");
 		I_EQUAL(expression_stats.size(), 1);
@@ -2479,17 +2485,45 @@ private slots:
 		F_EQUAL2(expression_stats.value("RER1").stddev_log2, 2.935, 0.001);
 
 		//Test sample expression values
-		QMap<QByteArray, double> sample_expression_data = db.getExpressionValuesOfSample("5001", false);
+		QMap<QByteArray, double> sample_expression_data = db.getGeneExpressionValuesOfSample("5001", false);
 		I_EQUAL(sample_expression_data.size(), 102);
 		F_EQUAL2(sample_expression_data.value("BRWD1P1"), 51.7352, 0.001);
 		F_EQUAL2(sample_expression_data.value("CASP9"), 28.8433, 0.001);
 		F_EQUAL2(sample_expression_data.value("TMEM201"), 58.3165, 0.001);
 		F_EQUAL2(sample_expression_data.value("USP48"), 0.0000, 0.001);
 
-
-
-		sample_expression_data = db.getExpressionValuesOfSample("123456", true);
+		sample_expression_data = db.getGeneExpressionValuesOfSample("123456", true);
 		I_EQUAL(sample_expression_data.size(), 0);
+
+
+		//Test exon expression stats:
+		cohort = db.getRNACohort(1, "Skin", "", "", RNA_COHORT_GERMLINE, "exons");
+		expression_stats = db.calculateExonExpressionStatistics(cohort);
+		F_EQUAL2(expression_stats.value("chr1:966704-966803").mean, 85.09675, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:966704-966803").mean_log2, 2.103816078, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:966704-966803").stddev_log2, 3.643916337, 0.001);
+
+		F_EQUAL2(expression_stats.value("chr1:971077-971208").mean, 62.94, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:971077-971208").mean_log2, 3.403752578, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:971077-971208").stddev_log2, 3.443240651, 0.001);
+
+		F_EQUAL2(expression_stats.value("chr1:868240-868530").mean, 134.428, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:868240-868530").mean_log2, 4.031839133, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:868240-868530").stddev_log2, 4.03405759, 0.001);
+
+		F_EQUAL2(expression_stats.value("chr1:1180731-1180860").mean, 63.429, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:1180731-1180860").mean_log2, 1.998186444, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:1180731-1180860").stddev_log2, 3.460960444, 0.001);
+
+		F_EQUAL2(expression_stats.value("chr1:30267-30667").mean, 10.3584, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:30267-30667").mean_log2, 1.351783794, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:30267-30667").stddev_log2, 2.341358211, 0.001);
+
+		//Test single exon:
+		expression_stats = db.calculateExonExpressionStatistics(cohort, BedLine(Chromosome("chr1"), 30267, 30667));
+		F_EQUAL2(expression_stats.value("chr1:30267-30667").mean, 10.3584, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:30267-30667").mean_log2, 1.351783794, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:30267-30667").stddev_log2, 2.341358211, 0.001);
 
 	}
 	//Test for debugging (without initialization because of speed)

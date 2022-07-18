@@ -31,6 +31,8 @@ public:
 	~ExpressionExonWidget();
 
 private:
+	Ui::ExpressionExonWidget *ui_;
+
 	// parameter
 	QString tsv_filename_;
 	int sys_id_;
@@ -41,27 +43,15 @@ private:
 	QString ps_id_;
 	RnaCohortDeterminationStategy cohort_type_;
 
-	Ui::ExpressionExonWidget *ui_;
-
 	//file info
 	TsvFile expression_data_;
 	FilterResult filter_result_;	
-
-	//NGSD
-//	NGSD db_;
-//	QSet<int> cohort_;
-//	SqlQuery exon_query_ = db_.getQuery();
-//	QMap<QByteArray,DBExpressionValues> db_expression_data_;
-//	QSet<QByteArray> valid_exons_;
 
 	//table info
 	QStringList column_names_;
 	QVector<bool> numeric_columns_;
 	QVector<int> precision_;
-//	QStringList db_column_names_;
 
-	//cohort
-//	QTableWidget* cohort_table_ = nullptr;
 
 
 	void loadExpressionFile();
@@ -69,7 +59,6 @@ private:
 	void initTable();
 	void updateTable();
 	void initBiotypeList();
-	void getDBExpressionData(int line_idx);
 
 private slots:
 	void applyFilters();
@@ -78,9 +67,7 @@ private slots:
 	void selectAllBiotypes(bool deselect=false);
 	void showHistogram(int row_idx);
 	void showExpressionTableContextMenu(QPoint pos);
-	void showCohort();
-	void copyCohortToClipboard();
-	void updateCohort();
+
 
 
 };

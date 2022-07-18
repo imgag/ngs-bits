@@ -1,5 +1,5 @@
-#include "ExpressionDataWidget.h"
-#include "ui_ExpressionDataWidget.h"
+#include "ExpressionGeneWidget.h"
+#include "ui_ExpressionGeneWidget.h"
 #include "TsvFile.h"
 #include "Helper.h"
 #include "GUIHelper.h"
@@ -17,7 +17,7 @@ QT_CHARTS_USE_NAMESPACE
 
 
 
-ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, int sys_id, QString tissue, const QString& variant_gene_filter, const GeneSet& variant_gene_set, const QString& project,
+ExpressionGeneWidget::ExpressionGeneWidget(QString tsv_filename, int sys_id, QString tissue, const QString& variant_gene_filter, const GeneSet& variant_gene_set, const QString& project,
 										   const QString& ps_id, RnaCohortDeterminationStategy cohort_type, QWidget *parent) :
 	QWidget(parent),
 	tsv_filename_(tsv_filename),
@@ -27,7 +27,7 @@ ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, int sys_id, QSt
 	project_(project),
 	ps_id_(ps_id),
 	cohort_type_(cohort_type),
-	ui_(new Ui::ExpressionDataWidget)
+	ui_(new Ui::ExpressionGeneWidget)
 
 {
 	// skipp if no NGSD is available
@@ -99,12 +99,12 @@ ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, int sys_id, QSt
 
 }
 
-ExpressionDataWidget::~ExpressionDataWidget()
+ExpressionGeneWidget::~ExpressionGeneWidget()
 {
 	delete ui_;
 }
 
-void ExpressionDataWidget::applyFilters()
+void ExpressionGeneWidget::applyFilters()
 {
 	//skip if not necessary
 	int row_count = ui_->expression_data->rowCount();
@@ -427,12 +427,12 @@ void ExpressionDataWidget::applyFilters()
 
 }
 
-void ExpressionDataWidget::copyToClipboard()
+void ExpressionGeneWidget::copyToClipboard()
 {
 	GUIHelper::copyToClipboard(ui_->expression_data);
 }
 
-void ExpressionDataWidget::showBiotypeContextMenu(QPoint pos)
+void ExpressionGeneWidget::showBiotypeContextMenu(QPoint pos)
 {
 	// create menu
 	QMenu menu(ui_->sa_biotype);
@@ -456,7 +456,7 @@ void ExpressionDataWidget::showBiotypeContextMenu(QPoint pos)
 	}
 }
 
-void ExpressionDataWidget::selectAllBiotypes(bool deselect)
+void ExpressionGeneWidget::selectAllBiotypes(bool deselect)
 {
 	//set checked state
 	foreach (QCheckBox* cb_biotype, ui_->sawc_biotype->findChildren<QCheckBox*>())
@@ -465,11 +465,11 @@ void ExpressionDataWidget::selectAllBiotypes(bool deselect)
 	}
 }
 
-void ExpressionDataWidget::showHistogram(int row_idx)
+void ExpressionGeneWidget::showHistogram(int row_idx)
 {
 	NGSD db;
 	QByteArray ensg = ui_->expression_data->item(row_idx, 0)->text().toUtf8();
-	QVector<double> expr_values = db.getExpressionValues(db.getEnsemblGeneMapping().value(ensg), cohort_, true);
+	QVector<double> expr_values = db.getGeneExpressionValues(db.getEnsemblGeneMapping().value(ensg), cohort_, true);
 
 	if(expr_values.size() == 0) return;
 	//create histogram
@@ -488,7 +488,7 @@ void ExpressionDataWidget::showHistogram(int row_idx)
 	dlg->exec();
 }
 
-void ExpressionDataWidget::showExpressionTableContextMenu(QPoint pos)
+void ExpressionGeneWidget::showExpressionTableContextMenu(QPoint pos)
 {
 	// create menu
 	int row_idx = ui_->expression_data->itemAt(pos)->row();
@@ -511,7 +511,7 @@ void ExpressionDataWidget::showExpressionTableContextMenu(QPoint pos)
 	}
 }
 
-void ExpressionDataWidget::showCohort()
+void ExpressionGeneWidget::showCohort()
 {
 	if (!LoginManager::active()) return;
 	NGSD db;
@@ -568,13 +568,13 @@ void ExpressionDataWidget::showCohort()
 	}
 }
 
-void ExpressionDataWidget::copyCohortToClipboard()
+void ExpressionGeneWidget::copyCohortToClipboard()
 {
 	if (cohort_table_ == nullptr) return;
 	GUIHelper::copyToClipboard(cohort_table_);
 }
 
-void ExpressionDataWidget::loadExpressionData()
+void ExpressionGeneWidget::loadExpressionData()
 {
 	try
 	{
@@ -729,7 +729,9 @@ void ExpressionDataWidget::loadExpressionData()
 					else
 					{
 						// add standard QTableWidgetItem
-						ui_->expression_data->setItem(row_idx, col_idx, new QTableWidgetItem(row.at(column_indices.at(col_idx))));
+						QTableWidgetItem* cell = new QTableWidgetItem(row.at(column_indices.at(col_idx)));
+						cell->setFlags(cell->flags() &  ~Qt::ItemIsEditable);
+						ui_->expression_data->setItem(row_idx, col_idx, cell);
 					}
 
 					//extract gene biotype
@@ -779,7 +781,7 @@ void ExpressionDataWidget::loadExpressionData()
 	}
 }
 
-void ExpressionDataWidget::initBiotypeList()
+void ExpressionGeneWidget::initBiotypeList()
 {
 	//biotypes
 	QStringList sorted_biotypes = NGSD().getEnum("gene_transcript", "biotype");

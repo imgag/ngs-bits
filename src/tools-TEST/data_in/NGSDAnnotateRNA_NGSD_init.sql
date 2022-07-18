@@ -182,8 +182,6 @@ INSERT INTO `gene` (`id`, `hgnc_id`, `symbol`, `name`, `type`, `ensembl_id`) VAL
 (101, 12783, 'WNT4', 'Wnt family member 4', 'protein-coding gene', 'ENSG00000162552'),
 (102, 29045, 'ZBTB40', 'zinc finger and BTB domain containing 40', 'protein-coding gene', 'ENSG00000184677');
 
-
-
 INSERT INTO `gene_transcript` (`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`, `biotype`, `is_gencode_basic`, `is_ensembl_canonical`, `is_mane_select`, `is_mane_plus_clinical`) VALUES
 (1, 46, 'ENST00000469289', 'ensembl', '1', NULL, NULL, '+', 'lncRNA', 1, 0, 0, 0),
 (2, 46, 'ENST00000473358', 'ensembl', '1', NULL, NULL, '+', 'lncRNA', 1, 1, 0, 0),

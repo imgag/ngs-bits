@@ -64,7 +64,7 @@ public:
 		//get expression values
 		QString ps_id = db.processedSampleId(rna_ps_name);
 //		qDebug() << ps_id;
-		QMap<QByteArray, double> expression = db.getExpressionValuesOfSample(ps_id, false);
+		QMap<QByteArray, double> expression = db.getGeneExpressionValuesOfSample(ps_id, false);
 //		qDebug() << expression.size();
 //		foreach (QByteArray key, expression.keys())
 //		{

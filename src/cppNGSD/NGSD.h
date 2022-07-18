@@ -752,26 +752,26 @@ public:
 	///Imports exon expression data to the NGSD
 	void importExonExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
 	///Calculates statistics on all gene expression values for a list of processed sample ids
-	QMap<QByteArray, ExpressionStats> calculateGeneExpressionStatistics(QSet<int>& cohort, QByteArray gene="");
+	QMap<QByteArray, ExpressionStats> calculateGeneExpressionStatistics(QSet<int>& cohort, QByteArray gene="", bool debug=false);
 	///Calculates statistics on all transcript expression values for a list of processed sample ids
 	QMap<QByteArray, ExpressionStats> calculateTranscriptExpressionStatistics(QSet<int>& cohort, QByteArray transcript="");
 	///Calculates statistics on all exon expression values for a list of processed sample ids
-	QMap<QByteArray, ExpressionStats> calculateExonExpressionStatistics(QSet<int>& cohort, const BedLine& exon=BedLine());
+	QMap<QByteArray, ExpressionStats> calculateExonExpressionStatistics(QSet<int>& cohort, const BedLine& exon=BedLine(), bool debug=false);
 	///Calculates statistics on all expression values of the same processing system and tissue
 	QMap<QByteArray, ExpressionStats> calculateCohortExpressionStatistics(int sys_id, const QString& tissue_type, QSet<int>& cohort, const QString& project="", const QString& ps_id="",
-																	RnaCohortDeterminationStategy cohort_type=RNA_COHORT_GERMLINE);
+																	RnaCohortDeterminationStategy cohort_type=RNA_COHORT_GERMLINE, bool debug=false);
 	///Determines the sample cohort for a given sample
 	QSet<int> getRNACohort(int sys_id, const QString& tissue_type, const QString& project="", const QString& ps_id="", RnaCohortDeterminationStategy cohort_type=RNA_COHORT_GERMLINE,
-						   const QByteArray& mode = "genes");
+						   const QByteArray& mode = "genes", bool debug=false);
 	///Creates a mapping from ENSG ensembl identifier to NGSD gene ids
 	QMap<QByteArray, QByteArray> getEnsemblGeneMapping();
-	///Returns a list of all expression values for a given ENSG
-	QVector<double> getExpressionValues(const QByteArray& gene, int sys_id, const QString& tissue_type, bool log2=false);
-	QVector<double> getExpressionValues(const QByteArray& gene, QSet<int> cohort, bool log2=false);
+	///Returns a list of all expression values for a given gene symbol
+	QVector<double> getGeneExpressionValues(const QByteArray& gene, int sys_id, const QString& tissue_type, bool log2=false);
+	QVector<double> getGeneExpressionValues(const QByteArray& gene, QSet<int> cohort, bool log2=false);
 	///Returns a list of all expression values for a given exon
 	QVector<double> getExonExpressionValues(const BedLine& exon, QSet<int> cohort, bool log2=false);
 	///Returns the expression values fo a single sample
-	QMap<QByteArray, double> getExpressionValuesOfSample(const QString& ps_id, bool allow_empty=false);
+	QMap<QByteArray, double> getGeneExpressionValuesOfSample(const QString& ps_id, bool allow_empty=false);
 
 	/***User handling functions ***/
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.

@@ -1748,7 +1748,7 @@ QMap<QByteArray, QByteArray> NGSD::getEnsemblGeneMapping()
 	return mapping;
 }
 
-QVector<double> NGSD::getExpressionValues(const QByteArray& gene, int sys_id, const QString& tissue_type, bool log2)
+QVector<double> NGSD::getGeneExpressionValues(const QByteArray& gene, int sys_id, const QString& tissue_type, bool log2)
 {
 	// debug
 	QTime timer;
@@ -1781,7 +1781,7 @@ QVector<double> NGSD::getExpressionValues(const QByteArray& gene, int sys_id, co
 	return expr_values;
 }
 
-QVector<double> NGSD::getExpressionValues(const QByteArray& gene, QSet<int> cohort, bool log2)
+QVector<double> NGSD::getGeneExpressionValues(const QByteArray& gene, QSet<int> cohort, bool log2)
 {
 	// debug
 	QTime timer;
@@ -1861,7 +1861,7 @@ QVector<double> NGSD::getExonExpressionValues(const BedLine& exon, QSet<int> coh
 	return expr_values;
 }
 
-QMap<QByteArray, double> NGSD::getExpressionValuesOfSample(const QString& ps_id, bool allow_empty)
+QMap<QByteArray, double> NGSD::getGeneExpressionValuesOfSample(const QString& ps_id, bool allow_empty)
 {
 	QMap<QByteArray, double> expression_data;
 
@@ -1879,7 +1879,7 @@ QMap<QByteArray, double> NGSD::getExpressionValuesOfSample(const QString& ps_id,
 	return expression_data;
 }
 
-QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<int>& cohort, QByteArray gene_symbol)
+QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<int>& cohort, QByteArray gene_symbol, bool debug)
 {
 	QTime timer;
 	timer.start();
@@ -1892,7 +1892,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<i
 	{
 		ps_ids_str << QString::number(id);
 	}
-	qDebug() << "Cohort size: " << QString::number(cohort.size());
+	if(debug) qDebug() << "Cohort size: " << QString::number(cohort.size());
 
 	//get expression data, ungrouped/long format
 	SqlQuery q = getQuery();
@@ -1922,9 +1922,9 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<i
 	}
 
 
-	qDebug() << "Query SQL server: " << q_str;
+	if(debug) qDebug() << "Query SQL server: " << q_str;
 	q.exec(q_str);
-	qDebug() << "Get expression data from SQL server: " << Helper::elapsedTime(timer);
+	if(debug) qDebug() << "Get expression data from SQL server: " << Helper::elapsedTime(timer);
 
 	//cache for values from current symbol
 	QByteArray current_symbol;
@@ -1971,8 +1971,8 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<i
 	gene_stats.insert(current_symbol, stats);
 
 
-	qDebug() << "Statistics calculated: " << Helper::elapsedTime(timer);
-	qDebug() << "gene_stats: " << gene_stats.size();
+	if(debug) qDebug() << "Statistics calculated: " << Helper::elapsedTime(timer);
+	if(debug) qDebug() << "gene_stats: " << gene_stats.size();
 
 	return gene_stats;
 }
@@ -2072,7 +2072,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateTranscriptExpressionStatistics(
 	return transcript_stats;
 }
 
-QMap<QByteArray, ExpressionStats> NGSD::calculateExonExpressionStatistics(QSet<int>& cohort, const BedLine& exon)
+QMap<QByteArray, ExpressionStats> NGSD::calculateExonExpressionStatistics(QSet<int>& cohort, const BedLine& exon, bool debug)
 {
 	QTime timer;
 	timer.start();
@@ -2085,7 +2085,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExonExpressionStatistics(QSet<i
 	{
 		ps_ids_str << QString::number(id);
 	}
-	qDebug() << "Cohort size: " << QString::number(cohort.size());
+	if(debug) qDebug() << "Cohort size: " << QString::number(cohort.size());
 
 	//get expression data, ungrouped/long format
 	SqlQuery q = getQuery();
@@ -2115,9 +2115,9 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExonExpressionStatistics(QSet<i
 	}
 
 
-	qDebug() << "Query SQL server: " << q_str;
+	if(debug) qDebug() << "Query SQL server: " << q_str;
 	q.exec(q_str);
-	qDebug() << "Get expression data from SQL server: " << Helper::elapsedTime(timer);
+	if(debug) qDebug() << "Get expression data from SQL server: " << Helper::elapsedTime(timer);
 
 	//cache for values from current symbol
 	BedLine current_exon;
@@ -2130,7 +2130,6 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExonExpressionStatistics(QSet<i
 		if (exon == current_exon)
 		{
 			//collect tpm
-			qDebug() << srpb;
 			cache.append(srpb);
 			cache_log2p1.append(std::log2(srpb + 1));
 		}
@@ -2143,6 +2142,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExonExpressionStatistics(QSet<i
 				stats.mean = BasicStatistics::mean(cache);
 				stats.mean_log2 = BasicStatistics::mean(cache_log2p1);
 				stats.stddev_log2 = BasicStatistics::stdev(cache_log2p1, stats.mean_log2);
+//				qDebug() << cache.size() << current_exon.toString(true).toUtf8() << cache << cache_log2p1 << stats.mean << stats.mean_log2 << stats.stddev_log2;
 				exon_stats.insert(current_exon.toString(true).toUtf8(), stats);
 
 				//clear cache
@@ -2161,6 +2161,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExonExpressionStatistics(QSet<i
 	ExpressionStats stats;
 	if(cache.size() > 0)
 	{
+//		qDebug() << cache.size() << current_exon.toString(true).toUtf8() << cache << cache_log2p1 << stats.mean << stats.mean_log2 << stats.stddev_log2;
 		stats.mean = BasicStatistics::mean(cache);
 		stats.mean_log2 = BasicStatistics::mean(cache_log2p1);
 		stats.stddev_log2 = BasicStatistics::stdev(cache_log2p1, stats.mean_log2);
@@ -2168,29 +2169,29 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExonExpressionStatistics(QSet<i
 	}
 
 
-	qDebug() << "Statistics calculated: " << Helper::elapsedTime(timer);
-	qDebug() << "exon_stats: " << exon_stats.size();
+	if(debug) qDebug() << "Statistics calculated: " << Helper::elapsedTime(timer);
+	if(debug) qDebug() << "exon_stats: " << exon_stats.size();
 
 	return exon_stats;
 }
 
 
 QMap<QByteArray, ExpressionStats> NGSD::calculateCohortExpressionStatistics(int sys_id, const QString& tissue_type, QSet<int>& cohort, const QString& project, const QString& ps_id,
-																	  RnaCohortDeterminationStategy cohort_type)
+																	  RnaCohortDeterminationStategy cohort_type, bool debug)
 {
 	QTime timer;
 	timer.start();
 
 	//get cohort
-	cohort = getRNACohort(sys_id, tissue_type, project, ps_id, cohort_type);
+	cohort = getRNACohort(sys_id, tissue_type, project, ps_id, cohort_type, "genes", debug);
 
 	QMap<QByteArray, ExpressionStats> expression_stats = calculateGeneExpressionStatistics(cohort);
 
-	qDebug() << "Get expression stats: " << Helper::elapsedTime(timer);
+	if(debug) qDebug() << "Get expression stats: " << Helper::elapsedTime(timer);
 	return expression_stats;
 }
 
-QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QString& project, const QString& ps_id, RnaCohortDeterminationStategy cohort_type, const QByteArray& mode)
+QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QString& project, const QString& ps_id, RnaCohortDeterminationStategy cohort_type, const QByteArray& mode, bool debug)
 {
 	QTime timer;
 	timer.start();
@@ -2211,7 +2212,7 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 		THROW(ArgumentException, "Invalid mode '" + mode + "' given! Valid modes are 'genes' or 'exons'");
 	}
 
-	qDebug() << "Get all psample ids with expression data: " << Helper::elapsedTime(timer);
+	if(debug) qDebug() << "Get all psample ids with expression data: " << Helper::elapsedTime(timer);
 
 
 	if ((cohort_type == RNA_COHORT_GERMLINE) || (cohort_type == RNA_COHORT_GERMLINE_PROJECT))
@@ -2280,9 +2281,9 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 				hpo_disease_info << info.disease_info;
 			}
 		}
-		qDebug() << sample_ids;
-		qDebug() << "HPO: " << hpo_disease_info;
-		qDebug() << "ICD10: " << icd10_disease_info;
+		if(debug) qDebug() << sample_ids;
+		if(debug) qDebug() << "HPO: " << hpo_disease_info;
+		if(debug) qDebug() << "ICD10: " << icd10_disease_info;
 
 		if(icd10_disease_info.size() > 1) THROW(DatabaseException, "Sample " + processedSampleName(ps_id) + " contains more than 1 ICD10 code, cannot create sample cohort");
 		if(hpo_disease_info.size() > 1) THROW(DatabaseException, "Sample " + processedSampleName(ps_id) + " contains more than 1 HPO term, cannot create sample cohort");
@@ -2290,7 +2291,7 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 		if(hpo_disease_info.size() < 1) THROW(DatabaseException, "Sample " + processedSampleName(ps_id) + " does not contain HPO term, cannot create sample cohort");
 
 
-		qDebug() << "get disease info" << Helper::elapsedTime(timer);
+		if(debug) qDebug() << "get disease info" << Helper::elapsedTime(timer);
 		timer.restart();
 
 
@@ -2304,7 +2305,7 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 												  + "AND ((sdi.type='ICD10 code' AND sdi.disease_info='" + icd10_disease_info.toList().at(0) + "') OR (sdi.type='HPO term id' AND sdi.disease_info='"
 													  + hpo_disease_info.toList().at(0) + "'))").toSet();
 
-		qDebug() << "get ps_ids of cohort (somatic)" << Helper::elapsedTime(timer);
+		if(debug) qDebug() << "get ps_ids of cohort (somatic)" << Helper::elapsedTime(timer);
 		timer.restart();
 
 		if(cohort.size() < 1) THROW(DatabaseException, "No matching samples for cohort found. Cannot create statistics.");
@@ -2316,9 +2317,9 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 
 	//consider only ps_ids which have expression data
 	cohort = cohort.intersect(all_ps_ids);
-	qDebug() << "Cohort size: " << cohort.size() << ": " << cohort;
+	if(debug) qDebug() << "Cohort size: " << cohort.size() << ": " << cohort;
 
-	qDebug() << "Get psample ids: " << Helper::elapsedTime(timer);
+	if(debug) qDebug() << "Get psample ids: " << Helper::elapsedTime(timer);
 
 	return cohort;
 }

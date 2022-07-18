@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ExpressionDataWidget</class>
- <widget class="QWidget" name="ExpressionDataWidget">
+ <class>ExpressionGeneWidget</class>
+ <widget class="QWidget" name="ExpressionGeneWidget">
   <property name="geometry">
    <rect>
     <x>0</x>

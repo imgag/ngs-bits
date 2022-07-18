@@ -113,7 +113,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "ClinvarSubmissionGenerator.h"
 #include "SomaticVariantInterpreterWidget.h"
 #include "AlleleBalanceCalculator.h"
-#include "ExpressionDataWidget.h"
+#include "ExpressionGeneWidget.h"
 #include "GapClosingDialog.h"
 #include "XmlHelper.h"
 #include "GermlineReportGenerator.h"
@@ -1537,7 +1537,7 @@ void MainWindow::on_actionExpressionData_triggered()
 		cohort_type = RNA_COHORT_SOMATIC;
 	}
 
-	ExpressionDataWidget* widget = new ExpressionDataWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, project, rna_ps_id,
+	ExpressionGeneWidget* widget = new ExpressionGeneWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, project, rna_ps_id,
 															cohort_type, this);
 	auto dlg = GUIHelper::createDialog(widget, "Expression Data of " + db.processedSampleName(rna_ps_id));
 	addModelessDialog(dlg, false);

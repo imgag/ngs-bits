@@ -93,7 +93,6 @@ SOURCES += main.cpp\
     CfDNAPanelWidget.cpp \
     SomaticVariantInterpreterWidget.cpp \
     AlleleBalanceCalculator.cpp \
-    ExpressionDataWidget.cpp \
     GapClosingDialog.cpp \
     DatabaseServiceLocal.cpp \
     NGSDReplicationWidget.cpp \
@@ -115,7 +114,8 @@ SOURCES += main.cpp\
     ExpressionExonWidget.cpp \
     GeneSelectionDialog.cpp \
     ExpressionOverviewWidget.cpp \
-    SplicingWidget.cpp
+    SplicingWidget.cpp \
+    ExpressionGeneWidget.cpp
 
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
@@ -203,7 +203,6 @@ HEADERS += MainWindow.h \
     CfDNAPanelWidget.h \
     SomaticVariantInterpreterWidget.h \
     AlleleBalanceCalculator.h \
-    ExpressionDataWidget.h \
     GapClosingDialog.h \
     DatabaseService.h \
     DatabaseServiceLocal.h \
@@ -226,7 +225,8 @@ HEADERS += MainWindow.h \
     ExpressionExonWidget.h \
     GeneSelectionDialog.h \
     ExpressionOverviewWidget.h \
-    SplicingWidget.h
+    SplicingWidget.h \
+    ExpressionGeneWidget.h
 
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
@@ -303,7 +303,6 @@ FORMS    += MainWindow.ui \
     CfDNAPanelWidget.ui \
     SomaticVariantInterpreterWidget.ui \
     AlleleBalanceCalculator.ui \
-    ExpressionDataWidget.ui \
     GapClosingDialog.ui \
     NGSDReplicationWidget.ui \
     CohortAnalysisWidget.ui \
@@ -323,7 +322,8 @@ FORMS    += MainWindow.ui \
     ExpressionExonWidget.ui \
     GeneSelectionDialog.ui \
     ExpressionOverviewWidget.ui \
-    SplicingWidget.ui
+    SplicingWidget.ui \
+    ExpressionGeneWidget.ui
 
 include("../app_gui.pri")
 
