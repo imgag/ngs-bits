@@ -2245,30 +2245,6 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
--- Table `expression_transcript`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `expression_transcript`
-(
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `processed_sample_id` INT(11) NOT NULL,
-  `name` VARCHAR(40) NOT NULL,
-  `rpb` FLOAT NOT NULL,
-  `srpb` FLOAT NOT NULL,
-  `raw` INT NOT NULL,
-  PRIMARY KEY (`id`),
-  INDEX(`processed_sample_id`),
-  INDEX(`name`),
-  UNIQUE INDEX `expression_transcript_UNIQUE` (`processed_sample_id` ASC, `name` ASC),
-  CONSTRAINT `fk_expression_transcript_processed_sample_id`
-    FOREIGN KEY (`processed_sample_id` )
-    REFERENCES `processed_sample` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION
-)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
-
--- -----------------------------------------------------
 -- Table `expression_exon`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `expression_exon`

@@ -83,11 +83,14 @@ public:
 			expression_stats = db.calculateGeneExpressionStatistics(cohort);
 			ensg_gene_mapping = db.getEnsemblGeneMapping();
 		}
-		else //exons
+		else if(mode == "exons")
 		{
 			expression_stats = db.calculateExonExpressionStatistics(cohort);
 		}
-
+		else
+		{
+			THROW(ArgumentException, "Invalid mode '" + mode + "given!")
+		}
 
 		//parse input file
 		TSVFileStream input_file(in);

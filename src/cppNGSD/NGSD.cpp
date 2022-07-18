@@ -1977,101 +1977,6 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<i
 	return gene_stats;
 }
 
-QMap<QByteArray, ExpressionStats> NGSD::calculateTranscriptExpressionStatistics(QSet<int>& cohort, QByteArray transcript)
-{
-	QTime timer;
-	timer.start();
-
-	QMap<QByteArray, ExpressionStats> transcript_stats;
-
-	//processed sample IDs as string list
-	QStringList ps_ids_str;
-	foreach (int id, cohort)
-	{
-		ps_ids_str << QString::number(id);
-	}
-	qDebug() << "Cohort size: " << QString::number(cohort.size());
-
-	//get expression data, ungrouped/long format
-	SqlQuery q = getQuery();
-	QString q_str;
-	if (transcript.isEmpty())
-	{
-		q_str = QString(
-					"SELECT e.name, e.srpb "
-					"FROM expression_transcript e "
-					"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") "
-					"ORDER BY e.name;"
-					);
-	}
-	else
-	{
-		//check if valid transcript name is given
-		int transcript_id = getValue("SELECT id FROM transcript WHERE name=:0", false, transcript).toInt();
-		q_str = QString(
-					"SELECT e.name, e.srpb "
-					"FROM expression_transcript e "
-					"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") "
-					"AND e.name='" + transcript + "';"
-					);
-	}
-
-
-	qDebug() << "Query SQL server: " << q_str;
-	q.exec(q_str);
-	qDebug() << "Get expression data from SQL server: " << Helper::elapsedTime(timer);
-
-	//cache for values from current symbol
-	QByteArray current_transcript;
-	QVector<double> cache;
-	QVector<double> cache_log2p1;
-	while (q.next())
-	{
-		QByteArray transcript = q.value(0).toByteArray();
-		double tpm = q.value(1).toFloat();
-		if (transcript == current_transcript)
-		{
-			//collect tpm
-			cache.append(tpm);
-			cache_log2p1.append(std::log2(tpm + 1));
-		}
-		else if (transcript != current_transcript)
-		{
-			if (!current_transcript.isEmpty())
-			{
-				//calculate statistics for 'current_transcript'
-				ExpressionStats stats;
-				stats.mean = BasicStatistics::mean(cache);
-				stats.mean_log2 = BasicStatistics::mean(cache_log2p1);
-				stats.stddev_log2 = BasicStatistics::stdev(cache_log2p1, stats.mean_log2);
-				transcript_stats.insert(current_transcript, stats);
-
-				//clear cache
-				cache.clear();
-				cache_log2p1.clear();
-			}
-			//collect tpm
-			cache.append(tpm);
-			cache_log2p1.append(std::log2(tpm + 1));
-			//update symbol
-			current_transcript = transcript;
-		}
-	}
-
-	//store last symbol
-	ExpressionStats stats;
-	stats.mean = BasicStatistics::mean(cache);
-	stats.mean_log2 = BasicStatistics::mean(cache_log2p1);
-	stats.stddev_log2 = BasicStatistics::stdev(cache_log2p1, stats.mean_log2);
-	transcript_stats.insert(current_transcript, stats);
-
-
-	qDebug() << "Statistics calculated: " << Helper::elapsedTime(timer);
-	qDebug() << "transcript_stats: " << transcript_stats.size();
-
-	return transcript_stats;
-}
-
 QMap<QByteArray, ExpressionStats> NGSD::calculateExonExpressionStatistics(QSet<int>& cohort, const BedLine& exon, bool debug)
 {
 	QTime timer;
@@ -2142,7 +2047,6 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExonExpressionStatistics(QSet<i
 				stats.mean = BasicStatistics::mean(cache);
 				stats.mean_log2 = BasicStatistics::mean(cache_log2p1);
 				stats.stddev_log2 = BasicStatistics::stdev(cache_log2p1, stats.mean_log2);
-//				qDebug() << cache.size() << current_exon.toString(true).toUtf8() << cache << cache_log2p1 << stats.mean << stats.mean_log2 << stats.stddev_log2;
 				exon_stats.insert(current_exon.toString(true).toUtf8(), stats);
 
 				//clear cache
@@ -2161,7 +2065,6 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExonExpressionStatistics(QSet<i
 	ExpressionStats stats;
 	if(cache.size() > 0)
 	{
-//		qDebug() << cache.size() << current_exon.toString(true).toUtf8() << cache << cache_log2p1 << stats.mean << stats.mean_log2 << stats.stddev_log2;
 		stats.mean = BasicStatistics::mean(cache);
 		stats.mean_log2 = BasicStatistics::mean(cache_log2p1);
 		stats.stddev_log2 = BasicStatistics::stdev(cache_log2p1, stats.mean_log2);

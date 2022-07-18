@@ -753,8 +753,6 @@ public:
 	void importExonExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
 	///Calculates statistics on all gene expression values for a list of processed sample ids
 	QMap<QByteArray, ExpressionStats> calculateGeneExpressionStatistics(QSet<int>& cohort, QByteArray gene="", bool debug=false);
-	///Calculates statistics on all transcript expression values for a list of processed sample ids
-	QMap<QByteArray, ExpressionStats> calculateTranscriptExpressionStatistics(QSet<int>& cohort, QByteArray transcript="");
 	///Calculates statistics on all exon expression values for a list of processed sample ids
 	QMap<QByteArray, ExpressionStats> calculateExonExpressionStatistics(QSet<int>& cohort, const BedLine& exon=BedLine(), bool debug=false);
 	///Calculates statistics on all expression values of the same processing system and tissue
