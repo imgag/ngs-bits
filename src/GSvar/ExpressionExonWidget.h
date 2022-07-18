@@ -48,31 +48,31 @@ private:
 	FilterResult filter_result_;	
 
 	//NGSD
-	NGSD db_;
-	QSet<int> cohort_;
-	SqlQuery exon_query_ = db_.getQuery();
-	QMap<QByteArray,DBExpressionValues> db_expression_data_;
-	QSet<QByteArray> valid_exons_;
+//	NGSD db_;
+//	QSet<int> cohort_;
+//	SqlQuery exon_query_ = db_.getQuery();
+//	QMap<QByteArray,DBExpressionValues> db_expression_data_;
+//	QSet<QByteArray> valid_exons_;
 
 	//table info
 	QStringList column_names_;
-	QStringList db_column_names_;
 	QVector<bool> numeric_columns_;
 	QVector<int> precision_;
+//	QStringList db_column_names_;
 
 	//cohort
-	QTableWidget* cohort_table_ = nullptr;
+//	QTableWidget* cohort_table_ = nullptr;
 
 
 	void loadExpressionFile();
 	void initFilter();
 	void initTable();
-	void updateTable(int max_rows = 10000);
+	void updateTable();
 	void initBiotypeList();
 	void getDBExpressionData(int line_idx);
 
 private slots:
-	void applyFilters(int max_rows = 10000);
+	void applyFilters();
 	void copyToClipboard();
 	void showBiotypeContextMenu(QPoint pos);
 	void selectAllBiotypes(bool deselect=false);

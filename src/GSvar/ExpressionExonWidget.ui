@@ -17,7 +17,14 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
-      <widget class="QTableWidget" name="tw_expression_table"/>
+      <widget class="QTableWidget" name="tw_expression_table">
+       <property name="minimumSize">
+        <size>
+         <width>600</width>
+         <height>0</height>
+        </size>
+       </property>
+      </widget>
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -61,69 +68,6 @@
      <property name="sizeConstraint">
       <enum>QLayout::SetDefaultConstraint</enum>
      </property>
-     <item>
-      <widget class="QGroupBox" name="gb_cohort">
-       <property name="maximumSize">
-        <size>
-         <width>300</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="title">
-        <string>Cohort</string>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_5">
-        <item>
-         <widget class="QGroupBox" name="gb_cohort_determination">
-          <property name="title">
-           <string>Cohort determination</string>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_6">
-           <item>
-            <widget class="QRadioButton" name="rb_germline">
-             <property name="text">
-              <string>germline (same tissue)</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="rb_germline_project">
-             <property name="text">
-              <string>germline (same tissue and project)</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="rb_somatic">
-             <property name="text">
-              <string>somatic (HPO/ICD10 based)</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout">
-          <item>
-           <widget class="QLabel" name="l_cohort_size">
-            <property name="text">
-             <string>Cohort size: -</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="btn_show_cohort">
-            <property name="text">
-             <string>show cohort samples</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
-     </item>
      <item>
       <widget class="QGroupBox" name="gb_filter">
        <property name="maximumSize">
@@ -281,7 +225,7 @@
                 <x>0</x>
                 <y>0</y>
                 <width>258</width>
-                <height>165</height>
+                <height>211</height>
                </rect>
               </property>
              </widget>

@@ -114,7 +114,8 @@ SOURCES += main.cpp\
     GenLabImportDialog.cpp \
     ExpressionExonWidget.cpp \
     GeneSelectionDialog.cpp \
-    ExpressionOverviewWidget.cpp
+    ExpressionOverviewWidget.cpp \
+    SplicingWidget.cpp
 
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
@@ -224,7 +225,8 @@ HEADERS += MainWindow.h \
     GenLabImportDialog.h \
     ExpressionExonWidget.h \
     GeneSelectionDialog.h \
-    ExpressionOverviewWidget.h
+    ExpressionOverviewWidget.h \
+    SplicingWidget.h
 
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
@@ -320,7 +322,8 @@ FORMS    += MainWindow.ui \
     GenLabImportDialog.ui \
     ExpressionExonWidget.ui \
     GeneSelectionDialog.ui \
-    ExpressionOverviewWidget.ui
+    ExpressionOverviewWidget.ui \
+    SplicingWidget.ui
 
 include("../app_gui.pri")
 
