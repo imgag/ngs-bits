@@ -163,10 +163,15 @@
  </customwidgets>
  <tabstops>
   <tabstop>f_sample</tabstop>
+  <tabstop>f_gene</tabstop>
   <tabstop>f_region</tabstop>
+  <tabstop>f_db</tabstop>
   <tabstop>f_published</tabstop>
+  <tabstop>f_text</tabstop>
   <tabstop>search_btn</tabstop>
   <tabstop>table</tabstop>
+  <tabstop>updateStatus_btn</tabstop>
+  <tabstop>cb_show_replaced</tabstop>
  </tabstops>
  <resources/>
  <connections/>

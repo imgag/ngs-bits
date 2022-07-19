@@ -7,6 +7,7 @@ EndpointManager::EndpointManager()
 
 HttpResponse EndpointManager::getBasicHttpAuthStatus(HttpRequest request)
 {
+	qDebug() << "Basic HTTP authentication";
 	QString auth_header = request.getHeaderByName("Authorization").length() > 0 ? request.getHeaderByName("Authorization")[0] : "";
 	if (auth_header.isEmpty())
 	{
@@ -54,18 +55,22 @@ bool EndpointManager::isAuthorizedWithToken(const HttpRequest& request)
 {
 	if (request.getUrlParams().contains("token"))
 	{
+		qDebug() << "User token from URL" << request.getUrlParams()["token"];
 		return SessionManager::isTokenReal(request.getUrlParams()["token"]);
 	}
 	if (request.getFormUrlEncoded().contains("token"))
 	{
+		qDebug() << "User token from Form" << request.getFormUrlEncoded()["token"];
 		return SessionManager::isTokenReal(request.getFormUrlEncoded()["token"]);
 	}
 	if (request.getFormUrlEncoded().contains("dbtoken"))
 	{
+		qDebug() << "Database token from Form" << request.getFormUrlEncoded()["dbtoken"];
 		if (!SessionManager::getSessionBySecureToken(request.getFormUrlEncoded()["dbtoken"]).is_for_db_only) return false;
 		return SessionManager::isTokenReal(request.getFormUrlEncoded()["dbtoken"]);
 	}
 
+	qDebug() << "Invalid token";
 	return false;
 }
 

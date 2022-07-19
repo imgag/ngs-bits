@@ -123,8 +123,7 @@ QByteArrayList getVcfHeaderLines(const QByteArray &vcf_file_path, QByteArrayList
 	if (!vcf_file_path.toLower().endsWith(".vcf.gz")) THROW(ArgumentException, "File extension of input file '" + vcf_file_path + "' is not in VCF.GZ!");
 
 	QByteArrayList info_header_lines;
-	bool id_column_found = id_column_name == "";
-	id_column_idx = -1;
+	id_column_idx = id_column_name.isEmpty() ? -1 : 2;
 
 	//read binary: always open in binary mode because windows and mac open in text mode
 	gzFile vcfgz_file = gzopen(vcf_file_path, "rb");
@@ -150,7 +149,7 @@ QByteArrayList getVcfHeaderLines(const QByteArray &vcf_file_path, QByteArrayList
 		//skip empty lines
 		if (line.trimmed().isEmpty()) continue;
 
-		// abort if header is parsed
+		// abort if header is parsed completely
 		if (!line.startsWith('#')) break;
 
 		// parse info header
@@ -160,23 +159,10 @@ QByteArrayList getVcfHeaderLines(const QByteArray &vcf_file_path, QByteArrayList
 			QByteArray id_value = getInfoHeaderValue(line, "ID");
 			if (info_ids.contains(id_value))
 			{
-				// header line found
 				info_header_lines.append(line);
 				info_ids.removeAll(id_value);
 			}
 		}
-
-		// parse column header line
-		if (!id_column_found && line.startsWith("#CHROM"))
-		{
-			QByteArrayList header = line.remove(0,1).split('\t');
-			id_column_idx = header.indexOf(id_column_name);
-			if (id_column_idx == -1) THROW(FileAccessException, "Id column '" + id_column_name + "' not found in annotation file!");
-			id_column_found = true;
-		}
-
-		// abort if all info ids and the ID column have been found:
-		if (id_column_found && (info_ids.size() == 0)) break;
 	}
 	gzclose(vcfgz_file);
 	delete[] buffer;
@@ -193,7 +179,7 @@ QByteArrayList getVcfHeaderLines(const QByteArray &vcf_file_path, QByteArrayList
 		}
 		else
 		{
-			THROW(FileParseException, "INFO id(s) \"" + info_ids.join(", ") + "\" not found in VCF.GZ file \"" + vcf_file_path + "\"!");
+			THROW(FileParseException, "INFO key(s) \"" + info_ids.join(", ") + "\" not found in source file \"" + vcf_file_path + "\"!");
 		}
 	}
 

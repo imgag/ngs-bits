@@ -95,6 +95,16 @@ void VariantWidget::updateGUI()
 
 
 	//classification
+	SqlQuery query4 = db.getQuery();
+	query4.exec("SELECT s.name as s_name, vp.db, vp.class, vp.date, vp.result, u.name as u_name FROM sample s, variant_publication vp, user u WHERE s.id=vp.sample_id AND vp.user_id=u.id AND variant_id=" + variant_id + " AND vp.replaced=0 ORDER BY vp.date DESC");
+	if (query4.next())
+	{
+		ui_.publication_class->setText(query4.value("class").toString() + " (Uploaded to " + query4.value("db").toString() + " by "+ query4.value("u_name").toString() +" on "+ query4.value("date").toString().replace("T", " ") +")");
+		ui_.publication_sample->setText(query4.value("s_name").toString());
+		ui_.publication_status->setText(query4.value("result").toString());
+	}
+
+	//classification
 	ClassificationInfo class_info = db.getClassification(variant_);
 	ui_.classification->setText(class_info.classification);
 	GSvarHelper::limitLines(ui_.classification_comment, class_info.comments);

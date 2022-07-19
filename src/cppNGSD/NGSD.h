@@ -281,6 +281,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleData
 	QString gender;
 	QString comments;
 	QString project_name;
+	QString project_type;
 	QString run_name;
 	QString normal_sample_name;
 	QString lab_operator;
@@ -541,6 +542,9 @@ public:
 	///Escapes SQL special characters in a text
 	QString escapeText(QString text);
 
+	///Creates a SQL dump for a given table. sql_history is a hash table that keeps track of already exported records: table name > exported IDs set.
+	void exportTable(const QString& table, QTextStream& out, QString where_clause = "", QMap<QString, QSet<int>> *sql_history = nullptr) const;	
+
 	///Creates a DBTable with data from an SQL query.
 	DBTable createTable(QString table, QString query, int pk_col_index=0);
 	///Creates a DBTable with all rows of a table.
@@ -662,7 +666,9 @@ public:
 	///Returns the NGSD sample ID file name. Throws an exception if it could not be determined.
 	QString sampleId(const QString& filename, bool throw_if_fails = true);
 	///Returns the NGSD processed sample ID from a file name or processed sample name. Throws an exception if it could not be determined.
-	QString processedSampleId(const QString& filename, bool throw_if_fails = true);
+	QString processedSampleId(const QString& filename, bool throw_if_fails = true);	
+	///Removes init data for the database
+	void removeInitData();
 
 	///Returns the project folder for a project type
 	QString projectFolder(QString type);
@@ -850,9 +856,9 @@ public:
 	GeneSet getSomaticPathwayGenes(QByteArray pathway_name);
 
 
-	///retrieve ID of somatic gene role
+	///Returns the NGSD id of a somatic gene role
 	int getSomaticGeneRoleId(QByteArray gene_symbol);
-	///retrieve somatic gene role data
+	///Returns the somatic gene role data for a gene. If there is no gene role definition and throw_on_fail=false, a invalid SomaticGeneRole instance is returned.
 	SomaticGeneRole getSomaticGeneRole(QByteArray gene, bool throw_on_fail = false);
 	///stores/updates somatic gene role data. "gene_role" has to contain valid gene
 	void setSomaticGeneRole(const SomaticGeneRole& gene_role);

@@ -61,7 +61,6 @@ SOURCES += BedFile.cpp \
     TabixIndexedFile.cpp \
     BedpeFile.cpp \
     MidCheck.cpp \
-    ClinvarSubmissionGenerator.cpp \
     VcfFileHelper.cpp \
     VcfFile.cpp \
     PhenotypeList.cpp \
@@ -105,7 +104,6 @@ HEADERS += BedFile.h \
     KeyValuePair.h \
     VariantType.h \
     MidCheck.h \
-    ClinvarSubmissionGenerator.h \
     VcfFileHelper.h \
     VcfFile.h \
     PhenotypeList.h \

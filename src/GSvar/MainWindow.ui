@@ -357,7 +357,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>21</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -507,6 +507,8 @@
      <addaction name="actionChangePassword"/>
      <addaction name="separator"/>
      <addaction name="actionReplicateNGSD"/>
+     <addaction name="actionExportTestData"/>
+     <addaction name="actionImportTestData"/>
     </widget>
     <widget class="QMenu" name="menuBatch_import">
      <property name="title">
@@ -1406,6 +1408,16 @@
   <action name="actionEditSomaticPathways">
    <property name="text">
     <string>Somatic pathways</string>
+   </property>
+  </action>
+  <action name="actionExportTestData">
+   <property name="text">
+    <string>Export test data</string>
+   </property>
+  </action>
+  <action name="actionImportTestData">
+   <property name="text">
+    <string>Import test data</string>
    </property>
   </action>
  </widget>
