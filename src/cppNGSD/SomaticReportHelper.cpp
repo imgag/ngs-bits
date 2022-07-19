@@ -80,7 +80,7 @@ RtfSourceCode SomaticReportHelper::partCnvTable()
 		coords << RtfText(variant.chr().str()).setFontSize(14).RtfCode();
 		coords << RtfText(QByteArray::number(variant.start() == 0 ? 1 : variant.start()) + " - " + QByteArray::number(variant.end()) + " (" + QByteArray::number( variant.size() / 1000000. , 'f', 1) + " MB)" ).setFontSize(12).RtfCode();
 
-		temp_row.addCell(coords,1700);
+		temp_row.addCell(1700, coords);
 
 
 		//AMP/DEL
@@ -120,11 +120,12 @@ RtfSourceCode SomaticReportHelper::partCnvTable()
 
 RtfSourceCode SomaticReportHelper::partBillingTable()
 {
-	RtfSourceCode out = RtfParagraph("Abrechnungsinformation gemäß einheitlicher Bewertungsmaßstab").setBold(true).RtfCode();
-
 	RtfTable table;
 
-	table.addRow(RtfTableRow({"#Gene", "OMIM"}, {doc_.maxWidth()/2, doc_.maxWidth()/2}, RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader() );
+	QByteArray heading_text = "Abrechnungsinformation gemäß einheitlicher Bewertungsmaßstab";
+	table.addRow(RtfTableRow(heading_text,doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4).setHeader());
+
+	table.addRow(RtfTableRow({"Gene", "OMIM"}, {doc_.maxWidth()/2, doc_.maxWidth()/2}, RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader() );
 
 	BedFile target = settings_.target_region_filter.regions;
 	target.merge();
@@ -157,9 +158,9 @@ RtfSourceCode SomaticReportHelper::partBillingTable()
 
 	table.addRow( RtfTableRow("Basenpaare der abzurechnenden Gene: " + QByteArray::number(size), doc_.maxWidth(), RtfParagraph().setFontSize(14)).setBorders(0) );
 
-	out.append(table.RtfCode());
+	table.setUniqueBorder(1,"brdrhair",4);
 
-	return out;
+	return table.RtfCode();
 }
 
 
@@ -636,12 +637,12 @@ RtfSourceCode SomaticReportHelper::CnvDescription(const CopyNumberVariant& cnv, 
 	if(role.role == SomaticGeneRole::Role::ACTIVATING && cn > 2)
 	{
 		if(role.high_evidence) out = "onkogene Veränderung";
-		else out = "wahrscheinlich onkogene Veränderung";
+		else out = "wahrsch. onkogene Veränderung";
 	}
 	else if(role.role == SomaticGeneRole::Role::LOSS_OF_FUNCTION && cn < 2)
 	{
 		if(role.high_evidence) out = "onkogene Veränderung";
-		else out = "wahrscheinlich onkogene Veränderung";
+		else out = "wahrsch. onkogene Veränderung";
 	}
 	else
 	{
@@ -674,12 +675,12 @@ QByteArray SomaticReportHelper::cytoband(const CopyNumberVariant &cnv)
 	return out;
 }
 
-RtfTableRow SomaticReportHelper::overlappingCnv(const CopyNumberVariant &cnv, QByteArray gene, double snv_af)
+RtfTableRow SomaticReportHelper::overlappingCnv(const CopyNumberVariant &cnv, QByteArray gene, double snv_af, const QList<int>& col_widths)
 {
 	int cn = cnv.copyNumber(cnvs_.annotationHeaders());
 
 	RtfTableRow row;
-	row.addCell(1000, gene, RtfParagraph().setItalic(true));
+	row.addCell(col_widths[0], gene, RtfParagraph().setItalic(true));
 
 	double tum_maximum_clonality = getCnvMaxTumorClonality(cnvs_);
 
@@ -706,16 +707,18 @@ RtfTableRow SomaticReportHelper::overlappingCnv(const CopyNumberVariant &cnv, QB
 		statement.append(RtfText("; " + cytoband(cnv)).setFontSize(14).RtfCode());
 	}
 
-	row.addCell(2400,statement.RtfCode());
+	row.addCell(col_widths[1], statement.RtfCode());
 
 	QByteArray cnv_type = cnv.annotations().at(cnv_index_cnv_type_);
 
 	if(!cnv_type.contains("focal") && !cnv_type.contains("cluster")) cnv_type = "non-focal";
 
-	row.addCell(1600,cnv_type);
+	row.addCell(col_widths[2], cnv_type);
 
-	row.addCell(900,QByteArray::number(cnv.annotations().at(cnv_index_tumor_clonality_).toDouble(),'f',2).replace(".", ","),RtfParagraph().setHorizontalAlignment("c"));
-	row.addCell(4021, CnvDescription(cnv, db_.getSomaticGeneRole(gene)) );
+	row.addCell(col_widths[3], QByteArray::number(cnv.annotations().at(cnv_index_tumor_clonality_).toDouble(),'f',2).replace(".", ","),RtfParagraph().setHorizontalAlignment("c"));
+	row.addCell(col_widths[4], CnvDescription(cnv, db_.getSomaticGeneRole(gene)) );
+	row.addCell(col_widths[5], db_.getSomaticPathwayGenes(gene).join(", "));
+
 	return row;
 }
 
@@ -889,9 +892,6 @@ RtfSourceCode SomaticReportHelper::partIgvScreenshot()
 	double ratio = (double)doc_.maxWidth() / settings_.igv_snapshot_width;
 	snapshot.setHeight(settings_.igv_snapshot_height * ratio);
 
-
-
-
 	return snapshot.RtfCode();
 }
 
@@ -994,21 +994,25 @@ RtfSourceCode SomaticReportHelper::partPharmacoGenetics()
 	return table.RtfCode();
 }
 
-RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool include_germline, bool include_cnvs)
+RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool include_germline_and_cnvs)
 {
-	RtfTable table;
+	//init
+	NGSD db;
+	QByteArrayList headers = {"Gen", "Veränderung", "Typ", "Anteil", "Beschreibung", "Pathway"};
+	QList<int> col_widths = {1000, 1950, 1350, 600, 3000, 2022};
 
 	//headlines
+	RtfTable table;
 	QByteArray heading_text = "Punktmutationen (SNVs), kleine Insertionen/Deletionen (INDELs) und Kopienzahlvarianten (CNVs)";
 	table.addRow(RtfTableRow(heading_text,doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4).setHeader());
-	table.addRow(RtfTableRow({"Gen","Veränderung","Typ","Anteil","Beschreibung"},{1000,2400,1600,900,4021},RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader());
+	table.addRow(RtfTableRow(headers, col_widths, RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader());
 
 	GeneSet cna_already_included; //Copy number altered genes that are already included in RTF table
 
 	//germline SNVs
 	//Make list of somatic variants in control tissue, chosen according report settings
 	VariantList som_var_in_normal = SomaticReportSettings::filterGermlineVariants(germline_vl_, settings_);
-	if(include_germline)
+	if(include_germline_and_cnvs)
 	{
 		//Add germline snvs to temporary set
 		int i_germl_gene = som_var_in_normal.annotationIndexByName("gene");
@@ -1022,10 +1026,11 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool include_ge
 			const Variant& var = som_var_in_normal[i];
 
 			RtfTableRow row;
-			row.addCell(1000, var.annotations()[i_germl_gene] + "\\super#", RtfParagraph().setItalic(true) );
+			QByteArray gene = var.annotations()[i_germl_gene];
+			row.addCell(col_widths[0], gene + "\\super#", RtfParagraph().setItalic(true) );
 
 			//Select germline transcript
-			QList<VariantTranscript> transcripts =  var.transcriptAnnotations(i_germl_co_sp);
+			QList<VariantTranscript> transcripts = var.transcriptAnnotations(i_germl_co_sp);
 			VariantTranscript transcript;
 			if(!transcripts.isEmpty())
 			{
@@ -1040,45 +1045,47 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool include_ge
 				}
 			}
 
-			row.addCell({ transcript.hgvs_c + ", " + transcript.hgvs_p, RtfText(transcript.id).setFontSize(14).RtfCode()}, 2400);
-			row.addCell(1600, transcript.type.replace("_variant",""));
-			row.addCell(900, QByteArray::number(var.annotations()[i_germl_freq_in_tum].toDouble(), 'f', 2).replace(".",","), RtfParagraph().setHorizontalAlignment("c"));
+			row.addCell(col_widths[1], QByteArrayList() << transcript.hgvs_c + ", " + transcript.hgvs_p << RtfText(transcript.id).setFontSize(14).RtfCode());
+			row.addCell(col_widths[2], transcript.type.replace("_variant",""));
+			row.addCell(col_widths[3], QByteArray::number(var.annotations()[i_germl_freq_in_tum].toDouble(), 'f', 2).replace(".",","), RtfParagraph().setHorizontalAlignment("c"));
 
 			//Description of germline variant
-                        QByteArray germl_desc = "pathogene Variante";
+			QByteArray germl_desc = "pathogene Variante";
 			if(var.annotations()[i_germl_hom_het].contains("het")) germl_desc +=  ", in der Normalprobe heterozygot";
 			else if(var.annotations()[i_germl_hom_het].contains("hom")) germl_desc +=  ", in der Normalprobe homozygot";
 			else germl_desc += ", nachgewiesen im Normalgewebe";
-			row.addCell( 4021, germl_desc );
-
+			row.addCell(col_widths[4], germl_desc );
+			row.addCell(col_widths[5], db.getSomaticPathways(gene).join(", "));
+			table.addRow(row);
 
 			ebm_genes_ << transcript.gene;
-			table.addRow(row);
 
 			//Find overlapping somatic CNV for each SNV
 			for(int i=0; i<cnvs_.count(); ++i)
 			{
 				const CopyNumberVariant& cnv = cnvs_[i];
 				if(!cnv.overlapsWith(var.chr(), var.start(), var.end())) continue;
+
 				//Skip copy altered genes that are already included in RTF table
 				if(cna_already_included.contains(transcript.gene)) continue;
 				cna_already_included << transcript.gene;
+				cnv_high_impact_indices_ << i;
+
 				//set first cell of corresponding cnv (contains gene name) as end of cell over multiple rows
 				double tumor_af = var.annotations()[i_germl_hom_het].contains("het") ? 0.5 : 1.;
-				table.addRow(overlappingCnv(cnv, transcript.gene, tumor_af));
+				table.addRow(overlappingCnv(cnv, transcript.gene, tumor_af, col_widths));
 			}
 		}
 	}
-
 
 	//somatic SNVs
 	int i_som_rep_alt = somatic_vl_.annotationIndexByName("alt_var_alteration", true, false);
 	int i_som_rep_desc = somatic_vl_.annotationIndexByName("alt_var_description", true, false);
 	int i_tum_af = somatic_vl_.annotationIndexByName("tumor_af");
 	int i_vicc = somatic_vl_.annotationIndexByName("NGSD_som_vicc_interpretation");
-	QList<int> indices_sorted_by_gene = indices.toList();
-	std::sort(indices_sorted_by_gene.begin(), indices_sorted_by_gene.end());
-	foreach(int i, indices_sorted_by_gene)
+	QList<int> indices_sorted = indices.toList();
+	std::sort(indices_sorted.begin(), indices_sorted.end());
+	foreach(int i, indices_sorted)
 	{
 		const Variant& snv = somatic_vl_[i];
 
@@ -1087,35 +1094,39 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool include_ge
 		transcript.type.replace("&",", ");
 
 		RtfTableRow row;
-		row.addCell(1000,transcript.gene,RtfParagraph().setItalic(true));
+		QByteArray gene = transcript.gene;
+		row.addCell(col_widths[0],transcript.gene,RtfParagraph().setItalic(true));
 
 		//In case there is som. report annotation, overwrite protein change in RTF table
 		if(i_som_rep_alt > -1 && i_som_rep_desc > -1 && (snv.annotations().at(i_som_rep_alt) != "" || snv.annotations().at(i_som_rep_desc) != ""))
 		{
-			row.addCell(2400, snv.annotations()[i_som_rep_alt] + ", " + snv.annotations()[i_som_rep_desc]);
+			row.addCell(col_widths[1], snv.annotations()[i_som_rep_alt] + ", " + snv.annotations()[i_som_rep_desc]);
 		}
 		else //no annotation entry from somatic report conf
 		{
 			QList<RtfSourceCode> alterations;
 			if(!transcript.hgvs_c.isEmpty()) alterations << transcript.hgvs_c;
 			if(!transcript.hgvs_p.isEmpty()) alterations << transcript.hgvs_p;
-			row.addCell({alterations.join(", "), RtfText(transcript.id).setFontSize(14).RtfCode()},2400);
+			row.addCell(col_widths[1], QByteArrayList() << alterations.join(", ") << RtfText(transcript.id).setFontSize(14).RtfCode());
 		}
 
 		row.last().format().setLineSpacing(276);
 
-		row.addCell(1600,transcript.type);
+		row.addCell(col_widths[2],transcript.type);
 
 
 		double tumor_af = snv.annotations().at(i_tum_af).toDouble();
 
-		row.addCell(900,QByteArray::number(tumor_af, 'f', 2).replace(".",","), RtfParagraph().setHorizontalAlignment("c")); //tumor allele frequency
+		row.addCell(col_widths[3],QByteArray::number(tumor_af, 'f', 2).replace(".",","), RtfParagraph().setHorizontalAlignment("c")); //tumor allele frequency
 
 		QByteArray var_description = trans(snv.annotations()[i_vicc]);
-		row.addCell(4021, (var_description.isEmpty() ? "nicht bewertet" : var_description) );
+		row.addCell(col_widths[4], (var_description.isEmpty() ? "nicht bewertet" : var_description) );
+
+		row.addCell(col_widths[5], db.getSomaticPathways(gene).join(", "));
+		table.addRow(row);
+
 
 		ebm_genes_ << transcript.gene;
-		table.addRow(row);
 
 
 		//Find overlapping CNV for each SNV
@@ -1123,11 +1134,14 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool include_ge
 		{
 			const CopyNumberVariant& cnv = cnvs_[i];
 			if(!cnv.overlapsWith(snv.chr(), snv.start(),snv.end())) continue;
+
 			//Skip copy altered genes that are already included in RTF table
 			if(cna_already_included.contains(transcript.gene)) continue;
 			cna_already_included << transcript.gene;
+			cnv_high_impact_indices_ << i;
+
 			//set first cell of corresponding cnv (contains gene name) as end of cell over multiple rows
-			table.addRow(overlappingCnv(cnv, transcript.gene, tumor_af));
+			table.addRow(overlappingCnv(cnv, transcript.gene, tumor_af, col_widths));
 		}
 	}
 
@@ -1151,15 +1165,17 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool include_ge
 		{
 			//set first row cell that contains gene name as cell over multiple rows as "clvmgf"
 			if(table[r-1][0].controlWord().isEmpty()) table[r-1][0].setHeaderControlWord("clvmgf");
-
 			//set second row cell as cell in center / at end of merge
 			table[r][0].setHeaderControlWord("clvmrg");
+
+			//also merge pathway cells
+			if(table[r-1][5].controlWord().isEmpty()) table[r-1][5].setHeaderControlWord("clvmgf");
+			table[r][5].setHeaderControlWord("clvmrg");
 		}
 	}
 
-
 	//Add CNVs
-	if(include_cnvs)
+	if(include_germline_and_cnvs)
 	{
 		QVector<RtfTableRow> cnv_rows;
 		for(int i=0;i<cnvs_.count();++i)
@@ -1193,7 +1209,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool include_ge
 				}
 
 				RtfTableRow row;
-				row.addCell(1000, gene, RtfParagraph().setItalic(true));
+				row.addCell(col_widths[0], gene, RtfParagraph().setItalic(true));
 
 				RtfText cn_statement( CnvTypeDescription(cn) );
 
@@ -1202,16 +1218,18 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool include_ge
 				if(cnv_index_cytoband_ > -1 ) cn_statement.append(RtfText("; " + cytoband(cnv)).setFontSize(14).RtfCode());
 
 
-				row.addCell(2400, cn_statement.RtfCode());
+				row.addCell(col_widths[1], cn_statement.RtfCode());
 
 				QByteArray cnv_type = cnv.annotations().at(cnv_index_cnv_type_);
 				if(!cnv_type.contains("focal") && !cnv_type.contains("cluster")) cnv_type = "non-focal";
-				row.addCell(1600, cnv_type);
+				row.addCell(col_widths[2], cnv_type);
 
 				QByteArray tumor_clonality = QByteArray::number( cnv.annotations().at(cnv_index_tumor_clonality_).toDouble(),'f',2 ).replace(".", ",");
-				row.addCell(900, tumor_clonality, RtfParagraph().setHorizontalAlignment("c"));
+				row.addCell(col_widths[3], tumor_clonality, RtfParagraph().setHorizontalAlignment("c"));
 
-				row.addCell(4021, CnvDescription(cnv, gene_role));
+				row.addCell(col_widths[4], CnvDescription(cnv, gene_role));
+
+				row.addCell(col_widths[5], db.getSomaticPathways(gene).join(", "));
 
 				ebm_genes_ << gene;
 				cnv_rows << row;
@@ -1225,10 +1243,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool include_ge
 			table.addRow(row);
 		}
 	}
-
 	table.setUniqueBorder(1,"brdrhair",4);
-
-
 
 	//Add table description
 	RtfSourceCode desc = "";
@@ -1244,11 +1259,12 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool include_ge
 	desc += "untersuchten Probe; ";
 	desc += RtfText("Beschreibung: ").setFontSize(14).setBold(true).RtfCode();
 	desc += "Informationen aus Datenbanken (z.B. COSMIC, Cancerhotspots, Cancer Genome Interpreter, PubMed, OnkoKB, ClinVar, OMIM, VarSome, LOVD, HGMD) zu der Variante und funktionelle Daten werden integriert und die Onkogenität der Veränderung wird nach " + RtfText("Variant Interpretation for Cancer Consortium").setFontSize(14).setItalic(true).RtfCode() +" (VICC)-Richtlinien bewertet. In dieser Tabelle sind nur ";
-	desc += (include_cnvs ? "onkogene" : "unklare");
+	desc += (include_germline_and_cnvs ? "onkogene" : "unklare");
 	desc += " Veränderungen dargestellt.";
-	if(som_var_in_normal.count() > 0 && include_germline) desc += "\n\\line\n{\\super#} auch in der Normalprobe nachgewiesen.";
+	if(som_var_in_normal.count() > 0 && include_germline_and_cnvs) desc += "\n\\line\n{\\super#} auch in der Normalprobe nachgewiesen.";
 
 	table.addRow(RtfTableRow(desc,{doc_.maxWidth()},RtfParagraph().setFontSize(14).setHorizontalAlignment("j")));
+
 	return table;
 }
 
@@ -1266,17 +1282,17 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	doc_.addPart(RtfParagraph(text).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
 	doc_.addPart(RtfParagraph("").setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
 
-
 	/*****************************
 	 * RELEVANT SOMATIC VARIANTS *
 	 *****************************/
 	doc_.addPart( partRelevantVariants() );
 	doc_.addPart(RtfParagraph("").setIndent(0,0,0).setFontSize(18).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).RtfCode());
-	doc_.newPage();
 
 	/*********************
 	 * ADDITIONAL REPORT *
 	 *********************/
+	doc_.newPage();
+
 	doc_.addPart(partUnclearVariants());
 	doc_.addPart(RtfParagraph("").RtfCode());
 	doc_.addPart(partCnvTable());
@@ -1288,9 +1304,9 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	if(settings_.report_config.fusionsDetected())
 	{
 		doc_.addPart(partFusions());
+		doc_.addPart(RtfParagraph("").RtfCode());
 	}
 
-	doc_.addPart(RtfParagraph("").RtfCode());
 	/***************
 	 * VIRUS TABLE *
 	 ***************/
@@ -1324,16 +1340,19 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	if(!settings_.igv_snapshot_png_hex_image.isEmpty())
 	{
 		doc_.addPart(partIgvScreenshot());
+		doc_.addPart(RtfParagraph("").RtfCode());
 	}
 
 	/***********************
 	 * BILLING INFORMATION *
 	 ***********************/
-	doc_.addPart(RtfParagraph("").RtfCode());
 
 	doc_.newPage();
 
+	doc_.addPart(RtfParagraph("").RtfCode());
 	doc_.addPart(partBillingTable());
+	doc_.addPart(RtfParagraph("").RtfCode());
+
 	doc_.save(out_file);
 }
 
@@ -1387,9 +1406,9 @@ QString SomaticReportHelper::trans(const QString &text)
 	en2de["activating"] = "aktivierend";
 	en2de["test_dependent"] = "testabhängige Bedeutung";
 	en2de["ONCOGENIC"] = "onkogene Variante";
-	en2de["LIKELY_ONCOGENIC"] = "wahrscheinlich onkogene Variante";
+	en2de["LIKELY_ONCOGENIC"] = "wahrsch. onkogene Variante";
 	en2de["BENIGN"] = "gutartige Variante";
-	en2de["LIKELY_BENIGN"] = "wahrscheinlich gutartige Variante";
+	en2de["LIKELY_BENIGN"] = "wahrsch. gutartige Variante";
 	en2de["UNCERTAIN_SIGNIFICANCE"] = "unklare Variante";
 	en2de["loss_of_function"] = "Funktionsverlust";
 	en2de["ambiguous"] = "unklare Bedeutung";
@@ -1561,7 +1580,7 @@ RtfSourceCode SomaticReportHelper::partUnclearVariants()
 {
 	RtfSourceCode out;
 	out.append(RtfParagraph("Varianten unklarer Onkogenität:").setBold(true).setIndent(0,0,0).setSpaceBefore(250).RtfCode());
-	out.append(snvTable(somatic_vl_low_impact_indices_, false, false).RtfCode());
+	out.append(snvTable(somatic_vl_low_impact_indices_, false).RtfCode());
 	return out;
 }
 
@@ -1571,7 +1590,7 @@ RtfSourceCode SomaticReportHelper::partRelevantVariants()
 	QList<RtfSourceCode> out;
 
 	out << RtfParagraph("Potentiell relevante somatische Veränderungen:").setBold(true).setIndent(0,0,0).setSpaceBefore(250).RtfCode();
-	RtfTable high_significant_table = snvTable(somatic_vl_high_impact_indices_, true, true);
+	RtfTable high_significant_table = snvTable(somatic_vl_high_impact_indices_, true);
 	out << high_significant_table.RtfCode();
 	out << RtfParagraph("").RtfCode();
 
@@ -1634,8 +1653,6 @@ struct PathwaysEntry
 
 RtfSourceCode SomaticReportHelper::partPathways()
 {
-	RtfSourceCode out = RtfParagraph("Pathway-Informationen").setBold(true).RtfCode();
-
 	//init
 	int i_som_rep_alt = somatic_vl_.annotationIndexByName("alt_var_alteration", true, false);
 	NGSD db;
@@ -1643,6 +1660,10 @@ RtfSourceCode SomaticReportHelper::partPathways()
 
 	//create table
 	RtfTable table;
+
+	QByteArray heading_text = "Pathway-Informationen";
+	table.addRow(RtfTableRow(heading_text,doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4).setHeader());
+
 	for (int i=0; i<=pathways.count(); i+=4)
 	{
 		QByteArrayList headers;
@@ -1691,41 +1712,23 @@ RtfSourceCode SomaticReportHelper::partPathways()
 				//determine entries for CNVs (del/dup, amp, ...)
 				for(int i=0;i<cnvs_.count();++i)
 				{
+					if (!cnv_high_impact_indices_.contains(i)) continue;
 					const CopyNumberVariant& cnv = cnvs_[i];
-					int cn = cnv.copyNumber(cnvs_.annotationHeaders());
 
-					//target region from GSvar filter widget
-					if(settings_.target_region_filter.isValid() && !settings_.target_region_filter.regions.overlapsWith(cnv.chr(), cnv.start(), cnv.end())) continue;
+					int cn = cnv.copyNumber(cnvs_.annotationHeaders());
 
 					GeneSet genes_cnv = db_.genesToApproved(cnv.genes());
 					for(const QByteArray& gene : genes_cnv)
 					{
 						if (!genes_pathway.contains(gene)) continue;
 
-						SomaticGeneRole gene_role = db_.getSomaticGeneRole(gene);
-						if (!SomaticCnvInterpreter::includeInReport(cnvs_, cnv, gene_role)) continue;
-
 						PathwaysEntry entry;
 						entry.gene = gene;
 						entry.alteration = CnvTypeDescription(cn);
-						entry.highlight = gene_role.high_evidence;
+						entry.highlight = true;
 						entries.append(entry);
 					}
 				}
-
-
-				/*
-				if(!gene_role.high_evidence) continue; //Skip genes that are not high evidence
-
-				//Skip low cna genes, these will be printed in text hint.
-				if(cn == 3)
-				{
-					skipped_amp_ << gene;
-					continue;
-				}
-				*/
-
-
 
 				//add entries to content table cell
 				QByteArrayList rtf_text;
@@ -1746,7 +1749,7 @@ RtfSourceCode SomaticReportHelper::partPathways()
 		table.addRow(RtfTableRow(headers,{2480,2480,2480,2480},RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader().setBorders(1,"brdrhair",4));
 		table.addRow(RtfTableRow(contents,{2480,2480,2480,2480},RtfParagraph().setHorizontalAlignment("c")).setHeader().setBorders(1,"brdrhair",4));
 	}
-	out.append(table.RtfCode());
-	return out;
+
+	return table.RtfCode();
 }
 

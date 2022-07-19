@@ -106,7 +106,7 @@ private:
 	///Parses annotated cytobands to text, "" if not annotation available
 	QByteArray cytoband(const CopyNumberVariant& cnv);
 
-	RtfTableRow overlappingCnv(const CopyNumberVariant& cnv, QByteArray gene, double snv_af);
+	RtfTableRow overlappingCnv(const CopyNumberVariant& cnv, QByteArray gene, double snv_af, const QList<int>& col_widths);
 
 	///parts of the report
 	///Generates table with genral information
@@ -133,7 +133,7 @@ private:
 	RtfSourceCode partIgvScreenshot();
 
 	///creates table with SNVs, relevant germline SNPs (class 4/5) and overlapping CNVs
-	RtfTable snvTable(const QSet<int>& indices, bool include_germline = true, bool include_cnvs = true);
+	RtfTable snvTable(const QSet<int>& indices, bool include_germline_and_cnvs=true);
 
 	//skipped amplifications in somaticalterationtable
 	GeneSet skipped_amp_ = {};
@@ -154,6 +154,7 @@ private:
 
 	//CNVList for somatic (filtered) copy-number altered variants
 	CnvList cnvs_;
+	QSet<int> cnv_high_impact_indices_;
 
 	//Somatic viruses (original file usually in tumor dir)
 	QList<SomaticVirusInfo> validated_viruses_;

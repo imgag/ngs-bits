@@ -438,7 +438,7 @@ public:
 
 	void addCell(int width, const QByteArray &content, const RtfParagraph& par_format);
 	///Add cellusing predefined cell format settings, each element of cell_contents will be separated by RTF new line "\line"
-	void addCell(const QByteArrayList& cell_contents, int width, const RtfParagraph& par_format = RtfParagraph());
+	void addCell(int width, const QByteArrayList& cell_contents, const RtfParagraph& par_format = RtfParagraph());
 
 	RtfTableRow& setHeader()
 	{

@@ -247,7 +247,7 @@ void RtfTableRow::addCell(int width, const QByteArray &content, const RtfParagra
 	addCell(width,temp_par);
 }
 
-void RtfTableRow::addCell(const QByteArrayList& cell_contents, int width, const RtfParagraph& par_format)
+void RtfTableRow::addCell(int width, const QByteArrayList& cell_contents, const RtfParagraph& par_format)
 {
 	RtfParagraph temp_par = par_format;
 	temp_par.setPartOfACell(true);

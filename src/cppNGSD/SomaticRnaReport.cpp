@@ -368,7 +368,7 @@ RtfTable SomaticRnaReport::partSnvTable()
 
 		//DNA data
 		row.addCell(800, trans.gene, RtfParagraph().setItalic(true).setBold(true).setFontSize(16));//4400
-		row.addCell({RtfText(trans.hgvs_c + ":" + trans.hgvs_p).setFontSize(16).RtfCode(), RtfText(trans.id).setFontSize(14).RtfCode()}, 1900);
+		row.addCell(1900, QByteArrayList() << RtfText(trans.hgvs_c + ":" + trans.hgvs_p).setFontSize(16).RtfCode() << RtfText(trans.id).setFontSize(14).RtfCode());
 		row.addCell(1300, trans.type.replace("_variant",""), RtfParagraph().setFontSize(16));
 		row.addCell(700, formatDigits(var.annotations()[i_tum_af].toDouble(), 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
 
