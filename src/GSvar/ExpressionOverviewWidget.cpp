@@ -19,9 +19,9 @@ struct ExpressioData
 };
 
 ExpressionOverviewWidget::ExpressionOverviewWidget(FilterWidget* variant_filter_widget, QWidget *parent) :
+	QWidget(parent),
 	ui_(new Ui::ExpressionOverviewWidget),
-	variant_filter_widget_(variant_filter_widget),
-	QWidget(parent)
+	variant_filter_widget_(variant_filter_widget)
 {
 	// skipp if no NGSD is available
 	if (!LoginManager::active())

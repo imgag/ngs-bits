@@ -135,8 +135,8 @@ public:
 		while (!tsv_file.atEnd())
 		{
 			QByteArrayList tsv_line = tsv_file.readLine();
-			double tpm = Helper::toDouble(tsv_line.at(idx_aberrant_frac), "Aberrant spliced gene fraction");
-			if (tpm >= aberrant_gene_threshold)
+			double aberrant_frac = Helper::toDouble(tsv_line.at(idx_aberrant_frac), "Aberrant spliced gene fraction");
+			if (aberrant_frac >= aberrant_gene_threshold)
 			{
 				aberrant_genes.append(tsv_line.at(idx_gene));
 			}
@@ -162,9 +162,9 @@ public:
 			//parse zScore (outlier genes)
 			QByteArray zscore_str = tsv_line.at(idx_zscore);
 			// skip n/a entries
-			if(zscore_str != "n/a")
+			if((zscore_str != "n/a") && (!zscore_str.trimmed().isEmpty()))
 			{
-			double zscore = std::fabs(Helper::toDouble(zscore_str, "ZScore"));
+				double zscore = std::fabs(Helper::toDouble(zscore_str, "ZScore"));
 				if (zscore >= zscore_threshold)
 				{
 					gene_count.n_outlier_genes++;
