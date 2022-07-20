@@ -1382,7 +1382,7 @@ void SomaticReportHelper::storeXML(QString file_name)
 	data.rtf_part_pharmacogenetics = partPharmacoGenetics();
 	data.rtf_part_general_info = partMetaData();
 	data.rtf_part_igv_screenshot = partIgvScreenshot();
-	data.rtf_part_mtb_summary = "";
+	data.rtf_part_mtb_summary = partPathways();
 
 	QSharedPointer<QFile> out_file = Helper::openFileForWriting(file_name);
 	SomaticXmlReportGenerator::generateXML(data, out_file, db_, false);
