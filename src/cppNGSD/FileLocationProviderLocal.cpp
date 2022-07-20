@@ -201,12 +201,12 @@ FileLocationList FileLocationProviderLocal::getExpressionFiles(bool return_if_mi
 	return output;
 }
 
-FileLocationList FileLocationProviderLocal::getTranscriptExpressionFiles(bool return_if_missing) const
+FileLocationList FileLocationProviderLocal::getExonExpressionFiles(bool return_if_missing) const
 {
 	FileLocationList output;
 	foreach(const KeyValuePair& loc, getBaseLocations())
 	{
-		FileLocation file = FileLocation{loc.key, PathType::EXPRESSION, loc.value + "_counts_transcript.tsv", false};
+		FileLocation file = FileLocation{loc.key, PathType::EXPRESSION, loc.value + "_expr_exon.tsv", false};
 		addToList(file, output, return_if_missing);
 	}
 

@@ -17,14 +17,16 @@ INSERT INTO `sequencing_run` (`id`, `name`, `fcid`, `device_id`, `recipe`, `stat
 
 INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`, `gender`, `quality`, `tumor`, `ffpe`, `sender_id`, `comment`, `disease_group`, `disease_status`) VALUES
 (1, 'NA12878', 'ex1', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'Diseases of the nervous system', 'Affected'),
-(2, 'DX000001' , 'ext_tum_only 1', 'DNA', 1, 'male', 'good', 1, 1, 1, 'commenting stuff', 'n/a', 'n/a');
+(2, 'DX000001' , 'ext_tum_only 1', 'DNA', 1, 'male', 'good', 1, 1, 1, 'commenting stuff', 'n/a', 'n/a'),
+(3, 'RX123456', 'ex1 RNA', 'RNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'Diseases of the nervous system', 'Affected');
 
 INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapter1_p5`, `adapter2_p7`, `type`, `shotgun`, `target_file`, `genome_id`) VALUES
 (1, 'hpHSPv2', 'HaloPlex HSP v2', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel Haloplex', 0, '/mnt/share/data/enrichment/hpHSP_v2_2013_12_03.bed', 1);
 
 INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`, `quality`, `comment`, `normal_id`) VALUES
 (3999, 1, 3, 1, '1', 1, 1, 'medium', 'comment_ps1', null),
-(4000, 2, 1, 1, '1', 1, 1, 'good', 'comment_ps2', null);
+(4000, 2, 1, 1, '1', 1, 1, 'good', 'comment_ps2', null),
+(4001, 3, 1, 1, '1', 1, 1, 'good', 'comment_ps3', null);
 
 INSERT INTO `processed_sample_ancestry` (`processed_sample_id`, `num_snps`, `score_afr`, `score_eur`, `score_sas`, `score_eas`, `population`) VALUES
 (3999, 2478, 0.0793, 0.3233, 0.2282, 0.0652, 'EUR');
@@ -34,17 +36,27 @@ INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `o
 
 -- QC infos
 INSERT INTO `qc_terms`(`id`, `qcml_id`, `name`, `description`, `type`, `obsolete`) VALUES
+(1, "QC:2000005", "read count", "Total number of reads (one cluster in a paired-end experiment generates two reads).", 'int', 0),
 (31, "QC:2000027", "target region 20x percentage", "Percentage of the target region that is covered at...", 'float', 0),
 (47, "QC:2000025", "target region read depth", "Average sequencing depth in target region.", 'float', 0),
 (34, "QC:2000030", "target region 100x percentage", "Percentage of the target region that is covered at least 100-fold.", 'float', 0),
-(36, "QC:2000032", "target region 500x percentage", "Percentage of the target region that is covered at least 500-fold.", 'float', 0);
+(36, "QC:2000032", "target region 500x percentage", "Percentage of the target region that is covered at least 500-fold.", 'float', 0),
+(426, 'QC:2000101', 'housekeeping genes read depth', 'Average sequencing depth in exon region of housekeeping genes.', 'float', 0),
+(434, 'QC:2000109', 'covered gene count', 'Number of covered genes (TPM >= 1.0)', 'int', 0);
 
 INSERT INTO `processed_sample_qc`(`id`, `processed_sample_id`, `qc_terms_id`, `value`) VALUES
 (1, 3999, 31, "95.96"),
 (2, 3999, 47, "103.24"),
 (3, 4000, 34, "94.7"),
 (4, 4000, 36, "89.87"),
-(5, 4000, 47, "210.3");
+(5, 4000, 47, "210.3"),
+(6, 4001, 1, "10987654"),
+(7, 4001, 47, "15.85"),
+(8, 4001, 426, "263.87"),
+(9, 4001, 434, "136985");
+
+INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES
+(1, 'same sample', 3);
 
 INSERT INTO `kasp_status` (`processed_sample_id`, `random_error_prob`, `snps_evaluated`, `snps_match`) VALUES
 (3999, 0.000977, 10, 10);

@@ -397,6 +397,8 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	{
 		writeCoverageReport(stream);
 
+		writeRNACoverageReport(stream);
+
 		writeCoverageReportCCDS(stream, 0, false, false);
 
 		writeCoverageReportCCDS(stream, 5, true, true);
@@ -1386,6 +1388,10 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["splicing effect validated by RNA dataset"] = "splicing effect validated by RNA dataset";
 		de2en["no splicing effect found in RNA dataset"] = "no splicing effect found in RNA dataset";
 		de2en["RNA dataset not usable"] = "RNA dataset not usable";
+		de2en["Abdeckungsstatistik der RNA-Probe"] = "Coverage statistics of RNA sample";
+		de2en["Abgedeckte Gene"] = "Covered genes";
+		de2en["Anzahl der Reads"] = "Number of reads";
+		de2en["Durchschnittliche Sequenziertiefe der Housekeeping-Gene"] = "Average sequencing depth of housekeeping genes";
 	}
 
 	//translate
@@ -1720,6 +1726,54 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 	}
 
 	if (extend==0) bases_ccds_sequenced_ = bases_sequenced;
+}
+
+void GermlineReportGenerator::writeRNACoverageReport(QTextStream& stream)
+{
+	//get all related RNA
+	QString sample_id = db_.sampleId(data_.ps);
+
+	//get count files of all RNA processed samples corresponding to the current sample
+	QList<int> rna_ps_ids;
+	foreach (int rna_sample, db_.relatedSamples(sample_id.toInt(), "same sample", "RNA"))
+	{
+		rna_ps_ids << db_.getValuesInt("SELECT id FROM processed_sample WHERE quality!='bad' AND sample_id=:0", QString::number(rna_sample));
+	}
+
+	if (rna_ps_ids.size() > 0)
+	{
+		std::sort(rna_ps_ids.rbegin(), rna_ps_ids.rend());
+
+		//get RNA QC
+		QString avg_cov = "";
+		QString avg_cov_housekeeping = "";
+		QString covered_genes = "";
+		QString read_count = "";
+		QCCollection stats;
+		try
+		{
+			stats = db_.getQCData(QString::number(rna_ps_ids.at(0)));
+		}
+		catch(...)
+		{
+		}
+
+		for (int i=0; i<stats.count(); ++i)
+		{
+			if (stats[i].accession()=="QC:2000005") read_count = stats[i].toString();
+			if (stats[i].accession()=="QC:2000025") avg_cov = stats[i].toString();
+			if (stats[i].accession()=="QC:2000101") avg_cov_housekeeping = stats[i].toString();
+			if (stats[i].accession()=="QC:2000109") covered_genes = stats[i].toString();
+		}
+		stream << endl;
+		stream << "<p><b>" << trans("Abdeckungsstatistik der RNA-Probe") << "</b>" << endl;
+		stream << "<br />" << trans("Anzahl der Reads") << ": " << QString::number((double) read_count.toInt()/1000000.0, 'f', 2) << " Mio" << endl;
+		stream << "<br />" << trans("Durchschnittliche Sequenziertiefe") << ": " << avg_cov << endl;
+		stream << "<br />" << trans("Durchschnittliche Sequenziertiefe der Housekeeping-Gene") << ": " << avg_cov_housekeeping << endl;
+		stream << "<br />" << trans("Abgedeckte Gene") << ": " << covered_genes << endl;
+		stream << "</p>" << endl;
+	}
+
 }
 
 QByteArray GermlineReportGenerator::formatGenotype(GenomeBuild build, const QByteArray& gender, const QByteArray& genotype, const Variant& variant)
@@ -2162,7 +2216,7 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 	stream << "       <td>" << conf.comments2 << "</td>" << endl;
 	stream << "       <td>" << v.annotations()[i_class] << "</td>" << endl;
 	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << " (" << conf.report_type << ")</td>" << endl;
-	stream << "       <td>" << conf.rna_info << "</td>" << endl;
+	stream << "       <td>" << trans(conf.rna_info) << "</td>" << endl;
 	stream << "     </tr>" << endl;
 }
 
@@ -2209,7 +2263,7 @@ void GermlineReportGenerator::printVariantSheetRowCnv(QTextStream& stream, const
 	stream << "       <td>" << conf.comments2 << "</td>" << endl;
 	stream << "       <td>" << conf.classification << "</td>" << endl;
 	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << " (" << conf.report_type << ")</td>" << endl;
-	stream << "       <td>" << conf.rna_info << "</td>" << endl;
+	stream << "       <td>" << trans(conf.rna_info) << "</td>" << endl;
 	stream << "     </tr>" << endl;
 }
 
@@ -2259,7 +2313,7 @@ void GermlineReportGenerator::printVariantSheetRowSv(QTextStream& stream, const 
 	stream << "       <td>" << conf.comments2 << "</td>" << endl;
 	stream << "       <td>" << conf.classification << "</td>" << endl;
 	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << " (" << conf.report_type << ")</td>" << endl;
-	stream << "       <td>" << conf.rna_info << "</td>" << endl;
+	stream << "       <td>" << trans(conf.rna_info) << "</td>" << endl;
 	stream << "     </tr>" << endl;
 }
 

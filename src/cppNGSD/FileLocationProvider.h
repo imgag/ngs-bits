@@ -59,8 +59,8 @@ public:
 	virtual FileLocationList getCircosPlotFiles(bool return_if_missing) const = 0;
 	//Returns sample specific RNA expression files.
 	virtual FileLocationList getExpressionFiles(bool return_if_missing) const = 0;
-	//Returns sample specific transcript RNA expresion files.
-	virtual FileLocationList getTranscriptExpressionFiles(bool return_if_missing) const = 0;
+	//Returns sample specific exon RNA expresion files.
+	virtual FileLocationList getExonExpressionFiles(bool return_if_missing) const = 0;
 	//Returns the somatic low coverage files in BED format
 	virtual FileLocationList getSomaticLowCoverageFiles(bool return_if_missing) const = 0;
 

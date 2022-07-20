@@ -179,7 +179,7 @@ FileLocationList FileLocationProviderRemote::getExpressionFiles(bool return_if_m
 	return getFileLocationsByType(PathType::EXPRESSION, return_if_missing);
 }
 
-FileLocationList FileLocationProviderRemote::getTranscriptExpressionFiles(bool return_if_missing) const
+FileLocationList FileLocationProviderRemote::getExonExpressionFiles(bool return_if_missing) const
 {
 	return getFileLocationsByType(PathType::EXPRESSION_EXON, return_if_missing);
 }

@@ -2526,6 +2526,8 @@ private slots:
 		F_EQUAL2(expression_stats.value("chr1:30267-30667").stddev_log2, 2.341358211, 0.001);
 
 	}
+
+
 	//Test for debugging (without initialization because of speed)
 	/*
 	void debug()

@@ -631,13 +631,6 @@ void ExpressionGeneWidget::loadExpressionData()
 		numeric_columns_  << false << false << false << true << true;
 		precision_ << -1 << -1 << -1 << 0 << 2;
 
-		//determine col indices for table columns in tsv file
-		QVector<int> column_indices;
-		foreach (const QString& col_name, column_names_)
-		{
-			column_indices << expression_data.columnIndex(col_name);
-		}
-
 		//db columns
 		QStringList db_column_names;
 		bool symbol_in_ngsd = false;
@@ -648,6 +641,30 @@ void ExpressionGeneWidget::loadExpressionData()
 		column_names_ << db_column_names;
 		numeric_columns_  << true << true << true << true;
 		precision_ << 2 << 2 << 3 << 3;
+
+		//add hpa columns if available
+		QStringList headers = expression_data.headers();
+		if (headers.contains("hpa_tissue_tpm"))
+		{
+			column_names_ << "hpa_tissue_tpm" << "hpa_tissue_log2tpm" << "hpa_sample_log2tpm" << "hpa_log2fc";
+			numeric_columns_  << true << true << true << true;
+			precision_ << 3 << 3 << 3 << 3;
+		}
+
+
+		//determine col indices for table columns in tsv file
+		QVector<int> column_indices;
+		foreach (const QString& col_name, column_names_)
+		{
+			if(headers.contains(col_name))
+			{
+				column_indices << expression_data.columnIndex(col_name);
+			}
+			else
+			{
+				column_indices << -1;
+			}
+		}
 
 		//create header
 		ui_->expression_data->setColumnCount(column_names_.size());
