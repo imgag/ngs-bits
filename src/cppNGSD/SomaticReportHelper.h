@@ -133,15 +133,15 @@ private:
 	RtfSourceCode partIgvScreenshot();
 
 	///creates table with SNVs, relevant germline SNPs (class 4/5) and overlapping CNVs
-	RtfTable snvTable(const QSet<int>& indices, bool include_germline_and_cnvs=true);
+	RtfTable snvTable(const QSet<int>& indices, bool high_impact_table=true);
 
 	//skipped amplifications in somaticalterationtable
 	GeneSet skipped_amp_ = {};
 
 	//Somatic SNVs/INDELs
 	VariantList somatic_vl_;
-	QSet<int> somatic_vl_high_impact_indices_;
-	QSet<int> somatic_vl_low_impact_indices_;
+	QSet<int> somatic_vl_high_impact_indices_; //small variants with high impact i.e. they are added to the pathway list in bold
+	QSet<int> somatic_vl_low_impact_indices_; //small variants with low impact i.e. they are added to the pathway list, but not bold
 
 	GenomeBuild build_;
 
@@ -154,7 +154,7 @@ private:
 
 	//CNVList for somatic (filtered) copy-number altered variants
 	CnvList cnvs_;
-	QSet<int> cnv_high_impact_indices_;
+	QHash<int, GeneSet> cnv_high_impact_indices_; //CNVs with high impact (i.e. they are added to the pathway list): CNV index => gene list
 
 	//Somatic viruses (original file usually in tumor dir)
 	QList<SomaticVirusInfo> validated_viruses_;

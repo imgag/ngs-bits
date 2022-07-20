@@ -141,11 +141,9 @@ RtfSourceCode RtfDocument::header()
 	if(!colors_.isEmpty())
 	{
 		QByteArray tmp_out_color_table = "{\\colortbl;";
-		foreach(auto rgb_value,colors_)
+		foreach(const RtfColor& color, colors_)
 		{
-			int red,green,blue;
-			std::tie(red,green,blue) = rgb_value;
-			tmp_out_color_table.append("\\red" + QByteArray::number(red) + "\\green" +  QByteArray::number(green) + "\\blue" +  QByteArray::number(blue) +";");
+			tmp_out_color_table.append("\\red" + QByteArray::number(color.red) + "\\green" +  QByteArray::number(color.green) + "\\blue" +  QByteArray::number(color.blue) +";");
 		}
 		tmp_out_color_table.append("}");
 		output << tmp_out_color_table;

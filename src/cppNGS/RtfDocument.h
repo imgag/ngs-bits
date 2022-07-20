@@ -8,6 +8,13 @@
 
 typedef QByteArray RtfSourceCode;
 
+struct RtfColor
+{
+	int red;
+	int green;
+	int blue;
+};
+
 class CPPNGSSHARED_EXPORT RtfPicture
 {
 public:
@@ -260,10 +267,10 @@ public:
 	///Converts centimeters into RTF twip format
 	static double cm2twip(double input_cm);
 
-	///Adds RGB color to document color table
+	///Adds RGB color to document color table. Note: color numbers are one-based!
 	void addColor(int red,int green,int blue)
 	{
-		colors_ << std::make_tuple(red,green,blue);
+		colors_ << RtfColor{red, green, blue};
 	}
 	///Adds font into document header
 	void addFont(const QByteArray& font)
@@ -320,7 +327,7 @@ private:
 	//fonts used in document, first font is default document font
 	QByteArrayList fonts_;
 	//colors to be defined in header
-	QList<std::tuple<int,int,int>> colors_;
+	QList<RtfColor> colors_;
 
 	int default_font_size_;
 
@@ -497,7 +504,7 @@ public:
 		return cells_.count();
 	}
 
-	///sets Background color for each cell in row, color number must be specified in RtfDocument header
+	///sets the background color for each cell in row. color number must be specified in RtfDocument header. Note: color numbers are one-based!
 	RtfTableRow& setBackgroundColor(int color);
 
 private:
