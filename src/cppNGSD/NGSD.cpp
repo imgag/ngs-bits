@@ -1784,38 +1784,47 @@ QVector<double> NGSD::getGeneExpressionValues(const QByteArray& gene, int sys_id
 QVector<double> NGSD::getGeneExpressionValues(const QByteArray& gene, QSet<int> cohort, bool log2)
 {
 	// debug
-	QTime timer;
-	timer.start();
+	QVector<int> cohort_sorted = cohort.toList().toVector();
+	std::sort(cohort_sorted.begin(), cohort_sorted.end());
 
+	return getGeneExpressionValues(gene, cohort_sorted, log2);
+}
+
+QVector<double> NGSD::getGeneExpressionValues(const QByteArray& gene, QVector<int> cohort, bool log2)
+{
 	QVector<double> expr_values;
 	QByteArray gene_approved = geneToApproved(gene);
-	if (gene_approved.isEmpty()) return expr_values;
+	if (gene_approved.isEmpty()) THROW(ArgumentException, "Can't convert gene '" + gene + "' to approved symbol!");
 
-	QList<int> cohort_sorted = cohort.toList();
-	std::sort(cohort_sorted.begin(), cohort_sorted.end());
-	QStringList cohort_str;
-	foreach (int i , cohort_sorted)
+	SqlQuery query = getQuery();
+	query.prepare("SELECT ev.tpm FROM `expression` ev WHERE ev.symbol='" + gene_approved + "' AND ev.processed_sample_id=:0");
+
+	foreach (int ps_id, cohort)
 	{
-		cohort_str << QString::number(i);
-	}
+		//execute query
+		query.bindValue(0, ps_id);
+		query.exec();
 
-
-	QStringList expr_values_str = getValues(QString() + "SELECT ev.tpm FROM `expression` ev WHERE ev.symbol='" + gene_approved + "' AND ev.processed_sample_id IN (" + cohort_str.join(", ") +  ")");
-
-	foreach (const QString& value, expr_values_str)
-	{
-		if(log2)
+		//parse result
+		if(query.size()==0)
 		{
-			expr_values << std::log2(Helper::toDouble(value) + 1);
+			//no expression value found
+			expr_values << nan("");
 		}
 		else
 		{
-			expr_values << Helper::toDouble(value);
+			query.next();
+			if(log2)
+			{
+				expr_values << std::log2(query.value(0).toDouble() + 1);
+			}
+			else
+			{
+				expr_values << query.value(0).toDouble();
+			}
+
 		}
-
 	}
-
-	qDebug() << "Get expression values: " << Helper::elapsedTime(timer);
 
 	return expr_values;
 }

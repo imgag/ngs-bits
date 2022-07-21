@@ -411,7 +411,7 @@ public:
 		}
 	}
 
-	//TODO: update transcript expression table
+	//TODO: update exon expression table
 };
 
 #include "main.moc"

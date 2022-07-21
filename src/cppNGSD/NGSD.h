@@ -766,6 +766,7 @@ public:
 	///Returns a list of all expression values for a given gene symbol
 	QVector<double> getGeneExpressionValues(const QByteArray& gene, int sys_id, const QString& tissue_type, bool log2=false);
 	QVector<double> getGeneExpressionValues(const QByteArray& gene, QSet<int> cohort, bool log2=false);
+	QVector<double> getGeneExpressionValues(const QByteArray& gene, QVector<int> cohort, bool log2=false);
 	///Returns a list of all expression values for a given exon
 	QVector<double> getExonExpressionValues(const BedLine& exon, QSet<int> cohort, bool log2=false);
 	///Returns the expression values fo a single sample
