@@ -1,3 +1,5 @@
+##cohort_strategy:RNA_COHORT_SOMATIC
+##cohort_size:4
 #gene_id	tpm	raw	cohort_mean	log2fc	zscore	pvalue
 ENSG00000243485	0	9303	40.11	-5.36142	-0.57735	0.563703
 ENSG00000186092	0	6048	0	0	nan	nan

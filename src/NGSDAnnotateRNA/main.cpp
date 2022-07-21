@@ -32,6 +32,7 @@ public:
 		addEnum("mode", "Determines if genes or exons should be annotated.", true, valid_modes, "genes");
 		QStringList valid_cohort = QStringList() << "RNA_COHORT_GERMLINE" << "RNA_COHORT_GERMLINE_PROJECT" << "RNA_COHORT_SOMATIC";
 		addEnum("cohort_strategy", "Determines which samples are used as reference cohort.", true, valid_cohort, "RNA_COHORT_GERMLINE");
+		addOutfile("corr", "File path to output file containing the spearman correlation to cohort mean.", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
 
 		changeLog(2022, 6, 9, "Initial commit.");
@@ -46,6 +47,7 @@ public:
 		QString ps_name = getString("ps");
 		QString mode = getEnum("mode");
 		QString cohort_strategy_str = getEnum("cohort_strategy");
+		QString corr = getOutfile("corr");
 		RnaCohortDeterminationStategy cohort_strategy;
 		if (cohort_strategy_str == "RNA_COHORT_GERMLINE")
 		{
@@ -97,6 +99,17 @@ public:
 		QByteArrayList output_buffer;
 		output_buffer.append(input_file.comments());
 
+		//add cohort stats
+		output_buffer.append("##cohort_strategy:" + cohort_strategy_str.toUtf8());
+		output_buffer.append("##cohort_size:" + QByteArray::number(cohort.size()));
+		int corr_line_number = -1;
+		if(!corr.isEmpty())
+		{
+			output_buffer.append("##correlation:" + QByteArray::number(cohort.size()));
+			corr_line_number = output_buffer.size() - 1;
+		}
+
+
 		// check if annotation columns already present and add to header
 		QByteArrayList header = input_file.header();
 		QByteArrayList db_header;
@@ -129,6 +142,10 @@ public:
 			i_value =  input_file.colIndex("srpb", true);
 			i_exon = input_file.colIndex("exon", true);
 		}
+
+		//buffer for correaltion
+		QVector<double> expression_values;
+		QVector<double> mean_values;
 
 
 		// iterate over input file and annotate each cnv
@@ -174,10 +191,34 @@ public:
 				double pvalue = 1 + std::erf(- std::abs(zscore) / std::sqrt(2));
 				tsv_line[column_indices["pvalue"]] = QByteArray::number(pvalue);
 
+				if((expr_value > 0) && (cohort_mean > 0))
+				{
+					expression_values << expr_value;
+					mean_values << cohort_mean;
+				}
+
 			}
 
 			//write line to buffer
 			output_buffer << tsv_line.join("\t");
+		}
+
+
+		//calculate correlation
+		if(!corr.isEmpty())
+		{
+			QVector<double> rank_sample = calculateRanks(expression_values);
+			QVector<double> rank_means = calculateRanks(mean_values);
+			double correlation = BasicStatistics::correlation(rank_sample, rank_means);
+
+			//write correlation to file:
+			QSharedPointer<QFile> correlation_file = Helper::openFileForWriting(corr, true);
+			QTextStream correlation_stream(correlation_file.data());
+			correlation_stream << QString::number(correlation) << "\n";
+			correlation_stream.flush();
+			correlation_file->close();
+
+			output_buffer[corr_line_number] = "##correlation: " + QByteArray::number(correlation);
 		}
 
 		// open output file and write annotated expression values to file
@@ -191,6 +232,18 @@ public:
 		output_stream.flush();
 		output_file->close();
 
+	}
+
+	QVector<double> calculateRanks(const QVector<double>& values)
+	{
+		QVector<double> sorted_values = values;
+		std::sort(sorted_values.rbegin(), sorted_values.rend());
+		QVector<double> ranks = QVector<double>(values.size());
+		for (int i = 0; i < values.size(); ++i)
+		{
+			ranks[i] = sorted_values.indexOf(values.at(i)) + 1;
+		}
+		return ranks;
 	}
 
 };

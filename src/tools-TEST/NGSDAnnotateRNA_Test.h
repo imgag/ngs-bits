@@ -26,8 +26,9 @@ private slots:
 		db.importGeneExpressionData(TESTDATA("data_in/NGSDAnnotateRNA_expr_in7.tsv"), "RX007_01", false, false);
 		db.importGeneExpressionData(TESTDATA("data_in/NGSDAnnotateRNA_expr_in8.tsv"), "RX008_01", false, false);
 
-		EXECUTE("NGSDAnnotateRNA", "-test -ps RX001_01 -in " + TESTDATA("data_in/NGSDAnnotateRNA_expr_in1.tsv") + " -out out/NGSDAnnotateRNA_expr_out1.tsv");
-		COMPARE_FILES("out/NGSDAnnotateRNA_expr_out1.tsv", TESTDATA("data_out/NGSDAnnotateRNA_expr_out1.tsv"))
+		EXECUTE("NGSDAnnotateRNA", "-test -ps RX001_01 -in " + TESTDATA("data_in/NGSDAnnotateRNA_expr_in1.tsv") + " -out out/NGSDAnnotateRNA_expr_out1.tsv -corr out/NGSDAnnotateRNA_corr_out1.txt");
+		COMPARE_FILES("out/NGSDAnnotateRNA_expr_out1.tsv", TESTDATA("data_out/NGSDAnnotateRNA_expr_out1.tsv"));
+		COMPARE_FILES("out/NGSDAnnotateRNA_corr_out1.txt", TESTDATA("data_out/NGSDAnnotateRNA_corr_out1.txt"));
 	}
 
 	void germline_project()
