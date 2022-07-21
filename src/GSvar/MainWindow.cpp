@@ -110,7 +110,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "CfDNAPanelDesignDialog.h"
 #include "DiseaseCourseWidget.h"
 #include "CfDNAPanelWidget.h"
-#include "ClinvarSubmissionGenerator.h"
 #include "SomaticVariantInterpreterWidget.h"
 #include "AlleleBalanceCalculator.h"
 #include "ExpressionGeneWidget.h"

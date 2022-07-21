@@ -60,7 +60,6 @@ HEADERS += \
     CnvList_Test.h \
     StructuralVariantType_Test.h \
     Transcript_Test.h \
-    ClinvarSubmissionGenerator_Test.h \
     BedpeLine_Test.h \
     BedpeFile_Test.h \
     Sequence_Test.h \
