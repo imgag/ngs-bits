@@ -2,26 +2,27 @@
 #define OUTPUTWORKER_H
 
 #include <QRunnable>
-#include <Auxilary.h>
+#include "Auxilary.h"
 
+//Output worker that makes sure that only one job is written at a time (writing to the two main output FASTQs is done in separate threads to double the maximum possible throughput)
 class OutputWorker
-	: public QRunnable
+	: public QObject
+	, public QRunnable
 {
-public:
-	OutputWorker(QList<AnalysisJob>& job_pool, QString out1, QString out2, QString out3_base, const TrimmingParameters& params, TrimmingStatistics& stats);
-	void run();
-	void terminate()
-	{
-		terminate_ = true;
-	}
+	Q_OBJECT
 
-protected:
-	bool terminate_;
-	QList<AnalysisJob>& job_pool_;
-	QSharedPointer<FastqOutfileStream> ostream1;
-	QSharedPointer<FastqOutfileStream> ostream2;
-	QSharedPointer<FastqOutfileStream> ostream3;
-	QSharedPointer<FastqOutfileStream> ostream4;
+public:
+	OutputWorker(AnalysisJob& job, OutputStreams& streams, const TrimmingParameters& params, TrimmingStatistics& stats);
+	virtual ~OutputWorker();
+	virtual void run() override;
+
+signals:
+	void done(int i); //signal emitted when job was successful
+	void error(int i, QString message); //signal emitted when job failed
+
+private:
+	AnalysisJob& job_;
+	OutputStreams& streams_;
 	const TrimmingParameters& params_;
 	TrimmingStatistics& stats_;
 };
