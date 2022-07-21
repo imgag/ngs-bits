@@ -328,11 +328,9 @@ int main(int argc, char **argv)
 						RequestMethod::POST,
 						ContentType::TEXT_PLAIN,
 						AuthType::NONE,
-						"Starts the calculation of low coverage regions",
+						"Calculates low coverage regions",
 						&ServerController::calculateLowCoverage
 					});
-
-
 	EndpointManager::appendEndpoint(Endpoint{
 						"avg_coverage_gaps",
 						QMap<QString, ParamProps>{
@@ -344,10 +342,9 @@ int main(int argc, char **argv)
 						RequestMethod::POST,
 						ContentType::TEXT_PLAIN,
 						AuthType::NONE,
-						"Starts the calculation of average coverage for gaps",
+						"Calculates average coverage for gaps",
 						&ServerController::calculateAvgCoverage
 					});
-
 	EndpointManager::appendEndpoint(Endpoint{
 						"target_region_read_depth",
 						QMap<QString, ParamProps>{
@@ -362,8 +359,6 @@ int main(int argc, char **argv)
 						"Calculates target region read depth used in germline report",
 						&ServerController::calculateTargetRegionReadDepth
 					});
-
-
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"upload",
