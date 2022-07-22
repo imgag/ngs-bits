@@ -46,7 +46,12 @@ public:
 	static HttpResponse saveQbicFiles(const HttpRequest& request);
 	/// Uploads a file to the sample folder (via multipart form POST request)
 	static HttpResponse uploadFile(const HttpRequest& request);
-
+	/// Starts the calculation of low coverage regions
+	static HttpResponse calculateLowCoverage(const HttpRequest& request);
+	/// Starts the calculation of the average covarage for gaps
+	static HttpResponse calculateAvgCoverage(const HttpRequest& request);
+	/// Calculates target region read depth used in germline report
+	static HttpResponse calculateTargetRegionReadDepth(const HttpRequest& request);
 	/// Requests a secure token that is needed for the communication with the server
 	static HttpResponse performLogin(const HttpRequest& request);
 	/// Checks if prodivided login and password are valid

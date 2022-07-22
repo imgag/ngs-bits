@@ -10,6 +10,7 @@
 #include "SomaticXmlReportGenerator.h"
 #include "SomaticVariantInterpreter.h"
 #include "LoginManager.h"
+#include "ApiCaller.h"
 #include <cmath>
 #include <QDir>
 #include <QMap>
@@ -752,18 +753,16 @@ void SomaticReportHelper::saveReportData(QString filename, QString path, QString
 		return;
 	}
 
-	HttpHeaders add_headers;
-	add_headers.insert("Accept", "application/json");
-	add_headers.insert("Content-Type", "application/json");
-	add_headers.insert("Content-Length", QByteArray::number(content.size()));
+	HttpHeaders qbic_headers;
+	qbic_headers.insert("Accept", "application/json");
+	qbic_headers.insert("Content-Type", "application/json");
+	qbic_headers.insert("Content-Length", QByteArray::number(content.size()));
 
 	// Exception is handled from GSvar
-	HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(
-		NGSHelper::serverApiUrl()
-		+ "qbic_report_data?filename=" + QUrl(filename).toEncoded() + "&id=" + QUrl(path).toEncoded() +"&token=" + LoginManager::userToken(),
-		content.toLocal8Bit(),
-		add_headers
-	);
+	RequestUrlParams params;
+	params.insert("filename", QUrl(filename).toEncoded());
+	params.insert("id", QUrl(path).toEncoded());
+	ApiCaller().post("qbic_report_data", params, qbic_headers, content.toLocal8Bit(), true, false, true);
 }
 
 double SomaticReportHelper::getCnvMaxTumorClonality(const CnvList &cnvs)

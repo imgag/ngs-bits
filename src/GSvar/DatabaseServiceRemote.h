@@ -28,11 +28,9 @@ public:
 	virtual FileLocation analysisJobGSvarFile(const int& job_id) const override;
 	virtual FileLocation analysisJobLogFile(const int& job_id) const override;
 
-protected:
-	HttpHeaders defaultHeaders() const;
-	QString getTokenIfExists() const;
-	QByteArray makeGetApiCall(QString url_param, bool ignore_if_missing) const;
-	QByteArray makePostApiCall(QString url_param, QString content, bool ignore_if_missing) const;
+protected:	
+	QByteArray makeGetApiCall(QString api_path, RequestUrlParams params, bool ignore_if_missing) const;
+	QByteArray makePostApiCall(QString api_path, RequestUrlParams params, QByteArray content, bool ignore_if_missing) const;
 
 	//Throws an error if NGSD is not enabled
 	void checkEnabled(QString function) const

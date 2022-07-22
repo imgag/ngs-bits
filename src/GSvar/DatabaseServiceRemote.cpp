@@ -1,9 +1,8 @@
-#include "DatabaseServiceRemote.h"
-#include "Settings.h"
-#include "HttpRequestHandler.h"
-#include "NGSHelper.h"
 #include <QApplication>
 #include <QMessageBox>
+#include "DatabaseServiceRemote.h"
+#include "Settings.h"
+#include "ApiCaller.h"
 
 DatabaseServiceRemote::DatabaseServiceRemote()
 	: enabled_(true)
@@ -18,8 +17,7 @@ bool DatabaseServiceRemote::enabled() const
 QString DatabaseServiceRemote::checkPassword(const QString user_name, const QString password) const
 {
 	checkEnabled(__PRETTY_FUNCTION__);
-
-	return makePostApiCall("validate_credentials", "name="+user_name+"&password="+password, false);
+	return makePostApiCall("validate_credentials", RequestUrlParams(), QString("name="+user_name+"&password="+password).toLocal8Bit(), false);
 }
 
 BedFile DatabaseServiceRemote::processingSystemRegions(int sys_id, bool ignore_if_missing) const
@@ -27,7 +25,9 @@ BedFile DatabaseServiceRemote::processingSystemRegions(int sys_id, bool ignore_i
 	checkEnabled(__PRETTY_FUNCTION__);
 
 	BedFile output;
-	QByteArray reply = makeGetApiCall("ps_regions?sys_id="+QString::number(sys_id), ignore_if_missing);
+	RequestUrlParams params;
+	params.insert("sys_id", QString::number(sys_id).toLocal8Bit());
+	QByteArray reply = makeGetApiCall("ps_regions", params, ignore_if_missing);
 
 	if ((reply.length() == 0) && (!ignore_if_missing))
 	{
@@ -44,7 +44,9 @@ BedFile DatabaseServiceRemote::processingSystemAmplicons(int sys_id, bool ignore
 	checkEnabled(__PRETTY_FUNCTION__);
 
 	BedFile output;
-	QByteArray reply = makeGetApiCall("ps_amplicons?sys_id="+QString::number(sys_id), ignore_if_missing);
+	RequestUrlParams params;
+	params.insert("sys_id", QString::number(sys_id).toLocal8Bit());
+	QByteArray reply = makeGetApiCall("ps_amplicons", params, ignore_if_missing);
 
 	if ((reply.length() == 0) && (!ignore_if_missing))
 	{
@@ -61,7 +63,9 @@ GeneSet DatabaseServiceRemote::processingSystemGenes(int sys_id, bool ignore_if_
 	checkEnabled(__PRETTY_FUNCTION__);
 
 	GeneSet output;
-	QByteArray reply = makeGetApiCall("ps_genes?sys_id="+QString::number(sys_id), ignore_if_missing);
+	RequestUrlParams params;
+	params.insert("sys_id", QString::number(sys_id).toLocal8Bit());
+	QByteArray reply = makeGetApiCall("ps_genes", params, ignore_if_missing);
 
 	if ((reply.length() == 0) && (!ignore_if_missing))
 	{
@@ -78,7 +82,10 @@ QStringList DatabaseServiceRemote::secondaryAnalyses(QString processed_sample_na
 	checkEnabled(__PRETTY_FUNCTION__);
 
 	QStringList list;
-	QByteArray reply = makeGetApiCall("secondary_analyses?ps_name="+processed_sample_name+"&type="+analysis_type, true);
+	RequestUrlParams params;
+	params.insert("ps_name", processed_sample_name.toLocal8Bit());
+	params.insert("type", analysis_type.toLocal8Bit());
+	QByteArray reply = makeGetApiCall("secondary_analyses", params, true);
 	if (reply.length() == 0)
 	{
 		THROW(Exception, "Could not get the processing system genes for " + processed_sample_name);
@@ -101,7 +108,10 @@ FileLocation DatabaseServiceRemote::processedSamplePath(const QString& processed
 	checkEnabled(__PRETTY_FUNCTION__);
 
 	FileLocation output;
-	QByteArray reply = makeGetApiCall("processed_sample_path?ps_id=" + processed_sample_id + "&type=" + FileLocation::typeToString(type), true);
+	RequestUrlParams params;
+	params.insert("ps_id", processed_sample_id.toLocal8Bit());
+	params.insert("type", FileLocation::typeToString(type).toLocal8Bit());
+	QByteArray reply = makeGetApiCall("processed_sample_path", params, true);
 
 	if (reply.length() == 0)
 	{
@@ -131,7 +141,9 @@ FileInfo DatabaseServiceRemote::analysisJobLatestLogInfo(const int& job_id) cons
 	checkEnabled(__PRETTY_FUNCTION__);
 
 	FileInfo output;
-	QByteArray reply = makeGetApiCall("analysis_job_last_update?job_id=" + QString::number(job_id), true);
+	RequestUrlParams params;
+	params.insert("job_id", QString::number(job_id).toLocal8Bit());
+	QByteArray reply = makeGetApiCall("analysis_job_last_update", params, true);
 	if (reply.length() == 0)
 	{
 		THROW(Exception, "Could not get the latest update info for the job id " + QString::number(job_id));
@@ -155,7 +167,9 @@ FileLocation DatabaseServiceRemote::analysisJobGSvarFile(const int& job_id) cons
 {
 	checkEnabled(__PRETTY_FUNCTION__);
 
-	QByteArray reply = makeGetApiCall("analysis_job_gsvar_file?job_id=" + QString::number(job_id), true);
+	RequestUrlParams params;
+	params.insert("job_id", QString::number(job_id).toLocal8Bit());
+	QByteArray reply = makeGetApiCall("analysis_job_gsvar_file", params, true);
 	if (reply.length() == 0)
 	{
 		THROW(Exception, "Could not get a GSvar file for the job id " + QString::number(job_id));
@@ -176,7 +190,9 @@ FileLocation DatabaseServiceRemote::analysisJobLogFile(const int& job_id) const
 {
 	checkEnabled(__PRETTY_FUNCTION__);
 
-	QByteArray reply = makeGetApiCall("analysis_job_log?job_id=" + QString::number(job_id), true);
+	RequestUrlParams params;
+	params.insert("job_id", QString::number(job_id).toLocal8Bit());
+	QByteArray reply = makeGetApiCall("analysis_job_log", params, true);
 	if (reply.length() == 0)
 	{
 		THROW(Exception, "Could not get a log file for the job id " + QString::number(job_id));
@@ -193,60 +209,31 @@ FileLocation DatabaseServiceRemote::analysisJobLogFile(const int& job_id) const
 	return FileLocation{};
 }
 
-HttpHeaders DatabaseServiceRemote::defaultHeaders() const
-{
-	HttpHeaders add_headers;
-	add_headers.insert("Accept", "text/plain");
-	add_headers.insert("User-Agent", "GSvar");
-	return add_headers;
-}
-
-QString DatabaseServiceRemote::getTokenIfExists() const
-{
+QByteArray DatabaseServiceRemote::makeGetApiCall(QString api_path, RequestUrlParams params, bool ignore_if_missing) const
+{		
 	try
 	{
-		return "&token=" + LoginManager::userToken();
-	}
-	catch (ProgrammingException& e)
-	{
-		qDebug() << e.message();
-	}
-	return "";
-}
-
-QByteArray DatabaseServiceRemote::makeGetApiCall(QString url_param, bool ignore_if_missing) const
-{	
-	try
-	{		
-		HttpHeaders get_headers = defaultHeaders();
-		get_headers.insert("Content-Type", "text/plain");
-		return HttpRequestHandler(HttpRequestHandler::NONE).get(NGSHelper::serverApiUrl() + url_param + getTokenIfExists(), get_headers);
+		HttpHeaders headers;
+		headers.insert("Content-Type", "text/plain");
+		return ApiCaller().get(api_path, params, headers, true, false, true);
 	}
 	catch (Exception& e)
 	{
-		if (!ignore_if_missing)
-		{
-			QMessageBox::warning(QApplication::activeWindow(), "Database API GET call error", e.message());
-		}
+		if (!ignore_if_missing) QMessageBox::warning(QApplication::activeWindow(), "Database API GET call error", e.message());
 	}
 
 	return QByteArray{};
 }
 
-QByteArray DatabaseServiceRemote::makePostApiCall(QString url_param, QString content, bool ignore_if_missing) const
+QByteArray DatabaseServiceRemote::makePostApiCall(QString api_path, RequestUrlParams params, QByteArray content, bool ignore_if_missing) const
 {
 	try
 	{
-		HttpHeaders post_headers = defaultHeaders();
-		post_headers.insert("Content-Type", "application/x-www-form-urlencoded");
-		return HttpRequestHandler(HttpRequestHandler::NONE).post(NGSHelper::serverApiUrl() + url_param + getTokenIfExists(), content.toLocal8Bit(), post_headers);
+		 return ApiCaller().post(api_path, params, HttpHeaders(), content, true, false, true);
 	}
 	catch (Exception& e)
 	{
-		if (!ignore_if_missing)
-		{
-			QMessageBox::warning(QApplication::activeWindow(), "Database API POST call error", e.message());
-		}
+		if (!ignore_if_missing) QMessageBox::warning(QApplication::activeWindow(), "Database API POST call error", e.message());
 	}
 
 	return QByteArray{};
