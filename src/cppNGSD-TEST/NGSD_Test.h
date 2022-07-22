@@ -2305,12 +2305,21 @@ private slots:
 
 		//Test ENSG->gene_id mapping
 		QMap<QByteArray, QByteArray> ensg_gene_mapping = db.getEnsemblGeneMapping();
+		QMap<QByteArray, QByteArray> gene_ensg_mapping = db.getGeneEnsemblMapping();
+
 		S_EQUAL(ensg_gene_mapping.value("ENSG00000204518"), "AADACL4");
 		S_EQUAL(ensg_gene_mapping.value("ENSG00000171735"), "CAMTA1");
 		S_EQUAL(ensg_gene_mapping.value("ENSG00000127463"), "EMC1");
 		S_EQUAL(ensg_gene_mapping.value("ENSG00000231510"), "LINC02782");
 		S_EQUAL(ensg_gene_mapping.value("ENSG00000263793"), "MIR3115");
 		S_EQUAL(ensg_gene_mapping.value("ENSG00000187583"), "PLEKHN1");
+
+		S_EQUAL(gene_ensg_mapping.value("AADACL4"), "ENSG00000204518");
+		S_EQUAL(gene_ensg_mapping.value("CAMTA1"), "ENSG00000171735");
+		S_EQUAL(gene_ensg_mapping.value("EMC1"), "ENSG00000127463");
+		S_EQUAL(gene_ensg_mapping.value("LINC02782"), "ENSG00000231510");
+		S_EQUAL(gene_ensg_mapping.value("MIR3115"), "ENSG00000263793");
+		S_EQUAL(gene_ensg_mapping.value("PLEKHN1"), "ENSG00000187583");
 
 		//Test expression data import
 		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in1.tsv"), "RX001_01", false, false);
