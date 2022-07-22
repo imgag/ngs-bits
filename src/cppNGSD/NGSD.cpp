@@ -1748,6 +1748,19 @@ QMap<QByteArray, QByteArray> NGSD::getEnsemblGeneMapping()
 	return mapping;
 }
 
+QMap<QByteArray, QByteArray> NGSD::getGeneEnsemblMapping()
+{
+	QMap<QByteArray, QByteArray> mapping;
+	SqlQuery query = getQuery();
+	query.exec("SELECT symbol, ensembl_id FROM gene WHERE ensembl_id IS NOT NULL");
+	while(query.next())
+	{
+		mapping.insert(query.value(0).toByteArray(), query.value(1).toByteArray());
+	}
+
+	return mapping;
+}
+
 QVector<double> NGSD::getGeneExpressionValues(const QByteArray& gene, int sys_id, const QString& tissue_type, bool log2)
 {
 	// debug

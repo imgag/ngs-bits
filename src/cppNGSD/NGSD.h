@@ -763,6 +763,8 @@ public:
 						   const QByteArray& mode = "genes", bool debug=false);
 	///Creates a mapping from ENSG ensembl identifier to NGSD gene ids
 	QMap<QByteArray, QByteArray> getEnsemblGeneMapping();
+	///Creates a mapping from gene symbols to ENSG ensembl identifier
+	QMap<QByteArray, QByteArray> getGeneEnsemblMapping();
 	///Returns a list of all expression values for a given gene symbol
 	QVector<double> getGeneExpressionValues(const QByteArray& gene, int sys_id, const QString& tissue_type, bool log2=false);
 	QVector<double> getGeneExpressionValues(const QByteArray& gene, QSet<int> cohort, bool log2=false);

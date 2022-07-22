@@ -79,6 +79,9 @@ public:
 		QVector<int> cohort = db.getRNACohort(sys_id, s_data.tissue, ps_data.project_name, ps_id, cohort_strategy, "genes").toList().toVector();
 		std::sort(cohort.rbegin(), cohort.rend());
 
+		//get ensembl ids
+		auto gene_ensembl_mapping = db.getGeneEnsemblMapping();
+
 		// open output file and write annotated expression values to file
 		QSharedPointer<QFile> output_file = Helper::openFileForWriting(out, true);
 		QTextStream output_stream(output_file.data());
@@ -91,7 +94,7 @@ public:
 		{
 			ps_names << db.processedSampleName(QString::number(ps_id));
 		}
-		output_stream << "#genes\t" << ps_names.join("\t") << "\n";
+		output_stream << "#gene_id\t" << ps_names.join("\t") << "\n";
 
 		//iterate over gene list
 		foreach (const QByteArray& gene, genes)
@@ -109,7 +112,7 @@ public:
 					expression_values_str << QByteArray::number(expr);
 				}
 			}
-			output_stream << gene << "\t" << expression_values_str.join("\t") << "\n";
+			output_stream << gene_ensembl_mapping.value(gene) << "\t" << expression_values_str.join("\t") << "\n";
 		}
 		output_stream.flush();
 		output_file->close();
