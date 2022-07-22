@@ -80,6 +80,10 @@ public:
 		QMap<QByteArray, ExpressionStats> expression_stats;
 		QMap<QByteArray, QByteArray> ensg_gene_mapping;
 		QSet<int> cohort = db.getRNACohort(sys_id, s_data.tissue, ps_data.project_name, ps_id, cohort_strategy, mode.toUtf8());
+
+		//remove this sample from cohort
+		cohort.remove(ps_id.toInt());
+
 		if (mode == "genes")
 		{
 			expression_stats = db.calculateGeneExpressionStatistics(cohort);
