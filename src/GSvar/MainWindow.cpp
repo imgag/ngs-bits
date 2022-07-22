@@ -3640,7 +3640,7 @@ void MainWindow::transferSomaticData()
 	{
 		if(variants_.type()!=AnalysisType::SOMATIC_PAIR)
 		{
-			THROW(Exception, "Error: only possible for tumor-normal pair!");
+			INFO(Exception, "Error: only possible for tumor-normal pair!");
 		}
 
 		SomaticDataTransferWidget data_transfer(somatic_report_settings_.tumor_ps, somatic_report_settings_.normal_ps, this);
@@ -3648,7 +3648,7 @@ void MainWindow::transferSomaticData()
 	}
 	catch(Exception e)
 	{
-		QMessageBox::warning(this, "Transfer somatic data to MTB", e.message());
+		GUIHelper::showException(this, e, "Transfer somatic data to MTB");
 	}
 }
 
@@ -3700,120 +3700,108 @@ void MainWindow::showReportConfigInfo()
 
 void MainWindow::editOtherCausalVariant()
 {
-	//check if applicable
-	if (!germlineReportSupported()) return;
-
-	QString ps = germlineReportSample();
-	QString title = "Add/edit other causal variant of " + ps;
-
-	//check sample exists
-	NGSD db;
-	QString processed_sample_id = db.processedSampleId(ps, false);
-	if (processed_sample_id=="")
+	QString title = "Add/edit other causal variant";
+	try
 	{
-		QMessageBox::warning(this, title, "Sample was not found in the NGSD!");
-		return;
+		//check if applicable
+		if (!germlineReportSupported()) INFO(ArgumentException, "This feature is only available for germline!");
+
+		QString ps = germlineReportSample();
+
+		//check sample exists in NGSD
+		NGSD db;
+		QString processed_sample_id = db.processedSampleId(ps, false);
+		if (processed_sample_id=="") INFO(ArgumentException, "Sample was not found in the NGSD!");
+
+		// get report config
+		OtherCausalVariant causal_variant = report_settings_.report_config->otherCausalVariant();
+		QStringList variant_types = db.getEnum("report_configuration_other_causal_variant", "type");
+		QStringList inheritance_modes = db.getEnum("report_configuration_other_causal_variant", "inheritance");
+
+		//open edit dialog
+		CausalVariantEditDialog dlg(causal_variant, variant_types, inheritance_modes, this);
+		dlg.setWindowTitle(title + " of " + ps);
+
+		if (dlg.exec()!=QDialog::Accepted) return;
+
+		//store updated causal variant in NGSD
+		if (dlg.causalVariant().isValid())
+		{
+			report_settings_.report_config->setOtherCausalVariant(dlg.causalVariant());
+			report_settings_.report_config->variantsChanged();
+		}
 	}
-	// get report config
-	OtherCausalVariant causal_variant = report_settings_.report_config->otherCausalVariant();
-	QStringList variant_types = db.getEnum("report_configuration_other_causal_variant", "type");
-	QStringList inheritance_modes = db.getEnum("report_configuration_other_causal_variant", "inheritance");
-	if (causal_variant.isValid())
+	catch(Exception e)
 	{
-		title = "Edit other causal variant of " + ps;
+		GUIHelper::showException(this, e, title);
 	}
-	else
-	{
-		title = "Add other causal variant of " + ps;
-	}
-
-	//open edit dialog
-	CausalVariantEditDialog dlg(causal_variant, variant_types, inheritance_modes, this);
-	dlg.setWindowTitle(title);
-
-	if (dlg.exec()!=QDialog::Accepted) return;
-
-	//store updated causal variant in NGSD
-	if (dlg.causalVariant().isValid())
-	{
-		report_settings_.report_config->setOtherCausalVariant(dlg.causalVariant());
-		report_settings_.report_config->variantsChanged();
-	}
-
 }
 
 void MainWindow::deleteOtherCausalVariant()
 {
-	//check if applicable
-	if (!germlineReportSupported()) return;
-
-	QString ps = germlineReportSample();
-
-	//check sample exists
-	NGSD db;
-	QString processed_sample_id = db.processedSampleId(ps, false);
-	if (processed_sample_id=="")
+	QString title = "Delete other causal variant";
+	try
 	{
-		QMessageBox::warning(this, "Delete causal variant of " + ps, "Sample was not found in the NGSD!");
-		return;
+		//check if applicable
+		if (!germlineReportSupported()) INFO(ArgumentException, "This feature is only available for germline!");
+
+		QString ps = germlineReportSample();
+
+		//check sample exists
+		NGSD db;
+		QString processed_sample_id = db.processedSampleId(ps, false);
+		if (processed_sample_id=="") INFO(ArgumentException, "Sample was not found in the NGSD!");
+
+		OtherCausalVariant causal_variant = report_settings_.report_config->otherCausalVariant();
+		if(!causal_variant.isValid()) return;
+
+		//show dialog to confirm by user
+		QString message_text = "Are you sure you want to delete the following causal variant?\n" + causal_variant.type + " at " + causal_variant.coordinates + " (gene: " + causal_variant.gene + ", comment: " + causal_variant.comment.replace("\n", " ") + ")";
+		QMessageBox::StandardButton response = QMessageBox::question(this, title + " of " + ps, message_text, QMessageBox::Yes|QMessageBox::No);
+		if(response != QMessageBox::Yes) return;
+
+		//replace other causal variant with empty struct
+		report_settings_.report_config->setOtherCausalVariant(OtherCausalVariant());
 	}
-	OtherCausalVariant causal_variant = report_settings_.report_config->otherCausalVariant();
-	if(!causal_variant.isValid()) return;
-
-	//show dialog to confirm by user
-	QString message_text = "Are you sure you want to delete the following causal variant?\n" + causal_variant.type + " at " + causal_variant.coordinates + " (gene: " + causal_variant.gene
-							+ ", comment: " + causal_variant.comment.replace("\n", " ") + ")";
-	QMessageBox::StandardButton response = QMessageBox::question(this, "Delete other causal variant", message_text, QMessageBox::Yes|QMessageBox::No);
-	if(response != QMessageBox::Yes) return;
-
-	//replace other causal variant with empty struct
-	report_settings_.report_config->setOtherCausalVariant(OtherCausalVariant());
+	catch(Exception e)
+	{
+		GUIHelper::showException(this, e, title);
+	}
 }
 
 void MainWindow::finalizeReportConfig()
 {
-	//check if applicable
-	if(!germlineReportSupported()) return;
-
-	QString dialog_title = "Finalize report configuration of " + germlineReportSample();
-
-	//check sample exists
-	NGSD db;
-	QString processed_sample_id = db.processedSampleId(germlineReportSample(), false);
-	if (processed_sample_id=="")
-	{
-		QMessageBox::warning(this, dialog_title, "Sample was not found in the NGSD!");
-		return;
-	}
-
-
-	//check config exists
-	int conf_id = db.reportConfigId(processed_sample_id);
-	if (conf_id==-1)
-	{
-		QMessageBox::warning(this, dialog_title, "No report configuration for this sample found in the NGSD!");
-		return;
-	}
-
-	//make sure the user knows what he does
-	int button = QMessageBox::question(this, dialog_title, "Do you really want to finalize the report configuration?\nIt cannot be modified or deleted when finalized!");
-	if (button!=QMessageBox::Yes) return;
-
-	//finalize
+	QString title = "Finalize report configuration";
 	try
 	{
-		db.finalizeReportConfig(conf_id, LoginManager::userId());
-	}
-	catch (Exception& e)
-	{
-		QMessageBox::warning(this, dialog_title, "Finalizing report config failed:\"n" + e.message());
-		return;
-	}
+		//check if applicable
+		if(!germlineReportSupported()) INFO(ArgumentException, "This feature is only available for germline!");
 
-	//update report settings data structure
-	QStringList messages;
-	report_settings_.report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, messages);
-	connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
+		//check sample exists
+		NGSD db;
+		QString processed_sample_id = db.processedSampleId(germlineReportSample(), false);
+		if (processed_sample_id=="") INFO(ArgumentException, "Sample was not found in the NGSD!");
+
+		//check config exists
+		int conf_id = db.reportConfigId(processed_sample_id);
+		if (conf_id==-1) INFO(ArgumentException, "No report configuration for this sample found in the NGSD!");
+
+		//make sure the user knows what he does
+		int button = QMessageBox::question(this, title, "Do you really want to finalize the report configuration?\nIt cannot be modified or deleted when finalized!");
+		if (button!=QMessageBox::Yes) return;
+
+		//finalize
+		db.finalizeReportConfig(conf_id, LoginManager::userId());
+
+		//update report settings data structure
+		QStringList messages;
+		report_settings_.report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, messages);
+		connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
+	}
+	catch(Exception e)
+	{
+		GUIHelper::showException(this, e, title);
+	}
 }
 
 void MainWindow::generateReport()
@@ -3919,6 +3907,31 @@ void MainWindow::generateReportTumorOnly()
 	}
 }
 
+
+//transforms png data into list of tuples (png data in hex format, width, height)
+QList<RtfPicture> pngsFromFiles(QStringList files)
+{
+	QList<RtfPicture> pic_list;
+	foreach(const QString& path, files)
+	{
+		QImage pic = QImage(path);
+		if(pic.isNull()) continue;
+
+		//set maximum width/height in pixels
+		if( (uint)pic.width() > 1200 ) pic = pic.scaledToWidth(1200, Qt::TransformationMode::SmoothTransformation);
+		if( (uint)pic.height() > 1200 ) pic = pic.scaledToHeight(1200, Qt::TransformationMode::SmoothTransformation);
+
+		QByteArray png_data = "";
+		QBuffer buffer(&png_data);
+		buffer.open(QIODevice::WriteOnly);
+		if (pic.save(&buffer, "PNG")) continue;
+		buffer.close();
+
+		pic_list << RtfPicture(png_data.toHex(), pic.width(), pic.height());
+	}
+
+	return pic_list;
+}
 
 void MainWindow::generateReportSomaticRTF()
 {
@@ -4146,35 +4159,10 @@ void MainWindow::generateReportSomaticRTF()
 
 			rna_report_data.rna_qcml_data = db.getQCData(db.processedSampleId(dlg.getRNAid()));
 
-			//transforms png data into list of tuples (png data in hex format, width, height)
-			auto pngFromFile = [](QStringList files)
-			{
-				QList<std::tuple<QByteArray,int,int>> pic_list;
-				for(QString path : files)
-				{
-					QImage pic = QImage(path);
-					//set maximum width/height in pixels
-					if( (uint)pic.width() > 1200 ) pic = pic.scaledToWidth(1200, Qt::TransformationMode::SmoothTransformation);
-					if( (uint)pic.height() > 1200 ) pic = pic.scaledToHeight(1200, Qt::TransformationMode::SmoothTransformation);
-
-					QByteArray png_data = "";
-					if(!pic.isNull())
-					{
-						QBuffer buffer(&png_data);
-						buffer.open(QIODevice::WriteOnly);
-						if(pic.save(&buffer, "PNG"))
-						{
-							pic_list << std::make_tuple(png_data.toHex(), pic.width(), pic.height());
-						}
-					}
-				}
-				return pic_list;
-			};
-
 			//Add data from fusion pics
 			try
 			{
-				rna_report_data.fusion_pics = pngFromFile( Helper::findFiles(GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::FUSIONS_PIC_DIR).filename, "*.png", false) );
+				rna_report_data.fusion_pics = pngsFromFiles( Helper::findFiles(GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::FUSIONS_PIC_DIR).filename, "*.png", false) );
 			}
 			catch(Exception) //Nothing to do here
 			{
@@ -4182,7 +4170,7 @@ void MainWindow::generateReportSomaticRTF()
 			//Add data from expression plots
 			try
 			{
-				rna_report_data.expression_plots = pngFromFile( Helper::findFiles(GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::SAMPLE_FOLDER).filename, dlg.getRNAid() + "_expr.*.png", false) );
+				rna_report_data.expression_plots = pngsFromFiles( Helper::findFiles(GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::SAMPLE_FOLDER).filename, dlg.getRNAid() + "_expr.*.png", false) );
 			}
 			catch(Exception)
 			{
@@ -4307,8 +4295,6 @@ void MainWindow::reportGenerationFinished(bool success)
 	//clean
 	worker->deleteLater();
 }
-
-
 
 void MainWindow::openProcessedSampleTabsCurrentAnalysis()
 {
@@ -6906,4 +6892,6 @@ QString MainWindow::normalSampleName()
 
 	return "";
 }
+
+
 

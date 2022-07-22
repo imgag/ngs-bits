@@ -19,20 +19,17 @@ class CPPNGSSHARED_EXPORT RtfPicture
 {
 public:
 	RtfPicture();
-	RtfPicture(QByteArray png_data);
-	RtfPicture(QByteArray png_data, int width, int height);
+	RtfPicture(const QByteArray& png_data);
+	RtfPicture(const QByteArray& png_data, int width, int height);
 
 	RtfSourceCode RtfCode();
 
-	RtfPicture& setWidth(int width)
+	//resizes to the given with while keeping the height/width ratio
+	void resizeToWidth(int new_width)
 	{
-		width_ = width;
-		return *this;
-	}
-	RtfPicture& setHeight(int height)
-	{
-		height_ = height;
-		return *this;
+		width_ = new_width;
+		double ratio = (double)new_width/ width_;
+		height_ = height_ * ratio;
 	}
 
 private:

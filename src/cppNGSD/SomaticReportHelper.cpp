@@ -885,10 +885,7 @@ RtfSourceCode SomaticReportHelper::partIgvScreenshot()
 
 	RtfPicture snapshot(settings_.igv_snapshot_png_hex_image);
 
-	snapshot.setWidth(doc_.maxWidth());
-
-	double ratio = (double)doc_.maxWidth() / settings_.igv_snapshot_width;
-	snapshot.setHeight(settings_.igv_snapshot_height * ratio);
+	snapshot.resizeToWidth(doc_.maxWidth());
 
 	return snapshot.RtfCode();
 }
@@ -996,7 +993,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 {
 	//init
 	NGSD db;
-	QByteArrayList headers = {"Gen", "Veränderung", "Typ", "Anteil", "Beschreibung", "Pathway"};
+	QByteArrayList headers = {"Gen", "Veränderung", "Typ", "Anteil", "Beschreibung", "Molekularer Signalweg"};
 	QList<int> col_widths = {1000, 1950, 1350, 600, 3000, 2022};
 
 	//headlines
@@ -1668,7 +1665,7 @@ RtfSourceCode SomaticReportHelper::partPathways()
 	//create table
 	RtfTable table;
 
-	QByteArray heading_text = "Pathway-Informationen";
+	QByteArray heading_text = "Informationen zu molekularen Signalwegen";
 	table.addRow(RtfTableRow(heading_text,doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4).setHeader());
 
 	for (int i=0; i<=pathways.count(); i+=4)
@@ -1753,14 +1750,14 @@ RtfSourceCode SomaticReportHelper::partPathways()
 				contents << "";
 			}
 		}
-		table.addRow(RtfTableRow(headers,{2480,2480,2480,2480},RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader().setBorders(1,"brdrhair",4).setBackgroundColor(5));
+		table.addRow(RtfTableRow(headers,{2480,2480,2480,2480},RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true).setItalic(true)).setHeader().setBorders(1,"brdrhair",4).setBackgroundColor(5));
 		table.addRow(RtfTableRow(contents,{2480,2480,2480,2480},RtfParagraph().setHorizontalAlignment("c")).setHeader().setBorders(1,"brdrhair",4));
 	}
 
 	//add description below table
 	RtfSourceCode desc = "";
 	desc += RtfText("Beschreibung: ").setFontSize(14).setBold(true).RtfCode();
-	desc += "TODO Sorin";
+	desc += "Die nachgewiesenen potentielle relevanten somatischne Veränderungen (fett hervorgehoben) und die unklaren Varianten wurden nach den wichtigsten molekularen Signalwegen sortiert. Die Zugehörigkeit eines Gens zu einem bestimmten Signalweg wurde durch das Molekulare Tumorboard Tübingen festgestellt.";
 	table.addRow(RtfTableRow(desc,{doc_.maxWidth()},RtfParagraph().setFontSize(14).setHorizontalAlignment("j")));
 
 	return table.RtfCode();

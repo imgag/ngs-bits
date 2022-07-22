@@ -2233,9 +2233,9 @@ private slots:
 		query.exec("SELECT id FROM somatic_gene_role"); //3 remaining rows
 		I_EQUAL(query.size(), 3);
 		I_EQUAL(-1, db.getSomaticGeneRoleId("PTGS2"));
-
-		//TODO add test for RTF > Axel
 	}
+
+	//TODO add test for somatic RTF > Axel
 
 	//Test tumor only RTF report generation
 	void report_tumor_only()
