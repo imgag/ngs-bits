@@ -26,7 +26,7 @@ private slots:
 		VariantList vl;
 		vl.load(TESTDATA("data_in/LeftAlign_in.GSvar"));
 		vl.checkValid();
-		vl.leftAlign(ref_file, false);
+		vl.leftAlign(ref_file);
 		vl.store("out/LeftAlign_out.GSvar");
 		COMPARE_FILES("out/LeftAlign_out.GSvar", TESTDATA("data_out/LeftAlign_out.GSvar"));
 	}
@@ -39,7 +39,7 @@ private slots:
 		VariantList vl;
 		vl.load(TESTDATA("data_in/LeftAlign_in2.GSvar"));
 		vl.checkValid();
-		vl.leftAlign(ref_file, false);
+		vl.leftAlign(ref_file);
 		vl.store("out/LeftAlign_out2.GSvar");
 		COMPARE_FILES("out/LeftAlign_out2.GSvar", TESTDATA("data_out/LeftAlign_out.GSvar"));
 	}
@@ -49,7 +49,7 @@ private slots:
 		VariantList vl,vl2;
 		vl.load(TESTDATA("data_in/variantList_removeDuplicates_in.tsv"));
 		vl.checkValid();
-        vl.removeDuplicates(false);
+		vl.removeDuplicates();
 		vl2.load(TESTDATA("data_out/variantList_removeDuplicates_out.tsv"));
 		vl2.checkValid();
 		vl2.sort();
@@ -66,7 +66,7 @@ private slots:
 	void removeDuplicates_Empty()
 	{
 		VariantList vl;
-		vl.removeDuplicates(true);
+		vl.removeDuplicates();
 	}
 
 	void loadFromTSV()

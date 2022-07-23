@@ -20,12 +20,18 @@ struct SomaticGeneRole
 	bool high_evidence = false; //level of evidence
 	QString comment = "";
 
-	///returns gene role as string
-	QString roleAsString() const
+	///Returns a string representaion of the gene role.
+	QString asString() const
 	{
 		if(role == Role::ACTIVATING) return "activating";
 		else if(role == Role::LOSS_OF_FUNCTION) return "loss_of_function";
 		else return "ambiguous";
+	}
+
+	///Returns if the gene role is valid.
+	bool isValid() const
+	{
+		return !gene.isEmpty();
 	}
 };
 

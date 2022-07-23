@@ -106,7 +106,7 @@ private:
 	///Parses annotated cytobands to text, "" if not annotation available
 	QByteArray cytoband(const CopyNumberVariant& cnv);
 
-	RtfTableRow overlappingCnv(const CopyNumberVariant& cnv, QByteArray gene, double snv_af);
+	RtfTableRow overlappingCnv(const CopyNumberVariant& cnv, QByteArray gene, double snv_af, const QList<int>& col_widths);
 
 	///parts of the report
 	///Generates table with genral information
@@ -123,6 +123,8 @@ private:
 	RtfSourceCode partPharmacoGenetics();
 	///generates meta data (e.g. coverage, depth)
 	RtfSourceCode partMetaData();
+	///generates pathway table
+	RtfSourceCode partPathways();
 	///generates with billing informationen (gene names in first table + OMIM numbers) for health funds according EBM
 	RtfSourceCode partBillingTable();
 	///Generates table with virus information
@@ -131,15 +133,15 @@ private:
 	RtfSourceCode partIgvScreenshot();
 
 	///creates table with SNVs, relevant germline SNPs (class 4/5) and overlapping CNVs
-	RtfTable snvTable(const VariantList& vl, bool include_germline = true, bool include_cnvs = true);
+	RtfTable snvTable(const QSet<int>& indices, bool high_impact_table=true);
 
 	//skipped amplifications in somaticalterationtable
 	GeneSet skipped_amp_ = {};
+
 	//Somatic SNVs/INDELs
 	VariantList somatic_vl_;
-
-	VariantList somatic_high_impact_vl_;
-	VariantList somatic_low_impact_vl_;
+	QSet<int> somatic_vl_high_impact_indices_; //small variants with high impact i.e. they are added to the pathway list in bold
+	QSet<int> somatic_vl_low_impact_indices_; //small variants with low impact i.e. they are added to the pathway list, but not bold
 
 	GenomeBuild build_;
 
@@ -152,6 +154,7 @@ private:
 
 	//CNVList for somatic (filtered) copy-number altered variants
 	CnvList cnvs_;
+	QHash<int, GeneSet> cnv_high_impact_indices_; //CNVs with high impact (i.e. they are added to the pathway list): CNV index => gene list
 
 	//Somatic viruses (original file usually in tumor dir)
 	QList<SomaticVirusInfo> validated_viruses_;

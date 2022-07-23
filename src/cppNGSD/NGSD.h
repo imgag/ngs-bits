@@ -352,14 +352,6 @@ struct CPPNGSDSHARED_EXPORT ClassificationInfo
 	QString comments;
 };
 
-///Gene pathway info
-struct CPPNGSDSHARED_EXPORT PathwayInfo
-{
-	QString symbol;
-	QString pathway;
-};
-
-
 ///Diagnostic status and report outcome information
 struct CPPNGSDSHARED_EXPORT DiagnosticStatusData
 {
@@ -856,8 +848,12 @@ public:
 	int getSomaticViccId(const Variant& variant);
 	void setSomaticViccData(const Variant& variant, const SomaticViccData& vicc_data, QString user_name);
 
-	///Get somatic pathways for gene. Returns empty list if not found
-	QList<PathwayInfo> getSomaticPathways(QByteArray gene);
+	///Returns a list of all somatic pathways.
+	QByteArrayList getSomaticPathways();
+	///Returns a list of somatic pathways that contain the given gene.
+	QByteArrayList getSomaticPathways(QByteArray gene_symbol);
+	///Returns a list of genes contained in the given pathway
+	GeneSet getSomaticPathwayGenes(QByteArray pathway_name);
 
 
 	///Returns the NGSD id of a somatic gene role

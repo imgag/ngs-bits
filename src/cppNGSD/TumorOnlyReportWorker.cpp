@@ -360,7 +360,7 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 		}
 
 		row.addCell( 1000, trans.gene , RtfParagraph().setItalic(true) );
-		row.addCell( { trans.hgvs_c + ", " + trans.hgvs_p, RtfText(trans.id).setFontSize(14).RtfCode()}, 2900 );
+		row.addCell( 2900, QByteArrayList() << trans.hgvs_c + ", " + trans.hgvs_p << RtfText(trans.id).setFontSize(14).RtfCode());
 		row.addCell( 1700, trans.type.replace("_variant", "").replace("&", ", ") );
 		row.addCell( 900, QByteArray::number(variants_[i].annotations()[i_tum_af_].toDouble(),'f',2) );
 		row.addCell( 3138, variantDescription(variants_[i]) );

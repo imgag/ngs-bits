@@ -6,12 +6,12 @@ RtfPicture::RtfPicture()
 {
 }
 
-RtfPicture::RtfPicture(QByteArray png_data)
+RtfPicture::RtfPicture(const QByteArray& png_data)
 	: png_data_(png_data)
 {
 }
 
-RtfPicture::RtfPicture(QByteArray png_data, int width, int height)
+RtfPicture::RtfPicture(const QByteArray& png_data, int width, int height)
 	: png_data_(png_data)
 	, width_(width)
 	, height_(height)
@@ -30,7 +30,7 @@ RtfSourceCode RtfPicture::RtfCode()
 
 	//Split one line PNG data into many smaller lines
 	int pos = 0;
-	QList<QByteArray> parts;
+	QByteArrayList parts;
 	while( pos < png_data_.size() )
 	{
 		QByteArray part = png_data_.mid(pos, 128);
@@ -141,11 +141,9 @@ RtfSourceCode RtfDocument::header()
 	if(!colors_.isEmpty())
 	{
 		QByteArray tmp_out_color_table = "{\\colortbl;";
-		foreach(auto rgb_value,colors_)
+		foreach(const RtfColor& color, colors_)
 		{
-			int red,green,blue;
-			std::tie(red,green,blue) = rgb_value;
-			tmp_out_color_table.append("\\red" + QByteArray::number(red) + "\\green" +  QByteArray::number(green) + "\\blue" +  QByteArray::number(blue) +";");
+			tmp_out_color_table.append("\\red" + QByteArray::number(color.red) + "\\green" +  QByteArray::number(color.green) + "\\blue" +  QByteArray::number(color.blue) +";");
 		}
 		tmp_out_color_table.append("}");
 		output << tmp_out_color_table;
@@ -247,7 +245,7 @@ void RtfTableRow::addCell(int width, const QByteArray &content, const RtfParagra
 	addCell(width,temp_par);
 }
 
-void RtfTableRow::addCell(const QByteArrayList& cell_contents, int width, const RtfParagraph& par_format)
+void RtfTableRow::addCell(int width, const QByteArrayList& cell_contents, const RtfParagraph& par_format)
 {
 	RtfParagraph temp_par = par_format;
 	temp_par.setPartOfACell(true);
@@ -306,7 +304,7 @@ RtfTableRow::RtfTableRow(QByteArray cell_content, int width, const RtfParagraph&
 	addCell(width,temp_par);
 }
 
-RtfTableRow::RtfTableRow(const QList<QByteArray>& cell_contents, const QList<int>& cell_widths, const RtfParagraph& format)
+RtfTableRow::RtfTableRow(const QByteArrayList& cell_contents, const QList<int>& cell_widths, const RtfParagraph& format)
 {
 	if(cell_contents.count() != cell_widths.count()) //Create empty instance if no does not match
 	{
@@ -385,7 +383,7 @@ RtfTable::RtfTable()
 
 }
 
-RtfTable::RtfTable(const QList< QList<QByteArray> >& contents, const QList< QList<int> >& widths, const RtfParagraph& format)
+RtfTable::RtfTable(const QList<QByteArrayList>& contents, const QList< QList<int> >& widths, const RtfParagraph& format)
 {
 	for(int i=0;i<contents.count();++i)
 	{

@@ -3301,24 +3301,41 @@ void NGSD::setSomaticViccData(const Variant& variant, const SomaticViccData& vic
 }
 
 
-QList<PathwayInfo> NGSD::getSomaticPathways(QByteArray gene)
+QByteArrayList NGSD::getSomaticPathways()
 {
-	SqlQuery query = getQuery();
-	query.prepare("SELECT sgp.symbol, sp.name FROM somatic_pathway_gene sgp, somatic_pathway sp WHERE sgp.pathway_id=sp.id AND sgp.symbol = '" + geneToApproved(gene, true) + "'");
-	query.exec();
+	QByteArrayList output;
 
-	QList<PathwayInfo> results;
-
-	while(query.next())
+	foreach(const QString& name, getValues("SELECT name FROM somatic_pathway sp ORDER BY name ASC"))
 	{
-		PathwayInfo info;
-		info.symbol = query.value("symbol").toString();
-		info.pathway = query.value("name").toString();
-
-		results << info;
+		output << name.toLocal8Bit();
 	}
 
-	return results;
+	return output;
+}
+
+QByteArrayList NGSD::getSomaticPathways(QByteArray gene_symbol)
+{
+	QByteArrayList output;
+
+	gene_symbol = geneToApproved(gene_symbol, true);
+	foreach(const QString& name, getValues("SELECT sp.name FROM somatic_pathway_gene sgp, somatic_pathway sp WHERE sgp.pathway_id=sp.id AND sgp.symbol=:0 ORDER BY sgp.symbol ASC", gene_symbol))
+	{
+		output << name.toLocal8Bit();
+	}
+
+	return output;
+}
+
+GeneSet NGSD::getSomaticPathwayGenes(QByteArray pathway_name)
+{
+	GeneSet output;
+
+	foreach(const QString& gene, getValues("SELECT sgp.symbol FROM somatic_pathway_gene sgp, somatic_pathway sp WHERE sgp.pathway_id=sp.id AND sp.name=:0", pathway_name))
+	{
+		output << gene.toLocal8Bit();
+	}
+
+	return output;
 }
 
 

@@ -436,8 +436,7 @@ bool VariantList::LessComparatorByFile::operator()(const Variant& a, const Varia
 	return false;
 }
 
-VariantList::LessComparator::LessComparator(int quality_index)
-	: quality_index_(quality_index)
+VariantList::LessComparator::LessComparator()
 {
 }
 
@@ -454,12 +453,7 @@ bool VariantList::LessComparator::operator()(const Variant& a, const Variant& b)
 	else if (a.ref()>b.ref()) return false;
 	else if (a.obs()<b.obs()) return true;//compare alternative seqs
 	else if (a.obs()>b.obs()) return false;
-	else if (quality_index_ != -1)
-	{
-		QString q_a=a.annotations()[quality_index_];
-		QString q_b=b.annotations()[quality_index_];
-		if(q_a!="." && q_b!="." && q_a.toDouble()<q_b.toDouble()) return true;
-	}
+
 	return false;
 }
 
@@ -908,31 +902,16 @@ void VariantList::store(QString filename) const
 	}
 }
 
-void VariantList::sort(bool use_quality)
+void VariantList::sort()
 {
-	//skip this if no variants are there - otherwise finding the quality column might fail...
-	if (variants_.count()==0) return;
-
-	//check if there is a quality column (from VCF/TSV)
-	int quality_index = -1;
-	if (use_quality)
-	{
-		quality_index = annotationIndexByName("QUAL", true, false);
-		if (quality_index == -1)
-		{
-			THROW(ArgumentException, "Variant list does not contain 'QUAL' column (sorting by quality is supported for VCF only!");
-        }
-	}
-
-	sortCustom(LessComparator(quality_index));
+	sortCustom(LessComparator());
 }
 
 void VariantList::sortByAnnotation(int annotation_index)
 {
-	sort();
-	if(annotation_index > annotation_headers_.count())
+	if (annotation_index<0 || annotation_index>=annotations().count())
 	{
-		THROW(ArgumentException, "Cannot sort by annotation because annotation_index is greater than ");
+		THROW(ArgumentException, "Sorting by annotation failed: Index " + QString::number(annotation_index) + " is not a valid index in the annotation list!");
 	}
 	sortCustom(LessComparatorByAnnotation(annotation_index));
 }
@@ -942,9 +921,9 @@ void VariantList::sortByFile(QString filename)
 	sortCustom(LessComparatorByFile(filename));
 }
 
-void VariantList::removeDuplicates(bool sort_by_quality)
+void VariantList::removeDuplicates()
 {
-	sort(sort_by_quality);
+	sort();
 
 	//remove duplicates (same chr, start, obs, ref) - avoid linear time remove() calls by copying the data to a new vector.
 	QVector<Variant> output;
@@ -989,7 +968,7 @@ void VariantList::clearVariants()
 	variants_.clear();
 }
 
-void VariantList::leftAlign(QString ref_file, bool sort_by_quality)
+void VariantList::leftAlign(QString ref_file)
 {
 	//open refererence genome file
 	FastaFileIndex reference(ref_file);
@@ -1001,7 +980,7 @@ void VariantList::leftAlign(QString ref_file, bool sort_by_quality)
 	}
 
 	//by shifting all indels to the left, we might have produced duplicates - remove them
-	removeDuplicates(sort_by_quality);
+	removeDuplicates();
 }
 
 void VariantList::checkValid() const
