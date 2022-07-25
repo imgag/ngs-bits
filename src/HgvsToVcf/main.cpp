@@ -36,6 +36,10 @@ public:
 		QStringList builds;
 		builds << "hg19" << "hg38";
 		addEnum("build", "Genome build", true, builds, "hg38");
+		addInt("max_seq", "If set, skips variants with ref/alt sequence longer than the five value.", true, -1);
+
+		changeLog(2022,  7, 25, "Added parameter 'max_seq'.");
+		changeLog(2022,  5, 12, "Initial version");
 	}
 
 	void writeVcfHeaders(QSharedPointer<QFile>& outstream, const QStringList& tsv_headers, QString reference)
@@ -68,7 +72,7 @@ public:
 		}
 	}
 
-	void parseLine(const QString& line, NGSD& db, QSharedPointer<QFile>& outstream, const QStringList& tsv_headers, FastaFileIndex& ref_index, const QMap<QByteArray, QByteArrayList>& transcript_matches)
+	bool parseLine(const QString& line, NGSD& db, QSharedPointer<QFile>& outstream, const QStringList& tsv_headers, FastaFileIndex& ref_index, const QMap<QByteArray, QByteArrayList>& transcript_matches, int max_seq)
 	{
 		static QMap<QString, Transcript> name2transcript;
 
@@ -131,6 +135,9 @@ public:
 			variant.checkValid();
 			if (variant.ref()!="-") variant.checkReferenceSequence(ref_index);
 
+			//skip too long variants
+			if (max_seq>0 && (variant.obs().size()>max_seq || variant.ref().size()>max_seq)) return false;
+
 			//write base variant line
 			VariantVcfRepresentation vcf_rep = variant.toVCF(ref_index);
 			QByteArray outline = vcf_rep.chr.strNormalized(true) + "\t" + QByteArray::number(vcf_rep.pos) + "\t.\t" + vcf_rep.ref + "\t" + vcf_rep.alt + "\t.\t.\t";
@@ -145,11 +152,13 @@ public:
 			outline += info_fields.join(";");
 
 			outstream->write(outline + "\n");
+			return true;
 		}
 		catch (Exception& e)
 		{
 			QTextStream out(stderr);
 			out << "Warning: " + transcript_name + ":" + hgvs_c + " skipped: couldn't transform it to valid VCF: " + e.message() + "\n";
+			return false;
 		}
 	}
 
@@ -160,6 +169,7 @@ public:
 		QString in = getInfile("in");
 		QString out = getOutfile("out");
 		QString ref_file = getInfile("ref");
+		int max_seq = getInt("max_seq");
 		if (ref_file=="") ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 		FastaFileIndex ref_index(ref_file);
@@ -208,7 +218,7 @@ public:
 			}
 
 			//process content line
-			parseLine(line, db, outstream, tsv_headers, ref_index, transcript_matches);
+			parseLine(line, db, outstream, tsv_headers, ref_index, transcript_matches, max_seq);
 		}
     }
 };
