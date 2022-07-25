@@ -1919,14 +1919,12 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<i
 	//get expression data, ungrouped/long format
 	SqlQuery q = getQuery();
 	QString q_str;
-	//TODO: remove SQL_NO_CACHE
 	if (gene_symbol.isEmpty())
 	{
 		q_str = QString(
-					"SELECT e.symbol, e.tpm "
-					"FROM expression e "
+					"SELECT e.symbol, AVG(e.tpm), AVG(LOG2(e.tpm+1)), STD(LOG2(e.tpm+1)) FROM expression e "
 					"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") "
-					"ORDER BY e.symbol;"
+					"GROUP BY e.symbol ORDER BY e.symbol;"
 					);
 	}
 	else
@@ -1936,10 +1934,8 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<i
 		if (gene_id < 0 ) THROW(ArgumentException, "'" + gene_symbol + "' is not an approved gene symbol!");
 
 		q_str = QString(
-					"SELECT e.symbol, e.tpm "
-					"FROM expression e "
-					"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") "
-					"AND e.symbol='" + geneSymbol(gene_id) + "';"
+					"SELECT e.symbol, AVG(e.tpm), AVG(LOG2(e.tpm+1)), STD(LOG2(e.tpm+1)) FROM expression e "
+					"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") AND e.symbol='" + geneSymbol(gene_id) + "';"
 					);
 	}
 
@@ -1948,50 +1944,17 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<i
 	q.exec(q_str);
 	if(debug) qDebug() << "Get expression data from SQL server: " << Helper::elapsedTime(timer);
 
-	//cache for values from current symbol
-	QByteArray current_symbol;
-	QVector<double> cache;
-	QVector<double> cache_log2p1;
+	//parse results
 	while (q.next())
 	{
-		QByteArray symbol = q.value(0).toByteArray();
-		double tpm = q.value(1).toFloat();
-		if (symbol == current_symbol)
-		{
-			//collect tpm
-			cache.append(tpm);
-			cache_log2p1.append(std::log2(tpm + 1));
-		}
-		else if (symbol != current_symbol)
-		{
-			if (!current_symbol.isEmpty())
-			{
-				//calculate statistics for 'current_symbol'
-				ExpressionStats stats;
-				stats.mean = BasicStatistics::mean(cache);
-				stats.mean_log2 = BasicStatistics::mean(cache_log2p1);
-				stats.stddev_log2 = BasicStatistics::stdev(cache_log2p1, stats.mean_log2);
-				gene_stats.insert(current_symbol, stats);
+		QByteArray gene_symbol = q.value(0).toByteArray();
+		ExpressionStats stats;
+		stats.mean = q.value(1).toDouble();
+		stats.mean_log2 = q.value(2).toDouble();
+		stats.stddev_log2 = q.value(3).toDouble();
+		gene_stats.insert(gene_symbol, stats);
 
-				//clear cache
-				cache.clear();
-				cache_log2p1.clear();
-			}
-			//collect tpm
-			cache.append(tpm);
-			cache_log2p1.append(std::log2(tpm + 1));
-			//update symbol
-			current_symbol = symbol;
-		}
 	}
-
-	//store last symbol
-	ExpressionStats stats;
-	stats.mean = BasicStatistics::mean(cache);
-	stats.mean_log2 = BasicStatistics::mean(cache_log2p1);
-	stats.stddev_log2 = BasicStatistics::stdev(cache_log2p1, stats.mean_log2);
-	gene_stats.insert(current_symbol, stats);
-
 
 	if(debug) qDebug() << "Statistics calculated: " << Helper::elapsedTime(timer);
 	if(debug) qDebug() << "gene_stats: " << gene_stats.size();
@@ -2014,30 +1977,29 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExonExpressionStatistics(QSet<i
 	}
 	if(debug) qDebug() << "Cohort size: " << QString::number(cohort.size());
 
-	//get expression data, ungrouped/long format
+	//get expression data stats
 	SqlQuery q = getQuery();
 	QString q_str;
 	if (exon.isValid())
 	{
 		// limit output to specific exon
 		q_str = QString(
-					"SELECT e.chr, e.start, e.end, e.srpb "
+					"SELECT e.chr, e.start, e.end, AVG(e.srpb), AVG(LOG2(e.srpb+1)), STD(LOG2(e.srpb+1)) "
 					"FROM expression_exon e "
 					"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") "
 					"AND e.chr='" + exon.chr().strNormalized(true) + "' "
 					"AND e.start=" + QByteArray::number(exon.start()) + " "
-					"AND e.end=" + QByteArray::number(exon.end()) + " "
-					"ORDER BY e.chr ASC, e.start ASC, e.end ASC;"
+					"AND e.end=" + QByteArray::number(exon.end()) + "; "
 					);
 	}
 	else
 	{
 		// get expression values of all exons
 		q_str = QString(
-					"SELECT e.chr, e.start, e.end, e.srpb "
+					"SELECT e.chr, e.start, e.end, AVG(e.srpb), AVG(LOG2(e.srpb+1)), STD(LOG2(e.srpb+1)) "
 					"FROM expression_exon e "
 					"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") "
-					"ORDER BY e.chr ASC, e.start ASC, e.end ASC;"
+					"GROUP BY e.chr, e.start, e.end ORDER BY e.chr ASC, e.start ASC, e.end ASC;"
 					);
 	}
 
@@ -2046,53 +2008,17 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExonExpressionStatistics(QSet<i
 	q.exec(q_str);
 	if(debug) qDebug() << "Get expression data from SQL server: " << Helper::elapsedTime(timer);
 
-	//cache for values from current symbol
-	BedLine current_exon;
-	QVector<double> cache;
-	QVector<double> cache_log2p1;
+	//parse results
 	while (q.next())
 	{
 		BedLine exon = BedLine(Chromosome(q.value(0).toByteArray()), q.value(1).toInt(), q.value(2).toInt());
-		double srpb = q.value(3).toFloat();
-		if (exon == current_exon)
-		{
-			//collect tpm
-			cache.append(srpb);
-			cache_log2p1.append(std::log2(srpb + 1));
-		}
-		else if (!(exon == current_exon))
-		{
-			if (current_exon.isValid())
-			{
-				//calculate statistics for 'current_transcript'
-				ExpressionStats stats;
-				stats.mean = BasicStatistics::mean(cache);
-				stats.mean_log2 = BasicStatistics::mean(cache_log2p1);
-				stats.stddev_log2 = BasicStatistics::stdev(cache_log2p1, stats.mean_log2);
-				exon_stats.insert(current_exon.toString(true).toUtf8(), stats);
+		ExpressionStats stats;
+		stats.mean = q.value(3).toDouble();
+		stats.mean_log2 = q.value(4).toDouble();
+		stats.stddev_log2 = q.value(5).toDouble();
+		exon_stats.insert(exon.toString(true).toUtf8(), stats);
 
-				//clear cache
-				cache.clear();
-				cache_log2p1.clear();
-			}
-			//collect tpm
-			cache.append(srpb);
-			cache_log2p1.append(std::log2(srpb + 1));
-			//update symbol
-			current_exon = exon;
-		}
 	}
-
-	//store last symbol
-	ExpressionStats stats;
-	if(cache.size() > 0)
-	{
-		stats.mean = BasicStatistics::mean(cache);
-		stats.mean_log2 = BasicStatistics::mean(cache_log2p1);
-		stats.stddev_log2 = BasicStatistics::stdev(cache_log2p1, stats.mean_log2);
-		exon_stats.insert(current_exon.toString(true).toUtf8(), stats);
-	}
-
 
 	if(debug) qDebug() << "Statistics calculated: " << Helper::elapsedTime(timer);
 	if(debug) qDebug() << "exon_stats: " << exon_stats.size();
