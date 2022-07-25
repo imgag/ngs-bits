@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<DiagnosticNgsReport version="7" type="diagnostic variant">
+<DiagnosticNgsReport version="8" type="diagnostic variant">
     <ReportGeneration date="2021-02-19" user_name="ahmustm1" software="cppNGSD-TEST " outcome="no significant findings"/>
     <ChromosomeAliases>
         <Chromosome chr="chr1" refseq="NC_000001.11"/>

@@ -201,6 +201,52 @@
 						</xs:attribute>
 					</xs:complexType>
 				</xs:element>
+				<xs:element name="RNASample" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Information about the related RNA sample</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="QcTerm" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>QC terms of the sample as defined in https://github.com/imgag/ngs-bits/blob/master/src/cppNGS/Resources/qcML.obo</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="id" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>accession of the term</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="name" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>name of the term</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="def" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>extended description of the term</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="value" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>QC metric value</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="name" use="required">
+							<xs:annotation>
+								<xs:documentation>sample name</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="1"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
 				<xs:element name="TargetRegion" minOccurs="0">
 					<xs:annotation>
 						<xs:documentation>Information about the traget region used for the analysis</xs:documentation>
@@ -725,6 +771,19 @@
 											<xs:documentation>Comments of second</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
+									<xs:attribute name="rna_info" use="required">
+										<xs:annotation>
+											<xs:documentation>RNA information</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="n/a"/>
+												<xs:enumeration value="splicing effect validated by RNA dataset"/>
+												<xs:enumeration value="no splicing effect found in RNA dataset"/>
+												<xs:enumeration value="RNA dataset not usable"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
 									<xs:attribute name="report_type">
 										<xs:annotation>
 											<xs:documentation>report type of the variant. Needed to distinguish different report type variants in case "all"was selected.</xs:documentation>
@@ -974,6 +1033,19 @@
 										<xs:annotation>
 											<xs:documentation>Comments of second</xs:documentation>
 										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="rna_info" use="required">
+										<xs:annotation>
+											<xs:documentation>RNA information</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="n/a"/>
+												<xs:enumeration value="splicing effect validated by RNA dataset"/>
+												<xs:enumeration value="no splicing effect found in RNA dataset"/>
+												<xs:enumeration value="RNA dataset not usable"/>
+											</xs:restriction>
+										</xs:simpleType>
 									</xs:attribute>
 									<xs:attribute name="report_type">
 										<xs:annotation>
@@ -1240,6 +1312,19 @@
 											<xs:documentation>Comments of second</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
+									<xs:attribute name="rna_info" use="required">
+										<xs:annotation>
+											<xs:documentation>RNA information</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="n/a"/>
+												<xs:enumeration value="splicing effect validated by RNA dataset"/>
+												<xs:enumeration value="no splicing effect found in RNA dataset"/>
+												<xs:enumeration value="RNA dataset not usable"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
 									<xs:attribute name="report_type">
 										<xs:annotation>
 											<xs:documentation>report type of the variant. Needed to distinguish different report type variants in case "all"was selected.</xs:documentation>
@@ -1443,8 +1528,8 @@
 				</xs:annotation>
 				<xs:simpleType>
 					<xs:restriction base="xs:int">
-						<xs:minInclusive value="7"/>
-						<xs:maxInclusive value="7"/>
+						<xs:minInclusive value="8"/>
+						<xs:maxInclusive value="8"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>

@@ -533,7 +533,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element DiagnosticNgsReport
 	w.writeStartElement("DiagnosticNgsReport");
-	w.writeAttribute("version", "7");
+	w.writeAttribute("version", "8");
 	w.writeAttribute("type", data_.report_settings.report_type);
 
 	//element ReportGeneration
@@ -589,8 +589,40 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeAttribute("value", term.toString());
 		w.writeEndElement();
 	}
-
 	w.writeEndElement();
+
+	//TODO: QC data of RNA sample
+	//get all related RNA
+	QString sample_id = db_.sampleId(data_.ps);
+
+	//get ids of all RNA processed samples corresponding to the current sample
+	QList<int> rna_ps_ids;
+	foreach (int rna_sample, db_.relatedSamples(sample_id.toInt(), "same sample", "RNA"))
+	{
+		rna_ps_ids << db_.getValuesInt("SELECT id FROM processed_sample WHERE quality!='bad' AND sample_id=:0", QString::number(rna_sample));
+	}
+
+	if (rna_ps_ids.size() > 0)
+	{
+		std::sort(rna_ps_ids.rbegin(), rna_ps_ids.rend());
+		QString rna_ps_id = QString::number(rna_ps_ids.at(0));
+		w.writeStartElement("RNASample");
+		w.writeAttribute("name", db_.processedSampleName(rna_ps_id));
+		qc_data = db_.getQCData(rna_ps_id);
+		for (int i=0; i<qc_data.count(); ++i)
+		{
+			const QCValue& term = qc_data[i];
+			if (term.type()==QVariant::ByteArray) continue; //skip plots
+			w.writeStartElement("QcTerm");
+			w.writeAttribute("id", term.accession());
+			w.writeAttribute("name", term.name());
+			w.writeAttribute("def", term.description());
+			w.writeAttribute("value", term.toString());
+			w.writeEndElement();
+		}
+		w.writeEndElement();
+	}
+
 
 	//element TargetRegion (optional)
 	if (data_.roi.isValid())
@@ -749,6 +781,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		{
 			w.writeAttribute("comments_2nd_assessor", var_conf.comments2.trimmed());
 		}
+		w.writeAttribute("rna_info", var_conf.rna_info);
 		w.writeAttribute("report_type", var_conf.report_type);
 
 		//element TranscriptInformation
@@ -927,6 +960,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		{
 			w.writeAttribute("comments_2nd_assessor", var_conf.comments2.trimmed());
 		}
+		w.writeAttribute("rna_info", var_conf.rna_info);
 		w.writeAttribute("report_type", var_conf.report_type);
 
 		//element Gene
@@ -1079,6 +1113,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		{
 			w.writeAttribute("comments_2nd_assessor", var_conf.comments2.trimmed());
 		}
+		w.writeAttribute("rna_info", var_conf.rna_info);
 		w.writeAttribute("report_type", var_conf.report_type);
 
 		//TODO
@@ -1158,7 +1193,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	outfile->close();
 
 	//validate written XML file
-	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/GermlineReport_v7.xsd");
+	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/GermlineReport_v8.xsd");
 	if (xml_error!="")
 	{
 		THROW(ProgrammingException, "Invalid germline report XML file " + filename+ " generated:\n" + xml_error);
@@ -1732,7 +1767,7 @@ void GermlineReportGenerator::writeRNACoverageReport(QTextStream& stream)
 	//get all related RNA
 	QString sample_id = db_.sampleId(data_.ps);
 
-	//get count files of all RNA processed samples corresponding to the current sample
+	//get ids of all RNA processed samples corresponding to the current sample
 	QList<int> rna_ps_ids;
 	foreach (int rna_sample, db_.relatedSamples(sample_id.toInt(), "same sample", "RNA"))
 	{
