@@ -6,6 +6,7 @@
 #include "SomaticReportSettings.h"
 #include "GermlineReportGenerator.h"
 #include "TumorOnlyReportWorker.h"
+#include "StatisticsServiceLocal.h"
 
 #include <QThread>
 #include <cmath>
@@ -1426,8 +1427,53 @@ private slots:
 
 		db.addGapComment(gap_id, "my_comment");
 		IS_TRUE(db.getValue("SELECT history FROM gaps WHERE id=" + QString::number(gap_id)).toString().contains("my_comment"));
+
+
+		//############################### sub-panels ###############################
+		//subPanelList
+		QStringList subpanels = db.subPanelList(true);
+		I_EQUAL(subpanels.size(), 0);
+
+		subpanels = db.subPanelList(false);
+		I_EQUAL(subpanels.size(), 1);
+
+		//subpanelGenes
+		GeneSet subpanel_genes = db.subpanelGenes("some_target_region");
+		I_EQUAL(subpanel_genes.count(), 1);
+		S_EQUAL(subpanel_genes[0], "WDPCP");
+
+		//subpanelRegions
+		BedFile subpanel_regions = db.subpanelRegions("some_target_region");
+		I_EQUAL(subpanel_regions.count(), 20);
+		I_EQUAL(subpanel_regions.baseCount(), 2508);
+
+		//############################### somatic pathways ###############################
+
+		//getSomaticPathways()
+		QByteArrayList pathways = db.getSomaticPathways("SMARCA1");
+		I_EQUAL(pathways.count(), 2);
+		S_EQUAL(pathways[0], "DNA damage repair");
+		S_EQUAL(pathways[1], "chromatin remodeling");
+
+		//getSomaticPathways(gene_symbol)
+		pathways = db.getSomaticPathways("SMARCA1");
+		I_EQUAL(pathways.count(), 2);
+		S_EQUAL(pathways[0], "DNA damage repair");
+		S_EQUAL(pathways[1], "chromatin remodeling");
+
+		pathways = db.getSomaticPathways("BRAF");
+		I_EQUAL(pathways.count(), 1);
+		S_EQUAL(pathways[0], "Hedgehog");
+
+		//getSomaticPathwayGenes(pathway_name)
+		genes = db.getSomaticPathwayGenes("DNA damage repair");
+		I_EQUAL(genes.count(), 3);
+		S_EQUAL(genes[0], "BRCA1");
+		S_EQUAL(genes[1], "BRCA2");
+		S_EQUAL(genes[2], "SMARCA1");
 	}
 
+	//Test for germline report
 	inline void report_germline()
 	{
 		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
@@ -1466,7 +1512,8 @@ private slots:
 		filters.add(QSharedPointer<FilterBase>(new FilterAlleleFrequency()));
 		QMap<QByteArray, QByteArrayList> preferred_transcripts;
 		preferred_transcripts.insert("SPG7", QByteArrayList() << "ENST00000268704");
-		GermlineReportGeneratorData data(GenomeBuild::HG38, "NA12878_03", variants, cnvs, svs, prs, report_settings, filters, preferred_transcripts);
+		QSharedPointer<StatisticsService> statistics_service = QSharedPointer<StatisticsService>(new StatisticsServiceLocal());
+		GermlineReportGeneratorData data(GenomeBuild::HG38, "NA12878_03", variants, cnvs, svs, prs, report_settings, filters, preferred_transcripts, *(statistics_service));
 		data.processing_system_roi.load(TESTDATA("../cppNGS-TEST/data_in/panel.bed"));
 		data.ps_bam = TESTDATA("../cppNGS-TEST/data_in/panel.bam");
 		data.ps_lowcov = TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed");
@@ -2043,8 +2090,6 @@ private slots:
 		S_EQUAL(vicc_data1.last_updated_by, "ahkerra1");
 		S_EQUAL(vicc_data1.last_updated_at.toString("yyyy-MM-dd hh:mm:ss"), "2020-12-07 11:06:10");
 
-
-
 		SomaticViccData vicc_data2 = db.getSomaticViccData( Variant("chr15", 43707808, 43707808, "A", "T" ) );
 		S_EQUAL(vicc_data2.comment, "this variant was evaluated as variant of unclear significance");
 		S_EQUAL(vicc_data2.last_updated_by, "ahkerra1");
@@ -2196,37 +2241,9 @@ private slots:
 		query.exec("SELECT id FROM somatic_gene_role"); //3 remaining rows
 		I_EQUAL(query.size(), 3);
 		I_EQUAL(-1, db.getSomaticGeneRoleId("PTGS2"));
-
-		//subPanelList
-		QStringList subpanels = db.subPanelList(true);
-		I_EQUAL(subpanels.size(), 0);
-
-		subpanels = db.subPanelList(false);
-		I_EQUAL(subpanels.size(), 1);
-
-		//subpanelGenes
-		GeneSet subpanel_genes = db.subpanelGenes("some_target_region");
-		I_EQUAL(subpanel_genes.count(), 1);
-		S_EQUAL(subpanel_genes[0], "WDPCP");
-
-		//subpanelRegions
-		BedFile subpanel_regions = db.subpanelRegions("some_target_region");
-		I_EQUAL(subpanel_regions.count(), 20);
-		I_EQUAL(subpanel_regions.baseCount(), 2508);
-
-
-		QList<PathwayInfo> pathways = db.getSomaticPathways("SMARCA1");
-		I_EQUAL(pathways.count(), 2);
-		S_EQUAL(pathways[0].symbol, "SMARCA1");
-		S_EQUAL(pathways[0].pathway, "DNA damage repair");
-
-		S_EQUAL(pathways[1].symbol, "SMARCA1");
-		S_EQUAL(pathways[1].pathway, "chromatin remodeling");
-
-		QList<PathwayInfo> pathways_qars = db.getSomaticPathways("BRAF");
-		S_EQUAL(pathways_qars[0].symbol, "BRAF");
-		S_EQUAL(pathways_qars[0].pathway, "Hedgehog");
 	}
+
+	//TODO add test for somatic RTF > Axel
 
 	//Test tumor only RTF report generation
 	void report_tumor_only()

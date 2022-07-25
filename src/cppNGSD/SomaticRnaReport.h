@@ -28,9 +28,9 @@ struct CPPNGSDSHARED_EXPORT SomaticRnaReportData : public SomaticReportSettings
 
 
 	//list for fusions pics containing hex png data, width and height
-	QList<std::tuple<QByteArray,int,int>> fusion_pics;
+	QList<RtfPicture> fusion_pics;
 
-	QList<std::tuple<QByteArray,int,int>> expression_plots;
+	QList<RtfPicture> expression_plots;
 
 	//QCML data of RNA
 	QCCollection rna_qcml_data;
@@ -145,9 +145,6 @@ private:
 
 	///general information
 	RtfTable partGeneralInfo();
-
-	///returns RtfPicture from tuple with PNG data <QByteArrayhex,int,int>
-	RtfPicture pngToRtf(std::tuple<QByteArray,int,int> tuple, int width_goal);
 
 	///Returns TPM from annotation field, orig. entry has the form gene1=0.00,gene2=2.21,gene3=..., if not found it returns -1.
 	double getRnaData(QByteArray gene, QString field, QString key);

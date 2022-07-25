@@ -1,6 +1,5 @@
 #include "FileLocationProviderRemote.h"
-#include "HttpRequestHandler.h"
-#include "NGSHelper.h"
+#include "ApiCaller.h"
 
 FileLocationProviderRemote::FileLocationProviderRemote(const QString sample_id)
 	: sample_id_(sample_id)
@@ -69,14 +68,12 @@ FileLocationList FileLocationProviderRemote::getFileLocationsByType(PathType typ
 	}
 	file_id = gsvar_filename_parts[gsvar_filename_parts.size()-2].trimmed();
 
-	HttpHeaders add_headers;
-	add_headers.insert("Accept", "application/json");
-	QByteArray reply = HttpRequestHandler(HttpRequestHandler::NONE).get(
-				NGSHelper::serverApiUrl()
-				+ "file_location?ps_url_id=" + file_id + "&type=" + FileLocation::typeToString(type)
-				+ "&multiple_files=1"
-				+ "&return_if_missing=" +(return_if_missing ? "1" : "0")
-				+ "&token="+LoginManager::userToken(), add_headers);
+	RequestUrlParams params;
+	params.insert("ps_url_id", file_id.toLocal8Bit());
+	params.insert("type", FileLocation::typeToString(type).toLocal8Bit());
+	params.insert("multiple_files", "1");
+	params.insert("return_if_missing", (return_if_missing ? "1" : "0"));
+	QByteArray reply = ApiCaller().get("file_location", params, HttpHeaders(), true, false, true);
 
 	QJsonDocument json_doc = QJsonDocument::fromJson(reply);
 	QJsonArray file_list = json_doc.array();
@@ -102,16 +99,14 @@ FileLocation FileLocationProviderRemote::getOneFileLocationByType(PathType type,
 	}
 	file_id = gsvar_filename_parts[gsvar_filename_parts.size()-2].trimmed();
 
-	HttpHeaders add_headers;
-	add_headers.insert("Accept", "application/json");
-	QString reply = HttpRequestHandler(HttpRequestHandler::NONE).get(
-				NGSHelper::serverApiUrl()
-				+ "file_location?ps_url_id=" + file_id + "&type=" +  FileLocation::typeToString(type)
-				+ "&multiple_files=0"
-				+ (locus.isEmpty() ? "" : "&locus=" + locus)
-				+ "&token="+LoginManager::userToken(), add_headers);
+	RequestUrlParams params;
+	params.insert("ps_url_id", file_id.toLocal8Bit());
+	params.insert("type", FileLocation::typeToString(type).toLocal8Bit());
+	params.insert("multiple_files", "0");
+	if (!locus.isEmpty()) params.insert("locus", locus.toLocal8Bit());
+	QByteArray reply = ApiCaller().get("file_location", params, HttpHeaders(), true, false, true);
 
-	QJsonDocument json_doc = QJsonDocument::fromJson(reply.toLatin1());
+	QJsonDocument json_doc = QJsonDocument::fromJson(reply);
 	QJsonArray file_list = json_doc.array();
 	QJsonObject file_object;
 	if (!file_list.isEmpty()) file_object = file_list[0].toObject();

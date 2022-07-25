@@ -1,8 +1,6 @@
 #include "CircosPlotWidget.h"
 #include "ui_CircosPlotWidget.h"
-#include "Helper.h"
-#include "GlobalServiceProvider.h"
-#include "HttpRequestHandler.h"
+#include "VersatileFile.h"
 #include <QMessageBox>
 
 CircosPlotWidget::CircosPlotWidget(QString filename, QWidget *parent)

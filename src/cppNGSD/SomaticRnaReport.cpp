@@ -84,7 +84,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 		tmp_data.symbol = parts[0];
 		tmp_data.pathway = parts[1];
 
-		tmp_data.role = db_.getSomaticGeneRole(parts[0], false);
+		tmp_data.role = db_.getSomaticGeneRole(parts[0]);
 
 
 		if(!genes_of_interest.contains(tmp_data.symbol)) continue;
@@ -110,8 +110,8 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 		GeneSet genes = dna_cnvs_[i].genes().intersect(data_.target_region_filter.genes);
 		for(const auto& gene : genes)
 		{
-			if(db_.getSomaticGeneRoleId(gene) == -1 ) continue;
-			SomaticGeneRole role = db_.getSomaticGeneRole(gene, true);
+			SomaticGeneRole role = db_.getSomaticGeneRole(gene);
+			if (!role.isValid()) continue;
 
 			if( !SomaticCnvInterpreter::includeInReport(dna_cnvs_, dna_cnvs_[i], role) ) continue;
 			if( !role.high_evidence) continue;
@@ -174,7 +174,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 		{
 			expression_data data;
 			data.symbol = parts[i_gene];
-			data.role = db_.getSomaticGeneRole(parts[i_gene], false);
+			data.role = db_.getSomaticGeneRole(parts[i_gene]);
 			data.tumor_tpm = toDouble(parts[i_tpm]);
 			data.hpa_ref_tpm = toDouble(parts[i_hpa]);
 			data.cohort_mean_tpm = toDouble(parts[i_cohort_mean]);
@@ -280,9 +280,12 @@ RtfSourceCode SomaticRnaReport::partFusionPics()
 
 	out << RtfParagraph(desc).setHorizontalAlignment("j").setFontSize(16).RtfCode();
 
-	for(const auto& pic_data : data_.fusion_pics)
+	for(RtfPicture pic : data_.fusion_pics)
 	{
-		out << pngToRtf(pic_data, doc_.maxWidth() - 500).RtfCode() << RtfParagraph("").RtfCode();
+		pic.resizeToWidth(doc_.maxWidth() - 500);
+
+		out << pic.RtfCode();
+		out << RtfParagraph("").RtfCode();
 	}
 	return out.join("\n");
 }
@@ -304,7 +307,10 @@ RtfSourceCode SomaticRnaReport::partExpressionPics()
 
 	for(int i=0; i<data_.expression_plots.count(); ++i)
 	{
-		out << pngToRtf(data_.expression_plots[i], doc_.maxWidth() / 2 - 400).RtfCode();
+		RtfPicture pic = data_.expression_plots[i];
+		pic.resizeToWidth(doc_.maxWidth() / 2 - 400);
+
+		out << pic.RtfCode();
 		if((i+1)%2==0) out << RtfParagraph("").RtfCode();
 	}
 
@@ -368,7 +374,7 @@ RtfTable SomaticRnaReport::partSnvTable()
 
 		//DNA data
 		row.addCell(800, trans.gene, RtfParagraph().setItalic(true).setBold(true).setFontSize(16));//4400
-		row.addCell({RtfText(trans.hgvs_c + ":" + trans.hgvs_p).setFontSize(16).RtfCode(), RtfText(trans.id).setFontSize(14).RtfCode()}, 1900);
+		row.addCell(1900, QByteArrayList() << RtfText(trans.hgvs_c + ":" + trans.hgvs_p).setFontSize(16).RtfCode() << RtfText(trans.id).setFontSize(14).RtfCode());
 		row.addCell(1300, trans.type.replace("_variant",""), RtfParagraph().setFontSize(16));
 		row.addCell(700, formatDigits(var.annotations()[i_tum_af].toDouble(), 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
 
@@ -413,8 +419,8 @@ RtfTable SomaticRnaReport::partCnvTable()
 
 		for(const auto& gene : genes)
 		{
-			if(db_.getSomaticGeneRoleId(gene) == -1 ) continue;
 			SomaticGeneRole role = db_.getSomaticGeneRole(gene, true);
+			if (!role.isValid()) continue;
 
 			if( !SomaticCnvInterpreter::includeInReport(dna_cnvs_,cnv, role) ) continue;
 			if( !role.high_evidence) continue;
@@ -650,17 +656,6 @@ RtfTable SomaticRnaReport::partGeneralInfo()
 	table.addRow( RtfTableRow( {"Korrelation der Expression mit der Tumorentität:", QByteArray::number(data_.expression_correlation, 'f', 2), "House Keeping Genes Read Percentage:", data_.rna_qcml_data.value("QC:2000100",true).toString().toUtf8() + "\%"}, {2000,2461,2500,2961}, RtfParagraph().setFontSize(14) ) );
 
 	return table;
-}
-
-RtfPicture SomaticRnaReport::pngToRtf(std::tuple<QByteArray, int, int> tuple, int width_goal)
-{
-	QByteArray data;
-	int width, height;
-	std::tie(data,width,height) = tuple;
-
-	//magnification ratio if pic resized to max width of document
-	double ratio = (double)width_goal/ width;
-	return RtfPicture(data, width, height).setWidth(width_goal).setHeight(height * ratio);
 }
 
 double SomaticRnaReport::getRnaData(QByteArray gene, QString field, QString key)

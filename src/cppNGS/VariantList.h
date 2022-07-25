@@ -388,7 +388,7 @@ public:
 	void store(QString filename) const;
 
 	///Default sorting of variants. The order is chromosome (numeric), position, ref, obs, quality (if desired - only for VCF).
-	void sort(bool use_quality = false);
+	void sort();
 	///Sort list alphabetically by annotation
 	void sortByAnnotation(int annotation_index);
 	///Sorts the lines accoring to FASTA index file. The order is chromosome (as given in the file), position, ref, obs.
@@ -401,7 +401,7 @@ public:
 	}
 
     ///Remove duplicate variants.
-	void removeDuplicates(bool sort_by_quality);
+	void removeDuplicates();
     ///Removes all content.
     void clear();
     ///Removes the annotations of all variants.
@@ -409,8 +409,8 @@ public:
 	///Removes all variants.
 	void clearVariants();
 
-	///Shifts each non complex insert or deletion to the left as far as possible. Then, removes duplicates (@p sort_by_quality is only supported for VCF format).
-	void leftAlign(QString ref_file, bool sort_by_quality);
+	///Shifts each non complex insert or deletion to the left as far as possible. Then, removes duplicates.
+	void leftAlign(QString ref_file);
 
 	///Checks if the variants are valid (with annotation). Throws ArgumentException if not.
 	void checkValid() const;
@@ -472,11 +472,8 @@ protected:
 
 		public:
 			///Constructor. If @p quality_index not given, the quality is not considered
-			LessComparator(int quality_index=-1);
+			LessComparator();
 			bool operator()(const Variant& a, const Variant& b) const;
-
-		private:
-			int quality_index_;
     };
 };
 

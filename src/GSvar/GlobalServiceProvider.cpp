@@ -3,20 +3,25 @@
 #include "Settings.h"
 #include "DatabaseServiceLocal.h"
 #include "DatabaseServiceRemote.h"
+#include "StatisticsServiceLocal.h"
+#include "StatisticsServiceRemote.h"
 #include "MainWindow.h"
 #include "GSvarHelper.h"
 
 GlobalServiceProvider::GlobalServiceProvider()
   : file_location_provider_()
   , database_service_()
+  , statistics_service_()
 {
 	if (NGSHelper::isClientServerMode())
 	{		
 		database_service_ = QSharedPointer<DatabaseService>(new DatabaseServiceRemote());
+		statistics_service_ = QSharedPointer<StatisticsService>(new StatisticsServiceRemote());
 	}
 	else
 	{
 		database_service_ = QSharedPointer<DatabaseService>(new DatabaseServiceLocal());
+		statistics_service_ = QSharedPointer<StatisticsService>(new StatisticsServiceLocal());
 	}
 }
 
@@ -58,6 +63,15 @@ const DatabaseService& GlobalServiceProvider::database()
 		THROW(ProgrammingException, "Database service requested but not set!");
 	}
 	return *(instance().database_service_);
+}
+
+StatisticsService& GlobalServiceProvider::statistics()
+{
+	if (instance().statistics_service_.isNull())
+	{
+		THROW(ProgrammingException, "Statistics service requested but not set!");
+	}
+	return *(instance().statistics_service_);
 }
 
 void GlobalServiceProvider::openProcessedSampleTab(QString processed_sample_name)

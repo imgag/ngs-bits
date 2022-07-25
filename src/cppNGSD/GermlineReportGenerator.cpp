@@ -8,7 +8,7 @@
 #include <QFileInfo>
 #include <QXmlStreamWriter>
 
-GermlineReportGeneratorData::GermlineReportGeneratorData(GenomeBuild build_, QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const PrsTable& prs_, const ReportSettings& report_settings_, const FilterCascade& filters_, const QMap<QByteArray, QByteArrayList>& preferred_transcripts_)
+GermlineReportGeneratorData::GermlineReportGeneratorData(GenomeBuild build_, QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const PrsTable& prs_, const ReportSettings& report_settings_, const FilterCascade& filters_, const QMap<QByteArray, QByteArrayList>& preferred_transcripts_, StatisticsService& statistics_service_)
 	: build(build_)
 	, ps(ps_)
 	, variants(variants_)
@@ -18,6 +18,7 @@ GermlineReportGeneratorData::GermlineReportGeneratorData(GenomeBuild build_, QSt
 	, report_settings(report_settings_)
 	, filters(filters_)
 	, preferred_transcripts(preferred_transcripts_)
+	, statistics_service(statistics_service_)
 {
 }
 
@@ -1423,7 +1424,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 {
 	//get target region coverages (from NGSD or calculate)
-	QString avg_cov = "";
+	double target_region_read_depth;
 	QCCollection stats;
 	bool roi_is_system_target_region = data_.processing_system_roi.count()==data_.roi.regions.count() && data_.processing_system_roi.baseCount()==data_.roi.regions.baseCount();
 	if (roi_is_system_target_region || !data_.report_settings.recalculate_avg_depth)
@@ -1431,28 +1432,26 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 		try
 		{
 			stats = db_.getQCData(ps_id_);
+			for (int i=0; i<stats.count(); ++i)
+			{
+				if (stats[i].accession()=="QC:2000025") target_region_read_depth = stats[i].asDouble();
+			}
 		}
 		catch(...)
 		{
+			Log::warn("Average target region depth from NGSD cannot be used! Recalculating it...");
+
+			QString ref_file = Settings::string("reference_genome");
+			target_region_read_depth = data_.statistics_service.targetRegionReadDepth(data_.roi.regions, data_.ps_bam);
 		}
 	}
-	if (stats.count()==0)
-	{
-		Log::warn("Average target region depth from NGSD cannot be used! Recalculating it...");
 
-		QString ref_file = Settings::string("reference_genome");
-		stats = Statistics::mapping(data_.roi.regions, data_.ps_bam, ref_file);
-	}
-	for (int i=0; i<stats.count(); ++i)
-	{
-		if (stats[i].accession()=="QC:2000025") avg_cov = stats[i].toString();
-	}
 	stream << endl;
 	stream << "<p><b>" << trans("Abdeckungsstatistik") << "</b>" << endl;
-	stream << "<br />" << trans("Durchschnittliche Sequenziertiefe") << ": " << avg_cov << endl;
+	stream << "<br />" << trans("Durchschnittliche Sequenziertiefe") << ": " << QString::number(target_region_read_depth) << endl;
 	BedFile mito_bed;
 	mito_bed.append(BedLine("chrMT", 1, 16569));
-	Statistics::avgCoverage(mito_bed, data_.ps_bam, 1, false, true);
+	data_.statistics_service.avgCoverage(mito_bed, data_.ps_bam);
 	stream << "<br />" << trans("Durchschnittliche Sequenziertiefe (chrMT)") << ": " << mito_bed[0].annotations()[0] << endl;
 	stream << "</p>" << endl;
 
@@ -1468,7 +1467,7 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 		catch(Exception e)
 		{
 			Log::warn("Low-coverage statistics needs to be calculated. Pre-calculated gap file cannot be used because: " + e.message());
-			low_cov = Statistics::lowCoverage(data_.roi.regions, data_.ps_bam, data_.report_settings.min_depth);
+			low_cov = data_.statistics_service.lowCoverage(data_.roi.regions, data_.ps_bam, data_.report_settings.min_depth);
 		}
 
 		//group gaps by gene
@@ -1669,7 +1668,7 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 		catch(Exception e)
 		{
 			Log::warn("Low-coverage statistics for transcript " + transcript.name() + " needs to be calculated. Pre-calculated gap file cannot be used because: " + e.message());
-			gaps = Statistics::lowCoverage(roi, data_.ps_bam, data_.report_settings.min_depth);
+			gaps = data_.statistics_service.lowCoverage(roi, data_.ps_bam, data_.report_settings.min_depth);
 		}
 
 		long long bases_transcipt = roi.baseCount();

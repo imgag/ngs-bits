@@ -8,24 +8,28 @@
 
 typedef QByteArray RtfSourceCode;
 
+struct RtfColor
+{
+	int red;
+	int green;
+	int blue;
+};
+
 class CPPNGSSHARED_EXPORT RtfPicture
 {
 public:
 	RtfPicture();
-	RtfPicture(QByteArray png_data);
-	RtfPicture(QByteArray png_data, int width, int height);
+	RtfPicture(const QByteArray& png_data);
+	RtfPicture(const QByteArray& png_data, int width, int height);
 
 	RtfSourceCode RtfCode();
 
-	RtfPicture& setWidth(int width)
+	//resizes to the given with while keeping the height/width ratio
+	void resizeToWidth(int new_width)
 	{
-		width_ = width;
-		return *this;
-	}
-	RtfPicture& setHeight(int height)
-	{
-		height_ = height;
-		return *this;
+		width_ = new_width;
+		double ratio = (double)new_width/ width_;
+		height_ = height_ * ratio;
 	}
 
 private:
@@ -260,10 +264,10 @@ public:
 	///Converts centimeters into RTF twip format
 	static double cm2twip(double input_cm);
 
-	///Adds RGB color to document color table
+	///Adds RGB color to document color table. Note: color numbers are one-based!
 	void addColor(int red,int green,int blue)
 	{
-		colors_ << std::make_tuple(red,green,blue);
+		colors_ << RtfColor{red, green, blue};
 	}
 	///Adds font into document header
 	void addFont(const QByteArray& font)
@@ -320,7 +324,7 @@ private:
 	//fonts used in document, first font is default document font
 	QByteArrayList fonts_;
 	//colors to be defined in header
-	QList<std::tuple<int,int,int>> colors_;
+	QList<RtfColor> colors_;
 
 	int default_font_size_;
 
@@ -429,7 +433,7 @@ public:
 	RtfTableRow(QByteArray cell_content, int width, const RtfParagraph& format = RtfParagraph());
 
 	///Constructor creates a row, content and cell widths according parameter lists
-	RtfTableRow(const QList<QByteArray>& cell_contents, const QList<int>& cell_widths,const RtfParagraph& format = RtfParagraph());
+	RtfTableRow(const QByteArrayList& cell_contents, const QList<int>& cell_widths,const RtfParagraph& format = RtfParagraph());
 
 	///Add cell using predefined cell format settings
 	void addCell(int width, const RtfParagraph& paragraph);
@@ -438,7 +442,7 @@ public:
 
 	void addCell(int width, const QByteArray &content, const RtfParagraph& par_format);
 	///Add cellusing predefined cell format settings, each element of cell_contents will be separated by RTF new line "\line"
-	void addCell(const QByteArrayList& cell_contents, int width, const RtfParagraph& par_format = RtfParagraph());
+	void addCell(int width, const QByteArrayList& cell_contents, const RtfParagraph& par_format = RtfParagraph());
 
 	RtfTableRow& setHeader()
 	{
@@ -497,7 +501,7 @@ public:
 		return cells_.count();
 	}
 
-	///sets Background color for each cell in row, color number must be specified in RtfDocument header
+	///sets the background color for each cell in row. color number must be specified in RtfDocument header. Note: color numbers are one-based!
 	RtfTableRow& setBackgroundColor(int color);
 
 private:
@@ -522,7 +526,7 @@ public:
 	RtfTable();
 
 	///Constructor initializes table using unique format
-	RtfTable(const QList< QList<QByteArray> >& contents, const QList< QList<int> >& widths, const RtfParagraph& format = RtfParagraph());
+	RtfTable(const QList<QByteArrayList>& contents, const QList< QList<int> >& widths, const RtfParagraph& format = RtfParagraph());
 
 	void addRow(const RtfTableRow& row)
 	{

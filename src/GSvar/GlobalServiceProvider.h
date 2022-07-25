@@ -4,6 +4,7 @@
 #include <QSharedPointer>
 #include "FileLocationProvider.h"
 #include "DatabaseService.h"
+#include "StatisticsService.h"
 
 ///Provider class for GSvar-wide services
 class GlobalServiceProvider
@@ -16,6 +17,9 @@ public:
 
 	//database service functionality
 	static const DatabaseService& database();
+
+	//statistics service functionality
+	static StatisticsService& statistics();
 
 	//NGSD tab functionality
 	static void openProcessedSampleTab(QString processed_sample_name);
@@ -40,6 +44,7 @@ protected:
 private:
 	QSharedPointer<FileLocationProvider> file_location_provider_;
 	QSharedPointer<DatabaseService> database_service_;
+	QSharedPointer<StatisticsService> statistics_service_;
 };
 
 #endif // GLOBALSERVICEPROVIDER_H
