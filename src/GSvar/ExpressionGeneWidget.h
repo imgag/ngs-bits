@@ -48,6 +48,8 @@ private:
 	QStringList column_names_;
 	QVector<bool> numeric_columns_;
 	QVector<int> precision_;
+
+	static QVector<double> calculateRanks(const QVector<double>& values);
 };
 
 #endif // EXPRESSIONGENEWIDGET_H

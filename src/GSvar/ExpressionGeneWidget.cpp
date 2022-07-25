@@ -666,6 +666,10 @@ void ExpressionGeneWidget::loadExpressionData()
 			}
 		}
 
+		//cohort correlation
+		QVector<double> cohort_means;
+		QVector<double> tpm_values;
+
 		//create header
 		ui_->expression_data->setColumnCount(column_names_.size());
 		for (int col_idx = 0; col_idx < column_names_.size(); ++col_idx)
@@ -701,6 +705,11 @@ void ExpressionGeneWidget::loadExpressionData()
 						if(column_names_.at(col_idx) == "cohort_mean")
 						{
 							ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(gene_stats.mean, 'f', precision_.at(col_idx))));
+							if((gene_stats.mean > 0) && (tpm > 0))
+							{
+								cohort_means << gene_stats.mean;
+								tpm_values << tpm;
+							}
 						}
 						else if(column_names_.at(col_idx) == "log2fc")
 						{
@@ -761,6 +770,11 @@ void ExpressionGeneWidget::loadExpressionData()
 			}
 		}
 
+		//compute cohort correlation
+		QVector<double> rank_sample = calculateRanks(tpm_values);
+		QVector<double> rank_means = calculateRanks(cohort_means);
+		double correlation = BasicStatistics::correlation(rank_sample, rank_means);
+
 		//hide vertical header
 		ui_->expression_data->verticalHeader()->setVisible(false);
 
@@ -777,7 +791,7 @@ void ExpressionGeneWidget::loadExpressionData()
 		ui_->filtered_rows->setText(QByteArray::number(expression_data.rowCount()) + " / " + QByteArray::number(expression_data.rowCount()));
 
 		//Set cohort size
-		ui_->l_cohort_size->setText("Cohort size: \t " + QString::number(cohort_.size()));
+		ui_->l_cohort_size->setText("Cohort size: \t " + QString::number(cohort_.size()) + "\nCohort correlation: \t " + QString::number(correlation, 'f', 3));
 
 
 		qDebug() << QString() + "... done(" + Helper::elapsedTime(timer) + ")";
@@ -796,6 +810,7 @@ void ExpressionGeneWidget::loadExpressionData()
 	{
 		GUIHelper::showException(this, e, "Error opening RNA expression file.");
 	}
+
 }
 
 void ExpressionGeneWidget::initBiotypeList()
@@ -811,6 +826,18 @@ void ExpressionGeneWidget::initBiotypeList()
 		vbox->addWidget(cb_biotype);
 	}
 	ui_->sawc_biotype->setLayout(vbox);
+}
+
+QVector<double> ExpressionGeneWidget::calculateRanks(const QVector<double>& values)
+{
+	QVector<double> sorted_values = values;
+	std::sort(sorted_values.rbegin(), sorted_values.rend());
+	QVector<double> ranks = QVector<double>(values.size());
+	for (int i = 0; i < values.size(); ++i)
+	{
+		ranks[i] = sorted_values.indexOf(values.at(i)) + 1;
+	}
+	return ranks;
 }
 
 
