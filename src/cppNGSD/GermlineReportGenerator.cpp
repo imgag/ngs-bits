@@ -1406,31 +1406,34 @@ QString GermlineReportGenerator::trans(const QString& text)
 void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 {
 	//get target region coverages (from NGSD or calculate)
-	double target_region_read_depth;
-	QCCollection stats;
+	double target_region_read_depth = -1.0;
+
 	bool roi_is_system_target_region = data_.processing_system_roi.count()==data_.roi.regions.count() && data_.processing_system_roi.baseCount()==data_.roi.regions.baseCount();
 	if (roi_is_system_target_region || !data_.report_settings.recalculate_avg_depth)
 	{
 		try
 		{
-			stats = db_.getQCData(ps_id_);
+			QCCollection stats = db_.getQCData(ps_id_);
 			for (int i=0; i<stats.count(); ++i)
 			{
-				if (stats[i].accession()=="QC:2000025") target_region_read_depth = stats[i].asDouble();
+				if (stats[i].accession()=="QC:2000025")
+				{
+					target_region_read_depth = stats[i].asDouble();
+				}
 			}
+			if (target_region_read_depth==-1.0) THROW(Exception, "QC:2000025 not found in QC data from NGSD");
 		}
 		catch(...)
 		{
 			Log::warn("Average target region depth from NGSD cannot be used! Recalculating it...");
 
-			QString ref_file = Settings::string("reference_genome");
 			target_region_read_depth = data_.statistics_service.targetRegionReadDepth(data_.roi.regions, data_.ps_bam);
 		}
 	}
 
 	stream << endl;
 	stream << "<p><b>" << trans("Abdeckungsstatistik") << "</b>" << endl;
-	stream << "<br />" << trans("Durchschnittliche Sequenziertiefe") << ": " << QString::number(target_region_read_depth) << endl;
+	stream << "<br />" << trans("Durchschnittliche Sequenziertiefe") << ": " << QString::number(target_region_read_depth, 'f', 2) << endl;
 	BedFile mito_bed;
 	mito_bed.append(BedLine("chrMT", 1, 16569));
 	data_.statistics_service.avgCoverage(mito_bed, data_.ps_bam);
