@@ -38,7 +38,6 @@
         <QcTerm id="QC:2000025" name="target region read depth" def="Average sequencing depth in target region." value="15.85"/>
         <QcTerm id="QC:2000101" name="housekeeping genes read depth" def="Average sequencing depth in exon region of housekeeping genes." value="263.87"/>
         <QcTerm id="QC:2000109" name="covered gene count" def="Number of covered genes (TPM &gt;= 1.0)" value="136985"/>
-        <QcTerm id="NONE" name="kasp" def="" value="n/a"/>
     </RNASample>
     <VariantList overall_number="319" genome_build="GRCh38"/>
     <CnvList cnv_caller="ClinCNV" overall_number="1" genome_build="GRCh38" quality="good" number_of_iterations="1" number_of_hq_cnvs="127" correlation_ref_samples="0.996"/>

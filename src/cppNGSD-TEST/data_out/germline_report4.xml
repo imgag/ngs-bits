@@ -38,7 +38,6 @@
         <QcTerm id="QC:2000025" name="target region read depth" def="Average sequencing depth in target region." value="15.85"/>
         <QcTerm id="QC:2000101" name="housekeeping genes read depth" def="Average sequencing depth in exon region of housekeeping genes." value="263.87"/>
         <QcTerm id="QC:2000109" name="covered gene count" def="Number of covered genes (TPM &gt;= 1.0)" value="136985"/>
-        <QcTerm id="NONE" name="kasp" def="" value="n/a"/>
     </RNASample>
     <TargetRegion name="panel" regions="1532" bases="271536" gap_cutoff="20" gap_percentage="5.69" ccds_bases_sequenced="4347">
         <Gene name="CYP7B1" identifier="HGNC:2652" bases="2202">

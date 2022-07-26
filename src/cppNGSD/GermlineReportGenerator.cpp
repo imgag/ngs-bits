@@ -591,8 +591,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	}
 	w.writeEndElement();
 
-	//TODO: QC data of RNA sample
-	//get all related RNA
+	//add QC data of RNA sample
 	QString sample_id = db_.sampleId(data_.ps);
 
 	//get ids of all RNA processed samples corresponding to the current sample
@@ -609,10 +608,11 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeStartElement("RNASample");
 		w.writeAttribute("name", db_.processedSampleName(rna_ps_id));
 		qc_data = db_.getQCData(rna_ps_id);
+		QSet<QString> valid_accessions = QSet<QString>() << "QC:2000005" << "QC:2000025" << "QC:2000101" << "QC:2000109";
 		for (int i=0; i<qc_data.count(); ++i)
 		{
 			const QCValue& term = qc_data[i];
-			if (term.type()==QVariant::ByteArray) continue; //skip plots
+			if (!valid_accessions.contains(term.accession())) continue; //skip no-valid accession
 			w.writeStartElement("QcTerm");
 			w.writeAttribute("id", term.accession());
 			w.writeAttribute("name", term.name());
