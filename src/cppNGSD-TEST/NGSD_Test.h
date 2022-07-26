@@ -1541,6 +1541,7 @@ private slots:
 			var_conf.de_novo = true;
 			var_conf.comp_het = false;
 			var_conf.report_type = "diagnostic variant";
+			var_conf.rna_info = "n/a";
 			report_settings.report_config->set(var_conf);
 
 			report_settings.selected_variants.append(qMakePair(VariantType::SNVS_INDELS, 173)); //small variant - chr13:41367370 C>G (SLC25A15)
@@ -1551,6 +1552,7 @@ private slots:
 			var_conf.de_novo = false;
 			var_conf.comp_het = true;
 			var_conf.report_type = "diagnostic variant";
+			var_conf.rna_info = "splicing effect validated by RNA dataset";
 			report_settings.report_config->set(var_conf);
 
 			report_settings.selected_variants.append(qMakePair(VariantType::CNVS, 0)); //CNV - het deletion
@@ -1561,6 +1563,7 @@ private slots:
 			var_conf.de_novo = false;
 			var_conf.comp_het = true;
 			var_conf.report_type = "diagnostic variant";
+			var_conf.rna_info = "no splicing effect found in RNA dataset";
 			report_settings.report_config->set(var_conf);
 
 			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 3)); //SV - Insertion
@@ -1571,6 +1574,7 @@ private slots:
 			var_conf.de_novo = false;
 			var_conf.comp_het = false;
 			var_conf.report_type = "diagnostic variant";
+			var_conf.rna_info = "RNA dataset not usable";
 			report_settings.report_config->set(var_conf);
 
 			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 12)); //SV - breakpoint
@@ -1581,6 +1585,7 @@ private slots:
 			var_conf.de_novo = false;
 			var_conf.comp_het = false;
 			var_conf.report_type = "diagnostic variant";
+			var_conf.rna_info = "n/a";
 			report_settings.report_config->set(var_conf);
 
 			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 16)); //SV - Deletion
@@ -1591,6 +1596,7 @@ private slots:
 			var_conf.de_novo = false;
 			var_conf.comp_het = false;
 			var_conf.report_type = "diagnostic variant";
+			var_conf.rna_info = "n/a";
 			report_settings.report_config->set(var_conf);
 
 			OtherCausalVariant causal_variant;
@@ -2316,6 +2322,8 @@ private slots:
 
 		//Test ENSG->gene_id mapping
 		QMap<QByteArray, QByteArray> ensg_gene_mapping = db.getEnsemblGeneMapping();
+		QMap<QByteArray, QByteArray> gene_ensg_mapping = db.getGeneEnsemblMapping();
+
 		S_EQUAL(ensg_gene_mapping.value("ENSG00000204518"), "AADACL4");
 		S_EQUAL(ensg_gene_mapping.value("ENSG00000171735"), "CAMTA1");
 		S_EQUAL(ensg_gene_mapping.value("ENSG00000127463"), "EMC1");
@@ -2323,51 +2331,229 @@ private slots:
 		S_EQUAL(ensg_gene_mapping.value("ENSG00000263793"), "MIR3115");
 		S_EQUAL(ensg_gene_mapping.value("ENSG00000187583"), "PLEKHN1");
 
+		S_EQUAL(gene_ensg_mapping.value("AADACL4"), "ENSG00000204518");
+		S_EQUAL(gene_ensg_mapping.value("CAMTA1"), "ENSG00000171735");
+		S_EQUAL(gene_ensg_mapping.value("EMC1"), "ENSG00000127463");
+		S_EQUAL(gene_ensg_mapping.value("LINC02782"), "ENSG00000231510");
+		S_EQUAL(gene_ensg_mapping.value("MIR3115"), "ENSG00000263793");
+		S_EQUAL(gene_ensg_mapping.value("PLEKHN1"), "ENSG00000187583");
+
 		//Test expression data import
-		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in1.tsv"), "RX001_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in1.tsv"), "RX001_01", false, false);
 		int count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 102);
-		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in2.tsv"), "RX002_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in2.tsv"), "RX002_01", false, false);
 		count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 204);
-		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in3.tsv"), "RX003_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in3.tsv"), "RX003_01", false, false);
 		count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 306);
-		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in4.tsv"), "RX004_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in4.tsv"), "RX004_01", false, false);
 		count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 408);
-		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in5.tsv"), "RX005_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in5.tsv"), "RX005_01", false, false);
 		count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 510);
-		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in6.tsv"), "RX006_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in6.tsv"), "RX006_01", false, false);
 		count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 612);
-		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in7.tsv"), "RX007_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in7.tsv"), "RX007_01", false, false);
 		count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 714);
-		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in8.tsv"), "RX008_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in8.tsv"), "RX008_01", false, false);
 		count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 816);
-		db.importExpressionData(TESTDATA("data_in/NGSD_expr_in8.tsv"), "RX008_01", true, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in8.tsv"), "RX008_01", true, false);
 		count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 816);
+
+		//check imported values
+		I_EQUAL(db.getValue("SELECT raw FROM expression WHERE processed_sample_id=5001 AND symbol='" + ensg_gene_mapping.value("ENSG00000049249") + "'").toInt(), 20934);
+		F_EQUAL2(db.getValue("SELECT tpm FROM expression WHERE processed_sample_id=5001 AND symbol='" + ensg_gene_mapping.value("ENSG00000215720") + "'").toFloat(), 116.816, 0.001);
+		I_EQUAL(db.getValue("SELECT raw FROM expression WHERE processed_sample_id=5002 AND symbol='" + ensg_gene_mapping.value("ENSG00000229716") + "'").toInt(), 1371);
+		F_EQUAL2(db.getValue("SELECT tpm FROM expression WHERE processed_sample_id=5002 AND symbol='" + ensg_gene_mapping.value("ENSG00000159189") + "'").toFloat(), 204.76, 0.001);
+		I_EQUAL(db.getValue("SELECT raw FROM expression WHERE processed_sample_id=5005 AND symbol='" + ensg_gene_mapping.value("ENSG00000227634") + "'").toInt(), 15679);
+		F_EQUAL2(db.getValue("SELECT tpm FROM expression WHERE processed_sample_id=5005 AND symbol='" + ensg_gene_mapping.value("ENSG00000282740") + "'").toFloat(), 0.0, 0.001);
+
+
+		//Test exon expression data import
+		db.importExonExpressionData(TESTDATA("data_in/NGSD_expr_exon_in1.tsv"), "RX001_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression_exon").toInt();
+		I_EQUAL(count, 71);
+		db.importExonExpressionData(TESTDATA("data_in/NGSD_expr_exon_in2.tsv"), "RX002_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression_exon").toInt();
+		I_EQUAL(count, 142);
+		db.importExonExpressionData(TESTDATA("data_in/NGSD_expr_exon_in3.tsv"), "RX003_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression_exon").toInt();
+		I_EQUAL(count, 213);
+		db.importExonExpressionData(TESTDATA("data_in/NGSD_expr_exon_in4.tsv"), "RX004_01", false, false);
+		count = db.getValue("SELECT count(*) FROM expression_exon").toInt();
+		I_EQUAL(count, 284);
+		IS_THROWN(DatabaseException, db.importExonExpressionData(TESTDATA("data_in/NGSD_expr_exon_in1.tsv"), "RX001_01", false, false));
+		db.importExonExpressionData(TESTDATA("data_in/NGSD_expr_exon_in1.tsv"), "RX001_01", true, false);
+		count = db.getValue("SELECT count(*) FROM expression_exon").toInt();
+		I_EQUAL(count, 284);
+
+
+		//Test cohort determination:
+		QSet<int> cohort = db.getRNACohort(1, "Blood");
+		I_EQUAL(cohort.size(), 4);
+		IS_TRUE(cohort.contains(5005));
+		IS_TRUE(cohort.contains(5006));
+		IS_TRUE(cohort.contains(5007));
+		IS_TRUE(cohort.contains(5008));
+
+		cohort = db.getRNACohort(1, "Skin", "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE_PROJECT);
+		I_EQUAL(cohort.size(), 2);
+		IS_TRUE(cohort.contains(5001));
+		IS_TRUE(cohort.contains(5003));
+
+		cohort = db.getRNACohort(1, "", "KontrollDNACoriell", "5001", RNA_COHORT_SOMATIC);
+		I_EQUAL(cohort.size(), 4);
+		IS_TRUE(cohort.contains(5001));
+		IS_TRUE(cohort.contains(5003));
+		IS_TRUE(cohort.contains(5005));
+		IS_TRUE(cohort.contains(5007));
 
 
 		//Test expression stats:
-		QMap<QByteArray, ExpressionStats> expression_stats = db.calculateExpressionStatistics(1, "Blood");
-		F_EQUAL2(expression_stats.value("ENSG00000232596").mean, 121.091, 0.001);
-		F_EQUAL2(expression_stats.value("ENSG00000011021").stddev, 133.406, 0.001);
-		F_EQUAL2(expression_stats.value("ENSG00000049245").mean, 0.0, 0.001);
-		F_EQUAL2(expression_stats.value("ENSG00000049249").stddev, 93.0873, 0.001);
+		QMap<QByteArray, ExpressionStats> expression_stats = db.calculateCohortExpressionStatistics(1, "Blood", cohort);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000232596")).mean, 121.091, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000232596")).mean_log2, 5.373, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000232596")).stddev_log2, 3.167, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000049245")).mean, 0, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000049245")).mean_log2, 0, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000049245")).stddev_log2, 0, 0.001);
+		I_EQUAL(cohort.size(), 4);
 
-		expression_stats = db.calculateExpressionStatistics(1, "Skin");
-		F_EQUAL2(expression_stats.value("ENSG00000157916").mean, 47.9532, 0.001);
-		F_EQUAL2(expression_stats.value("ENSG00000049249").stddev, 151.291, 0.001);
-		F_EQUAL2(expression_stats.value("ENSG00000283234").mean, 0.0, 0.001);
-		F_EQUAL2(expression_stats.value("ENSG00000159189").stddev, 88.6637, 0.001);
+		expression_stats = db.calculateCohortExpressionStatistics(1, "Blood", cohort, "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE_PROJECT);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000232596")).mean, 204.681, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000232596")).mean_log2, 7.6221, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000232596")).stddev_log2, 0.427, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000049245")).mean, 0.0, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000049245")).mean_log2, 0.0, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000049245")).stddev_log2, 0.0, 0.001);
+		I_EQUAL(cohort.size(), 2);
 
+		expression_stats = db.calculateCohortExpressionStatistics(1, "Skin", cohort);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).mean, 47.9532, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000283234")).mean, 0.0, 0.001);
+		I_EQUAL(cohort.size(), 4);
+
+		expression_stats = db.calculateCohortExpressionStatistics(1, "Skin", cohort, "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).mean, 47.953, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).mean_log2, 1.898, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).stddev_log2, 3.287, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000283234")).mean, 0, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000283234")).mean_log2, 0, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000283234")).stddev_log2, 0, 0.001);
+		I_EQUAL(cohort.size(), 4);
+
+		expression_stats = db.calculateCohortExpressionStatistics(1, "Skin", cohort, "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE_PROJECT);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).mean, 95.907, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).mean_log2, 3.796, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).stddev_log2, 3.796, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000283234")).mean, 0, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000283234")).mean_log2, 0, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000283234")).stddev_log2, 0, 0.001);
+		I_EQUAL(cohort.size(), 2);
+
+		//test for somatic cohort
+		expression_stats = db.calculateCohortExpressionStatistics(1, "", cohort, "KontrollDNACoriell", "5001", RNA_COHORT_SOMATIC);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000232596")).mean, 177.952, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000232596")).mean_log2, 7.436, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000232596")).stddev_log2, 0.355, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000049245")).mean, 38.422, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000049245")).mean_log2, 1.818, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000049245")).stddev_log2, 3.149, 0.001);
+		I_EQUAL(cohort.size(), 4);
+
+		expression_stats = db.calculateCohortExpressionStatistics(1, "", cohort, "KontrollDNACoriell2", "5002", RNA_COHORT_SOMATIC);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).mean, 27.191, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).mean_log2, 1.695, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).stddev_log2, 2.935, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000283234")).mean, 0, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000283234")).mean_log2, 0, 0.001);
+		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000283234")).stddev_log2, 0, 0.001);
+		I_EQUAL(cohort.size(), 4);
+
+
+		//Test limited gene expresion stats:
+		cohort = db.getRNACohort(1, "Blood");
+		expression_stats = db.calculateGeneExpressionStatistics(cohort, "LINC01646");
+		I_EQUAL(expression_stats.size(), 1);
+		F_EQUAL2(expression_stats.value("LINC01646").mean, 121.091, 0.001);
+		F_EQUAL2(expression_stats.value("LINC01646").mean_log2, 5.373, 0.001);
+		F_EQUAL2(expression_stats.value("LINC01646").stddev_log2, 3.167, 0.001);
+		expression_stats = db.calculateGeneExpressionStatistics(cohort, "VAMP3");
+		I_EQUAL(expression_stats.size(), 1);
+		F_EQUAL2(expression_stats.value("VAMP3").mean, 0, 0.001);
+		F_EQUAL2(expression_stats.value("VAMP3").mean_log2, 0, 0.001);
+		F_EQUAL2(expression_stats.value("VAMP3").stddev_log2, 0, 0.001);
+
+		cohort = db.getRNACohort(1, "Blood", "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE_PROJECT);
+		expression_stats = db.calculateGeneExpressionStatistics(cohort, "LINC01646");
+		I_EQUAL(expression_stats.size(), 1);
+		F_EQUAL2(expression_stats.value("LINC01646").mean, 204.681, 0.001);
+		F_EQUAL2(expression_stats.value("LINC01646").mean_log2, 7.6221, 0.001);
+		F_EQUAL2(expression_stats.value("LINC01646").stddev_log2, 0.427, 0.001);
+		expression_stats = db.calculateGeneExpressionStatistics(cohort, "VAMP3");
+		I_EQUAL(expression_stats.size(), 1);
+		F_EQUAL2(expression_stats.value("VAMP3").mean, 0.0, 0.001);
+		F_EQUAL2(expression_stats.value("VAMP3").mean_log2, 0.0, 0.001);
+		F_EQUAL2(expression_stats.value("VAMP3").stddev_log2, 0.0, 0.001);
+
+		cohort = db.getRNACohort(1, "", "KontrollDNACoriell2", "5002", RNA_COHORT_SOMATIC);
+		expression_stats = db.calculateGeneExpressionStatistics(cohort, "RER1");
+		I_EQUAL(expression_stats.size(), 1);
+		F_EQUAL2(expression_stats.value("RER1").mean, 27.191, 0.001);
+		F_EQUAL2(expression_stats.value("RER1").mean_log2, 1.695, 0.001);
+		F_EQUAL2(expression_stats.value("RER1").stddev_log2, 2.935, 0.001);
+
+		//Test sample expression values
+		QMap<QByteArray, double> sample_expression_data = db.getGeneExpressionValuesOfSample("5001", false);
+		I_EQUAL(sample_expression_data.size(), 102);
+		F_EQUAL2(sample_expression_data.value("BRWD1P1"), 51.7352, 0.001);
+		F_EQUAL2(sample_expression_data.value("CASP9"), 28.8433, 0.001);
+		F_EQUAL2(sample_expression_data.value("TMEM201"), 58.3165, 0.001);
+		F_EQUAL2(sample_expression_data.value("USP48"), 0.0000, 0.001);
+
+		sample_expression_data = db.getGeneExpressionValuesOfSample("123456", true);
+		I_EQUAL(sample_expression_data.size(), 0);
+
+
+		//Test exon expression stats:
+		cohort = db.getRNACohort(1, "Skin", "", "", RNA_COHORT_GERMLINE, "exons");
+		expression_stats = db.calculateExonExpressionStatistics(cohort);
+		F_EQUAL2(expression_stats.value("chr1:966704-966803").mean, 85.09675, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:966704-966803").mean_log2, 2.103816078, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:966704-966803").stddev_log2, 3.643916337, 0.001);
+
+		F_EQUAL2(expression_stats.value("chr1:971077-971208").mean, 62.94, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:971077-971208").mean_log2, 3.403752578, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:971077-971208").stddev_log2, 3.443240651, 0.001);
+
+		F_EQUAL2(expression_stats.value("chr1:868240-868530").mean, 134.428, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:868240-868530").mean_log2, 4.031839133, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:868240-868530").stddev_log2, 4.03405759, 0.001);
+
+		F_EQUAL2(expression_stats.value("chr1:1180731-1180860").mean, 63.429, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:1180731-1180860").mean_log2, 1.998186444, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:1180731-1180860").stddev_log2, 3.460960444, 0.001);
+
+		F_EQUAL2(expression_stats.value("chr1:30267-30667").mean, 10.3584, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:30267-30667").mean_log2, 1.351783794, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:30267-30667").stddev_log2, 2.341358211, 0.001);
+
+		//Test single exon:
+		expression_stats = db.calculateExonExpressionStatistics(cohort, BedLine(Chromosome("chr1"), 30267, 30667));
+		F_EQUAL2(expression_stats.value("chr1:30267-30667").mean, 10.3584, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:30267-30667").mean_log2, 1.351783794, 0.001);
+		F_EQUAL2(expression_stats.value("chr1:30267-30667").stddev_log2, 2.341358211, 0.001);
 
 	}
+
+
 	//Test for debugging (without initialization because of speed)
 	/*
 	void debug()

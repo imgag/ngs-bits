@@ -216,10 +216,14 @@ public slots:
 	void on_actionCfDNAAddExcludedRegions_triggered();
 	///Open expression data widget
 	void on_actionExpressionData_triggered();
+	///Open exon expression data widget
+	void on_actionExonExpressionData_triggered();
 	///Open RNA fusion widget
 	void on_actionShowRnaFusions_triggered();
 	///Open cohort expression data widget
 	void on_actionShowCohortExpressionData_triggered();
+	///Open expression stats of processing systems
+	void on_actionShowProcessingSystemCoverage_triggered();
 	///Open gene OMIM info dialog.
 	void on_actionGeneOmimInfo_triggered();
 	///Open folder of variant list in explorer.

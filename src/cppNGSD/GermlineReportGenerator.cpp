@@ -172,7 +172,8 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<td><b>" << trans("Vater") << "</b></td>";
 		stream << "<td><b>" << trans("Mutter") << "</b></td>";
 	}
-	stream << "<td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>gnomAD</b></td></tr>" << endl;
+	stream << "<td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung")
+		   << "</b></td><td><b>gnomAD</b></td><td><b>RNA</b></td></tr>" << endl;
 
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
@@ -215,6 +216,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<td>" << var_conf.inheritance << "</td>" << endl;
 		QByteArray freq = variant.annotations().at(i_gnomad).trimmed();
 		stream << "<td>" << (freq.isEmpty() ? "n/a" : freq) << "</td>" << endl;
+		stream << "<td>" << trans(var_conf.rna_info) << "</td>" << endl;
 		stream << "</tr>" << endl;
 
 		//OMIM and comment line
@@ -244,7 +246,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	stream << "<p>&nbsp;</p>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><td><b>" << trans("CNV") << "</b></td><td><b>" << trans("Regionen") << "</b></td><td><b>" << trans("CN") << "</b></td><td><b>"
-		   << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td></tr>" << endl;
+		   << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>RNA</b></td></tr>" << endl;
 
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
@@ -265,6 +267,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<td>" << cnv.genes().join(", ") << "</td>" << endl;
 		stream << "<td>" << var_conf.classification << "</td>" << endl;
 		stream << "<td>" << var_conf.inheritance << "</td>" << endl;
+		stream << "<td>" << trans(var_conf.rna_info) << "</td>" << endl;
 		stream << "</tr>" << endl;
 	}
 	stream << "</table>" << endl;
@@ -274,7 +277,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	stream << "<p>&nbsp;</p>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><td><b>" << trans("SV") << "</b></td><td><b>" << trans("Position") << "</b></td><td><b>" << trans("Genotyp") << "</b></td><td><b>"
-		   << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td></tr>" << endl;
+		   << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>RNA</b></td></tr>" << endl;
 
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
@@ -340,6 +343,9 @@ void GermlineReportGenerator::writeHTML(QString filename)
 
 		//inheritance
 		stream << "<td>" << var_conf.inheritance << "</td>" << endl;
+
+		//RNA info
+		stream << "<td>" << trans(var_conf.rna_info) << "</td>" << endl;
 		stream << "</tr>" << endl;
 	}
 	stream << "</table>" << endl;
@@ -391,6 +397,8 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	if (data_.report_settings.show_coverage_details)
 	{
 		writeCoverageReport(stream);
+
+		writeRNACoverageReport(stream);
 
 		writeCoverageReportCCDS(stream, 0, false, false);
 
@@ -525,7 +533,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element DiagnosticNgsReport
 	w.writeStartElement("DiagnosticNgsReport");
-	w.writeAttribute("version", "7");
+	w.writeAttribute("version", "8");
 	w.writeAttribute("type", data_.report_settings.report_type);
 
 	//element ReportGeneration
@@ -581,8 +589,40 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeAttribute("value", term.toString());
 		w.writeEndElement();
 	}
-
 	w.writeEndElement();
+
+	//add QC data of RNA sample
+	QString sample_id = db_.sampleId(data_.ps);
+
+	//get ids of all RNA processed samples corresponding to the current sample
+	QList<int> rna_ps_ids;
+	foreach (int rna_sample, db_.relatedSamples(sample_id.toInt(), "same sample", "RNA"))
+	{
+		rna_ps_ids << db_.getValuesInt("SELECT id FROM processed_sample WHERE quality!='bad' AND sample_id=:0", QString::number(rna_sample));
+	}
+
+	if (rna_ps_ids.size() > 0)
+	{
+		std::sort(rna_ps_ids.rbegin(), rna_ps_ids.rend());
+		QString rna_ps_id = QString::number(rna_ps_ids.at(0));
+		w.writeStartElement("RNASample");
+		w.writeAttribute("name", db_.processedSampleName(rna_ps_id));
+		qc_data = db_.getQCData(rna_ps_id);
+		QSet<QString> valid_accessions = QSet<QString>() << "QC:2000005" << "QC:2000025" << "QC:2000101" << "QC:2000109";
+		for (int i=0; i<qc_data.count(); ++i)
+		{
+			const QCValue& term = qc_data[i];
+			if (!valid_accessions.contains(term.accession())) continue; //skip no-valid accession
+			w.writeStartElement("QcTerm");
+			w.writeAttribute("id", term.accession());
+			w.writeAttribute("name", term.name());
+			w.writeAttribute("def", term.description());
+			w.writeAttribute("value", term.toString());
+			w.writeEndElement();
+		}
+		w.writeEndElement();
+	}
+
 
 	//element TargetRegion (optional)
 	if (data_.roi.isValid())
@@ -741,6 +781,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		{
 			w.writeAttribute("comments_2nd_assessor", var_conf.comments2.trimmed());
 		}
+		w.writeAttribute("rna_info", var_conf.rna_info);
 		w.writeAttribute("report_type", var_conf.report_type);
 
 		//element TranscriptInformation
@@ -919,6 +960,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		{
 			w.writeAttribute("comments_2nd_assessor", var_conf.comments2.trimmed());
 		}
+		w.writeAttribute("rna_info", var_conf.rna_info);
 		w.writeAttribute("report_type", var_conf.report_type);
 
 		//element Gene
@@ -1071,6 +1113,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		{
 			w.writeAttribute("comments_2nd_assessor", var_conf.comments2.trimmed());
 		}
+		w.writeAttribute("rna_info", var_conf.rna_info);
 		w.writeAttribute("report_type", var_conf.report_type);
 
 		//TODO
@@ -1150,7 +1193,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	outfile->close();
 
 	//validate written XML file
-	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/GermlineReport_v7.xsd");
+	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/GermlineReport_v8.xsd");
 	if (xml_error!="")
 	{
 		THROW(ProgrammingException, "Invalid germline report XML file " + filename+ " generated:\n" + xml_error);
@@ -1263,6 +1306,9 @@ QString GermlineReportGenerator::trans(const QString& text)
 	{
 		en2de["male"] = "m&auml;nnlich";
 		en2de["female"] = "weiblich";
+		en2de["splicing effect validated by RNA dataset"] = "Splicing-Effekt mit RNA-Daten validiert";
+		en2de["no splicing effect found in RNA dataset"] = "kein Splicing-Effekt in RNA-Daten gefunden";
+		en2de["RNA dataset not usable"] = "RNA-Daten nicht nutzbar";
 	}
 
 	static QHash<QString, QString> de2en;
@@ -1375,6 +1421,13 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Population (gesch&auml;tzt aus NGS)"] = "population (estimated from NGS)";
 		de2en["Die Einsch&auml;tzung der klinischen Bedeutung eines PRS ist nur unter Verwendung eines entsprechenden validierten Risiko-Kalkulations-Programms und unter Ber&uuml;cksichtigung der ethnischen Zugeh&ouml;rigkeit m&ouml;glich (z.B. CanRisk.org f&uuml;r Brustkrebs)."] = "A validated risk estimation program must be used to judge the clinical importance of a PRS, e.g. CanRisk.org for breast cancer. The ethnicity of the patient must also be considered.";
 		de2en["nach L&uuml;ckenschluss"] = "after closing gaps";
+		de2en["splicing effect validated by RNA dataset"] = "splicing effect validated by RNA dataset";
+		de2en["no splicing effect found in RNA dataset"] = "no splicing effect found in RNA dataset";
+		de2en["RNA dataset not usable"] = "RNA dataset not usable";
+		de2en["Abdeckungsstatistik der RNA-Probe"] = "Coverage statistics of RNA sample";
+		de2en["Abgedeckte Gene"] = "Covered genes";
+		de2en["Anzahl der Reads"] = "Number of reads";
+		de2en["Durchschnittliche Sequenziertiefe der Housekeeping-Gene"] = "Average sequencing depth of housekeeping genes";
 	}
 
 	//translate
@@ -1710,6 +1763,54 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 	}
 
 	if (extend==0) bases_ccds_sequenced_ = bases_sequenced;
+}
+
+void GermlineReportGenerator::writeRNACoverageReport(QTextStream& stream)
+{
+	//get all related RNA
+	QString sample_id = db_.sampleId(data_.ps);
+
+	//get ids of all RNA processed samples corresponding to the current sample
+	QList<int> rna_ps_ids;
+	foreach (int rna_sample, db_.relatedSamples(sample_id.toInt(), "same sample", "RNA"))
+	{
+		rna_ps_ids << db_.getValuesInt("SELECT id FROM processed_sample WHERE quality!='bad' AND sample_id=:0", QString::number(rna_sample));
+	}
+
+	if (rna_ps_ids.size() > 0)
+	{
+		std::sort(rna_ps_ids.rbegin(), rna_ps_ids.rend());
+
+		//get RNA QC
+		QString avg_cov = "";
+		QString avg_cov_housekeeping = "";
+		QString covered_genes = "";
+		QString read_count = "";
+		QCCollection stats;
+		try
+		{
+			stats = db_.getQCData(QString::number(rna_ps_ids.at(0)));
+		}
+		catch(...)
+		{
+		}
+
+		for (int i=0; i<stats.count(); ++i)
+		{
+			if (stats[i].accession()=="QC:2000005") read_count = stats[i].toString();
+			if (stats[i].accession()=="QC:2000025") avg_cov = stats[i].toString();
+			if (stats[i].accession()=="QC:2000101") avg_cov_housekeeping = stats[i].toString();
+			if (stats[i].accession()=="QC:2000109") covered_genes = stats[i].toString();
+		}
+		stream << endl;
+		stream << "<p><b>" << trans("Abdeckungsstatistik der RNA-Probe") << "</b>" << endl;
+		stream << "<br />" << trans("Anzahl der Reads") << ": " << QString::number((double) read_count.toInt()/1000000.0, 'f', 2) << " Mio" << endl;
+		stream << "<br />" << trans("Durchschnittliche Sequenziertiefe") << ": " << avg_cov << endl;
+		stream << "<br />" << trans("Durchschnittliche Sequenziertiefe der Housekeeping-Gene") << ": " << avg_cov_housekeeping << endl;
+		stream << "<br />" << trans("Abgedeckte Gene") << ": " << covered_genes << endl;
+		stream << "</p>" << endl;
+	}
+
 }
 
 QByteArray GermlineReportGenerator::formatGenotype(GenomeBuild build, const QByteArray& gender, const QByteArray& genotype, const Variant& variant)
@@ -2078,6 +2179,7 @@ void GermlineReportGenerator::printVariantSheetRowHeader(QTextStream& stream, bo
 	stream << "       <th style='white-space: nowrap'>Kommentar 2. Auswerter</th>" << endl;
 	stream << "       <th>Klasse</th>" << endl;
 	stream << "       <th style='white-space: nowrap'>In Report</th>" << endl;
+	stream << "       <th>RNA</th>" << endl;
 	stream << "     </tr>" << endl;
 }
 
@@ -2151,6 +2253,7 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 	stream << "       <td>" << conf.comments2 << "</td>" << endl;
 	stream << "       <td>" << v.annotations()[i_class] << "</td>" << endl;
 	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << " (" << conf.report_type << ")</td>" << endl;
+	stream << "       <td>" << trans(conf.rna_info) << "</td>" << endl;
 	stream << "     </tr>" << endl;
 }
 
@@ -2173,6 +2276,7 @@ void GermlineReportGenerator::printVariantSheetRowHeaderCnv(QTextStream& stream,
 	stream << "       <th style='white-space: nowrap'>Kommentar 2. Auswerter</th>" << endl;
 	stream << "       <th>Klasse</th>" << endl;
 	stream << "       <th style='white-space: nowrap'>In Report</th>" << endl;
+	stream << "       <th>RNA</th>" << endl;
 	stream << "     </tr>" << endl;
 }
 
@@ -2196,6 +2300,7 @@ void GermlineReportGenerator::printVariantSheetRowCnv(QTextStream& stream, const
 	stream << "       <td>" << conf.comments2 << "</td>" << endl;
 	stream << "       <td>" << conf.classification << "</td>" << endl;
 	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << " (" << conf.report_type << ")</td>" << endl;
+	stream << "       <td>" << trans(conf.rna_info) << "</td>" << endl;
 	stream << "     </tr>" << endl;
 }
 
@@ -2218,6 +2323,7 @@ void GermlineReportGenerator::printVariantSheetRowHeaderSv(QTextStream& stream, 
 	stream << "       <th style='white-space: nowrap'>Kommentar 2. Auswerter</th>" << endl;
 	stream << "       <th>Klasse</th>" << endl;
 	stream << "       <th style='white-space: nowrap'>In Report</th>" << endl;
+	stream << "       <th>RNA</th>" << endl;
 	stream << "     </tr>" << endl;
 }
 
@@ -2244,6 +2350,7 @@ void GermlineReportGenerator::printVariantSheetRowSv(QTextStream& stream, const 
 	stream << "       <td>" << conf.comments2 << "</td>" << endl;
 	stream << "       <td>" << conf.classification << "</td>" << endl;
 	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << " (" << conf.report_type << ")</td>" << endl;
+	stream << "       <td>" << trans(conf.rna_info) << "</td>" << endl;
 	stream << "     </tr>" << endl;
 }
 

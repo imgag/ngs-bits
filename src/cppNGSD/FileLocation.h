@@ -46,6 +46,7 @@ enum class PathType
 	EXPRESSION_COHORT, //relative RNA expressions values from RNA cohort of this sample (TSV format)
 	EXPRESSION_STATS, //statistical summary of ENA expression valuesfrom RNA cohort of tis sample (TSV format),
 	EXPRESSION_CORR, //statistical correlation to other samples of the cohort
+	EXPRESSION_EXON, //relative exon RNA expressions values from RNA (TSV format)
 	SPLICING_BED, //splicing junctions from RNA (BED format)
 	VIRAL, //viral DNA detected in tumor samples (TSV format)
 	VCF_CF_DNA, //cfDNA variants file (VCF format)
@@ -183,6 +184,8 @@ struct FileLocation
 				return "EXPRESSION_CORR";
 			case PathType::EXPRESSION_STATS:
 				return "EXPRESSION_STATS";
+			case PathType::EXPRESSION_EXON:
+				return "EXPRESSION_EXON";
 			case PathType::MRD_CF_DNA:
 				return "MRD_CF_DNA";
 			case PathType::CFDNA_CANDIDATES:
@@ -232,6 +235,7 @@ struct FileLocation
 		if (in_upper == "EXPRESSION_COHORT") return PathType::EXPRESSION_COHORT;
 		if (in_upper == "EXPRESSION_CORR") return PathType::EXPRESSION_CORR;
 		if (in_upper == "EXPRESSION_STATS") return PathType::EXPRESSION_STATS;
+		if (in_upper == "EXPRESSION_EXON") return PathType::EXPRESSION_EXON;
 		if (in_upper == "MRD_CF_DNA") return PathType::MRD_CF_DNA;
 		if (in_upper == "CFDNA_CANDIDATES") return PathType::CFDNA_CANDIDATES;
 		if (in_upper == "IGV_SCREENSHOT") return PathType::IGV_SCREENSHOT;
@@ -312,6 +316,8 @@ struct FileLocation
 				return "RNA expression cohort statistics";
 			case PathType::EXPRESSION_CORR:
 				return "RNA epxression correlation to cohort";
+			case PathType::EXPRESSION_EXON:
+				return "RNA relative exon expression";
 			case PathType::MRD_CF_DNA:
 				return "measurable residual disease value (umiVar 2)";
 			case PathType::CFDNA_CANDIDATES:

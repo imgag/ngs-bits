@@ -15,7 +15,7 @@
 #include <QMessageBox>
 #include "GlobalServiceProvider.h"
 #include "AnalysisInformationWidget.h"
-#include "ExpressionDataWidget.h"
+#include "ExpressionGeneWidget.h"
 #include "FusionWidget.h"
 #include "GenLabImportDialog.h"
 #include "GenLabDB.h"
@@ -656,8 +656,8 @@ void ProcessedSampleWidget::openExpressionWidget()
 		NGSD db;
 		int sys_id = db.processingSystemIdFromProcessedSample(processedSampleName());
 		QString tissue = db.getSampleData(db.sampleId(sampleName())).tissue;
-		ExpressionDataWidget* widget = new ExpressionDataWidget(file_location.filename, sys_id, tissue, this);
-		auto dlg = GUIHelper::createDialog(widget, "Expression Data");
+		ExpressionGeneWidget* widget = new ExpressionGeneWidget(file_location.filename, sys_id, tissue, "", GeneSet(), db.getProcessedSampleData(ps_id_).project_name, ps_id_, RNA_COHORT_GERMLINE, this);
+		auto dlg = GUIHelper::createDialog(widget, "Expression Data of " + db.processedSampleName(ps_id_));
 		dlg->exec();
 	}
 	else

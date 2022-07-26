@@ -84,6 +84,7 @@ private:
 	void writeCoverageReport(QTextStream& stream);
 	void writeClosedGapsReport(QTextStream& stream);
 	void writeCoverageReportCCDS(QTextStream& stream, int extend, bool gap_table=true, bool gene_details=true);
+	void writeRNACoverageReport(QTextStream& stream);
 	static QByteArray formatGenotype(GenomeBuild build, const QByteArray& gender, const QByteArray& genotype, const Variant& variant);
 	QString formatCodingSplicing(const QList<VariantTranscript>& transcripts);
 	static QString convertOtherVariantType(const QString& type, bool xml=false);

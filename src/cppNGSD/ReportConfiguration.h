@@ -32,6 +32,7 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	bool exclude_other; //other reason
 	QString comments; //comments of 1. evaluation
 	QString comments2; //comments of 2. evaluation
+	QString rna_info;
 
 	//Returns options for 'type' (taken and cached from NGSD)
 	static QStringList getTypeOptions();
@@ -39,6 +40,8 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	static QStringList getInheritanceModeOptions();
 	//Returns options for 'class' (taken and cached from NGSD)
 	static QStringList getClassificationOptions();
+	//Returns options for 'rna_info' (taken and cached from NGSD)
+	static QStringList getRnaInfoOptions();
 };
 
 ///struct to handle other causal variants
