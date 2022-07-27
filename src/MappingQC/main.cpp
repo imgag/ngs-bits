@@ -113,7 +113,7 @@ public:
 
 		//sample contamination
 		QCCollection metrics_cont;
-		if (!getFlag("no_cont"))
+		if (!getFlag("no_cont") && getEnum("build") != "non_human")
 		{
 			GenomeBuild build = stringToBuild(getEnum("build"));
 			metrics_cont = Statistics::contamination(build, in, ref_file, debug);
