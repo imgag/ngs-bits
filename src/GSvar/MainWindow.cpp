@@ -4264,6 +4264,16 @@ void MainWindow::generateReportSomaticRTF()
 		{
 			QDesktopServices::openUrl(QUrl::fromLocalFile(file_rep) );
 		}
+
+		//reminder of MTB upload
+		QStringList studies = db.getValues("SELECT s.name FROM study s, study_sample ss WHERE s.id=ss.study_id AND ss.processed_sample_id=" + ps_tumor_id);
+		if (studies.contains("MTB"))
+		{
+			if (QMessageBox::question(this, "DNA report", "This sample is part of the study 'MTB'.\nDo you want to upload the data to MTB now?")==QMessageBox::Yes)
+			{
+				transferSomaticData();
+			}
+		}
 	}
 	else //RNA report
 	{
