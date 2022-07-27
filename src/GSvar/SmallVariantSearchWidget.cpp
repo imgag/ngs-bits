@@ -63,7 +63,7 @@ void SmallVariantSearchWidget::updateVariants()
 			{
 				//check gene name
 				NGSD db;
-				int gene_id = db.geneToApprovedID(gene);
+				int gene_id = db.geneId(gene);
 				if (gene_id==-1)
 				{
 					comments.append("Error: Gene name '" + gene + "' is not a HGNC-approved symbol => Skipping it!");

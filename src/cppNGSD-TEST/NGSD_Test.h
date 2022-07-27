@@ -202,10 +202,10 @@ private slots:
 		S_EQUAL(gene_app3[1].first, "QARS1");
 		S_EQUAL(gene_app3[1].second, "REPLACED: QARS is a previous symbol");
 
-		//geneToApprovedID
-		int gene_app_id = db.geneToApprovedID("BRCA1");
+		//geneID
+		int gene_app_id = db.geneId("BRCA1");
 		I_EQUAL(gene_app_id, 1);
-		gene_app_id = db.geneToApprovedID("BLABLA");
+		gene_app_id = db.geneId("BLABLA");
 		I_EQUAL(gene_app_id, -1);
 
 		//genesOverlapping
@@ -472,6 +472,14 @@ private slots:
 		I_EQUAL(transcript.regions().baseCount(), 202);
 		I_EQUAL(transcript.codingRegions().count(), 2);
 		I_EQUAL(transcript.codingRegions().baseCount(), 202);
+
+		//geneIdOfTranscript
+		I_EQUAL(db.geneIdOfTranscript("BRCA1_TR1"), 1);
+		I_EQUAL(db.geneIdOfTranscript("BRCA2_TR1"), 2);
+		I_EQUAL(db.geneIdOfTranscript("NIPA1_TR1"), 3);
+		I_EQUAL(db.geneIdOfTranscript("NIPA1_TR2"), 3);
+		I_EQUAL(db.geneIdOfTranscript("NON-CODING_TR1"), 4);
+		I_EQUAL(db.geneIdOfTranscript("HARSTEM_ROX", false), -1); //not present
 
 		//geneInfo
 		GeneInfo ginfo = db.geneInfo("BRCA1");

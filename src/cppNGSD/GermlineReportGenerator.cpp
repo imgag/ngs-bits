@@ -644,7 +644,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		//contained genes
 		foreach(const QByteArray& gene, data_.roi.genes)
 		{
-			int gene_id = db_.geneToApprovedID(gene);
+			int gene_id = db_.geneId(gene);
 			if (gene_id==-1) continue;
 
 			w.writeStartElement("Gene");
@@ -793,7 +793,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			{
 				w.writeStartElement("TranscriptInformation");
 				w.writeAttribute("gene", trans.gene);
-				int gene_id = db_.geneToApprovedID(trans.gene);
+				int gene_id = db_.geneId(trans.gene);
 				w.writeAttribute("gene_identifier", gene_id==-1 ? "n/a" : db_.geneHgncId(gene_id));
 				w.writeAttribute("transcript_id", trans.id);
 				w.writeAttribute("type", trans.type);
@@ -835,7 +835,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 				{
 					w.writeStartElement("GeneDiseaseInformation");
 					w.writeAttribute("gene", gene);
-					int gene_id = db_.geneToApprovedID(gene);
+					int gene_id = db_.geneId(gene);
 					w.writeAttribute("gene_identifier", gene_id==-1 ? "n/a" : db_.geneHgncId(gene_id));
 					w.writeAttribute("source", query.value("source").toString());
 					w.writeAttribute("identifier", query.value("identifier").toString());
@@ -850,7 +850,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 					//gene
 					w.writeStartElement("GeneDiseaseInformation");
 					w.writeAttribute("gene", omim_info.gene_symbol);
-					int gene_id = db_.geneToApprovedID(omim_info.gene_symbol);
+					int gene_id = db_.geneId(omim_info.gene_symbol);
 					w.writeAttribute("gene_identifier", gene_id==-1 ? "n/a" : db_.geneHgncId(gene_id));
 					w.writeAttribute("source", "OMIM gene");
 					w.writeAttribute("identifier", omim_info.mim);
@@ -862,7 +862,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 					{
 						w.writeStartElement("GeneDiseaseInformation");
 						w.writeAttribute("gene", omim_info.gene_symbol);
-						int gene_id = db_.geneToApprovedID(omim_info.gene_symbol);
+						int gene_id = db_.geneId(omim_info.gene_symbol);
 						w.writeAttribute("gene_identifier", gene_id==-1 ? "n/a" : db_.geneHgncId(gene_id));
 						w.writeAttribute("source", "OMIM phenotype");
 						QString accession = pheno.accession().trimmed();
@@ -883,7 +883,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			{
 				w.writeStartElement("GeneInheritanceInformation");
 				w.writeAttribute("gene", gene);
-				int gene_id = db_.geneToApprovedID(gene);
+				int gene_id = db_.geneId(gene);
 				w.writeAttribute("gene_identifier", gene_id==-1 ? "n/a" : db_.geneHgncId(gene_id));
 				w.writeAttribute("inheritance", gene_info.inheritance);
 				w.writeEndElement();
@@ -968,7 +968,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		{
 			w.writeStartElement("Gene");
 			w.writeAttribute("name", gene);
-			int gene_id = db_.geneToApprovedID(gene);
+			int gene_id = db_.geneId(gene);
 			w.writeAttribute("identifier", gene_id==-1 ? "n/a" : db_.geneHgncId(gene_id));
 			w.writeEndElement();
 		}
@@ -1126,7 +1126,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		{
 			w.writeStartElement("Gene");
 			w.writeAttribute("name", gene);
-			int gene_id = db_.geneToApprovedID(gene);
+			int gene_id = db_.geneId(gene);
 			w.writeAttribute("identifier", gene_id==-1 ? "n/a" : db_.geneHgncId(gene_id));
 			w.writeEndElement();
 		}
@@ -1668,7 +1668,7 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 	GeneSet genes_notranscript;
 	foreach(const QByteArray& gene, data_.roi.genes)
 	{
-		int gene_id = db_.geneToApprovedID(gene);
+		int gene_id = db_.geneId(gene);
 		if (gene_id==-1) continue;
 
 		//approved gene symbol

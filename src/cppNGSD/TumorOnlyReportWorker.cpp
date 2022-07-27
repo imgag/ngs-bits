@@ -132,7 +132,7 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 		w.writeStartElement("Gene");
 		w.writeAttribute("name", gene);
 		w.writeAttribute("id", gene_info.hgnc_id);
-		int gene_id = db_.geneToApprovedID(gene);
+		int gene_id = db_.geneId(gene);
 		Transcript transcript = db_.longestCodingTranscript(gene_id, Transcript::ENSEMBL, true, true);
 		w.writeAttribute("bases", QString::number(transcript.regions().baseCount()));
 
@@ -303,7 +303,7 @@ QByteArray TumorOnlyReportWorker::trans(QByteArray english)
 QByteArray TumorOnlyReportWorker::exonNumber(QByteArray gene, int start, int end)
 {
 	//get approved gene name
-	int gene_id = db_.geneToApprovedID(gene);
+	int gene_id = db_.geneId(gene);
 	if (gene_id==-1) return "";
 	gene = db_.geneSymbol(gene_id);
 

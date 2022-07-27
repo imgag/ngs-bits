@@ -1032,7 +1032,6 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==PathType::COPY_NUMBER_CALLS) output += ps_name + "_cnvs_clincnv.tsv";
 	else if (type==PathType::FUSIONS) output += ps_name + "_fusions_arriba.tsv";
 	else if (type==PathType::FUSIONS_PIC_DIR) output += ps_name + "_fusions_arriba_pics";
-	else if (type==PathType::STAR_FUSIONS) output += ps_name + "_var_fusions.tsv";
 	else if (type==PathType::FUSIONS_BAM) output += ps_name + "_fusions_arriba.bam";
 	else if (type==PathType::SPLICING_BED) output += ps_name + "_splicing.bed";
 	else if (type==PathType::MANTA_FUSIONS) output +=  ps_name + "_var_fusions_manta.bedpe";
@@ -1763,10 +1762,6 @@ QMap<QByteArray, QByteArray> NGSD::getGeneEnsemblMapping()
 
 QVector<double> NGSD::getGeneExpressionValues(const QByteArray& gene, int sys_id, const QString& tissue_type, bool log2)
 {
-	// debug
-	QTime timer;
-	timer.start();
-
 	QVector<double> expr_values;
 	QByteArray gene_approved = geneToApproved(gene);
 	if (gene_approved.isEmpty()) return expr_values;
@@ -1788,8 +1783,6 @@ QVector<double> NGSD::getGeneExpressionValues(const QByteArray& gene, int sys_id
 		}
 
 	}
-
-	qDebug() << "Get expression values (single query): " << Helper::elapsedTime(timer);
 
 	return expr_values;
 }
@@ -1844,10 +1837,6 @@ QVector<double> NGSD::getGeneExpressionValues(const QByteArray& gene, QVector<in
 
 QVector<double> NGSD::getExonExpressionValues(const BedLine& exon, QSet<int> cohort, bool log2)
 {
-	// debug
-	QTime timer;
-	timer.start();
-
 	QVector<double> expr_values;
 
 	QList<int> cohort_sorted = cohort.toList();
@@ -1877,8 +1866,6 @@ QVector<double> NGSD::getExonExpressionValues(const BedLine& exon, QSet<int> coh
 		}
 
 	}
-
-	qDebug() << "Get expression values: " << Helper::elapsedTime(timer) << " size: " << expr_values.size();
 
 	return expr_values;
 }
@@ -1930,7 +1917,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<i
 	else
 	{
 		//check if gene name is approved symbol
-		int gene_id = geneToApprovedID(gene_symbol);
+		int gene_id = geneId(gene_symbol);
 		if (gene_id < 0 ) THROW(ArgumentException, "'" + gene_symbol + "' is not an approved gene symbol!");
 
 		q_str = QString(
@@ -3980,7 +3967,7 @@ void NGSD::setSomaticGeneRole(const SomaticGeneRole& gene_role)
 {
 	QByteArray symbol = geneToApproved(gene_role.gene);
 
-	if(geneToApprovedID(symbol) == -1)
+	if(geneId(symbol) == -1)
 	{
 		THROW(DatabaseException, "Could not find gene symbol '" + symbol + "' in the NGSD in NGSD::setSomaticGeneRole!");
 	}
@@ -4895,12 +4882,23 @@ bool NGSD::rollback()
 	return false;
 }
 
-int NGSD::geneToApprovedID(const QByteArray& gene)
+int NGSD::geneId(const QByteArray& gene)
 {
+	QHash<QByteArray, int>& gene2id = getCache().gene2id;
+
+	//check cache first
+	int cache_id = gene2id.value(gene, -1);
+	if (cache_id!=-1)
+	{
+		return cache_id;
+	}
+
 	//approved
 	if (approvedGeneNames().contains(gene))
 	{
-		return getValue("SELECT id FROM gene WHERE symbol='" + gene + "'").toInt();
+		int gene_id = getValue("SELECT id FROM gene WHERE symbol='" + gene + "'").toInt();
+		gene2id.insert(gene, gene_id);
+		return gene_id;
 	}
 
 	//previous
@@ -4911,10 +4909,13 @@ int NGSD::geneToApprovedID(const QByteArray& gene)
 	if (q_prev.size()==1)
 	{
 		q_prev.next();
-		return q_prev.value(0).toInt();
+		int gene_id = q_prev.value(0).toInt();
+		gene2id.insert(gene, gene_id);
+		return gene_id;
 	}
 	else if(q_prev.size()>1)
 	{
+		gene2id.insert(gene, -1);
 		return -1;
 	}
 
@@ -4926,10 +4927,49 @@ int NGSD::geneToApprovedID(const QByteArray& gene)
 	if (q_syn.size()==1)
 	{
 		q_syn.next();
-		return q_syn.value(0).toInt();
+		int gene_id = q_syn.value(0).toInt();
+		gene2id.insert(gene, gene_id);
+		return gene_id;
 	}
 
+	gene2id.insert(gene, -1);
 	return -1;
+}
+
+int NGSD::geneIdOfTranscript(const QByteArray& name, bool throw_on_error, GenomeBuild build)
+{
+	//Ensembl / CCDS
+	int trans_id = transcriptId(name, false);
+	if (trans_id!=-1)
+	{
+		return getValue("SELECT gene_id FROM gene_transcript WHERE id=:0", false, QString::number(trans_id)).toInt();
+	}
+
+	//RefSeq (via our transcript mapping)
+	QByteArray name_nover = name;
+	if (name_nover.contains('.')) name_nover = name_nover.left(name_nover.indexOf('.'));
+	const QMap<QByteArray, QByteArrayList>& matches = NGSHelper::transcriptMatches(build);
+	QByteArrayList tmp = matches.value(name_nover);
+	foreach(QByteArray match, tmp)
+	{
+		match = match.trimmed();
+		if (match.startsWith("ENST"))
+		{
+			trans_id = transcriptId(match, false);
+			if (trans_id!=-1)
+			{
+				return getValue("SELECT gene_id FROM gene_transcript WHERE id=:0", false, QString::number(trans_id)).toInt();
+			}
+		}
+	}
+
+	//not found
+	if (throw_on_error)
+	{
+		THROW(DatabaseException, "No transcript with name '" + name + "' found in NGSD!");
+	}
+
+	return -1; //invalid
 }
 
 QByteArray NGSD::geneSymbol(int id)
@@ -4956,7 +4996,7 @@ QByteArray NGSD::geneToApproved(QByteArray gene, bool return_input_when_unconver
 	QMap<QByteArray, QByteArray>& mapping = getCache().non_approved_to_approved_gene_names;
 	if (!mapping.contains(gene))
 	{
-		int gene_id = geneToApprovedID(gene);
+		int gene_id = geneId(gene);
 		mapping[gene] = (gene_id!=-1) ? geneSymbol(gene_id) : "";
 	}
 
@@ -5622,7 +5662,7 @@ BedFile NGSD::geneToRegions(const QByteArray& gene, Transcript::SOURCE source, Q
 	BedFile output;
 
 	//get approved gene id
-	int id = geneToApprovedID(gene);
+	int id = geneId(gene);
 	if (id==-1)
 	{
 		if (messages) *messages << "Gene name '" << gene << "' is no HGNC-approved symbol. Skipping it!" << endl;
@@ -7448,6 +7488,7 @@ void NGSD::clearCache()
 	cache_instance.same_samples.clear();
 	cache_instance.related_samples.clear();
 	cache_instance.approved_gene_names.clear();
+	cache_instance.gene2id.clear();
 	cache_instance.enum_values.clear();
 	cache_instance.non_approved_to_approved_gene_names.clear();
 	cache_instance.phenotypes_by_id.clear();

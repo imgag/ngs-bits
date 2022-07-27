@@ -603,8 +603,10 @@ public:
 	bool rollback();
 
 	/*** gene/transcript handling ***/
-	///Returns the gene ID, or -1 if none approved gene name could be found. Checks approved symbols, previous symbols and synonyms.
-	int geneToApprovedID(const QByteArray& gene);
+	///Returns the gene ID, or -1 if no approved gene name could be found. Checks approved symbols, previous symbols and synonyms. Uses internal cache to speed up repeated queries of the same gene name.
+	int geneId(const QByteArray& gene);
+	///Returns the gene ID of the transcript, or -1 if no gene could be determined.
+	int geneIdOfTranscript(const QByteArray& name, bool throw_on_error=true, GenomeBuild build=GenomeBuild::HG38);
 	///Returns the gene symbol for a gene ID.
 	QByteArray geneSymbol(int id);
 	///Returns the HGNC identifier of a gene.
@@ -1029,6 +1031,7 @@ protected:
 		QHash<int, QSet<int>> same_samples;
 		QHash<int, QSet<int>> related_samples;
 		GeneSet approved_gene_names;
+		QHash<QByteArray, int> gene2id;
 		QMap<QString, QStringList> enum_values;
 		QMap<QByteArray, QByteArray> non_approved_to_approved_gene_names;
 		QHash<int, Phenotype> phenotypes_by_id;

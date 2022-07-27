@@ -401,7 +401,7 @@ public:
 			QByteArrayList hpo_terms = parts[7].trimmed().split(';');
 
 			//verify information
-			int gene_db_id = db.geneToApprovedID(gene);
+			int gene_db_id = db.geneId(gene);
 
 			if (gene_db_id == -1)
 			{
@@ -508,7 +508,7 @@ public:
 				continue;
 			}
 
-			int gene_db_id = db.geneToApprovedID(gene_symbol);
+			int gene_db_id = db.geneId(gene_symbol);
 			if (gene_db_id == -1) continue;
 			ExactSources e_src = ExactSources();
 			e_src.disease2gene = QString("GenCC line") + QString::number(lineCount);
@@ -775,7 +775,7 @@ public:
 			QByteArray gene = parts[3].trimmed();
 			QByteArray term_accession = parts[0].trimmed();
 
-			int gene_db_id = db.geneToApprovedID(gene);
+			int gene_db_id = db.geneId(gene);
 			int term_db_id = id2ngsd.value(term_accession, -1);
 
 			if (term_db_id!=-1)
@@ -859,7 +859,7 @@ public:
 				{
 					//make sure the gene symbol is approved by HGNC
 					gene = gene.trimmed();
-					int approved_id = db.geneToApprovedID(gene);
+					int approved_id = db.geneId(gene);
 					if (approved_id==-1)
 					{
 						if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!\n";
@@ -939,7 +939,7 @@ public:
 				foreach(const QByteArray& gene, genes)
 				{
 					//make sure the gene symbol is approved by HGNC
-					int approved_id = db.geneToApprovedID(gene);
+					int approved_id = db.geneId(gene);
 					if (approved_id==-1)
 					{
 						if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << endl;
@@ -1118,7 +1118,7 @@ public:
 						foreach(const QByteArray& gene, phenid2gene_mapping.values(phen_id))
 						{
 							//make sure the gene symbol is approved by HGNC
-							int approved_id = db.geneToApprovedID(gene);
+							int approved_id = db.geneId(gene);
 							if (approved_id==-1)
 							{
 									if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol (HGMD file)!" << endl;

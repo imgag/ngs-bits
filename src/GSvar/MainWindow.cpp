@@ -2877,7 +2877,7 @@ void MainWindow::openGeneTab(QString symbol)
 	int index = openTab(QIcon(":/Icons/NGSD_gene.png"), symbol, widget);
 	if (Settings::boolean("debug_mode_enabled"))
 	{
-		ui_.tabs->setTabToolTip(index, "NGSD ID: " + QString::number(NGSD().geneToApprovedID(symbol.toLatin1())));
+		ui_.tabs->setTabToolTip(index, "NGSD ID: " + QString::number(NGSD().geneId(symbol.toLatin1())));
 	}
 }
 
@@ -4207,6 +4207,16 @@ void MainWindow::generateReportSomaticRTF()
 		{
 			QDesktopServices::openUrl(QUrl::fromLocalFile(file_rep) );
 		}
+
+		//reminder of MTB upload
+		QStringList studies = db.getValues("SELECT s.name FROM study s, study_sample ss WHERE s.id=ss.study_id AND ss.processed_sample_id=" + ps_tumor_id);
+		if (studies.contains("MTB"))
+		{
+			if (QMessageBox::question(this, "DNA report", "This sample is part of the study 'MTB'.\nDo you want to upload the data to MTB now?")==QMessageBox::Yes)
+			{
+				transferSomaticData();
+			}
+		}
 	}
 	else //RNA report
 	{
@@ -4430,8 +4440,15 @@ QString MainWindow::selectGene()
 	auto dlg = GUIHelper::createDialog(selector, "Select gene", "symbol:", true);
 	if (dlg->exec()==QDialog::Rejected) return "";
 
-	//handle invalid name
-	if (selector->getId()=="") return "";
+	//handle invalid gene name > check if it is a transcript name
+	if (selector->getId()=="")
+	{
+		int gene_id = db.geneIdOfTranscript(selector->text().toUtf8(), false, GSvarHelper::build());
+		if (gene_id!=-1)
+		{
+			return db.geneSymbol(gene_id);
+		}
+	}
 
 	return selector->text();
 }
@@ -4446,7 +4463,7 @@ QString MainWindow::selectProcessedSample()
     }
 
     //no samples => error
-    if (ps_list.isEmpty())
+	if (ps_list.isEmpty())
     {
         THROW(ProgrammingException, "selectProcessedSample() cannot be used if there is no variant list loaded!");
     }
