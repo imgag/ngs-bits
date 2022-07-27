@@ -169,7 +169,6 @@ MainWindow::MainWindow(QWidget *parent)
 	rna_menu_btn_->menu()->addAction(ui_.actionExpressionData);
 	rna_menu_btn_->menu()->addAction(ui_.actionExonExpressionData);
 	rna_menu_btn_->menu()->addAction(ui_.actionShowRnaFusions);
-	rna_menu_btn_->menu()->addAction(ui_.actionShowCohortExpressionData);
 	rna_menu_btn_->menu()->addAction(ui_.actionShowProcessingSystemCoverage);
 	rna_menu_btn_->setPopupMode(QToolButton::InstantPopup);
 //	rna_menu_btn_->setEnabled(false);
@@ -1623,7 +1622,6 @@ void MainWindow::on_actionExonExpressionData_triggered()
 	ExpressionExonWidget* widget = new ExpressionExonWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, project, rna_ps_id, cohort_type, this);
 	auto dlg = GUIHelper::createDialog(widget, "Expression Data of " + db.processedSampleName(rna_ps_id));
 	addModelessDialog(dlg, false);
-
 }
 
 void MainWindow::on_actionShowRnaFusions_triggered()
@@ -1671,54 +1669,6 @@ void MainWindow::on_actionShowRnaFusions_triggered()
 	addModelessDialog(dlg);
 }
 
-void MainWindow::on_actionShowCohortExpressionData_triggered()
-{
-	if (filename_=="") return;
-	if (!LoginManager::active()) return;
-
-	NGSD db;
-
-	//get all available files
-	QStringList cohort_expression_files;
-	foreach (int rna_sample_id, db.relatedSamples(db.sampleId(variants_.mainSampleName()).toInt(), "same sample", "RNA"))
-	{
-		// check for required files
-		foreach (const QString& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", QString::number(rna_sample_id)))
-		{
-			// search for fusion file
-			FileLocation cohort_expression_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_COHORT);
-			if (cohort_expression_file.exists) cohort_expression_files << cohort_expression_file.filename;
-		}
-	}
-
-	if (cohort_expression_files.isEmpty())
-	{
-		QMessageBox::warning(this, "Cohort expression data files missing", "Error: No RNA cohort expression data files of corresponding RNA samples found!");
-		return;
-	}
-
-	//select file to open
-	QString cohort_expression_filepath;
-	if (cohort_expression_files.size()==1)
-	{
-		cohort_expression_filepath = cohort_expression_files.at(0);
-	}
-	else
-	{
-		bool ok;
-		cohort_expression_filepath = QInputDialog::getItem(this, "Multiple files found", "Multiple RNA cohort expression data files found.\nPlease select a file:", cohort_expression_files, 0, false, &ok);
-		if (!ok) return;
-	}
-
-	QString rna_ps_id = db.processedSampleId(cohort_expression_filepath);
-	ProcessedSampleData rna_ps_info = db.getProcessedSampleData(rna_ps_id);
-
-	CohortExpressionDataWidget* cohort_expression_widget = new CohortExpressionDataWidget(cohort_expression_filepath, this, rna_ps_info.project_name, rna_ps_info.processing_system);
-
-	auto dlg = GUIHelper::createDialog(cohort_expression_widget, "Cohort RNA expression of " + variants_.analysisName());
-	addModelessDialog(dlg);
-}
-
 void MainWindow::on_actionShowProcessingSystemCoverage_triggered()
 {
 	//set filter widget
@@ -1729,7 +1679,6 @@ void MainWindow::on_actionShowProcessingSystemCoverage_triggered()
 
 	auto dlg = GUIHelper::createDialog(expression_level_widget, "Expression of processing systems");
 	addModelessDialog(dlg);
-
 }
 
 void MainWindow::on_actionRE_triggered()
@@ -3301,7 +3250,6 @@ void MainWindow::loadFile(QString filename)
 	ui_.actionExpressionData->setEnabled(false);
 	ui_.actionExonExpressionData->setEnabled(false);
 	ui_.actionShowRnaFusions->setEnabled(false);
-	ui_.actionShowCohortExpressionData->setEnabled(false);
 	if (LoginManager::active())
 	{
 		NGSD db;
@@ -3328,11 +3276,6 @@ void MainWindow::loadFile(QString filename)
 					// search for arriba fusion file
 					FileLocation arriba_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS);
 					if (arriba_fusion_file.exists) ui_.actionShowRnaFusions->setEnabled(true);
-
-					// search for cohort expression file
-					//TODO: reactivate if expression values are stored in the NGSD
-//					FileLocation cohort_expression_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_COHORT);
-//					if (cohort_expression_file.exists) ui_.actionShowCohortExpressionData->setEnabled(true);
 				}
 			}
 		}

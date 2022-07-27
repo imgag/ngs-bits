@@ -58,10 +58,10 @@ chr1	188254	188254	C	A	het		QUAL=43;DP=23;AF=0.48;MQM=22;SAP=27;ABP=3	WASH9P	DDX
 chr1	494515	494515	T	A	hom		QUAL=397;DP=21;AF=0.90;MQM=33;SAP=6;ABP=0	CICP7,	CICP7 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)	0,	0,	nan,
 chr1	727717	727717	G	C	hom		QUAL=656;DP=26;AF=1.00;MQM=32;SAP=3;ABP=0		CICP3 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)			
 chr1	729454	729454	T	G	het		QUAL=46;DP=30;AF=0.47;MQM=24;SAP=33;ABP=3		CICP3 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)			
-chr1	868735	868735	G	A	hom	off-target	QUAL=387;DP=17;AF=1.00;MQM=36;SAP=32;ABP=0	FAM41C	FAM41C (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), TUBB8P11 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)	0	-5.05247	-0.57735
-chr1	873251	873251	G	A	hom	off-target	QUAL=945;DP=31;AF=1.00;MQM=60;SAP=47;ABP=0	FAM41C	FAM41C (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), TUBB8P11 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)	0	-5.05247	-0.57735
-chr1	873542	873542	G	A	hom		QUAL=6647;DP=210;AF=1.00;MQM=53;SAP=35;ABP=0	TUBB8P11,FAM41C	FAM41C (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), TUBB8P11 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)	,0	,-5.05247	,-0.57735
-chr1	873548	873548	C	T	hom		QUAL=6770;DP=212;AF=1.00;MQM=54;SAP=27;ABP=0	TUBB8P11,FAM41C	FAM41C (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), TUBB8P11 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)	,0	,-5.05247	,-0.57735
+chr1	868735	868735	G	A	hom	off-target	QUAL=387;DP=17;AF=1.00;MQM=36;SAP=32;ABP=0	FAM41C	FAM41C (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), TUBB8P11 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)	0	-5.05248	-0.57735
+chr1	873251	873251	G	A	hom	off-target	QUAL=945;DP=31;AF=1.00;MQM=60;SAP=47;ABP=0	FAM41C	FAM41C (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), TUBB8P11 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)	0	-5.05248	-0.57735
+chr1	873542	873542	G	A	hom		QUAL=6647;DP=210;AF=1.00;MQM=53;SAP=35;ABP=0	TUBB8P11,FAM41C	FAM41C (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), TUBB8P11 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)	,0	,-5.05248	,-0.57735
+chr1	873548	873548	C	T	hom		QUAL=6770;DP=212;AF=1.00;MQM=54;SAP=27;ABP=0	TUBB8P11,FAM41C	FAM41C (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), TUBB8P11 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)	,0	,-5.05248	,-0.57735
 chr1	961945	961945	G	C	hom		QUAL=8577;DP=261;AF=0.99;MQM=60;SAP=4;ABP=0	KLHL17	NOC2L (inh=n/a oe_syn=1.60 oe_mis=1.25 oe_lof=1.03), KLHL17 (inh=n/a oe_syn=1.79 oe_mis=1.08 oe_lof=0.91), PLEKHN1 (inh=n/a oe_syn=1.24 oe_mis=1.26 oe_lof=0.80)			
 chr1	962184	962184	T	C	hom		QUAL=8669;DP=262;AF=1.00;MQM=60;SAP=11;ABP=0	KLHL17	NOC2L (inh=n/a oe_syn=1.60 oe_mis=1.25 oe_lof=1.03), KLHL17 (inh=n/a oe_syn=1.79 oe_mis=1.08 oe_lof=0.91), PLEKHN1 (inh=n/a oe_syn=1.24 oe_mis=1.26 oe_lof=0.80)			
 chr1	962943	962943	T	C	hom	off-target	QUAL=2806;DP=86;AF=1.00;MQM=60;SAP=8;ABP=0	KLHL17	NOC2L (inh=n/a oe_syn=1.60 oe_mis=1.25 oe_lof=1.03), KLHL17 (inh=n/a oe_syn=1.79 oe_mis=1.08 oe_lof=0.91), PLEKHN1 (inh=n/a oe_syn=1.24 oe_mis=1.26 oe_lof=0.80)			
@@ -101,7 +101,7 @@ chr1	1629573	1629573	G	-	het		QUAL=776;DP=66;AF=0.50;MQM=60;SAP=8;ABP=3	MIB2	MIB
 chr1	1634663	1634663	C	G	het	off-target	QUAL=160;DP=37;AF=0.43;MQM=26;SAP=30;ABP=4	CDK11B,MIB2,MMP23B	MIB2 (inh=n/a oe_syn=1.24 oe_mis=0.93 oe_lof=0.42), MMP23B (inh=n/a oe_syn=1.11 oe_mis=0.77 oe_lof=0.66), CDK11B (inh=n/a oe_syn=1.42 oe_mis=0.72 oe_lof=0.42)	,,0	,,0	,,nan
 chr1	1636278	1636278	G	T	hom	off-target;low_conf_region	QUAL=466;DP=22;AF=0.91;MQM=40;SAP=46;ABP=0	CDK11B	MMP23B (inh=n/a oe_syn=1.11 oe_mis=0.77 oe_lof=0.66), CDK11B (inh=n/a oe_syn=1.42 oe_mis=0.72 oe_lof=0.42)			
 chr1	1638657	1638657	A	G	het	off-target	QUAL=131;DP=45;AF=0.27;MQM=43;SAP=15;ABP=24	CDK11B	MMP23B (inh=n/a oe_syn=1.11 oe_mis=0.77 oe_lof=0.66), CDK11B (inh=n/a oe_syn=1.42 oe_mis=0.72 oe_lof=0.42)			
-chr1	1701565	1701565	G	-	het	off-target	QUAL=787;DP=99;AF=0.63;MQM=26;SAP=4;ABP=17	MMP23A	MMP23A (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), CDK11A (inh=n/a oe_syn=1.36 oe_mis=1.13 oe_lof=0.94)	0	-3.43273	-0.57735
+chr1	1701565	1701565	G	-	het	off-target	QUAL=787;DP=99;AF=0.63;MQM=26;SAP=4;ABP=17	MMP23A	MMP23A (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), CDK11A (inh=n/a oe_syn=1.36 oe_mis=1.13 oe_lof=0.94)	0	-3.43272	-0.57735
 chr1	1703565	1703565	T	C	het		QUAL=1673;DP=137;AF=0.52;MQM=48;SAP=3;ABP=3	CDK11A,	MMP23A (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), CDK11A (inh=n/a oe_syn=1.36 oe_mis=1.13 oe_lof=0.94)	,	,	,
 chr1	1704180	1704180	T	C	het	off-target	QUAL=2496;DP=186;AF=0.51;MQM=59;SAP=4;ABP=3	CDK11A,	MMP23A (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), CDK11A (inh=n/a oe_syn=1.36 oe_mis=1.13 oe_lof=0.94)	,	,	,
 chr1	1704310	1704310	C	A	het		QUAL=1726;DP=162;AF=0.46;MQM=45;SAP=7;ABP=5	CDK11A,	MMP23A (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), CDK11A (inh=n/a oe_syn=1.36 oe_mis=1.13 oe_lof=0.94)	,	,	,
@@ -292,10 +292,10 @@ chr1	16062214	16062214	G	T	het	off-target	QUAL=3024;DP=179;AF=0.68;MQM=46;SAP=71
 chr1	16062262	16062262	A	-	het	off-target	QUAL=569;DP=46;AF=0.59;MQM=48;SAP=53;ABP=6	FAM131C	CLCNKB (inh=AR oe_syn=1.21 oe_mis=1.08 oe_lof=0.93), FAM131C (inh=n/a oe_syn=1.09 oe_mis=1.04 oe_lof=0.42)	0	-6.00964	-0.57735
 chr1	16062266	16062266	A	-	het	off-target	QUAL=569;DP=46;AF=0.59;MQM=48;SAP=53;ABP=6	FAM131C	CLCNKB (inh=AR oe_syn=1.21 oe_mis=1.08 oe_lof=0.93), FAM131C (inh=n/a oe_syn=1.09 oe_mis=1.04 oe_lof=0.42)	0	-6.00964	-0.57735
 chr1	16062268	16062271	CCCC	-	het	off-target	QUAL=569;DP=46;AF=0.59;MQM=48;SAP=53;ABP=6	FAM131C	CLCNKB (inh=AR oe_syn=1.21 oe_mis=1.08 oe_lof=0.93), FAM131C (inh=n/a oe_syn=1.09 oe_mis=1.04 oe_lof=0.42)	0	-6.00964	-0.57735
-chr1	16201723	16201723	G	T	het	off-target	QUAL=584;DP=40;AF=0.58;MQM=60;SAP=11;ABP=5	ARHGEF19	ARHGEF19-AS1 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), ARHGEF19 (inh=n/a oe_syn=0.86 oe_mis=0.87 oe_lof=0.86)	0	-5.54227	-0.57735
-chr1	16202348	16202348	A	G	het	off-target	QUAL=275;DP=26;AF=0.50;MQM=60;SAP=23;ABP=3	ARHGEF19	ARHGEF19-AS1 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), ARHGEF19 (inh=n/a oe_syn=0.86 oe_mis=0.87 oe_lof=0.86)	0	-5.54227	-0.57735
-chr1	16206527	16206527	C	T	het		QUAL=900;DP=64;AF=0.59;MQM=60;SAP=26;ABP=8	ARHGEF19	ARHGEF19 (inh=n/a oe_syn=0.86 oe_mis=0.87 oe_lof=0.86)	0	-5.54227	-0.57735
-chr1	16206949	16206949	T	C	het	low_conf_region	QUAL=538;DP=49;AF=0.47;MQM=60;SAP=8;ABP=3	ARHGEF19	ARHGEF19 (inh=n/a oe_syn=0.86 oe_mis=0.87 oe_lof=0.86)	0	-5.54227	-0.57735
+chr1	16201723	16201723	G	T	het	off-target	QUAL=584;DP=40;AF=0.58;MQM=60;SAP=11;ABP=5	ARHGEF19	ARHGEF19-AS1 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), ARHGEF19 (inh=n/a oe_syn=0.86 oe_mis=0.87 oe_lof=0.86)	0	-5.54226	-0.57735
+chr1	16202348	16202348	A	G	het	off-target	QUAL=275;DP=26;AF=0.50;MQM=60;SAP=23;ABP=3	ARHGEF19	ARHGEF19-AS1 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), ARHGEF19 (inh=n/a oe_syn=0.86 oe_mis=0.87 oe_lof=0.86)	0	-5.54226	-0.57735
+chr1	16206527	16206527	C	T	het		QUAL=900;DP=64;AF=0.59;MQM=60;SAP=26;ABP=8	ARHGEF19	ARHGEF19 (inh=n/a oe_syn=0.86 oe_mis=0.87 oe_lof=0.86)	0	-5.54226	-0.57735
+chr1	16206949	16206949	T	C	het	low_conf_region	QUAL=538;DP=49;AF=0.47;MQM=60;SAP=8;ABP=3	ARHGEF19	ARHGEF19 (inh=n/a oe_syn=0.86 oe_mis=0.87 oe_lof=0.86)	0	-5.54226	-0.57735
 chr1	16216442	16216442	T	G	het	off-target	QUAL=334;DP=38;AF=0.45;MQM=60;SAP=40;ABP=4	ANO7L1	ARHGEF19 (inh=n/a oe_syn=0.86 oe_mis=0.87 oe_lof=0.86), ANO7L1 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)			
 chr1	16251413	16251413	G	C	hom		QUAL=2827;DP=86;AF=1.00;MQM=60;SAP=18;ABP=0	FBXO42	FBXO42 (inh=n/a oe_syn=1.01 oe_mis=0.71 oe_lof=0.12)	0	-3.36573	-0.57735
 chr1	16294739	16294739	G	A	het	off-target	QUAL=1407;DP=105;AF=0.50;MQM=60;SAP=6;ABP=3	FBXO42	FBXO42 (inh=n/a oe_syn=1.01 oe_mis=0.71 oe_lof=0.12)	0	-3.36573	-0.57735

@@ -44,9 +44,9 @@ ExpressionExonWidget::ExpressionExonWidget(QString tsv_filename, int sys_id, QSt
 	connect(ui_->btn_copy_table,SIGNAL(clicked()),this,SLOT(copyToClipboard()));
 	ui_->sa_biotype->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui_->sa_biotype,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showBiotypeContextMenu(QPoint)));
-	connect(ui_->le_gene_filter, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
-	connect(ui_->sb_min_srpb_sample, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
-	connect(ui_->sb_min_rpb, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
+//	connect(ui_->le_gene_filter, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
+//	connect(ui_->sb_min_srpb_sample, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
+//	connect(ui_->sb_min_rpb, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
 	ui_->tw_expression_table->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui_->tw_expression_table,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showExpressionTableContextMenu(QPoint)));
 
@@ -76,6 +76,7 @@ void ExpressionExonWidget::loadExpressionFile()
 		QSharedPointer<VersatileFile> expression_data_file = Helper::openVersatileFileForReading(tsv_filename_, false);
 
 		//parse TSV file
+		QSet<QByteArray> imported_lines;
 		while (!expression_data_file->atEnd())
 		{
 			QString line = expression_data_file->readLine().replace("\n", "").replace("\r", "");
@@ -103,7 +104,12 @@ void ExpressionExonWidget::loadExpressionFile()
 			}
 			else
 			{
+				//skip duplicate lines
+				if(imported_lines.contains(line.toUtf8())) continue;
+
 				expression_data_.addRow(line.split('\t'));
+
+				imported_lines.insert(line.toUtf8());
 			}
 		}
 
@@ -502,7 +508,7 @@ void ExpressionExonWidget::applyFilters()
 			{
 				try
 				{
-					double min_logfc = ui_->sb_min_zscore->value();
+					double min_logfc = ui_->sb_min_logfc->value();
 					for(int row_idx=0; row_idx<expression_data_.rowCount(); ++row_idx)
 					{
 						//skip already filtered
@@ -516,7 +522,7 @@ void ExpressionExonWidget::applyFilters()
 						else
 						{
 							double log2fc = Helper::toDouble(value);
-							filter_result_.flags()[row_idx] = log2fc >= min_logfc;
+							filter_result_.flags()[row_idx] = fabs(log2fc) >= min_logfc;
 						}
 					}
 				}
@@ -559,7 +565,7 @@ void ExpressionExonWidget::applyFilters()
 						else
 						{
 							double zscore = Helper::toDouble(value);
-							filter_result_.flags()[row_idx] = zscore >= min_zscore;
+							filter_result_.flags()[row_idx] = fabs(zscore) >= min_zscore;
 						}
 					}
 				}

@@ -317,10 +317,10 @@
                 <bool>false</bool>
                </property>
                <attribute name="horizontalHeaderVisible">
-                <bool>true</bool>
+                <bool>false</bool>
                </attribute>
                <attribute name="verticalHeaderVisible">
-                <bool>true</bool>
+                <bool>false</bool>
                </attribute>
               </widget>
              </item>
@@ -357,7 +357,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>24</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1375,14 +1375,6 @@
     <string>BLAT search</string>
    </property>
   </action>
-  <action name="actionShowCohortExpressionData">
-   <property name="text">
-    <string>Show Cohort Expression Data</string>
-   </property>
-   <property name="toolTip">
-    <string>Shows the expression data of samples of the same cohort.</string>
-   </property>
-  </action>
   <action name="actionImportSampleHpoTerms">
    <property name="text">
     <string>Sample HPO terms</string>
@@ -1421,7 +1413,7 @@
    </property>
   </action>
   <action name="actionShowProcessingSystemCoverage">
-  <property name="icon">
+   <property name="icon">
     <iconset resource="GSvar.qrc">
      <normaloff>:/Icons/gnomAD.png</normaloff>:/Icons/gnomAD.png</iconset>
    </property>
@@ -1443,7 +1435,7 @@
    <property name="toolTip">
     <string>Show Expression Data of Exons</string>
    </property>
-  </action> 
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
