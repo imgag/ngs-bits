@@ -94,7 +94,7 @@ QString GapClosingDialog::exonNumber(const QByteArray& gene, int start, int end)
 	//fallback to longest coding transcript or longest non-coding transcript
 	if (output.isEmpty())
 	{
-		Transcript trans = db_.longestCodingTranscript(db_.geneToApprovedID(gene), Transcript::SOURCE::ENSEMBL, false, true);
+		Transcript trans = db_.longestCodingTranscript(db_.geneId(gene), Transcript::SOURCE::ENSEMBL, false, true);
 		int exon_nr = trans.exonNumber(start-20, end+20);
 		if (exon_nr!=-1)
 		{

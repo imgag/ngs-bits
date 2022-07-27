@@ -123,7 +123,7 @@ void GeneSelectorDialog::updateGeneTable()
 	{
 		//convert gene to approved symbol
 		QByteArray gene = genes[r];
-		int gene_id = db.geneToApprovedID(gene);
+		int gene_id = db.geneId(gene);
 		if(gene_id==-1)
 		{
 			updateError("Gene selection error", "Gene symbol '" + gene + "' is not an approved symbol!");

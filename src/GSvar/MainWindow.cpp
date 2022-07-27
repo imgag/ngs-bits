@@ -2928,7 +2928,7 @@ void MainWindow::openGeneTab(QString symbol)
 	int index = openTab(QIcon(":/Icons/NGSD_gene.png"), symbol, widget);
 	if (Settings::boolean("debug_mode_enabled"))
 	{
-		ui_.tabs->setTabToolTip(index, "NGSD ID: " + QString::number(NGSD().geneToApprovedID(symbol.toLatin1())));
+		ui_.tabs->setTabToolTip(index, "NGSD ID: " + QString::number(NGSD().geneId(symbol.toLatin1())));
 	}
 }
 
@@ -4487,8 +4487,15 @@ QString MainWindow::selectGene()
 	auto dlg = GUIHelper::createDialog(selector, "Select gene", "symbol:", true);
 	if (dlg->exec()==QDialog::Rejected) return "";
 
-	//handle invalid name
-	if (selector->getId()=="") return "";
+	//handle invalid gene name > check if it is a transcript name
+	if (selector->getId()=="")
+	{
+		int gene_id = db.geneIdOfTranscript(selector->text().toUtf8(), false, GSvarHelper::build());
+		if (gene_id!=-1)
+		{
+			return db.geneSymbol(gene_id);
+		}
+	}
 
 	return selector->text();
 }
@@ -4503,7 +4510,7 @@ QString MainWindow::selectProcessedSample()
     }
 
     //no samples => error
-    if (ps_list.isEmpty())
+	if (ps_list.isEmpty())
     {
         THROW(ProgrammingException, "selectProcessedSample() cannot be used if there is no variant list loaded!");
     }

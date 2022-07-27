@@ -62,7 +62,7 @@ void GeneWidget::updateGUI()
 	GSvarHelper::limitLines(ui_.comments, html, "<br>");
 
     //add pseudogenes/parent genes
-	int gene_id = db.geneToApprovedID(symbol_);
+	int gene_id = db.geneId(symbol_);
 	QStringList pseudogene_link_list;
 	QStringList parent_gene_link_list;
 	QStringList pseudogene_ids = db.getValues("SELECT pseudogene_gene_id FROM gene_pseudogene_relation WHERE parent_gene_id=" + QString::number(gene_id) + " AND pseudogene_gene_id IS NOT NULL");
@@ -243,7 +243,7 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 	const QMap<QByteArray, QByteArrayList>&  matches = NGSHelper::transcriptMatches(GSvarHelper::build());
 
 	//get transcripts
-	int gene_id = db.geneToApprovedID(symbol_);
+	int gene_id = db.geneId(symbol_);
 	TranscriptList transcripts = db.transcripts(gene_id, Transcript::ENSEMBL, false);
 
 	//sort transcripts

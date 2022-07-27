@@ -9,8 +9,8 @@ PhenotypeSettingsDialog::PhenotypeSettingsDialog(QWidget *parent)
 
 void PhenotypeSettingsDialog::setCombinationModeEnabled(bool enabled)
 {
-	ui_.m_intersect->setEnabled(false);
-	ui_.m_merge->setEnabled(false);
+	ui_.m_intersect->setEnabled(enabled);
+	ui_.m_merge->setEnabled(enabled);
 }
 
 void PhenotypeSettingsDialog::set(PhenotypeSettings& settings)

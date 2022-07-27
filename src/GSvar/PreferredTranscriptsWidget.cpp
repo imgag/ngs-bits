@@ -70,7 +70,7 @@ void PreferredTranscriptsWidget::addPreferredTranscript()
 	{
 		NGSD db;
 		bool added = db.addPreferredTranscript(transcript_name);
-		QString gene = db.getValue("SELECT g.symbol FROM gene g, gene_transcript gt WHERE gt.gene_id=g.id AND gt.name='" + transcript_name + "'", true).toString();
+		QByteArray gene = db.geneSymbol(db.geneIdOfTranscript(transcript_name));
 		if (added)
 		{
 			QMessageBox::information(this, title, "Added preferred transcript '" + transcript_name + "' for gene '" + gene + "'");

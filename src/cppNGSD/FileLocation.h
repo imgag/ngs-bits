@@ -38,7 +38,6 @@ enum class PathType
 	CIRCOS_PLOT, //CIRCOS plot (PNG format)
 	REPEAT_EXPANSION_IMAGE, //image of repeat expansions locus (SVG format)
 	FUSIONS, //gene fusions determined from RNA (TSV format)
-	STAR_FUSIONS, //gene fusions determined from RNA (TSV format via Star-Fusion
 	FUSIONS_BAM, //gene fusion evidence alignments determined from RNA (BAM format)
 	MANTA_FUSIONS, //fusions determined by manta (BEDPE format)
 	COUNTS, //gene/transcript counts from RNA (TSV format)
@@ -160,8 +159,6 @@ struct FileLocation
 				return "FUSIONS";
 			case PathType::FUSIONS_PIC_DIR:
 				return "FUSIONS_PIC_DIR";
-			case PathType::STAR_FUSIONS:
-				return "STAR_FUSIONS";
 			case PathType::FUSIONS_BAM:
 				return "FUSIONS_BAM";
 			case PathType::SPLICING_BED:
@@ -221,7 +218,6 @@ struct FileLocation
 		if (in_upper == "MOSAIC_VARIANTS") return PathType::MOSAIC_VARIANTS;
 		if (in_upper == "REPEAT_EXPANSION_IMAGE") return PathType::REPEAT_EXPANSION_IMAGE;
 		if (in_upper == "FUSIONS") return PathType::FUSIONS;
-		if (in_upper == "STAR_FUSIONS") return PathType::STAR_FUSIONS;
 		if (in_upper == "FUSIONS_BAM") return PathType::FUSIONS_BAM;
 		if (in_upper == "SPLICING_BED") return PathType::SPLICING_BED;
 		if (in_upper == "MANTA_FUSIONS") return PathType::MANTA_FUSIONS;
@@ -290,8 +286,6 @@ struct FileLocation
 				return "gene fusions";
 			case PathType::FUSIONS_PIC_DIR:
 				return "arriba fusions pictures directory";
-			case PathType::STAR_FUSIONS:
-				return "Star Fusion RNA fusion calls";
 			case PathType::FUSIONS_BAM:
 				return "gene fusions evidence alignments";
 			case PathType::SPLICING_BED:

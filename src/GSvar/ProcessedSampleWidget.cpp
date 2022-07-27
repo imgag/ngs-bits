@@ -531,7 +531,9 @@ void ProcessedSampleWidget::editStudy()
 	NGSD db;
 	QString id = ui_->studies->getId(selected_rows[0]);
 	QString study_sample_idendifier = db.getValue("SELECT study_sample_idendifier FROM study_sample WHERE id=" + id).toString();
-	QString study_sample_idendifier_new = QInputDialog::getText(this, "Study", "sample identifier in the study (optional):", QLineEdit::Normal, study_sample_idendifier);
+	bool ok = false;
+	QString study_sample_idendifier_new = QInputDialog::getText(this, "Study", "sample identifier in the study (optional):", QLineEdit::Normal, study_sample_idendifier, &ok);
+	if (!ok || study_sample_idendifier==study_sample_idendifier_new) return;
 
 	//update study
 	SqlQuery query = db.getQuery();

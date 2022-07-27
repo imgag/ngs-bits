@@ -220,7 +220,7 @@ private slots:
 			QString out2 = "out/SeqPurge_"+suffix+"_R2.fastq.gz";
 			timer.restart();
 			EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in1.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in2.fastq.gz") + " -out1 "+out1+" -out2 "+out2+" -ncut 0 -qcut 0 -min_len 15 -qc out/SeqPurge_"+suffix+".qcML -summary out/SeqPurge_"+suffix+".log -block_size 100 -threads " + QString::number(i));
-			QTextStream(stdout) << " threads: " << i << " time: " << Helper::elapsedTime(timer, true) << endl;
+			//QTextStream(stdout) << " threads: " << i << " time: " << Helper::elapsedTime(timer, true) << endl;
 
 			//compare fastq statistics
 			QString out1_stats = "out/SeqPurge_"+suffix+"_R1.stats";

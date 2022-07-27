@@ -107,7 +107,7 @@ public:
 			//get annotation for all genes
 			foreach (const QByteArray& gene, genes)
 			{
-				int gene_id = db.geneToApprovedID(gene);
+				int gene_id = db.geneId(gene);
 
 				if(gene_id < 0)
 				{

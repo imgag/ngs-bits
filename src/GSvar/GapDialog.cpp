@@ -125,7 +125,7 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 		BedFile coding_overlap;
 		foreach(QByteArray gene, info.genes)
 		{
-			int gene_id = db_.geneToApprovedID(gene);
+			int gene_id = db_.geneId(gene);
 			Transcript transcript = db_.longestCodingTranscript(gene_id, Transcript::ENSEMBL, true);
 			if (!transcript.isValid())
 			{
@@ -155,7 +155,7 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 			QByteArray gene_approved = db_.geneToApproved(gene, true);
             if (preferred_transcripts.contains(gene_approved))
 			{
-				int gene_id = db_.geneToApprovedID(gene);
+				int gene_id = db_.geneId(gene);
 				TranscriptList transcripts = db_.transcripts(gene_id, Transcript::ENSEMBL, false);
 				foreach(const Transcript& transcript, transcripts)
 				{
