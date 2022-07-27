@@ -30,7 +30,7 @@ public:
 		addInt("min_mapq", "Minmum mapping quality to consider a read mapped.", true, 1);
 		addFlag("no_cont", "Disables sample contamination calculation, e.g. for tumor or non-human samples.");
 		addFlag("debug", "Enables verbose debug outout.");
-		addEnum("build", "Genome build used to generate the input (needed for contamination only).", true, QStringList() << "hg19" << "hg38", "hg38");
+		addEnum("build", "Genome build used to generate the input (needed for WGS and contamination only).", true, QStringList() << "hg19" << "hg38" << "non_human", "hg38");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addFlag("cfdna", "Add additional QC parameters for cfDNA samples. Only supported mit '-roi'.");
 		addInfile("somatic_custom_bed", "Somatic custom region of interest (subpanel of actual roi). If specified, additional depth metrics will be calculated.", true, true);
@@ -58,7 +58,6 @@ public:
 
 		int min_mapq = getInt("min_mapq");
 		bool debug = getFlag("debug");
-		GenomeBuild build = stringToBuild(getEnum("build"));
 
 		QString somatic_custom_roi_file = getInfile("somatic_custom_bed");
 
@@ -76,17 +75,16 @@ public:
 		QCCollection metrics;
 		if (wgs)
 		{
-			QString genome_region = "";
-			if (build == GenomeBuild::HG19)
+			QString build = getEnum("build");
+			if (build=="non_human")
 			{
-				genome_region = "://resources/hg19_439_omim_genes.bed";
+				metrics = Statistics::mapping(in, min_mapq, ref_file);
 			}
-			else if (build == GenomeBuild::HG38)
+			else
 			{
-				genome_region = "://resources/hg38_440_omim_genes.bed";
+				QString qc_region = QString("://resources/") + (build=="hg19" ? "hg19_439_omim_genes.bed" : "hg38_440_omim_genes.bed");
+				metrics = Statistics::mapping_wgs(in, qc_region, min_mapq, ref_file);
 			}
-
-			metrics = Statistics::mapping_wgs(in, genome_region, min_mapq, ref_file);
 
 			//parameters
 			parameters << "-wgs";
@@ -117,6 +115,7 @@ public:
 		QCCollection metrics_cont;
 		if (!getFlag("no_cont"))
 		{
+			GenomeBuild build = stringToBuild(getEnum("build"));
 			metrics_cont = Statistics::contamination(build, in, ref_file, debug);
 		}
 
