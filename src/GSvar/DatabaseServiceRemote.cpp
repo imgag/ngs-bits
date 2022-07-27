@@ -209,6 +209,64 @@ FileLocation DatabaseServiceRemote::analysisJobLogFile(const int& job_id) const
 	return FileLocation{};
 }
 
+QList<MultiSampleAnalysisInfo> DatabaseServiceRemote::getMultiSampleAnalysisInfo(QStringList& analyses) const
+{
+	checkEnabled(__PRETTY_FUNCTION__);
+
+	QList<MultiSampleAnalysisInfo> result;
+
+	QJsonArray json_in_array = QJsonArray::fromStringList(analyses);
+	QJsonDocument json_in_doc(json_in_array);
+	QByteArray reply = ApiCaller().post("multi_sample_analysis_info", RequestUrlParams(), HttpHeaders(), "analyses=" + json_in_doc.toJson().toPercentEncoding(), true);
+	if (reply.length() == 0)
+	{
+		THROW(Exception, "Could not get the list of analysis names");
+	}
+
+	qDebug() << "reply " << reply;
+	QJsonDocument json_out_doc = QJsonDocument::fromJson(QUrl::fromPercentEncoding(reply).toLocal8Bit());
+	if (json_out_doc.isArray())
+	{
+		QJsonArray multi_sample_analysis_info_array = json_out_doc.array();
+		for (int i = 0; i < multi_sample_analysis_info_array.count(); i++)
+		{
+			MultiSampleAnalysisInfo analysis_info;
+			if (multi_sample_analysis_info_array[i].isObject())
+			{
+				QJsonObject info_object = multi_sample_analysis_info_array[i].toObject();
+				analysis_info.analysis_file = info_object.value("analysis_file").toString();
+				analysis_info.analysis_name = info_object.value("analysis_name").toString();
+
+				if (info_object.value("ps_sample_name_list").isArray())
+				{
+					QJsonArray ps_sample_name_array = info_object.value("ps_sample_name_list").toArray();
+					for (int ps_n = 0; ps_n < ps_sample_name_array.count(); ps_n++)
+					{
+						if (ps_sample_name_array[ps_n].isString())
+						{
+							analysis_info.ps_sample_name_list.append(ps_sample_name_array[ps_n].toString());
+						}
+					}
+				}
+				if (info_object.value("ps_sample_id_list").isArray())
+				{
+					QJsonArray ps_sample_id_array = info_object.value("ps_sample_id_list").toArray();
+					for (int ps_i = 0; ps_i < ps_sample_id_array.count(); ps_i++)
+					{
+						if (ps_sample_id_array[ps_i].isString())
+						{
+							analysis_info.ps_sample_id_list.append(ps_sample_id_array[ps_i].toString());
+						}
+					}
+				}
+				result.append(analysis_info);
+			}
+		}
+	}
+
+	return result;
+}
+
 QByteArray DatabaseServiceRemote::makeGetApiCall(QString api_path, RequestUrlParams params, bool ignore_if_missing) const
 {		
 	try

@@ -99,3 +99,29 @@ FileLocation DatabaseServiceLocal::analysisJobLogFile(const int& job_id) const
 
 	return FileLocation(id, PathType::OTHER, log, QFile::exists(log));
 }
+
+QList<MultiSampleAnalysisInfo> DatabaseServiceLocal::getMultiSampleAnalysisInfo(QStringList& analyses) const
+{
+	checkEnabled(__PRETTY_FUNCTION__);
+
+	NGSD db;
+	QList<MultiSampleAnalysisInfo> out;
+
+	foreach(QString gsvar, analyses)
+	{
+		VariantList vl;
+		vl.loadHeaderOnly(gsvar);
+
+		MultiSampleAnalysisInfo analysis_info;
+		analysis_info.analysis_file = gsvar;
+		analysis_info.analysis_name = vl.analysisName();
+
+		foreach(const SampleInfo& info, vl.getSampleHeader())
+		{
+			analysis_info.ps_sample_name_list.append(info.id);
+			analysis_info.ps_sample_id_list.append(db.processedSampleId(info.id));
+		}
+		out.append(analysis_info);
+	}
+	return out;
+}

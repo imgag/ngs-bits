@@ -2589,12 +2589,9 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 		QString processed_sample_id = db.processedSampleId(processed_sample_name);
 
 		//check user can access
-		if (LoginManager::userRole()=="user_restricted")
+		if (!db.userCanAccess(LoginManager::userId(), processed_sample_id.toInt()))
 		{
-			if (!db.userCanAccess(LoginManager::userId(), processed_sample_id.toInt()))
-			{
-				INFO(AccessDeniedException, "You do not have permissions to open this sample!");
-			}
+			INFO(AccessDeniedException, "You do not have permissions to open sample '" + processed_sample_name + "'!");
 		}
 
 		//processed sample exists > add to recent samples menu
@@ -2631,12 +2628,11 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 		else //several analyses > let the user decide
 		{
 			//create list of anaylsis names
+			QList<MultiSampleAnalysisInfo> analysis_info_list = GlobalServiceProvider::database().getMultiSampleAnalysisInfo(analyses);
 			QStringList names;
-			foreach(QString gsvar, analyses)
+			foreach(MultiSampleAnalysisInfo info, analysis_info_list)
 			{
-				VariantList vl;
-				vl.loadHeaderOnly(gsvar);
-				names << vl.analysisName();
+				names.append(info.analysis_name);
 			}
 
 			//show selection dialog (analysis name instead of file name)
@@ -2645,7 +2641,14 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 			if (!ok) return;
 
 			int index = names.indexOf(name);
-			file = analyses[index];
+			foreach(QString ps_id, analysis_info_list[index].ps_sample_id_list)
+			{
+				if (!db.userCanAccess(LoginManager::userId(), ps_id.toInt()))
+				{
+					INFO(AccessDeniedException, "You do not have permissions to open all the samples from the selected multi-sample analysis!");
+				}
+			}
+			file = analysis_info_list[index].analysis_file;
 		}
 
 		loadFile(file);

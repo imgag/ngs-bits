@@ -516,6 +516,16 @@ struct ExpressionStats
 	double mean;
 	double stddev;
 };
+
+/// Keeps track of sample information for multi-sample analyses
+struct CPPNGSDSHARED_EXPORT MultiSampleAnalysisInfo
+{
+	QString analysis_file;
+	QString analysis_name;
+	QStringList ps_sample_name_list;
+	QStringList ps_sample_id_list;
+};
+
 /// NGSD accessor.
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject

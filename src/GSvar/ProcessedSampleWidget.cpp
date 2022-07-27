@@ -55,7 +55,7 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	NGSD db;
 	if (!db.userCanAccess(LoginManager::userId(), ps_id.toInt()))
 	{
-		INFO(AccessDeniedException, "You do not have permissions to open this sample!");
+		INFO(AccessDeniedException, "You do not have permissions to open sample '" + db.processedSampleName(ps_id)+ "'!");
 	}
 
 
