@@ -103,6 +103,12 @@ private slots:
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in1.sql"));
 
+		//isOpen
+		IS_TRUE(db.isOpen());
+
+		//isProductionDb
+		IS_FALSE(db.isProductionDb());
+
 		//log in user
 		LoginManager::login("ahmustm1", "", true);
 

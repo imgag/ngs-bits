@@ -539,6 +539,8 @@ public:
 	~NGSD();
 	///Returns if the database connection is (still) open
 	bool isOpen() const;
+	///Returns if the database is a production database based on information in the table 'db_info'.
+	bool isProductionDb() const;
 
 	///Returns if the database is available (i.e. the credentials are in the settings file or the application is in client-server mode)
 	static bool isAvailable(bool test_db=false);
