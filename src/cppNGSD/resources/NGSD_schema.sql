@@ -2268,3 +2268,17 @@ CREATE TABLE IF NOT EXISTS `expression_exon`
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `db_info`
+-- NOTE: THIS IS ALWAYS THE LAST TABLE THAT IS CREATED!
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `db_info`
+(
+  `name` ENUM('init_timestamp','is_production') NOT NULL,
+  `value` TEXT,
+  UNIQUE KEY `name` (`name`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+

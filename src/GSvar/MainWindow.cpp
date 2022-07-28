@@ -5154,10 +5154,10 @@ void MainWindow::on_actionImportTestData_triggered()
 		//check role
 		LoginManager::checkRoleIn(QStringList{"admin", "user"});
 
-		//check database is empty to prevent overriding the production database
-		if (db.getValue("SELECT COUNT(id) FROM sample", false).toInt() > 0)
+		//prevent overriding the production database
+		if (db.isProductionDb())
 		{
-			THROW(DatabaseException, "Cannot import the data because the database is not empty (sample table has records). Re-initialize the database before import of data!");
+			THROW(DatabaseException, "Cannot import test data into a production database!");
 		}
 
 		//get input file

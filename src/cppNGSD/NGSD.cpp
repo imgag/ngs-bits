@@ -27,7 +27,7 @@ NGSD::NGSD(bool test_db, QString name_suffix)
 
 	//connect to DB
 	QString db_name;
-	if (!test_db_ && NGSHelper::isClientServerMode() && !NGSHelper::isRunningOnServer())
+	if (NGSHelper::isClientServerMode() && !NGSHelper::isRunningOnServer() && !test_db_) //get credentials from server in client-server mode
 	{
 		db_->setHostName(LoginManager::ngsdHostName());
 		db_->setPort(LoginManager::ngsdPort());
@@ -2895,6 +2895,21 @@ bool NGSD::isOpen() const
 	return QSqlQuery(*db_).exec("SELECT 1");
 }
 
+bool NGSD::isProductionDb() const
+{
+	//no table 'db_info' > no production database
+	if (!tables().contains("db_info")) return false;
+
+	SqlQuery query = getQuery();
+	query.exec("SELECT value FROM db_info WHERE name = 'is_production'");
+	if (!query.next()) THROW(DatabaseException, "Table 'db_info' does not contain 'is_production' entry!");
+
+	QString is_production = query.value(0).toString().trimmed().toLower();
+	if (is_production!="true" && is_production!="false") THROW(DatabaseException, "Entry 'is_production' in table 'db_info' contains invalid value '" + is_production + "'! Valid are 'true' or 'false'.");
+
+	return is_production=="true";
+}
+
 QStringList NGSD::tables() const
 {
 	return db_->driver()->tables(QSql::Tables);
@@ -3369,16 +3384,17 @@ void NGSD::init(QString password)
 	if (!tables.isEmpty())
 	{
 		//check password for re-init of production DB
-		if (!test_db_ && password!=Settings::string("ngsd_pass"))
+		if ((!test_db_ || isProductionDb()) && password!=Settings::string("ngsd_pass"))
 		{
 			THROW(DatabaseException, "Password provided for re-initialization of production database is incorrect!");
 		}
 
+		//check if we delete or clear the existing tables (clearing is a lot faster on Windows)
 		bool clear_only = false;
-		if(test_db_)
+		if(test_db_ && tables.contains("db_info"))
 		{
-			QVariant ngsd_init_date = getValue("SELECT created FROM user WHERE user_id='init_date'");
-			if (ngsd_init_date.toString()!="" && QFileInfo(":/resources/NGSD_schema.sql").lastModified()<ngsd_init_date.toDateTime())
+			QString ngsd_init_date = getValue("SELECT value FROM db_info WHERE name = 'init_timestamp'", true).toString().trimmed();
+			if (!ngsd_init_date.isEmpty() && QFileInfo(":/resources/NGSD_schema.sql").lastModified()<QDateTime::fromString(ngsd_init_date, Qt::ISODate))
 			{
 				clear_only = true;
 			}
@@ -3407,10 +3423,8 @@ void NGSD::init(QString password)
 	//initilize
 	executeQueriesFromFile(":/resources/NGSD_schema.sql");
 	executeQueriesFromFile(":/resources/NGSD_initial_data.sql");
-	if (test_db_) //used to speed up tests by clearing tables only instead of re-creating them
-	{
-		getQuery().exec("INSERT INTO user VALUES (NULL, 'init_date', 'pass', 'user', 'some name','some_name@email.de', NOW(), NULL, 0, NULL)");
-	}
+	getQuery().exec("INSERT INTO db_info SET name='init_timestamp', value='" + QDateTime::currentDateTime().toString(Qt::ISODate) + "'"); //used to speed up tests by clearing tables only instead of dropping them
+	getQuery().exec("INSERT INTO db_info SET name='is_production', value='" + QString(test_db_ ? "false" : "true") + "'");
 
 	//clear cache
 	clearCache();
