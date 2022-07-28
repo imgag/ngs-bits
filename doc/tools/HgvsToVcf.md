@@ -1,5 +1,5 @@
 ### HgvsToVcf tool help
-	HgvsToVcf (2022_04-120-g0b2ddab9)
+	HgvsToVcf (2022_07-37-g22d4e20c)
 	
 	Transforms a TSV file with transcript ID and HGVS.c change into a VCF file.
 	
@@ -25,6 +25,8 @@
 	  -build <enum>              Genome build
 	                             Default value: 'hg38'
 	                             Valid: 'hg19,hg38'
+	  -max_seq <int>             If set, skips variants with ref/alt sequence longer than the five value.
+	                             Default value: '-1'
 	
 	Special parameters:
 	  --help                     Shows this help and exits.
@@ -33,6 +35,8 @@
 	  --tdx                      Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### HgvsToVcf changelog
-	HgvsToVcf 2022_04-120-g0b2ddab9
+	HgvsToVcf 2022_07-37-g22d4e20c
 	
+	2022-07-25 Added parameter 'max_seq'.
+	2022-05-12 Initial version
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
