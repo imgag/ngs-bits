@@ -23,8 +23,8 @@ public:
 
 		//optional
 		addInfile("omim", "OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.", true);
-		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from 'ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2021/clinvar_20210424.vcf.gz' for GRCH37 or 'ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2021/clinvar_20211212.vcf.gz' for GRCh38.", true);
-		addInfile("hgmd", "HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2021.3.dump').", true);
+		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from 'https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2022/clinvar_20220702.vcf.gz' for GRCH37 or 'http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2021/clinvar_20211212.vcf.gz' for GRCh38.", true);
+		addInfile("hgmd", "HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2022.2.dump').", true);
 
 		// optional (for evidence information):
 		addInfile("hpophen", "HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information. Download from http://purl.obolibrary.org/obo/hp/hpoa/phenotype.hpoa", true);
@@ -304,7 +304,7 @@ public:
 				qi_parent.exec();
 			}
 		}
-		out << "Imported " << db.getValue("SELECT COUNT(*) FROM hpo_parent").toInt() << " parent-child relations between terms." << endl;
+		out << "Imported " << db.getValue("SELECT COUNT(*) FROM hpo_parent").toInt() << " parent-child relations between terms from HPO." << endl;
 
 		return id2ngsd;
 	}
@@ -315,9 +315,10 @@ public:
 
 		int lineCount = 0;
 		int added = 0;
+		bool debug = getFlag("debug");
 
 		QTextStream out(stdout);
-		if (getFlag("debug")) out << "Starting analysis of hpophen file\n";
+		if (debug) out << "Starting analysis of hpophen file\n";
 
 		// parse phenotype.hpoa file for evidence information
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("hpophen"));
@@ -338,28 +339,22 @@ public:
 			QByteArray evidence = parts[5].trimmed();
 
 			int term_id = id2ngsd.value(term, -1);
-
 			if (term_id == -1)
 			{
-				if (getFlag("debug"))
-				{
-					out << "Term not found in id2ngsd: " << term << "\n";
-				}
+				if (debug) out << "Term not found in id2ngsd: " << term << "\n";
 				continue;
 			}
-			else
-			{
-				ExactSources e_src = ExactSources();
-				e_src.term2disease = QString("hpoPhen line ") + QString::number(lineCount);
-				term2diseases[term_id].add(disease, "HPO", evidence,  translateHpoEvidence(evidence), e_src);
-				added++;
-				if (getFlag("debug"))
-				{
-					out << "Imported term2disease relation:\t" << term << "-" << disease << ":\t" << evidence << "\t fin_evi:\t" << Phenotype::evidenceToString(translateHpoEvidence(evidence)) << "\n";
-				}
-			}
+
+
+			ExactSources e_src = ExactSources();
+			e_src.term2disease = QString("hpoPhen line ") + QString::number(lineCount);
+			term2diseases[term_id].add(disease, "HPO", evidence,  translateHpoEvidence(evidence), e_src);
+			added++;
+
+			if (debug) out << "Imported term2disease relation:\t" << term << "-" << disease << ":\t" << evidence << "\t fin_evi:\t" << Phenotype::evidenceToString(translateHpoEvidence(evidence)) << "\n";
 		}
-		out << "Imported " << added << " term-disease relations.\n";
+
+		out << "Imported " << added << " term-disease relations from HPO (hpophen).\n";
 		fp->close();
 	}
 
@@ -465,8 +460,8 @@ public:
 			}
 		}
 		fp->close();
-		out << "Finished Deciper parsing. Imported:\n" << countD2G << "\tDisease to gene relations\n" << countT2D << "\tHPO term to disease relations\n" << countT2G << "\tHPO term to gene relations.\n";
 
+		out << "Imported " << countD2G << " disease-gene relations, " << countT2D << "term-disease relations, " << countT2G << " term-gene relations from Decipher.\n";
 	}
 
 	void parseGenCC(NGSD& db, QHash<QByteArray, AnnotatedList>& disease2genes)
@@ -518,7 +513,7 @@ public:
 		fp->close();
 
 		QTextStream out(stdout);
-		out << "Imported " << count << " disease gene relations from GenCC" << endl;
+		out << "Imported " << count << " disease-gene relations from GenCC." << endl;
 	}
 
 	QByteArrayList reconstructStrings(const QByteArrayList& parts, int expected_size=-1)
@@ -756,81 +751,90 @@ public:
 
 
 		//parse term-disease and disease-gene relations from HPO
-		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("anno"));
-		QSet<QByteArray> non_hgnc_genes;
-		PhenotypeList inheritance_terms = db.phenotypeChildTerms(db.phenotypeIdByAccession("HP:0000005"), true); //Mode of inheritance
-		int lineCount = 0;
-		QString exactSource;
-		while(!fp->atEnd())
 		{
-			lineCount++;
-			exactSource = QString("Anno line ") + QString::number(lineCount);
-			QByteArray line =  fp->readLine();
-			QByteArrayList parts =line.split('\t');
-
-			if (parts.count()<7) continue;
-
-			// parse line
-			QByteArray disease = parts[6].trimmed();
-			QByteArray gene = parts[3].trimmed();
-			QByteArray term_accession = parts[0].trimmed();
-
-			int gene_db_id = db.geneId(gene);
-			int term_db_id = id2ngsd.value(term_accession, -1);
-
-			if (term_db_id!=-1)
+			QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("anno"));
+			QSet<QByteArray> non_hgnc_genes;
+			PhenotypeList inheritance_terms = db.phenotypeChildTerms(db.phenotypeIdByAccession("HP:0000005"), true); //Mode of inheritance
+			int lineCount = 0;
+			int added_t2g = 0;
+			int added_t2d = 0;
+			int added_d2g = 0;
+			QString exactSource;
+			while(!fp->atEnd())
 			{
-				if (inheritance_terms.containsAccession(term_accession))
+				lineCount++;
+				exactSource = QString("Anno line ") + QString::number(lineCount);
+				QByteArray line =  fp->readLine();
+				QByteArrayList parts =line.split('\t');
+
+				if (parts.count()<7) continue;
+
+				// parse line
+				QByteArray disease = parts[6].trimmed();
+				QByteArray gene = parts[3].trimmed();
+				QByteArray term_accession = parts[0].trimmed();
+
+				int gene_db_id = db.geneId(gene);
+				int term_db_id = id2ngsd.value(term_accession, -1);
+
+				if (term_db_id!=-1)
 				{
-					if (gene_db_id!=-1)
+					if (inheritance_terms.containsAccession(term_accession))
 					{
-						if (debug) out << "HPO-GENE: " << term_accession << " - " << gene << "\n";
+						if (gene_db_id!=-1)
+						{
+							if (debug) out << "HPO-GENE: " << term_accession << " - " << gene << "\n";
+
+							ExactSources e_src = ExactSources();
+							e_src.term2gene = exactSource;
+							term2genes[term_db_id].add(db.geneSymbol(gene_db_id), "HPO", "", PhenotypeEvidenceLevel::NA, e_src);
+							++added_t2g;
+						}
+					}
+					else
+					{
+						if (debug) out << "HPO-DISEASE: " << term_accession << " - " << disease << "\n";
 
 						ExactSources e_src = ExactSources();
-						e_src.term2gene = exactSource;
-						term2genes[term_db_id].add(db.geneSymbol(gene_db_id), "HPO", "", PhenotypeEvidenceLevel::NA, e_src);
+						e_src.term2disease = exactSource;
+						term2diseases[term_db_id].add(disease, "HPO", "", PhenotypeEvidenceLevel::NA, e_src);
+						++added_t2d;
 					}
+				}
+
+				if (gene_db_id!=-1)
+				{
+					if (debug) out << "DISEASE-GENE (HPO): " << disease << " - " << db.geneSymbol(gene_db_id) << "\n";
+
+					ExactSources e_src = ExactSources();
+					e_src.disease2gene = exactSource;
+					disease2genes[disease].add(db.geneSymbol(gene_db_id), "HPO", "", PhenotypeEvidenceLevel::NA, e_src);
+					++added_d2g;
 				}
 				else
 				{
-					if (debug) out << "HPO-DISEASE: " << term_accession << " - " << disease << "\n";
-
-					ExactSources e_src = ExactSources();
-					e_src.term2disease = exactSource;
-					term2diseases[term_db_id].add(disease, "HPO", "", PhenotypeEvidenceLevel::NA, e_src);
+					non_hgnc_genes << gene;
 				}
 			}
+			fp->close();
 
-			if (gene_db_id!=-1)
+			out << "Imported " << added_d2g << " disease-gene relations, " << added_t2d << "term-disease relations, " << added_t2g << " term-gene relations from HPO (anno).\n";
+			foreach(const QByteArray& gene, non_hgnc_genes)
 			{
-				if (debug) out << "DISEASE-GENE (HPO): " << disease << " - " << db.geneSymbol(gene_db_id) << "\n";
-
-				ExactSources e_src = ExactSources();
-				e_src.disease2gene = exactSource;
-				disease2genes[disease].add(db.geneSymbol(gene_db_id), "HPO", "", PhenotypeEvidenceLevel::NA, e_src);
+				out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << endl;
 			}
-			else
-			{
-				non_hgnc_genes << gene;
-			}
-		}
-		fp->close();
-
-		foreach(const QByteArray& gene, non_hgnc_genes)
-		{
-			out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << endl;
 		}
 
 		//parse disease-gene relations from OMIM
 		QString omim_file = getInfile("omim");
-		lineCount = 0;
-		int count = 0;
 		if (omim_file!="")
 		{
+			int lineCount = 0;
+			int count = 0;
 			if (debug) out << "Parsing OMIM file...\n";
 			//parse disease-gene relations
 			int c_skipped_invalid_gene = 0;
-			fp = Helper::openFileForReading(omim_file);
+			QSharedPointer<QFile> fp = Helper::openFileForReading(omim_file);
 			QRegExp mim_exp("([0-9]{6})");
 			QRegExp evi_exp("(\\([1-4]{1}\\))");
 
@@ -876,7 +880,7 @@ public:
 				}
 			}
 			fp->close();
-			out << "Imported " << count << " disease to genes relations.\n";
+			out << "Imported " << count << " disease-gene relations from OMIM.\n";
 		}
 
 		//parse disease-gene relations from ClinVar
@@ -884,10 +888,12 @@ public:
 		if (clinvar_file!="")
 		{
 			if (debug) out << "Prasing ClinVar..." << endl;
+			int added_t2g = 0;
+			int added_d2g = 0;
 			//parse disease-gene relations
 			int c_skipped_invalid_gene = 0;
-			fp = Helper::openFileForReading(clinvar_file);
-			lineCount = 0;
+			QSharedPointer<QFile> fp = Helper::openFileForReading(clinvar_file);
+			int lineCount = 0;
 			while(!fp->atEnd())
 			{
 				lineCount++;
@@ -955,6 +961,7 @@ public:
 						ExactSources e_src = ExactSources();
 						e_src.disease2gene = QString("ClinVar line ") + QString::number(lineCount);
 						disease2genes[disease].add(gene_approved, "ClinVar", "", PhenotypeEvidenceLevel::NA, e_src);
+						++added_d2g;
 					}
 					foreach(const QByteArray& hpo, hpos)
 					{
@@ -965,17 +972,21 @@ public:
 							ExactSources e_src = ExactSources();
 							e_src.term2gene = QString("ClinVar line ") + QString::number(lineCount);
 							term2genes[term_db_id].add(gene_approved, "ClinVar", "", PhenotypeEvidenceLevel::NA, e_src);
+							++added_t2g;
 						}
 					}
 				}
 			}
 			fp->close();
+
+			out << "Imported " << added_d2g << " disease-gene relations, " << added_t2g << " term-gene relations from ClinVar.\n";
 		}
 
 		// parse hpo-gene relations from HGMD (Phenobase dbdump file):
 		QString hgmd_file = getInfile("hgmd");
 		if(hgmd_file != "")
 		{
+			int added_t2g = 0;
 			if (debug) out << "Parsing HGMD Phenobase dump file...\n" << endl;
 			// define look-up tables
 			QMultiMap<int, QByteArray> phenid2gene_mapping = QMap<int, QByteArray>();
@@ -1091,8 +1102,6 @@ public:
 			// create hpo-gene relation
 			if (debug) out << "Creating HPO-gene relation from HGMD file..." << endl;
 
-			int hgmd_skipped_invalid_gene = 0;
-			int hgmd_genes_added = 0;
 			int i = 0;
 			foreach (const QByteArray& hpo, hpo2cui_mapping.keys())
 			{
@@ -1107,6 +1116,7 @@ public:
 					   if (debug) out << "No phenotype id found for CUI '" << cui << "' (HGMD file)!" << endl;
 					   continue;
 					}
+
 					foreach(int phen_id, cui2phenid_mapping.values(cui))
 					{
 						// get all genes for a given phenotype id
@@ -1115,27 +1125,27 @@ public:
 							if (debug) out << "No gene found for phenotype id " << QByteArray::number(phen_id) << " (HGMD file)!" << endl;
 							continue;
 						}
+
 						foreach(const QByteArray& gene, phenid2gene_mapping.values(phen_id))
 						{
 							//make sure the gene symbol is approved by HGNC
 							int approved_id = db.geneId(gene);
 							if (approved_id==-1)
 							{
-									if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol (HGMD file)!" << endl;
-									++hgmd_skipped_invalid_gene;
-									continue;
+								if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol (HGMD file)!" << endl;
+								continue;
 							}
 							QByteArray gene_approved = db.geneSymbol(approved_id);
 
 							// add gene to hpo list:
 							if (debug) out << "HPO-GENE (HGMD): " << hpo << " - " << gene_approved << endl;
-							hgmd_genes_added++;
 							int term_db_id = id2ngsd.value(hpo, -1);
 							if (term_db_id != -1)
 							{
 								ExactSources e_src = ExactSources();
 								e_src.term2gene = QString("HGMD unknown line");
 								term2genes[term_db_id].add(gene_approved, "HGMD", "", PhenotypeEvidenceLevel::NA, e_src); // is there some evidence in the file that could be parsed?
+								++added_t2g;
 							}
 						}
 					}
@@ -1147,6 +1157,8 @@ public:
 					out << "\t" << i << " of " << hpo2cui_mapping.keys().size() << "hpo terms parsed \n";
 				}
 			}
+
+			out << "Imported " << added_t2g << " term-gene relations from HGMD.\n";
 		}
 
 		// import gathered data:

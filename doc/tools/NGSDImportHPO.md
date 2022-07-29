@@ -10,9 +10,9 @@
 	Optional parameters:
 	  -omim <file>     OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.
 	                   Default value: ''
-	  -clinvar <file>  ClinVar VCF file for additional disease-gene information. Download and unzip from 'ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2021/clinvar_20210424.vcf.gz' for GRCH37 or 'ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2021/clinvar_20211212.vcf.gz' for GRCh38.
+	  -clinvar <file>  ClinVar VCF file for additional disease-gene information. Download and unzip from 'https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2022/clinvar_20220702.vcf.gz' for GRCH37 or 'http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2021/clinvar_20211212.vcf.gz' for GRCh38.
 	                   Default value: ''
-	  -hgmd <file>     HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2021.3.dump').
+	  -hgmd <file>     HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2022.2.dump').
 	                   Default value: ''
 	  -hpophen <file>  HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information. Download from http://purl.obolibrary.org/obo/hp/hpoa/phenotype.hpoa
 	                   Default value: ''
