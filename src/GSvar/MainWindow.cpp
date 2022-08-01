@@ -4001,14 +4001,10 @@ QList<RtfPicture> pngsFromFiles(QStringList files)
 		QImage pic = QImage(path);
 		if(pic.isNull()) continue;
 
-		//set maximum width/height in pixels
-		if( (uint)pic.width() > 1200 ) pic = pic.scaledToWidth(1200, Qt::TransformationMode::SmoothTransformation);
-		if( (uint)pic.height() > 1200 ) pic = pic.scaledToHeight(1200, Qt::TransformationMode::SmoothTransformation);
-
 		QByteArray png_data = "";
 		QBuffer buffer(&png_data);
 		buffer.open(QIODevice::WriteOnly);
-		if (pic.save(&buffer, "PNG")) continue;
+		if (!pic.save(&buffer, "PNG")) continue;
 		buffer.close();
 
 		pic_list << RtfPicture(png_data.toHex(), pic.width(), pic.height());

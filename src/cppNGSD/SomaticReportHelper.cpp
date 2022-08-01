@@ -882,7 +882,7 @@ RtfSourceCode SomaticReportHelper::partIgvScreenshot()
 {
 	if(settings_.igv_snapshot_png_hex_image == "") return "";
 
-	RtfPicture snapshot(settings_.igv_snapshot_png_hex_image);
+	RtfPicture snapshot(settings_.igv_snapshot_png_hex_image, settings_.igv_snapshot_width, settings_.igv_snapshot_height);
 
 	snapshot.resizeToWidth(doc_.maxWidth());
 

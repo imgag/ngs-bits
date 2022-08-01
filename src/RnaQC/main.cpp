@@ -89,7 +89,7 @@ public:
 			rna_qc.insert(QCValue("covered gene count", gene_count.n_covered_genes, "Number of covered genes (TPM >= 1.0)", "QC:2000109"));
 		}
 
-		// TODO: get intronic/exonic read fraction
+		//TODO: get intronic/exonic read fraction
 
 		// create qcML
 		// metadata
