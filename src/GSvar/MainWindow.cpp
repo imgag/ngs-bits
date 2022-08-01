@@ -4403,7 +4403,7 @@ void MainWindow::openProcessedSampleTabsCurrentAnalysis()
 
 void MainWindow::on_actionOpenProcessedSampleTabByName_triggered()
 {
-	ProcessedSampleSelector dlg(this, true);
+	ProcessedSampleSelector dlg(this, false);
 	if (!dlg.exec()) return;
 
 	QString ps_name = dlg.processedSampleName();
@@ -4437,7 +4437,7 @@ QString MainWindow::selectGene()
 	selector->fill(db.createTable("gene", "SELECT id, symbol FROM gene"));
 
 	//show
-	auto dlg = GUIHelper::createDialog(selector, "Select gene", "symbol:", true);
+	auto dlg = GUIHelper::createDialog(selector, "Select gene", "symbol (or transcript name):", true);
 	if (dlg->exec()==QDialog::Rejected) return "";
 
 	//handle invalid gene name > check if it is a transcript name

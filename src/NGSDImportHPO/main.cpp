@@ -461,7 +461,7 @@ public:
 		}
 		fp->close();
 
-		out << "Imported " << countD2G << " disease-gene relations, " << countT2D << "term-disease relations, " << countT2G << " term-gene relations from Decipher.\n";
+		out << "Imported " << countD2G << " disease-gene relations, " << countT2D << " term-disease relations, " << countT2G << " term-gene relations from Decipher.\n";
 	}
 
 	void parseGenCC(NGSD& db, QHash<QByteArray, AnnotatedList>& disease2genes)
@@ -818,7 +818,7 @@ public:
 			}
 			fp->close();
 
-			out << "Imported " << added_d2g << " disease-gene relations, " << added_t2d << "term-disease relations, " << added_t2g << " term-gene relations from HPO (anno).\n";
+			out << "Imported " << added_d2g << " disease-gene relations, " << added_t2d << " term-disease relations, " << added_t2g << " term-gene relations from HPO (anno).\n";
 			foreach(const QByteArray& gene, non_hgnc_genes)
 			{
 				out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << endl;
@@ -1217,8 +1217,7 @@ public:
 		}
 		out << "Overall imported term-gene relations: " << db.getValue("SELECT COUNT(*) FROM hpo_genes").toInt() << endl;
 
-		out << "Optimizing term-gene relations...\n";
-		out << "(removing genes which are present in leaf nodes from parent node)" << endl;
+		out << "Optimizing term-gene relations (removing genes which are present in all leaf nodes from the parent node)...\n";
 
 		Phenotype root = Phenotype("HP:0000001", "All");
 		int removed_genes = 0;

@@ -37,7 +37,28 @@
     </widget>
    </item>
    <item>
-    <widget class="DBSelector" name="processed_sample"/>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>3</number>
+     </property>
+     <item>
+      <widget class="DBSelector" name="processed_sample"/>
+     </item>
+     <item>
+      <widget class="QToolButton" name="open_by_id">
+       <property name="toolTip">
+        <string>Select processed sample by NGSD id.</string>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset resource="GSvar.qrc">
+         <normaloff>:/Icons/NGSD.png</normaloff>:/Icons/NGSD.png</iconset>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <widget class="QCheckBox" name="show_merged">
@@ -91,7 +112,9 @@
    <header location="global">DBSelector.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="GSvar.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>

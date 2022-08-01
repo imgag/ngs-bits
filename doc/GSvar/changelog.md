@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2022_07-43 (01.08.22)
+- General: first production version with RNA support.
+- General: transcript names can now be used to open gene tabs.
+- Somatic report: added pathway information.
+
 
 ### 2022_04-159 (01.07.22)
 - Batch import: add tissue to sample batch import.
