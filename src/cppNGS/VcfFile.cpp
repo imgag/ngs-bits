@@ -1146,7 +1146,7 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 				}
 				else //everything else is just added to info
 				{
-					info.push_back(strToPointer(anno_val));
+					info.push_back(strToPointer(encodeInfoValue(anno_val).toUtf8()));
 				}
 
 				all_info_keys.push_back(anno_header.name().toUtf8());
@@ -1175,44 +1175,46 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 		//write genotype
 		if(!genotype_columns.empty())
 		{
-
 			QList<QByteArrayList> all_samples_new;
 			bool all_samples_empty = true;
 
-			for(const SampleInfo& genotype : genotype_columns)
+			for(const SampleInfo& genotype_column : genotype_columns)
 			{
 				QByteArrayList formats_new;
 
-				int genotype_index = variant_list.annotationIndexByName(genotype.column_name, true, false);
+				int genotype_index = variant_list.annotationIndexByName(genotype_column.column_name, true, false);
 				if(genotype_index == -1)
 				{
 					all_samples_new.push_back(formats_new);
 					continue;
 				}
-				if(v.annotations().at(genotype_index).isEmpty() || v.annotations().at(genotype_index) == ".")
+
+				QByteArray gt = v.annotations().at(genotype_index).trimmed();
+				if(gt.isEmpty() || gt == "." || gt == "n/a")
 				{
-					continue;
+					formats_new.push_back("./.");
 				}
-				else if(v.annotations().at(genotype_index) == "wt")
+				else if(gt == "wt")
 				{
 					formats_new.push_back("0/0");
 				}
-				else if(v.annotations().at(genotype_index) == "hom")
+				else if(gt == "hom")
 				{
 					formats_new.push_back("1/1");
 				}
-				else if(v.annotations().at(genotype_index) == "het")
+				else if(gt == "het")
 				{
 					formats_new.push_back("1/0");
 				}
 				else
 				{
-					THROW(ArgumentException, "genotype column in TSV file does not contain a valid entry.");
+					THROW(ArgumentException, "Genotype column in GSvar file contains invalid entry '" + gt + "'.");
 				}
 				all_samples_empty = false;
 				all_samples_new.push_back(formats_new);
 			}
 			vcf_line->setSample(all_samples_new);
+
 			//we store only the genotype in the sample columns, however if it is not present
 			//format information has to be reset as well
 			if(all_samples_empty) vcf_line->setFormatIdToIdxPtr(nullptr);

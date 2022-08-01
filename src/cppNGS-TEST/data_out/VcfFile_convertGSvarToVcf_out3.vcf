@@ -1,0 +1,84 @@
+##fileformat=VCFv4.2
+##ANALYSISTYPE=SOMATIC_PAIR
+##PIPELINE=megSAP 2021_12-199-g0594fb59
+##GENOME_BUILD=GRCh38
+##CREATION_DATE=2022-07-30
+##SAMPLE=<ID=TUMOR_01,Gender=n/a,ExternalSampleName=SL-ALL-1; Pat7;QA007004DQ,IsTumor=yes,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=Affected>
+##SAMPLE=<ID=NORMAL_01,Gender=n/a,ExternalSampleName=SL-FB-1; Pat7;QA007011D9,IsTumor=no,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=Affected>
+##RNA_REF_TPM_TISSUE=gallbladder
+##INFO=<ID=filter,Number=.,Type=String,Description="Annotations for filtering and ranking variants.">
+##INFO=<ID=quality,Number=.,Type=String,Description="Quality parameters - variant quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM), probability of strand bias for alternate bases as phred score (SAP), probability of allele ballance as phred score (ABP)">
+##INFO=<ID=gene,Number=.,Type=String,Description="Affected gene list (comma-separated).">
+##INFO=<ID=variant_type,Number=.,Type=String,Description="Variant type.">
+##INFO=<ID=coding_and_splicing,Number=.,Type=String,Description="Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).">
+##INFO=<ID=coding_and_splicing_refseq,Number=.,Type=String,Description="Coding and splicing details based on RefSeq (Gene, RefSeq id, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).">
+##INFO=<ID=regulatory,Number=.,Type=String,Description="Regulatory consequence details.">
+##INFO=<ID=OMIM,Number=.,Type=String,Description="OMIM database annotation.">
+##INFO=<ID=ClinVar,Number=.,Type=String,Description="ClinVar database annotation.">
+##INFO=<ID=HGMD,Number=.,Type=String,Description="HGMD database annotation.">
+##INFO=<ID=RepeatMasker,Number=.,Type=String,Description="RepeatMasker annotation.">
+##INFO=<ID=dbSNP,Number=.,Type=String,Description="Identifier in dbSNP database.">
+##INFO=<ID=gnomAD,Number=.,Type=String,Description="Allele frequency in gnomAD project.">
+##INFO=<ID=gnomAD_sub,Number=.,Type=String,Description="Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project.">
+##INFO=<ID=gnomAD_hom_hemi,Number=.,Type=String,Description="Homoyzgous counts and hemizygous counts of gnomAD project (genome data).">
+##INFO=<ID=gnomAD_het,Number=.,Type=String,Description="Heterozygous counts of the gnomAD project (genome data).">
+##INFO=<ID=gnomAD_wt,Number=.,Type=String,Description="Wildtype counts of the gnomAD project (genome data).">
+##INFO=<ID=phyloP,Number=.,Type=String,Description="phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.">
+##INFO=<ID=Sift,Number=.,Type=String,Description="Sift effect prediction and score for each transcript: D=damaging, T=tolerated.">
+##INFO=<ID=PolyPhen,Number=.,Type=String,Description="PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign.">
+##INFO=<ID=CADD,Number=.,Type=String,Description="CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20.">
+##INFO=<ID=REVEL,Number=.,Type=String,Description="REVEL pathogenicity prediction score. Deleterious threshold > 0.5.">
+##INFO=<ID=MaxEntScan,Number=.,Type=String,Description="MaxEntScan splicing prediction (reference bases score/alternate bases score).">
+##INFO=<ID=COSMIC,Number=.,Type=String,Description="COSMIC somatic variant database anntotation.">
+##INFO=<ID=SpliceAI,Number=.,Type=String,Description="SpliceAI prediction of splice-site variations. Probability of the variant being splice-altering (range from 0-1). The score is the maximum value of acceptor/donor gain/loss of all effected genes.">
+##INFO=<ID=PubMed,Number=.,Type=String,Description="PubMed ids to publications on the given variant.">
+##INFO=<ID=NGSD_som_c,Number=.,Type=String,Description="Somatic variant count in the NGSD.">
+##INFO=<ID=NGSD_som_p,Number=.,Type=String,Description="Project names of project containing this somatic variant in the NGSD.">
+##INFO=<ID=NGSD_som_vicc_interpretation,Number=.,Type=String,Description="Somatic variant interpretation according VICC standard in the NGSD.">
+##INFO=<ID=NGSD_som_vicc_comment,Number=.,Type=String,Description="Somatic VICC interpretation comment in the NGSD.">
+##INFO=<ID=NGSD_hom,Number=.,Type=String,Description="Homozygous variant count in NGSD.">
+##INFO=<ID=NGSD_het,Number=.,Type=String,Description="Heterozygous variant count in NGSD.">
+##INFO=<ID=NGSD_group,Number=.,Type=String,Description="Homozygous / heterozygous variant count in NGSD with the same disease group.">
+##INFO=<ID=classification,Number=.,Type=String,Description="Classification from the NGSD.">
+##INFO=<ID=classification_comment,Number=.,Type=String,Description="Classification comment from the NGSD.">
+##INFO=<ID=validation,Number=.,Type=String,Description="Validation information from the NGSD. Validation results of other samples are listed in brackets!">
+##INFO=<ID=comment,Number=.,Type=String,Description="Variant comments from the NGSD.">
+##INFO=<ID=gene_info,Number=.,Type=String,Description="Gene information from NGSD (inheritance mode, gnomAD o/e scores).">
+##INFO=<ID=CMC_genes,Number=.,Type=String,Description="Gene symbol from COSMIC Cancer Mutation Census (CMC).">
+##INFO=<ID=CMC_MUTATION_ID,Number=.,Type=String,Description="COSV identifier of variant from COSMIC Cancer Mutation Census (CMC).">
+##INFO=<ID=CMC_disease,Number=.,Type=String,Description="diseases with > 1% of samples mutated where disease = Primary site(tissue) / Primary histology / Sub-histology = Samples mutated / Samples tested = Frequency from COSMIC Cancer Mutation Census (CMC).">
+##INFO=<ID=CMC_DNDS_ratio,Number=.,Type=String,Description="diseases with significant dn/ds ratio (q-value < 5%) from COSMIC Cancer Mutation Census (CMC).">
+##INFO=<ID=CMC_mutation_significance,Number=.,Type=String,Description="Significance tier of the variant from COSMIC Cancer Mutation Census (CMC).">
+##INFO=<ID=CANCERHOTSPOTS_AA_CHANGE,Number=.,Type=String,Description="Amino acid change as in original cancerhotspots.org file">
+##INFO=<ID=CANCERHOTSPOTS_TOTAL_MUT,Number=.,Type=String,Description="Total mutation count in cancerhotspots.org at certain amino acid position.">
+##INFO=<ID=CANCERHOTSPOTS_ALT_COUNT,Number=.,Type=String,Description="Count of specific amino acid alteration at same position in cancerhotspots.org.">
+##INFO=<ID=tumor_af,Number=.,Type=String,Description="Mutant allele frequency in tumor (Sample TUMOR_01).">
+##INFO=<ID=tumor_dp,Number=.,Type=String,Description="Tumor Depth (Sample TUMOR_01).">
+##INFO=<ID=normal_af,Number=.,Type=String,Description="Mutant allele frequency in normal (Sample NORMAL_01).">
+##INFO=<ID=normal_dp,Number=.,Type=String,Description="Normal depth (Sample NORMAL_01).">
+##INFO=<ID=somatic_classification_comment,Number=.,Type=String,Description="Somatic classification comment from the NGSD.">
+##INFO=<ID=somatic_classification,Number=.,Type=String,Description="Somatic classification from the NGSD.">
+##INFO=<ID=ncg_oncogene,Number=.,Type=String,Description="1:gene is oncogene according NCG6.0, 0:No oncogene according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column gene.">
+##INFO=<ID=ncg_tsg,Number=.,Type=String,Description="1:gene is TSG according NCG6.0, 0:No TSG according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column gene.">
+##INFO=<ID=RX000001_01.bam_rna_depth,Number=.,Type=String,Description="Depth in RNA BAM file /mnt/storage1/users/ahsturm1/megSAP/test/data_somatic/Sample_RX000001_01/RX000001_01.bam">
+##INFO=<ID=RX000001_01.bam_rna_af,Number=.,Type=String,Description="Allele frequency in RNA BAM file /mnt/storage1/users/ahsturm1/megSAP/test/data_somatic/Sample_RX000001_01/RX000001_01.bam">
+##INFO=<ID=RX000001_01.bam_rna_tpm,Number=.,Type=String,Description="Transcript count as annotated per gene from /mnt/storage1/users/ahsturm1/megSAP/test/data_somatic/Sample_RX000001_01/RX000001_01_counts.tsv">
+##INFO=<ID=rna_ref_tpm,Number=.,Type=String,Description="RNA reference data in transcripts per million for tissue gallbladder from proteinatlas.org.">
+##FILTER=<ID=LowDepth,Description="Tumor or normal sample read depth at this locus is below 2">
+##FILTER=<ID=LowEVS,Description="Somatic Empirical Variant Score (SomaticEVS) is below threshold">
+##FILTER=<ID=all-unknown,Description="Allele unknown">
+##FILTER=<ID=depth-nor,Description="Sequencing depth in normal is too low (< 20)">
+##FILTER=<ID=depth-tum,Description="Sequencing depth in tumor is too low (< 20)">
+##FILTER=<ID=freq-nor,Description="Allele frequency in normal > 0.17 * allele frequency in tumor">
+##FILTER=<ID=freq-tum,Description="Allele frequency in tumor < 0.05">
+##FILTER=<ID=low_conf_region,Description="Low confidence region for small variant calling based on gnomAD AC0/RF filters and IMGAG trio/twin data.">
+##FILTER=<ID=lt-3-reads,Description="Less than 3 supporting tumor reads">
+##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
+##FILTER=<ID=special-chromosome,Description="Special chromosome">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	TUMOR_01	NORMAL_01
+chr21	10541004	.	A	G	18	depth-tum;depth-nor;off-target	tumor_af=0.3333;tumor_dp=18;normal_af=0.0000;normal_dp=10;gene=TPTE;variant_type=intron%2Cintron&non_coding_transcript;coding_and_splicing=TPTE:ENST00000427445.6:intron_variant:MODIFIER:intron4/21:c.12-108A>G::%2C:ENST00000612267.1:intron_variant&non_coding_transcript_variant:MODIFIER:intron14/31:n.1688-108A>G::%2CTPTE:ENST00000612746.1:intron_variant:MODIFIER:intron3/18:c.-182+13592A>G::%2CTPTE:ENST00000618007.5:intron_variant:MODIFIER:intron4/23:c.12-108A>G::%2CTPTE:ENST00000622113.4:intron_variant:MODIFIER:intron4/22:c.12-108A>G::;dbSNP=rs1739180;gnomAD=0.3076;gnomAD_hom_hemi=1%2C.;gnomAD_het=43132;gnomAD_wt=97084;phyloP=0.0670;CADD=6.46;NGSD_som_c=1;NGSD_som_p=20101I_0461_Stephan;NGSD_hom=n/a%20(AF>5%25);NGSD_het=n/a%20(AF>5%25);NGSD_group=n/a%20(AF>5%25);gene_info=TPTE%20(inh%3Dn/a%20oe_syn%3D1.04%20oe_mis%3D1.24%20oe_lof%3D1.09);ncg_oncogene=na;ncg_tsg=na;RX000001_01.bam_rna_depth=1;RX000001_01.bam_rna_af=0.00;RX000001_01.bam_rna_tpm=0.01;rna_ref_tpm=0.0	.	.	.
+chr21	30371921	.	C	A	216	.	tumor_af=0.4340;tumor_dp=106;normal_af=0.0000;normal_dp=104;gene=KRTAP13-2;variant_type=missense;coding_and_splicing=KRTAP13-2:ENST00000399889.4:missense_variant:MODERATE:exon1/1:c.293G>T:p.Gly98Val:PF05287%20[PMG%20protein];phyloP=0.4500;Sift=T(0.06);PolyPhen=B(0.30);CADD=9.66;REVEL=0.14;SpliceAI=0.38;NGSD_som_c=0;NGSD_hom=0;NGSD_het=0;NGSD_group=0%20/%200;gene_info=KRTAP13-2%20(inh%3Dn/a%20oe_syn%3D1.28%20oe_mis%3D1.23%20oe_lof%3D1.71)%2C%20MIR4327%20(inh%3Dn/a%20oe_syn%3Dn/a%20oe_mis%3Dn/a%20oe_lof%3Dn/a);ncg_oncogene=na;ncg_tsg=na;RX000001_01.bam_rna_depth=1;RX000001_01.bam_rna_af=0.00;RX000001_01.bam_rna_tpm=0.08;rna_ref_tpm=0.0	.	.	.
+chr21	32601784	.	C	CT	4	depth-tum;depth-nor;off-target	tumor_af=1.0000;tumor_dp=3;normal_af=0.0000;normal_dp=9;gene=CFAP298%2CCFAP298-TCP10L;variant_type=3'UTR%2Cintron;coding_and_splicing=CFAP298:ENST00000290155.8:3_prime_UTR_variant:MODIFIER:exon7/7:c.*78dup::%2CCFAP298:ENST00000382549.8:3_prime_UTR_variant:MODIFIER:exon5/5:c.*1304dup::%2CCFAP298:ENST00000440966.5:3_prime_UTR_variant:MODIFIER:exon6/6:c.*78dup::%2CCFAP298-TCP10L:ENST00000673807.1:intron_variant:MODIFIER:intron5/7:c.666+1376dup::%2CCFAP298-TCP10L:ENST00000673945.1:intron_variant:MODIFIER:intron5/6:c.666+1376dup::%2CCFAP298-TCP10L:ENST00000673985.1:intron_variant:MODIFIER:intron5/7:c.666+1376dup::;OMIM=615494_[GENE%3DCFAP298_PHENOS%3DCiliary%20dyskinesia%2C%20primary%2C%2026%2C%20615500%20(3)%2C%20Autosomal%20recessive];dbSNP=rs79380292;gnomAD=0.0019;gnomAD_hom_hemi=0%2C.;gnomAD_het=261;gnomAD_wt=138937;CADD=0.64;SpliceAI=0;NGSD_som_c=0;NGSD_hom=0;NGSD_het=24;NGSD_group=0%20/%203;gene_info=CFAP298-TCP10L%20(inh%3DAR%20oe_syn%3Dn/a%20oe_mis%3Dn/a%20oe_lof%3Dn/a)%2C%20CFAP298%20(inh%3DAR%20oe_syn%3D1.16%20oe_mis%3D0.92%20oe_lof%3D0.65);ncg_oncogene=na%2Cna;ncg_tsg=na%2Cna;RX000001_01.bam_rna_depth=68;RX000001_01.bam_rna_af=0.00;RX000001_01.bam_rna_tpm=5.79;rna_ref_tpm=.	.	.	.
+chr21	46317936	.	G	T	18	depth-tum;depth-nor;off-target	tumor_af=0.7857;tumor_dp=14;normal_af=0.0000;normal_dp=6;gene=C21orf58;variant_type=intron;coding_and_splicing=C21orf58:ENST00000291691.12:intron_variant:MODIFIER:intron2/7:c.309+76C>A::%2CC21orf58:ENST00000397679.5:intron_variant:MODIFIER:intron1/6:c.-259+76C>A::%2CC21orf58:ENST00000397680.5:intron_variant:MODIFIER:intron2/7:c.-179+76C>A::%2CC21orf58:ENST00000397682.7:intron_variant:MODIFIER:intron2/8:c.-259+76C>A::%2CC21orf58:ENST00000397683.5:intron_variant:MODIFIER:intron2/8:c.-259+76C>A::;phyloP=-0.7170;CADD=1.88;SpliceAI=0.05;NGSD_som_c=0;NGSD_hom=0;NGSD_het=0;NGSD_group=0%20/%200;gene_info=C21ORF58%20(inh%3Dn/a%20oe_syn%3D1.23%20oe_mis%3D0.92%20oe_lof%3D1.15);ncg_oncogene=na;ncg_tsg=na;RX000001_01.bam_rna_depth=.;RX000001_01.bam_rna_af=.;RX000001_01.bam_rna_tpm=7.65;rna_ref_tpm=1.6	.	.	.
+chr21	46317936	.	G	C	18	lt-3-reads;depth-tum;depth-nor;off-target	tumor_af=0.0714;tumor_dp=14;normal_af=0.0000;normal_dp=6;gene=C21orf58;variant_type=intron;coding_and_splicing=C21orf58:ENST00000291691.12:intron_variant:MODIFIER:intron2/7:c.309+76C>G::%2CC21orf58:ENST00000397679.5:intron_variant:MODIFIER:intron1/6:c.-259+76C>G::%2CC21orf58:ENST00000397680.5:intron_variant:MODIFIER:intron2/7:c.-179+76C>G::%2CC21orf58:ENST00000397682.7:intron_variant:MODIFIER:intron2/8:c.-259+76C>G::%2CC21orf58:ENST00000397683.5:intron_variant:MODIFIER:intron2/8:c.-259+76C>G::;phyloP=-0.7170;CADD=2.06;SpliceAI=0.03;NGSD_som_c=0;NGSD_hom=0;NGSD_het=0;NGSD_group=0%20/%200;gene_info=C21ORF58%20(inh%3Dn/a%20oe_syn%3D1.23%20oe_mis%3D0.92%20oe_lof%3D1.15);ncg_oncogene=na;ncg_tsg=na;RX000001_01.bam_rna_depth=.;RX000001_01.bam_rna_af=.;RX000001_01.bam_rna_tpm=7.65;rna_ref_tpm=1.6	.	.	.

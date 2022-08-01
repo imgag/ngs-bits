@@ -1,0 +1,83 @@
+##ANALYSISTYPE=SOMATIC_PAIR
+##PIPELINE=megSAP 2021_12-199-g0594fb59
+##GENOME_BUILD=GRCh38
+##CREATION_DATE=2022-07-30
+##FILTER=all-unknown=Allele unknown
+##FILTER=depth-nor=Sequencing depth in normal is too low (< 20)
+##FILTER=depth-tum=Sequencing depth in tumor is too low (< 20)
+##FILTER=freq-nor=Allele frequency in normal > 0.17 * allele frequency in tumor
+##FILTER=freq-tum=Allele frequency in tumor < 0.05
+##FILTER=low_conf_region=Variant marked as 'low_conf_region'.
+##FILTER=LowDepth=Tumor or normal sample read depth at this locus is below 2
+##FILTER=LowEVS=Somatic Empirical Variant Score (SomaticEVS) is below threshold
+##FILTER=lt-3-reads=Less than 3 supporting tumor reads
+##FILTER=off-target=Variant marked as 'off-target'.
+##FILTER=special-chromosome=Special chromosome
+##SAMPLE=<ID=TUMOR_01,Gender=n/a,ExternalSampleName=SL-ALL-1; Pat7;QA007004DQ,IsTumor=yes,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=Affected>
+##SAMPLE=<ID=NORMAL_01,Gender=n/a,ExternalSampleName=SL-FB-1; Pat7;QA007011D9,IsTumor=no,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=Affected>
+##DESCRIPTION=filter=Annotations for filtering and ranking variants.
+##DESCRIPTION=quality=Quality parameters - variant quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM), probability of strand bias for alternate bases as phred score (SAP), probability of allele ballance as phred score (ABP)
+##DESCRIPTION=gene=Affected gene list (comma-separated).
+##DESCRIPTION=variant_type=Variant type.
+##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).
+##DESCRIPTION=coding_and_splicing_refseq=Coding and splicing details based on RefSeq (Gene, RefSeq id, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).
+##DESCRIPTION=regulatory=Regulatory consequence details.
+##DESCRIPTION=OMIM=OMIM database annotation.
+##DESCRIPTION=ClinVar=ClinVar database annotation.
+##DESCRIPTION=HGMD=HGMD database annotation.
+##DESCRIPTION=RepeatMasker=RepeatMasker annotation.
+##DESCRIPTION=dbSNP=Identifier in dbSNP database.
+##DESCRIPTION=gnomAD=Allele frequency in gnomAD project.
+##DESCRIPTION=gnomAD_sub=Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project.
+##DESCRIPTION=gnomAD_hom_hemi=Homoyzgous counts and hemizygous counts of gnomAD project (genome data).
+##DESCRIPTION=gnomAD_het=Heterozygous counts of the gnomAD project (genome data).
+##DESCRIPTION=gnomAD_wt=Wildtype counts of the gnomAD project (genome data).
+##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.
+##DESCRIPTION=Sift=Sift effect prediction and score for each transcript: D=damaging, T=tolerated.
+##DESCRIPTION=PolyPhen=PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign.
+##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20.
+##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.
+##DESCRIPTION=MaxEntScan=MaxEntScan splicing prediction (reference bases score/alternate bases score).
+##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
+##DESCRIPTION=SpliceAI=SpliceAI prediction of splice-site variations. Probability of the variant being splice-altering (range from 0-1). The score is the maximum value of acceptor/donor gain/loss of all effected genes.
+##DESCRIPTION=PubMed=PubMed ids to publications on the given variant.
+##DESCRIPTION=NGSD_som_c=Somatic variant count in the NGSD.
+##DESCRIPTION=NGSD_som_p=Project names of project containing this somatic variant in the NGSD.
+##DESCRIPTION=NGSD_som_vicc_interpretation=Somatic variant interpretation according VICC standard in the NGSD.
+##DESCRIPTION=NGSD_som_vicc_comment=Somatic VICC interpretation comment in the NGSD.
+##DESCRIPTION=NGSD_hom=Homozygous variant count in NGSD.
+##DESCRIPTION=NGSD_het=Heterozygous variant count in NGSD.
+##DESCRIPTION=NGSD_group=Homozygous / heterozygous variant count in NGSD with the same disease group.
+##DESCRIPTION=classification=Classification from the NGSD.
+##DESCRIPTION=classification_comment=Classification comment from the NGSD.
+##DESCRIPTION=validation=Validation information from the NGSD. Validation results of other samples are listed in brackets!
+##DESCRIPTION=comment=Variant comments from the NGSD.
+##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).
+##DESCRIPTION=CMC_genes=Gene symbol from COSMIC Cancer Mutation Census (CMC).
+##DESCRIPTION=CMC_MUTATION_ID=COSV identifier of variant from COSMIC Cancer Mutation Census (CMC).
+##DESCRIPTION=CMC_disease=diseases with > 1% of samples mutated where disease = Primary site(tissue) / Primary histology / Sub-histology = Samples mutated / Samples tested = Frequency from COSMIC Cancer Mutation Census (CMC).
+##DESCRIPTION=CMC_DNDS_ratio=diseases with significant dn/ds ratio (q-value < 5%) from COSMIC Cancer Mutation Census (CMC).
+##DESCRIPTION=CMC_mutation_significance=Significance tier of the variant from COSMIC Cancer Mutation Census (CMC).
+##DESCRIPTION=CANCERHOTSPOTS_AA_CHANGE=Amino acid change as in original cancerhotspots.org file
+##DESCRIPTION=CANCERHOTSPOTS_TOTAL_MUT=Total mutation count in cancerhotspots.org at certain amino acid position.
+##DESCRIPTION=CANCERHOTSPOTS_ALT_COUNT=Count of specific amino acid alteration at same position in cancerhotspots.org.
+##FILTER=low_conf_region=Low confidence region for small variant calling based on gnomAD AC0/RF filters and IMGAG trio/twin data.
+##DESCRIPTION=tumor_af=Mutant allele frequency in tumor (Sample TUMOR_01).
+##DESCRIPTION=tumor_dp=Tumor Depth (Sample TUMOR_01).
+##DESCRIPTION=normal_af=Mutant allele frequency in normal (Sample NORMAL_01).
+##DESCRIPTION=normal_dp=Normal depth (Sample NORMAL_01).
+##DESCRIPTION=somatic_classification_comment=Somatic classification comment from the NGSD.
+##DESCRIPTION=somatic_classification=Somatic classification from the NGSD.
+##DESCRIPTION=ncg_oncogene=1:gene is oncogene according NCG6.0, 0:No oncogene according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column gene.
+##DESCRIPTION=ncg_tsg=1:gene is TSG according NCG6.0, 0:No TSG according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column gene.
+##DESCRIPTION=RX000001_01.bam_rna_depth=Depth in RNA BAM file /mnt/storage1/users/ahsturm1/megSAP/test/data_somatic/Sample_RX000001_01/RX000001_01.bam
+##DESCRIPTION=RX000001_01.bam_rna_af=Allele frequency in RNA BAM file /mnt/storage1/users/ahsturm1/megSAP/test/data_somatic/Sample_RX000001_01/RX000001_01.bam
+##DESCRIPTION=RX000001_01.bam_rna_tpm=Transcript count as annotated per gene from /mnt/storage1/users/ahsturm1/megSAP/test/data_somatic/Sample_RX000001_01/RX000001_01_counts.tsv
+##RNA_REF_TPM_TISSUE=gallbladder
+##DESCRIPTION=rna_ref_tpm=RNA reference data in transcripts per million for tissue gallbladder from proteinatlas.org.
+#chr	start	end	ref	obs	tumor_af	tumor_dp	normal_af	normal_dp	filter	quality	gene	variant_type	coding_and_splicing	coding_and_splicing_refseq	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	gnomAD	gnomAD_sub	gnomAD_hom_hemi	gnomAD_het	gnomAD_wt	phyloP	Sift	PolyPhen	CADD	REVEL	MaxEntScan	COSMIC	SpliceAI	PubMed	NGSD_som_c	NGSD_som_p	NGSD_som_vicc_interpretation	NGSD_som_vicc_comment	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	somatic_classification	somatic_classification_comment	validation	comment	gene_info	CMC_genes	CMC_MUTATION_ID	CMC_disease	CMC_DNDS_ratio	CMC_mutation_significance	CANCERHOTSPOTS_AA_CHANGE	CANCERHOTSPOTS_TOTAL_MUT	CANCERHOTSPOTS_ALT_COUNT	ncg_oncogene	ncg_tsg	RX000001_01.bam_rna_depth	RX000001_01.bam_rna_af	RX000001_01.bam_rna_tpm	rna_ref_tpm
+chr21	10541004	10541004	A	G	0.3333	18	0.0000	10	depth-tum;depth-nor;off-target	QUAL=18	TPTE	intron,intron&non_coding_transcript	TPTE:ENST00000427445.6:intron_variant:MODIFIER:intron4/21:c.12-108A>G::,:ENST00000612267.1:intron_variant&non_coding_transcript_variant:MODIFIER:intron14/31:n.1688-108A>G::,TPTE:ENST00000612746.1:intron_variant:MODIFIER:intron3/18:c.-182+13592A>G::,TPTE:ENST00000618007.5:intron_variant:MODIFIER:intron4/23:c.12-108A>G::,TPTE:ENST00000622113.4:intron_variant:MODIFIER:intron4/22:c.12-108A>G::							rs1739180	0.3076		1,.	43132	97084	0.0670			6.46						1	20101I_0461_Stephan			n/a (AF>5%)	n/a (AF>5%)	n/a (AF>5%)							TPTE (inh=n/a oe_syn=1.04 oe_mis=1.24 oe_lof=1.09)									na	na	1	0.00	0.01	0.0
+chr21	30371921	30371921	C	A	0.4340	106	0.0000	104		QUAL=216	KRTAP13-2	missense	KRTAP13-2:ENST00000399889.4:missense_variant:MODERATE:exon1/1:c.293G>T:p.Gly98Val:PF05287 [PMG protein]													0.4500	T(0.06)	B(0.30)	9.66	0.14			0.38		0				0	0	0 / 0							KRTAP13-2 (inh=n/a oe_syn=1.28 oe_mis=1.23 oe_lof=1.71), MIR4327 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)									na	na	1	0.00	0.08	0.0
+chr21	32601784	32601784	-	T	1.0000	3	0.0000	9	depth-tum;depth-nor;off-target	QUAL=4	CFAP298,CFAP298-TCP10L	3'UTR,intron	CFAP298:ENST00000290155.8:3_prime_UTR_variant:MODIFIER:exon7/7:c.*78dup::,CFAP298:ENST00000382549.8:3_prime_UTR_variant:MODIFIER:exon5/5:c.*1304dup::,CFAP298:ENST00000440966.5:3_prime_UTR_variant:MODIFIER:exon6/6:c.*78dup::,CFAP298-TCP10L:ENST00000673807.1:intron_variant:MODIFIER:intron5/7:c.666+1376dup::,CFAP298-TCP10L:ENST00000673945.1:intron_variant:MODIFIER:intron5/6:c.666+1376dup::,CFAP298-TCP10L:ENST00000673985.1:intron_variant:MODIFIER:intron5/7:c.666+1376dup::			615494_[GENE=CFAP298_PHENOS=Ciliary dyskinesia, primary, 26, 615500 (3), Autosomal recessive]				rs79380292	0.0019		0,.	261	138937				0.64				0		0				0	24	0 / 3							CFAP298-TCP10L (inh=AR oe_syn=n/a oe_mis=n/a oe_lof=n/a), CFAP298 (inh=AR oe_syn=1.16 oe_mis=0.92 oe_lof=0.65)									na,na	na,na	68	0.00	5.79	.
+chr21	46317936	46317936	G	T	0.7857	14	0.0000	6	depth-tum;depth-nor;off-target	QUAL=18	C21orf58	intron	C21orf58:ENST00000291691.12:intron_variant:MODIFIER:intron2/7:c.309+76C>A::,C21orf58:ENST00000397679.5:intron_variant:MODIFIER:intron1/6:c.-259+76C>A::,C21orf58:ENST00000397680.5:intron_variant:MODIFIER:intron2/7:c.-179+76C>A::,C21orf58:ENST00000397682.7:intron_variant:MODIFIER:intron2/8:c.-259+76C>A::,C21orf58:ENST00000397683.5:intron_variant:MODIFIER:intron2/8:c.-259+76C>A::													-0.7170			1.88				0.05		0				0	0	0 / 0							C21ORF58 (inh=n/a oe_syn=1.23 oe_mis=0.92 oe_lof=1.15)									na	na	.	.	7.65	1.6
+chr21	46317936	46317936	G	C	0.0714	14	0.0000	6	lt-3-reads;depth-tum;depth-nor;off-target	QUAL=18	C21orf58	intron	C21orf58:ENST00000291691.12:intron_variant:MODIFIER:intron2/7:c.309+76C>G::,C21orf58:ENST00000397679.5:intron_variant:MODIFIER:intron1/6:c.-259+76C>G::,C21orf58:ENST00000397680.5:intron_variant:MODIFIER:intron2/7:c.-179+76C>G::,C21orf58:ENST00000397682.7:intron_variant:MODIFIER:intron2/8:c.-259+76C>G::,C21orf58:ENST00000397683.5:intron_variant:MODIFIER:intron2/8:c.-259+76C>G::													-0.7170			2.06				0.03		0				0	0	0 / 0							C21ORF58 (inh=n/a oe_syn=1.23 oe_mis=0.92 oe_lof=1.15)									na	na	.	.	7.65	1.6
