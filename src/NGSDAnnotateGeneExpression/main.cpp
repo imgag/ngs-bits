@@ -63,13 +63,7 @@ public:
 
 		//get expression values
 		QString ps_id = db.processedSampleId(rna_ps_name);
-//		qDebug() << ps_id;
-		QMap<QByteArray, double> expression = db.getGeneExpressionValuesOfSample(ps_id, false);
-//		qDebug() << expression.size();
-//		foreach (QByteArray key, expression.keys())
-//		{
-//			qDebug() << key << expression.value(key);
-//		}
+		QMap<QByteArray, double> expression = db.getGeneExpressionValuesOfSample(ps_id, true);
 
 		//get cohort stats
 		ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id);
@@ -78,9 +72,6 @@ public:
 		int sys_id = db.processingSystemId(ps_data.processing_system);
 		QSet<int> rna_cohort_ps_ids;
 		QMap<QByteArray, ExpressionStats> expression_stats = db.calculateCohortExpressionStatistics(sys_id, s_data.tissue,  rna_cohort_ps_ids, ps_data.project_name, ps_id, cohort_strategy);
-
-//		//get ensg->symbol mapping
-//		QMap<QByteArray, QByteArray> ensg_gene_mapping = db.getEnsemblGeneMapping();
 
 
 		//parse GSvar file

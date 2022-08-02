@@ -753,10 +753,10 @@ public:
 	QMap<QByteArray, ExpressionStats> calculateExonExpressionStatistics(QSet<int>& cohort, const BedLine& exon=BedLine(), bool debug=false);
 	///Calculates statistics on all expression values of the same processing system and tissue
 	QMap<QByteArray, ExpressionStats> calculateCohortExpressionStatistics(int sys_id, const QString& tissue_type, QSet<int>& cohort, const QString& project="", const QString& ps_id="",
-																	RnaCohortDeterminationStategy cohort_type=RNA_COHORT_GERMLINE, bool debug=false);
+																	RnaCohortDeterminationStategy cohort_type=RNA_COHORT_GERMLINE, const QStringList& exclude_quality=QStringList() << "bad", bool debug=false);
 	///Determines the sample cohort for a given sample
 	QSet<int> getRNACohort(int sys_id, const QString& tissue_type, const QString& project="", const QString& ps_id="", RnaCohortDeterminationStategy cohort_type=RNA_COHORT_GERMLINE,
-						   const QByteArray& mode = "genes", bool debug=false);
+						   const QByteArray& mode = "genes", const QStringList& exclude_quality=QStringList() << "bad", bool debug=false);
 	///Creates a mapping from ENSG ensembl identifier to NGSD gene ids
 	QMap<QByteArray, QByteArray> getEnsemblGeneMapping();
 	///Creates a mapping from gene symbols to ENSG ensembl identifier

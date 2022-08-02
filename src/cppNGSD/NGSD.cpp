@@ -2015,13 +2015,13 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateExonExpressionStatistics(QSet<i
 
 
 QMap<QByteArray, ExpressionStats> NGSD::calculateCohortExpressionStatistics(int sys_id, const QString& tissue_type, QSet<int>& cohort, const QString& project, const QString& ps_id,
-																	  RnaCohortDeterminationStategy cohort_type, bool debug)
+																	  RnaCohortDeterminationStategy cohort_type, const QStringList& exclude_quality, bool debug)
 {
 	QTime timer;
 	timer.start();
 
 	//get cohort
-	cohort = getRNACohort(sys_id, tissue_type, project, ps_id, cohort_type, "genes", debug);
+	cohort = getRNACohort(sys_id, tissue_type, project, ps_id, cohort_type, "genes", exclude_quality, debug);
 
 	QMap<QByteArray, ExpressionStats> expression_stats = calculateGeneExpressionStatistics(cohort);
 
@@ -2029,7 +2029,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateCohortExpressionStatistics(int 
 	return expression_stats;
 }
 
-QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QString& project, const QString& ps_id, RnaCohortDeterminationStategy cohort_type, const QByteArray& mode, bool debug)
+QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QString& project, const QString& ps_id, RnaCohortDeterminationStategy cohort_type, const QByteArray& mode, const QStringList& exclude_quality, bool debug)
 {
 	QTime timer;
 	timer.start();
@@ -2067,21 +2067,17 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 					"         LEFT JOIN sample s on ps.sample_id = s.id "
 					"WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " "
 					"  AND s.tissue = '" + tissue_type + "' "
-					"  AND ps.quality != 'bad'"
 					);
+
+		if (exclude_quality.size() > 0)
+		{
+			query_string_cohort.append(" AND ps.quality NOT IN ('" + exclude_quality.join("', '") + "')");
+		}
 
 		if (cohort_type == RNA_COHORT_GERMLINE_PROJECT)
 		{
 			int project_id = getValue("SELECT id FROM project WHERE name=:0", false, project).toInt();
-			query_string_cohort = QString(
-								"SELECT ps.id "
-								"FROM processed_sample ps "
-								"         LEFT JOIN sample s on ps.sample_id = s.id "
-								"WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " "
-								"  AND ps.project_id = " + QByteArray::number(project_id) + " "
-								"  AND ps.quality != 'bad'"
-								"  AND s.tissue = '" + tissue_type + "' "
-								);
+			query_string_cohort.append("  AND ps.project_id = " + QByteArray::number(project_id));
 		}
 
 		cohort = getValuesInt(query_string_cohort).toSet();
@@ -2132,16 +2128,24 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 		if(debug) qDebug() << "get disease info" << Helper::elapsedTime(timer);
 		timer.restart();
 
+		QString query_string_cohort = QString("SELECT DISTINCT ps.id FROM processed_sample ps LEFT JOIN sample s on ps.sample_id=s.id	"
+											  "LEFT JOIN sample_relations sr ON s.id=sr.sample1_id OR s.id=sr.sample2_id "
+											  "LEFT JOIN sample_disease_info sdi ON s.id=sdi.sample_id OR sr.sample1_id=sdi.sample_id OR sr.sample2_id=sdi.sample_id "
+											  "WHERE ps.processing_system_id=" + QString::number(sys_id) + " "
+											  "AND ps.project_id=" + QString::number(project_id) + " "
+											  "AND ps.quality != 'bad' "
+											  "AND (sr.relation='same sample' OR sr.relation IS NULL) "
+											  "AND ((sdi.type='ICD10 code' AND sdi.disease_info='" + icd10_disease_info.toList().at(0) + "') "
+											  "OR (sdi.type='HPO term id' AND sdi.disease_info='" + hpo_disease_info.toList().at(0) + "')) ");
 
-		cohort = getValuesInt(QString() + "SELECT DISTINCT ps.id FROM processed_sample ps LEFT JOIN sample s on ps.sample_id=s.id	"
-												  + "LEFT JOIN sample_relations sr ON s.id=sr.sample1_id OR s.id=sr.sample2_id "
-												  + "LEFT JOIN sample_disease_info sdi ON s.id=sdi.sample_id OR sr.sample1_id=sdi.sample_id OR sr.sample2_id=sdi.sample_id "
-												  + "WHERE ps.processing_system_id=" + QString::number(sys_id) + " "
-												  + "AND ps.project_id=" + QString::number(project_id) + " "
-												  + "AND ps.quality != 'bad' "
-												  + "AND (sr.relation='same sample' OR sr.relation IS NULL) "
-												  + "AND ((sdi.type='ICD10 code' AND sdi.disease_info='" + icd10_disease_info.toList().at(0) + "') OR (sdi.type='HPO term id' AND sdi.disease_info='"
-													  + hpo_disease_info.toList().at(0) + "'))").toSet();
+		if (exclude_quality.size() > 0)
+		{
+			query_string_cohort.append("AND ps.quality NOT IN ('" + exclude_quality.join("', '") + "') ");
+		}
+
+
+		cohort = getValuesInt(query_string_cohort).toSet();
+
 
 		if(debug) qDebug() << "get ps_ids of cohort (somatic)" << Helper::elapsedTime(timer);
 		timer.restart();
