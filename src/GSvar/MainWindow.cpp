@@ -4001,14 +4001,10 @@ QList<RtfPicture> pngsFromFiles(QStringList files)
 		QImage pic = QImage(path);
 		if(pic.isNull()) continue;
 
-		//set maximum width/height in pixels
-		if( (uint)pic.width() > 1200 ) pic = pic.scaledToWidth(1200, Qt::TransformationMode::SmoothTransformation);
-		if( (uint)pic.height() > 1200 ) pic = pic.scaledToHeight(1200, Qt::TransformationMode::SmoothTransformation);
-
 		QByteArray png_data = "";
 		QBuffer buffer(&png_data);
 		buffer.open(QIODevice::WriteOnly);
-		if (pic.save(&buffer, "PNG")) continue;
+		if (!pic.save(&buffer, "PNG")) continue;
 		buffer.close();
 
 		pic_list << RtfPicture(png_data.toHex(), pic.width(), pic.height());
@@ -4403,7 +4399,7 @@ void MainWindow::openProcessedSampleTabsCurrentAnalysis()
 
 void MainWindow::on_actionOpenProcessedSampleTabByName_triggered()
 {
-	ProcessedSampleSelector dlg(this, true);
+	ProcessedSampleSelector dlg(this, false);
 	if (!dlg.exec()) return;
 
 	QString ps_name = dlg.processedSampleName();
@@ -4437,7 +4433,7 @@ QString MainWindow::selectGene()
 	selector->fill(db.createTable("gene", "SELECT id, symbol FROM gene"));
 
 	//show
-	auto dlg = GUIHelper::createDialog(selector, "Select gene", "symbol:", true);
+	auto dlg = GUIHelper::createDialog(selector, "Select gene", "symbol (or transcript name):", true);
 	if (dlg->exec()==QDialog::Rejected) return "";
 
 	//handle invalid gene name > check if it is a transcript name

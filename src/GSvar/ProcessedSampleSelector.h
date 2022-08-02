@@ -23,7 +23,7 @@ public:
 	//Set label text
 	void setLabel(QString label);
 	//Set processed sample selection text
-	void setSelection(QString procssed_sample);
+	void setSelection(QString processed_sample);
 
 	//Returns if a valid processed sample was selected
 	bool isValidSelection() const;
@@ -40,6 +40,7 @@ public:
 
 protected slots:
 	void initAutoCompletion();
+	void openById();
 
 private:
 	Ui::ProcessedSampleSelector ui_;
