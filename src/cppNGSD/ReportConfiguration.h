@@ -14,10 +14,7 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	ReportVariantConfiguration();
 	///Returns if the variant is to be shown in the report
 	bool showInReport() const;
-	///Returns if the variant is valid
-	bool isValid(QStringList& errors);
 
-	//general data
 	VariantType variant_type;
 	int variant_index; //index of the variant in the variant/CNV/SV list
 
@@ -36,10 +33,6 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	QString comments; //comments of 1. evaluation
 	QString comments2; //comments of 2. evaluation
 	QString rna_info;
-
-	//type-specific data
-	QVariant manual_cnv_start; //int
-	QVariant manual_cnv_end; //int
 
 	//Returns options for 'type' (taken and cached from NGSD)
 	static QStringList getTypeOptions();
