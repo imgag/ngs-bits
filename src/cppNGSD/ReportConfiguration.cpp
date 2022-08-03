@@ -23,12 +23,37 @@ ReportVariantConfiguration::ReportVariantConfiguration()
 	, exclude_other(false)
 	, comments()
 	, comments2()
+	, rna_info()
+	, manual_cnv_start()
+	, manual_cnv_end()
 {
 }
 
 bool ReportVariantConfiguration::showInReport() const
 {
 	return !(exclude_artefact || exclude_frequency || exclude_phenotype || exclude_mechanism || exclude_other);
+}
+
+bool ReportVariantConfiguration::isValid(QStringList& errors)
+{
+	errors.clear();
+
+	//check
+
+
+	//check causal variant is ok
+	bool exclude = exclude_artefact || exclude_frequency || exclude_phenotype || exclude_mechanism || exclude_other;
+	if (causal && exclude)
+	{
+		errors << "Variant cannot be causal and excluded at the same time!";
+	}
+
+	//check types of nullable
+	if (!manual_cnv_start.isNull() && manual_cnv_start.type()!=QVariant::Type::Int) errors << "manual CNV start position is set, but not an integer!";
+	if (!manual_cnv_end.isNull() && manual_cnv_end.type()!=QVariant::Type::Int) errors << "manual CNV end position is set, but not an integer!";
+
+
+	return errors.isEmpty();
 }
 
 QStringList ReportVariantConfiguration::getTypeOptions()

@@ -204,7 +204,7 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 	//show warning if non-coding transcripts had to be used
 	if (!genes_noncoding.isEmpty())
 	{
-		output << "No coding transcript is defined for the following genes (for GRCh37):";
+		output << "No coding transcript is defined for the following genes:";
 		output << genes_noncoding.join(", ");
 		output << "For these genes the longest *non-coding* transcript is used.";
 		output << "Please check gaps of these genes manually since they might be non-coding but shown as coding region +-5!";

@@ -645,7 +645,7 @@ public:
 	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source=false, bool fallback_noncoding=false);
 	///Returns the list of all approved gene names
 	const GeneSet& approvedGeneNames();
-	///Returns the map of gene to preferred transcripts
+	///Returns the map of gene to preferred transcripts (note: transcript names do not contain version numbers)
 	QMap<QByteArray, QByteArrayList> getPreferredTranscripts();
 	///Adds a preferred transcript. Returns if it was added, i.e. it was not already present. Throws an exception, if the transcript name is not valid.
 	bool addPreferredTranscript(QByteArray transcript_name);

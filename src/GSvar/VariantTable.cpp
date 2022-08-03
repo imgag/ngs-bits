@@ -278,7 +278,8 @@ void VariantTable::customContextMenu(QPoint pos)
 	}
 	else if (action == a_clinvar_find)
 	{
-		QDesktopServices::openUrl(QUrl("https://www.ncbi.nlm.nih.gov/clinvar/?term=" + variant.chr().strNormalized(false)+"[chr]+AND+" + QString::number(variant.start()) + "%3A" + QString::number(variant.end()) + (GSvarHelper::build()==GenomeBuild::HG38? "[chrpos38] " : "[chrpos37] ")));
+		QString url = GSvarHelper::clinVarSearchLink(variant, GSvarHelper::build());
+		QDesktopServices::openUrl(QUrl(url));
 	}
 	else if (action == a_clinvar_pub)
 	{
