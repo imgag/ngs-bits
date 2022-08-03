@@ -25,7 +25,6 @@
         <file>Icons/Arrow_down.png</file>
         <file>Icons/Arrow_up.png</file>
         <file>Icons/Attention.png</file>
-        <file>Icons/Question.png</file>
         <file>Icons/CopyNumber.png</file>
         <file>Icons/List.png</file>
         <file>Icons/LOVD.png</file>
@@ -123,5 +122,6 @@
         <file>Icons/MosaicVariant.png</file>
         <file>Icons/Report_info.png</file>
         <file>Icons/settings.png</file>
+        <file>Icons/check.png</file>
     </qresource>
 </RCC>

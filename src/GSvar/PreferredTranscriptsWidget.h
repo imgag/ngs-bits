@@ -18,6 +18,7 @@ protected slots:
 	void updateTable();
 	void addPreferredTranscript();
 	void remove();
+	void check();
 
 private:
 	Ui::PreferredTranscriptsWidget ui_;
