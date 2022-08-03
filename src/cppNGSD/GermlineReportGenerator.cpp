@@ -1461,27 +1461,24 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 	//get target region coverages (from NGSD or calculate)
 	double target_region_read_depth = -1.0;
 
-	bool roi_is_system_target_region = data_.processing_system_roi.count()==data_.roi.regions.count() && data_.processing_system_roi.baseCount()==data_.roi.regions.baseCount();
-	if (roi_is_system_target_region || !data_.report_settings.recalculate_avg_depth)
+	//try to get the depth from the NGSD QC term
+	QCCollection stats = db_.getQCData(ps_id_);
+	for (int i=0; i<stats.count(); ++i)
 	{
-		try
+		if (stats[i].accession()=="QC:2000025")
 		{
-			QCCollection stats = db_.getQCData(ps_id_);
-			for (int i=0; i<stats.count(); ++i)
-			{
-				if (stats[i].accession()=="QC:2000025")
-				{
-					target_region_read_depth = stats[i].asDouble();
-				}
-			}
-			if (target_region_read_depth==-1.0) THROW(Exception, "QC:2000025 not found in QC data from NGSD");
+			bool ok = false;
+			double tmp = stats[i].toString().toDouble(&ok);
+			if (ok) target_region_read_depth = tmp;
 		}
-		catch(...)
-		{
-			Log::warn("Average target region depth from NGSD cannot be used! Recalculating it...");
+	}
 
-			target_region_read_depth = data_.statistics_service.targetRegionReadDepth(data_.roi.regions, data_.ps_bam);
-		}
+	//QC term not in NGSD or user requested re-calcuation
+	if (target_region_read_depth==-1 || data_.report_settings.recalculate_avg_depth)
+	{
+		if (!data_.report_settings.recalculate_avg_depth) Log::warn("Average target region depth from NGSD cannot be determined! Recalculating it...");
+
+		target_region_read_depth = data_.statistics_service.targetRegionReadDepth(data_.roi.regions, data_.ps_bam);
 	}
 
 	stream << endl;
