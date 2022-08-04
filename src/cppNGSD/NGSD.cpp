@@ -5906,12 +5906,21 @@ QString NGSD::reportConfigSummaryText(const QString& processed_sample_id)
 
 		//find causal CNVs
 		{
-			QStringList causal_ids = getValues("SELECT cnv_id FROM report_configuration_cnv WHERE causal='1' AND report_configuration_id=" + rc_id.toString());
-			foreach(const QString& id, causal_ids)
+			SqlQuery query = getQuery();
+			query.exec("SELECT * FROM report_configuration_cnv WHERE causal='1' AND report_configuration_id=" + rc_id.toString());
+			while(query.next())
 			{
-				CopyNumberVariant var = cnv(id.toInt());
-				QString cn = getValue("SELECT cn FROM cnv WHERE id='" + id + "'").toString();
-				QString cnv_class = getValue("SELECT class FROM report_configuration_cnv WHERE cnv_id='" + id + "'", false).toString();
+				QString cnv_id = query.value("cnv_id").toString();
+				CopyNumberVariant var = cnv(cnv_id.toInt());
+
+				//manual curation of start/end
+				QVariant manual_start = query.value("manual_start");
+				if (!manual_start.isNull()) var.setStart(manual_start.toInt());
+				QVariant manual_end = query.value("manual_end");
+				if (!manual_end.isNull()) var.setEnd(manual_end.toInt());
+
+				QString cn = getValue("SELECT cn FROM cnv WHERE id='" + cnv_id + "'").toString();
+				QString cnv_class = query.value("class").toString();
 				output += ", causal CNV: " + var.toString() + " (cn:" + cn;
 				if (cnv_class != "") output += " classification:" + cnv_class; // add classification, if exists
 				output += ")";
@@ -6047,6 +6056,10 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 		var_conf.comments = query.value("comments").toString();
 		var_conf.comments2 = query.value("comments2").toString();
 		var_conf.rna_info = query.value("rna_info").toString();
+
+		//optional (QVariant)
+		var_conf.manual_cnv_start = query.value("manual_start");
+		var_conf.manual_cnv_end = query.value("manual_end");
 
 
 		output->set(var_conf);

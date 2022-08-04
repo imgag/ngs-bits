@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Mit XMLSpy v2014 (x64) (http://www.altova.com) von Dr. Peter Bauer (Universitätsklinikum Tübingen) bearbeitet -->
+<!-- Mit XMLSpy v2022 rel. 2 (x64) (http://www.altova.com) von Marc Sturm (Universitätsklinikum Tübingen) bearbeitet -->
 <!-- edited with XMLSpy v2014 (x64) (http://www.altova.com) by Dr. Peter Bauer (Universitätsklinikum Tübingen) -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" xmlns:altova="http://www.altova.com/xml-schema-extensions" elementFormDefault="qualified" attributeFormDefault="unqualified" vc:minVersion="1.1">
 	<xs:element name="DiagnosticNgsReport">
@@ -796,6 +796,16 @@
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
+									<xs:attribute name="hgvs_c" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>manually cutated HGVS.c notation</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="hgvs_p" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>manually cutated HGVS.p notation</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
 						</xs:sequence>
@@ -932,16 +942,6 @@
 											<xs:documentation>cytogenetic band end position</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="hgvs_start" type="xs:string">
-										<xs:annotation>
-											<xs:documentation>manually cutated HGVS start position</xs:documentation>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="hgvs_end" type="xs:string">
-										<xs:annotation>
-											<xs:documentation>manually cutated HGVS end position</xs:documentation>
-										</xs:annotation>
-									</xs:attribute>
 									<xs:attribute name="type" use="required">
 										<xs:annotation>
 											<xs:documentation>cnv type</xs:documentation>
@@ -1046,6 +1046,16 @@
 												<xs:enumeration value="RNA dataset not usable"/>
 											</xs:restriction>
 										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="manual_start" type="xs:int">
+										<xs:annotation>
+											<xs:documentation>manually cutated genomic start position. Used if the CNV caller could not determine the position correctly or if one CNV is split into several calls</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="manual_end" type="xs:int">
+										<xs:annotation>
+											<xs:documentation>manually cutated genomic end position. Used if the CNV caller could not determine the position correctly or if one CNV is split into several calls</xs:documentation>
+										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="report_type">
 										<xs:annotation>
@@ -1528,8 +1538,8 @@
 				</xs:annotation>
 				<xs:simpleType>
 					<xs:restriction base="xs:int">
-						<xs:minInclusive value="8"/>
-						<xs:maxInclusive value="8"/>
+						<xs:minInclusive value="9"/>
+						<xs:maxInclusive value="9"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>

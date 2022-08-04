@@ -24,6 +24,8 @@ protected:
 	void updateGUI();
 	///Returns if the variant report configuration was changed.
 	bool variantReportConfigChanged();
+	///Write settings from GUI back to config
+	void writeBack(ReportVariantConfiguration& rvc);
 
 	Ui::ReportVariantDialog ui_;
 	ReportVariantConfiguration& config_;

@@ -23,12 +23,47 @@ ReportVariantConfiguration::ReportVariantConfiguration()
 	, exclude_other(false)
 	, comments()
 	, comments2()
+	, rna_info()
+	, manual_cnv_start()
+	, manual_cnv_end()
 {
 }
 
 bool ReportVariantConfiguration::showInReport() const
 {
 	return !(exclude_artefact || exclude_frequency || exclude_phenotype || exclude_mechanism || exclude_other);
+}
+
+bool ReportVariantConfiguration::isValid(QStringList& errors)
+{
+	errors.clear();
+
+	//check causal variant is not excluced
+	bool exclude = exclude_artefact || exclude_frequency || exclude_phenotype || exclude_mechanism || exclude_other;
+	if (causal && exclude)
+	{
+		errors << "Variant cannot be causal and excluded at the same time!";
+	}
+
+	//check types of nullable
+	if (!manual_cnv_start.isNull())
+	{
+		if (variant_type==VariantType::CNVS)
+		{
+			if(manual_cnv_start.type()!=QVariant::Type::Int) errors << "manual CNV start position is set, but not an integer!";
+		}
+		else errors << "manual CNV start position is set for variant which is not a CNV!";
+	}
+	if (!manual_cnv_end.isNull())
+	{
+		if (variant_type==VariantType::CNVS)
+		{
+			if(manual_cnv_end.type()!=QVariant::Type::Int) errors << "manual CNV end position is set, but not an integer!";
+		}
+		else errors << "manual CNV end position is set for variant which is not a CNV!";
+	}
+
+	return errors.isEmpty();
 }
 
 QStringList ReportVariantConfiguration::getTypeOptions()
@@ -252,7 +287,6 @@ QString ReportConfiguration::variantSummary() const
 	if (c_cnv_causal>0) output.last().append(" (" + QString::number(c_cnv_causal) + " causal)");
 	output << ("SVs: " + QString::number(c_sv));
 	if (c_sv_causal>0) output.last().append(" (" + QString::number(c_sv_causal) + " causal)");
-	OtherCausalVariant test = other_causal_variant_;
 	if (other_causal_variant_.isValid())
 	{
 		output << "other causal variant: 1";

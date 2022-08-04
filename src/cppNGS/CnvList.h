@@ -44,6 +44,18 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 		{
 			return end_;
 		}
+
+		///Sets the start position (1-based).
+		void setStart(int start)
+		{
+			start_ = start;
+		}
+		///Sets the end position (1-based).
+		void setEnd(int end)
+		{
+			end_ = end;
+		}
+
 		///Returns the number of regions/exons.
 		int regions() const
 		{

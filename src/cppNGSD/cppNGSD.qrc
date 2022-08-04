@@ -4,6 +4,6 @@
         <file>resources/SomaticReport_v4.xsd</file>
         <file>resources/NGSD_initial_data.sql</file>
         <file>resources/TumorOnlyNGSReport_v1.xsd</file>
-        <file>resources/GermlineReport_v8.xsd</file>
+        <file>resources/GermlineReport_v9.xsd</file>
     </qresource>
 </RCC>

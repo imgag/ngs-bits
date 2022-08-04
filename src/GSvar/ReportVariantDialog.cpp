@@ -107,29 +107,39 @@ bool ReportVariantDialog::variantReportConfigChanged()
 
 void ReportVariantDialog::writeBackSettings()
 {
-	config_.report_type = ui_.type->currentText();
-	config_.causal = ui_.causal->isChecked();
-	config_.classification = ui_.classification->currentText();
-	config_.inheritance = ui_.inheritance->currentText();
-	config_.de_novo = ui_.de_novo->isChecked();
-	config_.mosaic = ui_.mosaic->isChecked();
-	config_.comp_het = ui_.comp_het->isChecked();
-	config_.exclude_artefact = ui_.exclude_artefact->isChecked();
-	config_.exclude_frequency = ui_.exclude_frequency->isChecked();
-	config_.exclude_phenotype = ui_.exclude_phenotype->isChecked();
-	config_.exclude_mechanism = ui_.exclude_mechanism->isChecked();
-	config_.exclude_other = ui_.exclude_other->isChecked();
-	config_.comments = ui_.comments->toPlainText();
-	config_.comments2 = ui_.comments2->toPlainText();
-	config_.rna_info = ui_.rna_info->currentText();
+	writeBack(config_);
+}
+
+
+void ReportVariantDialog::writeBack(ReportVariantConfiguration& rvc)
+{
+	rvc.report_type = ui_.type->currentText();
+	rvc.causal = ui_.causal->isChecked();
+	rvc.classification = ui_.classification->currentText();
+	rvc.inheritance = ui_.inheritance->currentText();
+	rvc.de_novo = ui_.de_novo->isChecked();
+	rvc.mosaic = ui_.mosaic->isChecked();
+	rvc.comp_het = ui_.comp_het->isChecked();
+	rvc.exclude_artefact = ui_.exclude_artefact->isChecked();
+	rvc.exclude_frequency = ui_.exclude_frequency->isChecked();
+	rvc.exclude_phenotype = ui_.exclude_phenotype->isChecked();
+	rvc.exclude_mechanism = ui_.exclude_mechanism->isChecked();
+	rvc.exclude_other = ui_.exclude_other->isChecked();
+	rvc.comments = ui_.comments->toPlainText();
+	rvc.comments2 = ui_.comments2->toPlainText();
+	rvc.rna_info = ui_.rna_info->currentText();
 }
 
 void ReportVariantDialog::activateOkButtonIfValid()
 {
-	//check variant type is set
-	if (!ReportVariantConfiguration::getTypeOptions().contains(ui_.type->currentText()))
+	//check if config is valid
+	QStringList errors;
+	ReportVariantConfiguration tmp;
+	writeBack(tmp);
+	if (!tmp.isValid(errors))
 	{
 		ui_.btn_ok->setEnabled(false);
+		ui_.btn_ok->setToolTip(errors.join("\n"));
 		return;
 	}
 
@@ -137,9 +147,11 @@ void ReportVariantDialog::activateOkButtonIfValid()
 	if (!variantReportConfigChanged())
 	{
 		ui_.btn_ok->setEnabled(false);
+		ui_.btn_ok->setToolTip("Variant configuration not changed");
 		return;
 	}
 
 	//enable button
 	ui_.btn_ok->setEnabled(true);
+	ui_.btn_ok->setToolTip("");
 }
