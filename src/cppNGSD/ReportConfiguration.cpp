@@ -23,7 +23,7 @@ ReportVariantConfiguration::ReportVariantConfiguration()
 	, exclude_other(false)
 	, comments()
 	, comments2()
-	, rna_info()
+	, rna_info("n/a")
 	, manual_cnv_start()
 	, manual_cnv_end()
 {
@@ -38,6 +38,25 @@ bool ReportVariantConfiguration::isValid(QStringList& errors)
 {
 	errors.clear();
 
+	//check variant type
+	if (variant_type==VariantType::INVALID)
+	{
+		errors << "Variant type is invalid!";
+	}
+
+
+	//check variant index is set
+	if (variant_index<0)
+	{
+		errors << "Variant index not set!";
+	}
+
+	//check report type is set
+	if (!getTypeOptions().contains(report_type))
+	{
+		errors << "Report type not set!";
+	}
+
 	//check causal variant is not excluced
 	bool exclude = exclude_artefact || exclude_frequency || exclude_phenotype || exclude_mechanism || exclude_other;
 	if (causal && exclude)
@@ -50,7 +69,7 @@ bool ReportVariantConfiguration::isValid(QStringList& errors)
 	{
 		if (variant_type==VariantType::CNVS)
 		{
-			if(manual_cnv_start.type()!=QVariant::Type::Int) errors << "manual CNV start position is set, but not an integer!";
+			if(manual_cnv_start.type()!=QVariant::Type::Int) errors << "manual CNV start position is set, but not an integer. Value is '" + manual_cnv_start.toString() + "'";
 		}
 		else errors << "manual CNV start position is set for variant which is not a CNV!";
 	}
@@ -58,12 +77,35 @@ bool ReportVariantConfiguration::isValid(QStringList& errors)
 	{
 		if (variant_type==VariantType::CNVS)
 		{
-			if(manual_cnv_end.type()!=QVariant::Type::Int) errors << "manual CNV end position is set, but not an integer!";
+			if(manual_cnv_end.type()!=QVariant::Type::Int) errors << "manual CNV end position is set, but not an integer. Value is '" + manual_cnv_end.toString() + "'";
 		}
 		else errors << "manual CNV end position is set for variant which is not a CNV!";
 	}
 
 	return errors.isEmpty();
+}
+
+bool ReportVariantConfiguration::operator==(const ReportVariantConfiguration& rhs)
+{
+	return variant_type == rhs.variant_type &&
+			variant_index == rhs.variant_index &&
+			report_type == rhs.report_type &&
+			causal == rhs.causal &&
+			classification == rhs.classification &&
+			inheritance == rhs.inheritance &&
+			de_novo == rhs.de_novo &&
+			mosaic == rhs.mosaic &&
+			comp_het == rhs.comp_het &&
+			exclude_artefact == rhs.exclude_artefact &&
+			exclude_frequency == rhs.exclude_frequency &&
+			exclude_phenotype == rhs.exclude_phenotype &&
+			exclude_mechanism == rhs.exclude_mechanism &&
+			exclude_other == rhs.exclude_other &&
+			comments == rhs.comments &&
+			comments2 == rhs.comments2 &&
+			rna_info == rhs.rna_info &&
+			manual_cnv_start == rhs.manual_cnv_start &&
+			manual_cnv_end == rhs.manual_cnv_end;
 }
 
 QStringList ReportVariantConfiguration::getTypeOptions()

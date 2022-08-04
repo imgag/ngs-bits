@@ -14,8 +14,12 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	ReportVariantConfiguration();
 	///Returns if the variant is to be shown in the report
 	bool showInReport() const;
-	///Returns if the variant is valid
+	///Returns if the variant is valid. Writes validation error message into given string list.
 	bool isValid(QStringList& errors);
+	///Equality operator
+	bool operator==(const ReportVariantConfiguration& rhs);
+	///Equality operator
+	bool operator!=(const ReportVariantConfiguration& rhs) { return !operator==(rhs); }
 
 	//general data
 	VariantType variant_type;
