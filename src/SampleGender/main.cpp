@@ -35,7 +35,8 @@ public:
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 
 		//changelog
-		changeLog(2020,  11, 27, "Added CRAM support.");
+		changeLog(2022,  8,  5, "Ignoring duplicate, secondary and supplementary alignments in methods 'xy' and 'sry' now.");
+		changeLog(2020, 11, 27, "Added CRAM support.");
 		changeLog(2018,  7, 13, "Change of output to TSV format for batch support.");
 		changeLog(2018,  7, 11, "Added build switch for hg38 support.");
 	}
