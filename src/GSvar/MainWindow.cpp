@@ -972,25 +972,22 @@ void MainWindow::on_actionRegionToGenes_triggered()
 		NGSD db;
 		GeneSet genes = db.genesOverlapping(chr, start, end);
 
+		QApplication::restoreOverrideCursor();
+
 		//show results
-		QPlainTextEdit* text_edit = new QPlainTextEdit(this);
-		text_edit->setReadOnly(true);
-		text_edit->setMinimumSize(1000, 800);
-		text_edit->setWordWrapMode(QTextOption::NoWrap);
-		text_edit->appendPlainText("#GENE\tOMIM_GENE\tOMIM_PHENOTYPES");
+		ScrollableTextDialog dlg(this, title);
+		dlg.setReadOnly(true);
+		dlg.setWordWrapMode(QTextOption::NoWrap);
+		dlg.appendLine("#GENE\tOMIM_GENE\tOMIM_PHENOTYPES");
 		foreach (const QByteArray& gene, genes)
 		{
 			QList<OmimInfo> omim_genes = db.omimInfo(gene);
 			foreach (const OmimInfo& omim_gene, omim_genes)
 			{
-				text_edit->appendPlainText(gene + "\t" + omim_gene.gene_symbol + "\t" + omim_gene.phenotypes.toString());
+				dlg.appendLine(gene + "\t" + omim_gene.gene_symbol + "\t" + omim_gene.phenotypes.toString());
 			}
 		}
-
-		QApplication::restoreOverrideCursor();
-
-		auto dlg = GUIHelper::createDialog(text_edit, title);
-		dlg->exec();
+		dlg.exec();
 	}
 	catch(Exception& e)
 	{
@@ -1328,10 +1325,8 @@ void MainWindow::on_actionCNV_triggered()
 			QStringList mosaic_data = Helper::loadTextFile(mosaic_file.filename, false, '#', true);
 			if (!mosaic_data.isEmpty())
 			{
-				QPlainTextEdit* text_edit = new QPlainTextEdit(this);
-				text_edit->setReadOnly(true);
-				text_edit->setMinimumSize(450, 100);
-				text_edit->appendPlainText("#CHR\tSTART\tEND\tCOPY NUMBER");
+				ScrollableTextDialog dlg(this, "Possible mosaic CNV(s) detected!");
+				dlg.appendLine("#CHR\tSTART\tEND\tCOPY NUMBER");
 
 				foreach (const QString& line, mosaic_data)
 				{
@@ -1344,11 +1339,10 @@ void MainWindow::on_actionCNV_triggered()
 					}
 					else
 					{
-						text_edit->appendPlainText(parts.mid(0, 4).join("\t"));
+						dlg.appendLine(parts.mid(0, 4).join("\t"));
 					}
 				}
-				auto dlg = GUIHelper::createDialog(text_edit, "Possible mosaic CNV(s) detected!");
-				dlg->exec();
+				dlg.exec();
 			}
 		}
 	}
@@ -1375,8 +1369,7 @@ void MainWindow::on_actionROH_triggered()
 			QStringList upd_data = Helper::loadTextFile(upd_loc.filename, false, QChar::Null, true);
 			if (upd_data.count()>1)
 			{
-				QPlainTextEdit* text_edit = new QPlainTextEdit(this);
-				text_edit->setReadOnly(true);
+				ScrollableTextDialog dlg(this, "UPD(s) detected!");
 				QStringList headers = upd_data[0].split("\t");
 				for (int r=1; r<upd_data.count(); ++r)
 				{
@@ -1386,11 +1379,9 @@ void MainWindow::on_actionROH_triggered()
 					{
 						line += " " + headers[c] + "=" + parts[c];
 					}
-					text_edit->appendPlainText(line);
+					dlg.appendLine(line);
 				}
-				text_edit->setMinimumSize(800, 100);
-				auto dlg = GUIHelper::createDialog(text_edit, "UPD(s) detected!");
-				dlg->exec();
+				dlg.exec();
 			}
 		}
 	}
