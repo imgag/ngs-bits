@@ -49,6 +49,12 @@ QStringList ReportVariantConfiguration::getClassificationOptions()
 	return modes;
 }
 
+QStringList ReportVariantConfiguration::getRnaInfoOptions()
+{
+	static QStringList modes = NGSD().getEnum("report_configuration_variant", "rna_info");
+	return modes;
+}
+
 
 /*************************************** ReportConfiguration ***************************************/
 

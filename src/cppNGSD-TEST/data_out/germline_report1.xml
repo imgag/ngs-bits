@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<DiagnosticNgsReport version="7" type="diagnostic variant">
+<DiagnosticNgsReport version="8" type="diagnostic variant">
     <ReportGeneration date="2021-02-19" user_name="ahmustm1" software="cppNGSD-TEST " outcome="no significant findings"/>
     <ChromosomeAliases>
         <Chromosome chr="chr1" refseq="NC_000001.11"/>
@@ -33,6 +33,12 @@
         <QcTerm id="QC:2000025" name="target region read depth" def="Average sequencing depth in target region." value="103.24"/>
         <QcTerm id="NONE" name="kasp" def="" value="0.0977%"/>
     </Sample>
+    <RNASample name="RX123456_01">
+        <QcTerm id="QC:2000005" name="read count" def="Total number of reads (one cluster in a paired-end experiment generates two reads)." value="10987654"/>
+        <QcTerm id="QC:2000025" name="target region read depth" def="Average sequencing depth in target region." value="15.85"/>
+        <QcTerm id="QC:2000101" name="housekeeping genes read depth" def="Average sequencing depth in exon region of housekeeping genes." value="263.87"/>
+        <QcTerm id="QC:2000109" name="covered gene count" def="Number of covered genes (TPM &gt;= 1.0)" value="136985"/>
+    </RNASample>
     <VariantList overall_number="319" genome_build="GRCh38"/>
     <CnvList cnv_caller="ClinCNV" overall_number="1" genome_build="GRCh38" quality="good" number_of_iterations="1" number_of_hq_cnvs="127" correlation_ref_samples="0.996"/>
     <SvList sv_caller="Manta" overall_number="87" genome_build="GRCh38"/>

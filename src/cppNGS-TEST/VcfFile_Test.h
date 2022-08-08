@@ -581,18 +581,62 @@ private slots:
 		S_EQUAL(vl_tsv[12].annotations().at(26), QByteArray("255,0,255"));
 	}
 
-	void convertGSvarToVcf()
+	void convertGSvarToVcf_single()
 	{
 		VariantList variant_list;
-		variant_list.load(TESTDATA("data_in/GSvarToVcf.GSvar")); //TODO add real-life tests (single-sample, trio, somatic) and check output with VcfFile::isValid()
+		variant_list.load(TESTDATA("data_in/VcfFile_convertGSvarToVcf_single.GSvar"));
 
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		//tests multisample and leftNormalize from GSvar format to VCF for insertion, deletion, SNP
 		VcfFile vcf_file = VcfFile::convertGSvarToVcf(variant_list, ref_file);
-		vcf_file.store("out/GSvarToVcf.vcf");
+		vcf_file.store("out/VcfFile_convertGSvarToVcf_out1.vcf");
 
-		COMPARE_FILES("out/GSvarToVcf.vcf", TESTDATA("data_out/GSvarToVcf.vcf"));
+		COMPARE_FILES("out/VcfFile_convertGSvarToVcf_out1.vcf", TESTDATA("data_out/VcfFile_convertGSvarToVcf_out1.vcf"));
+
+		QString out_string;
+		QTextStream out_stream(&out_string);
+		bool valid_vcf = VcfFile::isValid("out/VcfFile_convertGSvarToVcf_out1.vcf", ref_file, out_stream, true);
+		IS_TRUE(valid_vcf);
+	}
+
+
+	void convertGSvarToVcf_trio()
+	{
+		VariantList variant_list;
+		variant_list.load(TESTDATA("data_in/VcfFile_convertGSvarToVcf_trio.GSvar"));
+
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+		//tests multisample and leftNormalize from GSvar format to VCF for insertion, deletion, SNP
+		VcfFile vcf_file = VcfFile::convertGSvarToVcf(variant_list, ref_file);
+		vcf_file.store("out/VcfFile_convertGSvarToVcf_out2.vcf");
+
+		COMPARE_FILES("out/VcfFile_convertGSvarToVcf_out2.vcf", TESTDATA("data_out/VcfFile_convertGSvarToVcf_out2.vcf"));
+
+		QString out_string;
+		QTextStream out_stream(&out_string);
+		bool valid_vcf = VcfFile::isValid("out/VcfFile_convertGSvarToVcf_out2.vcf", ref_file, out_stream, true);
+		IS_TRUE(valid_vcf);
+	}
+
+	void convertGSvarToVcf_somatic()
+	{
+		VariantList variant_list;
+		variant_list.load(TESTDATA("data_in/VcfFile_convertGSvarToVcf_somatic.GSvar"));
+
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+		//tests multisample and leftNormalize from GSvar format to VCF for insertion, deletion, SNP
+		VcfFile vcf_file = VcfFile::convertGSvarToVcf(variant_list, ref_file);
+		vcf_file.store("out/VcfFile_convertGSvarToVcf_out3.vcf");
+
+		COMPARE_FILES("out/VcfFile_convertGSvarToVcf_out3.vcf", TESTDATA("data_out/VcfFile_convertGSvarToVcf_out3.vcf"));
+
+		QString out_string;
+		QTextStream out_stream(&out_string);
+		bool valid_vcf = VcfFile::isValid("out/VcfFile_convertGSvarToVcf_out3.vcf", ref_file, out_stream, true);
+		IS_TRUE(valid_vcf);
 	}
 
 	void getSampleIds()

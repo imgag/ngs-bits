@@ -396,7 +396,7 @@ void DBEditor::check(QString field)
 		//special handling of gene columns
 		if ((field=="symbol" && table_=="somatic_pathway_gene") || (field=="symbol" && table_=="somatic_gene_role"))
 		{
-			if (db_.geneToApprovedID(value.toUtf8())==-1)
+			if (db_.geneId(value.toUtf8())==-1)
 			{
 				errors << "Gene name '" + value + "' is not a HGNC-approved gene name!";
 			}

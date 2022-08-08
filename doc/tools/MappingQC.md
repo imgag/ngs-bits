@@ -1,5 +1,5 @@
 ### MappingQC tool help
-	MappingQC (2022_04-120-g0b2ddab9)
+	MappingQC (2022_07-37-g22d4e20c)
 	
 	Calculates QC metrics based on mapped NGS reads.
 	
@@ -23,9 +23,9 @@
 	                             Default value: 'false'
 	  -debug                     Enables verbose debug outout.
 	                             Default value: 'false'
-	  -build <enum>              Genome build used to generate the input (needed for contamination only).
+	  -build <enum>              Genome build used to generate the input (needed for WGS and contamination only).
 	                             Default value: 'hg38'
-	                             Valid: 'hg19,hg38'
+	                             Valid: 'hg19,hg38,non_human'
 	  -ref <file>                Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.
 	                             Default value: ''
 	  -cfdna                     Add additional QC parameters for cfDNA samples. Only supported mit '-roi'.
@@ -40,7 +40,7 @@
 	  --tdx                      Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### MappingQC changelog
-	MappingQC 2022_04-120-g0b2ddab9
+	MappingQC 2022_07-37-g22d4e20c
 	
 	2022-05-25 Added new QC metrics to WGS mode.
 	2021-02-09 Added new QC metrics for uniformity of coverage (QC:2000057-QC:2000061).

@@ -1,5 +1,16 @@
 # GSvar change log
 
+### 2022_07-52 (03.08.22)
+- Germline report: fixed bug in re-calculation of average target region depth (-1 was shown).
+- Preferred transcripts dialog: added button to check entries.
+- Variant tab: added ClinVar link if uploaded
+- Variant tab: added information about MANE/preferred transcripts
+
+### 2022_07-43 (01.08.22)
+- General: first production version with RNA support.
+- General: transcript names can now be used to open gene tabs.
+- Somatic report: added pathway information.
+
 
 ### 2022_04-159 (01.07.22)
 - Batch import: add tissue to sample batch import.

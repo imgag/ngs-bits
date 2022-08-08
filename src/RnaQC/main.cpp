@@ -29,10 +29,9 @@ public:
 	{
 		setDescription("Calculates QC metrics for RNA samples.");
 		addInfile("bam", "Input BAM/CRAM file.", false, true);
-		addInfile("housekeeping_genes", "BED file containing the exon region of housekeeping genes.", false, true);
-
 
 		//optional
+		addInfile("housekeeping_genes", "BED file containing the exon region of housekeeping genes.", true, true);
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true, true);
 		addInfile("splicing", "TSV file containing spliced reads by gene.", true, true);
 		addInfile("expression", "TSV file containing RNA expression.", true, true);
@@ -44,14 +43,14 @@ public:
 		//changelog
 		changeLog(2022, 4, 27, "Initial version.");
 		changeLog(2022, 5, 12, "Changed TPM cutoffs.");
+		changeLog(2022, 7, 12, "Made housekeeping genes optional.");
 	}
 
 	virtual void main()
 	{
 		// init
 		QString bam = getInfile("bam");
-		BedFile housekeeping_genes;
-		housekeeping_genes.load(getInfile("housekeeping_genes"));
+		QString housekeeping_genes = getInfile("housekeeping_genes");
 		QString out = getOutfile("out");
 		QString splicing = getInfile("splicing");
 		QString expression = getInfile("expression");
@@ -61,7 +60,16 @@ public:
 		if (ref=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 
 
-		QCCollection rna_qc = Statistics::mapping_housekeeping(housekeeping_genes, bam, ref, min_mapq);
+		QCCollection rna_qc;
+
+		if(!housekeeping_genes.trimmed().isEmpty())
+		{
+			//get qc stats of housekeeping genes
+			BedFile housekeeping_genes_bed;
+			housekeeping_genes_bed.load(housekeeping_genes);
+			rna_qc = Statistics::mapping_housekeeping(housekeeping_genes_bed, bam, ref, min_mapq);
+		}
+
 
 		if (!splicing.trimmed().isEmpty())
 		{
@@ -81,7 +89,7 @@ public:
 			rna_qc.insert(QCValue("covered gene count", gene_count.n_covered_genes, "Number of covered genes (TPM >= 1.0)", "QC:2000109"));
 		}
 
-		// TODO: get intronic/exonic read fraction
+		//TODO: get intronic/exonic read fraction
 
 		// create qcML
 		// metadata
@@ -127,8 +135,8 @@ public:
 		while (!tsv_file.atEnd())
 		{
 			QByteArrayList tsv_line = tsv_file.readLine();
-			double tpm = Helper::toDouble(tsv_line.at(idx_aberrant_frac), "Aberrant spliced gene fraction");
-			if (tpm >= aberrant_gene_threshold)
+			double aberrant_frac = Helper::toDouble(tsv_line.at(idx_aberrant_frac), "Aberrant spliced gene fraction");
+			if (aberrant_frac >= aberrant_gene_threshold)
 			{
 				aberrant_genes.append(tsv_line.at(idx_gene));
 			}
@@ -154,9 +162,9 @@ public:
 			//parse zScore (outlier genes)
 			QByteArray zscore_str = tsv_line.at(idx_zscore);
 			// skip n/a entries
-			if(zscore_str != "n/a")
+			if((zscore_str != "n/a") && (!zscore_str.trimmed().isEmpty()))
 			{
-			double zscore = std::fabs(Helper::toDouble(zscore_str, "ZScore"));
+				double zscore = std::fabs(Helper::toDouble(zscore_str, "ZScore"));
 				if (zscore >= zscore_threshold)
 				{
 					gene_count.n_outlier_genes++;

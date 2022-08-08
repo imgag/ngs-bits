@@ -223,7 +223,7 @@ QByteArray Transcript::biotypeToString(Transcript::BIOTYPE biotype)
 	else if (biotype==MISC_RNA) return "misc RNA";
 	else if (biotype==NON_STOP_DECAY) return "non stop decay";
 	else if (biotype==NONSENSE_MEDIATED_DECAY) return "nonsense mediated decay";
-	else if (biotype==POLYMORPHIC_PSEUDOGENE) return "polymorphic pseudogene";
+	else if (biotype==PROTEIN_CODING_LOF) return "protein coding LoF";
 	else if (biotype==PROCESSED_PSEUDOGENE) return "processed pseudogene";
 	else if (biotype==PROCESSED_TRANSCRIPT) return "processed transcript";
 	else if (biotype==PROTEIN_CODING) return "protein coding";
@@ -245,6 +245,7 @@ QByteArray Transcript::biotypeToString(Transcript::BIOTYPE biotype)
 	else if (biotype==UNITARY_PSEUDOGENE) return "unitary pseudogene";
 	else if (biotype==UNPROCESSED_PSEUDOGENE) return "unprocessed pseudogene";
 	else if (biotype==VAULTRNA) return "vaultRNA";
+	else if (biotype==ARTIFACT) return "artifact";
 
 	THROW(ProgrammingException, "Unhandled transcript biotype enum value '" + QString::number(biotype) + "!");
 }
@@ -276,7 +277,7 @@ Transcript::BIOTYPE Transcript::stringToBiotype(QByteArray biotype_orig)
 	else if (biotype=="MISC_RNA") return MISC_RNA;
 	else if (biotype=="NON_STOP_DECAY") return NON_STOP_DECAY;
 	else if (biotype=="NONSENSE_MEDIATED_DECAY") return NONSENSE_MEDIATED_DECAY;
-	else if (biotype=="POLYMORPHIC_PSEUDOGENE") return POLYMORPHIC_PSEUDOGENE;
+	else if (biotype=="PROTEIN_CODING_LOF") return PROTEIN_CODING_LOF;
 	else if (biotype=="PROCESSED_PSEUDOGENE") return PROCESSED_PSEUDOGENE;
 	else if (biotype=="PROCESSED_TRANSCRIPT") return PROCESSED_TRANSCRIPT;
 	else if (biotype=="PROTEIN_CODING") return PROTEIN_CODING;
@@ -299,8 +300,9 @@ Transcript::BIOTYPE Transcript::stringToBiotype(QByteArray biotype_orig)
 	else if (biotype=="UNPROCESSED_PSEUDOGENE") return UNPROCESSED_PSEUDOGENE;
 	else if (biotype=="VAULTRNA") return VAULTRNA;
 	else if (biotype=="VAULT_RNA") return VAULTRNA; //bug in Ensembl GFF in version 105
+	else if (biotype=="ARTIFACT") return ARTIFACT;
 
-	THROW(ProgrammingException, "Unknown transcript biotype string '" + biotype_orig + "!");
+	THROW(ProgrammingException, "Unknown transcript biotype string '" + biotype_orig + "'!");
 }
 
 int Transcript::cDnaToGenomic(int coord) const

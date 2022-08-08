@@ -71,7 +71,7 @@ p
 <br />In der folgenden Tabelle werden neben wahrscheinlich pathogenen (Klasse 4) und pathogenen (Klasse 5) nur solche Varianten unklarer klinischer Signifikanz (Klasse 3) gelistet, f&uuml;r die in Zusammenschau von Literatur und Klinik des Patienten ein Beitrag zur Symptomatik denkbar ist und f&uuml;r die gegebenenfalls eine weitere Einordnung der klinischen Relevanz durch Folgeuntersuchungen sinnvoll ist. Eine Liste aller detektierten Varianten kann bei Bedarf angefordert werden.
 </p>
 <table>
-<tr><td><b>Variante</b></td><td><b>Genotyp</b></td><td><b>Gen(e)</b></td><td><b>Details</b></td><td><b>Klasse</b></td><td><b>Vererbung</b></td><td><b>gnomAD</b></td></tr>
+<tr><td><b>Variante</b></td><td><b>Genotyp</b></td><td><b>Gen(e)</b></td><td><b>Details</b></td><td><b>Klasse</b></td><td><b>Vererbung</b></td><td><b>gnomAD</b></td><td><b>RNA</b></td></tr>
 <tr>
 <td>
 chr13:40793234&nbsp;C&nbsp;&gt;&nbsp;G</td><td>het (comp-het)</td>
@@ -81,6 +81,7 @@ chr13:40793234&nbsp;C&nbsp;&gt;&nbsp;G</td><td>het (comp-het)</td>
 <td>3</td>
 <td>n/a</td>
 <td>n/a</td>
+<td>Splicing-Effekt mit RNA-Daten validiert</td>
 </tr>
 <tr><td colspan="8">OMIM ID: 603861 Details: GENE=SLC25A15 PHENOS=Hyperornithinemia-hyperammonemia-homocitrullinemia syndrome,238970,Autosomal recessive</td></tr>
 <tr>
@@ -92,12 +93,13 @@ chr16:89531961&nbsp;G&nbsp;&gt;&nbsp;A</td><td>het (de-novo) (mosaic)</td>
 <td>5</td>
 <td>n/a</td>
 <td>0.0008</td>
+<td>n/a</td>
 </tr>
 <tr><td colspan="8">OMIM ID: 602783 Details: GENE=SPG7 PHENOS=Spastic paraplegia 7,autosomal recessive,607259,Autosomal recessive,Autosomal dominant</td></tr>
 </table>
 <p>&nbsp;</p>
 <table>
-<tr><td><b>CNV</b></td><td><b>Regionen</b></td><td><b>CN</b></td><td><b>Gen(e)</b></td><td><b>Klasse</b></td><td><b>Vererbung</b></td></tr>
+<tr><td><b>CNV</b></td><td><b>Regionen</b></td><td><b>CN</b></td><td><b>Gen(e)</b></td><td><b>Klasse</b></td><td><b>Vererbung</b></td><td><b>RNA</b></td></tr>
 <tr>
 <td>chr21:10541092-10649856</td>
 <td>22</td>
@@ -105,11 +107,12 @@ chr16:89531961&nbsp;G&nbsp;&gt;&nbsp;A</td><td>het (de-novo) (mosaic)</td>
 <td>IGHV1OR21-1, TPTE</td>
 <td>n/a</td>
 <td>n/a</td>
+<td>kein Splicing-Effekt in RNA-Daten gefunden</td>
 </tr>
 </table>
 <p>&nbsp;</p>
 <table>
-<tr><td><b>SV</b></td><td><b>Position</b></td><td><b>Genotyp</b></td><td><b>Gen(e)</b></td><td><b>Klasse</b></td><td><b>Vererbung</b></td></tr>
+<tr><td><b>SV</b></td><td><b>Position</b></td><td><b>Genotyp</b></td><td><b>Gen(e)</b></td><td><b>Klasse</b></td><td><b>Vererbung</b></td><td><b>RNA</b></td></tr>
 <tr>
 <td>Insertion</td>
 <td>chr1:934144-934145</td>
@@ -117,6 +120,7 @@ chr16:89531961&nbsp;G&nbsp;&gt;&nbsp;A</td><td>het (de-novo) (mosaic)</td>
 <td>HES4</td>
 <td>n/a</td>
 <td>n/a</td>
+<td>RNA-Daten nicht nutzbar</td>
 </tr>
 <tr>
 <td>Translokation</td>
@@ -125,12 +129,14 @@ chr16:89531961&nbsp;G&nbsp;&gt;&nbsp;A</td><td>het (de-novo) (mosaic)</td>
 <td>CDK11B, LINGO3</td>
 <td>n/a</td>
 <td>n/a</td>
+<td>n/a</td>
 </tr>
 <tr>
 <td>Deletion</td>
 <td>chr1:1598414-1598581</td>
 <td>hom</td>
 <td>SLC35E2B</td>
+<td>n/a</td>
 <td>n/a</td>
 <td>n/a</td>
 </tr>
@@ -191,6 +197,13 @@ SPG7</td><td>126</td><td>chr16</td><td>89524046-89524104, 89554476-89554542
 </td>
 </tr>
 </table>
+
+<p><b>Abdeckungsstatistik der RNA-Probe</b>
+<br />Anzahl der Reads: 10.99 Mio
+<br />Durchschnittliche Sequenziertiefe: 15.85
+<br />Durchschnittliche Sequenziertiefe der Housekeeping-Gene: 263.87
+<br />Abgedeckte Gene: 136985
+</p>
 
 <p><b>Abdeckungsstatistik f&uuml;r CCDS </b></p>
 <p>CCDS gesamt: 4815

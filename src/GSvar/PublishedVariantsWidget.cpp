@@ -347,11 +347,8 @@ void PublishedVariantsWidget::searchForVariantInClinVar()
 		{
 			QString variant_text = ui_->table->item(row, col)->text();
 			Variant variant = Variant::fromString(variant_text);
-
-			int start = variant.start();
-			int end = variant.end();
-
-			QDesktopServices::openUrl(QUrl("https://www.ncbi.nlm.nih.gov/clinvar/?term=" + variant.chr().strNormalized(false) + "[chr]+AND+" + QString::number(start) + ":" + QString::number(end) + (GSvarHelper::build()==GenomeBuild::HG38 ? "[cpos]" : "[chrpos37]")));
+			QString url = GSvarHelper::clinVarSearchLink(variant, GSvarHelper::build());
+			QDesktopServices::openUrl(QUrl(url));
 		}
 	}
 	catch(Exception& e)

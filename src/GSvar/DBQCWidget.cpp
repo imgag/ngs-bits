@@ -76,7 +76,7 @@ void DBQCWidget::clearHighlighting()
 
 void DBQCWidget::addHighlightSample()
 {
-	ProcessedSampleSelector dlg(this, true);
+	ProcessedSampleSelector dlg(this, false);
 	if (dlg.exec()==QDialog::Accepted && dlg.isValidSelection())
 	{
 		addHighlightedProcessedSampleById(dlg.processedSampleId(), dlg.processedSampleName());

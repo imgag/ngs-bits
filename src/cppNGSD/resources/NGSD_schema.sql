@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `gene_transcript`
 `start_coding` int(10) unsigned NULL,
 `end_coding` int(10) unsigned NULL,
 `strand` enum('+', '-') NOT NULL,
-`biotype` enum('IG C gene', 'IG C pseudogene', 'IG D gene', 'IG J gene', 'IG J pseudogene', 'IG V gene', 'IG V pseudogene', 'IG pseudogene', 'Mt rRNA', 'Mt tRNA', 'TEC', 'TR C gene', 'TR D gene', 'TR J gene', 'TR J pseudogene', 'TR V gene', 'TR V pseudogene', 'lncRNA', 'miRNA', 'misc RNA', 'non stop decay', 'nonsense mediated decay', 'polymorphic pseudogene', 'processed pseudogene', 'processed transcript', 'protein coding', 'pseudogene', 'rRNA', 'rRNA pseudogene', 'retained intron', 'ribozyme', 'sRNA', 'scRNA', 'scaRNA', 'snRNA', 'snoRNA', 'transcribed processed pseudogene', 'transcribed unitary pseudogene', 'transcribed unprocessed pseudogene', 'translated processed pseudogene', 'translated unprocessed pseudogene', 'unitary pseudogene', 'unprocessed pseudogene', 'vaultRNA') NOT NULL,
+`biotype` enum('IG C gene', 'IG C pseudogene', 'IG D gene', 'IG J gene', 'IG J pseudogene', 'IG V gene', 'IG V pseudogene', 'IG pseudogene', 'Mt rRNA', 'Mt tRNA', 'TEC', 'TR C gene', 'TR D gene', 'TR J gene', 'TR J pseudogene', 'TR V gene', 'TR V pseudogene', 'lncRNA', 'miRNA', 'misc RNA', 'non stop decay', 'nonsense mediated decay', 'protein coding LoF', 'processed pseudogene', 'processed transcript', 'protein coding', 'pseudogene', 'rRNA', 'rRNA pseudogene', 'retained intron', 'ribozyme', 'sRNA', 'scRNA', 'scaRNA', 'snRNA', 'snoRNA', 'transcribed processed pseudogene', 'transcribed unitary pseudogene', 'transcribed unprocessed pseudogene', 'translated processed pseudogene', 'translated unprocessed pseudogene', 'unitary pseudogene', 'unprocessed pseudogene', 'vaultRNA', 'artifact') NOT NULL,
 `is_gencode_basic` TINYINT(1) NOT NULL DEFAULT 0,
 `is_ensembl_canonical` TINYINT(1) NOT NULL DEFAULT 0,
 `is_mane_select` TINYINT(1) NOT NULL DEFAULT 0,
@@ -1440,6 +1440,7 @@ CREATE TABLE IF NOT EXISTS `report_configuration_variant`
   `exclude_other` BOOLEAN NOT NULL,
   `comments` text NOT NULL,
   `comments2` text NOT NULL,
+  `rna_info` ENUM( 'n/a', 'splicing effect validated by RNA dataset', 'no splicing effect found in RNA dataset', 'RNA dataset not usable') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_report_configuration`
     FOREIGN KEY (`report_configuration_id` )
@@ -1566,6 +1567,7 @@ CREATE TABLE IF NOT EXISTS `report_configuration_cnv`
   `exclude_other` BOOLEAN NOT NULL,
   `comments` text NOT NULL,
   `comments2` text NOT NULL,
+  `rna_info` ENUM( 'n/a', 'splicing effect validated by RNA dataset', 'no splicing effect found in RNA dataset', 'RNA dataset not usable') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_report_configuration2`
     FOREIGN KEY (`report_configuration_id` )
@@ -1767,6 +1769,7 @@ CREATE TABLE IF NOT EXISTS `report_configuration_sv`
   `exclude_other` BOOLEAN NOT NULL,
   `comments` text NOT NULL,
   `comments2` text NOT NULL,
+  `rna_info` ENUM( 'n/a', 'splicing effect validated by RNA dataset', 'no splicing effect found in RNA dataset', 'RNA dataset not usable') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_report_configuration3`
     FOREIGN KEY (`report_configuration_id` )
@@ -2227,6 +2230,7 @@ CREATE TABLE IF NOT EXISTS `expression`
   `processed_sample_id` INT(11) NOT NULL,
   `symbol` VARCHAR(40) NOT NULL,
   `tpm` FLOAT NOT NULL,
+  `raw` INT NOT NULL,
   PRIMARY KEY (`id`),
   INDEX(`processed_sample_id`),
   INDEX(`symbol`),
@@ -2239,3 +2243,42 @@ CREATE TABLE IF NOT EXISTS `expression`
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `expression_exon`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `expression_exon`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `processed_sample_id` INT(11) NOT NULL,
+  `chr` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
+  `start` INT(11) UNSIGNED NOT NULL,
+  `end` INT(11) UNSIGNED NOT NULL,
+  `rpb` FLOAT NOT NULL,
+  `srpb` FLOAT NOT NULL,
+  `raw` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX(`processed_sample_id`),
+  UNIQUE INDEX `expression_exon_UNIQUE` (`processed_sample_id` ASC, `chr` ASC, `start` ASC, `end` ASC),
+  CONSTRAINT `fk_expression_exon_processed_sample_id`
+    FOREIGN KEY (`processed_sample_id` )
+    REFERENCES `processed_sample` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `db_info`
+-- NOTE: THIS IS ALWAYS THE LAST TABLE THAT IS CREATED!
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `db_info`
+(
+  `name` ENUM('init_timestamp','is_production') NOT NULL,
+  `value` TEXT,
+  UNIQUE KEY `name` (`name`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+

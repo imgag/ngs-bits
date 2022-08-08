@@ -84,6 +84,20 @@
       </spacer>
      </item>
      <item>
+      <widget class="QToolButton" name="check">
+       <property name="toolTip">
+        <string>Check perferred transcripts</string>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset resource="GSvar.qrc">
+         <normaloff>:/Icons/check.png</normaloff>:/Icons/check.png</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QToolButton" name="add_btn">
        <property name="toolTip">
         <string>Add preferred transcript</string>

@@ -11,6 +11,7 @@
 - [Repeat Expansions](repeat_expansion_view.md)
 - [ROH analysis](roh_analysis.md)
 - [Report generation](report_generation.md)
+- [RNA analysis](rna_analysis.md)
 
 ## Auxilary functionality
 

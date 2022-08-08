@@ -2662,6 +2662,10 @@ GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double 
 	BamAlignment al;
 	while (reader.getNextAlignment(al))
 	{
+		if (!al.isProperPair()) continue;
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
+		if (al.isDuplicate()) continue;
+
 		++count_x;
 	}
 
@@ -2671,6 +2675,10 @@ GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double 
 	reader.setRegion(chry, 1, reader.chromosomeSize(chry));
 	while (reader.getNextAlignment(al))
 	{
+		if (!al.isProperPair()) continue;
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
+		if (al.isDuplicate()) continue;
+
 		++count_y;
 	}
 	double ratio_yx = (double) count_y / count_x;
@@ -2740,22 +2748,15 @@ GenderEstimate Statistics::genderHetX(GenomeBuild build, QString bam_file, doubl
 
 GenderEstimate Statistics::genderSRY(GenomeBuild build, QString bam_file, double min_cov, const QString& ref_file)
 {
-	//open BAM file
-	BamReader reader(bam_file, ref_file);
-
-	//restrict to SRY gene
+	//construct ROI
 	int start = build==GenomeBuild::HG38 ? 2786989 : 2655031;
 	int end = build==GenomeBuild::HG38 ? 2787603 : 2655641;
-	reader.setRegion(Chromosome("chrY"), start, end);
+	BedFile roi;
+	roi.append(BedLine("chrY", start, end));
 
-	//calcualte average coverage
-	double cov = 0.0;
-	BamAlignment al;
-	while (reader.getNextAlignment(al))
-	{
-		cov += al.length();
-	}
-	cov /= (end-start);
+	//calculate coverage
+	Statistics::avgCoverage(roi, bam_file, 1, false, true, 2 , ref_file);
+	double cov =  roi[0].annotations()[0].toDouble();
 
 	//output
 	GenderEstimate output;

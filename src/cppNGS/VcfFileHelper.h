@@ -250,7 +250,7 @@ public:
 	}
 	int end() const
 	{
-		if(ref().length() <= 0) THROW(ArgumentException, "Reference can not have length zero in a VCF File.");
+		if(ref().length() <= 0) THROW(ArgumentException, "Reference can not have length zero in a VCF file.");
 		return (start() + ref().length() - 1);
 	}
 	const Sequence& ref() const

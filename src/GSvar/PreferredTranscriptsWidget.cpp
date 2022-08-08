@@ -2,6 +2,8 @@
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QAction>
+#include "ScrollableTextDialog.h"
+#include "GUIHelper.h"
 #include "NGSD.h"
 
 PreferredTranscriptsWidget::PreferredTranscriptsWidget(QWidget* parent)
@@ -13,6 +15,7 @@ PreferredTranscriptsWidget::PreferredTranscriptsWidget(QWidget* parent)
 	connect(ui_.add_btn, SIGNAL(clicked(bool)), this, SLOT(addPreferredTranscript()));
 	connect(ui_.search_btn, SIGNAL(clicked(bool)), this, SLOT(updateTable()));
 	connect(ui_.f_gene, SIGNAL(returnPressed()), this, SLOT(updateTable()));
+	connect(ui_.check, SIGNAL(clicked(bool)), this, SLOT(check()));
 
 	QAction* action = new QAction(QIcon(":/Icons/Remove.png"), "Delete", this);
 	ui_.table->addAction(action);
@@ -70,7 +73,7 @@ void PreferredTranscriptsWidget::addPreferredTranscript()
 	{
 		NGSD db;
 		bool added = db.addPreferredTranscript(transcript_name);
-		QString gene = db.getValue("SELECT g.symbol FROM gene g, gene_transcript gt WHERE gt.gene_id=g.id AND gt.name='" + transcript_name + "'", true).toString();
+		QByteArray gene = db.geneSymbol(db.geneIdOfTranscript(transcript_name));
 		if (added)
 		{
 			QMessageBox::information(this, title, "Added preferred transcript '" + transcript_name + "' for gene '" + gene + "'");
@@ -119,4 +122,57 @@ void PreferredTranscriptsWidget::remove()
 	}
 
 	updateTable();
+}
+
+void PreferredTranscriptsWidget::check()
+{
+	QStringList output;
+	NGSD db;
+	QStringList invalid;
+
+	//get preferred transcripts by gene
+	QHash<int, QStringList> pts_by_gene_id;
+	SqlQuery query = db.getQuery();
+	query.exec("SELECT pts.name, gt.gene_id FROM preferred_transcripts pts LEFT JOIN gene_transcript gt ON pts.name=gt.name");
+	while (query.next())
+	{
+		QString pt = query.value("name").toString();
+		if (query.value("gene_id").isNull())
+		{
+			invalid << pt;
+		}
+		else
+		{
+			pts_by_gene_id[query.value("gene_id").toInt()] << pt;
+		}
+	}
+
+	//invalid transcript names
+	output << "Invalid transcript names (" + QString::number(invalid.count()) + "):";
+	output << invalid.join(", ");
+	output << "";
+
+	//check for MANE select transcripts that are not preferred transcripts
+	invalid.clear();
+	for(auto it=pts_by_gene_id.begin(); it!=pts_by_gene_id.end(); ++it)
+	{
+		int gene_id = it.key();
+
+		QSet<QString> mane = db.getValues("SELECT name FROM gene_transcript WHERE source='Ensembl' AND gene_id=" + QString::number(gene_id) + " AND is_mane_select=1").toSet();
+		if (mane.isEmpty()) continue;
+
+		QSet<QString> mane_not_pt = mane.subtract(it.value().toSet());
+		foreach(QString t, mane_not_pt)
+		{
+			invalid << t + " (" + db.geneSymbol(gene_id) + ")";
+		}
+	}
+	output << "MANE select transcripts that are not a preferred transcript:";
+	output << invalid.join(", ");
+	output << "";
+
+	//show output
+	ScrollableTextDialog dlg(this, "Preferred transcripts check");
+	dlg.appendLines(output);
+	dlg.exec();
 }

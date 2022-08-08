@@ -155,6 +155,12 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>variant</tabstop>
+  <tabstop>style</tabstop>
+  <tabstop>ok_btn</tabstop>
+  <tabstop>cancel_btn</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

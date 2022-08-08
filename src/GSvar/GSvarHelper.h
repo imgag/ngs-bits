@@ -20,7 +20,7 @@ public:
 	static const GeneSet& hi0Genes();
 	//Returns genes that have one or more pseudogenes.
 	static const GeneSet& genesWithPseudogene();
-	//Returns gene to preferred transcripts map
+	//Returns gene to preferred transcripts map (note: transcript names do not contain version numbers)
     static const QMap<QByteArray, QByteArrayList>& preferredTranscripts(bool reload=false);
     //Returns a list of special regions that are to be added to sub-panel designs for a given gene
 	static const QMap<QByteArray, QList<BedLine>>& specialRegions();
@@ -41,7 +41,9 @@ public:
 	static Variant liftOverVariant(const Variant& v, bool hg19_to_hg38);
 
 	//Returns gnomAD link for a variant
-	static QString gnomADLink(Variant v, GenomeBuild build);
+	static QString gnomADLink(const Variant& v, GenomeBuild build);
+	//Returns ClinVar search link for a variant
+	static QString clinVarSearchLink(const Variant& v, GenomeBuild build);
 
 	///Returns a the local target region folder where tempory target regions and gene lists can be stored for IGV.
 	static QString localRoiFolder();

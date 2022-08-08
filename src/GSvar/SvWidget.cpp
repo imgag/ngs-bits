@@ -318,18 +318,17 @@ void SvWidget::resizeQTableWidget(QTableWidget *table_widget)
 
 void SvWidget::applyFilters(bool debug_time)
 {
-	QApplication::setOverrideCursor(Qt::BusyCursor);
 	//skip if not necessary
 	if (loading_svs_) return;
 	int row_count = ui->svs->rowCount();
 	if (row_count==0) return;
 
-	FilterResult filter_result(row_count);
-
 	// filters based on FilterWidgetSV
-
+	FilterResult filter_result(row_count);
 	try
 	{
+		QApplication::setOverrideCursor(Qt::BusyCursor);
+
 		QTime timer;
 		timer.start();
 
@@ -532,10 +531,12 @@ void SvWidget::applyFilters(bool debug_time)
 				filter_result.flags()[row] = match;
 			}
 		}
+
+		QApplication::restoreOverrideCursor();
 	}
 	catch(Exception& e)
 	{
-		QMessageBox::warning(this, "Filtering error", e.message() + "\nA possible reason for this error is an outdated variant list.\nTry re-annotating the NGSD columns.\n If re-annotation does not help, please re-analyze the sample (starting from annotation) in the sample information dialog!");
+		GUIHelper::showException(this, e, "Filtering error");
 
 		filter_result = FilterResult(row_count, false);
 	}
@@ -548,7 +549,6 @@ void SvWidget::applyFilters(bool debug_time)
 
 	//Set number of filtered / total SVs
 	ui->number_of_svs->setText(QByteArray::number(filter_result.flags().count(true)) + "/" + QByteArray::number(row_count));
-	QApplication::restoreOverrideCursor();
 }
 
 int SvWidget::colIndexbyName(const QString& name)

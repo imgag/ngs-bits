@@ -31,6 +31,7 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 	ui_.type->addItems(types);
 	ui_.inheritance->addItems(ReportVariantConfiguration::getInheritanceModeOptions());
 	ui_.classification->addItems(ReportVariantConfiguration::getClassificationOptions());
+	ui_.rna_info->addItems(ReportVariantConfiguration::getRnaInfoOptions());
 
 	//show classification when needed
 	bool show_classification = (config.variant_type==VariantType::CNVS || config.variant_type==VariantType::SVS);
@@ -80,6 +81,7 @@ void ReportVariantDialog::updateGUI()
 	ui_.exclude_other->setChecked(config_.exclude_other);
 	ui_.comments->setPlainText(config_.comments);
 	ui_.comments2->setPlainText(config_.comments2);
+	ui_.rna_info->setCurrentText(config_.rna_info);
 }
 
 bool ReportVariantDialog::variantReportConfigChanged()
@@ -98,6 +100,7 @@ bool ReportVariantDialog::variantReportConfigChanged()
 	if (config_.exclude_other != ui_.exclude_other->isChecked()) return true;
 	if (config_.comments != ui_.comments->toPlainText()) return true;
 	if (config_.comments2 != ui_.comments2->toPlainText()) return true;
+	if (config_.rna_info != ui_.rna_info->currentText()) return true;
 
 	return false;
 }
@@ -118,6 +121,7 @@ void ReportVariantDialog::writeBackSettings()
 	config_.exclude_other = ui_.exclude_other->isChecked();
 	config_.comments = ui_.comments->toPlainText();
 	config_.comments2 = ui_.comments2->toPlainText();
+	config_.rna_info = ui_.rna_info->currentText();
 }
 
 void ReportVariantDialog::activateOkButtonIfValid()

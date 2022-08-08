@@ -69,6 +69,20 @@ void VariantWidget::updateGUI()
 		foreach(const VariantTranscript& trans, transcripts)
 		{
 			lines << "<a href=\"" + trans.gene + "\">" + trans.gene + "</a> " + trans.id + ": " + trans.type + " " + trans.hgvs_c + " " + trans.hgvs_p;
+
+			//tag MANE transcripts and preferred transcripts
+			QStringList tags;
+			int trans_id = db.transcriptId(trans.id, false);
+			if (trans_id!=-1)
+			{
+				if(db.getValue("SELECT is_mane_select FROM gene_transcript WHERE id=" + QString::number(trans_id)).toBool()) tags << "[MANE select]";
+				if(db.getValue("SELECT is_mane_plus_clinical FROM gene_transcript WHERE id=" + QString::number(trans_id)).toBool()) tags << "[MANE plus clinical]";
+				if(GSvarHelper::preferredTranscripts(false).value(trans.gene).contains(trans.idWithoutVersion())) tags << "[preferred transcript]";
+			}
+			if (!tags.isEmpty())
+			{
+				lines.last().append(" " + tags.join(" "));
+			}
 		}
 		ui_.transcripts->setText(lines.join("<br>"));
 	}
@@ -99,7 +113,14 @@ void VariantWidget::updateGUI()
 	query4.exec("SELECT s.name as s_name, vp.db, vp.class, vp.date, vp.result, u.name as u_name FROM sample s, variant_publication vp, user u WHERE s.id=vp.sample_id AND vp.user_id=u.id AND variant_id=" + variant_id + " AND vp.replaced=0 ORDER BY vp.date DESC");
 	if (query4.next())
 	{
-		ui_.publication_class->setText(query4.value("class").toString() + " (Uploaded to " + query4.value("db").toString() + " by "+ query4.value("u_name").toString() +" on "+ query4.value("date").toString().replace("T", " ") +")");
+		QString db = query4.value("db").toString();
+		if (db=="ClinVar")
+		{
+			QString url = GSvarHelper::clinVarSearchLink(variant_, GSvarHelper::build());
+			db = "<a href=\"" + url + "\">" + db + "</a>";
+		}
+
+		ui_.publication_class->setText(query4.value("class").toString() + " " + "(Uploaded to " + db + " by "+ query4.value("u_name").toString() +" on "+ query4.value("date").toString().replace("T", " ") +")");
 		ui_.publication_sample->setText(query4.value("s_name").toString());
 		ui_.publication_status->setText(query4.value("result").toString());
 	}

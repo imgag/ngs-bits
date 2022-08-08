@@ -112,7 +112,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "CfDNAPanelWidget.h"
 #include "SomaticVariantInterpreterWidget.h"
 #include "AlleleBalanceCalculator.h"
-#include "ExpressionDataWidget.h"
+#include "ExpressionGeneWidget.h"
 #include "GapClosingDialog.h"
 #include "XmlHelper.h"
 #include "GermlineReportGenerator.h"
@@ -132,6 +132,9 @@ QT_CHARTS_USE_NAMESPACE
 #include "CausalVariantEditDialog.h"
 #include "MosaicWidget.h"
 #include "VariantOpenDialog.h"
+#include "GeneSelectionDialog.h"
+#include "ExpressionOverviewWidget.h"
+#include "ExpressionExonWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -164,10 +167,11 @@ MainWindow::MainWindow(QWidget *parent)
 	rna_menu_btn_->setToolTip("Open RNA menu entries");
 	rna_menu_btn_->setMenu(new QMenu());
 	rna_menu_btn_->menu()->addAction(ui_.actionExpressionData);
+	rna_menu_btn_->menu()->addAction(ui_.actionExonExpressionData);
 	rna_menu_btn_->menu()->addAction(ui_.actionShowRnaFusions);
-	rna_menu_btn_->menu()->addAction(ui_.actionShowCohortExpressionData);
+	rna_menu_btn_->menu()->addAction(ui_.actionShowProcessingSystemCoverage);
 	rna_menu_btn_->setPopupMode(QToolButton::InstantPopup);
-	rna_menu_btn_->setEnabled(false);
+//	rna_menu_btn_->setEnabled(false);
 	ui_.tools->addWidget(rna_menu_btn_);
 
 
@@ -968,25 +972,22 @@ void MainWindow::on_actionRegionToGenes_triggered()
 		NGSD db;
 		GeneSet genes = db.genesOverlapping(chr, start, end);
 
+		QApplication::restoreOverrideCursor();
+
 		//show results
-		QPlainTextEdit* text_edit = new QPlainTextEdit(this);
-		text_edit->setReadOnly(true);
-		text_edit->setMinimumSize(1000, 800);
-		text_edit->setWordWrapMode(QTextOption::NoWrap);
-		text_edit->appendPlainText("#GENE\tOMIM_GENE\tOMIM_PHENOTYPES");
+		ScrollableTextDialog dlg(this, title);
+		dlg.setReadOnly(true);
+		dlg.setWordWrapMode(QTextOption::NoWrap);
+		dlg.appendLine("#GENE\tOMIM_GENE\tOMIM_PHENOTYPES");
 		foreach (const QByteArray& gene, genes)
 		{
 			QList<OmimInfo> omim_genes = db.omimInfo(gene);
 			foreach (const OmimInfo& omim_gene, omim_genes)
 			{
-				text_edit->appendPlainText(gene + "\t" + omim_gene.gene_symbol + "\t" + omim_gene.phenotypes.toString());
+				dlg.appendLine(gene + "\t" + omim_gene.gene_symbol + "\t" + omim_gene.phenotypes.toString());
 			}
 		}
-
-		QApplication::restoreOverrideCursor();
-
-		auto dlg = GUIHelper::createDialog(text_edit, title);
-		dlg->exec();
+		dlg.exec();
 	}
 	catch(Exception& e)
 	{
@@ -1324,10 +1325,8 @@ void MainWindow::on_actionCNV_triggered()
 			QStringList mosaic_data = Helper::loadTextFile(mosaic_file.filename, false, '#', true);
 			if (!mosaic_data.isEmpty())
 			{
-				QPlainTextEdit* text_edit = new QPlainTextEdit(this);
-				text_edit->setReadOnly(true);
-				text_edit->setMinimumSize(450, 100);
-				text_edit->appendPlainText("#CHR\tSTART\tEND\tCOPY NUMBER");
+				ScrollableTextDialog dlg(this, "Possible mosaic CNV(s) detected!");
+				dlg.appendLine("#CHR\tSTART\tEND\tCOPY NUMBER");
 
 				foreach (const QString& line, mosaic_data)
 				{
@@ -1340,11 +1339,10 @@ void MainWindow::on_actionCNV_triggered()
 					}
 					else
 					{
-						text_edit->appendPlainText(parts.mid(0, 4).join("\t"));
+						dlg.appendLine(parts.mid(0, 4).join("\t"));
 					}
 				}
-				auto dlg = GUIHelper::createDialog(text_edit, "Possible mosaic CNV(s) detected!");
-				dlg->exec();
+				dlg.exec();
 			}
 		}
 	}
@@ -1371,8 +1369,7 @@ void MainWindow::on_actionROH_triggered()
 			QStringList upd_data = Helper::loadTextFile(upd_loc.filename, false, QChar::Null, true);
 			if (upd_data.count()>1)
 			{
-				QPlainTextEdit* text_edit = new QPlainTextEdit(this);
-				text_edit->setReadOnly(true);
+				ScrollableTextDialog dlg(this, "UPD(s) detected!");
 				QStringList headers = upd_data[0].split("\t");
 				for (int r=1; r<upd_data.count(); ++r)
 				{
@@ -1382,11 +1379,9 @@ void MainWindow::on_actionROH_triggered()
 					{
 						line += " " + headers[c] + "=" + parts[c];
 					}
-					text_edit->appendPlainText(line);
+					dlg.appendLine(line);
 				}
-				text_edit->setMinimumSize(800, 100);
-				auto dlg = GUIHelper::createDialog(text_edit, "UPD(s) detected!");
-				dlg->exec();
+				dlg.exec();
 			}
 		}
 	}
@@ -1495,11 +1490,128 @@ void MainWindow::on_actionExpressionData_triggered()
 		if (!ok) return;
 	}
 
-	int sys_id = db.processingSystemIdFromProcessedSample(germlineReportSample());
-	QString tissue = db.getSampleData(sample_id).tissue;
+	int rna_sys_id = db.processingSystemIdFromProcessedSample(count_file);
+	QString rna_ps_id = db.processedSampleId(count_file);
+	QString tissue = db.getSampleData(db.sampleId(count_file)).tissue;
+	QString project = db.getProcessedSampleData(rna_ps_id).project_name;
 
-	ExpressionDataWidget* widget = new ExpressionDataWidget(count_file, sys_id, tissue, this);
-	auto dlg = GUIHelper::createDialog(widget, "Expression Data");
+	GeneSet variant_target_region;
+	if(ui_.filters->phenotypes().count() > 0)
+	{
+		foreach (const Phenotype& phenotype, ui_.filters->phenotypes())
+		{
+			variant_target_region << db.phenotypeToGenes(db.phenotypeIdByAccession(phenotype.accession()), false);
+		}
+	}
+
+	if(ui_.filters->targetRegion().isValid())
+	{
+		if (variant_target_region.isEmpty())
+		{
+			variant_target_region = ui_.filters->targetRegion().genes;
+		}
+		else
+		{
+			variant_target_region = ui_.filters->targetRegion().genes.intersect(variant_target_region);
+		}
+	}
+
+	RnaCohortDeterminationStategy cohort_type;
+	if (germlineReportSupported())
+	{
+		cohort_type = RNA_COHORT_GERMLINE;
+	}
+	else
+	{
+		cohort_type = RNA_COHORT_SOMATIC;
+	}
+
+	ExpressionGeneWidget* widget = new ExpressionGeneWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, project, rna_ps_id,
+															cohort_type, this);
+	auto dlg = GUIHelper::createDialog(widget, "Expression Data of " + db.processedSampleName(rna_ps_id));
+	addModelessDialog(dlg, false);
+}
+
+void MainWindow::on_actionExonExpressionData_triggered()
+{
+	if (filename_=="") return;
+	if (!LoginManager::active()) return;
+
+	QString title = "Exon expression data";
+
+	NGSD db;
+	QString sample_id = db.sampleId(filename_, false);
+	if (sample_id=="")
+	{
+		QMessageBox::warning(this, title, "Error: Sample not found in NGSD!");
+		return;
+	}
+
+	//get count files of all RNA processed samples corresponding to the current sample
+	QStringList rna_ps_ids;
+	foreach (int rna_sample, db.relatedSamples(sample_id.toInt(), "same sample", "RNA"))
+	{
+		rna_ps_ids << db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", QString::number(rna_sample));
+	}
+
+	QStringList rna_count_files;
+	foreach (QString rna_ps_id, rna_ps_ids)
+	{
+		FileLocation file_location = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_EXON);
+		if (file_location.exists) rna_count_files << file_location.filename;
+	}
+	rna_count_files.removeDuplicates();
+
+	if (rna_count_files.isEmpty())
+	{
+		QMessageBox::warning(this, title, "Error: No RNA count files of corresponding RNA samples found!");
+		return;
+	}
+
+	//select file to open
+	QString count_file;
+	if (rna_count_files.size()==1)
+	{
+		count_file = rna_count_files.at(0);
+	}
+	else
+	{
+		bool ok;
+		count_file = QInputDialog::getItem(this, title, "Multiple RNA count files found.\nPlease select a file:", rna_count_files, 0, false, &ok);
+		if (!ok) return;
+	}
+
+	int rna_sys_id = db.processingSystemIdFromProcessedSample(count_file);
+	QString rna_ps_id = db.processedSampleId(count_file);
+	QString tissue = db.getSampleData(db.sampleId(count_file)).tissue;
+	QString project = db.getProcessedSampleData(rna_ps_id).project_name;
+
+	GeneSet variant_target_region;
+	if(ui_.filters->phenotypes().count() > 0)
+	{
+		foreach (const Phenotype& phenotype, ui_.filters->phenotypes())
+		{
+			variant_target_region << db.phenotypeToGenes(db.phenotypeIdByAccession(phenotype.accession()), false);
+		}
+	}
+
+	if(ui_.filters->targetRegion().isValid())
+	{
+		if (variant_target_region.isEmpty())
+		{
+			variant_target_region = ui_.filters->targetRegion().genes;
+		}
+		else
+		{
+			variant_target_region = ui_.filters->targetRegion().genes.intersect(variant_target_region);
+		}
+	}
+
+	RnaCohortDeterminationStategy cohort_type = RNA_COHORT_GERMLINE;
+	if (somaticReportSupported()) cohort_type = RNA_COHORT_SOMATIC;
+
+	ExpressionExonWidget* widget = new ExpressionExonWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, project, rna_ps_id, cohort_type, this);
+	auto dlg = GUIHelper::createDialog(widget, "Expression Data of " + db.processedSampleName(rna_ps_id));
 	addModelessDialog(dlg, false);
 }
 
@@ -1548,51 +1660,15 @@ void MainWindow::on_actionShowRnaFusions_triggered()
 	addModelessDialog(dlg);
 }
 
-void MainWindow::on_actionShowCohortExpressionData_triggered()
+void MainWindow::on_actionShowProcessingSystemCoverage_triggered()
 {
-	if (filename_=="") return;
-	if (!LoginManager::active()) return;
+	//set filter widget
+	FilterWidget* variant_filter_widget = nullptr;
+	if(filename_ != "") variant_filter_widget = ui_.filters;
 
-	NGSD db;
+	auto expression_level_widget = new ExpressionOverviewWidget(variant_filter_widget, this);
 
-	//get all available files
-	QStringList cohort_expression_files;
-	foreach (int rna_sample_id, db.relatedSamples(db.sampleId(variants_.mainSampleName()).toInt(), "same sample", "RNA"))
-	{
-		// check for required files
-		foreach (const QString& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", QString::number(rna_sample_id)))
-		{
-			// search for fusion file
-			FileLocation cohort_expression_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_COHORT);
-			if (cohort_expression_file.exists) cohort_expression_files << cohort_expression_file.filename;
-		}
-	}
-
-	if (cohort_expression_files.isEmpty())
-	{
-		QMessageBox::warning(this, "Cohort expression data files missing", "Error: No RNA cohort expression data files of corresponding RNA samples found!");
-		return;
-	}
-
-	//select file to open
-	QString cohort_expression_filepath;
-	if (cohort_expression_files.size()==1)
-	{
-		cohort_expression_filepath = cohort_expression_files.at(0);
-	}
-	else
-	{
-		bool ok;
-		cohort_expression_filepath = QInputDialog::getItem(this, "Multiple files found", "Multiple RNA cohort expression data files found.\nPlease select a file:", cohort_expression_files, 0, false, &ok);
-		if (!ok) return;
-	}
-
-	QString rna_ps_id = db.processedSampleId(cohort_expression_filepath);
-	ProcessedSampleData rna_ps_info = db.getProcessedSampleData(rna_ps_id);
-
-	CohortExpressionDataWidget* cohort_expression_widget = new CohortExpressionDataWidget(cohort_expression_filepath, this, rna_ps_info.project_name, rna_ps_info.processing_system);
-
-	auto dlg = GUIHelper::createDialog(cohort_expression_widget, "Cohort RNA expression of " + variants_.analysisName());
+	auto dlg = GUIHelper::createDialog(expression_level_widget, "Expression of processing systems");
 	addModelessDialog(dlg);
 }
 
@@ -2795,7 +2871,7 @@ void MainWindow::openGeneTab(QString symbol)
 	int index = openTab(QIcon(":/Icons/NGSD_gene.png"), symbol, widget);
 	if (Settings::boolean("debug_mode_enabled"))
 	{
-		ui_.tabs->setTabToolTip(index, "NGSD ID: " + QString::number(NGSD().geneToApprovedID(symbol.toLatin1())));
+		ui_.tabs->setTabToolTip(index, "NGSD ID: " + QString::number(NGSD().geneId(symbol.toLatin1())));
 	}
 }
 
@@ -3164,10 +3240,10 @@ void MainWindow::loadFile(QString filename)
 	}
 
 	//activate RNA menu
-	rna_menu_btn_->setEnabled(false);
+//	rna_menu_btn_->setEnabled(false);
 	ui_.actionExpressionData->setEnabled(false);
+	ui_.actionExonExpressionData->setEnabled(false);
 	ui_.actionShowRnaFusions->setEnabled(false);
-	ui_.actionShowCohortExpressionData->setEnabled(false);
 	if (LoginManager::active())
 	{
 		NGSD db;
@@ -3183,18 +3259,17 @@ void MainWindow::loadFile(QString filename)
 				// check for required files
 				foreach (const QString& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", QString::number(rna_sample_id)))
 				{
-					// search for count file
+					// search for gene count file
 					FileLocation rna_count_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION);
 					if (rna_count_file.exists) ui_.actionExpressionData->setEnabled(true);
+
+					// search for gene count file
+					rna_count_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_EXON);
+					if (rna_count_file.exists) ui_.actionExonExpressionData->setEnabled(true);
 
 					// search for arriba fusion file
 					FileLocation arriba_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS);
 					if (arriba_fusion_file.exists) ui_.actionShowRnaFusions->setEnabled(true);
-
-					// search for cohort expression file
-					//TODO: reactivate if expression values are stored in the NGSD
-//					FileLocation cohort_expression_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_COHORT);
-//					if (cohort_expression_file.exists) ui_.actionShowCohortExpressionData->setEnabled(true);
 				}
 			}
 		}
@@ -3920,14 +3995,10 @@ QList<RtfPicture> pngsFromFiles(QStringList files)
 		QImage pic = QImage(path);
 		if(pic.isNull()) continue;
 
-		//set maximum width/height in pixels
-		if( (uint)pic.width() > 1200 ) pic = pic.scaledToWidth(1200, Qt::TransformationMode::SmoothTransformation);
-		if( (uint)pic.height() > 1200 ) pic = pic.scaledToHeight(1200, Qt::TransformationMode::SmoothTransformation);
-
 		QByteArray png_data = "";
 		QBuffer buffer(&png_data);
 		buffer.open(QIODevice::WriteOnly);
-		if (pic.save(&buffer, "PNG")) continue;
+		if (!pic.save(&buffer, "PNG")) continue;
 		buffer.close();
 
 		pic_list << RtfPicture(png_data.toHex(), pic.width(), pic.height());
@@ -4126,6 +4197,16 @@ void MainWindow::generateReportSomaticRTF()
 		{
 			QDesktopServices::openUrl(QUrl::fromLocalFile(file_rep) );
 		}
+
+		//reminder of MTB upload
+		QStringList studies = db.getValues("SELECT s.name FROM study s, study_sample ss WHERE s.id=ss.study_id AND ss.processed_sample_id=" + ps_tumor_id);
+		if (studies.contains("MTB"))
+		{
+			if (QMessageBox::question(this, "DNA report", "This sample is part of the study 'MTB'.\nDo you want to upload the data to MTB now?")==QMessageBox::Yes)
+			{
+				transferSomaticData();
+			}
+		}
 	}
 	else //RNA report
 	{
@@ -4312,7 +4393,7 @@ void MainWindow::openProcessedSampleTabsCurrentAnalysis()
 
 void MainWindow::on_actionOpenProcessedSampleTabByName_triggered()
 {
-	ProcessedSampleSelector dlg(this, true);
+	ProcessedSampleSelector dlg(this, false);
 	if (!dlg.exec()) return;
 
 	QString ps_name = dlg.processedSampleName();
@@ -4346,11 +4427,18 @@ QString MainWindow::selectGene()
 	selector->fill(db.createTable("gene", "SELECT id, symbol FROM gene"));
 
 	//show
-	auto dlg = GUIHelper::createDialog(selector, "Select gene", "symbol:", true);
+	auto dlg = GUIHelper::createDialog(selector, "Select gene", "symbol (or transcript name):", true);
 	if (dlg->exec()==QDialog::Rejected) return "";
 
-	//handle invalid name
-	if (selector->getId()=="") return "";
+	//handle invalid gene name > check if it is a transcript name
+	if (selector->getId()=="")
+	{
+		int gene_id = db.geneIdOfTranscript(selector->text().toUtf8(), false, GSvarHelper::build());
+		if (gene_id!=-1)
+		{
+			return db.geneSymbol(gene_id);
+		}
+	}
 
 	return selector->text();
 }
@@ -4365,7 +4453,7 @@ QString MainWindow::selectProcessedSample()
     }
 
     //no samples => error
-    if (ps_list.isEmpty())
+	if (ps_list.isEmpty())
     {
         THROW(ProgrammingException, "selectProcessedSample() cannot be used if there is no variant list loaded!");
     }
@@ -5056,10 +5144,10 @@ void MainWindow::on_actionImportTestData_triggered()
 		//check role
 		LoginManager::checkRoleIn(QStringList{"admin", "user"});
 
-		//check database is empty to prevent overriding the production database
-		if (db.getValue("SELECT COUNT(id) FROM sample", false).toInt() > 0)
+		//prevent overriding the production database
+		if (db.isProductionDb())
 		{
-			THROW(DatabaseException, "Cannot import the data because the database is not empty (sample table has records). Re-initialize the database before import of data!");
+			THROW(DatabaseException, "Cannot import test data into a production database!");
 		}
 
 		//get input file

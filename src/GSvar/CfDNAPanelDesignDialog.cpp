@@ -138,8 +138,6 @@ void CfDNAPanelDesignDialog::loadPreviousPanels()
 			//preselect processing system
 			ui_->cb_processing_system->setCurrentText(NGSD().getProcessingSystemData(cfdna_panel_info_.processing_system_id).name_short);
 		}
-
-
 	}
 
 

@@ -15,7 +15,7 @@
 #include <QMessageBox>
 #include "GlobalServiceProvider.h"
 #include "AnalysisInformationWidget.h"
-#include "ExpressionDataWidget.h"
+#include "ExpressionGeneWidget.h"
 #include "FusionWidget.h"
 #include "GenLabImportDialog.h"
 #include "GenLabDB.h"
@@ -531,7 +531,9 @@ void ProcessedSampleWidget::editStudy()
 	NGSD db;
 	QString id = ui_->studies->getId(selected_rows[0]);
 	QString study_sample_idendifier = db.getValue("SELECT study_sample_idendifier FROM study_sample WHERE id=" + id).toString();
-	QString study_sample_idendifier_new = QInputDialog::getText(this, "Study", "sample identifier in the study (optional):", QLineEdit::Normal, study_sample_idendifier);
+	bool ok = false;
+	QString study_sample_idendifier_new = QInputDialog::getText(this, "Study", "sample identifier in the study (optional):", QLineEdit::Normal, study_sample_idendifier, &ok);
+	if (!ok || study_sample_idendifier==study_sample_idendifier_new) return;
 
 	//update study
 	SqlQuery query = db.getQuery();
@@ -656,8 +658,8 @@ void ProcessedSampleWidget::openExpressionWidget()
 		NGSD db;
 		int sys_id = db.processingSystemIdFromProcessedSample(processedSampleName());
 		QString tissue = db.getSampleData(db.sampleId(sampleName())).tissue;
-		ExpressionDataWidget* widget = new ExpressionDataWidget(file_location.filename, sys_id, tissue, this);
-		auto dlg = GUIHelper::createDialog(widget, "Expression Data");
+		ExpressionGeneWidget* widget = new ExpressionGeneWidget(file_location.filename, sys_id, tissue, "", GeneSet(), db.getProcessedSampleData(ps_id_).project_name, ps_id_, RNA_COHORT_GERMLINE, this);
+		auto dlg = GUIHelper::createDialog(widget, "Expression Data of " + db.processedSampleName(ps_id_));
 		dlg->exec();
 	}
 	else

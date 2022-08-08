@@ -514,7 +514,8 @@ struct CPPNGSDSHARED_EXPORT ImportStatusGermline
 struct ExpressionStats
 {
 	double mean;
-	double stddev;
+	double mean_log2;
+	double stddev_log2;
 };
 
 /// Keeps track of sample information for multi-sample analyses
@@ -524,6 +525,14 @@ struct CPPNGSDSHARED_EXPORT MultiSampleAnalysisInfo
 	QString analysis_name;
 	QStringList ps_sample_name_list;
 	QStringList ps_sample_id_list;
+}
+
+///NGSD RNA cohort determination stategy
+enum RnaCohortDeterminationStategy
+{
+	RNA_COHORT_GERMLINE, //based on processing system
+	RNA_COHORT_GERMLINE_PROJECT, //based on processing system and project
+	RNA_COHORT_SOMATIC //based on HPO or ICD10
 };
 
 /// NGSD accessor.
@@ -539,6 +548,8 @@ public:
 	~NGSD();
 	///Returns if the database connection is (still) open
 	bool isOpen() const;
+	///Returns if the database is a production database based on information in the table 'db_info'.
+	bool isProductionDb() const;
 
 	///Returns if the database is available (i.e. the credentials are in the settings file or the application is in client-server mode)
 	static bool isAvailable(bool test_db=false);
@@ -603,8 +614,10 @@ public:
 	bool rollback();
 
 	/*** gene/transcript handling ***/
-	///Returns the gene ID, or -1 if none approved gene name could be found. Checks approved symbols, previous symbols and synonyms.
-	int geneToApprovedID(const QByteArray& gene);
+	///Returns the gene ID, or -1 if no approved gene name could be found. Checks approved symbols, previous symbols and synonyms. Uses internal cache to speed up repeated queries of the same gene name.
+	int geneId(const QByteArray& gene);
+	///Returns the gene ID of the transcript, or -1 if no gene could be determined.
+	int geneIdOfTranscript(const QByteArray& name, bool throw_on_error=true, GenomeBuild build=GenomeBuild::HG38);
 	///Returns the gene symbol for a gene ID.
 	QByteArray geneSymbol(int id);
 	///Returns the HGNC identifier of a gene.
@@ -641,7 +654,7 @@ public:
 	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source=false, bool fallback_noncoding=false);
 	///Returns the list of all approved gene names
 	const GeneSet& approvedGeneNames();
-	///Returns the map of gene to preferred transcripts
+	///Returns the map of gene to preferred transcripts (note: transcript names do not contain version numbers)
 	QMap<QByteArray, QByteArrayList> getPreferredTranscripts();
 	///Adds a preferred transcript. Returns if it was added, i.e. it was not already present. Throws an exception, if the transcript name is not valid.
 	bool addPreferredTranscript(QByteArray transcript_name);
@@ -671,7 +684,7 @@ public:
 	QString omimPreferredPhenotype(const QByteArray& symbol, const QByteArray& disease_group);
 
 	/*** Base functionality for file/variant processing ***/
-	///Returns the processed sample name for an ID.
+	///Returns the processed sample name for an ID. If it does not exist, an exception is thrown or an empty string is returned.
 	QString processedSampleName(const QString& ps_id, bool throw_if_fails = true);
 	///Returns the NGSD sample ID file name. Throws an exception if it could not be determined.
 	QString sampleId(const QString& filename, bool throw_if_fails = true);
@@ -736,12 +749,35 @@ public:
 	///Returns the germline import status.
 	ImportStatusGermline importStatus(const QString& ps_id);
 
-	///Imports expression data to the NGSD
-	void importExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
+	/* RNA related functions */
+	///Imports gene expression data to the NGSD
+	void importGeneExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
+	///Imports transcript expression data to the NGSD
+	void importTranscriptExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
+	///Imports exon expression data to the NGSD
+	void importExonExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
+	///Calculates statistics on all gene expression values for a list of processed sample ids
+	QMap<QByteArray, ExpressionStats> calculateGeneExpressionStatistics(QSet<int>& cohort, QByteArray gene="", bool debug=false);
+	///Calculates statistics on all exon expression values for a list of processed sample ids
+	QMap<QByteArray, ExpressionStats> calculateExonExpressionStatistics(QSet<int>& cohort, const BedLine& exon=BedLine(), bool debug=false);
 	///Calculates statistics on all expression values of the same processing system and tissue
-	QMap<QByteArray, ExpressionStats> calculateExpressionStatistics(int sys_id, const QString& tissue_type);
+	QMap<QByteArray, ExpressionStats> calculateCohortExpressionStatistics(int sys_id, const QString& tissue_type, QSet<int>& cohort, const QString& project="", const QString& ps_id="",
+																	RnaCohortDeterminationStategy cohort_type=RNA_COHORT_GERMLINE, const QStringList& exclude_quality=QStringList() << "bad", bool debug=false);
+	///Determines the sample cohort for a given sample
+	QSet<int> getRNACohort(int sys_id, const QString& tissue_type, const QString& project="", const QString& ps_id="", RnaCohortDeterminationStategy cohort_type=RNA_COHORT_GERMLINE,
+						   const QByteArray& mode = "genes", const QStringList& exclude_quality=QStringList() << "bad", bool debug=false);
 	///Creates a mapping from ENSG ensembl identifier to NGSD gene ids
 	QMap<QByteArray, QByteArray> getEnsemblGeneMapping();
+	///Creates a mapping from gene symbols to ENSG ensembl identifier
+	QMap<QByteArray, QByteArray> getGeneEnsemblMapping();
+	///Returns a list of all expression values for a given gene symbol
+	QVector<double> getGeneExpressionValues(const QByteArray& gene, int sys_id, const QString& tissue_type, bool log2=false);
+	QVector<double> getGeneExpressionValues(const QByteArray& gene, QSet<int> cohort, bool log2=false);
+	QVector<double> getGeneExpressionValues(const QByteArray& gene, QVector<int> cohort, bool log2=false);
+	///Returns a list of all expression values for a given exon
+	QVector<double> getExonExpressionValues(const BedLine& exon, QSet<int> cohort, bool log2=false);
+	///Returns the expression values fo a single sample
+	QMap<QByteArray, double> getGeneExpressionValuesOfSample(const QString& ps_id, bool allow_empty=false);
 
 	/***User handling functions ***/
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.
@@ -1006,6 +1042,7 @@ protected:
 		QHash<int, QSet<int>> same_samples;
 		QHash<int, QSet<int>> related_samples;
 		GeneSet approved_gene_names;
+		QHash<QByteArray, int> gene2id;
 		QMap<QString, QStringList> enum_values;
 		QMap<QByteArray, QByteArray> non_approved_to_approved_gene_names;
 		QHash<int, Phenotype> phenotypes_by_id;

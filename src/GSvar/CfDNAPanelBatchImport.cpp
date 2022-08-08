@@ -377,7 +377,6 @@ void CfDNAPanelBatchImport::importPanels()
 	//overwrite panels on demand
 	bool overwrite_existing = ui_->cb_overwrite_existing->isChecked();
 
-	// TODO: support transactions
 	try
 	{
 		// start mysql transaction

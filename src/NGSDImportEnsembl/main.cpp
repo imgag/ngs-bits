@@ -238,7 +238,7 @@ public:
 					if (ensg2symbol.contains(ensembl_gene_id))
 					{
 						QByteArray gene_symbol = ensg2symbol.value(ensembl_gene_id).split('.').at(0).trimmed();
-						pseudogene_gene_id = db.geneToApprovedID(gene_symbol);
+						pseudogene_gene_id = db.geneId(gene_symbol);
 
 						// try to match by gene name
 						if (pseudogene_gene_id != -1)
@@ -366,7 +366,7 @@ public:
 
             //transform gene name to approved gene ID
 			QByteArray gene = t.gene();
-            int ngsd_gene_id = db.geneToApprovedID(gene);
+			int ngsd_gene_id = db.geneId(gene);
             if(ngsd_gene_id==-1) //fallback to HGNC ID
             {
                 ngsd_gene_id = geneByHGNC(q_gene, t.hgncId());
@@ -410,6 +410,8 @@ public:
 			importPseudogenes(data.enst2ensg, data.ensg2symbol, file_path);
 		}
 	}
+
+	//TODO: update exon expression table
 };
 
 #include "main.moc"

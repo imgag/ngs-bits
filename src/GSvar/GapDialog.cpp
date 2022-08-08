@@ -125,7 +125,7 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 		BedFile coding_overlap;
 		foreach(QByteArray gene, info.genes)
 		{
-			int gene_id = db_.geneToApprovedID(gene);
+			int gene_id = db_.geneId(gene);
 			Transcript transcript = db_.longestCodingTranscript(gene_id, Transcript::ENSEMBL, true);
 			if (!transcript.isValid())
 			{
@@ -155,7 +155,7 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 			QByteArray gene_approved = db_.geneToApproved(gene, true);
             if (preferred_transcripts.contains(gene_approved))
 			{
-				int gene_id = db_.geneToApprovedID(gene);
+				int gene_id = db_.geneId(gene);
 				TranscriptList transcripts = db_.transcripts(gene_id, Transcript::ENSEMBL, false);
 				foreach(const Transcript& transcript, transcripts)
 				{
@@ -204,7 +204,7 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 	//show warning if non-coding transcripts had to be used
 	if (!genes_noncoding.isEmpty())
 	{
-		output << "No coding transcript is defined for the following genes (for GRCh37):";
+		output << "No coding transcript is defined for the following genes:";
 		output << genes_noncoding.join(", ");
 		output << "For these genes the longest *non-coding* transcript is used.";
 		output << "Please check gaps of these genes manually since they might be non-coding but shown as coding region +-5!";

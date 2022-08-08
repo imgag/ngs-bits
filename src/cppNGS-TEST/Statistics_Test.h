@@ -748,6 +748,13 @@ TEST_CLASS(Statistics_Test)
 	void genderXY()
 	{
 		GenderEstimate estimate = Statistics::genderXY(TESTDATA("data_in/panel.bam"));
+		I_EQUAL(estimate.add_info.count(), 3);
+		S_EQUAL(estimate.add_info[0].key, "reads_chry");
+		S_EQUAL(estimate.add_info[0].value, "2");
+		S_EQUAL(estimate.add_info[1].key, "reads_chrx");
+		S_EQUAL(estimate.add_info[1].value, "30592");
+		S_EQUAL(estimate.add_info[2].key, "ratio_chry_chrx");
+		S_EQUAL(estimate.add_info[2].value, "0.0001");
 		S_EQUAL(estimate.gender, "female");
 	}
 
@@ -760,9 +767,15 @@ TEST_CLASS(Statistics_Test)
 	void genderSRY()
 	{
 		GenderEstimate estimate = Statistics::genderSRY(GenomeBuild::HG19, TESTDATA("data_in/panel.bam"));
+		I_EQUAL(estimate.add_info.count(), 1);
+		S_EQUAL(estimate.add_info[0].key, "coverage_sry");
+		S_EQUAL(estimate.add_info[0].value, "0.00");
 		S_EQUAL(estimate.gender, "female");
 
 		estimate = Statistics::genderSRY(GenomeBuild::HG19, TESTDATA("data_in/sry.bam"));
+		I_EQUAL(estimate.add_info.count(), 1);
+		S_EQUAL(estimate.add_info[0].key, "coverage_sry");
+		S_EQUAL(estimate.add_info[0].value, "67.27");
 		S_EQUAL(estimate.gender, "male");
 	}
 

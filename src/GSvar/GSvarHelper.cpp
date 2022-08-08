@@ -285,7 +285,7 @@ Variant GSvarHelper::liftOverVariant(const Variant& v, bool hg19_to_hg38)
 	return v2;
 }
 
-QString GSvarHelper::gnomADLink(Variant v, GenomeBuild build)
+QString GSvarHelper::gnomADLink(const Variant& v, GenomeBuild build)
 {
 	QString url = "https://gnomad.broadinstitute.org/variant/" + v.chr().strNormalized(false) + "-";
 
@@ -320,6 +320,11 @@ QString GSvarHelper::gnomADLink(Variant v, GenomeBuild build)
 	if (build==GenomeBuild::HG38) url += "?dataset=gnomad_r3";
 
 	return url;
+}
+
+QString GSvarHelper::clinVarSearchLink(const Variant& v, GenomeBuild build)
+{
+	return "https://www.ncbi.nlm.nih.gov/clinvar/?term=" + v.chr().strNormalized(false)+"[chr]+AND+" + QString::number(v.start()) + "%3A" + QString::number(v.end()) + (build==GenomeBuild::HG38? "[chrpos38]" : "[chrpos37]");
 }
 
 QString GSvarHelper::localRoiFolder()
