@@ -1,6 +1,6 @@
 ##cohort_strategy:RNA_COHORT_GERMLINE_PROJECT
 ##cohort_size:1
-#gene_id	tpm	raw	cohort_mean	log2fc	zscore	pvalue
+#gene_id	tpm	raw	cohort_mean	log2fc	zscore	pval
 ENSG00000243485	0	9303	0	0	nan	nan
 ENSG00000186092	0	6048	0	0	nan	nan
 ENSG00000269981	0	13873				

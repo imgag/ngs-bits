@@ -117,7 +117,7 @@ public:
 		// check if annotation columns already present and add to header
 		QByteArrayList header = input_file.header();
 		QByteArrayList db_header;
-		db_header << "cohort_mean" << "log2fc" << "zscore" << "pvalue";
+		db_header << "cohort_mean" << "log2fc" << "zscore" << "pval";
 		QByteArrayList additional_columns;
 		QMap<QByteArray, int> column_indices;
 		foreach (const QByteArray column_name, db_header)
@@ -193,7 +193,7 @@ public:
 
 				//pvalue
 				double pvalue = 1 + std::erf(- std::abs(zscore) / std::sqrt(2));
-				tsv_line[column_indices["pvalue"]] = QByteArray::number(pvalue);
+				tsv_line[column_indices["pval"]] = QByteArray::number(pvalue);
 
 				if((expr_value > 0) && (cohort_mean > 0))
 				{
