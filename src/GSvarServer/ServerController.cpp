@@ -711,7 +711,6 @@ HttpResponse ServerController::getMultiSampleAnalysisInfo(const HttpRequest& req
 		QJsonDocument json_in_doc = QJsonDocument::fromJson(QUrl::fromPercentEncoding(request.getFormUrlEncoded()["analyses"].toLocal8Bit()).toLocal8Bit());
 		if (json_in_doc.isArray())
 		{
-			NGSD db;
 			QJsonArray json_in_array = json_in_doc.array();
 			QJsonArray multi_sample_analysis_info_array;
 			for (int i = 0; i < json_in_array.count(); i++)
@@ -722,9 +721,6 @@ HttpResponse ServerController::getMultiSampleAnalysisInfo(const HttpRequest& req
 				if (file_url_parts.count() < 2) continue;
 				QString url_id = file_url_parts[file_url_parts.count()-2];
 				UrlEntity url = UrlManager::getURLById(url_id);
-
-				qDebug() << "Sample file" << file_url;
-				qDebug() << url.filename_with_path;
 				vl.loadHeaderOnly(url.filename_with_path);
 
 				QJsonObject multi_sample_analysis_info_object;
@@ -734,10 +730,9 @@ HttpResponse ServerController::getMultiSampleAnalysisInfo(const HttpRequest& req
 				QJsonArray ps_sample_name_array;
 				QJsonArray ps_sample_id_array;
 				foreach(const SampleInfo& info, vl.getSampleHeader())
-				{
-					qDebug() << info.id;
+				{					
 					ps_sample_name_array.append(info.id);
-					ps_sample_id_array.append(db.processedSampleId(info.id));
+					ps_sample_id_array.append(NGSD().processedSampleId(info.id));
 				}
 				multi_sample_analysis_info_object.insert("ps_sample_name_list", ps_sample_name_array);
 				multi_sample_analysis_info_object.insert("ps_sample_id_list", ps_sample_id_array);

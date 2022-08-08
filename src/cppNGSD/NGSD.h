@@ -525,7 +525,7 @@ struct CPPNGSDSHARED_EXPORT MultiSampleAnalysisInfo
 	QString analysis_name;
 	QStringList ps_sample_name_list;
 	QStringList ps_sample_id_list;
-}
+};
 
 ///NGSD RNA cohort determination stategy
 enum RnaCohortDeterminationStategy

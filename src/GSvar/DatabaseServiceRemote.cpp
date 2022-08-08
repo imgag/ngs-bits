@@ -214,7 +214,6 @@ QList<MultiSampleAnalysisInfo> DatabaseServiceRemote::getMultiSampleAnalysisInfo
 	checkEnabled(__PRETTY_FUNCTION__);
 
 	QList<MultiSampleAnalysisInfo> result;
-
 	QJsonArray json_in_array = QJsonArray::fromStringList(analyses);
 	QJsonDocument json_in_doc(json_in_array);
 	QByteArray reply = ApiCaller().post("multi_sample_analysis_info", RequestUrlParams(), HttpHeaders(), "analyses=" + json_in_doc.toJson().toPercentEncoding(), true);
@@ -223,7 +222,6 @@ QList<MultiSampleAnalysisInfo> DatabaseServiceRemote::getMultiSampleAnalysisInfo
 		THROW(Exception, "Could not get the list of analysis names");
 	}
 
-	qDebug() << "reply " << reply;
 	QJsonDocument json_out_doc = QJsonDocument::fromJson(QUrl::fromPercentEncoding(reply).toLocal8Bit());
 	if (json_out_doc.isArray())
 	{
