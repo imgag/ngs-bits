@@ -28,6 +28,7 @@ public:
 
 
 		//optional
+		addInfile("sample_expression", "TSV file containing gene expression for processed sample (required if processed sample data hasn't been imported to the database yet)", true);
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		QStringList valid_cohort = QStringList() << "RNA_COHORT_GERMLINE" << "RNA_COHORT_GERMLINE_PROJECT" << "RNA_COHORT_SOMATIC";
 		addEnum("cohort_strategy", "Determines which samples are used as reference cohort.", true, valid_cohort, "RNA_COHORT_GERMLINE");
@@ -41,6 +42,7 @@ public:
 		//init
 		QString ps_name = getString("ps");
 		QString gene_file = getInfile("genes");
+		QString expression_file = getInfile("sample_expression");
 
 		QString out = getOutfile("out");
 
@@ -75,9 +77,35 @@ public:
 		//get list of genes
 		GeneSet genes = GeneSet::createFromFile(gene_file);
 
+		QMap<QByteArray, double> sample_expression;
+		if (!expression_file.isEmpty())
+		{
+			//read expression from file
+			TSVFileStream tsv(expression_file);
+			int gene_id_idx = tsv.colIndex("gene_id", true);
+			int tpm_idx = tsv.colIndex("tpm", true);
+
+			while(!tsv.atEnd())
+			{
+				QList<QByteArray> parts = tsv.readLine();
+				//skip empty lines
+				if (parts.count()==0) continue;
+
+				sample_expression.insert(parts.at(gene_id_idx).trimmed(), Helper::toDouble(parts.at(tpm_idx)));
+			}
+
+		}
+
+
 		//get cohort
 		QVector<int> cohort = db.getRNACohort(sys_id, s_data.tissue, ps_data.project_name, ps_id, cohort_strategy, "genes").toList().toVector();
 		std::sort(cohort.rbegin(), cohort.rend());
+
+		//remove given ps_id if manual file is provided
+		if(!expression_file.isEmpty())
+		{
+			cohort.removeAll(ps_id.toInt());
+		}
 
 		//get ensembl ids
 		auto gene_ensembl_mapping = db.getGeneEnsemblMapping();
@@ -94,7 +122,12 @@ public:
 		{
 			ps_names << db.processedSampleName(QString::number(ps_id));
 		}
-		output_stream << "#gene_id\t" << ps_names.join("\t") << "\n";
+		output_stream << "#gene_id\t";
+		if(!expression_file.isEmpty())
+		{
+			output_stream << ps_name << "\t";
+		}
+		output_stream << ps_names.join("\t") << "\n";
 
 		//iterate over gene list
 		foreach (const QByteArray& gene, genes)
@@ -112,7 +145,15 @@ public:
 					expression_values_str << QByteArray::number(expr);
 				}
 			}
-			output_stream << gene_ensembl_mapping.value(gene) << "\t" << expression_values_str.join("\t") << "\n";
+			output_stream << gene_ensembl_mapping.value(gene);
+
+			// add expression from file
+			if(!expression_file.isEmpty())
+			{
+				output_stream << "\t" << sample_expression.value(gene_ensembl_mapping.value(gene));
+			}
+
+			output_stream << "\t" << expression_values_str.join("\t") << "\n";
 		}
 		output_stream.flush();
 		output_file->close();
