@@ -692,19 +692,22 @@ TEST_CLASS(Statistics_Test)
 		I_EQUAL(high_cov.baseCount(), 578975);
 	}
 
-	void avgCoverage_default()
+	void avgCoverage_overlapping_regions()
 	{
 		BedFile bed_file;
-		bed_file.load(TESTDATA("data_in/panel.bed"));
-		bed_file.merge();
+		bed_file.append(BedLine("chr1", 11013718, 11013975));
+		bed_file.append(BedLine("chr1", 11013718, 11013818));
+		bed_file.append(BedLine("chr1", 11013818, 11013975));
 
 		Statistics::avgCoverage(bed_file, TESTDATA("data_in/panel.bam"), 20);
 
-		I_EQUAL(bed_file.count(), 1532);
+		I_EQUAL(bed_file.count(), 3);
 		X_EQUAL(bed_file[0].chr(), Chromosome("chr1"));
 		I_EQUAL(bed_file[0].start(), 11013718);
 		I_EQUAL(bed_file[0].end(), 11013975);
-		S_EQUAL(bed_file[0].annotations()[0], QString("105.12"));
+		S_EQUAL(bed_file[0].annotations()[0], QString("106.40"));
+		S_EQUAL(bed_file[1].annotations()[0], QString("75.07"));
+		S_EQUAL(bed_file[2].annotations()[0], QString("126.03"));
 	}
 
 	void avgCoverage_panel_mode_1decimal()
@@ -713,7 +716,7 @@ TEST_CLASS(Statistics_Test)
 		bed_file.load(TESTDATA("data_in/close_exons.bed"));
 		bed_file.merge();
 
-		Statistics::avgCoverage(bed_file, TESTDATA("data_in/close_exons.bam"), 20, false, true, 1);
+		Statistics::avgCoverage(bed_file, TESTDATA("data_in/close_exons.bam"), 20, false, 1);
 
 		I_EQUAL(bed_file.count(), 2);
 		X_EQUAL(bed_file[0].chr(), Chromosome("chr1"));
@@ -732,7 +735,7 @@ TEST_CLASS(Statistics_Test)
 		bed_file.load(TESTDATA("data_in/close_exons.bed"));
 		bed_file.merge();
 
-		Statistics::avgCoverage(bed_file, TESTDATA("data_in/close_exons.bam"), 20, true, true);
+		Statistics::avgCoverage(bed_file, TESTDATA("data_in/close_exons.bam"), 20, true);
 
 		I_EQUAL(bed_file.count(), 2);
 		X_EQUAL(bed_file[0].chr(), Chromosome("chr1"));

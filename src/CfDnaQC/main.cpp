@@ -81,7 +81,7 @@ public:
 		monitoring_snps.clearAnnotations();
 
 		// compute coverage on monitoring SNPs
-		Statistics::avgCoverage(monitoring_snps, bam, min_mapq, false, true, 3, ref);
+		Statistics::avgCoverage(monitoring_snps, bam, min_mapq, false, 3, ref);
 
 		//compute average depth
 		double monitoring_avg_depth = 0.0;
@@ -98,7 +98,7 @@ public:
 		monitoring_avg_depth /= monitoring_snps.count();
 
 		// compute coverage on ID SNPs
-		Statistics::avgCoverage(id_snps, bam, min_mapq, false, true, 3, ref);
+		Statistics::avgCoverage(id_snps, bam, min_mapq, false, 3, ref);
 
 		//compute average depth
 		double id_avg_depth = 0.0;
