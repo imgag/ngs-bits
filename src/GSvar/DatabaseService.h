@@ -5,6 +5,7 @@
 #include "GeneSet.h"
 #include "FileLocation.h"
 #include "FileInfo.h"
+#include "NGSD.h"
 
 //Database access service interface.
 class DatabaseService
@@ -35,6 +36,8 @@ public:
 	virtual FileLocation analysisJobGSvarFile(const int& job_id) const = 0;	
 	//Returns a log file location object for a specific job based on its id
 	virtual FileLocation analysisJobLogFile(const int& job_id) const = 0;
+	//Returns a list of analysis names for multi-sample analyses
+	virtual QList<MultiSampleAnalysisInfo> getMultiSampleAnalysisInfo(QStringList& analyses) const = 0;
 };
 
 #endif // DATABASESERVICE_H

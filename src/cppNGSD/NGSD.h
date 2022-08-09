@@ -518,6 +518,15 @@ struct ExpressionStats
 	double stddev_log2;
 };
 
+/// Keeps track of sample information for multi-sample analyses
+struct CPPNGSDSHARED_EXPORT MultiSampleAnalysisInfo
+{
+	QString analysis_file;
+	QString analysis_name;
+	QStringList ps_sample_name_list;
+	QStringList ps_sample_id_list;
+};
+
 ///NGSD RNA cohort determination stategy
 enum RnaCohortDeterminationStategy
 {
@@ -675,7 +684,7 @@ public:
 	QString omimPreferredPhenotype(const QByteArray& symbol, const QByteArray& disease_group);
 
 	/*** Base functionality for file/variant processing ***/
-	///Returns the processed sample name for an ID. If it does not exist, an exception is throw or an empty string is returned.
+	///Returns the processed sample name for an ID. If it does not exist, an exception is thrown or an empty string is returned.
 	QString processedSampleName(const QString& ps_id, bool throw_if_fails = true);
 	///Returns the NGSD sample ID file name. Throws an exception if it could not be determined.
 	QString sampleId(const QString& filename, bool throw_if_fails = true);

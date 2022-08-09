@@ -2,7 +2,6 @@
 #define DATABASESERVICELOCAL_H
 
 #include "DatabaseService.h"
-#include "NGSD.h"
 
 class DatabaseServiceLocal
 	: virtual public DatabaseService
@@ -23,6 +22,7 @@ public:
 	virtual FileInfo analysisJobLatestLogInfo(const int& job_id) const override;
 	virtual FileLocation analysisJobGSvarFile(const int& job_id) const override;	
 	virtual FileLocation analysisJobLogFile(const int& job_id) const override;
+	virtual QList<MultiSampleAnalysisInfo> getMultiSampleAnalysisInfo(QStringList& analyses) const override;
 
 protected:
 	//Throws an error if NGSD is not enabled

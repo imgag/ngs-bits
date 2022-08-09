@@ -52,6 +52,8 @@ public:
 	static HttpResponse calculateAvgCoverage(const HttpRequest& request);
 	/// Calculates target region read depth used in germline report
 	static HttpResponse calculateTargetRegionReadDepth(const HttpRequest& request);
+	/// Creates a list of analysis names for multi-samples
+	static HttpResponse getMultiSampleAnalysisInfo(const HttpRequest& request);
 	/// Requests a secure token that is needed for the communication with the server
 	static HttpResponse performLogin(const HttpRequest& request);
 	/// Checks if prodivided login and password are valid
