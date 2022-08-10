@@ -653,8 +653,7 @@ HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 		bam_file_name = UrlManager::getURLById(request.getFormUrlEncoded()["bam_url_id"]).filename_with_path;
 	}
 
-        Statistics::avgCoverage(low_cov, bam_file_name, 1, false);
-
+	Statistics::avgCoverage(low_cov, bam_file_name, 1, false);
 	if(!low_cov.toText().isEmpty())
 	{
 		QByteArray body = low_cov.toText().toLocal8Bit();
