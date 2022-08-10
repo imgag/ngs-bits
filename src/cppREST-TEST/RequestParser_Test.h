@@ -26,23 +26,6 @@ private slots:
 		IS_THROWN(Exception, parser->parse(&raw_request));
 	}
 
-	void test_url_overwrite()
-	{
-		QByteArray raw_request =
-			"GET /v1/temp/file.bam?token=value.bai HTTP/1.1\r\n"
-			"Host: localhost:8443\r\n"
-			"Connection: keep-alive\r\n";
-
-		RequestParser *parser = new RequestParser();
-		HttpRequest parsed_request = parser->parse(&raw_request);
-
-		S_EQUAL(parsed_request.getPath(), "temp");
-
-		S_EQUAL(parsed_request.getUrlParams().value("token"), "value");
-		S_EQUAL(parsed_request.getPathItems().last(), "file.bam.bai");
-	}
-
-
 	void test_parsing_multipart_form_post_request()
 	{
 		QByteArray raw_request =
