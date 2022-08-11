@@ -28,28 +28,6 @@ HttpRequest RequestParser::parse(QByteArray *request) const
 			parsed_request.setPath(getRequestPath(path_items));
 			parsed_request.setPathItems(getRequestPathParams(path_items));
 			parsed_request.setUrlParams(getVariables(getVariableSequence(request_info[1])));
-
-			if (parsed_request.getUrlParams().contains("token"))
-			{
-				// Special case for handling IGV's incorrect processing of URL parameters (it adds some file extensions e.g. TDF to the token)
-				int dot_position = parsed_request.getUrlParams()["token"].lastIndexOf(".");
-				if (dot_position > -1)
-				{
-					qDebug() << "File extension has been detected in the token";
-					QMap<QString, QString> igv_params = parsed_request.getUrlParams();
-					QList<QString> igv_path_items = parsed_request.getPathItems();
-					QString extension = igv_params["token"].right(igv_params["token"].size() - dot_position - 1);
-					if (extension.size() > 4) continue;
-					igv_params["token"] = igv_params["token"].left(dot_position);
-
-					if (igv_path_items.isEmpty()) continue;
-					igv_path_items[igv_path_items.count()-1] = igv_path_items[igv_path_items.count()-1] + "." + extension;
-					parsed_request.setUrlParams(igv_params);
-					parsed_request.setPathItems(igv_path_items);
-					qDebug() << "Url has been overwritten. File extention '" << extension << "' has been handled";
-				}
-			}
-
 			continue;
 		}
 
