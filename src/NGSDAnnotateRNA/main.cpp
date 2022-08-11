@@ -33,10 +33,12 @@ public:
 		QStringList valid_cohort = QStringList() << "RNA_COHORT_GERMLINE" << "RNA_COHORT_GERMLINE_PROJECT" << "RNA_COHORT_SOMATIC";
 		addEnum("cohort_strategy", "Determines which samples are used as reference cohort.", true, valid_cohort, "RNA_COHORT_GERMLINE");
 		addOutfile("corr", "File path to output file containing the spearman correlation to cohort mean.", true);
+		addInfile("hpa_file", "TSV file containing the Human Protein Atlas (https://www.proteinatlas.org) to annotate gene expression", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
 
 		changeLog(2022, 6, 9, "Initial commit.");
 		changeLog(2022, 7, 13, "Added support for exons.");
+		changeLog(2022, 8, 11, "Added HPA annotation support.");
 	}
 
 	virtual void main()
@@ -48,6 +50,8 @@ public:
 		QString mode = getEnum("mode");
 		QString cohort_strategy_str = getEnum("cohort_strategy");
 		QString corr = getOutfile("corr");
+		QString hpa_file_path = getInfile("hpa_file");
+
 		RnaCohortDeterminationStategy cohort_strategy;
 		if (cohort_strategy_str == "RNA_COHORT_GERMLINE")
 		{
@@ -75,7 +79,6 @@ public:
 		SampleData s_data = db.getSampleData(s_id);
 		int sys_id = db.processingSystemId(ps_data.processing_system);
 
-
 		//get expression
 		QMap<QByteArray, ExpressionStats> expression_stats;
 		QMap<QByteArray, QByteArray> ensg_gene_mapping;
@@ -101,6 +104,53 @@ public:
 			}
 		}
 
+		//get HPA data
+		bool hpa_annotation = false;
+		QMap<QByteArray, double> hpa_data;
+		if(!hpa_file_path.isEmpty())
+		{
+			if(mode != "genes") THROW(ArgumentException, "HPA annotation only supported for gene expression!");
+			if(cohort_strategy != RNA_COHORT_SOMATIC) THROW(ArgumentException, "HPA annotation only supported for somatic samples!");
+
+			//get hpa tissue
+			QString sample_hpa_tissue = db.getValue(QByteArray() + "SELECT sdi.disease_info FROM sample s "
+											 + "LEFT JOIN sample_relations sr ON s.id=sr.sample1_id OR s.id=sr.sample2_id "
+											 + "LEFT JOIN sample_disease_info sdi ON sdi.sample_id=sr.sample1_id OR sdi.sample_id=sr.sample2_id "
+											 + "WHERE s.id=:0 AND sdi.type='RNA reference tissue' AND (sr.relation='same sample' OR sr.relation IS NULL)", true, s_id).toString();
+			if (sample_hpa_tissue.isEmpty()) THROW(DatabaseException, "No HPA reference tissue set for sample '" + ps_name + "'!");
+
+			//parse HPA file
+
+			QSharedPointer<QFile> hpa_file = Helper::openFileForReading(hpa_file_path,false);
+
+			//read header
+			QByteArrayList hpa_file_header = hpa_file->readLine().replace("\n", "").replace("\r", "").split('\t');
+			int ensg_idx = hpa_file_header.indexOf("Gene");
+			if (ensg_idx < 0) THROW(FileParseException, "Column 'Gene' missing in HPA file!");
+			int tissue_idx = hpa_file_header.indexOf("Tissue");
+			if (tissue_idx < 0) THROW(FileParseException, "Column 'Tissue' missing in HPA file!");
+			int tpm_idx = hpa_file_header.indexOf("TPM");
+			if (tpm_idx < 0) THROW(FileParseException, "Column 'TPM' missing in HPA file!");
+
+			while(!hpa_file->atEnd())
+			{
+				QByteArrayList line = hpa_file->readLine().split('\t');
+				QByteArray ensg = line.at(ensg_idx).trimmed();
+				QByteArray tissue = line.at(tissue_idx).trimmed();
+
+				double tpm = Helper::toDouble(line.at(tpm_idx), "TPM (hpa_file)", ensg);
+
+				if(tissue == sample_hpa_tissue)
+				{
+					hpa_data.insert(ensg, tpm);
+				}
+			}
+
+			if(hpa_data.size() == 0) THROW(ArgumentException, "No HPA gene expression found for HPA reference tissue '" + sample_hpa_tissue + "'! Please check if it is a valid HPA tissue.");
+
+			hpa_annotation = true;
+		}
+
 		//parse input file
 		TSVFileStream input_file(in);
 		QByteArrayList output_buffer;
@@ -121,9 +171,12 @@ public:
 		QByteArrayList header = input_file.header();
 		QByteArrayList db_header;
 		db_header << "cohort_mean" << "log2fc" << "zscore" << "pval";
+		QByteArrayList hpa_header;
+		if(hpa_annotation) hpa_header << "hpa_tissue_tpm" << "hpa_tissue_log2tpm" << "hpa_sample_log2tpm" << "hpa_log2fc";
+		QByteArrayList additional_headers = db_header + hpa_header;
 		QByteArrayList additional_columns;
 		QMap<QByteArray, int> column_indices;
-		foreach (const QByteArray column_name, db_header)
+		foreach (const QByteArray column_name, additional_headers)
 		{
 			int index = header.indexOf(column_name);
 			if (index < 0)
@@ -150,6 +203,9 @@ public:
 			i_exon = input_file.colIndex("exon", true);
 		}
 
+		int i_tpm = -1;
+		if(hpa_annotation) i_tpm = input_file.colIndex("tpm", true);
+
 		//buffer for correaltion
 		QVector<double> expression_values;
 		QVector<double> mean_values;
@@ -160,6 +216,10 @@ public:
 		{
 			//get line
 			QByteArrayList tsv_line = input_file.readLine();
+			//skip empty lines
+			if (tsv_line.size() == 0) continue;
+
+			//add empty additional columns
 			tsv_line += additional_columns;
 
 			//annotate
@@ -202,6 +262,29 @@ public:
 				{
 					expression_values << expr_value;
 					mean_values << cohort_mean;
+				}
+
+			}
+
+			if(hpa_annotation)
+			{
+				QByteArray ensg = tsv_line.at(i_gene_id).trimmed();
+
+				double sample_tpm = Helper::toDouble(tsv_line.at(i_tpm), "TPM", ensg);
+
+				double sample_log2tpm = std::log2(sample_tpm + 1);
+				tsv_line[column_indices["hpa_sample_log2tpm"]] = QByteArray::number(sample_log2tpm);
+
+				if(hpa_data.contains(ensg))
+				{
+					double tissue_tpm = hpa_data.value(ensg);
+					tsv_line[column_indices["hpa_tissue_tpm"]] = QByteArray::number(tissue_tpm);
+
+					double tissue_log2tpm = std::log2(tissue_tpm + 1);
+					tsv_line[column_indices["hpa_tissue_log2tpm"]] = QByteArray::number(tissue_log2tpm);
+
+					double log2fc = sample_log2tpm - tissue_log2tpm;
+					tsv_line[column_indices["hpa_log2fc"]] = QByteArray::number(log2fc);
 				}
 
 			}

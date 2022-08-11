@@ -75,7 +75,8 @@ INSERT INTO `sample_disease_info` (`id`, `sample_id`, `disease_info`, `type`, `u
 (7, 15, 'ICD10 test code 001', 'ICD10 code', 99),
 (8, 16, 'HPO:6543210', 'HPO term id', 99),
 (9, 17, 'ICD10 test code 001', 'ICD10 code', 99),
-(10, 18, 'ICD10 test code 002', 'ICD10 code', 99);
+(10, 18, 'ICD10 test code 002', 'ICD10 code', 99),
+(11, 1, 'bone marrow', 'RNA reference tissue', 99);
 
 
 INSERT INTO `gene` (`id`, `hgnc_id`, `symbol`, `name`, `type`, `ensembl_id`) VALUES
