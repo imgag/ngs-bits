@@ -101,6 +101,30 @@ private slots:
 		COMPARE_FILES("out/NGSDAnnotateRNA_expr_out4.tsv", TESTDATA("data_out/NGSDAnnotateRNA_expr_exon_out4.tsv"))
 	}
 
+	void somatic_hpa()
+	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAnnotateRNA_NGSD_init.sql"));
+
+		//import test data
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDAnnotateRNA_expr_in1.tsv"), "RX001_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDAnnotateRNA_expr_in2.tsv"), "RX002_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDAnnotateRNA_expr_in3.tsv"), "RX003_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDAnnotateRNA_expr_in4.tsv"), "RX004_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDAnnotateRNA_expr_in5.tsv"), "RX005_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDAnnotateRNA_expr_in6.tsv"), "RX006_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDAnnotateRNA_expr_in7.tsv"), "RX007_01", false, false);
+		db.importGeneExpressionData(TESTDATA("data_in/NGSDAnnotateRNA_expr_in8.tsv"), "RX008_01", false, false);
+
+		EXECUTE("NGSDAnnotateRNA", "-test -cohort_strategy RNA_COHORT_SOMATIC -ps RX001_01 -in " + TESTDATA("data_in/NGSDAnnotateRNA_expr_in1.tsv")
+				+ " -hpa_file " + TESTDATA("data_in/NGSDAnnotateRNA_in_hpa.tsv") + " -out out/NGSDAnnotateRNA_expr_out5.tsv");
+		COMPARE_FILES("out/NGSDAnnotateRNA_expr_out5.tsv", TESTDATA("data_out/NGSDAnnotateRNA_expr_out5.tsv"))
+	}
+
 
 };
 
