@@ -84,18 +84,21 @@ public:
 		//remove this sample from cohort
 		cohort.remove(ps_id.toInt());
 
-		if (mode == "genes")
+		if (cohort.size() > 0)
 		{
-			expression_stats = db.calculateGeneExpressionStatistics(cohort);
-			ensg_gene_mapping = db.getEnsemblGeneMapping();
-		}
-		else if(mode == "exons")
-		{
-			expression_stats = db.calculateExonExpressionStatistics(cohort);
-		}
-		else
-		{
-			THROW(ArgumentException, "Invalid mode '" + mode + "given!")
+			if (mode == "genes")
+			{
+				expression_stats = db.calculateGeneExpressionStatistics(cohort);
+				ensg_gene_mapping = db.getEnsemblGeneMapping();
+			}
+			else if(mode == "exons")
+			{
+				expression_stats = db.calculateExonExpressionStatistics(cohort);
+			}
+			else
+			{
+				THROW(ArgumentException, "Invalid mode '" + mode + "given!")
+			}
 		}
 
 		//parse input file
@@ -107,9 +110,9 @@ public:
 		output_buffer.append("##cohort_strategy:" + cohort_strategy_str.toUtf8());
 		output_buffer.append("##cohort_size:" + QByteArray::number(cohort.size()));
 		int corr_line_number = -1;
-		if(!corr.isEmpty())
+		if(!corr.isEmpty() && cohort.size() > 0)
 		{
-			output_buffer.append("##correlation:" + QByteArray::number(cohort.size()));
+			output_buffer.append("##correlation: placeholder");
 			corr_line_number = output_buffer.size() - 1;
 		}
 
@@ -209,7 +212,7 @@ public:
 
 
 		//calculate correlation
-		if(!corr.isEmpty())
+		if(!corr.isEmpty() && cohort.size() > 0)
 		{
 			QVector<double> rank_sample = calculateRanks(expression_values);
 			QVector<double> rank_means = calculateRanks(mean_values);
