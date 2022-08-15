@@ -77,13 +77,13 @@ public slots:
 	/// Checks (only in clinet-server mode) if the server is currently running
 	void checkServerAvailability();
 	///Loads a variant list. Unloads the variant list if no file name is given
-	void loadFile(QString filename="");
+	void loadFile(QString filename="", bool show_only_error_issues=false);
 	///Checks if variant list is outdated
 	void checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues);
 	///Checks if processed samples have bad quality or other problems
 	void checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>>& issues);
 	///Shows a dialog with issues in analysis. Returns the DialogCode.
-	int showAnalysisIssues(QList<QPair<Log::LogLevel, QString> >& issues);
+	int showAnalysisIssues(QList<QPair<Log::LogLevel, QString> >& issues, bool show_only_error_issues);
 	///Open dialog
 	void on_actionOpen_triggered();
 	///Open dialog by name (using NGSD)

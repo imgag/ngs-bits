@@ -754,35 +754,34 @@ void SomaticReportHelper::saveReportData(QString filename, QString path, QString
 double SomaticReportHelper::getCnvMaxTumorClonality(const CnvList &cnvs)
 {
 	int i_cnv_tum_clonality = cnvs.annotationIndexByName("tumor_clonality", false);
-	if(i_cnv_tum_clonality == -1 || cnvs.isEmpty()) return std::numeric_limits<double>::quiet_NaN();
+	if(i_cnv_tum_clonality == -1) return std::numeric_limits<double>::quiet_NaN();
 
 	double tum_maximum_clonality = -1;
-	for(int j=0;j<cnvs.count();++j)
+	for(int j=0; j<cnvs.count(); ++j)
 	{
-		if(cnvs[j].annotations().at(i_cnv_tum_clonality).toDouble() > tum_maximum_clonality)
+		bool ok = false;
+		double tmp = cnvs[j].annotations().at(i_cnv_tum_clonality).toDouble(&ok);
+		if(ok && tmp > tum_maximum_clonality)
 		{
-			tum_maximum_clonality = cnvs[j].annotations().at(i_cnv_tum_clonality).toDouble();
+			tum_maximum_clonality = tmp;
 		}
 	}
+	if (tum_maximum_clonality==-1) return std::numeric_limits<double>::quiet_NaN();
 
 	return tum_maximum_clonality;
 }
 
 double SomaticReportHelper::getTumorContentBySNVs()
 {
-	double tumor_molecular_proportion;
 	try
 	{
-		 tumor_molecular_proportion = tumor_qcml_data_.value("QC:2000054",true).toString().toDouble();
+		double tumor_molecular_proportion = Helper::toDouble(tumor_qcml_data_.value("QC:2000054",true).toString(), "QC:2000054");
+		return BasicStatistics::bound(tumor_molecular_proportion, 0.0, 1.0);
 	}
 	catch(...)
 	{
-		tumor_molecular_proportion = std::numeric_limits<double>::quiet_NaN();
+		return std::numeric_limits<double>::quiet_NaN();
 	}
-
-	if(tumor_molecular_proportion > 100.)	tumor_molecular_proportion = 100.;
-
-	return tumor_molecular_proportion;
 }
 
 RtfSourceCode SomaticReportHelper::partMetaData()
@@ -1371,8 +1370,8 @@ void SomaticReportHelper::storeXML(QString file_name)
 	VariantList som_var_in_normal = SomaticReportSettings::filterGermlineVariants(germline_vl_, settings_);
 	SomaticXmlReportGeneratorData data(build_, settings_, somatic_vl_, som_var_in_normal, cnvs_);
 
-	data.tumor_content_histology = histol_tumor_fraction_ / 100.; //is stored as double between 0 and 1, NGSD contains percentages
-	data.tumor_content_snvs = getTumorContentBySNVs() / 100; //is stored as a double between 0 and 1, QCML file contains percentages
+	data.tumor_content_histology = histol_tumor_fraction_ / 100.0; //is stored as double between 0 and 1, NGSD contains percentages
+	data.tumor_content_snvs = getTumorContentBySNVs() / 100.0; //is stored as a double between 0 and 1, QCML file contains percentages
 	data.tumor_content_clonality = getCnvMaxTumorClonality(cnvs_) ;
 	data.tumor_mutation_burden = mutation_burden_;
 	data.mantis_msi = mantis_msi_swd_value_;
