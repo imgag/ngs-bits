@@ -218,6 +218,8 @@ public slots:
 	void on_actionExpressionData_triggered();
 	///Open exon expression data widget
 	void on_actionExonExpressionData_triggered();
+	///Open RNA splicing widget
+	void on_actionShowSplicing_triggered();
 	///Open RNA fusion widget
 	void on_actionShowRnaFusions_triggered();
 	///Open expression stats of processing systems

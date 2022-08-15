@@ -317,10 +317,10 @@
                 <bool>false</bool>
                </property>
                <attribute name="horizontalHeaderVisible">
-                <bool>true</bool>
+                <bool>false</bool>
                </attribute>
                <attribute name="verticalHeaderVisible">
-                <bool>true</bool>
+                <bool>false</bool>
                </attribute>
               </widget>
              </item>
@@ -1273,7 +1273,10 @@
      <normaloff>:/Icons/RNA.png</normaloff>:/Icons/RNA.png</iconset>
    </property>
    <property name="text">
-    <string>Show Expression Data</string>
+    <string>Show Expression Data (Genes)</string>
+   </property>
+   <property name="toolTip">
+    <string>Show Expression Data of genes</string>
    </property>
   </action>
   <action name="actionGaps">
@@ -1434,6 +1437,14 @@
    </property>
    <property name="toolTip">
     <string>Show Expression Data of Exons</string>
+   </property>
+  </action>
+  <action name="actionShowSplicing">
+   <property name="text">
+    <string>Show splicing</string>
+   </property>
+   <property name="toolTip">
+    <string>Show splicing prediction of RNA sample</string>
    </property>
   </action>
  </widget>

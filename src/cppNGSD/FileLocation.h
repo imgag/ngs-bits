@@ -47,6 +47,7 @@ enum class PathType
 	EXPRESSION_CORR, //statistical correlation to other samples of the cohort
 	EXPRESSION_EXON, //relative exon RNA expressions values from RNA (TSV format)
 	SPLICING_BED, //splicing junctions from RNA (BED format)
+	SPLICING_ANN, //annotated splicing junctions from RNA (TSV format)
 	VIRAL, //viral DNA detected in tumor samples (TSV format)
 	VCF_CF_DNA, //cfDNA variants file (VCF format)
 	MRD_CF_DNA, // measurable residual disease file of a cfDNA analysis (UmiVar2)
@@ -163,6 +164,8 @@ struct FileLocation
 				return "FUSIONS_BAM";
 			case PathType::SPLICING_BED:
 				return "SPLICING_BED";
+			case PathType::SPLICING_ANN:
+				return "SPLICING_ANN";
 			case PathType::MANTA_FUSIONS:
 				return "MANTA_FUSIONS";
 			case PathType::COUNTS:
@@ -220,6 +223,7 @@ struct FileLocation
 		if (in_upper == "FUSIONS") return PathType::FUSIONS;
 		if (in_upper == "FUSIONS_BAM") return PathType::FUSIONS_BAM;
 		if (in_upper == "SPLICING_BED") return PathType::SPLICING_BED;
+		if (in_upper == "SPLICING_ANN") return PathType::SPLICING_ANN;
 		if (in_upper == "MANTA_FUSIONS") return PathType::MANTA_FUSIONS;
 		if (in_upper == "FUSIONS_PIC_DIR") return PathType::FUSIONS_PIC_DIR;
 		if (in_upper == "COUNTS") return PathType::COUNTS;
@@ -290,6 +294,8 @@ struct FileLocation
 				return "gene fusions evidence alignments";
 			case PathType::SPLICING_BED:
 				return "splicing junctions";
+			case PathType::SPLICING_ANN:
+				return "annotated splicing junctions";
 			case PathType::MANTA_FUSIONS:
 				return "gene fusions called by Manta";
 			case PathType::COUNTS:

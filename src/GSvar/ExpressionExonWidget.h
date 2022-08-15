@@ -13,13 +13,6 @@ namespace Ui {
 class ExpressionExonWidget;
 }
 
-struct DBExpressionValues
-{
-	double cohort_mean;
-	double log2fc;
-	double zscore;
-	double pvalue;
-};
 
 class ExpressionExonWidget : public QWidget
 {
@@ -67,6 +60,7 @@ private slots:
 	void selectAllBiotypes(bool deselect=false);
 	void showHistogram(int row_idx);
 	void showExpressionTableContextMenu(QPoint pos);
+	void OpenInIGV(QTableWidgetItem* item);
 
 
 

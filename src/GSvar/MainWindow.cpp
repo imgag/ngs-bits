@@ -135,6 +135,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "GeneSelectionDialog.h"
 #include "ExpressionOverviewWidget.h"
 #include "ExpressionExonWidget.h"
+#include "SplicingWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -168,6 +169,7 @@ MainWindow::MainWindow(QWidget *parent)
 	rna_menu_btn_->setMenu(new QMenu());
 	rna_menu_btn_->menu()->addAction(ui_.actionExpressionData);
 	rna_menu_btn_->menu()->addAction(ui_.actionExonExpressionData);
+	rna_menu_btn_->menu()->addAction(ui_.actionShowSplicing);
 	rna_menu_btn_->menu()->addAction(ui_.actionShowRnaFusions);
 	rna_menu_btn_->menu()->addAction(ui_.actionShowProcessingSystemCoverage);
 	rna_menu_btn_->setPopupMode(QToolButton::InstantPopup);
@@ -327,6 +329,7 @@ void MainWindow::checkServerAvailability()
 
 void MainWindow::on_actionDebug_triggered()
 {
+	qDebug() << "Debug";
 	QString user = Helper::userName();
 	if (user=="ahsturm1")
 	{
@@ -911,13 +914,15 @@ void MainWindow::on_actionDebug_triggered()
 
 		qDebug() << Helper::elapsedTime(timer, true);
 	}
-	else if (user=="ahschul1")
-	{
-	}
 	else if (user=="ahgscha1")
 	{
 		qDebug() << GlobalServiceProvider::fileLocationProvider().getExpressionFiles(true).asStringList();
 	}
+	else if (user=="ahschul1")
+	{
+
+	}
+
 }
 
 void MainWindow::on_actionConvertVcfToGSvar_triggered()
@@ -1613,6 +1618,51 @@ void MainWindow::on_actionExonExpressionData_triggered()
 	ExpressionExonWidget* widget = new ExpressionExonWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, project, rna_ps_id, cohort_type, this);
 	auto dlg = GUIHelper::createDialog(widget, "Expression Data of " + db.processedSampleName(rna_ps_id));
 	addModelessDialog(dlg, false);
+}
+
+void MainWindow::on_actionShowSplicing_triggered()
+{
+	if (filename_=="") return;
+	if (!LoginManager::active()) return;
+
+	NGSD db;
+
+	//get all available files
+	QStringList splicing_files;
+	foreach (int rna_sample_id, db.relatedSamples(db.sampleId(variants_.mainSampleName()).toInt(), "same sample", "RNA"))
+	{
+		// check for required files
+		foreach (const QString& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", QString::number(rna_sample_id)))
+		{
+			// search for fusion file
+			FileLocation splicing_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::SPLICING_ANN);
+			if (splicing_file.exists) splicing_files << splicing_file.filename;
+		}
+	}
+
+	if (splicing_files.isEmpty())
+	{
+		QMessageBox::warning(this, "Splicing files missing", "Error: No RNA splicing files of corresponding RNA samples found!");
+		return;
+	}
+
+	//select file to open
+	QString splicing_filepath;
+	if (splicing_files.size()==1)
+	{
+		splicing_filepath = splicing_files.at(0);
+	}
+	else
+	{
+		bool ok;
+		splicing_filepath = QInputDialog::getItem(this, "Multiple files found", "Multiple RNA splicing files found.\nPlease select a file:", splicing_files, 0, false, &ok);
+		if (!ok) return;
+	}
+
+	SplicingWidget* splicing_widget = new SplicingWidget(splicing_filepath, this);
+
+	auto dlg = GUIHelper::createDialog(splicing_widget, "Splicing of " + variants_.analysisName());
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionShowRnaFusions_triggered()
@@ -3243,6 +3293,7 @@ void MainWindow::loadFile(QString filename)
 //	rna_menu_btn_->setEnabled(false);
 	ui_.actionExpressionData->setEnabled(false);
 	ui_.actionExonExpressionData->setEnabled(false);
+	ui_.actionShowSplicing->setEnabled(false);
 	ui_.actionShowRnaFusions->setEnabled(false);
 	if (LoginManager::active())
 	{
@@ -3266,6 +3317,11 @@ void MainWindow::loadFile(QString filename)
 					// search for gene count file
 					rna_count_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_EXON);
 					if (rna_count_file.exists) ui_.actionExonExpressionData->setEnabled(true);
+
+					// search for splicing predictions tsv
+					FileLocation splicing_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::SPLICING_ANN);
+					if (splicing_file.exists) ui_.actionShowSplicing->setEnabled(true);
+
 
 					// search for arriba fusion file
 					FileLocation arriba_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS);
