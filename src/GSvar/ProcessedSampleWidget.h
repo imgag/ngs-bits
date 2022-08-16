@@ -52,7 +52,9 @@ protected slots:
 	void openProcessingSystemTab(QString system_short_name);
 
 	//RNA menu
-	void openExpressionWidget();
+	void openGeneExpressionWidget();
+	void openExonExpressionWidget();
+	void openSplicingWidget();
 	void openFusionWidget();
 
 	///Opens the processed sample edit dialog

@@ -19,6 +19,8 @@
 #include "FusionWidget.h"
 #include "GenLabImportDialog.h"
 #include "GenLabDB.h"
+#include "ExpressionExonWidget.h"
+#include "SplicingWidget.h"
 
 ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	: QWidget(parent)
@@ -111,8 +113,12 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	{
 		QMenu* rna_menu = new QMenu();
 
-		QAction* expr_action = rna_menu->addAction("open RNA expression data widget", this, SLOT(openExpressionWidget()));
+		QAction* expr_action = rna_menu->addAction("open RNA expression data widget", this, SLOT(openGeneExpressionWidget()));
 		expr_action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::EXPRESSION).exists);
+		QAction* exon_expr_action = rna_menu->addAction("open RNA exon expression data widget", this, SLOT(openExonExpressionWidget()));
+		exon_expr_action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::EXPRESSION_EXON).exists);
+		QAction* splicing_action = rna_menu->addAction("open RNA splicing data widget", this, SLOT(openSplicingWidget()));
+		splicing_action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SPLICING_ANN).exists);
 		QAction* fusion_action = rna_menu->addAction("open RNA fusion widget", this, SLOT(openFusionWidget()));
 		fusion_action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::FUSIONS).exists);
 
@@ -650,7 +656,7 @@ void ProcessedSampleWidget::openProcessingSystemTab(QString system_short_name)
 	GlobalServiceProvider::openProcessingSystemTab(system_short_name);
 }
 
-void ProcessedSampleWidget::openExpressionWidget()
+void ProcessedSampleWidget::openGeneExpressionWidget()
 {
 	FileLocation file_location = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::EXPRESSION);
 	if (file_location.exists)
@@ -667,6 +673,39 @@ void ProcessedSampleWidget::openExpressionWidget()
 		QMessageBox::warning(this, "Expression data file not found!", "Couldn't find expression data file at '" + file_location.filename + "'!");
 	}
 
+}
+
+void ProcessedSampleWidget::openExonExpressionWidget()
+{
+	FileLocation file_location = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::EXPRESSION_EXON);
+	if (file_location.exists)
+	{
+		NGSD db;
+		int sys_id = db.processingSystemIdFromProcessedSample(processedSampleName());
+		QString tissue = db.getSampleData(db.sampleId(sampleName())).tissue;
+		ExpressionExonWidget* widget = new ExpressionExonWidget(file_location.filename, sys_id, tissue, "", GeneSet(), db.getProcessedSampleData(ps_id_).project_name, ps_id_, RNA_COHORT_GERMLINE, this);
+		auto dlg = GUIHelper::createDialog(widget, "Exon expression data of " + db.processedSampleName(ps_id_));
+		dlg->exec();
+	}
+	else
+	{
+		QMessageBox::warning(this, "Exon expression data file not found!", "Couldn't find expression data file at '" + file_location.filename + "'!");
+	}
+}
+
+void ProcessedSampleWidget::openSplicingWidget()
+{
+	FileLocation file_location = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SPLICING_ANN);
+	if (file_location.exists)
+	{
+		SplicingWidget* widget = new SplicingWidget(file_location.filename, this);
+		auto dlg = GUIHelper::createDialog(widget, "Splicing of " + processedSampleName());
+		dlg->exec();
+	}
+	else
+	{
+		QMessageBox::warning(this, "Splicing data file not found!", "Couldn't find splicing data file at '" + file_location.filename + "'!");
+	}
 }
 
 void ProcessedSampleWidget::openFusionWidget()

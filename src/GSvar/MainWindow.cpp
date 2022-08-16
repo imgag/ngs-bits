@@ -135,6 +135,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "GeneSelectionDialog.h"
 #include "ExpressionOverviewWidget.h"
 #include "ExpressionExonWidget.h"
+#include "SplicingWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -168,6 +169,7 @@ MainWindow::MainWindow(QWidget *parent)
 	rna_menu_btn_->setMenu(new QMenu());
 	rna_menu_btn_->menu()->addAction(ui_.actionExpressionData);
 	rna_menu_btn_->menu()->addAction(ui_.actionExonExpressionData);
+	rna_menu_btn_->menu()->addAction(ui_.actionShowSplicing);
 	rna_menu_btn_->menu()->addAction(ui_.actionShowRnaFusions);
 	rna_menu_btn_->menu()->addAction(ui_.actionShowProcessingSystemCoverage);
 	rna_menu_btn_->setPopupMode(QToolButton::InstantPopup);
@@ -327,11 +329,330 @@ void MainWindow::checkServerAvailability()
 
 void MainWindow::on_actionDebug_triggered()
 {
+	qDebug() << "Debug";
 	QString user = Helper::userName();
 	if (user=="ahsturm1")
 	{
 		QTime timer;
 		timer.start();
+
+		//generate somatic XML files
+		/*
+		NGSD db;
+		QStringList pairs;
+		pairs << "DNA2203823A1_01	DNA2202978A1_01";
+		pairs << "DNA2203982A1_01	DNA2203524A1_01";
+		pairs << "DNA2204093A1_01	DNA2203836A1_01";
+		pairs << "DNA2204094A1_01	DNA2203394A1_01";
+		pairs << "DNA2204213A1_01	DNA2201841A1_01";
+		pairs << "DNA2204369A1_01	DNA2203535A1_01";
+		pairs << "DNA2204449A1_01	DX209059_01";
+		pairs << "DNA2205111A1_01	DNA2204339A1_01";
+		pairs << "DNA2205158A1_01	DNA2204469A1_01";
+		pairs << "DNA2205237A1_01	DNA2205053A1_01";
+		pairs << "DNA2205619A1_01	DNA2205084A1_01";
+		pairs << "DNA2205821A1_01	DX2201350_01";
+		pairs << "DNA2206019A1_01	DNA2200932A1_01";
+		pairs << "DX182887_01	DX182760_01";
+		pairs << "DX184303_01	DX183974_01";
+		pairs << "DX197149_01	DX196952_01";
+		pairs << "DX197418_01	DX196579_01";
+		pairs << "DX198299_01	DX198266_01";
+		pairs << "DX200335_01	DX200022_01";
+		pairs << "DX200777_01	DX200527_01";
+		pairs << "DX200782_01	DX200626_01";
+		pairs << "DX200964_01	DX200397_01";
+		pairs << "DX200965_01	DX200734_01";
+		pairs << "DX201176_01	DX201030_01";
+		pairs << "DX201177_01	DX200546_01";
+		pairs << "DX201193_01	DX200983_01";
+		pairs << "DX201811_01	DX201049_01";
+		pairs << "DX201812_01	DX201120_01";
+		pairs << "DX201825_01	DX201263_01";
+		pairs << "DX201908_01	DX200695_01";
+		pairs << "DX201912_01	DX200250_01";
+		pairs << "DX202152_01	DX201827_01";
+		pairs << "DX202298_01	DX197580_02";
+		pairs << "DX202317_01	DX201387_01";
+		pairs << "DX202408_01	DX201504_01";
+		pairs << "DX202413_01	DX202185_01";
+		pairs << "DX202489_01	DX202280_01";
+		pairs << "DX202586_01	DX202168_01";
+		pairs << "DX202726_01	DX200134_01";
+		pairs << "DX202730_01	DX202425_01";
+		pairs << "DX202865_01	DX201390_01";
+		pairs << "DX202866_01	DX202571_01";
+		pairs << "DX203002_01	DX202623_01";
+		pairs << "DX203003_01	DX202898_01";
+		pairs << "DX203004_01	DX202852_01";
+		pairs << "DX203005_01	DX202553_01";
+		pairs << "DX203006_01	DX202930_01";
+		pairs << "DX203007_01	DX202511_01";
+		pairs << "DX203059_01	DX202446_01";
+		pairs << "DX203409_01	DX202971_01";
+		pairs << "DX203513_01	DX203137_01";
+		pairs << "DX203514_01	DX203058_01";
+		pairs << "DX203687_01	DX203169_01";
+		pairs << "DX203688_01	DX203366_01";
+		pairs << "DX203831_01	DX197447_01";
+		pairs << "DX203983_01	DX202962_01";
+		pairs << "DX204188_01	DX203752_01";
+		pairs << "DX204200_01	DX203949_01";
+		pairs << "DX204201_01	DX203771_01";
+		pairs << "DX204203_01	DX203909_01";
+		pairs << "DX204204_01	DX203779_01";
+		pairs << "DX204355_01	DX203144_01";
+		pairs << "DX204408_01	DX203343_01";
+		pairs << "DX204629_01	DX203099_01";
+		pairs << "DX204872_01	DX204765_01";
+		pairs << "DX205066_01	DX204390_01";
+		pairs << "DX205279_01	DX205116_01";
+		pairs << "DX205540_01	DX205102_01";
+		pairs << "DX205544_01	DX205018_01";
+		pairs << "DX206230_01	DX206002_01";
+		pairs << "DX206614_01	DX205500_01";
+		pairs << "DX207311_01	DX207344_01";
+		pairs << "DX207511_02	DX207172_01";
+		pairs << "DX207684_01	DX207932_01";
+		pairs << "DX207865_01	DX201580_01";
+		pairs << "DX207866_01	DX206088_01";
+		pairs << "DX207869_01	DX206870_01";
+		pairs << "DX207872_01	DX207668_01";
+		pairs << "DX207874_01	DX207629_01";
+		pairs << "DX207878_01	DX207750_01";
+		pairs << "DX207881_01	DX207156_01";
+		pairs << "DX207978_01	DX207799_01";
+		pairs << "DX208089_01	DX207445_01";
+		pairs << "DX208099_01	DX191921_02";
+		pairs << "DX208100_01	DX207935_01";
+		pairs << "DX208311_02	DX203560_04";
+		pairs << "DX208318_01	DX207947_01";
+		pairs << "DX208515_01	DX208176_01";
+		pairs << "DX208558_01	DX185058_04";
+		pairs << "DX208564_01	DX208267_01";
+		pairs << "DX208793_01	DX208573_01";
+		pairs << "DX209032_01	DX208185_01";
+		pairs << "DX209091_01	DX209614_01";
+		pairs << "DX209532_01	DX209276_01";
+		pairs << "DX209553_01	DX209550_01";
+		pairs << "DX209594_01	DX204207_02";
+		pairs << "DX209683_01	DX209507_01";
+		pairs << "DX209686_01	DX209318_02";
+		pairs << "DX209704_01	DX208777_01";
+		pairs << "DX2100159_01	DX209539_01";
+		pairs << "DX2100216_01	DX204647_01";
+		pairs << "DX2100226_01	DX207637_01";
+		pairs << "DX2100901_01	DX207827_01";
+		pairs << "DX2100903_01	DX2100832_01";
+		pairs << "DX2101100_02	DX2100613_01";
+		pairs << "DX2101107_01	DX2100615_01";
+		pairs << "DX2101581_01	DX2101212_01";
+		pairs << "DX2101587_01	DX2101077_01";
+		pairs << "DX2101588_01	DX2101068_01";
+		pairs << "DX2101591_01	DX2101266_01";
+		pairs << "DX2101592_01	DX2100874_01";
+		pairs << "DX2101593_01	DX2100203_01";
+		pairs << "DX2101676_01	DX207893_01";
+		pairs << "DX2101822_01	DX2101570_01";
+		pairs << "DX2101937_01	DX2101038_01";
+		pairs << "DX2101939_01	DX2101394_01";
+		pairs << "DX2102007_01	DX203751_01";
+		pairs << "DX2102015_01	DX2101639_01";
+		pairs << "DX2102017_01	DX2101635_01";
+		pairs << "DX2102019_01	DX2102018_01";
+		pairs << "DX2102202_01	DX2101618_01";
+		pairs << "DX2102204_01	DX2101725_01";
+		pairs << "DX2102205_01	DX2101861_01";
+		pairs << "DX2102206_01	DX2101863_01";
+		pairs << "DX2102207_01	DX2101163_01";
+		pairs << "DX2102234_01	DX2101980_01";
+		pairs << "DX2102239_01	DX2101961_01";
+		pairs << "DX2102269_01	DX2102071_01";
+		pairs << "DX2102271_01	DX2102033_01";
+		pairs << "DX2102285_02	DX206189_01";
+		pairs << "DX2102538_01	DX2102093_01";
+		pairs << "DX2102540_01	DX171593_02";
+		pairs << "DX2102717_01	DX2101773_01";
+		pairs << "DX2102773_01	DX2101912_01";
+		pairs << "DX2102927_01	DX2102577_01";
+		pairs << "DX2102931_01	DX197740_01";
+		pairs << "DX2102932_01	DX2102764_01";
+		pairs << "DX2103114_01	DX2102549_01";
+		pairs << "DX2103116_01	DX203261_01";
+		pairs << "DX2103124_01	DX2102476_01";
+		pairs << "DX2103596_01	DX197744_01";
+		pairs << "DX2103597_01	DX2103204_01";
+		pairs << "DX2103832_01	DX2103583_01";
+		pairs << "DX2103839_01	DX2103182_01";
+		pairs << "DX2104092_01	DX2101288_01";
+		pairs << "DX2104094_01	DX2103825_01";
+		pairs << "DX2104255_01	DX2104071_01";
+		pairs << "DX2104264_01	DX2104021_01";
+		pairs << "DX2104377_01	DX2103983_01";
+		pairs << "DX2104576_01	DX2104293_01";
+		pairs << "DX2104584_01	DX209435_01";
+		pairs << "DX2104713_02	DX2104547_02";
+		pairs << "DX2105480_01	DX2104767_01";
+		pairs << "DX2105683_01	DX2105143_01";
+		pairs << "DX2105892_01	DX2105619_01";
+		pairs << "DX2105957_01	DX196420_01";
+		pairs << "DX2106092_01	DX205932_01";
+		pairs << "DX2106099_01	DX2104727_01";
+		pairs << "DX2106225_01	DX2103354_01";
+		pairs << "DX2106233_01	DX2103997_01";
+		pairs << "DX2106293_01	DX207760_01";
+		pairs << "DX2106294_01	DX2104387_01";
+		pairs << "DX2106714_01	DX2106382_02";
+		pairs << "DX2107252_01	DX202464_01";
+		pairs << "DX2107253_01	DX2103543_01";
+		pairs << "DX2107254_01	DX2106604_01";
+		pairs << "DX2107419_01	DX2106889_01";
+		pairs << "DX2107573_01	DX2106717_01";
+		pairs << "DX2107628_01	DX2105074_03";
+		pairs << "DX2107852_01	DX2107603_01";
+		pairs << "DX2107976_01	DX2107709_01";
+		pairs << "DX2108059_01	DX2107846_01";
+		pairs << "DX2108061_01	DX2106566_01";
+		pairs << "DX2108565_01	DX2108105_01";
+		pairs << "DX2108845_01	DX171568_04";
+		pairs << "DX2109058_01	DX2108681_01";
+		pairs << "DX2109369_01	DX2109111_01";
+		pairs << "DX2109399_01	DX2107704_01";
+		pairs << "DX2109581_01	DX2108860_01";
+		pairs << "DX2109675_01	DX2109404_01";
+		pairs << "DX2109676_01	DX2109368_01";
+		pairs << "DX2109902_01	DX2109273_01";
+		pairs << "DX2109911_01	DX2109281_01";
+		pairs << "DX2110063_01	DX2109658_01";
+		pairs << "DX2110372_02	DX2110200_02";
+		pairs << "DX2110467_01	DX2110292_01";
+		pairs << "DX2110468_02	DX2109964_02";
+		pairs << "DX2110469_01	DX2109763_01";
+		pairs << "DX2110605_02	DX2109448_02";
+		pairs << "DX2110726_01	DX2110027_01";
+		pairs << "DX2110730_02	DX2110416_02";
+		pairs << "DX2110742_01	DX2110023_01";
+		pairs << "DX2111008_01	DX2110596_01";
+		pairs << "DX2111009_01	DX2110636_01";
+		pairs << "DX2200101_01	DX2109411_01";
+		pairs << "DX2200244_01	DX2110885_01";
+		pairs << "DX2200746_01	DX2200430_01";
+		pairs << "DX2201533_01	DX2200069_01";
+		pairs << "DX2201534_01	DX2200992_01";
+		pairs << "DX2201669_01	DX2201209_01";
+		pairs << "DX2202511_01	DX2201344_01";
+		pairs << "DX2202563_01	DX2109593_01";
+		pairs << "DX2202641_01	DX2201350_01";
+		pairs << "DX2202765_01	DX2202211_01";
+		pairs << "DX2203344_01	DX203658_01";
+		pairs << "DX2203486_01	DX2202553_01";
+		pairs << "DX2203490_01	DX2203159_01";
+		pairs << "DX2203584_01	DX2202405_01";
+		pairs << "DXcf208392_01	DX203751_01";
+		foreach(QString pair, pairs)
+		{
+			QStringList parts =  pair.split("\t");
+			QString ps_tumor = parts[0];
+			QString ps_normal = parts[1];
+			QStringList errors;
+			QString xml_file = "C:\\Marc\\somatic_reports\\"+ps_tumor+"-"+ps_normal+".xml";
+
+			try
+			{
+				QString ps_tumor_id = db.processedSampleId(ps_tumor);
+				QString ps_normal_id = db.processedSampleId(ps_normal);
+
+				QStringList somatic_analyses =  GlobalServiceProvider::database().secondaryAnalyses(ps_tumor + "-" + ps_normal, "somatic");
+				if (somatic_analyses.isEmpty())
+				{
+					THROW(Exception, "Could not find secondary analysis in NGSD");
+				}
+
+				QString gsvar = somatic_analyses[0];
+				loadFile(gsvar, true);
+				ui_.filters->setFilter("somatic");
+				ui_.filters->setTargetRegionByDisplayName("Sure Select Somatic Cancer Panel v5");
+				somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
+
+				somatic_report_settings_.filters = ui_.filters->filters();
+				somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
+
+				//get SO-terms
+				OntologyTermCollection obo_terms("://Resources/so-xp_3_0_0.obo", true);
+				QList<QByteArray> ids;
+				ids << obo_terms.childIDs("SO:0001580",true); //coding variants
+				ids << obo_terms.childIDs("SO:0001568",true); //splicing variants
+				foreach(const QByteArray& id, ids)
+				{
+					somatic_report_settings_.obo_terms_coding_splicing.add(obo_terms.getByID(id));
+				}
+
+				//get phenotype infos from NGSD
+				QStringList tmp_icd10;
+				QStringList tmp_phenotype;
+				for( const auto& entry : db.getSampleDiseaseInfo(db.sampleId(ps_tumor)) )
+				{
+					if(entry.type == "ICD10 code") tmp_icd10.append(entry.disease_info);
+					if(entry.type == "clinical phenotype (free text)") tmp_phenotype.append(entry.disease_info);
+				}
+				somatic_report_settings_.icd10 = tmp_icd10.join(", ");
+				somatic_report_settings_.phenotype = tmp_phenotype.join(", ");
+
+				//load IGV screenshot
+				if(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().exists)
+				{
+					QImage picture;
+					picture = QImage(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename);
+					if(!picture.isNull())
+					{
+						if( (uint)picture.width() > 1200 ) picture = picture.scaledToWidth(1200, Qt::TransformationMode::SmoothTransformation);
+						if( (uint)picture.height() > 1200 ) picture = picture.scaledToHeight(1200, Qt::TransformationMode::SmoothTransformation);
+
+						QByteArray png_data = "";
+						QBuffer buffer(&png_data);
+						buffer.open(QIODevice::WriteOnly);
+						if(picture.save(&buffer, "PNG"))
+						{
+							somatic_report_settings_.igv_snapshot_png_hex_image = png_data.toHex();
+							somatic_report_settings_.igv_snapshot_width = picture.width();
+							somatic_report_settings_.igv_snapshot_height = picture.height();
+						}
+					}
+				}
+
+				//load germline variants
+				VariantList variants_germline;
+				variants_germline.load(GlobalServiceProvider::database().processedSamplePath(ps_normal_id, PathType::GSVAR).filename);
+				if(!SomaticReportHelper::checkGermlineSNVFile(variants_germline))
+				{
+					THROW(Exception, "DNA report cannot be created because germline GSVar file is invalid. Please check control tissue variant file.");
+				}
+
+				QStringList messages;
+				somatic_report_settings_.report_config = db.somaticReportConfig(ps_tumor_id, ps_normal_id, variants_, cnvs_, somatic_control_tissue_variants_, messages);
+				if(!messages.isEmpty())
+				{
+					THROW(Exception, "Report config problems: " + messages.join("\n"));
+				}
+
+				//Store XML file with the same somatic report configuration settings
+				SomaticReportHelper report(GSvarHelper::build(), variants_, cnvs_, variants_germline, somatic_report_settings_);
+				report.storeXML(xml_file);
+			}
+			catch(Exception e)
+			{
+				errors << e.message();
+			}
+
+			//log
+			QString log_file = "C:\\Marc\\somatic_reports\\logs\\"+ps_tumor+"-"+ps_normal+".log";
+			if (QFile::exists(log_file)) QFile::remove(log_file);
+			if (errors.count()>0)
+			{
+				Helper::storeTextFile(log_file, errors);
+			}
+		}
+		*/
 
 		//show genes without transcripts
 		/*
@@ -911,13 +1232,15 @@ void MainWindow::on_actionDebug_triggered()
 
 		qDebug() << Helper::elapsedTime(timer, true);
 	}
-	else if (user=="ahschul1")
-	{
-	}
 	else if (user=="ahgscha1")
 	{
 		qDebug() << GlobalServiceProvider::fileLocationProvider().getExpressionFiles(true).asStringList();
 	}
+	else if (user=="ahschul1")
+	{
+
+	}
+
 }
 
 void MainWindow::on_actionConvertVcfToGSvar_triggered()
@@ -1613,6 +1936,51 @@ void MainWindow::on_actionExonExpressionData_triggered()
 	ExpressionExonWidget* widget = new ExpressionExonWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, project, rna_ps_id, cohort_type, this);
 	auto dlg = GUIHelper::createDialog(widget, "Expression Data of " + db.processedSampleName(rna_ps_id));
 	addModelessDialog(dlg, false);
+}
+
+void MainWindow::on_actionShowSplicing_triggered()
+{
+	if (filename_=="") return;
+	if (!LoginManager::active()) return;
+
+	NGSD db;
+
+	//get all available files
+	QStringList splicing_files;
+	foreach (int rna_sample_id, db.relatedSamples(db.sampleId(variants_.mainSampleName()).toInt(), "same sample", "RNA"))
+	{
+		// check for required files
+		foreach (const QString& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", QString::number(rna_sample_id)))
+		{
+			// search for fusion file
+			FileLocation splicing_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::SPLICING_ANN);
+			if (splicing_file.exists) splicing_files << splicing_file.filename;
+		}
+	}
+
+	if (splicing_files.isEmpty())
+	{
+		QMessageBox::warning(this, "Splicing files missing", "Error: No RNA splicing files of corresponding RNA samples found!");
+		return;
+	}
+
+	//select file to open
+	QString splicing_filepath;
+	if (splicing_files.size()==1)
+	{
+		splicing_filepath = splicing_files.at(0);
+	}
+	else
+	{
+		bool ok;
+		splicing_filepath = QInputDialog::getItem(this, "Multiple files found", "Multiple RNA splicing files found.\nPlease select a file:", splicing_files, 0, false, &ok);
+		if (!ok) return;
+	}
+
+	SplicingWidget* splicing_widget = new SplicingWidget(splicing_filepath, this);
+
+	auto dlg = GUIHelper::createDialog(splicing_widget, "Splicing of " + variants_.analysisName());
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionShowRnaFusions_triggered()
@@ -2970,7 +3338,7 @@ void MainWindow::on_actionChangeLog_triggered()
 	QDesktopServices::openUrl(QUrl("https://github.com/imgag/ngs-bits/tree/master/doc/GSvar/changelog.md"));
 }
 
-void MainWindow::loadFile(QString filename)
+void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 {
 	//store variant list in case it changed
 	if (!variants_changed_.isEmpty())
@@ -3133,7 +3501,7 @@ void MainWindow::loadFile(QString filename)
 	checkProcessedSamplesInNGSD(issues);
 
 	//show issues
-	if (showAnalysisIssues(issues)==QDialog::Rejected)
+	if (showAnalysisIssues(issues, show_only_error_issues)==QDialog::Rejected)
 	{
 		loadFile();
 		return;
@@ -3243,6 +3611,7 @@ void MainWindow::loadFile(QString filename)
 //	rna_menu_btn_->setEnabled(false);
 	ui_.actionExpressionData->setEnabled(false);
 	ui_.actionExonExpressionData->setEnabled(false);
+	ui_.actionShowSplicing->setEnabled(false);
 	ui_.actionShowRnaFusions->setEnabled(false);
 	if (LoginManager::active())
 	{
@@ -3266,6 +3635,11 @@ void MainWindow::loadFile(QString filename)
 					// search for gene count file
 					rna_count_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION_EXON);
 					if (rna_count_file.exists) ui_.actionExonExpressionData->setEnabled(true);
+
+					// search for splicing predictions tsv
+					FileLocation splicing_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::SPLICING_ANN);
+					if (splicing_file.exists) ui_.actionShowSplicing->setEnabled(true);
+
 
 					// search for arriba fusion file
 					FileLocation arriba_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS);
@@ -3372,7 +3746,7 @@ void MainWindow::checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues)
 	}
 
 	//check GenLab Labornummer is present (for diagnostic samples only)
-	if (GenLabDB::isAvailable() || NGSD::isAvailable())
+	if (GenLabDB::isAvailable() && NGSD::isAvailable())
 	{
 		NGSD db;
 		foreach(const SampleInfo& info, variants_.getSampleHeader())
@@ -3451,16 +3825,18 @@ void MainWindow::checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>
 	}
 }
 
-int MainWindow::showAnalysisIssues(QList<QPair<Log::LogLevel, QString>>& issues)
+int MainWindow::showAnalysisIssues(QList<QPair<Log::LogLevel, QString>>& issues, bool show_only_error_issues)
 {
 	if (issues.empty()) return QDialog::Accepted;
 
 	//generate text
+	bool has_error = false;
 	QStringList lines;
 	foreach(auto issue, issues)
 	{
 		if (issue.first==Log::LOG_ERROR)
 		{
+			has_error = true;
 			lines << "<font color=red>Error:</font>";
 		}
 		else if (issue.first==Log::LOG_WARNING)
@@ -3474,6 +3850,8 @@ int MainWindow::showAnalysisIssues(QList<QPair<Log::LogLevel, QString>>& issues)
 		lines << issue.second;
 		lines << "";
 	}
+
+	if (show_only_error_issues && !has_error) return QDialog::Accepted;
 
 	//show dialog
 	QLabel* label = new QLabel(lines.join("<br>"));
@@ -4483,14 +4861,14 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 	// load input text as table
 	QList<QStringList> table_content;
 	QStringList lines = edit->toPlainText().split("\n");
-	foreach(QString line, lines)
+	foreach(const QString& line, lines)
 	{
-		// skip comments and empty lines
-		if (line.trimmed().isEmpty() || line[0]=='#') continue;
+		// skip empty lines
+		if (line.trimmed().isEmpty()) continue;
 
-		QStringList parts = line.split("\t");
-		table_content.append(parts);
+		table_content.append(line.split("\t"));
 	}
+
 	NGSD db;
 
 	//special handling of processed sample: add 'process_id' and get the list of all cfDNA processing systems
@@ -5133,6 +5511,15 @@ void MainWindow::on_actionExportTestData_triggered()
 	{
 		GUIHelper::showException(this, e, "NGSD export error");
 	}
+}
+
+void MainWindow::on_actionImportSequencingRuns_triggered()
+{
+	importBatch("Import sequencing runs",
+				"Batch import of sequencing runs. Must contain the following tab-separated fields:<br><b>name</b>, flowcell ID, <b>flowcell type</b>, start date, end date, <b>device</b>, <b>recipe</b>, pool_molarity, <b>pool quantification method</b>, comment",
+				"sequencing_run",
+				QStringList() << "name" << "fcid" << "flowcell_type" << "start_date" << "end_date" << "device_id" << "recipe" << "pool_molarity" << "pool_quantification_method" << "comment"
+				);
 }
 
 void MainWindow::on_actionImportTestData_triggered()

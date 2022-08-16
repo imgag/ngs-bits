@@ -56,13 +56,26 @@ Our benchmarks show the following runtime increase when using the genomAD genome
 
 Thus, for genomes it is favorable to use annotated variants lists if available.
 
+
+## ROHs and consanguinity
+
+Many large ROHs in a child can be a indicator for consanguinity of the parents.  
+
+This plot shows the ROH size sum of ROHs larger than 500kb for **WGS** (Illumina TruSeq DNA PCR-Free):
+![rohs_wes](roh_sum_wes.png) 
+
+This plot shows the ROH size sum of ROHs larger than 500kb for **WES** (Agilent SureSelect Human All Exon V7):
+![rohs_wes](roh_sum_wes.png) 
+
+This plot shows  the ROH size sum of ROHs larger than 500kb for patients with different degrees of consanguinity:
+
+![roh_sum_consanguinity](roh_sum_consanguinity.png) 
+
+It is pretty clear from the plots that a ROH size sum larger than 75Mb is a pretty good indicator for consanguinity of the parents.
+
+
 ## Help and ChangeLog
 
 The RohHunter command-line help and changelog can be found [here](../RohHunter.md).
 
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
-
-
-
-
-

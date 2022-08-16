@@ -5,10 +5,19 @@
 #include <GeneSet.h>
 #include <QTableWidget>
 #include <QWidget>
+#include <TsvFile.h>
 
 namespace Ui {
 class ExpressionGeneWidget;
 }
+
+struct DBExpressionValues
+{
+	double cohort_mean;
+	double log2fc;
+	double zscore;
+	double pvalue;
+};
 
 class ExpressionGeneWidget : public QWidget
 {
@@ -20,7 +29,8 @@ public:
 	~ExpressionGeneWidget();
 
 private slots:
-	void applyFilters();
+	void applyFilters(int max_rows=10000);
+	void updateTable(int max_rows=10000);
 	void copyToClipboard();
 	void showBiotypeContextMenu(QPoint pos);
 	void selectAllBiotypes(bool deselect=false);
@@ -28,26 +38,47 @@ private slots:
 	void showExpressionTableContextMenu(QPoint pos);
 	void showCohort();
 	void copyCohortToClipboard();
+	void OpenInIGV(QTableWidgetItem* item);
 
 private:
+	void updateCohort();
 	void loadExpressionData();
+	void initTable();
+	void updateQuery();
 	void initBiotypeList();
+	bool getGeneStats(const QByteArray& gene, double tpm);
+	//file
 	QString tsv_filename_;
+	TsvFile expression_data_;
+
+	//info
 	int sys_id_;
 	QString tissue_;
 	GeneSet variant_gene_set_;
 	QString project_;
 	QString ps_id_;
 	RnaCohortDeterminationStategy cohort_type_;
+
+	//db
+	NGSD db_;
+	QMap<QByteArray, QByteArray> ensg_mapping_;
+	SqlQuery query_gene_stats_ = db_.getQuery();
+	QMap<QByteArray, DBExpressionValues> ngsd_expression;
 	QSet<int> cohort_;
+
+	//gui
 	QTableWidget* cohort_table_ = nullptr;
 	Ui::ExpressionGeneWidget *ui_;
 
-
 	//table info
 	QStringList column_names_;
+	QStringList db_column_names_;
 	QVector<bool> numeric_columns_;
 	QVector<int> precision_;
+	FilterResult filter_result_;
+
+	//status
+	bool filtering_in_progress_ = false;
 
 	static QVector<double> calculateRanks(const QVector<double>& values);
 };

@@ -448,7 +448,7 @@ QList<int> GenLabDB::studySamples(QString study, QStringList& errors)
 	query.exec("SELECT [LABORNUMMER],[STUDIE] FROM [genlab].[dbo].[v_ngs_studie] WHERE STUDIE='"+study+"'");
 	while(query.next())
 	{
-		QString sample = query.value("LABORNUMMER").toString().trimmed();
+		QString sample = query.value("LABORNUMMER").toString().replace("-", "").trimmed();
 		if (sample.isEmpty()) continue;
 
 		QString sample_id = db.sampleId(sample, false);

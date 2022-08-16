@@ -1,6 +1,6 @@
 #include "ProcessedSampleDataDeletionDialog.h"
 #include "NGSD.h"
-#include "BusyDialog.h"
+#include "GUIHelper.h"
 #include <QMessageBox>
 
 ProcessedSampleDataDeletionDialog::ProcessedSampleDataDeletionDialog(QWidget* parent, QStringList ids)
@@ -87,165 +87,171 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 	}
 
 	//delete data
-	NGSD db;
-	QApplication::setOverrideCursor(Qt::BusyCursor);
-
-	//check if report config if finalized
-	if (ui_.report_config->isChecked())
+	try
 	{
-		QStringList finalized_ps;
-		foreach(const QString& ps_id, ps_ids_)
+		NGSD db;
+		QApplication::setOverrideCursor(Qt::BusyCursor);
+
+		//check if report config if finalized
+		if (ui_.report_config->isChecked())
 		{
-			int conf_id = db.reportConfigId(ps_id);
-			if (conf_id!=-1 && db.reportConfigIsFinalized(conf_id))
+			QStringList finalized_ps;
+			foreach(const QString& ps_id, ps_ids_)
 			{
-				finalized_ps << db.processedSampleName(ps_id);
+				int conf_id = db.reportConfigId(ps_id);
+				if (conf_id!=-1 && db.reportConfigIsFinalized(conf_id))
+				{
+					finalized_ps << db.processedSampleName(ps_id);
+				}
+			}
+			if (!finalized_ps.isEmpty())
+			{
+				QMessageBox::warning(this, "Deleting report configuration", "The report configuration of the following processed samples is finalized and cannot be deleted:\n" + finalized_ps.join("\n"));
+				return;
 			}
 		}
-		if (!finalized_ps.isEmpty())
-		{
-			QMessageBox::warning(this, "Deleting report configuration", "The report configuration of the following processed samples is finalized and cannot be deleted:\n" + finalized_ps.join("\n"));
-			return;
-		}
-	}
 
-	//report config first (it references variants)
-	if (ui_.report_config->isChecked())
-	{
-		foreach(const QString& ps_id, ps_ids_)
+		//report config first (it references variants)
+		if (ui_.report_config->isChecked())
 		{
-			int conf_id = db.reportConfigId(ps_id);
-			if (conf_id!=-1)
+			foreach(const QString& ps_id, ps_ids_)
 			{
-				db.deleteReportConfig(conf_id);
-			}
+				int conf_id = db.reportConfigId(ps_id);
+				if (conf_id!=-1)
+				{
+					db.deleteReportConfig(conf_id);
+				}
 
-			db.getQuery().exec("DELETE FROM evaluation_sheet_data WHERE processed_sample_id=" + ps_id);
-		}
-	}
-
-	//somatic report config first (it references som. variants)
-	if (ui_.somatic_report_config->isChecked())
-	{
-		for(const auto& ps_tumor_id : ps_ids_)
-		{
-			QString ps_normal_id = matchedNormalPsID(db, ps_tumor_id);
-			if(ps_normal_id == "") continue;
-
-			int conf_id = db.somaticReportConfigId(ps_tumor_id, ps_normal_id);
-			if(conf_id == -1) continue;
-
-			db.deleteSomaticReportConfig(conf_id);
-			emit somRepDeleted();
-		}
-	}
-
-
-	if (ui_.kasp->isChecked())
-	{
-		db.getQuery().exec("DELETE FROM kasp_status WHERE processed_sample_id=" + ps_ids_.join(" OR processed_sample_id="));
-	}
-
-	if (ui_.diag_status->isChecked())
-	{
-		db.getQuery().exec("DELETE FROM diag_status WHERE processed_sample_id=" + ps_ids_.join(" OR processed_sample_id="));
-	}
-
-	//variants
-	if (ui_.var_small->isChecked())
-	{
-		foreach(const QString& ps_id, ps_ids_)
-		{
-			db.deleteVariants(ps_id, VariantType::SNVS_INDELS);
-		}
-	}
-
-	if (ui_.var_cnv->isChecked())
-	{
-		foreach(const QString& ps_id, ps_ids_)
-		{
-			db.deleteVariants(ps_id, VariantType::CNVS);
-		}
-	}
-
-	if (ui_.var_sv->isChecked())
-	{
-		foreach(const QString& ps_id, ps_ids_)
-		{
-			db.deleteVariants(ps_id, VariantType::SVS);
-		}
-	}
-
-	if (ui_.expression_data->isChecked())
-	{
-		db.getQuery().exec("DELETE FROM expression WHERE processed_sample_id=" + ps_ids_.join(" OR processed_sample_id="));
-	}
-
-	//somatic variants
-	if (ui_.somatic_var_small->isChecked())
-	{
-		for(const auto& ps_tumor_id : ps_ids_)
-		{
-			QString ps_normal_id = matchedNormalPsID(db, ps_tumor_id);
-			if(ps_normal_id == "") continue;
-			db.deleteSomaticVariants(ps_tumor_id, ps_normal_id, VariantType::SNVS_INDELS);
-		}
-	}
-
-	if (ui_.somatic_var_cnv->isChecked())
-	{
-		for(const auto& ps_tumor_id : ps_ids_)
-		{
-			QString ps_normal_id = matchedNormalPsID(db, ps_tumor_id);
-			if(ps_normal_id == "") continue;
-			db.deleteSomaticVariants(ps_tumor_id, ps_normal_id, VariantType::CNVS);
-		}
-	}
-
-	//processed sample
-	if (ui_.processed_sample->isChecked())
-	{
-		foreach(const QString& ps_id, ps_ids_)
-		{
-			//delete gap data
-			db.getQuery().exec("DELETE FROM gaps WHERE processed_sample_id=" + ps_id);
-
-			//delete study data
-			db.getQuery().exec("DELETE FROM study_sample WHERE processed_sample_id=" + ps_id);
-
-			//delete merged processed samples
-			db.getQuery().exec("DELETE FROM merged_processed_samples WHERE processed_sample_id='" + ps_id + "' OR merged_into='" + ps_id + "'");
-
-			//delete analysis jobs
-			QStringList analysis_job_ids = db.getValues("SELECT analysis_job_id FROM analysis_job_sample WHERE processed_sample_id='" + ps_id + "'");
-			foreach(QString job_id, analysis_job_ids)
-			{
-				db.deleteAnalysis(job_id.toInt());
-			}
-
-			//delete QC data
-			db.getQuery().exec("DELETE FROM processed_sample_qc WHERE processed_sample_id='" + ps_id + "'");
-
-			//set referencing "normal sample" entries to NULL
-			db.getQuery().exec("UPDATE `processed_sample` SET `normal_id`=NULL WHERE normal_id='" + ps_id + "'");
-
-			//delete ancestry data
-			db.getQuery().exec("DELETE FROM processed_sample_ancestry WHERE processed_sample_id='" + ps_id + "'");
-
-			//delete processed sample
-			try
-			{
-				db.getQuery().exec("DELETE FROM processed_sample WHERE id='" + ps_id + "'");
-			}
-			catch(DatabaseException& e)
-			{
-				QMessageBox::warning(this, "Error deleting processed sample", "Could not delete sample '" + db.processedSampleName(ps_id, false) + "'.\nProbably associated data is still present, which has to be deleted before.\n\nDatabase error:\n" + e.message());
-				break;
+				db.getQuery().exec("DELETE FROM evaluation_sheet_data WHERE processed_sample_id=" + ps_id);
 			}
 		}
+
+		//somatic report config first (it references som. variants)
+		if (ui_.somatic_report_config->isChecked())
+		{
+			for(const auto& ps_tumor_id : ps_ids_)
+			{
+				QString ps_normal_id = matchedNormalPsID(db, ps_tumor_id);
+				if(ps_normal_id == "") continue;
+
+				int conf_id = db.somaticReportConfigId(ps_tumor_id, ps_normal_id);
+				if(conf_id == -1) continue;
+
+				db.deleteSomaticReportConfig(conf_id);
+				emit somRepDeleted();
+			}
+		}
+
+		if (ui_.kasp->isChecked())
+		{
+			db.getQuery().exec("DELETE FROM kasp_status WHERE processed_sample_id=" + ps_ids_.join(" OR processed_sample_id="));
+		}
+
+		if (ui_.diag_status->isChecked())
+		{
+			db.getQuery().exec("DELETE FROM diag_status WHERE processed_sample_id=" + ps_ids_.join(" OR processed_sample_id="));
+		}
+
+		//variants
+		if (ui_.var_small->isChecked())
+		{
+			foreach(const QString& ps_id, ps_ids_)
+			{
+				db.deleteVariants(ps_id, VariantType::SNVS_INDELS);
+			}
+		}
+
+		if (ui_.var_cnv->isChecked())
+		{
+			foreach(const QString& ps_id, ps_ids_)
+			{
+				db.deleteVariants(ps_id, VariantType::CNVS);
+			}
+		}
+
+		if (ui_.var_sv->isChecked())
+		{
+			foreach(const QString& ps_id, ps_ids_)
+			{
+				db.deleteVariants(ps_id, VariantType::SVS);
+			}
+		}
+
+		if (ui_.expression_data->isChecked())
+		{
+			db.getQuery().exec("DELETE FROM expression WHERE processed_sample_id=" + ps_ids_.join(" OR processed_sample_id="));
+		}
+
+		//somatic variants
+		if (ui_.somatic_var_small->isChecked())
+		{
+			for(const auto& ps_tumor_id : ps_ids_)
+			{
+				QString ps_normal_id = matchedNormalPsID(db, ps_tumor_id);
+				if(ps_normal_id == "") continue;
+				db.deleteSomaticVariants(ps_tumor_id, ps_normal_id, VariantType::SNVS_INDELS);
+			}
+		}
+
+		if (ui_.somatic_var_cnv->isChecked())
+		{
+			for(const auto& ps_tumor_id : ps_ids_)
+			{
+				QString ps_normal_id = matchedNormalPsID(db, ps_tumor_id);
+				if(ps_normal_id == "") continue;
+				db.deleteSomaticVariants(ps_tumor_id, ps_normal_id, VariantType::CNVS);
+			}
+		}
+
+		//processed sample
+		if (ui_.processed_sample->isChecked())
+		{
+			foreach(const QString& ps_id, ps_ids_)
+			{
+				//delete gap data
+				db.getQuery().exec("DELETE FROM gaps WHERE processed_sample_id=" + ps_id);
+
+				//delete study data
+				db.getQuery().exec("DELETE FROM study_sample WHERE processed_sample_id=" + ps_id);
+
+				//delete merged processed samples
+				db.getQuery().exec("DELETE FROM merged_processed_samples WHERE processed_sample_id='" + ps_id + "' OR merged_into='" + ps_id + "'");
+
+				//delete analysis jobs
+				QStringList analysis_job_ids = db.getValues("SELECT analysis_job_id FROM analysis_job_sample WHERE processed_sample_id='" + ps_id + "'");
+				foreach(QString job_id, analysis_job_ids)
+				{
+					db.deleteAnalysis(job_id.toInt());
+				}
+
+				//delete QC data
+				db.getQuery().exec("DELETE FROM processed_sample_qc WHERE processed_sample_id='" + ps_id + "'");
+
+				//set referencing "normal sample" entries to NULL
+				db.getQuery().exec("UPDATE `processed_sample` SET `normal_id`=NULL WHERE normal_id='" + ps_id + "'");
+
+				//delete ancestry data
+				db.getQuery().exec("DELETE FROM processed_sample_ancestry WHERE processed_sample_id='" + ps_id + "'");
+
+				//delete processed sample
+				try
+				{
+					db.getQuery().exec("DELETE FROM processed_sample WHERE id='" + ps_id + "'");
+				}
+				catch(DatabaseException& e)
+				{
+					QMessageBox::warning(this, "Error deleting processed sample", "Could not delete sample '" + db.processedSampleName(ps_id, false) + "'.\nProbably associated data is still present, which has to be deleted before.\n\nDatabase error:\n" + e.message());
+					break;
+				}
+			}
+		}
+
+		QApplication::restoreOverrideCursor();
+
+		INFO(Exception, "Data was deleted according to your selection.")
 	}
-
-	QApplication::restoreOverrideCursor();
-
-	QMessageBox::information(this, "Deleting processed sample data", "Data was deleted according to your selection.");
+	catch(Exception& e)
+	{
+		GUIHelper::showException(this, e, "Deleting processed sample data");
+	}
 }
