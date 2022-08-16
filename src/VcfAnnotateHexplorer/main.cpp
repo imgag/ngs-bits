@@ -175,22 +175,22 @@ public:
             {
                 if (add_hexplorer)
                 {
-                    writer->write("##INFO=<ID=hexplorer_delta,Number=1,Type=Float,Description=\"This is the HEXplorer delta score (HZEI mutant - HZEI wildtype). HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.\n");
-                    writer->write("##INFO=<ID=hexplorer_mut,Number=1,Type=Float,Description=\"This is the HEXplorer score for the mutant sequence. HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.\n");
-                    writer->write("##INFO=<ID=hexplorer_wt,Number=1,Type=Float,Description=\"This is the HEXplorer score for the reference sequence. HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.\n");
-                    writer->write("##INFO=<ID=hexplorer_delta_rev,Number=1,Type=Float,Description=\"This is the HEXplorer delta score for the reverse complement of the original sequence (HZEI mutant rev - HZEI wildtype rev). HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.\n");
-                    writer->write("##INFO=<ID=hexplorer_mut_rev,Number=1,Type=Float,Description=\"This is the HEXplorer score for the reverse complement of the mutant sequence. HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.\n");
-                    writer->write("##INFO=<ID=hexplorer_wt_rev,Number=1,Type=Float,Description=\"This is the HEXplorer score for the reverse complement of the reference sequence. HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.\n");
+                    writer->write("##INFO=<ID=hexplorer_delta,Number=1,Type=Float,Description=\"This is the HEXplorer delta score (HZEI mutant - HZEI wildtype). HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.\">\n");
+                    writer->write("##INFO=<ID=hexplorer_mut,Number=1,Type=Float,Description=\"This is the HEXplorer score for the mutant sequence. HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.\">\n");
+                    writer->write("##INFO=<ID=hexplorer_wt,Number=1,Type=Float,Description=\"This is the HEXplorer score for the reference sequence. HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.\">\n");
+                    writer->write("##INFO=<ID=hexplorer_delta_rev,Number=1,Type=Float,Description=\"This is the HEXplorer delta score for the reverse complement of the original sequence (HZEI mutant rev - HZEI wildtype rev). HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.\">\n");
+                    writer->write("##INFO=<ID=hexplorer_mut_rev,Number=1,Type=Float,Description=\"This is the HEXplorer score for the reverse complement of the mutant sequence. HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.\">\n");
+                    writer->write("##INFO=<ID=hexplorer_wt_rev,Number=1,Type=Float,Description=\"This is the HEXplorer score for the reverse complement of the reference sequence. HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.\">\n");
                 }
 
                 if (add_hbond_score)
                 {
-                    writer->write("##INFO=<ID=max_hbond_delta,Number=1,Type=Float,Description=\"This is the HBond delta score (max HBond mutant - max HBond wildtype).\n");
-                    writer->write("##INFO=<ID=max_hbond_mut,Number=1,Type=Float,Description=\"This is the max HBond score for the mutant sequence.\n");
-                    writer->write("##INFO=<ID=max_hbond_wt,Number=1,Type=Float,Description=\"This is the max HBond score for the reference sequence.\n");
-                    writer->write("##INFO=<ID=max_hbond_delta_rev,Number=1,Type=Float,Description=\"This is the max HBond delta score for the reverse complement of the original sequence (HZEI mutant rev - HZEI wildtype rev).\n");
-                    writer->write("##INFO=<ID=max_hbond_mut_rev,Number=1,Type=Float,Description=\"This is the max HBond score for the reverse complement of the mutant sequence.\n");
-                    writer->write("##INFO=<ID=max_hbond_wt_rev,Number=1,Type=Float,Description=\"This is the max HBond score for the reverse complement of the reference sequence.\n");
+                    writer->write("##INFO=<ID=max_hbond_delta,Number=1,Type=Float,Description=\"This is the HBond delta score (max HBond mutant - max HBond wildtype).\">\n");
+                    writer->write("##INFO=<ID=max_hbond_mut,Number=1,Type=Float,Description=\"This is the max HBond score for the mutant sequence.\">\n");
+                    writer->write("##INFO=<ID=max_hbond_wt,Number=1,Type=Float,Description=\"This is the max HBond score for the reference sequence.\">\n");
+                    writer->write("##INFO=<ID=max_hbond_delta_rev,Number=1,Type=Float,Description=\"This is the max HBond delta score for the reverse complement of the original sequence (HZEI mutant rev - HZEI wildtype rev).\">\n");
+                    writer->write("##INFO=<ID=max_hbond_mut_rev,Number=1,Type=Float,Description=\"This is the max HBond score for the reverse complement of the mutant sequence.\">\n");
+                    writer->write("##INFO=<ID=max_hbond_wt_rev,Number=1,Type=Float,Description=\"This is the max HBond score for the reverse complement of the reference sequence.\">\n");
                 }
 
                 new_info_head_added = true;

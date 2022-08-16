@@ -2,18 +2,18 @@
 ##INFO=<ID=seqid,Number=1,Type=Integer,Description="The HerediCare SeqId of this variant.">
 ##INFO=<ID=gene,Number=1,Type=String,Description="The gene where the variant is located.">
 ##INFO=<ID=HGVSc,Number=1,Type=String,Description="The HGVS c dot notation of this variant.">
-##INFO=<ID=hexplorer_delta,Number=1,Type=Float,Description="This is the HEXplorer delta score (HZEI mutant - HZEI wildtype). HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.
-##INFO=<ID=hexplorer_mut,Number=1,Type=Float,Description="This is the HEXplorer score for the mutant sequence. HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.
-##INFO=<ID=hexplorer_wt,Number=1,Type=Float,Description="This is the HEXplorer score for the reference sequence. HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.
-##INFO=<ID=hexplorer_delta_rev,Number=1,Type=Float,Description="This is the HEXplorer delta score for the reverse complement of the original sequence (HZEI mutant rev - HZEI wildtype rev). HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.
-##INFO=<ID=hexplorer_mut_rev,Number=1,Type=Float,Description="This is the HEXplorer score for the reverse complement of the mutant sequence. HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.
-##INFO=<ID=hexplorer_wt_rev,Number=1,Type=Float,Description="This is the HEXplorer score for the reverse complement of the reference sequence. HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.
-##INFO=<ID=max_hbond_delta,Number=1,Type=Float,Description="This is the HBond delta score (max HBond mutant - max HBond wildtype).
-##INFO=<ID=max_hbond_mut,Number=1,Type=Float,Description="This is the max HBond score for the mutant sequence.
-##INFO=<ID=max_hbond_wt,Number=1,Type=Float,Description="This is the max HBond score for the reference sequence.
-##INFO=<ID=max_hbond_delta_rev,Number=1,Type=Float,Description="This is the max HBond delta score for the reverse complement of the original sequence (HZEI mutant rev - HZEI wildtype rev).
-##INFO=<ID=max_hbond_mut_rev,Number=1,Type=Float,Description="This is the max HBond score for the reverse complement of the mutant sequence.
-##INFO=<ID=max_hbond_wt_rev,Number=1,Type=Float,Description="This is the max HBond score for the reverse complement of the reference sequence.
+##INFO=<ID=hexplorer_delta,Number=1,Type=Float,Description="This is the HEXplorer delta score (HZEI mutant - HZEI wildtype). HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.">
+##INFO=<ID=hexplorer_mut,Number=1,Type=Float,Description="This is the HEXplorer score for the mutant sequence. HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.">
+##INFO=<ID=hexplorer_wt,Number=1,Type=Float,Description="This is the HEXplorer score for the reference sequence. HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.">
+##INFO=<ID=hexplorer_delta_rev,Number=1,Type=Float,Description="This is the HEXplorer delta score for the reverse complement of the original sequence (HZEI mutant rev - HZEI wildtype rev). HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.">
+##INFO=<ID=hexplorer_mut_rev,Number=1,Type=Float,Description="This is the HEXplorer score for the reverse complement of the mutant sequence. HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.">
+##INFO=<ID=hexplorer_wt_rev,Number=1,Type=Float,Description="This is the HEXplorer score for the reverse complement of the reference sequence. HZEI scores were normalized by the total number of nucleotide positions which contribute to the score.">
+##INFO=<ID=max_hbond_delta,Number=1,Type=Float,Description="This is the HBond delta score (max HBond mutant - max HBond wildtype).">
+##INFO=<ID=max_hbond_mut,Number=1,Type=Float,Description="This is the max HBond score for the mutant sequence.">
+##INFO=<ID=max_hbond_wt,Number=1,Type=Float,Description="This is the max HBond score for the reference sequence.">
+##INFO=<ID=max_hbond_delta_rev,Number=1,Type=Float,Description="This is the max HBond delta score for the reverse complement of the original sequence (HZEI mutant rev - HZEI wildtype rev).">
+##INFO=<ID=max_hbond_mut_rev,Number=1,Type=Float,Description="This is the max HBond score for the reverse complement of the mutant sequence.">
+##INFO=<ID=max_hbond_wt_rev,Number=1,Type=Float,Description="This is the max HBond score for the reverse complement of the reference sequence.">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 chr1	10232413	.	C	G	.	.	seqid=11428209;gene=KIF1B;HGVSc=NM_015074.3:c.85C>G;hexplorer_delta=0.06;hexplorer_mut=4.42;hexplorer_wt=4.36;hexplorer_delta_rev=2.47;hexplorer_mut_rev=4.54;hexplorer_wt_rev=2.07
 chr1	10258474	.	C	T	.	.	HGVSc=NM_015074.3:c.184-19C>T;seqid=13931364;hexplorer_delta=-9.20;hexplorer_mut=-27.47;hexplorer_wt=-18.26;hexplorer_delta_rev=-6.59;hexplorer_mut_rev=-3.41;hexplorer_wt_rev=3.19

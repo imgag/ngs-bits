@@ -23,6 +23,7 @@ protected slots:
 	void remove();
 	void openTabs();
 	void resetUserPassword();
+	void importStudySamples();
 
 private:
 	Ui::DBTableAdministration ui_;

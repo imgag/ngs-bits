@@ -1034,6 +1034,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==PathType::FUSIONS_PIC_DIR) output += ps_name + "_fusions_arriba_pics";
 	else if (type==PathType::FUSIONS_BAM) output += ps_name + "_fusions_arriba.bam";
 	else if (type==PathType::SPLICING_BED) output += ps_name + "_splicing.bed";
+	else if (type==PathType::SPLICING_ANN) output += ps_name + "_splicing_annot.tsv";
 	else if (type==PathType::MANTA_FUSIONS) output +=  ps_name + "_var_fusions_manta.bedpe";
 	else if (type==PathType::VIRAL) output += ps_name + "_viral.tsv";
 	else if (type==PathType::COUNTS) output += ps_name + "_counts.tsv";

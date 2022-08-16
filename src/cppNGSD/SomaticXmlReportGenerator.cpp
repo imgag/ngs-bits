@@ -142,12 +142,15 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	w.writeAttribute("sequencer", db.getValue("SELECT d.type FROM device as d, sequencing_run as sr WHERE d.id = sr.device_id AND sr.name = '" + t_ps_data.run_name +  "'", false).toString());
 	QCCollection t_qc = db.getQCData(tumor_ps_id);
 	w.writeAttribute("average_depth", t_qc.value("QC:2000025", true).asString() );
-	if( data.settings.report_config.tumContentByHistological()) w.writeAttribute("tumor_content_histology", QByteArray::number(data.tumor_content_histology, 'f', 3) );
-	if( data.settings.report_config.tumContentByClonality() )
+	if( data.settings.report_config.tumContentByHistological())
+	{
+		w.writeAttribute("tumor_content_histology", QByteArray::number(data.tumor_content_histology, 'f', 3) );
+	}
+	if( data.settings.report_config.tumContentByClonality() && BasicStatistics::isValidFloat(data.tumor_content_clonality) )
 	{
 		w.writeAttribute("tumor_content_bioinformatic",  QString::number(data.tumor_content_clonality, 'f', 3));
 	}
-	else if( data.settings.report_config.tumContentByMaxSNV() )
+	else if( data.settings.report_config.tumContentByMaxSNV() && BasicStatistics::isValidFloat(data.tumor_content_snvs) )
 	{
 		w.writeAttribute("tumor_content_bioinformatic",  QString::number(data.tumor_content_snvs, 'f', 3));
 	}

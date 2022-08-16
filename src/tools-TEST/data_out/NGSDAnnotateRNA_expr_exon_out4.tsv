@@ -1,6 +1,6 @@
 ##cohort_strategy:RNA_COHORT_GERMLINE
 ##cohort_size:3
-#exon	rpb	srpb	raw	cohort_mean	log2fc	zscore	pvalue
+#exon	rpb	srpb	raw	cohort_mean	log2fc	zscore	pval
 chr1:30267-30667:+	0	0	9303	13.8112	-3.88862	-0.707107	0.4795
 chr1:30976-31109:+	0	0	6048	0	0	nan	nan
 chr1:29554-30039:+	0	0	13873	112.083	-6.82124	-0.707107	0.4795

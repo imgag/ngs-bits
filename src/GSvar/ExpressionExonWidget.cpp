@@ -8,6 +8,7 @@
 #include "VersatileFile.h"
 #include "LoginManager.h"
 #include "BedFile.h"
+#include "GlobalServiceProvider.h"
 
 #include <QChartView>
 #include <QMenu>
@@ -49,6 +50,7 @@ ExpressionExonWidget::ExpressionExonWidget(QString tsv_filename, int sys_id, QSt
 //	connect(ui_->sb_min_rpb, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
 	ui_->tw_expression_table->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui_->tw_expression_table,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showExpressionTableContextMenu(QPoint)));
+	connect(ui_->tw_expression_table,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(OpenInIGV(QTableWidgetItem*)));
 
 	loadExpressionFile();
 	initFilter();
@@ -205,78 +207,84 @@ void ExpressionExonWidget::applyFilters()
 		// Filter by parameters stored in file
 
 		// get column index of 'GENES' column
-		int gene_idx = -1;
-		gene_idx = expression_data_.headers().indexOf("gene_name");
+		int gene_idx = expression_data_.headers().indexOf("gene_name");
 
-		//filter by variant list gene filter
-		if (!variant_gene_set_.isEmpty() && (ui_->cb_filter_by_var_list->checkState() == Qt::Checked))
+		if (gene_idx < 0)
 		{
-			qDebug() << "filter by variant gene filter";
-
-			if (gene_idx != -1)
-			{
-				for(int row_idx=0; row_idx<expression_data_.rowCount(); ++row_idx)
-				{
-					if (!filter_result_.flags()[row_idx]) continue;
-
-					filter_result_.flags()[row_idx] = variant_gene_set_.contains(expression_data_.row(row_idx).at(gene_idx).toUtf8().trimmed());
-				}
-			}
-
-			//debug:
-			qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
-			filtered_lines = filter_result_.countPassing();
+			QMessageBox::warning(this, "Filtering error", "Table does not contain a 'gene_name' column! \nFiltering based on gene names is not possible. Please reannotate the RNA sample.");
 		}
-
-		//filter by genes
-		GeneSet gene_whitelist = GeneSet::createFromText(ui_->le_gene_filter->text().toLatin1(), ',');
-		if (!gene_whitelist.isEmpty())
+		else
 		{
-			qDebug() << "filter by gene filter";
-			QByteArray genes_joined = gene_whitelist.join('|');
-
-			// get column index of 'GENES' column
-			if (gene_idx != -1)
+			//filter by variant list gene filter
+			if (!variant_gene_set_.isEmpty() && (ui_->cb_filter_by_var_list->checkState() == Qt::Checked))
 			{
-				if (genes_joined.contains("*")) //with wildcards
-				{
-					QRegExp reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
-					for(int row_idx=0; row_idx<expression_data_.rowCount(); ++row_idx)
-					{
-						if (!filter_result_.flags()[row_idx]) continue;
+				qDebug() << "filter by variant gene filter";
 
-						// generate GeneSet from column text
-						GeneSet sv_genes = GeneSet::createFromText(expression_data_.row(row_idx).at(gene_idx).toUtf8(), ',');
-
-						bool match_found = false;
-						foreach(const QByteArray& sv_gene, sv_genes)
-						{
-							if (reg.exactMatch(sv_gene))
-							{
-								match_found = true;
-								break;
-							}
-						}
-						filter_result_.flags()[row_idx] = match_found;
-					}
-				}
-				else //without wildcards
+				if (gene_idx != -1)
 				{
 					for(int row_idx=0; row_idx<expression_data_.rowCount(); ++row_idx)
 					{
 						if (!filter_result_.flags()[row_idx]) continue;
 
-						// generate GeneSet from column text
-						GeneSet sv_genes = GeneSet::createFromText(expression_data_.row(row_idx).at(gene_idx).toUtf8(), ',');
-
-						filter_result_.flags()[row_idx] = sv_genes.intersectsWith(gene_whitelist);
+						filter_result_.flags()[row_idx] = variant_gene_set_.contains(expression_data_.row(row_idx).at(gene_idx).toUtf8().trimmed());
 					}
 				}
+
+				//debug:
+				qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
+				filtered_lines = filter_result_.countPassing();
 			}
 
-			//debug:
-			qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
-			filtered_lines = filter_result_.countPassing();
+			//filter by genes
+			GeneSet gene_whitelist = GeneSet::createFromText(ui_->le_gene_filter->text().toLatin1(), ',');
+			if (!gene_whitelist.isEmpty())
+			{
+				qDebug() << "filter by gene filter";
+				QByteArray genes_joined = gene_whitelist.join('|');
+
+				// get column index of 'GENES' column
+				if (gene_idx != -1)
+				{
+					if (genes_joined.contains("*")) //with wildcards
+					{
+						QRegExp reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+						for(int row_idx=0; row_idx<expression_data_.rowCount(); ++row_idx)
+						{
+							if (!filter_result_.flags()[row_idx]) continue;
+
+							// generate GeneSet from column text
+							GeneSet sv_genes = GeneSet::createFromText(expression_data_.row(row_idx).at(gene_idx).toUtf8(), ',');
+
+							bool match_found = false;
+							foreach(const QByteArray& sv_gene, sv_genes)
+							{
+								if (reg.exactMatch(sv_gene))
+								{
+									match_found = true;
+									break;
+								}
+							}
+							filter_result_.flags()[row_idx] = match_found;
+						}
+					}
+					else //without wildcards
+					{
+						for(int row_idx=0; row_idx<expression_data_.rowCount(); ++row_idx)
+						{
+							if (!filter_result_.flags()[row_idx]) continue;
+
+							// generate GeneSet from column text
+							GeneSet sv_genes = GeneSet::createFromText(expression_data_.row(row_idx).at(gene_idx).toUtf8(), ',');
+
+							filter_result_.flags()[row_idx] = sv_genes.intersectsWith(gene_whitelist);
+						}
+					}
+				}
+
+				//debug:
+				qDebug() << "\t removed: " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
+				filtered_lines = filter_result_.countPassing();
+			}
 		}
 
 
@@ -382,15 +390,22 @@ void ExpressionExonWidget::applyFilters()
 
 		//filter data
 		int idx_biotype = expression_data_.headers().indexOf("gene_biotype");
-
-		for(int row_idx=0; row_idx<expression_data_.rowCount(); ++row_idx)
+		if (idx_biotype < 0)
 		{
-			//skip already filtered
-			if (!filter_result_.flags()[row_idx]) continue;
-
-			QString biotype = expression_data_.row(row_idx).at(idx_biotype);
-			filter_result_.flags()[row_idx] = selected_biotypes.contains(biotype.replace("_", " "));
+			QMessageBox::warning(this, "Filtering error", "Table does not contain a 'gene_biotype' column! \nFiltering based on biotype is not possible. Please reannotate the RNA sample.");
 		}
+		else
+		{
+			for(int row_idx=0; row_idx<expression_data_.rowCount(); ++row_idx)
+			{
+				//skip already filtered
+				if (!filter_result_.flags()[row_idx]) continue;
+
+				QString biotype = expression_data_.row(row_idx).at(idx_biotype);
+				filter_result_.flags()[row_idx] = selected_biotypes.contains(biotype.replace("_", " "));
+			}
+		}
+
 
 		//debug:
 		qDebug() << "\t removed (file based): " << (filtered_lines - filter_result_.countPassing()) << Helper::elapsedTime(timer);
@@ -408,13 +423,13 @@ void ExpressionExonWidget::applyFilters()
 
 			if ((idx_cohort_mean == -1))
 			{
-				QMessageBox::warning(this, "Filtering error", "Table does not contain a 'cohort_mean' column! \nFiltering based on cohort mean value is not possible.");
+				QMessageBox::warning(this, "Filtering error", "Table does not contain a 'cohort_mean' column! \nFiltering based on cohort mean value is not possible. Please reannotate the RNA sample.");
 			}
 			else
 			{
 				if ((idx_srpb == -1))
 				{
-					QMessageBox::warning(this, "Filtering error", "Table does not contain a 'srpb' column! \nFiltering based on srpb value is not possible.");
+					QMessageBox::warning(this, "Filtering error", "Table does not contain a 'srpb' column! \nFiltering based on srpb value is not possible. Please reannotate the RNA sample.");
 				}
 				else
 				{
@@ -680,6 +695,19 @@ void ExpressionExonWidget::showExpressionTableContextMenu(QPoint pos)
 	{
 		THROW(ProgrammingException, "Invalid menu action in context menu selected!")
 	}
+}
+
+void ExpressionExonWidget::OpenInIGV(QTableWidgetItem* item)
+{
+	qDebug() << "ExpressionDoubleClicked";
+	if (item==nullptr) return;
+
+	int gene_col_idx = column_names_.indexOf("exon");
+	int row_idx = item->row();
+
+	BedLine exon = BedLine::fromString(ui_->tw_expression_table->item(row_idx, gene_col_idx)->text());
+
+	GlobalServiceProvider::gotoInIGV(exon.toString(true), true);
 }
 
 

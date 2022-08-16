@@ -438,6 +438,42 @@ QStringList GenLabDB::studies(QString ps_name)
 	return output;
 }
 
+QList<int> GenLabDB::studySamples(QString study, QStringList& errors)
+{
+	QList<int> output;
+	NGSD db;
+	errors.clear();
+
+	SqlQuery query = getQuery();
+	query.exec("SELECT [LABORNUMMER],[STUDIE] FROM [genlab].[dbo].[v_ngs_studie] WHERE STUDIE='"+study+"'");
+	while(query.next())
+	{
+		QString sample = query.value("LABORNUMMER").toString().replace("-", "").trimmed();
+		if (sample.isEmpty()) continue;
+
+		QString sample_id = db.sampleId(sample, false);
+		if (sample_id.isEmpty())
+		{
+			errors << "Sample '" + sample + "' not found in NGSD!";
+			continue;
+		}
+
+		QStringList ps_ids = db.getValues("SELECT ps.id FROM sample s, processed_sample ps WHERE s.id=" + sample_id + " AND ps.sample_id=s.id");
+		if (ps_ids.isEmpty())
+		{
+			errors << "Sample '" + sample + "' has no processed samples in NGSD!";
+			continue;
+		}
+
+		foreach(QString ps_id, ps_ids)
+		{
+			output << Helper::toInt(ps_id, "processed sample ID");
+		}
+	}
+
+	return output;
+}
+
 QStringList GenLabDB::names(QString ps_name)
 {
 	QStringList output;

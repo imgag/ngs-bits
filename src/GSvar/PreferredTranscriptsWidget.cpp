@@ -2,7 +2,7 @@
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QAction>
-#include <QPlainTextEdit>
+#include "ScrollableTextDialog.h"
 #include "GUIHelper.h"
 #include "NGSD.h"
 
@@ -172,9 +172,7 @@ void PreferredTranscriptsWidget::check()
 	output << "";
 
 	//show output
-	QPlainTextEdit* widget = new QPlainTextEdit(output.join("\n"));
-	widget->setReadOnly(true);
-	widget->setMinimumSize(800, 600);
-	auto dlg = GUIHelper::createDialog(widget,  "Preferred transcripts check");
-	dlg->exec();
+	ScrollableTextDialog dlg(this, "Preferred transcripts check");
+	dlg.appendLines(output);
+	dlg.exec();
 }

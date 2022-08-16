@@ -71,6 +71,7 @@ public:
 		return *this;
 	}
 
+	//The size is double of the font size shown in Word, i.e. 16 for font size 8 in Word.
 	virtual RtfText& setFontSize(int font_size)
 	{
 		font_size_ = font_size;
@@ -227,6 +228,7 @@ public:
 		return *this;
 	}
 
+	//The defaukt is line splacing 1.0 in Word. Use 276 for line spacing 1.15 in Word.
 	RtfParagraph& setLineSpacing(int line_spacing)
 	{
 		line_spacing_ = line_spacing;

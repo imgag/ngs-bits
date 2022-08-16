@@ -653,8 +653,7 @@ HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 		bam_file_name = UrlManager::getURLById(request.getFormUrlEncoded()["bam_url_id"]).filename_with_path;
 	}
 
-	Statistics::avgCoverage(low_cov, bam_file_name, 1, false, true);
-
+	Statistics::avgCoverage(low_cov, bam_file_name, 1, false);
 	if(!low_cov.toText().isEmpty())
 	{
 		QByteArray body = low_cov.toText().toLocal8Bit();
@@ -701,6 +700,53 @@ HttpResponse ServerController::calculateTargetRegionReadDepth(const HttpRequest&
 	}
 
 	return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, request.getContentType(), "Could not calculate target region read depth");
+}
+
+HttpResponse ServerController::getMultiSampleAnalysisInfo(const HttpRequest& request)
+{
+	qDebug() << "List analysis names";
+	if (request.getFormUrlEncoded().contains("analyses"))
+	{
+		QJsonDocument json_in_doc = QJsonDocument::fromJson(QUrl::fromPercentEncoding(request.getFormUrlEncoded()["analyses"].toLocal8Bit()).toLocal8Bit());
+		if (json_in_doc.isArray())
+		{
+			QJsonArray json_in_array = json_in_doc.array();
+			QJsonArray multi_sample_analysis_info_array;
+			for (int i = 0; i < json_in_array.count(); i++)
+			{
+				VariantList vl;
+				QString file_url = json_in_array[i].toString();
+				QStringList file_url_parts = file_url.split("/");
+				if (file_url_parts.count() < 2) continue;
+				QString url_id = file_url_parts[file_url_parts.count()-2];
+				UrlEntity url = UrlManager::getURLById(url_id);
+				vl.loadHeaderOnly(url.filename_with_path);
+
+				QJsonObject multi_sample_analysis_info_object;
+				multi_sample_analysis_info_object.insert("analysis_file", file_url);
+				multi_sample_analysis_info_object.insert("analysis_name", vl.analysisName());
+
+				QJsonArray ps_sample_name_array;
+				QJsonArray ps_sample_id_array;
+				foreach(const SampleInfo& info, vl.getSampleHeader())
+				{					
+					ps_sample_name_array.append(info.id);
+					ps_sample_id_array.append(NGSD().processedSampleId(info.id));
+				}
+				multi_sample_analysis_info_object.insert("ps_sample_name_list", ps_sample_name_array);
+				multi_sample_analysis_info_object.insert("ps_sample_id_list", ps_sample_id_array);
+				multi_sample_analysis_info_array.append(multi_sample_analysis_info_object);
+			}
+
+			QByteArray body = QJsonDocument(multi_sample_analysis_info_array).toJson();
+			BasicResponseData response_data;
+			response_data.length = body.length();
+			response_data.content_type = request.getContentType();
+			response_data.is_downloadable = false;
+			return HttpResponse(response_data, body);
+		}
+	}
+	return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, request.getContentType(), "Could not get any information about the multi-sample analysis");
 }
 
 HttpResponse ServerController::performLogin(const HttpRequest& request)

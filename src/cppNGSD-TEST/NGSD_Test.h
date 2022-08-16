@@ -1354,6 +1354,29 @@ private slots:
 		IS_TRUE(db.userCanAccess(user_id, 7)); //access via project 'Diagnostik'
 		IS_TRUE(db.userCanAccess(user_id, 8)); //access via project 'Diagnostik'
 
+		// test if a restricted user can access a multi-sample analysis
+		VariantList multi_sample;
+		multi_sample.load(TESTDATA("../cppNGSD-TEST/data_in/multisample_analyisis.GSvar"));
+		S_EQUAL(analysisTypeToString(multi_sample.type()), "GERMLINE_MULTISAMPLE");
+		// the user has permissions to access each sample from the analysis
+		foreach(const SampleInfo& info, multi_sample.getSampleHeader())
+		{
+			QString processed_sample_id = db.processedSampleId(info.id);
+			IS_TRUE(db.userCanAccess(db.userId("restricted"), processed_sample_id.toInt()));
+		}
+		// the user has a permission to access only one sample
+		bool can_access_all = true;
+		foreach(const SampleInfo& info, multi_sample.getSampleHeader())
+		{
+			QString processed_sample_id = db.processedSampleId(info.id);
+			if (!db.userCanAccess(db.userId("restricted_one_sample"), processed_sample_id.toInt()))
+			{
+				can_access_all = false;
+				break;
+			}
+		}
+		IS_FALSE(can_access_all);
+
 		//cfDNA panels
 		CfdnaPanelInfo panel_info;
 		panel_info.tumor_id = db.processedSampleId("DX184894_01").toInt();

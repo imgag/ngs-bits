@@ -361,6 +361,20 @@ int main(int argc, char **argv)
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
+						"multi_sample_analysis_info",
+						QMap<QString, ParamProps>{
+							{"analyses", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "List of available analyses"}},
+							{"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::APPLICATION_JSON,
+						AuthType::USER_TOKEN,
+						"Creates a list of analysis names for multi-samples",
+						&ServerController::getMultiSampleAnalysisInfo
+					});
+
+
+	EndpointManager::appendEndpoint(Endpoint{
 						"upload",
 						QMap<QString, ParamProps>{
 							{"ps_url_id", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "An id of a temporary URL pointing to a specific processed sample"}},

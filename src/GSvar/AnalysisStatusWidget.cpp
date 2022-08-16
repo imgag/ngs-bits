@@ -4,7 +4,6 @@
 #include "SomaticDialog.h"
 #include "SingleSampleAnalysisDialog.h"
 #include "GUIHelper.h"
-#include "ScrollableTextDialog.h"
 #include "cmath"
 #include "LoginManager.h"
 #include "GlobalServiceProvider.h"

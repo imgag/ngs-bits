@@ -427,7 +427,7 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 		//Add coverage per gap as annotation to low cov file
 		if(config_.include_coverage_per_gap)
 		{
-			Statistics::avgCoverage(low_cov, config_.bam_file, 1, false, true, 2);
+			Statistics::avgCoverage(low_cov, config_.bam_file, 1, false, 2);
 		}
 
 		//Find genes with gaps

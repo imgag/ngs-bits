@@ -583,9 +583,8 @@ void FilterWidget::showTargetRegionDetails()
 	}
 
 	//show text
-	ScrollableTextDialog dlg(this);
-	dlg.setWindowTitle("Target region details");
-	dlg.setText(text.join("\n"));
+	ScrollableTextDialog dlg(this, "Target region details");
+	dlg.appendLines(text);
 	dlg.exec();
 }
 

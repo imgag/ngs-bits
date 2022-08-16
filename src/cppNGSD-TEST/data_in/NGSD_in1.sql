@@ -1,7 +1,9 @@
 
 INSERT INTO `user`(`id`, `user_id`, `password`, `user_role`, `name`, `email`, `created`, `active`, `salt`) VALUES
 (99, 'ahmustm1', '4bc26c3f212efe28ad8a58d655afb3f1dabc8eb9', 'user', 'Max Mustermann', 'no.mail@max.de', '2016-07-05', 1, 'salt123456salt123456salt123456salt123456'),
-(101, 'ahkerra1', '', 'user_restricted', 'Sarah Kerrigan', 'queen_of_blades@the_swarm.org', '1998-03-31', 0, NULL);
+(101, 'ahkerra1', '', 'user_restricted', 'Sarah Kerrigan', 'queen_of_blades@the_swarm.org', '1998-03-31', 0, NULL),
+(102, 'restricted', '', 'user_restricted', 'John Smith', 'john@email.org', '2022-07-28', 0, NULL),
+(103, 'restricted_one_sample', '', 'user_restricted', 'Jane Smith', 'jane@email.org', '2022-07-28', 0, NULL);
 
 
 INSERT INTO `device` (`id`, `type`, `name`) VALUES
@@ -667,4 +669,7 @@ INSERT INTO `subpanels` (`id`, `name`, `created_by`, `created_date`, `mode`, `ex
 INSERT INTO `user_permissions` (`id`, `user_id`, `permission`, `data`) VALUES
 (1, 101, 'study', '2'),
 (2, 101, 'sample', '4'),
-(3, 101, 'project', '2');
+(3, 101, 'project', '2'),
+(4, 102, 'sample', '2'),
+(5, 102, 'sample', '3'),
+(6, 103, 'sample', '2');

@@ -6,6 +6,8 @@
 #include "EmailDialog.h"
 #include "GlobalServiceProvider.h"
 #include "UserPermissionsEditor.h"
+#include "GenLabDB.h"
+#include "ScrollableTextDialog.h"
 #include <QMessageBox>
 #include <QAction>
 
@@ -56,6 +58,12 @@ DBTableAdministration::DBTableAdministration(QString table, QWidget* parent)
 		action = new QAction("Reset user password", this);
 		ui_.table->addAction(action);
 		connect(action, SIGNAL(triggered(bool)), this, SLOT(resetUserPassword()));
+	}
+	else if (table_=="study")
+	{
+		action = new QAction(QIcon(":/Icons/GenLab.png"), "Import samples from GenLab", this);
+		ui_.table->addAction(action);
+		connect(action, SIGNAL(triggered(bool)), this, SLOT(importStudySamples()));
 	}
 }
 
@@ -258,6 +266,52 @@ void DBTableAdministration::resetUserPassword()
 
 	//send
 	EmailDialog dlg(this, QStringList() << to, subject, body);
+	dlg.exec();
+}
+
+void DBTableAdministration::importStudySamples()
+{
+	//checks
+	QSet<int> rows = ui_.table->selectedRows();
+	if (rows.count()!=1)
+	{
+		QMessageBox::information(this, "Selection error", "Please select exactly one study!");
+		return;
+	}
+
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
+	//get study ID and name
+	int study_id = ui_.table->getId(rows.toList().first()).toInt();
+	NGSD db;
+	QString study = db.getValue("SELECT name FROM study WHERE id='"+QString::number(study_id)+"'", false).toString();
+
+	//import study samples from GenLab
+	int c_imported = 0;
+	QStringList errors;
+	GenLabDB genlab;
+	QList<int> ps_ids = genlab.studySamples(study, errors);
+	foreach(int ps_id, ps_ids)
+	{
+		//check if persent
+		int present = db.getValue("SELECT count(*) FROM study_sample WHERE study_id='"+QString::number(study_id)+"' AND processed_sample_id='"+QString::number(ps_id)+"'").toInt();
+
+		if (present==0)
+		{
+			++c_imported;
+			SqlQuery query = db.getQuery();
+			query.exec("INSERT INTO study_sample (study_id, processed_sample_id, study_sample_idendifier) VALUES ("+QString::number(study_id)+", "+QString::number(ps_id)+", 'GenLab import by "+Helper::userName()+" on "+QDate::currentDate().toString()+"')");
+		}
+	}
+
+	QApplication::restoreOverrideCursor();
+
+	//output
+	ScrollableTextDialog dlg(this, "Study import from GenLab");
+	dlg.appendLine("Imported study samples: " + QString::number(c_imported));
+	dlg.appendLine("");
+	dlg.appendLine("Errors:");
+	dlg.appendLines(errors);
 	dlg.exec();
 }
 

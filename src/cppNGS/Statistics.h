@@ -68,7 +68,7 @@ public:
     ///Calculates the part of the genome that has a lower coverage than the given cutoff.
 	static BedFile lowCoverage(const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, const QString& ref_file = QString());
 	///Calculates and annotates the average coverage of the regions in the bed file. The input BED file must be merged and sorted! Panel mode should be used if only a small part of the BAM data is needed.
-	static void avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq=1, bool include_duplicates=false, bool panel_mode=false, int decimals=2, const QString& ref_file = QString());
+	static void avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq=1, bool include_duplicates=false, int decimals=2, const QString& ref_file = QString());
 	///Calculates the part of the target region that has a lower coverage than the given cutoff. The input BED file must be merged and sorted!
 	static BedFile highCoverage(const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, const QString& ref_file = QString());
 	///Calculates the part of the genome that has a higher coverage than the given cutoff.

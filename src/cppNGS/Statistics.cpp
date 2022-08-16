@@ -1491,7 +1491,9 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 				QByteArrayList annos = variants[i].vepAnnotations(i_csq_gnomad);
 				foreach (const QByteArray& anno, annos)
 				{
-					if (anno.toDouble()>0.01)
+					bool ok = false;
+					double tmp = anno.toDouble(&ok);
+					if (ok && tmp>0.01)
 					{
 						is_known = true;
 						break;
@@ -2448,51 +2450,18 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 	return output;
 }
 
-void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, bool include_duplicates, bool panel_mode, int decimals, const QString& ref_file)
+void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, bool include_duplicates, int decimals, const QString& ref_file)
 {
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
 
-	if (panel_mode) //panel mode
+	for (int i=0; i<bed_file.count(); ++i)
 	{
-		for (int i=0; i<bed_file.count(); ++i)
-		{
-			long cov = 0;
-			BedLine& bed_line = bed_file[i];
+		long cov = 0;
+		BedLine& bed_line = bed_file[i];
 
-			//jump to region
-			reader.setRegion(bed_line.chr(), bed_line.start(), bed_line.end());
-
-			//iterate through all alignments
-			BamAlignment al;
-			while (reader.getNextAlignment(al))
-			{
-				if (!include_duplicates && al.isDuplicate()) continue;
-				if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-				if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
-
-				const int ol_start = std::max(bed_line.start(), al.start());
-				const int ol_end = std::min(bed_line.end(), al.end());
-				if (ol_start<=ol_end)
-				{
-					cov += ol_end - ol_start + 1;
-				}
-			}
-			bed_line.annotations().append(QByteArray::number((double)cov / bed_line.length(), 'f', decimals));
-		}
-	}
-	else //default mode
-	{
-		//check target region is merged/sorted and create index
-		if (!bed_file.isMergedAndSorted())
-		{
-			THROW(ArgumentException, "Merged and sorted BED file required for coverage calculation!");
-		}
-		ChromosomalIndex<BedFile> bed_idx(bed_file);
-
-		//init coverage statistics data structure
-		QVector<long> cov;
-		cov.fill(0, bed_file.count());
+		//jump to region
+		reader.setRegion(bed_line.chr(), bed_line.start(), bed_line.end());
 
 		//iterate through all alignments
 		BamAlignment al;
@@ -2502,20 +2471,14 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
-			const Chromosome& chr = reader.chromosome(al.chromosomeID());
-			int end_position = al.end();
-			QVector<int> indices = bed_idx.matchingIndices(chr, al.start(), end_position);
-			foreach(int index, indices)
+			const int ol_start = std::max(bed_line.start(), al.start());
+			const int ol_end = std::min(bed_line.end(), al.end());
+			if (ol_start<=ol_end)
 			{
-				cov[index] += std::min(bed_file[index].end(), end_position) - std::max(bed_file[index].start(), al.start());
+				cov += ol_end - ol_start + 1;
 			}
 		}
-
-		//calculate output
-		for (int i=0; i<bed_file.count(); ++i)
-		{
-			bed_file[i].annotations().append(QByteArray ::number((double)(cov[i]) / bed_file[i].length(), 'f', decimals));
-		}
+		bed_line.annotations().append(QByteArray::number((double)cov / bed_line.length(), 'f', decimals));
 	}
 }
 
@@ -2662,6 +2625,10 @@ GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double 
 	BamAlignment al;
 	while (reader.getNextAlignment(al))
 	{
+		if (!al.isProperPair()) continue;
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
+		if (al.isDuplicate()) continue;
+
 		++count_x;
 	}
 
@@ -2671,6 +2638,10 @@ GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double 
 	reader.setRegion(chry, 1, reader.chromosomeSize(chry));
 	while (reader.getNextAlignment(al))
 	{
+		if (!al.isProperPair()) continue;
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
+		if (al.isDuplicate()) continue;
+
 		++count_y;
 	}
 	double ratio_yx = (double) count_y / count_x;
@@ -2740,22 +2711,15 @@ GenderEstimate Statistics::genderHetX(GenomeBuild build, QString bam_file, doubl
 
 GenderEstimate Statistics::genderSRY(GenomeBuild build, QString bam_file, double min_cov, const QString& ref_file)
 {
-	//open BAM file
-	BamReader reader(bam_file, ref_file);
-
-	//restrict to SRY gene
+	//construct ROI
 	int start = build==GenomeBuild::HG38 ? 2786989 : 2655031;
 	int end = build==GenomeBuild::HG38 ? 2787603 : 2655641;
-	reader.setRegion(Chromosome("chrY"), start, end);
+	BedFile roi;
+	roi.append(BedLine("chrY", start, end));
 
-	//calcualte average coverage
-	double cov = 0.0;
-	BamAlignment al;
-	while (reader.getNextAlignment(al))
-	{
-		cov += al.length();
-	}
-	cov /= (end-start);
+	//calculate coverage
+	Statistics::avgCoverage(roi, bam_file, 1, false, 2 , ref_file);
+	double cov =  roi[0].annotations()[0].toDouble();
 
 	//output
 	GenderEstimate output;

@@ -27,6 +27,7 @@ public:
 	virtual FileInfo analysisJobLatestLogInfo(const int& job_id) const override;
 	virtual FileLocation analysisJobGSvarFile(const int& job_id) const override;
 	virtual FileLocation analysisJobLogFile(const int& job_id) const override;
+	virtual QList<MultiSampleAnalysisInfo> getMultiSampleAnalysisInfo(QStringList& analyses) const override;
 
 protected:	
 	QByteArray makeGetApiCall(QString api_path, RequestUrlParams params, bool ignore_if_missing) const;
