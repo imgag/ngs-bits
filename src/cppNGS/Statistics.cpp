@@ -1491,7 +1491,9 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 				QByteArrayList annos = variants[i].vepAnnotations(i_csq_gnomad);
 				foreach (const QByteArray& anno, annos)
 				{
-					if (anno.toDouble()>0.01)
+					bool ok = false;
+					double tmp = anno.toDouble(&ok);
+					if (ok && tmp>0.01)
 					{
 						is_known = true;
 						break;
