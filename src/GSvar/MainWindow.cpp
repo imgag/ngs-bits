@@ -3746,7 +3746,7 @@ void MainWindow::checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues)
 	}
 
 	//check GenLab Labornummer is present (for diagnostic samples only)
-	if (GenLabDB::isAvailable() || NGSD::isAvailable())
+	if (GenLabDB::isAvailable() && NGSD::isAvailable())
 	{
 		NGSD db;
 		foreach(const SampleInfo& info, variants_.getSampleHeader())
