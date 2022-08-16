@@ -536,6 +536,11 @@ RtfTable SomaticRnaReport::partGeneExpression()
 	table.addRow(RtfTableRow({"Gen", "Pathogenität", "Signalweg", "Tumorprobe TPM", "Normalprobe TPM", "Bewertung", "Tumortyp MW TPM", "Veränderung (-fach)"},	{1237, 1237, 1758, 1137, 1137, 937, 1237, 1241}, RtfParagraph().setHorizontalAlignment("c").setBold(true)).setHeader().setBorders(1, "brdrhair", 2));
 	for(int i=2; i<table[1].count(); ++i) table[1][i].setBackgroundColor(4);
 
+	//Sort genes by gene name instead of pathway:
+	std::sort(pathways_.begin(), pathways_.end(), [](expression_data a, expression_data b) {
+		return a.symbol < b.symbol;
+	});
+
 	for(const auto& data : pathways_)
 	{
 		RtfTableRow row;
@@ -604,15 +609,18 @@ RtfSourceCode SomaticRnaReport::partTop10Expression()
 
 	QList<expression_data> activating_genes;
 	QList<expression_data> lof_genes;
+
 	for(const auto& data : high_confidence_expression_)
 	{
-		if(data.role.role == SomaticGeneRole::Role::ACTIVATING && data.tumor_tpm >= 10) activating_genes << data;
-		if(data.role.role == SomaticGeneRole::Role::LOSS_OF_FUNCTION) lof_genes << data;
+		if(data.role.role == SomaticGeneRole::Role::ACTIVATING		 && data.tumor_tpm >= 10 && data.cohort_mean_tpm > 10) activating_genes << data;
+		if(data.role.role == SomaticGeneRole::Role::LOSS_OF_FUNCTION && data.tumor_tpm >= 10 && data.cohort_mean_tpm > 10) lof_genes << data;
 	}
 
 	//sort by log2fc, descending for activating expression, ascending for LoF genes
 	std::sort(activating_genes.begin(), activating_genes.end(), [](const expression_data& rhs, const expression_data& lhs){return rhs.log2fc > lhs.log2fc;});
+	std::stable_sort(activating_genes.begin(), activating_genes.end(), [](const expression_data& rhs, const expression_data& lhs){return rank( rhs.tumor_tpm , rhs.hpa_ref_tpm, rhs.role.role ) < rank( lhs.tumor_tpm , lhs.hpa_ref_tpm, lhs.role.role );});
 	std::sort(lof_genes.begin(), lof_genes.end(), [](const expression_data& rhs, const expression_data& lhs){return rhs.log2fc < lhs.log2fc;});
+	std::stable_sort(lof_genes.begin(), lof_genes.end(), [](const expression_data& rhs, const expression_data& lhs){return rank( rhs.tumor_tpm , rhs.hpa_ref_tpm, rhs.role.role ) < rank( lhs.tumor_tpm , lhs.hpa_ref_tpm, lhs.role.role );});
 
 	QList<expression_data> genes_to_be_reported;
 	genes_to_be_reported << activating_genes.mid(0, 10) << lof_genes.mid(0, 10);
@@ -644,6 +652,7 @@ RtfSourceCode SomaticRnaReport::partTop10Expression()
 		row.addCell( 1488, formatDigits(data.cohort_mean_tpm), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
 		row.addCell( 1492, formatDigits(std::pow(2., data.log2fc), 1), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+
 
 		for(int i=2; i<row.count(); ++i) row[i].setBackgroundColor(4);
 

@@ -140,6 +140,9 @@ public:
 	QString hrdStatement() const;
 	void setHrdStatement(const QString& hrd_statement);
 
+	double ploidy() const;
+	void setPloidy(double ploidy);
+
 private:
 	QList<SomaticReportVariantConfiguration> variant_config_;
 
@@ -156,6 +159,7 @@ private:
 	bool include_msi_status_;
 	bool include_cnv_burden_;
 	int hrd_score_; //0 no HRD; 1,2 low; 3 intermediate HRD; 4,5 high HRD
+	double ploidy_;
 
 	QString hrd_statement_;
 
