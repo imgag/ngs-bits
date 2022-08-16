@@ -518,6 +518,7 @@
       <iconset resource="GSvar.qrc">
        <normaloff>:/Icons/Add_batch.png</normaloff>:/Icons/Add_batch.png</iconset>
      </property>
+     <addaction name="actionImportSequencingRuns"/>
      <addaction name="actionImportSamples"/>
      <addaction name="actionImportProcessedSamples"/>
      <addaction name="actionImportSampleRelations"/>
@@ -1238,7 +1239,7 @@
   </action>
   <action name="actionImportStudy">
    <property name="text">
-    <string>Study</string>
+    <string>Study samples</string>
    </property>
   </action>
   <action name="actionCfDNADiseaseCourse">
@@ -1445,6 +1446,11 @@
    </property>
    <property name="toolTip">
     <string>Show splicing prediction of RNA sample</string>
+   </property>
+  </action>
+  <action name="actionImportSequencingRuns">
+   <property name="text">
+    <string>Sequencing run</string>
    </property>
   </action>
  </widget>

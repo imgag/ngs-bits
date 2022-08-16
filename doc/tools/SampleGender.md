@@ -1,5 +1,5 @@
 ### SampleGender tool help
-	SampleGender (2021_12-80-g5ff26d8f)
+	SampleGender (2022_07-52-g9fafa140)
 	
 	Determines the gender of a sample from the BAM/CRAM file.
 	
@@ -34,8 +34,9 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleGender changelog
-	SampleGender 2021_12-80-g5ff26d8f
+	SampleGender 2022_07-52-g9fafa140
 	
+	2022-08-05 Ignoring duplicate, secondary and supplementary alignments in methods 'xy' and 'sry' now.
 	2020-11-27 Added CRAM support.
 	2018-07-13 Change of output to TSV format for batch support.
 	2018-07-11 Added build switch for hg38 support.

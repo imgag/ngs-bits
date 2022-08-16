@@ -27,7 +27,7 @@ public:
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addFlag("clear", "Clear previous annotation columns before annotating (starting from 4th column).");
 
-		changeLog(2022,  8, 12, "Added parameter to clear previous annotation columns (.");
+		changeLog(2022,  8, 12, "Added parameter to clear previous annotation columns.");
 		changeLog(2022,  8,  9, "Removed mode parameter (panel mode is always used now).");
 		changeLog(2020, 11, 27, "Added CRAM support.");
 		changeLog(2017,  6,  2, "Added 'dup' parameter.");

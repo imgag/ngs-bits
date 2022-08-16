@@ -4861,14 +4861,14 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 	// load input text as table
 	QList<QStringList> table_content;
 	QStringList lines = edit->toPlainText().split("\n");
-	foreach(QString line, lines)
+	foreach(const QString& line, lines)
 	{
-		// skip comments and empty lines
-		if (line.trimmed().isEmpty() || line[0]=='#') continue;
+		// skip empty lines
+		if (line.trimmed().isEmpty()) continue;
 
-		QStringList parts = line.split("\t");
-		table_content.append(parts);
+		table_content.append(line.split("\t"));
 	}
+
 	NGSD db;
 
 	//special handling of processed sample: add 'process_id' and get the list of all cfDNA processing systems
@@ -5511,6 +5511,15 @@ void MainWindow::on_actionExportTestData_triggered()
 	{
 		GUIHelper::showException(this, e, "NGSD export error");
 	}
+}
+
+void MainWindow::on_actionImportSequencingRuns_triggered()
+{
+	importBatch("Import sequencing runs",
+				"Batch import of sequencing runs. Must contain the following tab-separated fields:<br><b>name</b>, flowcell ID, <b>flowcell type</b>, start date, end date, <b>device</b>, <b>recipe</b>, pool_molarity, <b>pool quantification method</b>, comment",
+				"sequencing_run",
+				QStringList() << "name" << "fcid" << "flowcell_type" << "start_date" << "end_date" << "device_id" << "recipe" << "pool_molarity" << "pool_quantification_method" << "comment"
+				);
 }
 
 void MainWindow::on_actionImportTestData_triggered()
