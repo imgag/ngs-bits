@@ -1743,9 +1743,9 @@ RtfSourceCode SomaticReportHelper::partPathways()
 				QByteArrayList rtf_text;
 				foreach(const PathwaysEntry& entry, entries)
 				{
-					RtfText tmp(entry.gene + " " + entry.alteration);
-					tmp.setBold(entry.highlight);
-					rtf_text << tmp.RtfCode();
+					QByteArray text = RtfText(entry.gene).setFontSize(18).RtfCode() + " " + RtfText(entry.alteration).setFontSize(16).RtfCode();
+					if (!entry.highlight) text = RtfText("[ ").setFontSize(18).RtfCode() + text + RtfText(" ]").setFontSize(18).RtfCode();
+					rtf_text << text;
 				}
 				contents << rtf_text.join("\\line\n");
 			}
@@ -1756,13 +1756,13 @@ RtfSourceCode SomaticReportHelper::partPathways()
 			}
 		}
 		table.addRow(RtfTableRow(headers,{2480,2480,2480,2480},RtfParagraph().setHorizontalAlignment("c").setBold(true).setItalic(true)).setHeader().setBorders(1,"brdrhair",4).setBackgroundColor(5));
-		table.addRow(RtfTableRow(contents,{2480,2480,2480,2480},RtfParagraph().setHorizontalAlignment("c")).setBorders(1,"brdrhair",4));
+		table.addRow(RtfTableRow(contents,{2480,2480,2480,2480},RtfParagraph().setHorizontalAlignment("c").setLineSpacing(276)).setBorders(1,"brdrhair",4));
 	}
 
 	//add description below table
 	RtfSourceCode desc = "";
 	desc += RtfText("Beschreibung: ").setFontSize(14).setBold(true).RtfCode();
-	desc += "Die nachgewiesenen potentiell relevanten somatischen Veränderungen (fett hervorgehoben) und die unklaren Varianten wurden nach den wichtigsten molekularen Signalwegen sortiert. Die Zugehörigkeit eines Gens zu einem bestimmten Signalweg wurde durch das Molekulare Tumorboard Tübingen festgestellt.";
+	desc += "Die nachgewiesenen potentiell relevanten somatischen Veränderungen und die unklaren Varianten (in eckigen Klammern) wurden nach den wichtigsten molekularen Signalwegen sortiert. Die Zugehörigkeit eines Gens zu einem bestimmten Signalweg wurde durch das Molekulare Tumorboard Tübingen festgestellt.";
 	table.addRow(RtfTableRow(desc,{doc_.maxWidth()},RtfParagraph().setFontSize(14).setHorizontalAlignment("j")));
 
 	return table.RtfCode();
