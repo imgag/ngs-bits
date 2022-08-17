@@ -1,5 +1,11 @@
 # GSvar change log
 
+### 2022_07-92 (17.08.22)
+- Report: updated somatic tumor-normal report (added target region size, formatting pathway table, added ploidy)
+- Report: updated somatic RNA report (formatting)
+- NGSD: added sequencing run batch import
+
+
 ### 2022_07-52 (03.08.22)
 - Germline report: fixed bug in re-calculation of average target region depth (-1 was shown).
 - Preferred transcripts dialog: added button to check entries.
