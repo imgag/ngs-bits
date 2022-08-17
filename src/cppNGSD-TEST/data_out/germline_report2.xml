@@ -69,12 +69,17 @@
             <GeneDiseaseInformation gene="SPG7" gene_identifier="HGNC:11237" source="OMIM phenotype" identifier="607259" name="Spastic paraplegia 7, autosomal recessive, 607259 (3)"/>
         </Variant>
     </VariantList>
-    <CnvList cnv_caller="ClinCNV" overall_number="1" genome_build="GRCh38" quality="good" number_of_iterations="1" number_of_hq_cnvs="127" correlation_ref_samples="0.996">
+    <CnvList cnv_caller="ClinCNV" overall_number="2" genome_build="GRCh38" quality="good" number_of_iterations="1" number_of_hq_cnvs="127" correlation_ref_samples="0.996">
         <Cnv chr="chr21" start="10541092" end="10649856" start_band="21p11.2" end_band="21p11.2" type="del" cn="1" regions="22" causal="false" de_novo="false" comp_het="true" mosaic="false" rna_info="no splicing effect found in RNA dataset" report_type="diagnostic variant">
             <Gene name="IGHV1OR21-1" identifier="n/a"/>
             <Gene name="TPTE" identifier="n/a"/>
             <ExternalLink url="http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg38/?name=chr21:10541092-10649856" type="DGV"/>
             <ExternalLink url="https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&amp;position=chr21:10541092-10649856" type="UCSC"/>
+        </Cnv>
+        <Cnv chr="chr21" start="26866710" end="26994365" start_band="21q21.3" end_band="21q21.3" type="dup" cn="3" regions="13" causal="false" de_novo="false" comp_het="true" mosaic="false" rna_info="no splicing effect found in RNA dataset" manual_start="26799369" manual_end="26991734" report_type="diagnostic variant">
+            <Gene name="ADAMTS5" identifier="n/a"/>
+            <ExternalLink url="http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg38/?name=chr21:26866710-26994365" type="DGV"/>
+            <ExternalLink url="https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&amp;position=chr21:26866710-26994365" type="UCSC"/>
         </Cnv>
     </CnvList>
     <SvList sv_caller="Manta" overall_number="87" genome_build="GRCh38">

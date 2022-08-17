@@ -24,6 +24,10 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 	{
 		connect(widget, SIGNAL(textChanged()), this, SLOT(activateOkButtonIfValid()));
 	}
+	foreach(QLineEdit* widget, findChildren<QLineEdit*>())
+	{
+		connect(widget, SIGNAL(textChanged(QString)), this, SLOT(activateOkButtonIfValid()));
+	}
 
 	//fill combo-boxes
 	QStringList types;
@@ -100,7 +104,6 @@ void ReportVariantDialog::updateGUI()
 	//manual curation CNVs
 	if (config_.variant_type==VariantType::CNVS)
 	{
-		qDebug() << config_.manual_cnv_start.type() << config_.manual_cnv_start.isValid() << config_.manual_cnv_start.toString();
 		ui_.manual_cnv_start->setText(config_.manual_cnv_start.toString());
 		ui_.manual_cnv_end->setText(config_.manual_cnv_end.toString());
 	}
@@ -141,18 +144,23 @@ void ReportVariantDialog::writeBack(ReportVariantConfiguration& rvc)
 	if (rvc.variant_type==VariantType::CNVS)
 	{
 		QString start_text = ui_.manual_cnv_start->text().trimmed();
-		qDebug() << __LINE__ << start_text;
-		if (!start_text.isEmpty())
+		if (start_text.isEmpty())
+		{
+			rvc.manual_cnv_start = QVariant();
+		}
+		else
 		{
 			bool ok = false;
 			int start = start_text.toInt(&ok);
-			qDebug() << __LINE__ << start;
-			if (ok) rvc.manual_cnv_start = ok ? QVariant(start) : QVariant(start_text); //not ok > error in validation because of wrong QVariant type
-			qDebug() << __LINE__ << rvc.manual_cnv_start;
+			rvc.manual_cnv_start = ok ? QVariant(start) : QVariant(start_text); //not ok > error in validation because of wrong QVariant type
 		}
 
 		QString end_text = ui_.manual_cnv_end->text().trimmed();
-		if (!end_text.isEmpty())
+		if (end_text.isEmpty())
+		{
+			rvc.manual_cnv_end = QVariant();
+		}
+		else
 		{
 			bool ok = false;
 			int end = end_text.toInt(&ok);

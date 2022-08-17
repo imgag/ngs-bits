@@ -1603,6 +1603,19 @@ private slots:
 			var_conf.rna_info = "no splicing effect found in RNA dataset";
 			report_settings.report_config->set(var_conf);
 
+			report_settings.selected_variants.append(qMakePair(VariantType::CNVS, 1)); //CNV - het duplcation (manually curated start/end)
+			var_conf.variant_type = VariantType::CNVS;
+			var_conf.variant_index = 1;
+			var_conf.causal = false;
+			var_conf.mosaic = false;
+			var_conf.de_novo = false;
+			var_conf.comp_het = true;
+			var_conf.report_type = "diagnostic variant";
+			var_conf.rna_info = "no splicing effect found in RNA dataset";
+			var_conf.manual_cnv_start = 26799369;
+			var_conf.manual_cnv_end = 26991734;
+			report_settings.report_config->set(var_conf);
+
 			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 3)); //SV - Insertion
 			var_conf.variant_type = VariantType::SVS;
 			var_conf.variant_index = 3;

@@ -40,7 +40,7 @@
         <QcTerm id="QC:2000109" name="covered gene count" def="Number of covered genes (TPM &gt;= 1.0)" value="136985"/>
     </RNASample>
     <VariantList overall_number="319" genome_build="GRCh38"/>
-    <CnvList cnv_caller="ClinCNV" overall_number="1" genome_build="GRCh38" quality="good" number_of_iterations="1" number_of_hq_cnvs="127" correlation_ref_samples="0.996"/>
+    <CnvList cnv_caller="ClinCNV" overall_number="2" genome_build="GRCh38" quality="good" number_of_iterations="1" number_of_hq_cnvs="127" correlation_ref_samples="0.996"/>
     <SvList sv_caller="Manta" overall_number="87" genome_build="GRCh38"/>
     <PrsList>
         <Prs id="PGS000004" trait="Breast Cancer" citation="Mavaddat N et al. Am J Hum Genet (2018). doi:10.1016/j.ajhg.2018.11.002" score="-0.2773" percentile="53"/>

@@ -65,19 +65,19 @@ bool ReportVariantConfiguration::isValid(QStringList& errors)
 	}
 
 	//check types of nullable
-	if (!manual_cnv_start.isNull())
+	if (manual_cnv_start.isValid() && !manual_cnv_start.toString().trimmed().isEmpty())
 	{
 		if (variant_type==VariantType::CNVS)
 		{
-			if(manual_cnv_start.type()!=QVariant::Type::Int) errors << "manual CNV start position is set, but not an integer. Value is '" + manual_cnv_start.toString() + "'";
+			if(!manualCnvStartIsValid()) errors << "manual CNV start position is set, but not a valid integer. Value is '" + manual_cnv_start.toString() + "'";
 		}
 		else errors << "manual CNV start position is set for variant which is not a CNV!";
 	}
-	if (!manual_cnv_end.isNull())
+	if (manual_cnv_end.isValid() && !manual_cnv_end.toString().trimmed().isEmpty())
 	{
 		if (variant_type==VariantType::CNVS)
 		{
-			if(manual_cnv_end.type()!=QVariant::Type::Int) errors << "manual CNV end position is set, but not an integer. Value is '" + manual_cnv_end.toString() + "'";
+			if(!manualCnvEndIsValid()) errors << "manual CNV end position is set, but not a valid integer. Value is '" + manual_cnv_end.toString() + "'";
 		}
 		else errors << "manual CNV end position is set for variant which is not a CNV!";
 	}
@@ -106,6 +106,30 @@ bool ReportVariantConfiguration::operator==(const ReportVariantConfiguration& rh
 			rna_info == rhs.rna_info &&
 			manual_cnv_start == rhs.manual_cnv_start &&
 			manual_cnv_end == rhs.manual_cnv_end;
+}
+
+bool ReportVariantConfiguration::manualCnvStartIsValid() const
+{
+	if (!manual_cnv_start.isValid()) return false;
+	if (manual_cnv_start.type()!=QVariant::Type::Int) return false;
+
+	bool ok = false;
+	int value = manual_cnv_start.toInt(&ok);
+	if (!ok) return false;
+
+	return value>0;
+}
+
+bool ReportVariantConfiguration::manualCnvEndIsValid() const
+{
+	if (!manual_cnv_end.isValid()) return false;
+	if (manual_cnv_end.type()!=QVariant::Type::Int) return false;
+
+	bool ok = false;
+	int value = manual_cnv_end.toInt(&ok);
+	if (!ok) return false;
+
+	return value>0;
 }
 
 QStringList ReportVariantConfiguration::getTypeOptions()

@@ -44,6 +44,8 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	//type-specific data
 	QVariant manual_cnv_start; //int
 	QVariant manual_cnv_end; //int
+	bool manualCnvStartIsValid() const;
+	bool manualCnvEndIsValid() const;
 
 	//Returns options for 'type' (taken and cached from NGSD)
 	static QStringList getTypeOptions();

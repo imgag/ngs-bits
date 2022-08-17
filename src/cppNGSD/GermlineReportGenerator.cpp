@@ -253,10 +253,28 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		if (var_conf.variant_type!=VariantType::CNVS) continue;
 		if (!selected_cnvs_.contains(var_conf.variant_index)) continue;
 
-		const CopyNumberVariant& cnv = data_.cnvs[var_conf.variant_index];
+		CopyNumberVariant cnv = data_.cnvs[var_conf.variant_index];
+
+		//manually curated start/end > update gene list
+		bool manually_curated = false;
+		if (var_conf.manualCnvStartIsValid())
+		{
+			cnv.setStart(var_conf.manual_cnv_start.toInt());
+			manually_curated = true;
+		}
+		if (var_conf.manualCnvEndIsValid())
+		{
+			cnv.setEnd(var_conf.manual_cnv_end.toInt());
+			manually_curated = true;
+		}
+		GeneSet genes = cnv.genes();
+		if (manually_curated)
+		{
+			genes = db_.genesOverlapping(cnv.chr(), cnv.start(), cnv.end(), 5000);
+		}
 
 		stream << "<tr>" << endl;
-		stream << "<td>" << cnv.toString() << "</td>" << endl;
+		stream << "<td>" << cnv.toString() << (manually_curated ? " (manually curated)" : "") << "</td>" << endl;
 		stream << "<td>" << std::max(1, cnv.regions()) << "</td>" << endl; //trio CNV lists don't contain number of regions > fix
 
 		QString cn = QString::number(cnv.copyNumber(data_.cnvs.annotationHeaders()));
@@ -264,7 +282,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		if (var_conf.mosaic) cn += " (mosaic)";
 		if (var_conf.comp_het) cn += " (comp-het)";
 		stream << "<td>" << cn << "</td>" << endl;
-		stream << "<td>" << cnv.genes().join(", ") << "</td>" << endl;
+		stream << "<td>" << genes.join(", ") << "</td>" << endl;
 		stream << "<td>" << var_conf.classification << "</td>" << endl;
 		stream << "<td>" << var_conf.inheritance << "</td>" << endl;
 		stream << "<td>" << trans(var_conf.rna_info) << "</td>" << endl;
@@ -961,10 +979,15 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			w.writeAttribute("comments_2nd_assessor", var_conf.comments2.trimmed());
 		}
 		w.writeAttribute("rna_info", var_conf.rna_info);
+		if (var_conf.manualCnvStartIsValid())
+		{
+			w.writeAttribute("manual_start", var_conf.manual_cnv_start.toString());
+		}
+		if (var_conf.manualCnvEndIsValid())
+		{
+			w.writeAttribute("manual_end", var_conf.manual_cnv_end.toString());
+		}
 		w.writeAttribute("report_type", var_conf.report_type);
-
-		//w.writeAttribute("hgvs_start", );
-		//w.writeAttribute("hgvs_end", );
 
 		//element Gene
 		foreach(const QByteArray& gene, cnv.genes())
@@ -2282,11 +2305,30 @@ void GermlineReportGenerator::printVariantSheetRowHeaderCnv(QTextStream& stream,
 
 void GermlineReportGenerator::printVariantSheetRowCnv(QTextStream& stream, const ReportVariantConfiguration& conf)
 {
-	const CopyNumberVariant& cnv = data_.cnvs[conf.variant_index];
+	CopyNumberVariant cnv = data_.cnvs[conf.variant_index];
+
+	//manually curated start/end > update gene list
+	bool manually_curated = false;
+	if (conf.manualCnvStartIsValid())
+	{
+		cnv.setStart(conf.manual_cnv_start.toInt());
+		manually_curated = true;
+	}
+	if (conf.manualCnvEndIsValid())
+	{
+		cnv.setEnd(conf.manual_cnv_end.toInt());
+		manually_curated = true;
+	}
+	GeneSet genes = cnv.genes();
+	if (manually_curated)
+	{
+		genes = db_.genesOverlapping(cnv.chr(), cnv.start(), cnv.end(), 5000);
+	}
+
 	stream << "     <tr>" << endl;
-	stream << "       <td>" << cnv.toString() << "</td>" << endl;
+	stream << "       <td>" << cnv.toString() << (manually_curated ? " (manually curated)" : "") << "</td>" << endl;
 	stream << "       <td>" << cnv.copyNumber(data_.cnvs.annotationHeaders()) << "</td>" << endl;
-	stream << "       <td>" << cnv.genes().join(", ") << "</td>" << endl;
+	stream << "       <td>" << genes.join(", ") << "</td>" << endl;
 	stream << "       <td>" << conf.inheritance << "</td>" << endl;
 	if (conf.causal)
 	{

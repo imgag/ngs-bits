@@ -6059,9 +6059,14 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 		var_conf.rna_info = query.value("rna_info").toString();
 
 		//optional (QVariant)
-		var_conf.manual_cnv_start = query.value("manual_start");
-		var_conf.manual_cnv_end = query.value("manual_end");
-
+		if (query.value("manual_start").toInt()>0)
+		{
+			var_conf.manual_cnv_start = query.value("manual_start");
+		}
+		if (query.value("manual_end").toInt()>0)
+		{
+			var_conf.manual_cnv_end = query.value("manual_end");
+		}
 
 		output->set(var_conf);
 	}
@@ -6204,7 +6209,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 		SqlQuery query_var = getQuery();
 		query_var.prepare("INSERT INTO `report_configuration_variant`(`report_configuration_id`, `variant_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`, `rna_info`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15)");
 		SqlQuery query_cnv = getQuery();
-		query_cnv.prepare("INSERT INTO `report_configuration_cnv`(`report_configuration_id`, `cnv_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`, `rna_info`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16)");
+		query_cnv.prepare("INSERT INTO `report_configuration_cnv`(`report_configuration_id`, `cnv_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`, `rna_info`, `manual_start`, `manual_end`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18)");
 		SqlQuery query_sv = getQuery();
 		query_sv.prepare("INSERT INTO `report_configuration_sv`(`report_configuration_id`, `sv_deletion_id`, `sv_duplication_id`, `sv_insertion_id`, `sv_inversion_id`, `sv_translocation_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`, `rna_info`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20)");
 		foreach(const ReportVariantConfiguration& var_conf, config->variantConfig())
@@ -6290,6 +6295,8 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 				query_cnv.bindValue(14, var_conf.comments.isEmpty() ? "" : var_conf.comments);
 				query_cnv.bindValue(15, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
 				query_cnv.bindValue(16, var_conf.rna_info.isEmpty() ? "n/a" : var_conf.rna_info);
+				query_cnv.bindValue(17, var_conf.manualCnvStartIsValid() ? var_conf.manual_cnv_start.toInt() : QVariant());
+				query_cnv.bindValue(18, var_conf.manualCnvEndIsValid() ? var_conf.manual_cnv_end.toInt() : QVariant());
 
 				query_cnv.exec();
 
