@@ -80,7 +80,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 	for( QString pathway : db_.getValues("SELECT CONCAT(spg.symbol, '\t', sp.name) FROM somatic_pathway_gene as spg, somatic_pathway as sp WHERE sp.id = spg.pathway_id") )
 	{
 		QByteArrayList parts = pathway.toUtf8().split('\t');
-		expression_data tmp_data;
+		ExpressionData tmp_data;
 		tmp_data.symbol = parts[0];
 		tmp_data.pathway = parts[1];
 
@@ -145,7 +145,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 
 		if( pathway_genes.contains(parts[i_gene]) )
 		{
-			for(expression_data& data : pathways_)
+			for(ExpressionData& data : pathways_)
 			{
 				if(data.symbol != parts[i_gene]) continue;
 				data.tumor_tpm = toDouble(parts[i_tpm]);
@@ -158,7 +158,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 
 		if( genes_with_var.contains(parts[i_gene]) )
 		{
-			expression_data data;
+			ExpressionData data;
 			data.symbol = parts[i_gene];
 			data.tumor_tpm = toDouble(parts[i_tpm]);
 			data.hpa_ref_tpm = toDouble(parts[i_hpa]);
@@ -172,7 +172,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 		//Add highly confident expression
 		if( toDouble(parts[i_pvalue]) < 0.05)
 		{
-			expression_data data;
+			ExpressionData data;
 			data.symbol = parts[i_gene];
 			data.role = db_.getSomaticGeneRole(parts[i_gene]);
 			data.tumor_tpm = toDouble(parts[i_tpm]);
@@ -196,7 +196,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 	}
 
 	//sort high confident by logfold change
-	std::sort(high_confidence_expression_.begin(), high_confidence_expression_.end(), [](const expression_data& rhs, const expression_data& lhs){return rhs.log2fc < lhs.log2fc;});
+	std::sort(high_confidence_expression_.begin(), high_confidence_expression_.end(), [](const ExpressionData& rhs, const ExpressionData& lhs){return rhs.log2fc < lhs.log2fc;});
 }
 
 bool SomaticRnaReport::checkRequiredSNVAnnotations(const VariantList& variants)
@@ -366,7 +366,7 @@ RtfTable SomaticRnaReport::partSnvTable()
 
 		VariantTranscript trans = SomaticReportHelper::selectSomaticTranscript(var, data_, i_co_sp);
 
-		expression_data data = expression_per_gene_.value(trans.gene, expression_data());
+		ExpressionData data = expression_per_gene_.value(trans.gene, ExpressionData());
 
 		VariantDetails var_details = bam_file.getVariantDetails(FastaFileIndex(data_.ref_genome_fasta_file), var );
 
@@ -441,7 +441,7 @@ RtfTable SomaticRnaReport::partCnvTable()
 			if( !SomaticCnvInterpreter::includeInReport(dna_cnvs_,cnv, role) ) continue;
 			if( !role.high_evidence) continue;
 
-			expression_data expr_data = expression_per_gene_.value(gene, expression_data());
+			ExpressionData expr_data = expression_per_gene_.value(gene, ExpressionData());
 
 
 			RtfTableRow temp;
@@ -537,7 +537,7 @@ RtfTable SomaticRnaReport::partGeneExpression()
 	for(int i=2; i<table[1].count(); ++i) table[1][i].setBackgroundColor(4);
 
 	//Sort genes by gene name instead of pathway:
-	std::sort(pathways_.begin(), pathways_.end(), [](expression_data a, expression_data b) {
+	std::sort(pathways_.begin(), pathways_.end(), [](ExpressionData a, ExpressionData b) {
 		return a.symbol < b.symbol;
 	});
 
@@ -607,8 +607,8 @@ RtfSourceCode SomaticRnaReport::partTop10Expression()
 {
 	RtfTable table;
 
-	QList<expression_data> activating_genes;
-	QList<expression_data> lof_genes;
+	QList<ExpressionData> activating_genes;
+	QList<ExpressionData> lof_genes;
 
 	for(const auto& data : high_confidence_expression_)
 	{
@@ -617,12 +617,12 @@ RtfSourceCode SomaticRnaReport::partTop10Expression()
 	}
 
 	//sort by log2fc, descending for activating expression, ascending for LoF genes
-	std::sort(activating_genes.begin(), activating_genes.end(), [](const expression_data& rhs, const expression_data& lhs){return rhs.log2fc > lhs.log2fc;});
-	std::stable_sort(activating_genes.begin(), activating_genes.end(), [](const expression_data& rhs, const expression_data& lhs){return rank( rhs.tumor_tpm , rhs.hpa_ref_tpm, rhs.role.role ) < rank( lhs.tumor_tpm , lhs.hpa_ref_tpm, lhs.role.role );});
-	std::sort(lof_genes.begin(), lof_genes.end(), [](const expression_data& rhs, const expression_data& lhs){return rhs.log2fc < lhs.log2fc;});
-	std::stable_sort(lof_genes.begin(), lof_genes.end(), [](const expression_data& rhs, const expression_data& lhs){return rank( rhs.tumor_tpm , rhs.hpa_ref_tpm, rhs.role.role ) < rank( lhs.tumor_tpm , lhs.hpa_ref_tpm, lhs.role.role );});
+	std::sort(activating_genes.begin(), activating_genes.end(), [](const ExpressionData& rhs, const ExpressionData& lhs){return rhs.log2fc > lhs.log2fc;});
+	std::stable_sort(activating_genes.begin(), activating_genes.end(), [](const ExpressionData& rhs, const ExpressionData& lhs){return rank( rhs.tumor_tpm , rhs.hpa_ref_tpm, rhs.role.role ) < rank( lhs.tumor_tpm , lhs.hpa_ref_tpm, lhs.role.role );});
+	std::sort(lof_genes.begin(), lof_genes.end(), [](const ExpressionData& rhs, const ExpressionData& lhs){return rhs.log2fc < lhs.log2fc;});
+	std::stable_sort(lof_genes.begin(), lof_genes.end(), [](const ExpressionData& rhs, const ExpressionData& lhs){return rank( rhs.tumor_tpm , rhs.hpa_ref_tpm, rhs.role.role ) < rank( lhs.tumor_tpm , lhs.hpa_ref_tpm, lhs.role.role );});
 
-	QList<expression_data> genes_to_be_reported;
+	QList<ExpressionData> genes_to_be_reported;
 	genes_to_be_reported << activating_genes.mid(0, 10) << lof_genes.mid(0, 10);
 
 	table.addRow( RtfTableRow({"Expression bestimmter Gene"}, {9921}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
@@ -919,7 +919,7 @@ RtfSourceCode SomaticRnaReport::formatDigits(double in, int digits)
 	return QByteArray::number(in, 'f', digits);
 }
 
-RtfSourceCode SomaticRnaReport::expressionChange(const expression_data& data)
+RtfSourceCode SomaticRnaReport::expressionChange(const ExpressionData& data)
 {
 	RtfSourceCode out = "-";
 	if(data.pvalue < 0.05) out = formatDigits(std::pow(2., data.log2fc), 1) + "\\super*";

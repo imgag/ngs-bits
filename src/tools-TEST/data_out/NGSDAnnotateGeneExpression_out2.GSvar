@@ -139,8 +139,8 @@ chr1	1987049	1987049	A	G	het		QUAL=832;DP=100;AF=0.36;MQM=60;SAP=9;ABP=20	CFAP74
 chr1	1987096	1987096	A	T	het	off-target	QUAL=490;DP=61;AF=0.38;MQM=60;SAP=8;ABP=11	CFAP74	CFAP74 (inh=n/a oe_syn=0.88 oe_mis=0.86 oe_lof=0.56)	0	0	nan
 chr1	1988995	1988995	-	A	het	off-target	QUAL=14;DP=9;AF=0.33;MQM=60;SAP=10;ABP=5	CFAP74	CFAP74 (inh=n/a oe_syn=0.88 oe_mis=0.86 oe_lof=0.56)	0	0	nan
 chr1	1990864	1990864	C	T	het	off-target	QUAL=1055;DP=75;AF=0.53;MQM=60;SAP=5;ABP=4	CFAP74	CFAP74 (inh=n/a oe_syn=0.88 oe_mis=0.86 oe_lof=0.56)	0	0	nan
-chr1	2397275	2397275	A	G	hom	off-target	QUAL=1733;DP=58;AF=1.00;MQM=60;SAP=75;ABP=0	RER1	RER1 (inh=n/a oe_syn=1.20 oe_mis=0.46 oe_lof=0.22)	191.813	0.99254	1
-chr1	2400952	2400952	C	T	het		QUAL=1522;DP=157;AF=0.40;MQM=60;SAP=3;ABP=16	RER1	RER1 (inh=n/a oe_syn=1.20 oe_mis=0.46 oe_lof=0.22), PEX10 (inh=AR oe_syn=1.00 oe_mis=1.06 oe_lof=0.48)	191.813	0.99254	1
+chr1	2397275	2397275	A	G	hom	off-target	QUAL=1733;DP=58;AF=1.00;MQM=60;SAP=75;ABP=0	RER1	RER1 (inh=n/a oe_syn=1.20 oe_mis=0.46 oe_lof=0.22)	191.813	0.992537	1
+chr1	2400952	2400952	C	T	het		QUAL=1522;DP=157;AF=0.40;MQM=60;SAP=3;ABP=16	RER1	RER1 (inh=n/a oe_syn=1.20 oe_mis=0.46 oe_lof=0.22), PEX10 (inh=AR oe_syn=1.00 oe_mis=1.06 oe_lof=0.48)	191.813	0.992537	1
 chr1	2405838	2405838	C	T	het		QUAL=669;DP=67;AF=0.42;MQM=60;SAP=8;ABP=7	PEX10	RER1 (inh=n/a oe_syn=1.20 oe_mis=0.46 oe_lof=0.22), PEX10 (inh=AR oe_syn=1.00 oe_mis=1.06 oe_lof=0.48)			
 chr1	2406687	2406687	C	A	het	off-target	QUAL=2176;DP=144;AF=0.57;MQM=60;SAP=6;ABP=9	PEX10	RER1 (inh=n/a oe_syn=1.20 oe_mis=0.46 oe_lof=0.22), PEX10 (inh=AR oe_syn=1.00 oe_mis=1.06 oe_lof=0.48)			
 chr1	2408634	2408634	C	G	het		QUAL=1072;DP=87;AF=0.48;MQM=60;SAP=8;ABP=3	PEX10	RER1 (inh=n/a oe_syn=1.20 oe_mis=0.46 oe_lof=0.22), PEX10 (inh=AR oe_syn=1.00 oe_mis=1.06 oe_lof=0.48)			
@@ -188,12 +188,12 @@ chr1	7663897	7663897	G	A	het		QUAL=3886;DP=237;AF=0.60;MQM=60;SAP=3;ABP=23	CAMTA
 chr1	7665224	7665224	C	A	het	off-target	QUAL=390;DP=38;AF=0.47;MQM=60;SAP=7;ABP=3	CAMTA1	CAMTA1 (inh=AD oe_syn=0.96 oe_mis=0.71 oe_lof=0.09)	0	-4.43274	-1
 chr1	7677739	7677739	A	G	het		QUAL=1305;DP=110;AF=0.48;MQM=60;SAP=53;ABP=3	CAMTA1	CAMTA1 (inh=AD oe_syn=0.96 oe_mis=0.71 oe_lof=0.09)	0	-4.43274	-1
 chr1	7785635	7785635	T	C	hom	off-target	QUAL=801;DP=27;AF=1.00;MQM=60;SAP=46;ABP=0	PER3	VAMP3 (inh=n/a oe_syn=1.45 oe_mis=0.96 oe_lof=0.61), PER3 (inh=AD oe_syn=1.09 oe_mis=1.01 oe_lof=0.64)			
-chr1	9003543	9003543	G	C	hom	off-target	QUAL=1071;DP=36;AF=0.97;MQM=60;SAP=36;ABP=0	SLC2A7	SLC2A7 (inh=n/a oe_syn=1.09 oe_mis=1.00 oe_lof=1.22)	165.373	0.991356	1
-chr1	9004779	9004779	G	A	het		QUAL=1596;DP=102;AF=0.58;MQM=60;SAP=5;ABP=8	SLC2A7	SLC2A7 (inh=n/a oe_syn=1.09 oe_mis=1.00 oe_lof=1.22)	165.373	0.991356	1
-chr1	9014873	9014873	G	A	het		QUAL=251;DP=24;AF=0.50;MQM=60;SAP=15;ABP=3	SLC2A7	SLC2A7 (inh=n/a oe_syn=1.09 oe_mis=1.00 oe_lof=1.22)	165.373	0.991356	1
-chr1	9598407	9598407	T	G	het	off-target	QUAL=578;DP=63;AF=0.41;MQM=60;SAP=19;ABP=7	TMEM201	TMEM201 (inh=n/a oe_syn=0.97 oe_mis=0.82 oe_lof=0.11)	58.3165	0.975882	1
-chr1	9598649	9598649	G	A	het	off-target	QUAL=339;DP=38;AF=0.42;MQM=60;SAP=23;ABP=5	TMEM201	TMEM201 (inh=n/a oe_syn=0.97 oe_mis=0.82 oe_lof=0.11)	58.3165	0.975882	1
-chr1	9610776	9610776	C	T	het		QUAL=922;DP=53;AF=0.70;MQM=60;SAP=24;ABP=21	TMEM201	TMEM201 (inh=n/a oe_syn=0.97 oe_mis=0.82 oe_lof=0.11)	58.3165	0.975882	1
+chr1	9003543	9003543	G	C	hom	off-target	QUAL=1071;DP=36;AF=0.97;MQM=60;SAP=36;ABP=0	SLC2A7	SLC2A7 (inh=n/a oe_syn=1.09 oe_mis=1.00 oe_lof=1.22)	165.373	0.991354	1
+chr1	9004779	9004779	G	A	het		QUAL=1596;DP=102;AF=0.58;MQM=60;SAP=5;ABP=8	SLC2A7	SLC2A7 (inh=n/a oe_syn=1.09 oe_mis=1.00 oe_lof=1.22)	165.373	0.991354	1
+chr1	9014873	9014873	G	A	het		QUAL=251;DP=24;AF=0.50;MQM=60;SAP=15;ABP=3	SLC2A7	SLC2A7 (inh=n/a oe_syn=1.09 oe_mis=1.00 oe_lof=1.22)	165.373	0.991354	1
+chr1	9598407	9598407	T	G	het	off-target	QUAL=578;DP=63;AF=0.41;MQM=60;SAP=19;ABP=7	TMEM201	TMEM201 (inh=n/a oe_syn=0.97 oe_mis=0.82 oe_lof=0.11)	58.3165	0.975881	1
+chr1	9598649	9598649	G	A	het	off-target	QUAL=339;DP=38;AF=0.42;MQM=60;SAP=23;ABP=5	TMEM201	TMEM201 (inh=n/a oe_syn=0.97 oe_mis=0.82 oe_lof=0.11)	58.3165	0.975881	1
+chr1	9610776	9610776	C	T	het		QUAL=922;DP=53;AF=0.70;MQM=60;SAP=24;ABP=21	TMEM201	TMEM201 (inh=n/a oe_syn=0.97 oe_mis=0.82 oe_lof=0.11)	58.3165	0.975881	1
 chr1	9735980	9735980	C	T	het		QUAL=1331;DP=105;AF=0.49;MQM=60;SAP=4;ABP=3	CLSTN1	CLSTN1 (inh=n/a oe_syn=1.06 oe_mis=0.88 oe_lof=0.17)	0	-5.61892	-1
 chr1	9744661	9744661	G	A	het		QUAL=711;DP=39;AF=0.69;MQM=60;SAP=13;ABP=16	CLSTN1	CLSTN1 (inh=n/a oe_syn=1.06 oe_mis=0.88 oe_lof=0.17)	0	-5.61892	-1
 chr1	9756562	9756562	T	C	hom	off-target	QUAL=2397;DP=75;AF=1.00;MQM=60;SAP=11;ABP=0	CLSTN1	CLSTN1 (inh=n/a oe_syn=1.06 oe_mis=0.88 oe_lof=0.17)	0	-5.61892	-1
@@ -215,14 +215,14 @@ chr1	11834076	11834076	A	G	het	off-target	QUAL=1018;DP=80;AF=0.50;MQM=60;SAP=21;
 chr1	11837535	11837535	A	G	het	off-target	QUAL=886;DP=64;AF=0.53;MQM=60;SAP=4;ABP=4	CLCN6	CLCN6 (inh=n/a oe_syn=1.08 oe_mis=0.81 oe_lof=0.42)	0	0	nan
 chr1	11838802	11838802	G	A	het		QUAL=1531;DP=171;AF=0.39;MQM=60;SAP=5;ABP=20	CLCN6	CLCN6 (inh=n/a oe_syn=1.08 oe_mis=0.81 oe_lof=0.42)	0	0	nan
 chr1	11838976	11838976	G	T	het		QUAL=938;DP=68;AF=0.54;MQM=60;SAP=20;ABP=4	CLCN6	CLCN6 (inh=n/a oe_syn=1.08 oe_mis=0.81 oe_lof=0.42)	0	0	nan
-chr1	11922487	11922487	T	C	hom	off-target	QUAL=3775;DP=116;AF=1.00;MQM=60;SAP=30;ABP=0	KIAA2013	KIAA2013 (inh=n/a oe_syn=1.07 oe_mis=0.72 oe_lof=0.38)	164.247	0.991293	0.999999
+chr1	11922487	11922487	T	C	hom	off-target	QUAL=3775;DP=116;AF=1.00;MQM=60;SAP=30;ABP=0	KIAA2013	KIAA2013 (inh=n/a oe_syn=1.07 oe_mis=0.72 oe_lof=0.38)	164.247	0.991296	1
 chr1	12022869	12022869	A	G	hom		QUAL=1296;DP=43;AF=1.00;MQM=60;SAP=52;ABP=0	MIIP	MIIP (inh=n/a oe_syn=0.91 oe_mis=1.04 oe_lof=1.27)	0	0	nan
 chr1	12188885	12188885	A	G	het		QUAL=639;DP=57;AF=0.51;MQM=60;SAP=16;ABP=3	TNFRSF1B	TNFRSF1B (inh=n/a oe_syn=0.93 oe_mis=0.84 oe_lof=0.21), MIR4632 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)			
 chr1	12188908	12188908	A	G	het	low_conf_region	QUAL=288;DP=27;AF=0.48;MQM=60;SAP=17;ABP=3	TNFRSF1B	TNFRSF1B (inh=n/a oe_syn=0.93 oe_mis=0.84 oe_lof=0.21), MIR4632 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)			
 chr1	12188963	12188963	C	T	het	off-target	QUAL=68;DP=7;AF=0.57;MQM=60;SAP=12;ABP=3	TNFRSF1B	TNFRSF1B (inh=n/a oe_syn=0.93 oe_mis=0.84 oe_lof=0.21), MIR4632 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)			
 chr1	12191134	12191134	T	A	het	off-target	QUAL=69;DP=11;AF=0.45;MQM=60;SAP=14;ABP=3	TNFRSF1B	TNFRSF1B (inh=n/a oe_syn=0.93 oe_mis=0.84 oe_lof=0.21), MIR4632 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)			
 chr1	12191708	12191708	T	G	het		QUAL=1267;DP=107;AF=0.46;MQM=60;SAP=8;ABP=5	TNFRSF1B	TNFRSF1B (inh=n/a oe_syn=0.93 oe_mis=0.84 oe_lof=0.21), MIR4632 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)			
-chr1	12191751	12191751	T	G	het		QUAL=1606;DP=138;AF=0.46;MQM=60;SAP=4;ABP=5	TNFRSF1B,MIR4632	TNFRSF1B (inh=n/a oe_syn=0.93 oe_mis=0.84 oe_lof=0.21), MIR4632 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)	,333.553	,0.995695	,1
+chr1	12191751	12191751	T	G	het		QUAL=1606;DP=138;AF=0.46;MQM=60;SAP=4;ABP=5	TNFRSF1B,MIR4632	TNFRSF1B (inh=n/a oe_syn=0.93 oe_mis=0.84 oe_lof=0.21), MIR4632 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)	,333.553	,0.995694	,1
 chr1	12192835	12192835	C	T	het	off-target	QUAL=204;DP=20;AF=0.50;MQM=60;SAP=17;ABP=3	TNFRSF1B	TNFRSF1B (inh=n/a oe_syn=0.93 oe_mis=0.84 oe_lof=0.21), MIR4632 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)			
 chr1	12192898	12192898	T	G	het	low_conf_region	QUAL=628;DP=60;AF=0.43;MQM=60;SAP=19;ABP=5	TNFRSF1B	TNFRSF1B (inh=n/a oe_syn=0.93 oe_mis=0.84 oe_lof=0.21), MIR4632 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)			
 chr1	12193294	12193294	T	C	het		QUAL=243;DP=19;AF=0.74;MQM=60;SAP=25;ABP=12	TNFRSF1B	TNFRSF1B (inh=n/a oe_syn=0.93 oe_mis=0.84 oe_lof=0.21), MIR4632 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)			
@@ -241,17 +241,17 @@ chr1	12893437	12893437	C	G	het		QUAL=1906;DP=112;AF=0.69;MQM=46;SAP=34;ABP=37	PR
 chr1	12893472	12893472	T	C	het	low_conf_region	QUAL=744;DP=60;AF=0.60;MQM=41;SAP=27;ABP=8	PRAMEF10	PRAMEF10 (inh=n/a oe_syn=1.31 oe_mis=1.39 oe_lof=0.75)			
 chr1	12895136	12895136	T	G	het		QUAL=661;DP=107;AF=0.46;MQM=28;SAP=64;ABP=5	PRAMEF10	PRAMEF10 (inh=n/a oe_syn=1.31 oe_mis=1.39 oe_lof=0.75)			
 chr1	13196958	13196958	G	C	hom	off-target	QUAL=59;DP=6;AF=1.00;MQM=17;SAP=4;ABP=0	PRAMEF13	PRAMEF13 (inh=n/a oe_syn=0.67 oe_mis=1.31 oe_lof=0.00)			
-chr1	13223492	13223492	A	G	het		QUAL=43;DP=22;AF=0.32;MQM=26;SAP=6;ABP=9	PRAMEF18	PRAMEF18 (inh=n/a oe_syn=0.84 oe_mis=1.25 oe_lof=0.00)	159.048	0.991015	1
-chr1	13224919	13224919	T	A	het		QUAL=1567;DP=253;AF=0.29;MQM=60;SAP=3;ABP=98	PRAMEF18	PRAMEF18 (inh=n/a oe_syn=0.84 oe_mis=1.25 oe_lof=0.00)	159.048	0.991015	1
-chr1	13225001	13225001	A	G	het		QUAL=7095;DP=336;AF=0.74;MQM=60;SAP=15;ABP=173	PRAMEF18	PRAMEF18 (inh=n/a oe_syn=0.84 oe_mis=1.25 oe_lof=0.00)	159.048	0.991015	1
-chr1	13225068	13225068	A	G	het		QUAL=2265;DP=412;AF=0.27;MQM=60;SAP=3;ABP=189	PRAMEF18	PRAMEF18 (inh=n/a oe_syn=0.84 oe_mis=1.25 oe_lof=0.00)	159.048	0.991015	1
-chr1	13225208	13225208	C	G	het		QUAL=787;DP=350;AF=0.19;MQM=58;SAP=4;ABP=287	PRAMEF18	PRAMEF18 (inh=n/a oe_syn=0.84 oe_mis=1.25 oe_lof=0.00)	159.048	0.991015	1
-chr1	13225359	13225359	A	G	het		QUAL=887;DP=140;AF=0.41;MQM=34;SAP=104;ABP=12	PRAMEF18	PRAMEF18 (inh=n/a oe_syn=0.84 oe_mis=1.25 oe_lof=0.00)	159.048	0.991015	1
-chr1	13225986	13225986	C	T	het		QUAL=565;DP=150;AF=0.24;MQM=57;SAP=3;ABP=91	PRAMEF18	PRAMEF18 (inh=n/a oe_syn=0.84 oe_mis=1.25 oe_lof=0.00)	159.048	0.991015	1
-chr1	13226025	13226025	G	A	het		QUAL=211;DP=98;AF=0.20;MQM=51;SAP=7;ABP=78	PRAMEF18	PRAMEF18 (inh=n/a oe_syn=0.84 oe_mis=1.25 oe_lof=0.00)	159.048	0.991015	1
-chr1	13226028	13226028	C	T	het		QUAL=211;DP=98;AF=0.20;MQM=51;SAP=7;ABP=78	PRAMEF18	PRAMEF18 (inh=n/a oe_syn=0.84 oe_mis=1.25 oe_lof=0.00)	159.048	0.991015	1
-chr1	13226052	13226052	T	C	het		QUAL=220;DP=73;AF=0.23;MQM=48;SAP=6;ABP=48	PRAMEF18	PRAMEF18 (inh=n/a oe_syn=0.84 oe_mis=1.25 oe_lof=0.00)	159.048	0.991015	1
-chr1	13283981	13283981	G	A	het		QUAL=453;DP=87;AF=0.37;MQM=31;SAP=10;ABP=16	PRAMEF8	RNU6-771P (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), PRAMEF8 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)	69.1481	0.979578	1
+chr1	13223492	13223492	A	G	het		QUAL=43;DP=22;AF=0.32;MQM=26;SAP=6;ABP=9	PRAMEF18	PRAMEF18 (inh=n/a oe_syn=0.84 oe_mis=1.25 oe_lof=0.00)	159.048	0.991014	1
+chr1	13224919	13224919	T	A	het		QUAL=1567;DP=253;AF=0.29;MQM=60;SAP=3;ABP=98	PRAMEF18	PRAMEF18 (inh=n/a oe_syn=0.84 oe_mis=1.25 oe_lof=0.00)	159.048	0.991014	1
+chr1	13225001	13225001	A	G	het		QUAL=7095;DP=336;AF=0.74;MQM=60;SAP=15;ABP=173	PRAMEF18	PRAMEF18 (inh=n/a oe_syn=0.84 oe_mis=1.25 oe_lof=0.00)	159.048	0.991014	1
+chr1	13225068	13225068	A	G	het		QUAL=2265;DP=412;AF=0.27;MQM=60;SAP=3;ABP=189	PRAMEF18	PRAMEF18 (inh=n/a oe_syn=0.84 oe_mis=1.25 oe_lof=0.00)	159.048	0.991014	1
+chr1	13225208	13225208	C	G	het		QUAL=787;DP=350;AF=0.19;MQM=58;SAP=4;ABP=287	PRAMEF18	PRAMEF18 (inh=n/a oe_syn=0.84 oe_mis=1.25 oe_lof=0.00)	159.048	0.991014	1
+chr1	13225359	13225359	A	G	het		QUAL=887;DP=140;AF=0.41;MQM=34;SAP=104;ABP=12	PRAMEF18	PRAMEF18 (inh=n/a oe_syn=0.84 oe_mis=1.25 oe_lof=0.00)	159.048	0.991014	1
+chr1	13225986	13225986	C	T	het		QUAL=565;DP=150;AF=0.24;MQM=57;SAP=3;ABP=91	PRAMEF18	PRAMEF18 (inh=n/a oe_syn=0.84 oe_mis=1.25 oe_lof=0.00)	159.048	0.991014	1
+chr1	13226025	13226025	G	A	het		QUAL=211;DP=98;AF=0.20;MQM=51;SAP=7;ABP=78	PRAMEF18	PRAMEF18 (inh=n/a oe_syn=0.84 oe_mis=1.25 oe_lof=0.00)	159.048	0.991014	1
+chr1	13226028	13226028	C	T	het		QUAL=211;DP=98;AF=0.20;MQM=51;SAP=7;ABP=78	PRAMEF18	PRAMEF18 (inh=n/a oe_syn=0.84 oe_mis=1.25 oe_lof=0.00)	159.048	0.991014	1
+chr1	13226052	13226052	T	C	het		QUAL=220;DP=73;AF=0.23;MQM=48;SAP=6;ABP=48	PRAMEF18	PRAMEF18 (inh=n/a oe_syn=0.84 oe_mis=1.25 oe_lof=0.00)	159.048	0.991014	1
+chr1	13283981	13283981	G	A	het		QUAL=453;DP=87;AF=0.37;MQM=31;SAP=10;ABP=16	PRAMEF8	RNU6-771P (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), PRAMEF8 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)	69.1481	0.979579	1
 chr1	13318367	13318367	C	T	hom	off-target	QUAL=626;DP=27;AF=1.00;MQM=30;SAP=4;ABP=0	PRAMEF15	PRAMEF15 (inh=n/a oe_syn=1.77 oe_mis=0.89 oe_lof=0.00)			
 chr1	13318452	13318452	A	G	het		QUAL=143;DP=59;AF=0.27;MQM=34;SAP=23;ABP=30	PRAMEF15	PRAMEF15 (inh=n/a oe_syn=1.77 oe_mis=0.89 oe_lof=0.00)			
 chr1	13369246	13369246	T	C	het		QUAL=347;DP=183;AF=0.22;MQM=38;SAP=25;ABP=129	PRAMEF19	PRAMEF19 (inh=n/a oe_syn=0.62 oe_mis=0.89 oe_lof=4.54)	0	0	nan
@@ -300,13 +300,13 @@ chr1	16216442	16216442	T	G	het	off-target	QUAL=334;DP=38;AF=0.45;MQM=60;SAP=40;A
 chr1	16251413	16251413	G	C	hom		QUAL=2827;DP=86;AF=1.00;MQM=60;SAP=18;ABP=0	FBXO42	FBXO42 (inh=n/a oe_syn=1.01 oe_mis=0.71 oe_lof=0.12)	0	0	nan
 chr1	16294739	16294739	G	A	het	off-target	QUAL=1407;DP=105;AF=0.50;MQM=60;SAP=6;ABP=3	FBXO42	FBXO42 (inh=n/a oe_syn=1.01 oe_mis=0.71 oe_lof=0.12)	0	0	nan
 chr1	17334307	17334307	-	T	het		QUAL=86;DP=8;AF=0.63;MQM=60;SAP=7;ABP=4	PADI4	PADI4 (inh=n/a oe_syn=0.95 oe_mis=1.01 oe_lof=0.82)	0	0	nan
-chr1	19230787	19230787	G	C	het	off-target	QUAL=55;DP=13;AF=0.38;MQM=60;SAP=14;ABP=5	EMC1,EMC1-AS1	EMC1-AS1 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), EMC1 (inh=AR oe_syn=0.87 oe_mis=0.84 oe_lof=0.79)	111.126,	0.987188,	0.999999,
-chr1	19231219	19231219	G	C	hom	off-target	QUAL=229;DP=8;AF=1.00;MQM=60;SAP=20;ABP=0	EMC1,EMC1-AS1	EMC1-AS1 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), EMC1 (inh=AR oe_syn=0.87 oe_mis=0.84 oe_lof=0.79)	111.126,	0.987188,	0.999999,
-chr1	19238844	19238844	C	T	het		QUAL=1108;DP=91;AF=0.47;MQM=60;SAP=5;ABP=4	EMC1,EMC1-AS1	EMC1-AS1 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), EMC1 (inh=AR oe_syn=0.87 oe_mis=0.84 oe_lof=0.79)	111.126,	0.987188,	0.999999,
-chr1	19238850	19238850	C	G	het		QUAL=1136;DP=98;AF=0.45;MQM=60;SAP=5;ABP=5	EMC1,EMC1-AS1	EMC1-AS1 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), EMC1 (inh=AR oe_syn=0.87 oe_mis=0.84 oe_lof=0.79)	111.126,	0.987188,	0.999999,
-chr1	19240387	19240387	C	T	het		QUAL=725;DP=72;AF=0.42;MQM=60;SAP=4;ABP=7	EMC1,EMC1-AS1	EMC1-AS1 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), EMC1 (inh=AR oe_syn=0.87 oe_mis=0.84 oe_lof=0.79)	111.126,	0.987188,	0.999999,
-chr1	19242478	19242478	A	G	het		QUAL=1004;DP=67;AF=0.57;MQM=60;SAP=9;ABP=6	EMC1	EMC1-AS1 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), EMC1 (inh=AR oe_syn=0.87 oe_mis=0.84 oe_lof=0.79)	111.126	0.987188	0.999999
-chr1	19243932	19243932	C	G	het		QUAL=1127;DP=74;AF=0.57;MQM=60;SAP=13;ABP=6	EMC1	EMC1-AS1 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), EMC1 (inh=AR oe_syn=0.87 oe_mis=0.84 oe_lof=0.79)	111.126	0.987188	0.999999
+chr1	19230787	19230787	G	C	het	off-target	QUAL=55;DP=13;AF=0.38;MQM=60;SAP=14;ABP=5	EMC1,EMC1-AS1	EMC1-AS1 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), EMC1 (inh=AR oe_syn=0.87 oe_mis=0.84 oe_lof=0.79)	111.126,	0.98719,	1,
+chr1	19231219	19231219	G	C	hom	off-target	QUAL=229;DP=8;AF=1.00;MQM=60;SAP=20;ABP=0	EMC1,EMC1-AS1	EMC1-AS1 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), EMC1 (inh=AR oe_syn=0.87 oe_mis=0.84 oe_lof=0.79)	111.126,	0.98719,	1,
+chr1	19238844	19238844	C	T	het		QUAL=1108;DP=91;AF=0.47;MQM=60;SAP=5;ABP=4	EMC1,EMC1-AS1	EMC1-AS1 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), EMC1 (inh=AR oe_syn=0.87 oe_mis=0.84 oe_lof=0.79)	111.126,	0.98719,	1,
+chr1	19238850	19238850	C	G	het		QUAL=1136;DP=98;AF=0.45;MQM=60;SAP=5;ABP=5	EMC1,EMC1-AS1	EMC1-AS1 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), EMC1 (inh=AR oe_syn=0.87 oe_mis=0.84 oe_lof=0.79)	111.126,	0.98719,	1,
+chr1	19240387	19240387	C	T	het		QUAL=725;DP=72;AF=0.42;MQM=60;SAP=4;ABP=7	EMC1,EMC1-AS1	EMC1-AS1 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), EMC1 (inh=AR oe_syn=0.87 oe_mis=0.84 oe_lof=0.79)	111.126,	0.98719,	1,
+chr1	19242478	19242478	A	G	het		QUAL=1004;DP=67;AF=0.57;MQM=60;SAP=9;ABP=6	EMC1	EMC1-AS1 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), EMC1 (inh=AR oe_syn=0.87 oe_mis=0.84 oe_lof=0.79)	111.126	0.98719	1
+chr1	19243932	19243932	C	G	het		QUAL=1127;DP=74;AF=0.57;MQM=60;SAP=13;ABP=6	EMC1	EMC1-AS1 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a), EMC1 (inh=AR oe_syn=0.87 oe_mis=0.84 oe_lof=0.79)	111.126	0.98719	1
 chr1	19254732	19254732	G	A	het	off-target	QUAL=1331;DP=90;AF=0.54;MQM=60;SAP=3;ABP=5	MRTO4	EMC1 (inh=AR oe_syn=0.87 oe_mis=0.84 oe_lof=0.79), MRTO4 (inh=n/a oe_syn=1.02 oe_mis=1.01 oe_lof=0.00)			
 chr1	19256069	19256069	G	A	het		QUAL=2038;DP=156;AF=0.50;MQM=60;SAP=6;ABP=3	MRTO4	EMC1 (inh=AR oe_syn=0.87 oe_mis=0.84 oe_lof=0.79), MRTO4 (inh=n/a oe_syn=1.02 oe_mis=1.01 oe_lof=0.00)			
 chr1	19608624	19608624	-	A	het		QUAL=120;DP=14;AF=0.43;MQM=60;SAP=4;ABP=4	MICOS10,MICOS10-NBL1,NBL1	MICOS10 (inh=n/a oe_syn=1.07 oe_mis=1.02 oe_lof=0.00), NBL1 (inh=n/a oe_syn=0.88 oe_mis=0.62 oe_lof=0.40), MICOS10-NBL1 (inh=n/a oe_syn=0.86 oe_mis=0.58 oe_lof=0.51)	,0,	,0,	,nan,

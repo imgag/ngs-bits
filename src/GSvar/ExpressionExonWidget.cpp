@@ -164,7 +164,7 @@ void ExpressionExonWidget::initTable()
 		qDebug() << "sorting disabled";
 
 		//default columns
-		column_names_ << "gene_id" << "exon" << "raw" << "rpb" << "srpb" << "gene_name" << "gene_biotype" << "cohort_mean" << "log2fc" << "zscore" << "pvalue";
+		column_names_ << "gene_id" << "exon" << "raw" << "rpb" << "srpb" << "gene_name" << "gene_biotype" << "cohort_mean" << "log2fc" << "zscore" << "pval";
 		numeric_columns_ << false << false << true << true << true << false << false << true << true << true << true;
 		precision_ << -1 << -1 << 0 << 2 << 2 << -1 << -1 << 2 << 2 << 3 << 3;
 
@@ -736,7 +736,25 @@ void ExpressionExonWidget::updateTable()
 		QVector<int> column_indices;
 		foreach (const QString& col_name, column_names_)
 		{
-			column_indices << expression_data_.columnIndex(col_name);
+			//TODO: Remove when all old RNA files are updated
+			//workaround for inconsistant pvalue col name
+			if( col_name == "pval")
+			{
+				int i_pval = -1;
+				try
+				{
+					i_pval = expression_data_.columnIndex(col_name);
+				}
+				catch (ProgrammingException e)
+				{
+					i_pval = expression_data_.columnIndex("pvalue");
+				}
+				column_indices << i_pval;
+			}
+			else
+			{
+				column_indices << expression_data_.columnIndex(col_name);
+			}
 		}
 		qDebug() << "header indices parsed";
 

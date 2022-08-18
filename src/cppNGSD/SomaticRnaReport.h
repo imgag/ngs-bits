@@ -86,7 +86,7 @@ private:
 	//Somatic RNA fusions
 	QList<arriba_sv> svs_;
 
-	struct expression_data
+	struct ExpressionData
 	{
 		QByteArray symbol;
 
@@ -112,13 +112,13 @@ private:
 
 
 	//expression data per gene, will be filled only with genes that have a DNA variant
-	QMap<QByteArray, expression_data> expression_per_gene_;
+	QMap<QByteArray, ExpressionData> expression_per_gene_;
 
 	//expression data per pathways, taken from NGSD
-	QList<expression_data> pathways_;
+	QList<ExpressionData> pathways_;
 
 	//expression data for genes with a pvalue < 0.05
-	QList<expression_data> high_confidence_expression_;
+	QList<ExpressionData> high_confidence_expression_;
 
 
 	///Creates table that containts fusions from RNA data
@@ -155,7 +155,7 @@ private:
 	RtfSourceCode formatDigits(double in, int digits=0);
 
 
-	RtfSourceCode expressionChange(const expression_data& data);
+	RtfSourceCode expressionChange(const ExpressionData& data);
 
 	RtfDocument doc_;
 

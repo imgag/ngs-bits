@@ -79,6 +79,7 @@ INSERT INTO `sample_disease_info` (`id`, `sample_id`, `disease_info`, `type`, `u
 (11, 1, 'bone marrow', 'RNA reference tissue', 99);
 
 
+
 INSERT INTO `gene` (`id`, `hgnc_id`, `symbol`, `name`, `type`, `ensembl_id`) VALUES
 (1, 32038, 'AADACL4', 'arylacetamide deacetylase like 4', 'protein-coding gene', 'ENSG00000204518'),
 (2, 16754, 'ACAP3', 'ArfGAP with coiled-coil, ankyrin repeat and PH domains 3', 'protein-coding gene', 'ENSG00000131584'),
@@ -181,7 +182,16 @@ INSERT INTO `gene` (`id`, `hgnc_id`, `symbol`, `name`, `type`, `ensembl_id`) VAL
 (99, 18533, 'USP48', 'ubiquitin specific peptidase 48', 'protein-coding gene', 'ENSG00000090686'),
 (100, 12644, 'VAMP3', 'vesicle associated membrane protein 3', 'protein-coding gene', 'ENSG00000049245'),
 (101, 12783, 'WNT4', 'Wnt family member 4', 'protein-coding gene', 'ENSG00000162552'),
-(102, 29045, 'ZBTB40', 'zinc finger and BTB domain containing 40', 'protein-coding gene', 'ENSG00000184677');
+(102, 29045, 'ZBTB40', 'zinc finger and BTB domain containing 40', 'protein-coding gene', 'ENSG00000184677'),
+(1000, 99999, 'CBA', 'invalid test gene', 'protein-coding gene', NULL),
+(1001, 99998, 'EDC', 'invalid test gene', 'protein-coding gene', NULL),
+(1002, 99997, 'GFE', 'invalid test gene', 'protein-coding gene', NULL);
+
+INSERT INTO `gene_alias` (`gene_id`, `symbol`, `type`) VALUES
+(1000, 'ABC', 'previous'),
+(1001, 'CDE', 'previous'),
+(1002, 'EFG', 'previous');
+
 
 INSERT INTO `gene_transcript` (`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`, `biotype`, `is_gencode_basic`, `is_ensembl_canonical`, `is_mane_select`, `is_mane_plus_clinical`) VALUES
 (1, 46, 'ENST00000469289', 'ensembl', '1', NULL, NULL, '+', 'lncRNA', 1, 0, 0, 0),

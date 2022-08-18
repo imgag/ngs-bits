@@ -687,7 +687,7 @@ void ExpressionGeneWidget::initTable()
 	precision_ << -1 << -1 << -1 << 0 << 2;
 
 	//db columns
-	db_column_names_ = QStringList()  << "cohort_mean" << "log2fc" << "zscore" << "pvalue";
+	db_column_names_ = QStringList()  << "cohort_mean" << "log2fc" << "zscore" << "pval";
 	column_names_ << db_column_names_;
 	numeric_columns_  << true << true << true << true;
 	precision_ << 2 << 2 << 3 << 3;
@@ -803,7 +803,7 @@ void ExpressionGeneWidget::updateTable(int max_rows)
 						{
 							ui_->expression_data->setItem(table_row_idx, col_idx, new NumericWidgetItem(QString::number(db_values.zscore, 'f', precision_.at(col_idx))));
 						}
-						else if(col_name == "pvalue")
+						else if(col_name == "pval")
 						{
 							ui_->expression_data->setItem(table_row_idx, col_idx, new NumericWidgetItem(QString::number(db_values.pvalue, 'f', precision_.at(col_idx))));
 						}
@@ -847,12 +847,6 @@ void ExpressionGeneWidget::updateTable(int max_rows)
 						ui_->expression_data->setItem(table_row_idx, col_idx, cell);
 					}
 
-	//				//extract gene biotype
-	//				if ((column_names_.at(col_idx) == "gene_biotype") || (column_names_.at(col_idx) == "biotype"))
-	//				{
-	//					//replace '_'
-	//					ui_->expression_data->item(row_idx, col_idx)->setText(ui_->expression_data->item(row_idx, col_idx)->text().replace('_', ' '));
-	//				}
 				}
 
 			}
@@ -861,116 +855,6 @@ void ExpressionGeneWidget::updateTable(int max_rows)
 
 			if (table_row_idx >= max_rows) break;
 		}
-
-
-	//	//cohort correlation
-	//	QVector<double> cohort_means;
-	//	QVector<double> tpm_values;
-
-
-		//fill table widget with expression data
-	//	ui_->expression_data->setRowCount(expression_data_.rowCount());
-	//	for(int row_idx=0; row_idx<expression_data_.rowCount(); ++row_idx)
-	//	{
-	//		QStringList row = expression_data_.row(row_idx);
-	//		QByteArray symbol = row.at(column_indices.at(1)).toUtf8();
-	//		double tpm = Helper::toDouble(row.at(column_indices.at(column_names_.indexOf("tpm"))), "tpm", QString::number(row_idx));
-	//		double log2p1tpm = std::log2(tpm + 1);
-
-	//		symbol_in_ngsd = expression_stats.contains(symbol);
-	//		if (symbol_in_ngsd)
-	//		{
-	//			gene_stats = expression_stats.value(symbol);
-	//			log2fc = log2p1tpm - std::log2(gene_stats.mean + 1);
-	//			zscore = (log2p1tpm - gene_stats.mean_log2) / gene_stats.stddev_log2;
-	//			p_value = 1 + std::erf(- std::abs(zscore) / std::sqrt(2));
-	//		}
-
-	//		for (int col_idx = 0; col_idx < column_names_.size(); ++col_idx)
-	//		{
-	//			if(db_column_names.contains(column_names_.at(col_idx)))
-	//			{
-	//				//get value from NGSD
-	//				if(symbol_in_ngsd)
-	//				{
-	//					if(column_names_.at(col_idx) == "cohort_mean")
-	//					{
-	//						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(gene_stats.mean, 'f', precision_.at(col_idx))));
-	//						if((gene_stats.mean > 0) && (tpm > 0))
-	//						{
-	//							cohort_means << gene_stats.mean;
-	//							tpm_values << tpm;
-	//						}
-	//					}
-	//					else if(column_names_.at(col_idx) == "log2fc")
-	//					{
-	//						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(log2fc, 'f', precision_.at(col_idx))));
-	//					}
-	//					else if(column_names_.at(col_idx) == "zscore")
-	//					{
-	//						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(zscore, 'f', precision_.at(col_idx))));
-	//					}
-	//					else if(column_names_.at(col_idx) == "pvalue")
-	//					{
-	//						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(QString::number(p_value, 'f', precision_.at(col_idx))));
-	//					}
-	//					else
-	//					{
-	//						THROW(ArgumentException, "Invalid db column '" + column_names_.at(col_idx) + "'!");
-	//					}
-	//				}
-	//				else
-	//				{
-	//					ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(""));
-	//				}
-	//			}
-	//			else
-	//			{
-	//				//get value from file
-	//				if(numeric_columns_.at(col_idx))
-	//				{
-	//					// add numeric QTableWidgetItem
-	//					QString value = row.at(column_indices.at(col_idx));
-	//					if (value != "n/a" && !value.isEmpty())
-	//					{
-	//						QString rounded_number = QString::number(Helper::toDouble(value,
-	//																				  "TSV column " + QString::number(col_idx),
-	//																				  QString::number(row_idx)), 'f', precision_.at(col_idx));
-	//						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(rounded_number));
-	//					}
-	//					else
-	//					{
-	//						ui_->expression_data->setItem(row_idx, col_idx, new NumericWidgetItem(""));
-	//					}
-	//				}
-	//				else
-	//				{
-	//					// add standard QTableWidgetItem
-	//					QTableWidgetItem* cell = new QTableWidgetItem(row.at(column_indices.at(col_idx)));
-	//					cell->setFlags(cell->flags() &  ~Qt::ItemIsEditable);
-	//					ui_->expression_data->setItem(row_idx, col_idx, cell);
-	//				}
-
-	//				//extract gene biotype
-	//				if ((column_names_.at(col_idx) == "gene_biotype") || (column_names_.at(col_idx) == "biotype"))
-	//				{
-	//					//replace '_'
-	//					ui_->expression_data->item(row_idx, col_idx)->setText(ui_->expression_data->item(row_idx, col_idx)->text().replace('_', ' '));
-	//				}
-	//			}
-	//		}
-	//	}
-
-	//	//set number of filtered / total rows
-	//	ui_->filtered_rows->setText(QByteArray::number(filter_result.flags().count(true)) + " / " + QByteArray::number(row_count));
-
-	//	//compute cohort correlation
-	//	QVector<double> rank_sample = calculateRanks(tpm_values);
-	//	QVector<double> rank_means = calculateRanks(cohort_means);
-	//	double correlation = BasicStatistics::correlation(rank_sample, rank_means);
-
-	//	//hide vertical header
-	//	ui_->expression_data->verticalHeader()->setVisible(false);
 
 		//enable sorting
 		ui_->expression_data->setSortingEnabled(true);
@@ -1038,7 +922,8 @@ bool ExpressionGeneWidget::getGeneStats(const QByteArray& gene, double tpm)
 		DBExpressionValues db_expression_values;
 		db_expression_values.cohort_mean = mean;
 		db_expression_values.log2fc = log2p1tpm - mean_log2;
-		db_expression_values.zscore = (log2p1tpm - mean_log2) / stddev_log2;
+		db_expression_values.zscore = std::numeric_limits<double>::quiet_NaN();
+		if (stddev_log2 != 0.0) db_expression_values.zscore = (log2p1tpm - mean_log2) / stddev_log2;
 		db_expression_values.pvalue = 1 + std::erf(- std::abs(db_expression_values.zscore) / std::sqrt(2));
 
 		ngsd_expression.insert(gene, db_expression_values);
