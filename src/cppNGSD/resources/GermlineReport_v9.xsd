@@ -796,12 +796,12 @@
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
-									<xs:attribute name="hgvs_c" type="xs:string">
+									<xs:attribute name="manual_hgvs_c" type="xs:string">
 										<xs:annotation>
 											<xs:documentation>manually cutated HGVS.c notation</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="hgvs_p" type="xs:string">
+									<xs:attribute name="manual_hgvs_p" type="xs:string">
 										<xs:annotation>
 											<xs:documentation>manually cutated HGVS.p notation</xs:documentation>
 										</xs:annotation>

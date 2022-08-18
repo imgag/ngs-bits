@@ -3,9 +3,12 @@
 
 #include "cppNGSD_global.h"
 #include "VariantType.h"
+#include "CnvList.h"
 #include <QStringList>
 #include <QDateTime>
 #include <QObject>
+
+class NGSD;
 
 ///Variant meta data for report.
 struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
@@ -41,11 +44,14 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	QString comments2; //comments of 2. evaluation
 	QString rna_info;
 
-	//type-specific data
+	//general function for manual curation
+	bool isManuallyCurated() const;
+	//manual curation of CNVs
 	QVariant manual_cnv_start; //int
 	QVariant manual_cnv_end; //int
 	bool manualCnvStartIsValid() const;
 	bool manualCnvEndIsValid() const;
+	void updateCnv(CopyNumberVariant& cnv, NGSD& db) const;
 
 	//Returns options for 'type' (taken and cached from NGSD)
 	static QStringList getTypeOptions();

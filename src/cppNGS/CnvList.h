@@ -67,6 +67,11 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 		{
 			return genes_;
 		}
+		///Sets the annotated genes.
+		void setGenes(const GeneSet& genes)
+		{
+			genes_ = genes;
+		}
 
 		///Returns the overall variant size.
 		int size() const

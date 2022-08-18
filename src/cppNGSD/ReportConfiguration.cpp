@@ -108,6 +108,24 @@ bool ReportVariantConfiguration::operator==(const ReportVariantConfiguration& rh
 			manual_cnv_end == rhs.manual_cnv_end;
 }
 
+bool ReportVariantConfiguration::isManuallyCurated() const
+{
+	if (variant_type==VariantType::SNVS_INDELS)
+	{
+		//TODO
+	}
+	else if(variant_type==VariantType::CNVS)
+	{
+		return manualCnvStartIsValid() || manualCnvEndIsValid();
+	}
+	else if (variant_type==VariantType::SVS)
+	{
+		//TODO
+	}
+
+	THROW(ArgumentException, "ReportVariantConfiguration::isManuallyCurated() called on invalid variant type!");
+}
+
 bool ReportVariantConfiguration::manualCnvStartIsValid() const
 {
 	if (!manual_cnv_start.isValid()) return false;
@@ -130,6 +148,16 @@ bool ReportVariantConfiguration::manualCnvEndIsValid() const
 	if (!ok) return false;
 
 	return value>0;
+}
+
+void ReportVariantConfiguration::updateCnv(CopyNumberVariant& cnv, NGSD& db) const
+{
+	//update start and end
+	if (manualCnvStartIsValid()) cnv.setStart(manual_cnv_start.toInt());
+	if (manualCnvEndIsValid()) cnv.setEnd(manual_cnv_end.toInt());
+
+	//update gene list
+	cnv.setGenes(db.genesOverlapping(cnv.chr(), cnv.start(), cnv.end(), 5000));
 }
 
 QStringList ReportVariantConfiguration::getTypeOptions()
