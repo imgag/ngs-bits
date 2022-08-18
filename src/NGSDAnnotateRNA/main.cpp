@@ -87,6 +87,8 @@ public:
 		//remove this sample from cohort
 		cohort.remove(ps_id.toInt());
 
+		qDebug() << cohort;
+
 		if (cohort.size() > 0)
 		{
 			if (mode == "genes")
@@ -251,7 +253,16 @@ public:
 				tsv_line[column_indices["log2fc"]] = QByteArray::number(log2fc);
 
 				//zscore
-				double zscore = (log2p1_expr_value - gene_expression.mean_log2) / gene_expression.stddev_log2;
+				double zscore;
+				if (gene_expression.stddev_log2 != 0)
+				{
+					zscore = (log2p1_expr_value - gene_expression.mean_log2) / gene_expression.stddev_log2;
+				}
+				else
+				{
+					zscore = std::numeric_limits<double>::quiet_NaN();
+				}
+
 				tsv_line[column_indices["zscore"]] = QByteArray::number(zscore);
 
 				//pvalue
@@ -263,7 +274,6 @@ public:
 					expression_values << expr_value;
 					mean_values << cohort_mean;
 				}
-
 			}
 
 			if(hpa_annotation)
