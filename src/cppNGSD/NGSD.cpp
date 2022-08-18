@@ -5885,14 +5885,14 @@ QString NGSD::reportConfigSummaryText(const QString& processed_sample_id)
 {
 	QString output;
 
-	QVariant rc_id = getValue("SELECT id FROM report_configuration WHERE processed_sample_id=:0", true, processed_sample_id);
-	if (rc_id.isValid())
+	int rc_id = reportConfigId(processed_sample_id);
+	if (rc_id!=-1)
 	{
 		output = "exists";
 
 		//find causal small variants
 		{
-			QStringList causal_ids = getValues("SELECT variant_id FROM report_configuration_variant WHERE causal='1' AND report_configuration_id=" + rc_id.toString());
+			QStringList causal_ids = getValues("SELECT variant_id FROM report_configuration_variant WHERE causal='1' AND report_configuration_id=" + QString::number(rc_id));
 			foreach(const QString& id, causal_ids)
 			{
 				Variant var = variant(id);
@@ -5908,7 +5908,7 @@ QString NGSD::reportConfigSummaryText(const QString& processed_sample_id)
 		//find causal CNVs
 		{
 			SqlQuery query = getQuery();
-			query.exec("SELECT * FROM report_configuration_cnv WHERE causal='1' AND report_configuration_id=" + rc_id.toString());
+			query.exec("SELECT * FROM report_configuration_cnv WHERE causal='1' AND report_configuration_id=" + QString::number(rc_id));
 			while(query.next())
 			{
 				QString cnv_id = query.value("cnv_id").toString();
@@ -5936,7 +5936,7 @@ QString NGSD::reportConfigSummaryText(const QString& processed_sample_id)
 			svs.setAnnotationHeaders(QList<QByteArray>() << "FORMAT" << processedSampleName(processed_sample_id).toUtf8());
 			for (int i = 0; i < sv_id_columns.size(); ++i)
 			{
-				QStringList causal_ids = getValues("SELECT " + sv_id_columns.at(i) + " FROM report_configuration_sv WHERE causal='1' AND report_configuration_id=" + rc_id.toString() + " AND " + sv_id_columns.at(i) + " IS NOT NULL");
+				QStringList causal_ids = getValues("SELECT " + sv_id_columns.at(i) + " FROM report_configuration_sv WHERE causal='1' AND report_configuration_id=" + QString::number(rc_id) + " AND " + sv_id_columns.at(i) + " IS NOT NULL");
 
 				foreach(const QString& id, causal_ids)
 				{
@@ -5950,7 +5950,7 @@ QString NGSD::reportConfigSummaryText(const QString& processed_sample_id)
 
 		//find other causal variants
 		SqlQuery query = getQuery();
-		query.exec("SELECT * FROM report_configuration_other_causal_variant WHERE report_configuration_id=" + rc_id.toString());
+		query.exec("SELECT * FROM report_configuration_other_causal_variant WHERE report_configuration_id=" + QString::number(rc_id));
 		if(query.next())
 		{
 			output += ", causal " + query.value("type").toString() + ": " + query.value("coordinates").toString() + " (genes: " + query.value("gene").toString() + ")";
