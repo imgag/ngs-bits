@@ -40,6 +40,7 @@ SomaticReportConfiguration::SomaticReportConfiguration()
 	, include_msi_status_(false)
 	, include_cnv_burden_(false)
 	, hrd_score_(0)
+	, ploidy_(0)
 	, hrd_statement_()
 	, cnv_loh_count_(0)
 	, cnv_tai_count_(0)
@@ -419,6 +420,16 @@ QString SomaticReportConfiguration::hrdStatement() const
 void SomaticReportConfiguration::setHrdStatement(const QString& hrd_statement)
 {
 	hrd_statement_ = hrd_statement;
+}
+
+double SomaticReportConfiguration::ploidy() const
+{
+	return ploidy_;
+}
+
+void SomaticReportConfiguration::setPloidy(double ploidy)
+{
+	ploidy_ = ploidy;
 }
 
 

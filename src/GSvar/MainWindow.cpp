@@ -4446,6 +4446,28 @@ void MainWindow::generateReportSomaticRTF()
 		somatic_report_settings_.report_config.setHrdScore(0);
 	}
 
+	//Parse genome ploidy from ClinCNV file
+	FileLocation cnvFile = GlobalServiceProvider::fileLocationProvider().getAnalysisCnvFile();
+	if (cnvFile.exists)
+	{
+		QStringList cnv_data = Helper::loadTextFile(cnvFile.filename, true, QChar::Null, true);
+
+		for (const QString& line: cnv_data)
+		{
+			if (line.startsWith("##ploidy:"))
+			{
+				QStringList parts = line.split(':');
+				somatic_report_settings_.report_config.setPloidy(parts[1].toDouble());
+				break;
+			}
+
+			if (! line.startsWith("##"))
+			{
+				break;
+			}
+		}
+	}
+
 	//Get ICD10 diagnoses from NGSD
 	QStringList tmp_icd10;
 	QStringList tmp_phenotype;
