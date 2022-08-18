@@ -922,7 +922,8 @@ bool ExpressionGeneWidget::getGeneStats(const QByteArray& gene, double tpm)
 		DBExpressionValues db_expression_values;
 		db_expression_values.cohort_mean = mean;
 		db_expression_values.log2fc = log2p1tpm - mean_log2;
-		db_expression_values.zscore = (log2p1tpm - mean_log2) / stddev_log2;
+		db_expression_values.zscore = std::numeric_limits<double>::quiet_NaN();
+		if (stddev_log2 != 0.0) db_expression_values.zscore = (log2p1tpm - mean_log2) / stddev_log2;
 		db_expression_values.pvalue = 1 + std::erf(- std::abs(db_expression_values.zscore) / std::sqrt(2));
 
 		ngsd_expression.insert(gene, db_expression_values);
