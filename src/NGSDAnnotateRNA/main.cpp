@@ -34,11 +34,13 @@ public:
 		addEnum("cohort_strategy", "Determines which samples are used as reference cohort.", true, valid_cohort, "RNA_COHORT_GERMLINE");
 		addOutfile("corr", "File path to output file containing the spearman correlation to cohort mean.", true);
 		addInfile("hpa_file", "TSV file containing the Human Protein Atlas (https://www.proteinatlas.org) to annotate gene expression", true);
+		addFlag("update_genes", "Update annotated gene names with approved gene names from the NGSD");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
 		changeLog(2022, 6, 9, "Initial commit.");
 		changeLog(2022, 7, 13, "Added support for exons.");
 		changeLog(2022, 8, 11, "Added HPA annotation support.");
+		changeLog(2022, 8, 18, "Added ability to update gene names.");
 	}
 
 	virtual void main()
@@ -51,6 +53,7 @@ public:
 		QString cohort_strategy_str = getEnum("cohort_strategy");
 		QString corr = getOutfile("corr");
 		QString hpa_file_path = getInfile("hpa_file");
+		bool update_genes = getFlag("update_genes");
 
 		RnaCohortDeterminationStategy cohort_strategy;
 		if (cohort_strategy_str == "RNA_COHORT_GERMLINE")
@@ -81,7 +84,7 @@ public:
 
 		//get expression
 		QMap<QByteArray, ExpressionStats> expression_stats;
-		QMap<QByteArray, QByteArray> ensg_gene_mapping;
+		QMap<QByteArray, QByteArray> ensg_gene_mapping = db.getEnsemblGeneMapping();
 		QSet<int> cohort = db.getRNACohort(sys_id, s_data.tissue, ps_data.project_name, ps_id, cohort_strategy, mode.toUtf8());
 
 		//remove this sample from cohort
@@ -94,7 +97,6 @@ public:
 			if (mode == "genes")
 			{
 				expression_stats = db.calculateGeneExpressionStatistics(cohort);
-				ensg_gene_mapping = db.getEnsemblGeneMapping();
 			}
 			else if(mode == "exons")
 			{
@@ -115,11 +117,12 @@ public:
 			if(cohort_strategy != RNA_COHORT_SOMATIC) THROW(ArgumentException, "HPA annotation only supported for somatic samples!");
 
 			//get hpa tissue
-			QString sample_hpa_tissue = db.getValue(QByteArray() + "SELECT sdi.disease_info FROM sample s "
+			QStringList sample_hpa_tissues = db.getValues(QByteArray() + "SELECT DISTINCT sdi.disease_info FROM sample s "
 											 + "LEFT JOIN sample_relations sr ON s.id=sr.sample1_id OR s.id=sr.sample2_id "
 											 + "LEFT JOIN sample_disease_info sdi ON sdi.sample_id=sr.sample1_id OR sdi.sample_id=sr.sample2_id "
-											 + "WHERE s.id=:0 AND sdi.type='RNA reference tissue' AND (sr.relation='same sample' OR sr.relation IS NULL)", true, s_id).toString();
-			if (sample_hpa_tissue.isEmpty()) THROW(DatabaseException, "No HPA reference tissue set for sample '" + ps_name + "'!");
+											 + "WHERE s.id=:0 AND sdi.type='RNA reference tissue' AND (sr.relation='same sample' OR sr.relation IS NULL)", s_id);
+			if (sample_hpa_tissues.size() == 0) THROW(DatabaseException, "No HPA reference tissue set for sample '" + ps_name + "'!");
+			if (sample_hpa_tissues.size() > 1) THROW(DatabaseException, "Multiple HPA reference tissues set for sample '" + ps_name + "'! Cannot perform annotation.");
 
 			//parse HPA file
 
@@ -142,13 +145,13 @@ public:
 
 				double tpm = Helper::toDouble(line.at(tpm_idx), "TPM (hpa_file)", ensg);
 
-				if(tissue == sample_hpa_tissue)
+				if(tissue == sample_hpa_tissues.at(0))
 				{
 					hpa_data.insert(ensg, tpm);
 				}
 			}
 
-			if(hpa_data.size() == 0) THROW(ArgumentException, "No HPA gene expression found for HPA reference tissue '" + sample_hpa_tissue + "'! Please check if it is a valid HPA tissue.");
+			if(hpa_data.size() == 0) THROW(ArgumentException, "No HPA gene expression found for HPA reference tissue '" + sample_hpa_tissues.at(0) + "'! Please check if it is a valid HPA tissue.");
 
 			hpa_annotation = true;
 		}
@@ -193,17 +196,23 @@ public:
 		output_buffer << "#" + header.join("\t");
 
 		// get indices for position
-		int i_value=-1, i_gene_id=-1, i_exon=-1;
+		int i_value=-1, i_exon=-1;
 		if (mode == "genes")
 		{
 			i_value =  input_file.colIndex("tpm", true);
-			i_gene_id = input_file.colIndex("gene_id", true);
 		}
 		else //exon
 		{
 			i_value =  input_file.colIndex("srpb", true);
 			i_exon = input_file.colIndex("exon", true);
 		}
+
+		//ensg id
+		int i_gene_id = input_file.colIndex("gene_id", true);
+
+		//gene name
+		int i_gene_name = -1;
+		if (update_genes) i_gene_name = input_file.colIndex("gene_name", true);
 
 		int i_tpm = -1;
 		if(hpa_annotation) i_tpm = input_file.colIndex("tpm", true);
@@ -297,6 +306,30 @@ public:
 					tsv_line[column_indices["hpa_log2fc"]] = QByteArray::number(log2fc);
 				}
 
+			}
+
+			if(update_genes)
+			{
+				qDebug() << "index:" << i_gene_name;
+				qDebug() << tsv_line;
+				QByteArray old_gene_name = tsv_line.at(i_gene_name).trimmed();
+				qDebug() << old_gene_name;
+				if(!old_gene_name.isEmpty())
+				{
+					QByteArray approved_gene_name;
+					QByteArray ensg_id = tsv_line.at(i_gene_id).trimmed();
+					if(ensg_gene_mapping.contains(ensg_id))
+					{
+						//update by ENSG id:
+						approved_gene_name = ensg_gene_mapping.value(ensg_id);
+					}
+					else
+					{
+						//update by NGSD or use old name if not updatable:
+						approved_gene_name = db.geneToApproved(old_gene_name, true);
+					}
+					tsv_line[i_gene_name] = approved_gene_name;
+				}
 			}
 
 			//write line to buffer
