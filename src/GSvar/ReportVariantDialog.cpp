@@ -1,14 +1,17 @@
 #include "ReportVariantDialog.h"
 #include "ClassificationDialog.h"
 #include "Settings.h"
-#include <QPushButton>
+#include "VariantOpenDialog.h"
+#include <QMessageBox>
 
 ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> inheritance_by_gene, ReportVariantConfiguration& config, QWidget* parent)
 	: QDialog(parent)
 	, ui_()
 	, config_(config)
+	, genome_idx_(Settings::string("reference_genome", false))
 {
 	ui_.setupUi(this);
+	connect(ui_.manual_small_var_import, SIGNAL(clicked(bool)), this, SLOT(importManualSmallVariant()));
 	ui_.variant->setText(variant);
 
 	//connect signals to enable/disable 'Ok' button
@@ -46,6 +49,14 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 	foreach(QWidget* widget, findChildren<QWidget*>(QRegExp("manual_.*")))
 	{
 		widget->setVisible(false);
+	}
+	if (config_.variant_type==VariantType::SNVS_INDELS)
+	{
+		ui_.manual_line->setVisible(true);
+		foreach(QWidget* widget, findChildren<QWidget*>(QRegExp("manual_.*small.*")))
+		{
+			widget->setVisible(true);
+		}
 	}
 	if (config_.variant_type==VariantType::CNVS)
 	{
@@ -101,6 +112,12 @@ void ReportVariantDialog::updateGUI()
 	ui_.comments2->setPlainText(config_.comments2);
 	ui_.rna_info->setCurrentText(config_.rna_info);
 
+	//manual curation small variants
+	if (config_.variant_type==VariantType::SNVS_INDELS && !config_.manual_var.trimmed().isEmpty())
+	{
+		ui_.manual_small_var->setText(config_.manual_var.trimmed());
+	}
+
 	//manual curation CNVs
 	if (config_.variant_type==VariantType::CNVS)
 	{
@@ -140,6 +157,12 @@ void ReportVariantDialog::writeBack(ReportVariantConfiguration& rvc)
 	rvc.comments2 = ui_.comments2->toPlainText();
 	rvc.rna_info = ui_.rna_info->currentText();
 
+	//manual curation small variants
+	if (rvc.variant_type==VariantType::SNVS_INDELS)
+	{
+		rvc.manual_var = ui_.manual_small_var->text(); //not ok > error in validation
+	}
+
 	//manual curation CNVs
 	if (rvc.variant_type==VariantType::CNVS)
 	{
@@ -176,7 +199,7 @@ void ReportVariantDialog::activateOkButtonIfValid()
 	//check if config is valid
 	ReportVariantConfiguration tmp = config_;
 	writeBack(tmp);
-	if (!tmp.isValid(errors))
+	if (!tmp.isValid(errors, genome_idx_))
 	{
 		ui_.error_label->setVisible(true);
 		ui_.error_label->setToolTip(errors.join("\n"));
@@ -195,4 +218,21 @@ void ReportVariantDialog::activateOkButtonIfValid()
 	//enable button
 	ui_.error_label->setVisible(false);
 	ui_.btn_ok->setEnabled(true);
+}
+
+void ReportVariantDialog::importManualSmallVariant()
+{
+	VariantOpenDialog dlg(this);
+	dlg.setDefaultStyle("HGVS.c");
+	if (dlg.exec()!=QDialog::Accepted) return;
+
+	try
+	{
+		Variant v = dlg.variant();
+		ui_.manual_small_var->setText(v.toString());
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::information(this, "Manual variant curation", "Variant is not valid:\n" + e.message());
+	}
 }

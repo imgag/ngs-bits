@@ -35,15 +35,53 @@
    <property name="spacing">
     <number>3</number>
    </property>
+   <item row="1" column="3">
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
    <item row="1" column="2">
     <widget class="QLabel" name="style_hint">
+     <property name="maximumSize">
+      <size>
+       <width>18</width>
+       <height>18</height>
+      </size>
+     </property>
      <property name="text">
       <string/>
+     </property>
+     <property name="pixmap">
+      <pixmap resource="../cppGUI/resources.qrc">:/Icons/Info.png</pixmap>
+     </property>
+     <property name="scaledContents">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>variant:</string>
      </property>
     </widget>
    </item>
    <item row="1" column="1">
     <widget class="QComboBox" name="style">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <item>
       <property name="text">
        <string>GSvar</string>
@@ -66,22 +104,12 @@
      </item>
     </widget>
    </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>variant:</string>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="0">
     <widget class="QLabel" name="label">
      <property name="text">
       <string>style:</string>
      </property>
     </widget>
-   </item>
-   <item row="2" column="1" colspan="3">
-    <widget class="QLineEdit" name="variant"/>
    </item>
    <item row="5" column="0" colspan="4">
     <spacer name="verticalSpacer">
@@ -140,18 +168,8 @@
      </item>
     </layout>
    </item>
-   <item row="1" column="3">
-    <spacer name="horizontalSpacer">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>40</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
+   <item row="2" column="1" colspan="3">
+    <widget class="QLineEdit" name="variant"/>
    </item>
   </layout>
  </widget>
@@ -161,7 +179,9 @@
   <tabstop>ok_btn</tabstop>
   <tabstop>cancel_btn</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../cppGUI/resources.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>cancel_btn</sender>

@@ -106,8 +106,7 @@ void VariantConversionWidget::convert()
 				Variant variant(parts[0], start, end, ref_bases, parts[4].toLatin1().toUpper());
 				variant.normalize("-", true);
 
-				variant.checkValid();
-				if (variant.ref()!="-") variant.checkReferenceSequence(ref_genome_idx);
+				variant.checkValid(ref_genome_idx);
 
 				output << variant.toString(true, -1, true).replace(" ", "\t");
 			}
@@ -153,8 +152,7 @@ void VariantConversionWidget::convert()
 				Transcript transcript = db.transcript(trans_id);
 				Variant variant = transcript.hgvsToVariant(hgvs_c, ref_genome_idx);
 
-				variant.checkValid();
-				if (variant.ref()!="-") variant.checkReferenceSequence(ref_genome_idx);
+				variant.checkValid(ref_genome_idx);
 
 				output << variant.toString(true, -1, true).replace(" ", "\t");
 			}

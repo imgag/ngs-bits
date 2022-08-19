@@ -19,7 +19,17 @@ VariantOpenDialog::VariantOpenDialog(QWidget* parent)
 	updateStyleHint();
 }
 
-Variant VariantOpenDialog::variant() const
+void VariantOpenDialog::setDefaultStyle(QString style)
+{
+	int index = ui_.style->findText(style);
+	if (index==-1)
+	{
+		THROW(ArgumentException, "Invalid variant style '" + style + "' given!");
+	}
+	ui_.style->setCurrentIndex(index);
+}
+
+Variant VariantOpenDialog::variant()
 {
 	Variant output;
 
@@ -52,7 +62,6 @@ Variant VariantOpenDialog::variant() const
 
 		output = Variant(chr, start, end, ref, alt);
 		output.normalize("-", true);
-		output.checkValid();
 	}
 	else if (style=="gnomAD")
 	{
@@ -75,7 +84,6 @@ Variant VariantOpenDialog::variant() const
 
 		output = Variant(chr, start, end, ref, alt);
 		output.normalize("-", true);
-		output.checkValid();
 	}
 	else if (style=="HGVS.c")
 	{
@@ -90,18 +98,22 @@ Variant VariantOpenDialog::variant() const
 		QString text = ui_.variant->text().trimmed();
 		int sep_pos = text.indexOf(':');
 		if (sep_pos==-1) THROW(ArgumentException, "Invalid HGVS.c variant '" + text + "' - the format is [transcipt name]:[variant]");
+
+		//remove infos in brackets
 		QString transcript_name = text.left(sep_pos).trimmed();
-		if (transcript_name.contains('(') && transcript_name.endsWith(')')) //remove gene name in brackets if present, e.g. NM_000260.4(MYO7A)
+		if (transcript_name.contains('(') && transcript_name.endsWith(')')) //remove gene name, e.g. NM_000260.4(MYO7A)
 		{
 			int pos = transcript_name.indexOf('(');
 			transcript_name = transcript_name.left(pos).trimmed();
 		}
 		QString hgvs_c = text.mid(sep_pos+1).trimmed();
-		if (hgvs_c.contains('(') && hgvs_c.endsWith(')')) //remove protein change in brackets if present, e.h. c.1348G>C (p.Glu450Gln)
+		if (hgvs_c.contains('(') && hgvs_c.endsWith(')')) //remove protein change, e.h. c.1348G>C (p.Glu450Gln)
 		{
 			int pos = hgvs_c.indexOf('(');
 			hgvs_c = hgvs_c.left(pos).trimmed();
 		}
+
+		//check transcript name
 		int trans_id = db.transcriptId(transcript_name, false);
 		if (trans_id==-1) //not found > try to match CCDS/RefSeq to Ensembl
 		{
@@ -119,19 +131,28 @@ Variant VariantOpenDialog::variant() const
 					trans_id = match_id;
 				}
 			}
-			if (trans_id==-1) THROW(ArgumentException, "Cannot determine Ensembl transcript in NGSD for transcript identifier '" + transcript_name + "'!");
 		}
+		if (trans_id==-1) //not found > try if it is a gene name and use 'MANE select' transcript
+		{
+			int gene_id = db.geneId(transcript_name.toUtf8());
+			if (gene_id!=-1)
+			{
+				QVariant mane_select_id = db.getValue("SELECT id FROM gene_transcript WHERE gene_id=" + QString::number(gene_id) + " AND is_mane_select=1", true);
+				if (mane_select_id.isValid())
+				{
+					trans_id = mane_select_id.toInt();
+				}
+			}
+		}
+		if (trans_id==-1) THROW(ArgumentException, "Cannot determine Ensembl transcript in NGSD for transcript identifier '" + transcript_name + "'!");
 
+		//convert
 		Transcript transcript = db.transcript(trans_id);
 		output = transcript.hgvsToVariant(hgvs_c, ref_genome_idx_);
-
-		output.checkValid();
 	}
 
-	if (output.ref()!="-")
-	{
-		output.checkReferenceSequence(ref_genome_idx_);
-	}
+	//check that the output is valid
+	output.checkValid(ref_genome_idx_);
 
 	return output;
 }
@@ -141,19 +162,19 @@ void VariantOpenDialog::updateStyleHint()
 	QString style = ui_.style->currentText();
 	if (style=="GSvar")
 	{
-		ui_.style_hint->setText("format: chr, start, end, ref, alt (tab-separated)");
+		ui_.style_hint->setToolTip("format: chr, start, end, ref, alt (tab-separated)");
 	}
 	else if (style=="VCF")
 	{
-		ui_.style_hint->setText("format: chr, pos, id, ref, alt, ... (tab-separated)");
+		ui_.style_hint->setToolTip("format: chr, pos, id, ref, alt, ... (tab-separated)");
 	}
 	else if (style=="gnomAD")
 	{
-		ui_.style_hint->setText("format: chr, pos, ref, alt (separated by '-')");
+		ui_.style_hint->setToolTip("format: chr, pos, ref, alt (separated by '-')");
 	}
 	else if (style=="HGVS.c")
 	{
-		ui_.style_hint->setText("format: transcript, cDNA change (separated by ':')");
+		ui_.style_hint->setToolTip("format: transcript, cDNA change (separated by ':').\nNote: if a gene name is provided instead of a transcript, the MANE select transcript of the gene is used.");
 	}
 }
 

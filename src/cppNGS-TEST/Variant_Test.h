@@ -436,29 +436,32 @@ private slots:
 		S_EQUAL(v3.toString(), "chr11:111742146-111742146 G>-");
 
 		//GSvar format (human readable)
-		Variant v4 = Variant::fromString("chr17:41258507-41258507 G > A");
+		Variant v4 = Variant::fromString("chr17:41258507-41258507  G > A");
 		S_EQUAL(v4.toString(), "chr17:41258507-41258507 G>A");
-		Variant v5 = Variant::fromString("chr17:41251845-41251846 AG > -");
+		Variant v5 = Variant::fromString("chr17:41251845-41251846 AG  > -");
 		S_EQUAL(v5.toString(), "chr17:41251845-41251846 AG>-");
-		Variant v6 = Variant::fromString("chr17:41256250-41256250 - > T");
+		Variant v6 = Variant::fromString("chr17:41256250-41256250 - >  T");
 		S_EQUAL(v6.toString(), "chr17:41256250-41256250 ->T");
+		Variant v7 = Variant::fromString("chr17:41256250-41256250->T");
+		S_EQUAL(v7.toString(), "chr17:41256250-41256250 ->T");
+		Variant v8 = Variant::fromString("chr17:41256250-41256250T>-");
+		S_EQUAL(v8.toString(), "chr17:41256250-41256250 T>-");
 	}
 
-	void checkReferenceSequence()
+	void checkValid()
 	{
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		Variant v;
-
 		v = Variant ("chr4", 88536883, 88536900, "AAATTATTTTCTGCCTGG", "-");
-		v.checkReferenceSequence(ref_file);
+		v.checkValid(ref_file);
 
 		v = Variant("chr5", 76841292, 76841292, "A", "-");
-		v.checkReferenceSequence(ref_file);
+		v.checkValid(ref_file);
 
 		v = Variant("chr5", 76841292, 76841292, "T", "-");
-		IS_THROWN(ArgumentException, v.checkReferenceSequence(ref_file));
+		IS_THROWN(ArgumentException, v.checkValid(ref_file));
 	}
 
 	void leftAlign()

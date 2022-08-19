@@ -5892,13 +5892,25 @@ QString NGSD::reportConfigSummaryText(const QString& processed_sample_id)
 
 		//find causal small variants
 		{
-			QStringList causal_ids = getValues("SELECT variant_id FROM report_configuration_variant WHERE causal='1' AND report_configuration_id=" + QString::number(rc_id));
-			foreach(const QString& id, causal_ids)
+			QStringList causal_var_ids = getValues("SELECT variant_id FROM report_configuration_variant WHERE causal='1' AND report_configuration_id=" + QString::number(rc_id));
+			foreach(const QString& var_id, causal_var_ids)
 			{
-				Variant var = variant(id);
-				QString genotype = getValue("SELECT genotype FROM detected_variant WHERE processed_sample_id='" + processed_sample_id + "' AND variant_id='" + id + "'").toString();
+				Variant var = variant(var_id);
+
+				//manually curated
+				QString manual_var = getValue("SELECT manual_var FROM report_configuration_variant WHERE variant_id='" + var_id + "' AND report_configuration_id=" + QString::number(rc_id)).toString().trimmed();
+				if (!manual_var.isEmpty())
+				{
+					var = Variant::fromString(manual_var);
+				}
+
+				QString genotype = getValue("SELECT genotype FROM detected_variant WHERE processed_sample_id='" + processed_sample_id + "' AND variant_id='" + var_id + "'").toString();
+
 				QString genes = genesOverlapping(var.chr(), var.start(), var.end(), 5000).join(", ");
-				QString var_class = getValue("SELECT class FROM variant_classification WHERE variant_id='" + id + "'").toString();
+
+				QString var_class = getValue("SELECT class FROM variant_classification WHERE variant_id='" + var_id + "'").toString();
+
+				//get output
 				output += ", causal variant: " + var.toString() + " (genotype:" + genotype + " genes:" + genes;
 				if (var_class != "") output += " classification:" + var_class; // add classification, if exists
 				output += ")";
@@ -6016,6 +6028,7 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 		var_conf.comments = query.value("comments").toString();
 		var_conf.comments2 = query.value("comments2").toString();
 		var_conf.rna_info = query.value("rna_info").toString();
+		var_conf.manual_var = query.value("manual_var").toString();
 
 		output->set(var_conf);
 	}
@@ -6207,7 +6220,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 
 		//store variant data
 		SqlQuery query_var = getQuery();
-		query_var.prepare("INSERT INTO `report_configuration_variant`(`report_configuration_id`, `variant_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`, `rna_info`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15)");
+		query_var.prepare("INSERT INTO `report_configuration_variant`(`report_configuration_id`, `variant_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`, `rna_info`, `manual_var`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16)");
 		SqlQuery query_cnv = getQuery();
 		query_cnv.prepare("INSERT INTO `report_configuration_cnv`(`report_configuration_id`, `cnv_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`, `rna_info`, `manual_start`, `manual_end`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18)");
 		SqlQuery query_sv = getQuery();
@@ -6252,6 +6265,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 				query_var.bindValue(13, var_conf.comments.isEmpty() ? "" : var_conf.comments);
 				query_var.bindValue(14, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
 				query_var.bindValue(15, var_conf.rna_info.isEmpty() ? "n/a" : var_conf.rna_info);
+				query_var.bindValue(16, var_conf.manual_var);
 
 				query_var.exec();
 			}

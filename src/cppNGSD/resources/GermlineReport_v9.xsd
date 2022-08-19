@@ -461,6 +461,43 @@
 								</xs:annotation>
 								<xs:complexType>
 									<xs:sequence>
+										<xs:element name="ManualCuration" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Manual curation data for correcting errors in variant calling</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="start" type="xs:int" use="required">
+													<xs:annotation>
+														<xs:documentation>start position in GSvar format: for deletions the start position for the deletion and for insertions the position of base before the insertion.</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="end" type="xs:int" use="required">
+													<xs:annotation>
+														<xs:documentation>end position in GSvar format: for deletions the end position for the deletion and for insertions the position of base before the insertion.</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="ref" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>reference sequence in GSvar format: for deletions the deleted sequence and for insertions '-'</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="obs" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>observed sequence in GSvar format: for deletions '-' and for insertions the inserted sequence.</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="hgvs_c" type="xs:string">
+													<xs:annotation>
+														<xs:documentation>manually cutated HGVS.c notation</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="hgvs_p" type="xs:string">
+													<xs:annotation>
+														<xs:documentation>manually cutated HGVS.p notation</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
 										<xs:element name="TranscriptInformation" minOccurs="0" maxOccurs="unbounded">
 											<xs:annotation>
 												<xs:documentation>Transcript-specific annotation data</xs:documentation>
@@ -654,22 +691,22 @@
 									</xs:attribute>
 									<xs:attribute name="start" type="xs:int" use="required">
 										<xs:annotation>
-											<xs:documentation>start position</xs:documentation>
+											<xs:documentation>start position in GSvar format: for deletions the start position for the deletion and for insertions the position of base before the insertion.</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="end" type="xs:int" use="required">
 										<xs:annotation>
-											<xs:documentation>end position</xs:documentation>
+											<xs:documentation>end position in GSvar format: for deletions the end position for the deletion and for insertions the position of base before the insertion.</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="ref" type="xs:string" use="required">
 										<xs:annotation>
-											<xs:documentation>reference sequence</xs:documentation>
+											<xs:documentation>reference sequence in GSvar format: for deletions the deleted sequence and for insertions '-'</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="obs" type="xs:string" use="required">
 										<xs:annotation>
-											<xs:documentation>observed sequence</xs:documentation>
+											<xs:documentation>observed sequence in GSvar format: for deletions '-' and for insertions the inserted sequence.</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="genotype" use="required">
@@ -796,16 +833,6 @@
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
-									<xs:attribute name="manual_hgvs_c" type="xs:string">
-										<xs:annotation>
-											<xs:documentation>manually cutated HGVS.c notation</xs:documentation>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="manual_hgvs_p" type="xs:string">
-										<xs:annotation>
-											<xs:documentation>manually cutated HGVS.p notation</xs:documentation>
-										</xs:annotation>
-									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
 						</xs:sequence>
@@ -842,6 +869,23 @@
 								</xs:annotation>
 								<xs:complexType>
 									<xs:sequence>
+										<xs:element name="ManualCuration" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Manual curation data for correcting errors in variant calling</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="start" type="xs:int">
+													<xs:annotation>
+														<xs:documentation>manually cutated genomic start position. Used if the CNV caller could not determine the position correctly or if one CNV is split into several calls</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="end" type="xs:int">
+													<xs:annotation>
+														<xs:documentation>manually cutated genomic end position. Used if the CNV caller could not determine the position correctly or if one CNV is split into several calls</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
 										<xs:element name="Gene" minOccurs="0" maxOccurs="unbounded">
 											<xs:annotation>
 												<xs:documentation>Genes that overlap the CNV</xs:documentation>
@@ -1058,16 +1102,6 @@
 												<xs:enumeration value="incidental finding"/>
 											</xs:restriction>
 										</xs:simpleType>
-									</xs:attribute>
-									<xs:attribute name="manual_start" type="xs:int">
-										<xs:annotation>
-											<xs:documentation>manually cutated genomic start position. Used if the CNV caller could not determine the position correctly or if one CNV is split into several calls</xs:documentation>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="manual_end" type="xs:int">
-										<xs:annotation>
-											<xs:documentation>manually cutated genomic end position. Used if the CNV caller could not determine the position correctly or if one CNV is split into several calls</xs:documentation>
-										</xs:annotation>
 									</xs:attribute>
 								</xs:complexType>
 							</xs:element>

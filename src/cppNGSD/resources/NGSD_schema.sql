@@ -1441,6 +1441,7 @@ CREATE TABLE IF NOT EXISTS `report_configuration_variant`
   `comments` text NOT NULL,
   `comments2` text NOT NULL,
   `rna_info` ENUM( 'n/a', 'splicing effect validated by RNA dataset', 'no splicing effect found in RNA dataset', 'RNA dataset not usable') NOT NULL DEFAULT 'n/a',
+  `manual_var` TEXT DEFAULT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_report_configuration`
     FOREIGN KEY (`report_configuration_id` )

@@ -3,10 +3,8 @@
 
 #include "cppNGSD_global.h"
 #include "VariantType.h"
+#include "VariantList.h"
 #include "CnvList.h"
-#include <QStringList>
-#include <QDateTime>
-#include <QObject>
 
 class NGSD;
 
@@ -18,7 +16,7 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	///Returns if the variant is to be shown in the report
 	bool showInReport() const;
 	///Returns if the variant is valid. Writes validation error message into given string list.
-	bool isValid(QStringList& errors);
+	bool isValid(QStringList& errors, FastaFileIndex& ref_index);
 	///Equality operator
 	bool operator==(const ReportVariantConfiguration& rhs);
 	///Equality operator
@@ -46,6 +44,8 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 
 	//general function for manual curation
 	bool isManuallyCurated() const;
+	//manual curation of small variants
+	QString manual_var;
 	//manual curation of CNVs
 	QVariant manual_cnv_start; //int
 	QVariant manual_cnv_end; //int

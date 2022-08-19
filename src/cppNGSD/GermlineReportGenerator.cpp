@@ -929,13 +929,14 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		if (!selected_cnvs_.contains(var_conf.variant_index)) continue;
 		if (data_.report_settings.report_type!="all" && var_conf.report_type!=data_.report_settings.report_type) continue;
 
-		const CopyNumberVariant& cnv = data_.cnvs[var_conf.variant_index];
+		CopyNumberVariant cnv = data_.cnvs[var_conf.variant_index];
 
 		//element Cnv
 		w.writeStartElement("Cnv");
 		w.writeAttribute("chr", cnv.chr().str());
 		w.writeAttribute("start", QString::number(cnv.start()));
 		w.writeAttribute("end", QString::number(cnv.end()));
+		if (var_conf.isManuallyCurated()) var_conf.updateCnv(cnv, db_); //uncurated position is stored => update CNV
 		w.writeAttribute("start_band", NGSHelper::cytoBand(data_.build, cnv.chr(), cnv.start()));
 		w.writeAttribute("end_band", NGSHelper::cytoBand(data_.build, cnv.chr(), cnv.end()));
 		int cn = cnv.copyNumber(data_.cnvs.annotationHeaders());
@@ -963,15 +964,22 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			w.writeAttribute("comments_2nd_assessor", var_conf.comments2.trimmed());
 		}
 		w.writeAttribute("rna_info", var_conf.rna_info);
-		if (var_conf.manualCnvStartIsValid())
-		{
-			w.writeAttribute("manual_start", var_conf.manual_cnv_start.toString());
-		}
-		if (var_conf.manualCnvEndIsValid())
-		{
-			w.writeAttribute("manual_end", var_conf.manual_cnv_end.toString());
-		}
 		w.writeAttribute("report_type", var_conf.report_type);
+
+		//element ManualCuration
+		if (var_conf.isManuallyCurated())
+		{
+			w.writeStartElement("ManualCuration");
+			if (var_conf.manualCnvStartIsValid())
+			{
+				w.writeAttribute("start", var_conf.manual_cnv_start.toString());
+			}
+			if (var_conf.manualCnvEndIsValid())
+			{
+				w.writeAttribute("end", var_conf.manual_cnv_end.toString());
+			}
+			w.writeEndElement();
+		}
 
 		//element Gene
 		foreach(const QByteArray& gene, cnv.genes())

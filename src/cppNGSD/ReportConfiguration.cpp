@@ -24,6 +24,7 @@ ReportVariantConfiguration::ReportVariantConfiguration()
 	, comments()
 	, comments2()
 	, rna_info("n/a")
+	, manual_var()
 	, manual_cnv_start()
 	, manual_cnv_end()
 {
@@ -34,7 +35,7 @@ bool ReportVariantConfiguration::showInReport() const
 	return !(exclude_artefact || exclude_frequency || exclude_phenotype || exclude_mechanism || exclude_other);
 }
 
-bool ReportVariantConfiguration::isValid(QStringList& errors)
+bool ReportVariantConfiguration::isValid(QStringList& errors, FastaFileIndex& ref_index)
 {
 	errors.clear();
 
@@ -43,7 +44,6 @@ bool ReportVariantConfiguration::isValid(QStringList& errors)
 	{
 		errors << "Variant type is invalid!";
 	}
-
 
 	//check variant index is set
 	if (variant_index<0)
@@ -64,7 +64,21 @@ bool ReportVariantConfiguration::isValid(QStringList& errors)
 		errors << "Variant cannot be causal and excluded at the same time!";
 	}
 
-	//check types of nullable
+	//manual small variant curation
+	if (variant_type==VariantType::SNVS_INDELS && !manual_var.trimmed().isEmpty())
+	{
+		try
+		{
+			Variant v = Variant::fromString(manual_var);
+			v.checkValid(ref_index);
+		}
+		catch(Exception& e)
+		{
+			errors << "manually curated variant is invalid: " + e.message();
+		}
+	}
+
+	//manual CNV curation
 	if (manual_cnv_start.isValid() && !manual_cnv_start.toString().trimmed().isEmpty())
 	{
 		if (variant_type==VariantType::CNVS)
@@ -105,14 +119,15 @@ bool ReportVariantConfiguration::operator==(const ReportVariantConfiguration& rh
 			comments2 == rhs.comments2 &&
 			rna_info == rhs.rna_info &&
 			manual_cnv_start == rhs.manual_cnv_start &&
-			manual_cnv_end == rhs.manual_cnv_end;
+			manual_cnv_end == rhs.manual_cnv_end &&
+			manual_var == rhs.manual_var;
 }
 
 bool ReportVariantConfiguration::isManuallyCurated() const
 {
 	if (variant_type==VariantType::SNVS_INDELS)
 	{
-		//TODO
+		return !manual_var.isEmpty();
 	}
 	else if(variant_type==VariantType::CNVS)
 	{

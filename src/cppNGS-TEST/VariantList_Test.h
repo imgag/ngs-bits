@@ -22,10 +22,11 @@ private slots:
 	{
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
+		FastaFileIndex ref_index(ref_file);
 
 		VariantList vl;
 		vl.load(TESTDATA("data_in/LeftAlign_in.GSvar"));
-		vl.checkValid();
+		vl.checkValid(ref_index);
 		vl.leftAlign(ref_file);
 		vl.store("out/LeftAlign_out.GSvar");
 		COMPARE_FILES("out/LeftAlign_out.GSvar", TESTDATA("data_out/LeftAlign_out.GSvar"));
@@ -35,10 +36,11 @@ private slots:
 	{
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
+		FastaFileIndex ref_index(ref_file);
 
 		VariantList vl;
 		vl.load(TESTDATA("data_in/LeftAlign_in2.GSvar"));
-		vl.checkValid();
+		vl.checkValid(ref_index);
 		vl.leftAlign(ref_file);
 		vl.store("out/LeftAlign_out2.GSvar");
 		COMPARE_FILES("out/LeftAlign_out2.GSvar", TESTDATA("data_out/LeftAlign_out.GSvar"));

@@ -153,16 +153,20 @@ void Variant::checkValid() const
 	{
 		THROW(ArgumentException, "Invalid variant observed sequence in variant '" + toString() + "'");
 	}
+
 }
 
-void Variant::checkReferenceSequence(const FastaFileIndex& reference) const
+void Variant::checkValid(const FastaFileIndex& reference) const
 {
-	if (ref_.isEmpty()) return;
+	checkValid();
 
-	Sequence seq_genome = reference.seq(chr_, start_, end_-start_+1);
-	if (seq_genome!=ref_)
+	if (ref()!="-")
 	{
-		THROW(ArgumentException, "Invalid reference sequence of variant '" + toString() + "': Variant reference sequence is '" + ref_ + "', but the genome sequence is '" + seq_genome + "'");
+		Sequence ref_expected = reference.seq(chr_, start_, end_-start_+1);
+		if (ref_!=ref_expected)
+		{
+			THROW(ArgumentException, "Invalid reference sequence of variant '" + toString() + "': Variant reference sequence is '" + ref_ + "', but the genome sequence is '" + ref_expected + "'");
+		}
 	}
 }
 
@@ -995,6 +999,18 @@ void VariantList::checkValid() const
 	}
 }
 
+void VariantList::checkValid(const FastaFileIndex& reference) const
+{
+	foreach(const Variant& variant, variants_)
+	{
+		variant.checkValid(reference);
+		if (variant.annotations().count()!=annotation_headers_.count())
+		{
+			THROW(ArgumentException, "Invalid variant annotation data: Expected " + QString::number(annotation_headers_.count()) + " values, but " + QString::number(variant.annotations().count()) + " values found");
+		}
+	}
+}
+
 SampleHeaderInfo VariantList::getSampleHeader() const
 {
 	SampleHeaderInfo output;
@@ -1281,9 +1297,9 @@ Variant Variant::fromString(const QString& text_orig)
 	text.replace("\t", " ");
 	text.replace(":", " ");
 	text.replace(">", " ");
-	text.replace(" -", " ."); //preserve '-' as ref/obs of indels
-	text.replace("-", " ");
-	text.replace(".", "-"); //preserve '-' as ref/obs of indels
+	text.replace(QRegExp("-([0-9])"), " \\1"); //replace '-' between start/end but preserve '-' in ref/obs of indels
+	text.replace(QRegExp("([0-9]+)"), "\\1 "); //special handling if space after end position is missing
+	text = text.simplified();
 
 	//split
 	QStringList parts = text.split(QRegExp("\\s+"));
@@ -1294,7 +1310,6 @@ Variant Variant::fromString(const QString& text_orig)
 
 	//check if valid
 	v.normalize("-");
-	v.checkValid();
 
 	return v;
 }

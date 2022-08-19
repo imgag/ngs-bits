@@ -13,10 +13,13 @@ class VariantOpenDialog
 	Q_OBJECT
 
 public:
+	//Constructor
 	VariantOpenDialog(QWidget* parent);
+	//Sets the default variant style. Throws an exception when the style does not exist.
+	void setDefaultStyle(QString style);
 
 	//Returns the entered variant. If case it is not valid, an exception is thrown.
-	Variant variant() const;
+	Variant variant();
 
 private slots:
 	//updates the style hint based on the selected style

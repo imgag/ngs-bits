@@ -132,8 +132,7 @@ public:
 			Variant variant = transcript.hgvsToVariant(hgvs_c, ref_index);
 
 			//check variant
-			variant.checkValid();
-			if (variant.ref()!="-") variant.checkReferenceSequence(ref_index);
+			variant.checkValid(ref_index);
 
 			//skip too long variants
 			if (max_seq>0 && (variant.obs().size()>max_seq || variant.ref().size()>max_seq)) return false;

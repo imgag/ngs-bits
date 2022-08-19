@@ -18,6 +18,7 @@ public:
 protected slots:
 	void writeBackSettings();
 	void activateOkButtonIfValid();
+	void importManualSmallVariant();
 
 protected:
 	///Transfers report settings to GUI
@@ -29,6 +30,7 @@ protected:
 
 	Ui::ReportVariantDialog ui_;
 	ReportVariantConfiguration& config_;
+	FastaFileIndex genome_idx_;
 };
 
 #endif // REPORTVARIANTDIALOG_H

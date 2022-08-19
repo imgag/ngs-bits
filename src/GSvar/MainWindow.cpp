@@ -6260,8 +6260,8 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 	if (!LoginManager::active()) return;
 
 	//get variant index
-	int row = ui_.vars->verticalHeader()->visualIndexAt(pos.ry());
-	int index = ui_.vars->rowToVariantIndex(row);
+	int index = ui_.vars->selectedVariantIndex();
+	if(index==-1) return; //several variants selected
 
 	//set up menu
 	QMenu menu(ui_.vars->verticalHeader());
