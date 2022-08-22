@@ -972,7 +972,7 @@ private slots:
 		int conf_id = db.reportConfigId(ps_id);
 		IS_TRUE(conf_id!=-1);
 
-		//check data
+		//check data - base config
 		QStringList messages2;
 		QSharedPointer<ReportConfiguration> report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
 		S_EQUAL(report_conf2->createdBy(), "Max Mustermann");
@@ -982,6 +982,24 @@ private slots:
 		S_EQUAL(report_conf2->finalizedBy(), "");
 		IS_FALSE(report_conf2->finalizedAt().isValid());
 		QDateTime last_update_time_before_update = report_conf2->lastUpdatedAt();
+		//check data - manual curation
+		ReportVariantConfiguration var_conf2 = report_conf2->variantConfig()[1]; //small variant - order changed because they are sorted by index
+		I_EQUAL(var_conf2.variant_index, 47);
+		S_EQUAL(var_conf2.manual_var, "");
+		S_EQUAL(var_conf2.manual_genotype, "");
+		var_conf2 = report_conf2->variantConfig()[0]; //CNV - order changed because they are sorted by index
+		S_EQUAL(var_conf2.manual_cnv_start, "");
+		S_EQUAL(var_conf2.manual_cnv_end, "");
+		S_EQUAL(var_conf2.manual_cnv_cn, "");
+
+		//change manual curation data
+		report_var_conf.manual_var = "chr2:47635523-47635523 ->TT";
+		report_var_conf.manual_genotype = "hom";
+		report_conf->set(report_var_conf);
+		report_var_conf2.manual_cnv_start = "89240000";
+		report_var_conf2.manual_cnv_end= "89550000";
+		report_var_conf2.manual_cnv_cn = "0";
+		report_conf->set(report_var_conf2);
 
 		//update
 		QThread::sleep(1);
@@ -997,7 +1015,6 @@ private slots:
 		S_EQUAL(report_conf2->lastUpdatedBy(), "Max Mustermann");
 		IS_TRUE(report_conf2->lastUpdatedAt().isValid());
 		IS_TRUE(last_update_time_before_update<report_conf2->lastUpdatedAt());
-
 
 		S_EQUAL(report_conf2->finalizedBy(), "");
 		IS_FALSE(report_conf2->finalizedAt().isValid());
@@ -1021,6 +1038,8 @@ private slots:
 		IS_FALSE(var_conf.exclude_mechanism);
 		IS_FALSE(var_conf.exclude_other);
 		IS_FALSE(var_conf.exclude_phenotype);
+		S_EQUAL(var_conf.manual_var, "chr2:47635523-47635523 ->TT");
+		S_EQUAL(var_conf.manual_genotype, "hom");
 		var_conf = report_conf2->variantConfig()[0]; //order changed because they are sorted by index
 		I_EQUAL(var_conf.variant_index, 4);
 		IS_FALSE(var_conf.causal);
@@ -1036,6 +1055,9 @@ private slots:
 		IS_FALSE(var_conf.exclude_mechanism);
 		IS_FALSE(var_conf.exclude_other);
 		IS_FALSE(var_conf.exclude_phenotype);
+		S_EQUAL(var_conf.manual_cnv_start, "89240000");
+		S_EQUAL(var_conf.manual_cnv_end, "89550000");
+		S_EQUAL(var_conf.manual_cnv_cn, "0");
 		var_conf = report_conf2->variantConfig()[2];
 		I_EQUAL(var_conf.variant_index, 81);
 		IS_TRUE(var_conf.causal);
@@ -1603,7 +1625,7 @@ private slots:
 			var_conf.rna_info = "no splicing effect found in RNA dataset";
 			report_settings.report_config->set(var_conf);
 
-			report_settings.selected_variants.append(qMakePair(VariantType::CNVS, 1)); //CNV - het duplcation (manually curated start/end)
+			report_settings.selected_variants.append(qMakePair(VariantType::CNVS, 1)); //CNV - het duplcation (manually curated start/end/cn)
 			var_conf.variant_type = VariantType::CNVS;
 			var_conf.variant_index = 1;
 			var_conf.causal = false;
@@ -1612,8 +1634,9 @@ private slots:
 			var_conf.comp_het = true;
 			var_conf.report_type = "diagnostic variant";
 			var_conf.rna_info = "no splicing effect found in RNA dataset";
-			var_conf.manual_cnv_start = 26799369;
-			var_conf.manual_cnv_end = 26991734;
+			var_conf.manual_cnv_start = "26799369";
+			var_conf.manual_cnv_end = "26991734";
+			var_conf.manual_cnv_cn = "0";
 			report_settings.report_config->set(var_conf);
 
 			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 3)); //SV - Insertion

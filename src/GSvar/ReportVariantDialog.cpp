@@ -116,13 +116,15 @@ void ReportVariantDialog::updateGUI()
 	if (config_.variant_type==VariantType::SNVS_INDELS && !config_.manual_var.trimmed().isEmpty())
 	{
 		ui_.manual_small_var->setText(config_.manual_var.trimmed());
+		ui_.manual_small_genotype->setText(config_.manual_genotype.trimmed());
 	}
 
 	//manual curation CNVs
 	if (config_.variant_type==VariantType::CNVS)
 	{
-		ui_.manual_cnv_start->setText(config_.manual_cnv_start.toString());
-		ui_.manual_cnv_end->setText(config_.manual_cnv_end.toString());
+		ui_.manual_cnv_start->setText(config_.manual_cnv_start.trimmed());
+		ui_.manual_cnv_end->setText(config_.manual_cnv_end.trimmed());
+		ui_.manual_cnv_cn->setText(config_.manual_cnv_cn.trimmed());
 	}
 }
 
@@ -160,35 +162,16 @@ void ReportVariantDialog::writeBack(ReportVariantConfiguration& rvc)
 	//manual curation small variants
 	if (rvc.variant_type==VariantType::SNVS_INDELS)
 	{
-		rvc.manual_var = ui_.manual_small_var->text(); //not ok > error in validation
+		rvc.manual_var = ui_.manual_small_var->text().trimmed(); //not ok > error in validation
+		rvc.manual_genotype = ui_.manual_small_genotype->text().trimmed(); //not ok > error in validation
 	}
 
 	//manual curation CNVs
 	if (rvc.variant_type==VariantType::CNVS)
 	{
-		QString start_text = ui_.manual_cnv_start->text().trimmed();
-		if (start_text.isEmpty())
-		{
-			rvc.manual_cnv_start = QVariant();
-		}
-		else
-		{
-			bool ok = false;
-			int start = start_text.toInt(&ok);
-			rvc.manual_cnv_start = ok ? QVariant(start) : QVariant(start_text); //not ok > error in validation because of wrong QVariant type
-		}
-
-		QString end_text = ui_.manual_cnv_end->text().trimmed();
-		if (end_text.isEmpty())
-		{
-			rvc.manual_cnv_end = QVariant();
-		}
-		else
-		{
-			bool ok = false;
-			int end = end_text.toInt(&ok);
-			rvc.manual_cnv_end = ok ? QVariant(end) : QVariant(end_text); //not ok > error in validation of wrong QVariant type
-		}
+		rvc.manual_cnv_start = ui_.manual_cnv_start->text().trimmed();
+		rvc.manual_cnv_end = ui_.manual_cnv_end->text().trimmed();
+		rvc.manual_cnv_cn = ui_.manual_cnv_cn->text().trimmed();
 	}
 }
 

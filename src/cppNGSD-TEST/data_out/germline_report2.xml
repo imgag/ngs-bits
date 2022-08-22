@@ -77,7 +77,7 @@
             <ExternalLink url="https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&amp;position=chr21:10541092-10649856" type="UCSC"/>
         </Cnv>
         <Cnv chr="chr21" start="26866710" end="26994365" start_band="21q21.3" end_band="21q21.3" type="dup" cn="3" regions="13" causal="false" de_novo="false" comp_het="true" mosaic="false" rna_info="no splicing effect found in RNA dataset" report_type="diagnostic variant">
-            <ManualCuration start="26799369" end="26991734"/>
+            <ManualCuration start="26799369" end="26991734" cn="0"/>
             <ExternalLink url="http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg38/?name=chr21:26799369-26991734" type="DGV"/>
             <ExternalLink url="https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&amp;position=chr21:26799369-26991734" type="UCSC"/>
         </Cnv>

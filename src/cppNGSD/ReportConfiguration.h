@@ -46,12 +46,17 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	bool isManuallyCurated() const;
 	//manual curation of small variants
 	QString manual_var;
+	QString manual_genotype;
+	bool manualVarGenoIsValid() const;
+
 	//manual curation of CNVs
-	QVariant manual_cnv_start; //int
-	QVariant manual_cnv_end; //int
+	QString manual_cnv_start;
+	QString manual_cnv_end;
+	QString manual_cnv_cn;
 	bool manualCnvStartIsValid() const;
 	bool manualCnvEndIsValid() const;
-	void updateCnv(CopyNumberVariant& cnv, NGSD& db) const;
+	bool manualCnvCnIsValid() const;
+	void updateCnv(CopyNumberVariant& cnv, const QByteArrayList& cnv_headers, NGSD& db) const;
 
 	//Returns options for 'type' (taken and cached from NGSD)
 	static QStringList getTypeOptions();

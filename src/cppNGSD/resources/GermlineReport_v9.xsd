@@ -486,6 +486,18 @@
 														<xs:documentation>observed sequence in GSvar format: for deletions '-' and for insertions the inserted sequence.</xs:documentation>
 													</xs:annotation>
 												</xs:attribute>
+												<xs:attribute name="genotype">
+													<xs:annotation>
+														<xs:documentation>manually cutated genotype</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:enumeration value="hom"/>
+															<xs:enumeration value="het"/>
+															<xs:enumeration value="hemi"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
 												<xs:attribute name="hgvs_c" type="xs:string">
 													<xs:annotation>
 														<xs:documentation>manually cutated HGVS.c notation</xs:documentation>
@@ -883,6 +895,16 @@
 													<xs:annotation>
 														<xs:documentation>manually cutated genomic end position. Used if the CNV caller could not determine the position correctly or if one CNV is split into several calls</xs:documentation>
 													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="cn">
+													<xs:annotation>
+														<xs:documentation>manually cutated copy-number</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:int">
+															<xs:minInclusive value="0"/>
+														</xs:restriction>
+													</xs:simpleType>
 												</xs:attribute>
 											</xs:complexType>
 										</xs:element>

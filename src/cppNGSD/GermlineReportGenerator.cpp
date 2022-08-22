@@ -256,7 +256,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		CopyNumberVariant cnv = data_.cnvs[var_conf.variant_index];
 
 		//manually curated start/end > update gene list
-		if (var_conf.isManuallyCurated()) var_conf.updateCnv(cnv, db_);
+		if (var_conf.isManuallyCurated()) var_conf.updateCnv(cnv, data_.cnvs.annotationHeaders(), db_);
 		stream << "<tr>" << endl;
 		stream << "<td>" << cnv.toString() << (var_conf.isManuallyCurated() ? " (manually curated)" : "") << "</td>" << endl;
 		stream << "<td>" << std::max(1, cnv.regions()) << "</td>" << endl; //trio CNV lists don't contain number of regions > fix
@@ -936,7 +936,6 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeAttribute("chr", cnv.chr().str());
 		w.writeAttribute("start", QString::number(cnv.start()));
 		w.writeAttribute("end", QString::number(cnv.end()));
-		if (var_conf.isManuallyCurated()) var_conf.updateCnv(cnv, db_); //uncurated position is stored => update CNV
 		w.writeAttribute("start_band", NGSHelper::cytoBand(data_.build, cnv.chr(), cnv.start()));
 		w.writeAttribute("end_band", NGSHelper::cytoBand(data_.build, cnv.chr(), cnv.end()));
 		int cn = cnv.copyNumber(data_.cnvs.annotationHeaders());
@@ -972,13 +971,20 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			w.writeStartElement("ManualCuration");
 			if (var_conf.manualCnvStartIsValid())
 			{
-				w.writeAttribute("start", var_conf.manual_cnv_start.toString());
+				w.writeAttribute("start", var_conf.manual_cnv_start);
 			}
 			if (var_conf.manualCnvEndIsValid())
 			{
-				w.writeAttribute("end", var_conf.manual_cnv_end.toString());
+				w.writeAttribute("end", var_conf.manual_cnv_end);
+			}
+			if (var_conf.manualCnvCnIsValid())
+			{
+				w.writeAttribute("cn", var_conf.manual_cnv_cn);
 			}
 			w.writeEndElement();
+
+			//uncurated data is stored => update CNV for links
+			var_conf.updateCnv(cnv, data_.cnvs.annotationHeaders(), db_);
 		}
 
 		//element Gene
@@ -1741,11 +1747,11 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 	//show warning if non-coding transcripts had to be used
 	if (!genes_noncoding.isEmpty())
 	{
-		stream << "<br />Warning: Using the longest *non-coding* transcript for genes " << genes_noncoding.join(", ") << " (no coding transcripts for GRCh37 defined)";
+		stream << "<br />Warning: Using the longest *non-coding* transcript for genes " << genes_noncoding.join(", ");
 	}
 	if (!genes_notranscript.isEmpty())
 	{
-		stream << "<br />Warning: No transcript defined for genes " << genes_notranscript.join(", ");
+		stream << "<br />Warning: No CCDS transcript defined for genes " << genes_notranscript.join(", ");
 	}
 
 	//overall statistics
@@ -2301,7 +2307,7 @@ void GermlineReportGenerator::printVariantSheetRowCnv(QTextStream& stream, const
 
 	//manually curated start/end > update gene list
 
-	if (conf.isManuallyCurated()) conf.updateCnv(cnv, db_);
+	if (conf.isManuallyCurated()) conf.updateCnv(cnv, data_.cnvs.annotationHeaders(), db_);
 	stream << "     <tr>" << endl;
 	stream << "       <td>" << cnv.toString() << (conf.isManuallyCurated() ? " (manually curated)" : "") << "</td>" << endl;
 	stream << "       <td>" << cnv.copyNumber(data_.cnvs.annotationHeaders()) << "</td>" << endl;
