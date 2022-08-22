@@ -778,6 +778,31 @@ HttpResponse ServerController::performLogin(const HttpRequest& request)
 	return HttpResponse(ResponseStatus::UNAUTHORIZED, request.getContentType(), "Invalid username or password");
 }
 
+HttpResponse ServerController::getSessionInfo(const HttpRequest& request)
+{
+	if (request.getUrlParams().contains("token"))
+	{
+		QString token = request.getUrlParams()["token"];
+		Session current_session = SessionManager::getSessionBySecureToken(token);
+
+		QJsonDocument json_doc;
+		QJsonObject json_object;
+
+		json_object.insert("user_id", current_session.user_id);
+		json_object.insert("login_time", current_session.login_time.toSecsSinceEpoch());
+		json_object.insert("is_db_token", current_session.is_for_db_only);
+		json_object.insert("valid_period", ServerHelper::getNumSettingsValue("session_duration"));
+		json_doc.setObject(json_object);
+
+		BasicResponseData response_data;
+		response_data.length = json_doc.toJson().length();
+		response_data.content_type = request.getContentType();
+		response_data.is_downloadable = false;		
+		return HttpResponse(response_data, json_doc.toJson());
+	}
+	return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "You are not allowed to access this information");
+}
+
 HttpResponse ServerController::validateCredentials(const HttpRequest& request)
 {
 	qDebug() << "Validation of user credentials";	

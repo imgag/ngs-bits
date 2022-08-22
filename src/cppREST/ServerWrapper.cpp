@@ -71,9 +71,16 @@ ServerWrapper::ServerWrapper(const quint16& port, const bool& insecure)
 	{
 		is_running_ = true;
 		Log::info(protocol_name + " server is running on port #" + QString::number(port));
-		QTimer *timer = new QTimer(this);
-		connect(timer, &QTimer::timeout, this, &UrlManager::removeExpiredUrls);
-		timer->start(10000); // every 10 seconds
+
+		// Remove expired URLs on schedule
+		QTimer *url_timer = new QTimer(this);
+		connect(url_timer, &QTimer::timeout, this, &UrlManager::removeExpiredUrls);
+		url_timer->start(60 * 5 * 1000); // every 5 minutes
+
+		// Remove expired sessions (invalidate tokens) on schedule
+		QTimer *session_timer = new QTimer(this);
+		connect(session_timer, &QTimer::timeout, this, &SessionManager::removeExpiredSessions);
+		url_timer->start(60 * 10 * 1000); // every 10 minutes
 	}
 	else
 	{		

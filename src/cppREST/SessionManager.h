@@ -42,14 +42,13 @@ public:
 	static void saveSessionToFile(QString id, Session in);
 	static void restoreFromFile();
 	static void addNewSession(QString id, Session in, bool save_to_file = true);
-	static void removeSession(QString id);
-	static void removeSession(int user_id, QDateTime login_time);
-	static Session getSessionByUserId(QString id);
+	static void removeSession(QString id);	
 	static Session getSessionBySecureToken(QString token);
 	static bool isSessionExpired(Session in);
 	static bool isSessionExpired(QString token);
 
 	static bool isTokenReal(QString token);
+	static void removeExpiredSessions();
 
 protected:
 	SessionManager();

@@ -95,39 +95,6 @@ void SessionManager::removeSession(QString id)
 	}
 }
 
-void SessionManager::removeSession(int user_id, QDateTime login_time)
-{
-	QMapIterator<QString, Session> i(instance().session_store_);
-	QString session_id;
-	while (i.hasNext())
-	{
-		i.next();
-		if ((i.value().user_id == user_id) && (i.value().login_time == login_time))
-		{
-			session_id = i.key();
-			break;
-		}
-	}
-	if (!session_id.isEmpty())
-	{
-		removeSession(session_id);
-	}
-}
-
-Session SessionManager::getSessionByUserId(QString id)
-{
-	QMapIterator<QString, Session> i(instance().session_store_);
-	while (i.hasNext())
-	{
-		i.next();
-		if (i.value().user_id == id)
-		{
-			return i.value();
-		}
-	}
-	return Session();
-}
-
 Session SessionManager::getSessionBySecureToken(QString token)
 {
 	QMapIterator<QString, Session> i(instance().session_store_);
@@ -149,8 +116,7 @@ bool SessionManager::isSessionExpired(Session in)
 	if (valid_period == 0) valid_period = 3600; // default value, if not set in the config
 
 	if (in.login_time.addSecs(valid_period).toSecsSinceEpoch() < QDateTime::currentDateTime().toSecsSinceEpoch())
-	{		
-		removeSession(in.user_id, in.login_time);
+	{
 		return true;
 	}
 	return false;
@@ -173,4 +139,22 @@ bool SessionManager::isTokenReal(QString token)
 		}
 	}
 	return false;
+}
+
+void SessionManager::removeExpiredSessions()
+{
+	QList<QString> to_be_removed {};
+	QMapIterator<QString, Session> i(instance().session_store_);
+	while (i.hasNext()) {
+		i.next();
+		if (isSessionExpired(i.value()))
+		{
+			to_be_removed.append(i.key());
+		}
+	}
+
+	for (int i = 0; i < to_be_removed.count(); ++i)
+	{
+		removeSession(to_be_removed[i]);
+	}
 }
