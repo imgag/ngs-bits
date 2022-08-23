@@ -9,6 +9,7 @@ Transcript::Transcript()
 	, start_(-1)
 	, end_(-1)
 	, is_preferred_transcript_(false)
+	, is_mane_select_(false)
 	, coding_start_(0)
 	, coding_end_(0)
 {
@@ -904,10 +905,25 @@ int Transcript::utr3primeStart() const
 	}
 }
 
+void TranscriptList::sortByBases()
+{
+	std::stable_sort(this->begin(), this->end(), [](const Transcript& a, const Transcript& b){ return a.regions().baseCount() > b.regions().baseCount(); });
+}
+
+void TranscriptList::sortByCodingBases()
+{
+	std::stable_sort(this->begin(), this->end(), [](const Transcript& a, const Transcript& b){ return a.codingRegions().baseCount() > b.codingRegions().baseCount(); });
+}
+
+void TranscriptList::sortByName()
+{
+	std::stable_sort(this->begin(), this->end(), [](const Transcript& a, const Transcript& b){ return a.name()<b.name(); });
+}
+
 void TranscriptList::sortByPosition()
 {
 	TranscriptPositionComparator comparator;
-	std::sort(this->begin(), this->end(), comparator);
+	std::stable_sort(this->begin(), this->end(), comparator);
 }
 
 bool TranscriptList::TranscriptPositionComparator::operator()(const Transcript& a, const Transcript& b) const

@@ -133,7 +133,7 @@ void GeneSelectorDialog::updateGeneTable()
 		setGeneTableItem(r, 0, gene, Qt::AlignLeft, Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
 
 		//transcript
-		Transcript transcript = db.longestCodingTranscript(gene_id, Transcript::CCDS, true);
+		Transcript transcript = db.bestTranscript(gene_id);
 		BedFile region = transcript.codingRegions();
 		setGeneTableItem(r, 1, transcript.name() + " (" + QString::number(region.count()) + " exons)");
 

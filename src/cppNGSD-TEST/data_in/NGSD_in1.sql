@@ -76,17 +76,20 @@ INSERT INTO `gene_alias` (`gene_id`, `symbol`, `type`) VALUES
 (415153, 'QARS', 'previous'),
 (433401, 'QARS', 'previous');
 
-INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES
-(1, 1,'BRCA1_TR1','ccds','17',100,200,'+'),
-(2, 2,'BRCA2_TR1','ccds','13',100,200,'+'),
-(3, 3,'NIPA1_TR1','ensembl','15',100,400,'-'),
-(4, 3,'NIPA1_TR2','ensembl','15',150,350,'-'),
-(5, 4,'NON-CODING_TR1','ensembl','22',NULL,NULL,'-'),
-(1572612, 642528, 'ENST00000331920', 'ensembl', '9', 98209194, 98270643, '-'),
-(1568912, 622167, 'ENST00000310193', 'ensembl', '8', 65509199, 65711144, '-'),
-(1503635, 650913, 'ENST00000338625', 'ensembl', '13', 41367363, 41383803, '+'),
-(1515928, 652410, 'ENST00000268704', 'ensembl', '16', 89574826, 89623501, '+'),
-(1515930, 652410, 'ENST00000341316', 'ensembl', '16', 89574826, 89603318, '+');
+INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`, `is_mane_select`) VALUES
+(1, 1,'BRCA1_TR1','ccds','17',100,200,'+',1),
+(2, 2,'BRCA2_TR1','ccds','13',100,200,'+',1),
+(3, 3,'NIPA1_TR1','ensembl','15',100,400,'-',1),
+(4, 3,'NIPA1_TR2','ensembl','15',150,350,'-',0),
+(5, 4,'NON-CODING_TR1','ensembl','22',NULL,NULL,'-',0),
+(1572612, 642528, 'ENST00000331920', 'ensembl', '9', 98209194, 98270643, '-',1),
+(1568912, 622167, 'ENST00000310193', 'ensembl', '8', 65509199, 65711144, '-',1),
+(1503635, 650913, 'ENST00000338625', 'ensembl', '13', 41367363, 41383803, '+',1),
+(1515928, 652410, 'ENST00000268704', 'ensembl', '16', 89574826, 89623501, '+',1),
+(1515930, 652410, 'ENST00000341316', 'ensembl', '16', 89574826, 89603318, '+',0);
+
+INSERT INTO `preferred_transcripts`(`name`, `added_by`, `added_date`) VALUES
+('ENST00000341316', 99, '2020-09-04 10:48:01');
 
 INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES
 (1, 100, 110),

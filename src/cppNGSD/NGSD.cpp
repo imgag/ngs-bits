@@ -5785,9 +5785,43 @@ TranscriptList NGSD::transcripts(int gene_id, Transcript::SOURCE source, bool co
 		output << trans;
 	}
 
-	std::sort(output.begin(), output.end(), [](const Transcript& a, const Transcript& b){ return a.name()<b.name();});
+	output.sortByName();
 
 	return output;
+}
+
+Transcript NGSD::bestTranscript(int gene_id)
+{
+	TranscriptList list = transcripts(gene_id, Transcript::ENSEMBL, false);
+
+	//preferred
+	list.sortByCodingBases();
+	foreach(const Transcript& t, list)
+	{
+		if (t.isPreferredTranscript()) return t;
+	}
+
+	//MANE select
+	foreach(const Transcript& t, list)
+	{
+		if (t.isManeSelectTranscript()) return t;
+	}
+
+	//longest coding
+	list.sortByCodingBases();
+	foreach(const Transcript& t, list)
+	{
+		if (t.isCoding()) return t;
+	}
+
+	//longest
+	list.sortByBases();
+	foreach(const Transcript& t, list)
+	{
+		return t;
+	}
+
+	return Transcript();
 }
 
 const TranscriptList& NGSD::transcripts()
@@ -5833,9 +5867,9 @@ Transcript NGSD::longestCodingTranscript(int gene_id, Transcript::SOURCE source,
 
 	if (list.isEmpty()) return Transcript();
 
-	//get longest transcript (transcripts regions are merged!)
-	auto max_it = std::max_element(list.begin(), list.end(), [](const Transcript& a, const Transcript& b){ return a.codingRegions().baseCount() < b.codingRegions().baseCount(); });
-	return *max_it;
+	//get longest transcript
+	list.sortByCodingBases();
+	return list.first();
 }
 
 DiagnosticStatusData NGSD::getDiagnosticStatus(const QString& processed_sample_id)
@@ -7607,7 +7641,7 @@ void NGSD::initTranscriptCache()
 
 	//create all transcripts
 	QHash<QByteArray, int> tmp_name2id;
-	query.exec("SELECT t.id, g.symbol, t.name, t.source, t.strand, t.chromosome, t.start_coding, t.end_coding, t.biotype FROM gene_transcript t, gene g WHERE t.gene_id=g.id");
+	query.exec("SELECT t.id, g.symbol, t.name, t.source, t.strand, t.chromosome, t.start_coding, t.end_coding, t.biotype, t.is_mane_select FROM gene_transcript t, gene g WHERE t.gene_id=g.id");
 	while(query.next())
 	{
 		int trans_id = query.value(0).toInt();
@@ -7620,6 +7654,7 @@ void NGSD::initTranscriptCache()
 		transcript.setStrand(Transcript::stringToStrand(query.value(4).toByteArray()));
 		transcript.setBiotype(Transcript::stringToBiotype(query.value(8).toByteArray()));
 		transcript.setPreferredTranscript(pts.contains(transcript.name()));
+		transcript.setManeSelectTranscript(query.value(9).toInt()!=0);
 
 		//get exons
 		BedFile regions;

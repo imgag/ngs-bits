@@ -650,6 +650,8 @@ public:
 	const TranscriptList& transcripts();
 	///Returns transcripts of a gene (if @p coding_only is set, only coding transcripts).
 	TranscriptList transcripts(int gene_id, Transcript::SOURCE source, bool coding_only);
+	///Returns the best transcript for the gene. Order is: (longest coding) preferred transcript, MANE select transcript, longest coding transcript, longest non-coding transcript, longest transcript. If no transcript is found, a invalid default-constructed transcript is returned.
+	Transcript bestTranscript(int gene_id);
 	///Returns longest coding transcript of a gene.
 	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source=false, bool fallback_noncoding=false);
 	///Returns the list of all approved gene names

@@ -423,6 +423,7 @@ private slots:
 		I_EQUAL(transcripts[0].regions().baseCount(), 202);
 		I_EQUAL(transcripts[0].codingRegions().count(), 2);
 		I_EQUAL(transcripts[0].codingRegions().baseCount(), 202);
+		IS_TRUE(transcripts[0].isManeSelectTranscript());
 		S_EQUAL(transcripts[1].name(), "NIPA1_TR2");
 		I_EQUAL(transcripts[1].strand(), Transcript::MINUS);
 		I_EQUAL(transcripts[1].source(), Transcript::ENSEMBL);
@@ -430,6 +431,7 @@ private slots:
 		I_EQUAL(transcripts[1].regions().baseCount(), 224);
 		I_EQUAL(transcripts[1].codingRegions().count(), 2);
 		I_EQUAL(transcripts[1].codingRegions().baseCount(), 102);
+		IS_FALSE(transcripts[1].isManeSelectTranscript());
 
 		transcripts = db.transcripts(3, Transcript::ENSEMBL, false); //NIPA1, Ensembl, non-coding
 		I_EQUAL(transcripts.count(), 2);
@@ -460,10 +462,10 @@ private slots:
 		I_EQUAL(transcripts[0].codingRegions().baseCount(), 0);
 
 		//longestCodingTranscript
-		transcript = db.longestCodingTranscript(4, Transcript::ENSEMBL); //NON-CODING, zero transcripts
+		transcript = db.longestCodingTranscript(4, Transcript::ENSEMBL); //NON-CODING, zero CCDS transcripts
 		IS_FALSE(transcript.isValid());
 
-		transcript = db.longestCodingTranscript(1, Transcript::CCDS); //BRCA1, one transcript
+		transcript = db.longestCodingTranscript(1, Transcript::CCDS); //BRCA1, one CCDS transcript
 		IS_TRUE(transcript.isValid());
 		S_EQUAL(transcript.name(), "BRCA1_TR1");
 		I_EQUAL(transcript.regions().count(), 4);
@@ -471,13 +473,29 @@ private slots:
 		I_EQUAL(transcript.codingRegions().count(), 4);
 		I_EQUAL(transcript.codingRegions().baseCount(), 44);
 
-		transcript = db.longestCodingTranscript(3, Transcript::ENSEMBL); //NIPA1, two transcripts
+		transcript = db.longestCodingTranscript(3, Transcript::ENSEMBL); //NIPA1, two Ensembl transcripts
 		IS_TRUE(transcript.isValid());
 		S_EQUAL(transcript.name(), "NIPA1_TR1");
 		I_EQUAL(transcript.regions().count(), 2);
 		I_EQUAL(transcript.regions().baseCount(), 202);
 		I_EQUAL(transcript.codingRegions().count(), 2);
 		I_EQUAL(transcript.codingRegions().baseCount(), 202);
+
+		//bestTranscript
+		transcript = db.bestTranscript(4); //NON-CODING, one non-coding Ensembl transcript
+		IS_TRUE(transcript.isValid());
+		S_EQUAL(transcript.name(), "NON-CODING_TR1");
+
+		transcript = db.bestTranscript(3); //NIPA1, two coding Ensembl transcripts
+		IS_TRUE(transcript.isValid());
+		S_EQUAL(transcript.name(), "NIPA1_TR1");
+
+		transcript = db.bestTranscript(652410); //SPG7, two coding Ensembl transcripts (shorter one is preferred)
+		IS_TRUE(transcript.isValid());
+		S_EQUAL(transcript.name(), "ENST00000341316");
+
+		transcript = db.bestTranscript(1); //BRCA1, only CCDS transcript > invalid
+		IS_FALSE(transcript.isValid());
 
 		//geneIdOfTranscript
 		I_EQUAL(db.geneIdOfTranscript("BRCA1_TR1"), 1);
@@ -1317,7 +1335,7 @@ private slots:
 
 		//getPreferredTranscripts
 		QMap<QByteArray, QByteArrayList> pt = db.getPreferredTranscripts();
-		I_EQUAL(pt.count(), 2);
+		I_EQUAL(pt.count(), 3);
 		IS_TRUE(pt.contains("NIPA1"));
 		IS_TRUE(pt.contains("NON-CODING"));
 		I_EQUAL(pt["NIPA1"].count(), 2);
@@ -1325,6 +1343,8 @@ private slots:
 		IS_TRUE(pt["NIPA1"].contains("NIPA1_TR2"));
 		I_EQUAL(pt["NON-CODING"].count(), 1);
 		IS_TRUE(pt["NON-CODING"].contains("NON-CODING_TR1"));
+		I_EQUAL(pt["SPG7"].count(), 1);
+		IS_TRUE(pt["SPG7"].contains("ENST00000341316"));
 
 		//addSampleRelation
 		db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"});

@@ -655,7 +655,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			w.writeStartElement("Gene");
 			w.writeAttribute("name", gene);
 			w.writeAttribute("identifier", db_.geneHgncId(gene_id));
-			Transcript transcript = db_.longestCodingTranscript(gene_id, Transcript::ENSEMBL, true, true);
+			Transcript transcript = db_.bestTranscript(gene_id);
 			w.writeAttribute("bases", QString::number(transcript.regions().baseCount()));
 
 			//omim info
