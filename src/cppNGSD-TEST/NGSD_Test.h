@@ -1591,7 +1591,7 @@ private slots:
 		//############################### TEST 2 - with variants, with target region, all optional parts enabled ###############################
 		{
 
-			report_settings.selected_variants.append(qMakePair(VariantType::SNVS_INDELS, 252)); //small variant - chr13:41367370 C>G (SPG7)
+			report_settings.selected_variants.append(qMakePair(VariantType::SNVS_INDELS, 252)); //small variant - chr16:89531961 G>A (SPG7)
 			ReportVariantConfiguration var_conf;
 			var_conf.variant_type = VariantType::SNVS_INDELS;
 			var_conf.variant_index = 252;
@@ -1603,7 +1603,7 @@ private slots:
 			var_conf.rna_info = "n/a";
 			report_settings.report_config->set(var_conf);
 
-			report_settings.selected_variants.append(qMakePair(VariantType::SNVS_INDELS, 173)); //small variant - chr13:41367370 C>G (SLC25A15)
+			report_settings.selected_variants.append(qMakePair(VariantType::SNVS_INDELS, 173)); //small variant - chr13:40793234 C>G (SLC25A15)
 			var_conf.variant_type = VariantType::SNVS_INDELS;
 			var_conf.variant_index = 173;
 			var_conf.causal = false;
@@ -1612,6 +1612,8 @@ private slots:
 			var_conf.comp_het = true;
 			var_conf.report_type = "diagnostic variant";
 			var_conf.rna_info = "splicing effect validated by RNA dataset";
+			var_conf.manual_var = "chr13:40793233-40793233 T>A";
+			var_conf.manual_genotype = "hom";
 			report_settings.report_config->set(var_conf);
 
 			report_settings.selected_variants.append(qMakePair(VariantType::CNVS, 0)); //CNV - het deletion

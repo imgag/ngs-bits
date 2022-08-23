@@ -5892,19 +5892,25 @@ QString NGSD::reportConfigSummaryText(const QString& processed_sample_id)
 
 		//find causal small variants
 		{
-			QStringList causal_var_ids = getValues("SELECT variant_id FROM report_configuration_variant WHERE causal='1' AND report_configuration_id=" + QString::number(rc_id));
-			foreach(const QString& var_id, causal_var_ids)
+			SqlQuery query = getQuery();
+			query.exec("SELECT * FROM report_configuration_variant WHERE causal='1' AND report_configuration_id=" + QString::number(rc_id));
+			while(query.next())
 			{
+				QString var_id = query.value("variant_id").toString();
 				Variant var = variant(var_id);
+				QString genotype = getValue("SELECT genotype FROM detected_variant WHERE processed_sample_id='" + processed_sample_id + "' AND variant_id='" + var_id + "'").toString();
 
-				//manually curated
-				QString manual_var = getValue("SELECT manual_var FROM report_configuration_variant WHERE variant_id='" + var_id + "' AND report_configuration_id=" + QString::number(rc_id)).toString().trimmed();
+				//manual curation
+				QString manual_var = query.value("manual_var").toString().trimmed();
 				if (!manual_var.isEmpty())
 				{
 					var = Variant::fromString(manual_var);
 				}
-
-				QString genotype = getValue("SELECT genotype FROM detected_variant WHERE processed_sample_id='" + processed_sample_id + "' AND variant_id='" + var_id + "'").toString();
+				QString manual_genotype = query.value("manual_genotype").toString().trimmed();
+				if (!manual_genotype.isEmpty())
+				{
+					genotype = query.value("manual_genotype").toString().trimmed();
+				}
 
 				QString genes = genesOverlapping(var.chr(), var.start(), var.end(), 5000).join(", ");
 

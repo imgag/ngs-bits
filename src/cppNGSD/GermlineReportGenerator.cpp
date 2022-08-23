@@ -180,7 +180,10 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
 		if (!selected_small_.contains(var_conf.variant_index)) continue;
 
-		const Variant& variant = data_.variants[var_conf.variant_index];
+		Variant variant = data_.variants[var_conf.variant_index];
+
+		//manually curation
+		if (var_conf.isManuallyCurated()) var_conf.updateVariant(variant, i_genotype);
 
 		stream << "<tr>" << endl;
 		stream << "<td>" << endl;
@@ -255,12 +258,12 @@ void GermlineReportGenerator::writeHTML(QString filename)
 
 		CopyNumberVariant cnv = data_.cnvs[var_conf.variant_index];
 
-		//manually curated start/end > update gene list
+		//manually curation
 		if (var_conf.isManuallyCurated()) var_conf.updateCnv(cnv, data_.cnvs.annotationHeaders(), db_);
+
 		stream << "<tr>" << endl;
 		stream << "<td>" << cnv.toString() << (var_conf.isManuallyCurated() ? " (manually curated)" : "") << "</td>" << endl;
-		stream << "<td>" << std::max(1, cnv.regions()) << "</td>" << endl; //trio CNV lists don't contain number of regions > fix
-
+		stream << "<td>" << std::max(1, cnv.regions()) << "</td>" << endl; //TODO trio CNV lists don't contain number of regions > fix
 		QString cn = QString::number(cnv.copyNumber(data_.cnvs.annotationHeaders()));
 		if (var_conf.de_novo) cn += " (de-novo)";
 		if (var_conf.mosaic) cn += " (mosaic)";
@@ -1011,7 +1014,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	}
 	w.writeEndElement();
 
-	//SV List:
+	//SV List
 	w.writeStartElement("SvList");
 
 	QString caller = "Unknown";
@@ -2207,13 +2210,17 @@ void GermlineReportGenerator::printVariantSheetRowHeader(QTextStream& stream, bo
 void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const ReportVariantConfiguration& conf)
 {
 	//get column indices
-	const Variant& v = data_.variants[conf.variant_index];
+	Variant v = data_.variants[conf.variant_index];
+
 	int i_genotype = data_.variants.getSampleHeader().infoByID(data_.ps).column_index;
 	int i_co_sp = data_.variants.annotationIndexByName("coding_and_splicing", true, true);
 	int i_class = data_.variants.annotationIndexByName("classification", true, true);
 	int i_gnomad = data_.variants.annotationIndexByName("gnomAD", true, true);
 	int i_ngsd_hom = data_.variants.annotationIndexByName("NGSD_hom", true, true);
 	int i_ngsd_het = data_.variants.annotationIndexByName("NGSD_het", true, true);
+
+	//manually curation
+	if (conf.isManuallyCurated()) conf.updateVariant(v, i_genotype);
 
 	//get transcript-specific data
 	QStringList genes;
@@ -2305,9 +2312,9 @@ void GermlineReportGenerator::printVariantSheetRowCnv(QTextStream& stream, const
 {
 	CopyNumberVariant cnv = data_.cnvs[conf.variant_index];
 
-	//manually curated start/end > update gene list
-
+	//manually curation
 	if (conf.isManuallyCurated()) conf.updateCnv(cnv, data_.cnvs.annotationHeaders(), db_);
+
 	stream << "     <tr>" << endl;
 	stream << "       <td>" << cnv.toString() << (conf.isManuallyCurated() ? " (manually curated)" : "") << "</td>" << endl;
 	stream << "       <td>" << cnv.copyNumber(data_.cnvs.annotationHeaders()) << "</td>" << endl;

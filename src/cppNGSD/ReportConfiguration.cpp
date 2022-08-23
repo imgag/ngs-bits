@@ -56,7 +56,7 @@ bool ReportVariantConfiguration::isValid(QStringList& errors, FastaFileIndex& re
 	//check report type is set
 	if (!getTypeOptions().contains(report_type))
 	{
-		errors << "Report type not set!";
+		errors << "Report type '" + report_type + "' invalid! Valid are: '" + getTypeOptions().join("', '") + "'";
 	}
 
 	//check causal variant is not excluced
@@ -67,18 +67,14 @@ bool ReportVariantConfiguration::isValid(QStringList& errors, FastaFileIndex& re
 	}
 
 	//manual small variant curation
-	if (!manual_var.trimmed().isEmpty())
+	if (!manual_var.isEmpty())
 	{
 		if (variant_type==VariantType::SNVS_INDELS)
 		{
-			try
+			QString error;
+			if(!manualVarIsValid(ref_index, &error))
 			{
-				Variant v = Variant::fromString(manual_var);
-				v.checkValid(ref_index);
-			}
-			catch(Exception& e)
-			{
-				errors << "manually curated variant is invalid: " + e.message();
+				errors << "manually curated variant is invalid: " + error;
 			}
 		}
 		else errors << "small variant sequence is manually set for variant which is not a small variant!";
@@ -87,7 +83,7 @@ bool ReportVariantConfiguration::isValid(QStringList& errors, FastaFileIndex& re
 	{
 		if (variant_type==VariantType::SNVS_INDELS)
 		{
-			if (manual_genotype!="het" && manual_genotype!="hom")
+			if (!manualVarGenoIsValid())
 			{
 				errors << "manually curated genotype '"+manual_genotype+"' is invalid. Valid are 'hom' or 'het'!";
 			}
@@ -110,9 +106,7 @@ bool ReportVariantConfiguration::isValid(QStringList& errors, FastaFileIndex& re
 	{
 		if (variant_type==VariantType::CNVS)
 		{
-			bool ok = false;
-			double tmp = manual_cnv_end.toInt(&ok);
-			if(!ok || tmp<0) errors << "manual CNV end position is set, but not a valid integer. Value is '" + manual_cnv_end + "'";
+			if(!manualCnvStartIsValid()) errors << "manual CNV end position is set, but not a valid integer. Value is '" + manual_cnv_end + "'";
 		}
 		else errors << "CNV end position is manually set for variant which is not a CNV!";
 	}
@@ -174,14 +168,49 @@ bool ReportVariantConfiguration::isManuallyCurated() const
 	THROW(ArgumentException, "ReportVariantConfiguration::isManuallyCurated() called on invalid variant type!");
 }
 
+bool ReportVariantConfiguration::manualVarIsValid(FastaFileIndex& ref_index, QString* error) const
+{
+	if (manual_var.isEmpty()) return false;
+
+	try
+	{
+		Variant v = Variant::fromString(manual_var);
+		v.checkValid(ref_index);
+	}
+	catch(Exception& e)
+	{
+		if (error!=nullptr) (*error) = e.message();
+		return false;
+	}
+
+	return true;
+}
+
 bool ReportVariantConfiguration::manualVarGenoIsValid() const
 {
 	return manual_genotype=="hom" || manual_genotype=="het";
 }
 
+void ReportVariantConfiguration::updateVariant(Variant& v, int genotype_col_idx) const
+{
+	if (manualVarGenoIsValid())
+	{
+		Variant v2 = Variant::fromString(manual_var);
+		v.setChr(v2.chr());
+		v.setStart(v2.start());
+		v.setEnd(v2.end());
+		v.setRef(v2.ref());
+		v.setObs(v2.obs());
+	}
+	if (manualVarGenoIsValid())
+	{
+		v.annotations()[genotype_col_idx] = manual_genotype.toUtf8();
+	}
+}
+
 bool ReportVariantConfiguration::manualCnvStartIsValid() const
 {
-	if (manual_cnv_start.trimmed().isEmpty()) return false;
+	if (manual_cnv_start.isEmpty()) return false;
 
 	bool ok = false;
 	int value = manual_cnv_start.toInt(&ok);
@@ -192,7 +221,7 @@ bool ReportVariantConfiguration::manualCnvStartIsValid() const
 
 bool ReportVariantConfiguration::manualCnvEndIsValid() const
 {
-	if (manual_cnv_end.trimmed().isEmpty()) return false;
+	if (manual_cnv_end.isEmpty()) return false;
 
 	bool ok = false;
 	int value = manual_cnv_end.toInt(&ok);
@@ -203,7 +232,7 @@ bool ReportVariantConfiguration::manualCnvEndIsValid() const
 
 bool ReportVariantConfiguration::manualCnvCnIsValid() const
 {
-	if (manual_cnv_cn.trimmed().isEmpty()) return false;
+	if (manual_cnv_cn.isEmpty()) return false;
 
 	bool ok = false;
 	int value = manual_cnv_cn.toInt(&ok);
@@ -219,8 +248,11 @@ void ReportVariantConfiguration::updateCnv(CopyNumberVariant& cnv, const QByteAr
 	if (manualCnvEndIsValid()) cnv.setEnd(manual_cnv_end.toInt());
 	if (manualCnvCnIsValid()) cnv.setCopyNumber(manual_cnv_cn.toInt(), cnv_headers);
 
-	//update gene list
-	cnv.setGenes(db.genesOverlapping(cnv.chr(), cnv.start(), cnv.end(), 5000));
+	//update gene list if coordinates changed
+	if (manualCnvStartIsValid() || manualCnvEndIsValid())
+	{
+		cnv.setGenes(db.genesOverlapping(cnv.chr(), cnv.start(), cnv.end(), 5000));
+	}
 }
 
 QStringList ReportVariantConfiguration::getTypeOptions()

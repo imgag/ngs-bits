@@ -44,10 +44,13 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 
 	//general function for manual curation
 	bool isManuallyCurated() const;
+
 	//manual curation of small variants
 	QString manual_var;
 	QString manual_genotype;
+	bool manualVarIsValid(FastaFileIndex& ref_index, QString* error= nullptr) const;
 	bool manualVarGenoIsValid() const;
+	void updateVariant(Variant& v, int genotype_col_idx) const;
 
 	//manual curation of CNVs
 	QString manual_cnv_start;
