@@ -1143,12 +1143,6 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeAttribute("rna_info", var_conf.rna_info);
 		w.writeAttribute("report_type", var_conf.report_type);
 
-		//TODO
-		//w.writeAttribute("hgvs_start", );
-		//w.writeAttribute("hgvs_end", );
-		//w.writeAttribute("hgvs_bnd_start2", );
-		//w.writeAttribute("hgvs_bnd_end2", );
-
 		foreach(const QByteArray& gene, sv.genes(data_.svs.annotationHeaders(), false))
 		{
 			w.writeStartElement("Gene");

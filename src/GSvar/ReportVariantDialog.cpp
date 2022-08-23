@@ -7,12 +7,13 @@
 ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> inheritance_by_gene, ReportVariantConfiguration& config, QWidget* parent)
 	: QDialog(parent)
 	, ui_()
+	, variant_(variant)
 	, config_(config)
 	, genome_idx_(Settings::string("reference_genome", false))
 {
 	ui_.setupUi(this);
 	connect(ui_.manual_small_var_import, SIGNAL(clicked(bool)), this, SLOT(importManualSmallVariant()));
-	ui_.variant->setText(variant);
+	ui_.variant->setText(variant_);
 
 	//connect signals to enable/disable 'Ok' button
 	foreach(QComboBox* widget, findChildren<QComboBox*>())
@@ -188,6 +189,20 @@ void ReportVariantDialog::activateOkButtonIfValid()
 		ui_.error_label->setToolTip(errors.join("\n"));
 		ui_.btn_ok->setEnabled(false);
 		return;
+	}
+
+	//special handling for manual curation of small variant: check that new coordinates are nearby
+	if (tmp.variant_type==VariantType::SNVS_INDELS && tmp.manualVarIsValid(genome_idx_))
+	{
+		Variant v = Variant::fromString(variant_);
+		Variant v2 = Variant::fromString(tmp.manual_var);
+		if (v.chr()!=v2.chr() || abs(v.start()-v2.start())>1000)
+		{
+			ui_.error_label->setVisible(true);
+			ui_.error_label->setToolTip("Manual coordinates are too far from original coordinates!");
+			ui_.btn_ok->setEnabled(false);
+			return;
+		}
 	}
 
 	//check if data was changed (storing may override the changes someone else made in another instance of GSvar, thus avoid unncessary storing...)

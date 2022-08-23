@@ -72,10 +72,7 @@ bool ReportVariantConfiguration::isValid(QStringList& errors, FastaFileIndex& re
 		if (variant_type==VariantType::SNVS_INDELS)
 		{
 			QString error;
-			if(!manualVarIsValid(ref_index, &error))
-			{
-				errors << "manually curated variant is invalid: " + error;
-			}
+			if(!manualVarIsValid(ref_index, &error)) errors << "manually curated variant is invalid: " + error;
 		}
 		else errors << "small variant sequence is manually set for variant which is not a small variant!";
 	}
@@ -83,10 +80,7 @@ bool ReportVariantConfiguration::isValid(QStringList& errors, FastaFileIndex& re
 	{
 		if (variant_type==VariantType::SNVS_INDELS)
 		{
-			if (!manualVarGenoIsValid())
-			{
-				errors << "manually curated genotype '"+manual_genotype+"' is invalid. Valid are 'hom' or 'het'!";
-			}
+			if (!manualVarGenoIsValid()) errors << "manually curated genotype '"+manual_genotype+"' is invalid. Valid are 'hom' or 'het'!";
 		}
 		else errors << "small variant genotype is manually set for variant which is not a small variant!";
 	}
@@ -96,9 +90,7 @@ bool ReportVariantConfiguration::isValid(QStringList& errors, FastaFileIndex& re
 	{
 		if (variant_type==VariantType::CNVS)
 		{
-			bool ok = false;
-			double tmp = manual_cnv_start.toInt(&ok);
-			if(!ok || tmp<0) errors << "manual CNV start position is set, but not a valid integer. Value is '" + manual_cnv_start + "'";
+			if(!manualCnvStartIsValid()) errors << "manual CNV start position is set, but not a valid integer. Value is '" + manual_cnv_start + "'";
 		}
 		else errors << "CNV start position is manually set for variant which is not a CNV!";
 	}
@@ -106,7 +98,7 @@ bool ReportVariantConfiguration::isValid(QStringList& errors, FastaFileIndex& re
 	{
 		if (variant_type==VariantType::CNVS)
 		{
-			if(!manualCnvStartIsValid()) errors << "manual CNV end position is set, but not a valid integer. Value is '" + manual_cnv_end + "'";
+			if(!manualCnvEndIsValid()) errors << "manual CNV end position is set, but not a valid integer. Value is '" + manual_cnv_end + "'";
 		}
 		else errors << "CNV end position is manually set for variant which is not a CNV!";
 	}
@@ -114,9 +106,7 @@ bool ReportVariantConfiguration::isValid(QStringList& errors, FastaFileIndex& re
 	{
 		if (variant_type==VariantType::CNVS)
 		{
-			bool ok = false;
-			double tmp = manual_cnv_cn.toInt(&ok);
-			if(!ok || tmp<0) errors << "manual CNV copy-number is set, but not a valid integer. Value is '" + manual_cnv_cn + "'";
+			if (!manualCnvCnIsValid()) errors << "manual CNV copy-number is set, but not a valid integer. Value is '" + manual_cnv_cn + "'";
 		}
 		else errors << "CNV copy-number is manually set for variant which is not a CNV!";
 	}

@@ -154,6 +154,19 @@ void Variant::checkValid() const
 		THROW(ArgumentException, "Invalid variant observed sequence in variant '" + toString() + "'");
 	}
 
+	if (ref()==obs())
+	{
+		THROW(ArgumentException, "Reference and observed sequence are the same in variant '" + toString() + "'");
+	}
+
+	if (ref()!="-")
+	{
+		int expected = end_-start_+1;
+		if(ref_.size()!=expected)
+		{
+			THROW(ArgumentException, "Reference sequence length should be " + QString::number(expected) + ", but is " + QString::number(ref_.size()) + " in variant '" + toString() + "'");
+		}
+	}
 }
 
 void Variant::checkValid(const FastaFileIndex& reference) const
@@ -1305,13 +1318,7 @@ Variant Variant::fromString(const QString& text_orig)
 	QStringList parts = text.split(QRegExp("\\s+"));
 	if (parts.count()!=5) THROW(ArgumentException, "Input text has " + QString::number(parts.count()) + " part(s), but must consist of 5 parts (chr, start, end, ref, obs)!");
 
-	//create variant
-	Variant v = Variant(parts[0], parts[1].toInt(), parts[2].toInt(), parts[3].toLatin1(), parts[4].toLatin1());
-
-	//check if valid
-	v.normalize("-");
-
-	return v;
+	return Variant(parts[0], parts[1].toInt(), parts[2].toInt(), parts[3].toLatin1(), parts[4].toLatin1());
 }
 
 QString analysisTypeToString(AnalysisType type, bool human_readable)

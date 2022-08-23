@@ -229,7 +229,7 @@ public:
 
 	static QList<VariantTranscript> parseTranscriptString(QByteArray text, bool allow_old_format_with_7_columns=false);
 
-	///Returns a normalized variant extracted from user input text. Throws an exception, if the text cannot be parsed.
+	///Returns a variant extracted from user input text. Throws an exception, if the text cannot be parsed.
 	///Note: this function does not test if the variant is valid. Do that using checkValid(...) if necessary.
 	static Variant fromString(const QString& text);
 

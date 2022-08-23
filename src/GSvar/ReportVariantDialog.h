@@ -29,6 +29,7 @@ protected:
 	void writeBack(ReportVariantConfiguration& rvc);
 
 	Ui::ReportVariantDialog ui_;
+	QString variant_;
 	ReportVariantConfiguration& config_;
 	FastaFileIndex genome_idx_;
 };

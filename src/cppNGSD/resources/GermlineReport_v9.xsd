@@ -1194,6 +1194,45 @@
 								</xs:annotation>
 								<xs:complexType>
 									<xs:sequence>
+										<xs:element name="ManualCuration" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Manual curation data for correcting errors in variant calling</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="start" type="xs:string">
+													<xs:annotation>
+														<xs:documentation>manually cutated start position</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="end" type="xs:string">
+													<xs:annotation>
+														<xs:documentation>manually cutated end position</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="genotype">
+													<xs:annotation>
+														<xs:documentation>manually cutated genotype</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:enumeration value="hom"/>
+															<xs:enumeration value="het"/>
+															<xs:enumeration value="hemi"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="start_bnd" type="xs:string">
+													<xs:annotation>
+														<xs:documentation>manually cutated start position of second region (only for breakend)</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="end_bnd" type="xs:string">
+													<xs:annotation>
+														<xs:documentation>manually cutated end position of second region (only for breakend)</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
 										<xs:element name="Gene" minOccurs="0" maxOccurs="unbounded">
 											<xs:annotation>
 												<xs:documentation>Genes that overlap the SV</xs:documentation>
@@ -1402,26 +1441,6 @@
 												<xs:enumeration value="incidental finding"/>
 											</xs:restriction>
 										</xs:simpleType>
-									</xs:attribute>
-									<xs:attribute name="hgvs_start" type="xs:string">
-										<xs:annotation>
-											<xs:documentation>manually cutated HGVS start position</xs:documentation>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="hgvs_end" type="xs:string">
-										<xs:annotation>
-											<xs:documentation>manually cutated HGVS end position</xs:documentation>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="hgvs_bnd_start2" type="xs:string">
-										<xs:annotation>
-											<xs:documentation>manually cutated HGVS start position of second region (only for breakend)</xs:documentation>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="hgvs_bnd_end2" type="xs:string">
-										<xs:annotation>
-											<xs:documentation>manually cutated HGVS end position of second region (only for breakend)</xs:documentation>
-										</xs:annotation>
 									</xs:attribute>
 								</xs:complexType>
 							</xs:element>

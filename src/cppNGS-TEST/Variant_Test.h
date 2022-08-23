@@ -462,6 +462,12 @@ private slots:
 
 		v = Variant("chr5", 76841292, 76841292, "T", "-");
 		IS_THROWN(ArgumentException, v.checkValid(ref_file));
+
+		v = Variant("chr5", 76841292, 76841292, "T", "T");
+		IS_THROWN(ArgumentException, v.checkValid(ref_file));
+
+		v = Variant("chr5", 76841292, 76841292, "TT", "-");
+		IS_THROWN(ArgumentException, v.checkValid(ref_file));
 	}
 
 	void leftAlign()
