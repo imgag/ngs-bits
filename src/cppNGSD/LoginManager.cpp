@@ -44,6 +44,19 @@ QByteArray LoginManager::sendPostApiRequest(QString path, QString content, HttpH
 	return QByteArray{};
 }
 
+QByteArray LoginManager::sendGetApiRequest(QString path, HttpHeaders add_headers)
+{
+	try
+	{
+		return HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).get(NGSHelper::serverApiUrl() + path, add_headers);
+	}
+	catch (Exception& e)
+	{
+		Log::error("Login manager encountered an error while sending GET request: " + e.message());
+	}
+	return QByteArray{};
+}
+
 QString LoginManager::userLogin()
 {
 	return instance().user_login_;
@@ -146,14 +159,29 @@ void LoginManager::login(QString user, QString password, bool test_db)
 
 void LoginManager::renewLogin()
 {
-	HttpHeaders add_headers;
-	add_headers.insert("Accept", "text/plain");
-
 	LoginManager& manager = instance();
-	if ((manager.user_login_.isEmpty()) || (manager.user_password_.isEmpty())) return;
+	HttpHeaders add_headers;
 
-	QString content = "name="+manager.user_login_+"&password="+manager.user_password_;
-	manager.user_token_ = sendPostApiRequest("login", content, add_headers);
+	add_headers.insert("Accept", "application/json");
+	QByteArray session_info = sendGetApiRequest("session?token=" + manager.userToken(), add_headers);
+	QJsonDocument session_json = QJsonDocument::fromJson(session_info);
+
+	if (session_json.isObject())
+	{
+		qint64 login_time = session_json.object().value("login_time").toString().toLongLong();
+		qint64 valid_period = session_json.object().value("valid_period").toString().toLongLong();
+		// request a new token, if the current one is about to expire (30 minutes in advance)
+		if ((login_time + valid_period - (0.5 * 3600 * 1000)) < QDateTime::currentDateTime().toSecsSinceEpoch())
+		{
+			if ((manager.user_login_.isEmpty()) || (manager.user_password_.isEmpty())) return;
+
+			add_headers.clear();
+			add_headers.insert("Accept", "text/plain");
+
+			QString content = "name="+manager.user_login_+"&password="+manager.user_password_;
+			manager.user_token_ = sendPostApiRequest("login", content, add_headers);
+		}
+	}
 }
 
 QString LoginManager::dbToken()
@@ -243,10 +271,7 @@ QString LoginManager::genlabHost()
 
 int LoginManager::genlabPort()
 {
-	int genlab_port = instance().genlab_port_;
-	if (genlab_port <= 0) THROW(ProgrammingException, "Could not retrieve database credentials: genlab_port");
-
-	return genlab_port;
+	return instance().genlab_port_;
 }
 
 QString LoginManager::genlabName()

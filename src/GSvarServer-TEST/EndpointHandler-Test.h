@@ -99,4 +99,30 @@ private slots:
 		COMPARE_FILES(file_copy, upload_file);
 		QFile::remove(file_copy);
 	}
+
+	void test_session_info()
+	{
+		QDateTime login_time = QDateTime::currentDateTime();
+		Session cur_session(1, login_time);
+		SessionManager::addNewSession("token", cur_session);
+
+		HttpRequest request;
+		request.setMethod(RequestMethod::GET);
+		request.setContentType(ContentType::APPLICATION_JSON);
+		request.setPrefix("v1");
+		request.setPath("session");
+
+		HttpResponse response = ServerController::getSessionInfo(request);
+		I_EQUAL(response.getStatusCode(), 403);
+
+		request.addUrlParam("token", "token");
+		response = ServerController::getSessionInfo(request);
+		QJsonDocument json_doc = QJsonDocument::fromJson(response.getPayload());
+		QJsonObject  json_object = json_doc.object();
+
+		I_EQUAL(response.getStatusCode(), 200);
+		I_EQUAL(json_object.value("user_id").toInt(), 1);
+		I_EQUAL(json_object.value("login_time").toInt(), login_time.toSecsSinceEpoch());
+		IS_FALSE(json_object.value("is_db_token").toBool());
+	}
 };

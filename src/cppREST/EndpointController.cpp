@@ -322,17 +322,17 @@ QString EndpointController::generateHelpPage(const QString& path)
 	return getEndpointHelpTemplate(EndpointManager::getEndpointsByUrl(path));
 }
 
-
 QString EndpointController::getServedTempPath(QList<QString> path_parts)
 {
-	if (path_parts.isEmpty()) return "";
-
-	UrlEntity url_entity = UrlManager::getURLById(path_parts[0]);
-	qDebug() << "Temp URL " << path_parts[0] << " file: " << url_entity.filename_with_path;
-	if (!url_entity.filename_with_path.isEmpty())
+	if (!path_parts.isEmpty())
 	{
-		path_parts.removeAt(0);
-		return QFileInfo(url_entity.filename_with_path).absolutePath() + QDir::separator() + path_parts.join(QDir::separator());
+		UrlEntity url_entity = UrlManager::getURLById(path_parts[0]);
+		qDebug() << "Temp URL " << path_parts[0] << " file: " << url_entity.filename_with_path;
+		if (!url_entity.filename_with_path.isEmpty())
+		{
+			path_parts.removeAt(0);
+			return QFileInfo(url_entity.filename_with_path).absolutePath() + QDir::separator() + path_parts.join(QDir::separator());
+		}
 	}
 
 	return "";

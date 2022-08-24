@@ -265,10 +265,13 @@ MainWindow::MainWindow(QWidget *parent)
 	//enable timers needed in client-server mode
 	if (NGSHelper::isClientServerMode())
 	{
+		// renew existing session, if it is about to expire
+		// a new token will be requested slightly in advance
 		QTimer *login_timer = new QTimer(this);
 		connect(login_timer, &QTimer::timeout, this, &LoginManager::renewLogin);
-		login_timer->start(3600 * 1000); // every hour
+		login_timer->start(1200 * 1000); // every 20 minutes
 
+		//check if the server is running
 		QTimer *server_ping_timer = new QTimer(this);
 		connect(server_ping_timer, SIGNAL(timeout()), this, SLOT(checkServerAvailability()));
 		server_ping_timer->start(600 * 1000); // every 10 minutes
@@ -310,7 +313,7 @@ bool MainWindow::isServerRunning()
 		return false;
 	}
 
-	QJsonDocument json_doc = QJsonDocument::fromJson(response);	;
+	QJsonDocument json_doc = QJsonDocument::fromJson(response);
 	if (!json_doc.isObject()) return false;
 
 	if (NGSHelper::serverApiVersion() != json_doc.object()["api_version"].toString())
@@ -2260,7 +2263,7 @@ void MainWindow::delayedInitialization()
 		return;
 	}
 
-	// Setting a timer to renew secure tokens for the server API
+	//close the app if the server is not available
 	if (NGSHelper::isClientServerMode())
 	{
 		if (!isServerRunning())

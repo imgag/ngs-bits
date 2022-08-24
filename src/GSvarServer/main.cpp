@@ -400,6 +400,17 @@ int main(int argc, char **argv)
 						&ServerController::performLogin
 					});
 	EndpointManager::appendEndpoint(Endpoint{
+						"session",
+						QMap<QString, ParamProps>{
+							{"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Secure token to identify the session"}},
+						},
+						RequestMethod::GET,
+						ContentType::APPLICATION_JSON,
+						AuthType::USER_TOKEN,
+						"Information about the session linked to the given token",
+						&ServerController::getSessionInfo
+					});
+	EndpointManager::appendEndpoint(Endpoint{
 						"validate_credentials",
 						QMap<QString, ParamProps>{
 							{"name", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "User name"}},
