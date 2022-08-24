@@ -170,8 +170,8 @@ void LoginManager::renewLogin()
 	{
 		qint64 login_time = session_json.object().value("login_time").toString().toLongLong();
 		qint64 valid_period = session_json.object().value("valid_period").toString().toLongLong();
-		// request a new token, if the current one is about to expire (1.5 hours in advance)
-		if ((login_time + valid_period - (1.5 * 3600 * 1000)) < QDateTime::currentDateTime().toSecsSinceEpoch())
+		// request a new token, if the current one is about to expire (30 minutes in advance)
+		if ((login_time + valid_period - (0.5 * 3600 * 1000)) < QDateTime::currentDateTime().toSecsSinceEpoch())
 		{
 			if ((manager.user_login_.isEmpty()) || (manager.user_password_.isEmpty())) return;
 

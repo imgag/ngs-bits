@@ -788,10 +788,12 @@ HttpResponse ServerController::getSessionInfo(const HttpRequest& request)
 		QJsonDocument json_doc;
 		QJsonObject json_object;
 
+		qint64 valid_period = ServerHelper::getNumSettingsValue("session_duration");
+		if (valid_period == 0) valid_period = SessionManager::DEFAULT_VALID_PERIOD;
 		json_object.insert("user_id", current_session.user_id);
 		json_object.insert("login_time", current_session.login_time.toSecsSinceEpoch());
 		json_object.insert("is_db_token", current_session.is_for_db_only);
-		json_object.insert("valid_period", ServerHelper::getNumSettingsValue("session_duration"));
+		json_object.insert("valid_period", valid_period);
 		json_doc.setObject(json_object);
 
 		BasicResponseData response_data;

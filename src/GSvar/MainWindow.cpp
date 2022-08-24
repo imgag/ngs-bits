@@ -265,11 +265,11 @@ MainWindow::MainWindow(QWidget *parent)
 	//enable timers needed in client-server mode
 	if (NGSHelper::isClientServerMode())
 	{
-		//renew existing sessions, if they are active
-		//TODO: replace token only if it is about to expire
+		// renew existing session, if it is about to expire
+		// a new token will be requested slightly in advance
 		QTimer *login_timer = new QTimer(this);
 		connect(login_timer, &QTimer::timeout, this, &LoginManager::renewLogin);
-		login_timer->start(3600 * 1000); // every hour
+		login_timer->start(1200 * 1000); // every 20 minutes
 
 		//check if the server is running
 		QTimer *server_ping_timer = new QTimer(this);

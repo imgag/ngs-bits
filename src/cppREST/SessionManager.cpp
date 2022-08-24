@@ -113,7 +113,7 @@ bool SessionManager::isSessionExpired(Session in)
 {
 	// Session lifetime in seconds
 	qint64 valid_period = ServerHelper::getNumSettingsValue("session_duration");
-	if (valid_period == 0) valid_period = 3600; // default value, if not set in the config
+	if (valid_period == 0) valid_period = DEFAULT_VALID_PERIOD; // default value, if not set in the config
 
 	if (in.login_time.addSecs(valid_period).toSecsSinceEpoch() < QDateTime::currentDateTime().toSecsSinceEpoch())
 	{

@@ -38,6 +38,7 @@ struct CPPRESTSHARED_EXPORT Session
 class CPPRESTSHARED_EXPORT SessionManager
 {
 public:
+	static const qint64 DEFAULT_VALID_PERIOD = 3600; // in seconds
 	static void saveEverythingToFile();
 	static void saveSessionToFile(QString id, Session in);
 	static void restoreFromFile();

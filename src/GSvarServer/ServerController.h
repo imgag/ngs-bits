@@ -56,7 +56,7 @@ public:
 	static HttpResponse getMultiSampleAnalysisInfo(const HttpRequest& request);
 	/// Requests a secure token that is needed for the communication with the server
 	static HttpResponse performLogin(const HttpRequest& request);
-	/// Returns information about the session
+	/// Returns information about the session (i.g. login time, user id, for how log it is valid, etc.)
 	static HttpResponse getSessionInfo(const HttpRequest& request);
 	/// Checks if prodivided login and password are valid
 	static HttpResponse validateCredentials(const HttpRequest& request);

@@ -75,12 +75,12 @@ ServerWrapper::ServerWrapper(const quint16& port, const bool& insecure)
 		// Remove expired URLs on schedule
 		QTimer *url_timer = new QTimer(this);
 		connect(url_timer, &QTimer::timeout, this, &UrlManager::removeExpiredUrls);
-		url_timer->start(60 * 5 * 1000); // every 5 minutes
+		url_timer->start(60 * 30 * 1000); // every 30 minutes
 
 		// Remove expired sessions (invalidate tokens) on schedule
 		QTimer *session_timer = new QTimer(this);
 		connect(session_timer, &QTimer::timeout, this, &SessionManager::removeExpiredSessions);
-		url_timer->start(60 * 10 * 1000); // every 10 minutes
+		url_timer->start(60 * 30 * 1000); // every 30 minutes
 	}
 	else
 	{		

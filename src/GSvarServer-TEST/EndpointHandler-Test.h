@@ -100,7 +100,6 @@ private slots:
 		QFile::remove(file_copy);
 	}
 
-
 	void test_session_info()
 	{
 		QDateTime login_time = QDateTime::currentDateTime();
@@ -112,9 +111,12 @@ private slots:
 		request.setContentType(ContentType::APPLICATION_JSON);
 		request.setPrefix("v1");
 		request.setPath("session");
-		request.addUrlParam("token", "token");
 
 		HttpResponse response = ServerController::getSessionInfo(request);
+		I_EQUAL(response.getStatusCode(), 403);
+
+		request.addUrlParam("token", "token");
+		response = ServerController::getSessionInfo(request);
 		QJsonDocument json_doc = QJsonDocument::fromJson(response.getPayload());
 		QJsonObject  json_object = json_doc.object();
 
