@@ -289,7 +289,10 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		if (var_conf.variant_type!=VariantType::SVS) continue;
 		if (!selected_svs_.contains(var_conf.variant_index)) continue;
 
-		const BedpeLine& sv = data_.svs[var_conf.variant_index];
+		BedpeLine sv = data_.svs[var_conf.variant_index];
+
+		//manually curation
+		if (var_conf.isManuallyCurated()) var_conf.updateSv(sv, data_.svs.annotationHeaders(), db_);
 
 		stream << "<tr>" << endl;
 		//type
@@ -325,7 +328,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 
 
 		//genotype
-		QByteArray gt = sv.formatValueByKey("GT", data_.svs.annotationHeaders());
+		QByteArray gt = sv.genotype(data_.svs.annotationHeaders());
 		if (gt == "1/1")
 		{
 			stream << "<td>hom";
@@ -1092,7 +1095,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeAttribute("start_band", NGSHelper::cytoBand(data_.build, sv.chr1(), sv.start1()));
 		w.writeAttribute("end_band", NGSHelper::cytoBand(data_.build, sv.chr2(), sv.end2()));
 
-		QByteArray sv_gt = sv.formatValueByKey("GT", data_.svs.annotationHeaders());
+		QByteArray sv_gt = sv.genotype(data_.svs.annotationHeaders());
 		QByteArray sv_genotype;
 		if (sv_gt == "1/1")
 		{

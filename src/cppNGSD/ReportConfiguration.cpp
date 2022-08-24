@@ -196,7 +196,7 @@ bool ReportVariantConfiguration::isManuallyCurated() const
 {
 	if (variant_type==VariantType::SNVS_INDELS)
 	{
-		return !manual_var.isEmpty() || ! manual_genotype.isEmpty();
+		return !manual_var.isEmpty() || manualVarGenoIsValid();
 	}
 	else if(variant_type==VariantType::CNVS)
 	{
@@ -283,12 +283,12 @@ bool ReportVariantConfiguration::manualCnvCnIsValid() const
 	return value>=0;
 }
 
-void ReportVariantConfiguration::updateCnv(CopyNumberVariant& cnv, const QByteArrayList& cnv_headers, NGSD& db) const
+void ReportVariantConfiguration::updateCnv(CopyNumberVariant& cnv, const QByteArrayList& annotation_headers, NGSD& db) const
 {
 	//update start, end and copy-number
 	if (manualCnvStartIsValid()) cnv.setStart(manual_cnv_start.toInt());
 	if (manualCnvEndIsValid()) cnv.setEnd(manual_cnv_end.toInt());
-	if (manualCnvCnIsValid()) cnv.setCopyNumber(manual_cnv_cn.toInt(), cnv_headers);
+	if (manualCnvCnIsValid()) cnv.setCopyNumber(manual_cnv_cn.toInt(), annotation_headers);
 
 	//update gene list if coordinates changed
 	if (manualCnvStartIsValid() || manualCnvEndIsValid())
@@ -344,6 +344,31 @@ bool ReportVariantConfiguration::manualSvEndBndIsValid() const
 	if (!ok) return false;
 
 	return value>0;
+}
+
+void ReportVariantConfiguration::updateSv(BedpeLine& sv, const QByteArrayList& annotation_headers, NGSD& db) const
+{
+	if (manualSvStartIsValid()) sv.setStart1(manual_sv_start.toInt());
+	if (manualSvEndIsValid()) sv.setEnd1(manual_sv_end.toInt());
+	if (manualSvGenoIsValid())
+	{
+		sv.setGenotype(annotation_headers, manual_sv_genotype=="hom" ? "1/1" : "0/1");
+	}
+	if (manualSvStartBndIsValid()) sv.setStart2(manual_sv_start_bnd.toInt());
+	if (manualSvEndBndIsValid()) sv.setEnd2(manual_sv_end_bnd.toInt());
+
+	//update gene list if coordinates changed
+	if (manualSvStartIsValid() || manualSvEndIsValid() || manualSvStartBndIsValid() || manualSvEndBndIsValid())
+	{
+		GeneSet genes;
+		BedFile regions = sv.affectedRegion();
+		for (int i=0; i<regions.count(); ++i)
+		{
+			const BedLine& reg = regions[i];
+			genes << db.genesOverlapping(reg.chr(), reg.start(), reg.end(), 5000);
+		}
+		sv.setGenes(annotation_headers, genes);
+	}
 }
 
 QStringList ReportVariantConfiguration::getTypeOptions()

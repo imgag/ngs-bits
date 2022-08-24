@@ -9,7 +9,7 @@ private slots:
 	void load()
 	{
 		BedpeFile file;
-		file.load(TESTDATA("../cppNGS-TEST/data_in/panel_svs.bedpe"));
+		file.load(TESTDATA("data_in/panel_svs.bedpe"));
 		I_EQUAL(file.count(), 1);
 		I_EQUAL(file.headers().count(), 131);
 		I_EQUAL(file.annotationHeaders().count(), 22);
@@ -18,7 +18,7 @@ private slots:
 	void loadHeaderOnly()
 	{
 		BedpeFile file;
-		file.loadHeaderOnly(TESTDATA("../cppNGS-TEST/data_in/panel_svs.bedpe"));
+		file.loadHeaderOnly(TESTDATA("data_in/panel_svs.bedpe"));
 		I_EQUAL(file.count(), 0);
 		I_EQUAL(file.headers().count(), 131);
 		I_EQUAL(file.annotationHeaders().count(), 22);
@@ -27,7 +27,7 @@ private slots:
 	void build()
 	{
 		BedpeFile file;
-		file.loadHeaderOnly(TESTDATA("../cppNGS-TEST/data_in/panel_svs.bedpe"));
+		file.loadHeaderOnly(TESTDATA("data_in/panel_svs.bedpe"));
 
 		S_EQUAL(file.build(), "GRCh37");
 	}
@@ -71,4 +71,48 @@ private slots:
 		IS_FALSE(second < first);
 	}
 
+	void genotype()
+	{
+		BedpeFile file;
+		file.load(TESTDATA("data_in/panel_svs.bedpe"));
+
+		QString gt = file[0].genotype(file.annotationHeaders());
+		S_EQUAL(gt, "0/1");
+	}
+
+	void setGenotype()
+	{
+		BedpeFile file;
+		file.load(TESTDATA("data_in/panel_svs.bedpe"));
+
+		file[0].setGenotype(file.annotationHeaders(), "1/1");
+
+		QString gt = file[0].genotype(file.annotationHeaders());
+		S_EQUAL(gt, "1/1");
+	}
+
+	void genes()
+	{
+		BedpeFile file;
+		file.load(TESTDATA("data_in/panel_svs.bedpe"));
+
+		GeneSet genes = file[0].genes(file.annotationHeaders());
+		I_EQUAL(genes.count(), 2);
+		IS_TRUE(genes.contains("BTBD7"));
+		IS_TRUE(genes.contains("SLC2A5"));
+	}
+
+	void setGenes()
+	{
+		BedpeFile file;
+		file.load(TESTDATA("data_in/panel_svs.bedpe"));
+
+		file[0].setGenes(file.annotationHeaders(), GeneSet() << "A" << "B" << "C");
+
+		GeneSet genes = file[0].genes(file.annotationHeaders());
+		I_EQUAL(genes.count(), 3);
+		IS_TRUE(genes.contains("A"));
+		IS_TRUE(genes.contains("B"));
+		IS_TRUE(genes.contains("C"));
+	}
 };

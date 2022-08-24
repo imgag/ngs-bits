@@ -714,7 +714,7 @@ void SvWidget::editGermlineReportConfiguration(int row)
 
 QByteArray SvWidget::extractGenotype(const BedpeLine& sv, const QList<QByteArray>& annotation_headers, int sample_idx)
 {
-    QByteArray genotype = sv.formatValueByKey("GT", annotation_headers, false, "FORMAT", sample_idx).trimmed();
+	QByteArray genotype = sv.genotype(annotation_headers, false, sample_idx).trimmed();
     if (genotype == "1/1")
     {
         return "hom";

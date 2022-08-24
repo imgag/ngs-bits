@@ -161,7 +161,7 @@ BedFile BedpeLine::affectedRegion() const
 	return sv_region;
 }
 
-QString BedpeLine::toString()
+QString BedpeLine::toString() const
 {
 	if(type() == StructuralVariantType::BND)
 	{
@@ -173,53 +173,94 @@ QString BedpeLine::toString()
 	}
 }
 
-QByteArray BedpeLine::formatValueByKey(QByteArray format_key, const QList<QByteArray>& annotation_headers, bool error_on_mismatch, QByteArray format_header_name, int sample_idx) const
+QByteArray BedpeLine::genotype(const QList<QByteArray>& annotation_headers, bool error_on_mismatch, int sample_idx) const
 {
-    if (sample_idx < 0) THROW(ArgumentException, "Invalid sample index " + QByteArray::number(sample_idx) + "!")
-
-	// get keys/values of the FORMAT column
-	int format_idx = annotation_headers.indexOf(format_header_name);
+	//determine format column
+	int format_idx = annotation_headers.indexOf("FORMAT");
 	if (format_idx == -1)
 	{
-		if (error_on_mismatch) THROW(ArgumentException, "Column \"" + format_header_name + "\" not found in annotation header!");
+		if (error_on_mismatch) THROW(ArgumentException, "Column \"FORMAT\" not found in annotation header!");
 		return "";
 	}
-	QByteArrayList keys = annotations_[format_idx].split(':');
-    QByteArrayList values = annotations_[format_idx + 1 + sample_idx].split(':');
 
+	//check sample colum exists
+	if (sample_idx < 0) THROW(ArgumentException, "Sample index " + QByteArray::number(sample_idx) + " must not be less than 0!");
+	sample_idx = format_idx + 1 + sample_idx;
+	if (sample_idx >= annotations_.count()) THROW(ArgumentException, "Sample index " + QByteArray::number(sample_idx) + " points to a annotation column that does not exist!");
+
+	//get keys and values
+	QByteArrayList keys = annotations_[format_idx].split(':');
+	QByteArrayList values = annotations_[sample_idx].split(':');
 	if (keys.size() != values.size())
 	{
 		THROW(ArgumentException, "Format and value column differ in length!");
 	}
 
 	//get value for the given key
-	int field_idx = keys.indexOf(format_key);
-	if (field_idx != -1)
+	int field_idx = keys.indexOf("GT");
+	if (field_idx==-1)
 	{
-		//match found -> return value
-		return values[field_idx];
-	}
-	else if (error_on_mismatch)
-	{
-		THROW(ArgumentException, "Key \"" + format_key + "\" was not found in format column!");
-		return "";
-	}
-	else
-	{
+		if (error_on_mismatch) THROW(ArgumentException, "Key \"GT\" was not found in FORMAT column!");
 		return "";
 	}
 
+	return values[field_idx];
+}
 
+void BedpeLine::setGenotype(const QList<QByteArray>& annotation_headers, QByteArray value, int sample_idx)
+{
+	//determine format column
+	int format_idx = annotation_headers.indexOf("FORMAT");
+	if (format_idx == -1)
+	{
+		THROW(ArgumentException, "Column \"FORMAT\" not found in annotation header!");
+	}
 
+	//check sample colum exists
+	if (sample_idx < 0) THROW(ArgumentException, "Sample index " + QByteArray::number(sample_idx) + " must not be less than 0!");
+	sample_idx = format_idx + 1 + sample_idx;
+	if (sample_idx >= annotations_.count()) THROW(ArgumentException, "Sample index " + QByteArray::number(sample_idx) + " points to a annotation column that does not exist!");
+
+	//get keys and values
+	QByteArrayList keys = annotations_[format_idx].split(':');
+	QByteArrayList values = annotations_[sample_idx].split(':');
+	if (keys.size() != values.size())
+	{
+		THROW(ArgumentException, "Format and value column differ in length!");
+	}
+
+	//get value for the given key
+	int field_idx = keys.indexOf("GT");
+	if (field_idx==-1)
+	{
+		THROW(ArgumentException, "Key \"GT\" was not found in FORMAT column!");
+	}
+
+	values[field_idx] = value;
+	annotations_[sample_idx] = values.join(':');
 }
 
 GeneSet BedpeLine::genes(const QList<QByteArray>& annotation_headers, bool error_on_mismatch) const
 {
 	int gene_idx = annotation_headers.indexOf("GENES");
+	if (gene_idx == -1)
+	{
+		if (error_on_mismatch) THROW(ArgumentException, "Column \"GENES\" not found in annotation header!");
+		return GeneSet();
+	}
 
-	if (gene_idx != -1) return GeneSet() << annotations_.at(gene_idx).split(',');
-	if (error_on_mismatch) THROW(ArgumentException, "Column \"GENES\" not found in annotation header!")
-	return GeneSet();
+	return GeneSet() << annotations_.at(gene_idx).split(',');
+}
+
+void BedpeLine::setGenes(const QList<QByteArray>& annotation_headers, const GeneSet& genes)
+{
+	int gene_idx = annotation_headers.indexOf("GENES");
+	if (gene_idx == -1)
+	{
+		THROW(ArgumentException, "Column \"GENES\" not found in annotation header!");
+	}
+
+	annotations_[gene_idx] = genes.join(',');
 }
 
 BedpeFile::BedpeFile()

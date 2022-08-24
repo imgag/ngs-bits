@@ -46,6 +46,24 @@ private slots:
 		rvc.manual_genotype = "";
 		IS_TRUE(rvc.isValid(errors, ref_idx));
 		I_EQUAL(errors.count(), 0);
+
+		//manual SV curation
+		rvc.manual_cnv_cn = "";
+		rvc.manual_cnv_start = "";
+		rvc.manual_cnv_end = "";
+		rvc.variant_type = VariantType::SVS;
+		rvc.manual_sv_start = "1";
+		rvc.manual_sv_end = "2";
+		rvc.manual_sv_genotype = "hom";
+		rvc.manual_sv_start_bnd = "3";
+		rvc.manual_sv_end_bnd = "4";
+		IS_TRUE(rvc.isValid(errors, ref_idx));
+		I_EQUAL(errors.count(), 0);
+
+		//manual SV curation set for other type
+		rvc.variant_type = VariantType::SNVS_INDELS;
+		IS_FALSE(rvc.isValid(errors, ref_idx));
+		I_EQUAL(errors.count(), 5);
 	}
 
 	void ReportVariantConfiguration_isManuallyCurated()

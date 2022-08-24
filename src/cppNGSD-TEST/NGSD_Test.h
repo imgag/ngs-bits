@@ -1689,17 +1689,6 @@ private slots:
 			var_conf.rna_info = "RNA dataset not usable";
 			report_settings.report_config->set(var_conf);
 
-			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 12)); //SV - breakpoint
-			var_conf.variant_type = VariantType::SVS;
-			var_conf.variant_index = 12;
-			var_conf.causal = false;
-			var_conf.mosaic = false;
-			var_conf.de_novo = false;
-			var_conf.comp_het = false;
-			var_conf.report_type = "diagnostic variant";
-			var_conf.rna_info = "n/a";
-			report_settings.report_config->set(var_conf);
-
 			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 16)); //SV - Deletion
 			var_conf.variant_type = VariantType::SVS;
 			var_conf.variant_index = 16;
@@ -1711,7 +1700,21 @@ private slots:
 			var_conf.rna_info = "n/a";
 			report_settings.report_config->set(var_conf);
 
-			//TODO: one of the SVs above in report
+			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 12)); //SV - breakpoint - manually curated
+			var_conf.variant_type = VariantType::SVS;
+			var_conf.variant_index = 12;
+			var_conf.causal = false;
+			var_conf.mosaic = false;
+			var_conf.de_novo = false;
+			var_conf.comp_het = false;
+			var_conf.report_type = "diagnostic variant";
+			var_conf.rna_info = "n/a";
+			var_conf.manual_sv_start = "1584540";
+			var_conf.manual_sv_end = "1584550";
+			var_conf.manual_sv_genotype = "hom";
+			var_conf.manual_sv_start_bnd = "2301860";
+			var_conf.manual_sv_end_bnd = "2301870";
+			report_settings.report_config->set(var_conf);
 
 			OtherCausalVariant causal_variant;
 			causal_variant.coordinates = "chr2:123456-789012";

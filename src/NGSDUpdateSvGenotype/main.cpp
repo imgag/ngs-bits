@@ -73,7 +73,7 @@ public:
 				if(!sv.chr1().isNonSpecial() || !sv.chr2().isNonSpecial()) continue;
 
 				//parse genotype
-				QString genotype = sv.formatValueByKey("GT", svs.annotationHeaders()).trimmed();
+				QString genotype = sv.genotype(svs.annotationHeaders()).trimmed();
 				if (genotype == "1/1")
 				{
 					genotype = "hom";

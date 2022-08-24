@@ -5,6 +5,7 @@
 #include "VariantType.h"
 #include "VariantList.h"
 #include "CnvList.h"
+#include "BedpeFile.h"
 
 class NGSD;
 
@@ -59,7 +60,7 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	bool manualCnvStartIsValid() const;
 	bool manualCnvEndIsValid() const;
 	bool manualCnvCnIsValid() const;
-	void updateCnv(CopyNumberVariant& cnv, const QByteArrayList& cnv_headers, NGSD& db) const;
+	void updateCnv(CopyNumberVariant& cnv, const QByteArrayList& annotation_headers, NGSD& db) const;
 
 	//manual curation of SVs
 	QString manual_sv_start;
@@ -72,6 +73,7 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	bool manualSvGenoIsValid() const;
 	bool manualSvStartBndIsValid() const;
 	bool manualSvEndBndIsValid() const;
+	void updateSv(BedpeLine& sv, const QByteArrayList& annotation_headers, NGSD& db) const;
 
 	//Returns options for 'type' (taken and cached from NGSD)
 	static QStringList getTypeOptions();

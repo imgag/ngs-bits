@@ -11,6 +11,7 @@
 #include "VcfToBedpe.h"
 #include "BedpeFile.h"
 
+//TODO output BEDPE is not 0-based > fix. Adapt BedpeFile::load to convert the coordinates while loading so that the class is 1-based > adapt affectedRegion method
 
 class ConcreteTool
 		: public ToolBase
