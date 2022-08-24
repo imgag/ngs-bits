@@ -1009,6 +1009,12 @@ private slots:
 		S_EQUAL(var_conf2.manual_cnv_start, "");
 		S_EQUAL(var_conf2.manual_cnv_end, "");
 		S_EQUAL(var_conf2.manual_cnv_cn, "");
+		var_conf2 = report_conf2->variantConfig()[2]; //SV
+		S_EQUAL(var_conf2.manual_sv_start, "");
+		S_EQUAL(var_conf2.manual_sv_end, "");
+		S_EQUAL(var_conf2.manual_sv_genotype, "");
+		S_EQUAL(var_conf2.manual_sv_start_bnd, "");
+		S_EQUAL(var_conf2.manual_sv_end_bnd, "");
 
 		//change manual curation data
 		report_var_conf.manual_var = "chr2:47635523-47635523 ->TT";
@@ -1018,6 +1024,12 @@ private slots:
 		report_var_conf2.manual_cnv_end= "89550000";
 		report_var_conf2.manual_cnv_cn = "0";
 		report_conf->set(report_var_conf2);
+		report_var_conf3.manual_sv_start = "9121440";
+		report_var_conf3.manual_sv_end = "9121460";
+		report_var_conf3.manual_sv_genotype = "hom";
+		report_var_conf3.manual_sv_start_bnd = "93712480";
+		report_var_conf3.manual_sv_end_bnd = "93712490";
+		report_conf->set(report_var_conf3);
 
 		//update
 		QThread::sleep(1);
@@ -1092,6 +1104,11 @@ private slots:
 		IS_FALSE(var_conf.exclude_other);
 		IS_FALSE(var_conf.exclude_phenotype);
 		IS_TRUE(var_conf.variant_type == VariantType::SVS);
+		S_EQUAL(var_conf.manual_sv_start, "9121440");
+		S_EQUAL(var_conf.manual_sv_end, "9121460");
+		S_EQUAL(var_conf.manual_sv_genotype, "hom");
+		S_EQUAL(var_conf.manual_sv_start_bnd, "93712480");
+		S_EQUAL(var_conf.manual_sv_end_bnd, "93712490");
 
 		//finalizeReportConfig
 		conf_id = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
@@ -1623,7 +1640,7 @@ private slots:
 			var_conf.rna_info = "n/a";
 			report_settings.report_config->set(var_conf);
 
-			report_settings.selected_variants.append(qMakePair(VariantType::SNVS_INDELS, 173)); //small variant - chr13:40793234 C>G (SLC25A15)
+			report_settings.selected_variants.append(qMakePair(VariantType::SNVS_INDELS, 173)); //small variant - chr13:40793234 C>G (SLC25A15) - manually curated
 			var_conf.variant_type = VariantType::SNVS_INDELS;
 			var_conf.variant_index = 173;
 			var_conf.causal = false;
@@ -1647,7 +1664,7 @@ private slots:
 			var_conf.rna_info = "no splicing effect found in RNA dataset";
 			report_settings.report_config->set(var_conf);
 
-			report_settings.selected_variants.append(qMakePair(VariantType::CNVS, 1)); //CNV - het duplcation (manually curated start/end/cn)
+			report_settings.selected_variants.append(qMakePair(VariantType::CNVS, 1)); //CNV - het duplication - manually curated
 			var_conf.variant_type = VariantType::CNVS;
 			var_conf.variant_index = 1;
 			var_conf.causal = false;
@@ -1693,6 +1710,8 @@ private slots:
 			var_conf.report_type = "diagnostic variant";
 			var_conf.rna_info = "n/a";
 			report_settings.report_config->set(var_conf);
+
+			//TODO: one of the SVs above in report
 
 			OtherCausalVariant causal_variant;
 			causal_variant.coordinates = "chr2:123456-789012";

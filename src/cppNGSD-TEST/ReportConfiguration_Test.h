@@ -86,6 +86,32 @@ private slots:
 		//CNV no curation
 		rvc.manual_cnv_cn = "";
 		IS_FALSE(rvc.isManuallyCurated());
+
+		//SV start
+		rvc.manual_cnv_cn = "";
+		rvc.variant_type = VariantType::SVS;
+		rvc.manual_sv_start = "1";
+		IS_TRUE(rvc.isManuallyCurated());
+
+		//SV end
+		rvc.manual_sv_start = "";
+		rvc.manual_sv_end = "1";
+		IS_TRUE(rvc.isManuallyCurated());
+
+		//SV genotype
+		rvc.manual_sv_end = "";
+		rvc.manual_sv_genotype = "het";
+		IS_TRUE(rvc.isManuallyCurated());
+
+		//SV start 2
+		rvc.manual_sv_genotype = "";
+		rvc.manual_sv_start_bnd = "1";
+		IS_TRUE(rvc.isManuallyCurated());
+
+		//SV end 2
+		rvc.manual_sv_start_bnd = "";
+		rvc.manual_sv_end_bnd = "1";
+		IS_TRUE(rvc.isManuallyCurated());
 	}
 
 	void ReportVariantConfiguration_manualVarIsValid()
@@ -178,4 +204,92 @@ private slots:
 		rvc.manual_cnv_cn = "-1";
 		IS_FALSE(rvc.manualCnvCnIsValid());
 	}
+
+	void ReportVariantConfiguration_manualSvStartIsValid()
+	{
+		ReportVariantConfiguration rvc;
+		rvc.variant_type = VariantType::SVS;
+		rvc.variant_index = 0;
+		rvc.report_type = "diagnostic variant";
+
+		IS_FALSE(rvc.manualSvStartIsValid());
+
+		rvc.manual_sv_start = "1";
+		IS_TRUE(rvc.manualSvStartIsValid());
+
+		//invalid coordinate
+		rvc.manual_sv_start = "0";
+		IS_FALSE(rvc.manualSvStartIsValid());
+	}
+
+	void ReportVariantConfiguration_manualSvEndIsValid()
+	{
+		ReportVariantConfiguration rvc;
+		rvc.variant_type = VariantType::SVS;
+		rvc.variant_index = 0;
+		rvc.report_type = "diagnostic variant";
+
+		IS_FALSE(rvc.manualSvEndIsValid());
+
+		rvc.manual_sv_end = "1";
+		IS_TRUE(rvc.manualSvEndIsValid());
+
+		//invalid coordinate
+		rvc.manual_sv_end = "0";
+		IS_FALSE(rvc.manualSvEndIsValid());
+	}
+
+	void ReportVariantConfiguration_manualSVGenoIsValid()
+	{
+		ReportVariantConfiguration rvc;
+		rvc.variant_type = VariantType::SVS;
+		rvc.variant_index = 0;
+		rvc.report_type = "diagnostic variant";
+
+		IS_FALSE(rvc.manualSvGenoIsValid());
+
+		rvc.manual_sv_genotype = "het";
+		IS_TRUE(rvc.manualSvGenoIsValid());
+
+		rvc.manual_sv_genotype = "hom";
+		IS_TRUE(rvc.manualSvGenoIsValid());
+
+		rvc.manual_sv_genotype = "bla";
+		IS_FALSE(rvc.manualSvGenoIsValid());
+	}
+
+	void ReportVariantConfiguration_manualSvStartBndIsValid()
+	{
+		ReportVariantConfiguration rvc;
+		rvc.variant_type = VariantType::SVS;
+		rvc.variant_index = 0;
+		rvc.report_type = "diagnostic variant";
+
+		IS_FALSE(rvc.manualSvStartBndIsValid());
+
+		rvc.manual_sv_start_bnd = "1";
+		IS_TRUE(rvc.manualSvStartBndIsValid());
+
+		//invalid coordinate
+		rvc.manual_sv_start_bnd = "0";
+		IS_FALSE(rvc.manualSvStartBndIsValid());
+	}
+
+	void ReportVariantConfiguration_manualSvEndBndIsValid()
+	{
+		ReportVariantConfiguration rvc;
+		rvc.variant_type = VariantType::SVS;
+		rvc.variant_index = 0;
+		rvc.report_type = "diagnostic variant";
+
+		IS_FALSE(rvc.manualSvEndBndIsValid());
+
+		rvc.manual_sv_end_bnd = "1";
+		IS_TRUE(rvc.manualSvEndBndIsValid());
+
+		//invalid coordinate
+		rvc.manual_sv_end_bnd = "0";
+		IS_FALSE(rvc.manualSvEndBndIsValid());
+	}
+
 };

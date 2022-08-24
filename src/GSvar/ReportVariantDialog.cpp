@@ -67,6 +67,21 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 			widget->setVisible(true);
 		}
 	}
+	if (config_.variant_type==VariantType::SVS)
+	{
+		ui_.manual_line->setVisible(true);
+		foreach(QWidget* widget, findChildren<QWidget*>(QRegExp("manual_.*sv.*")))
+		{
+			widget->setVisible(true);
+		}
+		if (!variant_.startsWith("BND"))
+		{
+			ui_.manual_label_sv_start_bnd->setVisible(false);
+			ui_.manual_label_sv_end_bnd->setVisible(false);
+			ui_.manual_sv_start_bnd->setVisible(false);
+			ui_.manual_sv_end_bnd->setVisible(false);
+		}
+	}
 
 	//write settings if accepted
 	connect(this, SIGNAL(accepted()), this, SLOT(writeBackSettings()));
@@ -127,6 +142,16 @@ void ReportVariantDialog::updateGUI()
 		ui_.manual_cnv_end->setText(config_.manual_cnv_end.trimmed());
 		ui_.manual_cnv_cn->setText(config_.manual_cnv_cn.trimmed());
 	}
+
+	//manual curation SVs
+	if (config_.variant_type==VariantType::SVS)
+	{
+		ui_.manual_sv_start->setText(config_.manual_sv_start.trimmed());
+		ui_.manual_sv_end->setText(config_.manual_sv_end.trimmed());
+		ui_.manual_sv_genotype->setText(config_.manual_sv_genotype.trimmed());
+		ui_.manual_sv_start_bnd->setText(config_.manual_sv_start_bnd.trimmed());
+		ui_.manual_sv_end_bnd->setText(config_.manual_sv_end_bnd.trimmed());
+	}
 }
 
 bool ReportVariantDialog::variantReportConfigChanged()
@@ -173,6 +198,16 @@ void ReportVariantDialog::writeBack(ReportVariantConfiguration& rvc)
 		rvc.manual_cnv_start = ui_.manual_cnv_start->text().trimmed();
 		rvc.manual_cnv_end = ui_.manual_cnv_end->text().trimmed();
 		rvc.manual_cnv_cn = ui_.manual_cnv_cn->text().trimmed();
+	}
+
+	//manual curation SVs
+	if (rvc.variant_type==VariantType::SVS)
+	{
+		rvc.manual_sv_start = ui_.manual_sv_start->text().trimmed();
+		rvc.manual_sv_end = ui_.manual_sv_end->text().trimmed();
+		rvc.manual_sv_genotype = ui_.manual_sv_genotype->text().trimmed();
+		rvc.manual_sv_start_bnd = ui_.manual_sv_start_bnd->text().trimmed();
+		rvc.manual_sv_end_bnd = ui_.manual_sv_end_bnd->text().trimmed();
 	}
 }
 

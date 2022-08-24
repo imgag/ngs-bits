@@ -29,6 +29,11 @@ ReportVariantConfiguration::ReportVariantConfiguration()
 	, manual_cnv_start()
 	, manual_cnv_end()
 	, manual_cnv_cn()
+	, manual_sv_start()
+	, manual_sv_end()
+	, manual_sv_genotype()
+	, manual_sv_start_bnd()
+	, manual_sv_end_bnd()
 {
 }
 
@@ -90,7 +95,7 @@ bool ReportVariantConfiguration::isValid(QStringList& errors, FastaFileIndex& re
 	{
 		if (variant_type==VariantType::CNVS)
 		{
-			if(!manualCnvStartIsValid()) errors << "manual CNV start position is set, but not a valid integer. Value is '" + manual_cnv_start + "'";
+			if(!manualCnvStartIsValid()) errors << "manual start position is set, but not a valid integer. Value is '" + manual_cnv_start + "'";
 		}
 		else errors << "CNV start position is manually set for variant which is not a CNV!";
 	}
@@ -98,7 +103,7 @@ bool ReportVariantConfiguration::isValid(QStringList& errors, FastaFileIndex& re
 	{
 		if (variant_type==VariantType::CNVS)
 		{
-			if(!manualCnvEndIsValid()) errors << "manual CNV end position is set, but not a valid integer. Value is '" + manual_cnv_end + "'";
+			if(!manualCnvEndIsValid()) errors << "manual end position is set, but not a valid integer. Value is '" + manual_cnv_end + "'";
 		}
 		else errors << "CNV end position is manually set for variant which is not a CNV!";
 	}
@@ -106,9 +111,51 @@ bool ReportVariantConfiguration::isValid(QStringList& errors, FastaFileIndex& re
 	{
 		if (variant_type==VariantType::CNVS)
 		{
-			if (!manualCnvCnIsValid()) errors << "manual CNV copy-number is set, but not a valid integer. Value is '" + manual_cnv_cn + "'";
+			if (!manualCnvCnIsValid()) errors << "manual copy-number is set, but not a valid integer. Value is '" + manual_cnv_cn + "'";
 		}
 		else errors << "CNV copy-number is manually set for variant which is not a CNV!";
+	}
+
+	//manual SV curation
+	if (!manual_sv_start.isEmpty())
+	{
+		if (variant_type==VariantType::SVS)
+		{
+			if(!manualSvStartIsValid()) errors << "manual start position is set, but not a valid integer. Value is '" + manual_sv_start + "'";
+		}
+		else errors << "SV start position is manually set for variant which is not a SV!";
+	}
+	if (!manual_sv_end.isEmpty())
+	{
+		if (variant_type==VariantType::SVS)
+		{
+			if(!manualSvEndIsValid()) errors << "manual end position is set, but not a valid integer. Value is '" + manual_sv_end + "'";
+		}
+		else errors << "SV end position is manually set for variant which is not a SV!";
+	}
+	if (!manual_sv_genotype.isEmpty())
+	{
+		if (variant_type==VariantType::SVS)
+		{
+			if (!manualSvGenoIsValid()) errors << "manually curated genotype '"+manual_sv_genotype+"' is invalid. Valid are 'hom' or 'het'!";
+		}
+		else errors << "SV genotype is manually set for variant which is not a SV!";
+	}
+	if (!manual_sv_start_bnd.isEmpty())
+	{
+		if (variant_type==VariantType::SVS)
+		{
+			if(!manualSvStartBndIsValid()) errors << "manual start position is set, but not a valid integer. Value is '" + manual_sv_start_bnd + "'";
+		}
+		else errors << "SV start position of 2nd breakpoint is manually set for variant which is not a SV!";
+	}
+	if (!manual_sv_end_bnd.isEmpty())
+	{
+		if (variant_type==VariantType::SVS)
+		{
+			if(!manualSvEndBndIsValid()) errors << "manual end position is set, but not a valid integer. Value is '" + manual_sv_end_bnd + "'";
+		}
+		else errors << "SV end position of 2nd breakpoint is manually set for variant which is not a SV!";
 	}
 
 	return errors.isEmpty();
@@ -137,7 +184,12 @@ bool ReportVariantConfiguration::operator==(const ReportVariantConfiguration& rh
 			manual_cnv_end == rhs.manual_cnv_end &&
 			manual_cnv_cn == rhs.manual_cnv_cn &&
 			manual_var == rhs.manual_var &&
-			manual_genotype == rhs.manual_genotype;
+			manual_genotype == rhs.manual_genotype &&
+			manual_sv_start == rhs.manual_sv_start &&
+			manual_sv_end == rhs.manual_sv_end &&
+			manual_sv_genotype == rhs.manual_sv_genotype &&
+			manual_sv_start_bnd == rhs.manual_sv_start_bnd &&
+			manual_sv_end_bnd == rhs.manual_sv_end_bnd;
 }
 
 bool ReportVariantConfiguration::isManuallyCurated() const
@@ -152,7 +204,7 @@ bool ReportVariantConfiguration::isManuallyCurated() const
 	}
 	else if (variant_type==VariantType::SVS)
 	{
-		//TODO
+		return manualSvStartIsValid() || manualSvEndIsValid() || manualSvGenoIsValid() || manualSvStartBndIsValid() || manualSvEndBndIsValid();
 	}
 
 	THROW(ArgumentException, "ReportVariantConfiguration::isManuallyCurated() called on invalid variant type!");
@@ -243,6 +295,55 @@ void ReportVariantConfiguration::updateCnv(CopyNumberVariant& cnv, const QByteAr
 	{
 		cnv.setGenes(db.genesOverlapping(cnv.chr(), cnv.start(), cnv.end(), 5000));
 	}
+}
+
+bool ReportVariantConfiguration::manualSvStartIsValid() const
+{
+	if (manual_sv_start.isEmpty()) return false;
+
+	bool ok = false;
+	int value = manual_sv_start.toInt(&ok);
+	if (!ok) return false;
+
+	return value>0;
+}
+
+bool ReportVariantConfiguration::manualSvEndIsValid() const
+{
+	if (manual_sv_end.isEmpty()) return false;
+
+	bool ok = false;
+	int value = manual_sv_end.toInt(&ok);
+	if (!ok) return false;
+
+	return value>0;
+}
+
+bool ReportVariantConfiguration::manualSvGenoIsValid() const
+{
+	return manual_sv_genotype=="hom" || manual_sv_genotype=="het";
+}
+
+bool ReportVariantConfiguration::manualSvStartBndIsValid() const
+{
+	if (manual_sv_start_bnd.isEmpty()) return false;
+
+	bool ok = false;
+	int value = manual_sv_start_bnd.toInt(&ok);
+	if (!ok) return false;
+
+	return value>0;
+}
+
+bool ReportVariantConfiguration::manualSvEndBndIsValid() const
+{
+	if (manual_sv_end_bnd.isEmpty()) return false;
+
+	bool ok = false;
+	int value = manual_sv_end_bnd.toInt(&ok);
+	if (!ok) return false;
+
+	return value>0;
 }
 
 QStringList ReportVariantConfiguration::getTypeOptions()

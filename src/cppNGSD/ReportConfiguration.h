@@ -61,6 +61,18 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	bool manualCnvCnIsValid() const;
 	void updateCnv(CopyNumberVariant& cnv, const QByteArrayList& cnv_headers, NGSD& db) const;
 
+	//manual curation of SVs
+	QString manual_sv_start;
+	QString manual_sv_end;
+	QString manual_sv_genotype;
+	QString manual_sv_start_bnd;
+	QString manual_sv_end_bnd;
+	bool manualSvStartIsValid() const;
+	bool manualSvEndIsValid() const;
+	bool manualSvGenoIsValid() const;
+	bool manualSvStartBndIsValid() const;
+	bool manualSvEndBndIsValid() const;
+
 	//Returns options for 'type' (taken and cached from NGSD)
 	static QStringList getTypeOptions();
 	//Returns options for 'inheritance_mode' (taken and cached from NGSD)

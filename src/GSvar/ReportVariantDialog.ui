@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>483</width>
-    <height>563</height>
+    <height>727</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -33,24 +33,65 @@
    <property name="spacing">
     <number>3</number>
    </property>
-   <item row="21" column="1" colspan="3">
+   <item row="23" column="0">
+    <widget class="QLabel" name="manual_label_small_genotype">
+     <property name="text">
+      <string>manual genotype</string>
+     </property>
+    </widget>
+   </item>
+   <item row="21" column="0">
+    <widget class="QLabel" name="manual_label_small_var">
+     <property name="text">
+      <string>manual variant</string>
+     </property>
+    </widget>
+   </item>
+   <item row="21" column="3">
+    <widget class="QToolButton" name="manual_small_var_import">
+     <property name="toolTip">
+      <string>Create variant using other formats.</string>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+     <property name="icon">
+      <iconset resource="GSvar.qrc">
+       <normaloff>:/Icons/Import.png</normaloff>:/Icons/Import.png</iconset>
+     </property>
+    </widget>
+   </item>
+   <item row="21" column="1">
+    <widget class="QLineEdit" name="manual_small_var">
+     <property name="placeholderText">
+      <string>variant in GSvar format</string>
+     </property>
+    </widget>
+   </item>
+   <item row="23" column="1" colspan="3">
+    <widget class="QLineEdit" name="manual_small_genotype">
+     <property name="placeholderText">
+      <string>genotype 'het' or 'hom'</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Report type the variant belongs to.&lt;/p&gt;&lt;p&gt;This information is mandatory!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>report type:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="27" column="1" colspan="3">
     <widget class="QLineEdit" name="manual_cnv_start">
      <property name="placeholderText">
       <string>genomic start position</string>
-     </property>
-    </widget>
-   </item>
-   <item row="20" column="0" colspan="4">
-    <widget class="Line" name="manual_line">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="22" column="1" colspan="3">
-    <widget class="QLineEdit" name="manual_cnv_end">
-     <property name="placeholderText">
-      <string>genomic end position</string>
      </property>
     </widget>
    </item>
@@ -60,9 +101,6 @@
       <string>phenotype not matching</string>
      </property>
     </widget>
-   </item>
-   <item row="2" column="1" colspan="3">
-    <widget class="QComboBox" name="type"/>
    </item>
    <item row="12" column="1" colspan="3">
     <widget class="QCheckBox" name="exclude_artefact">
@@ -77,6 +115,33 @@
       <string>other reason</string>
      </property>
     </widget>
+   </item>
+   <item row="20" column="0" colspan="4">
+    <widget class="Line" name="manual_line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1" colspan="3">
+    <widget class="QComboBox" name="type"/>
+   </item>
+   <item row="28" column="1" colspan="3">
+    <widget class="QLineEdit" name="manual_cnv_end">
+     <property name="placeholderText">
+      <string>genomic end position</string>
+     </property>
+    </widget>
+   </item>
+   <item row="15" column="1" colspan="3">
+    <widget class="QCheckBox" name="exclude_mechanism">
+     <property name="text">
+      <string>pathomechanism not matching</string>
+     </property>
+    </widget>
+   </item>
+   <item row="19" column="1" colspan="3">
+    <widget class="QPlainTextEdit" name="comments2"/>
    </item>
    <item row="4" column="0">
     <widget class="QLabel" name="label_8">
@@ -97,16 +162,6 @@
       <string>frequency too high</string>
      </property>
     </widget>
-   </item>
-   <item row="15" column="1" colspan="3">
-    <widget class="QCheckBox" name="exclude_mechanism">
-     <property name="text">
-      <string>pathomechanism not matching</string>
-     </property>
-    </widget>
-   </item>
-   <item row="19" column="1" colspan="3">
-    <widget class="QPlainTextEdit" name="comments2"/>
    </item>
    <item row="9" column="0">
     <widget class="QLabel" name="label_4">
@@ -137,13 +192,6 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="1" colspan="3">
-    <widget class="QCheckBox" name="causal">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
    <item row="18" column="0">
     <widget class="QLabel" name="label_6">
      <property name="toolTip">
@@ -164,23 +212,33 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="label">
-     <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Report type the variant belongs to.&lt;/p&gt;&lt;p&gt;This information is mandatory!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="text">
-      <string>report type:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-   </item>
    <item row="7" column="1" colspan="2">
     <widget class="QComboBox" name="inheritance">
      <property name="toolTip">
       <string>Inhertitance mode of the variant.</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1" colspan="3">
+    <widget class="QCheckBox" name="causal">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="4">
+    <widget class="QLabel" name="variant">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Variant representation</string>
+     </property>
+     <property name="textInteractionFlags">
+      <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
      </property>
     </widget>
    </item>
@@ -209,22 +267,6 @@
      </property>
      <property name="scaledContents">
       <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="0" colspan="4">
-    <widget class="QLabel" name="variant">
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Variant representation</string>
-     </property>
-     <property name="textInteractionFlags">
-      <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
      </property>
     </widget>
    </item>
@@ -282,6 +324,13 @@
      </property>
     </widget>
    </item>
+   <item row="9" column="1" colspan="3">
+    <widget class="QCheckBox" name="mosaic">
+     <property name="text">
+      <string>mosaic</string>
+     </property>
+    </widget>
+   </item>
    <item row="12" column="0" rowspan="5">
     <widget class="QLabel" name="label_7">
      <property name="toolTip">
@@ -298,12 +347,8 @@
      </property>
     </widget>
    </item>
-   <item row="9" column="1" colspan="3">
-    <widget class="QCheckBox" name="mosaic">
-     <property name="text">
-      <string>mosaic</string>
-     </property>
-    </widget>
+   <item row="5" column="1" colspan="3">
+    <widget class="QComboBox" name="classification"/>
    </item>
    <item row="10" column="0">
     <widget class="QLabel" name="label_5">
@@ -318,10 +363,84 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="1" colspan="3">
-    <widget class="QComboBox" name="classification"/>
+   <item row="33" column="0" colspan="4">
+    <widget class="Line" name="manual_line_3">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
    </item>
-   <item row="30" column="0" colspan="4">
+   <item row="41" column="0">
+    <widget class="QLabel" name="manual_label_sv_genotype">
+     <property name="text">
+      <string>manual genotype</string>
+     </property>
+    </widget>
+   </item>
+   <item row="41" column="1" colspan="3">
+    <widget class="QLineEdit" name="manual_sv_genotype">
+     <property name="placeholderText">
+      <string>genotype 'het' or 'hom'</string>
+     </property>
+    </widget>
+   </item>
+   <item row="44" column="0" colspan="4">
+    <widget class="Line" name="line_6">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="42" column="0">
+    <widget class="QLabel" name="manual_label_sv_start_bnd">
+     <property name="text">
+      <string>manual start coordinate 2</string>
+     </property>
+    </widget>
+   </item>
+   <item row="42" column="1" colspan="3">
+    <widget class="QLineEdit" name="manual_sv_start_bnd">
+     <property name="placeholderText">
+      <string>genomic start position of 2nd breakpoint  (BND only)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="35" column="1" colspan="3">
+    <widget class="QLineEdit" name="manual_sv_end">
+     <property name="placeholderText">
+      <string>genomic end position</string>
+     </property>
+    </widget>
+   </item>
+   <item row="35" column="0">
+    <widget class="QLabel" name="manual_label_sv_end">
+     <property name="text">
+      <string>manual end coordinate</string>
+     </property>
+    </widget>
+   </item>
+   <item row="34" column="0">
+    <widget class="QLabel" name="manual_label_sv_start">
+     <property name="text">
+      <string>manual start coordinate</string>
+     </property>
+    </widget>
+   </item>
+   <item row="43" column="1" colspan="3">
+    <widget class="QLineEdit" name="manual_sv_end_bnd">
+     <property name="placeholderText">
+      <string>genomic end position of 2nd breakpoint (BND only)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="34" column="1" colspan="3">
+    <widget class="QLineEdit" name="manual_sv_start">
+     <property name="placeholderText">
+      <string>genomic start position</string>
+     </property>
+    </widget>
+   </item>
+   <item row="47" column="0" colspan="4">
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <property name="spacing">
       <number>3</number>
@@ -388,101 +507,89 @@
     </widget>
    </item>
    <item row="28" column="0">
-    <widget class="QLabel" name="label_10">
-     <property name="text">
-      <string>RNA information:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="28" column="1" colspan="3">
-    <widget class="QComboBox" name="rna_info"/>
-   </item>
-   <item row="21" column="0">
-    <widget class="QLabel" name="manual_label_cnv_start">
-     <property name="text">
-      <string>manual start coordinate</string>
-     </property>
-    </widget>
-   </item>
-   <item row="27" column="0" colspan="4">
-    <widget class="Line" name="line_5">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="22" column="0">
     <widget class="QLabel" name="manual_label_cnv_end">
      <property name="text">
       <string>manual end coordinate</string>
      </property>
     </widget>
    </item>
-   <item row="24" column="0" colspan="4">
-    <widget class="Line" name="manual_line_2">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="25" column="0">
-    <widget class="QLabel" name="manual_label_small_var">
+   <item row="27" column="0">
+    <widget class="QLabel" name="manual_label_cnv_start">
      <property name="text">
-      <string>manual variant</string>
+      <string>manual start coordinate</string>
      </property>
     </widget>
    </item>
-   <item row="25" column="1">
-    <widget class="QLineEdit" name="manual_small_var">
-     <property name="placeholderText">
-      <string>variant in GSvar format</string>
-     </property>
-    </widget>
+   <item row="45" column="1" colspan="3">
+    <widget class="QComboBox" name="rna_info"/>
    </item>
-   <item row="25" column="3">
-    <widget class="QToolButton" name="manual_small_var_import">
-     <property name="toolTip">
-      <string>Create variant using other formats.</string>
-     </property>
+   <item row="45" column="0">
+    <widget class="QLabel" name="label_10">
      <property name="text">
-      <string>...</string>
-     </property>
-     <property name="icon">
-      <iconset resource="GSvar.qrc">
-       <normaloff>:/Icons/Import.png</normaloff>:/Icons/Import.png</iconset>
+      <string>RNA information:</string>
      </property>
     </widget>
    </item>
-   <item row="23" column="0">
+   <item row="29" column="0">
     <widget class="QLabel" name="manual_label_cnv_cn">
      <property name="text">
       <string>manual copy-number</string>
      </property>
     </widget>
    </item>
-   <item row="26" column="0">
-    <widget class="QLabel" name="manual_label_small_genotype">
-     <property name="text">
-      <string>manual genotype</string>
-     </property>
-    </widget>
-   </item>
-   <item row="23" column="1" colspan="3">
+   <item row="29" column="1" colspan="3">
     <widget class="QLineEdit" name="manual_cnv_cn">
      <property name="placeholderText">
       <string>copy-number (0, 1, ...)</string>
      </property>
     </widget>
    </item>
-   <item row="26" column="1" colspan="3">
-    <widget class="QLineEdit" name="manual_small_genotype">
-     <property name="placeholderText">
-      <string>genotype 'het' or 'hom'</string>
+   <item row="43" column="0">
+    <widget class="QLabel" name="manual_label_sv_end_bnd">
+     <property name="text">
+      <string>manual end coordinate 2</string>
+     </property>
+    </widget>
+   </item>
+   <item row="26" column="0" colspan="4">
+    <widget class="Line" name="manual_line_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>type</tabstop>
+  <tabstop>causal</tabstop>
+  <tabstop>classification</tabstop>
+  <tabstop>inheritance</tabstop>
+  <tabstop>de_novo</tabstop>
+  <tabstop>mosaic</tabstop>
+  <tabstop>comp_het</tabstop>
+  <tabstop>exclude_artefact</tabstop>
+  <tabstop>exclude_frequency</tabstop>
+  <tabstop>exclude_phenotype</tabstop>
+  <tabstop>exclude_mechanism</tabstop>
+  <tabstop>exclude_other</tabstop>
+  <tabstop>comments</tabstop>
+  <tabstop>comments2</tabstop>
+  <tabstop>manual_small_var</tabstop>
+  <tabstop>manual_small_var_import</tabstop>
+  <tabstop>manual_small_genotype</tabstop>
+  <tabstop>manual_cnv_start</tabstop>
+  <tabstop>manual_cnv_end</tabstop>
+  <tabstop>manual_cnv_cn</tabstop>
+  <tabstop>manual_sv_start</tabstop>
+  <tabstop>manual_sv_end</tabstop>
+  <tabstop>manual_sv_genotype</tabstop>
+  <tabstop>manual_sv_start_bnd</tabstop>
+  <tabstop>manual_sv_end_bnd</tabstop>
+  <tabstop>rna_info</tabstop>
+  <tabstop>btn_ok</tabstop>
+  <tabstop>btn_cancel</tabstop>
+ </tabstops>
  <resources>
   <include location="../cppGUI/resources.qrc"/>
   <include location="GSvar.qrc"/>

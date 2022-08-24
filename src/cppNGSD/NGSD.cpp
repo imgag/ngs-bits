@@ -6115,8 +6115,6 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 		var_conf.comments = query.value("comments").toString();
 		var_conf.comments2 = query.value("comments2").toString();
 		var_conf.rna_info = query.value("rna_info").toString();
-
-		//optional
 		if (query.value("manual_start").toInt()>0)
 		{
 			var_conf.manual_cnv_start = query.value("manual_start").toString();
@@ -6125,7 +6123,7 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 		{
 			var_conf.manual_cnv_end = query.value("manual_end").toString();
 		}
-		if (!query.value("manual_cn_is_null").toBool() && query.value("manual_cn").toInt()>=0)
+		if (!query.value("manual_cn_is_null").toBool() && query.value("manual_cn").toInt()>=0) //special handling for int that is NULL (not correctly handled by Qt)
 		{
 			var_conf.manual_cnv_cn = query.value("manual_cn").toString();
 		}
@@ -6202,6 +6200,23 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 			var_conf.comments = query.value("comments").toString();
 			var_conf.comments2 = query.value("comments2").toString();
 			var_conf.rna_info = query.value("rna_info").toString();
+			if (query.value("manual_start").toInt()>0)
+			{
+				var_conf.manual_sv_start = query.value("manual_start").toString();
+			}
+			if (query.value("manual_end").toInt()>0)
+			{
+				var_conf.manual_sv_end = query.value("manual_end").toString();
+			}
+			var_conf.manual_sv_genotype = query.value("manual_genotype").toString();
+			if (query.value("manual_start_bnd").toInt()>0)
+			{
+				var_conf.manual_sv_start_bnd = query.value("manual_start_bnd").toString();
+			}
+			if (query.value("manual_end_bnd").toInt()>0)
+			{
+				var_conf.manual_sv_end_bnd = query.value("manual_end_bnd").toString();
+			}
 
 			output->set(var_conf);
 		}
@@ -6273,7 +6288,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 		SqlQuery query_cnv = getQuery();
 		query_cnv.prepare("INSERT INTO `report_configuration_cnv`(`report_configuration_id`, `cnv_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`, `rna_info`, `manual_start`, `manual_end`, `manual_cn`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19)");
 		SqlQuery query_sv = getQuery();
-		query_sv.prepare("INSERT INTO `report_configuration_sv`(`report_configuration_id`, `sv_deletion_id`, `sv_duplication_id`, `sv_insertion_id`, `sv_inversion_id`, `sv_translocation_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`, `rna_info`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20)");
+		query_sv.prepare("INSERT INTO `report_configuration_sv`(`report_configuration_id`, `sv_deletion_id`, `sv_duplication_id`, `sv_insertion_id`, `sv_inversion_id`, `sv_translocation_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`, `rna_info`, `manual_start`, `manual_end`, `manual_genotype`, `manual_start_bnd`, `manual_end_bnd`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25)");
 		foreach(const ReportVariantConfiguration& var_conf, config->variantConfig())
 		{
 			if (var_conf.variant_type==VariantType::SNVS_INDELS)
@@ -6411,6 +6426,11 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 				query_sv.bindValue(18, var_conf.comments.isEmpty() ? "" : var_conf.comments);
 				query_sv.bindValue(19, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
 				query_sv.bindValue(20, var_conf.rna_info.isEmpty() ? "n/a" : var_conf.rna_info);
+				query_sv.bindValue(21, var_conf.manualSvStartIsValid() ? var_conf.manual_sv_start : QVariant());
+				query_sv.bindValue(22, var_conf.manualSvEndIsValid() ? var_conf.manual_sv_end : QVariant());
+				query_sv.bindValue(23, var_conf.manualSvGenoIsValid() ? var_conf.manual_sv_genotype : QVariant());
+				query_sv.bindValue(24, var_conf.manualSvStartBndIsValid() ? var_conf.manual_sv_start_bnd : QVariant());
+				query_sv.bindValue(25, var_conf.manualSvEndBndIsValid() ? var_conf.manual_sv_end_bnd : QVariant());
 
 				// set SV id
 				switch (sv.type())
