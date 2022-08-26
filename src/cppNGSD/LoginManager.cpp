@@ -138,7 +138,7 @@ void LoginManager::login(QString user, QString password, bool test_db)
 		{
 			manager.genlab_mssql_ = genlab_json.object().value("genlab_mssql").toBool();
 			manager.genlab_host_ = genlab_json.object().value("genlab_host").toString();
-			manager.genlab_port_ = genlab_json.object().value("genlab_port").toString().toInt();
+			manager.genlab_port_ = genlab_json.object().value("genlab_port").toInt();
 			manager.genlab_name_ = genlab_json.object().value("genlab_name").toString();
 			manager.genlab_user_ = genlab_json.object().value("genlab_user").toString();
 			manager.genlab_password_ = genlab_json.object().value("genlab_pass").toString();

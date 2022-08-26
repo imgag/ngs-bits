@@ -950,7 +950,14 @@ HttpResponse ServerController::getSecondaryAnalyses(const HttpRequest& request)
 	QStringList secondary_analyses;
 	try
 	{
-		secondary_analyses = NGSD().secondaryAnalyses(processed_sample_name, type);
+		QStringList analyses = NGSD().secondaryAnalyses(processed_sample_name, type);
+		foreach(QString file, analyses)
+		{
+			if (QFile::exists(file))
+			{
+				secondary_analyses << file;
+			}
+		}
 	}
 	catch (DatabaseException& e)
 	{
