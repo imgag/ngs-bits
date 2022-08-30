@@ -5,6 +5,7 @@
 #include "Log.h"
 #include "Statistics.h"
 #include "LoginManager.h"
+#include "VariantHgvsAnnotator.h"
 #include <QFileInfo>
 #include <QXmlStreamWriter>
 
@@ -182,7 +183,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 
 		Variant variant = data_.variants[var_conf.variant_index];
 
-		//manually curation
+		//manual curation
 		if (var_conf.isManuallyCurated()) var_conf.updateVariant(variant, i_genotype);
 
 		stream << "<tr>" << endl;
@@ -258,7 +259,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 
 		CopyNumberVariant cnv = data_.cnvs[var_conf.variant_index];
 
-		//manually curation
+		//manual curation
 		if (var_conf.isManuallyCurated()) var_conf.updateCnv(cnv, data_.cnvs.annotationHeaders(), db_);
 
 		stream << "<tr>" << endl;
@@ -291,7 +292,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 
 		BedpeLine sv = data_.svs[var_conf.variant_index];
 
-		//manually curation
+		//manual curation
 		if (var_conf.isManuallyCurated()) var_conf.updateSv(sv, data_.svs.annotationHeaders(), db_);
 
 		stream << "<tr>" << endl;
@@ -533,6 +534,8 @@ void GermlineReportGenerator::writeHTML(QString filename)
 
 void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 {
+	FastaFileIndex genome_idx(Settings::string("reference_genome"));
+
 	QSharedPointer<QFile> outfile = Helper::openFileForWriting(filename);
 
 	QXmlStreamWriter w(outfile.data());
@@ -711,7 +714,11 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		if (!selected_small_.contains(var_conf.variant_index)) continue;
 		if (data_.report_settings.report_type!="all" && var_conf.report_type!=data_.report_settings.report_type) continue;
 
-		const Variant& variant = data_.variants[var_conf.variant_index];
+		Variant variant = data_.variants[var_conf.variant_index];
+
+		//manual curation infos
+		var_conf.updateVariant(variant, geno_idx);
+
 		w.writeStartElement("Variant");
 		w.writeAttribute("chr", variant.chr().str());
 		w.writeAttribute("start", QString::number(variant.start()));
@@ -793,42 +800,81 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeAttribute("report_type", var_conf.report_type);
 
 		//element TranscriptInformation
-		GeneSet genes;
-		int i_co_sp = data_.variants.annotationIndexByName("coding_and_splicing", true, false);
-		if (i_co_sp!=-1)
+		QList<VariantTranscript> transcript_infos;
+		if (var_conf.manualVarIsValid(genome_idx)) //re-calculate based on new variant
 		{
-			foreach(const VariantTranscript& trans, variant.transcriptAnnotations(i_co_sp))
+			//get all transcripts where the variant is completely contained in the region
+			TranscriptList transcripts  = db_.transcriptsOverlapping(variant.chr(), variant.start() - 5000, variant.end() + 5000);
+
+			//annotate consequence to transcript
+			VariantHgvsAnnotator hgvs_annotator(5000, 3, 20, 20);
+			foreach(const Transcript& trans, transcripts)
 			{
-				w.writeStartElement("TranscriptInformation");
-				w.writeAttribute("gene", trans.gene);
-				int gene_id = db_.geneId(trans.gene);
-				w.writeAttribute("gene_identifier", gene_id==-1 ? "n/a" : db_.geneHgncId(gene_id));
-				w.writeAttribute("transcript_id", trans.id);
-				w.writeAttribute("type", trans.type);
-				QByteArray hgvs_c = trans.hgvs_c;
-				if (hgvs_c.startsWith("c.")) hgvs_c = hgvs_c.mid(2);
-				w.writeAttribute("hgvs_c", hgvs_c);
-				QByteArray hgvs_p = trans.hgvs_p;
-				if (hgvs_p.startsWith("p.")) hgvs_p = hgvs_p.mid(2);
-				w.writeAttribute("hgvs_p", hgvs_p);
-				QString exon_nr = trans.exon;
-				if (exon_nr.startsWith("exon"))
+				HgvsNomenclature hgvs = hgvs_annotator.variantToHgvs(trans, variant, genome_idx);
+				VariantTranscript consequence;
+				consequence.gene = trans.gene();
+				consequence.id = hgvs.transcript_id.toUtf8();
+				QByteArrayList types;
+				foreach(const VariantConsequenceType& type, hgvs.variant_consequence_type)
 				{
-					exon_nr.replace("exon", "Exon ");
+					types << HgvsNomenclature::consequenceTypeToString(type).toUtf8();
 				}
-				if (exon_nr.startsWith("intron"))
+				std::sort(types.begin(), types.end());
+				consequence.type = types.join("&");
+				consequence.hgvs_c = hgvs.hgvs_c.toUtf8();
+				consequence.hgvs_p = hgvs.hgvs_p.toUtf8();
+				if (hgvs.exon_number!=-1)
 				{
-					exon_nr.replace("intron", "Intron ");
+					consequence.exon = "exon"+QByteArray::number(hgvs.exon_number)+"/"+QByteArray::number(trans.regions().count());
 				}
-				w.writeAttribute("exon", exon_nr);
-
-				bool is_main_transcript = data_.preferred_transcripts.contains(trans.gene) && data_.preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion());
-				w.writeAttribute("main_transcript", is_main_transcript ? "true" : "false");
-
-				w.writeEndElement();
-
-				genes << trans.gene;
+				else if (hgvs.intron_number!=-1)
+				{
+					consequence.exon = "intron"+QByteArray::number(hgvs.intron_number)+"/"+QByteArray::number(trans.regions().count());
+				}
+				transcript_infos << consequence;
 			}
+		}
+		else  //take from GSvar file
+		{
+			int i_co_sp = data_.variants.annotationIndexByName("coding_and_splicing", true, false);
+			if (i_co_sp!=-1)
+			{
+				transcript_infos = variant.transcriptAnnotations(i_co_sp);
+			}
+		}
+
+		GeneSet genes;
+		foreach(const VariantTranscript& trans, transcript_infos)
+		{
+			w.writeStartElement("TranscriptInformation");
+			w.writeAttribute("gene", trans.gene);
+			int gene_id = db_.geneId(trans.gene);
+			w.writeAttribute("gene_identifier", gene_id==-1 ? "n/a" : db_.geneHgncId(gene_id));
+			w.writeAttribute("transcript_id", trans.id);
+			w.writeAttribute("type", trans.type);
+			QByteArray hgvs_c = trans.hgvs_c;
+			if (hgvs_c.startsWith("c.")) hgvs_c = hgvs_c.mid(2);
+			w.writeAttribute("hgvs_c", hgvs_c);
+			QByteArray hgvs_p = trans.hgvs_p;
+			if (hgvs_p.startsWith("p.")) hgvs_p = hgvs_p.mid(2);
+			w.writeAttribute("hgvs_p", hgvs_p);
+			QString exon_nr = trans.exon;
+			if (exon_nr.startsWith("exon"))
+			{
+				exon_nr.replace("exon", "Exon ");
+			}
+			if (exon_nr.startsWith("intron"))
+			{
+				exon_nr.replace("intron", "Intron ");
+			}
+			w.writeAttribute("exon", exon_nr);
+
+			bool is_main_transcript = data_.preferred_transcripts.contains(trans.gene) && data_.preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion());
+			w.writeAttribute("main_transcript", is_main_transcript ? "true" : "false");
+
+			w.writeEndElement();
+
+			genes << trans.gene;
 		}
 
 		//element GeneDiseaseInformation
@@ -937,6 +983,9 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 		CopyNumberVariant cnv = data_.cnvs[var_conf.variant_index];
 
+		//manual curation infos
+		var_conf.updateCnv(cnv, data_.cnvs.annotationHeaders(), db_);
+
 		//element Cnv
 		w.writeStartElement("Cnv");
 		w.writeAttribute("chr", cnv.chr().str());
@@ -944,6 +993,14 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeAttribute("end", QString::number(cnv.end()));
 		w.writeAttribute("start_band", NGSHelper::cytoBand(data_.build, cnv.chr(), cnv.start()));
 		w.writeAttribute("end_band", NGSHelper::cytoBand(data_.build, cnv.chr(), cnv.end()));
+		if (var_conf.manualCnvStartIsValid())
+		{
+			w.writeAttribute("hgvs_start", var_conf.manual_cnv_start);
+		}
+		if (var_conf.manualCnvEndIsValid())
+		{
+			w.writeAttribute("hgvs_end", var_conf.manual_cnv_end);
+		}
 		int cn = cnv.copyNumber(data_.cnvs.annotationHeaders());
 		w.writeAttribute("type", cn>=2 ? "dup" : "del"); //2 can be dup in chrX/chrY
 		w.writeAttribute("cn", QString::number(cn));
@@ -970,28 +1027,6 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		}
 		w.writeAttribute("rna_info", var_conf.rna_info);
 		w.writeAttribute("report_type", var_conf.report_type);
-
-		//element ManualCuration
-		if (var_conf.isManuallyCurated())
-		{
-			w.writeStartElement("ManualCuration");
-			if (var_conf.manualCnvStartIsValid())
-			{
-				w.writeAttribute("start", var_conf.manual_cnv_start);
-			}
-			if (var_conf.manualCnvEndIsValid())
-			{
-				w.writeAttribute("end", var_conf.manual_cnv_end);
-			}
-			if (var_conf.manualCnvCnIsValid())
-			{
-				w.writeAttribute("cn", var_conf.manual_cnv_cn);
-			}
-			w.writeEndElement();
-
-			//uncurated data is stored => update CNV for links
-			var_conf.updateCnv(cnv, data_.cnvs.annotationHeaders(), db_);
-		}
 
 		//element Gene
 		foreach(const QByteArray& gene, cnv.genes())
@@ -1044,7 +1079,10 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		if (data_.report_settings.report_type!="all" && var_conf.report_type!=data_.report_settings.report_type) continue;
 
 
-		const BedpeLine& sv = data_.svs[var_conf.variant_index];
+		BedpeLine sv = data_.svs[var_conf.variant_index];
+
+		//manual curation
+		var_conf.updateSv(sv, data_.svs.annotationHeaders(), db_);
 
 		w.writeStartElement("Sv");
 
@@ -1145,6 +1183,23 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		}
 		w.writeAttribute("rna_info", var_conf.rna_info);
 		w.writeAttribute("report_type", var_conf.report_type);
+
+		if (var_conf.manualSvStartIsValid())
+		{
+			w.writeAttribute("hgvs_start", var_conf.manual_sv_start);
+		}
+		if (var_conf.manualSvEndIsValid())
+		{
+			w.writeAttribute("hgvs_end", var_conf.manual_sv_end);
+		}
+		if (var_conf.manualSvStartBndIsValid())
+		{
+			w.writeAttribute("hgvs_bnd_start2", var_conf.manual_sv_start_bnd);
+		}
+		if (var_conf.manualSvEndBndIsValid())
+		{
+			w.writeAttribute("hgvs_bnd_end2", var_conf.manual_sv_end_bnd);
+		}
 
 		foreach(const QByteArray& gene, sv.genes(data_.svs.annotationHeaders(), false))
 		{
@@ -2216,7 +2271,7 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 	int i_ngsd_hom = data_.variants.annotationIndexByName("NGSD_hom", true, true);
 	int i_ngsd_het = data_.variants.annotationIndexByName("NGSD_het", true, true);
 
-	//manually curation
+	//manual curation
 	if (conf.isManuallyCurated()) conf.updateVariant(v, i_genotype);
 
 	//get transcript-specific data
@@ -2309,7 +2364,7 @@ void GermlineReportGenerator::printVariantSheetRowCnv(QTextStream& stream, const
 {
 	CopyNumberVariant cnv = data_.cnvs[conf.variant_index];
 
-	//manually curation
+	//manual curation
 	if (conf.isManuallyCurated()) conf.updateCnv(cnv, data_.cnvs.annotationHeaders(), db_);
 
 	stream << "     <tr>" << endl;
@@ -2358,7 +2413,11 @@ void GermlineReportGenerator::printVariantSheetRowHeaderSv(QTextStream& stream, 
 
 void GermlineReportGenerator::printVariantSheetRowSv(QTextStream& stream, const ReportVariantConfiguration& conf)
 {
-	const BedpeLine& sv = data_.svs[conf.variant_index];
+	BedpeLine sv = data_.svs[conf.variant_index];
+
+	//manual curation
+	if (conf.isManuallyCurated()) conf.updateSv(sv, data_.svs.annotationHeaders(), db_);
+
 	BedFile affected_region = sv.affectedRegion();
 	stream << "     <tr>" << endl;
 	stream << "       <td>" << affected_region[0].toString(true);

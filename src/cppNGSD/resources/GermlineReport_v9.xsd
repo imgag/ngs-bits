@@ -461,55 +461,6 @@
 								</xs:annotation>
 								<xs:complexType>
 									<xs:sequence>
-										<xs:element name="ManualCuration" minOccurs="0">
-											<xs:annotation>
-												<xs:documentation>Manual curation data for correcting errors in variant calling</xs:documentation>
-											</xs:annotation>
-											<xs:complexType>
-												<xs:attribute name="start" type="xs:int" use="required">
-													<xs:annotation>
-														<xs:documentation>start position in GSvar format: for deletions the start position for the deletion and for insertions the position of base before the insertion.</xs:documentation>
-													</xs:annotation>
-												</xs:attribute>
-												<xs:attribute name="end" type="xs:int" use="required">
-													<xs:annotation>
-														<xs:documentation>end position in GSvar format: for deletions the end position for the deletion and for insertions the position of base before the insertion.</xs:documentation>
-													</xs:annotation>
-												</xs:attribute>
-												<xs:attribute name="ref" type="xs:string" use="required">
-													<xs:annotation>
-														<xs:documentation>reference sequence in GSvar format: for deletions the deleted sequence and for insertions '-'</xs:documentation>
-													</xs:annotation>
-												</xs:attribute>
-												<xs:attribute name="obs" type="xs:string" use="required">
-													<xs:annotation>
-														<xs:documentation>observed sequence in GSvar format: for deletions '-' and for insertions the inserted sequence.</xs:documentation>
-													</xs:annotation>
-												</xs:attribute>
-												<xs:attribute name="genotype">
-													<xs:annotation>
-														<xs:documentation>manually cutated genotype</xs:documentation>
-													</xs:annotation>
-													<xs:simpleType>
-														<xs:restriction base="xs:string">
-															<xs:enumeration value="hom"/>
-															<xs:enumeration value="het"/>
-															<xs:enumeration value="hemi"/>
-														</xs:restriction>
-													</xs:simpleType>
-												</xs:attribute>
-												<xs:attribute name="hgvs_c" type="xs:string">
-													<xs:annotation>
-														<xs:documentation>manually cutated HGVS.c notation</xs:documentation>
-													</xs:annotation>
-												</xs:attribute>
-												<xs:attribute name="hgvs_p" type="xs:string">
-													<xs:annotation>
-														<xs:documentation>manually cutated HGVS.p notation</xs:documentation>
-													</xs:annotation>
-												</xs:attribute>
-											</xs:complexType>
-										</xs:element>
 										<xs:element name="TranscriptInformation" minOccurs="0" maxOccurs="unbounded">
 											<xs:annotation>
 												<xs:documentation>Transcript-specific annotation data</xs:documentation>
@@ -881,33 +832,6 @@
 								</xs:annotation>
 								<xs:complexType>
 									<xs:sequence>
-										<xs:element name="ManualCuration" minOccurs="0">
-											<xs:annotation>
-												<xs:documentation>Manual curation data for correcting errors in variant calling</xs:documentation>
-											</xs:annotation>
-											<xs:complexType>
-												<xs:attribute name="start" type="xs:int">
-													<xs:annotation>
-														<xs:documentation>manually cutated genomic start position. Used if the CNV caller could not determine the position correctly or if one CNV is split into several calls</xs:documentation>
-													</xs:annotation>
-												</xs:attribute>
-												<xs:attribute name="end" type="xs:int">
-													<xs:annotation>
-														<xs:documentation>manually cutated genomic end position. Used if the CNV caller could not determine the position correctly or if one CNV is split into several calls</xs:documentation>
-													</xs:annotation>
-												</xs:attribute>
-												<xs:attribute name="cn">
-													<xs:annotation>
-														<xs:documentation>manually cutated copy-number</xs:documentation>
-													</xs:annotation>
-													<xs:simpleType>
-														<xs:restriction base="xs:int">
-															<xs:minInclusive value="0"/>
-														</xs:restriction>
-													</xs:simpleType>
-												</xs:attribute>
-											</xs:complexType>
-										</xs:element>
 										<xs:element name="Gene" minOccurs="0" maxOccurs="unbounded">
 											<xs:annotation>
 												<xs:documentation>Genes that overlap the CNV</xs:documentation>
@@ -1006,6 +930,16 @@
 									<xs:attribute name="end_band" type="xs:string" use="required">
 										<xs:annotation>
 											<xs:documentation>cytogenetic band end position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="hgvs_start" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>manually cutated HGVS start position (deprecated, only contained until GenLab is adapted)</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="hgvs_end" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>manually cutated HGVS end position (deprecated, only contained until GenLab is adapted)</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="type" use="required">
@@ -1194,45 +1128,6 @@
 								</xs:annotation>
 								<xs:complexType>
 									<xs:sequence>
-										<xs:element name="ManualCuration" minOccurs="0">
-											<xs:annotation>
-												<xs:documentation>Manual curation data for correcting errors in variant calling</xs:documentation>
-											</xs:annotation>
-											<xs:complexType>
-												<xs:attribute name="start" type="xs:string">
-													<xs:annotation>
-														<xs:documentation>manually cutated start position</xs:documentation>
-													</xs:annotation>
-												</xs:attribute>
-												<xs:attribute name="end" type="xs:string">
-													<xs:annotation>
-														<xs:documentation>manually cutated end position</xs:documentation>
-													</xs:annotation>
-												</xs:attribute>
-												<xs:attribute name="genotype">
-													<xs:annotation>
-														<xs:documentation>manually cutated genotype</xs:documentation>
-													</xs:annotation>
-													<xs:simpleType>
-														<xs:restriction base="xs:string">
-															<xs:enumeration value="hom"/>
-															<xs:enumeration value="het"/>
-															<xs:enumeration value="hemi"/>
-														</xs:restriction>
-													</xs:simpleType>
-												</xs:attribute>
-												<xs:attribute name="start_bnd" type="xs:string">
-													<xs:annotation>
-														<xs:documentation>manually cutated start position of second region (only for breakend)</xs:documentation>
-													</xs:annotation>
-												</xs:attribute>
-												<xs:attribute name="end_bnd" type="xs:string">
-													<xs:annotation>
-														<xs:documentation>manually cutated end position of second region (only for breakend)</xs:documentation>
-													</xs:annotation>
-												</xs:attribute>
-											</xs:complexType>
-										</xs:element>
 										<xs:element name="Gene" minOccurs="0" maxOccurs="unbounded">
 											<xs:annotation>
 												<xs:documentation>Genes that overlap the SV</xs:documentation>
@@ -1441,6 +1336,26 @@
 												<xs:enumeration value="incidental finding"/>
 											</xs:restriction>
 										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="hgvs_start" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>manually cutated HGVS start position  (deprecated, only contained until GenLab is adapted)</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="hgvs_end" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>manually cutated HGVS end position  (deprecated, only contained until GenLab is adapted)</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="hgvs_bnd_start2" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>manually cutated HGVS start position of second region (only for breakend)  (deprecated, only contained until GenLab is adapted)</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="hgvs_bnd_end2" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>manually cutated HGVS end position of second region (only for breakend)  (deprecated, only contained until GenLab is adapted)</xs:documentation>
+										</xs:annotation>
 									</xs:attribute>
 								</xs:complexType>
 							</xs:element>

@@ -61,15 +61,14 @@ enum class VariantImpact
 struct CPPNGSSHARED_EXPORT HgvsNomenclature
 {
     QString transcript_id;
-    QString allele;
-    //QString hgvs_g;
+	QString allele;
     QString hgvs_c;
     QString hgvs_p;
     QSet<VariantConsequenceType> variant_consequence_type;
     int exon_number{-1};
     int intron_number{-1};
 
-    VariantImpact consequenceTypeToImpact(VariantConsequenceType type) const
+	static VariantImpact consequenceTypeToImpact(VariantConsequenceType type)
     {
         switch(type)
         {
@@ -109,7 +108,7 @@ struct CPPNGSSHARED_EXPORT HgvsNomenclature
 		THROW(ProgrammingException, "Unhandled variant consequence type " + QString::number(static_cast<int>(type)) + "!");
 	}
 
-    QString consequenceTypeToString(VariantConsequenceType type) const
+	static QString consequenceTypeToString(VariantConsequenceType type)
     {
         switch(type)
         {

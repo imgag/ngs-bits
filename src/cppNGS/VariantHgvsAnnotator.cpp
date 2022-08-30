@@ -272,8 +272,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
         hgvs.variant_consequence_type.insert(VariantConsequenceType::PROTEIN_ALTERING_VARIANT);
 
         //effects on stop or start codon
-        if(hgvs.variant_consequence_type.contains(VariantConsequenceType::THREE_PRIME_UTR_VARIANT) &&
-                hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT))
+		if(hgvs.variant_consequence_type.contains(VariantConsequenceType::THREE_PRIME_UTR_VARIANT) && hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT))
         {
             hgvs.variant_consequence_type.insert(VariantConsequenceType::STOP_LOST);
         }

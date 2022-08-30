@@ -5614,13 +5614,8 @@ const Phenotype& NGSD::phenotype(int id)
 GeneSet NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int extend)
 {
 	TranscriptList& cache = getCache().gene_transcripts;
+	if (cache.isEmpty()) initTranscriptCache();
 	ChromosomalIndex<TranscriptList>& index = getCache().gene_transcripts_index;
-
-	//init cache if necessary
-	if (cache.isEmpty())
-	{
-		initTranscriptCache();
-	}
 
 	//create gene list
 	GeneSet genes;
@@ -5635,13 +5630,8 @@ GeneSet NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int ex
 GeneSet NGSD::genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend)
 {
 	TranscriptList& cache = getCache().gene_transcripts;
+	if (cache.isEmpty()) initTranscriptCache();
 	ChromosomalIndex<TranscriptList>& index = getCache().gene_transcripts_index;
-
-	//init cache if necessary
-	if (cache.isEmpty())
-	{
-		initTranscriptCache();
-	}
 
 	start -= extend;
 	end += extend;
@@ -5770,8 +5760,8 @@ int NGSD::transcriptId(QString name, bool throw_on_error)
 TranscriptList NGSD::transcripts(int gene_id, Transcript::SOURCE source, bool coding_only)
 {
 	TranscriptList& cache = getCache().gene_transcripts;
-	QHash<QByteArray, QSet<int>>& gene2indices = getCache().gene_transcripts_symbol2indices;
 	if (cache.isEmpty()) initTranscriptCache();
+	QHash<QByteArray, QSet<int>>& gene2indices = getCache().gene_transcripts_symbol2indices;
 
 	TranscriptList output;
 
@@ -5787,6 +5777,22 @@ TranscriptList NGSD::transcripts(int gene_id, Transcript::SOURCE source, bool co
 
 	output.sortByName();
 
+	return output;
+}
+
+TranscriptList NGSD::transcriptsOverlapping(const Chromosome& chr, int start, int end, int extend)
+{
+	TranscriptList& cache = getCache().gene_transcripts;
+	if (cache.isEmpty()) initTranscriptCache();
+	ChromosomalIndex<TranscriptList>& index = getCache().gene_transcripts_index;
+
+	//create gene list
+	TranscriptList output;
+	QVector<int> matches = index.matchingIndices(chr, start-extend, end+extend);
+	foreach(int i, matches)
+	{
+		output << cache[i];
+	}
 	return output;
 }
 
@@ -5986,21 +5992,48 @@ QString NGSD::reportConfigSummaryText(const QString& processed_sample_id)
 
 		//find causal SVs
 		{
-			QStringList sv_id_columns = QStringList() << "sv_deletion_id" << "sv_duplication_id" << "sv_insertion_id" << "sv_inversion_id" << "sv_translocation_id";
-			QList<StructuralVariantType> sv_types = {StructuralVariantType::DEL, StructuralVariantType::DUP, StructuralVariantType::INS, StructuralVariantType::INV, StructuralVariantType::BND};
-			BedpeFile svs;
-			svs.setAnnotationHeaders(QList<QByteArray>() << "FORMAT" << processedSampleName(processed_sample_id).toUtf8());
-			for (int i = 0; i < sv_id_columns.size(); ++i)
+			SqlQuery query = getQuery();
+			query.exec("SELECT * FROM report_configuration_sv WHERE causal='1' AND report_configuration_id=" + QString::number(rc_id));
+			while(query.next())
 			{
-				QStringList causal_ids = getValues("SELECT " + sv_id_columns.at(i) + " FROM report_configuration_sv WHERE causal='1' AND report_configuration_id=" + QString::number(rc_id) + " AND " + sv_id_columns.at(i) + " IS NOT NULL");
+				int sv_id = query.value("id").toInt();
 
-				foreach(const QString& id, causal_ids)
+				//determine type of SV
+				StructuralVariantType type = StructuralVariantType::UNKNOWN;
+				if (query.value("sv_deletion_id").toInt()!=0) type = StructuralVariantType::DEL;
+				if (query.value("sv_duplication_id").toInt()!=0) type = StructuralVariantType::DUP;
+				if (query.value("sv_insertion_id").toInt()!=0) type = StructuralVariantType::INS;
+				if (query.value("sv_inversion_id").toInt()!=0) type = StructuralVariantType::INV;
+				if (query.value("sv_translocation_id").toInt()!=0) type = StructuralVariantType::BND;
+
+				//get variant and genotype
+				BedpeFile svs;
+				svs.setAnnotationHeaders(QList<QByteArray>() << "FORMAT" << processedSampleName(processed_sample_id).toUtf8()); //FROMAT column that will contain the genotype
+				BedpeLine var = structuralVariant(sv_id, type, svs, true);
+				QString genotype = var.annotations()[1];
+				if (genotype=="1/1") genotype = "hom";
+				if (genotype=="0/1") genotype = "het";
+
+				//manual curation
+				QVariant manual_start = query.value("manual_start");
+				if (!manual_start.isNull()) var.setStart1(manual_start.toInt());
+				QVariant manual_end = query.value("manual_end");
+				if (!manual_end.isNull()) var.setEnd1(manual_end.toInt());
+				QVariant manual_genotype = query.value("manual_genotype");
+				if (!manual_genotype.isNull()) genotype = manual_genotype.toString();
+				if (type==StructuralVariantType::BND)
 				{
-					BedpeLine var = structuralVariant(id.toInt(), sv_types.at(i), svs, true);
-					QString sv_class = getValue("SELECT class FROM report_configuration_sv WHERE " + sv_id_columns[i] + "='" + id + "'", false).toString();
-					output += ", causal SV: " + var.toString();
-					if (sv_class != "") output += " (classification:" + sv_class + ")"; // add classification, if exists
+					QVariant manual_start2 = query.value("manual_start_bnd");
+					if (!manual_start2.isNull()) var.setStart2(manual_start2.toInt());
+					QVariant manual_end2 = query.value("manual_end_bnd");
+					if (!manual_end2.isNull()) var.setEnd2(manual_end2.toInt());
 				}
+
+				//create output
+				output += ", causal SV: " + var.toString() + " (genotype: " + genotype;
+				QString sv_class = query.value("class").toString().trimmed();
+				if (sv_class!="n/a") output += ", classification:" + sv_class;
+				output += ")";
 			}
 		}
 

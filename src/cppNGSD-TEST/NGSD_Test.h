@@ -461,6 +461,19 @@ private slots:
 		I_EQUAL(transcripts[0].codingRegions().count(), 0);
 		I_EQUAL(transcripts[0].codingRegions().baseCount(), 0);
 
+		//transcriptsOverlapping
+		transcripts = db.transcriptsOverlapping("chr15", 70, 70, 0); //nearby left of NIPA1
+		I_EQUAL(transcripts.count(), 0);
+		transcripts = db.transcriptsOverlapping("chr15", 425, 425, 0); //nearby right of NIPA1
+		I_EQUAL(transcripts.count(), 0);
+		transcripts = db.transcriptsOverlapping("chr15", 95, 95, 0); //overlapping only NIPA1_TR2
+		I_EQUAL(transcripts.count(), 1);
+		S_EQUAL(transcripts[0].name(), "NIPA1_TR2");
+		transcripts = db.transcriptsOverlapping("chr15", 95, 95, 10); //overlapping both because of extension
+		I_EQUAL(transcripts.count(), 2);
+		S_EQUAL(transcripts[0].name(), "NIPA1_TR2");
+		S_EQUAL(transcripts[1].name(), "NIPA1_TR1");
+
 		//longestCodingTranscript
 		transcript = db.longestCodingTranscript(4, Transcript::ENSEMBL); //NON-CODING, zero CCDS transcripts
 		IS_FALSE(transcript.isValid());
