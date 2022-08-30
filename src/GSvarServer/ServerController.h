@@ -10,9 +10,15 @@
 
 #include "Log.h"
 #include "Exceptions.h"
-#include "EndpointController.h"
 #include "FileLocationProviderLocal.h"
 #include "VariantList.h"
+#include "HttpResponse.h"
+#include "HttpRequest.h"
+#include "ToolBase.h"
+#include "Statistics.h"
+#include "EndpointManager.h"
+#include "UrlManager.h"
+
 
 struct SampleMetadata
 {
@@ -25,7 +31,14 @@ class ServerController
 
 public:
 	ServerController();
-
+	/// Shows a page explaining what a particular(s) endpoint(s) does(do)
+	static HttpResponse serveEndpointHelp(const HttpRequest& request);
+	/// Provides a random access to a file or streams it (depending on the headers), as well as displays a folder
+	/// content from the server root folder
+	static HttpResponse serveStaticFromServerRoot(const HttpRequest& request);
+	/// Provides a random access to a file or streams it (depending on the headers), as well as displays a folder
+	/// content for a specific project folder linked to a temporary URL
+	static HttpResponse serveStaticFromTempUrl(const HttpRequest& request);
 	/// Serves files saved in the server assets
 	static HttpResponse serveResourceAsset(const HttpRequest& request);
 	/// Creates and returns a temporary URL for a specific file
@@ -68,7 +81,6 @@ public:
 	static HttpResponse getGenlabCredentials(const HttpRequest& request);
 	/// Destoroys the user's session and invalidates the token
 	static HttpResponse performLogout(const HttpRequest& request);
-
 	/// Streams processing system regions file
 	static HttpResponse getProcessingSystemRegions(const HttpRequest& request);
 	/// Streams processing system amplicons file
@@ -79,8 +91,22 @@ public:
 	static HttpResponse getSecondaryAnalyses(const HttpRequest& request);
 
 private:
+	/// Find file/folder name corresponding to the id from a temporary URL
+	static QString findPathForTempUrl(QList<QString> path_parts);
+	/// Find file/folder name corresponding to the server root data
+	static QString findPathForServerRoot(const QList<QString>& path_parts);
+	/// Check if byte-range request contains overlapping ranges, they are
+	/// not allowed, according to the HTTP specification
+	static bool hasOverlappingRanges(const QList<ByteRange> ranges);
 	/// Creates a temporary URL for a file (includes a file name and its full path)
-	static QString createFileTempUrl(const QString& file, const QString& token, const bool& return_http);
+	static QString createTempUrl(const QString& file, const QString& token, const bool& return_http);
+	/// Serves a file for a byte range request (i.e. specific fragment of a file)
+	static HttpResponse createStaticFileRangeResponse(QString filename, QList<ByteRange> byte_ranges, ContentType type, bool is_downloadable);
+	/// Serves a stream, used to transfer large files without opening multiple connections
+	static HttpResponse createStaticStreamResponse(QString filename, bool is_downloadable);
+	static HttpResponse createStaticFileResponse(QString filename, const HttpRequest& request);
+	static HttpResponse createStaticFolderResponse(const QString path, const HttpRequest& request);
+	static HttpResponse createStaticLocationResponse(const QString path, const HttpRequest& request);
 };
 
 #endif // SERVERCONTROLLER_H

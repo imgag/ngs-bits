@@ -121,7 +121,7 @@ void RequestWorker::run()
 		return;
 	}
 
-	ContentType error_type = HttpProcessor::detectErrorContentType(parsed_request.getHeaderByName("User-Agent"));
+	ContentType error_type = HttpUtils::detectErrorContentType(parsed_request.getHeaderByName("User-Agent"));
 
 	// Process the request based on the endpoint info
 	Endpoint current_endpoint = EndpointManager::getEndpointByUrlAndMethod(parsed_request.getPath(), parsed_request.getMethod());
@@ -151,7 +151,7 @@ void RequestWorker::run()
 		if (current_endpoint.authentication_type == AuthType::USER_TOKEN) auth_response = EndpointManager::getUserTokenAuthStatus(parsed_request);
 		if (current_endpoint.authentication_type == AuthType::DB_TOKEN) auth_response = EndpointManager::getDbTokenAuthStatus(parsed_request);
 
-		qDebug() << "Response code: " << HttpProcessor::convertResponseStatusToStatusCodeNumber(auth_response.getStatus());
+		qDebug() << "Response code: " << HttpUtils::convertResponseStatusToStatusCodeNumber(auth_response.getStatus());
 		if (auth_response.getStatus() != ResponseStatus::OK)
 		{
 			qDebug() << "Token check failed";
@@ -174,7 +174,7 @@ void RequestWorker::run()
 		return;
 	}
 
-	Log::info(HttpProcessor::convertMethodTypeToString(current_endpoint.method).toUpper() + " " + current_endpoint.url + " - " + current_endpoint.comment);
+	Log::info(HttpUtils::convertMethodTypeToString(current_endpoint.method).toUpper() + " " + current_endpoint.url + " - " + current_endpoint.comment);
 
 	if (response.isStream())
 	{
@@ -399,7 +399,7 @@ void RequestWorker::sendResponseDataPart(QSslSocket* socket, QByteArray data)
 
 void RequestWorker::sendEntireResponse(QSslSocket* socket, HttpResponse response)
 {
-	qDebug() << "Writing an entire response: code " << response.getStatusCode() << " - " << HttpProcessor::convertResponseStatusToReasonPhrase(response.getStatus());
+	qDebug() << "Writing an entire response: code " << response.getStatusCode() << " - " << HttpUtils::convertResponseStatusToReasonPhrase(response.getStatus());
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState)
 	{
 		socket->write(response.getStatusLine());

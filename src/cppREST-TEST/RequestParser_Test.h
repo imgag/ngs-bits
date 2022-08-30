@@ -17,7 +17,7 @@ private slots:
 		HttpRequest parsed_request = parser->parse(&raw_request);
 
 		S_EQUAL(parsed_request.getPath(), "static");
-		S_EQUAL(HttpProcessor::convertMethodTypeToString(parsed_request.getMethod()), "get");
+		S_EQUAL(HttpUtils::convertMethodTypeToString(parsed_request.getMethod()), "get");
 		S_EQUAL(parsed_request.getUrlParams().value("var"), "val");
 		S_EQUAL(parsed_request.getHeaders()["host"][0], "localhost:8443");
 		S_EQUAL(parsed_request.getHeaders()["connection"][0], "keep-alive");
@@ -46,7 +46,7 @@ private slots:
 		RequestParser *parser = new RequestParser();
 		HttpRequest parsed_request = parser->parse(&raw_request);
 		S_EQUAL(parsed_request.getPath(), "upload");
-		S_EQUAL(HttpProcessor::convertMethodTypeToString(parsed_request.getMethod()), "post");
+		S_EQUAL(HttpUtils::convertMethodTypeToString(parsed_request.getMethod()), "post");
 		S_EQUAL(parsed_request.getUrlParams().value("token"), "token_value");
 
 		I_EQUAL(parsed_request.getFormDataParams().count(), 2);

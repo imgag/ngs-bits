@@ -5,7 +5,6 @@
 #include "Log.h"
 #include "ServerWrapper.h"
 #include "ServerHelper.h"
-#include "EndpointController.h"
 #include "ServerController.h"
 
 int main(int argc, char **argv)
@@ -97,7 +96,7 @@ int main(int argc, char **argv)
 						ContentType::TEXT_HTML,
 						AuthType::USER_TOKEN,
 						"Static content served from the server root folder (defined in the config file)",
-						&EndpointController::serveStaticFromServerRoot
+						&ServerController::serveStaticFromServerRoot
 				   });
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -110,7 +109,7 @@ int main(int argc, char **argv)
 						ContentType::TEXT_HTML,
 						AuthType::USER_TOKEN,
 						"Size of the static content served from the server root folder (defined in the config file)",
-						&EndpointController::serveStaticFromServerRoot
+						&ServerController::serveStaticFromServerRoot
 				   });
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -122,7 +121,7 @@ int main(int argc, char **argv)
 						ContentType::TEXT_HTML,
 						AuthType::HTTP_BASIC_AUTH,
 						"Protected static files",
-						&EndpointController::serveStaticFromServerRoot
+						&ServerController::serveStaticFromServerRoot
 				   });
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -135,7 +134,7 @@ int main(int argc, char **argv)
 						ContentType::TEXT_HTML,
 						AuthType::USER_TOKEN,
 						"Static file served via secure temporary URL",
-						&EndpointController::serveStaticForTempUrl
+						&ServerController::serveStaticFromTempUrl
 				   });
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -149,7 +148,7 @@ int main(int argc, char **argv)
 						ContentType::TEXT_HTML,
 						AuthType::USER_TOKEN,
 						"Size of the static file served via secure temporary URL",
-						&EndpointController::serveStaticForTempUrl
+						&ServerController::serveStaticFromTempUrl
 				   });
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -162,7 +161,7 @@ int main(int argc, char **argv)
 						ContentType::TEXT_HTML,
 						AuthType::NONE,
 						"Help page on the usage of the endpoints",
-						&EndpointController::serveEndpointHelp
+						&ServerController::serveEndpointHelp
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{

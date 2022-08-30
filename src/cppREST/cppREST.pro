@@ -46,10 +46,9 @@ LIBS += -lz
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 SOURCES += \
-    EndpointController.cpp \
     EndpointManager.cpp \
     HtmlEngine.cpp \
-    HttpProcessor.cpp \
+    HttpUtils.cpp \
     HttpRequest.cpp \
     HttpResponse.cpp \
     RequestParser.cpp \
@@ -61,11 +60,10 @@ SOURCES += \
     UrlManager.cpp
 
 HEADERS += \
-    EndpointController.h \
     EndpointManager.h \
     HtmlEngine.h \
     HttpParts.h \
-    HttpProcessor.h \
+    HttpUtils.h \
     HttpRequest.h \
     HttpResponse.h \
     RequestParser.h \
