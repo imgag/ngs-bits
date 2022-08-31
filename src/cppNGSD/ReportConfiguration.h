@@ -51,7 +51,7 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	QString manual_genotype;
 	bool manualVarIsValid(FastaFileIndex& ref_index, QString* error= nullptr) const;
 	bool manualVarGenoIsValid() const;
-	void updateVariant(Variant& v, int genotype_col_idx) const;
+	void updateVariant(Variant& v, FastaFileIndex& ref_index, int genotype_col_idx) const;
 
 	//manual curation of CNVs
 	QString manual_cnv_start;

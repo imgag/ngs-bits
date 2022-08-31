@@ -129,9 +129,10 @@ int BedpeLine::size() const
 	THROW(ProgrammingException, "Unhandled variant type (int): " + BedpeFile::typeToString(t));
 }
 
-BedFile BedpeLine::affectedRegion() const
+BedFile BedpeLine::affectedRegion(bool plus_one) const //TODO: this parameter should not be necessary any more when this is done: https://github.com/imgag/ngs-bits/issues/309
 {
 	BedFile sv_region;
+	int offset = plus_one ? 1 : 0;
 
 	// determine region based on SV type
 	switch (type())
@@ -139,19 +140,19 @@ BedFile BedpeLine::affectedRegion() const
 		case StructuralVariantType::INV:
 		case StructuralVariantType::DEL:
 		case StructuralVariantType::DUP:
-			// whole area (+1 because BEDPE is 0-based)
-			sv_region.append(BedLine(chr1(), start1() + 1, end2() + 1));
+			// whole area
+			sv_region.append(BedLine(chr1(), start1() + offset, end2() + offset));
 			break;
 
 		case StructuralVariantType::BND:
-			// consider pos 1 and pos 2 seperately (+1 because BEDPE is 0-based)
-			sv_region.append(BedLine(chr1(), start1() + 1, end1() + 1));
-			sv_region.append(BedLine(chr2(), start2() + 1, end2() + 1));
+			// consider pos 1 and pos 2 seperately
+			sv_region.append(BedLine(chr1(), start1() + offset, end1() + offset));
+			sv_region.append(BedLine(chr2(), start2() + offset, end2() + offset));
 			break;
 
 		case StructuralVariantType::INS:
-			// compute CI of insertion (+1 because BEDPE is 0-based)
-			sv_region.append(BedLine(chr1(), std::min(start1(), start2()) + 1, std::max(end1(), end2()) + 1));
+			// compute CI of insertion
+			sv_region.append(BedLine(chr1(), std::min(start1(), start2()) + offset, std::max(end1(), end2()) + offset)); //TODO should this not be done for INV, DEL and DUP as well? > LEON
 			break;
 
 		default:
@@ -163,23 +164,24 @@ BedFile BedpeLine::affectedRegion() const
 
 QString BedpeLine::toString() const
 {
+	BedFile region = affectedRegion(false);
 	if(type() == StructuralVariantType::BND)
 	{
-		return "BND from " + affectedRegion()[0].toString(true) + " to " + affectedRegion()[1].toString(true);
+		return "BND from " + region[0].toString(true) + " to " +region[1].toString(true);
 	}
 	else
 	{
-		return BedpeFile::typeToString(type()) + " at " + affectedRegion()[0].toString(true);
+		return BedpeFile::typeToString(type()) + " at " + region[0].toString(true);
 	}
 }
 
-QByteArray BedpeLine::genotype(const QList<QByteArray>& annotation_headers, bool error_on_mismatch, int sample_idx) const
+QByteArray BedpeLine::genotype(const QList<QByteArray>& annotation_headers, bool error_if_not_found, int sample_idx) const
 {
 	//determine format column
 	int format_idx = annotation_headers.indexOf("FORMAT");
 	if (format_idx == -1)
 	{
-		if (error_on_mismatch) THROW(ArgumentException, "Column \"FORMAT\" not found in annotation header!");
+		if (error_if_not_found) THROW(ArgumentException, "Column \"FORMAT\" not found in annotation header!");
 		return "";
 	}
 
@@ -200,7 +202,7 @@ QByteArray BedpeLine::genotype(const QList<QByteArray>& annotation_headers, bool
 	int field_idx = keys.indexOf("GT");
 	if (field_idx==-1)
 	{
-		if (error_on_mismatch) THROW(ArgumentException, "Key \"GT\" was not found in FORMAT column!");
+		if (error_if_not_found) THROW(ArgumentException, "Key \"GT\" was not found in FORMAT column!");
 		return "";
 	}
 
@@ -238,6 +240,22 @@ void BedpeLine::setGenotype(const QList<QByteArray>& annotation_headers, QByteAr
 
 	values[field_idx] = value;
 	annotations_[sample_idx] = values.join(':');
+}
+
+QByteArray BedpeLine::genotypeHumanReadable(const QList<QByteArray>& annotation_headers, bool error_if_not_found, int sample_idx) const
+{
+	QByteArray gt = genotype(annotation_headers, error_if_not_found, sample_idx);
+
+	//normalize
+	gt.replace("|", "/");
+
+	//convert
+	if (gt=="1/1") return "hom";
+	else if (gt=="0/1") return "het";
+	else if (gt=="1/0") return "het";
+	else if (gt=="0/0") return "wt";
+	else if (gt=="") return "n/a";
+	else THROW(ArgumentException, "Unhandled SV genotype '" + gt + "'!");
 }
 
 GeneSet BedpeLine::genes(const QList<QByteArray>& annotation_headers, bool error_on_mismatch) const

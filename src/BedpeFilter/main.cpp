@@ -53,20 +53,22 @@ public:
 			//load roi file
 			BedFile roi;
 			roi.load(bed);
+			roi.sort();
+			ChromosomalIndex<BedFile> roi_idx(roi);
 
 			// iterate through the file in reverse to don't screw up indices
 			for(int i=bedpe_file.count()-1; i>=0; --i)
 			{
 				BedpeLine line = bedpe_file[i];
-				BedFile affected_region = line.affectedRegion();
-				bool remove_sv = true;
 
+				//check if should be removed
+				bool remove_sv = true;
+				BedFile affected_region = line.affectedRegion();
 				for(int j=0; j<affected_region.count(); ++j)
 				{
-					if (roi.overlapsWith(affected_region[j].chr(), affected_region[j].start(), affected_region[j].end()))
+					if (roi_idx.matchingIndices(affected_region[j].chr(), affected_region[j].start(), affected_region[j].end()).count()>0)
 					{
 						remove_sv = false;
-						break;
 					}
 				}
 

@@ -78,6 +78,9 @@ private slots:
 
 		QString gt = file[0].genotype(file.annotationHeaders());
 		S_EQUAL(gt, "0/1");
+
+		gt = file[0].genotypeHumanReadable(file.annotationHeaders());
+		S_EQUAL(gt, "het");
 	}
 
 	void setGenotype()
@@ -89,6 +92,9 @@ private slots:
 
 		QString gt = file[0].genotype(file.annotationHeaders());
 		S_EQUAL(gt, "1/1");
+
+		gt = file[0].genotypeHumanReadable(file.annotationHeaders());
+		S_EQUAL(gt, "hom");
 	}
 
 	void genes()

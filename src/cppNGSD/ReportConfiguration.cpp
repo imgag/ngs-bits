@@ -233,9 +233,9 @@ bool ReportVariantConfiguration::manualVarGenoIsValid() const
 	return manual_genotype=="hom" || manual_genotype=="het";
 }
 
-void ReportVariantConfiguration::updateVariant(Variant& v, int genotype_col_idx) const
+void ReportVariantConfiguration::updateVariant(Variant& v, FastaFileIndex& ref_index, int genotype_col_idx) const
 {
-	if (manualVarGenoIsValid())
+	if (manualVarIsValid(ref_index))
 	{
 		Variant v2 = Variant::fromString(manual_var);
 		v.setChr(v2.chr());
@@ -348,8 +348,32 @@ bool ReportVariantConfiguration::manualSvEndBndIsValid() const
 
 void ReportVariantConfiguration::updateSv(BedpeLine& sv, const QByteArrayList& annotation_headers, NGSD& db) const
 {
-	if (manualSvStartIsValid()) sv.setStart1(manual_sv_start.toInt());
-	if (manualSvEndIsValid()) sv.setEnd1(manual_sv_end.toInt());
+	if (manualSvStartIsValid())
+	{
+		int coord = manual_sv_start.toInt();
+		if (sv.type()==StructuralVariantType::BND)
+		{
+			sv.setStart1(coord);
+		}
+		else
+		{
+			sv.setStart1(coord);
+			sv.setEnd1(coord);
+		}
+	}
+	if (manualSvEndIsValid())
+	{
+		int coord = manual_sv_end.toInt();
+		if (sv.type()==StructuralVariantType::BND)
+		{
+			sv.setEnd1(coord);
+		}
+		else
+		{
+			sv.setStart2(coord);
+			sv.setEnd2(coord);
+		}
+	}
 	if (manualSvGenoIsValid())
 	{
 		sv.setGenotype(annotation_headers, manual_sv_genotype=="hom" ? "1/1" : "0/1");
@@ -361,7 +385,7 @@ void ReportVariantConfiguration::updateSv(BedpeLine& sv, const QByteArrayList& a
 	if (manualSvStartIsValid() || manualSvEndIsValid() || manualSvStartBndIsValid() || manualSvEndBndIsValid())
 	{
 		GeneSet genes;
-		BedFile regions = sv.affectedRegion();
+		BedFile regions = sv.affectedRegion(false);
 		for (int i=0; i<regions.count(); ++i)
 		{
 			const BedLine& reg = regions[i];

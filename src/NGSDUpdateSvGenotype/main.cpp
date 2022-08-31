@@ -73,19 +73,8 @@ public:
 				if(!sv.chr1().isNonSpecial() || !sv.chr2().isNonSpecial()) continue;
 
 				//parse genotype
-				QString genotype = sv.genotype(svs.annotationHeaders()).trimmed();
-				if (genotype == "1/1")
-				{
-					genotype = "hom";
-				}
-				else if ((genotype == "0/1") || (genotype == "1/0"))
-				{
-					genotype = "het";
-				}
-				else
-				{
-					THROW(FileParseException, "Invalid genotype '" + genotype + "' found in SV '" + sv.positionRange() + "'!")
-				}
+				QString genotype = sv.genotypeHumanReadable(svs.annotationHeaders()).trimmed();
+
 				//get SV id
 				QStringList sv_ids;
 				try
@@ -102,7 +91,6 @@ public:
 						//extract ids and set genotype to 'het' (fallback)
 						sv_ids = e.message().split('(').at(1).split(')').at(0).split(',');
 						genotype = "het";
-
 					}
 					else
 					{

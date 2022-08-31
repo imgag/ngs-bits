@@ -5996,15 +5996,34 @@ QString NGSD::reportConfigSummaryText(const QString& processed_sample_id)
 			query.exec("SELECT * FROM report_configuration_sv WHERE causal='1' AND report_configuration_id=" + QString::number(rc_id));
 			while(query.next())
 			{
-				int sv_id = query.value("id").toInt();
-
-				//determine type of SV
+				//determine type and ID in type-specific table of SV
 				StructuralVariantType type = StructuralVariantType::UNKNOWN;
-				if (query.value("sv_deletion_id").toInt()!=0) type = StructuralVariantType::DEL;
-				if (query.value("sv_duplication_id").toInt()!=0) type = StructuralVariantType::DUP;
-				if (query.value("sv_insertion_id").toInt()!=0) type = StructuralVariantType::INS;
-				if (query.value("sv_inversion_id").toInt()!=0) type = StructuralVariantType::INV;
-				if (query.value("sv_translocation_id").toInt()!=0) type = StructuralVariantType::BND;
+				int sv_id = -1;
+				if (query.value("sv_deletion_id").toInt()!=0)
+				{
+					type = StructuralVariantType::DEL;
+					sv_id = query.value("sv_deletion_id").toInt();
+				}
+				if (query.value("sv_duplication_id").toInt()!=0)
+				{
+					type = StructuralVariantType::DUP;
+					sv_id = query.value("sv_duplication_id").toInt();
+				}
+				if (query.value("sv_insertion_id").toInt()!=0)
+				{
+					type = StructuralVariantType::INS;
+					sv_id = query.value("sv_insertion_id").toInt();
+				}
+				if (query.value("sv_inversion_id").toInt()!=0)
+				{
+					type = StructuralVariantType::INV;
+					sv_id = query.value("sv_inversion_id").toInt();
+				}
+				if (query.value("sv_translocation_id").toInt()!=0)
+				{
+					type = StructuralVariantType::BND;
+					sv_id = query.value("sv_translocation_id").toInt();
+				}
 
 				//get variant and genotype
 				BedpeFile svs;
@@ -6016,17 +6035,50 @@ QString NGSD::reportConfigSummaryText(const QString& processed_sample_id)
 
 				//manual curation
 				QVariant manual_start = query.value("manual_start");
-				if (!manual_start.isNull()) var.setStart1(manual_start.toInt());
+				if (!manual_start.isNull())
+				{
+					int coord = manual_start.toInt();
+					if (type==StructuralVariantType::BND)
+					{
+						var.setStart1(coord);
+					}
+					else
+					{
+						var.setStart1(coord);
+						var.setEnd1(coord);
+					}
+				}
 				QVariant manual_end = query.value("manual_end");
-				if (!manual_end.isNull()) var.setEnd1(manual_end.toInt());
+				if (!manual_end.isNull())
+				{
+					int coord = manual_end.toInt();
+					if (type==StructuralVariantType::BND)
+					{
+						var.setEnd1(coord);
+					}
+					else
+					{
+						var.setStart2(coord);
+						var.setEnd2(coord);
+					}
+				}
 				QVariant manual_genotype = query.value("manual_genotype");
-				if (!manual_genotype.isNull()) genotype = manual_genotype.toString();
+				if (!manual_genotype.isNull())
+				{
+					genotype = manual_genotype.toString();
+				}
 				if (type==StructuralVariantType::BND)
 				{
 					QVariant manual_start2 = query.value("manual_start_bnd");
-					if (!manual_start2.isNull()) var.setStart2(manual_start2.toInt());
+					if (!manual_start2.isNull())
+					{
+						var.setStart2(manual_start2.toInt());
+					}
 					QVariant manual_end2 = query.value("manual_end_bnd");
-					if (!manual_end2.isNull()) var.setEnd2(manual_end2.toInt());
+					if (!manual_end2.isNull())
+					{
+						var.setEnd2(manual_end2.toInt());
+					}
 				}
 
 				//create output
