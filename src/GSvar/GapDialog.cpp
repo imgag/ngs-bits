@@ -121,17 +121,12 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 		if (!ok) output << "Could not convert average depth to decimal number for gap " + low_cov[i].toString(true);
 		info.genes = db_.genesOverlappingByExon(info.region.chr(), info.region.start(), info.region.end(), 30);
 
-		//use longest coding transcript(s) of Ensembl
+		//use longest (coding) transcript(s) of Ensembl
 		BedFile coding_overlap;
 		foreach(QByteArray gene, info.genes)
 		{
 			int gene_id = db_.geneId(gene);
-			Transcript transcript = db_.longestCodingTranscript(gene_id, Transcript::ENSEMBL, true);
-			if (!transcript.isValid())
-			{
-				genes_noncoding.insert(gene);
-				transcript = db_.longestCodingTranscript(gene_id, Transcript::ENSEMBL, true, true);
-			}
+			Transcript transcript = db_.bestTranscript(gene_id);
 			coding_overlap.add(transcript.codingRegions());
 		}
 		coding_overlap.extend(5);

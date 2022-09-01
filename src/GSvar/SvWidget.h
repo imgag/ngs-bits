@@ -93,9 +93,6 @@ private:
 
 	void editGermlineReportConfiguration(int row);
 
-	/// returns the genotype of a SV of a given sample
-    QByteArray extractGenotype(const BedpeLine& sv, const QList<QByteArray>& annotation_headers, int sample_idx = 0);
-
 	Ui::SvWidget* ui;
 	BedpeFile sv_bedpe_file_;
 	QStringList ps_ids_; //processed sample database IDs (only trio/multi). '' if unknown or NGSD is disabled.

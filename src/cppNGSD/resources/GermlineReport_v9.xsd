@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Mit XMLSpy v2014 (x64) (http://www.altova.com) von Dr. Peter Bauer (Universitätsklinikum Tübingen) bearbeitet -->
+<!-- Mit XMLSpy v2022 rel. 2 (x64) (http://www.altova.com) von Marc Sturm (Universitätsklinikum Tübingen) bearbeitet -->
 <!-- edited with XMLSpy v2014 (x64) (http://www.altova.com) by Dr. Peter Bauer (Universitätsklinikum Tübingen) -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" xmlns:altova="http://www.altova.com/xml-schema-extensions" elementFormDefault="qualified" attributeFormDefault="unqualified" vc:minVersion="1.1">
 	<xs:element name="DiagnosticNgsReport">
@@ -654,22 +654,22 @@
 									</xs:attribute>
 									<xs:attribute name="start" type="xs:int" use="required">
 										<xs:annotation>
-											<xs:documentation>start position</xs:documentation>
+											<xs:documentation>start position in GSvar format: for deletions the start position for the deletion and for insertions the position of base before the insertion.</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="end" type="xs:int" use="required">
 										<xs:annotation>
-											<xs:documentation>end position</xs:documentation>
+											<xs:documentation>end position in GSvar format: for deletions the end position for the deletion and for insertions the position of base before the insertion.</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="ref" type="xs:string" use="required">
 										<xs:annotation>
-											<xs:documentation>reference sequence</xs:documentation>
+											<xs:documentation>reference sequence in GSvar format: for deletions the deleted sequence and for insertions '-'</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="obs" type="xs:string" use="required">
 										<xs:annotation>
-											<xs:documentation>observed sequence</xs:documentation>
+											<xs:documentation>observed sequence in GSvar format: for deletions '-' and for insertions the inserted sequence.</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="genotype" use="required">
@@ -934,12 +934,12 @@
 									</xs:attribute>
 									<xs:attribute name="hgvs_start" type="xs:string">
 										<xs:annotation>
-											<xs:documentation>manually cutated HGVS start position</xs:documentation>
+											<xs:documentation>manually cutated HGVS start position (deprecated, only contained until GenLab is adapted)</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="hgvs_end" type="xs:string">
 										<xs:annotation>
-											<xs:documentation>manually cutated HGVS end position</xs:documentation>
+											<xs:documentation>manually cutated HGVS end position (deprecated, only contained until GenLab is adapted)</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="type" use="required">
@@ -1339,22 +1339,22 @@
 									</xs:attribute>
 									<xs:attribute name="hgvs_start" type="xs:string">
 										<xs:annotation>
-											<xs:documentation>manually cutated HGVS start position</xs:documentation>
+											<xs:documentation>manually cutated HGVS start position  (deprecated, only contained until GenLab is adapted)</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="hgvs_end" type="xs:string">
 										<xs:annotation>
-											<xs:documentation>manually cutated HGVS end position</xs:documentation>
+											<xs:documentation>manually cutated HGVS end position  (deprecated, only contained until GenLab is adapted)</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="hgvs_bnd_start2" type="xs:string">
 										<xs:annotation>
-											<xs:documentation>manually cutated HGVS start position of second region (only for breakend)</xs:documentation>
+											<xs:documentation>manually cutated HGVS start position of second region (only for breakend)  (deprecated, only contained until GenLab is adapted)</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="hgvs_bnd_end2" type="xs:string">
 										<xs:annotation>
-											<xs:documentation>manually cutated HGVS end position of second region (only for breakend)</xs:documentation>
+											<xs:documentation>manually cutated HGVS end position of second region (only for breakend)  (deprecated, only contained until GenLab is adapted)</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 								</xs:complexType>
@@ -1528,8 +1528,8 @@
 				</xs:annotation>
 				<xs:simpleType>
 					<xs:restriction base="xs:int">
-						<xs:minInclusive value="8"/>
-						<xs:maxInclusive value="8"/>
+						<xs:minInclusive value="9"/>
+						<xs:maxInclusive value="9"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>

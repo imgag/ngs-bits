@@ -61,15 +61,16 @@ enum class VariantImpact
 struct CPPNGSSHARED_EXPORT HgvsNomenclature
 {
     QString transcript_id;
-    QString allele;
-    //QString hgvs_g;
+	QString allele;
     QString hgvs_c;
     QString hgvs_p;
     QSet<VariantConsequenceType> variant_consequence_type;
     int exon_number{-1};
     int intron_number{-1};
 
-    VariantImpact consequenceTypeToImpact(VariantConsequenceType type) const
+	QString variantConsequenceTypesAsString(QString sep="&");
+
+	static VariantImpact consequenceTypeToImpact(VariantConsequenceType type)
     {
         switch(type)
         {
@@ -109,7 +110,7 @@ struct CPPNGSSHARED_EXPORT HgvsNomenclature
 		THROW(ProgrammingException, "Unhandled variant consequence type " + QString::number(static_cast<int>(type)) + "!");
 	}
 
-    QString consequenceTypeToString(VariantConsequenceType type) const
+	static QString consequenceTypeToString(VariantConsequenceType type)
     {
         switch(type)
         {
@@ -147,15 +148,12 @@ struct CPPNGSSHARED_EXPORT HgvsNomenclature
 class CPPNGSSHARED_EXPORT VariantHgvsAnnotator
 {
 public:
-    ///Default constructor
-    VariantHgvsAnnotator();
-
     ///Constructor to change parameters for detecting up/downstream and splice region variants: different for 5 and 3 prime site intron
     VariantHgvsAnnotator(int max_dist_to_transcript, int splice_region_ex, int splice_region_in_5, int splice_region_in_3);
 
     ///Converts a variant in VCF format to HGVS nomenclature
 	HgvsNomenclature variantToHgvs(const Transcript& transcript, VcfLine& variant, const FastaFileIndex& genome_idx);
-    HgvsNomenclature variantToHgvs(const Transcript& transcript, Variant& variant, const FastaFileIndex& genome_idx);
+	HgvsNomenclature variantToHgvs(const Transcript& transcript, const Variant& variant, const FastaFileIndex& genome_idx);
 
     QByteArray translate(const Sequence& seq, bool is_mito = false, bool end_at_stop = true);
     Sequence getCodingSequence(const Transcript& trans, const FastaFileIndex& genome_idx, bool add_utr_3 = false);

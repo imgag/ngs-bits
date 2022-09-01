@@ -133,7 +133,7 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 		w.writeAttribute("name", gene);
 		w.writeAttribute("id", gene_info.hgnc_id);
 		int gene_id = db_.geneId(gene);
-		Transcript transcript = db_.longestCodingTranscript(gene_id, Transcript::ENSEMBL, true, true);
+		Transcript transcript = db_.bestTranscript(gene_id);
 		w.writeAttribute("bases", QString::number(transcript.regions().baseCount()));
 
 		//omim info
@@ -320,7 +320,7 @@ QByteArray TumorOnlyReportWorker::exonNumber(QByteArray gene, int start, int end
 		}
 		else //fallback to longest coding transcript
 		{
-			transcripts << db_.longestCodingTranscript(gene_id, Transcript::SOURCE::ENSEMBL, false, true);
+			transcripts << db_.bestTranscript(gene_id);
 		}
 	}
 	catch(Exception)

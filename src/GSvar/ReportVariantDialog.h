@@ -18,15 +18,20 @@ public:
 protected slots:
 	void writeBackSettings();
 	void activateOkButtonIfValid();
+	void importManualSmallVariant();
 
 protected:
 	///Transfers report settings to GUI
 	void updateGUI();
 	///Returns if the variant report configuration was changed.
 	bool variantReportConfigChanged();
+	///Write settings from GUI back to config
+	void writeBack(ReportVariantConfiguration& rvc);
 
 	Ui::ReportVariantDialog ui_;
+	QString variant_;
 	ReportVariantConfiguration& config_;
+	FastaFileIndex genome_idx_;
 };
 
 #endif // REPORTVARIANTDIALOG_H

@@ -745,7 +745,7 @@ void MainWindow::on_actionDebug_triggered()
 			if (!ps_ids_with_variants_imported.contains(ps_id))
 			{
 				QString ps_id_str = QString::number(ps_id);
-				QString rc_id = db.getValue("SELECT id FROM report_configuration WHERE processed_sample_id=:0",false, ps_id_str).toString();
+				QString rc_id = db.reportConfigId(ps_id_str);
 				qDebug() << "Deleting " << db.processedSampleName(ps_id_str) << "ps_id=" << ps_id_str  << "rc_id=" << rc_id;
 				db.getQuery().exec("DELETE FROM `report_configuration_variant` WHERE `report_configuration_id`='"+rc_id+"'");
 			}
@@ -1082,11 +1082,11 @@ void MainWindow::on_actionDebug_triggered()
 		{
 			QString ps_id = db.processedSampleId(ps);
 			QString text;
-			QVariant rc_id = db.getValue("SELECT id FROM report_configuration WHERE processed_sample_id=:0", true, ps_id);
-			if (rc_id.isValid())
+			int rc_id = db.reportConfigId(ps_id);
+			if (rc_id!=-1)
 			{
 				//find causal small variants
-				QStringList causal_ids = db.getValues("SELECT variant_id FROM report_configuration_variant WHERE causal='0' AND exclude_artefact='0' AND exclude_frequency='0' AND exclude_phenotype='0' AND exclude_mechanism='0' AND exclude_other='0' AND report_configuration_id=" + rc_id.toString());
+				QStringList causal_ids = db.getValues("SELECT variant_id FROM report_configuration_variant WHERE causal='0' AND exclude_artefact='0' AND exclude_frequency='0' AND exclude_phenotype='0' AND exclude_mechanism='0' AND exclude_other='0' AND report_configuration_id=" + QString::number(rc_id));
 				foreach(QString id, causal_ids)
 				{
 					Variant var = db.variant(id);
@@ -1099,7 +1099,7 @@ void MainWindow::on_actionDebug_triggered()
 				}
 
 				//find causal CNVs
-				causal_ids = db.getValues("SELECT cnv_id FROM report_configuration_cnv WHERE  causal='0' AND exclude_artefact='0' AND exclude_frequency='0' AND exclude_phenotype='0' AND exclude_mechanism='0' AND exclude_other='0' AND report_configuration_id=" + rc_id.toString());
+				causal_ids = db.getValues("SELECT cnv_id FROM report_configuration_cnv WHERE  causal='0' AND exclude_artefact='0' AND exclude_frequency='0' AND exclude_phenotype='0' AND exclude_mechanism='0' AND exclude_other='0' AND report_configuration_id=" + QString::number(rc_id));
 				foreach(QString id, causal_ids)
 				{
 					CopyNumberVariant var = db.cnv(id.toInt());
@@ -1116,7 +1116,7 @@ void MainWindow::on_actionDebug_triggered()
 				BedpeFile svs;
 				for (int i = 0; i < sv_id_columns.size(); ++i)
 				{
-					causal_ids = db.getValues("SELECT " + sv_id_columns.at(i) + " FROM report_configuration_sv WHERE  causal='0' AND exclude_artefact='0' AND exclude_frequency='0' AND exclude_phenotype='0' AND exclude_mechanism='0' AND exclude_other='0' AND report_configuration_id=" + rc_id.toString() + " AND " + sv_id_columns.at(i) + " IS NOT NULL");
+					causal_ids = db.getValues("SELECT " + sv_id_columns.at(i) + " FROM report_configuration_sv WHERE  causal='0' AND exclude_artefact='0' AND exclude_frequency='0' AND exclude_phenotype='0' AND exclude_mechanism='0' AND exclude_other='0' AND report_configuration_id=" + QString::number(rc_id) + " AND " + sv_id_columns.at(i) + " IS NOT NULL");
 
 					foreach(QString id, causal_ids)
 					{
@@ -6263,8 +6263,8 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 	if (!LoginManager::active()) return;
 
 	//get variant index
-	int row = ui_.vars->verticalHeader()->visualIndexAt(pos.ry());
-	int index = ui_.vars->rowToVariantIndex(row);
+	int index = ui_.vars->selectedVariantIndex();
+	if(index==-1) return; //several variants selected
 
 	//set up menu
 	QMenu menu(ui_.vars->verticalHeader());

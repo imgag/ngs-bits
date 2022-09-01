@@ -122,18 +122,23 @@ public:
 	///Returns the size: range for DEL, DUP and INV; -1 for INS and BND.
 	int size() const;
 
-	///Returns the affected chromosomal region als BED file
-	BedFile affectedRegion() const;
+	///Returns the affected chromosomal region as BED file (two lines for BND, one line for the rest).
+	BedFile affectedRegion(bool plus_one = true) const;
 
 	///Returns the SV as String
-	QString toString();
+	QString toString() const;
 
-	///Returns the value of a given FORMAT key:
-	///		(only for germline single samples)
-    QByteArray formatValueByKey(QByteArray format_key, const QList<QByteArray>& annotation_headers, bool error_on_mismatch=true, QByteArray format_header_name="FORMAT", int sample_idx = 0) const;
+	///Returns the genotype in VCF/BEDPE format (empty string of error if GT entry in sample column is not found).
+	QByteArray genotype(const QList<QByteArray>& annotation_headers, bool error_if_not_found=true, int sample_idx = 0) const;
+	///Sets the genotype.
+	void setGenotype(const QList<QByteArray>& annotation_headers, QByteArray value, int sample_idx = 0);
+	///Returns the genotype in human readable format (hom, het, wt or n/a);
+	QByteArray genotypeHumanReadable(const QList<QByteArray>& annotation_headers, bool error_if_not_found=true, int sample_idx = 0) const;
 
-	///Returns the genes as GeneSet
+	///Returns the genes.
 	GeneSet genes(const QList<QByteArray>& annotation_headers, bool error_on_mismatch=true) const;
+	///Sets the genes.
+	void setGenes(const QList<QByteArray>& annotation_headers, const GeneSet& genes);
 
 
 protected:

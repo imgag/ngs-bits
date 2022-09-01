@@ -44,6 +44,18 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 		{
 			return end_;
 		}
+
+		///Sets the start position (1-based).
+		void setStart(int start)
+		{
+			start_ = start;
+		}
+		///Sets the end position (1-based).
+		void setEnd(int end)
+		{
+			end_ = end;
+		}
+
 		///Returns the number of regions/exons.
 		int regions() const
 		{
@@ -54,6 +66,11 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 		const GeneSet& genes() const
 		{
 			return genes_;
+		}
+		///Sets the annotated genes.
+		void setGenes(const GeneSet& genes)
+		{
+			genes_ = genes;
 		}
 
 		///Returns the overall variant size.
@@ -84,8 +101,10 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 			return chr == chr_ && BasicStatistics::rangeOverlaps(start_, end_, start, end);
 		}
 
-		///Returns the copy-number. If not available, ProgrammingException is thrown, or '-1' is returned. (Germline only)
+		///Returns the copy-number. If not available, ProgrammingException is thrown, or '-1' is returned.
 		int copyNumber(const QByteArrayList& annotation_headers, bool throw_if_not_found=true) const;
+		///Sets the copy-number. If not available, ProgrammingException is thrown, or '-1' is returned. (germline only)
+		void setCopyNumber(int cn, const QByteArrayList& annotation_headers, bool throw_if_not_found=true);
 
 	protected:
 		Chromosome chr_;

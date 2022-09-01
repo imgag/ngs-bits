@@ -423,6 +423,7 @@ private slots:
 		I_EQUAL(transcripts[0].regions().baseCount(), 202);
 		I_EQUAL(transcripts[0].codingRegions().count(), 2);
 		I_EQUAL(transcripts[0].codingRegions().baseCount(), 202);
+		IS_TRUE(transcripts[0].isManeSelectTranscript());
 		S_EQUAL(transcripts[1].name(), "NIPA1_TR2");
 		I_EQUAL(transcripts[1].strand(), Transcript::MINUS);
 		I_EQUAL(transcripts[1].source(), Transcript::ENSEMBL);
@@ -430,6 +431,7 @@ private slots:
 		I_EQUAL(transcripts[1].regions().baseCount(), 224);
 		I_EQUAL(transcripts[1].codingRegions().count(), 2);
 		I_EQUAL(transcripts[1].codingRegions().baseCount(), 102);
+		IS_FALSE(transcripts[1].isManeSelectTranscript());
 
 		transcripts = db.transcripts(3, Transcript::ENSEMBL, false); //NIPA1, Ensembl, non-coding
 		I_EQUAL(transcripts.count(), 2);
@@ -459,11 +461,24 @@ private slots:
 		I_EQUAL(transcripts[0].codingRegions().count(), 0);
 		I_EQUAL(transcripts[0].codingRegions().baseCount(), 0);
 
+		//transcriptsOverlapping
+		transcripts = db.transcriptsOverlapping("chr15", 70, 70, 0); //nearby left of NIPA1
+		I_EQUAL(transcripts.count(), 0);
+		transcripts = db.transcriptsOverlapping("chr15", 425, 425, 0); //nearby right of NIPA1
+		I_EQUAL(transcripts.count(), 0);
+		transcripts = db.transcriptsOverlapping("chr15", 95, 95, 0); //overlapping only NIPA1_TR2
+		I_EQUAL(transcripts.count(), 1);
+		S_EQUAL(transcripts[0].name(), "NIPA1_TR2");
+		transcripts = db.transcriptsOverlapping("chr15", 95, 95, 10); //overlapping both because of extension
+		I_EQUAL(transcripts.count(), 2);
+		S_EQUAL(transcripts[0].name(), "NIPA1_TR2");
+		S_EQUAL(transcripts[1].name(), "NIPA1_TR1");
+
 		//longestCodingTranscript
-		transcript = db.longestCodingTranscript(4, Transcript::ENSEMBL); //NON-CODING, zero transcripts
+		transcript = db.longestCodingTranscript(4, Transcript::ENSEMBL); //NON-CODING, zero CCDS transcripts
 		IS_FALSE(transcript.isValid());
 
-		transcript = db.longestCodingTranscript(1, Transcript::CCDS); //BRCA1, one transcript
+		transcript = db.longestCodingTranscript(1, Transcript::CCDS); //BRCA1, one CCDS transcript
 		IS_TRUE(transcript.isValid());
 		S_EQUAL(transcript.name(), "BRCA1_TR1");
 		I_EQUAL(transcript.regions().count(), 4);
@@ -471,13 +486,29 @@ private slots:
 		I_EQUAL(transcript.codingRegions().count(), 4);
 		I_EQUAL(transcript.codingRegions().baseCount(), 44);
 
-		transcript = db.longestCodingTranscript(3, Transcript::ENSEMBL); //NIPA1, two transcripts
+		transcript = db.longestCodingTranscript(3, Transcript::ENSEMBL); //NIPA1, two Ensembl transcripts
 		IS_TRUE(transcript.isValid());
 		S_EQUAL(transcript.name(), "NIPA1_TR1");
 		I_EQUAL(transcript.regions().count(), 2);
 		I_EQUAL(transcript.regions().baseCount(), 202);
 		I_EQUAL(transcript.codingRegions().count(), 2);
 		I_EQUAL(transcript.codingRegions().baseCount(), 202);
+
+		//bestTranscript
+		transcript = db.bestTranscript(4); //NON-CODING, one non-coding Ensembl transcript
+		IS_TRUE(transcript.isValid());
+		S_EQUAL(transcript.name(), "NON-CODING_TR1");
+
+		transcript = db.bestTranscript(3); //NIPA1, two coding Ensembl transcripts
+		IS_TRUE(transcript.isValid());
+		S_EQUAL(transcript.name(), "NIPA1_TR1");
+
+		transcript = db.bestTranscript(652410); //SPG7, two coding Ensembl transcripts (shorter one is preferred)
+		IS_TRUE(transcript.isValid());
+		S_EQUAL(transcript.name(), "ENST00000341316");
+
+		transcript = db.bestTranscript(1); //BRCA1, only CCDS transcript > invalid
+		IS_FALSE(transcript.isValid());
 
 		//geneIdOfTranscript
 		I_EQUAL(db.geneIdOfTranscript("BRCA1_TR1"), 1);
@@ -972,7 +1003,7 @@ private slots:
 		int conf_id = db.reportConfigId(ps_id);
 		IS_TRUE(conf_id!=-1);
 
-		//check data
+		//check data - base config
 		QStringList messages2;
 		QSharedPointer<ReportConfiguration> report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
 		S_EQUAL(report_conf2->createdBy(), "Max Mustermann");
@@ -982,6 +1013,36 @@ private slots:
 		S_EQUAL(report_conf2->finalizedBy(), "");
 		IS_FALSE(report_conf2->finalizedAt().isValid());
 		QDateTime last_update_time_before_update = report_conf2->lastUpdatedAt();
+		//check data - manual curation
+		ReportVariantConfiguration var_conf2 = report_conf2->variantConfig()[1]; //small variant - order changed because they are sorted by index
+		I_EQUAL(var_conf2.variant_index, 47);
+		S_EQUAL(var_conf2.manual_var, "");
+		S_EQUAL(var_conf2.manual_genotype, "");
+		var_conf2 = report_conf2->variantConfig()[0]; //CNV - order changed because they are sorted by index
+		S_EQUAL(var_conf2.manual_cnv_start, "");
+		S_EQUAL(var_conf2.manual_cnv_end, "");
+		S_EQUAL(var_conf2.manual_cnv_cn, "");
+		var_conf2 = report_conf2->variantConfig()[2]; //SV
+		S_EQUAL(var_conf2.manual_sv_start, "");
+		S_EQUAL(var_conf2.manual_sv_end, "");
+		S_EQUAL(var_conf2.manual_sv_genotype, "");
+		S_EQUAL(var_conf2.manual_sv_start_bnd, "");
+		S_EQUAL(var_conf2.manual_sv_end_bnd, "");
+
+		//change manual curation data
+		report_var_conf.manual_var = "chr2:47635523-47635523 ->TT";
+		report_var_conf.manual_genotype = "hom";
+		report_conf->set(report_var_conf);
+		report_var_conf2.manual_cnv_start = "89240000";
+		report_var_conf2.manual_cnv_end= "89550000";
+		report_var_conf2.manual_cnv_cn = "0";
+		report_conf->set(report_var_conf2);
+		report_var_conf3.manual_sv_start = "9121440";
+		report_var_conf3.manual_sv_end = "9121460";
+		report_var_conf3.manual_sv_genotype = "hom";
+		report_var_conf3.manual_sv_start_bnd = "93712480";
+		report_var_conf3.manual_sv_end_bnd = "93712490";
+		report_conf->set(report_var_conf3);
 
 		//update
 		QThread::sleep(1);
@@ -997,7 +1058,6 @@ private slots:
 		S_EQUAL(report_conf2->lastUpdatedBy(), "Max Mustermann");
 		IS_TRUE(report_conf2->lastUpdatedAt().isValid());
 		IS_TRUE(last_update_time_before_update<report_conf2->lastUpdatedAt());
-
 
 		S_EQUAL(report_conf2->finalizedBy(), "");
 		IS_FALSE(report_conf2->finalizedAt().isValid());
@@ -1021,6 +1081,8 @@ private slots:
 		IS_FALSE(var_conf.exclude_mechanism);
 		IS_FALSE(var_conf.exclude_other);
 		IS_FALSE(var_conf.exclude_phenotype);
+		S_EQUAL(var_conf.manual_var, "chr2:47635523-47635523 ->TT");
+		S_EQUAL(var_conf.manual_genotype, "hom");
 		var_conf = report_conf2->variantConfig()[0]; //order changed because they are sorted by index
 		I_EQUAL(var_conf.variant_index, 4);
 		IS_FALSE(var_conf.causal);
@@ -1036,6 +1098,9 @@ private slots:
 		IS_FALSE(var_conf.exclude_mechanism);
 		IS_FALSE(var_conf.exclude_other);
 		IS_FALSE(var_conf.exclude_phenotype);
+		S_EQUAL(var_conf.manual_cnv_start, "89240000");
+		S_EQUAL(var_conf.manual_cnv_end, "89550000");
+		S_EQUAL(var_conf.manual_cnv_cn, "0");
 		var_conf = report_conf2->variantConfig()[2];
 		I_EQUAL(var_conf.variant_index, 81);
 		IS_TRUE(var_conf.causal);
@@ -1052,6 +1117,11 @@ private slots:
 		IS_FALSE(var_conf.exclude_other);
 		IS_FALSE(var_conf.exclude_phenotype);
 		IS_TRUE(var_conf.variant_type == VariantType::SVS);
+		S_EQUAL(var_conf.manual_sv_start, "9121440");
+		S_EQUAL(var_conf.manual_sv_end, "9121460");
+		S_EQUAL(var_conf.manual_sv_genotype, "hom");
+		S_EQUAL(var_conf.manual_sv_start_bnd, "93712480");
+		S_EQUAL(var_conf.manual_sv_end_bnd, "93712490");
 
 		//finalizeReportConfig
 		conf_id = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
@@ -1295,7 +1365,7 @@ private slots:
 
 		//getPreferredTranscripts
 		QMap<QByteArray, QByteArrayList> pt = db.getPreferredTranscripts();
-		I_EQUAL(pt.count(), 2);
+		I_EQUAL(pt.count(), 3);
 		IS_TRUE(pt.contains("NIPA1"));
 		IS_TRUE(pt.contains("NON-CODING"));
 		I_EQUAL(pt["NIPA1"].count(), 2);
@@ -1303,6 +1373,8 @@ private slots:
 		IS_TRUE(pt["NIPA1"].contains("NIPA1_TR2"));
 		I_EQUAL(pt["NON-CODING"].count(), 1);
 		IS_TRUE(pt["NON-CODING"].contains("NON-CODING_TR1"));
+		I_EQUAL(pt["SPG7"].count(), 1);
+		IS_TRUE(pt["SPG7"].contains("ENST00000341316"));
 
 		//addSampleRelation
 		db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"});
@@ -1569,7 +1641,7 @@ private slots:
 		//############################### TEST 2 - with variants, with target region, all optional parts enabled ###############################
 		{
 
-			report_settings.selected_variants.append(qMakePair(VariantType::SNVS_INDELS, 252)); //small variant - chr13:41367370 C>G (SPG7)
+			report_settings.selected_variants.append(qMakePair(VariantType::SNVS_INDELS, 252)); //small variant - chr16:89531961 G>A (SPG7)
 			ReportVariantConfiguration var_conf;
 			var_conf.variant_type = VariantType::SNVS_INDELS;
 			var_conf.variant_index = 252;
@@ -1581,7 +1653,7 @@ private slots:
 			var_conf.rna_info = "n/a";
 			report_settings.report_config->set(var_conf);
 
-			report_settings.selected_variants.append(qMakePair(VariantType::SNVS_INDELS, 173)); //small variant - chr13:41367370 C>G (SLC25A15)
+			report_settings.selected_variants.append(qMakePair(VariantType::SNVS_INDELS, 173)); //small variant - chr13:40793234 C>G (SLC25A15) - manually curated
 			var_conf.variant_type = VariantType::SNVS_INDELS;
 			var_conf.variant_index = 173;
 			var_conf.causal = false;
@@ -1590,6 +1662,8 @@ private slots:
 			var_conf.comp_het = true;
 			var_conf.report_type = "diagnostic variant";
 			var_conf.rna_info = "splicing effect validated by RNA dataset";
+			var_conf.manual_var = "chr13:40793233-40793233 T>A";
+			var_conf.manual_genotype = "hom";
 			report_settings.report_config->set(var_conf);
 
 			report_settings.selected_variants.append(qMakePair(VariantType::CNVS, 0)); //CNV - het deletion
@@ -1603,6 +1677,20 @@ private slots:
 			var_conf.rna_info = "no splicing effect found in RNA dataset";
 			report_settings.report_config->set(var_conf);
 
+			report_settings.selected_variants.append(qMakePair(VariantType::CNVS, 1)); //CNV - het duplication - manually curated
+			var_conf.variant_type = VariantType::CNVS;
+			var_conf.variant_index = 1;
+			var_conf.causal = false;
+			var_conf.mosaic = false;
+			var_conf.de_novo = false;
+			var_conf.comp_het = true;
+			var_conf.report_type = "diagnostic variant";
+			var_conf.rna_info = "no splicing effect found in RNA dataset";
+			var_conf.manual_cnv_start = "26799369";
+			var_conf.manual_cnv_end = "26991734";
+			var_conf.manual_cnv_cn = "0";
+			report_settings.report_config->set(var_conf);
+
 			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 3)); //SV - Insertion
 			var_conf.variant_type = VariantType::SVS;
 			var_conf.variant_index = 3;
@@ -1614,17 +1702,6 @@ private slots:
 			var_conf.rna_info = "RNA dataset not usable";
 			report_settings.report_config->set(var_conf);
 
-			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 12)); //SV - breakpoint
-			var_conf.variant_type = VariantType::SVS;
-			var_conf.variant_index = 12;
-			var_conf.causal = false;
-			var_conf.mosaic = false;
-			var_conf.de_novo = false;
-			var_conf.comp_het = false;
-			var_conf.report_type = "diagnostic variant";
-			var_conf.rna_info = "n/a";
-			report_settings.report_config->set(var_conf);
-
 			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 16)); //SV - Deletion
 			var_conf.variant_type = VariantType::SVS;
 			var_conf.variant_index = 16;
@@ -1634,6 +1711,22 @@ private slots:
 			var_conf.comp_het = false;
 			var_conf.report_type = "diagnostic variant";
 			var_conf.rna_info = "n/a";
+			report_settings.report_config->set(var_conf);
+
+			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 12)); //SV - breakpoint - manually curated
+			var_conf.variant_type = VariantType::SVS;
+			var_conf.variant_index = 12;
+			var_conf.causal = false;
+			var_conf.mosaic = false;
+			var_conf.de_novo = false;
+			var_conf.comp_het = false;
+			var_conf.report_type = "diagnostic variant";
+			var_conf.rna_info = "n/a";
+			var_conf.manual_sv_start = "1584540";
+			var_conf.manual_sv_end = "1584550";
+			var_conf.manual_sv_genotype = "hom";
+			var_conf.manual_sv_start_bnd = "2301860";
+			var_conf.manual_sv_end_bnd = "2301870";
 			report_settings.report_config->set(var_conf);
 
 			OtherCausalVariant causal_variant;

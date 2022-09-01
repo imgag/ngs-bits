@@ -272,8 +272,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
         hgvs.variant_consequence_type.insert(VariantConsequenceType::PROTEIN_ALTERING_VARIANT);
 
         //effects on stop or start codon
-        if(hgvs.variant_consequence_type.contains(VariantConsequenceType::THREE_PRIME_UTR_VARIANT) &&
-                hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT))
+		if(hgvs.variant_consequence_type.contains(VariantConsequenceType::THREE_PRIME_UTR_VARIANT) && hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT))
         {
             hgvs.variant_consequence_type.insert(VariantConsequenceType::STOP_LOST);
         }
@@ -331,7 +330,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
 }
 
 //convert a variant in GSvar format into an HgvsNomenclature object
-HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcript, Variant &variant, const FastaFileIndex& genome_idx)
+HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcript, const Variant &variant, const FastaFileIndex& genome_idx)
 {
     //first convert from Variant to VcfLine
     VariantVcfRepresentation vcf_rep = variant.toVCF(genome_idx);
@@ -1384,4 +1383,19 @@ Sequence VariantHgvsAnnotator::getCodingSequence(const Transcript& trans, const 
     }
 
     return seq;
+}
+
+//Returns the variant types as string (ordered alphabetically)
+QString HgvsNomenclature::variantConsequenceTypesAsString(QString sep)
+{
+	QStringList output;
+
+	foreach(const VariantConsequenceType& type, variant_consequence_type)
+	{
+		output << HgvsNomenclature::consequenceTypeToString(type);
+	}
+
+	output.sort();
+
+	return output.join(sep);
 }

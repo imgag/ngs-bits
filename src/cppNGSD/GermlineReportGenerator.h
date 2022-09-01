@@ -68,6 +68,7 @@ private:
 	const GermlineReportGeneratorData& data_;
 	QDate date_;
 	bool test_mode_;
+	FastaFileIndex genome_idx_;
 
 	QString ps_id_;
 	double gap_percentage_ = -1; //cached by HTML report for use in XML
@@ -86,7 +87,7 @@ private:
 	void writeCoverageReportCCDS(QTextStream& stream, int extend, bool gap_table=true, bool gene_details=true);
 	void writeRNACoverageReport(QTextStream& stream);
 	static QByteArray formatGenotype(GenomeBuild build, const QByteArray& gender, const QByteArray& genotype, const Variant& variant);
-	QString formatCodingSplicing(const QList<VariantTranscript>& transcripts);
+	QString formatCodingSplicing(const Variant& v);
 	static QString convertOtherVariantType(const QString& type, bool xml=false);
 
 	//Helper for the chromosome alias table

@@ -247,8 +247,8 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 	TranscriptList transcripts = db.transcripts(gene_id, Transcript::ENSEMBL, false);
 
 	//sort transcripts
-	std::stable_sort(transcripts.begin(), transcripts.end(), [](const Transcript& a, const Transcript& b){ return a.regions().baseCount() > b.regions().baseCount(); });
-	std::stable_sort(transcripts.begin(), transcripts.end(), [](const Transcript& a, const Transcript& b){ return a.codingRegions().baseCount() > b.codingRegions().baseCount(); });
+	transcripts.sortByBases();
+	transcripts.sortByCodingBases();
 
 	//display
 	foreach(const Transcript& transcript, transcripts)
@@ -302,7 +302,7 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 		QStringList flags;
 		if (transcript.isPreferredTranscript()) flags += "NGSD preferred transcript";
 		QString transcript_id = db.getValue("SELECT id FROM gene_transcript WHERE name=:0", true, transcript.name()).toString();
-		if (db.getValue("SELECT is_mane_select FROM gene_transcript WHERE id=" + transcript_id).toBool()==true) flags << "MANE select";
+		if (transcript.isManeSelectTranscript()) flags << "MANE select";
 		if (db.getValue("SELECT is_mane_plus_clinical 	 FROM gene_transcript WHERE id=" + transcript_id).toBool()==true) flags << "MANE plus clinical";
 		if (db.getValue("SELECT is_ensembl_canonical FROM gene_transcript WHERE id=" + transcript_id).toBool()==true) flags << "Ensembl canonical";
 		if (db.getValue("SELECT is_gencode_basic FROM gene_transcript WHERE id=" + transcript_id).toBool()==true) flags << "GENCODE basic";
