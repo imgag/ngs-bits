@@ -38,7 +38,7 @@ public:
 		QSharedPointer<QFile> outstream = Helper::openFileForWriting(out, true);
 
 		//check columns
-		QVector<int> cols = instream.checkColumns(getString("cols").toLatin1().split(','), getFlag("numeric"));
+		QVector<int> cols = instream.checkColumns(getString("cols").toUtf8().split(','), getFlag("numeric"));
 
 		//write comments
 		foreach (QByteArray comment, instream.comments())

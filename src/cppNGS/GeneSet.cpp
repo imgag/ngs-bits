@@ -85,7 +85,7 @@ GeneSet GeneSet::createFromStringList(const QStringList& list)
 
 	foreach(const QString& line, list)
 	{
-		output.insert(line.toLatin1());
+		output.insert(line.toUtf8());
 	}
 
 	return output;

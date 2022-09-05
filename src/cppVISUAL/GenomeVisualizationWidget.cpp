@@ -118,10 +118,10 @@ void GenomeVisualizationWidget::search()
 	}
 
 	//gene
-	if (gene_to_trans_indices_.contains(text.toLatin1()))
+	if (gene_to_trans_indices_.contains(text.toUtf8()))
 	{
 		BedFile roi;
-		foreach(int index, gene_to_trans_indices_[text.toLatin1()])
+		foreach(int index, gene_to_trans_indices_[text.toUtf8()])
 		{
 			const Transcript& trans = transcripts_[index];
 			roi.append(BedLine(trans.chr(), trans.start(), trans.end()));
@@ -138,9 +138,9 @@ void GenomeVisualizationWidget::search()
 	}
 
 	//transcript
-	if (trans_to_index_.contains(text.toLatin1()))
+	if (trans_to_index_.contains(text.toUtf8()))
 	{
-		int index = trans_to_index_[text.toLatin1()];
+		int index = trans_to_index_[text.toUtf8()];
 		const Transcript& trans = transcripts_[index];
 		setRegion(trans.chr(), trans.start()-settings_.transcript_padding, trans.end()+settings_.transcript_padding);
 		return;

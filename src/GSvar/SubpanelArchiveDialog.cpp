@@ -29,7 +29,7 @@ bool SubpanelArchiveDialog::changedSubpanels()
 void SubpanelArchiveDialog::updateSubpanelLists()
 {
 	//create gene set for filter
-	GeneSet genes = GeneSet::createFromText(ui_.f_genes->text().toLatin1().trimmed(), ',');
+	GeneSet genes = GeneSet::createFromText(ui_.f_genes->text().toUtf8().trimmed(), ',');
 	QString filename = ui_.f_filename->text().trimmed();
 
 	updateSubpanelList(ui_.list_subpanel, false, genes, filename);
@@ -118,7 +118,7 @@ void SubpanelArchiveDialog::activePanelContextMenu(QPoint pos)
 			try
 			{
 				//sort/merge new BED file (also throws an exception during parsing if it is not valid)
-				BedFile roi_new = BedFile::fromText(edit->toPlainText().toLatin1());
+				BedFile roi_new = BedFile::fromText(edit->toPlainText().toUtf8());
 				roi_new.merge();
 
 				//store
@@ -129,7 +129,7 @@ void SubpanelArchiveDialog::activePanelContextMenu(QPoint pos)
 				query.exec();
 
 				//show dialog with infos
-				BedFile roi_old = BedFile::fromText(roi.toLatin1());
+				BedFile roi_old = BedFile::fromText(roi.toUtf8());
 				int delta = roi_new.baseCount() - roi_old.baseCount();
 				QMessageBox::information(this, title, "Stored sub-panel target region in NGSD.\n"
 													  "Before the update it contained " + QString::number(roi_old.baseCount()) + " bases, now it contains " + QString::number(roi_new.baseCount()) + " bases (delta: "+(delta>=0 ? "+" : "")+QString::number(delta)+" bases).");

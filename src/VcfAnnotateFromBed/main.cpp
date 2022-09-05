@@ -55,9 +55,9 @@ public:
 		//init
 		QString in = getInfile("in");
 		QString out = getOutfile("out");
-		QByteArray bed = getInfile("bed").toLatin1();
-		QByteArray name = getString("name").toLatin1().trimmed();
-		QByteArray sep = getString("sep").toLatin1().trimmed();
+		QByteArray bed = getInfile("bed").toUtf8();
+		QByteArray name = getString("name").toUtf8().trimmed();
+		QByteArray sep = getString("sep").toUtf8().trimmed();
 		int block_size = getInt("block_size");
 		int threads = getInt("threads");
 		int prefetch = getInt("prefetch");

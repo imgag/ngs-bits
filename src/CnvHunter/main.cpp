@@ -835,7 +835,7 @@ public:
         {
             //init
 			QSharedPointer<SampleData> sample(new SampleData());
-			sample->name = QFileInfo(in[i]).baseName().toLatin1();
+			sample->name = QFileInfo(in[i]).baseName().toUtf8();
 			sample->doc.reserve(exons.count());
 
 			//depth-of-coverage data
@@ -1419,13 +1419,13 @@ public:
 		if (debug!="")
 		{
 			QSharedPointer<SampleData> sample;
-			if (debug!="ALL") sample = sampleByName(debug.toLatin1(), samples, samples_removed, false);
+			if (debug!="ALL") sample = sampleByName(debug.toUtf8(), samples, samples_removed, false);
 
 			storeDebugInfo(sample, out, samples, results);
 		}
 		if (seg!="")
 		{
-			QSharedPointer<SampleData> sample = sampleByName(seg.toLatin1(), samples, samples_removed, true);
+			QSharedPointer<SampleData> sample = sampleByName(seg.toUtf8(), samples, samples_removed, true);
 			if (sample->qc.isEmpty())
 			{
 				storeSegFile(sample, out, results, exons_removed);

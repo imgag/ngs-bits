@@ -57,7 +57,7 @@ void SmallVariantSearchWidget::updateVariants()
 		QList<QList<QVariant>> output;
 		if (ui_.radio_genes->isChecked())
 		{
-			QByteArray text = ui_.genes->text().toLatin1().trimmed().replace(' ', ',');
+			QByteArray text = ui_.genes->text().toUtf8().trimmed().replace(' ', ',');
 			GeneSet genes = GeneSet::createFromText(text, ',');
 			foreach(QByteArray gene, genes)
 			{
@@ -249,7 +249,7 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 		{
 			int index = part.indexOf(':');
 			if (index==-1) continue;
-			QByteArray current_gene = part.left(index).toLatin1();
+			QByteArray current_gene = part.left(index).toUtf8();
 			if (!gene_symbols.isEmpty() && !gene_symbols.contains(current_gene)) continue;
 
 			bool match = false;

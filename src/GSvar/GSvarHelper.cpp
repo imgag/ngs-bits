@@ -49,7 +49,7 @@ const GeneSet& GSvarHelper::hi0Genes()
 		QStringList lines = Helper::loadTextFile(":/Resources/genes_actionable_hi0.tsv", true, '#', true);
 		foreach(const QString& line, lines)
 		{
-			output << line.toLatin1();
+			output << line.toUtf8();
 		}
 
 		initialized = true;
@@ -71,7 +71,7 @@ const GeneSet& GSvarHelper::genesWithPseudogene()
 			QStringList genes = db.getValues("SELECT DISTINCT(g.symbol) FROM gene g, gene_pseudogene_relation gpr WHERE g.id=gpr.parent_gene_id");
 			foreach(QString gene, genes)
 			{
-				output << gene.toLatin1();
+				output << gene.toUtf8();
 			}
 
 			initialized = true;
@@ -112,7 +112,7 @@ const QMap<QByteArray, QList<BedLine>> & GSvarHelper::specialRegions()
         QStringList lines = Helper::loadTextFile(filename, true, '#', true);
         foreach(const QString& line, lines)
         {
-            QByteArrayList parts = line.toLatin1().split('\t');
+            QByteArrayList parts = line.toUtf8().split('\t');
             if (parts.count()>=2)
             {
                 QByteArray gene = parts[0].trimmed();

@@ -14,9 +14,9 @@ struct FilterDefinition
 	QByteArray value;
 
 	FilterDefinition(const QString& f, const QString& o, const QString& v)
-		: field(f.toLatin1())
-		, op(o.toLatin1())
-		, value(v.toLatin1())
+		: field(f.toUtf8())
+		, op(o.toUtf8())
+		, value(v.toUtf8())
 	{
 	}
 

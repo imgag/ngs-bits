@@ -358,7 +358,7 @@ void VariantWidget::editComment()
 		//add variant if missing
 		NGSD db;
 		bool ok = true;
-		QByteArray text = QInputDialog::getMultiLineText(this, "Variant comment", "Text: ", db.comment(variant_), &ok).toLatin1();
+		QByteArray text = QInputDialog::getMultiLineText(this, "Variant comment", "Text: ", db.comment(variant_), &ok).toUtf8();
 		if (!ok) return;
 
 		db.setComment(variant_, text);

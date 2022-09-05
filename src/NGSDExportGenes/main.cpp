@@ -70,17 +70,17 @@ public:
 		
 			//gene info
 			GeneInfo gene_info = db.geneInfo(gene_symbol);
-			output->write(gene_info.oe_syn.replace("n/a", "").toLatin1() + "\t");
-			output->write(gene_info.oe_mis.replace("n/a", "").toLatin1() + "\t");
-			output->write(gene_info.oe_lof.replace("n/a", "").toLatin1() + "\t");
-			output->write(gene_info.inheritance.replace("n/a", "").toLatin1() + "\t");
+			output->write(gene_info.oe_syn.replace("n/a", "").toUtf8() + "\t");
+			output->write(gene_info.oe_mis.replace("n/a", "").toUtf8() + "\t");
+			output->write(gene_info.oe_lof.replace("n/a", "").toUtf8() + "\t");
+			output->write(gene_info.inheritance.replace("n/a", "").toUtf8() + "\t");
 			QString inprinting_info = "";
 			if(!gene_info.imprinting_source_allele.isEmpty() || !gene_info.imprinting_status.isEmpty())
 			{
 				inprinting_info = gene_info.imprinting_source_allele + " (" + gene_info.imprinting_status + ")";
 			}
-			output->write(inprinting_info.toLatin1() + "\t");
-			output->write(gene_info.pseudogenes.join(", ").toLatin1());
+			output->write(inprinting_info.toUtf8() + "\t");
+			output->write(gene_info.pseudogenes.join(", ").toUtf8());
 
 			//disease info
 			if (add_disease_info)

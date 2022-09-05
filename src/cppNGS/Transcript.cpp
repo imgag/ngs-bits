@@ -549,7 +549,7 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 
 		//sequence
 		ref = genome_idx.seq(chr, start, end-start+1);
-		obs = hgvs_c.mid(delins_pos + 6).toLatin1();
+		obs = hgvs_c.mid(delins_pos + 6).toUtf8();
 
 		//convert reference to correct strand
 		if(strand_==Transcript::MINUS)

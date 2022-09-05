@@ -20,7 +20,7 @@ HttpResponse EndpointManager::getBasicHttpAuthStatus(HttpRequest request)
 	}
 
 	auth_header = auth_header.split(" ").takeLast().trimmed();
-	QByteArray auth_header_decoded = QByteArray::fromBase64(auth_header.toLatin1());
+	QByteArray auth_header_decoded = QByteArray::fromBase64(auth_header.toUtf8());
 	int separator_pos = auth_header_decoded.indexOf(":");
 
 	if (separator_pos == -1)

@@ -31,7 +31,7 @@ public:
 		//init
         QString in = getInfile("in");
         QString out = getOutfile("out");
-		QByteArrayList samples = getString("samples").toLatin1().split(',');
+		QByteArrayList samples = getString("samples").toUtf8().split(',');
         if(in!="" && in==out)
         {
             THROW(ArgumentException, "Input and output files must be different when streaming!");

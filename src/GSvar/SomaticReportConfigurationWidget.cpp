@@ -131,7 +131,7 @@ void SomaticReportConfigurationWidget::fillCnvWidget()
 		//additional annotations
 		for(int i=0;i<cnv.annotations().count();++i)
 		{
-			ui_->cnvs->setItem(row,8+i, new QTableWidgetItem(QString::fromLatin1(cnv.annotations().at(i))));
+                        ui_->cnvs->setItem(row,8+i, new QTableWidgetItem(QString::fromUtf8(cnv.annotations().at(i))));
 		}
 	}
 	GUIHelper::resizeTableCells(ui_->cnvs, 600);
@@ -177,7 +177,7 @@ void SomaticReportConfigurationWidget::showContextMenu(QPoint pos)
 	QAction* action = menu.exec(ui_->cnvs->viewport()->mapToGlobal(pos));
 	if(action==nullptr) return;
 
-	QByteArray text = action->text().toLatin1();
+	QByteArray text = action->text().toUtf8();
 	if (text=="select all")
 	{
 		for (int i=0; i<ui_->cnvs->rowCount(); ++i)

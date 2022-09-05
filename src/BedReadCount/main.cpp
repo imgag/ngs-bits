@@ -82,7 +82,7 @@ public:
 
 		//store
 		file.clearHeaders();
-		file.appendHeader("#chr\tstart\tend\t" + QFileInfo(bam).baseName().toLatin1());
+		file.appendHeader("#chr\tstart\tend\t" + QFileInfo(bam).baseName().toUtf8());
 		file.store(getOutfile("out"));
 	}
 };

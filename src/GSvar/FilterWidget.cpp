@@ -302,12 +302,12 @@ bool FilterWidget::setTargetRegionByDisplayName(QString name)
 
 GeneSet FilterWidget::genes() const
 {
-	return GeneSet::createFromText(ui_.gene->text().toLatin1(), ',');
+	return GeneSet::createFromText(ui_.gene->text().toUtf8(), ',');
 }
 
 QByteArray FilterWidget::text() const
 {
-	return ui_.text->text().trimmed().toLatin1();
+	return ui_.text->text().trimmed().toUtf8();
 }
 
 QString FilterWidget::region() const

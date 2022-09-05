@@ -69,8 +69,8 @@ FileLocationList FileLocationProviderRemote::getFileLocationsByType(PathType typ
 	file_id = gsvar_filename_parts[gsvar_filename_parts.size()-2].trimmed();
 
 	RequestUrlParams params;
-	params.insert("ps_url_id", file_id.toLocal8Bit());
-	params.insert("type", FileLocation::typeToString(type).toLocal8Bit());
+	params.insert("ps_url_id", file_id.toUtf8());
+	params.insert("type", FileLocation::typeToString(type).toUtf8());
 	params.insert("multiple_files", "1");
 	params.insert("return_if_missing", (return_if_missing ? "1" : "0"));
 	QByteArray reply = ApiCaller().get("file_location", params, HttpHeaders(), true, false, true);
@@ -100,10 +100,10 @@ FileLocation FileLocationProviderRemote::getOneFileLocationByType(PathType type,
 	file_id = gsvar_filename_parts[gsvar_filename_parts.size()-2].trimmed();
 
 	RequestUrlParams params;
-	params.insert("ps_url_id", file_id.toLocal8Bit());
-	params.insert("type", FileLocation::typeToString(type).toLocal8Bit());
+	params.insert("ps_url_id", file_id.toUtf8());
+	params.insert("type", FileLocation::typeToString(type).toUtf8());
 	params.insert("multiple_files", "0");
-	if (!locus.isEmpty()) params.insert("locus", locus.toLocal8Bit());
+	if (!locus.isEmpty()) params.insert("locus", locus.toUtf8());
 	QByteArray reply = ApiCaller().get("file_location", params, HttpHeaders(), true, false, true);
 
 	QJsonDocument json_doc = QJsonDocument::fromJson(reply);

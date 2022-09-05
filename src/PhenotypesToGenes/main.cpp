@@ -56,7 +56,7 @@ public:
 		QMap<QByteArray, PhenotypeList> genes2phenotypes;
 		foreach(const QString& hpo_id, hpo_ids)
 		{
-			int id = db.phenotypeIdByAccession(hpo_id.toLatin1(), false);
+			int id = db.phenotypeIdByAccession(hpo_id.toUtf8(), false);
 			if (id==-1)
 			{
 				if (ignore_invalid) continue;

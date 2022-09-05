@@ -68,7 +68,7 @@ public:
 
 		foreach (const QString& line, headers)
 		{
-			outstream->write(line.toLocal8Bit() + "\n");
+			outstream->write(line.toUtf8() + "\n");
 		}
 	}
 
@@ -80,8 +80,8 @@ public:
 		if (parts.count()!=tsv_headers.count()) THROW(FileParseException, "Input TSV content line has " + QString::number(parts.count()) + " fields, but " + QString::number(tsv_headers.count()) + " are expected from header: " + line);
 
 		//convert HGVS.c to VCF
-		QByteArray transcript_name = parts[0].toLocal8Bit();
-		QByteArray hgvs_c = parts[1].toLocal8Bit();
+		QByteArray transcript_name = parts[0].toUtf8();
+		QByteArray hgvs_c = parts[1].toUtf8();
 
 		try
 		{
@@ -143,10 +143,10 @@ public:
 
 			//write info fields
 			QByteArrayList info_fields;
-			info_fields.append(getString("input_info_field").toLatin1() + "=" + parts[0].toLatin1() + ":" + parts[1].toLatin1());
+			info_fields.append(getString("input_info_field").toUtf8() + "=" + parts[0].toUtf8() + ":" + parts[1].toUtf8());
 			for(int i=2; i< parts.length(); i++)
 			{
-				info_fields.append(tsv_headers[i].toLatin1()+"="+parts[i].toLatin1());
+				info_fields.append(tsv_headers[i].toUtf8()+"="+parts[i].toUtf8());
 			}
 			outline += info_fields.join(";");
 

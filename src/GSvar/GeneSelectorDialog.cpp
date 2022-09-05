@@ -40,7 +40,7 @@ void GeneSelectorDialog::updateGeneTable()
 	ui->details->clearContents();
 
 	//convert input to gene list
-	GeneSet genes = GeneSet::createFromText(ui->genes->toPlainText().toLatin1());
+	GeneSet genes = GeneSet::createFromText(ui->genes->toPlainText().toUtf8());
 	if (genes.isEmpty()) return;
 
 	//set cursor
@@ -267,7 +267,7 @@ GeneSet GeneSelectorDialog::genesForVariants()
 	{
 		if (ui->details->item(r, 0)->checkState() == Qt::Checked)
 		{
-			output << ui->details->item(r, 0)->text().toLatin1();
+			output << ui->details->item(r, 0)->text().toUtf8();
 		}
 	}
 

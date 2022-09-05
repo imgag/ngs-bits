@@ -298,7 +298,7 @@ void RequestWorker::run()
 				if (transfer_encoding_chunked)
 				{
 					// Should be used for chunked transfer (without content-lenght)
-					sendResponseDataPart(ssl_socket, intToHex(data.size()).toLocal8Bit()+"\r\n");
+					sendResponseDataPart(ssl_socket, intToHex(data.size()).toUtf8()+"\r\n");
 					sendResponseDataPart(ssl_socket, data.append("\r\n"));
 				}
 				else

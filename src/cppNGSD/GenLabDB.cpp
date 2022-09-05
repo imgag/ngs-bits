@@ -366,7 +366,7 @@ QList<SampleRelation> GenLabDB::relatives(QString ps_name)
 			//skip if sample is not (yet) contained in NGSD, e.g. a RNA that still has to be sequenced
 			if (db.sampleId(sample2, false).isEmpty()) continue;
 
-			QByteArray sample = ps_name.toLatin1();
+			QByteArray sample = ps_name.toUtf8();
 			if (sample.contains('_'))
 			{
 				sample = sample.split('_')[0];

@@ -29,7 +29,7 @@ private slots:
 		QString file = TESTDATA("data/sample.gsvar");
 		QString copy_name = file+"_tmp";
 		QFile::copy(file, copy_name);
-		QString file_copy = TESTDATA(copy_name.toLocal8Bit());
+		QString file_copy = TESTDATA(copy_name.toUtf8());
 
 		IS_FALSE(UrlManager::isInStorageAlready(file_copy));
 		UrlManager::addNewUrl(url_id, UrlEntity(QFileInfo(file_copy).fileName(), QFileInfo(file_copy).absolutePath(), file_copy, url_id, QDateTime::currentDateTime()));
@@ -85,7 +85,7 @@ private slots:
 		request.addUrlParam("token", "token");
 
 		request.setMultipartFileName(copy_name);
-		request.setMultipartFileContent(Helper::loadTextFile(upload_file)[0].toLocal8Bit());
+		request.setMultipartFileContent(Helper::loadTextFile(upload_file)[0].toUtf8());
 
 		request.addHeader("Accept", "*/*");
 		request.addHeader("Content-Type", "multipart/form-data; boundary=------------------------2cb4f6c221043bbe");
@@ -95,7 +95,7 @@ private slots:
 		request.addFormDataParam("ps_url_id", url_id);
 		response = ServerController::uploadFile(request);
 		IS_TRUE(response.getStatusLine().contains("200"));
-		QString file_copy = TESTDATA("data/" + copy_name.toLocal8Bit());
+		QString file_copy = TESTDATA("data/" + copy_name.toUtf8());
 		COMPARE_FILES(file_copy, upload_file);
 		QFile::remove(file_copy);
 	}

@@ -628,7 +628,7 @@ void SomaticReportDialog::createIgvScreenshot()
 		QHttpMultiPart* multipart_form = new QHttpMultiPart(QHttpMultiPart::FormDataType);
 		QHttpPart text_form_data;
 		text_form_data.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"ps_url_id\""));
-		text_form_data.setBody(filename_parts[filename_parts.size()-2].toLocal8Bit());
+		text_form_data.setBody(filename_parts[filename_parts.size()-2].toUtf8());
 
 		QHttpPart binary_form_data;
 		binary_form_data.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("image/png"));

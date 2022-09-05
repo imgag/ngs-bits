@@ -249,7 +249,7 @@ void RohWidget::filtersChanged()
 		}
 		else
 		{
-			QByteArray anno_value = ui->f_anno_value->text().toLatin1().toUpper();
+			QByteArray anno_value = ui->f_anno_value->text().toUtf8().toUpper();
 			for(int r=0; r<rows; ++r)
 			{
 				if (!pass[r]) continue;

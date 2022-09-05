@@ -127,7 +127,7 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 		GeneInfo gene_info = db_.geneInfo(gene);
 		if(gene_info.symbol.isEmpty()) continue;
 		if(gene_info.hgnc_id.isEmpty()) continue;
-		gene = gene_info.symbol.toLatin1();
+		gene = gene_info.symbol.toUtf8();
 
 		w.writeStartElement("Gene");
 		w.writeAttribute("name", gene);

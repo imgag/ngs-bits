@@ -6,17 +6,17 @@ HttpResponse EndpointController::serveEndpointHelp(const HttpRequest& request)
 	if (request.getPathItems().count() == 2)
 	{
 		// Locate endpoint by URL and request method
-		body = generateHelpPage(request.getPathItems()[0], HttpProcessor::getMethodTypeFromString(request.getPathItems()[1])).toLocal8Bit();
+		body = generateHelpPage(request.getPathItems()[0], HttpProcessor::getMethodTypeFromString(request.getPathItems()[1])).toUtf8();
 	}
 	else if (request.getPathItems().count() == 1)
 	{
 		// For the same URL several request methods may be used: e.g. GET and POST
-		body = generateHelpPage(request.getPathItems()[0]).toLocal8Bit();
+		body = generateHelpPage(request.getPathItems()[0]).toUtf8();
 	}
 	else
 	{
 		// Help for all defined endpoints
-		body = generateHelpPage().toLocal8Bit();
+		body = generateHelpPage().toUtf8();
 	}
 
 	BasicResponseData response_data;
@@ -261,11 +261,11 @@ HttpResponse EndpointController::serveFolderListing(QString folder_title, QStrin
 	stream << HtmlEngine::getPageFooter();
 
 	BasicResponseData response_data;
-	response_data.length = output.toLocal8Bit().length();
+	response_data.length = output.toUtf8().length();
 	response_data.is_stream = false;
 	response_data.content_type = ContentType::TEXT_HTML;
 
-	return HttpResponse(response_data, output.toLocal8Bit());
+	return HttpResponse(response_data, output.toUtf8());
 }
 
 QString EndpointController::getEndpointHelpTemplate(QList<Endpoint> endpoint_list)
@@ -347,7 +347,7 @@ QString EndpointController::getServedRootPath(const QList<QString>& path_parts)
 	}
 	QString served_file = server_root.trimmed() + path_parts.join(QDir::separator());
 
-	served_file = QUrl::fromEncoded(served_file.toLocal8Bit()).toString(); // handling browser endcoding, e.g. spaces and other characters in names
+	served_file = QUrl::fromEncoded(served_file.toUtf8()).toString(); // handling browser endcoding, e.g. spaces and other characters in names
 	int param_pos = served_file.indexOf("?");
 	if (param_pos > -1) served_file = served_file.left(param_pos);
 	if (QFile(served_file).exists()) return served_file;

@@ -17,7 +17,7 @@ bool DatabaseServiceRemote::enabled() const
 QString DatabaseServiceRemote::checkPassword(const QString user_name, const QString password) const
 {
 	checkEnabled(__PRETTY_FUNCTION__);
-	return makePostApiCall("validate_credentials", RequestUrlParams(), QString("name="+user_name+"&password="+password).toLocal8Bit(), false);
+	return makePostApiCall("validate_credentials", RequestUrlParams(), QString("name="+user_name+"&password="+password).toUtf8(), false);
 }
 
 BedFile DatabaseServiceRemote::processingSystemRegions(int sys_id, bool ignore_if_missing) const
@@ -26,7 +26,7 @@ BedFile DatabaseServiceRemote::processingSystemRegions(int sys_id, bool ignore_i
 
 	BedFile output;
 	RequestUrlParams params;
-	params.insert("sys_id", QString::number(sys_id).toLocal8Bit());
+	params.insert("sys_id", QString::number(sys_id).toUtf8());
 	QByteArray reply = makeGetApiCall("ps_regions", params, ignore_if_missing);
 
 	if ((reply.length() == 0) && (!ignore_if_missing))
@@ -45,7 +45,7 @@ BedFile DatabaseServiceRemote::processingSystemAmplicons(int sys_id, bool ignore
 
 	BedFile output;
 	RequestUrlParams params;
-	params.insert("sys_id", QString::number(sys_id).toLocal8Bit());
+	params.insert("sys_id", QString::number(sys_id).toUtf8());
 	QByteArray reply = makeGetApiCall("ps_amplicons", params, ignore_if_missing);
 
 	if ((reply.length() == 0) && (!ignore_if_missing))
@@ -64,7 +64,7 @@ GeneSet DatabaseServiceRemote::processingSystemGenes(int sys_id, bool ignore_if_
 
 	GeneSet output;
 	RequestUrlParams params;
-	params.insert("sys_id", QString::number(sys_id).toLocal8Bit());
+	params.insert("sys_id", QString::number(sys_id).toUtf8());
 	QByteArray reply = makeGetApiCall("ps_genes", params, ignore_if_missing);
 
 	if ((reply.length() == 0) && (!ignore_if_missing))
@@ -83,8 +83,8 @@ QStringList DatabaseServiceRemote::secondaryAnalyses(QString processed_sample_na
 
 	QStringList list;
 	RequestUrlParams params;
-	params.insert("ps_name", processed_sample_name.toLocal8Bit());
-	params.insert("type", analysis_type.toLocal8Bit());
+	params.insert("ps_name", processed_sample_name.toUtf8());
+	params.insert("type", analysis_type.toUtf8());
 	QByteArray reply = makeGetApiCall("secondary_analyses", params, true);
 	if (reply.length() == 0)
 	{
@@ -109,8 +109,8 @@ FileLocation DatabaseServiceRemote::processedSamplePath(const QString& processed
 
 	FileLocation output;
 	RequestUrlParams params;
-	params.insert("ps_id", processed_sample_id.toLocal8Bit());
-	params.insert("type", FileLocation::typeToString(type).toLocal8Bit());
+	params.insert("ps_id", processed_sample_id.toUtf8());
+	params.insert("type", FileLocation::typeToString(type).toUtf8());
 	QByteArray reply = makeGetApiCall("processed_sample_path", params, true);
 
 	if (reply.length() == 0)
@@ -142,7 +142,7 @@ FileInfo DatabaseServiceRemote::analysisJobLatestLogInfo(const int& job_id) cons
 
 	FileInfo output;
 	RequestUrlParams params;
-	params.insert("job_id", QString::number(job_id).toLocal8Bit());
+	params.insert("job_id", QString::number(job_id).toUtf8());
 	QByteArray reply = makeGetApiCall("analysis_job_last_update", params, true);
 	if (reply.length() == 0)
 	{
@@ -168,7 +168,7 @@ FileLocation DatabaseServiceRemote::analysisJobGSvarFile(const int& job_id) cons
 	checkEnabled(__PRETTY_FUNCTION__);
 
 	RequestUrlParams params;
-	params.insert("job_id", QString::number(job_id).toLocal8Bit());
+	params.insert("job_id", QString::number(job_id).toUtf8());
 	QByteArray reply = makeGetApiCall("analysis_job_gsvar_file", params, true);
 	if (reply.length() == 0)
 	{
@@ -191,7 +191,7 @@ FileLocation DatabaseServiceRemote::analysisJobLogFile(const int& job_id) const
 	checkEnabled(__PRETTY_FUNCTION__);
 
 	RequestUrlParams params;
-	params.insert("job_id", QString::number(job_id).toLocal8Bit());
+	params.insert("job_id", QString::number(job_id).toUtf8());
 	QByteArray reply = makeGetApiCall("analysis_job_log", params, true);
 	if (reply.length() == 0)
 	{
@@ -222,7 +222,7 @@ QList<MultiSampleAnalysisInfo> DatabaseServiceRemote::getMultiSampleAnalysisInfo
 		THROW(Exception, "Could not get the list of analysis names");
 	}
 
-	QJsonDocument json_out_doc = QJsonDocument::fromJson(QUrl::fromPercentEncoding(reply).toLocal8Bit());
+	QJsonDocument json_out_doc = QJsonDocument::fromJson(QUrl::fromPercentEncoding(reply).toUtf8());
 	if (json_out_doc.isArray())
 	{
 		QJsonArray multi_sample_analysis_info_array = json_out_doc.array();

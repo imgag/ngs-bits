@@ -495,7 +495,7 @@ void BigWigReader::parseChromLeaf(quint16 num_items, quint32 key_size)
 		ChromosomeItem chr;
 		QByteArray bytes = fp_.read(key_size + 8);
 		QString k =bytes.mid(0, key_size); // shorter than max length keys end with zero bytes that don't get trimmed normally
-		chr.key = Chromosome(k.toLatin1().trimmed()).strNormalized(true);
+		chr.key = Chromosome(k.toUtf8().trimmed()).strNormalized(true);
 
 		QDataStream ds(bytes.mid(key_size, bytes.length()));
 		ds.setByteOrder(byte_order_);

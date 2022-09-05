@@ -31,7 +31,7 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 		response_data.content_type = request.getContentType();
 		response_data.is_downloadable = false;
 
-		return HttpResponse(response_data, text.toLocal8Bit());
+		return HttpResponse(response_data, text.toUtf8());
 	}
 	else if (path_lower=="bam")
 	{
@@ -612,7 +612,7 @@ HttpResponse ServerController::calculateLowCoverage(const HttpRequest& request)
 
 	if (request.getFormUrlEncoded().contains("roi"))
 	{
-		roi = roi.fromText(request.getFormUrlEncoded()["roi"].toLocal8Bit());
+		roi = roi.fromText(request.getFormUrlEncoded()["roi"].toUtf8());
 	}
 	if (request.getFormUrlEncoded().contains("bam_url_id"))
 	{
@@ -627,7 +627,7 @@ HttpResponse ServerController::calculateLowCoverage(const HttpRequest& request)
 
 	if(!low_cov.toText().isEmpty())
 	{
-		QByteArray body = low_cov.toText().toLocal8Bit();
+		QByteArray body = low_cov.toText().toUtf8();
 
 		BasicResponseData response_data;
 		response_data.length = body.length();
@@ -646,7 +646,7 @@ HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 
 	if (request.getFormUrlEncoded().contains("low_cov"))
 	{
-		low_cov = low_cov.fromText(request.getFormUrlEncoded()["low_cov"].toLocal8Bit());
+		low_cov = low_cov.fromText(request.getFormUrlEncoded()["low_cov"].toUtf8());
 	}
 	if (request.getFormUrlEncoded().contains("bam_url_id"))
 	{
@@ -656,7 +656,7 @@ HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 	Statistics::avgCoverage(low_cov, bam_file_name, 1, false);
 	if(!low_cov.toText().isEmpty())
 	{
-		QByteArray body = low_cov.toText().toLocal8Bit();
+		QByteArray body = low_cov.toText().toUtf8();
 
 		BasicResponseData response_data;
 		response_data.length = body.length();
@@ -675,7 +675,7 @@ HttpResponse ServerController::calculateTargetRegionReadDepth(const HttpRequest&
 
 	if (request.getFormUrlEncoded().contains("regions"))
 	{
-		regions = regions.fromText(request.getFormUrlEncoded()["regions"].toLocal8Bit());
+		regions = regions.fromText(request.getFormUrlEncoded()["regions"].toUtf8());
 	}
 	if (request.getFormUrlEncoded().contains("bam_url_id"))
 	{
@@ -689,7 +689,7 @@ HttpResponse ServerController::calculateTargetRegionReadDepth(const HttpRequest&
 	{
 		if (stats[i].accession()=="QC:2000025")
 		{
-			QByteArray body = stats[i].toString().toLocal8Bit();
+			QByteArray body = stats[i].toString().toUtf8();
 			BasicResponseData response_data;
 			response_data.length = body.length();
 			response_data.content_type = request.getContentType();
@@ -707,7 +707,7 @@ HttpResponse ServerController::getMultiSampleAnalysisInfo(const HttpRequest& req
 	qDebug() << "List analysis names";
 	if (request.getFormUrlEncoded().contains("analyses"))
 	{
-		QJsonDocument json_in_doc = QJsonDocument::fromJson(QUrl::fromPercentEncoding(request.getFormUrlEncoded()["analyses"].toLocal8Bit()).toLocal8Bit());
+		QJsonDocument json_in_doc = QJsonDocument::fromJson(QUrl::fromPercentEncoding(request.getFormUrlEncoded()["analyses"].toUtf8()).toUtf8());
 		if (json_in_doc.isArray())
 		{
 			QJsonArray json_in_array = json_in_doc.array();
@@ -765,7 +765,7 @@ HttpResponse ServerController::performLogin(const HttpRequest& request)
 		Session cur_session = Session(db.userId(request.getFormUrlEncoded()["name"]), QDateTime::currentDateTime(), false);
 
 		SessionManager::addNewSession(secure_token, cur_session);
-		QByteArray body = secure_token.toLocal8Bit();
+		QByteArray body = secure_token.toUtf8();
 
 		BasicResponseData response_data;
 		response_data.length = body.length();
@@ -810,7 +810,7 @@ HttpResponse ServerController::validateCredentials(const HttpRequest& request)
 	qDebug() << "Validation of user credentials";	
 	QString message = NGSD().checkPassword(request.getFormUrlEncoded()["name"], request.getFormUrlEncoded()["password"]);
 
-	QByteArray body = message.toLocal8Bit();
+	QByteArray body = message.toUtf8();
 	BasicResponseData response_data;
 	response_data.length = body.length();
 	response_data.content_type = request.getContentType();
@@ -831,7 +831,7 @@ HttpResponse ServerController::getDbToken(const HttpRequest& request)
 	Session cur_session = Session(user_session.user_id, QDateTime::currentDateTime(), true);
 	QString db_token = ServerHelper::generateUniqueStr();
 	SessionManager::addNewSession(db_token, cur_session);
-	QByteArray body = db_token.toLocal8Bit();
+	QByteArray body = db_token.toUtf8();
 
 	BasicResponseData response_data;
 	response_data.length = body.length();
@@ -898,7 +898,7 @@ HttpResponse ServerController::performLogout(const HttpRequest& request)
 		{
 			return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, request.getContentType(), e.message());
 		}
-		body = request.getFormUrlEncoded()["token"].toLocal8Bit();
+		body = request.getFormUrlEncoded()["token"].toUtf8();
 
 		BasicResponseData response_data;
 		response_data.length = body.length();
@@ -946,7 +946,7 @@ HttpResponse ServerController::getProcessingSystemGenes(const HttpRequest& reque
 HttpResponse ServerController::getSecondaryAnalyses(const HttpRequest& request)
 {
 	QString processed_sample_name = request.getUrlParams()["ps_name"];
-	QString type  = QUrl::fromEncoded(request.getUrlParams()["type"].toLatin1()).toString();
+	QString type  = QUrl::fromEncoded(request.getUrlParams()["type"].toUtf8()).toString();
 	QStringList secondary_analyses;
 	try
 	{

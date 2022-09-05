@@ -29,7 +29,7 @@ void GenesToRegionsDialog::convertGenesToRegions()
 
 	//convert input to gene list (text before first tab in each line)
 	GeneSet genes;
-	QByteArrayList lines = ui->genes->toPlainText().toLatin1().split('\n');
+	QByteArrayList lines = ui->genes->toPlainText().toUtf8().split('\n');
 	foreach(const QByteArray& line, lines)
 	{
 		if (line.startsWith("#")) continue;

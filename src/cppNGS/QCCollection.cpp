@@ -358,7 +358,7 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 		qc_values_used.append(values_);
 		foreach(const QCValue& qc_value, qc_values_used)
 		{
-			QByteArray accession = qc_value.accession().toLatin1();
+			QByteArray accession = qc_value.accession().toUtf8();
 			if (!terms.containsByID(accession))
 			{
 				THROW(ProgrammingException, "QCCollection::storeToQCML produced an invalid XML file: QC term '" + accession + "/" + qc_value.name() + "' not found in the ontology!");

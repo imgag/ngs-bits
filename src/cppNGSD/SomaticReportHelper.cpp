@@ -734,7 +734,7 @@ void SomaticReportHelper::saveReportData(QString filename, QString path, QString
 		if(!QDir(path).exists()) QDir().mkdir(path);
 
 		QSharedPointer<QFile> meta_data_qbic = Helper::openFileForWriting(path + "/" + filename);
-		meta_data_qbic.data()->write(content.toLocal8Bit());
+		meta_data_qbic.data()->write(content.toUtf8());
 		meta_data_qbic->close();
 		return;
 	}
@@ -748,7 +748,7 @@ void SomaticReportHelper::saveReportData(QString filename, QString path, QString
 	RequestUrlParams params;
 	params.insert("filename", QUrl(filename).toEncoded());
 	params.insert("id", QUrl(path).toEncoded());
-	ApiCaller().post("qbic_report_data", params, qbic_headers, content.toLocal8Bit(), true, false, true);
+	ApiCaller().post("qbic_report_data", params, qbic_headers, content.toUtf8(), true, false, true);
 }
 
 double SomaticReportHelper::getCnvMaxTumorClonality(const CnvList &cnvs)

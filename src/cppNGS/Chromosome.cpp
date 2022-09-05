@@ -9,7 +9,7 @@ Chromosome::Chromosome()
 }
 
 Chromosome::Chromosome(const QString& chr)
-	: str_(chr.trimmed().toLatin1())
+	: str_(chr.trimmed().toUtf8())
 	, num_(0)
 {
 	num_ = numericRepresentation();

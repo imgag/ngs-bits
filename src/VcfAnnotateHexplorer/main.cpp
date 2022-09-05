@@ -118,7 +118,7 @@ public:
         QStringList lines = Helper::loadTextFile(":/resources/HEXplorer_Z_scores.csv", true, '#', true);
         foreach(const QString& line, lines)
         {
-            QByteArrayList parts = line.toLatin1().split(';');
+            QByteArrayList parts = line.toUtf8().split(';');
             if (parts.count()==2)
             {
                 QString hexamer = parts[0];
@@ -131,7 +131,7 @@ public:
         lines = Helper::loadTextFile(":/resources/H_Bond_score_table.csv", true, '#', true);
         foreach(const QString& line, lines)
         {
-            QByteArrayList parts = line.toLatin1().split(';');
+            QByteArrayList parts = line.toUtf8().split(';');
             if (parts.count()==2)
             {
                 QString undecamer = parts[0];

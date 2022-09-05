@@ -749,7 +749,7 @@ PhenotypeList NGSD::samplePhenotypes(const QString& sample_id, bool throw_on_err
 	QStringList hpo_ids = getValues("SELECT disease_info FROM sample_disease_info WHERE type='HPO term id' AND sample_id=" + sample_id);
 	foreach(const QString& hpo_id, hpo_ids)
 	{
-		int id = phenotypeIdByAccession(hpo_id.toLatin1(), throw_on_error);
+		int id = phenotypeIdByAccession(hpo_id.toUtf8(), throw_on_error);
 		if (id!=-1)
 		{
 			output << phenotype(id);
@@ -3910,7 +3910,7 @@ QByteArrayList NGSD::getSomaticPathways()
 
 	foreach(const QString& name, getValues("SELECT name FROM somatic_pathway sp ORDER BY name ASC"))
 	{
-		output << name.toLocal8Bit();
+		output << name.toUtf8();
 	}
 
 	return output;
@@ -3923,7 +3923,7 @@ QByteArrayList NGSD::getSomaticPathways(QByteArray gene_symbol)
 	gene_symbol = geneToApproved(gene_symbol, true);
 	foreach(const QString& name, getValues("SELECT sp.name FROM somatic_pathway_gene sgp, somatic_pathway sp WHERE sgp.pathway_id=sp.id AND sgp.symbol=:0 ORDER BY sgp.symbol ASC", gene_symbol))
 	{
-		output << name.toLocal8Bit();
+		output << name.toUtf8();
 	}
 
 	return output;
@@ -3935,7 +3935,7 @@ GeneSet NGSD::getSomaticPathwayGenes(QByteArray pathway_name)
 
 	foreach(const QString& gene, getValues("SELECT sgp.symbol FROM somatic_pathway_gene sgp, somatic_pathway sp WHERE sgp.pathway_id=sp.id AND sp.name=:0", pathway_name))
 	{
-		output << gene.toLocal8Bit();
+		output << gene.toUtf8();
 	}
 
 	return output;
@@ -5444,10 +5444,10 @@ QList<OmimInfo> NGSD::omimInfo(const QByteArray& symbol)
 		{
 			Phenotype tmp;
 
-			tmp.setName(pheno.toLatin1());
+			tmp.setName(pheno.toUtf8());
 			if (mim_exp.indexIn(pheno)!=-1)
 			{
-				tmp.setAccession(mim_exp.cap(1).toLatin1());
+				tmp.setAccession(mim_exp.cap(1).toUtf8());
 			}
 
 			info.phenotypes << tmp;
@@ -7723,7 +7723,7 @@ void NGSD::initTranscriptCache()
 	QSet<QByteArray> pts;
 	foreach(QString trans, getValues("SELECT DISTINCT name FROM preferred_transcripts"))
 	{
-		pts.insert(trans.toLatin1());
+		pts.insert(trans.toUtf8());
 	}
 
 	TranscriptList& cache = getCache().gene_transcripts;

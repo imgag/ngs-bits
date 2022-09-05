@@ -761,7 +761,7 @@ void FilterCascade::store(QString filename)
 
 		QString line = filter->name() + "\t" + params.join("\t") + "\n";
 
-		file->write(line.toLatin1());
+		file->write(line.toUtf8());
 	}
 	file->close();
 }
@@ -1304,7 +1304,7 @@ void FilterVariantImpact::apply(const VariantList& variants, FilterResult& resul
 	int i_co_sp = annotationColumn(variants, "coding_and_splicing");
 
 	//prepare impacts list (convert to QByteArray and pad with ":")
-	QByteArrayList impacts = getStringList("impact").join(":,:").prepend(":").append(":").toLatin1().split(',');
+	QByteArrayList impacts = getStringList("impact").join(":,:").prepend(":").append(":").toUtf8().split(',');
 
 	//filter
 	for(int i=0; i<variants.count(); ++i)
@@ -1415,7 +1415,7 @@ void FilterFilterColumn::apply(const VariantList& variants, FilterResult& result
 	entries.clear();
 	foreach(const QString& entry, getStringList("entries"))
 	{
-		entries.append(entry.toLatin1());
+		entries.append(entry.toUtf8());
 	}
 
 	QString action = getString("action");
@@ -2126,7 +2126,7 @@ void FilterAnnotationText::apply(const VariantList& variants, FilterResult& resu
 {
 	if (!enabled_) return;
 
-	term = getString("term").toLatin1().trimmed().toLower();
+	term = getString("term").toUtf8().trimmed().toLower();
 
 	QString action = getString("action");
 	if (action=="REMOVE")
@@ -2208,19 +2208,19 @@ void FilterVariantType::apply(const VariantList& variants, FilterResult& result)
 	QByteArrayList types;
 	foreach(QString type, getStringList("HIGH"))
 	{
-		types.append(type.trimmed().toLatin1());
+		types.append(type.trimmed().toUtf8());
 	}
 	foreach(QString type, getStringList("MODERATE"))
 	{
-		types.append(type.trimmed().toLatin1());
+		types.append(type.trimmed().toUtf8());
 	}
 	foreach(QString type, getStringList("LOW"))
 	{
-		types.append(type.trimmed().toLatin1());
+		types.append(type.trimmed().toUtf8());
 	}
 	foreach(QString type, getStringList("MODIFIER"))
 	{
-		types.append(type.trimmed().toLatin1());
+		types.append(type.trimmed().toUtf8());
 	}
 
 	int index = annotationColumn(variants, "coding_and_splicing");
@@ -2821,7 +2821,7 @@ void FilterCnvCopyNumber::apply(const CnvList& cnvs, FilterResult& result) const
 	QSet<QByteArray> cn_exp;
 	foreach(QString cn, getStringList("cn"))
 	{
-		cn_exp << cn.toLatin1();
+		cn_exp << cn.toUtf8();
 		if (cn=="5+") cn_5plus = true;
 	}
 

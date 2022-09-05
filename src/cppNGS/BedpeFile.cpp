@@ -721,6 +721,6 @@ void BedpeFile::parseSampleHeaderInfo()
     //determine column index
     for (int i=0; i<sample_header_info_.count(); ++i)
     {
-        sample_header_info_[i].column_index = annotationIndexByName(sample_header_info_[i].column_name.toLatin1());
+        sample_header_info_[i].column_index = annotationIndexByName(sample_header_info_[i].column_name.toUtf8());
     }
 }

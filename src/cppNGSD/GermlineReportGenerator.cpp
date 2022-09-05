@@ -89,7 +89,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	info = db_.getSampleDiseaseInfo(sample_id, "HPO term id");
 	foreach(const SampleDiseaseInfo& entry, info)
 	{
-		int hpo_id = db_.phenotypeIdByAccession(entry.disease_info.toLatin1(), false);
+		int hpo_id = db_.phenotypeIdByAccession(entry.disease_info.toUtf8(), false);
 		if (hpo_id!=-1)
 		{
 			stream << "<br />HPO: " << entry.disease_info << " (" << db_.phenotype(hpo_id).name() << ")" << endl;
@@ -189,7 +189,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<tr>" << endl;
 		stream << "<td>" << endl;
 		stream  << variant.chr().str() << ":" << variant.start() << "&nbsp;" << variant.ref() << "&nbsp;&gt;&nbsp;" << variant.obs() << "</td>";
-		QString geno = formatGenotype(data_.build, processed_sample_data.gender.toLatin1(), variant.annotations().at(i_genotype), variant);
+		QString geno = formatGenotype(data_.build, processed_sample_data.gender.toUtf8(), variant.annotations().at(i_genotype), variant);
 		if (var_conf.de_novo) geno += " (de-novo)";
 		if (var_conf.mosaic) geno += " (mosaic)";
 		if (var_conf.comp_het) geno += " (comp-het)";
@@ -422,7 +422,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		foreach(const QByteArray& gene, data_.roi.genes)
 		{
 			QString preferred_phenotype_accession;
-			if (sample_data.disease_group!="n/a") preferred_phenotype_accession = db_.omimPreferredPhenotype(gene, sample_data.disease_group.toLatin1());
+			if (sample_data.disease_group!="n/a") preferred_phenotype_accession = db_.omimPreferredPhenotype(gene, sample_data.disease_group.toUtf8());
 
 			QList<OmimInfo> omim_infos = db_.omimInfo(gene);
 			foreach(const OmimInfo& omim_info, omim_infos)
@@ -764,7 +764,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		}
 		w.writeAttribute("allele_frequency", QString::number(allele_frequency, 'f', 2));
 		w.writeAttribute("depth", QString::number(depth));
-		w.writeAttribute("genotype", formatGenotype(data_.build, processed_sample_data.gender.toLatin1(), variant.annotations()[geno_idx], variant));
+		w.writeAttribute("genotype", formatGenotype(data_.build, processed_sample_data.gender.toUtf8(), variant.annotations()[geno_idx], variant));
 		w.writeAttribute("causal", var_conf.causal ? "true" : "false");
 		w.writeAttribute("de_novo", var_conf.de_novo ? "true" : "false");
 		w.writeAttribute("comp_het", var_conf.comp_het ? "true" : "false");
@@ -1119,7 +1119,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeAttribute("end_band", NGSHelper::cytoBand(data_.build, sv.chr2(), sv.end2()));
 
 		QByteArray sv_gt = sv.genotypeHumanReadable(data_.svs.annotationHeaders(), false);
-		w.writeAttribute("genotype", formatGenotype(data_.build, processed_sample_data.gender.toLatin1(), sv_gt, v));
+		w.writeAttribute("genotype", formatGenotype(data_.build, processed_sample_data.gender.toUtf8(), sv_gt, v));
 
 		if (sv.type() == StructuralVariantType::INS)
 		{
@@ -2056,7 +2056,7 @@ void GermlineReportGenerator::writeEvaluationSheet(QString filename, const Evalu
 		}
 		if (info.type=="HPO term id")
 		{
-			int hpo_id = db_.phenotypeIdByAccession(info.disease_info.toLatin1(), false);
+			int hpo_id = db_.phenotypeIdByAccession(info.disease_info.toUtf8(), false);
 			if (hpo_id!=-1)
 			{
 				infos << db_.phenotype(hpo_id).toString();

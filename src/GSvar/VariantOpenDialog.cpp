@@ -56,8 +56,8 @@ Variant VariantOpenDialog::variant()
 		//parse parts
 		Chromosome chr(parts[0]);
 		int start = Helper::toInt(parts[1], "VCF start position", text);
-		Sequence ref = parts[3].toLatin1().toUpper();
-		Sequence alt = parts[4].toLatin1().toUpper();
+		Sequence ref = parts[3].toUtf8().toUpper();
+		Sequence alt = parts[4].toUtf8().toUpper();
 		int end = start + ref.length()-1;
 
 		output = Variant(chr, start, end, ref, alt);
@@ -78,8 +78,8 @@ Variant VariantOpenDialog::variant()
 		//parse parts
 		Chromosome chr(parts[0]);
 		int start = Helper::toInt(parts[1], "VCF start position", text);
-		Sequence ref = parts[2].toLatin1().toUpper();
-		Sequence alt = parts[3].toLatin1().toUpper();
+		Sequence ref = parts[2].toUtf8().toUpper();
+		Sequence alt = parts[3].toUtf8().toUpper();
 		int end = start + ref.length()-1;
 
 		output = Variant(chr, start, end, ref, alt);
@@ -123,7 +123,7 @@ Variant VariantOpenDialog::variant()
 				transcript_name = transcript_name.left(transcript_name.indexOf('.'));
 			}
 
-			foreach(const QByteArray& match, matches[transcript_name.toLocal8Bit()])
+			foreach(const QByteArray& match, matches[transcript_name.toUtf8()])
 			{
 				int match_id = db.transcriptId(match, false);
 				if (match_id!=-1)

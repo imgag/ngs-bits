@@ -40,7 +40,7 @@ public:
 	{
 		//init
 		bool inv = getFlag("inv");
-		QByteArray mark = getString("mark").toLatin1();
+		QByteArray mark = getString("mark").toUtf8();
 
 		//load target region
 		BedFile roi;

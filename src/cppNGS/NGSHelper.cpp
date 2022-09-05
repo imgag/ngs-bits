@@ -493,9 +493,9 @@ const QMap<QByteArray, ImprintingInfo>& NGSHelper::imprintingGenes()
 			QStringList parts = line.split("\t");
 			if (parts.count()==3)
 			{
-				QByteArray gene = parts[0].toLatin1().trimmed();
-				QByteArray source_allele = parts[1].toLatin1().trimmed();
-				QByteArray status = parts[2].toLatin1().trimmed();
+				QByteArray gene = parts[0].toUtf8().trimmed();
+				QByteArray source_allele = parts[1].toUtf8().trimmed();
+				QByteArray status = parts[2].toUtf8().trimmed();
 				output[gene] = ImprintingInfo{source_allele, status};
 			}
 		}
@@ -794,7 +794,7 @@ const QMap<QByteArray, QByteArrayList>& NGSHelper::transcriptMatches(GenomeBuild
 		QStringList lines = Helper::loadTextFile(":/Resources/"+buildToString(build)+"_ensembl_transcript_matches.tsv", true, '#', true);
 		foreach(const QString& line, lines)
 		{
-			QByteArrayList parts = line.toLatin1().split('\t');
+			QByteArrayList parts = line.toUtf8().split('\t');
 			if (parts.count()>=2)
 			{
 				QByteArray enst = parts[0];

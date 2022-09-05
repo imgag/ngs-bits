@@ -33,7 +33,7 @@ void PhenotypeSelectionWidget::setPhenotypes(const PhenotypeList& phenos)
 
 void PhenotypeSelectionWidget::addPhenotypeToSelection(QString name)
 {
-	const Phenotype& phenotype = ui_.pheno_sel->nameToPhenotype(name.toLatin1());
+	const Phenotype& phenotype = ui_.pheno_sel->nameToPhenotype(name.toUtf8());
 	if (!phenos_.containsAccession(phenotype.accession()))
 	{
 		phenos_ << phenotype;

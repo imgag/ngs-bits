@@ -825,7 +825,7 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 		{
 			if (fields[i].contains('%'))
 			{
-				fields[i] = QUrl::fromPercentEncoding(fields[i]).toLocal8Bit();
+				fields[i] = QUrl::fromPercentEncoding(fields[i]).toUtf8();
 			}
 		}
 
@@ -1318,7 +1318,7 @@ Variant Variant::fromString(const QString& text_orig)
 	QStringList parts = text.split(QRegExp("\\s+"));
 	if (parts.count()!=5) THROW(ArgumentException, "Input text has " + QString::number(parts.count()) + " part(s), but must consist of 5 parts (chr, start, end, ref, obs)!");
 
-	return Variant(parts[0], parts[1].toInt(), parts[2].toInt(), parts[3].toLatin1(), parts[4].toLatin1());
+	return Variant(parts[0], parts[1].toInt(), parts[2].toInt(), parts[3].toUtf8(), parts[4].toUtf8());
 }
 
 QString analysisTypeToString(AnalysisType type, bool human_readable)

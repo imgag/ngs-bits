@@ -118,12 +118,12 @@ const TargetRegionInfo& FilterWidgetSV::targetRegion() const
 
 GeneSet FilterWidgetSV::genes() const
 {
-	return GeneSet::createFromText(ui_.gene->text().toLatin1(), ',');
+	return GeneSet::createFromText(ui_.gene->text().toUtf8(), ',');
 }
 
 QByteArray FilterWidgetSV::text() const
 {
-	return ui_.text->text().trimmed().toLatin1();
+	return ui_.text->text().trimmed().toUtf8();
 }
 
 QString FilterWidgetSV::region() const
