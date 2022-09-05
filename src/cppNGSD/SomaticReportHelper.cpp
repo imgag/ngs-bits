@@ -192,6 +192,9 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 		}
 	}
 
+	//Filter CNVs according report configuration settings
+	cnvs_ = SomaticReportSettings::filterCnvs(cnvs, settings);
+
 	//high significance genes: with reported CNV
 	for(int i=0; i<cnvs_.count(); ++i)
 	{
@@ -209,7 +212,7 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 		}
 	}
 
-	//crete lists of important and not imporant variants
+	//create lists of important and not imporant variants
 	for(int i=0; i<somatic_vl_.count(); ++i)
 	{
 		QByteArray gene = selectSomaticTranscript(somatic_vl_[i], settings_, snv_index_coding_splicing_).gene;
@@ -222,9 +225,6 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 			somatic_vl_low_impact_indices_ << i;
 		}
 	}
-
-	//Filter CNVs according report configuration settings
-	cnvs_ = SomaticReportSettings::filterCnvs(cnvs, settings);
 
 	//load MSI Mantis data
 	try
@@ -276,7 +276,7 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 	cnv_index_cnv_type_ = cnvs_.annotationIndexByName("cnv_type", false);
 	cnv_index_tumor_clonality_ = cnvs_.annotationIndexByName("tumor_clonality", false);
 	cnv_index_state_ = cnvs_.annotationIndexByName("state", false);
-	cnv_index_cytoband_ = cnvs.annotationIndexByName("cytoband", false);
+	cnv_index_cytoband_ = cnvs_.annotationIndexByName("cytoband", false);
 
 	//load qcml data
 	tumor_qcml_data_ = db_.getQCData(db_.processedSampleId(settings_.tumor_ps));
