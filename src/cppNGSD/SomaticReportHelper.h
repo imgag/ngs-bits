@@ -70,7 +70,7 @@ public:
 	void storeQbicData(QString path);
 
 	///Returns CNV type, e.g. DEL (het) according copy number
-	static QByteArray CnvTypeDescription(int tumor_cn);
+	static QByteArray CnvTypeDescription(int tumor_cn, bool add_cn);
 	///Returns true if germline variant file is valid (annotations and at least one germline variant)
 	static bool checkGermlineSNVFile(const VariantList& germline_variants);
 

@@ -41,7 +41,7 @@ RtfSourceCode SomaticReportHelper::partCnvTable()
 
 	//Table Header
 	cnv_table.addRow(RtfTableRow({"Chromosomale Aberrationen"},doc_.maxWidth(),RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(18)).setBackgroundColor(4).setHeader());
-	cnv_table.addRow(RtfTableRow({"Position","CNV","Typ","CN","Anteil","Gene"},{1700,1000,900,400,800,5121},RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader());
+	cnv_table.addRow(RtfTableRow({"Position","CNV","Typ","CN","Anteil","Gene"},{2100,600,900,400,800,5121},RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader());
 
 	RtfParagraph header_format;
 	header_format.setBold(true);
@@ -82,12 +82,10 @@ RtfSourceCode SomaticReportHelper::partCnvTable()
 		QList<RtfSourceCode> coords;
 		coords << RtfText(variant.chr().str()).setFontSize(14).RtfCode();
 		coords << RtfText(QByteArray::number(variant.start() == 0 ? 1 : variant.start()) + " - " + QByteArray::number(variant.end()) + " (" + QByteArray::number( variant.size() / 1000000. , 'f', 1) + " MB)" ).setFontSize(12).RtfCode();
-
-		temp_row.addCell(1700, coords);
-
+		temp_row.addCell(2100, coords);
 
 		//AMP/DEL
-		temp_row.addCell(1000, CnvTypeDescription(variant.copyNumber(cnvs_.annotationHeaders())), RtfParagraph().setHorizontalAlignment("c").setFontSize(14));
+		temp_row.addCell(600, CnvTypeDescription(variant.copyNumber(cnvs_.annotationHeaders()), false), RtfParagraph().setHorizontalAlignment("c").setFontSize(14));
 
 		//Type
 		RtfSourceCode type_statement = variant.annotations().at(cnv_index_cnv_type_);
@@ -613,22 +611,29 @@ VariantTranscript SomaticReportHelper::selectSomaticTranscript(const Variant& va
 	return VariantTranscript();
 }
 
-QByteArray SomaticReportHelper::CnvTypeDescription(int tumor_cn)
+QByteArray SomaticReportHelper::CnvTypeDescription(int tumor_cn, bool add_cn)
 {
 	QByteArray type = "";
 
 	if(tumor_cn > 2)
 	{
-		type = "AMP (" + QByteArray::number((int)tumor_cn) + " Kopien)";
+		type = "AMP";
+		if (add_cn) type += " (" + QByteArray::number((int)tumor_cn) + " Kopien)";
 	}
 	else if(tumor_cn < 2)
 	{
 		type = "DEL";
-		if(tumor_cn == 0) type.append(" (hom)");
-		else if(tumor_cn == 1) type.append(" (het)");
+		if(add_cn && tumor_cn == 0)
+		{
+			type += " (hom)";
+		}
+		else if(add_cn && tumor_cn == 1)
+		{
+			type += " (het)";
+		}
 	}
 	else if(tumor_cn == 2) type = "LOH";
-	else type = "NA";
+	else type = "n/a";
 
 	return type;
 }
@@ -846,9 +851,9 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 		{
 		}
 	}
-	metadata.addRow(RtfTableRow({"Coverage Genpanel 60x:", tum_panel_cov_60x , nor_panel_cov_60x, "ICD10: " + settings_.icd10.toUtf8(), ""}, {2000,1480,1480,1480,3481}) );
-	metadata.addRow(RtfTableRow({"", "" , "", "MSI-Status: " + (!BasicStatistics::isValidFloat(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3)), "Tumor-Genom weite Ploidie: " + (settings_.report_config.ploidy() == 0 ? "n/a" : QByteArray::number(settings_.report_config.ploidy(),'f',3))}, {2000,1480,1480,1480,3481}) );
-
+	metadata.addRow(RtfTableRow({"Coverage Genpanel 60x:", tum_panel_cov_60x , nor_panel_cov_60x, "ICD10:", settings_.icd10.toUtf8()}, {2000,1480,1480,1480,3481}) );
+	metadata.addRow(RtfTableRow({"", "" , "", "MSI-Status:", (!BasicStatistics::isValidFloat(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3))}, {2000,1480,1480,1480,3481}));
+	metadata.addRow(RtfTableRow({"", "" , "", "Tumor-Ploidie:", (settings_.report_config.ploidy() == 0 ? "n/a" : QByteArray::number(settings_.report_config.ploidy(),'f',3))}, {2000,1480,1480,1480,3481}));
 
 	metadata.addRow(RtfTableRow("In Regionen mit einer Abdeckung >60 können somatische Varianten mit einer Frequenz >5% im Tumorgewebe mit einer Sensitivität >95,0% und einem Positive Prediction Value PPW >99% bestimmt werden. Für mindestens 95% aller untersuchten Gene kann die Kopienzahl korrekt unter diesen Bedingungen bestimmt werden.", doc_.maxWidth()) );
 
@@ -1215,7 +1220,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 				RtfTableRow row;
 				row.addCell(col_widths[0], gene, RtfParagraph().setItalic(true));
 
-				RtfText cn_statement( CnvTypeDescription(cn) );
+				RtfText cn_statement( CnvTypeDescription(cn, true) );
 
 				cn_statement.append(RtfText(cnv.chr().strNormalized(true)).setFontSize(14).RtfCode(), true);
 
@@ -1735,7 +1740,7 @@ RtfSourceCode SomaticReportHelper::partPathways()
 
 						PathwaysEntry entry;
 						entry.gene = gene;
-						entry.alteration = CnvTypeDescription(cn);
+						entry.alteration = CnvTypeDescription(cn, true);
 						entry.highlight = true;
 						entries.append(entry);
 					}
