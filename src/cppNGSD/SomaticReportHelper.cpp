@@ -1680,7 +1680,7 @@ RtfSourceCode SomaticReportHelper::partPathways()
 	QByteArray heading_text = "Informationen zu molekularen Signalwegen";
 	table.addRow(RtfTableRow(heading_text,doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4).setHeader());
 
-	for (int i=0; i<=pathways.count(); i+=4)
+	for (int i=0; i<pathways.count(); i+=4)
 	{
 		QByteArrayList headers;
 		QByteArrayList contents;
