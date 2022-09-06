@@ -1762,7 +1762,7 @@ RtfSourceCode SomaticReportHelper::partPathways()
 				contents << "";
 			}
 		}
-		table.addRow(RtfTableRow(headers,{2480,2480,2480,2480},RtfParagraph().setHorizontalAlignment("c").setBold(true).setItalic(true)).setHeader().setBorders(1,"brdrhair",4).setBackgroundColor(5));
+		table.addRow(RtfTableRow(headers,{2480,2480,2480,2480},RtfParagraph().setHorizontalAlignment("c").setBold(true).setItalic(true)).setBorders(1,"brdrhair",4).setBackgroundColor(5));
 		table.addRow(RtfTableRow(contents,{2480,2480,2480,2480},RtfParagraph().setHorizontalAlignment("c").setLineSpacing(276)).setBorders(1,"brdrhair",4));
 	}
 
