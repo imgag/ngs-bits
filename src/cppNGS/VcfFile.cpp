@@ -468,7 +468,7 @@ void VcfFile::load(const QString& filename, const BedFile& roi, bool allow_multi
 void VcfFile::storeAsTsv(const QString& filename)
 {
 	//open stream
-	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
+	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
 	QTextStream stream(file.data());
 
 	for(const VcfHeaderLine& comment : vcfHeader().comments())
