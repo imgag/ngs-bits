@@ -54,6 +54,7 @@ enum class PathType
 	CFDNA_CANDIDATES, // VCF containing preselected variants for cfDNA panel design
 	QC, // variant list QC (qcML) files
 	IGV_SCREENSHOT, //screenshot taken from IGV
+	HLA_GENOTYPER, // results from hla genotyper (TSV format)
 	OTHER // everything else
 };
 
@@ -192,6 +193,8 @@ struct FileLocation
 				return "CFDNA_CANDIDATES";
 			case PathType::IGV_SCREENSHOT:
 				return "IGV_SCREENSHOT";
+			case PathType::HLA_GENOTYPER:
+				return "HLA_GENOTYPER";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToString()!");
 	}
@@ -239,6 +242,7 @@ struct FileLocation
 		if (in_upper == "MRD_CF_DNA") return PathType::MRD_CF_DNA;
 		if (in_upper == "CFDNA_CANDIDATES") return PathType::CFDNA_CANDIDATES;
 		if (in_upper == "IGV_SCREENSHOT") return PathType::IGV_SCREENSHOT;
+		if (in_upper == "HLA_GENOTYPER") return PathType::HLA_GENOTYPER;
 		THROW(ProgrammingException, "Unhandled path type string '" + in_upper + "' in stringToType()!");
 	}
 
@@ -324,6 +328,8 @@ struct FileLocation
 				return "pre-selected variants for cfDNA panel design.";
 			case PathType::IGV_SCREENSHOT:
 				return "IGV screenshot";
+			case PathType::HLA_GENOTYPER:
+				return "HLA called by hla genotyper";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToHumanReadableString()!");
 	}

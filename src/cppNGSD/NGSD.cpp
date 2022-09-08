@@ -1044,7 +1044,9 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==PathType::EXPRESSION_CORR) output += ps_name + "_expr.corr.txt";
 	else if (type==PathType::EXPRESSION_EXON) output += ps_name + "_expr_exon.tsv";
 	else if (type==PathType::MRD_CF_DNA) output += QString("umiVar") + QDir::separator() + ps_name + ".mrd";
+	else if (type==PathType::HLA_GENOTYPER) output += ps_name + "_hla_genotyper.tsv";
 	else if (type!=PathType::SAMPLE_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
+
 
 	return QFileInfo(output).absoluteFilePath();
 }

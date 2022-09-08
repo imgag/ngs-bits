@@ -249,15 +249,21 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 	}
 	else
 	{
-		QString text = "Aufgrund der geringen DNA-Konzentration (x,y ng/µl) / DNA-Qualität / des geringen Tumorgehaltes / der Heterogenität der verwendeten Tumorprobe war";
-		text += " nur eine eingeschränkte Detektion somatischer Varianten (Punktmutationen und Kopienzahlveränderungen / Kopienzahlveränderungen) möglich. ";
+		QString text = "Aufgrund der\n";
+		text += "geringen DNA-Konzentration (x,y ng/µl) \n";
+		text += "DNA-Qualität \n";
+		text += "des geringen Tumorgehaltes \n";
+		text += "der Heterogenität der verwendeten Tumorprobe \n";
+		text +=	"war nur eine eingeschränkte Detektion somatischer Varianten (Punktmutationen und Kopienzahlveränderungen)\n";
+
+		text += "(Kopienzahlveränderungen) möglich. ";
 		text += "Es zeigte sich ein komplexes Bild, dass am ehesten mit einer Polysomie bzw. Monosomie mehrerer Chromosomen vereinbar ist. ";
 		text += "Die Mutationslast und der MSI-Status sind nicht bestimmbar. Eine Wiederholung der DNA-Isolation aus Tumorgewebe war nicht möglich.\n\n";
 		text += "Aufgrund der Allelfrequenz der einzelnen tumorspezifischen Varianten schätzen wir den Tumorgehalt der eingesandten Probe bei unter 10%. Aufgrund des geringen Tumorgehaltes der ";
 		text += "verwendeten Tumorprobe war nur eine eingeschränkte Detektion somatischer Varianten (Punktmutationen und Kopienzahlveränderungen) möglich. Die Mutationslast und";
 		text += " MSI-Status sind nicht bestimmbar. Die hier berichteten Varianten wurden vor allem durch eine Senkung des Detektionslimits der Allelfrequenz auf unter 5% detektiert ";
 		text += " und wurden manuell überprüft. Eine Wiederholung der DNA-Isolation aus Tumorgewebe war nicht möglich.\n\n";
-		text += "Es gibt Hinweise auf eine heterogene Probe mit niedrigem Anteil an Tumorzellen. Die Auswertung der Kopienzahlveränderungen ist in diesem Fall limitiert.";
+		text += "Es gibt Hinweise auf eine heterogene Probe. Die Auswertung der Kopienzahlveränderungen ist bei Tumorsubpopulationen mit niedrigem Anteil an Tumorzellen limitiert.";
 		ui_.limitations_text->setPlainText(text);
 	}
 

@@ -101,12 +101,12 @@ private:
 	VariantList gsvarToVcf(const VariantList& gsvar_list, const QString& orig_name);
 
 	///Parses CN to description
-	RtfSourceCode CnvDescription(const CopyNumberVariant& cnv, const SomaticGeneRole& role);
+	RtfSourceCode CnvDescription(const CopyNumberVariant& cnv, const SomaticGeneRole& role, double snv_tumor_af=-1);
 
 	///Parses annotated cytobands to text, "" if not annotation available
 	QByteArray cytoband(const CopyNumberVariant& cnv);
 
-	RtfTableRow overlappingCnv(const CopyNumberVariant& cnv, QByteArray gene, double snv_af, const QList<int>& col_widths);
+	RtfTableRow overlappingCnv(const CopyNumberVariant& cnv, QByteArray gene, const QList<int>& col_widths, double snv_tumor_af);
 
 	///parts of the report
 	///Generates table with genral information
@@ -131,9 +131,13 @@ private:
 	RtfSourceCode partVirusTable();
 	///Generates part with somatic IGV snapshot
 	RtfSourceCode partIgvScreenshot();
-
 	///creates table with SNVs, relevant germline SNPs (class 4/5) and overlapping CNVs
 	RtfTable snvTable(const QSet<int>& indices, bool high_impact_table=true);
+	//creates table with hla_genotyper information
+	RtfTable hlaTable(QString ps_name, QByteArray type);
+
+	QByteArray prepareTranscriptType(QByteArray transcript_type);
+	double getTumorContentBioinf();
 
 	//skipped amplifications in somaticalterationtable
 	GeneSet skipped_amp_ = {};

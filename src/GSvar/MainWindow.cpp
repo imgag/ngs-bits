@@ -1243,6 +1243,17 @@ void MainWindow::on_actionDebug_triggered()
 	{
 
 	}
+	else if (user=="ahott1a1")
+	{
+		QTime timer;
+		timer.start();
+		qDebug() << "starting debug: " << Helper::dateTime();
+
+		//
+
+		qDebug() << "finished debug in: " << Helper::elapsedTime(timer, true);
+
+	}
 
 }
 
