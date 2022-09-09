@@ -898,7 +898,6 @@ RtfSourceCode SomaticRnaReport::trans(QString orig_entry, int font_size) const
 
 void SomaticRnaReport::writeRtf(QByteArray out_file)
 {
-	doc_.setMargins( RtfDocument::cm2twip(2.3) , 1134 , RtfDocument::cm2twip(1.2) , 1134 );
 	doc_.setDefaultFontSize(16);
 
 	doc_.addColor(191,191,191);

@@ -313,6 +313,11 @@ public:
 		return width_ -margin_left_-margin_right_;
 	}
 
+	///Returns RTF header with according to settings (page size, margins, fonts, color, ...)
+	RtfSourceCode header() const;
+	///Returns RTF footer
+	RtfSourceCode footer() const;
+
 private:
 	//page dimensions
 	int width_;
@@ -334,11 +339,6 @@ private:
 
 	//parts between header and footer
 	QList<RtfSourceCode> body_parts_;
-
-	///Returns RTF header according settings of this class
-	RtfSourceCode header();
-	///Returns footer of RTF code
-	RtfSourceCode footer();
 };
 
 
