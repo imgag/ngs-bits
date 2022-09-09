@@ -298,6 +298,23 @@
         <item row="1" column="1">
          <widget class="QComboBox" name="p_type"/>
         </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_33">
+          <property name="text">
+           <string>include archived:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QCheckBox" name="p_include_archived">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>
@@ -582,7 +599,6 @@
   <tabstop>sys_name</tabstop>
   <tabstop>sys_type</tabstop>
   <tabstop>r_name</tabstop>
-  <tabstop>r_bad_quality</tabstop>
   <tabstop>add_disease_details</tabstop>
   <tabstop>add_outcome</tabstop>
   <tabstop>search_btn</tabstop>

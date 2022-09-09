@@ -944,6 +944,7 @@ private slots:
 		params.include_ffpe_samples = false;
 		params.p_name = "KontrollDNACoriell";
 		params.p_type = "test";
+		params.include_archived_projects = false;
 		params.sys_name = "hpHBOCv5";
 		params.sys_type = "Panel Haloplex";
 		params.r_name = "#00372";
@@ -952,7 +953,7 @@ private slots:
 		params.run_finished = true;
 		params.r_before = QDate::fromString("2021-02-19", Qt::ISODate);
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 2);
+		I_EQUAL(ps_table.rowCount(), 0);
 		I_EQUAL(ps_table.columnCount(), 74);
 		//filter based on access rights (restricted user)
 		params = ProcessedSampleSearchParameters();

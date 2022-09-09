@@ -12,9 +12,9 @@ INSERT INTO `device` (`id`, `type`, `name`) VALUES
 INSERT INTO `sender` (`id`, `name`) VALUES
 (1, 'Coriell');
 
-INSERT INTO `project` (`id`, `name`, `type`, `internal_coordinator_id`, `analysis`) VALUES
-(1, 'KontrollDNACoriell', 'test', 1, 'variants'),
-(2, 'Diagnostik', 'test', 1, 'variants');
+INSERT INTO `project` (`id`, `name`, `type`, `internal_coordinator_id`, `analysis`, `archived`) VALUES
+(1, 'KontrollDNACoriell', 'test', 1, 'variants', 1),
+(2, 'Diagnostik', 'test', 1, 'variants', 0);
 
 INSERT INTO `sequencing_run` (`id`, `name`, `fcid`, `start_date`, `device_id`, `recipe`, `status`) VALUES
 (1, '#00372', 'AB2J9', '2021-02-19', 1, '158+8+158', 'analysis_finished');

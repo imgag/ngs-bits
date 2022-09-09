@@ -96,6 +96,7 @@ void SampleSearchWidget::search()
 
 		params.p_name = ui_.p_name->text();
 		params.p_type = ui_.p_type->currentText();
+		params.include_archived_projects = ui_.p_include_archived->isChecked();
 
 		params.sys_name = ui_.sys_name->text();
 		params.sys_type = ui_.sys_type->currentText();
