@@ -176,7 +176,7 @@ private slots:
 		reply.clear();
 		add_headers.clear();
 		add_headers.insert("Accept", "application/json");
-//		add_headers.insert("Authorization", "Bearer "+token.toLocal8Bit());
+//		add_headers.insert("Authorization", "Bearer "+token.toUtf8());
 		code = sendGetRequest(reply, ServerHelper::getServerUrl(true) + "/v1/session?token=" + token, add_headers);
 		QJsonDocument session_json = QJsonDocument::fromJson(reply);
 		IS_TRUE(session_json.isObject());

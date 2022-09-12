@@ -51,7 +51,7 @@ void ApiCaller::addUserTokenIfExists(RequestUrlParams& params)
 {
 	try
 	{
-		params.insert("token", LoginManager::userToken().toLocal8Bit());
+		params.insert("token", LoginManager::userToken().toUtf8());
 	}
 	catch (ProgrammingException& e)
 	{
@@ -63,7 +63,7 @@ void ApiCaller::addDbTokenIfExists(RequestUrlParams& params)
 {
 	try
 	{
-		params.insert("dbtoken", LoginManager::dbToken().toLocal8Bit());
+		params.insert("dbtoken", LoginManager::dbToken().toUtf8());
 	}
 	catch (ProgrammingException& e)
 	{

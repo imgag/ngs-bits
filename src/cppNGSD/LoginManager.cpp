@@ -35,7 +35,7 @@ QByteArray LoginManager::sendPostApiRequest(QString path, QString content, HttpH
 {
 	try
 	{
-		return HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(NGSHelper::serverApiUrl() + path, content.toLocal8Bit(), add_headers);
+		return HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(NGSHelper::serverApiUrl() + path, content.toUtf8(), add_headers);
 	}
 	catch (Exception& e)
 	{

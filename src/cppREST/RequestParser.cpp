@@ -98,7 +98,7 @@ HttpRequest RequestParser::parse(QByteArray *request) const
 
 							// Get parameter value
 							QString param_value;
-							int value_start = multipart_item.indexOf(empty_line.toLocal8Bit());
+							int value_start = multipart_item.indexOf(empty_line.toUtf8());
 							if (value_start > -1)
 							{
 								param_value = multipart_item.mid(value_start+empty_line.length(), multipart_item.length()-(value_start+empty_line.length())).trimmed();
@@ -301,7 +301,7 @@ QString RequestParser::getMultipartFileName(const QByteArray& multipart_item) co
 
 QByteArray RequestParser::getMultipartFileContent(QByteArray& multipart_item) const
 {
-	int content_start = multipart_item.indexOf(empty_line.toLocal8Bit());
+	int content_start = multipart_item.indexOf(empty_line.toUtf8());
 	if (content_start > -1)
 	{
 		// Remove Headers before the content

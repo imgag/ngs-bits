@@ -11,17 +11,17 @@ HttpResponse ServerController::serveEndpointHelp(const HttpRequest& request)
 	{
 		// Locate endpoint by URL and request method
 		QList<Endpoint> selected_endpoints = {EndpointManager::getEndpointByUrlAndMethod(request.getPathItems()[0], HttpUtils::getMethodTypeFromString(request.getPathItems()[1]))};
-		body = EndpointManager::getEndpointHelpTemplate(selected_endpoints).toLocal8Bit();
+		body = EndpointManager::getEndpointHelpTemplate(selected_endpoints).toUtf8();
 	}
 	else if (request.getPathItems().count() == 1)
 	{
 		// For the same URL several request methods may be used: e.g. GET and POST
-		body = EndpointManager::getEndpointHelpTemplate(EndpointManager::getEndpointsByUrl(request.getPathItems()[0])).toLocal8Bit();
+		body = EndpointManager::getEndpointHelpTemplate(EndpointManager::getEndpointsByUrl(request.getPathItems()[0])).toUtf8();
 	}
 	else
 	{
 		// Help for all defined endpoints
-		body = EndpointManager::getEndpointHelpTemplate(EndpointManager::getEndpointEntities()).toLocal8Bit();
+		body = EndpointManager::getEndpointHelpTemplate(EndpointManager::getEndpointEntities()).toUtf8();
 	}
 
 	BasicResponseData response_data;
@@ -200,7 +200,7 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 		response_data.content_type = request.getContentType();
 		response_data.is_downloadable = false;
 
-		return HttpResponse(response_data, text.toLocal8Bit());
+		return HttpResponse(response_data, text.toUtf8());
 	}
 	else if (path_lower=="bam")
 	{
@@ -780,7 +780,7 @@ HttpResponse ServerController::calculateLowCoverage(const HttpRequest& request)
 
 	if (request.getFormUrlEncoded().contains("roi"))
 	{
-		roi = roi.fromText(request.getFormUrlEncoded()["roi"].toLocal8Bit());
+		roi = roi.fromText(request.getFormUrlEncoded()["roi"].toUtf8());
 	}
 	if (request.getFormUrlEncoded().contains("bam_url_id"))
 	{
@@ -795,7 +795,7 @@ HttpResponse ServerController::calculateLowCoverage(const HttpRequest& request)
 
 	if(!low_cov.toText().isEmpty())
 	{
-		QByteArray body = low_cov.toText().toLocal8Bit();
+		QByteArray body = low_cov.toText().toUtf8();
 
 		BasicResponseData response_data;
 		response_data.length = body.length();
@@ -814,7 +814,7 @@ HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 
 	if (request.getFormUrlEncoded().contains("low_cov"))
 	{
-		low_cov = low_cov.fromText(request.getFormUrlEncoded()["low_cov"].toLocal8Bit());
+		low_cov = low_cov.fromText(request.getFormUrlEncoded()["low_cov"].toUtf8());
 	}
 	if (request.getFormUrlEncoded().contains("bam_url_id"))
 	{
@@ -824,7 +824,7 @@ HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 	Statistics::avgCoverage(low_cov, bam_file_name, 1, false);
 	if(!low_cov.toText().isEmpty())
 	{
-		QByteArray body = low_cov.toText().toLocal8Bit();
+		QByteArray body = low_cov.toText().toUtf8();
 
 		BasicResponseData response_data;
 		response_data.length = body.length();
@@ -843,7 +843,7 @@ HttpResponse ServerController::calculateTargetRegionReadDepth(const HttpRequest&
 
 	if (request.getFormUrlEncoded().contains("regions"))
 	{
-		regions = regions.fromText(request.getFormUrlEncoded()["regions"].toLocal8Bit());
+		regions = regions.fromText(request.getFormUrlEncoded()["regions"].toUtf8());
 	}
 	if (request.getFormUrlEncoded().contains("bam_url_id"))
 	{
@@ -857,7 +857,7 @@ HttpResponse ServerController::calculateTargetRegionReadDepth(const HttpRequest&
 	{
 		if (stats[i].accession()=="QC:2000025")
 		{
-			QByteArray body = stats[i].toString().toLocal8Bit();
+			QByteArray body = stats[i].toString().toUtf8();
 			BasicResponseData response_data;
 			response_data.length = body.length();
 			response_data.content_type = request.getContentType();
@@ -875,7 +875,7 @@ HttpResponse ServerController::getMultiSampleAnalysisInfo(const HttpRequest& req
 	qDebug() << "List analysis names";
 	if (request.getFormUrlEncoded().contains("analyses"))
 	{
-		QJsonDocument json_in_doc = QJsonDocument::fromJson(QUrl::fromPercentEncoding(request.getFormUrlEncoded()["analyses"].toLocal8Bit()).toLocal8Bit());
+		QJsonDocument json_in_doc = QJsonDocument::fromJson(QUrl::fromPercentEncoding(request.getFormUrlEncoded()["analyses"].toUtf8()).toUtf8());
 		if (json_in_doc.isArray())
 		{
 			QJsonArray json_in_array = json_in_doc.array();
@@ -933,7 +933,7 @@ HttpResponse ServerController::performLogin(const HttpRequest& request)
 		Session cur_session = Session(db.userId(request.getFormUrlEncoded()["name"]), QDateTime::currentDateTime(), false);
 
 		SessionManager::addNewSession(secure_token, cur_session);
-		QByteArray body = secure_token.toLocal8Bit();
+		QByteArray body = secure_token.toUtf8();
 
 		BasicResponseData response_data;
 		response_data.length = body.length();
@@ -979,7 +979,7 @@ HttpResponse ServerController::validateCredentials(const HttpRequest& request)
 	qDebug() << "Validation of user credentials";	
 	QString message = NGSD().checkPassword(request.getFormUrlEncoded()["name"], request.getFormUrlEncoded()["password"]);
 
-	QByteArray body = message.toLocal8Bit();
+	QByteArray body = message.toUtf8();
 	BasicResponseData response_data;
 	response_data.length = body.length();
 	response_data.content_type = request.getContentType();
@@ -1000,7 +1000,7 @@ HttpResponse ServerController::getDbToken(const HttpRequest& request)
 	Session cur_session = Session(user_session.user_id, QDateTime::currentDateTime(), true);
 	QString db_token = ServerHelper::generateUniqueStr();
 	SessionManager::addNewSession(db_token, cur_session);
-	QByteArray body = db_token.toLocal8Bit();
+	QByteArray body = db_token.toUtf8();
 
 	BasicResponseData response_data;
 	response_data.length = body.length();
@@ -1067,7 +1067,7 @@ HttpResponse ServerController::performLogout(const HttpRequest& request)
 		{
 			return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, request.getContentType(), e.message());
 		}
-		body = request.getFormUrlEncoded()["token"].toLocal8Bit();
+		body = request.getFormUrlEncoded()["token"].toUtf8();
 
 		BasicResponseData response_data;
 		response_data.length = body.length();
@@ -1175,7 +1175,7 @@ QString ServerController::findPathForServerRoot(const QList<QString>& path_parts
 	}
 	QString served_file = server_root.trimmed() + path_parts.join(QDir::separator());
 
-	served_file = QUrl::fromEncoded(served_file.toLocal8Bit()).toString(); // handling browser endcoding, e.g. spaces and other characters in names
+	served_file = QUrl::fromEncoded(served_file.toUtf8()).toString(); // handling browser endcoding, e.g. spaces and other characters in names
 	int param_pos = served_file.indexOf("?");
 	if (param_pos > -1) served_file = served_file.left(param_pos);
 	if (QFile(served_file).exists()) return served_file;
@@ -1267,11 +1267,11 @@ HttpResponse ServerController::createStaticFolderResponse(const QString path, co
 	stream << HtmlEngine::getPageFooter();
 
 	BasicResponseData response_data;
-	response_data.length = output.toLocal8Bit().length();
+	response_data.length = output.toUtf8().length();
 	response_data.is_stream = false;
 	response_data.content_type = ContentType::TEXT_HTML;
 
-	return HttpResponse(response_data, output.toLocal8Bit());
+	return HttpResponse(response_data, output.toUtf8());
 }
 
 HttpResponse ServerController::createStaticLocationResponse(const QString path, const HttpRequest& request)

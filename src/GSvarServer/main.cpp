@@ -326,7 +326,7 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::POST,
 						ContentType::TEXT_PLAIN,
-						AuthType::NONE,
+						AuthType::USER_TOKEN,
 						"Calculates low coverage regions",
 						&ServerController::calculateLowCoverage
 					});
@@ -340,7 +340,7 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::POST,
 						ContentType::TEXT_PLAIN,
-						AuthType::NONE,
+						AuthType::USER_TOKEN,
 						"Calculates average coverage for gaps",
 						&ServerController::calculateAvgCoverage
 					});
@@ -354,7 +354,7 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::POST,
 						ContentType::TEXT_PLAIN,
-						AuthType::NONE,
+						AuthType::USER_TOKEN,
 						"Calculates target region read depth used in germline report",
 						&ServerController::calculateTargetRegionReadDepth
 					});

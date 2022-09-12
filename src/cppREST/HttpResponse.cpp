@@ -19,7 +19,7 @@ HttpResponse::HttpResponse(BasicResponseData data, QByteArray payload)
 HttpResponse::HttpResponse(ResponseStatus status, ContentType content_type, qlonglong content_length)
 {
 	setStatus(status);
-	addHeader("Content-Type: " + HttpUtils::convertContentTypeToString(content_type).toLocal8Bit() + "\r\n");
+	addHeader("Content-Type: " + HttpUtils::convertContentTypeToString(content_type).toUtf8() + "\r\n");
 	addHeader("Content-Length: " + QByteArray::number(content_length) + "\r\n");
 	addHeader("\r\n");
 	setIsStream(false);
@@ -41,7 +41,7 @@ HttpResponse::HttpResponse(ResponseStatus status, ContentType content_type, QStr
 																+ " " + QString::number(status_code_number)
 																+ " - " + HttpUtils::convertResponseStatusToReasonPhrase(status),
 																message);
-			setPayload(html_body.toLocal8Bit());
+			setPayload(html_body.toUtf8());
 		}
 		break;
 		case ContentType::APPLICATION_JSON:
@@ -59,13 +59,13 @@ HttpResponse::HttpResponse(ResponseStatus status, ContentType content_type, QStr
 		default:
 		{
 			content_type = ContentType::TEXT_PLAIN;
-			setPayload(message.toLocal8Bit());
+			setPayload(message.toUtf8());
 		}
 	}
 
 	setStatus(status);
 	addHeader("Content-Length: " + QByteArray::number(getContentLength()) + "\r\n");
-	addHeader("Content-Type: " + HttpUtils::convertContentTypeToString(content_type).toLocal8Bit() + "\r\n");
+	addHeader("Content-Type: " + HttpUtils::convertContentTypeToString(content_type).toUtf8() + "\r\n");
 
 	if (HttpUtils::convertResponseStatusToStatusCodeNumber(status) == 401)
 	{
@@ -119,7 +119,7 @@ QList<ByteRange> HttpResponse::getByteRanges() const
 QByteArray HttpResponse::getStatusLine() const
 {
 	return "HTTP/1.1 " + QByteArray::number(HttpUtils::convertResponseStatusToStatusCodeNumber(response_status_))
-			+ " " + HttpUtils::convertResponseStatusToReasonPhrase(response_status_).toLocal8Bit() + "\r\n";
+			+ " " + HttpUtils::convertResponseStatusToReasonPhrase(response_status_).toUtf8() + "\r\n";
 }
 
 int HttpResponse::getStatusCode() const
@@ -177,7 +177,7 @@ void HttpResponse::readBasicResponseData(BasicResponseData data)
 	{
 		setStatus(ResponseStatus::PARTIAL_CONTENT);
 		data.boundary = ServerHelper::generateUniqueStr();
-		setBoundary(data.boundary.toLocal8Bit());
+		setBoundary(data.boundary.toUtf8());
 	}
 
 	setIsStream(data.is_stream);
@@ -193,7 +193,7 @@ QByteArray HttpResponse::generateRegularHeaders(BasicResponseData data)
 {
 	QString content_type = "Content-Type: " + HttpUtils::convertContentTypeToString(data.content_type) + "\r\n";
 	QByteArray headers;
-	headers.append("Date: " + QDateTime::currentDateTime().toUTC().toString().toLocal8Bit() + "\r\n");
+	headers.append("Date: " + QDateTime::currentDateTime().toUTC().toString().toUtf8() + "\r\n");
 
 	if (data.byte_ranges.count() > 0)
 	{
@@ -204,7 +204,7 @@ QByteArray HttpResponse::generateRegularHeaders(BasicResponseData data)
 			QString range_header = "Content-Range: bytes " + QString::number(data.byte_ranges[i].start) + "-" + QString::number(data.byte_ranges[i].end) + "/" + QString::number(data.file_size) + "\r\n";
 			if (data.byte_ranges.count() == 1)
 			{
-				headers.append(range_header.toLocal8Bit());
+				headers.append(range_header.toUtf8());
 				break;
 			}
 			if (data.byte_ranges.count() > 1)
@@ -218,7 +218,7 @@ QByteArray HttpResponse::generateRegularHeaders(BasicResponseData data)
 		if (data.byte_ranges.count() > 1)
 		{
 			metadata_length = 2 + metadata_length + 2 + data.boundary.length() + 2 + 2;
-			headers.append("Content-Type: multipart/byteranges; boundary=" + data.boundary.toLocal8Bit() + "\r\n");
+			headers.append("Content-Type: multipart/byteranges; boundary=" + data.boundary.toUtf8() + "\r\n");
 		}
 
 		headers.append("Accept-Ranges: bytes\r\n");
@@ -228,7 +228,7 @@ QByteArray HttpResponse::generateRegularHeaders(BasicResponseData data)
 	else
 	{
 		headers.append("Content-Length: " + QByteArray::number(data.length) + "\r\n");
-		headers.append(content_type.toLocal8Bit());
+		headers.append(content_type.toUtf8());
 		headers.append("Connection: Keep-Alive\r\n");
 	}
 
@@ -243,7 +243,7 @@ QByteArray HttpResponse::generateRegularHeaders(BasicResponseData data)
 	}
 	if (data.is_downloadable)
 	{
-		headers.append("Content-Disposition: form-data; name=file_download; filename=" + getFileNameWithExtension(data.filename).toLocal8Bit() + "\r\n");
+		headers.append("Content-Disposition: form-data; name=file_download; filename=" + getFileNameWithExtension(data.filename).toUtf8() + "\r\n");
 	}
 
 	headers.append("\r\n");
@@ -253,14 +253,14 @@ QByteArray HttpResponse::generateRegularHeaders(BasicResponseData data)
 QByteArray HttpResponse::generateChunkedStreamHeaders(BasicResponseData data)
 {
 	QByteArray headers;
-	headers.append("Date: " + QDateTime::currentDateTime().toUTC().toString().toLocal8Bit() + "\r\n");
-	headers.append("Content-Type: " + HttpUtils::convertContentTypeToString(data.content_type).toLocal8Bit() + "\r\n");
+	headers.append("Date: " + QDateTime::currentDateTime().toUTC().toString().toUtf8() + "\r\n");
+	headers.append("Content-Type: " + HttpUtils::convertContentTypeToString(data.content_type).toUtf8() + "\r\n");
 	headers.append("Connection: Keep-Alive\r\n");
 	headers.append("Transfer-Encoding: chunked\r\n");
 
 	if (data.is_downloadable)
 	{
-		headers.append("Content-Disposition: form-data; name=file_download; filename=" + getFileNameWithExtension(data.filename).toLocal8Bit() + "\r\n");
+		headers.append("Content-Disposition: form-data; name=file_download; filename=" + getFileNameWithExtension(data.filename).toUtf8() + "\r\n");
 	}
 
 	headers.append("\r\n");
@@ -270,7 +270,7 @@ QByteArray HttpResponse::generateChunkedStreamHeaders(BasicResponseData data)
 QByteArray HttpResponse::generateRangeNotSatisfiableHeaders(BasicResponseData data)
 {
 	QByteArray headers;
-	headers.append("Date: " + QDateTime::currentDateTime().toUTC().toString().toLocal8Bit() + "\r\n");
+	headers.append("Date: " + QDateTime::currentDateTime().toUTC().toString().toUtf8() + "\r\n");
 	headers.append("Content-Range: bytes */" + QByteArray::number(data.file_size) + "\r\n");
 	headers.append("\r\n");
 	return headers;
