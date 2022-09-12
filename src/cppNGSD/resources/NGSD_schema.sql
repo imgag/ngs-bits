@@ -490,7 +490,8 @@ CREATE  TABLE IF NOT EXISTS `project`
   `analysis` ENUM('fastq','mapping','variants') NOT NULL DEFAULT 'variants' COMMENT 'Bioinformatics analysis to be done for non-tumor germline samples in this project.<br>"fastq" skips the complete analysis.<br>"mapping" creates the BAM file but calls no variants.<br>"variants" performs the full analysis.',
   `preserve_fastqs` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Prevents FASTQ files from being deleted after mapping in this project.<br>Has no effect if megSAP is not configured to delete FASTQs automatically.<br>For diagnostics, do not check. For other project types ask the bioinformatician in charge.',
   `email_notification` varchar(200) DEFAULT NULL COMMENT 'List of email addresses (separated by semicolon) that are notified in addition to the project coordinator when new samples are available.',
-  PRIMARY KEY (`id`),
+  `archived` TINYINT(1) NOT NULL DEFAULT 0,
+PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC),
   INDEX `internal_coordinator_id` (`internal_coordinator_id` ASC),
   CONSTRAINT `project_ibfk_1`
@@ -1441,6 +1442,8 @@ CREATE TABLE IF NOT EXISTS `report_configuration_variant`
   `comments` text NOT NULL,
   `comments2` text NOT NULL,
   `rna_info` ENUM( 'n/a', 'splicing effect validated by RNA dataset', 'no splicing effect found in RNA dataset', 'RNA dataset not usable') NOT NULL DEFAULT 'n/a',
+  `manual_var` TEXT DEFAULT NULL,
+  `manual_genotype` ENUM('hom','het') DEFAULT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_report_configuration`
     FOREIGN KEY (`report_configuration_id` )
@@ -1568,6 +1571,9 @@ CREATE TABLE IF NOT EXISTS `report_configuration_cnv`
   `comments` text NOT NULL,
   `comments2` text NOT NULL,
   `rna_info` ENUM( 'n/a', 'splicing effect validated by RNA dataset', 'no splicing effect found in RNA dataset', 'RNA dataset not usable') NOT NULL DEFAULT 'n/a',
+  `manual_start` INT(11) DEFAULT NULL,
+  `manual_end` INT(11) DEFAULT NULL,
+  `manual_cn` INT(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_report_configuration2`
     FOREIGN KEY (`report_configuration_id` )
@@ -1770,6 +1776,11 @@ CREATE TABLE IF NOT EXISTS `report_configuration_sv`
   `comments` text NOT NULL,
   `comments2` text NOT NULL,
   `rna_info` ENUM( 'n/a', 'splicing effect validated by RNA dataset', 'no splicing effect found in RNA dataset', 'RNA dataset not usable') NOT NULL DEFAULT 'n/a',
+  `manual_start` INT(11) DEFAULT NULL,
+  `manual_end` INT(11) DEFAULT NULL,
+  `manual_genotype` ENUM('hom','het') DEFAULT NULL,
+  `manual_start_bnd` INT(11) DEFAULT NULL,
+  `manual_end_bnd` INT(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_report_configuration3`
     FOREIGN KEY (`report_configuration_id` )

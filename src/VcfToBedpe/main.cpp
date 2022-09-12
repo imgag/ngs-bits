@@ -11,7 +11,6 @@
 #include "VcfToBedpe.h"
 #include "BedpeFile.h"
 
-
 class ConcreteTool
 		: public ToolBase
 {

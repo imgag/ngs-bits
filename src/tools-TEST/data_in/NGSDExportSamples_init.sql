@@ -17,10 +17,10 @@ INSERT INTO sender (id, name) VALUES
 (1, 'Klaus-Erhard');
 
 -- project
-INSERT INTO project (id, name, type, internal_coordinator_id, analysis) VALUES 
-(1, 'First_project', 'research', 1, 'variants'),
-(2, 'Second_project', 'diagnostic', 1, 'variants'),
-(3, 'Third_project', 'diagnostic', 1, 'variants');
+INSERT INTO project (id, name, type, internal_coordinator_id, analysis, archived) VALUES 
+(1, 'First_project', 'research', 1, 'variants', 0),
+(2, 'Second_project', 'diagnostic', 1, 'variants', 1),
+(3, 'Third_project', 'diagnostic', 1, 'variants', 0);
 
 -- processing_system
 INSERT INTO processing_system (id, name_manufacturer, shotgun, name_short, genome_id) VALUES

@@ -117,7 +117,7 @@ FastqFileStream::FastqFileStream(QString filename, bool auto_validate)
     , entry_index_(-1)
     , auto_validate_(auto_validate)
 {
-    gzfile_ = gzopen(filename.toLatin1().data(), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
+    gzfile_ = gzopen(filename.toUtf8().data(), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
     if (gzfile_ == NULL)
     {
 		THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
@@ -196,7 +196,7 @@ FastqOutfileStream::FastqOutfileStream(QString filename, int compression_level, 
 	: filename_(filename)
 	, is_closed_(false)
 {
-	gzfile_ = gzopen(filename.toLatin1().data(), "wb");
+	gzfile_ = gzopen(filename.toUtf8().data(), "wb");
     if (gzfile_ == NULL)
     {
         THROW(FileAccessException, "Could not open file '" + filename + "' for writing!");

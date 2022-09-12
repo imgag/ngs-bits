@@ -209,7 +209,7 @@ void VariantTable::customContextMenu(QPoint pos)
 
 
 	//perform actions:
-	QByteArray text = action->text().toLatin1();
+	QByteArray text = action->text().toUtf8();
 	QMenu* parent_menu = qobject_cast<QMenu*>(action->parent());
 
 
@@ -303,7 +303,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	{
 		QDesktopServices::openUrl(QUrl("https://pubmed.ncbi.nlm.nih.gov/?term=" + text));
 	}
-	else if (parent_menu && genes.contains(parent_menu->title().toLatin1())) //gene menus
+	else if (parent_menu && genes.contains(parent_menu->title().toUtf8())) //gene menus
 	{
 		QString gene = parent_menu->title();
 

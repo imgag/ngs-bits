@@ -14,9 +14,14 @@ SequencingRunOverview::SequencingRunOverview(QWidget *parent)
 {
 	ui_.setupUi(this);
 	connect(ui_.text_filter, SIGNAL(returnPressed()), this, SLOT(updateTable()));
-	connect(ui_.text_filter_btn, SIGNAL(clicked(bool)), this, SLOT(updateTable()));
+	connect(ui_.project_type, SIGNAL(currentIndexChanged(int)), this, SLOT(updateTable()));
+	connect(ui_.update_btn, SIGNAL(clicked(bool)), this, SLOT(updateTable()));
 	connect(ui_.add_btn, SIGNAL(clicked(bool)), this, SLOT(addRun()));
 	connect(ui_.table, SIGNAL(rowDoubleClicked(int)), this, SLOT(openRunTab(int)));
+
+	//project type filter
+	ui_.project_type->addItem("");
+	ui_.project_type->addItems(NGSD().getEnum("project", "type"));
 
 	//table context menu
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_run.png"), "Open sequencing run tab");
@@ -44,6 +49,14 @@ void SequencingRunOverview::updateTable()
 	//create table
 	NGSD db;
 	DBTable table = db.createOverviewTable("sequencing_run", ui_.text_filter->text(), "name DESC");
+
+	//project type filter
+	if (ui_.project_type->currentText()!="")
+	{
+		QStringList runs = db.getValues("SELECT DISTINCT r.name FROM sequencing_run r, processed_sample ps, project p WHERE r.id=ps.sequencing_run_id AND ps.project_id=p.id AND p.type='" + ui_.project_type->currentText() + "'");
+		int c = table.columnIndex("name");
+		table.filterRowsByColumn(c, runs);
+	}
 
 	//add sample count column (before status)
 	QHash<QString, QString> counts;

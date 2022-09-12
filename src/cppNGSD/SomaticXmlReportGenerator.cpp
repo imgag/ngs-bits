@@ -511,16 +511,15 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	w.writeAttribute("format", "RTF");
 	w.writeEndElement();
 
-	writeReportPartsElement(w, "summary", data.rtf_part_summary);
-	writeReportPartsElement(w, "relevant_variants", data.rtf_part_relevant_variants);
-	writeReportPartsElement(w, "unclear_variants", data.rtf_part_unclear_variants);
-	writeReportPartsElement(w, "cnvs", data.rtf_part_cnvs);
-	writeReportPartsElement(w, "svs", data.rtf_part_svs);
-	writeReportPartsElement(w, "pharmaco_genetics", data.rtf_part_pharmacogenetics);
-	writeReportPartsElement(w, "general_info", data.rtf_part_general_info);
-	writeReportPartsElement(w, "igv_screenshot", data.rtf_part_igv_screenshot);
-	writeReportPartsElement(w, "mtb_summary", data.rtf_part_mtb_summary);
-
+	writeReportPartsElement(w, "summary", data.rtf_part_header+data.rtf_part_summary+data.rtf_part_footer);
+	writeReportPartsElement(w, "relevant_variants", data.rtf_part_header+data.rtf_part_relevant_variants+data.rtf_part_footer);
+	writeReportPartsElement(w, "unclear_variants", data.rtf_part_header+data.rtf_part_unclear_variants+data.rtf_part_footer);
+	writeReportPartsElement(w, "cnvs", data.rtf_part_header+data.rtf_part_cnvs+data.rtf_part_footer);
+	writeReportPartsElement(w, "svs", data.rtf_part_header+data.rtf_part_svs+data.rtf_part_footer);
+	writeReportPartsElement(w, "pharmaco_genetics", data.rtf_part_header+data.rtf_part_pharmacogenetics+data.rtf_part_footer);
+	writeReportPartsElement(w, "general_info", data.rtf_part_header+data.rtf_part_general_info+data.rtf_part_footer);
+	writeReportPartsElement(w, "igv_screenshot", data.rtf_part_header+data.rtf_part_igv_screenshot+data.rtf_part_footer);
+	writeReportPartsElement(w, "mtb_summary", data.rtf_part_header+data.rtf_part_mtb_summary+data.rtf_part_footer);
 
 
 	//End Element SomaticNgsReport
@@ -544,8 +543,8 @@ void SomaticXmlReportGenerator::validateXml(QString file_name)
 void SomaticXmlReportGenerator::writeReportPartsElement(QXmlStreamWriter &w, QString name, RtfSourceCode rtf_part)
 {
 	w.writeStartElement("ReportDocumentParts");
-		w.writeAttribute("name", name);
-		w.writeAttribute("format", "RTF");
-		w.writeCharacters(rtf_part.toBase64());
+	w.writeAttribute("name", name);
+	w.writeAttribute("format", "RTF");
+	w.writeCharacters(rtf_part.toBase64());
 	w.writeEndElement();
 }

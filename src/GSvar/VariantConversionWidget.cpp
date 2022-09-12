@@ -100,14 +100,13 @@ void VariantConversionWidget::convert()
 				if (parts.count()<5) THROW(ArgumentException, "Invalid VCF variant '" + line + "' - too few tab-separated parts!");
 
 				int start = Helper::toInt(parts[1], "VCF start position", line);
-				Sequence ref_bases = parts[3].toLatin1().toUpper();
+				Sequence ref_bases = parts[3].toUtf8().toUpper();
 				int end = start + ref_bases.length()-1;
 
-				Variant variant(parts[0], start, end, ref_bases, parts[4].toLatin1().toUpper());
+				Variant variant(parts[0], start, end, ref_bases, parts[4].toUtf8().toUpper());
 				variant.normalize("-", true);
 
-				variant.checkValid();
-				if (variant.ref()!="-") variant.checkReferenceSequence(ref_genome_idx);
+				variant.checkValid(ref_genome_idx);
 
 				output << variant.toString(true, -1, true).replace(" ", "\t");
 			}
@@ -140,7 +139,7 @@ void VariantConversionWidget::convert()
 						transcript_name = transcript_name.left(transcript_name.indexOf('.'));
 					}
 
-					foreach(const QByteArray& match, matches[transcript_name.toLocal8Bit()])
+					foreach(const QByteArray& match, matches[transcript_name.toUtf8()])
 					{
 						int match_id = db.transcriptId(match, false);
 						if (match_id!=-1)
@@ -153,8 +152,7 @@ void VariantConversionWidget::convert()
 				Transcript transcript = db.transcript(trans_id);
 				Variant variant = transcript.hgvsToVariant(hgvs_c, ref_genome_idx);
 
-				variant.checkValid();
-				if (variant.ref()!="-") variant.checkReferenceSequence(ref_genome_idx);
+				variant.checkValid(ref_genome_idx);
 
 				output << variant.toString(true, -1, true).replace(" ", "\t");
 			}
@@ -177,8 +175,8 @@ void VariantConversionWidget::convert()
 
 				int start = Helper::toInt(parts[1], "GSvar start position", line);
 				int end = Helper::toInt(parts[2], "GSvar end position", line);
-				Sequence ref = parts[3].toLatin1().toUpper().trimmed();
-				Sequence obs = parts[4].toLatin1().toUpper().trimmed();
+				Sequence ref = parts[3].toUtf8().toUpper().trimmed();
+				Sequence obs = parts[4].toUtf8().toUpper().trimmed();
 
 				VariantVcfRepresentation vcf_rep = Variant(parts[0], start, end, ref, obs).toVCF(idx);
 				output << vcf_rep.chr.str() + "\t" + QString::number(vcf_rep.pos) + "\t.\t" + vcf_rep.ref + "\t" + vcf_rep.alt + "\t30\tPASS\t.";

@@ -51,7 +51,7 @@ public:
 			if (hpo_id.isEmpty()) continue;
 			
 			//determine phenotype
-			int term_id = db.phenotypeIdByAccession(hpo_id.toLatin1(), false);
+			int term_id = db.phenotypeIdByAccession(hpo_id.toUtf8(), false);
 			if (term_id==-1)
 			{
 				Log::warn("No HPO phenotype with accession '" + hpo_id + "' found in NGSD!");

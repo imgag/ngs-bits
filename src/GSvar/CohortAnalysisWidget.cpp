@@ -145,7 +145,7 @@ void CohortAnalysisWidget::updateOutputTable()
 				const QByteArray& gene = it.key();
 				addTableItem(r, 0, QString(gene));
 				addTableItem(r, 1, ps_ids.count());
-				int base_count = db.longestCodingTranscript(db.geneId(gene), Transcript::ENSEMBL, true, true).regions().baseCount();
+				int base_count = db.bestTranscript(db.geneId(gene)).regions().baseCount();
 				addTableItem(r, 2, base_count);
 				GeneInfo gene_info = db.geneInfo(gene);
 				addTableItem(r, 3, gene_info.oe_lof);

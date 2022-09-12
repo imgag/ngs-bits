@@ -745,7 +745,7 @@ void MainWindow::on_actionDebug_triggered()
 			if (!ps_ids_with_variants_imported.contains(ps_id))
 			{
 				QString ps_id_str = QString::number(ps_id);
-				QString rc_id = db.getValue("SELECT id FROM report_configuration WHERE processed_sample_id=:0",false, ps_id_str).toString();
+				QString rc_id = db.reportConfigId(ps_id_str);
 				qDebug() << "Deleting " << db.processedSampleName(ps_id_str) << "ps_id=" << ps_id_str  << "rc_id=" << rc_id;
 				db.getQuery().exec("DELETE FROM `report_configuration_variant` WHERE `report_configuration_id`='"+rc_id+"'");
 			}
@@ -808,7 +808,7 @@ void MainWindow::on_actionDebug_triggered()
 		foreach(QString gene, genes)
 		{
 			qDebug() << ++c_gene << gene;
-			int gene_id = db.geneToApprovedID(gene.toLatin1());
+			int gene_id = db.geneToApprovedID(gene.toUtf8());
 			if (gene_id==-1)
 			{
 				stream << "##" << gene << ": skipped - no approved gene name\n";
@@ -1082,11 +1082,11 @@ void MainWindow::on_actionDebug_triggered()
 		{
 			QString ps_id = db.processedSampleId(ps);
 			QString text;
-			QVariant rc_id = db.getValue("SELECT id FROM report_configuration WHERE processed_sample_id=:0", true, ps_id);
-			if (rc_id.isValid())
+			int rc_id = db.reportConfigId(ps_id);
+			if (rc_id!=-1)
 			{
 				//find causal small variants
-				QStringList causal_ids = db.getValues("SELECT variant_id FROM report_configuration_variant WHERE causal='0' AND exclude_artefact='0' AND exclude_frequency='0' AND exclude_phenotype='0' AND exclude_mechanism='0' AND exclude_other='0' AND report_configuration_id=" + rc_id.toString());
+				QStringList causal_ids = db.getValues("SELECT variant_id FROM report_configuration_variant WHERE causal='0' AND exclude_artefact='0' AND exclude_frequency='0' AND exclude_phenotype='0' AND exclude_mechanism='0' AND exclude_other='0' AND report_configuration_id=" + QString::number(rc_id));
 				foreach(QString id, causal_ids)
 				{
 					Variant var = db.variant(id);
@@ -1099,7 +1099,7 @@ void MainWindow::on_actionDebug_triggered()
 				}
 
 				//find causal CNVs
-				causal_ids = db.getValues("SELECT cnv_id FROM report_configuration_cnv WHERE  causal='0' AND exclude_artefact='0' AND exclude_frequency='0' AND exclude_phenotype='0' AND exclude_mechanism='0' AND exclude_other='0' AND report_configuration_id=" + rc_id.toString());
+				causal_ids = db.getValues("SELECT cnv_id FROM report_configuration_cnv WHERE  causal='0' AND exclude_artefact='0' AND exclude_frequency='0' AND exclude_phenotype='0' AND exclude_mechanism='0' AND exclude_other='0' AND report_configuration_id=" + QString::number(rc_id));
 				foreach(QString id, causal_ids)
 				{
 					CopyNumberVariant var = db.cnv(id.toInt());
@@ -1116,7 +1116,7 @@ void MainWindow::on_actionDebug_triggered()
 				BedpeFile svs;
 				for (int i = 0; i < sv_id_columns.size(); ++i)
 				{
-					causal_ids = db.getValues("SELECT " + sv_id_columns.at(i) + " FROM report_configuration_sv WHERE  causal='0' AND exclude_artefact='0' AND exclude_frequency='0' AND exclude_phenotype='0' AND exclude_mechanism='0' AND exclude_other='0' AND report_configuration_id=" + rc_id.toString() + " AND " + sv_id_columns.at(i) + " IS NOT NULL");
+					causal_ids = db.getValues("SELECT " + sv_id_columns.at(i) + " FROM report_configuration_sv WHERE  causal='0' AND exclude_artefact='0' AND exclude_frequency='0' AND exclude_phenotype='0' AND exclude_mechanism='0' AND exclude_other='0' AND report_configuration_id=" + QString::number(rc_id) + " AND " + sv_id_columns.at(i) + " IS NOT NULL");
 
 					foreach(QString id, causal_ids)
 					{
@@ -1157,7 +1157,7 @@ void MainWindow::on_actionDebug_triggered()
 		QStringList lines = Helper::loadTextFile(filename, true, '#', true);
 		foreach(const QString& line, lines)
 		{
-			QByteArrayList parts = line.toLatin1().replace(',', '\t').split('\t');
+			QByteArrayList parts = line.toUtf8().replace(',', '\t').split('\t');
 			if (parts.count()>=2)
 			{
 				QByteArray gene = parts[0].trimmed();
@@ -1241,6 +1241,17 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahschul1")
 	{
+
+	}
+	else if (user=="ahott1a1")
+	{
+		QTime timer;
+		timer.start();
+		qDebug() << "starting debug: " << Helper::dateTime();
+
+		//
+
+		qDebug() << "finished debug in: " << Helper::elapsedTime(timer, true);
 
 	}
 
@@ -2553,7 +2564,7 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 			foreach(QString command, init_commands)
 			{
 				if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;				
-				socket.write((command + "\n").toLatin1());
+				socket.write((command + "\n").toUtf8());
 				bool ok = socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)
 				QString answer = socket.readAll().trimmed();
 				if (!ok || answer!="OK")
@@ -2646,7 +2657,7 @@ void MainWindow::editVariantValidation(int index)
 			dlg.store();
 
 			//update variant table
-			QByteArray status = dlg.status().toLatin1();
+			QByteArray status = dlg.status().toUtf8();
 			if (status=="true positive") status = "TP";
 			if (status=="false positive") status = "FP";
 			int i_validation = variants_.annotationIndexByName("validation", true, true);
@@ -2686,7 +2697,7 @@ void MainWindow::editVariantComment(int index)
 		}
 
 		bool ok = true;
-		QByteArray text = QInputDialog::getMultiLineText(this, "Variant comment", "Text: ", db.comment(variant), &ok).toLatin1();
+		QByteArray text = QInputDialog::getMultiLineText(this, "Variant comment", "Text: ", db.comment(variant), &ok).toUtf8();
 
 		if (ok)
 		{
@@ -3238,11 +3249,11 @@ void MainWindow::openGeneTab(QString symbol)
 		return;
 	}
 
-	GeneWidget* widget = new GeneWidget(this, symbol.toLatin1());
+	GeneWidget* widget = new GeneWidget(this, symbol.toUtf8());
 	int index = openTab(QIcon(":/Icons/NGSD_gene.png"), symbol, widget);
 	if (Settings::boolean("debug_mode_enabled"))
 	{
-		ui_.tabs->setTabToolTip(index, "NGSD ID: " + QString::number(NGSD().geneId(symbol.toLatin1())));
+		ui_.tabs->setTabToolTip(index, "NGSD ID: " + QString::number(NGSD().geneId(symbol.toUtf8())));
 	}
 }
 
@@ -5120,7 +5131,7 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 			if (db.getSampleData(db.sampleId(relation.first)).is_tumor)
 			{
 				// add relation
-				db.addSampleRelation(SampleRelation{relation.first.toLatin1(), "tumor-cfDNA", relation.second.toLatin1()}, true);
+				db.addSampleRelation(SampleRelation{relation.first.toUtf8(), "tumor-cfDNA", relation.second.toUtf8()}, true);
 				imported_relations++;
 			}
 			else
@@ -5614,7 +5625,7 @@ void MainWindow::on_actionImportMids_triggered()
 void MainWindow::on_actionImportStudy_triggered()
 {
 	importBatch("Import study",
-				"Batch import of stamples to studies. Please enter study, processed sample and study-specific name of sample:<br>Example:<br><br>SomeStudy → NA12345_01 → NameOfSampleInStudy",
+				"Batch import of stamples to studies. Please enter study, processed sample and study-specific name of sample (can be empty).<br>Example:<br><br>SomeStudy → NA12345_01 → NameOfSampleInStudy",
 				 "study_sample",
 				QStringList() << "study_id" << "processed_sample_id" << "study_sample_idendifier"
 				);
@@ -5814,7 +5825,7 @@ void MainWindow::on_actionGapsLookup_triggered()
 			BedFile sys_regions = GlobalServiceProvider::database().processingSystemRegions(sys_id, false);
 			if (!sys_regions.isEmpty())
 			{
-				BedFile region = db.geneToRegions(gene.toLatin1(), Transcript::ENSEMBL, "gene");
+				BedFile region = db.geneToRegions(gene.toUtf8(), Transcript::ENSEMBL, "gene");
 				region.merge();
 				if (region.count()==0)
 				{
@@ -6263,8 +6274,8 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 	if (!LoginManager::active()) return;
 
 	//get variant index
-	int row = ui_.vars->verticalHeader()->visualIndexAt(pos.ry());
-	int index = ui_.vars->rowToVariantIndex(row);
+	int index = ui_.vars->selectedVariantIndex();
+	if(index==-1) return; //several variants selected
 
 	//set up menu
 	QMenu menu(ui_.vars->verticalHeader());
@@ -6453,13 +6464,13 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 			//update variant list classification
 			int i_som_class = variants.annotationIndexByName("somatic_classification");
 			QString new_class = class_info.classification.replace("n/a", "");
-			variant.annotations()[i_som_class] = new_class.toLatin1();
+			variant.annotations()[i_som_class] = new_class.toUtf8();
 
 			markVariantListChanged(variant, "somatic_classification", new_class);
 
 			//update variant list classification comment
 			int i_som_class_comment = variants.annotationIndexByName("somatic_classification_comment");
-			variant.annotations()[i_som_class_comment] = class_info.comments.toLatin1();
+			variant.annotations()[i_som_class_comment] = class_info.comments.toUtf8();
 
 			markVariantListChanged(variant, "somatic_classification_comment", class_info.comments);
 
@@ -6471,13 +6482,13 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 			//update variant list classification
 			int i_class = variants.annotationIndexByName("classification");
 			QString new_class = class_info.classification.replace("n/a", "");
-			variant.annotations()[i_class] = new_class.toLatin1();
+			variant.annotations()[i_class] = new_class.toUtf8();
 
 			markVariantListChanged(variant, "classification", new_class);
 
 			//update variant list classification comment
 			int i_class_comment = variants.annotationIndexByName("classification_comment");
-			variant.annotations()[i_class_comment] = class_info.comments.toLatin1();
+			variant.annotations()[i_class_comment] = class_info.comments.toUtf8();
 
 			markVariantListChanged(variant, "classification_comment", class_info.comments);
 		}
@@ -6729,7 +6740,7 @@ void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done)
 		foreach(QString command, commands)
 		{
 			if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;
-			socket.write((command + "\n").toLatin1());
+			socket.write((command + "\n").toUtf8());
 			bool ok = socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)
 			QString answer = socket.readAll().trimmed();
 			if (!ok || answer!="OK")

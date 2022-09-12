@@ -38,10 +38,10 @@ public:
 		{
 			in = Helper::loadTextFile(in[0], true, '#', true);
 		}
-		QByteArrayList cols = getString("cols").toLatin1().split(',');
+		QByteArrayList cols = getString("cols").toUtf8().split(',');
 		bool numeric = getFlag("numeric");
 		bool simple = getFlag("simple");
-		QByteArray missing_value = getString("mv").toLatin1();
+		QByteArray missing_value = getString("mv").toUtf8();
 		QSharedPointer<QFile> outstream = Helper::openFileForWriting(getOutfile("out"), true);
 
 		if (simple) //simple mode

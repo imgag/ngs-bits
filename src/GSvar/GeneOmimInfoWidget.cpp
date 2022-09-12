@@ -36,11 +36,11 @@ void GeneOmimInfoWidget::updateTable()
 		ui_.table->setItem(row, 0, GUIHelper::createTableItem(gene));
 
 		//approved symbol
-		QString gene_approved = db.geneToApproved(gene.toLatin1(), false);
+		QString gene_approved = db.geneToApproved(gene.toUtf8(), false);
 		ui_.table->setItem(row, 1, GUIHelper::createTableItem(gene_approved));
 
 		//OMIM
-		QList<OmimInfo> omim_infos = db.omimInfo(gene.toLatin1());
+		QList<OmimInfo> omim_infos = db.omimInfo(gene.toUtf8());
 		for(int i=0; i<omim_infos.count(); ++i)
 		{
 			if (i>0)

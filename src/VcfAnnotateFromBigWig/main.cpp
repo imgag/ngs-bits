@@ -138,7 +138,7 @@ public:
 								vcf_line_idx++;
 							}
 							vcf_line_idx = 0;
-							analysis_pool.start(new ChunkProcessor(job, name.toLatin1(), desc.toLatin1(), bw_path.toLatin1(), mode));
+							analysis_pool.start(new ChunkProcessor(job, name.toUtf8(), desc.toUtf8(), bw_path.toUtf8(), mode));
 							++current_chunk;
 							break;
 

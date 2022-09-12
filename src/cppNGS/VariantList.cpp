@@ -153,16 +153,33 @@ void Variant::checkValid() const
 	{
 		THROW(ArgumentException, "Invalid variant observed sequence in variant '" + toString() + "'");
 	}
+
+	if (ref()==obs())
+	{
+		THROW(ArgumentException, "Reference and observed sequence are the same in variant '" + toString() + "'");
+	}
+
+	if (ref()!="-")
+	{
+		int expected = end_-start_+1;
+		if(ref_.size()!=expected)
+		{
+			THROW(ArgumentException, "Reference sequence length should be " + QString::number(expected) + ", but is " + QString::number(ref_.size()) + " in variant '" + toString() + "'");
+		}
+	}
 }
 
-void Variant::checkReferenceSequence(const FastaFileIndex& reference) const
+void Variant::checkValid(const FastaFileIndex& reference) const
 {
-	if (ref_.isEmpty()) return;
+	checkValid();
 
-	Sequence seq_genome = reference.seq(chr_, start_, end_-start_+1);
-	if (seq_genome!=ref_)
+	if (ref()!="-")
 	{
-		THROW(ArgumentException, "Invalid reference sequence of variant '" + toString() + "': Variant reference sequence is '" + ref_ + "', but the genome sequence is '" + seq_genome + "'");
+		Sequence ref_expected = reference.seq(chr_, start_, end_-start_+1);
+		if (ref_!=ref_expected)
+		{
+			THROW(ArgumentException, "Invalid reference sequence of variant '" + toString() + "': Variant reference sequence is '" + ref_ + "', but the genome sequence is '" + ref_expected + "'");
+		}
 	}
 }
 
@@ -808,7 +825,7 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 		{
 			if (fields[i].contains('%'))
 			{
-				fields[i] = QUrl::fromPercentEncoding(fields[i]).toLocal8Bit();
+				fields[i] = QUrl::fromPercentEncoding(fields[i]).toUtf8();
 			}
 		}
 
@@ -988,6 +1005,18 @@ void VariantList::checkValid() const
 	foreach(const Variant& variant, variants_)
 	{
 		variant.checkValid();
+		if (variant.annotations().count()!=annotation_headers_.count())
+		{
+			THROW(ArgumentException, "Invalid variant annotation data: Expected " + QString::number(annotation_headers_.count()) + " values, but " + QString::number(variant.annotations().count()) + " values found");
+		}
+	}
+}
+
+void VariantList::checkValid(const FastaFileIndex& reference) const
+{
+	foreach(const Variant& variant, variants_)
+	{
+		variant.checkValid(reference);
 		if (variant.annotations().count()!=annotation_headers_.count())
 		{
 			THROW(ArgumentException, "Invalid variant annotation data: Expected " + QString::number(annotation_headers_.count()) + " values, but " + QString::number(variant.annotations().count()) + " values found");
@@ -1281,22 +1310,15 @@ Variant Variant::fromString(const QString& text_orig)
 	text.replace("\t", " ");
 	text.replace(":", " ");
 	text.replace(">", " ");
-	text.replace(" -", " ."); //preserve '-' as ref/obs of indels
-	text.replace("-", " ");
-	text.replace(".", "-"); //preserve '-' as ref/obs of indels
+	text.replace(QRegExp("-([0-9])"), " \\1"); //replace '-' between start/end but preserve '-' in ref/obs of indels
+	text.replace(QRegExp("([0-9]+)"), "\\1 "); //special handling if space after end position is missing
+	text = text.simplified();
 
 	//split
 	QStringList parts = text.split(QRegExp("\\s+"));
 	if (parts.count()!=5) THROW(ArgumentException, "Input text has " + QString::number(parts.count()) + " part(s), but must consist of 5 parts (chr, start, end, ref, obs)!");
 
-	//create variant
-	Variant v = Variant(parts[0], parts[1].toInt(), parts[2].toInt(), parts[3].toLatin1(), parts[4].toLatin1());
-
-	//check if valid
-	v.normalize("-");
-	v.checkValid();
-
-	return v;
+	return Variant(parts[0], parts[1].toInt(), parts[2].toInt(), parts[3].toUtf8(), parts[4].toUtf8());
 }
 
 QString analysisTypeToString(AnalysisType type, bool human_readable)

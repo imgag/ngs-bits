@@ -408,7 +408,7 @@ void VcfFile::loadFromVCFGZ(const QString& filename, bool allow_multi_sample, Ch
 		const int buffer_size = 1048576; //1MB buffer
 		char* buffer = new char[buffer_size];
 		//open stream
-		FILE* instream = filename.isEmpty() ? stdin : fopen(filename.toLatin1().data(), "rb");
+		FILE* instream = filename.isEmpty() ? stdin : fopen(filename.toUtf8().data(), "rb");
 		gzFile file = gzdopen(fileno(instream), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
 		if (file==NULL)
 		{
@@ -468,7 +468,7 @@ void VcfFile::load(const QString& filename, const BedFile& roi, bool allow_multi
 void VcfFile::storeAsTsv(const QString& filename)
 {
 	//open stream
-	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
+	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
 	QTextStream stream(file.data());
 
 	for(const VcfHeaderLine& comment : vcfHeader().comments())
@@ -594,7 +594,7 @@ void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int comp
 		compression_mode_string.append(compression_mode_level_string);
 
 		const char* compression_mode = compression_mode_string.c_str();
-		BGZF* instream = bgzf_open(filename.toLatin1().data(), compression_mode);
+		BGZF* instream = bgzf_open(filename.toUtf8().data(), compression_mode);
 		if (instream==NULL)
 		{
 			THROW(FileAccessException, "Could not open file '" + filename + "' for writing!");
@@ -1261,7 +1261,7 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_stream, bool print_general_information, int max_lines)
 {
 	//open input file
-	FILE* instream = filename.isEmpty() ? stdin : fopen(filename.toLatin1().data(), "rb");
+	FILE* instream = filename.isEmpty() ? stdin : fopen(filename.toUtf8().data(), "rb");
 	gzFile file = gzdopen(fileno(instream), "rb"); //always open in binary mode because windows and mac open in text mode
 	if (file==NULL)
 	{

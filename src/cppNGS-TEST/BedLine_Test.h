@@ -15,12 +15,25 @@ private slots:
 		IS_TRUE(line2.isValid());
 	}
 
-	void overlapsWithComplete()
+	void overlapsWithLine()
 	{
 		BedLine line1("chr1", 5, 10);
-		IS_TRUE(!line1.overlapsWith("chr2", 5, 10));
-		IS_TRUE(!line1.overlapsWith("chr1", 1, 4));
-		IS_TRUE(!line1.overlapsWith("chr1", 11, 20));
+		IS_FALSE(line1.overlapsWith(BedLine("chr2", 5, 10)));
+		IS_FALSE(line1.overlapsWith(BedLine("chr1", 1, 4)));
+		IS_FALSE(line1.overlapsWith(BedLine("chr1", 11, 20)));
+		IS_TRUE(line1.overlapsWith(BedLine("chr1", 1, 5)));
+		IS_TRUE(line1.overlapsWith(BedLine("chr1", 5, 10)));
+		IS_TRUE(line1.overlapsWith(BedLine("chr1", 6, 8)));
+		IS_TRUE(line1.overlapsWith(BedLine("chr1", 10, 20)));
+		IS_TRUE(line1.overlapsWith(BedLine("chr1", 1, 20)));
+	}
+
+	void overlapsWithChrStartEnd()
+	{
+		BedLine line1("chr1", 5, 10);
+		IS_FALSE(line1.overlapsWith("chr2", 5, 10));
+		IS_FALSE(line1.overlapsWith("chr1", 1, 4));
+		IS_FALSE(line1.overlapsWith("chr1", 11, 20));
 		IS_TRUE(line1.overlapsWith("chr1", 1, 5));
 		IS_TRUE(line1.overlapsWith("chr1", 5, 10));
 		IS_TRUE(line1.overlapsWith("chr1", 6, 8));
@@ -32,8 +45,8 @@ private slots:
 	{
 		BedLine line1("chr1", 5, 10);
 		IS_TRUE(line1.overlapsWith(5, 10));
-		IS_TRUE(!line1.overlapsWith(1, 4));
-		IS_TRUE(!line1.overlapsWith(11, 20));
+		IS_FALSE(line1.overlapsWith(1, 4));
+		IS_FALSE(line1.overlapsWith(11, 20));
 		IS_TRUE(line1.overlapsWith(1, 5));
 		IS_TRUE(line1.overlapsWith(5, 10));
 		IS_TRUE(line1.overlapsWith(6, 8));

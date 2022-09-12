@@ -1,5 +1,12 @@
 # GSvar change log
 
+### 2022_07-119 (09.09.22)
+- Report: updated somatic tumor-normal report (added HLA tables for tumor and normal, formatting, fixed CNV table bug)
+- Report: updated somatic RNA report (added unclear oncogenic variants table, formatting)
+- Added project type filter to sequencing run overview.
+- Added manual curation of variants
+- Bugfixes in Expression Gene and Exon Widget
+
 ### 2022_07-92 (17.08.22)
 - Report: updated somatic tumor-normal report (added target region size, formatting pathway table, added ploidy)
 - Report: updated somatic RNA report (formatting)

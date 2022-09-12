@@ -173,7 +173,7 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 		}
 
 		//filter by genes
-		GeneSet gene_whitelist = GeneSet::createFromText(ui_->gene_filter->text().toLatin1(), ',');
+		GeneSet gene_whitelist = GeneSet::createFromText(ui_->gene_filter->text().toUtf8(), ',');
 		if (!gene_whitelist.isEmpty())
 		{
 			qDebug() << "filter by gene filter";

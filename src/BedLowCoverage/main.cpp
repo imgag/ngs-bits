@@ -53,7 +53,7 @@ public:
         {
 			output = Statistics::lowCoverage(bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"), getInfile("ref"));
 
-			output.appendHeader("#BAM: " + QFileInfo(bam).baseName().toLatin1());
+			output.appendHeader("#BAM: " + QFileInfo(bam).baseName().toUtf8());
         }
         else //ROI
         {
@@ -62,8 +62,8 @@ public:
 			file.merge(true, true);
 			output = Statistics::lowCoverage(file, bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"), getInfile("ref"));
 
-			output.appendHeader("#BAM: " + QFileInfo(bam).fileName().toLatin1());
-			output.appendHeader("#ROI: " + QFileInfo(in).fileName().toLatin1());
+			output.appendHeader("#BAM: " + QFileInfo(bam).fileName().toUtf8());
+			output.appendHeader("#ROI: " + QFileInfo(in).fileName().toUtf8());
 			output.appendHeader("#ROI regions: " + QByteArray::number(file.count()));
 			output.appendHeader("#ROI bases: " + QByteArray::number(file.baseCount()));
         }

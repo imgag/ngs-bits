@@ -64,7 +64,7 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 
 	//check gene names
 	genes_.clear();
-	QByteArrayList lines = ui_.genes->toPlainText().toLatin1().split('\n');
+	QByteArrayList lines = ui_.genes->toPlainText().toUtf8().split('\n');
 	foreach(QByteArray line, lines)
 	{
 		int tab_idx = line.indexOf("\t");

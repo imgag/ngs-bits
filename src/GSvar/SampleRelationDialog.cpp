@@ -36,7 +36,7 @@ void SampleRelationDialog::setSample2(QString sample_name, bool enabled)
 
 SampleRelation SampleRelationDialog::sampleRelation() const
 {
-	return SampleRelation{ui_.sample1->text().toLatin1(), ui_.relation->currentText().toLatin1(), ui_.sample2->text().toLatin1()};
+	return SampleRelation{ui_.sample1->text().toUtf8(), ui_.relation->currentText().toUtf8(), ui_.sample2->text().toUtf8()};
 }
 
 void SampleRelationDialog::swapSamples()

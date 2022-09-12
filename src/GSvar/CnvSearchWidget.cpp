@@ -172,7 +172,7 @@ void CnvSearchWidget::search()
 		{
 			const DBRow& row = table.row(r);
 			QString value = row.value(col_cs_metrics);
-			QJsonDocument json = QJsonDocument::fromJson(value.toLatin1());
+			QJsonDocument json = QJsonDocument::fromJson(value.toUtf8());
 
 			//filter by iterations
 			if (row.value(col_caller)=="ClinCNV")
@@ -213,7 +213,7 @@ void CnvSearchWidget::search()
 		{
 			const DBRow& row = table.row(r);
 			QString value = row.value(col_cnv_metrics);
-			QJsonDocument json = QJsonDocument::fromJson(value.toLatin1());
+			QJsonDocument json = QJsonDocument::fromJson(value.toUtf8());
 
 			bool caller_is_clincnv = row.value(col_caller)=="ClinCNV";
 

@@ -43,17 +43,17 @@ void fastqStatistics(QString fastq, QString out)
 		THROW(FileAccessException, "Cannot open FASTQ statistics output file '" + out + "'");
 	}
 
-	output.write(("Reads: " + QString::number(reads) + "\n").toLatin1());
+	output.write(("Reads: " + QString::number(reads) + "\n").toUtf8());
 	foreach(int length, read_len.keys())
 	{
-		output.write((QString::number(length) + " base reads: " + QString::number(read_len[length]) + "\n").toLatin1());
+		output.write((QString::number(length) + " base reads: " + QString::number(read_len[length]) + "\n").toUtf8());
 	}
 	output.write("\n");
 
-	output.write(("Bases: " + QString::number(bases) + "\n").toLatin1());
+	output.write(("Bases: " + QString::number(bases) + "\n").toUtf8());
 	foreach(char base, base_count.keys())
 	{
-		output.write((QString(base) + ": " + QString::number(base_count[base]) + "\n").toLatin1());
+		output.write((QString(base) + ": " + QString::number(base_count[base]) + "\n").toUtf8());
 	}
 
 	output.close();

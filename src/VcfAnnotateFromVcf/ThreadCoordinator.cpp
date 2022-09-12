@@ -27,7 +27,7 @@ ThreadCoordinator::ThreadCoordinator(QObject* parent, Parameters params, MetaDat
 	out_stream_ = Helper::openFileForWriting(params_.out, true);
 
 	//open input steam
-	FILE* instream = params_.in.isEmpty() ? stdin : fopen(params_.in.toLatin1().data(), "rb");
+	FILE* instream = params_.in.isEmpty() ? stdin : fopen(params_.in.toUtf8().data(), "rb");
 	in_stream_ = gzdopen(fileno(instream), "rb"); //always open in binary mode because windows and mac open in text mode
 	if (in_stream_==NULL) THROW(FileAccessException, "Could not open file '" + params_.in + "' for reading!");
 

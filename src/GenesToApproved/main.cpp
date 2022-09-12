@@ -50,7 +50,7 @@ public:
 
 			if (report_ambiguous)
 			{
-				QList<QPair<QByteArray, QByteArray>> gene_infos = db.geneToApprovedWithMessageAndAmbiguous(gene.toLatin1());
+				QList<QPair<QByteArray, QByteArray>> gene_infos = db.geneToApprovedWithMessageAndAmbiguous(gene.toUtf8());
 				foreach(auto gene_info, gene_infos)
 				{
 					outstream->write(gene_info.first + '\t' + gene_info.second + '\n');
@@ -59,7 +59,7 @@ public:
 			else
 			{
 				QPair<QString, QString> gene_info = db.geneToApprovedWithMessage(gene);
-				outstream->write(gene_info.first.toLatin1() + '\t' + gene_info.second.toLatin1() + '\n');
+				outstream->write(gene_info.first.toUtf8() + '\t' + gene_info.second.toUtf8() + '\n');
 			}
 		}
 	}

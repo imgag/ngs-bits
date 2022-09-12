@@ -1115,7 +1115,7 @@ HttpResponse ServerController::getProcessingSystemGenes(const HttpRequest& reque
 HttpResponse ServerController::getSecondaryAnalyses(const HttpRequest& request)
 {
 	QString processed_sample_name = request.getUrlParams()["ps_name"];
-	QString type  = QUrl::fromEncoded(request.getUrlParams()["type"].toLatin1()).toString();
+	QString type  = QUrl::fromEncoded(request.getUrlParams()["type"].toUtf8()).toString();
 	QStringList secondary_analyses;
 	try
 	{

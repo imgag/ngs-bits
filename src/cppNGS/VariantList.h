@@ -198,10 +198,10 @@ public:
     ///Returns the coordinates and base exchange as a string e.g. "chr1:3435345-3435345 A>G"
 	QString toString(bool space_separated=false, int max_sequence_length=-1, bool chr_normalized=false) const;
 
-	///Checks if the variant is valid (without annotations). Throws ArgumentException if not.
+	///Checks if the variant is valid (without annotations). Throws an exception in case of an error.
 	void checkValid() const;
-	///Checks if the reference sequence matches the reference genome. Throws ArgumentException if not.
-	void checkReferenceSequence(const FastaFileIndex& reference) const;
+	///Overload of the above function that also checks if the referece bases of the variants are correct.
+	void checkValid(const FastaFileIndex& reference) const;
 
 	/// Left-align indels in repeat regions. Works for GSvar files only - assumes the variants are normalized.
 	void leftAlign(const FastaFileIndex& reference);
@@ -229,7 +229,8 @@ public:
 
 	static QList<VariantTranscript> parseTranscriptString(QByteArray text, bool allow_old_format_with_7_columns=false);
 
-	///Returns a normalized variant extracted from user input text. Throws an exception, if it is not valid.
+	///Returns a variant extracted from user input text. Throws an exception, if the text cannot be parsed.
+	///Note: this function does not test if the variant is valid. Do that using checkValid(...) if necessary.
 	static Variant fromString(const QString& text);
 
 protected:
@@ -412,8 +413,10 @@ public:
 	///Shifts each non complex insert or deletion to the left as far as possible. Then, removes duplicates.
 	void leftAlign(QString ref_file);
 
-	///Checks if the variants are valid (with annotation). Throws ArgumentException if not.
+	///Checks if the variants are valid (with annotation). Throws an exception in case of an error.
 	void checkValid() const;
+	///Overload of the above function that also checks if the referece bases of the variants are correct.
+	void checkValid(const FastaFileIndex& reference) const;
 
 	///Parses and returns sample data from variant list header (only for GSvar).
 	SampleHeaderInfo getSampleHeader() const;

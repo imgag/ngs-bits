@@ -60,9 +60,9 @@ public:
 		params.out = getOutfile("out");
 		QString file_path = getInfile("config_file").trimmed();
 		QString source = getInfile("source").trimmed();
-		QByteArray info_keys = getString("info_keys").toLatin1().trimmed();
-        QByteArray id_column = getString("id_column").toLatin1().trimmed();
-		QByteArray prefix = getString("prefix").toLatin1().trimmed();
+		QByteArray info_keys = getString("info_keys").toUtf8().trimmed();
+        QByteArray id_column = getString("id_column").toUtf8().trimmed();
+		QByteArray prefix = getString("prefix").toUtf8().trimmed();
 		bool allow_missing_header = getFlag("allow_missing_header");
 		params.threads = getInt("threads");
 		params.prefetch = getInt("prefetch");
@@ -127,7 +127,7 @@ public:
         }
 		else //from CLI parameters
         {
-			meta.annotation_file_list.append(source.toLatin1());
+			meta.annotation_file_list.append(source.toUtf8());
 
 			if (info_keys.isEmpty() && id_column.isEmpty()) THROW(ArgumentException, "The 'info_keys' parameter or the 'id_column' parameter is required if no config file is provided!");
 			if (source.isEmpty()) THROW(ArgumentException, "The 'source' parameter is required if no config file is provided!");

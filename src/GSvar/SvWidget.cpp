@@ -238,7 +238,7 @@ void SvWidget::initGUI()
         {
             for (int idx_sample = 0; idx_sample < ps_names_.size(); ++idx_sample)
             {
-                QString gt = extractGenotype(sv_bedpe_file_[row], sv_bedpe_file_.annotationHeaders(), idx_sample);
+				QString gt = sv_bedpe_file_[row].genotypeHumanReadable(sv_bedpe_file_.annotationHeaders(), false, idx_sample);
                 ui->svs->setItem(row, col_in_widget++, new QTableWidgetItem(gt));
             }
         }
@@ -712,24 +712,6 @@ void SvWidget::editGermlineReportConfiguration(int row)
     updateReportConfigHeaderIcon(row);
 }
 
-QByteArray SvWidget::extractGenotype(const BedpeLine& sv, const QList<QByteArray>& annotation_headers, int sample_idx)
-{
-    QByteArray genotype = sv.formatValueByKey("GT", annotation_headers, false, "FORMAT", sample_idx).trimmed();
-    if (genotype == "1/1")
-    {
-        return "hom";
-    }
-    else if ((genotype == "0/1") || (genotype == "1/0"))
-    {
-        return "het";
-    }
-	else if (genotype == "0/0")
-	{
-		return "wt";
-	}
-    return "n/a";
-}
-
 void SvWidget::annotateTargetRegionGeneOverlap()
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
@@ -974,7 +956,7 @@ void SvWidget::SvSelectionChanged()
 	for(int i=0;i<ui->sv_details->rowCount();++i)
 	{
 		ui->sv_details->setItem(i,0,new QTableWidgetItem(QString(format[i])));
-		ui->sv_details->setItem(i,1,new QTableWidgetItem(QString(format_description.value(format.at(i).toLatin1()))));
+		ui->sv_details->setItem(i,1,new QTableWidgetItem(QString(format_description.value(format.at(i).toUtf8()))));
 		for(int sample_idx=0; sample_idx < ps_names_.size(); sample_idx++)
 		{
 			ui->sv_details->setItem(i,2 + sample_idx, new QTableWidgetItem(QString(data.at(sample_idx).at(i))));

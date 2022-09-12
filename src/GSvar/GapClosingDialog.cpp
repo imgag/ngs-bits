@@ -70,39 +70,19 @@ void GapClosingDialog::gapCoordinates(int row, Chromosome& chr, int& start, int&
 
 QString GapClosingDialog::exonNumber(const QByteArray& gene, int start, int end)
 {
-	const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
-	QStringList output;
+	QString output;
 
-	//preferred transcripts
-	if(preferred_transcripts.contains(gene))
+	Transcript trans = db_.bestTranscript(db_.geneId(gene));
+	if (trans.isValid())
 	{
-		foreach(QString transcript_name, preferred_transcripts.value(gene))
-		{
-			try
-			{
-				const Transcript& trans = db_.transcript(db_.transcriptId(transcript_name));
-				int exon_nr = trans.exonNumber(start-20, end+20);
-				if (exon_nr!=-1)
-				{
-					output << (QByteArray::number(exon_nr) + " (" + trans.name() + " [preferred transcript])");
-				}
-			}
-			catch(...) {} //nothing to do here
-		}
-	}
-
-	//fallback to longest coding transcript or longest non-coding transcript
-	if (output.isEmpty())
-	{
-		Transcript trans = db_.longestCodingTranscript(db_.geneId(gene), Transcript::SOURCE::ENSEMBL, false, true);
 		int exon_nr = trans.exonNumber(start-20, end+20);
 		if (exon_nr!=-1)
 		{
-			output << (QByteArray::number(exon_nr) + " (" + trans.name() + ")");
+			output = QByteArray::number(exon_nr) + " (" + trans.name() + ")";
 		}
 	}
 
-	return output.join(", ");
+	return output;
 }
 
 void GapClosingDialog::updateTable()

@@ -93,15 +93,14 @@ RtfDocument::RtfDocument()
 	, height_(15840)
 	, margin_top_(1134)
 	, margin_bottom_(1134)
-	, margin_left_(1134)
-	, margin_right_(1134)
+	, margin_left_(RtfDocument::cm2twip(2.3))
+	, margin_right_( RtfDocument::cm2twip(1.2))
 	, fonts_({"Calibri"})
 	, default_font_size_(18)
 {
 }
 
-
-RtfSourceCode RtfDocument::header()
+RtfSourceCode RtfDocument::header() const
 {
 	QByteArrayList output;
 	output << "{\\rtf\\ansi";
@@ -111,12 +110,9 @@ RtfSourceCode RtfDocument::header()
 	//default font
 	QByteArray font_table = "{\\fonttbl{\\f0 " + fonts_[0] + ";";
 	//additional fonts
-	if(fonts_.count() > 1)
+	for(int i=1;i<fonts_.count();++i)
 	{
-		for(int i=1;i<fonts_.count();++i)
-		{
-			font_table.append("\\f" + QByteArray::number(i+1) + " " + fonts_[i] + ";");
-		}
+		font_table.append("\\f" + QByteArray::number(i+1) + " " + fonts_[i] + ";");
 	}
 	font_table.append("}}");
 	output << font_table;
@@ -150,7 +146,7 @@ RtfSourceCode RtfDocument::header()
 	return output.join("\n");
 }
 
-RtfSourceCode RtfDocument::footer()
+RtfSourceCode RtfDocument::footer() const
 {
 	return "\n}";
 }

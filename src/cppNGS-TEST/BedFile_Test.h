@@ -583,4 +583,42 @@ private slots:
 		I_EQUAL(f.count(), 2);
 		I_EQUAL(f.baseCount(), 198);
 	}
+
+	void overlapsWithChrStartEnd()
+	{
+		BedFile f = BedFile::fromText("chr1\t0\t99\n\nchr2\t0\t99");
+		IS_FALSE(f.overlapsWith("chr3", 1, 100));
+		IS_TRUE(f.overlapsWith("chr1", 1, 20));
+		IS_TRUE(f.overlapsWith("chr2", 50, 150));
+	}
+
+	void overlapsWithLine()
+	{
+		BedFile f = BedFile::fromText("chr1\t0\t99\n\nchr2\t0\t99");
+		IS_FALSE(f.overlapsWith(BedLine("chr3", 1, 100)));
+		IS_TRUE(f.overlapsWith(BedLine("chr1", 1, 20)));
+		IS_TRUE(f.overlapsWith(BedLine("chr2", 50, 150)));
+	}
+
+	void overlapsWithFile()
+	{
+		BedFile f = BedFile::fromText("chr1\t0\t99\n\nchr2\t0\t99");
+
+		BedFile f2 = BedFile::fromText("chr3\t1\t12\n\nchr4\t0\t99");
+		IS_FALSE(f.overlapsWith(f2));
+
+		f2 = BedFile::fromText("chr1\t1\t12\n\nchr3\t0\t99");
+		IS_TRUE(f.overlapsWith(f2));
+
+		f2 = BedFile::fromText("chr1\t200\t212\n\nchr1\t0\t99");
+		IS_TRUE(f.overlapsWith(f2));
+
+		f2 = BedFile::fromText("chr3\t0\t99\nchr1\t1\t12\n");
+		IS_TRUE(f.overlapsWith(f2));
+
+		f2 = BedFile::fromText("chr1\t0\t99\nchr1\t200\t212\n");
+		IS_TRUE(f.overlapsWith(f2));
+	}
+
+
 };

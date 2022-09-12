@@ -139,6 +139,8 @@ private:
 	RtfTable partGeneExpression();
 	///Creates explanation text for SNV and CNV table
 	RtfParagraph partGeneExprExplanation();
+	//Creates snv table with uncertain (class 3) Variants:
+	RtfTable uncertainSnvTable();
 
 	///Creates a table that contains the top 10 of the strongest altered genes
 	RtfSourceCode partTop10Expression();
@@ -149,7 +151,7 @@ private:
 	///Returns TPM from annotation field, orig. entry has the form gene1=0.00,gene2=2.21,gene3=..., if not found it returns -1.
 	double getRnaData(QByteArray gene, QString field, QString key);
 	///Translates reference tissue type into German
-	RtfSourceCode trans(QString orig_entry) const;
+	RtfSourceCode trans(QString orig_entry, int font_size=-1) const;
 
 	///Formats double to float, in case it fails to "n/a"
 	RtfSourceCode formatDigits(double in, int digits=0);

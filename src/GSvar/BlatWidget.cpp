@@ -32,7 +32,7 @@ void BlatWidget::performSearch()
 	try
 	{
 		//check
-		Sequence sequence = ui_.sequence->text().toLatin1();
+		Sequence sequence = ui_.sequence->text().toUtf8();
 		if (sequence.length()<20) THROW(ArgumentException, "Input sequence too short! Must be at least 20 bases!");
 
 		//perform API request

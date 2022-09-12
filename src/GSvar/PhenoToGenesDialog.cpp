@@ -50,7 +50,7 @@ void PhenoToGenesDialog::storeGenesAsTSV()
 	if (filename.isEmpty()) return;
 
 	auto file_prt = Helper::openFileForWriting(filename);
-	file_prt->write(ui.genes->toPlainText().toLatin1());
+	file_prt->write(ui.genes->toPlainText().toUtf8());
 }
 
 void PhenoToGenesDialog::showSettings()

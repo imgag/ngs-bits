@@ -3,9 +3,11 @@
 
 #include "cppNGSD_global.h"
 #include "VariantType.h"
-#include <QStringList>
-#include <QDateTime>
-#include <QObject>
+#include "VariantList.h"
+#include "CnvList.h"
+#include "BedpeFile.h"
+
+class NGSD;
 
 ///Variant meta data for report.
 struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
@@ -14,7 +16,14 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	ReportVariantConfiguration();
 	///Returns if the variant is to be shown in the report
 	bool showInReport() const;
+	///Returns if the variant is valid. Writes validation error message into given string list.
+	bool isValid(QStringList& errors, FastaFileIndex& ref_index);
+	///Equality operator
+	bool operator==(const ReportVariantConfiguration& rhs);
+	///Equality operator
+	bool operator!=(const ReportVariantConfiguration& rhs) { return !operator==(rhs); }
 
+	//general data
 	VariantType variant_type;
 	int variant_index; //index of the variant in the variant/CNV/SV list
 
@@ -33,6 +42,38 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	QString comments; //comments of 1. evaluation
 	QString comments2; //comments of 2. evaluation
 	QString rna_info;
+
+	//general function for manual curation
+	bool isManuallyCurated() const;
+
+	//manual curation of small variants
+	QString manual_var;
+	QString manual_genotype;
+	bool manualVarIsValid(FastaFileIndex& ref_index, QString* error= nullptr) const;
+	bool manualVarGenoIsValid() const;
+	void updateVariant(Variant& v, FastaFileIndex& ref_index, int genotype_col_idx) const;
+
+	//manual curation of CNVs
+	QString manual_cnv_start;
+	QString manual_cnv_end;
+	QString manual_cnv_cn;
+	bool manualCnvStartIsValid() const;
+	bool manualCnvEndIsValid() const;
+	bool manualCnvCnIsValid() const;
+	void updateCnv(CopyNumberVariant& cnv, const QByteArrayList& annotation_headers, NGSD& db) const;
+
+	//manual curation of SVs
+	QString manual_sv_start;
+	QString manual_sv_end;
+	QString manual_sv_genotype;
+	QString manual_sv_start_bnd;
+	QString manual_sv_end_bnd;
+	bool manualSvStartIsValid() const;
+	bool manualSvEndIsValid() const;
+	bool manualSvGenoIsValid() const;
+	bool manualSvStartBndIsValid() const;
+	bool manualSvEndBndIsValid() const;
+	void updateSv(BedpeLine& sv, const QByteArrayList& annotation_headers, NGSD& db) const;
 
 	//Returns options for 'type' (taken and cached from NGSD)
 	static QStringList getTypeOptions();

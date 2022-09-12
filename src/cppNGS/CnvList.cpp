@@ -45,11 +45,11 @@ int CopyNumberVariant::copyNumber(const QByteArrayList& annotation_headers, bool
 {
 	for (int i=0; i<annotation_headers.count(); ++i)
 	{
-		if(annotation_headers[i] == "tumor_CN_change") //somatic ClinCNV
+		if(annotation_headers[i] == "tumor_CN_change") //ClinCNV somatic
 		{
 			return annotations_[i].toInt();
 		}
-		else if (annotation_headers[i]=="CN_change") //ClinCNV
+		else if (annotation_headers[i]=="CN_change") //ClinCNV germline
 		{
 			return annotations_[i].toInt();
 		}
@@ -81,6 +81,24 @@ int CopyNumberVariant::copyNumber(const QByteArrayList& annotation_headers, bool
 	}
 
 	return -1;
+}
+
+void CopyNumberVariant::setCopyNumber(int cn, const QByteArrayList& annotation_headers, bool throw_if_not_found)
+{
+	bool found = false;
+	for (int i=0; i<annotation_headers.count(); ++i)
+	{
+		if (annotation_headers[i]=="CN_change") //ClinCNV germline
+		{
+			annotations_[i] = QByteArray::number(cn);
+			found = true;
+		}
+	}
+
+	if (!found && throw_if_not_found)
+	{
+		THROW(ProgrammingException, "Copy-number could not be determine for CNV: " + toString());
+	}
 }
 
 CnvList::CnvList()

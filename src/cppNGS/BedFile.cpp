@@ -152,7 +152,7 @@ void BedFile::store(QString filename, bool stdout_if_empty) const
 	foreach(const BedLine& line, lines_)
 	{
 		QString line_text = line.chr().str() + "\t" + QString::number(line.start()-1) + "\t" + QString::number(line.end());
-		stream << line_text.toLatin1();
+		stream << line_text.toUtf8();
 		foreach(const QByteArray& anno, line.annotations())
 		{
 			stream << '\t' << anno;
@@ -580,6 +580,35 @@ bool BedFile::overlapsWith(const Chromosome& chr, int start, int end) const
 		if (lines_[i].overlapsWith(chr, start, end))
 		{
 			return true;
+		}
+	}
+
+	return false;
+}
+
+bool BedFile::overlapsWith(const BedLine& line) const
+{
+	for (int i=0; i<lines_.count(); ++i)
+	{
+		if (lines_[i].overlapsWith(line))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool BedFile::overlapsWith(const BedFile& file) const
+{
+	for (int i=0; i<lines_.count(); ++i)
+	{
+		for (int j=0; j<file.count(); ++j)
+		{
+			if (lines_[i].overlapsWith(file[j]))
+			{
+				return true;
+			}
 		}
 	}
 

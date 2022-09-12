@@ -181,6 +181,15 @@ public:
 		is_preferred_transcript_ = is_preferred_transcript;
 	}
 
+	bool isManeSelectTranscript() const
+	{
+		return is_mane_select_;
+	}
+	void setManeSelectTranscript(bool is_mane_select)
+	{
+		is_mane_select_ = is_mane_select;
+	}
+
 	const BedFile& regions() const
 	{
 		return regions_;
@@ -265,6 +274,7 @@ protected:
 	int start_;
 	int end_;
 	bool is_preferred_transcript_;
+	bool is_mane_select_;
 	BedFile regions_;
 	int coding_start_;
 	int coding_end_;
@@ -289,7 +299,13 @@ class CPPNGSSHARED_EXPORT TranscriptList
 	: public QList<Transcript>
 {
 public:
-	//sorts transcripts by chromosomal positio
+	//sorts transcripts by base count (longest first)
+	void sortByBases();
+	//sorts transcripts by coding base count (longest first)
+	void sortByCodingBases();
+	//sorts transcripts by name
+	void sortByName();
+	//sorts transcripts by chromosomal position
 	void sortByPosition();
 
 private:

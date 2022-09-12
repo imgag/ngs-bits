@@ -851,12 +851,12 @@ public:
 
 				if (mim_exp.indexIn(pheno)!=-1)
 				{
-					mim_number = mim_exp.cap().toLatin1(); // mim number for phenotype
+					mim_number = mim_exp.cap().toUtf8(); // mim number for phenotype
 				}
 
 				if (evi_exp.indexIn(pheno) != -1)
 				{
-					omim_evi = evi_exp.cap().toLatin1(); // evidence for relation
+					omim_evi = evi_exp.cap().toUtf8(); // evidence for relation
 				}
 
 				foreach(QByteArray gene, genes)

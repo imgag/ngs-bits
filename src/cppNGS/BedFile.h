@@ -83,6 +83,11 @@ public:
         return chr_==rhs.chr_ && start_==rhs.start_ && end_==rhs.end_;
     }
 	///Overlap check for chromosome and position range.
+	bool overlapsWith(const BedLine& rhs) const
+	{
+		return chr_==rhs.chr() && overlapsWith(rhs.start(), rhs.end());
+	}
+	///Overlap check for chromosome and position range.
     bool overlapsWith(const Chromosome& chr, int start, int end) const
     {
         return chr_==chr && overlapsWith(start, end);
@@ -222,8 +227,12 @@ public:
     bool isMerged() const;
     ///Returns if the lines are merged and sorted (can be computed faster than calling both methods separately).
     bool isMergedAndSorted() const;
-	///Returns if the given chromosomal position is in the BED file region. Note that is method is slow when too many lines are present. Use ChromosomalIndex<BedFile> in this case!
+	///Returns if the given chromosomal region overlaps with the BED file regions. Note that is method is slow when too many lines are present. Use ChromosomalIndex<BedFile> in this case!
     bool overlapsWith(const Chromosome& chr, int start, int end) const;
+	///Returns if the given chromosomal region overlaps with the BED file regions. Note that is method is slow when too many lines are present. Use ChromosomalIndex<BedFile> in this case!
+	bool overlapsWith(const BedLine& line) const;
+	///Returns if one of the given chromosomal regions overlaps with the BED file regions. Note that is method is slow when too many lines are present. Use ChromosomalIndex<BedFile> in this case!
+	bool overlapsWith(const BedFile& file) const;
 
 	///Creates a BED file from a string
 	static BedFile fromText(const QByteArray& string);

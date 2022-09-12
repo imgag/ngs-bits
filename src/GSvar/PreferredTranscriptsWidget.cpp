@@ -60,7 +60,7 @@ void PreferredTranscriptsWidget::addPreferredTranscript()
 	QString title = "Add preferred transcript";
 
 	//get transcript name
-	QByteArray transcript_name = QInputDialog::getText(this, "Add preferred transcript", "Ensembl transcript identifier").toLatin1();
+	QByteArray transcript_name = QInputDialog::getText(this, "Add preferred transcript", "Ensembl transcript identifier").toUtf8();
 	if (transcript_name.contains(".")) //remove version number
 	{
 		transcript_name = transcript_name.left(transcript_name.indexOf('.'));

@@ -84,7 +84,7 @@ void PublishedVariantsWidget::updateTable()
 	{
 		if (!ui_->f_gene->text().trimmed().isEmpty())
 		{
-			QByteArray gene = ui_->f_gene->text().trimmed().toLatin1();
+			QByteArray gene = ui_->f_gene->text().trimmed().toUtf8();
 			BedFile roi = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
 			roi.extend(5000);
 			roi.merge();

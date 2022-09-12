@@ -24,7 +24,6 @@ TumorOnlyReportWorker::TumorOnlyReportWorker(const VariantList& variants, const 
 	i_somatic_class_ = variants_.annotationIndexByName("somatic_classification");
 
 	//Set up RTF file specifications
-	doc_.setMargins(1134,1134,1134,1134);
 	doc_.addColor(188,230,138);
 	doc_.addColor(255,0,0);
 	doc_.addColor(255,255,0);
@@ -127,13 +126,13 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 		GeneInfo gene_info = db_.geneInfo(gene);
 		if(gene_info.symbol.isEmpty()) continue;
 		if(gene_info.hgnc_id.isEmpty()) continue;
-		gene = gene_info.symbol.toLatin1();
+		gene = gene_info.symbol.toUtf8();
 
 		w.writeStartElement("Gene");
 		w.writeAttribute("name", gene);
 		w.writeAttribute("id", gene_info.hgnc_id);
 		int gene_id = db_.geneId(gene);
-		Transcript transcript = db_.longestCodingTranscript(gene_id, Transcript::ENSEMBL, true, true);
+		Transcript transcript = db_.bestTranscript(gene_id);
 		w.writeAttribute("bases", QString::number(transcript.regions().baseCount()));
 
 		//omim info
@@ -320,7 +319,7 @@ QByteArray TumorOnlyReportWorker::exonNumber(QByteArray gene, int start, int end
 		}
 		else //fallback to longest coding transcript
 		{
-			transcripts << db_.longestCodingTranscript(gene_id, Transcript::SOURCE::ENSEMBL, false, true);
+			transcripts << db_.bestTranscript(gene_id);
 		}
 	}
 	catch(Exception)

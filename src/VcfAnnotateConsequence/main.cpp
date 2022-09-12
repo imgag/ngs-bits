@@ -357,7 +357,7 @@ public:
 			stream << "Removing transcripts took: " << Helper::elapsedTime(timer) << endl;
 		}
 
-		//ceate transcript index
+		//create transcript index
 		data.transcripts.sortByPosition();
 		ChromosomalIndex<TranscriptList> transcript_index(data.transcripts);
 

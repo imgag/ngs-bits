@@ -290,9 +290,9 @@ void GenLabImportDialog::importSelectedData()
 			{
 				QStringList parts = data.split(" - ");
 				SampleRelation rel;
-				rel.sample1 = parts[0].trimmed().toLocal8Bit();
-				rel.relation = parts[1].trimmed().toLocal8Bit();
-				rel.sample2 = parts[2].trimmed().toLocal8Bit();
+				rel.sample1 = parts[0].trimmed().toUtf8();
+				rel.relation = parts[1].trimmed().toUtf8();
+				rel.sample2 = parts[2].trimmed().toUtf8();
 				db_.addSampleRelation(rel);
 			}
 			else if (type=="study") //do studies at the end. If the spelling is not correct the import fails :(

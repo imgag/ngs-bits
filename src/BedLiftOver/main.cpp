@@ -82,7 +82,7 @@ public:
 		//write BedLiftOver header
 		QStringList from_to = getString("chain").split("_");
 		QString header_line = "#BedLiftOver: Lifted file '" + in + "' from " + from_to[0] + " to " + from_to[1] + "\n";
-		lifted->write(header_line.toLatin1());
+		lifted->write(header_line.toUtf8());
 
 		while(! bed->atEnd())
 		{
@@ -115,7 +115,7 @@ public:
 					THROW(ArgumentException, "Region was mapped to a special chromosome.");
 				}
 
-				lifted->write(lifted_line.toString(false).toLatin1() + "\n");
+				lifted->write(lifted_line.toString(false).toUtf8() + "\n");
 				lifted_count++;
 				lifted_length += lifted_line.length();
 			}
@@ -126,8 +126,8 @@ public:
 
 				if (! unmapped.isNull())
 				{
-					unmapped->write("# " + e.message().toLatin1() + "\n");
-					unmapped->write(l.toString(false).toLatin1() + "\n");
+					unmapped->write("# " + e.message().toUtf8() + "\n");
+					unmapped->write(l.toString(false).toUtf8() + "\n");
 				}
 			}
 		}

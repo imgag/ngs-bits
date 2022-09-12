@@ -215,7 +215,7 @@ public:
 		if (!vl.formatIDs().contains("DP")) THROW(ArgumentException, "Could not find 'DP' annotation in vcf header!");
 
 		QVector<int> csq_af_indices;
-		QByteArray tmp = getString("var_af_keys_vep").toLatin1().trimmed();
+		QByteArray tmp = getString("var_af_keys_vep").toUtf8().trimmed();
 		if (!tmp.isEmpty())
 		{
 			QByteArrayList var_af_keys_vep =tmp.split(',');
@@ -258,7 +258,7 @@ public:
 			bool var_known = false;
 			float af = 0.01;
 
-			tmp = getString("var_af_keys").toLatin1().trimmed();
+			tmp = getString("var_af_keys").toUtf8().trimmed();
 			QByteArrayList var_af_keys = tmp.split(',');
 			foreach(const QByteArray& var, var_af_keys)
 			{
