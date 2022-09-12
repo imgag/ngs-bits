@@ -176,9 +176,14 @@ private slots:
 		reply.clear();
 		add_headers.clear();
 		add_headers.insert("Accept", "application/json");
-//		add_headers.insert("Authorization", "Bearer "+token.toUtf8());
 		code = sendGetRequest(reply, ServerHelper::getServerUrl(true) + "/v1/session?token=" + token, add_headers);
 		QJsonDocument session_json = QJsonDocument::fromJson(reply);
+		IS_TRUE(session_json.isObject());
+
+		reply.clear();
+		add_headers.insert("Authorization", "Bearer "+token.toUtf8());
+		code = sendGetRequest(reply, ServerHelper::getServerUrl(true) + "/v1/session", add_headers);
+		session_json = QJsonDocument::fromJson(reply);
 		IS_TRUE(session_json.isObject());
 		bool is_db_token = session_json.object().value("is_db_token").toBool();
 		IS_FALSE(is_db_token);

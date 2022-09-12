@@ -17,7 +17,8 @@ struct CPPRESTSHARED_EXPORT ParamProps
 		GET_URL_PARAM, // http://url?var=val
 		POST_URL_ENCODED, // application/x-www-form-urlencoded
 		POST_FORM_DATA, // multipart/form-data
-		POST_OCTET_STREAM // application/octet-stream
+		POST_OCTET_STREAM, // application/octet-stream
+		ANY // check all possible types
 	};
 	ParamCategory category;
 	bool is_optional;
@@ -58,6 +59,7 @@ class CPPRESTSHARED_EXPORT EndpointManager
 
 public:
 	static HttpResponse getBasicHttpAuthStatus(HttpRequest request);
+	static QString getTokenFromHeader(HttpRequest request);
 	/// Extracts a token from request, if it has been provided
 	static QString getTokenIfAvailable(HttpRequest request);
 	/// Checks if the secure token is valid and not expired

@@ -949,9 +949,9 @@ HttpResponse ServerController::performLogin(const HttpRequest& request)
 HttpResponse ServerController::getSessionInfo(const HttpRequest& request)
 {
 	qDebug() << "Retrieve session information";
-	if (request.getUrlParams().contains("token"))
-	{
-		QString token = request.getUrlParams()["token"];
+	QString token = EndpointManager::getTokenIfAvailable(request);
+	if (!token.isEmpty())
+	{		
 		Session current_session = SessionManager::getSessionBySecureToken(token);
 
 		QJsonDocument json_doc;

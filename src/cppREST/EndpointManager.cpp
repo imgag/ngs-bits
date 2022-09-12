@@ -50,6 +50,19 @@ HttpResponse EndpointManager::getBasicHttpAuthStatus(HttpRequest request)
 	return HttpResponse(ResponseStatus::OK, request.getContentType(), "Successful authorization");
 }
 
+QString EndpointManager::getTokenFromHeader(HttpRequest request)
+{
+	QString token = "";
+	QList<QString> auth_header = request.getHeaderByName("Authorization");
+	if (auth_header.count()>0)
+	{
+		qDebug() << "Token from header";
+		int sep_pos = auth_header.first().indexOf(' ',0);
+		if (sep_pos>-1) token = auth_header.first().mid(sep_pos+1, auth_header.first().length()-sep_pos);
+	}
+	return token;
+}
+
 QString EndpointManager::getTokenIfAvailable(HttpRequest request)
 {
 	QString token = "";
@@ -68,12 +81,10 @@ QString EndpointManager::getTokenIfAvailable(HttpRequest request)
 		qDebug() << "Database token from Form";
 		token = request.getFormUrlEncoded()["dbtoken"];
 	}
-	QList<QString> auth_header = request.getHeaderByName("Authorization");
-	if (auth_header.count()>0)
+
+	if (!getTokenFromHeader(request).isEmpty())
 	{
-		qDebug() << "Token from header";
-		int sep_pos = auth_header.first().indexOf(' ',0);
-		if (sep_pos>-1) token = auth_header.first().mid(sep_pos+1, auth_header.first().length()-sep_pos);
+		token = getTokenFromHeader(request);
 	}
 	qDebug() << "Token" << token;
 	return token;
@@ -140,7 +151,7 @@ void EndpointManager::validateInputData(Endpoint* current_endpoint, const HttpRe
 			}
 		}
 
-		if (i.value().category == ParamProps::ParamCategory::POST_URL_ENCODED)
+		if ((i.value().category == ParamProps::ParamCategory::POST_URL_ENCODED) || (i.value().category == ParamProps::ParamCategory::ANY))
 		{
 			if (request.getFormUrlEncoded().contains(i.key()))
 			{
@@ -148,7 +159,7 @@ void EndpointManager::validateInputData(Endpoint* current_endpoint, const HttpRe
 			}
 		}
 
-		if (i.value().category == ParamProps::ParamCategory::GET_URL_PARAM)
+		if ((i.value().category == ParamProps::ParamCategory::GET_URL_PARAM) || (i.value().category == ParamProps::ParamCategory::ANY))
 		{
 			if (request.getUrlParams().contains(i.key()))
 			{
@@ -156,12 +167,17 @@ void EndpointManager::validateInputData(Endpoint* current_endpoint, const HttpRe
 			}
 		}
 
-		if (i.value().category == ParamProps::ParamCategory::PATH_PARAM)
+		if ((i.value().category == ParamProps::ParamCategory::PATH_PARAM) || (i.value().category == ParamProps::ParamCategory::ANY))
 		{
 			if (request.getPathItems().size()>0)
 			{
 				is_found = true;
 			}
+		}
+
+		if (!getTokenFromHeader(request).isEmpty())
+		{
+			is_found = true;
 		}
 
 		if ((!i.value().is_optional) && (!is_found))
