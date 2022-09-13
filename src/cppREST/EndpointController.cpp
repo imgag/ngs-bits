@@ -148,7 +148,6 @@ HttpResponse EndpointController::serveFolderContent(const QString path, const Ht
 
 HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod method, ContentType content_type, QMap<QString, QList<QString>> headers)
 {
-	qDebug() << "Static file name: " << filename;
 	if ((filename.isEmpty()) || ((!filename.isEmpty()) && (!QFile::exists(filename))))
 	{		
 		// Special case, when sending HEAD request for a file that does not exist
@@ -161,7 +160,6 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 	}
 
 	quint64 file_size = QFile(filename).size();
-	qDebug() << "Static file " <<  filename << " size: " << file_size;
 	// Client wants to see only the size of the requested file (not its content)
 	if (method == RequestMethod::HEAD)
 	{
@@ -327,7 +325,6 @@ QString EndpointController::getServedTempPath(QList<QString> path_parts)
 	if (!path_parts.isEmpty())
 	{
 		UrlEntity url_entity = UrlManager::getURLById(path_parts[0]);
-		qDebug() << "Temp URL " << path_parts[0] << " file: " << url_entity.filename_with_path;
 		if (!url_entity.filename_with_path.isEmpty())
 		{
 			path_parts.removeAt(0);

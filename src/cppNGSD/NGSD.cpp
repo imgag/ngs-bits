@@ -178,49 +178,37 @@ bool NGSD::userRoleIn(QString user, QStringList roles)
 
 bool NGSD::userCanAccess(int user_id, int ps_id)
 {
-	QHash<int, QSet<int>>& cache = getCache().user_access_ps;
+	//access restricted only for user role 'user_restricted'	
+	QString role = getValue("SELECT user_role FROM user WHERE id='" + QString::number(user_id) + "'").toString().toLower();
+	if (role!="user_restricted") return true;
 
-	//access restricted only for user role 'user_restricted'
-	if (!cache.contains(user_id))
+	//get permission list
+	QSet<int> ps_ids;
+	SqlQuery query = getQuery();
+	query.exec("SELECT * FROM user_permissions WHERE user_id=" + QString::number(user_id));
+	while(query.next())
 	{
-		QString role = getValue("SELECT user_role FROM user WHERE id='" + QString::number(user_id) + "'").toString().toLower();
-		if (role!="user_restricted") return true;
-	}
+		Permission permission = UserPermissionList::stringToType(query.value("permission").toString());
+		QVariant data = query.value("data").toString();
 
-	//init
-	if (!cache.contains(user_id))
-	{
-		QSet<int> ps_ids;
-
-		//get permission list
-		SqlQuery query = getQuery();
-		query.exec("SELECT * FROM user_permissions WHERE user_id=" + QString::number(user_id));
-		while(query.next())
+		switch(permission)
 		{
-			Permission permission = UserPermissionList::stringToType(query.value("permission").toString());
-			QVariant data = query.value("data").toString();
-
-			switch(permission)
-			{
-				case Permission::PROJECT:
-					ps_ids += getValuesInt("SELECT id FROM processed_sample WHERE project_id=" + data.toString()).toSet();
-					break;
-				case Permission::PROJECT_TYPE:
-					ps_ids += getValuesInt("SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND p.type='" + data.toString() + "'").toSet();
-					break;
-				case Permission::SAMPLE:
-					ps_ids += getValuesInt("SELECT id FROM processed_sample WHERE sample_id=" + data.toString()).toSet();
-					break;
-				case Permission::STUDY:
-					ps_ids += getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id=" + data.toString()).toSet();
-					break;
-			}
+			case Permission::PROJECT:
+				ps_ids += getValuesInt("SELECT id FROM processed_sample WHERE project_id=" + data.toString()).toSet();
+				break;
+			case Permission::PROJECT_TYPE:
+				ps_ids += getValuesInt("SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND p.type='" + data.toString() + "'").toSet();
+				break;
+			case Permission::SAMPLE:
+				ps_ids += getValuesInt("SELECT id FROM processed_sample WHERE sample_id=" + data.toString()).toSet();
+				break;
+			case Permission::STUDY:
+				ps_ids += getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id=" + data.toString()).toSet();
+				break;
 		}
-
-		cache.insert(user_id, ps_ids);
 	}
 
-	return cache[user_id].contains(ps_id);
+	return ps_ids.contains(ps_id);
 }
 
 DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
@@ -7709,7 +7697,6 @@ void NGSD::clearCache()
 	cache_instance.non_approved_to_approved_gene_names.clear();
 	cache_instance.phenotypes_by_id.clear();
 	cache_instance.phenotypes_accession_to_id.clear();
-	cache_instance.user_access_ps.clear();
 
 	cache_instance.gene_transcripts.clear();
 	cache_instance.gene_transcripts_index.createIndex();
