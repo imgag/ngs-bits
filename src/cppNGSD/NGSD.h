@@ -388,6 +388,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	//filters project
 	QString p_name;
 	QString p_type;
+	bool include_archived_projects = true;
 
 	//filters processing system
 	QString sys_name;

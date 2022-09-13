@@ -44,6 +44,7 @@ void ProjectWidget::updateGUI()
 																  });
 	ui_.email_notification->setText(emails.join("; "));
 	ui_.comment->setText(query.value("comment").toString());
+	ui_.archived->setText(query.value("archived").toString()=="1" ? "yes" : "no");
 
 	//### samples
 	QString project_id = query.value("id").toString();

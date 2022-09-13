@@ -44,6 +44,7 @@ public:
 		addString("study", "Processed sample study filter.", true, "");
 		addString("project", "Project name filter.", true, "");
 		addString("project_type", "Project type filter", true, "");
+		addFlag("no_archived_projects", "If set, samples in archived projects are excluded.");
 		addString("system", "Processing system name filter (short name).", true, "");
 		addString("system_type", "Type of processing system filter", true, "");
 		addString("run", "Sequencing run name filter.", true, "");
@@ -93,6 +94,7 @@ public:
 		params.include_merged_samples = getFlag("with_merged");
 		params.p_name = getString("project");
 		params.p_type = getString("project_type");
+		params.include_archived_projects = !getFlag("no_archived_projects");
 		params.sys_name = getString("system");
 		params.sys_type = getString("system_type");
 		params.r_name = getString("run");

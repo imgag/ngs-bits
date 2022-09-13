@@ -59,9 +59,12 @@ bool ReportVariantConfiguration::isValid(QStringList& errors, FastaFileIndex& re
 	}
 
 	//check report type is set
-	if (!getTypeOptions().contains(report_type))
+	if (NGSD::isAvailable()) //This check needs the NGSD production database
 	{
-		errors << "Report type '" + report_type + "' invalid! Valid are: '" + getTypeOptions().join("', '") + "'";
+		if (!getTypeOptions().contains(report_type))
+		{
+			errors << "Report type '" + report_type + "' invalid! Valid are: '" + getTypeOptions().join("', '") + "'";
+		}
 	}
 
 	//check causal variant is not excluced

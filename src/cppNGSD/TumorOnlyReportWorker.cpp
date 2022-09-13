@@ -24,7 +24,6 @@ TumorOnlyReportWorker::TumorOnlyReportWorker(const VariantList& variants, const 
 	i_somatic_class_ = variants_.annotationIndexByName("somatic_classification");
 
 	//Set up RTF file specifications
-	doc_.setMargins(1134,1134,1134,1134);
 	doc_.addColor(188,230,138);
 	doc_.addColor(255,0,0);
 	doc_.addColor(255,255,0);

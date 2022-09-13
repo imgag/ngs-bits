@@ -333,12 +333,7 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 	}
 
 	//Set up RTF file specifications
-	doc_.setMargins( RtfDocument::cm2twip(2.3) , 1134 , RtfDocument::cm2twip(1.2) , 1134 );
-	doc_.addColor(188,230,138);
-	doc_.addColor(255,0,0);
-	doc_.addColor(255,255,0);
-	doc_.addColor(191,191,191);
-	doc_.addColor(240,240,240);
+	addColors(doc_);
 }
 
 void SomaticReportHelper::germlineSnvForQbic(QString path_target_folder)
@@ -622,6 +617,15 @@ VariantTranscript SomaticReportHelper::selectSomaticTranscript(const Variant& va
 	}
 
 	return VariantTranscript();
+}
+
+void SomaticReportHelper::addColors(RtfDocument& doc)
+{
+	doc.addColor(188,230,138);
+	doc.addColor(255,0,0);
+	doc.addColor(255,255,0);
+	doc.addColor(191,191,191);
+	doc.addColor(240,240,240);
 }
 
 QByteArray SomaticReportHelper::CnvTypeDescription(int tumor_cn, bool add_cn)
@@ -1453,6 +1457,11 @@ void SomaticReportHelper::storeXML(QString file_name)
 	data.tumor_mutation_burden = mutation_burden_;
 	data.mantis_msi = mantis_msi_swd_value_;
 
+	RtfDocument doc;
+	addColors(doc);
+	data.rtf_part_header = doc.header();
+	data.rtf_part_footer = doc.footer();
+
 	data.rtf_part_summary = partSummary();
 	data.rtf_part_relevant_variants = partRelevantVariants();
 	data.rtf_part_unclear_variants = partUnclearVariants();
@@ -1710,7 +1719,7 @@ RtfSourceCode SomaticReportHelper::partRelevantVariants()
 
 	if(settings_.report_config.fusionsDetected())
 	{
-		RtfSourceCode snv_expl = "Es gibt Hinweise auf eine Deletion/Fusion/Translokation/Strukturvariante, die zu einer Fusion/Deletion/... führen könnte. (s. Anlage)";
+		RtfSourceCode snv_expl = "Es gibt Hinweise auf eine Deletion/Fusion/Translokation/Strukturvariante, die zu einer Fusion/Deletion/... führen könnte (s. Anlage).";
 		out << RtfParagraph(snv_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).setBold(true).highlight(3).RtfCode();
 		out << RtfParagraph("").setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setFontSize(18).RtfCode();
 	}

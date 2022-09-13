@@ -18,6 +18,7 @@
 #include <QJsonObject>
 #include <QCryptographicHash>
 #include <QDir>
+#include <QThread>
 #include "cmath"
 
 NGSD::NGSD(bool test_db, QString name_suffix)
@@ -339,7 +340,11 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	}
 	if (p.p_type.trimmed()!="")
 	{
-		conditions << "p.type ='" + escapeForSql(p.p_type) + "'";
+		conditions << "p.type='" + escapeForSql(p.p_type) + "'";
+	}
+	if (!p.include_archived_projects)
+	{
+		conditions << "p.archived='0'";
 	}
 
 	//add filters (system)
@@ -7721,6 +7726,18 @@ NGSD::Cache::Cache()
 
 void NGSD::initTranscriptCache()
 {
+	//make sure initialization is done only once
+	static bool initializing = false;
+	if (initializing)
+	{
+		while(initializing)
+		{
+			QThread::msleep(1);
+		}
+		return;
+	}
+	initializing = true;
+
 	//get preferred transcript list
 	QSet<QByteArray> pts;
 	foreach(QString trans, getValues("SELECT DISTINCT name FROM preferred_transcripts"))
@@ -7798,4 +7815,6 @@ void NGSD::initTranscriptCache()
 
 	//build index
 	index.createIndex();
+
+	initializing = false;
 }
