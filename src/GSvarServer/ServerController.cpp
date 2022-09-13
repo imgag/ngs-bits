@@ -264,7 +264,7 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 		{
 			if (!db.userCanAccess(current_session.user_id, id))
 			{
-				return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You do not have permissions to open this sample");
+                                return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You do not have permissions to open the processed sample " + ps_name);
 			}
 		}
 
@@ -301,8 +301,8 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 }
 
 HttpResponse ServerController::getAnalysisJobGSvarFile(const HttpRequest& request)
-{	
-	qDebug() << "Analysis job GSvar file";
+{
+        qDebug() << "Analysis job GSvar file";
 
 	QString ps_name;
 	QString found_file_path;

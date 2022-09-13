@@ -498,3 +498,7 @@ NGSDAnnotateGeneExpression.depends = cppNGSD
 SUBDIRS += NGSDExtractRNACohort
 tools-TEST.depends += NGSDExtractRNACohort
 NGSDExtractRNACohort.depends = cppNGSD
+
+SUBDIRS += VcfToBed
+tools-TEST.depends += VcfToBed
+VcfToBed.depends = cppNGS
