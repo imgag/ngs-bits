@@ -1053,7 +1053,6 @@ protected:
 		QMap<QByteArray, QByteArray> non_approved_to_approved_gene_names;
 		QHash<int, Phenotype> phenotypes_by_id;
 		QHash<QByteArray, int> phenotypes_accession_to_id;
-		QHash<int, QSet<int>> user_access_ps; //user id => ps id set
 
 		TranscriptList gene_transcripts;
 		ChromosomalIndex<TranscriptList> gene_transcripts_index;
