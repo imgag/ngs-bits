@@ -1,5 +1,5 @@
 ### NGSDExportSamples tool help
-	NGSDExportSamples (2022_04-62-gc5232248)
+	NGSDExportSamples (2022_04-120-g0b2ddab9)
 	
 	Lists processed samples from the NGSD.
 	
@@ -34,6 +34,8 @@
 	                           Default value: ''
 	  -project_type <string>   Project type filter
 	                           Default value: ''
+	  -no_archived_projects    If set, samples in archived projects are excluded.
+	                           Default value: 'false'
 	  -system <string>         Processing system name filter (short name).
 	                           Default value: ''
 	  -system_type <string>    Type of processing system filter
@@ -71,7 +73,7 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportSamples changelog
-	NGSDExportSamples 2022_04-62-gc5232248
+	NGSDExportSamples 2022_04-120-g0b2ddab9
 	
 	2022-03-03 Added 'disease_group', 'disease_status', 'project_type' and 'tissue' filter options.
 	2021-04-29 Added 'run_before' filter option.

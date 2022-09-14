@@ -470,8 +470,8 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 }
 
 HttpResponse ServerController::getAnalysisJobGSvarFile(const HttpRequest& request)
-{	
-	qDebug() << "Analysis job GSvar file";
+{
+        qDebug() << "Analysis job GSvar file";
 
 	QString ps_name;
 	QString found_file_path;
