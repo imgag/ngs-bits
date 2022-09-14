@@ -1,5 +1,5 @@
 ### NGSDAnnotateRNA tool help
-	NGSDAnnotateRNA (2022_07-52-g9fafa140)
+	NGSDAnnotateRNA (2022_04-120-g0b2ddab9)
 	
 	Annotates a RNA expression TSV file with cohort information.
 	
@@ -21,6 +21,8 @@
 	                          Default value: ''
 	  -hpa_file <file>        TSV file containing the Human Protein Atlas (https://www.proteinatlas.org) to annotate gene expression
 	                          Default value: ''
+	  -update_genes           Update annotated gene names with approved gene names from the NGSD
+	                          Default value: 'false'
 	  -test                   Uses the test database instead of on the production database.
 	                          Default value: 'false'
 	
@@ -31,8 +33,9 @@
 	  --tdx                   Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDAnnotateRNA changelog
-	NGSDAnnotateRNA 2022_07-52-g9fafa140
+	NGSDAnnotateRNA 2022_04-120-g0b2ddab9
 	
+	2022-08-18 Added ability to update gene names.
 	2022-08-11 Added HPA annotation support.
 	2022-07-13 Added support for exons.
 	2022-06-09 Initial commit.

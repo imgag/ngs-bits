@@ -15,10 +15,14 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Converts a VCF file containing small variant variants to a BED file.");
-		addInfile("in", "Input variant list in VCF format.", false, true);
-		addOutfile("out", "Output region in BED format.", false, true);
-		addFlag("no_sort","Do not sort results");
+		setDescription("Converts a VCF file to a BED file.");
+		setExtendedDescription(QStringList() << "For SNVs exactly one base is in the output region."
+											 << "For insertions the base before and after the insertion is contained."
+											 << "For deletions the base before the deletion and all deleted bases are contained.");
+		addInfile("in", "Input variant list in VCF format.", true, true);
+		addOutfile("out", "Output region in BED format.", true, true);
+
+		changeLog(2022,  9, 13, "Initial implementation.");
 	}
 
 	virtual void main()
