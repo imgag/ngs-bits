@@ -189,18 +189,22 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 	}
 	else if (path_lower=="info")
 	{
-		QString text = "{"
-					   "\"name\": \"" + ToolBase::applicationName() + "\","
-					   "\"description\": \"GSvar server\","
-					   "\"version\": \"" + ToolBase::version() + "\","
-					   "\"api_version\": \"" + NGSHelper::serverApiVersion() + "\""
-					   "}";
+		QJsonDocument json_doc;
+		QJsonObject json_object;
+
+		json_object.insert("name", ToolBase::applicationName());
+		json_object.insert("description", "GSvar server");
+		json_object.insert("version", ToolBase::version());
+		json_object.insert("api_version", NGSHelper::serverApiVersion());
+		json_object.insert("start_time", ServerHelper::getServerStartDateTime().toSecsSinceEpoch());
+		json_doc.setObject(json_object);
+
 		BasicResponseData response_data;
-		response_data.length = text.length();
+		response_data.length = json_doc.toJson().length();
 		response_data.content_type = request.getContentType();
 		response_data.is_downloadable = false;
 
-		return HttpResponse(response_data, text.toUtf8());
+		return HttpResponse(response_data, json_doc.toJson());
 	}
 	else if (path_lower=="bam")
 	{

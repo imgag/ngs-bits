@@ -29,6 +29,9 @@ public:
 	static QString getSessionBackupFileName();
 	static QString getUrlStorageBackupFileName();
 
+	static void setServerStartDateTime(QDateTime date_and_time);
+	static QDateTime getServerStartDateTime();
+
 
 protected:
 	ServerHelper();
@@ -36,6 +39,7 @@ protected:
 private:	
 	static ServerHelper& instance();
 	static QString getStandardFileLocation();
+	QDateTime server_start_date_time_;
 
 
 };

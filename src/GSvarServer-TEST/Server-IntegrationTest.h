@@ -212,6 +212,30 @@ private slots:
 		I_EQUAL(reader.headerLines().count(), 2588);
 		I_EQUAL(reader.chromosomes().count(), 2580);
 	}
+
+	void test_server_info_retrieval()
+	{
+		if (!ServerHelper::hasBasicSettings())
+		{
+			SKIP("Server has not been configured correctly");
+		}
+
+		QByteArray reply;
+		HttpHeaders add_headers;
+		add_headers.insert("Accept", "application/json");
+		int code = sendGetRequest(reply, ServerHelper::getServerUrl(true) + "/v1/info", add_headers);
+		if (code > 0)
+		{
+			SKIP("This test requieres a running server");
+		}
+
+		QJsonDocument doc = QJsonDocument::fromJson(reply);
+		IS_TRUE(doc.isObject());
+		IS_TRUE(doc.object().contains("version"));
+		IS_TRUE(doc.object().contains("api_version"));
+		S_EQUAL(doc.object()["api_version"].toString(), "v1");
+		IS_TRUE(doc.object().contains("start_time"));
+	}
 };
 
 #endif // SERVERINTEGRATIONTEST_H
