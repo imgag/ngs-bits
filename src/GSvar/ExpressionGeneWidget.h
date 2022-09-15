@@ -39,6 +39,9 @@ private slots:
 	void showCohort();
 	void copyCohortToClipboard();
 	void OpenInIGV(QTableWidgetItem* item);
+	void showCustomCohortDialog();
+	void toggleUICustomCohort();
+	void toggleCohortStats(bool enable = false);
 
 private:
 	void updateCohort();
@@ -47,6 +50,7 @@ private:
 	void updateQuery();
 	void initBiotypeList();
 	bool getGeneStats(const QByteArray& gene, double tpm);
+	QStringList getQualityFilter();
 	//file
 	QString tsv_filename_;
 	TsvFile expression_data_;
@@ -58,6 +62,8 @@ private:
 	QString project_;
 	QString ps_id_;
 	RnaCohortDeterminationStategy cohort_type_;
+	QSet<int> custom_cohort_;
+	QStringList exclude_quality_;
 
 	//db
 	NGSD db_;

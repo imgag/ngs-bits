@@ -13,7 +13,9 @@
 #include "LoginManager.h"
 #include "GlobalServiceProvider.h"
 #include <QChartView>
+#include <QDialogButtonBox>
 #include <QSignalMapper>
+#include <QTextEdit>
 QT_CHARTS_USE_NAMESPACE
 
 
@@ -54,6 +56,14 @@ ExpressionGeneWidget::ExpressionGeneWidget(QString tsv_filename, int sys_id, QSt
 	connect(ui_->low_expr_tpm, SIGNAL(editingFinished()), this, SLOT(applyFilters()));
 	connect(ui_->show_cohort, SIGNAL(clicked(bool)), this, SLOT(showCohort()));
 	connect(ui_->expression_data,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(OpenInIGV(QTableWidgetItem*)));
+	connect(ui_->b_set_custom_cohort, SIGNAL(clicked(bool)), this, SLOT(showCustomCohortDialog()));
+	connect(ui_->rb_custom, SIGNAL(toggled(bool)), this, SLOT(toggleUICustomCohort()));
+	connect(ui_->rb_germline_tissue, SIGNAL(toggled(bool)), this, SLOT(toggleCohortStats()));
+	connect(ui_->rb_germline_project, SIGNAL(toggled(bool)), this, SLOT(toggleCohortStats()));
+	connect(ui_->rb_somatic, SIGNAL(toggled(bool)), this, SLOT(toggleCohortStats()));
+	connect(ui_->rb_custom, SIGNAL(toggled(bool)), this, SLOT(toggleCohortStats()));
+	connect(ui_->cb_sample_quality, SIGNAL(currentIndexChanged(int)), this, SLOT(toggleCohortStats()));
+
 
 
 	// set context menus for biotype filter
@@ -140,15 +150,22 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 		{
 			cohort_type = RNA_COHORT_SOMATIC;
 		}
+		else if (ui_->rb_custom->isChecked())
+		{
+			cohort_type = RNA_COHORT_CUSTOM;
+		}
 		else
 		{
 			THROW(ArgumentException, "Invalid cohort type!");
 		}
 
-		if (cohort_type != cohort_type_)
+		QStringList exclude_quality = getQualityFilter();
+
+		if ((cohort_type != cohort_type_) || (exclude_quality != exclude_quality_) || ((cohort_type == RNA_COHORT_CUSTOM) && (cohort_ != custom_cohort_)))
 		{
 			//update cohort determination strategy
 			cohort_type_ = cohort_type;
+			exclude_quality_ = exclude_quality;
 			updateCohort();
 		}
 
@@ -299,6 +316,9 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 		//filter based on NGSD information
 		if ((ui_->abs_logfc->value() != 0.0) || (ui_->abs_zscore->value() != 0.0) || (ui_->tpm_cohort_value->value() != 0.0) || (ui_->low_expr_tpm->value() != 0.0))
 		{
+			// check for valid cohort
+			if(cohort_.size() == 0) THROW(ArgumentException, "Selected cohort does not contain any samples! Cannot filter based on NGSD cohort data.");
+
 			qDebug() << "Filter by NGSD columns";
 			int gene_id_idx = expression_data_.columnIndex("gene_id");
 			int tpm_idx = expression_data_.columnIndex("tpm");
@@ -435,6 +455,9 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 
 		//update table
 		updateTable(max_rows);
+
+		//update GUI
+		toggleCohortStats(true);
 
 		QApplication::restoreOverrideCursor();
 		filtering_in_progress_ = false;
@@ -606,9 +629,103 @@ void ExpressionGeneWidget::OpenInIGV(QTableWidgetItem* item)
 	GlobalServiceProvider::gotoInIGV(gene_name, true);
 }
 
+void ExpressionGeneWidget::showCustomCohortDialog()
+{
+	if (!LoginManager::active()) return;
+	NGSD db;
+	try
+	{
+		qDebug() << "create CustomCohortDialog";
+		QDialog custom_cohort_dialog(this);
+		custom_cohort_dialog.setWindowFlags(Qt::Window);
+		custom_cohort_dialog.setWindowTitle("Set custom cohort of Sample " + db.processedSampleName(ps_id_));
+		custom_cohort_dialog.setLayout(new QBoxLayout(QBoxLayout::TopToBottom));
+		custom_cohort_dialog.layout()->setMargin(3);
+
+		//add description:
+		QLabel* description = new QLabel("Define the custom cohort by adding all processed sample which should be part of the cohort (separated by new lines):");
+		custom_cohort_dialog.layout()->addWidget(description);
+
+		//add table
+		QTextEdit* cohort_text = new QTextEdit();
+		custom_cohort_dialog.layout()->addWidget(cohort_text);
+
+		//init with already determined samples:
+		QStringList processed_sample_names;
+		foreach (int ps_id, custom_cohort_)
+		{
+			processed_sample_names.append(db.processedSampleName(QString::number(ps_id)));
+		}
+		cohort_text->setText(processed_sample_names.join('\n'));
+
+		//add buttons
+		QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+		custom_cohort_dialog.layout()->addWidget(buttonBox);
+		connect(buttonBox, SIGNAL(accepted()), &custom_cohort_dialog, SLOT(accept()));
+		connect(buttonBox, SIGNAL(rejected()), &custom_cohort_dialog, SLOT(reject()));
+
+		//show dialog
+		int result = custom_cohort_dialog.exec();
+
+		if(result == QDialog::Accepted)
+		{
+			//parse results
+			processed_sample_names = cohort_text->toPlainText().replace(",", "\n").replace(";", "\n").replace(" ", "\n").split('\n');
+			QSet<int> new_custom_cohort;
+			QStringList missing_samples;
+			foreach (const QString& ps_name, processed_sample_names)
+			{
+				//skip empty lines
+				if(ps_name.trimmed().isEmpty()) continue;
+				QString ps_id = db.processedSampleId(ps_name, false);
+				if(ps_id.isEmpty())
+				{
+					missing_samples.append(ps_name);
+					continue;
+				}
+				new_custom_cohort.insert(ps_id.toInt());
+			}
+
+			if(missing_samples.size() != 0)
+			{
+				GUIHelper::showMessage("Missing samples", "The following processed samples are not found in the NGSD:\n" + missing_samples.join(",\n"));
+			}
+			custom_cohort_ = new_custom_cohort;
+		}
+	}
+	catch (Exception& e)
+	{
+		GUIHelper::showException(this, e, "Error opening RNA expression file.");
+	}
+}
+
+void ExpressionGeneWidget::toggleUICustomCohort()
+{
+	ui_->b_set_custom_cohort->setEnabled(ui_->rb_custom->isChecked());
+	ui_->cb_sample_quality->setEnabled(!ui_->rb_custom->isChecked());
+}
+
+void ExpressionGeneWidget::toggleCohortStats(bool enable)
+{
+	ui_->l_cohort_size->setEnabled(enable);
+	ui_->show_cohort->setEnabled(enable);
+}
+
 void ExpressionGeneWidget::updateCohort()
 {
-	cohort_ = db_.getRNACohort(sys_id_, tissue_, project_, ps_id_, cohort_type_, "genes", QStringList() << "bad", false);
+	if(cohort_type_ == RNA_COHORT_CUSTOM)
+	{
+		if(custom_cohort_.size() == 0)
+		{
+			// open Dialog to set sample list
+			showCustomCohortDialog();
+		}
+		cohort_ = custom_cohort_;
+	}
+	else
+	{
+		cohort_ = db_.getRNACohort(sys_id_, tissue_, project_, ps_id_, cohort_type_, "genes", exclude_quality_, false);
+	}
 
 	//update NGSD query
 	updateQuery();
@@ -930,6 +1047,26 @@ bool ExpressionGeneWidget::getGeneStats(const QByteArray& gene, double tpm)
 		return true;
 	}
 	return false;
+}
+
+QStringList ExpressionGeneWidget::getQualityFilter()
+{
+	QStringList exclude_quality;
+	if(ui_->cb_sample_quality->currentText() == "Remove samples with quality 'bad'")
+	{
+		exclude_quality << "bad";
+	}
+	else if(ui_->cb_sample_quality->currentText() == "Select samples with quality 'good' and 'medium'")
+	{
+		exclude_quality << "bad" << "n/a";
+	}
+	else if(ui_->cb_sample_quality->currentText() == "Select samples with quality 'good'")
+	{
+		exclude_quality << "medium" << "bad" << "n/a";
+	}
+	//else: select all samples
+
+	return exclude_quality;
 }
 
 QVector<double> ExpressionGeneWidget::calculateRanks(const QVector<double>& values)

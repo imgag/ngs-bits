@@ -58,6 +58,7 @@ public:
 		addEnum("add_path", "Adds a column with the given path type.", true, validPathStrings());
 		addFlag("add_report_config", "Adds a column with report configuration information (exists/has_small_variants/has_cnvs).");
 		addFlag("add_comments", "Adds sample and processed sample comments columns.");
+		addFlag("add_normal_sample", "Adds a column with the normal germline sample associated to a for tumor samples.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
 		changeLog(2022,  3,  3, "Added 'disease_group', 'disease_status', 'project_type' and 'tissue' filter options.");
@@ -115,6 +116,7 @@ public:
 		params.add_disease_details = getFlag("add_disease_details");
 		params.add_path = getEnum("add_path");
 		params.add_report_config = getFlag("add_report_config");
+		params.add_normal_sample = getFlag("add_normal_sample");
 		params.add_comments = getFlag("add_comments");
 
 		//check parameters

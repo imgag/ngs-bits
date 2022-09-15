@@ -428,7 +428,7 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 		Session current_session = SessionManager::getSessionBySecureToken(request.getUrlParams()["token"]);
 
 		//access restricted only for user role 'user_restricted'
-		QString role = db.getValue("SELECT user_role FROM user WHERE id='" + QString::number(current_session.user_id) + "'").toString().toLower();
+		QString role = db.getUserRole(current_session.user_id);
 		if (role=="user_restricted")
 		{
 			if (!db.userCanAccess(current_session.user_id, id))

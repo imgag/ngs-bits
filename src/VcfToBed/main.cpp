@@ -21,6 +21,8 @@ public:
 											 << "For deletions the base before the deletion and all deleted bases are contained.");
 		addInfile("in", "Input variant list in VCF format.", true, true);
 		addOutfile("out", "Output region in BED format.", true, true);
+		//optional
+		addFlag("add_chr", "Add 'chr' to chromosome names if missing.");
 
 		changeLog(2022,  9, 13, "Initial implementation.");
 	}
@@ -32,6 +34,7 @@ public:
 		QString out = getOutfile("out");
 		QSharedPointer<QFile> in_p = Helper::openFileForReading(in, true);
 		QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
+		bool add_chr = getFlag("add_chr");
 
 		//process VCF
 		while(!in_p->atEnd())
@@ -50,6 +53,10 @@ public:
 
 			//extract relevant infos
 			QByteArray chr = parts[VcfFile::CHROM];
+			if (add_chr && !chr.toLower().startsWith("chr"))
+			{
+				chr.prepend("chr");
+			}
 			int pos = Helper::toInt(parts[VcfFile::POS], "chromosomal position");
 			QByteArray ref = parts[VcfFile::REF];
 

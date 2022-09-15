@@ -163,6 +163,11 @@ void NGSD::setPassword(int user_id, QString password)
 	getQuery().exec("UPDATE user SET password='" + hash + "', salt='" + salt + "' WHERE id=" + QString::number(user_id));
 }
 
+QString NGSD::getUserRole(int user_id)
+{
+	return getValue("SELECT user_role FROM user WHERE id='" + QString::number(user_id) + "'").toString().toLower();
+}
+
 bool NGSD::userRoleIn(QString user, QStringList roles)
 {
 	//check that role list contains only correct user role names
@@ -178,9 +183,8 @@ bool NGSD::userRoleIn(QString user, QStringList roles)
 
 bool NGSD::userCanAccess(int user_id, int ps_id)
 {
-	//access restricted only for user role 'user_restricted'	
-	QString role = getValue("SELECT user_role FROM user WHERE id='" + QString::number(user_id) + "'").toString().toLower();
-	if (role!="user_restricted") return true;
+	//access restricted only for user role 'user_restricted'
+	if (getUserRole(user_id)!="user_restricted") return true;
 
 	//get permission list
 	QSet<int> ps_ids;
@@ -489,6 +493,17 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 			report_conf_col << reportConfigSummaryText(ps_id);
 		}
 		output.addColumn(report_conf_col, "report_config");
+	}
+
+	if (p.add_normal_sample)
+	{
+		QStringList new_col;
+		for (int r=0; r<output.rowCount(); ++r)
+		{
+			const QString& ps_id = output.row(r).id();
+			new_col << normalSample(ps_id);
+		}
+		output.addColumn(new_col, "normal_sample");
 	}
 
 	return output;

@@ -931,6 +931,15 @@ private slots:
 		S_EQUAL(ps_table.headers().at(21), "comment_processed_sample");
 		S_EQUAL(ps_table.row(0).value(20), "comment_s6");
 		S_EQUAL(ps_table.row(0).value(21), "comment_ps7");
+		//add normal sample
+		params.add_normal_sample = true;
+		ps_table = db.processedSampleSearch(params);
+		I_EQUAL(ps_table.rowCount(), 9);
+		I_EQUAL(ps_table.columnCount(), 75);
+		I_EQUAL(ps_table.headers().count(), 75);
+		I_EQUAL(ps_table.columnIndex("normal_sample"), 74);
+		S_EQUAL(ps_table.row(5).value(0), "NA12345_01");
+		S_EQUAL(ps_table.row(5).value(74), "NA12878_03");
 		//apply all search parameters
 		params.s_name = "NA12878";
 		params.s_species = "human";
@@ -954,7 +963,7 @@ private slots:
 		params.r_before = QDate::fromString("2021-02-19", Qt::ISODate);
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 0);
-		I_EQUAL(ps_table.columnCount(), 74);
+		I_EQUAL(ps_table.columnCount(), 75);
 		//filter based on access rights (restricted user)
 		params = ProcessedSampleSearchParameters();
 		params.restricted_user = "ahkerra1";
@@ -2532,6 +2541,11 @@ private slots:
 		IS_TRUE(cohort.contains(5005));
 		IS_TRUE(cohort.contains(5006));
 		IS_TRUE(cohort.contains(5007));
+		IS_TRUE(cohort.contains(5008));
+
+		cohort = db.getRNACohort(1, "Blood", "", "", RNA_COHORT_GERMLINE, "genes", QStringList() << "bad" << "medium" << "n/a");
+		I_EQUAL(cohort.size(), 2);
+		IS_TRUE(cohort.contains(5006));
 		IS_TRUE(cohort.contains(5008));
 
 		cohort = db.getRNACohort(1, "Skin", "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE_PROJECT);
