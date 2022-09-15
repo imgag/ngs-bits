@@ -123,7 +123,7 @@ void SampleSearchWidget::search()
 		params.add_report_config = ui_.add_report_config->isChecked();
 		params.add_comments = ui_.add_comments->isChecked();
 
-		if (NGSD().getUserRole(LoginManager::userId())=="user_restricted")
+		if (db_.getUserRole(LoginManager::userId())=="user_restricted")
 		{
 			params.restricted_user = LoginManager::userLogin();
 		}
