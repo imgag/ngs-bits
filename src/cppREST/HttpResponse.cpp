@@ -19,7 +19,7 @@ HttpResponse::HttpResponse(BasicResponseData data, QByteArray payload)
 HttpResponse::HttpResponse(ResponseStatus status, ContentType content_type, qlonglong content_length)
 {
 	setStatus(status);
-	addHeader("Content-Type: " + HttpProcessor::convertContentTypeToString(content_type).toUtf8() + "\r\n");
+	addHeader("Content-Type: " + HttpUtils::convertContentTypeToString(content_type).toUtf8() + "\r\n");
 	addHeader("Content-Length: " + QByteArray::number(content_length) + "\r\n");
 	addHeader("\r\n");
 	setIsStream(false);
@@ -36,10 +36,10 @@ HttpResponse::HttpResponse(ResponseStatus status, ContentType content_type, QStr
 	{
 		case ContentType::TEXT_HTML:
 		{
-			int status_code_number = HttpProcessor::convertResponseStatusToStatusCodeNumber(status);
-			QString html_body = HtmlEngine::getResponsePageTemplate(HttpProcessor::convertResponseStatusCodeNumberToStatusClass(status_code_number)
+			int status_code_number = HttpUtils::convertResponseStatusToStatusCodeNumber(status);
+			QString html_body = HtmlEngine::getResponsePageTemplate(HttpUtils::convertResponseStatusCodeNumberToStatusClass(status_code_number)
 																+ " " + QString::number(status_code_number)
-																+ " - " + HttpProcessor::convertResponseStatusToReasonPhrase(status),
+																+ " - " + HttpUtils::convertResponseStatusToReasonPhrase(status),
 																message);
 			setPayload(html_body.toUtf8());
 		}
@@ -49,8 +49,8 @@ HttpResponse::HttpResponse(ResponseStatus status, ContentType content_type, QStr
 			QJsonDocument json_doc_output {};
 			QJsonObject json_object {};
 			json_object.insert("message", message);
-			json_object.insert("code", HttpProcessor::convertResponseStatusToStatusCodeNumber(status));
-			json_object.insert("type", HttpProcessor::convertResponseStatusToReasonPhrase(status));
+			json_object.insert("code", HttpUtils::convertResponseStatusToStatusCodeNumber(status));
+			json_object.insert("type", HttpUtils::convertResponseStatusToReasonPhrase(status));
 
 			json_doc_output.setObject(json_object);
 			setPayload(json_doc_output.toJson());
@@ -65,9 +65,9 @@ HttpResponse::HttpResponse(ResponseStatus status, ContentType content_type, QStr
 
 	setStatus(status);
 	addHeader("Content-Length: " + QByteArray::number(getContentLength()) + "\r\n");
-	addHeader("Content-Type: " + HttpProcessor::convertContentTypeToString(content_type).toUtf8() + "\r\n");
+	addHeader("Content-Type: " + HttpUtils::convertContentTypeToString(content_type).toUtf8() + "\r\n");
 
-	if (HttpProcessor::convertResponseStatusToStatusCodeNumber(status) == 401)
+	if (HttpUtils::convertResponseStatusToStatusCodeNumber(status) == 401)
 	{
 		addHeader("WWW-Authenticate: Basic realm=\"Access to the secure area of GSvar\"\r\n");
 	}
@@ -118,13 +118,13 @@ QList<ByteRange> HttpResponse::getByteRanges() const
 
 QByteArray HttpResponse::getStatusLine() const
 {
-	return "HTTP/1.1 " + QByteArray::number(HttpProcessor::convertResponseStatusToStatusCodeNumber(response_status_))
-			+ " " + HttpProcessor::convertResponseStatusToReasonPhrase(response_status_).toUtf8() + "\r\n";
+	return "HTTP/1.1 " + QByteArray::number(HttpUtils::convertResponseStatusToStatusCodeNumber(response_status_))
+			+ " " + HttpUtils::convertResponseStatusToReasonPhrase(response_status_).toUtf8() + "\r\n";
 }
 
 int HttpResponse::getStatusCode() const
 {
-	return HttpProcessor::convertResponseStatusToStatusCodeNumber(response_status_);
+	return HttpUtils::convertResponseStatusToStatusCodeNumber(response_status_);
 }
 
 void HttpResponse::setHeaders(QByteArray headers)
@@ -191,7 +191,7 @@ void HttpResponse::readBasicResponseData(BasicResponseData data)
 
 QByteArray HttpResponse::generateRegularHeaders(BasicResponseData data)
 {
-	QString content_type = "Content-Type: " + HttpProcessor::convertContentTypeToString(data.content_type) + "\r\n";
+	QString content_type = "Content-Type: " + HttpUtils::convertContentTypeToString(data.content_type) + "\r\n";
 	QByteArray headers;
 	headers.append("Date: " + QDateTime::currentDateTime().toUTC().toString().toUtf8() + "\r\n");
 
@@ -233,7 +233,7 @@ QByteArray HttpResponse::generateRegularHeaders(BasicResponseData data)
 	}
 
 
-	if (HttpProcessor::convertResponseStatusToStatusCodeNumber(data.status) == 401)
+	if (HttpUtils::convertResponseStatusToStatusCodeNumber(data.status) == 401)
 	{
 		headers.append("WWW-Authenticate: Basic realm=\"Access to the secure area of GSvar\"\r\n");
 	}
@@ -254,7 +254,7 @@ QByteArray HttpResponse::generateChunkedStreamHeaders(BasicResponseData data)
 {
 	QByteArray headers;
 	headers.append("Date: " + QDateTime::currentDateTime().toUTC().toString().toUtf8() + "\r\n");
-	headers.append("Content-Type: " + HttpProcessor::convertContentTypeToString(data.content_type).toUtf8() + "\r\n");
+	headers.append("Content-Type: " + HttpUtils::convertContentTypeToString(data.content_type).toUtf8() + "\r\n");
 	headers.append("Connection: Keep-Alive\r\n");
 	headers.append("Transfer-Encoding: chunked\r\n");
 

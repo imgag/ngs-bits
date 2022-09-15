@@ -6,7 +6,7 @@
 #include <QList>
 #include <QDebug>
 #include "HttpRequest.h"
-#include "HttpProcessor.h"
+#include "HttpUtils.h"
 #include "Exceptions.h"
 #include "ServerHelper.h"
 

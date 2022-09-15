@@ -1,10 +1,10 @@
-#ifndef HTTPPROCESSOR_H
-#define HTTPPROCESSOR_H
+#ifndef HTTPUTILS_H
+#define HTTPUTILS_H
 
 #include "cppREST_global.h"
 #include "HttpParts.h"
 
-class CPPRESTSHARED_EXPORT HttpProcessor
+class CPPRESTSHARED_EXPORT HttpUtils
 {
 public:
 	static ContentType getContentTypeFromString(const QString& in);
@@ -21,11 +21,11 @@ public:
 	static ContentType detectErrorContentType(const QList<QString> headers);
 
 protected:
-	HttpProcessor();
+	HttpUtils();
 
 private:
-	static HttpProcessor& instance();
+	static HttpUtils& instance();
 
 };
 
-#endif // HTTPPROCESSOR_H
+#endif // HTTPUTILS_H

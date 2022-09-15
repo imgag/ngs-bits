@@ -16,8 +16,9 @@ struct CPPRESTSHARED_EXPORT ParamProps
 		PATH_PARAM, // http://url/{param}
 		GET_URL_PARAM, // http://url?var=val
 		POST_URL_ENCODED, // application/x-www-form-urlencoded
-		POST_FORM_DATA, // multipart/form-data, not implemented yet
-		POST_OCTET_STREAM // application/octet-stream
+		POST_FORM_DATA, // multipart/form-data
+		POST_OCTET_STREAM, // application/octet-stream
+		ANY // check all possible types
 	};
 	ParamCategory category;
 	bool is_optional;
@@ -58,9 +59,9 @@ class CPPRESTSHARED_EXPORT EndpointManager
 
 public:
 	static HttpResponse getBasicHttpAuthStatus(HttpRequest request);
-
-	/// Checks if a valid token has been provided
-	static bool isAuthorizedWithToken(const HttpRequest& request);
+	static QString getTokenFromHeader(HttpRequest request);
+	/// Extracts a token from request, if it has been provided
+	static QString getTokenIfAvailable(HttpRequest request);
 	/// Checks if the secure token is valid and not expired
 	static HttpResponse getUserTokenAuthStatus(const HttpRequest& request);
 	/// Check if GSvar toje is valid
@@ -71,6 +72,8 @@ public:
 	static Endpoint getEndpointByUrlAndMethod(const QString& url, const RequestMethod& method);
 	static QList<Endpoint> getEndpointsByUrl(const QString& url);
 	static QList<Endpoint> getEndpointEntities();
+
+	static QString getEndpointHelpTemplate(QList<Endpoint> endpoint_list);
 
 protected:
 	EndpointManager();

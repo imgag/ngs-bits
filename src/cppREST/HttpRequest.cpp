@@ -16,7 +16,7 @@ RequestMethod HttpRequest::getMethod() const
 
 QString HttpRequest::methodAsString()
 {
-	return HttpProcessor::convertMethodTypeToString(method_);
+	return HttpUtils::convertMethodTypeToString(method_);
 }
 
 

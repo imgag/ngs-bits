@@ -11,12 +11,12 @@ HttpResponse EndpointManager::getBasicHttpAuthStatus(HttpRequest request)
 	QString auth_header = request.getHeaderByName("Authorization").length() > 0 ? request.getHeaderByName("Authorization")[0] : "";
 	if (auth_header.isEmpty())
 	{
-		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are in a protected area. Please provide your credentials");
+		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are in a protected area. Please provide your credentials");
 	}
 
 	if (auth_header.split(" ").size() < 2)
 	{
-		return HttpResponse(ResponseStatus::BAD_REQUEST, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Could not parse basic authentication headers");
+		return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Could not parse basic authentication headers");
 	}
 
 	auth_header = auth_header.split(" ").takeLast().trimmed();
@@ -25,7 +25,7 @@ HttpResponse EndpointManager::getBasicHttpAuthStatus(HttpRequest request)
 
 	if (separator_pos == -1)
 	{
-		return HttpResponse(ResponseStatus::BAD_REQUEST, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Could not retrieve the credentials");
+		return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Could not retrieve the credentials");
 	}
 
 	QString username = auth_header_decoded.mid(0, separator_pos);
@@ -39,53 +39,66 @@ HttpResponse EndpointManager::getBasicHttpAuthStatus(HttpRequest request)
 	}
 	catch (Exception& e)
 	{
-		return HttpResponse(ResponseStatus::BAD_REQUEST, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Database error: " + e.message());
+		return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Database error: " + e.message());
 	}
 
 	if (!message.isEmpty())
 	{
-		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "Invalid user credentials");
+		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Invalid user credentials");
 	}
 
 	return HttpResponse(ResponseStatus::OK, request.getContentType(), "Successful authorization");
 }
 
-
-bool EndpointManager::isAuthorizedWithToken(const HttpRequest& request)
+QString EndpointManager::getTokenFromHeader(HttpRequest request)
 {
+	QString token = "";
+	QList<QString> auth_header = request.getHeaderByName("Authorization");
+	if (auth_header.count()>0)
+	{
+		qDebug() << "Token from header";
+		int sep_pos = auth_header.first().indexOf(' ',0);
+		if (sep_pos>-1) token = auth_header.first().mid(sep_pos+1, auth_header.first().length()-sep_pos);
+	}
+	return token;
+}
+
+QString EndpointManager::getTokenIfAvailable(HttpRequest request)
+{
+	QString token = "";
 	if (request.getUrlParams().contains("token"))
 	{
-		qDebug() << "User token from URL" << request.getUrlParams()["token"];
-		return SessionManager::isTokenReal(request.getUrlParams()["token"]);
+		qDebug() << "User token from URL";
+		token = request.getUrlParams()["token"];
 	}
 	if (request.getFormUrlEncoded().contains("token"))
 	{
-		qDebug() << "User token from Form" << request.getFormUrlEncoded()["token"];
-		return SessionManager::isTokenReal(request.getFormUrlEncoded()["token"]);
+		qDebug() << "User token from Form";
+		token = request.getFormUrlEncoded()["token"];
 	}
 	if (request.getFormUrlEncoded().contains("dbtoken"))
 	{
-		qDebug() << "Database token from Form" << request.getFormUrlEncoded()["dbtoken"];
-		if (!SessionManager::getSessionBySecureToken(request.getFormUrlEncoded()["dbtoken"]).is_for_db_only) return false;
-		return SessionManager::isTokenReal(request.getFormUrlEncoded()["dbtoken"]);
+		qDebug() << "Database token from Form";
+		token = request.getFormUrlEncoded()["dbtoken"];
 	}
 
-	qDebug() << "Invalid token";
-	return false;
+	if (!getTokenFromHeader(request).isEmpty())
+	{
+		token = getTokenFromHeader(request);
+	}
+	qDebug() << "Token" << token;
+	return token;
 }
 
 HttpResponse EndpointManager::getUserTokenAuthStatus(const HttpRequest& request)
 {
 	qDebug() << "Check user token status";
-	if (!isAuthorizedWithToken(request))
+	if (!SessionManager::isTokenReal(getTokenIfAvailable(request)))
 	{
-		return HttpResponse(ResponseStatus::FORBIDDEN, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized with a valid user token");
+		return HttpResponse(ResponseStatus::FORBIDDEN, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized with a valid user token");
 	}
 
-	QString token;
-	if (request.getUrlParams().contains("token")) token = request.getUrlParams()["token"];
-	if (request.getFormUrlEncoded().contains("token")) token = request.getFormUrlEncoded()["token"];
-	if (SessionManager::isSessionExpired(token))
+	if (SessionManager::isSessionExpired(getTokenIfAvailable(request)))
 	{
 		return HttpResponse(ResponseStatus::REQUEST_TIMEOUT, request.getContentType(), "Secure token has expired");
 	}
@@ -96,9 +109,9 @@ HttpResponse EndpointManager::getUserTokenAuthStatus(const HttpRequest& request)
 HttpResponse EndpointManager::getDbTokenAuthStatus(const HttpRequest& request)
 {
 	qDebug() << "Check db token status";
-	if (!isAuthorizedWithToken(request))
+	if (!SessionManager::isTokenReal(request.getFormUrlEncoded()["dbtoken"]))
 	{
-		return HttpResponse(ResponseStatus::FORBIDDEN, HttpProcessor::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized with a valid database token");
+		return HttpResponse(ResponseStatus::FORBIDDEN, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized with a valid database token");
 	}
 
 	if (SessionManager::isSessionExpired(request.getFormUrlEncoded()["dbtoken"]))
@@ -138,7 +151,7 @@ void EndpointManager::validateInputData(Endpoint* current_endpoint, const HttpRe
 			}
 		}
 
-		if (i.value().category == ParamProps::ParamCategory::POST_URL_ENCODED)
+		if ((i.value().category == ParamProps::ParamCategory::POST_URL_ENCODED) || (i.value().category == ParamProps::ParamCategory::ANY))
 		{
 			if (request.getFormUrlEncoded().contains(i.key()))
 			{
@@ -146,7 +159,7 @@ void EndpointManager::validateInputData(Endpoint* current_endpoint, const HttpRe
 			}
 		}
 
-		if (i.value().category == ParamProps::ParamCategory::GET_URL_PARAM)
+		if ((i.value().category == ParamProps::ParamCategory::GET_URL_PARAM) || (i.value().category == ParamProps::ParamCategory::ANY))
 		{
 			if (request.getUrlParams().contains(i.key()))
 			{
@@ -154,12 +167,17 @@ void EndpointManager::validateInputData(Endpoint* current_endpoint, const HttpRe
 			}
 		}
 
-		if (i.value().category == ParamProps::ParamCategory::PATH_PARAM)
+		if ((i.value().category == ParamProps::ParamCategory::PATH_PARAM) || (i.value().category == ParamProps::ParamCategory::ANY))
 		{
 			if (request.getPathItems().size()>0)
 			{
 				is_found = true;
 			}
+		}
+
+		if (!getTokenFromHeader(request).isEmpty())
+		{
+			is_found = true;
 		}
 
 		if ((!i.value().is_optional) && (!is_found))
@@ -208,6 +226,43 @@ QList<Endpoint> EndpointManager::getEndpointsByUrl(const QString& url)
 QList<Endpoint> EndpointManager::getEndpointEntities()
 {
 	return instance().endpoint_list_;
+}
+
+QString EndpointManager::getEndpointHelpTemplate(QList<Endpoint> endpoint_list)
+{
+	QString output;
+	QTextStream stream(&output);
+
+	stream << HtmlEngine::getPageHeader("API Help Page");
+	stream << HtmlEngine::getApiHelpHeader("API Help Page");
+
+	for (int i = 0; i < endpoint_list.count(); ++i)
+	{
+		QList<QString> param_names {};
+		QList<QString> param_desc {};
+
+		QMapIterator<QString, ParamProps> p(endpoint_list[i].params);
+		while (p.hasNext()) {
+			p.next();
+			param_names.append(p.key());
+			param_desc.append(p.value().comment);
+		}
+
+		HttpRequest request;
+		request.setMethod(endpoint_list[i].method);
+
+		stream << HtmlEngine::getApiHelpEntry(
+					  endpoint_list[i].url,
+					  request.methodAsString(),
+					  param_names,
+					  param_desc,
+					  endpoint_list[i].comment
+					);
+	}
+
+	stream << HtmlEngine::getPageFooter();
+
+	return output;
 }
 
 EndpointManager& EndpointManager::instance()

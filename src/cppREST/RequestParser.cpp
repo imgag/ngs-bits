@@ -67,7 +67,7 @@ HttpRequest RequestParser::parse(QByteArray *request) const
 			QString boundary = "--" + content_type_header_list[1].trimmed().replace("boundary=", "", Qt::CaseInsensitive).replace("\"", "");
 
 			// Parse mutipart form data request
-			if ((HttpProcessor::getContentTypeFromString(content_type) == ContentType::MULTIPART_FORM_DATA) && (!boundary.isEmpty()))
+			if ((HttpUtils::getContentTypeFromString(content_type) == ContentType::MULTIPART_FORM_DATA) && (!boundary.isEmpty()))
 			{
 				QByteArray form_body = parsed_request.getBody();				
 				QList<QByteArray> multipart_list;
@@ -131,7 +131,7 @@ HttpRequest RequestParser::parse(QByteArray *request) const
 		{
 			content_type = headers[0];
 		}
-		parsed_request.setContentType(HttpProcessor::getContentTypeFromString(content_type));
+		parsed_request.setContentType(HttpUtils::getContentTypeFromString(content_type));
 	}
 
 	if (parsed_request.getContentType() == ContentType::APPLICATION_X_WWW_FORM_URLENCODED)
