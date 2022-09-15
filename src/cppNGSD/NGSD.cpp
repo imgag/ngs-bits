@@ -491,6 +491,17 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		output.addColumn(report_conf_col, "report_config");
 	}
 
+	if (p.add_normal_sample)
+	{
+		QStringList new_col;
+		for (int r=0; r<output.rowCount(); ++r)
+		{
+			const QString& ps_id = output.row(r).id();
+			new_col << normalSample(ps_id);
+		}
+		output.addColumn(new_col, "normal_sample");
+	}
+
 	return output;
 }
 

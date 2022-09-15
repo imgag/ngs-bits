@@ -122,6 +122,7 @@ void SampleSearchWidget::search()
 		params.add_qc = ui_.add_qc->isChecked();
 		params.add_report_config = ui_.add_report_config->isChecked();
 		params.add_comments = ui_.add_comments->isChecked();
+		params.add_normal_sample = ui_.add_normal_sample->isChecked();
 
 		if (LoginManager::userRole()=="user_restricted")
 		{
