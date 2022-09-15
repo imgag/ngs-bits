@@ -22,8 +22,6 @@ public:
 	static QString userToken();
 	static QString userPassword();
 
-	//Returns user role from NGSD
-	static QString userRole();
 	//Returns if a user is logged in (and that the NGSD is enabled)
 	static bool active();
 
@@ -64,7 +62,6 @@ private:
 	QString user_login_;
 	QString user_name_;
 	int user_id_;
-	QString user_role_;
 	QString user_token_;
 	QString user_password_;
 

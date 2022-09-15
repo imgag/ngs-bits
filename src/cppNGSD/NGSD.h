@@ -803,6 +803,9 @@ public:
 	QString checkPassword(QString user_name, QString password, bool only_active=true);
 	///Sets the password for a NGSD user using a new random salt.
 	void setPassword(int user_id, QString password);
+	///Return a role for a given user.
+	QString getUserRole(int user_id);
+
 	///Checks if the user has one of the given roles.
 	bool userRoleIn(QString user, QStringList roles);
 	///Checks if the user can access the processed sample. Use for users with role 'restricted_user' only, or it will be slow because the user role has to be checked every time. Uses caching for massive speed-up.

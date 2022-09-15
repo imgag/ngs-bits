@@ -124,7 +124,7 @@ void SampleSearchWidget::search()
 		params.add_comments = ui_.add_comments->isChecked();
 		params.add_normal_sample = ui_.add_normal_sample->isChecked();
 
-		if (LoginManager::userRole()=="user_restricted")
+		if (db_.getUserRole(LoginManager::userId())=="user_restricted")
 		{
 			params.restricted_user = LoginManager::userLogin();
 		}
