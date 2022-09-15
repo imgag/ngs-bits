@@ -534,7 +534,8 @@ enum RnaCohortDeterminationStategy
 {
 	RNA_COHORT_GERMLINE, //based on processing system
 	RNA_COHORT_GERMLINE_PROJECT, //based on processing system and project
-	RNA_COHORT_SOMATIC //based on HPO or ICD10
+	RNA_COHORT_SOMATIC, //based on HPO or ICD10
+	RNA_COHORT_CUSTOM //list of processed samples needs to be provided
 };
 
 /// NGSD accessor.

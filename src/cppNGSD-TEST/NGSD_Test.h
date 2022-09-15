@@ -2543,6 +2543,11 @@ private slots:
 		IS_TRUE(cohort.contains(5007));
 		IS_TRUE(cohort.contains(5008));
 
+		cohort = db.getRNACohort(1, "Blood", "", "", RNA_COHORT_GERMLINE, "genes", QStringList() << "bad" << "medium" << "n/a");
+		I_EQUAL(cohort.size(), 2);
+		IS_TRUE(cohort.contains(5006));
+		IS_TRUE(cohort.contains(5008));
+
 		cohort = db.getRNACohort(1, "Skin", "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE_PROJECT);
 		I_EQUAL(cohort.size(), 2);
 		IS_TRUE(cohort.contains(5001));
