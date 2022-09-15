@@ -293,32 +293,17 @@ QString MainWindow::appName() const
 
 bool MainWindow::isServerRunning()
 {
-	QByteArray response;
-	HttpHeaders add_headers;
-	add_headers.insert("Accept", "application/json");
-	try
+	ServerInfo server_info = NGSHelper::getServerInfo();
+
+	if (server_info.isEmpty())
 	{
-		response = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).get(NGSHelper::serverApiUrl()+ "info", add_headers);
-	}
-	catch (Exception& e)
-	{
-		Log::error("Server availability problem: " + e.message());
-		QMessageBox::warning(this, "Server not responding", "GSvar application will be closed, since the server is not available");
+		QMessageBox::warning(this, "Server not available", "GSvar is configured for the client-server mode, but the server is not available. The application will be closed");
 		return false;
 	}
 
-	if (response.isEmpty())
+	if (NGSHelper::serverApiVersion() != server_info.api_version)
 	{
-		QMessageBox::warning(this, "Version information not available", "Could not identify the server version. The application will be closed");
-		return false;
-	}
-
-	QJsonDocument json_doc = QJsonDocument::fromJson(response);
-	if (!json_doc.isObject()) return false;
-
-	if (NGSHelper::serverApiVersion() != json_doc.object()["api_version"].toString())
-	{
-		QMessageBox::warning(this, "Version mismatch", "GSvar uses API " + NGSHelper::serverApiVersion() + ", while the server uses API " + json_doc.object()["api_version"].toString() + ". No stable work can be guaranteed. The application will be closed");
+		QMessageBox::warning(this, "Version mismatch", "GSvar uses API " + NGSHelper::serverApiVersion() + ", while the server uses API " + server_info.api_version + ". No stable work can be guaranteed. The application will be closed");
 		return false;
 	}
 
@@ -327,7 +312,10 @@ bool MainWindow::isServerRunning()
 
 void MainWindow::checkServerAvailability()
 {
-	if (!isServerRunning()) close();
+	if (!isServerRunning())
+	{		
+		close();
+	}
 }
 
 void MainWindow::on_actionDebug_triggered()
@@ -2278,7 +2266,7 @@ void MainWindow::delayedInitialization()
 	if (NGSHelper::isClientServerMode())
 	{
 		if (!isServerRunning())
-		{
+		{			
 			close();
 			return;
 		}
@@ -3876,7 +3864,20 @@ int MainWindow::showAnalysisIssues(QList<QPair<Log::LogLevel, QString>>& issues,
 
 void MainWindow::on_actionAbout_triggered()
 {
-	QMessageBox::about(this, "About " + appName(), appName()+ " " + QCoreApplication::applicationVersion()+ "\n\nA free viewing and filtering tool for genomic variants.\n\nInstitute of Medical Genetics and Applied Genomics\nUniversity Hospital Tübingen\nGermany\n\nMore information at:\nhttps://github.com/imgag/ngs-bits");
+	QString about_text = appName()+ " " + QCoreApplication::applicationVersion();
+	if (NGSHelper::isClientServerMode())
+	{
+		ServerInfo server_info = NGSHelper::getServerInfo();
+		if (!server_info.isEmpty())
+		{
+			about_text += "\n";
+			about_text += "\nServer version: " + server_info.version;
+			about_text += "\nAPI version: " + server_info.api_version;
+			about_text += "\nServer start time: " + server_info.server_start_time.toString();
+		}
+	}
+	about_text += "\n\nA free viewing and filtering tool for genomic variants.\n\nInstitute of Medical Genetics and Applied Genomics\nUniversity Hospital Tübingen\nGermany\n\nMore information at:\nhttps://github.com/imgag/ngs-bits";
+	QMessageBox::about(this, "About " + appName(), about_text);
 }
 
 void MainWindow::loadReportConfig()
