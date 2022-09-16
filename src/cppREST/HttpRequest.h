@@ -2,7 +2,7 @@
 #define HTTPREQUEST_H
 
 #include "cppREST_global.h"
-#include "HttpProcessor.h"
+#include "HttpUtils.h"
 
 class CPPRESTSHARED_EXPORT HttpRequest
 {

@@ -5,7 +5,6 @@
 #include "Log.h"
 #include "ServerWrapper.h"
 #include "ServerHelper.h"
-#include "EndpointController.h"
 #include "ServerController.h"
 
 int main(int argc, char **argv)
@@ -91,26 +90,26 @@ int main(int argc, char **argv)
 						"static",
 						QMap<QString, ParamProps>{
 						   {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, true, "Name of the file to be served"}},
-						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+						   {"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_HTML,
 						AuthType::USER_TOKEN,
 						"Static content served from the server root folder (defined in the config file)",
-						&EndpointController::serveStaticFromServerRoot
+						&ServerController::serveStaticFromServerRoot
 				   });
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"static",
 						QMap<QString, ParamProps>{
 						   {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, false, "Name of the file to be served"}},
-						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+						   {"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::HEAD,
 						ContentType::TEXT_HTML,
 						AuthType::USER_TOKEN,
 						"Size of the static content served from the server root folder (defined in the config file)",
-						&EndpointController::serveStaticFromServerRoot
+						&ServerController::serveStaticFromServerRoot
 				   });
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -122,20 +121,20 @@ int main(int argc, char **argv)
 						ContentType::TEXT_HTML,
 						AuthType::HTTP_BASIC_AUTH,
 						"Protected static files",
-						&EndpointController::serveStaticFromServerRoot
+						&ServerController::serveStaticFromServerRoot
 				   });
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"temp",
 						QMap<QString, ParamProps>{
 						   {"id", ParamProps{ParamProps::ParamCategory::PATH_PARAM, false, "Unique id pointing to a file"}},
-						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+						   {"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_HTML,
 						AuthType::USER_TOKEN,
 						"Static file served via secure temporary URL",
-						&EndpointController::serveStaticForTempUrl
+						&ServerController::serveStaticFromTempUrl
 				   });
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -143,13 +142,13 @@ int main(int argc, char **argv)
 						QMap<QString, ParamProps>{
 							{"id", ParamProps{ParamProps::ParamCategory::PATH_PARAM, false, "Unique id pointing to a folder"}},
 							{"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, true, "Filename in a folder with a temporary URL"}},
-							{"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::HEAD,
 						ContentType::TEXT_HTML,
 						AuthType::USER_TOKEN,
 						"Size of the static file served via secure temporary URL",
-						&EndpointController::serveStaticForTempUrl
+						&ServerController::serveStaticFromTempUrl
 				   });
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -162,7 +161,7 @@ int main(int argc, char **argv)
 						ContentType::TEXT_HTML,
 						AuthType::NONE,
 						"Help page on the usage of the endpoints",
-						&EndpointController::serveEndpointHelp
+						&ServerController::serveEndpointHelp
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -174,7 +173,7 @@ int main(int argc, char **argv)
 						   {"locus", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Locus for repeat expansion image"}},
 						   {"multiple_files", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Flag indicating that we expect a single file/list of files"}},
 						   {"return_if_missing", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Return file info, if the file is missing"}},
-						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+						   {"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::GET,
 						ContentType::APPLICATION_JSON,
@@ -188,7 +187,7 @@ int main(int argc, char **argv)
 						QMap<QString, ParamProps> {
 						   {"ps_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processed sample id"}},
 						   {"type", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "File type"}},
-						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+						   {"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::GET,
 						ContentType::APPLICATION_JSON,
@@ -201,7 +200,7 @@ int main(int argc, char **argv)
 						"analysis_job_gsvar_file",
 						QMap<QString, ParamProps> {
 						   {"job_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Analysis job id"}},
-						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+						   {"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::GET,
 						ContentType::APPLICATION_JSON,
@@ -214,7 +213,7 @@ int main(int argc, char **argv)
 						"analysis_job_last_update",
 						QMap<QString, ParamProps> {
 						   {"job_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Analysis job id"}},
-						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+						   {"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::GET,
 						ContentType::APPLICATION_JSON,
@@ -227,7 +226,7 @@ int main(int argc, char **argv)
 						"analysis_job_log",
 						QMap<QString, ParamProps> {
 						   {"job_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Analysis job id"}},
-						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+						   {"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::GET,
 						ContentType::APPLICATION_JSON,
@@ -240,7 +239,7 @@ int main(int argc, char **argv)
 						"project_file",
 						QMap<QString, ParamProps> {
 						   {"ps_url_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "An id of a temporary URL pointing to a specific processed sample"}},
-						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+						   {"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::PUT,
 						ContentType::APPLICATION_JSON,
@@ -253,7 +252,7 @@ int main(int argc, char **argv)
 						"ps_regions",
 						QMap<QString, ParamProps> {
 						   {"sys_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processing system id"}},
-						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+						   {"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_PLAIN,
@@ -266,7 +265,7 @@ int main(int argc, char **argv)
 						"ps_amplicons",
 						QMap<QString, ParamProps> {
 						   {"sys_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processing system id"}},
-						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+						   {"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_PLAIN,
@@ -279,7 +278,7 @@ int main(int argc, char **argv)
 						"ps_genes",
 						QMap<QString, ParamProps> {
 						   {"sys_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processing system id"}},
-						   {"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+						   {"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_PLAIN,
@@ -293,7 +292,7 @@ int main(int argc, char **argv)
 						QMap<QString, ParamProps> {
 							{"ps_name", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processed sample name"}},
 							{"type", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Analysis type"}},
-							{"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::GET,
 						ContentType::APPLICATION_JSON,
@@ -308,7 +307,7 @@ int main(int argc, char **argv)
 							{"filename", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "QBic data report file"}},
 							{"id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Location id of the QBic data report file"}},
 							{"content", ParamProps{ParamProps::ParamCategory::POST_OCTET_STREAM, false, "QBic report data to be saved in a file"}},
-							{"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::POST,
 						ContentType::APPLICATION_JSON,
@@ -322,12 +321,11 @@ int main(int argc, char **argv)
 							{"roi", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "Regions of interest"}},
 							{"bam_url_id", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "An id of a temporary URL pointing to a BAM file"}},
 							{"cutoff", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "Cutoff value"}},
-
-							{"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::POST,
 						ContentType::TEXT_PLAIN,
-						AuthType::NONE,
+						AuthType::USER_TOKEN,
 						"Calculates low coverage regions",
 						&ServerController::calculateLowCoverage
 					});
@@ -336,12 +334,11 @@ int main(int argc, char **argv)
 						QMap<QString, ParamProps>{
 							{"low_cov", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "Regions of interest"}},
 							{"bam_url_id", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "An id of a temporary URL pointing to a BAM file"}},
-
-							{"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::POST,
 						ContentType::TEXT_PLAIN,
-						AuthType::NONE,
+						AuthType::USER_TOKEN,
 						"Calculates average coverage for gaps",
 						&ServerController::calculateAvgCoverage
 					});
@@ -350,12 +347,11 @@ int main(int argc, char **argv)
 						QMap<QString, ParamProps>{
 							{"regions", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "Regions of interest"}},
 							{"bam_url_id", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "An id of a temporary URL pointing to a BAM file"}},
-
-							{"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::POST,
 						ContentType::TEXT_PLAIN,
-						AuthType::NONE,
+						AuthType::USER_TOKEN,
 						"Calculates target region read depth used in germline report",
 						&ServerController::calculateTargetRegionReadDepth
 					});
@@ -364,7 +360,7 @@ int main(int argc, char **argv)
 						"multi_sample_analysis_info",
 						QMap<QString, ParamProps>{
 							{"analyses", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "List of available analyses"}},
-							{"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::POST,
 						ContentType::APPLICATION_JSON,
@@ -378,7 +374,7 @@ int main(int argc, char **argv)
 						"upload",
 						QMap<QString, ParamProps>{
 							{"ps_url_id", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "An id of a temporary URL pointing to a specific processed sample"}},
-							{"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Secure token received after a successful login"}}
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::POST,
 						ContentType::APPLICATION_OCTET_STREAM,
@@ -402,7 +398,7 @@ int main(int argc, char **argv)
 	EndpointManager::appendEndpoint(Endpoint{
 						"session",
 						QMap<QString, ParamProps>{
-							{"token", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Secure token to identify the session"}},
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token to identify the session"}},
 						},
 						RequestMethod::GET,
 						ContentType::APPLICATION_JSON,
@@ -425,7 +421,7 @@ int main(int argc, char **argv)
 	EndpointManager::appendEndpoint(Endpoint{
 						"db_token",
 						QMap<QString, ParamProps>{
-							{"token", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "User name"}}
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "User name"}}
 						},
 						RequestMethod::POST,
 						ContentType::TEXT_PLAIN,
@@ -460,7 +456,7 @@ int main(int argc, char **argv)
 	EndpointManager::appendEndpoint(Endpoint{
 						"logout",
 						QMap<QString, ParamProps>{
-							{"token", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "Secure token received after a successful login"}}
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::POST,
 						ContentType::TEXT_PLAIN,
@@ -517,5 +513,6 @@ int main(int argc, char **argv)
 		return app.exec();
 	}
 
+	ServerHelper::setServerStartDateTime(QDateTime::currentDateTime());
 	return app.exec();
 }

@@ -292,7 +292,7 @@ public:
     {
 		setDescription("Adds transcript-specific consequence predictions to a VCF file.");
 		addInfile("in", "Input VCF file to annotate.", false);
-		addInfile("gff", "Ensembl-style GFF file with transcripts, e.g. from ftp://ftp.ensembl.org/pub/release-104/gff3/homo_sapiens/Homo_sapiens.GRCh38.104.chr.gff3.gz.", false);
+		addInfile("gff", "Ensembl-style GFF file with transcripts, e.g. from https://ftp.ensembl.org/pub/release-107/gff3/homo_sapiens/Homo_sapiens.GRCh38.107.chr.gff3.gz.", false);
 
         //optional
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);

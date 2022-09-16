@@ -53,6 +53,19 @@ struct GffData
 	QSet<QByteArray> gencode_basic;
 };
 
+//Contains information about the GSvarServer (used in client-server mode)
+struct ServerInfo
+{
+	QString version; // server version
+	QString api_version; // server API version
+	QDateTime server_start_time; // date and time when the server was started
+
+	bool isEmpty()
+	{
+		return ((this->version.isEmpty()) && (this->api_version.isEmpty()) && (this->server_start_time.isNull()));
+	}
+};
+
 ///Helper class for NGS-specific stuff.
 class CPPNGSSHARED_EXPORT NGSHelper
 {
@@ -106,6 +119,9 @@ public:
 	static bool isClientServerMode();
 	///Checks if the application is running on the server or on a client machine
 	static bool isRunningOnServer();
+
+	///Requests information about GSvarServer
+	static ServerInfo getServerInfo();
 
 	///Returns the server API version. Used to check that the server and the client have the same version.
 	static QString serverApiVersion();

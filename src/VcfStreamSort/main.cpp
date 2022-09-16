@@ -67,8 +67,6 @@ public:
 
 	virtual void main()
 	{
-		QTextStream todo(stdout);
-
 		//init
 		QMap<VcfCoords, QByteArray> lines;
 		int n = getInt("n");

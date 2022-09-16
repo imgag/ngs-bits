@@ -114,6 +114,16 @@ QString ServerHelper::getUrlStorageBackupFileName()
 	return getStandardFileLocation() + QCoreApplication::applicationName() + "_urls.txt";
 }
 
+void ServerHelper::setServerStartDateTime(QDateTime date_and_time)
+{
+	instance().server_start_date_time_ = date_and_time;
+}
+
+QDateTime ServerHelper::getServerStartDateTime()
+{
+	return instance().server_start_date_time_;
+}
+
 ServerHelper& ServerHelper::instance()
 {
 	static ServerHelper server_helper;

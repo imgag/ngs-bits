@@ -31,13 +31,11 @@ INCLUDEPATH += $$PWD/../GSvarServer
 INCLUDEPATH += $$PWD/../cppTFW
 
 HEADERS += \
-    EndpointController_Test.h \
     HtmlEngine_Test.h \
     HttpProcessor_Test.h \
     RequestParser_Test.h \
     ServerHelper_Test.h \
-    UrlManager_Test.h \
-    WebServer_Test.h
+    UrlManager_Test.h
 
 SOURCES += \
         main.cpp

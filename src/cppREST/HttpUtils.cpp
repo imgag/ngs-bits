@@ -1,16 +1,16 @@
-#include "HttpProcessor.h"
+#include "HttpUtils.h"
 
-HttpProcessor::HttpProcessor()
+HttpUtils::HttpUtils()
 {
 }
 
-HttpProcessor& HttpProcessor::instance()
+HttpUtils& HttpUtils::instance()
 {
-	static HttpProcessor http_processor;
-	return http_processor;
+	static HttpUtils http_utils;
+	return http_utils;
 }
 
-ContentType HttpProcessor::getContentTypeFromString(const QString& in)
+ContentType HttpUtils::getContentTypeFromString(const QString& in)
 {
 	if (in.toLower() == "application/octet-stream") return APPLICATION_OCTET_STREAM;
 	if (in.toLower() == "application/json") return APPLICATION_JSON;
@@ -29,7 +29,7 @@ ContentType HttpProcessor::getContentTypeFromString(const QString& in)
 	return APPLICATION_OCTET_STREAM;
 }
 
-QString HttpProcessor::convertContentTypeToString(const ContentType& in)
+QString HttpUtils::convertContentTypeToString(const ContentType& in)
 {
 	switch(in)
 	{
@@ -50,7 +50,7 @@ QString HttpProcessor::convertContentTypeToString(const ContentType& in)
 	return "";
 }
 
-ContentType HttpProcessor::getContentTypeByFilename(const QString& filename)
+ContentType HttpUtils::getContentTypeByFilename(const QString& filename)
 {
 	QList<QString> name_items = filename.split(".");
 	QString extention = name_items.takeLast().toLower();
@@ -78,7 +78,7 @@ ContentType HttpProcessor::getContentTypeByFilename(const QString& filename)
 	return APPLICATION_OCTET_STREAM;
 }
 
-RequestMethod HttpProcessor::getMethodTypeFromString(const QString& in)
+RequestMethod HttpUtils::getMethodTypeFromString(const QString& in)
 {
 	if (in.toLower() == "get") return RequestMethod::GET;
 	if (in.toLower() == "post") return RequestMethod::POST;
@@ -90,7 +90,7 @@ RequestMethod HttpProcessor::getMethodTypeFromString(const QString& in)
 	return RequestMethod::GET;
 }
 
-QString HttpProcessor::convertMethodTypeToString(const RequestMethod& in)
+QString HttpUtils::convertMethodTypeToString(const RequestMethod& in)
 {
 	switch(in)
 	{
@@ -104,7 +104,7 @@ QString HttpProcessor::convertMethodTypeToString(const RequestMethod& in)
 	}
 }
 
-QString HttpProcessor::convertResponseStatusToReasonPhrase(const ResponseStatus& response_status)
+QString HttpUtils::convertResponseStatusToReasonPhrase(const ResponseStatus& response_status)
 {
 	switch(response_status)
 	{
@@ -153,7 +153,7 @@ QString HttpProcessor::convertResponseStatusToReasonPhrase(const ResponseStatus&
 	}
 }
 
-int HttpProcessor::convertResponseStatusToStatusCodeNumber(const ResponseStatus& response_status)
+int HttpUtils::convertResponseStatusToStatusCodeNumber(const ResponseStatus& response_status)
 {
 	switch(response_status)
 	{
@@ -202,7 +202,7 @@ int HttpProcessor::convertResponseStatusToStatusCodeNumber(const ResponseStatus&
 	}
 }
 
-QString HttpProcessor::convertResponseStatusCodeNumberToStatusClass(const int& status_code_number)
+QString HttpUtils::convertResponseStatusCodeNumberToStatusClass(const int& status_code_number)
 {
 	if ((status_code_number >= 100) && (status_code_number <= 199))
 	{
@@ -232,7 +232,7 @@ QString HttpProcessor::convertResponseStatusCodeNumberToStatusClass(const int& s
 	return "Unknown response class";
 }
 
-ContentType HttpProcessor::detectErrorContentType(const QList<QString> headers)
+ContentType HttpUtils::detectErrorContentType(const QList<QString> headers)
 {
 	ContentType error_type = ContentType::TEXT_PLAIN;
 	for (int i = 0; i < headers.length(); i++)

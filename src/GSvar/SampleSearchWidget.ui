@@ -483,13 +483,13 @@
       <property name="spacing">
        <number>3</number>
       </property>
-      <item row="0" column="4">
-       <widget class="QCheckBox" name="add_report_config">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adds a column about the report configuration:&lt;br/&gt;- if it exists for the sample&lt;br/&gt;- if it contains causal small variants (variant, genotype, genes)&lt;br/&gt;- if it contains causal CNVs (CNV, copy-number)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
+      <item row="0" column="1">
+       <widget class="QCheckBox" name="add_disease_details">
         <property name="text">
-         <string>add report configuration info</string>
+         <string>add disease details</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -500,13 +500,13 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QCheckBox" name="add_disease_details">
-        <property name="text">
-         <string>add disease details</string>
+      <item row="0" column="4">
+       <widget class="QCheckBox" name="add_report_config">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adds a column about the report configuration:&lt;br/&gt;- if it exists for the sample&lt;br/&gt;- if it contains causal small variants (variant, genotype, genes)&lt;br/&gt;- if it contains causal CNVs (CNV, copy-number)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
-        <property name="checked">
-         <bool>true</bool>
+        <property name="text">
+         <string>add report configuration info</string>
         </property>
        </widget>
       </item>
@@ -527,6 +527,16 @@
         </property>
         <property name="checked">
          <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="6">
+       <widget class="QCheckBox" name="add_normal_sample">
+        <property name="toolTip">
+         <string>Normal germline sample associated to a tumor sample.</string>
+        </property>
+        <property name="text">
+         <string>add normal sample</string>
         </property>
        </widget>
       </item>

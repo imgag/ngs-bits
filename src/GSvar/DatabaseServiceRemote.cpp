@@ -112,24 +112,20 @@ FileLocation DatabaseServiceRemote::processedSamplePath(const QString& processed
 	params.insert("ps_id", processed_sample_id.toUtf8());
 	params.insert("type", FileLocation::typeToString(type).toUtf8());
 	QByteArray reply = makeGetApiCall("processed_sample_path", params, true);
-
 	if (reply.length() == 0)
 	{
-		THROW(Exception, "Could not get a GSvar file for the processed sample " + processed_sample_id);
+		THROW(Exception, "Could not get a GSvar file for the processed sample " + NGSD().processedSampleName(processed_sample_id));
 	}
 
 	QJsonDocument json_doc = QJsonDocument::fromJson(reply);
 	QJsonArray json_array = json_doc.array();
-	QStringList analyses;
 	for (int i = 0; i < json_array.count(); i++)
 	{
 		if (!json_array.at(i).isObject()) break;
 
-		if (json_array.at(i).toObject().contains("id") && json_array.at(i).toObject().contains("type")
-			&& json_array.at(i).toObject().contains("filename") && json_array.at(i).toObject().contains("exists"))
+		if (json_array.at(i).toObject().contains("id") && json_array.at(i).toObject().contains("type") && json_array.at(i).toObject().contains("filename") && json_array.at(i).toObject().contains("exists"))
 		{
-			return FileLocation(json_array.at(i).toObject().value("id").toString(), FileLocation::stringToType(json_array.at(i).toObject().value("type").toString()),
-								json_array.at(i).toObject().value("filename").toString(), json_array.at(i).toObject().value("exists").toBool());
+			return FileLocation(json_array.at(i).toObject().value("id").toString(), FileLocation::stringToType(json_array.at(i).toObject().value("type").toString()), json_array.at(i).toObject().value("filename").toString(), json_array.at(i).toObject().value("exists").toBool());
 		}
 	}
 

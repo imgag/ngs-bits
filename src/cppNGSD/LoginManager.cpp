@@ -7,7 +7,6 @@ LoginManager::LoginManager()
 	: user_login_()
 	, user_name_()
 	, user_id_(-1)
-	, user_role_()	
 	, user_token_()
 	, user_password_()
 	, db_token_()
@@ -100,11 +99,6 @@ QString LoginManager::userPassword()
 	return password;
 }
 
-QString LoginManager::userRole()
-{
-	return instance().user_role_;
-}
-
 bool LoginManager::active()
 {
 	return !instance().user_login_.isEmpty();
@@ -151,8 +145,6 @@ void LoginManager::login(QString user, QString password, bool test_db)
 	manager.user_name_ = db.userName(manager.user_id_);
 	manager.user_password_ = password;
 
-	//determine role
-	manager.user_role_ = db.getValue("SELECT user_role FROM user WHERE id='" + QString::number(manager.user_id_) + "'").toString().toLower();
 	//update last login
 	db.getQuery().exec("UPDATE user SET last_login=NOW() WHERE id='" + QString::number(manager.user_id_) + "'");
 }
@@ -198,7 +190,6 @@ void LoginManager::logout()
 	manager.user_login_.clear();
 	manager.user_name_.clear();
 	manager.user_id_ = -1;
-	manager.user_role_.clear();
 	manager.user_token_.clear();
 	manager.user_name_.clear();	
 	manager.user_password_.clear();
@@ -304,7 +295,7 @@ void LoginManager::checkRoleIn(QStringList roles)
 	LoginManager& manager = instance();
 	if (!NGSD().userRoleIn(manager.user_login_, roles))
 	{
-		INFO(AccessDeniedException, "Access denied.\nOnly users with the following roles have access to this functionality: " + roles.join(", ") + ".\nThe user '" + manager.user_login_ + "' has the role '" + manager.user_role_ + "'!");
+		INFO(AccessDeniedException, "Access denied.\nOnly users with the following roles have access to this functionality: " + roles.join(", ") + ".\nThe user '" + manager.user_login_ + "' has the role '" + NGSD().getUserRole(manager.userId()) + "'!");
 	}
 }
 
@@ -319,6 +310,6 @@ void LoginManager::checkRoleNotIn(QStringList roles)
 		QStringList roles_db = db.getEnum("user", "user_role");
 		roles = roles_db.toSet().subtract(roles.toSet()).toList();
 
-		INFO(AccessDeniedException, "Access denied.\nOnly users with the following roles have access to this functionality: " + roles.join(", ") + ".\nThe user '" + manager.user_login_ + "' has the role '" + manager.user_role_ + "'!");
+		INFO(AccessDeniedException, "Access denied.\nOnly users with the following roles have access to this functionality: " + roles.join(", ") + ".\nThe user '" + manager.user_login_ + "' has the role '" + NGSD().getUserRole(manager.userId()) + "'!");
 	}
 }
