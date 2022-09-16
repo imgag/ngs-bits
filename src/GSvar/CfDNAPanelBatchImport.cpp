@@ -18,7 +18,7 @@ CfDNAPanelBatchImport::CfDNAPanelBatchImport(QWidget *parent) :
 	if (!LoginManager::active())
 	{
 		GUIHelper::showMessage("No connection to the NGSD!", "You need access to the NGSD to import cfDNA panels!");
-		this->close();
+		close();
 	}
 
 	ui_->setupUi(this);

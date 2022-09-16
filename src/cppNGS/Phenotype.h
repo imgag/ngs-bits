@@ -77,7 +77,7 @@ struct PhenotypeSettings
 	//Reverts settings to default-constructed state
 	void revert()
 	{
-		this->operator=(PhenotypeSettings());
+		operator=(PhenotypeSettings());
 	}
 	//Equality operator
 	bool operator==(const PhenotypeSettings& rhs) const

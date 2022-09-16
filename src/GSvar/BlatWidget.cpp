@@ -66,7 +66,7 @@ void BlatWidget::performSearch()
 	}
 	catch (Exception& e)
 	{
-		QMessageBox::warning(this, this->windowTitle(), "Error during BLAT search:" + e.message());
+		QMessageBox::warning(this, windowTitle(), "Error during BLAT search:" + e.message());
 	}
 }
 

@@ -879,7 +879,7 @@ public:
 	///Returns the BED file of the removed regions of a given cfDNA panel
 	BedFile cfdnaPanelRemovedRegions(int id);
 	///Updates the regions which where removed by the panel provider
-	void setCfdnaRemovedRegions(int id, const BedFile& removed_regions);
+	void setCfdnaRemovedRegions(int id, BedFile removed_regions);
 	///Returns all available cfDNA gene entries
 	QList<CfdnaGeneEntry> cfdnaGenes();
 	///Returns the ID SNPs of a processing system as VCF

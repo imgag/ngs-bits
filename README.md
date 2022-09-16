@@ -26,21 +26,23 @@ Depending on your operating system, building instructions vary slightly:
 
 ## ChangeLog
 
-Changes in release 2022_07:  
+Changes of master since last release:
 
-* VcfAnnotateFromVcf: refactoring of command line parameters and updated documentation.
-* SampleSimilarity: changed number of SNPs for BAM mode, MODIFIER impact variants are now ignored in GSvar mode to make scores more similar between exomes and genomes, updated documentation.
-* MappingQC: added metrics for uniformity of coverage in WGS mode.
-* HgvsToVcf: Added handling of unnecessary sequences in 'delins', added support for dup/del with trailing sequence.
-* VcfSort: files without FORMAT/SAMPLE columns are can now be processed without adding the column.
-* VcfLeftNormalize: improved runtime when 'stream' parameter is not used.
-* added tools: VcfAnnotateHexplorer, HgvsToVcf, VcfAnnotateConsequence 
+* SeqPurge: improved CPU usage and scaling in multi-threaded mode.
+* HgvsToVcf: added parameter for maximum sequence length.
+* MappingQC: fixed support for non-human genomes.
+* SampleGender: Ignoring duplicate, secondary and supplementary alignments in methods 'xy' and 'sry' now.
+* BedCoverage: Now always works in panel mode.
+* BedCoverage: Added parameter to clear previous annotations.
+* RohHunter: updated documentation.
+* VcfToTsv: Added support for streaming.
+* Added tools: VcfToBed.
 * NGSD:
-	* transcript: added biotype, MANE Select flag, MANE Plus Clinical flag, Ensembl canonical flag.
-	* variant: removed 1000g AF.
-	* sample: added patient identifer, added tissue enum.
+	* Added mechanism to protect the production database from being deleted with init() accidentally.
+	* Updated transcript biotypes to Ensembl 107.
+	* Added 'archived' flag to project table.
 
-For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
+For older changes see (releases)[https://github.com/imgag/ngs-bits/releases].
 
 ## Support
 

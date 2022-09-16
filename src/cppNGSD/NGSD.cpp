@@ -3558,8 +3558,11 @@ BedFile NGSD::cfdnaPanelRemovedRegions(int id)
 	return BedFile::fromText(getValue("SELECT `excluded_regions` FROM `cfdna_panels` WHERE id=:0", false, QString::number(id)).toString().toUtf8());
 }
 
-void NGSD::setCfdnaRemovedRegions(int id, const BedFile& removed_regions)
+void NGSD::setCfdnaRemovedRegions(int id, BedFile removed_regions)
 {
+	removed_regions.clearHeaders();
+	removed_regions.clearAnnotations();
+
 	SqlQuery query = getQuery();
 	query.prepare("UPDATE `cfdna_panels` SET `excluded_regions`=:0 WHERE `id`=" + QString::number(id));
 	QString bed_content = "##modified at " + QDate::currentDate().toString("dd.MM.yyyy").toUtf8() + " by " + LoginManager::userName().toUtf8() + "\n" + removed_regions.toText();

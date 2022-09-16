@@ -26,7 +26,7 @@ CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, cons
     if (!LoginManager::active())
     {
         GUIHelper::showMessage("No connection to the NGSD!", "You need access to the NGSD to design cfDNA panels!");
-        this->close();
+		close();
     }
 
     processed_sample_id_ = NGSD().processedSampleId(processed_sample_name_);

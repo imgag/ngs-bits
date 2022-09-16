@@ -69,7 +69,7 @@ void MultiSampleDialog::updateStartButton()
 void MultiSampleDialog::annotate_only_state_changed()
 {
 	// get all step check boxes
-	QList<QCheckBox*> step_boxes = this->findChildren<QCheckBox*>(QRegExp("^step_"));
+	QList<QCheckBox*> step_boxes = findChildren<QCheckBox*>(QRegExp("^step_"));
 
 	if(ui_.annotate_only->isChecked())
 	{

@@ -31,7 +31,7 @@ struct CPPNGSSHARED_EXPORT FileInfo
 
 	bool isEmpty()
 	{
-		return ((this->file_name.isEmpty()) && (this->created.isNull()) && (this->last_modiefied.isNull()));
+		return file_name.isEmpty() && created.isNull() && last_modiefied.isNull();
 	}
 };
 

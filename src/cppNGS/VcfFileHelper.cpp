@@ -450,7 +450,7 @@ bool VcfHeader::parseInfoFormatLine(const QByteArray& line,InfoFormatLine& info_
 bool VcfLine::isValidGenomicPosition() const
 {
 	bool is_valid_ref_base = true;
-	for(int i = 0; i < this->ref_.size(); ++i)
+	for(int i = 0; i < ref_.size(); ++i)
 	{
 		if(ref_.at(i) != 'A' && ref_.at(i) != 'C' && ref_.at(i) != 'G' && ref_.at(i) != 'T' && ref_.at(i) != 'N' &&
 		   ref_.at(i) != 'a' && ref_.at(i) != 'c' && ref_.at(i) != 'g' && ref_.at(i) != 't' && ref_.at(i) != 'n')

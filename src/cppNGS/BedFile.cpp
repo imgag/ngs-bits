@@ -214,6 +214,9 @@ void BedFile::merge(bool merge_back_to_back, bool merge_names, bool merged_names
 	//in the following code, we assume that at least one line is present...
 	if (lines_.count()==0) return;
 
+	//remove annotations if we do not need them
+	if (!merge_names) clearAnnotations();
+
 	//remove annotations data
 	for(int i=0; i<lines_.count(); ++i)
 	{
@@ -222,10 +225,6 @@ void BedFile::merge(bool merge_back_to_back, bool merge_names, bool merged_names
 			QByteArray name = lines_[i].annotations().isEmpty() ? "" : lines_[i].annotations()[0];
 			lines_[i].annotations().clear();
 			lines_[i].annotations().append(name);
-		}
-		else
-		{
-			lines_[i].annotations().clear();
 		}
 	}
 

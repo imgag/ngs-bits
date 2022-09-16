@@ -176,7 +176,7 @@ public:
 
 	RtfParagraph& highlight(int color_number) override
 	{
-		this->RtfText::highlight(color_number);
+		RtfText::highlight(color_number);
 		return *this;
 	}
 
@@ -188,25 +188,25 @@ public:
 
 	RtfParagraph& setItalic(bool italic) override
 	{
-		this->RtfText::setItalic(italic);
+		RtfText::setItalic(italic);
 		return *this;
 	}
 
 	RtfParagraph& setFontSize(int font_size) override
 	{
-		this->RtfText::setFontSize(font_size);
+		RtfText::setFontSize(font_size);
 		return *this;
 	}
 
 	RtfParagraph& setBold(bool bold) override
 	{
-		this->RtfText::setBold(bold);
+		RtfText::setBold(bold);
 		return *this;
 	}
 
 	RtfParagraph& setUnderline(bool underline) override
 	{
-		this->RtfText::setUnderline(underline);
+		RtfText::setUnderline(underline);
 		return *this;
 	}
 
@@ -224,7 +224,7 @@ public:
 
 	RtfParagraph& setHorizontalAlignment(const QByteArray& alignment) override
 	{
-		this->RtfText::setHorizontalAlignment(alignment);
+		RtfText::setHorizontalAlignment(alignment);
 		return *this;
 	}
 

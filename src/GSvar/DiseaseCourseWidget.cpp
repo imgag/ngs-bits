@@ -17,7 +17,7 @@ DiseaseCourseWidget::DiseaseCourseWidget(const QString& tumor_sample_name, QWidg
 	if (!LoginManager::active())
 	{
 		GUIHelper::showMessage("No connection to the NGSD!", "You need access to the NGSD to view the cfDNA samples!");
-		this->close();
+		close();
 	}
 
 	//link signal and slots
@@ -91,7 +91,7 @@ void DiseaseCourseWidget::loadVariantLists()
 	if (processing_systems.size() > 1)
 	{
 		GUIHelper::showMessage("Multiple processing systems", "Multiple processing systems used for cfDNA analysis. Cannot compare samples!");
-		this->close();
+		close();
 	}
 	QString system_name = processing_systems.toList().at(0);
 
@@ -100,7 +100,7 @@ void DiseaseCourseWidget::loadVariantLists()
 	if (cfdna_panels.size() < 1)
 	{
 		GUIHelper::showMessage("No cfDNA sample found", "No matchin cfDNA panel for sample " + tumor_sample_name_ + " found in NGSD!");
-		this->close();
+		close();
 	}
 	CfdnaPanelInfo cfdna_panel_info  = cfdna_panels.at(0);
 

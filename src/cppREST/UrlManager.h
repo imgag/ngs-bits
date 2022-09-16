@@ -35,7 +35,7 @@ struct CPPRESTSHARED_EXPORT UrlEntity
 
 	bool isEmpty()
 	{
-		return ((this->filename.isEmpty()) && (this->created.isNull()));
+		return filename.isEmpty() && created.isNull();
 	}
 };
 

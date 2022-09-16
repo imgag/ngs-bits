@@ -42,8 +42,7 @@ struct tmbInfo
 	}
 	bool operator==(const tmbInfo& rhs) const
 	{
-		if(this->hpoterm == rhs.hpoterm) return true;
-		return true;
+		return hpoterm == rhs.hpoterm;
 	}
 };
 

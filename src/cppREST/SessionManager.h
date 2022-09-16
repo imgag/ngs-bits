@@ -31,7 +31,7 @@ struct CPPRESTSHARED_EXPORT Session
 
 	bool isEmpty()
 	{
-		return ((this->user_id == 0) && (this->login_time.isNull()) && (!this->is_for_db_only));
+		return user_id==0 && login_time.isNull() && !is_for_db_only;
 	}
 };
 

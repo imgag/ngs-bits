@@ -168,10 +168,10 @@ bool Graph<NodeType, EdgeType>::addNode(const QString& name, const NodeType& con
         THROW(ArgumentException, "Invalid argument: Empty node name");
     }
 
-    if(!this->hasNode(name))
+	if(!hasNode(name))
     {
         NodePointer node(new GraphNode<NodeType>(content, name));
-        return this->addNode(node);
+		return addNode(node);
     }
     else if (throw_exception_if_contained)
     {
