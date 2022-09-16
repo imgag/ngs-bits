@@ -62,7 +62,7 @@ struct ServerInfo
 
 	bool isEmpty()
 	{
-		return ((this->version.isEmpty()) && (this->api_version.isEmpty()) && (this->server_start_time.isNull()));
+		return this->version.isEmpty() && this->api_version.isEmpty() && this->server_start_time.isNull();
 	}
 };
 
