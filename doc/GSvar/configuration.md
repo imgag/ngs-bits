@@ -15,6 +15,7 @@ This file contains basic settings that are used for all `ngs-bits` applications.
 The settings are:
 
 - *reference_genome*: the path to the reference genome FASTA file
+- *threads*: number of threads used
 - *ngsd\_...*: Database credentials for the NGSD (if available)
 - *genlab\_...*: Database credentials for the GenLab (if available)
 - *projects\_folder\_...*: Prject data folders for different project types (diagnostic, research, test, external)

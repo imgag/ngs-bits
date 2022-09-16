@@ -15,7 +15,8 @@ BedFile StatisticsServiceLocal::lowCoverage(const BedFile& bed_file, const QStri
 void StatisticsServiceLocal::avgCoverage(BedFile& bed_file, const QString& bam_file) const
 {
 	QString ref_file = Settings::string("reference_genome");
-	Statistics::avgCoverage(bed_file, bam_file, 1, false, 2, ref_file);
+	int threads = Settings::integer("threads");
+	Statistics::avgCoverage(bed_file, bam_file, 1, threads, 2, ref_file);
 }
 
 double StatisticsServiceLocal::targetRegionReadDepth(const BedFile& bed_file, const QString& bam_file) const
@@ -23,7 +24,9 @@ double StatisticsServiceLocal::targetRegionReadDepth(const BedFile& bed_file, co
 	//caclulate depth for each part of the target region
 	BedFile bed_file_anno = bed_file;
 	bed_file_anno.clearAnnotations();
-	Statistics::avgCoverage(bed_file_anno, bam_file, 1, false, 10);
+	QString ref_file = Settings::string("reference_genome");
+	int threads = Settings::integer("threads");
+	Statistics::avgCoverage(bed_file_anno, bam_file, 1, threads, 10, ref_file);
 
 	//calcualte overall depth
 	double depth = 0.0;

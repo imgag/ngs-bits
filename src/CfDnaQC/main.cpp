@@ -33,9 +33,10 @@ public:
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addInt("min_mapq", "Set minimal mapping quality (default:0)", true, 0);
 		addFlag("txt", "Writes TXT format instead of qcML.");
-
+		addInt("threads", "The number of threads used for coverage calculation.", true, 1);
 
 		//changelog
+		changeLog(2022,  9, 16, "Added 'threads' parameter.");
 		changeLog(2021, 10, 22, "Initial version.");
 		changeLog(2021, 12, 3, "Added correllation between cfDNA samples.");
 	}
@@ -54,6 +55,7 @@ public:
 		QString ref = getInfile("ref");
 		if(ref.isEmpty())	ref = Settings::string("reference_genome", true);
 		if (ref=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
+		int threads = getInt("threads");
 
 		//set depth threshold
 		int required_depth = 250;
@@ -81,7 +83,7 @@ public:
 		monitoring_snps.clearAnnotations();
 
 		// compute coverage on monitoring SNPs
-		Statistics::avgCoverage(monitoring_snps, bam, min_mapq, false, 3, ref);
+		Statistics::avgCoverage(monitoring_snps, bam, min_mapq, threads, 3, ref);
 
 		//compute average depth
 		double monitoring_avg_depth = 0.0;
@@ -98,7 +100,7 @@ public:
 		monitoring_avg_depth /= monitoring_snps.count();
 
 		// compute coverage on ID SNPs
-		Statistics::avgCoverage(id_snps, bam, min_mapq, false, 3, ref);
+		Statistics::avgCoverage(id_snps, bam, min_mapq, threads, 3, ref);
 
 		//compute average depth
 		double id_avg_depth = 0.0;

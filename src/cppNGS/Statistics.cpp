@@ -16,9 +16,11 @@
 #include "SampleSimilarity.h"
 #include <QFileInfo>
 #include <QPair>
+#include <QThreadPool>
 #include "Histogram.h"
 #include "FilterCascade.h"
 #include "ToolBase.h"
+#include "WorkerAverageCoverage.h"
 
 
 class RegionDepth
@@ -2450,35 +2452,38 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 	return output;
 }
 
-void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, bool include_duplicates, int decimals, const QString& ref_file)
+void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, int threads, int decimals, const QString& ref_file)
 {
-	//open BAM file
-	BamReader reader(bam_file, ref_file);
-
-	for (int i=0; i<bed_file.count(); ++i)
+	//create analysis chunks (100 lines)
+	QList<WorkerAverageCoverage::Chunk> chunks;
+	for (int start=0; start<bed_file.count(); start += 100)
 	{
-		long cov = 0;
-		BedLine& bed_line = bed_file[i];
+		int end = start+99;
+		if (end>=bed_file.count()) end = bed_file.count() -1;
+		chunks << WorkerAverageCoverage::Chunk{bed_file, start, end, ""};
+	}
 
-		//jump to region
-		reader.setRegion(bed_line.chr(), bed_line.start(), bed_line.end());
+	//create thread pool
+	QThreadPool thread_pool;
+	thread_pool.setMaxThreadCount(threads);
+	QTextStream(stdout) << "threads: " << threads  << "\n";
 
-		//iterate through all alignments
-		BamAlignment al;
-		while (reader.getNextAlignment(al))
-		{
-			if (!include_duplicates && al.isDuplicate()) continue;
-			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
+	//start analysis chunks (of 100 lines)
+	for (int i=0; i<chunks.count(); ++i)
+	{
+		QTextStream(stdout) << "Chunk: " << i << " " << chunks[i].start << " " << chunks[i].end << "\n";
+		WorkerAverageCoverage* worker = new WorkerAverageCoverage(chunks[i], bam_file, min_mapq, decimals, ref_file);
+		thread_pool.start(worker);
+	}
 
-			const int ol_start = std::max(bed_line.start(), al.start());
-			const int ol_end = std::min(bed_line.end(), al.end());
-			if (ol_start<=ol_end)
-			{
-				cov += ol_end - ol_start + 1;
-			}
-		}
-		bed_line.annotations().append(QByteArray::number((double)cov / bed_line.length(), 'f', decimals));
+	//wait until finished
+	QTextStream(stdout) << __FILE__ << " " << __LINE__  << "\n";
+	thread_pool.waitForDone();
+
+	//check if error occured
+	foreach(const WorkerAverageCoverage::Chunk& chunk, chunks)
+	{
+		if (!chunk.error.isEmpty()) THROW(Exception, chunk.error);
 	}
 }
 
@@ -2718,7 +2723,7 @@ GenderEstimate Statistics::genderSRY(GenomeBuild build, QString bam_file, double
 	roi.append(BedLine("chrY", start, end));
 
 	//calculate coverage
-	Statistics::avgCoverage(roi, bam_file, 1, false, 2 , ref_file);
+	Statistics::avgCoverage(roi, bam_file, 1, 1, 2 , ref_file);
 	double cov =  roi[0].annotations()[0].toDouble();
 
 	//output
