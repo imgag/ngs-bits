@@ -16,15 +16,12 @@ void WorkerAverageCoverage::run()
 	try
 	{
 		//open BAM file
-		QTextStream(stdout) << "Starting " << chunk_.start << " " << chunk_.end << "\n";
 		BamReader reader(bam_file_, ref_file_);
-		QTextStream(stdout) << "BAM open " << chunk_.start << " " << chunk_.end << "\n";
 
 		for (int i=chunk_.start; i<=chunk_.end; ++i)
 		{
 			BedLine& bed_line = chunk_.data[i];
 			long cov = 0;
-			QTextStream(stdout) << "processing line " << i << "\n";
 			//jump to region
 			reader.setRegion(bed_line.chr(), bed_line.start(), bed_line.end());
 

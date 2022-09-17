@@ -2466,18 +2466,15 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	//create thread pool
 	QThreadPool thread_pool;
 	thread_pool.setMaxThreadCount(threads);
-	QTextStream(stdout) << "threads: " << threads  << "\n";
 
 	//start analysis chunks (of 100 lines)
 	for (int i=0; i<chunks.count(); ++i)
 	{
-		QTextStream(stdout) << "Chunk: " << i << " " << chunks[i].start << " " << chunks[i].end << "\n";
 		WorkerAverageCoverage* worker = new WorkerAverageCoverage(chunks[i], bam_file, min_mapq, decimals, ref_file);
 		thread_pool.start(worker);
 	}
 
 	//wait until finished
-	QTextStream(stdout) << __FILE__ << " " << __LINE__  << "\n";
 	thread_pool.waitForDone();
 
 	//check if error occured
