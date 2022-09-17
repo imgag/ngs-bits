@@ -492,15 +492,12 @@ void BamReader::init(const QString& bam_file, const QString& ref_genome)
 	}
 
 	//parse chromosome names and sizes
-	QTextStream(stdout) << __FILE__ << " " << __LINE__ << " chromosomes loading" << endl;
 	for(int i=0; i<header_->n_targets; ++i)
 	{
-		QTextStream(stdout) << __FILE__ << " " << __LINE__ << " header: " << header_ << " index: " << i << endl;
 		Chromosome chr(header_->target_name[i]);
 		chrs_ << chr;
 		chrs_sizes_[chr] = header_->target_len[i];
 	}
-	QTextStream(stdout) << __FILE__ << " " << __LINE__ << " chromosomes done" << endl;
 }
 
 BamReader::BamReader(const QString& bam_file)

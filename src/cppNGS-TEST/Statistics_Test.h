@@ -694,7 +694,6 @@ TEST_CLASS(Statistics_Test)
 
 	void avgCoverage_overlapping_regions()
 	{
-		qDebug() << __FILE__ << __LINE__;
 		BedFile bed_file;
 		bed_file.append(BedLine("chr1", 11013718, 11013975));
 		bed_file.append(BedLine("chr1", 11013718, 11013818));
@@ -713,7 +712,6 @@ TEST_CLASS(Statistics_Test)
 
 	void avgCoverage_1decimal()
 	{
-		qDebug() << __FILE__ << __LINE__;
 		BedFile bed_file;
 		bed_file.load(TESTDATA("data_in/close_exons.bed"));
 		bed_file.merge();
