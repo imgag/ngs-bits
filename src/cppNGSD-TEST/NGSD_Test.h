@@ -2383,11 +2383,14 @@ private slots:
 		I_EQUAL(-1, db.getSomaticGeneRoleId("PTGS2"));
 	}
 
-	//TODO add test for somatic RTF > Axel
+	//TODO add test for somatic RTF > Alexander
 
 	//Test tumor only RTF report generation
 	void report_tumor_only()
 	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
 		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
 
 		NGSD db(true);
