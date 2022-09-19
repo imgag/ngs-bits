@@ -164,9 +164,21 @@ void ExpressionExonWidget::initTable()
 		qDebug() << "sorting disabled";
 
 		//default columns
-		column_names_ << "gene_id" << "exon" << "raw" << "rpb" << "srpb" << "gene_name" << "gene_biotype" << "cohort_mean" << "log2fc" << "zscore" << "pval";
-		numeric_columns_ << false << false << true << true << true << false << false << true << true << true << true;
-		precision_ << -1 << -1 << 0 << 2 << 2 << -1 << -1 << 2 << 2 << 3 << 3;
+		column_names_ << "gene_id" << "exon" << "raw" << "rpb" << "srpb" << "gene_name";
+		numeric_columns_ << false << false << true << true << true << false;
+		precision_ << -1 << -1 << 0 << 2 << 2 << -1;
+
+		//add transcript ids if available
+		if (expression_data_.headers().contains("transcript_id"))
+		{
+			column_names_ << "transcript_id";
+			numeric_columns_ << false;
+			precision_ << -1;
+		}
+
+		column_names_ << "gene_biotype" << "cohort_mean" << "log2fc" << "zscore" << "pval";
+		numeric_columns_ << false << true << true << true << true;
+		precision_ << -1 << 2 << 2 << 3 << 3;
 
 
 		//create header

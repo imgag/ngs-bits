@@ -1771,6 +1771,27 @@ QMap<QByteArray, QByteArray> NGSD::getGeneEnsemblMapping()
 	return mapping;
 }
 
+QMap<QByteArray, QByteArrayList> NGSD::getExonTranscriptMapping()
+{
+	QMap<QByteArray, QByteArrayList> mapping;
+	SqlQuery query = getQuery();
+	query.exec("SELECT gt.chromosome, ge.start, ge.end, gt.name FROM gene_exon ge INNER JOIN gene_transcript gt ON ge.transcript_id=gt.id");
+	while(query.next())
+	{
+		QByteArray exon = "chr" + query.value(0).toByteArray() + ":" + query.value(1).toByteArray() + "-" + query.value(2).toByteArray();
+		if(mapping.contains(exon))
+		{
+			mapping[exon].append(query.value(3).toByteArray());
+		}
+		else
+		{
+			mapping.insert(exon, QByteArrayList() << query.value(3).toByteArray());
+		}
+	}
+
+	return mapping;
+}
+
 QVector<double> NGSD::getGeneExpressionValues(const QByteArray& gene, int sys_id, const QString& tissue_type, bool log2)
 {
 	QVector<double> expr_values;
@@ -3592,11 +3613,11 @@ QList<CfdnaGeneEntry> NGSD::cfdnaGenes()
 	return genes;
 }
 
-VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, bool throw_on_fail)
+VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, bool tumor_only, bool throw_on_fail)
 {
 	VcfFile vcf;
 	vcf.sampleIDs().append("TUMOR");
-	vcf.sampleIDs().append("NORMAL");
+	if(!tumor_only)vcf.sampleIDs().append("NORMAL");
 
 	ProcessingSystemData sys = getProcessingSystemData(sys_id);
 
@@ -3619,10 +3640,11 @@ VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, bool throw_on_fail)
 	BedFile target_region = processingSystemRegions(sys_id, false);
 
 	QByteArrayList format_ids = QByteArrayList() << "GT";
-	QByteArrayList sample_ids = QByteArrayList() << "TUMOR" << "NORMAL";
+	QByteArrayList sample_ids = QByteArrayList() << "TUMOR";
+	if(!tumor_only) sample_ids << "NORMAL";
 	QList<QByteArrayList> list_of_format_values;
 	list_of_format_values.append(QByteArrayList() << "./.");
-	list_of_format_values.append(QByteArrayList() << "./.");
+	if(!tumor_only) list_of_format_values.append(QByteArrayList() << "./.");
 
 	for (int i=0; i<target_region.count(); i++)
 	{
