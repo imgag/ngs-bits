@@ -812,7 +812,6 @@ HttpResponse ServerController::calculateLowCoverage(const HttpRequest& request)
 
 HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 {
-	qDebug() << "Average coverage calcualtion";
 	BedFile low_cov;
 	QString bam_file_name;
 
@@ -825,7 +824,8 @@ HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 		bam_file_name = UrlManager::getURLById(request.getFormUrlEncoded()["bam_url_id"]).filename_with_path;
 	}
 
-	Statistics::avgCoverage(low_cov, bam_file_name, 1, false);
+	int threads = Settings::integer("threads");
+	Statistics::avgCoverage(low_cov, bam_file_name, 1, threads);
 	if(!low_cov.toText().isEmpty())
 	{
 		QByteArray body = low_cov.toText().toUtf8();
@@ -841,7 +841,6 @@ HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 
 HttpResponse ServerController::calculateTargetRegionReadDepth(const HttpRequest& request)
 {
-	qDebug() << "Target region read depth calcualtion";
 	BedFile regions;
 	QString bam_file_name;
 

@@ -710,13 +710,13 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(bed_file[2].annotations()[0], QString("126.03"));
 	}
 
-	void avgCoverage_panel_mode_1decimal()
+	void avgCoverage_1decimal()
 	{
 		BedFile bed_file;
 		bed_file.load(TESTDATA("data_in/close_exons.bed"));
 		bed_file.merge();
 
-		Statistics::avgCoverage(bed_file, TESTDATA("data_in/close_exons.bam"), 20, false, 1);
+		Statistics::avgCoverage(bed_file, TESTDATA("data_in/close_exons.bam"), 20, 1, 1);
 
 		I_EQUAL(bed_file.count(), 2);
 		X_EQUAL(bed_file[0].chr(), Chromosome("chr1"));
@@ -729,23 +729,25 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(bed_file[1].annotations()[0], QString("292.1"));
 	}
 
-	void avgCoverage_with_duplicates()
+	void avgCoverage_multiple_threads()
 	{
-		BedFile bed_file;
-		bed_file.load(TESTDATA("data_in/close_exons.bed"));
-		bed_file.merge();
+		for (int threads=1; threads<=8; ++threads)
+		{
+			BedFile bed_file;
+			bed_file.load(TESTDATA("data_in/panel.bed"));
 
-		Statistics::avgCoverage(bed_file, TESTDATA("data_in/close_exons.bam"), 20, true);
+			Statistics::avgCoverage(bed_file, TESTDATA("data_in/panel.bam"), 20, threads);
 
-		I_EQUAL(bed_file.count(), 2);
-		X_EQUAL(bed_file[0].chr(), Chromosome("chr1"));
-		I_EQUAL(bed_file[0].start(), 45332753);
-		I_EQUAL(bed_file[0].end(), 45332844);
-		S_EQUAL(bed_file[0].annotations()[0], QString("453.97"));
-		X_EQUAL(bed_file[1].chr(), Chromosome("chr1"));
-		I_EQUAL(bed_file[1].start(), 45332908);
-		I_EQUAL(bed_file[1].end(), 45332969);
-		S_EQUAL(bed_file[1].annotations()[0], QString("292.06"));
+			I_EQUAL(bed_file.count(), 1532);
+			X_EQUAL(bed_file[0].chr(), Chromosome("chr1"));
+			I_EQUAL(bed_file[0].start(), 11013718);
+			I_EQUAL(bed_file[0].end(), 11013975);
+			S_EQUAL(bed_file[0].annotations()[1], QString("106.40"));
+			X_EQUAL(bed_file[1].chr(), Chromosome("chr1"));
+			I_EQUAL(bed_file[1].start(), 11016834);
+			I_EQUAL(bed_file[1].end(), 11017017);
+			S_EQUAL(bed_file[1].annotations()[1], QString("146.57"));
+		}
 	}
 
 	void genderXY()

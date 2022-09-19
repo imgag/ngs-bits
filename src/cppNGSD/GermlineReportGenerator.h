@@ -16,6 +16,7 @@ struct CPPNGSDSHARED_EXPORT GermlineReportGeneratorData
 
 	//genome build
 	GenomeBuild build;
+	int threads = 1;
 
 	//sample data
 	QString ps;
