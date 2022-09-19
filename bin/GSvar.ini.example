@@ -46,9 +46,6 @@ debug_mode_enabled=false
 mtb_xml_upload_url = ""
 qbic_data_path = ""
 
-#Number of threads to used for calculations that can be done in parallel (coverage, etc)
-threads = 1
-
 #misc settings
 build = "hg38"
 custom_menu_small_variants = ""

@@ -108,7 +108,8 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 
 	//calculate average coverage for gaps
 	low_cov.clearAnnotations();
-	GlobalServiceProvider::statistics().avgCoverage(low_cov, bam_);
+	int threads = Settings::integer("threads");
+	GlobalServiceProvider::statistics().avgCoverage(low_cov, bam_, threads);
 
 	//update data structure
 	GeneSet genes_noncoding;

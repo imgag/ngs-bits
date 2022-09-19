@@ -4316,6 +4316,7 @@ void MainWindow::generateReportTumorOnly()
 
 	//get report settings
 	TumorOnlyReportWorkerConfig config;
+	config.threads = Settings::integer("threads");
 	int sys_id = db.processingSystemIdFromProcessedSample(ps);
 
 	config.sys = db.getProcessingSystemData(sys_id);

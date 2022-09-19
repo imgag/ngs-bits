@@ -427,8 +427,7 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 		if(config_.include_coverage_per_gap)
 		{
 			QString ref_file = Settings::string("reference_genome");
-			int threads = Settings::integer("threads");
-			Statistics::avgCoverage(low_cov, config_.bam_file, 1, threads, 2, ref_file);
+			Statistics::avgCoverage(low_cov, config_.bam_file, 1, config_.threads, 2, ref_file);
 		}
 
 		//Find genes with gaps
