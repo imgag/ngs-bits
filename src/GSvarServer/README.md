@@ -11,16 +11,10 @@ To build the server, the following steps have to be executed
 
 ## Running
 The following command starts the server (if you are located at the root of the repository):
-> bin/GSvarServer -p=8443 -i=8080 -l=3
+> bin/GSvarServer -p=8443 -i=8080
 
 `p` parameter stands for the HTTPS port number
 `i` specifies HTTP port number
-
-`l` means the logging detail level:
-* 0 only critical and fatal
-* 1 += info
-* 2 += warning
-* 3 += debug
 
 GSvar app is needed to utilize the server to its full capacity. However, you can also use any browser to access the data:
 > https://[DOMAIN_NAME]:[PORT_NUMBER]
@@ -38,7 +32,9 @@ These are the most important config parameters:
 * `https_server_port` - port used by the server for HTTPS protocol
 * `server_host` - domain name used be the server
 * `server_root` - folder to be served as static content (any possible file formats)
-* `project_folder` - folder with sample data
+* `url_lifetime` - lifespan (seconds) of a temporary URL genereated by the server
+* `session_duration` - valid period (seconds) of a user session
+* `threads` - number of threads used for parallel calculations
 
 ## Local development environment
 You are going to need a SSL certificate and a key for the server to support HTTPS protocol. For the development purposes self-signed ones will be sufficient:
@@ -54,7 +50,7 @@ To start PhpMyAdmin, run this command:
 
 > docker run --name my-own-phpmyadmin -d --link my-own-mysql:db -p 8081:80 phpmyadmin/phpmyadmin
 
-Having a local Apache server instance may be helpful in the debugging process. To run it in a Docker container, execute the following command (current directory will be
+Having a local Apache server instance may be helpful for debugging. To run it in a Docker container, execute the following command (current directory will be
 used as a server root):
 
 > docker run -dit --name my-apache-app -p 8080:80 -v "$PWD":/usr/local/apache2/htdocs/ httpd:2.4
