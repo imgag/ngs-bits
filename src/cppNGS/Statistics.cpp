@@ -2454,11 +2454,11 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 
 void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, int threads, int decimals, const QString& ref_file)
 {
-	//create analysis chunks (100 lines)
+	//create analysis chunks (200 lines)
 	QList<WorkerAverageCoverage::Chunk> chunks;
-	for (int start=0; start<bed_file.count(); start += 100)
+	for (int start=0; start<bed_file.count(); start += 200)
 	{
-		int end = start+99;
+		int end = start+199;
 		if (end>=bed_file.count()) end = bed_file.count() -1;
 		chunks << WorkerAverageCoverage::Chunk{bed_file, start, end, ""};
 	}
@@ -2467,7 +2467,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	QThreadPool thread_pool;
 	thread_pool.setMaxThreadCount(threads);
 
-	//start analysis chunks (of 100 lines)
+	//start analysis chunks (of 200 lines)
 	for (int i=0; i<chunks.count(); ++i)
 	{
 		WorkerAverageCoverage* worker = new WorkerAverageCoverage(chunks[i], bam_file, min_mapq, decimals, ref_file);
