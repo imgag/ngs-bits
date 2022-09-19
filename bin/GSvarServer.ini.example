@@ -1,0 +1,44 @@
+#General server settings
+server_host = localhost
+https_server_port = 8443
+http_server_port = 8889
+reference_genome = ""
+
+#SSL certificate-key pair needed for HTTPS
+ssl_certificate = "cert.crt"
+ssl_key = "key.key"
+
+#Number of seconds after which a temporary URL will expire
+url_lifetime = 3600
+#Number of seconds after which a user session will expire
+session_duration = 3600
+#Number of threads for parallel calculations 
+threads = 8
+
+#Default static content location
+server_root = ""
+#Enables viewing the list of folder items
+allow_folder_listing = false
+
+#Data folders
+qbic_data_path = ""
+projects_folder_diagnostic = ""
+projects_folder_research = ""
+projects_folder_test = ""
+projects_folder_external =""
+data_folder = ""
+
+#NGSD settings
+ngsd_enabled = true
+ngsd_host = ""
+ngsd_port = 0
+ngsd_name = ""
+ngsd_user = ""
+ngsd_pass = ""
+
+#Genlab settings
+genlab_mssql = true
+genlab_host = ""
+genlab_name = ""
+genlab_user = ""
+genlab_pass = ""
