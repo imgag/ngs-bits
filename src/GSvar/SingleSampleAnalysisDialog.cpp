@@ -28,14 +28,21 @@ void SingleSampleAnalysisDialog::setAnalysisSteps()
 		if (analysis_type_ == "cfDNA")
 		{
 			steps_ = loadSteps("analysis_steps_cfdna");
+			ui_.annotate_only->setEnabled(true);
+			ui_.l_annotation_only->setEnabled(true);
 		}
 		else if (analysis_type_ == "RNA")
 		{
 			steps_ = loadSteps("analysis_steps_single_sample_rna");
+			ui_.annotate_only->setEnabled(false);
+			ui_.l_annotation_only->setEnabled(false);
+			ui_.annotate_only->setChecked(false);
 		}
 		else if (analysis_type_.startsWith("DNA"))
 		{
 			steps_ = loadSteps("analysis_steps_single_sample");
+			ui_.annotate_only->setEnabled(true);
+			ui_.l_annotation_only->setEnabled(true);
 		}
 		else
 		{
