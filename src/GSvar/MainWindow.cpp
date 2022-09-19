@@ -2255,7 +2255,7 @@ void MainWindow::delayedInitialization()
 	Log::appInfo();
 
 	//load from INI file (if a valid INI file - otherwise restore INI file)
-	if (!Settings::contains("igv_genome") || !Settings::contains("build") || !Settings::contains("reference_genome"))
+	if (!Settings::contains("igv_genome") || !Settings::contains("build") || !Settings::contains("reference_genome") || !Settings::contains("threads"))
 	{
 		QMessageBox::warning(this, "GSvar is not configured", "GSvar is not configured correctly.\nPlease inform your administrator!");
 		close();
@@ -4316,6 +4316,7 @@ void MainWindow::generateReportTumorOnly()
 
 	//get report settings
 	TumorOnlyReportWorkerConfig config;
+	config.threads = Settings::integer("threads");
 	int sys_id = db.processingSystemIdFromProcessedSample(ps);
 
 	config.sys = db.getProcessingSystemData(sys_id);

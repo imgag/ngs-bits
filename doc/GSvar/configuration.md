@@ -29,6 +29,7 @@ This file contains settings specific for `GSvar`. If it is missing, copy the exa
 The most important settings are:
 
 - *build*: Genome build to use. Default is `hg38`.
+- *threads*: number of threads used
 - *clinvar_api_key.*: API key for Clinvar upload of variants
 - *analysis\_steps\_...*: Analysis steps of queuing of analysis on cluster for different analysis types
 - *proxy\_...*: Proxy settings (if needed)

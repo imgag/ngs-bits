@@ -20,13 +20,14 @@ public:
 		addInfileList("bam", "Input BAM/CRAM file(s).", false);
 		//optional
 		addInt("min_mapq", "Minimum mapping quality.", true, 1);
-		addFlag("dup", "Include reads marked as duplicates.");
 		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
 		addInt("decimals", "Number of decimals used in output.", true, 2);
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addFlag("clear", "Clear previous annotation columns before annotating (starting from 4th column).");
+		addInt("threads", "Number of threads used.", true, 1);
 
+		changeLog(2022,  9, 16, "Added 'threads' parameter and removed 'dup' parameter.");
 		changeLog(2022,  8, 12, "Added parameter to clear previous annotation columns.");
 		changeLog(2022,  8,  9, "Removed mode parameter (panel mode is always used now).");
 		changeLog(2020, 11, 27, "Added CRAM support.");
@@ -51,7 +52,7 @@ public:
 		QStringList bams = getInfileList("bam");
 		foreach(QString bam, bams)
 		{
-			Statistics::avgCoverage(file, bam, getInt("min_mapq"), getFlag("dup"), getInt("decimals"), getInfile("ref"));
+			Statistics::avgCoverage(file, bam, getInt("min_mapq"), getInt("threads"), getInt("decimals"), getInfile("ref"));
 			header += "\t" + QFileInfo(bam).baseName();
 		}
 
