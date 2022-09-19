@@ -15,11 +15,8 @@ private slots:
 	{
 		for (int i=1; i<=8; ++i)
 		{
-			QTime timer;
-			timer.start();
 			EXECUTE("BedCoverage", "-in " + TESTDATA("../cppNGS-TEST/data_in/panel.bed") + " -bam " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -threads " + QString::number(i) + " -out out/BedCoverage_test02_out.tsv");
 			COMPARE_FILES_DELTA("out/BedCoverage_test02_out.tsv", TESTDATA("data_out/BedCoverage_test02_out.tsv"), 1.0, true, '\t'); //delta because of macOS rounding problem
-			qDebug() << i << Helper::elapsedTime(timer); //TODO remove
 		}
 	}
 

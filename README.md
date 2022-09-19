@@ -24,26 +24,6 @@ Depending on your operating system, building instructions vary slightly:
 * Building from **sources** for [MacOS](doc/install_mac.md)
 * Building from **sources** for [Windows](doc/install_win.md)
 
-## ChangeLog
-
-Changes of master since last release:
-
-* SeqPurge: improved CPU usage and scaling in multi-threaded mode.
-* HgvsToVcf: added parameter for maximum sequence length.
-* MappingQC: fixed support for non-human genomes.
-* SampleGender: Ignoring duplicate, secondary and supplementary alignments in methods 'xy' and 'sry' now.
-* BedCoverage: Now always works in panel mode.
-* BedCoverage: Added parameter to clear previous annotations.
-* RohHunter: updated documentation.
-* VcfToTsv: Added support for streaming.
-* Added tools: VcfToBed.
-* NGSD:
-	* Added mechanism to protect the production database from being deleted with init() accidentally.
-	* Updated transcript biotypes to Ensembl 107.
-	* Added 'archived' flag to project table.
-
-For older changes see (releases)[https://github.com/imgag/ngs-bits/releases].
-
 ## Support
 
 Please report any issues or questions to the [ngs-bits issue 
@@ -184,3 +164,25 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file.
 * [HgvsToVcf](doc/tools/HgvsToVcf.md) - Transforms a TSV file with transcript ID and HGVS.c change into a VCF file (needs [NGSD](doc/install_ngsd.md)).
+
+## ChangeLog
+
+Changes of master since last release:
+
+* SeqPurge: improved CPU usage and scaling in multi-threaded mode.
+* BedCoverage: added 'threads' parameter and removed 'dup' parameter.
+* BedCoverage: now always works in panel mode.
+* BedCoverage: added parameter to clear previous annotations.
+* CfDnaQC: added 'threads' parameter.
+* HgvsToVcf: added parameter for maximum sequence length.
+* MappingQC: fixed support for non-human genomes.
+* SampleGender: Ignoring duplicate, secondary and supplementary alignments in methods 'xy' and 'sry' now.
+* RohHunter: updated documentation.
+* VcfToTsv: Added support for streaming.
+* Added tools: VcfToBed.
+* NGSD:
+	* Added mechanism to protect the production database from being deleted with init() accidentally.
+	* Updated transcript biotypes to Ensembl 107.
+	* Added 'archived' flag to project table.
+
+For older changes see (releases)[https://github.com/imgag/ngs-bits/releases].
