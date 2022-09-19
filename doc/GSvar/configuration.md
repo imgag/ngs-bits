@@ -15,7 +15,6 @@ This file contains basic settings that are used for all `ngs-bits` applications.
 The settings are:
 
 - *reference_genome*: the path to the reference genome FASTA file
-- *threads*: number of threads used
 - *ngsd\_...*: Database credentials for the NGSD (if available)
 - *genlab\_...*: Database credentials for the GenLab (if available)
 - *projects\_folder\_...*: Prject data folders for different project types (diagnostic, research, test, external)
@@ -30,6 +29,7 @@ This file contains settings specific for `GSvar`. If it is missing, copy the exa
 The most important settings are:
 
 - *build*: Genome build to use. Default is `hg38`.
+- *threads*: number of threads used
 - *clinvar_api_key.*: API key for Clinvar upload of variants
 - *analysis\_steps\_...*: Analysis steps of queuing of analysis on cluster for different analysis types
 - *proxy\_...*: Proxy settings (if needed)
