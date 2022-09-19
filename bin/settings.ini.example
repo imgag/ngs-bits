@@ -10,9 +10,6 @@ reference_genome_hg19 = ""
 liftover_hg19_hg38 = ""
 liftover_hg38_hg19 = ""
 
-#Number of threads to use for calculations
-threads = 1
-
 ############################ internal settings ############################
 #   If you do not know what these settings mean, leave them unchanged!    #
 ###########################################################################
