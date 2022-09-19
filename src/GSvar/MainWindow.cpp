@@ -2087,7 +2087,7 @@ void MainWindow::on_actionDesignCfDNAPanel_triggered()
 {
 	if (filename_=="") return;
 	if (!LoginManager::active()) return;
-	if (!somaticReportSupported()) return;
+	if (!(somaticReportSupported()||tumoronlyReportSupported())) return;
 
 	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
 
@@ -2101,7 +2101,7 @@ void MainWindow::on_actionShowCfDNAPanel_triggered()
 {
 	if (filename_=="") return;
 	if (!LoginManager::active()) return;
-	if (!somaticReportSupported()) return;
+	if (!(somaticReportSupported()||tumoronlyReportSupported())) return;
 
 	NGSD db;
 // get cfDNA panels:
@@ -3577,7 +3577,7 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 	ui_.actionCfDNADiseaseCourse->setEnabled(false);
 	cfdna_menu_btn_->setVisible(false);
 	cfdna_menu_btn_->setEnabled(false);
-	if (somaticReportSupported())
+	if (somaticReportSupported() || tumoronlyReportSupported())
 	{
 		ui_.actionDesignCfDNAPanel->setVisible(true);
 		ui_.actionCfDNADiseaseCourse->setVisible(true);
