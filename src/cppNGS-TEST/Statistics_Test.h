@@ -655,14 +655,16 @@ TEST_CLASS(Statistics_Test)
 	}
 
 	void lowCoverage_roi_bug_case1()
-	{
-		BedFile low_cov =  Statistics::lowCoverage(BedFile("chr13", 32931869, 32931970), TESTDATA("data_in/lowcov_bug_case1.bam"), 20, 1);
+	{		
+		BedFile bed_file = BedFile("chr13", 32931869, 32931970);
+		BedFile low_cov = Statistics::lowCoverage(bed_file, TESTDATA("data_in/lowcov_bug_case1.bam"), 20, 1);
 		I_EQUAL(low_cov.baseCount(), 0);
 	}
 
 	void lowCoverage_roi_bug_case2()
 	{
-		BedFile low_cov =  Statistics::lowCoverage(BedFile("chr13", 32931869, 32931970), TESTDATA("data_in/lowcov_bug_case2.bam"), 20, 1);
+		BedFile bed_file = BedFile("chr13", 32931869, 32931970);
+		BedFile low_cov =  Statistics::lowCoverage(bed_file, TESTDATA("data_in/lowcov_bug_case2.bam"), 20, 1);
 		I_EQUAL(low_cov.baseCount(), 0);
 	}
 

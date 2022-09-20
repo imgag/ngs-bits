@@ -15,7 +15,7 @@ class GapDialog
 	Q_OBJECT
 
 public:
-	GapDialog(QWidget* parent, QString ps, QString bam_file, QString lowcov_file, const BedFile& roi, const GeneSet& genes);
+	GapDialog(QWidget* parent, QString ps, QString bam_file, QString lowcov_file, BedFile& roi, const GeneSet& genes);
 
 private slots:
 	void delayedInitialization();
@@ -33,7 +33,7 @@ private:
 	QString ps_;
 	QString bam_;
 	QString lowcov_file_;
-	const BedFile& roi_;
+	BedFile& roi_;
 	const GeneSet& genes_;
 	int ngsd_col_;
 	struct GapInfo
