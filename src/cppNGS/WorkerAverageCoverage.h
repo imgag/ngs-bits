@@ -15,6 +15,14 @@ public:
 		int start;
 		int end;
 		QString error; //In case of error
+
+		void operator=(const Chunk& rhs)
+		{
+			data = rhs.data;
+			start = rhs.start;
+			end = rhs.end;
+			error = rhs.error;
+		}
 	};
 
 	WorkerAverageCoverage(Chunk& chunk, QString bam_file, int min_mapq, int decimals, QString ref_file);
