@@ -81,6 +81,11 @@ Through the context menu of the search results, a batch of samples can be analyz
 The analysis status and progress of individual samples can be shown using the button ![alt text](analysis_info.png).  
 It is available from tool bar of the `processed sample tab` and through the context menu of `analysis status` table.
 
+Here you can also see if the sample was already analyzed on HG38.  
+If not you see several warnings:  
+![alt text](data_analysis_progress.png)
+
+
 --
 
 [back to main page](index.md)
