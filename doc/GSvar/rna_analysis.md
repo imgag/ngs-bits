@@ -23,20 +23,33 @@ automatically when processing sequencing runs which include RNA
 samples. Re-annotation is required after analysis of RNA sample, it
 is usually queued automatically.
 
-![GSvar processed sample view, highlight sample relation](todo.png)
+![GSvar processed sample view, highlight sample relation](rna_sample_relation.png)
 
 ### Opening RNA tracks
 
 RNA tracks can be selected in the "Initialize IGV" window.
 
-![initialize IGV window, highlight RX/fusions/splicing](todo.png)
+![initialize IGV window, highlight RX/fusions/splicing](rna_igv_menu.png)
 
 ### Enhanced variant information
 
 Variants are annotated with information from RNA sample.
 
-**TODO** list new columns and filters in GSvar, highlight RNAseq area
-on bottom right
+The following columns are added to the GSvar file and can be seen in the variant view:
+
+- ASE_af: Expressed variant allele frequency
+- ASE_depth: Sequencing depth at the variant position
+- ASE_alt: Expressed variant alternative observation count
+- ASE_pval: Binomial test p-value
+- aberrant_splicing: aberrant splicing fraction of annotated genes
+
+**TODO** list new columns 
+
+A summary of the RNA values can also be seen in the bottom right tile of GSvar:
+![rna variant tile](rna_variant_info.png)
+
+There are also filter for these columns:
+![rna variant filter in GSvar](rna_variant_filter.png)
 
 ### Gene expression
 
@@ -81,7 +94,7 @@ observed junction:
 The number of reads supporting the observed junction and the
 splicing motif is shown by hovering or clicking the event.
 
-![IGV with splicing track scaled to one gene](todo.png)
+![IGV with splicing track scaled to one gene](rna_igv_splicing.png)
 
 ### Fusions
 
