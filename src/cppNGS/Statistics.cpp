@@ -1478,8 +1478,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 
 	//percentage known variants
 	double known_count = 0;
-	int i_csq_gnomad = variants.vcfHeader().vepIndexByName("gnomAD_AF", false);
-	if(i_csq_gnomad!=-1)
+	if (variants.informationIDs().contains("gnomADg_AF"))
 	{
 		if (variants.count()!=0)
 		{
@@ -1487,24 +1486,19 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 			{
 				if (!variants[i].failedFilters().empty())	continue;
 
-				bool is_known = false;
-				QByteArrayList annos = variants[i].vepAnnotations(i_csq_gnomad);
-				foreach (const QByteArray& anno, annos)
-				{
-					bool ok = false;
-					double tmp = anno.toDouble(&ok);
-					if (ok && tmp>0.01)
-					{
-						is_known = true;
-						break;
-					}
-				}
-				if (is_known)
+				QByteArray anno = variants[i].info("gnomADg_AF");
+
+				bool ok = false;
+				double tmp = anno.toDouble(&ok);
+				if (ok && tmp>0.01)
 				{
 					++known_count;
 				}
+
 			}
+
 			addQcValue(output, "QC:2000045", "known somatic variants percentage", 100.0*known_count/somatic_count);
+
 		}
 		else
 		{
@@ -1513,9 +1507,8 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	}
 	else
 	{
-		addQcValue(output, "QC:2000045", "known somatic variants percentage", "n/a (no gnomAD_AF annotation in CSQ info field)");
+		addQcValue(output, "QC:2000045", "known somatic variants percentage", "n/a (no gnomADg_AF annotation info field)");
 	}
-	
 
 	//var_perc_indel / var_ti_tv_ratio
 	double indel_count = 0;
