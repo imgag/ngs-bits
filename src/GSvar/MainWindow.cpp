@@ -2087,7 +2087,7 @@ void MainWindow::on_actionDesignCfDNAPanel_triggered()
 {
 	if (filename_=="") return;
 	if (!LoginManager::active()) return;
-	if (!somaticReportSupported()) return;
+	if (!(somaticReportSupported()||tumoronlyReportSupported())) return;
 
 	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
 
@@ -2101,7 +2101,7 @@ void MainWindow::on_actionShowCfDNAPanel_triggered()
 {
 	if (filename_=="") return;
 	if (!LoginManager::active()) return;
-	if (!somaticReportSupported()) return;
+	if (!(somaticReportSupported()||tumoronlyReportSupported())) return;
 
 	NGSD db;
 // get cfDNA panels:
@@ -2255,7 +2255,7 @@ void MainWindow::delayedInitialization()
 	Log::appInfo();
 
 	//load from INI file (if a valid INI file - otherwise restore INI file)
-	if (!Settings::contains("igv_genome") || !Settings::contains("build") || !Settings::contains("reference_genome"))
+	if (!Settings::contains("igv_genome") || !Settings::contains("build") || !Settings::contains("reference_genome") || !Settings::contains("threads"))
 	{
 		QMessageBox::warning(this, "GSvar is not configured", "GSvar is not configured correctly.\nPlease inform your administrator!");
 		close();
@@ -3577,7 +3577,7 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 	ui_.actionCfDNADiseaseCourse->setEnabled(false);
 	cfdna_menu_btn_->setVisible(false);
 	cfdna_menu_btn_->setEnabled(false);
-	if (somaticReportSupported())
+	if (somaticReportSupported() || tumoronlyReportSupported())
 	{
 		ui_.actionDesignCfDNAPanel->setVisible(true);
 		ui_.actionCfDNADiseaseCourse->setVisible(true);
@@ -4316,6 +4316,7 @@ void MainWindow::generateReportTumorOnly()
 
 	//get report settings
 	TumorOnlyReportWorkerConfig config;
+	config.threads = Settings::integer("threads");
 	int sys_id = db.processingSystemIdFromProcessedSample(ps);
 
 	config.sys = db.getProcessingSystemData(sys_id);

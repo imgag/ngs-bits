@@ -2,7 +2,7 @@
 
 HttpResponse::HttpResponse()
 {
-	this->clear();
+	clear();
 }
 
 HttpResponse::HttpResponse(BasicResponseData data)
@@ -289,7 +289,7 @@ int HttpResponse::getContentLength() const
 
 void HttpResponse::updateResponseData()
 {
-	this->clear();
-	this->append(headers_);
-	this->append(payload_);
+	clear();
+	append(headers_);
+	append(payload_);
 }

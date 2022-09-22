@@ -41,6 +41,8 @@ public:
 		changeLog(2022, 7, 13, "Added support for exons.");
 		changeLog(2022, 8, 11, "Added HPA annotation support.");
 		changeLog(2022, 8, 18, "Added ability to update gene names.");
+		changeLog(2022, 9, 15, "Added annotation of transcript ids.");
+
 	}
 
 	virtual void main()
@@ -85,6 +87,7 @@ public:
 		//get expression
 		QMap<QByteArray, ExpressionStats> expression_stats;
 		QMap<QByteArray, QByteArray> ensg_gene_mapping = db.getEnsemblGeneMapping();
+		QMap<QByteArray, QByteArrayList> exon_transcript_mapping;
 		QSet<int> cohort = db.getRNACohort(sys_id, s_data.tissue, ps_data.project_name, ps_id, cohort_strategy, mode.toUtf8());
 
 		//remove this sample from cohort
@@ -101,6 +104,7 @@ public:
 			else if(mode == "exons")
 			{
 				expression_stats = db.calculateExonExpressionStatistics(cohort);
+				exon_transcript_mapping  = db.getExonTranscriptMapping();
 			}
 			else
 			{
@@ -175,6 +179,7 @@ public:
 		// check if annotation columns already present and add to header
 		QByteArrayList header = input_file.header();
 		QByteArrayList db_header;
+		if(mode == "exons") db_header << "transcript_id";
 		db_header << "cohort_mean" << "log2fc" << "zscore" << "pval";
 		QByteArrayList hpa_header;
 		if(hpa_annotation) hpa_header << "hpa_tissue_tpm" << "hpa_tissue_log2tpm" << "hpa_sample_log2tpm" << "hpa_log2fc";
@@ -222,7 +227,7 @@ public:
 		QVector<double> mean_values;
 
 
-		// iterate over input file and annotate each cnv
+		// iterate over input file and annotate each expression
 		while (!input_file.atEnd())
 		{
 			//get line
@@ -252,6 +257,20 @@ public:
 				ExpressionStats gene_expression = expression_stats.value(key);
 				double expr_value = Helper::toDouble(tsv_line.at(i_value), "expression value");
 				double log2p1_expr_value = std::log2(expr_value + 1);
+
+				//annotate transcript id
+				if (mode == "exons")
+				{
+					QByteArray transcript_id;
+					if (exon_transcript_mapping.contains(key))
+					{
+						QStringList buffer;
+						foreach (const QByteArray& id, exon_transcript_mapping.value(key)) buffer << id;
+						std::sort(buffer.begin(), buffer.end());
+						transcript_id = buffer.join(",").toUtf8();
+					}
+					tsv_line[column_indices["transcript_id"]] = transcript_id;
+				}
 
 				//cohort mean
 				double cohort_mean = gene_expression.mean;

@@ -73,7 +73,8 @@ SOURCES += BedFile.cpp \
     GenomeBuild.cpp \
     ChainFileReader.cpp \
     BigWigReader.cpp \
-    VariantHgvsAnnotator.cpp
+    VariantHgvsAnnotator.cpp \
+    WorkerAverageCoverage.cpp
 
 HEADERS += BedFile.h \
     Chromosome.h \
@@ -119,7 +120,8 @@ HEADERS += BedFile.h \
     GenomeBuild.h \
     ChainFileReader.h \
     BigWigReader.h \
-    VariantHgvsAnnotator.h
+    VariantHgvsAnnotator.h \
+    WorkerAverageCoverage.h
 
 RESOURCES += \
     cppNGS.qrc

@@ -1771,6 +1771,27 @@ QMap<QByteArray, QByteArray> NGSD::getGeneEnsemblMapping()
 	return mapping;
 }
 
+QMap<QByteArray, QByteArrayList> NGSD::getExonTranscriptMapping()
+{
+	QMap<QByteArray, QByteArrayList> mapping;
+	SqlQuery query = getQuery();
+	query.exec("SELECT gt.chromosome, ge.start, ge.end, gt.name FROM gene_exon ge INNER JOIN gene_transcript gt ON ge.transcript_id=gt.id");
+	while(query.next())
+	{
+		QByteArray exon = "chr" + query.value(0).toByteArray() + ":" + query.value(1).toByteArray() + "-" + query.value(2).toByteArray();
+		if(mapping.contains(exon))
+		{
+			mapping[exon].append(query.value(3).toByteArray());
+		}
+		else
+		{
+			mapping.insert(exon, QByteArrayList() << query.value(3).toByteArray());
+		}
+	}
+
+	return mapping;
+}
+
 QVector<double> NGSD::getGeneExpressionValues(const QByteArray& gene, int sys_id, const QString& tissue_type, bool log2)
 {
 	QVector<double> expr_values;
@@ -2915,9 +2936,10 @@ bool NGSD::isProductionDb() const
 	//no table 'db_info' > no production database
 	if (!tables().contains("db_info")) return false;
 
+	//no 'is_production' entry > no production database
 	SqlQuery query = getQuery();
 	query.exec("SELECT value FROM db_info WHERE name = 'is_production'");
-	if (!query.next()) THROW(DatabaseException, "Table 'db_info' does not contain 'is_production' entry!");
+	if (!query.next()) return false;
 
 	QString is_production = query.value(0).toString().trimmed().toLower();
 	if (is_production!="true" && is_production!="false") THROW(DatabaseException, "Entry 'is_production' in table 'db_info' contains invalid value '" + is_production + "'! Valid are 'true' or 'false'.");
@@ -3558,8 +3580,11 @@ BedFile NGSD::cfdnaPanelRemovedRegions(int id)
 	return BedFile::fromText(getValue("SELECT `excluded_regions` FROM `cfdna_panels` WHERE id=:0", false, QString::number(id)).toString().toUtf8());
 }
 
-void NGSD::setCfdnaRemovedRegions(int id, const BedFile& removed_regions)
+void NGSD::setCfdnaRemovedRegions(int id, BedFile removed_regions)
 {
+	removed_regions.clearHeaders();
+	removed_regions.clearAnnotations();
+
 	SqlQuery query = getQuery();
 	query.prepare("UPDATE `cfdna_panels` SET `excluded_regions`=:0 WHERE `id`=" + QString::number(id));
 	QString bed_content = "##modified at " + QDate::currentDate().toString("dd.MM.yyyy").toUtf8() + " by " + LoginManager::userName().toUtf8() + "\n" + removed_regions.toText();
@@ -3589,11 +3614,11 @@ QList<CfdnaGeneEntry> NGSD::cfdnaGenes()
 	return genes;
 }
 
-VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, bool throw_on_fail)
+VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, bool tumor_only, bool throw_on_fail)
 {
 	VcfFile vcf;
 	vcf.sampleIDs().append("TUMOR");
-	vcf.sampleIDs().append("NORMAL");
+	if(!tumor_only)vcf.sampleIDs().append("NORMAL");
 
 	ProcessingSystemData sys = getProcessingSystemData(sys_id);
 
@@ -3616,10 +3641,11 @@ VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, bool throw_on_fail)
 	BedFile target_region = processingSystemRegions(sys_id, false);
 
 	QByteArrayList format_ids = QByteArrayList() << "GT";
-	QByteArrayList sample_ids = QByteArrayList() << "TUMOR" << "NORMAL";
+	QByteArrayList sample_ids = QByteArrayList() << "TUMOR";
+	if(!tumor_only) sample_ids << "NORMAL";
 	QList<QByteArrayList> list_of_format_values;
 	list_of_format_values.append(QByteArrayList() << "./.");
-	list_of_format_values.append(QByteArrayList() << "./.");
+	if(!tumor_only) list_of_format_values.append(QByteArrayList() << "./.");
 
 	for (int i=0; i<target_region.count(); i++)
 	{

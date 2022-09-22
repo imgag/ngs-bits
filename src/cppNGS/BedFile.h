@@ -192,9 +192,9 @@ public:
 		headers_.clear();
         lines_.clear();
     }
-    ///Clears annotations of all regions.
+	///Clears annotations of all regions.
     void clearAnnotations();
-	///Clears headers.
+	///Clears headers/comment lines.
 	void clearHeaders();
 
 	///Sorts the lines accoring to chromosome (lexicographical) and start/end position (ascending).

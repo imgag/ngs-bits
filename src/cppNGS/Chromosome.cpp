@@ -1,6 +1,7 @@
 #include "Chromosome.h"
 #include "Exceptions.h"
 #include <QHash>
+#include <QMutex>
 
 Chromosome::Chromosome()
 	: str_("")
@@ -76,9 +77,12 @@ int Chromosome::numericRepresentation() const
 	{
 		return value;
 	}
+
 	//other non-numeric chromosome
 	static int next_num = 1004;
 	static QHash<QByteArray, int> cache;
+	static QMutex mutex; //mutex to protect static members when accessed in parallel from several threads
+	QMutexLocker locker(&mutex);
 	if (!cache.contains(tmp))
 	{
 		cache[tmp] = next_num;

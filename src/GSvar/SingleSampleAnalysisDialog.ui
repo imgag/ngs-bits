@@ -179,7 +179,7 @@
        </widget>
       </item>
       <item row="2" column="0">
-       <widget class="QLabel" name="label_3">
+       <widget class="QLabel" name="l_annotation_only">
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Skips the variant calling part and perform only the annotation part of variant calling steps (small variants, CNVs, SVs).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>

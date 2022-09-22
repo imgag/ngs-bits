@@ -62,7 +62,7 @@ struct ServerInfo
 
 	bool isEmpty()
 	{
-		return ((this->version.isEmpty()) && (this->api_version.isEmpty()) && (this->server_start_time.isNull()));
+		return version.isEmpty() && api_version.isEmpty() && server_start_time.isNull();
 	}
 };
 
@@ -126,7 +126,7 @@ public:
 	///Returns the server API version. Used to check that the server and the client have the same version.
 	static QString serverApiVersion();
 
-	///Retunrs the URL used for sending requests to the GSvar server (use only when in client-server mode)
+	///Returns the URL used for sending requests to the GSvar server (use only when in client-server mode)
 	static QString serverApiUrl(const bool& return_http = false);
 
 	///Returns a map with matching Ensembl, RefSeq and CCDS transcript identifiers (without version numbers).

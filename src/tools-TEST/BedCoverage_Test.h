@@ -11,10 +11,13 @@ private slots:
 		COMPARE_FILES_DELTA("out/BedCoverage_test01_out.tsv", TESTDATA("data_out/BedCoverage_test01_out.tsv"), 1.0, true, '\t'); //delta because of macOS rounding problem
 	}
 
-	void with_duplicates()
+	void multiple_threads()
 	{
-		EXECUTE("BedCoverage", "-in " + TESTDATA("data_in/BedCoverage_in2.bed") + " -dup -bam " + TESTDATA("data_in/BedCoverage_in2.bam") + " -out out/BedCoverage_test02_out.tsv");
-		COMPARE_FILES_DELTA("out/BedCoverage_test02_out.tsv", TESTDATA("data_out/BedCoverage_test02_out.tsv"), 1.0, true, '\t'); //delta because of macOS rounding problem
+		for (int i=1; i<=8; ++i)
+		{
+			EXECUTE("BedCoverage", "-in " + TESTDATA("../cppNGS-TEST/data_in/panel.bed") + " -bam " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -threads " + QString::number(i) + " -out out/BedCoverage_test02_out.tsv");
+			COMPARE_FILES_DELTA("out/BedCoverage_test02_out.tsv", TESTDATA("data_out/BedCoverage_test02_out.tsv"), 1.0, true, '\t'); //delta because of macOS rounding problem
+		}
 	}
 
 	void min_mapq0_1decimal_clear()

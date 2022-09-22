@@ -20,7 +20,6 @@ public:
 private:
 	Ui::cfDNARemovedRegions *ui_;
 	void initGui();
-	BedFile parseBed();
 
 	QString processed_sample_name_;
 	CfdnaPanelInfo cfdna_panel_info_;

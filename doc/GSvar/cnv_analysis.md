@@ -150,13 +150,12 @@ More details on CNV calling with ClinCNV can be found in the [ClinCNV documentat
 
 ### How do I re-start the CNV analysis of a sample
 
-Copy-number variant calling is based on a virtual reference sample, which is constructed of the most similar samples with the same processing system.  
+Copy-number variant calling is based on a virtual reference sample, which is constructed of the most similar samples analyzed with the same processing system.  
 The more samples there are, the more accurate the CNV analysis will be.
 
-Thus, re-analyzing copy-number variants when more reference samples are sequenced is a common task. It can be performed using the sample details dock widget:
+Thus, re-analyzing copy-number variants when more reference samples are sequenced is a common task.  
 
-![alt text](cnv_reanalyze.png)
-
+Please check the [data analysis](data_analysis.md) section for details.
 
 ### How do I get the genes of a CNV which overlaps the selected target region
 

@@ -744,7 +744,7 @@ void FilterCascade::load(QString filename)
 
 	//load filters from file
 	QStringList lines = Helper::loadTextFile(filename, true, QChar::Null, true);
-	this->operator=(fromText(lines));
+	operator=(fromText(lines));
 }
 
 void FilterCascade::store(QString filename)

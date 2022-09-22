@@ -17,13 +17,13 @@ void DBComboBox::fill(const DBTable& table, bool prepend_empty)
 
 	if (prepend_empty)
 	{
-		this->addItem("", "");
+		addItem("", "");
 	}
 
 	for (int r=0; r<table.rowCount(); ++r)
 	{
 		const DBRow& row = table.row(r);
-		this->addItem(row.value(0), row.id());
+		addItem(row.value(0), row.id());
 	}
 }
 

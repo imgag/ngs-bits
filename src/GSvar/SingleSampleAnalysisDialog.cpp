@@ -28,14 +28,21 @@ void SingleSampleAnalysisDialog::setAnalysisSteps()
 		if (analysis_type_ == "cfDNA")
 		{
 			steps_ = loadSteps("analysis_steps_cfdna");
+			ui_.annotate_only->setEnabled(true);
+			ui_.l_annotation_only->setEnabled(true);
 		}
 		else if (analysis_type_ == "RNA")
 		{
 			steps_ = loadSteps("analysis_steps_single_sample_rna");
+			ui_.annotate_only->setEnabled(false);
+			ui_.l_annotation_only->setEnabled(false);
+			ui_.annotate_only->setChecked(false);
 		}
 		else if (analysis_type_.startsWith("DNA"))
 		{
 			steps_ = loadSteps("analysis_steps_single_sample");
+			ui_.annotate_only->setEnabled(true);
+			ui_.l_annotation_only->setEnabled(true);
 		}
 		else
 		{
@@ -288,7 +295,7 @@ void SingleSampleAnalysisDialog::updateStartButton()
 void SingleSampleAnalysisDialog::annotate_only_state_changed()
 {
 	// get all step check boxes
-	QList<QCheckBox*> step_boxes = this->findChildren<QCheckBox*>(QRegExp("^step_"));
+	QList<QCheckBox*> step_boxes = findChildren<QCheckBox*>(QRegExp("^step_"));
 
 	if(ui_.annotate_only->isChecked())
 	{

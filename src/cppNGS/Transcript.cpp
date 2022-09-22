@@ -907,23 +907,23 @@ int Transcript::utr3primeStart() const
 
 void TranscriptList::sortByBases()
 {
-	std::stable_sort(this->begin(), this->end(), [](const Transcript& a, const Transcript& b){ return a.regions().baseCount() > b.regions().baseCount(); });
+	std::stable_sort(begin(), end(), [](const Transcript& a, const Transcript& b){ return a.regions().baseCount() > b.regions().baseCount(); });
 }
 
 void TranscriptList::sortByCodingBases()
 {
-	std::stable_sort(this->begin(), this->end(), [](const Transcript& a, const Transcript& b){ return a.codingRegions().baseCount() > b.codingRegions().baseCount(); });
+	std::stable_sort(begin(), end(), [](const Transcript& a, const Transcript& b){ return a.codingRegions().baseCount() > b.codingRegions().baseCount(); });
 }
 
 void TranscriptList::sortByName()
 {
-	std::stable_sort(this->begin(), this->end(), [](const Transcript& a, const Transcript& b){ return a.name()<b.name(); });
+	std::stable_sort(begin(), end(), [](const Transcript& a, const Transcript& b){ return a.name()<b.name(); });
 }
 
 void TranscriptList::sortByPosition()
 {
 	TranscriptPositionComparator comparator;
-	std::stable_sort(this->begin(), this->end(), comparator);
+	std::stable_sort(begin(), end(), comparator);
 }
 
 bool TranscriptList::TranscriptPositionComparator::operator()(const Transcript& a, const Transcript& b) const

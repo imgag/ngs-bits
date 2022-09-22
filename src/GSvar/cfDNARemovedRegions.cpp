@@ -15,7 +15,7 @@ cfDNARemovedRegions::cfDNARemovedRegions(const QString& processed_sample_name, Q
 	if (!LoginManager::active())
 	{
 		GUIHelper::showMessage("No connection to the NGSD!", "You need access to the NGSD to modify cfDNA panels!");
-		this->close();
+		close();
 	}
 
 	// get created panel
@@ -25,7 +25,7 @@ cfDNARemovedRegions::cfDNARemovedRegions(const QString& processed_sample_name, Q
 	{
 		GUIHelper::showMessage("No cfDNA panel in NGSD!", "The NGSD does not contain a cfDNA panel for the processed sample '"
 								+ processed_sample_name_ + "'!\nPlease create a cfDNA panel before adding removed regions.");
-		this->close();
+		close();
 	}
 	if (cfdna_panels.size() == 1)
 	{
@@ -50,7 +50,7 @@ cfDNARemovedRegions::cfDNARemovedRegions(const QString& processed_sample_name, Q
 		int btn = dlg->exec();
 		if (btn!=1)
 		{
-			this->close();
+			close();
 		}
 		cfdna_panel_info_ = cfdna_panels.at(cfdna_panel_selector->currentIndex());
 	}
@@ -85,28 +85,16 @@ void cfDNARemovedRegions::initGui()
 	connect(ui_->buttonBox, SIGNAL(rejected()), this, SLOT(close()));
 }
 
-BedFile cfDNARemovedRegions::parseBed()
-{
-	BedFile bed = BedFile::fromText(ui_->te_removed_regions->toPlainText().toUtf8());
-	bed.clearAnnotations();
-	return bed;
-}
-
 void cfDNARemovedRegions::importInNGSD()
 {
-	BedFile removed_regions;
 	try
 	{
-		 removed_regions = BedFile::fromText(ui_->te_removed_regions->toPlainText().toUtf8());
-		 removed_regions.clearAnnotations();
-		 removed_regions.clearHeaders();
+		BedFile removed_regions = BedFile::fromText(ui_->te_removed_regions->toPlainText().toUtf8());
+		NGSD().setCfdnaRemovedRegions(cfdna_panel_info_.id, removed_regions);
+		close();
 	}
 	catch (Exception e)
 	{
 		QMessageBox::warning(this, "Input parsing error", e.message());
-		return;
 	}
-	// import to db
-	NGSD().setCfdnaRemovedRegions(cfdna_panel_info_.id, removed_regions);
-	this->close();
 }

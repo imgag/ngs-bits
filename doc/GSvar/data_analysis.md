@@ -18,6 +18,16 @@ The following image shows a simplified single sample pipeline:
 
 ![alt text](pipeline_single_sample.png)
 
+The analysis steps of the pipleine are:
+
+|step                          |main task                                  |additional tasks                        |
+|------------------------------|-------------------------------------------|----------------------------------------|
+|mapping                       |mapping of reads to reference genome       |low-coverage analyis                    |
+|SNV/InDel calling + annotation|small variant calling and annotation       |mosaic calling, ROH, BAF, PRS, ancestry |
+|CNV calling + annotation      |copy-nnumber variant calling and annotation|mosaic calling                          |
+|SV calling + annotation       |structural variant calling and annoation   |repeat expansion calling                |
+|database import               |import of QC and variant data into NGSD    |gender check                            |
+
 
 ### germline - multi-sample pipeline / trio pipeline
 
@@ -27,13 +37,36 @@ Here an example of a multi-sample analysis with two samples:
 
 ![alt text](pipeline_multi.png)
 
+The analysis steps of the pipleine are:
+
+|step                          |main task                                  |additional tasks                        |
+|------------------------------|-------------------------------------------|----------------------------------------|
+|SNV/InDel calling + annotation|small variant calling and annotation       |                                        |
+|CNV calling + annotation      |copy-nnumber variant calling and annotation|UPD calling (trio only)                 |
+|SV calling + annotation       |structural variant calling and annoation   |                                        |
+|database import               |import of meta data analysis into NGSD     |                                        |
+
+### somatic tumor-normal pipeline
+
+//TODO Alexander
+
+### RNA pipeline
+
+//TODO Leon
+
+### cfDNA pipeline
+
+//TODO Leon
+
 ## What is the difference between re-annotation and a normal analysis.
 
-When performing reannotation (e.g. by checking the box `annotate only` in the single-sample analysis dialog) the variant calling step is skipped.  
+When performing re-annotation (i.e. by checking the box `annotate only` in the single-sample analysis dialog) variant calling is skipped.  
 Existing variant calls are used and annotations are updated.
 
 This is usually done when the annotation data is older than a few months.  
 Up-to-data annotation data is important as public databases (ClinVar, HGMD, OMIM, ...) are updated regularly.
+
+**Note:** Re-anotation is always possible. Re-calling of variants is only possible as long as no report configuration exists for the respecitve variant type.
 
 
 ## Where can I trigger analysis jobs?
@@ -80,6 +113,16 @@ Through the context menu of the search results, a batch of samples can be analyz
 
 The analysis status and progress of individual samples can be shown using the button ![alt text](analysis_info.png).  
 It is available from tool bar of the `processed sample tab` and through the context menu of `analysis status` table.
+
+Here you can also see:
+
+* if the analysis is currently running
+* which of the main steps (mapping, small variant calling, CNV calling, SV calling) is done
+* if the QC data and variants are imported into the NGSD database
+
+Steps are marked in red if they are done, but on the old reference genome HG19:
+![alt text](data_analysis_progress.png)
+
 
 --
 

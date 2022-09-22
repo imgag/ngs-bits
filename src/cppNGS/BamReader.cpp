@@ -449,7 +449,6 @@ void BamReader::verify_chromosome_length(const QString& ref_genome)
 
 void BamReader::init(const QString& bam_file, const QString& ref_genome)
 {
-
 	//open file
 	if (fp_==nullptr)
 	{
@@ -499,8 +498,6 @@ void BamReader::init(const QString& bam_file, const QString& ref_genome)
 		chrs_ << chr;
 		chrs_sizes_[chr] = header_->target_len[i];
 	}
-
-	//parse reference file chromosome sizes
 }
 
 BamReader::BamReader(const QString& bam_file)

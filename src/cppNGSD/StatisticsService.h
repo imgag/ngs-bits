@@ -9,8 +9,8 @@ class CPPNGSDSHARED_EXPORT StatisticsService
 {
 public:
 	virtual BedFile lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff) const = 0;
-	virtual void avgCoverage(BedFile& bed_file, const QString& bam_file) const = 0;
-	virtual double targetRegionReadDepth(const BedFile& bed_file, const QString& bam_file) const = 0;
+	virtual void avgCoverage(BedFile& bed_file, const QString& bam_file, int threads) const = 0;
+	virtual double targetRegionReadDepth(const BedFile& bed_file, const QString& bam_file, int threads) const = 0;
 };
 
 #endif // STATISTICSSERVICE_H

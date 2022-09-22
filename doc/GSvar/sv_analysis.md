@@ -108,8 +108,8 @@ The following view settings are recommended and can be selected by right clickin
 
 ### (Re-)start SV analysis
 
-The SV (re-)analysis can be started by clicking on the `analysis status` button of the GSvar toolbar. In the dialog, the `structural variant calling` step has to be selected. (For samples which has been mapped with an older megSAP version the `mapping` step has to repeated too.)
-![SV reanalysis](sv_reanalysis.png)
+Please check the [data analysis](data_analysis.md) section.
+
 
 ### How do I get the genes of a SV which overlaps the selected target region
 

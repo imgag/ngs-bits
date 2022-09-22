@@ -34,6 +34,7 @@ struct CPPNGSDSHARED_EXPORT TumorOnlyReportWorkerConfig
 	bool use_test_db = false;
 
 	GenomeBuild build;
+	int threads = 1;
 };
 
 ///Helper class for tumor-only report generation

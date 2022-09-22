@@ -1533,7 +1533,7 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 	{
 		if (!data_.report_settings.recalculate_avg_depth) Log::warn("Average target region depth from NGSD cannot be determined! Recalculating it...");
 
-		target_region_read_depth = data_.statistics_service.targetRegionReadDepth(data_.roi.regions, data_.ps_bam);
+		target_region_read_depth = data_.statistics_service.targetRegionReadDepth(data_.roi.regions, data_.ps_bam, data_.threads);
 	}
 
 	stream << endl;
@@ -1541,7 +1541,7 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 	stream << "<br />" << trans("Durchschnittliche Sequenziertiefe") << ": " << QString::number(target_region_read_depth, 'f', 2) << endl;
 	BedFile mito_bed;
 	mito_bed.append(BedLine("chrMT", 1, 16569));
-	data_.statistics_service.avgCoverage(mito_bed, data_.ps_bam);
+	data_.statistics_service.avgCoverage(mito_bed, data_.ps_bam, data_.threads);
 	stream << "<br />" << trans("Durchschnittliche Sequenziertiefe (chrMT)") << ": " << mito_bed[0].annotations()[0] << endl;
 	stream << "</p>" << endl;
 

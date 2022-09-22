@@ -21,7 +21,7 @@ public:
 	///==Operator (two different INFO or FORMAT annotation can't have same ID in vcf)
 	bool operator==(VariantAnnotationDescription b) const
 	{
-		return (this->name_==b.name_);
+		return name_==b.name_;
 	}
 	///Returns the name of the annotation.
 	const QString& name() const
@@ -72,7 +72,7 @@ public:
 	///==Operator (two different INFO or FORMAT annotation can't have same ID in vcf)
 	bool operator==(VariantAnnotationHeader b) const
 	{
-		return (this->name_==b.name_);
+		return name_==b.name_;
 	}
 
 	const QString& name() const

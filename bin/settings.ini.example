@@ -2,8 +2,11 @@
 #          Common settings that need to be set for many tools             #
 ###########################################################################
 
-#Path to the reference genome FASTA file
+#Path to the reference genome FASTA file for GRCh38
 reference_genome = ""
+
+#Data for lift-over between genome builds (GRCh38 <> GRCh19)
+reference_genome_hg19 = ""
 liftover_hg19_hg38 = ""
 liftover_hg38_hg19 = ""
 

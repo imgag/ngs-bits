@@ -26,7 +26,7 @@ CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, cons
     if (!LoginManager::active())
     {
         GUIHelper::showMessage("No connection to the NGSD!", "You need access to the NGSD to design cfDNA panels!");
-        this->close();
+		close();
     }
 
     processed_sample_id_ = NGSD().processedSampleId(processed_sample_name_);
@@ -221,8 +221,8 @@ void CfDNAPanelDesignDialog::loadVariants()
 	// get af/dp indices
 	int tumor_af_idx = variants_.annotationIndexByName("tumor_af");
 	int tumor_dp_idx = variants_.annotationIndexByName("tumor_dp");
-	int normal_af_idx = variants_.annotationIndexByName("normal_af");
-	int normal_dp_idx = variants_.annotationIndexByName("normal_dp");
+	int normal_af_idx = variants_.annotationIndexByName("normal_af", true, false);
+	int normal_dp_idx = variants_.annotationIndexByName("normal_dp", true, false);
 	int gene_idx = variants_.annotationIndexByName("gene");
 
 
@@ -300,8 +300,17 @@ void CfDNAPanelDesignDialog::loadVariants()
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[gene_idx]));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[tumor_af_idx]));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[tumor_dp_idx]));
-		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[normal_af_idx]));
-		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[normal_dp_idx]));
+		if(variants_.type() == SOMATIC_PAIR)
+		{
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[normal_af_idx]));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[normal_dp_idx]));
+		}
+		else // SOMATIC_SINGLESAMPLE
+		{
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+		}
+
 
 		if (prev_var_missing)
 		{
@@ -572,11 +581,30 @@ VcfFile CfDNAPanelDesignDialog::createVcfFile()
 	{
 		// get KASP SNPs
 		QStringList vcf_content = Helper::loadTextFile("://Resources/" + buildToString(GSvarHelper::build()) + "_KASP_set2.vcf", false,QChar::Null, false);
+		if(variants_.type() == SOMATIC_SINGLESAMPLE)
+		{
+			//postprocess KASP file for tumor-only: remove FORMAT column of normal sample
+			QStringList corrected_vcf_content;
+			foreach (const QString& line, vcf_content)
+			{
+				if(line.startsWith("##"))
+				{
+					corrected_vcf_content << line;
+				}
+				else
+				{
+					QStringList corrected_line = line.split('\t');
+					corrected_line.removeLast();
+					corrected_vcf_content << corrected_line.join('\t');
+				}
+			}
+			vcf_content = corrected_vcf_content;
+		}
 		id_vcf.fromText(vcf_content.join("\n").toUtf8());
 
 		// extract ID SNPs from selected processing system
 		int sys_id = NGSD().processingSystemId(ui_->cb_processing_system->currentText().toUtf8());
-		VcfFile sys_id_snps = NGSD().getIdSnpsFromProcessingSystem(sys_id);
+		VcfFile sys_id_snps = NGSD().getIdSnpsFromProcessingSystem(sys_id, (variants_.type() == SOMATIC_SINGLESAMPLE));
 
 		foreach (const VcfLinePtr vcf_line, sys_id_snps.vcfLines())
 		{

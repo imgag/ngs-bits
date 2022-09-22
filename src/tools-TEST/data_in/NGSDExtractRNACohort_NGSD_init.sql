@@ -17,22 +17,22 @@ INSERT INTO `sequencing_run` (`id`, `name`, `fcid`, `device_id`, `recipe`, `stat
 (1, '#00372', 'AB2J9', 1, '158+8+158', 'analysis_finished');
 
 INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `tissue`, `species_id`, `gender`, `quality`, `tumor`, `ffpe`, `sender_id`, `comment`, `disease_group`, `disease_status`) VALUES
-(1, 'RX001', 'ex1', 'RNA', 'Skin', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'n/a', 'Affected'),
-(2, 'RX002', 'ex2', 'RNA', 'Skin', 1, 'female', 'good', 0 ,0, 1, 'comment_s2', 'n/a', 'Affected'),
-(3, 'RX003', 'ex3', 'RNA', 'Skin', 1, 'male', 'good', 0 ,0, 1, 'comment_s3', 'n/a', 'Affected'),
-(4, 'RX004', 'ex4', 'RNA', 'Skin', 1, 'male', 'good', 0 ,0, 1, 'comment_s4', 'n/a', 'Affected'),
-(5, 'RX005', 'ex5', 'RNA', 'Blood', 1, 'female', 'good', 0 ,0, 1, 'comment_s5', 'n/a', 'Affected'),
-(6, 'RX006', 'ex6', 'RNA', 'Blood', 1, 'female', 'good', 0 ,0, 1, 'comment_s6', 'n/a', 'Affected'),
-(7, 'RX007', 'ex7', 'RNA', 'Blood', 1, 'male', 'good', 0 ,0, 1, 'comment_s7', 'n/a', 'Affected'),
-(8, 'RX008', 'ex8', 'RNA', 'Blood', 1, 'male', 'good', 0 ,0, 1, 'comment_s8', 'n/a', 'Affected'),
-(11, 'DX001', 'ex1', 'DNA', 'Skin', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'n/a', 'Affected'),
-(12, 'DX002', 'ex2', 'DNA', 'Skin', 1, 'female', 'good', 0 ,0, 1, 'comment_s2', 'n/a', 'Affected'),
-(13, 'DX003', 'ex3', 'DNA', 'Skin', 1, 'male', 'good', 0 ,0, 1, 'comment_s3', 'n/a', 'Affected'),
-(14, 'DX004', 'ex4', 'DNA', 'Skin', 1, 'male', 'good', 0 ,0, 1, 'comment_s4', 'n/a', 'Affected'),
-(15, 'DX005', 'ex5', 'DNA', 'Blood', 1, 'female', 'good', 0 ,0, 1, 'comment_s5', 'n/a', 'Affected'),
-(16, 'DX006', 'ex6', 'DNA', 'Blood', 1, 'female', 'good', 0 ,0, 1, 'comment_s6', 'n/a', 'Affected'),
-(17, 'DX007', 'ex7', 'DNA', 'Blood', 1, 'male', 'good', 0 ,0, 1, 'comment_s7', 'n/a', 'Affected'),
-(18, 'DX008', 'ex8', 'DNA', 'Blood', 1, 'male', 'good', 0 ,0, 1, 'comment_s8', 'n/a', 'Affected');
+(1, 'RX001', 'ex1', 'RNA', 'skin', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'n/a', 'Affected'),
+(2, 'RX002', 'ex2', 'RNA', 'skin', 1, 'female', 'good', 0 ,0, 1, 'comment_s2', 'n/a', 'Affected'),
+(3, 'RX003', 'ex3', 'RNA', 'skin', 1, 'male', 'good', 0 ,0, 1, 'comment_s3', 'n/a', 'Affected'),
+(4, 'RX004', 'ex4', 'RNA', 'skin', 1, 'male', 'good', 0 ,0, 1, 'comment_s4', 'n/a', 'Affected'),
+(5, 'RX005', 'ex5', 'RNA', 'blood', 1, 'female', 'good', 0 ,0, 1, 'comment_s5', 'n/a', 'Affected'),
+(6, 'RX006', 'ex6', 'RNA', 'blood', 1, 'female', 'good', 0 ,0, 1, 'comment_s6', 'n/a', 'Affected'),
+(7, 'RX007', 'ex7', 'RNA', 'blood', 1, 'male', 'good', 0 ,0, 1, 'comment_s7', 'n/a', 'Affected'),
+(8, 'RX008', 'ex8', 'RNA', 'blood', 1, 'male', 'good', 0 ,0, 1, 'comment_s8', 'n/a', 'Affected'),
+(11, 'DX001', 'ex1', 'DNA', 'skin', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'n/a', 'Affected'),
+(12, 'DX002', 'ex2', 'DNA', 'skin', 1, 'female', 'good', 0 ,0, 1, 'comment_s2', 'n/a', 'Affected'),
+(13, 'DX003', 'ex3', 'DNA', 'skin', 1, 'male', 'good', 0 ,0, 1, 'comment_s3', 'n/a', 'Affected'),
+(14, 'DX004', 'ex4', 'DNA', 'skin', 1, 'male', 'good', 0 ,0, 1, 'comment_s4', 'n/a', 'Affected'),
+(15, 'DX005', 'ex5', 'DNA', 'blood', 1, 'female', 'good', 0 ,0, 1, 'comment_s5', 'n/a', 'Affected'),
+(16, 'DX006', 'ex6', 'DNA', 'blood', 1, 'female', 'good', 0 ,0, 1, 'comment_s6', 'n/a', 'Affected'),
+(17, 'DX007', 'ex7', 'DNA', 'blood', 1, 'male', 'good', 0 ,0, 1, 'comment_s7', 'n/a', 'Affected'),
+(18, 'DX008', 'ex8', 'DNA', 'blood', 1, 'male', 'good', 0 ,0, 1, 'comment_s8', 'n/a', 'Affected');
 
 INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES
 (1, 'same sample', 11),
