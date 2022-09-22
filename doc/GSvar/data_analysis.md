@@ -20,13 +20,13 @@ The following image shows a simplified single sample pipeline:
 
 The analysis steps of the pipleine are:
 
-|step                          |main task                                  |additional tasks|
-|------------------------------|-------------------------------------------|----------------|
-|mapping                       |mapping of reads to reference genome       |mosaic calling  |
-|SNV/InDel calling + annotation|small variant calling and annotation       |                |
-|CNV calling + annotation      |copy-nnumber variant calling and annotation|mosaic calling  |
-|SV calling + annotation       |structural variant calling and annoation   |                |
-|database import               |import of QC and variant data into NGSD    |circos plot     |
+|step                          |main task                                  |additional tasks                        |
+|------------------------------|-------------------------------------------|----------------------------------------|
+|mapping                       |mapping of reads to reference genome       |low-coverage analyis                    |
+|SNV/InDel calling + annotation|small variant calling and annotation       |mosaic calling, ROH, BAF, PRS, ancestry |
+|CNV calling + annotation      |copy-nnumber variant calling and annotation|mosaic calling                          |
+|SV calling + annotation       |structural variant calling and annoation   |repeat expansion calling                |
+|database import               |import of QC and variant data into NGSD    |gender check                            |
 
 
 ### germline - multi-sample pipeline / trio pipeline
@@ -36,6 +36,15 @@ On the BAM files the joined variant calling is preformed for all samples.
 Here an example of a multi-sample analysis with two samples:
 
 ![alt text](pipeline_multi.png)
+
+The analysis steps of the pipleine are:
+
+|step                          |main task                                  |additional tasks                        |
+|------------------------------|-------------------------------------------|----------------------------------------|
+|SNV/InDel calling + annotation|small variant calling and annotation       |                                        |
+|CNV calling + annotation      |copy-nnumber variant calling and annotation|UPD calling (trio only)                 |
+|SV calling + annotation       |structural variant calling and annoation   |                                        |
+|database import               |import of meta data analysis into NGSD     |                                        |
 
 ### somatic tumor-normal pipeline
 
@@ -51,7 +60,7 @@ Here an example of a multi-sample analysis with two samples:
 
 ## What is the difference between re-annotation and a normal analysis.
 
-When performing reannotation (i.e. by checking the box `annotate only` in the single-sample analysis dialog) the variant calling step is skipped.  
+When performing re-annotation (i.e. by checking the box `annotate only` in the single-sample analysis dialog) variant calling is skipped.  
 Existing variant calls are used and annotations are updated.
 
 This is usually done when the annotation data is older than a few months.  
