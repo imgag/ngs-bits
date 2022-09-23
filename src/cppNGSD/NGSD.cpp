@@ -2936,9 +2936,10 @@ bool NGSD::isProductionDb() const
 	//no table 'db_info' > no production database
 	if (!tables().contains("db_info")) return false;
 
+	//no 'is_production' entry > no production database
 	SqlQuery query = getQuery();
 	query.exec("SELECT value FROM db_info WHERE name = 'is_production'");
-	if (!query.next()) THROW(DatabaseException, "Table 'db_info' does not contain 'is_production' entry!");
+	if (!query.next()) return false;
 
 	QString is_production = query.value(0).toString().trimmed().toLower();
 	if (is_production!="true" && is_production!="false") THROW(DatabaseException, "Entry 'is_production' in table 'db_info' contains invalid value '" + is_production + "'! Valid are 'true' or 'false'.");

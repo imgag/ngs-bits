@@ -502,3 +502,7 @@ NGSDExtractRNACohort.depends = cppNGSD
 SUBDIRS += VcfToBed
 tools-TEST.depends += VcfToBed
 VcfToBed.depends = cppNGS
+
+SUBDIRS += TsvToQC
+tools-TEST.depends += TsvToQC
+TsvToQC.depends = cppNGS

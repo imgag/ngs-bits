@@ -16,9 +16,12 @@ public:
 		int end;
 		QString error; //In case of error
 
-		Chunk& operator=(const Chunk& /*item*/)
+		void operator=(const Chunk& rhs)
 		{
-			return *this;
+			data = rhs.data;
+			start = rhs.start;
+			end = rhs.end;
+			error = rhs.error;
 		}
 	};
 

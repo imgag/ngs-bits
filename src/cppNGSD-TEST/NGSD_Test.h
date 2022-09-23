@@ -947,7 +947,7 @@ private slots:
 		params.s_type = "DNA";
 		params.s_sender = "Coriell";
 		params.s_study = "SomeStudy";
-		params.s_tissue = "Blood";
+		params.s_tissue = "blood";
 		params.include_bad_quality_samples = false;
 		params.include_tumor_samples = false;
 		params.include_ffpe_samples = false;
@@ -2539,19 +2539,19 @@ private slots:
 
 
 		//Test cohort determination:
-		QSet<int> cohort = db.getRNACohort(1, "Blood");
+		QSet<int> cohort = db.getRNACohort(1, "blood");
 		I_EQUAL(cohort.size(), 4);
 		IS_TRUE(cohort.contains(5005));
 		IS_TRUE(cohort.contains(5006));
 		IS_TRUE(cohort.contains(5007));
 		IS_TRUE(cohort.contains(5008));
 
-		cohort = db.getRNACohort(1, "Blood", "", "", RNA_COHORT_GERMLINE, "genes", QStringList() << "bad" << "medium" << "n/a");
+		cohort = db.getRNACohort(1, "blood", "", "", RNA_COHORT_GERMLINE, "genes", QStringList() << "bad" << "medium" << "n/a");
 		I_EQUAL(cohort.size(), 2);
 		IS_TRUE(cohort.contains(5006));
 		IS_TRUE(cohort.contains(5008));
 
-		cohort = db.getRNACohort(1, "Skin", "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE_PROJECT);
+		cohort = db.getRNACohort(1, "skin", "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE_PROJECT);
 		I_EQUAL(cohort.size(), 2);
 		IS_TRUE(cohort.contains(5001));
 		IS_TRUE(cohort.contains(5003));
@@ -2565,7 +2565,7 @@ private slots:
 
 
 		//Test expression stats:
-		QMap<QByteArray, ExpressionStats> expression_stats = db.calculateCohortExpressionStatistics(1, "Blood", cohort);
+		QMap<QByteArray, ExpressionStats> expression_stats = db.calculateCohortExpressionStatistics(1, "blood", cohort);
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000232596")).mean, 121.091, 0.001);
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000232596")).mean_log2, 5.373, 0.001);
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000232596")).stddev_log2, 3.167, 0.001);
@@ -2574,7 +2574,7 @@ private slots:
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000049245")).stddev_log2, 0, 0.001);
 		I_EQUAL(cohort.size(), 4);
 
-		expression_stats = db.calculateCohortExpressionStatistics(1, "Blood", cohort, "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE_PROJECT);
+		expression_stats = db.calculateCohortExpressionStatistics(1, "blood", cohort, "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE_PROJECT);
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000232596")).mean, 204.681, 0.001);
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000232596")).mean_log2, 7.6221, 0.001);
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000232596")).stddev_log2, 0.427, 0.001);
@@ -2583,12 +2583,12 @@ private slots:
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000049245")).stddev_log2, 0.0, 0.001);
 		I_EQUAL(cohort.size(), 2);
 
-		expression_stats = db.calculateCohortExpressionStatistics(1, "Skin", cohort);
+		expression_stats = db.calculateCohortExpressionStatistics(1, "skin", cohort);
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).mean, 47.9532, 0.001);
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000283234")).mean, 0.0, 0.001);
 		I_EQUAL(cohort.size(), 4);
 
-		expression_stats = db.calculateCohortExpressionStatistics(1, "Skin", cohort, "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE);
+		expression_stats = db.calculateCohortExpressionStatistics(1, "skin", cohort, "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE);
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).mean, 47.953, 0.001);
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).mean_log2, 1.898, 0.001);
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).stddev_log2, 3.287, 0.001);
@@ -2597,7 +2597,7 @@ private slots:
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000283234")).stddev_log2, 0, 0.001);
 		I_EQUAL(cohort.size(), 4);
 
-		expression_stats = db.calculateCohortExpressionStatistics(1, "Skin", cohort, "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE_PROJECT);
+		expression_stats = db.calculateCohortExpressionStatistics(1, "skin", cohort, "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE_PROJECT);
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).mean, 95.907, 0.001);
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).mean_log2, 3.796, 0.001);
 		F_EQUAL2(expression_stats.value(ensg_gene_mapping.value("ENSG00000157916")).stddev_log2, 3.796, 0.001);
@@ -2627,7 +2627,7 @@ private slots:
 
 
 		//Test limited gene expresion stats:
-		cohort = db.getRNACohort(1, "Blood");
+		cohort = db.getRNACohort(1, "blood");
 		expression_stats = db.calculateGeneExpressionStatistics(cohort, "LINC01646");
 		I_EQUAL(expression_stats.size(), 1);
 		F_EQUAL2(expression_stats.value("LINC01646").mean, 121.091, 0.001);
@@ -2639,7 +2639,7 @@ private slots:
 		F_EQUAL2(expression_stats.value("VAMP3").mean_log2, 0, 0.001);
 		F_EQUAL2(expression_stats.value("VAMP3").stddev_log2, 0, 0.001);
 
-		cohort = db.getRNACohort(1, "Blood", "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE_PROJECT);
+		cohort = db.getRNACohort(1, "blood", "KontrollDNACoriell", "5001", RNA_COHORT_GERMLINE_PROJECT);
 		expression_stats = db.calculateGeneExpressionStatistics(cohort, "LINC01646");
 		I_EQUAL(expression_stats.size(), 1);
 		F_EQUAL2(expression_stats.value("LINC01646").mean, 204.681, 0.001);
@@ -2671,7 +2671,7 @@ private slots:
 
 
 		//Test exon expression stats:
-		cohort = db.getRNACohort(1, "Skin", "", "", RNA_COHORT_GERMLINE, "exons");
+		cohort = db.getRNACohort(1, "skin", "", "", RNA_COHORT_GERMLINE, "exons");
 		expression_stats = db.calculateExonExpressionStatistics(cohort);
 		F_EQUAL2(expression_stats.value("chr1:966704-966803").mean, 85.09675, 0.001);
 		F_EQUAL2(expression_stats.value("chr1:966704-966803").mean_log2, 2.103816078, 0.001);

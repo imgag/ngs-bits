@@ -10,7 +10,6 @@ private slots:
     {
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
-
 		EXECUTE("SomaticQC", "-tumor_bam " + TESTDATA("../cppNGS-TEST/data_in/tumor.bam") + " -normal_bam " + TESTDATA("../cppNGS-TEST/data_in/normal.bam") + " -somatic_vcf " + TESTDATA("data_in/SomaticQC_in7.vcf") + " -links " + TESTDATA("data_in/SomaticQC_in4.qcML") + " -skip_plots -out out/SomaticQC_out1.qcML");
         REMOVE_LINES("out/SomaticQC_out1.qcML", QRegExp("creation "));
         REMOVE_LINES("out/SomaticQC_out1.qcML", QRegExp("<binary>"));

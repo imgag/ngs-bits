@@ -373,7 +373,7 @@ CREATE  TABLE IF NOT EXISTS `sample`
   `received` DATE NULL DEFAULT NULL,
   `receiver_id` INT(11) NULL DEFAULT NULL,
   `sample_type` ENUM('DNA','DNA (amplicon)','DNA (native)','RNA','cfDNA') NOT NULL,
-  `tissue` ENUM('n/a','Blood','Buccal mucosa','Skin') NOT NULL DEFAULT 'n/a',
+  `tissue` ENUM('n/a','blood','buccal mucosa','cortical neuron','fibroblast','induced pluripotent stem cell','lymphocyte','peripheral blood mononuclear cell','skin') NOT NULL DEFAULT 'n/a' COMMENT 'tissue according to BRENDA Tissue Ontology',
   `species_id` INT(11) NOT NULL,
   `concentration` FLOAT NULL DEFAULT NULL,
   `volume` FLOAT NULL DEFAULT NULL,
