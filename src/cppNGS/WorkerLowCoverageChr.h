@@ -4,21 +4,26 @@
 #include <QRunnable>
 #include "BedFile.h"
 #include "BamReader.h"
+#include "StatHelper.h"
 
 class WorkerLowCoverageChr : public QRunnable
 {
 public:
 	struct ChrChunk
 	{
-		const Chromosome& chr;
+		Chromosome chr;
 		int start;
 		int end;
 		QString error;
 		BedFile output;
 
-		ChrChunk& operator=(const ChrChunk& /*item*/)
+		void operator=(const ChrChunk& chr_chunk)
 		{
-			return *this;
+			chr = chr_chunk.chr;
+			start = chr_chunk.start;
+			end = chr_chunk.end;
+			error = chr_chunk.error;
+			output = chr_chunk.output;
 		}
 	};
 
@@ -31,10 +36,7 @@ private:
 	int cutoff_;
 	int min_mapq_;
 	int min_baseq_;
-	QString ref_file_;
-
-	void countCoverageWGSWithBaseQuality(int min_baseq, QVector<unsigned char>& cov, int start, int end, QBitArray& baseQualities, const BamAlignment& al);
-	void countCoverageWGSWithoutBaseQuality(int start, int end, QVector<unsigned char>& cov);
+	QString ref_file_;	
 };
 
 

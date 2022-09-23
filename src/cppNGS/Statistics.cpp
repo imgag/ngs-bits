@@ -21,7 +21,7 @@
 #include "FilterCascade.h"
 #include "ToolBase.h"
 #include "WorkerAverageCoverage.h"
-#include "WorkerLowCoverage.h"
+#include "WorkerLowCoverageBed.h"
 #include "WorkerLowCoverageChr.h"
 
 
@@ -2259,78 +2259,15 @@ AncestryEstimates Statistics::ancestry(GenomeBuild build, QString filename, int 
 	return output;
 }
 
-void Statistics::countCoverageWithoutBaseQuality(
-		QVector<int>& roi_cov,
-		int ol_start,
-		int ol_end)
-{
-	for (int p=ol_start; p<=ol_end; ++p)
-	{
-		++roi_cov[p];
-	}
-}
-
-void Statistics::countCoverageWithBaseQuality(
-		int min_baseq,
-		QVector<int>& roi_cov,
-		int start,
-		int ol_start,
-		int ol_end,
-		QBitArray& baseQualities,
-		const BamAlignment& al)
-{
-	int quality_pos = std::max(start, al.start()) - al.start();
-	al.qualities(baseQualities, min_baseq, al.end() - al.start() + 1);
-	for (int p=ol_start; p<=ol_end; ++p)
-	{
-		if(baseQualities.testBit(quality_pos))
-		{
-			++roi_cov[p];
-		}
-		++quality_pos;
-	}
-}
-
-void Statistics::countCoverageWGSWithoutBaseQuality(
-		int start,
-		int end,
-		QVector<unsigned char>& cov)
-{
-	for (int p=start; p<end; ++p)
-	{
-		if (cov[p]<254) ++cov[p];
-	}
-}
-
-void Statistics::countCoverageWGSWithBaseQuality(
-		int min_baseq,
-		QVector<unsigned char>& cov,
-		int start,
-		int end,
-		QBitArray& baseQualities,
-		const BamAlignment& al)
-{
-	al.qualities(baseQualities, min_baseq, end - start);
-	int quality_pos = 0;
-	for (int p=start; p<end; ++p)
-	{
-		if(baseQualities.testBit(quality_pos))
-		{
-			if (cov[p]<254) ++cov[p];
-		}
-		++quality_pos;
-	}
-}
-
-BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file)
+BedFile Statistics::lowCoverage(BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file)
 {
 	//create analysis chunks (200 lines)
-	QList<WorkerLowCoverage::Chunk> chunks;
+	QList<WorkerLowCoverageBed::BedChunk> bed_chunks;
 	for (int start=0; start<bed_file.count(); start += 200)
 	{
 		int end = start+199;
 		if (end>=bed_file.count()) end = bed_file.count() -1;
-		chunks << WorkerLowCoverage::Chunk{bed_file, start, end, "", BedFile{}};
+		bed_chunks << WorkerLowCoverageBed::BedChunk{bed_file, start, end, QString(), BedFile{}};
 	}
 
 	//create thread pool
@@ -2338,24 +2275,25 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 	thread_pool.setMaxThreadCount(threads);
 
 	//start analysis chunks (of 200 lines)
-	for (int i=0; i<chunks.count(); ++i)
+	for (int i=0; i<bed_chunks.count(); ++i)
 	{
-		WorkerLowCoverage* worker = new WorkerLowCoverage(chunks[i], bam_file, cutoff, min_mapq, min_baseq, ref_file);
+		WorkerLowCoverageBed* worker = new WorkerLowCoverageBed(bed_chunks[i], bam_file, cutoff, min_mapq, min_baseq, ref_file);
 		thread_pool.start(worker);
 	}
 
 	//wait until finished
 	thread_pool.waitForDone();
 	BedFile output;
-	for (int i=0; i<chunks.count(); ++i)
-	{
-		output.add(chunks[i].output);
-	}
 
-	//check if error occured
-	foreach(const WorkerLowCoverage::Chunk& chunk, chunks)
+	//check for errors and merge results
+	foreach(const WorkerLowCoverageBed::BedChunk& bed_chunk, bed_chunks)
 	{
-		if (!chunk.error.isEmpty()) THROW(Exception, chunk.error);
+		if (!bed_chunk.error.isEmpty()) THROW(Exception, bed_chunk.error);
+
+		for (int l=0; l<bed_chunk.output.count(); ++l)
+		{
+			output.append(bed_chunk.output[l]);
+		}
 	}
 
 	output.merge(true, true, true);
@@ -2368,16 +2306,15 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 	QList<WorkerLowCoverageChr::ChrChunk> chr_chunks;
 	BamReader reader(bam_file, ref_file);
 	for (int c=0; c < reader.chromosomes().count(); c++)
-	{
-		int chr_size = reader.chromosomeSize(reader.chromosomes()[c]);
-		chr_chunks << WorkerLowCoverageChr::ChrChunk{reader.chromosomes()[c], 0, chr_size, "", BedFile{}};
+	{	
+		chr_chunks << WorkerLowCoverageChr::ChrChunk{reader.chromosomes()[c], 0, reader.chromosomeSize(reader.chromosomes()[c]), QString(), BedFile{}};
 	}
 
 	//create thread pool
 	QThreadPool thread_pool;
 	thread_pool.setMaxThreadCount(threads);
 
-	//start analysis chunks (of 200 lines)
+	//start analysis: one worker per chromosome
 	for (int i=0; i<chr_chunks.count(); ++i)
 	{
 		WorkerLowCoverageChr* worker = new WorkerLowCoverageChr(chr_chunks[i], bam_file, cutoff, min_mapq, min_baseq, ref_file);
@@ -2386,16 +2323,15 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 
 	//wait until finished
 	thread_pool.waitForDone();
-	BedFile output;
-	for (int i=0; i<chr_chunks.count(); ++i)
-	{
-		output.add(chr_chunks[i].output);
-	}
-
-	//check if error occured
+	BedFile output;	
+	//check for errors and merge results
 	foreach(const WorkerLowCoverageChr::ChrChunk& chr_chunk, chr_chunks)
 	{
 		if (!chr_chunk.error.isEmpty()) THROW(Exception, chr_chunk.error);
+		for (int l=0; l<chr_chunk.output.count(); ++l)
+		{
+			output.append(chr_chunk.output[l]);
+		}
 	}
 
 	output.merge();
@@ -2467,7 +2403,7 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 
 			const int ol_start = std::max(start, al.start()) - start;
 			const int ol_end = std::min(bed_line.end(), al.end()) - start;
-			min_baseq>0 ? countCoverageWithBaseQuality(min_baseq, roi_cov, start, ol_start, ol_end, baseQualities, al) : countCoverageWithoutBaseQuality(roi_cov, ol_start, ol_end);
+			min_baseq>0 ? StatHelper::countCoverageWithBaseQuality(min_baseq, roi_cov, start, ol_start, ol_end, baseQualities, al) : StatHelper::countCoverageWithoutBaseQuality(roi_cov, ol_start, ol_end);
 
 		}
 
@@ -2531,7 +2467,7 @@ BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_ma
 			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
-			min_baseq>0 ? countCoverageWGSWithBaseQuality(min_baseq, cov, al.start() - 1, al.end(), baseQualities, al) : countCoverageWGSWithoutBaseQuality(al.start()-1, al.end(), cov);
+			min_baseq>0 ? StatHelper::countCoverageWGSWithBaseQuality(min_baseq, cov, al.start() - 1, al.end(), baseQualities, al) : StatHelper::countCoverageWGSWithoutBaseQuality(al.start()-1, al.end(), cov);
 
 		}
 

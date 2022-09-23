@@ -1557,7 +1557,8 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 		catch(Exception e)
 		{
 			Log::warn("Low-coverage statistics needs to be calculated. Pre-calculated gap file cannot be used because: " + e.message());
-			low_cov = data_.statistics_service.lowCoverage(data_.roi.regions, data_.ps_bam, data_.report_settings.min_depth);
+			BedFile regions = data_.roi.regions;
+			low_cov = data_.statistics_service.lowCoverage(regions, data_.ps_bam, data_.report_settings.min_depth);
 		}
 
 		//group gaps by gene

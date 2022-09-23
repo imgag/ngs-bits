@@ -38,6 +38,7 @@ QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 SOURCES += BedFile.cpp \
     Chromosome.cpp \
+    StatHelper.cpp \
     VariantList.cpp \
     Statistics.cpp \
     Pileup.cpp \
@@ -75,12 +76,13 @@ SOURCES += BedFile.cpp \
     BigWigReader.cpp \
     VariantHgvsAnnotator.cpp \
     WorkerAverageCoverage.cpp \
-    WorkerLowCoverage.cpp \
+    WorkerLowCoverageBed.cpp \
     WorkerLowCoverageChr.cpp
 
 HEADERS += BedFile.h \
     Chromosome.h \
     FileInfo.h \
+    StatHelper.h \
     VariantList.h \
     ChromosomalIndex.h \
     Statistics.h \
@@ -124,7 +126,7 @@ HEADERS += BedFile.h \
     BigWigReader.h \
     VariantHgvsAnnotator.h \
     WorkerAverageCoverage.h \
-    WorkerLowCoverage.h \
+    WorkerLowCoverageBed.h \
     WorkerLowCoverageChr.h
 
 RESOURCES += \

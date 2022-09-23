@@ -12,7 +12,7 @@ class CPPNGSDSHARED_EXPORT StatisticsServiceRemote
 public:
 	StatisticsServiceRemote();
 	virtual ~StatisticsServiceRemote() {}	
-	virtual BedFile lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff) const override;
+	virtual BedFile lowCoverage(BedFile& bed_file, const QString& bam_file, int cutoff) const override;
 	virtual void avgCoverage(BedFile& bed_file, const QString& bam_file, int threads) const override;
 	virtual double targetRegionReadDepth(const BedFile& bed_file, const QString& bam_file, int threads) const override;
 };
