@@ -35,7 +35,7 @@ ExpressionExonWidget::ExpressionExonWidget(QString tsv_filename, int sys_id, QSt
 	// skip if no NGSD is available
 	if (!LoginManager::active())
 	{
-		QMessageBox::warning(this, "Expression data widget", "Widget requires NGSD access!");
+		QMessageBox::warning(this, "Expression data dialog", "Dialog requires NGSD access!");
 		return;
 	}
 	ui_->setupUi(this);

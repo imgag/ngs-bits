@@ -67,13 +67,12 @@ Follow these instructions, if only the black console window of IGV but not the a
 
 ### IGV cannot load genomes
 IGV needs access to the Broad Institute web server to manage non-local genome files.  
-If it cannot access the server, during startup the error message `cannot connect to genome server` is shown and several other errors can occur.
+If it cannot access the server, during startup `cannot connect to genome server`, `error loading genome` or similar errors are shown.
 
-In that case, you have to set the proxy like shown here:
+In case you need to access the internet through a proxy, do this:
 
 ![alt text](igv_proxy.png)
 
-Finally, you have to restart IGV.
 
 ### How can I change the port through which IGV and GSvar communicate?
 GSvar sends commands to IGV through a port. The default port is 60151.  

@@ -66,7 +66,7 @@ Existing variant calls are used and annotations are updated.
 This is usually done when the annotation data is older than a few months.  
 Up-to-data annotation data is important as public databases (ClinVar, HGMD, OMIM, ...) are updated regularly.
 
-**Note:** Re-anotation is always possible. Re-calling of variants is only possible as long as no report configuration exists for the respecitve variant type.
+**Note:** Re-anotation is always possible. Re-calling of variants is only possible as long as no report configuration exists for the respecitve variant type. If a report-configuration exists, you need to delete it first: use the delete button in the processed sample tab.
 
 
 ## Where can I trigger analysis jobs?
