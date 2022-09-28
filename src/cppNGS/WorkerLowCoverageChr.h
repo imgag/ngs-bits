@@ -4,14 +4,13 @@
 #include <QRunnable>
 #include "BedFile.h"
 #include "BamReader.h"
-#include "StatHelper.h"
 
 class WorkerLowCoverageChr : public QRunnable
 {
 public:
 	struct ChrChunk
 	{
-		Chromosome chr;
+		const Chromosome& chr;
 		int start;
 		int end;
 		QString error;
@@ -19,7 +18,10 @@ public:
 
 		void operator=(const ChrChunk& chr_chunk)
 		{
-			chr = chr_chunk.chr;
+			if (&chr != &chr_chunk.chr)
+			{
+				THROW(NotImplementedException, "ChrChunk chromosome cannot be reassigned");
+			}
 			start = chr_chunk.start;
 			end = chr_chunk.end;
 			error = chr_chunk.error;

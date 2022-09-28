@@ -6,7 +6,7 @@ StatisticsServiceRemote::StatisticsServiceRemote()
 
 }
 
-BedFile StatisticsServiceRemote::lowCoverage(BedFile& bed_file, const QString& bam_file, int cutoff) const
+BedFile StatisticsServiceRemote::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff) const
 {	
 	BedFile output;
 	QStringList bam_file_parts = bam_file.split("/");

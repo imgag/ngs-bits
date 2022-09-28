@@ -2259,7 +2259,7 @@ AncestryEstimates Statistics::ancestry(GenomeBuild build, QString filename, int 
 	return output;
 }
 
-BedFile Statistics::lowCoverage(BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file)
+BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file)
 {
 	//create analysis chunks (200 lines)
 	QList<WorkerLowCoverageBed::BedChunk> bed_chunks;
@@ -2305,9 +2305,10 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 	//create analysis chunks (one chunk per chromosome)
 	QList<WorkerLowCoverageChr::ChrChunk> chr_chunks;
 	BamReader reader(bam_file, ref_file);
-	for (int c=0; c < reader.chromosomes().count(); c++)
-	{	
-		chr_chunks << WorkerLowCoverageChr::ChrChunk{reader.chromosomes()[c], 0, reader.chromosomeSize(reader.chromosomes()[c]), QString(), BedFile{}};
+	foreach(const Chromosome& chr, reader.chromosomes())
+	{
+		if (!chr.isNonSpecial()) continue;
+		chr_chunks << WorkerLowCoverageChr::ChrChunk{chr, 0, reader.chromosomeSize(chr), QString(), BedFile{}};
 	}
 
 	//create thread pool
@@ -2346,7 +2347,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	{
 		int end = start+199;
 		if (end>=bed_file.count()) end = bed_file.count() -1;
-		chunks.append(WorkerAverageCoverage::Chunk{bed_file, start, end, ""});
+		chunks << WorkerAverageCoverage::Chunk{bed_file, start, end, ""};
 	}
 
 	//create thread pool
@@ -2403,7 +2404,7 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 
 			const int ol_start = std::max(start, al.start()) - start;
 			const int ol_end = std::min(bed_line.end(), al.end()) - start;
-			min_baseq>0 ? StatHelper::countCoverageWithBaseQuality(min_baseq, roi_cov, start, ol_start, ol_end, baseQualities, al) : StatHelper::countCoverageWithoutBaseQuality(roi_cov, ol_start, ol_end);
+			min_baseq>0 ? countCoverageWithBaseQuality(min_baseq, roi_cov, start, ol_start, ol_end, baseQualities, al) : countCoverageWithoutBaseQuality(roi_cov, ol_start, ol_end);
 
 		}
 
@@ -2467,7 +2468,7 @@ BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_ma
 			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
-			min_baseq>0 ? StatHelper::countCoverageWGSWithBaseQuality(min_baseq, cov, al.start() - 1, al.end(), baseQualities, al) : StatHelper::countCoverageWGSWithoutBaseQuality(al.start()-1, al.end(), cov);
+			min_baseq>0 ? countCoverageWGSWithBaseQuality(min_baseq, cov, al.start() - 1, al.end(), baseQualities, al) : countCoverageWGSWithoutBaseQuality(al.start()-1, al.end(), cov);
 
 		}
 
@@ -2727,6 +2728,50 @@ QCCollection Statistics::hrdScore(const CnvList &cnvs, GenomeBuild build)
 	addQcValue(out, "QC:2000063",  "telomer allelic imbalance", tai);
 	addQcValue(out, "QC:2000064", "long state transition", lst);
 	return out;
+}
+
+void Statistics::countCoverageWithBaseQuality(int min_baseq, QVector<int>& roi_cov, int start, int ol_start, int ol_end, QBitArray& baseQualities, const BamAlignment& al)
+{
+	int quality_pos = std::max(start, al.start()) - al.start();
+	al.qualities(baseQualities, min_baseq, al.end() - al.start() + 1);
+	for (int p=ol_start; p<=ol_end; ++p)
+	{
+		if(baseQualities.testBit(quality_pos))
+		{
+			++roi_cov[p];
+		}
+		++quality_pos;
+	}
+}
+
+void Statistics::countCoverageWithoutBaseQuality(QVector<int>& roi_cov, int ol_start, int ol_end)
+{
+	for (int p=ol_start; p<=ol_end; ++p)
+	{
+		++roi_cov[p];
+	}
+}
+
+void Statistics::countCoverageWGSWithBaseQuality(int min_baseq, QVector<unsigned char>& cov, int start, int end, QBitArray& baseQualities, const BamAlignment& al)
+{
+	al.qualities(baseQualities, min_baseq, end - start);
+	int quality_pos = 0;
+	for (int p=start; p<end; ++p)
+	{
+		if(baseQualities.testBit(quality_pos))
+		{
+			if (cov[p]<254) ++cov[p];
+		}
+		++quality_pos;
+	}
+}
+
+void Statistics::countCoverageWGSWithoutBaseQuality(int start, int end, QVector<unsigned char>& cov)
+{
+	for (int p=start; p<end; ++p)
+	{
+		if (cov[p]<254) ++cov[p];
+	}
 }
 
 

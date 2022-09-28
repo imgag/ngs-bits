@@ -4,14 +4,13 @@
 #include <QRunnable>
 #include "BedFile.h"
 #include "BamReader.h"
-#include "StatHelper.h"
 
 class WorkerLowCoverageBed : public QRunnable
 {
 public:
 	struct BedChunk
 	{
-		BedFile& data;
+		const BedFile& data;
 		int start;
 		int end;
 		QString error; //In case of error
@@ -19,7 +18,10 @@ public:
 
 		void operator=(const BedChunk& bed_chunk)
 		{
-			data = bed_chunk.data;
+			if (&data != &bed_chunk.data)
+			{
+				THROW(NotImplementedException, "BedChunk data cannot be reassigned");
+			}
 			start = bed_chunk.start;
 			end = bed_chunk.end;
 			error = bed_chunk.error;

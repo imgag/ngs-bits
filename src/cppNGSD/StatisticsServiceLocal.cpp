@@ -6,7 +6,7 @@ StatisticsServiceLocal::StatisticsServiceLocal()
 
 }
 
-BedFile StatisticsServiceLocal::lowCoverage(BedFile& bed_file, const QString& bam_file, int cutoff) const
+BedFile StatisticsServiceLocal::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff) const
 {	
 	QString ref_file = Settings::string("reference_genome");
 	int threads = Settings::integer("threads");

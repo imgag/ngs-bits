@@ -6,7 +6,7 @@
 #include <QMessageBox>
 #include <QMenu>
 
-GapDialog::GapDialog(QWidget *parent, QString ps, QString bam_file, QString lowcov_file, BedFile& roi, const GeneSet& genes)
+GapDialog::GapDialog(QWidget *parent, QString ps, QString bam_file, QString lowcov_file, const BedFile& roi, const GeneSet& genes)
 	: QDialog(parent)
 	, ui_()
 	, init_timer_(this, true)

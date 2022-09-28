@@ -1,5 +1,6 @@
 #include "WorkerLowCoverageBed.h"
 #include "BamReader.h"
+#include "Statistics.h"
 
 WorkerLowCoverageBed::WorkerLowCoverageBed(BedChunk& bed_chunk, QString bam_file, int cutoff, int min_mapq, int min_baseq, QString ref_file)
 	: QRunnable()
@@ -40,7 +41,7 @@ void WorkerLowCoverageBed::run()
 
 				const int ol_start = std::max(start, al.start()) - start;
 				const int ol_end = std::min(bed_line.end(), al.end()) - start;
-				min_baseq_>0 ? StatHelper::countCoverageWithBaseQuality(min_baseq_, roi_cov, start, ol_start, ol_end, baseQualities, al) : StatHelper::countCoverageWithoutBaseQuality(roi_cov, ol_start, ol_end);
+				min_baseq_>0 ? Statistics::countCoverageWithBaseQuality(min_baseq_, roi_cov, start, ol_start, ol_end, baseQualities, al) : Statistics::countCoverageWithoutBaseQuality(roi_cov, ol_start, ol_end);
 			}
 
 			//create low-coverage regions file

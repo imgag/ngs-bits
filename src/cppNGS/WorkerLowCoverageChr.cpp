@@ -1,4 +1,5 @@
 #include "WorkerLowCoverageChr.h"
+#include "Statistics.h"
 
 WorkerLowCoverageChr::WorkerLowCoverageChr(ChrChunk& chr_chunk, QString bam_file, int cutoff, int min_mapq, int min_baseq, QString ref_file)
 	: QRunnable()
@@ -40,7 +41,7 @@ void WorkerLowCoverageChr::run()
 			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq_) continue;
 
-			min_baseq_>0 ? StatHelper::countCoverageWGSWithBaseQuality(min_baseq_, cov, al.start() - 1, al.end(), baseQualities, al) : StatHelper::countCoverageWGSWithoutBaseQuality(al.start()-1, al.end(), cov);
+			min_baseq_>0 ? Statistics::countCoverageWGSWithBaseQuality(min_baseq_, cov, al.start() - 1, al.end(), baseQualities, al) : Statistics::countCoverageWGSWithoutBaseQuality(al.start()-1, al.end(), cov);
 
 		}
 

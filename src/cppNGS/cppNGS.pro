@@ -38,7 +38,6 @@ QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 SOURCES += BedFile.cpp \
     Chromosome.cpp \
-    StatHelper.cpp \
     VariantList.cpp \
     Statistics.cpp \
     Pileup.cpp \
@@ -82,7 +81,6 @@ SOURCES += BedFile.cpp \
 HEADERS += BedFile.h \
     Chromosome.h \
     FileInfo.h \
-    StatHelper.h \
     VariantList.h \
     ChromosomalIndex.h \
     Statistics.h \
