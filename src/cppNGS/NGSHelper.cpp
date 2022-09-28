@@ -797,7 +797,6 @@ ServerInfo NGSHelper::getServerInfo()
 	}
 
 	QJsonDocument json_doc = QJsonDocument::fromJson(response);
-	qDebug() << response;
 	if (json_doc.isObject())
 	{
 		if (json_doc.object().contains("version")) info.version = json_doc.object()["version"].toString();
