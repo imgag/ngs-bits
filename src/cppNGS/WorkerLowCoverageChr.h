@@ -10,7 +10,7 @@ class WorkerLowCoverageChr : public QRunnable
 public:
 	struct ChrChunk
 	{
-		const Chromosome& chr;
+		Chromosome chr;
 		int start;
 		int end;
 		QString error;
@@ -18,10 +18,11 @@ public:
 
 		void operator=(const ChrChunk& chr_chunk)
 		{
-			if (&chr != &chr_chunk.chr)
-			{
-				THROW(NotImplementedException, "ChrChunk chromosome cannot be reassigned");
-			}
+//			if (&chr != &chr_chunk.chr)
+//			{
+//				THROW(NotImplementedException, "ChrChunk chromosome cannot be reassigned");
+//			}
+			chr = chr_chunk.chr;
 			start = chr_chunk.start;
 			end = chr_chunk.end;
 			error = chr_chunk.error;

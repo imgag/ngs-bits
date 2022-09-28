@@ -20,9 +20,9 @@
 #include "Histogram.h"
 #include "FilterCascade.h"
 #include "ToolBase.h"
-#include "WorkerAverageCoverage.h"
 #include "WorkerLowCoverageBed.h"
 #include "WorkerLowCoverageChr.h"
+#include "WorkerAverageCoverage.h"
 
 
 class RegionDepth
@@ -2259,6 +2259,69 @@ AncestryEstimates Statistics::ancestry(GenomeBuild build, QString filename, int 
 	return output;
 }
 
+void Statistics::countCoverageWithoutBaseQuality(
+		QVector<int>& roi_cov,
+		int ol_start,
+		int ol_end)
+{
+	for (int p=ol_start; p<=ol_end; ++p)
+	{
+		++roi_cov[p];
+	}
+}
+
+void Statistics::countCoverageWithBaseQuality(
+		int min_baseq,
+		QVector<int>& roi_cov,
+		int start,
+		int ol_start,
+		int ol_end,
+		QBitArray& baseQualities,
+		const BamAlignment& al)
+{
+	int quality_pos = std::max(start, al.start()) - al.start();
+	al.qualities(baseQualities, min_baseq, al.end() - al.start() + 1);
+	for (int p=ol_start; p<=ol_end; ++p)
+	{
+		if(baseQualities.testBit(quality_pos))
+		{
+			++roi_cov[p];
+		}
+		++quality_pos;
+	}
+}
+
+void Statistics::countCoverageWGSWithoutBaseQuality(
+		int start,
+		int end,
+		QVector<unsigned char>& cov)
+{
+	for (int p=start; p<end; ++p)
+	{
+		if (cov[p]<254) ++cov[p];
+	}
+}
+
+void Statistics::countCoverageWGSWithBaseQuality(
+		int min_baseq,
+		QVector<unsigned char>& cov,
+		int start,
+		int end,
+		QBitArray& baseQualities,
+		const BamAlignment& al)
+{
+	al.qualities(baseQualities, min_baseq, end - start);
+	int quality_pos = 0;
+	for (int p=start; p<end; ++p)
+	{
+		if(baseQualities.testBit(quality_pos))
+		{
+			if (cov[p]<254) ++cov[p];
+		}
+		++quality_pos;
+	}
+}
+
 BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file)
 {
 	//create analysis chunks (200 lines)
@@ -2324,7 +2387,7 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 
 	//wait until finished
 	thread_pool.waitForDone();
-	BedFile output;	
+	BedFile output;
 	//check for errors and merge results
 	foreach(const WorkerLowCoverageChr::ChrChunk& chr_chunk, chr_chunks)
 	{
@@ -2728,50 +2791,6 @@ QCCollection Statistics::hrdScore(const CnvList &cnvs, GenomeBuild build)
 	addQcValue(out, "QC:2000063",  "telomer allelic imbalance", tai);
 	addQcValue(out, "QC:2000064", "long state transition", lst);
 	return out;
-}
-
-void Statistics::countCoverageWithBaseQuality(int min_baseq, QVector<int>& roi_cov, int start, int ol_start, int ol_end, QBitArray& baseQualities, const BamAlignment& al)
-{
-	int quality_pos = std::max(start, al.start()) - al.start();
-	al.qualities(baseQualities, min_baseq, al.end() - al.start() + 1);
-	for (int p=ol_start; p<=ol_end; ++p)
-	{
-		if(baseQualities.testBit(quality_pos))
-		{
-			++roi_cov[p];
-		}
-		++quality_pos;
-	}
-}
-
-void Statistics::countCoverageWithoutBaseQuality(QVector<int>& roi_cov, int ol_start, int ol_end)
-{
-	for (int p=ol_start; p<=ol_end; ++p)
-	{
-		++roi_cov[p];
-	}
-}
-
-void Statistics::countCoverageWGSWithBaseQuality(int min_baseq, QVector<unsigned char>& cov, int start, int end, QBitArray& baseQualities, const BamAlignment& al)
-{
-	al.qualities(baseQualities, min_baseq, end - start);
-	int quality_pos = 0;
-	for (int p=start; p<end; ++p)
-	{
-		if(baseQualities.testBit(quality_pos))
-		{
-			if (cov[p]<254) ++cov[p];
-		}
-		++quality_pos;
-	}
-}
-
-void Statistics::countCoverageWGSWithoutBaseQuality(int start, int end, QVector<unsigned char>& cov)
-{
-	for (int p=start; p<end; ++p)
-	{
-		if (cov[p]<254) ++cov[p];
-	}
 }
 
 

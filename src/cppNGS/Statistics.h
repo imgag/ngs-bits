@@ -32,6 +32,9 @@ struct CPPNGSSHARED_EXPORT AncestryEstimates
 ///NGS statistics and some BAM file operations.
 class CPPNGSSHARED_EXPORT Statistics
 {
+	friend class WorkerLowCoverageBed;
+	friend class WorkerLowCoverageChr;
+
 public:
 	///Calculates QC metrics on a variant list (only for VCF).
 	static QCCollection variantList(VcfFile variants, bool filter);
@@ -65,7 +68,7 @@ public:
 
 	///Calculates the part of the target region that has a lower coverage than the given cutoff. The input BED file must be merged and sorted!
 	static BedFile lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, int threads=1, const QString& ref_file = QString());
-    ///Calculates the part of the genome that has a lower coverage than the given cutoff.
+	///Calculates the part of the genome that has a lower coverage than the given cutoff.
 	static BedFile lowCoverage(const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, int threads=1, const QString& ref_file = QString());
 	///Calculates and annotates the average coverage of the regions in the bed file.
 	static void avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq=1, int threads=1, int decimals=2, const QString& ref_file = QString());
@@ -83,15 +86,16 @@ public:
 
 	static QCCollection hrdScore(const CnvList& cnvs, GenomeBuild build);
 
-	static void countCoverageWithBaseQuality(int min_baseq, QVector<int>& roi_cov, int start, int ol_start, int ol_end, QBitArray& baseQualities, const BamAlignment& al);
-	static void countCoverageWithoutBaseQuality(QVector<int>& roi_cov, int ol_start, int ol_end);
-	static void countCoverageWGSWithBaseQuality(int min_baseq, QVector<unsigned char>& cov, int start, int end, QBitArray& baseQualities, const BamAlignment& al);
-	static void countCoverageWGSWithoutBaseQuality(int start, int end, QVector<unsigned char>& cov);
 protected:
 	///No default constructor
 	Statistics();
 
 private:
+	static void countCoverageWithoutBaseQuality(QVector<int>& roi_cov, int ol_start, int ol_end);
+	static void countCoverageWithBaseQuality(int min_baseq, QVector<int>& roi_cov, int start, int ol_start, int ol_end, QBitArray& baseQualities, const BamAlignment& al);
+	static void countCoverageWGSWithoutBaseQuality(int start, int end, QVector<unsigned char>& cov);
+	static void countCoverageWGSWithBaseQuality(int min_baseq, QVector<unsigned char>& cov, int start, int end, QBitArray& baseQualities, const BamAlignment& al);
+
 	template <typename T>
 	static void addQcValue(QCCollection& output, QByteArray accession, QByteArray name, const T& value);
 	static void addQcPlot(QCCollection& output, QByteArray accession, QByteArray name, QString filename);
