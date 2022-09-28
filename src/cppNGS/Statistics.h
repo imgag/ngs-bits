@@ -9,6 +9,9 @@
 #include "NGSHelper.h"
 #include "GenomeBuild.h"
 #include <QMap>
+#include "WorkerLowCoverageBed.h"
+#include "WorkerLowCoverageChr.h"
+#include "WorkerAverageCoverage.h"
 
 ///Helper class for gender estimates
 struct CPPNGSSHARED_EXPORT GenderEstimate
@@ -32,6 +35,9 @@ struct CPPNGSSHARED_EXPORT AncestryEstimates
 ///NGS statistics and some BAM file operations.
 class CPPNGSSHARED_EXPORT Statistics
 {
+	friend class WorkerLowCoverageBed;
+	friend class WorkerLowCoverageChr;
+
 public:
 	///Calculates QC metrics on a variant list (only for VCF).
 	static QCCollection variantList(VcfFile variants, bool filter);
@@ -64,9 +70,9 @@ public:
 	static AncestryEstimates ancestry(GenomeBuild build, QString filename, int min_snp=1000, double abs_score_cutoff = 0.32, double max_mad_dist = 4.2);
 
 	///Calculates the part of the target region that has a lower coverage than the given cutoff. The input BED file must be merged and sorted!
-	static BedFile lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, const QString& ref_file = QString());
-    ///Calculates the part of the genome that has a lower coverage than the given cutoff.
-	static BedFile lowCoverage(const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, const QString& ref_file = QString());
+	static BedFile lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, int threads=1, const QString& ref_file = QString());
+	///Calculates the part of the genome that has a lower coverage than the given cutoff.
+	static BedFile lowCoverage(const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, int threads=1, const QString& ref_file = QString());
 	///Calculates and annotates the average coverage of the regions in the bed file.
 	static void avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq=1, int threads=1, int decimals=2, const QString& ref_file = QString());
 	///Calculates the part of the target region that has a lower coverage than the given cutoff. The input BED file must be merged and sorted!

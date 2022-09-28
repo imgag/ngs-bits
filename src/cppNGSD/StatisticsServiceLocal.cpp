@@ -9,7 +9,8 @@ StatisticsServiceLocal::StatisticsServiceLocal()
 BedFile StatisticsServiceLocal::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff) const
 {	
 	QString ref_file = Settings::string("reference_genome");
-	return Statistics::lowCoverage(bed_file, bam_file, cutoff, 1, 0, ref_file);
+	int threads = Settings::integer("threads");
+	return Statistics::lowCoverage(bed_file, bam_file, cutoff, 1, 0, threads, ref_file);
 }
 
 void StatisticsServiceLocal::avgCoverage(BedFile& bed_file, const QString& bam_file, int threads) const

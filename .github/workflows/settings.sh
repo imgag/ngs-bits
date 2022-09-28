@@ -15,6 +15,7 @@ echo "projects_folder = \"projects_folder\"" >> ./bin/settings.ini
 echo "data_folder = \"\"" >> ./bin/settings.ini
 echo "liftover_hg19_hg38 = ../src/cppNGS-TEST/data_in/hg19ToHg38.over.chain.gz" >> ./bin/settings.ini
 echo "liftover_hg38_hg19 = ../src/cppNGS-TEST/data_in/hg38ToHg19.over.chain.gz" >> ./bin/settings.ini
+echo "threads = 1" >> ./bin/settings.ini
 
 touch ./bin/GSvarServer.ini
 echo "url_lifetime = 5" >> ./bin/GSvarServer.ini

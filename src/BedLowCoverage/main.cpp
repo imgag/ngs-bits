@@ -28,7 +28,9 @@ public:
 		addInt("min_mapq", "Minimum mapping quality to consider a read.", true, 1);
 		addInt("min_baseq", "Minimum base quality to consider a base.", true, 0);
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
+		addInt("threads", "Number of threads used.", true, 1);
 
+		changeLog(2022,  9, 19, "Added 'threads' parameter.");
 		changeLog(2020,  11, 27, "Added CRAM support.");
 		changeLog(2020,  5,  26, "Added parameter 'min_baseq'.");
 		changeLog(2016,  6,  9, "The BED line name of the input BED file is now passed on to the output BED file.");
@@ -51,7 +53,7 @@ public:
 		BedFile output;
         if (wgs) //WGS
         {
-			output = Statistics::lowCoverage(bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"), getInfile("ref"));
+			output = Statistics::lowCoverage(bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"), getInt("threads"), getInfile("ref"));
 
 			output.appendHeader("#BAM: " + QFileInfo(bam).baseName().toUtf8());
         }
@@ -60,7 +62,7 @@ public:
             BedFile file;
             file.load(in);
 			file.merge(true, true);
-			output = Statistics::lowCoverage(file, bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"), getInfile("ref"));
+			output = Statistics::lowCoverage(file, bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"), getInt("threads"), getInfile("ref"));
 
 			output.appendHeader("#BAM: " + QFileInfo(bam).fileName().toUtf8());
 			output.appendHeader("#ROI: " + QFileInfo(in).fileName().toUtf8());
