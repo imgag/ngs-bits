@@ -795,7 +795,8 @@ HttpResponse ServerController::calculateLowCoverage(const HttpRequest& request)
 		cutoff = request.getFormUrlEncoded()["cutoff"].toInt();
 	}
 
-	BedFile low_cov = Statistics::lowCoverage(roi, bam_file_name, cutoff);
+	int threads = Settings::integer("threads");
+	BedFile low_cov = Statistics::lowCoverage(roi, bam_file_name, cutoff, threads);
 
 	if(!low_cov.toText().isEmpty())
 	{

@@ -9,6 +9,9 @@
 #include "NGSHelper.h"
 #include "GenomeBuild.h"
 #include <QMap>
+#include "WorkerLowCoverageBed.h"
+#include "WorkerLowCoverageChr.h"
+#include "WorkerAverageCoverage.h"
 
 ///Helper class for gender estimates
 struct CPPNGSSHARED_EXPORT GenderEstimate

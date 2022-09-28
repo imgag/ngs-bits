@@ -20,10 +20,6 @@
 #include "Histogram.h"
 #include "FilterCascade.h"
 #include "ToolBase.h"
-#include "WorkerLowCoverageBed.h"
-#include "WorkerLowCoverageChr.h"
-#include "WorkerAverageCoverage.h"
-
 
 class RegionDepth
 {
