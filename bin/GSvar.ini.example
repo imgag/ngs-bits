@@ -15,9 +15,9 @@ clinvar_api_key=
 
 #Analysis steps for queuing
 analysis_steps_single_sample=ma - mapping, vc - SNV/InDel calling + annotation, cn - CNV calling + annotation, sv - SV calling + annotation, db - database import
-analysis_steps_multi_sample=vc - SNV/InDel calling + annotation, cn - CNV calling + annotation, sv - SV calling + annotation
+analysis_steps_multi_sample=vc - SNV/InDel calling + annotation, cn - CNV calling + annotation, sv - SV calling + annotation, db - database import
 analysis_steps_trio=vc - SNV/InDel calling + annotation, cn - CNV calling + annotation, sv - SV calling + annotation, db - database import
-analysis_steps_somatic=vc - variant calling, vi - virus detection, cn - copy number calling, an - annotation, ci - CGI annotation, msi - microsatellite instabilty, an_rna - RNA annotation, db - database import
+analysis_steps_somatic=vc - variant calling, vi - virus detection, cn - copy number calling, an - annotation, msi - microsatellite instabilty, an_rna - RNA annotation, db - database import
 analysis_steps_single_sample_rna = ma - mapping, rc - read counting, an -annotation, plt - plot, fu - fusion, db - database import
 analysis_steps_cfdna=ma - mapping, vc - SNV/InDel calling + annotation, db - database import
 

@@ -113,13 +113,13 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	{
 		QMenu* rna_menu = new QMenu();
 
-		QAction* expr_action = rna_menu->addAction("open RNA expression data widget", this, SLOT(openGeneExpressionWidget()));
+		QAction* expr_action = rna_menu->addAction("open RNA expression data dialog", this, SLOT(openGeneExpressionWidget()));
 		expr_action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::EXPRESSION).exists);
-		QAction* exon_expr_action = rna_menu->addAction("open RNA exon expression data widget", this, SLOT(openExonExpressionWidget()));
+		QAction* exon_expr_action = rna_menu->addAction("open RNA exon expression data dialog", this, SLOT(openExonExpressionWidget()));
 		exon_expr_action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::EXPRESSION_EXON).exists);
-		QAction* splicing_action = rna_menu->addAction("open RNA splicing data widget", this, SLOT(openSplicingWidget()));
+		QAction* splicing_action = rna_menu->addAction("open RNA splicing data dialog", this, SLOT(openSplicingWidget()));
 		splicing_action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SPLICING_ANN).exists);
-		QAction* fusion_action = rna_menu->addAction("open RNA fusion widget", this, SLOT(openFusionWidget()));
+		QAction* fusion_action = rna_menu->addAction("open RNA fusion dialog", this, SLOT(openFusionWidget()));
 		fusion_action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::FUSIONS).exists);
 
 		ui_->rna_btn->setMenu(rna_menu);
