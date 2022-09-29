@@ -2272,14 +2272,14 @@ void Statistics::countCoverageWithBaseQuality(
 		int start,
 		int ol_start,
 		int ol_end,
-		QBitArray& baseQualities,
+		QBitArray& base_qualities,
 		const BamAlignment& al)
 {
 	int quality_pos = std::max(start, al.start()) - al.start();
-	al.qualities(baseQualities, min_baseq, al.end() - al.start() + 1);
+	al.qualities(base_qualities, min_baseq, al.end() - al.start() + 1);
 	for (int p=ol_start; p<=ol_end; ++p)
 	{
-		if(baseQualities.testBit(quality_pos))
+		if(base_qualities.testBit(quality_pos))
 		{
 			++roi_cov[p];
 		}
@@ -2303,14 +2303,14 @@ void Statistics::countCoverageWGSWithBaseQuality(
 		QVector<unsigned char>& cov,
 		int start,
 		int end,
-		QBitArray& baseQualities,
+		QBitArray& base_qualities,
 		const BamAlignment& al)
 {
-	al.qualities(baseQualities, min_baseq, end - start);
+	al.qualities(base_qualities, min_baseq, end - start);
 	int quality_pos = 0;
 	for (int p=start; p<end; ++p)
 	{
-		if(baseQualities.testBit(quality_pos))
+		if(base_qualities.testBit(quality_pos))
 		{
 			if (cov[p]<254) ++cov[p];
 		}

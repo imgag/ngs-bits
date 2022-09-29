@@ -33,7 +33,7 @@ void WorkerLowCoverageChr::run()
 
 		//iterate through all alignments
 		BamAlignment al;
-		QBitArray baseQualities;
+		QBitArray base_qualities;
 
 		while (reader.getNextAlignment(al))
 		{
@@ -41,7 +41,7 @@ void WorkerLowCoverageChr::run()
 			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq_) continue;
 
-			min_baseq_>0 ? Statistics::countCoverageWGSWithBaseQuality(min_baseq_, cov, al.start() - 1, al.end(), baseQualities, al) : Statistics::countCoverageWGSWithoutBaseQuality(al.start()-1, al.end(), cov);
+			min_baseq_>0 ? Statistics::countCoverageWGSWithBaseQuality(min_baseq_, cov, al.start() - 1, al.end(), base_qualities, al) : Statistics::countCoverageWGSWithoutBaseQuality(al.start()-1, al.end(), cov);
 
 		}
 
