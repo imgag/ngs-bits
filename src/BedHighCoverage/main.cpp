@@ -29,6 +29,7 @@ public:
 		addInt("min_baseq", "Minimum base quality to consider a base.", true, 0);
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 
+		changeLog(2022,  9, 29, "Added 'threads' parameter.");
 		changeLog(2020,  11, 27, "Added CRAM support.");
 		changeLog(2020,  5,  26, "Added parameter 'min_baseq'.");
 		changeLog(2020,  5,  14, "First version.");
@@ -51,14 +52,14 @@ public:
 		BedFile output;
         if (wgs) //WGS
         {
-			output = Statistics::highCoverage(bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"), getInfile("ref"));
+			output = Statistics::highCoverage(bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"), getInt("threads"), getInfile("ref"));
         }
 		else //ROI
         {
             BedFile file;
             file.load(in);
 			file.merge(true, true);
-			output = Statistics::highCoverage(file, bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"), getInfile("ref"));
+			output = Statistics::highCoverage(file, bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"), getInt("threads"), getInfile("ref"));
         }
         output.store(getOutfile("out"));
 	}

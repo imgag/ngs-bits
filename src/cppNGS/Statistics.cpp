@@ -2430,7 +2430,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	}
 }
 
-BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, const QString& ref_file)
+BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file)
 {
 	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
 
@@ -2495,7 +2495,7 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 	return output;
 }
 
-BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq, const QString& ref_file)
+BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file)
 {
 	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
 
