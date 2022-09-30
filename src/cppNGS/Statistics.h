@@ -95,9 +95,9 @@ protected:
 
 private:
 	static void countCoverageWithoutBaseQuality(QVector<int>& roi_cov, int ol_start, int ol_end);
-	static void countCoverageWithBaseQuality(int min_baseq, QVector<int>& roi_cov, int start, int ol_start, int ol_end, QBitArray& baseQualities, const BamAlignment& al);
+	static void countCoverageWithBaseQuality(int min_baseq, QVector<int>& roi_cov, int start, int ol_start, int ol_end, QBitArray& base_qualities, const BamAlignment& al);
 	static void countCoverageWGSWithoutBaseQuality(int start, int end, QVector<unsigned char>& cov);
-	static void countCoverageWGSWithBaseQuality(int min_baseq, QVector<unsigned char>& cov, int start, int end, QBitArray& baseQualities, const BamAlignment& al);
+	static void countCoverageWGSWithBaseQuality(int min_baseq, QVector<unsigned char>& cov, int start, int end, QBitArray& base_qualities, const BamAlignment& al);
 
 	template <typename T>
 	static void addQcValue(QCCollection& output, QByteArray accession, QByteArray name, const T& value);

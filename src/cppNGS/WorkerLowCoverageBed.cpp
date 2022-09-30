@@ -31,7 +31,7 @@ void WorkerLowCoverageBed::run()
 
 			//iterate through all alignments
 			BamAlignment al;
-			QBitArray baseQualities;
+			QBitArray base_qualities;
 
 			while (reader.getNextAlignment(al))
 			{
@@ -41,7 +41,7 @@ void WorkerLowCoverageBed::run()
 
 				const int ol_start = std::max(start, al.start()) - start;
 				const int ol_end = std::min(bed_line.end(), al.end()) - start;
-				min_baseq_>0 ? Statistics::countCoverageWithBaseQuality(min_baseq_, roi_cov, start, ol_start, ol_end, baseQualities, al) : Statistics::countCoverageWithoutBaseQuality(roi_cov, ol_start, ol_end);
+				min_baseq_>0 ? Statistics::countCoverageWithBaseQuality(min_baseq_, roi_cov, start, ol_start, ol_end, base_qualities, al) : Statistics::countCoverageWithoutBaseQuality(roi_cov, ol_start, ol_end);
 			}
 
 			//create low-coverage regions file

@@ -185,4 +185,4 @@ Changes of master since last release:
 	* Updated transcript biotypes to Ensembl 107.
 	* Added 'archived' flag to project table.
 
-For older changes see (releases)[https://github.com/imgag/ngs-bits/releases].
+For older changes see [releases](https://github.com/imgag/ngs-bits/releases).
