@@ -1,11 +1,11 @@
-#ifndef WORKERLOWCOVERAGEBED_H
-#define WORKERLOWCOVERAGEBED_H
+#ifndef WORKERLOWORHIGHCOVERAGEBED_H
+#define WORKERLOWORHIGHCOVERAGEBED_H
 
 #include <QRunnable>
 #include "BedFile.h"
 #include "BamReader.h"
 
-class WorkerLowCoverageBed : public QRunnable
+class WorkerLowOrHighCoverageBed : public QRunnable
 {
 public:
 	struct BedChunk
@@ -29,7 +29,7 @@ public:
 		}
 	};
 
-	WorkerLowCoverageBed(BedChunk& bed_chunk, QString bam_file, int cutoff, int min_mapq, int min_baseq, QString ref_file);
+	WorkerLowOrHighCoverageBed(BedChunk& bed_chunk, QString bam_file, int cutoff, int min_mapq, int min_baseq, QString ref_file, bool is_high);
 	virtual void run() override;
 
 private:
@@ -39,6 +39,7 @@ private:
 	int min_mapq_;
 	int min_baseq_;
 	QString ref_file_;
+	bool is_high_;
 };
 
-#endif // WORKERLOWCOVERAGEBED_H
+#endif // WORKERLOWORHIGHCOVERAGEBED_H

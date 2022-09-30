@@ -1,11 +1,11 @@
-#ifndef WORKERLOWCOVERAGECHR_H
-#define WORKERLOWCOVERAGECHR_H
+#ifndef WORKERLOWORHIGHCOVERAGECHR_H
+#define WORKERLOWORHIGHCOVERAGECHR_H
 
 #include <QRunnable>
 #include "BedFile.h"
 #include "BamReader.h"
 
-class WorkerLowCoverageChr : public QRunnable
+class WorkerLowOrHighCoverageChr : public QRunnable
 {
 public:
 	struct ChrChunk
@@ -26,7 +26,7 @@ public:
 		}
 	};
 
-	WorkerLowCoverageChr(ChrChunk& chr_chunk, QString bam_file, int cutoff, int min_mapq, int min_baseq, QString ref_file);
+	WorkerLowOrHighCoverageChr(ChrChunk& chr_chunk, QString bam_file, int cutoff, int min_mapq, int min_baseq, QString ref_file, bool is_high);
 	virtual void run() override;
 
 private:
@@ -35,8 +35,9 @@ private:
 	int cutoff_;
 	int min_mapq_;
 	int min_baseq_;
-	QString ref_file_;	
+	QString ref_file_;
+	bool is_high_;
 };
 
 
-#endif // WORKERLOWCOVERAGECHR_H
+#endif // WORKERLOWORHIGHCOVERAGECHR_H

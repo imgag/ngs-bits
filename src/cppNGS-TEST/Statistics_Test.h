@@ -643,6 +643,21 @@ TEST_CLASS(Statistics_Test)
 		I_EQUAL(low_cov.baseCount(), 16129);
 	}
 
+	void lowCoverage_roi_mapq20_multiple_threads()
+	{
+		BedFile bed_file;
+		bed_file.load(TESTDATA("data_in/panel.bed"));
+		bed_file.merge();
+		I_EQUAL(bed_file.baseCount(), 271536);
+
+		for (int threads=1; threads<=8; ++threads)
+		{
+			BedFile output = Statistics::lowCoverage(bed_file, TESTDATA("data_in/panel.bam"), 20, 20, 0, threads);
+			I_EQUAL(output.count(), 450);
+			I_EQUAL(output.baseCount(), 16129);
+		}
+	}
+
 	void lowCoverage_roi_closeExons()
 	{
 		BedFile bed_file;
@@ -673,6 +688,19 @@ TEST_CLASS(Statistics_Test)
 		I_EQUAL(low_cov.baseCount(), 3087707426ll);
 	}
 
+	void lowCoverage_wgs_mapq20_multiple_threads()
+	{
+		int max_used_threads = 8;
+		if (Helper::isWindows()) max_used_threads = 2;
+
+		for (int threads=1; threads<=max_used_threads; ++threads)
+		{
+			BedFile low_cov =  Statistics::lowCoverage(TESTDATA("data_in/panel.bam"), 20, 20, 0, threads);
+			I_EQUAL(low_cov.count(), 1836);
+			I_EQUAL(low_cov.baseCount(), 3087707426ll);
+		}
+	}
+
 	void highCoverage_roi_mapq20()
 	{
 		BedFile bed_file;
@@ -685,11 +713,39 @@ TEST_CLASS(Statistics_Test)
 		I_EQUAL(low_cov.baseCount(), 255407);
 	}
 
+	void highCoverage_roi_mapq20_multiple_threads()
+	{
+		BedFile bed_file;
+		bed_file.load(TESTDATA("data_in/panel.bed"));
+		bed_file.merge();
+		I_EQUAL(bed_file.baseCount(), 271536);
+
+		for (int threads=1; threads<=4; ++threads)
+		{
+			BedFile low_cov = Statistics::highCoverage(bed_file, TESTDATA("data_in/panel.bam"), 20, 20, 0, threads);
+			I_EQUAL(low_cov.count(), 1707);
+			I_EQUAL(low_cov.baseCount(), 255407);
+		}
+	}
+
 	void highCoverage_wgs_mapq20()
 	{
 		BedFile high_cov = Statistics::highCoverage(TESTDATA("data_in/panel.bam"), 20, 20);
 		I_EQUAL(high_cov.count(), 1811);
 		I_EQUAL(high_cov.baseCount(), 578975);
+	}
+
+	void highCoverage_wgs_mapq20_multiple_threads()
+	{
+		int max_used_threads = 8;
+		if (Helper::isWindows()) max_used_threads = 2;
+
+		for (int threads=1; threads<=max_used_threads; ++threads)
+		{
+			BedFile high_cov = Statistics::highCoverage(TESTDATA("data_in/panel.bam"), 20, 20, 0, threads);
+			I_EQUAL(high_cov.count(), 1811);
+			I_EQUAL(high_cov.baseCount(), 578975);
+		}
 	}
 
 	void avgCoverage_overlapping_regions()

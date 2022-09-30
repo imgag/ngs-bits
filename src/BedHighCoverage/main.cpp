@@ -28,6 +28,7 @@ public:
 		addInt("min_mapq", "Minimum mapping quality to consider a read.", true, 1);
 		addInt("min_baseq", "Minimum base quality to consider a base.", true, 0);
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
+		addInt("threads", "Number of threads used.", true, 1);
 
 		changeLog(2022,  9, 29, "Added 'threads' parameter.");
 		changeLog(2020,  11, 27, "Added CRAM support.");

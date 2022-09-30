@@ -9,8 +9,8 @@
 #include "NGSHelper.h"
 #include "GenomeBuild.h"
 #include <QMap>
-#include "WorkerLowCoverageBed.h"
-#include "WorkerLowCoverageChr.h"
+#include "WorkerLowOrHighCoverageBed.h"
+#include "WorkerLowOrHighCoverageChr.h"
 #include "WorkerAverageCoverage.h"
 
 ///Helper class for gender estimates
@@ -35,8 +35,8 @@ struct CPPNGSSHARED_EXPORT AncestryEstimates
 ///NGS statistics and some BAM file operations.
 class CPPNGSSHARED_EXPORT Statistics
 {
-	friend class WorkerLowCoverageBed;
-	friend class WorkerLowCoverageChr;
+	friend class WorkerLowOrHighCoverageBed;
+	friend class WorkerLowOrHighCoverageChr;
 
 public:
 	///Calculates QC metrics on a variant list (only for VCF).
@@ -98,6 +98,10 @@ private:
 	static void countCoverageWithBaseQuality(int min_baseq, QVector<int>& roi_cov, int start, int ol_start, int ol_end, QBitArray& base_qualities, const BamAlignment& al);
 	static void countCoverageWGSWithoutBaseQuality(int start, int end, QVector<unsigned char>& cov);
 	static void countCoverageWGSWithBaseQuality(int min_baseq, QVector<unsigned char>& cov, int start, int end, QBitArray& base_qualities, const BamAlignment& al);
+
+	static BedFile lowOrHighCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, int threads=1, const QString& ref_file = QString(), const bool is_high=false);
+	static BedFile lowOrHighCoverage(const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, int threads=1, const QString& ref_file = QString(), const bool is_high=false);
+
 
 	template <typename T>
 	static void addQcValue(QCCollection& output, QByteArray accession, QByteArray name, const T& value);
