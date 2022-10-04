@@ -2318,15 +2318,15 @@ void Statistics::countCoverageWGSWithBaseQuality(
 	}
 }
 
-BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file)
+BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file, const bool is_high)
 {
 	//create analysis chunks (200 lines)
-	QList<WorkerLowCoverageBed::BedChunk> bed_chunks;
+	QList<WorkerLowOrHighCoverageBed::BedChunk> bed_chunks;
 	for (int start=0; start<bed_file.count(); start += 200)
 	{
 		int end = start+199;
 		if (end>=bed_file.count()) end = bed_file.count() -1;
-		bed_chunks << WorkerLowCoverageBed::BedChunk{bed_file, start, end, QString(), BedFile{}};
+		bed_chunks << WorkerLowOrHighCoverageBed::BedChunk{bed_file, start, end, QString(), BedFile{}};
 	}
 
 	//create thread pool
@@ -2336,7 +2336,7 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 	//start analysis chunks (of 200 lines)
 	for (int i=0; i<bed_chunks.count(); ++i)
 	{
-		WorkerLowCoverageBed* worker = new WorkerLowCoverageBed(bed_chunks[i], bam_file, cutoff, min_mapq, min_baseq, ref_file);
+		WorkerLowOrHighCoverageBed* worker = new WorkerLowOrHighCoverageBed(bed_chunks[i], bam_file, cutoff, min_mapq, min_baseq, ref_file, is_high);
 		thread_pool.start(worker);
 	}
 
@@ -2345,7 +2345,7 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 	BedFile output;
 
 	//check for errors and merge results
-	foreach(const WorkerLowCoverageBed::BedChunk& bed_chunk, bed_chunks)
+	foreach(const WorkerLowOrHighCoverageBed::BedChunk& bed_chunk, bed_chunks)
 	{
 		if (!bed_chunk.error.isEmpty()) THROW(Exception, bed_chunk.error);
 
@@ -2359,15 +2359,15 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 	return output;
 }
 
-BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file)
+BedFile Statistics::lowOrHighCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file, const bool is_high)
 {
 	//create analysis chunks (one chunk per chromosome)
-	QList<WorkerLowCoverageChr::ChrChunk> chr_chunks;
+	QList<WorkerLowOrHighCoverageChr::ChrChunk> chr_chunks;
 	BamReader reader(bam_file, ref_file);
 	foreach(const Chromosome& chr, reader.chromosomes())
 	{
 		if (!chr.isNonSpecial()) continue;
-		chr_chunks << WorkerLowCoverageChr::ChrChunk{chr, 0, reader.chromosomeSize(chr), QString(), BedFile{}};
+		chr_chunks << WorkerLowOrHighCoverageChr::ChrChunk{chr, 0, reader.chromosomeSize(chr), QString(), BedFile{}};
 	}
 
 	//create thread pool
@@ -2377,7 +2377,7 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 	//start analysis: one worker per chromosome
 	for (int i=0; i<chr_chunks.count(); ++i)
 	{
-		WorkerLowCoverageChr* worker = new WorkerLowCoverageChr(chr_chunks[i], bam_file, cutoff, min_mapq, min_baseq, ref_file);
+		WorkerLowOrHighCoverageChr* worker = new WorkerLowOrHighCoverageChr(chr_chunks[i], bam_file, cutoff, min_mapq, min_baseq, ref_file, is_high);
 		thread_pool.start(worker);
 	}
 
@@ -2385,7 +2385,7 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 	thread_pool.waitForDone();
 	BedFile output;
 	//check for errors and merge results
-	foreach(const WorkerLowCoverageChr::ChrChunk& chr_chunk, chr_chunks)
+	foreach(const WorkerLowOrHighCoverageChr::ChrChunk& chr_chunk, chr_chunks)
 	{
 		if (!chr_chunk.error.isEmpty()) THROW(Exception, chr_chunk.error);
 		for (int l=0; l<chr_chunk.output.count(); ++l)
@@ -2396,6 +2396,16 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 
 	output.merge();
 	return output;
+}
+
+BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file)
+{
+	return lowOrHighCoverage(bed_file, bam_file, cutoff, min_mapq, min_baseq, threads, ref_file, false);
+}
+
+BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file)
+{
+	return lowOrHighCoverage(bam_file, cutoff, min_mapq, min_baseq, threads, ref_file, false);
 }
 
 void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, int threads, int decimals, const QString& ref_file)
@@ -2430,133 +2440,14 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	}
 }
 
-BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, const QString& ref_file)
-{
-	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
-
-	BedFile output;
-
-	//open BAM file
-	BamReader reader(bam_file, ref_file);
-
-	//iterate trough all regions (i.e. exons in most cases)
-	for (int i=0; i<bed_file.count(); ++i)
-	{
-		const BedLine& bed_line = bed_file[i];
-		const int start = bed_line.start();
-
-		//init coverage statistics
-		QVector<int> roi_cov(bed_line.length(), 0);
-
-		//jump to region
-		reader.setRegion(bed_line.chr(), start, bed_line.end());
-
-		//iterate through all alignments
-		BamAlignment al;
-		QBitArray baseQualities;
-
-		while (reader.getNextAlignment(al))
-		{
-			if (al.isDuplicate()) continue;
-			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
-
-			const int ol_start = std::max(start, al.start()) - start;
-			const int ol_end = std::min(bed_line.end(), al.end()) - start;
-			min_baseq>0 ? countCoverageWithBaseQuality(min_baseq, roi_cov, start, ol_start, ol_end, baseQualities, al) : countCoverageWithoutBaseQuality(roi_cov, ol_start, ol_end);
-
-		}
-
-		//create high-coverage regions file
-		bool reg_open = false;
-		int reg_start = -1;
-		for (int p=0; p<roi_cov.count(); ++p)
-		{
-			bool high_cov = roi_cov[p]>=cutoff;
-			if (reg_open && !high_cov)
-			{
-				output.append(BedLine(bed_line.chr(), reg_start+start, p+start-1, bed_line.annotations()));
-				reg_open = false;
-				reg_start = -1;
-			}
-			if (!reg_open && high_cov)
-			{
-				reg_open = true;
-				reg_start = p;
-			}
-		}
-		if (reg_open)
-		{
-			output.append(BedLine(bed_line.chr(), reg_start+start, bed_line.length()+start-1, bed_line.annotations()));
-		}
-	}
-
-	output.merge(true, true, true);
-	return output;
+BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file)
+{	
+	return lowOrHighCoverage(bed_file, bam_file, cutoff, min_mapq, min_baseq, threads, ref_file, true);
 }
 
-BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq, const QString& ref_file)
+BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq, int threads, const QString& ref_file)
 {
-	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
-
-	BedFile output;
-
-	//open BAM file
-	BamReader reader(bam_file, ref_file);
-
-	QVector<unsigned char> cov;
-
-	//iteratore through chromosomes
-	foreach(const Chromosome& chr, reader.chromosomes())
-	{
-		if (!chr.isNonSpecial()) continue;
-
-		int chr_size = reader.chromosomeSize(chr);
-		cov.fill(0, chr_size);
-
-		//jump to chromosome
-		reader.setRegion(chr, 0, chr_size);
-
-		//iterate through all alignments
-		BamAlignment al;
-		QBitArray baseQualities;
-
-		while (reader.getNextAlignment(al))
-		{
-			if (al.isDuplicate()) continue;
-			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
-
-			min_baseq>0 ? countCoverageWGSWithBaseQuality(min_baseq, cov, al.start() - 1, al.end(), baseQualities, al) : countCoverageWGSWithoutBaseQuality(al.start()-1, al.end(), cov);
-
-		}
-
-		//create high-coverage regions file
-		bool reg_open = false;
-		int reg_start = -1;
-		for (int p=0; p<chr_size; ++p)
-		{
-			bool high_cov = cov[p]>=cutoff;
-			if (reg_open && !high_cov)
-			{
-				output.append(BedLine(chr, reg_start+1, p));
-				reg_open = false;
-				reg_start = -1;
-			}
-			if (!reg_open && high_cov)
-			{
-				reg_open = true;
-				reg_start = p;
-			}
-		}
-		if (reg_open)
-		{
-			output.append(BedLine(chr, reg_start+1, chr_size));
-		}
-	}
-
-	output.merge();
-	return output;
+	return lowOrHighCoverage(bam_file, cutoff, min_mapq, min_baseq, threads, ref_file, true);
 }
 
 GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double min_male, const QString& ref_file)

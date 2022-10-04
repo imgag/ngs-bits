@@ -1,8 +1,8 @@
-#include "WorkerLowCoverageBed.h"
+#include "WorkerLowOrHighCoverageBed.h"
 #include "BamReader.h"
 #include "Statistics.h"
 
-WorkerLowCoverageBed::WorkerLowCoverageBed(BedChunk& bed_chunk, QString bam_file, int cutoff, int min_mapq, int min_baseq, QString ref_file)
+WorkerLowOrHighCoverageBed::WorkerLowOrHighCoverageBed(BedChunk& bed_chunk, QString bam_file, int cutoff, int min_mapq, int min_baseq, QString ref_file, bool is_high)
 	: QRunnable()
 	, bed_chunk_(bed_chunk)
 	, bam_file_(bam_file)
@@ -10,13 +10,16 @@ WorkerLowCoverageBed::WorkerLowCoverageBed(BedChunk& bed_chunk, QString bam_file
 	, min_mapq_(min_mapq)
 	, min_baseq_(min_baseq)
 	, ref_file_(ref_file)
+	, is_high_(is_high)
 {
 }
 
-void WorkerLowCoverageBed::run()
+void WorkerLowOrHighCoverageBed::run()
 {
 	try
 	{				
+		if (cutoff_>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
+
 		BamReader reader(bam_file_, ref_file_);
 		for (int i=bed_chunk_.start; i<=bed_chunk_.end; ++i)
 		{
@@ -49,14 +52,25 @@ void WorkerLowCoverageBed::run()
 			int reg_start = -1;
 			for (int p=0; p<roi_cov.count(); ++p)
 			{
-				bool low_cov = roi_cov[p]<cutoff_;
-				if (reg_open && !low_cov)
+				bool filter;
+				if (is_high_)
+				{
+					// high coverage
+					filter = roi_cov[p]>=cutoff_;
+				}
+				else
+				{
+					// low coverage
+					filter = roi_cov[p]<cutoff_;
+				}
+
+				if (reg_open && !filter)
 				{
 					bed_chunk_.output.append(BedLine(bed_line.chr(), reg_start+start, p+start-1, bed_line.annotations()));
 					reg_open = false;
 					reg_start = -1;
 				}
-				if (!reg_open && low_cov)
+				if (!reg_open && filter)
 				{
 					reg_open = true;
 					reg_start = p;

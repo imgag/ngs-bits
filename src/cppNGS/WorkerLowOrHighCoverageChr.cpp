@@ -1,7 +1,7 @@
-#include "WorkerLowCoverageChr.h"
+#include "WorkerLowOrHighCoverageChr.h"
 #include "Statistics.h"
 
-WorkerLowCoverageChr::WorkerLowCoverageChr(ChrChunk& chr_chunk, QString bam_file, int cutoff, int min_mapq, int min_baseq, QString ref_file)
+WorkerLowOrHighCoverageChr::WorkerLowOrHighCoverageChr(ChrChunk& chr_chunk, QString bam_file, int cutoff, int min_mapq, int min_baseq, QString ref_file, bool is_high)
 	: QRunnable()
 	, chr_chunk_(chr_chunk)
 	, bam_file_(bam_file)
@@ -9,11 +9,12 @@ WorkerLowCoverageChr::WorkerLowCoverageChr(ChrChunk& chr_chunk, QString bam_file
 	, min_mapq_(min_mapq)
 	, min_baseq_(min_baseq)
 	, ref_file_(ref_file)
+	, is_high_(is_high)
 {
 }
 
 
-void WorkerLowCoverageChr::run()
+void WorkerLowOrHighCoverageChr::run()
 {
 	try
 	{
@@ -50,14 +51,25 @@ void WorkerLowCoverageChr::run()
 		int reg_start = -1;
 		for (int p=0; p<chr_size; ++p)
 		{
-			bool low_cov = cov[p]<cutoff_;
-			if (reg_open && !low_cov)
+			bool filter;
+			if (is_high_)
+			{
+				// high coverage
+				filter = cov[p]>=cutoff_;
+			}
+			else
+			{
+				// low coverage
+				filter = cov[p]<cutoff_;
+			}
+
+			if (reg_open && !filter)
 			{
 				chr_chunk_.output.append(BedLine(chr_chunk_.chr, reg_start+1, p));
 				reg_open = false;
 				reg_start = -1;
 			}
-			if (!reg_open && low_cov)
+			if (!reg_open && filter)
 			{
 				reg_open = true;
 				reg_start = p;
