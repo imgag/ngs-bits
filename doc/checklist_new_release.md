@@ -33,5 +33,5 @@
 			> git add recipes/ngs-bits
 			> git commit -m "Updated ngs-bits to version [tag]"
 			> git push -u origin ngs-bits-[tag]
-	* Create pull request at <https://github.com/imgag/bioconda-recipes/branches>
+	* If the bioconda autobump bot does not create a [pull request](https://github.com/bioconda/bioconda-recipes/pulls?q=is%3Apr+ngs-bits) automatically, create a pull request at <https://github.com/imgag/bioconda-recipes/branches>
 1. Update `megSAP/data/download_tools.sh` file and test if it works.
