@@ -1,5 +1,5 @@
 ### CfDnaQC tool help
-	CfDnaQC (2022_04-62-gc5232248)
+	CfDnaQC (2022_07-183-g2dc8c6f8)
 	
 	Calculates QC metrics for cfDNA samples.
 	
@@ -25,6 +25,8 @@
 	                           Default value: '0'
 	  -txt                     Writes TXT format instead of qcML.
 	                           Default value: 'false'
+	  -threads <int>           The number of threads used for coverage calculation.
+	                           Default value: '1'
 	
 	Special parameters:
 	  --help                   Shows this help and exits.
@@ -33,8 +35,9 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### CfDnaQC changelog
-	CfDnaQC 2022_04-62-gc5232248
+	CfDnaQC 2022_07-183-g2dc8c6f8
 	
+	2022-09-16 Added 'threads' parameter.
 	2021-12-03 Added correllation between cfDNA samples.
 	2021-10-22 Initial version.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

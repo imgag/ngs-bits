@@ -1,5 +1,5 @@
 ### BedLowCoverage tool help
-	BedLowCoverage (2020_12-85-g5ff87d17)
+	BedLowCoverage (2022_07-183-g2dc8c6f8)
 	
 	Detects low-coverage regions from a BAM/CRAM file.
 	
@@ -22,6 +22,8 @@
 	                   Default value: '0'
 	  -ref <file>      Reference genome for CRAM support (mandatory if CRAM is used).
 	                   Default value: ''
+	  -threads <int>   Number of threads used.
+	                   Default value: '1'
 	
 	Special parameters:
 	  --help           Shows this help and exits.
@@ -30,8 +32,9 @@
 	  --tdx            Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedLowCoverage changelog
-	BedLowCoverage 2020_12-85-g5ff87d17
+	BedLowCoverage 2022_07-183-g2dc8c6f8
 	
+	2022-09-19 Added 'threads' parameter.
 	2020-11-27 Added CRAM support.
 	2020-05-26 Added parameter 'min_baseq'.
 	2016-06-09 The BED line name of the input BED file is now passed on to the output BED file.

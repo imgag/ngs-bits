@@ -1,5 +1,5 @@
 ### NGSDAnnotateRNA tool help
-	NGSDAnnotateRNA (2022_04-120-g0b2ddab9)
+	NGSDAnnotateRNA (2022_07-183-g2dc8c6f8)
 	
 	Annotates a RNA expression TSV file with cohort information.
 	
@@ -33,8 +33,9 @@
 	  --tdx                   Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDAnnotateRNA changelog
-	NGSDAnnotateRNA 2022_04-120-g0b2ddab9
+	NGSDAnnotateRNA 2022_07-183-g2dc8c6f8
 	
+	2022-09-15 Added annotation of transcript ids.
 	2022-08-18 Added ability to update gene names.
 	2022-08-11 Added HPA annotation support.
 	2022-07-13 Added support for exons.

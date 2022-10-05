@@ -1,5 +1,5 @@
 ### BedHighCoverage tool help
-	BedHighCoverage (2020_12-85-g5ff87d17)
+	BedHighCoverage (2022_07-183-g2dc8c6f8)
 	
 	Detects high-coverage regions from a BAM/CRAM file.
 	
@@ -22,6 +22,8 @@
 	                   Default value: '0'
 	  -ref <file>      Reference genome for CRAM support (mandatory if CRAM is used).
 	                   Default value: ''
+	  -threads <int>   Number of threads used.
+	                   Default value: '1'
 	
 	Special parameters:
 	  --help           Shows this help and exits.
@@ -30,8 +32,9 @@
 	  --tdx            Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedHighCoverage changelog
-	BedHighCoverage 2020_12-85-g5ff87d17
+	BedHighCoverage 2022_07-183-g2dc8c6f8
 	
+	2022-09-29 Added 'threads' parameter.
 	2020-11-27 Added CRAM support.
 	2020-05-26 Added parameter 'min_baseq'.
 	2020-05-14 First version.

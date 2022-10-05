@@ -1,5 +1,5 @@
 ### BedCoverage tool help
-	BedCoverage (2022_07-52-g9fafa140)
+	BedCoverage (2022_07-183-g2dc8c6f8)
 	
 	Annotates a BED file with the average coverage of the regions from one or several BAM/CRAM file(s).
 	
@@ -9,8 +9,6 @@
 	Optional parameters:
 	  -min_mapq <int> Minimum mapping quality.
 	                  Default value: '1'
-	  -dup            Include reads marked as duplicates.
-	                  Default value: 'false'
 	  -in <file>      Input BED file. If unset, reads from STDIN.
 	                  Default value: ''
 	  -decimals <int> Number of decimals used in output.
@@ -21,6 +19,8 @@
 	                  Default value: ''
 	  -clear          Clear previous annotation columns before annotating (starting from 4th column).
 	                  Default value: 'false'
+	  -threads <int>  Number of threads used.
+	                  Default value: '1'
 	
 	Special parameters:
 	  --help          Shows this help and exits.
@@ -29,8 +29,9 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedCoverage changelog
-	BedCoverage 2022_07-52-g9fafa140
+	BedCoverage 2022_07-183-g2dc8c6f8
 	
+	2022-09-16 Added 'threads' parameter and removed 'dup' parameter.
 	2022-08-12 Added parameter to clear previous annotation columns.
 	2022-08-09 Removed mode parameter (panel mode is always used now).
 	2020-11-27 Added CRAM support.

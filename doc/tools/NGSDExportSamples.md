@@ -1,5 +1,5 @@
 ### NGSDExportSamples tool help
-	NGSDExportSamples (2022_04-120-g0b2ddab9)
+	NGSDExportSamples (2022_07-183-g2dc8c6f8)
 	
 	Lists processed samples from the NGSD.
 	
@@ -63,6 +63,8 @@
 	                           Default value: 'false'
 	  -add_comments            Adds sample and processed sample comments columns.
 	                           Default value: 'false'
+	  -add_normal_sample       Adds a column with the normal germline sample associated to a for tumor samples.
+	                           Default value: 'false'
 	  -test                    Uses the test database instead of on the production database.
 	                           Default value: 'false'
 	
@@ -73,7 +75,7 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportSamples changelog
-	NGSDExportSamples 2022_04-120-g0b2ddab9
+	NGSDExportSamples 2022_07-183-g2dc8c6f8
 	
 	2022-03-03 Added 'disease_group', 'disease_status', 'project_type' and 'tissue' filter options.
 	2021-04-29 Added 'run_before' filter option.
