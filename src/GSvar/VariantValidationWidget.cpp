@@ -199,7 +199,7 @@ void VariantValidationWidget::openPrimerDesign()
 			Chromosome chr = variant.chr();
 			int start = variant.start();
 			int end = variant.end();
-			if(GSvarHelper::build()==GenomeBuild::HG38) //PrimerDesign support HG19 only
+			if(GSvarHelper::build()==GenomeBuild::HG38) //PrimerDesign supports HG19 only
 			{
 				BedLine region = GSvarHelper::liftOver(chr, start, end, false);
 				chr = region.chr();
