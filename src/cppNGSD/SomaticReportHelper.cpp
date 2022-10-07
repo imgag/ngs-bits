@@ -17,6 +17,7 @@
 #include <QPair>
 #include <QCollator>
 #include <QJsonDocument>
+#include <QJsonArray>
 
 bool SomaticReportHelper::checkGermlineSNVFile(const VariantList &germline_variants)
 {
@@ -1306,8 +1307,37 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 RtfTable SomaticReportHelper::hlaTable(QString ps_name, QByteArray type)
 {
 	NGSD db;
-	QString hla_file = db.processedSamplePath(db.processedSampleId(ps_name), PathType::HLA_GENOTYPER);
+	QString hla_file;
+	if (!NGSHelper::isClientServerMode())
+	{
+		hla_file = db.processedSamplePath(db.processedSampleId(ps_name), PathType::HLA_GENOTYPER);
+	}
+	else
+	{
+		HttpHeaders ps_headers;
+		ps_headers.insert("Accept", "application/json");
+		ps_headers.insert("Content-Type", "application/json");
+		RequestUrlParams params;
+		params.insert("ps_id", db.processedSampleId(ps_name).toUtf8());
+		params.insert("type", FileLocation::typeToString(PathType::HLA_GENOTYPER).toUtf8());
 
+		QByteArray reply = ApiCaller().get("processed_sample_path", params, ps_headers, true, false, true);
+		QJsonDocument json_doc = QJsonDocument::fromJson(reply);
+		QJsonArray json_array = json_doc.array();
+		for (int i = 0; i < json_array.count(); i++)
+		{
+			if (!json_array.at(i).isObject()) break;
+			if (json_array.at(i).toObject().contains("filename"))
+			{
+				hla_file = json_array.at(i).toObject().value("filename").toString();
+			}
+		}
+	}
+
+	if (hla_file.isEmpty())
+	{
+		THROW(DatabaseException, "hla file for the processed sample '" + ps_name + "' was not found!");
+	}
 	TSVFileStream hla_stream(hla_file);
 
 	QList<int> cell_widths = {2000,1000,1500,1500,800,722,800,800,800};
