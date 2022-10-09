@@ -1127,7 +1127,7 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 	q_update.prepare("UPDATE variant SET gnomad=:0, coding=:1, cadd=:2, spliceai=:3 WHERE id=:4");
 
 	SqlQuery q_insert = getQuery(); //use binding (user input)
-	q_insert.prepare("INSERT IGNORE INTO variant (chr, start, end, ref, obs, gnomad, coding, cadd, spliceai) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8)");
+	q_insert.prepare("INSERT INTO variant (chr, start, end, ref, obs, gnomad, coding, cadd, spliceai) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8) ON DUPLICATE KEY UPDATE id=id");
 
 	//get annotated column indices
 	int i_gnomad = variant_list.annotationIndexByName("gnomAD");
