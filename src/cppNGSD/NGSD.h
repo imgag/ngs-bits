@@ -710,7 +710,7 @@ public:
 
 	///Adds a variant to the NGSD. Returns the variant ID.
 	QString addVariant(const Variant& variant, const VariantList& variant_list);
-	///Adds all missing variants to the NGSD and returns the variant DB identifiers (or -1 if the variant was skipped due to 'max_af')
+	///Adds all missing variants to the NGSD and returns the variant DB identifiers (or -1 if the variant was skipped due to 'max_af' or because it is over 500 bases long)
 	QList<int> addVariants(const VariantList& variant_list, double max_af, int& c_add, int& c_update);
 	///Returns the NGSD ID for a variant. Returns '' or throws an exception if the ID cannot be determined.
 	QString variantId(const Variant& variant, bool throw_if_fails = true);

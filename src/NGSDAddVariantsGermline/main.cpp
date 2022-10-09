@@ -154,7 +154,7 @@ public:
 		db.transaction();
 		for (int i=0; i<variants.count(); ++i)
 		{
-			//skip high-AF variants
+			//skip high-AF variants or too long variants
 			int variant_id = variant_ids[i];
 			if (variant_id==-1) continue;
 

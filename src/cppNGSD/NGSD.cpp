@@ -1142,6 +1142,13 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 	{
 		const Variant& variant = variant_list[i];
 
+		//skip variants over 500 bases length - the unique index of the variant table does not work for those
+		if (variant.ref().count()>500 || variant.obs().count()>500)
+		{
+			output << -1;
+			continue;
+		}
+
 		//skip variants with too high AF
 		QByteArray gnomad = variant.annotations()[i_gnomad].trimmed();
 		if (gnomad=="n/a") gnomad.clear();

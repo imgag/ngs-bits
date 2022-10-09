@@ -599,7 +599,7 @@ CREATE  TABLE IF NOT EXISTS `variant`
   `germline_het` INT(11) NOT NULL DEFAULT '0',
   `germline_hom` INT(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `variant_UNIQUE` (`chr` ASC, `start` ASC, `end` ASC, `ref`(255) ASC, `obs`(255) ASC),
+  UNIQUE INDEX `variant_UNIQUE` (`chr` ASC, `start` ASC, `end` ASC, `ref`(500) ASC, `obs`(500) ASC),
   INDEX `gnomad` (`gnomad` ASC),
   INDEX `comment` (`comment`(50) ASC)
 )
