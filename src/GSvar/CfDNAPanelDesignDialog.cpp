@@ -7,11 +7,14 @@
 #include "GlobalServiceProvider.h"
 #include "VariantTable.h"
 #include "VariantOpenDialog.h"
+#include "RepeatExpansionWidget.h"
+
 #include <QMessageBox>
 #include <QMenu>
 #include <QDir>
 #include <QPushButton>
 #include <QFileDialog>
+#include <QHeaderView>
 
 CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, const FilterResult& filter_result, const SomaticReportConfiguration& somatic_report_configuration, const QString& processed_sample_name, const DBTable& processing_systems, QWidget *parent) :
 	QDialog(parent),
@@ -31,11 +34,13 @@ CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, cons
 
     processed_sample_id_ = NGSD().processedSampleId(processed_sample_name_);
 
+	ui_->setupUi(this);
 
 	// remove '?' entry
 	setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
 
-	ui_->setupUi(this);
+	// set title
+	setWindowTitle(QString("cfDNA panel design (" + processed_sample_name + ")"));
 
 	// connect signals and slots
 	connect(ui_->buttonBox, SIGNAL(accepted()), this, SLOT(storePanelInNGSD()));
@@ -184,10 +189,15 @@ void CfDNAPanelDesignDialog::loadVariants()
 
 	// set dimensions
 	ui_->vars->setRowCount(variants_.count());
-	ui_->vars->setColumnCount(12);
+	ui_->vars->setColumnCount(13);
+	ui_->vars->verticalHeader()->setVisible(false);
+
+	// disable sorting
+	ui_->vars->setSortingEnabled(false);
 
 	//create header
 	int col_idx = 0;
+	ui_->vars->setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem(""));
 	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("select"));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Select all variants which should be added to the cfDNA panel. Right click item to (de-)select all variants.");
 
@@ -281,8 +291,14 @@ void CfDNAPanelDesignDialog::loadVariants()
 		// create table
 		int col_idx = 0;
 
-
-
+		// vertical header
+		QTableWidgetItem* item = new NumericWidgetItem(QByteArray::number(i+1));
+		item->setData(Qt::UserRole, i); //store variant index in user data (for selection methods)
+		if (report_config_indices.contains(i))
+		{
+			item->setIcon(VariantTable::reportIcon(var_conf.showInReport(), false));
+		}
+		ui_->vars->setItem(row_idx, col_idx++, item);
 
 		QTableWidgetItem* select_item = GUIHelper::createTableItem("");
 		select_item->setFlags(select_item->flags() | Qt::ItemIsUserCheckable); // add checkbox
@@ -292,23 +308,23 @@ void CfDNAPanelDesignDialog::loadVariants()
 		ui_->vars->setItem(row_idx, col_idx++, select_item);
 
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.chr().str()));
-		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QByteArray::number(variant.start())));
-		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QByteArray::number(variant.end())));
+		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(QByteArray::number(variant.start())));
+		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(QByteArray::number(variant.end())));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.ref()));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.obs()));
 
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[gene_idx]));
-		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[tumor_af_idx]));
-		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[tumor_dp_idx]));
+		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(variant.annotations()[tumor_af_idx]));
+		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(variant.annotations()[tumor_dp_idx]));
 		if(variants_.type() == SOMATIC_PAIR)
 		{
-			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[normal_af_idx]));
-			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[normal_dp_idx]));
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(variant.annotations()[normal_af_idx]));
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(variant.annotations()[normal_dp_idx]));
 		}
 		else // SOMATIC_SINGLESAMPLE
 		{
-			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
-			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
 		}
 
 
@@ -324,16 +340,10 @@ void CfDNAPanelDesignDialog::loadVariants()
 			info_item->setToolTip("This variant is part of the pre-selected monitoring variant list, but does not match the current filter settings.");
 			ui_->vars->setItem(row_idx, col_idx++, info_item);
 		}
-
-
-		// vertical header
-		QTableWidgetItem* item = GUIHelper::createTableItem(QByteArray::number(i+1));
-		item->setData(Qt::UserRole, i); //store variant index in user data (for selection methods)
-		if (report_config_indices.contains(i))
+		else
 		{
-			item->setIcon(VariantTable::reportIcon(var_conf.showInReport(), false));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
 		}
-		ui_->vars->setVerticalHeaderItem(row_idx, item);
 
 		// increase row index
 		row_idx++;
@@ -368,23 +378,28 @@ void CfDNAPanelDesignDialog::loadVariants()
 			ui_->vars->setRowCount(row_idx + 1);
 
 			// add variant
+			QTableWidgetItem* item = GUIHelper::createTableItem("");
+			item->setData(Qt::UserRole, -1);
+			ui_->vars->setItem(row_idx, col_idx++, item);
 			QTableWidgetItem* select_item = GUIHelper::createTableItem("");
 			select_item->setFlags(select_item->flags() | Qt::ItemIsUserCheckable); // add checkbox
 			select_item->setCheckState(Qt::Checked);
 			ui_->vars->setItem(row_idx, col_idx++, select_item);
 			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.chr().str()));
-			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QByteArray::number(variant.start())));
-			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QByteArray::number(variant.end())));
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(QByteArray::number(variant.start())));
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(QByteArray::number(variant.end())));
 			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.ref()));
 			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.obs()));
-			col_idx += 5;
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
 			QTableWidgetItem* info_item = GUIHelper::createTableItem("manually added in previous panel");
 			info_item->setToolTip("This variant was manually added during a previous cfDNA panel design.");
 			ui_->vars->setItem(row_idx, col_idx++, info_item);
 
-			QTableWidgetItem* item = GUIHelper::createTableItem("");
-			item->setData(Qt::UserRole, -1);
-			ui_->vars->setVerticalHeaderItem(row_idx, item);
+
 
 			// optimize cell sizes
 			GUIHelper::resizeTableCells(ui_->genes, 150);
@@ -418,23 +433,28 @@ void CfDNAPanelDesignDialog::loadVariants()
 			ui_->vars->setRowCount(row_idx + 1);
 
 			// add variant
+			QTableWidgetItem* item = new NumericWidgetItem("");
+			item->setData(Qt::UserRole, -1);
+			ui_->vars->setItem(row_idx, col_idx++, item);
 			QTableWidgetItem* select_item = GUIHelper::createTableItem("");
 			select_item->setFlags(select_item->flags() | Qt::ItemIsUserCheckable); // add checkbox
 			select_item->setCheckState(Qt::Checked);
 			ui_->vars->setItem(row_idx, col_idx++, select_item);
 			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.chr().str()));
-			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QByteArray::number(variant.start())));
-			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QByteArray::number(variant.end())));
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(QByteArray::number(variant.start())));
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(QByteArray::number(variant.end())));
 			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.ref()));
 			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.obs()));
-			col_idx += 5;
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
 			QTableWidgetItem* info_item = GUIHelper::createTableItem("pre-selected variant");
 			info_item->setToolTip("This variant is part of the preselection file, but missing in the current variant calls.");
 			ui_->vars->setItem(row_idx, col_idx++, info_item);
 
-			QTableWidgetItem* item = GUIHelper::createTableItem("");
-			item->setData(Qt::UserRole, -1);
-			ui_->vars->setVerticalHeaderItem(row_idx, item);
+
 
 			// optimize cell sizes
 			GUIHelper::resizeTableCells(ui_->genes, 150);
@@ -448,6 +468,10 @@ void CfDNAPanelDesignDialog::loadVariants()
 							 "The following variants are part of the pre-selection, but are missing in the current variant list:\n\n"
 							 + missing_candidates_vars.join("\n")+ "\n\n These variants were added at the end of the list.");
 	}
+
+
+	// enable sorting
+	ui_->vars->setSortingEnabled(true);
 
 
 }
@@ -551,23 +575,23 @@ VcfFile CfDNAPanelDesignDialog::createVcfFile()
 	// get all selected variants
 	for (int r = 0; r < ui_->vars->rowCount(); ++r)
 	{
-		if (ui_->vars->item(r, 0)->checkState() == Qt::Checked)
+		if (ui_->vars->item(r, 1)->checkState() == Qt::Checked)
 		{
 			// get variant index
 			bool ok;
-			int var_idx = ui_->vars->verticalHeaderItem(r)->data(Qt::UserRole).toInt(&ok);
-			if (!ok) THROW(ProgrammingException, "Variant table row header user data '" + ui_->vars->verticalHeaderItem(r)->data(Qt::UserRole).toString() + "' is not an integer!");
+			int var_idx = ui_->vars->item(r,0)->data(Qt::UserRole).toInt(&ok);
+			if (!ok) THROW(ProgrammingException, "Variant table row header user data '" + ui_->vars->item(r,0)->data(Qt::UserRole).toString() + "' is not an integer!");
 			if (var_idx > 0)
 			{
 				selected_variants.append(variants_[var_idx]);
 			}
 			else
 			{
-				selected_variants.append(Variant(Chromosome(ui_->vars->item(r, 1)->text()),
-												 Helper::toInt(ui_->vars->item(r, 2)->text()),
+				selected_variants.append(Variant(Chromosome(ui_->vars->item(r, 2)->text()),
 												 Helper::toInt(ui_->vars->item(r, 3)->text()),
-												 Sequence(ui_->vars->item(r, 4)->text().toUtf8()),
+												 Helper::toInt(ui_->vars->item(r, 4)->text()),
 												 Sequence(ui_->vars->item(r, 5)->text().toUtf8()),
+												 Sequence(ui_->vars->item(r, 6)->text().toUtf8()),
 												 empty_annotation));
 			}
 			variant_count++;
@@ -762,7 +786,7 @@ void CfDNAPanelDesignDialog::selectAllVariants(bool deselect)
 {
 	for (int r = 0; r < ui_->vars->rowCount(); ++r)
 	{
-		ui_->vars->item(r, 0)->setCheckState((!deselect) ? Qt::Checked : Qt::Unchecked);
+		ui_->vars->item(r, 1)->setCheckState((!deselect) ? Qt::Checked : Qt::Unchecked);
 	}
 }
 
@@ -788,7 +812,7 @@ void CfDNAPanelDesignDialog::updateSelectedVariantCount()
 	// get all selected variants
 	for (int r = 0; r < ui_->vars->rowCount(); ++r)
 	{
-		if (ui_->vars->item(r, 0)->checkState() == Qt::Checked)
+		if (ui_->vars->item(r, 1)->checkState() == Qt::Checked)
 		{
 			selected_variant_count++;
 		}
@@ -819,9 +843,9 @@ void CfDNAPanelDesignDialog::openVariantInIGV(QTableWidgetItem* item)
 
 	// get variant index
 	bool ok;
-	int var_idx = ui_->vars->verticalHeaderItem(r)->data(Qt::UserRole).toInt(&ok);
+	int var_idx = ui_->vars->item(r,0)->data(Qt::UserRole).toInt(&ok);
 	if (var_idx < 0) return; //skip manually added variants
-	if (!ok) THROW(ProgrammingException, "Variant table row header user data '" + ui_->vars->verticalHeaderItem(r)->data(Qt::UserRole).toString() + "' is not an integer!");
+	if (!ok) THROW(ProgrammingException, "Variant table row header user data '" + ui_->vars->item(r,0)->data(Qt::UserRole).toString() + "' is not an integer!");
 
 	const Variant& var = variants_[var_idx];
 	QString coords = var.chr().strNormalized(true) + ":" + QString::number(var.start()) + "-" + QString::number(var.end());
@@ -925,33 +949,53 @@ void CfDNAPanelDesignDialog::addVariant()
 
 		Variant variant = dlg.variant();
 
+		qDebug() << "var parsed!";
+
+		//disable sorting
+		ui_->vars->setSortingEnabled(false);
+		ui_->vars->blockSignals(true);
+
 		//extend table
 		int col_idx = 0;
 		int row_idx = ui_->vars->rowCount();
 		ui_->vars->setRowCount(row_idx + 1);
 
+		qDebug() << "Table extended!";
+
 		// add variant
-		QTableWidgetItem* select_item = GUIHelper::createTableItem("");
+		QTableWidgetItem* item = GUIHelper::createTableItem("");
+		item->setData(Qt::UserRole, -1);
+		qDebug() << "here" << row_idx << col_idx << ui_->vars->rowCount();
+		ui_->vars->setItem(row_idx, col_idx++, item);
+		qDebug() << "here" << row_idx << col_idx << ui_->vars->rowCount();
+		QTableWidgetItem* select_item = new NumericWidgetItem("");
 		select_item->setFlags(select_item->flags() | Qt::ItemIsUserCheckable); // add checkbox
 		select_item->setCheckState(Qt::Checked);
 		ui_->vars->setItem(row_idx, col_idx++, select_item);
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.chr().str()));
-		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QByteArray::number(variant.start())));
-		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QByteArray::number(variant.end())));
+		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(QByteArray::number(variant.start())));
+		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(QByteArray::number(variant.end())));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.ref()));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.obs()));
-		col_idx += 5;
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
 		QTableWidgetItem* info_item = GUIHelper::createTableItem("manually added");
 		info_item->setToolTip("This variant was manually added during the cfDNA panel design.");
 		ui_->vars->setItem(row_idx, col_idx++, info_item);
 
-		QTableWidgetItem* item = GUIHelper::createTableItem("");
-		item->setData(Qt::UserRole, -1);
-		ui_->vars->setVerticalHeaderItem(row_idx, item);
+		qDebug() << "var added!";
+
 
 		// optimize cell sizes
 		GUIHelper::resizeTableCells(ui_->genes, 150);
 
+
+		//re-enable sorting
+		ui_->vars->setSortingEnabled(true);
+		ui_->vars->blockSignals(false);
 	}
 	catch(Exception& e)
 	{
