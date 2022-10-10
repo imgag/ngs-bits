@@ -496,9 +496,9 @@ const QMap<QByteArray, ImprintingInfo>& NGSHelper::imprintingGenes()
 			if (parts.count()==3)
 			{
 				QByteArray gene = parts[0].toUtf8().trimmed();
-				QByteArray source_allele = parts[1].toUtf8().trimmed();
+				QByteArray expressed_allele = parts[1].toUtf8().trimmed();
 				QByteArray status = parts[2].toUtf8().trimmed();
-				output[gene] = ImprintingInfo{source_allele, status};
+				output[gene] = ImprintingInfo{expressed_allele, status};
 			}
 		}
 	}

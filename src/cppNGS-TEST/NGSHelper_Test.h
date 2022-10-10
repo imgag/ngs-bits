@@ -159,12 +159,12 @@ private slots:
 	{
 		QMap<QByteArray, ImprintingInfo> imp_genes = NGSHelper::imprintingGenes();
 
-		I_EQUAL(imp_genes.count(), 243);
-		S_EQUAL(imp_genes["NPAP1"].source_allele, "paternal");
+		I_EQUAL(imp_genes.count(), 247);
+		S_EQUAL(imp_genes["NPAP1"].expressed_allele, "paternal");
 		S_EQUAL(imp_genes["NPAP1"].status, "imprinted");
-		S_EQUAL(imp_genes["NTM"].source_allele, "maternal");
+		S_EQUAL(imp_genes["NTM"].expressed_allele, "maternal");
 		S_EQUAL(imp_genes["NTM"].status, "imprinted");
-		S_EQUAL(imp_genes["SALL1"].source_allele, "maternal");
+		S_EQUAL(imp_genes["SALL1"].expressed_allele, "maternal");
 		S_EQUAL(imp_genes["SALL1"].status, "predicted");
 	}
 

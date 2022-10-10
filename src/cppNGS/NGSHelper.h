@@ -10,7 +10,7 @@
 //Helper datastructure for gene impringing info.
 struct ImprintingInfo
 {
-	QByteArray source_allele;
+	QByteArray expressed_allele;
 	QByteArray status;
 };
 

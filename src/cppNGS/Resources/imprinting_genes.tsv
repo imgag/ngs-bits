@@ -1,10 +1,9 @@
-#gene	inherited_allele	status
+#gene	expressed_allele	status
 ABCC9	maternal	predicted
 ABCG8	maternal	predicted
 ACD	maternal	predicted
 ADAMTS16	maternal	predicted
 ADTRP	maternal	imprinted
-CRYBG1	paternal	imprinted
 ALDH1L1	maternal	predicted
 ANO1	maternal	imprinted
 APBA1	paternal	predicted
@@ -13,16 +12,7 @@ ATP5F1EP2	maternal	imprinted
 B4GALNT4	maternal	predicted
 BLCAP	isoform dependent	imprinted
 BMP8B	paternal	predicted
-MPC1	paternal	predicted
-CELF4	maternal	predicted
 BTNL2	maternal	predicted
-LINC02870	maternal	predicted
-CFAP46	maternal	predicted
-USB1	maternal	predicted
-MRGBP	maternal	predicted
-ISM1	paternal	predicted
-MRAP2	paternal	predicted
-C9ORF116	paternal	predicted
 C9ORF85	paternal	predicted
 CALCR	maternal	provisional data
 CCDC71L	paternal	imprinted
@@ -30,13 +20,18 @@ CCDC85A	paternal	predicted
 CDH18	paternal	predicted
 CDK4	maternal	predicted
 CDKN1C	maternal	imprinted
+CELF4	maternal	predicted
+CFAP46	maternal	predicted
 CHMP2A	maternal	predicted
 CHST8	maternal	predicted
+CMKLR2	paternal	imprinted
 CMTM1	paternal	imprinted
 COL9A3	maternal	predicted
 COPG2	paternal	conflicting data
 COPG2IT1	paternal	imprinted
+COPS9	paternal	predicted
 CPA4	maternal	imprinted
+CRYBG1	paternal	imprinted
 CSF2	maternal	predicted
 CTNNA3	maternal	provisional data
 CYP1B1	paternal	predicted
@@ -55,24 +50,22 @@ DSCAM	paternal	imprinted
 DVL1	maternal	predicted
 E2F7	maternal	predicted
 EGFL7	paternal	predicted
+ELOA3P	maternal	imprinted
 ERAP2	paternal	imprinted
 ESR2		imprinted
 EVX1	paternal	predicted
 FAM50B	paternal	imprinted
-GAREM1	paternal	predicted
-TMEM255B	maternal	predicted
 FASTK	maternal	predicted
 FBRSL1	maternal	predicted
 FERMT2	paternal	predicted
 FGFRL1	maternal	predicted
-PRR20A	maternal	predicted
-SPATA31D1	maternal	predicted
 FOXF1	maternal	conflicting data
 FOXG1	paternal	predicted
 FUCA1	paternal	predicted
 GABRA5	paternal	conflicting data
 GABRB3	paternal	conflicting data
 GABRG3	paternal	conflicting data
+GAREM1	paternal	predicted
 GATA3	paternal	predicted
 GATM	unknown	unknown
 GDAP1L1	paternal	imprinted
@@ -81,13 +74,12 @@ GLI3	paternal	imprinted
 GLIS3	paternal	imprinted
 GNAS	isoform dependent	imprinted
 GNAS-AS1	paternal	imprinted
-GPR1	paternal	imprinted
 GPT	maternal	predicted
 GRB10	isoform dependent	imprinted
 H19	maternal	imprinted
+H2BC26	maternal	predicted
 HECW1	paternal	imprinted
 HES1	paternal	predicted
-H2BU1	maternal	predicted
 HM13	unknown	unknown
 HNF1A		imprinted
 HOXA11	maternal	predicted
@@ -109,23 +101,24 @@ IGF2R	biallelic	conflicting data
 INPP5F	paternal	imprinted
 INS	paternal	imprinted
 IRAIN	paternal	imprinted
+ISM1	paternal	predicted
 KBTBD3	paternal	predicted
 KCNK9	maternal	imprinted
 KCNQ1	maternal	imprinted
 KCNQ1DN	maternal	imprinted
 KCNQ1OT1	paternal	imprinted
-UVSSA	maternal	predicted
 KLF14	maternal	imprinted
 L3MBTL1	paternal	imprinted
 LDB1	maternal	predicted
 LILRB4	maternal	predicted
 LIN28B	paternal	imprinted
+LINC02870	maternal	predicted
 LMX1B	maternal	predicted
 LRRTM1	paternal	imprinted
 LY6D	paternal	predicted
 MAGEL2	paternal	imprinted
 MAGI2	maternal	imprinted
-MCTS2P	paternal	imprinted
+MCTS2	paternal	imprinted
 MEG3	maternal	imprinted
 MEG8	maternal	imprinted
 MEST	paternal	imprinted
@@ -136,13 +129,16 @@ MIR296	paternal	imprinted
 MIR298	paternal	imprinted
 MIR371A	paternal	imprinted
 MKRN3	paternal	imprinted
-COPS9	paternal	predicted
+MPC1	paternal	predicted
+MRAP2	paternal	predicted
+MRGBP	maternal	predicted
 MZF1	maternal	predicted
 NAA60	maternal	imprinted
 NAP1L4	unknown	unknown
 NAP1L5	paternal	imprinted
 NDN	paternal	imprinted
 NDUFA4P1	paternal	predicted
+NFKB1		imprinted
 NKAIN3	paternal	predicted
 NKX6-2	maternal	predicted
 NLRP2	maternal	imprinted
@@ -154,6 +150,7 @@ OR11L1	paternal	predicted
 OSBPL5	maternal	imprinted
 OTX1	maternal	predicted
 PAOX	maternal	predicted
+PARD6G	maternal	imprinted
 PEG10	paternal	imprinted
 PEG13	paternal	imprinted
 PEG3	paternal	imprinted
@@ -161,19 +158,23 @@ PEG3-AS1	paternal	imprinted
 PEX10	maternal	predicted
 PHLDA2	maternal	imprinted
 PHPT1	maternal	predicted
+PIERCE1	paternal	predicted
 PKP3	maternal	predicted
 PLAGL1	paternal	imprinted
-PON1	maternal	provisional data
 PLPP2	maternal	predicted
+PON1	maternal	provisional data
 PPP1R9A	maternal	imprinted
 PRDM16	paternal	predicted
 PRIM2	biallelic	conflicting data
+PRR20A	maternal	predicted
+PRR25	paternal	imprinted
 PTPN14	maternal	predicted
 PURG	paternal	predicted
 PWAR6	paternal	imprinted
 PXDC1	paternal	imprinted
 PYY2	paternal	predicted
 RAB1B	maternal	predicted
+RAC1		imprinted
 RASGRF1	paternal	imprinted
 RB1	maternal	imprinted
 RBP5	maternal	imprinted
@@ -190,7 +191,7 @@ SLC22A18	maternal	imprinted
 SLC22A18AS	maternal	provisional data
 SLC22A2	maternal	imprinted
 SLC22A3	maternal	imprinted
-SLC26A10	maternal	predicted
+SLC26A10P	maternal	predicted
 SLC38A4	unknown	unknown
 SLC4A2	maternal	predicted
 SMOC1	maternal	imprinted
@@ -205,21 +206,25 @@ SNORD64	paternal	imprinted
 SNRPN	paternal	imprinted
 SNURF	paternal	imprinted
 SOX8	paternal	predicted
+SPATA31D1	maternal	predicted
 SPON2	paternal	predicted
 ST8SIA1	paternal	imprinted
 SVOPL	maternal	imprinted
-ELOA3P	maternal	imprinted
 TFPI2	maternal	imprinted
 TH	unknown	unknown
 TIGD1	paternal	predicted
+TMEM255B	maternal	predicted
 TMEM52	paternal	predicted
 TMEM60	paternal	predicted
 TMEM88	maternal	predicted
+TP53		imprinted
 TP73	maternal	imprinted
 TRPM5	paternal	provisional data
 TSHZ3	paternal	predicted
 UBE3A	maternal	imprinted
+USB1	maternal	predicted
 USP29	unknown	unknown
+UVSSA	maternal	predicted
 VAX2	maternal	predicted
 VENTX	maternal	predicted
 VTRNA2-1	paternal	imprinted
@@ -235,7 +240,6 @@ ZFP90	paternal	imprinted
 ZIC1	maternal	predicted
 ZIM2	paternal	imprinted
 ZIM3	unknown	unknown
-MKRN3-AS1	unknown	unknown
 ZNF215	maternal	provisional data
 ZNF225	paternal	predicted
 ZNF229	maternal	predicted

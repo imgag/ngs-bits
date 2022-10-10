@@ -2544,7 +2544,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 				GeneSet genes = GeneSet::createFromText(v.annotations()[i_gene], ',');
 				foreach(const QByteArray& gene, genes)
 				{
-					if (imprinting.contains(gene) && imprinting[gene].source_allele!="maternal")
+					if (imprinting.contains(gene) && imprinting[gene].expressed_allele!="maternal")
 					{
 						match = true;
 					}
@@ -2555,7 +2555,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 				GeneSet genes = GeneSet::createFromText(v.annotations()[i_gene], ',');
 				foreach(const QByteArray& gene, genes)
 				{
-					if (imprinting.contains(gene) && imprinting[gene].source_allele!="paternal")
+					if (imprinting.contains(gene) && imprinting[gene].expressed_allele!="paternal")
 					{
 						match = true;
 					}
@@ -4921,7 +4921,7 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
                 GeneSet genes = GeneSet::createFromText(sv.annotations()[i_gene], ',');
                 foreach(const QByteArray& gene, genes)
                 {
-					if (imprinting.contains(gene) && imprinting[gene].source_allele!="maternal")
+					if (imprinting.contains(gene) && imprinting[gene].expressed_allele!="maternal")
                     {
                         match = true;
                     }
@@ -4932,7 +4932,7 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
                 GeneSet genes = GeneSet::createFromText(sv.annotations()[i_gene], ',');
                 foreach(const QByteArray& gene, genes)
                 {
-					if (imprinting.contains(gene) && imprinting[gene].source_allele!="paternal")
+					if (imprinting.contains(gene) && imprinting[gene].expressed_allele!="paternal")
                     {
                         match = true;
                     }
