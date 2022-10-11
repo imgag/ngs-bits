@@ -558,11 +558,10 @@ void SomaticReportHelper::metaDataForQbic(QString path_target_folder)
 	QByteArray content;
 	QTextStream stream(&content);
 
-	stream << "diagnosis" << "\t" << "tumor_content" << "\t" << "pathogenic_germline" << "\t" << "mutational_load" << "\t";
-	stream << "chromosomal_instability" << "\t" << "quality_flags" << "\t" << "reference_genome";
+	stream << "diagnosis" << "\t" << "tumor_content" << "\t" << "pathogenic_germline" << "\t" << "mutational_load" << "\t" << "chromosomal_instability" << "\t" << "quality_flags" << "\t" << "reference_genome";
 	stream << endl;
 
-	stream << settings_.icd10 << "\t" << histol_tumor_fraction_ << "\t";
+	stream << settings_.icd10 << "\t" << (BasicStatistics::isValidFloat(histol_tumor_fraction_) ? QString::number(histol_tumor_fraction_, 'f', 4) : "NA") << "\t";
 
 	//No report of pathogenic germline variants
 	stream << "NA" << "\t";
