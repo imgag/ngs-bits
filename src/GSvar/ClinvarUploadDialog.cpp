@@ -196,6 +196,9 @@ void ClinvarUploadDialog::upload()
     static HttpHandler http_handler(HttpRequestHandler::INI); //static to allow caching of credentials
     try
     {
+		//switch on/off testing
+		bool test_run = true;
+
         QStringList messages;
         messages << ui_.comment_upload->toPlainText();
 
@@ -205,7 +208,7 @@ void ClinvarUploadDialog::upload()
         add_headers.insert("SP-API-KEY", api_key);
 
         //post request
-		QByteArray reply = http_handler.post("https://submit.ncbi.nlm.nih.gov/api/v1/submissions/", QJsonDocument(post_request).toJson(QJsonDocument::Compact), add_headers);
+		QByteArray reply = http_handler.post((test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/" , QJsonDocument(post_request).toJson(QJsonDocument::Compact), add_headers);
 
         // parse response
         bool success = false;
@@ -273,12 +276,15 @@ void ClinvarUploadDialog::upload()
 				details << "reupload_by=" + LoginManager::userLogin();
 			}
 
-            // log publication in NGSD
-			db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.variant, "ClinVar", clinvar_upload_data_.report_variant_config.classification,
-									  details.join(";"), clinvar_upload_data_.user_id);
+			if (!test_run)
+			{
+				// log publication in NGSD
+				db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.variant, "ClinVar", clinvar_upload_data_.report_variant_config.classification,
+										  details.join(";"), clinvar_upload_data_.user_id);
 
-			// for reupload: flag previous upload as replaced
-			if (clinvar_upload_data_.variant_publication_id > 0) db_.flagVariantPublicationAsReplaced(clinvar_upload_data_.variant_publication_id);
+				// for reupload: flag previous upload as replaced
+				if (clinvar_upload_data_.variant_publication_id > 0) db_.flagVariantPublicationAsReplaced(clinvar_upload_data_.variant_publication_id);
+			}
 
             //show result
             QStringList lines;
@@ -302,13 +308,16 @@ void ClinvarUploadDialog::upload()
 
             ui_.comment_upload->setText(lines.join("\n").replace("=", ": "));
 
-            //write report file to transfer folder
-            QString gsvar_publication_folder = Settings::path("gsvar_publication_folder");
-            if (gsvar_publication_folder!="")
-            {
-					QString file_rep = gsvar_publication_folder + "/" + clinvar_upload_data_.processed_sample + "_CLINVAR_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".txt";
-                    Helper::storeTextFile(file_rep, ui_.comment_upload->toPlainText().split("\n"));
-            }
+			if (!test_run)
+			{
+				//write report file to transfer folder
+				QString gsvar_publication_folder = Settings::path("gsvar_publication_folder");
+				if (gsvar_publication_folder!="")
+				{
+						QString file_rep = gsvar_publication_folder + "/" + clinvar_upload_data_.processed_sample + "_CLINVAR_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".txt";
+						Helper::storeTextFile(file_rep, ui_.comment_upload->toPlainText().split("\n"));
+				}
+			}
 			ui_.upload_btn->setEnabled(false);
 
         }
@@ -462,21 +471,12 @@ QJsonObject ClinvarUploadDialog::createJson()
     //build up JSON
     QJsonObject json;
 
+	//optional
+	//json.insert("clinvarDeletion", "");
+
     //required
     QJsonObject clinvar_submission;
     {
-        //optional
-        QJsonObject assertion_criteria;
-        {
-            // add hardcoded citation
-            QJsonObject citation;
-            citation.insert("db", "PubMed");
-            citation.insert("id", "25741868");
-            assertion_criteria.insert("citation", citation);
-            assertion_criteria.insert("method", "ACMG Guidelines, 2015");
-        }
-        clinvar_submission.insert("assertionCriteria", assertion_criteria);
-
         //required
         QJsonObject clinical_significance;
         {
@@ -603,9 +603,6 @@ QJsonObject ClinvarUploadDialog::createJson()
 		clinvar_submission.insert("recordStatus", "novel");
 
         //required
-        clinvar_submission.insert("releaseStatus", ui_.cb_release_status->currentText());
-
-        //required
         QJsonObject variant_set;
         {
             QJsonArray variants;
@@ -662,6 +659,24 @@ QJsonObject ClinvarUploadDialog::createJson()
     //optional
     //json.insert("submissionName", "");
 
+	//required
+	json.insert("clinvarSubmissionReleaseStatus", ui_.cb_release_status->currentText());
+
+	//optional
+	QJsonObject assertion_criteria;
+	{
+		// add hardcoded citation
+		QJsonObject citation;
+		citation.insert("db", "PubMed");
+		citation.insert("id", "25741868");
+		assertion_criteria.insert("citation", citation);
+		assertion_criteria.insert("method", "ACMG Guidelines, 2015");
+	}
+	json.insert("assertionCriteria", assertion_criteria);
+
+	//optional
+	//json.insert("behalfOrgID", "");
+
     return json;
 }
 
@@ -701,21 +716,6 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
     else
     {
         errors << "Required string 'recordStatus' in 'clinvarSubmission' missing!";
-        is_valid = false;
-    }
-
-    if (clinvar_submission.contains("releaseStatus"))
-    {
-        QStringList release_status = QStringList() <<  "public" << "hold until published";
-        if (!release_status.contains(clinvar_submission.value("releaseStatus").toString()))
-        {
-            errors << "Invalid entry '" + clinvar_submission.value("releaseStatus").toString() + "' in 'releaseStatus'!";
-            is_valid = false;
-        }
-    }
-    else
-    {
-        errors << "Required string 'releaseStatus' in 'clinvarSubmission' missing!";
         is_valid = false;
     }
 
@@ -1029,6 +1029,21 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
         errors << "Required string 'conditionSet' in 'clinvarSubmission' missing!";
         is_valid = false;
     }
+
+	if (json.contains("clinvarSubmissionReleaseStatus"))
+	{
+		QStringList release_status = QStringList() <<  "public" << "hold until published";
+		if (!release_status.contains(json.value("clinvarSubmissionReleaseStatus").toString()))
+		{
+			errors << "Invalid entry '" + json.value("clinvarSubmissionReleaseStatus").toString() + "' in 'clinvarSubmissionReleaseStatus'!";
+			is_valid = false;
+		}
+	}
+	else
+	{
+		errors << "Required string 'clinvarSubmissionReleaseStatus' is missing!";
+		is_valid = false;
+	}
 
     return is_valid;
 }
