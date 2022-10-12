@@ -7800,7 +7800,7 @@ void NGSD::initTranscriptCache()
 
 	//create all transcripts
 	QHash<QByteArray, int> tmp_name2id;
-	query.exec("SELECT t.id, g.symbol, t.name, t.source, t.strand, t.chromosome, t.start_coding, t.end_coding, t.biotype, t.is_mane_select FROM gene_transcript t, gene g WHERE t.gene_id=g.id");
+	query.exec("SELECT t.id, g.symbol, t.name, t.source, t.strand, t.chromosome, t.start_coding, t.end_coding, t.biotype, t.is_mane_select, t.is_mane_plus_clinical FROM gene_transcript t, gene g WHERE t.gene_id=g.id");
 	while(query.next())
 	{
 		int trans_id = query.value(0).toInt();
@@ -7814,6 +7814,7 @@ void NGSD::initTranscriptCache()
 		transcript.setBiotype(Transcript::stringToBiotype(query.value(8).toByteArray()));
 		transcript.setPreferredTranscript(pts.contains(transcript.name()));
 		transcript.setManeSelectTranscript(query.value(9).toInt()!=0);
+		transcript.setManePlusClinicalTranscript(query.value(10).toInt()!=0);
 
 		//get exons
 		BedFile regions;

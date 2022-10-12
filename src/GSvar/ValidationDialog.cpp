@@ -56,8 +56,32 @@ ValidationDialog::ValidationDialog(QWidget* parent, int id)
 		}
 		ui_.variant->setText(text);
 
-		QString transcript_info = db_.getValue("SELECT coding FROM variant WHERE id=" + variant_id).toString().replace(",", "<br>");
-		ui_.transcript_info->setText(transcript_info);
+		QStringList transcript_infos;
+		QList<VariantTranscript> transcripts = Variant::parseTranscriptString(db_.getValue("SELECT coding FROM variant WHERE id=" + variant_id).toByteArray(), true);
+		foreach(const VariantTranscript& trans, transcripts)
+		{
+			QString line = trans.gene + " " + trans.id + " " + trans.exon + " " + variant.chr().str() + ":" + QString::number(variant.start()) + "-" + QString::number(variant.end()) + " " + trans.hgvs_c + " " + trans.hgvs_p;
+
+			//tags for important transcripts
+			int trans_id = db_.transcriptId(trans.id, false);
+			if (trans_id!=-1)
+			{
+				Transcript db_trans = db_.transcript(trans_id);
+
+				QStringList tags;
+				if (db_trans.isManeSelectTranscript()) tags << "[MANE select]";
+				if (db_trans.isManePlusClinicalTranscript()) tags << "[MANE plus clinical]";
+				if (db_trans.isPreferredTranscript()) tags << "[preferred transcript]";
+				if (!tags.isEmpty())
+				{
+					line.append(" " + tags.join(" "));
+				}
+			}
+
+			transcript_infos << line;
+		}
+
+		ui_.transcript_info->setText(transcript_infos.join("<br>"));
 	}
 	else if (variant_type_ == "CNV")
 	{

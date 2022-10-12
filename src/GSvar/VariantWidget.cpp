@@ -70,18 +70,20 @@ void VariantWidget::updateGUI()
 		{
 			lines << "<a href=\"" + trans.gene + "\">" + trans.gene + "</a> " + trans.id + ": " + trans.type + " " + trans.hgvs_c + " " + trans.hgvs_p;
 
-			//tag MANE transcripts and preferred transcripts
-			QStringList tags;
+			//tags for important transcripts
 			int trans_id = db.transcriptId(trans.id, false);
 			if (trans_id!=-1)
 			{
-				if(db.getValue("SELECT is_mane_select FROM gene_transcript WHERE id=" + QString::number(trans_id)).toBool()) tags << "[MANE select]";
-				if(db.getValue("SELECT is_mane_plus_clinical FROM gene_transcript WHERE id=" + QString::number(trans_id)).toBool()) tags << "[MANE plus clinical]";
-				if(GSvarHelper::preferredTranscripts(false).value(trans.gene).contains(trans.idWithoutVersion())) tags << "[preferred transcript]";
-			}
-			if (!tags.isEmpty())
-			{
-				lines.last().append(" " + tags.join(" "));
+				Transcript db_trans = db.transcript(trans_id);
+
+				QStringList tags;
+				if (db_trans.isManeSelectTranscript()) tags << "[MANE select]";
+				if (db_trans.isManePlusClinicalTranscript()) tags << "[MANE plus clinical]";
+				if (db_trans.isPreferredTranscript()) tags << "[preferred transcript]";
+				if (!tags.isEmpty())
+				{
+					lines.last().append(" " + tags.join(" "));
+				}
 			}
 		}
 		ui_.transcripts->setText(lines.join("<br>"));

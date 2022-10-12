@@ -10,6 +10,7 @@ Transcript::Transcript()
 	, end_(-1)
 	, is_preferred_transcript_(false)
 	, is_mane_select_(false)
+	, is_mane_plus_clinical_(false)
 	, coding_start_(0)
 	, coding_end_(0)
 {

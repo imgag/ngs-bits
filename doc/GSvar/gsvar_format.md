@@ -45,6 +45,7 @@ The main columns in the GSvar format are:
 * *quality*: Quality information about the variant:
 	* *QUAL*: Phread-scaled probability that the variant is a true-positive.
 	* *DP*: Sequencing depth at the variant locus.
+	* *QD*: Quality divided by depth. This is a better filter for artefacts than the absolute quality.
 	* *AF*: Allele frequency of the variant in the sample.
 	* *MQM*: Phread-scaled mapping quality of the alternate bases
 	* *SAP*: Phread-scaled likelyhood of observed alternate base strand bias, i.e. distribution on forward/reverse strand.
@@ -78,5 +79,19 @@ There are several ways to filter variant lists in GSvar format to identify rare 
 1. The file can be filtered interactively using the **GSvar** application.
 2. The file can be filtered on the Linux command line using the [VariantFilterAnnotations tool](https://github.com/imgag/ngs-bits/blob/master/doc/tools/VariantFilterAnnotations.md) of ngs-bits.
 3. The file can be filtered in Microsoft Excel.
+
+### Pre-filtering of WGS variant lists
+
+In WGS the VCF file contain about 5 million variants, which is too much to put into a GSvar file.  
+Thus only variants that match at least one of these criteria are included in the GSvar file:
+
+	- VEP impact HIGH, MODERATE or LOW
+	- annotated as pathogenic or likely pathogenic in ClinVar oder HGMD
+	- annotated as class 4, 5 or M in NGSD
+	- genomAD AF <= 2%
+	- on chrMT
+
+This means that common variants (AF>2%) that are intronic or intergenic are not included.
+
 
 [back to the start page](../README.md)

@@ -190,6 +190,15 @@ public:
 		is_mane_select_ = is_mane_select;
 	}
 
+	bool isManePlusClinicalTranscript() const
+	{
+		return is_mane_plus_clinical_;
+	}
+	void setManePlusClinicalTranscript(bool is_mane_plus_clinical)
+	{
+		is_mane_plus_clinical_ = is_mane_plus_clinical;
+	}
+
 	const BedFile& regions() const
 	{
 		return regions_;
@@ -275,6 +284,7 @@ protected:
 	int end_;
 	bool is_preferred_transcript_;
 	bool is_mane_select_;
+	bool is_mane_plus_clinical_;
 	BedFile regions_;
 	int coding_start_;
 	int coding_end_;
