@@ -287,11 +287,42 @@ void ProcessedSampleWidget::updateQCMetrics()
 		{
 			QStringList preferred_qc_parameters = limitedQCParameter(sample_type);
 			conditions = "AND (t.qcml_id IN ('" + preferred_qc_parameters.join("', '") + "'))";
-//			conditions = "AND (t.qcml_id='QC:2000007' OR 'QC:2000008' OR t.qcml_id='QC:2000010' OR t.qcml_id='QC:2000013' OR t.qcml_id='QC:2000014' OR t.qcml_id='QC:2000015' OR t.qcml_id='QC:2000016' OR t.qcml_id='QC:2000017' OR t.qcml_id='QC:2000018' OR t.qcml_id='QC:2000020' OR t.qcml_id='QC:2000021' OR t.qcml_id='QC:2000022' OR t.qcml_id='QC:2000023' OR t.qcml_id='QC:2000024' OR t.qcml_id='QC:2000025' OR t.qcml_id='QC:2000027' OR t.qcml_id='QC:2000049' OR t.qcml_id='QC:2000050' OR t.qcml_id='QC:2000051')";
 		}
-		DBTable qc_table = db.createTable("processed_sample_qc", "SELECT qc.id, t.qcml_id, t.name, qc.value, t.description FROM processed_sample_qc qc, qc_terms t WHERE qc.qc_terms_id=t.id AND t.obsolete=0 AND qc.processed_sample_id='" + ps_id_ + "' " + conditions + " ORDER BY t.qcml_id ASC");
+		DBTable qc_table = db.createTable("processed_sample_qc", "SELECT qc.id, t.qcml_id, t.name, qc.value, t.description FROM processed_sample_qc qc, qc_terms t WHERE qc.qc_terms_id=t.id AND t.obsolete=0 AND qc.processed_sample_id='" + ps_id_ + "' " + conditions);
 
-		//use descriptions as tooltip
+		//sort - grouped by source: mapping, small variants, CNVs, SV
+		QStringList order;
+		OntologyTermCollection terms("://Resources/qcML.obo", true);
+		QByteArrayList parents{"QC:2000002", "QC:2000003", "QC:2000004", "QC:2000112", "QC:2000116"};
+		foreach(QByteArray parent, parents)
+		{
+			for(int i=0; i<terms.size(); ++i)
+			{
+				const OntologyTerm& term = terms.get(i);
+				if (!term.parentIDs().contains(parent)) continue;
+				order << term.id();
+			}
+		}
+		qc_table.sortCustom([order](const DBRow& a, const DBRow& b)
+							{
+								return order.indexOf(a.value(0))<order.indexOf(b.value(0));
+							});
+
+		//add source column
+		QStringList sources;
+		for (int r=0; r<qc_table.rowCount(); ++r)
+		{
+			const QByteArrayList& parent_ids = terms.getByID(qc_table.row(r).value(0).toUtf8()).parentIDs();
+			if (parent_ids.contains("QC:2000002")) sources << "raw data";
+			else if (parent_ids.contains("QC:2000003")) sources << "mapping";
+			else if (parent_ids.contains("QC:2000004")) sources << "small variant calling";
+			else if (parent_ids.contains("QC:2000112")) sources << "CNV calling";
+			else if (parent_ids.contains("QC:2000116")) sources << "SV calling";
+			else sources << "unknown";
+		}
+		qc_table.addColumn(sources, "source");
+
+		//init GUI table (descriptions as tooltip)
 		QStringList descriptions = qc_table.takeColumn(qc_table.columnIndex("description"));
 		ui_->qc_table->setData(qc_table);
 		ui_->qc_table->setColumnTooltips("name", descriptions);
