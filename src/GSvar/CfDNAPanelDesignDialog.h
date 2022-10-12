@@ -55,6 +55,7 @@ private:
 	const SomaticReportConfiguration& somatic_report_configuration_;
 	QMap<QString, bool> prev_vars_;
 	QMap<QString, bool> candidate_vars_;
+	QMap<QString, float> candidate_scores_;
 	QSet<QString> prev_genes_;
 	bool prev_id_snp_;
 	QMap<QString, bool> prev_hotspots_;

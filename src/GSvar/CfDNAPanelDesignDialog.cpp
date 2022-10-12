@@ -166,6 +166,12 @@ void CfDNAPanelDesignDialog::loadPreviousPanels()
 				// create vcf pos string
 				QString vcf_pos = var.chr().strNormalized(true) + ":" + QString::number(var.start()) + " " + var.ref() + ">" + var.altString();
 				candidate_vars_.insert(vcf_pos, false);
+				// get score
+				if (var.infoKeys().contains("MonitoringScore"))
+				{
+					double score = Helper::toDouble(var.info("MonitoringScore"), "MonitoringScore", vcf_pos);
+					candidate_scores_.insert(vcf_pos, score);
+				}
 			}
 			prev_id_snp_ = true;
 		}
@@ -189,7 +195,7 @@ void CfDNAPanelDesignDialog::loadVariants()
 
 	// set dimensions
 	ui_->vars->setRowCount(variants_.count());
-	ui_->vars->setColumnCount(13);
+	ui_->vars->setColumnCount(14);
 	ui_->vars->verticalHeader()->setVisible(false);
 
 	// disable sorting
@@ -224,6 +230,8 @@ void CfDNAPanelDesignDialog::loadVariants()
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Normal depth.");
 	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("info"));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Additional variant info.");
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("monitoring score"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("MonitoringScore of the preselection tool.");
 
 	// get indices of report config
 	QList<int> report_config_indices = somatic_report_configuration_.variantIndices(VariantType::SNVS_INDELS, false);
@@ -345,6 +353,15 @@ void CfDNAPanelDesignDialog::loadVariants()
 			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
 		}
 
+		if (candidate_scores_.contains(vcf_pos))
+		{
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(QString::number(candidate_scores_.value(vcf_pos))));
+		}
+		else
+		{
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+		}
+
 		// increase row index
 		row_idx++;
 	}
@@ -399,7 +416,14 @@ void CfDNAPanelDesignDialog::loadVariants()
 			info_item->setToolTip("This variant was manually added during a previous cfDNA panel design.");
 			ui_->vars->setItem(row_idx, col_idx++, info_item);
 
-
+			if (candidate_scores_.contains(vcf_string))
+			{
+				ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(QString::number(candidate_scores_.value(vcf_string))));
+			}
+			else
+			{
+				ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+			}
 
 			// optimize cell sizes
 			GUIHelper::resizeTableCells(ui_->genes, 150);
@@ -454,7 +478,14 @@ void CfDNAPanelDesignDialog::loadVariants()
 			info_item->setToolTip("This variant is part of the preselection file, but missing in the current variant calls.");
 			ui_->vars->setItem(row_idx, col_idx++, info_item);
 
-
+			if (candidate_scores_.contains(vcf_string))
+			{
+				ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(QString::number(candidate_scores_.value(vcf_string))));
+			}
+			else
+			{
+				ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+			}
 
 			// optimize cell sizes
 			GUIHelper::resizeTableCells(ui_->genes, 150);
@@ -949,8 +980,6 @@ void CfDNAPanelDesignDialog::addVariant()
 
 		Variant variant = dlg.variant();
 
-		qDebug() << "var parsed!";
-
 		//disable sorting
 		ui_->vars->setSortingEnabled(false);
 		ui_->vars->blockSignals(true);
@@ -960,14 +989,10 @@ void CfDNAPanelDesignDialog::addVariant()
 		int row_idx = ui_->vars->rowCount();
 		ui_->vars->setRowCount(row_idx + 1);
 
-		qDebug() << "Table extended!";
-
 		// add variant
 		QTableWidgetItem* item = GUIHelper::createTableItem("");
 		item->setData(Qt::UserRole, -1);
-		qDebug() << "here" << row_idx << col_idx << ui_->vars->rowCount();
 		ui_->vars->setItem(row_idx, col_idx++, item);
-		qDebug() << "here" << row_idx << col_idx << ui_->vars->rowCount();
 		QTableWidgetItem* select_item = new NumericWidgetItem("");
 		select_item->setFlags(select_item->flags() | Qt::ItemIsUserCheckable); // add checkbox
 		select_item->setCheckState(Qt::Checked);
@@ -986,7 +1011,7 @@ void CfDNAPanelDesignDialog::addVariant()
 		info_item->setToolTip("This variant was manually added during the cfDNA panel design.");
 		ui_->vars->setItem(row_idx, col_idx++, info_item);
 
-		qDebug() << "var added!";
+		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
 
 
 		// optimize cell sizes
