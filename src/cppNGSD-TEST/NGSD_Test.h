@@ -670,10 +670,9 @@ private slots:
 
 		//getQCData
 		QCCollection qc_data = db.getQCData(db.processedSampleId("NA12878_03"));
-		I_EQUAL(qc_data.count(), 3);
+		I_EQUAL(qc_data.count(), 2);
 		S_EQUAL(qc_data.value("target region 20x percentage").toString(2), "95.96");
 		S_EQUAL(qc_data.value("target region read depth").toString(2), "103.24");
-		S_EQUAL(qc_data.value("kasp").asString(), "n/a"); //special value that is not from the DB
 
 		//getQCValues
 		QVector<double> qc_values = db.getQCValues("QC:2000025", db.processedSampleId("NA12878_03"));

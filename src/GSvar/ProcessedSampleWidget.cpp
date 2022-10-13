@@ -220,25 +220,17 @@ void ProcessedSampleWidget::updateGUI()
 
 
 	//#### kasp status ####
-	SqlQuery query = db.getQuery();
-	query.exec("SELECT * FROM kasp_status WHERE processed_sample_id='" + ps_id_ + "'");
-	if (query.next())
+	try
 	{
-		ui_->kasp_snps->setText(query.value("snps_match").toString() + "/" + query.value("snps_evaluated").toString());
+		KaspData kasp_data = db.kaspData(ps_id_);
+		ui_->kasp_snps->setText(QString::number(kasp_data.snps_match) + "/" + QString::number(kasp_data.snps_evaluated));
 
-		double swap_prob = 100.0 * query.value("random_error_prob").toDouble();
-		if (swap_prob<0.0 || swap_prob>100.0)
-		{
-			ui_->kasp_swap->setText("KASP not performed (no DNA left for KASP, sample bad, or processing system does not contain SNPs of assay)");
-		}
-		else
-		{
-			QString value = QString::number(swap_prob, 'f', 4) + "%";
-			if (swap_prob>1.1) value = "<font color=red>"+value+"</font>";
-			ui_->kasp_swap->setText(value);
-		}
+		double swap_perc = 100.0 * kasp_data.random_error_prob;
+		QString value = QString::number(swap_perc, 'f', 4) + "%";
+		if (swap_perc>1.1) value = "<font color=red>"+value+"</font>";
+		ui_->kasp_swap->setText(value);
 	}
-	else
+	catch(DatabaseException /*e*/)
 	{
 		ui_->kasp_snps->setText("n/a");
 		ui_->kasp_swap->setText("n/a");

@@ -5,7 +5,6 @@
         <QcTerm id="QC:2000030" name="target region 100x percentage" def="Percentage of the target region that is covered at least 100-fold." value="94.7"/>
         <QcTerm id="QC:2000032" name="target region 500x percentage" def="Percentage of the target region that is covered at least 500-fold." value="89.87"/>
         <QcTerm id="QC:2000025" name="target region read depth" def="Average sequencing depth in target region." value="210.3"/>
-        <QcTerm id="NONE" name="kasp" def="" value="n/a"/>
     </Sample>
     <AnalysisPipeline name="megSAP" version="0.2-413-gaf6ed63"/>
     <TargetRegion name="tum_only_target_filter">

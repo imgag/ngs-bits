@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2022_10-18 (13.10.22)
+- General: improved ordering of QC terms in processed sample tab.
+- General: speed-up of low-coverage calculations (multi-threaded and pre-calculation of low-coverage regions for WGS)
+- cfDNA: several improvements to panel design
+
 ### 2022_07-119 (09.09.22)
 - Report: updated somatic tumor-normal report (added HLA tables for tumor and normal, formatting, fixed CNV table bug)
 - Report: updated somatic RNA report (added unclear oncogenic variants table, formatting)

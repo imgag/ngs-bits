@@ -3700,29 +3700,6 @@ QCCollection NGSD::getQCData(const QString& processed_sample_id)
 		output.insert(QCValue(q.value(0).toString(), q.value(1).toString(), q.value(2).toString(), q.value(3).toString()));
 	}
 
-	//get KASP data
-	SqlQuery q2 = getQuery();
-	q2.exec("SELECT random_error_prob FROM kasp_status WHERE processed_sample_id='" + processed_sample_id + "'");
-	QString value = "n/a";
-	if (q2.size()>0)
-	{
-		q2.next();
-		float numeric_value = 100.0 * q2.value(0).toFloat();
-		if (numeric_value>100.0) //special case: random_error_prob>100%
-		{
-			value = "<font color=orange>KASP not performed (see NGSD)</font>";
-		}
-		else if (numeric_value>1.0) //random_error_prob>1% => warn
-		{
-			value = "<font color=red>"+QString::number(numeric_value)+"%</font>";
-		}
-		else
-		{
-			value = QString::number(numeric_value)+"%";
-		}
-	}
-	output.insert(QCValue("kasp", value));
-
 	return output;
 }
 
@@ -3746,6 +3723,34 @@ QVector<double> NGSD::getQCValues(const QString& accession, const QString& proce
 		double value = q.value(0).toDouble(&ok);
 		if (ok) output.append(value);
 	}
+
+	return output;
+}
+
+KaspData NGSD::kaspData(const QString& processed_sample_id)
+{
+	SqlQuery query = getQuery();
+	query.exec("SELECT * FROM kasp_status WHERE processed_sample_id='" + processed_sample_id + "'");
+
+	//no KASP in NGSD
+	if (!query.next())
+	{
+		THROW(DatabaseException, "No KASP result found for " + processedSampleName(processed_sample_id));
+	}
+
+	//invalid KASP in NGSD
+	bool ok = false;
+	double random_error_prob = query.value("random_error_prob").toDouble(&ok);
+	if (!ok || random_error_prob<0 || random_error_prob>1)
+	{
+		THROW(DatabaseException, "Invalid KASP result found for " + processedSampleName(processed_sample_id) + ". Random error probabilty is '" + query.value("random_error_prob").toString() + "'!");
+	}
+
+	//create output
+	KaspData output;
+	output.random_error_prob = random_error_prob;
+	output.snps_evaluated = query.value("snps_evaluated").toInt();
+	output.snps_match = query.value("snps_match").toInt();
 
 	return output;
 }

@@ -44,6 +44,14 @@ struct CPPNGSDSHARED_EXPORT OmimInfo
 	PhenotypeList phenotypes;
 };
 
+///KASP data
+struct CPPNGSDSHARED_EXPORT KaspData
+{
+	int snps_evaluated;
+	int snps_match;
+	double random_error_prob;
+};
+
 ///Type constraints class for database fields
 struct CPPNGSDSHARED_EXPORT TableFieldConstraints
 {
@@ -891,6 +899,9 @@ public:
 	QCCollection getQCData(const QString& processed_sample_id);
 	///Returns all values for a QC term (from sample of the same processing system)
 	QVector<double> getQCValues(const QString& accession, const QString& processed_sample_id);
+	///Returns KASP data. Thows a DatabaseException if no valid KASP was performed for the sample.
+	KaspData kaspData(const QString& processed_sample_id);
+
 	///Returns the next processing ID for the given sample.
 	QString nextProcessingId(const QString& sample_id);
 
