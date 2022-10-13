@@ -1360,7 +1360,7 @@ created_by: sturm
 
 [Term]
 id: QC:2000113
-name: CNV count 
+name: CNV count
 def: "Number of high-quality CNVs called by ClinCNV. High-quality means that log-likelihood is bigger or equal to 20."
 is_a: QC:2000112 ! NGS CNV list parameter
 xref: value-type:xsd\:int "The allowed value-type for this CV term."
@@ -1376,7 +1376,7 @@ created_by: sturm
 
 [Term]
 id: QC:2000115
-name: number of iterations 
+name: number of iterations
 def: "Number of iterations done by ClinCNV when calling CNVs. CNV calling is repeated with increased log-likelihood threshold as long as too many CNVs are detected. Normally only one iteration is done."
 is_a: QC:2000112 ! NGS CNV list parameter
 xref: value-type:xsd\:int "The allowed value-type for this CV term."
@@ -1392,7 +1392,7 @@ created_by: sturm
 [Term]
 id: QC:2000117
 name: SV count
-def: "Number of high-quality CNVs called by ClinCNV. High-quality means "
+def: "Number of structural variants called by Manta."
 is_a: QC:2000116 ! NGS SV list parameter
 xref: value-type:xsd\:int "The allowed value-type for this CV term."
 created_by: sturm
