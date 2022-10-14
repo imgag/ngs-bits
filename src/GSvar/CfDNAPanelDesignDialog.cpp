@@ -195,7 +195,7 @@ void CfDNAPanelDesignDialog::loadVariants()
 
 	// set dimensions
 	ui_->vars->setRowCount(variants_.count());
-	ui_->vars->setColumnCount(14);
+	ui_->vars->setColumnCount(18);
 	ui_->vars->verticalHeader()->setVisible(false);
 
 	// disable sorting
@@ -228,6 +228,18 @@ void CfDNAPanelDesignDialog::loadVariants()
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Mutant allele frequency in normal.");
 	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("normal_dp"));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Normal depth.");
+
+	//Add additional columns
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("filter"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Annotations for filtering and ranking variants.");
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("gnomAD"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Allele frequency in gnomAD project.");
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("NGSD hom"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Homozygous variant count in NGSD.");
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("NGSD het"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Heterozygous variant count in NGSD.");
+
+
 	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("info"));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Additional variant info.");
 	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("monitoring score"));
@@ -242,6 +254,11 @@ void CfDNAPanelDesignDialog::loadVariants()
 	int normal_af_idx = variants_.annotationIndexByName("normal_af", true, false);
 	int normal_dp_idx = variants_.annotationIndexByName("normal_dp", true, false);
 	int gene_idx = variants_.annotationIndexByName("gene");
+
+	int filter_idx = variants_.annotationIndexByName("filter", true, false);
+	int gnomad_idx = variants_.annotationIndexByName("gnomAD", true, false);
+	int ngsd_hom_idx = variants_.annotationIndexByName("NGSD_hom", true, false);
+	int ngsd_het_idx = variants_.annotationIndexByName("NGSD_het", true, false);
 
 
 	// load filtered variant list
@@ -335,6 +352,11 @@ void CfDNAPanelDesignDialog::loadVariants()
 			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
 		}
 
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[filter_idx]));
+		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(variant.annotations()[gnomad_idx]));
+		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(variant.annotations()[ngsd_hom_idx]));
+		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(variant.annotations()[ngsd_het_idx]));
+
 
 		if (prev_var_missing)
 		{
@@ -412,6 +434,10 @@ void CfDNAPanelDesignDialog::loadVariants()
 			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
 			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
 			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
 			QTableWidgetItem* info_item = GUIHelper::createTableItem("manually added in previous panel");
 			info_item->setToolTip("This variant was manually added during a previous cfDNA panel design.");
 			ui_->vars->setItem(row_idx, col_idx++, info_item);
@@ -471,6 +497,10 @@ void CfDNAPanelDesignDialog::loadVariants()
 			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.obs()));
 			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
 			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
 			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
 			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
 			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
@@ -1004,6 +1034,10 @@ void CfDNAPanelDesignDialog::addVariant()
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.obs()));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
 		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
 		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
 		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
 		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
