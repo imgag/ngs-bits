@@ -6,15 +6,18 @@ TEST_CLASS(OntologyTermCollection_Test)
 Q_OBJECT
 private slots:
 
-	void loadFromOboFile_SequencOntology()
+	void load_invalid_filename_exception()
 	{
 		IS_THROWN(FileAccessException, OntologyTermCollection test("LKJDSAFL", true));
+	}
 
+	void load_SequencOntology()
+	{
 		OntologyTermCollection colletion("://Resources/so-xp_3_0_0.obo", true);
 
 		//not contained
 		IS_FALSE(colletion.containsByName("lajfdslajfe"));
-		IS_FALSE(colletion.containsByID("id: SO:0000038")); //obsolte
+		IS_FALSE(colletion.containsByID("SO:0000038")); //obsolete
 		IS_THROWN(ArgumentException, colletion.getByID("hdskafhkj"));
 
 		//term 1
@@ -38,8 +41,30 @@ private slots:
 		S_EQUAL(colletion.getByID("SO:0000014").synonyms()[2], "INR motif");
 	}
 
+	void load_SequencOntology_withObsolete()
+	{
+		OntologyTermCollection colletion("://Resources/so-xp_3_0_0.obo", false);
 
-	void loadFromOboFile_HPO()
+		//non-obolete term
+		IS_TRUE(colletion.containsByID("SO:0000013"));
+
+		//non-obolete term
+		IS_TRUE(colletion.containsByID("SO:0000014"));
+
+		//obolete term
+		IS_TRUE(colletion.containsByID("SO:0000038"));
+		S_EQUAL(colletion.getByID("SO:0000038").name(), "match_set");
+		S_EQUAL(colletion.getByID("SO:0000038").definition(), "A collection of match parts.");
+		S_EQUAL(colletion.getByID("SO:0000038").replacedById(), "");
+
+		//obolete term
+		IS_TRUE(colletion.containsByID("SO:1000117"));
+		S_EQUAL(colletion.getByID("SO:1000117").name(), "sequence_variant_affecting_polypeptide_function");
+		S_EQUAL(colletion.getByID("SO:1000117").definition(), "");
+		S_EQUAL(colletion.getByID("SO:1000117").replacedById(), "SO:0001554");
+	}
+
+	void load_HPO()
 	{
 		OntologyTermCollection colletion("://Resources/qcML.obo", true);
 
@@ -51,5 +76,4 @@ private slots:
 		I_EQUAL(colletion.getByID("QC:2000015").synonyms().count(), 0);
 		IS_TRUE(colletion.getByID("QC:2000015").isChildOf("QC:2000004"));
 	}
-
 };

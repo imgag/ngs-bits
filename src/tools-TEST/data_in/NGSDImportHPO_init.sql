@@ -62,7 +62,18 @@ INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES
 	('104619', '9826', 'RAD54L', 'RAD54 like (S. cerevisiae)', 'protein-coding gene'),
 	('118673', '12830', 'XRCC3', 'X-ray repair cross complementing 3', 'protein-coding gene');
 	
-	
-
 INSERT INTO `gene_alias` (`gene_id`, `symbol`, `type`) VALUES
 (104236, 'PTEN_ALT', 'synonym');
+
+INSERT INTO `user`(`id`, `user_id`, `password`, `user_role`, `name`, `email`, `created`, `active`) VALUES
+(99, 'ahmustm1', '', 'user', 'Max Mustermann', '', '2022-10-14', 1);
+
+INSERT INTO `sender` (`id`, `name`) VALUES
+(1, 'Coriell');
+
+INSERT INTO `sample` (`id`, `name`, `sample_type`, `species_id`, `gender`, `quality`, `tumor`, `ffpe`, `sender_id`) VALUES 
+(1, 'NA12878', 'DNA', 1, 'n/a', 'good', 0 ,0, 1);
+
+INSERT INTO `sample_disease_info`(`id`, `sample_id`, `disease_info`, `type`, `user_id`, `date`) VALUES
+(1, 1, 'HP:0003114', 'HPO term id', 99, '2022-10-14 14:33:35'),
+(2, 1, 'HP:???????', 'HPO term id', 99, '2022-10-14 14:33:35');

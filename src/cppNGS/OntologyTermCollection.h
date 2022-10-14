@@ -84,6 +84,15 @@ public:
 		is_obsolete_ = is_obsolete;
 	}
 
+	const QByteArray& replacedById() const
+	{
+		return replaced_by_id_;
+	}
+	void setReplacedById(const QByteArray& id)
+	{
+		replaced_by_id_ = id;
+	}
+
 	///checks whether this term is a child of the passed parent ID
 	bool isChildOf(const QByteArray& parent_id) const;
 
@@ -95,6 +104,7 @@ private:
 	QByteArrayList synonyms_;
 	QByteArrayList parent_ids_;
 	bool is_obsolete_;
+	QByteArray replaced_by_id_;
 };
 
 ///represents a collection of Ontology Terms and provides methods for parsing obo files
@@ -106,11 +116,8 @@ public:
 	///Constructor parses given OBO file.
 	OntologyTermCollection(QString obo_file, bool skip_obsolete_terms);
 
-	///Adds a term
-	void add(const OntologyTerm& add)
-	{
-		ontology_terms_.append(add);
-	}
+	///Adds a term. Throws an exception of a term with the sampe ID is already present.
+	void add(const OntologyTerm& term);
 
 	///check whether Collection contains term with given id
 	bool containsByID(const QByteArray& id);

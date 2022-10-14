@@ -271,10 +271,11 @@ public:
 		qi_parent.prepare("INSERT INTO hpo_parent (parent, child) VALUES (:0, :1);");
 
 		QHash<QByteArray, int> id2ngsd;
-		OntologyTermCollection terms(getInfile("obo"), true);
+		OntologyTermCollection terms(getInfile("obo"), false);
 		for (int i=0; i<terms.size(); ++i)
 		{
 			const OntologyTerm& term = terms.get(i);
+			if (term.isObsolete()) continue;
 
 			qi_term.bindValue(0, term.id());
 			qi_term.bindValue(1, term.name());
@@ -290,6 +291,7 @@ public:
 		for (int i=0; i<terms.size(); ++i)
 		{
 			const OntologyTerm& term = terms.get(i);
+			if (term.isObsolete()) continue;
 
 			int c_db = id2ngsd.value(term.id(), -1);
 			if (c_db==-1) continue;
@@ -305,6 +307,42 @@ public:
 			}
 		}
 		out << "Imported " << db.getValue("SELECT COUNT(*) FROM hpo_parent").toInt() << " parent-child relations between terms from HPO." << endl;
+
+		//replace obsolete terms used in disease_info table
+		int c_obsolote = 0;
+		int c_replaced = 0;
+		QByteArrayList invalid;
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT id, disease_info FROM sample_disease_info WHERE type='HPO term id' order by disease_info ASC");
+		while(query.next())
+		{
+			QByteArray hpo_id = query.value("disease_info").toByteArray().trimmed();
+			try
+			{
+				const OntologyTerm& term = terms.getByID(hpo_id);
+				if (term.isObsolete())
+				{
+					++c_obsolote;
+					if (!term.replacedById().isEmpty())
+					{
+						db.getQuery().exec("UPDATE sample_disease_info SET disease_info='" + term.replacedById() + "' WHERE id=" + query.value("id").toByteArray());
+						++c_replaced;
+					}
+				}
+			}
+			catch(const ArgumentException& /*e*/)
+			{
+				if (!invalid.contains(hpo_id)) invalid << hpo_id;
+			}
+		}
+		if (c_obsolote>0)
+		{
+			out << "Found " << c_obsolote << " obsolete HPO terms in table 'disease_info'. Replaced " << c_replaced << " of these!" << endl;
+		}
+		if (invalid.count()>0)
+		{
+			out << "Found " << invalid.count() << " invalid HPO terms in table 'disease_info': '" << invalid.join("', '") << "'" << endl;
+		}
 
 		return id2ngsd;
 	}

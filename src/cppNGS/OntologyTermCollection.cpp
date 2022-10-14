@@ -102,6 +102,11 @@ OntologyTermCollection::OntologyTermCollection(QString filename, bool skip_obsol
 					temp.setIsObsolete(line.contains("true"));
 				}
 
+				if(line.startsWith("replaced_by:"))
+				{
+					temp.setReplacedById(line.mid(12).trimmed());
+				}
+
 				line = fp->readLine().trimmed();
 			}
 			while(!line.isEmpty());
@@ -112,6 +117,16 @@ OntologyTermCollection::OntologyTermCollection(QString filename, bool skip_obsol
 		}
 	}
 	fp->close();
+}
+
+void OntologyTermCollection::add(const OntologyTerm& term)
+{
+	if (containsByID(term.id()))
+	{
+		THROW(ArgumentException, "OntologyTermCollection::add: Term with id '" + term.id() + "' already persent!");
+	}
+
+	ontology_terms_.append(term);
 }
 
 const OntologyTerm& OntologyTermCollection::getByID(const QByteArray& id)
