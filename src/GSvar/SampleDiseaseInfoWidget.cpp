@@ -108,7 +108,7 @@ void SampleDiseaseInfoWidget::addDiseaseInfo()
 			return;
 		}
 
-		tmp.disease_info = text;
+		tmp.disease_info = text.trimmed();
 		disease_info_ <<  tmp;
 	}
 
