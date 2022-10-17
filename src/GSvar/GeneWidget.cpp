@@ -256,7 +256,7 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 		int row = ui_.transcripts->rowCount();
 		ui_.transcripts->setRowCount(row+1);
 
-		QLabel* label = GUIHelper::createLinkLabel("<a href='http://" + QString(GSvarHelper::build()==GenomeBuild::HG19 ? "grch37" : "www") + ".ensembl.org/Homo_sapiens/Transcript/Summary?t=" + transcript.name() + "'>" + transcript.name() + "</a>");
+		QLabel* label = GUIHelper::createLinkLabel("<a href='http://" + QString(GSvarHelper::build()==GenomeBuild::HG19 ? "grch37" : "www") + ".ensembl.org/Homo_sapiens/Transcript/Summary?t=" + transcript.name() + "'>" + transcript.nameWithVersion() + "</a>");
 		ui_.transcripts->setCellWidget(row, 0, label);
 
 		QString coords = "";

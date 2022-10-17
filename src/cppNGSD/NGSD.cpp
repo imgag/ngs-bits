@@ -5741,7 +5741,7 @@ BedFile NGSD::geneToRegions(const QByteArray& gene, Transcript::SOURCE source, Q
 			if (annotate_transcript_names)
 			{
 				annos.clear();
-				annos << trans.gene() + " " + trans.name();
+				annos << trans.gene() + " " + trans.nameWithVersion();
 			}
 
 			if (mode=="gene")
@@ -7805,7 +7805,7 @@ void NGSD::initTranscriptCache()
 
 	//create all transcripts
 	QHash<QByteArray, int> tmp_name2id;
-	query.exec("SELECT t.id, g.symbol, t.name, t.source, t.strand, t.chromosome, t.start_coding, t.end_coding, t.biotype, t.is_mane_select, t.is_mane_plus_clinical FROM gene_transcript t, gene g WHERE t.gene_id=g.id");
+	query.exec("SELECT t.id, g.symbol, t.name, t.source, t.strand, t.chromosome, t.start_coding, t.end_coding, t.biotype, t.is_mane_select, t.is_mane_plus_clinical, t.version FROM gene_transcript t, gene g WHERE t.gene_id=g.id");
 	while(query.next())
 	{
 		int trans_id = query.value(0).toInt();
@@ -7820,6 +7820,7 @@ void NGSD::initTranscriptCache()
 		transcript.setPreferredTranscript(pts.contains(transcript.name()));
 		transcript.setManeSelectTranscript(query.value(9).toInt()!=0);
 		transcript.setManePlusClinicalTranscript(query.value(10).toInt()!=0);
+		transcript.setVersion(query.value(11).toInt());
 
 		//get exons
 		BedFile regions;

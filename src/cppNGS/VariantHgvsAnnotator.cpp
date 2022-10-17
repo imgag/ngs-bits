@@ -42,7 +42,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
     QString pos_hgvs_c;
     QString pos_hgvs_c_dup;
 
-    hgvs.transcript_id = transcript.name();
+	hgvs.transcript_id = transcript.nameWithVersion();
 
     // annotate coding transcript
     if(transcript.isCoding())

@@ -1221,6 +1221,47 @@ void MainWindow::on_actionDebug_triggered()
 		}
 		*/
 
+		//replace obsolete terms used in disease_info table
+		/*
+		OntologyTermCollection terms("W:\\GRCh38\\share\\data\\dbs\\HPO\\hp.obo", false);
+		int c_obsolote = 0;
+		int c_replaced = 0;
+		QByteArrayList invalid;
+		NGSD db;
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT id, disease_info FROM sample_disease_info WHERE type='HPO term id' order by disease_info ASC");
+		while(query.next())
+		{
+			QByteArray hpo_id = query.value("disease_info").toByteArray().trimmed();
+			try
+			{
+				const OntologyTerm& term = terms.getByID(hpo_id);
+				if (term.isObsolete())
+				{
+					++c_obsolote;
+					if (!term.replacedById().isEmpty())
+					{
+						qDebug() << term.id() << " > " << term.replacedById();
+						db.getQuery().exec("UPDATE sample_disease_info SET disease_info='" + term.replacedById() + "' WHERE id=" + query.value("id").toByteArray());
+						++c_replaced;
+					}
+				}
+			}
+			catch(const ArgumentException&)
+			{
+				if (!invalid.contains(hpo_id)) invalid << hpo_id;
+			}
+		}
+		if (c_obsolote>0)
+		{
+			qDebug() << "Found " << c_obsolote << " obsolete HPO terms in table 'disease_info'. Replaced " << c_replaced << " of these!" << endl;
+		}
+		if (invalid.count()>0)
+		{
+			qDebug() << "Found " << invalid.count() << " invalid HPO terms in table 'disease_info': '" << invalid.join("', '") << "'" << endl;
+		}
+		*/
+
 		qDebug() << Helper::elapsedTime(timer, true);
 	}
 	else if (user=="ahgscha1")

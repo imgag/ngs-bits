@@ -255,7 +255,7 @@ private:
 		//gene symbol, HGNC ID, transcript ID, feature type
 		if (t.isValid())
 		{
-			output << t.gene() << t.hgncId() << t.name() + "." + QByteArray::number(t.version()) << "Transcript";
+			output << t.gene() << t.hgncId() << t.nameWithVersion() << "Transcript";
 		}
 		else
 		{

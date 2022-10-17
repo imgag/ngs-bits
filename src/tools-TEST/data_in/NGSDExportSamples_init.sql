@@ -123,8 +123,8 @@ INSERT INTO `processed_sample_ancestry` (`processed_sample_id`, `num_snps`, `sco
 INSERT INTO `gene` (`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES
 (638594, 7989, 'NRAS', 'NRAS proto-oncogene, GTPase', 'protein-coding gene');
 
-INSERT INTO `gene_transcript` (`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES
-(1482127, 638594, 'ENST00000369535', 'ensembl', '1', 115251156, 115258781, '-');
+INSERT INTO `gene_transcript` (`id`, `gene_id`, `name`, `version`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES
+(1482127, 638594, 'ENST00000369535', '1', 'ensembl', '1', 115251156, 115258781, '-');
 
 INSERT INTO `gene_exon` (`transcript_id`, `start`, `end`) VALUES
 (1482127, 115247090, 115250671),

@@ -45,6 +45,7 @@ public:
         hgnc_id_ = hgnc_id;
     }
 
+	//Transcript name (without version number)
     const QByteArray& name() const
 	{
 		return name_;
@@ -54,16 +55,21 @@ public:
 		name_ = name;
 	}
 
-    const int& version() const
+	//Transcript version
+	int version() const
     {
         return version_;
     }
-
-    void setVersion(const int& version)
+	void setVersion(int version)
     {
         version_ = version;
     }
+	QByteArray nameWithVersion() const
+	{
+		return name_ + '.' + QByteArray::number(version_);
+	}
 
+	//CCDS transcript name with version number (this field is only filled if the transcript was read with NGSHelper::loadGffFile)
     const QByteArray& nameCcds() const
     {
         return name_ccds_;
