@@ -88,7 +88,7 @@ public:
 			THROW(ArgumentException, "Invalid position type '" + pos_type + "'!");
 		}
 
-		QString q = "SELECT gene_exon.transcript_id, gene_transcript.name, gene.symbol "
+		QString q = "SELECT gene_transcript.id, gene_transcript.name, gene_transcript.version, gene.symbol "
 					"FROM gene_exon, gene_transcript, gene "
 					"WHERE "
 						"gene_exon.transcript_id=gene_transcript.id AND "
@@ -114,10 +114,11 @@ public:
 		{
 			int tx_id = query.value(0).toInt();
 			QByteArray tx_name = query.value(1).toByteArray();
-			QByteArray gene_name = query.value(2).toByteArray();
+			QByteArray tx_version = query.value(2).toByteArray();
+			QByteArray gene_name = query.value(3).toByteArray();
 			int exon_rank = exonRank(db, tx_id, pos, strand);
 
-			exons.insert(gene_name + ":" + tx_name, exon_rank);
+			exons.insert(gene_name + ":" + tx_name + '.' + tx_version, exon_rank);
 		}
 		return exons;
 	}

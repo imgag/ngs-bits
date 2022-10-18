@@ -2,9 +2,9 @@
 #include "NGSD.h"
 #include "Helper.h"
 #include "BasicStatistics.h"
-#include <QStringList>
 #include "LoginManager.h"
 #include "GSvarHelper.h"
+#include "VariantHgvsAnnotator.h"
 
 ValidationDialog::ValidationDialog(QWidget* parent, int id)
 	: QDialog(parent)
@@ -57,26 +57,32 @@ ValidationDialog::ValidationDialog(QWidget* parent, int id)
 		ui_.variant->setText(text);
 
 		QStringList transcript_infos;
-		QList<VariantTranscript> transcripts = Variant::parseTranscriptString(db_.getValue("SELECT coding FROM variant WHERE id=" + variant_id).toByteArray(), true);
-		foreach(const VariantTranscript& trans, transcripts)
+
+		//get all transcripts containing the variant
+		TranscriptList transcripts  = db_.transcriptsOverlapping(variant.chr(), variant.start() - 5000, variant.end() + 5000);
+
+		//annotate consequence for each transcript
+		FastaFileIndex genome_idx(Settings::string("reference_genome"));
+		VariantHgvsAnnotator hgvs_annotator;
+		foreach(const Transcript& trans, transcripts)
 		{
-			QString line = trans.gene + " " + trans.id + " " + trans.exon + " " + variant.chr().str() + ":" + QString::number(variant.start()) + "-" + QString::number(variant.end()) + " " + trans.hgvs_c + " " + trans.hgvs_p;
+			VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, variant, genome_idx);
 
-			//tags for important transcripts
-			int trans_id = db_.transcriptId(trans.id, false);
-			if (trans_id!=-1)
+			QString exon_intron;
+			if (consequence.exon_number!=-1)
 			{
-				Transcript db_trans = db_.transcript(trans_id);
-
-				QStringList tags;
-				if (db_trans.isManeSelectTranscript()) tags << "[MANE select]";
-				if (db_trans.isManePlusClinicalTranscript()) tags << "[MANE plus clinical]";
-				if (db_trans.isPreferredTranscript()) tags << "[preferred transcript]";
-				if (!tags.isEmpty())
-				{
-					line.append(" " + tags.join(" "));
-				}
+				exon_intron = "exon"+QString::number(consequence.exon_number)+"/"+QString::number(trans.regions().count());
 			}
+			else if (consequence.intron_number!=-1)
+			{
+				exon_intron = "intron"+QString::number(consequence.intron_number)+"/"+QString::number(trans.regions().count());
+			}
+
+			QString line = trans.gene() + " " + trans.nameWithVersion() + " " + exon_intron + " " + variant.chr().str() + ":" + QString::number(variant.start()) + "-" + QString::number(variant.end()) + " " + consequence.hgvs_c + " " + consequence.hgvs_p;
+
+			//flags for important transcripts
+			QStringList flags = trans.flags(true);
+			if (!flags.isEmpty()) line.append(" " + flags.join(" "));
 
 			transcript_infos << line;
 		}

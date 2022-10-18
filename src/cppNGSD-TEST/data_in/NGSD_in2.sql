@@ -77,14 +77,14 @@ INSERT INTO `gene` (`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES
 (652410, 11237, 'SPG7', 'SPG7 matrix AAA peptidase subunit, paraplegin', 'protein-coding gene'),
 (636152, 7105, 'MITF', 'melanocyte inducing transcription factor', 'protein-coding gene');
 
-INSERT INTO `gene_transcript` (`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES
-(1568912, 622167, 'ENST00000310193', 'ensembl', '8', 64596642, 64798587, '-'),
-(1503635, 650913, 'ENST00000338625', 'ensembl', '13', 40793227, 40809667, '+'),
-(1515928, 652410, 'ENST00000268704', 'ensembl', '16', 89508418, 89557093, '+'),
-(1515930, 652410, 'ENST00000341316', 'ensembl', '16', 89508418, 89536910, '+'),
-(1545575, 636152, 'ENST00000314557', 'ensembl', '3', 69936723, 69965248, '+'),
-(1545577, 636152, 'ENST00000314589', 'ensembl', '3', 69866291, 69965248, '+'),
-(1545579, 636152, 'ENST00000328528', 'ensembl', '3', 69763842, 69965248, '+');
+INSERT INTO `gene_transcript` (`id`, `gene_id`, `name`, `version`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES
+(1568912, 622167, 'ENST00000310193', '1', 'ensembl', '8', 64596642, 64798587, '-'),
+(1503635, 650913, 'ENST00000338625', '1', 'ensembl', '13', 40793227, 40809667, '+'),
+(1515928, 652410, 'ENST00000268704', '1', 'ensembl', '16', 89508418, 89557093, '+'),
+(1515930, 652410, 'ENST00000341316', '1', 'ensembl', '16', 89508418, 89536910, '+'),
+(1545575, 636152, 'ENST00000314557', '1', 'ensembl', '3', 69936723, 69965248, '+'),
+(1545577, 636152, 'ENST00000314589', '1', 'ensembl', '3', 69866291, 69965248, '+'),
+(1545579, 636152, 'ENST00000328528', '1', 'ensembl', '3', 69763842, 69965248, '+');
 
 INSERT INTO `gene_exon` (`transcript_id`, `start`, `end`) VALUES
 (1503635, 40789497, 40789663),

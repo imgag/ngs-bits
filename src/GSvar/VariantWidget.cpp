@@ -10,6 +10,7 @@
 #include <QAction>
 #include <QDesktopServices>
 #include <QInputDialog>
+#include "VariantHgvsAnnotator.h"
 
 VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	: QWidget(parent)
@@ -61,37 +62,27 @@ void VariantWidget::updateGUI()
 	ui_.ngsd_hom->setText(QString::number(counts.second));
 	GSvarHelper::limitLines(ui_.comments, query1.value("comment").toString());
 
-	//transcripts
-	try
-	{
-		QStringList lines;
-		QList<VariantTranscript> transcripts = Variant::parseTranscriptString(query1.value("coding").toByteArray(), true);
-		foreach(const VariantTranscript& trans, transcripts)
-		{
-			lines << "<a href=\"" + trans.gene + "\">" + trans.gene + "</a> " + trans.id + ": " + trans.type + " " + trans.hgvs_c + " " + trans.hgvs_p;
 
-			//tags for important transcripts
-			int trans_id = db.transcriptId(trans.id, false);
-			if (trans_id!=-1)
-			{
-				Transcript db_trans = db.transcript(trans_id);
+	//get all transcripts containing the variant
+	TranscriptList transcripts  = db.transcriptsOverlapping(variant_.chr(), variant_.start() - 5000, variant_.end() + 5000);
 
-				QStringList tags;
-				if (db_trans.isManeSelectTranscript()) tags << "[MANE select]";
-				if (db_trans.isManePlusClinicalTranscript()) tags << "[MANE plus clinical]";
-				if (db_trans.isPreferredTranscript()) tags << "[preferred transcript]";
-				if (!tags.isEmpty())
-				{
-					lines.last().append(" " + tags.join(" "));
-				}
-			}
-		}
-		ui_.transcripts->setText(lines.join("<br>"));
-	}
-	catch(...)
+	//annotate consequence for each transcript
+	QStringList lines;
+	FastaFileIndex genome_idx(Settings::string("reference_genome"));
+	VariantHgvsAnnotator hgvs_annotator;
+	foreach(const Transcript& trans, transcripts)
 	{
-		ui_.transcripts->setText("<font color=red>Could not parse transcript information from NGSD!</font>");
+		VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, variant_, genome_idx);
+
+		QString line = "<a href=\"" + trans.gene() + "\">" + trans.gene() + "</a> " + trans.nameWithVersion() + ": " + consequence.variantConsequenceTypesAsString() + " " + consequence.hgvs_c + " " + consequence.hgvs_p;
+
+		//flags for important transcripts
+		QStringList flags = trans.flags(true);
+		if (!flags.isEmpty()) line.append(" " + flags.join(" "));
+
+		lines << line;
 	}
+	ui_.transcripts->setText(lines.join("<br>"));
 
 	//PubMed ids
 	QStringList pubmed_ids = db.pubmedIds(variant_id);
@@ -104,7 +95,7 @@ void VariantWidget::updateGUI()
 	QString open_all;
 	if (pubmed_ids.size() > 2)
 	{
-		open_all = "<br><a href=\"openAll\"><i>(open all (" + QString::number(pubmed_ids.size()) + " ids))</i></a>";
+		open_all = " <a href=\"openAll\"><i>[open all]</i></a>";
 	}
 	ui_.pubmed->setText(pubmed_links.join(", ") + open_all);
 	ui_.pubmed->setToolTip(pubmed_ids.join(", "));

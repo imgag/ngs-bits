@@ -135,7 +135,7 @@ void GeneSelectorDialog::updateGeneTable()
 		//transcript
 		Transcript transcript = db.bestTranscript(gene_id);
 		BedFile region = transcript.codingRegions();
-		setGeneTableItem(r, 1, transcript.name() + " (" + QString::number(region.count()) + " exons)");
+		setGeneTableItem(r, 1, transcript.nameWithVersion() + " (" + QString::number(region.count()) + " exons)");
 
 		//size
 		region.extend(5);

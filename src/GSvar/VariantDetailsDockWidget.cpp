@@ -611,7 +611,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			}
 			if (ids.size() > 2)
 			{
-				text += "... " + formatLink("<i>(open all (" + QString::number(ids.size()) + "))</i> ", "openAll") + " ";
+				text += "... " + formatLink("<i>(open all " + QString::number(ids.size()) + ")</i> ", "openAll") + " ";
 			}
 
 			tooltip = ids.join(", ");
