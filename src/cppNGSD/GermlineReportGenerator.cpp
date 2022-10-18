@@ -816,10 +816,10 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			TranscriptList transcripts  = db_.transcriptsOverlapping(variant.chr(), variant.start() - 5000, variant.end() + 5000);
 
 			//annotate consequence to transcript
-			VariantHgvsAnnotator hgvs_annotator(5000, 3, 20, 20);
+			VariantHgvsAnnotator hgvs_annotator;
 			foreach(const Transcript& trans, transcripts)
 			{
-				HgvsNomenclature hgvs = hgvs_annotator.variantToHgvs(trans, variant, genome_idx_);
+				VariantConsequence hgvs = hgvs_annotator.variantToHgvs(trans, variant, genome_idx_);
 				VariantTranscript consequence;
 				consequence.gene = trans.gene();
 				consequence.id = hgvs.transcript_id.toUtf8();
@@ -1899,7 +1899,7 @@ QString GermlineReportGenerator::formatCodingSplicing(const Variant& v)
 	QStringList output;
 
 	//get transcript-specific data of best transcript for all overlapping genes
-	VariantHgvsAnnotator hgvs_annotator(5000, 3, 20, 20);
+	VariantHgvsAnnotator hgvs_annotator;
 	GeneSet genes = db_.genesOverlapping(v.chr(), v.start(), v.end(), 5000);
 	foreach(const QByteArray& gene, genes)
 	{
@@ -1909,7 +1909,7 @@ QString GermlineReportGenerator::formatCodingSplicing(const Variant& v)
 		{
 			try
 			{
-				HgvsNomenclature consequence = hgvs_annotator.variantToHgvs(trans, v, genome_idx_);
+				VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, v, genome_idx_);
 				output << gene + ":" + trans.nameWithVersion() + ":" + consequence.hgvs_c + ":" + consequence.hgvs_p;
 			}
 			catch(Exception& e)
@@ -2263,7 +2263,7 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 	if (conf.isManuallyCurated()) conf.updateVariant(v, genome_idx_, i_genotype);
 
 	//get transcript-specific data of best transcript for all overlapping genes
-	VariantHgvsAnnotator hgvs_annotator(5000, 3, 20, 20);
+	VariantHgvsAnnotator hgvs_annotator;
 	GeneSet genes = db_.genesOverlapping(v.chr(), v.start(), v.end(), 5000);
 	QStringList types;
 	QStringList hgvs_cs;
@@ -2276,7 +2276,7 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 		{
 			try
 			{
-				HgvsNomenclature consequence = hgvs_annotator.variantToHgvs(trans, v, genome_idx_);
+				VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, v, genome_idx_);
 				types << consequence.variantConsequenceTypesAsString("&amp;");
 				hgvs_cs << trans.nameWithVersion() + ":" + consequence.hgvs_c;
 				hgvs_ps << trans.nameWithVersion() + ":" + consequence.hgvs_p;

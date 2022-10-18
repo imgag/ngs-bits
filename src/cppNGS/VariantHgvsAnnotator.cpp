@@ -9,11 +9,11 @@ VariantHgvsAnnotator::VariantHgvsAnnotator(int max_dist_to_transcript, int splic
 }
 
 //convert a variant in VCF format into an HgvsNomenclature object
-HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcript, VcfLine& variant, const FastaFileIndex& genome_idx)
+VariantConsequence VariantHgvsAnnotator::variantToHgvs(const Transcript& transcript, VcfLine& variant, const FastaFileIndex& genome_idx)
 {
     //init
     bool plus_strand = transcript.strand() == Transcript::PLUS;
-    HgvsNomenclature hgvs;
+	VariantConsequence hgvs;
 
     //variant allele extracted before normalization/shifting for insertion/delins
     if(!variant.isSNV() && !variant.isDel())
@@ -330,7 +330,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
 }
 
 //convert a variant in GSvar format into an HgvsNomenclature object
-HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcript, const Variant &variant, const FastaFileIndex& genome_idx)
+VariantConsequence VariantHgvsAnnotator::variantToHgvs(const Transcript& transcript, const Variant &variant, const FastaFileIndex& genome_idx)
 {
     //first convert from Variant to VcfLine
     VariantVcfRepresentation vcf_rep = variant.toVCF(genome_idx);
@@ -343,7 +343,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
 
 // make variant consequence type annotations depending on the part of the transcript the variant occurs in;
 // for coding variants and a single genomic position
-QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand, bool is_dup)
+QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript, VariantConsequence& hgvs, int gen_pos, bool plus_strand, bool is_dup)
 {
     QString pos_hgvs_c;
 
@@ -510,7 +510,7 @@ QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript
 
 // make variant consequence type annotations depending on the part of the transcript the variant occurs in;
 // for non-coding variants and a single genomic position
-QString VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& transcript, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand, bool is_dup)
+QString VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& transcript, VariantConsequence& hgvs, int gen_pos, bool plus_strand, bool is_dup)
 {
     QString pos_hgvs_c;
 
@@ -569,7 +569,7 @@ QString VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& transcr
 }
 
 //determine the HGVS position string for a single genomic position in any part of the transcript
-QString VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand, const BedFile& coding_regions, bool utr_5, int first_region)
+QString VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, VariantConsequence& hgvs, int gen_pos, bool plus_strand, const BedFile& coding_regions, bool utr_5, int first_region)
 {
     bool in_exon = false;
 
@@ -620,7 +620,7 @@ QString VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, HgvsNomenc
 }
 
 //determine the HGVS position string for a single genomic position in an intron
-QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, HgvsNomenclature& hgvs, int genomic_position, bool plus_strand, const BedFile& coding_regions, bool utr_5, int first_region)
+QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, VariantConsequence& hgvs, int genomic_position, bool plus_strand, const BedFile& coding_regions, bool utr_5, int first_region)
 {
     QString pos_in_intron;
     int closest_exon_pos = 0;
@@ -1222,7 +1222,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
 
 
 //add the consequence type according to the change in the protein sequence
-void VariantHgvsAnnotator::annotateProtSeqCsqSnv(HgvsNomenclature& hgvs)
+void VariantHgvsAnnotator::annotateProtSeqCsqSnv(VariantConsequence& hgvs)
 {
     if(hgvs.hgvs_p.endsWith("="))
     {
@@ -1261,7 +1261,7 @@ void VariantHgvsAnnotator::annotateProtSeqCsqSnv(HgvsNomenclature& hgvs)
 }
 
 //annotate if the variant is a splice region variant
-void VariantHgvsAnnotator::annotateSpliceRegion(HgvsNomenclature& hgvs, const Transcript& transcript, int start, int end, bool plus_strand, bool insertion)
+void VariantHgvsAnnotator::annotateSpliceRegion(VariantConsequence& hgvs, const Transcript& transcript, int start, int end, bool plus_strand, bool insertion)
 {
     //allow different definitions for 5 prime and 3 prime side of intron
     int splice_region_in_start = plus_strand ? splice_region_in_5_ : splice_region_in_3_;
@@ -1386,13 +1386,13 @@ Sequence VariantHgvsAnnotator::getCodingSequence(const Transcript& trans, const 
 }
 
 //Returns the variant types as string (ordered alphabetically)
-QString HgvsNomenclature::variantConsequenceTypesAsString(QString sep)
+QString VariantConsequence::variantConsequenceTypesAsString(QString sep)
 {
 	QStringList output;
 
 	foreach(const VariantConsequenceType& type, variant_consequence_type)
 	{
-		output << HgvsNomenclature::consequenceTypeToString(type);
+		output << VariantConsequence::consequenceTypeToString(type);
 	}
 
 	output.sort();

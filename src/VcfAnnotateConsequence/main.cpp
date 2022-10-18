@@ -91,7 +91,7 @@ private:
 				foreach(const Sequence& alt_part, alt.split(','))
                 {
 					VcfLine var_for_anno = VcfLine(chr, pos, ref, QVector<Sequence>() << alt_part);
-                    HgvsNomenclature hgvs;
+					VariantConsequence hgvs;
 					if(var_for_anno.isSNV())
 					{
 						hgvs.allele = var_for_anno.alt(0);
@@ -127,7 +127,7 @@ private:
 
                     try
                     {
-						HgvsNomenclature hgvs = hgvs_anno.variantToHgvs(t, var_for_anno, reference);
+						VariantConsequence hgvs = hgvs_anno.variantToHgvs(t, var_for_anno, reference);
 						consequences << hgvsNomenclatureToString(hgvs, t);
                     }
                     catch(ArgumentException& e)
@@ -197,7 +197,7 @@ private:
 		writer->write("\n");
     }
 
-	QByteArray hgvsNomenclatureToString(const HgvsNomenclature& hgvs, const Transcript& t)
+	QByteArray hgvsNomenclatureToString(const VariantConsequence& hgvs, const Transcript& t)
     {
 		QByteArrayList output;
 		output << hgvs.allele.toUtf8();

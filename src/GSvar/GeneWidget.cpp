@@ -299,10 +299,7 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 		ui_.transcripts->setCellWidget(row, 6, GUIHelper::createLinkLabel(ccds.join(", ")));
 		ui_.transcripts->setCellWidget(row, 7, GUIHelper::createLinkLabel(refseq.join(", ")));
 
-		QStringList flags;
-		if (transcript.isPreferredTranscript()) flags += "NGSD preferred transcript";
-		if (transcript.isManeSelectTranscript()) flags << "MANE select";
-		if (transcript.isManePlusClinicalTranscript()) flags << "MANE plus clinical";
+		QStringList flags = transcript.flags(false);
 		QString transcript_id = db.getValue("SELECT id FROM gene_transcript WHERE name=:0", true, transcript.name()).toString();
 		if (db.getValue("SELECT is_ensembl_canonical FROM gene_transcript WHERE id=" + transcript_id).toBool()==true) flags << "Ensembl canonical";
 		if (db.getValue("SELECT is_gencode_basic FROM gene_transcript WHERE id=" + transcript_id).toBool()==true) flags << "GENCODE basic";

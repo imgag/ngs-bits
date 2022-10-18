@@ -205,6 +205,9 @@ public:
 		is_mane_plus_clinical_ = is_mane_plus_clinical;
 	}
 
+	///Returns a list of flags associated with the transcript (preferred transcript, MANE select, MANE plus clinical)
+	QStringList flags(bool add_square_brackets) const;
+
 	const BedFile& regions() const
 	{
 		return regions_;
