@@ -1,6 +1,6 @@
 ##fileformat=BEDPE
 ##fileDate=20191130
-##source=GenerateSVCandidates 1.6.0
+##source=DRAGEN 01.011.608.3.9.3
 ##reference=file:///tmp/local_ngs_data/GRCh37.fa
 ##contig=<ID=chr1,length=249250621>
 ##contig=<ID=chr14,length=107349540>
