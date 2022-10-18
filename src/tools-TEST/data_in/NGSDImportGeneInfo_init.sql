@@ -5,9 +5,9 @@ INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES
 (3,1003, 'OR4F5', 'olfactory receptor family 4 subfamily F member 5', 'protein-coding gene'),
 (4,1004, 'DIRC1', 'disrupted in renal carcinoma 1', 'protein-coding gene');
 
-INSERT INTO `gene_transcript` (`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES
-(1, 3, 'ENST00000335137', 'ensembl', '1', 69091, 70008, '+'),
-(2, 3, 'CCDS30547.1', 'ccds', '1', 69091, 70008, '+');
+INSERT INTO `gene_transcript` (`id`, `gene_id`, `name`, `version`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES
+(1, 3, 'ENST00000335137', '1', 'ensembl', '1', 69091, 70008, '+'),
+(2, 3, 'CCDS30547', '1', 'ccds', '1', 69091, 70008, '+');
 
 INSERT INTO `geneinfo_germline`(`symbol`, `inheritance`, `gnomad_oe_mis`, `gnomad_oe_syn`, `gnomad_oe_lof`, `comments`) VALUES
 ('BRCA1', 'AD', 0.00, 0.00, 0.00, ''),

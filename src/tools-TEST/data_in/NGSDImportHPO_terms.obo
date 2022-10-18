@@ -62,18 +62,17 @@ def: "A mode of inheritance that is observed for traits related to a gene encode
 is_a: HP:0000005 ! Mode of inheritance
 
 [Term]
-id: HP:0003114
-name: Abnormal cardiological findings
-comment: Consider abnormality of the cardiovascular system, HP:0001626.
-is_obsolete: true
-replaced_by: HP:0001113
+id: HP:0001626
+name: Abnormality of the cardiovascular system
+def: "Any abnormality of the cardiovascular system." [HPO:probinson]
+comment: The cardiovascular system consists of the heart, vasculature, and the lymphatic system.
+is_a: HP:0000118 ! Phenotypic abnormality
 
 [Term]
 id: HP:0003114
 name: obsolete Abnormal cardiological findings
-comment: Consider abnormality of the cardiovascular system, HP:0001626.
 is_obsolete: true
-replaced_by: HP:0001113
+replaced_by: HP:0001626
 
 [Term]
 id: HP:0006625

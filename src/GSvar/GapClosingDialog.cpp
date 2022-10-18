@@ -78,7 +78,7 @@ QString GapClosingDialog::exonNumber(const QByteArray& gene, int start, int end)
 		int exon_nr = trans.exonNumber(start-20, end+20);
 		if (exon_nr!=-1)
 		{
-			output = QByteArray::number(exon_nr) + " (" + trans.name() + ")";
+			output = QByteArray::number(exon_nr) + " (" + trans.nameWithVersion() + ")";
 		}
 	}
 

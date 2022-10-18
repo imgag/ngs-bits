@@ -22,7 +22,7 @@ private slots:
 
 		//check
 		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();
-		I_EQUAL(count, 14)
+		I_EQUAL(count, 15)
 		count = db.getValue("SELECT count(*) FROM hpo_term WHERE synonyms!=''").toInt();
 		I_EQUAL(count, 3)
 		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
@@ -50,7 +50,7 @@ private slots:
 
 		//check
 		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();
-		I_EQUAL(count, 14)
+		I_EQUAL(count, 15)
 		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
 		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
@@ -102,7 +102,7 @@ private slots:
 
 		//check
 		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();
-		I_EQUAL(count, 14)
+		I_EQUAL(count, 15)
 		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
 		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
@@ -126,7 +126,7 @@ private slots:
 
 		//check
 		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();
-		I_EQUAL(count, 14)
+		I_EQUAL(count, 15)
 		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
 		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
@@ -153,7 +153,7 @@ private slots:
 
 		//check
 		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();
-		I_EQUAL(count, 14)
+		I_EQUAL(count, 15)
 		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
 		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
@@ -199,7 +199,7 @@ private slots:
 
 		//check
 		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();
-		I_EQUAL(count, 14)
+		I_EQUAL(count, 15)
 		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
 		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
@@ -265,13 +265,13 @@ private slots:
 
 		//check
 		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();
-		I_EQUAL(count, 14)
+		I_EQUAL(count, 15)
 		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
 		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
-		I_EQUAL(count, 127);
+		I_EQUAL(count, 128);
 		count = db.getValue("SELECT count(*) FROM hpo_genes WHERE details LIKE '%Decipher%'").toInt();
-		I_EQUAL(count, 17);
+		I_EQUAL(count, 18);
 
 		QStringList results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%both RD and IF%'");
 		I_EQUAL(results.length(), 3);
@@ -295,7 +295,7 @@ private slots:
 		}
 
 		results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%confirmed%'");
-		I_EQUAL(results.length(), 12);
+		I_EQUAL(results.length(), 13);
 		foreach (const QString res, results)
 		{
 			S_EQUAL(res, "high")
@@ -316,13 +316,13 @@ private slots:
 
 		//check
 		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();
-		I_EQUAL(count, 14)
+		I_EQUAL(count, 15)
 		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
 		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
-		I_EQUAL(count, 127);
+		I_EQUAL(count, 128);
 		count = db.getValue("SELECT count(*) FROM hpo_genes WHERE details LIKE '%Decipher%'").toInt();
-		I_EQUAL(count, 17);
+		I_EQUAL(count, 18);
 
 		QStringList results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%both RD and IF%'");
 		I_EQUAL(results.length(), 3);
@@ -346,7 +346,7 @@ private slots:
 		}
 
 		results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%definitive%'");
-		I_EQUAL(results.length(), 12);
+		I_EQUAL(results.length(), 13);
 		foreach (const QString res, results)
 		{
 			S_EQUAL(res, "high")
@@ -367,11 +367,11 @@ private slots:
 
 		//check
 		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();
-		I_EQUAL(count, 14)
+		I_EQUAL(count, 15)
 		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
 		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
-		I_EQUAL(count, 178);
+		I_EQUAL(count, 179);
 	}
 };
 

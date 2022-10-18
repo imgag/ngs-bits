@@ -816,10 +816,10 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			TranscriptList transcripts  = db_.transcriptsOverlapping(variant.chr(), variant.start() - 5000, variant.end() + 5000);
 
 			//annotate consequence to transcript
-			VariantHgvsAnnotator hgvs_annotator(5000, 3, 20, 20);
+			VariantHgvsAnnotator hgvs_annotator;
 			foreach(const Transcript& trans, transcripts)
 			{
-				HgvsNomenclature hgvs = hgvs_annotator.variantToHgvs(trans, variant, genome_idx_);
+				VariantConsequence hgvs = hgvs_annotator.variantToHgvs(trans, variant, genome_idx_);
 				VariantTranscript consequence;
 				consequence.gene = trans.gene();
 				consequence.id = hgvs.transcript_id.toUtf8();
@@ -1775,7 +1775,7 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 		}
 		catch(Exception e)
 		{
-			Log::warn("Low-coverage statistics for transcript " + transcript.name() + " needs to be calculated. Pre-calculated gap file cannot be used because: " + e.message());
+			Log::warn("Low-coverage statistics for transcript " + transcript.nameWithVersion() + " needs to be calculated. Pre-calculated gap file cannot be used because: " + e.message());
 			gaps = data_.statistics_service.lowCoverage(roi, data_.ps_bam, data_.report_settings.min_depth);
 		}
 
@@ -1786,7 +1786,7 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 		{
 			coords << QString::number(gaps[i].start()) + "-" + QString::number(gaps[i].end());
 		}
-		if (gap_table) stream << "<tr><td>" + symbol + "</td><td>" << transcript.name() << "</td><td>" << bases_transcipt << "</td><td>" << bases_gaps << "</td><td>" << roi[0].chr().str() << "</td><td>" << coords.join(", ") << "</td></tr>";
+		if (gap_table) stream << "<tr><td>" + symbol + "</td><td>" << transcript.nameWithVersion() << "</td><td>" << bases_transcipt << "</td><td>" << bases_gaps << "</td><td>" << roi[0].chr().str() << "</td><td>" << coords.join(", ") << "</td></tr>";
 		gap_count[symbol] += bases_gaps;
 		bases_overall += bases_transcipt;
 		bases_sequenced += bases_transcipt - bases_gaps;
@@ -1899,7 +1899,7 @@ QString GermlineReportGenerator::formatCodingSplicing(const Variant& v)
 	QStringList output;
 
 	//get transcript-specific data of best transcript for all overlapping genes
-	VariantHgvsAnnotator hgvs_annotator(5000, 3, 20, 20);
+	VariantHgvsAnnotator hgvs_annotator;
 	GeneSet genes = db_.genesOverlapping(v.chr(), v.start(), v.end(), 5000);
 	foreach(const QByteArray& gene, genes)
 	{
@@ -1909,8 +1909,8 @@ QString GermlineReportGenerator::formatCodingSplicing(const Variant& v)
 		{
 			try
 			{
-				HgvsNomenclature consequence = hgvs_annotator.variantToHgvs(trans, v, genome_idx_);
-				output << gene + ":" + trans.name() + ":" + consequence.hgvs_c + ":" + consequence.hgvs_p;
+				VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, v, genome_idx_);
+				output << gene + ":" + trans.nameWithVersion() + ":" + consequence.hgvs_c + ":" + consequence.hgvs_p;
 			}
 			catch(Exception& e)
 			{
@@ -2263,7 +2263,7 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 	if (conf.isManuallyCurated()) conf.updateVariant(v, genome_idx_, i_genotype);
 
 	//get transcript-specific data of best transcript for all overlapping genes
-	VariantHgvsAnnotator hgvs_annotator(5000, 3, 20, 20);
+	VariantHgvsAnnotator hgvs_annotator;
 	GeneSet genes = db_.genesOverlapping(v.chr(), v.start(), v.end(), 5000);
 	QStringList types;
 	QStringList hgvs_cs;
@@ -2276,10 +2276,10 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 		{
 			try
 			{
-				HgvsNomenclature consequence = hgvs_annotator.variantToHgvs(trans, v, genome_idx_);
+				VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, v, genome_idx_);
 				types << consequence.variantConsequenceTypesAsString("&amp;");
-				hgvs_cs << trans.name() + ":" + consequence.hgvs_c;
-				hgvs_ps << trans.name() + ":" + consequence.hgvs_p;
+				hgvs_cs << trans.nameWithVersion() + ":" + consequence.hgvs_c;
+				hgvs_ps << trans.nameWithVersion() + ":" + consequence.hgvs_p;
 			}
 			catch(Exception& e)
 			{

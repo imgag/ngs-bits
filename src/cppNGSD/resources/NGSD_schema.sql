@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS `gene_transcript`
 `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 `gene_id` int(10) unsigned NOT NULL,
 `name` varchar(40) NOT NULL,
+`version` int(10) NOT NULL,
 `source` enum('ccds', 'ensembl') NOT NULL,
 `chromosome` enum('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','X','Y','MT') NOT NULL,
 `start_coding` int(10) unsigned NULL,
