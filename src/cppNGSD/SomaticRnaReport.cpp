@@ -21,11 +21,11 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 	dna_cnvs_ = SomaticRnaReportData::filterCnvs(cnv_list, data);
 
 
-	if(!QFile::exists(data.rna_fusion_file))
+	if(!VersatileFile(data.rna_fusion_file).exists())
 	{
 		THROW(FileAccessException, "RNA fusions file does not exist: " + data.rna_fusion_file);
 	}
-	if( !QFile::exists(data.rna_expression_file) )
+	if(!VersatileFile(data.rna_expression_file).exists())
 	{
 		THROW(FileAccessException, "RNA expression file does not exist: " + data.rna_expression_file);
 	}
