@@ -185,7 +185,15 @@ QList<QByteArray> OntologyTermCollection::childIDs(const QByteArray& term_id, bo
 			ids.append(term.id());
 			if(recursive)
 			{
-				ids.append(childIDs(term.id(), true));
+				foreach(QByteArray recursive_term, childIDs(term.id(), true))
+				{
+					//remove duplicates
+					if (! ids.contains(recursive_term))
+					{
+						ids.append(recursive_term);
+					}
+				}
+
 			}
 		}
 
