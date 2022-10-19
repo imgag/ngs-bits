@@ -4474,7 +4474,7 @@ void MainWindow::generateReportSomaticRTF()
 	QList<QByteArray> ids;
 	ids << obo_terms.childIDs("SO:0001580",true); //coding variants
 	ids << obo_terms.childIDs("SO:0001568",true); //splicing variants
-	foreach(const QByteArray& id, ids)
+	foreach(const QByteArray& id, ids.toSet())
 	{
 		somatic_report_settings_.obo_terms_coding_splicing.add(obo_terms.getByID(id));
 	}
