@@ -3,9 +3,8 @@
 
 #include "TestFramework.h"
 #include "VersatileFile.h"
+#include "HttpRequestHandler.h"
 #include "ServerHelper.h"
-
-
 
 TEST_CLASS(VersatileFile_Test)
 {
@@ -13,6 +12,11 @@ TEST_CLASS(VersatileFile_Test)
 	private slots:
 		void test_metadata()
 		{
+			if (!ServerHelper::hasBasicSettings())
+			{
+				SKIP("Server has not been configured correctly");
+			}
+
 			const QString bam_file_http = ServerHelper::getServerUrl(true) + "/v1/bam/rna.bam";
 			const QString bam_file_https = ServerHelper::getServerUrl(false) + "/v1/bam/rna.bam";
 
@@ -28,6 +32,11 @@ TEST_CLASS(VersatileFile_Test)
 
 		void test_readability()
 		{
+			if (!ServerHelper::hasBasicSettings())
+			{
+				SKIP("Server has not been configured correctly");
+			}
+
 			const QString html_file = ServerHelper::getServerUrl(false) + "/v1/";
 
 			QFile *local_asset_file = new QFile(":/assets/client/info.html");
