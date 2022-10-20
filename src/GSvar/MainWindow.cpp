@@ -3802,11 +3802,17 @@ void MainWindow::checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>
 		}
 
 		//check KASP result
-		bool ok = true;
-		double error_prob = db.getValue("SELECT random_error_prob FROM kasp_status WHERE random_error_prob<=1 AND processed_sample_id=" + ps_id, true).toDouble(&ok);
-		if (ok && error_prob>0.03)
+		try
 		{
-			issues << qMakePair(Log::LOG_WARNING, "KASP swap probability of processed sample '" + ps + "' is larger than 3%!");
+			double error_prob = db.kaspData(ps_id).random_error_prob;
+			if (error_prob>0.03)
+			{
+				issues << qMakePair(Log::LOG_WARNING, "KASP swap probability of processed sample '" + ps + "' is larger than 3%!");
+			}
+		}
+		catch (DatabaseException /*e*/)
+		{
+			//nothing to do (KASP not done or invalid)
 		}
 
 		//check variants are imported

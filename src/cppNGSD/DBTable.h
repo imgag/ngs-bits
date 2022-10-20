@@ -125,6 +125,13 @@ class CPPNGSDSHARED_EXPORT DBTable
 		///Writes contents to a stream (TSV representation)
 		void write(QTextStream& stream) const;
 
+		///Costum sorting of rows
+		template <typename T>
+		void sortCustom(const T& comarator)
+		{
+			std::sort(rows_.begin(), rows_.end(), comarator);
+		}
+
 	protected:
 		QString table_name_;
 		QStringList headers_;

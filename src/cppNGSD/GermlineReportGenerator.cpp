@@ -75,7 +75,25 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	stream << "<br />" << trans("Benutzer") << ": " << LoginManager::userLogin() << endl;
 	stream << "<br />" << trans("Analysepipeline") << ": "  << data_.variants.getPipeline() << endl;
 	stream << "<br />" << trans("Auswertungssoftware") << ": "  << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << endl;
-	stream << "<br />" << trans("KASP-Ergebnis") << ": " << db_.getQCData(ps_id_).value("kasp").asString() << endl;
+
+	QString kasp_text;
+	try
+	{
+		KaspData kasp_data = db_.kaspData(ps_id_);
+		if (kasp_data.random_error_prob>0.01)
+		{
+			kasp_text = "<font color=red>"+QString::number(100.0*kasp_data.random_error_prob)+"%</font>";
+		}
+		else
+		{
+			kasp_text = QString::number(100.0*kasp_data.random_error_prob)+"%";
+		}
+	}
+	catch(DatabaseException& /*e*/)
+	{
+		//nothing to do here (KASP not done or invalid)
+	}
+	stream << "<br />" << trans("KASP-Ergebnis") << ": " << kasp_text << endl;
 	stream << "</p>" << endl;
 
 	///Phenotype information

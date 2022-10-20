@@ -475,7 +475,7 @@ created_by: sturm
 [Term]
 id: QC:2000004
 name: NGS variant list parameter
-def: "Quality parameter from the variant calling step of a next generation sequencing experiment." [PXS:QC]
+def: "Quality parameter from the small variant calling step of a next generation sequencing experiment." [PXS:QC]
 is_a: QC:2000001 ! NGS quality parameter
 created_by: sturm
 
@@ -1350,3 +1350,49 @@ def: "Number of outlier genes (zscore >= 3.0)"
 is_a: QC:2000004 ! NGS variant list parameter
 xref: value-type:xsd\:int "The allowed value-type for this CV term."
 created_by: schuetz
+
+[Term]
+id: QC:2000112
+name: NGS CNV list parameter
+def: "Quality parameter from the CNV calling step of a next generation sequencing experiment." [PXS:QC]
+is_a: QC:2000001 ! NGS quality parameter
+created_by: sturm
+
+[Term]
+id: QC:2000113
+name: CNV count
+def: "Number of high-quality CNVs called by ClinCNV. High-quality means that log-likelihood is bigger or equal to 20."
+is_a: QC:2000112 ! NGS CNV list parameter
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000114
+name: coverage profile correlation
+def: "Mean correlation between the sample coverage profile and the coverage profiles of the reference cohort samples."
+is_a: QC:2000112 ! NGS CNV list parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000115
+name: number of iterations
+def: "Number of iterations done by ClinCNV when calling CNVs. CNV calling is repeated with increased log-likelihood threshold as long as too many CNVs are detected. Normally only one iteration is done."
+is_a: QC:2000112 ! NGS CNV list parameter
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000116
+name: NGS SV list parameter
+def: "Quality parameter from the structural variant calling step of a next generation sequencing experiment." [PXS:QC]
+is_a: QC:2000001 ! NGS quality parameter
+created_by: sturm
+
+[Term]
+id: QC:2000117
+name: SV count
+def: "Number of structural variants called by Manta."
+is_a: QC:2000116 ! NGS SV list parameter
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: sturm

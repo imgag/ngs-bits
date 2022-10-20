@@ -301,9 +301,9 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 
 		QStringList flags;
 		if (transcript.isPreferredTranscript()) flags += "NGSD preferred transcript";
-		QString transcript_id = db.getValue("SELECT id FROM gene_transcript WHERE name=:0", true, transcript.name()).toString();
 		if (transcript.isManeSelectTranscript()) flags << "MANE select";
-		if (db.getValue("SELECT is_mane_plus_clinical 	 FROM gene_transcript WHERE id=" + transcript_id).toBool()==true) flags << "MANE plus clinical";
+		if (transcript.isManePlusClinicalTranscript()) flags << "MANE plus clinical";
+		QString transcript_id = db.getValue("SELECT id FROM gene_transcript WHERE name=:0", true, transcript.name()).toString();
 		if (db.getValue("SELECT is_ensembl_canonical FROM gene_transcript WHERE id=" + transcript_id).toBool()==true) flags << "Ensembl canonical";
 		if (db.getValue("SELECT is_gencode_basic FROM gene_transcript WHERE id=" + transcript_id).toBool()==true) flags << "GENCODE basic";
 		ui_.transcripts->setItem(row, 8, GUIHelper::createTableItem(flags.join(", ")));
