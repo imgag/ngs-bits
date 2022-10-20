@@ -6877,6 +6877,18 @@ void MainWindow::editVariantReportConfiguration(int index)
 				QMessageBox::warning(this, "Variant classification required!", "Causal variants should have a classification!", QMessageBox::Ok, QMessageBox::NoButton);
 				editVariantClassification(variants_, index);
 			}
+
+			//enforce ClinVar upload of class 4/5 variants
+			classification_info = db.getClassification(variant);
+			if (classification_info.classification=="4" || classification_info.classification=="5")
+			{
+				QList<int> publication_ids = db.getValuesInt("SELECT id FROM variant_publication WHERE variant_id='" + db.variantId(variants_[index]) + "'");
+				if (publication_ids.isEmpty())
+				{
+					QMessageBox::information(this, "Clinvar upload required!", "Class 4 or 5 variants should be uploaded to ClinVar!", QMessageBox::Ok, QMessageBox::NoButton);
+					uploadToClinvar(index);
+				}
+			}
 		}
 	}
 	else if(somaticReportSupported()) //somatic report variant configuration
