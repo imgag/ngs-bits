@@ -56,6 +56,7 @@ HttpResponse ServerController::createStaticFileRangeResponse(QString filename, Q
 	response_data.file_size = QFile(filename).size();
 	response_data.is_stream = true;
 	response_data.content_type = type;
+	response_data.status = ResponseStatus::PARTIAL_CONTENT;
 	response_data.is_downloadable = is_downloadable;
 
 	return HttpResponse(response_data);

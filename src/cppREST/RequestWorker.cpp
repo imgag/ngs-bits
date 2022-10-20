@@ -271,7 +271,7 @@ void RequestWorker::run()
 				qDebug() << "Terminated at " << pos << ", " << tid;
 				return;
 			}
-			sendResponseDataPart(ssl_socket, "\r\n");
+			if (ranges_count > 1) sendResponseDataPart(ssl_socket, "\r\n");
 			if ((i == (ranges_count-1)) && (ranges_count > 1))
 			{
 				sendResponseDataPart(ssl_socket, "--" + response.getBoundary() + "--\r\n");
