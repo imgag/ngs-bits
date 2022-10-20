@@ -15,7 +15,7 @@ QByteArray ApiCaller::get(QString api_path, RequestUrlParams url_params, HttpHea
 		if (needs_user_token) addUserTokenIfExists(url_params);
 		if (needs_db_token) addDbTokenIfExists(url_params);
 
-		return HttpRequestHandler(HttpRequestHandler::NONE).get(NGSHelper::serverApiUrl() + api_path + url_params.asString(), headers);
+		return HttpRequestHandler(HttpRequestHandler::NONE).get(NGSHelper::serverApiUrl() + api_path + QUrl(url_params.asString()).toEncoded(), headers);
 	}
 	catch (Exception& e)
 	{
@@ -36,7 +36,7 @@ QByteArray ApiCaller::post(QString api_path, RequestUrlParams url_params, HttpHe
 		if (needs_user_token) addUserTokenIfExists(url_params);
 		if (needs_db_token) addDbTokenIfExists(url_params);
 
-		return HttpRequestHandler(HttpRequestHandler::NONE).post(NGSHelper::serverApiUrl() + api_path + url_params.asString(), data, headers);
+		return HttpRequestHandler(HttpRequestHandler::NONE).post(NGSHelper::serverApiUrl() + api_path + QUrl(url_params.asString()).toEncoded(), data, headers);
 	}
 	catch (Exception& e)
 	{				

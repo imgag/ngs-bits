@@ -17,14 +17,17 @@ echo "liftover_hg19_hg38 = ../src/cppNGS-TEST/data_in/hg19ToHg38.over.chain.gz" 
 echo "liftover_hg38_hg19 = ../src/cppNGS-TEST/data_in/hg38ToHg19.over.chain.gz" >> ./bin/settings.ini
 echo "threads = 1" >> ./bin/settings.ini
 
-touch ./bin/GSvarServer.ini
-echo "url_lifetime = 5" >> ./bin/GSvarServer.ini
-echo "server_host = \"127.0.0.1\"" >> ./bin/GSvarServer.ini
-echo "http_server_port = 8080" >> ./bin/GSvarServer.ini
-echo "https_server_port = 8443" >> ./bin/GSvarServer.ini
-echo "ssl_certificate = \"$HOME/ssl/test-cert.crt\"" >> ./bin/GSvarServer.ini
-echo "ssl_key = \"$HOME/ssl/test-key.key\"" >> ./bin/GSvarServer.ini
-echo "session_duration = 36000" >> ./bin/GSvarServer.ini
+touch ./bin/GSvarServer-TEST.ini
+echo "url_lifetime = 5" >> ./bin/GSvarServer-TEST.ini
+echo "server_host = \"localhost\"" >> ./bin/GSvarServer-TEST.ini
+echo "http_server_port = 8080" >> ./bin/GSvarServer-TEST.ini
+echo "https_server_port = 8443" >> ./bin/GSvarServer-TEST.ini
+echo "server_root = \"./bin\"" >> ./bin/GSvarServer-TEST.ini
+echo "allow_folder_listing = true" >> ./bin/GSvarServer-TEST.ini
+echo "ssl_certificate = \"$HOME/ssl/test-cert.crt\"" >> ./bin/GSvarServer-TEST.ini
+echo "ssl_key = \"$HOME/ssl/test-key.key\"" >> ./bin/GSvarServer-TEST.ini
+echo "session_duration = 36000" >> ./bin/GSvarServer-TEST.ini
+cp ./bin/GSvarServer-TEST.ini ./bin/GSvarServer.ini
 
 sed -i '/CRYPT/d' src/cppCORE/cppCORE.pro
 echo 'DEFINES += "CRYPT_KEY=\\\"0xf0a0c1ba2b7b7a82\\\""' >> ./src/cppCORE/cppCORE.pro
