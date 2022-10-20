@@ -726,6 +726,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		Variant variant = data_.variants[var_conf.variant_index];
 
 		//manual curation
+		ClassificationInfo class_info = db_.getClassification(variant); //get classification infos before modifying the variant
 		if (var_conf.isManuallyCurated()) var_conf.updateVariant(variant, genome_idx_, geno_idx);
 
 		w.writeStartElement("Variant");
@@ -791,7 +792,6 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		{
 			w.writeAttribute("inheritance", var_conf.inheritance);
 		}
-		ClassificationInfo class_info = db_.getClassification(variant);
 		if (class_info.classification!="" && class_info.classification!="n/a")
 		{
 			w.writeAttribute("class", class_info.classification);
