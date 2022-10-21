@@ -59,7 +59,7 @@ public:
 
 	///Returns if the pre-calcualed gaps for the given ROI.
 	///If using the pre-calculated gaps file is not possible, @p message contains an error message.
-	static BedFile precalculatedGaps(QString low_cov_file, const BedFile& roi, int min_cov, const BedFile& processing_system_target_region);
+	static BedFile precalculatedGaps(const BedFile& gaps_roi, const BedFile& roi, int min_cov, const BedFile& processing_system_target_region);
 
 	///Writes a evaluation sheet in HTML format.
 	void writeEvaluationSheet(QString filename, const EvaluationSheetData& evaluation_sheet_data);
