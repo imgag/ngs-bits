@@ -1,5 +1,11 @@
 # GSvar change log
 
+### 2022_10-43 (21.10.22)
+- Transcripts: Added transcript versions to NGSD and using it now in report and several other places.
+- Report germline: fixed long-running report generation.
+- Report germline: added ClinVar upload reminder for class 4 and 5 variants.
+- Report germline - XML: fixed missing classification when small variants were manually curated.
+
 ### 2022_10-18 (13.10.22)
 - General: improved ordering of QC terms in processed sample tab.
 - General: speed-up of low-coverage calculations (multi-threaded and pre-calculation of low-coverage regions for WGS)

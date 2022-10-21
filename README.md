@@ -168,7 +168,9 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 ## ChangeLog
 
 Changes of master since last release:
-
+* NGSD:
+	* Added version number to table 'gene_transcript'.
+	
 Changes in release 2022_10:
 * SeqPurge: improved CPU usage and scaling in multi-threaded mode.
 * BedCoverage: added 'threads' parameter and removed 'dup' parameter.

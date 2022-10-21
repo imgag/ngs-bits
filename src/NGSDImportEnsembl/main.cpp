@@ -30,6 +30,7 @@ public:
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
 
+		changeLog(2022, 10, 17, "Added transcript versions.");
 		changeLog(2022,  5, 29, "Added parameters 'ensembl_canonical' and 'mane'.");
 		changeLog(2021,  6,  9, "Added support for multiple pseudogene files and duplication check.");
         changeLog(2021,  1, 25, "Made pseudogene file optional");
@@ -106,33 +107,34 @@ public:
 		return query.value(0).toInt();
 	}
 
-	int addTranscript(SqlQuery& query, int gene_id, const QByteArray& name, const QByteArray& source, const Transcript& t, bool is_gencode_basic, bool is_ensembl_canonical, bool is_mane_select, bool is_mane_plus_clinical)
+	int addTranscript(SqlQuery& query, int gene_id, const QByteArray& name, int version, const QByteArray& source, const Transcript& t, bool is_gencode_basic, bool is_ensembl_canonical, bool is_mane_select, bool is_mane_plus_clinical)
 	{
-		//QTextStream(stdout) << "Adding transcript name=" << name << " source=" << source << " gene=" << t_data.ngsd_gene_id << " start_coding=" << t_data.start_coding << " end_coding=" << t_data.end_coding << endl;
+		//QTextStream(stdout) << "Adding transcript name=" << name << " version=" << version << " source=" << source << endl;
 		query.bindValue(0, gene_id);
 		query.bindValue(1, name);
-		query.bindValue(2, source);
-        query.bindValue(3, t.chr().str());
+		query.bindValue(2, version);
+		query.bindValue(3, source);
+		query.bindValue(4, t.chr().str());
         if (t.codingStart()!=0 && t.codingEnd()!=0)
         {
             //Transcript class encodes actual coding start (ATG), but coding_start < coding_end is required here
             int coding_start = std::min(t.codingStart(), t.codingEnd());
             int coding_end = std::max(t.codingStart(), t.codingEnd());
-            query.bindValue(4, coding_start);
-            query.bindValue(5, coding_end);
+			query.bindValue(5, coding_start);
+			query.bindValue(6, coding_end);
 		}
 		else
 		{
-			query.bindValue(4, QVariant());
 			query.bindValue(5, QVariant());
+			query.bindValue(6, QVariant());
 		}
         QByteArray strand = t.strand() == Transcript::PLUS ? "+" : "-";
-        query.bindValue(6, strand);
-		query.bindValue(7, Transcript::biotypeToString(t.biotype()));
-		query.bindValue(8, is_gencode_basic);
-		query.bindValue(9, is_ensembl_canonical);
-		query.bindValue(10, is_mane_select);
-		query.bindValue(11, is_mane_plus_clinical);
+		query.bindValue(7, strand);
+		query.bindValue(8, Transcript::biotypeToString(t.biotype()));
+		query.bindValue(9, is_gencode_basic);
+		query.bindValue(10, is_ensembl_canonical);
+		query.bindValue(11, is_mane_select);
+		query.bindValue(12, is_mane_plus_clinical);
 		query.exec();
 
 		return query.lastInsertId().toInt();
@@ -334,7 +336,7 @@ public:
 
 		// prepare queries
 		SqlQuery q_trans = db.getQuery();
-		q_trans.prepare("INSERT INTO gene_transcript (gene_id, name, source, chromosome, start_coding, end_coding, strand, biotype, is_gencode_basic, is_ensembl_canonical, is_mane_select, is_mane_plus_clinical) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11)");
+		q_trans.prepare("INSERT INTO gene_transcript (gene_id, name, version, source, chromosome, start_coding, end_coding, strand, biotype, is_gencode_basic, is_ensembl_canonical, is_mane_select, is_mane_plus_clinical) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12)");
 
 		SqlQuery q_exon = db.getQuery();
 		q_exon.prepare("INSERT INTO gene_exon (transcript_id, start, end) VALUES (:0, :1, :2);");
@@ -383,14 +385,19 @@ public:
             }
 
 			//add Ensembl transcript
-			int trans_id = addTranscript(q_trans, ngsd_gene_id, transcript_id, "ensembl", t, is_gencode_basic, is_ensembl_canonical, is_mane_select, is_mane_plus_clinical);
+			int trans_id = addTranscript(q_trans, ngsd_gene_id, transcript_id, t.version(), "ensembl", t, is_gencode_basic, is_ensembl_canonical, is_mane_select, is_mane_plus_clinical);
             //add exons
             addExons(q_exon, trans_id, t.regions());
 
             //add CCDS transcript as well (only once)
             if(t.nameCcds()!="" && !ccds_transcripts_added.contains(t.nameCcds()))
             {
-				int trans_id_ccds = addTranscript(q_trans, ngsd_gene_id, t.nameCcds() , "ccds", t, false, false, false, false);
+				QByteArrayList parts = t.nameCcds().split('.');
+				if (parts.count()!=2) THROW(FileParseException, "CCDS transcript name does not contain two parts separated by '.': " + t.nameCcds());
+				QByteArray name = parts[0];
+				int version = Helper::toInt(parts[1], "CCDS transcript version");
+
+				int trans_id_ccds = addTranscript(q_trans, ngsd_gene_id, name, version, "ccds", t, false, false, false, false);
                 //add exons (only coding part)
 				BedFile exons = t.regions();
                 //Transcript class encodes actual coding start (ATG), but coding_start < coding_end is required here

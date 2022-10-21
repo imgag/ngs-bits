@@ -16,6 +16,25 @@ Transcript::Transcript()
 {
 }
 
+QStringList Transcript::flags(bool add_square_brackets) const
+{
+	QStringList output;
+
+	if (isPreferredTranscript()) output += "NGSD preferred transcript";
+	if (isManeSelectTranscript()) output << "MANE select";
+	if (isManePlusClinicalTranscript()) output << "MANE plus clinical";
+
+	if (add_square_brackets)
+	{
+		for(int i=0; i<output.count(); ++i)
+		{
+			output[i] =  "[" + output[i] + "]";
+		}
+	}
+
+	return output;
+}
+
 void Transcript::setRegions(const BedFile& regions, int coding_start, int coding_end)
 {
 	//check

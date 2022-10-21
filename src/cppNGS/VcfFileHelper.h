@@ -279,7 +279,7 @@ public:
 	{
 		return id_;
 	}
-	const double& qual() const
+	double qual() const
 	{
 		return qual_;
 	}
@@ -419,7 +419,7 @@ public:
 	{
 		chr_ =  chr;
 	}
-	void setPos(const int& pos)
+	void setPos(int pos)
 	{
 		pos_ = pos;
 	}
@@ -456,7 +456,7 @@ public:
 	{
 		id_ = id;
 	}
-	void setQual(const double& qual)
+	void setQual(double qual)
 	{
 		qual_ = qual;
 	}

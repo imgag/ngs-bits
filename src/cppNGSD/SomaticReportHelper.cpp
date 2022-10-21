@@ -1344,9 +1344,9 @@ RtfTable SomaticReportHelper::hlaTable(QString ps_name, QByteArray type)
 	table.addRow(RtfTableRow("HLA Resultate " + type,doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4));
 	table.addRow(RtfTableRow({"Sample","Gen","a1","a2","p-Wert","qual","a1 reads","a2 reads", "a1+a2"}, cell_widths, RtfParagraph().setBold(true).setHorizontalAlignment("c")));
 
-	if (QFile(hla_file).exists())
+	if (VersatileFile(hla_file).exists())
 	{
-		while (! hla_stream.atEnd())
+		while (!hla_stream.atEnd())
 		{
 			QByteArrayList values = hla_stream.readLine();
 			RtfTableRow row;

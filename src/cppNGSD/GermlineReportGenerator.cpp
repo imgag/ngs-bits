@@ -726,6 +726,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		Variant variant = data_.variants[var_conf.variant_index];
 
 		//manual curation
+		ClassificationInfo class_info = db_.getClassification(variant); //get classification infos before modifying the variant
 		if (var_conf.isManuallyCurated()) var_conf.updateVariant(variant, genome_idx_, geno_idx);
 
 		w.writeStartElement("Variant");
@@ -791,7 +792,6 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		{
 			w.writeAttribute("inheritance", var_conf.inheritance);
 		}
-		ClassificationInfo class_info = db_.getClassification(variant);
 		if (class_info.classification!="" && class_info.classification!="n/a")
 		{
 			w.writeAttribute("class", class_info.classification);
@@ -816,10 +816,10 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			TranscriptList transcripts  = db_.transcriptsOverlapping(variant.chr(), variant.start() - 5000, variant.end() + 5000);
 
 			//annotate consequence to transcript
-			VariantHgvsAnnotator hgvs_annotator(5000, 3, 20, 20);
+			VariantHgvsAnnotator hgvs_annotator;
 			foreach(const Transcript& trans, transcripts)
 			{
-				HgvsNomenclature hgvs = hgvs_annotator.variantToHgvs(trans, variant, genome_idx_);
+				VariantConsequence hgvs = hgvs_annotator.variantToHgvs(trans, variant, genome_idx_);
 				VariantTranscript consequence;
 				consequence.gene = trans.gene();
 				consequence.id = hgvs.transcript_id.toUtf8();
@@ -1280,19 +1280,17 @@ void GermlineReportGenerator::overrideDate(QDate date)
 	date_ = date;
 }
 
-BedFile GermlineReportGenerator::precalculatedGaps(QString low_cov_file, const BedFile& roi, int min_cov, const BedFile& processing_system_target_region)
+BedFile GermlineReportGenerator::precalculatedGaps(const BedFile& gaps_roi, const BedFile& roi, int min_cov, const BedFile& processing_system_target_region)
 {
+	BedFile output(gaps_roi);
+
 	//check depth cutoff
 	if (min_cov!=20) THROW(ArgumentException, "Depth cutoff is not 20!");
-
-	//load low-coverage file
-	BedFile gaps;
-	gaps.load(low_cov_file);
 
 	//extract processing system ROI statistics
 	int regions = -1;
 	long long bases = -1;
-	foreach(QString line, gaps.headers())
+	foreach(QString line, output.headers())
 	{
 		if (line.startsWith("#ROI bases: "))
 		{
@@ -1307,20 +1305,20 @@ BedFile GermlineReportGenerator::precalculatedGaps(QString low_cov_file, const B
 			if (!ok) regions = -1;
 		}
 	}
-	if (regions<0 || bases<0) THROW(ArgumentException, "Low-coverage file header does not contain target region statistics: " + low_cov_file);
+	if (regions<0 || bases<0) THROW(ArgumentException, "Low-coverage file is outdated: it does not contain target region statistics!");
 
-	if (processing_system_target_region.count()!=regions || processing_system_target_region.baseCount()!=bases) THROW(ArgumentException, "Low-coverage file is outdated. It does not match processing system target region: " + low_cov_file);
+	if (processing_system_target_region.count()!=regions || processing_system_target_region.baseCount()!=bases) THROW(ArgumentException, "Low-coverage file is outdated: it does not match processing system target region!");
 
 	//calculate gaps inside target region
-	gaps.intersect(roi);
+	output.intersect(roi);
 
 	//add target region bases not covered by processing system target file
 	BedFile uncovered(roi);
 	uncovered.subtract(processing_system_target_region);
-	gaps.add(uncovered);
-	gaps.merge();
+	output.add(uncovered);
+	output.merge();
 
-	return gaps;
+	return output;
 }
 
 
@@ -1570,7 +1568,11 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 		BedFile low_cov;
 		try
 		{
-			low_cov = GermlineReportGenerator::precalculatedGaps(data_.ps_lowcov, data_.roi.regions, data_.report_settings.min_depth, data_.processing_system_roi);
+			//load gaps file
+			BedFile gaps;
+			gaps.load(data_.ps_lowcov);
+
+			low_cov = GermlineReportGenerator::precalculatedGaps(gaps, data_.roi.regions, data_.report_settings.min_depth, data_.processing_system_roi);
 		}
 		catch(Exception e)
 		{
@@ -1726,6 +1728,10 @@ void GermlineReportGenerator::writeClosedGapsReport(QTextStream& stream)
 
 void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int extend, bool gap_table, bool gene_details)
 {
+	//load gaps file
+	BedFile ps_lowcov;
+	ps_lowcov.load(data_.ps_lowcov);
+
 	QString ext_string = (extend==0 ? "" : " +-" + QString::number(extend) + " ");
 	stream << endl;
 	stream << "<p><b>" << trans("Abdeckungsstatistik f&uuml;r CCDS") << " " << ext_string << "</b></p>" << endl;
@@ -1771,11 +1777,14 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 		BedFile gaps;
 		try
 		{
-			gaps = GermlineReportGenerator::precalculatedGaps(data_.ps_lowcov, roi, data_.report_settings.min_depth, data_.processing_system_roi);
+			//prevent look-up of mito genes (they are not part of the target region as they are treated speparately in the pipeline)
+			if (roi.chromosomes().contains("chrMT")) THROW(Exception, "chrMT not contained in target region and thus not in pre-calculated low coverage regions");
+
+			gaps = GermlineReportGenerator::precalculatedGaps(ps_lowcov, roi, data_.report_settings.min_depth, data_.processing_system_roi);
 		}
 		catch(Exception e)
 		{
-			Log::warn("Low-coverage statistics for transcript " + transcript.name() + " needs to be calculated. Pre-calculated gap file cannot be used because: " + e.message());
+			Log::warn("Low-coverage statistics for transcript " + transcript.nameWithVersion() + " needs to be calculated. Pre-calculated gap file cannot be used because: " + e.message());
 			gaps = data_.statistics_service.lowCoverage(roi, data_.ps_bam, data_.report_settings.min_depth);
 		}
 
@@ -1786,7 +1795,7 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 		{
 			coords << QString::number(gaps[i].start()) + "-" + QString::number(gaps[i].end());
 		}
-		if (gap_table) stream << "<tr><td>" + symbol + "</td><td>" << transcript.name() << "</td><td>" << bases_transcipt << "</td><td>" << bases_gaps << "</td><td>" << roi[0].chr().str() << "</td><td>" << coords.join(", ") << "</td></tr>";
+		if (gap_table) stream << "<tr><td>" + symbol + "</td><td>" << transcript.nameWithVersion() << "</td><td>" << bases_transcipt << "</td><td>" << bases_gaps << "</td><td>" << roi[0].chr().str() << "</td><td>" << coords.join(", ") << "</td></tr>";
 		gap_count[symbol] += bases_gaps;
 		bases_overall += bases_transcipt;
 		bases_sequenced += bases_transcipt - bases_gaps;
@@ -1899,7 +1908,7 @@ QString GermlineReportGenerator::formatCodingSplicing(const Variant& v)
 	QStringList output;
 
 	//get transcript-specific data of best transcript for all overlapping genes
-	VariantHgvsAnnotator hgvs_annotator(5000, 3, 20, 20);
+	VariantHgvsAnnotator hgvs_annotator;
 	GeneSet genes = db_.genesOverlapping(v.chr(), v.start(), v.end(), 5000);
 	foreach(const QByteArray& gene, genes)
 	{
@@ -1909,8 +1918,8 @@ QString GermlineReportGenerator::formatCodingSplicing(const Variant& v)
 		{
 			try
 			{
-				HgvsNomenclature consequence = hgvs_annotator.variantToHgvs(trans, v, genome_idx_);
-				output << gene + ":" + trans.name() + ":" + consequence.hgvs_c + ":" + consequence.hgvs_p;
+				VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, v, genome_idx_);
+				output << gene + ":" + trans.nameWithVersion() + ":" + consequence.hgvs_c + ":" + consequence.hgvs_p;
 			}
 			catch(Exception& e)
 			{
@@ -2263,7 +2272,7 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 	if (conf.isManuallyCurated()) conf.updateVariant(v, genome_idx_, i_genotype);
 
 	//get transcript-specific data of best transcript for all overlapping genes
-	VariantHgvsAnnotator hgvs_annotator(5000, 3, 20, 20);
+	VariantHgvsAnnotator hgvs_annotator;
 	GeneSet genes = db_.genesOverlapping(v.chr(), v.start(), v.end(), 5000);
 	QStringList types;
 	QStringList hgvs_cs;
@@ -2276,10 +2285,10 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 		{
 			try
 			{
-				HgvsNomenclature consequence = hgvs_annotator.variantToHgvs(trans, v, genome_idx_);
+				VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, v, genome_idx_);
 				types << consequence.variantConsequenceTypesAsString("&amp;");
-				hgvs_cs << trans.name() + ":" + consequence.hgvs_c;
-				hgvs_ps << trans.name() + ":" + consequence.hgvs_p;
+				hgvs_cs << trans.nameWithVersion() + ":" + consequence.hgvs_c;
+				hgvs_ps << trans.nameWithVersion() + ":" + consequence.hgvs_p;
 			}
 			catch(Exception& e)
 			{

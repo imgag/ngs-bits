@@ -189,29 +189,29 @@ private slots:
 		IS_FALSE(is_db_token);
 	}
 
-	void test_access_to_bam_files_over_http()
-	{
-		if (!ServerHelper::hasBasicSettings())
-		{
-			SKIP("Server has not been configured correctly");
-		}
+//	void test_access_to_bam_files_over_http()
+//	{
+//		if (!ServerHelper::hasBasicSettings())
+//		{
+//			SKIP("Server has not been configured correctly");
+//		}
 
-		QString filename = ServerHelper::getServerUrl(true) + "/v1/bam/rna.bam";
+//		QString filename = ServerHelper::getServerUrl(true) + "/v1/bam/rna.bam";
 
-		QByteArray reply;
-		HttpHeaders add_headers;
-		add_headers.insert("Accept", "application/octet-stream");
-		int code = sendGetRequest(reply, filename, add_headers);
-		if (code > 0)
-		{
-			SKIP("This test requieres a running server");
-		}
+//		QByteArray reply;
+//		HttpHeaders add_headers;
+//		add_headers.insert("Accept", "application/octet-stream");
+//		int code = sendGetRequest(reply, filename, add_headers);
+//		if (code > 0)
+//		{
+//			SKIP("This test requieres a running server");
+//		}
 
-		// Read the BAM file, if the server is running
-		BamReader reader(filename);
-		I_EQUAL(reader.headerLines().count(), 2588);
-		I_EQUAL(reader.chromosomes().count(), 2580);
-	}
+//		// Read the BAM file, if the server is running
+//		BamReader reader(filename);
+//		I_EQUAL(reader.headerLines().count(), 2588);
+//		I_EQUAL(reader.chromosomes().count(), 2580);
+//	}
 
 	void test_server_info_retrieval()
 	{

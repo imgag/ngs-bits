@@ -400,14 +400,22 @@ public:
 				date = QDate::fromString(header.split('=')[1].trimmed(), "yyyyMMdd");
 			}
 
-			// parse manta version
+			// parse caller and caller version
+			// Manta:  ##source=GenerateSVCandidates 1.6.0
+			// DRAGEN: ##source=DRAGEN 01.011.608.3.9.3
 			if (header.startsWith("##source="))
 			{
-				QByteArrayList application_string = header.split('=')[1].trimmed().split(' ');
-				if (application_string[0].startsWith("GenerateSVCandidates")) caller = "Manta";
-				caller_version = application_string[1].trimmed();
-			}
+				QByteArray application_string = header.split('=')[1].trimmed();
 
+				int sep_idx = application_string.indexOf(" ");
+				if (sep_idx==-1)  THROW(FileParseException, "Source line does not contain version after first space: " + header);
+
+				QByteArray tmp = application_string.left(sep_idx).trimmed();
+				if (tmp=="GenerateSVCandidates") caller = "Manta";
+				else if (tmp=="DRAGEN") caller = "DRAGEN";
+
+				caller_version = application_string.mid(sep_idx).trimmed();
+			}
 		}
 
 		// check if all required data is available

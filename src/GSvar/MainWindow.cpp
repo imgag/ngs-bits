@@ -1221,6 +1221,47 @@ void MainWindow::on_actionDebug_triggered()
 		}
 		*/
 
+		//replace obsolete terms used in disease_info table
+		/*
+		OntologyTermCollection terms("W:\\GRCh38\\share\\data\\dbs\\HPO\\hp.obo", false);
+		int c_obsolote = 0;
+		int c_replaced = 0;
+		QByteArrayList invalid;
+		NGSD db;
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT id, disease_info FROM sample_disease_info WHERE type='HPO term id' order by disease_info ASC");
+		while(query.next())
+		{
+			QByteArray hpo_id = query.value("disease_info").toByteArray().trimmed();
+			try
+			{
+				const OntologyTerm& term = terms.getByID(hpo_id);
+				if (term.isObsolete())
+				{
+					++c_obsolote;
+					if (!term.replacedById().isEmpty())
+					{
+						qDebug() << term.id() << " > " << term.replacedById();
+						db.getQuery().exec("UPDATE sample_disease_info SET disease_info='" + term.replacedById() + "' WHERE id=" + query.value("id").toByteArray());
+						++c_replaced;
+					}
+				}
+			}
+			catch(const ArgumentException&)
+			{
+				if (!invalid.contains(hpo_id)) invalid << hpo_id;
+			}
+		}
+		if (c_obsolote>0)
+		{
+			qDebug() << "Found " << c_obsolote << " obsolete HPO terms in table 'disease_info'. Replaced " << c_replaced << " of these!" << endl;
+		}
+		if (invalid.count()>0)
+		{
+			qDebug() << "Found " << invalid.count() << " invalid HPO terms in table 'disease_info': '" << invalid.join("', '") << "'" << endl;
+		}
+		*/
+
 		qDebug() << Helper::elapsedTime(timer, true);
 	}
 	else if (user=="ahgscha1")
@@ -4429,13 +4470,16 @@ void MainWindow::generateReportSomaticRTF()
 	somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
 
 	//load obo terms for filtering coding/splicing variants
-	OntologyTermCollection obo_terms("://Resources/so-xp_3_0_0.obo",true);
-	QList<QByteArray> ids;
-	ids << obo_terms.childIDs("SO:0001580",true); //coding variants
-	ids << obo_terms.childIDs("SO:0001568",true); //splicing variants
-	foreach(const QByteArray& id, ids)
+	if (somatic_report_settings_.obo_terms_coding_splicing.size() == 0)
 	{
-		somatic_report_settings_.obo_terms_coding_splicing.add(obo_terms.getByID(id));
+		OntologyTermCollection obo_terms("://Resources/so-xp_3_0_0.obo",true);
+		QList<QByteArray> ids;
+		ids << obo_terms.childIDs("SO:0001580",true); //coding variants
+		ids << obo_terms.childIDs("SO:0001568",true); //splicing variants
+		foreach(const QByteArray& id, ids)
+		{
+			somatic_report_settings_.obo_terms_coding_splicing.add(obo_terms.getByID(id));
+		}
 	}
 
 	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
@@ -6836,6 +6880,18 @@ void MainWindow::editVariantReportConfiguration(int index)
 			{
 				QMessageBox::warning(this, "Variant classification required!", "Causal variants should have a classification!", QMessageBox::Ok, QMessageBox::NoButton);
 				editVariantClassification(variants_, index);
+			}
+
+			//enforce ClinVar upload of class 4/5 variants
+			classification_info = db.getClassification(variant);
+			if (classification_info.classification=="4" || classification_info.classification=="5")
+			{
+				QList<int> publication_ids = db.getValuesInt("SELECT id FROM variant_publication WHERE variant_id='" + db.variantId(variants_[index]) + "'");
+				if (publication_ids.isEmpty())
+				{
+					QMessageBox::information(this, "Clinvar upload required!", "Class 4 or 5 variants should be uploaded to ClinVar!", QMessageBox::Ok, QMessageBox::NoButton);
+					uploadToClinvar(index);
+				}
 			}
 		}
 	}

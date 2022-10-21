@@ -151,7 +151,7 @@ private slots:
         QVector<Sequence> alt;
         alt.push_back("G");
         VcfLine variant(Chromosome("chr3"), 196217926, "A", alt);
-        HgvsNomenclature hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+		VariantConsequence hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.123A>G");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         S_EQUAL(hgvs.hgvs_p, "p.Gln41=");
@@ -615,7 +615,7 @@ private slots:
         QVector<Sequence> alt;
         alt.push_back("G");
         VcfLine variant(Chromosome("chr11"), 14971192, "T", alt);
-        HgvsNomenclature hgvs = var_hgvs_anno.variantToHgvs(t_CALCA, variant, reference);
+		VariantConsequence hgvs = var_hgvs_anno.variantToHgvs(t_CALCA, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.1A>C");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         S_EQUAL(hgvs.hgvs_p, "p.Met1?");
@@ -1019,7 +1019,7 @@ private slots:
         QVector<Sequence> alt;
         alt.push_back("TTCT");
         VcfLine variant(Chromosome("chr3"), 195580367, "TC", alt);
-        HgvsNomenclature hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+		VariantConsequence hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.-34-873delinsAGA");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
@@ -1182,7 +1182,7 @@ private slots:
         QVector<Sequence> alt;
         alt.push_back("A");
         VcfLine variant(Chromosome("chr8"), 90005382, "G", alt);
-        HgvsNomenclature hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+		VariantConsequence hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.-598-66G>A");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
@@ -1245,7 +1245,7 @@ private slots:
         QVector<Sequence> alt;
         alt.push_back("T");
         VcfLine variant(Chromosome("chr11"), 65423403, "C", alt);
-        HgvsNomenclature hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+		VariantConsequence hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "n.610+20C>T");
         S_EQUAL(hgvs.hgvs_p, "");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT));

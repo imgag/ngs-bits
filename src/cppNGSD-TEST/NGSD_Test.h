@@ -322,8 +322,8 @@ private slots:
 		messages.clear();
 		regions = db.genesToRegions(GeneSet() << "NIPA1", Transcript::ENSEMBL, "gene", false, true, &stream); //gene mode, two hits, annotate_transcripts
 		I_EQUAL(regions.count(), 2);
-		S_EQUAL(regions[0].annotations()[0], "NIPA1 NIPA1_TR2");
-		S_EQUAL(regions[1].annotations()[0], "NIPA1 NIPA1_TR1");
+		S_EQUAL(regions[0].annotations()[0], "NIPA1 NIPA1_TR2.5");
+		S_EQUAL(regions[1].annotations()[0], "NIPA1 NIPA1_TR1.4");
 		I_EQUAL(regions.baseCount(), 642);
 		regions.merge(); //overlapping regions
 		I_EQUAL(regions.count(), 1);
@@ -368,10 +368,10 @@ private slots:
 		messages.clear();
 		regions = db.genesToRegions(GeneSet() << "NIPA1", Transcript::ENSEMBL, "exon", false, true, &stream); //exon mode, two hits, annotate_transcripts
 		I_EQUAL(regions.count(), 4);
-		S_EQUAL(regions[0].annotations()[0], "NIPA1 NIPA1_TR1");
-		S_EQUAL(regions[1].annotations()[0], "NIPA1 NIPA1_TR2");
-		S_EQUAL(regions[2].annotations()[0], "NIPA1 NIPA1_TR2");
-		S_EQUAL(regions[3].annotations()[0], "NIPA1 NIPA1_TR1");
+		S_EQUAL(regions[0].annotations()[0], "NIPA1 NIPA1_TR1.4");
+		S_EQUAL(regions[1].annotations()[0], "NIPA1 NIPA1_TR2.5");
+		S_EQUAL(regions[2].annotations()[0], "NIPA1 NIPA1_TR2.5");
+		S_EQUAL(regions[3].annotations()[0], "NIPA1 NIPA1_TR1.4");
 		regions.merge(); //overlapping regions
 		I_EQUAL(regions.count(), 2);
 		I_EQUAL(regions.baseCount(), 202);
@@ -380,8 +380,8 @@ private slots:
 		messages.clear();
 		regions = db.genesToRegions(GeneSet() << "NON-CODING", Transcript::ENSEMBL, "exon", false, true, &stream); //exon mode, non-coding, annotate_transcripts
 		I_EQUAL(regions.count(), 2);
-		S_EQUAL(regions[0].annotations()[0], "NON-CODING NON-CODING_TR1");
-		S_EQUAL(regions[1].annotations()[0], "NON-CODING NON-CODING_TR1");
+		S_EQUAL(regions[0].annotations()[0], "NON-CODING NON-CODING_TR1.6");
+		S_EQUAL(regions[1].annotations()[0], "NON-CODING NON-CODING_TR1.6");
 		I_EQUAL(regions.count(), 2);
 		I_EQUAL(regions.baseCount(), 202);
 		IS_TRUE(messages.isEmpty());
