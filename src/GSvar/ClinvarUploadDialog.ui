@@ -50,7 +50,7 @@
      <property name="flat">
       <bool>true</bool>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,0,1,0,1">
+     <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0,0,1,0,1">
       <property name="spacing">
        <number>3</number>
       </property>
@@ -67,182 +67,715 @@
        <number>3</number>
       </property>
       <item>
-       <layout class="QGridLayout" name="gridLayout">
-        <property name="spacing">
-         <number>3</number>
-        </property>
-        <item row="5" column="0">
-         <widget class="QLabel" name="label_39">
-          <property name="font">
-           <font>
-            <pointsize>8</pointsize>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>ref:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="label_38">
-          <property name="font">
-           <font>
-            <pointsize>8</pointsize>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>end:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_4">
-          <property name="font">
-           <font>
-            <pointsize>8</pointsize>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>assembly:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="2">
-         <widget class="QLineEdit" name="le_obs">
-          <property name="toolTip">
-           <string>The alternate allele for the submitted variant. </string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QComboBox" name="cb_assembly">
-          <property name="toolTip">
-           <string>The genome assembly that was used to call the variant.</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="2">
-         <widget class="QLineEdit" name="le_end">
-          <property name="toolTip">
-           <string>The stop location for the reference allele in chromosome coordinates.</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="2">
-         <widget class="QLineEdit" name="le_start">
-          <property name="toolTip">
-           <string>The start location for the reference allele in chromosome coordinates. </string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_2">
-          <property name="font">
-           <font>
-            <pointsize>8</pointsize>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>chr:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="2">
-         <widget class="QLineEdit" name="le_gene">
-          <property name="toolTip">
-           <string>Gene symbol should be provided only to indicate the gene-disease relationship supporting the variant interpretation. </string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="2">
-         <widget class="QLineEdit" name="le_ref">
-          <property name="toolTip">
-           <string>The reference allele for the submitted variant. </string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="0">
-         <widget class="QLabel" name="label_40">
-          <property name="font">
-           <font>
-            <pointsize>8</pointsize>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>obs:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_37">
-          <property name="font">
-           <font>
-            <pointsize>8</pointsize>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>start:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="2">
-         <widget class="QComboBox" name="cb_chr">
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="toolTip">
-           <string>The chromosome for the location of the variant. Values are 1-22, X, Y, and MT. If the location is pseudoautosomal, submit on X and  ClinVar will calculate the Y location.</string>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="0">
-         <widget class="QLabel" name="label_5">
-          <property name="font">
-           <font>
-            <pointsize>8</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>gene:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0" colspan="3">
-         <widget class="QLabel" name="label">
-          <property name="font">
-           <font>
-            <pointsize>8</pointsize>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Variant:</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
        <widget class="Line" name="line">
         <property name="orientation">
          <enum>Qt::Vertical</enum>
         </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QStackedWidget" name="sw_var1">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="p_snv1">
+         <layout class="QGridLayout" name="gridLayout_2">
+          <property name="leftMargin">
+           <number>3</number>
+          </property>
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="rightMargin">
+           <number>3</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
+          <property name="spacing">
+           <number>3</number>
+          </property>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>chr:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_38">
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>end:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_40">
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>obs:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>genes:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="le_end_snv1">
+            <property name="toolTip">
+             <string>The stop location for the reference allele in chromosome coordinates.</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_37">
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>start:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_39">
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>ref:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="cb_chr_snv1">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>The chromosome for the location of the variant. Values are 1-22, X, Y, and MT. If the location is pseudoautosomal, submit on X and  ClinVar will calculate the Y location.</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="le_start_snv1">
+            <property name="toolTip">
+             <string>The start location for the reference allele in chromosome coordinates. </string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="le_ref_snv1">
+            <property name="toolTip">
+             <string>The reference allele for the submitted variant. </string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QLineEdit" name="le_genes_snv1">
+            <property name="toolTip">
+             <string>Gene symbol should be provided only to indicate the gene-disease relationship supporting the variant interpretation. </string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLineEdit" name="le_obs_snv1">
+            <property name="toolTip">
+             <string>The alternate allele for the submitted variant. </string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="label">
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Variant:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
+           <spacer name="verticalSpacer_5">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="p_cnv1">
+         <layout class="QGridLayout" name="gridLayout_7">
+          <property name="leftMargin">
+           <number>3</number>
+          </property>
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="rightMargin">
+           <number>3</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <property name="spacing">
+           <number>3</number>
+          </property>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="cb_chr_cnv1"/>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="le_start_cnv1"/>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLineEdit" name="le_rcn_cnv1"/>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="le_end_cnv1"/>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="le_cn_cnv1"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_32">
+            <property name="text">
+             <string>chr:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_33">
+            <property name="text">
+             <string>start:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_36">
+            <property name="text">
+             <string>cn:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_35">
+            <property name="text">
+             <string>end:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
+           <spacer name="verticalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="label_31">
+            <property name="text">
+             <string>Copy number variant:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_41">
+            <property name="text">
+             <string>ref cn:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QLineEdit" name="le_genes_cnv1"/>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_42">
+            <property name="text">
+             <string>genes:</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="p_sv1">
+         <layout class="QGridLayout" name="gridLayout_6">
+          <property name="leftMargin">
+           <number>3</number>
+          </property>
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="rightMargin">
+           <number>3</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
+          <property name="spacing">
+           <number>3</number>
+          </property>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="le_start1_sv1"/>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Structural variant:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_21">
+            <property name="text">
+             <string>start2:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_15">
+            <property name="text">
+             <string>chr1:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_22">
+            <property name="text">
+             <string>end1:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0">
+           <widget class="QLabel" name="label_23">
+            <property name="text">
+             <string>end2:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_16">
+            <property name="text">
+             <string>start1:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_7">
+            <property name="text">
+             <string>type:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="0">
+           <widget class="QLabel" name="label_28">
+            <property name="text">
+             <string>genes:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QComboBox" name="cb_chr2_sv1"/>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="cb_type_sv1"/>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_24">
+            <property name="text">
+             <string>chr2:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QComboBox" name="cb_chr1_sv1"/>
+          </item>
+          <item row="9" column="1">
+           <widget class="QLineEdit" name="le_genes_sv1"/>
+          </item>
+          <item row="7" column="1">
+           <widget class="QLineEdit" name="le_end2_sv1"/>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="le_start2_sv1"/>
+          </item>
+          <item row="6" column="1">
+           <widget class="QLineEdit" name="le_end1_sv1"/>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+      <item>
+       <widget class="QStackedWidget" name="sw_var2">
+        <property name="currentIndex">
+         <number>2</number>
+        </property>
+        <widget class="QWidget" name="p_snv2">
+         <layout class="QGridLayout" name="gridLayout">
+          <property name="leftMargin">
+           <number>3</number>
+          </property>
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="rightMargin">
+           <number>3</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
+          <property name="spacing">
+           <number>3</number>
+          </property>
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Variant 2:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="le_ref_snv2"/>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="le_start_snv2"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_8">
+            <property name="text">
+             <string>chr:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_13">
+            <property name="text">
+             <string>obs:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_11">
+            <property name="text">
+             <string>end:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_9">
+            <property name="text">
+             <string>start:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_12">
+            <property name="text">
+             <string>ref</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLineEdit" name="le_obs_snv2"/>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="le_end_snv2"/>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="cb_chr_snv2"/>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_14">
+            <property name="text">
+             <string>genes:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QLineEdit" name="le_genes_snv2"/>
+          </item>
+          <item row="7" column="1">
+           <spacer name="verticalSpacer_4">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="p_cnv2">
+         <layout class="QGridLayout" name="gridLayout_8">
+          <property name="leftMargin">
+           <number>3</number>
+          </property>
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="rightMargin">
+           <number>3</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
+          <property name="spacing">
+           <number>3</number>
+          </property>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_46">
+            <property name="text">
+             <string>end:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="label_43">
+            <property name="text">
+             <string>Copy number varaint 2:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_45">
+            <property name="text">
+             <string>start:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_44">
+            <property name="text">
+             <string>chr:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_47">
+            <property name="text">
+             <string>cn:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="cb_chr_cnv2"/>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_48">
+            <property name="text">
+             <string>ref cn:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QLineEdit" name="le_genes_cnv2"/>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="le_start_cnv2"/>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="le_cn_cnv2"/>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="le_end_cnv2"/>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLineEdit" name="le_rcn_cnv2"/>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_49">
+            <property name="text">
+             <string>genes:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
+           <spacer name="verticalSpacer_6">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="p_sv2">
+         <layout class="QGridLayout" name="gridLayout_9">
+          <property name="leftMargin">
+           <number>3</number>
+          </property>
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="rightMargin">
+           <number>3</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
+          <property name="spacing">
+           <number>3</number>
+          </property>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_51">
+            <property name="text">
+             <string>type:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_52">
+            <property name="text">
+             <string>chr1:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="1">
+           <widget class="QLineEdit" name="le_genes_sv2"/>
+          </item>
+          <item row="2" column="1">
+           <widget class="QComboBox" name="cb_chr1_sv2"/>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="label_50">
+            <property name="text">
+             <string>Structural varaint 2:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="cb_type_sv2"/>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_55">
+            <property name="text">
+             <string>chr2:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_56">
+            <property name="text">
+             <string>end1:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="le_start1_sv2"/>
+          </item>
+          <item row="7" column="1">
+           <widget class="QLineEdit" name="le_end2_sv2"/>
+          </item>
+          <item row="8" column="0">
+           <widget class="QLabel" name="label_58">
+            <property name="text">
+             <string>genes:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0">
+           <widget class="QLabel" name="label_57">
+            <property name="text">
+             <string>end2:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QComboBox" name="cb_chr2_sv2"/>
+          </item>
+          <item row="6" column="1">
+           <widget class="QLineEdit" name="le_end1_sv2"/>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="le_start2_sv2"/>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_53">
+            <property name="text">
+             <string>start1:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_54">
+            <property name="text">
+             <string>start2</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </widget>
       </item>
       <item>
@@ -664,9 +1197,6 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <tabstops>
-  <tabstop>cb_chr</tabstop>
- </tabstops>
  <resources/>
  <connections/>
 </ui>

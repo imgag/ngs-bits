@@ -410,8 +410,6 @@ public:
 			importPseudogenes(data.enst2ensg, data.ensg2symbol, file_path);
 		}
 	}
-
-	//TODO: update exon expression table
 };
 
 #include "main.moc"

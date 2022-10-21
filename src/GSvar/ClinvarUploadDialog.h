@@ -7,12 +7,20 @@
 #include "Phenotype.h"
 #include "NGSD.h"
 
+enum class ClinvarSubmissiontype
+{
+	SingleVariant,
+	CompoundHeterozygous
+};
+
 //Datastructure for upload data
 struct ClinvarUploadData
 {
     //sample data
-    int variant_id;
-	int report_config_variant_id;
+	int variant_id1;
+	int report_config_variant_id1;
+	int variant_id2 = -1;
+	int report_config_variant_id2 = -1;
     ReportVariantConfiguration report_variant_config;
 	QString processed_sample;
 
@@ -23,8 +31,18 @@ struct ClinvarUploadData
     //phenotype data
     PhenotypeList phenos;
 
+	//type data
+	ClinvarSubmissiontype submission_type;
+	VariantType variant_type1;
+	VariantType variant_type2;
+
     //variant data
-    Variant variant;
+	Variant snv1;
+	Variant snv2;
+	CopyNumberVariant cnv1;
+	CopyNumberVariant cnv2;
+	BedpeLine sv1;
+	BedpeLine sv2;
     GeneSet genes;
 
 	//additional info for re-upload

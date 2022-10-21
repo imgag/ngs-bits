@@ -35,37 +35,114 @@ ClinvarUploadDialog::ClinvarUploadDialog(QWidget *parent)
 
 void ClinvarUploadDialog::setData(ClinvarUploadData data)
 {
+	// store given data
+	clinvar_upload_data_ = data;
+
     // set variant data
-
-    QByteArray chr = data.variant.chr().strNormalized(false);
-    ui_.cb_chr->setEnabled(false);
-    ui_.cb_chr->setCurrentText(chr);
-	ui_.le_start->setEnabled(false);
-	ui_.le_end->setEnabled(false);
-	ui_.le_ref->setEnabled(false);
-	ui_.le_obs->setEnabled(false);
-
-	if (data.variant.isSNV())
+	if (data.variant_type1 == VariantType::SNVS_INDELS)
 	{
-		ui_.le_start->setText(QString::number(data.variant.start()));
-		ui_.le_end->setText(QString::number(data.variant.end()));
-		ui_.le_ref->setText(data.variant.ref());
-		ui_.le_obs->setText(data.variant.obs());
+		//set stacked widget to SNV page
+		ui_.sw_var1->setCurrentIndex(0);
+
+		// fill fields
+		QByteArray chr = data.snv1.chr().strNormalized(false);
+		ui_.cb_chr_snv1->setEnabled(false);
+		ui_.cb_chr_snv1->setCurrentText(chr);
+		ui_.le_start_snv1->setEnabled(false);
+		ui_.le_end_snv1->setEnabled(false);
+		ui_.le_ref_snv1->setEnabled(false);
+		ui_.le_obs_snv1->setEnabled(false);
+
+		if (data.snv1.isSNV())
+		{
+			ui_.le_start_snv1->setText(QString::number(data.snv1.start()));
+			ui_.le_end_snv1->setText(QString::number(data.snv1.end()));
+			ui_.le_ref_snv1->setText(data.snv1.ref());
+			ui_.le_obs_snv1->setText(data.snv1.obs());
+		}
+		else
+		{
+			//convert indels to VCF format
+			static FastaFileIndex genome_index(Settings::string("reference_genome"));
+			VariantVcfRepresentation vcf_variant = data.snv1.toVCF(genome_index);
+
+			ui_.le_start_snv1->setText(QString::number(vcf_variant.pos));
+			ui_.le_end_snv1->setText(QString::number(vcf_variant.pos + vcf_variant.ref.length() - 1));
+			ui_.le_ref_snv1->setText(vcf_variant.ref);
+			ui_.le_obs_snv1->setText(vcf_variant.alt);
+		}
+
+		// set genes
+		ui_.le_genes_snv1->setText(data.genes.join(","));
+	}
+	else if(data.variant_type1 == VariantType::CNVS)
+	{
+		//set stacked widget to SNV page
+		ui_.sw_var1->setCurrentIndex(1);
+
+		// fill fields
+		QByteArray chr = data.cnv1.chr().strNormalized(false);
+		ui_.cb_chr_cnv1->setEnabled(false);
+		ui_.cb_chr_cnv1->setCurrentText(chr);
+		ui_.le_start_cnv1->setEnabled(false);
+		ui_.le_start_cnv1->setText(QString::number(data.cnv1.start()));
+		ui_.le_end_cnv1->setEnabled(false);
+		ui_.le_end_cnv1->setText(QString::number(data.cnv1.end()));
+
+		ui_.le_cn_cnv1->setEnabled(false);
+		//TODO: get index for copy number
+		ui_.le_cn_cnv1->setText(QString::number(data.cnv1.copyNumber(QByteArrayList(), true)));
+		ui_.le_rcn_cnv1->setAcceptDrops(false);
+		//TODO: get ref copy number
+		ui_.le_rcn_cnv1->setText(QString::number(2));
+
+		// set genes
+		ui_.le_genes_cnv1->setText(data.genes.join(","));
+	}
+	else if(data.variant_type1 == VariantType::SVS)
+	{
+		//set stacked widget to SNV page
+		ui_.sw_var1->setCurrentIndex(2);
+
+		// fill fields
+		ui_.cb_type_sv1->setEnabled(false);
+		ui_.cb_type_sv1->setCurrentText(BedpeFile::typeToString(data.sv1.type()));
+		QByteArray chr1 = data.sv1.chr1().strNormalized(false);
+		ui_.cb_chr1_sv1->setEnabled(false);
+		ui_.cb_chr1_sv1->setCurrentText(chr1);
+		ui_.le_start1_sv1->setEnabled(false);
+		ui_.le_start1_sv1->setText(QString::number(data.sv1.start1()));
+		ui_.le_end1_sv1->setEnabled(false);
+		ui_.le_end1_sv1->setText(QString::number(data.sv1.end1()));
+		QByteArray chr2 = data.sv1.chr2().strNormalized(false);
+		ui_.cb_chr2_sv1->setEnabled(false);
+		ui_.cb_chr2_sv1->setCurrentText(chr2);
+		ui_.le_start2_sv1->setEnabled(false);
+		ui_.le_start2_sv1->setText(QString::number(data.sv1.start2()));
+		ui_.le_end2_sv1->setEnabled(false);
+		ui_.le_end2_sv1->setText(QString::number(data.sv1.end2()));
+
+		// set genes
+		ui_.le_genes_sv1->setText(data.genes.join(","));
 	}
 	else
 	{
-		//convert indels to VCF format
-		static FastaFileIndex genome_index(Settings::string("reference_genome"));
-		VariantVcfRepresentation vcf_variant = data.variant.toVCF(genome_index);
-
-		ui_.le_start->setText(QString::number(vcf_variant.pos));
-		ui_.le_end->setText(QString::number(vcf_variant.pos + vcf_variant.ref.length() - 1));
-		ui_.le_ref->setText(vcf_variant.ref);
-		ui_.le_obs->setText(vcf_variant.alt);
+		THROW(ArgumentException, "Invalid structural varaint type provided!");
 	}
 
-    // set genes
-    ui_.le_gene->setText(data.genes.join(","));
+
+
+
+	if(data.submission_type == ClinvarSubmissiontype::SingleVariant)
+	{
+		//hide second variant table
+		ui_.sw_var2->setVisible(false);
+	}
+	else
+	{
+		//show second variant table
+		ui_.sw_var2->setVisible(true);
+	}
 
     // set phenotypes
     ui_.phenos->setPhenotypes(data.phenos);
@@ -88,8 +165,8 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
     ui_.cb_inheritance->setCurrentText(convertInheritance(data.report_variant_config.inheritance));
 
     // set genome assembly
-    ui_.cb_assembly->setEnabled(false);
-    ui_.cb_assembly->setCurrentText(buildToString(GSvarHelper::build(), true));
+//    ui_.cb_assembly->setEnabled(false);
+//    ui_.cb_assembly->setCurrentText(buildToString(GSvarHelper::build(), true));
 
 	// set allele origin for de novo variants
     if(data.report_variant_config.de_novo)
@@ -100,8 +177,7 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
     // set affected status
     ui_.cb_affected_status->setCurrentText(convertAffectedStatus(data.affected_status));
 
-	// store given data
-    clinvar_upload_data_ = data;
+
 
 	// check for reupload
 	if (clinvar_upload_data_.variant_publication_id > 0)
@@ -131,8 +207,8 @@ void ClinvarUploadDialog::initGui()
     ui_.cb_affected_status->addItems(AFFECTED_STATUS);
     ui_.cb_allele_origin->addItems(ALLELE_ORIGIN);
     ui_.cb_collection_method->addItems(COLLECTION_METHOD);
-    ui_.cb_assembly->addItems(ASSEMBLY);
-    ui_.cb_chr->addItems(CHR);
+//    ui_.cb_assembly->addItems(ASSEMBLY);
+//    ui_.cb_chr->addItems(CHR);
 
     // set date
     ui_.de_last_eval->setDate(QDate::currentDate());
@@ -151,8 +227,8 @@ void ClinvarUploadDialog::initGui()
 
     //connect signal and slots
     connect(ui_.upload_btn, SIGNAL(clicked(bool)), this, SLOT(upload()));
-    connect(ui_.cb_chr, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
-    connect(ui_.le_gene, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.cb_chr_snv1, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_genes_snv1, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
     connect(ui_.phenos, SIGNAL(phenotypeSelectionChanged()), this, SLOT(checkGuiData()));
     connect(ui_.print_btn, SIGNAL(clicked(bool)), this, SLOT(printResults()));
     connect(ui_.comment_upload, SIGNAL(textChanged()), this, SLOT(updatePrintButton()));
@@ -251,8 +327,8 @@ void ClinvarUploadDialog::upload()
                 condition << ui_.tw_disease_info->item(row_idx, 0)->text() + "|" + ui_.tw_disease_info->item(row_idx, 1)->text();
             }
             details << "condition=" + condition.join(',');
-			details << "variant_id=" + QString::number(clinvar_upload_data_.variant_id);
-			details << "variant_rc_id=" + QString::number(clinvar_upload_data_.report_config_variant_id);
+			details << "variant_id1=" + QString::number(clinvar_upload_data_.variant_id1);
+			details << "variant_rc_id1=" + QString::number(clinvar_upload_data_.report_config_variant_id1);
             //observed in
             details << "affected_status=" + ui_.cb_affected_status->currentText();
             details << "allele_origin=" + ui_.cb_allele_origin->currentText();
@@ -266,7 +342,7 @@ void ClinvarUploadDialog::upload()
 			details << "collection_method=" + ui_.cb_collection_method->currentText();
 
             details << "release_status=" + ui_.cb_release_status->currentText();
-            details << "gene=" +  NGSD().genesToApproved(GeneSet::createFromStringList(ui_.le_gene->text().replace(";", ",").split(','))).toStringList().join(',');
+			details << "gene=" +  NGSD().genesToApproved(GeneSet::createFromStringList(ui_.le_genes_snv1->text().replace(";", ",").split(','))).toStringList().join(',');
 
 			// additional info for reupload
 			if (clinvar_upload_data_.variant_publication_id > 0)
@@ -279,7 +355,7 @@ void ClinvarUploadDialog::upload()
 			if (!test_run)
 			{
 				// log publication in NGSD
-				db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.variant, "ClinVar", clinvar_upload_data_.report_variant_config.classification,
+				db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.snv1, "ClinVar", clinvar_upload_data_.report_variant_config.classification,
 										  details.join(";"), clinvar_upload_data_.user_id);
 
 				// for reupload: flag previous upload as replaced
@@ -343,9 +419,9 @@ bool ClinvarUploadDialog::checkGuiData()
     //check if already published
 	bool uploaded_to_clinvar = false;
 	QString upload_details;
-    if (clinvar_upload_data_.processed_sample !="" && clinvar_upload_data_.variant.isValid())
+	if (clinvar_upload_data_.processed_sample !="" && clinvar_upload_data_.snv1.isValid())
     {
-		upload_details = db_.getVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.variant);
+		upload_details = db_.getVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.snv1);
         if (upload_details!="")
         {
 			//check if uploaded to Clinvar
@@ -373,24 +449,24 @@ bool ClinvarUploadDialog::checkGuiData()
     //perform checks
 	QStringList errors;
     // check chromosome
-    if (ui_.cb_chr->currentText().trimmed().isEmpty())
+	if (ui_.cb_chr_snv1->currentText().trimmed().isEmpty())
     {
         errors << "Chromosome unset!";
     }
 
     // check sequences
     QRegExp re("[-]|[ACGTU]*");
-    if (!re.exactMatch(ui_.le_ref->text()))
+	if (!re.exactMatch(ui_.le_ref_snv1->text()))
     {
-        errors << "invalid reference sequence '" + ui_.le_ref->text() + "'!";
+		errors << "invalid reference sequence '" + ui_.le_ref_snv1->text() + "'!";
     }
-    if (!re.exactMatch(ui_.le_obs->text()))
+	if (!re.exactMatch(ui_.le_obs_snv1->text()))
     {
-        errors << "invalid observed sequence '" + ui_.le_obs->text() + "'!";
+		errors << "invalid observed sequence '" + ui_.le_obs_snv1->text() + "'!";
     }
 
     //check genes
-    GeneSet gene_set = GeneSet::createFromStringList(ui_.le_gene->text().split(','));
+	GeneSet gene_set = GeneSet::createFromStringList(ui_.le_genes_snv1->text().split(','));
     QStringList invalid_genes;
     foreach (const QByteArray gene, gene_set)
     {
@@ -552,10 +628,10 @@ QJsonObject ClinvarUploadDialog::createJson()
         clinvar_submission.insert("conditionSet", condition_set);
 
         //optional
-        clinvar_submission.insert("localID", QString::number(clinvar_upload_data_.variant_id));
+		clinvar_submission.insert("localID", QString::number(clinvar_upload_data_.variant_id1));
 
         //optional
-		clinvar_submission.insert("localKey", QString::number(clinvar_upload_data_.report_config_variant_id));
+		clinvar_submission.insert("localKey", QString::number(clinvar_upload_data_.report_config_variant_id1));
 
         //required
         QJsonObject observed_in;
@@ -613,27 +689,28 @@ QJsonObject ClinvarUploadDialog::createJson()
                     //required (except hgvs)
                     QJsonObject chromosome_coordinates;
                     {
-                        chromosome_coordinates.insert("alternateAllele", ui_.le_obs->text());
-                        chromosome_coordinates.insert("assembly", ui_.cb_assembly->currentText());
-                        chromosome_coordinates.insert("chromosome", ui_.cb_chr->currentText());
-                        chromosome_coordinates.insert("referenceAllele", ui_.le_ref->text());
-                        chromosome_coordinates.insert("start", Helper::toInt(ui_.le_start->text()));
-                        chromosome_coordinates.insert("stop", Helper::toInt(ui_.le_end->text()));
+						chromosome_coordinates.insert("alternateAllele", ui_.le_obs_snv1->text());
+						//TODO: read reference genome from settings
+						chromosome_coordinates.insert("assembly", "GRCh38");
+						chromosome_coordinates.insert("chromosome", ui_.cb_chr_snv1->currentText());
+						chromosome_coordinates.insert("referenceAllele", ui_.le_ref_snv1->text());
+						chromosome_coordinates.insert("start", Helper::toInt(ui_.le_start_snv1->text()));
+						chromosome_coordinates.insert("stop", Helper::toInt(ui_.le_end_snv1->text()));
                     }
                     variant.insert("chromosomeCoordinates", chromosome_coordinates);
 
 					//optional (but required for deletions and insertions)
 					QString variant_type;
-					if (ui_.le_ref->text().contains("-") || ui_.le_ref->text().trimmed().isEmpty()) variant_type = "Insertion";
-					if (ui_.le_obs->text().contains("-") || ui_.le_obs->text().trimmed().isEmpty()) variant_type = "Deletion";
+					if (ui_.le_ref_snv1->text().contains("-") || ui_.le_ref_snv1->text().trimmed().isEmpty()) variant_type = "Insertion";
+					if (ui_.le_obs_snv1->text().contains("-") || ui_.le_obs_snv1->text().trimmed().isEmpty()) variant_type = "Deletion";
 					if (!variant_type.isEmpty()) variant.insert("variantType", variant_type);
 
                     //optional
-                    if (!ui_.le_gene->text().trimmed().isEmpty())
+					if (!ui_.le_genes_snv1->text().trimmed().isEmpty())
                     {
                         QJsonArray genes;
                         {
-                            GeneSet gene_set = NGSD().genesToApproved(GeneSet::createFromStringList(ui_.le_gene->text().replace(";", ",").split(',')));
+							GeneSet gene_set = NGSD().genesToApproved(GeneSet::createFromStringList(ui_.le_genes_snv1->text().replace(";", ",").split(',')));
                             foreach (const QByteArray& gene_name, gene_set)
                             {
                                 QJsonObject gene;

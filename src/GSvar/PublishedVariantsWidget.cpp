@@ -505,7 +505,7 @@ ClinvarUploadData PublishedVariantsWidget::getClinvarUploadData(int var_pub_id)
 	query.next();
 
 	QString sample_id = query.value("sample_id").toString();
-	data.variant_id = query.value("variant_id").toInt();
+	data.variant_id1 = query.value("variant_id").toInt();
 	QStringList details = query.value("details").toString().split(';');
 	data.user_id = query.value("user_id").toInt();
 
@@ -529,25 +529,25 @@ ClinvarUploadData PublishedVariantsWidget::getClinvarUploadData(int var_pub_id)
 	data.phenos = sample_data.phenotypes;
 
 	//get variant info
-	data.variant = db.variant(QString::number(data.variant_id));
+	data.snv1 = db.variant(QString::number(data.variant_id1));
 
 	//get variant report config id
-	data.report_config_variant_id = -1;
+	data.report_config_variant_id1 = -1;
 	foreach (const QString& kv_pair, details)
 	{
 		if (kv_pair.startsWith("variant_rc_id="))
 		{
-			data.report_config_variant_id = Helper::toInt(kv_pair.split('=').at(1), "variant_rc_id");
+			data.report_config_variant_id1 = Helper::toInt(kv_pair.split('=').at(1), "variant_rc_id");
 			break;
 		}
 	}
-	if (data.report_config_variant_id < 0)
+	if (data.report_config_variant_id1 < 0)
 	{
 		THROW(DatabaseException, "No report variant config id information found in variant publication!");
 	}
 
 	//get variant report config
-	query.exec("SELECT * FROM report_configuration_variant WHERE id=" + QString::number(data.report_config_variant_id));
+	query.exec("SELECT * FROM report_configuration_variant WHERE id=" + QString::number(data.report_config_variant_id1));
 	if (query.size() != 1) THROW(DatabaseException, "Invalid report config variant id!");
 	query.next();
 	data.report_variant_config.variant_index = -1;
@@ -566,7 +566,7 @@ ClinvarUploadData PublishedVariantsWidget::getClinvarUploadData(int var_pub_id)
 	data.report_variant_config.comments2 = query.value("comments2").toString();
 
 	//get classification
-	data.report_variant_config.classification = db.getClassification(data.variant).classification;
+	data.report_variant_config.classification = db.getClassification(data.snv1).classification;
 	if (data.report_variant_config.classification.trimmed().isEmpty() || (data.report_variant_config.classification.trimmed() == "n/a"))
 	{
 		QMessageBox::warning(this, "No Classification", "The variant has to have a classification to be published!");
@@ -574,11 +574,11 @@ ClinvarUploadData PublishedVariantsWidget::getClinvarUploadData(int var_pub_id)
 	}
 
 	// get report config
-	int rc_id = db.getValue("SELECT report_configuration_id FROM report_configuration_variant WHERE id=" + QString::number(data.report_config_variant_id) + " AND variant_id="
-							+ QString::number(data.variant_id), false).toInt();
+	int rc_id = db.getValue("SELECT report_configuration_id FROM report_configuration_variant WHERE id=" + QString::number(data.report_config_variant_id1) + " AND variant_id="
+							+ QString::number(data.variant_id1), false).toInt();
 
 	//get genes
-	data.genes = db.genesOverlapping(data.variant.chr(), data.variant.start(), data.variant.end(), 5000);
+	data.genes = db.genesOverlapping(data.snv1.chr(), data.snv1.start(), data.snv1.end(), 5000);
 
 	//get processed sample id
 	data.processed_sample = db.processedSampleName(db.getValue("SELECT processed_sample_id FROM report_configuration WHERE id=" + QString::number(rc_id)).toString());
