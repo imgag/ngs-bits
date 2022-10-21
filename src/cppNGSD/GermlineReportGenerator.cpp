@@ -1777,6 +1777,9 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 		BedFile gaps;
 		try
 		{
+			//prevent look-up of mito genes (they are not part of the target region as they are treated speparately in the pipeline)
+			if (roi.chromosomes().contains("chrMT")) THROW(Exception, "chrMT not contained in target region and thus not in pre-calculated low coverage regions");
+
 			gaps = GermlineReportGenerator::precalculatedGaps(ps_lowcov, roi, data_.report_settings.min_depth, data_.processing_system_roi);
 		}
 		catch(Exception e)
