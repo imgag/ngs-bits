@@ -294,7 +294,7 @@ RtfSourceCode SomaticRnaReport::partExpressionPics()
 {
 	QByteArrayList out;
 
-	out << RtfParagraph("Expression bestimmter Gene aus therapierelevanten Signalkaskaden").setFontSize(18).setBold(true).RtfCode();
+	out << RtfParagraph("Expression von Genen aus ausgewählten therapierelevanten Signalkaskaden").setFontSize(18).setBold(true).RtfCode();
 
 	RtfSourceCode desc = "Die Abbildung zeigt die jeweilige Genexpression als logarithmierten TPM in der Patientenprobe (";
 	desc += RtfText("\\'d7").setFontSize(16).setFontColor(5).RtfCode();
@@ -531,7 +531,7 @@ RtfTable SomaticRnaReport::partGeneExpression()
 {
 	RtfTable table;
 
-	table.addRow( RtfTableRow({"Expression bestimmter Gene"}, {9921}, RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
+	table.addRow( RtfTableRow({"Expression ausgewählter Gene"}, {9921}, RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
 	table.addRow(RtfTableRow({"Gen", "Pathogenität", "Signalweg", "Tumorprobe TPM", "Normalprobe TPM", "Bewertung", "Tumortyp MW-TPM", "Veränderung (x-fach)"},	{1237, 1237, 1758, 1137, 1137, 937, 1237, 1241}, RtfParagraph().setHorizontalAlignment("c").setBold(true)).setHeader().setBorders(1, "brdrhair", 2));
 	for(int i=2; i<table[1].count(); ++i) table[1][i].setBackgroundColor(4);
@@ -625,7 +625,7 @@ RtfSourceCode SomaticRnaReport::partTop10Expression()
 	QList<ExpressionData> genes_to_be_reported;
 	genes_to_be_reported << activating_genes.mid(0, 10) << lof_genes.mid(0, 10);
 
-	table.addRow( RtfTableRow({"Expression bestimmter Gene"}, {9921}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
+	table.addRow( RtfTableRow({"Top 10 Gene mit veränderter Expression"}, {9921}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
 
 	table.addRow(RtfTableRow({"Gen", "Pathogenität", "Tumorprobe TPM", "Normalprobe TPM", "Bewertung", "Tumortyp MW-TPM", "Veränderung (x-fach)"},	{1488, 1488, 1388, 1388, 1188, 1488, 1492}, RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader().setBorders(1, "brdrhair", 2));
@@ -976,6 +976,7 @@ void SomaticRnaReport::writeRtf(QByteArray out_file)
 	doc_.addPart(RtfParagraph("").RtfCode());
 	doc_.newPage();
 
+	doc_.addPart(RtfParagraph("Expression der Gene mit unklaren Varianten").setFontSize(18).setBold(true).RtfCode());
 	doc_.addPart(uncertainSnvTable().RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
 	doc_.newPage();
