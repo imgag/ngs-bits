@@ -1728,9 +1728,12 @@ void GermlineReportGenerator::writeClosedGapsReport(QTextStream& stream)
 
 void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int extend, bool gap_table, bool gene_details)
 {
-	//load gaps file
+	//load gaps file (if present)
 	BedFile ps_lowcov;
-	ps_lowcov.load(data_.ps_lowcov);
+	if (VersatileFile(data_.ps_lowcov).exists())
+	{
+		ps_lowcov.load(data_.ps_lowcov);
+	}
 
 	QString ext_string = (extend==0 ? "" : " +-" + QString::number(extend) + " ");
 	stream << endl;
