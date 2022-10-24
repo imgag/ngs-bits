@@ -1280,19 +1280,17 @@ void GermlineReportGenerator::overrideDate(QDate date)
 	date_ = date;
 }
 
-BedFile GermlineReportGenerator::precalculatedGaps(QString low_cov_file, const BedFile& roi, int min_cov, const BedFile& processing_system_target_region)
+BedFile GermlineReportGenerator::precalculatedGaps(const BedFile& gaps_roi, const BedFile& roi, int min_cov, const BedFile& processing_system_target_region)
 {
+	BedFile output(gaps_roi);
+
 	//check depth cutoff
 	if (min_cov!=20) THROW(ArgumentException, "Depth cutoff is not 20!");
-
-	//load low-coverage file
-	BedFile gaps;
-	gaps.load(low_cov_file);
 
 	//extract processing system ROI statistics
 	int regions = -1;
 	long long bases = -1;
-	foreach(QString line, gaps.headers())
+	foreach(QString line, output.headers())
 	{
 		if (line.startsWith("#ROI bases: "))
 		{
@@ -1307,20 +1305,20 @@ BedFile GermlineReportGenerator::precalculatedGaps(QString low_cov_file, const B
 			if (!ok) regions = -1;
 		}
 	}
-	if (regions<0 || bases<0) THROW(ArgumentException, "Low-coverage file header does not contain target region statistics: " + low_cov_file);
+	if (regions<0 || bases<0) THROW(ArgumentException, "Low-coverage file is outdated: it does not contain target region statistics!");
 
-	if (processing_system_target_region.count()!=regions || processing_system_target_region.baseCount()!=bases) THROW(ArgumentException, "Low-coverage file is outdated. It does not match processing system target region: " + low_cov_file);
+	if (processing_system_target_region.count()!=regions || processing_system_target_region.baseCount()!=bases) THROW(ArgumentException, "Low-coverage file is outdated: it does not match processing system target region!");
 
 	//calculate gaps inside target region
-	gaps.intersect(roi);
+	output.intersect(roi);
 
 	//add target region bases not covered by processing system target file
 	BedFile uncovered(roi);
 	uncovered.subtract(processing_system_target_region);
-	gaps.add(uncovered);
-	gaps.merge();
+	output.add(uncovered);
+	output.merge();
 
-	return gaps;
+	return output;
 }
 
 
@@ -1570,7 +1568,11 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 		BedFile low_cov;
 		try
 		{
-			low_cov = GermlineReportGenerator::precalculatedGaps(data_.ps_lowcov, data_.roi.regions, data_.report_settings.min_depth, data_.processing_system_roi);
+			//load gaps file
+			BedFile gaps;
+			gaps.load(data_.ps_lowcov);
+
+			low_cov = GermlineReportGenerator::precalculatedGaps(gaps, data_.roi.regions, data_.report_settings.min_depth, data_.processing_system_roi);
 		}
 		catch(Exception e)
 		{
@@ -1726,6 +1728,13 @@ void GermlineReportGenerator::writeClosedGapsReport(QTextStream& stream)
 
 void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int extend, bool gap_table, bool gene_details)
 {
+	//load gaps file (if present)
+	BedFile ps_lowcov;
+	if (VersatileFile(data_.ps_lowcov).exists())
+	{
+		ps_lowcov.load(data_.ps_lowcov);
+	}
+
 	QString ext_string = (extend==0 ? "" : " +-" + QString::number(extend) + " ");
 	stream << endl;
 	stream << "<p><b>" << trans("Abdeckungsstatistik f&uuml;r CCDS") << " " << ext_string << "</b></p>" << endl;
@@ -1771,7 +1780,10 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 		BedFile gaps;
 		try
 		{
-			gaps = GermlineReportGenerator::precalculatedGaps(data_.ps_lowcov, roi, data_.report_settings.min_depth, data_.processing_system_roi);
+			//prevent look-up of mito genes (they are not part of the target region as they are treated speparately in the pipeline)
+			if (roi.chromosomes().contains("chrMT")) THROW(Exception, "chrMT not contained in target region and thus not in pre-calculated low coverage regions");
+
+			gaps = GermlineReportGenerator::precalculatedGaps(ps_lowcov, roi, data_.report_settings.min_depth, data_.processing_system_roi);
 		}
 		catch(Exception e)
 		{
