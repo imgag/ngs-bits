@@ -1431,6 +1431,14 @@ created_by: sturm
 
 [Term]
 id: QC:2000122
+name: percentage insertions
+def: "Percentage of structural variants that PASS filters and are insertions."
+is_a: QC:2000116 ! NGS SV list parameter
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000123
 name: percentage inversions
 def: "Percentage of structural variants that PASS filters and are inversions."
 is_a: QC:2000116 ! NGS SV list parameter
@@ -1438,7 +1446,7 @@ xref: value-type:xsd\:int "The allowed value-type for this CV term."
 created_by: sturm
 
 [Term]
-id: QC:2000123
+id: QC:2000124
 name: percentage breakends
 def: "Percentage of structural variants that PASS filters and are breakends."
 is_a: QC:2000116 ! NGS SV list parameter
