@@ -1748,6 +1748,7 @@ private slots:
 			causal_variant.comment_reviewer2 = "This is a comment from reviewer2!";
 			report_settings.report_config->setOtherCausalVariant(causal_variant);
 			report_settings.select_other_causal_variant = true;
+			report_settings.show_refseq_transcripts = true;
 
 			report_settings.show_coverage_details = true;
 			report_settings.roi_low_cov = true;

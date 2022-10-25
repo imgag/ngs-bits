@@ -104,6 +104,7 @@ void ReportDialog::initGUI()
 	ui_.omim_table_one_only->setChecked(settings_.show_one_entry_in_omim_table);
 	ui_.class_info->setChecked(settings_.show_class_details);
 	ui_.language->setCurrentText(settings_.language);
+	ui_.refseq_trans_names->setChecked(settings_.show_refseq_transcripts);
 
 	//no ROI > no roi options
 	if (!roi_.isValid())
@@ -380,7 +381,6 @@ void ReportDialog::writeBackSettings()
 			// other causal variant
 			settings_.select_other_causal_variant = true;
 		}
-
 	}
 
 	settings_.show_coverage_details = ui_.details_cov->isChecked();
@@ -391,6 +391,7 @@ void ReportDialog::writeBackSettings()
 	settings_.show_one_entry_in_omim_table = ui_.omim_table_one_only->isChecked();
 	settings_.show_class_details = ui_.class_info->isChecked();
 	settings_.language = ui_.language->currentText();
+	settings_.show_refseq_transcripts = ui_.refseq_trans_names->isChecked();
 }
 
 void ReportDialog::activateOkButtonIfValid()

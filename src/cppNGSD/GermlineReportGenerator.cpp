@@ -1901,8 +1901,22 @@ QString GermlineReportGenerator::formatCodingSplicing(const Variant& v)
 		{
 			try
 			{
+				//get RefSeq match of transcript if requested
+				QString refseq;
+				if (data_.report_settings.show_refseq_transcripts)
+				{
+					const QMap<QByteArray, QByteArrayList>& transcript_matches = NGSHelper::transcriptMatches(data_.build);
+					foreach (const QByteArray& match, transcript_matches.value(trans.name()))
+					{
+						if (match.startsWith("NM_"))
+						{
+							refseq = "/"+match;
+						}
+					}
+				}
+
 				VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, v, genome_idx_);
-				output << gene + ":" + trans.nameWithVersion() + ":" + consequence.hgvs_c + ":" + consequence.hgvs_p;
+				output << gene + ":" + trans.nameWithVersion() + refseq + ":" + consequence.hgvs_c + ":" + consequence.hgvs_p;
 			}
 			catch(Exception& e)
 			{
