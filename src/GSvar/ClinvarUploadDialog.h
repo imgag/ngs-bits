@@ -21,7 +21,8 @@ struct ClinvarUploadData
 	int report_config_variant_id1;
 	int variant_id2 = -1;
 	int report_config_variant_id2 = -1;
-    ReportVariantConfiguration report_variant_config;
+	ReportVariantConfiguration report_variant_config1;
+	ReportVariantConfiguration report_variant_config2;
 	QString processed_sample;
 
     //disease data

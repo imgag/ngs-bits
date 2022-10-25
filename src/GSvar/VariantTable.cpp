@@ -41,16 +41,33 @@ void VariantTable::updateActivePhenotypes(PhenotypeList phenotypes)
 
 void VariantTable::customContextMenu(QPoint pos)
 {
+	QMenu menu;
 	pos = viewport()->mapToGlobal(pos);
 
 	QList<int> indices = selectedVariantsIndices();
-	if (indices.count() != 1)
+
+	//special case: 2 variants selected -> show compHet upload to ClinVar
+	if (indices.count() == 2)
+	{
+		//ClinVar search
+		bool ngsd_user_logged_in = LoginManager::active();
+		QAction* a_clinvar_pub = menu.addAction(QIcon("://Icons/ClinGen.png"), "Publish compound-heterozygote variant in ClinVar");
+		QMetaMethod signal = QMetaMethod::fromSignal(&VariantTable::publishToClinvarTriggered);
+		a_clinvar_pub->setEnabled(ngsd_user_logged_in && isSignalConnected(signal) && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty());
+
+		//execute menu
+		QAction* action = menu.exec(pos);
+		if (action == a_clinvar_pub) emit publishToClinvarTriggered(indices.at(0), indices.at(1));
+		return;
+	}
+	else if (indices.count() != 1)
 	{
 		return;
 	}
-	int index = indices[0];
 
-	QMenu menu;
+	//else: standard case: 1 variant selected
+
+	int index = indices[0];
 
 	if (registered_actions_.count() > 0)
 	{

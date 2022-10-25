@@ -550,24 +550,24 @@ ClinvarUploadData PublishedVariantsWidget::getClinvarUploadData(int var_pub_id)
 	query.exec("SELECT * FROM report_configuration_variant WHERE id=" + QString::number(data.report_config_variant_id1));
 	if (query.size() != 1) THROW(DatabaseException, "Invalid report config variant id!");
 	query.next();
-	data.report_variant_config.variant_index = -1;
-	data.report_variant_config.report_type = query.value("type").toString();
-	data.report_variant_config.causal = query.value("causal").toBool();
-	data.report_variant_config.inheritance = query.value("inheritance").toString();
-	data.report_variant_config.de_novo = query.value("de_novo").toBool();
-	data.report_variant_config.mosaic = query.value("mosaic").toBool();
-	data.report_variant_config.comp_het = query.value("compound_heterozygous").toBool();
-	data.report_variant_config.exclude_artefact = query.value("exclude_artefact").toBool();
-	data.report_variant_config.exclude_frequency = query.value("exclude_frequency").toBool();
-	data.report_variant_config.exclude_phenotype = query.value("exclude_phenotype").toBool();
-	data.report_variant_config.exclude_mechanism = query.value("exclude_mechanism").toBool();
-	data.report_variant_config.exclude_other = query.value("exclude_other").toBool();
-	data.report_variant_config.comments = query.value("comments").toString();
-	data.report_variant_config.comments2 = query.value("comments2").toString();
+	data.report_variant_config1.variant_index = -1;
+	data.report_variant_config1.report_type = query.value("type").toString();
+	data.report_variant_config1.causal = query.value("causal").toBool();
+	data.report_variant_config1.inheritance = query.value("inheritance").toString();
+	data.report_variant_config1.de_novo = query.value("de_novo").toBool();
+	data.report_variant_config1.mosaic = query.value("mosaic").toBool();
+	data.report_variant_config1.comp_het = query.value("compound_heterozygous").toBool();
+	data.report_variant_config1.exclude_artefact = query.value("exclude_artefact").toBool();
+	data.report_variant_config1.exclude_frequency = query.value("exclude_frequency").toBool();
+	data.report_variant_config1.exclude_phenotype = query.value("exclude_phenotype").toBool();
+	data.report_variant_config1.exclude_mechanism = query.value("exclude_mechanism").toBool();
+	data.report_variant_config1.exclude_other = query.value("exclude_other").toBool();
+	data.report_variant_config1.comments = query.value("comments").toString();
+	data.report_variant_config1.comments2 = query.value("comments2").toString();
 
 	//get classification
-	data.report_variant_config.classification = db.getClassification(data.snv1).classification;
-	if (data.report_variant_config.classification.trimmed().isEmpty() || (data.report_variant_config.classification.trimmed() == "n/a"))
+	data.report_variant_config1.classification = db.getClassification(data.snv1).classification;
+	if (data.report_variant_config1.classification.trimmed().isEmpty() || (data.report_variant_config1.classification.trimmed() == "n/a"))
 	{
 		QMessageBox::warning(this, "No Classification", "The variant has to have a classification to be published!");
 		return data;

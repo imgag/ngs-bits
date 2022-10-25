@@ -73,7 +73,7 @@ public:
 
 public slots:
 	///Upload variant to Clinvar
-	void uploadToClinvar(int variant_index);
+	void uploadToClinvar(int variant_index1, int variant_index2=-1);
 	/// Checks (only in clinet-server mode) if the server is currently running
 	void checkServerAvailability();
 	///Loads a variant list. Unloads the variant list if no file name is given
