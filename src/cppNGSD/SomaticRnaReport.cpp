@@ -399,7 +399,7 @@ RtfTable SomaticRnaReport::partSnvTable()
 	}
 	table.sortByCol(0);
 
-	RtfTableRow header = RtfTableRow({"Gen", "Veränderung", "Typ", "Anteil", "Anteil", "Tumorprobe TPM", "Normalprobe TPM", "Tumortyp MW-TPM", "Veränderung (x-fach)"},{800,1900,1300,700,700,1200,1200, 1000, 1121}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBorders(1, "brdrhair", 2);
+	RtfTableRow header = RtfTableRow({"Gen", "Veränderung", "Typ", "Anteil", "Anteil", "Tumorprobe TPM", "Normalprobe TPM", "Tumortyp\n\\line\nMW-TPM", "Veränderung\n\\line\n(x-fach)"},{800,1900,1300,700,700,1200,1200, 1000, 1121}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBorders(1, "brdrhair", 2);
 	for(int i=4; i<header.count(); ++i) header[i].setBackgroundColor(4);
 	table.prependRow( header );
 	RtfTableRow sub_header = RtfTableRow({"DNA", "RNA"}, {4700, 5221}, RtfParagraph().setFontSize(16).setHorizontalAlignment("c").setBold(true)).setBorders(1, "brdrhair", 2);
@@ -471,7 +471,7 @@ RtfTable SomaticRnaReport::partCnvTable()
 
 	table.sortbyCols({6,0}); //sort by rank, then by gene symbol
 
-	RtfTableRow header = RtfTableRow({"Gen", "Position", "CNV", "Anteil", "Tumorprobe TPM", "Normalprobe TPM", "Bewertung", "Tumortyp MW-TPM", "Veränderung (x-fach)"},{800, 1900, 1300, 700, 1100, 1000,1000, 1000, 1121, }, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader();
+	RtfTableRow header = RtfTableRow({"Gen", "Position", "CNV", "Anteil", "Tumorprobe TPM", "Normalprobe TPM", "Bewertung", "Tumortyp\n\\line\nMW-TPM", "Veränderung\n\\line\n(x-fach)"},{800, 1900, 1300, 700, 1100, 1000,1000, 1000, 1121, }, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader();
 	for(int i=4; i< header.count(); ++i) header[i].setBackgroundColor(4);
 	table.prependRow(header);
 
@@ -526,7 +526,7 @@ RtfTable SomaticRnaReport::partGeneExpression()
 
 	table.addRow( RtfTableRow({"Expression ausgewählter Gene"}, {9921}, RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
-	table.addRow(RtfTableRow({"Gen", "Pathogenität", "Signalweg", "Tumorprobe TPM", "Normalprobe TPM", "Bewertung", "Tumortyp MW-TPM", "Veränderung (x-fach)"},	{1237, 1237, 1958, 1137, 1137, 937, 1137, 1141}, RtfParagraph().setHorizontalAlignment("c").setBold(true)).setHeader().setBorders(1, "brdrhair", 2));
+	table.addRow(RtfTableRow({"Gen", "Pathogenität", "Signalweg", "Tumorprobe TPM", "Normalprobe TPM", "Bewertung", "Tumortyp\n\\line\nMW-TPM", "Veränderung\n\\line\n(x-fach)"},	{1237, 1237, 1958, 1137, 1137, 937, 1137, 1141}, RtfParagraph().setHorizontalAlignment("c").setBold(true)).setHeader().setBorders(1, "brdrhair", 2));
 	for(int i=2; i<table[1].count(); ++i) table[1][i].setBackgroundColor(4);
 
 	//Sort genes by gene name instead of pathway:
@@ -589,8 +589,8 @@ RtfParagraph SomaticRnaReport::partGeneExprExplanation()
 	out += bold("Bewertung (1):") + " Die Expression eines Gens mit beschriebenem Funktionsgewinn (Gain of Function) ist in der Probe erhöht oder die Expression eines Gens mit Funktionsverlust (LoF) ist in der Probe reduziert im Vergleich zur Normalprobe. ";
 	out += bold("(2):") + " Die Expression ist in der Probe und in der Kontrolle ähnlich oder die Rolle des Gens in der Onkogenese ist nicht eindeutig. ";
 	out += bold("(3):") + " Eine differenzielle Expression kann nicht bewertet werden. ";
-	out += bold("Tumortyp MW-TPM:") + " Expression des Gens als Mittelwert TPM in Tumorproben gleicher Entität (in-house Datenbank). Bei weniger als fünf Tumorproben gleicheer Entität ist kein Vergleich sinnvoll (-). ";
-	out += bold("Verändeurng (x-fach): ") + " Relative Expression in der Tumorprobe gegenüber der mittleren Expression in der in-house Vergleichskohorte gleicher Tumorentität. ";
+	out += bold("Tumortyp MW-TPM:") + " Expression des Gens als Mittelwert TPM in Tumorproben gleicher Entität (in-house Datenbank). Bei weniger als fünf Tumorproben gleicher Entität ist kein Vergleich sinnvoll (-). ";
+	out += bold("Veränderung (x-fach): ") + " Relative Expression in der Tumorprobe gegenüber der mittleren Expression in der in-house Vergleichskohorte gleicher Tumorentität. ";
 	out += bold("*: p<0.05") + " (Signifikanztest nach Fisher). " + bold("n/a:") + " nicht anwendbar. " + bold("-:") + " Die Anzahl der Proben in der Tumorkohorte erlaubt keine statistische Bewertung";
 
 	return RtfParagraph(out).setFontSize(16).setHorizontalAlignment("j");
@@ -674,7 +674,7 @@ RtfSourceCode SomaticRnaReport::partTop10Expression()
 	RtfSourceCode intro = RtfParagraph("Top 10 Genlisten mit signifikant veränderter Expression").setFontSize(18).setBold(true).RtfCode();
 	intro += RtfParagraph("Die Tabelle zeigt bis zu 10 Onkogene, deren relative Expression in der Tumorprobe gegenüber der mittleren Expression in der in-house Vergleichskohorte gleicher Tumorentität am höchsten ist. Die Liste enthält nur Gene, mit Tumortyp MW TPM > 10 und einem p-Wert < 0.05. Die Tabelle enthält weiterhin diejenigen 10 Tumorsuppressorgene mit Funktionsverlust (LoF), deren Expression gegenüber der Vergleichskohorte signifikant am niedrigsten ist und Tumor TPM > 10 ist.").setFontSize(16).setHorizontalAlignment("j").RtfCode();
 
-	return intro + "\n" + table.RtfCode() + "\n" + RtfParagraph(expl).setFontSize(16).RtfCode();
+	return intro + "\n" + table.RtfCode() + "\n" + RtfParagraph(expl).setFontSize(16).setHorizontalAlignment("j").RtfCode();
 }
 
 RtfTable SomaticRnaReport::partGeneralInfo()
@@ -785,7 +785,7 @@ RtfTable SomaticRnaReport::uncertainSnvTable()
 	}
 	table.sortByCol(0);
 
-	RtfTableRow header = RtfTableRow({"Gen", "Veränderung", "Typ", "Anteil", "Anteil", "Tumorprobe TPM", "Normalprobe TPM", "Tumortyp MW-TPM", "Veränderung (x-fach)"},{800,1900,1300,700,700,1200,1200, 1000, 1121}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBorders(1, "brdrhair", 2);
+	RtfTableRow header = RtfTableRow({"Gen", "Veränderung", "Typ", "Anteil", "Anteil", "Tumorprobe TPM", "Normalprobe TPM", "Tumortyp\n\\line\nMW-TPM", "Veränderung\n\\line\n(x-fach)"},{800,1900,1300,700,700,1200,1200, 1000, 1121}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBorders(1, "brdrhair", 2);
 	for(int i=4; i<header.count(); ++i) header[i].setBackgroundColor(4);
 	table.prependRow( header );
 	RtfTableRow sub_header = RtfTableRow({"DNA", "RNA"}, {4700, 5221}, RtfParagraph().setFontSize(16).setHorizontalAlignment("c").setBold(true)).setBorders(1, "brdrhair", 2);
@@ -980,6 +980,7 @@ void SomaticRnaReport::writeRtf(QByteArray out_file)
 
 	doc_.addPart(RtfParagraph("Expression der Gene mit unklaren Varianten").setFontSize(18).setBold(true).RtfCode());
 	doc_.addPart(uncertainSnvTable().RtfCode());
+	doc_.addPart(partVarExplanation().RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
 	doc_.newPage();
 
