@@ -75,25 +75,6 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	stream << "<br />" << trans("Benutzer") << ": " << LoginManager::userLogin() << endl;
 	stream << "<br />" << trans("Analysepipeline") << ": "  << data_.variants.getPipeline() << endl;
 	stream << "<br />" << trans("Auswertungssoftware") << ": "  << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << endl;
-
-	QString kasp_text;
-	try
-	{
-		KaspData kasp_data = db_.kaspData(ps_id_);
-		if (kasp_data.random_error_prob>0.01)
-		{
-			kasp_text = "<font color=red>"+QString::number(100.0*kasp_data.random_error_prob)+"%</font>";
-		}
-		else
-		{
-			kasp_text = QString::number(100.0*kasp_data.random_error_prob)+"%";
-		}
-	}
-	catch(DatabaseException& /*e*/)
-	{
-		//nothing to do here (KASP not done or invalid)
-	}
-	stream << "<br />" << trans("KASP-Ergebnis") << ": " << kasp_text << endl;
 	stream << "</p>" << endl;
 
 	///Phenotype information
@@ -1396,7 +1377,6 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Benutzer"] = "User";
 		de2en["Analysepipeline"] = "Analysis pipeline";
 		de2en["Auswertungssoftware"] = "Analysis software";
-		de2en["KASP-Ergebnis"] = " KASP result";
 		de2en["Ph&auml;notyp"] = "Phenotype information";
 		de2en["Filterkriterien"] = "Criteria for variant filtering";
 		de2en["Gefundene Varianten in Zielregion gesamt"] = "Variants in target region";
@@ -1921,8 +1901,22 @@ QString GermlineReportGenerator::formatCodingSplicing(const Variant& v)
 		{
 			try
 			{
+				//get RefSeq match of transcript if requested
+				QString refseq;
+				if (data_.report_settings.show_refseq_transcripts)
+				{
+					const QMap<QByteArray, QByteArrayList>& transcript_matches = NGSHelper::transcriptMatches(data_.build);
+					foreach (const QByteArray& match, transcript_matches.value(trans.name()))
+					{
+						if (match.startsWith("NM_"))
+						{
+							refseq = "/"+match;
+						}
+					}
+				}
+
 				VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, v, genome_idx_);
-				output << gene + ":" + trans.nameWithVersion() + ":" + consequence.hgvs_c + ":" + consequence.hgvs_p;
+				output << gene + ":" + trans.nameWithVersion() + refseq + ":" + consequence.hgvs_c + ":" + consequence.hgvs_p;
 			}
 			catch(Exception& e)
 			{
@@ -2039,6 +2033,24 @@ void GermlineReportGenerator::writeEvaluationSheet(QString filename, const Evalu
 	stream << "        <td class='noborder' valign='top'>" << endl;
 	stream << "          <p>DNA/RNA#: <span class='line'>" << evaluation_sheet_data.dna_rna << "</span></p>" << endl;
 	stream << "          <p>Genom: <span class='line'>" << buildToString(evaluation_sheet_data.build, true) << "</span></p>" << endl;
+	QString kasp_text;
+	try
+	{
+		KaspData kasp_data = db_.kaspData(ps_id_);
+		if (kasp_data.random_error_prob>0.011)
+		{
+			kasp_text = "auff&auml;llig ("+QString::number(100.0*kasp_data.random_error_prob)+"%)";
+		}
+		else
+		{
+			kasp_text = "ok (" + QString::number(100.0*kasp_data.random_error_prob)+"%)";
+		}
+	}
+	catch(DatabaseException& /*e*/) //KASP not done or invalid
+	{
+		kasp_text = trans("nicht durchgef&uuml;hrt");
+	}
+	stream << "          <p>KASP: <span class='line'>" << kasp_text << "</span></p>" << endl;
 	stream << "          <br />" << endl;
 	stream << "          <p>1. Auswerter: <span class='line'>" << evaluation_sheet_data.reviewer1 << "</span> Datum: <span class='line'>" << evaluation_sheet_data.review_date1.toString("dd.MM.yyyy") << "</span></p>" << endl;
 	stream << "          <p><nobr>2. Auswerter: <span class='line'>" << evaluation_sheet_data.reviewer2 << "</span> Datum: <span class='line'>" << evaluation_sheet_data.review_date2.toString("dd.MM.yyyy") << "</span></nobr></p>" << endl;

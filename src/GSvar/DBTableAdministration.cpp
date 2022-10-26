@@ -162,8 +162,8 @@ void DBTableAdministration::changeUserPermissions()
 		}
 
 		//check user role
-		QString user_id = ui_.table->getId(rows.values()[0]);
-		QString user_role = NGSD().getUserRole(LoginManager::userId());
+		int user_id = ui_.table->getId(rows.values()[0]).toInt();
+		QString user_role = NGSD().getUserRole(user_id);
 		if (user_role!="user_restricted")
 		{
 			INFO(ArgumentException, "Setting permissions is availabe for the users with role 'user_restricted' only!");
