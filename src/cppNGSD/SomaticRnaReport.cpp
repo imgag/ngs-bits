@@ -273,13 +273,6 @@ RtfSourceCode SomaticRnaReport::partFusionPics()
 {
 	QByteArrayList out;
 
-	RtfSourceCode desc = "Gezeigt wird die mögliche Strukturvariante als lineare und als kreisförmige Genom-Darstellung, ";
-	desc += "beteiligte Chromosomen, Fusionspartner, ihre Orientierung, Bruchpunkte im Genom, beteiligte Exons und ihre Abdeckung aus den Sequenzierdaten, das Fusionstranskript, ";
-	desc += "Anzahl der für die Detektion unterstützenden Reads und Funktionelle Domäne im Protein mit der Position der Exons. ";
-	desc += "Für Strukturvarianten innerhalb eines Gens wird zu Visualisierungszwecken eine Kopie des Gens zusätzlich dargestellt.";
-
-	out << RtfParagraph(desc).setHorizontalAlignment("j").setFontSize(16).RtfCode();
-
 	for(RtfPicture pic : data_.fusion_pics)
 	{
 		pic.resizeToWidth(doc_.maxWidth() - 500);
@@ -958,6 +951,15 @@ void SomaticRnaReport::writeRtf(QByteArray out_file)
 	}
 	else doc_.addPart(RtfParagraph("Es wurden keine Fusionen detektiert.").RtfCode());
 
+	if (data_.fusion_pics.count() > 0)
+	{
+		//Description of fusion pics.
+		RtfSourceCode desc = "Gezeigt wird die mögliche Strukturvariante als lineare und als kreisförmige Genom-Darstellung, ";
+		desc += "beteiligte Chromosomen, Fusionspartner, ihre Orientierung, Bruchpunkte im Genom, beteiligte Exons und ihre Abdeckung aus den Sequenzierdaten, das Fusionstranskript, ";
+		desc += "Anzahl der für die Detektion unterstützenden Reads und Funktionelle Domäne im Protein mit der Position der Exons. ";
+		desc += "Für Strukturvarianten innerhalb eines Gens wird zu Visualisierungszwecken eine Kopie des Gens zusätzlich dargestellt.";
+		doc_.addPart(desc);
+	}
 
 	if(data_.expression_plots.count() > 0)
 	{
