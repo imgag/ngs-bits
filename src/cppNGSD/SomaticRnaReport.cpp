@@ -526,7 +526,7 @@ RtfTable SomaticRnaReport::partGeneExpression()
 
 	table.addRow( RtfTableRow({"Expression ausgewählter Gene"}, {9921}, RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
-	table.addRow(RtfTableRow({"Gen", "Pathogenität", "Signalweg", "Tumorprobe TPM", "Normalprobe TPM", "Bewertung", "Tumortyp MW-TPM", "Veränderung (x-fach)"},	{1237, 1237, 1758, 1137, 1137, 937, 1237, 1241}, RtfParagraph().setHorizontalAlignment("c").setBold(true)).setHeader().setBorders(1, "brdrhair", 2));
+	table.addRow(RtfTableRow({"Gen", "Pathogenität", "Signalweg", "Tumorprobe TPM", "Normalprobe TPM", "Bewertung", "Tumortyp MW-TPM", "Veränderung (x-fach)"},	{1237, 1237, 1958, 1137, 1137, 937, 1137, 1141}, RtfParagraph().setHorizontalAlignment("c").setBold(true)).setHeader().setBorders(1, "brdrhair", 2));
 	for(int i=2; i<table[1].count(); ++i) table[1][i].setBackgroundColor(4);
 
 	//Sort genes by gene name instead of pathway:
@@ -544,20 +544,20 @@ RtfTable SomaticRnaReport::partGeneExpression()
 		else if(data.role.role == SomaticGeneRole::Role::LOSS_OF_FUNCTION) pathogenicity = "LoF";
 
 		row.addCell(1237, pathogenicity  );
-		row.addCell(1758, data.pathway );
+		row.addCell(1958, data.pathway );
 		row.addCell(1137, formatDigits(data.tumor_tpm), RtfParagraph().setHorizontalAlignment("c") );
 		row.addCell(1137, formatDigits(data.hpa_ref_tpm) , RtfParagraph().setHorizontalAlignment("c"));
 
 		row.addCell(937, QByteArray::number(rank(data.tumor_tpm, data.hpa_ref_tpm, data.role.role)) , RtfParagraph().setHorizontalAlignment("c"));
-		row.addCell(1237, formatDigits(data.cohort_mean_tpm) , RtfParagraph().setHorizontalAlignment("c"));
+		row.addCell(1137, formatDigits(data.cohort_mean_tpm) , RtfParagraph().setHorizontalAlignment("c"));
 
 		if (data.tumor_tpm > 10 && data.cohort_mean_tpm > 10)
 		{
-			row.addCell(1241, expressionChange(data) , RtfParagraph().setHorizontalAlignment("c"));
+			row.addCell(1141, expressionChange(data) , RtfParagraph().setHorizontalAlignment("c"));
 		}
 		else
 		{
-			row.addCell(1241, "-" , RtfParagraph().setHorizontalAlignment("c"));
+			row.addCell(1141, "-" , RtfParagraph().setHorizontalAlignment("c"));
 		}
 
 
@@ -958,7 +958,7 @@ void SomaticRnaReport::writeRtf(QByteArray out_file)
 		desc += "beteiligte Chromosomen, Fusionspartner, ihre Orientierung, Bruchpunkte im Genom, beteiligte Exons und ihre Abdeckung aus den Sequenzierdaten, das Fusionstranskript, ";
 		desc += "Anzahl der für die Detektion unterstützenden Reads und Funktionelle Domäne im Protein mit der Position der Exons. ";
 		desc += "Für Strukturvarianten innerhalb eines Gens wird zu Visualisierungszwecken eine Kopie des Gens zusätzlich dargestellt.";
-		doc_.addPart(desc);
+		doc_.addPart(RtfParagraph(desc).setFontSize(16).setHorizontalAlignment("j").RtfCode());
 	}
 
 	if(data_.expression_plots.count() > 0)
