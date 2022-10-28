@@ -112,7 +112,7 @@ public:
 				//does not support multi-allelic variants
 				if(prs_variant.isMultiAllelic())
 				{
-					THROW(FileParseException, "Multi-allelic variants in PRS VCF files are not supported: " + prs_variant.variantToString());
+					THROW(FileParseException, "Multi-allelic variants in PRS VCF files are not supported: " + prs_variant.toString());
 				}
 
 				//get all matching variants at this position
@@ -130,7 +130,7 @@ public:
 
 				if(matching_variants.size() > 1)
 				{
-					THROW(FileParseException, "Variant occures multiple times in sample VCF: " +  prs_variant.variantToString());
+					THROW(FileParseException, "Variant occures multiple times in sample VCF: " +  prs_variant.toString());
 				}
 
 				if(matching_variants.size() == 1)

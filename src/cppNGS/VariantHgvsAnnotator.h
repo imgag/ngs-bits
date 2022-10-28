@@ -149,16 +149,17 @@ class CPPNGSSHARED_EXPORT VariantHgvsAnnotator
 {
 public:
     ///Constructor to change parameters for detecting up/downstream and splice region variants: different for 5 and 3 prime site intron
-	VariantHgvsAnnotator(int max_dist_to_transcript=5000, int splice_region_ex=3, int splice_region_in_5=20, int splice_region_in_3=20);
+	VariantHgvsAnnotator(const FastaFileIndex& genome_idx, int max_dist_to_transcript=5000, int splice_region_ex=3, int splice_region_in_5=20, int splice_region_in_3=20);
 
     ///Converts a variant in VCF format to HGVS nomenclature
-	VariantConsequence variantToHgvs(const Transcript& transcript, VcfLine& variant, const FastaFileIndex& genome_idx);
-	VariantConsequence variantToHgvs(const Transcript& transcript, const Variant& variant, const FastaFileIndex& genome_idx);
+	VariantConsequence variantToHgvs(const Transcript& transcript, VcfLine& variant);
+	VariantConsequence variantToHgvs(const Transcript& transcript, const Variant& variant);
 
     QByteArray translate(const Sequence& seq, bool is_mito = false, bool end_at_stop = true);
-    Sequence getCodingSequence(const Transcript& trans, const FastaFileIndex& genome_idx, bool add_utr_3 = false);
+	Sequence getCodingSequence(const Transcript& trans, bool add_utr_3 = false);
 
 private:
+	const FastaFileIndex& genome_idx_;
 	//How far upstream or downstream can the variant be from the transcript
 	int max_dist_to_transcript_;
 
@@ -167,15 +168,15 @@ private:
 	int splice_region_in_5_;
 	int splice_region_in_3_;
 
-	QString annotateRegionsCoding(const Transcript& transcript, VariantConsequence& hgvs, int gen_pos, bool plus_strand, bool is_dup = false);
-	QString annotateRegionsNonCoding(const Transcript& transcript, VariantConsequence& hgvs, int gen_pos, bool plus_strand, bool is_dup = false);
+	QString annotateRegionsCoding(const Transcript& transcript, VariantConsequence& hgvs, int gen_pos, bool is_dup = false);
+	QString annotateRegionsNonCoding(const Transcript& transcript, VariantConsequence& hgvs, int gen_pos, bool is_dup = false);
 	QString getHgvsPosition(const BedFile& regions, VariantConsequence& hgvs, int gen_pos, bool plus_strand, const BedFile& coding_regions, bool utr_5 = false, int first_region = 0);
 	QString getPositionInIntron(const BedFile& regions, VariantConsequence& hgvs, int genomic_position, bool plus_strand, const BedFile &coding_regions, bool utr_5 = false, int first_region = 0);
-	QString getHgvsProteinAnnotation(const VcfLine& variant, const FastaFileIndex& genome_idx, const QString& pos_hgvs_c, const Transcript& transcript, bool plus_strand);
+	QString getHgvsProteinAnnotation(const VcfLine& variant, const QString& pos_hgvs_c, const Transcript& transcript);
 
 	QByteArray toThreeLetterCode(char aa_one_letter_code);
 
-	void annotateSpliceRegion(VariantConsequence& hgvs, const Transcript& transcript, int start, int end, bool plus_strand, bool insertion);
+	void annotateSpliceRegion(VariantConsequence& hgvs, const Transcript& transcript, int start, int end, bool insertion);
 
 	void annotateProtSeqCsqSnv(VariantConsequence& hgvs);
 };
