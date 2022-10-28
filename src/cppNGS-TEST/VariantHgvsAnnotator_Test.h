@@ -1352,13 +1352,13 @@ private slots:
 		Transcript t = trans_SPTBN1();
 		VariantConsequence hgvs = var_hgvs_anno.variantToHgvs(t, variant);
 		S_EQUAL(hgvs.hgvs_c, "c.5570_5577delinsACACAC");
-		S_EQUAL(hgvs.hgvs_p, "p.Thr1857HisfsTer20");
+		S_EQUAL(hgvs.hgvs_p, "p.Gly1857AspfsTer20");
 		IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
 		IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
 		IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
 		I_EQUAL(hgvs.exon_number, 26);
 		I_EQUAL(hgvs.intron_number, -1);
-		S_EQUAL(hgvs.allele, "-");
+		S_EQUAL(hgvs.allele, "ACACAC");
 	}
 
     void translateDnaSequence()

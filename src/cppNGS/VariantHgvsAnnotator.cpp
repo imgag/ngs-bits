@@ -12,8 +12,6 @@ VariantHgvsAnnotator::VariantHgvsAnnotator(const FastaFileIndex& genome_idx, int
 //convert a variant in VCF format into an HgvsNomenclature object
 VariantConsequence VariantHgvsAnnotator::variantToHgvs(const Transcript& transcript, VcfLine& variant)
 {
-	qDebug() << __LINE__ << "VCF: " << variant.toString();
-
     //init
 	bool plus_strand = transcript.isPlusStrand();
 	VariantConsequence hgvs;
@@ -35,7 +33,6 @@ VariantConsequence VariantHgvsAnnotator::variantToHgvs(const Transcript& transcr
 	variant.normalize(plus_strand ? VcfLine::ShiftDirection::RIGHT : VcfLine::ShiftDirection::LEFT, genome_idx_);
     int start = variant.start();
     int end = variant.end();
-	qDebug() << __LINE__ << "AFTER LEFT-SHIFT: " << variant.toString();
 
     //check prerequisites
     if (transcript.regions().count()==0) THROW(ProgrammingException, "Transcript '" + transcript.name() + "' has no regions() defined!");
@@ -339,8 +336,6 @@ VariantConsequence VariantHgvsAnnotator::variantToHgvs(const Transcript& transcr
 //convert a variant in GSvar format into an HgvsNomenclature object
 VariantConsequence VariantHgvsAnnotator::variantToHgvs(const Transcript& transcript, const Variant &variant)
 {
-	qDebug() << __LINE__ << "VARIANT: " << variant.toString() << transcript.nameWithVersion() << transcript.regions().count() << transcript.codingStart() << transcript.codingEnd() << transcript.codingRegions().count();
-
     //first convert from Variant to VcfLine
 	VariantVcfRepresentation vcf_rep = variant.toVCF(genome_idx_);
     QVector<Sequence> alt;
@@ -835,6 +830,7 @@ QByteArray VariantHgvsAnnotator::translate(const Sequence& seq, bool is_mito, bo
 QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, const QString& pos_hgvs_c, const Transcript& transcript)
 {
 	bool plus_strand = transcript.isPlusStrand();
+	bool use_mito_table = variant.chr().isM();
 
     QString hgvs_p("p.");
     int pos_trans_start = 0;
@@ -852,7 +848,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
         int offset = pos_trans_start % 3;
 
         //translate the reference sequence codon and obtain the observed sequence codon
-		aa_ref = toThreeLetterCode(NGSHelper::translateCodon(coding_sequence.mid(pos_trans_start - offset, 3), variant.chr().isM()));
+		aa_ref = toThreeLetterCode(NGSHelper::translateCodon(coding_sequence.mid(pos_trans_start - offset, 3), use_mito_table));
         seq_obs = coding_sequence.mid(pos_trans_start - offset, 3);
         if(plus_strand)
         {
@@ -864,7 +860,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
         }
 
         //translate the observed sequence codon
-        aa_obs = toThreeLetterCode(NGSHelper::translateCodon(seq_obs, variant.chr().isM()));
+		aa_obs = toThreeLetterCode(NGSHelper::translateCodon(seq_obs, use_mito_table));
 
         if(aa_obs == aa_ref)
         {
@@ -880,7 +876,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
             bool stop_found = false;
             for(int i = pos_trans_start - offset + 3; i < coding_sequence.length() - 2; i += 3)
             {
-				if(NGSHelper::translateCodon(coding_sequence.mid(i, 3), variant.chr().isM()) == '*')
+				if(NGSHelper::translateCodon(coding_sequence.mid(i, 3), use_mito_table) == '*')
                 {
                     stop_found = true;
                     int stop_pos = i - (pos_trans_start - offset);
@@ -961,13 +957,17 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
 
         int offset = pos_trans_start % 3;
         int frame_diff = variant.isDel() ? end - start : variant.alt()[0].length() - variant.ref().length();
-        int pos_shift = 0;
-		qDebug() << __LINE__ << pos_trans_start << offset << frame_diff;
+		int pos_shift = 0;
 
         // get reference and observed sequence (from coding sequence)
         Sequence seq_ref = coding_sequence.mid(pos_trans_start - offset);
-
-        if(variant.isDel())
+		if (variant.isSNV())
+		{
+			Sequence alt = variant.alt(0);
+			if(!plus_strand) alt.reverseComplement();
+			seq_obs = seq_ref.left(offset) + alt + seq_ref.mid(offset + variant.ref().length());
+		}
+		else if(variant.isDel())
 		{
 			seq_obs = seq_ref.left(offset) + seq_ref.mid(offset + frame_diff);
         }
@@ -977,22 +977,20 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
             if(!plus_strand) alt.reverseComplement();
             seq_obs = seq_ref.left(offset + 1) + alt + seq_ref.mid(offset + 1);
         }
-        else
+		else //indel
 		{
-            Sequence alt = variant.alt(0);
+			Sequence alt = variant.alt(0).mid(1);
             if(!plus_strand) alt.reverseComplement();
-            seq_obs = seq_ref.left(offset) + alt + seq_ref.mid(offset + variant.ref().length());
-        }
-		qDebug() << __LINE__ << seq_obs;
+			seq_obs = seq_ref.left(offset) + alt + seq_ref.mid(offset + variant.ref().length() - 1);
+		}
 
         if(variant.isDel() || (variant.isIns() && frame_diff % 3 != 0) || (!variant.isIns() && !variant.isDel()))
-        {
-			qDebug() << __LINE__;
-            //find the first amino acid that is changed due to the deletion/frameshift insertion/deletion-insertion
+		{
+			//find the first amino acid that is changed due to the deletion/frameshift insertion/deletion-insertion
             while(aa_obs == aa_ref && aa_obs != "Ter" && aa_ref != "Ter")
             {
-                aa_ref = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.left(3), variant.chr().isM()));
-                aa_obs = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.left(3), variant.chr().isM()));
+				aa_ref = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.left(3), use_mito_table));
+				aa_obs = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.left(3), use_mito_table));
 
                 if(aa_obs == aa_ref && aa_obs != "Ter")
                 {
@@ -1011,10 +1009,10 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
             //shift to the most C-terminal position possible
             while(aa_obs == aa_ref && aa_obs_next == aa_ref_next && aa_obs != "Ter" && aa_ref != "Ter")
             {
-                aa_ref = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.left(3), variant.chr().isM()));
-                aa_obs = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.left(3), variant.chr().isM()));
-                aa_ref_next = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(3, 3), variant.chr().isM()));
-                aa_obs_next = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.mid(3, 3), variant.chr().isM()));
+				aa_ref = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.left(3), use_mito_table));
+				aa_obs = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.left(3), use_mito_table));
+				aa_ref_next = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(3, 3), use_mito_table));
+				aa_obs_next = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.mid(3, 3), use_mito_table));
 
                 if(aa_obs == aa_ref && aa_obs_next == aa_ref_next && aa_obs != "Ter")
                 {
@@ -1028,8 +1026,8 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
             int diff = 0;
             if(aa_obs == aa_ref) diff += 3;
 
-            QByteArray aa_ref_after = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(diff, 3), variant.chr().isM()));
-            QByteArray aa_obs_after = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.mid(diff + frame_diff, 3), variant.chr().isM()));
+			QByteArray aa_ref_after = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(diff, 3), use_mito_table));
+			QByteArray aa_obs_after = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.mid(diff + frame_diff, 3), use_mito_table));
 
             QString inserted_sequence = translate(seq_obs.mid(diff, frame_diff));
             QString left_sequence;
@@ -1072,7 +1070,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
                     bool stop_found = false;
                     for(int i = 3; i < seq_obs.length() - 2; i += 3)
                     {
-						if(NGSHelper::translateCodon(seq_obs.mid(i, 3), variant.chr().isM()) == '*')
+						if(NGSHelper::translateCodon(seq_obs.mid(i, 3), use_mito_table) == '*')
                         {
                             stop_found = true;
                             aa_obs.append(QByteArray::number(i / 3));
@@ -1094,8 +1092,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
         else
         {
             aa_ref.append(QByteArray::number((pos_trans_start + pos_shift) / 3 + 1));
-        }
-		qDebug() << __LINE__ << aa_ref;
+		}
 
         // frameshift deletion/insertion/deletion-insertion
         if(frame_diff % 3 != 0)
@@ -1114,13 +1111,13 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
                bool stop_found = false;
                for(int i = 3; i < seq_obs.length() - 2; i += 3)
                {
-				   if(NGSHelper::translateCodon(seq_obs.mid(i, 3), variant.chr().isM()) == '*')
+				   if(NGSHelper::translateCodon(seq_obs.mid(i, 3), use_mito_table) == '*')
                    {
                        stop_found = true;
                        aa_obs.append(QByteArray::number(i / 3 + 1));
                        break;
                    }
-               }
+			   }
                if(!stop_found)
                {
                    aa_obs.append("?");
@@ -1144,7 +1141,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
                     deletion_length += 3;
                 }
 
-                QByteArray deleted_aa_seq = translate(seq_ref.left(deletion_length), variant.chr().isM(), true);
+				QByteArray deleted_aa_seq = translate(seq_ref.left(deletion_length), use_mito_table, true);
 
                 if(deleted_aa_seq.endsWith("Ter"))
                 {
@@ -1152,7 +1149,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
                 }
                 else
                 {
-					aa_ref.append(toThreeLetterCode(NGSHelper::translateCodon(coding_sequence.mid(pos_trans_start - offset + pos_shift + frame_diff, 3), variant.chr().isM())));
+					aa_ref.append(toThreeLetterCode(NGSHelper::translateCodon(coding_sequence.mid(pos_trans_start - offset + pos_shift + frame_diff, 3), use_mito_table)));
                     aa_ref.append(QByteArray::number((pos_trans_start + pos_shift + frame_diff) / 3 + 1));
                 }
             }
@@ -1165,7 +1162,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
                 bool stop_found = false;
                 for(int i = 3; i < seq_obs.length() - 2; i += 3)
                 {
-					if(NGSHelper::translateCodon(seq_obs.mid(i, 3), variant.chr().isM()) == '*')
+					if(NGSHelper::translateCodon(seq_obs.mid(i, 3), use_mito_table) == '*')
                     {
                         stop_found = true;
                         aa_obs.append(QByteArray::number(i / 3 + 1));
@@ -1194,11 +1191,11 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
             aa_ref.append("_");
             if(plus_strand)
             {
-				aa_ref.append(toThreeLetterCode(NGSHelper::translateCodon(genome_idx_.seq(variant.chr(), end - offset_end, 3), variant.chr().isM())));
+				aa_ref.append(toThreeLetterCode(NGSHelper::translateCodon(genome_idx_.seq(variant.chr(), end - offset_end, 3), use_mito_table)));
             }
             else
             {
-				aa_ref.append(toThreeLetterCode(NGSHelper::translateCodon(genome_idx_.seq(variant.chr(), start - 2 + offset_end, 3).toReverseComplement(), variant.chr().isM())));
+				aa_ref.append(toThreeLetterCode(NGSHelper::translateCodon(genome_idx_.seq(variant.chr(), start - 2 + offset_end, 3).toReverseComplement(), use_mito_table)));
             }
             aa_ref.append(QByteArray::number((pos_trans_start + variant.ref().length() - pos_shift - 1) / 3 + 1));
 
