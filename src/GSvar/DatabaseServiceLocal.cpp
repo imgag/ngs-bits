@@ -125,3 +125,17 @@ QList<MultiSampleAnalysisInfo> DatabaseServiceLocal::getMultiSampleAnalysisInfo(
 	}
 	return out;
 }
+
+QStringList DatabaseServiceLocal::getRnaFusionPics(const QString& rna_id) const
+{
+	checkEnabled(__PRETTY_FUNCTION__);
+
+	return Helper::findFiles(processedSamplePath(NGSD().processedSampleId(rna_id), PathType::FUSIONS_PIC_DIR).filename, "*.png", false);
+}
+
+QStringList DatabaseServiceLocal::getRnaExpressionPlots(const QString& rna_id) const
+{
+	checkEnabled(__PRETTY_FUNCTION__);
+
+	return Helper::findFiles(processedSamplePath(NGSD().processedSampleId(rna_id), PathType::SAMPLE_FOLDER).filename, rna_id + "_expr.*.png", false);
+}
