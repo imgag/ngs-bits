@@ -4433,7 +4433,16 @@ QList<RtfPicture> pngsFromFiles(QStringList files)
 	QList<RtfPicture> pic_list;
 	foreach(const QString& path, files)
 	{
-		QImage pic = QImage(path);
+		QImage pic;
+		if (path.startsWith("http", Qt::CaseInsensitive))
+		{
+			QByteArray response = HttpHandler(HttpRequestHandler::NONE).get(path);
+			if (!response.isEmpty()) pic.loadFromData(response);
+		}
+		else
+		{
+			pic = QImage(path);
+		}
 		if(pic.isNull()) continue;
 
 		QByteArray png_data = "";
@@ -4712,7 +4721,7 @@ void MainWindow::generateReportSomaticRTF()
 			//Add data from fusion pics
 			try
 			{
-				rna_report_data.fusion_pics = pngsFromFiles( Helper::findFiles(GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::FUSIONS_PIC_DIR).filename, "*.png", false) );
+				rna_report_data.fusion_pics = pngsFromFiles(GlobalServiceProvider::database().getRnaFusionPics(dlg.getRNAid()));
 			}
 			catch(Exception) //Nothing to do here
 			{
@@ -4720,7 +4729,7 @@ void MainWindow::generateReportSomaticRTF()
 			//Add data from expression plots
 			try
 			{
-				rna_report_data.expression_plots = pngsFromFiles( Helper::findFiles(GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::SAMPLE_FOLDER).filename, dlg.getRNAid() + "_expr.*.png", false) );
+				rna_report_data.expression_plots = pngsFromFiles(GlobalServiceProvider::database().getRnaExpressionPlots(dlg.getRNAid()));
 			}
 			catch(Exception)
 			{

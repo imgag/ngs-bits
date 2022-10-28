@@ -24,6 +24,9 @@ public:
 	virtual FileLocation analysisJobLogFile(const int& job_id) const override;
 	virtual QList<MultiSampleAnalysisInfo> getMultiSampleAnalysisInfo(QStringList& analyses) const override;
 
+	virtual QStringList getRnaFusionPics(const QString& rna_id) const override;
+	virtual QStringList getRnaExpressionPlots(const QString& rna_id) const override;
+
 protected:
 	//Throws an error if NGSD is not enabled
 	void checkEnabled(QString function) const
