@@ -132,7 +132,7 @@ void DiseaseCourseWidget::loadVariantLists()
 			for (int i=0; i<cf_dna_column.variants.count(); ++i)
 			{
 				const VcfLine& vcf_line = cf_dna_column.variants[i];
-				cf_dna_column.lookup_table.insert(vcf_line.toString().toUtf8(), &vcf_line);
+				cf_dna_column.lookup_table.insert(vcf_line.variantToString().toUtf8(), &vcf_line);
 			}
 
 			FileLocation cfdna_mrd_file = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::MRD_CF_DNA);
@@ -231,7 +231,7 @@ void DiseaseCourseWidget::createTableView()
 		ui_->vars->item(row_idx, 6)->setTextAlignment(Qt::AlignRight);
 
 		// get tumor af for each cfDNA sample
-		QByteArray key = variant.toString().toUtf8();
+		QByteArray key = variant.variantToString().toUtf8();
 		foreach (const cfDnaColumn& cf_dna_column, cf_dna_columns_)
 		{
 			// get variant

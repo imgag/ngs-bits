@@ -559,8 +559,8 @@ public:
 	bool isValidGenomicPosition() const;
 	//Returns all not passed filters
 	QByteArrayList failedFilters() const;
-	//Returns a string representation of the variant.
-	QString toString() const;
+	//Return a string of the variant coordinates and reference, alternative base(s)
+	QString variantToString() const;
 	QByteArrayList vepAnnotations(int field_index) const;
 	// Left-normalize all variants.
 	void leftNormalize(FastaFileIndex& reference);

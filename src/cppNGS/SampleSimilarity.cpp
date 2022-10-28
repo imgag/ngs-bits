@@ -34,7 +34,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesVcf(const VcfFile&
 			THROW(ArgumentException, "Can not handle multiallelic variants.");
 		}
 
-		output[strToPointer(variant.toString())] = genoToDouble(variant.formatValueFromSample("GT"));
+		output[strToPointer(variant.variantToString())] = genoToDouble(variant.formatValueFromSample("GT"));
 	}
 
 	return output;

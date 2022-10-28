@@ -63,10 +63,10 @@ ValidationDialog::ValidationDialog(QWidget* parent, int id)
 
 		//annotate consequence for each transcript
 		FastaFileIndex genome_idx(Settings::string("reference_genome"));
-		VariantHgvsAnnotator hgvs_annotator(genome_idx);
+		VariantHgvsAnnotator hgvs_annotator;
 		foreach(const Transcript& trans, transcripts)
 		{
-			VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, variant);
+			VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, variant, genome_idx);
 
 			QString exon_intron;
 			if (consequence.exon_number!=-1)

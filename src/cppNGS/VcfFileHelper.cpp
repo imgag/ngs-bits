@@ -464,12 +464,19 @@ bool VcfLine::isValidGenomicPosition() const
 
 bool VcfLine::isMultiAllelic() const
 {
-	return alt().count() > 1;
+	if(alt().count() > 1)
+	{
+		return true;
+	}
+	return false;
 }
 
 bool VcfLine::isInDel() const
 {
-	if(isMultiAllelic()) THROW(Exception, "Can not determine if multi-allelic variant is InDel.")
+	if(alt().count() > 1)
+	{
+		THROW(NotImplementedException, "Can not determine if multi allelic variant is InDEl.")
+	}
 
 	if(alt(0).length() > 1 || ref().length() > 1)
 	{
@@ -480,7 +487,10 @@ bool VcfLine::isInDel() const
 
 bool VcfLine::isIns() const
 {
-	if(isMultiAllelic()) THROW(Exception, "Can not determine if multi-allelic variant is insertion.")
+    if(alt().count() > 1)
+    {
+        THROW(NotImplementedException, "Can not determine if multi allelic variant is insertion");
+    }
 
     if(alt(0).length() > 1 && ref().length() == 1 && alt(0).at(0) == ref().at(0))
     {
@@ -491,7 +501,10 @@ bool VcfLine::isIns() const
 
 bool VcfLine::isDel() const
 {
-	if(isMultiAllelic()) THROW(Exception, "Can not determine if multi-allelic variant is deletion.")
+    if(alt().count() > 1)
+    {
+        THROW(NotImplementedException, "Can not determine if multi allelic variant is deletion")
+    }
 
     if(alt(0).length() == 1 && ref().length() > 1 && alt(0).at(0) == ref().at(0))
     {
@@ -516,9 +529,9 @@ QByteArrayList VcfLine::failedFilters() const
 	return filters;
 }
 
-QString VcfLine::toString() const
+QString VcfLine::variantToString() const
 {
-	return chr_.str() + ":" + QString::number(start()) + "-" + QString::number(end()) + " " + ref() + ">" + altString();
+	return chr_.str() + ":" + QString::number(start()) + "-" + QString::number(end()) + " " + ref_ + ">" + altString();
 }
 
 bool VcfLine::operator==(const VcfLine& rhs) const

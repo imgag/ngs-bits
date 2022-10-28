@@ -28,7 +28,7 @@ private:
         QSharedPointer<QFile> writer = Helper::openFileForWriting(out_file, true);
 
 		const TranscriptList& transcripts = transcript_index.container();
-		VariantHgvsAnnotator hgvs_anno(reference, max_dist_to_trans, splice_region_ex, splice_region_in_5, splice_region_in_3);
+        VariantHgvsAnnotator hgvs_anno(max_dist_to_trans, splice_region_ex, splice_region_in_5, splice_region_in_3);
 
         while(!reader->atEnd())
         {
@@ -127,7 +127,7 @@ private:
 
                     try
                     {
-						VariantConsequence hgvs = hgvs_anno.variantToHgvs(t, var_for_anno);
+						VariantConsequence hgvs = hgvs_anno.variantToHgvs(t, var_for_anno, reference);
 						consequences << hgvsNomenclatureToString(hgvs, t);
                     }
                     catch(ArgumentException& e)
