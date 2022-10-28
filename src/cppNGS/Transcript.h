@@ -107,6 +107,14 @@ public:
 	{
 		strand_ = strand;
 	}
+	bool isPlusStrand() const
+	{
+		return strand_==PLUS;
+	}
+	bool isMinusStrand() const
+	{
+		return strand_==MINUS;
+	}
 
 	enum BIOTYPE
 	{

@@ -69,10 +69,10 @@ void VariantWidget::updateGUI()
 	//annotate consequence for each transcript
 	QStringList lines;
 	FastaFileIndex genome_idx(Settings::string("reference_genome"));
-	VariantHgvsAnnotator hgvs_annotator;
+	VariantHgvsAnnotator hgvs_annotator(genome_idx);
 	foreach(const Transcript& trans, transcripts)
 	{
-		VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, variant_, genome_idx);
+		VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, variant_);
 
 		QString line = "<a href=\"" + trans.gene() + "\">" + trans.gene() + "</a> " + trans.nameWithVersion() + ": " + consequence.variantConsequenceTypesAsString() + " " + consequence.hgvs_c + " " + consequence.hgvs_p;
 
