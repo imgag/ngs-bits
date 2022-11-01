@@ -18,7 +18,6 @@ private:
 		//init
 		int c_annotated = 0;
 		int c_skipped = 0;
-		QRegExp valid_alt_regexp("^[ACGT]+(,[ACGT]+)*$");
 
         if(in_file != "" && in_file == out_file)
         {
@@ -67,8 +66,13 @@ private:
             Sequence ref = parts[3].toUpper();
             Sequence alt = parts[4].toUpper();
 
-            //write out multi-allelic and structural (e.g. <DEL>) variants without CSQ annotation
-			if(!valid_alt_regexp.exactMatch(alt))
+			//write out multi-allelic and structural variants (e.g. <DEL>) without CSQ annotation
+			QVector<Sequence> alts;
+			foreach(const QByteArray& alt_part, alt.split(','))
+			{
+				alts << alt_part;
+			}
+			if(!VcfLine(chr, pos, ref, alts).isValid())
             {
                 writeLine(writer, parts, pos, ref, alt, parts[7]);
 				++c_skipped;
@@ -361,7 +365,7 @@ public:
 		timer.start();
 		QPair<int, int> counts = annotateVcfStream(in_file, out_file, transcript_index, reference, max_dist_to_trans, splice_region_ex, splice_region_in_5, splice_region_in_3, tag);
 		stream << "Annotated " << QString::number(counts.first) << " variants." << endl;
-		stream << "Skipped " << QString::number(counts.second) << " variants with invalid ALT sequence." << endl;
+		stream << "Skipped " << QString::number(counts.second) << " invalid variants." << endl;
 		stream << "Annotating variants took: " << Helper::elapsedTime(timer) << endl;
     }
 };

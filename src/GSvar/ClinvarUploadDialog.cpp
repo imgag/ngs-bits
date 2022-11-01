@@ -56,12 +56,12 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 	{
 		//convert indels to VCF format
 		static FastaFileIndex genome_index(Settings::string("reference_genome"));
-		VariantVcfRepresentation vcf_variant = data.variant.toVCF(genome_index);
+		VcfLine vcf_variant = data.variant.toVCF(genome_index);
 
-		ui_.le_start->setText(QString::number(vcf_variant.pos));
-		ui_.le_end->setText(QString::number(vcf_variant.pos + vcf_variant.ref.length() - 1));
-		ui_.le_ref->setText(vcf_variant.ref);
-		ui_.le_obs->setText(vcf_variant.alt);
+		ui_.le_start->setText(QString::number(vcf_variant.start()));
+		ui_.le_end->setText(QString::number(vcf_variant.end()));
+		ui_.le_ref->setText(vcf_variant.ref());
+		ui_.le_obs->setText(vcf_variant.altString());
 	}
 
     // set genes

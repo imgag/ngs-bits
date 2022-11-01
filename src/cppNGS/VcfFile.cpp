@@ -863,7 +863,7 @@ void VcfFile::storeHeaderColumns(QTextStream &stream) const
 	{
 		samples_exist_ = false;
 
-		foreach (VcfLinePtr line, vcf_lines_)
+		foreach (const VcfLinePtr& line, vcf_lines_)
 		{
 			if (line->samples().count() > 0)
 			{

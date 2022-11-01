@@ -354,11 +354,7 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 //convert a variant in GSvar format into an HgvsNomenclature object
 VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, const Variant &variant)
 {
-    //first convert from Variant to VcfLine
-	VariantVcfRepresentation vcf_rep = variant.toVCF(genome_idx_);
-    QVector<Sequence> alt;
-    alt.push_back(vcf_rep.alt);
-    VcfLine vcf_variant(vcf_rep.chr, vcf_rep.pos, vcf_rep.ref, alt);
+	VcfLine vcf_variant = variant.toVCF(genome_idx_);
 
 	return annotate(transcript, vcf_variant);
 }

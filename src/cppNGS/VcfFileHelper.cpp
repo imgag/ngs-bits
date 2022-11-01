@@ -1,5 +1,7 @@
 #include "VcfFileHelper.h"
 #include "Helper.h"
+#include "Log.h"
+#include "VariantList.h"
 
 VcfLine::VcfLine()
 	: chr_()
@@ -60,6 +62,7 @@ VcfFormat::LessComparator::LessComparator(bool use_quality)
 	: use_quality(use_quality)
 {
 }
+
 bool VcfFormat::LessComparator::operator()(const VcfLinePtr& a, const VcfLinePtr& b) const
 {
 	if (a->chr()<b->chr()) return true;//compare chromsomes
@@ -446,20 +449,36 @@ bool VcfHeader::parseInfoFormatLine(const QByteArray& line,InfoFormatLine& info_
 	return true;
 }
 
-//returns if the chromosome is valid
-bool VcfLine::isValidGenomicPosition() const
+bool VcfLine::isValid() const
 {
-	bool is_valid_ref_base = true;
-	for(int i = 0; i < ref_.size(); ++i)
+	//check chr
+	if (!chr_.isValid()) return false;
+
+	//check pos
+	if (pos_<0) return false;
+
+	//check ref
+	if (ref_.isEmpty()) return false;
+	QRegExp valid_seq_regexp("^[ACGT]+$");
+	if (!valid_seq_regexp.exactMatch(ref_)) return false;
+
+	//check alt(s)
+	if (alt_.isEmpty()) return false;
+	foreach(const Sequence& alt, alt_)
 	{
-		if(ref_.at(i) != 'A' && ref_.at(i) != 'C' && ref_.at(i) != 'G' && ref_.at(i) != 'T' && ref_.at(i) != 'N' &&
-		   ref_.at(i) != 'a' && ref_.at(i) != 'c' && ref_.at(i) != 'g' && ref_.at(i) != 't' && ref_.at(i) != 'n')
-		{
-			is_valid_ref_base = false;
-			break;
-		}
+		if (!valid_seq_regexp.exactMatch(alt)) return false;
 	}
-	return chr_.isValid() && is_valid_ref_base && pos_>=0 && ref_.size()>=0 && !ref_.isEmpty() && !alt_.isEmpty();
+
+	return true;
+}
+
+bool VcfLine::isValid(const FastaFileIndex& reference) const
+{
+	if (!isValid()) return false;
+
+	if (reference.seq(chr_, pos_, ref_.length(), true)!=ref_.toUpper()) return false;
+
+	return true;
 }
 
 bool VcfLine::isMultiAllelic() const
@@ -497,7 +516,7 @@ bool VcfLine::isDel() const
     {
         return true;
     }
-    return false;
+		return false;
 }
 
 //returns all not passed filters
@@ -684,7 +703,7 @@ void VcfLine::normalize(ShiftDirection shift_dir, const FastaFileIndex& referenc
 void VcfLine::normalize(const Sequence& empty_seq, bool to_gsvar_format)
 {
 	//skip multi-allelic and empty variants
-	if(isMultiAllelic() || alt().empty())	return;
+	if(isMultiAllelic() || alt().empty()) return;
 
 	Variant::normalize(pos_, ref_, alt_[0]);
 

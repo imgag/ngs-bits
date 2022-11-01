@@ -2,6 +2,9 @@
 
 #include "BedFile.h"
 #include "VcfFileHelper.h"
+#include "KeyValuePair.h"
+#include "ChromosomalIndex.h"
+#include "VariantList.h"
 #include "htslib/bgzf.h"
 
 #include <zlib.h>
@@ -51,7 +54,7 @@ public:
 	///save a variant line as string
 	QString lineToString(int pos) const;
 
-	///Leftnormalize every vcf line in the vcf file according to a reference genome
+	///Left-normalize every VCF line in the vcf file according to a reference genome
 	void leftNormalize(QString reference_genome);
 	///loads a vcf or vcf.gz file
 	void load(const QString& filename, bool allow_multi_sample = true);

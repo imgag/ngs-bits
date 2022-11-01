@@ -261,9 +261,9 @@ VcfFile CfDNAPanelBatchImport::createCfdnaPanelVcf(const QString& ps_name, const
 	for (int i = 0; i < gsvar.count(); ++i)
 	{
 		const Variant& var = gsvar[i];
-		VariantVcfRepresentation vcf_line = var.toVCF(genome_reference);
+		VcfLine vcf_line = var.toVCF(genome_reference);
 		// create vcf pos string
-		QString vcf_pos = vcf_line.chr.strNormalized(true) + ":" + QString::number(vcf_line.pos) + " " + vcf_line.ref + ">" + vcf_line.alt;
+		QString vcf_pos = vcf_line.chr().strNormalized(true) + ":" + QString::number(vcf_line.start()) + " " + vcf_line.ref() + ">" + vcf_line.altString();
 		if (selected_variants.contains(vcf_pos))
 		{
 			cfdna_panel.append(var);

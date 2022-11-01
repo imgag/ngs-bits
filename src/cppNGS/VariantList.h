@@ -5,15 +5,9 @@
 #include "VariantAnnotationDescription.h"
 #include "FastaFileIndex.h"
 #include "BedFile.h"
-#include "ChromosomalIndex.h"
 #include "OntologyTermCollection.h"
 #include "GenomeBuild.h"
-#include <QVector>
-#include <QStringList>
-#include <QtAlgorithms>
-#include <QVectorIterator>
-#include <QUrl>
-
+#include "VcfFileHelper.h"
 
 ///Transcript annotations e.g. from SnpEff/VEP.
 struct CPPNGSSHARED_EXPORT VariantTranscript
@@ -67,15 +61,6 @@ class CPPNGSSHARED_EXPORT SampleHeaderInfo
 		QList<int> sampleColumns(bool affected) const;
 };
 
-///VCF representation of a variant in GSvar format.
-struct VariantVcfRepresentation
-{
-	Chromosome chr;
-	int pos;
-	Sequence ref;
-	Sequence alt;
-};
-
 ///Genetic variant or mutation (1-based).
 class CPPNGSSHARED_EXPORT Variant
 {
@@ -84,7 +69,8 @@ public:
     Variant();
     ///Convenience constructor.
     Variant(const Chromosome& chr, int start, int end, const Sequence& ref, const Sequence& obs, const QList<QByteArray>& annotations = QList<QByteArray>(), int filter_index = -1);
-
+	///Constructor from VCF variant (throws an exception if multi-allelic).
+	Variant(const VcfLine& vcf);
 
 	///Returns if the variant is valid
 	bool isValid() const
@@ -200,7 +186,7 @@ public:
 
 	///Checks if the variant is valid (without annotations). Throws an exception in case of an error.
 	void checkValid() const;
-	///Overload of the above function that also checks if the referece bases of the variants are correct.
+	///Overload of the above function that also checks if the reference bases of the variants are correct.
 	void checkValid(const FastaFileIndex& reference) const;
 
 	/// Left-align indels in repeat regions. Works for GSvar files only - assumes the variants are normalized.
@@ -210,7 +196,7 @@ public:
 	/// Returns the HGVS.g notation of the variant.
 	QString toHGVS(const FastaFileIndex& genome_index) const;
 	/// Returns the VCF line notation of the variant up to the INFO column.
-	VariantVcfRepresentation toVCF(const FastaFileIndex& genome_index) const; //TODO return VcfLine
+	VcfLine toVCF(const FastaFileIndex& genome_index) const; //TODO return VcfLine
 
     ///Auxilary function: Removes common prefix and suffix bases from indels and adapts the start position accordingly.
 	static void normalize(int& start, Sequence& ref, Sequence& obs);
@@ -415,7 +401,7 @@ public:
 
 	///Checks if the variants are valid (with annotation). Throws an exception in case of an error.
 	void checkValid() const;
-	///Overload of the above function that also checks if the referece bases of the variants are correct.
+	///Overload of the above function that also checks if the reference bases of the variants are correct.
 	void checkValid(const FastaFileIndex& reference) const;
 
 	///Parses and returns sample data from variant list header (only for GSvar).

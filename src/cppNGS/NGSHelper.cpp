@@ -6,6 +6,7 @@
 #include "GeneSet.h"
 #include "ToolBase.h"
 #include "HttpRequestHandler.h"
+#include "Log.h"
 
 #include <QTextStream>
 #include <QFileInfo>

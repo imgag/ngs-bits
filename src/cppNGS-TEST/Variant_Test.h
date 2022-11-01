@@ -363,48 +363,48 @@ private slots:
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex genome_index(ref_file);
 
-		VariantVcfRepresentation v_rep;
+		VcfLine v_rep;
 		v_rep = Variant("chr1", 47110766, 47110766, "-", "C").toVCF(genome_index);
-		S_EQUAL(v_rep.chr.str(), "chr1");
-		I_EQUAL(v_rep.pos, 47110766);
-		S_EQUAL(v_rep.ref, "C");
-		S_EQUAL(v_rep.alt, "CC");
+		S_EQUAL(v_rep.chr().str(), "chr1");
+		I_EQUAL(v_rep.start(), 47110766);
+		S_EQUAL(v_rep.ref(), "C");
+		S_EQUAL(v_rep.altString(), "CC");
 
 		v_rep = Variant("chr1", 47133811, 47133811, "T", "C").toVCF(genome_index);
-		S_EQUAL(v_rep.chr.str(), "chr1");
-		I_EQUAL(v_rep.pos, 47133811);
-		S_EQUAL(v_rep.ref, "T");
-		S_EQUAL(v_rep.alt, "C");
+		S_EQUAL(v_rep.chr().str(), "chr1");
+		I_EQUAL(v_rep.start(), 47133811);
+		S_EQUAL(v_rep.ref(), "T");
+		S_EQUAL(v_rep.altString(), "C");
 
 		v_rep = Variant("chr1", 47181921, 47181921, "A", "-").toVCF(genome_index);
-		S_EQUAL(v_rep.chr.str(), "chr1");
-		I_EQUAL(v_rep.pos, 47181920);
-		S_EQUAL(v_rep.ref, "CA");
-		S_EQUAL(v_rep.alt, "C");
+		S_EQUAL(v_rep.chr().str(), "chr1");
+		I_EQUAL(v_rep.start(), 47181920);
+		S_EQUAL(v_rep.ref(), "CA");
+		S_EQUAL(v_rep.altString(), "C");
 
 		v_rep = Variant("chr1", 47181921, 47181922, "AA", "GC").toVCF(genome_index);
-		S_EQUAL(v_rep.chr.str(), "chr1");
-		I_EQUAL(v_rep.pos, 47181920);
-		S_EQUAL(v_rep.ref, "CAA");
-		S_EQUAL(v_rep.alt, "CGC");
+		S_EQUAL(v_rep.chr().str(), "chr1");
+		I_EQUAL(v_rep.start(), 47181920);
+		S_EQUAL(v_rep.ref(), "CAA");
+		S_EQUAL(v_rep.altString(), "CGC");
 
 		v_rep = Variant("chr1", 47181921, 47181921, "A", "TGC").toVCF(genome_index);
-		S_EQUAL(v_rep.chr.str(), "chr1");
-		I_EQUAL(v_rep.pos, 47181920);
-		S_EQUAL(v_rep.ref, "CA");
-		S_EQUAL(v_rep.alt, "CTGC");
+		S_EQUAL(v_rep.chr().str(), "chr1");
+		I_EQUAL(v_rep.start(), 47181920);
+		S_EQUAL(v_rep.ref(), "CA");
+		S_EQUAL(v_rep.altString(), "CTGC");
 
 		v_rep = Variant("chr1", 47181921, 47181925, "AAAAA", "GCT").toVCF(genome_index);
-		S_EQUAL(v_rep.chr.str(), "chr1");
-		I_EQUAL(v_rep.pos, 47181920);
-		S_EQUAL(v_rep.ref, "CAAAAA");
-		S_EQUAL(v_rep.alt, "CGCT");
+		S_EQUAL(v_rep.chr().str(), "chr1");
+		I_EQUAL(v_rep.start(), 47181920);
+		S_EQUAL(v_rep.ref(), "CAAAAA");
+		S_EQUAL(v_rep.altString(), "CGCT");
 
 		v_rep = Variant("chr1", 47181921, 47181925, "AAAAA", "GCTGCTGCT").toVCF(genome_index);
-		S_EQUAL(v_rep.chr.str(), "chr1");
-		I_EQUAL(v_rep.pos, 47181920);
-		S_EQUAL(v_rep.ref, "CAAAAA");
-		S_EQUAL(v_rep.alt, "CGCTGCTGCT");
+		S_EQUAL(v_rep.chr().str(), "chr1");
+		I_EQUAL(v_rep.start(), 47181920);
+		S_EQUAL(v_rep.ref(), "CAAAAA");
+		S_EQUAL(v_rep.altString(), "CGCTGCTGCT");
 	}
 
 	void addFilter()

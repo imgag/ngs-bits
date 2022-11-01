@@ -1,23 +1,12 @@
 #pragma once
 
 #include "cppNGS_global.h"
-#include "KeyValuePair.h"
-#include "Exceptions.h"
-#include "Log.h"
 
-#include "ChromosomalIndex.h"
 #include "Sequence.h"
+#include "Exceptions.h"
+#include "FastaFileIndex.h"
+#include "BasicStatistics.h"
 #include "BedFile.h"
-#include "VariantList.h"
-
-#include <QIODevice>
-#include <QString>
-#include <QMap>
-#include <QTextStream>
-#include <QByteArray>
-#include <QList>
-
-#include <memory>
 
 ///Data structure containing a vector of keys (to retrieve its order) and a hash of the key to value
 template<typename K, typename V>
@@ -228,12 +217,10 @@ private:
 	InfoFormatLine lineByID(const QByteArray& id, const QVector<InfoFormatLine>& lines, bool error_not_found = true) const;
 };
 
-///Representation of a line of a vcf file
-class CPPNGSSHARED_EXPORT  VcfLine
+///Representation of a line of a VCF file
+class CPPNGSSHARED_EXPORT VcfLine
 {
-
 public:
-
 	///Default constructor.
 	VcfLine();
 	///Constructor with basic entries
@@ -250,8 +237,7 @@ public:
 	}
 	int end() const
 	{
-		if(ref().length() <= 0) THROW(ArgumentException, "Reference can not have length zero in a VCF file.");
-		return (start() + ref().length() - 1);
+		return start() + ref().length() - 1;
 	}
 	const Sequence& ref() const
 	{
@@ -555,8 +541,10 @@ public:
     bool isIns() const;
     //Returns if the variant is a deletion, can only be called on single allelic variants
     bool isDel() const;
-	//Returns if the chromosome is valid
-	bool isValidGenomicPosition() const;
+	//Returns if the VCF variant is valid (only checks the base variant, i.e. chr, pos, ref, alt)
+	bool isValid() const;
+	//Overload of the above function that also checks if the reference bases of the variants are correct.
+	bool isValid(const FastaFileIndex& reference) const;
 	//Returns all not passed filters
 	QByteArrayList failedFilters() const;
 	//Returns a string representation of the variant.
@@ -569,15 +557,6 @@ public:
     // Removes the common prefix/suffix from indels, shifts the variant left or right, and adds a common reference base
     enum ShiftDirection {NONE, LEFT, RIGHT};
     void normalize(ShiftDirection shift_dir, const FastaFileIndex& reference);
-	// copy coordinates of the vcf line into a variant (only single alternative bases)
-	void copyCoordinatesIntoVariant(Variant& variant)
-	{
-		variant.setChr(chr());
-		variant.setStart(start());
-		variant.setEnd(end());
-		variant.setRef(ref());
-		variant.setObs(alt(0));
-	}
 
 	//Equality operator (only compares the variant location itself, not further annotations).
 	bool operator==(const VcfLine& rhs) const;
