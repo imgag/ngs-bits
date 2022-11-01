@@ -123,7 +123,12 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 		}
 
         // up- or downstream variant, no description w.r.t. cDNA positions possible
-        if(pos_hgvs_c == "") return hgvs;
+		if(pos_hgvs_c == "")
+		{
+
+			hgvs.impact = "MODIFIER";
+			return hgvs;
+		}
 
         // create HGVS protein annotation
 		if(hgvs.types.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT))
@@ -213,7 +218,11 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 		}
 
         // up- or downstream variant, no description w.r.t. cDNA positions possible
-        if(pos_hgvs_c == "") return hgvs;
+		if(pos_hgvs_c == "")
+		{
+			hgvs.impact = "MODIFIER";
+			return hgvs;
+		}
     }
 
     //find out if the variant is a splice region variant

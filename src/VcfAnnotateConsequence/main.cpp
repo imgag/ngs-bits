@@ -90,7 +90,7 @@ private:
                 //treat each alternative allele of multi-allelic variants as a new variant
 				foreach(const Sequence& alt_part, alt.split(','))
                 {
-					VcfLine var_for_anno = VcfLine(chr, pos, ref, QVector<Sequence>() << alt_part);
+					VcfLine var_for_anno(chr, pos, ref, QVector<Sequence>() << alt_part);
 					VariantConsequence hgvs;
 					if(var_for_anno.isSNV())
 					{
@@ -121,10 +121,10 @@ private:
 				const Transcript& t = transcripts.at(idx);
 
                 //treat each alternative allele of multi-allelic variants as a new variant
-				foreach(const Sequence& alt, alt.split(','))
+				foreach(const Sequence& alt_part, alt.split(','))
                 {
                     //create new VcfLine for annotation (don't change original variant coordinates by normalization!)
-					VcfLine var_for_anno = VcfLine(chr, pos, ref, QVector<Sequence>() << alt);
+					VcfLine var_for_anno(chr, pos, ref, QVector<Sequence>() << alt_part);
 
                     try
                     {

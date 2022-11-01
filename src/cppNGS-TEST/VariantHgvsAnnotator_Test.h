@@ -193,10 +193,11 @@ private slots:
 
 	void bla()
 	{
+		return;
 		qDebug() << __LINE__ << QDateTime::currentDateTime();
 
 		GffData data;
-		NGSHelper::loadGffFile("C:\\Users\\ahsturm1\\Desktop\\Data\\NGS\\Ensembl\\Homo_sapiens.GRCh38.107.chr.gff3", data);
+		NGSHelper::loadGffFile("D:\\Data\\NGS\\dbs\\Ensembl\\Homo_sapiens.GRCh38.107.chr.gff3", data);
 
 		qDebug() << __LINE__ << QDateTime::currentDateTime();
 
@@ -211,7 +212,7 @@ private slots:
 
 		qDebug() << __LINE__ << QDateTime::currentDateTime();
 
-		TSVFileStream tsv("C:\\Users\\ahsturm1\\Desktop\\variant_classification.csv");
+		TSVFileStream tsv("D:\\Data\\NGS\\dbs\\NGSD\\variant_classification.tsv");
 		while (!tsv.atEnd())
 		{
 			QByteArrayList parts = tsv.readLine();
@@ -253,7 +254,7 @@ private slots:
 		qDebug() << __LINE__ << QDateTime::currentDateTime();
 	}
 
-    void vcfToHgvsPlusStrand()
+	void annotate_plus_strand()
     {
         QString ref_file = Settings::string("reference_genome", true);
         if (ref_file=="") SKIP("Test needs the reference genome!");
@@ -274,6 +275,7 @@ private slots:
         I_EQUAL(hgvs.exon_number, 2);
         I_EQUAL(hgvs.intron_number, -1);
         S_EQUAL(hgvs.allele, "G");
+		S_EQUAL(hgvs.impact, "LOW");
 
         //SNV exon stop gained
         alt.clear();
@@ -290,6 +292,7 @@ private slots:
         I_EQUAL(hgvs.exon_number, 9);
         I_EQUAL(hgvs.intron_number, -1);
         S_EQUAL(hgvs.allele, "T");
+		S_EQUAL(hgvs.impact, "HIGH");
 
         //SNV exon stop lost
         alt.clear();
@@ -323,6 +326,8 @@ private slots:
         I_EQUAL(hgvs.exon_number, 2);
         I_EQUAL(hgvs.intron_number, -1);
         S_EQUAL(hgvs.allele, "G");
+		S_EQUAL(hgvs.impact, "MODERATE");
+
 
         //SNV intron splice acceptor
         alt.clear();
@@ -420,6 +425,7 @@ private slots:
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, -1);
         S_EQUAL(hgvs.allele, "G");
+		S_EQUAL(hgvs.impact, "MODIFIER");
 
         // deletion intron
         alt.clear();
@@ -716,7 +722,7 @@ private slots:
         S_EQUAL(hgvs.allele, "ACG");
     }
 
-    void vcfToHgvsMinusStrand()
+	void annotate_minus_strand()
     {
         QString ref_file = Settings::string("reference_genome", true);
         if (ref_file=="") SKIP("Test needs the reference genome!");
@@ -756,6 +762,7 @@ private slots:
         I_EQUAL(hgvs.exon_number, 3);
         I_EQUAL(hgvs.intron_number, -1);
         S_EQUAL(hgvs.allele, "A");
+		S_EQUAL(hgvs.impact, "MODERATE");
 
         //SNV exon stop gained
         alt.clear();
@@ -772,6 +779,7 @@ private slots:
         I_EQUAL(hgvs.exon_number, 5);
         I_EQUAL(hgvs.intron_number, -1);
         S_EQUAL(hgvs.allele, "T");
+		S_EQUAL(hgvs.impact, "HIGH");
 
         //SNV intron splice acceptor
         alt.clear();
@@ -873,6 +881,7 @@ private slots:
         I_EQUAL(hgvs.exon_number, 5);
         I_EQUAL(hgvs.intron_number, -1);
         S_EQUAL(hgvs.allele, "T");
+		S_EQUAL(hgvs.impact, "MODIFIER");
 
         //SNV 5 prime utr intron
         alt.clear();
@@ -899,6 +908,7 @@ private slots:
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, -1);
         S_EQUAL(hgvs.allele, "A");
+		S_EQUAL(hgvs.impact, "MODIFIER");
 
         // downstream gene variant
         alt.clear();
@@ -912,6 +922,7 @@ private slots:
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, -1);
         S_EQUAL(hgvs.allele, "A");
+		S_EQUAL(hgvs.impact, "MODIFIER");
 
         // deletion upstream
         alt.clear();
@@ -925,6 +936,7 @@ private slots:
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, -1);
         S_EQUAL(hgvs.allele, "-");
+		S_EQUAL(hgvs.impact, "MODIFIER");
 
         // deletion 5 prime utr
         alt.clear();
