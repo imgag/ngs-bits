@@ -66,7 +66,7 @@ ValidationDialog::ValidationDialog(QWidget* parent, int id)
 		VariantHgvsAnnotator hgvs_annotator(genome_idx);
 		foreach(const Transcript& trans, transcripts)
 		{
-			VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, variant);
+			VariantConsequence consequence = hgvs_annotator.annotate(trans, variant);
 
 			QString exon_intron;
 			if (consequence.exon_number!=-1)

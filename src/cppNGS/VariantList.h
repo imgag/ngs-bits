@@ -210,7 +210,7 @@ public:
 	/// Returns the HGVS.g notation of the variant.
 	QString toHGVS(const FastaFileIndex& genome_index) const;
 	/// Returns the VCF line notation of the variant up to the INFO column.
-	VariantVcfRepresentation toVCF(const FastaFileIndex& genome_index) const;
+	VariantVcfRepresentation toVCF(const FastaFileIndex& genome_index) const; //TODO return VcfLine
 
     ///Auxilary function: Removes common prefix and suffix bases from indels and adapts the start position accordingly.
 	static void normalize(int& start, Sequence& ref, Sequence& obs);

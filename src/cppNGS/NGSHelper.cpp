@@ -360,12 +360,18 @@ char NGSHelper::translateCodon(const QByteArray& codon, bool use_mito_table)
 	return dictionary[codon];
 }
 
+QByteArray NGSHelper::translateCodonThreeLetterCode(const QByteArray& codon, bool use_mito_table)
+{
+	char one_letter_code = translateCodon(codon, use_mito_table);
+	return threeLetterCode(one_letter_code);
+}
+
 QByteArray NGSHelper::threeLetterCode(char one_letter_code)
 {
 	//init
 	const static QHash<char,QByteArray> dictionary = {{'A',"Ala"},{'R',"Arg"},{'N',"Asn"},{'D',"Asp"},{'C',"Cys"},{'E',"Glu"},
 													   {'Q',"Gln"},{'G',"Gly"},{'H',"His"},{'I',"Ile"},{'L',"Leu"},{'K',"Lys"},{'M',"Met"},{'F',"Phe"},{'P',"Pro"},{'S',"Ser"},
-													   {'T',"Thr"},{'W',"Trp"},{'Y',"Tyr"},{'V',"Val"},{'*',"*"}};
+													   {'T',"Thr"},{'W',"Trp"},{'Y',"Tyr"},{'V',"Val"},{'*',"Ter"}};
 
 	//check
 	if (!dictionary.contains(one_letter_code)) THROW(ProgrammingException, "Invalid AA one-letter code: '" + QString(one_letter_code) + "'");

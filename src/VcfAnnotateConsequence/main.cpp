@@ -98,7 +98,7 @@ private:
 					}
 					else if(var_for_anno.isDel())
 					{
-						hgvs.allele = "-";
+						hgvs.allele = "-"; //TODO????
 					}
 					else if(var_for_anno.alt(0).at(0) == var_for_anno.ref().at(0))
 					{
@@ -108,7 +108,8 @@ private:
 					{
 						hgvs.allele = var_for_anno.alt(0);
 					}
-                    hgvs.variant_consequence_type.insert(VariantConsequenceType::INTERGENIC_VARIANT);
+					hgvs.types.insert(VariantConsequenceType::INTERGENIC_VARIANT);
+					hgvs.impact = "MODIFIER";
                     Transcript t;
 					consequences << hgvsNomenclatureToString(hgvs, t);
                 }
@@ -127,7 +128,7 @@ private:
 
                     try
                     {
-						VariantConsequence hgvs = hgvs_anno.variantToHgvs(t, var_for_anno);
+						VariantConsequence hgvs = hgvs_anno.annotate(t, var_for_anno);
 						consequences << hgvsNomenclatureToString(hgvs, t);
                     }
                     catch(ArgumentException& e)
@@ -200,11 +201,11 @@ private:
 	QByteArray hgvsNomenclatureToString(const VariantConsequence& hgvs, const Transcript& t)
     {
 		QByteArrayList output;
-		output << hgvs.allele.toUtf8();
+		output << hgvs.allele;
 
         //find variant consequence type with highest priority (apart from splice region)
         VariantConsequenceType max_csq_type = VariantConsequenceType::INTERGENIC_VARIANT;
-        foreach(VariantConsequenceType csq_type, hgvs.variant_consequence_type)
+		foreach(VariantConsequenceType csq_type, hgvs.types)
         {
             if(csq_type > max_csq_type && csq_type != VariantConsequenceType::SPLICE_REGION_VARIANT &&
                     csq_type != VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT &&
@@ -213,18 +214,17 @@ private:
                 max_csq_type = csq_type;
             }
         }
-        QString consequence_type = hgvs.consequenceTypeToString(max_csq_type);
-        VariantImpact impact = hgvs.consequenceTypeToImpact(max_csq_type);
+		QString consequence_type = VariantConsequence::typeToString(max_csq_type);
 
         //additionally insert splice region consequence type (if present) and order types by impact
-        if(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_REGION_VARIANT))
+		if(hgvs.types.contains(VariantConsequenceType::SPLICE_REGION_VARIANT))
         {
             VariantConsequenceType splice_type;
-            if(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT))
+			if(hgvs.types.contains(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT))
             {
                 splice_type = VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT;
             }
-            else if(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_DONOR_VARIANT))
+			else if(hgvs.types.contains(VariantConsequenceType::SPLICE_DONOR_VARIANT))
             {
                 splice_type = VariantConsequenceType::SPLICE_DONOR_VARIANT;
             }
@@ -235,22 +235,16 @@ private:
 
             if(splice_type > max_csq_type)
             {
-                consequence_type.prepend(hgvs.consequenceTypeToString(splice_type) + "&");
-                impact = hgvs.consequenceTypeToImpact(splice_type);
+				consequence_type.prepend(VariantConsequence::typeToString(splice_type) + "&");
             }
             else
             {
-                consequence_type.append("&" + hgvs.consequenceTypeToString(splice_type));
+				consequence_type.append("&" + VariantConsequence::typeToString(splice_type));
             }
         }
 
 		output << consequence_type.toUtf8();
-
-        //add variant impact
-		if(impact == VariantImpact::HIGH) output << "HIGH";
-		else if(impact == VariantImpact::MODERATE) output << "MODERATE";
-		else if(impact == VariantImpact::LOW) output << "LOW";
-		else output << "MODIFIER";
+		output << hgvs.impact;
 
 		//gene symbol, HGNC ID, transcript ID, feature type
 		if (t.isValid())
@@ -276,8 +270,10 @@ private:
 		else output << "";
 
 		//HGVS.c and HGVS.p
-		output << hgvs.hgvs_c.toUtf8();
-		output << hgvs.hgvs_p.toUtf8().replace("=", "%3D");
+		output << hgvs.hgvs_c;
+		QByteArray tmp  = hgvs.hgvs_p;
+		tmp.replace("=", "%3D");
+		output << tmp;
 
 		return output.join('|');
     }
@@ -290,15 +286,15 @@ public:
 
     virtual void setup()
     {
-		setDescription("Adds transcript-specific consequence predictions to a VCF file.");
+		setDescription("Adds transcript-specific variant consequence annotations to a VCF file.");
 		addInfile("in", "Input VCF file to annotate.", false);
 		addInfile("gff", "Ensembl-style GFF file with transcripts, e.g. from https://ftp.ensembl.org/pub/release-107/gff3/homo_sapiens/Homo_sapiens.GRCh38.107.chr.gff3.gz.", false);
 
         //optional
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addOutfile("out", "Output VCF file annotated with predicted consequences for each variant.", false);
-		addFlag("all", "If set, all transcripts are imported (the default is to skip transcripts not labeled with the 'GENCODE basic' tag).");
-		addString("tag", "Tag that is used for the consequence annotation.", true, "CSQ");
+		addFlag("all", "If set, all transcripts are annotated. The default is to skip transcripts not labeled with the 'GENCODE basic' tag.");
+		addString("tag", "Info field name used for the consequence annotation.", true, "CSQ");
 		addInt("max_dist_to_trans", "Maximum distance between variant and transcript.", true, 5000);
 		addInt("splice_region_ex", "Number of bases at exon boundaries that are considered to be part of the splice region.", true, 3);
 		addInt("splice_region_in5", "Number of bases at intron boundaries (5') that are considered to be part of the splice region.", true, 20);

@@ -72,9 +72,9 @@ void VariantWidget::updateGUI()
 	VariantHgvsAnnotator hgvs_annotator(genome_idx);
 	foreach(const Transcript& trans, transcripts)
 	{
-		VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, variant_);
+		VariantConsequence consequence = hgvs_annotator.annotate(trans, variant_);
 
-		QString line = "<a href=\"" + trans.gene() + "\">" + trans.gene() + "</a> " + trans.nameWithVersion() + ": " + consequence.variantConsequenceTypesAsString() + " " + consequence.hgvs_c + " " + consequence.hgvs_p;
+		QString line = "<a href=\"" + trans.gene() + "\">" + trans.gene() + "</a> " + trans.nameWithVersion() + ": " + consequence.typesToString() + " " + consequence.hgvs_c + " " + consequence.hgvs_p;
 
 		//flags for important transcripts
 		QStringList flags = trans.flags(true);

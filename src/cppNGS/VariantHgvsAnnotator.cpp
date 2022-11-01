@@ -10,7 +10,7 @@ VariantHgvsAnnotator::VariantHgvsAnnotator(const FastaFileIndex& genome_idx, int
 }
 
 //convert a variant in VCF format into an HgvsNomenclature object
-VariantConsequence VariantHgvsAnnotator::variantToHgvs(const Transcript& transcript, VcfLine& variant)
+VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, VcfLine& variant)
 {
     //init
 	bool plus_strand = transcript.isPlusStrand();
@@ -39,10 +39,8 @@ VariantConsequence VariantHgvsAnnotator::variantToHgvs(const Transcript& transcr
 
     Sequence ref = variant.ref();
     Sequence obs = variant.alt().at(0);
-    QString pos_hgvs_c;
-    QString pos_hgvs_c_dup;
-
-	hgvs.transcript_id = transcript.nameWithVersion();
+	QByteArray pos_hgvs_c;
+	QByteArray pos_hgvs_c_dup;
 
     // annotate coding transcript
     if(transcript.isCoding())
@@ -128,10 +126,10 @@ VariantConsequence VariantHgvsAnnotator::variantToHgvs(const Transcript& transcr
         if(pos_hgvs_c == "") return hgvs;
 
         // create HGVS protein annotation
-        if(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT))
+		if(hgvs.types.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT))
         {
             //special case: deletion spanning exon-intron boundary -> no protein annotation
-            if(!hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT))
+			if(!hgvs.types.contains(VariantConsequenceType::INTRON_VARIANT))
             {
 				hgvs.hgvs_p = getHgvsProteinAnnotation(variant, pos_hgvs_c, transcript);
             }
@@ -221,12 +219,12 @@ VariantConsequence VariantHgvsAnnotator::variantToHgvs(const Transcript& transcr
     //find out if the variant is a splice region variant
 	annotateSpliceRegion(hgvs, transcript, start, end, variant.isIns());
 
-    QString hgvs_c_prefix = transcript.isCoding() ? "c." : "n.";
+	QByteArray hgvs_c_prefix = transcript.isCoding() ? "c." : "n.";
 
     //SNV
     if(variant.isSNV())
     {
-        if(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT))
+		if(hgvs.types.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT))
         {
             //annotate effect on protein sequence
             annotateProtSeqCsqSnv(hgvs);
@@ -273,68 +271,79 @@ VariantConsequence VariantHgvsAnnotator::variantToHgvs(const Transcript& transcr
     //consequence annotations based on protein annotation string
     if(!variant.isSNV() && hgvs.hgvs_p != "")
     {
-        hgvs.variant_consequence_type.insert(VariantConsequenceType::PROTEIN_ALTERING_VARIANT);
+		hgvs.types.insert(VariantConsequenceType::PROTEIN_ALTERING_VARIANT);
 
         //effects on stop or start codon
-		if(hgvs.variant_consequence_type.contains(VariantConsequenceType::THREE_PRIME_UTR_VARIANT) && hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT))
+		if(hgvs.types.contains(VariantConsequenceType::THREE_PRIME_UTR_VARIANT) && hgvs.types.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT))
         {
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::STOP_LOST);
+			hgvs.types.insert(VariantConsequenceType::STOP_LOST);
         }
 
         if(hgvs.hgvs_p == "p.Met1?")
         {
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::START_LOST);
+			hgvs.types.insert(VariantConsequenceType::START_LOST);
         }
         else if(hgvs.hgvs_p == "p.Met1=")
         {
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::START_RETAINED_VARIANT);
+			hgvs.types.insert(VariantConsequenceType::START_RETAINED_VARIANT);
         }
         else if(hgvs.hgvs_p.endsWith("Ter"))
         {
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::STOP_GAINED);
+			hgvs.types.insert(VariantConsequenceType::STOP_GAINED);
         }
         else if(hgvs.hgvs_p.contains("Ter"))
         {
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::STOP_LOST);
+			hgvs.types.insert(VariantConsequenceType::STOP_LOST);
         }
 
         if(hgvs.hgvs_p.contains("fs"))
         {
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::FRAMESHIFT_VARIANT);
+			hgvs.types.insert(VariantConsequenceType::FRAMESHIFT_VARIANT);
         }
-        else if(variant.isDel() && !hgvs.variant_consequence_type.contains(VariantConsequenceType::START_RETAINED_VARIANT))
+		else if(variant.isDel() && !hgvs.types.contains(VariantConsequenceType::START_RETAINED_VARIANT))
         {
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::INFRAME_DELETION);
+			hgvs.types.insert(VariantConsequenceType::INFRAME_DELETION);
         }
         else if(variant.isIns())
         {
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::INFRAME_INSERTION);
+			hgvs.types.insert(VariantConsequenceType::INFRAME_INSERTION);
         }
         else
         {
-            if(!hgvs.variant_consequence_type.contains(VariantConsequenceType::START_RETAINED_VARIANT))
+			if(!hgvs.types.contains(VariantConsequenceType::START_RETAINED_VARIANT))
             {
                 if(variant.ref().length() == variant.alt(0).length())
                 {
-                    hgvs.variant_consequence_type.insert(VariantConsequenceType::MISSENSE_VARIANT);
+					hgvs.types.insert(VariantConsequenceType::MISSENSE_VARIANT);
                 }
                 else if(variant.ref().length() > variant.alt(0).length())
                 {
-                    hgvs.variant_consequence_type.insert(VariantConsequenceType::INFRAME_DELETION);
+					hgvs.types.insert(VariantConsequenceType::INFRAME_DELETION);
                 }
                 else
                 {
-                    hgvs.variant_consequence_type.insert(VariantConsequenceType::INFRAME_INSERTION);
+					hgvs.types.insert(VariantConsequenceType::INFRAME_INSERTION);
                 }
             }
         }
     }
 
+	//determine max impact
+	QSet<QByteArray> impact_set;
+	foreach(VariantConsequenceType type, hgvs.types)
+	{
+		impact_set << consequenceTypeToImpact(type);
+	}
+	if (impact_set.contains("HIGH")) hgvs.impact = "HIGH";
+	else if (impact_set.contains("MODERATE")) hgvs.impact = "MODERATE";
+	else if (impact_set.contains("LOW")) hgvs.impact = "LOW";
+	else hgvs.impact = "MODIFIER";
+
     return hgvs;
 }
 
 //convert a variant in GSvar format into an HgvsNomenclature object
-VariantConsequence VariantHgvsAnnotator::variantToHgvs(const Transcript& transcript, const Variant &variant)
+VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, const Variant &variant)
 {
     //first convert from Variant to VcfLine
 	VariantVcfRepresentation vcf_rep = variant.toVCF(genome_idx_);
@@ -342,14 +351,14 @@ VariantConsequence VariantHgvsAnnotator::variantToHgvs(const Transcript& transcr
     alt.push_back(vcf_rep.alt);
     VcfLine vcf_variant(vcf_rep.chr, vcf_rep.pos, vcf_rep.ref, alt);
 
-	return variantToHgvs(transcript, vcf_variant);
+	return annotate(transcript, vcf_variant);
 }
 
 // make variant consequence type annotations depending on the part of the transcript the variant occurs in;
 // for coding variants and a single genomic position
-QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript, VariantConsequence& hgvs, int gen_pos, bool is_dup)
+QByteArray VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript, VariantConsequence& hgvs, int gen_pos, bool is_dup)
 {
-    QString pos_hgvs_c;
+	QByteArray pos_hgvs_c;
 	bool plus_strand = transcript.isPlusStrand();
 
     //upstream of start codon
@@ -365,11 +374,11 @@ QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript
             {
                 if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
                 {
-                    hgvs.variant_consequence_type.insert(VariantConsequenceType::INTRON_VARIANT);
+					hgvs.types.insert(VariantConsequenceType::INTRON_VARIANT);
                 }
                 else
                 {
-                    hgvs.variant_consequence_type.insert(VariantConsequenceType::FIVE_PRIME_UTR_VARIANT);
+					hgvs.types.insert(VariantConsequenceType::FIVE_PRIME_UTR_VARIANT);
                 }
             }
 
@@ -388,8 +397,8 @@ QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript
             //if positions of duplicated regions are annotated, don't insert consequences (apply only to insertion position!)
             if(!is_dup)
             {
-                hgvs.variant_consequence_type.insert(VariantConsequenceType::INTERGENIC_VARIANT);
-                hgvs.variant_consequence_type.insert(VariantConsequenceType::UPSTREAM_GENE_VARIANT);
+				hgvs.types.insert(VariantConsequenceType::INTERGENIC_VARIANT);
+				hgvs.types.insert(VariantConsequenceType::UPSTREAM_GENE_VARIANT);
             }
             return "";
         }
@@ -437,7 +446,7 @@ QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript
                 {
                     cds_length += transcript.codingRegions()[i].length();
                 }
-                pos_hgvs_c = "*" + QString::number(cds_length) + pos_hgvs_c;
+				pos_hgvs_c = "*" + QByteArray::number(cds_length) + pos_hgvs_c;
             }
             else
             {
@@ -449,11 +458,11 @@ QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript
             {
                 if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
                 {
-                    hgvs.variant_consequence_type.insert(VariantConsequenceType::INTRON_VARIANT);
+					hgvs.types.insert(VariantConsequenceType::INTRON_VARIANT);
                 }
                 else
                 {
-                    hgvs.variant_consequence_type.insert(VariantConsequenceType::THREE_PRIME_UTR_VARIANT);
+					hgvs.types.insert(VariantConsequenceType::THREE_PRIME_UTR_VARIANT);
                 }
             }
         }
@@ -462,8 +471,8 @@ QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript
             //if positions of duplicated regions are annotated, don't insert consequences (apply only to insertion position!)
             if(!is_dup)
             {
-                hgvs.variant_consequence_type.insert(VariantConsequenceType::INTERGENIC_VARIANT);
-                hgvs.variant_consequence_type.insert(VariantConsequenceType::DOWNSTREAM_GENE_VARIANT);
+				hgvs.types.insert(VariantConsequenceType::INTERGENIC_VARIANT);
+				hgvs.types.insert(VariantConsequenceType::DOWNSTREAM_GENE_VARIANT);
             }
             return "";
         }
@@ -496,11 +505,11 @@ QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript
         {
             if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
             {
-                hgvs.variant_consequence_type.insert(VariantConsequenceType::INTRON_VARIANT);
+				hgvs.types.insert(VariantConsequenceType::INTRON_VARIANT);
             }
             else
             {
-                hgvs.variant_consequence_type.insert(VariantConsequenceType::CODING_SEQUENCE_VARIANT);
+				hgvs.types.insert(VariantConsequenceType::CODING_SEQUENCE_VARIANT);
             }
         }
     }
@@ -509,18 +518,18 @@ QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript
 
 // make variant consequence type annotations depending on the part of the transcript the variant occurs in;
 // for non-coding variants and a single genomic position
-QString VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& transcript, VariantConsequence& hgvs, int gen_pos, bool is_dup)
+QByteArray VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& transcript, VariantConsequence& hgvs, int gen_pos, bool is_dup)
 {
 	bool plus_strand = transcript.isPlusStrand();
 
-    QString pos_hgvs_c;
+	QByteArray pos_hgvs_c;
 
     if(gen_pos >= transcript.start() && gen_pos <= transcript.end())
     {
         //if positions of duplicated regions are annotated, don't insert consequences (apply only to insertion position!)
         if(!is_dup)
         {
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT);
+			hgvs.types.insert(VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT);
         }
 
         pos_hgvs_c = getHgvsPosition(transcript.regions(), hgvs, gen_pos, plus_strand, transcript.regions(), false);
@@ -530,11 +539,11 @@ QString VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& transcr
         {
             if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
             {
-                hgvs.variant_consequence_type.insert(VariantConsequenceType::INTRON_VARIANT);
+				hgvs.types.insert(VariantConsequenceType::INTRON_VARIANT);
             }
             else
             {
-                hgvs.variant_consequence_type.insert(VariantConsequenceType::NON_CODING_TRANSCRIPT_EXON_VARIANT);
+				hgvs.types.insert(VariantConsequenceType::NON_CODING_TRANSCRIPT_EXON_VARIANT);
             }
         }
     }
@@ -544,8 +553,8 @@ QString VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& transcr
         //if positions of duplicated regions are annotated, don't insert consequences (apply only to insertion position!)
         if(!is_dup)
         {
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::INTERGENIC_VARIANT);
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::DOWNSTREAM_GENE_VARIANT);
+			hgvs.types.insert(VariantConsequenceType::INTERGENIC_VARIANT);
+			hgvs.types.insert(VariantConsequenceType::DOWNSTREAM_GENE_VARIANT);
         }
         return "";
     }
@@ -555,8 +564,8 @@ QString VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& transcr
         //if positions of duplicated regions are annotated, don't insert consequences (apply only to insertion position!)
         if(!is_dup)
         {
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::INTERGENIC_VARIANT);
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::UPSTREAM_GENE_VARIANT);
+			hgvs.types.insert(VariantConsequenceType::INTERGENIC_VARIANT);
+			hgvs.types.insert(VariantConsequenceType::UPSTREAM_GENE_VARIANT);
         }
         return "";
     }
@@ -568,13 +577,13 @@ QString VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& transcr
 }
 
 //determine the HGVS position string for a single genomic position in any part of the transcript
-QString VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, VariantConsequence& hgvs, int gen_pos, bool plus_strand, const BedFile& coding_regions, bool utr_5, int first_region)
+QByteArray VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, VariantConsequence& hgvs, int gen_pos, bool plus_strand, const BedFile& coding_regions, bool utr_5, int first_region)
 {
     bool in_exon = false;
 
     int pos = 0;
 
-    QString pos_hgvs_c;
+	QByteArray pos_hgvs_c;
 
     //turn strand info around if 5 prime utr exons are considered (counting starts at opposite end)
     if(utr_5) plus_strand = !plus_strand;
@@ -609,7 +618,7 @@ QString VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, VariantCon
     }
     if(in_exon)
     {
-        pos_hgvs_c = QString::number(pos);
+		pos_hgvs_c = QByteArray::number(pos);
     }
     else
     {
@@ -619,9 +628,9 @@ QString VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, VariantCon
 }
 
 //determine the HGVS position string for a single genomic position in an intron
-QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, VariantConsequence& hgvs, int genomic_position, bool plus_strand, const BedFile& coding_regions, bool utr_5, int first_region)
+QByteArray VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, VariantConsequence& hgvs, int genomic_position, bool plus_strand, const BedFile& coding_regions, bool utr_5, int first_region)
 {
-    QString pos_in_intron;
+	QByteArray pos_in_intron;
     int closest_exon_pos = 0;
     bool pos_found = false;
 
@@ -656,22 +665,22 @@ QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, Varian
                 {
                     if(dist_below < dist_above)
                     {
-                        pos_in_intron = "-" + QString::number(dist_below);
+						pos_in_intron = "-" + QByteArray::number(dist_below);
                     }
                     else
                     {
-                        pos_in_intron = "+" + QString::number(dist_above);
+						pos_in_intron = "+" + QByteArray::number(dist_above);
                     }
                 }
                 else
                 {
                     if(dist_below <= dist_above)
                     {
-                        pos_in_intron = "+" + QString::number(dist_below);
+						pos_in_intron = "+" + QByteArray::number(dist_below);
                     }
                     else
                     {
-                        pos_in_intron = "-" + QString::number(dist_above);
+						pos_in_intron = "-" + QByteArray::number(dist_above);
                     }
                 }
                 break;
@@ -687,22 +696,22 @@ QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, Varian
                 {
                     if(dist_above < dist_below)
                     {
-                        pos_in_intron = "-" + QString::number(dist_above);
+						pos_in_intron = "-" + QByteArray::number(dist_above);
                     }
                     else
                     {
-                        pos_in_intron = "+" + QString::number(dist_below);
+						pos_in_intron = "+" + QByteArray::number(dist_below);
                     }
                 }
                 else
                 {
                     if(dist_above <= dist_below)
                     {
-                        pos_in_intron = "+" + QString::number(dist_above);
+						pos_in_intron = "+" + QByteArray::number(dist_above);
                     }
                     else
                     {
-                        pos_in_intron = "-" + QString::number(dist_below);
+						pos_in_intron = "-" + QByteArray::number(dist_below);
                     }
                 }
             }
@@ -723,11 +732,11 @@ QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, Varian
 
                 if(dist_below < dist_above)
                 {
-                    pos_in_intron = "+1-" + QString::number(dist_below);
+					pos_in_intron = "+1-" + QByteArray::number(dist_below);
                 }
                 else
                 {
-                    pos_in_intron = "-1+" + QString::number(dist_above);
+					pos_in_intron = "-1+" + QByteArray::number(dist_above);
                 }
             }
             else
@@ -737,11 +746,11 @@ QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, Varian
 
                 if(dist_below <= dist_above)
                 {
-                    pos_in_intron = "-1+" + QString::number(dist_below);
+					pos_in_intron = "-1+" + QByteArray::number(dist_below);
                 }
                 else
                 {
-                    pos_in_intron = "+1-" + QString::number(dist_above);
+					pos_in_intron = "+1-" + QByteArray::number(dist_above);
                 }
             }
             hgvs.intron_number = regions.count();
@@ -756,11 +765,11 @@ QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, Varian
 
                 if(dist_below <= dist_above)
                 {
-                    pos_in_intron = "+" + QString::number(dist_below);
+					pos_in_intron = "+" + QByteArray::number(dist_below);
                 }
                 else
                 {
-                    pos_in_intron = "1-" + QString::number(dist_above);
+					pos_in_intron = "1-" + QByteArray::number(dist_above);
                 }
             }
             else
@@ -770,11 +779,11 @@ QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, Varian
 
                 if(dist_below < dist_above)
                 {
-                    pos_in_intron = "1-" + QString::number(dist_below);
+					pos_in_intron = "1-" + QByteArray::number(dist_below);
                 }
                 else
                 {
-                    pos_in_intron = "+" + QString::number(dist_above);
+					pos_in_intron = "+" + QByteArray::number(dist_above);
                 }
             }
             hgvs.intron_number = first_region;
@@ -787,22 +796,22 @@ QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, Varian
     {
         if(utr_5)
         {
-            pos_in_intron = QString::number(closest_exon_pos+1) + pos_in_intron;
+			pos_in_intron = QByteArray::number(closest_exon_pos+1) + pos_in_intron;
         }
         else
         {
-            pos_in_intron = QString::number(closest_exon_pos) + pos_in_intron;
+			pos_in_intron = QByteArray::number(closest_exon_pos) + pos_in_intron;
         }
     }
     else if(pos_in_intron.startsWith("-"))
     {
         if(utr_5)
         {
-            pos_in_intron = QString::number(closest_exon_pos) + pos_in_intron;
+			pos_in_intron = QByteArray::number(closest_exon_pos) + pos_in_intron;
         }
         else
         {
-            pos_in_intron = QString::number(closest_exon_pos+1) + pos_in_intron;
+			pos_in_intron = QByteArray::number(closest_exon_pos+1) + pos_in_intron;
         }
     }
 
@@ -818,7 +827,7 @@ QByteArray VariantHgvsAnnotator::translate(const Sequence& seq, bool is_mito, bo
 
     for(int i=0; i<seq.length(); i+=3)
     {
-        aa_seq.append(toThreeLetterCode(NGSHelper::translateCodon(seq.mid(i, 3), is_mito)));
+		aa_seq.append(NGSHelper::translateCodonThreeLetterCode(seq.mid(i, 3), is_mito));
 
         //only translate up to termination codon
         if(end_at_stop && aa_seq.right(3) == "Ter") break;
@@ -827,12 +836,12 @@ QByteArray VariantHgvsAnnotator::translate(const Sequence& seq, bool is_mito, bo
 }
 
 //determine the annotation of the variant according to the HGVS nomenclature for proteins
-QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, const QString& pos_hgvs_c, const Transcript& transcript)
+QByteArray VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, const QByteArray& pos_hgvs_c, const Transcript& transcript)
 {
 	bool plus_strand = transcript.isPlusStrand();
 	bool use_mito_table = variant.chr().isM();
 
-    QString hgvs_p("p.");
+	QByteArray hgvs_p("p.");
     int pos_trans_start = 0;
     int start = variant.start();
     int end = variant.end();
@@ -848,7 +857,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
         int offset = pos_trans_start % 3;
 
         //translate the reference sequence codon and obtain the observed sequence codon
-		aa_ref = toThreeLetterCode(NGSHelper::translateCodon(coding_sequence.mid(pos_trans_start - offset, 3), use_mito_table));
+		aa_ref = NGSHelper::translateCodonThreeLetterCode(coding_sequence.mid(pos_trans_start - offset, 3), use_mito_table);
         seq_obs = coding_sequence.mid(pos_trans_start - offset, 3);
         if(plus_strand)
         {
@@ -860,7 +869,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
         }
 
         //translate the observed sequence codon
-		aa_obs = toThreeLetterCode(NGSHelper::translateCodon(seq_obs, use_mito_table));
+		aa_obs = NGSHelper::translateCodonThreeLetterCode(seq_obs, use_mito_table);
 
         if(aa_obs == aa_ref)
         {
@@ -896,7 +905,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
     {
         if(variant.isIns() && pos_hgvs_c == "-1_1") return "";
 
-        QStringList positions = pos_hgvs_c.split("_");
+		QByteArrayList positions = pos_hgvs_c.split('_');
 
         //make position of start of deletion/insertion in transcript zero-based
         pos_trans_start = positions.at(0).toInt() - 1;
@@ -989,8 +998,8 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
 			//find the first amino acid that is changed due to the deletion/frameshift insertion/deletion-insertion
             while(aa_obs == aa_ref && aa_obs != "Ter" && aa_ref != "Ter")
             {
-				aa_ref = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.left(3), use_mito_table));
-				aa_obs = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.left(3), use_mito_table));
+				aa_ref = NGSHelper::translateCodonThreeLetterCode(seq_ref.left(3), use_mito_table);
+				aa_obs = NGSHelper::translateCodonThreeLetterCode(seq_obs.left(3), use_mito_table);
 
                 if(aa_obs == aa_ref && aa_obs != "Ter")
                 {
@@ -1009,10 +1018,10 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
             //shift to the most C-terminal position possible
             while(aa_obs == aa_ref && aa_obs_next == aa_ref_next && aa_obs != "Ter" && aa_ref != "Ter")
             {
-				aa_ref = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.left(3), use_mito_table));
-				aa_obs = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.left(3), use_mito_table));
-				aa_ref_next = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(3, 3), use_mito_table));
-				aa_obs_next = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.mid(3, 3), use_mito_table));
+				aa_ref = NGSHelper::translateCodonThreeLetterCode(seq_ref.left(3), use_mito_table);
+				aa_obs = NGSHelper::translateCodonThreeLetterCode(seq_obs.left(3), use_mito_table);
+				aa_ref_next = NGSHelper::translateCodonThreeLetterCode(seq_ref.mid(3, 3), use_mito_table);
+				aa_obs_next = NGSHelper::translateCodonThreeLetterCode(seq_obs.mid(3, 3), use_mito_table);
 
                 if(aa_obs == aa_ref && aa_obs_next == aa_ref_next && aa_obs != "Ter")
                 {
@@ -1026,18 +1035,18 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
             int diff = 0;
             if(aa_obs == aa_ref) diff += 3;
 
-			QByteArray aa_ref_after = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(diff, 3), use_mito_table));
-			QByteArray aa_obs_after = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.mid(diff + frame_diff, 3), use_mito_table));
+			QByteArray aa_ref_after = NGSHelper::translateCodonThreeLetterCode(seq_ref.mid(diff, 3), use_mito_table);
+			QByteArray aa_obs_after = NGSHelper::translateCodonThreeLetterCode(seq_obs.mid(diff + frame_diff, 3), use_mito_table);
 
-            QString inserted_sequence = translate(seq_obs.mid(diff, frame_diff));
-            QString left_sequence;
+			QByteArray inserted_sequence = translate(seq_obs.mid(diff, frame_diff));
+			QByteArray left_sequence;
             if(pos_trans_start + pos_shift - offset - frame_diff > 0)
             {
                 left_sequence = translate(coding_sequence.mid(pos_trans_start + pos_shift - offset - frame_diff + diff, frame_diff));
             }
             if(inserted_sequence == left_sequence)
             {
-                aa_ref = left_sequence.left(3).toUtf8();
+				aa_ref = left_sequence.left(3);
                 aa_ref.append(QByteArray::number((pos_trans_start + pos_shift - offset - frame_diff + diff) / 3 + 1));
                 if(left_sequence.length() > 3)
                 {
@@ -1049,16 +1058,15 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
             else if(aa_obs == aa_ref && aa_obs_after == aa_ref_after)
             {
                 aa_ref.append(QByteArray::number((pos_trans_start + pos_shift) / 3 + 1));
-                aa_ref += "_" + toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(3, 3)))
-                        + QByteArray::number((pos_trans_start + pos_shift) / 3 + 2);
-                aa_obs = "ins" + inserted_sequence.toUtf8();
+				aa_ref += "_" + NGSHelper::translateCodonThreeLetterCode(seq_ref.mid(3, 3)) + QByteArray::number((pos_trans_start + pos_shift) / 3 + 2);
+				aa_obs = "ins" + inserted_sequence;
             }
             else if(aa_obs_after == aa_ref && pos_trans_start + pos_shift - offset > 2)
             {
                 aa_ref = translate(coding_sequence.mid(pos_trans_start + pos_shift - offset - 3, 3)) +
                         QByteArray::number((pos_trans_start + pos_shift) / 3) +
                         "_" + aa_ref + QByteArray::number((pos_trans_start + pos_shift) / 3 + 1);
-                aa_obs = "ins" + inserted_sequence.toUtf8();
+				aa_obs = "ins" + inserted_sequence;
             }
             //delins if amino acid is changed by the insertion
             else
@@ -1128,11 +1136,11 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
         else if(variant.isDel())
         {
             // more than one amino acid deleted or delins with 3 deleted bases
-            if(frame_diff > 3 || aa_obs != toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(frame_diff, 3))))
+			if(frame_diff > 3 || aa_obs != NGSHelper::translateCodonThreeLetterCode(seq_ref.mid(frame_diff, 3)))
             {
                 int deletion_length = frame_diff;
                 aa_ref.append("_");
-                if(aa_obs == toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(frame_diff, 3))))
+				if(aa_obs == NGSHelper::translateCodonThreeLetterCode(seq_ref.mid(frame_diff, 3)))
                 {
                     pos_shift -= 3;
                 }
@@ -1149,7 +1157,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
                 }
                 else
                 {
-					aa_ref.append(toThreeLetterCode(NGSHelper::translateCodon(coding_sequence.mid(pos_trans_start - offset + pos_shift + frame_diff, 3), use_mito_table)));
+					aa_ref.append(NGSHelper::translateCodonThreeLetterCode(coding_sequence.mid(pos_trans_start - offset + pos_shift + frame_diff, 3), use_mito_table));
                     aa_ref.append(QByteArray::number((pos_trans_start + pos_shift + frame_diff) / 3 + 1));
                 }
             }
@@ -1175,7 +1183,7 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
                 }
             }
             // delins if first mismatched amino acid is not the first one after the deletion
-            else if(aa_obs != toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(frame_diff, 3))))
+			else if(aa_obs != NGSHelper::translateCodonThreeLetterCode(seq_ref.mid(frame_diff, 3)))
             {
                 aa_obs = "delins" + aa_obs;
             }
@@ -1191,11 +1199,11 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
             aa_ref.append("_");
             if(plus_strand)
             {
-				aa_ref.append(toThreeLetterCode(NGSHelper::translateCodon(genome_idx_.seq(variant.chr(), end - offset_end, 3), use_mito_table)));
+				aa_ref.append(NGSHelper::translateCodonThreeLetterCode(genome_idx_.seq(variant.chr(), end - offset_end, 3), use_mito_table));
             }
             else
             {
-				aa_ref.append(toThreeLetterCode(NGSHelper::translateCodon(genome_idx_.seq(variant.chr(), start - 2 + offset_end, 3).toReverseComplement(), use_mito_table)));
+				aa_ref.append(NGSHelper::translateCodonThreeLetterCode(genome_idx_.seq(variant.chr(), start - 2 + offset_end, 3).toReverseComplement(), use_mito_table));
             }
             aa_ref.append(QByteArray::number((pos_trans_start + variant.ref().length() - pos_shift - 1) / 3 + 1));
 
@@ -1228,37 +1236,37 @@ void VariantHgvsAnnotator::annotateProtSeqCsqSnv(VariantConsequence& hgvs)
 {
     if(hgvs.hgvs_p.endsWith("="))
     {
-        hgvs.variant_consequence_type.insert(VariantConsequenceType::SYNONYMOUS_VARIANT);
+		hgvs.types.insert(VariantConsequenceType::SYNONYMOUS_VARIANT);
         if(hgvs.hgvs_p.contains("Ter"))
         {
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::STOP_RETAINED_VARIANT);
+			hgvs.types.insert(VariantConsequenceType::STOP_RETAINED_VARIANT);
         }
         else if(hgvs.hgvs_p == "p.Met1=")
         {
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::START_RETAINED_VARIANT);
+			hgvs.types.insert(VariantConsequenceType::START_RETAINED_VARIANT);
         }
         return;
     }
     else
     {
-        hgvs.variant_consequence_type.insert(VariantConsequenceType::PROTEIN_ALTERING_VARIANT);
+		hgvs.types.insert(VariantConsequenceType::PROTEIN_ALTERING_VARIANT);
     }
 
     if(hgvs.hgvs_p == "p.Met1?")
     {
-        hgvs.variant_consequence_type.insert(VariantConsequenceType::START_LOST);
+		hgvs.types.insert(VariantConsequenceType::START_LOST);
     }
     else if(hgvs.hgvs_p.endsWith("Ter"))
     {
-        hgvs.variant_consequence_type.insert(VariantConsequenceType::STOP_GAINED);
+		hgvs.types.insert(VariantConsequenceType::STOP_GAINED);
     }
     else if(hgvs.hgvs_p.contains("Ter"))
     {
-        hgvs.variant_consequence_type.insert(VariantConsequenceType::STOP_LOST);
+		hgvs.types.insert(VariantConsequenceType::STOP_LOST);
     }
     else
     {
-        hgvs.variant_consequence_type.insert(VariantConsequenceType::MISSENSE_VARIANT);
+		hgvs.types.insert(VariantConsequenceType::MISSENSE_VARIANT);
     }
 }
 
@@ -1295,11 +1303,11 @@ void VariantHgvsAnnotator::annotateSpliceRegion(VariantConsequence& hgvs, const 
             //first exon cannot have splice region variant at the start
             if(i != 0)
             {
-                hgvs.variant_consequence_type.insert(VariantConsequenceType::SPLICE_REGION_VARIANT);
+				hgvs.types.insert(VariantConsequenceType::SPLICE_REGION_VARIANT);
 				if((diff_intron_end <= 2 && diff_intron_end > 0) || (start < transcript.regions()[i].start() && end >= transcript.regions()[i].start()))
                 {
-                    if(plus_strand) hgvs.variant_consequence_type.insert(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT);
-                    else hgvs.variant_consequence_type.insert(VariantConsequenceType::SPLICE_DONOR_VARIANT);
+					if(plus_strand) hgvs.types.insert(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT);
+					else hgvs.types.insert(VariantConsequenceType::SPLICE_DONOR_VARIANT);
 
                     //splice donor/acceptor variant has unknown consequences on protein
                     if(transcript.isCoding()) hgvs.hgvs_p = "p.?";
@@ -1314,11 +1322,11 @@ void VariantHgvsAnnotator::annotateSpliceRegion(VariantConsequence& hgvs, const 
             //last exon cannot have splice region variant at the end
             if(i != transcript.regions().count() - 1)
             {
-                hgvs.variant_consequence_type.insert(VariantConsequenceType::SPLICE_REGION_VARIANT);
+				hgvs.types.insert(VariantConsequenceType::SPLICE_REGION_VARIANT);
 				if((diff_intron_start <= 2 && diff_intron_start > 0) || (start <= transcript.regions()[i].end() && end > transcript.regions()[i].end()))
                 {
-                    if(plus_strand) hgvs.variant_consequence_type.insert(VariantConsequenceType::SPLICE_DONOR_VARIANT);
-                    else hgvs.variant_consequence_type.insert(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT);
+					if(plus_strand) hgvs.types.insert(VariantConsequenceType::SPLICE_DONOR_VARIANT);
+					else hgvs.types.insert(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT);
 
                     //splice donor/acceptor variant has unknown consequences on protein
                     if(transcript.isCoding()) hgvs.hgvs_p = "p.?";
@@ -1327,14 +1335,6 @@ void VariantHgvsAnnotator::annotateSpliceRegion(VariantConsequence& hgvs, const 
             }
         }
     }
-}
-
-//transform one letter aa code to three letter code; replacing "*" with "Ter" to encode for termination codon
-//  (needed for HGVS nomenclature to obtain same output as from VEP)
-QByteArray VariantHgvsAnnotator::toThreeLetterCode(char aa_one_letter_code)
-{
-	if(aa_one_letter_code == '*') return "Ter";
-    else return NGSHelper::threeLetterCode(aa_one_letter_code);
 }
 
 //extract the coding DNA sequence of the transcript from the reference genome
@@ -1388,16 +1388,16 @@ Sequence VariantHgvsAnnotator::getCodingSequence(const Transcript& trans, bool a
 }
 
 //Returns the variant types as string (ordered alphabetically)
-QString VariantConsequence::variantConsequenceTypesAsString(QString sep)
+QByteArray VariantConsequence::typesToString(QByteArray sep)
 {
-	QStringList output;
+	QByteArrayList output;
 
-	foreach(const VariantConsequenceType& type, variant_consequence_type)
+	foreach(const VariantConsequenceType& type, types)
 	{
-		output << VariantConsequence::consequenceTypeToString(type);
+		output << VariantConsequence::typeToString(type);
 	}
 
-	output.sort();
+	std::sort(output.begin(), output.end());
 
 	return output.join(sep);
 }
