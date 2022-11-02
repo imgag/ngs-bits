@@ -41,7 +41,11 @@ struct ClinvarUploadData
 	Variant snv1;
 	Variant snv2;
 	CopyNumberVariant cnv1;
+	int cn1;
+	int ref_cn1 = 2;
 	CopyNumberVariant cnv2;
+	int cn2;
+	int ref_cn2 = 2;
 	BedpeLine sv1;
 	BedpeLine sv2;
     GeneSet genes;
@@ -76,6 +80,7 @@ private:
 
     QJsonObject createJson();
     bool validateJson(const QJsonObject& json, QStringList& errors);
+	QString getHGVS();
 
     static QString getSettings(QString key);
     static QString convertClassification(QString classification);
