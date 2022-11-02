@@ -218,6 +218,7 @@ public:
 
 			//export svs chromosome-wise
 			int line_idx = 0;
+			int skipped_svs = 0;
 			foreach (const QString& chr, chromosomes)
 			{
 				QList<int> ids = db.getValuesInt("SELECT `id` FROM `" + table_name + "`" + filter, chr);
@@ -232,7 +233,18 @@ public:
 					//get SV from NGSD
 					timer_get_var.restart();
 					int cs_id = -1;
-					BedpeLine sv = db.structuralVariant(id, sv_type, bedpe_structure, true, &cs_id);
+					BedpeLine sv;
+					try
+					{
+						sv = db.structuralVariant(id, sv_type, bedpe_structure, true, &cs_id);
+					}
+					catch (DatabaseException e)
+					{
+						std_out << e.message();
+						skipped_svs++;
+						continue;
+					}
+
 					int allele_count = (sv.annotations().at(idx_format).split(':').at(0) == "1/1")?2:1;
 					debug_time_get_var += timer_get_var.elapsed()/1000.0;
 
@@ -330,6 +342,7 @@ public:
 					if (line_idx % 100000 == 0)
 					{
 						std_out << QByteArray::number(line_idx) << " structural variants exported. " << Helper::elapsedTime(timer) << "\n";
+						std_out << QByteArray::number(skipped_svs) << " structural variants skipped. \n";
 						std_out << "\t getting SV took " << QByteArray::number(debug_time_get_var) << "s \n";
 						std_out << "\t getting processing system took " << QByteArray::number(debug_time_get_sys) << "s \n";
 						std_out << "\t write file took " << QByteArray::number(debug_time_write_file) << "s \n";
