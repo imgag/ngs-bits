@@ -173,9 +173,8 @@ void HttpResponse::setRangeNotSatisfiableHeaders(BasicResponseData data)
 void HttpResponse::readBasicResponseData(BasicResponseData data)
 {
 	setStatus(data.status);
-	if (data.byte_ranges.length() > 0)
+	if (data.byte_ranges.length() > 1)
 	{
-		setStatus(ResponseStatus::PARTIAL_CONTENT);
 		data.boundary = ServerHelper::generateUniqueStr();
 		setBoundary(data.boundary.toUtf8());
 	}
