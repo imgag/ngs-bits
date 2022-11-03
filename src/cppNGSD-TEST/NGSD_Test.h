@@ -2383,8 +2383,6 @@ private slots:
 		I_EQUAL(-1, db.getSomaticGeneRoleId("PTGS2"));
 	}
 
-	//TODO add test for somatic RTF > Alexander
-
 	//Test tumor only RTF report generation
 	void report_tumor_only()
 	{

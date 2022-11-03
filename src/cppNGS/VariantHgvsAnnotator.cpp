@@ -12,6 +12,11 @@ VariantHgvsAnnotator::VariantHgvsAnnotator(const FastaFileIndex& genome_idx, int
 //convert a variant in VCF format into an HgvsNomenclature object
 VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, VcfLine& variant)
 {
+	//check prerequisites
+	if (transcript.regions().count()==0) THROW(ProgrammingException, "Cannot annotate consequences for ranscripts without regions: " + transcript.name());
+	if (variant.isMultiAllelic()) THROW(ProgrammingException, "Cannot annotate consequences for multi-allelic variants: " + variant.toString());
+	if (!variant.isValid()) THROW(ProgrammingException, "Cannot annotate consequences for invalid variants: " + variant.toString());
+
     //init
 	bool plus_strand = transcript.isPlusStrand();
 	VariantConsequence hgvs;
@@ -30,12 +35,9 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
     }
 
     //normalization and 3' shifting for indel variants
-	variant.normalize(plus_strand ? VcfLine::ShiftDirection::RIGHT : VcfLine::ShiftDirection::LEFT, genome_idx_, true);
+	variant.normalize(plus_strand ? VcfLine::ShiftDirection::RIGHT : VcfLine::ShiftDirection::LEFT, genome_idx_, true, true);
 	int start = variant.start();
 	int end = variant.end();
-
-    //check prerequisites
-    if (transcript.regions().count()==0) THROW(ProgrammingException, "Transcript '" + transcript.name() + "' has no regions() defined!");
 
     Sequence ref = variant.ref();
     Sequence obs = variant.alt().at(0);
@@ -220,7 +222,6 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 
 	//up- or downstream variant, no description of cDNA positions possible
 	bool inside_transcript = start>=transcript.start() && end<=transcript.end(); //check if variant is completely inside transcript. If not, no cDNA change should be returned.
-	QTextStream(stdout) << __LINE__ << " " << variant.toString() << " inside:" << inside_transcript << " " << pos_hgvs_c << " " << pos_hgvs_c_dup << endl;
 	if(pos_hgvs_c=="" || !inside_transcript)
 	{
 		hgvs.hgvs_c = "";

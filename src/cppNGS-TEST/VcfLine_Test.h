@@ -320,6 +320,103 @@ TEST_CLASS(VcfLine_Test)
 
     }
 
+    void rightNormalize()
+    {
+        QString ref_file = Settings::string("reference_genome", true);
+        if (ref_file=="") SKIP("Test needs the reference genome!");
+        FastaFileIndex reference(ref_file);
+
+        Variant v;
+        VcfLine v_line;
+
+        //SNP > no change
+        v_line.setRef("T");
+        v_line.setSingleAlt("A");
+        v_line.setChromosome("chr17");
+        v_line.setPos(41246534);
+        v_line.rightNormalize(reference);
+        I_EQUAL(v_line.start(), 41246534);
+        I_EQUAL(v_line.end(), 41246534);
+        S_EQUAL(v_line.ref(), "T");
+        S_EQUAL(v_line.alt(0), "A");
+
+        //INS (one base block shift)
+        v_line.setRef("A");
+        v_line.setSingleAlt("AT");
+        v_line.setChromosome("chr17");
+        v_line.setPos(41246535);
+        v_line.rightNormalize(reference);
+        I_EQUAL(v_line.start(), 41246537);
+        I_EQUAL(v_line.end(), 41246537);
+        S_EQUAL(v_line.ref(), "T");
+        S_EQUAL(v_line.alt(0), "TT");
+
+        //INS (no block shift)
+        v_line.setRef("C");
+        v_line.setSingleAlt("CTTC");
+        v_line.setChromosome("chr3");
+        v_line.setPos(195307240);
+        v_line.rightNormalize(reference);
+        I_EQUAL(v_line.start(), 195307241);
+        I_EQUAL(v_line.end(), 195307241);
+        S_EQUAL(v_line.ref(), "T");
+        S_EQUAL(v_line.alt(0), "TTCT");
+
+        ////DEL (two base block shift)
+        v_line.setRef("GAG");
+        v_line.setSingleAlt("G");
+        v_line.setChromosome("chr3");
+        v_line.setPos(106172416);
+        v_line.rightNormalize(reference);
+        I_EQUAL(v_line.start(), 106172420);
+        I_EQUAL(v_line.end(), 106172422);
+        S_EQUAL(v_line.ref(), "GAG");
+        S_EQUAL(v_line.alt(0), "G");
+
+        //DEL (no block shift, but part of sequence before and after match)
+        v_line.setRef("TAGTGACAGCAGCAATAGC");
+        v_line.setSingleAlt("T");
+        v_line.setChromosome("chr4");
+        v_line.setPos(87615716);
+        v_line.rightNormalize(reference);
+        I_EQUAL(v_line.start(), 87615730);
+        I_EQUAL(v_line.end(), 87615748);
+        S_EQUAL(v_line.ref(), "ATAGCAGTGACAGCAGCAA");
+        S_EQUAL(v_line.alt(0), "A");
+
+        //INS with repeats close by but not adjecent
+        v_line.setRef("T");
+        v_line.setSingleAlt("TCTC");
+        v_line.setChromosome("chr4");
+        v_line.setPos(76756404);
+        v_line.rightNormalize(reference);
+        I_EQUAL(v_line.start(), 76756404);
+        I_EQUAL(v_line.end(), 76756404);
+        S_EQUAL(v_line.ref(), "T");
+        S_EQUAL(v_line.alt(0), "TCTC");
+
+        v_line.setRef("A");
+        v_line.setSingleAlt("AAT");
+        v_line.setChromosome("chr5");
+        v_line.setPos(103028838);
+        v_line.rightNormalize(reference);
+        I_EQUAL(v_line.start(), 103028838);
+        I_EQUAL(v_line.end(), 103028838);
+        S_EQUAL(v_line.ref(), "A");
+        S_EQUAL(v_line.alt(0), "AAT");
+
+        // INS multiple block shift + change in alt
+        v_line.setRef("A");
+        v_line.setSingleAlt("AAG");
+        v_line.setChromosome("chr9");
+        v_line.setPos(94567437);
+        v_line.rightNormalize(reference);
+        I_EQUAL(v_line.start(), 94567444);
+        I_EQUAL(v_line.end(), 94567444);
+        S_EQUAL(v_line.ref(), "A");
+        S_EQUAL(v_line.alt(0), "AGA");
+    }
+
     void overlapsWithComplete()
     {
         VcfLine variant;
