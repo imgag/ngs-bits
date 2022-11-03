@@ -293,6 +293,31 @@ TEST_CLASS(VcfLine_Test)
         I_EQUAL(v_line.end(), 87615734);
         S_EQUAL(v_line.ref(), "TAGTGACAGCAGCAATAGC");
         S_EQUAL(v_line.alt(0), "T");
+
+        //DEL (two base block shift)
+        //leftNormalize inside conversion of GSvar to VCF
+        v = Variant("chr3", 106172409, 106172410, "AG", "-");
+        v_list.clear();
+        v_list.append(v);
+        vcf_file = VcfFile::convertGSvarToVcf(v_list, ref_file);
+        I_EQUAL(vcf_file.count(), 1);
+        v_line = vcf_file[0];
+        I_EQUAL(v_line.start(), 106172403);
+        I_EQUAL(v_line.end(), 106172405);
+        S_EQUAL(v_line.ref(), "GGA");
+        S_EQUAL(v_line.alt(0), "G");
+
+        //leftNormalize of VCF line
+        v_line.setRef("GAG");
+        v_line.setSingleAlt("G");
+        v_line.setChromosome("chr3");
+        v_line.setPos(106172408);
+        v_line.leftNormalize(reference, true);
+        I_EQUAL(v_line.start(), 106172403);
+        I_EQUAL(v_line.end(), 106172405);
+        S_EQUAL(v_line.ref(), "GGA");
+        S_EQUAL(v_line.alt(0), "G");
+
     }
 
     void overlapsWithComplete()
