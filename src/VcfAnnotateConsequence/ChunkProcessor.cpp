@@ -153,8 +153,6 @@ QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const Chromos
 
 			try
 			{
-				qDebug() << "\n\n";
-				qDebug() << "Transcript name: " << t.name();
 				VariantConsequence hgvs = hgvs_anno_.annotate(t, var_for_anno);
 				consequences << hgvsNomenclatureToString(hgvs, t);
 			}
@@ -217,13 +215,6 @@ QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const Chromos
 
 QByteArray ChunkProcessor::hgvsNomenclatureToString(const VariantConsequence& hgvs, const Transcript& t)
 {
-	qDebug() << "Consequence types: ";
-	foreach (VariantConsequenceType type, hgvs.types)
-	{
-		qDebug() << "\t" << VariantConsequence::typeToString(type) << " - " << static_cast<int>(type);
-	}
-
-
 	QByteArrayList output;
 	output << hgvs.allele;
 
@@ -239,8 +230,6 @@ QByteArray ChunkProcessor::hgvsNomenclatureToString(const VariantConsequence& hg
 			max_csq_type = csq_type;
 		}
 	}
-
-	qDebug() << "max consequence type: " << VariantConsequence::typeToString(max_csq_type);
 
 	QByteArray consequence_type = VariantConsequence::typeToString(max_csq_type);
 	QByteArray impact = hgvs.impact;

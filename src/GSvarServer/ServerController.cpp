@@ -1,5 +1,7 @@
 #include "ServerController.h"
 
+#include <QUrl>
+
 ServerController::ServerController()
 {
 }
