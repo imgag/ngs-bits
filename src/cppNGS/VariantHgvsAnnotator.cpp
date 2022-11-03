@@ -359,6 +359,47 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 	return annotate(transcript, vcf_variant);
 }
 
+QByteArray VariantHgvsAnnotator::consequenceTypeToImpact(VariantConsequenceType type)
+{
+	switch(type)
+	{
+		case VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT:
+		case VariantConsequenceType::SPLICE_DONOR_VARIANT:
+		case VariantConsequenceType::STOP_GAINED:
+		case VariantConsequenceType::FRAMESHIFT_VARIANT:
+		case VariantConsequenceType::STOP_LOST:
+		case VariantConsequenceType::START_LOST:
+			return "HIGH";
+			break;
+		case VariantConsequenceType::INFRAME_INSERTION:
+		case VariantConsequenceType::INFRAME_DELETION:
+		case VariantConsequenceType::MISSENSE_VARIANT:
+		case VariantConsequenceType::PROTEIN_ALTERING_VARIANT:
+			return "MODERATE";
+			break;
+		case VariantConsequenceType::SPLICE_REGION_VARIANT:
+		case VariantConsequenceType::INCOMPLETE_TERMINAL_CODON_VARIANT:
+		case VariantConsequenceType::START_RETAINED_VARIANT:
+		case VariantConsequenceType::STOP_RETAINED_VARIANT:
+		case VariantConsequenceType::SYNONYMOUS_VARIANT:
+			return "LOW";
+			break;
+		case VariantConsequenceType::CODING_SEQUENCE_VARIANT:
+		case VariantConsequenceType::FIVE_PRIME_UTR_VARIANT:
+		case VariantConsequenceType::THREE_PRIME_UTR_VARIANT:
+		case VariantConsequenceType::NON_CODING_TRANSCRIPT_EXON_VARIANT:
+		case VariantConsequenceType::INTRON_VARIANT:
+		case VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT:
+		case VariantConsequenceType::UPSTREAM_GENE_VARIANT:
+		case VariantConsequenceType::DOWNSTREAM_GENE_VARIANT:
+		case VariantConsequenceType::INTERGENIC_VARIANT:
+		case VariantConsequenceType::NMD_TRANSCRIPT_VARIANT:
+			return "MODIFIER";
+			break;
+	}
+	THROW(ProgrammingException, "Unhandled variant consequence type " + QString::number(static_cast<int>(type)) + "!");
+}
+
 // make variant consequence type annotations depending on the part of the transcript the variant occurs in;
 // for coding variants and a single genomic position
 QByteArray VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript, VariantConsequence& hgvs, int gen_pos, bool is_dup)

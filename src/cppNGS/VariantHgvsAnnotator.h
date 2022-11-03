@@ -37,7 +37,8 @@ enum class VariantConsequenceType : int
     FRAMESHIFT_VARIANT,
     STOP_GAINED,
     SPLICE_DONOR_VARIANT,
-    SPLICE_ACCEPTOR_VARIANT
+	SPLICE_ACCEPTOR_VARIANT,
+	NMD_TRANSCRIPT_VARIANT
 };
 
 inline uint qHash(VariantConsequenceType key)
@@ -85,6 +86,8 @@ struct CPPNGSSHARED_EXPORT VariantConsequence
             case VariantConsequenceType::UPSTREAM_GENE_VARIANT: return "upstream_gene_variant";
             case VariantConsequenceType::DOWNSTREAM_GENE_VARIANT: return "downstream_gene_variant";
             case VariantConsequenceType::INTERGENIC_VARIANT: return "intergenic_variant";
+			case VariantConsequenceType::NMD_TRANSCRIPT_VARIANT: return "NMD_transcript_variant";
+
 		}
 
 		THROW(ProgrammingException, "Unhandled variant consequence type " + QByteArray::number(static_cast<int>(type)) + "!");
@@ -96,12 +99,15 @@ class CPPNGSSHARED_EXPORT VariantHgvsAnnotator
 {
 public:
     ///Constructor to change parameters for detecting up/downstream and splice region variants: different for 5 and 3 prime site intron
-	VariantHgvsAnnotator(const FastaFileIndex& genome_idx, int max_dist_to_transcript=5000, int splice_region_ex=3, int splice_region_in_5=20, int splice_region_in_3=20);
+	VariantHgvsAnnotator(const FastaFileIndex& genome_idx, int max_dist_to_transcript=5000, int splice_region_ex=3, int splice_region_in_5=20, int splice_region_in_3=20); //TODO move parameters to struct > MARC
 
 	///Calculates variant consequence from VCF-style variant (not multi-allelic)
 	VariantConsequence annotate(const Transcript& transcript, VcfLine& variant);
 	///Calculates variant consequence from GSvar-style variant
 	VariantConsequence annotate(const Transcript& transcript, const Variant& variant);
+
+	///Converts consequence type to impact
+	static QByteArray consequenceTypeToImpact(VariantConsequenceType type);
 
 private:
 
@@ -127,45 +133,6 @@ private:
 
 	void annotateProtSeqCsqSnv(VariantConsequence& hgvs);
 
-	static QByteArray consequenceTypeToImpact(VariantConsequenceType type)
-	{
-		switch(type)
-		{
-			case VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT:
-			case VariantConsequenceType::SPLICE_DONOR_VARIANT:
-			case VariantConsequenceType::STOP_GAINED:
-			case VariantConsequenceType::FRAMESHIFT_VARIANT:
-			case VariantConsequenceType::STOP_LOST:
-			case VariantConsequenceType::START_LOST:
-				return "HIGH";
-				break;
-			case VariantConsequenceType::INFRAME_INSERTION:
-			case VariantConsequenceType::INFRAME_DELETION:
-			case VariantConsequenceType::MISSENSE_VARIANT:
-			case VariantConsequenceType::PROTEIN_ALTERING_VARIANT:
-				return "MODERATE";
-				break;
-			case VariantConsequenceType::SPLICE_REGION_VARIANT:
-			case VariantConsequenceType::INCOMPLETE_TERMINAL_CODON_VARIANT:
-			case VariantConsequenceType::START_RETAINED_VARIANT:
-			case VariantConsequenceType::STOP_RETAINED_VARIANT:
-			case VariantConsequenceType::SYNONYMOUS_VARIANT:
-				return "LOW";
-				break;
-			case VariantConsequenceType::CODING_SEQUENCE_VARIANT:
-			case VariantConsequenceType::FIVE_PRIME_UTR_VARIANT:
-			case VariantConsequenceType::THREE_PRIME_UTR_VARIANT:
-			case VariantConsequenceType::NON_CODING_TRANSCRIPT_EXON_VARIANT:
-			case VariantConsequenceType::INTRON_VARIANT:
-			case VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT:
-			case VariantConsequenceType::UPSTREAM_GENE_VARIANT:
-			case VariantConsequenceType::DOWNSTREAM_GENE_VARIANT:
-			case VariantConsequenceType::INTERGENIC_VARIANT:
-				return "MODIFIER";
-				break;
-		}
-		THROW(ProgrammingException, "Unhandled variant consequence type " + QString::number(static_cast<int>(type)) + "!");
-	}
 };
 
 #endif // VARIANTHGVSANNOTATOR_H
