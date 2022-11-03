@@ -261,6 +261,50 @@ QList<MultiSampleAnalysisInfo> DatabaseServiceRemote::getMultiSampleAnalysisInfo
 	return result;
 }
 
+QStringList DatabaseServiceRemote::getRnaFusionPics(const QString& rna_id) const
+{
+	RequestUrlParams params;
+	params.insert("rna_id", rna_id.toUtf8());
+	QByteArray reply = makeGetApiCall("rna_fusion_pics", params, true);
+	if (reply.length() == 0)
+	{
+		THROW(Exception, "Could not get the list of RNA fusion plots for " + rna_id);
+	}
+
+	QJsonDocument json_doc = QJsonDocument::fromJson(reply);
+	QJsonArray json_array = json_doc.array();
+
+	QStringList output;
+	for (int i = 0; i < json_array.count(); i++)
+	{
+		 output << json_array[i].toString();
+	}
+
+	return output;
+}
+
+QStringList DatabaseServiceRemote::getRnaExpressionPlots(const QString& rna_id) const
+{
+	RequestUrlParams params;
+	params.insert("rna_id", rna_id.toUtf8());
+	QByteArray reply = makeGetApiCall("rna_expression_plots", params, true);
+	if (reply.length() == 0)
+	{
+		THROW(Exception, "Could not get the list of RNA expression plots for " + rna_id);
+	}
+
+	QJsonDocument json_doc = QJsonDocument::fromJson(reply);
+	QJsonArray json_array = json_doc.array();
+
+	QStringList output;
+	for (int i = 0; i < json_array.count(); i++)
+	{
+		 output << json_array[i].toString();
+	}
+
+	return output;
+}
+
 QByteArray DatabaseServiceRemote::makeGetApiCall(QString api_path, RequestUrlParams params, bool ignore_if_missing) const
 {		
 	try

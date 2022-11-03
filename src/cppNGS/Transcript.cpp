@@ -618,7 +618,7 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 	{
 		QStringList lines;
 		lines << "Unsupported cDNA change '" + hgvs_c + "'. Please note:";
-		lines << "- Adjacent SNVs changes e.g. 'c.1234CA>TC' are not supported. Spit them in single base changes or format them as 'delins'."; //TODO implement?
+		lines << "- Adjacent SNVs changes e.g. 'c.1234CA>TC' are not supported. Spit them in single base changes or format them as 'delins'.";
 		lines << "- Duplication must end with 'dup'. Remove everyhing after.";
 		lines << "- Deletions must end with 'del'. Remove everyhing after.";
 		THROW(ArgumentException, lines.join("\n"));

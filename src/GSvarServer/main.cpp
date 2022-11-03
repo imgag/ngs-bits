@@ -311,6 +311,31 @@ int main(int argc, char **argv)
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
+						"rna_fusion_pics",
+						QMap<QString, ParamProps> {
+							{"rna_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "RNA id"}},
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::GET,
+						ContentType::APPLICATION_JSON,
+						AuthType::USER_TOKEN,
+						"List RNA fusion plots needed for a report",
+						&ServerController::getRnaFusionPics
+					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"rna_expression_plots",
+						QMap<QString, ParamProps> {
+							{"rna_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "RNA id"}},
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::GET,
+						ContentType::APPLICATION_JSON,
+						AuthType::USER_TOKEN,
+						"List RNA expression plots needed for a report",
+						&ServerController::getRnaExpressionPlots
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
 						"qbic_report_data",
 						QMap<QString, ParamProps> {
 							{"filename", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "QBic data report file"}},

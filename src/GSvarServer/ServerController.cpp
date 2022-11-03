@@ -1155,6 +1155,76 @@ HttpResponse ServerController::getSecondaryAnalyses(const HttpRequest& request)
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
+HttpResponse ServerController::getRnaFusionPics(const HttpRequest& request)
+{
+	QString rna_id = request.getUrlParams()["rna_id"];
+	NGSD db;
+	QString ps_id = db.processedSampleId(rna_id);
+	if (ps_id.isEmpty())
+	{
+		return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Could not find a processed sample id " + rna_id);
+	}
+	QString filename = db.processedSamplePath(ps_id, PathType::FUSIONS_PIC_DIR);
+
+	if (filename.isEmpty())
+	{
+		return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Could not find a processed sample path for " + ps_id);
+	}
+
+	QStringList found_files = Helper::findFiles(filename, "*.png", false);
+
+	QJsonDocument json_doc_output;
+	QJsonArray json_array;
+	for (int i = 0; i < found_files.count(); i++)
+	{
+		json_array.append(createTempUrl(found_files[i], request.getUrlParams()["token"], false));
+	}
+	json_doc_output.setArray(json_array);
+
+	BasicResponseData response_data;
+	response_data.byte_ranges = QList<ByteRange>{};
+	response_data.length = json_doc_output.toJson().length();
+	response_data.content_type = request.getContentType();
+	response_data.is_downloadable = false;
+
+	return HttpResponse(response_data, json_doc_output.toJson());
+}
+
+HttpResponse ServerController::getRnaExpressionPlots(const HttpRequest& request)
+{
+	QString rna_id = request.getUrlParams()["rna_id"];
+	NGSD db;
+	QString ps_id = db.processedSampleId(rna_id);
+	if (ps_id.isEmpty())
+	{
+		return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Could not find a processed sample id " + rna_id);
+	}
+	QString filename = db.processedSamplePath(ps_id, PathType::SAMPLE_FOLDER);
+
+	if (filename.isEmpty())
+	{
+		return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Could not find a processed sample path for " + ps_id);
+	}
+
+	QStringList found_files = Helper::findFiles(filename, rna_id + "_expr.*.png", false);
+
+	QJsonDocument json_doc_output;
+	QJsonArray json_array;
+	for (int i = 0; i < found_files.count(); i++)
+	{
+		json_array.append(createTempUrl(found_files[i], request.getUrlParams()["token"], false));
+	}
+	json_doc_output.setArray(json_array);
+
+	BasicResponseData response_data;
+	response_data.byte_ranges = QList<ByteRange>{};
+	response_data.length = json_doc_output.toJson().length();
+	response_data.content_type = request.getContentType();
+	response_data.is_downloadable = false;
+
+	return HttpResponse(response_data, json_doc_output.toJson());
+}
+
 QString ServerController::findPathForTempUrl(QList<QString> path_parts)
 {
 	if (!path_parts.isEmpty())

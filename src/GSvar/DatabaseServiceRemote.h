@@ -29,6 +29,9 @@ public:
 	virtual FileLocation analysisJobLogFile(const int& job_id) const override;
 	virtual QList<MultiSampleAnalysisInfo> getMultiSampleAnalysisInfo(QStringList& analyses) const override;
 
+	virtual QStringList getRnaFusionPics(const QString& rna_id) const override;
+	virtual QStringList getRnaExpressionPlots(const QString& rna_id) const override;
+
 protected:	
 	QByteArray makeGetApiCall(QString api_path, RequestUrlParams params, bool ignore_if_missing) const;
 	QByteArray makePostApiCall(QString api_path, RequestUrlParams params, QByteArray content, bool ignore_if_missing) const;

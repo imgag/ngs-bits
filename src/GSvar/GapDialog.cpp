@@ -87,9 +87,15 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 	{
 		try
 		{
+			//load gaps file
+			BedFile gaps;
+			gaps.load(lowcov_file_);
+
+			//load system ROI
 			int sys_id = db_.processingSystemIdFromProcessedSample(ps_);
 			BedFile sys_roi = GlobalServiceProvider::database().processingSystemRegions(sys_id, false);
-			low_cov = GermlineReportGenerator::precalculatedGaps(lowcov_file_, roi_, cutoff, sys_roi);
+
+			low_cov = GermlineReportGenerator::precalculatedGaps(gaps, roi_, cutoff, sys_roi);
 		}
 		catch(Exception e)
 		{
