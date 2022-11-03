@@ -1429,8 +1429,31 @@ private slots:
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+		S_EQUAL(hgvs.impact, "HIGH");
 		I_EQUAL(hgvs.exon_number, 26);
 		I_EQUAL(hgvs.intron_number, -1);
 		S_EQUAL(hgvs.allele, "ACACAC");
 	}
+
+	void five_prime_utr_deletion_with_shift()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+		FastaFileIndex reference(ref_file);
+
+		VariantHgvsAnnotator var_hgvs_anno(reference, 5000, 3, 8, 8);
+
+		Variant variant("chr2", 54526405, 54526407, "TGA", "T");
+
+		Transcript t = trans_SPTBN1();
+		VariantConsequence hgvs = var_hgvs_anno.annotate(t, variant);
+		S_EQUAL(hgvs.hgvs_c, "c.-11_-10del");
+		S_EQUAL(hgvs.hgvs_p, "");
+		IS_TRUE(hgvs.types.contains(VariantConsequenceType::FIVE_PRIME_UTR_VARIANT));
+		S_EQUAL(hgvs.impact, "MODIFIER");
+		I_EQUAL(hgvs.exon_number, 2);
+		I_EQUAL(hgvs.intron_number, -1);
+		S_EQUAL(hgvs.allele, "-");
+	}
+
 };

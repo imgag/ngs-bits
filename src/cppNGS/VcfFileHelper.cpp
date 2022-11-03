@@ -516,7 +516,7 @@ bool VcfLine::isDel() const
     {
         return true;
     }
-		return false;
+    return false;
 }
 
 //returns all not passed filters
@@ -535,9 +535,9 @@ QByteArrayList VcfLine::failedFilters() const
 	return filters;
 }
 
-QString VcfLine::toString() const
+QByteArray VcfLine::toString() const
 {
-	return chr_.str() + ":" + QString::number(start()) + "-" + QString::number(end()) + " " + ref() + ">" + altString();
+	return chr_.str() + ":" + QByteArray::number(start()) + " " + ref() + ">" + altString();
 }
 
 bool VcfLine::operator==(const VcfLine& rhs) const
@@ -558,8 +558,17 @@ bool VcfLine::operator<(const VcfLine& rhs) const
 	return false;
 }
 
-void VcfLine::normalize(ShiftDirection shift_dir, const FastaFileIndex& reference)
+void VcfLine::normalize(ShiftDirection shift_dir, const FastaFileIndex& reference, bool check_reference)
 {
+	//check reference base is correct
+	if (check_reference)
+	{
+		if (ref_ != reference.seq(chr_, pos_, ref_.length()))
+		{
+			THROW(ArgumentException, "Reference sequence of variant ("+toString()+") does not match reference bases in genome (" + reference.seq(chr_, pos_, ref_.length()) + ").")
+		}
+	}
+
     //skip multi-allelic and empty variants
     if(isMultiAllelic() || alt().empty())	return;
 
@@ -700,30 +709,17 @@ void VcfLine::normalize(ShiftDirection shift_dir, const FastaFileIndex& referenc
     }
 }
 
-void VcfLine::normalize(const Sequence& empty_seq, bool to_gsvar_format)
+void VcfLine::leftNormalize(FastaFileIndex& reference, bool check_reference)
 {
-	//skip multi-allelic and empty variants
-	if(isMultiAllelic() || alt().empty()) return;
-
-	Variant::normalize(pos_, ref_, alt_[0]);
-
-	if (ref_.isEmpty())
+	//check reference base is correct
+	if (check_reference)
 	{
-		ref_ = empty_seq;
-	}
-	if (alt(0).isEmpty())
-	{
-		alt_[0] = empty_seq;
+		if (ref_ != reference.seq(chr_, pos_, ref_.length()))
+		{
+			THROW(ArgumentException, "Reference sequence of variant ("+toString()+") does not match reference bases in genome (" + reference.seq(chr_, pos_, ref_.length()) + ").")
+		}
 	}
 
-	if (to_gsvar_format && ref_==empty_seq)
-	{
-		pos_ -= 1;
-	}
-}
-
-void VcfLine::leftNormalize(FastaFileIndex& reference)
-{
 	//leave multi-allelic variants unchanged
 	if (isMultiAllelic())
 	{

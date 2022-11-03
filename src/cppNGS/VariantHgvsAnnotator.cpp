@@ -30,9 +30,9 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
     }
 
     //normalization and 3' shifting for indel variants
-	variant.normalize(plus_strand ? VcfLine::ShiftDirection::RIGHT : VcfLine::ShiftDirection::LEFT, genome_idx_);
-    int start = variant.start();
-    int end = variant.end();
+	variant.normalize(plus_strand ? VcfLine::ShiftDirection::RIGHT : VcfLine::ShiftDirection::LEFT, genome_idx_, true);
+	int start = variant.start();
+	int end = variant.end();
 
     //check prerequisites
     if (transcript.regions().count()==0) THROW(ProgrammingException, "Transcript '" + transcript.name() + "' has no regions() defined!");
@@ -65,7 +65,7 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
                 else
                 {
 					pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, end) + "_" + pos_hgvs_c;
-                }
+				}
             }
         }
         //insertion
@@ -122,10 +122,9 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 			THROW(ArgumentException, "Could not determine type of coding variant " + variant.toString());
 		}
 
-        // up- or downstream variant, no description w.r.t. cDNA positions possible
+		// up- or downstream variant, no description w.r.t. cDNA positions possible
 		if(pos_hgvs_c == "")
 		{
-
 			hgvs.impact = "MODIFIER";
 			return hgvs;
 		}
@@ -216,14 +215,19 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 		{
 			THROW(ArgumentException, "Could not determine type of non-coding variant " + variant.toString());
 		}
+	}
 
-        // up- or downstream variant, no description w.r.t. cDNA positions possible
-		if(pos_hgvs_c == "")
-		{
-			hgvs.impact = "MODIFIER";
-			return hgvs;
-		}
-    }
+
+	//up- or downstream variant, no description of cDNA positions possible
+	bool inside_transcript = start>=transcript.start() && end<=transcript.end(); //check if variant is completely inside transcript. If not, no cDNA change should be returned.
+	QTextStream(stdout) << __LINE__ << " " << variant.toString() << " inside:" << inside_transcript << " " << pos_hgvs_c << " " << pos_hgvs_c_dup << endl;
+	if(pos_hgvs_c=="" || !inside_transcript)
+	{
+		hgvs.hgvs_c = "";
+		hgvs.hgvs_p = "";
+		hgvs.impact = "MODIFIER";
+		return hgvs;
+	}
 
     //find out if the variant is a splice region variant
 	annotateSpliceRegion(hgvs, transcript, start, end, variant.isIns());

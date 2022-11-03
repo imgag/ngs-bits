@@ -547,16 +547,14 @@ public:
 	bool isValid(const FastaFileIndex& reference) const;
 	//Returns all not passed filters
 	QByteArrayList failedFilters() const;
-	//Returns a string representation of the variant.
-	QString toString() const;
+	//Returns a string representation of the variant (chr, pos, ref, alt).
+	QByteArray toString() const;
 	QByteArrayList vepAnnotations(int field_index) const;
 	// Left-normalize all variants.
-	void leftNormalize(FastaFileIndex& reference);
-	// Removes the common prefix/suffix from indels, adapts the start/end position and replaces empty sequences with a custom string.
-	void normalize(const Sequence& empty_seq="", bool to_gsvar_format=true);
+	void leftNormalize(FastaFileIndex& reference, bool check_reference);
     // Removes the common prefix/suffix from indels, shifts the variant left or right, and adds a common reference base
     enum ShiftDirection {NONE, LEFT, RIGHT};
-    void normalize(ShiftDirection shift_dir, const FastaFileIndex& reference);
+	void normalize(ShiftDirection shift_dir, const FastaFileIndex& reference, bool check_reference);
 
 	//Equality operator (only compares the variant location itself, not further annotations).
 	bool operator==(const VcfLine& rhs) const;

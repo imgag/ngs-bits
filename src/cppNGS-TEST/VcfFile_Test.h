@@ -528,67 +528,25 @@ private slots:
 		S_EQUAL(seventh_line, QString("chr19	14466629	.	A	AA	70.4	.	INDEL;DP=4;VDB=0.0001;AF1=1;AC1=2;DP4=0,0,1,2;MQ=50;FQ=-43.5	GT:PL:GQ	1/1:110,9,0:16\n"));
 	}
 
-	void convertVCFtoTSV()
+	void storeAsTsv()
 	{
 		//store loaded vcf file
 		VcfFile vl_vcf;
 		vl_vcf.load(TESTDATA("data_in/panel_snpeff.vcf"));
-		vl_vcf.storeAsTsv("out/VariantList_convertVCFtoTSV.tsv");
+		vl_vcf.storeAsTsv("out/VcfFile_storeAsTsv.tsv");
 
-		//reload and check that no information became incorrect (vcf-specific things like annotation dimensions and types are still lost)
-		VariantList vl_tsv;
-		vl_tsv.load("out/VariantList_convertVCFtoTSV.tsv");
-		I_EQUAL(vl_tsv.count(), 14);
-		I_EQUAL(vl_tsv.annotations().count(), 27);
-		I_EQUAL(vl_tsv.comments().count(), 2);
-		S_EQUAL(vl_tsv.annotations()[0].name(), QString("ID"));
-		S_EQUAL(vl_tsv.annotationDescriptionByName("ID").description(), QString("ID of the variant, often dbSNP rsnumber"));
-		S_EQUAL(vl_tsv.annotationDescriptionByName("INDEL_info").name(), QString("INDEL_info"));
-		S_EQUAL(vl_tsv.annotationDescriptionByName("INDEL_info").description(), QString("Indicates that the variant is an INDEL."));
-		S_EQUAL(vl_tsv.annotationDescriptionByName("DP4_info").name(), QString("DP4_info"));
-		S_EQUAL(vl_tsv.annotationDescriptionByName("DP4_info").description(), QString("# high-quality ref-forward bases, ref-reverse, alt-forward and alt-reverse bases"));
-		S_EQUAL(vl_tsv.annotationDescriptionByName("PL_format").name(), QString("PL_format"));
-		S_EQUAL(vl_tsv.annotationDescriptionByName("PL_format").description(), QString("List of Phred-scaled genotype likelihoods"));
 
-		//Insertion
-		X_EQUAL(vl_tsv[0].chr(), Chromosome("chr17"));
-		I_EQUAL(vl_tsv[0].start(), 72196817);
-		I_EQUAL(vl_tsv[0].end(), 72196817);
-		S_EQUAL(vl_tsv[0].ref(), Sequence("-"));
-		S_EQUAL(vl_tsv[0].obs(), Sequence("A"));
-		S_EQUAL(vl_tsv[0].annotations().at(3), QByteArray("TRUE"));
-		S_EQUAL(vl_tsv[0].annotations().at(8), QByteArray("4,3,11,11"));
-		S_EQUAL(vl_tsv[0].annotations().at(26), QByteArray("255,0,123"));
-
-		//Deletion
-		X_EQUAL(vl_tsv[13].chr(), Chromosome("chr9"));
-		I_EQUAL(vl_tsv[13].start(), 130932397);
-		I_EQUAL(vl_tsv[13].end(), 130932398);
-		S_EQUAL(vl_tsv[13].ref(), Sequence("AC"));
-		S_EQUAL(vl_tsv[13].obs(), Sequence("-"));
-		S_EQUAL(vl_tsv[13].annotations().at(3), QByteArray("TRUE"));
-		S_EQUAL(vl_tsv[13].annotations().at(8), QByteArray("5,6,1169,2016"));
-		S_EQUAL(vl_tsv[13].annotations().at(26), QByteArray("255,255,0"));
-
-		//SNP
-		X_EQUAL(vl_tsv[12].chr(), Chromosome("chr9"));
-		I_EQUAL(vl_tsv[12].start(), 130931421);
-		I_EQUAL(vl_tsv[12].end(), 130931421);
-		S_EQUAL(vl_tsv[12].ref(), Sequence("G"));
-		S_EQUAL(vl_tsv[12].obs(), Sequence("A"));
-		S_EQUAL(vl_tsv[12].annotations().at(3), QByteArray(""));
-		S_EQUAL(vl_tsv[12].annotations().at(8), QByteArray("457,473,752,757"));
-		S_EQUAL(vl_tsv[12].annotations().at(26), QByteArray("255,0,255"));
+		COMPARE_FILES("out/VcfFile_storeAsTsv.tsv", TESTDATA("data_out/VcfFile_storeAsTsv.tsv"));
 	}
 
 	void convertGSvarToVcf_single()
 	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
 		VariantList variant_list;
 		variant_list.load(TESTDATA("data_in/VcfFile_convertGSvarToVcf_single.GSvar"));
 
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
-		//tests multisample and leftNormalize from GSvar format to VCF for insertion, deletion, SNP
 		VcfFile vcf_file = VcfFile::convertGSvarToVcf(variant_list, ref_file);
 		vcf_file.store("out/VcfFile_convertGSvarToVcf_out1.vcf");
 
@@ -603,11 +561,12 @@ private slots:
 
 	void convertGSvarToVcf_trio()
 	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
 		VariantList variant_list;
 		variant_list.load(TESTDATA("data_in/VcfFile_convertGSvarToVcf_trio.GSvar"));
 
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
 		//tests multisample and leftNormalize from GSvar format to VCF for insertion, deletion, SNP
 		VcfFile vcf_file = VcfFile::convertGSvarToVcf(variant_list, ref_file);
 		vcf_file.store("out/VcfFile_convertGSvarToVcf_out2.vcf");
@@ -622,11 +581,12 @@ private slots:
 
 	void convertGSvarToVcf_somatic()
 	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
 		VariantList variant_list;
 		variant_list.load(TESTDATA("data_in/VcfFile_convertGSvarToVcf_somatic.GSvar"));
 
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
 		//tests multisample and leftNormalize from GSvar format to VCF for insertion, deletion, SNP
 		VcfFile vcf_file = VcfFile::convertGSvarToVcf(variant_list, ref_file);
 		vcf_file.store("out/VcfFile_convertGSvarToVcf_out3.vcf");
