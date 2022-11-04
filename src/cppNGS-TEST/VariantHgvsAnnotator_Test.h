@@ -191,69 +191,6 @@ Q_OBJECT
 
 private slots:
 
-	void bla()
-	{
-		return;
-		qDebug() << __LINE__ << QDateTime::currentDateTime();
-
-		GffData data;
-		NGSHelper::loadGffFile("D:\\Data\\NGS\\dbs\\Ensembl\\Homo_sapiens.GRCh38.107.chr.gff3", data);
-
-		qDebug() << __LINE__ << QDateTime::currentDateTime();
-
-		data.transcripts.sortByPosition();
-		ChromosomalIndex<TranscriptList> transcript_index(data.transcripts);
-
-		qDebug() << __LINE__ << QDateTime::currentDateTime();
-
-		QString ref_file = Settings::string("reference_genome", true);
-		FastaFileIndex reference(ref_file);
-		VariantHgvsAnnotator annotator(reference, VariantHgvsAnnotator::Parameters(5000, 3, 8, 8));
-
-		qDebug() << __LINE__ << QDateTime::currentDateTime();
-
-		TSVFileStream tsv("D:\\Data\\NGS\\dbs\\NGSD\\variant_classification.tsv");
-		while (!tsv.atEnd())
-		{
-			QByteArrayList parts = tsv.readLine();
-			QByteArray chr = parts[0];
-			int start = parts[1].toInt();
-			int end = parts[2].toInt();
-			QByteArray ref = parts[3];
-			QByteArray obs = parts[4];
-
-			//parse VEP consequence data
-			//"POLR3B:ENST00000228347.9:missense_variant:MODERATE:exon15/28:c.1568T>A:p.Val523Glu:
-			QMap<QByteArray, QByteArrayList> vep;
-			QByteArrayList tmp = parts[5].split(',');
-			foreach(const QByteArray& tmp2, tmp)
-			{
-				QByteArrayList parts2 = tmp2.split(':');
-				if (parts2.count()!=8) THROW(Exception, "VEP annotation does not have 8 parts: " + tmp2);
-				QByteArray trans = parts2[1];
-				vep.insert(trans, parts2.mid(2));
-			}
-			qDebug() << chr << start << end << ref << obs << vep;
-
-			Variant v(chr, start, end, ref, obs);
-
-
-			QVector<int> indices = transcript_index.matchingIndices(chr, start, end);
-			qDebug() << __LINE__;
-			foreach(int index, indices)
-			{
-				const Transcript& t = data.transcripts[index];
-				qDebug() << __LINE__  << index << t.nameWithVersion();
-				VariantConsequence cons = annotator.annotate(t, v);
-
-				qDebug() << v.toString() << t.nameWithVersion() << cons.hgvs_c << cons.hgvs_p << cons.impact << cons.typesToString();
-			}
-			break;
-		}
-
-		qDebug() << __LINE__ << QDateTime::currentDateTime();
-	}
-
 	void annotate_plus_strand()
     {
         QString ref_file = Settings::string("reference_genome", true);

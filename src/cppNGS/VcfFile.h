@@ -167,8 +167,8 @@ public:
 	///Reads a VCF from a string
     void fromText(const QByteArray& text);
 
-	///Converts a Variant list (e.g. from a GSvar file) to a VcfFile
-	static VcfFile convertGSvarToVcf(const VariantList& variant_list, const QString& reference_genome);
+	///Converts a variant list in GSvar format to a VcfFile
+	static VcfFile fromGSvar(const VariantList& variant_list, const QString& reference_genome);
 
 	///Validates VCF file from file path
 	static bool isValid(QString filename, QString ref_file, QTextStream& out_stream, bool print_general_information = false, int max_lines = std::numeric_limits<int>::max());

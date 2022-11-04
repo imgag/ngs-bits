@@ -374,7 +374,7 @@ public:
     ///Stores the variant list to a file.
 	void store(QString filename) const;
 
-	///Default sorting of variants. The order is chromosome (numeric), position, ref, obs, quality (if desired - only for VCF).
+	///Default sorting of variants. The order is chromosome (numeric), position, ref, obs.
 	void sort();
 	///Sort list alphabetically by annotation
 	void sortByAnnotation(int annotation_index);

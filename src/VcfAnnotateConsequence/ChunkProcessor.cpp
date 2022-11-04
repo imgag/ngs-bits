@@ -265,7 +265,7 @@ QByteArray ChunkProcessor::hgvsNomenclatureToString(const QByteArray& allele, co
 		output << "" << "" << "" << "";
 	}
 
-	//biotype //TODO why not biotype directly?
+	//biotype //TODO remove after fixing all bugs
 	if(t.isCoding()) output << "protein_coding";
 	else if(t.isValid()) output << "processed_transcript";
 	else output << "";

@@ -287,7 +287,7 @@ VcfFile CfDNAPanelBatchImport::createCfdnaPanelVcf(const QString& ps_name, const
 	}
 
 	//mark all selected variants as monitoring
-	VcfFile vcf_file = VcfFile::convertGSvarToVcf(cfdna_panel, Settings::string("reference_genome"));
+	VcfFile vcf_file = VcfFile::fromGSvar(cfdna_panel, Settings::string("reference_genome"));
 	for (int i = 0; i < vcf_file.count(); ++i)
 	{
 		vcf_file.vcfLines().at(i)->setId(QByteArrayList() << "M");

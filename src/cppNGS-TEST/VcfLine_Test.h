@@ -176,7 +176,7 @@ TEST_CLASS(VcfLine_Test)
         //leftNormalize inside conversion of GSvar to VCF
         v = Variant("chr17", 41246534, 41246534, "T", "A");
         v_list.append(v);
-        VcfFile vcf_file = VcfFile::convertGSvarToVcf(v_list, ref_file);
+        VcfFile vcf_file = VcfFile::fromGSvar(v_list, ref_file);
         I_EQUAL(vcf_file.count(), 1);
         VcfLine v_line = vcf_file[0];
         I_EQUAL(v_line.start(), 41246534);
@@ -200,7 +200,7 @@ TEST_CLASS(VcfLine_Test)
         v = Variant("chr17", 41246534, 41246534, "-", "T");
         v_list.clear();
         v_list.append(v);
-        vcf_file = VcfFile::convertGSvarToVcf(v_list, ref_file);
+        vcf_file = VcfFile::fromGSvar(v_list, ref_file);
         I_EQUAL(vcf_file.count(), 1);
         v_line = vcf_file[0];
         I_EQUAL(v_line.start(), 41246532);
@@ -224,7 +224,7 @@ TEST_CLASS(VcfLine_Test)
         v = Variant("chr3", 195307240, 195307240, "-", "TTC");
         v_list.clear();
         v_list.append(v);
-        vcf_file = VcfFile::convertGSvarToVcf(v_list, ref_file);
+        vcf_file = VcfFile::fromGSvar(v_list, ref_file);
         I_EQUAL(vcf_file.count(), 1);
         v_line = vcf_file[0];
         I_EQUAL(v_line.start(), 195307239);
@@ -248,7 +248,7 @@ TEST_CLASS(VcfLine_Test)
         v = Variant("chr3", 196229876, 196229877, "AG", "-");
         v_list.clear();
         v_list.append(v);
-        vcf_file = VcfFile::convertGSvarToVcf(v_list, ref_file);
+        vcf_file = VcfFile::fromGSvar(v_list, ref_file);
         I_EQUAL(vcf_file.count(), 1);
         v_line = vcf_file[0];
         I_EQUAL(v_line.start(), 196229855);
@@ -272,7 +272,7 @@ TEST_CLASS(VcfLine_Test)
         v = Variant("chr4", 87615731, 87615748, "TAGCAGTGACAGCAGCAA", "-");
         v_list.clear();
         v_list.append(v);
-        vcf_file = VcfFile::convertGSvarToVcf(v_list, ref_file);
+        vcf_file = VcfFile::fromGSvar(v_list, ref_file);
         I_EQUAL(vcf_file.count(), 1);
         v_line = vcf_file[0];
         I_EQUAL(v_line.start(), 87615716);
@@ -296,7 +296,7 @@ TEST_CLASS(VcfLine_Test)
         v = Variant("chr3", 106172409, 106172410, "AG", "-");
         v_list.clear();
         v_list.append(v);
-        vcf_file = VcfFile::convertGSvarToVcf(v_list, ref_file);
+        vcf_file = VcfFile::fromGSvar(v_list, ref_file);
         I_EQUAL(vcf_file.count(), 1);
         v_line = vcf_file[0];
         I_EQUAL(v_line.start(), 106172403);

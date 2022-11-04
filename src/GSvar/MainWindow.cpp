@@ -136,6 +136,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "ExpressionOverviewWidget.h"
 #include "ExpressionExonWidget.h"
 #include "SplicingWidget.h"
+#include "VariantHgvsAnnotator.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -326,6 +327,56 @@ void MainWindow::on_actionDebug_triggered()
 	{
 		QTime timer;
 		timer.start();
+
+		//extract VCF with class 4/5 variants and consequence annotations of best transcripts.
+		QString genome_file = Settings::string("reference_genome", false);
+		FastaFileIndex genome_idx(genome_file);
+
+		VariantHgvsAnnotator annotator(genome_idx);
+		VariantList variants;
+		variants.addAnnotation("CSQ_OWN", "Consequence annotation by ngs-bits.");
+		NGSD db;
+		QList<int> variant_ids = db.getValuesInt("SELECT DISTINCT v.id FROM `variant` v, variant_classification vc WHERE vc.variant_id= v.id AND (vc.class='4' OR vc.class='5')");
+		foreach(int var_id, variant_ids)
+		{
+			Variant v = db.variant(QString::number(var_id));
+
+			QByteArrayList annos;
+			GeneSet genes = db.genesOverlapping(v.chr(), v.start(), v.end());
+			foreach(QByteArray gene, genes)
+			{
+				int gene_id = db.geneId(gene);
+				Transcript trans = db.bestTranscript(gene_id);
+				if (trans.isValid())
+				{
+					VariantConsequence cons = annotator.annotate(trans, v);
+
+					QByteArrayList tmp;
+					tmp << trans.gene();
+					tmp << trans.name();
+					tmp << cons.hgvs_c;
+					tmp << cons.hgvs_p;
+					tmp << cons.typesToString();
+					tmp << cons.impact;
+					if(cons.exon_number!=-1) tmp << QByteArray::number(cons.exon_number) + "/" + QByteArray::number(trans.regions().count());
+					else tmp << "";
+					if(cons.intron_number!=-1) tmp << QByteArray::number(cons.intron_number) + "/" + QByteArray::number(trans.regions().count() - 1);
+					else tmp << "";
+
+					annos << tmp.join('|');
+				}
+			}
+
+			if (annos.count()>0)
+			{
+				v.annotations().append(annos.join(","));
+				variants.append(v);
+			}
+		}
+
+		VcfFile vcf = VcfFile::fromGSvar(variants, genome_file);
+		vcf.sort(false);
+		vcf.store("C:\\Marc\\class4_and_5.vcf");
 
 		//generate somatic XML files
 		/*
@@ -5997,7 +6048,7 @@ void MainWindow::exportVCF()
 
 		//convert to VCF
 		QString ref_genome = Settings::string("reference_genome", false);
-		VcfFile vcf_file = VcfFile::convertGSvarToVcf(selected_variants, ref_genome);
+		VcfFile vcf_file = VcfFile::fromGSvar(selected_variants, ref_genome);
 
 		//store
 		QString folder = Settings::path("gsvar_variant_export_folder", true);

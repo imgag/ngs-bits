@@ -49,11 +49,12 @@ public:
 
 	QStringList extendedDescription()
 	{
-		//TODO describe rules of HGVSc/p annotation.
-		//all variants are normalized towards the 3' end of the transcript (for everything! HGVS, consequence, ...)
-		//HGVS descritpion is only possible if the variant is (fully) inside the transcript.
-		//examples?
-		return QStringList();
+		QStringList output;
+
+		output << "Variants are normalized accoring to the HGVS 3' rule to assess the effect, i.e. they are moved as far as possible in translation direction.";
+		output << "Note: HGVS consequence calcualtion is only done if the variant is fully inside the transcript region.";
+
+		return output;
 	}
 
 	virtual void main()

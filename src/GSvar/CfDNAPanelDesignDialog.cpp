@@ -696,7 +696,7 @@ VcfFile CfDNAPanelDesignDialog::createVcfFile()
 
 	// generate output VCF
 	QString ref_genome = Settings::string("reference_genome", false);
-	VcfFile vcf_file = VcfFile::convertGSvarToVcf(selected_variants, ref_genome);
+	VcfFile vcf_file = VcfFile::fromGSvar(selected_variants, ref_genome);
 
 	// set ID column
 	foreach (const VcfLinePtr& vcf_line, vcf_file.vcfLines())

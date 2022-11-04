@@ -941,7 +941,7 @@ void VcfFile::fromText(const QByteArray &text)
 	}
 }
 
-VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QString& reference_genome)
+VcfFile VcfFile::fromGSvar(const VariantList& variant_list, const QString& reference_genome)
 {
 	FastaFileIndex reference(reference_genome);
 

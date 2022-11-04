@@ -443,7 +443,7 @@ QByteArray VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcr
         }
         else
         {
-            THROW(ArgumentException, "Variant is too far upstream of transcript!");
+			return "";
         }
     }
     //downstream of stop codon
@@ -517,7 +517,7 @@ QByteArray VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcr
         }
         else
         {
-            THROW(ArgumentException, "Variant is too far downstream of transcript");
+			return "";
         }
     }
     //between start and stop codon
@@ -610,7 +610,7 @@ QByteArray VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& tran
     }
     else
     {
-        THROW(ArgumentException, "Variant is too far up/downstream of transcript");
+		return "";
     }
     return pos_hgvs_c;
 }
