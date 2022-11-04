@@ -225,6 +225,25 @@ Q_OBJECT
 		return t;
 	}
 
+	Transcript trans_BCL11A()
+	{
+		Transcript t;
+		t.setGene("BCL11A");
+		t.setName("ENST00000642384");
+		t.setVersion(2);
+		t.setSource(Transcript::ENSEMBL);
+		t.setStrand(Transcript::MINUS);
+
+		BedFile regions;
+		regions.append(BedLine("chr2", 60457194, 60462424));
+		regions.append(BedLine("chr2", 60468732, 60468833));
+		regions.append(BedLine("chr2", 60545971, 60546300));
+		regions.append(BedLine("chr2", 60553216, 60553654));
+		t.setRegions(regions, 60553270, 60460404);
+
+		return t;
+	}
+
 private slots:
 
 	void annotate_plus_strand()
@@ -1208,7 +1227,7 @@ private slots:
 		I_EQUAL(hgvs.intron_number, -1);
 	}
 
-	void bug_deletion_of_exonic_bases_just_after_()
+	void bug_deletion_of_exonic_bases_just_after_splice_site()
 	{
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
@@ -1219,7 +1238,7 @@ private slots:
 		Variant variant("chr1", 92262863, 92262866, "TTGA", "-");
 
 		Transcript t = trans_GLMN();
-		VariantConsequence hgvs = var_hgvs_anno.annotate(t, variant, true);
+		VariantConsequence hgvs = var_hgvs_anno.annotate(t, variant);
 		S_EQUAL(hgvs.hgvs_c, "c.1470_1473del");
 		S_EQUAL(hgvs.hgvs_p, "p.Asn490LysfsTer16");
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
@@ -1229,5 +1248,24 @@ private slots:
 		I_EQUAL(hgvs.intron_number, -1);
 	}
 
+	void bug_insertion_just_after_splice_site()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+		FastaFileIndex reference(ref_file);
 
+		VariantHgvsAnnotator var_hgvs_anno(reference, VariantHgvsAnnotator::Parameters(5000, 3, 8, 8));
+
+		VcfLine variant("chr2", 60553215, "C", QList<Sequence>() << "CA");
+
+		Transcript t = trans_BCL11A();
+		VariantConsequence hgvs = var_hgvs_anno.annotate(t, variant);
+		S_EQUAL(hgvs.hgvs_c, "c.55_55+1insT");
+		S_EQUAL(hgvs.hgvs_p, "p.Pro19LeufsTer5");
+		IS_TRUE(hgvs.types.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
+		IS_TRUE(hgvs.types.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
+		S_EQUAL(hgvs.impact, "HIGH");
+		I_EQUAL(hgvs.exon_number, 1);
+		I_EQUAL(hgvs.intron_number, 1);
+	}
 };
