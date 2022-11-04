@@ -7,7 +7,7 @@ VariantHgvsAnnotator::VariantHgvsAnnotator(const FastaFileIndex& genome_idx, Par
 }
 
 //convert a variant in VCF format into an HgvsNomenclature object
-VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, const VcfLine& variant_orig)
+VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, const VcfLine& variant_orig, bool debug)
 {
 	VcfLine variant = variant_orig; //make a copy because we normalize that variant
 
@@ -30,6 +30,7 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 	variant.normalize(plus_strand ? VcfLine::ShiftDirection::RIGHT : VcfLine::ShiftDirection::LEFT, genome_idx_, true, true);
 	int start = variant.start();
 	int end = variant.end();
+	if (debug) qDebug() << "variant normalized: " << variant.toString();
 
     Sequence ref = variant.ref();
     Sequence obs = variant.alt().at(0);
@@ -114,20 +115,16 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 			THROW(ArgumentException, "Could not determine type of coding variant " + variant.toString());
 		}
 
-		// up- or downstream variant, no description w.r.t. cDNA positions possible
-		if(pos_hgvs_c == "")
-		{
-			hgvs.impact = "MODIFIER";
-			return hgvs;
-		}
+		if (debug) qDebug() << "  HGVS.c: " << pos_hgvs_c;
+		if (debug) qDebug() << "  types: " << hgvs.typesToString(", ");
 
         // create HGVS protein annotation
-		if(hgvs.types.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT))
+		if(pos_hgvs_c!="" && hgvs.types.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT))
         {
             //special case: deletion spanning exon-intron boundary -> no protein annotation
 			if(!hgvs.types.contains(VariantConsequenceType::INTRON_VARIANT))
             {
-				hgvs.hgvs_p = getHgvsProteinAnnotation(variant, pos_hgvs_c, transcript);
+				hgvs.hgvs_p = getHgvsProteinAnnotation(variant, pos_hgvs_c, transcript, debug);
             }
         }
     }
@@ -345,11 +342,11 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 }
 
 //convert a variant in GSvar format into an HgvsNomenclature object
-VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, const Variant &variant)
+VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, const Variant &variant, bool debug)
 {
 	VcfLine vcf_variant = variant.toVCF(genome_idx_);
 
-	return annotate(transcript, vcf_variant);
+	return annotate(transcript, vcf_variant, debug);
 }
 
 QByteArray VariantHgvsAnnotator::consequenceTypeToImpact(VariantConsequenceType type)
@@ -875,8 +872,11 @@ QByteArray VariantHgvsAnnotator::translate(const Sequence& seq, bool is_mito, bo
 }
 
 //determine the annotation of the variant according to the HGVS nomenclature for proteins
-QByteArray VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, const QByteArray& pos_hgvs_c, const Transcript& transcript)
+QByteArray VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, const QByteArray& pos_hgvs_c, const Transcript& transcript, bool debug)
 {
+
+	if (debug) qDebug() << "  determining protein change for " << pos_hgvs_c;
+
 	bool plus_strand = transcript.isPlusStrand();
 	bool use_mito_table = variant.chr().isM();
 
@@ -890,7 +890,7 @@ QByteArray VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant
 	Sequence coding_sequence = getCodingSequence(transcript, true);
 
     if(variant.isSNV())
-    {
+	{
         //make position in transcript sequence zero-based
         pos_trans_start = pos_hgvs_c.toInt() - 1;
         int offset = pos_trans_start % 3;
@@ -942,7 +942,7 @@ QByteArray VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant
     }
     else if(variant.isInDel())
     {
-        if(variant.isIns() && pos_hgvs_c == "-1_1") return "";
+		if(variant.isIns() && pos_hgvs_c == "-1_1") return "";
 
 		QByteArrayList positions = pos_hgvs_c.split('_');
 
@@ -951,12 +951,13 @@ QByteArray VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant
 
         //don't annotate deletions spanning two (or more) exons
         if(positions.size() == 2 && variant.isDel())
-        {
-            if(transcript.exonNumber(variant.start(), variant.start()) != transcript.exonNumber(variant.end(), variant.end()))
+		{
+			if(transcript.exonNumber(variant.start()+1, variant.end())==-2)
             {
+				if (debug) qDebug() << " Spans two exons => no protein change annotated!";
                 return "p.?";
             }
-        }
+		}
 
         //special case: deletion spanning 5' UTR and start of coding region
         if(pos_trans_start <= -1)
@@ -1001,11 +1002,13 @@ QByteArray VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant
                     return "p.Met1?";
                 }
             }
-        }
+		}
 
         int offset = pos_trans_start % 3;
         int frame_diff = variant.isDel() ? end - start : variant.alt()[0].length() - variant.ref().length();
 		int pos_shift = 0;
+
+		if (debug) qDebug() << "offset: " << offset << "frame_diff: " << frame_diff << "pos_shift:" << pos_shift;
 
         // get reference and observed sequence (from coding sequence)
         Sequence seq_ref = coding_sequence.mid(pos_trans_start - offset);

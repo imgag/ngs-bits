@@ -521,11 +521,11 @@ public:
 	}
 	//Returns if any VcfLine in the file is multiallelic
 	bool isMultiAllelic() const;
-	//Returns if the variant is an InDel, can only be called on single allelic variants
+	//Returns if the variant is an insertion or deletion. Cannot be called on multi-allelic variants.
 	bool isInDel() const;
-    //Returns if the variant is an insertion, can only be called on single allelic variants
+	//Returns if the variant is an insertion. Cannot be called on multi-allelic variants.
     bool isIns() const;
-    //Returns if the variant is a deletion, can only be called on single allelic variants
+	//Returns if the variant is a deletion. Cannot be called on multi-allelic variants.
     bool isDel() const;
 	//Returns if the VCF variant is valid (only checks the base variant, i.e. chr, pos, ref, alt)
 	bool isValid() const;

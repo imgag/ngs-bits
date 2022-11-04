@@ -104,38 +104,40 @@ Q_OBJECT
         return t;
     }
 
-    Transcript trans_CDKN1C()
-    {
-        Transcript t;
-        t.setGene("CDKN1C");
-        t.setName("ENST00000414822");
-        t.setSource(Transcript::ENSEMBL);
-        t.setStrand(Transcript::MINUS);
+	Transcript trans_CDKN1C()
+	{
+		Transcript t;
+		t.setGene("CDKN1C");
+		t.setName("ENST00000414822");
+		t.setVersion(8);
+		t.setSource(Transcript::ENSEMBL);
+		t.setStrand(Transcript::MINUS);
 
-        BedFile regions;
-        regions.append(BedLine("chr11", 2883213, 2883910));
-        regions.append(BedLine("chr11", 2883999, 2884134));
-        regions.append(BedLine("chr11", 2884670, 2885771));
-        t.setRegions(regions, 2885489, 2884004);
+		BedFile regions;
+		regions.append(BedLine("chr11", 2883213, 2883910));
+		regions.append(BedLine("chr11", 2883999, 2884134));
+		regions.append(BedLine("chr11", 2884670, 2885771));
+		t.setRegions(regions, 2885489, 2884004);
 
-        return t;
-    }
+		return t;
+	}
 
-    Transcript trans_NEAT1()
-    {
-        Transcript t;
-        t.setGene("NEAT1");
-        t.setName("ENST00000499732");
-        t.setSource(Transcript::ENSEMBL);
-        t.setStrand(Transcript::PLUS);
+	Transcript trans_NEAT1()
+	{
+		Transcript t;
+		t.setGene("NEAT1");
+		t.setName("ENST00000499732");
+		t.setVersion(3);
+		t.setSource(Transcript::ENSEMBL);
+		t.setStrand(Transcript::PLUS);
 
-        BedFile regions;
-        regions.append(BedLine("chr11", 65422774, 65423383));
-        regions.append(BedLine("chr11", 65423627, 65426457));
-        t.setRegions(regions);
+		BedFile regions;
+		regions.append(BedLine("chr11", 65422774, 65423383));
+		regions.append(BedLine("chr11", 65423627, 65426457));
+		t.setRegions(regions);
 
-        return t;
-    }
+		return t;
+	}
 
 	Transcript trans_SPTBN1()
 	{
@@ -185,6 +187,40 @@ Q_OBJECT
 		regions.append(BedLine("chr2", 54668351, 54671446));
 
 		t.setRegions(regions, 54526419, 54668569);
+
+		return t;
+	}
+
+	Transcript trans_GLMN()
+	{
+		Transcript t;
+		t.setGene("GLMN");
+		t.setName("ENST00000370360");
+		t.setVersion(8);
+		t.setSource(Transcript::ENSEMBL);
+		t.setStrand(Transcript::MINUS);
+
+		BedFile regions;
+		regions.append(BedLine("chr1", 92246402, 92246646));
+		regions.append(BedLine("chr1", 92247062, 92247144));
+		regions.append(BedLine("chr1", 92247878, 92247989));
+		regions.append(BedLine("chr1", 92262863, 92262926));
+		regions.append(BedLine("chr1", 92263623, 92263732));
+		regions.append(BedLine("chr1", 92264554, 92264638));
+		regions.append(BedLine("chr1", 92266419, 92266492));
+		regions.append(BedLine("chr1", 92266700, 92266741));
+		regions.append(BedLine("chr1", 92267913, 92268002));
+		regions.append(BedLine("chr1", 92268105, 92268135));
+		regions.append(BedLine("chr1", 92269723, 92269776));
+		regions.append(BedLine("chr1", 92271465, 92271652));
+		regions.append(BedLine("chr1", 92286490, 92286592));
+		regions.append(BedLine("chr1", 92288914, 92289151));
+		regions.append(BedLine("chr1", 92290198, 92290306));
+		regions.append(BedLine("chr1", 92291418, 92291537));
+		regions.append(BedLine("chr1", 92297404, 92297529));
+		regions.append(BedLine("chr1", 92297961, 92298029));
+		regions.append(BedLine("chr1", 92298925, 92298987));
+		t.setRegions(regions, 92297999, 92246530);
 
 		return t;
 	}
@@ -1171,5 +1207,27 @@ private slots:
 		I_EQUAL(hgvs.exon_number, 2);
 		I_EQUAL(hgvs.intron_number, -1);
 	}
+
+	void bug_deletion_of_exonic_bases_just_after_()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+		FastaFileIndex reference(ref_file);
+
+		VariantHgvsAnnotator var_hgvs_anno(reference, VariantHgvsAnnotator::Parameters(5000, 3, 8, 8));
+
+		Variant variant("chr1", 92262863, 92262866, "TTGA", "-");
+
+		Transcript t = trans_GLMN();
+		VariantConsequence hgvs = var_hgvs_anno.annotate(t, variant, true);
+		S_EQUAL(hgvs.hgvs_c, "c.1470_1473del");
+		S_EQUAL(hgvs.hgvs_p, "p.Asn490LysfsTer16");
+		IS_TRUE(hgvs.types.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
+		IS_TRUE(hgvs.types.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
+		S_EQUAL(hgvs.impact, "HIGH");
+		I_EQUAL(hgvs.exon_number, 16);
+		I_EQUAL(hgvs.intron_number, -1);
+	}
+
 
 };

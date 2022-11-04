@@ -328,7 +328,7 @@ void MainWindow::on_actionDebug_triggered()
 		QTime timer;
 		timer.start();
 
-		//extract VCF with class 4/5 variants and consequence annotations of best transcripts.
+		//extract VCF with class 4/5 variants and consequence annotations of best transcripts
 		QString genome_file = Settings::string("reference_genome", false);
 		FastaFileIndex genome_idx(genome_file);
 
@@ -377,6 +377,41 @@ void MainWindow::on_actionDebug_triggered()
 		VcfFile vcf = VcfFile::fromGSvar(variants, genome_file);
 		vcf.sort(false);
 		vcf.store("C:\\Marc\\class4_and_5.vcf");
+
+		//export a transcript definition from NGSD forVariantHgvsAnnotator test
+		/*
+		QByteArray trans = "ENST00000370360";
+		NGSD db;
+		int trans_id = db.transcriptId(trans);
+		Transcript t = db.transcript(trans_id);
+
+		QTextStream out(stdout);
+		out << "Transcript trans_" << t.gene() << "()" << endl;
+		out << "{" << endl;
+		out << "\tTranscript t;" << endl;
+		out << "\tt.setGene(\"" << t.gene() << "\");" << endl;
+		out << "\tt.setName(\"" << t.name() << "\");" << endl;
+		out << "\tt.setVersion(" << t.version() << ");" << endl;
+		out << "\tt.setSource(Transcript::ENSEMBL);" << endl;
+		out << "\tt.setStrand(Transcript::" << (t.isPlusStrand() ? "PLUS" : "MINUS") << ");" << endl;
+		out << "\t" << endl;
+		out << "\tBedFile regions;" << endl;
+		for (int i=0; i<t.regions().count(); ++i)
+		{
+			const BedLine& line = t.regions()[i];
+			out << "\tregions.append(BedLine(\"" << line.chr().str() << "\", " << line.start() << ", " << line.end() << "));" << endl;
+		}
+		out << "\tt.setRegions(regions";
+		if (t.isCoding())
+		{
+			out << ", " << t.codingStart();
+			out << ", " << t.codingEnd();
+		}
+		out << ");" << endl;
+		out << "\t" << endl;
+		out << "\treturn t;" << endl;
+		out << "}" << endl;
+		*/
 
 		//generate somatic XML files
 		/*

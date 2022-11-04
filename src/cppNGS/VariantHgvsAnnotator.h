@@ -114,9 +114,9 @@ public:
 	VariantHgvsAnnotator(const FastaFileIndex& genome_idx, Parameters params = Parameters());
 
 	///Calculates variant consequence from VCF-style variant (not multi-allelic)
-	VariantConsequence annotate(const Transcript& transcript, const VcfLine& variant);
+	VariantConsequence annotate(const Transcript& transcript, const VcfLine& variant, bool debug=false);
 	///Calculates variant consequence from GSvar-style variant
-	VariantConsequence annotate(const Transcript& transcript, const Variant& variant);
+	VariantConsequence annotate(const Transcript& transcript, const Variant& variant, bool debug=false);
 
 	///Converts consequence type to impact
 	static QByteArray consequenceTypeToImpact(VariantConsequenceType type);
@@ -129,7 +129,7 @@ private:
 	QByteArray annotateRegionsNonCoding(const Transcript& transcript, VariantConsequence& hgvs, int gen_pos, bool is_dup = false);
 	QByteArray getHgvsPosition(const BedFile& regions, VariantConsequence& hgvs, int gen_pos, bool plus_strand, const BedFile& coding_regions, bool utr_5 = false, int first_region = 0);
 	QByteArray getPositionInIntron(const BedFile& regions, VariantConsequence& hgvs, int genomic_position, bool plus_strand, const BedFile &coding_regions, bool utr_5 = false, int first_region = 0);
-	QByteArray getHgvsProteinAnnotation(const VcfLine& variant, const QByteArray& pos_hgvs_c, const Transcript& transcript);
+	QByteArray getHgvsProteinAnnotation(const VcfLine& variant, const QByteArray& pos_hgvs_c, const Transcript& transcript, bool debug=false);
 
 	void annotateSpliceRegion(VariantConsequence& hgvs, const Transcript& transcript, int start, int end, bool insertion);
 
