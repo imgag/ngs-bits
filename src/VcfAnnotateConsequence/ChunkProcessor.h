@@ -28,7 +28,8 @@ signals:
 
 private:
 	QByteArray annotateVcfLine(const QByteArray& line, const ChromosomalIndex<TranscriptList>& transcript_index);
-	QByteArray hgvsNomenclatureToString(const VariantConsequence& hgvs, const Transcript& t);
+	QByteArray hgvsNomenclatureToString(const QByteArray& allele, const VariantConsequence& hgvs, const Transcript& t);
+	static QByteArray csqAllele(const Sequence& ref, const Sequence& alt);
 
 	AnalysisJob& job_;
 	const MetaData& settings_;

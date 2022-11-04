@@ -411,7 +411,7 @@ VcfLine Variant::toVCF(const FastaFileIndex& genome_index) const
 		alt = prefix_base + alt;
 	}
 
-	return VcfLine(chr_, pos, ref, QVector<Sequence>() << alt);
+	return VcfLine(chr_, pos, ref, QList<Sequence>() << alt);
 }
 
 VariantList::LessComparatorByAnnotation::LessComparatorByAnnotation(int annotation_index)

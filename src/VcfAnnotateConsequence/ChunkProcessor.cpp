@@ -16,7 +16,7 @@ ChunkProcessor::ChunkProcessor(AnalysisJob &job, const MetaData& settings, const
 	, settings_(settings)
 	, params_(params)
 	, reference_(settings.reference)
-	, hgvs_anno_(reference_, settings_.max_dist_to_trans, settings_.splice_region_ex, settings_.splice_region_in_5, settings_.splice_region_in_3)
+	, hgvs_anno_(reference_, settings_.annotation_parameters)
 {
 	if (params_.debug) QTextStream(stdout) << "ChunkProcessor(): " << job_.index << endl;
 }
@@ -89,12 +89,7 @@ QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const Chromos
 	Sequence alt = parts[4].toUpper();
 
 	//write out multi-allelic and structural variants (e.g. <DEL>) without CSQ annotation
-	QVector<Sequence> alts;
-	foreach(const QByteArray& alt_part, alt.split(','))
-	{
-		alts << alt_part;
-	}
-	if(!VcfLine(chr, pos, ref, alts).isValid())
+	if(!VcfLine(chr, pos, ref, alt.split(',')).isValid())
 	{
 		++lines_skipped_;
 		return line;
@@ -102,8 +97,8 @@ QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const Chromos
 	++lines_annotated_;
 
 	//get all transcripts where the variant is completely contained in the region
-	int region_start = std::max(pos - settings_.max_dist_to_trans, 0);
-	int region_end = pos + ref.length() + settings_.max_dist_to_trans;
+	int region_start = std::max(pos - settings_.annotation_parameters.max_dist_to_transcript, 0);
+	int region_end = pos + ref.length() + settings_.annotation_parameters.max_dist_to_transcript;
 
 	QVector<int> indices = transcript_index.matchingIndices(chr, region_start, region_end-1);
 
@@ -112,31 +107,13 @@ QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const Chromos
 	//no transcripts in proximity: intergenic variant
 	if(indices.isEmpty())
 	{
-		//treat each alternative allele of multi-allelic variants as a new variant
 		foreach(const Sequence& alt_part, alt.split(','))
 		{
-			VcfLine var_for_anno = VcfLine(chr, pos, ref, QVector<Sequence>() << alt_part);
 			VariantConsequence hgvs;
-			if(var_for_anno.isSNV())
-			{
-				hgvs.allele = var_for_anno.alt(0);
-			}
-			else if(var_for_anno.isDel())
-			{
-				hgvs.allele = "-";
-			}
-			else if(var_for_anno.alt(0).at(0) == var_for_anno.ref().at(0))
-			{
-				hgvs.allele = var_for_anno.alt(0).mid(1);
-			}
-			else
-			{
-				hgvs.allele = var_for_anno.alt(0);
-			}
 			hgvs.types.insert(VariantConsequenceType::INTERGENIC_VARIANT);
 			hgvs.impact = VariantHgvsAnnotator::consequenceTypeToImpact(VariantConsequenceType::INTERGENIC_VARIANT);
 			Transcript t;
-			consequences << hgvsNomenclatureToString(hgvs, t);
+			consequences << hgvsNomenclatureToString(csqAllele(ref, alt_part), hgvs, t);
 		}
 	}
 
@@ -145,16 +122,16 @@ QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const Chromos
 	{
 		const Transcript& t = settings_.transcripts.at(idx);
 
-		//treat each alternative allele of multi-allelic variants as a new variant
-		foreach(const Sequence& alt, alt.split(','))
-		{
-			//create new VcfLine for annotation (don't change original variant coordinates by normalization!)
-			VcfLine var_for_anno = VcfLine(chr, pos, ref, QVector<Sequence>() << alt);
+		VcfLine variant = VcfLine(chr, pos, ref, QList<Sequence>());
 
+		//treat each alternative allele of multi-allelic variants as a new variant
+		foreach(const Sequence& alt_part, alt.split(','))
+		{
 			try
 			{
-				VariantConsequence hgvs = hgvs_anno_.annotate(t, var_for_anno);
-				consequences << hgvsNomenclatureToString(hgvs, t);
+				variant.setSingleAlt(alt_part);
+				VariantConsequence hgvs = hgvs_anno_.annotate(t, variant);
+				consequences << hgvsNomenclatureToString(csqAllele(ref, alt_part), hgvs, t);
 			}
 			catch(ArgumentException& e)
 			{
@@ -162,7 +139,7 @@ QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const Chromos
 				out << e.message() << endl;
 				out << "Variant out of region for transcript " << t.name() <<": chromosome=" << t.chr().str()  << " start=" << t.start() << " end=" << t.end() << endl;
 				out << "Variant chr=" << t.chr().str() << " start=" << pos << endl;
-				out << "Variant shifted: start:" << var_for_anno.start() << " end: " << var_for_anno.end() << endl;
+				out << "Variant: " << variant.toString() << endl;
 				out << "Considered region: " << region_start << " - " << region_end << endl;
 			}
 		}
@@ -213,10 +190,10 @@ QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const Chromos
 
 }
 
-QByteArray ChunkProcessor::hgvsNomenclatureToString(const VariantConsequence& hgvs, const Transcript& t)
+QByteArray ChunkProcessor::hgvsNomenclatureToString(const QByteArray& allele, const VariantConsequence& hgvs, const Transcript& t)
 {
 	QByteArrayList output;
-	output << hgvs.allele;
+	output << allele;
 
 	//find variant consequence type with highest priority (apart from splice region)
 	VariantConsequenceType max_csq_type = VariantConsequenceType::INTERGENIC_VARIANT;
@@ -230,7 +207,6 @@ QByteArray ChunkProcessor::hgvsNomenclatureToString(const VariantConsequence& hg
 			max_csq_type = csq_type;
 		}
 	}
-
 	QByteArray consequence_type = VariantConsequence::typeToString(max_csq_type);
 	QByteArray impact = hgvs.impact;
 
@@ -266,6 +242,7 @@ QByteArray ChunkProcessor::hgvsNomenclatureToString(const VariantConsequence& hg
 			consequence_type.append("&" + VariantConsequence::typeToString(splice_type));
 		}
 	}
+
 	if (hgvs.types.contains(VariantConsequenceType::NMD_TRANSCRIPT_VARIANT))
 	{
 		consequence_type.append("&" + VariantConsequence::typeToString(VariantConsequenceType::NMD_TRANSCRIPT_VARIANT));
@@ -275,27 +252,20 @@ QByteArray ChunkProcessor::hgvsNomenclatureToString(const VariantConsequence& hg
 		consequence_type.append("&" + VariantConsequence::typeToString(VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT));
 	}
 
-//	if (max_csq_type == VariantConsequenceType::STOP_GAINED && hgvs.types.contains(VariantConsequenceType::STOP_GAINED))
-//	{
-//		consequence_type.append("&" + VariantConsequence::typeToString(VariantConsequenceType::STOP_GAINED));
-//	}
-
 	output << consequence_type;
-
-	//add variant impact
 	output << impact;
 
 	//gene symbol, HGNC ID, transcript ID, feature type
 	if (t.isValid())
 	{
-		output << t.gene() << t.hgncId() << t.name() + "." + QByteArray::number(t.version()) << "Transcript";
+		output << t.gene() << t.hgncId() << t.nameWithVersion() << "Transcript";
 	}
 	else
 	{
 		output << "" << "" << "" << "";
 	}
 
-	//biotype
+	//biotype //TODO why not biotype directly?
 	if(t.isCoding()) output << "protein_coding";
 	else if(t.isValid()) output << "processed_transcript";
 	else output << "";
@@ -315,6 +285,27 @@ QByteArray ChunkProcessor::hgvsNomenclatureToString(const VariantConsequence& hg
 	output << hgvs_p;
 
 	return output.join('|');
+}
+
+QByteArray ChunkProcessor::csqAllele(const Sequence& ref, const Sequence& alt)
+{
+	if (ref.length()==0) THROW(Exception, "Invalid reference sequence for VCF variant: '" + ref + "'");
+	if (alt.length()==0) THROW(Exception, "Invalid alternative sequence for VCF variant: '" + alt + "'");
+
+	//deletion
+	if(alt.length()==1 && ref.length() > 1)
+	{
+		return "-";
+	}
+
+	//insertions and complex variants
+	if(ref[0] == alt[0])
+	{
+		return alt.mid(1);
+	}
+
+	//SNVs and MNPs
+	return alt;
 }
 
 

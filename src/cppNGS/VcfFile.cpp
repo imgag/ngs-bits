@@ -144,7 +144,7 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 	vcf_line->setId(id_list);
 	foreach(const QByteArray& alt, line_parts[ALT].split(','))
 	{
-		vcf_line->addAlt(alt);
+		vcf_line->addAlt(strToPointer(alt.toUpper()));
 	}
 
 	if(line_parts[QUAL]==".")
@@ -1125,7 +1125,7 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 		vcf_line->setChromosome(tmp.chr());
 		vcf_line->setPos(tmp.start());
 		vcf_line->setRef(tmp.ref());
-		vcf_line->addAlt(tmp.altString());
+		vcf_line->setSingleAlt(tmp.altString());
 
 		//add all columns into info
 		QByteArrayList info;

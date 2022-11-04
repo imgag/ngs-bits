@@ -225,7 +225,7 @@ public:
 	VcfLine();
 	///Constructor with basic entries
 	/// (chromosome, start position, reference base(s), List of alternative base(s), List of FormatIDs, List of sampleIDs, List containing for every sample a list of values for every format)
-	VcfLine(const Chromosome& chr, int start, const Sequence& ref, const QVector<Sequence>& alt, QByteArrayList format_ids = QByteArrayList(), QByteArrayList sample_ids = QByteArrayList(), QList<QByteArrayList> list_of_format_values = QList<QByteArrayList>());
+	VcfLine(const Chromosome& chr, int start, const Sequence& ref, const QList<Sequence>& alt, QByteArrayList format_ids = QByteArrayList(), QByteArrayList sample_ids = QByteArrayList(), QList<QByteArrayList> list_of_format_values = QList<QByteArrayList>());
 
 	const Chromosome& chr() const
 	{
@@ -243,15 +243,15 @@ public:
 	{
 		return ref_;
 	}
-	const QVector<Sequence>& alt() const
+	const QList<Sequence>& alt() const
 	{
 		return alt_;
 	}
 	//Concatenates all alternatives bases to a comma seperated string
-	const Sequence altString() const
+	Sequence altString() const
 	{
 		QByteArrayList alt_sequences;
-		for(const Sequence& seq : alt())
+		for(const Sequence& seq : alt_)
 		{
 			alt_sequences.push_back(seq);
 		}
@@ -259,6 +259,7 @@ public:
 	}
 	const Sequence& alt(int pos) const
 	{
+		if (pos>=alt_.length()) THROW(ArgumentException, "Invalid alternative sequence index " + QString::number(pos) + " for variant " + toString());
 		return alt_.at(pos);
 	}
 	const QByteArrayList& id() const
@@ -415,28 +416,13 @@ public:
 	}
 	void addAlt(const Sequence& alt)
 	{
-		alt_.push_back(strToPointer(alt.toUpper()));
-	}
-	//set the alternative bases with a list of sequences
-	void setAlt(const QList<Sequence>& alt)
-	{
-		alt_.clear();
-		for(const QByteArray& alt_element : alt)
-		{
-			alt_.push_back(alt_element);
-		}
+		alt_ << alt;
 	}
 	//set the alternative base(s) with only one alternative Sequence
-	void setSingleAlt(const Sequence& seq)
+	void setSingleAlt(const Sequence& alt)
 	{
-		if(alt_.empty())
-		{
-			alt_.push_back(seq);
-		}
-		else
-		{
-			alt_[0] = seq;
-		}
+		alt_.clear();
+		addAlt(alt);
 	}
 	void setId(const QByteArrayList& id)
 	{
@@ -567,7 +553,7 @@ private:
 	Chromosome chr_;
 	int pos_;
 	Sequence ref_;
-	QVector<Sequence> alt_; //comma seperated list of alternative sequences
+	QList<Sequence> alt_; //comma seperated list of alternative sequences
 
 	QByteArrayList id_; //; seperated list of id-strings
 	double qual_;

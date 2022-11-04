@@ -12,11 +12,13 @@
 #include "Exceptions.h"
 
 ///Representation of the effect of a variant
+///NOTE: the order is important as it defines the severity of the variant.
 enum class VariantConsequenceType : int
 {
     INTERGENIC_VARIANT,
     DOWNSTREAM_GENE_VARIANT,
     UPSTREAM_GENE_VARIANT,
+	NMD_TRANSCRIPT_VARIANT,
     NON_CODING_TRANSCRIPT_VARIANT,
     INTRON_VARIANT,
     NON_CODING_TRANSCRIPT_EXON_VARIANT,
@@ -31,14 +33,13 @@ enum class VariantConsequenceType : int
     PROTEIN_ALTERING_VARIANT,
     MISSENSE_VARIANT,
     INFRAME_DELETION,
-    INFRAME_INSERTION,
-    START_LOST,
-    STOP_LOST,
+	INFRAME_INSERTION,
     FRAMESHIFT_VARIANT,
+	START_LOST,
+	STOP_LOST,
     STOP_GAINED,
     SPLICE_DONOR_VARIANT,
-	SPLICE_ACCEPTOR_VARIANT,
-	NMD_TRANSCRIPT_VARIANT
+	SPLICE_ACCEPTOR_VARIANT
 };
 
 inline uint qHash(VariantConsequenceType key)
@@ -49,7 +50,6 @@ inline uint qHash(VariantConsequenceType key)
 ///Representation of HGVS nomenclature
 struct CPPNGSSHARED_EXPORT VariantConsequence
 {
-	QByteArray allele; //TODO Move to VcfAnnotateConsequence > MARC
 	QByteArray hgvs_c;
 	QByteArray hgvs_p;
 	QSet<VariantConsequenceType> types;
@@ -98,11 +98,23 @@ struct CPPNGSSHARED_EXPORT VariantConsequence
 class CPPNGSSHARED_EXPORT VariantHgvsAnnotator
 {
 public:
+
+	///Parameters struct
+	struct CPPNGSSHARED_EXPORT Parameters
+	{
+		Parameters(int max_dist_trans = 5000, int splice_reg_exon=3, int splice_reg_intron_5=20, int splice_reg_intron_3=20);
+
+		int max_dist_to_transcript; //Max distance of variant from transcript to be annotated with information about that transcript.
+		int splice_region_ex; //Number of exonic bases flanking the splice junction that are annotated as splice region.
+		int splice_region_in_5; //Number of introninc bases flanking the 5' splice junction that are annotated as splice region.
+		int splice_region_in_3; //Number of introninc bases flanking the 3' splice junction that are annotated as splice region.
+	};
+
     ///Constructor to change parameters for detecting up/downstream and splice region variants: different for 5 and 3 prime site intron
-	VariantHgvsAnnotator(const FastaFileIndex& genome_idx, int max_dist_to_transcript=5000, int splice_region_ex=3, int splice_region_in_5=20, int splice_region_in_3=20); //TODO move parameters to struct > MARC
+	VariantHgvsAnnotator(const FastaFileIndex& genome_idx, Parameters params = Parameters());
 
 	///Calculates variant consequence from VCF-style variant (not multi-allelic)
-	VariantConsequence annotate(const Transcript& transcript, VcfLine& variant);
+	VariantConsequence annotate(const Transcript& transcript, const VcfLine& variant);
 	///Calculates variant consequence from GSvar-style variant
 	VariantConsequence annotate(const Transcript& transcript, const Variant& variant);
 
@@ -110,18 +122,8 @@ public:
 	static QByteArray consequenceTypeToImpact(VariantConsequenceType type);
 
 private:
-
-	QByteArray translate(const Sequence& seq, bool is_mito = false, bool end_at_stop = true);
-	Sequence getCodingSequence(const Transcript& trans, bool add_utr_3 = false);
-
+	Parameters params_;
 	const FastaFileIndex& genome_idx_;
-	//How far upstream or downstream can the variant be from the transcript
-	int max_dist_to_transcript_;
-
-	//How far the splice region extends into exon/intron
-	int splice_region_ex_;
-	int splice_region_in_5_;
-	int splice_region_in_3_;
 
 	QByteArray annotateRegionsCoding(const Transcript& transcript, VariantConsequence& hgvs, int gen_pos, bool is_dup = false);
 	QByteArray annotateRegionsNonCoding(const Transcript& transcript, VariantConsequence& hgvs, int gen_pos, bool is_dup = false);
@@ -133,6 +135,9 @@ private:
 
 	void annotateProtSeqCsqSnv(VariantConsequence& hgvs);
 
+	QByteArray translate(const Sequence& seq, bool is_mito = false, bool end_at_stop = true);
+
+	Sequence getCodingSequence(const Transcript& trans, bool add_utr_3 = false);
 };
 
 #endif // VARIANTHGVSANNOTATOR_H

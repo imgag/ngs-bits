@@ -131,10 +131,10 @@ public:
 		//ceate transcript index
 		data.transcripts.sortByPosition();
 		MetaData meta(getString("tag").toUtf8(), ref_file, data.transcripts);
-		meta.max_dist_to_trans = max_dist_to_trans;
-		meta.splice_region_ex = splice_region_ex;
-		meta.splice_region_in_3 = splice_region_in_3;
-		meta.splice_region_in_5 = splice_region_in_5;
+		meta.annotation_parameters.max_dist_to_transcript = max_dist_to_trans;
+		meta.annotation_parameters.splice_region_ex = splice_region_ex;
+		meta.annotation_parameters.splice_region_in_3 = splice_region_in_3;
+		meta.annotation_parameters.splice_region_in_5 = splice_region_in_5;
 
 		ThreadCoordinator* coordinator = new ThreadCoordinator(this, params, meta);
 		connect(coordinator, SIGNAL(finished()), QCoreApplication::instance(), SLOT(quit()));

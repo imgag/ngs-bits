@@ -1,10 +1,8 @@
 #ifndef AUXILARY_H
 #define AUXILARY_H
 
-#include <QByteArray>
-#include <QString>
-#include "ChromosomalIndex.h"
 #include "Transcript.h"
+#include "VariantHgvsAnnotator.h"
 
 
 //Tool parameters
@@ -38,10 +36,7 @@ struct MetaData
 	const QByteArray tag;
 	const QString reference;
 	const TranscriptList transcripts;
-	int max_dist_to_trans;
-	int splice_region_ex;
-	int splice_region_in_5;
-	int splice_region_in_3;
+	VariantHgvsAnnotator::Parameters annotation_parameters;
 
 	MetaData(const QByteArray tag, const QString reference, TranscriptList transcripts)
 		: tag(tag)
@@ -49,8 +44,6 @@ struct MetaData
 		, transcripts(transcripts)
 	{
 	}
-
-
 };
 
 #endif // AUXILARY_H

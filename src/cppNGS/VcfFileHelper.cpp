@@ -19,7 +19,7 @@ VcfLine::VcfLine()
 {
 }
 
-VcfLine::VcfLine(const Chromosome& chr, int pos, const Sequence& ref, const QVector<Sequence>& alt, QByteArrayList format_ids, QByteArrayList sample_ids, QList<QByteArrayList> list_of_format_values)
+VcfLine::VcfLine(const Chromosome& chr, int pos, const Sequence& ref, const QList<Sequence>& alt, QByteArrayList format_ids, QByteArrayList sample_ids, QList<QByteArrayList> list_of_format_values)
 	: chr_(chr)
 	, pos_(pos)
 	, ref_(ref)

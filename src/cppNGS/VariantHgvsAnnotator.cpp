@@ -1,17 +1,16 @@
 #include "VariantHgvsAnnotator.h"
 
-VariantHgvsAnnotator::VariantHgvsAnnotator(const FastaFileIndex& genome_idx, int max_dist_to_transcript, int splice_region_ex, int splice_region_in_5, int splice_region_in_3)
-	: genome_idx_(genome_idx)
-	, max_dist_to_transcript_(max_dist_to_transcript)
-    , splice_region_ex_(splice_region_ex)
-    , splice_region_in_5_(splice_region_in_5)
-    , splice_region_in_3_(splice_region_in_3)
+VariantHgvsAnnotator::VariantHgvsAnnotator(const FastaFileIndex& genome_idx, Parameters params)
+	: params_(params)
+	, genome_idx_(genome_idx)
 {
 }
 
 //convert a variant in VCF format into an HgvsNomenclature object
-VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, VcfLine& variant)
+VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, const VcfLine& variant_orig)
 {
+	VcfLine variant = variant_orig; //make a copy because we normalize that variant
+
 	//check prerequisites
 	if (transcript.regions().count()==0) THROW(ProgrammingException, "Cannot annotate consequences for ranscripts without regions: " + transcript.name());
 	if (variant.isMultiAllelic()) THROW(ProgrammingException, "Cannot annotate consequences for multi-allelic variants: " + variant.toString());
@@ -21,20 +20,13 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 	bool plus_strand = transcript.isPlusStrand();
 	VariantConsequence hgvs;
 
-    //variant allele extracted before normalization/shifting for insertion/delins
-    if(!variant.isSNV() && !variant.isDel())
-    {
-        if(variant.alt(0).at(0) == variant.ref().at(0))
-        {
-            hgvs.allele = variant.alt(0).mid(1);
-        }
-        else
-        {
-            hgvs.allele = variant.alt(0);
-        }
-    }
+	//handle NMD transcripts
+	if (transcript.biotype() == Transcript::BIOTYPE::NONSENSE_MEDIATED_DECAY)
+	{
+		hgvs.types.insert(VariantConsequenceType::NMD_TRANSCRIPT_VARIANT);
+	}
 
-    //normalization and 3' shifting for indel variants
+	//normalization and 3' shifting for indel variants
 	variant.normalize(plus_strand ? VcfLine::ShiftDirection::RIGHT : VcfLine::ShiftDirection::LEFT, genome_idx_, true, true);
 	int start = variant.start();
 	int end = variant.end();
@@ -49,13 +41,11 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
     {
         if(variant.isSNV())
 		{
-			hgvs.allele = variant.alt(0);
 			pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, start);
         }
         //deletion
         else if(variant.isDel())
 		{
-			hgvs.allele = "-";
 			pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, start + 1);
 
             if(end - start > 1 && pos_hgvs_c != "")
@@ -145,13 +135,11 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
     else
     {
         if(variant.isSNV())
-        {
-            hgvs.allele = variant.alt(0);
+		{
 			pos_hgvs_c = annotateRegionsNonCoding(transcript, hgvs, start);
         }
         else if(variant.isDel())
-        {
-            hgvs.allele = "-";
+		{
 			pos_hgvs_c = annotateRegionsNonCoding(transcript, hgvs, start + 1);
 
             if(end - start > 1 && pos_hgvs_c != "")
@@ -442,7 +430,7 @@ QByteArray VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcr
                 pos_hgvs_c = "-" + pos_hgvs_c;
             }
         }
-		else if((plus_strand && transcript.start() - gen_pos <= max_dist_to_transcript_) || (!plus_strand && gen_pos - transcript.end() <= max_dist_to_transcript_))
+		else if((plus_strand && transcript.start() - gen_pos <= params_.max_dist_to_transcript) || (!plus_strand && gen_pos - transcript.end() <= params_.max_dist_to_transcript))
         {
 
             //if positions of duplicated regions are annotated, don't insert consequences (apply only to insertion position!)
@@ -517,7 +505,7 @@ QByteArray VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcr
                 }
             }
         }
-		else if((plus_strand && gen_pos - transcript.end() <= max_dist_to_transcript_) || (!plus_strand && transcript.start() - gen_pos <= max_dist_to_transcript_))
+		else if((plus_strand && gen_pos - transcript.end() <= params_.max_dist_to_transcript) || (!plus_strand && transcript.start() - gen_pos <= params_.max_dist_to_transcript))
         {
             //if positions of duplicated regions are annotated, don't insert consequences (apply only to insertion position!)
             if(!is_dup)
@@ -599,7 +587,7 @@ QByteArray VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& tran
         }
     }
     // variant downstream of non-coding transcript
-	else if((plus_strand && gen_pos - transcript.end() <= max_dist_to_transcript_ && gen_pos > transcript.end()) || (!plus_strand && transcript.start() - gen_pos <= max_dist_to_transcript_ && gen_pos < transcript.start()))
+	else if((plus_strand && gen_pos - transcript.end() <= params_.max_dist_to_transcript && gen_pos > transcript.end()) || (!plus_strand && transcript.start() - gen_pos <= params_.max_dist_to_transcript && gen_pos < transcript.start()))
     {
         //if positions of duplicated regions are annotated, don't insert consequences (apply only to insertion position!)
         if(!is_dup)
@@ -610,7 +598,7 @@ QByteArray VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& tran
         return "";
     }
     // variant upstream of non-coding transcript
-	else if((plus_strand && transcript.start() - gen_pos <= max_dist_to_transcript_ && gen_pos < transcript.start()) || (!plus_strand && gen_pos - transcript.end() <= max_dist_to_transcript_ && gen_pos > transcript.end()))
+	else if((plus_strand && transcript.start() - gen_pos <= params_.max_dist_to_transcript && gen_pos < transcript.start()) || (!plus_strand && gen_pos - transcript.end() <= params_.max_dist_to_transcript && gen_pos > transcript.end()))
     {
         //if positions of duplicated regions are annotated, don't insert consequences (apply only to insertion position!)
         if(!is_dup)
@@ -1327,8 +1315,8 @@ void VariantHgvsAnnotator::annotateSpliceRegion(VariantConsequence& hgvs, const 
 	bool plus_strand = transcript.isPlusStrand();
 
     //allow different definitions for 5 prime and 3 prime side of intron
-    int splice_region_in_start = plus_strand ? splice_region_in_5_ : splice_region_in_3_;
-    int splice_region_in_end = plus_strand ? splice_region_in_3_ : splice_region_in_5_;
+	int splice_region_in_start = plus_strand ? params_.splice_region_in_5 : params_.splice_region_in_3;
+	int splice_region_in_end = plus_strand ? params_.splice_region_in_3 : params_.splice_region_in_5;
 
     //deletion/deletion-insertion: start of variant is common prepended base -> adjust by one base
     if(end - start > 0) start++;
@@ -1348,7 +1336,7 @@ void VariantHgvsAnnotator::annotateSpliceRegion(VariantConsequence& hgvs, const 
         }
 
         if((diff_intron_end <= splice_region_in_end && diff_intron_end >= 0) ||
-                (diff_exon_start <= splice_region_ex_ && diff_exon_start >= 0) ||
+				(diff_exon_start <= params_.splice_region_ex && diff_exon_start >= 0) ||
                 (start < transcript.regions()[i].start() && end >= transcript.regions()[i].start()))
         {
             //first exon cannot have splice region variant at the start
@@ -1366,7 +1354,7 @@ void VariantHgvsAnnotator::annotateSpliceRegion(VariantConsequence& hgvs, const 
                 break;
             }
         }
-        else if((diff_exon_end <= splice_region_ex_ && diff_exon_end >= 0) ||
+		else if((diff_exon_end <= params_.splice_region_ex && diff_exon_end >= 0) ||
                 (diff_intron_start <= splice_region_in_start && diff_intron_start >= 0) ||
                 (start <= transcript.regions()[i].end() && end > transcript.regions()[i].end()))
         {
@@ -1451,4 +1439,12 @@ QByteArray VariantConsequence::typesToString(QByteArray sep)
 	std::sort(output.begin(), output.end());
 
 	return output.join(sep);
+}
+
+VariantHgvsAnnotator::Parameters::Parameters(int max_dist_trans, int splice_reg_exon, int splice_reg_intron_5, int splice_reg_intron_3)
+	: max_dist_to_transcript(max_dist_trans)
+	, splice_region_ex(splice_reg_exon)
+	, splice_region_in_5(splice_reg_intron_5)
+	, splice_region_in_3(splice_reg_intron_3)
+{
 }

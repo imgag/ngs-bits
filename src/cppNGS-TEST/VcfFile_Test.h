@@ -711,9 +711,7 @@ private slots:
 		QByteArray comment = "##CommentKey=CommentValue";
 		vl.vcfHeader().setCommentLine(comment, 0);
 
-		QVector<Sequence> alt_bases;
-		alt_bases.push_back("C");
-		VcfLinePtr vcf_line = VcfLinePtr(new VcfLine(Chromosome("chr1"), 1, "A", alt_bases));
+		VcfLinePtr vcf_line = VcfLinePtr(new VcfLine(Chromosome("chr1"), 1, "A", QList<Sequence>() << "C"));
 		vl.vcfLines().push_back(vcf_line);
 
 		//copy meta data

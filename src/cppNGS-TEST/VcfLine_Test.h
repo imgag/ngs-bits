@@ -9,9 +9,6 @@ TEST_CLASS(VcfLine_Test)
 
     void constructLineWithoutFile()
     {
-        QVector<Sequence> alt;
-        alt.push_back("T");
-
         QByteArrayList format_ids;
         format_ids.push_back("GT");
         format_ids.push_back("X");
@@ -30,7 +27,7 @@ TEST_CLASS(VcfLine_Test)
         list.push_back("B");
         list_of_format_values.push_back(list);
 
-        VcfLine variant(Chromosome("chr4"), 777, "A", alt, format_ids, sample_ids, list_of_format_values);
+        VcfLine variant(Chromosome("chr4"), 777, "A", QList<Sequence>() << "T", format_ids, sample_ids, list_of_format_values);
         X_EQUAL(variant.chr(), Chromosome("chr4"));
         I_EQUAL(variant.start(), 777);
         S_EQUAL(variant.ref(), "A");

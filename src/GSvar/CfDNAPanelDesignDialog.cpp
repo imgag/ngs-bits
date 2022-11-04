@@ -407,7 +407,7 @@ void CfDNAPanelDesignDialog::loadVariants()
 		if (!prev_vars_.value(vcf_string))
 		{
 			QByteArrayList vcf_columns = vcf_string.toUtf8().replace(":", " ").replace(">", " ").split(' ');
-			VcfLine vcf_line = VcfLine(Chromosome(vcf_columns[0]), Helper::toInt(vcf_columns[1], "VCF position"), Sequence(vcf_columns[2]), QVector<Sequence>() << Sequence(vcf_columns[3]));
+			VcfLine vcf_line = VcfLine(Chromosome(vcf_columns[0]), Helper::toInt(vcf_columns[1], "VCF position"), Sequence(vcf_columns[2]), QList<Sequence>() << Sequence(vcf_columns[3]));
 			Variant variant(vcf_line);
 
 			//extend table
@@ -471,7 +471,7 @@ void CfDNAPanelDesignDialog::loadVariants()
 		if (!candidate_vars_.value(vcf_string))
 		{
 			QByteArrayList vcf_columns = vcf_string.toUtf8().replace(":", " ").replace(">", " ").split(' ');
-			VcfLine vcf_line = VcfLine(Chromosome(vcf_columns[0]), Helper::toInt(vcf_columns[1], "VCF position"), Sequence(vcf_columns[2]), QVector<Sequence>() << Sequence(vcf_columns[3]));
+			VcfLine vcf_line = VcfLine(Chromosome(vcf_columns[0]), Helper::toInt(vcf_columns[1], "VCF position"), Sequence(vcf_columns[2]), QList<Sequence>() << Sequence(vcf_columns[3]));
 			Variant variant(vcf_line);
 
 			//extend table
