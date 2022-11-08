@@ -18,7 +18,7 @@ public:
 	{
 		setDescription("Imports genes from the HGNC flat file.");
 		addInfile("in", "HGNC flat file (download ftp://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/hgnc_complete_set.txt)", false);
-		addInfile("ensembl", "Ensembl gene file (gff3) to resolve duplicate ENSG identifier.", false);
+		addInfile("ensembl", "Ensembl gene file (gff3) to resolve duplicate ENSG identifier (same as NGSDImportEnsembl 'in' parameter).", false);
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");

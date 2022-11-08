@@ -46,6 +46,15 @@ int main(int argc, char **argv)
 						&ServerController::serveResourceAsset
 					});
 	EndpointManager::appendEndpoint(Endpoint{
+						"",
+						QMap<QString, ParamProps>{},
+						RequestMethod::HEAD,
+						ContentType::TEXT_HTML,
+						AuthType::NONE,
+						"Size of the index page with general information",
+						&ServerController::serveResourceAsset
+					});
+	EndpointManager::appendEndpoint(Endpoint{
 						"favicon.ico",
 						QMap<QString, ParamProps>{},
 						RequestMethod::GET,
@@ -299,6 +308,31 @@ int main(int argc, char **argv)
 						AuthType::USER_TOKEN,
 						"Secondary analyses list",
 						&ServerController::getSecondaryAnalyses
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
+						"rna_fusion_pics",
+						QMap<QString, ParamProps> {
+							{"rna_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "RNA id"}},
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::GET,
+						ContentType::APPLICATION_JSON,
+						AuthType::USER_TOKEN,
+						"List RNA fusion plots needed for a report",
+						&ServerController::getRnaFusionPics
+					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"rna_expression_plots",
+						QMap<QString, ParamProps> {
+							{"rna_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "RNA id"}},
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::GET,
+						ContentType::APPLICATION_JSON,
+						AuthType::USER_TOKEN,
+						"List RNA expression plots needed for a report",
+						&ServerController::getRnaExpressionPlots
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{

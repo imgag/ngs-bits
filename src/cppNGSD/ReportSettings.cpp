@@ -10,6 +10,7 @@ ReportSettings::ReportSettings()
 	, show_omim_table(true)
 	, show_one_entry_in_omim_table(true)
 	, show_class_details(false)
+	, show_refseq_transcripts(false)
 	, language("german")
 {
 }

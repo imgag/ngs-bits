@@ -81,7 +81,7 @@ RtfSourceCode SomaticReportHelper::partCnvTable()
 		if(variant.genes().count() == 0) continue;
 
 		//gene names
-		GeneSet genes = settings_.target_region_filter.genes.intersect( db_.genesToApproved(variant.genes()) );
+		GeneSet genes = settings_.target_region_filter.genes.intersect( db_.genesOverlapping(variant.chr(), variant.start(), variant.end()) );
 		std::sort(genes.begin(), genes.end());
 
 		if(genes.count() == 0) continue;
@@ -450,7 +450,7 @@ void SomaticReportHelper::somaticCnvForQbic(QString path_target_folder)
 	{
 		const CopyNumberVariant& variant = cnvs_[i];
 
-		GeneSet genes_in_report = settings_.target_region_filter.genes.intersect(db_.genesToApproved(variant.genes()) );
+		GeneSet genes = settings_.target_region_filter.genes.intersect(db_.genesOverlapping(variant.chr(), variant.start(), variant.end()));
 
 		if(cnv_index_cnv_type_ < 0)
 		{
@@ -480,13 +480,9 @@ void SomaticReportHelper::somaticCnvForQbic(QString path_target_folder)
 		stream << "\t";
 		stream << copy_number << "\t";
 
-		if(genes_in_report.count() > 0)
+		if(genes.count()>0)
 		{
-			for(int j=0;j<genes_in_report.count();++j)
-			{
-				stream << genes_in_report[j];
-				if(j<genes_in_report.count()-1) stream << ";";
-			}
+			stream << genes.join(";");
 		}
 		else
 		{
@@ -504,9 +500,6 @@ void SomaticReportHelper::somaticCnvForQbic(QString path_target_folder)
 		stream << "\t";
 		stream << variant.end();
 		stream << "\t";
-
-		//genes in target region
-		GeneSet genes = settings_.target_region_filter.genes.intersect(db_.genesToApproved(variant.genes()) );
 
 		QByteArrayList gene_effects;
 		for(const auto& gene : genes)
@@ -1218,7 +1211,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 
 			if( settings_.target_region_filter.isValid() && !settings_.target_region_filter.regions.overlapsWith( cnv.chr(), cnv.start(), cnv.end() ) ) continue; //target region from GSvar filter widget
 
-			GeneSet genes = db_.genesToApproved( cnv.genes() ).intersect(settings_.target_region_filter.genes);
+			GeneSet genes = settings_.target_region_filter.genes.intersect(db_.genesOverlapping(cnv.chr(), cnv.start(), cnv.end()));
 
 			for(const auto& gene : genes)
 			{
@@ -1841,7 +1834,7 @@ RtfSourceCode SomaticReportHelper::partPathways()
 
 					int cn = cnv.copyNumber(cnvs_.annotationHeaders());
 
-					GeneSet genes_cnv = db_.genesToApproved(cnv.genes());
+					GeneSet genes_cnv = db_.genesOverlapping(cnv.chr(), cnv.start(), cnv.end());
 					for(const QByteArray& gene : genes_cnv)
 					{
 						if (!genes_pathway.contains(gene)) continue;

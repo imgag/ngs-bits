@@ -797,10 +797,10 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			TranscriptList transcripts  = db_.transcriptsOverlapping(variant.chr(), variant.start() - 5000, variant.end() + 5000);
 
 			//annotate consequence to transcript
-			VariantHgvsAnnotator hgvs_annotator;
+			VariantHgvsAnnotator hgvs_annotator(genome_idx_);
 			foreach(const Transcript& trans, transcripts)
 			{
-				VariantConsequence hgvs = hgvs_annotator.variantToHgvs(trans, variant, genome_idx_);
+				VariantConsequence hgvs = hgvs_annotator.variantToHgvs(trans, variant);
 				VariantTranscript consequence;
 				consequence.gene = trans.gene();
 				consequence.id = hgvs.transcript_id.toUtf8();
@@ -1891,7 +1891,7 @@ QString GermlineReportGenerator::formatCodingSplicing(const Variant& v)
 	QStringList output;
 
 	//get transcript-specific data of best transcript for all overlapping genes
-	VariantHgvsAnnotator hgvs_annotator;
+	VariantHgvsAnnotator hgvs_annotator(genome_idx_);
 	GeneSet genes = db_.genesOverlapping(v.chr(), v.start(), v.end(), 5000);
 	foreach(const QByteArray& gene, genes)
 	{
@@ -1901,8 +1901,22 @@ QString GermlineReportGenerator::formatCodingSplicing(const Variant& v)
 		{
 			try
 			{
-				VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, v, genome_idx_);
-				output << gene + ":" + trans.nameWithVersion() + ":" + consequence.hgvs_c + ":" + consequence.hgvs_p;
+				//get RefSeq match of transcript if requested
+				QString refseq;
+				if (data_.report_settings.show_refseq_transcripts)
+				{
+					const QMap<QByteArray, QByteArrayList>& transcript_matches = NGSHelper::transcriptMatches(data_.build);
+					foreach (const QByteArray& match, transcript_matches.value(trans.name()))
+					{
+						if (match.startsWith("NM_"))
+						{
+							refseq = "/"+match;
+						}
+					}
+				}
+
+				VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, v);
+				output << gene + ":" + trans.nameWithVersion() + refseq + ":" + consequence.hgvs_c + ":" + consequence.hgvs_p;
 			}
 			catch(Exception& e)
 			{
@@ -2273,7 +2287,7 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 	if (conf.isManuallyCurated()) conf.updateVariant(v, genome_idx_, i_genotype);
 
 	//get transcript-specific data of best transcript for all overlapping genes
-	VariantHgvsAnnotator hgvs_annotator;
+	VariantHgvsAnnotator hgvs_annotator(genome_idx_);
 	GeneSet genes = db_.genesOverlapping(v.chr(), v.start(), v.end(), 5000);
 	QStringList types;
 	QStringList hgvs_cs;
@@ -2286,7 +2300,7 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 		{
 			try
 			{
-				VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, v, genome_idx_);
+				VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, v);
 				types << consequence.variantConsequenceTypesAsString("&amp;");
 				hgvs_cs << trans.nameWithVersion() + ":" + consequence.hgvs_c;
 				hgvs_ps << trans.nameWithVersion() + ":" + consequence.hgvs_p;

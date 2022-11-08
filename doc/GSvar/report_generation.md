@@ -40,7 +40,7 @@ This is usually necessary for example in these cases:
 
 - a complex small variant are split into several variants during variant normalization.
 - a large CNV is split into several CNVs because it contains regions that are copy-number polymorphic.
-- the genotype of a small variant, a CNVs or a SVs is correctly detected.
+- the genotype of a small variant, a CNVs or a SVs is not correctly detected.
 
 Generally, if a single variant is split into several variants, exclude all but one of the fragments from the report using `other reason` and document that the variant belongs to a splot variant in the comments.
 

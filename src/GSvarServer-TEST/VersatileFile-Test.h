@@ -54,9 +54,9 @@ TEST_CLASS(VersatileFile_Test)
 			S_EQUAL(first_line.trimmed(), "<!doctype html>");
 			I_EQUAL(index_page_file.pos(), 16);
 			index_page_file.seek(10);
-			QByteArray line_fragment = index_page_file.read(4);
+			QByteArray line_fragment = index_page_file.read(3);
 			S_EQUAL(line_fragment, "html");
-			I_EQUAL(index_page_file.pos(), 14);
+			I_EQUAL(index_page_file.pos(), 13);
 		}
 };
 

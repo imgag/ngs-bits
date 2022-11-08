@@ -173,7 +173,12 @@ MainWindow::MainWindow(QWidget *parent)
 	rna_menu_btn_->menu()->addAction(ui_.actionShowRnaFusions);
 	rna_menu_btn_->menu()->addAction(ui_.actionShowProcessingSystemCoverage);
 	rna_menu_btn_->setPopupMode(QToolButton::InstantPopup);
-//	rna_menu_btn_->setEnabled(false);
+
+	ui_.actionExpressionData->setEnabled(false);
+	ui_.actionExonExpressionData->setEnabled(false);
+	ui_.actionShowSplicing->setEnabled(false);
+	ui_.actionShowRnaFusions->setEnabled(false);
+
 	ui_.tools->addWidget(rna_menu_btn_);
 
 
@@ -3651,7 +3656,6 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 	}
 
 	//activate RNA menu
-//	rna_menu_btn_->setEnabled(false);
 	ui_.actionExpressionData->setEnabled(false);
 	ui_.actionExonExpressionData->setEnabled(false);
 	ui_.actionShowSplicing->setEnabled(false);
@@ -3665,12 +3669,11 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 		{
 			foreach (int rna_sample_id, db.relatedSamples(sample_id.toInt(), "same sample", "RNA"))
 			{
-				// activate menu if RNA sample is available
-				rna_menu_btn_->setEnabled(true);
-
 				// check for required files
 				foreach (const QString& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", QString::number(rna_sample_id)))
 				{
+					if (!db.userCanAccess(LoginManager::userId(), rna_ps_id.toInt())) continue;
+
 					// search for gene count file
 					FileLocation rna_count_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION);
 					if (rna_count_file.exists) ui_.actionExpressionData->setEnabled(true);
@@ -4433,7 +4436,16 @@ QList<RtfPicture> pngsFromFiles(QStringList files)
 	QList<RtfPicture> pic_list;
 	foreach(const QString& path, files)
 	{
-		QImage pic = QImage(path);
+		QImage pic;
+		if (path.startsWith("http", Qt::CaseInsensitive))
+		{
+			QByteArray response = HttpHandler(HttpRequestHandler::NONE).get(path);
+			if (!response.isEmpty()) pic.loadFromData(response);
+		}
+		else
+		{
+			pic = QImage(path);
+		}
 		if(pic.isNull()) continue;
 
 		QByteArray png_data = "";
@@ -4712,7 +4724,7 @@ void MainWindow::generateReportSomaticRTF()
 			//Add data from fusion pics
 			try
 			{
-				rna_report_data.fusion_pics = pngsFromFiles( Helper::findFiles(GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::FUSIONS_PIC_DIR).filename, "*.png", false) );
+				rna_report_data.fusion_pics = pngsFromFiles(GlobalServiceProvider::database().getRnaFusionPics(dlg.getRNAid()));
 			}
 			catch(Exception) //Nothing to do here
 			{
@@ -4720,7 +4732,7 @@ void MainWindow::generateReportSomaticRTF()
 			//Add data from expression plots
 			try
 			{
-				rna_report_data.expression_plots = pngsFromFiles( Helper::findFiles(GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::SAMPLE_FOLDER).filename, dlg.getRNAid() + "_expr.*.png", false) );
+				rna_report_data.expression_plots = pngsFromFiles(GlobalServiceProvider::database().getRnaExpressionPlots(dlg.getRNAid()));
 			}
 			catch(Exception)
 			{
@@ -7475,7 +7487,6 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionConvertHgvsToGSvar->setEnabled(ngsd_user_logged_in);
 	ui_.actionRegionToGenes->setEnabled(ngsd_user_logged_in);
 	ui_.actionGapsRecalculate->setEnabled(ngsd_user_logged_in);
-	ui_.actionExpressionData->setEnabled(ngsd_user_logged_in);
 	ui_.actionAnnotateSomaticVariantInterpretation->setEnabled(ngsd_user_logged_in);
 
 	//NGSD menu

@@ -38,6 +38,11 @@ public:
 	virtual FileLocation analysisJobLogFile(const int& job_id) const = 0;
 	//Returns a list of analysis names for multi-sample analyses
 	virtual QList<MultiSampleAnalysisInfo> getMultiSampleAnalysisInfo(QStringList& analyses) const = 0;
+
+	//Returns the list of fusion plots for RNA report
+	virtual QStringList getRnaFusionPics(const QString& rna_id) const = 0;
+	//Returns expression plots for RNA report
+	virtual QStringList getRnaExpressionPlots(const QString& rna_id) const = 0;
 };
 
 #endif // DATABASESERVICE_H

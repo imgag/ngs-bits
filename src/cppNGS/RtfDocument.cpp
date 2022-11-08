@@ -297,10 +297,9 @@ RtfTableRow::RtfTableRow(QByteArray cell_content, int width, const RtfParagraph&
 
 RtfTableRow::RtfTableRow(const QByteArrayList& cell_contents, const QList<int>& cell_widths, const RtfParagraph& format)
 {
-	if(cell_contents.count() != cell_widths.count()) //Create empty instance if no does not match
+	if(cell_contents.count() != cell_widths.count()) //Throw if number does not match
 	{
-		RtfTableRow();
-		return;
+		THROW(ArgumentException, "Cell_contents and cell_widths don't have the same length");
 	}
 
 	for(int i=0;i<cell_contents.count();++i)

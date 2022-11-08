@@ -469,6 +469,16 @@
        </widget>
       </item>
       <item>
+       <widget class="QCheckBox" name="refseq_trans_names">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adds RefSeq transcript names to small variant table.&lt;/p&gt;&lt;p&gt;Note: this is only done if there is a perfectly matching RefSeq transcript.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Add RefSeq transcript names</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <layout class="QHBoxLayout" name="horizontalLayout_6">
         <item>
          <widget class="QLabel" name="label">
