@@ -7,11 +7,9 @@
 #include "GermlineReportGenerator.h"
 #include "TumorOnlyReportWorker.h"
 #include "StatisticsServiceLocal.h"
+#include "VariantHgvsAnnotator.h"
 
 #include <QThread>
-#include <cmath>
-#include <QCoreApplication>
-#include <iostream>
 
 TEST_CLASS(NGSD_Test)
 {
@@ -2699,17 +2697,98 @@ private slots:
 
 	}
 
-
-	//Test for debugging (without initialization because of speed)
-	/*
-	void debug()
+	//This test should be in VariantHgvsAnnotator_Test.h, but it requires the production NGSD. Thus it is here.
+	//Test data exported from NGSD via GSvar (debug section of ahsturm1) on Nov 1th 2022.
+	//Annotation done with VEP 107 (/mnt/users/ahsturm1/Sandbox/2022_11_04_compare_annotations_with_VEP/).
+	//Some annotations were manually corrected because VEP was wrong - this is documented in the CORRECTED info entry of the variant.
+	void VariantHgvsAnnotator_comparison_vep()
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
-		NGSD db(true);
+		if (!NGSD::isAvailable()) SKIP("Test needs access to the NGSD production database!");
 
-		//getProcessingSystem
-		QString sys = db.getProcessingSystem("tumor_cnvs._03", NGSD::SHORT);
-		S_EQUAL(sys, "hpHBOCv5");
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+		FastaFileIndex reference(ref_file);
+
+		VariantHgvsAnnotator annotator(reference);
+		NGSD db;
+		QTextStream out(stdout);
+
+		int c_pass = 0;
+		int c_fail = 0;
+
+		//process VCF
+		VcfFile vcf;
+		vcf.load(TESTDATA("data_in/VariantHgvsAnnotator_comparison_vep.vcf")); //TODO bgzip file when debugging done
+		for(int i=0; i<vcf.count(); ++i)
+		{
+			const VcfLine& v = vcf[i];
+
+			//process overlapping genes
+			GeneSet genes = db.genesOverlapping(v.chr(), v.start(), v.end());
+			foreach(const QByteArray& gene, genes)
+			{
+				//process best transcript for gene
+				int gene_id = db.geneId(gene);
+				Transcript trans = db.bestTranscript(gene_id);
+				if (trans.isValid())
+				{
+
+					//check VEP for transcript exists
+					QByteArrayList vep_annos;
+					foreach(QByteArray entry, v.info("CSQ").split(','))
+					{
+						if (entry.contains("|" + trans.name() + "."))
+						{
+							vep_annos = entry.split('|');
+						}
+					}
+					if (vep_annos.isEmpty()) continue;
+
+					//compare VEP and own annotation
+					QByteArrayList differences;
+					VariantConsequence cons = annotator.annotate(trans, v);
+					if (cons.hgvs_p=="p.?") cons.hgvs_p="";
+
+					QByteArray vep_hgvsc = (vep_annos[2]+':').split(':')[1];
+					if (vep_hgvsc!=cons.hgvs_c) differences << vep_hgvsc + " > " + cons.hgvs_c;
+
+					QByteArray vep_hgvsp = (vep_annos[3]+':').split(':')[1];
+					vep_hgvsp.replace("%3D", "=");
+					if (vep_hgvsp!=cons.hgvs_p) differences << vep_hgvsp + " > " + cons.hgvs_p;
+
+					QByteArrayList vep_types = vep_annos[4].split('&');
+					//TODO
+
+					QByteArray vep_impact = vep_annos[5];
+					if (vep_impact!=cons.impact) differences << vep_impact + " > " + cons.impact;
+
+					QByteArray vep_exon = vep_annos[6];
+					int vep_exon_nr = vep_exon.isEmpty() ? -1 : vep_exon.split('/')[0].toInt();
+					//TODO if (vep_exon_nr!=cons.exon_number) differences << "exon" << QByteArray::number(vep_exon_nr) + " > " + QByteArray::number(cons.exon_number);
+
+					QByteArray vep_intron = vep_annos[7];
+					int vep_intron_nr = vep_intron.isEmpty() ? -1 : vep_intron.split('/')[0].toInt();
+					//TODO if (vep_intron_nr!=cons.intron_number) differences << "intron" << QByteArray::number(vep_intron_nr) + " > " + QByteArray::number(cons.intron_number);
+
+					if (differences.isEmpty())
+					{
+						++c_pass;
+					}
+					else
+					{
+						++c_fail;
+						out << v.toString() << " transcript=" << trans.name() << " " << cons.toString() << endl;
+						foreach(QByteArray difference, differences)
+						{
+							out << "  " << difference << endl;
+						}
+					}
+				}
+			}
+		}
+
+		I_EQUAL(c_fail, 0);
+		I_EQUAL(c_pass, 5376);
 	}
-	*/
+
 };

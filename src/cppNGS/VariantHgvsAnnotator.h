@@ -57,7 +57,7 @@ struct CPPNGSSHARED_EXPORT VariantConsequence
     int exon_number{-1};
     int intron_number{-1};
 
-	QByteArray typesToString(QByteArray sep="&");
+	QByteArray typesToString(QByteArray sep="&") const;
 	static QByteArray typeToString(VariantConsequenceType type)
     {
         switch(type)
@@ -92,6 +92,8 @@ struct CPPNGSSHARED_EXPORT VariantConsequence
 
 		THROW(ProgrammingException, "Unhandled variant consequence type " + QByteArray::number(static_cast<int>(type)) + "!");
     }
+
+	QByteArray toString() const;
 };
 
 ///Class for generating HGVS nomenclature and variant effect from VCF/GSVar

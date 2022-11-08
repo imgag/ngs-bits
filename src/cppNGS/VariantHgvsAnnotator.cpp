@@ -1449,7 +1449,7 @@ Sequence VariantHgvsAnnotator::getCodingSequence(const Transcript& trans, bool a
 }
 
 //Returns the variant types as string (ordered alphabetically)
-QByteArray VariantConsequence::typesToString(QByteArray sep)
+QByteArray VariantConsequence::typesToString(QByteArray sep) const
 {
 	QByteArrayList output;
 
@@ -1461,6 +1461,16 @@ QByteArray VariantConsequence::typesToString(QByteArray sep)
 	std::sort(output.begin(), output.end());
 
 	return output.join(sep);
+}
+
+QByteArray VariantConsequence::toString() const
+{
+	QByteArray output = "HGVS.c=" + hgvs_c + " HGVS.p=" + hgvs_p + " impact=" + impact + " types=" + typesToString();
+
+	if (exon_number!=-1) output += " exon=" + QByteArray::number(exon_number);
+	if (intron_number!=-1) output += " intron=" + QByteArray::number(intron_number);
+
+	return output;
 }
 
 VariantHgvsAnnotator::Parameters::Parameters(int max_dist_trans, int splice_reg_exon, int splice_reg_intron_5, int splice_reg_intron_3)

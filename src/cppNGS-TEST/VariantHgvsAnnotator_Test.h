@@ -1268,4 +1268,8 @@ private slots:
 		I_EQUAL(hgvs.exon_number, 1);
 		I_EQUAL(hgvs.intron_number, 1);
 	}
+
+	//TODO add tests for splice region and consensus splice site overlap (SNP, Ins, Del, InDel, MNP) for plus strand
+	//TODO add tests for splice region and consensus splice site overlap (SNP, Ins, Del, InDel, MNP) for minus strand
+
 };

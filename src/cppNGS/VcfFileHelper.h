@@ -279,61 +279,44 @@ public:
 	{
 		if(!formatIdxOf_)
 		{
-			QByteArrayList empty_list;
-			return empty_list;
+			return QByteArrayList();
 		}
-		else
-		{
-			return formatIdxOf_->keys();
-		}
+		return formatIdxOf_->keys();
 	}
+
 	//Returns a list of all info IDs
 	QByteArrayList infoKeys() const
 	{
 		if(!infoIdxOf_)
 		{
-			QByteArrayList list;
-			return list;
+			return QByteArrayList();
 		}
-		else
-		{
-			return infoIdxOf_->keys();
-		}
+		return infoIdxOf_->keys();
 	}
+
 	//Returns a list of all info values in order of the info IDs
 	QByteArrayList infoValues()
 	{
 		if(!infoIdxOf_)
 		{
-			QByteArrayList list;
-			return list;
+			return QByteArrayList();
 		}
-		else
-		{
-			return info_;
-		}
+		return info_;
 	}
+
 	//Returns the value for an info ID as key
 	QByteArray info(const QByteArray& key, bool error_if_key_absent = false) const
 	{
-		if(error_if_key_absent)
+		int info_pos = -1;
+		if(!infoIdxOf_->hasKey(key, info_pos))
 		{
-			int i_idx = (*infoIdxOf_)[key];
-			return info_.at(i_idx);
+			if (error_if_key_absent) THROW(ArgumentException, "Key ' " + key + "' not found in INFO entries of variant " + toString());
+			return "";
 		}
-		else
-		{
-			int info_pos;
-			if(infoIdxOf_->hasKey(key, info_pos))
-			{
-				return info_.at(info_pos);
-			}
-			else
-			{
-				return "";
-			}
-		}
+
+		return info_.at(info_pos);
 	}
+
 
 	///Returns a list, which stores for every sample a list of the values for every format ID
 	const QList<QByteArrayList>& samples() const
