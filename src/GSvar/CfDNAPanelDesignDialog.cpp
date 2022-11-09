@@ -642,7 +642,7 @@ VcfFile CfDNAPanelDesignDialog::createVcfFile()
 			bool ok;
 			int var_idx = ui_->vars->item(r,0)->data(Qt::UserRole).toInt(&ok);
 			if (!ok) THROW(ProgrammingException, "Variant table row header user data '" + ui_->vars->item(r,0)->data(Qt::UserRole).toString() + "' is not an integer!");
-			if (var_idx > 0)
+			if (var_idx >= 0)
 			{
 				selected_variants.append(variants_[var_idx]);
 			}
