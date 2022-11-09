@@ -124,7 +124,8 @@ public:
 		addString("variant_type", "Filters by variant type. Possible types are: '" + variant_types.join("','") + "'.", true);
 		addString("id", "Filter by ID column (regular expression).", true);
 		addFloat("qual", "Filter by QUAL column (minimum).", true);
-		addString("filter", "Filter by FILTER column (regular expression).", true);
+		addString("filter", "Filter by FILTER column - keep matches (regular expression).", true);
+		addString("filter_exclude", "Filter by FILTER column - exclude matches (regular expression).", true);
 		addFlag("filter_empty", "Removes entries with non-empty FILTER column.");
 		addString("info", "Filter by INFO column entries - use ';' as separator for several filters, e.g. 'DP > 5;AO > 2' (spaces are important).\nValid operations are '" + op_numeric.join("','") + "','" + op_string.join("','") + "'.", true);
 		addString("sample", "Filter by sample-specific entries - use ';' as separator for several filters, e.g. 'GT is 1/1' (spaces are important).\nValid operations are '" + op_numeric.join("','") + "','" + op_string.join("','") + "'.", true);
@@ -174,6 +175,7 @@ public:
         bool filter_empty = getFlag("filter_empty");
         bool sample_one_match = getFlag("sample_one_match");
 		QString filter = getString("filter");
+		QString filter_exclude = getString("filter_exclude");
 		QString id = getString("id");
         QString variant_type = getString("variant_type");
 		if (variant_type != "" && !variant_types.contains(variant_type))
@@ -194,6 +196,17 @@ public:
 				THROW(ArgumentException, "Filter regexp '" + filter + "' is not a valid regular expression! ( + " + filter_re.errorString() + " )");
             }
         }
+
+		QRegularExpression filter_exclude_re;
+		if (filter_exclude != "")
+		{
+			// Prepare static filter regexes
+			filter_exclude_re.setPattern(filter_exclude);
+			if (!filter_exclude_re.isValid())
+			{
+				THROW(ArgumentException, "Filter regexp '" + filter_exclude + "' is not a valid regular expression! ( + " + filter_exclude_re.errorString() + " )");
+			}
+		}
 
         QRegularExpression id_re;
 		if (id != "")
@@ -337,16 +350,27 @@ public:
                 }
             }
 
-            ///Filter FILTER column via regex
+			///Filter FILTER column via regex (include match)
 			if (filter != "")
             {
                 QByteArray filter = VcfFile::getPartByColumn(line, VcfFile::FILTER).trimmed();
-                auto match = filter_re.match(filter);
+				auto match = filter_re.match(filter);
                 if (!match.hasMatch())
                 {
                     continue;
                 }
             }
+
+			///Filter FILTER column via regex (exclude match)
+			if (filter_exclude != "")
+			{
+				QByteArray filter = VcfFile::getPartByColumn(line, VcfFile::FILTER).trimmed();
+				auto match = filter_exclude_re.match(filter);
+				if (match.hasMatch())
+				{
+					continue;
+				}
+			}
 
             ///Filter ID column via regex
 			if (id != "")
