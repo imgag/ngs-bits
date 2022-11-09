@@ -308,6 +308,10 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	{
 		conditions << "s.tissue='" + escapeForSql(p.s_tissue) + "'";
 	}
+	if (p.s_ancestry.trimmed() != "")
+	{
+		conditions << "psa.population='" + escapeForSql(p.s_ancestry) + "'";
+	}
 	if (!p.include_bad_quality_samples)
 	{
 		conditions << "ps.quality!='bad'";

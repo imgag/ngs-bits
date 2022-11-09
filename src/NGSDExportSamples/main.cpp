@@ -38,6 +38,7 @@ public:
 		addFlag("with_merged", "If set, processed samples that were merged into another sample are included.");
 		addString("species", "Species filter.", true, "");
 		addString("tissue", "Tissue filter.", true, "");
+		addString("ancestry", "Ancestry filter.", true, "");
 		addString("disease_group", "Disease group filter", true, "");
 		addString("disease_status", "Disease status filter", true, "");
 		addString("sender", "Sample sender filter.", true, "");
@@ -86,6 +87,7 @@ public:
 		params.s_species = getString("species");
 		params.s_sender = getString("sender");
 		params.s_tissue = getString("tissue");
+		params.s_ancestry = getString("ancestry");
 		params.s_disease_group = getString("disease_group");
 		params.s_disease_status = getString("disease_status");
 		params.s_study = getString("study");
@@ -216,6 +218,15 @@ public:
 			if (! values.contains(params.s_tissue))
 			{
 				THROW(DatabaseException, "Invalid sample tissue '"+params.s_tissue+"'.\nValid tissues are: " + values.join(", "));
+			}
+		}
+
+		if (params.s_ancestry !="")
+		{
+			QStringList values = db.getEnum("processed_sample_ancestry", "population");
+			if (! values.contains(params.s_ancestry))
+			{
+				THROW(DatabaseException, "Invalid sample ancestry '"+params.s_ancestry+"'.\nValid tissues are: " + values.join(", "));
 			}
 		}
 
