@@ -5246,6 +5246,21 @@ int MainWindow::igvPort() const
 	return port;
 }
 
+const VariantList&MainWindow::getSmallVariantList()
+{
+	return variants_;
+}
+
+const CnvList&MainWindow::getCnvList()
+{
+	return cnvs_;
+}
+
+const BedpeFile&MainWindow::getSvList()
+{
+	return svs_;
+}
+
 void MainWindow::on_actionOpenGeneTabByName_triggered()
 {
 	QString symbol = selectGene();

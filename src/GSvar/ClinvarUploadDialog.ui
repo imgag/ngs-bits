@@ -19,7 +19,7 @@
   <property name="windowTitle">
    <string>ClinVar variant publication</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,1,1">
+  <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,1,1">
    <property name="spacing">
     <number>3</number>
    </property>
@@ -1042,6 +1042,37 @@
       </item>
      </layout>
     </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <item>
+      <widget class="QPushButton" name="add_comphet_btn">
+       <property name="text">
+        <string>Add compound heterozygous variant</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="remove_comphet_btn">
+       <property name="text">
+        <string>Remove compound heterozygous variant</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
    </item>
    <item>
     <widget class="QGroupBox" name="groupBox_2">

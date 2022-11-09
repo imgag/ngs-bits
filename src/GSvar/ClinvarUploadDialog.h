@@ -64,7 +64,7 @@ class ClinvarUploadDialog
 
 public:
     ClinvarUploadDialog(QWidget *parent = 0);
-    void setData(ClinvarUploadData data);
+	void setData(ClinvarUploadData data);
 
 private slots:
     void initGui();
@@ -72,6 +72,8 @@ private slots:
     bool checkGuiData();
     void printResults();
     void updatePrintButton();
+	void addCompHetVariant();
+	void removeCompHetVariant();
 
 private:
     Ui::ClinVarUploadDialog ui_;

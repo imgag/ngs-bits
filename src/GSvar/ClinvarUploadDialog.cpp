@@ -7,6 +7,7 @@
 #include "LoginManager.h"
 #include "GSvarHelper.h"
 #include "GUIHelper.h"
+#include "ReportVariantSelectionDialog.h"
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -31,6 +32,8 @@ ClinvarUploadDialog::ClinvarUploadDialog(QWidget *parent)
     ui_.setupUi(this);
 
     initGui();
+
+
 }
 
 void ClinvarUploadDialog::setData(ClinvarUploadData data)
@@ -282,6 +285,12 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 		}
 	}
 
+	// (de-)activate button to add comp-het variant
+	ui_.add_comphet_btn->setEnabled(data.submission_type == ClinvarSubmissiontype::SingleVariant);
+	ui_.add_comphet_btn->setVisible(data.submission_type == ClinvarSubmissiontype::SingleVariant);
+	ui_.remove_comphet_btn->setEnabled(data.submission_type != ClinvarSubmissiontype::SingleVariant);
+	ui_.remove_comphet_btn->setVisible(data.submission_type != ClinvarSubmissiontype::SingleVariant);
+
     //validate input
     checkGuiData();
 }
@@ -322,6 +331,8 @@ void ClinvarUploadDialog::initGui()
 
     //connect signal and slots
     connect(ui_.upload_btn, SIGNAL(clicked(bool)), this, SLOT(upload()));
+	connect(ui_.add_comphet_btn, SIGNAL(clicked(bool)), this, SLOT(addCompHetVariant()));
+	connect(ui_.remove_comphet_btn, SIGNAL(clicked(bool)), this, SLOT(removeCompHetVariant()));
 	connect(ui_.cb_chr_snv1, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.le_genes_snv1, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.le_genes_cnv1, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
@@ -895,7 +906,19 @@ void ClinvarUploadDialog::printResults()
 
 void ClinvarUploadDialog::updatePrintButton()
 {
-    ui_.print_btn->setEnabled(!ui_.comment_upload->toPlainText().trimmed().isEmpty());
+	ui_.print_btn->setEnabled(!ui_.comment_upload->toPlainText().trimmed().isEmpty());
+}
+
+void ClinvarUploadDialog::addCompHetVariant()
+{
+	ReportVariantSelectionDialog dialog(clinvar_upload_data_.processed_sample);
+	dialog.exec();
+
+}
+
+void ClinvarUploadDialog::removeCompHetVariant()
+{
+
 }
 
 QJsonObject ClinvarUploadDialog::createJson()
@@ -2250,6 +2273,35 @@ QString ClinvarUploadDialog::getHGVS()
 		hgvs_var1 = ui_.le_start_cnv1->text() + "_" + ui_.le_end_cnv1->text() + ((ui_.le_cn_cnv1->text().toInt() < ui_.le_rcn_cnv1->text().toInt())?"del":"dup");
 		mito = chr.isM();
 	}
+	else if(clinvar_upload_data_.variant_type1 == VariantType::SVS)
+	{
+		bool ok;
+		StructuralVariantType type = StructuralVariantTypeFromString(ui_.cb_type_sv1->currentText());
+		BedpeLine sv = BedpeLine(Chromosome(ui_.cb_chr1_sv1->currentText()), ui_.le_start1_sv1->text().toInt(&ok), ui_.le_end2_sv1->text().toInt(&ok),
+								 Chromosome(ui_.cb_chr2_sv1->currentText()), ui_.le_start2_sv1->text().toInt(&ok), ui_.le_end2_sv1->text().toInt(&ok), type, QByteArrayList());
+		if(!ok) THROW(ArgumentException, "Error during number conversion!");
+		BedLine range = sv.affectedRegion()[0];
+		switch (type)
+		{
+			case StructuralVariantType::DEL:
+			case StructuralVariantType::DUP:
+			case StructuralVariantType::INV:
+				hgvs_var1 = QString::number(range.start()) + "_" + QString::number(range.end()) + StructuralVariantTypeToString(type).toLower();
+				mito = range.chr().isM();
+				break;
+
+			case StructuralVariantType::INS:
+				hgvs_var1 = QString::number(range.start()) + "_" + QString::number(range.end()) + "insN[?]";
+				break;
+
+			case StructuralVariantType::BND:
+				THROW(NotImplementedException, "Submission of translocations are currently not supported!");
+				break;
+
+			default:
+				break;
+		}
+	}
 	else
 	{
 		THROW(ArgumentException, "Invalid variant type provided for variant 1!")
@@ -2265,6 +2317,33 @@ QString ClinvarUploadDialog::getHGVS()
 	{
 		Chromosome chr = Chromosome(ui_.cb_chr_cnv2->currentText());
 		hgvs_var2 = ui_.le_start_cnv2->text() + "_" + ui_.le_end_cnv2->text() + ((ui_.le_cn_cnv2->text().toInt() < ui_.le_rcn_cnv2->text().toInt())?"del":"dup");
+	}
+	else if(clinvar_upload_data_.variant_type2 == VariantType::SVS)
+	{
+		StructuralVariantType type = StructuralVariantTypeFromString(ui_.cb_type_sv2->currentText());
+		bool ok;
+		BedpeLine sv = BedpeLine(Chromosome(ui_.cb_chr1_sv2->currentText()), ui_.le_start1_sv2->text().toInt(&ok), ui_.le_end2_sv2->text().toInt(&ok),
+								 Chromosome(ui_.cb_chr2_sv2->currentText()), ui_.le_start2_sv2->text().toInt(&ok), ui_.le_end2_sv2->text().toInt(&ok), type, QByteArrayList());
+		if(!ok) THROW(ArgumentException, "Error during number conversion!");
+		BedLine range = sv.affectedRegion()[0];
+		switch (type)
+		{
+			case StructuralVariantType::DEL:
+			case StructuralVariantType::DUP:
+			case StructuralVariantType::INV:
+				hgvs_var2 = QString::number(range.start()) + "_" + QString::number(range.end()) + StructuralVariantTypeToString(type).toLower();
+				mito = range.chr().isM();
+				break;
+
+			case StructuralVariantType::INS:
+				hgvs_var2 = QString::number(range.start()) + "_" + QString::number(range.end()) + "insN[?]";
+				break;
+			case StructuralVariantType::BND:
+				THROW(NotImplementedException, "Submission of translocations are currently not supported!");
+				break;
+			default:
+				break;
+		}
 	}
 	else
 	{

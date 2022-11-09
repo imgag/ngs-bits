@@ -184,3 +184,42 @@ void GlobalServiceProvider::openGSvarViaNGSD(QString processed_sample_name, bool
 		}
 	}
 }
+
+const VariantList&GlobalServiceProvider::getSmallVariantList()
+{
+	foreach(QWidget* widget, QApplication::topLevelWidgets())
+	{
+		MainWindow* mw = qobject_cast<MainWindow*>(widget);
+		if (mw!=nullptr)
+		{
+			return mw->getSmallVariantList();
+		}
+	}
+	THROW(ProgrammingException, "MainWindow not found!");
+}
+
+const CnvList&GlobalServiceProvider::getCnvList()
+{
+	foreach(QWidget* widget, QApplication::topLevelWidgets())
+	{
+		MainWindow* mw = qobject_cast<MainWindow*>(widget);
+		if (mw!=nullptr)
+		{
+			return mw->getCnvList();
+		}
+	}
+	THROW(ProgrammingException, "MainWindow not found!");
+}
+
+const BedpeFile&GlobalServiceProvider::getSvList()
+{
+	foreach(QWidget* widget, QApplication::topLevelWidgets())
+	{
+		MainWindow* mw = qobject_cast<MainWindow*>(widget);
+		if (mw!=nullptr)
+		{
+			return mw->getSvList();
+		}
+	}
+	THROW(ProgrammingException, "MainWindow not found!");
+}

@@ -36,6 +36,11 @@ public:
 	//opening GSvar files
 	static void openGSvarViaNGSD(QString processed_sample_name, bool search_multi);
 
+	//get sample variants
+	static const VariantList& getSmallVariantList();
+	static const CnvList& getCnvList();
+	static const BedpeFile& getSvList();
+
 protected:
 	GlobalServiceProvider();
 	~GlobalServiceProvider();

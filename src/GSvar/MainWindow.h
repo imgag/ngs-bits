@@ -71,6 +71,11 @@ public:
 	///Returns the IGV port to use
 	int igvPort() const;
 
+	///Returns the variant lists of the currently loaded sample
+	const VariantList& getSmallVariantList();
+	const CnvList& getCnvList();
+	const BedpeFile& getSvList();
+
 public slots:
 	///Upload variant to Clinvar
 	void uploadToClinvar(int variant_index1, int variant_index2=-1);
