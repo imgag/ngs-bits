@@ -132,11 +132,11 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 	foreach(const QString& line, cutoff_file_content)
 	{
 		// skip empty lines and comments
-		if((line=="") || (line.startsWith("#"))) continue;
+		if(line=="" || line.startsWith("#")) continue;
 
 		//parse line
 		QStringList split_line = line.split('\t');
-		if (split_line.size() < 7) THROW(FileParseException, "Error parsing repeat expansion file: file has to contain 7 tab-separated columns!");
+		if (split_line.size() < 7) THROW(FileParseException, "Error parsing repeat expansion. 7 tab-separated columns expected, but " + QString::number(split_line.size()) + " found in line:\n" + line);
 		RepeatCutoffInfo repeat_cutoff;
 
 		repeat_cutoff.repeat_id = split_line.at(0).trimmed().toUtf8();
@@ -248,7 +248,7 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 		QStringList repeat_tool_tip_text;
 		if(cutoff_info.max_normal != -1) repeat_tool_tip_text.append("normal: \t≤ " + QString::number(cutoff_info.max_normal));
 		else repeat_tool_tip_text.append("normal: \t unkown ");
-		if(cutoff_info.min_pathogenic != -1) repeat_tool_tip_text.append("pathogenic: \t> " + QString::number(cutoff_info.min_pathogenic));
+		if(cutoff_info.min_pathogenic != -1) repeat_tool_tip_text.append("pathogenic: \t≥ " + QString::number(cutoff_info.min_pathogenic));
 		else repeat_tool_tip_text.append("pathogenic: \t unkown ");
 		if(cutoff_info.inheritance != "" ) repeat_tool_tip_text.append("inheritance: \t" + cutoff_info.inheritance);
 		if(cutoff_info.additional_info.size() > 0) repeat_tool_tip_text.append("info: \t\t" + cutoff_info.additional_info.join("\n\t\t"));
@@ -289,21 +289,18 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 			else repeats_allele2 = Helper::toInt(repeats.at(1), "Repeat allele 2", QString::number(row_idx));
 
 			//check if pathogenic
-			if ((cutoff_info.min_pathogenic != -1) &&
-				((repeats_allele1 >= cutoff_info.min_pathogenic) || (repeats_allele2 >= cutoff_info.min_pathogenic)))
+			if (cutoff_info.min_pathogenic!=-1 && (repeats_allele1>=cutoff_info.min_pathogenic || repeats_allele2>=cutoff_info.min_pathogenic))
 			{
-				//pathogenic
 				repeat_cell->setBackgroundColor(bg_red);
 			}
-			else if ((cutoff_info.max_normal != -1) &&
-					 ((repeats_allele1 > cutoff_info.max_normal) || (repeats_allele2 > cutoff_info.max_normal)))
+			//above normal
+			else if (cutoff_info.max_normal!=-1 && (repeats_allele1>cutoff_info.max_normal || repeats_allele2>cutoff_info.max_normal))
 			{
-				//above normal
 				repeat_cell->setBackgroundColor(bg_orange);
 			}
+			//normal
 			else if (cutoff_info.max_normal != -1)
 			{
-				//normal
 				repeat_cell->setBackgroundColor(bg_green);
 			}
 		}
