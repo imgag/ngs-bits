@@ -159,6 +159,23 @@ QStringList DBTable::extractColumn(int c) const
 	return output;
 }
 
+bool DBTable::columnIsNumeric(int c) const
+{
+	//check
+	checkColumnIndex(c);
+
+	//content
+	for (int r=0; r<rowCount(); ++r)
+	{
+		//check if convertable to number
+		bool ok = false;
+		rows_[r].value(c).toDouble(&ok);
+		if (!ok) return false;
+	}
+
+	return true;
+}
+
 void DBTable::formatBooleanColumn(int c)
 {
 	//init
