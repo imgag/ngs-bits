@@ -2300,10 +2300,15 @@ void MainWindow::delayedInitialization()
 	Log::setFileEnabled(true);
 	Log::appInfo();
 
-	//load from INI file (if a valid INI file - otherwise restore INI file)
-	if (!Settings::contains("igv_genome") || !Settings::contains("build") || !Settings::contains("reference_genome") || !Settings::contains("threads"))
+	//check that INI file is configured
+	QStringList keys_missing;
+	foreach(QString key, QStringList() << "build" << "reference_genome" << "igv_app" << "igv_genome" << "threads")
 	{
-		QMessageBox::warning(this, "GSvar is not configured", "GSvar is not configured correctly.\nPlease inform your administrator!");
+	   if (!Settings::contains(key)) keys_missing << key;
+	}
+	if (!keys_missing.isEmpty())
+	{
+		QMessageBox::warning(this, "GSvar setup error", "The GSvar INI file is not set up correctly.\nThe following keys are missing or contain no value: " + keys_missing.join(", ") + "\nPlease inform your administrator!");
 		close();
 		return;
 	}
