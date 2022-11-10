@@ -4,9 +4,12 @@
 #include "LoginManager.h"
 #include "SomaticXmlReportGenerator.h"
 #include "SomaticReportSettings.h"
+#include "SomaticReportHelper.h"
 #include "GermlineReportGenerator.h"
 #include "TumorOnlyReportWorker.h"
 #include "StatisticsServiceLocal.h"
+#include "FileLocationProviderLocal.h"
+
 
 #include <QThread>
 #include <cmath>
@@ -2383,7 +2386,50 @@ private slots:
 		I_EQUAL(-1, db.getSomaticGeneRoleId("PTGS2"));
 	}
 
-	//TODO add test for somatic RTF > Alexander
+	// Test the somatic report RTF generation
+	void test_somatic_rtf()
+	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in4.sql"));
+
+		QString tumor_sample = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/DNA123456_01-NA12878_03.GSvar");
+		QString normal_sample = TESTDATA("data_in/somatic/Sample_NA12878_03/NA12878_03.GSvar");
+
+		VariantList vl;
+		vl.load(tumor_sample);
+
+		VariantList control_tissue_variants;
+		control_tissue_variants.load(normal_sample);
+
+		CnvList cnv_list;
+
+		QSharedPointer<FileLocationProvider> flp = QSharedPointer<FileLocationProviderLocal>(new FileLocationProviderLocal(tumor_sample, vl.getSampleHeader(), AnalysisType::SOMATIC_SINGLESAMPLE)); //vl.type()
+
+		FileLocation cnv_loc = flp->getAnalysisCnvFile();
+		if (cnv_loc.exists) cnv_list.load(cnv_loc.filename);
+
+		SomaticReportSettings somatic_report_settings;
+		somatic_report_settings.tumor_ps = "DNA123456_01";
+		somatic_report_settings.normal_ps = "NA12878_03";
+		somatic_report_settings.msi_file = flp->getSomaticMsiFile().filename;
+		somatic_report_settings.viral_file = "";
+
+		S_EQUAL(db.processedSampleId("DNA123456_01"), "4004");
+
+		somatic_report_settings.report_config.setTumContentByHistological(true);
+		somatic_report_settings.report_config.setTumContentByClonality(true);
+		somatic_report_settings.report_config.setMsiStatus(true);
+		somatic_report_settings.report_config.setFusionsDetected(true);
+		somatic_report_settings.report_config.setCnvBurden(true);
+
+		SomaticReportHelper report(GenomeBuild::HG38, vl, cnv_list, control_tissue_variants, somatic_report_settings);
+		report.storeRtf("out/somatic_report_tumor_normal.rtf");
+
+		COMPARE_FILES("out/somatic_report_tumor_normal.rtf", TESTDATA("data_out/somatic_report_tumor_normal.rtf"));
+	}
 
 	//Test tumor only RTF report generation
 	void report_tumor_only()
@@ -2700,7 +2746,6 @@ private slots:
 		F_EQUAL2(expression_stats.value("chr1:30267-30667").stddev_log2, 2.341358211, 0.001);
 
 	}
-
 
 	//Test for debugging (without initialization because of speed)
 	/*

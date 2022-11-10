@@ -1330,7 +1330,7 @@ RtfTable SomaticReportHelper::hlaTable(QString ps_name, QByteArray type)
 	{
 		THROW(DatabaseException, "hla file for the processed sample '" + ps_name + "' was not found!");
 	}
-	TSVFileStream hla_stream(hla_file);
+
 
 	QList<int> cell_widths = {2000,1000,1500,1500,800,722,800,800,800};
 	RtfTable table;
@@ -1339,6 +1339,7 @@ RtfTable SomaticReportHelper::hlaTable(QString ps_name, QByteArray type)
 
 	if (VersatileFile(hla_file).exists())
 	{
+		TSVFileStream hla_stream(hla_file);
 		while (!hla_stream.atEnd())
 		{
 			QByteArrayList values = hla_stream.readLine();

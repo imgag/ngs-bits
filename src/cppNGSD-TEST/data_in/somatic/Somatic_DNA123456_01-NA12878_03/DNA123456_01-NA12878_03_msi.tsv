@@ -1,0 +1,9 @@
+#Average Metric Value (Abbr)	Value	Threshold	Status
+Step-Wise Difference (DIF)	0.1063	0.4000   	Stable
+Euclidean Distance (EUC)	0.0616	0.1870   	Stable
+Cosine Dissimilarity (COS)	0.0094	0.0700   	Stable
+#
+#Note: The authors recommend the use of the Step-Wise Difference
+#metric for determining the status of the sample. Any value greater
+#than or equal to the threshold is called unstable.
+#
