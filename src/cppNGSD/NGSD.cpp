@@ -328,6 +328,26 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	{
 		conditions << "ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)";
 	}
+	if (!p.s_phenotypes.isEmpty())
+	{
+		tables	<< "sample_disease_info sdi";
+		conditions	<< "s.id=sdi.sample_id";
+		conditions	<< "sdi.type='HPO term id'";
+
+		//create complete phenotype list with children
+		QStringList accessions;
+		foreach(const Phenotype& phenotype, p.s_phenotypes)
+		{
+			accessions << phenotype.accession();
+			int phenotype_id = phenotypeIdByAccession(phenotype.accession());
+			foreach(const Phenotype& child, phenotypeChildTerms(phenotype_id, true))
+			{
+				accessions << child.accession();
+			}
+		}
+		accessions.removeDuplicates();
+		conditions	<< "sdi.disease_info IN ('" + accessions.join("', '") + "')";
+	}
 
 	//add filters (project)
 	if (p.p_name.trimmed()!="")

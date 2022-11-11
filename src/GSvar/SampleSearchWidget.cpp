@@ -1,12 +1,11 @@
 #include "SampleSearchWidget.h"
-#include "NGSD.h"
 #include "ProcessedSampleDataDeletionDialog.h"
-#include "SingleSampleAnalysisDialog.h"
 #include "GlobalServiceProvider.h"
 #include "GSvarHelper.h"
 #include "LoginManager.h"
+#include "PhenotypeSelectionWidget.h"
+#include "GUIHelper.h"
 #include <QMessageBox>
-#include <QAction>
 
 SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	: QWidget(parent)
@@ -65,6 +64,7 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	connect(ui_.sys_name, SIGNAL(returnPressed()), this, SLOT(search()));
 	connect(ui_.r_name, SIGNAL(returnPressed()), this, SLOT(search()));
 	connect(ui_.search_btn, SIGNAL(clicked(bool)), this, SLOT(search()));
+	connect(ui_.s_hpos, SIGNAL(clicked(QPoint)), this, SLOT(phenotypeSelection()));
 }
 
 void SampleSearchWidget::search()
@@ -90,6 +90,7 @@ void SampleSearchWidget::search()
 		params.s_study = ui_.s_study->text();
 		params.s_disease_group = ui_.s_disease_group->currentText();
 		params.s_disease_status = ui_.s_disease_status->currentText();
+		params.s_phenotypes = phenotypes_;
 		params.s_tissue = ui_.s_tissue->currentText();
 		params.s_ancestry = ui_.s_ancestry->currentText();
 		params.include_bad_quality_samples = ui_.s_bad_quality->isChecked();
@@ -214,5 +215,26 @@ void SampleSearchWidget::queueAnalysis()
 
 	//queue analysis
 	GSvarHelper::queueSampleAnalysis(AnalysisType::GERMLINE_SINGLESAMPLE, samples, this);
+}
+
+void SampleSearchWidget::phenotypeSelection()
+{
+	//edit
+	PhenotypeSelectionWidget* selector = new PhenotypeSelectionWidget(this);
+	selector->setPhenotypes(phenotypes_);
+
+	auto dlg = GUIHelper::createDialog(selector, "Select HPO terms", "", true);
+	if (dlg->exec()!=QDialog::Accepted) return;
+
+	//update phenotype list
+	phenotypes_ = selector->selectedPhenotypes();
+
+	//update GUI
+	QByteArrayList tmp;
+	foreach(const Phenotype& pheno, phenotypes_)
+	{
+		tmp << pheno.name();
+	}
+	ui_.s_hpos->setText(tmp.join("; "));
 }
 
