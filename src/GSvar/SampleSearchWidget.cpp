@@ -6,6 +6,7 @@
 #include "PhenotypeSelectionWidget.h"
 #include "GUIHelper.h"
 #include <QMessageBox>
+#include <QAction>
 
 SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	: QWidget(parent)
