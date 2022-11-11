@@ -46,6 +46,15 @@ int main(int argc, char **argv)
 						&ServerController::serveResourceAsset
 					});
 	EndpointManager::appendEndpoint(Endpoint{
+						"",
+						QMap<QString, ParamProps>{},
+						RequestMethod::HEAD,
+						ContentType::TEXT_HTML,
+						AuthType::NONE,
+						"Size of the index page with general information",
+						&ServerController::serveResourceAsset
+					});
+	EndpointManager::appendEndpoint(Endpoint{
 						"favicon.ico",
 						QMap<QString, ParamProps>{},
 						RequestMethod::GET,

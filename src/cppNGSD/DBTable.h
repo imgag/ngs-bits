@@ -41,6 +41,7 @@ class CPPNGSDSHARED_EXPORT DBRow
 
 		//Returns if any value of the row contains the text
 		bool contains(const QString& text, Qt::CaseSensitivity cs = Qt::CaseInsensitive) const;
+
 		//Returns whole row as string
 		QString asString(char sep = '\t') const
 		{
@@ -110,6 +111,9 @@ class CPPNGSDSHARED_EXPORT DBTable
 		void setColumn(int c, const QStringList& values, const QString& header=QString());
 		///Creates and returns a list of values for a column.
 		QStringList extractColumn(int c) const;
+
+		//Returns if all values of a columns are numeric.
+		bool columnIsNumeric(int c) const;
 
 		///Replace 0/1 in boolean column by yes/no
 		void formatBooleanColumn(int c);

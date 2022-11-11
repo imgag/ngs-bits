@@ -375,7 +375,7 @@ CREATE  TABLE IF NOT EXISTS `sample`
   `received` DATE NULL DEFAULT NULL,
   `receiver_id` INT(11) NULL DEFAULT NULL,
   `sample_type` ENUM('DNA','DNA (amplicon)','DNA (native)','RNA','cfDNA') NOT NULL,
-  `tissue` ENUM('n/a','blood','buccal mucosa','cortical neuron','fibroblast','induced pluripotent stem cell','lymphocyte','peripheral blood mononuclear cell','skin') NOT NULL DEFAULT 'n/a' COMMENT 'tissue according to BRENDA Tissue Ontology',
+  `tissue` ENUM('n/a','blood','buccal mucosa','cortical neuron','fibroblast','induced pluripotent stem cell','lymphocyte','peripheral blood mononuclear cell','skin','muscle') NOT NULL DEFAULT 'n/a' COMMENT 'tissue according to BRENDA Tissue Ontology',
   `species_id` INT(11) NOT NULL,
   `concentration` FLOAT NULL DEFAULT NULL,
   `volume` FLOAT NULL DEFAULT NULL,
@@ -1576,6 +1576,8 @@ CREATE TABLE IF NOT EXISTS `report_configuration_cnv`
   `manual_start` INT(11) DEFAULT NULL,
   `manual_end` INT(11) DEFAULT NULL,
   `manual_cn` INT(11) DEFAULT NULL,
+  `manual_hgvs_type` text DEFAULT NULL,
+  `manual_hgvs_suffix` text DEFAULT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_report_configuration2`
     FOREIGN KEY (`report_configuration_id` )
@@ -1783,6 +1785,8 @@ CREATE TABLE IF NOT EXISTS `report_configuration_sv`
   `manual_genotype` ENUM('hom','het') DEFAULT NULL,
   `manual_start_bnd` INT(11) DEFAULT NULL,
   `manual_end_bnd` INT(11) DEFAULT NULL,
+  `manual_hgvs_type` text DEFAULT NULL,
+  `manual_hgvs_suffix` text DEFAULT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_report_configuration3`
     FOREIGN KEY (`report_configuration_id` )

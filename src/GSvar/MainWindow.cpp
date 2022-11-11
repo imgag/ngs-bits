@@ -174,7 +174,12 @@ MainWindow::MainWindow(QWidget *parent)
 	rna_menu_btn_->menu()->addAction(ui_.actionShowRnaFusions);
 	rna_menu_btn_->menu()->addAction(ui_.actionShowProcessingSystemCoverage);
 	rna_menu_btn_->setPopupMode(QToolButton::InstantPopup);
-//	rna_menu_btn_->setEnabled(false);
+
+	ui_.actionExpressionData->setEnabled(false);
+	ui_.actionExonExpressionData->setEnabled(false);
+	ui_.actionShowSplicing->setEnabled(false);
+	ui_.actionShowRnaFusions->setEnabled(false);
+
 	ui_.tools->addWidget(rna_menu_btn_);
 
 
@@ -2347,10 +2352,15 @@ void MainWindow::delayedInitialization()
 	Log::setFileEnabled(true);
 	Log::appInfo();
 
-	//load from INI file (if a valid INI file - otherwise restore INI file)
-	if (!Settings::contains("igv_genome") || !Settings::contains("build") || !Settings::contains("reference_genome") || !Settings::contains("threads"))
+	//check that INI file is configured
+	QStringList keys_missing;
+	foreach(QString key, QStringList() << "build" << "reference_genome" << "igv_app" << "igv_genome" << "threads")
 	{
-		QMessageBox::warning(this, "GSvar is not configured", "GSvar is not configured correctly.\nPlease inform your administrator!");
+	   if (!Settings::contains(key)) keys_missing << key;
+	}
+	if (!keys_missing.isEmpty())
+	{
+		QMessageBox::warning(this, "GSvar setup error", "The GSvar INI file is not set up correctly.\nThe following keys are missing or contain no value: " + keys_missing.join(", ") + "\nPlease inform your administrator!");
 		close();
 		return;
 	}
@@ -3703,7 +3713,6 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 	}
 
 	//activate RNA menu
-//	rna_menu_btn_->setEnabled(false);
 	ui_.actionExpressionData->setEnabled(false);
 	ui_.actionExonExpressionData->setEnabled(false);
 	ui_.actionShowSplicing->setEnabled(false);
@@ -3717,12 +3726,11 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 		{
 			foreach (int rna_sample_id, db.relatedSamples(sample_id.toInt(), "same sample", "RNA"))
 			{
-				// activate menu if RNA sample is available
-				rna_menu_btn_->setEnabled(true);
-
 				// check for required files
 				foreach (const QString& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", QString::number(rna_sample_id)))
 				{
+					if (!db.userCanAccess(LoginManager::userId(), rna_ps_id.toInt())) continue;
+
 					// search for gene count file
 					FileLocation rna_count_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::EXPRESSION);
 					if (rna_count_file.exists) ui_.actionExpressionData->setEnabled(true);
@@ -7482,7 +7490,6 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionConvertHgvsToGSvar->setEnabled(ngsd_user_logged_in);
 	ui_.actionRegionToGenes->setEnabled(ngsd_user_logged_in);
 	ui_.actionGapsRecalculate->setEnabled(ngsd_user_logged_in);
-	ui_.actionExpressionData->setEnabled(ngsd_user_logged_in);
 	ui_.actionAnnotateSomaticVariantInterpretation->setEnabled(ngsd_user_logged_in);
 
 	//NGSD menu

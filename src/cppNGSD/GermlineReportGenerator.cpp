@@ -534,7 +534,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element DiagnosticNgsReport
 	w.writeStartElement("DiagnosticNgsReport");
-	w.writeAttribute("version", "9");
+	w.writeAttribute("version", "10");
 	w.writeAttribute("type", data_.report_settings.report_type);
 
 	//element ReportGeneration
@@ -1012,6 +1012,15 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeAttribute("rna_info", var_conf.rna_info);
 		w.writeAttribute("report_type", var_conf.report_type);
 
+		if (!var_conf.manual_cnv_hgvs_type.isEmpty())
+		{
+			w.writeAttribute("hgvs_type", var_conf.manual_cnv_hgvs_type);
+		}
+		if (!var_conf.manual_cnv_hgvs_suffix.isEmpty())
+		{
+			w.writeAttribute("hgvs_suffix", var_conf.manual_cnv_hgvs_suffix);
+		}
+
 		//element Gene
 		foreach(const QByteArray& gene, cnv.genes())
 		{
@@ -1174,6 +1183,14 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		if (var_conf.manualSvEndBndIsValid())
 		{
 			w.writeAttribute("hgvs_bnd_end2", var_conf.manual_sv_end_bnd);
+		}
+		if (!var_conf.manual_sv_hgvs_type.isEmpty())
+		{
+			w.writeAttribute("hgvs_type", var_conf.manual_sv_hgvs_type);
+		}
+		if (!var_conf.manual_sv_hgvs_suffix.isEmpty())
+		{
+			w.writeAttribute("hgvs_suffix", var_conf.manual_sv_hgvs_suffix);
 		}
 
 		foreach(const QByteArray& gene, sv.genes(data_.svs.annotationHeaders(), false))

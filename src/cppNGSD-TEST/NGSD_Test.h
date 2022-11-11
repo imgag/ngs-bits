@@ -1043,12 +1043,16 @@ private slots:
 		report_var_conf2.manual_cnv_start = "89240000";
 		report_var_conf2.manual_cnv_end= "89550000";
 		report_var_conf2.manual_cnv_cn = "0";
+		report_var_conf2.manual_cnv_hgvs_type = "cnv_type";
+		report_var_conf2.manual_cnv_hgvs_suffix = "cnv_suffix";
 		report_conf->set(report_var_conf2);
 		report_var_conf3.manual_sv_start = "9121440";
 		report_var_conf3.manual_sv_end = "9121460";
 		report_var_conf3.manual_sv_genotype = "hom";
 		report_var_conf3.manual_sv_start_bnd = "93712480";
 		report_var_conf3.manual_sv_end_bnd = "93712490";
+		report_var_conf3.manual_sv_hgvs_type = "sv_type";
+		report_var_conf3.manual_sv_hgvs_suffix = "sv_suffix";
 		report_conf->set(report_var_conf3);
 
 		//update
@@ -1108,6 +1112,8 @@ private slots:
 		S_EQUAL(var_conf.manual_cnv_start, "89240000");
 		S_EQUAL(var_conf.manual_cnv_end, "89550000");
 		S_EQUAL(var_conf.manual_cnv_cn, "0");
+		S_EQUAL(var_conf.manual_cnv_hgvs_type, "cnv_type");
+		S_EQUAL(var_conf.manual_cnv_hgvs_suffix, "cnv_suffix");
 		var_conf = report_conf2->variantConfig()[2];
 		I_EQUAL(var_conf.variant_index, 81);
 		IS_TRUE(var_conf.causal);
@@ -1129,6 +1135,8 @@ private slots:
 		S_EQUAL(var_conf.manual_sv_genotype, "hom");
 		S_EQUAL(var_conf.manual_sv_start_bnd, "93712480");
 		S_EQUAL(var_conf.manual_sv_end_bnd, "93712490");
+		S_EQUAL(var_conf.manual_sv_hgvs_type, "sv_type");
+		S_EQUAL(var_conf.manual_sv_hgvs_suffix, "sv_suffix");
 
 		//finalizeReportConfig
 		conf_id = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
@@ -1696,6 +1704,8 @@ private slots:
 			var_conf.manual_cnv_start = "26799369";
 			var_conf.manual_cnv_end = "26991734";
 			var_conf.manual_cnv_cn = "0";
+			var_conf.manual_cnv_hgvs_type = "cnv_type";
+			var_conf.manual_cnv_hgvs_suffix = "cnv_suffix";
 			report_settings.report_config->set(var_conf);
 
 			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 3)); //SV - Insertion
@@ -1734,6 +1744,8 @@ private slots:
 			var_conf.manual_sv_genotype = "hom";
 			var_conf.manual_sv_start_bnd = "2301860";
 			var_conf.manual_sv_end_bnd = "2301870";
+			var_conf.manual_sv_hgvs_type = "sv_type";
+			var_conf.manual_sv_hgvs_suffix = "sv_suffix";
 			report_settings.report_config->set(var_conf);
 
 			OtherCausalVariant causal_variant;

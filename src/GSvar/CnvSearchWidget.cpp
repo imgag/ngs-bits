@@ -286,7 +286,7 @@ void CnvSearchWidget::search()
 		table.addColumn(validation_data, "validation_information");
 
 		//(6) show samples with CNVs in table
-		ui_.table->setData(table);
+		ui_.table->setData(table, 200, QSet<QString>() << "size_kb");
 		ui_.table->showTextAsTooltip("report_config_comments");
 
 		ui_.message->setText("Found " + QString::number(table.rowCount()) + " matching CNVs in NGSD.");

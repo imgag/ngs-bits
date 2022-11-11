@@ -189,9 +189,10 @@ void CfDNAPanelDesignDialog::loadPreviousPanels()
 
 void CfDNAPanelDesignDialog::loadVariants()
 {
+	qDebug() << "load Variants";
+
 	// load reference
 	FastaFileIndex genome_reference(Settings::string("reference_genome", false));
-
 
 	// set dimensions
 	ui_->vars->setRowCount(variants_.count());
@@ -388,17 +389,11 @@ void CfDNAPanelDesignDialog::loadVariants()
 		row_idx++;
 	}
 
+	qDebug() << "loaded filtered VarList";
 	// resize after filling the table:
 	ui_->vars->setRowCount(row_idx);
 
-	// optimize cell sizes
-	GUIHelper::resizeTableCells(ui_->vars, 150);
 
-	// connect checkBoxes to update method
-	connect(ui_->vars, SIGNAL(cellChanged(int,int)), this, SLOT(updateSelectedVariantCount()));
-
-	// init selection label
-	updateSelectedVariantCount();
 
 	// check if all previous variants were found in VariantList
 	QStringList missing_prev_vars;
@@ -454,8 +449,11 @@ void CfDNAPanelDesignDialog::loadVariants()
 			GUIHelper::resizeTableCells(ui_->genes, 150);
 
 			missing_prev_vars.append(vcf_string);
+			row_idx++;
 		}
 	}
+
+	qDebug() << "added missing vars";
 
 	if(missing_prev_vars.size() > 0)
 	{
@@ -517,6 +515,7 @@ void CfDNAPanelDesignDialog::loadVariants()
 			// optimize cell sizes
 			GUIHelper::resizeTableCells(ui_->genes, 150);
 			missing_candidates_vars.append(vcf_string);
+			row_idx++;
 		}
 	}
 
@@ -527,6 +526,14 @@ void CfDNAPanelDesignDialog::loadVariants()
 							 + missing_candidates_vars.join("\n")+ "\n\n These variants were added at the end of the list.");
 	}
 
+	// optimize cell sizes
+	GUIHelper::resizeTableCells(ui_->vars, 150);
+
+	// connect checkBoxes to update method
+	connect(ui_->vars, SIGNAL(cellChanged(int,int)), this, SLOT(updateSelectedVariantCount()));
+
+	// init selection label
+	updateSelectedVariantCount();
 
 	// enable sorting
 	ui_->vars->setSortingEnabled(true);
@@ -639,7 +646,7 @@ VcfFile CfDNAPanelDesignDialog::createVcfFile()
 			bool ok;
 			int var_idx = ui_->vars->item(r,0)->data(Qt::UserRole).toInt(&ok);
 			if (!ok) THROW(ProgrammingException, "Variant table row header user data '" + ui_->vars->item(r,0)->data(Qt::UserRole).toString() + "' is not an integer!");
-			if (var_idx > 0)
+			if (var_idx >= 0)
 			{
 				selected_variants.append(variants_[var_idx]);
 			}
@@ -1020,7 +1027,7 @@ void CfDNAPanelDesignDialog::addVariant()
 		QTableWidgetItem* item = GUIHelper::createTableItem("");
 		item->setData(Qt::UserRole, -1);
 		ui_->vars->setItem(row_idx, col_idx++, item);
-		QTableWidgetItem* select_item = new NumericWidgetItem("");
+		QTableWidgetItem* select_item = GUIHelper::createTableItem("");
 		select_item->setFlags(select_item->flags() | Qt::ItemIsUserCheckable); // add checkbox
 		select_item->setCheckState(Qt::Checked);
 		ui_->vars->setItem(row_idx, col_idx++, select_item);

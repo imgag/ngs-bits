@@ -28,7 +28,7 @@ DBTableWidget::DBTableWidget(QWidget* parent)
 	connect(copy_action, SIGNAL(triggered(bool)), this, SLOT(copyTableToClipboard()));
 }
 
-void DBTableWidget::setData(const DBTable& table, int max_col_width)
+void DBTableWidget::setData(const DBTable& table, int max_col_width, QSet<QString> numeric_cols)
 {
 	QStringList headers = table.headers();
 
@@ -46,15 +46,33 @@ void DBTableWidget::setData(const DBTable& table, int max_col_width)
 		setHorizontalHeaderItem(c, GUIHelper::createTableItem(headers[c], Qt::AlignCenter));
 	}
 
+	//determine numberic columns to allow correct alignment, sorting, etc.
+	QVector<int> col_is_numeric;
+	for(int c=0; c<table.columnCount(); ++c)
+	{
+
+		col_is_numeric << (numeric_cols.contains(table.headers()[c]));
+	}
+
 	//content
 	ids_.clear();
 	for(int r=0; r<table.rowCount(); ++r)
 	{
 		const DBRow& row = table.row(r);
-		ids_ <<row.id();
+		ids_ << row.id();
 		for(int c=0; c<headers.count(); ++c)
 		{
-			setItem(r, c,  GUIHelper::createTableItem(row.value(c)));
+			if (col_is_numeric[c])
+			{
+				QTableWidgetItem* item = new QTableWidgetItem;
+				item->setData(Qt::EditRole, row.value(c).toDouble());
+				item->setTextAlignment(Qt::AlignRight|Qt::AlignTop);
+				setItem(r, c,  item);
+			}
+			else
+			{
+				setItem(r, c,  GUIHelper::createTableItem(row.value(c)));
+			}
 		}
 	}
 

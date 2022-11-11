@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Edit gap</string>
   </property>
   <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0,0" columnstretch="0,1">
    <property name="leftMargin">
@@ -110,6 +110,9 @@
        <width>500</width>
        <height>200</height>
       </size>
+     </property>
+     <property name="toolTip">
+      <string>Read-only. Add comments via the context menu of the gap in the overview table.</string>
      </property>
      <property name="textInteractionFlags">
       <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>

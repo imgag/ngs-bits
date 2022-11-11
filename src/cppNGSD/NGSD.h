@@ -387,7 +387,9 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	QString s_study;
 	QString s_disease_group;
 	QString s_disease_status;
+	PhenotypeList s_phenotypes;
 	QString s_tissue;
+	QString s_ancestry;
 	bool include_bad_quality_samples = true;
 	bool include_tumor_samples = true;
 	bool include_ffpe_samples = true;
