@@ -146,19 +146,58 @@ TEST_CLASS(VcfLine_Test)
         S_EQUAL(format_value, "255,84,0");
     }
 
-    void isMultiAllelicOrInDEl()
+    void isMultiAllelic()
     {
-        VcfFile file;
-        file.load(TESTDATA("data_in/variantList_removeDuplicates.vcf"));
-
-        VcfLine line = file.vcfLine(5);
-        IS_TRUE(line.isMultiAllelic());
-        line = file.vcfLine(6);
+        VcfLine line = VcfLine("chr18", 67904586, "G", QList<Sequence>() << "A");
         IS_FALSE(line.isMultiAllelic());
 
-        line = file.vcfLine(0);
+        line = VcfLine("chr18", 67904586, "G", QList<Sequence>() << "A" << "C");
+        IS_TRUE(line.isMultiAllelic());
+    }
+
+    void isIns()
+    {
+        VcfLine line = VcfLine("chr9", 130932396, "AACA", QList<Sequence>() << "AGG");
+        IS_FALSE(line.isIns());
+
+        line = VcfLine("chr9", 130932396, "AACA", QList<Sequence>() << "A");
+        IS_FALSE(line.isIns());
+
+        line = VcfLine("chr9", 130932396, "A", QList<Sequence>() << "AGG");
+        IS_TRUE(line.isIns());
+
+        line = VcfLine("chr9", 130932396, "A", QList<Sequence>() << "G");
+        IS_FALSE(line.isIns());
+    }
+
+    void isDel()
+    {
+        VcfLine line = VcfLine("chr9", 130932396, "AACA", QList<Sequence>() << "AGG");
+        IS_FALSE(line.isDel());
+
+        line = VcfLine("chr9", 130932396, "AACA", QList<Sequence>() << "A");
+        IS_TRUE(line.isDel());
+
+        line = VcfLine("chr9", 130932396, "A", QList<Sequence>() << "AGG");
+        IS_FALSE(line.isDel());
+
+        line = VcfLine("chr9", 130932396, "A", QList<Sequence>() << "G");
+        IS_FALSE(line.isDel());
+    }
+
+
+    void isInDel()
+    {
+        VcfLine line = VcfLine("chr9", 130932396, "AACA", QList<Sequence>() << "AGG");
         IS_TRUE(line.isInDel());
-        line = file.vcfLine(1);
+
+        line = VcfLine("chr9", 130932396, "AACA", QList<Sequence>() << "A");
+        IS_FALSE(line.isInDel());
+
+        line = VcfLine("chr9", 130932396, "A", QList<Sequence>() << "AGG");
+        IS_FALSE(line.isInDel());
+
+        line = VcfLine("chr9", 130932396, "A", QList<Sequence>() << "G");
         IS_FALSE(line.isInDel());
     }
 

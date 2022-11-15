@@ -503,8 +503,11 @@ public:
 		return ref_.length()==1 && alt(0)!="-" && ref_!="-";
 	}
 	//Returns if any VcfLine in the file is multiallelic
-	bool isMultiAllelic() const;
-	//Returns if the variant is an insertion or deletion. Cannot be called on multi-allelic variants.
+	bool isMultiAllelic() const
+	{
+		return alt().count() > 1;
+	}
+	//Returns if the variant is a combined insertion and deletion. Cannot be called on multi-allelic variants.
 	bool isInDel() const;
 	//Returns if the variant is an insertion. Cannot be called on multi-allelic variants.
     bool isIns() const;

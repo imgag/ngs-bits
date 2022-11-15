@@ -26,7 +26,7 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 		hgvs.types.insert(VariantConsequenceType::NMD_TRANSCRIPT_VARIANT);
 	}
 
-	//normalization and 3' shifting for indel variants
+	//normalization and 3' shifting for indel variants (MNPs are converted into InDels in this step)
 	variant.normalize(plus_strand ? VcfLine::ShiftDirection::RIGHT : VcfLine::ShiftDirection::LEFT, genome_idx_, true, true);
 	int start = variant.start();
 	int end = variant.end();
@@ -217,8 +217,14 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 		return hgvs;
 	}
 
-    //find out if the variant is a splice region variant
-	annotateSpliceRegion(hgvs, transcript, start, end, variant.isIns(), debug);
+	//find out if the variant is a splice region variant
+	int start_affected = start;
+	int end_affected = end;
+	if(variant.isDel() || variant.isInDel()) //deletion/deletion-insertion: change is after prefix base > adjust start (end is correct)
+	{
+		++start_affected;
+	}
+	annotateSpliceRegion(hgvs, transcript, start_affected, end_affected, variant.isIns(), debug);
 	if (debug) qDebug() << "annotate" << __LINE__ << "hgvs_c:" << hgvs.hgvs_c << "hgvs_p:" << hgvs.hgvs_p << "types:" << hgvs.typesToString();
 
 	QByteArray hgvs_c_prefix = transcript.isCoding() ? "c." : "n.";
@@ -263,7 +269,7 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
         }
     }
     //delins (deletion and insertion at the same time/substitution of more than one base)
-    else if(variant.isInDel() && !variant.isDel() && !variant.isIns())
+	else if(variant.isInDel())
     {
         Sequence alt = variant.alt(0).mid(1);
         if(!plus_strand) alt.reverseComplement();
@@ -947,7 +953,7 @@ QByteArray VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant
 
         aa_ref.append(QByteArray::number(pos_trans_start / 3 + 1));
     }
-    else if(variant.isInDel())
+	else if(variant.isIns() || variant.isDel() || variant.isInDel())
     {
 		if(variant.isIns() && pos_hgvs_c == "-1_1") return "";
 
@@ -1045,7 +1051,7 @@ QByteArray VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant
 		//if (debug) qDebug() << "  ref: " << seq_ref;
 		//if (debug) qDebug() << "  obs: " << seq_obs;
 
-        if(variant.isDel() || (variant.isIns() && frame_diff % 3 != 0) || (!variant.isIns() && !variant.isDel()))
+		if(variant.isDel() || (variant.isIns() && frame_diff % 3 != 0) || variant.isInDel())
 		{
 			//find the first amino acid that is changed due to the deletion/frameshift insertion/deletion-insertion
             while(aa_obs == aa_ref && aa_obs != "Ter" && aa_ref != "Ter")
@@ -1064,7 +1070,7 @@ QByteArray VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant
         }
         else if(variant.isIns())
         {
-            QByteArray aa_ref_next;
+			QByteArray aa_ref_next;
             QByteArray aa_obs_next;
 
             //shift to the most C-terminal position possible
@@ -1151,14 +1157,14 @@ QByteArray VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant
         }
         else
         {
-            aa_ref.append(QByteArray::number((pos_trans_start + pos_shift) / 3 + 1));
+			aa_ref.append(QByteArray::number((pos_trans_start + pos_shift) / 3 + 1));
 		}
 
         // frameshift deletion/insertion/deletion-insertion
         if(frame_diff % 3 != 0)
         {
 			if (debug) qDebug() << __LINE__;
-            //special case if deleted amino acid is Met at translation start site
+			//special case if deleted amino acid is Met at translation start site
             if(aa_ref == "Met1")
             {
                 aa_obs = "?";
@@ -1329,72 +1335,95 @@ void VariantHgvsAnnotator::annotateProtSeqCsqSnv(VariantConsequence& hgvs)
 //annotate if the variant is a splice region variant
 void VariantHgvsAnnotator::annotateSpliceRegion(VariantConsequence& hgvs, const Transcript& transcript, int start, int end, bool insertion, bool debug)
 {
+	if (debug) qDebug() << "annotateSpliceRegion" << __LINE__ << "start:" << start << "end:" << end;
+
 	bool plus_strand = transcript.isPlusStrand();
-
-    //allow different definitions for 5 prime and 3 prime side of intron
-	int splice_region_in_start = plus_strand ? params_.splice_region_in_5 : params_.splice_region_in_3;
-	int splice_region_in_end = plus_strand ? params_.splice_region_in_3 : params_.splice_region_in_5;
-
-	//deletion/deletion-insertion: change is after prefix base > start
-	if(end > start)
-	{
-		++start;
-	}
-	//insersion: change is after prefix base > adjust start/end
-	if(insertion)
-	{
-		++start;
-		++end;
-	}
-	if (debug) qDebug() << "annotateSpliceRegion" << __LINE__ << "start:" << start << "end:" << end << "insertion:" << insertion;
 
     for(int i=0; i<transcript.regions().count(); i++)
     {
-        int diff_intron_end = transcript.regions()[i].start() - end;
-        int diff_exon_start = start - transcript.regions()[i].start() + 1;
-        int diff_exon_end = transcript.regions()[i].end() - end + 1;
-        int diff_intron_start = start - transcript.regions()[i].end();
+		const BedLine& reg = transcript.regions()[i];
 
-		//if (debug) qDebug() << "annotateSpliceRegion" << __LINE__ << i << diff_intron_end << diff_exon_start << diff_exon_end << diff_intron_start;
+		//5' splice region (beginning of exon)
+		if ((plus_strand && i!=0) || (!plus_strand && i!=transcript.regions().count()-1)) //first exon does not have splice region at the beginning
+		{
+			int five_prime_reg_start = plus_strand ? reg.start() - params_.splice_region_in_5 : reg.end() - params_.splice_region_ex + 1;
+			int five_prime_reg_end = plus_strand ? reg.start() + params_.splice_region_ex - 1: reg.end() + params_.splice_region_in_5;
+			int acceptor_reg_start = plus_strand ? reg.start()-2 : reg.end()+1;
+			int acceptor_reg_end = plus_strand ? reg.start()-1 : reg.end()+2;
 
-        if((diff_intron_end <= splice_region_in_end && diff_intron_end >= 0) ||
-				(diff_exon_start <= params_.splice_region_ex && diff_exon_start >= 0) ||
-                (start < transcript.regions()[i].start() && end >= transcript.regions()[i].start()))
-        {
-            //first exon cannot have splice region variant at the start
-            if(i != 0)
+			if (!insertion)
 			{
-				hgvs.types.insert(VariantConsequenceType::SPLICE_REGION_VARIANT);
-				if((diff_intron_end <= 2 && diff_intron_end > 0) || (start < transcript.regions()[i].start() && end >= transcript.regions()[i].start()))
-                {
-					if(plus_strand) hgvs.types.insert(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT);
-					else hgvs.types.insert(VariantConsequenceType::SPLICE_DONOR_VARIANT);
+				if (BasicStatistics::rangeOverlaps(start, end, five_prime_reg_start, five_prime_reg_end))
+				{
+					if (debug) qDebug() << "annotateSpliceRegion" << __LINE__ << "in 5' splice region :" << five_prime_reg_start << "-" << five_prime_reg_end;
+					hgvs.types.insert(VariantConsequenceType::SPLICE_REGION_VARIANT);
 
-                    //splice donor/acceptor variant has unknown consequences on protein
-                    if(transcript.isCoding()) hgvs.hgvs_p = "p.?";
-                }
-                break;
-            }
-        }
-		else if((diff_exon_end <= params_.splice_region_ex && diff_exon_end >= 0) ||
-                (diff_intron_start <= splice_region_in_start && diff_intron_start >= 0) ||
-                (start <= transcript.regions()[i].end() && end > transcript.regions()[i].end()))
-        {
-            //last exon cannot have splice region variant at the end
-            if(i != transcript.regions().count() - 1)
+					if (BasicStatistics::rangeOverlaps(start, end, acceptor_reg_start, acceptor_reg_end))
+					{
+						if (debug) qDebug() << "annotateSpliceRegion" << __LINE__ << "in splice acceptor:" << acceptor_reg_start << acceptor_reg_end;
+						hgvs.types.insert(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT);
+					}
+				}
+			}
+			else //special handling for insertions (they affect no base directly)
 			{
-				hgvs.types.insert(VariantConsequenceType::SPLICE_REGION_VARIANT);
-				if((diff_intron_start <= 2 && diff_intron_start > 0) || (start <= transcript.regions()[i].end() && end > transcript.regions()[i].end()))
-                {
-					if(plus_strand) hgvs.types.insert(VariantConsequenceType::SPLICE_DONOR_VARIANT);
-					else hgvs.types.insert(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT);
+				if (BasicStatistics::rangeOverlaps(start, start+1, five_prime_reg_start+1, five_prime_reg_end-1))
+				{
+					if (debug) qDebug() << "annotateSpliceRegion" << __LINE__ << "in 5' splice region :" << five_prime_reg_start << "-" << five_prime_reg_end;
+					hgvs.types.insert(VariantConsequenceType::SPLICE_REGION_VARIANT);
 
-                    //splice donor/acceptor variant has unknown consequences on protein
-                    if(transcript.isCoding()) hgvs.hgvs_p = "p.?";
-                }
-                break;
-            }
-        }
+					if (start=acceptor_reg_start && ((start+1)==acceptor_reg_end))
+					{
+						if (debug) qDebug() << "annotateSpliceRegion" << __LINE__ << "in splice acceptor:" << acceptor_reg_start << acceptor_reg_end;
+						hgvs.types.insert(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT);
+					}
+				}
+			}
+		}
+
+		//3' splice region (end of exon)
+		if ((plus_strand && i!=transcript.regions().count()-1) || (!plus_strand && i!=0)) //last exon does not have splice region at the end
+		{
+			int three_prime_reg_start = plus_strand ? reg.end() - params_.splice_region_ex + 1 : reg.start() - params_.splice_region_in_3;
+			int three_prime_reg_end = plus_strand ? reg.end() + params_.splice_region_in_3 : reg.start() + params_.splice_region_ex - 1;
+			int donor_reg_start = plus_strand ? reg.end()+1 : reg.start()-2;
+			int donor_reg_end = plus_strand ? reg.end()+2 : reg.start()-1;
+
+			if (!insertion)
+			{
+				if (BasicStatistics::rangeOverlaps(start, end, three_prime_reg_start, three_prime_reg_end))
+				{
+					if (debug) qDebug() << "annotateSpliceRegion" << __LINE__ << "in 3' splice region :" << three_prime_reg_start << "-" << three_prime_reg_end;
+					hgvs.types.insert(VariantConsequenceType::SPLICE_REGION_VARIANT);
+
+					if (BasicStatistics::rangeOverlaps(start, end, donor_reg_start, donor_reg_end))
+					{
+						if (debug) qDebug() << "annotateSpliceRegion" << __LINE__ << "in splice donor: " << donor_reg_start << "-" << donor_reg_end;
+						hgvs.types.insert(VariantConsequenceType::SPLICE_DONOR_VARIANT);
+					}
+				}
+			}
+			else //special handling for insertions (they affect no base directly)
+			{
+				if (BasicStatistics::rangeOverlaps(start, start+1, three_prime_reg_start+1, three_prime_reg_end-1))
+				{
+					if (debug) qDebug() << "annotateSpliceRegion" << __LINE__ << "in 3' splice region :" << three_prime_reg_start << "-" << three_prime_reg_end;
+					hgvs.types.insert(VariantConsequenceType::SPLICE_REGION_VARIANT);
+
+					if (start=donor_reg_start && ((start+1)==donor_reg_end))
+					{
+						if (debug) qDebug() << "annotateSpliceRegion" << __LINE__ << "in splice donor: " << donor_reg_start << "-" << donor_reg_end;
+						hgvs.types.insert(VariantConsequenceType::SPLICE_DONOR_VARIANT);
+					}
+				}
+			}
+		}
+
+		//splice donor/acceptor variant has unknown consequences on protein level
+		if(transcript.isCoding() && (hgvs.types.contains(VariantConsequenceType::SPLICE_DONOR_VARIANT) || hgvs.types.contains(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT)))
+		{
+			hgvs.hgvs_p = "p.?";
+		}
     }
 }
 

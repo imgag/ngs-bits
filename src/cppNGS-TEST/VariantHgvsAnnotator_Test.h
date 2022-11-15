@@ -244,6 +244,36 @@ Q_OBJECT
 		return t;
 	}
 
+	Transcript trans_CTU2()
+	{
+		Transcript t;
+		t.setGene("CTU2");
+		t.setName("ENST00000453996");
+		t.setVersion(7);
+		t.setSource(Transcript::ENSEMBL);
+		t.setStrand(Transcript::PLUS);
+
+		BedFile regions;
+		regions.append(BedLine("chr16", 88706503, 88706598));
+		regions.append(BedLine("chr16", 88707136, 88707210));
+		regions.append(BedLine("chr16", 88709938, 88710016));
+		regions.append(BedLine("chr16", 88710223, 88710282));
+		regions.append(BedLine("chr16", 88711635, 88711695));
+		regions.append(BedLine("chr16", 88712274, 88712383));
+		regions.append(BedLine("chr16", 88712622, 88712905));
+		regions.append(BedLine("chr16", 88713312, 88713447));
+		regions.append(BedLine("chr16", 88713647, 88713778));
+		regions.append(BedLine("chr16", 88714136, 88714227));
+		regions.append(BedLine("chr16", 88714383, 88714486));
+		regions.append(BedLine("chr16", 88714587, 88714737));
+		regions.append(BedLine("chr16", 88714860, 88714926));
+		regions.append(BedLine("chr16", 88715048, 88715106));
+		regions.append(BedLine("chr16", 88715182, 88715396));
+		t.setRegions(regions, 88706531, 88715251);
+
+		return t;
+	}
+
 private slots:
 
 	void annotate_plus_strand()
@@ -1269,7 +1299,24 @@ private slots:
 		I_EQUAL(hgvs.intron_number, 1);
 	}
 
-	//TODO add tests for splice region and consensus splice site overlap (SNP, Ins, Del, InDel, MNP) for plus strand
-	//TODO add tests for splice region and consensus splice site overlap (SNP, Ins, Del, InDel, MNP) for minus strand
+	void bug_insertion_just_after_splice_site_case2()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+		FastaFileIndex reference(ref_file);
 
+		VariantHgvsAnnotator var_hgvs_anno(reference, VariantHgvsAnnotator::Parameters(5000, 3, 8, 8));
+
+		VcfLine variant("chr16", 88714920, "G", QList<Sequence>() << "GGACTT");
+
+		Transcript t = trans_CTU2();
+		VariantConsequence hgvs = var_hgvs_anno.annotate(t, variant, true);
+		S_EQUAL(hgvs.hgvs_c, "c.1415_1419dup");
+		S_EQUAL(hgvs.hgvs_p, "p.Pro474ThrfsTer33");
+		IS_TRUE(hgvs.types.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
+		IS_TRUE(hgvs.types.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
+		S_EQUAL(hgvs.impact, "HIGH");
+		I_EQUAL(hgvs.exon_number, 13);
+		I_EQUAL(hgvs.intron_number, -1);
+	}
 };

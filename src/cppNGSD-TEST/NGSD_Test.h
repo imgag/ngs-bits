@@ -2800,7 +2800,7 @@ private slots:
 		}
 
 		I_EQUAL(c_fail, 0);
-		I_EQUAL(c_pass, 5376);
+		I_EQUAL(c_pass, 5459);
 	}
 
 };

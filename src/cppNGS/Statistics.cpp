@@ -177,7 +177,7 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 	{
 		//only first variant is analyzed
 		const  VcfLine& var = variants.vcfLine(i);
-		if (var.isInDel())
+		if (var.isIns() || var.isDel())
 		{
 			++indel_count;
 		}
@@ -1519,7 +1519,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 		if (!variants[i].failedFilters().empty())	continue;
 
 		const  VcfLine& var = variants[i];
-		if (var.isInDel())
+		if (var.isIns() || var.isDel())
 		{
 			++indel_count;
 		}

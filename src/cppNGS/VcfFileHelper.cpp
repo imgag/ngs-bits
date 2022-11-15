@@ -481,42 +481,25 @@ bool VcfLine::isValid(const FastaFileIndex& reference) const
 	return true;
 }
 
-bool VcfLine::isMultiAllelic() const
-{
-	return alt().count() > 1;
-}
-
 bool VcfLine::isInDel() const
 {
 	if(isMultiAllelic()) THROW(Exception, "Can not determine if multi-allelic variant is InDel.")
 
-	if(alt(0).length() > 1 || ref().length() > 1)
-	{
-		return true;
-	}
-	return false;
+	return alt(0).length() > 1 && ref().length() > 1;
 }
 
 bool VcfLine::isIns() const
 {
-	if(isMultiAllelic()) THROW(Exception, "Can not determine if multi-allelic variant is insertion.")
+	if(isMultiAllelic()) THROW(Exception, "Cannot determine if multi-allelic variant is insertion.")
 
-    if(alt(0).length() > 1 && ref().length() == 1 && alt(0).at(0) == ref().at(0))
-    {
-        return true;
-    }
-    return false;
+	return alt(0).length() > 1 && ref().length() == 1 && alt(0).at(0) == ref().at(0);
 }
 
 bool VcfLine::isDel() const
 {
-	if(isMultiAllelic()) THROW(Exception, "Can not determine if multi-allelic variant is deletion.")
+	if(isMultiAllelic()) THROW(Exception, "Cannot determine if multi-allelic variant is deletion.")
 
-    if(alt(0).length() == 1 && ref().length() > 1 && alt(0).at(0) == ref().at(0))
-    {
-        return true;
-    }
-    return false;
+	return alt(0).length() == 1 && ref().length() > 1 && alt(0).at(0) == ref().at(0);
 }
 
 //returns all not passed filters
