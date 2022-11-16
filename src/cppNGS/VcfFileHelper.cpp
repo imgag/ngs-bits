@@ -518,9 +518,9 @@ QByteArrayList VcfLine::failedFilters() const
 	return filters;
 }
 
-QByteArray VcfLine::toString() const
+QByteArray VcfLine::toString(bool add_end) const
 {
-	return chr_.str() + ":" + QByteArray::number(start()) + " " + ref() + ">" + altString();
+	return chr_.str() + ":" + QByteArray::number(start()) + (add_end ? "-" + QByteArray::number(end()): "") + " " + ref() + ">" + altString();
 }
 
 bool VcfLine::operator==(const VcfLine& rhs) const

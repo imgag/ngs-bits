@@ -274,6 +274,24 @@ Q_OBJECT
 		return t;
 	}
 
+	Transcript trans_DNLZ()
+	{
+		Transcript t;
+		t.setGene("DNLZ");
+		t.setName("ENST00000371738");
+		t.setVersion(4);
+		t.setSource(Transcript::ENSEMBL);
+		t.setStrand(Transcript::MINUS);
+
+		BedFile regions;
+		regions.append(BedLine("chr9", 136359483, 136362180));
+		regions.append(BedLine("chr9", 136362989, 136363128));
+		regions.append(BedLine("chr9", 136363487, 136363744));
+		t.setRegions(regions, 136363714, 136362012);
+
+		return t;
+	}
+
 private slots:
 
 	void annotate_plus_strand()
@@ -1296,7 +1314,7 @@ private slots:
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
 		S_EQUAL(hgvs.impact, "HIGH");
 		I_EQUAL(hgvs.exon_number, 1);
-		I_EQUAL(hgvs.intron_number, 1);
+		I_EQUAL(hgvs.intron_number, -1);
 	}
 
 	void bug_insertion_just_after_splice_site_case2()
@@ -1310,13 +1328,33 @@ private slots:
 		VcfLine variant("chr16", 88714920, "G", QList<Sequence>() << "GGACTT");
 
 		Transcript t = trans_CTU2();
-		VariantConsequence hgvs = var_hgvs_anno.annotate(t, variant, true);
+		VariantConsequence hgvs = var_hgvs_anno.annotate(t, variant);
 		S_EQUAL(hgvs.hgvs_c, "c.1415_1419dup");
 		S_EQUAL(hgvs.hgvs_p, "p.Pro474ThrfsTer33");
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
 		S_EQUAL(hgvs.impact, "HIGH");
 		I_EQUAL(hgvs.exon_number, 13);
+		I_EQUAL(hgvs.intron_number, -1);
+	}
+
+	void bug_insertion_in_5_prime_UTR()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+		FastaFileIndex reference(ref_file);
+
+		VariantHgvsAnnotator var_hgvs_anno(reference, VariantHgvsAnnotator::Parameters(5000, 3, 8, 8));
+
+		VcfLine variant("chr9", 136363734, "C", QList<Sequence>() << "CGCCCTGCCCCG");
+
+		Transcript t = trans_DNLZ();
+		VariantConsequence hgvs = var_hgvs_anno.annotate(t, variant);
+		S_EQUAL(hgvs.hgvs_c, "c.-21_-20insCGGGGCAGGGC");
+		S_EQUAL(hgvs.hgvs_p, "");
+		IS_TRUE(hgvs.types.contains(VariantConsequenceType::FIVE_PRIME_UTR_VARIANT));
+		S_EQUAL(hgvs.impact, "MODIFIER");
+		I_EQUAL(hgvs.exon_number, 1);
 		I_EQUAL(hgvs.intron_number, -1);
 	}
 };

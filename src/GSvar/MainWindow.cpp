@@ -319,7 +319,7 @@ bool MainWindow::isServerRunning()
 void MainWindow::checkServerAvailability()
 {
 	if (!isServerRunning())
-	{		
+	{
 		close();
 	}
 }
@@ -1780,7 +1780,7 @@ void MainWindow::on_actionROH_triggered()
 
 	//trio special handling: show UPD file is not empty
 	if (type==GERMLINE_TRIO)
-	{		
+	{
 		//UPDs
 		FileLocation upd_loc = GlobalServiceProvider::fileLocationProvider().getAnalysisUpdFile();
 		if (!upd_loc.exists)
@@ -1830,7 +1830,7 @@ void MainWindow::on_actionGeneSelector_triggered()
 
 	QString ps_name = germlineReportSample();
 
-	//show dialog	
+	//show dialog
 	GeneSelectorDialog dlg(ps_name, this);
 	if (dlg.exec())
 	{
@@ -2145,7 +2145,7 @@ void MainWindow::on_actionRE_triggered()
 	if (filename_=="") return;
 	if (variants_.type()!=GERMLINE_SINGLESAMPLE) return;
 
-	// determine repeat expansion file name	
+	// determine repeat expansion file name
 	FileLocationList re_files = GlobalServiceProvider::fileLocationProvider().getRepeatExpansionFiles(false);
 	if (re_files.isEmpty()) return; //this should not happen because the button is not enabled then...
 
@@ -2236,7 +2236,7 @@ void MainWindow::on_actionShowCfDNAPanel_triggered()
 		selected_panel = cfdna_panels.at(0);
 	}
 
-	//show dialog	
+	//show dialog
 	CfDNAPanelWidget* widget = new CfDNAPanelWidget(selected_panel);
 	auto dlg = GUIHelper::createDialog(widget, "cfDNA panel for tumor " + variants_.analysisName());
 	addModelessDialog(dlg, false);
@@ -2369,7 +2369,7 @@ void MainWindow::delayedInitialization()
 	if (NGSHelper::isClientServerMode())
 	{
 		if (!isServerRunning())
-		{			
+		{
 			close();
 			return;
 		}
@@ -2654,7 +2654,7 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 			bool debug = false;
 			foreach(QString command, init_commands)
 			{
-				if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;				
+				if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;
 				socket.write((command + "\n").toUtf8());
 				bool ok = socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)
 				QString answer = socket.readAll().trimmed();
@@ -2720,7 +2720,7 @@ void MainWindow::editVariantValidation(int index)
 			variant_id = db.addVariant(variant, variants_);
 		}
 
-		//get sample ID		
+		//get sample ID
 		QString sample_id = db.sampleId(ps);
 
 		//get variant validation ID - add if missing
@@ -2728,7 +2728,7 @@ void MainWindow::editVariantValidation(int index)
 		bool added_validation_entry = false;
 		if (!val_id.isValid())
 		{
-			//get genotype			
+			//get genotype
 			int i_genotype = variants_.getSampleHeader().infoByID(ps).column_index;
 			QByteArray genotype = variant.annotations()[i_genotype];
 
@@ -4646,13 +4646,13 @@ void MainWindow::generateReportSomaticRTF()
 
 	//store somatic report config in NGSD
 	if(!dlg.skipNGSD())
-	{		
+	{
 		db.setSomaticReportConfig(ps_tumor_id, ps_normal_id, somatic_report_settings_.report_config, variants_, cnvs_, somatic_control_tissue_variants_, Helper::userName());
 	}
 
 	QString destination_path; //path to rtf file
 	if(dlg.getReportType() == SomaticReportDialog::report_type::DNA)
-	{		
+	{
 		destination_path = last_report_path_ + "/" + ps_tumor + "_DNA_report_somatic_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf";
 	}
 	else
@@ -4980,31 +4980,31 @@ QString MainWindow::selectGene()
 
 QString MainWindow::selectProcessedSample()
 {
-    //determine processed sample names
-    QStringList ps_list;
-    foreach(const SampleInfo& info, variants_.getSampleHeader())
-    {
-        ps_list << info.id.trimmed();
-    }
+	//determine processed sample names
+	QStringList ps_list;
+	foreach(const SampleInfo& info, variants_.getSampleHeader())
+	{
+		ps_list << info.id.trimmed();
+	}
 
-    //no samples => error
+	//no samples => error
 	if (ps_list.isEmpty())
-    {
-        THROW(ProgrammingException, "selectProcessedSample() cannot be used if there is no variant list loaded!");
-    }
+	{
+		THROW(ProgrammingException, "selectProcessedSample() cannot be used if there is no variant list loaded!");
+	}
 
-    //one sample => auto-select
-    if (ps_list.count()==1)
-    {
-       return ps_list[0];
-    }
+	//one sample => auto-select
+	if (ps_list.count()==1)
+	{
+	   return ps_list[0];
+	}
 
-    //several affected => let user select
-    bool ok = false;
-    QString selected = QInputDialog::getItem(this, "Select processed sample", "processed sample:", ps_list, 0, false, &ok);
-    if (ok) return selected;
+	//several affected => let user select
+	bool ok = false;
+	QString selected = QInputDialog::getItem(this, "Select processed sample", "processed sample:", ps_list, 0, false, &ok);
+	if (ok) return selected;
 
-    return "";
+	return "";
 }
 
 void MainWindow::importBatch(QString title, QString text, QString table, QStringList fields)
@@ -5291,11 +5291,11 @@ int MainWindow::igvPort() const
 		port += LoginManager::userId();
 	}
 
-        //use different ranges for different genome build, so that they can be used in parallel
+		//use different ranges for different genome build, so that they can be used in parallel
 		if (GSvarHelper::build()!=GenomeBuild::HG19)
-        {
-            port += 1000;
-        }
+		{
+			port += 1000;
+		}
 
 	//if manual override is set, use it
 	if (igv_port_manual>0) port = igv_port_manual;
@@ -7055,7 +7055,7 @@ void MainWindow::storeCurrentVariantList()
 				json_array.append(json_object);
 			}
 			catch (Exception& e)
-			{				
+			{
 				QMessageBox::warning(this, "Could not process the changes to be sent to the server:", e.message());
 			}
 		}
@@ -7122,7 +7122,7 @@ void MainWindow::variantRanking()
 	if (filename_.isEmpty()) return;
 	if (!LoginManager::active()) return;
 
-	QApplication::setOverrideCursor(Qt::BusyCursor);	
+	QApplication::setOverrideCursor(Qt::BusyCursor);
 	QString ps_name = germlineReportSample();
 	try
 	{

@@ -30,7 +30,11 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 	variant.normalize(plus_strand ? VcfLine::ShiftDirection::RIGHT : VcfLine::ShiftDirection::LEFT, genome_idx_, true, true);
 	int start = variant.start();
 	int end = variant.end();
+	hgvs.normalized = variant.toString();
 	if (debug) qDebug() << "variant normalized: " << variant.toString();
+
+	//annotated exon and intron number (first affected exon/intron is reported)
+	annotateExonIntronNumber(hgvs, transcript, variant, debug);
 
     Sequence ref = variant.ref();
     Sequence obs = variant.alt().at(0);
@@ -62,31 +66,44 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
             }
         }
         //insertion
-        else if(variant.isIns())
+		else if(variant.isIns())
 		{
 			if(plus_strand)
-            {
+			{
 				//tandem duplication
 				if(genome_idx_.seq(variant.chr(), start - variant.alt(0).mid(1).length() + 1, variant.alt(0).mid(1).length()) == variant.alt(0).mid(1))
-                {
+				{
 					pos_hgvs_c_dup = annotateRegionsCoding(transcript, hgvs, start - variant.alt(0).mid(1).length() + 1, true, debug);
                     if(variant.alt(0).mid(1).length() > 1)
-                    {
+					{
 						pos_hgvs_c_dup += "_" + annotateRegionsCoding(transcript, hgvs, start, true, debug);
                     }
+
+					//if the duplication does not overlap completely with the transcript we cannot treat the variant as duplication (check for empty cDNA positions)
+					if(pos_hgvs_c_dup.startsWith('_') || pos_hgvs_c_dup.endsWith('_'))
+					{
+						pos_hgvs_c_dup = "";
+					}
                 }
 				pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, start, false) + "_" + annotateRegionsCoding(transcript, hgvs, start + 1, false, debug);
+
             }
-            else
+			else //TODO ueberall: .mid(1).length() > .length()-1
 			{
 				//tandem duplication
 				if(genome_idx_.seq(variant.chr(), start + 1, variant.alt(0).mid(1).length()) == variant.alt(0).mid(1))
-                {
+				{
 					pos_hgvs_c_dup = annotateRegionsCoding(transcript, hgvs, start + variant.alt(0).mid(1).length(), true, debug);
-                    if(variant.alt(0).mid(1).length() > 1)
-                    {
+					if(variant.alt(0).mid(1).length() > 1)
+					{
 						pos_hgvs_c_dup += "_" + annotateRegionsCoding(transcript, hgvs, start + 1, true, debug);
-                    }
+					}
+
+					//if the duplication does not overlap completely with the transcript we cannot treat the variant as duplication (check for empty cDNA positions)
+					if(pos_hgvs_c_dup.startsWith('_') || pos_hgvs_c_dup.endsWith('_'))
+					{
+						pos_hgvs_c_dup = "";
+					}
                 }
 				pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, start + 1, false, debug) + "_" +  annotateRegionsCoding(transcript, hgvs, start, false, debug);
             }
@@ -154,23 +171,29 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
             }
         }
         else if(variant.isIns())
-        {
-            if(plus_strand)
-            {
-                //duplication
+		{
+			if(plus_strand)
+			{
+				//tandem duplication
 				if(genome_idx_.seq(variant.chr(), start - variant.alt(0).mid(1).length() + 1, variant.alt(0).mid(1).length()) == variant.alt(0).mid(1))
-                {
+				{
 					pos_hgvs_c_dup = annotateRegionsNonCoding(transcript, hgvs, start - variant.alt(0).mid(1).length() + 1);
                     if(variant.alt(0).mid(1).length() > 1)
                     {
 						pos_hgvs_c_dup += "_" + annotateRegionsNonCoding(transcript, hgvs, start);
                     }
-                }
+
+					//if the duplication does not overlap completely with the transcript we cannot treat the variant as duplication (check for empty cDNA positions)
+					if(pos_hgvs_c_dup.startsWith('_') || pos_hgvs_c_dup.endsWith('_'))
+					{
+						pos_hgvs_c_dup = "";
+					}
+				}
 				pos_hgvs_c = annotateRegionsNonCoding(transcript, hgvs, start) + "_" + annotateRegionsNonCoding(transcript, hgvs, start + 1);
             }
             else
-            {
-                //duplication
+			{
+				//tandem duplication
 				if(genome_idx_.seq(variant.chr(), start + 1, variant.alt(0).mid(1).length()) == variant.alt(0).mid(1))
                 {
 					pos_hgvs_c_dup = annotateRegionsNonCoding(transcript, hgvs, start + variant.alt(0).mid(1).length(), true);
@@ -178,6 +201,12 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
                     {
 						pos_hgvs_c_dup += "_" + annotateRegionsNonCoding(transcript, hgvs, start + 1, true);
                     }
+
+					//if the duplication does not overlap completely with the transcript we cannot treat the variant as duplication (check for empty cDNA positions)
+					if(pos_hgvs_c_dup.startsWith('_') || pos_hgvs_c_dup.endsWith('_'))
+					{
+						pos_hgvs_c_dup = "";
+					}
                 }
 				pos_hgvs_c = annotateRegionsNonCoding(transcript, hgvs, start + 1) + "_" + annotateRegionsNonCoding(transcript, hgvs, start);
             }
@@ -416,7 +445,7 @@ QByteArray VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcr
         //in 5 prime utr or upstream variant?
 		if((plus_strand && gen_pos >= transcript.start()) || (!plus_strand && gen_pos <= transcript.end()))
         {
-            pos_hgvs_c = getHgvsPosition(transcript.utr5prime(), hgvs, gen_pos, plus_strand, transcript.codingRegions(), true);
+			pos_hgvs_c = getHgvsPosition(transcript.utr5prime(), gen_pos, plus_strand, transcript.codingRegions(), true);
 
             //if positions of duplicated regions are annotated, don't insert consequences (apply only to insertion position!)
             if(!is_dup)
@@ -487,8 +516,7 @@ QByteArray VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcr
                 }
             }
 
-            pos_hgvs_c = getHgvsPosition(transcript.utr3prime(), hgvs, gen_pos, plus_strand, transcript.codingRegions(),
-                                         false, first_region);
+			pos_hgvs_c = getHgvsPosition(transcript.utr3prime(), gen_pos, plus_strand, transcript.codingRegions(), false);
             if(pos_hgvs_c.startsWith("+"))
             {
                 int cds_length = 0;
@@ -549,7 +577,7 @@ QByteArray VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcr
             }
         }
 
-        pos_hgvs_c = getHgvsPosition(transcript.codingRegions(), hgvs, gen_pos, plus_strand, transcript.codingRegions(), false, first_region);
+		pos_hgvs_c = getHgvsPosition(transcript.codingRegions(), gen_pos, plus_strand, transcript.codingRegions(), false);
 
         //if positions of duplicated regions are annotated, don't insert consequences (apply only to insertion position!)
         if(!is_dup)
@@ -583,7 +611,7 @@ QByteArray VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& tran
 			hgvs.types.insert(VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT);
         }
 
-        pos_hgvs_c = getHgvsPosition(transcript.regions(), hgvs, gen_pos, plus_strand, transcript.regions(), false);
+		pos_hgvs_c = getHgvsPosition(transcript.regions(), gen_pos, plus_strand, transcript.regions(), false);
 
         //if positions of duplicated regions are annotated, don't insert consequences (apply only to insertion position!)
         if(!is_dup)
@@ -628,7 +656,7 @@ QByteArray VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& tran
 }
 
 //determine the HGVS position string for a single genomic position in any part of the transcript
-QByteArray VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, VariantConsequence& hgvs, int gen_pos, bool plus_strand, const BedFile& coding_regions, bool utr_5, int first_region)
+QByteArray VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, int gen_pos, bool plus_strand, const BedFile& coding_regions, bool utr_5)
 {
     bool in_exon = false;
 
@@ -647,18 +675,12 @@ QByteArray VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, Variant
             in_exon = true;
             if(plus_strand)
             {
-                pos += gen_pos - regions[i].start() + 1;
-
-                if(utr_5) hgvs.exon_number = regions.count() - i + first_region;
-                else hgvs.exon_number = i + 1 + first_region;
+				pos += gen_pos - regions[i].start() + 1;
                 break;
             }
             else
             {
                 pos = regions[i].end() - gen_pos + 1;
-
-                if(utr_5) hgvs.exon_number = i + 1 + first_region;
-                else hgvs.exon_number = regions.count() - i + first_region;
                 continue;
             }
         }
@@ -673,13 +695,13 @@ QByteArray VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, Variant
     }
     else
     {
-        pos_hgvs_c = getPositionInIntron(regions, hgvs, gen_pos, plus_strand, coding_regions, utr_5, first_region);
+		pos_hgvs_c = getPositionInIntron(regions, gen_pos, plus_strand, coding_regions, utr_5);
     }
     return pos_hgvs_c;
 }
 
 //determine the HGVS position string for a single genomic position in an intron
-QByteArray VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, VariantConsequence& hgvs, int genomic_position, bool plus_strand, const BedFile& coding_regions, bool utr_5, int first_region)
+QByteArray VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, int genomic_position, bool plus_strand, const BedFile& coding_regions, bool utr_5)
 {
 	QByteArray pos_in_intron;
     int closest_exon_pos = 0;
@@ -708,9 +730,6 @@ QByteArray VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, Var
 
             if(plus_strand)
             {
-                if(utr_5) hgvs.intron_number = regions.count() - i + first_region - 1;
-                else hgvs.intron_number = i + 1 + first_region;
-
                 if(utr_5)
                 {
                     if(dist_below < dist_above)
@@ -737,9 +756,6 @@ QByteArray VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, Var
             }
             else
             {
-                if(utr_5) hgvs.intron_number = i + 1 + first_region;
-                else hgvs.intron_number = regions.count() - i + first_region - 1;
-
                 closest_exon_pos += regions[i+1].length();
 
                 if(utr_5)
@@ -803,7 +819,6 @@ QByteArray VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, Var
 					pos_in_intron = "+1-" + QByteArray::number(dist_above);
                 }
             }
-            hgvs.intron_number = regions.count();
         }
         //position on intron between last cds exon and 3 prime utr
         else
@@ -836,7 +851,6 @@ QByteArray VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, Var
 					pos_in_intron = "+" + QByteArray::number(dist_above);
                 }
             }
-            hgvs.intron_number = first_region;
         }
         return pos_in_intron;
     }
@@ -1372,7 +1386,7 @@ void VariantHgvsAnnotator::annotateSpliceRegion(VariantConsequence& hgvs, const 
 					if (debug) qDebug() << "annotateSpliceRegion" << __LINE__ << "in 5' splice region :" << five_prime_reg_start << "-" << five_prime_reg_end;
 					hgvs.types.insert(VariantConsequenceType::SPLICE_REGION_VARIANT);
 
-					if (start=acceptor_reg_start && ((start+1)==acceptor_reg_end))
+					if (start==acceptor_reg_start)
 					{
 						if (debug) qDebug() << "annotateSpliceRegion" << __LINE__ << "in splice acceptor:" << acceptor_reg_start << acceptor_reg_end;
 						hgvs.types.insert(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT);
@@ -1410,7 +1424,7 @@ void VariantHgvsAnnotator::annotateSpliceRegion(VariantConsequence& hgvs, const 
 					if (debug) qDebug() << "annotateSpliceRegion" << __LINE__ << "in 3' splice region :" << three_prime_reg_start << "-" << three_prime_reg_end;
 					hgvs.types.insert(VariantConsequenceType::SPLICE_REGION_VARIANT);
 
-					if (start=donor_reg_start && ((start+1)==donor_reg_end))
+					if (start==donor_reg_start)
 					{
 						if (debug) qDebug() << "annotateSpliceRegion" << __LINE__ << "in splice donor: " << donor_reg_start << "-" << donor_reg_end;
 						hgvs.types.insert(VariantConsequenceType::SPLICE_DONOR_VARIANT);
@@ -1508,4 +1522,69 @@ VariantHgvsAnnotator::Parameters::Parameters(int max_dist_trans, int splice_reg_
 	, splice_region_in_5(splice_reg_intron_5)
 	, splice_region_in_3(splice_reg_intron_3)
 {
+}
+
+void VariantHgvsAnnotator::annotateExonIntronNumber(VariantConsequence& hgvs, const Transcript& transcript, const VcfLine& variant, bool debug)
+{
+	//TODO also handle type intron_variant/exon_variant in this method!
+	const BedFile& regions = transcript.regions();
+	bool plus_strand = transcript.isPlusStrand();
+	bool insertion = variant.isIns();
+
+	//determine affected start/end
+	int start = variant.start();
+	int end = variant.end();
+	if (variant.isDel() || variant.isInDel()) //deletion/deletion-insertion: change is after prefix base > adjust start (end is correct)
+	{
+		start += 1;
+	}
+	if (debug) qDebug() << "annotateExonIntronNumber" << start << "-" << end << insertion;
+
+	//exon number (insertions between intron and exon count as exonic)
+	if (plus_strand)
+	{
+		for(int i=0; i<regions.count(); ++i)
+		{
+			if((!insertion && regions[i].overlapsWith(start, end)) || (insertion && BasicStatistics::rangeOverlaps(start, start+1, regions[i].start(), regions[i].end())))
+			{
+				hgvs.exon_number = i + 1;
+				break;
+			}
+		}
+	}
+	else
+	{
+		for(int i=regions.count()-1; i>=0; --i)
+		{
+			if((!insertion && regions[i].overlapsWith(start, end)) || (insertion && BasicStatistics::rangeOverlaps(start, start+1, regions[i].start(), regions[i].end())))
+			{
+				hgvs.exon_number = regions.count() - i;
+				break;
+			}
+		}
+	}
+
+	//intron (insertions between intron and exon count as exonic)
+	if(plus_strand)
+	{
+		for(int i=0; i<regions.count()-1; ++i)
+		{
+			if((!insertion && BasicStatistics::rangeOverlaps(start, end, regions[i].end()+1, regions[i+1].start()-1)) || (insertion && BasicStatistics::rangeOverlaps(start, start+1, regions[i].end()+2, regions[i+1].start()-2)))
+			{
+				hgvs.intron_number = i + 1;
+				break;
+			}
+		}
+	}
+	else
+	{
+		for(int i=regions.count()-2; i>=0; --i)
+		{
+			if((!insertion && BasicStatistics::rangeOverlaps(start, end, regions[i].end()+1, regions[i+1].start()-1)) || (insertion && BasicStatistics::rangeOverlaps(start, start+1, regions[i].end()+2, regions[i+1].start()-2)))
+			{
+				hgvs.intron_number = regions.count() - i - 1;
+				break;
+			}
+		}
+	}
 }

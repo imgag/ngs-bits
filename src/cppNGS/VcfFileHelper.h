@@ -520,7 +520,7 @@ public:
 	//Returns all not passed filters
 	QByteArrayList failedFilters() const;
 	//Returns a string representation of the variant (chr, pos, ref, alt).
-	QByteArray toString() const;
+	QByteArray toString(bool add_end=false) const;
 	QByteArrayList vepAnnotations(int field_index) const;
 	// Left-normalize all variants.
 	void leftNormalize(FastaFileIndex& reference, bool check_reference);

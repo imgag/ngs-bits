@@ -2774,13 +2774,15 @@ private slots:
 					QByteArray vep_impact = vep_annos[5];
 					if (vep_impact!=cons.impact) differences << vep_impact + " > " + cons.impact;
 
-					QByteArray vep_exon = vep_annos[6];
-					int vep_exon_nr = vep_exon.isEmpty() ? -1 : vep_exon.split('/')[0].toInt();
-					//TODO if (vep_exon_nr!=cons.exon_number) differences << "exon" << QByteArray::number(vep_exon_nr) + " > " + QByteArray::number(cons.exon_number);
+					QByteArray vep_exon = vep_annos[6].split('/')[0];
+					if (vep_exon.contains('-')) vep_exon = vep_exon.split('-')[0]; //we annotate only the first affected exon
+					int vep_exon_nr = vep_exon.isEmpty() ? -1 : vep_exon.toInt();
+					if (vep_exon_nr!=cons.exon_number) differences << "exon " + QByteArray::number(vep_exon_nr) + " > " + QByteArray::number(cons.exon_number);
 
-					QByteArray vep_intron = vep_annos[7];
-					int vep_intron_nr = vep_intron.isEmpty() ? -1 : vep_intron.split('/')[0].toInt();
-					//TODO if (vep_intron_nr!=cons.intron_number) differences << "intron" << QByteArray::number(vep_intron_nr) + " > " + QByteArray::number(cons.intron_number);
+					QByteArray vep_intron = vep_annos[7].split('/')[0];
+					if (vep_intron.contains('-')) vep_intron = vep_intron.split('-')[0]; //we annotate only the first affected intron
+					int vep_intron_nr = vep_intron.isEmpty() ? -1 : vep_intron.toInt();
+					if (vep_intron_nr!=cons.intron_number) differences << "intron " + QByteArray::number(vep_intron_nr) + " > " + QByteArray::number(cons.intron_number);
 
 					if (differences.isEmpty())
 					{
@@ -2789,7 +2791,7 @@ private slots:
 					else
 					{
 						++c_fail;
-						out << v.toString() << " transcript=" << trans.name() << " " << cons.toString() << endl;
+						out << v.toString(true) << " (" << cons.normalized << ") transcript=" << trans.name() << " " << cons.toString() << endl;
 						foreach(QByteArray difference, differences)
 						{
 							out << "  " << difference << endl;
@@ -2800,7 +2802,5 @@ private slots:
 		}
 
 		I_EQUAL(c_fail, 0);
-		I_EQUAL(c_pass, 5459);
 	}
-
 };

@@ -57,6 +57,8 @@ struct CPPNGSSHARED_EXPORT VariantConsequence
     int exon_number{-1};
     int intron_number{-1};
 
+	QByteArray normalized; //normalized VCF representation after shifting according to 3' rule
+
 	QByteArray typesToString(QByteArray sep="&") const;
 	static QByteArray typeToString(VariantConsequenceType type)
     {
@@ -129,9 +131,11 @@ private:
 
 	QByteArray annotateRegionsCoding(const Transcript& transcript, VariantConsequence& hgvs, int gen_pos, bool is_dup, bool debug=false);
 	QByteArray annotateRegionsNonCoding(const Transcript& transcript, VariantConsequence& hgvs, int gen_pos, bool is_dup = false);
-	QByteArray getHgvsPosition(const BedFile& regions, VariantConsequence& hgvs, int gen_pos, bool plus_strand, const BedFile& coding_regions, bool utr_5 = false, int first_region = 0);
-	QByteArray getPositionInIntron(const BedFile& regions, VariantConsequence& hgvs, int genomic_position, bool plus_strand, const BedFile &coding_regions, bool utr_5 = false, int first_region = 0);
+	QByteArray getHgvsPosition(const BedFile& regions, int gen_pos, bool plus_strand, const BedFile& coding_regions, bool utr_5 = false);
+	QByteArray getPositionInIntron(const BedFile& regions, int genomic_position, bool plus_strand, const BedFile &coding_regions, bool utr_5 = false);
 	QByteArray getHgvsProteinAnnotation(const VcfLine& variant, const QByteArray& pos_hgvs_c, const Transcript& transcript, bool debug=false);
+
+	void annotateExonIntronNumber(VariantConsequence& hgvs, const Transcript& transcript, const VcfLine& variant, bool debug=false);
 
 	void annotateSpliceRegion(VariantConsequence& hgvs, const Transcript& transcript, int start, int end, bool insertion, bool debug=false);
 
