@@ -774,6 +774,18 @@ bool NGSHelper::isRunningOnServer()
 	return !Settings::string("ssl_certificate",true).trimmed().isEmpty() && !Settings::string("ssl_key",true).trimmed().isEmpty();
 }
 
+bool NGSHelper::isBamFile(QString filename)
+{
+	if (Helper::isHttpUrl(filename))
+	{
+		return QUrl(filename).toString(QUrl::RemoveQuery).endsWith(".bam", Qt::CaseInsensitive);
+	}
+	else
+	{
+		return filename.endsWith(".bam", Qt::CaseInsensitive);
+	}
+}
+
 ServerInfo NGSHelper::getServerInfo()
 {
 	ServerInfo info;

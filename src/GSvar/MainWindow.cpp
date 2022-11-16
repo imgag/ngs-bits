@@ -2578,7 +2578,7 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 			//load non-BAM files
 			foreach(QString file, files_to_load)
 			{
-				if (!file.endsWith(".bam"))
+				if (!NGSHelper::isBamFile(file))
 				{
 					init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
 				}
@@ -2590,7 +2590,7 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 			//load BAM files
 			foreach(QString file, files_to_load)
 			{
-				if (file.endsWith(".bam"))
+				if (NGSHelper::isBamFile(file))
 				{
 					init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
 				}
