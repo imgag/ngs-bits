@@ -71,10 +71,10 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 			if(plus_strand)
 			{
 				//tandem duplication
-				if(genome_idx_.seq(variant.chr(), start - variant.alt(0).mid(1).length() + 1, variant.alt(0).mid(1).length()) == variant.alt(0).mid(1))
+				if(genome_idx_.seq(variant.chr(), start - variant.alt(0).length() + 2, variant.alt(0).length() - 1) == variant.alt(0).mid(1))
 				{
-					pos_hgvs_c_dup = annotateRegionsCoding(transcript, hgvs, start - variant.alt(0).mid(1).length() + 1, true, debug);
-                    if(variant.alt(0).mid(1).length() > 1)
+					pos_hgvs_c_dup = annotateRegionsCoding(transcript, hgvs, start - variant.alt(0).length() + 2, true, debug);
+					if(variant.alt(0).length() > 2)
 					{
 						pos_hgvs_c_dup += "_" + annotateRegionsCoding(transcript, hgvs, start, true, debug);
                     }
@@ -88,13 +88,13 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 				pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, start, false) + "_" + annotateRegionsCoding(transcript, hgvs, start + 1, false, debug);
 
             }
-			else //TODO ueberall: .mid(1).length() > .length()-1
+			else
 			{
 				//tandem duplication
-				if(genome_idx_.seq(variant.chr(), start + 1, variant.alt(0).mid(1).length()) == variant.alt(0).mid(1))
+				if(genome_idx_.seq(variant.chr(), start + 1, variant.alt(0).length() - 1) == variant.alt(0).mid(1))
 				{
-					pos_hgvs_c_dup = annotateRegionsCoding(transcript, hgvs, start + variant.alt(0).mid(1).length(), true, debug);
-					if(variant.alt(0).mid(1).length() > 1)
+					pos_hgvs_c_dup = annotateRegionsCoding(transcript, hgvs, start + variant.alt(0).length() - 1, true, debug);
+					if(variant.alt(0).length() > 2)
 					{
 						pos_hgvs_c_dup += "_" + annotateRegionsCoding(transcript, hgvs, start + 1, true, debug);
 					}
@@ -175,10 +175,10 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 			if(plus_strand)
 			{
 				//tandem duplication
-				if(genome_idx_.seq(variant.chr(), start - variant.alt(0).mid(1).length() + 1, variant.alt(0).mid(1).length()) == variant.alt(0).mid(1))
+				if(genome_idx_.seq(variant.chr(), start - variant.alt(0).length() + 2, variant.alt(0).length() - 1) == variant.alt(0).mid(1))
 				{
-					pos_hgvs_c_dup = annotateRegionsNonCoding(transcript, hgvs, start - variant.alt(0).mid(1).length() + 1);
-                    if(variant.alt(0).mid(1).length() > 1)
+					pos_hgvs_c_dup = annotateRegionsNonCoding(transcript, hgvs, start - variant.alt(0).length() + 2);
+					if(variant.alt(0).length() > 2)
                     {
 						pos_hgvs_c_dup += "_" + annotateRegionsNonCoding(transcript, hgvs, start);
                     }
@@ -194,10 +194,10 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
             else
 			{
 				//tandem duplication
-				if(genome_idx_.seq(variant.chr(), start + 1, variant.alt(0).mid(1).length()) == variant.alt(0).mid(1))
+				if(genome_idx_.seq(variant.chr(), start + 1, variant.alt(0).length() - 1) == variant.alt(0).mid(1))
                 {
-					pos_hgvs_c_dup = annotateRegionsNonCoding(transcript, hgvs, start + variant.alt(0).mid(1).length(), true);
-                    if(variant.alt(0).mid(1).length() > 1)
+					pos_hgvs_c_dup = annotateRegionsNonCoding(transcript, hgvs, start + variant.alt(0).length() - 1, true);
+					if(variant.alt(0).length() > 2)
                     {
 						pos_hgvs_c_dup += "_" + annotateRegionsNonCoding(transcript, hgvs, start + 1, true);
                     }
