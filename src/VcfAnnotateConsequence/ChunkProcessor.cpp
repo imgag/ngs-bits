@@ -210,7 +210,7 @@ QByteArray ChunkProcessor::hgvsNomenclatureToString(const QByteArray& allele, co
 	QByteArray consequence_type = VariantConsequence::typeToString(max_csq_type);
 	QByteArray impact = hgvs.impact;
 
-	//additionally insert splice region consequence type (if present) and order types by impact
+	//additionally insert splice region consequence type (if present) and order types by impact //TODO move to VariantHgvsAnnotator
 	if(hgvs.types.contains(VariantConsequenceType::SPLICE_REGION_VARIANT))
 	{
 		VariantConsequenceType splice_type;

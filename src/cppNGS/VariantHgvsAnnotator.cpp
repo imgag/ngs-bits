@@ -524,7 +524,7 @@ QByteArray VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcr
                 {
                     cds_length += transcript.codingRegions()[i].length();
                 }
-				pos_hgvs_c = "*" + QByteArray::number(cds_length) + pos_hgvs_c;
+				pos_hgvs_c = QByteArray::number(cds_length) + pos_hgvs_c;
             }
             else
             {
