@@ -119,6 +119,8 @@ public:
 	static bool isClientServerMode();
 	///Checks if the application is running on the server or on a client machine
 	static bool isRunningOnServer();
+	///Checks if a given local file or URL is a BAM file
+	static bool isBamFile(QString filename);
 
 	///Requests information about GSvarServer
 	static ServerInfo getServerInfo();
