@@ -52,7 +52,7 @@ void ChunkProcessor::run()
 				//append header line for new annotation
 				if (line.startsWith("#CHROM"))
 				{
-					lines_new.append("##INFO=<ID=" + settings_.tag + ",Number=.,Type=String,Description=\"Consequence annotations from VcfAnnotateConsequence. Format: Allele|Consequence|IMPACT|SYMBOL|HGNC_ID|Feature|Feature_type|BIOTYPE|EXON|INTRON|HGVSc|HGVSp\">\n");
+					lines_new.append("##INFO=<ID=" + settings_.tag + ",Number=.,Type=String,Description=\"Consequence annotations from VcfAnnotateConsequence. Format: Allele|Consequence|IMPACT|SYMBOL|HGNC_ID|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp\">\n");
 				}
 				lines_new.append(line + "\n");
 				continue;
@@ -264,11 +264,6 @@ QByteArray ChunkProcessor::hgvsNomenclatureToString(const QByteArray& allele, co
 	{
 		output << "" << "" << "" << "";
 	}
-
-	//biotype //TODO remove after fixing all bugs
-	if(t.isCoding()) output << "protein_coding";
-	else if(t.isValid()) output << "processed_transcript";
-	else output << "";
 
 	//exon number
 	if(hgvs.exon_number != -1) output << QByteArray::number(hgvs.exon_number) + "/" + QByteArray::number(t.regions().count());

@@ -2728,6 +2728,16 @@ private slots:
 		int c_pass = 0;
 		int c_fail = 0;
 
+		//load best transcripts
+		QMap<QByteArray, QByteArray> best;
+		TsvFile tmp;
+		tmp.load(TESTDATA("data_in/VariantHgvsAnnotator_comparison_vep_best_transcripts.tsv"));
+		for (int i=0; i<tmp.rowCount(); ++i)
+		{
+			const QStringList& row = tmp.row(i);
+			best[row[0].toUtf8()] = row[1].toUtf8();
+		}
+
 		//process VCF
 		VcfFile vcf;
 		vcf.load(TESTDATA("data_in/VariantHgvsAnnotator_comparison_vep.vcf")); //TODO bgzip file when debugging done
@@ -2740,8 +2750,9 @@ private slots:
 			foreach(const QByteArray& gene, genes)
 			{
 				//process best transcript for gene
-				int gene_id = db.geneId(gene);
-				Transcript trans = db.bestTranscript(gene_id);
+				if (!best.contains(gene)) continue;
+				Transcript trans = db.transcript(db.transcriptId(best[gene]));
+				best[gene] = trans.name();
 				if (trans.isValid())
 				{
 
