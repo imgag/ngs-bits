@@ -195,25 +195,26 @@ QByteArray ChunkProcessor::hgvsNomenclatureToString(const QByteArray& allele, co
 	QByteArrayList output;
 	output << allele;
 
-	//find variant consequence type with highest priority (apart from splice region)
+	//find variant consequence type with highest priority (apart from splicing)
 	VariantConsequenceType max_csq_type = VariantConsequenceType::INTERGENIC_VARIANT;
 	foreach(VariantConsequenceType csq_type, hgvs.types)
 	{
-		if(static_cast<int>(csq_type) > static_cast<int>(max_csq_type) && csq_type != VariantConsequenceType::SPLICE_REGION_VARIANT &&
+		if(csq_type > max_csq_type &&
+				csq_type != VariantConsequenceType::SPLICE_REGION_VARIANT &&
 				csq_type != VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT &&
 				csq_type != VariantConsequenceType::SPLICE_DONOR_VARIANT &&
-				csq_type != VariantConsequenceType::NMD_TRANSCRIPT_VARIANT)
+				csq_type != VariantConsequenceType::NMD_TRANSCRIPT_VARIANT &&
+				csq_type != VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT)
 		{
 			max_csq_type = csq_type;
 		}
 	}
 	QByteArray consequence_type = VariantConsequence::typeToString(max_csq_type);
-	QByteArray impact = hgvs.impact;
 
-	//additionally insert splice region consequence type (if present) and order types by impact //TODO move to VariantHgvsAnnotator
+	//additionally insert splice region consequence type (if present) and order types by impact
 	if(hgvs.types.contains(VariantConsequenceType::SPLICE_REGION_VARIANT))
 	{
-		VariantConsequenceType splice_type;
+		VariantConsequenceType splice_type = VariantConsequenceType::SPLICE_REGION_VARIANT;
 		if(hgvs.types.contains(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT))
 		{
 			splice_type = VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT;
@@ -222,20 +223,10 @@ QByteArray ChunkProcessor::hgvsNomenclatureToString(const QByteArray& allele, co
 		{
 			splice_type = VariantConsequenceType::SPLICE_DONOR_VARIANT;
 		}
-		else
-		{
-			splice_type = VariantConsequenceType::SPLICE_REGION_VARIANT;
-		}
 
-		if(max_csq_type == VariantConsequenceType::INTRON_VARIANT && splice_type != VariantConsequenceType::SPLICE_REGION_VARIANT && splice_type != VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT)
-		{
-			consequence_type = VariantConsequence::typeToString(splice_type);
-			impact = VariantHgvsAnnotator::consequenceTypeToImpact(splice_type);
-		}
-		else if(splice_type > max_csq_type)
+		if(splice_type > max_csq_type)
 		{
 			consequence_type.prepend(VariantConsequence::typeToString(splice_type) + "&");
-			impact = VariantHgvsAnnotator::consequenceTypeToImpact(splice_type);
 		}
 		else
 		{
@@ -243,6 +234,7 @@ QByteArray ChunkProcessor::hgvsNomenclatureToString(const QByteArray& allele, co
 		}
 	}
 
+	//add transcript info (at end)
 	if (hgvs.types.contains(VariantConsequenceType::NMD_TRANSCRIPT_VARIANT))
 	{
 		consequence_type.append("&" + VariantConsequence::typeToString(VariantConsequenceType::NMD_TRANSCRIPT_VARIANT));
@@ -253,7 +245,7 @@ QByteArray ChunkProcessor::hgvsNomenclatureToString(const QByteArray& allele, co
 	}
 
 	output << consequence_type;
-	output << impact;
+	output << hgvs.impact;
 
 	//gene symbol, HGNC ID, transcript ID, feature type
 	if (t.isValid())
