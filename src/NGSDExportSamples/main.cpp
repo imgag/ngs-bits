@@ -96,7 +96,7 @@ public:
 		{
 			hpo_id = hpo_id.trimmed();
 			if (hpo_id.isEmpty()) continue;
-			params.s_phenotypes << db.phenotypeChildTerms(db.phenotypeIdByAccession(hpo_id.toUtf8()), true);
+			params.s_phenotypes << db.phenotype(db.phenotypeIdByAccession(hpo_id.toUtf8()));
 		}
 		params.s_study = getString("study");
 		params.include_bad_quality_samples = !getFlag("no_bad_samples");
