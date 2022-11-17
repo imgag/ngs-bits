@@ -2780,7 +2780,23 @@ private slots:
 					if (vep_hgvsp!=cons.hgvs_p) differences << vep_hgvsp + " > " + cons.hgvs_p;
 
 					QByteArrayList vep_types = vep_annos[4].split('&');
-					//TODO
+					if (vep_types.contains("splice_polypyrimidine_tract_variant")) vep_types << "splice_region_variant"; //we don't annotate this type
+					if (vep_types.contains("splice_donor_region_variant")) vep_types << "splice_region_variant";  //we don't annotate this type
+					if (vep_types.contains("splice_donor_5th_base_variant")) vep_types << "splice_region_variant";  //we don't annotate this type
+					if (vep_types.contains("mature_miRNA_variant")) vep_types << "non_coding_transcript_exon_variant";  //we don't annotate this type
+					if (vep_types.contains("frameshift_variant") && vep_hgvsp.contains("Ter") && !vep_hgvsp.contains("fs")) vep_types << "stop_gained"; //VEP handles direct stop-gain variants as frameshift, which is not correct.
+					VariantConsequenceType max_csq_type = VariantConsequenceType::INTERGENIC_VARIANT;
+					foreach(VariantConsequenceType csq_type, cons.types)
+					{
+						if(csq_type > max_csq_type)
+						{
+							max_csq_type = csq_type;
+						}
+					}
+					if (!vep_types.contains(VariantConsequence::typeToString(max_csq_type)))
+					{
+						differences << VariantConsequence::typeToString(max_csq_type) + " not in VEP (" + vep_types.join(", ") + ")";
+					}
 
 					QByteArray vep_impact = vep_annos[5];
 					if (vep_impact!=cons.impact) differences << vep_impact + " > " + cons.impact;
