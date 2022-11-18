@@ -63,6 +63,7 @@ void ChunkProcessor::run()
 		}
 
 		job_.lines = lines_new;
+		emit log(lines_annotated_, lines_skipped_);
 		emit done(job_.index);
 
 	}
@@ -70,7 +71,6 @@ void ChunkProcessor::run()
 	{
 		emit error(job_.index, e.message());
 	}
-
 }
 
 QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const ChromosomalIndex<TranscriptList>& transcript_index)
@@ -88,7 +88,7 @@ QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const Chromos
 	Sequence ref = parts[3].toUpper();
 	Sequence alt = parts[4].toUpper();
 
-	//write out multi-allelic and structural variants (e.g. <DEL>) without CSQ annotation
+	//write out invalid without CSQ annotation
 	if(!VcfLine(chr, pos, ref, alt.split(',')).isValid())
 	{
 		++lines_skipped_;
@@ -136,11 +136,8 @@ QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const Chromos
 			catch(ArgumentException& e)
 			{
 				QTextStream out(stdout);
-				out << e.message() << endl;
-				out << "Variant out of region for transcript " << t.name() <<": chromosome=" << t.chr().str()  << " start=" << t.start() << " end=" << t.end() << endl;
-				out << "Variant chr=" << t.chr().str() << " start=" << pos << endl;
-				out << "Variant: " << variant.toString() << endl;
-				out << "Considered region: " << region_start << " - " << region_end << endl;
+				out << "Error processing variant " << variant.toString() << " and transcript " << t.name() << ":" << endl;
+				out << "  " << e.message().replace("\n", "  \n") << endl;
 			}
 		}
 	}
@@ -187,7 +184,6 @@ QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const Chromos
 	QByteArray new_line = new_parts.join('\t');
 	new_line.append("\n");
 	return new_line;
-
 }
 
 QByteArray ChunkProcessor::hgvsNomenclatureToString(const QByteArray& allele, const VariantConsequence& hgvs, const Transcript& t)

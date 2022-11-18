@@ -25,7 +25,6 @@ signals:
 	void error(int i, QString message); //signal emitted when job failed
 	void log(int annotated, int skipped);
 
-
 private:
 	QByteArray annotateVcfLine(const QByteArray& line, const ChromosomalIndex<TranscriptList>& transcript_index);
 	QByteArray hgvsNomenclatureToString(const QByteArray& allele, const VariantConsequence& hgvs, const Transcript& t);

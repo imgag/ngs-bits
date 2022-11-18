@@ -87,8 +87,10 @@ void ThreadCoordinator::error(int /*i*/, QString message)
 
 void ThreadCoordinator::update_stats(int annotated, int skipped)
 {
+	c_mutex.lock();
 	c_annotated_ += annotated;
 	c_skipped_ += skipped;
+	c_mutex.unlock();
 }
 
 void ThreadCoordinator::inputDone(int /*i*/)
@@ -118,10 +120,10 @@ void ThreadCoordinator::checkDone()
 	timer_done_.stop();
 
 	QTextStream stream(stdout);
-	stream<< "Annotation jobs finished" << endl;
+	stream << "Annotation jobs finished" << endl;
 	stream << "Annotated " << QString::number(c_annotated_) << " variants." << endl;
-	stream << "Skipped " << QString::number(c_skipped_) << " variants with invalid ALT sequence." << endl;
-	stream << "Annotating variants took: " << Helper::elapsedTime(timer_annotation_) << endl;
+	stream << "Skipped " << QString::number(c_skipped_) << " invalid variants." << endl;
+	stream << "Annotation took: " << Helper::elapsedTime(timer_annotation_) << endl;
 
 	emit finished();
 }

@@ -7,6 +7,7 @@
 #include <QTime>
 #include <QFile>
 #include <QSharedPointer>
+#include <QMutex>
 #include <zlib.h>
 #include "Auxilary.h"
 
@@ -44,6 +45,8 @@ private:
 	QThreadPool thread_pool_annotate_;
 	QThreadPool thread_pool_write_;
 
+
+	QMutex c_mutex;
 	int c_annotated_ = 0;
 	int c_skipped_ = 0;
 

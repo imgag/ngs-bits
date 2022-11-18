@@ -892,9 +892,9 @@ void NGSHelper::loadGffFile(QString filename, GffData& output)
 	output.enst2ensg.clear();
 	output.gencode_basic.clear();
 
-    QMap<QByteArray, TranscriptData> transcripts;
+	QHash<QByteArray, TranscriptData> transcripts;
 
-    QMap<QByteArray, QByteArray> gene_to_hgnc;
+	QHash<QByteArray, QByteArray> gene_to_hgnc;
 
     QSharedPointer<QFile> file = Helper::openFileForReading(filename, false);
     QTextStream out(stdout);
