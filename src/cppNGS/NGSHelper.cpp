@@ -829,6 +829,12 @@ QString NGSHelper::serverApiUrl(const bool& return_http)
 	QString protocol = return_http ? "http://" : "https://";
 	QString port = return_http ? Settings::string("http_server_port", true) : Settings::string("https_server_port", true);
 
+	if (Settings::boolean("use_http_api_only", true))
+	{
+		protocol = "http://";
+		port = Settings::string("http_server_port", true);
+	}
+
 	return protocol + Settings::string("server_host", true) + ":" + port + "/" + serverApiVersion() + "/";
 }
 

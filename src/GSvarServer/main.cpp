@@ -521,7 +521,7 @@ int main(int argc, char **argv)
 
 	Log::info("SSL version used for the build: " + QSslSocket::sslLibraryBuildVersionString());
 	ServerWrapper https_server(https_port_setting);
-	if (!https_server.isRunning())
+	if (!https_server.isRunning() && !Settings::boolean("use_http_api_only", true))
 	{
 		Log::error("HTTPS is not running. Exiting");
 		app.exit(EXIT_FAILURE);
