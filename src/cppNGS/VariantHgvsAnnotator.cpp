@@ -1526,7 +1526,6 @@ VariantHgvsAnnotator::Parameters::Parameters(int max_dist_trans, int splice_reg_
 
 void VariantHgvsAnnotator::annotateExonIntronNumber(VariantConsequence& hgvs, const Transcript& transcript, const VcfLine& variant, bool debug)
 {
-	//TODO also handle type intron_variant/exon_variant in this method!
 	const BedFile& regions = transcript.regions();
 	bool plus_strand = transcript.isPlusStrand();
 	bool insertion = variant.isIns();

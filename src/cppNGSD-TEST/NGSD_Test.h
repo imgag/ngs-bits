@@ -2740,7 +2740,7 @@ private slots:
 
 		//process VCF
 		VcfFile vcf;
-		vcf.load(TESTDATA("data_in/VariantHgvsAnnotator_comparison_vep.vcf")); //TODO bgzip file when debugging done
+		vcf.load(TESTDATA("data_in/VariantHgvsAnnotator_comparison_vep.vcf.gz"));
 		for(int i=0; i<vcf.count(); ++i)
 		{
 			const VcfLine& v = vcf[i];
