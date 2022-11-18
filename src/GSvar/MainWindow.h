@@ -16,7 +16,7 @@
 #include "FileLocationProviderLocal.h"
 #include "FileLocationProviderRemote.h"
 #include "VersatileTextStream.h"
-
+#include "Log.h"
 ///Main window class
 class MainWindow
 		: public QMainWindow

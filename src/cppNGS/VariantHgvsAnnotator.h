@@ -10,16 +10,15 @@
 #include "Sequence.h"
 #include "NGSHelper.h"
 #include "Exceptions.h"
-#include <QString>
-#include <QHash>
-#include <QSet>
 
 ///Representation of the effect of a variant
+///NOTE: the order is important as it defines the severity of the variant.
 enum class VariantConsequenceType : int
 {
     INTERGENIC_VARIANT,
     DOWNSTREAM_GENE_VARIANT,
     UPSTREAM_GENE_VARIANT,
+	NMD_TRANSCRIPT_VARIANT,
     NON_CODING_TRANSCRIPT_VARIANT,
     INTRON_VARIANT,
     NON_CODING_TRANSCRIPT_EXON_VARIANT,
@@ -34,13 +33,13 @@ enum class VariantConsequenceType : int
     PROTEIN_ALTERING_VARIANT,
     MISSENSE_VARIANT,
     INFRAME_DELETION,
-    INFRAME_INSERTION,
-    START_LOST,
-    STOP_LOST,
-    FRAMESHIFT_VARIANT,
-    STOP_GAINED,
+	INFRAME_INSERTION,
+	START_LOST,
+	STOP_LOST,
+	STOP_GAINED,
+	FRAMESHIFT_VARIANT,
     SPLICE_DONOR_VARIANT,
-    SPLICE_ACCEPTOR_VARIANT
+	SPLICE_ACCEPTOR_VARIANT
 };
 
 inline uint qHash(VariantConsequenceType key)
@@ -48,69 +47,20 @@ inline uint qHash(VariantConsequenceType key)
 	return qHash(static_cast<int>(key));
 }
 
-///Representation of the level of impact of a variant
-enum class VariantImpact
-{
-    MODIFIER,
-    LOW,
-    MODERATE,
-    HIGH
-};
-
 ///Representation of HGVS nomenclature
 struct CPPNGSSHARED_EXPORT VariantConsequence
 {
-    QString transcript_id;
-	QString allele;
-    QString hgvs_c;
-    QString hgvs_p;
-    QSet<VariantConsequenceType> variant_consequence_type;
+	QByteArray hgvs_c;
+	QByteArray hgvs_p;
+	QSet<VariantConsequenceType> types;
+	QByteArray impact;
     int exon_number{-1};
     int intron_number{-1};
 
-	QString variantConsequenceTypesAsString(QString sep="&");
+	QByteArray normalized; //normalized VCF representation after shifting according to 3' rule
 
-	static VariantImpact consequenceTypeToImpact(VariantConsequenceType type)
-    {
-        switch(type)
-        {
-            case VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT:
-            case VariantConsequenceType::SPLICE_DONOR_VARIANT:
-            case VariantConsequenceType::STOP_GAINED:
-            case VariantConsequenceType::FRAMESHIFT_VARIANT:
-            case VariantConsequenceType::STOP_LOST:
-            case VariantConsequenceType::START_LOST:
-                return VariantImpact::HIGH;
-                break;
-            case VariantConsequenceType::INFRAME_INSERTION:
-            case VariantConsequenceType::INFRAME_DELETION:
-            case VariantConsequenceType::MISSENSE_VARIANT:
-            case VariantConsequenceType::PROTEIN_ALTERING_VARIANT:
-                return VariantImpact::MODERATE;
-                break;
-            case VariantConsequenceType::SPLICE_REGION_VARIANT:
-            case VariantConsequenceType::INCOMPLETE_TERMINAL_CODON_VARIANT:
-            case VariantConsequenceType::START_RETAINED_VARIANT:
-            case VariantConsequenceType::STOP_RETAINED_VARIANT:
-            case VariantConsequenceType::SYNONYMOUS_VARIANT:
-                return VariantImpact::LOW;
-                break;
-            case VariantConsequenceType::CODING_SEQUENCE_VARIANT:
-            case VariantConsequenceType::FIVE_PRIME_UTR_VARIANT:
-            case VariantConsequenceType::THREE_PRIME_UTR_VARIANT:
-            case VariantConsequenceType::NON_CODING_TRANSCRIPT_EXON_VARIANT:
-            case VariantConsequenceType::INTRON_VARIANT:
-            case VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT:
-            case VariantConsequenceType::UPSTREAM_GENE_VARIANT:
-            case VariantConsequenceType::DOWNSTREAM_GENE_VARIANT:
-            case VariantConsequenceType::INTERGENIC_VARIANT:
-                return VariantImpact::MODIFIER;
-                break;
-        }
-		THROW(ProgrammingException, "Unhandled variant consequence type " + QString::number(static_cast<int>(type)) + "!");
-	}
-
-	static QString consequenceTypeToString(VariantConsequenceType type)
+	QByteArray typesToString(QByteArray sep="&") const;
+	static QByteArray typeToString(VariantConsequenceType type)
     {
         switch(type)
         {
@@ -138,47 +88,62 @@ struct CPPNGSSHARED_EXPORT VariantConsequence
             case VariantConsequenceType::UPSTREAM_GENE_VARIANT: return "upstream_gene_variant";
             case VariantConsequenceType::DOWNSTREAM_GENE_VARIANT: return "downstream_gene_variant";
             case VariantConsequenceType::INTERGENIC_VARIANT: return "intergenic_variant";
+			case VariantConsequenceType::NMD_TRANSCRIPT_VARIANT: return "NMD_transcript_variant";
+
 		}
 
-		THROW(ProgrammingException, "Unhandled variant consequence type " + QString::number(static_cast<int>(type)) + "!");
+		THROW(ProgrammingException, "Unhandled variant consequence type " + QByteArray::number(static_cast<int>(type)) + "!");
     }
+
+	QByteArray toString() const;
 };
 
 ///Class for generating HGVS nomenclature and variant effect from VCF/GSVar
 class CPPNGSSHARED_EXPORT VariantHgvsAnnotator
 {
 public:
+
+	///Parameters struct
+	struct CPPNGSSHARED_EXPORT Parameters
+	{
+		Parameters(int max_dist_trans = 5000, int splice_reg_exon=3, int splice_reg_intron_5=20, int splice_reg_intron_3=20);
+
+		int max_dist_to_transcript; //Max distance of variant from transcript to be annotated with information about that transcript.
+		int splice_region_ex; //Number of exonic bases flanking the splice junction that are annotated as splice region.
+		int splice_region_in_5; //Number of introninc bases flanking the 5' splice junction that are annotated as splice region.
+		int splice_region_in_3; //Number of introninc bases flanking the 3' splice junction that are annotated as splice region.
+	};
+
     ///Constructor to change parameters for detecting up/downstream and splice region variants: different for 5 and 3 prime site intron
-	VariantHgvsAnnotator(const FastaFileIndex& genome_idx, int max_dist_to_transcript=5000, int splice_region_ex=3, int splice_region_in_5=20, int splice_region_in_3=20);
+	VariantHgvsAnnotator(const FastaFileIndex& genome_idx, Parameters params = Parameters());
 
-    ///Converts a variant in VCF format to HGVS nomenclature
-	VariantConsequence variantToHgvs(const Transcript& transcript, VcfLine& variant);
-	VariantConsequence variantToHgvs(const Transcript& transcript, const Variant& variant);
+	///Calculates variant consequence from VCF-style variant (not multi-allelic)
+	VariantConsequence annotate(const Transcript& transcript, const VcfLine& variant, bool debug=false);
+	///Calculates variant consequence from GSvar-style variant
+	VariantConsequence annotate(const Transcript& transcript, const Variant& variant, bool debug=false);
 
-    QByteArray translate(const Sequence& seq, bool is_mito = false, bool end_at_stop = true);
-	Sequence getCodingSequence(const Transcript& trans, bool add_utr_3 = false);
+	///Converts consequence type to impact
+	static QByteArray consequenceTypeToImpact(VariantConsequenceType type);
 
 private:
+	Parameters params_;
 	const FastaFileIndex& genome_idx_;
-	//How far upstream or downstream can the variant be from the transcript
-	int max_dist_to_transcript_;
 
-	//How far the splice region extends into exon/intron
-	int splice_region_ex_;
-	int splice_region_in_5_;
-	int splice_region_in_3_;
+	QByteArray annotateRegionsCoding(const Transcript& transcript, VariantConsequence& hgvs, int gen_pos, bool is_dup, bool debug=false);
+	QByteArray annotateRegionsNonCoding(const Transcript& transcript, VariantConsequence& hgvs, int gen_pos, bool is_dup = false);
+	QByteArray getHgvsPosition(const BedFile& regions, int gen_pos, bool plus_strand, const BedFile& coding_regions, bool utr_5 = false);
+	QByteArray getPositionInIntron(const BedFile& regions, int genomic_position, bool plus_strand, const BedFile &coding_regions, bool utr_5 = false);
+	QByteArray getHgvsProteinAnnotation(const VcfLine& variant, const QByteArray& pos_hgvs_c, const Transcript& transcript, bool debug=false);
 
-	QString annotateRegionsCoding(const Transcript& transcript, VariantConsequence& hgvs, int gen_pos, bool is_dup = false);
-	QString annotateRegionsNonCoding(const Transcript& transcript, VariantConsequence& hgvs, int gen_pos, bool is_dup = false);
-	QString getHgvsPosition(const BedFile& regions, VariantConsequence& hgvs, int gen_pos, bool plus_strand, const BedFile& coding_regions, bool utr_5 = false, int first_region = 0);
-	QString getPositionInIntron(const BedFile& regions, VariantConsequence& hgvs, int genomic_position, bool plus_strand, const BedFile &coding_regions, bool utr_5 = false, int first_region = 0);
-	QString getHgvsProteinAnnotation(const VcfLine& variant, const QString& pos_hgvs_c, const Transcript& transcript);
+	void annotateExonIntronNumber(VariantConsequence& hgvs, const Transcript& transcript, const VcfLine& variant, bool debug=false);
 
-	QByteArray toThreeLetterCode(char aa_one_letter_code);
-
-	void annotateSpliceRegion(VariantConsequence& hgvs, const Transcript& transcript, int start, int end, bool insertion);
+	void annotateSpliceRegion(VariantConsequence& hgvs, const Transcript& transcript, int start, int end, bool insertion, bool debug=false);
 
 	void annotateProtSeqCsqSnv(VariantConsequence& hgvs);
+
+	QByteArray translate(const Sequence& seq, bool is_mito = false, bool end_at_stop = true);
+
+	Sequence getCodingSequence(const Transcript& trans, bool add_utr_3 = false);
 };
 
 #endif // VARIANTHGVSANNOTATOR_H

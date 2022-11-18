@@ -9,9 +9,6 @@ TEST_CLASS(VcfLine_Test)
 
     void constructLineWithoutFile()
     {
-        QVector<Sequence> alt;
-        alt.push_back("T");
-
         QByteArrayList format_ids;
         format_ids.push_back("GT");
         format_ids.push_back("X");
@@ -30,7 +27,7 @@ TEST_CLASS(VcfLine_Test)
         list.push_back("B");
         list_of_format_values.push_back(list);
 
-        VcfLine variant(Chromosome("chr4"), 777, "A", alt, format_ids, sample_ids, list_of_format_values);
+        VcfLine variant(Chromosome("chr4"), 777, "A", QList<Sequence>() << "T", format_ids, sample_ids, list_of_format_values);
         X_EQUAL(variant.chr(), Chromosome("chr4"));
         I_EQUAL(variant.start(), 777);
         S_EQUAL(variant.ref(), "A");
@@ -149,19 +146,58 @@ TEST_CLASS(VcfLine_Test)
         S_EQUAL(format_value, "255,84,0");
     }
 
-    void isMultiAllelicOrInDEl()
+    void isMultiAllelic()
     {
-        VcfFile file;
-        file.load(TESTDATA("data_in/variantList_removeDuplicates.vcf"));
-
-        VcfLine line = file.vcfLine(5);
-        IS_TRUE(line.isMultiAllelic());
-        line = file.vcfLine(6);
+        VcfLine line = VcfLine("chr18", 67904586, "G", QList<Sequence>() << "A");
         IS_FALSE(line.isMultiAllelic());
 
-        line = file.vcfLine(0);
+        line = VcfLine("chr18", 67904586, "G", QList<Sequence>() << "A" << "C");
+        IS_TRUE(line.isMultiAllelic());
+    }
+
+    void isIns()
+    {
+        VcfLine line = VcfLine("chr9", 130932396, "AACA", QList<Sequence>() << "AGG");
+        IS_FALSE(line.isIns());
+
+        line = VcfLine("chr9", 130932396, "AACA", QList<Sequence>() << "A");
+        IS_FALSE(line.isIns());
+
+        line = VcfLine("chr9", 130932396, "A", QList<Sequence>() << "AGG");
+        IS_TRUE(line.isIns());
+
+        line = VcfLine("chr9", 130932396, "A", QList<Sequence>() << "G");
+        IS_FALSE(line.isIns());
+    }
+
+    void isDel()
+    {
+        VcfLine line = VcfLine("chr9", 130932396, "AACA", QList<Sequence>() << "AGG");
+        IS_FALSE(line.isDel());
+
+        line = VcfLine("chr9", 130932396, "AACA", QList<Sequence>() << "A");
+        IS_TRUE(line.isDel());
+
+        line = VcfLine("chr9", 130932396, "A", QList<Sequence>() << "AGG");
+        IS_FALSE(line.isDel());
+
+        line = VcfLine("chr9", 130932396, "A", QList<Sequence>() << "G");
+        IS_FALSE(line.isDel());
+    }
+
+
+    void isInDel()
+    {
+        VcfLine line = VcfLine("chr9", 130932396, "AACA", QList<Sequence>() << "AGG");
         IS_TRUE(line.isInDel());
-        line = file.vcfLine(1);
+
+        line = VcfLine("chr9", 130932396, "AACA", QList<Sequence>() << "A");
+        IS_FALSE(line.isInDel());
+
+        line = VcfLine("chr9", 130932396, "A", QList<Sequence>() << "AGG");
+        IS_FALSE(line.isInDel());
+
+        line = VcfLine("chr9", 130932396, "A", QList<Sequence>() << "G");
         IS_FALSE(line.isInDel());
     }
 
@@ -179,7 +215,7 @@ TEST_CLASS(VcfLine_Test)
         //leftNormalize inside conversion of GSvar to VCF
         v = Variant("chr17", 41246534, 41246534, "T", "A");
         v_list.append(v);
-        VcfFile vcf_file = VcfFile::convertGSvarToVcf(v_list, ref_file);
+        VcfFile vcf_file = VcfFile::fromGSvar(v_list, ref_file);
         I_EQUAL(vcf_file.count(), 1);
         VcfLine v_line = vcf_file[0];
         I_EQUAL(v_line.start(), 41246534);
@@ -192,7 +228,7 @@ TEST_CLASS(VcfLine_Test)
         v_line.setSingleAlt("A");
         v_line.setChromosome("chr17");
         v_line.setPos(41246534);
-        v_line.leftNormalize(reference);
+        v_line.leftNormalize(reference, true);
         I_EQUAL(v_line.start(), 41246534);
         I_EQUAL(v_line.end(), 41246534);
         S_EQUAL(v_line.ref(), "T");
@@ -203,7 +239,7 @@ TEST_CLASS(VcfLine_Test)
         v = Variant("chr17", 41246534, 41246534, "-", "T");
         v_list.clear();
         v_list.append(v);
-        vcf_file = VcfFile::convertGSvarToVcf(v_list, ref_file);
+        vcf_file = VcfFile::fromGSvar(v_list, ref_file);
         I_EQUAL(vcf_file.count(), 1);
         v_line = vcf_file[0];
         I_EQUAL(v_line.start(), 41246532);
@@ -216,7 +252,7 @@ TEST_CLASS(VcfLine_Test)
         v_line.setSingleAlt("TT");
         v_line.setChromosome("chr17");
         v_line.setPos(41246534);
-        v_line.leftNormalize(reference);
+        v_line.leftNormalize(reference, true);
         I_EQUAL(v_line.start(), 41246532);
         I_EQUAL(v_line.end(), 41246532);
         S_EQUAL(v_line.ref(), "G");
@@ -227,7 +263,7 @@ TEST_CLASS(VcfLine_Test)
         v = Variant("chr3", 195307240, 195307240, "-", "TTC");
         v_list.clear();
         v_list.append(v);
-        vcf_file = VcfFile::convertGSvarToVcf(v_list, ref_file);
+        vcf_file = VcfFile::fromGSvar(v_list, ref_file);
         I_EQUAL(vcf_file.count(), 1);
         v_line = vcf_file[0];
         I_EQUAL(v_line.start(), 195307239);
@@ -240,7 +276,7 @@ TEST_CLASS(VcfLine_Test)
         v_line.setSingleAlt("CTTC");
         v_line.setChromosome("chr3");
         v_line.setPos(195307240);
-        v_line.leftNormalize(reference);
+        v_line.leftNormalize(reference, true);
         I_EQUAL(v_line.start(), 195307239);
         I_EQUAL(v_line.end(), 195307239);
         S_EQUAL(v_line.ref(), "C");
@@ -248,51 +284,173 @@ TEST_CLASS(VcfLine_Test)
 
         //DEL (two base block shift)
         //leftNormalize inside conversion of GSvar to VCF
-        v = Variant("chr3", 195956747, 195956748, "AG", "-");
+        v = Variant("chr3", 196229876, 196229877, "AG", "-");
         v_list.clear();
         v_list.append(v);
-        vcf_file = VcfFile::convertGSvarToVcf(v_list, ref_file);
+        vcf_file = VcfFile::fromGSvar(v_list, ref_file);
         I_EQUAL(vcf_file.count(), 1);
         v_line = vcf_file[0];
-        I_EQUAL(v_line.start(), 195956748);
-        I_EQUAL(v_line.end(), 195956750);
-        S_EQUAL(v_line.ref(), "CAG");
-        S_EQUAL(v_line.alt(0), "C");
+        I_EQUAL(v_line.start(), 196229855);
+        I_EQUAL(v_line.end(), 196229857);
+        S_EQUAL(v_line.ref(), "AAG");
+        S_EQUAL(v_line.alt(0), "A");
 
         //leftNormalize of VCF line
         v_line.setRef("GAG");
         v_line.setSingleAlt("G");
         v_line.setChromosome("chr3");
-        v_line.setPos(195956746);
-        v_line.leftNormalize(reference);
-        I_EQUAL(v_line.start(), 195956748);
-        I_EQUAL(v_line.end(), 195956750);
-        S_EQUAL(v_line.ref(), "CAG");
-        S_EQUAL(v_line.alt(0), "C");
+        v_line.setPos(196229875);
+        v_line.leftNormalize(reference, true);
+        I_EQUAL(v_line.start(), 196229855);
+        I_EQUAL(v_line.end(), 196229857);
+        S_EQUAL(v_line.ref(), "AAG");
+        S_EQUAL(v_line.alt(0), "A");
 
         //DEL (no block shift, but part of sequence before and after match)
         //leftNormalize inside conversion of GSvar to VCF
-        v = Variant("chr4", 88536883, 88536900, "TAGCAGTGACAGCAGCAA", "-");
+        v = Variant("chr4", 87615731, 87615748, "TAGCAGTGACAGCAGCAA", "-");
         v_list.clear();
         v_list.append(v);
-        vcf_file = VcfFile::convertGSvarToVcf(v_list, ref_file);
+        vcf_file = VcfFile::fromGSvar(v_list, ref_file);
         I_EQUAL(vcf_file.count(), 1);
         v_line = vcf_file[0];
-        I_EQUAL(v_line.start(), 88536900);
-        I_EQUAL(v_line.end(), 88536918);
-        S_EQUAL(v_line.ref(), "GTAGCAGTGACAGCAGCAA");
-        S_EQUAL(v_line.alt(0), "G");
+        I_EQUAL(v_line.start(), 87615716);
+        I_EQUAL(v_line.end(), 87615734);
+        S_EQUAL(v_line.ref(), "TAGTGACAGCAGCAATAGC");
+        S_EQUAL(v_line.alt(0), "T");
 
         //leftNormalize of VCF line
         v_line.setRef("ATAGCAGTGACAGCAGCAA");
         v_line.setSingleAlt("A");
         v_line.setChromosome("chr4");
-        v_line.setPos(88536882);
-        v_line.leftNormalize(reference);
-        I_EQUAL(v_line.start(), 88536900);
-        I_EQUAL(v_line.end(), 88536918);
-        S_EQUAL(v_line.ref(), "GTAGCAGTGACAGCAGCAA");
+        v_line.setPos(87615730);
+        v_line.leftNormalize(reference, true);
+        I_EQUAL(v_line.start(), 87615716);
+        I_EQUAL(v_line.end(), 87615734);
+        S_EQUAL(v_line.ref(), "TAGTGACAGCAGCAATAGC");
+        S_EQUAL(v_line.alt(0), "T");
+
+        //DEL (two base block shift)
+        //leftNormalize inside conversion of GSvar to VCF
+        v = Variant("chr3", 106172409, 106172410, "AG", "-");
+        v_list.clear();
+        v_list.append(v);
+        vcf_file = VcfFile::fromGSvar(v_list, ref_file);
+        I_EQUAL(vcf_file.count(), 1);
+        v_line = vcf_file[0];
+        I_EQUAL(v_line.start(), 106172403);
+        I_EQUAL(v_line.end(), 106172405);
+        S_EQUAL(v_line.ref(), "GGA");
         S_EQUAL(v_line.alt(0), "G");
+
+        //leftNormalize of VCF line
+        v_line.setRef("GAG");
+        v_line.setSingleAlt("G");
+        v_line.setChromosome("chr3");
+        v_line.setPos(106172408);
+        v_line.leftNormalize(reference, true);
+        I_EQUAL(v_line.start(), 106172403);
+        I_EQUAL(v_line.end(), 106172405);
+        S_EQUAL(v_line.ref(), "GGA");
+        S_EQUAL(v_line.alt(0), "G");
+
+    }
+
+    void rightNormalize()
+    {
+        QString ref_file = Settings::string("reference_genome", true);
+        if (ref_file=="") SKIP("Test needs the reference genome!");
+        FastaFileIndex reference(ref_file);
+
+        Variant v;
+        VcfLine v_line;
+
+        //SNP > no change
+        v_line.setRef("T");
+        v_line.setSingleAlt("A");
+        v_line.setChromosome("chr17");
+        v_line.setPos(41246534);
+        v_line.rightNormalize(reference);
+        I_EQUAL(v_line.start(), 41246534);
+        I_EQUAL(v_line.end(), 41246534);
+        S_EQUAL(v_line.ref(), "T");
+        S_EQUAL(v_line.alt(0), "A");
+
+        //INS (one base block shift)
+        v_line.setRef("A");
+        v_line.setSingleAlt("AT");
+        v_line.setChromosome("chr17");
+        v_line.setPos(41246535);
+        v_line.rightNormalize(reference);
+        I_EQUAL(v_line.start(), 41246537);
+        I_EQUAL(v_line.end(), 41246537);
+        S_EQUAL(v_line.ref(), "T");
+        S_EQUAL(v_line.alt(0), "TT");
+
+        //INS (no block shift)
+        v_line.setRef("C");
+        v_line.setSingleAlt("CTTC");
+        v_line.setChromosome("chr3");
+        v_line.setPos(195307240);
+        v_line.rightNormalize(reference);
+        I_EQUAL(v_line.start(), 195307241);
+        I_EQUAL(v_line.end(), 195307241);
+        S_EQUAL(v_line.ref(), "T");
+        S_EQUAL(v_line.alt(0), "TTCT");
+
+        ////DEL (two base block shift)
+        v_line.setRef("GAG");
+        v_line.setSingleAlt("G");
+        v_line.setChromosome("chr3");
+        v_line.setPos(106172416);
+        v_line.rightNormalize(reference);
+        I_EQUAL(v_line.start(), 106172420);
+        I_EQUAL(v_line.end(), 106172422);
+        S_EQUAL(v_line.ref(), "GAG");
+        S_EQUAL(v_line.alt(0), "G");
+
+        //DEL (no block shift, but part of sequence before and after match)
+        v_line.setRef("TAGTGACAGCAGCAATAGC");
+        v_line.setSingleAlt("T");
+        v_line.setChromosome("chr4");
+        v_line.setPos(87615716);
+        v_line.rightNormalize(reference);
+        I_EQUAL(v_line.start(), 87615730);
+        I_EQUAL(v_line.end(), 87615748);
+        S_EQUAL(v_line.ref(), "ATAGCAGTGACAGCAGCAA");
+        S_EQUAL(v_line.alt(0), "A");
+
+        //INS with repeats close by but not adjecent
+        v_line.setRef("T");
+        v_line.setSingleAlt("TCTC");
+        v_line.setChromosome("chr4");
+        v_line.setPos(76756404);
+        v_line.rightNormalize(reference);
+        I_EQUAL(v_line.start(), 76756404);
+        I_EQUAL(v_line.end(), 76756404);
+        S_EQUAL(v_line.ref(), "T");
+        S_EQUAL(v_line.alt(0), "TCTC");
+
+        v_line.setRef("A");
+        v_line.setSingleAlt("AAT");
+        v_line.setChromosome("chr5");
+        v_line.setPos(103028838);
+        v_line.rightNormalize(reference);
+        I_EQUAL(v_line.start(), 103028838);
+        I_EQUAL(v_line.end(), 103028838);
+        S_EQUAL(v_line.ref(), "A");
+        S_EQUAL(v_line.alt(0), "AAT");
+
+        // INS multiple block shift + change in alt
+        v_line.setRef("A");
+        v_line.setSingleAlt("AAG");
+        v_line.setChromosome("chr9");
+        v_line.setPos(94567437);
+        v_line.rightNormalize(reference);
+        I_EQUAL(v_line.start(), 94567444);
+        I_EQUAL(v_line.end(), 94567444);
+        S_EQUAL(v_line.ref(), "A");
+        S_EQUAL(v_line.alt(0), "AGA");
     }
 
     void overlapsWithComplete()

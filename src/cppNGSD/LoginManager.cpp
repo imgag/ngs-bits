@@ -1,6 +1,7 @@
 #include "LoginManager.h"
 #include "NGSD.h"
 #include "ToolBase.h"
+#include "Log.h"
 #include <QJsonDocument>
 
 LoginManager::LoginManager()

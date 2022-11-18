@@ -12,6 +12,7 @@
 #include "GlobalServiceProvider.h"
 #include "GeneInfoDBs.h"
 #include "NGSHelper.h"
+#include "Log.h"
 
 NumericWidgetItem::NumericWidgetItem(QString text):
 	QTableWidgetItem(text)

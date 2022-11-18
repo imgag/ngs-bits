@@ -3693,8 +3693,7 @@ VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, bool tumor_only, bool th
 				}
 				return VcfFile();
 			}
-			VcfLinePtr vcf_ptr = QSharedPointer<VcfLine>(new VcfLine(line.chr(), line.start(), Sequence(variant_info.at(0)), QVector<Sequence>() << Sequence(variant_info.at(1)), format_ids,
-																	 sample_ids, list_of_format_values));
+			VcfLinePtr vcf_ptr = QSharedPointer<VcfLine>(new VcfLine(line.chr(), line.start(), variant_info.at(0), QList<Sequence>() << variant_info.at(1), format_ids, sample_ids, list_of_format_values));
 			vcf_ptr->setInfo(info);
 			vcf_ptr->setInfoIdToIdxPtr(info_ptr);
 			vcf_ptr->setId(QByteArrayList() << "ID");

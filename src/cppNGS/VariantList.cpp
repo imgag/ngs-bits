@@ -11,6 +11,7 @@
 #include <QTextStream>
 #include <QRegExp>
 #include <QBitArray>
+#include <QUrl>
 
 #include <zlib.h>
 
@@ -47,6 +48,20 @@ Variant::Variant(const Chromosome& chr, int start, int end, const Sequence& ref,
 			}
 		}
 	}
+}
+
+Variant::Variant(const VcfLine& vcf)
+	: chr_(vcf.chr())
+	, start_(vcf.start())
+	, end_(vcf.end())
+	, ref_(vcf.ref())
+	, obs_(vcf.altString())
+	, filters_()
+	, annotations_()
+{
+	//check input
+	if (!vcf.isValid()) THROW(Exception, "Cannot convert invalid VCF variant to GSvar variant: " + vcf.toString());
+	if(vcf.isMultiAllelic()) THROW(Exception, "Cannot convert multi-allelic VCF variant to GSvar variant: " +vcf.toString());
 }
 
 QByteArrayList Variant::vepAnnotations(int csq_index, int field_index) const
@@ -369,36 +384,34 @@ QString Variant::toHGVS(const FastaFileIndex& genome_index) const
 	THROW(ProgrammingException, "Could not convert variant " + toString(false) + " to string! This should not happen!");
 }
 
-VariantVcfRepresentation Variant::toVCF(const FastaFileIndex& genome_index) const
+VcfLine Variant::toVCF(const FastaFileIndex& genome_index) const
 {
-	VariantVcfRepresentation output;
-	output.chr = chr_;
-	output.pos = start_;
-	output.ref = ref_;
-	output.alt = obs_;
+	int pos = start_;
+	Sequence ref = ref_;
+	Sequence alt = obs_;
 
 	//prepend base for InDels
 	if (!isSNV())
 	{
-		if (output.ref=="-")
+		if (ref=="-")
 		{
-			output.ref.clear();
+			ref.clear();
 		}
-		else if (output.alt=="-")
+		else if (alt=="-")
 		{
-			output.pos -= 1;
-			output.alt.clear();
+			pos -= 1;
+			alt.clear();
 		}
-		else if(output.ref.size() > 1 || output.alt.size() > 1)
+		else if(ref.size() > 1 || alt.size() > 1)
 		{
-			output.pos -= 1;
+			pos -= 1;
 		}
-		Sequence prefix_base = genome_index.seq(output.chr, output.pos, 1);
-		output.ref = prefix_base + output.ref;
-		output.alt = prefix_base + output.alt;
+		Sequence prefix_base = genome_index.seq(chr_, pos, 1);
+		ref = prefix_base + ref;
+		alt = prefix_base + alt;
 	}
 
-	return output;
+	return VcfLine(chr_, pos, ref, QList<Sequence>() << alt);
 }
 
 VariantList::LessComparatorByAnnotation::LessComparatorByAnnotation(int annotation_index)

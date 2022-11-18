@@ -370,11 +370,11 @@ void SomaticReportHelper::somaticSnvForQbic(QString path_target_folder)
 	{
 		const Variant& variant = somatic_vl_[i];
 
-		VariantVcfRepresentation vcf_rep = variant.toVCF(genome_reference);
-		stream << vcf_rep.chr.str() << "\t";
-		stream << vcf_rep.pos << "\t";
-		stream << vcf_rep.ref << "\t";
-		stream << vcf_rep.alt << "\t";
+		VcfLine vcf_rep = variant.toVCF(genome_reference);
+		stream << vcf_rep.chr().str() << "\t";
+		stream << vcf_rep.start() << "\t";
+		stream << vcf_rep.ref() << "\t";
+		stream << vcf_rep.altString() << "\t";
 		stream << variant.annotations().at(i_tumor_af) << "\t";
 		stream << variant.annotations().at(i_tumor_depth) << "\t";
 

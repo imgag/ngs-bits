@@ -3,6 +3,7 @@
 #include "GSvarHelper.h"
 #include "GermlineReportGenerator.h"
 #include "GlobalServiceProvider.h"
+#include "Log.h"
 #include <QMessageBox>
 #include <QMenu>
 

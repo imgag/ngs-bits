@@ -2,10 +2,10 @@
 #include "Exceptions.h"
 #include "NGSHelper.h"
 #include "LoginManager.h"
+#include "Log.h"
 
 ApiCaller::ApiCaller()
 {
-
 }
 
 QByteArray ApiCaller::get(QString api_path, RequestUrlParams url_params, HttpHeaders headers, bool needs_user_token, bool needs_db_token, bool rethrow_excpetion)

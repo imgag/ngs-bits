@@ -1,23 +1,12 @@
 #pragma once
 
 #include "cppNGS_global.h"
-#include "KeyValuePair.h"
-#include "Exceptions.h"
-#include "Log.h"
 
-#include "ChromosomalIndex.h"
 #include "Sequence.h"
+#include "Exceptions.h"
+#include "FastaFileIndex.h"
+#include "BasicStatistics.h"
 #include "BedFile.h"
-#include "VariantList.h"
-
-#include <QIODevice>
-#include <QString>
-#include <QMap>
-#include <QTextStream>
-#include <QByteArray>
-#include <QList>
-
-#include <memory>
 
 ///Data structure containing a vector of keys (to retrieve its order) and a hash of the key to value
 template<typename K, typename V>
@@ -228,17 +217,15 @@ private:
 	InfoFormatLine lineByID(const QByteArray& id, const QVector<InfoFormatLine>& lines, bool error_not_found = true) const;
 };
 
-///Representation of a line of a vcf file
-class CPPNGSSHARED_EXPORT  VcfLine
+///Representation of a line of a VCF file
+class CPPNGSSHARED_EXPORT VcfLine
 {
-
 public:
-
 	///Default constructor.
 	VcfLine();
 	///Constructor with basic entries
 	/// (chromosome, start position, reference base(s), List of alternative base(s), List of FormatIDs, List of sampleIDs, List containing for every sample a list of values for every format)
-	VcfLine(const Chromosome& chr, int start, const Sequence& ref, const QVector<Sequence>& alt, QByteArrayList format_ids = QByteArrayList(), QByteArrayList sample_ids = QByteArrayList(), QList<QByteArrayList> list_of_format_values = QList<QByteArrayList>());
+	VcfLine(const Chromosome& chr, int start, const Sequence& ref, const QList<Sequence>& alt, QByteArrayList format_ids = QByteArrayList(), QByteArrayList sample_ids = QByteArrayList(), QList<QByteArrayList> list_of_format_values = QList<QByteArrayList>());
 
 	const Chromosome& chr() const
 	{
@@ -250,22 +237,21 @@ public:
 	}
 	int end() const
 	{
-		if(ref().length() <= 0) THROW(ArgumentException, "Reference can not have length zero in a VCF file.");
-		return (start() + ref().length() - 1);
+		return start() + ref().length() - 1;
 	}
 	const Sequence& ref() const
 	{
 		return ref_;
 	}
-	const QVector<Sequence>& alt() const
+	const QList<Sequence>& alt() const
 	{
 		return alt_;
 	}
 	//Concatenates all alternatives bases to a comma seperated string
-	const Sequence altString() const
+	Sequence altString() const
 	{
 		QByteArrayList alt_sequences;
-		for(const Sequence& seq : alt())
+		for(const Sequence& seq : alt_)
 		{
 			alt_sequences.push_back(seq);
 		}
@@ -273,6 +259,7 @@ public:
 	}
 	const Sequence& alt(int pos) const
 	{
+		if (pos>=alt_.length()) THROW(ArgumentException, "Invalid alternative sequence index " + QString::number(pos) + " for variant " + toString());
 		return alt_.at(pos);
 	}
 	const QByteArrayList& id() const
@@ -292,61 +279,44 @@ public:
 	{
 		if(!formatIdxOf_)
 		{
-			QByteArrayList empty_list;
-			return empty_list;
+			return QByteArrayList();
 		}
-		else
-		{
-			return formatIdxOf_->keys();
-		}
+		return formatIdxOf_->keys();
 	}
+
 	//Returns a list of all info IDs
 	QByteArrayList infoKeys() const
 	{
 		if(!infoIdxOf_)
 		{
-			QByteArrayList list;
-			return list;
+			return QByteArrayList();
 		}
-		else
-		{
-			return infoIdxOf_->keys();
-		}
+		return infoIdxOf_->keys();
 	}
+
 	//Returns a list of all info values in order of the info IDs
 	QByteArrayList infoValues()
 	{
 		if(!infoIdxOf_)
 		{
-			QByteArrayList list;
-			return list;
+			return QByteArrayList();
 		}
-		else
-		{
-			return info_;
-		}
+		return info_;
 	}
+
 	//Returns the value for an info ID as key
 	QByteArray info(const QByteArray& key, bool error_if_key_absent = false) const
 	{
-		if(error_if_key_absent)
+		int info_pos = -1;
+		if(!infoIdxOf_->hasKey(key, info_pos))
 		{
-			int i_idx = (*infoIdxOf_)[key];
-			return info_.at(i_idx);
+			if (error_if_key_absent) THROW(ArgumentException, "Key ' " + key + "' not found in INFO entries of variant " + toString());
+			return "";
 		}
-		else
-		{
-			int info_pos;
-			if(infoIdxOf_->hasKey(key, info_pos))
-			{
-				return info_.at(info_pos);
-			}
-			else
-			{
-				return "";
-			}
-		}
+
+		return info_.at(info_pos);
 	}
+
 
 	///Returns a list, which stores for every sample a list of the values for every format ID
 	const QList<QByteArrayList>& samples() const
@@ -429,28 +399,13 @@ public:
 	}
 	void addAlt(const Sequence& alt)
 	{
-		alt_.push_back(strToPointer(alt.toUpper()));
-	}
-	//set the alternative bases with a list of sequences
-	void setAlt(const QList<Sequence>& alt)
-	{
-		alt_.clear();
-		for(const QByteArray& alt_element : alt)
-		{
-			alt_.push_back(alt_element);
-		}
+		alt_ << alt;
 	}
 	//set the alternative base(s) with only one alternative Sequence
-	void setSingleAlt(const Sequence& seq)
+	void setSingleAlt(const Sequence& alt)
 	{
-		if(alt_.empty())
-		{
-			alt_.push_back(seq);
-		}
-		else
-		{
-			alt_[0] = seq;
-		}
+		alt_.clear();
+		addAlt(alt);
 	}
 	void setId(const QByteArrayList& id)
 	{
@@ -548,36 +503,32 @@ public:
 		return ref_.length()==1 && alt(0)!="-" && ref_!="-";
 	}
 	//Returns if any VcfLine in the file is multiallelic
-	bool isMultiAllelic() const;
-	//Returns if the variant is an InDel, can only be called on single allelic variants
+	bool isMultiAllelic() const
+	{
+		return alt().count() > 1;
+	}
+	//Returns if the variant is a combined insertion and deletion. Cannot be called on multi-allelic variants.
 	bool isInDel() const;
-    //Returns if the variant is an insertion, can only be called on single allelic variants
+	//Returns if the variant is an insertion. Cannot be called on multi-allelic variants.
     bool isIns() const;
-    //Returns if the variant is a deletion, can only be called on single allelic variants
+	//Returns if the variant is a deletion. Cannot be called on multi-allelic variants.
     bool isDel() const;
-	//Returns if the chromosome is valid
-	bool isValidGenomicPosition() const;
+	//Returns if the VCF variant is valid (only checks the base variant, i.e. chr, pos, ref, alt)
+	bool isValid() const;
+	//Overload of the above function that also checks if the reference bases of the variants are correct.
+	bool isValid(const FastaFileIndex& reference) const;
 	//Returns all not passed filters
 	QByteArrayList failedFilters() const;
-	//Returns a string representation of the variant.
-	QString toString() const;
+	//Returns a string representation of the variant (chr, pos, ref, alt).
+	QByteArray toString(bool add_end=false) const;
 	QByteArrayList vepAnnotations(int field_index) const;
 	// Left-normalize all variants.
-	void leftNormalize(FastaFileIndex& reference);
-	// Removes the common prefix/suffix from indels, adapts the start/end position and replaces empty sequences with a custom string.
-	void normalize(const Sequence& empty_seq="", bool to_gsvar_format=true);
+	void leftNormalize(FastaFileIndex& reference, bool check_reference);
+	//Right-normalize all variants
+	void rightNormalize(FastaFileIndex& reference, bool check_reference=true);
     // Removes the common prefix/suffix from indels, shifts the variant left or right, and adds a common reference base
-    enum ShiftDirection {NONE, LEFT, RIGHT};
-    void normalize(ShiftDirection shift_dir, const FastaFileIndex& reference);
-	// copy coordinates of the vcf line into a variant (only single alternative bases)
-	void copyCoordinatesIntoVariant(Variant& variant)
-	{
-		variant.setChr(chr());
-		variant.setStart(start());
-		variant.setEnd(end());
-		variant.setRef(ref());
-		variant.setObs(alt(0));
-	}
+	enum ShiftDirection {LEFT, RIGHT};
+	void normalize(ShiftDirection shift_dir, const FastaFileIndex& reference, bool check_reference, bool add_prefix_base_to_mnps=false);
 
 	//Equality operator (only compares the variant location itself, not further annotations).
 	bool operator==(const VcfLine& rhs) const;
@@ -588,7 +539,7 @@ private:
 	Chromosome chr_;
 	int pos_;
 	Sequence ref_;
-	QVector<Sequence> alt_; //comma seperated list of alternative sequences
+	QList<Sequence> alt_; //comma seperated list of alternative sequences
 
 	QByteArrayList id_; //; seperated list of id-strings
 	double qual_;

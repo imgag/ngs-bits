@@ -1,4 +1,5 @@
 ##samtoolsVersion=0.1.18 (r982:295)
+##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
 ##DESCRIPTION=ID=ID of the variant, often dbSNP rsnumber
 ##DESCRIPTION=QUAL=Phred-scaled quality score
 ##DESCRIPTION=FILTER=Filter status
@@ -26,16 +27,21 @@
 ##DESCRIPTION=DP_format=# high-quality bases
 ##DESCRIPTION=SP_format=Phred-scaled strand bias P-value
 ##DESCRIPTION=PL_format=List of Phred-scaled genotype likelihoods
+##FILTER=q10=Quality below 10
+##FILTER=s50=Less than 50% of samples have data
+##FILTER=low_DP=no description available
 #chr	pos	ref	alt	ID	QUAL	FILTER	INDEL_info	DP_info	VDB_info	AF1_info	AC1_info	DP4_info	MQ_info	FQ_info	PV4_info	G3_info	HWE_info	CLR_info	UGT_info	CGT_info	PC2_info	PCHI2_info	QCHI2_info	PR_info	./Sample_GS120297A3/GS120297A3.bam_GT_format	./Sample_GS120297A3/GS120297A3.bam_GQ_format	./Sample_GS120297A3/GS120297A3.bam_GL_format	./Sample_GS120297A3/GS120297A3.bam_DP_format	./Sample_GS120297A3/GS120297A3.bam_SP_format	./Sample_GS120297A3/GS120297A3.bam_PL_format
-chr1	11676308	G	GACCC	.	215	.	TRUE	6	0.0000	1	2	0,0,3,3	60	-52.5											1/1	33				255,18,0
-chr1	11676377	G	A	.	158	.		6	0.0000	1	2	0,0,3,3	60	-45											1/1	33				191,18,0
-chr4	68247038	T	TATATCT	.	190	.	TRUE	6	0.0000	1	2	0,0,3,3	46	-52.5											1/1	33				230,18,0
-chr4	68247113	G	T	.	63	.		3	0.0000	1	2	0,0,1,2	41	-36											1/1	16				95,9,0
-chr9	130931421	G	A	.	225	.		2512	0.0002	0.5	1	457,473,752,757	46	225	0.77,1,2.5e-138,1										0/1	99				255,0,255
-chr9	130932396	AACA	AA	.	214	.	TRUE	3298	0.0012	1	2	5,6,1169,2016	48	-290	0.55,0.0051,1,1										1/1	99				255,255,0
 chr17	72196817	G	GA	.	217	.	TRUE	31	0.0000	0.5	1	4,3,11,11	42	88.5	1,1,0.17,0.28										0/1	99				255,0,123
 chr17	72196887	G	C	.	222	.		30	0.0000	1	2	0,0,14,14	41	-111											1/1	99				255,84,0
 chr17	72196892	G	GGTC	.	50.4	.	TRUE	30	0.0000	1	2	0,0,2,1	47	-43.5											1/1	16				90,9,0
 chr18	67904549	A	G	.	222	.		44	0.0002	1	2	0,0,19,22	50	-150											1/1	99				255,123,0
 chr18	67904586	G	A	.	222	.		44	0.0002	1	2	0,0,22,22	51	-159											1/1	99				255,132,0
+chr18	67904672	G	GACA,GAA	.	171	.	TRUE	22	0.0000	1	2	0,0,0,22	39	-97.5											1/1	99				212,63,0,190,27,187
 chr19	14466629	A	AA	.	70.4	.	TRUE	4	0.0001	1	2	0,0,1,2	50	-43.5											1/1	16				110,9,0
+chr1	11676308	G	GACCC	.	215	.	TRUE	6	0.0000	1	2	0,0,3,3	60	-52.5											1/1	33				255,18,0
+chr1	11676377	G	A	.	158	.		6	0.0000	1	2	0,0,3,3	60	-45											1/1	33				191,18,0
+chr2	139498511	G	GTCTGTCCT	.	159	.	TRUE	15	0.0000	1	2	0,0,6,9	49	-73.5											1/1	75				255,94,55
+chr4	68247038	T	TATATCT	.	190	.	TRUE	6	0.0000	1	2	0,0,3,3	46	-52.5											1/1	33				230,18,0
+chr4	68247113	G	T	.	63	low_DP		3	0.0000	1	2	0,0,1,2	41	-36											1/1	16				95,9,0
+chr9	130931421	G	A	.	225	.		2512	0.0002	0.5	1	457,473,752,757	46	225	0.77,1,2.5e-138,1										0/1	99				255,0,255
+chr9	130932396	AACA	AA	.	214	.	TRUE	3298	0.0012	1	2	5,6,1169,2016	48	-290	0.55,0.0051,1,1										1/1	99				255,255,0

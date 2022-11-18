@@ -1,5 +1,7 @@
 #include "VcfFileHelper.h"
 #include "Helper.h"
+#include "Log.h"
+#include "VariantList.h"
 
 VcfLine::VcfLine()
 	: chr_()
@@ -17,7 +19,7 @@ VcfLine::VcfLine()
 {
 }
 
-VcfLine::VcfLine(const Chromosome& chr, int pos, const Sequence& ref, const QVector<Sequence>& alt, QByteArrayList format_ids, QByteArrayList sample_ids, QList<QByteArrayList> list_of_format_values)
+VcfLine::VcfLine(const Chromosome& chr, int pos, const Sequence& ref, const QList<Sequence>& alt, QByteArrayList format_ids, QByteArrayList sample_ids, QList<QByteArrayList> list_of_format_values)
 	: chr_(chr)
 	, pos_(pos)
 	, ref_(ref)
@@ -60,6 +62,7 @@ VcfFormat::LessComparator::LessComparator(bool use_quality)
 	: use_quality(use_quality)
 {
 }
+
 bool VcfFormat::LessComparator::operator()(const VcfLinePtr& a, const VcfLinePtr& b) const
 {
 	if (a->chr()<b->chr()) return true;//compare chromsomes
@@ -446,58 +449,57 @@ bool VcfHeader::parseInfoFormatLine(const QByteArray& line,InfoFormatLine& info_
 	return true;
 }
 
-//returns if the chromosome is valid
-bool VcfLine::isValidGenomicPosition() const
+bool VcfLine::isValid() const
 {
-	bool is_valid_ref_base = true;
-	for(int i = 0; i < ref_.size(); ++i)
+	//check chr
+	if (!chr_.isValid()) return false;
+
+	//check pos
+	if (pos_<0) return false;
+
+	//check ref
+	if (ref_.isEmpty()) return false;
+	QRegExp valid_seq_regexp("^[ACGT]+$");
+	if (!valid_seq_regexp.exactMatch(ref_)) return false;
+
+	//check alt(s)
+	if (alt_.isEmpty()) return false;
+	foreach(const Sequence& alt, alt_)
 	{
-		if(ref_.at(i) != 'A' && ref_.at(i) != 'C' && ref_.at(i) != 'G' && ref_.at(i) != 'T' && ref_.at(i) != 'N' &&
-		   ref_.at(i) != 'a' && ref_.at(i) != 'c' && ref_.at(i) != 'g' && ref_.at(i) != 't' && ref_.at(i) != 'n')
-		{
-			is_valid_ref_base = false;
-			break;
-		}
+		if (!valid_seq_regexp.exactMatch(alt)) return false;
 	}
-	return chr_.isValid() && is_valid_ref_base && pos_>=0 && ref_.size()>=0 && !ref_.isEmpty() && !alt_.isEmpty();
+
+	return true;
 }
 
-bool VcfLine::isMultiAllelic() const
+bool VcfLine::isValid(const FastaFileIndex& reference) const
 {
-	return alt().count() > 1;
+	if (!isValid()) return false;
+
+	if (reference.seq(chr_, pos_, ref_.length(), true)!=ref_.toUpper()) return false;
+
+	return true;
 }
 
 bool VcfLine::isInDel() const
 {
 	if(isMultiAllelic()) THROW(Exception, "Can not determine if multi-allelic variant is InDel.")
 
-	if(alt(0).length() > 1 || ref().length() > 1)
-	{
-		return true;
-	}
-	return false;
+	return alt(0).length() > 1 && ref().length() > 1;
 }
 
 bool VcfLine::isIns() const
 {
-	if(isMultiAllelic()) THROW(Exception, "Can not determine if multi-allelic variant is insertion.")
+	if(isMultiAllelic()) THROW(Exception, "Cannot determine if multi-allelic variant is insertion.")
 
-    if(alt(0).length() > 1 && ref().length() == 1 && alt(0).at(0) == ref().at(0))
-    {
-        return true;
-    }
-    return false;
+	return alt(0).length() > 1 && ref().length() == 1 && alt(0).at(0) == ref().at(0);
 }
 
 bool VcfLine::isDel() const
 {
-	if(isMultiAllelic()) THROW(Exception, "Can not determine if multi-allelic variant is deletion.")
+	if(isMultiAllelic()) THROW(Exception, "Cannot determine if multi-allelic variant is deletion.")
 
-    if(alt(0).length() == 1 && ref().length() > 1 && alt(0).at(0) == ref().at(0))
-    {
-        return true;
-    }
-    return false;
+	return alt(0).length() == 1 && ref().length() > 1 && alt(0).at(0) == ref().at(0);
 }
 
 //returns all not passed filters
@@ -516,9 +518,9 @@ QByteArrayList VcfLine::failedFilters() const
 	return filters;
 }
 
-QString VcfLine::toString() const
+QByteArray VcfLine::toString(bool add_end) const
 {
-	return chr_.str() + ":" + QString::number(start()) + "-" + QString::number(end()) + " " + ref() + ">" + altString();
+	return chr_.str() + ":" + QByteArray::number(start()) + (add_end ? "-" + QByteArray::number(end()): "") + " " + ref() + ">" + altString();
 }
 
 bool VcfLine::operator==(const VcfLine& rhs) const
@@ -539,38 +541,40 @@ bool VcfLine::operator<(const VcfLine& rhs) const
 	return false;
 }
 
-void VcfLine::normalize(ShiftDirection shift_dir, const FastaFileIndex& reference)
+void VcfLine::normalize(ShiftDirection shift_dir, const FastaFileIndex& reference, bool check_reference, bool add_prefix_base_to_mnps)
 {
-    //skip multi-allelic and empty variants
-    if(isMultiAllelic() || alt().empty())	return;
+	//check reference base is correct
+	if (check_reference)
+	{
+		if (ref_ != reference.seq(chr_, pos_, ref_.length()))
+		{
+			THROW(ArgumentException, "Reference sequence of variant ("+toString()+") does not match reference bases in genome (" + reference.seq(chr_, pos_, ref_.length()) + ").")
+		}
+	}
 
-    //write out SNVs unchanged
-    if (ref_.length()==1 && alt_[0].length()==1)
-    {
-        return;
-    }
+    //skip multi-allelic and empty variants
+	if(isMultiAllelic() || alt().empty()) return;
+
+	//skip SNVs, also SNVs disguised as indels (e.g. ACGT => AXGT)
+	Variant::normalize(pos_, ref_, alt_[0]);
+	if (ref_.length()==1 && alt_[0].length()==1) return;
+
+	//skip complex indels (e.g. ACGT => CA)
+	if (ref_.length()!=0 && alt(0).length()!=0)
+	{
+		//repend prefix base lost during normalization (if not MNP)
+		if (ref_.length()!=alt(0).length() || add_prefix_base_to_mnps)
+		{
+			pos_ -= 1;
+			ref_ = reference.seq(chr_, pos_, 1) + ref_;
+			alt_[0] = reference.seq(chr_, pos_, 1) + alt_[0];
+		}
+		return;
+	}
 
     //skip all variants starting at first/ending at last base of chromosome
     if ((pos_ == 1 && shift_dir == ShiftDirection::LEFT) || (pos_ + ref_.length() - 1 == reference.lengthOf(chr_) && shift_dir == ShiftDirection::RIGHT))
     {
-        return;
-    }
-
-    //skip SNVs disguised as indels (e.g. ACGT => AXGT)
-    Variant::normalize(pos_, ref_, alt_[0]);
-
-    if (ref_.length()==1 && alt(0).length()==1)
-    {
-        return;
-    }
-
-    //skip complex indels (e.g. ACGT => CA)
-    //only prepend common reference base; also if no shift is desired
-    if ((ref_.length()!=0 && alt(0).length()!=0) || shift_dir == ShiftDirection::NONE)
-    {
-        pos_ -= 1;
-        ref_ = reference.seq(chr_, pos_, 1) + ref_;
-        alt_[0] = reference.seq(chr_, pos_, 1) + alt_[0];
         return;
     }
 
@@ -633,12 +637,10 @@ void VcfLine::normalize(ShiftDirection shift_dir, const FastaFileIndex& referenc
         {
             //shift block to the right
             Sequence block = Variant::minBlock(alt(0));
-            pos_ += block.length() - 1;
             while(pos_ < reference.lengthOf(chr_) - block.length() && reference.seq(chr_, pos_, block.length())==block)
             {
                 pos_ += block.length();
             }
-            pos_ -= block.length() - 1;
 
             //prepend prefix base
             pos_ -= 1;
@@ -681,110 +683,12 @@ void VcfLine::normalize(ShiftDirection shift_dir, const FastaFileIndex& referenc
     }
 }
 
-void VcfLine::normalize(const Sequence& empty_seq, bool to_gsvar_format)
+void VcfLine::leftNormalize(FastaFileIndex& reference, bool check_reference)
 {
-	//skip multi-allelic and empty variants
-	if(isMultiAllelic() || alt().empty())	return;
-
-	Variant::normalize(pos_, ref_, alt_[0]);
-
-	if (ref_.isEmpty())
-	{
-		ref_ = empty_seq;
-	}
-	if (alt(0).isEmpty())
-	{
-		alt_[0] = empty_seq;
-	}
-
-	if (to_gsvar_format && ref_==empty_seq)
-	{
-		pos_ -= 1;
-	}
+	normalize(ShiftDirection::LEFT, reference, check_reference);
 }
 
-void VcfLine::leftNormalize(FastaFileIndex& reference)
+void VcfLine::rightNormalize(FastaFileIndex& reference, bool check_reference)
 {
-	//leave multi-allelic variants unchanged
-	if (isMultiAllelic())
-	{
-		return;
-	}
-
-	//write out SNVs unchanged
-	if (ref_.length()==1 && alt_[0].length()==1)
-	{
-		return;
-	}
-
-	//skip all variants starting at first base of chromosome
-	if (pos_==1)
-	{
-		return;
-	}
-
-	//skip SNVs disguised as indels (e.g. ACGT => AXGT)
-	Variant::normalize(pos_, ref_, alt_[0]);
-
-	if (ref_.length()==1 && alt(0).length()==1)
-	{
-		return;
-	}
-
-	//skip complex indels (e.g. ACGT => CA)
-	if (ref_.length()!=0 && alt(0).length()!=0)
-	{
-		return;
-	}
-
-	//left-align INSERTION
-	if (ref_.length()==0)
-	{
-		//shift block to the left
-		Sequence block = Variant::minBlock(alt(0));
-		pos_ -= block.length();
-		while(pos_ > 0 && reference.seq(chr_, pos_, block.length())==block)
-		{
-			pos_ -= block.length();
-		}
-		pos_ += block.length();
-
-		//prepend prefix base
-		pos_ -= 1;
-		ref_ = reference.seq(chr_, pos_, 1);
-		setSingleAlt(ref_ + alt(0));
-
-		//shift single-base to the left
-		while(ref_[0]==alt(0)[alt(0).count()-1])
-		{
-			pos_ -= 1;
-			ref_ = reference.seq(chr_, pos_, 1);
-			setSingleAlt(ref_ + alt(0).left(alt(0).length()-1));
-		}
-	}
-
-	//left-align DELETION
-	else
-	{
-		//shift block to the left
-		Sequence block = Variant::minBlock(ref_);
-		while(pos_ >= 1 && reference.seq(chr_, pos_, block.length())==block)
-		{
-			pos_ -= block.length();
-		}
-		pos_ += block.length();
-		//prepend prefix base
-		pos_ -= 1;
-		setSingleAlt(reference.seq(chr_, pos_, 1));
-		ref_ = alt(0) + ref_;
-
-		//shift single-base to the left
-		while(ref_[ref_.count()-1]==alt(0)[0])
-		{
-			pos_ -= 1;
-			setSingleAlt(reference.seq(chr_, pos_, 1));
-			ref_ = alt(0) + ref_.left(ref_.length()-1);
-		}
-	}
+	normalize(ShiftDirection::RIGHT, reference, check_reference);
 }
-

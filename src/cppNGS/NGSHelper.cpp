@@ -6,6 +6,7 @@
 #include "GeneSet.h"
 #include "ToolBase.h"
 #include "HttpRequestHandler.h"
+#include "Log.h"
 
 #include <QTextStream>
 #include <QFileInfo>
@@ -360,12 +361,18 @@ char NGSHelper::translateCodon(const QByteArray& codon, bool use_mito_table)
 	return dictionary[codon];
 }
 
+QByteArray NGSHelper::translateCodonThreeLetterCode(const QByteArray& codon, bool use_mito_table)
+{
+	char one_letter_code = translateCodon(codon, use_mito_table);
+	return threeLetterCode(one_letter_code);
+}
+
 QByteArray NGSHelper::threeLetterCode(char one_letter_code)
 {
 	//init
 	const static QHash<char,QByteArray> dictionary = {{'A',"Ala"},{'R',"Arg"},{'N',"Asn"},{'D',"Asp"},{'C',"Cys"},{'E',"Glu"},
 													   {'Q',"Gln"},{'G',"Gly"},{'H',"His"},{'I',"Ile"},{'L',"Leu"},{'K',"Lys"},{'M',"Met"},{'F',"Phe"},{'P',"Pro"},{'S',"Ser"},
-													   {'T',"Thr"},{'W',"Trp"},{'Y',"Tyr"},{'V',"Val"},{'*',"*"}};
+													   {'T',"Thr"},{'W',"Trp"},{'Y',"Tyr"},{'V',"Val"},{'*',"Ter"}};
 
 	//check
 	if (!dictionary.contains(one_letter_code)) THROW(ProgrammingException, "Invalid AA one-letter code: '" + QString(one_letter_code) + "'");
@@ -903,9 +910,9 @@ void NGSHelper::loadGffFile(QString filename, GffData& output)
 	output.enst2ensg.clear();
 	output.gencode_basic.clear();
 
-    QMap<QByteArray, TranscriptData> transcripts;
+	QHash<QByteArray, TranscriptData> transcripts;
 
-    QMap<QByteArray, QByteArray> gene_to_hgnc;
+	QHash<QByteArray, QByteArray> gene_to_hgnc;
 
     QSharedPointer<QFile> file = Helper::openFileForReading(filename, false);
     QTextStream out(stdout);
