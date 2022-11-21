@@ -41,6 +41,7 @@ public:
 		addString("ancestry", "Ancestry filter.", true, "");
 		addString("disease_group", "Disease group filter", true, "");
 		addString("disease_status", "Disease status filter", true, "");
+		addString("phenotypes", "HPO phenotype identifiers separated by colon, e.g. 'HP:0002066;HP:0004322'", true, "");
 		addString("sender", "Sample sender filter.", true, "");
 		addString("study", "Processed sample study filter.", true, "");
 		addString("project", "Project name filter.", true, "");
@@ -62,6 +63,7 @@ public:
 		addFlag("add_normal_sample", "Adds a column with the normal germline sample associated to a for tumor samples.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
+		changeLog(2022, 11, 11, "Added 'ancestry' and 'phenotypes' filter options.");
 		changeLog(2022,  3,  3, "Added 'disease_group', 'disease_status', 'project_type' and 'tissue' filter options.");
 		changeLog(2021,  4, 29, "Added 'run_before' filter option.");
 		changeLog(2021,  4, 16, "Added ancestry column.");
@@ -90,6 +92,12 @@ public:
 		params.s_ancestry = getString("ancestry");
 		params.s_disease_group = getString("disease_group");
 		params.s_disease_status = getString("disease_status");
+		foreach(QString hpo_id, getString("phenotypes").split(";"))
+		{
+			hpo_id = hpo_id.trimmed();
+			if (hpo_id.isEmpty()) continue;
+			params.s_phenotypes << db.phenotype(db.phenotypeIdByAccession(hpo_id.toUtf8()));
+		}
 		params.s_study = getString("study");
 		params.include_bad_quality_samples = !getFlag("no_bad_samples");
 		params.include_tumor_samples = !getFlag("no_tumor");

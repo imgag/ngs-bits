@@ -134,8 +134,7 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 	{
 		THROW(ArgumentException, "Invalid variant type provided!");
 	}
-
-	if(data.submission_type == ClinvarSubmissiontype::SingleVariant)
+if(data.submission_type == ClinvarSubmissiontype::SingleVariant)
 	{
 		//hide second variant table
 		ui_.sw_var2->setVisible(false);

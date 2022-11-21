@@ -261,9 +261,9 @@ VcfFile CfDNAPanelBatchImport::createCfdnaPanelVcf(const QString& ps_name, const
 	for (int i = 0; i < gsvar.count(); ++i)
 	{
 		const Variant& var = gsvar[i];
-		VariantVcfRepresentation vcf_line = var.toVCF(genome_reference);
+		VcfLine vcf_line = var.toVCF(genome_reference);
 		// create vcf pos string
-		QString vcf_pos = vcf_line.chr.strNormalized(true) + ":" + QString::number(vcf_line.pos) + " " + vcf_line.ref + ">" + vcf_line.alt;
+		QString vcf_pos = vcf_line.chr().strNormalized(true) + ":" + QString::number(vcf_line.start()) + " " + vcf_line.ref() + ">" + vcf_line.altString();
 		if (selected_variants.contains(vcf_pos))
 		{
 			cfdna_panel.append(var);
@@ -287,7 +287,7 @@ VcfFile CfDNAPanelBatchImport::createCfdnaPanelVcf(const QString& ps_name, const
 	}
 
 	//mark all selected variants as monitoring
-	VcfFile vcf_file =  VcfFile::convertGSvarToVcf(cfdna_panel, Settings::string("reference_genome", false));
+	VcfFile vcf_file = VcfFile::fromGSvar(cfdna_panel, Settings::string("reference_genome"));
 	for (int i = 0; i < vcf_file.count(); ++i)
 	{
 		vcf_file.vcfLines().at(i)->setId(QByteArrayList() << "M");

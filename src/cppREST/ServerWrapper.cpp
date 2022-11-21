@@ -3,6 +3,8 @@
 ServerWrapper::ServerWrapper(const quint16& port, const bool& insecure)
 	: is_running_(false)
 {
+	if (Settings::boolean("use_http_api_only", true) && !insecure) return;
+
 	QString protocol_name;
 	if (!insecure)
 	{

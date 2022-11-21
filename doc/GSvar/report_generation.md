@@ -64,6 +64,8 @@ For copy-number variants the following properties can be changed:
 - the start position
 - the end position
 - the copy-number
+- the HGVS type
+- the HGVS suffix (after type)
 
 This is the respective part of the report configuration dialog:
 
@@ -78,6 +80,8 @@ For structural variants the following properties can be changed:
 - the genotype
 - the start position of the second breakpoint (BND only)
 - the end position of the second breakpoint (BND only)
+- the HGVS type
+- the HGVS suffix (after type)
 
 This is the respective part of the report configuration dialog:
 

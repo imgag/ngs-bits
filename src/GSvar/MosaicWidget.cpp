@@ -2,6 +2,7 @@
 #include "LoginManager.h"
 #include "GUIHelper.h"
 #include "GlobalServiceProvider.h"
+#include "Log.h"
 
 MosaicWidget::MosaicWidget(VariantList& variants, ReportSettings rep_settings, QHash<QByteArray, BedFile>& cache, QWidget* parent)
 	: QWidget(parent)

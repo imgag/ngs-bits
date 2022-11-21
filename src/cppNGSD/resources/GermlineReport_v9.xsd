@@ -1059,6 +1059,16 @@
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
+									<xs:attribute name="hgvs_type" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>HGVS variant type</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="hgvs_suffix" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>HGVS variant suffix (after type)</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
 						</xs:sequence>
@@ -1357,6 +1367,16 @@
 											<xs:documentation>manually cutated HGVS end position of second region (only for breakend)  (deprecated, only contained until GenLab is adapted)</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
+									<xs:attribute name="hgvs_type" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>HGVS variant type</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="hgvs_suffix" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>HGVS variant suffix (after type)</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
 						</xs:sequence>
@@ -1528,8 +1548,8 @@
 				</xs:annotation>
 				<xs:simpleType>
 					<xs:restriction base="xs:int">
-						<xs:minInclusive value="9"/>
-						<xs:maxInclusive value="9"/>
+						<xs:minInclusive value="10"/>
+						<xs:maxInclusive value="10"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>

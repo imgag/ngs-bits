@@ -26,6 +26,16 @@ Sequence Sequence::left(int n) const
 	return QByteArray::left(n);
 }
 
+QList<Sequence> Sequence::split(char c) const
+{
+	QList<Sequence> output;
+	foreach(const QByteArray& part, QByteArray::split(c))
+	{
+		output << part;
+	}
+	return output;
+}
+
 void Sequence::reverse()
 {
 	std::reverse(begin(), end());

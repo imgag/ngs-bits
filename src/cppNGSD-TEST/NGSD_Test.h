@@ -7,11 +7,9 @@
 #include "GermlineReportGenerator.h"
 #include "TumorOnlyReportWorker.h"
 #include "StatisticsServiceLocal.h"
+#include "VariantHgvsAnnotator.h"
 
 #include <QThread>
-#include <cmath>
-#include <QCoreApplication>
-#include <iostream>
 
 TEST_CLASS(NGSD_Test)
 {
@@ -1045,12 +1043,16 @@ private slots:
 		report_var_conf2.manual_cnv_start = "89240000";
 		report_var_conf2.manual_cnv_end= "89550000";
 		report_var_conf2.manual_cnv_cn = "0";
+		report_var_conf2.manual_cnv_hgvs_type = "cnv_type";
+		report_var_conf2.manual_cnv_hgvs_suffix = "cnv_suffix";
 		report_conf->set(report_var_conf2);
 		report_var_conf3.manual_sv_start = "9121440";
 		report_var_conf3.manual_sv_end = "9121460";
 		report_var_conf3.manual_sv_genotype = "hom";
 		report_var_conf3.manual_sv_start_bnd = "93712480";
 		report_var_conf3.manual_sv_end_bnd = "93712490";
+		report_var_conf3.manual_sv_hgvs_type = "sv_type";
+		report_var_conf3.manual_sv_hgvs_suffix = "sv_suffix";
 		report_conf->set(report_var_conf3);
 
 		//update
@@ -1110,6 +1112,8 @@ private slots:
 		S_EQUAL(var_conf.manual_cnv_start, "89240000");
 		S_EQUAL(var_conf.manual_cnv_end, "89550000");
 		S_EQUAL(var_conf.manual_cnv_cn, "0");
+		S_EQUAL(var_conf.manual_cnv_hgvs_type, "cnv_type");
+		S_EQUAL(var_conf.manual_cnv_hgvs_suffix, "cnv_suffix");
 		var_conf = report_conf2->variantConfig()[2];
 		I_EQUAL(var_conf.variant_index, 81);
 		IS_TRUE(var_conf.causal);
@@ -1131,6 +1135,8 @@ private slots:
 		S_EQUAL(var_conf.manual_sv_genotype, "hom");
 		S_EQUAL(var_conf.manual_sv_start_bnd, "93712480");
 		S_EQUAL(var_conf.manual_sv_end_bnd, "93712490");
+		S_EQUAL(var_conf.manual_sv_hgvs_type, "sv_type");
+		S_EQUAL(var_conf.manual_sv_hgvs_suffix, "sv_suffix");
 
 		//finalizeReportConfig
 		conf_id = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
@@ -1698,6 +1704,8 @@ private slots:
 			var_conf.manual_cnv_start = "26799369";
 			var_conf.manual_cnv_end = "26991734";
 			var_conf.manual_cnv_cn = "0";
+			var_conf.manual_cnv_hgvs_type = "cnv_type";
+			var_conf.manual_cnv_hgvs_suffix = "cnv_suffix";
 			report_settings.report_config->set(var_conf);
 
 			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 3)); //SV - Insertion
@@ -1736,6 +1744,8 @@ private slots:
 			var_conf.manual_sv_genotype = "hom";
 			var_conf.manual_sv_start_bnd = "2301860";
 			var_conf.manual_sv_end_bnd = "2301870";
+			var_conf.manual_sv_hgvs_type = "sv_type";
+			var_conf.manual_sv_hgvs_suffix = "sv_suffix";
 			report_settings.report_config->set(var_conf);
 
 			OtherCausalVariant causal_variant;
@@ -2383,8 +2393,6 @@ private slots:
 		I_EQUAL(-1, db.getSomaticGeneRoleId("PTGS2"));
 	}
 
-	//TODO add test for somatic RTF > Alexander
-
 	//Test tumor only RTF report generation
 	void report_tumor_only()
 	{
@@ -2701,17 +2709,125 @@ private slots:
 
 	}
 
-
-	//Test for debugging (without initialization because of speed)
-	/*
-	void debug()
+	//This test should be in VariantHgvsAnnotator_Test.h, but it requires the production NGSD. Thus it is here.
+	//Test data exported from NGSD via GSvar (debug section of ahsturm1) on Nov 1th 2022.
+	//Annotation done with VEP 107 (/mnt/users/ahsturm1/Sandbox/2022_11_04_compare_annotations_with_VEP/).
+	//Some annotations were manually corrected because VEP was wrong - this is documented in the CORRECTED info entry of the variant.
+	void VariantHgvsAnnotator_comparison_vep()
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
-		NGSD db(true);
+		if (!NGSD::isAvailable()) SKIP("Test needs access to the NGSD production database!");
 
-		//getProcessingSystem
-		QString sys = db.getProcessingSystem("tumor_cnvs._03", NGSD::SHORT);
-		S_EQUAL(sys, "hpHBOCv5");
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+		FastaFileIndex reference(ref_file);
+
+		VariantHgvsAnnotator annotator(reference);
+		NGSD db;
+		QTextStream out(stdout);
+
+		int c_pass = 0;
+		int c_fail = 0;
+
+		//load best transcripts
+		QMap<QByteArray, QByteArray> best;
+		TsvFile tmp;
+		tmp.load(TESTDATA("data_in/VariantHgvsAnnotator_comparison_vep_best_transcripts.tsv"));
+		for (int i=0; i<tmp.rowCount(); ++i)
+		{
+			const QStringList& row = tmp.row(i);
+			best[row[0].toUtf8()] = row[1].toUtf8();
+		}
+
+		//process VCF
+		VcfFile vcf;
+		vcf.load(TESTDATA("data_in/VariantHgvsAnnotator_comparison_vep.vcf.gz"));
+		for(int i=0; i<vcf.count(); ++i)
+		{
+			const VcfLine& v = vcf[i];
+
+			//process overlapping genes
+			GeneSet genes = db.genesOverlapping(v.chr(), v.start(), v.end());
+			foreach(const QByteArray& gene, genes)
+			{
+				//process best transcript for gene
+				if (!best.contains(gene)) continue;
+				Transcript trans = db.transcript(db.transcriptId(best[gene]));
+				best[gene] = trans.name();
+				if (trans.isValid())
+				{
+
+					//check VEP for transcript exists
+					QByteArrayList vep_annos;
+					foreach(QByteArray entry, v.info("CSQ").split(','))
+					{
+						if (entry.contains("|" + trans.name() + "."))
+						{
+							vep_annos = entry.split('|');
+						}
+					}
+					if (vep_annos.isEmpty()) continue;
+
+					//compare VEP and own annotation
+					QByteArrayList differences;
+					VariantConsequence cons = annotator.annotate(trans, v);
+					if (cons.hgvs_p=="p.?") cons.hgvs_p="";
+
+					QByteArray vep_hgvsc = (vep_annos[2]+':').split(':')[1];
+					if (vep_hgvsc!=cons.hgvs_c) differences << vep_hgvsc + " > " + cons.hgvs_c;
+
+					QByteArray vep_hgvsp = (vep_annos[3]+':').split(':')[1];
+					vep_hgvsp.replace("%3D", "=");
+					if (vep_hgvsp!=cons.hgvs_p) differences << vep_hgvsp + " > " + cons.hgvs_p;
+
+					QByteArrayList vep_types = vep_annos[4].split('&');
+					if (vep_types.contains("splice_polypyrimidine_tract_variant")) vep_types << "splice_region_variant"; //we don't annotate this type
+					if (vep_types.contains("splice_donor_region_variant")) vep_types << "splice_region_variant";  //we don't annotate this type
+					if (vep_types.contains("splice_donor_5th_base_variant")) vep_types << "splice_region_variant";  //we don't annotate this type
+					if (vep_types.contains("mature_miRNA_variant")) vep_types << "non_coding_transcript_exon_variant";  //we don't annotate this type
+					if (vep_types.contains("frameshift_variant") && vep_hgvsp.contains("Ter") && !vep_hgvsp.contains("fs")) vep_types << "stop_gained"; //VEP handles direct stop-gain variants as frameshift, which is not correct.
+					VariantConsequenceType max_csq_type = VariantConsequenceType::INTERGENIC_VARIANT;
+					foreach(VariantConsequenceType csq_type, cons.types)
+					{
+						if(csq_type > max_csq_type)
+						{
+							max_csq_type = csq_type;
+						}
+					}
+					if (!vep_types.contains(VariantConsequence::typeToString(max_csq_type)))
+					{
+						differences << VariantConsequence::typeToString(max_csq_type) + " not in VEP (" + vep_types.join(", ") + ")";
+					}
+
+					QByteArray vep_impact = vep_annos[5];
+					if (vep_impact!=cons.impact) differences << vep_impact + " > " + cons.impact;
+
+					QByteArray vep_exon = vep_annos[6].split('/')[0];
+					if (vep_exon.contains('-')) vep_exon = vep_exon.split('-')[0]; //we annotate only the first affected exon
+					int vep_exon_nr = vep_exon.isEmpty() ? -1 : vep_exon.toInt();
+					if (vep_exon_nr!=cons.exon_number) differences << "exon " + QByteArray::number(vep_exon_nr) + " > " + QByteArray::number(cons.exon_number);
+
+					QByteArray vep_intron = vep_annos[7].split('/')[0];
+					if (vep_intron.contains('-')) vep_intron = vep_intron.split('-')[0]; //we annotate only the first affected intron
+					int vep_intron_nr = vep_intron.isEmpty() ? -1 : vep_intron.toInt();
+					if (vep_intron_nr!=cons.intron_number) differences << "intron " + QByteArray::number(vep_intron_nr) + " > " + QByteArray::number(cons.intron_number);
+
+					if (differences.isEmpty())
+					{
+						++c_pass;
+					}
+					else
+					{
+						++c_fail;
+						out << v.toString(true) << " (" << cons.normalized << ") transcript=" << trans.name() << " " << cons.toString() << endl;
+						foreach(QByteArray difference, differences)
+						{
+							out << "  " << difference << endl;
+						}
+					}
+				}
+			}
+		}
+
+		I_EQUAL(c_fail, 0);
 	}
-	*/
 };

@@ -6,6 +6,7 @@
 #include "GeneSet.h"
 #include "ToolBase.h"
 #include "HttpRequestHandler.h"
+#include "Log.h"
 
 #include <QTextStream>
 #include <QFileInfo>
@@ -360,12 +361,18 @@ char NGSHelper::translateCodon(const QByteArray& codon, bool use_mito_table)
 	return dictionary[codon];
 }
 
+QByteArray NGSHelper::translateCodonThreeLetterCode(const QByteArray& codon, bool use_mito_table)
+{
+	char one_letter_code = translateCodon(codon, use_mito_table);
+	return threeLetterCode(one_letter_code);
+}
+
 QByteArray NGSHelper::threeLetterCode(char one_letter_code)
 {
 	//init
 	const static QHash<char,QByteArray> dictionary = {{'A',"Ala"},{'R',"Arg"},{'N',"Asn"},{'D',"Asp"},{'C',"Cys"},{'E',"Glu"},
 													   {'Q',"Gln"},{'G',"Gly"},{'H',"His"},{'I',"Ile"},{'L',"Leu"},{'K',"Lys"},{'M',"Met"},{'F',"Phe"},{'P',"Pro"},{'S',"Ser"},
-													   {'T',"Thr"},{'W',"Trp"},{'Y',"Tyr"},{'V',"Val"},{'*',"*"}};
+													   {'T',"Thr"},{'W',"Trp"},{'Y',"Tyr"},{'V',"Val"},{'*',"Ter"}};
 
 	//check
 	if (!dictionary.contains(one_letter_code)) THROW(ProgrammingException, "Invalid AA one-letter code: '" + QString(one_letter_code) + "'");
@@ -774,6 +781,18 @@ bool NGSHelper::isRunningOnServer()
 	return !Settings::string("ssl_certificate",true).trimmed().isEmpty() && !Settings::string("ssl_key",true).trimmed().isEmpty();
 }
 
+bool NGSHelper::isBamFile(QString filename)
+{
+	if (Helper::isHttpUrl(filename))
+	{
+		return QUrl(filename).toString(QUrl::RemoveQuery).endsWith(".bam", Qt::CaseInsensitive);
+	}
+	else
+	{
+		return filename.endsWith(".bam", Qt::CaseInsensitive);
+	}
+}
+
 ServerInfo NGSHelper::getServerInfo()
 {
 	ServerInfo info;
@@ -816,6 +835,12 @@ QString NGSHelper::serverApiUrl(const bool& return_http)
 {
 	QString protocol = return_http ? "http://" : "https://";
 	QString port = return_http ? Settings::string("http_server_port", true) : Settings::string("https_server_port", true);
+
+	if (Settings::boolean("use_http_api_only", true))
+	{
+		protocol = "http://";
+		port = Settings::string("http_server_port", true);
+	}
 
 	return protocol + Settings::string("server_host", true) + ":" + port + "/" + serverApiVersion() + "/";
 }
@@ -885,9 +910,9 @@ void NGSHelper::loadGffFile(QString filename, GffData& output)
 	output.enst2ensg.clear();
 	output.gencode_basic.clear();
 
-    QMap<QByteArray, TranscriptData> transcripts;
+	QHash<QByteArray, TranscriptData> transcripts;
 
-    QMap<QByteArray, QByteArray> gene_to_hgnc;
+	QHash<QByteArray, QByteArray> gene_to_hgnc;
 
     QSharedPointer<QFile> file = Helper::openFileForReading(filename, false);
     QTextStream out(stdout);

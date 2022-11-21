@@ -534,7 +534,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element DiagnosticNgsReport
 	w.writeStartElement("DiagnosticNgsReport");
-	w.writeAttribute("version", "9");
+	w.writeAttribute("version", "10");
 	w.writeAttribute("type", data_.report_settings.report_type);
 
 	//element ReportGeneration
@@ -800,13 +800,13 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			VariantHgvsAnnotator hgvs_annotator(genome_idx_);
 			foreach(const Transcript& trans, transcripts)
 			{
-				VariantConsequence hgvs = hgvs_annotator.variantToHgvs(trans, variant);
+				VariantConsequence hgvs = hgvs_annotator.annotate(trans, variant);
 				VariantTranscript consequence;
 				consequence.gene = trans.gene();
-				consequence.id = hgvs.transcript_id.toUtf8();
-				consequence.type = hgvs.variantConsequenceTypesAsString().toUtf8();
-				consequence.hgvs_c = hgvs.hgvs_c.toUtf8();
-				consequence.hgvs_p = hgvs.hgvs_p.toUtf8();
+				consequence.id = trans.nameWithVersion();
+				consequence.type = hgvs.typesToString();
+				consequence.hgvs_c = hgvs.hgvs_c;
+				consequence.hgvs_p = hgvs.hgvs_p;
 				if (hgvs.exon_number!=-1)
 				{
 					consequence.exon = "exon"+QByteArray::number(hgvs.exon_number)+"/"+QByteArray::number(trans.regions().count());
@@ -1012,6 +1012,15 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeAttribute("rna_info", var_conf.rna_info);
 		w.writeAttribute("report_type", var_conf.report_type);
 
+		if (!var_conf.manual_cnv_hgvs_type.isEmpty())
+		{
+			w.writeAttribute("hgvs_type", var_conf.manual_cnv_hgvs_type);
+		}
+		if (!var_conf.manual_cnv_hgvs_suffix.isEmpty())
+		{
+			w.writeAttribute("hgvs_suffix", var_conf.manual_cnv_hgvs_suffix);
+		}
+
 		//element Gene
 		foreach(const QByteArray& gene, cnv.genes())
 		{
@@ -1174,6 +1183,14 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		if (var_conf.manualSvEndBndIsValid())
 		{
 			w.writeAttribute("hgvs_bnd_end2", var_conf.manual_sv_end_bnd);
+		}
+		if (!var_conf.manual_sv_hgvs_type.isEmpty())
+		{
+			w.writeAttribute("hgvs_type", var_conf.manual_sv_hgvs_type);
+		}
+		if (!var_conf.manual_sv_hgvs_suffix.isEmpty())
+		{
+			w.writeAttribute("hgvs_suffix", var_conf.manual_sv_hgvs_suffix);
 		}
 
 		foreach(const QByteArray& gene, sv.genes(data_.svs.annotationHeaders(), false))
@@ -1915,7 +1932,7 @@ QString GermlineReportGenerator::formatCodingSplicing(const Variant& v)
 					}
 				}
 
-				VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, v);
+				VariantConsequence consequence = hgvs_annotator.annotate(trans, v);
 				output << gene + ":" + trans.nameWithVersion() + refseq + ":" + consequence.hgvs_c + ":" + consequence.hgvs_p;
 			}
 			catch(Exception& e)
@@ -2300,8 +2317,8 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 		{
 			try
 			{
-				VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, v);
-				types << consequence.variantConsequenceTypesAsString("&amp;");
+				VariantConsequence consequence = hgvs_annotator.annotate(trans, v);
+				types << consequence.typesToString("&amp;");
 				hgvs_cs << trans.nameWithVersion() + ":" + consequence.hgvs_c;
 				hgvs_ps << trans.nameWithVersion() + ":" + consequence.hgvs_p;
 			}
