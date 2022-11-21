@@ -84,12 +84,18 @@ The initial import of database content using ngs-bits.
 
 The NGSD variant counts for germline and somatic as well as the gene info can be exported to a VCF/BED file using NGSDExportAnnotationData. 
 
-* For germline:
+* For germline small variants:
 
 		> ngs-bits/bin/NGSDExportAnnotationData -variants [vcf_output_file] -genes [bed_file]
-* For somatic:
+
+* For germline structural variants:
+
+		> ngs-bits/bin/NGSDExportSV -out_folder [export_folder]
+
+* For somatic small variants:
 
 		> ngs-bits/bin/NGSDExportAnnotationData -variants [somatic_vcf_output_file] -mode somatic
+		
 		
 The resulting VCF files have to be sorted (e.g. using `VcfStreamSort`) and then gzipped and indexed to be used as annotation source:
 
