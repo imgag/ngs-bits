@@ -1,5 +1,5 @@
 ### NGSDExportSamples tool help
-	NGSDExportSamples (2022_07-183-g2dc8c6f8)
+	NGSDExportSamples (2022_10-83-g62451d12)
 	
 	Lists processed samples from the NGSD.
 	
@@ -22,9 +22,13 @@
 	                           Default value: ''
 	  -tissue <string>         Tissue filter.
 	                           Default value: ''
+	  -ancestry <string>       Ancestry filter.
+	                           Default value: ''
 	  -disease_group <string>  Disease group filter
 	                           Default value: ''
 	  -disease_status <string> Disease status filter
+	                           Default value: ''
+	  -phenotypes <string>     HPO phenotype identifiers separated by colon, e.g. 'HP:0002066;HP:0004322'
 	                           Default value: ''
 	  -sender <string>         Sample sender filter.
 	                           Default value: ''
@@ -75,8 +79,9 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportSamples changelog
-	NGSDExportSamples 2022_07-183-g2dc8c6f8
+	NGSDExportSamples 2022_10-83-g62451d12
 	
+	2022-11-11 Added 'ancestry' and 'phenotypes' filter options.
 	2022-03-03 Added 'disease_group', 'disease_status', 'project_type' and 'tissue' filter options.
 	2021-04-29 Added 'run_before' filter option.
 	2021-04-16 Added ancestry column.
