@@ -785,12 +785,10 @@ bool NGSHelper::isBamFile(QString filename)
 {
 	if (Helper::isHttpUrl(filename))
 	{
-		return QUrl(filename).toString(QUrl::RemoveQuery).endsWith(".bam", Qt::CaseInsensitive);
+		filename = QUrl(filename).toString(QUrl::RemoveQuery);
 	}
-	else
-	{
-		return filename.endsWith(".bam", Qt::CaseInsensitive);
-	}
+
+	return filename.endsWith(".bam", Qt::CaseInsensitive);
 }
 
 ServerInfo NGSHelper::getServerInfo()

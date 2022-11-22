@@ -102,6 +102,9 @@ void BedFile::load(QString filename, bool stdin_if_empty)
 {
 	clear();
 
+	//use each string only once to save memory
+	QHash<QByteArray, QByteArray> str_cache;
+
 	//parse from stream
 	QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(filename, stdin_if_empty);
 	while(!file->atEnd())
@@ -126,13 +129,28 @@ void BedFile::load(QString filename, bool stdin_if_empty)
 			THROW(FileParseException, "BED file line with less than three fields found: '" + line.trimmed() + "'");
 		}
 
+		//chr (save memory via cache)
+		QByteArray chr = fields[0];
+		if (!str_cache.contains(chr)) str_cache.insert(chr, chr);
+		chr = str_cache[chr];
+
 		//check that start/end is number
 		bool ok = true;
 		int start = fields[1].toInt(&ok) + 1;
 		if (!ok) THROW(FileParseException, "BED file line with invalid starts position found: '" + line.trimmed() + "'");
 		int end = fields[2].toInt(&ok);
 		if (!ok) THROW(FileParseException, "BED file line with invalid end position found: '" + line.trimmed() + "'");
-		append(BedLine(fields[0], start, end, fields.mid(3)));
+
+		//annotations (save memory via cache)
+		QByteArrayList annos;
+		for (int i=3; i<fields.count(); ++i)
+		{
+			QByteArray entry = fields[i];
+			if (!str_cache.contains(entry)) str_cache.insert(entry, entry);
+			annos << str_cache[entry];
+		}
+
+		append(BedLine(chr, start, end, annos));
 	}
 }
 
