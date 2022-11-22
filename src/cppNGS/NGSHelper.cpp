@@ -786,6 +786,13 @@ bool NGSHelper::isBamFile(QString filename)
 	}
 }
 
+QString NGSHelper::stripSecureToken(QString url)
+{
+	int token_pos = url.indexOf("?token", Qt::CaseInsensitive);
+	if (token_pos > -1) url = url.left(token_pos);
+	return  url;
+}
+
 ServerInfo NGSHelper::getServerInfo()
 {
 	ServerInfo info;

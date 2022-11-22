@@ -2574,14 +2574,12 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 			QStringList init_commands;
 			init_commands.append("genome " + Settings::path("igv_genome")); //genome command first, see https://github.com/igvteam/igv/issues/1094
 			init_commands.append("new");
+			if (NGSHelper::isClientServerMode()) init_commands.append("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*");
 
 			//load non-BAM files
 			foreach(QString file, files_to_load)
 			{
-				if (!NGSHelper::isBamFile(file))
-				{
-					init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
-				}
+				if (!NGSHelper::isBamFile(file)) init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
 			}
 
 			//collapse tracks
@@ -2590,10 +2588,7 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 			//load BAM files
 			foreach(QString file, files_to_load)
 			{
-				if (NGSHelper::isBamFile(file))
-				{
-					init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
-				}
+				if (NGSHelper::isBamFile(file)) init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
 			}
 			init_commands.append("viewaspairs");
 			init_commands.append("colorBy UNEXPECTED_PAIR");

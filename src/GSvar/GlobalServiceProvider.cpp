@@ -168,7 +168,8 @@ void GlobalServiceProvider::loadFileInIGV(QString filename, bool init_if_not_don
 		MainWindow* mw = qobject_cast<MainWindow*>(widget);
 		if (mw!=nullptr)
 		{
-			mw->executeIGVCommands(QStringList() << "load \"" + filename + "\"", init_if_not_done);
+			if (NGSHelper::isClientServerMode()) mw->executeIGVCommands(QStringList() << "SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*", init_if_not_done);
+			mw->executeIGVCommands(QStringList() << "load \"" + NGSHelper::stripSecureToken(filename) + "\"", init_if_not_done);
 		}
 	}
 }

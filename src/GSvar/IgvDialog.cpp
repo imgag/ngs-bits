@@ -1,5 +1,6 @@
 #include "IgvDialog.h"
 #include "GUIHelper.h"
+#include "NGSHelper.h"
 #include <QCheckBox>
 #include <QFileInfo>
 
@@ -31,7 +32,7 @@ void IgvDialog::addFile(const FileLocation& file, bool checked)
 
 	//add file
 	QTreeWidgetItem* item = new QTreeWidgetItem(QStringList() << file.id);
-	item->setToolTip(0, file.filename);
+	item->setToolTip(0, NGSHelper::stripSecureToken(file.filename));
 	if (file.exists)
 	{
 		item->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);

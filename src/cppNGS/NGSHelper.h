@@ -121,6 +121,8 @@ public:
 	static bool isRunningOnServer();
 	///Checks if a given local file or URL is a BAM file
 	static bool isBamFile(QString filename);
+	///Removes a secure token from the URL that is given to IGV
+	static QString stripSecureToken(QString url);
 
 	///Requests information about GSvarServer
 	static ServerInfo getServerInfo();
