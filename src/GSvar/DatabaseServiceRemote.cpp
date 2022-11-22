@@ -325,7 +325,7 @@ QByteArray DatabaseServiceRemote::makePostApiCall(QString api_path, RequestUrlPa
 {
 	try
 	{
-		 return ApiCaller().post(api_path, params, HttpHeaders(), content, true, false, true);
+		return ApiCaller().post(api_path, params, HttpHeaders(), content, false, false, true);
 	}
 	catch (Exception& e)
 	{
