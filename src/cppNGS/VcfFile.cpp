@@ -1842,39 +1842,6 @@ void VcfFile::checkValues(const DefinitionLine& def, const QByteArrayList& value
 	}
 }
 
-//Returns the content of a column by index (tab-separated line)
-QByteArray VcfFile::getPartByColumn(const QByteArray& line, int index)
-{
-	int columns_seen = 0;
-	int column_start = 0;
-	int column_end = -1;
-
-	for (int i = 0; i < line.length(); ++i)
-	{
-		if (line[i] == '\t')
-		{
-			++columns_seen;
-			if (columns_seen == index)
-			{
-				column_start = i + 1;
-				column_end = line.length() - 1; // for last column that is not followed by a tab
-			}
-			else if (columns_seen == index + 1)
-			{
-				column_end = i;
-				break;
-			}
-		}
-	}
-
-	if (column_end==-1)
-	{
-		THROW(ProgrammingException, "Cannot find column " + QByteArray::number(index) + " in line: " + line);
-	}
-
-	return line.mid(column_start, column_end - column_start);
-}
-
 //Define URL encoding
 const QList<KeyValuePair> VcfFile::INFO_URL_MAPPING =
 {
