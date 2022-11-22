@@ -375,11 +375,18 @@
           <property name="spacing">
            <number>3</number>
           </property>
-          <item row="6" column="1">
-           <widget class="QLineEdit" name="le_end1_sv1"/>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_22">
+            <property name="text">
+             <string>end1:</string>
+            </property>
+           </widget>
           </item>
           <item row="4" column="1">
-           <widget class="QLineEdit" name="le_start2_sv1"/>
+           <widget class="QLineEdit" name="le_end1_sv1"/>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="le_start1_sv1"/>
           </item>
           <item row="0" column="0" colspan="2">
            <widget class="QLabel" name="label_4">
@@ -394,34 +401,10 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_21">
-            <property name="text">
-             <string>start2:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QLineEdit" name="le_start1_sv1"/>
-          </item>
-          <item row="6" column="0">
-           <widget class="QLabel" name="label_22">
-            <property name="text">
-             <string>end1:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="0">
+          <item row="9" column="0">
            <widget class="QLabel" name="label_23">
             <property name="text">
              <string>end2:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_16">
-            <property name="text">
-             <string>start1:</string>
             </property>
            </widget>
           </item>
@@ -439,36 +422,40 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
+          <item row="6" column="1">
            <widget class="QComboBox" name="cb_chr2_sv1"/>
           </item>
-          <item row="5" column="0">
+          <item row="6" column="0">
            <widget class="QLabel" name="label_24">
             <property name="text">
              <string>chr2:</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QComboBox" name="cb_type_sv1"/>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_16">
+            <property name="text">
+             <string>start1:</string>
+            </property>
+           </widget>
           </item>
-          <item row="2" column="1">
-           <widget class="QComboBox" name="cb_chr1_sv1"/>
-          </item>
-          <item row="9" column="0">
+          <item row="11" column="0">
            <widget class="QLabel" name="label_28">
             <property name="text">
              <string>genes:</string>
             </property>
            </widget>
           </item>
-          <item row="7" column="1">
-           <widget class="QLineEdit" name="le_end2_sv1"/>
+          <item row="2" column="1">
+           <widget class="QComboBox" name="cb_chr1_sv1"/>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="cb_type_sv1"/>
           </item>
           <item row="9" column="1">
-           <widget class="QLineEdit" name="le_genes_sv1"/>
+           <widget class="QLineEdit" name="le_end2_sv1"/>
           </item>
-          <item row="10" column="1">
+          <item row="12" column="1">
            <spacer name="verticalSpacer_8">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -480,6 +467,19 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item row="11" column="1">
+           <widget class="QLineEdit" name="le_genes_sv1"/>
+          </item>
+          <item row="7" column="1">
+           <widget class="QLineEdit" name="le_start2_sv1"/>
+          </item>
+          <item row="7" column="0">
+           <widget class="QLabel" name="label_21">
+            <property name="text">
+             <string>start2:</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -705,11 +705,8 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QComboBox" name="cb_type_sv2"/>
-          </item>
-          <item row="2" column="1">
-           <widget class="QComboBox" name="cb_chr1_sv2"/>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="le_start1_sv2"/>
           </item>
           <item row="2" column="0">
            <widget class="QLabel" name="label_52">
@@ -718,6 +715,9 @@
             </property>
            </widget>
           </item>
+          <item row="2" column="1">
+           <widget class="QComboBox" name="cb_chr1_sv2"/>
+          </item>
           <item row="0" column="0" colspan="2">
            <widget class="QLabel" name="label_50">
             <property name="text">
@@ -725,23 +725,16 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
-           <widget class="QLineEdit" name="le_start1_sv2"/>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="cb_type_sv2"/>
           </item>
-          <item row="7" column="1">
+          <item row="8" column="1">
            <widget class="QLineEdit" name="le_end2_sv2"/>
           </item>
-          <item row="5" column="0">
+          <item row="6" column="0">
            <widget class="QLabel" name="label_55">
             <property name="text">
              <string>chr2:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="0">
-           <widget class="QLabel" name="label_56">
-            <property name="text">
-             <string>end1:</string>
             </property>
            </widget>
           </item>
@@ -752,30 +745,17 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
+          <item row="6" column="1">
            <widget class="QComboBox" name="cb_chr2_sv2"/>
           </item>
-          <item row="6" column="1">
-           <widget class="QLineEdit" name="le_end1_sv2"/>
-          </item>
-          <item row="4" column="1">
-           <widget class="QLineEdit" name="le_start2_sv2"/>
-          </item>
-          <item row="7" column="0">
+          <item row="8" column="0">
            <widget class="QLabel" name="label_57">
             <property name="text">
              <string>end2:</string>
             </property>
            </widget>
           </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_54">
-            <property name="text">
-             <string>start2</string>
-            </property>
-           </widget>
-          </item>
-          <item row="8" column="1">
+          <item row="9" column="1">
            <spacer name="verticalSpacer_7">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -787,6 +767,26 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_56">
+            <property name="text">
+             <string>end1:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="le_end1_sv2"/>
+          </item>
+          <item row="7" column="0">
+           <widget class="QLabel" name="label_54">
+            <property name="text">
+             <string>start2</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
+           <widget class="QLineEdit" name="le_start2_sv2"/>
           </item>
          </layout>
         </widget>

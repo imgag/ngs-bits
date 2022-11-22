@@ -6258,13 +6258,13 @@ void MainWindow::uploadToClinvar(int variant_index1, int variant_index2)
 		if(variant_index2 < 0)
 		{
 			//Single variant submission
-			data.submission_type = ClinvarSubmissiontype::SingleVariant;
+			data.submission_type = ClinvarSubmissionType::SingleVariant;
 			data.variant_type2 = VariantType::INVALID;
 		}
 		else
 		{
 			//CompHet variant submission
-			data.submission_type = ClinvarSubmissiontype::CompoundHeterozygous;
+			data.submission_type = ClinvarSubmissionType::CompoundHeterozygous;
 			data.variant_type2 = VariantType::SNVS_INDELS;
 		}
 
@@ -6288,7 +6288,7 @@ void MainWindow::uploadToClinvar(int variant_index1, int variant_index2)
 
 		//get variant info
 		data.snv1 = variants_[variant_index1];
-		if(data.submission_type == ClinvarSubmissiontype::CompoundHeterozygous) data.snv2 = variants_[variant_index2];
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous) data.snv2 = variants_[variant_index2];
 
 		// get report info
 		if (!report_settings_.report_config.data()->exists(VariantType::SNVS_INDELS, variant_index1))
@@ -6296,7 +6296,7 @@ void MainWindow::uploadToClinvar(int variant_index1, int variant_index2)
 			INFO(InformationMissingException, "The variant 1 has to be in the report configuration to be published!");
 		}
 		data.report_variant_config1 = report_settings_.report_config.data()->get(VariantType::SNVS_INDELS, variant_index1);
-		if(data.submission_type == ClinvarSubmissiontype::CompoundHeterozygous)
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
 		{
 			if (!report_settings_.report_config.data()->exists(VariantType::SNVS_INDELS, variant_index2))
 			{
@@ -6313,7 +6313,7 @@ void MainWindow::uploadToClinvar(int variant_index1, int variant_index2)
 		{
 			INFO(InformationMissingException, "The variant 1 has to be classified to be published!");
 		}
-		if(data.submission_type == ClinvarSubmissiontype::CompoundHeterozygous)
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
 		{
 			data.report_variant_config2.classification = db.getClassification(data.snv2).classification;
 			if (data.report_variant_config2.classification.trimmed().isEmpty() || (data.report_variant_config2.classification.trimmed() == "n/a"))
@@ -6325,7 +6325,7 @@ void MainWindow::uploadToClinvar(int variant_index1, int variant_index2)
 		//genes
 		int gene_idx = variants_.annotationIndexByName("gene");
 		data.genes = GeneSet::createFromText(data.snv1.annotations()[gene_idx], ',');
-		if(data.submission_type == ClinvarSubmissiontype::CompoundHeterozygous) data.genes <<  GeneSet::createFromText(data.snv2.annotations()[gene_idx], ',');
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous) data.genes <<  GeneSet::createFromText(data.snv2.annotations()[gene_idx], ',');
 
 		//determine NGSD ids of variant and report variant for variant 1
 		QString var_id = db.variantId(data.snv1, false);
@@ -6341,10 +6341,10 @@ void MainWindow::uploadToClinvar(int variant_index1, int variant_index2)
 			THROW(DatabaseException, "Could not determine report config id for sample " + data.processed_sample + "!");
 		}
 
-		data.report_config_variant_id1 = db.getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id=" + QString::number(rc_id) + " AND variant_id="
+		data.report_variant_config_id1 = db.getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id=" + QString::number(rc_id) + " AND variant_id="
 													 + QString::number(data.variant_id1), false).toInt();
 
-		if(data.submission_type == ClinvarSubmissiontype::CompoundHeterozygous)
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
 		{
 			//determine NGSD ids of variant and report variant for variant 2
 			var_id = db.variantId(data.snv2, false);
@@ -6355,7 +6355,7 @@ void MainWindow::uploadToClinvar(int variant_index1, int variant_index2)
 			data.variant_id2 = Helper::toInt(var_id);
 
 			//extract report variant id
-			data.report_config_variant_id2 = db.getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id=" + QString::number(rc_id) + " AND variant_id="
+			data.report_variant_config_id2 = db.getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id=" + QString::number(rc_id) + " AND variant_id="
 														 + QString::number(data.variant_id2), false).toInt();
 		}
 

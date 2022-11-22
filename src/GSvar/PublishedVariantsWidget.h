@@ -34,6 +34,7 @@ private slots:
 	void searchForVariantInLOVD();
 	void searchForVariantInClinVar();
 	void retryClinvarSubmission();
+	void deleteClinvarSubmission();
 	void openVariantTab();
 
 private:
@@ -41,6 +42,7 @@ private:
 	HttpHandler http_handler_;
 	SubmissionStatus getSubmissionStatus(const QString& submission_id);
 	ClinvarUploadData getClinvarUploadData(int var_pub_id);
+	QJsonObject createJsonForClinvarDeletion(QString stable_id);
 
 };
 

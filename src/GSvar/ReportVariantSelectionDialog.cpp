@@ -3,14 +3,18 @@
 #include "LoginManager.h"
 #include "Exceptions.h"
 #include "GlobalServiceProvider.h"
+#include "GSvarHelper.h"
 
 #include <GUIHelper.h>
 #include <NGSD.h>
 
-ReportVariantSelectionDialog::ReportVariantSelectionDialog(QString ps_id, QWidget *parent) :
+ReportVariantSelectionDialog::ReportVariantSelectionDialog(QString ps_id, int ignored_rcv_id,  QWidget *parent) :
 	QDialog(parent),
 	ui_(new Ui::ReportVariantSelectionDialog),
-	ps_id_(ps_id)
+	ps_id_(ps_id),
+	variants_(GlobalServiceProvider::getSmallVariantList()),
+	cnvs_(GlobalServiceProvider::getCnvList()),
+	svs_(GlobalServiceProvider::getSvList())
 {
 	if (!LoginManager::active())
 	{
@@ -18,7 +22,42 @@ ReportVariantSelectionDialog::ReportVariantSelectionDialog(QString ps_id, QWidge
 	}
 	ui_->setupUi(this);
 
-	initTable();
+
+
+	initTable(ignored_rcv_id);
+}
+
+SelectedReportVariant ReportVariantSelectionDialog::getSelectedReportVariant()
+{
+	NGSD db;
+	SelectedReportVariant report_variant;
+	report_variant.rvc_id = selected_rvc_id;
+	report_variant.report_variant_configuration = selected_report_variant_;
+	if (selected_report_variant_.variant_type == VariantType::SNVS_INDELS)
+	{
+		report_variant.small_variant = variants_[selected_report_variant_.variant_index];
+		report_variant.variant_id = db.variantId(report_variant.small_variant).toInt();
+	}
+	else if (selected_report_variant_.variant_type == VariantType::CNVS)
+	{
+		SampleData sample_data = db.getSampleData(db.sampleId(db.processedSampleName(ps_id_)));
+		report_variant.cnv = cnvs_[selected_report_variant_.variant_index];
+		report_variant.cn = report_variant.cnv.copyNumber(cnvs_.annotationHeaders());
+		report_variant.ref_cn = CnvList::determineReferenceCopyNumber(report_variant.cnv, sample_data.gender, GSvarHelper::build());
+		report_variant.variant_id = db.cnvId(report_variant.cnv, cnv_callset_id_).toInt();
+	}
+	else if (selected_report_variant_.variant_type == VariantType::SVS)
+	{
+		report_variant.sv = svs_[selected_report_variant_.variant_index];
+		report_variant.variant_id = db.svId(report_variant.sv, sv_callset_id_, svs_).toInt();
+	}
+	else
+	{
+		THROW(ArgumentException, "Invalid variant type")
+	}
+
+	qDebug() << "var_id: " << report_variant.variant_id;
+	return report_variant;
 }
 
 ReportVariantSelectionDialog::~ReportVariantSelectionDialog()
@@ -26,18 +65,17 @@ ReportVariantSelectionDialog::~ReportVariantSelectionDialog()
 	delete ui_;
 }
 
-void ReportVariantSelectionDialog::initTable()
+void ReportVariantSelectionDialog::initTable(int ignored_rcv_id)
 {
 	NGSD db;
 	int rc_id = db.reportConfigId(ps_id_);
 	QStringList messages;
-	const VariantList& variants = GlobalServiceProvider::getSmallVariantList();
-	const CnvList& cnvs = GlobalServiceProvider::getCnvList();
-	const BedpeFile& svs = GlobalServiceProvider::getSvList();
-	report_config_ = db.reportConfig(rc_id, variants, cnvs, svs, messages);
+	QSharedPointer<ReportConfiguration> report_config = db.reportConfig(rc_id, variants_, cnvs_, svs_, messages);
+	cnv_callset_id_ = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=:0", false, ps_id_).toInt();
+	sv_callset_id_ = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", false, ps_id_).toInt();
 
 	// init table
-	ui_->tw_report_variants->setRowCount(report_config_->count());
+	ui_->tw_report_variants->setRowCount(report_config->count());
 	ui_->tw_report_variants->setColumnCount(4);
 
 	//create header
@@ -49,23 +87,62 @@ void ReportVariantSelectionDialog::initTable()
 
 	//fill table
 	int row_idx = 0;
-	foreach (const ReportVariantConfiguration& rvc, report_config_->variantConfig())
+	foreach (const ReportVariantConfiguration& rvc, report_config->variantConfig())
 	{
 		col_idx = 0;
 		ui_->tw_report_variants->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variantTypeToString(rvc.variant_type)));
 		if (rvc.variant_type == VariantType::SNVS_INDELS)
 		{
-			Variant var = variants[rvc.variant_index];
+			Variant var = variants_[rvc.variant_index];
+			QString var_id = db.variantId(var);
+			if (var_id == "")
+			{
+				messages << "Error: variant " + var.toString() + " is not in the NGSD. The variant has to be in NGSD to be published on ClinVar.";
+				continue;
+			}
+			int rvc_id = db.getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id=" + QString::number(rc_id) + " AND variant_id=" + var_id, false).toInt();
+			// skip already selected variant
+			if (ignored_rcv_id == rvc_id) continue;
+			report_variants_.insert(QPair<int, VariantType>(rvc_id, rvc.variant_type), rvc);
+			QTableWidgetItem* v_header_item = GUIHelper::createTableItem("");
+			v_header_item->setData(Qt::UserRole, rvc_id);
+			ui_->tw_report_variants->setVerticalHeaderItem(row_idx, v_header_item);
 			ui_->tw_report_variants->setItem(row_idx, col_idx++, GUIHelper::createTableItem(var.toString(false, -1, true)));
 		}
 		else if(rvc.variant_type == VariantType::CNVS)
 		{
-			CopyNumberVariant cnv = cnvs[rvc.variant_index];
+			CopyNumberVariant cnv = cnvs_[rvc.variant_index];
+			QString cnv_id = db.cnvId(cnv, cnv_callset_id_);
+			if (cnv_id == "")
+			{
+				messages << "Error: CNV " + cnv.toString() + " is not in the NGSD. The CNV has to be in NGSD to be published on ClinVar.";
+				continue;
+			}
+			int rvc_id = db.getValue("SELECT id FROM report_configuration_cnv WHERE report_configuration_id=" + QString::number(rc_id) + " AND cnv_id=" + cnv_id, false).toInt();
+			// skip already selected variant
+			if (ignored_rcv_id == rvc_id) continue;
+			report_variants_.insert(QPair<int, VariantType>(rvc_id, rvc.variant_type), rvc);
+			QTableWidgetItem* v_header_item = GUIHelper::createTableItem("");
+			v_header_item->setData(Qt::UserRole, rvc_id);
+			ui_->tw_report_variants->setVerticalHeaderItem(row_idx, v_header_item);
 			ui_->tw_report_variants->setItem(row_idx, col_idx++, GUIHelper::createTableItem(cnv.toStringWithMetaData()));
 		}
 		else if(rvc.variant_type == VariantType::SVS)
 		{
-			BedpeLine sv = svs[rvc.variant_index];
+			BedpeLine sv = svs_[rvc.variant_index];
+			QString sv_id = db.svId(sv, sv_callset_id_, svs_);
+			if (sv_id == "")
+			{
+				messages << "Error: SV " + sv.toString() + " is not in the NGSD. The SV has to be in NGSD to be published on ClinVar.";
+				continue;
+			}
+			int rvc_id = db.getValue("SELECT id FROM report_configuration_sv WHERE report_configuration_id=" + QString::number(rc_id) + " AND "  + db.svTableName(sv.type()) + "_id=" + sv_id, false).toInt();
+			// skip already selected variant
+			if (ignored_rcv_id == rvc_id) continue;
+			report_variants_.insert(QPair<int, VariantType>(rvc_id, rvc.variant_type), rvc);
+			QTableWidgetItem* v_header_item = GUIHelper::createTableItem("");
+			v_header_item->setData(Qt::UserRole, rvc_id);
+			ui_->tw_report_variants->setVerticalHeaderItem(row_idx, v_header_item);
 			ui_->tw_report_variants->setItem(row_idx, col_idx++, GUIHelper::createTableItem(sv.toString()));
 		}
 		else
@@ -77,7 +154,39 @@ void ReportVariantSelectionDialog::initTable()
 		ui_->tw_report_variants->setItem(row_idx, col_idx++, GUIHelper::createTableItem((rvc.showInReport())? "No": "Yes"));
 		row_idx++;
 	}
+
+	//resize table
+	ui_->tw_report_variants->setRowCount(row_idx);
+	GUIHelper::resizeTableCells(ui_->tw_report_variants);
+
+	//define selection model
 	ui_->tw_report_variants->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui_->tw_report_variants->setSelectionMode(QAbstractItemView::SingleSelection);
+
+	//signals and slots
+	connect(ui_->tw_report_variants, SIGNAL(itemSelectionChanged()), this, SLOT(updateSelection()));
+
+}
+
+void ReportVariantSelectionDialog::updateSelection()
+{
+	QList<int> selected_rows  = GUIHelper::selectedTableRows(ui_->tw_report_variants);
+	if(selected_rows.size() > 1) THROW(ArgumentException, "Multiple lines selected");
+	if(selected_rows.size() == 0)
+	{
+		//delete previous selection
+		selected_report_variant_ = ReportVariantConfiguration();
+		selected_rvc_id = -1;
+		ui_->buttonBox->setEnabled(false);
+	}
+	else
+	{
+		//update selection
+		selected_rvc_id = ui_->tw_report_variants->verticalHeaderItem(selected_rows.at(0))->data(Qt::UserRole).toInt();
+		VariantType variant_type = stringToVariantType(ui_->tw_report_variants->item(selected_rows.at(0), 0)->text());
+		selected_report_variant_ = report_variants_.value(QPair<int, VariantType>(selected_rvc_id, variant_type));
+		ui_->buttonBox->setEnabled(true);
+
+	}
 
 }

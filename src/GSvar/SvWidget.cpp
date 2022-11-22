@@ -740,13 +740,13 @@ void SvWidget::uploadToClinvar(int index1, int index2)
 		if(index2 < 0)
 		{
 			//Single variant submission
-			data.submission_type = ClinvarSubmissiontype::SingleVariant;
+			data.submission_type = ClinvarSubmissionType::SingleVariant;
 			data.variant_type2 = VariantType::INVALID;
 		}
 		else
 		{
 			//CompHet variant submission
-			data.submission_type = ClinvarSubmissiontype::CompoundHeterozygous;
+			data.submission_type = ClinvarSubmissionType::CompoundHeterozygous;
 			data.variant_type2 = VariantType::SVS;
 		}
 
@@ -770,7 +770,7 @@ void SvWidget::uploadToClinvar(int index1, int index2)
 		//get copy number variant info
 		data.sv1 = sv_bedpe_file_[index1];
 
-		if(data.submission_type == ClinvarSubmissiontype::CompoundHeterozygous)
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
 		{
 			data.sv2 = sv_bedpe_file_[index2];
 		}
@@ -781,7 +781,7 @@ void SvWidget::uploadToClinvar(int index1, int index2)
 			INFO(InformationMissingException, "The SV has to be in the report configuration to be published!");
 		}
 		data.report_variant_config1 = report_config_.data()->get(VariantType::SVS, index1);
-		if(data.submission_type == ClinvarSubmissiontype::CompoundHeterozygous)
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
 		{
 			if (!report_config_.data()->exists(VariantType::SVS, index2))
 			{
@@ -795,7 +795,7 @@ void SvWidget::uploadToClinvar(int index1, int index2)
 		{
 			INFO(InformationMissingException, "The SV has to be classified to be published!");
 		}
-		if(data.submission_type == ClinvarSubmissiontype::CompoundHeterozygous)
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
 		{
 			if (data.report_variant_config2.classification.trimmed().isEmpty() || (data.report_variant_config2.classification.trimmed() == "n/a"))
 			{
@@ -805,7 +805,7 @@ void SvWidget::uploadToClinvar(int index1, int index2)
 
 		//genes
 		data.genes = data.sv1.genes(sv_bedpe_file_.annotationHeaders());
-		if(data.submission_type == ClinvarSubmissiontype::CompoundHeterozygous) data.genes <<  data.sv2.genes(sv_bedpe_file_.annotationHeaders());
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous) data.genes <<  data.sv2.genes(sv_bedpe_file_.annotationHeaders());
 
 		//get callset id
 		QString callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", true, ps_id_).toString();
@@ -827,10 +827,10 @@ void SvWidget::uploadToClinvar(int index1, int index2)
 			THROW(DatabaseException, "Could not determine report config id for sample " + data.processed_sample + "!");
 		}
 
-		data.report_config_variant_id1 = db.getValue("SELECT id FROM report_configuration_sv WHERE report_configuration_id=" + QString::number(rc_id) + " AND "
+		data.report_variant_config_id1 = db.getValue("SELECT id FROM report_configuration_sv WHERE report_configuration_id=" + QString::number(rc_id) + " AND "
 											 + db.svTableName(data.sv1.type())+ "_id=" + QString::number(data.variant_id1), false).toInt();
 
-		if(data.submission_type == ClinvarSubmissiontype::CompoundHeterozygous)
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
 		{
 			//determine NGSD ids of sv for variant 2
 			sv_id = db.svId(data.sv2, callset_id.toInt(), sv_bedpe_file_, true);
@@ -841,7 +841,7 @@ void SvWidget::uploadToClinvar(int index1, int index2)
 			data.variant_id2 = Helper::toInt(sv_id);
 
 			//extract report variant id
-			data.report_config_variant_id2 = db.getValue("SELECT id FROM report_configuration_sv WHERE report_configuration_id=" + QString::number(rc_id) + " AND "
+			data.report_variant_config_id2 = db.getValue("SELECT id FROM report_configuration_sv WHERE report_configuration_id=" + QString::number(rc_id) + " AND "
 												 + db.svTableName(data.sv2.type())+ "_id=" + QString::number(data.variant_id2), false).toInt();
 		}
 

@@ -11,6 +11,7 @@
 #include "GSvarHelper.h"
 #include "GlobalServiceProvider.h"
 #include "GUIHelper.h"
+#include "LoginManager.h"
 
 PublishedVariantsWidget::PublishedVariantsWidget(QWidget* parent)
 	: QWidget(parent)
@@ -43,6 +44,11 @@ PublishedVariantsWidget::PublishedVariantsWidget(QWidget* parent)
 	ui_->table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(retryClinvarSubmission()));
 
+	//resumit to ClinVar
+	action = new QAction(QIcon(":/Icons/ClinGen.png"), "Delete ClinVar submission (admin-only)", this);
+	ui_->table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(deleteClinvarSubmission()));
+
 	action = new QAction(QIcon(":/Icons/NGSD_variant.png"), "Open variant tab", this);
 	ui_->table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openVariantTab()));
@@ -71,6 +77,8 @@ void PublishedVariantsWidget::updateTable()
 	//init
 	NGSD db;
 	QStringList constraints;
+	BedpeFile bedpe_struct;
+	bedpe_struct.setAnnotationHeaders(QList<QByteArray>() << "QUAL" << "FILTER" << "ALT_A" << "INFO_A" << "FORMAT" << "SAMPLE");
 
 	//filter "published by"
 	if (ui_->f_published->isValidSelection())
@@ -149,7 +157,7 @@ void PublishedVariantsWidget::updateTable()
 	//replace foreign keys
 	db.replaceForeignKeyColumn(table, table.columnIndex("sample_id"), "sample", "name");
 	db.replaceForeignKeyColumn(table, table.columnIndex("user_id"), "user", "name");
-	db.replaceForeignKeyColumn(table, table.columnIndex("variant_id"), "variant", "CONCAT(chr, ':', start, '-', end, ' ', ref, '>', obs)");
+//	db.replaceForeignKeyColumn(table, table.columnIndex("variant_id"), "variant", "CONCAT(chr, ':', start, '-', end, ' ', ref, '>', obs)");
 
 	//rename columns (after keys)
 	QStringList headers = table.headers();
@@ -193,6 +201,14 @@ void PublishedVariantsWidget::updateTable()
 			stable_ids << result.split(";").at(1);
 			error_messages << "";
 		}
+		else if (result.startsWith("deleted;"))
+		{
+			status << "deleted";
+			stable_ids << result.split(";").at(1);
+			QString message = result.split(";").at(2);
+			if (!result.split(";").at(3).trimmed().isEmpty()) message += ": " + result.split(";").at(3).trimmed();
+			error_messages << message;
+		}
 		else
 		{
 			status << result;
@@ -205,6 +221,40 @@ void PublishedVariantsWidget::updateTable()
 	table.addColumn(stable_ids, "ClinVar accession id");
 	table.addColumn(error_messages, "errors");
 
+	//hide linked id
+	table.takeColumn(table.columnIndex("linked_id"));
+
+	//add variant description
+	QStringList variant_ids = table.takeColumn(table.columnIndex("variant"));
+	QStringList variant_tables = table.extractColumn(table.columnIndex("variant_table"));
+	QStringList variant_descriptions;
+	for (int i = 0; i < variant_ids.size(); ++i)
+	{
+		if (variant_tables.at(i) == "variant")
+		{
+			variant_descriptions.append(db.variant(variant_ids.at(i)).toString());
+		}
+		else if (variant_tables.at(i) == "cnv")
+		{
+			variant_descriptions.append(db.cnv(variant_ids.at(i).toInt()).toString());
+		}
+		else //SV
+		{
+			StructuralVariantType sv_type;
+			if (variant_tables.at(i) == "sv_deletion") sv_type = StructuralVariantType::DEL;
+			else if (variant_tables.at(i) == "sv_duplication") sv_type = StructuralVariantType::DUP;
+			else if (variant_tables.at(i) == "sv_insertion") sv_type = StructuralVariantType::INS;
+			else if (variant_tables.at(i) == "sv_inversion") sv_type = StructuralVariantType::INV;
+			else if (variant_tables.at(i) == "sv_translocation") sv_type = StructuralVariantType::BND;
+			else THROW(ArgumentException, "Invalid variant table name '" + variant_tables.at(i) + "'!");
+
+//			qDebug() << bedpe_struct.annotationHeaders();
+			variant_descriptions.append(db.structuralVariant(variant_ids.at(i).toInt(), sv_type, bedpe_struct, true).toString());
+
+		}
+	}
+
+	table.insertColumn(1, variant_descriptions, "variant");
 
 
 	//filter by text
@@ -221,6 +271,7 @@ void PublishedVariantsWidget::updateTable()
 	ui_->table->setBackgroundColorIfEqual("ClinVar submission status", bg_red, "error");
 	ui_->table->setBackgroundColorIfEqual("ClinVar submission status", bg_green, "processed");
 	ui_->table->setBackgroundColorIfEqual("ClinVar submission status", bg_yellow, "processing");
+	ui_->table->setBackgroundColorIfEqual("ClinVar submission status", bg_gray, "deleted");
 
 	//format replaced column if available
 	if (ui_->cb_show_replaced->isChecked())
@@ -266,41 +317,77 @@ void PublishedVariantsWidget::updateClinvarSubmissionStatus()
 
 		//extract submission id
 		QString submission_id;
-		foreach (const QString& key_value_pair, details.split(';'))
+		QString stable_id;
+
+		qDebug() << result;
+
+		//special handling of deletions
+		if(result.startsWith("deleted;"))
 		{
-			if (key_value_pair.startsWith("submission_id=SUB"))
+			bool skip = false;
+			foreach (QString info, result.split(";"))
 			{
-				submission_id = key_value_pair.split("=").at(1).trimmed();
-				break;
+				if(info.startsWith("SUB")) submission_id = info.trimmed();
+				if(info.startsWith("SCV")) stable_id = info.trimmed();
+				if(info.trimmed() == "processed") skip  = true;
+
 			}
-		}
-		if (submission_id.isEmpty())
-		{
-			THROW(ArgumentException, "'details' column doesn't contain submission id!")
-		}
-
-		SubmissionStatus submission_status = getSubmissionStatus(submission_id);
-		n_var_checked++;
-
-		//update db if neccessary
-		if (!result.startsWith(submission_status.status))
-		{
-			//update NGSD
-			result = submission_status.status;
-
-			if (submission_status.status == "processed")
+			if (submission_id.isEmpty())
 			{
-				result += ";" + submission_status.stable_id;
-			}
-			else if (submission_status.status == "error")
-			{
-				result += ";" + submission_status.comment;
+				THROW(ArgumentException, "'result' column doesn't contain submission id!")
 			}
 
-			//update result info in the NGSD
-			db.updateVariantPublicationResult(vp_id, result);
+			//skip already deleted
+			if(skip) continue;
+
+			SubmissionStatus submission_status = getSubmissionStatus(submission_id);
+			n_var_checked++;
 			n_var_updated++;
+			result = QStringList{"deleted", stable_id, submission_id, submission_status.status, submission_status.comment}.join(";");
+			db.updateVariantPublicationResult(vp_id, result);
+
 		}
+		else
+		{
+			foreach (const QString& key_value_pair, details.split(';'))
+			{
+				if (key_value_pair.startsWith("submission_id=SUB"))
+				{
+					submission_id = key_value_pair.split("=").at(1).trimmed();
+					break;
+				}
+			}
+			if (submission_id.isEmpty())
+			{
+				THROW(ArgumentException, "'details' column doesn't contain submission id!")
+			}
+
+			SubmissionStatus submission_status = getSubmissionStatus(submission_id);
+			n_var_checked++;
+
+			//update db if neccessary
+			if (!result.startsWith(submission_status.status))
+			{
+				//update NGSD
+				result = submission_status.status;
+
+				if (submission_status.status == "processed")
+				{
+					result += ";" + submission_status.stable_id;
+				}
+				else if (submission_status.status == "error")
+				{
+					result += ";" + submission_status.comment;
+				}
+
+				//update result info in the NGSD
+				db.updateVariantPublicationResult(vp_id, result);
+				n_var_updated++;
+			}
+		}
+
+
+
 
 
 	}
@@ -311,6 +398,9 @@ void PublishedVariantsWidget::updateClinvarSubmissionStatus()
 	//activate button and reset busy curser
 	ui_->updateStatus_btn->setEnabled(true);
 	QApplication::restoreOverrideCursor();
+
+	//update search view
+	updateTable();
 }
 
 void PublishedVariantsWidget::searchForVariantInLOVD()
@@ -406,6 +496,163 @@ void PublishedVariantsWidget::retryClinvarSubmission()
 	}
 }
 
+void PublishedVariantsWidget::deleteClinvarSubmission()
+{
+	//check permissions
+	try
+	{
+		LoginManager::checkRoleIn(QStringList{"admin"});
+	}
+	catch (Exception& /*e*/)
+	{
+		QMessageBox::warning(this, "Permissions error", "Only admins can delete submissions!");
+		return;
+	}
+
+	qDebug() << "Delete submission...";
+
+	QSet<int> rows = ui_->table->selectedRows();
+	if (rows.size() != 1) //only available if a single line is selected
+	{
+		INFO(ArgumentException, "Please select exactly one varaint for re-upload!");
+	}
+
+	int row_idx = rows.values().at(0);
+	int status_idx = ui_->table->columnIndex("ClinVar submission status");
+	int accession_idx = ui_->table->columnIndex("ClinVar accession id");
+
+	// get publication id
+	int var_pub_id = ui_->table->getId(row_idx).toInt();
+
+	//get status
+	QString status = ui_->table->item(row_idx, status_idx)->text().trimmed();
+
+	//add stable id
+	if (status == "processed")
+	{
+		// delete on ClinVar
+		QString stable_id = ui_->table->item(row_idx, accession_idx)->text();
+
+		QMessageBox::StandardButton delete_dialog;
+		delete_dialog = QMessageBox::question(this, "Delete variant", "Are you sure you want to delete this variant publication?\nThe variant will also be deleted on ClinVar.",
+											  QMessageBox::Yes|QMessageBox::No);
+		if (delete_dialog == QMessageBox::Yes)
+		{
+			//TODO: implement
+			qDebug() << " delete from ClinVar";
+
+			// create json
+			QJsonObject clinvar_deletion = createJsonForClinvarDeletion(stable_id);
+
+			//debug: store json
+			QSharedPointer<QFile> output_file = Helper::openFileForWriting("W:\\users\\ahschul1\\2022-10_ClinVar_API_Update\\ClinVar_deletion_" + stable_id + "_" + Helper::dateTime("yyyyMMdd-hhmmss") + ".json");
+			output_file->write(QJsonDocument(clinvar_deletion).toJson());
+			output_file->close();
+
+			// send to API
+			// read API key
+			QByteArray api_key = Settings::string("clinvar_api_key", false).toUtf8();
+
+			QJsonObject post_request;
+			QJsonArray actions;
+			QJsonObject action;
+			action.insert("type", "AddData");
+			action.insert("targetDb", "clinvar");
+			QJsonObject data;
+			data.insert("content", clinvar_deletion);
+			action.insert("data", data);
+			actions.append(action);
+			post_request.insert("actions", actions);
+
+
+			// perform upload
+			static HttpHandler http_handler(HttpRequestHandler::INI); //static to allow caching of credentials
+			try
+			{
+				//switch on/off testing
+				bool test_run = true;
+				if(test_run) qDebug() << "Test run enabled!";
+
+				QStringList messages;
+
+				//add headers
+				HttpHeaders add_headers;
+				add_headers.insert("Content-Type", "application/json");
+				add_headers.insert("SP-API-KEY", api_key);
+
+				//post request
+				QByteArray reply = http_handler.post((test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/",
+													 QJsonDocument(post_request).toJson(QJsonDocument::Compact), add_headers);
+				qDebug() << ((test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/");
+
+				// parse response
+				bool success = false;
+				QString submission_id;
+				QJsonObject response = QJsonDocument::fromJson(reply).object();
+
+				GUIHelper::showMessage("Response", reply);
+
+				//successful dry-run
+				if (response.isEmpty())
+				{
+					messages << "MESSAGE: Dry-run successful!";
+				}
+				else if (response.contains("id"))
+				{
+					//successfully submitted
+					messages << "MESSAGE: The submission was successful!";
+					submission_id = response.value("id").toString();
+					messages << "MESSAGE: Submission ID: " + submission_id;
+					success = true;
+				}
+				else if (response.contains("message"))
+				{
+					//errors
+					messages << "ERROR: " + response.value("message").toString();
+				}
+
+				if (success)
+				{
+
+					// update NGSD
+					QString result = "deleted;" + stable_id + ";" + submission_id;
+					NGSD db;
+					SqlQuery query = db.getQuery();
+					query.exec("UPDATE `variant_publication` SET result='" + result+ "' WHERE id=" + QString::number(var_pub_id));
+
+					GUIHelper::showMessage("Deletion successfully submitted!", messages.join("\n"));
+				}
+				else
+				{
+					GUIHelper::showMessage("Deletion failed!", messages.join("\n"));
+				}
+			}
+			catch(Exception e)
+			{
+				GUIHelper::showMessage("Deletion failed!", e.message());
+			}
+		}
+	}
+	else if(status == "error")
+	{
+		qDebug() << "delete failed submission...";
+		QMessageBox::StandardButton delete_dialog;
+		delete_dialog = QMessageBox::question(this, "Delete variant", "Are you sure you want to delete this variant publication?", QMessageBox::Yes|QMessageBox::No);
+		if (delete_dialog == QMessageBox::Yes)
+		{
+			NGSD db;
+			SqlQuery query = db.getQuery();
+			query.exec("DELETE FROM `variant_publication` WHERE id=" + QString::number(var_pub_id));
+		}
+	}
+	else
+	{
+		QMessageBox::warning(this, "Status error", "Deletion is only supported for variants which are submitted to ClinVar and are already processed.");
+		return;
+	}
+
+}
+
 void PublishedVariantsWidget::openVariantTab()
 {
 	try
@@ -427,6 +674,10 @@ void PublishedVariantsWidget::openVariantTab()
 
 SubmissionStatus PublishedVariantsWidget::getSubmissionStatus(const QString& submission_id)
 {
+	//switch on/off testing
+	bool test_run = true;
+	if(test_run) qDebug() << "Test run enabled!";
+
 	// read API key
 	QByteArray api_key = Settings::string("clinvar_api_key").trimmed().toUtf8();
 	if (api_key.isEmpty()) THROW(FileParseException, "Settings INI file does not contain ClinVar API key!");
@@ -435,14 +686,15 @@ SubmissionStatus PublishedVariantsWidget::getSubmissionStatus(const QString& sub
 
 	try
 	{
+
 		//add headers
 		HttpHeaders add_headers;
 		add_headers.insert("Content-Type", "application/json");
 		add_headers.insert("SP-API-KEY", api_key);
 
 		//get request
-		QByteArray reply = http_handler_.get("https://submit.ncbi.nlm.nih.gov/api/v1/submissions/" + submission_id.toUpper() + "/actions/", add_headers);
-
+		QByteArray reply = http_handler_.get(((test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions/" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/") + submission_id.toUpper() + "/actions/", add_headers);
+		qDebug() << ((test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions/" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/") + submission_id.toUpper() + "/actions/";
 		// parse response
 		QJsonObject response = QJsonDocument::fromJson(reply).object();
 
@@ -497,7 +749,7 @@ ClinvarUploadData PublishedVariantsWidget::getClinvarUploadData(int var_pub_id)
 
 	// get publication data
 	SqlQuery query = db.getQuery();
-	query.prepare("SELECT sample_id, variant_id, details, user_id FROM variant_publication WHERE id=:0");
+	query.prepare("SELECT sample_id, variant_id, variant_table, details, user_id, linked_id FROM variant_publication WHERE id=:0");
 	query.bindValue(0, var_pub_id);
 	query.exec();
 
@@ -505,10 +757,153 @@ ClinvarUploadData PublishedVariantsWidget::getClinvarUploadData(int var_pub_id)
 	query.next();
 
 	QString sample_id = query.value("sample_id").toString();
+	QString variant_table = query.value("variant_table").toString();
 	data.variant_id1 = query.value("variant_id").toInt();
 	QStringList details = query.value("details").toString().split(';');
 	data.user_id = query.value("user_id").toInt();
+	QString linked_id = query.value("linked_id").toString();
 
+
+	//parse details entry
+	data.report_variant_config_id1 = -1;
+	data.report_variant_config_id2 = -1;
+	bool switch_variants = false;
+	foreach (const QString& kv_pair, details)
+	{
+		//determine submission type
+		if (kv_pair.startsWith("submission_type="))
+		{
+			QString submission_type = kv_pair.split('=').at(1).trimmed();
+			if (submission_type=="SingleVariant") data.submission_type = ClinvarSubmissionType::SingleVariant;
+			else if(submission_type=="CompoundHeterozygous") data.submission_type = ClinvarSubmissionType::CompoundHeterozygous;
+			else THROW(DatabaseException, "Invalid submission type!");
+		}
+
+		//get variant order
+		if (kv_pair.startsWith("variant_id1="))
+		{
+			int var_id1 = Helper::toInt(kv_pair.split('=').at(1), "variant_id1");
+			switch_variants = (var_id1 != data.variant_id1);
+		}
+
+		//get variant report config id
+		if (kv_pair.startsWith("variant_rc_id1="))
+		{
+			data.report_variant_config_id1 = Helper::toInt(kv_pair.split('=').at(1), "variant_rc_id1");
+		}
+		if (kv_pair.startsWith("variant_rc_id2="))
+		{
+			data.report_variant_config_id2 = Helper::toInt(kv_pair.split('=').at(1), "variant_rc_id2");
+		}
+	}
+	if (data.report_variant_config_id1 < 0)
+	{
+		THROW(DatabaseException, "No report variant config id information found in variant publication!");
+	}
+	if ((data.submission_type == ClinvarSubmissionType::CompoundHeterozygous) && (data.report_variant_config_id2 < 0))
+	{
+		THROW(DatabaseException, "No report variant config id for second variant information found in variant publication!");
+	}
+
+
+	//get variant info
+	if (variant_table == "variant")
+	{
+		data.variant_type1 = VariantType::SNVS_INDELS;
+		data.snv1 = db.variant(QString::number(data.variant_id1));
+	}
+	else if(variant_table == "cnv")
+	{
+		data.variant_type1 = VariantType::CNVS;
+		data.cnv1 = db.cnv(data.variant_id1);
+	}
+	else //SNV
+	{
+		data.variant_type1 = VariantType::SVS;
+		StructuralVariantType sv_type;
+		if(variant_table == "sv_deletion") sv_type = StructuralVariantType::DEL;
+		else if(variant_table == "sv_duplication") sv_type = StructuralVariantType::DUP;
+		else if(variant_table == "sv_insertion") sv_type = StructuralVariantType::INS;
+		else if(variant_table == "sv_invertion") sv_type = StructuralVariantType::INV;
+		else if(variant_table == "sv_translocation" ) sv_type = StructuralVariantType::BND;
+		else THROW(ArgumentException, "Invalid SV table '" + variant_table + "'!");
+
+		data.sv1 = db.structuralVariant(data.variant_id1, sv_type, GlobalServiceProvider::getSvList());
+	}
+
+	data.variant_type2 = VariantType::INVALID;
+
+	if (data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+	{
+		if (linked_id == "") THROW(DatabaseException, "No linked variant provided for compound heterozygous variant publication!");
+		//get publication data of second variant
+		query.bindValue(0, var_pub_id);
+		query.exec();
+		if (query.size() != 1) THROW(DatabaseException, "Invalid variant publication id of second variant!");
+		query.next();
+
+
+		//get variant info (2nd var)
+		variant_table = query.value("variant_table").toString();
+		data.variant_id2 = query.value("variant_id").toInt();
+		if (variant_table == "variant")
+		{
+			data.variant_type2 = VariantType::SNVS_INDELS;
+			data.snv2 = db.variant(QString::number(data.variant_id2));
+		}
+		else if(variant_table == "cnv")
+		{
+			data.variant_type2 = VariantType::CNVS;
+			data.cnv2 = db.cnv(data.variant_id2);
+		}
+		else //SNV
+		{
+			data.variant_type2 = VariantType::SVS;
+			StructuralVariantType sv_type;
+			if(variant_table == "sv_deletion") sv_type = StructuralVariantType::DEL;
+			else if(variant_table == "sv_duplication") sv_type = StructuralVariantType::DUP;
+			else if(variant_table == "sv_insertion") sv_type = StructuralVariantType::INS;
+			else if(variant_table == "sv_invertion") sv_type = StructuralVariantType::INV;
+			else if(variant_table == "sv_translocation" ) sv_type = StructuralVariantType::BND;
+			else THROW(ArgumentException, "Invalid SV table '" + variant_table + "'!");
+
+			data.sv2 = db.structuralVariant(data.variant_id2, sv_type, GlobalServiceProvider::getSvList());
+		}
+	}
+
+	//switch order of variants
+	if (switch_variants)
+	{
+		int variant_id2 = data.variant_id1;
+		int report_config_variant_id2 = data.report_variant_config_id1;
+		ReportVariantConfiguration report_variant_config2 = data.report_variant_config1;
+		VariantType variant_type2 = data.variant_type1;
+		Variant snv2 = data.snv1;
+		CopyNumberVariant cnv2 = data.cnv1;
+		int cn2 = data.cn1;
+		int ref_cn2 = data.ref_cn1;
+		BedpeLine sv2 = data.sv1;
+
+		data.variant_id1 = data.variant_id2;
+		data.report_variant_config_id1 = data.report_variant_config_id2;
+		data.report_variant_config1 = data.report_variant_config2;
+		data.variant_type1 = data.variant_type2;
+		data.snv1 = data.snv2;
+		data.cnv1 = data.cnv2;
+		data.cn1 = data.cn2;
+		data.ref_cn1 = data.ref_cn2;
+		data.sv1 = data.sv2;
+
+		data.variant_id2 = variant_id2;
+		data.report_variant_config_id2 = report_config_variant_id2;
+		data.report_variant_config2 = report_variant_config2;
+		data.variant_type2 = variant_type2;
+		data.snv2 = snv2;
+		data.cnv2 = cnv2;
+		data.cn2 = cn2;
+		data.ref_cn2 = ref_cn2;
+		data.sv2 = sv2;
+	}
 
 	//get sample data
 	SampleData sample_data = db.getSampleData(sample_id);
@@ -519,7 +914,6 @@ ClinvarUploadData PublishedVariantsWidget::getClinvarUploadData(int var_pub_id)
 	if (data.disease_info.length() < 1)
 	{
 		QMessageBox::warning(this, "No disease info", "The sample has to have at least one OMIM or Orphanet disease identifier to publish a variant in ClinVar.");
-		return data;
 	}
 
 	// get affected status
@@ -528,54 +922,47 @@ ClinvarUploadData PublishedVariantsWidget::getClinvarUploadData(int var_pub_id)
 	//get phenotype(s)
 	data.phenos = sample_data.phenotypes;
 
-	//get variant info
-	data.snv1 = db.variant(QString::number(data.variant_id1));
-
-	//get variant report config id
-	data.report_config_variant_id1 = -1;
-	foreach (const QString& kv_pair, details)
-	{
-		if (kv_pair.startsWith("variant_rc_id="))
-		{
-			data.report_config_variant_id1 = Helper::toInt(kv_pair.split('=').at(1), "variant_rc_id");
-			break;
-		}
-	}
-	if (data.report_config_variant_id1 < 0)
-	{
-		THROW(DatabaseException, "No report variant config id information found in variant publication!");
-	}
-
 	//get variant report config
-	query.exec("SELECT * FROM report_configuration_variant WHERE id=" + QString::number(data.report_config_variant_id1));
-	if (query.size() != 1) THROW(DatabaseException, "Invalid report config variant id!");
-	query.next();
-	data.report_variant_config1.variant_index = -1;
-	data.report_variant_config1.report_type = query.value("type").toString();
-	data.report_variant_config1.causal = query.value("causal").toBool();
-	data.report_variant_config1.inheritance = query.value("inheritance").toString();
-	data.report_variant_config1.de_novo = query.value("de_novo").toBool();
-	data.report_variant_config1.mosaic = query.value("mosaic").toBool();
-	data.report_variant_config1.comp_het = query.value("compound_heterozygous").toBool();
-	data.report_variant_config1.exclude_artefact = query.value("exclude_artefact").toBool();
-	data.report_variant_config1.exclude_frequency = query.value("exclude_frequency").toBool();
-	data.report_variant_config1.exclude_phenotype = query.value("exclude_phenotype").toBool();
-	data.report_variant_config1.exclude_mechanism = query.value("exclude_mechanism").toBool();
-	data.report_variant_config1.exclude_other = query.value("exclude_other").toBool();
-	data.report_variant_config1.comments = query.value("comments").toString();
-	data.report_variant_config1.comments2 = query.value("comments2").toString();
-
-	//get classification
-	data.report_variant_config1.classification = db.getClassification(data.snv1).classification;
-	if (data.report_variant_config1.classification.trimmed().isEmpty() || (data.report_variant_config1.classification.trimmed() == "n/a"))
+	QStringList messages;
+	data.report_variant_config1 = db.reportVariantConfiguration(data.report_variant_config_id1, data.variant_type1, messages);
+	if (data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
 	{
-		QMessageBox::warning(this, "No Classification", "The variant has to have a classification to be published!");
-		return data;
+		data.report_variant_config2 = db.reportVariantConfiguration(data.report_variant_config_id2, data.variant_type2, messages);
+	}
+
+	if (messages.size() > 0) QMessageBox::warning(this, "Report Variant Configurateion", messages.join('\n'));
+
+	//update snv_indel classification
+	if(data.variant_type1 == VariantType::SNVS_INDELS)
+	{
+		data.report_variant_config1.classification = db.getClassification(data.snv1).classification;
+		if (data.report_variant_config1.classification.trimmed().isEmpty() || (data.report_variant_config1.classification.trimmed() == "n/a"))
+		{
+			QMessageBox::warning(this, "No Classification", "The variant has to have a classification to be published!");
+		}
 	}
 
 	// get report config
-	int rc_id = db.getValue("SELECT report_configuration_id FROM report_configuration_variant WHERE id=" + QString::number(data.report_config_variant_id1) + " AND variant_id="
+	int rc_id = -1;
+	if (data.variant_type1 == VariantType::SNVS_INDELS)
+	{
+		rc_id = db.getValue("SELECT report_configuration_id FROM report_configuration_variant WHERE id=" + QString::number(data.report_variant_config_id1) + " AND variant_id="
 							+ QString::number(data.variant_id1), false).toInt();
+	}
+	else if (data.variant_type1 == VariantType::CNVS)
+	{
+		rc_id = db.getValue("SELECT report_configuration_id FROM report_configuration_cnv WHERE id=" + QString::number(data.report_variant_config_id1) + " AND variant_id="
+							+ QString::number(data.variant_id1), false).toInt();
+	}
+	else if (data.variant_type1 == VariantType::SVS)
+	{
+		rc_id = db.getValue("SELECT report_configuration_id FROM report_configuration_sv WHERE id=" + QString::number(data.report_variant_config_id1) + " AND " + db.svTableName(data.sv1.type())
+							+ "_id=" + QString::number(data.variant_id1), false).toInt();
+	}
+	else
+	{
+		THROW(ArgumentException, "Invalid variant type!");
+	}
 
 	//get genes
 	data.genes = db.genesOverlapping(data.snv1.chr(), data.snv1.start(), data.snv1.end(), 5000);
@@ -585,4 +972,24 @@ ClinvarUploadData PublishedVariantsWidget::getClinvarUploadData(int var_pub_id)
 
 
 	return data;
+}
+
+QJsonObject PublishedVariantsWidget::createJsonForClinvarDeletion(QString stable_id)
+{
+	//build up JSON
+	QJsonObject json;
+
+	//required
+	QJsonObject clinvar_deletion;
+	{
+		//required
+		QJsonObject accession_set;
+		{
+			accession_set.insert("accession", stable_id);
+		}
+		clinvar_deletion.insert("accessionSet", QJsonArray() << accession_set);
+	}
+	json.insert("clinvarDeletion", clinvar_deletion);
+
+	return json;
 }

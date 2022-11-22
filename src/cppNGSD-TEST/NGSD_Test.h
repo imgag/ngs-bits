@@ -1164,6 +1164,8 @@ private slots:
 		db.deleteReportConfig(conf_id);
 		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 1);
 
+		//TODO: test db.reportVariantConfiguration()
+
 		//cnvId
 		CopyNumberVariant cnv = CopyNumberVariant("chr1", 1000, 2000, 1, GeneSet(), QByteArrayList());
 		QString cnv_id = db.cnvId(cnv, 4711, false); //callset 4711 does not exist
@@ -1529,12 +1531,14 @@ private slots:
 		S_EQUAL(query.value("result").toString(), "processed;SCV12345678");
 
 		IS_TRUE(db.getVariantPublication("NA12878_03.GSvar", variant).startsWith("db: ClinVar class: 5 user: Max Mustermann date: "));
+		//TODO: add tests for CNV, SV
 
 		db.flagVariantPublicationAsReplaced(vp_id);
 		query.exec("SELECT replaced FROM variant_publication WHERE variant_id=199844");
 		I_EQUAL(query.size(), 1);
 		query.next();
 		IS_TRUE(query.value("replaced").toBool());
+		//TODO add test for linked ids (comp-het)
 
 		//test with invalid IDs
 		IS_THROWN(DatabaseException, db.updateVariantPublicationResult(-42, "processed;SCV12345678"));

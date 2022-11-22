@@ -7,7 +7,7 @@
 #include "Phenotype.h"
 #include "NGSD.h"
 
-enum class ClinvarSubmissiontype
+enum class ClinvarSubmissionType
 {
 	SingleVariant,
 	CompoundHeterozygous
@@ -18,9 +18,9 @@ struct ClinvarUploadData
 {
     //sample data
 	int variant_id1;
-	int report_config_variant_id1;
 	int variant_id2 = -1;
-	int report_config_variant_id2 = -1;
+	int report_variant_config_id1;
+	int report_variant_config_id2 = -1;
 	ReportVariantConfiguration report_variant_config1;
 	ReportVariantConfiguration report_variant_config2;
 	QString processed_sample;
@@ -33,7 +33,7 @@ struct ClinvarUploadData
     PhenotypeList phenos;
 
 	//type data
-	ClinvarSubmissiontype submission_type;
+	ClinvarSubmissionType submission_type;
 	VariantType variant_type1;
 	VariantType variant_type2;
 
@@ -83,6 +83,8 @@ private:
     QJsonObject createJson();
     bool validateJson(const QJsonObject& json, QStringList& errors);
 	QString getHGVS();
+	///Returns db table name for variant
+	QString getDbTableName(bool var2 = false);
 
     static QString getSettings(QString key);
     static QString convertClassification(QString classification);
