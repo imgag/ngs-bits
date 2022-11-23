@@ -5,6 +5,7 @@
 #include "FileLocationProvider.h"
 #include "DatabaseService.h"
 #include "StatisticsService.h"
+#include <QDialog>
 
 ///Provider class for GSvar-wide services
 class GlobalServiceProvider
