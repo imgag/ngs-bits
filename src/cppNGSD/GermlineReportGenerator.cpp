@@ -491,14 +491,24 @@ void GermlineReportGenerator::writeHTML(QString filename)
 			QString score = row[score_idx];
 			QString zscore = "n/a";
 			QString population = NGSHelper::populationCodeToHumanReadable(processed_sample_data.ancestry);
-			if (trait=="Breast Cancer") // mean and standard deviation taken from BCAC315 data
+			if (trait=="Breast Cancer") // mean and standard deviation for BCAC313 taken from https://canrisk.atlassian.net/wiki/spaces/FAQS/pages/35979266/What+variants+are+used+in+the+PRS
 			{
 				double mean = -0.424;
 				double stdev = 0.611;
-				zscore = QString::number((Helper::toDouble(score, "PRS score") - mean) / stdev, 'f', 3);
+				double zscore_num = (Helper::toDouble(score, "PRS score") - mean) / stdev;
+				zscore = QString::number(zscore_num, 'f', 3);
+				if (zscore_num>=1.6 && population==NGSHelper::populationCodeToHumanReadable("EUR"))
+				{
+					zscore = "<span style='background-color:#ff0;'>" + zscore + "</span>";
+				}
+				if (population!=NGSHelper::populationCodeToHumanReadable("EUR"))
+				{
+					zscore = "(" + zscore + ")";
+				}
 			}
 
 			stream << "<tr><td>" << trait << "</td><td>" << row[citation_idx] << "</td><td>" << score << "</td><td>" << zscore << "</td><td>" << population << "</td></tr>";
+
 		}
 		stream << "</table>" << endl;
 		stream << "<p>" << trans("Die Einsch&auml;tzung der klinischen Bedeutung eines PRS ist nur unter Verwendung eines entsprechenden validierten Risiko-Kalkulations-Programms und unter Ber&uuml;cksichtigung der ethnischen Zugeh&ouml;rigkeit m&ouml;glich (z.B. CanRisk.org f&uuml;r Brustkrebs).") << "</p>" << endl;
@@ -507,7 +517,6 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	//close stream
 	writeHtmlFooter(stream);
 	outfile->close();
-
 
 	//validate written file
 	QString validation_error = XmlHelper::isValidXml(filename);
