@@ -80,6 +80,10 @@ CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_wi
 	connect(ui->cnvs->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(cnvHeaderContextMenu(QPoint)));
 	connect(ui->filter_widget, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 
+	GUIHelper::styleSplitter(ui->splitter);
+	ui->splitter->setStretchFactor(0, 10);
+	ui->splitter->setStretchFactor(1, 1);
+
 	//determine callset ID
 	if (ps_id!="")
 	{
