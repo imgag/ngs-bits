@@ -185,3 +185,15 @@ void GlobalServiceProvider::openGSvarViaNGSD(QString processed_sample_name, bool
 		}
 	}
 }
+
+void GlobalServiceProvider::addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize)
+{
+	foreach(QWidget* widget, QApplication::topLevelWidgets())
+	{
+		MainWindow* mw = qobject_cast<MainWindow*>(widget);
+		if (mw!=nullptr)
+		{
+			mw->addModelessDialog(dlg, maximize);
+		}
+	}
+}
