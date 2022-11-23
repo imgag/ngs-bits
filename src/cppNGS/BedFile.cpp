@@ -98,7 +98,7 @@ QSet<Chromosome> BedFile::chromosomes() const
 	return output;
 }
 
-void BedFile::load(QString filename, bool stdin_if_empty)
+void BedFile::load(QString filename, bool stdin_if_empty, bool read_annotations)
 {
 	clear();
 
@@ -143,11 +143,14 @@ void BedFile::load(QString filename, bool stdin_if_empty)
 
 		//annotations (save memory via cache)
 		QByteArrayList annos;
-		for (int i=3; i<fields.count(); ++i)
+		if (read_annotations)
 		{
-			QByteArray entry = fields[i];
-			if (!str_cache.contains(entry)) str_cache.insert(entry, entry);
-			annos << str_cache[entry];
+			for (int i=3; i<fields.count(); ++i)
+			{
+				QByteArray entry = fields[i];
+				if (!str_cache.contains(entry)) str_cache.insert(entry, entry);
+				annos << str_cache[entry];
+			}
 		}
 
 		append(BedLine(chr, start, end, annos));

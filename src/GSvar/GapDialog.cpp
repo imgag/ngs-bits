@@ -90,7 +90,7 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 		{
 			//load gaps file
 			BedFile gaps;
-			gaps.load(lowcov_file_);
+			gaps.load(lowcov_file_, false, false);
 
 			//load system ROI
 			int sys_id = db_.processingSystemIdFromProcessedSample(ps_);

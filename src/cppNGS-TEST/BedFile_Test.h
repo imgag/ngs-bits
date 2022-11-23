@@ -230,15 +230,33 @@ private slots:
 	void load()
 	{
 		BedFile file;
-		file.load(TESTDATA("data_in/demo.bed"));
+
+		//load without annoations
+		file.load(TESTDATA("data_in/demo.bed"), false, false);
 		I_EQUAL(file.count(), 591);
 		X_EQUAL(file[0].chr(), Chromosome("chr4"));
 		I_EQUAL(file[0].start(), 843451);
 		I_EQUAL(file[0].end(), 843572);
+		I_EQUAL(file[0].annotations().count(), 0);
 		X_EQUAL(file[590].chr(), Chromosome("chr22"));
 		I_EQUAL(file[590].start(), 38565215);
 		I_EQUAL(file[590].end(), 38565443);
+		I_EQUAL(file[590].annotations().count(), 0);
 		IS_FALSE(file.isSorted());
+
+		//load with annoations
+		file.load(TESTDATA("data_in/demo.bed"), false, true);
+		I_EQUAL(file.count(), 591);
+		X_EQUAL(file[0].chr(), Chromosome("chr4"));
+		I_EQUAL(file[0].start(), 843451);
+		I_EQUAL(file[0].end(), 843572);
+		I_EQUAL(file[0].annotations().count(), 1);
+		S_EQUAL(file[0].annotations()[0], "some text annotation");
+		X_EQUAL(file[590].chr(), Chromosome("chr22"));
+		I_EQUAL(file[590].start(), 38565215);
+		I_EQUAL(file[590].end(), 38565443);
+		I_EQUAL(file[590].annotations().count(), 1);
+		S_EQUAL(file[590].annotations()[0], "");
 	}
 
 	void store()
@@ -535,7 +553,7 @@ private slots:
 		*/
 
 		//second test: load file, chunk, merge, check that the file is still the same...
-		f.load(TESTDATA("data_in/demo.bed"));
+		f.load(TESTDATA("data_in/demo.bed"), false, false);
 		f.merge();
 		I_EQUAL(f.count(), 591);
 
