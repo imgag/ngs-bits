@@ -157,7 +157,6 @@ void PublishedVariantsWidget::updateTable()
 	//replace foreign keys
 	db.replaceForeignKeyColumn(table, table.columnIndex("sample_id"), "sample", "name");
 	db.replaceForeignKeyColumn(table, table.columnIndex("user_id"), "user", "name");
-//	db.replaceForeignKeyColumn(table, table.columnIndex("variant_id"), "variant", "CONCAT(chr, ':', start, '-', end, ' ', ref, '>', obs)");
 
 	//rename columns (after keys)
 	QStringList headers = table.headers();
@@ -417,12 +416,15 @@ void PublishedVariantsWidget::searchForVariantInLOVD()
 {
 	try
 	{
-		int col = ui_->table->columnIndex("variant");
+		int var_col = ui_->table->columnIndex("variant");
+		int table_col = ui_->table->columnIndex("variant_table");
 
 		QSet<int> rows = ui_->table->selectedRows();
 		foreach (int row, rows)
 		{
-			QString variant_text = ui_->table->item(row, col)->text();
+			QString variant_table = ui_->table->item(row, table_col)->text();
+			if (variant_table != "variant") continue;
+			QString variant_text = ui_->table->item(row, var_col)->text();
 			Variant variant = Variant::fromString(variant_text);
 
 			int pos = variant.start();
@@ -440,12 +442,15 @@ void PublishedVariantsWidget::searchForVariantInClinVar()
 {
 	try
 	{
-		int col = ui_->table->columnIndex("variant");
+		int var_col = ui_->table->columnIndex("variant");
+		int table_col = ui_->table->columnIndex("variant_table");
 
 		QSet<int> rows = ui_->table->selectedRows();
 		foreach (int row, rows)
 		{
-			QString variant_text = ui_->table->item(row, col)->text();
+			QString variant_table = ui_->table->item(row, table_col)->text();
+			if (variant_table != "variant") continue;
+			QString variant_text = ui_->table->item(row, var_col)->text();
 			Variant variant = Variant::fromString(variant_text);
 			QString url = GSvarHelper::clinVarSearchLink(variant, GSvarHelper::build());
 			QDesktopServices::openUrl(QUrl(url));

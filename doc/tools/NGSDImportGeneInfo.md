@@ -1,10 +1,10 @@
 ### NGSDImportGeneInfo tool help
-	NGSDImportGeneInfo (2019_07-8-g5a9c094)
+	NGSDImportGeneInfo (2022_10-83-g62451d12)
 	
 	Imports gene-specific information into NGSD.
 	
 	Mandatory parameters:
-	  -constraint <file> gnomAD gene contraint file (download and unzip https://storage.googleapis.com/gnomad-public/release/2.1.1/constraint/gnomad.v2.1.1.lof_metrics.by_gene.txt.bgz).
+	  -constraint <file> gnomAD gene contraint file (download and unzip https://storage.googleapis.com/gcp-public-data--gnomad/release/2.1.1/constraint/gnomad.v2.1.1.lof_metrics.by_gene.txt.bgz).
 	
 	Optional parameters:
 	  -test              Uses the test database instead of on the production database.
@@ -19,6 +19,6 @@
 	  --tdx              Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDImportGeneInfo changelog
-	NGSDImportGeneInfo 2019_07-8-g5a9c094
+	NGSDImportGeneInfo 2022_10-83-g62451d12
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

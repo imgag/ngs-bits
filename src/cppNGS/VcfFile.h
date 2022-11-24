@@ -173,9 +173,6 @@ public:
 	///Validates VCF file from file path
 	static bool isValid(QString filename, QString ref_file, QTextStream& out_stream, bool print_general_information = false, int max_lines = std::numeric_limits<int>::max());
 
-	///Returns the content of a column by index (tab-separated line) from a QByteArray line
-	static QByteArray getPartByColumn(const QByteArray& line, int index);
-
 	///Returns string where all forbidden char of an info column value are URL encoded
 	static QString encodeInfoValue(QString info_value);
 

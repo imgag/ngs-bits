@@ -168,28 +168,16 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 ## ChangeLog
 
 Changes of master since last release:
+
+* none so far
+
+Changes in release 2022_11:
+* VcfAnnotateConsequence: implemented multi-threading, added much more tests and fixed several bugs.
+* NGSDExportSamples: added filters for HPO terms and ancestry.
 * NGSD:
 	* Added version number to table 'gene_transcript'.
-	
-Changes in release 2022_10:
-* SeqPurge: improved CPU usage and scaling in multi-threaded mode.
-* BedCoverage: added 'threads' parameter and removed 'dup' parameter.
-* BedCoverage: now always works in panel mode.
-* BedCoverage: added parameter to clear previous annotations.
-* BedLowCoverage: added 'threads' parameter.
-* BedHighCoverage: added 'threads' parameter.
-* CfDnaQC: added 'threads' parameter.
-* HgvsToVcf: added parameter for maximum sequence length.
-* MappingQC: fixed support for non-human genomes.
-* SampleGender: Ignoring duplicate, secondary and supplementary alignments in methods 'xy' and 'sry' now.
-* RohHunter: updated documentation.
-* VcfToTsv: Added support for streaming.
-* Added tools: VcfToBed, TsvToQC.
-* NGSD:
-	* Added mechanism to protect the production database from being deleted with init() accidentally.
-	* Updated transcript biotypes to Ensembl 107.
-	* Added more tissue types to sample table.
-	* Added 'archived' flag to project table.
-	* Added fields for manual curation of variants to germline report configuration tables.
+	* Updated tissue list in table 'sample'.
+	* Added comment field in table 'user'.
+	* Added DRAGEN as caller in table 'sv_callset'.
 
 For older changes see [releases](https://github.com/imgag/ngs-bits/releases).

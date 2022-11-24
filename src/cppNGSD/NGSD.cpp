@@ -4111,7 +4111,7 @@ void NGSD::deleteSomaticGeneRole(QByteArray gene)
 }
 
 
-void NGSD::addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details, int user_id)
+int NGSD::addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details, int user_id)
 {
 	QString s_id = sampleId(filename);
 	QString v_id = variantId(variant);
@@ -4128,9 +4128,11 @@ void NGSD::addVariantPublication(QString filename, const Variant& variant, QStri
 	query.bindValue(5, details);
 	query.bindValue(6, user_id);
 	query.exec();
+
+	return query.lastInsertId().toInt();
 }
 
-void NGSD::addVariantPublication(QString processed_sample, const CopyNumberVariant& cnv, QString database, QString classification, QString details, int user_id)
+int NGSD::addVariantPublication(QString processed_sample, const CopyNumberVariant& cnv, QString database, QString classification, QString details, int user_id)
 {
 	QString s_id = sampleId(processed_sample, true);
 	QString ps_id = processedSampleId(processed_sample, true);
@@ -4149,9 +4151,11 @@ void NGSD::addVariantPublication(QString processed_sample, const CopyNumberVaria
 	query.bindValue(5, details);
 	query.bindValue(6, user_id);
 	query.exec();
+
+	return query.lastInsertId().toInt();
 }
 
-void NGSD::addVariantPublication(QString processed_sample, const BedpeLine& sv, const BedpeFile& svs, QString database, QString classification, QString details, int user_id)
+int NGSD::addVariantPublication(QString processed_sample, const BedpeLine& sv, const BedpeFile& svs, QString database, QString classification, QString details, int user_id)
 {
 	QString s_id = sampleId(processed_sample, true);
 	QString ps_id = processedSampleId(processed_sample, true);
@@ -4170,9 +4174,11 @@ void NGSD::addVariantPublication(QString processed_sample, const BedpeLine& sv, 
 	query.bindValue(5, details);
 	query.bindValue(6, user_id);
 	query.exec();
+
+	return query.lastInsertId().toInt();
 }
 
-void NGSD::addManualVariantPublication(QString sample_name, QString database, QString classification, QString details, int user_id)
+int NGSD::addManualVariantPublication(QString sample_name, QString database, QString classification, QString details, int user_id)
 {
 	QString s_id = sampleId(sample_name);
 	int v_id = -1;
@@ -4189,6 +4195,8 @@ void NGSD::addManualVariantPublication(QString sample_name, QString database, QS
 	query.bindValue(5, details);
 	query.bindValue(6, user_id);
 	query.exec();
+
+	return query.lastInsertId().toInt();
 }
 
 QString NGSD::getVariantPublication(QString filename, const Variant& variant)
@@ -4318,6 +4326,18 @@ void NGSD::flagVariantPublicationAsReplaced(int variant_publication_id)
 		query.bindValue(0, linked_id);
 		query.exec();
 	}
+}
+
+void NGSD::linkVariantPublications(int variant_publication_id1, int variant_publication_id2)
+{
+	SqlQuery query = getQuery();
+	query.prepare("UPDATE variant_publication SET linked_id=:0 WHERE id=:1");
+	query.bindValue(0, variant_publication_id1);
+	query.bindValue(1, variant_publication_id2);
+	query.exec();
+	query.bindValue(0, variant_publication_id2);
+	query.bindValue(1, variant_publication_id1);
+	query.exec();
 }
 
 QString NGSD::comment(const Variant& variant)
@@ -6027,6 +6047,9 @@ Transcript NGSD::bestTranscript(int gene_id)
 		if (t.isManeSelectTranscript()) return t;
 	}
 
+	//MANE plus clinical
+	//not necessary because each gene with MANE plus clinical also has a MANE select transcript
+
 	//longest coding
 	list.sortByCodingBases();
 	foreach(const Transcript& t, list)
@@ -6042,6 +6065,24 @@ Transcript NGSD::bestTranscript(int gene_id)
 	}
 
 	return Transcript();
+}
+
+TranscriptList NGSD::releventTranscripts(int gene_id)
+{
+	TranscriptList output;
+
+	Transcript best_trans = bestTranscript(gene_id);
+	if (best_trans.isValid()) output << best_trans;
+
+	foreach(const Transcript& t, transcripts(gene_id, Transcript::ENSEMBL, false))
+	{
+		if (t.isPreferredTranscript() || t.isManeSelectTranscript() || t.isManePlusClinicalTranscript())
+		{
+			if (!output.contains(t)) output << t;
+		}
+	}
+
+	return output;
 }
 
 const TranscriptList& NGSD::transcripts()

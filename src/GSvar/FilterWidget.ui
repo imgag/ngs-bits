@@ -271,7 +271,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="roi_details">
+         <widget class="QToolButton" name="roi_btn">
           <property name="focusPolicy">
            <enum>Qt::NoFocus</enum>
           </property>
@@ -282,8 +282,11 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset resource="../cppGUI/resources.qrc">
-            <normaloff>:/Icons/Info.png</normaloff>:/Icons/Info.png</iconset>
+           <iconset resource="GSvar.qrc">
+            <normaloff>:/Icons/settings.png</normaloff>:/Icons/settings.png</iconset>
+          </property>
+          <property name="popupMode">
+           <enum>QToolButton::InstantPopup</enum>
           </property>
          </widget>
         </item>
@@ -472,7 +475,6 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../cppGUI/resources.qrc"/>
   <include location="GSvar.qrc"/>
  </resources>
  <connections/>

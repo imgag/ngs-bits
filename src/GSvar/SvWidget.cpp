@@ -43,6 +43,10 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* fil
 	ui->setupUi(this);
 	ui->svs->setContextMenuPolicy(Qt::CustomContextMenu);
 
+	GUIHelper::styleSplitter(ui->splitter);
+	ui->splitter->setStretchFactor(0, 10);
+	ui->splitter->setStretchFactor(1, 1);
+
 	//link variant filter widget to FilterWidgetSV
 	ui->filter_widget->setVariantFilterWidget(filter_widget);
 

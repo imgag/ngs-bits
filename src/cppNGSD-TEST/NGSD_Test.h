@@ -508,6 +508,17 @@ private slots:
 		transcript = db.bestTranscript(1); //BRCA1, only CCDS transcript > invalid
 		IS_FALSE(transcript.isValid());
 
+		//releventTranscripts
+		transcripts = db.releventTranscripts(3); //NIPA1 (only best)
+		I_EQUAL(transcripts.count(), 1);
+		S_EQUAL(transcripts[0].name(), "NIPA1_TR1");
+		transcripts = db.releventTranscripts(652410); //SPG7 (best plus MANE select)
+		I_EQUAL(transcripts.count(), 2);
+		S_EQUAL(transcripts[0].name(), "ENST00000341316");
+		S_EQUAL(transcripts[1].name(), "ENST00000268704");
+		transcripts = db.releventTranscripts(1); //BRCA1 (only CCDS transcript)
+		I_EQUAL(transcripts.count(), 0);
+
 		//geneIdOfTranscript
 		I_EQUAL(db.geneIdOfTranscript("BRCA1_TR1"), 1);
 		I_EQUAL(db.geneIdOfTranscript("BRCA2_TR1"), 2);
@@ -1506,22 +1517,26 @@ private slots:
 		S_EQUAL(removed_regions.toText(), removed_regions_db.toText());
 
 		//############################### variant publication ###############################
+		// variant
 		variant = db.variant("199844");
 		db.addVariantPublication("NA12878_03.GSvar", variant, "ClinVar", "5", "submission_id=SUB00001234;blabla...");
 		SqlQuery query = db.getQuery();
-		query.exec("SELECT id, sample_id, class, details, user_id, result, replaced FROM variant_publication WHERE variant_id=199844");
+		query.exec("SELECT id, sample_id, variant_table, db, class, details, user_id, result, replaced, linked_id FROM variant_publication WHERE variant_id=199844");
 		I_EQUAL(query.size(), 1);
 		query.next();
 		I_EQUAL(query.value("sample_id").toInt(), 1);
+		S_EQUAL(query.value("variant_table").toString(), "variant");
+		S_EQUAL(query.value("db").toString(), "ClinVar");
 		I_EQUAL(query.value("class").toInt(), 5);
 		S_EQUAL(query.value("details").toString(), "submission_id=SUB00001234;blabla...");
 		I_EQUAL(query.value("user_id").toInt(), 99);
 		S_EQUAL(query.value("result").toString(), "");
 		IS_FALSE(query.value("replaced").toBool());
+		IS_TRUE(query.value("linked_id").isNull());
 
 		int vp_id = query.value("id").toInt();
 		db.updateVariantPublicationResult(vp_id, "processed;SCV12345678");
-		query.exec("SELECT id, sample_id, class, details, user_id, result FROM variant_publication WHERE variant_id=199844");
+		query.exec("SELECT id, sample_id, class, details, user_id, result FROM variant_publication WHERE variant_id=199844 AND variant_table='variant'");
 		I_EQUAL(query.size(), 1);
 		query.next();
 		I_EQUAL(query.value("sample_id").toInt(), 1);
@@ -1529,16 +1544,120 @@ private slots:
 		S_EQUAL(query.value("details").toString(), "submission_id=SUB00001234;blabla...");
 		I_EQUAL(query.value("user_id").toInt(), 99);
 		S_EQUAL(query.value("result").toString(), "processed;SCV12345678");
-
+		qDebug() << db.getVariantPublication("NA12878_03.GSvar", variant);
 		IS_TRUE(db.getVariantPublication("NA12878_03.GSvar", variant).startsWith("db: ClinVar class: 5 user: Max Mustermann date: "));
-		//TODO: add tests for CNV, SV
 
+		// cnv
+		cnv = db.cnv("3");
+		db.addVariantPublication("NA12878_03", cnv, "ClinVar", "4", "submission_id=SUB00005678;cn=12;variant_id=...");
+		query = db.getQuery();
+		query.exec("SELECT id, sample_id, variant_table, db, class, details, user_id, result, replaced, linked_id FROM variant_publication WHERE variant_id=3 AND variant_table='cnv'");
+		I_EQUAL(query.size(), 1);
+		query.next();
+		I_EQUAL(query.value("sample_id").toInt(), 1);
+		S_EQUAL(query.value("variant_table").toString(), "variant");
+		S_EQUAL(query.value("db").toString(), "ClinVar");
+		I_EQUAL(query.value("class").toInt(), 4);
+		S_EQUAL(query.value("details").toString(), "submission_id=SUB00005678;cn=12;variant_id=...");
+		I_EQUAL(query.value("user_id").toInt(), 99);
+		S_EQUAL(query.value("result").toString(), "");
+		IS_FALSE(query.value("replaced").toBool());
+		IS_TRUE(query.value("linked_id").isNull());
+		qDebug() << db.getVariantPublication("NA12878_03.GSvar", cnv);
+		IS_TRUE(db.getVariantPublication("NA12878_03.GSvar", cnv).startsWith("db: ClinVar class: 5 user: Max Mustermann date: "));
+
+		//sv
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/sv_manta.bedpe"));
+		BedpeLine sv = db.structuralVariant(2, StructuralVariantType::DEL, svs);
+		int vp_id2 = db.addVariantPublication("NA12878_03", sv, "LOVD", "2", "submission_id=SUB000012354;type=DEL;variant_id=...");
+		query = db.getQuery();
+		query.exec("SELECT id, sample_id, variant_table, db, class, details, user_id, result, replaced, linked_id FROM variant_publication WHERE variant_id=3 AND variant_table='cnv'");
+		I_EQUAL(query.size(), 1);
+		query.next();
+		I_EQUAL(query.value("sample_id").toInt(), 1);
+		S_EQUAL(query.value("variant_table").toString(), "sv_deletion");
+		S_EQUAL(query.value("db").toString(), "LOVD");
+		I_EQUAL(query.value("class").toInt(), 2);
+		S_EQUAL(query.value("details").toString(), "submission_id=SUB000012354;type=DEL;variant_id=...");
+		I_EQUAL(query.value("user_id").toInt(), 99);
+		S_EQUAL(query.value("result").toString(), "");
+		IS_FALSE(query.value("replaced").toBool());
+		IS_TRUE(query.value("linked_id").isNull());
+		qDebug() << db.getVariantPublication("NA12878_03", sv);
+		IS_TRUE(db.getVariantPublication("NA12878_03", sv).startsWith("db: ClinVar class: 5 user: Max Mustermann date: "));
+
+		sv = db.structuralVariant(5, StructuralVariantType::INS, svs);
+		db.addVariantPublication("NA12878_03", sv, "LOVD", "5", "submission_id=SUB00001111;type=DEL;variant_id=...");
+		query = db.getQuery();
+		query.exec("SELECT id, sample_id, variant_table, db, class, details, user_id, result, replaced, linked_id FROM variant_publication WHERE variant_id=3 AND variant_table='cnv'");
+		I_EQUAL(query.size(), 1);
+		query.next();
+		I_EQUAL(query.value("sample_id").toInt(), 1);
+		S_EQUAL(query.value("variant_table").toString(), "sv_deletion");
+		S_EQUAL(query.value("db").toString(), "LOVD");
+		I_EQUAL(query.value("class").toInt(), 5);
+		S_EQUAL(query.value("details").toString(), "submission_id=SUB00001111;type=INS;variant_id=...");
+		I_EQUAL(query.value("user_id").toInt(), 99);
+		S_EQUAL(query.value("result").toString(), "");
+		IS_FALSE(query.value("replaced").toBool());
+		IS_TRUE(query.value("linked_id").isNull());
+		qDebug() << db.getVariantPublication("NA12878_03", sv);
+		IS_TRUE(db.getVariantPublication("NA12878_03", sv).startsWith("db: ClinVar class: 5 user: Max Mustermann date: "));
+
+		//manual upload
+		db.addManualVariantPublication("NA12345", "ClinVar", "4", "submission_id=SUB00002222;type=DEL;variant_desc=chr1:12345-12345 A>T...");
+		query = db.getQuery();
+		query.exec("SELECT id, sample_id, variant_table, db, class, details, user_id, result, replaced, linked_id FROM variant_publication WHERE variant_id=-1 AND variant_table='none'");
+		I_EQUAL(query.size(), 1);
+		query.next();
+		I_EQUAL(query.value("sample_id").toInt(), 3);
+		S_EQUAL(query.value("variant_table").toString(), "none");
+		S_EQUAL(query.value("db").toString(), "ClinVar");
+		I_EQUAL(query.value("class").toInt(), 4);
+		S_EQUAL(query.value("details").toString(), "submission_id=SUB00002222;type=DEL;variant_desc=chr1:12345-12345 A>T...");
+		I_EQUAL(query.value("user_id").toInt(), 99);
+		S_EQUAL(query.value("result").toString(), "");
+		IS_FALSE(query.value("replaced").toBool());
+		IS_TRUE(query.value("linked_id").isNull());
+
+		// replaced
 		db.flagVariantPublicationAsReplaced(vp_id);
 		query.exec("SELECT replaced FROM variant_publication WHERE variant_id=199844");
 		I_EQUAL(query.size(), 1);
 		query.next();
 		IS_TRUE(query.value("replaced").toBool());
-		//TODO add test for linked ids (comp-het)
+
+		//comp-het
+		db.linkVariantPublications(vp_id, vp_id2);
+		query.exec("SELECT id, sample_id, variant_table, db, class, details, user_id, result, replaced, linked_id FROM variant_publication WHERE linked_id=" + QString::number(vp_id2));
+		I_EQUAL(query.size(), 1);
+		query.next();
+		I_EQUAL(query.value("id").toInt(), vp_id);
+		I_EQUAL(query.value("sample_id").toInt(), 1);
+		S_EQUAL(query.value("variant_table").toString(), "variant");
+		S_EQUAL(query.value("db").toString(), "ClinVar");
+		I_EQUAL(query.value("class").toInt(), 5);
+		S_EQUAL(query.value("details").toString(), "submission_id=SUB00001234;blabla...");
+		I_EQUAL(query.value("user_id").toInt(), 99);
+		S_EQUAL(query.value("result").toString(), "");
+		IS_FALSE(query.value("replaced").toBool());
+		I_EQUAL(query.value("linked_id").toInt(), vp_id2);
+
+		query.exec("SELECT id, sample_id, variant_table, db, class, details, user_id, result, replaced, linked_id FROM variant_publication WHERE linked_id=" + QString::number(vp_id));
+		I_EQUAL(query.size(), 1);
+		query.next();
+		I_EQUAL(query.value("id").toInt(), vp_id2);
+		I_EQUAL(query.value("sample_id").toInt(), 1);
+		S_EQUAL(query.value("variant_table").toString(), "sv_deletion");
+		S_EQUAL(query.value("db").toString(), "LOVD");
+		I_EQUAL(query.value("class").toInt(), 2);
+		S_EQUAL(query.value("details").toString(), "submission_id=SUB000012354;type=DEL;variant_id=...");
+		I_EQUAL(query.value("user_id").toInt(), 99);
+		S_EQUAL(query.value("result").toString(), "");
+		IS_FALSE(query.value("replaced").toBool());
+		I_EQUAL(query.value("linked_id").toInt(), vp_id1);
+
 
 		//test with invalid IDs
 		IS_THROWN(DatabaseException, db.updateVariantPublicationResult(-42, "processed;SCV12345678"));

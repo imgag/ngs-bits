@@ -286,6 +286,12 @@ public:
 		return BasicStatistics::rangeOverlaps(start_, end_, start, end);
 	}
 
+	///Equality operator (based on name without version)
+	bool operator==(const Transcript& rhs) const
+	{
+		return name_==rhs.name_;
+	}
+
 protected:
 	QByteArray gene_;
     QByteArray gene_id_;
@@ -326,6 +332,12 @@ class CPPNGSSHARED_EXPORT TranscriptList
 	: public QList<Transcript>
 {
 public:
+
+	///Returns if a transcript with the name (without version) is contained
+	bool contains(const Transcript& transcript) const;
+	///Returns if a transcript with the name (without version) is contained
+	bool contains(const QByteArray& name) const;
+
 	//sorts transcripts by base count (longest first)
 	void sortByBases();
 	//sorts transcripts by coding base count (longest first)

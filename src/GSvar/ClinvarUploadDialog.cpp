@@ -590,6 +590,7 @@ void ClinvarUploadDialog::upload()
 					genes = ui_.le_genes_sv1->text();
 					break;
 				default:
+					THROW(ArgumentException, "Invalid variant type provided!");
 					break;
 			}
 			qDebug() << genes;
@@ -610,7 +611,7 @@ void ClinvarUploadDialog::upload()
 				// log publication in NGSD
 				if (manual_upload_)
 				{
-					db_.addManualVariantPublication(ui_.le_sample->text(), "ClinVar", convertClassification(ui_.cb_clin_sig_desc->currentText(), true), details.join(";"), -1);
+					int pub_id = db_.addManualVariantPublication(ui_.le_sample->text(), "ClinVar", convertClassification(ui_.cb_clin_sig_desc->currentText(), true), details.join(";"), -1);
 					if(clinvar_upload_data_.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
 					{
 						//switch variant 1 and 2
@@ -623,51 +624,55 @@ void ClinvarUploadDialog::upload()
 							else if (kv_pair.startsWith("variant_desc2=")) kv_pair.replace("variant_desc2=", "variant_desc1=");
 							details2 << kv_pair;
 						}
-						db_.addManualVariantPublication(ui_.le_sample->text(), "ClinVar", convertClassification(ui_.cb_clin_sig_desc->currentText(), true), details2.join(";"), -1);
+						int second_pub_id = db_.addManualVariantPublication(ui_.le_sample->text(), "ClinVar", convertClassification(ui_.cb_clin_sig_desc->currentText(), true), details2.join(";"), -1);
+						db_.linkVariantPublications(pub_id, second_pub_id);
 					}
 				}
 				else
 				{
+					int pub_id;
 					switch (clinvar_upload_data_.variant_type1)
 					{
 						case VariantType::SNVS_INDELS:
-							db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.snv1, "ClinVar", convertClassification(ui_.cb_clin_sig_desc->currentText(), true),
-													  details.join(";"), clinvar_upload_data_.user_id);
+							pub_id =db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.snv1, "ClinVar",
+															  convertClassification(ui_.cb_clin_sig_desc->currentText(), true), details.join(";"), clinvar_upload_data_.user_id);
 							break;
 						case VariantType::CNVS:
-							db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.cnv1, "ClinVar", convertClassification(ui_.cb_clin_sig_desc->currentText(), true),
-													  details.join(";"), clinvar_upload_data_.user_id);
+							pub_id =db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.cnv1, "ClinVar",
+															  convertClassification(ui_.cb_clin_sig_desc->currentText(), true), details.join(";"), clinvar_upload_data_.user_id);
 							break;
 						case VariantType::SVS:
-							db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.sv1, GlobalServiceProvider::getSvList(),  "ClinVar",
+							pub_id =db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.sv1, GlobalServiceProvider::getSvList(),  "ClinVar",
 													  convertClassification(ui_.cb_clin_sig_desc->currentText(), true), details.join(";"), clinvar_upload_data_.user_id);
 							break;
 						default:
+							THROW(ArgumentException, "Invalid variant type provided!");
 							break;
 					}
 					if(clinvar_upload_data_.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
 					{
+						int second_pub_id;
 						switch (clinvar_upload_data_.variant_type2)
 						{
 							case VariantType::SNVS_INDELS:
-								db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.snv2, "ClinVar", convertClassification(ui_.cb_clin_sig_desc->currentText(), true),
-														  details.join(";"), clinvar_upload_data_.user_id);
+								second_pub_id = db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.snv2, "ClinVar",
+																		  convertClassification(ui_.cb_clin_sig_desc->currentText(), true), details.join(";"), clinvar_upload_data_.user_id);
 								break;
 							case VariantType::CNVS:
-								db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.cnv2, "ClinVar", convertClassification(ui_.cb_clin_sig_desc->currentText(), true),
-														  details.join(";"), clinvar_upload_data_.user_id);
+								second_pub_id = db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.cnv2, "ClinVar",
+																		  convertClassification(ui_.cb_clin_sig_desc->currentText(), true), details.join(";"), clinvar_upload_data_.user_id);
 								break;
 							case VariantType::SVS:
-								db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.sv2, GlobalServiceProvider::getSvList(),  "ClinVar",
+								second_pub_id = db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.sv2, GlobalServiceProvider::getSvList(),  "ClinVar",
 														  convertClassification(ui_.cb_clin_sig_desc->currentText(), true), details.join(";"), clinvar_upload_data_.user_id);
 								break;
 							default:
+								THROW(ArgumentException, "Invalid variant type provided!");
 								break;
 						}
+						db_.linkVariantPublications(pub_id, second_pub_id);
 					}
 				}
-
-
 
 
 				// for reupload: flag previous upload as replaced

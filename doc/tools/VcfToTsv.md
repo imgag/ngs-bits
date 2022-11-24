@@ -1,5 +1,5 @@
 ### VcfToTsv tool help
-	VcfToTsv (2022_04-120-g0b2ddab9)
+	VcfToTsv (2022_10-83-g62451d12)
 	
 	Converts a VCF file to a tab-separated text file.
 	
@@ -19,8 +19,9 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfToTsv changelog
-	VcfToTsv 2022_04-120-g0b2ddab9
+	VcfToTsv 2022_10-83-g62451d12
 	
+	2022-11-03 Changed output variant style from GSvar to VCF.
 	2022-09-07 Added support for streaming (STDIN > STDOUT).
 	2020-08-07 Multi-allelic and multi-sample VCFs are supported.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

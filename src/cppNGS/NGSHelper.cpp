@@ -785,12 +785,17 @@ bool NGSHelper::isBamFile(QString filename)
 {
 	if (Helper::isHttpUrl(filename))
 	{
-		return QUrl(filename).toString(QUrl::RemoveQuery).endsWith(".bam", Qt::CaseInsensitive);
+		filename = QUrl(filename).toString(QUrl::RemoveQuery);
 	}
-	else
-	{
-		return filename.endsWith(".bam", Qt::CaseInsensitive);
-	}
+
+	return filename.endsWith(".bam", Qt::CaseInsensitive);
+}
+
+QString NGSHelper::stripSecureToken(QString url)
+{
+	int token_pos = url.indexOf("?token", Qt::CaseInsensitive);
+	if (token_pos > -1) url = url.left(token_pos);
+	return  url;
 }
 
 ServerInfo NGSHelper::getServerInfo()
