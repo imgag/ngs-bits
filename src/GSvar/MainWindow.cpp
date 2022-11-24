@@ -1441,6 +1441,12 @@ void MainWindow::on_actionSearchSVs_triggered()
 	addModelessDialog(dlg);
 }
 
+void MainWindow::on_actionUploadVariantToClinVar_triggered()
+{
+	QSharedPointer<QDialog> dlg = QSharedPointer<QDialog>(new ClinvarUploadDialog(this));
+	addModelessDialog(dlg);
+}
+
 void MainWindow::on_actionShowPublishedVariants_triggered()
 {
 	PublishedVariantsWidget* widget = new PublishedVariantsWidget();

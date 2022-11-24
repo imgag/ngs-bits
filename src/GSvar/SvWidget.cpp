@@ -767,12 +767,16 @@ void SvWidget::uploadToClinvar(int index1, int index2)
 		//get phenotype(s)
 		data.phenos = sample_data.phenotypes;
 
-		//get copy number variant info
+		//get sv variant info
 		data.sv1 = sv_bedpe_file_[index1];
+		if(data.sv1.type() == StructuralVariantType::BND)
+			WARNING(NotImplementedException, "The upload of translocations is not supported by the ClinVar API. Please use the manual submission through the ClinVar website.");
 
 		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
 		{
 			data.sv2 = sv_bedpe_file_[index2];
+			if(data.sv2.type() == StructuralVariantType::BND)
+				WARNING(NotImplementedException, "The upload of translocations is not supported by the ClinVar API. Please use the manual submission through the ClinVar website.");
 		}
 
 		// get report info

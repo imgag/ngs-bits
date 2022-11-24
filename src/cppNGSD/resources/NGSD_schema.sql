@@ -617,7 +617,7 @@ CREATE  TABLE IF NOT EXISTS `variant_publication`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `sample_id` INT(11) NOT NULL,
   `variant_id` INT(11) NOT NULL,
-  `variant_table` ENUM('variant', 'cnv', 'sv_deletion', 'sv_duplication', 'sv_insertion', 'sv_inversion', 'sv_translocation') NOT NULL,
+  `variant_table` ENUM('variant', 'cnv', 'sv_deletion', 'sv_duplication', 'sv_insertion', 'sv_inversion', 'sv_translocation', 'none') NOT NULL,
   `db` ENUM('LOVD','ClinVar') NOT NULL,
   `class` ENUM('1','2','3','4','5') NOT NULL,
   `details` TEXT NOT NULL COMMENT "List of key-value pairs with additional upload information (separated by ';')",

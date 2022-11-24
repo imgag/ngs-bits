@@ -227,6 +227,7 @@ void PublishedVariantsWidget::updateTable()
 	//add variant description
 	QStringList variant_ids = table.takeColumn(table.columnIndex("variant"));
 	QStringList variant_tables = table.extractColumn(table.columnIndex("variant_table"));
+	QStringList variant_details = table.extractColumn(table.columnIndex("details"));
 	QStringList variant_descriptions;
 	for (int i = 0; i < variant_ids.size(); ++i)
 	{
@@ -238,7 +239,7 @@ void PublishedVariantsWidget::updateTable()
 		{
 			variant_descriptions.append(db.cnv(variant_ids.at(i).toInt()).toString());
 		}
-		else //SV
+		else if (variant_tables.at(i).startsWith("sv_"))
 		{
 			StructuralVariantType sv_type;
 			if (variant_tables.at(i) == "sv_deletion") sv_type = StructuralVariantType::DEL;
@@ -247,15 +248,24 @@ void PublishedVariantsWidget::updateTable()
 			else if (variant_tables.at(i) == "sv_inversion") sv_type = StructuralVariantType::INV;
 			else if (variant_tables.at(i) == "sv_translocation") sv_type = StructuralVariantType::BND;
 			else THROW(ArgumentException, "Invalid variant table name '" + variant_tables.at(i) + "'!");
-
-//			qDebug() << bedpe_struct.annotationHeaders();
 			variant_descriptions.append(db.structuralVariant(variant_ids.at(i).toInt(), sv_type, bedpe_struct, true).toString());
-
+		}
+		else // none
+		{
+			QString variant_description;
+			foreach (const QString& kv_pair, variant_details.at(i).split(';'))
+			{
+				if (kv_pair.startsWith("variant_desc1="))
+				{
+					variant_description = kv_pair.split('=').at(1) + " (manual upload)";
+					break;
+				}
+			}
+			variant_descriptions.append(variant_description);
 		}
 	}
 
 	table.insertColumn(1, variant_descriptions, "variant");
-
 
 	//filter by text
 	QString text_filter = ui_->f_text->text().trimmed();
@@ -342,7 +352,7 @@ void PublishedVariantsWidget::updateClinvarSubmissionStatus()
 
 			SubmissionStatus submission_status = getSubmissionStatus(submission_id);
 			n_var_checked++;
-			n_var_updated++;
+			if (submission_status.status != result.split(";").at(2)) n_var_updated++;
 			result = QStringList{"deleted", stable_id, submission_id, submission_status.status, submission_status.comment}.join(";");
 			db.updateVariantPublicationResult(vp_id, result);
 
@@ -657,12 +667,15 @@ void PublishedVariantsWidget::openVariantTab()
 {
 	try
 	{
-		int col = ui_->table->columnIndex("variant");
+		int var_col = ui_->table->columnIndex("variant");
+		int var_table_col = ui_->table->columnIndex("variant_table");
 
 		QSet<int> rows = ui_->table->selectedRows();
 		foreach (int row, rows)
 		{
-			QString variant_text = ui_->table->item(row, col)->text();
+			QString variant_text = ui_->table->item(row, var_col)->text();
+			QString variant_table = ui_->table->item(row, var_table_col)->text();
+			if (variant_table != "variant") continue; // skip all non-small variannts
 			GlobalServiceProvider::openVariantTab(Variant::fromString(variant_text));
 		}
 	}

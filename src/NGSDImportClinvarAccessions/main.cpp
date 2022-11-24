@@ -100,10 +100,10 @@ public:
 			Variant var = db.variant(var_id);
 			Variant var_hg19 = liftOverVariant(var, false);
 
-			VariantVcfRepresentation var_hg19_vcf = var_hg19.toVCF(genome_reference_hg19);
+			VcfLine var_hg19_vcf = var_hg19.toVCF(genome_reference_hg19);
 //			qDebug() << var_hg19_vcf.chr.str() << var_hg19_vcf.pos << var_hg19_vcf.ref << var_hg19_vcf.alt;
 
-			QByteArray vcf_string = var_hg19_vcf.chr.str() + ":" + QByteArray::number(var_hg19_vcf.pos) + " " + var_hg19_vcf.ref + ">" + var_hg19_vcf.alt;
+			QByteArray vcf_string = var_hg19_vcf.chr().str() + ":" + QByteArray::number(var_hg19_vcf.start()) + " " + var_hg19_vcf.ref() + ">" + var_hg19_vcf.altString();
 
 			if(accession_ids.contains(vcf_string))
 			{

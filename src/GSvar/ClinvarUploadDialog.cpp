@@ -18,6 +18,10 @@
 #include <QDesktopServices>
 #include <QMenu>
 #include <QMessageBox>
+#include <QInputDialog>
+
+bool test_run = true;
+QString api_url = (test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/";
 
 ClinvarUploadDialog::ClinvarUploadDialog(QWidget *parent)
     : QDialog(parent)
@@ -43,23 +47,23 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 	clinvar_upload_data_ = data;
 
 	// set first variant data
-	if (data.variant_type1 == VariantType::SNVS_INDELS)
+	if (clinvar_upload_data_.variant_type1 == VariantType::SNVS_INDELS)
 	{
 		//set stacked widget to SNV page
 		ui_.sw_var1->setCurrentIndex(0);
 
 		// fill fields
 		ui_.cb_chr_snv1->setEnabled(true);
-		ui_.cb_chr_snv1->setCurrentText(data.snv1.chr().strNormalized(false));
+		ui_.cb_chr_snv1->setCurrentText(clinvar_upload_data_.snv1.chr().strNormalized(false));
 		ui_.le_start_snv1->setEnabled(false);
 		ui_.le_end_snv1->setEnabled(false);
 		ui_.le_ref_snv1->setEnabled(false);
 		ui_.le_obs_snv1->setEnabled(false);
 
-		if (data.snv1.isSNV())
+		if (clinvar_upload_data_.snv1.isSNV())
 		{
-			ui_.le_start_snv1->setText(QString::number(data.snv1.start()));
-			ui_.le_end_snv1->setText(QString::number(data.snv1.end()));
+			ui_.le_start_snv1->setText(QString::number(clinvar_upload_data_.snv1.start()));
+			ui_.le_end_snv1->setText(QString::number(clinvar_upload_data_.snv1.end()));
 			ui_.le_ref_snv1->setText(data.snv1.ref());
 			ui_.le_obs_snv1->setText(data.snv1.obs());
 		}
@@ -67,7 +71,7 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 		{
 			//convert indels to VCF format
 			static FastaFileIndex genome_index(Settings::string("reference_genome"));
-			VcfLine vcf_variant = data.snv1.toVCF(genome_index);
+			VcfLine vcf_variant = clinvar_upload_data_.snv1.toVCF(genome_index);
 
 			ui_.le_start_snv1->setText(QString::number(vcf_variant.start()));
 			ui_.le_end_snv1->setText(QString::number(vcf_variant.end()));
@@ -78,21 +82,21 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 		// set genes
 		ui_.le_genes_snv1->setText(data.genes.join(","));
 	}
-	else if(data.variant_type1 == VariantType::CNVS)
+	else if(clinvar_upload_data_.variant_type1 == VariantType::CNVS)
 	{
 		//set stacked widget to SNV page
 		ui_.sw_var1->setCurrentIndex(1);
 
 		// fill fields
 		ui_.cb_chr_cnv1->setEnabled(false);
-		ui_.cb_chr_cnv1->setCurrentText(data.cnv1.chr().strNormalized(false));
+		ui_.cb_chr_cnv1->setCurrentText(clinvar_upload_data_.cnv1.chr().strNormalized(false));
 		ui_.le_start_cnv1->setEnabled(false);
-		ui_.le_start_cnv1->setText(QString::number(data.cnv1.start()));
+		ui_.le_start_cnv1->setText(QString::number(clinvar_upload_data_.cnv1.start()));
 		ui_.le_end_cnv1->setEnabled(false);
-		ui_.le_end_cnv1->setText(QString::number(data.cnv1.end()));
+		ui_.le_end_cnv1->setText(QString::number(clinvar_upload_data_.cnv1.end()));
 
 		ui_.le_cn_cnv1->setEnabled(false);
-		ui_.le_cn_cnv1->setText(QString::number(data.cn1));
+		ui_.le_cn_cnv1->setText(QString::number(clinvar_upload_data_.cn1));
 		if(data.ref_cn1 < 0)
 		{
 			ui_.le_rcn_cnv1->setEnabled(true);
@@ -107,74 +111,64 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 		// set genes
 		ui_.le_genes_cnv1->setText(data.genes.join(","));
 	}
-	else if(data.variant_type1 == VariantType::SVS)
+	else if(clinvar_upload_data_.variant_type1 == VariantType::SVS)
 	{
 		//set stacked widget to SNV page
 		ui_.sw_var1->setCurrentIndex(2);
 
 		// fill fields
 		ui_.cb_type_sv1->setEnabled(false);
-		ui_.cb_type_sv1->setCurrentText(BedpeFile::typeToString(data.sv1.type()));
+		ui_.cb_type_sv1->setCurrentText(BedpeFile::typeToString(clinvar_upload_data_.sv1.type()));
 		ui_.cb_chr1_sv1->setEnabled(false);
-		ui_.cb_chr1_sv1->setCurrentText(data.sv1.chr1().strNormalized(false));
+		ui_.cb_chr1_sv1->setCurrentText(clinvar_upload_data_.sv1.chr1().strNormalized(false));
 		ui_.le_start1_sv1->setEnabled(false);
-		ui_.le_start1_sv1->setText(QString::number(data.sv1.start1()));
+		ui_.le_start1_sv1->setText(QString::number(clinvar_upload_data_.sv1.start1()));
 		ui_.le_end1_sv1->setEnabled(false);
-		ui_.le_end1_sv1->setText(QString::number(data.sv1.end1()));
+		ui_.le_end1_sv1->setText(QString::number(clinvar_upload_data_.sv1.end1()));
 		ui_.cb_chr2_sv1->setEnabled(false);
-		ui_.cb_chr2_sv1->setCurrentText(data.sv1.chr2().strNormalized(false));
+		ui_.cb_chr2_sv1->setCurrentText(clinvar_upload_data_.sv1.chr2().strNormalized(false));
 		ui_.le_start2_sv1->setEnabled(false);
-		ui_.le_start2_sv1->setText(QString::number(data.sv1.start2()));
+		ui_.le_start2_sv1->setText(QString::number(clinvar_upload_data_.sv1.start2()));
 		ui_.le_end2_sv1->setEnabled(false);
-		ui_.le_end2_sv1->setText(QString::number(data.sv1.end2()));
+		ui_.le_end2_sv1->setText(QString::number(clinvar_upload_data_.sv1.end2()));
 
 		// set genes
-		ui_.le_genes_sv1->setText(data.genes.join(","));
+		ui_.le_genes_sv1->setText(clinvar_upload_data_.genes.join(","));
 	}
 	else
 	{
 		THROW(ArgumentException, "Invalid variant type provided!");
 	}
-	if(data.submission_type == ClinvarSubmissionType::SingleVariant)
-	{
-		//hide second variant table
-		ui_.sw_var2->setVisible(false);
-		ui_.l_comp_het->setVisible(false);
-	}
-	else
+	if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
 	{
 		//Compound heterozygote variant
 
-		//show second variant table
-		ui_.sw_var2->setVisible(true);
-		ui_.l_comp_het->setVisible(true);
-
 		//set values for second variant
-		if (data.variant_type2 == VariantType::SNVS_INDELS)
+		if (clinvar_upload_data_.variant_type2 == VariantType::SNVS_INDELS)
 		{
 			//set stacked widget to SNV page
 			ui_.sw_var2->setCurrentIndex(0);
 
 			// fill fields
 			ui_.cb_chr_snv2->setEnabled(false);
-			ui_.cb_chr_snv2->setCurrentText(data.snv2.chr().strNormalized(false));
+			ui_.cb_chr_snv2->setCurrentText(clinvar_upload_data_.snv2.chr().strNormalized(false));
 			ui_.le_start_snv2->setEnabled(false);
 			ui_.le_end_snv2->setEnabled(false);
 			ui_.le_ref_snv2->setEnabled(false);
 			ui_.le_obs_snv2->setEnabled(false);
 
-			if (data.snv2.isSNV())
+			if (clinvar_upload_data_.snv2.isSNV())
 			{
-				ui_.le_start_snv2->setText(QString::number(data.snv2.start()));
-				ui_.le_end_snv2->setText(QString::number(data.snv2.end()));
-				ui_.le_ref_snv2->setText(data.snv2.ref());
-				ui_.le_obs_snv2->setText(data.snv2.obs());
+				ui_.le_start_snv2->setText(QString::number(clinvar_upload_data_.snv2.start()));
+				ui_.le_end_snv2->setText(QString::number(clinvar_upload_data_.snv2.end()));
+				ui_.le_ref_snv2->setText(clinvar_upload_data_.snv2.ref());
+				ui_.le_obs_snv2->setText(clinvar_upload_data_.snv2.obs());
 			}
 			else
 			{
 				//convert indels to VCF format
 				static FastaFileIndex genome_index(Settings::string("reference_genome"));
-				VcfLine vcf_variant = data.snv2.toVCF(genome_index);
+				VcfLine vcf_variant = clinvar_upload_data_.snv2.toVCF(genome_index);
 
 				ui_.le_start_snv2->setText(QString::number(vcf_variant.start()));
 				ui_.le_end_snv2->setText(QString::number(vcf_variant.end()));
@@ -183,22 +177,22 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 			}
 
 		}
-		else if(data.variant_type2 == VariantType::CNVS)
+		else if(clinvar_upload_data_.variant_type2 == VariantType::CNVS)
 		{
 			//set stacked widget to SNV page
 			ui_.sw_var2->setCurrentIndex(1);
 
 			// fill fields
 			ui_.cb_chr_cnv2->setEnabled(false);
-			ui_.cb_chr_cnv2->setCurrentText(data.cnv2.chr().strNormalized(false));
+			ui_.cb_chr_cnv2->setCurrentText(clinvar_upload_data_.cnv2.chr().strNormalized(false));
 			ui_.le_start_cnv2->setEnabled(false);
-			ui_.le_start_cnv2->setText(QString::number(data.cnv2.start()));
+			ui_.le_start_cnv2->setText(QString::number(clinvar_upload_data_.cnv2.start()));
 			ui_.le_end_cnv2->setEnabled(false);
-			ui_.le_end_cnv2->setText(QString::number(data.cnv2.end()));
+			ui_.le_end_cnv2->setText(QString::number(clinvar_upload_data_.cnv2.end()));
 
 			ui_.le_cn_cnv2->setEnabled(false);
-			ui_.le_cn_cnv2->setText(QString::number(data.cn2));
-			if(data.ref_cn2 < 0)
+			ui_.le_cn_cnv2->setText(QString::number(clinvar_upload_data_.cn2));
+			if(clinvar_upload_data_.ref_cn2 < 0)
 			{
 				ui_.le_rcn_cnv2->setEnabled(true);
 				ui_.le_rcn_cnv2->setText("");
@@ -206,7 +200,7 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 			else
 			{
 				ui_.le_rcn_cnv2->setEnabled(false);
-				ui_.le_rcn_cnv2->setText(QString::number(data.ref_cn2));
+				ui_.le_rcn_cnv2->setText(QString::number(clinvar_upload_data_.ref_cn2));
 			}
 
 
@@ -218,19 +212,19 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 
 			// fill fields
 			ui_.cb_type_sv2->setEnabled(false);
-			ui_.cb_type_sv2->setCurrentText(BedpeFile::typeToString(data.sv2.type()));
+			ui_.cb_type_sv2->setCurrentText(BedpeFile::typeToString(clinvar_upload_data_.sv2.type()));
 			ui_.cb_chr1_sv2->setEnabled(false);
-			ui_.cb_chr1_sv2->setCurrentText(data.sv2.chr1().strNormalized(false));
+			ui_.cb_chr1_sv2->setCurrentText(clinvar_upload_data_.sv2.chr1().strNormalized(false));
 			ui_.le_start1_sv2->setEnabled(false);
-			ui_.le_start1_sv2->setText(QString::number(data.sv2.start1()));
+			ui_.le_start1_sv2->setText(QString::number(clinvar_upload_data_.sv2.start1()));
 			ui_.le_end1_sv2->setEnabled(false);
-			ui_.le_end1_sv2->setText(QString::number(data.sv2.end1()));
+			ui_.le_end1_sv2->setText(QString::number(clinvar_upload_data_.sv2.end1()));
 			ui_.cb_chr2_sv2->setEnabled(false);
-			ui_.cb_chr2_sv2->setCurrentText(data.sv2.chr2().strNormalized(false));
+			ui_.cb_chr2_sv2->setCurrentText(clinvar_upload_data_.sv2.chr2().strNormalized(false));
 			ui_.le_start2_sv2->setEnabled(false);
-			ui_.le_start2_sv2->setText(QString::number(data.sv2.start2()));
+			ui_.le_start2_sv2->setText(QString::number(clinvar_upload_data_.sv2.start2()));
 			ui_.le_end2_sv2->setEnabled(false);
-			ui_.le_end2_sv2->setText(QString::number(data.sv2.end2()));
+			ui_.le_end2_sv2->setText(QString::number(clinvar_upload_data_.sv2.end2()));
 
 		}
 		else
@@ -241,12 +235,12 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 	}
 
     // set phenotypes
-    ui_.phenos->setPhenotypes(data.phenos);
+	ui_.phenos->setPhenotypes(clinvar_upload_data_.phenos);
 
     // set disease info
-    ui_.tw_disease_info->setRowCount(data.disease_info.length());
+	ui_.tw_disease_info->setRowCount(clinvar_upload_data_.disease_info.length());
     int row_idx = 0;
-    foreach (const SampleDiseaseInfo& disease, data.disease_info)
+	foreach (const SampleDiseaseInfo& disease, clinvar_upload_data_.disease_info)
     {
         ui_.tw_disease_info->setItem(row_idx, 0, new QTableWidgetItem(disease.type));
         ui_.tw_disease_info->setItem(row_idx, 1, new QTableWidgetItem(disease.disease_info));
@@ -255,19 +249,19 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 
     // set classification
 	ui_.cb_clin_sig_desc->setEnabled(data.submission_type==ClinvarSubmissionType::CompoundHeterozygous);
-	ui_.cb_clin_sig_desc->setCurrentText(convertClassification(data.report_variant_config1.classification));
+	ui_.cb_clin_sig_desc->setCurrentText(convertClassification(data.report_variant_config1.classification, false));
 
     // set inheritance mode (if available)
 	ui_.cb_inheritance->setCurrentText(convertInheritance(data.report_variant_config1.inheritance));
 
 	// set allele origin for de novo variants
-	if(data.report_variant_config1.de_novo)
+	if(clinvar_upload_data_.report_variant_config1.de_novo)
     {
         ui_.cb_allele_origin->setCurrentText("de novo");
     }
 
     // set affected status
-    ui_.cb_affected_status->setCurrentText(convertAffectedStatus(data.affected_status));
+	ui_.cb_affected_status->setCurrentText(convertAffectedStatus(clinvar_upload_data_.affected_status));
 
 	// check for reupload
 	if (clinvar_upload_data_.variant_publication_id > 0)
@@ -286,10 +280,10 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 	}
 
 	// (de-)activate button to add comp-het variant
-	ui_.add_comphet_btn->setEnabled(data.submission_type == ClinvarSubmissionType::SingleVariant);
-	ui_.add_comphet_btn->setVisible(data.submission_type == ClinvarSubmissionType::SingleVariant);
-	ui_.remove_comphet_btn->setEnabled(data.submission_type != ClinvarSubmissionType::SingleVariant);
-	ui_.remove_comphet_btn->setVisible(data.submission_type != ClinvarSubmissionType::SingleVariant);
+	updateGUI();
+
+	// set upload type
+	manual_upload_ = false;
 
     //validate input
     checkGuiData();
@@ -327,19 +321,76 @@ void ClinvarUploadDialog::initGui()
 
     // set defaults:
     ui_.cb_collection_method->setCurrentText("clinical testing");
+	clinvar_upload_data_.submission_type = ClinvarSubmissionType::SingleVariant;
+	ui_.remove_comphet_btn->setVisible(false);
+	selectVariantType(0);
 
+	//init sample selection:
+	ui_.le_sample->fill(db_.createTable("sample_names", "SELECT id, name FROM sample"));
 
     //connect signal and slots
     connect(ui_.upload_btn, SIGNAL(clicked(bool)), this, SLOT(upload()));
 	connect(ui_.add_comphet_btn, SIGNAL(clicked(bool)), this, SLOT(addCompHetVariant()));
 	connect(ui_.remove_comphet_btn, SIGNAL(clicked(bool)), this, SLOT(removeCompHetVariant()));
+
 	connect(ui_.cb_chr_snv1, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_start_snv1, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_end_snv1, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_ref_snv1, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_obs_snv1, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.le_genes_snv1, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+
+	connect(ui_.cb_chr_snv2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_start_snv2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_end_snv2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_ref_snv2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_obs_snv2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+
+	connect(ui_.cb_chr_cnv1, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_start_cnv1, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_end_cnv1, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_cn_cnv1, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_rcn_cnv1, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.le_genes_cnv1, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+
+	connect(ui_.cb_chr_cnv2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_start_cnv2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_end_cnv2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_cn_cnv2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_rcn_cnv2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+
+	connect(ui_.cb_type_sv1, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.cb_chr1_sv1, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_start1_sv1, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_end1_sv1, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.cb_chr2_sv1, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_start2_sv1, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_end2_sv1, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.le_genes_sv1, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+
+	connect(ui_.cb_type_sv2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.cb_chr1_sv2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_start1_sv2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_end1_sv2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.cb_chr2_sv2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_start2_sv2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_end2_sv2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+
+	connect(ui_.le_sample, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
     connect(ui_.phenos, SIGNAL(phenotypeSelectionChanged()), this, SLOT(checkGuiData()));
+	connect(ui_.tw_disease_info, SIGNAL(cellChanged(int,int)), this, SLOT(checkGuiData()));
     connect(ui_.print_btn, SIGNAL(clicked(bool)), this, SLOT(printResults()));
     connect(ui_.comment_upload, SIGNAL(textChanged()), this, SLOT(updatePrintButton()));
+	connect(ui_.cb_var_type, SIGNAL(currentIndexChanged(int)), this, SLOT(selectVariantType(int)));
+
+	//init disease add/remove
+	connect(ui_.btn_delete_disease_info, SIGNAL(clicked(bool)), this, SLOT(removeDiseaseInfo()));
+	QMenu* menu = new QMenu();
+	menu->addAction("OMIM disease/phenotype identifier", this, SLOT(addDiseaseInfo()));
+	menu->addAction("Orpha number", this, SLOT(addDiseaseInfo()));
+	ui_.btn_add_disease_info->setMenu(menu);
+
+	updateGUI();
 }
 
 void ClinvarUploadDialog::upload()
@@ -398,9 +449,8 @@ void ClinvarUploadDialog::upload()
         add_headers.insert("SP-API-KEY", api_key);
 
         //post request
-		QByteArray reply = http_handler.post((test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/",
-											 QJsonDocument(post_request).toJson(QJsonDocument::Compact), add_headers);
-		qDebug() << ((test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/");
+		QByteArray reply = http_handler.post(api_url, QJsonDocument(post_request).toJson(QJsonDocument::Compact), add_headers);
+		qDebug() << api_url;
 
         // parse response
         bool success = false;
@@ -455,15 +505,65 @@ void ClinvarUploadDialog::upload()
                 condition << ui_.tw_disease_info->item(row_idx, 0)->text() + "|" + ui_.tw_disease_info->item(row_idx, 1)->text();
             }
             details << "condition=" + condition.join(',');
-			details << "variant_type1=" + variantTypeToString(clinvar_upload_data_.variant_type1);
-			details << "variant_id1=" + QString::number(clinvar_upload_data_.variant_id1);
-			details << "variant_rc_id1=" + getDbTableName(false) + ":" + QString::number(clinvar_upload_data_.report_variant_config_id1);
-			if(clinvar_upload_data_.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+			if (manual_upload_)
 			{
-				details << "variant_type2=" + variantTypeToString(clinvar_upload_data_.variant_type2);
-				details << "variant_id2=" + QString::number(clinvar_upload_data_.variant_id2);
-				details << "variant_rc_id2=" + getDbTableName(true) + ":" + QString::number(clinvar_upload_data_.report_variant_config_id2);
+				details << "variant_type1=" + variantTypeToString(clinvar_upload_data_.variant_type1);
+				switch (clinvar_upload_data_.variant_type1)
+				{
+					case VariantType::SNVS_INDELS:
+						details << "variant_desc1=chr" + ui_.cb_chr_snv1->currentText() + ":" + ui_.le_start_snv1->text() + "-" + ui_.le_end_snv1->text()
+								   + " " + ui_.le_ref_snv1->text() + ">" + ui_.le_obs_snv1->text();
+						break;
+					case VariantType::CNVS:
+						details << "variant_desc1=chr" + ui_.cb_chr_cnv1->currentText() + ":" + ui_.le_start_cnv1->text() + "-" + ui_.le_end_cnv1->text()
+								   + " cn:" + ui_.le_cn_cnv1->text() + " rcn:" + ui_.le_rcn_cnv1->text();
+						break;
+					case VariantType::SVS:
+						details << "variant_desc1=" + ui_.cb_type_sv1->currentText() + " chr" + ui_.cb_chr1_sv1->currentText() + ":" + ui_.le_start1_sv1->text() + "-" + ui_.le_end1_sv1->text()
+								   + " chr"+ ui_.cb_chr2_sv1->currentText() + ":" + ui_.le_start2_sv1->text() + "-" + ui_.le_end2_sv1->text();
+						break;
+					default:
+						THROW(ArgumentException, "Invalid variant type provided!");
+						break;
+				}
+
+				if(clinvar_upload_data_.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+				{
+					details << "variant_type2=" + variantTypeToString(clinvar_upload_data_.variant_type2);
+					switch (clinvar_upload_data_.variant_type2)
+					{
+						case VariantType::SNVS_INDELS:
+							details << "variant_desc2=chr" + ui_.cb_chr_snv2->currentText() + ":" + ui_.le_start_snv2->text() + "-" + ui_.le_end_snv2->text()
+									   + " " + ui_.le_ref_snv2->text() + ">" + ui_.le_obs_snv2->text();
+							break;
+						case VariantType::CNVS:
+							details << "variant_desc2=chr" + ui_.cb_chr_cnv2->currentText() + ":" + ui_.le_start_cnv2->text() + "-" + ui_.le_end_cnv2->text()
+									   + " cn:" + ui_.le_cn_cnv2->text() + " rcn:" + ui_.le_rcn_cnv2->text();
+							break;
+						case VariantType::SVS:
+							details << "variant_desc2=" + ui_.cb_type_sv2->currentText() + " chr" + ui_.cb_chr1_sv2->currentText() + ":" + ui_.le_start1_sv2->text() + "-" + ui_.le_end1_sv2->text()
+									   + " chr"+ ui_.cb_chr2_sv2->currentText() + ":" + ui_.le_start2_sv2->text() + "-" + ui_.le_end2_sv2->text();
+							break;
+						default:
+							THROW(ArgumentException, "Invalid variant type provided!");
+							break;
+					}
+
+				}
 			}
+			else
+			{
+				details << "variant_type1=" + variantTypeToString(clinvar_upload_data_.variant_type1);
+				details << "variant_id1=" + QString::number(clinvar_upload_data_.variant_id1);
+				details << "variant_rc_id1=" + getDbTableName(false) + ":" + QString::number(clinvar_upload_data_.report_variant_config_id1);
+				if(clinvar_upload_data_.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+				{
+					details << "variant_type2=" + variantTypeToString(clinvar_upload_data_.variant_type2);
+					details << "variant_id2=" + QString::number(clinvar_upload_data_.variant_id2);
+					details << "variant_rc_id2=" + getDbTableName(true) + ":" + QString::number(clinvar_upload_data_.report_variant_config_id2);
+				}
+			}
+
             //observed in
             details << "affected_status=" + ui_.cb_affected_status->currentText();
             details << "allele_origin=" + ui_.cb_allele_origin->currentText();
@@ -508,43 +608,65 @@ void ClinvarUploadDialog::upload()
 //			if (!test_run)
 			{
 				// log publication in NGSD
-				switch (clinvar_upload_data_.variant_type1)
+				if (manual_upload_)
 				{
-					case VariantType::SNVS_INDELS:
-						db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.snv1, "ClinVar", clinvar_upload_data_.report_variant_config1.classification,
-												  details.join(";"), clinvar_upload_data_.user_id);
-						break;
-					case VariantType::CNVS:
-						db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.cnv1, "ClinVar", clinvar_upload_data_.report_variant_config1.classification,
-												  details.join(";"), clinvar_upload_data_.user_id);
-						break;
-					case VariantType::SVS:
-						db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.sv1, GlobalServiceProvider::getSvList(),  "ClinVar",
-												  clinvar_upload_data_.report_variant_config1.classification, details.join(";"), clinvar_upload_data_.user_id);
-						break;
-					default:
-						break;
+					db_.addManualVariantPublication(ui_.le_sample->text(), "ClinVar", convertClassification(ui_.cb_clin_sig_desc->currentText(), true), details.join(";"), -1);
+					if(clinvar_upload_data_.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+					{
+						//switch variant 1 and 2
+						QStringList details2;
+						foreach (QString kv_pair, details)
+						{
+							if (kv_pair.startsWith("variant_type1=")) kv_pair.replace("variant_type1=", "variant_type2=");
+							else if (kv_pair.startsWith("variant_type2=")) kv_pair.replace("variant_type2=", "variant_type1=");
+							else if (kv_pair.startsWith("variant_desc1=")) kv_pair.replace("variant_desc1=", "variant_desc2=");
+							else if (kv_pair.startsWith("variant_desc2=")) kv_pair.replace("variant_desc2=", "variant_desc1=");
+							details2 << kv_pair;
+						}
+						db_.addManualVariantPublication(ui_.le_sample->text(), "ClinVar", convertClassification(ui_.cb_clin_sig_desc->currentText(), true), details2.join(";"), -1);
+					}
 				}
-				if(clinvar_upload_data_.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+				else
 				{
-					switch (clinvar_upload_data_.variant_type2)
+					switch (clinvar_upload_data_.variant_type1)
 					{
 						case VariantType::SNVS_INDELS:
-							db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.snv2, "ClinVar", clinvar_upload_data_.report_variant_config1.classification,
+							db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.snv1, "ClinVar", convertClassification(ui_.cb_clin_sig_desc->currentText(), true),
 													  details.join(";"), clinvar_upload_data_.user_id);
 							break;
 						case VariantType::CNVS:
-							db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.cnv2, "ClinVar", clinvar_upload_data_.report_variant_config1.classification,
+							db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.cnv1, "ClinVar", convertClassification(ui_.cb_clin_sig_desc->currentText(), true),
 													  details.join(";"), clinvar_upload_data_.user_id);
 							break;
 						case VariantType::SVS:
-							db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.sv2, GlobalServiceProvider::getSvList(),  "ClinVar",
-													  clinvar_upload_data_.report_variant_config1.classification, details.join(";"), clinvar_upload_data_.user_id);
+							db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.sv1, GlobalServiceProvider::getSvList(),  "ClinVar",
+													  convertClassification(ui_.cb_clin_sig_desc->currentText(), true), details.join(";"), clinvar_upload_data_.user_id);
 							break;
 						default:
 							break;
 					}
+					if(clinvar_upload_data_.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+					{
+						switch (clinvar_upload_data_.variant_type2)
+						{
+							case VariantType::SNVS_INDELS:
+								db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.snv2, "ClinVar", convertClassification(ui_.cb_clin_sig_desc->currentText(), true),
+														  details.join(";"), clinvar_upload_data_.user_id);
+								break;
+							case VariantType::CNVS:
+								db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.cnv2, "ClinVar", convertClassification(ui_.cb_clin_sig_desc->currentText(), true),
+														  details.join(";"), clinvar_upload_data_.user_id);
+								break;
+							case VariantType::SVS:
+								db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.sv2, GlobalServiceProvider::getSvList(),  "ClinVar",
+														  convertClassification(ui_.cb_clin_sig_desc->currentText(), true), details.join(";"), clinvar_upload_data_.user_id);
+								break;
+							default:
+								break;
+						}
+					}
 				}
+
 
 
 
@@ -558,7 +680,8 @@ void ClinvarUploadDialog::upload()
             lines << "";
             lines << messages.join("\n");
             lines << "";
-            lines << "sample: " + clinvar_upload_data_.processed_sample;
+			lines << "sample: " + ((manual_upload_)? ui_.le_sample->text(): clinvar_upload_data_.processed_sample);
+
 			// log original submitter for reuploads
 			if (clinvar_upload_data_.user_id > 0)
 			{
@@ -580,7 +703,8 @@ void ClinvarUploadDialog::upload()
 				QString gsvar_publication_folder = Settings::path("gsvar_publication_folder");
 				if (gsvar_publication_folder!="")
 				{
-						QString file_rep = gsvar_publication_folder + "/" + clinvar_upload_data_.processed_sample + "_CLINVAR_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".txt";
+						QString file_rep = gsvar_publication_folder + "/" + ((manual_upload_)? ui_.le_sample->text(): clinvar_upload_data_.processed_sample) + "_CLINVAR_"
+								+ QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".txt";
 						Helper::storeTextFile(file_rep, ui_.comment_upload->toPlainText().split("\n"));
 				}
 			}
@@ -614,6 +738,13 @@ bool ClinvarUploadDialog::checkGuiData()
 	QString upload_details_var2;
 	GeneSet gene_set;
 
+	//check if the given variants are manually edited and prevent upload in this case
+	if(clinvar_upload_data_.report_variant_config1.isManuallyCurated() ||
+	   (clinvar_upload_data_.submission_type==ClinvarSubmissionType::CompoundHeterozygous && clinvar_upload_data_.report_variant_config2.isManuallyCurated()))
+	{
+		errors << "The upload of manually curated variants is not possible with the standard ClinVar upload. Please use the manual upload instead.";
+	}
+
 	//check variant 1
 	if(clinvar_upload_data_.variant_type1 == VariantType::SNVS_INDELS)
 	{
@@ -623,12 +754,24 @@ bool ClinvarUploadDialog::checkGuiData()
 			upload_details_var1 = db_.getVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.snv1);
 		}
 
-		//perform checks
-		QStringList errors;
 		// check chromosome
 		if (ui_.cb_chr_snv1->currentText().trimmed().isEmpty())
 		{
 			errors << "Chromosome unset!";
+		}
+
+		// check start/end
+		int int_value = 0;
+		bool ok = true;
+		int_value = ui_.le_start_snv1->text().toInt(&ok);
+		if ( !ok || (int_value < 1))
+		{
+			errors << "Invalid variant start pos '" + ui_.le_start_snv1->text() + "'!";
+		}
+		int_value = ui_.le_end_snv1->text().toInt(&ok);
+		if ( !ok || (int_value < 1))
+		{
+			errors << "Invalid variant end pos '" + ui_.le_end_snv1->text() + "'!";
 		}
 
 		// check sequences
@@ -653,9 +796,6 @@ bool ClinvarUploadDialog::checkGuiData()
 			upload_details_var1 = db_.getVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.cnv1);
 		}
 
-		int int_value = 0;
-		bool ok = true;
-
 		// check chromosome
 		if (ui_.cb_chr_cnv1->currentText().trimmed().isEmpty())
 		{
@@ -663,6 +803,8 @@ bool ClinvarUploadDialog::checkGuiData()
 		}
 
 		// check start/end
+		int int_value = 0;
+		bool ok = true;
 		int_value = ui_.le_start_cnv1->text().toInt(&ok);
 		if ( !ok || (int_value < 1))
 		{
@@ -697,8 +839,12 @@ bool ClinvarUploadDialog::checkGuiData()
 		{
 			upload_details_var1 = db_.getVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.sv1, GlobalServiceProvider::getSvList());
 		}
-		int int_value = 0;
-		bool ok = true;
+
+		//check SV type
+		if (ui_.cb_type_sv1->currentText() == "BND")
+		{
+			errors << "The upload of translocations is not supported by the ClinVar API. Please use the manual submission through the ClinVar website.";
+		}
 
 		// check chromosome
 		if (ui_.cb_chr1_sv1->currentText().trimmed().isEmpty())
@@ -711,6 +857,8 @@ bool ClinvarUploadDialog::checkGuiData()
 		}
 
 		// check start/end
+		int int_value = 0;
+		bool ok = true;
 		int_value = ui_.le_start1_sv1->text().toInt(&ok);
 		if ( !ok || (int_value < 1))
 		{
@@ -800,6 +948,20 @@ bool ClinvarUploadDialog::checkGuiData()
 				errors << "Chromosome for variant 2 unset!";
 			}
 
+			// check start/end
+			int int_value = 0;
+			bool ok = true;
+			int_value = ui_.le_start_snv2->text().toInt(&ok);
+			if ( !ok || (int_value < 1))
+			{
+				errors << "Invalid variant 2 start pos '" + ui_.le_start_snv2->text() + "'!";
+			}
+			int_value = ui_.le_end_snv2->text().toInt(&ok);
+			if ( !ok || (int_value < 1))
+			{
+				errors << "Invalid variant 2 end pos '" + ui_.le_end_snv2->text() + "'!";
+			}
+
 			// check sequences
 			QRegExp re("[-]|[ACGTU]*");
 			if (!re.exactMatch(ui_.le_ref_snv2->text()))
@@ -862,8 +1024,11 @@ bool ClinvarUploadDialog::checkGuiData()
 				upload_details_var2 = db_.getVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.sv2, GlobalServiceProvider::getSvList());
 			}
 
-			int int_value = 0;
-			bool ok = true;
+			//check SV type
+			if (ui_.cb_type_sv2->currentText() == "BND")
+			{
+				errors << "The upload of translocations is not supported by the ClinVar API. Please use the manual submission through the ClinVar website.";
+			}
 
 			// check chromosome
 			if (ui_.cb_chr1_sv2->currentText().trimmed().isEmpty())
@@ -876,6 +1041,8 @@ bool ClinvarUploadDialog::checkGuiData()
 			}
 
 			// check start/end
+			int int_value = 0;
+			bool ok = true;
 			int_value = ui_.le_start1_sv2->text().toInt(&ok);
 			if ( !ok || (int_value < 1))
 			{
@@ -916,14 +1083,28 @@ bool ClinvarUploadDialog::checkGuiData()
         errors << "No valid inheritance mode selected!";
     }
 
+	// check disease info
+	if (ui_.tw_disease_info->rowCount() == 0)
+	{
+		errors << "No disease information provided!";
+	}
+
+	// check sample name (only for manual upload)
+	if (manual_upload_ && db_.sampleId(ui_.le_sample->text(), false).isEmpty())
+	{
+		errors << "No valid sample name provided!";
+	}
+
 	QStringList upload_comment_text;
 	if (var1_uploaded_to_clinvar)
 	{
-		upload_comment_text << "<font color='red'>WARNING: This variant has already been uploaded to ClinVar! Are you sure you want to upload it again? </font><br>" + upload_details_var1.replace("\n", "<br>");
+		upload_comment_text << "<font color='red'>WARNING: This variant has already been uploaded to ClinVar! Are you sure you want to upload it again? </font><br>"
+							   + upload_details_var1.replace("\n", "<br>");
 	}
 	if (var2_uploaded_to_clinvar)
 	{
-		upload_comment_text << "<font color='red'>WARNING: The second variant has already been uploaded to ClinVar! Are you sure you want to upload it again? </font><br>" + upload_details_var2.replace("\n", "<br>");
+		upload_comment_text << "<font color='red'>WARNING: The second variant has already been uploaded to ClinVar! Are you sure you want to upload it again? </font><br>"
+							   + upload_details_var2.replace("\n", "<br>");
 	}
 
     //show error or enable upload button
@@ -965,37 +1146,71 @@ void ClinvarUploadDialog::updatePrintButton()
 
 void ClinvarUploadDialog::addCompHetVariant()
 {
-	ReportVariantSelectionDialog dialog(db_.processedSampleId(clinvar_upload_data_.processed_sample), clinvar_upload_data_.report_variant_config_id1, this);
-
-	if (dialog.exec()==QDialog::Accepted)
+	if (manual_upload_)
 	{
-		// parse selected variant
-		SelectedReportVariant report_variant = dialog.getSelectedReportVariant();
+		QComboBox* variant_type_selector = new QComboBox(this);
+		variant_type_selector->addItems(QStringList() << "SNV/INDEL" << "CNV" << "SV");
 
-		clinvar_upload_data_.submission_type = ClinvarSubmissionType::CompoundHeterozygous;
-		clinvar_upload_data_.variant_type2 = report_variant.report_variant_configuration.variant_type;
-		clinvar_upload_data_.report_variant_config_id2 = report_variant.rvc_id;
-		if (clinvar_upload_data_.variant_type2 == VariantType::SNVS_INDELS)
+		auto dlg = GUIHelper::createDialog(variant_type_selector, "Compound heterozygous variant", "Select type of compound heterozygous variant: ", true);
+		int btn = dlg->exec();
+		if (btn == 1)
 		{
-			clinvar_upload_data_.snv2 = report_variant.small_variant;
-			clinvar_upload_data_.variant_id2 = report_variant.variant_id;
+			ui_.sw_var2->setCurrentIndex(variant_type_selector->currentIndex());
+			clinvar_upload_data_.submission_type = ClinvarSubmissionType::CompoundHeterozygous;
+			switch (variant_type_selector->currentIndex())
+			{
+				case 0:
+					clinvar_upload_data_.variant_type2 = VariantType::SNVS_INDELS;
+					break;
+				case 1:
+					clinvar_upload_data_.variant_type2 = VariantType::CNVS;
+					break;
+				case 2:
+					clinvar_upload_data_.variant_type2 = VariantType::SVS;
+					break;
+				default:
+					clinvar_upload_data_.variant_type2 = VariantType::INVALID;
+					THROW(ArgumentException, "Invalid variant type selected!")
+					break;
+			}
+			updateGUI();
 		}
-		else if(clinvar_upload_data_.variant_type2 ==  VariantType::CNVS)
-		{
-			clinvar_upload_data_.cnv2 = report_variant.cnv;
-			clinvar_upload_data_.cn2 = report_variant.cn;
-			clinvar_upload_data_.ref_cn2 = report_variant.ref_cn;
-			clinvar_upload_data_.variant_id2 = report_variant.variant_id;
-		}
-		else if(clinvar_upload_data_.variant_type2 == VariantType::SVS)
-		{
-			clinvar_upload_data_.sv2 = report_variant.sv;
-			clinvar_upload_data_.variant_id2 = report_variant.variant_id;
-		}
-
-
-		setData(clinvar_upload_data_);
 	}
+	else
+	{
+		ReportVariantSelectionDialog dialog(db_.processedSampleId(clinvar_upload_data_.processed_sample), clinvar_upload_data_.report_variant_config_id1, this);
+
+		if (dialog.exec()==QDialog::Accepted)
+		{
+			// parse selected variant
+			SelectedReportVariant report_variant = dialog.getSelectedReportVariant();
+
+			clinvar_upload_data_.submission_type = ClinvarSubmissionType::CompoundHeterozygous;
+			clinvar_upload_data_.variant_type2 = report_variant.report_variant_configuration.variant_type;
+			clinvar_upload_data_.report_variant_config_id2 = report_variant.rvc_id;
+			if (clinvar_upload_data_.variant_type2 == VariantType::SNVS_INDELS)
+			{
+				clinvar_upload_data_.snv2 = report_variant.small_variant;
+				clinvar_upload_data_.variant_id2 = report_variant.variant_id;
+			}
+			else if(clinvar_upload_data_.variant_type2 ==  VariantType::CNVS)
+			{
+				clinvar_upload_data_.cnv2 = report_variant.cnv;
+				clinvar_upload_data_.cn2 = report_variant.cn;
+				clinvar_upload_data_.ref_cn2 = report_variant.ref_cn;
+				clinvar_upload_data_.variant_id2 = report_variant.variant_id;
+			}
+			else if(clinvar_upload_data_.variant_type2 == VariantType::SVS)
+			{
+				clinvar_upload_data_.sv2 = report_variant.sv;
+				clinvar_upload_data_.variant_id2 = report_variant.variant_id;
+			}
+
+
+			setData(clinvar_upload_data_);
+		}
+	}
+	checkGuiData();
 }
 
 void ClinvarUploadDialog::removeCompHetVariant()
@@ -1011,8 +1226,91 @@ void ClinvarUploadDialog::removeCompHetVariant()
 	clinvar_upload_data_.cnv2 = CopyNumberVariant();
 	clinvar_upload_data_.sv2 = BedpeLine();
 
-	setData(clinvar_upload_data_);
+	if (!manual_upload_) setData(clinvar_upload_data_);
+	updateGUI();
+	checkGuiData();
+}
 
+void ClinvarUploadDialog::selectVariantType(int i)
+{
+	ui_.sw_var1->setCurrentIndex(i);
+	// set variant type
+	switch (i) {
+		case 0:
+			clinvar_upload_data_.variant_type1 = VariantType::SNVS_INDELS;
+			break;
+		case 1:
+			clinvar_upload_data_.variant_type1 = VariantType::CNVS;
+			break;
+		case 2:
+			clinvar_upload_data_.variant_type1 = VariantType::SVS;
+			break;
+		default:
+			clinvar_upload_data_.variant_type1 = VariantType::INVALID;
+			THROW(ArgumentException, "Invalid variant type selected!");
+			break;
+	}
+	checkGuiData();
+}
+
+void ClinvarUploadDialog::updateGUI()
+{
+	// switch comp-het variant on/off
+	ui_.sw_var2->setVisible(clinvar_upload_data_.submission_type == ClinvarSubmissionType::CompoundHeterozygous);
+	ui_.sw_var2->setEnabled(clinvar_upload_data_.submission_type == ClinvarSubmissionType::CompoundHeterozygous);
+	ui_.l_comp_het->setVisible(clinvar_upload_data_.submission_type == ClinvarSubmissionType::CompoundHeterozygous);
+	ui_.remove_comphet_btn->setVisible(clinvar_upload_data_.submission_type == ClinvarSubmissionType::CompoundHeterozygous);
+	ui_.remove_comphet_btn->setEnabled(clinvar_upload_data_.submission_type == ClinvarSubmissionType::CompoundHeterozygous);
+	ui_.add_comphet_btn->setVisible(clinvar_upload_data_.submission_type == ClinvarSubmissionType::SingleVariant);
+	ui_.add_comphet_btn->setEnabled(clinvar_upload_data_.submission_type == ClinvarSubmissionType::SingleVariant);
+
+	//disable variant selection
+	ui_.w_var_type->setVisible(manual_upload_);
+	ui_.w_var_type->setEnabled(manual_upload_);
+
+	//disable disease modification
+	ui_.btn_add_disease_info->setVisible(manual_upload_);
+	ui_.btn_add_disease_info->setEnabled(manual_upload_);
+	ui_.btn_delete_disease_info->setVisible(manual_upload_);
+	ui_.btn_delete_disease_info->setEnabled(manual_upload_);
+}
+
+void ClinvarUploadDialog::addDiseaseInfo()
+{
+	QString type = qobject_cast<QAction*>(sender())->text();
+
+	QString text = QInputDialog::getText(this, "Add disease info", type);
+	if (text.isEmpty()) return;
+
+	//check if valid
+	if (type=="OMIM disease/phenotype identifier" && !QRegExp("#\\d*").exactMatch(text))
+	{
+		QMessageBox::critical(this, "Invalid OMIM identifier", "OMIM disease/phenotype identifier invaid!\nA valid identifier is for example '#164400'.");
+		return;
+	}
+	if (type=="Orpha number" && !QRegExp("ORPHA:\\d*").exactMatch(text))
+	{
+		QMessageBox::critical(this, "Invalid Orpha number", "Orpha number invaid!\nA valid number is for example 'ORPHA:1172'.");
+		return;
+	}
+
+	int row_idx = ui_.tw_disease_info->rowCount();
+	ui_.tw_disease_info->setRowCount(row_idx+1);
+	ui_.tw_disease_info->setItem(row_idx, 0, GUIHelper::createTableItem(type));
+	ui_.tw_disease_info->setItem(row_idx, 1, GUIHelper::createTableItem(text));
+
+	GUIHelper::resizeTableCells(ui_.tw_disease_info);
+}
+
+void ClinvarUploadDialog::removeDiseaseInfo()
+{
+	QList<QTableWidgetSelectionRange> ranges = ui_.tw_disease_info->selectedRanges();
+
+	if (ranges.count()!=1) return;
+	if (ranges[0].topRow()!=ranges[0].bottomRow()) return;
+
+	int row = ranges[0].topRow();
+	ui_.tw_disease_info->removeRow(row);
 }
 
 QJsonObject ClinvarUploadDialog::createJson()
@@ -1108,11 +1406,14 @@ QJsonObject ClinvarUploadDialog::createJson()
         }
         clinvar_submission.insert("conditionSet", condition_set);
 
-        //optional
-		clinvar_submission.insert("localID", QString::number(clinvar_upload_data_.variant_id1));
-
-        //optional
-		clinvar_submission.insert("localKey", getDbTableName(false) + ":" + QString::number(clinvar_upload_data_.report_variant_config_id1));
+		// only for upload from NGSD variants:
+		if (!manual_upload_)
+		{
+			//optional
+			clinvar_submission.insert("localID", QString::number(clinvar_upload_data_.variant_id1));
+			//optional
+			clinvar_submission.insert("localKey", getDbTableName(false) + ":" + QString::number(clinvar_upload_data_.report_variant_config_id1));
+		}
 
         //required
         QJsonObject observed_in;
@@ -2446,7 +2747,6 @@ QString ClinvarUploadDialog::getHGVS()
 	QString ref_file = Settings::string("reference_genome", true);
 	if (ref_file=="") THROW(ArgumentException, "Reference genome required to create HGVS representation!");
 	FastaFileIndex genome_index(ref_file);
-	//TODO: implement HGVS
 	bool mito = false;
 	QString hgvs_var1, hgvs_var2;
 	if(clinvar_upload_data_.variant_type1 == VariantType::SNVS_INDELS)
@@ -2573,12 +2873,11 @@ QString ClinvarUploadDialog::getDbTableName(bool var2)
 		}
 		if(clinvar_upload_data_.variant_type1 == VariantType::SVS)
 		{
-			return db_.svTableName(clinvar_upload_data_.sv2.type());
+			return db_.svTableName(clinvar_upload_data_.sv1.type());
 		}
 	}
 	THROW(ArgumentException, "Invalid variant type!");
 }
-
 
 QString ClinvarUploadDialog::getSettings(QString key)
 {
@@ -2590,32 +2889,71 @@ QString ClinvarUploadDialog::getSettings(QString key)
     return output;
 }
 
-QString ClinvarUploadDialog::convertClassification(QString classification)
+QString ClinvarUploadDialog::convertClassification(QString classification, bool reverse)
 {
-    if (classification=="5")
-    {
-        return "Pathogenic";
-    }
-    if (classification=="4")
-    {
-        return "Likely pathogenic";
-    }
-    if (classification=="3" || classification=="n/a" || classification=="")
-    {
-        return "Uncertain significance";
-    }
-    if (classification=="2")
-    {
-        return "Likely benign";
-    }
-    if (classification=="1")
-    {
-        return "Benign";
-    }
-    else if (classification=="M")
-    {
-        return "risk factor";
-    }
+	if (reverse)
+	{
+		if (classification=="Pathogenic")
+		{
+			return "5";
+		}
+		if (classification=="Likely pathogenic")
+		{
+			return "4";
+		}
+		if (classification=="Uncertain significance")
+		{
+			return "3";
+		}
+		if (classification=="Likely benign")
+		{
+			return "2";
+		}
+		if (classification=="Benign")
+		{
+			return "1";
+		}
+//		if (classification=="Established risk allele")
+//		{
+//			return "M";
+//		}
+//		if (classification=="not provided")
+//		{
+//			return "n/a";
+//		}
+	}
+	else
+	{
+		if (classification=="5")
+		{
+			return "Pathogenic";
+		}
+		if (classification=="4")
+		{
+			return "Likely pathogenic";
+		}
+		if (classification=="3" || classification=="")
+		{
+			return "Uncertain significance";
+		}
+		if (classification=="2")
+		{
+			return "Likely benign";
+		}
+		if (classification=="1")
+		{
+			return "Benign";
+		}
+		if (classification=="M")
+		{
+			return "Established risk allele";
+		}
+		if (classification=="n/a")
+		{
+			return "not provided";
+		}
+	}
+
 
     THROW(ProgrammingException, "Unknown classification '" + classification + "' in ClinvarUploadDialog::convertClassification(...) method!");
 }
@@ -2674,19 +3012,23 @@ QString ClinvarUploadDialog::convertAffectedStatus(QString affected_status)
 //Define enum sets with allowed values for JSON output
 const QStringList ClinvarUploadDialog::CLINICAL_SIGNIFICANCE_DESCRIPTION =
 {
-    "Pathogenic",
-    "Likely pathogenic",
-    "Uncertain significance",
-    "Likely benign",
-    "Benign",
-    "affects",
-    "association",
-    "drug response",
-    "confers sensitivity",
-    "protective",
-    "risk factor",
-    "other",
-    "not provided"
+	"Pathogenic",
+	"Likely pathogenic",
+	"Uncertain significance",
+	"Likely benign",
+	"Benign",
+//	"Pathogenic, low penetrance",
+//	"Uncertain risk allele",
+//	"Likely pathogenic, low penetrance",
+//	"Established risk allele",
+//	"Likely risk allele",
+//	"affects",
+//	"association",
+//	"drug response",
+//	"confers sensitivity",
+//	"protective",
+//	"other",
+//	"not provided"
 };
 const QStringList ClinvarUploadDialog::MODE_OF_INHERITANCE =
 {

@@ -4172,12 +4172,29 @@ void NGSD::addVariantPublication(QString processed_sample, const BedpeLine& sv, 
 	query.exec();
 }
 
+void NGSD::addManualVariantPublication(QString sample_name, QString database, QString classification, QString details, int user_id)
+{
+	QString s_id = sampleId(sample_name);
+	int v_id = -1;
+	if (user_id < 0) user_id = LoginManager::userId();
+
+	//insert
+	SqlQuery query = getQuery();
+	query.prepare("INSERT INTO variant_publication (sample_id, variant_id, variant_table, db, class, details, user_id) VALUES (:0, :1, :2, :3, :4, :5, :6)");
+	query.bindValue(0, s_id);
+	query.bindValue(1, v_id);
+	query.bindValue(2, "none");
+	query.bindValue(3, database);
+	query.bindValue(4, classification);
+	query.bindValue(5, details);
+	query.bindValue(6, user_id);
+	query.exec();
+}
+
 QString NGSD::getVariantPublication(QString filename, const Variant& variant)
 {
 	QString s_id = sampleId(filename);
 	QString v_id = variantId(variant);
-
-//	if (s_id=="" || v_id=="") return "";
 
 	//select
 	SqlQuery query = getQuery();

@@ -942,6 +942,7 @@ public:
 	void addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details, int user_id=-1);
 	void addVariantPublication(QString processed_sample, const CopyNumberVariant& cnv, QString database, QString classification, QString details, int user_id=-1);
 	void addVariantPublication(QString processed_sample, const BedpeLine& sv, const BedpeFile& svs, QString database, QString classification, QString details, int user_id=-1);
+	void addManualVariantPublication(QString sample_name, QString database, QString classification, QString details, int user_id=-1);
 	///Returns variant publication data as text
 	QString getVariantPublication(QString filename, const Variant& variant);
 	QString getVariantPublication(QString filename, const CopyNumberVariant& cnv);

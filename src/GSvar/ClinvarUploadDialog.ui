@@ -19,7 +19,7 @@
   <property name="windowTitle">
    <string>ClinVar variant publication</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,1,1">
+  <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,0,1,1">
    <property name="spacing">
     <number>3</number>
    </property>
@@ -35,6 +35,80 @@
    <property name="bottomMargin">
     <number>3</number>
    </property>
+   <item>
+    <widget class="QWidget" name="w_var_type" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout_5">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <layout class="QFormLayout" name="formLayout">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_49">
+          <property name="text">
+           <string>Sample:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="DBSelector" name="le_sample"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_14">
+          <property name="text">
+           <string>Variant type: </string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QComboBox" name="cb_var_type">
+          <item>
+           <property name="text">
+            <string>SNV / INDEL</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>CNV</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>SV</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item>
     <widget class="QGroupBox" name="groupBox_3">
      <property name="font">
@@ -800,7 +874,7 @@
        </widget>
       </item>
       <item>
-       <layout class="QGridLayout" name="gridLayout_5">
+       <layout class="QGridLayout" name="gl_observed_in">
         <item row="1" column="0">
          <widget class="QLabel" name="label_26">
           <property name="font">
@@ -941,7 +1015,7 @@
        </widget>
       </item>
       <item>
-       <layout class="QGridLayout" name="gridLayout_3">
+       <layout class="QGridLayout" name="gl_clinc_sig">
         <property name="spacing">
          <number>3</number>
         </property>
@@ -1075,7 +1149,7 @@
     </layout>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_2">
+    <widget class="QGroupBox" name="gb_phenotype">
      <property name="title">
       <string>Phenotype/disease data</string>
      </property>
@@ -1161,14 +1235,66 @@
          </widget>
         </item>
         <item>
-         <widget class="QTableWidget" name="tw_disease_info">
-          <property name="editTriggers">
-           <set>QAbstractItemView::NoEditTriggers</set>
-          </property>
-          <attribute name="verticalHeaderVisible">
-           <bool>false</bool>
-          </attribute>
-         </widget>
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <item>
+           <widget class="QTableWidget" name="tw_disease_info">
+            <property name="editTriggers">
+             <set>QAbstractItemView::NoEditTriggers</set>
+            </property>
+            <attribute name="verticalHeaderVisible">
+             <bool>false</bool>
+            </attribute>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_4">
+            <item>
+             <widget class="QPushButton" name="btn_add_disease_info">
+              <property name="toolTip">
+               <string>Add disease information entry.</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset resource="GSvar.qrc">
+                <normaloff>:/Icons/Add.png</normaloff>:/Icons/Add.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_delete_disease_info">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="toolTip">
+               <string>Remove currently selected entry.</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset resource="GSvar.qrc">
+                <normaloff>:/Icons/Remove.png</normaloff>:/Icons/Remove.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_9">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+         </layout>
         </item>
        </layout>
       </item>
@@ -1248,7 +1374,67 @@
    <header>PhenotypeSelectionWidget.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>DBSelector</class>
+   <extends>QLineEdit</extends>
+   <header>DBSelector.h</header>
+  </customwidget>
  </customwidgets>
- <resources/>
+ <tabstops>
+  <tabstop>cb_chr_snv1</tabstop>
+  <tabstop>le_start_snv1</tabstop>
+  <tabstop>le_end_snv1</tabstop>
+  <tabstop>le_ref_snv1</tabstop>
+  <tabstop>le_obs_snv1</tabstop>
+  <tabstop>le_genes_snv1</tabstop>
+  <tabstop>cb_chr_cnv1</tabstop>
+  <tabstop>le_start_cnv1</tabstop>
+  <tabstop>le_end_cnv1</tabstop>
+  <tabstop>le_cn_cnv1</tabstop>
+  <tabstop>le_rcn_cnv1</tabstop>
+  <tabstop>le_genes_cnv1</tabstop>
+  <tabstop>cb_type_sv1</tabstop>
+  <tabstop>cb_chr1_sv1</tabstop>
+  <tabstop>le_start1_sv1</tabstop>
+  <tabstop>le_end1_sv1</tabstop>
+  <tabstop>cb_chr2_sv1</tabstop>
+  <tabstop>le_start2_sv1</tabstop>
+  <tabstop>le_end2_sv1</tabstop>
+  <tabstop>le_genes_sv1</tabstop>
+  <tabstop>cb_chr_snv2</tabstop>
+  <tabstop>le_start_snv2</tabstop>
+  <tabstop>le_end_snv2</tabstop>
+  <tabstop>le_ref_snv2</tabstop>
+  <tabstop>le_obs_snv2</tabstop>
+  <tabstop>cb_chr_cnv2</tabstop>
+  <tabstop>le_start_cnv2</tabstop>
+  <tabstop>le_end_cnv2</tabstop>
+  <tabstop>le_cn_cnv2</tabstop>
+  <tabstop>le_rcn_cnv2</tabstop>
+  <tabstop>cb_type_sv2</tabstop>
+  <tabstop>cb_chr1_sv2</tabstop>
+  <tabstop>le_start1_sv2</tabstop>
+  <tabstop>le_end1_sv2</tabstop>
+  <tabstop>cb_chr2_sv2</tabstop>
+  <tabstop>le_start2_sv2</tabstop>
+  <tabstop>le_end2_sv2</tabstop>
+  <tabstop>cb_affected_status</tabstop>
+  <tabstop>cb_allele_origin</tabstop>
+  <tabstop>cb_collection_method</tabstop>
+  <tabstop>cb_release_status</tabstop>
+  <tabstop>cb_clin_sig_desc</tabstop>
+  <tabstop>le_clin_sig_desc_comment</tabstop>
+  <tabstop>de_last_eval</tabstop>
+  <tabstop>cb_inheritance</tabstop>
+  <tabstop>add_comphet_btn</tabstop>
+  <tabstop>remove_comphet_btn</tabstop>
+  <tabstop>le_clin_feat_comment</tabstop>
+  <tabstop>upload_btn</tabstop>
+  <tabstop>print_btn</tabstop>
+  <tabstop>comment_upload</tabstop>
+ </tabstops>
+ <resources>
+  <include location="GSvar.qrc"/>
+ </resources>
  <connections/>
 </ui>

@@ -33,9 +33,9 @@ struct ClinvarUploadData
     PhenotypeList phenos;
 
 	//type data
-	ClinvarSubmissionType submission_type;
-	VariantType variant_type1;
-	VariantType variant_type2;
+	ClinvarSubmissionType submission_type = ClinvarSubmissionType::SingleVariant;
+	VariantType variant_type1 = VariantType::INVALID;
+	VariantType variant_type2 = VariantType::INVALID;
 
     //variant data
 	Variant snv1;
@@ -74,10 +74,16 @@ private slots:
     void updatePrintButton();
 	void addCompHetVariant();
 	void removeCompHetVariant();
+	void selectVariantType(int i);
+	void updateGUI();
+	void addDiseaseInfo();
+	void removeDiseaseInfo();
+
 
 private:
     Ui::ClinVarUploadDialog ui_;
     NGSD db_;
+	bool manual_upload_ = true;
     ClinvarUploadData clinvar_upload_data_;
 
     QJsonObject createJson();
@@ -87,7 +93,7 @@ private:
 	QString getDbTableName(bool var2 = false);
 
     static QString getSettings(QString key);
-    static QString convertClassification(QString classification);
+	static QString convertClassification(QString classification, bool reverse=false);
     static QString convertInheritance(QString inheritance);
     static QString convertAffectedStatus(QString affected_status);
 
