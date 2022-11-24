@@ -925,6 +925,26 @@ int Transcript::utr3primeStart() const
 	}
 }
 
+bool TranscriptList::contains(const Transcript& transcript) const
+{
+	for (auto it=begin(); it!=end(); ++it)
+	{
+		if (it->name()==transcript.name()) return true;
+	}
+
+	return false;
+}
+
+bool TranscriptList::contains(const QByteArray& name) const
+{
+	for (auto it=begin(); it!=end(); ++it)
+	{
+		if (it->name()==name) return true;
+	}
+
+	return false;
+}
+
 void TranscriptList::sortByBases()
 {
 	std::stable_sort(begin(), end(), [](const Transcript& a, const Transcript& b){ return a.regions().baseCount() > b.regions().baseCount(); });

@@ -508,6 +508,17 @@ private slots:
 		transcript = db.bestTranscript(1); //BRCA1, only CCDS transcript > invalid
 		IS_FALSE(transcript.isValid());
 
+		//releventTranscripts
+		transcripts = db.releventTranscripts(3); //NIPA1 (only best)
+		I_EQUAL(transcripts.count(), 1);
+		S_EQUAL(transcripts[0].name(), "NIPA1_TR1");
+		transcripts = db.releventTranscripts(652410); //SPG7 (best plus MANE select)
+		I_EQUAL(transcripts.count(), 2);
+		S_EQUAL(transcripts[0].name(), "ENST00000341316");
+		S_EQUAL(transcripts[1].name(), "ENST00000268704");
+		transcripts = db.releventTranscripts(1); //BRCA1 (only CCDS transcript)
+		I_EQUAL(transcripts.count(), 0);
+
 		//geneIdOfTranscript
 		I_EQUAL(db.geneIdOfTranscript("BRCA1_TR1"), 1);
 		I_EQUAL(db.geneIdOfTranscript("BRCA2_TR1"), 2);

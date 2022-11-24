@@ -5884,6 +5884,9 @@ Transcript NGSD::bestTranscript(int gene_id)
 		if (t.isManeSelectTranscript()) return t;
 	}
 
+	//MANE plus clinical
+	//not necessary because each gene with MANE plus clinical also has a MANE select transcript
+
 	//longest coding
 	list.sortByCodingBases();
 	foreach(const Transcript& t, list)
@@ -5899,6 +5902,24 @@ Transcript NGSD::bestTranscript(int gene_id)
 	}
 
 	return Transcript();
+}
+
+TranscriptList NGSD::releventTranscripts(int gene_id)
+{
+	TranscriptList output;
+
+	Transcript best_trans = bestTranscript(gene_id);
+	if (best_trans.isValid()) output << best_trans;
+
+	foreach(const Transcript& t, transcripts(gene_id, Transcript::ENSEMBL, false))
+	{
+		if (t.isPreferredTranscript() || t.isManeSelectTranscript() || t.isManePlusClinicalTranscript())
+		{
+			if (!output.contains(t)) output << t;
+		}
+	}
+
+	return output;
 }
 
 const TranscriptList& NGSD::transcripts()

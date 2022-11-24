@@ -862,7 +862,15 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			}
 			w.writeAttribute("exon", exon_nr);
 
-			bool is_main_transcript = data_.preferred_transcripts.contains(trans.gene) && data_.preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion());
+			bool is_main_transcript = false;
+			if (gene_id!=-1)
+			{
+				TranscriptList relevant_transcripts = db_.releventTranscripts(gene_id);
+				if (relevant_transcripts.contains(trans.idWithoutVersion()))
+				{
+					is_main_transcript = true;
+				}
+			}
 			w.writeAttribute("main_transcript", is_main_transcript ? "true" : "false");
 
 			w.writeEndElement();
@@ -1924,14 +1932,13 @@ QString GermlineReportGenerator::formatCodingSplicing(const Variant& v)
 {
 	QStringList output;
 
-	//get transcript-specific data of best transcript for all overlapping genes
+	//get transcript-specific data of all relevant transcripts for all overlapping genes
 	VariantHgvsAnnotator hgvs_annotator(genome_idx_);
 	GeneSet genes = db_.genesOverlapping(v.chr(), v.start(), v.end(), 5000);
 	foreach(const QByteArray& gene, genes)
 	{
 		int gene_id = db_.geneId(gene);
-		Transcript trans = db_.bestTranscript(gene_id);
-		if (trans.isValid())
+		foreach(const Transcript& trans, db_.releventTranscripts(gene_id))
 		{
 			try
 			{
