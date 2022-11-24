@@ -35,7 +35,7 @@ void SessionManager::saveSessionToFile(QString id, Session in)
 	QTextStream out(instance().backup_file_.data());
 	if (!in.isEmpty())
 	{
-		out << id << "\t" << in.user_id << "\t" << in.login_time.toString() << "\t" << in.is_for_db_only << "\n";
+		out << id << "\t" << in.user_id << "\t" << in.login_time.toSecsSinceEpoch() << "\t" << in.is_for_db_only << "\n";
 	}
 }
 
@@ -54,8 +54,9 @@ void SessionManager::restoreFromFile()
 			QList<QString> line_list = line.split("\t");
 			if (line_list.count() > 3)
 			{
+				bool ok;
 				restored_items++;
-				addNewSession(line_list[0], Session(line_list[1].toInt(), QDateTime::fromString(line_list[2]), line_list[3].toInt()), false);
+				addNewSession(line_list[0], Session(line_list[1].toInt(), QDateTime::fromSecsSinceEpoch(line_list[2].toLongLong(&ok,10)), line_list[3].toInt()), false);
 			}
 		}
 		Log::info("Number of restored sessions: " + QString::number(restored_items));

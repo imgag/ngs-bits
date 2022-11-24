@@ -4,7 +4,6 @@
 #include "cppREST_global.h"
 #include <QObject>
 #include <QList>
-#include <QDebug>
 #include "HttpRequest.h"
 #include "HttpUtils.h"
 #include "Exceptions.h"

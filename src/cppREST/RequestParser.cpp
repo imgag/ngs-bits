@@ -17,7 +17,7 @@ HttpRequest RequestParser::parse(QByteArray *request) const
 			QList<QByteArray> request_info = body[i].split(' ');
 			if (request_info.length() < 2)
 			{
-				THROW(Exception, "Cannot process the request. It is possible the URL is missing or incorrect");
+				THROW(Exception, "Cannot process the request. Probably the URL is missing or incorrect");
 				return parsed_request;
 			}
 			parsed_request.setMethod(inferRequestMethod(request_info[0].toUpper()));
