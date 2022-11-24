@@ -5846,12 +5846,12 @@ TranscriptList NGSD::transcripts(int gene_id, Transcript::SOURCE source, bool co
 		output << trans;
 	}
 
-	output.sortByName();
+	output.sortByPosition();
 
 	return output;
 }
 
-TranscriptList NGSD::transcriptsOverlapping(const Chromosome& chr, int start, int end, int extend)
+TranscriptList NGSD::transcriptsOverlapping(const Chromosome& chr, int start, int end, int extend, Transcript::SOURCE source)
 {
 	TranscriptList& cache = getCache().gene_transcripts;
 	if (cache.isEmpty()) initTranscriptCache();
@@ -5862,7 +5862,10 @@ TranscriptList NGSD::transcriptsOverlapping(const Chromosome& chr, int start, in
 	QVector<int> matches = index.matchingIndices(chr, start-extend, end+extend);
 	foreach(int i, matches)
 	{
-		output << cache[i];
+		if (cache[i].source()==source)
+		{
+			output << cache[i];
+		}
 	}
 	return output;
 }
@@ -5888,7 +5891,6 @@ Transcript NGSD::bestTranscript(int gene_id)
 	//not necessary because each gene with MANE plus clinical also has a MANE select transcript
 
 	//longest coding
-	list.sortByCodingBases();
 	foreach(const Transcript& t, list)
 	{
 		if (t.isCoding()) return t;

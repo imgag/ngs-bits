@@ -64,7 +64,8 @@ void VariantWidget::updateGUI()
 
 
 	//get all transcripts containing the variant
-	TranscriptList transcripts  = db.transcriptsOverlapping(variant_.chr(), variant_.start() - 5000, variant_.end() + 5000);
+	TranscriptList transcripts  = db.transcriptsOverlapping(variant_.chr(), variant_.start(), variant_.end(), 5000);
+	transcripts.sortByRelevance();
 
 	//annotate consequence for each transcript
 	QStringList lines;
