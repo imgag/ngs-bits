@@ -506,3 +506,7 @@ VcfToBed.depends = cppNGS
 SUBDIRS += TsvToQC
 tools-TEST.depends += TsvToQC
 TsvToQC.depends = cppNGS
+
+SUBDIRS += NGSDImportGenlab
+tools-TEST.depends += NGSDImportGenlab
+NGSDImportGenlab.depends = cppNGS
