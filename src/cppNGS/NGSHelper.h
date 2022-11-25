@@ -114,7 +114,7 @@ public:
 	static QString populationCodeToHumanReadable(QString code);
 
 	///Returns transcripts with features from a Ensembl GFF file, transcript_gene_relation (ENST>ENSG) and gene_name_relation (ENSG>gene symbol).
-	static void loadGffFile(QString filename, GffData& output);
+	static void loadGffFile(QString filename, GffData& output, bool print_to_stdout);
 
 	///Returns if the application is running in client-server mode (mainly used for GSvar).
 	static bool isClientServerMode();
@@ -122,6 +122,8 @@ public:
 	static bool isRunningOnServer();
 	///Checks if a given local file or URL is a BAM file
 	static bool isBamFile(QString filename);
+	///Removes a secure token from the URL that is given to IGV
+	static QString stripSecureToken(QString url);
 
 	///Requests information about GSvarServer
 	static ServerInfo getServerInfo();

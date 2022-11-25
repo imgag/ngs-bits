@@ -1,5 +1,15 @@
 # GSvar change log
 
+### 2022_11-7 (22.11.22)
+- Report configuration: added manually curated HGVS type/suffix to CNV/SV.
+- Report: added option to add RefSeq transcript names to HTML germline report.
+- Report: moved KASP from HTML report to variant sheet.
+- Sample search: added phenotype and ancestry search.
+- CNV search: fixed sorting by size.
+- Repeat expansions: updated cutoffs for TBP (SCA17).
+- several minor bugfixes.
+
+
 ### 2022_10-43 (21.10.22)
 - Transcripts: Added transcript versions to NGSD and using it now in report and several other places.
 - Report germline: fixed long-running report generation.
@@ -22,7 +32,6 @@
 - Report: updated somatic tumor-normal report (added target region size, formatting pathway table, added ploidy)
 - Report: updated somatic RNA report (formatting)
 - NGSD: added sequencing run batch import
-
 
 ### 2022_07-52 (03.08.22)
 - Germline report: fixed bug in re-calculation of average target region depth (-1 was shown).

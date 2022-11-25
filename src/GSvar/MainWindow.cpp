@@ -1737,7 +1737,7 @@ void MainWindow::on_actionCNV_triggered()
 	}
 
 	auto dlg = GUIHelper::createDialog(list, "Copy number variants of " + variants_.analysisName());
-	addModelessDialog(dlg, true);
+	addModelessDialog(dlg);
 
 	//mosaic CNVs
 	if (type==GERMLINE_SINGLESAMPLE)
@@ -1861,7 +1861,7 @@ void MainWindow::on_actionCircos_triggered()
 	//show plot
 	CircosPlotWidget* widget = new CircosPlotWidget(plot_files[0].filename);
 	auto dlg = GUIHelper::createDialog(widget, "Circos Plot of " + variants_.analysisName());
-	addModelessDialog(dlg, false);
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionExpressionData_triggered()
@@ -1952,7 +1952,7 @@ void MainWindow::on_actionExpressionData_triggered()
 	ExpressionGeneWidget* widget = new ExpressionGeneWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, project, rna_ps_id,
 															cohort_type, this);
 	auto dlg = GUIHelper::createDialog(widget, "Expression Data of " + db.processedSampleName(rna_ps_id));
-	addModelessDialog(dlg, false);
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionExonExpressionData_triggered()
@@ -2035,7 +2035,7 @@ void MainWindow::on_actionExonExpressionData_triggered()
 
 	ExpressionExonWidget* widget = new ExpressionExonWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, project, rna_ps_id, cohort_type, this);
 	auto dlg = GUIHelper::createDialog(widget, "Expression Data of " + db.processedSampleName(rna_ps_id));
-	addModelessDialog(dlg, false);
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionShowSplicing_triggered()
@@ -2164,7 +2164,7 @@ void MainWindow::on_actionRE_triggered()
 	RepeatExpansionWidget* widget = new RepeatExpansionWidget(re_files[0].filename, is_exome);
 	auto dlg = GUIHelper::createDialog(widget, "Repeat Expansions of " + variants_.analysisName());
 
-	addModelessDialog(dlg, false);
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionPRS_triggered()
@@ -2178,7 +2178,7 @@ void MainWindow::on_actionPRS_triggered()
 	//show dialog
 	PRSWidget* widget = new PRSWidget(prs_files[0].filename);
 	auto dlg = GUIHelper::createDialog(widget, "Polygenic Risk Scores of " + variants_.analysisName());
-	addModelessDialog(dlg, false);
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionDesignCfDNAPanel_triggered()
@@ -2192,7 +2192,7 @@ void MainWindow::on_actionDesignCfDNAPanel_triggered()
 	QSharedPointer<CfDNAPanelDesignDialog> dialog(new CfDNAPanelDesignDialog(variants_, filter_result_, somatic_report_settings_.report_config, variants_.mainSampleName(), cfdna_processing_systems, this));
 	dialog->setWindowFlags(Qt::Window);
 
-	addModelessDialog(dialog, false);
+	addModelessDialog(dialog);
 }
 
 void MainWindow::on_actionShowCfDNAPanel_triggered()
@@ -2239,7 +2239,7 @@ void MainWindow::on_actionShowCfDNAPanel_triggered()
 	//show dialog
 	CfDNAPanelWidget* widget = new CfDNAPanelWidget(selected_panel);
 	auto dlg = GUIHelper::createDialog(widget, "cfDNA panel for tumor " + variants_.analysisName());
-	addModelessDialog(dlg, false);
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionCfDNADiseaseCourse_triggered()
@@ -2249,7 +2249,7 @@ void MainWindow::on_actionCfDNADiseaseCourse_triggered()
 
 	DiseaseCourseWidget* widget = new DiseaseCourseWidget(variants_.mainSampleName());
 	auto dlg = GUIHelper::createDialog(widget, "Personalized cfDNA variants");
-	addModelessDialog(dlg, false);
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionCfDNAAddExcludedRegions_triggered()
@@ -2261,7 +2261,7 @@ void MainWindow::on_actionCfDNAAddExcludedRegions_triggered()
 	QSharedPointer<cfDNARemovedRegions> dialog(new cfDNARemovedRegions(variants_.mainSampleName(), this));
 	dialog->setWindowFlags(Qt::Window);
 
-	addModelessDialog(dialog, false);
+	addModelessDialog(dialog);
 }
 
 void MainWindow::on_actionGeneOmimInfo_triggered()
@@ -2626,14 +2626,12 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 			QStringList init_commands;
 			init_commands.append("genome " + Settings::path("igv_genome")); //genome command first, see https://github.com/igvteam/igv/issues/1094
 			init_commands.append("new");
+			if (NGSHelper::isClientServerMode()) init_commands.append("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*");
 
 			//load non-BAM files
 			foreach(QString file, files_to_load)
 			{
-				if (!NGSHelper::isBamFile(file))
-				{
-					init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
-				}
+				if (!NGSHelper::isBamFile(file)) init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
 			}
 
 			//collapse tracks
@@ -2642,10 +2640,7 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 			//load BAM files
 			foreach(QString file, files_to_load)
 			{
-				if (NGSHelper::isBamFile(file))
-				{
-					init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
-				}
+				if (NGSHelper::isBamFile(file)) init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
 			}
 			init_commands.append("viewaspairs");
 			init_commands.append("colorBy UNEXPECTED_PAIR");

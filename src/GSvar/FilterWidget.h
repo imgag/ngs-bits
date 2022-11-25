@@ -112,6 +112,8 @@ protected slots:
 	void updateFilterName();
 	void customFilterLoaded();
 	void showTargetRegionDetails();
+	void copyTargetRegionToClipboard();
+	void openTargetRegionInIGV();
 	void updateGeneWarning();
 	void editPhenotypes();
 	void showPhenotypeContextMenu(QPoint pos);

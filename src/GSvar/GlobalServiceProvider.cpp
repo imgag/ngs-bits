@@ -168,7 +168,8 @@ void GlobalServiceProvider::loadFileInIGV(QString filename, bool init_if_not_don
 		MainWindow* mw = qobject_cast<MainWindow*>(widget);
 		if (mw!=nullptr)
 		{
-			mw->executeIGVCommands(QStringList() << "load \"" + filename + "\"", init_if_not_done);
+			if (NGSHelper::isClientServerMode()) mw->executeIGVCommands(QStringList() << "SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*", init_if_not_done);
+			mw->executeIGVCommands(QStringList() << "load \"" + NGSHelper::stripSecureToken(filename) + "\"", init_if_not_done);
 		}
 	}
 }
@@ -181,6 +182,18 @@ void GlobalServiceProvider::openGSvarViaNGSD(QString processed_sample_name, bool
 		if (mw!=nullptr)
 		{
 			mw->openProcessedSampleFromNGSD(processed_sample_name, search_multi);
+		}
+	}
+}
+
+void GlobalServiceProvider::addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize)
+{
+	foreach(QWidget* widget, QApplication::topLevelWidgets())
+	{
+		MainWindow* mw = qobject_cast<MainWindow*>(widget);
+		if (mw!=nullptr)
+		{
+			mw->addModelessDialog(dlg, maximize);
 		}
 	}
 }

@@ -5,6 +5,7 @@
 #include "FileLocationProvider.h"
 #include "DatabaseService.h"
 #include "StatisticsService.h"
+#include <QDialog>
 
 ///Provider class for GSvar-wide services
 class GlobalServiceProvider
@@ -35,6 +36,9 @@ public:
 
 	//opening GSvar files
 	static void openGSvarViaNGSD(QString processed_sample_name, bool search_multi);
+
+	//add modeless dialog
+	static void addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize=false);
 
 protected:
 	GlobalServiceProvider();

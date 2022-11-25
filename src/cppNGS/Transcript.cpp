@@ -925,6 +925,26 @@ int Transcript::utr3primeStart() const
 	}
 }
 
+bool TranscriptList::contains(const Transcript& transcript) const
+{
+	for (auto it=begin(); it!=end(); ++it)
+	{
+		if (it->name()==transcript.name()) return true;
+	}
+
+	return false;
+}
+
+bool TranscriptList::contains(const QByteArray& name) const
+{
+	for (auto it=begin(); it!=end(); ++it)
+	{
+		if (it->name()==name) return true;
+	}
+
+	return false;
+}
+
 void TranscriptList::sortByBases()
 {
 	std::stable_sort(begin(), end(), [](const Transcript& a, const Transcript& b){ return a.regions().baseCount() > b.regions().baseCount(); });
@@ -935,9 +955,10 @@ void TranscriptList::sortByCodingBases()
 	std::stable_sort(begin(), end(), [](const Transcript& a, const Transcript& b){ return a.codingRegions().baseCount() > b.codingRegions().baseCount(); });
 }
 
-void TranscriptList::sortByName()
+void TranscriptList::sortByRelevance()
 {
-	std::stable_sort(begin(), end(), [](const Transcript& a, const Transcript& b){ return a.name()<b.name(); });
+	TranscriptRelevanceComparator comparator;
+	std::stable_sort(begin(), end(), comparator);
 }
 
 void TranscriptList::sortByPosition()
@@ -958,4 +979,32 @@ bool TranscriptList::TranscriptPositionComparator::operator()(const Transcript& 
 	if (a.end()>b.end()) return false;
 
 	return a.name()<b.name();
+}
+
+bool TranscriptList::TranscriptRelevanceComparator::operator()(const Transcript& a, const Transcript& b) const
+{
+	//gene (alphabetical)
+	if (a.gene()>b.gene()) return false;
+	if (a.gene()<b.gene()) return true;
+
+	//coding length (longer first)
+	long long a_coding = a.codingRegions().baseCount();
+	long long b_coding = b.codingRegions().baseCount();
+	if (a_coding>b_coding) return true;
+	if (a_coding<b_coding) return false;
+
+	//relevant transcript (relevant first)
+	bool a_main_transcipt = a.isPreferredTranscript() || a.isManeSelectTranscript() || a.isManePlusClinicalTranscript();
+	bool b_main_transcipt = b.isPreferredTranscript() || b.isManeSelectTranscript() || b.isManePlusClinicalTranscript();
+	if (a_main_transcipt && !b_main_transcipt) return true;
+	if (!a_main_transcipt && b_main_transcipt) return false;
+
+	//non-coding length (longer first)
+	long long a_noncoding = a.regions().baseCount();
+	long long b_noncoding = b.regions().baseCount();
+	if (a_noncoding>b_noncoding) return true;
+	if (a_noncoding<b_noncoding) return false;
+
+	//name alphabetical (alphabetical)
+	return a.name()>b.name();
 }
