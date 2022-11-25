@@ -20,8 +20,8 @@
 #include <QMessageBox>
 #include <QInputDialog>
 
-bool test_run = true;
-QString api_url = (test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/";
+const bool test_run = true;
+const QString api_url = (test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/";
 
 ClinvarUploadDialog::ClinvarUploadDialog(QWidget *parent)
     : QDialog(parent)
@@ -279,11 +279,11 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 		}
 	}
 
-	// (de-)activate button to add comp-het variant
-	updateGUI();
-
 	// set upload type
 	manual_upload_ = false;
+
+	// (de-)activate button to add comp-het variant
+	updateGUI();
 
     //validate input
     checkGuiData();
@@ -437,7 +437,6 @@ void ClinvarUploadDialog::upload()
     try
     {
 		//switch on/off testing
-		bool test_run = true;
 		if(test_run) qDebug() << "Test run enabled!";
 
         QStringList messages;

@@ -13,6 +13,9 @@
 #include "GUIHelper.h"
 #include "LoginManager.h"
 
+const bool test_run = true;
+const QString api_url = (test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/";
+
 PublishedVariantsWidget::PublishedVariantsWidget(QWidget* parent)
 	: QWidget(parent)
 	, ui_(new Ui::PublishedVariantsWidget)
@@ -585,7 +588,6 @@ void PublishedVariantsWidget::deleteClinvarSubmission()
 			try
 			{
 				//switch on/off testing
-				bool test_run = true;
 				if(test_run) qDebug() << "Test run enabled!";
 
 				QStringList messages;
@@ -596,9 +598,8 @@ void PublishedVariantsWidget::deleteClinvarSubmission()
 				add_headers.insert("SP-API-KEY", api_key);
 
 				//post request
-				QByteArray reply = http_handler.post((test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/",
-													 QJsonDocument(post_request).toJson(QJsonDocument::Compact), add_headers);
-				qDebug() << ((test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/");
+				QByteArray reply = http_handler.post(api_url, QJsonDocument(post_request).toJson(QJsonDocument::Compact), add_headers);
+				qDebug() << api_url;
 
 				// parse response
 				bool success = false;
@@ -693,7 +694,6 @@ void PublishedVariantsWidget::openVariantTab()
 SubmissionStatus PublishedVariantsWidget::getSubmissionStatus(const QString& submission_id)
 {
 	//switch on/off testing
-	bool test_run = true;
 	if(test_run) qDebug() << "Test run enabled!";
 
 	// read API key
@@ -711,8 +711,8 @@ SubmissionStatus PublishedVariantsWidget::getSubmissionStatus(const QString& sub
 		add_headers.insert("SP-API-KEY", api_key);
 
 		//get request
-		QByteArray reply = http_handler_.get(((test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions/" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/") + submission_id.toUpper() + "/actions/", add_headers);
-		qDebug() << ((test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions/" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/") + submission_id.toUpper() + "/actions/";
+		QByteArray reply = http_handler_.get(api_url + submission_id.toUpper() + "/actions/", add_headers);
+		qDebug() << api_url + submission_id.toUpper() + "/actions/";
 		// parse response
 		QJsonObject response = QJsonDocument::fromJson(reply).object();
 
