@@ -310,6 +310,7 @@ void ProcessedSampleWidget::updateQCMetrics()
 			else if (parent_ids.contains("QC:2000004")) sources << "small variant calling";
 			else if (parent_ids.contains("QC:2000112")) sources << "CNV calling";
 			else if (parent_ids.contains("QC:2000116")) sources << "SV calling";
+			else if (parent_ids.contains("QC:2000125")) sources << "somatic";
 			else sources << "unknown";
 		}
 		qc_table.addColumn(sources, "source");
