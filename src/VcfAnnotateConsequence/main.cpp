@@ -106,29 +106,14 @@ public:
 		QTime timer;
 		timer.start();
 
+		GffSettings gff_settings;
+		gff_settings.print_to_stdout = true;
+		gff_settings.skip_not_gencode_basic = !all;
 		GffData data;
-		NGSHelper::loadGffFile(gff_file, data, true);
+		NGSHelper::loadGffFile(gff_file, data, gff_settings);
 		stream << "Parsed " << QString::number(data.transcripts.count()) << " transcripts from input GFF file." << endl;
 		stream << "Parsing transcripts took: " << Helper::elapsedTime(timer) << endl;
 
-		//remove transcripts not flagged as GENCODE basic
-		if (!all)
-		{
-			timer.start();
-			int c_removed = 0;
-			for (int i=data.transcripts.count()-1; i>=0; --i)
-			{
-				QByteArray trans_id = data.transcripts[i].name();
-				if (!data.gencode_basic.contains(trans_id))
-				{
-					data.transcripts.removeAt(i);
-					++c_removed;
-				}
-			}
-			stream << "Removed " << QString::number(c_removed) << " transcripts because they are not flagged as 'GENCODE basic'." << endl;
-			stream << "Number of transcripts remaining: " << data.transcripts.length() << endl;
-			stream << "Removing transcripts took: " << Helper::elapsedTime(timer) << endl;
-		}
 		//ceate transcript index
 		data.transcripts.sortByPosition();
 		MetaData meta(getString("tag").toUtf8(), ref_file, data.transcripts);

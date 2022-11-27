@@ -908,7 +908,7 @@ QHash<QByteArray, QByteArray> parseGffAttributes(const QByteArray& attributes)
 	return output;
 }
 
-void NGSHelper::loadGffFile(QString filename, GffData& output, bool print_to_stdout)
+void NGSHelper::loadGffFile(QString filename, GffData& output, GffSettings settings)
 {
 	//clear input data
 	output.transcripts.clear();
@@ -922,6 +922,7 @@ void NGSHelper::loadGffFile(QString filename, GffData& output, bool print_to_std
 	int c_skipped_special_chr = 0;
 	QSet<QByteArray> special_chrs;
 	int c_skipped_no_name_and_hgnc = 0;
+	int c_skipped_not_gencode_basic = 0;
 
 	QSharedPointer<QFile> file = Helper::openFileForReading(filename, false);
     while(!file->atEnd())
@@ -1017,9 +1018,16 @@ void NGSHelper::loadGffFile(QString filename, GffData& output, bool print_to_std
 			output.enst2ensg.insert(data["transcript_id"], data["Parent"].split(':').at(1));
 
 			// store GENCODE basic data
-			if (data.value("tag")=="basic")
+			bool is_gencode_basic = data.value("tag")=="basic";
+			if (is_gencode_basic)
 			{
 				output.gencode_basic << data["transcript_id"];
+			}
+
+			if (settings.skip_not_gencode_basic && !is_gencode_basic)
+			{
+				++c_skipped_not_gencode_basic;
+				continue;
 			}
 
 			QByteArray parent_id = data["Parent"].split(':').at(1);
@@ -1072,7 +1080,7 @@ void NGSHelper::loadGffFile(QString filename, GffData& output, bool print_to_std
     }
 
 	//text output
-	if (print_to_stdout)
+	if (settings.print_to_stdout)
 	{
 		QTextStream out(stdout);
 		if (c_skipped_special_chr>0)
@@ -1082,6 +1090,10 @@ void NGSHelper::loadGffFile(QString filename, GffData& output, bool print_to_std
 		if (c_skipped_no_name_and_hgnc>0)
 		{
 			out << "Notice: " << QByteArray::number(c_skipped_no_name_and_hgnc) << " genes without symbol and HGNC-ID skipped." << endl;
+		}
+		if (c_skipped_not_gencode_basic>0)
+		{
+			out << "Notice: " << QByteArray::number(c_skipped_special_chr) << " transcipts not flagged as 'GENCODE basic'." << endl;
 		}
 	}
 }
