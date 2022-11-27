@@ -355,8 +355,7 @@ public:
 		GffSettings gff_settings;
 		gff_settings.print_to_stdout = true;
 		gff_settings.skip_not_gencode_basic = false;
-		GffData data;
-		NGSHelper::loadGffFile(getInfile("in"), data, gff_settings);
+		GffData data = NGSHelper::loadGffFile(getInfile("in"), gff_settings);
         QSet<QByteArray> ccds_transcripts_added;
 		foreach(const Transcript& t, data.transcripts)
         {
@@ -367,7 +366,7 @@ public:
 			bool is_mane_plus_clinical = mane_plus_clinical.contains(transcript_id);
 
 			//if not 'all' or has important flag > skip it
-			if (!all && !is_gencode_basic && !is_ensembl_canonical && !is_mane_select && !is_mane_plus_clinical) continue; //TODO: check if this case exists. If not use skip_not_gencode_basic to skip not gencode basic transcripts
+			if (!all && !is_gencode_basic && !is_ensembl_canonical && !is_mane_select && !is_mane_plus_clinical) continue;
 
             //transform gene name to approved gene ID
 			QByteArray gene = t.gene();

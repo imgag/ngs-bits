@@ -232,8 +232,7 @@ private slots:
 
 		//do not skip GENCODE basic
 		settings.skip_not_gencode_basic = false;
-		GffData gff;
-		NGSHelper::loadGffFile(TESTDATA("data_in/NGSHelper_loadGffFile_in1.gff3"), gff, settings);
+		GffData gff = NGSHelper::loadGffFile(TESTDATA("data_in/NGSHelper_loadGffFile_in1.gff3"), settings);
 
 		I_EQUAL(gff.transcripts.count(), 21);
 		IS_TRUE(gff.transcripts.contains("ENST00000578049")); //first valid
@@ -247,7 +246,7 @@ private slots:
 
 		//skip GENCODE basic
 		settings.skip_not_gencode_basic = true;
-		NGSHelper::loadGffFile(TESTDATA("data_in/NGSHelper_loadGffFile_in1.gff3"), gff, settings);
+		gff = NGSHelper::loadGffFile(TESTDATA("data_in/NGSHelper_loadGffFile_in1.gff3"), settings);
 
 		I_EQUAL(gff.transcripts.count(), 11);
 		IS_TRUE(gff.transcripts.contains("ENST00000578049")); //first valid

@@ -908,13 +908,9 @@ QHash<QByteArray, QByteArray> parseGffAttributes(const QByteArray& attributes)
 	return output;
 }
 
-void NGSHelper::loadGffFile(QString filename, GffData& output, GffSettings settings)
+GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
 {
-	//clear input data
-	output.transcripts.clear();
-	output.ensg2symbol.clear();
-	output.enst2ensg.clear();
-	output.gencode_basic.clear();
+	GffData output;
 
 	//init
 	QHash<QByteArray, TranscriptData> transcripts;
@@ -1096,6 +1092,8 @@ void NGSHelper::loadGffFile(QString filename, GffData& output, GffSettings setti
 			out << "Notice: " << QByteArray::number(c_skipped_special_chr) << " transcipts not flagged as 'GENCODE basic'." << endl;
 		}
 	}
+
+	return output;
 }
 
 bool SampleInfo::isAffected() const
