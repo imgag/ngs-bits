@@ -39,7 +39,7 @@ void Transcript::setRegions(const BedFile& regions, int coding_start, int coding
 {
 	//check
 	if (strand_==INVALID) THROW(ProgrammingException, "Transcript::setRegions must be called after Transcript::setStrand!");
-	if (regions.count()==0) THROW(ProgrammingException, "Transcript must have at least one exon!");
+	if (regions.count()==0) THROW(ProgrammingException, "Transcript '" + name_ + "' must have at least one exon!");
 
 	//determine chr/start/end and perform more checks
 	start_ = std::numeric_limits<int>::max();
@@ -217,7 +217,7 @@ Transcript::STRAND Transcript::stringToStrand(QByteArray strand)
 		return MINUS;
 	}
 
-	THROW(ProgrammingException, "Unknown transcript strand string '" + strand + "!");
+	THROW(ProgrammingException, "Unknown transcript strand string '" + strand + "'!");
 }
 
 QByteArray Transcript::biotypeToString(Transcript::BIOTYPE biotype)

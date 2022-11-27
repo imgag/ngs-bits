@@ -239,6 +239,20 @@ private slots:
 		IS_TRUE(gff.transcripts.contains("ENST00000643044")); //last valid
 		IS_FALSE(gff.transcripts.contains("ENST00000613230")); //special chromosome > skipped
 		IS_FALSE(gff.transcripts.contains("ENST00000671898")); //not name and no HGNC-ID > skipped
+
+		gff.transcripts.sortByPosition(); //order is not defined because we use a hash while parsing
+		S_EQUAL(gff.transcripts[0].name(), "ENST00000578049");
+		I_EQUAL(gff.transcripts[0].version(), 4);
+		S_EQUAL(gff.transcripts[0].nameCcds(), "CCDS83523.1");
+		I_EQUAL(gff.transcripts[0].biotype(), Transcript::PROTEIN_CODING);
+		S_EQUAL(gff.transcripts[0].gene(), "SEC22B");
+		S_EQUAL(gff.transcripts[0].geneId(), "ENSG00000265808");
+		S_EQUAL(gff.transcripts[0].hgncId(), "HGNC:10700");
+		I_EQUAL(gff.transcripts[0].regions().count(), 5);
+		I_EQUAL(gff.transcripts[0].regions().baseCount(), 6927);
+		I_EQUAL(gff.transcripts[0].codingRegions().count(), 5);
+		I_EQUAL(gff.transcripts[0].codingRegions().baseCount(), 648);
+
 		I_EQUAL(gff.gencode_basic.count(), 13);
 		IS_TRUE(gff.gencode_basic.contains("ENST00000578049"));
 

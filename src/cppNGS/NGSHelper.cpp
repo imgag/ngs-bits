@@ -985,28 +985,38 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
         //skip header lines
 		if (line.startsWith("#")) continue;
 
-		QByteArrayList parts = line.split('\t');
-		QByteArray type = parts[2];
-		QHash<QByteArray, QByteArray> data = parseGffAttributes(parts[8]);
+		int from = 0;
+		QVector<int> seps;
+		int sep;
+		while((sep=line.indexOf('\t', from))!=-1)
+		{
+			seps << sep;
+			from = sep+1;
+		}
+		QByteArray chr = line.left(seps[0]);
+		QByteArray details = line.mid(seps[7]+1, line.length()-seps[7]);
 
         //gene line
-        if (data.contains("gene_id"))
+		if (details.startsWith("ID=gene:"))
         {
+
+			QHash<QByteArray, QByteArray> data = parseGffAttributes(details);
+
 			const QByteArray& gene = data["Name"];
 
-            // store mapping for pseudogene table
+			// store mapping for pseudogene table
 			const QByteArray& gene_id = data["gene_id"];
 			output.ensg2symbol.insert(gene_id, gene);
 
-			if (!Chromosome(parts[0]).isNonSpecial())
+			if (!Chromosome(chr).isNonSpecial())
             {
-				special_chrs << parts[0];
+				special_chrs << chr;
 				++c_skipped_special_chr;
                 continue;
             }
 
             //extract HGNC identifier
-            QByteArray hgnc_id = "";
+			QByteArray hgnc_id = "";
 			const QByteArray& description = data["description"];
 			int start = description.indexOf("[Source:HGNC Symbol%3BAcc:");
             if (start!=-1)
@@ -1029,9 +1039,11 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
         }
 
         //transcript line
-        else if (data.contains("transcript_id"))
+		else if (details.startsWith("ID=transcript:"))
         {
-            // store mapping for pseudogene table
+			QHash<QByteArray, QByteArray> data = parseGffAttributes(details);
+
+			// store mapping for pseudogene table
 			const QByteArray& transcript_id = data["transcript_id"];
 			output.enst2ensg.insert(transcript_id, data["Parent"].split(':').at(1));
 
@@ -1060,41 +1072,48 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
 			tmp.gene_symbol = output.ensg2symbol[parent_id];
 			tmp.gene_id = parent_id;
 			tmp.hgnc_id = gene_to_hgnc[parent_id];
-			tmp.chr = parts[0];
-			tmp.strand = parts[6];
+			tmp.chr = chr;
+			tmp.strand = line.mid(seps[5]+1, seps[6]-seps[5]-1);
 			tmp.biotype = data["biotype"];
 			transcripts[data["ID"]] = tmp;
 		}
 
         //exon lines
-        else if (type=="CDS" || type=="exon" || type=="three_prime_UTR" || type=="five_prime_UTR" )
-        {
-			const QByteArray& parent_id = data["Parent"];
+		else
+		{
+			QByteArray type = line.mid(seps[1]+1, seps[2]-seps[1]-1);
+			if (type=="CDS" || type=="exon" || type=="three_prime_UTR" || type=="five_prime_UTR" )
+			{
+				int enst_start = details.indexOf("Parent=")+7;
+				int enst_end = details.indexOf(";", enst_start);
+				if (enst_end==-1) enst_end=details.count();
+				QByteArray parent_id = details.mid(enst_start, enst_end-enst_start);
 
-			//skip exons of skipped genes
-            if (!transcripts.contains(parent_id)) continue;
+				//skip exons of skipped genes
+				if (!transcripts.contains(parent_id)) continue;
 
-            TranscriptData& t_data = transcripts[parent_id];
+				TranscriptData& t_data = transcripts[parent_id];
 
-            //check chromosome matches
-			if (parts[0]!=t_data.chr)
-            {
-				THROW(FileParseException, "Chromosome mismatch between transcript and exon!");
-            }
+				//check chromosome matches
+				if (chr!=t_data.chr)
+				{
+					THROW(FileParseException, "Chromosome mismatch between transcript and exon!");
+				}
 
-            //update coding start/end
-			int start = Helper::toInt(parts[3], "start position");
-			int end = Helper::toInt(parts[4], "end position");
+				//update coding start/end
+				int start = Helper::toInt(line.mid(seps[2]+1, seps[3]-seps[2]-1), "start position");
+				int end = Helper::toInt(line.mid(seps[3]+1, seps[4]-seps[3]-1), "end position");
 
-            if (type=="CDS")
-            {
-                t_data.start_coding = (t_data.start_coding==0) ? start : std::min(start, t_data.start_coding);
-                t_data.end_coding = (t_data.end_coding==0) ? end : std::max(end, t_data.end_coding);
-            }
+				if (type=="CDS")
+				{
+					t_data.start_coding = (t_data.start_coding==0) ? start : std::min(start, t_data.start_coding);
+					t_data.end_coding = (t_data.end_coding==0) ? end : std::max(end, t_data.end_coding);
+				}
 
-            //add coding exon
-			t_data.exons.append(BedLine(parts[0], start, end));
-        }
+				//add coding exon
+				t_data.exons.append(BedLine(chr, start, end));
+			}
+		}
     }
 
 	//text output
