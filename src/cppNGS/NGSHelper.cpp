@@ -911,6 +911,7 @@ QHash<QByteArray, QByteArray> parseGffAttributes(const QByteArray& attributes)
 GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
 {
 	GffData output;
+	output.transcripts.reserve(100000);
 
 	//init
 	QHash<QByteArray, TranscriptData> transcripts;
@@ -920,10 +921,28 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
 	int c_skipped_no_name_and_hgnc = 0;
 	int c_skipped_not_gencode_basic = 0;
 
-	QSharedPointer<QFile> file = Helper::openFileForReading(filename, false);
-    while(!file->atEnd())
+	char* buffer = new char[8192];
+	gzFile gz_file = gzopen(filename.toUtf8().data(), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
+	if (gz_file == NULL) THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
+	gzbuffer(gz_file, 131072);
+
+	while(!gzeof(gz_file))
     {
-        QByteArray line = file->readLine().trimmed();
+		char* line_raw  = gzgets(gz_file, buffer, 8192);
+
+		//handle errors like truncated GZ file
+		if (line_raw==nullptr)
+		{
+			int error_no = Z_OK;
+			QByteArray error_message = gzerror(gz_file, &error_no);
+			if (error_no!=Z_OK && error_no!=Z_STREAM_END)
+			{
+				THROW(FileParseException, "Error while reading file '" + filename + "': " + error_message);
+			}
+		}
+
+		QByteArray line(buffer);
+		while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
         if (line.isEmpty()) continue;
 
         //section end => commit data
@@ -964,21 +983,22 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
         }
 
         //skip header lines
-        if (line.startsWith("#")) continue;
+		if (line.startsWith("#")) continue;
 
-        QByteArrayList parts = line.split('\t');
-        QByteArray type = parts[2];
+		QByteArrayList parts = line.split('\t');
+		QByteArray type = parts[2];
 		QHash<QByteArray, QByteArray> data = parseGffAttributes(parts[8]);
 
         //gene line
         if (data.contains("gene_id"))
         {
-			QByteArray gene = data["Name"];
+			const QByteArray& gene = data["Name"];
 
             // store mapping for pseudogene table
-			output.ensg2symbol.insert(data["gene_id"], gene);
+			const QByteArray& gene_id = data["gene_id"];
+			output.ensg2symbol.insert(gene_id, gene);
 
-            if (!Chromosome(parts[0]).isNonSpecial())
+			if (!Chromosome(parts[0]).isNonSpecial())
             {
 				special_chrs << parts[0];
 				++c_skipped_special_chr;
@@ -987,14 +1007,15 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
 
             //extract HGNC identifier
             QByteArray hgnc_id = "";
-            int start = data["description"].indexOf("[Source:HGNC Symbol%3BAcc:");
+			const QByteArray& description = data["description"];
+			int start = description.indexOf("[Source:HGNC Symbol%3BAcc:");
             if (start!=-1)
             {
                 start += 26;
-                int end = data["description"].indexOf("]", start);
+				int end = description.indexOf("]", start);
                 if (end!=-1)
                 {
-					hgnc_id = data["description"].mid(start, end-start).trimmed();
+					hgnc_id = description.mid(start, end-start).trimmed();
                 }
             }
 
@@ -1004,20 +1025,21 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
 				continue;
 			}
 
-            gene_to_hgnc[data["gene_id"]] = hgnc_id;
+			gene_to_hgnc[gene_id] = hgnc_id;
         }
 
         //transcript line
         else if (data.contains("transcript_id"))
         {
             // store mapping for pseudogene table
-			output.enst2ensg.insert(data["transcript_id"], data["Parent"].split(':').at(1));
+			const QByteArray& transcript_id = data["transcript_id"];
+			output.enst2ensg.insert(transcript_id, data["Parent"].split(':').at(1));
 
 			// store GENCODE basic data
 			bool is_gencode_basic = data.value("tag")=="basic";
 			if (is_gencode_basic)
 			{
-				output.gencode_basic << data["transcript_id"];
+				output.gencode_basic << transcript_id;
 			}
 
 			if (settings.skip_not_gencode_basic && !is_gencode_basic)
@@ -1032,9 +1054,9 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
 			if(!gene_to_hgnc.contains(parent_id)) continue;
 
 			TranscriptData tmp;
-			tmp.name = data["transcript_id"];
-			tmp.version = data["version"].toInt();
-			tmp.name_ccds = data.value("ccdsid", "");
+			tmp.name = transcript_id;
+			tmp.version = Helper::toInt(data["version"], "transcript version");
+			tmp.name_ccds = data.value("ccdsid");
 			tmp.gene_symbol = output.ensg2symbol[parent_id];
 			tmp.gene_id = parent_id;
 			tmp.hgnc_id = gene_to_hgnc[parent_id];
@@ -1047,7 +1069,7 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
         //exon lines
         else if (type=="CDS" || type=="exon" || type=="three_prime_UTR" || type=="five_prime_UTR" )
         {
-            QByteArray parent_id = data["Parent"];
+			const QByteArray& parent_id = data["Parent"];
 
 			//skip exons of skipped genes
             if (!transcripts.contains(parent_id)) continue;
@@ -1061,8 +1083,8 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
             }
 
             //update coding start/end
-            int start = Helper::toInt(parts[3], "start position");
-            int end = Helper::toInt(parts[4], "end position");
+			int start = Helper::toInt(parts[3], "start position");
+			int end = Helper::toInt(parts[4], "end position");
 
             if (type=="CDS")
             {
@@ -1092,6 +1114,10 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
 			out << "Notice: " << QByteArray::number(c_skipped_special_chr) << " transcipts not flagged as 'GENCODE basic'." << endl;
 		}
 	}
+
+	//close buffers
+	delete[] buffer;
+	gzclose(gz_file);
 
 	return output;
 }

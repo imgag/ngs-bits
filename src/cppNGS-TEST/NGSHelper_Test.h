@@ -225,7 +225,7 @@ private slots:
 		IS_TRUE(matches["NM_004447"].contains("ENST00000644374"));
 	}
 
-	void loadGffFile()
+	void loadGffFile_unzipped()
 	{
 		GffSettings settings;
 		settings.print_to_stdout = false;
@@ -239,7 +239,6 @@ private slots:
 		IS_TRUE(gff.transcripts.contains("ENST00000643044")); //last valid
 		IS_FALSE(gff.transcripts.contains("ENST00000613230")); //special chromosome > skipped
 		IS_FALSE(gff.transcripts.contains("ENST00000671898")); //not name and no HGNC-ID > skipped
-
 		I_EQUAL(gff.gencode_basic.count(), 13);
 		IS_TRUE(gff.gencode_basic.contains("ENST00000578049"));
 
@@ -257,4 +256,22 @@ private slots:
 		I_EQUAL(gff.gencode_basic.count(), 13);
 		IS_TRUE(gff.gencode_basic.contains("ENST00000578049"));
 	}
+
+	void loadGffFile_gzipped()
+	{
+		GffSettings settings;
+		settings.print_to_stdout = false;
+
+		//do not skip GENCODE basic
+		settings.skip_not_gencode_basic = false;
+		GffData gff = NGSHelper::loadGffFile(TESTDATA("data_in/NGSHelper_loadGffFile_in2.gff3.gz"), settings);
+
+		I_EQUAL(gff.transcripts.count(), 21);
+		IS_TRUE(gff.transcripts.contains("ENST00000578049")); //first valid
+		IS_TRUE(gff.transcripts.contains("ENST00000643044")); //last valid
+
+		I_EQUAL(gff.gencode_basic.count(), 13);
+		IS_TRUE(gff.gencode_basic.contains("ENST00000578049"));
+	}
+
 };
