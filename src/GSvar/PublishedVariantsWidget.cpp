@@ -208,7 +208,8 @@ void PublishedVariantsWidget::updateTable()
 			status << "deleted";
 			stable_ids << result.split(";").at(1);
 			QString message = result.split(";").at(2);
-			if (!result.split(";").at(3).trimmed().isEmpty()) message += ": " + result.split(";").at(3).trimmed();
+			qDebug() << result;
+			if (result.split(";").size() > 3) message += ": " + result.split(";").at(3).trimmed();
 			error_messages << message;
 		}
 		else
@@ -234,6 +235,10 @@ void PublishedVariantsWidget::updateTable()
 	for (int i = 0; i < variant_ids.size(); ++i)
 	{
 		if (variant_tables.at(i) == "variant")
+		{
+			variant_descriptions.append(db.variant(variant_ids.at(i)).toString()+ " (old upload)");
+		}
+		else if (variant_tables.at(i) == "n/a")
 		{
 			variant_descriptions.append(db.variant(variant_ids.at(i)).toString());
 		}
@@ -478,6 +483,7 @@ void PublishedVariantsWidget::retryClinvarSubmission()
 		int row_idx = rows.values().at(0);
 		int status_idx = ui_->table->columnIndex("ClinVar submission status");
 		int accession_idx = ui_->table->columnIndex("ClinVar accession id");
+		int variant_table_idx  = ui_->table->columnIndex("variant_table");
 
 		//get status
 		QString status = ui_->table->item(row_idx, status_idx)->text().trimmed();
@@ -485,6 +491,13 @@ void PublishedVariantsWidget::retryClinvarSubmission()
 		{
 
 			INFO(ArgumentException, "Reupload is only supported for variants which are submitted to ClinVar and are already processed.");
+		}
+
+		//check variant table
+		QString variant_table = ui_->table->item(row_idx, variant_table_idx)->text().trimmed();
+		if (variant_table=="none" || variant_table=="n/a")
+		{
+			INFO(ArgumentException, "Reupload is not supported for old variants and variants which were manually uploaded.");
 		}
 
 		// get publication id
@@ -776,6 +789,7 @@ ClinvarUploadData PublishedVariantsWidget::getClinvarUploadData(int var_pub_id)
 
 	QString sample_id = query.value("sample_id").toString();
 	QString variant_table = query.value("variant_table").toString();
+	QString variant_table2;
 	data.variant_id1 = query.value("variant_id").toInt();
 	QStringList details = query.value("details").toString().split(';');
 	data.user_id = query.value("user_id").toInt();
@@ -803,21 +817,31 @@ ClinvarUploadData PublishedVariantsWidget::getClinvarUploadData(int var_pub_id)
 			int var_id1 = Helper::toInt(kv_pair.split('=').at(1), "variant_id1");
 			switch_variants = (var_id1 != data.variant_id1);
 		}
+		if (kv_pair.startsWith("variant_id2="))
+		{
+			data.variant_id2 = Helper::toInt(kv_pair.split('=').at(1), "variant_id2");
+		}
 
 		//get variant report config id
 		if (kv_pair.startsWith("variant_rc_id1="))
 		{
-			data.report_variant_config_id1 = Helper::toInt(kv_pair.split('=').at(1), "variant_rc_id1");
+			QString rvc_str = kv_pair.split('=').at(1);
+			if (rvc_str.contains(':')) rvc_str = rvc_str.split(':').at(1);
+			data.report_variant_config_id1 = Helper::toInt(rvc_str, "variant_rc_id1");
 		}
 		if (kv_pair.startsWith("variant_rc_id2="))
 		{
-			data.report_variant_config_id2 = Helper::toInt(kv_pair.split('=').at(1), "variant_rc_id2");
+			QString rvc_str = kv_pair.split('=').at(1);
+			if (rvc_str.contains(':'))
+			{
+				variant_table2 = rvc_str.split(':').at(0);
+				rvc_str = rvc_str.split(':').at(1);
+			}
+			data.report_variant_config_id2 = Helper::toInt(rvc_str, "variant_rc_id2");
 		}
+
 	}
-	if (data.report_variant_config_id1 < 0)
-	{
-		THROW(DatabaseException, "No report variant config id information found in variant publication!");
-	}
+	if (data.report_variant_config_id1 < 0) THROW(DatabaseException, "No report variant config id information found in variant publication!");
 	if ((data.submission_type == ClinvarSubmissionType::CompoundHeterozygous) && (data.report_variant_config_id2 < 0))
 	{
 		THROW(DatabaseException, "No report variant config id for second variant information found in variant publication!");
@@ -849,8 +873,6 @@ ClinvarUploadData PublishedVariantsWidget::getClinvarUploadData(int var_pub_id)
 		data.sv1 = db.structuralVariant(data.variant_id1, sv_type, GlobalServiceProvider::getSvList());
 	}
 
-	data.variant_type2 = VariantType::INVALID;
-
 	if (data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
 	{
 		if (linked_id == "") THROW(DatabaseException, "No linked variant provided for compound heterozygous variant publication!");
@@ -861,15 +883,13 @@ ClinvarUploadData PublishedVariantsWidget::getClinvarUploadData(int var_pub_id)
 		query.next();
 
 
-		//get variant info (2nd var)
-		variant_table = query.value("variant_table").toString();
-		data.variant_id2 = query.value("variant_id").toInt();
-		if (variant_table == "variant")
+		//get variant info for 2nd var from details field
+		if (variant_table2 == "variant")
 		{
 			data.variant_type2 = VariantType::SNVS_INDELS;
 			data.snv2 = db.variant(QString::number(data.variant_id2));
 		}
-		else if(variant_table == "cnv")
+		else if(variant_table2 == "cnv")
 		{
 			data.variant_type2 = VariantType::CNVS;
 			data.cnv2 = db.cnv(data.variant_id2);
@@ -878,12 +898,12 @@ ClinvarUploadData PublishedVariantsWidget::getClinvarUploadData(int var_pub_id)
 		{
 			data.variant_type2 = VariantType::SVS;
 			StructuralVariantType sv_type;
-			if(variant_table == "sv_deletion") sv_type = StructuralVariantType::DEL;
-			else if(variant_table == "sv_duplication") sv_type = StructuralVariantType::DUP;
-			else if(variant_table == "sv_insertion") sv_type = StructuralVariantType::INS;
-			else if(variant_table == "sv_invertion") sv_type = StructuralVariantType::INV;
-			else if(variant_table == "sv_translocation" ) sv_type = StructuralVariantType::BND;
-			else THROW(ArgumentException, "Invalid SV table '" + variant_table + "'!");
+			if(variant_table2 == "sv_deletion") sv_type = StructuralVariantType::DEL;
+			else if(variant_table2 == "sv_duplication") sv_type = StructuralVariantType::DUP;
+			else if(variant_table2 == "sv_insertion") sv_type = StructuralVariantType::INS;
+			else if(variant_table2 == "sv_invertion") sv_type = StructuralVariantType::INV;
+			else if(variant_table2 == "sv_translocation" ) sv_type = StructuralVariantType::BND;
+			else THROW(ArgumentException, "Invalid SV table '" + variant_table2 + "'!");
 
 			data.sv2 = db.structuralVariant(data.variant_id2, sv_type, GlobalServiceProvider::getSvList());
 		}
@@ -948,7 +968,7 @@ ClinvarUploadData PublishedVariantsWidget::getClinvarUploadData(int var_pub_id)
 		data.report_variant_config2 = db.reportVariantConfiguration(data.report_variant_config_id2, data.variant_type2, messages);
 	}
 
-	if (messages.size() > 0) QMessageBox::warning(this, "Report Variant Configurateion", messages.join('\n'));
+	if (messages.size() > 0) QMessageBox::warning(this, "Report Variant Configuration", messages.join('\n'));
 
 	//update snv_indel classification
 	if(data.variant_type1 == VariantType::SNVS_INDELS)
