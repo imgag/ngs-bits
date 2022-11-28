@@ -377,6 +377,7 @@ void ClinvarUploadDialog::initGui()
 	connect(ui_.le_end2_sv2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
 
 	connect(ui_.le_sample, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.le_sample, SIGNAL(textEdited(QString)), this, SLOT(setDiseaseInfo()));
     connect(ui_.phenos, SIGNAL(phenotypeSelectionChanged()), this, SLOT(checkGuiData()));
 	connect(ui_.tw_disease_info, SIGNAL(cellChanged(int,int)), this, SLOT(checkGuiData()));
     connect(ui_.print_btn, SIGNAL(clicked(bool)), this, SLOT(printResults()));
@@ -592,7 +593,6 @@ void ClinvarUploadDialog::upload()
 					THROW(ArgumentException, "Invalid variant type provided!");
 					break;
 			}
-			qDebug() << genes;
 			details << "gene=" +  NGSD().genesToApproved(GeneSet::createFromStringList(genes.replace(";", ",").split(','))).toStringList().join(',');
 
 			// additional info for reupload
@@ -922,7 +922,6 @@ bool ClinvarUploadDialog::checkGuiData()
 	{
 		gene = gene.trimmed();
 		QByteArray approved_gene_name = NGSD().geneToApproved(gene, false);
-		qDebug() << gene << approved_gene_name;
 		if(approved_gene_name.isEmpty() || (gene != approved_gene_name))
 		{
 			invalid_genes << gene;
@@ -1277,6 +1276,26 @@ void ClinvarUploadDialog::updateGUI()
 	ui_.btn_add_disease_info->setEnabled(manual_upload_);
 	ui_.btn_delete_disease_info->setVisible(manual_upload_);
 	ui_.btn_delete_disease_info->setEnabled(manual_upload_);
+}
+
+void ClinvarUploadDialog::setDiseaseInfo()
+{
+	if (!manual_upload_) return;
+	QString s_id = db_.sampleId(ui_.le_sample->text(), false);
+	if (s_id.isEmpty()) return;
+
+	//get disease info from NGSD
+	QList<SampleDiseaseInfo> disease_info = db_.getSampleDiseaseInfo(s_id);
+
+	// set disease info
+	ui_.tw_disease_info->setRowCount(disease_info.length());
+	int row_idx = 0;
+	foreach (const SampleDiseaseInfo& disease, disease_info)
+	{
+		ui_.tw_disease_info->setItem(row_idx, 0, new QTableWidgetItem(disease.type));
+		ui_.tw_disease_info->setItem(row_idx, 1, new QTableWidgetItem(disease.disease_info));
+		row_idx++;
+	}
 }
 
 void ClinvarUploadDialog::addDiseaseInfo()

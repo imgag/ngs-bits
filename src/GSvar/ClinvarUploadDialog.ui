@@ -155,7 +155,7 @@
          </size>
         </property>
         <property name="currentIndex">
-         <number>2</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="p_snv1">
          <layout class="QGridLayout" name="gridLayout_2">
@@ -314,7 +314,7 @@
              </font>
             </property>
             <property name="text">
-             <string>Variant:</string>
+             <string>Small variant:</string>
             </property>
            </widget>
           </item>
@@ -575,7 +575,7 @@
          </size>
         </property>
         <property name="currentIndex">
-         <number>2</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="p_snv2">
          <layout class="QGridLayout" name="gridLayout">
@@ -597,7 +597,7 @@
           <item row="0" column="0" colspan="2">
            <widget class="QLabel" name="label_3">
             <property name="text">
-             <string>Variant 2:</string>
+             <string>Small variant 2:</string>
             </property>
            </widget>
           </item>

@@ -1460,7 +1460,7 @@
      <normaloff>:/Icons/ClinGen.png</normaloff>:/Icons/ClinGen.png</iconset>
    </property>
    <property name="text">
-    <string>Upload variant to ClinVar</string>
+    <string>Manual ClinVar upload</string>
    </property>
   </action>
  </widget>

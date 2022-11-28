@@ -41,7 +41,7 @@ private:
 	int cnv_callset_id_ = -1;
 	int sv_callset_id_ = -1;
 	ReportVariantConfiguration selected_report_variant_;
-	int selected_rvc_id;
+	int selected_rvc_id_;
 	QMap<QPair<int, VariantType>, ReportVariantConfiguration> report_variants_;
 	void initTable(int ignored_rcv_id);
 

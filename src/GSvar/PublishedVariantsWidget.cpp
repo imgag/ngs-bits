@@ -236,11 +236,11 @@ void PublishedVariantsWidget::updateTable()
 	{
 		if (variant_tables.at(i) == "variant")
 		{
-			variant_descriptions.append(db.variant(variant_ids.at(i)).toString()+ " (old upload)");
+			variant_descriptions.append(db.variant(variant_ids.at(i)).toString());
 		}
 		else if (variant_tables.at(i) == "n/a")
 		{
-			variant_descriptions.append(db.variant(variant_ids.at(i)).toString());
+			variant_descriptions.append(db.variant(variant_ids.at(i)).toString()+ " (old upload)");
 		}
 		else if (variant_tables.at(i) == "cnv")
 		{
@@ -283,6 +283,9 @@ void PublishedVariantsWidget::updateTable()
 
 	//show data
 	ui_->table->setData(table, 350);
+
+	//hide column
+	ui_->table->hideColumn(table.columnIndex("variant_table"));
 
 	//color results
 	ui_->table->setBackgroundColorIfEqual("ClinVar submission status", bg_red, "error");
@@ -457,8 +460,8 @@ void PublishedVariantsWidget::searchForVariantInClinVar()
 		foreach (int row, rows)
 		{
 			QString variant_table = ui_->table->item(row, table_col)->text();
-			if (variant_table != "variant") continue;
-			QString variant_text = ui_->table->item(row, var_col)->text();
+			if ((variant_table != "variant") && (variant_table != "n/a")) continue;
+			QString variant_text = ui_->table->item(row, var_col)->text().split('(').at(0);
 			Variant variant = Variant::fromString(variant_text);
 			QString url = GSvarHelper::clinVarSearchLink(variant, GSvarHelper::build());
 			QDesktopServices::openUrl(QUrl(url));

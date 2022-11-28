@@ -76,6 +76,7 @@ private slots:
 	void removeCompHetVariant();
 	void selectVariantType(int i);
 	void updateGUI();
+	void setDiseaseInfo();
 	void addDiseaseInfo();
 	void removeDiseaseInfo();
 

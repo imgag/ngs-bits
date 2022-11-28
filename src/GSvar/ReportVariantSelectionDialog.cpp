@@ -31,7 +31,7 @@ SelectedReportVariant ReportVariantSelectionDialog::getSelectedReportVariant()
 {
 	NGSD db;
 	SelectedReportVariant report_variant;
-	report_variant.rvc_id = selected_rvc_id;
+	report_variant.rvc_id = selected_rvc_id_;
 	report_variant.report_variant_configuration = selected_report_variant_;
 	if (selected_report_variant_.variant_type == VariantType::SNVS_INDELS)
 	{
@@ -77,6 +77,7 @@ void ReportVariantSelectionDialog::initTable(int ignored_rcv_id)
 	// init table
 	ui_->tw_report_variants->setRowCount(report_config->count());
 	ui_->tw_report_variants->setColumnCount(4);
+	ui_->tw_report_variants->setSortingEnabled(false);
 
 	//create header
 	int col_idx = 0;
@@ -90,7 +91,6 @@ void ReportVariantSelectionDialog::initTable(int ignored_rcv_id)
 	foreach (const ReportVariantConfiguration& rvc, report_config->variantConfig())
 	{
 		col_idx = 0;
-		ui_->tw_report_variants->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variantTypeToString(rvc.variant_type)));
 		if (rvc.variant_type == VariantType::SNVS_INDELS)
 		{
 			Variant var = variants_[rvc.variant_index];
@@ -103,11 +103,11 @@ void ReportVariantSelectionDialog::initTable(int ignored_rcv_id)
 			int rvc_id = db.getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id=" + QString::number(rc_id) + " AND variant_id=" + var_id, false).toInt();
 			// skip already selected variant
 			if (ignored_rcv_id == rvc_id) continue;
+			ui_->tw_report_variants->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variantTypeToString(rvc.variant_type)));
 			report_variants_.insert(QPair<int, VariantType>(rvc_id, rvc.variant_type), rvc);
-			QTableWidgetItem* v_header_item = GUIHelper::createTableItem("");
-			v_header_item->setData(Qt::UserRole, rvc_id);
-			ui_->tw_report_variants->setVerticalHeaderItem(row_idx, v_header_item);
-			ui_->tw_report_variants->setItem(row_idx, col_idx++, GUIHelper::createTableItem(var.toString(false, -1, true)));
+			QTableWidgetItem* variant_item = GUIHelper::createTableItem(var.toString(false, -1, true));
+			variant_item->setData(Qt::UserRole, rvc_id);
+			ui_->tw_report_variants->setItem(row_idx, col_idx++, variant_item);
 		}
 		else if(rvc.variant_type == VariantType::CNVS)
 		{
@@ -121,11 +121,11 @@ void ReportVariantSelectionDialog::initTable(int ignored_rcv_id)
 			int rvc_id = db.getValue("SELECT id FROM report_configuration_cnv WHERE report_configuration_id=" + QString::number(rc_id) + " AND cnv_id=" + cnv_id, false).toInt();
 			// skip already selected variant
 			if (ignored_rcv_id == rvc_id) continue;
+			ui_->tw_report_variants->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variantTypeToString(rvc.variant_type)));
 			report_variants_.insert(QPair<int, VariantType>(rvc_id, rvc.variant_type), rvc);
-			QTableWidgetItem* v_header_item = GUIHelper::createTableItem("");
-			v_header_item->setData(Qt::UserRole, rvc_id);
-			ui_->tw_report_variants->setVerticalHeaderItem(row_idx, v_header_item);
-			ui_->tw_report_variants->setItem(row_idx, col_idx++, GUIHelper::createTableItem(cnv.toStringWithMetaData()));
+			QTableWidgetItem* variant_item = GUIHelper::createTableItem(cnv.toStringWithMetaData());
+			variant_item->setData(Qt::UserRole, rvc_id);
+			ui_->tw_report_variants->setItem(row_idx, col_idx++, variant_item);
 		}
 		else if(rvc.variant_type == VariantType::SVS)
 		{
@@ -139,11 +139,11 @@ void ReportVariantSelectionDialog::initTable(int ignored_rcv_id)
 			int rvc_id = db.getValue("SELECT id FROM report_configuration_sv WHERE report_configuration_id=" + QString::number(rc_id) + " AND "  + db.svTableName(sv.type()) + "_id=" + sv_id, false).toInt();
 			// skip already selected variant
 			if (ignored_rcv_id == rvc_id) continue;
+			ui_->tw_report_variants->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variantTypeToString(rvc.variant_type)));
 			report_variants_.insert(QPair<int, VariantType>(rvc_id, rvc.variant_type), rvc);
-			QTableWidgetItem* v_header_item = GUIHelper::createTableItem("");
-			v_header_item->setData(Qt::UserRole, rvc_id);
-			ui_->tw_report_variants->setVerticalHeaderItem(row_idx, v_header_item);
-			ui_->tw_report_variants->setItem(row_idx, col_idx++, GUIHelper::createTableItem(sv.toString()));
+			QTableWidgetItem* variant_item = GUIHelper::createTableItem(sv.toString());
+			variant_item->setData(Qt::UserRole, rvc_id);
+			ui_->tw_report_variants->setItem(row_idx, col_idx++, variant_item);
 		}
 		else
 		{
@@ -159,12 +159,19 @@ void ReportVariantSelectionDialog::initTable(int ignored_rcv_id)
 	ui_->tw_report_variants->setRowCount(row_idx);
 	GUIHelper::resizeTableCells(ui_->tw_report_variants);
 
+	//sort table
+	ui_->tw_report_variants->setSortingEnabled(true);
+	ui_->tw_report_variants->sortByColumn(1, Qt::AscendingOrder);
+
 	//define selection model
 	ui_->tw_report_variants->setSelectionBehavior(QAbstractItemView::SelectRows);
 	ui_->tw_report_variants->setSelectionMode(QAbstractItemView::SingleSelection);
 
 	//signals and slots
 	connect(ui_->tw_report_variants, SIGNAL(itemSelectionChanged()), this, SLOT(updateSelection()));
+
+	//disable buttons by default (no selection yet)
+	updateSelection();
 
 }
 
@@ -176,15 +183,17 @@ void ReportVariantSelectionDialog::updateSelection()
 	{
 		//delete previous selection
 		selected_report_variant_ = ReportVariantConfiguration();
-		selected_rvc_id = -1;
+		selected_rvc_id_ = -1;
 		ui_->buttonBox->setEnabled(false);
 	}
 	else
 	{
 		//update selection
-		selected_rvc_id = ui_->tw_report_variants->verticalHeaderItem(selected_rows.at(0))->data(Qt::UserRole).toInt();
+		qDebug() << selected_rows.at(0);
+		selected_rvc_id_ = ui_->tw_report_variants->item(selected_rows.at(0), 1)->data(Qt::UserRole).toInt();
+		qDebug() << selected_rvc_id_;
 		VariantType variant_type = stringToVariantType(ui_->tw_report_variants->item(selected_rows.at(0), 0)->text());
-		selected_report_variant_ = report_variants_.value(QPair<int, VariantType>(selected_rvc_id, variant_type));
+		selected_report_variant_ = report_variants_.value(QPair<int, VariantType>(selected_rvc_id_, variant_type));
 		ui_->buttonBox->setEnabled(true);
 
 	}

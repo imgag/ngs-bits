@@ -6,13 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1280</width>
+    <width>1440</width>
     <height>600</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>1000</width>
+    <width>1280</width>
     <height>600</height>
    </size>
   </property>
@@ -151,14 +151,14 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>DBTableWidget</class>
-   <extends>QTableWidget</extends>
-   <header>DBTableWidget.h</header>
-  </customwidget>
-  <customwidget>
    <class>DBSelector</class>
    <extends>QLineEdit</extends>
    <header>DBSelector.h</header>
+  </customwidget>
+  <customwidget>
+   <class>DBTableWidget</class>
+   <extends>QTableWidget</extends>
+   <header>DBTableWidget.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
