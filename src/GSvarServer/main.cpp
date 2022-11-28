@@ -1,6 +1,4 @@
 #include <QCoreApplication>
-#include <QDebug>
-#include <QFile>
 #include <QCommandLineParser>
 #include "Log.h"
 #include "ServerWrapper.h"
@@ -27,14 +25,9 @@ int main(int argc, char **argv)
 			QCoreApplication::translate("main", "HTTP server port number"),
 			QCoreApplication::translate("main", "https_port"));
 	parser.addOption(httpServerPortOption);
-	QCommandLineOption logLevelOption(QStringList() << "l" << "log",
-			QCoreApplication::translate("main", "Log level"),
-			QCoreApplication::translate("main", "logging"));
-	parser.addOption(logLevelOption);
 	parser.process(app);
 	QString https_port = parser.value(httpsServerPortOption);
 	QString http_port = parser.value(httpServerPortOption);
-	QString log_level_option = parser.value(logLevelOption);
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"",

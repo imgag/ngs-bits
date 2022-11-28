@@ -338,18 +338,24 @@ public:
 	///Returns if a transcript with the name (without version) is contained
 	bool contains(const QByteArray& name) const;
 
+	//sorts transcripts by relevance (gene, coding size, non-coding size, ...). Mainly used when displaying transcripts of a gene or variant.
+	void sortByRelevance();
 	//sorts transcripts by base count (longest first)
 	void sortByBases();
 	//sorts transcripts by coding base count (longest first)
 	void sortByCodingBases();
-	//sorts transcripts by name
-	void sortByName();
 	//sorts transcripts by chromosomal position
 	void sortByPosition();
 
 private:
 	//Comparator helper class used by sortByPosition
 	class TranscriptPositionComparator
+	{
+		public:
+			bool operator()(const Transcript &a, const Transcript &b) const;
+	};
+	//Comparator helper class used by sortByRelevance
+	class TranscriptRelevanceComparator
 	{
 		public:
 			bool operator()(const Transcript &a, const Transcript &b) const;

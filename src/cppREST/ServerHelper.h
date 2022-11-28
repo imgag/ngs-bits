@@ -4,7 +4,6 @@
 #include "cppREST_global.h"
 #include <QCoreApplication>
 #include <QDir>
-#include <QDebug>
 #include <QUuid>
 #include <QDate>
 #include "Log.h"

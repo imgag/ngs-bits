@@ -803,7 +803,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		if (var_conf.manualVarIsValid(genome_idx_)) //re-calculate based on new variant
 		{
 			//get all transcripts where the variant is completely contained in the region
-			TranscriptList transcripts  = db_.transcriptsOverlapping(variant.chr(), variant.start() - 5000, variant.end() + 5000);
+			TranscriptList transcripts  = db_.transcriptsOverlapping(variant.chr(), variant.start(), variant.end(), 5000);
 
 			//annotate consequence to transcript
 			VariantHgvsAnnotator hgvs_annotator(genome_idx_);
