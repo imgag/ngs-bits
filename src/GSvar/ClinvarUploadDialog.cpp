@@ -20,7 +20,7 @@
 #include <QMessageBox>
 #include <QInputDialog>
 
-const bool test_run = true;
+const bool test_run = false;
 const QString api_url = (test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/";
 
 ClinvarUploadDialog::ClinvarUploadDialog(QWidget *parent)
@@ -401,13 +401,6 @@ void ClinvarUploadDialog::upload()
 
     QJsonObject clinvar_submission = createJson();
 
-	//TODO: remove
-	QSharedPointer<QFile> output_file = Helper::openFileForWriting("W:\\users\\ahschul1\\2022-10_ClinVar_API_Update\\ClinVar_submission" + clinvar_upload_data_.processed_sample
-																   + "_" + QString::number(clinvar_upload_data_.variant_id1) + "_" + variantTypeToString(clinvar_upload_data_.variant_type1) + "_"
-																   + Helper::dateTime("yyyyMMdd-hhmmss") + ".json");
-	output_file->write(QJsonDocument(clinvar_submission).toJson());
-	output_file->close();
-
     QStringList errors;
     if (!validateJson(clinvar_submission, errors))
     {
@@ -603,9 +596,7 @@ void ClinvarUploadDialog::upload()
 				details << "reupload_by=" + LoginManager::userLogin();
 			}
 
-			//TODO: change back
-			if (true)
-//			if (!test_run)
+			if (!test_run)
 			{
 				// log publication in NGSD
 				if (manual_upload_)
@@ -2298,7 +2289,6 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
     }
 	else if (clinvar_submission.contains("compoundHeterozygoteSet"))
 	{
-		//TODO: check comp-het variant
 		//parse compoundHeterozygoteSet
 		QJsonObject compound_heterozygote_set = clinvar_submission.value("compoundHeterozygoteSet").toObject();
 		if (compound_heterozygote_set.contains("variantSets"))

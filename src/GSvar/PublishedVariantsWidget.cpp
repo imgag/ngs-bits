@@ -13,7 +13,7 @@
 #include "GUIHelper.h"
 #include "LoginManager.h"
 
-const bool test_run = true;
+const bool test_run = false;
 const QString api_url = (test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions/" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/";
 
 PublishedVariantsWidget::PublishedVariantsWidget(QWidget* parent)
@@ -208,7 +208,6 @@ void PublishedVariantsWidget::updateTable()
 			status << "deleted";
 			stable_ids << result.split(";").at(1);
 			QString message = result.split(";").at(2);
-			qDebug() << result;
 			if (result.split(";").size() > 3) message += ": " + result.split(";").at(3).trimmed();
 			error_messages << message;
 		}
@@ -338,8 +337,6 @@ void PublishedVariantsWidget::updateClinvarSubmissionStatus()
 		//extract submission id
 		QString submission_id;
 		QString stable_id;
-
-		qDebug() << result;
 
 		//special handling of deletions
 		if(result.startsWith("deleted;"))
@@ -572,18 +569,9 @@ void PublishedVariantsWidget::deleteClinvarSubmission()
 											  QMessageBox::Yes|QMessageBox::No);
 		if (delete_dialog == QMessageBox::Yes)
 		{
-			//TODO: implement
-			qDebug() << " delete from ClinVar";
-
 			// create json
 			QJsonObject clinvar_deletion = createJsonForClinvarDeletion(stable_id);
 
-			//debug: store json
-			QSharedPointer<QFile> output_file = Helper::openFileForWriting("W:\\users\\ahschul1\\2022-10_ClinVar_API_Update\\ClinVar_deletion_" + stable_id + "_" + Helper::dateTime("yyyyMMdd-hhmmss") + ".json");
-			output_file->write(QJsonDocument(clinvar_deletion).toJson());
-			output_file->close();
-
-			// send to API
 			// read API key
 			QByteArray api_key = Settings::string("clinvar_api_key", false).toUtf8();
 
@@ -652,16 +640,16 @@ void PublishedVariantsWidget::deleteClinvarSubmission()
 					SqlQuery query = db.getQuery();
 					query.exec("UPDATE `variant_publication` SET result='" + result+ "' WHERE id=" + QString::number(var_pub_id));
 
-					GUIHelper::showMessage("Deletion successfully submitted!", messages.join("\n"));
+					QMessageBox::information(this, "Deletion successfully submitted!", messages.join("\n"));
 				}
 				else
 				{
-					GUIHelper::showMessage("Deletion failed!", messages.join("\n"));
+					QMessageBox::critical(this, "Deletion failed!", messages.join("\n"));
 				}
 			}
 			catch(Exception e)
 			{
-				GUIHelper::showMessage("Deletion failed!", e.message());
+				QMessageBox::critical(this, "Deletion failed!", e.message());
 			}
 		}
 	}
@@ -841,6 +829,14 @@ ClinvarUploadData PublishedVariantsWidget::getClinvarUploadData(int var_pub_id)
 				rvc_str = rvc_str.split(':').at(1);
 			}
 			data.report_variant_config_id2 = Helper::toInt(rvc_str, "variant_rc_id2");
+		}
+
+		//legacy support: get variant report config id
+		if (kv_pair.startsWith("variant_rc_id="))
+		{
+			QString rvc_str = kv_pair.split('=').at(1);
+			if (rvc_str.contains(':')) rvc_str = rvc_str.split(':').at(1);
+			data.report_variant_config_id1 = Helper::toInt(rvc_str, "variant_rc_id");
 		}
 
 	}
