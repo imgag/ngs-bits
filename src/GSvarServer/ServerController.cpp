@@ -138,15 +138,20 @@ HttpResponse ServerController::createStaticFileResponse(QString filename, const 
 
 				if ((!is_start_set) && (is_end_set))
 				{
-					if (current_range.end<=file_size)
+					if (current_range.end<=(file_size-1))
 					{
-						current_range.start = file_size - current_range.end;
-						current_range.end = file_size;
+
+						current_range.start = file_size - 1 - current_range.end;
+						current_range.end = file_size - 1;
+					}
+					else
+					{
+						return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, request.getContentType(), "Range is outside the file boundary");
 					}
 				}
 				if ((!is_end_set) && (is_start_set))
 				{
-					current_range.end = file_size;
+					current_range.end = file_size - 1;
 				}
 
 				if ((!is_start_set) && (!is_end_set))
