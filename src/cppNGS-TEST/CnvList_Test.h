@@ -62,4 +62,7 @@ private slots:
 	}
 
 
+	//TODO: test reference copy number determination
+
+
 };

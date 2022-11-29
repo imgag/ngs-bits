@@ -7,13 +7,22 @@
 #include "Phenotype.h"
 #include "NGSD.h"
 
+enum class ClinvarSubmissionType
+{
+	SingleVariant,
+	CompoundHeterozygous
+};
+
 //Datastructure for upload data
 struct ClinvarUploadData
 {
     //sample data
-    int variant_id;
-	int report_config_variant_id;
-    ReportVariantConfiguration report_variant_config;
+	int variant_id1;
+	int variant_id2 = -1;
+	int report_variant_config_id1;
+	int report_variant_config_id2 = -1;
+	ReportVariantConfiguration report_variant_config1;
+	ReportVariantConfiguration report_variant_config2;
 	QString processed_sample;
 
     //disease data
@@ -23,8 +32,22 @@ struct ClinvarUploadData
     //phenotype data
     PhenotypeList phenos;
 
+	//type data
+	ClinvarSubmissionType submission_type = ClinvarSubmissionType::SingleVariant;
+	VariantType variant_type1 = VariantType::INVALID;
+	VariantType variant_type2 = VariantType::INVALID;
+
     //variant data
-    Variant variant;
+	Variant snv1;
+	Variant snv2;
+	CopyNumberVariant cnv1;
+	int cn1;
+	int ref_cn1 = 2;
+	CopyNumberVariant cnv2;
+	int cn2;
+	int ref_cn2 = 2;
+	BedpeLine sv1;
+	BedpeLine sv2;
     GeneSet genes;
 
 	//additional info for re-upload
@@ -41,7 +64,7 @@ class ClinvarUploadDialog
 
 public:
     ClinvarUploadDialog(QWidget *parent = 0);
-    void setData(ClinvarUploadData data);
+	void setData(ClinvarUploadData data);
 
 private slots:
     void initGui();
@@ -49,17 +72,29 @@ private slots:
     bool checkGuiData();
     void printResults();
     void updatePrintButton();
+	void addCompHetVariant();
+	void removeCompHetVariant();
+	void selectVariantType(int i);
+	void updateGUI();
+	void setDiseaseInfo();
+	void addDiseaseInfo();
+	void removeDiseaseInfo();
+
 
 private:
     Ui::ClinVarUploadDialog ui_;
     NGSD db_;
+	bool manual_upload_ = true;
     ClinvarUploadData clinvar_upload_data_;
 
     QJsonObject createJson();
     bool validateJson(const QJsonObject& json, QStringList& errors);
+	QString getHGVS();
+	///Returns db table name for variant
+	QString getDbTableName(bool var2 = false);
 
     static QString getSettings(QString key);
-    static QString convertClassification(QString classification);
+	static QString convertClassification(QString classification, bool reverse=false);
     static QString convertInheritance(QString inheritance);
     static QString convertAffectedStatus(QString affected_status);
 
