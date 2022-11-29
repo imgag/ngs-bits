@@ -115,7 +115,8 @@ SOURCES += main.cpp\
     GeneSelectionDialog.cpp \
     ExpressionOverviewWidget.cpp \
     SplicingWidget.cpp \
-    ExpressionGeneWidget.cpp
+    ExpressionGeneWidget.cpp \
+    ReportVariantSelectionDialog.cpp
 
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
@@ -226,7 +227,8 @@ HEADERS += MainWindow.h \
     GeneSelectionDialog.h \
     ExpressionOverviewWidget.h \
     SplicingWidget.h \
-    ExpressionGeneWidget.h
+    ExpressionGeneWidget.h \
+    ReportVariantSelectionDialog.h
 
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
@@ -323,7 +325,8 @@ FORMS    += MainWindow.ui \
     GeneSelectionDialog.ui \
     ExpressionOverviewWidget.ui \
     SplicingWidget.ui \
-    ExpressionGeneWidget.ui
+    ExpressionGeneWidget.ui \
+    ReportVariantSelectionDialog.ui
 
 include("../app_gui.pri")
 

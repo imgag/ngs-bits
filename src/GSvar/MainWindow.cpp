@@ -283,7 +283,7 @@ MainWindow::MainWindow(QWidget *parent)
 		server_ping_timer->start(600 * 1000); // every 10 minutes
 	}
 
-	connect(ui_.vars, SIGNAL(publishToClinvarTriggered(int)), this, SLOT(uploadToClinvar(int)));
+	connect(ui_.vars, SIGNAL(publishToClinvarTriggered(int, int)), this, SLOT(uploadToClinvar(int, int)));
 	connect(ui_.vars, SIGNAL(alamutTriggered(QAction*)), this, SLOT(openAlamut(QAction*)));
 }
 
@@ -1438,6 +1438,12 @@ void MainWindow::on_actionSearchSVs_triggered()
 {
 	SvSearchWidget* widget = new SvSearchWidget();
 	auto dlg = GUIHelper::createDialog(widget, "SV search");
+	addModelessDialog(dlg);
+}
+
+void MainWindow::on_actionUploadVariantToClinVar_triggered()
+{
+	QSharedPointer<QDialog> dlg = QSharedPointer<QDialog>(new ClinvarUploadDialog(this));
 	addModelessDialog(dlg);
 }
 
@@ -5295,6 +5301,21 @@ int MainWindow::igvPort() const
 	return port;
 }
 
+const VariantList&MainWindow::getSmallVariantList()
+{
+	return variants_;
+}
+
+const CnvList&MainWindow::getCnvList()
+{
+	return cnvs_;
+}
+
+const BedpeFile&MainWindow::getSvList()
+{
+	return svs_;
+}
+
 void MainWindow::on_actionOpenGeneTabByName_triggered()
 {
 	QString symbol = selectGene();
@@ -6213,12 +6234,16 @@ QString MainWindow::nobr()
 	return "<p style='white-space:pre; margin:0; padding:0;'>";
 }
 
-void MainWindow::uploadToClinvar(int variant_index)
+void MainWindow::uploadToClinvar(int variant_index1, int variant_index2)
 {
 	if (!LoginManager::active()) return;
 
 	try
 	{
+		if(variant_index1 < 0)
+		{
+			THROW(ArgumentException, "A valid variant index for the first variant has to be provided!");
+		}
 		//abort if API key is missing
 		if(Settings::string("clinvar_api_key", true).trimmed().isEmpty())
 		{
@@ -6230,6 +6255,20 @@ void MainWindow::uploadToClinvar(int variant_index)
 		//(1) prepare data as far as we can
 		ClinvarUploadData data;
 		data.processed_sample = germlineReportSample();
+		data.variant_type1 = VariantType::SNVS_INDELS;
+		if(variant_index2 < 0)
+		{
+			//Single variant submission
+			data.submission_type = ClinvarSubmissionType::SingleVariant;
+			data.variant_type2 = VariantType::INVALID;
+		}
+		else
+		{
+			//CompHet variant submission
+			data.submission_type = ClinvarSubmissionType::CompoundHeterozygous;
+			data.variant_type2 = VariantType::SNVS_INDELS;
+		}
+
 		QString sample_id = db.sampleId(data.processed_sample);
 		SampleData sample_data = db.getSampleData(sample_id);
 
@@ -6249,33 +6288,53 @@ void MainWindow::uploadToClinvar(int variant_index)
 		data.phenos = sample_data.phenotypes;
 
 		//get variant info
-		data.variant = variants_[variant_index];
+		data.snv1 = variants_[variant_index1];
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous) data.snv2 = variants_[variant_index2];
 
 		// get report info
-		if (!report_settings_.report_config.data()->exists(VariantType::SNVS_INDELS, variant_index))
+		if (!report_settings_.report_config.data()->exists(VariantType::SNVS_INDELS, variant_index1))
 		{
-			INFO(InformationMissingException, "The variant has to be in the report configuration to be published!");
+			INFO(InformationMissingException, "The variant 1 has to be in the report configuration to be published!");
 		}
-		data.report_variant_config = report_settings_.report_config.data()->get(VariantType::SNVS_INDELS, variant_index);
+		data.report_variant_config1 = report_settings_.report_config.data()->get(VariantType::SNVS_INDELS, variant_index1);
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+		{
+			if (!report_settings_.report_config.data()->exists(VariantType::SNVS_INDELS, variant_index2))
+			{
+				INFO(InformationMissingException, "The variant 2 has to be in the report configuration to be published!");
+			}
+			data.report_variant_config2 = report_settings_.report_config.data()->get(VariantType::SNVS_INDELS, variant_index2);
+		}
+
+
 
 		//update classification
-		data.report_variant_config.classification = db.getClassification(data.variant).classification;
-		if (data.report_variant_config.classification.trimmed().isEmpty() || (data.report_variant_config.classification.trimmed() == "n/a"))
+		data.report_variant_config1.classification = db.getClassification(data.snv1).classification;
+		if (data.report_variant_config1.classification.trimmed().isEmpty() || (data.report_variant_config1.classification.trimmed() == "n/a"))
 		{
-			INFO(InformationMissingException, "The variant has to be classified to be published!");
+			INFO(InformationMissingException, "The variant 1 has to be classified to be published!");
+		}
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+		{
+			data.report_variant_config2.classification = db.getClassification(data.snv2).classification;
+			if (data.report_variant_config2.classification.trimmed().isEmpty() || (data.report_variant_config2.classification.trimmed() == "n/a"))
+			{
+				INFO(InformationMissingException, "The variant 2 has to be classified to be published!");
+			}
 		}
 
 		//genes
 		int gene_idx = variants_.annotationIndexByName("gene");
-		data.genes = GeneSet::createFromText(data.variant.annotations()[gene_idx], ',');
+		data.genes = GeneSet::createFromText(data.snv1.annotations()[gene_idx], ',');
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous) data.genes <<  GeneSet::createFromText(data.snv2.annotations()[gene_idx], ',');
 
-		//determine NGSD ids of variant and report variant
-		QString var_id = db.variantId(data.variant, false);
+		//determine NGSD ids of variant and report variant for variant 1
+		QString var_id = db.variantId(data.snv1, false);
 		if (var_id == "")
 		{
-			INFO(InformationMissingException, "The variant has to be in NGSD and part of a report config to be published!");
+			INFO(InformationMissingException, "The variant 1 has to be in NGSD and part of a report config to be published!");
 		}
-		data.variant_id = Helper::toInt(var_id);
+		data.variant_id1 = Helper::toInt(var_id);
 		//extract report variant id
 		int rc_id = db.reportConfigId(db.processedSampleId(data.processed_sample));
 		if (rc_id == -1 )
@@ -6283,7 +6342,23 @@ void MainWindow::uploadToClinvar(int variant_index)
 			THROW(DatabaseException, "Could not determine report config id for sample " + data.processed_sample + "!");
 		}
 
-		data.report_config_variant_id = db.getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id=" + QString::number(rc_id) + " AND variant_id=" + QString::number(data.variant_id), false).toInt();
+		data.report_variant_config_id1 = db.getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id=" + QString::number(rc_id) + " AND variant_id="
+													 + QString::number(data.variant_id1), false).toInt();
+
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+		{
+			//determine NGSD ids of variant and report variant for variant 2
+			var_id = db.variantId(data.snv2, false);
+			if (var_id == "")
+			{
+				INFO(InformationMissingException, "The variant 2 has to be in NGSD and part of a report config to be published!");
+			}
+			data.variant_id2 = Helper::toInt(var_id);
+
+			//extract report variant id
+			data.report_variant_config_id2 = db.getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id=" + QString::number(rc_id) + " AND variant_id="
+														 + QString::number(data.variant_id2), false).toInt();
+		}
 
 
 		// (2) show dialog
