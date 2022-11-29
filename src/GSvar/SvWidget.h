@@ -93,6 +93,9 @@ private:
 
 	void editGermlineReportConfiguration(int row);
 
+	///Upload structural variant to ClinVar
+	void uploadToClinvar(int index1, int index2=-1);
+
 	Ui::SvWidget* ui;
 	BedpeFile sv_bedpe_file_;
 	QStringList ps_ids_; //processed sample database IDs (only trio/multi). '' if unknown or NGSD is disabled.

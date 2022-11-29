@@ -940,13 +940,20 @@ public:
 
 
 	///Adds a variant publication
-	void addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details, int user_id=-1);
+	int addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details, int user_id=-1);
+	int addVariantPublication(QString processed_sample, const CopyNumberVariant& cnv, QString database, QString classification, QString details, int user_id=-1);
+	int addVariantPublication(QString processed_sample, const BedpeLine& sv, const BedpeFile& svs, QString database, QString classification, QString details, int user_id=-1);
+	int addManualVariantPublication(QString sample_name, QString database, QString classification, QString details, int user_id=-1);
 	///Returns variant publication data as text
 	QString getVariantPublication(QString filename, const Variant& variant);
+	QString getVariantPublication(QString filename, const CopyNumberVariant& cnv);
+	QString getVariantPublication(QString filename, const BedpeLine& sv, const BedpeFile& svs);
 	///Updates ClinVar result of a varaint publication
 	void updateVariantPublicationResult(int variant_publication_id, QString result);
 	///Flag a varaint publication as replaced
 	void flagVariantPublicationAsReplaced(int variant_publication_id);
+	///Link two variant publications (comp. het. variant)
+	void linkVariantPublications(int variant_publication_id1, int variant_publication_id2);
 
 	///Returns the comment of a variant in the NGSD.
 	QString comment(const Variant& variant);
@@ -971,6 +978,8 @@ public:
 	void finalizeReportConfig(int id, int user_id);
 	///Deletes a report configuration.
 	void deleteReportConfig(int id);
+	///Returns the report variant configuration variant for a given id
+	ReportVariantConfiguration reportVariantConfiguration(int id, VariantType type, QStringList& messages, const VariantList& variants=VariantList(), const CnvList& cnvs=CnvList(), const BedpeFile& svs=BedpeFile());
 
 	///Returns the varint evaluation sheet data for a given processed sample id
 	EvaluationSheetData evaluationSheetData(const QString& processed_sample_id, bool throw_if_fails = true);

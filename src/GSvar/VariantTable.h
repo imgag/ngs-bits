@@ -88,7 +88,7 @@ signals:
 	///An added context menu action was triggered
 	void customActionTriggered(QAction* action, int var_index);
 	///Publish to Clinvar menu action triggered
-	void publishToClinvarTriggered(int index);
+	void publishToClinvarTriggered(int index1, int index2=-1);
 	///Signal emitted when Alamut should be opened
 	void alamutTriggered(QAction* action);
 
