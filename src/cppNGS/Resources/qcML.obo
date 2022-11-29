@@ -143,7 +143,7 @@ name: MS1 injection time
 def: "Contains the accumulation time in the ion trap device used in machine settings during MS acquisition." [PXS:QC]
 is_a: QC:0000004 ! MS acquisition result details
 relationship: has_units UO:0000010 ! second
-relationship: has_units UO:0000031 ! minute 
+relationship: has_units UO:0000031 ! minute
 
 [Term]
 id: QC:0000018
@@ -151,7 +151,7 @@ name: MS2 injection time
 def: "Contains the accumulation time in the ion trap device used in machine settings during MS acquisition." [PXS:QC]
 is_a: QC:0000004 ! MS acquisition result details
 relationship: has_units UO:0000010 ! second
-relationship: has_units UO:0000031 ! minute 
+relationship: has_units UO:0000031 ! minute
 
 [Term]
 id: QC:0000019
@@ -159,7 +159,7 @@ name: MS1 scan time
 def: "Contains the	average scan time for a MS1 event used in machine settings during MS acquisition." [PXS:QC]
 is_a: QC:0000004 ! MS acquisition result details
 relationship: has_units UO:0000010 ! second
-relationship: has_units UO:0000031 ! minute 
+relationship: has_units UO:0000031 ! minute
 
 [Term]
 id: QC:0000020
@@ -167,7 +167,7 @@ name: MS2 scan time
 def: "Contains the	average scan time for a MS2 event used in machine settings during MS acquisition." [PXS:QC]
 is_a: QC:0000004 ! MS acquisition result details
 relationship: has_units UO:0000010 ! second
-relationship: has_units UO:0000031 ! minute 
+relationship: has_units UO:0000031 ! minute
 
 [Term]
 id: QC:0000021
@@ -208,13 +208,13 @@ is_a: MS:1001249 ! search input details
 
 [Term]
 id: QC:0000027
-name: precursor ion tolerance 
+name: precursor ion tolerance
 def: "This parameter shows the precursor tolerance that was used for MS/MS identification." [PXS:QC]
 is_a: MS:1001411 ! search tolerance specification
 
 [Term]
 id: QC:0000028
-name: product ion tolerance 
+name: product ion tolerance
 def: "This parameter shows the product ion tolerance that was used for MS/MS identification." [PXS:QC]
 is_a: MS:1001411 ! search tolerance specification
 
@@ -954,7 +954,7 @@ id: QC:2000062
 name: somatic LOH events
 def: "Count of large somatic LOHs events (that do not touch centromeres)." [PXS:QC]
 is_a: QC:2000125 ! NGS quality parameter
-xref: xref: value-type:xsd\:int "The allowed value-type for this CV term."
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
 created_by: gschwind
 
 [Term]
@@ -962,7 +962,7 @@ id: QC:2000063
 name: telomer allelic imbalance
 def: "Count of somatic telomer allelic imbalance (TAI) events." [PXS:QC]
 is_a: QC:2000125 ! NGS quality parameter
-xref: xref: value-type:xsd\:int "The allowed value-type for this CV term."
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
 created_by: gschwind
 
 [Term]
@@ -970,7 +970,7 @@ id: QC:2000064
 name: long state transition
 def: "Count of somatic long state transition (LST) events." [PXS:QC]
 is_a: QC:2000125 ! NGS quality parameter
-xref: xref: value-type:xsd\:int "The allowed value-type for this CV term."
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
 created_by: gschwind
 
 [Term]
@@ -1461,41 +1461,41 @@ is_a: QC:2000001 ! NGS quality parameter
 created_by: ott
 
 [Term]
-id: QC:20000126
-name: HRD score - homologous recombination deficiency score
+id: QC:2000126
+name: HRD: homologous recombination deficiency
 def: "Sum of TAI, LST and LOH events." [PXS:QC]
 is_a: QC:2000125 ! NGS quality parameter
-xref: xref: value-type:xsd\:int "The allowed value-type for this CV term."
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
 created_by: ott
 
 [Term]
-id: QC:20000127
+id: QC:2000127
 name: HLA A
 def: "human leukocyte antigens gene A" [PXS:QC]
 is_a: QC:2000125 ! NGS quality parameter
-xref: xref: value-type:xsd\:string "The allowed value-type for this CV term."
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 created_by: ott
 
 [Term]
-id: QC:20000128
+id: QC:2000128
 name: HLA B
 def: "human leukocyte antigens gene B" [PXS:QC]
 is_a: QC:2000125 ! NGS quality parameter
-xref: xref: value-type:xsd\:string "The allowed value-type for this CV term."
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 created_by: ott
 
 [Term]
-id: QC:20000129
+id: QC:2000129
 name: HLA C
 def: "human leukocyte antigens gene C" [PXS:QC]
 is_a: QC:2000125 ! NGS quality parameter
-xref: xref: value-type:xsd\:string "The allowed value-type for this CV term."
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 created_by: ott
 
 [Term]
-id: QC:20000130
+id: QC:2000130
 name: Detected viruses in the genome
-def: "Viuses whose DNA was detected." [PXS:QC]
+def: "Viruses whose DNA was detected." [PXS:QC]
 is_a: QC:2000125 ! NGS quality parameter
-xref: xref: value-type:xsd\:string "The allowed value-type for this CV term."
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 created_by: ott

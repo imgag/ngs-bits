@@ -4524,7 +4524,6 @@ void NGSD::updateQC(QString obo_file, bool debug)
 	for(int i=0; i<terms.size(); ++i)
 	{
 		const OntologyTerm& term = terms.get(i);
-
 		//remove terms not for NGS
 		if (!term.id().startsWith("QC:2")) continue;
 		++c_terms_ngs;
@@ -4541,6 +4540,7 @@ void NGSD::updateQC(QString obo_file, bool debug)
 		query.bindValue(3, term.type());
 		query.bindValue(4, term.isObsolete());
 		query.exec();
+		if (debug) qDebug() << "  Last Error:" << query.lastError();
 		if (debug) qDebug() << "  ID:" << query.lastInsertId();
 	}
 	commit();
