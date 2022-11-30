@@ -1516,6 +1516,19 @@ private slots:
 		removed_regions_db.clearHeaders();
 		S_EQUAL(removed_regions.toText(), removed_regions_db.toText());
 
+		//test ID-SNP extraction
+		BedFile target_region;
+		target_region.load(TESTDATA("../cppNGSD-TEST/data_in/cfDNA_id_snp.bed"));
+		VcfFile id_snps_tumor_normal = db.getIdSnpsFromProcessingSystem(db.processingSystemId("IDT_xGenPrism"), target_region, false, true);
+		QByteArrayList vcf_lines;
+		for (int i = 0; i < id_snps_tumor_normal.vcfLines().count(); ++i) vcf_lines << id_snps_tumor_normal.vcfLine(i).toString();
+		QByteArrayList expected;
+		expected << "chr1:13828907 G>A" << "chr1:88923261 A>C" << "chr1:107441476 A>G" << "chr1:160816880 A>G" << "chr1:233312667 C>T" << "chr2:9945593 G>A" << "chr2:59773585 T>C"
+				  << "chr2:106122379 A>G" << "chr2:181548532 A>G" << "chr19:4569797 A>C" << "chr19:39069167 A>C" << "chr19:49401772 T>C" << "chr20:52679623 T>C" << "chr21:14109044 G>T"
+				  << "chr21:26651051 T>C" << "chr22:20433563 T>C" << "chr22:33163522 T>A" << "chrX:11296872 N>N" << "chrX:24211417 N>N" << "chrY:2787395 N>N" << "chrY:2979985 N>N"
+				  << "chrY:6869957 N>N";
+		IS_TRUE((vcf_lines==expected));
+
 		//############################### variant publication ###############################
 		// variant
 		variant = db.variant("199844");
