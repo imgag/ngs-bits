@@ -24,6 +24,7 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	bool operator!=(const ReportVariantConfiguration& rhs) { return !operator==(rhs); }
 
 	//general data
+	int id = -1;
 	VariantType variant_type;
 	int variant_index; //index of the variant in the variant/CNV/SV list
 
@@ -92,6 +93,7 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 ///struct to handle other causal variants
 struct CPPNGSDSHARED_EXPORT OtherCausalVariant
 {
+	int id = -1;
 	QString coordinates;
 	QString gene;
 	QString type;
@@ -134,8 +136,15 @@ public:
 	void setOtherCausalVariant(const OtherCausalVariant& causal_variant);
 	///Sets the report configuration for the variant. Returns if it already existed.
 	void set(const ReportVariantConfiguration& config);
-	///Removes the matching configuration. Returns if a configuration was removed.
+	///Marks the matching configuration for deletion. Returns if a configuration was removed.
 	void remove(VariantType type, int index);
+
+	///Returns the list of all variants which should be deleted from the NGSD
+	const QList<ReportVariantConfiguration>& variantsToDelete() const;
+	///Removes all variants from the deletion list
+	void clearDeletionList();
+	///Returns db ids of a variants as set
+	QSet<int> getVariantConfigIds(VariantType type);
 
 	///Returns by who the report config was created.
 	QString createdBy() const;
@@ -172,6 +181,7 @@ signals:
 
 private:
 	QList<ReportVariantConfiguration> variant_config_;
+	QList<ReportVariantConfiguration> variants_to_delete_;
 	OtherCausalVariant other_causal_variant_;
 
 	QString created_by_;
