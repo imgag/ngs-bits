@@ -1,5 +1,7 @@
 #include "ServerController.h"
 
+#include <QUrl>
+
 ServerController::ServerController()
 {
 }
@@ -77,9 +79,9 @@ HttpResponse ServerController::createStaticStreamResponse(QString filename, bool
 
 HttpResponse ServerController::createStaticFileResponse(QString filename, const HttpRequest& request)
 {
-	qDebug() << "Static file name: " << filename;
 	if ((filename.isEmpty()) || ((!filename.isEmpty()) && (!QFile::exists(filename))))
 	{
+		Log::error("Requested file does not exist: " + filename);
 		// Special case, when sending HEAD request for a file that does not exist
 		if (request.getMethod() == RequestMethod::HEAD)
 		{
@@ -90,7 +92,6 @@ HttpResponse ServerController::createStaticFileResponse(QString filename, const 
 	}
 
 	quint64 file_size = QFile(filename).size();
-	qDebug() << "Static file " <<  filename << " size: " << file_size;
 	// Client wants to see only the size of the requested file (not its content)
 	if (request.getMethod() == RequestMethod::HEAD)
 	{
@@ -137,16 +138,20 @@ HttpResponse ServerController::createStaticFileResponse(QString filename, const 
 
 				if ((!is_start_set) && (is_end_set))
 				{
-					if (current_range.end<=file_size)
+					if (current_range.end<=(file_size-1))
 					{
-						current_range.start = file_size - current_range.end;
-						current_range.end = file_size;
+
+						current_range.start = file_size - 1 - current_range.end;
+						current_range.end = file_size - 1;
+					}
+					else
+					{
+						return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, request.getContentType(), "Range is outside the file boundary");
 					}
 				}
 				if ((!is_end_set) && (is_start_set))
 				{
-					qDebug() << "Random read: offset end has been set as the end of file";
-					current_range.end = file_size;
+					current_range.end = file_size - 1;
 				}
 
 				if ((!is_start_set) && (!is_end_set))
@@ -222,7 +227,6 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 
 HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 {
-	qDebug() << "File location service";
 	if (!request.getUrlParams().contains("ps_url_id"))
 	{
 		return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Sample id has not been provided");
@@ -415,8 +419,6 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 
 HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request)
 {
-	qDebug() << "Processed sample path";
-
 	PathType type = PathType::GSVAR;
 	if (request.getUrlParams().contains("type"))
 	{
@@ -476,8 +478,6 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 
 HttpResponse ServerController::getAnalysisJobGSvarFile(const HttpRequest& request)
 {
-        qDebug() << "Analysis job GSvar file";
-
 	QString ps_name;
 	QString found_file_path;
 
@@ -496,7 +496,6 @@ HttpResponse ServerController::getAnalysisJobGSvarFile(const HttpRequest& reques
 	}
 
 	FileLocation analysis_job_gsvar_file = FileLocation(ps_name, PathType::GSVAR, createTempUrl(found_file_path, request.getUrlParams()["token"], false), QFile::exists(found_file_path));
-
 	QJsonDocument json_doc_output;
 	QJsonObject file_location_as_json_object;
 
@@ -540,7 +539,6 @@ HttpResponse ServerController::getAnalysisJobLastUpdate(const HttpRequest& reque
 
 HttpResponse ServerController::getAnalysisJobLog(const HttpRequest& request)
 {
-	qDebug() << "Analysis job log file";
 	FileLocation analysis_job_log_file;
 
 	try
@@ -666,7 +664,7 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 			}
 			catch (Exception& e)
 			{
-				qDebug() << "Error while processing changes for the GSvar file" + url.filename_with_path + ":" << e.message();
+				Log::error("Error while processing changes for the GSvar file " + url.filename_with_path + ": " + e.message());
 				return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Changes for the GSvar file in " + ps_url_id + "could not be parsed: " + e.message());
 			}
 		}
@@ -752,8 +750,6 @@ HttpResponse ServerController::saveQbicFiles(const HttpRequest& request)
 
 HttpResponse ServerController::uploadFile(const HttpRequest& request)
 {
-	qDebug() << "File upload request";	
-
 	if ((request.getFormDataParams().contains("ps_url_id")) && (!request.getMultipartFileName().isEmpty()))
 	{		
 		QString ps_url_id = request.getFormDataParams()["ps_url_id"];
@@ -761,14 +757,13 @@ HttpResponse ServerController::uploadFile(const HttpRequest& request)
 		if (!url_entity.path.isEmpty())
 		{
 			if (!url_entity.path.endsWith("/")) url_entity.path = url_entity.path + "/";
-			qDebug() << "url_entity.path + request.getMultipartFileName()" << url_entity.path + request.getMultipartFileName();
-			qDebug() << "request.getMultipartFileName()" << request.getMultipartFileName();
 			QSharedPointer<QFile> outfile = Helper::openFileForWriting(url_entity.path + request.getMultipartFileName());
 			outfile->write(request.getMultipartFileContent());
 			return HttpResponse(ResponseStatus::OK, request.getContentType(), "File has been uploaded");
 		}
 		else
 		{
+			Log::error("Empty processed sample file name: " + ps_url_id);
 			return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Processed sample path has not been found");
 		}
 	}
@@ -778,7 +773,6 @@ HttpResponse ServerController::uploadFile(const HttpRequest& request)
 
 HttpResponse ServerController::calculateLowCoverage(const HttpRequest& request)
 {
-	qDebug() << "Low coverage calcualtion";
 	BedFile roi;
 	QString bam_file_name;
 	int cutoff = 0;
@@ -877,7 +871,6 @@ HttpResponse ServerController::calculateTargetRegionReadDepth(const HttpRequest&
 
 HttpResponse ServerController::getMultiSampleAnalysisInfo(const HttpRequest& request)
 {
-	qDebug() << "List analysis names";
 	if (request.getFormUrlEncoded().contains("analyses"))
 	{
 		QJsonDocument json_in_doc = QJsonDocument::fromJson(QUrl::fromPercentEncoding(request.getFormUrlEncoded()["analyses"].toUtf8()).toUtf8());
@@ -924,18 +917,18 @@ HttpResponse ServerController::getMultiSampleAnalysisInfo(const HttpRequest& req
 
 HttpResponse ServerController::performLogin(const HttpRequest& request)
 {
-	qDebug() << "Login request";
 	if (!request.getFormUrlEncoded().contains("name") || !request.getFormUrlEncoded().contains("password"))
 	{
 		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "No username or/and password were found");
 	}
 
 	NGSD db;
-	QString message = db.checkPassword(request.getFormUrlEncoded()["name"], request.getFormUrlEncoded()["password"]);
+	QString user_name = request.getFormUrlEncoded()["name"];
+	QString message = db.checkPassword(user_name, request.getFormUrlEncoded()["password"]);
 	if (message.isEmpty())
 	{
 		QString secure_token = ServerHelper::generateUniqueStr();
-		Session cur_session = Session(db.userId(request.getFormUrlEncoded()["name"]), QDateTime::currentDateTime(), false);
+		Session cur_session = Session(db.userId(user_name), QDateTime::currentDateTime(), false);
 
 		SessionManager::addNewSession(secure_token, cur_session);
 		QByteArray body = secure_token.toUtf8();
@@ -944,7 +937,7 @@ HttpResponse ServerController::performLogin(const HttpRequest& request)
 		response_data.length = body.length();
 		response_data.content_type = request.getContentType();
 		response_data.is_downloadable = false;
-		qDebug() << "User creadentials are valid";
+		Log::info("User " + user_name + " has logged in");
 		return HttpResponse(response_data, body);
 	}
 
@@ -953,7 +946,6 @@ HttpResponse ServerController::performLogin(const HttpRequest& request)
 
 HttpResponse ServerController::getSessionInfo(const HttpRequest& request)
 {
-	qDebug() << "Retrieve session information";
 	QString token = EndpointManager::getTokenIfAvailable(request);
 	if (!token.isEmpty())
 	{		
@@ -981,7 +973,6 @@ HttpResponse ServerController::getSessionInfo(const HttpRequest& request)
 
 HttpResponse ServerController::validateCredentials(const HttpRequest& request)
 {
-	qDebug() << "Validation of user credentials";	
 	QString message = NGSD().checkPassword(request.getFormUrlEncoded()["name"], request.getFormUrlEncoded()["password"]);
 
 	QByteArray body = message.toUtf8();
@@ -1016,7 +1007,6 @@ HttpResponse ServerController::getDbToken(const HttpRequest& request)
 
 HttpResponse ServerController::getNgsdCredentials(const HttpRequest& request)
 {
-	qDebug() << "NGSD credentials request";
 	QJsonDocument json_doc;
 	QJsonObject json_object;
 
@@ -1037,7 +1027,6 @@ HttpResponse ServerController::getNgsdCredentials(const HttpRequest& request)
 
 HttpResponse ServerController::getGenlabCredentials(const HttpRequest& request)
 {
-	qDebug() << "Genlab credentials request";
 	QJsonDocument json_doc;
 	QJsonObject json_object;
 
@@ -1079,6 +1068,8 @@ HttpResponse ServerController::performLogout(const HttpRequest& request)
 		response_data.content_type = request.getContentType();
 		response_data.is_downloadable = false;
 
+		Session current_session = SessionManager::getSessionBySecureToken(request.getFormUrlEncoded()["token"]);
+		if (!current_session.isEmpty()) Log::info("User " + NGSD().userName(current_session.user_id) + " has logged out");
 		return HttpResponse(response_data, body);
 	}
 	return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "You have provided an invalid token");
@@ -1230,7 +1221,6 @@ QString ServerController::findPathForTempUrl(QList<QString> path_parts)
 	if (!path_parts.isEmpty())
 	{
 		UrlEntity url_entity = UrlManager::getURLById(path_parts[0]);
-		qDebug() << "Temp URL " << path_parts[0] << " file: " << url_entity.filename_with_path;
 		if (!url_entity.filename_with_path.isEmpty())
 		{
 			path_parts.removeAt(0);
@@ -1351,6 +1341,7 @@ HttpResponse ServerController::createStaticFolderResponse(const QString path, co
 
 HttpResponse ServerController::createStaticLocationResponse(const QString path, const HttpRequest& request)
 {
+	Log::info("Accessing " + path);
 	if ((!path.isEmpty()) && (QFileInfo(path).isDir()))
 	{
 		return createStaticFolderResponse(path, request);

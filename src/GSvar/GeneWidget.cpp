@@ -164,9 +164,9 @@ void GeneWidget::updateGUI()
 		QByteArray identifier = query.value("identifier").toByteArray();
 		QByteArray number = identifier.mid(6);
 		QByteArray name = query.value("name").toByteArray();
-		orpha_links << ("<a href=\"https://www.orpha.net/consor/cgi-bin/OC_Exp.php?Expert=" + number + "\">" + identifier + "</a><br>" + name);
+		orpha_links << ("<a href=\"https://www.orpha.net/consor/cgi-bin/OC_Exp.php?Expert=" + number + "\">" + identifier + "</a> " + name);
 	}
-	ui_.diseases->setText(orpha_links.join(orpha_links.count()>20 ? " "  : "<br>"));
+	ui_.diseases->setText(orpha_links.join(orpha_links.count()>20 ? " " : "<br>"));
 
 	updateTranscriptsTable(db);
 }
@@ -247,8 +247,7 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 	TranscriptList transcripts = db.transcripts(gene_id, Transcript::ENSEMBL, false);
 
 	//sort transcripts
-	transcripts.sortByBases();
-	transcripts.sortByCodingBases();
+	transcripts.sortByRelevance();
 
 	//display
 	foreach(const Transcript& transcript, transcripts)

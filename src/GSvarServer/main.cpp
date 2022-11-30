@@ -1,6 +1,4 @@
 #include <QCoreApplication>
-#include <QDebug>
-#include <QFile>
 #include <QCommandLineParser>
 #include "Log.h"
 #include "ServerWrapper.h"
@@ -27,14 +25,9 @@ int main(int argc, char **argv)
 			QCoreApplication::translate("main", "HTTP server port number"),
 			QCoreApplication::translate("main", "https_port"));
 	parser.addOption(httpServerPortOption);
-	QCommandLineOption logLevelOption(QStringList() << "l" << "log",
-			QCoreApplication::translate("main", "Log level"),
-			QCoreApplication::translate("main", "logging"));
-	parser.addOption(logLevelOption);
 	parser.process(app);
 	QString https_port = parser.value(httpsServerPortOption);
 	QString http_port = parser.value(httpServerPortOption);
-	QString log_level_option = parser.value(logLevelOption);
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"",
@@ -521,7 +514,7 @@ int main(int argc, char **argv)
 
 	Log::info("SSL version used for the build: " + QSslSocket::sslLibraryBuildVersionString());
 	ServerWrapper https_server(https_port_setting);
-	if (!https_server.isRunning())
+	if (!https_server.isRunning() && !Settings::boolean("use_http_api_only", true))
 	{
 		Log::error("HTTPS is not running. Exiting");
 		app.exit(EXIT_FAILURE);

@@ -189,9 +189,10 @@ void CfDNAPanelDesignDialog::loadPreviousPanels()
 
 void CfDNAPanelDesignDialog::loadVariants()
 {
+	qDebug() << "load Variants";
+
 	// load reference
 	FastaFileIndex genome_reference(Settings::string("reference_genome", false));
-
 
 	// set dimensions
 	ui_->vars->setRowCount(variants_.count());
@@ -273,8 +274,8 @@ void CfDNAPanelDesignDialog::loadVariants()
 		const Variant& variant = variants_[i];
 
 		// check if var is present in previous panel
-		VariantVcfRepresentation vcf_rep = variant.toVCF(genome_reference);
-		QString vcf_pos = vcf_rep.chr.str() + ":" + QString::number(vcf_rep.pos) + " " + vcf_rep.ref + ">" + vcf_rep.alt;
+		VcfLine vcf_rep = variant.toVCF(genome_reference);
+		QString vcf_pos = vcf_rep.chr().str() + ":" + QString::number(vcf_rep.start()) + " " + vcf_rep.ref() + ">" + vcf_rep.altString();
 		if(prev_vars_.contains(vcf_pos))
 		{
 			preselect_prev = true;
@@ -388,17 +389,11 @@ void CfDNAPanelDesignDialog::loadVariants()
 		row_idx++;
 	}
 
+	qDebug() << "loaded filtered VarList";
 	// resize after filling the table:
 	ui_->vars->setRowCount(row_idx);
 
-	// optimize cell sizes
-	GUIHelper::resizeTableCells(ui_->vars, 150);
 
-	// connect checkBoxes to update method
-	connect(ui_->vars, SIGNAL(cellChanged(int,int)), this, SLOT(updateSelectedVariantCount()));
-
-	// init selection label
-	updateSelectedVariantCount();
 
 	// check if all previous variants were found in VariantList
 	QStringList missing_prev_vars;
@@ -406,11 +401,10 @@ void CfDNAPanelDesignDialog::loadVariants()
 	{
 		if (!prev_vars_.value(vcf_string))
 		{
-			Variant variant;
 			QByteArrayList vcf_columns = vcf_string.toUtf8().replace(":", " ").replace(">", " ").split(' ');
-			VcfLine vcf_line = VcfLine(Chromosome(vcf_columns[0]), Helper::toInt(vcf_columns[1], "VCF position"), Sequence(vcf_columns[2]), QVector<Sequence>() << Sequence(vcf_columns[3]));
-			vcf_line.normalize("-");
-			vcf_line.copyCoordinatesIntoVariant(variant);
+			VcfLine vcf_line = VcfLine(Chromosome(vcf_columns[0]), Helper::toInt(vcf_columns[1], "VCF position"), Sequence(vcf_columns[2]), QList<Sequence>() << Sequence(vcf_columns[3]));
+			Variant variant(vcf_line);
+
 			//extend table
 			int col_idx = 0;
 			int row_idx = ui_->vars->rowCount();
@@ -455,8 +449,11 @@ void CfDNAPanelDesignDialog::loadVariants()
 			GUIHelper::resizeTableCells(ui_->genes, 150);
 
 			missing_prev_vars.append(vcf_string);
+			row_idx++;
 		}
 	}
+
+	qDebug() << "added missing vars";
 
 	if(missing_prev_vars.size() > 0)
 	{
@@ -471,11 +468,9 @@ void CfDNAPanelDesignDialog::loadVariants()
 	{
 		if (!candidate_vars_.value(vcf_string))
 		{
-			Variant variant;
 			QByteArrayList vcf_columns = vcf_string.toUtf8().replace(":", " ").replace(">", " ").split(' ');
-			VcfLine vcf_line = VcfLine(Chromosome(vcf_columns[0]), Helper::toInt(vcf_columns[1], "VCF position"), Sequence(vcf_columns[2]), QVector<Sequence>() << Sequence(vcf_columns[3]));
-			vcf_line.normalize("-");
-			vcf_line.copyCoordinatesIntoVariant(variant);
+			VcfLine vcf_line = VcfLine(Chromosome(vcf_columns[0]), Helper::toInt(vcf_columns[1], "VCF position"), Sequence(vcf_columns[2]), QList<Sequence>() << Sequence(vcf_columns[3]));
+			Variant variant(vcf_line);
 
 			//extend table
 			int col_idx = 0;
@@ -520,6 +515,7 @@ void CfDNAPanelDesignDialog::loadVariants()
 			// optimize cell sizes
 			GUIHelper::resizeTableCells(ui_->genes, 150);
 			missing_candidates_vars.append(vcf_string);
+			row_idx++;
 		}
 	}
 
@@ -530,6 +526,14 @@ void CfDNAPanelDesignDialog::loadVariants()
 							 + missing_candidates_vars.join("\n")+ "\n\n These variants were added at the end of the list.");
 	}
 
+	// optimize cell sizes
+	GUIHelper::resizeTableCells(ui_->vars, 150);
+
+	// connect checkBoxes to update method
+	connect(ui_->vars, SIGNAL(cellChanged(int,int)), this, SLOT(updateSelectedVariantCount()));
+
+	// init selection label
+	updateSelectedVariantCount();
 
 	// enable sorting
 	ui_->vars->setSortingEnabled(true);
@@ -642,7 +646,7 @@ VcfFile CfDNAPanelDesignDialog::createVcfFile()
 			bool ok;
 			int var_idx = ui_->vars->item(r,0)->data(Qt::UserRole).toInt(&ok);
 			if (!ok) THROW(ProgrammingException, "Variant table row header user data '" + ui_->vars->item(r,0)->data(Qt::UserRole).toString() + "' is not an integer!");
-			if (var_idx > 0)
+			if (var_idx >= 0)
 			{
 				selected_variants.append(variants_[var_idx]);
 			}
@@ -691,7 +695,7 @@ VcfFile CfDNAPanelDesignDialog::createVcfFile()
 		int sys_id = NGSD().processingSystemId(ui_->cb_processing_system->currentText().toUtf8());
 		VcfFile sys_id_snps = NGSD().getIdSnpsFromProcessingSystem(sys_id, (variants_.type() == SOMATIC_SINGLESAMPLE));
 
-		foreach (const VcfLinePtr vcf_line, sys_id_snps.vcfLines())
+		foreach (const VcfLinePtr& vcf_line, sys_id_snps.vcfLines())
 		{
 			id_vcf.vcfLines() << vcf_line;
 		}
@@ -699,16 +703,16 @@ VcfFile CfDNAPanelDesignDialog::createVcfFile()
 
 	// generate output VCF
 	QString ref_genome = Settings::string("reference_genome", false);
-	VcfFile vcf_file = VcfFile::convertGSvarToVcf(selected_variants, ref_genome);
+	VcfFile vcf_file = VcfFile::fromGSvar(selected_variants, ref_genome);
 
 	// set ID column
-	foreach (const VcfLinePtr vcf_line, vcf_file.vcfLines())
+	foreach (const VcfLinePtr& vcf_line, vcf_file.vcfLines())
 	{
 		vcf_line->setId(QByteArrayList() << "M");
 	}
 
 	// append ID SNPs
-	foreach (const VcfLinePtr vcf_line, id_vcf.vcfLines())
+	foreach (const VcfLinePtr& vcf_line, id_vcf.vcfLines())
 	{
 		vcf_file.vcfLines() << vcf_line;
 	}
@@ -1023,7 +1027,7 @@ void CfDNAPanelDesignDialog::addVariant()
 		QTableWidgetItem* item = GUIHelper::createTableItem("");
 		item->setData(Qt::UserRole, -1);
 		ui_->vars->setItem(row_idx, col_idx++, item);
-		QTableWidgetItem* select_item = new NumericWidgetItem("");
+		QTableWidgetItem* select_item = GUIHelper::createTableItem("");
 		select_item->setFlags(select_item->flags() | Qt::ItemIsUserCheckable); // add checkbox
 		select_item->setCheckState(Qt::Checked);
 		ui_->vars->setItem(row_idx, col_idx++, select_item);

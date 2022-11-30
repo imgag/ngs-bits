@@ -37,7 +37,14 @@ struct TargetRegionInfo
 
 };
 
-//Output of Ensembl GFF file parser.
+//Settings for Gff parser
+struct GffSettings
+{
+	bool skip_not_gencode_basic = true; //skip transcripts that are not flagged as "GENCODE basic"
+	bool print_to_stdout = true; //print summary to stdout
+};
+
+//Output of Ensembl GFF file parser
 struct GffData
 {
 	//Transcripts
@@ -82,6 +89,7 @@ public:
 
 	///Translates a codon to the 1-letter amino acid code
 	static char translateCodon(const QByteArray& codon, bool use_mito_table=false);
+	static QByteArray translateCodonThreeLetterCode(const QByteArray& codon, bool use_mito_table=false);
 
 	///Converts a 1-letter amino acid code to a 3-letter amino acid code
 	static QByteArray threeLetterCode(char aa_one_letter_code);
@@ -113,12 +121,16 @@ public:
 	static QString populationCodeToHumanReadable(QString code);
 
 	///Returns transcripts with features from a Ensembl GFF file, transcript_gene_relation (ENST>ENSG) and gene_name_relation (ENSG>gene symbol).
-	static void loadGffFile(QString filename, GffData& output);
+	static GffData loadGffFile(QString filename, GffSettings settings);
 
 	///Returns if the application is running in client-server mode (mainly used for GSvar).
 	static bool isClientServerMode();
 	///Checks if the application is running on the server or on a client machine
 	static bool isRunningOnServer();
+	///Checks if a given local file or URL is a BAM file
+	static bool isBamFile(QString filename);
+	///Removes a secure token from the URL that is given to IGV
+	static QString stripSecureToken(QString url);
 
 	///Requests information about GSvarServer
 	static ServerInfo getServerInfo();

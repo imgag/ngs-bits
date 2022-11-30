@@ -9,6 +9,7 @@
 #include "SomaticDialog.h"
 #include "Exceptions.h"
 #include "ChainFileReader.h"
+#include "Log.h"
 #include <QDir>
 #include <QMessageBox>
 #include <QStandardPaths>

@@ -2,6 +2,9 @@
 
 #include "BedFile.h"
 #include "VcfFileHelper.h"
+#include "KeyValuePair.h"
+#include "ChromosomalIndex.h"
+#include "VariantList.h"
 #include "htslib/bgzf.h"
 
 #include <zlib.h>
@@ -51,7 +54,7 @@ public:
 	///save a variant line as string
 	QString lineToString(int pos) const;
 
-	///Leftnormalize every vcf line in the vcf file according to a reference genome
+	///Left-normalize every VCF line in the vcf file according to a reference genome
 	void leftNormalize(QString reference_genome);
 	///loads a vcf or vcf.gz file
 	void load(const QString& filename, bool allow_multi_sample = true);
@@ -164,14 +167,11 @@ public:
 	///Reads a VCF from a string
     void fromText(const QByteArray& text);
 
-	///Converts a Variant list (e.g. from a GSvar file) to a VcfFile
-	static VcfFile convertGSvarToVcf(const VariantList& variant_list, const QString& reference_genome);
+	///Converts a variant list in GSvar format to a VcfFile
+	static VcfFile fromGSvar(const VariantList& variant_list, const QString& reference_genome);
 
 	///Validates VCF file from file path
 	static bool isValid(QString filename, QString ref_file, QTextStream& out_stream, bool print_general_information = false, int max_lines = std::numeric_limits<int>::max());
-
-	///Returns the content of a column by index (tab-separated line) from a QByteArray line
-	static QByteArray getPartByColumn(const QByteArray& line, int index);
 
 	///Returns string where all forbidden char of an info column value are URL encoded
 	static QString encodeInfoValue(QString info_value);

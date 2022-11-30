@@ -168,7 +168,8 @@ void GlobalServiceProvider::loadFileInIGV(QString filename, bool init_if_not_don
 		MainWindow* mw = qobject_cast<MainWindow*>(widget);
 		if (mw!=nullptr)
 		{
-			mw->executeIGVCommands(QStringList() << "load \"" + filename + "\"", init_if_not_done);
+			if (NGSHelper::isClientServerMode()) mw->executeIGVCommands(QStringList() << "SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*", init_if_not_done);
+			mw->executeIGVCommands(QStringList() << "load \"" + NGSHelper::stripSecureToken(filename) + "\"", init_if_not_done);
 		}
 	}
 }
@@ -183,4 +184,54 @@ void GlobalServiceProvider::openGSvarViaNGSD(QString processed_sample_name, bool
 			mw->openProcessedSampleFromNGSD(processed_sample_name, search_multi);
 		}
 	}
+}
+
+void GlobalServiceProvider::addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize)
+{
+	foreach(QWidget* widget, QApplication::topLevelWidgets())
+	{
+		MainWindow* mw = qobject_cast<MainWindow*>(widget);
+		if (mw!=nullptr)
+		{
+			mw->addModelessDialog(dlg, maximize);
+		}
+	}
+}
+const VariantList&GlobalServiceProvider::getSmallVariantList()
+{
+	foreach(QWidget* widget, QApplication::topLevelWidgets())
+	{
+		MainWindow* mw = qobject_cast<MainWindow*>(widget);
+		if (mw!=nullptr)
+		{
+			return mw->getSmallVariantList();
+		}
+	}
+	THROW(ProgrammingException, "MainWindow not found!");
+}
+
+const CnvList&GlobalServiceProvider::getCnvList()
+{
+	foreach(QWidget* widget, QApplication::topLevelWidgets())
+	{
+		MainWindow* mw = qobject_cast<MainWindow*>(widget);
+		if (mw!=nullptr)
+		{
+			return mw->getCnvList();
+		}
+	}
+	THROW(ProgrammingException, "MainWindow not found!");
+}
+
+const BedpeFile&GlobalServiceProvider::getSvList()
+{
+	foreach(QWidget* widget, QApplication::topLevelWidgets())
+	{
+		MainWindow* mw = qobject_cast<MainWindow*>(widget);
+		if (mw!=nullptr)
+		{
+			return mw->getSvList();
+		}
+	}
+	THROW(ProgrammingException, "MainWindow not found!");
 }

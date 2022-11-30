@@ -8,6 +8,7 @@
 #include "BedFile.h"
 #include "FastaFileIndex.h"
 #include "Transcript.h"
+#include "ChromosomalIndex.h"
 
 //Settings struct for gene panel
 struct CPPVISUALSHARED_EXPORT GenePanelSettings

@@ -9,12 +9,9 @@
 #include "TumorOnlyReportWorker.h"
 #include "StatisticsServiceLocal.h"
 #include "FileLocationProviderLocal.h"
-
+#include "VariantHgvsAnnotator.h"
 
 #include <QThread>
-#include <cmath>
-#include <QCoreApplication>
-#include <iostream>
 
 TEST_CLASS(NGSD_Test)
 {
@@ -418,40 +415,40 @@ private slots:
 
 		transcripts = db.transcripts(3, Transcript::ENSEMBL, true); //NIPA1, Ensembl, coding
 		I_EQUAL(transcripts.count(), 2);
-		S_EQUAL(transcripts[0].gene(), "NIPA1");
-		S_EQUAL(transcripts[0].name(), "NIPA1_TR1");
+		S_EQUAL(transcripts[0].name(), "NIPA1_TR2");
 		I_EQUAL(transcripts[0].strand(), Transcript::MINUS);
 		I_EQUAL(transcripts[0].source(), Transcript::ENSEMBL);
-		I_EQUAL(transcripts[0].regions().count(), 2);
-		I_EQUAL(transcripts[0].regions().baseCount(), 202);
+		I_EQUAL(transcripts[0].regions().count(), 4);
+		I_EQUAL(transcripts[0].regions().baseCount(), 224);
 		I_EQUAL(transcripts[0].codingRegions().count(), 2);
-		I_EQUAL(transcripts[0].codingRegions().baseCount(), 202);
-		IS_TRUE(transcripts[0].isManeSelectTranscript());
-		S_EQUAL(transcripts[1].name(), "NIPA1_TR2");
+		I_EQUAL(transcripts[0].codingRegions().baseCount(), 102);
+		IS_FALSE(transcripts[0].isManeSelectTranscript());
+		S_EQUAL(transcripts[1].gene(), "NIPA1");
+		S_EQUAL(transcripts[1].name(), "NIPA1_TR1");
 		I_EQUAL(transcripts[1].strand(), Transcript::MINUS);
 		I_EQUAL(transcripts[1].source(), Transcript::ENSEMBL);
-		I_EQUAL(transcripts[1].regions().count(), 4);
-		I_EQUAL(transcripts[1].regions().baseCount(), 224);
+		I_EQUAL(transcripts[1].regions().count(), 2);
+		I_EQUAL(transcripts[1].regions().baseCount(), 202);
 		I_EQUAL(transcripts[1].codingRegions().count(), 2);
-		I_EQUAL(transcripts[1].codingRegions().baseCount(), 102);
-		IS_FALSE(transcripts[1].isManeSelectTranscript());
+		I_EQUAL(transcripts[1].codingRegions().baseCount(), 202);
+		IS_TRUE(transcripts[1].isManeSelectTranscript());
 
 		transcripts = db.transcripts(3, Transcript::ENSEMBL, false); //NIPA1, Ensembl, non-coding
 		I_EQUAL(transcripts.count(), 2);
-		S_EQUAL(transcripts[0].name(), "NIPA1_TR1");
+		S_EQUAL(transcripts[0].name(), "NIPA1_TR2");
 		I_EQUAL(transcripts[0].strand(), Transcript::MINUS);
 		I_EQUAL(transcripts[0].source(), Transcript::ENSEMBL);
-		I_EQUAL(transcripts[0].regions().count(), 2);
-		I_EQUAL(transcripts[0].regions().baseCount(), 202);
+		I_EQUAL(transcripts[0].regions().count(), 4);
+		I_EQUAL(transcripts[0].regions().baseCount(), 224);
 		I_EQUAL(transcripts[0].codingRegions().count(), 2);
-		I_EQUAL(transcripts[0].codingRegions().baseCount(), 202);
-		S_EQUAL(transcripts[1].name(), "NIPA1_TR2");
+		I_EQUAL(transcripts[0].codingRegions().baseCount(), 102);
+		S_EQUAL(transcripts[1].name(), "NIPA1_TR1");
 		I_EQUAL(transcripts[1].strand(), Transcript::MINUS);
 		I_EQUAL(transcripts[1].source(), Transcript::ENSEMBL);
-		I_EQUAL(transcripts[1].regions().count(), 4);
-		I_EQUAL(transcripts[1].regions().baseCount(), 224);
+		I_EQUAL(transcripts[1].regions().count(), 2);
+		I_EQUAL(transcripts[1].regions().baseCount(), 202);
 		I_EQUAL(transcripts[1].codingRegions().count(), 2);
-		I_EQUAL(transcripts[1].codingRegions().baseCount(), 102);
+		I_EQUAL(transcripts[1].codingRegions().baseCount(), 202);
 
 		transcripts = db.transcripts(4, Transcript::ENSEMBL, true); //NON-CODING, Ensembl, coding
 		I_EQUAL(transcripts.count(), 0);
@@ -512,6 +509,17 @@ private slots:
 
 		transcript = db.bestTranscript(1); //BRCA1, only CCDS transcript > invalid
 		IS_FALSE(transcript.isValid());
+
+		//releventTranscripts
+		transcripts = db.releventTranscripts(3); //NIPA1 (only best)
+		I_EQUAL(transcripts.count(), 1);
+		S_EQUAL(transcripts[0].name(), "NIPA1_TR1");
+		transcripts = db.releventTranscripts(652410); //SPG7 (best plus MANE select)
+		I_EQUAL(transcripts.count(), 2);
+		S_EQUAL(transcripts[0].name(), "ENST00000341316");
+		S_EQUAL(transcripts[1].name(), "ENST00000268704");
+		transcripts = db.releventTranscripts(1); //BRCA1 (only CCDS transcript)
+		I_EQUAL(transcripts.count(), 0);
 
 		//geneIdOfTranscript
 		I_EQUAL(db.geneIdOfTranscript("BRCA1_TR1"), 1);
@@ -1048,12 +1056,16 @@ private slots:
 		report_var_conf2.manual_cnv_start = "89240000";
 		report_var_conf2.manual_cnv_end= "89550000";
 		report_var_conf2.manual_cnv_cn = "0";
+		report_var_conf2.manual_cnv_hgvs_type = "cnv_type";
+		report_var_conf2.manual_cnv_hgvs_suffix = "cnv_suffix";
 		report_conf->set(report_var_conf2);
 		report_var_conf3.manual_sv_start = "9121440";
 		report_var_conf3.manual_sv_end = "9121460";
 		report_var_conf3.manual_sv_genotype = "hom";
 		report_var_conf3.manual_sv_start_bnd = "93712480";
 		report_var_conf3.manual_sv_end_bnd = "93712490";
+		report_var_conf3.manual_sv_hgvs_type = "sv_type";
+		report_var_conf3.manual_sv_hgvs_suffix = "sv_suffix";
 		report_conf->set(report_var_conf3);
 
 		//update
@@ -1113,6 +1125,8 @@ private slots:
 		S_EQUAL(var_conf.manual_cnv_start, "89240000");
 		S_EQUAL(var_conf.manual_cnv_end, "89550000");
 		S_EQUAL(var_conf.manual_cnv_cn, "0");
+		S_EQUAL(var_conf.manual_cnv_hgvs_type, "cnv_type");
+		S_EQUAL(var_conf.manual_cnv_hgvs_suffix, "cnv_suffix");
 		var_conf = report_conf2->variantConfig()[2];
 		I_EQUAL(var_conf.variant_index, 81);
 		IS_TRUE(var_conf.causal);
@@ -1134,6 +1148,8 @@ private slots:
 		S_EQUAL(var_conf.manual_sv_genotype, "hom");
 		S_EQUAL(var_conf.manual_sv_start_bnd, "93712480");
 		S_EQUAL(var_conf.manual_sv_end_bnd, "93712490");
+		S_EQUAL(var_conf.manual_sv_hgvs_type, "sv_type");
+		S_EQUAL(var_conf.manual_sv_hgvs_suffix, "sv_suffix");
 
 		//finalizeReportConfig
 		conf_id = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
@@ -1160,6 +1176,8 @@ private slots:
 		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 2); //result is 2 because there is one report config already in test NGSD after init
 		db.deleteReportConfig(conf_id);
 		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 1);
+
+		//TODO: test db.reportVariantConfiguration()
 
 		//cnvId
 		CopyNumberVariant cnv = CopyNumberVariant("chr1", 1000, 2000, 1, GeneSet(), QByteArrayList());
@@ -1501,22 +1519,26 @@ private slots:
 		S_EQUAL(removed_regions.toText(), removed_regions_db.toText());
 
 		//############################### variant publication ###############################
+		// variant
 		variant = db.variant("199844");
 		db.addVariantPublication("NA12878_03.GSvar", variant, "ClinVar", "5", "submission_id=SUB00001234;blabla...");
 		SqlQuery query = db.getQuery();
-		query.exec("SELECT id, sample_id, class, details, user_id, result, replaced FROM variant_publication WHERE variant_id=199844");
+		query.exec("SELECT id, sample_id, variant_table, db, class, details, user_id, result, replaced, linked_id FROM variant_publication WHERE variant_id=199844");
 		I_EQUAL(query.size(), 1);
 		query.next();
 		I_EQUAL(query.value("sample_id").toInt(), 1);
+		S_EQUAL(query.value("variant_table").toString(), "variant");
+		S_EQUAL(query.value("db").toString(), "ClinVar");
 		I_EQUAL(query.value("class").toInt(), 5);
 		S_EQUAL(query.value("details").toString(), "submission_id=SUB00001234;blabla...");
 		I_EQUAL(query.value("user_id").toInt(), 99);
 		S_EQUAL(query.value("result").toString(), "");
 		IS_FALSE(query.value("replaced").toBool());
+		IS_TRUE(query.value("linked_id").isNull());
 
 		int vp_id = query.value("id").toInt();
 		db.updateVariantPublicationResult(vp_id, "processed;SCV12345678");
-		query.exec("SELECT id, sample_id, class, details, user_id, result FROM variant_publication WHERE variant_id=199844");
+		query.exec("SELECT id, sample_id, class, details, user_id, result FROM variant_publication WHERE variant_id=199844 AND variant_table='variant'");
 		I_EQUAL(query.size(), 1);
 		query.next();
 		I_EQUAL(query.value("sample_id").toInt(), 1);
@@ -1524,14 +1546,119 @@ private slots:
 		S_EQUAL(query.value("details").toString(), "submission_id=SUB00001234;blabla...");
 		I_EQUAL(query.value("user_id").toInt(), 99);
 		S_EQUAL(query.value("result").toString(), "processed;SCV12345678");
+		IS_TRUE(db.getVariantPublication("NA12878_03.GSvar", variant).startsWith("table: variant db: ClinVar class: 5 user: Max Mustermann date: "));
 
-		IS_TRUE(db.getVariantPublication("NA12878_03.GSvar", variant).startsWith("db: ClinVar class: 5 user: Max Mustermann date: "));
+		// cnv
+		CopyNumberVariant cnv2 = db.cnv(4);
+		db.addVariantPublication("NA12123repeat_01", cnv2, "ClinVar", "4", "submission_id=SUB00005678;cn=12;variant_id=...");
+		query = db.getQuery();
+		query.exec("SELECT id, sample_id, variant_table, db, class, details, user_id, result, replaced, linked_id FROM variant_publication WHERE variant_id=4 AND variant_table='cnv'");
+		I_EQUAL(query.size(), 1);
+		query.next();
+		I_EQUAL(query.value("sample_id").toInt(), 4);
+		S_EQUAL(query.value("variant_table").toString(), "cnv");
+		S_EQUAL(query.value("db").toString(), "ClinVar");
+		I_EQUAL(query.value("class").toInt(), 4);
+		S_EQUAL(query.value("details").toString(), "submission_id=SUB00005678;cn=12;variant_id=...");
+		I_EQUAL(query.value("user_id").toInt(), 99);
+		S_EQUAL(query.value("result").toString(), "");
+		IS_FALSE(query.value("replaced").toBool());
+		IS_TRUE(query.value("linked_id").isNull());
+		IS_TRUE(db.getVariantPublication("NA12123repeat_01", cnv2).startsWith("table: cnv db: ClinVar class: 4 user: Max Mustermann date: "));
 
+		//sv
+		//reimport SVs
+		query.exec("INSERT INTO `sv_callset` (`id`, `processed_sample_id`, `caller`, `caller_version`, `call_date`) VALUES (1, 3999, 'Manta', '1.6.0', '2020-01-01')");
+		query.exec("INSERT INTO `sv_deletion` (`id`, `sv_callset_id`, `chr`, `start_min`, `start_max`, `end_min`, `end_max`, `quality_metrics`) VALUES (2, 1, 'chr1', 1000, 1020, 20000, 20000, '')");
+		query.exec("INSERT INTO `sv_insertion` (`id`, `sv_callset_id`, `chr`, `pos`, `ci_upper`) VALUES (3, 1, 'chr1', 17482432, 77)");
+		svs.load(TESTDATA("data_in/sv_manta.bedpe"));
+		BedpeLine sv = db.structuralVariant(2, StructuralVariantType::DEL, svs);
+		int vp_id2 = db.addVariantPublication("NA12878_03", sv, svs, "LOVD", "2", "submission_id=SUB000012354;type=DEL;variant_id=...");
+		query = db.getQuery();
+		query.exec("SELECT id, sample_id, variant_table, db, class, details, user_id, result, replaced, linked_id FROM variant_publication WHERE variant_id=2 AND variant_table='sv_deletion'");
+		I_EQUAL(query.size(), 1);
+		query.next();
+		I_EQUAL(query.value("sample_id").toInt(), 1);
+		S_EQUAL(query.value("variant_table").toString(), "sv_deletion");
+		S_EQUAL(query.value("db").toString(), "LOVD");
+		I_EQUAL(query.value("class").toInt(), 2);
+		S_EQUAL(query.value("details").toString(), "submission_id=SUB000012354;type=DEL;variant_id=...");
+		I_EQUAL(query.value("user_id").toInt(), 99);
+		S_EQUAL(query.value("result").toString(), "");
+		IS_FALSE(query.value("replaced").toBool());
+		IS_TRUE(query.value("linked_id").isNull());
+		IS_TRUE(db.getVariantPublication("NA12878_03", sv, svs).startsWith("table: sv_deletion db: LOVD class: 2 user: Max Mustermann date: "));
+
+		sv = db.structuralVariant(3, StructuralVariantType::INS, svs);
+		db.addVariantPublication("NA12878_03", sv, svs, "LOVD", "5", "submission_id=SUB00001111;type=INS;variant_id=...");
+		query = db.getQuery();
+		query.exec("SELECT id, sample_id, variant_table, db, class, details, user_id, result, replaced, linked_id FROM variant_publication WHERE variant_id=3 AND variant_table='sv_insertion'");
+		I_EQUAL(query.size(), 1);
+		query.next();
+		I_EQUAL(query.value("sample_id").toInt(), 1);
+		S_EQUAL(query.value("variant_table").toString(), "sv_insertion");
+		S_EQUAL(query.value("db").toString(), "LOVD");
+		I_EQUAL(query.value("class").toInt(), 5);
+		S_EQUAL(query.value("details").toString(), "submission_id=SUB00001111;type=INS;variant_id=...");
+		I_EQUAL(query.value("user_id").toInt(), 99);
+		S_EQUAL(query.value("result").toString(), "");
+		IS_FALSE(query.value("replaced").toBool());
+		IS_TRUE(query.value("linked_id").isNull());
+		IS_TRUE(db.getVariantPublication("NA12878_03", sv, svs).startsWith("table: sv_insertion db: LOVD class: 5 user: Max Mustermann date: "));
+
+		//manual upload
+		db.addManualVariantPublication("NA12345", "ClinVar", "4", "submission_id=SUB00002222;type=DEL;variant_desc=chr1:12345-12345 A>T...");
+		query = db.getQuery();
+		query.exec("SELECT id, sample_id, variant_table, db, class, details, user_id, result, replaced, linked_id FROM variant_publication WHERE variant_id=-1 AND variant_table='none'");
+		I_EQUAL(query.size(), 1);
+		query.next();
+		I_EQUAL(query.value("sample_id").toInt(), 3);
+		S_EQUAL(query.value("variant_table").toString(), "none");
+		S_EQUAL(query.value("db").toString(), "ClinVar");
+		I_EQUAL(query.value("class").toInt(), 4);
+		S_EQUAL(query.value("details").toString(), "submission_id=SUB00002222;type=DEL;variant_desc=chr1:12345-12345 A>T...");
+		I_EQUAL(query.value("user_id").toInt(), 99);
+		S_EQUAL(query.value("result").toString(), "");
+		IS_FALSE(query.value("replaced").toBool());
+		IS_TRUE(query.value("linked_id").isNull());
+
+		// replaced
 		db.flagVariantPublicationAsReplaced(vp_id);
 		query.exec("SELECT replaced FROM variant_publication WHERE variant_id=199844");
 		I_EQUAL(query.size(), 1);
 		query.next();
 		IS_TRUE(query.value("replaced").toBool());
+
+		//comp-het
+		db.linkVariantPublications(vp_id, vp_id2);
+		query.exec("SELECT id, sample_id, variant_table, db, class, details, user_id, result, replaced, linked_id FROM variant_publication WHERE linked_id=" + QString::number(vp_id2));
+		I_EQUAL(query.size(), 1);
+		query.next();
+		I_EQUAL(query.value("id").toInt(), vp_id);
+		I_EQUAL(query.value("sample_id").toInt(), 1);
+		S_EQUAL(query.value("variant_table").toString(), "variant");
+		S_EQUAL(query.value("db").toString(), "ClinVar");
+		I_EQUAL(query.value("class").toInt(), 5);
+		S_EQUAL(query.value("details").toString(), "submission_id=SUB00001234;blabla...");
+		I_EQUAL(query.value("user_id").toInt(), 99);
+		S_EQUAL(query.value("result").toString(), "processed;SCV12345678");
+		IS_TRUE(query.value("replaced").toBool());
+		I_EQUAL(query.value("linked_id").toInt(), vp_id2);
+
+		query.exec("SELECT id, sample_id, variant_table, db, class, details, user_id, result, replaced, linked_id FROM variant_publication WHERE linked_id=" + QString::number(vp_id));
+		I_EQUAL(query.size(), 1);
+		query.next();
+		I_EQUAL(query.value("id").toInt(), vp_id2);
+		I_EQUAL(query.value("sample_id").toInt(), 1);
+		S_EQUAL(query.value("variant_table").toString(), "sv_deletion");
+		S_EQUAL(query.value("db").toString(), "LOVD");
+		I_EQUAL(query.value("class").toInt(), 2);
+		S_EQUAL(query.value("details").toString(), "submission_id=SUB000012354;type=DEL;variant_id=...");
+		I_EQUAL(query.value("user_id").toInt(), 99);
+		S_EQUAL(query.value("result").toString(), "");
+		IS_FALSE(query.value("replaced").toBool());
+		I_EQUAL(query.value("linked_id").toInt(), vp_id);
+
 
 		//test with invalid IDs
 		IS_THROWN(DatabaseException, db.updateVariantPublicationResult(-42, "processed;SCV12345678"));
@@ -1701,6 +1828,8 @@ private slots:
 			var_conf.manual_cnv_start = "26799369";
 			var_conf.manual_cnv_end = "26991734";
 			var_conf.manual_cnv_cn = "0";
+			var_conf.manual_cnv_hgvs_type = "cnv_type";
+			var_conf.manual_cnv_hgvs_suffix = "cnv_suffix";
 			report_settings.report_config->set(var_conf);
 
 			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 3)); //SV - Insertion
@@ -1739,6 +1868,8 @@ private slots:
 			var_conf.manual_sv_genotype = "hom";
 			var_conf.manual_sv_start_bnd = "2301860";
 			var_conf.manual_sv_end_bnd = "2301870";
+			var_conf.manual_sv_hgvs_type = "sv_type";
+			var_conf.manual_sv_hgvs_suffix = "sv_suffix";
 			report_settings.report_config->set(var_conf);
 
 			OtherCausalVariant causal_variant;
@@ -2747,16 +2878,125 @@ private slots:
 
 	}
 
-	//Test for debugging (without initialization because of speed)
-	/*
-	void debug()
+	//This test should be in VariantHgvsAnnotator_Test.h, but it requires the production NGSD. Thus it is here.
+	//Test data exported from NGSD via GSvar (debug section of ahsturm1) on Nov 1th 2022.
+	//Annotation done with VEP 107 (/mnt/users/ahsturm1/Sandbox/2022_11_04_compare_annotations_with_VEP/).
+	//Some annotations were manually corrected because VEP was wrong - this is documented in the CORRECTED info entry of the variant.
+	void VariantHgvsAnnotator_comparison_vep()
 	{
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
-		NGSD db(true);
+		if (!NGSD::isAvailable()) SKIP("Test needs access to the NGSD production database!");
 
-		//getProcessingSystem
-		QString sys = db.getProcessingSystem("tumor_cnvs._03", NGSD::SHORT);
-		S_EQUAL(sys, "hpHBOCv5");
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+		FastaFileIndex reference(ref_file);
+
+		VariantHgvsAnnotator annotator(reference);
+		NGSD db;
+		QTextStream out(stdout);
+
+		int c_pass = 0;
+		int c_fail = 0;
+
+		//load best transcripts
+		QMap<QByteArray, QByteArray> best;
+		TsvFile tmp;
+		tmp.load(TESTDATA("data_in/VariantHgvsAnnotator_comparison_vep_best_transcripts.tsv"));
+		for (int i=0; i<tmp.rowCount(); ++i)
+		{
+			const QStringList& row = tmp.row(i);
+			best[row[0].toUtf8()] = row[1].toUtf8();
+		}
+
+		//process VCF
+		VcfFile vcf;
+		vcf.load(TESTDATA("data_in/VariantHgvsAnnotator_comparison_vep.vcf.gz"));
+		for(int i=0; i<vcf.count(); ++i)
+		{
+			const VcfLine& v = vcf[i];
+
+			//process overlapping genes
+			GeneSet genes = db.genesOverlapping(v.chr(), v.start(), v.end());
+			foreach(const QByteArray& gene, genes)
+			{
+				//process best transcript for gene
+				if (!best.contains(gene)) continue;
+				Transcript trans = db.transcript(db.transcriptId(best[gene]));
+				best[gene] = trans.name();
+				if (trans.isValid())
+				{
+
+					//check VEP for transcript exists
+					QByteArrayList vep_annos;
+					foreach(QByteArray entry, v.info("CSQ").split(','))
+					{
+						if (entry.contains("|" + trans.name() + "."))
+						{
+							vep_annos = entry.split('|');
+						}
+					}
+					if (vep_annos.isEmpty()) continue;
+
+					//compare VEP and own annotation
+					QByteArrayList differences;
+					VariantConsequence cons = annotator.annotate(trans, v);
+					if (cons.hgvs_p=="p.?") cons.hgvs_p="";
+
+					QByteArray vep_hgvsc = (vep_annos[2]+':').split(':')[1];
+					if (vep_hgvsc!=cons.hgvs_c) differences << vep_hgvsc + " > " + cons.hgvs_c;
+
+					QByteArray vep_hgvsp = (vep_annos[3]+':').split(':')[1];
+					vep_hgvsp.replace("%3D", "=");
+					if (vep_hgvsp!=cons.hgvs_p) differences << vep_hgvsp + " > " + cons.hgvs_p;
+
+					QByteArrayList vep_types = vep_annos[4].split('&');
+					if (vep_types.contains("splice_polypyrimidine_tract_variant")) vep_types << "splice_region_variant"; //we don't annotate this type
+					if (vep_types.contains("splice_donor_region_variant")) vep_types << "splice_region_variant";  //we don't annotate this type
+					if (vep_types.contains("splice_donor_5th_base_variant")) vep_types << "splice_region_variant";  //we don't annotate this type
+					if (vep_types.contains("mature_miRNA_variant")) vep_types << "non_coding_transcript_exon_variant";  //we don't annotate this type
+					if (vep_types.contains("frameshift_variant") && vep_hgvsp.contains("Ter") && !vep_hgvsp.contains("fs")) vep_types << "stop_gained"; //VEP handles direct stop-gain variants as frameshift, which is not correct.
+					VariantConsequenceType max_csq_type = VariantConsequenceType::INTERGENIC_VARIANT;
+					foreach(VariantConsequenceType csq_type, cons.types)
+					{
+						if(csq_type > max_csq_type)
+						{
+							max_csq_type = csq_type;
+						}
+					}
+					if (!vep_types.contains(VariantConsequence::typeToString(max_csq_type)))
+					{
+						differences << VariantConsequence::typeToString(max_csq_type) + " not in VEP (" + vep_types.join(", ") + ")";
+					}
+
+					QByteArray vep_impact = vep_annos[5];
+					if (vep_impact!=cons.impact) differences << vep_impact + " > " + cons.impact;
+
+					QByteArray vep_exon = vep_annos[6].split('/')[0];
+					if (vep_exon.contains('-')) vep_exon = vep_exon.split('-')[0]; //we annotate only the first affected exon
+					int vep_exon_nr = vep_exon.isEmpty() ? -1 : vep_exon.toInt();
+					if (vep_exon_nr!=cons.exon_number) differences << "exon " + QByteArray::number(vep_exon_nr) + " > " + QByteArray::number(cons.exon_number);
+
+					QByteArray vep_intron = vep_annos[7].split('/')[0];
+					if (vep_intron.contains('-')) vep_intron = vep_intron.split('-')[0]; //we annotate only the first affected intron
+					int vep_intron_nr = vep_intron.isEmpty() ? -1 : vep_intron.toInt();
+					if (vep_intron_nr!=cons.intron_number) differences << "intron " + QByteArray::number(vep_intron_nr) + " > " + QByteArray::number(cons.intron_number);
+
+					if (differences.isEmpty())
+					{
+						++c_pass;
+					}
+					else
+					{
+						++c_fail;
+						out << v.toString(true) << " (" << cons.normalized << ") transcript=" << trans.name() << " " << cons.toString() << endl;
+						foreach(QByteArray difference, differences)
+						{
+							out << "  " << difference << endl;
+						}
+					}
+				}
+			}
+		}
+
+		I_EQUAL(c_fail, 0);
 	}
-	*/
 };

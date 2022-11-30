@@ -23,7 +23,7 @@ struct EnumHash
 namespace std
 {
 template<>
-struct hash<const  VcfLine>
+struct hash<const VcfLine>
 {
 	size_t
 	operator()(const  VcfLine & obj) const
@@ -33,10 +33,10 @@ struct hash<const  VcfLine>
 };
 
 template<>
-struct hash< VcfLine>
+struct hash<VcfLine>
 {
 	size_t
-	operator()(const  VcfLine & obj) const
+	operator()(const VcfLine & obj) const
 	{
 		return hash<string>()(obj.toString().toStdString());
 	}

@@ -23,6 +23,9 @@ public:
 	//Returns the left n bases of the sequence
 	Sequence left(int n) const;
 
+	//Split seqence by separator
+	QList<Sequence> split(char c) const;
+
 	///Changes the sequence to reverse order.
 	void reverse();
 	///Changes the sequence to the complement.

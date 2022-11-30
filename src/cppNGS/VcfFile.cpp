@@ -144,7 +144,7 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 	vcf_line->setId(id_list);
 	foreach(const QByteArray& alt, line_parts[ALT].split(','))
 	{
-		vcf_line->addAlt(alt);
+		vcf_line->addAlt(strToPointer(alt.toUpper()));
 	}
 
 	if(line_parts[QUAL]==".")
@@ -500,7 +500,7 @@ void VcfFile::storeAsTsv(const QString& filename)
 	}
 
 	//header
-	stream << "#chr\tstart\tend\tref\tobs\tID\tQUAL\tFILTER";
+	stream << "#chr\tpos\tref\talt\tID\tQUAL\tFILTER";
 	//one column for every INFO field
 	for(const InfoFormatLine& info_line : vcfHeader().infoLines())
 	{
@@ -522,9 +522,7 @@ void VcfFile::storeAsTsv(const QString& filename)
 	for(VcfLinePtr& v : vcfLines())
 	{
 		//normalize variants and set symbol for empty sequence
-		v->normalize("-", true);
-		stream << v->chr().str() << "\t" << QByteArray::number(v->start()) << "\t" << QByteArray::number(v->end()) << "\t" << v->ref()
-			   << "\t" << v->altString() << "\t" << v->id().join(';') << "\t" << QByteArray::number(v->qual());
+		stream << v->chr().str() << "\t" << QByteArray::number(v->start()) << "\t" << v->ref() << "\t" << v->altString() << "\t" << v->id().join(';') << "\t" << QByteArray::number(v->qual());
 		if(v->filter().empty())
 		{
 			stream << "\t.";
@@ -628,7 +626,7 @@ void VcfFile::leftNormalize(QString reference_genome)
 
 	for(VcfLinePtr& variant_line : vcfLines())
 	{
-		variant_line->leftNormalize(reference);
+		variant_line->leftNormalize(reference, true);
 	}
 }
 
@@ -863,7 +861,7 @@ void VcfFile::storeHeaderColumns(QTextStream &stream) const
 	{
 		samples_exist_ = false;
 
-		foreach (VcfLinePtr line, vcf_lines_)
+		foreach (const VcfLinePtr& line, vcf_lines_)
 		{
 			if (line->samples().count() > 0)
 			{
@@ -943,8 +941,10 @@ void VcfFile::fromText(const QByteArray &text)
 	}
 }
 
-VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QString& reference_genome)
+VcfFile VcfFile::fromGSvar(const VariantList& variant_list, const QString& reference_genome)
 {
+	FastaFileIndex reference(reference_genome);
+
 	VcfFile vcf_file;
 
 	//store comments
@@ -1120,10 +1120,12 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 		{
 			vcf_line->setFilter(v.annotations().at(filter_index).split(';'));
 		}
-		vcf_line->setChromosome(v.chr());
-		vcf_line->setPos(v.start());
-		vcf_line->setRef(v.ref());
-		vcf_line->addAlt(v.obs());
+
+		VcfLine tmp = v.toVCF(reference);
+		vcf_line->setChromosome(tmp.chr());
+		vcf_line->setPos(tmp.start());
+		vcf_line->setRef(tmp.ref());
+		vcf_line->setSingleAlt(tmp.altString());
 
 		//add all columns into info
 		QByteArrayList info;
@@ -1223,36 +1225,7 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 		vcf_file.vcf_lines_.push_back(vcf_line);
 	}
 
-	for(VcfLinePtr& v_line : vcf_file.vcfLines())
-	{
-		//add base for INSERTION
-		QByteArray ref = v_line->ref().toUpper();
-		if (ref.size() == 1 && !(ref=="N" || ref=="A" || ref=="C" || ref=="G" || ref=="T")) //empty seq symbol in ref
-		{
-			FastaFileIndex reference(reference_genome);
-			QByteArray base = reference.seq(v_line->chr(), v_line->start() - 1, 1);
-
-			QList<Sequence> alt_seq;
-			//for GSvar there is only one alternative sequence (alt(0) stores VariantList.obs(0))
-			Sequence new_alt = base + v_line->alt(0);
-			alt_seq.push_back(new_alt);
-			v_line->setAlt(alt_seq);
-			v_line->setRef(base);
-		}
-
-		//add base for DELETION
-		QByteArray alt = v_line->alt(0).toUpper();
-		if (alt.size() == 1 && !(alt=="N" || alt=="A" || alt=="C" || alt=="G" || alt=="T")) //empty seq symbol in alt
-		{
-			FastaFileIndex reference(reference_genome);
-			QByteArray base = reference.seq(v_line->chr(), v_line->start() - 1, 1);
-			QByteArray new_ref = base + v_line->ref();
-			v_line->setSingleAlt(base);
-			v_line->setRef(new_ref);
-			v_line->setPos(v_line->start() - 1);
-		}
-
-	}
+	//left-normalize all variants
 	vcf_file.leftNormalize(reference_genome);
 
 	return vcf_file;
@@ -1867,39 +1840,6 @@ void VcfFile::checkValues(const DefinitionLine& def, const QByteArrayList& value
 			printWarning(out, "For " + where + " '" + def.id + "', the value '" + value + "' is not a '" + def.type + "'!", l, line);
 		}
 	}
-}
-
-//Returns the content of a column by index (tab-separated line)
-QByteArray VcfFile::getPartByColumn(const QByteArray& line, int index)
-{
-	int columns_seen = 0;
-	int column_start = 0;
-	int column_end = -1;
-
-	for (int i = 0; i < line.length(); ++i)
-	{
-		if (line[i] == '\t')
-		{
-			++columns_seen;
-			if (columns_seen == index)
-			{
-				column_start = i + 1;
-				column_end = line.length() - 1; // for last column that is not followed by a tab
-			}
-			else if (columns_seen == index + 1)
-			{
-				column_end = i;
-				break;
-			}
-		}
-	}
-
-	if (column_end==-1)
-	{
-		THROW(ProgrammingException, "Cannot find column " + QByteArray::number(index) + " in line: " + line);
-	}
-
-	return line.mid(column_start, column_end - column_start);
 }
 
 //Define URL encoding

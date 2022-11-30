@@ -16,7 +16,7 @@
 #include "FileLocationProviderLocal.h"
 #include "FileLocationProviderRemote.h"
 #include "VersatileTextStream.h"
-
+#include "Log.h"
 ///Main window class
 class MainWindow
 		: public QMainWindow
@@ -71,9 +71,14 @@ public:
 	///Returns the IGV port to use
 	int igvPort() const;
 
+	///Returns the variant lists of the currently loaded sample
+	const VariantList& getSmallVariantList();
+	const CnvList& getCnvList();
+	const BedpeFile& getSvList();
+
 public slots:
 	///Upload variant to Clinvar
-	void uploadToClinvar(int variant_index);
+	void uploadToClinvar(int variant_index1, int variant_index2=-1);
 	/// Checks (only in clinet-server mode) if the server is currently running
 	void checkServerAvailability();
 	///Loads a variant list. Unloads the variant list if no file name is given
@@ -251,6 +256,8 @@ public slots:
 	void on_actionSearchCNVs_triggered();
 	///Open SV search dialog
 	void on_actionSearchSVs_triggered();
+	///Open the manual upload of variants to ClinVar
+	void on_actionUploadVariantToClinVar_triggered();
 	///Shows published variants dialog
 	void on_actionShowPublishedVariants_triggered();
 	///Shows allele balance calculation

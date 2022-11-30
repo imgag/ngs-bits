@@ -1,6 +1,7 @@
 #include "LoginManager.h"
 #include "NGSD.h"
 #include "ToolBase.h"
+#include "Log.h"
 #include <QJsonDocument>
 
 LoginManager::LoginManager()
@@ -154,6 +155,18 @@ void LoginManager::renewLogin()
 	LoginManager& manager = instance();
 	HttpHeaders add_headers;
 
+	QString user_login;
+	QString user_password;
+	try
+	{
+		user_login = manager.userLogin();
+		user_password = manager.userPassword();
+	}
+	catch (Exception& e) {
+		Log::info("The user has not logged in yet. No need to update the credentials");
+		return;
+	}
+
 	add_headers.insert("Accept", "application/json");
 	QByteArray session_info = sendGetApiRequest("session?token=" + manager.userToken(), add_headers);
 	QJsonDocument session_json = QJsonDocument::fromJson(session_info);
@@ -165,12 +178,12 @@ void LoginManager::renewLogin()
 		// request a new token, if the current one is about to expire (30 minutes in advance)
 		if ((login_time + valid_period - (0.5 * 3600 * 1000)) < QDateTime::currentDateTime().toSecsSinceEpoch())
 		{
-			if ((manager.user_login_.isEmpty()) || (manager.user_password_.isEmpty())) return;
+			if ((user_login.isEmpty()) || (user_password.isEmpty())) return;
 
 			add_headers.clear();
 			add_headers.insert("Accept", "text/plain");
 
-			QString content = "name="+manager.user_login_+"&password="+manager.user_password_;
+			QString content = "name="+user_login+"&password="+user_password;
 			manager.user_token_ = sendPostApiRequest("login", content, add_headers);
 		}
 	}

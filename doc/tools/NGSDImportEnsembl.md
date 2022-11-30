@@ -1,5 +1,5 @@
 ### NGSDImportEnsembl tool help
-	NGSDImportEnsembl (2022_04-120-g0b2ddab9)
+	NGSDImportEnsembl (2022_10-83-g62451d12)
 	
 	Imports Ensembl/CCDS transcript information into NGSD.
 	
@@ -25,8 +25,9 @@
 	  --tdx                     Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDImportEnsembl changelog
-	NGSDImportEnsembl 2022_04-120-g0b2ddab9
+	NGSDImportEnsembl 2022_10-83-g62451d12
 	
+	2022-10-17 Added transcript versions.
 	2022-05-29 Added parameters 'ensembl_canonical' and 'mane'.
 	2021-06-09 Added support for multiple pseudogene files and duplication check.
 	2021-01-25 Made pseudogene file optional

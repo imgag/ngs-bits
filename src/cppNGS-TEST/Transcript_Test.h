@@ -1,6 +1,7 @@
 #include "TestFramework.h"
 #include "Transcript.h"
 #include "Settings.h"
+#include "ChromosomalIndex.h"
 #include <iostream>
 
 TEST_CLASS(Transcript_Test)

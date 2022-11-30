@@ -141,6 +141,8 @@ void ReportVariantDialog::updateGUI()
 		ui_.manual_cnv_start->setText(config_.manual_cnv_start.trimmed());
 		ui_.manual_cnv_end->setText(config_.manual_cnv_end.trimmed());
 		ui_.manual_cnv_cn->setText(config_.manual_cnv_cn.trimmed());
+		ui_.manual_cnv_hgvs_type->setText(config_.manual_cnv_hgvs_type.trimmed());
+		ui_.manual_cnv_hgvs_suffix->setText(config_.manual_cnv_hgvs_suffix.trimmed());
 	}
 
 	//manual curation SVs
@@ -151,6 +153,8 @@ void ReportVariantDialog::updateGUI()
 		ui_.manual_sv_genotype->setText(config_.manual_sv_genotype.trimmed());
 		ui_.manual_sv_start_bnd->setText(config_.manual_sv_start_bnd.trimmed());
 		ui_.manual_sv_end_bnd->setText(config_.manual_sv_end_bnd.trimmed());
+		ui_.manual_sv_hgvs_type->setText(config_.manual_sv_hgvs_type.trimmed());
+		ui_.manual_sv_hgvs_suffix->setText(config_.manual_sv_hgvs_suffix.trimmed());
 	}
 }
 
@@ -198,6 +202,8 @@ void ReportVariantDialog::writeBack(ReportVariantConfiguration& rvc)
 		rvc.manual_cnv_start = ui_.manual_cnv_start->text().trimmed();
 		rvc.manual_cnv_end = ui_.manual_cnv_end->text().trimmed();
 		rvc.manual_cnv_cn = ui_.manual_cnv_cn->text().trimmed();
+		rvc.manual_cnv_hgvs_type = ui_.manual_cnv_hgvs_type->text().trimmed();
+		rvc.manual_cnv_hgvs_suffix = ui_.manual_cnv_hgvs_suffix->text().trimmed();
 	}
 
 	//manual curation SVs
@@ -208,6 +214,8 @@ void ReportVariantDialog::writeBack(ReportVariantConfiguration& rvc)
 		rvc.manual_sv_genotype = ui_.manual_sv_genotype->text().trimmed();
 		rvc.manual_sv_start_bnd = ui_.manual_sv_start_bnd->text().trimmed();
 		rvc.manual_sv_end_bnd = ui_.manual_sv_end_bnd->text().trimmed();
+		rvc.manual_sv_hgvs_type = ui_.manual_sv_hgvs_type->text().trimmed();
+		rvc.manual_sv_hgvs_suffix = ui_.manual_sv_hgvs_suffix->text().trimmed();
 	}
 }
 

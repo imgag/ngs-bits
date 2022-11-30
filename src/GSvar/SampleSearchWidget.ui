@@ -19,7 +19,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,100,0">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,100">
    <property name="spacing">
     <number>3</number>
    </property>
@@ -68,7 +68,7 @@
          <number>3</number>
         </property>
         <property name="leftMargin">
-         <number>9</number>
+         <number>3</number>
         </property>
         <property name="topMargin">
          <number>3</number>
@@ -79,37 +79,6 @@
         <property name="bottomMargin">
          <number>3</number>
         </property>
-        <item row="4" column="0">
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>species:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="11" column="0">
-         <widget class="QLabel" name="label_5">
-          <property name="text">
-           <string>include bad quality:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
-         <widget class="DBSelector" name="s_species"/>
-        </item>
-        <item row="12" column="0">
-         <widget class="QLabel" name="label_6">
-          <property name="text">
-           <string>include tumor:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="13" column="0">
-         <widget class="QLabel" name="label_7">
-          <property name="text">
-           <string>include ffpe:</string>
-          </property>
-         </widget>
-        </item>
         <item row="0" column="0">
          <widget class="QLabel" name="label_8">
           <property name="text">
@@ -119,70 +88,6 @@
         </item>
         <item row="0" column="1">
          <widget class="DBSelector" name="s_name"/>
-        </item>
-        <item row="13" column="1">
-         <widget class="QCheckBox" name="s_ffpe">
-          <property name="text">
-           <string/>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="12" column="1">
-         <widget class="QCheckBox" name="s_tumor">
-          <property name="text">
-           <string/>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="11" column="1">
-         <widget class="QCheckBox" name="s_bad_quality">
-          <property name="text">
-           <string/>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="14" column="0">
-         <widget class="QLabel" name="label_12">
-          <property name="text">
-           <string>include merged:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="14" column="1">
-         <widget class="QCheckBox" name="s_merged">
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="0">
-         <widget class="QLabel" name="label_14">
-          <property name="text">
-           <string>disease group:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="9" column="0">
-         <widget class="QLabel" name="label_15">
-          <property name="text">
-           <string>disease status:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="1">
-         <widget class="QComboBox" name="s_disease_group"/>
-        </item>
-        <item row="9" column="1">
-         <widget class="QComboBox" name="s_disease_status"/>
         </item>
         <item row="1" column="1">
          <widget class="QCheckBox" name="s_name_ext">
@@ -201,25 +106,25 @@
           </property>
          </widget>
         </item>
-        <item row="6" column="0">
-         <widget class="QLabel" name="label_17">
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_22">
           <property name="text">
-           <string>sender:</string>
+           <string>patient identifier:</string>
           </property>
          </widget>
         </item>
-        <item row="7" column="0">
-         <widget class="QLabel" name="label_18">
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="s_patient_identifier"/>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_4">
           <property name="text">
-           <string>study:</string>
+           <string>species:</string>
           </property>
          </widget>
         </item>
-        <item row="6" column="1">
-         <widget class="DBSelector" name="s_sender"/>
-        </item>
-        <item row="7" column="1">
-         <widget class="DBSelector" name="s_study"/>
+        <item row="4" column="1">
+         <widget class="DBSelector" name="s_species"/>
         </item>
         <item row="5" column="0">
          <widget class="QLabel" name="label_20">
@@ -231,187 +136,45 @@
         <item row="5" column="1">
          <widget class="QComboBox" name="s_type"/>
         </item>
-        <item row="10" column="0">
+        <item row="6" column="0">
+         <widget class="QLabel" name="label_17">
+          <property name="text">
+           <string>sender:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <widget class="DBSelector" name="s_sender"/>
+        </item>
+        <item row="7" column="0">
+         <widget class="QLabel" name="label_18">
+          <property name="text">
+           <string>study:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="1">
+         <widget class="DBSelector" name="s_study"/>
+        </item>
+        <item row="8" column="0">
          <widget class="QLabel" name="label_21">
           <property name="text">
            <string>tissue:</string>
           </property>
          </widget>
         </item>
-        <item row="10" column="1">
+        <item row="8" column="1">
          <widget class="QComboBox" name="s_tissue"/>
         </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_22">
-          <property name="text">
-           <string>patient identifier:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QLineEdit" name="s_patient_identifier"/>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="groupBox_3">
-       <property name="title">
-        <string>Project</string>
-       </property>
-       <layout class="QFormLayout" name="formLayout_2">
-        <property name="horizontalSpacing">
-         <number>3</number>
-        </property>
-        <property name="verticalSpacing">
-         <number>3</number>
-        </property>
-        <property name="leftMargin">
-         <number>9</number>
-        </property>
-        <property name="topMargin">
-         <number>3</number>
-        </property>
-        <property name="rightMargin">
-         <number>3</number>
-        </property>
-        <property name="bottomMargin">
-         <number>3</number>
-        </property>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>name:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="DBSelector" name="p_name"/>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_11">
-          <property name="text">
-           <string>type:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QComboBox" name="p_type"/>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_33">
-          <property name="text">
-           <string>include archived:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QCheckBox" name="p_include_archived">
-          <property name="text">
-           <string/>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="groupBox_4">
-       <property name="title">
-        <string>Processing system</string>
-       </property>
-       <layout class="QFormLayout" name="formLayout_3">
-        <property name="horizontalSpacing">
-         <number>3</number>
-        </property>
-        <property name="verticalSpacing">
-         <number>3</number>
-        </property>
-        <property name="leftMargin">
-         <number>9</number>
-        </property>
-        <property name="topMargin">
-         <number>3</number>
-        </property>
-        <property name="rightMargin">
-         <number>3</number>
-        </property>
-        <property name="bottomMargin">
-         <number>3</number>
-        </property>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>name:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="DBSelector" name="sys_name"/>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_9">
-          <property name="text">
-           <string>type:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QComboBox" name="sys_type">
-          <property name="sizeAdjustPolicy">
-           <enum>QComboBox::AdjustToContents</enum>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="groupBox_5">
-       <property name="title">
-        <string>Run</string>
-       </property>
-       <layout class="QFormLayout" name="formLayout_4">
-        <property name="horizontalSpacing">
-         <number>3</number>
-        </property>
-        <property name="verticalSpacing">
-         <number>3</number>
-        </property>
-        <property name="leftMargin">
-         <number>9</number>
-        </property>
-        <property name="topMargin">
-         <number>3</number>
-        </property>
-        <property name="rightMargin">
-         <number>3</number>
-        </property>
-        <property name="bottomMargin">
-         <number>3</number>
-        </property>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string>name:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="DBSelector" name="r_name"/>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_10">
+        <item row="10" column="0">
+         <widget class="QLabel" name="label_5">
           <property name="text">
            <string>include bad quality:</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="1">
-         <widget class="QCheckBox" name="r_bad_quality">
+        <item row="10" column="1">
+         <widget class="QCheckBox" name="s_bad_quality">
           <property name="text">
            <string/>
           </property>
@@ -420,48 +183,353 @@
           </property>
          </widget>
         </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_16">
+        <item row="11" column="0">
+         <widget class="QLabel" name="label_6">
           <property name="text">
-           <string>device name:</string>
+           <string>include tumor:</string>
           </property>
          </widget>
         </item>
-        <item row="3" column="1">
-         <widget class="DBSelector" name="r_device_name"/>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="label_13">
-          <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Only include samples where the analysis of the whole run is finished.&lt;br/&gt;Excludes samples that are on a future run or are still being analyzed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-          </property>
+        <item row="11" column="1">
+         <widget class="QCheckBox" name="s_tumor">
           <property name="text">
-           <string>only finished:</string>
+           <string/>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
-        <item row="4" column="1">
-         <widget class="QCheckBox" name="r_analysis_finished">
+        <item row="12" column="0">
+         <widget class="QLabel" name="label_7">
+          <property name="text">
+           <string>include ffpe:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="12" column="1">
+         <widget class="QCheckBox" name="s_ffpe">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="13" column="0">
+         <widget class="QLabel" name="label_12">
+          <property name="text">
+           <string>include merged:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="13" column="1">
+         <widget class="QCheckBox" name="s_merged">
           <property name="text">
            <string/>
           </property>
          </widget>
         </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="label_19">
-          <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Run start date before or equal to the given date.&lt;br/&gt;Use ISO format: YYYY-MM-DD&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-          </property>
+        <item row="9" column="0">
+         <widget class="QLabel" name="label_23">
           <property name="text">
-           <string>start date before:</string>
+           <string>ancestry:</string>
           </property>
          </widget>
         </item>
-        <item row="5" column="1">
-         <widget class="QLineEdit" name="r_run_start_date"/>
+        <item row="9" column="1">
+         <widget class="QComboBox" name="s_ancestry"/>
         </item>
        </layout>
       </widget>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,1">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="groupBox_4">
+         <property name="title">
+          <string>Processing system</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout_3">
+          <property name="horizontalSpacing">
+           <number>3</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>3</number>
+          </property>
+          <property name="leftMargin">
+           <number>3</number>
+          </property>
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="rightMargin">
+           <number>3</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>name:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="DBSelector" name="sys_name"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_9">
+            <property name="text">
+             <string>type:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="sys_type">
+            <property name="sizeAdjustPolicy">
+             <enum>QComboBox::AdjustToContents</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_6">
+         <property name="title">
+          <string>Sample disease data</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout_5">
+          <property name="horizontalSpacing">
+           <number>3</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>3</number>
+          </property>
+          <property name="leftMargin">
+           <number>3</number>
+          </property>
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_14">
+            <property name="text">
+             <string>disease group:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="s_disease_group"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_15">
+            <property name="text">
+             <string>disease status:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="s_disease_status"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_24">
+            <property name="text">
+             <string>phenotype:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="ClickableLineEdit" name="s_hpos">
+            <property name="toolTip">
+             <string>Filter by HPO terms and their child terms in the HPO tree.</string>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+            <property name="placeholderText">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,1">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="groupBox_3">
+         <property name="title">
+          <string>Project</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout_2">
+          <property name="horizontalSpacing">
+           <number>3</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>3</number>
+          </property>
+          <property name="leftMargin">
+           <number>3</number>
+          </property>
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="rightMargin">
+           <number>3</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>name:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="DBSelector" name="p_name"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_11">
+            <property name="text">
+             <string>type:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="p_type"/>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_33">
+            <property name="text">
+             <string>include archived:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QCheckBox" name="p_include_archived">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_5">
+         <property name="title">
+          <string>Run</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout_4">
+          <property name="horizontalSpacing">
+           <number>3</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>3</number>
+          </property>
+          <property name="leftMargin">
+           <number>3</number>
+          </property>
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="rightMargin">
+           <number>3</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>name:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="DBSelector" name="r_name"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_10">
+            <property name="text">
+             <string>include bad quality:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QCheckBox" name="r_bad_quality">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_16">
+            <property name="text">
+             <string>device name:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="DBSelector" name="r_device_name"/>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_13">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Only include samples where the analysis of the whole run is finished.&lt;br/&gt;Excludes samples that are on a future run or are still being analyzed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>only finished:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QCheckBox" name="r_analysis_finished">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_19">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Run start date before or equal to the given date.&lt;br/&gt;Use ISO format: YYYY-MM-DD&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>start date before:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLineEdit" name="r_run_start_date"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
@@ -560,6 +628,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QLabel" name="search_status">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -577,13 +652,6 @@
    <item>
     <widget class="DBTableWidget" name="sample_table"/>
    </item>
-   <item>
-    <widget class="QLabel" name="search_status">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
   </layout>
  </widget>
  <customwidgets>
@@ -596,6 +664,11 @@
    <class>DBSelector</class>
    <extends>QLineEdit</extends>
    <header location="global">DBSelector.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ClickableLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>ClickableLineEdit.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

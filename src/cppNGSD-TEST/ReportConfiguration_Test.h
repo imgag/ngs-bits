@@ -101,8 +101,18 @@ private slots:
 		rvc.manual_cnv_cn = "0";
 		IS_TRUE(rvc.isManuallyCurated());
 
-		//CNV no curation
+		//CNV HGVS type
 		rvc.manual_cnv_cn = "";
+		rvc.manual_cnv_hgvs_type = "delins";
+		IS_TRUE(rvc.isManuallyCurated());
+
+		//CNV HGVS type
+		rvc.manual_cnv_hgvs_type = "";
+		rvc.manual_cnv_hgvs_suffix = "delins";
+		IS_TRUE(rvc.isManuallyCurated());
+
+		//CNV no curation
+		rvc.manual_cnv_hgvs_suffix = "";
 		IS_FALSE(rvc.isManuallyCurated());
 
 		//SV start
@@ -130,6 +140,19 @@ private slots:
 		rvc.manual_sv_start_bnd = "";
 		rvc.manual_sv_end_bnd = "1";
 		IS_TRUE(rvc.isManuallyCurated());
+
+		//CNV HGVS type
+		rvc.manual_sv_end_bnd = "";
+		rvc.manual_sv_hgvs_type = "delins";
+		IS_TRUE(rvc.isManuallyCurated());
+
+		//CNV HGVS type
+		rvc.manual_sv_hgvs_type = "";
+		rvc.manual_sv_hgvs_suffix = "(bla|bluff)";
+		IS_TRUE(rvc.isManuallyCurated());
+
+		rvc.manual_sv_hgvs_suffix = "";
+		IS_FALSE(rvc.isManuallyCurated());
 	}
 
 	void ReportVariantConfiguration_manualVarIsValid()

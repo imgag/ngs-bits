@@ -16,6 +16,7 @@
 #include "GeneInfoDBs.h"
 #include "ValidationDialog.h"
 #include "GlobalServiceProvider.h"
+#include "ClinvarUploadDialog.h"
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QBitArray>
@@ -28,10 +29,12 @@
 #include <QChartView>
 QT_CHARTS_USE_NAMESPACE
 
-CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
+CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache,
+					 QWidget* parent)
 	: CnvWidget(cnvs, ps_id, filter_widget, het_hit_genes, cache, parent)
 {
-	if(cnvs.type()!=CnvListType::CLINCNV_GERMLINE_MULTI && cnvs.type()!=CnvListType::CLINCNV_GERMLINE_SINGLE && cnvs.type()!=CnvListType::CNVHUNTER_GERMLINE_SINGLE && cnvs.type()!=CnvListType::CNVHUNTER_GERMLINE_MULTI)
+	if(cnvs.type()!=CnvListType::CLINCNV_GERMLINE_MULTI && cnvs.type()!=CnvListType::CLINCNV_GERMLINE_SINGLE && cnvs.type()!=CnvListType::CNVHUNTER_GERMLINE_SINGLE
+	   && cnvs.type()!=CnvListType::CNVHUNTER_GERMLINE_MULTI)
 	{
 		THROW(ProgrammingException, "Constructor in CnvWidget has to be used using germline CNV data.");
 	}
@@ -39,7 +42,8 @@ CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_wi
 	initGUI();
 }
 
-CnvWidget::CnvWidget(const CnvList& cnvs, QString t_ps_id, FilterWidget* filter_widget, SomaticReportConfiguration& som_rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
+CnvWidget::CnvWidget(const CnvList& cnvs, QString t_ps_id, FilterWidget* filter_widget, SomaticReportConfiguration& som_rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache,
+					 QWidget* parent)
 	: CnvWidget(cnvs, t_ps_id, filter_widget, het_hit_genes, cache, parent)
 {
 	if(cnvs.type() != CnvListType::CLINCNV_TUMOR_NORMAL_PAIR && cnvs.type() != CnvListType::CLINCNV_TUMOR_ONLY)
@@ -49,8 +53,6 @@ CnvWidget::CnvWidget(const CnvList& cnvs, QString t_ps_id, FilterWidget* filter_
 	somatic_report_config_ = &som_rep_conf;
 	is_somatic_ = true;
 	initGUI();
-
-	ui->cnvs->setSelectionMode(QAbstractItemView::ExtendedSelection);
 }
 
 CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
@@ -80,6 +82,10 @@ CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_wi
 	connect(ui->cnvs->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(cnvHeaderContextMenu(QPoint)));
 	connect(ui->filter_widget, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 
+	GUIHelper::styleSplitter(ui->splitter);
+	ui->splitter->setStretchFactor(0, 10);
+	ui->splitter->setStretchFactor(1, 1);
+
 	//determine callset ID
 	if (ps_id!="")
 	{
@@ -95,6 +101,8 @@ CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_wi
 	ui->ngsd_btn->setMenu(new QMenu());
 	ui->ngsd_btn->menu()->addAction(QIcon(":/Icons/Edit.png"), "Edit quality", this, SLOT(editQuality()))->setEnabled(callset_id_!="");
 	ui->ngsd_btn->menu()->addSeparator();
+
+	ui->cnvs->setSelectionMode(QAbstractItemView::ExtendedSelection);
 }
 
 void CnvWidget::initGUI()
@@ -542,7 +550,8 @@ void CnvWidget::applyFilters(bool debug_time)
 	}
 	catch(Exception& e)
 	{
-		QMessageBox::warning(this, "Filtering error", e.message() + "\nA possible reason for this error is an outdated variant list.\nTry re-annotating the NGSD columns.\n If re-annotation does not help, please re-analyze the sample (starting from annotation) in the sample information dialog!");
+		QMessageBox::warning(this, "Filtering error", e.message() + "\nA possible reason for this error is an outdated variant list.\nTry re-annotating the NGSD columns.\n "
+							 + "If re-annotation does not help, please re-analyze the sample (starting from annotation) in the sample information dialog!");
 
 		filter_result = FilterResult(cnvs_.count(), false);
 	}
@@ -563,12 +572,33 @@ void CnvWidget::copyToClipboard()
 
 void CnvWidget::showContextMenu(QPoint p)
 {
-	//make sure a row was clicked
-	int row = ui->cnvs->indexAt(p).row();
-	if (row==-1) return;
+	QMenu menu;
+
+	//get selected rows
+	QList<int> selected_rows = GUIHelper::selectedTableRows(ui->cnvs);
+
+	//special case: 2 variants selected -> show compHet upload to ClinVar
+	if (selected_rows.count() == 2)
+	{
+		//ClinVar publication
+		bool ngsd_user_logged_in = LoginManager::active();
+		QAction* a_clinvar_pub = menu.addAction(QIcon("://Icons/ClinGen.png"), "Publish compound-heterozygote CNV in ClinVar");
+		a_clinvar_pub->setEnabled(ngsd_user_logged_in && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty());
+
+		//execute menu
+		QAction* action = menu.exec(ui->cnvs->viewport()->mapToGlobal(p));
+		if (action == a_clinvar_pub) uploadToClinvar(selected_rows.at(0), selected_rows.at(1));
+		return;
+	}
+	else if (selected_rows.count() != 1)
+	{
+		return;
+	}
+
+	//else: standard case: 1 variant selected
+	int row = selected_rows.at(0);
 
 	//create menu
-	QMenu menu;
 	QAction* a_rep_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
 	a_rep_edit->setEnabled(ngsd_enabled_);
 	QAction* a_rep_del = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
@@ -585,6 +615,13 @@ void CnvWidget::showContextMenu(QPoint p)
 	QAction* a_dgv = menu.addAction(QIcon("://Icons/DGV.png"), "Open in DGV");
 	QAction* a_ucsc = menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
 	QAction* a_ucsc_override = menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser (override tracks)");
+	menu.addSeparator();
+	//ClinVar search
+	QMenu*sub_menu = menu.addMenu(QIcon("://Icons/ClinGen.png"), "ClinVar");
+	QAction* a_clinvar_find = sub_menu->addAction("Find in ClinVar");
+	QAction* a_clinvar_pub = sub_menu->addAction("Publish in ClinVar");
+	a_clinvar_pub->setEnabled(ngsd_enabled_ && !Settings::string("clinvar_api_key", true).trimmed().isEmpty());
+
 	//gene sub-menus
 	if (!cnvs_[row].genes().isEmpty())
 	{
@@ -675,6 +712,16 @@ void CnvWidget::showContextMenu(QPoint p)
 
 		dlg->exec();
 	}
+	else if (action==a_clinvar_find)
+	{
+		//use GSvar helper with dummy variant
+		QString url = GSvarHelper::clinVarSearchLink(Variant(cnvs_[row].chr(), cnvs_[row].start(), cnvs_[row].end(), "", ""), GSvarHelper::build());
+		QDesktopServices::openUrl(QUrl(url));
+	}
+	else if (action==a_clinvar_pub)
+	{
+		uploadToClinvar(row);
+	}
 	else if (parent_menu) //gene sub-menus
 	{
 		QString gene = parent_menu->title();
@@ -744,7 +791,8 @@ void CnvWidget::proposeQualityIfUnset()
 	}
 	else
 	{
-		QMessageBox::warning(this, "CNV callset quality", "CNV callset quality seems to be not optimal:\n" + errors.join("\n") + "\n\nPlease have a look at the quality parameters and set the CNV quality manually!");
+		QMessageBox::warning(this, "CNV callset quality", "CNV callset quality seems to be not optimal:\n" + errors.join("\n")
+							 + "\n\nPlease have a look at the quality parameters and set the CNV quality manually!");
 	}
 }
 
@@ -1155,6 +1203,150 @@ void CnvWidget::editSomaticReportConfiguration(const QList<int> &rows)
 	}
 	emit storeSomaticReportConfiguration();
 }
+
+void CnvWidget::uploadToClinvar(int index1, int index2)
+{
+	if (!LoginManager::active()) return;
+	try
+	{
+		if(index1 <0)
+		{
+			THROW(ArgumentException, "A valid index for the first CNV has to be provided!");
+		}
+		//abort if API key is missing
+		if(Settings::string("clinvar_api_key", true).trimmed().isEmpty())
+		{
+			THROW(ProgrammingException, "ClinVar API key is needed, but not found in settings.\nPlease inform the bioinformatics team");
+		}
+
+		NGSD db;
+
+		//(1) prepare data as far as we can
+		ClinvarUploadData data;
+		data.processed_sample = db.processedSampleName(ps_id_);
+		data.variant_type1 = VariantType::CNVS;
+		if(index2 < 0)
+		{
+			//Single variant submission
+			data.submission_type = ClinvarSubmissionType::SingleVariant;
+			data.variant_type2 = VariantType::INVALID;
+		}
+		else
+		{
+			//CompHet variant submission
+			data.submission_type = ClinvarSubmissionType::CompoundHeterozygous;
+			data.variant_type2 = VariantType::CNVS;
+		}
+
+		QString sample_id = db.sampleId(data.processed_sample);
+		SampleData sample_data = db.getSampleData(sample_id);
+
+		//get disease info
+		data.disease_info = db.getSampleDiseaseInfo(sample_id, "OMIM disease/phenotype identifier");
+		data.disease_info.append(db.getSampleDiseaseInfo(sample_id, "Orpha number"));
+		if (data.disease_info.length() < 1)
+		{
+			INFO(InformationMissingException, "The sample has to have at least one OMIM or Orphanet disease identifier to publish a variant in ClinVar.");
+		}
+
+		// get affected status
+		data.affected_status = sample_data.disease_status;
+
+		//get phenotype(s)
+		data.phenos = sample_data.phenotypes;
+
+		//get copy number variant info
+		data.cnv1 = cnvs_[index1];
+		data.cn1 = data.cnv1.copyNumber(cnvs_.annotationHeaders());
+		data.ref_cn1 = CnvList::determineReferenceCopyNumber(data.cnv1, sample_data.gender, GSvarHelper::build());
+
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+		{
+			data.cnv2 = cnvs_[index2];
+			data.cn2 = data.cnv2.copyNumber(cnvs_.annotationHeaders());
+			data.ref_cn2 = CnvList::determineReferenceCopyNumber(data.cnv2, sample_data.gender, GSvarHelper::build());
+		}
+
+		// get report info
+		if (!report_config_.data()->exists(VariantType::CNVS, index1))
+		{
+			INFO(InformationMissingException, "The CNV has to be in the report configuration to be published!");
+		}
+		data.report_variant_config1 = report_config_.data()->get(VariantType::CNVS, index1);
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+		{
+			if (!report_config_.data()->exists(VariantType::CNVS, index2))
+			{
+				INFO(InformationMissingException, "The CNV 2 has to be in the report configuration to be published!");
+			}
+			data.report_variant_config2 = report_config_.data()->get(VariantType::CNVS, index2);
+		}
+
+		//check classification
+		if (data.report_variant_config1.classification.trimmed().isEmpty() || (data.report_variant_config1.classification.trimmed() == "n/a"))
+		{
+			INFO(InformationMissingException, "The CNV has to be classified to be published!");
+		}
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+		{
+			if (data.report_variant_config2.classification.trimmed().isEmpty() || (data.report_variant_config2.classification.trimmed() == "n/a"))
+			{
+				INFO(InformationMissingException, "The CNV 2 has to be classified to be published!");
+			}
+		}
+
+		//genes
+		data.genes = data.cnv1.genes();
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous) data.genes <<  data.cnv2.genes();
+
+		//determine NGSD ids of variant and report variant for variant 1
+		QString cnv_id = db.cnvId(data.cnv1, callset_id_.toInt(), false);
+		if (cnv_id == "")
+		{
+			INFO(InformationMissingException, "The CNV has to be in NGSD and part of a report config to be published!");
+		}
+		data.variant_id1 = Helper::toInt(cnv_id);
+		//extract report variant id
+		int rc_id = db.reportConfigId(ps_id_);
+		if (rc_id == -1 )
+		{
+			THROW(DatabaseException, "Could not determine report config id for sample " + data.processed_sample + "!");
+		}
+
+		data.report_variant_config_id1 = db.getValue("SELECT id FROM report_configuration_cnv WHERE report_configuration_id=" + QString::number(rc_id) + " AND cnv_id="
+													 + QString::number(data.variant_id1), false).toInt();
+
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+		{
+			//determine NGSD ids of cnv for variant 2
+			cnv_id = db.cnvId(data.cnv2, callset_id_.toInt(), false);
+			if (cnv_id == "")
+			{
+				INFO(InformationMissingException, "The CNV 2 has to be in NGSD and part of a report config to be published!");
+			}
+			data.variant_id2 = Helper::toInt(cnv_id);
+
+			//extract report variant id
+			data.report_variant_config_id2 = db.getValue("SELECT id FROM report_configuration_cnv WHERE report_configuration_id=" + QString::number(rc_id) + " AND cnv_id="
+														 + QString::number(data.variant_id2), false).toInt();
+		}
+
+
+		// (2) show dialog
+		ClinvarUploadDialog dlg(this);
+		dlg.setData(data);
+		dlg.exec();
+
+
+
+	}
+	catch(Exception& e)
+	{
+		GUIHelper::showException(this, e, "ClinVar submission error");
+	}
+
+}
+
 
 void CnvWidget::flagInvisibleSomaticCnvsAsArtefacts()
 {

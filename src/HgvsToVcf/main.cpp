@@ -138,8 +138,8 @@ public:
 			if (max_seq>0 && (variant.obs().size()>max_seq || variant.ref().size()>max_seq)) return false;
 
 			//write base variant line
-			VariantVcfRepresentation vcf_rep = variant.toVCF(ref_index);
-			QByteArray outline = vcf_rep.chr.strNormalized(true) + "\t" + QByteArray::number(vcf_rep.pos) + "\t.\t" + vcf_rep.ref + "\t" + vcf_rep.alt + "\t.\t.\t";
+			VcfLine vcf_rep = variant.toVCF(ref_index);
+			QByteArray outline = vcf_rep.chr().strNormalized(true) + "\t" + QByteArray::number(vcf_rep.start()) + "\t.\t" + vcf_rep.ref() + "\t" + vcf_rep.altString() + "\t.\t.\t";
 
 			//write info fields
 			QByteArrayList info_fields;

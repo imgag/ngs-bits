@@ -96,6 +96,15 @@ class ConcreteTool: public ToolBase
 		return output;
 	}
 
+	static const QByteArray& col(const QByteArrayList& parts, int index)
+	{
+		if (index>=parts.count())
+		{
+			THROW(FileParseException, "Invalid column index " + QString::number(index) + ". The line has " + QString::number(parts.count()) + " tab-separated elements:\n" + parts.join("\t"));
+		}
+		return parts[index];
+	}
+
 public:
     ConcreteTool(int& argc, char *argv[])
         : ToolBase(argc, argv)
@@ -121,10 +130,12 @@ public:
 		addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
 
 		addString("reg", "Region of interest in BED format, or comma-separated list of region, e.g. 'chr1:454540-454678,chr2:473457-4734990'.", true);
+		addFlag("remove_invalid", "Removes invalid variant, i.e. invalid position of ref/alt.");
 		addString("variant_type", "Filters by variant type. Possible types are: '" + variant_types.join("','") + "'.", true);
 		addString("id", "Filter by ID column (regular expression).", true);
-		addFloat("qual", "Filter by QUAL column (minimum).", true);
-		addString("filter", "Filter by FILTER column (regular expression).", true);
+		addFloat("qual", "Filter by QUAL column (minimum).", true, 0.0);
+		addString("filter", "Filter by FILTER column - keep matches (regular expression).", true);
+		addString("filter_exclude", "Filter by FILTER column - exclude matches (regular expression).", true);
 		addFlag("filter_empty", "Removes entries with non-empty FILTER column.");
 		addString("info", "Filter by INFO column entries - use ';' as separator for several filters, e.g. 'DP > 5;AO > 2' (spaces are important).\nValid operations are '" + op_numeric.join("','") + "','" + op_string.join("','") + "'.", true);
 		addString("sample", "Filter by sample-specific entries - use ';' as separator for several filters, e.g. 'GT is 1/1' (spaces are important).\nValid operations are '" + op_numeric.join("','") + "','" + op_string.join("','") + "'.", true);
@@ -172,8 +183,10 @@ public:
         //init parameters
         double quality = getFloat("qual");
         bool filter_empty = getFlag("filter_empty");
+		bool remove_invalid = getFlag("remove_invalid");
         bool sample_one_match = getFlag("sample_one_match");
 		QString filter = getString("filter");
+		QString filter_exclude = getString("filter_exclude");
 		QString id = getString("id");
         QString variant_type = getString("variant_type");
 		if (variant_type != "" && !variant_types.contains(variant_type))
@@ -194,6 +207,17 @@ public:
 				THROW(ArgumentException, "Filter regexp '" + filter + "' is not a valid regular expression! ( + " + filter_re.errorString() + " )");
             }
         }
+
+		QRegularExpression filter_exclude_re;
+		if (filter_exclude != "")
+		{
+			// Prepare static filter regexes
+			filter_exclude_re.setPattern(filter_exclude);
+			if (!filter_exclude_re.isValid())
+			{
+				THROW(ArgumentException, "Filter regexp '" + filter_exclude + "' is not a valid regular expression! ( + " + filter_exclude_re.errorString() + " )");
+			}
+		}
 
         QRegularExpression id_re;
 		if (id != "")
@@ -255,34 +279,40 @@ public:
 			//skip empty lines
 			if (line.trimmed().isEmpty()) continue;
 
-            if (line.startsWith("#CHROM"))
-            {
-				column_count = line.count('\t') + 1;
-            }
+			//split and trim
+			QByteArrayList parts = line.split('\t');
+			std::for_each(parts.begin(), parts.end(), [](QByteArray& line){ line = line.trimmed(); });
+
+			//handle header columns
             if (line.startsWith('#'))
             {
+				if (!line.startsWith("##"))
+				{
+					column_count = parts.count();
+				}
+
                 out_p->write(line);
                 continue;
             }
 
-            ///Filter by region. First return CHROM and POS and then remove all lines that do not satisfy the check
+			//Filter by region
             if (reg != "")
             {
-                QByteArray chr = VcfFile::getPartByColumn(line, VcfFile::CHROM);
-                QByteArray start = VcfFile::getPartByColumn(line, VcfFile::POS);
-                QByteArray ref = VcfFile::getPartByColumn(line, VcfFile::REF);
-
-				if (roi_index.matchingIndex(chr, start.toInt(), start.toInt() + ref.length()-1)==-1)
+				const QByteArray& chr = col(parts, VcfFile::CHROM);
+				const QByteArray& start = col(parts, VcfFile::POS);
+				const QByteArray& ref = col(parts, VcfFile::REF);
+				int pos = Helper::toInt(start, "genomic position");
+				if (roi_index.matchingIndex(chr, pos, pos + ref.length()-1)==-1)
                 {
 					continue;
                 }
             }
 
-            ///Filter by variant_type.
+			//Filter by variant_type
             if (variant_type != "")
 			{
-                QByteArray ref = VcfFile::getPartByColumn(line, VcfFile::REF).trimmed();
-                QByteArray alt = VcfFile::getPartByColumn(line, VcfFile::ALT).trimmed();
+				const QByteArray& ref = col(parts, VcfFile::REF);
+				const QByteArray& alt = col(parts, VcfFile::ALT);
 
                 QString type;
                 if (ref.length() == 1 && alt.length() == 1)
@@ -313,23 +343,31 @@ public:
 
             }
 
-            ///Filter by QUALITY. Return QUAL and then remove all lines that do not satisfy the check
-            if (quality != 0.0)
-            {
-                QByteArray qual = VcfFile::getPartByColumn(line, VcfFile::QUAL).trimmed();
-				bool ok;
-				double qual_value = qual.toDouble(&ok);
-				if (!ok && qual!=".") THROW(ProgrammingException, "Quality '" + qual + "' cannot be converted to a number in line: " + line);
-				if (qual_value < quality)
+			//filter out invalid lines
+			if (remove_invalid)
+			{
+				QList<Sequence> alts;
+				foreach(const QByteArray& alt, col(parts, VcfFile::ALT).split(',')) alts << alt;
+				VcfLine vcf_line(col(parts, VcfFile::CHROM), Helper::toInt(col(parts, VcfFile::POS), "genomic position"), col(parts, VcfFile::REF), alts);
+				if (!vcf_line.isValid())
+				{
+					continue;
+				}
+			}
+
+			//filter by QUALITY
+			if (quality>0)
+			{
+				if (Helper::toDouble(col(parts, VcfFile::QUAL), "quality") < quality)
 				{
                     continue;
                 }
             }
 
-            ///Filter by empty filters (will remove empty filters).
+			//filter by empty filters (will remove empty filters).
             if (filter_empty)
             {
-                QByteArray filter = VcfFile::getPartByColumn(line, VcfFile::FILTER).trimmed();
+				const QByteArray& filter = col(parts, VcfFile::FILTER);
 
 				if (filter!="." && filter!="" && filter!="PASS")
                 {
@@ -337,21 +375,32 @@ public:
                 }
             }
 
-            ///Filter FILTER column via regex
-			if (filter != "")
+			//filter FILTER column via regex (include match)
+			if (!filter.isEmpty())
             {
-                QByteArray filter = VcfFile::getPartByColumn(line, VcfFile::FILTER).trimmed();
-                auto match = filter_re.match(filter);
+				const QByteArray& filter = col(parts, VcfFile::FILTER);
+				auto match = filter_re.match(filter);
                 if (!match.hasMatch())
                 {
                     continue;
                 }
             }
 
-            ///Filter ID column via regex
-			if (id != "")
+			//filter FILTER column via regex (exclude match)
+			if (!filter_exclude.isEmpty())
+			{
+				const QByteArray& filter = col(parts, VcfFile::FILTER);
+				auto match = filter_exclude_re.match(filter);
+				if (match.hasMatch())
+				{
+					continue;
+				}
+			}
+
+			//filter ID column via regex
+			if (!id.isEmpty())
             {
-                QByteArray id = VcfFile::getPartByColumn(line, VcfFile::ID).trimmed();
+				const QByteArray& id = col(parts, VcfFile::ID);
                 auto match = id_re.match(id);
                 if (!match.hasMatch())
                 {
@@ -359,10 +408,10 @@ public:
                 }
             }
 
-			///Filter by info operators in INFO column
+			//filter by info operators in INFO column
 			if (!info_filters.isEmpty())
             {
-                QByteArrayList info_parts = VcfFile::getPartByColumn(line, VcfFile::INFO).trimmed().split(';');
+				QByteArrayList info_parts = col(parts, VcfFile::INFO).split(';');
 
 				bool passes_filters = true;
 				foreach(const QByteArray& info_part, info_parts)
@@ -390,16 +439,16 @@ public:
                 }
             }
 
-            ///Filter by sample operators in the SAMPLE column
+			//filter by sample operators in the SAMPLE column
 			if (!sample_filters.isEmpty())
             {
-                QByteArrayList format_entries = VcfFile::getPartByColumn(line, VcfFile::FORMAT).trimmed().split(':');
+				QByteArrayList format_entries = col(parts, VcfFile::FORMAT).split(':');
 
 				int samples_passing = 0;
 				int samples_failing = 0;
                 for (int i = VcfFile::MIN_COLS + 1; i < column_count; ++i)
 				{
-                    QByteArrayList sample_parts = VcfFile::getPartByColumn(line, i).split(':');
+					QByteArrayList sample_parts = col(parts, i).split(':');
 
 					bool current_sample_passes = true;
 					foreach(const FilterDefinition& filter, sample_filters)
@@ -432,7 +481,7 @@ public:
 
         }
 
-        // Close streams
+		//close streams
         in_p->close();
         out_p->close();
     }

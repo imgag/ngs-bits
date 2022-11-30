@@ -26,6 +26,7 @@ public:
 		addInfile("in", "Input variant list in VCF format. If unset, reads from STDIN.", true, true);
 		addOutfile("out", "Output variant list in TSV format. If unset, writes to STDOUT.", true, true);
 
+		changeLog(2022, 11,  3, "Changed output variant style from GSvar to VCF.");
 		changeLog(2022,  9,  7, "Added support for streaming (STDIN > STDOUT).");
 		changeLog(2020,  8,  7, "Multi-allelic and multi-sample VCFs are supported.");
 	}

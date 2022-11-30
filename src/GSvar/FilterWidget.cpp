@@ -16,6 +16,7 @@
 #include <QMessageBox>
 #include "LoginManager.h"
 #include "GlobalServiceProvider.h"
+#include <QClipboard>
 
 FilterWidget::FilterWidget(QWidget *parent)
 	: QWidget(parent)
@@ -35,7 +36,6 @@ FilterWidget::FilterWidget(QWidget *parent)
 	connect(ui_.roi_add_temp, SIGNAL(clicked()), this, SLOT(addRoiTemp()));
 	connect(ui_.roi_remove, SIGNAL(clicked()), this, SLOT(removeRoi()));
 	connect(ui_.roi, SIGNAL(currentIndexChanged(int)), this, SLOT(roiSelectionChanged(int)));
-	connect(ui_.roi_details, SIGNAL(clicked(bool)), this, SLOT(showTargetRegionDetails()));
 	connect(this, SIGNAL(targetRegionChanged()), this, SLOT(updateGeneWarning()));
 
 	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(geneChanged()));
@@ -55,6 +55,11 @@ FilterWidget::FilterWidget(QWidget *parent)
 	ui_.clearn_btn->setMenu(new QMenu());
 	ui_.clearn_btn->menu()->addAction("Clear filters", this, SLOT(clearFilters()));
 	ui_.clearn_btn->menu()->addAction("Clear filters and ROI", this, SLOT(clearFiltersAndRoi()));
+
+	ui_.roi_btn->setMenu(new QMenu());
+	ui_.roi_btn->menu()->addAction(QIcon(":/Icons/Info.png"), "Show information", this, SLOT(showTargetRegionDetails()));
+	ui_.roi_btn->menu()->addAction(QIcon(":/Icons/Clipboard.png"),"Copy target region to clipboard", this, SLOT(copyTargetRegionToClipboard()));
+	ui_.roi_btn->menu()->addAction(QIcon(":/Icons/IGV.png"),"Open target region in IGV", this, SLOT(openTargetRegionInIGV()));
 
 	try
 	{
@@ -586,6 +591,20 @@ void FilterWidget::showTargetRegionDetails()
 	ScrollableTextDialog dlg(this, "Target region details");
 	dlg.appendLines(text);
 	dlg.exec();
+}
+
+void FilterWidget::copyTargetRegionToClipboard()
+{
+	QApplication::clipboard()->setText(roi_.regions.toText());
+}
+
+void FilterWidget::openTargetRegionInIGV()
+{
+
+	QString roi_file = GSvarHelper::localRoiFolder() + roi_.name + ".bed";
+	roi_.regions.store(roi_file);
+
+	GlobalServiceProvider::loadFileInIGV(roi_file, false);
 }
 
 void FilterWidget::updateGeneWarning()

@@ -90,7 +90,7 @@
             <enum>Qt::Horizontal</enum>
            </property>
            <property name="childrenCollapsible">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <widget class="QWidget" name="verticalLayoutWidget">
             <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -538,6 +538,7 @@
      <addaction name="separator"/>
      <addaction name="actionCohortAnalysis"/>
      <addaction name="separator"/>
+     <addaction name="actionUploadVariantToClinVar"/>
      <addaction name="actionShowPublishedVariants"/>
     </widget>
     <addaction name="menuVariant_search"/>
@@ -1451,6 +1452,15 @@
   <action name="actionImportSequencingRuns">
    <property name="text">
     <string>Sequencing run</string>
+   </property>
+  </action>
+  <action name="actionUploadVariantToClinVar">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/ClinGen.png</normaloff>:/Icons/ClinGen.png</iconset>
+   </property>
+   <property name="text">
+    <string>Manual ClinVar upload</string>
    </property>
   </action>
  </widget>

@@ -51,10 +51,24 @@ private slots:
 
 	void filter()
     {
-        EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in01.vcf") + " -out out/VcfFilter_out07.vcf" + " -filter off-target");
-        COMPARE_FILES("out/VcfFilter_out07.vcf", TESTDATA("data_out/VcfFilter_out07.vcf"));
-        VCF_IS_VALID("out/VcfFilter_out07.vcf");
+		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in01.vcf") + " -out out/VcfFilter_out07.vcf" + " -filter off-target");
+		COMPARE_FILES("out/VcfFilter_out07.vcf", TESTDATA("data_out/VcfFilter_out07.vcf"));
+		VCF_IS_VALID("out/VcfFilter_out07.vcf");
     }
+
+	void filter_exclude()
+	{
+		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in01.vcf") + " -out out/VcfFilter_out12.vcf" + " -filter_exclude off-target");
+		COMPARE_FILES("out/VcfFilter_out12.vcf", TESTDATA("data_out/VcfFilter_out06.vcf"));
+		VCF_IS_VALID("out/VcfFilter_out12.vcf");
+	}
+
+	void filter_filters()
+	{
+		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in01.vcf") + " -out out/VcfFilter_out13.vcf" + " -filter off-target -filter_exclude test");
+		COMPARE_FILES("out/VcfFilter_out13.vcf", TESTDATA("data_out/VcfFilter_out13.vcf"));
+		VCF_IS_VALID("out/VcfFilter_out13.vcf");
+	}
 
 	void info()
     {
@@ -83,6 +97,13 @@ private slots:
         COMPARE_FILES("out/VcfFilter_out11.vcf", TESTDATA("data_out/VcfFilter_out11.vcf"));
         VCF_IS_VALID("out/VcfFilter_out11.vcf");
     }
+
+	void remove_invalid()
+	{
+		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in03.vcf") + " -out out/VcfFilter_out14.vcf" + " -remove_invalid");
+		COMPARE_FILES("out/VcfFilter_out14.vcf", TESTDATA("data_out/VcfFilter_out14.vcf"));
+		VCF_IS_VALID("out/VcfFilter_out14.vcf");
+	}
 
 /************************************ BUGS ************************************/
 

@@ -136,27 +136,24 @@ FileInfo DatabaseServiceRemote::analysisJobLatestLogInfo(const int& job_id) cons
 {
 	checkEnabled(__PRETTY_FUNCTION__);
 
-	FileInfo output;
 	RequestUrlParams params;
 	params.insert("job_id", QString::number(job_id).toUtf8());
 	QByteArray reply = makeGetApiCall("analysis_job_last_update", params, true);
-	if (reply.length() == 0)
+	if (reply.length()>0)
 	{
-		THROW(Exception, "Could not get the latest update info for the job id " + QString::number(job_id));
+		QJsonDocument json_doc = QJsonDocument::fromJson(reply);
+		QJsonObject json_object = json_doc.object();
+
+		if (json_object.contains("latest_file") && json_object.contains("latest_file_with_path") && json_object.contains("latest_created") && json_object.contains("latest_mod"))
+		{
+			return FileInfo(json_object.value("latest_file").toString(),
+							json_object.value("latest_file_with_path").toString(),
+							QDateTime().fromSecsSinceEpoch(json_object.value("latest_created").toString().toLongLong()),
+							QDateTime().fromSecsSinceEpoch(json_object.value("latest_mod").toString().toLongLong()));
+		}
 	}
 
-	QJsonDocument json_doc = QJsonDocument::fromJson(reply);
-	QJsonObject json_object = json_doc.object();
-
-	if (json_object.contains("latest_file") && json_object.contains("latest_file_with_path") && json_object.contains("latest_created") && json_object.contains("latest_mod"))
-	{
-		return FileInfo(json_object.value("latest_file").toString(),
-						json_object.value("latest_file_with_path").toString(),
-						QDateTime().fromSecsSinceEpoch(json_object.value("latest_created").toString().toLongLong()),
-						QDateTime().fromSecsSinceEpoch(json_object.value("latest_mod").toString().toLongLong()));
-	}
-
-	return output;
+	return FileInfo();
 }
 
 FileLocation DatabaseServiceRemote::analysisJobGSvarFile(const int& job_id) const
@@ -325,7 +322,7 @@ QByteArray DatabaseServiceRemote::makePostApiCall(QString api_path, RequestUrlPa
 {
 	try
 	{
-		 return ApiCaller().post(api_path, params, HttpHeaders(), content, true, false, true);
+		return ApiCaller().post(api_path, params, HttpHeaders(), content, false, false, true);
 	}
 	catch (Exception& e)
 	{

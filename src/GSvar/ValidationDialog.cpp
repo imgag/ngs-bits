@@ -59,14 +59,15 @@ ValidationDialog::ValidationDialog(QWidget* parent, int id)
 		QStringList transcript_infos;
 
 		//get all transcripts containing the variant
-		TranscriptList transcripts  = db_.transcriptsOverlapping(variant.chr(), variant.start() - 5000, variant.end() + 5000);
+		TranscriptList transcripts  = db_.transcriptsOverlapping(variant.chr(), variant.start(), variant.end(), 5000);
+		transcripts.sortByRelevance();
 
 		//annotate consequence for each transcript
 		FastaFileIndex genome_idx(Settings::string("reference_genome"));
 		VariantHgvsAnnotator hgvs_annotator(genome_idx);
 		foreach(const Transcript& trans, transcripts)
 		{
-			VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, variant);
+			VariantConsequence consequence = hgvs_annotator.annotate(trans, variant);
 
 			QString exon_intron;
 			if (consequence.exon_number!=-1)

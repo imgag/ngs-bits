@@ -491,14 +491,24 @@ void GermlineReportGenerator::writeHTML(QString filename)
 			QString score = row[score_idx];
 			QString zscore = "n/a";
 			QString population = NGSHelper::populationCodeToHumanReadable(processed_sample_data.ancestry);
-			if (trait=="Breast Cancer") // mean and standard deviation taken from BCAC315 data
+			if (trait=="Breast Cancer") // mean and standard deviation for BCAC313 taken from https://canrisk.atlassian.net/wiki/spaces/FAQS/pages/35979266/What+variants+are+used+in+the+PRS
 			{
 				double mean = -0.424;
 				double stdev = 0.611;
-				zscore = QString::number((Helper::toDouble(score, "PRS score") - mean) / stdev, 'f', 3);
+				double zscore_num = (Helper::toDouble(score, "PRS score") - mean) / stdev;
+				zscore = QString::number(zscore_num, 'f', 3);
+				if (zscore_num>=1.6 && population==NGSHelper::populationCodeToHumanReadable("EUR"))
+				{
+					zscore = "<span style='background-color:#ff0;'>" + zscore + "</span>";
+				}
+				if (population!=NGSHelper::populationCodeToHumanReadable("EUR"))
+				{
+					zscore = "(" + zscore + ")";
+				}
 			}
 
 			stream << "<tr><td>" << trait << "</td><td>" << row[citation_idx] << "</td><td>" << score << "</td><td>" << zscore << "</td><td>" << population << "</td></tr>";
+
 		}
 		stream << "</table>" << endl;
 		stream << "<p>" << trans("Die Einsch&auml;tzung der klinischen Bedeutung eines PRS ist nur unter Verwendung eines entsprechenden validierten Risiko-Kalkulations-Programms und unter Ber&uuml;cksichtigung der ethnischen Zugeh&ouml;rigkeit m&ouml;glich (z.B. CanRisk.org f&uuml;r Brustkrebs).") << "</p>" << endl;
@@ -507,7 +517,6 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	//close stream
 	writeHtmlFooter(stream);
 	outfile->close();
-
 
 	//validate written file
 	QString validation_error = XmlHelper::isValidXml(filename);
@@ -534,7 +543,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element DiagnosticNgsReport
 	w.writeStartElement("DiagnosticNgsReport");
-	w.writeAttribute("version", "9");
+	w.writeAttribute("version", "10");
 	w.writeAttribute("type", data_.report_settings.report_type);
 
 	//element ReportGeneration
@@ -794,19 +803,19 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		if (var_conf.manualVarIsValid(genome_idx_)) //re-calculate based on new variant
 		{
 			//get all transcripts where the variant is completely contained in the region
-			TranscriptList transcripts  = db_.transcriptsOverlapping(variant.chr(), variant.start() - 5000, variant.end() + 5000);
+			TranscriptList transcripts  = db_.transcriptsOverlapping(variant.chr(), variant.start(), variant.end(), 5000);
 
 			//annotate consequence to transcript
 			VariantHgvsAnnotator hgvs_annotator(genome_idx_);
 			foreach(const Transcript& trans, transcripts)
 			{
-				VariantConsequence hgvs = hgvs_annotator.variantToHgvs(trans, variant);
+				VariantConsequence hgvs = hgvs_annotator.annotate(trans, variant);
 				VariantTranscript consequence;
 				consequence.gene = trans.gene();
-				consequence.id = hgvs.transcript_id.toUtf8();
-				consequence.type = hgvs.variantConsequenceTypesAsString().toUtf8();
-				consequence.hgvs_c = hgvs.hgvs_c.toUtf8();
-				consequence.hgvs_p = hgvs.hgvs_p.toUtf8();
+				consequence.id = trans.nameWithVersion();
+				consequence.type = hgvs.typesToString();
+				consequence.hgvs_c = hgvs.hgvs_c;
+				consequence.hgvs_p = hgvs.hgvs_p;
 				if (hgvs.exon_number!=-1)
 				{
 					consequence.exon = "exon"+QByteArray::number(hgvs.exon_number)+"/"+QByteArray::number(trans.regions().count());
@@ -853,7 +862,15 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			}
 			w.writeAttribute("exon", exon_nr);
 
-			bool is_main_transcript = data_.preferred_transcripts.contains(trans.gene) && data_.preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion());
+			bool is_main_transcript = false;
+			if (gene_id!=-1)
+			{
+				TranscriptList relevant_transcripts = db_.releventTranscripts(gene_id);
+				if (relevant_transcripts.contains(trans.idWithoutVersion()))
+				{
+					is_main_transcript = true;
+				}
+			}
 			w.writeAttribute("main_transcript", is_main_transcript ? "true" : "false");
 
 			w.writeEndElement();
@@ -1011,6 +1028,15 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		}
 		w.writeAttribute("rna_info", var_conf.rna_info);
 		w.writeAttribute("report_type", var_conf.report_type);
+
+		if (!var_conf.manual_cnv_hgvs_type.isEmpty())
+		{
+			w.writeAttribute("hgvs_type", var_conf.manual_cnv_hgvs_type);
+		}
+		if (!var_conf.manual_cnv_hgvs_suffix.isEmpty())
+		{
+			w.writeAttribute("hgvs_suffix", var_conf.manual_cnv_hgvs_suffix);
+		}
 
 		//element Gene
 		foreach(const QByteArray& gene, cnv.genes())
@@ -1175,6 +1201,14 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		{
 			w.writeAttribute("hgvs_bnd_end2", var_conf.manual_sv_end_bnd);
 		}
+		if (!var_conf.manual_sv_hgvs_type.isEmpty())
+		{
+			w.writeAttribute("hgvs_type", var_conf.manual_sv_hgvs_type);
+		}
+		if (!var_conf.manual_sv_hgvs_suffix.isEmpty())
+		{
+			w.writeAttribute("hgvs_suffix", var_conf.manual_sv_hgvs_suffix);
+		}
 
 		foreach(const QByteArray& gene, sv.genes(data_.svs.annotationHeaders(), false))
 		{
@@ -1263,15 +1297,13 @@ void GermlineReportGenerator::overrideDate(QDate date)
 
 BedFile GermlineReportGenerator::precalculatedGaps(const BedFile& gaps_roi, const BedFile& roi, int min_cov, const BedFile& processing_system_target_region)
 {
-	BedFile output(gaps_roi);
-
 	//check depth cutoff
 	if (min_cov!=20) THROW(ArgumentException, "Depth cutoff is not 20!");
 
 	//extract processing system ROI statistics
 	int regions = -1;
 	long long bases = -1;
-	foreach(QString line, output.headers())
+	foreach(QString line, gaps_roi.headers())
 	{
 		if (line.startsWith("#ROI bases: "))
 		{
@@ -1291,7 +1323,17 @@ BedFile GermlineReportGenerator::precalculatedGaps(const BedFile& gaps_roi, cons
 	if (processing_system_target_region.count()!=regions || processing_system_target_region.baseCount()!=bases) THROW(ArgumentException, "Low-coverage file is outdated: it does not match processing system target region!");
 
 	//calculate gaps inside target region
-	output.intersect(roi);
+	BedFile output;
+	if (gaps_roi.count()>roi.count())
+	{
+		output = roi;
+		output.intersect(gaps_roi);
+	}
+	else
+	{
+		output = gaps_roi;
+		output.intersect(roi);
+	}
 
 	//add target region bases not covered by processing system target file
 	BedFile uncovered(roi);
@@ -1550,7 +1592,7 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 		{
 			//load gaps file
 			BedFile gaps;
-			gaps.load(data_.ps_lowcov);
+			gaps.load(data_.ps_lowcov, false, false);
 
 			low_cov = GermlineReportGenerator::precalculatedGaps(gaps, data_.roi.regions, data_.report_settings.min_depth, data_.processing_system_roi);
 		}
@@ -1712,7 +1754,7 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 	BedFile ps_lowcov;
 	if (VersatileFile(data_.ps_lowcov).exists())
 	{
-		ps_lowcov.load(data_.ps_lowcov);
+		ps_lowcov.load(data_.ps_lowcov, false, false);
 	}
 
 	QString ext_string = (extend==0 ? "" : " +-" + QString::number(extend) + " ");
@@ -1890,14 +1932,13 @@ QString GermlineReportGenerator::formatCodingSplicing(const Variant& v)
 {
 	QStringList output;
 
-	//get transcript-specific data of best transcript for all overlapping genes
+	//get transcript-specific data of all relevant transcripts for all overlapping genes
 	VariantHgvsAnnotator hgvs_annotator(genome_idx_);
 	GeneSet genes = db_.genesOverlapping(v.chr(), v.start(), v.end(), 5000);
 	foreach(const QByteArray& gene, genes)
 	{
 		int gene_id = db_.geneId(gene);
-		Transcript trans = db_.bestTranscript(gene_id);
-		if (trans.isValid())
+		foreach(const Transcript& trans, db_.releventTranscripts(gene_id))
 		{
 			try
 			{
@@ -1915,7 +1956,7 @@ QString GermlineReportGenerator::formatCodingSplicing(const Variant& v)
 					}
 				}
 
-				VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, v);
+				VariantConsequence consequence = hgvs_annotator.annotate(trans, v);
 				output << gene + ":" + trans.nameWithVersion() + refseq + ":" + consequence.hgvs_c + ":" + consequence.hgvs_p;
 			}
 			catch(Exception& e)
@@ -2300,8 +2341,8 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 		{
 			try
 			{
-				VariantConsequence consequence = hgvs_annotator.variantToHgvs(trans, v);
-				types << consequence.variantConsequenceTypesAsString("&amp;");
+				VariantConsequence consequence = hgvs_annotator.annotate(trans, v);
+				types << consequence.typesToString("&amp;");
 				hgvs_cs << trans.nameWithVersion() + ":" + consequence.hgvs_c;
 				hgvs_ps << trans.nameWithVersion() + ":" + consequence.hgvs_p;
 			}

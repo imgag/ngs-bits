@@ -33,6 +33,7 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	connect(ui->var_btn, SIGNAL(clicked(bool)), this, SLOT(variantButtonClicked()));
 	connect(ui->trans, SIGNAL(linkActivated(QString)), this, SLOT(transcriptClicked(QString)));
 	connect(ui->pubmed, SIGNAL(linkActivated(QString)), this, SLOT(pubmedClicked(QString)));
+	connect(ui->genome_nexus, SIGNAL(linkActivated(QString)), this, SLOT(genomeNexusClicked(QString)));
 
 	//set up transcript buttons
 	ui->trans_prev->setStyleSheet("QPushButton {border: none; margin: 0px;padding: 0px;}");
@@ -99,12 +100,12 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_ngsd_validation->setToolTip(vl.annotationDescriptionByName("validation", false).description());
 
 	//somatic details
-	ui->label_som_class->setToolTip( vl.annotationDescriptionByName("somatic_classification", false).description() );
 	ui->label_somatic_count->setToolTip( vl.annotationDescriptionByName("NGSD_som_c", false).description() );
 	ui->label_somatic_oncogene->setToolTip(vl.annotationDescriptionByName("ncg_oncogene", false).description() );
 	ui->label_somatic_tsg->setToolTip( vl.annotationDescriptionByName("ncg_tsg", false).description() );
 	ui->label_somatic_cancerhotspots->setToolTip( vl.annotationDescriptionByName("CANCERHOTSPOTS_ALT_COUNT", false).description() );
 	ui->label_somatic_cmc_class->setToolTip( vl.annotationDescriptionByName("CMC_mutation_significance", false).description() );
+	ui->label_genome_nexus->setToolTip("Link to the variant on the Genome Nexus site.");
 
 	//RNAseq details
 	ui->label_rna_ase->setToolTip(vl.annotationDescriptionByName("ASE_pval", false).description());
@@ -212,13 +213,12 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->ngsd_validation, vl, index, "validation");
 
 	//somatic details
-	setAnnotation(ui->somatic_classification, vl, index, "somatic_classification");
 	setAnnotation(ui->somatic_count, vl, index, "NGSD_som_c");
 	setAnnotation(ui->somatic_oncogene, vl, index, "ncg_oncogene");
 	setAnnotation(ui->somatic_tsg, vl, index, "ncg_tsg");
-
 	setAnnotation(ui->somatic_cancerhotspots, vl, index, "CANCERHOTSPOTS_AA_CHANGE");
 	setAnnotation(ui->somatic_cmc_class, vl, index, "CMC_mutation_significance");
+	setAnnotation(ui->genome_nexus, vl, index, "genome_nexus");
 
 	//somatic VICC data from NGSD
 	setAnnotation(ui->somatic_vicc_score, vl, index, "NGSD_som_vicc_interpretation");
@@ -623,6 +623,16 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		}
 	}
 
+	if(name == "genome_nexus")
+	{
+		FastaFileIndex genome_index(Settings::string("reference_genome"));
+		QString url = "https://grch38.genomenexus.org/variant/";
+		QString chr_hgvs = vl[index].chr().strNormalized(false) + ":" + vl[index].toHGVS(genome_index);
+
+		QString link = url + chr_hgvs;
+		text = formatLink(chr_hgvs, link);
+	}
+
 	//set text/tooltip
 	label->setText(text);
 	label->setToolTip(tooltip);
@@ -891,6 +901,11 @@ void VariantDetailsDockWidget::pubmedClicked(QString link)
 			QDesktopServices::openUrl(QUrl("https://pubmed.ncbi.nlm.nih.gov/" + id + "/"));
 		}
 	}
+}
+
+void VariantDetailsDockWidget::genomeNexusClicked(QString link)
+{
+	QDesktopServices::openUrl(QUrl(link));
 }
 
 void VariantDetailsDockWidget::variantButtonClicked()

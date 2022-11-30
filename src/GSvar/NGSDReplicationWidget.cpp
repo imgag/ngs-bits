@@ -174,7 +174,9 @@ void NGSDReplicationWidget::updateTable(QString table, bool contains_variant_id,
 	q_del.prepare("DELETE FROM "+table+" WHERE id=:0");
 
 	SqlQuery q_add = db_target_->getQuery();
-	q_add.prepare("INSERT INTO "+table+" VALUES (:" + fields.join(", :") + ")");
+	QString extra_fields;
+	if (table=="project") extra_fields = ", '0'";
+	q_add.prepare("INSERT INTO "+table+" VALUES (:" + fields.join(", :") + extra_fields + ")");
 
 	SqlQuery q_get = db_target_->getQuery();
 	q_get.prepare("SELECT * FROM "+table+" WHERE id=:0");

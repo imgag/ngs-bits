@@ -180,7 +180,7 @@ public:
 	}
 
     ///Loads a 0-based BED file and converts it to 1-based positions. Throws ParseException.
-	void load(QString filename, bool stdin_if_empty=true);
+	void load(QString filename, bool stdin_if_empty=true, bool read_annotations=true);
 	///Stores this 1-based representation to a BED file with 0-based coordinates. If no filename is given, the output goes to the console. Throws ParseException and FileException.
 	void store(QString filename, bool stdout_if_empty=true) const;
 	///Convert this 1-based representation to a BED-like text. Throws ParseException and FileException.

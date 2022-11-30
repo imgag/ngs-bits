@@ -4,6 +4,7 @@
 #include "TSVFileStream.h"
 #include "BasicStatistics.h"
 #include "KeyValuePair.h"
+#include "NGSHelper.h"
 #include <QFileInfo>
 
 CopyNumberVariant::CopyNumberVariant()
@@ -639,4 +640,31 @@ CnvListCallData CnvList::getCallData(const CnvList& cnvs, QString filename, QStr
 
 	return out;
 
+}
+
+int CnvList::determineReferenceCopyNumber(const CopyNumberVariant& cnv, const QString& gender, GenomeBuild build)
+{
+	if (cnv.chr().isAutosome()) return 2;
+	if (cnv.chr().isY()) return 1;
+	if (cnv.chr().isX())
+	{
+		if(gender == "female") return 2;
+		//check for overlap in pseudoautosomal region (has to be checked only for X, since Y-part is masked in mapping)
+		if(gender == "male")
+		{
+			//calculate intersection with PAR
+			BedFile intersection = NGSHelper::pseudoAutosomalRegion(build);
+			intersection.intersect(BedFile(cnv.chr(), cnv.start(), cnv.end()));
+			if ((intersection.baseCount()/cnv.size()) > 0.5)
+			{
+				return 2;
+			}
+			else
+			{
+				return 1;
+			}
+		}
+	}
+	//return -1 if gender is not set or chr is undefined
+	return -1;
 }

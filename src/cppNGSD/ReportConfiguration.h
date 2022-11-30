@@ -57,6 +57,8 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	QString manual_cnv_start;
 	QString manual_cnv_end;
 	QString manual_cnv_cn;
+	QString manual_cnv_hgvs_type;
+	QString manual_cnv_hgvs_suffix;
 	bool manualCnvStartIsValid() const;
 	bool manualCnvEndIsValid() const;
 	bool manualCnvCnIsValid() const;
@@ -68,6 +70,8 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	QString manual_sv_genotype;
 	QString manual_sv_start_bnd;
 	QString manual_sv_end_bnd;
+	QString manual_sv_hgvs_type;
+	QString manual_sv_hgvs_suffix;
 	bool manualSvStartIsValid() const;
 	bool manualSvEndIsValid() const;
 	bool manualSvGenoIsValid() const;

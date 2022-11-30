@@ -35,6 +35,7 @@ VariantList SomaticReportSettings::filterVariants(const VariantList &snvs, const
 
 	result.addAnnotation("alt_var_alteration","If an alternative text for protein change is specified in report config, this is stored here.", "");
 	result.addAnnotation("alt_var_description", "Alternate description text for variant alteration", "");
+
 	for(int i=0; i<snvs.count(); ++i)
 	{
 		if(!filter_res.flags()[i]) continue;
