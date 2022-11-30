@@ -37,7 +37,14 @@ struct TargetRegionInfo
 
 };
 
-//Output of Ensembl GFF file parser.
+//Settings for Gff parser
+struct GffSettings
+{
+	bool skip_not_gencode_basic = true; //skip transcripts that are not flagged as "GENCODE basic"
+	bool print_to_stdout = true; //print summary to stdout
+};
+
+//Output of Ensembl GFF file parser
 struct GffData
 {
 	//Transcripts
@@ -114,7 +121,7 @@ public:
 	static QString populationCodeToHumanReadable(QString code);
 
 	///Returns transcripts with features from a Ensembl GFF file, transcript_gene_relation (ENST>ENSG) and gene_name_relation (ENSG>gene symbol).
-	static void loadGffFile(QString filename, GffData& output, bool print_to_stdout);
+	static GffData loadGffFile(QString filename, GffSettings settings);
 
 	///Returns if the application is running in client-server mode (mainly used for GSvar).
 	static bool isClientServerMode();

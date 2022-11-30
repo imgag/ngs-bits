@@ -120,7 +120,7 @@ void ThreadCoordinator::checkDone()
 	timer_done_.stop();
 
 	QTextStream stream(stdout);
-	stream << "Annotation jobs finished" << endl;
+	stream << "Annotation done" << endl;
 	stream << "Annotated " << QString::number(c_annotated_) << " variants." << endl;
 	stream << "Skipped " << QString::number(c_skipped_) << " invalid variants." << endl;
 	stream << "Annotation took: " << Helper::elapsedTime(timer_annotation_) << endl;

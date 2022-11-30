@@ -352,8 +352,10 @@ public:
 		loadMane(getInfile("mane"), mane_select, mane_plus_clinical);
 
 		//parse input - format description at https://www.gencodegenes.org/data_format.html and http://www.ensembl.org/info/website/upload/gff3.html
-		GffData data;
-		NGSHelper::loadGffFile(getInfile("in"), data, true);
+		GffSettings gff_settings;
+		gff_settings.print_to_stdout = true;
+		gff_settings.skip_not_gencode_basic = false;
+		GffData data = NGSHelper::loadGffFile(getInfile("in"), gff_settings);
         QSet<QByteArray> ccds_transcripts_added;
 		foreach(const Transcript& t, data.transcripts)
         {
@@ -417,8 +419,6 @@ public:
 			importPseudogenes(data.enst2ensg, data.ensg2symbol, file_path);
 		}
 	}
-
-	//TODO: update exon expression table
 };
 
 #include "main.moc"

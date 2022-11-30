@@ -39,7 +39,10 @@ public:
 
 	//add modeless dialog
 	static void addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize=false);
-
+	//get sample variants
+	static const VariantList& getSmallVariantList();
+	static const CnvList& getCnvList();
+	static const BedpeFile& getSvList();
 protected:
 	GlobalServiceProvider();
 	~GlobalServiceProvider();

@@ -159,7 +159,7 @@ void LoginManager::renewLogin()
 	QString user_password;
 	try
 	{
-		user_login = manager.userName();
+		user_login = manager.userLogin();
 		user_password = manager.userPassword();
 	}
 	catch (Exception& e) {
