@@ -82,7 +82,7 @@ public slots:
 	/// Checks (only in clinet-server mode) if the server is currently running
 	void checkServerAvailability();
 	///Loads a variant list. Unloads the variant list if no file name is given
-	void loadFile(QString filename="", bool show_only_error_issues=false);
+	void loadFile(QString filename="", QString viral_file="", bool show_only_error_issues=false);
 	///Checks if variant list is outdated
 	void checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues);
 	///Checks if processed samples have bad quality or other problems
@@ -412,6 +412,8 @@ public slots:
 	void execContextMenuAction(QAction* action, int index);
 	//Open Alamut visualization
 	void openAlamut(QAction* action);
+	//Opens a virus table based on a corresponding TSV file
+	void openVirusTable();
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
@@ -430,6 +432,7 @@ private:
 
 	//DATA
 	QString filename_;
+	QString viral_file_;
 	bool igv_initialized_;
 	VariantList variants_;
 	struct VariantListChange

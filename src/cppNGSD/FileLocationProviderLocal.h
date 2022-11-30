@@ -25,6 +25,7 @@ public:
 
 	FileLocationList getVcfFiles(bool return_if_missing) const override;
 	FileLocationList getBamFiles(bool return_if_missing) const override;
+	FileLocationList getViralBamFiles(bool return_if_missing) const override;
 	FileLocationList getCnvCoverageFiles(bool return_if_missing) const override;
 	FileLocationList getBafFiles(bool return_if_missing) const override;
 	FileLocationList getMantaEvidenceFiles(bool return_if_missing) const override;

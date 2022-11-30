@@ -272,6 +272,20 @@
                  </widget>
                 </item>
                 <item>
+                 <widget class="QToolButton" name="virus_detection_btn">
+                  <property name="toolTip">
+                   <string>Virus detection</string>
+                  </property>
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="GSvar.qrc">
+                    <normaloff>:/Icons/Virus.png</normaloff>:/Icons/Virus.png</iconset>
+                  </property>
+                 </widget>
+                </item>
+                <item>
                  <spacer name="horizontalSpacer">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
@@ -357,7 +371,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>21</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

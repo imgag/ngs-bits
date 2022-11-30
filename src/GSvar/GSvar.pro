@@ -97,6 +97,7 @@ SOURCES += main.cpp\
     DatabaseServiceLocal.cpp \
     NGSDReplicationWidget.cpp \
     CohortAnalysisWidget.cpp \
+    VirusDetectionWidget.cpp \
     cfDNARemovedRegions.cpp \
     ClinvarUploadDialog.cpp \
     LiftOverWidget.cpp \
@@ -209,6 +210,7 @@ HEADERS += MainWindow.h \
     DatabaseServiceLocal.h \
     NGSDReplicationWidget.h \
     CohortAnalysisWidget.h \
+    VirusDetectionWidget.h \
     cfDNARemovedRegions.h \
     ClinvarUploadDialog.h \
     LiftOverWidget.h \
@@ -308,6 +310,7 @@ FORMS    += MainWindow.ui \
     GapClosingDialog.ui \
     NGSDReplicationWidget.ui \
     CohortAnalysisWidget.ui \
+    VirusDetectionWidget.ui \
     cfDNARemovedRegions.ui \
     ClinvarUploadDialog.ui \
     BlatWidget.ui \

@@ -115,6 +115,30 @@ int main(int argc, char **argv)
 				   });
 
 	EndpointManager::appendEndpoint(Endpoint{
+						"genome",
+						QMap<QString, ParamProps>{
+						   {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, true, "Name of the file to be served"}}
+						},
+						RequestMethod::GET,
+						ContentType::TEXT_HTML,
+						AuthType::NONE,
+						"Genome stored on the server",
+						&ServerController::serveStaticServerGenomes
+				   });
+
+	EndpointManager::appendEndpoint(Endpoint{
+						"genome",
+						QMap<QString, ParamProps>{
+						   {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, false, "Name of the file to be served"}}
+						},
+						RequestMethod::HEAD,
+						ContentType::TEXT_HTML,
+						AuthType::NONE,
+						"Size of the genome stored on the server",
+						&ServerController::serveStaticServerGenomes
+				   });
+
+	EndpointManager::appendEndpoint(Endpoint{
 						"protected",
 						QMap<QString, ParamProps>{
 						   {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, true, "Name of the file to be served"}}

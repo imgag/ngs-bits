@@ -31,6 +31,8 @@ public:
 	static void openProcessingSystemTab(QString system_short_name);
 
 	//IGV functionality
+	static void executeCommandListInIGV(QStringList commands, bool init_if_not_done);
+	static void executeCommandInIGV(QString command, bool init_if_not_done);
 	static void gotoInIGV(QString region, bool init_if_not_done);
 	static void loadFileInIGV(QString filename, bool init_if_not_done);
 

@@ -36,6 +36,8 @@ public:
 	/// Provides a random access to a file or streams it (depending on the headers), as well as displays a folder
 	/// content from the server root folder
 	static HttpResponse serveStaticFromServerRoot(const HttpRequest& request);
+	/// Returns a genome saved on the server
+	static HttpResponse serveStaticServerGenomes(const HttpRequest& request);
 	/// Provides a random access to a file or streams it (depending on the headers), as well as displays a folder
 	/// content for a specific project folder linked to a temporary URL
 	static HttpResponse serveStaticFromTempUrl(const HttpRequest& request);
@@ -98,7 +100,7 @@ private:
 	/// Find file/folder name corresponding to the id from a temporary URL
 	static QString findPathForTempUrl(QList<QString> path_parts);
 	/// Find file/folder name corresponding to the server root data
-	static QString findPathForServerRoot(const QList<QString>& path_parts);
+	static QString findPathForServerFolder(const QList<QString>& path_parts, QString server_folder);
 	/// Check if byte-range request contains overlapping ranges, they are
 	/// not allowed, according to the HTTP specification
 	static bool hasOverlappingRanges(const QList<ByteRange> ranges);

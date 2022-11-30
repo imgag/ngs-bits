@@ -15,7 +15,7 @@ enum class PathType
 
 	//mapping data
 	BAM, //BAM file
-
+	VIRAL_BAM, //BAM file for a virus
 	//variant data
 	VCF, //small variants (VCF.GZ format)
 	GSVAR, //small variants (GSvar format)
@@ -119,6 +119,8 @@ struct FileLocation
 				return "SAMPLE_FOLDER";
 			case PathType::BAM:
 				return "BAM";
+			case PathType::VIRAL_BAM:
+				return "VIRAL_BAM";
 			case PathType::GSVAR:
 				return "GSVAR";
 			case PathType::VCF:
@@ -205,6 +207,7 @@ struct FileLocation
 
 		if (in_upper == "SAMPLE_FOLDER") return PathType::SAMPLE_FOLDER;
 		if (in_upper == "BAM") return PathType::BAM;
+		if (in_upper == "VIRAL_BAM") return PathType::VIRAL_BAM;
 		if (in_upper == "GSVAR") return PathType::GSVAR;
 		if (in_upper == "VCF") return PathType::VCF;
 		if (in_upper == "BAF") return PathType::BAF;
@@ -254,6 +257,8 @@ struct FileLocation
 				return "sample/analysis folder";
 			case PathType::BAM:
 				return "BAM file";
+			case PathType::VIRAL_BAM:
+				return "viral BAM file";
 			case PathType::VCF:
 				return "small variant calls";
 			case PathType::GSVAR:
