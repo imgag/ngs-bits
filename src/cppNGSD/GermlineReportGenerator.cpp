@@ -1281,7 +1281,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	outfile->close();
 
 	//validate written XML file
-	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/GermlineReport_v9.xsd");
+	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/GermlineReport.xsd");
 	if (xml_error!="")
 	{
 		THROW(ProgrammingException, "Invalid germline report XML file " + filename+ " generated:\n" + xml_error);

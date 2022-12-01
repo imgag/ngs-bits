@@ -4,9 +4,11 @@
 #include "LoginManager.h"
 #include "SomaticXmlReportGenerator.h"
 #include "SomaticReportSettings.h"
+#include "SomaticReportHelper.h"
 #include "GermlineReportGenerator.h"
 #include "TumorOnlyReportWorker.h"
 #include "StatisticsServiceLocal.h"
+#include "FileLocationProviderLocal.h"
 #include "VariantHgvsAnnotator.h"
 
 #include <QThread>
@@ -1516,6 +1518,19 @@ private slots:
 		removed_regions_db.clearHeaders();
 		S_EQUAL(removed_regions.toText(), removed_regions_db.toText());
 
+		//test ID-SNP extraction
+		BedFile target_region;
+		target_region.load(TESTDATA("../cppNGSD-TEST/data_in/cfDNA_id_snp.bed"));
+		VcfFile id_snps_tumor_normal = db.getIdSnpsFromProcessingSystem(db.processingSystemId("IDT_xGenPrism"), target_region, false, true);
+		QByteArrayList vcf_lines;
+		for (int i = 0; i < id_snps_tumor_normal.vcfLines().count(); ++i) vcf_lines << id_snps_tumor_normal.vcfLine(i).toString();
+		QByteArrayList expected;
+		expected << "chr1:13828907 G>A" << "chr1:88923261 A>C" << "chr1:107441476 A>G" << "chr1:160816880 A>G" << "chr1:233312667 C>T" << "chr2:9945593 G>A" << "chr2:59773585 T>C"
+				  << "chr2:106122379 A>G" << "chr2:181548532 A>G" << "chr19:4569797 A>C" << "chr19:39069167 A>C" << "chr19:49401772 T>C" << "chr20:52679623 T>C" << "chr21:14109044 G>T"
+				  << "chr21:26651051 T>C" << "chr22:20433563 T>C" << "chr22:33163522 T>A" << "chrX:11296872 N>N" << "chrX:24211417 N>N" << "chrY:2787395 N>N" << "chrY:2979985 N>N"
+				  << "chrY:6869957 N>N";
+		IS_TRUE((vcf_lines==expected));
+
 		//############################### variant publication ###############################
 		// variant
 		variant = db.variant("199844");
@@ -2314,11 +2329,10 @@ private slots:
 		xml_data.rtf_part_cnvs = "chromosomal aberrations";
 		xml_data.rtf_part_svs = "Fusions";
 		xml_data.rtf_part_pharmacogenetics = "RTF pharmacogenomics table";
-		xml_data.rtf_part_general_info = "general meta data";
+                xml_data.rtf_part_general_info = "general meta data";
 		xml_data.rtf_part_igv_screenshot = "89504E470D0A1A0A0000000D4948445200000002000000020802000000FDD49A73000000097048597300002E2300002E230178A53F76000000164944415408D763606060686E6E66F8FFFFFF7F0606001FCD0586CC377DEC0000000049454E44AE426082";
 		xml_data.rtf_part_mtb_summary = "MTB summary";
-
-
+                xml_data.rtf_part_hla_summary = "HLA summary";
 
 		QSharedPointer<QFile> out_file = Helper::openFileForWriting("out/somatic_report.xml");
 		SomaticXmlReportGenerator::generateXML(xml_data, out_file, db, true);
@@ -2513,6 +2527,51 @@ private slots:
 		query.exec("SELECT id FROM somatic_gene_role"); //3 remaining rows
 		I_EQUAL(query.size(), 3);
 		I_EQUAL(-1, db.getSomaticGeneRoleId("PTGS2"));
+	}
+
+	// Test the somatic report RTF generation
+	void test_somatic_rtf()
+	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in4.sql"));
+
+		QString tumor_sample = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/DNA123456_01-NA12878_03.GSvar");
+		QString normal_sample = TESTDATA("data_in/somatic/Sample_NA12878_03/NA12878_03.GSvar");
+
+		VariantList vl;
+		vl.load(tumor_sample);
+
+		VariantList control_tissue_variants;
+		control_tissue_variants.load(normal_sample);
+
+		CnvList cnv_list;
+
+		QSharedPointer<FileLocationProvider> flp = QSharedPointer<FileLocationProviderLocal>(new FileLocationProviderLocal(tumor_sample, vl.getSampleHeader(), AnalysisType::SOMATIC_SINGLESAMPLE)); //vl.type()
+
+		FileLocation cnv_loc = flp->getAnalysisCnvFile();
+		if (cnv_loc.exists) cnv_list.load(cnv_loc.filename);
+
+		SomaticReportSettings somatic_report_settings;
+		somatic_report_settings.tumor_ps = "DNA123456_01";
+		somatic_report_settings.normal_ps = "NA12878_03";
+		somatic_report_settings.msi_file = flp->getSomaticMsiFile().filename;
+		somatic_report_settings.viral_file = "";
+
+		S_EQUAL(db.processedSampleId("DNA123456_01"), "4004");
+
+		somatic_report_settings.report_config.setTumContentByHistological(true);
+		somatic_report_settings.report_config.setTumContentByClonality(true);
+		somatic_report_settings.report_config.setMsiStatus(true);
+		somatic_report_settings.report_config.setFusionsDetected(true);
+		somatic_report_settings.report_config.setCnvBurden(true);
+
+		SomaticReportHelper report(GenomeBuild::HG38, vl, cnv_list, control_tissue_variants, somatic_report_settings);
+		report.storeRtf("out/somatic_report_tumor_normal.rtf");
+
+		COMPARE_FILES("out/somatic_report_tumor_normal.rtf", TESTDATA("data_out/somatic_report_tumor_normal.rtf"));
 	}
 
 	//Test tumor only RTF report generation

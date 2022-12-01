@@ -1,9 +1,9 @@
 <RCC>
     <qresource prefix="/">
         <file>resources/NGSD_schema.sql</file>
-        <file>resources/SomaticReport_v4.xsd</file>
+        <file>resources/SomaticReport.xsd</file>
         <file>resources/NGSD_initial_data.sql</file>
         <file>resources/TumorOnlyNGSReport_v1.xsd</file>
-        <file>resources/GermlineReport_v9.xsd</file>
+        <file>resources/GermlineReport.xsd</file>
     </qresource>
 </RCC>

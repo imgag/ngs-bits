@@ -884,6 +884,7 @@
 											<xs:enumeration value="general_info"/>
 											<xs:enumeration value="igv_screenshot"/>
 											<xs:enumeration value="mtb_summary"/>
+											<xs:enumeration value="hla_summary"/>
 										</xs:restriction>
 									</xs:simpleType>
 								</xs:attribute>

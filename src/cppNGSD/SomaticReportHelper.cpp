@@ -1330,7 +1330,7 @@ RtfTable SomaticReportHelper::hlaTable(QString ps_name, QByteArray type)
 	{
 		THROW(DatabaseException, "hla file for the processed sample '" + ps_name + "' was not found!");
 	}
-	TSVFileStream hla_stream(hla_file);
+
 
 	QList<int> cell_widths = {2000,1000,1500,1500,800,722,800,800,800};
 	RtfTable table;
@@ -1339,6 +1339,7 @@ RtfTable SomaticReportHelper::hlaTable(QString ps_name, QByteArray type)
 
 	if (VersatileFile(hla_file).exists())
 	{
+		TSVFileStream hla_stream(hla_file);
 		while (!hla_stream.atEnd())
 		{
 			QByteArrayList values = hla_stream.readLine();
@@ -1493,6 +1494,7 @@ void SomaticReportHelper::storeXML(QString file_name)
 	data.rtf_part_general_info = partMetaData();
 	data.rtf_part_igv_screenshot = partIgvScreenshot();
 	data.rtf_part_mtb_summary = partPathways();
+	data.rtf_part_hla_summary = hlaTable(settings_.normal_ps, "Normal").RtfCode() + RtfParagraph("").RtfCode() + hlaTable(settings_.tumor_ps, "Tumor").RtfCode();
 
 	QSharedPointer<QFile> out_file = Helper::openFileForWriting(file_name);
 	SomaticXmlReportGenerator::generateXML(data, out_file, db_, false);

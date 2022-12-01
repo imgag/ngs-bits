@@ -3645,7 +3645,7 @@ QList<CfdnaGeneEntry> NGSD::cfdnaGenes()
 	return genes;
 }
 
-VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, bool tumor_only, bool throw_on_fail)
+VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, const BedFile& target_region, bool tumor_only, bool throw_on_fail)
 {
 	VcfFile vcf;
 	vcf.sampleIDs().append("TUMOR");
@@ -3669,7 +3669,7 @@ VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, bool tumor_only, bool th
 	info.push_back(value);
 	info_ptr->push_back(key, static_cast<unsigned char>(0));
 
-	BedFile target_region = processingSystemRegions(sys_id, false);
+//	BedFile target_region = processingSystemRegions(sys_id, false);
 
 	QByteArrayList format_ids = QByteArrayList() << "GT";
 	QByteArrayList sample_ids = QByteArrayList() << "TUMOR";

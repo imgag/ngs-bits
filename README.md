@@ -169,7 +169,9 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 Changes of master since last release:
 
-* none so far
+* GSvar:
+	* Updated ClinVar upload to new API version
+	* Added support to upload CNVs, SVs and CompHet variants to ClinVar
 
 Changes in release 2022_11:
 * VcfAnnotateConsequence: implemented multi-threading, added much more tests and fixed several bugs.
