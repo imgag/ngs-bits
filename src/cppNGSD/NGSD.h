@@ -896,7 +896,7 @@ public:
 	///Returns all available cfDNA gene entries
 	QList<CfdnaGeneEntry> cfdnaGenes();
 	///Returns the ID SNPs of a processing system as VCF
-	VcfFile getIdSnpsFromProcessingSystem(int sys_id, bool tumor_only = false, bool throw_on_fail = true);
+	VcfFile getIdSnpsFromProcessingSystem(int sys_id, const BedFile& target_region, bool tumor_only = false, bool throw_on_fail = true);
 
 	///Returns all QC terms of the sample
 	QCCollection getQCData(const QString& processed_sample_id);

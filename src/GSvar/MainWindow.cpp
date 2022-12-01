@@ -275,12 +275,12 @@ MainWindow::MainWindow(QWidget *parent)
 		// a new token will be requested slightly in advance
 		QTimer *login_timer = new QTimer(this);
 		connect(login_timer, &QTimer::timeout, this, &LoginManager::renewLogin);
-		login_timer->start(1200 * 1000); // every 20 minutes
+		login_timer->start(20 * 60 * 1000); // every 20 minutes
 
 		//check if the server is running
 		QTimer *server_ping_timer = new QTimer(this);
 		connect(server_ping_timer, SIGNAL(timeout()), this, SLOT(checkServerAvailability()));
-		server_ping_timer->start(600 * 1000); // every 10 minutes
+		server_ping_timer->start(10 * 60 * 1000); // every 10 minutes
 	}
 
 	connect(ui_.vars, SIGNAL(publishToClinvarTriggered(int, int)), this, SLOT(uploadToClinvar(int, int)));

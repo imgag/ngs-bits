@@ -286,7 +286,7 @@ void RequestWorker::run()
 					return;
 				}
 
-				if (pos > file_size) break;
+				if (pos >= (file_size-1)) break;
 				streamed_file.data()->seek(pos);
 
 				if ((pos+chunk_size)>(ranges[i].end+1))
@@ -297,7 +297,7 @@ void RequestWorker::run()
 				if (chunk_size <= 0) break;
 				data = streamed_file.data()->read(chunk_size);
 				sendResponseDataPart(ssl_socket, data);
-				pos = pos + chunk_size;
+				pos = pos + data.size();
 			}
 			if (is_terminated_) return;
 			if (ranges_count > 1) sendResponseDataPart(ssl_socket, "\r\n");
