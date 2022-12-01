@@ -1494,6 +1494,7 @@ void SomaticReportHelper::storeXML(QString file_name)
 	data.rtf_part_general_info = partMetaData();
 	data.rtf_part_igv_screenshot = partIgvScreenshot();
 	data.rtf_part_mtb_summary = partPathways();
+	data.rtf_part_hla_summary = hlaTable(settings_.normal_ps, "Normal").RtfCode() + RtfParagraph("").RtfCode() + hlaTable(settings_.tumor_ps, "Tumor").RtfCode();
 
 	QSharedPointer<QFile> out_file = Helper::openFileForWriting(file_name);
 	SomaticXmlReportGenerator::generateXML(data, out_file, db_, false);

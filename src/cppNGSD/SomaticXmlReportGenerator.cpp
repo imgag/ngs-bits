@@ -520,7 +520,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	writeReportPartsElement(w, "general_info", data.rtf_part_header+data.rtf_part_general_info+data.rtf_part_footer);
 	writeReportPartsElement(w, "igv_screenshot", data.rtf_part_header+data.rtf_part_igv_screenshot+data.rtf_part_footer);
 	writeReportPartsElement(w, "mtb_summary", data.rtf_part_header+data.rtf_part_mtb_summary+data.rtf_part_footer);
-
+	writeReportPartsElement(w, "hla_summary", data.rtf_part_header+data.rtf_part_hla_summary+data.rtf_part_footer);
 
 	//End Element SomaticNgsReport
 	w.writeEndElement();
@@ -531,7 +531,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 void SomaticXmlReportGenerator::validateXml(QString file_name)
 {
-	QString xml_error = XmlHelper::isValidXml(file_name, ":/resources/SomaticReport_v4.xsd");
+	QString xml_error = XmlHelper::isValidXml(file_name, ":/resources/SomaticReport.xsd");
 
 	if(xml_error!= "")
 	{
