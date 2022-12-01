@@ -31,3 +31,4 @@ cp ./bin/GSvarServer-TEST.ini ./bin/GSvarServer.ini
 
 sed -i '/CRYPT/d' src/cppCORE/cppCORE.pro
 echo 'DEFINES += "CRYPT_KEY=\\\"0xf0a0c1ba2b7b7a82\\\""' >> ./src/cppCORE/cppCORE.pro
+sed -i "s/evaluationdate/$(date '+%d.%m.%Y')/g" ./src/cppNGSD-TEST/data_out/somatic_report_tumor_normal.rtf
