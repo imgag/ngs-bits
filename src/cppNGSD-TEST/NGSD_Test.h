@@ -2569,7 +2569,7 @@ private slots:
 		somatic_report_settings.report_config.setCnvBurden(true);
 		somatic_report_settings.report_config.setEvaluationDate(QDate(2022,12,1));
 
-		SomaticReportHelper report(GenomeBuild::HG38, vl, cnv_list, control_tissue_variants, somatic_report_settings);
+		SomaticReportHelper report(GenomeBuild::HG38, vl, cnv_list, control_tissue_variants, somatic_report_settings, true);
 		report.storeRtf("out/somatic_report_tumor_normal.rtf");
 
 		COMPARE_FILES("out/somatic_report_tumor_normal.rtf", TESTDATA("data_out/somatic_report_tumor_normal.rtf"));
