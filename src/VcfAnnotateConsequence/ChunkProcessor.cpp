@@ -75,112 +75,113 @@ void ChunkProcessor::run()
 
 QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const ChromosomalIndex<TranscriptList>& transcript_index)
 {
-	try
+	//split line and extract variant infos
+	QList<QByteArray> parts = line.split('\t');
+	if (parts.count()<VcfFile::MIN_COLS)
 	{
-		//split line and extract variant infos
-		QList<QByteArray> parts = line.split('\t');
-		if (parts.count()<VcfFile::MIN_COLS)
+		THROW(FileParseException, "VCF line with too few columns: " + line);
+	}
+
+	Chromosome chr = parts[0];
+	int pos = Helper::toInt(parts[1], "VCF position");
+	Sequence ref = parts[3].toUpper();
+	Sequence alt = parts[4].toUpper();
+
+	//write out invalid without CSQ annotation
+	if(!VcfLine(chr, pos, ref, alt.split(',')).isValid())
+	{
+		++lines_skipped_;
+		return line;
+	}
+	++lines_annotated_;
+
+	//get all transcripts where the variant is completely contained in the region
+	int region_start = std::max(pos - settings_.annotation_parameters.max_dist_to_transcript, 0);
+	int region_end = pos + ref.length() + settings_.annotation_parameters.max_dist_to_transcript;
+
+	QVector<int> indices = transcript_index.matchingIndices(chr, region_start, region_end-1);
+
+	QByteArrayList consequences;
+
+	//no transcripts in proximity: intergenic variant
+	if(indices.isEmpty())
+	{
+		foreach(const Sequence& alt_part, alt.split(','))
 		{
-			THROW(FileParseException, "VCF line with too few columns: " + line);
+			VariantConsequence hgvs;
+			hgvs.types.insert(VariantConsequenceType::INTERGENIC_VARIANT);
+			hgvs.impact = VariantHgvsAnnotator::consequenceTypeToImpact(VariantConsequenceType::INTERGENIC_VARIANT);
+			Transcript t;
+			consequences << hgvsNomenclatureToString(csqAllele(ref, alt_part), hgvs, t);
 		}
+	}
 
-		Chromosome chr = parts[0];
-		int pos = Helper::toInt(parts[1], "VCF position");
-		Sequence ref = parts[3].toUpper();
-		Sequence alt = parts[4].toUpper();
+	//hgvs annotation for each transcript in proximity to variant
+	foreach(int idx, indices)
+	{
+		const Transcript& t = settings_.transcripts.at(idx);
 
-		//write out invalid without CSQ annotation
-		if(!VcfLine(chr, pos, ref, alt.split(',')).isValid())
+		VcfLine variant = VcfLine(chr, pos, ref, QList<Sequence>());
+
+		//treat each alternative allele of multi-allelic variants as a new variant
+		foreach(const Sequence& alt_part, alt.split(','))
 		{
-			++lines_skipped_;
-			return line;
-		}
-		++lines_annotated_;
-
-		//get all transcripts where the variant is completely contained in the region
-		int region_start = std::max(pos - settings_.annotation_parameters.max_dist_to_transcript, 0);
-		int region_end = pos + ref.length() + settings_.annotation_parameters.max_dist_to_transcript;
-
-		QVector<int> indices = transcript_index.matchingIndices(chr, region_start, region_end-1);
-
-		QByteArrayList consequences;
-
-		//no transcripts in proximity: intergenic variant
-		if(indices.isEmpty())
-		{
-			foreach(const Sequence& alt_part, alt.split(','))
-			{
-				VariantConsequence hgvs;
-				hgvs.types.insert(VariantConsequenceType::INTERGENIC_VARIANT);
-				hgvs.impact = VariantHgvsAnnotator::consequenceTypeToImpact(VariantConsequenceType::INTERGENIC_VARIANT);
-				Transcript t;
-				consequences << hgvsNomenclatureToString(csqAllele(ref, alt_part), hgvs, t);
-			}
-		}
-
-		//hgvs annotation for each transcript in proximity to variant
-		foreach(int idx, indices)
-		{
-			const Transcript& t = settings_.transcripts.at(idx);
-
-			VcfLine variant = VcfLine(chr, pos, ref, QList<Sequence>());
-
-			//treat each alternative allele of multi-allelic variants as a new variant
-			foreach(const Sequence& alt_part, alt.split(','))
+			try
 			{
 				variant.setSingleAlt(alt_part);
 				VariantConsequence hgvs = hgvs_anno_.annotate(t, variant);
 				consequences << hgvsNomenclatureToString(csqAllele(ref, alt_part), hgvs, t);
 			}
-		}
-
-
-		//add CSQ to INFO; keep all other infos
-		QByteArrayList info_entries;
-		if(parts[7] != "" && parts[7] != ".")
-		{
-			info_entries = parts[7].split(';');
-		}
-		//replace entry if tag is already present
-		bool tag_found = false;
-		for(int i=0; i<info_entries.count(); ++i)
-		{
-			if(info_entries[i].startsWith(settings_.tag + "="))
+			catch(Exception& e)
 			{
-				info_entries[i] = settings_.tag + "=" + consequences.join(',');
-				tag_found = true;
-				break;
+				QTextStream out(stdout);
+				out << "Error processing variant " << variant.toString() << " and transcript " << t.nameWithVersion() << ":" << endl;
+				out << "  " << e.message().replace("\n", "  \n") << endl;
 			}
 		}
-		//append tag if not present
-		if(!tag_found)
-		{
-			info_entries << settings_.tag + "=" + consequences.join(',');
-		}
-
-		//create annotated line:
-		QByteArrayList new_parts;
-		new_parts.append(parts[0]);
-		new_parts.append(QByteArray::number(pos));
-		new_parts.append(parts[2]);
-		new_parts.append(ref);
-		new_parts.append(alt);
-		new_parts.append(parts[5]);
-		new_parts.append(parts[6]);
-		new_parts.append(info_entries.join(';'));
-
-		for(int i=8; i<parts.count(); ++i)
-		{
-			new_parts.append(parts[i]);
-		}
-		QByteArray new_line = new_parts.join('\t');
-		new_line.append("\n");
-		return new_line;
 	}
-	catch(Exception& e)
+
+	//add CSQ to INFO; keep all other infos
+	QByteArrayList info_entries;
+	if(parts[7] != "" && parts[7] != ".")
 	{
-		THROW(Exception, "Error '" + e.message() + "' while processing line: " + line);
+		info_entries = parts[7].split(';');
 	}
+	//replace entry if tag is already present
+	bool tag_found = false;
+	for(int i=0; i<info_entries.count(); ++i)
+	{
+		if(info_entries[i].startsWith(settings_.tag + "="))
+		{
+			info_entries[i] = settings_.tag + "=" + consequences.join(',');
+			tag_found = true;
+			break;
+		}
+	}
+	//append tag if not present
+	if(!tag_found)
+	{
+		info_entries << settings_.tag + "=" + consequences.join(',');
+	}
+
+	//create annotated line:
+	QByteArrayList new_parts;
+	new_parts.append(parts[0]);
+	new_parts.append(QByteArray::number(pos));
+	new_parts.append(parts[2]);
+	new_parts.append(ref);
+	new_parts.append(alt);
+	new_parts.append(parts[5]);
+	new_parts.append(parts[6]);
+	new_parts.append(info_entries.join(';'));
+
+	for(int i=8; i<parts.count(); ++i)
+	{
+		new_parts.append(parts[i]);
+	}
+	QByteArray new_line = new_parts.join('\t');
+	new_line.append("\n");
+	return new_line;
 }
 
 QByteArray ChunkProcessor::hgvsNomenclatureToString(const QByteArray& allele, const VariantConsequence& hgvs, const Transcript& t)
