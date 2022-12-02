@@ -261,26 +261,29 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 	//Load virus data if available
 	try
 	{
-		TSVFileStream file(settings_.viral_file);
-		while(!file.atEnd())
+		if (!settings_.viral_file.isEmpty())
 		{
-			QByteArrayList parts = file.readLine();
-			if(parts.isEmpty()) continue;
+			TSVFileStream file(settings_.viral_file);
+			while(!file.atEnd())
+			{
+				QByteArrayList parts = file.readLine();
+				if(parts.isEmpty()) continue;
 
-			SomaticVirusInfo tmp;
-			tmp.chr = parts[0];
-			tmp.start = parts[1].toInt();
-			tmp.end = parts[2].toInt();
-			tmp.name = parts[file.colIndex("name",true)];
-			tmp.reads = parts[file.colIndex("reads",true)].toInt();
-			tmp.coverage = parts[file.colIndex("coverage",true)].toDouble();
-			tmp.mismatches = parts[file.colIndex("mismatches",true)].toInt();
-			tmp.idendity = parts[file.colIndex("identity\%",true)].toDouble();
+				SomaticVirusInfo tmp;
+				tmp.chr = parts[0];
+				tmp.start = parts[1].toInt();
+				tmp.end = parts[2].toInt();
+				tmp.name = parts[file.colIndex("name",true)];
+				tmp.reads = parts[file.colIndex("reads",true)].toInt();
+				tmp.coverage = parts[file.colIndex("coverage",true)].toDouble();
+				tmp.mismatches = parts[file.colIndex("mismatches",true)].toInt();
+				tmp.idendity = parts[file.colIndex("identity\%",true)].toDouble();
 
-			if(tmp.coverage < 100) continue;
-			if(tmp.idendity < 90) continue;
+				if(tmp.coverage < 100) continue;
+				if(tmp.idendity < 90) continue;
 
-			validated_viruses_ << tmp;
+				validated_viruses_ << tmp;
+			}
 		}
 	}
 	catch(...) {} //Nothing to do here
