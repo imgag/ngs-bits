@@ -68,11 +68,11 @@ void VcfFile::parseHeaderFields(const QByteArray& line, bool allow_multi_sample)
 		{
 			THROW(FileParseException, "VCF file header line with less than 8 fields found: '" + line.trimmed() + "'");
 		}
-		if ((header_fields[0]!="CHROM")||(header_fields[1]!="POS")||(header_fields[2]!="ID")||(header_fields[3]!="REF")||(header_fields[4]!="ALT")||(header_fields[5]!="QUAL")||(header_fields[6]!="FILTER")||(header_fields[7]!="INFO"))
+		if (header_fields[0].trimmed()!="CHROM"||header_fields[1].trimmed()!="POS"||header_fields[2].trimmed()!="ID"||header_fields[3].trimmed()!="REF"||header_fields[4].trimmed()!="ALT"||header_fields[5].trimmed()!="QUAL"||header_fields[6].trimmed()!="FILTER"||header_fields[7].trimmed()!="INFO")
 		{
 			THROW(FileParseException, "VCF file header line with at least one inaccurately named mandatory column: '" + line.trimmed() + "'");
 		}
-		if(header_fields.count() >= 9 && header_fields[8] != "FORMAT")
+		if(header_fields.count() >= 9 && header_fields[8].trimmed() != "FORMAT")
 		{
 			THROW(FileParseException, "VCF file header line with an inaccurately named FORMAT column: '" + line.trimmed() + "'");
 		}

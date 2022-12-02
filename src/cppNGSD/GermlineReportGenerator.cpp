@@ -415,7 +415,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<p><b>" << trans("OMIM Gene und Phenotypen") << "</b>" << endl;
 		stream << "</p>" << endl;
 		stream << "<table>" << endl;
-		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Gen MIM") << "</b></td><td><b>" << trans("Phenotyp") << "</b></td><td><b>" << trans("Phenotyp MIM") << "</b></td>";
+		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Gen MIM") << "</b></td><td><b>" << trans("Phenotyp MIM") << "</b></td><td><b>" << trans("Phenotyp") << "</b></td>";
 		if (data_.report_settings.show_one_entry_in_omim_table) stream << "<td><b>" << trans("Hauptphenotyp") << "</b></td>" << endl;
 		stream << "</tr>";
 		foreach(const QByteArray& gene, data_.roi.genes)
@@ -466,7 +466,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 						names = QStringList() << names[selected_index];
 					}
 				}
-				stream << "<tr><td>" << omim_info.gene_symbol << "</td><td>" << omim_info.mim << "</td><td>" << names.join("<br />") << "</td><td>" << accessions.join("<br />") << "</td>";
+				stream << "<tr><td>" << omim_info.gene_symbol << "</td><td>" << omim_info.mim << "</td><td>" << accessions.join("<br />") << "</td><td>" << names.join("<br />") << "</td>";
 				if (data_.report_settings.show_one_entry_in_omim_table) stream << "<td>" <<trans(preferred_phenotype_name!="" ? "ja" : "nein") << "</td>" << endl;
 				stream << "</tr>";
 			}
