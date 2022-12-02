@@ -683,7 +683,7 @@ RtfTable SomaticRnaReport::partGeneralInfo()
 
 	table.addRow( RtfTableRow({"Allgemeine Informationen", "Qualitätsparameter"}, {5061, 4861}, RtfParagraph().setFontSize(18).setBold(true)).setHeader() );
 
-	table.addRow( RtfTableRow( {"Auswertungsdatum:", QDate::currentDate().toString("dd.MM.yyyy").toUtf8(), "Analysepipeline:", dna_snvs_.getPipeline().toUtf8()}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14)) );
+	table.addRow( RtfTableRow( {"Auswertungsdatum:", data_.report_config.evaluationDate().toString("dd.MM.yyyy").toUtf8(), "Analysepipeline:", dna_snvs_.getPipeline().toUtf8()}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14)) );
 	table.addRow( RtfTableRow( {"Proben-ID (Tumor-DNA):", data_.tumor_ps.toUtf8(), "Auswertungssoftware:",  QCoreApplication::applicationName().toUtf8() + " " + QCoreApplication::applicationVersion().toUtf8()}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14)) );
 	table.addRow( RtfTableRow( {"Proben-ID (Tumor-RNA):", data_.rna_ps_name.toUtf8(), "Anzahl Reads ", data_.rna_qcml_data.value("QC:2000005",true).toString().toUtf8()}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14)) );
 	table.addRow( RtfTableRow( {"Prozessierungssystem:", db_.getProcessingSystemData( db_.processingSystemIdFromProcessedSample(data_.rna_ps_name) ).name.toUtf8(), "On-Target Read Percentage:", data_.rna_qcml_data.value("QC:2000021",true).toString().toUtf8() + "\%"}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14)) );
