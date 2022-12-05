@@ -91,7 +91,7 @@ QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const Chromos
 	if(!VcfLine(chr, pos, ref, alt.split(',')).isValid())
 	{
 		++lines_skipped_;
-		return line;
+		return line + "\n";
 	}
 	++lines_annotated_;
 
