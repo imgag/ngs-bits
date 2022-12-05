@@ -6609,9 +6609,6 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 		{
 			//delete report config variants if it already exists
 			SqlQuery query = getQuery();
-//			query.exec("DELETE FROM `report_configuration_variant` WHERE report_configuration_id=" + report_config_id_str);
-//			query.exec("DELETE FROM `report_configuration_cnv` WHERE report_configuration_id=" + report_config_id_str);
-//			query.exec("DELETE FROM `report_configuration_sv` WHERE report_configuration_id=" + report_config_id_str);
 			query.exec("DELETE FROM `report_configuration_other_causal_variant` WHERE report_configuration_id=" + report_config_id_str);
 
 			//update report config
@@ -6981,14 +6978,6 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 			query.bindValue(7, config->other_causal_variant_.comment_reviewer2);
 			query.exec();
 		}
-
-		//validate report config with db entries
-		QSet<int> rcv_ids_var = getValuesInt("SELECT `id` FROM `report_configuration_variant` WHERE `report_configuration_id`=:0", QString::number(report_config_id)).toSet();
-		QSet<int> rcv_ids_cnv = getValuesInt("SELECT `id` FROM `report_configuration_cnv` WHERE `report_configuration_id`=:0", QString::number(report_config_id)).toSet();
-		QSet<int> rcv_ids_sv = getValuesInt("SELECT `id` FROM `report_configuration_sv` WHERE `report_configuration_id`=:0", QString::number(report_config_id)).toSet();
-		if (rcv_ids_var != config->getVariantConfigIds(VariantType::SNVS_INDELS)) THROW(DatabaseException, "Variant ids of NGSD and report configuration do not match!");
-		if (rcv_ids_cnv != config->getVariantConfigIds(VariantType::CNVS)) THROW(DatabaseException, "CNV ids of NGSD and report configuration do not match!");
-		if (rcv_ids_sv != config->getVariantConfigIds(VariantType::SVS)) THROW(DatabaseException, "SV ids of NGSD and report configuration do not match!");
 
 		commit();
 	}
