@@ -672,9 +672,9 @@ void ExpressionExonWidget::showHistogram(int row_idx)
 	if(expr_values.size() == 0) return;
 	//create histogram
 	std::sort(expr_values.begin(), expr_values.end());
-	double median = BasicStatistics::median(expr_values,false);
-	double max = ceil(median*2+0.0001);
-	Histogram hist(0.0, max, max/40);
+	double max = expr_values.constLast();
+	if (max == 0.0) max += 0.01;
+	Histogram hist(0.0, max, max/40.0);
 	foreach(double expr_value, expr_values)
 	{
 		hist.inc(expr_value, true);
