@@ -528,12 +528,33 @@ void ReportConfiguration::remove(VariantType type, int index)
 		const ReportVariantConfiguration& var_conf = variant_config_[i];
 		if (var_conf.variant_index==index && var_conf.variant_type==type)
 		{
+			variants_to_delete_.append(var_conf);
 			variant_config_.removeAt(i);
 			break;
 		}
 	}
 
 	emit variantsChanged();
+}
+
+const QList<ReportVariantConfiguration>&ReportConfiguration::variantsToDelete() const
+{
+	return variants_to_delete_;
+}
+
+void ReportConfiguration::clearDeletionList()
+{
+	variants_to_delete_.clear();
+}
+
+QSet<int> ReportConfiguration::getVariantConfigIds(VariantType type)
+{
+	QSet<int> ids;
+	foreach (const ReportVariantConfiguration& var_conf, variant_config_)
+	{
+		if (var_conf.variant_type == type) ids.insert(var_conf.id);
+	}
+	return ids;
 }
 
 QString ReportConfiguration::createdBy() const
