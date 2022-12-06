@@ -333,6 +333,23 @@ void MainWindow::on_actionDebug_triggered()
 		QTime timer;
 		timer.start();
 
+		//VariantHgvsAnnotator debugging
+		/*
+		QString genome_file = Settings::string("reference_genome", false);
+		FastaFileIndex genome_idx(genome_file);
+		VariantHgvsAnnotator hgvs_anno(genome_idx);
+
+		VcfLine variant = VcfLine("chr11", 60743694, "TACCACCACCAGCCCTGTCAATGCTACCACTGGTCCTGTCAATGCTGCCACTGGCCCTGTCAGTGCCACCAATGGTCCTGTCAATACTACCATTCACCCTGTCAAC", QList<Sequence>() << "T");
+		qDebug() << variant.toString(true);
+		TranscriptList transcripts = NGSD().transcriptsOverlapping(variant.chr(), variant.start(), variant.end());
+		foreach(const Transcript& t, transcripts)
+		{
+			qDebug() << t.name();
+			VariantConsequence hgvs = hgvs_anno.annotate(t, variant, true);
+			qDebug() << hgvs.toString();
+		}
+		*/
+
 		//extract VCF with variants that have class 4/5
 		/*
 		VariantList variants;
@@ -4144,7 +4161,9 @@ void MainWindow::storeReportConfig()
 	//store
 	try
 	{
+		report_settings_.report_config.data()->blockSignals(true); //block signals - otherwise the variantsChanged signal is emitted and storeReportConfig is called again, which leads to hanging of the application because of database locks
 		db.setReportConfig(processed_sample_id, report_settings_.report_config, variants_, cnvs_, svs_);
+		report_settings_.report_config.data()->blockSignals(false);
 	}
 	catch (Exception& e)
 	{
