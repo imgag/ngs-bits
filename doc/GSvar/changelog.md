@@ -1,5 +1,17 @@
 # GSvar change log
 
+### 2022_11-52 (06.12.22)
+
+- General: RNA dialogs are opened modeless now.
+- Filters: added splitter handle to CNV and SV dialogs.
+- Filters: filter docks windows are now collapsible.
+- Filters: added target region options to filter widget: (1) copy to clip board, (2) open in IGV.
+- Report configuration: variants are no longer deleted when not contained in the current variant list (e.g. when switching between trio and single sample).
+- Report germline: added highlighting of relevant PRS scores.
+- Report germline: now contains all relevant transcripts instead of only the best transcript.
+- Report somatic: added HLA summary to XML report.
+- ClinVar upload: added upload of CNVs, SVs and compound-heterozygous variants.
+
 ### 2022_11-7 (22.11.22)
 - Report configuration: added manually curated HGVS type/suffix to CNV/SV.
 - Report: added option to add RefSeq transcript names to HTML germline report.
