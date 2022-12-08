@@ -511,3 +511,7 @@ SUBDIRS += NGSDImportClinvarAccessions
 tools-TEST.depends += NGSDImportClinvarAccessions
 NGSDImportClinvarAccessions.depends = cppNGSD
 
+SUBDIRS += VcfAdd
+tools-TEST.depends += VcfAdd
+VcfAdd.depends = cppNGS
+

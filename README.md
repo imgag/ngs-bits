@@ -120,6 +120,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 ### VCF tools (small variants)
 
+* [VcfAdd](doc/tools/VcfAdd.md) - Appends variants from a VCF file to another VCF file.
 * [VcfAnnotateConsequence](doc/tools/VcfAnnotateConsequence.md) - Adds transcript-specific consequence predictions to a VCF file (similar to Ensembl VEP).
 * [VcfAnnotateFromBed](doc/tools/VcfAnnotateFromBed.md) - Annotates the INFO column of a VCF with data from a BED file.
 * [VcfAnnotateFromBigWig](doc/tools/VcfAnnotateFromBigWig.md) - Annotates the INFO column of a VCF with data from a BED file.
