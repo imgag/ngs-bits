@@ -1877,4 +1877,29 @@ QString VcfFile::decodeInfoValue(QString encoded_info_value)
 	return encoded_info_value;
 }
 
+void VcfFile::removeUnusedContigHeaders()
+{
+	//determine used chromosomes
+	QSet<QByteArray> chromosomes;
+	foreach(const VcfLinePtr& ptr, vcf_lines_)
+	{
+		chromosomes << ptr->chr().str();
+	}
+
+	//remove unused contig headers
+	for (int i=vcf_header_.comments().count()-1; i>=0; --i)
+	{
+		const VcfHeaderLine& line = vcf_header_.comments()[i];
+		if (line.key!="contig") continue;
+
+		QByteArray tmp = line.value.mid(line.value.indexOf('=')+1);
+		QByteArray chr = tmp.left(tmp.indexOf(','));
+
+		if (!chromosomes.contains(chr))
+		{
+			vcf_header_.removeCommentLine(i);
+		}
+	}
+}
+
 
