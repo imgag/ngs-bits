@@ -512,13 +512,13 @@ void ExpressionGeneWidget::selectAllBiotypes(bool deselect)
 void ExpressionGeneWidget::showHistogram(int row_idx)
 {
 	QByteArray ensg = ui_->expression_data->item(row_idx, 0)->text().toUtf8();
-	QVector<double> expr_values = db_.getGeneExpressionValues(db_.getEnsemblGeneMapping().value(ensg), cohort_, true);
+	QVector<double> expr_values = db_.getGeneExpressionValues(db_.getEnsemblGeneMapping().value(ensg), cohort_, false);
+	double tpm = ui_->expression_data->item(row_idx, 4)->text().toDouble();
 
 	if(expr_values.size() == 0) return;
 	//create histogram
-	std::sort(expr_values.begin(), expr_values.end());
-	double median = BasicStatistics::median(expr_values,false);
-	double max = ceil(median*2+0.0001);
+	std::sort(expr_values.begin(), expr_values.end()); 
+	double max = expr_values.constLast();
 	Histogram hist(0.0, max, max/40);
 	foreach(double expr_value, expr_values)
 	{
@@ -526,7 +526,7 @@ void ExpressionGeneWidget::showHistogram(int row_idx)
 	}
 
 	//show chart
-	QChartView* view = GUIHelper::histogramChart(hist, "Expression value distribution (log2_TPM, " + QString::number(expr_values.size()) + " samples)");
+	QChartView* view = GUIHelper::histogramChart(hist, "Expression value distribution (TPM, " + QString::number(expr_values.size()) + " samples)", hist.binIndex(tpm, true));
 	auto dlg = GUIHelper::createDialog(view, "Expression value distribution (" + ensg + ")");
 	dlg->exec();
 }

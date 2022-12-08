@@ -14,12 +14,14 @@ jobs:
       run: git submodule update --recursive --init
     - name: Update Homebrew
       run: brew update
-    - name: Setup Qt dependencies
-      run: brew install qt@5 lzlib openssl
+    - name: Setup dependencies
+      run: brew install qt@5 lzlib openssl python@3.10
     - name: Link Qt installation
       run: brew link qt@5 --force
-    - name: Install matplotlib
-      run: sudo pip install matplotlib
+    - name: Install matplotlib and numpy for Python 2
+      run: sudo pip install matplotlib numpy
+    - name: Install matplotlib and numpy for Python 3
+      run: python3 -m pip install matplotlib numpy
     - name: Build project dependencies
       run: make build_3rdparty build_libs_release build_tools_release build_gui_release build_server_release
     - name: Create a folder for SSL

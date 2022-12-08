@@ -180,13 +180,13 @@ RtfSourceCode SomaticReportHelper::partBillingTable()
 }
 
 
-SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& variants, const CnvList &cnvs, const VariantList& variants_germline, const SomaticReportSettings& settings)
+SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& variants, const CnvList &cnvs, const VariantList& variants_germline, const SomaticReportSettings& settings, bool test_db)
 	: build_(build)
 	, settings_(settings)
 	, germline_vl_(variants_germline)
 	, cnvs_()
 	, validated_viruses_()
-	, db_()
+	, db_(test_db)
 {
 	//Assign SNV annotation indices
 	snv_index_coding_splicing_ = variants.annotationIndexByName("coding_and_splicing");
@@ -261,26 +261,29 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 	//Load virus data if available
 	try
 	{
-		TSVFileStream file(settings_.viral_file);
-		while(!file.atEnd())
+		if (!settings_.viral_file.isEmpty())
 		{
-			QByteArrayList parts = file.readLine();
-			if(parts.isEmpty()) continue;
+			TSVFileStream file(settings_.viral_file);
+			while(!file.atEnd())
+			{
+				QByteArrayList parts = file.readLine();
+				if(parts.isEmpty()) continue;
 
-			SomaticVirusInfo tmp;
-			tmp.chr = parts[0];
-			tmp.start = parts[1].toInt();
-			tmp.end = parts[2].toInt();
-			tmp.name = parts[file.colIndex("name",true)];
-			tmp.reads = parts[file.colIndex("reads",true)].toInt();
-			tmp.coverage = parts[file.colIndex("coverage",true)].toDouble();
-			tmp.mismatches = parts[file.colIndex("mismatches",true)].toInt();
-			tmp.idendity = parts[file.colIndex("identity\%",true)].toDouble();
+				SomaticVirusInfo tmp;
+				tmp.chr = parts[0];
+				tmp.start = parts[1].toInt();
+				tmp.end = parts[2].toInt();
+				tmp.name = parts[file.colIndex("name",true)];
+				tmp.reads = parts[file.colIndex("reads",true)].toInt();
+				tmp.coverage = parts[file.colIndex("coverage",true)].toDouble();
+				tmp.mismatches = parts[file.colIndex("mismatches",true)].toInt();
+				tmp.idendity = parts[file.colIndex("identity\%",true)].toDouble();
 
-			if(tmp.coverage < 100) continue;
-			if(tmp.idendity < 90) continue;
+				if(tmp.coverage < 100) continue;
+				if(tmp.idendity < 90) continue;
 
-			validated_viruses_ << tmp;
+				validated_viruses_ << tmp;
+			}
 		}
 	}
 	catch(...) {} //Nothing to do here
@@ -823,7 +826,7 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 		metadata.addRow(RtfTableRow({"Proben-ID", settings_.tumor_ps.toUtf8(), settings_.normal_ps.toUtf8(), "Genpanel:", settings_.target_region_filter.name.toUtf8() + "\n\\line\n(" + panel_size.toUtf8() + " MB, Gennamen s. letzte Seite)"}, {2000,1480,1480,1480,3481} , RtfParagraph().setFontSize(14)) );
 	}
 
-	metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe:", tumor_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x", normal_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x", "Auswertungsdatum:", QDate::currentDate().toString("dd.MM.yyyy").toUtf8()}, {2000,1480,1480,1480,3481}) );
+	metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe:", tumor_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x", normal_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x", "Auswertungsdatum:", settings_.report_config.evaluationDate().toString("dd.MM.yyyy").toUtf8()}, {2000,1480,1480,1480,3481}) );
 
 
 	RtfSourceCode tum_panel_depth = "n/a";
@@ -1020,8 +1023,6 @@ RtfSourceCode SomaticReportHelper::partPharmacoGenetics()
 
 RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impact_table)
 {
-	//init
-	NGSD db;
 	QByteArrayList headers = {"Gen", "Veränderung", "Typ", "Anteil", "Beschreibung", "Molekularer Signalweg"};
 	QList<int> col_widths = {1000, 1950, 1350, 600, 3000, 2022};
 
@@ -1080,7 +1081,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 			else if(var.annotations()[i_germl_hom_het].contains("hom")) germl_desc +=  ", in der Normalprobe homozygot";
 			else germl_desc += ", nachgewiesen im Normalgewebe";
 			row.addCell(col_widths[4], germl_desc );
-			row.addCell(col_widths[5], db.getSomaticPathways(gene).join(", "));
+			row.addCell(col_widths[5], db_.getSomaticPathways(gene).join(", "));
 			table.addRow(row);
 
 			ebm_genes_ << transcript.gene;
@@ -1146,7 +1147,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 		QByteArray var_description = trans(snv.annotations()[i_vicc]);
 		row.addCell(col_widths[4], (var_description.isEmpty() ? "nicht bewertet" : var_description) );
 
-		row.addCell(col_widths[5], db.getSomaticPathways(gene).join(", "));
+		row.addCell(col_widths[5], db_.getSomaticPathways(gene).join(", "));
 		table.addRow(row);
 
 
@@ -1254,7 +1255,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 
 				row.addCell(col_widths[4], CnvDescription(cnv, gene_role));
 
-				row.addCell(col_widths[5], db.getSomaticPathways(gene).join(", "));
+				row.addCell(col_widths[5], db_.getSomaticPathways(gene).join(", "));
 
 				cnv_rows << row;
 
@@ -1298,11 +1299,10 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 
 RtfTable SomaticReportHelper::hlaTable(QString ps_name, QByteArray type)
 {
-	NGSD db;
 	QString hla_file;
 	if (!NGSHelper::isClientServerMode())
 	{
-		hla_file = db.processedSamplePath(db.processedSampleId(ps_name), PathType::HLA_GENOTYPER);
+		hla_file = db_.processedSamplePath(db_.processedSampleId(ps_name), PathType::HLA_GENOTYPER);
 	}
 	else
 	{
@@ -1310,7 +1310,7 @@ RtfTable SomaticReportHelper::hlaTable(QString ps_name, QByteArray type)
 		ps_headers.insert("Accept", "application/json");
 		ps_headers.insert("Content-Type", "application/json");
 		RequestUrlParams params;
-		params.insert("ps_id", db.processedSampleId(ps_name).toUtf8());
+		params.insert("ps_id", db_.processedSampleId(ps_name).toUtf8());
 		params.insert("type", FileLocation::typeToString(PathType::HLA_GENOTYPER).toUtf8());
 
 		QByteArray reply = ApiCaller().get("processed_sample_path", params, ps_headers, true, false, true);
@@ -1330,7 +1330,7 @@ RtfTable SomaticReportHelper::hlaTable(QString ps_name, QByteArray type)
 	{
 		THROW(DatabaseException, "hla file for the processed sample '" + ps_name + "' was not found!");
 	}
-	TSVFileStream hla_stream(hla_file);
+
 
 	QList<int> cell_widths = {2000,1000,1500,1500,800,722,800,800,800};
 	RtfTable table;
@@ -1339,6 +1339,7 @@ RtfTable SomaticReportHelper::hlaTable(QString ps_name, QByteArray type)
 
 	if (VersatileFile(hla_file).exists())
 	{
+		TSVFileStream hla_stream(hla_file);
 		while (!hla_stream.atEnd())
 		{
 			QByteArrayList values = hla_stream.readLine();
@@ -1493,6 +1494,7 @@ void SomaticReportHelper::storeXML(QString file_name)
 	data.rtf_part_general_info = partMetaData();
 	data.rtf_part_igv_screenshot = partIgvScreenshot();
 	data.rtf_part_mtb_summary = partPathways();
+	data.rtf_part_hla_summary = hlaTable(settings_.normal_ps, "Normal").RtfCode() + RtfParagraph("").RtfCode() + hlaTable(settings_.tumor_ps, "Tumor").RtfCode();
 
 	QSharedPointer<QFile> out_file = Helper::openFileForWriting(file_name);
 	SomaticXmlReportGenerator::generateXML(data, out_file, db_, false);
@@ -1771,10 +1773,8 @@ struct PathwaysEntry
 
 RtfSourceCode SomaticReportHelper::partPathways()
 {
-	//init
 	int i_som_rep_alt = somatic_vl_.annotationIndexByName("alt_var_alteration", true, false);
-	NGSD db;
-	QByteArrayList pathways = db.getSomaticPathways();
+	QByteArrayList pathways = db_.getSomaticPathways();
 
 	//create table
 	RtfTable table;
@@ -1796,7 +1796,7 @@ RtfSourceCode SomaticReportHelper::partPathways()
 
 				//determine entries for small variants
 				QList<PathwaysEntry> entries;
-				GeneSet genes_pathway = db.getSomaticPathwayGenes(pathway);
+				GeneSet genes_pathway = db_.getSomaticPathwayGenes(pathway);
 				for(int v=0; v<somatic_vl_.count(); ++v)
 				{
 					const Variant& variant = somatic_vl_[v];

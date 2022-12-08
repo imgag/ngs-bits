@@ -138,17 +138,6 @@ int main(int argc, char **argv)
 						&ServerController::serveStaticServerGenomes
 				   });
 
-	EndpointManager::appendEndpoint(Endpoint{
-						"protected",
-						QMap<QString, ParamProps>{
-						   {"filename", ParamProps{ParamProps::ParamCategory::PATH_PARAM, true, "Name of the file to be served"}}
-						},
-						RequestMethod::GET,
-						ContentType::TEXT_HTML,
-						AuthType::HTTP_BASIC_AUTH,
-						"Protected static files",
-						&ServerController::serveStaticFromServerRoot
-				   });
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"temp",

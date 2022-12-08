@@ -89,7 +89,7 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     VcfStreamSort_Test.h \
     NGSDInit_Test.h \
     SomaticQC_Test.h \
-    NGSDImportGeneInfo_Test.h \	
+    NGSDImportGeneInfo_Test.h \
     VcfAnnotateFromBed_Test.h \
     NGSDMaintain_Test.h \
     TsvMerge_Test.h \
@@ -144,7 +144,8 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     NGSDImportExpressionData_Test.h \
     NGSDExtractRNACohort_Test.h \
     VcfToBed_Test.h \
-    TsvToQC_Test.h
+    TsvToQC_Test.h \
+        VcfAdd_Test.h
 
 SOURCES += \
     main.cpp

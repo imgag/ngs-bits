@@ -179,6 +179,9 @@ public:
 	///Returns string where all URL encoded chars of an info column value are decoded
 	static QString decodeInfoValue(QString encoded_info_value);
 
+	///Remove contig headers that are not unsed.
+	void removeUnusedContigHeaders();
+
 private:
 
 	void clear();

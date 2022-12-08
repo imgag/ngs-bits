@@ -143,6 +143,9 @@ public:
 	double ploidy() const;
 	void setPloidy(double ploidy);
 
+	QDate evaluationDate() const;
+	void setEvaluationDate(QDate date);
+
 private:
 	QList<SomaticReportVariantConfiguration> variant_config_;
 
@@ -183,6 +186,9 @@ private:
 
 	//Name of filter
 	QString filter_;
+
+	//Date when evaluation was performed
+	QDate evaluation_date_;
 };
 
 #endif // SOMATICREPORTCONFIGURATION_H

@@ -75,7 +75,6 @@ void ChunkProcessor::run()
 
 QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const ChromosomalIndex<TranscriptList>& transcript_index)
 {
-
 	//split line and extract variant infos
 	QList<QByteArray> parts = line.split('\t');
 	if (parts.count()<VcfFile::MIN_COLS)
@@ -92,7 +91,7 @@ QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const Chromos
 	if(!VcfLine(chr, pos, ref, alt.split(',')).isValid())
 	{
 		++lines_skipped_;
-		return line;
+		return line + "\n";
 	}
 	++lines_annotated_;
 
@@ -133,15 +132,14 @@ QByteArray ChunkProcessor::annotateVcfLine(const QByteArray& line, const Chromos
 				VariantConsequence hgvs = hgvs_anno_.annotate(t, variant);
 				consequences << hgvsNomenclatureToString(csqAllele(ref, alt_part), hgvs, t);
 			}
-			catch(ArgumentException& e)
+			catch(Exception& e)
 			{
 				QTextStream out(stdout);
-				out << "Error processing variant " << variant.toString() << " and transcript " << t.name() << ":" << endl;
+				out << "Error processing variant " << variant.toString() << " and transcript " << t.nameWithVersion() << ":" << endl;
 				out << "  " << e.message().replace("\n", "  \n") << endl;
 			}
 		}
 	}
-
 
 	//add CSQ to INFO; keep all other infos
 	QByteArrayList info_entries;

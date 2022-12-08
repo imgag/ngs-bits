@@ -33,6 +33,13 @@ private slots:
 		COMPARE_FILES("out/VcfSort_out4.vcf", TESTDATA("data_out/VcfSort_out4.vcf"));
 		VCF_IS_VALID("out/VcfSort_out4.vcf")
 	}
+
+	void remove_unused_contigs()
+	{
+		EXECUTE("VcfSort", "-in " + TESTDATA("data_in/VcfSort_in3.vcf") + " -remove_unused_contigs -out out/VcfSort_out5.vcf");
+		COMPARE_FILES("out/VcfSort_out5.vcf", TESTDATA("data_out/VcfSort_out5.vcf"));
+		VCF_IS_VALID("out/VcfSort_out5.vcf")
+	}
 };
 
 

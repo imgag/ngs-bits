@@ -68,11 +68,11 @@ void VcfFile::parseHeaderFields(const QByteArray& line, bool allow_multi_sample)
 		{
 			THROW(FileParseException, "VCF file header line with less than 8 fields found: '" + line.trimmed() + "'");
 		}
-		if ((header_fields[0]!="CHROM")||(header_fields[1]!="POS")||(header_fields[2]!="ID")||(header_fields[3]!="REF")||(header_fields[4]!="ALT")||(header_fields[5]!="QUAL")||(header_fields[6]!="FILTER")||(header_fields[7]!="INFO"))
+		if (header_fields[0].trimmed()!="CHROM"||header_fields[1].trimmed()!="POS"||header_fields[2].trimmed()!="ID"||header_fields[3].trimmed()!="REF"||header_fields[4].trimmed()!="ALT"||header_fields[5].trimmed()!="QUAL"||header_fields[6].trimmed()!="FILTER"||header_fields[7].trimmed()!="INFO")
 		{
 			THROW(FileParseException, "VCF file header line with at least one inaccurately named mandatory column: '" + line.trimmed() + "'");
 		}
-		if(header_fields.count() >= 9 && header_fields[8] != "FORMAT")
+		if(header_fields.count() >= 9 && header_fields[8].trimmed() != "FORMAT")
 		{
 			THROW(FileParseException, "VCF file header line with an inaccurately named FORMAT column: '" + line.trimmed() + "'");
 		}
@@ -1875,6 +1875,31 @@ QString VcfFile::decodeInfoValue(QString encoded_info_value)
 		encoded_info_value.replace(INFO_URL_MAPPING[i].value, INFO_URL_MAPPING[i].key);
 	}
 	return encoded_info_value;
+}
+
+void VcfFile::removeUnusedContigHeaders()
+{
+	//determine used chromosomes
+	QSet<QByteArray> chromosomes;
+	foreach(const VcfLinePtr& ptr, vcf_lines_)
+	{
+		chromosomes << ptr->chr().str();
+	}
+
+	//remove unused contig headers
+	for (int i=vcf_header_.comments().count()-1; i>=0; --i)
+	{
+		const VcfHeaderLine& line = vcf_header_.comments()[i];
+		if (line.key!="contig") continue;
+
+		QByteArray tmp = line.value.mid(line.value.indexOf('=')+1);
+		QByteArray chr = tmp.left(tmp.indexOf(','));
+
+		if (!chromosomes.contains(chr))
+		{
+			vcf_header_.removeCommentLine(i);
+		}
+	}
 }
 
 

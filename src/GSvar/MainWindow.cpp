@@ -336,6 +336,23 @@ void MainWindow::on_actionDebug_triggered()
 		QTime timer;
 		timer.start();
 
+		//VariantHgvsAnnotator debugging
+		/*
+		QString genome_file = Settings::string("reference_genome", false);
+		FastaFileIndex genome_idx(genome_file);
+		VariantHgvsAnnotator hgvs_anno(genome_idx);
+
+		VcfLine variant = VcfLine("chr11", 60743694, "TACCACCACCAGCCCTGTCAATGCTACCACTGGTCCTGTCAATGCTGCCACTGGCCCTGTCAGTGCCACCAATGGTCCTGTCAATACTACCATTCACCCTGTCAAC", QList<Sequence>() << "T");
+		qDebug() << variant.toString(true);
+		TranscriptList transcripts = NGSD().transcriptsOverlapping(variant.chr(), variant.start(), variant.end());
+		foreach(const Transcript& t, transcripts)
+		{
+			qDebug() << t.name();
+			VariantConsequence hgvs = hgvs_anno.annotate(t, variant, true);
+			qDebug() << hgvs.toString();
+		}
+		*/
+
 		//extract VCF with variants that have class 4/5
 		/*
 		VariantList variants;
@@ -4007,13 +4024,9 @@ void MainWindow::loadReportConfig()
 	if (rc_id==-1) return;
 
 	//load
-	QStringList messages;
-	report_settings_.report_config = db.reportConfig(rc_id, variants_, cnvs_, svs_, messages);
+	report_settings_.report_config = db.reportConfig(rc_id, variants_, cnvs_, svs_);
 	connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
-	if (!messages.isEmpty())
-	{
-		QMessageBox::warning(this, "Report configuration", "The following problems were encountered while loading the report configuration:\n" + messages.join("\n"));
-	}
+
 
 	//updateGUI
 	refreshVariantTable();
@@ -4137,8 +4150,7 @@ void MainWindow::storeReportConfig()
 	int conf_id = db.reportConfigId(processed_sample_id);
 	if (conf_id!=-1)
 	{
-		QStringList messages;
-		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, messages);
+		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_);
 		if (report_config->lastUpdatedBy()!="" && report_config->lastUpdatedBy()!=LoginManager::userName())
 		{
 			if (QMessageBox::question(this, "Storing report configuration", report_config->history() + "\n\nDo you want to override it?")==QMessageBox::No)
@@ -4151,7 +4163,9 @@ void MainWindow::storeReportConfig()
 	//store
 	try
 	{
+		report_settings_.report_config.data()->blockSignals(true); //block signals - otherwise the variantsChanged signal is emitted and storeReportConfig is called again, which leads to hanging of the application because of database locks
 		db.setReportConfig(processed_sample_id, report_settings_.report_config, variants_, cnvs_, svs_);
+		report_settings_.report_config.data()->blockSignals(false);
 	}
 	catch (Exception& e)
 	{
@@ -4266,8 +4280,7 @@ void MainWindow::showReportConfigInfo()
 		}
 
 
-		QStringList messages;
-		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, messages);
+		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_);
 
 		QMessageBox::information(this, title, report_config->history() + "\n\n" + report_config->variantSummary());
 	}
@@ -4380,8 +4393,7 @@ void MainWindow::finalizeReportConfig()
 		db.finalizeReportConfig(conf_id, LoginManager::userId());
 
 		//update report settings data structure
-		QStringList messages;
-		report_settings_.report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, messages);
+		report_settings_.report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_);
 		connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
 	}
 	catch(Exception e)
@@ -4545,6 +4557,7 @@ void MainWindow::generateReportSomaticRTF()
 	somatic_report_settings_.normal_ps = ps_normal;
 
 	somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
+	somatic_report_settings_.report_config.setEvaluationDate(QDate::currentDate());
 
 	//load obo terms for filtering coding/splicing variants
 	if (somatic_report_settings_.obo_terms_coding_splicing.size() == 0)

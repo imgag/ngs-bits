@@ -88,4 +88,5 @@
     <ReportDocumentParts name="general_info" format="RTF">Z2VuZXJhbCBtZXRhIGRhdGE=</ReportDocumentParts>
     <ReportDocumentParts name="igv_screenshot" format="RTF">ODk1MDRFNDcwRDBBMUEwQTAwMDAwMDBENDk0ODQ0NTIwMDAwMDAwMjAwMDAwMDAyMDgwMjAwMDAwMEZERDQ5QTczMDAwMDAwMDk3MDQ4NTk3MzAwMDAyRTIzMDAwMDJFMjMwMTc4QTUzRjc2MDAwMDAwMTY0OTQ0NDE1NDA4RDc2MzYwNjA2MDY4NkU2RTY2RjhGRkZGRkY3RjA2MDYwMDFGQ0QwNTg2Q0MzNzdERUMwMDAwMDAwMDQ5NDU0RTQ0QUU0MjYwODI=</ReportDocumentParts>
     <ReportDocumentParts name="mtb_summary" format="RTF">TVRCIHN1bW1hcnk=</ReportDocumentParts>
+    <ReportDocumentParts name="hla_summary" format="RTF">SExBIHN1bW1hcnk=</ReportDocumentParts>
 </SomaticNgsReport>

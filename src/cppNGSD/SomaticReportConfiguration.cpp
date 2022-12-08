@@ -432,4 +432,14 @@ void SomaticReportConfiguration::setPloidy(double ploidy)
 	ploidy_ = ploidy;
 }
 
+QDate SomaticReportConfiguration::evaluationDate() const
+{
+	return evaluation_date_;
+}
+
+void SomaticReportConfiguration::setEvaluationDate(QDate date)
+{
+	evaluation_date_ = date;
+}
+
 

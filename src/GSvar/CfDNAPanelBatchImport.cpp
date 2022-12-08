@@ -427,7 +427,8 @@ void CfDNAPanelBatchImport::importPanels()
 				// add ID SNPs from processing system
 				if (!proc_sys_sample_ids.contains(processing_system_id))
 				{
-					proc_sys_sample_ids.insert(processing_system_id, db_.getIdSnpsFromProcessingSystem(processing_system_id, true));
+					BedFile target_region = GlobalServiceProvider::database().processingSystemRegions(processing_system_id, false);
+					proc_sys_sample_ids.insert(processing_system_id, db_.getIdSnpsFromProcessingSystem(processing_system_id, target_region, true));
 				}
 				foreach (VcfLinePtr vcf_line_ptr, proc_sys_sample_ids.value(processing_system_id).vcfLines())
 				{

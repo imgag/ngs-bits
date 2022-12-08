@@ -185,6 +185,11 @@ public:
 		filter_lines_.push_back(filter_line);
 	}
 
+	void removeCommentLine(int pos)
+	{
+		file_comments_.removeAt(pos);
+	}
+
 	//functions setting header content from a whole vcf line as QByteArray
 	void setCommentLine(const QByteArray& line, const int line_number);
 	void setInfoLine(const QByteArray& line, const int line_number);

@@ -58,7 +58,7 @@ class CPPNGSDSHARED_EXPORT SomaticReportHelper
 {
 public:
 	///Constructor loads data into class
-	SomaticReportHelper(GenomeBuild build, const VariantList& variants, const CnvList &cnvs, const VariantList& germline_variants, const SomaticReportSettings& settings);
+	SomaticReportHelper(GenomeBuild build, const VariantList& variants, const CnvList &cnvs, const VariantList& germline_variants, const SomaticReportSettings& settings, bool test_db=false);
 
 	///write Rtf File
 	void storeRtf(const QByteArray& out_file);

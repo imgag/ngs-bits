@@ -4,9 +4,11 @@
 #include "LoginManager.h"
 #include "SomaticXmlReportGenerator.h"
 #include "SomaticReportSettings.h"
+#include "SomaticReportHelper.h"
 #include "GermlineReportGenerator.h"
 #include "TumorOnlyReportWorker.h"
 #include "StatisticsServiceLocal.h"
+#include "FileLocationProviderLocal.h"
 #include "VariantHgvsAnnotator.h"
 
 #include <QThread>
@@ -1022,8 +1024,7 @@ private slots:
 		IS_TRUE(conf_id!=-1);
 
 		//check data - base config
-		QStringList messages2;
-		QSharedPointer<ReportConfiguration> report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
+		QSharedPointer<ReportConfiguration> report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs);
 		S_EQUAL(report_conf2->createdBy(), "Max Mustermann");
 		IS_TRUE(report_conf2->createdAt().isValid());
 		S_EQUAL(report_conf2->lastUpdatedBy(), "Max Mustermann");
@@ -1074,7 +1075,7 @@ private slots:
 		I_EQUAL(db.getValue("SELECT count(*) FROM cnv WHERE cnv_callset_id=1 AND chr='chr2' AND start=89246800 AND end=89545067 AND cn=1").toInt(), 1);
 
 		//check data
-		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
+		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs);
 		S_EQUAL(report_conf2->createdBy(), "Max Mustermann");
 		IS_TRUE(report_conf2->createdAt().isValid());
 		S_EQUAL(report_conf2->lastUpdatedBy(), "Max Mustermann");
@@ -1084,11 +1085,11 @@ private slots:
 		S_EQUAL(report_conf2->finalizedBy(), "");
 		IS_FALSE(report_conf2->finalizedAt().isValid());
 
-		I_EQUAL(messages2.count(), 0);
 		S_EQUAL(report_conf2->createdBy(), "Max Mustermann");
 		IS_TRUE(report_conf2->createdAt().date()==QDate::currentDate());
 		I_EQUAL(report_conf2->variantConfig().count(), 3);
 		ReportVariantConfiguration var_conf = report_conf2->variantConfig()[1]; //order changed because they are sorted by index
+		I_EQUAL(var_conf.id, 2)
 		I_EQUAL(var_conf.variant_index, 47);
 		IS_TRUE(var_conf.causal);
 		S_EQUAL(var_conf.classification, "n/a");
@@ -1106,6 +1107,7 @@ private slots:
 		S_EQUAL(var_conf.manual_var, "chr2:47635523-47635523 ->TT");
 		S_EQUAL(var_conf.manual_genotype, "hom");
 		var_conf = report_conf2->variantConfig()[0]; //order changed because they are sorted by index
+		I_EQUAL(var_conf.id, 2)
 		I_EQUAL(var_conf.variant_index, 4);
 		IS_FALSE(var_conf.causal);
 		S_EQUAL(var_conf.classification, "4");
@@ -1126,6 +1128,7 @@ private slots:
 		S_EQUAL(var_conf.manual_cnv_hgvs_type, "cnv_type");
 		S_EQUAL(var_conf.manual_cnv_hgvs_suffix, "cnv_suffix");
 		var_conf = report_conf2->variantConfig()[2];
+		I_EQUAL(var_conf.id, 1)
 		I_EQUAL(var_conf.variant_index, 81);
 		IS_TRUE(var_conf.causal);
 		S_EQUAL(var_conf.classification, "5");
@@ -1149,12 +1152,40 @@ private slots:
 		S_EQUAL(var_conf.manual_sv_hgvs_type, "sv_type");
 		S_EQUAL(var_conf.manual_sv_hgvs_suffix, "sv_suffix");
 
+		//test modification
+		var_conf = report_conf2->variantConfig()[1];
+		var_conf.comments = "Test comment1";
+		var_conf.comments2 = "Test comment2";
+		var_conf.causal = false;
+		var_conf.exclude_artefact = false;
+		report_conf2->set(var_conf);
+		conf_id2 = db.setReportConfig(ps_id, report_conf2, vl, cnvs, svs);
+		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs);
+		var_conf = report_conf2->variantConfig()[1];
+		I_EQUAL(var_conf.id, 2)
+		I_EQUAL(var_conf.variant_index, 47);
+		IS_FALSE(var_conf.causal);
+		S_EQUAL(var_conf.classification, "n/a");
+		S_EQUAL(var_conf.report_type, report_var_conf.report_type);
+		IS_TRUE(var_conf.mosaic);
+		IS_FALSE(var_conf.exclude_artefact);
+		S_EQUAL(var_conf.comments, "Test comment1");
+		S_EQUAL(var_conf.comments2, "Test comment2");
+		IS_FALSE(var_conf.de_novo);
+		IS_FALSE(var_conf.comp_het);
+		IS_FALSE(var_conf.exclude_frequency);
+		IS_FALSE(var_conf.exclude_mechanism);
+		IS_FALSE(var_conf.exclude_other);
+		IS_FALSE(var_conf.exclude_phenotype);
+		S_EQUAL(var_conf.manual_var, "chr2:47635523-47635523 ->TT");
+		S_EQUAL(var_conf.manual_genotype, "hom");
+
 		//finalizeReportConfig
 		conf_id = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
 		IS_FALSE(db.reportConfigIsFinalized(conf_id));
 		db.finalizeReportConfig(conf_id, db.userId("ahmustm1"));
 		IS_TRUE(db.reportConfigIsFinalized(conf_id));
-		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
+		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs);
 		S_EQUAL(report_conf2->finalizedBy(), "Max Mustermann");
 		IS_TRUE(report_conf2->finalizedAt().isValid());
 		//check finalized report config cannot be modified or deleted
@@ -1163,9 +1194,7 @@ private slots:
 
 		//check messages if variant is missing
 		vl.clear();
-		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
-		I_EQUAL(messages2.count(), 1);
-		S_EQUAL(messages2[0], "Could not find variant 'chr2:47635523-47635523 ->T' in given variant list. The report configuration of this variant will be lost if you change anything in the report configuration!");
+		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs);
 		I_EQUAL(report_conf2->variantConfig().count(), 2);
 		X_EQUAL(report_conf2->variantConfig()[0].variant_type, VariantType::CNVS);
 
@@ -1515,6 +1544,19 @@ private slots:
 		removed_regions.clearHeaders();
 		removed_regions_db.clearHeaders();
 		S_EQUAL(removed_regions.toText(), removed_regions_db.toText());
+
+		//test ID-SNP extraction
+		BedFile target_region;
+		target_region.load(TESTDATA("../cppNGSD-TEST/data_in/cfDNA_id_snp.bed"));
+		VcfFile id_snps_tumor_normal = db.getIdSnpsFromProcessingSystem(db.processingSystemId("IDT_xGenPrism"), target_region, false, true);
+		QByteArrayList vcf_lines;
+		for (int i = 0; i < id_snps_tumor_normal.vcfLines().count(); ++i) vcf_lines << id_snps_tumor_normal.vcfLine(i).toString();
+		QByteArrayList expected;
+		expected << "chr1:13828907 G>A" << "chr1:88923261 A>C" << "chr1:107441476 A>G" << "chr1:160816880 A>G" << "chr1:233312667 C>T" << "chr2:9945593 G>A" << "chr2:59773585 T>C"
+				  << "chr2:106122379 A>G" << "chr2:181548532 A>G" << "chr19:4569797 A>C" << "chr19:39069167 A>C" << "chr19:49401772 T>C" << "chr20:52679623 T>C" << "chr21:14109044 G>T"
+				  << "chr21:26651051 T>C" << "chr22:20433563 T>C" << "chr22:33163522 T>A" << "chrX:11296872 N>N" << "chrX:24211417 N>N" << "chrY:2787395 N>N" << "chrY:2979985 N>N"
+				  << "chrY:6869957 N>N";
+		IS_TRUE((vcf_lines==expected));
 
 		//############################### variant publication ###############################
 		// variant
@@ -2314,11 +2356,10 @@ private slots:
 		xml_data.rtf_part_cnvs = "chromosomal aberrations";
 		xml_data.rtf_part_svs = "Fusions";
 		xml_data.rtf_part_pharmacogenetics = "RTF pharmacogenomics table";
-		xml_data.rtf_part_general_info = "general meta data";
+                xml_data.rtf_part_general_info = "general meta data";
 		xml_data.rtf_part_igv_screenshot = "89504E470D0A1A0A0000000D4948445200000002000000020802000000FDD49A73000000097048597300002E2300002E230178A53F76000000164944415408D763606060686E6E66F8FFFFFF7F0606001FCD0586CC377DEC0000000049454E44AE426082";
 		xml_data.rtf_part_mtb_summary = "MTB summary";
-
-
+                xml_data.rtf_part_hla_summary = "HLA summary";
 
 		QSharedPointer<QFile> out_file = Helper::openFileForWriting("out/somatic_report.xml");
 		SomaticXmlReportGenerator::generateXML(xml_data, out_file, db, true);
@@ -2513,6 +2554,52 @@ private slots:
 		query.exec("SELECT id FROM somatic_gene_role"); //3 remaining rows
 		I_EQUAL(query.size(), 3);
 		I_EQUAL(-1, db.getSomaticGeneRoleId("PTGS2"));
+	}
+
+	// Test the somatic report RTF generation
+	void test_somatic_rtf()
+	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in4.sql"));
+
+		QString tumor_sample = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/DNA123456_01-NA12878_03.GSvar");
+		QString normal_sample = TESTDATA("data_in/somatic/Sample_NA12878_03/NA12878_03.GSvar");
+
+		VariantList vl;
+		vl.load(tumor_sample);
+
+		VariantList control_tissue_variants;
+		control_tissue_variants.load(normal_sample);
+
+		CnvList cnv_list;
+
+		QSharedPointer<FileLocationProvider> flp = QSharedPointer<FileLocationProviderLocal>(new FileLocationProviderLocal(tumor_sample, vl.getSampleHeader(), AnalysisType::SOMATIC_SINGLESAMPLE)); //vl.type()
+
+		FileLocation cnv_loc = flp->getAnalysisCnvFile();
+		if (cnv_loc.exists) cnv_list.load(cnv_loc.filename);
+
+		SomaticReportSettings somatic_report_settings;
+		somatic_report_settings.tumor_ps = "DNA123456_01";
+		somatic_report_settings.normal_ps = "NA12878_03";
+		somatic_report_settings.msi_file = flp->getSomaticMsiFile().filename;
+		somatic_report_settings.viral_file = "";
+
+		S_EQUAL(db.processedSampleId("DNA123456_01"), "4004");
+
+		somatic_report_settings.report_config.setTumContentByHistological(true);
+		somatic_report_settings.report_config.setTumContentByClonality(true);
+		somatic_report_settings.report_config.setMsiStatus(true);
+		somatic_report_settings.report_config.setFusionsDetected(true);
+		somatic_report_settings.report_config.setCnvBurden(true);
+		somatic_report_settings.report_config.setEvaluationDate(QDate(2022,12,1));
+
+		SomaticReportHelper report(GenomeBuild::HG38, vl, cnv_list, control_tissue_variants, somatic_report_settings, true);
+		report.storeRtf("out/somatic_report_tumor_normal.rtf");
+
+		COMPARE_FILES("out/somatic_report_tumor_normal.rtf", TESTDATA("data_out/somatic_report_tumor_normal.rtf"));
 	}
 
 	//Test tumor only RTF report generation
