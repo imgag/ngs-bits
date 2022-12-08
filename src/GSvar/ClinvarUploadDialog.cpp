@@ -1283,10 +1283,14 @@ void ClinvarUploadDialog::setDiseaseInfo()
 	int row_idx = 0;
 	foreach (const SampleDiseaseInfo& disease, disease_info)
 	{
-		ui_.tw_disease_info->setItem(row_idx, 0, new QTableWidgetItem(disease.type));
-		ui_.tw_disease_info->setItem(row_idx, 1, new QTableWidgetItem(disease.disease_info));
-		row_idx++;
+		if ((disease.type == "OMIM disease/phenotype identifier") || (disease.type == "Orpha number"))
+		{
+			ui_.tw_disease_info->setItem(row_idx, 0, new QTableWidgetItem(disease.type));
+			ui_.tw_disease_info->setItem(row_idx, 1, new QTableWidgetItem(disease.disease_info));
+			row_idx++;
+		}
 	}
+	ui_.tw_disease_info->setRowCount(row_idx);
 }
 
 void ClinvarUploadDialog::addDiseaseInfo()
