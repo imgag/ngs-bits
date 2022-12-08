@@ -6394,11 +6394,9 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 				var_conf.variant_index = i;
 			}
 		}
-		if (var_conf.variant_index==-1)
-		{
-			messages << "Could not find variant '" + var.toString() + "' in given variant list. The report configuration of this variant will be lost if you change anything in the report configuration!";
-			continue;
-		}
+
+		//skip variants that are not found, e.g. when trios and single sample analysis are used alternatingly
+		if (var_conf.variant_index==-1) continue;
 
 		var_conf.id = query.value("id").toInt();
 		var_conf.report_type = query.value("type").toString();
@@ -6437,11 +6435,9 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 				var_conf.variant_index = i;
 			}
 		}
-		if (var_conf.variant_index==-1)
-		{
-			messages << "Could not find CNV '" + var.toString() + "' in given variant list. The report configuration of this variant will be lost if you change anything in the report configuration!";
-			continue;
-		}
+
+		//skip variants that are not found, e.g. when trios and single sample analysis are used alternatingly
+		if (var_conf.variant_index==-1) continue;
 
 		var_conf.id = query.value("id").toInt();
 		var_conf.report_type = query.value("type").toString();
@@ -6524,12 +6520,9 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 
 			BedpeLine sv = structuralVariant(sv_id, type, svs);
 
+			//skip variants that are not found, e.g. when trios and single sample analysis are used alternatingly
 			var_conf.variant_index = svs.findMatch(sv, true, false);
-			if (var_conf.variant_index==-1)
-			{
-				messages << "Could not find SV '" + BedpeFile::typeToString(sv.type()) + " " + sv.positionRange() + "' in given variant list. The report configuration of this variant will be lost if you change anything in the report configuration!";
-				continue;
-			}
+			if (var_conf.variant_index==-1) continue;
 
 			var_conf.id = query.value("id").toInt();
 			var_conf.report_type = query.value("type").toString();
