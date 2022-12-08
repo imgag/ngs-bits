@@ -1024,8 +1024,7 @@ private slots:
 		IS_TRUE(conf_id!=-1);
 
 		//check data - base config
-		QStringList messages2;
-		QSharedPointer<ReportConfiguration> report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
+		QSharedPointer<ReportConfiguration> report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs);
 		S_EQUAL(report_conf2->createdBy(), "Max Mustermann");
 		IS_TRUE(report_conf2->createdAt().isValid());
 		S_EQUAL(report_conf2->lastUpdatedBy(), "Max Mustermann");
@@ -1076,7 +1075,7 @@ private slots:
 		I_EQUAL(db.getValue("SELECT count(*) FROM cnv WHERE cnv_callset_id=1 AND chr='chr2' AND start=89246800 AND end=89545067 AND cn=1").toInt(), 1);
 
 		//check data
-		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
+		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs);
 		S_EQUAL(report_conf2->createdBy(), "Max Mustermann");
 		IS_TRUE(report_conf2->createdAt().isValid());
 		S_EQUAL(report_conf2->lastUpdatedBy(), "Max Mustermann");
@@ -1086,7 +1085,6 @@ private slots:
 		S_EQUAL(report_conf2->finalizedBy(), "");
 		IS_FALSE(report_conf2->finalizedAt().isValid());
 
-		I_EQUAL(messages2.count(), 0);
 		S_EQUAL(report_conf2->createdBy(), "Max Mustermann");
 		IS_TRUE(report_conf2->createdAt().date()==QDate::currentDate());
 		I_EQUAL(report_conf2->variantConfig().count(), 3);
@@ -1162,7 +1160,7 @@ private slots:
 		var_conf.exclude_artefact = false;
 		report_conf2->set(var_conf);
 		conf_id2 = db.setReportConfig(ps_id, report_conf2, vl, cnvs, svs);
-		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
+		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs);
 		var_conf = report_conf2->variantConfig()[1];
 		I_EQUAL(var_conf.id, 2)
 		I_EQUAL(var_conf.variant_index, 47);
@@ -1187,7 +1185,7 @@ private slots:
 		IS_FALSE(db.reportConfigIsFinalized(conf_id));
 		db.finalizeReportConfig(conf_id, db.userId("ahmustm1"));
 		IS_TRUE(db.reportConfigIsFinalized(conf_id));
-		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
+		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs);
 		S_EQUAL(report_conf2->finalizedBy(), "Max Mustermann");
 		IS_TRUE(report_conf2->finalizedAt().isValid());
 		//check finalized report config cannot be modified or deleted
@@ -1196,9 +1194,7 @@ private slots:
 
 		//check messages if variant is missing
 		vl.clear();
-		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
-		I_EQUAL(messages2.count(), 1);
-		S_EQUAL(messages2[0], "Could not find variant 'chr2:47635523-47635523 ->T' in given variant list. The report configuration of this variant will be lost if you change anything in the report configuration!");
+		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs);
 		I_EQUAL(report_conf2->variantConfig().count(), 2);
 		X_EQUAL(report_conf2->variantConfig()[0].variant_type, VariantType::CNVS);
 

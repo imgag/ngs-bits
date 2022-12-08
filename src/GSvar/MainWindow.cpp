@@ -4017,13 +4017,9 @@ void MainWindow::loadReportConfig()
 	if (rc_id==-1) return;
 
 	//load
-	QStringList messages;
-	report_settings_.report_config = db.reportConfig(rc_id, variants_, cnvs_, svs_, messages);
+	report_settings_.report_config = db.reportConfig(rc_id, variants_, cnvs_, svs_);
 	connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
-	if (!messages.isEmpty())
-	{
-		QMessageBox::warning(this, "Report configuration", "The following problems were encountered while loading the report configuration:\n" + messages.join("\n"));
-	}
+
 
 	//updateGUI
 	refreshVariantTable();
@@ -4147,8 +4143,7 @@ void MainWindow::storeReportConfig()
 	int conf_id = db.reportConfigId(processed_sample_id);
 	if (conf_id!=-1)
 	{
-		QStringList messages;
-		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, messages);
+		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_);
 		if (report_config->lastUpdatedBy()!="" && report_config->lastUpdatedBy()!=LoginManager::userName())
 		{
 			if (QMessageBox::question(this, "Storing report configuration", report_config->history() + "\n\nDo you want to override it?")==QMessageBox::No)
@@ -4278,8 +4273,7 @@ void MainWindow::showReportConfigInfo()
 		}
 
 
-		QStringList messages;
-		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, messages);
+		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_);
 
 		QMessageBox::information(this, title, report_config->history() + "\n\n" + report_config->variantSummary());
 	}
@@ -4392,8 +4386,7 @@ void MainWindow::finalizeReportConfig()
 		db.finalizeReportConfig(conf_id, LoginManager::userId());
 
 		//update report settings data structure
-		QStringList messages;
-		report_settings_.report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, messages);
+		report_settings_.report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_);
 		connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
 	}
 	catch(Exception e)

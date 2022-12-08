@@ -4732,8 +4732,7 @@ QHash<QString, QStringList> NGSD::checkMetaData(const QString& ps_id, const Vari
 	int rc_id = reportConfigId(ps_id);
 	if (rc_id!=-1)
 	{
-		QStringList report_config_messages;
-		QSharedPointer<ReportConfiguration> report_config = reportConfig(rc_id, variants, cnvs, svs, report_config_messages);
+		QSharedPointer<ReportConfiguration> report_config = reportConfig(rc_id, variants, cnvs, svs);
 		foreach(const ReportVariantConfiguration& var_conf, report_config->variantConfig())
 		{
 			if (var_conf.causal)
@@ -6364,7 +6363,7 @@ bool NGSD::reportConfigIsFinalized(int id)
 	return getValue("SELECT id FROM `report_configuration` WHERE `id`=" + QString::number(id) + " AND finalized_by IS NOT NULL").isValid();
 }
 
-QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, QStringList& messages)
+QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs)
 {
 	QSharedPointer<ReportConfiguration> output = QSharedPointer<ReportConfiguration>(new ReportConfiguration());
 
