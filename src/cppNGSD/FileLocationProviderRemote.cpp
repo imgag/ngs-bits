@@ -149,6 +149,11 @@ FileLocationList FileLocationProviderRemote::getBamFiles(bool return_if_missing)
 	return getFileLocationsByType(PathType::BAM, return_if_missing);
 }
 
+FileLocationList FileLocationProviderRemote::getViralBamFiles(bool return_if_missing) const
+{
+	return getFileLocationsByType(PathType::VIRAL_BAM, return_if_missing);
+}
+
 FileLocationList FileLocationProviderRemote::getCnvCoverageFiles(bool return_if_missing) const
 {
 	return getFileLocationsByType(PathType::COPY_NUMBER_RAW_DATA, return_if_missing);

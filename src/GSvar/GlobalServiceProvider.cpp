@@ -146,16 +146,26 @@ void GlobalServiceProvider::openProcessingSystemTab(QString system_short_name)
 	}
 }
 
-void GlobalServiceProvider::gotoInIGV(QString region, bool init_if_not_done)
+void GlobalServiceProvider::executeCommandListInIGV(QStringList commands, bool init_if_not_done)
 {
 	foreach(QWidget* widget, QApplication::topLevelWidgets())
 	{
 		MainWindow* mw = qobject_cast<MainWindow*>(widget);
 		if (mw!=nullptr)
 		{
-			mw->executeIGVCommands(QStringList() << "goto " + region, init_if_not_done);
+			mw->executeIGVCommands(commands, init_if_not_done);
 		}
 	}
+}
+
+void GlobalServiceProvider::executeCommandInIGV(QString command, bool init_if_not_done)
+{
+	executeCommandListInIGV(QStringList() << command, init_if_not_done);
+}
+
+void GlobalServiceProvider::gotoInIGV(QString region, bool init_if_not_done)
+{
+	executeCommandInIGV("goto " + region, init_if_not_done);
 }
 
 void GlobalServiceProvider::loadFileInIGV(QString filename, bool init_if_not_done)
@@ -163,15 +173,8 @@ void GlobalServiceProvider::loadFileInIGV(QString filename, bool init_if_not_don
 	//normalize local files
 	filename = Helper::canonicalPath(filename);
 
-	foreach(QWidget* widget, QApplication::topLevelWidgets())
-	{
-		MainWindow* mw = qobject_cast<MainWindow*>(widget);
-		if (mw!=nullptr)
-		{
-			if (NGSHelper::isClientServerMode()) mw->executeIGVCommands(QStringList() << "SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*", init_if_not_done);
-			mw->executeIGVCommands(QStringList() << "load \"" + NGSHelper::stripSecureToken(filename) + "\"", init_if_not_done);
-		}
-	}
+	if (NGSHelper::isClientServerMode()) executeCommandInIGV("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*", init_if_not_done);
+	executeCommandInIGV("load \"" + NGSHelper::stripSecureToken(filename) + "\"", init_if_not_done);
 }
 
 void GlobalServiceProvider::openGSvarViaNGSD(QString processed_sample_name, bool search_multi)

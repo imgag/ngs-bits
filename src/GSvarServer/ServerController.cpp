@@ -35,7 +35,12 @@ HttpResponse ServerController::serveEndpointHelp(const HttpRequest& request)
 
 HttpResponse ServerController::serveStaticFromServerRoot(const HttpRequest& request)
 {
-	return createStaticLocationResponse(findPathForServerRoot(request.getPathItems()), request);
+	return createStaticLocationResponse(findPathForServerFolder(request.getPathItems(), ServerHelper::getStringSettingsValue("server_root")), request);
+}
+
+HttpResponse ServerController::serveStaticServerGenomes(const HttpRequest& request)
+{
+	return createStaticLocationResponse(findPathForServerFolder(request.getPathItems(), ServerHelper::getStringSettingsValue("server_genomes")), request);
 }
 
 HttpResponse ServerController::serveStaticFromTempUrl(const HttpRequest& request)
@@ -312,6 +317,9 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 				break;
 			case PathType::BAM:
 				file_list = file_locator->getBamFiles(return_if_missing);
+				break;
+			case PathType::VIRAL_BAM:
+				file_list = file_locator->getViralBamFiles(return_if_missing);
 				break;
 			case PathType::COPY_NUMBER_RAW_DATA:
 				if (multiple_files)
@@ -1231,14 +1239,13 @@ QString ServerController::findPathForTempUrl(QList<QString> path_parts)
 	return "";
 }
 
-QString ServerController::findPathForServerRoot(const QList<QString>& path_parts)
+QString ServerController::findPathForServerFolder(const QList<QString>& path_parts, QString server_folder)
 {
-	QString server_root = ServerHelper::getStringSettingsValue("server_root");
-	if (!server_root.endsWith(QDir::separator()))
+	if (!server_folder.endsWith(QDir::separator()))
 	{
-		server_root = server_root + QDir::separator();
+		server_folder = server_folder + QDir::separator();
 	}
-	QString served_file = server_root.trimmed() + path_parts.join(QDir::separator());
+	QString served_file = server_folder.trimmed() + path_parts.join(QDir::separator());
 
 	served_file = QUrl::fromEncoded(served_file.toUtf8()).toString(); // handling browser endcoding, e.g. spaces and other characters in names
 	int param_pos = served_file.indexOf("?");

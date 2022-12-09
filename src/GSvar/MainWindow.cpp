@@ -137,6 +137,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "ExpressionExonWidget.h"
 #include "SplicingWidget.h"
 #include "VariantHgvsAnnotator.h"
+#include "VirusDetectionWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -215,6 +216,7 @@ MainWindow::MainWindow(QWidget *parent)
 	//variants tool bar
 	connect(ui_.vars_copy_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(copyToClipboard()));
 	connect(ui_.vars_resize_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(adaptColumnWidthsCustom()));
+	connect(ui_.virus_detection_btn, SIGNAL(clicked(bool)),this, SLOT(openVirusTable()));
 	ui_.vars_export_btn->setMenu(new QMenu());
 	ui_.vars_export_btn->menu()->addAction("Export GSvar (filtered)", this, SLOT(exportGSvar()));
 	ui_.vars_export_btn->menu()->addAction("Export VCF (filtered)", this, SLOT(exportVCF()));
@@ -253,7 +255,8 @@ MainWindow::MainWindow(QWidget *parent)
 	notification_label_->setScaledContents(true);
 	notification_label_->setMaximumSize(16,16);
 	notification_label_->setPixmap(QPixmap(":/Icons/email.png"));
-	ui_.statusBar->addPermanentWidget(notification_label_);
+	ui_.statusBar->addPermanentWidget(notification_label_);	
+	ui_.virus_detection_btn->setEnabled(false);
 
 	//init cache in background thread (it takes about 6 seconds)
 	CacheInitWorker* worker = new CacheInitWorker();
@@ -3218,7 +3221,9 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 			file = analysis_info_list[index].analysis_file;
 		}
 
-		loadFile(file);
+		FileLocation viral_file_info = GlobalServiceProvider::database().processedSamplePath(processed_sample_id, PathType::VIRAL);
+		ui_.virus_detection_btn->setEnabled(viral_file_info.exists);
+		loadFile(file, viral_file_info.exists ? viral_file_info.filename : "");
 	}
 	catch (Exception& e)
 	{
@@ -3461,7 +3466,7 @@ void MainWindow::on_actionChangeLog_triggered()
 	QDesktopServices::openUrl(QUrl("https://github.com/imgag/ngs-bits/tree/master/doc/GSvar/changelog.md"));
 }
 
-void MainWindow::loadFile(QString filename, bool show_only_error_issues)
+void MainWindow::loadFile(QString filename, QString viral_file, bool show_only_error_issues)
 {
 	//store variant list in case it changed
 	if (!variants_changed_.isEmpty())
@@ -3479,6 +3484,7 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 	//reset GUI and data structures
 	setWindowTitle(appName());
 	filename_ = "";
+	viral_file_ = "";
 	variants_.clear();
 	GlobalServiceProvider::clearFileLocationProvider();
 	variants_changed_.clear();
@@ -3590,6 +3596,7 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 		//update data structures
 		Settings::setPath("path_variantlists", filename);
 		filename_ = filename;
+		viral_file_ = viral_file;
 
 		//update GUI
 		setWindowTitle(appName() + " - " + variants_.analysisName() + mode_title);
@@ -6641,6 +6648,15 @@ void MainWindow::openAlamut(QAction* action)
 			GUIHelper::showException(this, e, "Communication with Alamut failed!");
 		}
 	}
+}
+
+void MainWindow::openVirusTable()
+{
+	qDebug() << "Virus table";
+
+	VirusDetectionWidget* widget = new VirusDetectionWidget(viral_file_);
+	auto dlg = GUIHelper::createDialog(widget, "Virus table");
+	addModelessDialog(dlg);
 }
 
 
