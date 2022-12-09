@@ -36,6 +36,10 @@ public:
 		QString in = getInfile("in");
 		QString in2 = getInfile("in2");
 		QString out = getOutfile("out");
+		if(in!="" && in==out)
+		{
+			THROW(ArgumentException, "Input and output files must be different when streaming!");
+		}
 		QByteArray filter = getString("filter").toUtf8();
 		QByteArray filter_desc = getString("filter_desc").toUtf8();
 		bool filter_used = !filter.isEmpty();
@@ -45,7 +49,12 @@ public:
 		int column_count = -1;
 		QSet<QByteArray> filters_defined;
 		QSet<QByteArray> vars;
-
+		
+		//counts
+		int c_in = 0;
+		int c_in2 = 0;
+		int c_dup = 0;
+		
 		//copy in to out
 		QSharedPointer<QFile> in_p = Helper::openFileForReading(in, true);
 		QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
@@ -65,7 +74,6 @@ public:
 				{
 					QByteArray tmp = line.mid(13);
 					filters_defined << tmp.left(tmp.indexOf(','));
-					QTextStream(stdout) << tmp.left(tmp.indexOf(',')) << endl;
 				}
 
 				if (!line.startsWith("##"))
@@ -85,6 +93,8 @@ public:
 				QByteArrayList parts = line.split('\t');
 				QByteArray tag = parts[VcfFile::CHROM] + '\t' + parts[VcfFile::POS] + '\t' + parts[VcfFile::REF] + '\t' + parts[VcfFile::ALT];
 				vars << tag;
+				
+				++c_in;
 			}
 
 			out_p->write(line);
@@ -121,7 +131,11 @@ public:
 			{
 				parts = line.split('\t');
 				QByteArray tag = parts[VcfFile::CHROM] + '\t' + parts[VcfFile::POS] + '\t' + parts[VcfFile::REF] + '\t' + parts[VcfFile::ALT];
-				if (vars.contains(tag)) continue;
+				if (vars.contains(tag))
+				{
+					++c_dup;
+					continue;
+				}
 			}
 
 			//add filter entries
@@ -139,11 +153,23 @@ public:
 				}
 				line = parts.join('\t');
 			}
+			
 
 			out_p->write(line);
 			out_p->write("\n");
+			
+			++c_in2;
 		}
 		in_p->close();
+		
+		//Statistics output
+		QTextStream stream(stdout);
+		stream << "Variants from in  : " << c_in << endl;
+		stream << "Variants from in2 : " << c_in2 << endl;
+		if (skip_duplicates)
+		{
+			stream << "Duplicates skipped: " << c_dup  << endl;
+		}
 	}
 };
 
