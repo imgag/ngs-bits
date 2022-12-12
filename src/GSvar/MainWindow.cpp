@@ -146,7 +146,6 @@ MainWindow::MainWindow(QWidget *parent)
 	, busy_dialog_(nullptr)
 	, notification_label_(new QLabel())
 	, filename_()
-	, igv_initialized_(false)
 	, variants_changed_()
 	, last_report_path_(QDir::homePath())
 	, init_timer_(this, true)
@@ -286,6 +285,8 @@ MainWindow::MainWindow(QWidget *parent)
 		server_ping_timer->start(10 * 60 * 1000); // every 10 minutes
 	}
 
+	GlobalServiceProvider::setIGVInitialized(false, true);
+	GlobalServiceProvider::setIGVInitialized(false, false);
 	connect(ui_.vars, SIGNAL(publishToClinvarTriggered(int, int)), this, SLOT(uploadToClinvar(int, int)));
 	connect(ui_.vars, SIGNAL(alamutTriggered(QAction*)), this, SLOT(openAlamut(QAction*)));
 }
@@ -1554,16 +1555,17 @@ void MainWindow::on_actionIgvClear_triggered()
 	commands << "new";
 	executeIGVCommands(commands);
 
-	igv_initialized_ = false;
+	GlobalServiceProvider::setIGVInitialized(false, false);
 }
 
 void MainWindow::on_actionIgvPort_triggered()
 {
 	bool ok = false;
-	int igv_port_new = QInputDialog::getInt(this, "Change IGV port", "Set IGV port for this GSvar session:", igvPort(), 0, 900000, 1, &ok);
+	int igv_port_new = QInputDialog::getInt(this, "Change IGV port", "Set IGV port for this GSvar session:", GlobalServiceProvider::getIGVPort(), 0, 900000, 1, &ok);
 	if (ok)
 	{
-		igv_port_manual = igv_port_new;
+//		igv_port_manual = igv_port_new;
+		GlobalServiceProvider::setIGVPort(igv_port_new, false);
 	}
 }
 
@@ -2491,7 +2493,77 @@ void MainWindow::variantHeaderDoubleClicked(int row)
 	editVariantReportConfiguration(var_index);
 }
 
-bool MainWindow::initializeIGV(QAbstractSocket& socket)
+void MainWindow::prepareAndRunIGVCommands(QAbstractSocket& socket, QStringList files_to_load, bool is_virus_genome)
+{
+	QStringList init_commands;
+	//genome command first, see https://github.com/igvteam/igv/issues/1094
+	//choose the correct genome
+	if (is_virus_genome)
+	{
+		QString virus_genome;
+		if (!NGSHelper::isClientServerMode())
+		{
+			virus_genome = Settings::string("igv_virus_genome", true);
+			if (virus_genome.isEmpty())
+			{
+				QMessageBox::information(this, "Virus genome not set", "Virus genome path is missing from the settings!");
+				return;
+			}
+		}
+		else
+		{
+			virus_genome = NGSHelper::serverApiUrl() + "genome/somatic_viral.fa";
+		}
+
+		init_commands.append("genome " + virus_genome);
+		init_commands.append("setSleepInterval 1500");
+	}
+	else
+	{
+		init_commands.append("genome " + Settings::path("igv_genome"));
+	}
+	init_commands.append("new");
+	if (NGSHelper::isClientServerMode()) init_commands.append("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*");
+
+	//load non-BAM files
+	foreach(QString file, files_to_load)
+	{
+		if (!NGSHelper::isBamFile(file)) init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
+	}
+
+	//collapse tracks
+	init_commands.append("collapse");
+
+	//load BAM files
+	foreach(QString file, files_to_load)
+	{
+		if (NGSHelper::isBamFile(file)) init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
+	}
+	init_commands.append("viewaspairs");
+	init_commands.append("colorBy UNEXPECTED_PAIR");
+	init_commands.append("setSleepInterval 0");
+
+	//execute commands
+	bool debug = false;
+	foreach(QString command, init_commands)
+	{
+		if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;
+		socket.write((command + "\n").toUtf8());
+		bool ok = socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)
+		QString answer = socket.readAll().trimmed();
+		if (!ok || answer!="OK")
+		{
+			if (debug) qDebug() << QDateTime::currentDateTime() << "FAILED: answer:" << answer << " socket error:" << socket.errorString();
+			THROW(Exception, "Could not execute IGV command '" + command + "'.\nAnswer: " + answer + "\nSocket error:" + socket.errorString());
+		}
+		else
+		{
+			if (debug) qDebug() << QDateTime::currentDateTime() << "DONE";
+		}
+	}
+}
+
+bool MainWindow::prepareNormalIGV(QAbstractSocket& socket)
 {
 	AnalysisType analysis_type = variants_.type();
 
@@ -2648,53 +2720,12 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 	{
 		if (dlg.initializationAction()==IgvDialog::INIT)
 		{
-			QStringList files_to_load = dlg.filesToLoad();
-			QStringList init_commands;
-			init_commands.append("genome " + Settings::path("igv_genome")); //genome command first, see https://github.com/igvteam/igv/issues/1094
-			init_commands.append("new");
-			if (NGSHelper::isClientServerMode()) init_commands.append("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*");
-
-			//load non-BAM files
-			foreach(QString file, files_to_load)
-			{
-				if (!NGSHelper::isBamFile(file)) init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
-			}
-
-			//collapse tracks
-			init_commands.append("collapse");
-
-			//load BAM files
-			foreach(QString file, files_to_load)
-			{
-				if (NGSHelper::isBamFile(file)) init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
-			}
-			init_commands.append("viewaspairs");
-			init_commands.append("colorBy UNEXPECTED_PAIR");
-
-			//execute commands
-			bool debug = false;
-			foreach(QString command, init_commands)
-			{
-				if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;
-				socket.write((command + "\n").toUtf8());
-				bool ok = socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)
-				QString answer = socket.readAll().trimmed();
-				if (!ok || answer!="OK")
-				{
-					if (debug) qDebug() << QDateTime::currentDateTime() << "FAILED: answer:" << answer << " socket error:" << socket.errorString();
-					THROW(Exception, "Could not execute IGV command '" + command + "'.\nAnswer: " + answer + "\nSocket error:" + socket.errorString());
-				}
-				else
-				{
-					if (debug) qDebug() << QDateTime::currentDateTime() << "DONE";
-				}
-			}
-
-			igv_initialized_ = true;
+			prepareAndRunIGVCommands(socket, dlg.filesToLoad(), false);
+			GlobalServiceProvider::setIGVInitialized(true, false);
 		}
 		else if (dlg.initializationAction()==IgvDialog::SKIP_SESSION)
 		{
-			igv_initialized_ = true;
+			GlobalServiceProvider::setIGVInitialized(true, false);
 		}
 		else if (dlg.initializationAction()==IgvDialog::SKIP_ONCE)
 		{
@@ -2712,6 +2743,25 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 		QMessageBox::warning(this, "Error while initializing IGV", e.message());
 
 		return false;
+	}
+}
+
+bool MainWindow::prepareVirusIGV(QAbstractSocket& socket)
+{
+	prepareAndRunIGVCommands(socket, QStringList{}, true);
+	GlobalServiceProvider::setIGVInitialized(true, true);
+	return true;
+}
+
+bool MainWindow::initializeIGV(QAbstractSocket& socket, bool is_virus_genome)
+{
+	if (is_virus_genome)
+	{
+		return prepareVirusIGV(socket);
+	}
+	else
+	{
+		return prepareNormalIGV(socket);
 	}
 }
 
@@ -3490,7 +3540,8 @@ void MainWindow::loadFile(QString filename, QString viral_file, bool show_only_e
 	variants_changed_.clear();
 	cnvs_.clear();
 	svs_.clear();
-	igv_initialized_ = false;
+	GlobalServiceProvider::setIGVInitialized(false, true);
+	GlobalServiceProvider::setIGVInitialized(false, false);
 	ui_.vars->clearContents();
 	report_settings_ = ReportSettings();
 	connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
@@ -5299,28 +5350,6 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 	}
 }
 
-int MainWindow::igvPort() const
-{
-	int port = Settings::integer("igv_port");
-
-	//if NGSD is enabled, add the user ID (like that, several users can work on one server)
-	if (LoginManager::active())
-	{
-		port += LoginManager::userId();
-	}
-
-		//use different ranges for different genome build, so that they can be used in parallel
-		if (GSvarHelper::build()!=GenomeBuild::HG19)
-		{
-			port += 1000;
-		}
-
-	//if manual override is set, use it
-	if (igv_port_manual>0) port = igv_port_manual;
-
-	return port;
-}
-
 const VariantList&MainWindow::getSmallVariantList()
 {
 	return variants_;
@@ -6652,8 +6681,6 @@ void MainWindow::openAlamut(QAction* action)
 
 void MainWindow::openVirusTable()
 {
-	qDebug() << "Virus table";
-
 	VirusDetectionWidget* widget = new VirusDetectionWidget(viral_file_);
 	auto dlg = GUIHelper::createDialog(widget, "Virus table");
 	addModelessDialog(dlg);
@@ -6884,7 +6911,7 @@ void MainWindow::updateVariantDetails()
 	var_last_ = var_current;
 }
 
-void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done)
+void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done, bool is_virus_genome)
 {
 	bool debug = false;
 
@@ -6895,7 +6922,7 @@ void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done)
 		//connect
 		QAbstractSocket socket(QAbstractSocket::UnknownSocketType, this);
 		QString igv_host = Settings::string("igv_host");
-		int igv_port = igvPort();
+		int igv_port = GlobalServiceProvider::getIGVPort(is_virus_genome);
 		if (debug) qDebug() << QDateTime::currentDateTime() << "CONNECTING:" << igv_host << igv_port;
 		socket.connectToHost(igv_host, igv_port);
 		if (!socket.waitForConnected(1000))
@@ -6905,8 +6932,8 @@ void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done)
 			if (QMessageBox::information(this, "IGV not running", "IGV is not running on port " + QString::number(igv_port) + ".\nIt will be started now!", QMessageBox::Ok|QMessageBox::Default, QMessageBox::Cancel|QMessageBox::Escape)!=QMessageBox::Ok) return;
 			QApplication::setOverrideCursor(Qt::BusyCursor);
 
-			if (debug) qDebug() << QDateTime::currentDateTime() << "FAILED - TRYING TO START IGV";
-			igv_initialized_ = false;
+			if (debug) qDebug() << QDateTime::currentDateTime() << "FAILED - TRYING TO START IGV";			
+			GlobalServiceProvider::setIGVInitialized(false, is_virus_genome);
 
 			//try to start IGV
 			QString igv_app = Settings::path("igv_app").trimmed();
@@ -6945,11 +6972,13 @@ void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done)
 		}
 		QApplication::restoreOverrideCursor();
 
+		bool needs_init = (is_virus_genome) ? GlobalServiceProvider::isIGVInitialized(true) : GlobalServiceProvider::isIGVInitialized(false);
+
 		//init if necessary
-		if (!igv_initialized_ && init_if_not_done)
+		if (!needs_init && init_if_not_done)
 		{
 			if (debug) qDebug() << QDateTime::currentDateTime() << "INITIALIZING IGV FOR CURRENT SAMPLE!";
-			if (!initializeIGV(socket)) return;
+			if (!initializeIGV(socket, is_virus_genome)) return;
 		}
 
 		//execute commands

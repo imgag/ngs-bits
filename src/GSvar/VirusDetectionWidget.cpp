@@ -15,6 +15,7 @@ VirusDetectionWidget::VirusDetectionWidget(QString viral_file, QWidget* parent)
 {
 	ui_.setupUi(this);
 	populateTable();
+	GlobalServiceProvider::setIGVInitialized(false, true);
 	connect(ui_.virus_table, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(callViewInIGV(int, int)));
 	connect(ui_.virus_table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(callCustomMenu(QPoint)));
 }
@@ -95,21 +96,13 @@ void VirusDetectionWidget::openInIGV(int row)
 	}
 
 	QStringList commands;
-	if (!igv_initialized_)
+	if (!GlobalServiceProvider::isIGVInitialized(true))
 	{
-		commands.append("genome " + NGSHelper::serverApiUrl() + "genome/somatic_viral.fa");
-		commands.append("new");
-		if (NGSHelper::isClientServerMode()) commands.append("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*");
-		commands.append("collapse");
 		foreach (FileLocation file, bam_files)
 		{
 			commands.append("load \"" + NGSHelper::stripSecureToken(file.filename) + "\"");
 		}
-		commands.append("viewaspairs");
-		commands.append("colorBy UNEXPECTED_PAIR");
-		igv_initialized_ = true;
 	}
-
 	commands.append("goto " + ui_.virus_table->item(row, 0)->text() + ":" + ui_.virus_table->item(row, 1)->text() + "-" + ui_.virus_table->item(row, 2)->text());
-	GlobalServiceProvider::executeCommandListInIGV(commands, false);
+	GlobalServiceProvider::executeCommandListInIGV(commands, true, true);
 }

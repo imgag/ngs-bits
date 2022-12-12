@@ -31,10 +31,15 @@ public:
 	static void openProcessingSystemTab(QString system_short_name);
 
 	//IGV functionality
-	static void executeCommandListInIGV(QStringList commands, bool init_if_not_done);
-	static void executeCommandInIGV(QString command, bool init_if_not_done);
-	static void gotoInIGV(QString region, bool init_if_not_done);
-	static void loadFileInIGV(QString filename, bool init_if_not_done);
+	static void executeCommandListInIGV(QStringList commands, bool init_if_not_done, bool is_virus_genome = false);
+	static void executeCommandInIGV(QString command, bool init_if_not_done, bool is_virus_genome = false);
+	static void gotoInIGV(QString region, bool init_if_not_done, bool is_virus_genome = false);
+	static void loadFileInIGV(QString filename, bool init_if_not_done, bool is_virus_genome = false);
+	//returns IGV port for a current user
+	static int getIGVPort(bool is_virus_genome = false);
+	static void setIGVPort(int port, bool is_virus_genome = false);
+	static bool isIGVInitialized(bool is_virus_genome = false);
+	static void setIGVInitialized(bool is_initialized, bool is_virus_genome = false);
 
 	//opening GSvar files
 	static void openGSvarViaNGSD(QString processed_sample_name, bool search_multi);
@@ -54,6 +59,10 @@ private:
 	QSharedPointer<FileLocationProvider> file_location_provider_;
 	QSharedPointer<DatabaseService> database_service_;
 	QSharedPointer<StatisticsService> statistics_service_;
+	int normal_igv_port_manual_;
+	int virus_igv_port_manual_;
+	bool is_normal_igv_initialized;
+	bool is_virus_igv_initialized;
 };
 
 #endif // GLOBALSERVICEPROVIDER_H

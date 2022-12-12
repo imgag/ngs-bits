@@ -12,6 +12,8 @@ GlobalServiceProvider::GlobalServiceProvider()
   : file_location_provider_()
   , database_service_()
   , statistics_service_()
+  , normal_igv_port_manual_(-1)
+  , virus_igv_port_manual_(-1)
 {
 	if (NGSHelper::isClientServerMode())
 	{		
@@ -146,35 +148,107 @@ void GlobalServiceProvider::openProcessingSystemTab(QString system_short_name)
 	}
 }
 
-void GlobalServiceProvider::executeCommandListInIGV(QStringList commands, bool init_if_not_done)
+void GlobalServiceProvider::executeCommandListInIGV(QStringList commands, bool init_if_not_done,bool is_virus_genome)
 {
 	foreach(QWidget* widget, QApplication::topLevelWidgets())
 	{
 		MainWindow* mw = qobject_cast<MainWindow*>(widget);
 		if (mw!=nullptr)
 		{
-			mw->executeIGVCommands(commands, init_if_not_done);
+			mw->executeIGVCommands(commands, init_if_not_done, is_virus_genome);
 		}
 	}
 }
 
-void GlobalServiceProvider::executeCommandInIGV(QString command, bool init_if_not_done)
+void GlobalServiceProvider::executeCommandInIGV(QString command, bool init_if_not_done, bool is_virus_genome)
 {
-	executeCommandListInIGV(QStringList() << command, init_if_not_done);
+	executeCommandListInIGV(QStringList() << command, init_if_not_done, is_virus_genome);
 }
 
-void GlobalServiceProvider::gotoInIGV(QString region, bool init_if_not_done)
+void GlobalServiceProvider::gotoInIGV(QString region, bool init_if_not_done, bool is_virus_genome)
 {
-	executeCommandInIGV("goto " + region, init_if_not_done);
+	executeCommandInIGV("goto " + region, init_if_not_done, is_virus_genome);
 }
 
-void GlobalServiceProvider::loadFileInIGV(QString filename, bool init_if_not_done)
+void GlobalServiceProvider::loadFileInIGV(QString filename, bool init_if_not_done, bool is_virus_genome)
 {
 	//normalize local files
 	filename = Helper::canonicalPath(filename);
 
-	if (NGSHelper::isClientServerMode()) executeCommandInIGV("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*", init_if_not_done);
-	executeCommandInIGV("load \"" + NGSHelper::stripSecureToken(filename) + "\"", init_if_not_done);
+	if (NGSHelper::isClientServerMode()) executeCommandInIGV("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*", init_if_not_done, is_virus_genome);
+	executeCommandInIGV("load \"" + NGSHelper::stripSecureToken(filename) + "\"", init_if_not_done, is_virus_genome);
+}
+
+int GlobalServiceProvider::getIGVPort(bool is_virus_genome)
+{
+	int port = Settings::integer("igv_port");
+
+	//if NGSD is enabled, add the user ID (like that, several users can work on one server)
+	if (LoginManager::active())
+	{
+		port += LoginManager::userId();
+	}
+
+	//use different ranges for different genome build, so that they can be used in parallel
+	if (GSvarHelper::build()!=GenomeBuild::HG19)
+	{
+		port += 1000;
+	}
+
+	//IGV instance created for the virus detection
+	if (is_virus_genome)
+	{
+		port += 1000;
+	}
+
+	//if manual override is set, use it
+	if ((is_virus_genome) && (instance().virus_igv_port_manual_>0))
+	{
+		port = instance().virus_igv_port_manual_;
+	}
+
+	if ((!is_virus_genome) && (instance().normal_igv_port_manual_>0))
+	{
+		port = instance().normal_igv_port_manual_;
+	}
+
+	return port;
+}
+
+void GlobalServiceProvider::setIGVPort(int port, bool is_virus_genome)
+{
+	if (is_virus_genome)
+	{
+		instance().virus_igv_port_manual_ = port;
+	}
+	else
+	{
+		instance().normal_igv_port_manual_ = port;
+	}
+}
+
+bool GlobalServiceProvider::isIGVInitialized(bool is_virus_genome)
+{
+	if (is_virus_genome)
+	{
+		return instance().is_virus_igv_initialized;
+	}
+	else
+	{
+		return instance().is_normal_igv_initialized;
+	}
+}
+
+void GlobalServiceProvider::setIGVInitialized(bool is_initialized, bool is_virus_genome)
+{
+	if (is_virus_genome)
+	{
+		instance().is_virus_igv_initialized = is_initialized;
+	}
+	else
+	{
+		instance().is_normal_igv_initialized = is_initialized;
+	}
 }
 
 void GlobalServiceProvider::openGSvarViaNGSD(QString processed_sample_name, bool search_multi)
