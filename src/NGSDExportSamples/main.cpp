@@ -58,7 +58,7 @@ public:
 		addFlag("add_outcome", "If set, diagnostic outcome columns are added to output.");
 		addFlag("add_disease_details", "If set, disease details columns are added to output.");
 		addEnum("add_path", "Adds a column with the given path type.", true, validPathStrings());
-		addFlag("add_report_config", "Adds a column with report configuration information (exists/has_small_variants/has_cnvs).");
+		addFlag("add_report_config", "Adds a column with report configuration information (if it exists and if causal variants exist).");
 		addFlag("add_comments", "Adds sample and processed sample comments columns.");
 		addFlag("add_normal_sample", "Adds a column with the normal germline sample associated to a for tumor samples.");
 		addFlag("test", "Uses the test database instead of on the production database.");

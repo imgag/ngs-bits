@@ -1,5 +1,5 @@
 ### VcfFilter tool help
-	VcfFilter (2022_10-83-g62451d12)
+	VcfFilter (2022_11-75-gf99b2041)
 	
 	Filters a VCF based on the given criteria.
 	
@@ -13,6 +13,8 @@
 	                           Default value: ''
 	  -reg <string>            Region of interest in BED format, or comma-separated list of region, e.g. 'chr1:454540-454678,chr2:473457-4734990'.
 	                           Default value: ''
+	  -remove_invalid          Removes invalid variant, i.e. invalid position of ref/alt.
+	                           Default value: 'false'
 	  -variant_type <string>   Filters by variant type. Possible types are: 'snp','indel','multi-allelic','other'.
 	                           Default value: ''
 	  -id <string>             Filter by ID column (regular expression).
@@ -41,7 +43,7 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfFilter changelog
-	VcfFilter 2022_10-83-g62451d12
+	VcfFilter 2022_11-75-gf99b2041
 	
 	2018-10-31 Initial implementation.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
