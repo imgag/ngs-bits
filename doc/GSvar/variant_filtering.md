@@ -1,4 +1,4 @@
-## Variant filtering
+## Small variant analysis
 
 The data format for small variants (SNVs and InDels) is the `GSvar format`.  
 It contains the variants, annotations of the variants and meta data.  
@@ -17,8 +17,32 @@ To perform a single sample analysis, follow those steps:
 2. When the analysis is finished, open the GSvar variant list.
 3. For filtering the variant list, use one of the default `recessive` and `dominant` filters.
 4. Default filter can be modified and new filters created using the filter toolbar on the right.
-5. The single sample pipeline also calls potential mosaic variants. These can be opened in a seperate window with the mosaic variant button <img src="MosaicVariant.png" alt="alt text" width="30"/>
-6. For mosaic variants there are two default filters available: Mosaic WGS and Mosaic WES
+
+#### Mosaic variants
+
+Mosaic variants down to 1% allele frequency are called by default.  
+They are contained in the main variant list, but are flagged with the filter entry `mosaic`.  
+They are called on the following target region, depending on the processing system:
+  
+  - WGS: exons regions plus/minus 20 bases.
+  - WES: target region of the processing system.
+  - panel: target region of the processing system.
+
+Mosaic variants are filtered out by most default filters.  
+Use the filters 'mosaic WGS' or 'mosaic WES' to look at them specifically.
+
+#### Variants in not uniquely mappable regions
+
+Variant in not uniquely mappable regions, i.e. reads have a mapping quality of 0, are called by default.  
+They are contained in the main variant list, but are flagged with the filter entry `low_mappabilty`.  
+They are called on the following target region, depending on the processing system:
+  
+  - WGS: exons regions plus/minus 20 bases.
+  - WES: intersection of target region of the processing system and pre-calculated mapping quality 0 region.
+  - panel: intersection of target region of the processing system and pre-calculated mapping quality 0 region.
+
+Low mappability variants are filtered out by most default filters.  
+Use the filter 'low mappability' to look at them specifically.
 
 ### Trio analysis
 

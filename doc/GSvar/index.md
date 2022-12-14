@@ -9,10 +9,10 @@
 ## Variant filtering and QC
 
 - [Sample quality control](sample_quality_control.md)
-- [Variant filtering](variant_filtering.md)
+- [Small variant analysis](variant_filtering.md)
 - [CNV analysis](cnv_analysis.md)
 - [SV analysis](sv_analysis.md)
-- [Repeat expansions sv_analysis](repeat_expansion_view.md)
+- [Repeat expansions analysis](repeat_expansion_view.md)
 - [ROH analysis](roh_analysis.md)
 - [RNA analysis](rna_analysis.md)
 - [Report generation](report_generation.md)
