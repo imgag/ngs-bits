@@ -1,4 +1,4 @@
-## Small variant analysis
+# Small variant analysis
 
 The data format for small variants (SNVs and InDels) is the `GSvar format`.  
 It contains the variants, annotations of the variants and meta data.  
@@ -9,7 +9,7 @@ These filters can be further modified according to user needs.
 Additionally, powerful custom filters can be created by combining several filter steps.  
 A documentation of available filter steps and their parameters can be found [here](https://github.com/imgag/ngs-bits/blob/master/doc/tools/VariantFilterAnnotations.md).
 
-### Single-sample analysis
+## Single-sample analysis
 
 To perform a single sample analysis, follow those steps:
 
@@ -18,7 +18,7 @@ To perform a single sample analysis, follow those steps:
 3. For filtering the variant list, use one of the default `recessive` and `dominant` filters.
 4. Default filter can be modified and new filters created using the filter toolbar on the right.
 
-#### Mosaic variants
+### Mosaic variants
 
 Mosaic variants down to 1% allele frequency are called by default.  
 They are contained in the main variant list, but are flagged with the filter entry `mosaic`.  
@@ -31,7 +31,7 @@ They are called on the following target region, depending on the processing syst
 Mosaic variants are filtered out by most default filters.  
 Use the filters 'mosaic WGS' or 'mosaic WES' to look at them specifically.
 
-#### Variants in not uniquely mappable regions
+### Variants in not uniquely mappable regions
 
 Variant in not uniquely mappable regions, i.e. reads have a mapping quality of 0, are called by default.  
 They are contained in the main variant list, but are flagged with the filter entry `low_mappabilty`.  
@@ -44,7 +44,7 @@ They are called on the following target region, depending on the processing syst
 Low mappability variants are filtered out by most default filters.  
 Use the filter 'low mappability' to look at them specifically.
 
-### Trio analysis
+## Trio analysis
 
 To perform a trio analysis, follow those steps:
 
@@ -60,7 +60,7 @@ It is possible to miss the causal variant if performing multi-sample analysis on
 This has both technical and biological reasons (low coverage in one sample, reduced penetrance, mosaic variants,...).
 
 
-### Multi-sample analysis
+## Multi-sample analysis
 
 To perform a multi-sample analysis, follow those steps:
 

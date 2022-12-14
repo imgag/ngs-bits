@@ -1,5 +1,11 @@
 # GSvar change log
 
+### 2022_11-75 (14.12.22)
+
+- Filters: adapted filter for 'mosaic' and 'low_mappability' variants.
+- Repeat expansions: updated ATXN3 cutoffs.
+- Somatic: added virus table.
+
 ### 2022_11-52 (06.12.22)
 
 - General: RNA dialogs are opened modeless now.
