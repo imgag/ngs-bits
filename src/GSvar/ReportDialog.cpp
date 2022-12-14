@@ -6,6 +6,7 @@
 #include "Settings.h"
 #include <QTableWidgetItem>
 #include <QMenu>
+#include <QMessageBox>
 
 
 ReportDialog::ReportDialog(QString ps, ReportSettings& settings, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, const TargetRegionInfo& roi, QWidget* parent)
@@ -26,6 +27,7 @@ ReportDialog::ReportDialog(QString ps, ReportSettings& settings, const VariantLi
 	connect(this, SIGNAL(accepted()), this, SLOT(writeBackSettings()));
 
 	initGUI();
+	validateReportConfig();
 }
 
 void ReportDialog::checkMetaData()
@@ -273,6 +275,101 @@ void ReportDialog::updateCoverageCheckboxStatus()
 		if (!add_cov_details) ui_.depth_calc->setChecked(false);
 		ui_.details_cov_roi->setEnabled(add_cov_details);
 		if (!add_cov_details) ui_.details_cov_roi->setChecked(false);
+	}
+
+}
+
+void ReportDialog::validateReportConfig()
+{
+	int rc_id = db_.reportConfigId(db_.processedSampleId(ps_));
+	if (rc_id==-1) THROW(ArgumentException, "No report configuration found for processed sample " + ps_ + "! ");
+
+	VariantList missing_small_variants;
+	CnvList missing_cnvs;
+	BedpeFile missing_svs;
+
+	//SNVs/InDels
+	QList<int> small_variant_ids = db_.getValuesInt("SELECT variant_id FROM report_configuration_variant WHERE report_configuration_id=:0", QString::number(rc_id));
+	foreach (int var_id, small_variant_ids)
+	{
+		//match report variant against variant list
+		Variant var = db_.variant(QString::number(var_id));
+		bool match_found = false;
+		for (int i=0; i<variants_.count(); ++i)
+		{
+			if (var==variants_[i])
+			{
+				match_found = true;
+				break;
+			}
+		}
+		if (!match_found) missing_small_variants.append(var);
+	}
+
+	//CNVs
+	QList<int> cnv_ids = db_.getValuesInt("SELECT cnv_id FROM report_configuration_cnv WHERE report_configuration_id=:0", QString::number(rc_id));
+	foreach (int var_id, cnv_ids)
+	{
+		//match report variant against variant list
+		CopyNumberVariant cnv = db_.cnv(var_id);
+		bool match_found = false;
+		for (int i=0; i<cnvs_.count(); ++i)
+		{
+			if (cnvs_[i].hasSamePosition(cnv))
+			{
+				match_found = true;
+				break;
+			}
+		}
+		if (!match_found) missing_cnvs.append(cnv);
+	}
+
+	//SVs
+	foreach (StructuralVariantType type, QList<StructuralVariantType>() << StructuralVariantType::DEL << StructuralVariantType::DUP << StructuralVariantType::INS << StructuralVariantType::INV << StructuralVariantType::BND)
+	{
+		QString sv_table = db_.svTableName(type);
+		QList<int> sv_ids = db_.getValuesInt("SELECT " + sv_table + "_id FROM report_configuration_sv WHERE report_configuration_id=:0 AND " + sv_table + "_id IS NOT NULL", QString::number(rc_id));
+		foreach (int var_id, sv_ids)
+		{
+			//match report variant against variant list
+			BedpeLine sv = db_.structuralVariant(var_id, type, svs_);
+			if (svs_.findMatch(sv, true, false) == -1) missing_svs.append(sv);
+		}
+	}
+
+	QStringList message_text;
+	if (missing_small_variants.count() > 0)
+	{
+		message_text << "SNVs/Indels: ";
+		for (int i = 0; i < missing_small_variants.count(); ++i)
+		{
+			message_text << "\t" + missing_small_variants[i].toString();
+		}
+		message_text << "";
+	}
+	if (missing_cnvs.count() > 0)
+	{
+		message_text << "CNVs: ";
+		for (int i = 0; i < missing_cnvs.count(); ++i)
+		{
+			message_text << "\t" + missing_cnvs[i].toString();
+		}
+		message_text << "";
+	}
+	if (missing_svs.count() > 0)
+	{
+		message_text << "SVs: ";
+		for (int i = 0; i < missing_svs.count(); ++i)
+		{
+			message_text << "\t" + missing_svs[i].toString();
+		}
+		message_text << "";
+	}
+
+	if (message_text.size() > 0)
+	{
+		QMessageBox::warning(this, "Missing variants in variant list", QString("The following variants are part of the current report configuration, but they are missing in the loaded variant list ")
+					 + "and as a result will not be part of the report. \n\n" + message_text.join("\n"));
 	}
 
 }
