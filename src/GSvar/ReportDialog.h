@@ -33,6 +33,7 @@ protected slots:
 	void initGUI();
 	void updateVariantTable();
 	void updateCoverageCheckboxStatus();
+	void validateReportConfig();
 
 	void editDiseaseGroupStatus();
 	void editDiseaseDetails();

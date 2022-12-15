@@ -310,7 +310,6 @@ FORMS    += MainWindow.ui \
     GapClosingDialog.ui \
     NGSDReplicationWidget.ui \
     CohortAnalysisWidget.ui \
-    VirusDetectionWidget.ui \
     cfDNARemovedRegions.ui \
     ClinvarUploadDialog.ui \
     BlatWidget.ui \

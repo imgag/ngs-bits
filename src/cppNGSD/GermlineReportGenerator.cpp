@@ -499,7 +499,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 				zscore = QString::number(zscore_num, 'f', 3);
 				if (zscore_num>=1.6 && population==NGSHelper::populationCodeToHumanReadable("EUR"))
 				{
-					zscore = "<span style='background-color:#ff0;'>" + zscore + "</span>";
+					zscore = "<b>" + zscore + "</b>";
 				}
 				if (population!=NGSHelper::populationCodeToHumanReadable("EUR"))
 				{
