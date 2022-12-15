@@ -4590,10 +4590,11 @@ void MainWindow::generateReportSomaticRTF()
 		somatic_report_settings_.target_region_filter = generic_target;
 	}
 
-	QCCollection cnv_metrics = Statistics::hrdScore(SomaticReportSettings::filterCnvs(cnvs_, somatic_report_settings_), GSvarHelper::build());
-	somatic_report_settings_.report_config.setCnvLohCount( cnv_metrics.value("QC:2000062", true).asInt() );
-	somatic_report_settings_.report_config.setCnvTaiCount( cnv_metrics.value("QC:2000063", true).asInt() );
-	somatic_report_settings_.report_config.setCnvLstCount( cnv_metrics.value("QC:2000064", true).asInt() );
+	//TODO replace hrdScore -> getting it out of NGSD
+//	QCCollection cnv_metrics = Statistics::hrdScore(SomaticReportSettings::filterCnvs(cnvs_, somatic_report_settings_), GSvarHelper::build());
+//	somatic_report_settings_.report_config.setCnvLohCount( cnv_metrics.value("QC:2000062", true).asInt() );
+//	somatic_report_settings_.report_config.setCnvTaiCount( cnv_metrics.value("QC:2000063", true).asInt() );
+//	somatic_report_settings_.report_config.setCnvLstCount( cnv_metrics.value("QC:2000064", true).asInt() );
 
 
 	//Preselect report settings if not already exists to most common values
@@ -4604,7 +4605,6 @@ void MainWindow::generateReportSomaticRTF()
 		somatic_report_settings_.report_config.setTumContentByHistological(true);
 		somatic_report_settings_.report_config.setMsiStatus(true);
 		somatic_report_settings_.report_config.setCnvBurden(true);
-		somatic_report_settings_.report_config.setHrdScore(0);
 	}
 
 	//Parse genome ploidy from ClinCNV file
