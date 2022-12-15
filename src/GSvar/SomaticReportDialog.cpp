@@ -601,7 +601,7 @@ void SomaticReportDialog::createIgvScreenshot()
 			MainWindow* main_window = qobject_cast<MainWindow*>(widget);
 			if (main_window!=nullptr)
 			{
-				main_window->executeIGVCommands(commands, false);
+				main_window->executeIGVCommands(commands, false, 0);
 			}
 		}
 
