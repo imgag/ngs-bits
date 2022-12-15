@@ -11,11 +11,7 @@ class VirusDetectionWidget
 public:
 	VirusDetectionWidget(QString viral_file, QWidget* parent = 0);
 
-signals:
-	void cellDoubleClicked(int row, int column);
-
 protected slots:
-
 	void callViewInIGV(int row, int col);
 	void callCustomMenu(QPoint pos);
 	void callViewInIGV();

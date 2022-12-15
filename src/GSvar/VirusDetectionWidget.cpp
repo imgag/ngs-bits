@@ -16,6 +16,7 @@ VirusDetectionWidget::VirusDetectionWidget(QString viral_file, QWidget* parent)
 	setSelectionBehavior(QAbstractItemView::SelectRows);
 	setContextMenuPolicy(Qt::CustomContextMenu);
 
+	GlobalServiceProvider::setIGVInitialized(false, true);
 	connect(this, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(callViewInIGV(int, int)));
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(callCustomMenu(QPoint)));
 
@@ -108,8 +109,6 @@ void VirusDetectionWidget::openInIGV(int row)
 	}
 
 	commands.append("goto " + item(row, 0)->text() + ":" + item(row, 1)->text() + "-" + item(row, 2)->text());
-	GlobalServiceProvider::executeCommandListInIGV(commands, false);
-	commands.append("goto " + ui_.virus_table->item(row, 0)->text() + ":" + ui_.virus_table->item(row, 1)->text() + "-" + ui_.virus_table->item(row, 2)->text());
 	GlobalServiceProvider::executeCommandListInIGV(commands, true, true);
 }
 

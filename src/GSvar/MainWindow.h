@@ -435,7 +435,6 @@ private:
 
 	//DATA
 	QString filename_;
-	bool igv_initialized_;
 	VariantList variants_;
 	struct VariantListChange
 	{

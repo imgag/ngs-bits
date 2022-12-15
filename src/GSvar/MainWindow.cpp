@@ -1563,7 +1563,6 @@ void MainWindow::on_actionIgvPort_triggered()
 	int igv_port_new = QInputDialog::getInt(this, "Change IGV port", "Set IGV port for this GSvar session:", GlobalServiceProvider::getIGVPort(), 0, 900000, 1, &ok);
 	if (ok)
 	{
-//		igv_port_manual = igv_port_new;
 		GlobalServiceProvider::setIGVPort(igv_port_new, false);
 	}
 }
