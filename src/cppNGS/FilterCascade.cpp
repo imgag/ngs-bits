@@ -1530,7 +1530,7 @@ FilterGeneInheritance::FilterGeneInheritance()
 	description_ = QStringList() << "Filter based on gene inheritance.";
 
 	params_ << FilterParameter("modes", FilterParameterType::STRINGLIST, QStringList(), "Inheritance mode(s)");
-	params_.last().constraints["valid"] = "AR,AD,XLR,XLD,MT";
+	params_.last().constraints["valid"] = "AR,AD,XLR,XLD,MT,n/a";
 	params_.last().constraints["not_empty"] = "";
 
 	checkIsRegistered();
