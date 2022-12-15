@@ -125,10 +125,6 @@ SUBDIRS += VariantQC
 tools-TEST.depends += VariantQC
 VariantQC.depends = cppNGS
 
-SUBDIRS += SomaticCnvMetrics
-tools-TEST.depends += SomaticCnvMetrics
-SomaticCnvMetrics.depends = cppNGSD
-
 SUBDIRS += SomaticQC
 tools-TEST.depends += SomaticQC
 SomaticQC.depends = cppNGSD
