@@ -64,14 +64,14 @@ private slots:
 	///Removes the calculated gene overlap tooltips
 	void clearTooltips();
 
+	///Set custom column widths
+	void adaptColumnWidthsCustom();
+
 private:
 	///load bedpe data file and set display
 	void initGUI();
 
 	void disableGUI(const QString& message);
-
-	///Returns column index of main QTableWidget svs_ by Name, -1 if not in widget
-	int colIndexbyName(const QString& name);
 
 	///File widgets with data from INFO_A and INFO_B column
 	void setInfoWidgets(const QByteArray& name, int row, QTableWidget* widget);

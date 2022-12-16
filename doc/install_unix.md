@@ -12,7 +12,7 @@ ngs-bits depends on the following software to be installed
 
 For example, the installation of the dependencies using Ubuntu 16.04/18.04 looks like that:
 
-	> sudo apt-get install git make g++ qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql git python3 python3-matplotlib libbz2-dev liblzma-dev libcurl4 libcurl4-openssl-dev
+	> sudo apt-get install git make g++ qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql libqt5charts5-dev git python3 python3-matplotlib libbz2-dev liblzma-dev libcurl4 libcurl4-openssl-dev
     
 ### Resolving proxy issues with git
 

@@ -81,6 +81,7 @@ CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_wi
 	ui->cnvs->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui->cnvs->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(cnvHeaderContextMenu(QPoint)));
 	connect(ui->filter_widget, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
+	connect(ui->resize_btn, SIGNAL(clicked(bool)), this, SLOT(adaptColumnWidthsCustom()));
 
 	GUIHelper::styleSplitter(ui->splitter);
 	ui->splitter->setStretchFactor(0, 10);
@@ -997,16 +998,8 @@ void CnvWidget::annotateTargetRegionGeneOverlap()
 	ChromosomalIndex<BedFile> roi_genes_index(roi_genes);
 
 	// update gene tooltips
-	int gene_idx = -1;
-	for (int col_idx = 0; col_idx < ui->cnvs->columnCount(); ++col_idx)
-	{
-		if(ui->cnvs->horizontalHeaderItem(col_idx)->text().trimmed() == "genes")
-		{
-			gene_idx = col_idx;
-			break;
-		}
-	}
-	if (gene_idx >= 0)
+	int gene_idx = GUIHelper::columnIndex(ui->cnvs, "genes", false);
+	if (gene_idx!=-1)
 	{
 		for (int row_idx = 0; row_idx < ui->cnvs->rowCount(); ++row_idx)
 		{
@@ -1029,16 +1022,8 @@ void CnvWidget::annotateTargetRegionGeneOverlap()
 
 void CnvWidget::clearTooltips()
 {
-	int gene_idx = -1;
-	for (int col_idx = 0; col_idx < ui->cnvs->columnCount(); ++col_idx)
-	{
-		if(ui->cnvs->horizontalHeaderItem(col_idx)->text().trimmed() == "genes")
-		{
-			gene_idx = col_idx;
-			break;
-		}
-	}
-	if (gene_idx >= 0)
+	int gene_idx = GUIHelper::columnIndex(ui->cnvs, "genes", false);
+	if (gene_idx!=-1)
 	{
 		for (int row_idx = 0; row_idx < ui->cnvs->rowCount(); ++row_idx)
 		{
@@ -1347,7 +1332,6 @@ void CnvWidget::uploadToClinvar(int index1, int index2)
 
 }
 
-
 void CnvWidget::flagInvisibleSomaticCnvsAsArtefacts()
 {
 	if(somatic_report_config_ == nullptr)
@@ -1395,4 +1379,41 @@ void CnvWidget::flagVisibleSomaticCnvsAsArtefacts()
 		}
 	}
 	emit storeSomaticReportConfiguration();
+}
+
+void CnvWidget::adaptColumnWidthsCustom()
+{
+	try
+	{
+		int idx = GUIHelper::columnIndex(ui->cnvs, "loglikelihood");
+		ui->cnvs->setColumnWidth(idx, 55);
+
+		idx = GUIHelper::columnIndex(ui->cnvs, "potential_AF");
+		ui->cnvs->setColumnWidth(idx, 55);
+
+		idx = GUIHelper::columnIndex(ui->cnvs, "qvalue");
+		ui->cnvs->setColumnWidth(idx, 50);
+
+		idx = GUIHelper::columnIndex(ui->cnvs, "overlap af_genomes_imgag");
+		ui->cnvs->setColumnWidth(idx, 75);
+
+		idx = GUIHelper::columnIndex(ui->cnvs, "cn_pathogenic");
+		ui->cnvs->setColumnWidth(idx, 65);
+
+		idx = GUIHelper::columnIndex(ui->cnvs, "dosage_sensitive_disease_genes_GRCh38");
+		ui->cnvs->setColumnWidth(idx, 70);
+
+		idx = GUIHelper::columnIndex(ui->cnvs, "clinvar_cnvs");
+		ui->cnvs->setColumnWidth(idx, 60);
+
+		idx = GUIHelper::columnIndex(ui->cnvs, "hgmd_cnvs");
+		ui->cnvs->setColumnWidth(idx, 70);
+
+		idx = GUIHelper::columnIndex(ui->cnvs, "omim");
+		ui->cnvs->setColumnWidth(idx, 815);
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, "Column adjustment error", "Error while adjusting column widths:\n" + e.message());
+	}
 }

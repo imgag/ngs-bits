@@ -165,19 +165,6 @@ void SmallVariantSearchWidget::variantContextMenu(QPoint pos)
 	}
 }
 
-int SmallVariantSearchWidget::columnIndex(QString name) const
-{
-	for (int c=0; c<ui_.variants->columnCount(); ++c)
-	{
-		if (ui_.variants->horizontalHeaderItem(c)->text()==name)
-		{
-			return c;
-		}
-	}
-
-	THROW(ArgumentException, "Column with name '" + name + "' not found in table!");
-}
-
 void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, int end, QByteArray gene, const GeneSet& gene_symbols, QList<QList<QVariant>>& output, QStringList& messages)
 {
 	NGSD db;
@@ -347,8 +334,8 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 	//only variants that fit recessive inheritance mode
 	if (ui_.filter_recessive->isChecked())
 	{
-		int i_ps = columnIndex("processed sample");
-		int i_geno = columnIndex("genotype");
+		int i_ps = GUIHelper::columnIndex(ui_.variants, "processed sample");
+		int i_geno = GUIHelper::columnIndex(ui_.variants, "genotype");
 
 		//count heterozygous hits per sample
 		QMap<QString, int> het_hits;
@@ -370,7 +357,7 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 	//only variants that fit de-novo inheritance mode
 	if (ui_.filter_denovo->isChecked())
 	{
-		int i_geno = columnIndex("genotype");
+		int i_geno = GUIHelper::columnIndex(ui_.variants, "genotype");
 
 		var_data.erase(std::remove_if(var_data.begin(), var_data.end(), [i_geno](const QList<QVariant>& line){return !line[i_geno].toString().contains("(de-novo)");}), var_data.end());
 

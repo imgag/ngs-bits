@@ -1,19 +1,17 @@
 #ifndef VIRUSDETECTIONWIDGET_H
 #define VIRUSDETECTIONWIDGET_H
 
-#include <QWidget>
-#include "ui_VirusDetectionWidget.h"
-#include "FileLocation.h"
+#include <QTableWidget>
 
 class VirusDetectionWidget
-	: public QWidget
+	: public QTableWidget
 {
 	Q_OBJECT
 
 public:
 	VirusDetectionWidget(QString viral_file, QWidget* parent = 0);
 
-Q_SIGNALS:
+signals:
 	void cellDoubleClicked(int row, int column);
 
 protected slots:
@@ -23,10 +21,13 @@ protected slots:
 	void callViewInIGV();
 	void callCopyToClipboard();
 
+protected:
+	///Override copy command
+	void keyPressEvent(QKeyEvent* event) override;
+
 private:
 	void openInIGV(int row);
 	void populateTable();
-	Ui::VirusDetectionWidget ui_;
 	QString viral_file_;
 	bool igv_initialized_;
 

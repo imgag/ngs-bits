@@ -282,7 +282,7 @@ void ReportDialog::updateCoverageCheckboxStatus()
 void ReportDialog::validateReportConfig()
 {
 	int rc_id = db_.reportConfigId(db_.processedSampleId(ps_));
-	if (rc_id==-1) THROW(ArgumentException, "No report configuration found for processed sample " + ps_ + "! ");
+	if (rc_id==-1) return;
 
 	VariantList missing_small_variants;
 	CnvList missing_cnvs;

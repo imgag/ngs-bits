@@ -1,5 +1,5 @@
 ### NGSDUpdateSvGenotype tool help
-	NGSDUpdateSvGenotype (2022_07-18-gfd880985)
+	NGSDUpdateSvGenotype (2022_11-72-g9164a905)
 	
 	Updates the genotype for a given processed sample.
 	
@@ -18,7 +18,7 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDUpdateSvGenotype changelog
-	NGSDUpdateSvGenotype 2022_07-18-gfd880985
+	NGSDUpdateSvGenotype 2022_11-72-g9164a905
 	
 	2022-03-07 Initial commit.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

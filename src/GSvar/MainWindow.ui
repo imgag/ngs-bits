@@ -272,20 +272,6 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QToolButton" name="virus_detection_btn">
-                  <property name="toolTip">
-                   <string>Virus detection</string>
-                  </property>
-                  <property name="text">
-                   <string/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="GSvar.qrc">
-                    <normaloff>:/Icons/Virus.png</normaloff>:/Icons/Virus.png</iconset>
-                  </property>
-                 </widget>
-                </item>
-                <item>
                  <spacer name="horizontalSpacer">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
@@ -371,7 +357,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>24</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -617,6 +603,7 @@
    <addaction name="actionCircos"/>
    <addaction name="separator"/>
    <addaction name="actionDebug"/>
+   <addaction name="actionVirusDetection"/>
   </widget>
   <action name="actionOpen">
    <property name="text">
@@ -1475,6 +1462,15 @@
    </property>
    <property name="text">
     <string>Manual ClinVar upload</string>
+   </property>
+  </action>
+  <action name="actionVirusDetection">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/Virus.png</normaloff>:/Icons/Virus.png</iconset>
+   </property>
+   <property name="text">
+    <string>Virus detection</string>
    </property>
   </action>
  </widget>
