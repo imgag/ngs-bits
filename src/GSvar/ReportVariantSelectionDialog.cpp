@@ -70,7 +70,7 @@ void ReportVariantSelectionDialog::initTable(int ignored_rcv_id)
 {
 	NGSD db;
 	int rc_id = db.reportConfigId(ps_id_);
-	QStringList messages; //TODO Show messages? > LEON
+	QStringList messages;
 	QSharedPointer<ReportConfiguration> report_config = db.reportConfig(rc_id, variants_, cnvs_, svs_);
 	cnv_callset_id_ = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=:0", false, ps_id_).toInt();
 	sv_callset_id_ = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", false, ps_id_).toInt();
