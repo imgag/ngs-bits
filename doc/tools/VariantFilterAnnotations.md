@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2022_04-156-ga57fe9df)
+	VariantFilterAnnotations (2022_11-72-g9164a905)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -59,7 +59,7 @@
 	                                     min_pli - Minumum ExAC pLI score [default=0.9] [min=0.0] [max=1.0]
 	Gene inheritance                   Filter based on gene inheritance.
 	                                   Parameters:
-	                                     modes - Inheritance mode(s) [valid=AR,AD,XLR,XLD,MT] [non-empty]
+	                                     modes - Inheritance mode(s) [valid=AR,AD,XLR,XLD,MT,n/a] [non-empty]
 	Genes                              Filter that preserves a gene set.
 	                                   Parameters:
 	                                     genes - Gene set [non-empty]
@@ -173,7 +173,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2022_04-156-ga57fe9df
+	VariantFilterAnnotations 2022_11-72-g9164a905
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.
