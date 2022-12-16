@@ -15,8 +15,10 @@ jobs:
     - name: Update Homebrew
       run: brew update
     - name: Setup dependencies
-      run: brew install qt@5 lzlib openssl python@3.10
-    - name: Link Qt installation
+      run: brew install lzlib openssl python@3.10
+    - name: Install Qt 5
+      run: brew install qt@5
+    - name: Link Qt installation      
       run: brew link qt@5 --force
     - name: Install matplotlib and numpy for Python 2
       run: sudo pip install matplotlib numpy
