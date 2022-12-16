@@ -964,7 +964,7 @@ void SvWidget::SvDoubleClicked(QTableWidgetItem *item)
 	else
 	{
 		QString coords = sv_bedpe_file_[row].positionRange();
-		GlobalServiceProvider::gotoInIGV(coords, true);
+		GlobalServiceProvider::gotoInIGV(coords, true, 0);
 	}
 }
 
@@ -1330,15 +1330,15 @@ void SvWidget::showContextMenu(QPoint pos)
 	}
 	else if (action == igv_pos1)
 	{
-		GlobalServiceProvider::gotoInIGV(sv.position1(), true);
+		GlobalServiceProvider::gotoInIGV(sv.position1(), true, 0);
 	}
 	else if (action == igv_pos2)
 	{
-		GlobalServiceProvider::gotoInIGV(sv.position2(), true);
+		GlobalServiceProvider::gotoInIGV(sv.position2(), true, 0);
 	}
 	else if (action == igv_split)
 	{
-		GlobalServiceProvider::gotoInIGV(sv.position1() + " " + sv.position2(), true);
+		GlobalServiceProvider::gotoInIGV(sv.position1() + " " + sv.position2(), true, 0);
 	}
 	else if (action == copy_pos1)
 	{

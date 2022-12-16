@@ -75,7 +75,7 @@ void RohWidget::rohDoubleClicked(QTableWidgetItem* item)
 	}
 	else
 	{
-		GlobalServiceProvider::gotoInIGV(rohs[item->row()].toString(), true);
+		GlobalServiceProvider::gotoInIGV(rohs[item->row()].toString(), true, 0);
 	}
 }
 

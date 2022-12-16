@@ -105,7 +105,7 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 void RepeatExpansionWidget::cellDoubleClicked(int row, int /*col*/)
 {
 	QString region = ui_.repeat_expansions->item(row, 0)->text() + ":" + ui_.repeat_expansions->item(row, 1)->text() + "-" + ui_.repeat_expansions->item(row, 2)->text();
-	GlobalServiceProvider::gotoInIGV(region, true);
+	GlobalServiceProvider::gotoInIGV(region, true, 0);
 }
 
 void RepeatExpansionWidget::keyPressEvent(QKeyEvent* event)

@@ -6,6 +6,14 @@
 #include "DatabaseService.h"
 #include "StatisticsService.h"
 #include <QDialog>
+#include <QMutex>
+
+struct IGVSession
+{
+	int port;
+	bool is_initialized;
+	QString genome;
+};
 
 ///Provider class for GSvar-wide services
 class GlobalServiceProvider
@@ -31,15 +39,20 @@ public:
 	static void openProcessingSystemTab(QString system_short_name);
 
 	//IGV functionality
-	static void executeCommandListInIGV(QStringList commands, bool init_if_not_done, bool is_virus_genome = false);
-	static void executeCommandInIGV(QString command, bool init_if_not_done, bool is_virus_genome = false);
-	static void gotoInIGV(QString region, bool init_if_not_done, bool is_virus_genome = false);
+	static void executeCommandListInIGV(QStringList commands, bool init_if_not_done, int session_index);
+	static void executeCommandInIGV(QString command, bool init_if_not_done, int session_index);
+	static void gotoInIGV(QString region, bool init_if_not_done, int session_index);
 	static void loadFileInIGV(QString filename, bool init_if_not_done, bool is_virus_genome = false);
-	//returns IGV port for a current user
-	static int getIGVPort(bool is_virus_genome = false);
-	static void setIGVPort(int port, bool is_virus_genome = false);
-	static bool isIGVInitialized(bool is_virus_genome = false);
-	static void setIGVInitialized(bool is_initialized, bool is_virus_genome = false);
+	//methods to handle dedicated IGV instances
+	static int createIGVSession(int port, bool is_initialized, QString genome);
+	static void removeIGVSession(int session_index);
+	static int findAvailablePortForIGV();
+	static int getIGVPort(int session_index);
+	static void setIGVPort(int port, int session_index);
+	static QString getIGVGenome(int session_index);
+	static void setIGVGenome(QString genome, int session_index);
+	static bool isIGVInitialized(int session_index);
+	static void setIGVInitialized(bool is_initialized, int session_index);
 
 	//opening GSvar files
 	static void openGSvarViaNGSD(QString processed_sample_name, bool search_multi);
@@ -59,10 +72,8 @@ private:
 	QSharedPointer<FileLocationProvider> file_location_provider_;
 	QSharedPointer<DatabaseService> database_service_;
 	QSharedPointer<StatisticsService> statistics_service_;
-	int normal_igv_port_manual_;
-	int virus_igv_port_manual_;
-	bool is_normal_igv_initialized;
-	bool is_virus_igv_initialized;
+	QList<IGVSession> session_list_;
+	QMutex mutex_;
 };
 
 #endif // GLOBALSERVICEPROVIDER_H

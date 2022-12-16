@@ -38,7 +38,7 @@ void MosaicWidget::variantDoubleClicked(QTableWidgetItem *item)
 	int row = item->row();
 
 	const Variant& v = variants_[ui_.mosaics->rowToVariantIndex(row)];
-	GlobalServiceProvider::gotoInIGV(v.chr().str() + ":" + QString::number(v.start()) + "-" + QString::number(v.end()), true);
+	GlobalServiceProvider::gotoInIGV(v.chr().str() + ":" + QString::number(v.start()) + "-" + QString::number(v.end()), true, 0);
 }
 
 void MosaicWidget::updateVariantDetails()

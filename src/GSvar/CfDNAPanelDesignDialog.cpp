@@ -915,7 +915,7 @@ void CfDNAPanelDesignDialog::openVariantInIGV(QTableWidgetItem* item)
 
 	const Variant& var = variants_[var_idx];
 	QString coords = var.chr().strNormalized(true) + ":" + QString::number(var.start()) + "-" + QString::number(var.end());
-	GlobalServiceProvider::gotoInIGV(coords, true);
+	GlobalServiceProvider::gotoInIGV(coords, true, 0);
 }
 
 void CfDNAPanelDesignDialog::updateSystemSelection()

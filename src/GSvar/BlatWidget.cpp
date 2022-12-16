@@ -88,7 +88,7 @@ void BlatWidget::resultContextMenu(QPoint pos)
 		if (item==nullptr) return;
 
 		int r = item->row();
-		GlobalServiceProvider::gotoInIGV(ui_.table->item(r, 3)->text(), false);
+		GlobalServiceProvider::gotoInIGV(ui_.table->item(r, 3)->text(), false, 0);
 	}
 }
 

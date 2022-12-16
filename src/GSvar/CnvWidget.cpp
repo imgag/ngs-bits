@@ -177,7 +177,7 @@ void CnvWidget::cnvDoubleClicked(QTableWidgetItem* item)
 	}
 	else
 	{
-		GlobalServiceProvider::gotoInIGV(cnvs_[item->row()].toString(), true);
+		GlobalServiceProvider::gotoInIGV(cnvs_[item->row()].toString(), true, 0);
 	}
 }
 

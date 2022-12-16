@@ -301,5 +301,5 @@ void SplicingWidget::OpenInIGV(QTableWidgetItem* item)
 										 + ui_->tw_splicing->item(row_idx, start_idx)->text() + "-"
 										 + ui_->tw_splicing->item(row_idx, end_idx)->text()).toString(true);
 
-	GlobalServiceProvider::gotoInIGV(coords, true);
+	GlobalServiceProvider::gotoInIGV(coords, true, 0);
 }

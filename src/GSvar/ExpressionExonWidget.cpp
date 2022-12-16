@@ -719,7 +719,7 @@ void ExpressionExonWidget::OpenInIGV(QTableWidgetItem* item)
 
 	BedLine exon = BedLine::fromString(ui_->tw_expression_table->item(row_idx, gene_col_idx)->text());
 
-	GlobalServiceProvider::gotoInIGV(exon.toString(true), true);
+	GlobalServiceProvider::gotoInIGV(exon.toString(true), true, 0);
 }
 
 

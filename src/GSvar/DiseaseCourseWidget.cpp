@@ -42,7 +42,7 @@ void DiseaseCourseWidget::VariantDoubleClicked(QTableWidgetItem* item)
 
 	const VcfLine& vcf_line = ref_column_.variants[variant_idx];
 	QString coords = vcf_line.chr().strNormalized(true) + ":" + QString::number(vcf_line.start());
-	GlobalServiceProvider::gotoInIGV(coords, true);
+	GlobalServiceProvider::gotoInIGV(coords, true, 0);
 
 	// add cfDNA BAM Files to IGV
 	foreach (const cfDnaColumn& cf_dna, cf_dna_columns_)

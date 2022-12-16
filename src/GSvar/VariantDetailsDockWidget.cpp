@@ -829,7 +829,7 @@ void VariantDetailsDockWidget::previousTanscript()
 void VariantDetailsDockWidget::variantClicked(QString link)
 {
 	QString region = link.left(link.indexOf(' '));
-	GlobalServiceProvider::gotoInIGV(region, true);
+	GlobalServiceProvider::gotoInIGV(region, true, 0);
 }
 
 QString VariantDetailsDockWidget::formatLink(QString text, QString url, Color bgcolor)

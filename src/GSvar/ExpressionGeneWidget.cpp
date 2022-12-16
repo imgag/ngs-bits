@@ -626,7 +626,7 @@ void ExpressionGeneWidget::OpenInIGV(QTableWidgetItem* item)
 
 	QString gene_name = ui_->expression_data->item(row_idx, gene_col_idx)->text();
 
-	GlobalServiceProvider::gotoInIGV(gene_name, true);
+	GlobalServiceProvider::gotoInIGV(gene_name, true, 0);
 }
 
 void ExpressionGeneWidget::showCustomCohortDialog()

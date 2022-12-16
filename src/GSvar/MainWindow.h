@@ -314,13 +314,11 @@ public slots:
 	///A variant header has beed double-clicked > edit report config
 	void variantHeaderDoubleClicked(int row);
 	///Preprocesses and executes the list of IGV commands based on the files needed to be loaded
-	void prepareAndRunIGVCommands(QAbstractSocket& socket, QStringList files_to_load, bool is_virus_genome=false);
+	void prepareAndRunIGVCommands(QAbstractSocket& socket, QStringList files_to_load, int session_index);
 	///Load regular IGV configuration
 	bool prepareNormalIGV(QAbstractSocket& socket);
 	///Load IGV configuration for the virus detection
 	bool prepareVirusIGV(QAbstractSocket& socket);
-	///Initializes IGV for current samples. Returns if the initialization was successfull.
-	bool initializeIGV(QAbstractSocket& socket, bool is_virus_genome=false);
 	///Opens a custom track in IGV
 	void openCustomIgvTrack();
 
@@ -386,7 +384,7 @@ public slots:
 	void closeTab(int index);
 
 	///Sends commands to IGV through the socket. Returns if the commands executed successfully.
-	void executeIGVCommands(QStringList commands, bool init_if_not_done=false, bool is_virus_genome=false);
+	void executeIGVCommands(QStringList commands, bool init_if_not_done, int session_index);
 
 	///Edits the variant configuration for the variant with the given index
 	void editVariantReportConfiguration(int index);
