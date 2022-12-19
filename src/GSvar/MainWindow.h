@@ -68,9 +68,6 @@ public:
 	///Performs batch import of table rows
 	void importBatch(QString title, QString text, QString table, QStringList fields);
 
-	///Returns the IGV port to use
-	int igvPort() const;
-
 	///Returns the variant lists of the currently loaded sample
 	const VariantList& getSmallVariantList();
 	const CnvList& getCnvList();
@@ -316,8 +313,12 @@ public slots:
 	void variantCellDoubleClicked(int row, int col);
 	///A variant header has beed double-clicked > edit report config
 	void variantHeaderDoubleClicked(int row);
-	///Initializes IGV for current samples. Returns if the initialization was successfull.
-	bool initializeIGV(QAbstractSocket& socket);
+	///Preprocesses and executes the list of IGV commands based on the files needed to be loaded
+	void prepareAndRunIGVCommands(QAbstractSocket& socket, QStringList files_to_load, int session_index);
+	///Load regular IGV configuration
+	bool prepareNormalIGV(QAbstractSocket& socket);
+	///Load IGV configuration for the virus detection
+	bool prepareVirusIGV(QAbstractSocket& socket);
 	///Opens a custom track in IGV
 	void openCustomIgvTrack();
 
@@ -383,7 +384,7 @@ public slots:
 	void closeTab(int index);
 
 	///Sends commands to IGV through the socket. Returns if the commands executed successfully.
-	void executeIGVCommands(QStringList commands, bool init_if_not_done=false);
+	void executeIGVCommands(QStringList commands, bool init_if_not_done, int session_index);
 
 	///Edits the variant configuration for the variant with the given index
 	void editVariantReportConfiguration(int index);
@@ -432,7 +433,6 @@ private:
 
 	//DATA
 	QString filename_;
-	bool igv_initialized_;
 	VariantList variants_;
 	struct VariantListChange
 	{
