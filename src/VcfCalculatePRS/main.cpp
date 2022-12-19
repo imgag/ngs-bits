@@ -7,8 +7,6 @@
 #include <QFile>
 #include <QTextStream>
 
-//TODO: Handle missing variants (check in BAM for depth, check target region if region is contained > use AF if missing?)
-
 class ConcreteTool
 		: public ToolBase
 {
