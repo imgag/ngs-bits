@@ -14,9 +14,15 @@ jobs:
       run: git submodule update --recursive --init
     - name: Update Homebrew
       run: brew update
-    - name: Setup dependencies
-      run: brew install qt@5 lzlib openssl python@3.10
-    - name: Link Qt installation
+    - name: Remove existing Python symlinks
+      run: rm /usr/local/bin/2to3 /usr/local/bin/idle3 /usr/local/bin/pydoc3 /usr/local/bin/python3 /usr/local/bin/python3-config
+    - name: Install Python 3
+      run: brew install python@3.10
+    - name: Setup other dependencies
+      run: brew install lzlib openssl
+    - name: Install Qt 5
+      run: brew install qt@5
+    - name: Link Qt installation      
       run: brew link qt@5 --force
     - name: Install matplotlib and numpy for Python 2
       run: sudo pip install matplotlib numpy
