@@ -156,7 +156,6 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	}
 	w.writeAttribute( "mutation_burden", QString::number(data.tumor_mutation_burden,'f', 2) );
 	if( data.settings.report_config.msiStatus() ) w.writeAttribute( "microsatellite_instability",  QString::number(data.mantis_msi, 'f', 2) );
-	w.writeAttribute("hrd_score", QString::number(data.settings.report_config.hrdScore()) );
 	w.writeAttribute("hrd_score_chromo", QString::number(data.settings.report_config.cnvLohCount() + data.settings.report_config.cnvTaiCount() + data.settings.report_config.cnvLstCount()));
 
 	//QC data
@@ -174,7 +173,6 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	}
 
 	w.writeEndElement();
-
 
 	//Element NormalSample
 	w.writeStartElement("NormalSample");

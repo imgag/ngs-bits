@@ -2090,7 +2090,6 @@ private slots:
 		som_rep_conf.setTumContentByHistological(true);
 		som_rep_conf.setMsiStatus(true);
 		som_rep_conf.setCnvBurden(true);
-		som_rep_conf.setHrdScore(4);
 		som_rep_conf.setHrdStatement("undeterminable");
 		som_rep_conf.setCnvLohCount(12);
 		som_rep_conf.setCnvTaiCount(3);
@@ -2160,7 +2159,6 @@ private slots:
 		IS_TRUE(res_config.tumContentByHistological());
 		IS_TRUE(res_config.msiStatus());
 		IS_TRUE(res_config.cnvBurden());
-		I_EQUAL(res_config.hrdScore(), 4);
 		S_EQUAL(res_config.hrdStatement(), "undeterminable");
 		I_EQUAL(res_config.cnvLohCount(), 12);
 		I_EQUAL(res_config.cnvTaiCount(), 3);
@@ -2235,7 +2233,6 @@ private slots:
 		som_rep_conf.setTumContentByHistological(false);
 		som_rep_conf.setMsiStatus(false);
 		som_rep_conf.setCnvBurden(false);
-		som_rep_conf.setHrdScore(0);
 
 		som_rep_conf.setHrdStatement("proof");
 		som_rep_conf.setCnvLohCount(9);
@@ -2260,7 +2257,6 @@ private slots:
 		IS_FALSE(res_config_2.tumContentByHistological());
 		IS_FALSE(res_config_2.msiStatus());
 		IS_FALSE(res_config_2.cnvBurden());
-		I_EQUAL(res_config_2.hrdScore(), 0);
 
 		S_EQUAL(res_config_2.hrdStatement(), "proof");
 		I_EQUAL(res_config_2.cnvLohCount(), 9);

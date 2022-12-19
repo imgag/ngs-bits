@@ -97,9 +97,9 @@ RtfSourceCode SomaticReportHelper::partCnvTable()
 		//AMP/DEL
 		QByteArray var_length = (variant.size() / 1000000. < 0.1) ? "<0.1 MB" : QByteArray::number( variant.size() / 1000000. , 'f', 1) + " MB";
 		QList<RtfSourceCode> cnv_desc;
-		cnv_desc << CnvTypeDescription(variant.copyNumber(cnvs_.annotationHeaders()), false);
-		cnv_desc << "(" + var_length + ")";
-		temp_row.addCell(900, cnv_desc, RtfParagraph().setHorizontalAlignment("c").setFontSize(14));
+		cnv_desc << RtfText(CnvTypeDescription(variant.copyNumber(cnvs_.annotationHeaders()), false)).setFontSize(14).RtfCode();
+		cnv_desc << RtfText("(" + var_length + ")").setFontSize(12).RtfCode();
+		temp_row.addCell(900, cnv_desc, RtfParagraph().setHorizontalAlignment("c"));
 
 		//Type
 		RtfSourceCode type_statement = variant.annotations().at(cnv_index_cnv_type_);
@@ -1630,30 +1630,6 @@ RtfSourceCode SomaticReportHelper::partSummary()
 			text_cnv_burden = "CNVs aufgrund des niedrigen Tumorgehaltes nicht/eingeschränkt bestimmbar";
 		}
 
-		if(settings_.report_config.cinChromosomes().count() > 0)
-		{
-			QList<QString> chr = settings_.report_config.cinChromosomes();
-
-			//Sort chromosomes naturally
-			QCollator coll;
-			coll.setNumericMode(true);
-			std::sort(chr.begin(), chr.end(), [&](const QString s1, const QString& s2){return coll.compare(s1,s2) < 0;});
-
-			RtfSourceCode temp = "\\line Verdacht auf eine chromosomale Instabilität: Chr. ";
-			for(int i=0; i< settings_.report_config.cinChromosomes().count(); ++i)
-			{
-				if( i< settings_.report_config.cinChromosomes().count() - 2) temp += chr[i].toUtf8().replace("chr","") + ", ";
-				else if(i == settings_.report_config.cinChromosomes().count() -2 ) temp += chr[i].toUtf8().replace("chr","") + " und ";
-				else temp += chr[i].toUtf8().replace("chr","");
-			}
-			temp +=".";
-			text_cnv_burden += RtfText(temp).setFontSize(14).RtfCode();
-		}
-		else
-		{
-			text_cnv_burden += RtfText("\\line Es gibt keine Hinweise auf eine chromosomale Instabilität.").setFontSize(14).RtfCode();
-		}
-
 		general_info_table.addRow(RtfTableRow({"CNV-Last", text_cnv_burden},{2500,7421},RtfParagraph()).setBorders(1,"brdrhair",4));
 	}
 
@@ -1661,8 +1637,7 @@ RtfSourceCode SomaticReportHelper::partSummary()
 	RtfSourceCode hrd_text = trans(settings_.report_config.hrdStatement()).toUtf8();
 	if(settings_.report_config.hrdStatement() != "undeterminable")
 	{
-		hrd_text += RtfText("\n\\line\nHRD-Score chromosomale Veränderungen: " + QByteArray::number(settings_.report_config.cnvLohCount() + settings_.report_config.cnvTaiCount() + settings_.report_config.cnvLstCount()) + " (HRD bei \\u8805; 32)" ).setFontSize(14).RtfCode();
-		hrd_text += RtfText("\n\\line\nHRD-Score analog TOP-ART-Studie: " + QByteArray::number(settings_.report_config.hrdScore()) + " (HRD bei \\u8805; 3)" ).setFontSize(14).RtfCode();
+		hrd_text += RtfText("\n\\line\nHRD-Score chromosomale Veränderungen: " + QByteArray::number(settings_.report_config.cnvLohCount() + settings_.report_config.cnvTaiCount() + settings_.report_config.cnvLstCount()) + " (HRD bei \\u8805; 42)" ).setFontSize(14).RtfCode();
 	}
 	general_info_table.addRow(RtfTableRow({"HRD-Score", hrd_text}, {2500,7421},  RtfParagraph()).setBorders(1, "brdrhair", 4));
 

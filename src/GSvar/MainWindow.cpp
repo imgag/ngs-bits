@@ -4619,10 +4619,20 @@ void MainWindow::generateReportSomaticRTF()
 		somatic_report_settings_.target_region_filter = generic_target;
 	}
 
-	QCCollection cnv_metrics = Statistics::hrdScore(SomaticReportSettings::filterCnvs(cnvs_, somatic_report_settings_), GSvarHelper::build());
-	somatic_report_settings_.report_config.setCnvLohCount( cnv_metrics.value("QC:2000062", true).asInt() );
-	somatic_report_settings_.report_config.setCnvTaiCount( cnv_metrics.value("QC:2000063", true).asInt() );
-	somatic_report_settings_.report_config.setCnvLstCount( cnv_metrics.value("QC:2000064", true).asInt() );
+	if (db.getValues("SELECT value FROM processed_sample_qc AS psqc LEFT JOIN qc_terms as qc ON psqc.qc_terms_id = qc.id WHERE psqc.processed_sample_id=" + ps_tumor_id + " AND (qc.qcml_id ='QC:2000062' OR qc.qcml_id ='QC:2000063' OR qc.qcml_id ='QC:2000064') ").size() < 3)
+	{
+		QMessageBox::warning(this, "No HRD score found", "Warning:\nNo hrd score values found in the imported QC of tumor sample. HRD score set to 0.");
+		somatic_report_settings_.report_config.setCnvLohCount(0);
+		somatic_report_settings_.report_config.setCnvTaiCount(0);
+		somatic_report_settings_.report_config.setCnvLstCount(0);
+	}
+	else
+	{
+		QString query = "SELECT value FROM processed_sample_qc AS psqc LEFT JOIN qc_terms as qc ON psqc.qc_terms_id = qc.id WHERE psqc.processed_sample_id=" + ps_tumor_id + " AND qc.qcml_id = :1";
+		somatic_report_settings_.report_config.setCnvLohCount( db.getValue(query, false, "QC:2000062").toInt() );
+		somatic_report_settings_.report_config.setCnvTaiCount( db.getValue(query, false, "QC:2000063").toInt() );
+		somatic_report_settings_.report_config.setCnvLstCount( db.getValue(query, false, "QC:2000064").toInt() );
+	}
 
 
 	//Preselect report settings if not already exists to most common values
@@ -4633,7 +4643,6 @@ void MainWindow::generateReportSomaticRTF()
 		somatic_report_settings_.report_config.setTumContentByHistological(true);
 		somatic_report_settings_.report_config.setMsiStatus(true);
 		somatic_report_settings_.report_config.setCnvBurden(true);
-		somatic_report_settings_.report_config.setHrdScore(0);
 	}
 
 	//Parse genome ploidy from ClinCNV file

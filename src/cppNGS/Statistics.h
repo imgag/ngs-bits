@@ -87,8 +87,6 @@ public:
 	///Determines the gender based on the coverge of the SRY gene on chrY.
 	static GenderEstimate genderSRY(GenomeBuild build, QString bam_file, double min_cov=20.0, const QString& ref_file = QString());
 
-	static QCCollection hrdScore(const CnvList& cnvs, GenomeBuild build);
-
 protected:
 	///No default constructor
 	Statistics();

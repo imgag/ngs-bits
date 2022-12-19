@@ -212,62 +212,6 @@
            <property name="spacing">
             <number>3</number>
            </property>
-           <item>
-            <widget class="QLabel" name="label">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>HRD score:</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QComboBox" name="hrd_score">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="toolTip">
-              <string>Select HRD score</string>
-             </property>
-             <item>
-              <property name="text">
-               <string>0 - no HRD</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>1 - low</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>2 - low</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>3 - intermediate</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>4 - high</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>5 - high</string>
-              </property>
-             </item>
-            </widget>
-           </item>
           </layout>
          </item>
          <item>
