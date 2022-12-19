@@ -64,6 +64,9 @@ private slots:
 	///Flags all unfiltered (=currently visible) CNVs as artefacts in somatic report configuration
 	void flagVisibleSomaticCnvsAsArtefacts();
 
+	///Set custom column widths
+	void adaptColumnWidthsCustom();
+
 private:
 	void initGUI();
 	void updateGUI();

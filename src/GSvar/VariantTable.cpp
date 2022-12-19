@@ -638,19 +638,6 @@ void VariantTable::updateVariantHeaderIcon(const SomaticReportSettings &report_s
 	verticalHeaderItem(row)->setIcon(report_icon);
 }
 
-int VariantTable::columnIndex(const QString& column_name) const
-{
-	for(int i=0; i<columnCount(); ++i)
-	{
-		if (horizontalHeaderItem(i)->text()==column_name)
-		{
-			return i;
-		}
-	}
-
-	return -1;
-}
-
 int VariantTable::selectedVariantIndex(bool gui_indices) const
 {
 	QList<int> indices = selectedVariantsIndices(gui_indices);
@@ -829,7 +816,7 @@ void VariantTable::adaptColumnWidthsCustom()
 
 	//big
 	int size_big = 400;
-	int index = columnIndex("OMIM");
+	int index = GUIHelper:: GUIHelper::columnIndex(this, "OMIM", false);
 	if (index!=-1) setColumnWidth(index, size_big);
 
 	//medium
@@ -837,28 +824,28 @@ void VariantTable::adaptColumnWidthsCustom()
 	SampleHeaderInfo header_info;
 	foreach(const SampleInfo& info, header_info)
 	{
-		index = columnIndex(info.column_name);
+		index =  GUIHelper::columnIndex(this, info.column_name, false);
 		if (index!=-1) setColumnWidth(index, size_med);
 	}
-	index = columnIndex("gene");
+	index =  GUIHelper::columnIndex(this, "gene", false);
 	if (index!=-1) setColumnWidth(index, size_med);
-	index = columnIndex("variant_type");
+	index =  GUIHelper::columnIndex(this, "variant_type", false);
 	if (index!=-1) setColumnWidth(index, size_med);
-	index = columnIndex("filter");
+	index =  GUIHelper::columnIndex(this, "filter", false);
 	if (index!=-1) setColumnWidth(index, size_med);
-	index = columnIndex("ClinVar");
+	index =  GUIHelper::columnIndex(this, "ClinVar", false);
 	if (index!=-1) setColumnWidth(index, size_med);
-	index = columnIndex("HGMD");
+	index =  GUIHelper::columnIndex(this, "HGMD", false);
 	if (index!=-1) setColumnWidth(index, size_med);
-	index = columnIndex("NGSD_hom");
+	index =  GUIHelper::columnIndex(this, "NGSD_hom", false);
 	if (index!=-1) setColumnWidth(index, size_med);
-	index = columnIndex("NGSD_het");
+	index =  GUIHelper::columnIndex(this, "NGSD_het", false);
 	if (index!=-1) setColumnWidth(index, size_med);
-	index = columnIndex("NGSD_group");
+	index =  GUIHelper::columnIndex(this, "NGSD_group", false);
 	if (index!=-1) setColumnWidth(index, size_med);
-	index = columnIndex("classification");
+	index =  GUIHelper::columnIndex(this, "classification", false);
 	if (index!=-1) setColumnWidth(index, size_med);
-	index = columnIndex("gene_info");
+	index =  GUIHelper::columnIndex(this, "gene_info", false);
 	if (index!=-1) setColumnWidth(index, size_med);
 }
 
@@ -942,7 +929,7 @@ void VariantTable::copyToClipboard(bool split_quality, bool include_header_one_r
 	int qual_index = -1;
 	if (split_quality)
 	{
-		qual_index = columnIndex("quality");
+		qual_index =  GUIHelper::columnIndex(this, "quality", false);
 		if (qual_index==-1)
 		{
 			QMessageBox::warning(this, "Copy to clipboard", "Column with index 6 has other name than quality. Aborting!");

@@ -7,6 +7,7 @@
 
 #include <GUIHelper.h>
 #include <NGSD.h>
+#include <QMessageBox>
 
 ReportVariantSelectionDialog::ReportVariantSelectionDialog(QString ps_id, int ignored_rcv_id,  QWidget *parent) :
 	QDialog(parent),
@@ -69,7 +70,7 @@ void ReportVariantSelectionDialog::initTable(int ignored_rcv_id)
 {
 	NGSD db;
 	int rc_id = db.reportConfigId(ps_id_);
-	QStringList messages; //TODO Show messages? > LEON
+	QStringList messages;
 	QSharedPointer<ReportConfiguration> report_config = db.reportConfig(rc_id, variants_, cnvs_, svs_);
 	cnv_callset_id_ = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=:0", false, ps_id_).toInt();
 	sv_callset_id_ = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", false, ps_id_).toInt();
@@ -97,7 +98,7 @@ void ReportVariantSelectionDialog::initTable(int ignored_rcv_id)
 			QString var_id = db.variantId(var);
 			if (var_id == "")
 			{
-				messages << "Error: variant " + var.toString() + " is not in the NGSD. The variant has to be in NGSD to be published on ClinVar.";
+				messages << "(SNV/InDel) " + var.toString();
 				continue;
 			}
 			int rvc_id = db.getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id=" + QString::number(rc_id) + " AND variant_id=" + var_id, false).toInt();
@@ -115,7 +116,7 @@ void ReportVariantSelectionDialog::initTable(int ignored_rcv_id)
 			QString cnv_id = db.cnvId(cnv, cnv_callset_id_);
 			if (cnv_id == "")
 			{
-				messages << "Error: CNV " + cnv.toString() + " is not in the NGSD. The CNV has to be in NGSD to be published on ClinVar.";
+				messages << "(CNV) " + cnv.toString();
 				continue;
 			}
 			int rvc_id = db.getValue("SELECT id FROM report_configuration_cnv WHERE report_configuration_id=" + QString::number(rc_id) + " AND cnv_id=" + cnv_id, false).toInt();
@@ -133,7 +134,7 @@ void ReportVariantSelectionDialog::initTable(int ignored_rcv_id)
 			QString sv_id = db.svId(sv, sv_callset_id_, svs_);
 			if (sv_id == "")
 			{
-				messages << "Error: SV " + sv.toString() + " is not in the NGSD. The SV has to be in NGSD to be published on ClinVar.";
+				messages << "(SV) " + sv.toString();
 				continue;
 			}
 			int rvc_id = db.getValue("SELECT id FROM report_configuration_sv WHERE report_configuration_id=" + QString::number(rc_id) + " AND "  + db.svTableName(sv.type()) + "_id=" + sv_id, false).toInt();
@@ -172,6 +173,11 @@ void ReportVariantSelectionDialog::initTable(int ignored_rcv_id)
 
 	//disable buttons by default (no selection yet)
 	updateSelection();
+
+	if(messages.size() > 0)
+	{
+		QMessageBox::warning(this, "Missing variant(s)", "The following variants are not in the NGSD. A variant has to be in NGSD to be published on ClinVar.\n\n" + messages.join("\n"));
+	}
 
 }
 

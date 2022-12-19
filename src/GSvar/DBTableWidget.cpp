@@ -82,15 +82,7 @@ void DBTableWidget::setData(const DBTable& table, int max_col_width, QSet<QStrin
 
 int DBTableWidget::columnIndex(const QString& column_header) const
 {
-	for (int c=0; c<columnCount(); ++c)
-	{
-		if (horizontalHeaderItem(c)->text()==column_header)
-		{
-			return c;
-		}
-	}
-
-	THROW(ArgumentException, "Could not find column with header '" + column_header + "'");
+	return GUIHelper::columnIndex(this, column_header);
 }
 
 QString DBTableWidget::columnHeader(int index) const

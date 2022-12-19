@@ -87,7 +87,7 @@ void ExpressionExonWidget::loadExpressionFile()
 				// skip empty lines
 				continue;
 			}
-			//TODO: remove when file is fixed
+			//Legacy support for old megSAP file format
 			else if (line.startsWith("#Total library size "))
 			{
 				//parse special header line
@@ -748,8 +748,7 @@ void ExpressionExonWidget::updateTable()
 		QVector<int> column_indices;
 		foreach (const QString& col_name, column_names_)
 		{
-			//TODO: Remove when all old RNA files are updated
-			//workaround for inconsistant pvalue col name
+			//workaround for inconsistant pvalue col name (legacy support)
 			if( col_name == "pval")
 			{
 				int i_pval = -1;

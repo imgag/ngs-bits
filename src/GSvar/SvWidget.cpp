@@ -62,6 +62,7 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* fil
 	connect(ui->svs->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(svHeaderDoubleClicked(int)));
 	ui->svs->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui->svs->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(svHeaderContextMenu(QPoint)));
+	connect(ui->resize_btn, SIGNAL(clicked(bool)), this, SLOT(adaptColumnWidthsCustom()));
 
 	//clear GUI
 	clearGUI();
@@ -292,7 +293,6 @@ void SvWidget::initGUI()
 
 void SvWidget::clearGUI()
 {
-	ui->error_label->setHidden(true);
 	ui->label_size->clear();
 	ui->label_pe_af->clear();
 	ui->label_sr_af->clear();
@@ -558,18 +558,9 @@ void SvWidget::applyFilters(bool debug_time)
 	ui->number_of_svs->setText(QByteArray::number(filter_result.flags().count(true)) + "/" + QByteArray::number(row_count));
 }
 
-int SvWidget::colIndexbyName(const QString& name)
-{
-	for(int i=0;i<ui->svs->columnCount();++i)
-	{
-		if(ui->svs->horizontalHeaderItem(i)->text() == name) return i;
-	}
-	return -1;
-}
-
 int SvWidget::pairedEndReadCount(int row)
 {
-	int i_format =colIndexbyName("FORMAT");
+	int i_format = GUIHelper::columnIndex(ui->svs, "FORMAT", false);
 	if(i_format == -1) return -1;
 
 	QByteArray desc = ui->svs->item(row,i_format)->text().toUtf8();
@@ -588,7 +579,7 @@ int SvWidget::pairedEndReadCount(int row)
 
 double SvWidget::alleleFrequency(int row, const QByteArray& read_type, int sample_idx)
 {
-	int i_format = colIndexbyName("FORMAT");
+	int i_format = GUIHelper::columnIndex(ui->svs, "FORMAT", false);
 	if(i_format == -1 ) return -1.;
 
 	if(ui->svs->columnCount() < i_format+1) return -1.;
@@ -878,17 +869,8 @@ void SvWidget::annotateTargetRegionGeneOverlap()
 	ChromosomalIndex<BedFile> roi_genes_index(roi_genes);
 
 	// update gene tooltips
-	int gene_idx = -1;
-	for (int col_idx = 0; col_idx < ui->svs->columnCount(); ++col_idx)
-	{
-		if(ui->svs->horizontalHeaderItem(col_idx)->text().trimmed() == "GENES")
-		{
-			gene_idx = col_idx;
-			break;
-		}
-	}
-
-	if (gene_idx >= 0)
+	int gene_idx = GUIHelper::columnIndex(ui->svs, "GENES", false);
+	if (gene_idx!=-1)
 	{
 		// iterate over sv table
 		for (int row_idx = 0; row_idx < ui->svs->rowCount(); ++row_idx)
@@ -918,16 +900,8 @@ void SvWidget::annotateTargetRegionGeneOverlap()
 
 void SvWidget::clearTooltips()
 {
-	int gene_idx = -1;
-	for (int col_idx = 0; col_idx < ui->svs->columnCount(); ++col_idx)
-	{
-		if(ui->svs->horizontalHeaderItem(col_idx)->text().trimmed() == "GENES")
-		{
-			gene_idx = col_idx;
-			break;
-		}
-	}
-	if (gene_idx >= 0)
+	int gene_idx = GUIHelper::columnIndex(ui->svs, "GENES", false);
+	if (gene_idx!=-1)
 	{
 		for (int row_idx = 0; row_idx < ui->svs->rowCount(); ++row_idx)
 		{
@@ -972,7 +946,6 @@ void SvWidget::disableGUI(const QString& message)
 {
 	setEnabled(false);
 
-	ui->error_label->setHidden(false);
 	ui->error_label->setText("<font color='red'>" + message + "</font>");
 }
 
@@ -1090,7 +1063,7 @@ void SvWidget::SvSelectionChanged()
 
 	int row = rows.at(0).row();
 
-	int i_format = colIndexbyName("FORMAT");
+	int i_format = GUIHelper::columnIndex(ui->svs, "FORMAT", false);
 
 	// adapt for multisample
 	int i_format_first_data = i_format+1;
@@ -1174,7 +1147,7 @@ void SvWidget::SvSelectionChanged()
 
 void SvWidget::setInfoWidgets(const QByteArray &name, int row, QTableWidget* widget)
 {
-	int i_info = colIndexbyName(name);
+	int i_info = GUIHelper::columnIndex(ui->svs, name, false);
 	if(i_info == -1)
 	{
 		QMessageBox::warning(this,"Error parsing annotation","Could not parse annotation column " + name);
@@ -1372,5 +1345,57 @@ void SvWidget::showContextMenu(QPoint pos)
 		{
 			GeneInfoDBs::openUrl(db_name, gene);
 		}
+	}
+}
+
+void SvWidget::adaptColumnWidthsCustom()
+{
+	try
+	{
+		int idx = GUIHelper::columnIndex(ui->svs, "FILTER");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "REF_A");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "ALT_A");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "REF_B");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "ALT_B");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "INFO_A");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "INFO_B");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "FORMAT");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "GENE_INFO");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "NGSD_HOM");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "NGSD_HET");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "NGSD_AF");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "NGSD_SV_BREAKPOINT_DENSITY");
+		ui->svs->setColumnWidth(idx, 85);
+
+		idx = GUIHelper::columnIndex(ui->svs, "OMIM");
+		ui->svs->setColumnWidth(idx, 750);
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, "Column adjustment error", "Error while adjusting column widths:\n" + e.message());
 	}
 }
