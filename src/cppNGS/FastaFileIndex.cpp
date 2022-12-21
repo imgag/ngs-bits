@@ -115,9 +115,13 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, int start, int length, bool 
 	{
 		THROW(ProgrammingException, "FastaFileIndex::seq: Invalid length (" + QString::number(length) + ") for " + chr.strNormalized(true) + ":" + QString::number(start+1) + "-" + QString::number(start+length));
 	}
+	const FastaIndexEntry& entry = index(chr);
+	if (start > entry.length)
+	{
+		THROW(ProgrammingException, "FastaFileIndex::seq: Invalid start position " + chr.strNormalized(true) + ":" + QString::number(start) + " after chromosome end (" + QString::number(entry.length) + ")");
+	}
 
 	//restrict to chromosome length
-	const FastaIndexEntry& entry = index(chr);
 	if((start+length) > entry.length)
 	{
 		Log::warn("FastaFileIndex::seq: Sequence length changed to chromosome end for: " + chr.strNormalized(true) + ":" + QString::number(start+1) + "-" + QString::number(start+length));

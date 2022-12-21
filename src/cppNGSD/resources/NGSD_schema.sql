@@ -1260,7 +1260,7 @@ ENGINE=InnoDB
 DEFAULT CHARSET=utf8;
 
 -- -----------------------------------------------------
--- Table `somatic_report_configuration_germl_snv`
+-- Table `somatic_report_configuration_germl_var`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `somatic_report_configuration_germl_var` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

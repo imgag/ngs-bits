@@ -87,9 +87,7 @@ private:
 	float max_allel_frequency_;
 	int gene_offset_;
 
-	/*
-	 *  returns a formatted time string (QByteArray) from a given time in milliseconds
-	 */
+	//returns a formatted time string (QByteArray) from a given time in milliseconds
 	QByteArray getTimeString(double milliseconds)
 	{
 		QTime time(0,0,0);
@@ -97,9 +95,7 @@ private:
 		return time.toString("hh:mm:ss.zzz").toUtf8();
 	}
 
-	/*
-	 *  writes the germline variant annotation data from the NGSD to a vcf file
-	 */
+	//writes the germline variant annotation data from the NGSD to a vcf file
 	void exportingVariantsToVcfSomatic(QString reference_file_path, QString vcf_file_path, NGSD& db)
 	{
 		// init output stream
@@ -177,10 +173,6 @@ private:
 			vcf_stream << "##INFO=<ID=SOM_VICC_" + key.toUpper() +",Number=1,Type=String,Description=\"Somatic VICC value for VICC parameter " + key + " in the NGSD.\">\n";
 			}
 		}
-
-
-
-
 
 		// write header line
 		vcf_stream << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
@@ -441,7 +433,6 @@ private:
 				query.prepare("UPDATE variant SET germline_het=:0, germline_hom=:1 WHERE id=:2");
 				foreach(const CountCache& entry, count_cache)
 				{
-
 					query.bindValue(0, entry.count_het);
 					query.bindValue(1, entry.count_hom);
 					query.bindValue(2, entry.variant_id);
@@ -465,7 +456,6 @@ private:
 				}
 			}
 		}
-
 		
 		out << " took " << getTimeString(timer.nsecsElapsed()/1000000.0) << " s" << endl;
 
@@ -473,9 +463,7 @@ private:
 		count_cache.clear();
 	}
 
-	/*
-	 *  writes the somantic variant annotation data from the NGSD to a vcf file
-	 */
+	//writes the somantic variant annotation data from the NGSD to a vcf file
 	void exportingVariantsToVcfGermline(QString reference_file_path, QString vcf_file_path, NGSD& db)
 	{
 		QVector<CountCache> count_cache;
@@ -605,9 +593,16 @@ private:
 				int germline_het = variant_query.value(7).toInt();
 				int germline_hom = variant_query.value(8).toInt();
 
-				// modify sequence if deletion or insertion occurs (to fit VCF specification)
+				//prepend reference base required in VCF to insertions/deletions
 				if ((variant.ref() == "-") || (variant.obs() == "-"))
 				{
+					//check that coordinates are inside the chromosome
+					if (variant.start()>reference_file.lengthOf(variant.chr()))
+					{
+						out << "Variant " << variant.toString() << " skipped because chromosomal position is after chromosome end!" << endl;
+						continue;
+					}
+
 					// benchmark
 					tmp_timer.restart();
 
@@ -731,6 +726,9 @@ private:
 							tmp_timer.restart();
 							storeCountCache(out, db, count_cache);
 							ngsd_count_update += tmp_timer.nsecsElapsed()/1000000.0;
+
+							//flush VCF stream to disk from time to time. Otherwise monitoring the progress is impossible.
+							vcf_stream.flush();
 						}
 					}
 				}

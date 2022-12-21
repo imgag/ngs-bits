@@ -86,8 +86,8 @@ INSERT INTO variant (id, chr, start, end, ref, obs, comment, gnomad) VALUES
 (18, 'chr1', 931132, 931132, '-', 'CCCT', 'NA12878_38_Dragen_abra', 0.04),
 (19, 'chr1', 935954, 935954, 'G', 'T', 'NA12878_38_Dragen_abra', 0.04),
 (20, 'chr1', 941119, 941119, 'A', 'G', 'NA12878_38_Dragen_abra', 0.04),
-(21, 'chr6', 81752209, 81752209, 'GACGCGCGGCGGCGGAGAGC', 'GCCCC', 'NA12878_38_Dragen_abra', 0.04);
-
+(21, 'chr6', 81752209, 81752209, 'GACGCGCGGCGGCGGAGAGC', 'GCCCC', 'NA12878_38_Dragen_abra', 0.04),
+(22, 'chr1', 249064688, 249064688, '-', 'TA', 'pos_after_chromosome_end', 0.00);
 
 --variant_classification
 INSERT INTO variant_classification (id, variant_id, class, comment) VALUES
