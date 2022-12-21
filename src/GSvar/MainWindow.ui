@@ -317,10 +317,10 @@
                 <bool>false</bool>
                </property>
                <attribute name="horizontalHeaderVisible">
-                <bool>true</bool>
+                <bool>false</bool>
                </attribute>
                <attribute name="verticalHeaderVisible">
-                <bool>true</bool>
+                <bool>false</bool>
                </attribute>
               </widget>
              </item>
@@ -420,6 +420,8 @@
     <addaction name="separator"/>
     <addaction name="actionGetGenomicSequence"/>
     <addaction name="actionBlatSearch"/>
+    <addaction name="separator"/>
+    <addaction name="actionBurdenTest"/>
    </widget>
    <widget class="QMenu" name="menuIGV">
     <property name="title">
@@ -1471,6 +1473,11 @@
    </property>
    <property name="text">
     <string>Virus detection</string>
+   </property>
+  </action>
+  <action name="actionBurdenTest">
+   <property name="text">
+    <string>Burden Test</string>
    </property>
   </action>
  </widget>

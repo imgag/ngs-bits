@@ -117,7 +117,8 @@ SOURCES += main.cpp\
     ExpressionOverviewWidget.cpp \
     SplicingWidget.cpp \
     ExpressionGeneWidget.cpp \
-    ReportVariantSelectionDialog.cpp
+    ReportVariantSelectionDialog.cpp \
+    BurdenTestWidget.cpp
 
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
@@ -230,7 +231,8 @@ HEADERS += MainWindow.h \
     ExpressionOverviewWidget.h \
     SplicingWidget.h \
     ExpressionGeneWidget.h \
-    ReportVariantSelectionDialog.h
+    ReportVariantSelectionDialog.h \
+    BurdenTestWidget.h
 
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
@@ -328,7 +330,8 @@ FORMS    += MainWindow.ui \
     ExpressionOverviewWidget.ui \
     SplicingWidget.ui \
     ExpressionGeneWidget.ui \
-    ReportVariantSelectionDialog.ui
+    ReportVariantSelectionDialog.ui \
+    BurdenTestWidget.ui
 
 include("../app_gui.pri")
 

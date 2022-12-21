@@ -948,9 +948,9 @@ public:
 	QString getVariantPublication(QString filename, const Variant& variant);
 	QString getVariantPublication(QString filename, const CopyNumberVariant& cnv);
 	QString getVariantPublication(QString filename, const BedpeLine& sv, const BedpeFile& svs);
-	///Updates ClinVar result of a varaint publication
+	///Updates ClinVar result of a variant publication
 	void updateVariantPublicationResult(int variant_publication_id, QString result);
-	///Flag a varaint publication as replaced
+	///Flag a variant publication as replaced
 	void flagVariantPublicationAsReplaced(int variant_publication_id);
 	///Link two variant publications (comp. het. variant)
 	void linkVariantPublications(int variant_publication_id1, int variant_publication_id2);

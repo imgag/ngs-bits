@@ -138,6 +138,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "SplicingWidget.h"
 #include "VariantHgvsAnnotator.h"
 #include "VirusDetectionWidget.h"
+#include "BurdenTestWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -4246,7 +4247,7 @@ void MainWindow::generateEvaluationSheet()
 		evaluation_sheet_data.review_date2 = QDate::currentDate();
 	}
 
-	//Show VaraintSheetEditDialog
+	//Show VariantSheetEditDialog
 	EvaluationSheetEditDialog* edit_dialog = new EvaluationSheetEditDialog(this);
 	edit_dialog->importEvaluationSheetData(evaluation_sheet_data);
 	if (edit_dialog->exec() != QDialog::Accepted) return;
@@ -6676,6 +6677,14 @@ void MainWindow::on_actionVirusDetection_triggered()
 	//show widget
 	VirusDetectionWidget* widget = new VirusDetectionWidget(virus_file.filename);
 	auto dlg = GUIHelper::createDialog(widget, "Virus detection");
+	addModelessDialog(dlg);
+}
+
+void MainWindow::on_actionBurdenTest_triggered()
+{
+	BurdenTestWidget* widget = new BurdenTestWidget(this);
+
+	auto dlg = GUIHelper::createDialog(widget, "Burden test");
 	addModelessDialog(dlg);
 }
 

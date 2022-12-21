@@ -409,7 +409,7 @@ void PublishedVariantsWidget::updateClinvarSubmissionStatus()
 
 	}
 
-	QMessageBox::information(this, "ClinVar submission status updated", "The Submission status of " + QString::number(n_var_checked) + " published varaints has been checked, "
+	QMessageBox::information(this, "ClinVar submission status updated", "The Submission status of " + QString::number(n_var_checked) + " published variants has been checked, "
 							 + QString::number(n_var_updated) + " NGSD entries were updated." );
 
 	//activate button and reset busy curser
@@ -477,7 +477,7 @@ void PublishedVariantsWidget::retryClinvarSubmission()
 		QSet<int> rows = ui_->table->selectedRows();
 		if (rows.size() != 1) //only available if a single line is selected
 		{
-			INFO(ArgumentException, "Please select exactly one varaint for re-upload!");
+			INFO(ArgumentException, "Please select exactly one variant for re-upload!");
 		}
 
 		int row_idx = rows.values().at(0);
@@ -545,7 +545,7 @@ void PublishedVariantsWidget::deleteClinvarSubmission()
 	QSet<int> rows = ui_->table->selectedRows();
 	if (rows.size() != 1) //only available if a single line is selected
 	{
-		INFO(ArgumentException, "Please select exactly one varaint for re-upload!");
+		INFO(ArgumentException, "Please select exactly one variant for re-upload!");
 	}
 
 	int row_idx = rows.values().at(0);

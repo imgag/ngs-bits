@@ -75,7 +75,7 @@ ExpressionGeneWidget::ExpressionGeneWidget(QString tsv_filename, int sys_id, QSt
 	if (cohort_type == RNA_COHORT_SOMATIC) ui_->rb_somatic->setChecked(true);
 
 
-	//(de-)activate varaint list gene filter
+	//(de-)activate variant list gene filter
 	if (!variant_gene_set_.isEmpty())
 	{
 		ui_->cb_filter_by_var_list->setEnabled(true);

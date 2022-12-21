@@ -19,7 +19,7 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Imports accession IDs for published varaints");
+		setDescription("Imports accession IDs for published variants");
 		addInfileList("in", "Submission log files of the ClinVar XML upload containing the accession ID", false);
 
 		//optional
