@@ -342,7 +342,6 @@ void MainWindow::checkServerAvailability()
 
 void MainWindow::on_actionDebug_triggered()
 {
-	qDebug() << "Debug";
 	QString user = Helper::userName();
 	if (user=="ahsturm1")
 	{
@@ -355,7 +354,7 @@ void MainWindow::on_actionDebug_triggered()
 		FastaFileIndex genome_idx(genome_file);
 		VariantHgvsAnnotator hgvs_anno(genome_idx);
 
-		VcfLine variant = VcfLine("chr11", 60743694, "TACCACCACCAGCCCTGTCAATGCTACCACTGGTCCTGTCAATGCTGCCACTGGCCCTGTCAGTGCCACCAATGGTCCTGTCAATACTACCATTCACCCTGTCAAC", QList<Sequence>() << "T");
+		VcfLine variant = VcfLine("chr7", 157009948, "CA", QList<Sequence>() << "CCGCGGCGGCG");
 		qDebug() << variant.toString(true);
 		TranscriptList transcripts = NGSD().transcriptsOverlapping(variant.chr(), variant.start(), variant.end());
 		foreach(const Transcript& t, transcripts)
@@ -384,7 +383,7 @@ void MainWindow::on_actionDebug_triggered()
 
 		//export a transcript definition from NGSD forVariantHgvsAnnotator test
 		/*
-		QByteArray trans = "ENST00000370360";
+		QByteArray trans = "ENST00000252971";
 		NGSD db;
 		int trans_id = db.transcriptId(trans);
 		Transcript t = db.transcript(trans_id);
@@ -753,27 +752,34 @@ void MainWindow::on_actionDebug_triggered()
 
 		//Delete variant that are not used
 		/*
-		QStringList ref_tables;
-		ref_tables << "detected_variant";
-		ref_tables << "report_configuration_variant";
-		ref_tables << "variant_classification";
-		ref_tables << "variant_publication";
-		ref_tables << "variant_validation";
-		ref_tables << "detected_somatic_variant";
-		ref_tables << "somatic_report_configuration_variant";
-		ref_tables << "somatic_variant_classification";
-		ref_tables << "somatic_vicc_interpretation";
-		ref_tables << "somatic_report_configuration_germl_var";
-
 		NGSD db;
+		QStringList ref_tables;
+		foreach(QString table, db.tables())
+		{
+			const TableInfo& table_info = db.tableInfo(table);
+			foreach(QString field, table_info.fieldNames())
+			{
+				const TableFieldInfo& field_info = table_info.fieldInfo(field);
+				if (field_info.type==TableFieldInfo::FK && field_info.fk_table=="variant" && field_info.fk_field=="id")
+				{
+					ref_tables << table;
+				}
+			}
+		}
+
+		QSet<int> var_ids_pub = db.getValuesInt("SELECT variant_id FROM variant_publication WHERE variant_table='variant'").toSet();
+
 		foreach (const QString& chr_name, db.getEnum("variant", "chr"))
 		{
 			QList<int> v_ids = db.getValuesInt("SELECT id FROM variant WHERE chr='" + chr_name + "'");
 			qDebug() << QDateTime::currentDateTime() << chr_name << "variants to process:" << v_ids.count();
 			int c_deleted = 0;
+			int c_processed = 0;
 			foreach(int v_id , v_ids)
 			{
 				QString var_id_str = QString::number(v_id);
+				++c_processed;
+
 				bool remove = true;
 				foreach (const QString& table, ref_tables)
 				{
@@ -784,13 +790,21 @@ void MainWindow::on_actionDebug_triggered()
 						break;
 					}
 				}
+
+				if (var_ids_pub.contains(v_id))
+				{
+					remove = false;
+				}
+
 				if (remove)
 				{
-					//QTime timer;
-					//timer.start();
 					db.getQuery().exec("DELETE FROM variant WHERE id="+var_id_str);
-					//qDebug() << QDateTime::currentDateTime() << "DELETE:" << var_id_str << " TIME:" << Helper::elapsedTime(timer);
 					++c_deleted;
+				}
+
+				if (c_processed%10000==0)
+				{
+					qDebug() << QDateTime::currentDateTime() << chr_name << "deleted " << c_deleted << "of" << c_processed << "processed variants";
 				}
 			}
 			qDebug() << QDateTime::currentDateTime() << chr_name << "deleted:" << c_deleted;
@@ -3723,12 +3737,12 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 
 	//activate virus table
 	ui_.actionVirusDetection->setEnabled(false);
-	if (NGSD::isAvailable())
+	if (type==SOMATIC_PAIR && NGSD::isAvailable())
 	{
 		QString ps_tumor = variants_.mainSampleName();
 		NGSD db;
 		QString ps_tumor_id = db.processedSampleId(ps_tumor, false);
-		if (type==SOMATIC_PAIR && GlobalServiceProvider::database().processedSamplePath(ps_tumor_id, PathType::VIRAL).exists)
+		if (GlobalServiceProvider::database().processedSamplePath(ps_tumor_id, PathType::VIRAL).exists)
 		{
 			ui_.actionVirusDetection->setEnabled(true);
 		}
