@@ -1,6 +1,6 @@
 # GSvar change log
 
-### 2022_11-93 (21.12.22)
+### 2022_12-15 (21.12.22)
 
 - Somatic Report: Format changes and HRD by scarHRD
 - bugfixes
