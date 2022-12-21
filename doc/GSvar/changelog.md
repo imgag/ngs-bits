@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2022_11-93 (21.12.22)
+
+- Somatic Report: Format changes and HRD by scarHRD
+- bugfixes
+
 ### 2022_11-75 (14.12.22)
 
 - Filters: adapted filter for 'mosaic' and 'low_mappability' variants.
