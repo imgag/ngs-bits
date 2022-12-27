@@ -93,8 +93,8 @@ private slots:
 		I_EQUAL(count, 1);
 
 		//check log
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line73.log", QRegExp("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line73.log", TESTDATA("data_out/NGSDAddVariantsGermline_out5.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line79.log", QRegExp("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line79.log", TESTDATA("data_out/NGSDAddVariantsGermline_out5.log"));
 	}
 
 
@@ -127,10 +127,10 @@ private slots:
 		I_EQUAL(count, 1);
 
 		//check log
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line104.log", QRegExp("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line104.log", TESTDATA("data_out/NGSDAddVariantsGermline_out6.log"));
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line107.log", QRegExp("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line107.log", TESTDATA("data_out/NGSDAddVariantsGermline_out7.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line110.log", QRegExp("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line110.log", TESTDATA("data_out/NGSDAddVariantsGermline_out6.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line113.log", QRegExp("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line113.log", TESTDATA("data_out/NGSDAddVariantsGermline_out7.log"));
 	}
 
 
@@ -163,10 +163,10 @@ private slots:
 		I_EQUAL(count, 1);
 
 		//check log
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line140.log", QRegExp("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line140.log", TESTDATA("data_out/NGSDAddVariantsGermline_out8.log"));
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line143.log", QRegExp("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line143.log", TESTDATA("data_out/NGSDAddVariantsGermline_out9.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line146.log", QRegExp("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line146.log", TESTDATA("data_out/NGSDAddVariantsGermline_out8.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line149.log", QRegExp("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line149.log", TESTDATA("data_out/NGSDAddVariantsGermline_out9.log"));
 	}
 
 	void import_with_existing_report_config()
@@ -200,10 +200,10 @@ private slots:
 		I_EQUAL(count, 0);
 
 		//check log
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line177.log", QRegExp("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line177.log", TESTDATA("data_out/NGSDAddVariantsGermline_out10.log"));
-		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line178.log", QRegExp("^filename:"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line178.log", TESTDATA("data_out/NGSDAddVariantsGermline_out11.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line183.log", QRegExp("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line183.log", TESTDATA("data_out/NGSDAddVariantsGermline_out10.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line184.log", QRegExp("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line184.log", TESTDATA("data_out/NGSDAddVariantsGermline_out11.log"));
 	}
 };
 
