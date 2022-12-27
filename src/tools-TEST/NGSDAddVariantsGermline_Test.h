@@ -58,7 +58,13 @@ private slots:
 		QStringList pubmed_ids = db.pubmedIds(var_id);
 		pubmed_ids.sort();
 		S_EQUAL(pubmed_ids.at(0), "12345678");
-		S_EQUAL(pubmed_ids.at(1), "87654321")
+		S_EQUAL(pubmed_ids.at(1), "87654321");
+
+		//check mosaic flag is imported
+		I_EQUAL(db.getValue("SELECT mosaic FROM detected_variant WHERE variant_id=" + var_id).toInt(), 1);
+		Variant var2 = Variant(Chromosome("chrX"), 155253718, 155253718, "G", "A");
+		QString var2_id = db.variantId(var2);
+		I_EQUAL(db.getValue("SELECT mosaic FROM detected_variant WHERE variant_id=" + var2_id).toInt(), 0);
 	}
 
 	void sv_default_import()

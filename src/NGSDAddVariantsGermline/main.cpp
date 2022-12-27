@@ -150,7 +150,7 @@ public:
 		sub_timer.start();
 		int i_geno = variants.getSampleHeader().infoByID(ps_name).column_index;
 		SqlQuery q_insert = db.getQuery();
-		q_insert.prepare("INSERT INTO detected_variant (processed_sample_id, variant_id, genotype) VALUES (" + ps_id + ", :0, :1)");
+		q_insert.prepare("INSERT INTO detected_variant (processed_sample_id, variant_id, genotype, mosaic) VALUES (" + ps_id + ", :0, :1, :2)");
 		db.transaction();
 		for (int i=0; i<variants.count(); ++i)
 		{
@@ -164,6 +164,7 @@ public:
 			//bind
 			q_insert.bindValue(0, variant_id);
 			q_insert.bindValue(1, variants[i].annotations()[i_geno]);
+			q_insert.bindValue(2, variants[i].filters().contains("mosaic"));
 			q_insert.exec();
 		}
 		db.commit();
