@@ -802,7 +802,7 @@ void MainWindow::on_actionDebug_triggered()
 					++c_deleted;
 				}
 
-				if (c_processed%10000==0)
+				if (c_processed%1000000==0)
 				{
 					qDebug() << QDateTime::currentDateTime() << chr_name << "deleted " << c_deleted << "of" << c_processed << "processed variants";
 				}
@@ -4785,8 +4785,8 @@ void MainWindow::generateReportSomaticRTF()
 
 			//Generate files for QBIC upload
 			timer.start();
-			QString path = Settings::string("qbic_data_path") + "/" + ps_tumor + "-" + ps_normal;
-			if (!GlobalServiceProvider::fileLocationProvider().isLocal()) path = ps_tumor + "-" + ps_normal;
+			QString path = ps_tumor + "-" + ps_normal;
+			if (GlobalServiceProvider::fileLocationProvider().isLocal()) path = Settings::string("qbic_data_path") + "/" + path;
 			report.storeQbicData(path);
 			Log::perf("Generating somatic report QBIC data took ", timer);
 
