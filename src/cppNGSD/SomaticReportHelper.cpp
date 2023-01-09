@@ -977,7 +977,16 @@ RtfSourceCode SomaticReportHelper::partPharmacoGenetics()
 
 					VariantTranscript trans = snv.transcriptAnnotations(i_co_sp)[0];
 
-					row.addCell(1200,snv.annotations().at(i_dbsnp),RtfParagraph().setFontSize(14));
+					if (key == "rs3918290" || key == "rs55886062" || key == "rs67376798" || key == "rs56038477")
+					{
+						row.addCell(1200,snv.annotations().at(i_dbsnp),RtfParagraph().setFontSize(14).highlight(3));
+					}
+					else
+					{
+						row.addCell(1200,snv.annotations().at(i_dbsnp),RtfParagraph().setFontSize(14));
+					}
+
+
 					if(!trans.gene.isEmpty())
 					{
 						row.addCell( 800, trans.gene, RtfParagraph().setFontSize(14).setItalic(true) );
