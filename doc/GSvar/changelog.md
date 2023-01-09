@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2022_12-24 (09.01.23)
+
+- variant tab: showing mosaic flag after genotype.
+- small variant search dialog: showing mosaic flag after genotype.
+
 ### 2022_12-15 (21.12.22)
 
 - Somatic Report: Format changes and HRD by scarHRD
