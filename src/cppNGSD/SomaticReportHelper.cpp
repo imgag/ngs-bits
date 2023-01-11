@@ -831,17 +831,17 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 
 	RtfSourceCode tum_panel_depth = "n/a";
 	RtfSourceCode nor_panel_depth = "n/a";
-	if(settings_.report_config.targetRegionName() == "somatic_custom_panel")
+
+	//try to add somatic custom target depth stat
+	try
 	{
-		try
-		{
-			tum_panel_depth = tumor_qcml_data_.value("QC:2000097",true).toString().toUtf8() + "x";
-			nor_panel_depth = normal_qcml_data_.value("QC:2000097",true).toString().toUtf8() + "x";
-		}
-		catch(Exception) //nothing to do here
-		{
-		}
+		tum_panel_depth = tumor_qcml_data_.value("QC:2000097",true).toString().toUtf8() + "x";
+		nor_panel_depth = normal_qcml_data_.value("QC:2000097",true).toString().toUtf8() + "x";
 	}
+	catch(Exception) //nothing to do here
+	{
+	}
+
 	metadata.addRow(RtfTableRow({"Durchschnittliche Tiefe Genpanel:", tum_panel_depth, nor_panel_depth, "Analysepipeline:", somatic_vl_.getPipeline().toUtf8()}, {2000,1480,1480,1480,3481}) );
 
 
@@ -860,17 +860,17 @@ RtfSourceCode SomaticReportHelper::partMetaData()
 
 	RtfSourceCode tum_panel_cov_60x = "n/a";
 	RtfSourceCode nor_panel_cov_60x = "n/a";
-	if(settings_.report_config.targetRegionName() == "somatic_custom_panel")
+
+	//try to add somatic custom target 60x coverage stat
+	try
 	{
-		try
-		{
-			tum_panel_cov_60x = tumor_qcml_data_.value("QC:2000098",true).toString().toUtf8() + "\%";
-			nor_panel_cov_60x = normal_qcml_data_.value("QC:2000098",true).toString().toUtf8() + "\%";
-		}
-		catch(Exception) //nothing to do here
-		{
-		}
+		tum_panel_cov_60x = tumor_qcml_data_.value("QC:2000098",true).toString().toUtf8() + "\%";
+		nor_panel_cov_60x = normal_qcml_data_.value("QC:2000098",true).toString().toUtf8() + "\%";
 	}
+	catch(Exception) //nothing to do here
+	{
+	}
+
 	metadata.addRow(RtfTableRow({"Coverage Genpanel 60x:", tum_panel_cov_60x , nor_panel_cov_60x, "ICD10:", settings_.icd10.toUtf8()}, {2000,1480,1480,1480,3481}) );
 	metadata.addRow(RtfTableRow({"", "" , "", "MSI-Status:", (!BasicStatistics::isValidFloat(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3))}, {2000,1480,1480,1480,3481}));
 	metadata.addRow(RtfTableRow({"", "" , "", "Tumor-Ploidie:", (settings_.report_config.ploidy() == 0 ? "n/a" : QByteArray::number(settings_.report_config.ploidy(),'f',3))}, {2000,1480,1480,1480,3481}));
