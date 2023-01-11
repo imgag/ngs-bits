@@ -617,13 +617,15 @@ CREATE  TABLE IF NOT EXISTS `variant_publication`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `sample_id` INT(11) NOT NULL,
   `variant_id` INT(11) NOT NULL,
+  `variant_table` ENUM('variant', 'cnv', 'sv_deletion', 'sv_duplication', 'sv_insertion', 'sv_inversion', 'sv_translocation', 'none', 'n/a') NOT NULL DEFAULT 'n/a',
   `db` ENUM('LOVD','ClinVar') NOT NULL,
   `class` ENUM('1','2','3','4','5') NOT NULL,
-  `details` TEXT NOT NULL,
+  `details` TEXT NOT NULL COMMENT "List of key-value pairs with additional upload information (separated by ';')",
   `user_id` INT(11) NOT NULL,
   `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `result` TEXT DEFAULT NULL,
-  `replaced` BOOLEAN NOT NULL DEFAULT FALSE,
+  `replaced` BOOLEAN NOT NULL DEFAULT FALSE COMMENT "Indicates that the publication was replaced by a new upload.",
+  `linked_id` INT(11) DEFAULT NULL COMMENT "Id of variant_publication of the related compound heterozygous variant.",
 PRIMARY KEY (`id`),
 CONSTRAINT `fk_variant_publication_has_user`
   FOREIGN KEY (`user_id`)
@@ -634,12 +636,7 @@ CONSTRAINT `fk_variant_publication_has_sample`
     FOREIGN KEY (`sample_id`)
     REFERENCES `sample` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-CONSTRAINT `fk_variant_publication_has_variant`
-  FOREIGN KEY (`variant_id`)
-  REFERENCES `variant` (`id`)
-  ON DELETE NO ACTION
-  ON UPDATE NO ACTION
+    ON UPDATE NO ACTION
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
@@ -790,6 +787,7 @@ CREATE  TABLE IF NOT EXISTS `detected_variant`
   `processed_sample_id` INT(11) NOT NULL,
   `variant_id` INT(11) NOT NULL,
   `genotype` ENUM('hom','het') NOT NULL,
+  `mosaic` TINYINT(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`processed_sample_id`, `variant_id`),
   INDEX `fk_detected_variant_variant1` (`variant_id` ASC),
   CONSTRAINT `fk_processed_sample_has_variant_processed_sample1`
@@ -1263,7 +1261,7 @@ ENGINE=InnoDB
 DEFAULT CHARSET=utf8;
 
 -- -----------------------------------------------------
--- Table `somatic_report_configuration_germl_snv`
+-- Table `somatic_report_configuration_germl_var`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `somatic_report_configuration_germl_var` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

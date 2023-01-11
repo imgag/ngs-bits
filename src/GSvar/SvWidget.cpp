@@ -23,6 +23,8 @@
 #include "VariantDetailsDockWidget.h"
 #include "ValidationDialog.h"
 #include "GlobalServiceProvider.h"
+#include "ClinvarUploadDialog.h"
+#include "GSvarHelper.h"
 
 SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent, bool ini_gui)
 	: QWidget(parent)
@@ -60,6 +62,7 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* fil
 	connect(ui->svs->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(svHeaderDoubleClicked(int)));
 	ui->svs->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui->svs->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(svHeaderContextMenu(QPoint)));
+	connect(ui->resize_btn, SIGNAL(clicked(bool)), this, SLOT(adaptColumnWidthsCustom()));
 
 	//clear GUI
 	clearGUI();
@@ -276,8 +279,9 @@ void SvWidget::initGUI()
 	ui->filter_widget->setValidFilterEntries(valid_filter_entries);
 
 
-	//only whole rows can be selected, one row at a time
+	//only whole rows can be selected, but multiple rows at a time
 	ui->svs->setSelectionBehavior(QAbstractItemView::SelectRows);
+	ui->svs->setSelectionMode(QAbstractItemView::ExtendedSelection);
 	resizeQTableWidget(ui->svs);
 
 	loading_svs_ = false;
@@ -289,7 +293,6 @@ void SvWidget::initGUI()
 
 void SvWidget::clearGUI()
 {
-	ui->error_label->setHidden(true);
 	ui->label_size->clear();
 	ui->label_pe_af->clear();
 	ui->label_sr_af->clear();
@@ -555,18 +558,9 @@ void SvWidget::applyFilters(bool debug_time)
 	ui->number_of_svs->setText(QByteArray::number(filter_result.flags().count(true)) + "/" + QByteArray::number(row_count));
 }
 
-int SvWidget::colIndexbyName(const QString& name)
-{
-	for(int i=0;i<ui->svs->columnCount();++i)
-	{
-		if(ui->svs->horizontalHeaderItem(i)->text() == name) return i;
-	}
-	return -1;
-}
-
 int SvWidget::pairedEndReadCount(int row)
 {
-	int i_format =colIndexbyName("FORMAT");
+	int i_format = GUIHelper::columnIndex(ui->svs, "FORMAT", false);
 	if(i_format == -1) return -1;
 
 	QByteArray desc = ui->svs->item(row,i_format)->text().toUtf8();
@@ -585,7 +579,7 @@ int SvWidget::pairedEndReadCount(int row)
 
 double SvWidget::alleleFrequency(int row, const QByteArray& read_type, int sample_idx)
 {
-	int i_format = colIndexbyName("FORMAT");
+	int i_format = GUIHelper::columnIndex(ui->svs, "FORMAT", false);
 	if(i_format == -1 ) return -1.;
 
 	if(ui->svs->columnCount() < i_format+1) return -1.;
@@ -713,7 +707,156 @@ void SvWidget::editGermlineReportConfiguration(int row)
 
 	//update config, GUI and NGSD
 	report_config_->set(var_config);
-    updateReportConfigHeaderIcon(row);
+	updateReportConfigHeaderIcon(row);
+}
+
+void SvWidget::uploadToClinvar(int index1, int index2)
+{
+	if (!LoginManager::active()) return;
+	try
+	{
+		//abort if 1st index is missing
+		if(index1 <0)
+		{
+			THROW(ArgumentException, "A valid index for the first SV has to be provided!");
+		}
+		//abort if API key is missing
+		if(Settings::string("clinvar_api_key", true).trimmed().isEmpty())
+		{
+			THROW(ProgrammingException, "ClinVar API key is needed, but not found in settings.\nPlease inform the bioinformatics team");
+		}
+
+		NGSD db;
+
+		//(1) prepare data as far as we can
+		ClinvarUploadData data;
+		data.processed_sample = db.processedSampleName(ps_id_);
+		data.variant_type1 = VariantType::SVS;
+		if(index2 < 0)
+		{
+			//Single variant submission
+			data.submission_type = ClinvarSubmissionType::SingleVariant;
+			data.variant_type2 = VariantType::INVALID;
+		}
+		else
+		{
+			//CompHet variant submission
+			data.submission_type = ClinvarSubmissionType::CompoundHeterozygous;
+			data.variant_type2 = VariantType::SVS;
+		}
+
+		QString sample_id = db.sampleId(data.processed_sample);
+		SampleData sample_data = db.getSampleData(sample_id);
+
+		//get disease info
+		data.disease_info = db.getSampleDiseaseInfo(sample_id, "OMIM disease/phenotype identifier");
+		data.disease_info.append(db.getSampleDiseaseInfo(sample_id, "Orpha number"));
+		if (data.disease_info.length() < 1)
+		{
+			INFO(InformationMissingException, "The sample has to have at least one OMIM or Orphanet disease identifier to publish a variant in ClinVar.");
+		}
+
+		// get affected status
+		data.affected_status = sample_data.disease_status;
+
+		//get phenotype(s)
+		data.phenos = sample_data.phenotypes;
+
+		//get sv variant info
+		data.sv1 = sv_bedpe_file_[index1];
+		if(data.sv1.type() == StructuralVariantType::BND)
+			WARNING(NotImplementedException, "The upload of translocations is not supported by the ClinVar API. Please use the manual submission through the ClinVar website.");
+
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+		{
+			data.sv2 = sv_bedpe_file_[index2];
+			if(data.sv2.type() == StructuralVariantType::BND)
+				WARNING(NotImplementedException, "The upload of translocations is not supported by the ClinVar API. Please use the manual submission through the ClinVar website.");
+		}
+
+		// get report info
+		if (!report_config_.data()->exists(VariantType::SVS, index1))
+		{
+			INFO(InformationMissingException, "The SV has to be in the report configuration to be published!");
+		}
+		data.report_variant_config1 = report_config_.data()->get(VariantType::SVS, index1);
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+		{
+			if (!report_config_.data()->exists(VariantType::SVS, index2))
+			{
+				INFO(InformationMissingException, "The SV 2 has to be in the report configuration to be published!");
+			}
+			data.report_variant_config2 = report_config_.data()->get(VariantType::SVS, index2);
+		}
+
+		//check classification
+		if (data.report_variant_config1.classification.trimmed().isEmpty() || (data.report_variant_config1.classification.trimmed() == "n/a"))
+		{
+			INFO(InformationMissingException, "The SV has to be classified to be published!");
+		}
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+		{
+			if (data.report_variant_config2.classification.trimmed().isEmpty() || (data.report_variant_config2.classification.trimmed() == "n/a"))
+			{
+				INFO(InformationMissingException, "The SV 2 has to be classified to be published!");
+			}
+		}
+
+		//genes
+		data.genes = data.sv1.genes(sv_bedpe_file_.annotationHeaders());
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous) data.genes <<  data.sv2.genes(sv_bedpe_file_.annotationHeaders());
+
+		//get callset id
+		QString callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", true, ps_id_).toString();
+		if (callset_id == "") THROW(DatabaseException, "No callset found for processed sample id " + ps_id_ + "!");
+
+		//determine NGSD ids of variant and report variant for variant 1
+		QString sv_id = db.svId(data.sv1, callset_id.toInt(), sv_bedpe_file_, false);
+		if (sv_id == "")
+		{
+			INFO(InformationMissingException, "The SV has to be in NGSD and part of a report config to be published!");
+		}
+
+
+		data.variant_id1 = Helper::toInt(sv_id);
+		//extract report variant id
+		int rc_id = db.reportConfigId(ps_id_);
+		if (rc_id == -1 )
+		{
+			THROW(DatabaseException, "Could not determine report config id for sample " + data.processed_sample + "!");
+		}
+
+		data.report_variant_config_id1 = db.getValue("SELECT id FROM report_configuration_sv WHERE report_configuration_id=" + QString::number(rc_id) + " AND "
+											 + db.svTableName(data.sv1.type())+ "_id=" + QString::number(data.variant_id1), false).toInt();
+
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+		{
+			//determine NGSD ids of sv for variant 2
+			sv_id = db.svId(data.sv2, callset_id.toInt(), sv_bedpe_file_, true);
+			if (sv_id == "")
+			{
+				INFO(InformationMissingException, "The SV 2 has to be in NGSD and part of a report config to be published!");
+			}
+			data.variant_id2 = Helper::toInt(sv_id);
+
+			//extract report variant id
+			data.report_variant_config_id2 = db.getValue("SELECT id FROM report_configuration_sv WHERE report_configuration_id=" + QString::number(rc_id) + " AND "
+												 + db.svTableName(data.sv2.type())+ "_id=" + QString::number(data.variant_id2), false).toInt();
+		}
+
+
+		// (2) show dialog
+		ClinvarUploadDialog dlg(this);
+		dlg.setData(data);
+		dlg.exec();
+
+
+
+	}
+	catch(Exception& e)
+	{
+		GUIHelper::showException(this, e, "ClinVar submission error");
+	}
 }
 
 void SvWidget::annotateTargetRegionGeneOverlap()
@@ -726,17 +869,8 @@ void SvWidget::annotateTargetRegionGeneOverlap()
 	ChromosomalIndex<BedFile> roi_genes_index(roi_genes);
 
 	// update gene tooltips
-	int gene_idx = -1;
-	for (int col_idx = 0; col_idx < ui->svs->columnCount(); ++col_idx)
-	{
-		if(ui->svs->horizontalHeaderItem(col_idx)->text().trimmed() == "GENES")
-		{
-			gene_idx = col_idx;
-			break;
-		}
-	}
-
-	if (gene_idx >= 0)
+	int gene_idx = GUIHelper::columnIndex(ui->svs, "GENES", false);
+	if (gene_idx!=-1)
 	{
 		// iterate over sv table
 		for (int row_idx = 0; row_idx < ui->svs->rowCount(); ++row_idx)
@@ -766,16 +900,8 @@ void SvWidget::annotateTargetRegionGeneOverlap()
 
 void SvWidget::clearTooltips()
 {
-	int gene_idx = -1;
-	for (int col_idx = 0; col_idx < ui->svs->columnCount(); ++col_idx)
-	{
-		if(ui->svs->horizontalHeaderItem(col_idx)->text().trimmed() == "GENES")
-		{
-			gene_idx = col_idx;
-			break;
-		}
-	}
-	if (gene_idx >= 0)
+	int gene_idx = GUIHelper::columnIndex(ui->svs, "GENES", false);
+	if (gene_idx!=-1)
 	{
 		for (int row_idx = 0; row_idx < ui->svs->rowCount(); ++row_idx)
 		{
@@ -820,7 +946,6 @@ void SvWidget::disableGUI(const QString& message)
 {
 	setEnabled(false);
 
-	ui->error_label->setHidden(false);
 	ui->error_label->setText("<font color='red'>" + message + "</font>");
 }
 
@@ -938,7 +1063,7 @@ void SvWidget::SvSelectionChanged()
 
 	int row = rows.at(0).row();
 
-	int i_format = colIndexbyName("FORMAT");
+	int i_format = GUIHelper::columnIndex(ui->svs, "FORMAT", false);
 
 	// adapt for multisample
 	int i_format_first_data = i_format+1;
@@ -1022,7 +1147,7 @@ void SvWidget::SvSelectionChanged()
 
 void SvWidget::setInfoWidgets(const QByteArray &name, int row, QTableWidget* widget)
 {
-	int i_info = colIndexbyName(name);
+	int i_info = GUIHelper::columnIndex(ui->svs, name, false);
 	if(i_info == -1)
 	{
 		QMessageBox::warning(this,"Error parsing annotation","Could not parse annotation column " + name);
@@ -1054,13 +1179,28 @@ void SvWidget::setInfoWidgets(const QByteArray &name, int row, QTableWidget* wid
 
 void SvWidget::showContextMenu(QPoint pos)
 {
-	QModelIndexList rows = ui->svs->selectionModel()->selectedRows();
-	if(rows.count() != 1) return;
-
-	int row = rows.at(0).row();
+	QList<int> selected_rows = GUIHelper::selectedTableRows(ui->svs);
 
 	//create menu
 	QMenu menu(ui->svs);
+
+	//special handling: publish comp-het sv combination
+	if(selected_rows.count() == 2)
+	{
+		//ClinVar publication
+		QAction* a_clinvar_pub = menu.addAction(QIcon("://Icons/ClinGen.png"), "Publish compound-heterozygote CNV in ClinVar");
+		a_clinvar_pub->setEnabled(LoginManager::active() && ! Settings::string("clinvar_api_key", true).trimmed().isEmpty());
+
+		//execute menu
+		QAction* action = menu.exec(ui->svs->viewport()->mapToGlobal(pos));
+		if (action == a_clinvar_pub) uploadToClinvar(selected_rows.at(0), selected_rows.at(1));
+		return;
+	}
+	if(selected_rows.count() != 1) return;
+
+	int row = selected_rows.at(0);
+
+
 	QAction* a_rep_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
 	a_rep_edit->setEnabled((report_config_ != nullptr) && ngsd_enabled_ && !is_somatic_);
 	QAction* a_rep_del = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
@@ -1080,6 +1220,12 @@ void SvWidget::showContextMenu(QPoint pos)
 	menu.addSeparator();
 	QAction* copy_pos1 = menu.addAction("Copy position A to clipboard");
 	QAction* copy_pos2 = menu.addAction("Copy position B to clipboard");
+	menu.addSeparator();
+	//ClinVar search
+	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/ClinGen.png"), "ClinVar");
+	QAction* a_clinvar_find = sub_menu->addAction("Find in ClinVar");
+	QAction* a_clinvar_pub = sub_menu->addAction("Publish in ClinVar");
+	a_clinvar_pub->setEnabled(ngsd_enabled_ && !Settings::string("clinvar_api_key", true).trimmed().isEmpty());
 	//gene sub-menus
 	int i_genes = sv_bedpe_file_.annotationIndexByName("GENES", false);
 	if (i_genes!=-1)
@@ -1138,6 +1284,23 @@ void SvWidget::showContextMenu(QPoint pos)
 
 		dlg->exec();
 	}
+	else if (action==a_clinvar_find)
+	{
+		//get covert region
+		BedFile regions = sv.affectedRegion();
+		for (int i = 0; i < regions.count(); ++i)
+		{
+			const BedLine& region = regions[i];
+			//create dummy variant to use GSvar helper
+			Variant variant = Variant(region.chr(), region.start(), region.end(), "", "");
+			QString url = GSvarHelper::clinVarSearchLink(variant, GSvarHelper::build());
+			QDesktopServices::openUrl(QUrl(url));
+		}
+	}
+	else if (action==a_clinvar_pub)
+	{
+		uploadToClinvar(row);
+	}
 	else if (action == igv_pos1)
 	{
 		GlobalServiceProvider::gotoInIGV(sv.position1(), true);
@@ -1182,5 +1345,57 @@ void SvWidget::showContextMenu(QPoint pos)
 		{
 			GeneInfoDBs::openUrl(db_name, gene);
 		}
+	}
+}
+
+void SvWidget::adaptColumnWidthsCustom()
+{
+	try
+	{
+		int idx = GUIHelper::columnIndex(ui->svs, "FILTER");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "REF_A");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "ALT_A");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "REF_B");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "ALT_B");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "INFO_A");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "INFO_B");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "FORMAT");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "GENE_INFO");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "NGSD_HOM");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "NGSD_HET");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "NGSD_AF");
+		ui->svs->setColumnWidth(idx, 45);
+
+		idx = GUIHelper::columnIndex(ui->svs, "NGSD_SV_BREAKPOINT_DENSITY");
+		ui->svs->setColumnWidth(idx, 85);
+
+		idx = GUIHelper::columnIndex(ui->svs, "OMIM");
+		ui->svs->setColumnWidth(idx, 750);
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, "Column adjustment error", "Error while adjusting column widths:\n" + e.message());
 	}
 }

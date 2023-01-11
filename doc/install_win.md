@@ -16,8 +16,8 @@ First, we need to install some software:
 The Qt distribution contains an old MySQL driver that does not support binding as it should.  
 Thus, we need to use a different driver:
 
-* Download the [MySQL Community Server 5.7.9 ZIP file (32-bit)](http://downloads.mysql.com/archives/community/) and extract it to C:\Qt\Qt5.9.5\mysql-5.7.9-win32\.  
-* Copy C:\Qt\Qt5.9.5\mysql-5.7.9-win32\lib\libmysql.dll to C:\Windows\
+* Download the [MySQL Community Server 5.7.39 ZIP file (32-bit)](http://downloads.mysql.com/archives/community/) and extract it to C:\Qt\Qt5.9.5\mysql-5.7.39-win32\.  
+* Copy C:\Qt\Qt5.9.5\mysql-5.7.39-win32\lib\libmysql.dll to C:\Windows\
 
 ## Build
 
@@ -59,7 +59,7 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 		<td>ssleay32.dll, libeay32.dll</td>
 	</tr>
 	<tr>
-		<td>C:\Qt\Qt5.9.5\mysql-5.7.9-win32\lib\</td>
+		<td>C:\Qt\Qt5.9.5\mysql-5.7.39-win32\lib\</td>
 		<td>libmysql.dll</td>
 	</tr>
 </table>

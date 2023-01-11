@@ -37,6 +37,8 @@ public:
 	//############################## sample-specific files ##############################
 	//Returns sample-specific BAM files
 	virtual FileLocationList getBamFiles(bool return_if_missing) const = 0;
+	//Returns virus-related BAM files
+	virtual FileLocationList getViralBamFiles(bool return_if_missing) const = 0;
 	//Returns sample-specific low coverage files in BED format
 	virtual FileLocationList getLowCoverageFiles(bool return_if_missing) const = 0;
 	//Returns sample-specifi b-allele frequency files (IGV format)

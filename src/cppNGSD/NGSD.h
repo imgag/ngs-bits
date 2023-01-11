@@ -663,11 +663,12 @@ public:
 	const TranscriptList& transcripts();
 	///Returns transcripts of a gene (if @p coding_only is set, only coding transcripts).
 	TranscriptList transcripts(int gene_id, Transcript::SOURCE source, bool coding_only);
-	///Returns all transcripts overlapping the given region (extended by some bases)
-	TranscriptList transcriptsOverlapping(const Chromosome& chr, int start, int end, int extend=0);
-
+	///Returns all transcripts overlapping the given region (extended by some bases).
+	TranscriptList transcriptsOverlapping(const Chromosome& chr, int start, int end, int extend=0, Transcript::SOURCE source=Transcript::ENSEMBL);
 	///Returns the best transcript for the gene. Order is: (longest coding) preferred transcript, MANE select transcript, longest coding transcript, longest non-coding transcript, longest transcript. If no transcript is found, a invalid default-constructed transcript is returned.
 	Transcript bestTranscript(int gene_id);
+	///Returns a list of the most relevant transcripts for the gene (best transcript, prefered transcripts, MANE select transcript, MANE plus clinical transcript)
+	TranscriptList releventTranscripts(int gene_id);
 	///Returns longest coding transcript of a gene.
 	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source=false, bool fallback_noncoding=false);
 	///Returns the list of all approved gene names
@@ -895,7 +896,7 @@ public:
 	///Returns all available cfDNA gene entries
 	QList<CfdnaGeneEntry> cfdnaGenes();
 	///Returns the ID SNPs of a processing system as VCF
-	VcfFile getIdSnpsFromProcessingSystem(int sys_id, bool tumor_only = false, bool throw_on_fail = true);
+	VcfFile getIdSnpsFromProcessingSystem(int sys_id, const BedFile& target_region, bool tumor_only = false, bool throw_on_fail = true);
 
 	///Returns all QC terms of the sample
 	QCCollection getQCData(const QString& processed_sample_id);
@@ -939,13 +940,20 @@ public:
 
 
 	///Adds a variant publication
-	void addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details, int user_id=-1);
+	int addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details, int user_id=-1);
+	int addVariantPublication(QString processed_sample, const CopyNumberVariant& cnv, QString database, QString classification, QString details, int user_id=-1);
+	int addVariantPublication(QString processed_sample, const BedpeLine& sv, const BedpeFile& svs, QString database, QString classification, QString details, int user_id=-1);
+	int addManualVariantPublication(QString sample_name, QString database, QString classification, QString details, int user_id=-1);
 	///Returns variant publication data as text
 	QString getVariantPublication(QString filename, const Variant& variant);
+	QString getVariantPublication(QString filename, const CopyNumberVariant& cnv);
+	QString getVariantPublication(QString filename, const BedpeLine& sv, const BedpeFile& svs);
 	///Updates ClinVar result of a varaint publication
 	void updateVariantPublicationResult(int variant_publication_id, QString result);
 	///Flag a varaint publication as replaced
 	void flagVariantPublicationAsReplaced(int variant_publication_id);
+	///Link two variant publications (comp. het. variant)
+	void linkVariantPublications(int variant_publication_id1, int variant_publication_id2);
 
 	///Returns the comment of a variant in the NGSD.
 	QString comment(const Variant& variant);
@@ -963,13 +971,15 @@ public:
 	///Returns if the report configuration is finalized.
 	bool reportConfigIsFinalized(int id);
 	///Returns the report configuration for a processed sample, throws an error if it does not exist.
-	QSharedPointer<ReportConfiguration> reportConfig(int id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, QStringList& messages);
+	QSharedPointer<ReportConfiguration> reportConfig(int id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs);
 	///Sets/overwrites the report configuration for a processed sample. Returns its database primary key. The variant list is needed to determine the annotation column indices.
 	int setReportConfig(const QString& processed_sample_id, QSharedPointer<ReportConfiguration> config, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs);
 	///Finalizes the report configuration. It cannot be modified afterwards!
 	void finalizeReportConfig(int id, int user_id);
 	///Deletes a report configuration.
 	void deleteReportConfig(int id);
+	///Returns the report variant configuration variant for a given id
+	ReportVariantConfiguration reportVariantConfiguration(int id, VariantType type, QStringList& messages, const VariantList& variants=VariantList(), const CnvList& cnvs=CnvList(), const BedpeFile& svs=BedpeFile());
 
 	///Returns the varint evaluation sheet data for a given processed sample id
 	EvaluationSheetData evaluationSheetData(const QString& processed_sample_id, bool throw_if_fails = true);

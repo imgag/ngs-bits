@@ -2,9 +2,9 @@
 ### importing small variants for NA12878_38 ###
 Found 0 variants already imported into NGSD!
 DEBUG: Found 0 class 4/5 variants
-Imported variants (added:36 updated:0)
-Imported 36 detected variants
-DEBUG: Skipped 18 high-AF variants!
+Imported variants (added:37 updated:0)
+Imported 37 detected variants
+DEBUG: Skipped 17 high-AF variants!
 
 ### importing CNVs for NA12878_38 ###
 caller: ClinCNV

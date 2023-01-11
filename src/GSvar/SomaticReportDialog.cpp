@@ -337,10 +337,6 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 	ui_.fusions_detected->setChecked(settings_.report_config.fusionsDetected());
 	if(Settings::boolean("debug_mode_enabled")) ui_.no_ngsd->setChecked(true);
 
-	//index of hrd_score is equal to actual score value
-	ui_.hrd_score->setCurrentIndex(settings_.report_config.hrdScore());
-
-
 	//Load possible quality settings
 	QStringList quality_entries = db_.getEnum("somatic_report_configuration", "quality");
 	for(const auto& entry: quality_entries)
@@ -373,7 +369,6 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 			break;
 		}
 	}
-
 
 	updateIgvText();
 }
@@ -412,8 +407,6 @@ void SomaticReportDialog::writeBackSettings()
 	settings_.report_config.setFusionsDetected(ui_.fusions_detected->isChecked());
 
 	//current index of hrd_score is identical to value!
-	settings_.report_config.setHrdScore( ui_.hrd_score->currentIndex() );
-
 	settings_.report_config.setQuality( ui_.quality->currentText() );
 
 	settings_.report_config.setHrdStatement( ui_.hrd_statement->currentText() );
@@ -601,7 +594,7 @@ void SomaticReportDialog::createIgvScreenshot()
 			MainWindow* main_window = qobject_cast<MainWindow*>(widget);
 			if (main_window!=nullptr)
 			{
-				main_window->executeIGVCommands(commands, false);
+				main_window->executeIGVCommands(commands, false, 0);
 			}
 		}
 

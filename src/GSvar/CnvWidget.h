@@ -64,6 +64,9 @@ private slots:
 	///Flags all unfiltered (=currently visible) CNVs as artefacts in somatic report configuration
 	void flagVisibleSomaticCnvsAsArtefacts();
 
+	///Set custom column widths
+	void adaptColumnWidthsCustom();
+
 private:
 	void initGUI();
 	void updateGUI();
@@ -76,6 +79,8 @@ private:
 	void editCnvValidation(int row);
 	///Handles somatic report configuration if multiple rows are selected;
 	void editSomaticReportConfiguration(const QList<int>& rows);
+	///Upload CNV to ClinVar
+	void uploadToClinvar(int index1, int index2=-1);
 
 	Ui::CnvWidget* ui;
 	QString ps_id_; //processed sample database ID. '' if unknown of NGSD is disabled.

@@ -133,26 +133,7 @@ private slots:
 		add_headers.insert("Accept", "text/html");
 		add_headers.insert("Range", "bytes=0-5,5-8");
 		IS_THROWN(Exception, HttpRequestHandler(HttpRequestHandler::NONE).get(ServerHelper::getServerUrl(false) + "/v1/", add_headers));
-	}
-
-	void test_basic_http_authentication()
-	{
-		if (!ServerHelper::hasBasicSettings())
-		{
-			SKIP("Server has not been configured correctly");
-		}
-
-		QByteArray reply;
-		HttpHeaders add_headers;
-		add_headers.insert("Accept", "text/html");
-		int code = sendGetRequest(reply, "https://ahmustm1:123456@" + ServerHelper::getStringSettingsValue("server_host") +":" + ServerHelper::getStringSettingsValue("https_server_port") + "/v1/protected", add_headers);
-		if (code > 0)
-		{
-			SKIP("This test requieres a running server");
-		}
-
-		IS_TRUE(reply.contains("Folder content:"));
-	}
+	}	
 
 	void test_token_based_authentication()
 	{

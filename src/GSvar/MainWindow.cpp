@@ -137,6 +137,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "ExpressionExonWidget.h"
 #include "SplicingWidget.h"
 #include "VariantHgvsAnnotator.h"
+#include "VirusDetectionWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -145,7 +146,6 @@ MainWindow::MainWindow(QWidget *parent)
 	, busy_dialog_(nullptr)
 	, notification_label_(new QLabel())
 	, filename_()
-	, igv_initialized_(false)
 	, variants_changed_()
 	, last_report_path_(QDir::homePath())
 	, init_timer_(this, true)
@@ -253,7 +253,8 @@ MainWindow::MainWindow(QWidget *parent)
 	notification_label_->setScaledContents(true);
 	notification_label_->setMaximumSize(16,16);
 	notification_label_->setPixmap(QPixmap(":/Icons/email.png"));
-	ui_.statusBar->addPermanentWidget(notification_label_);
+	ui_.statusBar->addPermanentWidget(notification_label_);	
+	ui_.actionVirusDetection->setEnabled(false);
 
 	//init cache in background thread (it takes about 6 seconds)
 	CacheInitWorker* worker = new CacheInitWorker();
@@ -275,15 +276,30 @@ MainWindow::MainWindow(QWidget *parent)
 		// a new token will be requested slightly in advance
 		QTimer *login_timer = new QTimer(this);
 		connect(login_timer, &QTimer::timeout, this, &LoginManager::renewLogin);
-		login_timer->start(1200 * 1000); // every 20 minutes
+		login_timer->start(20 * 60 * 1000); // every 20 minutes
 
 		//check if the server is running
 		QTimer *server_ping_timer = new QTimer(this);
 		connect(server_ping_timer, SIGNAL(timeout()), this, SLOT(checkServerAvailability()));
-		server_ping_timer->start(600 * 1000); // every 10 minutes
+		server_ping_timer->start(10 * 60 * 1000); // every 10 minutes
 	}
 
-	connect(ui_.vars, SIGNAL(publishToClinvarTriggered(int)), this, SLOT(uploadToClinvar(int)));
+	QString virus_genome;
+	if (!NGSHelper::isClientServerMode())
+	{
+		virus_genome = Settings::string("igv_virus_genome", true);
+		if (virus_genome.isEmpty()) QMessageBox::information(this, "Virus genome not set", "Virus genome path is missing from the settings!");
+	}
+	else
+	{
+		virus_genome = NGSHelper::serverApiUrl() + "genome/somatic_viral.fa";
+	}
+	// Default IGV session (variants)
+	GlobalServiceProvider::createIGVSession(GlobalServiceProvider::findAvailablePortForIGV(), false, Settings::path("igv_genome"));
+	// IGV session for virus detection
+	GlobalServiceProvider::createIGVSession(GlobalServiceProvider::findAvailablePortForIGV(), false, virus_genome);
+
+	connect(ui_.vars, SIGNAL(publishToClinvarTriggered(int, int)), this, SLOT(uploadToClinvar(int, int)));
 	connect(ui_.vars, SIGNAL(alamutTriggered(QAction*)), this, SLOT(openAlamut(QAction*)));
 }
 
@@ -326,12 +342,28 @@ void MainWindow::checkServerAvailability()
 
 void MainWindow::on_actionDebug_triggered()
 {
-	qDebug() << "Debug";
 	QString user = Helper::userName();
 	if (user=="ahsturm1")
 	{
 		QTime timer;
 		timer.start();
+
+		//VariantHgvsAnnotator debugging
+		/*
+		QString genome_file = Settings::string("reference_genome", false);
+		FastaFileIndex genome_idx(genome_file);
+		VariantHgvsAnnotator hgvs_anno(genome_idx);
+
+		VcfLine variant = VcfLine("chr7", 157009948, "CA", QList<Sequence>() << "CCGCGGCGGCG");
+		qDebug() << variant.toString(true);
+		TranscriptList transcripts = NGSD().transcriptsOverlapping(variant.chr(), variant.start(), variant.end());
+		foreach(const Transcript& t, transcripts)
+		{
+			qDebug() << t.name();
+			VariantConsequence hgvs = hgvs_anno.annotate(t, variant, true);
+			qDebug() << hgvs.toString();
+		}
+		*/
 
 		//extract VCF with variants that have class 4/5
 		/*
@@ -351,7 +383,7 @@ void MainWindow::on_actionDebug_triggered()
 
 		//export a transcript definition from NGSD forVariantHgvsAnnotator test
 		/*
-		QByteArray trans = "ENST00000370360";
+		QByteArray trans = "ENST00000252971";
 		NGSD db;
 		int trans_id = db.transcriptId(trans);
 		Transcript t = db.transcript(trans_id);
@@ -720,27 +752,34 @@ void MainWindow::on_actionDebug_triggered()
 
 		//Delete variant that are not used
 		/*
-		QStringList ref_tables;
-		ref_tables << "detected_variant";
-		ref_tables << "report_configuration_variant";
-		ref_tables << "variant_classification";
-		ref_tables << "variant_publication";
-		ref_tables << "variant_validation";
-		ref_tables << "detected_somatic_variant";
-		ref_tables << "somatic_report_configuration_variant";
-		ref_tables << "somatic_variant_classification";
-		ref_tables << "somatic_vicc_interpretation";
-		ref_tables << "somatic_report_configuration_germl_var";
-
 		NGSD db;
+		QStringList ref_tables;
+		foreach(QString table, db.tables())
+		{
+			const TableInfo& table_info = db.tableInfo(table);
+			foreach(QString field, table_info.fieldNames())
+			{
+				const TableFieldInfo& field_info = table_info.fieldInfo(field);
+				if (field_info.type==TableFieldInfo::FK && field_info.fk_table=="variant" && field_info.fk_field=="id")
+				{
+					ref_tables << table;
+				}
+			}
+		}
+
+		QSet<int> var_ids_pub = db.getValuesInt("SELECT variant_id FROM variant_publication WHERE variant_table='variant'").toSet();
+
 		foreach (const QString& chr_name, db.getEnum("variant", "chr"))
 		{
 			QList<int> v_ids = db.getValuesInt("SELECT id FROM variant WHERE chr='" + chr_name + "'");
 			qDebug() << QDateTime::currentDateTime() << chr_name << "variants to process:" << v_ids.count();
 			int c_deleted = 0;
+			int c_processed = 0;
 			foreach(int v_id , v_ids)
 			{
 				QString var_id_str = QString::number(v_id);
+				++c_processed;
+
 				bool remove = true;
 				foreach (const QString& table, ref_tables)
 				{
@@ -751,13 +790,21 @@ void MainWindow::on_actionDebug_triggered()
 						break;
 					}
 				}
+
+				if (var_ids_pub.contains(v_id))
+				{
+					remove = false;
+				}
+
 				if (remove)
 				{
-					//QTime timer;
-					//timer.start();
 					db.getQuery().exec("DELETE FROM variant WHERE id="+var_id_str);
-					//qDebug() << QDateTime::currentDateTime() << "DELETE:" << var_id_str << " TIME:" << Helper::elapsedTime(timer);
 					++c_deleted;
+				}
+
+				if (c_processed%1000000==0)
+				{
+					qDebug() << QDateTime::currentDateTime() << chr_name << "deleted " << c_deleted << "of" << c_processed << "processed variants";
 				}
 			}
 			qDebug() << QDateTime::currentDateTime() << chr_name << "deleted:" << c_deleted;
@@ -1441,6 +1488,12 @@ void MainWindow::on_actionSearchSVs_triggered()
 	addModelessDialog(dlg);
 }
 
+void MainWindow::on_actionUploadVariantToClinVar_triggered()
+{
+	QSharedPointer<QDialog> dlg = QSharedPointer<QDialog>(new ClinvarUploadDialog(this));
+	addModelessDialog(dlg);
+}
+
 void MainWindow::on_actionShowPublishedVariants_triggered()
 {
 	PublishedVariantsWidget* widget = new PublishedVariantsWidget();
@@ -1526,18 +1579,18 @@ void MainWindow::on_actionIgvClear_triggered()
 	QStringList commands;
 	commands << ("genome " + Settings::path("igv_genome")); //genome command first, see https://github.com/igvteam/igv/issues/1094
 	commands << "new";
-	executeIGVCommands(commands);
+	executeIGVCommands(commands, false, 0);
 
-	igv_initialized_ = false;
+	GlobalServiceProvider::setIGVInitialized(false, 0);
 }
 
 void MainWindow::on_actionIgvPort_triggered()
 {
 	bool ok = false;
-	int igv_port_new = QInputDialog::getInt(this, "Change IGV port", "Set IGV port for this GSvar session:", igvPort(), 0, 900000, 1, &ok);
+	int igv_port_new = QInputDialog::getInt(this, "Change IGV port", "Set IGV port for this GSvar session:", GlobalServiceProvider::getIGVPort(0), 0, 900000, 1, &ok);
 	if (ok)
 	{
-		igv_port_manual = igv_port_new;
+		GlobalServiceProvider::setIGVPort(igv_port_new, 0);
 	}
 }
 
@@ -2465,7 +2518,55 @@ void MainWindow::variantHeaderDoubleClicked(int row)
 	editVariantReportConfiguration(var_index);
 }
 
-bool MainWindow::initializeIGV(QAbstractSocket& socket)
+void MainWindow::prepareAndRunIGVCommands(QAbstractSocket& socket, QStringList files_to_load, int session_index)
+{
+	QStringList init_commands;
+	//genome command first, see https://github.com/igvteam/igv/issues/1094
+	//choose the correct genome
+	init_commands.append("genome " + GlobalServiceProvider::getIGVGenome(session_index));
+	init_commands.append("setSleepInterval 1500");
+	init_commands.append("new");
+	if (NGSHelper::isClientServerMode()) init_commands.append("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*");
+
+	//load non-BAM files
+	foreach(QString file, files_to_load)
+	{
+		if (!NGSHelper::isBamFile(file)) init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
+	}
+
+	//collapse tracks
+	init_commands.append("setSleepInterval 0");
+	init_commands.append("collapse");
+
+	//load BAM files
+	foreach(QString file, files_to_load)
+	{
+		if (NGSHelper::isBamFile(file)) init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
+	}
+	init_commands.append("viewaspairs");
+	init_commands.append("colorBy UNEXPECTED_PAIR");
+
+	//execute commands
+	bool debug = false;
+	foreach(QString command, init_commands)
+	{
+		if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;
+		socket.write((command + "\n").toUtf8());
+		bool ok = socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)
+		QString answer = socket.readAll().trimmed();
+		if (!ok || answer!="OK")
+		{
+			if (debug) qDebug() << QDateTime::currentDateTime() << "FAILED: answer:" << answer << " socket error:" << socket.errorString();
+			THROW(Exception, "Could not execute IGV command '" + command + "'.\nAnswer: " + answer + "\nSocket error:" + socket.errorString());
+		}
+		else
+		{
+			if (debug) qDebug() << QDateTime::currentDateTime() << "DONE";
+		}
+	}
+}
+
+bool MainWindow::prepareNormalIGV(QAbstractSocket& socket)
 {
 	AnalysisType analysis_type = variants_.type();
 
@@ -2622,53 +2723,12 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 	{
 		if (dlg.initializationAction()==IgvDialog::INIT)
 		{
-			QStringList files_to_load = dlg.filesToLoad();
-			QStringList init_commands;
-			init_commands.append("genome " + Settings::path("igv_genome")); //genome command first, see https://github.com/igvteam/igv/issues/1094
-			init_commands.append("new");
-			if (NGSHelper::isClientServerMode()) init_commands.append("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*");
-
-			//load non-BAM files
-			foreach(QString file, files_to_load)
-			{
-				if (!NGSHelper::isBamFile(file)) init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
-			}
-
-			//collapse tracks
-			init_commands.append("collapse");
-
-			//load BAM files
-			foreach(QString file, files_to_load)
-			{
-				if (NGSHelper::isBamFile(file)) init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
-			}
-			init_commands.append("viewaspairs");
-			init_commands.append("colorBy UNEXPECTED_PAIR");
-
-			//execute commands
-			bool debug = false;
-			foreach(QString command, init_commands)
-			{
-				if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;
-				socket.write((command + "\n").toUtf8());
-				bool ok = socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)
-				QString answer = socket.readAll().trimmed();
-				if (!ok || answer!="OK")
-				{
-					if (debug) qDebug() << QDateTime::currentDateTime() << "FAILED: answer:" << answer << " socket error:" << socket.errorString();
-					THROW(Exception, "Could not execute IGV command '" + command + "'.\nAnswer: " + answer + "\nSocket error:" + socket.errorString());
-				}
-				else
-				{
-					if (debug) qDebug() << QDateTime::currentDateTime() << "DONE";
-				}
-			}
-
-			igv_initialized_ = true;
+			prepareAndRunIGVCommands(socket, dlg.filesToLoad(), 0);
+			GlobalServiceProvider::setIGVInitialized(true, 0);
 		}
 		else if (dlg.initializationAction()==IgvDialog::SKIP_SESSION)
 		{
-			igv_initialized_ = true;
+			GlobalServiceProvider::setIGVInitialized(true, 0);
 		}
 		else if (dlg.initializationAction()==IgvDialog::SKIP_ONCE)
 		{
@@ -2687,6 +2747,13 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 
 		return false;
 	}
+}
+
+bool MainWindow::prepareVirusIGV(QAbstractSocket& socket)
+{
+	prepareAndRunIGVCommands(socket, QStringList{}, 1);
+	GlobalServiceProvider::setIGVInitialized(true, 1);
+	return true;
 }
 
 void MainWindow::openCustomIgvTrack()
@@ -3461,7 +3528,8 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 	variants_changed_.clear();
 	cnvs_.clear();
 	svs_.clear();
-	igv_initialized_ = false;
+	GlobalServiceProvider::setIGVInitialized(false, true);
+	GlobalServiceProvider::setIGVInitialized(false, false);
 	ui_.vars->clearContents();
 	report_settings_ = ReportSettings();
 	connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
@@ -3665,6 +3733,19 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 	else
 	{
 		ui_.actionMosaic->setEnabled(false);
+	}
+
+	//activate virus table
+	ui_.actionVirusDetection->setEnabled(false);
+	if (type==SOMATIC_PAIR && NGSD::isAvailable())
+	{
+		QString ps_tumor = variants_.mainSampleName();
+		NGSD db;
+		QString ps_tumor_id = db.processedSampleId(ps_tumor, false);
+		if (GlobalServiceProvider::database().processedSamplePath(ps_tumor_id, PathType::VIRAL).exists)
+		{
+			ui_.actionVirusDetection->setEnabled(true);
+		}
 	}
 
 	//activate cfDNA menu entries and get all available cfDNA samples
@@ -3994,13 +4075,9 @@ void MainWindow::loadReportConfig()
 	if (rc_id==-1) return;
 
 	//load
-	QStringList messages;
-	report_settings_.report_config = db.reportConfig(rc_id, variants_, cnvs_, svs_, messages);
+	report_settings_.report_config = db.reportConfig(rc_id, variants_, cnvs_, svs_);
 	connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
-	if (!messages.isEmpty())
-	{
-		QMessageBox::warning(this, "Report configuration", "The following problems were encountered while loading the report configuration:\n" + messages.join("\n"));
-	}
+
 
 	//updateGUI
 	refreshVariantTable();
@@ -4124,8 +4201,7 @@ void MainWindow::storeReportConfig()
 	int conf_id = db.reportConfigId(processed_sample_id);
 	if (conf_id!=-1)
 	{
-		QStringList messages;
-		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, messages);
+		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_);
 		if (report_config->lastUpdatedBy()!="" && report_config->lastUpdatedBy()!=LoginManager::userName())
 		{
 			if (QMessageBox::question(this, "Storing report configuration", report_config->history() + "\n\nDo you want to override it?")==QMessageBox::No)
@@ -4138,7 +4214,9 @@ void MainWindow::storeReportConfig()
 	//store
 	try
 	{
+		report_settings_.report_config.data()->blockSignals(true); //block signals - otherwise the variantsChanged signal is emitted and storeReportConfig is called again, which leads to hanging of the application because of database locks
 		db.setReportConfig(processed_sample_id, report_settings_.report_config, variants_, cnvs_, svs_);
+		report_settings_.report_config.data()->blockSignals(false);
 	}
 	catch (Exception& e)
 	{
@@ -4253,8 +4331,7 @@ void MainWindow::showReportConfigInfo()
 		}
 
 
-		QStringList messages;
-		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, messages);
+		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_);
 
 		QMessageBox::information(this, title, report_config->history() + "\n\n" + report_config->variantSummary());
 	}
@@ -4367,8 +4444,7 @@ void MainWindow::finalizeReportConfig()
 		db.finalizeReportConfig(conf_id, LoginManager::userId());
 
 		//update report settings data structure
-		QStringList messages;
-		report_settings_.report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, messages);
+		report_settings_.report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_);
 		connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
 	}
 	catch(Exception e)
@@ -4532,6 +4608,7 @@ void MainWindow::generateReportSomaticRTF()
 	somatic_report_settings_.normal_ps = ps_normal;
 
 	somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
+	somatic_report_settings_.report_config.setEvaluationDate(QDate::currentDate());
 
 	//load obo terms for filtering coding/splicing variants
 	if (somatic_report_settings_.obo_terms_coding_splicing.size() == 0)
@@ -4556,10 +4633,20 @@ void MainWindow::generateReportSomaticRTF()
 		somatic_report_settings_.target_region_filter = generic_target;
 	}
 
-	QCCollection cnv_metrics = Statistics::hrdScore(SomaticReportSettings::filterCnvs(cnvs_, somatic_report_settings_), GSvarHelper::build());
-	somatic_report_settings_.report_config.setCnvLohCount( cnv_metrics.value("QC:2000062", true).asInt() );
-	somatic_report_settings_.report_config.setCnvTaiCount( cnv_metrics.value("QC:2000063", true).asInt() );
-	somatic_report_settings_.report_config.setCnvLstCount( cnv_metrics.value("QC:2000064", true).asInt() );
+	if (db.getValues("SELECT value FROM processed_sample_qc AS psqc LEFT JOIN qc_terms as qc ON psqc.qc_terms_id = qc.id WHERE psqc.processed_sample_id=" + ps_tumor_id + " AND (qc.qcml_id ='QC:2000062' OR qc.qcml_id ='QC:2000063' OR qc.qcml_id ='QC:2000064') ").size() < 3)
+	{
+		QMessageBox::warning(this, "No HRD score found", "Warning:\nNo hrd score values found in the imported QC of tumor sample. HRD score set to 0.");
+		somatic_report_settings_.report_config.setCnvLohCount(0);
+		somatic_report_settings_.report_config.setCnvTaiCount(0);
+		somatic_report_settings_.report_config.setCnvLstCount(0);
+	}
+	else
+	{
+		QString query = "SELECT value FROM processed_sample_qc AS psqc LEFT JOIN qc_terms as qc ON psqc.qc_terms_id = qc.id WHERE psqc.processed_sample_id=" + ps_tumor_id + " AND qc.qcml_id = :1";
+		somatic_report_settings_.report_config.setCnvLohCount( db.getValue(query, false, "QC:2000062").toInt() );
+		somatic_report_settings_.report_config.setCnvTaiCount( db.getValue(query, false, "QC:2000063").toInt() );
+		somatic_report_settings_.report_config.setCnvLstCount( db.getValue(query, false, "QC:2000064").toInt() );
+	}
 
 
 	//Preselect report settings if not already exists to most common values
@@ -4570,7 +4657,6 @@ void MainWindow::generateReportSomaticRTF()
 		somatic_report_settings_.report_config.setTumContentByHistological(true);
 		somatic_report_settings_.report_config.setMsiStatus(true);
 		somatic_report_settings_.report_config.setCnvBurden(true);
-		somatic_report_settings_.report_config.setHrdScore(0);
 	}
 
 	//Parse genome ploidy from ClinCNV file
@@ -4699,8 +4785,8 @@ void MainWindow::generateReportSomaticRTF()
 
 			//Generate files for QBIC upload
 			timer.start();
-			QString path = Settings::string("qbic_data_path") + "/" + ps_tumor + "-" + ps_normal;
-			if (!GlobalServiceProvider::fileLocationProvider().isLocal()) path = ps_tumor + "-" + ps_normal;
+			QString path = ps_tumor + "-" + ps_normal;
+			if (GlobalServiceProvider::fileLocationProvider().isLocal()) path = Settings::string("qbic_data_path") + "/" + path;
 			report.storeQbicData(path);
 			Log::perf("Generating somatic report QBIC data took ", timer);
 
@@ -5273,26 +5359,19 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 	}
 }
 
-int MainWindow::igvPort() const
+const VariantList&MainWindow::getSmallVariantList()
 {
-	int port = Settings::integer("igv_port");
+	return variants_;
+}
 
-	//if NGSD is enabled, add the user ID (like that, several users can work on one server)
-	if (LoginManager::active())
-	{
-		port += LoginManager::userId();
-	}
+const CnvList&MainWindow::getCnvList()
+{
+	return cnvs_;
+}
 
-		//use different ranges for different genome build, so that they can be used in parallel
-		if (GSvarHelper::build()!=GenomeBuild::HG19)
-		{
-			port += 1000;
-		}
-
-	//if manual override is set, use it
-	if (igv_port_manual>0) port = igv_port_manual;
-
-	return port;
+const BedpeFile&MainWindow::getSvList()
+{
+	return svs_;
 }
 
 void MainWindow::on_actionOpenGeneTabByName_triggered()
@@ -6213,12 +6292,16 @@ QString MainWindow::nobr()
 	return "<p style='white-space:pre; margin:0; padding:0;'>";
 }
 
-void MainWindow::uploadToClinvar(int variant_index)
+void MainWindow::uploadToClinvar(int variant_index1, int variant_index2)
 {
 	if (!LoginManager::active()) return;
 
 	try
 	{
+		if(variant_index1 < 0)
+		{
+			THROW(ArgumentException, "A valid variant index for the first variant has to be provided!");
+		}
 		//abort if API key is missing
 		if(Settings::string("clinvar_api_key", true).trimmed().isEmpty())
 		{
@@ -6230,6 +6313,20 @@ void MainWindow::uploadToClinvar(int variant_index)
 		//(1) prepare data as far as we can
 		ClinvarUploadData data;
 		data.processed_sample = germlineReportSample();
+		data.variant_type1 = VariantType::SNVS_INDELS;
+		if(variant_index2 < 0)
+		{
+			//Single variant submission
+			data.submission_type = ClinvarSubmissionType::SingleVariant;
+			data.variant_type2 = VariantType::INVALID;
+		}
+		else
+		{
+			//CompHet variant submission
+			data.submission_type = ClinvarSubmissionType::CompoundHeterozygous;
+			data.variant_type2 = VariantType::SNVS_INDELS;
+		}
+
 		QString sample_id = db.sampleId(data.processed_sample);
 		SampleData sample_data = db.getSampleData(sample_id);
 
@@ -6249,33 +6346,53 @@ void MainWindow::uploadToClinvar(int variant_index)
 		data.phenos = sample_data.phenotypes;
 
 		//get variant info
-		data.variant = variants_[variant_index];
+		data.snv1 = variants_[variant_index1];
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous) data.snv2 = variants_[variant_index2];
 
 		// get report info
-		if (!report_settings_.report_config.data()->exists(VariantType::SNVS_INDELS, variant_index))
+		if (!report_settings_.report_config.data()->exists(VariantType::SNVS_INDELS, variant_index1))
 		{
-			INFO(InformationMissingException, "The variant has to be in the report configuration to be published!");
+			INFO(InformationMissingException, "The variant 1 has to be in the report configuration to be published!");
 		}
-		data.report_variant_config = report_settings_.report_config.data()->get(VariantType::SNVS_INDELS, variant_index);
+		data.report_variant_config1 = report_settings_.report_config.data()->get(VariantType::SNVS_INDELS, variant_index1);
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+		{
+			if (!report_settings_.report_config.data()->exists(VariantType::SNVS_INDELS, variant_index2))
+			{
+				INFO(InformationMissingException, "The variant 2 has to be in the report configuration to be published!");
+			}
+			data.report_variant_config2 = report_settings_.report_config.data()->get(VariantType::SNVS_INDELS, variant_index2);
+		}
+
+
 
 		//update classification
-		data.report_variant_config.classification = db.getClassification(data.variant).classification;
-		if (data.report_variant_config.classification.trimmed().isEmpty() || (data.report_variant_config.classification.trimmed() == "n/a"))
+		data.report_variant_config1.classification = db.getClassification(data.snv1).classification;
+		if (data.report_variant_config1.classification.trimmed().isEmpty() || (data.report_variant_config1.classification.trimmed() == "n/a"))
 		{
-			INFO(InformationMissingException, "The variant has to be classified to be published!");
+			INFO(InformationMissingException, "The variant 1 has to be classified to be published!");
+		}
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+		{
+			data.report_variant_config2.classification = db.getClassification(data.snv2).classification;
+			if (data.report_variant_config2.classification.trimmed().isEmpty() || (data.report_variant_config2.classification.trimmed() == "n/a"))
+			{
+				INFO(InformationMissingException, "The variant 2 has to be classified to be published!");
+			}
 		}
 
 		//genes
 		int gene_idx = variants_.annotationIndexByName("gene");
-		data.genes = GeneSet::createFromText(data.variant.annotations()[gene_idx], ',');
+		data.genes = GeneSet::createFromText(data.snv1.annotations()[gene_idx], ',');
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous) data.genes <<  GeneSet::createFromText(data.snv2.annotations()[gene_idx], ',');
 
-		//determine NGSD ids of variant and report variant
-		QString var_id = db.variantId(data.variant, false);
+		//determine NGSD ids of variant and report variant for variant 1
+		QString var_id = db.variantId(data.snv1, false);
 		if (var_id == "")
 		{
-			INFO(InformationMissingException, "The variant has to be in NGSD and part of a report config to be published!");
+			INFO(InformationMissingException, "The variant 1 has to be in NGSD and part of a report config to be published!");
 		}
-		data.variant_id = Helper::toInt(var_id);
+		data.variant_id1 = Helper::toInt(var_id);
 		//extract report variant id
 		int rc_id = db.reportConfigId(db.processedSampleId(data.processed_sample));
 		if (rc_id == -1 )
@@ -6283,7 +6400,23 @@ void MainWindow::uploadToClinvar(int variant_index)
 			THROW(DatabaseException, "Could not determine report config id for sample " + data.processed_sample + "!");
 		}
 
-		data.report_config_variant_id = db.getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id=" + QString::number(rc_id) + " AND variant_id=" + QString::number(data.variant_id), false).toInt();
+		data.report_variant_config_id1 = db.getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id=" + QString::number(rc_id) + " AND variant_id="
+													 + QString::number(data.variant_id1), false).toInt();
+
+		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
+		{
+			//determine NGSD ids of variant and report variant for variant 2
+			var_id = db.variantId(data.snv2, false);
+			if (var_id == "")
+			{
+				INFO(InformationMissingException, "The variant 2 has to be in NGSD and part of a report config to be published!");
+			}
+			data.variant_id2 = Helper::toInt(var_id);
+
+			//extract report variant id
+			data.report_variant_config_id2 = db.getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id=" + QString::number(rc_id) + " AND variant_id="
+														 + QString::number(data.variant_id2), false).toInt();
+		}
 
 
 		// (2) show dialog
@@ -6555,6 +6688,20 @@ void MainWindow::openAlamut(QAction* action)
 	}
 }
 
+void MainWindow::on_actionVirusDetection_triggered()
+{
+	//get virus file
+	QString ps_tumor = variants_.mainSampleName();
+	NGSD db;
+	QString ps_tumor_id = db.processedSampleId(ps_tumor, false);
+	FileLocation virus_file = GlobalServiceProvider::database().processedSamplePath(ps_tumor_id, PathType::VIRAL);
+
+	//show widget
+	VirusDetectionWidget* widget = new VirusDetectionWidget(virus_file.filename);
+	auto dlg = GUIHelper::createDialog(widget, "Virus detection");
+	addModelessDialog(dlg);
+}
+
 
 void MainWindow::editVariantClassification(VariantList& variants, int index, bool is_somatic)
 {
@@ -6604,6 +6751,21 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 			variant.annotations()[i_class_comment] = class_info.comments.toUtf8();
 
 			markVariantListChanged(variant, "classification_comment", class_info.comments);
+
+			//check if already uploaded to ClinVar
+			QString var_id = db.variantId(variant);
+			QString sample_id = db.sampleId(filename_);
+			QString clinvar_class = db.getValue("SELECT `class`FROM `variant_publication` WHERE `variant_table`='variant' AND `db`='ClinVar' AND `sample_id`=" + sample_id
+												+ " AND `variant_id`=" + var_id).toString();
+			if(!clinvar_class.isEmpty())
+			{
+				if(clinvar_class != new_class)
+				{
+					//update on ClinVar
+					int return_value = QMessageBox::information(this, "Clinvar upload required!", "Variant already uploaded to ClinVar. You should also update the classification there!", QMessageBox::Ok, QMessageBox::NoButton);
+					if(return_value == QMessageBox::Ok)	uploadToClinvar(index);
+				}
+			}
 		}
 
 		//update details widget and filtering
@@ -6780,7 +6942,7 @@ void MainWindow::updateVariantDetails()
 	var_last_ = var_current;
 }
 
-void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done)
+void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done, int session_index)
 {
 	bool debug = false;
 
@@ -6791,7 +6953,7 @@ void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done)
 		//connect
 		QAbstractSocket socket(QAbstractSocket::UnknownSocketType, this);
 		QString igv_host = Settings::string("igv_host");
-		int igv_port = igvPort();
+		int igv_port = GlobalServiceProvider::getIGVPort(session_index);
 		if (debug) qDebug() << QDateTime::currentDateTime() << "CONNECTING:" << igv_host << igv_port;
 		socket.connectToHost(igv_host, igv_port);
 		if (!socket.waitForConnected(1000))
@@ -6801,8 +6963,8 @@ void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done)
 			if (QMessageBox::information(this, "IGV not running", "IGV is not running on port " + QString::number(igv_port) + ".\nIt will be started now!", QMessageBox::Ok|QMessageBox::Default, QMessageBox::Cancel|QMessageBox::Escape)!=QMessageBox::Ok) return;
 			QApplication::setOverrideCursor(Qt::BusyCursor);
 
-			if (debug) qDebug() << QDateTime::currentDateTime() << "FAILED - TRYING TO START IGV";
-			igv_initialized_ = false;
+			if (debug) qDebug() << QDateTime::currentDateTime() << "FAILED - TRYING TO START IGV";			
+			GlobalServiceProvider::setIGVInitialized(false, session_index);
 
 			//try to start IGV
 			QString igv_app = Settings::path("igv_app").trimmed();
@@ -6842,10 +7004,14 @@ void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done)
 		QApplication::restoreOverrideCursor();
 
 		//init if necessary
-		if (!igv_initialized_ && init_if_not_done)
+		if (!GlobalServiceProvider::isIGVInitialized(session_index) && init_if_not_done)
 		{
 			if (debug) qDebug() << QDateTime::currentDateTime() << "INITIALIZING IGV FOR CURRENT SAMPLE!";
-			if (!initializeIGV(socket)) return;
+
+			bool is_igv_ready = false;
+			if (session_index == 0) is_igv_ready = prepareNormalIGV(socket);
+			if (session_index == 1) is_igv_ready = prepareVirusIGV(socket);
+			if (!is_igv_ready) return;
 		}
 
 		//execute commands

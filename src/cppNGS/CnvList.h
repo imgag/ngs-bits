@@ -6,6 +6,7 @@
 #include "GeneSet.h"
 #include "BasicStatistics.h"
 #include "KeyValuePair.h"
+#include "GenomeBuild.h"
 #include <QList>
 #include <QByteArrayList>
 #include <QMap>
@@ -240,6 +241,10 @@ class CPPNGSSHARED_EXPORT CnvList
 
 		///Returns call data from original file (e.g. version, caller...), specify ps_name in case of CNVHunter samples
 		static CnvListCallData getCallData(const CnvList& cnvs, QString filename, QString ps_name = "", bool ignore_inval_header_lines = false);
+
+
+		///Returns the reference copy number for a given CNV
+		static int determineReferenceCopyNumber(const CopyNumberVariant& cnv, const QString& gender, GenomeBuild build);
 
 	protected:
 		CnvListType type_;

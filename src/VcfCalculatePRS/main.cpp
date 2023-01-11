@@ -3,10 +3,9 @@
 #include "Helper.h"
 #include "VcfFile.h"
 
+#include <BamReader.h>
 #include <QFile>
 #include <QTextStream>
-
-//TODO: Handle missing variants (check in BAM for depth, check target region if region is contained > use AF if missing?)
 
 class ConcreteTool
 		: public ToolBase
@@ -23,12 +22,16 @@ public:
 	{
 		setDescription("Calculates the Polgenic Risk Score(s) for a sample.");
 		setExtendedDescription(QStringList() << "The PRS VCF files have to contain a WEIGHT entry in the INFO column." << "Additionally some information about the PRS score is required in the VCF header." << "An example VCF file can be found at https://github.com/imgag/ngs-bits/blob/master/src/tools-TEST/data_in/VcfCalculatePRS_prs2.vcf");
-
 		addInfile("in", "Tabix indexed VCF.GZ file of a sample.", false);
 		addInfileList("prs", "List of PRS VCFs.", false);
+		addInfile("bam", "BAM file corresponding to the VCF.", false);
 		addOutfile("out", "Output TSV file containing Scores and PRS details", false);
 
+		//optional
+		addInfile("ref", "Reference genome FASTA file. If unset, 'reference_genome' from the 'settings.ini' file is used.", true, false);
+
 		changeLog(2020,  7, 22, "Initial version of this tool.");
+		changeLog(2022,  12, 15, "Added BAM depth check and population AF.");
 	}
 
 	virtual void main()
@@ -39,6 +42,15 @@ public:
 		//load sample VCF
 		TabixIndexedFile sample_vcf;
 		sample_vcf.load(getInfile("in").toUtf8());
+
+		//open BAM file
+		BamReader bam_file(getInfile("bam"));
+
+		//open refererence genome file
+		QString ref_file = getInfile("ref");
+		if (ref_file=="") ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
+		FastaFileIndex reference(ref_file);
 
 		//open output file and write header
 		QSharedPointer<QFile> output_tsv = Helper::openFileForWriting(getOutfile("out"), true);
@@ -152,6 +164,22 @@ public:
 
 					++c_found;
 				}
+				else //0 matching variants
+				{
+					//no variant called: check bam file
+
+					VariantDetails var_details = bam_file.getVariantDetails(reference, prs_variant);
+					if (var_details.depth < 6)
+					{
+						// No call possible -> use population AF
+						double weight = Helper::toDouble(prs_variant.info("WEIGHT"), "PRS weight");
+						double pop_af = Helper::toDouble(prs_variant.info("POP_AF"), "PRS population allele frequence");
+						prs += weight * pop_af;
+
+					}
+					// else: sufficient depth & no call => wildtype
+				}
+
 			}
 
 			// compute percentile

@@ -1,0 +1,152 @@
+##fileformat=VCFv4.1
+##fileDate=20160408
+##cmdline=/mnt/SRV017/share/opt/strelka_workflow-1.0.14/libexec/consolidateResults.pl --config=/tmp/vc_strelka_341807/strelkaAnalysis/config/run.config.ini
+##content=strelka somatic indel calls
+##content=strelka somatic snv calls
+##filter="Repeat & iHpol & BCNoise & QSI_ref & SpanDel & QSS_ref"
+##germlineIndelTheta=0.0001
+##germlineSnvTheta=0.001
+##priorSomaticIndelRate=1e-06
+##priorSomaticSnvRate=1e-06
+##reference=file:///tmp/local_ngs_data/hg19.fa
+##SnpEffCmd="SnpEff  -noStats hg19 "
+##SnpEffVersion="4.2 (build 2015-12-05), by Pablo Cingolani"
+##SnpSiftCmd="SnpSift annotate -mem -sorted -noId -name CLINVAR_ -info SIG,ACC /mnt/share/data//dbs/ClinVar/clinvar_converted.vcf"
+##SnpSiftCmd="SnpSift annotate -mem -sorted -noId -name ESP6500AA_ -info AF /mnt/share/data//dbs/ESP6500/ESP6500SI_AA.vcf"
+##SnpSiftCmd="SnpSift annotate -mem -sorted -noId -name ESP6500EA_ -info AF /mnt/share/data//dbs/ESP6500/ESP6500SI_EA.vcf"
+##SnpSiftCmd="SnpSift annotate -mem -sorted -noId -name HGMD_ -info ID,CLASS,MUT,GENE,PHEN /mnt/share/data//dbs/HGMD/HGMD_PRO_2015_3_fixed.vcf"
+##SnpSiftCmd="SnpSift annotate -tabix -id /mnt/share/data//dbs/dbSNP/dbsnp_latest.vcf.gz /tmp/annotate_mHQqUY_unzipped.vcf"
+##SnpSiftCmd="SnpSift annotate -tabix -noId -name COSMIC_ -info ID /mnt/share/data//dbs/COSMIC/cosmic.vcf.gz"
+##SnpSiftCmd="SnpSift annotate -tabix -noId -name EXAC_ -info AF /mnt/share/data//dbs/ExAC/ExAC.r0.3.sites.vep.vcf.gz"
+##SnpSiftCmd="SnpSift annotate -tabix -noId -name T1000GP_ -info AF /mnt/share/data//dbs/1000G/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz"
+##SnpSiftCmd="SnpSift dbnsfp -f Interpro_domain /tmp/annotate_z9Bo3Y_somatic.vcf"
+##SnpSiftCmd="SnpSift dbnsfp -f phyloP100way_vertebrate,MetaLR_pred,SIFT_pred,Polyphen2_HDIV_pred,Polyphen2_HVAR_pred -"
+##SnpSiftVersion="SnpSift 4.2 (build 2015-12-05), by Pablo Cingolani"
+##source=strelka
+##source_version=2.0.17.strelka1
+##startTime=Fri Apr  8 00:55:03 2016
+##contig=<ID=chr1,length=249250621>
+##contig=<ID=chr3,length=198022430>
+##contig=<ID=chr6,length=171115067>
+##contig=<ID=chr7,length=159138663>
+##contig=<ID=chrX,length=155270560>
+##PEDIGREE=<Tumor=sample2,Normal=sample1>
+##INFO=<ID=NT,Number=1,Type=String,Description="Genotype of the normal in all data tiers, as used to classify somatic variants. One of {ref,het,hom,conflict}.">
+##INFO=<ID=OMIM,Number=.,Type=String,Description="Annotation from /mnt/share/data//dbs/OMIM/omim.bed delimited by ':'">
+##INFO=<ID=QSS,Number=1,Type=Integer,Description="Quality score for any somatic snv, ie. for the ALT allele to be present at a significantly different frequency in the tumor and normal">
+##INFO=<ID=QSS_NT,Number=1,Type=Integer,Description="Quality score reflecting the joint probability of a somatic variant and NT">
+##INFO=<ID=REPEATMASKER,Number=1,Type=String,Description="Annotation from /mnt/share/data//dbs/RepeatMasker/RepeatMasker.bed delimited by ':'">
+##INFO=<ID=RS,Number=.,Type=Integer,Description="dbSNP ID (i.e. rs number)">
+##INFO=<ID=RSPOS,Number=.,Type=Integer,Description="Chr position reported in dbSNP">
+##INFO=<ID=SAO,Number=.,Type=Integer,Description="Variant Allele Origin: 0 - unspecified, 1 - Germline, 2 - Somatic, 3 - Both">
+##INFO=<ID=SGT,Number=1,Type=String,Description="Most likely somatic genotype excluding normal noise states">
+##INFO=<ID=SSR,Number=.,Type=Integer,Description="Variant Suspect Reason Codes (may be more than one value added together) 0 - unspecified, 1 - Paralog, 2 - byEST, 4 - oldAlign, 8 - Para_EST, 16 - 1kg_failed, 1024 - other">
+##INFO=<ID=TQSS,Number=1,Type=Integer,Description="Data tier used to compute QSS">
+##INFO=<ID=TQSS_NT,Number=1,Type=Integer,Description="Data tier used to compute QSS_NT">
+##INFO=<ID=VC,Number=.,Type=String,Description="Variation Class">
+##INFO=<ID=VP,Number=.,Type=String,Description="Variation Property.  Documentation is at ftp://ftp.ncbi.nlm.nih.gov/snp/specs/dbSNP_BitField_latest.pdf">
+##INFO=<ID=WGT,Number=.,Type=Integer,Description="Weight, 00 - unmapped, 1 - weight 1, 2 - weight 2, 3 - weight 3 or more">
+##INFO=<ID=dbSNPBuildID,Number=.,Type=Integer,Description="First dbSNP Build for RS">
+##INFO=<ID=ASP,Number=0,Type=Flag,Description="Is Assembly specific. This is set if the variant only maps to one assembly">
+##INFO=<ID=NOV,Number=0,Type=Flag,Description="Rs cluster has non-overlapping allele sets. True when rs set has more than 2 alleles from different submissions and these sets share no alleles in common.">
+##INFO=<ID=OTHERKG,Number=0,Type=Flag,Description="non-1000 Genome submission">
+##INFO=<ID=RV,Number=0,Type=Flag,Description="RS orientation is reversed">
+##INFO=<ID=SLO,Number=0,Type=Flag,Description="Has SubmitterLinkOut - From SNP->SubSNP->Batch.link_out">
+##INFO=<ID=SOMATIC,Number=0,Type=Flag,Description="Somatic mutation">
+##INFO=<ID=ANN,Number=.,Type=String,Description="Functional annotations: 'Allele | Annotation | Annotation_Impact | Gene_Name | Gene_ID | Feature_Type | Feature_ID | Transcript_BioType | Rank | HGVS.c | HGVS.p | cDNA.pos / cDNA.length | CDS.pos / CDS.length | AA.pos / AA.length | Distance | ERRORS / WARNINGS / INFO' ">
+##INFO=<ID=LOF,Number=.,Type=String,Description="Predicted loss of function effects for this variant. Format: 'Gene_Name | Gene_ID | Number_of_transcripts_in_gene | Percent_of_transcripts_affected' ">
+##INFO=<ID=NMD,Number=.,Type=String,Description="Predicted nonsense mediated decay effects for this variant. Format: 'Gene_Name | Gene_ID | Number_of_transcripts_in_gene | Percent_of_transcripts_affected' ">
+##INFO=<ID=ASS,Number=0,Type=Flag,Description="In acceptor splice site FxnCod">
+##INFO=<ID=CAF,Number=.,Type=String,Description="An ordered, comma delimited list of allele frequencies based on 1000Genomes, starting with the reference allele followed by alternate alleles as ordered in the ALT column. Where a 1000Genomes alternate allele is not in the dbSNPs alternate allele set, the allele is added to the ALT column.  The minor allele is the second largest value in the list, and was previuosly reported in VCF as the GMAF.  This is the GMAF reported on the RefSNP and EntrezSNP pages and VariationReporter">
+##INFO=<ID=CDA,Number=0,Type=Flag,Description="Variation is interrogated in a clinical diagnostic assay">
+##INFO=<ID=CFL,Number=0,Type=Flag,Description="Has Assembly conflict. This is for weight 1 and 2 variant that maps to different chromosomes on different assemblies.">
+##INFO=<ID=CLINVAR_ACC,Number=.,Type=String,Description="ClinVar accession">
+##INFO=<ID=CLINVAR_SIG,Number=.,Type=String,Description="ClinVar clinical significance">
+##INFO=<ID=COMMON,Number=1,Type=Integer,Description="RS is a common SNP.  A common SNP is one that has at least one 1000Genomes population with a minor allele of frequency">
+##INFO=<ID=COSMIC_ID,Number=.,Type=String,Description="COSMIC accession(s)">
+##INFO=<ID=dbNSFP_Interpro_domain,Number=A,Type=String,Description="Field 'Interpro_domain' from dbNSFP">
+##INFO=<ID=dbNSFP_MetaLR_pred,Number=A,Type=Character,Description="Field 'MetaLR_pred' from dbNSFP">
+##INFO=<ID=dbNSFP_Polyphen2_HDIV_pred,Number=A,Type=Character,Description="Field 'Polyphen2_HDIV_pred' from dbNSFP">
+##INFO=<ID=dbNSFP_Polyphen2_HVAR_pred,Number=A,Type=Character,Description="Field 'Polyphen2_HVAR_pred' from dbNSFP">
+##INFO=<ID=dbNSFP_SIFT_pred,Number=A,Type=Character,Description="Field 'SIFT_pred' from dbNSFP">
+##INFO=<ID=dbNSFP_phyloP100way_vertebrate,Number=A,Type=Float,Description="Field 'phyloP100way_vertebrate' from dbNSFP">
+##INFO=<ID=DSS,Number=0,Type=Flag,Description="In donor splice-site FxnCod">
+##INFO=<ID=ESP6500AA_AF,Number=1,Type=String,Description="ESP6500 allele frequency (African American population).">
+##INFO=<ID=ESP6500EA_AF,Number=1,Type=String,Description="ESP6500 allele frequency (European American population).">
+##INFO=<ID=EXAC_AF,Number=1,Type=String,Description="ExAC global allele frequency (All populations).">
+##INFO=<ID=G5,Number=0,Type=Flag,Description=">5% minor allele frequency in 1+ populations">
+##INFO=<ID=G5A,Number=0,Type=Flag,Description=">5% minor allele frequency in each and all populations">
+##INFO=<ID=GENEINFO,Number=1,Type=String,Description="Pairs each of gene symbol:gene id.  The gene symbol and id are delimited by a colon (:) and each pair is delimited by a vertical bar (|)">
+##INFO=<ID=GNO,Number=0,Type=Flag,Description="Genotypes available. The variant has individual genotype (in SubInd table).">
+##INFO=<ID=HD,Number=0,Type=Flag,Description="Marker is on high density genotyping kit (50K density or greater).  The variant may have phenotype associations present in dbGaP.">
+##INFO=<ID=HGMD_CLASS,Number=.,Type=String,Description="Mutation Category, https://portal.biobase-international.com/hgmd/pro/global.php#cats">
+##INFO=<ID=HGMD_GENE,Number=.,Type=String,Description="Gene symbol">
+##INFO=<ID=HGMD_ID,Number=.,Type=String,Description="HGMD identifier(s)">
+##INFO=<ID=HGMD_MUT,Number=.,Type=String,Description="HGMD mutant allele">
+##INFO=<ID=HGMD_PHEN,Number=.,Type=String,Description="HGMD primary phenotype">
+##INFO=<ID=IC,Number=1,Type=Integer,Description="Number of times RU repeats in the indel allele">
+##INFO=<ID=IHP,Number=1,Type=Integer,Description="Largest reference interrupted homopolymer length intersecting with the indel">
+##INFO=<ID=INT,Number=0,Type=Flag,Description="In Intron FxnCod">
+##INFO=<ID=KGPhase1,Number=0,Type=Flag,Description="1000 Genome phase 1 (incl. June Interim phase 1)">
+##INFO=<ID=KGPilot123,Number=0,Type=Flag,Description="1000 Genome discovery all pilots 2010(1,2,3)">
+##INFO=<ID=KGPROD,Number=0,Type=Flag,Description="Has 1000 Genome submission">
+##INFO=<ID=KGValidated,Number=0,Type=Flag,Description="1000 Genome validated">
+##INFO=<ID=LSD,Number=0,Type=Flag,Description="Submitted from a locus-specific database">
+##INFO=<ID=MTP,Number=0,Type=Flag,Description="Microattribution/third-party annotation(TPA:GWAS,PAGE)">
+##INFO=<ID=MUT,Number=0,Type=Flag,Description="Is mutation (journal citation, explicit fact): a low frequency variation that is cited in journal and other reputable sources">
+##INFO=<ID=NOC,Number=0,Type=Flag,Description="Contig allele not present in variant allele list. The reference sequence allele at the mapped position is not present in the variant allele list, adjusted for orientation.">
+##INFO=<ID=NSF,Number=0,Type=Flag,Description="Has non-synonymous frameshift A coding region variation where one allele in the set changes all downstream amino acids. FxnClas">
+##INFO=<ID=NSM,Number=0,Type=Flag,Description="Has non-synonymous missense A coding region variation where one allele in the set changes protein peptide. FxnClas">
+##INFO=<ID=NSN,Number=0,Type=Flag,Description="Has non-synonymous nonsense A coding region variation where one allele in the set changes to STOP codon (TER). FxnClas">
+##INFO=<ID=OM,Number=0,Type=Flag,Description="Has OMIM/OMIA">
+##INFO=<ID=OTH,Number=0,Type=Flag,Description="Has other variant with exactly the same set of mapped positions on NCBI refernce assembly.">
+##INFO=<ID=OVERLAP,Number=0,Type=Flag,Description="Somatic indel possibly overlaps a second indel.">
+##INFO=<ID=PH3,Number=0,Type=Flag,Description="HAP_MAP Phase 3 genotyped: filtered, non-redundant">
+##INFO=<ID=PM,Number=0,Type=Flag,Description="Variant is Precious(Clinical,Pubmed Cited)">
+##INFO=<ID=PMC,Number=0,Type=Flag,Description="Links exist to PubMed Central article">
+##INFO=<ID=QSI,Number=1,Type=Integer,Description="Quality score for any somatic variant, ie. for the ALT haplotype to be present at a significantly different frequency in the tumor and normal">
+##INFO=<ID=QSI_NT,Number=1,Type=Integer,Description="Quality score reflecting the joint probability of a somatic variant and NT">
+##INFO=<ID=R3,Number=0,Type=Flag,Description="In 3' gene region FxnCod">
+##INFO=<ID=R5,Number=0,Type=Flag,Description="In 5' gene region FxnCod">
+##INFO=<ID=RC,Number=1,Type=Integer,Description="Number of times RU repeats in the reference allele">
+##INFO=<ID=REF,Number=0,Type=Flag,Description="Has reference A coding region variation where one allele in the set is identical to the reference sequence. FxnCod">
+##INFO=<ID=RU,Number=1,Type=String,Description="Smallest repeating sequence unit in inserted or deleted sequence">
+##INFO=<ID=S3D,Number=0,Type=Flag,Description="Has 3D structure - SNP3D table">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+##INFO=<ID=SYN,Number=0,Type=Flag,Description="Has synonymous A coding region variation where one allele in the set does not change the encoded amino acid. FxnCod">
+##INFO=<ID=T1000GP_AF,Number=.,Type=String,Description="1000G global allele frequency (All populations).">
+##INFO=<ID=TPA,Number=0,Type=Flag,Description="Provisional Third Party Annotation(TPA) (currently rs from PHARMGKB who will give phenotype data)">
+##INFO=<ID=TQSI,Number=1,Type=Integer,Description="Data tier used to compute QSI">
+##INFO=<ID=TQSI_NT,Number=1,Type=Integer,Description="Data tier used to compute QSI_NT">
+##INFO=<ID=U3,Number=0,Type=Flag,Description="In 3' UTR Location is in an untranslated region (UTR). FxnCod">
+##INFO=<ID=U5,Number=0,Type=Flag,Description="In 5' UTR Location is in an untranslated region (UTR). FxnCod">
+##INFO=<ID=VLD,Number=0,Type=Flag,Description="Is Validated.  This bit is set if the variant has 2+ minor allele count based on frequency or genotype data.">
+##INFO=<ID=WTD,Number=0,Type=Flag,Description="Is Withdrawn by submitter If one member ss is withdrawn by submitter, then this bit is set.  If all member ss' are withdrawn, then the rs is deleted to SNPHistory">
+##FILTER=<ID=fv.not_cod_spli,Description="Not a coding or splicing variant (filter_vcf).">
+##FILTER=<ID=fv.off_target,Description="Variant is off target (filter_vcf).">
+##FILTER=<ID=fv.som_all_freq,Description="Difference in allele frequencies too low (filter_vcf).">
+##FILTER=<ID=fv.som_all_freq_nor,Description="Allele frequency normal too high (filter_vcf).">
+##FILTER=<ID=fv.som_all_freq_tum,Description="Allele frequency tumor is 0.05 (filter_vcf).">
+##FILTER=<ID=fv.som_depth_nor,Description="Sequencing depth normal is < 8 (filter_vcf).">
+##FILTER=<ID=fv.som_depth_tum,Description="Sequencing depth tumor is < 8 (filter_vcf).">
+##FILTER=<ID=fv.som_lt_3_reads,Description="Less than 3 supporting tumor reads (filter_vcf).">
+##FILTER=<ID=fv.som_tum_loh,Description="Loss of heterozygosity within tumor tissue (filter_vcf).">
+##FILTER=<ID=fv.syn_var,Description="Synonymous variant (filter_vcf).">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read depth for tier1 (used+filtered)">
+##FORMAT=<ID=FDP,Number=1,Type=Integer,Description="Number of basecalls filtered from original read depth for tier1">
+##FORMAT=<ID=SDP,Number=1,Type=Integer,Description="Number of reads with deletions spanning this site at tier1">
+##FORMAT=<ID=SUBDP,Number=1,Type=Integer,Description="Number of reads below tier1 mapping quality threshold aligned across this site">
+##FORMAT=<ID=AU,Number=2,Type=Integer,Description="Number of 'A' alleles used in tiers 1,2">
+##FORMAT=<ID=CU,Number=2,Type=Integer,Description="Number of 'C' alleles used in tiers 1,2">
+##FORMAT=<ID=GU,Number=2,Type=Integer,Description="Number of 'G' alleles used in tiers 1,2">
+##FORMAT=<ID=TU,Number=2,Type=Integer,Description="Number of 'T' alleles used in tiers 1,2">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample1	sample2
+chr1	242383340	.	G	A	0	PASS	NT=ref;QSS=242;QSS_NT=110;SGT=GG->AG;TQSS=1;TQSS_NT=1;SOMATIC;ANN=A|stop_gained|HIGH|PLD5|PLD5|transcript|NM_152666.2|protein_coding|6/11|c.685C>T|p.Gln229*|912/3305|685/1611|229/536||,A|stop_gained|HIGH|PLD5|PLD5|transcript|NM_001195811.1|protein_coding|5/10|c.499C>T|p.Gln167*|625/3018|499/1425|167/474||,A|stop_gained|HIGH|PLD5|PLD5|transcript|NM_001195812.1|protein_coding|4/9|c.61C>T|p.Gln21*|463/2856|61/987|21/328||;LOF=(PLD5|PLD5|3|1.00);NMD=(PLD5|PLD5|3|1.00);dbNSFP_phyloP100way_vertebrate=3.728000	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	88:0:0:0:0,0:0,0:88,89:0,0	117:0:0:0:75,75:0,0:42,42:0,0
+chr3	32181683	.	C	T	0	fv.not_cod_spli;fv.off_target	NT=ref;OMIM=611778_[GPD1L_(provisional)_Brugada_syndrome_2];QSS=17;QSS_NT=17;SGT=CC->CT;TQSS=1;TQSS_NT=1;SOMATIC;ANN=T|intron_variant|MODIFIER|GPD1L|GPD1L|transcript|NM_015141.3|protein_coding|3/7|c.367-37C>T||||||;EXAC_AF=1.647e-05	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	36:0:0:0:0,0:36,36:0,0:0,0	34:1:0:0:0,0:16,16:0,0:17,17
+chr3	52387231	.	C	G	0	PASS	NT=ref;QSS=341;QSS_NT=159;SGT=CC->CG;TQSS=1;TQSS_NT=1;SOMATIC;ANN=G|missense_variant|MODERATE|DNAH1|DNAH1|transcript|NM_015512.4|protein_coding|19/78|c.3140C>G|p.Ala1047Gly|3401/13110|3140/12798|1047/4265||;dbNSFP_MetaLR_pred=T;dbNSFP_Polyphen2_HDIV_pred=B,B;dbNSFP_Polyphen2_HVAR_pred=B,B;dbNSFP_SIFT_pred=T;dbNSFP_phyloP100way_vertebrate=3.556000	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	196:0:0:0:0,0:196,198:0,0:0,0	282:1:0:0:0,0:163,163:118,120:0,0
+chr6	12292548	.	C	T	0	fv.not_cod_spli;fv.off_target	NT=ref;OMIM=131240_[EDN1_(confirmed)_Auriculocondylar_syndrome_3|Question_mark_ears,isolated|High_density_lipoprotein_cholesterol_level_QTL_7];QSS=336;QSS_NT=177;SGT=CC->CT;TQSS=1;TQSS_NT=1;SOMATIC;ANN=T|intron_variant|MODIFIER|EDN1|EDN1|transcript|NM_001955.4|protein_coding|1/4|c.65-26C>T||||||,T|intron_variant|MODIFIER|EDN1|EDN1|transcript|NM_001168319.1|protein_coding|1/4|c.65-29C>T||||||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	235:0:0:0:0,0:235,242:0,0:0,0	225:0:0:0:0,0:134,136:0,0:91,91
+chr6	26017991	.	G	T	0	fv.not_cod_spli;fv.off_target	NT=ref;QSS=90;QSS_NT=89;SGT=GG->GT;TQSS=2;TQSS_NT=2;SOMATIC;ANN=T|5_prime_UTR_variant|MODIFIER|HIST1H1A|HIST1H1A|transcript|NM_005325.3|protein_coding|1/1|c.-31C>A|||||31|,T|upstream_gene_variant|MODIFIER|HIST1H3A|HIST1H3A|transcript|NM_003529.2|protein_coding||c.-2727G>T|||||2727|,T|upstream_gene_variant|MODIFIER|HIST1H4A|HIST1H4A|transcript|NM_003538.3|protein_coding||c.-3916G>T|||||3916|;EXAC_AF=1.653e-05	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	69:0:0:0:0,0:0,0:69,70:0,0	63:0:0:0:0,0:0,0:25,27:38,38
+chr6	44102460	.	C	G	0	PASS	NT=ref;QSS=365;QSS_NT=169;SGT=CC->CG;TQSS=1;TQSS_NT=1;SOMATIC;ANN=G|missense_variant|MODERATE|TMEM63B|TMEM63B|transcript|NM_018426.1|protein_coding|2/24|c.139C>G|p.Leu47Val|203/3199|139/2499|47/832||;dbNSFP_MetaLR_pred=T;dbNSFP_Polyphen2_HDIV_pred=D,D;dbNSFP_Polyphen2_HVAR_pred=P,D;dbNSFP_SIFT_pred=D,D,D;dbNSFP_phyloP100way_vertebrate=3.659000	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	281:0:0:0:1,1:279,283:1,1:0,0	306:0:0:0:0,0:186,186:120,120:0,0
+chr6	44241190	.	C	T	0	PASS	NT=ref;QSS=244;QSS_NT=87;SGT=CC->CT;TQSS=1;TQSS_NT=1;SOMATIC;ANN=T|missense_variant|MODERATE|TMEM151B|TMEM151B|transcript|NM_001137560.1|protein_coding|2/3|c.523C>T|p.Arg175Cys|523/4619|523/1701|175/566||;dbNSFP_MetaLR_pred=T;dbNSFP_Polyphen2_HDIV_pred=D,D;dbNSFP_Polyphen2_HVAR_pred=D,D;dbNSFP_SIFT_pred=D,D,D;dbNSFP_phyloP100way_vertebrate=2.842000	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	175:1:0:0:0,0:172,176:0,0:2,2	219:0:0:0:0,0:118,120:0,0:101,102
+chr7	61969481	rs2100383	C	T	0	fv.not_cod_spli;fv.som_all_freq_tum;fv.som_all_freq_nor;fv.off_target	NT=ref;QSS=21;QSS_NT=21;REPEATMASKER=ALR/Alpha;RS=2100383;RSPOS=61969481;SAO=0;SGT=CC->CT;SSR=0;TQSS=1;TQSS_NT=1;VC=SNV;VP=0x050100000005000002000104;WGT=1;dbSNPBuildID=96;ASP;NOV;OTHERKG;RV;SLO;SOMATIC;ANN=T|intergenic_region|MODIFIER|ZNF716-ZNF733P|ZNF716-ZNF733P|intergenic_region|ZNF716-ZNF733P|||n.61969481C>T||||||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	121:0:0:0:0,0:120,179:0,0:1,2	134:1:0:0:0,0:128,140:0,1:5,6
+chrX	3240659	.	T	C	0	PASS	NT=ref;QSS=301;QSS_NT=106;SGT=TT->CT;TQSS=1;TQSS_NT=1;SOMATIC;ANN=C|missense_variant|MODERATE|MXRA5|MXRA5|transcript|NM_015419.3|protein_coding|5/7|c.3067A>G|p.Ile1023Val|3224/9792|3067/8487|1023/2828||;dbNSFP_MetaLR_pred=T;dbNSFP_Polyphen2_HDIV_pred=B;dbNSFP_Polyphen2_HVAR_pred=B;dbNSFP_SIFT_pred=T,T;dbNSFP_phyloP100way_vertebrate=-0.591000	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	79:0:0:0:0,0:0,0:0,0:79,79	64:0:0:0:0,0:58,59:0,0:6,6

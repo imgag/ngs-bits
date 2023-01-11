@@ -97,6 +97,7 @@ SOURCES += main.cpp\
     DatabaseServiceLocal.cpp \
     NGSDReplicationWidget.cpp \
     CohortAnalysisWidget.cpp \
+    VirusDetectionWidget.cpp \
     cfDNARemovedRegions.cpp \
     ClinvarUploadDialog.cpp \
     LiftOverWidget.cpp \
@@ -115,7 +116,8 @@ SOURCES += main.cpp\
     GeneSelectionDialog.cpp \
     ExpressionOverviewWidget.cpp \
     SplicingWidget.cpp \
-    ExpressionGeneWidget.cpp
+    ExpressionGeneWidget.cpp \
+    ReportVariantSelectionDialog.cpp
 
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
@@ -208,6 +210,7 @@ HEADERS += MainWindow.h \
     DatabaseServiceLocal.h \
     NGSDReplicationWidget.h \
     CohortAnalysisWidget.h \
+    VirusDetectionWidget.h \
     cfDNARemovedRegions.h \
     ClinvarUploadDialog.h \
     LiftOverWidget.h \
@@ -226,7 +229,8 @@ HEADERS += MainWindow.h \
     GeneSelectionDialog.h \
     ExpressionOverviewWidget.h \
     SplicingWidget.h \
-    ExpressionGeneWidget.h
+    ExpressionGeneWidget.h \
+    ReportVariantSelectionDialog.h
 
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
@@ -323,7 +327,8 @@ FORMS    += MainWindow.ui \
     GeneSelectionDialog.ui \
     ExpressionOverviewWidget.ui \
     SplicingWidget.ui \
-    ExpressionGeneWidget.ui
+    ExpressionGeneWidget.ui \
+    ReportVariantSelectionDialog.ui
 
 include("../app_gui.pri")
 

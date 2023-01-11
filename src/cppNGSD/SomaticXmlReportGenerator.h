@@ -40,6 +40,7 @@ struct CPPNGSDSHARED_EXPORT SomaticXmlReportGeneratorData
 	RtfSourceCode rtf_part_general_info;
 	QByteArray rtf_part_igv_screenshot;
 	RtfSourceCode rtf_part_mtb_summary;
+	RtfSourceCode rtf_part_hla_summary;
 
 
 	//Check whether all neccessary data is set up consistently

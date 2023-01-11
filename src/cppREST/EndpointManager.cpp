@@ -7,7 +7,6 @@ EndpointManager::EndpointManager()
 
 HttpResponse EndpointManager::getBasicHttpAuthStatus(HttpRequest request)
 {
-	qDebug() << "Basic HTTP authentication";
 	QString auth_header = request.getHeaderByName("Authorization").length() > 0 ? request.getHeaderByName("Authorization")[0] : "";
 	if (auth_header.isEmpty())
 	{
@@ -52,15 +51,13 @@ HttpResponse EndpointManager::getBasicHttpAuthStatus(HttpRequest request)
 
 QString EndpointManager::getTokenFromHeader(HttpRequest request)
 {
-	QString token = "";
 	QList<QString> auth_header = request.getHeaderByName("Authorization");
 	if (auth_header.count()>0)
 	{
-		qDebug() << "Token from header";
 		int sep_pos = auth_header.first().indexOf(' ',0);
-		if (sep_pos>-1) token = auth_header.first().mid(sep_pos+1, auth_header.first().length()-sep_pos);
+		if (sep_pos>-1) return auth_header.first().mid(sep_pos+1, auth_header.first().length()-sep_pos);
 	}
-	return token;
+	return "";
 }
 
 QString EndpointManager::getTokenIfAvailable(HttpRequest request)
@@ -68,33 +65,28 @@ QString EndpointManager::getTokenIfAvailable(HttpRequest request)
 	QString token = "";
 	if (request.getUrlParams().contains("token"))
 	{
-		qDebug() << "User token from URL";
 		token = request.getUrlParams()["token"];
 	}
 	if (request.getFormUrlEncoded().contains("token"))
 	{
-		qDebug() << "User token from Form";
 		token = request.getFormUrlEncoded()["token"];
 	}
 	if (request.getFormUrlEncoded().contains("dbtoken"))
 	{
-		qDebug() << "Database token from Form";
 		token = request.getFormUrlEncoded()["dbtoken"];
 	}
-
 	if (!getTokenFromHeader(request).isEmpty())
 	{
 		token = getTokenFromHeader(request);
 	}
-	qDebug() << "Token" << token;
 	return token;
 }
 
 HttpResponse EndpointManager::getUserTokenAuthStatus(const HttpRequest& request)
 {
-	qDebug() << "Check user token status";
 	if (!SessionManager::isTokenReal(getTokenIfAvailable(request)))
 	{
+		Log::warn("Invalid or empty secure token has been used");
 		return HttpResponse(ResponseStatus::FORBIDDEN, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized with a valid user token");
 	}
 
@@ -108,7 +100,6 @@ HttpResponse EndpointManager::getUserTokenAuthStatus(const HttpRequest& request)
 
 HttpResponse EndpointManager::getDbTokenAuthStatus(const HttpRequest& request)
 {
-	qDebug() << "Check db token status";
 	if (!SessionManager::isTokenReal(request.getFormUrlEncoded()["dbtoken"]))
 	{
 		return HttpResponse(ResponseStatus::FORBIDDEN, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized with a valid database token");

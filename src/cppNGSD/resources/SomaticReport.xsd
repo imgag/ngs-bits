@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Mit XMLSpy v2014 (x64) (http://www.altova.com) von Dr. Peter Bauer (Universitätsklinikum Tübingen) bearbeitet -->
+<!-- Mit XMLSpy v2022 rel. 2 (x64) (http://www.altova.com) von Alexander Ott (Universitätsklinikum Tübingen) bearbeitet -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" xmlns:altova="http://www.altova.com/xml-schema-extensions" elementFormDefault="qualified" attributeFormDefault="unqualified" vc:minVersion="1.1">
 	<xs:element name="SomaticNgsReport">
 		<xs:annotation>
@@ -202,7 +202,7 @@
 						</xs:attribute>
 						<xs:attribute name="hrd_score">
 							<xs:annotation>
-								<xs:documentation>homologous recombination deficiency score (TOP-ART study)</xs:documentation>
+								<xs:documentation>homologous recombination deficiency score (TOP-ART study), DEPRECATED</xs:documentation>
 							</xs:annotation>
 							<xs:simpleType>
 								<xs:restriction base="xs:int"/>
@@ -210,7 +210,7 @@
 						</xs:attribute>
 						<xs:attribute name="hrd_score_chromo">
 							<xs:annotation>
-								<xs:documentation>homologous recombination deficiency score (sum of LOHs, telomeric allelic imbalances and long state transitions) as used at IMGAG</xs:documentation>
+								<xs:documentation>homologous recombination deficiency score (sum of LOHs, telomeric allelic imbalances and long state transitions) calculated by scarHRD tool</xs:documentation>
 							</xs:annotation>
 							<xs:simpleType>
 								<xs:restriction base="xs:int"/>
@@ -884,6 +884,7 @@
 											<xs:enumeration value="general_info"/>
 											<xs:enumeration value="igv_screenshot"/>
 											<xs:enumeration value="mtb_summary"/>
+											<xs:enumeration value="hla_summary"/>
 										</xs:restriction>
 									</xs:simpleType>
 								</xs:attribute>

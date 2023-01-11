@@ -1062,8 +1062,8 @@ QByteArray VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant
 			seq_obs = seq_ref.left(offset) + alt + seq_ref.mid(offset + variant.ref().length() - 1);
 		}
 
-		//if (debug) qDebug() << "  ref: " << seq_ref;
-		//if (debug) qDebug() << "  obs: " << seq_obs;
+		if (debug) qDebug() << "  ref: " << seq_ref;
+		if (debug) qDebug() << "  obs: " << seq_obs;
 
 		if(variant.isDel() || (variant.isIns() && frame_diff % 3 != 0) || variant.isInDel())
 		{
@@ -1078,6 +1078,7 @@ QByteArray VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant
                     seq_obs = seq_obs.mid(3);
                     seq_ref = seq_ref.mid(3);
                     pos_shift += 3;
+					if (debug) qDebug() << __LINE__ << pos_shift;
                 }
             }
             aa_ref.append(QByteArray::number((pos_trans_start + pos_shift) / 3 + 1));
@@ -1295,7 +1296,8 @@ QByteArray VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant
         //inframe deletion-insertion, more than one amino acid inserted
         else if(!variant.isIns() && variant.alt(0).length() > (4 + pos_shift))
         {
-			if (debug) qDebug() << __LINE__;
+			if (debug) qDebug() << __LINE__ << aa_ref << aa_obs;
+			if (debug) qDebug() << __LINE__ << pos_shift << ((variant.alt(0).length() - 1) + 1  - pos_shift);
 			aa_obs = "delins" + translate(seq_obs.left((variant.alt(0).length() - 1) + 1  - pos_shift));
         }
     }

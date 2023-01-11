@@ -27,9 +27,6 @@ public:
 	///Update header icon (SOMATIC report config)
 	void updateVariantHeaderIcon(const SomaticReportSettings& report_settings, int variant_index);
 
-	///Returns the column index, or -1 if not found.
-	int columnIndex(const QString& column_name) const;
-
 	///Returns the current variant index, or -1 if no/several variants are selected. If @p gui_indices is true, GUI table indices are returned instead of variant list index.
 	int selectedVariantIndex(bool gui_indices = false) const;
 
@@ -88,7 +85,7 @@ signals:
 	///An added context menu action was triggered
 	void customActionTriggered(QAction* action, int var_index);
 	///Publish to Clinvar menu action triggered
-	void publishToClinvarTriggered(int index);
+	void publishToClinvarTriggered(int index1, int index2=-1);
 	///Signal emitted when Alamut should be opened
 	void alamutTriggered(QAction* action);
 

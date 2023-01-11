@@ -25,8 +25,6 @@ private slots:
 private:
 	Ui::SmallVariantSearchWidget ui_;
 
-	//Returns the index of the colum with the given name. Throws an exception, it it is not found.
-	int columnIndex(QString name) const;
 	//Variant search
 	void getVariantsForRegion(Chromosome chr, int start, int end, QByteArray gene, const GeneSet& gene_symbols, QList<QList<QVariant>>& output, QStringList& messages);
 

@@ -3,7 +3,6 @@
 
 #include "cppREST_global.h"
 #include <QMap>
-#include <QDebug>
 #include <QDateTime>
 #include <QMutex>
 #include "ServerHelper.h"

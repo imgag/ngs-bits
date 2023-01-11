@@ -382,11 +382,11 @@ private slots:
 		S_EQUAL(v_rep.ref(), "CA");
 		S_EQUAL(v_rep.altString(), "C");
 
-		v_rep = Variant("chr1", 47181921, 47181922, "AA", "GC").toVCF(genome_index);
+		v_rep = Variant("chr1", 47181921, 47181922, "AA", "GC").toVCF(genome_index); //MNP special handling
 		S_EQUAL(v_rep.chr().str(), "chr1");
-		I_EQUAL(v_rep.start(), 47181920);
-		S_EQUAL(v_rep.ref(), "CAA");
-		S_EQUAL(v_rep.altString(), "CGC");
+		I_EQUAL(v_rep.start(), 47181921);
+		S_EQUAL(v_rep.ref(), "AA");
+		S_EQUAL(v_rep.altString(), "GC");
 
 		v_rep = Variant("chr1", 47181921, 47181921, "A", "TGC").toVCF(genome_index);
 		S_EQUAL(v_rep.chr().str(), "chr1");

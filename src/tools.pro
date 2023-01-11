@@ -125,10 +125,6 @@ SUBDIRS += VariantQC
 tools-TEST.depends += VariantQC
 VariantQC.depends = cppNGS
 
-SUBDIRS += SomaticCnvMetrics
-tools-TEST.depends += SomaticCnvMetrics
-SomaticCnvMetrics.depends = cppNGSD
-
 SUBDIRS += SomaticQC
 tools-TEST.depends += SomaticQC
 SomaticQC.depends = cppNGSD
@@ -510,3 +506,12 @@ TsvToQC.depends = cppNGS
 SUBDIRS += NGSDImportGenlab
 tools-TEST.depends += NGSDImportGenlab
 NGSDImportGenlab.depends = cppNGS
+
+SUBDIRS += NGSDImportClinvarAccessions
+tools-TEST.depends += NGSDImportClinvarAccessions
+NGSDImportClinvarAccessions.depends = cppNGSD
+
+SUBDIRS += VcfAdd
+tools-TEST.depends += VcfAdd
+VcfAdd.depends = cppNGS
+

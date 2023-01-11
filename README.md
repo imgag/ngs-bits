@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2022_10
+	> git checkout 2022_12
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -120,6 +120,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 ### VCF tools (small variants)
 
+* [VcfAdd](doc/tools/VcfAdd.md) - Appends variants from a VCF file to another VCF file.
 * [VcfAnnotateConsequence](doc/tools/VcfAnnotateConsequence.md) - Adds transcript-specific consequence predictions to a VCF file (similar to Ensembl VEP).
 * [VcfAnnotateFromBed](doc/tools/VcfAnnotateFromBed.md) - Annotates the INFO column of a VCF with data from a BED file.
 * [VcfAnnotateFromBigWig](doc/tools/VcfAnnotateFromBigWig.md) - Annotates the INFO column of a VCF with data from a BED file.
@@ -169,15 +170,13 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 Changes of master since last release:
 
-* none so far
+* none
 
-Changes in release 2022_11:
-* VcfAnnotateConsequence: implemented multi-threading, added much more tests and fixed several bugs.
-* NGSDExportSamples: added filters for HPO terms and ancestry.
-* NGSD:
-	* Added version number to table 'gene_transcript'.
-	* Updated tissue list in table 'sample'.
-	* Added comment field in table 'user'.
-	* Added DRAGEN as caller in table 'sv_callset'.
+Changes in release 2022_12:
+
+* tool VcfAdd added
+* VcfFilter: added option `-remove_invalid`
+* VcfSort: added option `-remove_unused_contigs`
+* VcfAnnotateConsequence: improved error handling and load time for GFF file
 
 For older changes see [releases](https://github.com/imgag/ngs-bits/releases).

@@ -415,7 +415,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<p><b>" << trans("OMIM Gene und Phenotypen") << "</b>" << endl;
 		stream << "</p>" << endl;
 		stream << "<table>" << endl;
-		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Gen MIM") << "</b></td><td><b>" << trans("Phenotyp") << "</b></td><td><b>" << trans("Phenotyp MIM") << "</b></td>";
+		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Gen MIM") << "</b></td><td><b>" << trans("Phenotyp MIM") << "</b></td><td><b>" << trans("Phenotyp") << "</b></td>";
 		if (data_.report_settings.show_one_entry_in_omim_table) stream << "<td><b>" << trans("Hauptphenotyp") << "</b></td>" << endl;
 		stream << "</tr>";
 		foreach(const QByteArray& gene, data_.roi.genes)
@@ -466,7 +466,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 						names = QStringList() << names[selected_index];
 					}
 				}
-				stream << "<tr><td>" << omim_info.gene_symbol << "</td><td>" << omim_info.mim << "</td><td>" << names.join("<br />") << "</td><td>" << accessions.join("<br />") << "</td>";
+				stream << "<tr><td>" << omim_info.gene_symbol << "</td><td>" << omim_info.mim << "</td><td>" << accessions.join("<br />") << "</td><td>" << names.join("<br />") << "</td>";
 				if (data_.report_settings.show_one_entry_in_omim_table) stream << "<td>" <<trans(preferred_phenotype_name!="" ? "ja" : "nein") << "</td>" << endl;
 				stream << "</tr>";
 			}
@@ -499,7 +499,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 				zscore = QString::number(zscore_num, 'f', 3);
 				if (zscore_num>=1.6 && population==NGSHelper::populationCodeToHumanReadable("EUR"))
 				{
-					zscore = "<span style='background-color:#ff0;'>" + zscore + "</span>";
+					zscore = "<b>" + zscore + "</b>";
 				}
 				if (population!=NGSHelper::populationCodeToHumanReadable("EUR"))
 				{
@@ -803,7 +803,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		if (var_conf.manualVarIsValid(genome_idx_)) //re-calculate based on new variant
 		{
 			//get all transcripts where the variant is completely contained in the region
-			TranscriptList transcripts  = db_.transcriptsOverlapping(variant.chr(), variant.start() - 5000, variant.end() + 5000);
+			TranscriptList transcripts  = db_.transcriptsOverlapping(variant.chr(), variant.start(), variant.end(), 5000);
 
 			//annotate consequence to transcript
 			VariantHgvsAnnotator hgvs_annotator(genome_idx_);
@@ -862,7 +862,15 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			}
 			w.writeAttribute("exon", exon_nr);
 
-			bool is_main_transcript = data_.preferred_transcripts.contains(trans.gene) && data_.preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion());
+			bool is_main_transcript = false;
+			if (gene_id!=-1)
+			{
+				TranscriptList relevant_transcripts = db_.releventTranscripts(gene_id);
+				if (relevant_transcripts.contains(trans.idWithoutVersion()))
+				{
+					is_main_transcript = true;
+				}
+			}
 			w.writeAttribute("main_transcript", is_main_transcript ? "true" : "false");
 
 			w.writeEndElement();
@@ -1273,7 +1281,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	outfile->close();
 
 	//validate written XML file
-	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/GermlineReport_v9.xsd");
+	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/GermlineReport.xsd");
 	if (xml_error!="")
 	{
 		THROW(ProgrammingException, "Invalid germline report XML file " + filename+ " generated:\n" + xml_error);
@@ -1924,14 +1932,13 @@ QString GermlineReportGenerator::formatCodingSplicing(const Variant& v)
 {
 	QStringList output;
 
-	//get transcript-specific data of best transcript for all overlapping genes
+	//get transcript-specific data of all relevant transcripts for all overlapping genes
 	VariantHgvsAnnotator hgvs_annotator(genome_idx_);
 	GeneSet genes = db_.genesOverlapping(v.chr(), v.start(), v.end(), 5000);
 	foreach(const QByteArray& gene, genes)
 	{
 		int gene_id = db_.geneId(gene);
-		Transcript trans = db_.bestTranscript(gene_id);
-		if (trans.isValid())
+		foreach(const Transcript& trans, db_.releventTranscripts(gene_id))
 		{
 			try
 			{
@@ -2287,12 +2294,9 @@ void GermlineReportGenerator::printVariantSheetRowHeader(QTextStream& stream, bo
 	stream << "       <th>Genotyp</th>" << endl;
 	stream << "       <th>Variante</th>" << endl;
 	stream << "       <th>Erbgang</th>" << endl;
-	if (causal)
-	{
-		stream << "       <th>c.</th>" << endl;
-		stream << "       <th>p.</th>" << endl;
-	}
-	else
+	stream << "       <th>c.</th>" << endl;
+	stream << "       <th>p.</th>" << endl;
+	if (!causal)
 	{
 		stream << "       <th>Ausschlussgrund</th>" << endl;
 	}
@@ -2361,12 +2365,9 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 	stream << "       <td>" << v.annotations()[i_genotype] << "</td>" << endl;
 	stream << "       <td style='white-space: nowrap'>" << v.toString(false, 20) << "</td>" << endl;
 	stream << "       <td>" << conf.inheritance << "</td>" << endl;
-	if (conf.causal)
-	{
-		stream << "       <td>" << hgvs_cs.join(", ") << "</td>" << endl;
-		stream << "       <td>" << hgvs_ps.join(", ") << "</td>" << endl;
-	}
-	else
+	stream << "       <td>" << hgvs_cs.join(", ") << "</td>" << endl;
+	stream << "       <td>" << hgvs_ps.join(", ") << "</td>" << endl;
+	if (!conf.causal)
 	{
 		stream << "       <td>" << exclusionCriteria(conf) << "</td>" << endl;
 	}

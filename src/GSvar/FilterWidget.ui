@@ -89,7 +89,7 @@
            </sizepolicy>
           </property>
           <property name="maxVisibleItems">
-           <number>20</number>
+           <number>30</number>
           </property>
          </widget>
         </item>

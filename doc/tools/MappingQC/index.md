@@ -16,7 +16,7 @@ For whole genome sequencing data, use this command:
 
 For transcriptome sequencing data, use this command:
 
-	> MappingQC -in [bam] -ran [options]
+	> MappingQC -in [bam] -rna [options]
 
 ## Help and ChangeLog
 

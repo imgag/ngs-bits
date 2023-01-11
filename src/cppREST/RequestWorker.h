@@ -3,7 +3,6 @@
 
 #include "cppREST_global.h"
 #include <QThread>
-#include <QDebug>
 #include <QSslSocket>
 #include <QSslError>
 #include <QSslConfiguration>

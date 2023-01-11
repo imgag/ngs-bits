@@ -28,7 +28,7 @@ public:
 		setDescription("Adds transcript-specific consequence predictions to a VCF file.");
 		setExtendedDescription(extendedDescription());
 		addInfile("in", "Input VCF file to annotate.", false);
-		addInfile("gff", "Ensembl-style GFF file with transcripts, e.g. from ftp://ftp.ensembl.org/pub/release-104/gff3/homo_sapiens/Homo_sapiens.GRCh38.104.chr.gff3.gz.", false);
+		addInfile("gff", "Ensembl-style GFF file with transcripts, e.g. from https://ftp.ensembl.org/pub/release-107/gff3/homo_sapiens/Homo_sapiens.GRCh38.107.gff3.gz.", false);
 
 		//optional
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
@@ -106,29 +106,13 @@ public:
 		QTime timer;
 		timer.start();
 
-		GffData data;
-		NGSHelper::loadGffFile(gff_file, data);
+		GffSettings gff_settings;
+		gff_settings.print_to_stdout = true;
+		gff_settings.skip_not_gencode_basic = !all;
+		GffData data = NGSHelper::loadGffFile(gff_file, gff_settings);
 		stream << "Parsed " << QString::number(data.transcripts.count()) << " transcripts from input GFF file." << endl;
 		stream << "Parsing transcripts took: " << Helper::elapsedTime(timer) << endl;
 
-		//remove transcripts not flagged as GENCODE basic
-		if (!all)
-		{
-			timer.start();
-			int c_removed = 0;
-			for (int i=data.transcripts.count()-1; i>=0; --i)
-			{
-				QByteArray trans_id = data.transcripts[i].name();
-				if (!data.gencode_basic.contains(trans_id))
-				{
-					data.transcripts.removeAt(i);
-					++c_removed;
-				}
-			}
-			stream << "Removed " << QString::number(c_removed) << " transcripts because they are not flagged as 'GENCODE basic'." << endl;
-			stream << "Number of transcripts remaining: " << data.transcripts.length() << endl;
-			stream << "Removing transcripts took: " << Helper::elapsedTime(timer) << endl;
-		}
 		//ceate transcript index
 		data.transcripts.sortByPosition();
 		MetaData meta(getString("tag").toUtf8(), ref_file, data.transcripts);

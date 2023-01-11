@@ -224,6 +224,13 @@ private slots:
 		S_EQUAL(variant.ref(), "TT");
 		S_EQUAL(variant.obs(), "-");
 
+		variant = t.hgvsToVariant("c.134-1926_134-1925del2", reference);
+		S_EQUAL(variant.chr().str(), "chr3");
+		I_EQUAL(variant.start(), 196225026);
+		I_EQUAL(variant.end(), 196225027);
+		S_EQUAL(variant.ref(), "TT");
+		S_EQUAL(variant.obs(), "-");
+
 		variant = t.hgvsToVariant("c.-103_-102insG", reference);
 		S_EQUAL(variant.chr().str(), "chr3");
 		I_EQUAL(variant.start(), 196216610);
@@ -333,6 +340,20 @@ private slots:
 		S_EQUAL(variant.obs(), "-");
 
 		variant = t.hgvsToVariant("c.335-239_335-238del", reference);
+		S_EQUAL(variant.chr().str(), "chr3");
+		I_EQUAL(variant.start(), 195569373);
+		I_EQUAL(variant.end(), 195569374);
+		S_EQUAL(variant.ref(), "AG");
+		S_EQUAL(variant.obs(), "-");
+
+		variant = t.hgvsToVariant("c.335-239_335-238delAG", reference);
+		S_EQUAL(variant.chr().str(), "chr3");
+		I_EQUAL(variant.start(), 195569373);
+		I_EQUAL(variant.end(), 195569374);
+		S_EQUAL(variant.ref(), "AG");
+		S_EQUAL(variant.obs(), "-");
+
+		variant = t.hgvsToVariant("c.335-239_335-238del2", reference);
 		S_EQUAL(variant.chr().str(), "chr3");
 		I_EQUAL(variant.start(), 195569373);
 		I_EQUAL(variant.end(), 195569374);

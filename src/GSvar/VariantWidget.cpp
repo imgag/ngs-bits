@@ -64,7 +64,8 @@ void VariantWidget::updateGUI()
 
 
 	//get all transcripts containing the variant
-	TranscriptList transcripts  = db.transcriptsOverlapping(variant_.chr(), variant_.start() - 5000, variant_.end() + 5000);
+	TranscriptList transcripts  = db.transcriptsOverlapping(variant_.chr(), variant_.start(), variant_.end(), 5000);
+	transcripts.sortByRelevance();
 
 	//annotate consequence for each transcript
 	QStringList lines;
@@ -125,7 +126,7 @@ void VariantWidget::updateGUI()
 
 	//samples table
 	SqlQuery query2 = db.getQuery();
-	query2.exec("SELECT processed_sample_id, genotype FROM detected_variant WHERE variant_id=" + variant_id);
+	query2.exec("SELECT processed_sample_id, genotype, mosaic FROM detected_variant WHERE variant_id=" + variant_id);
 	bool fill_table = true;
 	if (query2.size()>100)
 	{
@@ -155,7 +156,9 @@ void VariantWidget::updateGUI()
 			addItem(row, 2,  s_data.patient_identifier);
 			addItem(row, 3,  s_data.gender);
 			addItem(row, 4,  s_data.quality + " / " + ps_data.quality);
-			addItem(row, 5,  query2.value(1).toString());
+			QString genotype = query2.value(1).toString();
+			if (query2.value(2).toInt()==1) genotype += " (mosaic)";
+			addItem(row, 5, genotype);
 			addItem(row, 6, ps_data.processing_system);
 			addItem(row, 7, ps_data.project_name);
 			addItem(row, 8, s_data.disease_group);

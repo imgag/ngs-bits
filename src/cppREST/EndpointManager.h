@@ -2,7 +2,6 @@
 #define ENDPOINTMANAGER_H
 
 #include "cppREST_global.h"
-#include <QDebug>
 #include "ServerHelper.h"
 #include "HttpRequest.h"
 #include "HttpResponse.h"

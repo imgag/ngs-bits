@@ -123,5 +123,6 @@
         <file>Icons/Report_info.png</file>
         <file>Icons/settings.png</file>
         <file>Icons/check.png</file>
+        <file>Icons/Virus.png</file>
     </qresource>
 </RCC>

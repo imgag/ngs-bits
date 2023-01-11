@@ -693,7 +693,8 @@ VcfFile CfDNAPanelDesignDialog::createVcfFile()
 
 		// extract ID SNPs from selected processing system
 		int sys_id = NGSD().processingSystemId(ui_->cb_processing_system->currentText().toUtf8());
-		VcfFile sys_id_snps = NGSD().getIdSnpsFromProcessingSystem(sys_id, (variants_.type() == SOMATIC_SINGLESAMPLE));
+		BedFile target_region = GlobalServiceProvider::database().processingSystemRegions(sys_id, false);
+		VcfFile sys_id_snps = NGSD().getIdSnpsFromProcessingSystem(sys_id, target_region, (variants_.type() == SOMATIC_SINGLESAMPLE));
 
 		foreach (const VcfLinePtr& vcf_line, sys_id_snps.vcfLines())
 		{

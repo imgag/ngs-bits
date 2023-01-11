@@ -152,7 +152,7 @@ BedFile BedpeLine::affectedRegion(bool plus_one) const //TODO: this parameter sh
 
 		case StructuralVariantType::INS:
 			// compute CI of insertion
-			sv_region.append(BedLine(chr1(), std::min(start1(), start2()) + offset, std::max(end1(), end2()) + offset)); //TODO should this not be done for INV, DEL and DUP as well? > LEON
+			sv_region.append(BedLine(chr1(), std::min(start1(), start2()) + offset, std::max(end1(), end2()) + offset)); //workaround: CI of insertions is sometimes not defined correctly
 			break;
 
 		default:

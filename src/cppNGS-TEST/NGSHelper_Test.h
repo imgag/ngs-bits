@@ -224,4 +224,68 @@ private slots:
 		IS_TRUE(matches["CCDS31753"].contains("ENST00000644374"));
 		IS_TRUE(matches["NM_004447"].contains("ENST00000644374"));
 	}
+
+	void loadGffFile_unzipped()
+	{
+		GffSettings settings;
+		settings.print_to_stdout = false;
+
+		//do not skip GENCODE basic
+		settings.skip_not_gencode_basic = false;
+		GffData gff = NGSHelper::loadGffFile(TESTDATA("data_in/NGSHelper_loadGffFile_in1.gff3"), settings);
+
+		I_EQUAL(gff.transcripts.count(), 21);
+		IS_TRUE(gff.transcripts.contains("ENST00000578049")); //first valid
+		IS_TRUE(gff.transcripts.contains("ENST00000643044")); //last valid
+		IS_FALSE(gff.transcripts.contains("ENST00000613230")); //special chromosome > skipped
+		IS_FALSE(gff.transcripts.contains("ENST00000671898")); //not name and no HGNC-ID > skipped
+
+		gff.transcripts.sortByPosition(); //order is not defined because we use a hash while parsing
+		S_EQUAL(gff.transcripts[0].name(), "ENST00000578049");
+		I_EQUAL(gff.transcripts[0].version(), 4);
+		S_EQUAL(gff.transcripts[0].nameCcds(), "CCDS83523.1");
+		I_EQUAL(gff.transcripts[0].biotype(), Transcript::PROTEIN_CODING);
+		S_EQUAL(gff.transcripts[0].gene(), "SEC22B");
+		S_EQUAL(gff.transcripts[0].geneId(), "ENSG00000265808");
+		S_EQUAL(gff.transcripts[0].hgncId(), "HGNC:10700");
+		I_EQUAL(gff.transcripts[0].regions().count(), 5);
+		I_EQUAL(gff.transcripts[0].regions().baseCount(), 6927);
+		I_EQUAL(gff.transcripts[0].codingRegions().count(), 5);
+		I_EQUAL(gff.transcripts[0].codingRegions().baseCount(), 648);
+
+		I_EQUAL(gff.gencode_basic.count(), 13);
+		IS_TRUE(gff.gencode_basic.contains("ENST00000578049"));
+
+
+		//skip GENCODE basic
+		settings.skip_not_gencode_basic = true;
+		gff = NGSHelper::loadGffFile(TESTDATA("data_in/NGSHelper_loadGffFile_in1.gff3"), settings);
+
+		I_EQUAL(gff.transcripts.count(), 11);
+		IS_TRUE(gff.transcripts.contains("ENST00000578049")); //first valid
+		IS_TRUE(gff.transcripts.contains("ENST00000643044")); //last valid
+		IS_FALSE(gff.transcripts.contains("ENST00000613230")); //special chromosome > skipped
+		IS_FALSE(gff.transcripts.contains("ENST00000671898")); //not name and no HGNC-ID > skipped
+
+		I_EQUAL(gff.gencode_basic.count(), 13);
+		IS_TRUE(gff.gencode_basic.contains("ENST00000578049"));
+	}
+
+	void loadGffFile_gzipped()
+	{
+		GffSettings settings;
+		settings.print_to_stdout = false;
+
+		//do not skip GENCODE basic
+		settings.skip_not_gencode_basic = false;
+		GffData gff = NGSHelper::loadGffFile(TESTDATA("data_in/NGSHelper_loadGffFile_in2.gff3.gz"), settings);
+
+		I_EQUAL(gff.transcripts.count(), 21);
+		IS_TRUE(gff.transcripts.contains("ENST00000578049")); //first valid
+		IS_TRUE(gff.transcripts.contains("ENST00000643044")); //last valid
+
+		I_EQUAL(gff.gencode_basic.count(), 13);
+		IS_TRUE(gff.gencode_basic.contains("ENST00000578049"));
+	}
+
 };

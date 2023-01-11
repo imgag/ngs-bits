@@ -127,6 +127,19 @@ FileLocationList FileLocationProviderLocal::getBamFiles(bool return_if_missing) 
 	return output;
 }
 
+FileLocationList FileLocationProviderLocal::getViralBamFiles(bool return_if_missing) const
+{
+	FileLocationList output;
+
+	foreach(const KeyValuePair& loc, getBaseLocations())
+	{
+		FileLocation file = FileLocation{loc.key, PathType::VIRAL_BAM, loc.value + "_viral.bam", false};
+		addToList(file, output, return_if_missing);
+	}
+
+	return output;
+}
+
 FileLocationList FileLocationProviderLocal::getCnvCoverageFiles(bool return_if_missing) const
 {
 	FileLocationList output;

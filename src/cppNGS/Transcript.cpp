@@ -39,7 +39,7 @@ void Transcript::setRegions(const BedFile& regions, int coding_start, int coding
 {
 	//check
 	if (strand_==INVALID) THROW(ProgrammingException, "Transcript::setRegions must be called after Transcript::setStrand!");
-	if (regions.count()==0) THROW(ProgrammingException, "Transcript must have at least one exon!");
+	if (regions.count()==0) THROW(ProgrammingException, "Transcript '" + name_ + "' must have at least one exon!");
 
 	//determine chr/start/end and perform more checks
 	start_ = std::numeric_limits<int>::max();
@@ -217,7 +217,7 @@ Transcript::STRAND Transcript::stringToStrand(QByteArray strand)
 		return MINUS;
 	}
 
-	THROW(ProgrammingException, "Unknown transcript strand string '" + strand + "!");
+	THROW(ProgrammingException, "Unknown transcript strand string '" + strand + "'!");
 }
 
 QByteArray Transcript::biotypeToString(Transcript::BIOTYPE biotype)
@@ -438,9 +438,11 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 	if (length<4) THROW(ProgrammingException, "Invalid cDNA change '" + hgvs_c + "'!");
 	//qDebug() << "### cDNA:" << hgvs_c << "###";
 
-	//fix unneeded base sequence at the end of 'dup' and 'del' entries
+	//fix unneeded suffixes at the end of 'dup' and 'del' entries
 	hgvs_c.replace(QRegExp("dup[ACGTN]+"), "dup");
 	hgvs_c.replace(QRegExp("del[ACGTN]+"), "del");
+	hgvs_c.replace(QRegExp("dup[0-9]+"), "dup");
+	hgvs_c.replace(QRegExp("del[0-9]+"), "del");
 
 	//SNV
 	if(hgvs_c.at(length-4).isDigit() && hgvs_c.at(length-3).isLetter() && hgvs_c.at(length-2)=='>' && hgvs_c.at(length-1).isLetter())
@@ -925,6 +927,26 @@ int Transcript::utr3primeStart() const
 	}
 }
 
+bool TranscriptList::contains(const Transcript& transcript) const
+{
+	for (auto it=begin(); it!=end(); ++it)
+	{
+		if (it->name()==transcript.name()) return true;
+	}
+
+	return false;
+}
+
+bool TranscriptList::contains(const QByteArray& name) const
+{
+	for (auto it=begin(); it!=end(); ++it)
+	{
+		if (it->name()==name) return true;
+	}
+
+	return false;
+}
+
 void TranscriptList::sortByBases()
 {
 	std::stable_sort(begin(), end(), [](const Transcript& a, const Transcript& b){ return a.regions().baseCount() > b.regions().baseCount(); });
@@ -935,9 +957,10 @@ void TranscriptList::sortByCodingBases()
 	std::stable_sort(begin(), end(), [](const Transcript& a, const Transcript& b){ return a.codingRegions().baseCount() > b.codingRegions().baseCount(); });
 }
 
-void TranscriptList::sortByName()
+void TranscriptList::sortByRelevance()
 {
-	std::stable_sort(begin(), end(), [](const Transcript& a, const Transcript& b){ return a.name()<b.name(); });
+	TranscriptRelevanceComparator comparator;
+	std::stable_sort(begin(), end(), comparator);
 }
 
 void TranscriptList::sortByPosition()
@@ -958,4 +981,32 @@ bool TranscriptList::TranscriptPositionComparator::operator()(const Transcript& 
 	if (a.end()>b.end()) return false;
 
 	return a.name()<b.name();
+}
+
+bool TranscriptList::TranscriptRelevanceComparator::operator()(const Transcript& a, const Transcript& b) const
+{
+	//gene (alphabetical)
+	if (a.gene()>b.gene()) return false;
+	if (a.gene()<b.gene()) return true;
+
+	//coding length (longer first)
+	long long a_coding = a.codingRegions().baseCount();
+	long long b_coding = b.codingRegions().baseCount();
+	if (a_coding>b_coding) return true;
+	if (a_coding<b_coding) return false;
+
+	//relevant transcript (relevant first)
+	bool a_main_transcipt = a.isPreferredTranscript() || a.isManeSelectTranscript() || a.isManePlusClinicalTranscript();
+	bool b_main_transcipt = b.isPreferredTranscript() || b.isManeSelectTranscript() || b.isManePlusClinicalTranscript();
+	if (a_main_transcipt && !b_main_transcipt) return true;
+	if (!a_main_transcipt && b_main_transcipt) return false;
+
+	//non-coding length (longer first)
+	long long a_noncoding = a.regions().baseCount();
+	long long b_noncoding = b.regions().baseCount();
+	if (a_noncoding>b_noncoding) return true;
+	if (a_noncoding<b_noncoding) return false;
+
+	//name alphabetical (alphabetical)
+	return a.name()>b.name();
 }

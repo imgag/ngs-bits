@@ -70,7 +70,7 @@
    <item row="40" column="1" colspan="3">
     <widget class="QLineEdit" name="manual_sv_end">
      <property name="placeholderText">
-      <string>genomic end position</string>
+      <string>genomic end position of chrA</string>
      </property>
     </widget>
    </item>
@@ -91,14 +91,14 @@
    <item row="47" column="1" colspan="3">
     <widget class="QLineEdit" name="manual_sv_start_bnd">
      <property name="placeholderText">
-      <string>genomic start position of 2nd breakpoint  (BND only)</string>
+      <string>genomic start position of chrB  (BND only)</string>
      </property>
     </widget>
    </item>
    <item row="48" column="1" colspan="3">
     <widget class="QLineEdit" name="manual_sv_end_bnd">
      <property name="placeholderText">
-      <string>genomic end position of 2nd breakpoint (BND only)</string>
+      <string>genomic end position of chrB (BND only)</string>
      </property>
     </widget>
    </item>
@@ -112,7 +112,7 @@
    <item row="39" column="1" colspan="3">
     <widget class="QLineEdit" name="manual_sv_start">
      <property name="placeholderText">
-      <string>genomic start position</string>
+      <string>genomic start position of chrA</string>
      </property>
     </widget>
    </item>
