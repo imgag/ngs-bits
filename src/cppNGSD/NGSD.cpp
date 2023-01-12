@@ -4206,7 +4206,7 @@ QString NGSD::getVariantPublication(QString filename, const Variant& variant)
 
 	//select
 	SqlQuery query = getQuery();
-	query.exec("SELECT vp.variant_table, vp.db, vp.class, vp.details, vp.date, u.name FROM variant_publication vp LEFT JOIN user u on vp.user_id=u.id WHERE sample_id=" + s_id
+	query.exec("SELECT vp.variant_table, vp.db, vp.class, vp.details, vp.date, vp.result, u.name FROM variant_publication vp LEFT JOIN user u on vp.user_id=u.id WHERE sample_id=" + s_id
 			   + " AND variant_table='variant' AND variant_id=" + v_id);
 
 	//create output
@@ -4214,7 +4214,8 @@ QString NGSD::getVariantPublication(QString filename, const Variant& variant)
 	while (query.next())
 	{
 		output <<  "table: " + query.value("variant_table").toString() + " db: " + query.value("db").toString() + " class: " + query.value("class").toString() + " user: " + query.value("name").toString()
-				   + " date: " + query.value("date").toString().replace("T", " ") + "\n  " + query.value("details").toString().replace(";", "\n  ").replace("=", ": ");
+				   + " date: " + query.value("date").toString().replace("T", " ") + "\n  " + query.value("details").toString().replace(";", "\n  ").replace("=", ": ")
+				   + "\nresult: " + query.value("result").toString().replace(";-", "\n    - ").replace(";", ", ");
 	}
 
 	return output.join("\n");
@@ -4243,7 +4244,7 @@ QString NGSD::getVariantPublication(QString filename, const CopyNumberVariant& c
 
 	//select
 	SqlQuery query = getQuery();
-	query.exec("SELECT vp.variant_table, vp.db, vp.class, vp.details, vp.date, u.name FROM variant_publication vp LEFT JOIN user u on vp.user_id=u.id WHERE sample_id=" + s_id
+	query.exec("SELECT vp.variant_table, vp.db, vp.class, vp.details, vp.date, vp.result, u.name FROM variant_publication vp LEFT JOIN user u on vp.user_id=u.id WHERE sample_id=" + s_id
 			   + " AND variant_table='cnv' AND variant_id IN (" + cnv_ids.join(", ") + ")");
 
 	//create output
@@ -4251,7 +4252,8 @@ QString NGSD::getVariantPublication(QString filename, const CopyNumberVariant& c
 	while (query.next())
 	{
 		output <<  "table: " + query.value("variant_table").toString() + " db: " + query.value("db").toString() + " class: " + query.value("class").toString() + " user: " + query.value("name").toString()
-				   + " date: " + query.value("date").toString().replace("T", " ") + "\n  " + query.value("details").toString().replace(";", "\n  ").replace("=", ": ");
+				   + " date: " + query.value("date").toString().replace("T", " ") + "\n  " + query.value("details").toString().replace(";", "\n  ").replace("=", ": ")
+				   + "\nresult: " + query.value("result").toString().replace(";-", "\n    - ").replace(";", ", ");
 	}
 
 	return output.join("\n");
@@ -4280,7 +4282,7 @@ QString NGSD::getVariantPublication(QString filename, const BedpeLine& sv, const
 
 	//select
 	SqlQuery query = getQuery();
-	query.exec("SELECT vp.variant_table, vp.db, vp.class, vp.details, vp.date, u.name FROM variant_publication vp LEFT JOIN user u on vp.user_id=u.id WHERE sample_id=" + s_id
+	query.exec("SELECT vp.variant_table, vp.db, vp.class, vp.details, vp.date, vp.result, u.name FROM variant_publication vp LEFT JOIN user u on vp.user_id=u.id WHERE sample_id=" + s_id
 			   + " AND variant_table='" + svTableName(sv.type()) + "' AND variant_id IN (" + sv_ids.join(", ") + ")");
 
 	//create output
@@ -4288,7 +4290,8 @@ QString NGSD::getVariantPublication(QString filename, const BedpeLine& sv, const
 	while (query.next())
 	{
 		output <<  "table: " + query.value("variant_table").toString() + " db: " + query.value("db").toString() + " class: " + query.value("class").toString() + " user: " + query.value("name").toString()
-				   + " date: " + query.value("date").toString().replace("T", " ") + "\n  " + query.value("details").toString().replace(";", "\n  ").replace("=", ": ");
+				   + " date: " + query.value("date").toString().replace("T", " ") + "\n  " + query.value("details").toString().replace(";", "\n  ").replace("=", ": ")
+				   + "\nresult: " + query.value("result").toString().replace(";-", "\n    - ").replace(";", ", ");
 	}
 
 	return output.join("\n");

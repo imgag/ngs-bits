@@ -86,6 +86,7 @@ private:
     NGSD db_;
 	bool manual_upload_ = true;
     ClinvarUploadData clinvar_upload_data_;
+	bool upload_running_ = false;
 
     QJsonObject createJson();
     bool validateJson(const QJsonObject& json, QStringList& errors);
