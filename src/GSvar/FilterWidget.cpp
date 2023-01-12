@@ -59,6 +59,7 @@ FilterWidget::FilterWidget(QWidget *parent)
 	ui_.roi_btn->setMenu(new QMenu());
 	ui_.roi_btn->menu()->addAction(QIcon(":/Icons/Info.png"), "Show information", this, SLOT(showTargetRegionDetails()));
 	ui_.roi_btn->menu()->addAction(QIcon(":/Icons/Clipboard.png"),"Copy target region to clipboard", this, SLOT(copyTargetRegionToClipboard()));
+	ui_.roi_btn->menu()->addAction(QIcon(":/Icons/Clipboard.png"),"Copy genes to clipboard", this, SLOT(copyGenesToClipboard()));
 	ui_.roi_btn->menu()->addAction(QIcon(":/Icons/IGV.png"),"Open target region in IGV", this, SLOT(openTargetRegionInIGV()));
 
 	try
@@ -591,6 +592,11 @@ void FilterWidget::showTargetRegionDetails()
 	ScrollableTextDialog dlg(this, "Target region details");
 	dlg.appendLines(text);
 	dlg.exec();
+}
+
+void FilterWidget::copyGenesToClipboard()
+{
+	QApplication::clipboard()->setText(roi_.genes.toStringList().join("\n"));
 }
 
 void FilterWidget::copyTargetRegionToClipboard()

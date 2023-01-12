@@ -20,7 +20,7 @@ To perform a single sample analysis, follow those steps:
 
 ### Mosaic variants
 
-Mosaic variants down to 1% allele frequency are called by default.  
+Mosaic variants down to 3% allele frequency are called by default.  
 They are contained in the main variant list, but are flagged with the filter entry `mosaic`.  
 They are called on the following target region, depending on the processing system:
   
@@ -37,7 +37,7 @@ Variant in not uniquely mappable regions, i.e. reads have a mapping quality of 0
 They are contained in the main variant list, but are flagged with the filter entry `low_mappabilty`.  
 They are called on the following target region, depending on the processing system:
   
-  - WGS: exons regions plus/minus 20 bases.
+  - WGS: pre-calculated mapping quality 0 region.
   - WES: intersection of target region of the processing system and pre-calculated mapping quality 0 region.
   - panel: intersection of target region of the processing system and pre-calculated mapping quality 0 region.
 

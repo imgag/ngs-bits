@@ -787,6 +787,7 @@ CREATE  TABLE IF NOT EXISTS `detected_variant`
   `processed_sample_id` INT(11) NOT NULL,
   `variant_id` INT(11) NOT NULL,
   `genotype` ENUM('hom','het') NOT NULL,
+  `mosaic` TINYINT(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`processed_sample_id`, `variant_id`),
   INDEX `fk_detected_variant_variant1` (`variant_id` ASC),
   CONSTRAINT `fk_processed_sample_has_variant_processed_sample1`
@@ -1260,7 +1261,7 @@ ENGINE=InnoDB
 DEFAULT CHARSET=utf8;
 
 -- -----------------------------------------------------
--- Table `somatic_report_configuration_germl_snv`
+-- Table `somatic_report_configuration_germl_var`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `somatic_report_configuration_germl_var` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

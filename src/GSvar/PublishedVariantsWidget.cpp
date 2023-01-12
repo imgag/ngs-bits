@@ -483,13 +483,13 @@ void PublishedVariantsWidget::retryClinvarSubmission()
 		int row_idx = rows.values().at(0);
 		int status_idx = ui_->table->columnIndex("ClinVar submission status");
 		int accession_idx = ui_->table->columnIndex("ClinVar accession id");
-		int variant_table_idx  = ui_->table->columnIndex("variant_table");
+		int variant_table_idx = ui_->table->columnIndex("variant_table");
+		int details_idx = ui_->table->columnIndex("details");
 
 		//get status
 		QString status = ui_->table->item(row_idx, status_idx)->text().trimmed();
 		if (status!="processed" && status!="error") //only available for already submitted variants
 		{
-
 			INFO(ArgumentException, "Reupload is only supported for variants which are submitted to ClinVar and are already processed.");
 		}
 
@@ -497,8 +497,16 @@ void PublishedVariantsWidget::retryClinvarSubmission()
 		QString variant_table = ui_->table->item(row_idx, variant_table_idx)->text().trimmed();
 		if (variant_table=="none" || variant_table=="n/a")
 		{
-			INFO(ArgumentException, "Reupload is not supported for old variants and variants which were manually uploaded.");
+			INFO(ArgumentException, "Reupload is not supported for old variants and variants which were manually uploaded. \nPlease use the upload method through the GSvar sample variant view.");
 		}
+
+		//check details
+		QString details = ui_->table->item(row_idx, details_idx)->text().trimmed();
+		if (!details.contains("variant_rc_id"))
+		{
+			INFO(ArgumentException, "Reupload is not supported for old variants. \nPlease use the upload method through the GSvar sample variant view.");
+		}
+
 
 		// get publication id
 		int var_pub_id = ui_->table->getId(row_idx).toInt();
@@ -671,6 +679,8 @@ void PublishedVariantsWidget::deleteClinvarSubmission()
 		return;
 	}
 
+	//update search view
+	updateTable();
 }
 
 void PublishedVariantsWidget::openVariantTab()

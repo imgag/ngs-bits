@@ -390,25 +390,29 @@ VcfLine Variant::toVCF(const FastaFileIndex& genome_index) const
 	Sequence ref = ref_;
 	Sequence alt = obs_;
 
-	//prepend base for InDels
+	//prepend base for InDels if they are not MNPs
 	if (!isSNV())
 	{
-		if (ref=="-")
+		bool is_mnp = ref.length()==alt.length() && ref!="-" && alt!="-";
+		if (!is_mnp)
 		{
-			ref.clear();
+			if (ref=="-")
+			{
+				ref.clear();
+			}
+			else if (alt=="-")
+			{
+				pos -= 1;
+				alt.clear();
+			}
+			else if(ref.size() > 1 || alt.size() > 1)
+			{
+				pos -= 1;
+			}
+			Sequence prefix_base = genome_index.seq(chr_, pos, 1);
+			ref = prefix_base + ref;
+			alt = prefix_base + alt;
 		}
-		else if (alt=="-")
-		{
-			pos -= 1;
-			alt.clear();
-		}
-		else if(ref.size() > 1 || alt.size() > 1)
-		{
-			pos -= 1;
-		}
-		Sequence prefix_base = genome_index.seq(chr_, pos, 1);
-		ref = prefix_base + ref;
-		alt = prefix_base + alt;
 	}
 
 	return VcfLine(chr_, pos, ref, QList<Sequence>() << alt);

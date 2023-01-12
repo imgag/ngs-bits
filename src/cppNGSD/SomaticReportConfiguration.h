@@ -106,9 +106,6 @@ public:
 	bool cnvBurden() const;
 	void setCnvBurden(bool include_cnv_burden);
 
-	int hrdScore() const;
-	void setHrdScore(int score);
-
 	const QList<QString>& cinChromosomes() const;
 	///Setter for CIN chromosomes, pass argument in the form {"chr1", "chr2", ...}
 	void setCinChromosomes(const QList<QString>& chromosomes);
@@ -161,7 +158,6 @@ private:
 
 	bool include_msi_status_;
 	bool include_cnv_burden_;
-	int hrd_score_; //0 no HRD; 1,2 low; 3 intermediate HRD; 4,5 high HRD
 	double ploidy_;
 
 	QString hrd_statement_;

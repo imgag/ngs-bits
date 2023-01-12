@@ -343,7 +343,6 @@ void MainWindow::checkServerAvailability()
 
 void MainWindow::on_actionDebug_triggered()
 {
-	qDebug() << "Debug";
 	QString user = Helper::userName();
 	if (user=="ahsturm1")
 	{
@@ -356,7 +355,7 @@ void MainWindow::on_actionDebug_triggered()
 		FastaFileIndex genome_idx(genome_file);
 		VariantHgvsAnnotator hgvs_anno(genome_idx);
 
-		VcfLine variant = VcfLine("chr11", 60743694, "TACCACCACCAGCCCTGTCAATGCTACCACTGGTCCTGTCAATGCTGCCACTGGCCCTGTCAGTGCCACCAATGGTCCTGTCAATACTACCATTCACCCTGTCAAC", QList<Sequence>() << "T");
+		VcfLine variant = VcfLine("chr7", 157009948, "CA", QList<Sequence>() << "CCGCGGCGGCG");
 		qDebug() << variant.toString(true);
 		TranscriptList transcripts = NGSD().transcriptsOverlapping(variant.chr(), variant.start(), variant.end());
 		foreach(const Transcript& t, transcripts)
@@ -385,7 +384,7 @@ void MainWindow::on_actionDebug_triggered()
 
 		//export a transcript definition from NGSD forVariantHgvsAnnotator test
 		/*
-		QByteArray trans = "ENST00000370360";
+		QByteArray trans = "ENST00000252971";
 		NGSD db;
 		int trans_id = db.transcriptId(trans);
 		Transcript t = db.transcript(trans_id);
@@ -754,27 +753,34 @@ void MainWindow::on_actionDebug_triggered()
 
 		//Delete variant that are not used
 		/*
-		QStringList ref_tables;
-		ref_tables << "detected_variant";
-		ref_tables << "report_configuration_variant";
-		ref_tables << "variant_classification";
-		ref_tables << "variant_publication";
-		ref_tables << "variant_validation";
-		ref_tables << "detected_somatic_variant";
-		ref_tables << "somatic_report_configuration_variant";
-		ref_tables << "somatic_variant_classification";
-		ref_tables << "somatic_vicc_interpretation";
-		ref_tables << "somatic_report_configuration_germl_var";
-
 		NGSD db;
+		QStringList ref_tables;
+		foreach(QString table, db.tables())
+		{
+			const TableInfo& table_info = db.tableInfo(table);
+			foreach(QString field, table_info.fieldNames())
+			{
+				const TableFieldInfo& field_info = table_info.fieldInfo(field);
+				if (field_info.type==TableFieldInfo::FK && field_info.fk_table=="variant" && field_info.fk_field=="id")
+				{
+					ref_tables << table;
+				}
+			}
+		}
+
+		QSet<int> var_ids_pub = db.getValuesInt("SELECT variant_id FROM variant_publication WHERE variant_table='variant'").toSet();
+
 		foreach (const QString& chr_name, db.getEnum("variant", "chr"))
 		{
 			QList<int> v_ids = db.getValuesInt("SELECT id FROM variant WHERE chr='" + chr_name + "'");
 			qDebug() << QDateTime::currentDateTime() << chr_name << "variants to process:" << v_ids.count();
 			int c_deleted = 0;
+			int c_processed = 0;
 			foreach(int v_id , v_ids)
 			{
 				QString var_id_str = QString::number(v_id);
+				++c_processed;
+
 				bool remove = true;
 				foreach (const QString& table, ref_tables)
 				{
@@ -785,13 +791,21 @@ void MainWindow::on_actionDebug_triggered()
 						break;
 					}
 				}
+
+				if (var_ids_pub.contains(v_id))
+				{
+					remove = false;
+				}
+
 				if (remove)
 				{
-					//QTime timer;
-					//timer.start();
 					db.getQuery().exec("DELETE FROM variant WHERE id="+var_id_str);
-					//qDebug() << QDateTime::currentDateTime() << "DELETE:" << var_id_str << " TIME:" << Helper::elapsedTime(timer);
 					++c_deleted;
+				}
+
+				if (c_processed%1000000==0)
+				{
+					qDebug() << QDateTime::currentDateTime() << chr_name << "deleted " << c_deleted << "of" << c_processed << "processed variants";
 				}
 			}
 			qDebug() << QDateTime::currentDateTime() << chr_name << "deleted:" << c_deleted;
@@ -3724,12 +3738,12 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 
 	//activate virus table
 	ui_.actionVirusDetection->setEnabled(false);
-	if (NGSD::isAvailable())
+	if (type==SOMATIC_PAIR && NGSD::isAvailable())
 	{
 		QString ps_tumor = variants_.mainSampleName();
 		NGSD db;
 		QString ps_tumor_id = db.processedSampleId(ps_tumor, false);
-		if (type==SOMATIC_PAIR && GlobalServiceProvider::database().processedSamplePath(ps_tumor_id, PathType::VIRAL).exists)
+		if (GlobalServiceProvider::database().processedSamplePath(ps_tumor_id, PathType::VIRAL).exists)
 		{
 			ui_.actionVirusDetection->setEnabled(true);
 		}
@@ -4620,10 +4634,20 @@ void MainWindow::generateReportSomaticRTF()
 		somatic_report_settings_.target_region_filter = generic_target;
 	}
 
-	QCCollection cnv_metrics = Statistics::hrdScore(SomaticReportSettings::filterCnvs(cnvs_, somatic_report_settings_), GSvarHelper::build());
-	somatic_report_settings_.report_config.setCnvLohCount( cnv_metrics.value("QC:2000062", true).asInt() );
-	somatic_report_settings_.report_config.setCnvTaiCount( cnv_metrics.value("QC:2000063", true).asInt() );
-	somatic_report_settings_.report_config.setCnvLstCount( cnv_metrics.value("QC:2000064", true).asInt() );
+	if (db.getValues("SELECT value FROM processed_sample_qc AS psqc LEFT JOIN qc_terms as qc ON psqc.qc_terms_id = qc.id WHERE psqc.processed_sample_id=" + ps_tumor_id + " AND (qc.qcml_id ='QC:2000062' OR qc.qcml_id ='QC:2000063' OR qc.qcml_id ='QC:2000064') ").size() < 3)
+	{
+		QMessageBox::warning(this, "No HRD score found", "Warning:\nNo hrd score values found in the imported QC of tumor sample. HRD score set to 0.");
+		somatic_report_settings_.report_config.setCnvLohCount(0);
+		somatic_report_settings_.report_config.setCnvTaiCount(0);
+		somatic_report_settings_.report_config.setCnvLstCount(0);
+	}
+	else
+	{
+		QString query = "SELECT value FROM processed_sample_qc AS psqc LEFT JOIN qc_terms as qc ON psqc.qc_terms_id = qc.id WHERE psqc.processed_sample_id=" + ps_tumor_id + " AND qc.qcml_id = :1";
+		somatic_report_settings_.report_config.setCnvLohCount( db.getValue(query, false, "QC:2000062").toInt() );
+		somatic_report_settings_.report_config.setCnvTaiCount( db.getValue(query, false, "QC:2000063").toInt() );
+		somatic_report_settings_.report_config.setCnvLstCount( db.getValue(query, false, "QC:2000064").toInt() );
+	}
 
 
 	//Preselect report settings if not already exists to most common values
@@ -4634,7 +4658,6 @@ void MainWindow::generateReportSomaticRTF()
 		somatic_report_settings_.report_config.setTumContentByHistological(true);
 		somatic_report_settings_.report_config.setMsiStatus(true);
 		somatic_report_settings_.report_config.setCnvBurden(true);
-		somatic_report_settings_.report_config.setHrdScore(0);
 	}
 
 	//Parse genome ploidy from ClinCNV file
@@ -4763,8 +4786,8 @@ void MainWindow::generateReportSomaticRTF()
 
 			//Generate files for QBIC upload
 			timer.start();
-			QString path = Settings::string("qbic_data_path") + "/" + ps_tumor + "-" + ps_normal;
-			if (!GlobalServiceProvider::fileLocationProvider().isLocal()) path = ps_tumor + "-" + ps_normal;
+			QString path = ps_tumor + "-" + ps_normal;
+			if (GlobalServiceProvider::fileLocationProvider().isLocal()) path = Settings::string("qbic_data_path") + "/" + path;
 			report.storeQbicData(path);
 			Log::perf("Generating somatic report QBIC data took ", timer);
 

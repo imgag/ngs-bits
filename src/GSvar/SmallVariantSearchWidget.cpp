@@ -271,7 +271,7 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 		//add sample info
 		QString variant_id = query.value("id").toString();
 		SqlQuery query2 = db.getQuery();
-		query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, dv.genotype, p.name as p_name, s.disease_group, s.disease_status, vc.class, s.name_external, ds.outcome, ds.comment, s.id as s_id, ps.id as ps_id, sys.type as sys_type, sys.name_manufacturer as sys_name, p.type as p_type, ps.quality as ps_quality FROM sample s, processed_sample ps LEFT JOIN diag_status ds ON ps.id=ds.processed_sample_id, project p, detected_variant dv LEFT JOIN variant_classification vc ON dv.variant_id=vc.variant_id, processing_system sys WHERE ps.processing_system_id=sys.id AND dv.processed_sample_id=ps.id AND ps.sample_id=s.id AND ps.project_id=p.id AND dv.variant_id=" + variant_id);
+		query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, dv.genotype, dv.mosaic, p.name as p_name, s.disease_group, s.disease_status, vc.class, s.name_external, ds.outcome, ds.comment, s.id as s_id, ps.id as ps_id, sys.type as sys_type, sys.name_manufacturer as sys_name, p.type as p_type, ps.quality as ps_quality FROM sample s, processed_sample ps LEFT JOIN diag_status ds ON ps.id=ds.processed_sample_id, project p, detected_variant dv LEFT JOIN variant_classification vc ON dv.variant_id=vc.variant_id, processing_system sys WHERE ps.processing_system_id=sys.id AND dv.processed_sample_id=ps.id AND ps.sample_id=s.id AND ps.project_id=p.id AND dv.variant_id=" + variant_id);
 		while(query2.next())
 		{
 			//filter by processed sample quality
@@ -310,7 +310,7 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 
 			//get de-novo variants from report config
 			query3.exec("SELECT rcv.id FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.de_novo=1 AND rc.processed_sample_id=" + processed_sample_id + " AND v.id=" + variant_id);
-			QString denovo = query3.size()==0 ? "" : " (de-novo)";
+			bool is_denovo = query3.size()>0;
 
 			//get related sample info
 			QStringList related_samples;
@@ -326,7 +326,10 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 
 			//add variant line to output
 			vars_distinct << variant_id;
-			var_data.append(QList<QVariant>() << gene << var << germline_het << germline_hom << gnomad << cadd << spliceai << type << coding << query2.value("ps_name").toString() << query2.value("name_external").toString()  << query2.value("genotype").toString() + denovo << query2.value("sys_name").toString()<< query2.value("p_name").toString() << query2.value("disease_group").toString() << query2.value("disease_status").toString() << phenotypes.toString() << query2.value("class").toString() << query2.value("outcome").toString() << query2.value("comment").toString().replace("\n", " ") << genes_causal.join(',') << genes_candidate.join(',')<< related_samples.join(", "));
+			QString genotype = query2.value("genotype").toString();
+			if (query2.value("mosaic").toInt()==1) genotype += " (mosaic)";
+			if (is_denovo) genotype += " (de-novo)";
+			var_data.append(QList<QVariant>() << gene << var << germline_het << germline_hom << gnomad << cadd << spliceai << type << coding << query2.value("ps_name").toString() << query2.value("name_external").toString()  << genotype << query2.value("sys_name").toString()<< query2.value("p_name").toString() << query2.value("disease_group").toString() << query2.value("disease_status").toString() << phenotypes.toString() << query2.value("class").toString() << query2.value("outcome").toString() << query2.value("comment").toString().replace("\n", " ") << genes_causal.join(',') << genes_candidate.join(',')<< related_samples.join(", "));
 		}
 	}
 	QString comment = gene + " - " + QString::number(vars_distinct.count()) + " distinct variants in " + QString::number(var_data.count()) + " hits";
@@ -341,7 +344,7 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 		QMap<QString, int> het_hits;
 		foreach(const QList<QVariant>& line, var_data)
 		{
-			if (line[i_geno].toString()=="het")
+			if (line[i_geno].toString().startsWith("het"))
 			{
 				het_hits[line[i_ps].toString()] += 1;
 			}

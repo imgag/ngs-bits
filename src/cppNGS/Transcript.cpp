@@ -438,9 +438,11 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 	if (length<4) THROW(ProgrammingException, "Invalid cDNA change '" + hgvs_c + "'!");
 	//qDebug() << "### cDNA:" << hgvs_c << "###";
 
-	//fix unneeded base sequence at the end of 'dup' and 'del' entries
+	//fix unneeded suffixes at the end of 'dup' and 'del' entries
 	hgvs_c.replace(QRegExp("dup[ACGTN]+"), "dup");
 	hgvs_c.replace(QRegExp("del[ACGTN]+"), "del");
+	hgvs_c.replace(QRegExp("dup[0-9]+"), "dup");
+	hgvs_c.replace(QRegExp("del[0-9]+"), "del");
 
 	//SNV
 	if(hgvs_c.at(length-4).isDigit() && hgvs_c.at(length-3).isLetter() && hgvs_c.at(length-2)=='>' && hgvs_c.at(length-1).isLetter())

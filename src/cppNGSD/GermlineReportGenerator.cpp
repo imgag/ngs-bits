@@ -2294,12 +2294,9 @@ void GermlineReportGenerator::printVariantSheetRowHeader(QTextStream& stream, bo
 	stream << "       <th>Genotyp</th>" << endl;
 	stream << "       <th>Variante</th>" << endl;
 	stream << "       <th>Erbgang</th>" << endl;
-	if (causal)
-	{
-		stream << "       <th>c.</th>" << endl;
-		stream << "       <th>p.</th>" << endl;
-	}
-	else
+	stream << "       <th>c.</th>" << endl;
+	stream << "       <th>p.</th>" << endl;
+	if (!causal)
 	{
 		stream << "       <th>Ausschlussgrund</th>" << endl;
 	}
@@ -2368,12 +2365,9 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 	stream << "       <td>" << v.annotations()[i_genotype] << "</td>" << endl;
 	stream << "       <td style='white-space: nowrap'>" << v.toString(false, 20) << "</td>" << endl;
 	stream << "       <td>" << conf.inheritance << "</td>" << endl;
-	if (conf.causal)
-	{
-		stream << "       <td>" << hgvs_cs.join(", ") << "</td>" << endl;
-		stream << "       <td>" << hgvs_ps.join(", ") << "</td>" << endl;
-	}
-	else
+	stream << "       <td>" << hgvs_cs.join(", ") << "</td>" << endl;
+	stream << "       <td>" << hgvs_ps.join(", ") << "</td>" << endl;
+	if (!conf.causal)
 	{
 		stream << "       <td>" << exclusionCriteria(conf) << "</td>" << endl;
 	}

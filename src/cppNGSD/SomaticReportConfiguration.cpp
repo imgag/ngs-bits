@@ -39,7 +39,6 @@ SomaticReportConfiguration::SomaticReportConfiguration()
 	, include_tum_content_histological_(false)
 	, include_msi_status_(false)
 	, include_cnv_burden_(false)
-	, hrd_score_(0)
 	, ploidy_(0)
 	, hrd_statement_()
 	, cnv_loh_count_(0)
@@ -297,18 +296,6 @@ void SomaticReportConfiguration::setCnvBurden(bool include_cnv_burden)
 {
 	include_cnv_burden_ = include_cnv_burden;
 }
-
-int SomaticReportConfiguration::hrdScore() const
-{
-	return hrd_score_;
-}
-
-void SomaticReportConfiguration::setHrdScore(int hrd_score)
-{
-	if(hrd_score <= 5)	hrd_score_ = hrd_score;
-	else hrd_score_ = 0;
-}
-
 
 const QList<QString>& SomaticReportConfiguration::cinChromosomes() const
 {

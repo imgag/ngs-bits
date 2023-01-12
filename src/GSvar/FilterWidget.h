@@ -113,6 +113,7 @@ protected slots:
 	void customFilterLoaded();
 	void showTargetRegionDetails();
 	void copyTargetRegionToClipboard();
+	void copyGenesToClipboard();
 	void openTargetRegionInIGV();
 	void updateGeneWarning();
 	void editPhenotypes();

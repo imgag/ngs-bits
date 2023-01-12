@@ -22,7 +22,7 @@ public:
     {
 		setDescription("Estimates the ancestry of a sample based on variants.");
 
-		addInfileList("in", "Input variant list(s) in VCF format.", false);
+		addInfileList("in", "Input variant list(s) in VCF or VCF.GZ format.", false);
 		//optional
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		addInt("min_snps", "Minimum number of informative SNPs for population determination. If less SNPs are found, 'NOT_ENOUGH_SNPS' is returned.", true, 1000);
