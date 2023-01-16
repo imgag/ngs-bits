@@ -474,6 +474,51 @@ QList<int> GenLabDB::studySamples(QString study, QStringList& errors)
 	return output;
 }
 
+QStringList GenLabDB::patientSamples(QString ps_name)
+{
+	QStringList output;
+	QString genlab_id = patientIdentifier(ps_name);
+
+	QString q_str = "SELECT LABORNUMMER FROM v_ngs_patient_ids WHERE GenlabID = '" + genlab_id + "' ";
+	foreach (QString name, names(ps_name)) {
+		q_str += "AND LABORNUMMER != '" + name + "' ";
+	}
+	q_str += "ORDER BY LABORNUMMER";
+
+	SqlQuery query = getQuery();
+	query.exec(q_str);
+	while (query.next())
+	{
+		QString sample = query.value(0).toString().trimmed();
+		if (sample.isEmpty()) continue;
+		if (!output.contains(sample))
+		{
+			output << sample;
+		}
+	}
+
+	output.sort();
+	return output;
+}
+
+QStringList GenLabDB::dnaSamplesofRna(QString external_name)
+{
+	SqlQuery query = getQuery();
+	query.prepare("SELECT LABORNUMMER FROM v_ngs_dnarna WHERE T_UNTERSUCHUNG_1_MATERIALINFO = :0 ORDER BY LABORNUMMER");
+	query.bindValue(0, external_name);
+	query.exec();
+
+	QStringList output;
+
+	while(query.next())
+	{
+		output << query.value(0).toString().trimmed();
+	}
+
+	return output;
+}
+
+
 QStringList GenLabDB::names(QString ps_name)
 {
 	QStringList output;

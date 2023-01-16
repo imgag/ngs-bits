@@ -67,6 +67,11 @@ public:
 	///Returns a list of processed sample IDs of a study
 	QList<int> studySamples(QString study, QStringList& errors);
 
+	///returns a list of all processed samples from the same patient.
+	QStringList patientSamples(QString ps_name);
+
+	QStringList dnaSamplesofRna(QString external_name);
+
 protected:
 	///Copy constructor "declared away".
 	GenLabDB(const GenLabDB&) = delete;

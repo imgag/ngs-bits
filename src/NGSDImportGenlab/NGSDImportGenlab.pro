@@ -19,3 +19,5 @@ include("../app_cli.pri")
 #include cppNGS library
 INCLUDEPATH += $$PWD/../cppNGSD
 LIBS += -L$$PWD/../bin -lcppNGSD
+
+RESOURCES +=
