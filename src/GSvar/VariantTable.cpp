@@ -304,7 +304,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	}
 	else if (action == a_mitomap)
 	{
-		QDesktopServices::openUrl(QUrl("https://www.mitomap.org/cgi-bin/search_allele?starting="+QString::number(variant.start())+"&ending="+QString::number(variant.end())));
+		QDesktopServices::openUrl(QUrl("https://www.mitomap.org/cgi-bin/search_allele?pstns="+QString::number(variant.start())));
 	}
 	else if (action == a_varsome)
 	{

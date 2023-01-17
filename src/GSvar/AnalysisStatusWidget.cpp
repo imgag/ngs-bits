@@ -24,6 +24,7 @@ AnalysisStatusWidget::AnalysisStatusWidget(QWidget* parent)
 	ui_.setupUi(this);
 	GUIHelper::styleSplitter(ui_.splitter);
 	connect(ui_.analyses, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
+	connect(ui_.analyses, SIGNAL(cellDoubleClicked(int,int)), this, SLOT(openProcessedSampleTab(int,int)));
 	connect(ui_.analyses->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(updateDetails()));
 	connect(ui_.refresh, SIGNAL(clicked(bool)), this, SLOT(refreshStatus()));
 	ui_.f_date->setDate(QDate::currentDate().addDays(-7));
@@ -606,6 +607,15 @@ void AnalysisStatusWidget::applyTextFilter()
 
 	//update column widths
 	GUIHelper::resizeTableCells(ui_.analyses, 350);
+}
+
+void AnalysisStatusWidget::openProcessedSampleTab(int row, int /*col*/)
+{
+	//skip if not single sample
+	if (jobs_[row].job_data.type!="single sample") return;
+
+	QString ps = jobs_[row].job_data.samples[0].name;
+	GlobalServiceProvider::openProcessedSampleTab(ps);
 }
 
 QTableWidgetItem* AnalysisStatusWidget::addItem(QTableWidget* table, int row, int col, QString text, QColor bg_color)

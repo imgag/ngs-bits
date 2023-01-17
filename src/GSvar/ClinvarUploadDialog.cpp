@@ -396,10 +396,24 @@ void ClinvarUploadDialog::initGui()
 
 void ClinvarUploadDialog::upload()
 {
+	// skip if already running
+	if (upload_running_) return;
+	upload_running_ = true;
+
 	//deactivate upload button
 	ui_.upload_btn->setEnabled(false);
 
     QJsonObject clinvar_submission = createJson();
+
+	// write json to file
+	if (test_run)
+	{
+		//get json file for debug
+		QJsonDocument json_doc = QJsonDocument(clinvar_submission);
+		QSharedPointer<QFile> json_file = Helper::openFileForWriting(clinvar_upload_data_.processed_sample + "_" + Helper::dateTime("yyyyMMdd_hhmmss") + ".json");
+		json_file->write(json_doc.toJson());
+		json_file->close();
+	}
 
     QStringList errors;
     if (!validateJson(clinvar_submission, errors))
@@ -665,6 +679,13 @@ void ClinvarUploadDialog::upload()
 				}
 
 
+				if (!clinvar_upload_data_.stable_id.trimmed().isEmpty())
+				{
+					//get variant publication id
+					clinvar_upload_data_.variant_publication_id = db_.getValue("SELECT id FROM variant_publication WHERE replaced = 0 AND result LIKE :0", false, "%" + clinvar_upload_data_.stable_id + "%").toInt();
+
+				}
+
 				// for reupload: flag previous upload as replaced
 				if (clinvar_upload_data_.variant_publication_id > 0) db_.flagVariantPublicationAsReplaced(clinvar_upload_data_.variant_publication_id);
 			}
@@ -703,12 +724,14 @@ void ClinvarUploadDialog::upload()
 						Helper::storeTextFile(file_rep, ui_.comment_upload->toPlainText().split("\n"));
 				}
 			}
+			upload_running_ = false;
 			ui_.upload_btn->setEnabled(false);
 
         }
         else
         {
             // Upload failed
+			upload_running_ = false;
             ui_.comment_upload->setText("DATA UPLOAD ERROR:\n" + messages.join("\n"));
             ui_.upload_btn->setEnabled(true);
         }
@@ -1092,14 +1115,43 @@ bool ClinvarUploadDialog::checkGuiData()
 	QStringList upload_comment_text;
 	if (var1_uploaded_to_clinvar)
 	{
-		upload_comment_text << "<font color='red'>WARNING: This variant has already been uploaded to ClinVar! Are you sure you want to upload it again? </font><br>"
+		//extract SCV:
+		if(clinvar_upload_data_.stable_id.trimmed().isEmpty())
+		{
+			foreach (const QString& line, upload_details_var1.split('\n'))
+			{
+				if(clinvar_upload_data_.stable_id.trimmed().isEmpty() && line.startsWith("result: processed, SCV"))
+				{
+					clinvar_upload_data_.stable_id = line.split(", ").at(1).trimmed();
+					break;
+				}
+			}
+		}
+		upload_comment_text << QString("<font color='red'>WARNING: This variant has already been uploaded to ClinVar! Are you sure you want to upload it again? ")
+							   + ((clinvar_upload_data_.stable_id.isEmpty())?"":"The variant will be replaced on ClinVar. ")
+							   + "</font><br>"
 							   + upload_details_var1.replace("\n", "<br>");
 	}
 	if (var2_uploaded_to_clinvar)
 	{
-		upload_comment_text << "<font color='red'>WARNING: The second variant has already been uploaded to ClinVar! Are you sure you want to upload it again? </font><br>"
+		//extract SCV:
+		if(clinvar_upload_data_.stable_id.trimmed().isEmpty())
+		{
+			foreach (const QString& line, upload_details_var2.split('\n'))
+			{
+				if(clinvar_upload_data_.stable_id.trimmed().isEmpty() && line.startsWith("result: processed, SCV"))
+				{
+					clinvar_upload_data_.stable_id = line.split(", ").at(1).trimmed();
+					break;
+				}
+			}
+		}
+		upload_comment_text << QString("<font color='red'>WARNING: The second variant has already been uploaded to ClinVar! Are you sure you want to upload it again? ")
+							   + ((clinvar_upload_data_.stable_id.isEmpty())?"":"The variant will be replaced on ClinVar. ")
+							   + "</font><br>"
 							   + upload_details_var2.replace("\n", "<br>");
 	}
+
 
     //show error or enable upload button
     if (errors.count()>0)
@@ -1476,7 +1528,7 @@ QJsonObject ClinvarUploadDialog::createJson()
         clinvar_submission.insert("observedIn", QJsonArray() << observed_in);
 
         //required
-		clinvar_submission.insert("recordStatus", "novel");
+		clinvar_submission.insert("recordStatus", (clinvar_upload_data_.stable_id.isEmpty())?"novel":"update");
 
         //required
 		QJsonObject variant_set1;
