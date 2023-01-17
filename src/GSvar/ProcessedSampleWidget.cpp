@@ -880,6 +880,8 @@ QStringList ProcessedSampleWidget::limitedQCParameter(const QString& sample_type
 		parameter_list << "QC:2000024"; // duplicate read percentage
 		parameter_list << "QC:2000027"; // target region 20x percentage
 		parameter_list << "QC:2000051"; // SNV allele frequency deviation
+		parameter_list << "QC:2000040"; // Sample correlation (somatic tumor sample)
+		parameter_list << "QC:2000045"; // known somatic variants percentage (somatic tumor sample)
 	}
 	else if(sample_type == "cfDNA")
 	{
