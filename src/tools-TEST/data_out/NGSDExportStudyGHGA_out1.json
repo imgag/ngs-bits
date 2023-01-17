@@ -1,0 +1,19 @@
+{
+    "has_study": {
+        "affiliation": [
+            "Affiliation 1",
+            "Affiliation 2"
+        ],
+        "alias": "Study4711",
+        "description": "Descripion of the study",
+        "has_attribute": null,
+        "has_project": null,
+        "has_publication": null,
+        "schema_type": "CreateStudy",
+        "schema_version": "0.9.0",
+        "title": "Study4711",
+        "type": "resequencing"
+    },
+    "schema_type": "CreateSubmission",
+    "schema_version": "0.9.0"
+}
