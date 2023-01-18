@@ -48,7 +48,7 @@ void ProjectWidget::updateGUI()
 
 	//### samples
 	QString project_id = query.value("id").toString();
-	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps, sys.name_manufacturer as sys FROM processing_system sys, processed_sample ps, sample s WHERE ps.sample_id=s.id AND sys.id=ps.processing_system_id AND ps.project_id='"+project_id+"' ORDER BY s.name ASC, ps.process_id ASC");
+	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps, sys.name_manufacturer as sys FROM processing_system sys, processed_sample ps, sample s WHERE ps.sample_id=s.id AND sys.id=ps.processing_system_id AND ps.project_id='"+project_id+"' AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples) ORDER BY s.name ASC, ps.process_id ASC");
 	ui_.num_samples->setText(QString::number(query.size()));
 
 	QMap<QString, QStringList> samples_by_sys;

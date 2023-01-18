@@ -29,6 +29,7 @@ protected slots:
 	void updateDetails();
 	void copyToClipboard();
 	void applyTextFilter();
+	void openProcessedSampleTab(int col, int row);
 
 private:
 	Ui::AnalysisStatusWidget ui_;
