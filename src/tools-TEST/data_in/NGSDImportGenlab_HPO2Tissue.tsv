@@ -1,49 +1,49 @@
 #HPO_term	reference_tissue
-HPO:0012268	adipose tissue
-HPO:0040277	adrenal gland
-HPO:0031499	appendix
-HPO:0002669	bone marrow
-HPO:0003002	breast
-HPO:0032241	cervix
-HPO:0003003	colon
-HPO:0040276	colon
-HPO:0040274	duodenum
-HPO:0012114	endometrium
-HPO:0011459	esophagus
-HPO:0012118	esophagus
-HPO:0100751	esophagus
-HPO:0009592	frontal cortex
-HPO:0012174	frontal cortex
-HPO:0002858	frontal cortex
-HPO:0030153	gallbladder
-HPO:0005584	kidney
-HPO:0200058	liver
-HPO:0030153	liver
-HPO:0001402	liver
-HPO:0030078	lung
-HPO:0100634	lung
-HPO:0030358	lung
-HPO:0030357	lung
-HPO:0100002	lung
-HPO:0025318	ovary
-HPO:0002894	pancreas
-HPO:0012125	prostate
-HPO:0032186	rectum
-HPO:0100743	rectum
-HPO:0100684	salivary gland
-HPO:0100616	seminal vesicle
-HPO:0012056	skin
-HPO:0006722	small intestine
-HPO:0100243	smooth muscle
-HPO:0100242	smooth muscle
-HPO:0030448	smooth muscle
-HPO:0009733	spinal vestibular nucleus
-HPO:0012126	stomach
-HPO:0010788	testis
-HPO:0100521	thymus
-HPO:0100521	thymus
-HPO:0002890	thyroid gland
-HPO:0100648	tongue
-HPO:0009725	urinary bladder
-HPO:0100517	urinary bladder
-HPO:0002885	ventral medullary reticular nucleus
+HP:0012268	adipose tissue
+HP:0040277	adrenal gland
+HP:0031499	appendix
+HP:0002669	bone marrow
+HP:0003002	breast
+HP:0032241	cervix
+HP:0003003	colon
+HP:0040276	colon
+HP:0040274	duodenum
+HP:0012114	endometrium
+HP:0011459	esophagus
+HP:0012118	esophagus
+HP:0100751	esophagus
+HP:0009592	frontal cortex
+HP:0012174	frontal cortex
+HP:0002858	frontal cortex
+HP:0030153	gallbladder
+HP:0005584	kidney
+HP:0200058	liver
+HP:0030153	liver
+HP:0001402	liver
+HP:0030078	lung
+HP:0100634	lung
+HP:0030358	lung
+HP:0030357	lung
+HP:0100002	lung
+HP:0025318	ovary
+HP:0002894	pancreas
+HP:0012125	prostate
+HP:0032186	rectum
+HP:0100743	rectum
+HP:0100684	salivary gland
+HP:0100616	seminal vesicle
+HP:0012056	skin
+HP:0006722	small intestine
+HP:0100243	smooth muscle
+HP:0100242	smooth muscle
+HP:0030448	smooth muscle
+HP:0009733	spinal vestibular nucleus
+HP:0012126	stomach
+HP:0010788	testis
+HP:0100521	thymus
+HP:0100521	thymus
+HP:0002890	thyroid gland
+HP:0100648	tongue
+HP:0009725	urinary bladder
+HP:0100517	urinary bladder
+HP:0002885	ventral medullary reticular nucleus

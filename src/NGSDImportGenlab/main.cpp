@@ -19,7 +19,7 @@ public:
 		setDescription("Import sample information from genlab into NGSD.");
 		addString("ps_id", "sample for which the genlab data will be imported.", false);
 		//optional
-		addInfile("rna_tissue_mapping", "TSV file with mapping from HPO to rna reference tissue.", true, true);
+		addInfile("rna_tissue_map", "TSV file with mapping from HPO to rna reference tissue.", true, true);
 		addFlag("no_relations", "Do not search and import sample relations from Genlab");
 		addFlag("no_metadata", "Do not search and import metadata from Genlab (disease group, ICD10, HPO, ...)");
 		QString desc = "Action for disease details that are already in NGSD: \n"
@@ -35,7 +35,7 @@ public:
 	{
 		QString ps_name = getString("ps_id");
 		NGSD db(getFlag("test"));
-		QString rna_tissue_map = getInfile("rna_tissue_mapping");
+		QString rna_tissue_map = getInfile("rna_tissue_map");
 
 		if (! GenLabDB::isAvailable())
 		{
@@ -287,36 +287,39 @@ public:
 		QString s_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id=:0", false, ps_id).toString();
 		SampleData s_data = db.getSampleData(s_id);
 
+		if (getFlag("debug")) qDebug() << "Metadata import for " << ps_name;
+		if (getFlag("debug")) qDebug() << "s_id " << s_id;
+
 		//***gender:
 		QString gender = genlab.gender(ps_name);
-		if (s_data.gender == "n/a" || (s_data.gender != gender && getEnum("action") == "REPLACE"))
+		if (gender != "" && (s_data.gender == "n/a" || (s_data.gender != gender && getEnum("action") == "REPLACE")))
 		{
 			if (getFlag("debug")) qDebug() << "Importing gender: " << gender;
-//			db.getQuery().exec("UPDATE sample SET gender='" + gender + "' WHERE id=" + s_id);
+			db.getQuery().exec("UPDATE sample SET gender='" + gender + "' WHERE id=" + s_id);
 		}
 
 		//***patient_identifier
 		QString patient_identifier = genlab.patientIdentifier(ps_name);
-		if (s_data.patient_identifier == "" || (/**s_data.patient_identifier != patient_identifier && **/getEnum("action") == "REPLACE"))
+		if (patient_identifier != "" && (s_data.patient_identifier == "" || (s_data.patient_identifier != patient_identifier && getEnum("action") == "REPLACE")))
 		{
 			if (getFlag("debug")) qDebug() << "Importing patient identifier: " << patient_identifier;
-//			db.getQuery().exec("UPDATE sample SET patient_identifier='" + patient_identifier + "' WHERE id=" + s_id);
+			db.getQuery().exec("UPDATE sample SET patient_identifier='" + patient_identifier + "' WHERE id=" + s_id);
 		}
 
 		//***disease group and status
 		auto disease_data = genlab.diseaseInfo(ps_name);
 		QString disease_group = disease_data.first;
 		QString disease_status = disease_data.second;
-		if (s_data.disease_group == "n/a" || (/**s_data.disease_group != disease_group && **/getEnum("action") == "REPLACE"))
+		if (disease_group != "n/a" && (s_data.disease_group == "n/a" || (s_data.disease_group != disease_group && getEnum("action") == "REPLACE")))
 		{
 			if (getFlag("debug")) qDebug() << "Importing disease group: " << disease_group;
-//			db.getQuery().exec("UPDATE sample SET disease_group='" + disease_group + "' WHERE id=" + s_id);
+			db.getQuery().exec("UPDATE sample SET disease_group='" + disease_group + "' WHERE id=" + s_id);
 		}
 
-		if (disease_status != "n/a" && (s_data.disease_status == "n/a" || (/**s_data.disease_status != disease_status && **/getEnum("action") == "REPLACE")))
+		if (disease_status != "n/a" && (s_data.disease_status == "n/a" || (s_data.disease_status != disease_status && getEnum("action") == "REPLACE")))
 		{
 			if (getFlag("debug")) qDebug() << "Importing disease status: " << disease_status;
-//			db.getQuery().exec("UPDATE sample SET disease_status='" + disease_status + "' WHERE id=" + s_id);
+			db.getQuery().exec("UPDATE sample SET disease_status='" + disease_status + "' WHERE id=" + s_id);
 		}
 
 		//*** disease details *** 'HPO term id','ICD10 code','OMIM disease/phenotype identifier','Orpha number','CGI cancer type','tumor fraction','age of onset','clinical phenotype (free text)','RNA reference tissue')
@@ -344,7 +347,7 @@ public:
 				if (!study_id.isValid()) INFO(ArgumentException, "GenLab study name '" + study + "' not found in NGSD! Please add the study to NGSD, or correcte the study name in GenLab!");
 
 				if (getFlag("debug")) qDebug() << "Importing new study: " << study;
-//				db.getQuery().exec("INSERT INTO `study_sample`(`study_id`, `processed_sample_id`) VALUES ("+study_id.toString()+", "+ps_id+")");
+				db.getQuery().exec("INSERT INTO `study_sample`(`study_id`, `processed_sample_id`) VALUES ("+study_id.toString()+", "+ps_id+")");
 			}
 		}
 	}
@@ -366,7 +369,7 @@ public:
 				new_entry.date = QDateTime::currentDateTime();
 				disease_details << new_entry;
 				//NGSD Import:
-//				db.setSampleDiseaseInfo(s_id, disease_details);
+				db.setSampleDiseaseInfo(s_id, disease_details);
 			}
 		}
 	}
