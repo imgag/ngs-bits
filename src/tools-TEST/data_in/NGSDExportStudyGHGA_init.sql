@@ -8,8 +8,8 @@ INSERT INTO device (id, type, name) VALUES
 (1, 'NovaSeq6000', 'HORST');
 
 -- sequencing_run
-INSERT INTO sequencing_run (id, name, fcid, device_id, recipe, quality) VALUES 
-(1, 'RUN1', 'ABC', 1, '150+8+8+150', 'good');
+INSERT INTO sequencing_run (id, name, fcid, flowcell_type, device_id, recipe, quality) VALUES 
+(1, 'RUN1', 'ABC', 'Illumina NovaSeq S4', 1, '150+8+8+150', 'good');
 
 
 -- processing_system

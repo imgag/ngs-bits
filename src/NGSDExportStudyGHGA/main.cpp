@@ -54,6 +54,49 @@ public:
 		return value.toString();
 	}
 
+	QString systemTypeToExperimentType(QString sys_type)
+	{
+		if (sys_type=="WGS") return "WGS";
+		if (sys_type=="WES") return "WXS";
+		if (sys_type=="RNA") return "Total RNA";
+
+		THROW(NotImplementedException, "Unhandled system type '" + sys_type + "' in CV conversion!");
+	}
+
+	QString systemTypeToLibraryType(QString sys_type)
+	{
+		if (sys_type=="WGS") return "WGS";
+		if (sys_type=="WES") return "WXS";
+		if (sys_type=="RNA") return "Total RNA";
+
+		THROW(NotImplementedException, "Unhandled system type '" + sys_type + "' in CV conversion!");
+	}
+
+	QString systemTypeToDatasetType(QString sys_type)
+	{
+		if (sys_type=="WGS") return "Whole genome sequencing";
+		if (sys_type=="WES") return "Exome sequencing";
+		if (sys_type=="RNA") return "Transcriptome profiling by high-throughput sequencing";
+
+		THROW(NotImplementedException, "Unhandled system type '" + sys_type + "' in CV conversion!");
+	}
+
+	QString deviceTypeToSequencingInstrument(QString device_type)
+	{
+		if (device_type=="NextSeq500") return "Illumina NextSeq 500";
+		if (device_type=="NovaSeq6000") return "Illumina NovaSeq 6000";
+
+		THROW(NotImplementedException, "Unhandled device type '" + device_type + "' in CV conversion!");
+	}
+
+	QString flowcellTypeToflowcellType(QString flowcell_type)
+	{
+		if (flowcell_type=="Illumina NovaSeq S2") return "Illumina NovaSeq S2";
+		if (flowcell_type=="Illumina NovaSeq S4") return "Illumina NovaSeq S4";
+
+		THROW(NotImplementedException, "Unhandled flowcell type '" + flowcell_type + "' in CV conversion!");
+	}
+
 	//Processed sample heler struct
 	struct PSData
 	{
@@ -61,7 +104,6 @@ public:
 		QString name;
 		QString bam;
 		QString pseudonym; //processed sample ID left-padded with '0' to 6 digits (prefixed with 3-character object type to generate the alias)
-
 	};
 
 	//Common data helper struct
@@ -75,6 +117,13 @@ public:
 		QString study_name;
 		QStringList study_affilitions;
 
+		//data access
+		QString dac_email;
+		QString dac_organization;
+		QString dap_text;
+		QString dap_url;
+		QStringList dap_conditions; //attention, this is a CV!
+
 		//processed samples
 		QList<PSData> ps_list;
 	};
@@ -85,13 +134,9 @@ public:
 
 		obj.insert("alias", data.study_name);
 		obj.insert("title", data.study_name);
-
 		QString desc = db.getValue("SELECT description FROM study WHERE name='" + data.study_name + "'").toByteArray();
 		obj.insert("description", desc);
-
 		obj.insert("affiliation", QJsonArray::fromStringList(data.study_affilitions));
-
-		//fixed
 		obj.insert("type", "resequencing");
 		obj.insert("has_attribute", QJsonValue());
 		obj.insert("has_project", QJsonValue());
@@ -101,7 +146,6 @@ public:
 
 		parent.insert("has_study", obj);
 	}
-
 
 	void addExperiments(QJsonObject& parent, const CommonData& data, NGSD& db)
 	{
@@ -113,14 +157,11 @@ public:
 
 			QJsonObject obj;
 			obj.insert("alias", "EXP" + ps_data.pseudonym);
-			obj.insert("description", "short-read sequencing (" + data_ngsd.processing_system_type + ")");
-			//TODO add experiment type to JSON (Email from 17.01.23)
-
+			obj.insert("description", "short-read sequencing");
+			obj.insert("type", systemTypeToExperimentType(data_ngsd.processing_system_type));
 			obj.insert("has_file", QJsonArray::fromStringList(QStringList() << "BAM" + ps_data.pseudonym));
 			obj.insert("has_protocol", QJsonArray::fromStringList(QStringList() << "LIB" + ps_data.pseudonym << "SEQ" + ps_data.pseudonym));
 			obj.insert("has_sample", QJsonArray::fromStringList(QStringList() << "SAM" + ps_data.pseudonym));
-
-			//fixed
 			obj.insert("has_study", data.study_name);
 			obj.insert("biological_replicates", "1");
 			obj.insert("technical_replicates", "1");
@@ -134,6 +175,29 @@ public:
 		parent.insert("has_experiment", array);
 	}
 
+	void addAnalyses(QJsonObject& parent, const CommonData& data)
+	{
+		QJsonArray array;
+
+		foreach(const PSData& ps_data, data.ps_list)
+		{
+			QJsonObject obj;
+			obj.insert("alias", "ANA" + ps_data.pseudonym);
+			obj.insert("description", "short-read data analysis using megSAP: https://github.com/imgag/megSAP");
+			obj.insert("has_output", QJsonArray::fromStringList(QStringList() << "BAM" + ps_data.pseudonym));
+			obj.insert("has_study", data.study_name);
+			obj.insert("reference_chromosome", QJsonValue());
+			obj.insert("reference_genome", "GRCh38");
+			obj.insert("type", "BAM");
+			obj.insert("has_input", QJsonArray());
+			obj.insert("schema_type", "CreateExperiment");
+			obj.insert("schema_version", data.version);
+
+			array.append(obj);
+		}
+
+		parent.insert("has_analysis", array);
+	}
 
 	void addFiles(QJsonObject& parent, const CommonData& data)
 	{
@@ -142,7 +206,7 @@ public:
 		foreach(const PSData& ps_data, data.ps_list)
 		{
 			QJsonObject obj;
-			obj.insert("alias", "BAM" + ps_data.pseudonym);
+			obj.insert("alias", "BAM" + ps_data.pseudonym); //also add VCF?! (dataset type - Genomic variant calling)
 			obj.insert("name", ps_data.pseudonym + ".bam");
 
 			if (data.test_mode)
@@ -161,7 +225,6 @@ public:
 				obj.insert("checksum", QString(hash.result()));
 			}
 
-			//fixed
 			obj.insert("format", "bam");
 			obj.insert("checksum_type", "MD5");
 			obj.insert("schema_type", "CreateExperiment");
@@ -171,6 +234,170 @@ public:
 		}
 
 		parent.insert("has_file", array);
+	}
+
+	void addFixed(QJsonObject& parent)
+	{
+		parent.insert("has_project", QJsonValue());
+		parent.insert("has_publication", QJsonArray());
+		parent.insert("has_biospecimen", QJsonArray());
+	}
+
+	void addDataAccessCommittee(QJsonObject& parent, const CommonData& data)
+	{
+		QJsonObject obj;
+		obj.insert("alias", data.study_name + " DAC");
+		obj.insert("main_contact", data.dac_email);
+		obj.insert("has_member", QJsonArray::fromStringList(QStringList() << data.dac_email));
+		obj.insert("schema_type", "CreateExperiment");
+		obj.insert("schema_version", data.version);
+
+		parent.insert("has_data_access_committee", obj);
+
+		//create member object as well
+		QJsonObject obj2;
+		obj2.insert("alias", data.dac_email);
+		obj2.insert("email", data.dac_email);
+		obj2.insert("organization", data.dac_organization);
+		obj2.insert("schema_type", "CreateExperiment");
+		obj2.insert("schema_version", data.version);
+
+		QJsonArray array;
+		array.append(obj2);
+		parent.insert("has_member", array);
+	}
+
+	void addDataAccessPolicy(QJsonObject& parent, const CommonData& data)
+	{
+		QJsonObject obj;
+		obj.insert("alias", "DAP_"+data.study_name);
+		obj.insert("name", "Data access policy for study "+data.study_name);
+		obj.insert("description", "Data access policy for study "+data.study_name);
+		obj.insert("data_access_policy_text", data.dap_text);
+		obj.insert("data_access_policy_url", data.dap_url);
+		obj.insert("has_data_use_conditions", QJsonArray::fromStringList(QStringList() << data.dap_conditions));
+		obj.insert("has_data_access_committee", data.study_name + " DAC");
+		obj.insert("schema_type", "CreateExperiment");
+		obj.insert("schema_version", data.version);
+
+		parent.insert("has_data_access_policy", obj);
+	}
+
+	void addDatasets(QJsonObject& parent, const CommonData& data, NGSD& db)
+	{
+		QJsonArray array;
+
+		QJsonObject obj;
+
+		obj.insert("alias", data.study_name + " dataset");
+		obj.insert("title", "Dataset of the the study " + data.study_name);
+		obj.insert("description", "Dataset of the the study " + data.study_name);
+		obj.insert("has_study", QJsonArray::fromStringList(QStringList() << data.study_name));
+		obj.insert("has_data_access_policy", "DAP_"+data.study_name);
+
+		QStringList tmp;
+		foreach(const PSData& ps_data, data.ps_list)
+		{
+			ProcessedSampleData data_ngsd = db.getProcessedSampleData(ps_data.ngsd_id);
+			tmp << systemTypeToDatasetType(data_ngsd.processing_system_type);
+		}
+		obj.insert("type", QJsonArray::fromStringList(tmp));
+
+		tmp.clear();
+		foreach(const PSData& ps_data, data.ps_list)
+		{
+			tmp << "ANA" + ps_data.pseudonym;
+		}
+		obj.insert("has_analysis", QJsonArray::fromStringList(tmp));
+
+		tmp.clear();
+		foreach(const PSData& ps_data, data.ps_list)
+		{
+			tmp << "EXP" + ps_data.pseudonym;
+		}
+		obj.insert("has_experiment", QJsonArray::fromStringList(tmp));
+
+		tmp.clear();
+		foreach(const PSData& ps_data, data.ps_list)
+		{
+			tmp << "BAM" + ps_data.pseudonym;
+		}
+		obj.insert("has_file", QJsonArray::fromStringList(tmp));
+
+		tmp.clear();
+		foreach(const PSData& ps_data, data.ps_list)
+		{
+			tmp << "SAM" + ps_data.pseudonym;
+		}
+		obj.insert("has_sample", QJsonArray::fromStringList(tmp));
+
+		obj.insert("schema_type", "CreateExperiment");
+		obj.insert("schema_version", data.version);
+
+		array.append(obj);
+
+		parent.insert("has_dataset", array);
+	}
+
+	void addProtocols(QJsonObject& parent, const CommonData& data, NGSD& db)
+	{
+		QJsonArray array;
+
+		foreach(const PSData& ps_data, data.ps_list)
+		{
+			ProcessedSampleData data_ngsd = db.getProcessedSampleData(ps_data.ngsd_id);
+
+			//library
+			QJsonObject obj;
+			obj.insert("alias", "LIB" + ps_data.pseudonym);
+			obj.insert("description", data_ngsd.processing_system);
+			obj.insert("library_name", "processed_sample.id:"+ps_data.ngsd_id);
+			obj.insert("library_layout", "PE");
+			obj.insert("library_type", systemTypeToLibraryType(data_ngsd.processing_system_type));
+			obj.insert("library_selection", "unspecified");
+			obj.insert("library_preparation_kit_retail_name", data_ngsd.processing_system);
+			obj.insert("library_preparation_kit_manufacturer", QJsonValue());
+			obj.insert("library_preparation", QJsonValue());
+			obj.insert("end_bias", QJsonValue());
+			obj.insert("primer", QJsonValue());
+			obj.insert("has_attribute", QJsonValue());
+			obj.insert("rnaseq_strandedness", QJsonValue());
+			obj.insert("target_regions", QJsonValue());
+			obj.insert("schema_type", "CreateExperiment");
+			obj.insert("schema_version", data.version);
+
+			array.append(obj);
+
+			//sequencing
+			QJsonObject obj2;
+			obj2.insert("alias", "SEQ" + ps_data.pseudonym);
+			obj2.insert("description", "short-read sequencing");
+			obj2.insert("type", QJsonValue());
+			QString device_type = db.getValue("SELECT d.type FROM device d, sequencing_run r WHERE r.device_id=d.id AND r.name='" + data_ngsd.run_name + "'").toString();
+			obj2.insert("instrument_model", deviceTypeToSequencingInstrument(device_type));
+			obj2.insert("sequencing_center", QJsonValue());
+			obj2.insert("sequencing_read_length", QJsonValue());
+			obj2.insert("seq_forward_or_reverse", QJsonValue());
+			obj2.insert("target_coverage", QJsonValue());
+			QString fc_id = db.getValue("SELECT fcid FROM sequencing_run WHERE name='" + data_ngsd.run_name + "'").toString();
+			obj2.insert("flow_cell_id", fc_id);
+			QString fc_type = db.getValue("SELECT flowcell_type FROM sequencing_run WHERE name='" + data_ngsd.run_name + "'").toString();
+			obj2.insert("flow_cell_type", flowcellTypeToflowcellType(fc_type));
+			obj2.insert("cell_barcode_offset", QJsonValue());
+			obj2.insert("cell_barcode_read", QJsonValue());
+			obj2.insert("cell_barcode_size", QJsonValue());
+			obj2.insert("has_attribute", QJsonValue());
+			obj2.insert("sample_barcode_read", QJsonValue());
+			obj2.insert("umi_barcode_offset", QJsonValue());
+			obj2.insert("umi_barcode_read", QJsonValue());
+			obj2.insert("umi_barcode_size", QJsonValue());
+			obj2.insert("schema_type", "CreateExperiment");
+			obj2.insert("schema_version", data.version);
+
+			array.append(obj2);
+		}
+
+		parent.insert("has_protocol", array);
 	}
 
 	virtual void main()
@@ -186,7 +413,13 @@ public:
 		data.version = "0.9.0";
 		data.test_mode = getFlag("test");
 		data.study_name = getString(data_obj, "study");
-		data.study_affilitions = getArray(data_obj, "affiliations");
+		data.study_affilitions = getArray(data_obj, "study_affiliations");
+		data.dac_email = getString(data_obj, "data_access_committee_email");
+		data.dac_organization = getString(data_obj, "data_access_committee_organization");
+		data.dap_text = getString(data_obj, "data_access_policy_text");
+		data.dap_url = getString(data_obj, "data_access_policy_url");
+		data.dap_conditions = getArray(data_obj, "data_access_policy_conditions");
+
 		NGSD db(data.test_mode);
 
 		//determine processed samples to export
@@ -213,8 +446,14 @@ public:
 		root.insert("schema_type", "CreateSubmission");
 		root.insert("schema_version", data.version);
 		addStudy(root, data, db);
+		addDataAccessCommittee(root, data);
+		addDataAccessPolicy(root, data);
 		addExperiments(root, data, db);
+		addAnalyses(root, data);
 		addFiles(root, data);
+		addDatasets(root, data, db);
+		addProtocols(root, data, db);
+		addFixed(root);
 
 		//store JSON
 		QJsonDocument doc(root);

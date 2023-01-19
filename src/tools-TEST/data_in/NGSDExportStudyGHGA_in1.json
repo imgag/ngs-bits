@@ -1,4 +1,9 @@
 {
 	"study" : "Study4711",
-	"affiliations" : ["Affiliation 1", "Affiliation 2"]
+	"study_affiliations" : ["Affiliation 1", "Affiliation 2"],
+	"data_access_committee_email" : "norply@med.uni-tuebingen.de",
+	"data_access_committee_organization" : "UKT, Tübingen, Germany",
+	"data_access_policy_text" : "Textual description of the DAP",
+	"data_access_policy_url" : "http:://url.describing.the.dap.de",
+	"data_access_policy_conditions" : ["Condition 1", "Condition 2"]
 }
