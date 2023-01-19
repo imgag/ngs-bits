@@ -97,6 +97,18 @@ public:
 		THROW(NotImplementedException, "Unhandled flowcell type '" + flowcell_type + "' in CV conversion!");
 	}
 
+	QString sampleTypeToSampleType(QString sample_type, bool is_ffpe)
+	{
+		if (!is_ffpe && (sample_type=="DNA" || sample_type=="DNA (amplicon)" || sample_type=="DNA (native)")) return "genomic DNA";
+		if (!is_ffpe && sample_type=="RNA") return "total RNA";
+		if (!is_ffpe && sample_type=="cfDNA") return "cfDNA";
+
+		if (is_ffpe && (sample_type=="DNA" || sample_type=="DNA (amplicon)" || sample_type=="DNA (native)")) return "FFPE DNA";
+		if (is_ffpe && sample_type=="RNA") return "FFPE total RNA";
+
+		THROW(NotImplementedException, "Unhandled sample type '" + sample_type + "' " + (is_ffpe ? "(FFPE)" : "") + " in CV conversion!");
+	}
+
 	//Processed sample heler struct
 	struct PSData
 	{
@@ -190,7 +202,7 @@ public:
 			obj.insert("reference_genome", "GRCh38");
 			obj.insert("type", "BAM");
 			obj.insert("has_input", QJsonArray());
-			obj.insert("schema_type", "CreateExperiment");
+			obj.insert("schema_type", "CreateAnalysis");
 			obj.insert("schema_version", data.version);
 
 			array.append(obj);
@@ -227,7 +239,7 @@ public:
 
 			obj.insert("format", "bam");
 			obj.insert("checksum_type", "MD5");
-			obj.insert("schema_type", "CreateExperiment");
+			obj.insert("schema_type", "CreateFile");
 			obj.insert("schema_version", data.version);
 
 			array.append(obj);
@@ -249,21 +261,21 @@ public:
 		obj.insert("alias", data.study_name + " DAC");
 		obj.insert("main_contact", data.dac_email);
 		obj.insert("has_member", QJsonArray::fromStringList(QStringList() << data.dac_email));
-		obj.insert("schema_type", "CreateExperiment");
+		obj.insert("schema_type", "CreateDataAccessCommittee");
 		obj.insert("schema_version", data.version);
 
 		parent.insert("has_data_access_committee", obj);
 
 		//create member object as well
-		QJsonObject obj2;
-		obj2.insert("alias", data.dac_email);
-		obj2.insert("email", data.dac_email);
-		obj2.insert("organization", data.dac_organization);
-		obj2.insert("schema_type", "CreateExperiment");
-		obj2.insert("schema_version", data.version);
+		obj = QJsonObject();
+		obj.insert("alias", data.dac_email);
+		obj.insert("email", data.dac_email);
+		obj.insert("organization", data.dac_organization);
+		obj.insert("schema_type", "CreateMember");
+		obj.insert("schema_version", data.version);
 
 		QJsonArray array;
-		array.append(obj2);
+		array.append(obj);
 		parent.insert("has_member", array);
 	}
 
@@ -277,7 +289,7 @@ public:
 		obj.insert("data_access_policy_url", data.dap_url);
 		obj.insert("has_data_use_conditions", QJsonArray::fromStringList(QStringList() << data.dap_conditions));
 		obj.insert("has_data_access_committee", data.study_name + " DAC");
-		obj.insert("schema_type", "CreateExperiment");
+		obj.insert("schema_type", "CreateDataAccessPolicy");
 		obj.insert("schema_version", data.version);
 
 		parent.insert("has_data_access_policy", obj);
@@ -331,7 +343,7 @@ public:
 		}
 		obj.insert("has_sample", QJsonArray::fromStringList(tmp));
 
-		obj.insert("schema_type", "CreateExperiment");
+		obj.insert("schema_type", "CreateDataset");
 		obj.insert("schema_version", data.version);
 
 		array.append(obj);
@@ -363,41 +375,87 @@ public:
 			obj.insert("has_attribute", QJsonValue());
 			obj.insert("rnaseq_strandedness", QJsonValue());
 			obj.insert("target_regions", QJsonValue());
-			obj.insert("schema_type", "CreateExperiment");
+			obj.insert("schema_type", "CreateLibraryPreparationProtocol");
 			obj.insert("schema_version", data.version);
 
 			array.append(obj);
 
 			//sequencing
-			QJsonObject obj2;
-			obj2.insert("alias", "SEQ" + ps_data.pseudonym);
-			obj2.insert("description", "short-read sequencing");
-			obj2.insert("type", QJsonValue());
+			obj = QJsonObject();
+			obj.insert("alias", "SEQ" + ps_data.pseudonym);
+			obj.insert("description", "short-read sequencing");
+			obj.insert("type", QJsonValue());
 			QString device_type = db.getValue("SELECT d.type FROM device d, sequencing_run r WHERE r.device_id=d.id AND r.name='" + data_ngsd.run_name + "'").toString();
-			obj2.insert("instrument_model", deviceTypeToSequencingInstrument(device_type));
-			obj2.insert("sequencing_center", QJsonValue());
-			obj2.insert("sequencing_read_length", QJsonValue());
-			obj2.insert("seq_forward_or_reverse", QJsonValue());
-			obj2.insert("target_coverage", QJsonValue());
+			obj.insert("instrument_model", deviceTypeToSequencingInstrument(device_type));
+			obj.insert("sequencing_center", QJsonValue());
+			obj.insert("sequencing_read_length", QJsonValue());
+			obj.insert("seq_forward_or_reverse", QJsonValue());
+			obj.insert("target_coverage", QJsonValue());
 			QString fc_id = db.getValue("SELECT fcid FROM sequencing_run WHERE name='" + data_ngsd.run_name + "'").toString();
-			obj2.insert("flow_cell_id", fc_id);
+			obj.insert("flow_cell_id", fc_id);
 			QString fc_type = db.getValue("SELECT flowcell_type FROM sequencing_run WHERE name='" + data_ngsd.run_name + "'").toString();
-			obj2.insert("flow_cell_type", flowcellTypeToflowcellType(fc_type));
-			obj2.insert("cell_barcode_offset", QJsonValue());
-			obj2.insert("cell_barcode_read", QJsonValue());
-			obj2.insert("cell_barcode_size", QJsonValue());
-			obj2.insert("has_attribute", QJsonValue());
-			obj2.insert("sample_barcode_read", QJsonValue());
-			obj2.insert("umi_barcode_offset", QJsonValue());
-			obj2.insert("umi_barcode_read", QJsonValue());
-			obj2.insert("umi_barcode_size", QJsonValue());
-			obj2.insert("schema_type", "CreateExperiment");
-			obj2.insert("schema_version", data.version);
+			obj.insert("flow_cell_type", flowcellTypeToflowcellType(fc_type));
+			obj.insert("cell_barcode_offset", QJsonValue());
+			obj.insert("cell_barcode_read", QJsonValue());
+			obj.insert("cell_barcode_size", QJsonValue());
+			obj.insert("has_attribute", QJsonValue());
+			obj.insert("sample_barcode_read", QJsonValue());
+			obj.insert("umi_barcode_offset", QJsonValue());
+			obj.insert("umi_barcode_read", QJsonValue());
+			obj.insert("umi_barcode_size", QJsonValue());
+			obj.insert("schema_type", "CreateSequencingProtocol");
+			obj.insert("schema_version", data.version);
 
-			array.append(obj2);
+			array.append(obj);
 		}
 
 		parent.insert("has_protocol", array);
+	}
+
+	void addTissueArray(QJsonObject& parent, const CommonData& data, QString tissue)
+	{
+		QJsonArray array;
+
+		QJsonObject obj;
+		obj.insert("concept_name", tissue); //NGSD and GHGA use BRENDA Tissue Ontology > no conversion required
+		obj.insert("schema_type", "CreateAnatomicalEntity");
+		obj.insert("schema_version", data.version);
+
+		array.append(obj);
+
+		parent.insert("has_anatomical_entity", array);
+	}
+
+	void addSamples(QJsonObject& parent, const CommonData& data, NGSD& db)
+	{
+		QJsonArray array;
+
+		foreach(const PSData& ps_data, data.ps_list)
+		{
+			SampleData data_ngsd = db.getSampleData(ps_data.ngsd_id);
+
+			//library
+			QJsonObject obj;
+
+			obj.insert("alias", "SAM" + ps_data.pseudonym);
+			obj.insert("name", "SAM" + ps_data.pseudonym);
+			addTissueArray(obj, data, data_ngsd.tissue);
+			obj.insert("description", "sample that was sequenced");
+			obj.insert("type", sampleTypeToSampleType(data_ngsd.type, data_ngsd.is_ffpe));
+
+			obj.insert("case_control_status", QJsonValue());
+			obj.insert("vital_status_at_sampling", QJsonValue());
+			obj.insert("isolation", QJsonValue());
+			obj.insert("storage", QJsonValue());
+			obj.insert("has_biospecimen", QJsonValue());
+			obj.insert("xref", QJsonValue());
+			obj.insert("has_attribute", QJsonValue());
+			obj.insert("has_individual", "IND" + ps_data.pseudonym);
+
+			array.append(obj);
+		}
+
+		parent.insert("has_sample", array);
 	}
 
 	virtual void main()
@@ -453,6 +511,7 @@ public:
 		addFiles(root, data);
 		addDatasets(root, data, db);
 		addProtocols(root, data, db);
+		addSamples(root, data, db);
 		addFixed(root);
 
 		//store JSON
@@ -468,3 +527,8 @@ int main(int argc, char *argv[])
 	ConcreteTool tool(argc, argv);
 	return tool.execute();
 }
+
+//TODO questions
+//GHGA: BAM only ok like that?
+//GHGA: tumor status? tumor-normal linking
+

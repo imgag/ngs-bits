@@ -11,7 +11,7 @@
             "has_study": "Study4711",
             "reference_chromosome": null,
             "reference_genome": "GRCh38",
-            "schema_type": "CreateExperiment",
+            "schema_type": "CreateAnalysis",
             "schema_version": "0.9.0",
             "type": "BAM"
         },
@@ -26,7 +26,7 @@
             "has_study": "Study4711",
             "reference_chromosome": null,
             "reference_genome": "GRCh38",
-            "schema_type": "CreateExperiment",
+            "schema_type": "CreateAnalysis",
             "schema_version": "0.9.0",
             "type": "BAM"
         }
@@ -39,7 +39,7 @@
             "norply@med.uni-tuebingen.de"
         ],
         "main_contact": "norply@med.uni-tuebingen.de",
-        "schema_type": "CreateExperiment",
+        "schema_type": "CreateDataAccessCommittee",
         "schema_version": "0.9.0"
     },
     "has_data_access_policy": {
@@ -53,7 +53,7 @@
             "Condition 2"
         ],
         "name": "Data access policy for study Study4711",
-        "schema_type": "CreateExperiment",
+        "schema_type": "CreateDataAccessPolicy",
         "schema_version": "0.9.0"
     },
     "has_dataset": [
@@ -80,7 +80,7 @@
             "has_study": [
                 "Study4711"
             ],
-            "schema_type": "CreateExperiment",
+            "schema_type": "CreateDataset",
             "schema_version": "0.9.0",
             "title": "Dataset of the the study Study4711",
             "type": [
@@ -140,7 +140,7 @@
             "checksum_type": "MD5",
             "format": "bam",
             "name": "000001.bam",
-            "schema_type": "CreateExperiment",
+            "schema_type": "CreateFile",
             "schema_version": "0.9.0",
             "size": "6000000"
         },
@@ -150,7 +150,7 @@
             "checksum_type": "MD5",
             "format": "bam",
             "name": "000002.bam",
-            "schema_type": "CreateExperiment",
+            "schema_type": "CreateFile",
             "schema_version": "0.9.0",
             "size": "6000000"
         }
@@ -160,7 +160,7 @@
             "alias": "norply@med.uni-tuebingen.de",
             "email": "norply@med.uni-tuebingen.de",
             "organization": "UKT, Tübingen, Germany",
-            "schema_type": "CreateExperiment",
+            "schema_type": "CreateMember",
             "schema_version": "0.9.0"
         }
     ],
@@ -180,7 +180,7 @@
             "library_type": "WGS",
             "primer": null,
             "rnaseq_strandedness": null,
-            "schema_type": "CreateExperiment",
+            "schema_type": "CreateLibraryPreparationProtocol",
             "schema_version": "0.9.0",
             "target_regions": null
         },
@@ -195,7 +195,7 @@
             "has_attribute": null,
             "instrument_model": "Illumina NovaSeq 6000",
             "sample_barcode_read": null,
-            "schema_type": "CreateExperiment",
+            "schema_type": "CreateSequencingProtocol",
             "schema_version": "0.9.0",
             "seq_forward_or_reverse": null,
             "sequencing_center": null,
@@ -220,7 +220,7 @@
             "library_type": "Total RNA",
             "primer": null,
             "rnaseq_strandedness": null,
-            "schema_type": "CreateExperiment",
+            "schema_type": "CreateLibraryPreparationProtocol",
             "schema_version": "0.9.0",
             "target_regions": null
         },
@@ -235,7 +235,7 @@
             "has_attribute": null,
             "instrument_model": "Illumina NovaSeq 6000",
             "sample_barcode_read": null,
-            "schema_type": "CreateExperiment",
+            "schema_type": "CreateSequencingProtocol",
             "schema_version": "0.9.0",
             "seq_forward_or_reverse": null,
             "sequencing_center": null,
@@ -248,6 +248,50 @@
         }
     ],
     "has_publication": [
+    ],
+    "has_sample": [
+        {
+            "alias": "SAM000001",
+            "case_control_status": null,
+            "description": "sample that was sequenced",
+            "has_anatomical_entity": [
+                {
+                    "concept_name": "blood",
+                    "schema_type": "CreateAnatomicalEntity",
+                    "schema_version": "0.9.0"
+                }
+            ],
+            "has_attribute": null,
+            "has_biospecimen": null,
+            "has_individual": "IND000001",
+            "isolation": null,
+            "name": "SAM000001",
+            "storage": null,
+            "type": "genomic DNA",
+            "vital_status_at_sampling": null,
+            "xref": null
+        },
+        {
+            "alias": "SAM000002",
+            "case_control_status": null,
+            "description": "sample that was sequenced",
+            "has_anatomical_entity": [
+                {
+                    "concept_name": "skin",
+                    "schema_type": "CreateAnatomicalEntity",
+                    "schema_version": "0.9.0"
+                }
+            ],
+            "has_attribute": null,
+            "has_biospecimen": null,
+            "has_individual": "IND000002",
+            "isolation": null,
+            "name": "SAM000002",
+            "storage": null,
+            "type": "total RNA",
+            "vital_status_at_sampling": null,
+            "xref": null
+        }
     ],
     "has_study": {
         "affiliation": [
