@@ -16,17 +16,17 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Import sample information from genlab into NGSD.");
-		addString("ps_id", "sample for which the genlab data will be imported.", false);
+		setDescription("Import sample information from GenLAB into NGSD.");
+		addString("ps_id", "sample for which the GenLAB data will be imported.", false);
 		//optional
-		addInfile("rna_tissue_map", "TSV file with mapping from HPO to rna reference tissue.", true, true);
-		addFlag("no_relations", "Do not search and import sample relations from Genlab");
-		addFlag("no_metadata", "Do not search and import metadata from Genlab (disease group, ICD10, HPO, ...)");
+		addFlag("no_rna_tissue", "Do not import RNA reference tissue from HPO terms.");
+		addFlag("no_relations", "Do not search and import sample relations from GenLAB");
+		addFlag("no_metadata", "Do not search and import metadata from GenLAB (disease group, ICD10, HPO, ...)");
 		QString desc = "Action for disease details that are already in NGSD: \n"
-					   "\t\t\t\tADD: add additional metadata even when NGSD contains metadata of the same type applies to: disease details, relations\n"
-					   "\t\t\t\tREPLACE: replace NGSD metadata with data from genlab. Applies to: gender, patient identifier disease group and disease status.\n"
-					   "\t\t\t\tIGNORE: if NGSD already contains information of that type, do not import the info from genlab.";
-		addEnum("action", desc, true, QStringList{"ADD", "REPLACE", "IGNORE"}, "IGNORE");
+					   "\t\t\t\tADD_REPLACE: ADD additional metadata even when NGSD contains metadata of the same type applies to: disease infos (HPO, Orpha, RNA tissue, ...), relations (tumor-normal, same-sample,...)\n"
+					   "\t\t\t\t\tand REPLACE existing metadata when only one item is supported. Applies to : gender, patient identifier disease group and disease status.\n"
+					   "\t\t\t\tIGNORE: if NGSD already contains information of that type, do not import the info from GenLAB.";
+		addEnum("action", desc, true, QStringList{"ADD_REPLACE", "IGNORE"}, "IGNORE");
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("debug", "Enables debug output.");
 	}
@@ -35,7 +35,6 @@ public:
 	{
 		QString ps_name = getString("ps_id");
 		NGSD db(getFlag("test"));
-		QString rna_tissue_map = getInfile("rna_tissue_map");
 
 		if (! GenLabDB::isAvailable())
 		{
@@ -54,9 +53,9 @@ public:
 			importGenLabMetadata(ps_name, db, genlab);
 		}
 
-		if (rna_tissue_map != "")
+		if (! getFlag("no_rna_tissue"))
 		{
-			importRnaReferenceTissue(ps_name, db, rna_tissue_map);
+			importRnaReferenceTissue(ps_name, db);
 		}
 	}
 
@@ -99,7 +98,7 @@ public:
 			QSet<int> sample_ids_ngsd = db.relatedSamples(current_sample_id.toInt(), genlab_relation.relation);
 			int sample2_id = db.sampleId(genlab_relation.sample1).toInt();
 
-			if (sample_ids_ngsd.isEmpty() || (! sample_ids_ngsd.contains(sample2_id) && getEnum("action") == "ADD"))
+			if (sample_ids_ngsd.isEmpty() || (! sample_ids_ngsd.contains(sample2_id) && getEnum("action") == "ADD_REPLACE"))
 			{
 				if (getFlag("debug")) qDebug() << "Adding relative relation: " << genlab_relation.sample1 << " - " << genlab_relation.relation << " - " << genlab_relation.sample2;
 				db.addSampleRelation(genlab_relation);
@@ -292,7 +291,7 @@ public:
 
 		//***gender:
 		QString gender = genlab.gender(ps_name);
-		if (gender != "" && (s_data.gender == "n/a" || (s_data.gender != gender && getEnum("action") == "REPLACE")))
+		if (gender != "" && (s_data.gender == "n/a" || (s_data.gender != gender && getEnum("action") == "ADD_REPLACE")))
 		{
 			if (getFlag("debug")) qDebug() << "Importing gender: " << gender;
 			db.getQuery().exec("UPDATE sample SET gender='" + gender + "' WHERE id=" + s_id);
@@ -300,7 +299,7 @@ public:
 
 		//***patient_identifier
 		QString patient_identifier = genlab.patientIdentifier(ps_name);
-		if (patient_identifier != "" && (s_data.patient_identifier == "" || (s_data.patient_identifier != patient_identifier && getEnum("action") == "REPLACE")))
+		if (patient_identifier != "" && (s_data.patient_identifier == "" || (s_data.patient_identifier != patient_identifier && getEnum("action") == "ADD_REPLACE")))
 		{
 			if (getFlag("debug")) qDebug() << "Importing patient identifier: " << patient_identifier;
 			db.getQuery().exec("UPDATE sample SET patient_identifier='" + patient_identifier + "' WHERE id=" + s_id);
@@ -310,13 +309,13 @@ public:
 		auto disease_data = genlab.diseaseInfo(ps_name);
 		QString disease_group = disease_data.first;
 		QString disease_status = disease_data.second;
-		if (disease_group != "n/a" && (s_data.disease_group == "n/a" || (s_data.disease_group != disease_group && getEnum("action") == "REPLACE")))
+		if (disease_group != "n/a" && (s_data.disease_group == "n/a" || (s_data.disease_group != disease_group && getEnum("action") == "ADD_REPLACE")))
 		{
 			if (getFlag("debug")) qDebug() << "Importing disease group: " << disease_group;
 			db.getQuery().exec("UPDATE sample SET disease_group='" + disease_group + "' WHERE id=" + s_id);
 		}
 
-		if (disease_status != "n/a" && (s_data.disease_status == "n/a" || (s_data.disease_status != disease_status && getEnum("action") == "REPLACE")))
+		if (disease_status != "n/a" && (s_data.disease_status == "n/a" || (s_data.disease_status != disease_status && getEnum("action") == "ADD_REPLACE")))
 		{
 			if (getFlag("debug")) qDebug() << "Importing disease status: " << disease_status;
 			db.getQuery().exec("UPDATE sample SET disease_status='" + disease_status + "' WHERE id=" + s_id);
@@ -341,7 +340,7 @@ public:
 
 		foreach(QString study, genlab_studies)
 		{
-			if (ngsd_studies.count() == 0 || (! ngsd_studies.contains(study) && getEnum("action") == "ADD"))
+			if (ngsd_studies.count() == 0 || (! ngsd_studies.contains(study) && getEnum("action") == "ADD_REPLACE"))
 			{
 				QVariant study_id = db.getValue("SELECT id FROM study WHERE name=:0", true, study);
 				if (!study_id.isValid()) INFO(ArgumentException, "GenLab study name '" + study + "' not found in NGSD! Please add the study to NGSD, or correcte the study name in GenLab!");
@@ -357,7 +356,7 @@ public:
 		QStringList ngsd_values = ngsdDiseaseDetails(db, s_id, type);
 		foreach (QString genlab_v, genlab_values)
 		{
-			if (ngsd_values.empty() || (! ngsd_values.contains(genlab_v) && getEnum("action") == "ADD"))
+			if (ngsd_values.empty() || (! ngsd_values.contains(genlab_v) && getEnum("action") == "ADD_REPLACE"))
 			{
 				if (getFlag("debug")) qDebug() << "Importing disease details: " << type << " - " << genlab_v;
 
@@ -387,9 +386,9 @@ public:
 		return values;
 	}
 
-	void importRnaReferenceTissue(QString& ps_name, NGSD& db, QString rna_tissue_map)
+	void importRnaReferenceTissue(QString& ps_name, NGSD& db)
 	{
-		auto map = loadHPOtoTissueMap(rna_tissue_map);
+		auto map = loadHPOtoTissueMap(":/HPO_to_RnaReferenceTissue.tsv");
 		QString s_id = db.sampleId(ps_name);
 
 		QList<SampleDiseaseInfo> hpo_terms = db.getSampleDiseaseInfo(s_id, "HPO term id");

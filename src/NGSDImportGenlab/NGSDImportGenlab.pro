@@ -20,4 +20,5 @@ include("../app_cli.pri")
 INCLUDEPATH += $$PWD/../cppNGSD
 LIBS += -L$$PWD/../bin -lcppNGSD
 
-RESOURCES +=
+RESOURCES += \
+    resources.qrc
