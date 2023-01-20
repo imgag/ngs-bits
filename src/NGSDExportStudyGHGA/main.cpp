@@ -24,7 +24,7 @@ public:
 		//optional
 		addFlag("test", "Test mode: uses the test NGSD, does not calcualte size/checksum of BAMs, ...");
 
-		changeLog(2022,  1, 17, "Initial version."); //TODO update
+		changeLog(2023,  1, 23, "Initial implementation (0.9.0)."); //TODO update
 	}
 
 	//returns an array from the input JSON
@@ -109,13 +109,39 @@ public:
 		THROW(NotImplementedException, "Unhandled sample type '" + sample_type + "' " + (is_ffpe ? "(FFPE)" : "") + " in CV conversion!");
 	}
 
-	//Processed sample heler struct
+	QString sampleGenderToSex(QString gender)
+	{
+
+		if (gender=="female") return "female";
+		if (gender=="male") return "male";
+		if (gender=="n/a") return "unknown";
+
+		THROW(NotImplementedException, "Unhandled gender '" + gender + "' in CV conversion!");
+	}
+
+	QString sampleAncestryToAncestry(QString ancestry)
+	{
+		if (ancestry=="AFR") return "African";
+		if (ancestry=="EUR") return "European";
+		if (ancestry=="SAS") return " South Asian";
+		if (ancestry=="EAS") return "East Asian";
+		if (ancestry=="ADMIXED/UNKNOWN" || ancestry=="") return "";
+
+		THROW(NotImplementedException, "Unhandled ancestry '" + ancestry + "' in CV conversion!");
+	}
+
+
+
+	//Processed sample helper struct
 	struct PSData
 	{
-		QString ngsd_id;
+		QString ps_id;
 		QString name;
 		QString bam;
 		QString pseudonym; //processed sample ID left-padded with '0' to 6 digits (prefixed with 3-character object type to generate the alias)
+		SampleData s_info;
+		ProcessedSampleData ps_info;
+		PhenotypeList phenotypes;
 	};
 
 	//Common data helper struct
@@ -159,18 +185,16 @@ public:
 		parent.insert("has_study", obj);
 	}
 
-	void addExperiments(QJsonObject& parent, const CommonData& data, NGSD& db)
+	void addExperiments(QJsonObject& parent, const CommonData& data)
 	{
 		QJsonArray array;
 
 		foreach(const PSData& ps_data, data.ps_list)
 		{
-			ProcessedSampleData data_ngsd = db.getProcessedSampleData(ps_data.ngsd_id);
-
 			QJsonObject obj;
 			obj.insert("alias", "EXP" + ps_data.pseudonym);
 			obj.insert("description", "short-read sequencing");
-			obj.insert("type", systemTypeToExperimentType(data_ngsd.processing_system_type));
+			obj.insert("type", systemTypeToExperimentType(ps_data.ps_info.processing_system_type));
 			obj.insert("has_file", QJsonArray::fromStringList(QStringList() << "BAM" + ps_data.pseudonym));
 			obj.insert("has_protocol", QJsonArray::fromStringList(QStringList() << "LIB" + ps_data.pseudonym << "SEQ" + ps_data.pseudonym));
 			obj.insert("has_sample", QJsonArray::fromStringList(QStringList() << "SAM" + ps_data.pseudonym));
@@ -295,7 +319,7 @@ public:
 		parent.insert("has_data_access_policy", obj);
 	}
 
-	void addDatasets(QJsonObject& parent, const CommonData& data, NGSD& db)
+	void addDatasets(QJsonObject& parent, const CommonData& data)
 	{
 		QJsonArray array;
 
@@ -310,8 +334,7 @@ public:
 		QStringList tmp;
 		foreach(const PSData& ps_data, data.ps_list)
 		{
-			ProcessedSampleData data_ngsd = db.getProcessedSampleData(ps_data.ngsd_id);
-			tmp << systemTypeToDatasetType(data_ngsd.processing_system_type);
+			tmp << systemTypeToDatasetType(ps_data.ps_info.processing_system_type);
 		}
 		obj.insert("type", QJsonArray::fromStringList(tmp));
 
@@ -357,17 +380,15 @@ public:
 
 		foreach(const PSData& ps_data, data.ps_list)
 		{
-			ProcessedSampleData data_ngsd = db.getProcessedSampleData(ps_data.ngsd_id);
-
 			//library
 			QJsonObject obj;
 			obj.insert("alias", "LIB" + ps_data.pseudonym);
-			obj.insert("description", data_ngsd.processing_system);
-			obj.insert("library_name", "processed_sample.id:"+ps_data.ngsd_id);
+			obj.insert("description", ps_data.ps_info.processing_system);
+			obj.insert("library_name", "processed_sample.id:"+ps_data.ps_id);
 			obj.insert("library_layout", "PE");
-			obj.insert("library_type", systemTypeToLibraryType(data_ngsd.processing_system_type));
+			obj.insert("library_type", systemTypeToLibraryType(ps_data.ps_info.processing_system_type));
 			obj.insert("library_selection", "unspecified");
-			obj.insert("library_preparation_kit_retail_name", data_ngsd.processing_system);
+			obj.insert("library_preparation_kit_retail_name", ps_data.ps_info.processing_system);
 			obj.insert("library_preparation_kit_manufacturer", QJsonValue());
 			obj.insert("library_preparation", QJsonValue());
 			obj.insert("end_bias", QJsonValue());
@@ -385,15 +406,15 @@ public:
 			obj.insert("alias", "SEQ" + ps_data.pseudonym);
 			obj.insert("description", "short-read sequencing");
 			obj.insert("type", QJsonValue());
-			QString device_type = db.getValue("SELECT d.type FROM device d, sequencing_run r WHERE r.device_id=d.id AND r.name='" + data_ngsd.run_name + "'").toString();
+			QString device_type = db.getValue("SELECT d.type FROM device d, sequencing_run r WHERE r.device_id=d.id AND r.name='" + ps_data.ps_info.run_name + "'").toString();
 			obj.insert("instrument_model", deviceTypeToSequencingInstrument(device_type));
 			obj.insert("sequencing_center", QJsonValue());
 			obj.insert("sequencing_read_length", QJsonValue());
 			obj.insert("seq_forward_or_reverse", QJsonValue());
 			obj.insert("target_coverage", QJsonValue());
-			QString fc_id = db.getValue("SELECT fcid FROM sequencing_run WHERE name='" + data_ngsd.run_name + "'").toString();
+			QString fc_id = db.getValue("SELECT fcid FROM sequencing_run WHERE name='" + ps_data.ps_info.run_name + "'").toString();
 			obj.insert("flow_cell_id", fc_id);
-			QString fc_type = db.getValue("SELECT flowcell_type FROM sequencing_run WHERE name='" + data_ngsd.run_name + "'").toString();
+			QString fc_type = db.getValue("SELECT flowcell_type FROM sequencing_run WHERE name='" + ps_data.ps_info.run_name + "'").toString();
 			obj.insert("flow_cell_type", flowcellTypeToflowcellType(fc_type));
 			obj.insert("cell_barcode_offset", QJsonValue());
 			obj.insert("cell_barcode_read", QJsonValue());
@@ -426,22 +447,20 @@ public:
 		parent.insert("has_anatomical_entity", array);
 	}
 
-	void addSamples(QJsonObject& parent, const CommonData& data, NGSD& db)
+	void addSamples(QJsonObject& parent, const CommonData& data)
 	{
 		QJsonArray array;
 
 		foreach(const PSData& ps_data, data.ps_list)
 		{
-			SampleData data_ngsd = db.getSampleData(ps_data.ngsd_id);
-
 			//library
 			QJsonObject obj;
 
 			obj.insert("alias", "SAM" + ps_data.pseudonym);
 			obj.insert("name", "SAM" + ps_data.pseudonym);
-			addTissueArray(obj, data, data_ngsd.tissue);
+			addTissueArray(obj, data, ps_data.s_info.tissue);
 			obj.insert("description", "sample that was sequenced");
-			obj.insert("type", sampleTypeToSampleType(data_ngsd.type, data_ngsd.is_ffpe));
+			obj.insert("type", sampleTypeToSampleType(ps_data.s_info.type, ps_data.s_info.is_ffpe));
 
 			obj.insert("case_control_status", QJsonValue());
 			obj.insert("vital_status_at_sampling", QJsonValue());
@@ -451,12 +470,70 @@ public:
 			obj.insert("xref", QJsonValue());
 			obj.insert("has_attribute", QJsonValue());
 			obj.insert("has_individual", "IND" + ps_data.pseudonym);
+			obj.insert("schema_type", "CreateSample");
+			obj.insert("schema_version", data.version);
 
 			array.append(obj);
 		}
 
 		parent.insert("has_sample", array);
 	}
+
+	void addPhenotypes(QJsonObject& parent, const CommonData& data, const PhenotypeList& phenotypes)
+	{
+		QJsonArray array;
+
+		foreach(const Phenotype& pheno, phenotypes)
+		{
+			//library
+			QJsonObject obj;
+
+			obj.insert("concept_name", QString(pheno.accession()));
+			obj.insert("schema_type", "CreatePhenotypicFeature");
+			obj.insert("schema_version", data.version);
+
+			array.append(obj);
+		}
+
+		parent.insert("has_phenotypic_feature", array);
+	}
+
+	void addIndividuals(QJsonObject& parent, const CommonData& data)
+	{
+		QJsonArray array;
+
+		foreach(const PSData& ps_data, data.ps_list)
+		{
+			//library
+			QJsonObject obj;
+
+			obj.insert("alias", "IND" + ps_data.pseudonym);
+			obj.insert("sex", sampleGenderToSex(ps_data.s_info.gender));
+			obj.insert("age", "unknown");
+			addPhenotypes(obj, data, ps_data.phenotypes);
+			obj.insert("vital_status", "unknown");
+			obj.insert("karyotype", "unknown");
+			obj.insert("geographical_region", "unknown");
+			QString ancestry = sampleAncestryToAncestry(ps_data.ps_info.ancestry);
+			if (ancestry=="")
+			{
+				obj.insert("ancestry", QJsonValue());
+			}
+			else
+			{
+				obj.insert("ancestry", QJsonArray::fromStringList(QStringList() << ancestry));
+			}
+
+			obj.insert("schema_type", "CreateIndividual");
+			obj.insert("schema_version", data.version);
+
+			array.append(obj);
+		}
+
+		parent.insert("has_individual", array);
+	}
+
+
 
 	virtual void main()
 	{
@@ -494,9 +571,18 @@ public:
 			const DBRow& row = ps_table.row(r);
 
 			QString ps = row.value(0);
+			QString s_id = db.sampleId(ps);
+			QString ps_id = row.id();
+
 			QString bam = row.value(bam_idx);
 			if (!QFile::exists(bam) && !data.test_mode) THROW(Exception, "Processed sample " + ps + " BAM missing: " + bam);
-			data.ps_list << PSData{row.id(), ps, bam, row.id().rightJustified(6, '0')};
+
+			data.ps_list << PSData{ps_id, ps, bam, row.id().rightJustified(6, '0'), db.getSampleData(s_id), db.getProcessedSampleData(ps_id), db.samplePhenotypes(s_id)};
+			QTextStream(stdout) << ps << " " << data.ps_list.last().phenotypes.count() << endl;
+			foreach(const Phenotype& pheno, data.ps_list.last().phenotypes)
+			{
+				QTextStream(stdout) << ps << " " << pheno.accession() << endl;
+			}
 		}
 
 		//create JSON
@@ -506,12 +592,13 @@ public:
 		addStudy(root, data, db);
 		addDataAccessCommittee(root, data);
 		addDataAccessPolicy(root, data);
-		addExperiments(root, data, db);
+		addExperiments(root, data);
 		addAnalyses(root, data);
 		addFiles(root, data);
-		addDatasets(root, data, db);
+		addDatasets(root, data);
 		addProtocols(root, data, db);
-		addSamples(root, data, db);
+		addSamples(root, data);
+		addIndividuals(root, data);
 		addFixed(root);
 
 		//store JSON
@@ -531,4 +618,4 @@ int main(int argc, char *argv[])
 //TODO questions
 //GHGA: BAM only ok like that?
 //GHGA: tumor status? tumor-normal linking
-
+//NCCT: Total RNA?

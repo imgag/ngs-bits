@@ -1,12 +1,12 @@
 {
     "has_analysis": [
         {
-            "alias": "ANA000001",
+            "alias": "ANA000111",
             "description": "short-read data analysis using megSAP: https://github.com/imgag/megSAP",
             "has_input": [
             ],
             "has_output": [
-                "BAM000001"
+                "BAM000111"
             ],
             "has_study": "Study4711",
             "reference_chromosome": null,
@@ -16,12 +16,12 @@
             "type": "BAM"
         },
         {
-            "alias": "ANA000002",
+            "alias": "ANA000222",
             "description": "short-read data analysis using megSAP: https://github.com/imgag/megSAP",
             "has_input": [
             ],
             "has_output": [
-                "BAM000002"
+                "BAM000222"
             ],
             "has_study": "Study4711",
             "reference_chromosome": null,
@@ -61,21 +61,21 @@
             "alias": "Study4711 dataset",
             "description": "Dataset of the the study Study4711",
             "has_analysis": [
-                "ANA000001",
-                "ANA000002"
+                "ANA000111",
+                "ANA000222"
             ],
             "has_data_access_policy": "DAP_Study4711",
             "has_experiment": [
-                "EXP000001",
-                "EXP000002"
+                "EXP000111",
+                "EXP000222"
             ],
             "has_file": [
-                "BAM000001",
-                "BAM000002"
+                "BAM000111",
+                "BAM000222"
             ],
             "has_sample": [
-                "SAM000001",
-                "SAM000002"
+                "SAM000111",
+                "SAM000222"
             ],
             "has_study": [
                 "Study4711"
@@ -91,18 +91,18 @@
     ],
     "has_experiment": [
         {
-            "alias": "EXP000001",
+            "alias": "EXP000111",
             "biological_replicates": "1",
             "description": "short-read sequencing",
             "has_file": [
-                "BAM000001"
+                "BAM000111"
             ],
             "has_protocol": [
-                "LIB000001",
-                "SEQ000001"
+                "LIB000111",
+                "SEQ000111"
             ],
             "has_sample": [
-                "SAM000001"
+                "SAM000111"
             ],
             "has_study": "Study4711",
             "schema_type": "CreateExperiment",
@@ -112,18 +112,18 @@
             "type": "WGS"
         },
         {
-            "alias": "EXP000002",
+            "alias": "EXP000222",
             "biological_replicates": "1",
             "description": "short-read sequencing",
             "has_file": [
-                "BAM000002"
+                "BAM000222"
             ],
             "has_protocol": [
-                "LIB000002",
-                "SEQ000002"
+                "LIB000222",
+                "SEQ000222"
             ],
             "has_sample": [
-                "SAM000002"
+                "SAM000222"
             ],
             "has_study": "Study4711",
             "schema_type": "CreateExperiment",
@@ -135,24 +135,64 @@
     ],
     "has_file": [
         {
-            "alias": "BAM000001",
+            "alias": "BAM000111",
             "checksum": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
             "checksum_type": "MD5",
             "format": "bam",
-            "name": "000001.bam",
+            "name": "000111.bam",
             "schema_type": "CreateFile",
             "schema_version": "0.9.0",
             "size": "6000000"
         },
         {
-            "alias": "BAM000002",
+            "alias": "BAM000222",
             "checksum": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
             "checksum_type": "MD5",
             "format": "bam",
-            "name": "000002.bam",
+            "name": "000222.bam",
             "schema_type": "CreateFile",
             "schema_version": "0.9.0",
             "size": "6000000"
+        }
+    ],
+    "has_individual": [
+        {
+            "age": "unknown",
+            "alias": "IND000111",
+            "ancestry": [
+                "European"
+            ],
+            "geographical_region": "unknown",
+            "has_phenotypic_feature": [
+                {
+                    "concept_name": "HP:0033006",
+                    "schema_type": "CreatePhenotypicFeature",
+                    "schema_version": "0.9.0"
+                },
+                {
+                    "concept_name": "HP:0040049",
+                    "schema_type": "CreatePhenotypicFeature",
+                    "schema_version": "0.9.0"
+                }
+            ],
+            "karyotype": "unknown",
+            "schema_type": "CreateIndividual",
+            "schema_version": "0.9.0",
+            "sex": "female",
+            "vital_status": "unknown"
+        },
+        {
+            "age": "unknown",
+            "alias": "IND000222",
+            "ancestry": null,
+            "geographical_region": "unknown",
+            "has_phenotypic_feature": [
+            ],
+            "karyotype": "unknown",
+            "schema_type": "CreateIndividual",
+            "schema_version": "0.9.0",
+            "sex": "male",
+            "vital_status": "unknown"
         }
     ],
     "has_member": [
@@ -167,12 +207,12 @@
     "has_project": null,
     "has_protocol": [
         {
-            "alias": "LIB000001",
+            "alias": "LIB000111",
             "description": "Illumina TruSeq DNA PCR-Free",
             "end_bias": null,
             "has_attribute": null,
             "library_layout": "PE",
-            "library_name": "processed_sample.id:1",
+            "library_name": "processed_sample.id:111",
             "library_preparation": null,
             "library_preparation_kit_manufacturer": null,
             "library_preparation_kit_retail_name": "Illumina TruSeq DNA PCR-Free",
@@ -185,7 +225,7 @@
             "target_regions": null
         },
         {
-            "alias": "SEQ000001",
+            "alias": "SEQ000111",
             "cell_barcode_offset": null,
             "cell_barcode_read": null,
             "cell_barcode_size": null,
@@ -207,12 +247,12 @@
             "umi_barcode_size": null
         },
         {
-            "alias": "LIB000002",
+            "alias": "LIB000222",
             "description": "NEBNext Ultra II Directional RNA + QIAseq FastSelect rRNA removal UMI",
             "end_bias": null,
             "has_attribute": null,
             "library_layout": "PE",
-            "library_name": "processed_sample.id:2",
+            "library_name": "processed_sample.id:222",
             "library_preparation": null,
             "library_preparation_kit_manufacturer": null,
             "library_preparation_kit_retail_name": "NEBNext Ultra II Directional RNA + QIAseq FastSelect rRNA removal UMI",
@@ -225,7 +265,7 @@
             "target_regions": null
         },
         {
-            "alias": "SEQ000002",
+            "alias": "SEQ000222",
             "cell_barcode_offset": null,
             "cell_barcode_read": null,
             "cell_barcode_size": null,
@@ -251,7 +291,7 @@
     ],
     "has_sample": [
         {
-            "alias": "SAM000001",
+            "alias": "SAM000111",
             "case_control_status": null,
             "description": "sample that was sequenced",
             "has_anatomical_entity": [
@@ -263,16 +303,18 @@
             ],
             "has_attribute": null,
             "has_biospecimen": null,
-            "has_individual": "IND000001",
+            "has_individual": "IND000111",
             "isolation": null,
-            "name": "SAM000001",
+            "name": "SAM000111",
+            "schema_type": "CreateSample",
+            "schema_version": "0.9.0",
             "storage": null,
             "type": "genomic DNA",
             "vital_status_at_sampling": null,
             "xref": null
         },
         {
-            "alias": "SAM000002",
+            "alias": "SAM000222",
             "case_control_status": null,
             "description": "sample that was sequenced",
             "has_anatomical_entity": [
@@ -284,9 +326,11 @@
             ],
             "has_attribute": null,
             "has_biospecimen": null,
-            "has_individual": "IND000002",
+            "has_individual": "IND000222",
             "isolation": null,
-            "name": "SAM000002",
+            "name": "SAM000222",
+            "schema_type": "CreateSample",
+            "schema_version": "0.9.0",
             "storage": null,
             "type": "total RNA",
             "vital_status_at_sampling": null,
