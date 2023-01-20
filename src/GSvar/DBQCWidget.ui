@@ -40,27 +40,14 @@
      <property name="spacing">
       <number>3</number>
      </property>
-     <item row="1" column="1">
-      <widget class="DBComboBox" name="term2"/>
-     </item>
-     <item row="3" column="1">
+     <item row="4" column="1">
       <widget class="QLineEdit" name="highlight">
        <property name="clearButtonEnabled">
         <bool>false</bool>
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_7">
-       <property name="toolTip">
-        <string>Second QC metric used to create a scatterplot.</string>
-       </property>
-       <property name="text">
-        <string>QC metric 2:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
+     <item row="4" column="0">
       <widget class="QLabel" name="label_6">
        <property name="toolTip">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Processed sample names to highlight.&lt;/p&gt;&lt;p&gt;Invalid processed sample names are listed in the tooltip of the text input field.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -77,8 +64,18 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
-      <widget class="DBComboBox" name="term"/>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_7">
+       <property name="toolTip">
+        <string>Second QC metric used to create a scatterplot.</string>
+       </property>
+       <property name="text">
+        <string>QC metric 2:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="DBComboBox" name="term2"/>
      </item>
      <item row="0" column="0">
       <widget class="QLabel" name="label_4">
@@ -90,7 +87,10 @@
      <item row="2" column="1" colspan="2">
       <widget class="DBComboBox" name="system"/>
      </item>
-     <item row="3" column="2">
+     <item row="0" column="1">
+      <widget class="DBComboBox" name="term"/>
+     </item>
+     <item row="4" column="2">
       <widget class="QToolButton" name="highlight_btn">
        <property name="toolTip">
         <string/>
@@ -119,6 +119,32 @@
         <iconset resource="GSvar.qrc">
          <normaloff>:/Icons/Exchange.png</normaloff>:/Icons/Exchange.png</iconset>
        </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_8">
+       <property name="text">
+        <string>Sample type</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1" colspan="2">
+      <widget class="QComboBox" name="sample_type">
+       <item>
+        <property name="text">
+         <string>tumor and normal</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>tumor only</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>normal only</string>
+        </property>
+       </item>
       </widget>
      </item>
     </layout>
