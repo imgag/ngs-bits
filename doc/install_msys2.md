@@ -9,7 +9,7 @@ The following depdendemcies have to be installed:
 * Depending on the architecture, you should open either *mingw32.exe* or *mingw64.exe* (located at *C:\msys64*)
 * msys2 offers a package manager called *pacman*. Use it to install all the packages from below (*mingw-w64-i686-qt* prefix corresponds to 32-bit system and *mingw-w64-x86_64* to 64-bit system respectively):
 
-    `pacman -S git base-devel mingw-w64-x86_64-toolchain mingw-w64-x86_64-zlib mingw-w64-x86_64-bzip2 mingw-w64-x86_64-xz mingw-w64-x86_64-curl mingw-w64-x86_64-wget mingw-w64-x86_64-dlfcn mingw-w64-x86_64-qt mingw-w64-x86_64-libmariadbclient mingw-w64-x86_64-python mingw-w64-x86_64-python-numpy mingw-w64-x86_64-python-matplotlib`
+    `pacman -S git base-devel mingw-w64-x86_64-toolchain mingw-w64-x86_64-zlib mingw-w64-x86_64-bzip2 mingw-w64-x86_64-xz mingw-w64-x86_64-curl mingw-w64-x86_64-wget mingw-w64-x86_64-dlfcn mingw-w64-x86_64-qt5 mingw-w64-x86_64-libmariadbclient mingw-w64-x86_64-python mingw-w64-x86_64-python-numpy mingw-w64-x86_64-python-matplotlib`
 
 ## htslib
 
