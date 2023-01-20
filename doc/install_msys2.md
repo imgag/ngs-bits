@@ -1,6 +1,9 @@
 # Building ngs-bits from sources (on Windows using MSYS2 and MinGW)
 The most complicated thing with the Windows build is the support of HTTPS. Configured incorrectly it will make impossible the use of the server API.
 
+## Virutal Machine Setup (Optional)
+Microsoft provides for free a virtual machine images of [Windows 11 development envoronment](https://developer.microsoft.com/en-us/windows/downloads/virtual-machines/) for different virtualization systems. A free [VirtualBox](https://www.virtualbox.org/) solution seems to be great option and works extemely well for the purose of building a Windows executable of GSvar. The VM image includes a preconfigured system which can be used for a limited period of time. Afterwards it is possible to download a new VM image.
+
 ## Dependencies
 
 The following depdendemcies have to be installed:
@@ -14,7 +17,7 @@ The following depdendemcies have to be installed:
 ## htslib
 
 [This issue](https://github.com/samtools/htslib/issues/907) from the [official github repository](https://github.com/samtools/htslib) provides a lot of information about some potential problems with the Windows build. However, it should be sufficient to follow these steps:
-* Download [the latest release of htslib](https://github.com/samtools/htslib/releases/download/1.15/htslib-1.15.tar.bz2) (github page has a section with releases)
+* Download [the latest release of htslib](https://github.com/samtools/htslib/releases/download/1.16/htslib-1.16.tar.bz2) (github page has a section with releases)
 * Unpack htslib: *tar -xjf htslib-[VERSION].tar.bz2*
 * Configure htslib to enable HTTPS support: `./configure --enable-libcurl --enable-plugins`
 * Compile the library: `make`
@@ -30,13 +33,14 @@ Clone the most recent release of ngs-bits (the source code package of GitHub doe
 	git checkout 2022_04
 	git submodule update --recursive --init
 
+## MySQL Plugin for Qt
+
+Qt distributions do not come with MySQL plugins by default. You will have to build one for you version of MySQL. Qt developers provide very good instructions on how to do that [here](https://doc.qt.io/qt-5/sql-driver.html#how-to-build-the-qmysql-plugin-on-windows). If you are using MSYS2, you will have to add the paths for qmake and C compilers the `PATH` environment variable.
+
 ## Build
 Now you can build ngs-bits as if you are using Linux:
     
     make build_libs_release build_tools_release build_gui_release
 
 ## Development
-You can also install *Qt creator* and create your own development environment with msys2: `pacman -S mingw-w64-x86_64-qt-creator`
-
-## Build in a Docker container
-`docker run -it -v FOLDER_ON_YOUR_MACHINE:/root/output/ win_build:latest`
+You can also install *Qt creator* and create your own development environment with msys2: `pacman -S mingw-w64-x86_64-qt-creator`. However, in this case the binaries you will genereate may not be compartible with regular Qt DLLs. Always make sure you are not mixing DLLs from different versions of Qt or MINGW.
