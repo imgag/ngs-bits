@@ -14,6 +14,45 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <property name="leftMargin">
+    <number>1</number>
+   </property>
+   <property name="topMargin">
+    <number>1</number>
+   </property>
+   <property name="rightMargin">
+    <number>1</number>
+   </property>
+   <property name="bottomMargin">
+    <number>1</number>
+   </property>
+   <property name="spacing">
+    <number>1</number>
+   </property>
+   <item row="4" column="1" colspan="3">
+    <layout class="QHBoxLayout" name="horizontalLayout_7">
+     <item>
+      <spacer name="horizontalSpacer_4">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="b_burden_test">
+       <property name="text">
+        <string>Perform burden test</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
    <item row="0" column="1">
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
@@ -77,35 +116,56 @@
      </layout>
     </widget>
    </item>
-   <item row="0" column="2">
-    <widget class="QGroupBox" name="groupBox_2">
+   <item row="5" column="1" colspan="3">
+    <widget class="QGroupBox" name="groupBox_3">
      <property name="title">
-      <string>Variants</string>
+      <string>Results</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout_3">
-      <item row="5" column="2">
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <layout class="QGridLayout" name="gridLayout_4">
+      <item row="1" column="0">
+       <widget class="QTableWidget" name="tw_gene_table">
+        <column>
+         <property name="text">
+          <string>gene</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>p-value</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>counts cases</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>counts controls</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <layout class="QHBoxLayout" name="horizontalLayout_8">
         <item>
-         <widget class="QDoubleSpinBox" name="sb_max_gnomad_af">
-          <property name="minimumSize">
+         <widget class="QProgressBar" name="progress_bar">
+          <property name="maximumSize">
            <size>
-            <width>75</width>
-            <height>0</height>
+            <width>100</width>
+            <height>16777215</height>
            </size>
           </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-          <property name="suffix">
-           <string>%</string>
-          </property>
           <property name="value">
-           <double>1.000000000000000</double>
+           <number>0</number>
+          </property>
+          <property name="textVisible">
+           <bool>false</bool>
           </property>
          </widget>
         </item>
         <item>
-         <spacer name="horizontalSpacer_2">
+         <spacer name="horizontalSpacer_6">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -117,81 +177,59 @@
           </property>
          </spacer>
         </item>
+        <item>
+         <widget class="QPushButton" name="b_copy_clipboard">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="GSvar.qrc">
+            <normaloff>:/Icons/CopyClipboard.png</normaloff>:/Icons/CopyClipboard.png</iconset>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
-      <item row="6" column="0">
-       <widget class="QLabel" name="label_4">
+     </layout>
+    </widget>
+   </item>
+   <item row="0" column="3">
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string>Variants</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="9" column="1">
+       <widget class="QLabel" name="label_6">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="text">
-         <string>max. NGSD count: </string>
+         <string>inheritance:</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
+      <item row="4" column="1">
        <widget class="QLabel" name="label_5">
         <property name="text">
          <string>max. frequency: </string>
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Genes: </string>
-        </property>
-       </widget>
-      </item>
-      <item row="9" column="0">
-       <widget class="QLabel" name="label_6">
-        <property name="text">
-         <string>inheritance:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="0">
+      <item row="7" column="1">
        <widget class="QLabel" name="label_7">
         <property name="text">
          <string>impact:</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="2">
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="QRadioButton" name="rb_gene_all">
-          <property name="text">
-           <string>all</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QRadioButton" name="rb_protein_coding">
-          <property name="text">
-           <string>protein-coding</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-       </layout>
-      </item>
-      <item row="9" column="2">
+      <item row="9" column="3">
        <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item>
          <widget class="QCheckBox" name="cb_recessive">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
           <property name="text">
            <string>recessive (only hom/compound-het variants)</string>
           </property>
@@ -199,6 +237,9 @@
         </item>
         <item>
          <widget class="QCheckBox" name="cb_denovo">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>de-novo (from report config)</string>
           </property>
@@ -219,7 +260,7 @@
         </item>
        </layout>
       </item>
-      <item row="6" column="2">
+      <item row="5" column="3">
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
          <widget class="QSpinBox" name="sb_max_ngsd_count">
@@ -258,7 +299,7 @@
         </item>
        </layout>
       </item>
-      <item row="8" column="2">
+      <item row="7" column="3">
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
          <widget class="QCheckBox" name="cb_high">
@@ -309,43 +350,32 @@
         </item>
        </layout>
       </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="5" column="1" colspan="2">
-    <widget class="QGroupBox" name="groupBox_3">
-     <property name="title">
-      <string>Results</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_4">
-      <item row="1" column="0">
-       <widget class="QTableWidget" name="tableWidget">
-        <column>
-         <property name="text">
-          <string>gene</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>p-value</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>counts cases</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>counts controls</string>
-         </property>
-        </column>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <layout class="QHBoxLayout" name="horizontalLayout_8">
+      <item row="4" column="3">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <spacer name="horizontalSpacer_6">
+         <widget class="QDoubleSpinBox" name="sb_max_gnomad_af">
+          <property name="minimumSize">
+           <size>
+            <width>75</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+          <property name="suffix">
+           <string>%</string>
+          </property>
+          <property name="singleStep">
+           <double>0.100000000000000</double>
+          </property>
+          <property name="value">
+           <double>1.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_2">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -357,14 +387,28 @@
           </property>
          </spacer>
         </item>
+       </layout>
+      </item>
+      <item row="5" column="1">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>max. NGSD count: </string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="1">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>mosaic variants:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="3">
+       <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QPushButton" name="b_copy_clipboard">
+         <widget class="QCheckBox" name="cb_include_mosaic">
           <property name="text">
-           <string/>
-          </property>
-          <property name="icon">
-           <iconset resource="GSvar.qrc">
-            <normaloff>:/Icons/CopyClipboard.png</normaloff>:/Icons/CopyClipboard.png</iconset>
+           <string>include</string>
           </property>
          </widget>
         </item>
@@ -373,29 +417,72 @@
      </layout>
     </widget>
    </item>
-   <item row="4" column="1" colspan="2">
-    <layout class="QHBoxLayout" name="horizontalLayout_7">
-     <item>
-      <spacer name="horizontalSpacer_4">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="b_burden_test">
-       <property name="text">
-        <string>Perform burden test</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
+   <item row="0" column="2">
+    <widget class="QGroupBox" name="groupBox_4">
+     <property name="title">
+      <string>Genes</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QRadioButton" name="rb_gene_all">
+        <property name="text">
+         <string>all</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="rb_protein_coding">
+        <property name="text">
+         <string>protein-coding</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="rb_custom">
+        <property name="text">
+         <string>custom gene list:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QGridLayout" name="gl_custom_genes">
+        <property name="leftMargin">
+         <number>25</number>
+        </property>
+        <item row="0" column="1">
+         <widget class="QLabel" name="l_gene_count">
+          <property name="text">
+           <string>(0 genes)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QPushButton" name="b_load_genes">
+          <property name="text">
+           <string>load genes</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" colspan="2">
+         <widget class="QLabel" name="l_genes">
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="textFormat">
+           <enum>Qt::AutoText</enum>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
    </item>
   </layout>
  </widget>
