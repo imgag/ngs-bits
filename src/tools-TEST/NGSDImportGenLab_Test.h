@@ -108,6 +108,50 @@ private slots:
             //TODO when additional test samples exist in GenLab!
             //each type: siblings, same sample, tumor-normal
             //with "distractions" processed samples with different processing systems/RNA/cfDNA...
+
+            if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab Database!");
+
+            NGSD db(true);
+            db.init();
+            db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportGenlab_init1.sql"));
+
+            //base case:
+            EXECUTE("NGSDImportGenlab", "-test -ps_id DXtest1_01 -debug");
+            QString s_id = db.sampleId("DXtest1_01");
+            SampleData s_data = db.getSampleData(s_id);
+            QSet<int> related_samples = db.relatedSamples(s_id.toInt(), "tumor-normal");
+            I_EQUAL(related_samples.count(), 1);
+            IS_TRUE(related_samples.contains(db.sampleId("DXtest3_01").toInt()));
+            related_samples = db.relatedSamples(s_id.toInt(), "siblings");
+            I_EQUAL(related_samples.count(), 1);
+            IS_TRUE(related_samples.contains(db.sampleId("DXtest2_01").toInt()));
+
+            EXECUTE("NGSDImportGenlab", "-test -ps_id DXtest2_01 -debug");
+            s_id = db.sampleId("DXtest2_01");
+            s_data = db.getSampleData(s_id);
+            related_samples = db.relatedSamples(s_id.toInt(), "same sample");
+            I_EQUAL(related_samples.count(), 1);
+            IS_TRUE(related_samples.contains(db.sampleId("DXtest4_01").toInt()));
+
+            //base case reverse:
+            db.init();
+            db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportGenlab_init1.sql"));
+
+            EXECUTE("NGSDImportGenlab", "-test -ps_id DXtest3_01 -debug");
+            s_id = db.sampleId("DXtest3_01");
+            s_data = db.getSampleData(s_id);
+            related_samples = db.relatedSamples(s_id.toInt(), "tumor-normal");
+            I_EQUAL(related_samples.count(), 1);
+            IS_TRUE(related_samples.contains(db.sampleId("DXtest1_01").toInt()));
+
+            EXECUTE("NGSDImportGenlab", "-test -ps_id DXtest4_01 -debug");
+            s_id = db.sampleId("DXtest4_01");
+            s_data = db.getSampleData(s_id);
+            related_samples = db.relatedSamples(s_id.toInt(), "same sample");
+            I_EQUAL(related_samples.count(), 1);
+            IS_TRUE(related_samples.contains(db.sampleId("DXtest2_01").toInt()));
+
+
         }
 
         void rna_tissue_import()

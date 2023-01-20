@@ -77,31 +77,45 @@ public:
 		// gather related sample data
 		foreach(QString sample, samples)
 		{
-			QString sample_id = db.sampleId(sample);
-			related_sample_data << db.getSampleData(sample_id);
+			QString rel_s_id = db.sampleId(sample);
+			related_sample_data << db.getSampleData(rel_s_id);
 		}
+
+		QString sample_id = db.sampleId(ps_name);
+		QStringList ngsd_relations = db.getValues("SELECT relation FROM sample_relations WHERE sample1_id = "+ sample_id + " OR sample2_id = " + sample_id);
 
 		if (current_ps_data.processing_system_type == "Panel" || current_ps_data.processing_system_type == "WES")
 		{
-			// TODO check if sample already has relation / overwrite is allowed
-			checkForTumorNormalRelation(db, current_sample_data, current_ps_data, related_sample_data);
+			if (! ngsd_relations.contains("tumor-normal") || getEnum("action") == "ADD_REPLACE")
+			{
+				checkForTumorNormalRelation(db, current_sample_data, current_ps_data, related_sample_data);
+			}
 		}
 		if (current_ps_data.processing_system_type == "RNA")
 		{
-			checkForSameSampleRelation(db, genlab, current_sample_data, related_sample_data);
+			if (! ngsd_relations.contains("same sample") || getEnum("action") == "ADD_REPLACE")
+			{
+				checkForSameSampleRelation(db, genlab, current_sample_data, related_sample_data);
+			}
 		}
 
 		//relatives patient relations (parents, siblings)
 
 		QList<SampleRelation> relation_list = genlab.relatives(ps_name);
-		foreach (SampleRelation genlab_relation, relation_list) {
+		foreach (SampleRelation genlab_relation, relation_list)
+		{
 			QSet<int> sample_ids_ngsd = db.relatedSamples(current_sample_id.toInt(), genlab_relation.relation);
 			int sample2_id = db.sampleId(genlab_relation.sample1).toInt();
 
 			if (sample_ids_ngsd.isEmpty() || (! sample_ids_ngsd.contains(sample2_id) && getEnum("action") == "ADD_REPLACE"))
 			{
 				if (getFlag("debug")) qDebug() << "Adding relative relation: " << genlab_relation.sample1 << " - " << genlab_relation.relation << " - " << genlab_relation.sample2;
-				db.addSampleRelation(genlab_relation);
+				SqlQuery insert = db.getQuery();
+				insert.prepare("INSERT IGNORE INTO sample_relations (sample1_id, relation, sample2_id) VALUES (:0, :1, :2)");
+				insert.bindValue(0, genlab_relation.sample1);
+				insert.bindValue(1, genlab_relation.relation);
+				insert.bindValue(2, genlab_relation.sample2);
+				insert.exec();
 			}
 		}
 	}
@@ -184,20 +198,19 @@ public:
 
 		//insert new relation:
 		if (getFlag("debug")) qDebug() << "Importing new tumor normal relation: " << tumor_ps_name << " tumor-normal " << normal_ps_name;
-//		insert.exec();
+		insert.exec();
 
 		//update normal id:
 		if (current_sample_data.is_tumor && normal_sample_name == "")
 		{
 			if (getFlag("debug")) qDebug() << "Updating normal_id for tumor sample: " << tumor_ps_name << " new normal sample " << normal_ps_name;
-//			db.getQuery().exec("UPDATE `processed_sample` SET normal_id = " + normal_ps_id + " WHERE id=" + tumor_ps_id);
+			db.getQuery().exec("UPDATE `processed_sample` SET normal_id = " + normal_ps_id + " WHERE id=" + tumor_ps_id);
 		}
 	}
 
 	void checkForSameSampleRelation(NGSD& db, GenLabDB& genlab, const SampleData& current_sample_data, const QList<SampleData>& related_sample_data)
 	{
 		// search for a sample entered in the DnaRna table in GenLab:
-
 		ProcessedSampleData genlab_related_sample;
 
 		foreach (QString rel_sample_name, genlab.dnaSamplesofRna(current_sample_data.name_external))
@@ -232,7 +245,7 @@ public:
 			insert.bindValue(0, db.sampleId(current_sample_data.name));
 			insert.bindValue(1, db.sampleId(genlab_related_sample.name));
 			if (getFlag("debug")) qDebug() << "Importing sameSample relation based on genlabs dnarna table: " << current_sample_data.name << " same sample " << genlab_related_sample.name;
-//			insert.exec();
+			insert.exec();
 			return;
 		}
 
@@ -275,7 +288,7 @@ public:
 			insert.bindValue(0, db.sampleId(current_sample_data.name));
 			insert.bindValue(1, db.sampleId(best_candidate.name));
 			if (getFlag("debug")) qDebug() << "Importing sameSample relation based on metadata: " << current_sample_data.name << "same sample " << best_candidate.name;
-//			insert.exec();
+			insert.exec();
 			return;
 		}
 	}

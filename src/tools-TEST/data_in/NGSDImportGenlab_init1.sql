@@ -17,16 +17,16 @@ INSERT INTO project (name, type, internal_coordinator_id, analysis) VALUES
 INSERT INTO processing_system (name_short, name_manufacturer, shotgun, genome_id, type) VALUES
 ('ssHAEv6', 'SureSelect Human All Exon v6', '1', 1, 'WES');
 
-INSERT INTO sequencing_run (name, fcid, start_date, end_date, device_id, recipe) VALUES
-('#00001', 'FCID4711', '2018-02-04', '2018-02-04', 1, '100+8+100'),
-('#00002', 'FCID4712', '2018-02-05', '2018-02-05', 1, '100+8+100'),
-('#01489', 'FCID4713', '2012-06-27', '2020-06-29', 1, '100+8+100');
+INSERT INTO sequencing_run (name, fcid, start_date, end_date, device_id, recipe, status) VALUES
+('#00001', 'FCID4711', '2018-02-04', '2018-02-04', 1, '100+8+100', 'analysis_finished'),
+('#00002', 'FCID4712', '2018-02-05', '2018-02-05', 1, '100+8+100', 'analysis_finished'),
+('#01489', 'FCID4713', '2012-06-27', '2020-06-29', 1, '100+8+100', 'analysis_finished');
 
 INSERT INTO sample (name, sample_type, species_id, gender, tumor, ffpe, sender_id, disease_group) VALUES 
 ('DXtest1', 'DNA', 1, 'n/a', '0', '0', 1, 'n/a'),
 ('DXtest2', 'DNA', 1, 'n/a', '0', '0', 1, 'n/a'),
-('DXtest3', 'DNA', 1, 'n/a', '0', '0', 1, 'n/a'),
-('DXtest4', 'DNA', 1, 'n/a', '0', '0', 1, 'n/a'),
+('DXtest3', 'DNA', 1, 'n/a', '1', '0', 1, 'n/a'),
+('DXtest4', 'RNA', 1, 'n/a', '1', '0', 1, 'n/a'),
 ('DXtest5', 'DNA', 1, 'n/a', '0', '0', 1, 'n/a');
 
 
