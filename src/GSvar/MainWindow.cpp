@@ -4837,7 +4837,7 @@ void MainWindow::generateReportSomaticRTF()
 
 			try
 			{
-				QSharedPointer<QFile> corr_file =  Helper::openFileForReading( GlobalServiceProvider::database().processedSamplePath( db.processedSampleId(dlg.getRNAid()), PathType::EXPRESSION_CORR ).filename );
+				QSharedPointer<VersatileFile> corr_file =  Helper::openVersatileFileForReading( GlobalServiceProvider::database().processedSamplePath( db.processedSampleId(dlg.getRNAid()), PathType::EXPRESSION_CORR ).filename );
 				rna_report_data.expression_correlation = Helper::toDouble(corr_file->readAll());
 			}
 			catch(Exception)
