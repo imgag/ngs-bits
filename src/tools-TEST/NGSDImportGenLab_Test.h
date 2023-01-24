@@ -6,6 +6,45 @@
 TEST_CLASS(NGSDImportGenlab_Test)
 {
 Q_OBJECT
+private:
+        void tumor_normal_test(NGSD& db, QString sql, QString import, QString expected)
+        {
+            db.init();
+            db.executeQueriesFromFile(sql);
+
+            EXECUTE("NGSDImportGenlab", "-test -ps_id " + import + " -debug");
+            QString s_id = db.sampleId(import);
+            SampleData s_data = db.getSampleData(s_id);
+            QSet<int> related_samples = db.relatedSamples(s_id.toInt(), "tumor-normal");
+
+            ProcessedSampleData ps_data;
+            if (s_data.is_tumor)
+            {
+                ps_data = db.getProcessedSampleData(db.processedSampleId(import));
+                S_EQUAL(ps_data.normal_sample_name, expected);
+            }
+            else
+            {
+                ps_data = db.getProcessedSampleData(db.processedSampleId(expected));
+                S_EQUAL(ps_data.normal_sample_name, import);
+            }
+
+            IS_TRUE(related_samples.contains(db.sampleId(expected).toInt()));
+
+        }
+
+        void same_sample(NGSD& db, QString sql, QString import, QString expected)
+        {
+            db.init();
+            db.executeQueriesFromFile(sql);
+
+            EXECUTE("NGSDImportGenlab", "-test -ps_id " + import + " -debug");
+            QString s_id = db.sampleId(import);
+            QSet<int> related_samples = db.relatedSamples(s_id.toInt(), "same sample");
+
+            IS_TRUE(related_samples.contains(db.sampleId(expected).toInt()));
+        }
+
 private slots:
 	
         void metadata_import()
@@ -115,41 +154,96 @@ private slots:
             db.init();
             db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportGenlab_init1.sql"));
 
-            //base case:
+            //same sample:
+            EXECUTE("NGSDImportGenlab", "-test -ps_id DXtest4_01 -debug");
+            QString s_id = db.sampleId("DXtest4_01");
+            QSet<int> related_samples = db.relatedSamples(s_id.toInt(), "same sample");
+            I_EQUAL(related_samples.count(), 1);
+            IS_TRUE(related_samples.contains(db.sampleId("DXtest2_01").toInt()));
+
+            //tumor-normal simple case:
+            db.init();
+            db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportGenlab_init1.sql"));
             EXECUTE("NGSDImportGenlab", "-test -ps_id DXtest1_01 -debug");
-            QString s_id = db.sampleId("DXtest1_01");
-            SampleData s_data = db.getSampleData(s_id);
-            QSet<int> related_samples = db.relatedSamples(s_id.toInt(), "tumor-normal");
+            s_id = db.sampleId("DXtest1_01");
+            related_samples = db.relatedSamples(s_id.toInt(), "tumor-normal");
             I_EQUAL(related_samples.count(), 1);
             IS_TRUE(related_samples.contains(db.sampleId("DXtest3_01").toInt()));
+            ProcessedSampleData ps_data = db.getProcessedSampleData(db.processedSampleId("DXtest3_01"));
+            S_EQUAL(ps_data.normal_sample_name, "DXtest1_01");
+
             related_samples = db.relatedSamples(s_id.toInt(), "siblings");
             I_EQUAL(related_samples.count(), 1);
             IS_TRUE(related_samples.contains(db.sampleId("DXtest2_01").toInt()));
 
-            EXECUTE("NGSDImportGenlab", "-test -ps_id DXtest2_01 -debug");
-            s_id = db.sampleId("DXtest2_01");
-            s_data = db.getSampleData(s_id);
-            related_samples = db.relatedSamples(s_id.toInt(), "same sample");
-            I_EQUAL(related_samples.count(), 1);
-            IS_TRUE(related_samples.contains(db.sampleId("DXtest4_01").toInt()));
 
-            //base case reverse:
+            //tumor-normal simple case reversed:
             db.init();
             db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportGenlab_init1.sql"));
 
             EXECUTE("NGSDImportGenlab", "-test -ps_id DXtest3_01 -debug");
             s_id = db.sampleId("DXtest3_01");
-            s_data = db.getSampleData(s_id);
             related_samples = db.relatedSamples(s_id.toInt(), "tumor-normal");
             I_EQUAL(related_samples.count(), 1);
             IS_TRUE(related_samples.contains(db.sampleId("DXtest1_01").toInt()));
+            ps_data = db.getProcessedSampleData(db.processedSampleId("DXtest3_01"));
+            S_EQUAL(ps_data.normal_sample_name, "DXtest1_01");
+
+            //test sample data changes (type - DNA/RNA/cfDNA, tumor status yes no)
+            //multiple processed samples - find best one: relevant for normal_id in tumor sample
+            tumor_normal_test(db, TESTDATA("data_in/NGSDImportGenlab_init3.sql"), "DXtest1_01", "DXtest3_01");
+
+            tumor_normal_test(db, TESTDATA("data_in/NGSDImportGenlab_init3.sql"), "DXtest3_03", "DXtest1_02");
+            tumor_normal_test(db, TESTDATA("data_in/NGSDImportGenlab_init3.sql"), "DXtest1_02", "DXtest3_03");
+
+            tumor_normal_test(db, TESTDATA("data_in/NGSDImportGenlab_init3.sql"), "DXtest3_02", "DXtest1_02");
+
+            tumor_normal_test(db, TESTDATA("data_in/NGSDImportGenlab_init3.sql"), "DXtest3_04", "DXtest1_04");
+            tumor_normal_test(db, TESTDATA("data_in/NGSDImportGenlab_init3.sql"), "DXtest1_04", "DXtest3_04");
+
+            //test if relation is already imported / a different relation of same type is already imported
+
+            //same sample
+            db.init();
+            db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportGenlab_init3.sql"));
+            db.getQuery().exec("INSERT INTO sample_relations (sample1_id, relation, sample2_id) VALUES (" + db.sampleId("DXtest4_01") + ",'same sample'," + db.sampleId("DXtest1_01") + ")");
+
 
             EXECUTE("NGSDImportGenlab", "-test -ps_id DXtest4_01 -debug");
             s_id = db.sampleId("DXtest4_01");
-            s_data = db.getSampleData(s_id);
             related_samples = db.relatedSamples(s_id.toInt(), "same sample");
             I_EQUAL(related_samples.count(), 1);
+            IS_TRUE(related_samples.contains(db.sampleId("DXtest1_01").toInt()));
+
+            EXECUTE("NGSDImportGenlab", "-test -ps_id DXtest4_01 -debug -action ADD_REPLACE");
+            s_id = db.sampleId("DXtest4_01");
+            related_samples = db.relatedSamples(s_id.toInt(), "same sample");
+            I_EQUAL(related_samples.count(), 2);
+            IS_TRUE(related_samples.contains(db.sampleId("DXtest1_01").toInt()));
             IS_TRUE(related_samples.contains(db.sampleId("DXtest2_01").toInt()));
+
+
+            //tumor normal:
+            db.init();
+            db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportGenlab_init3.sql"));
+            db.getQuery().exec("INSERT INTO sample_relations (sample1_id, relation, sample2_id) VALUES (" + db.sampleId("DXtest3_03") + ",'tumor-normal'," + db.sampleId("DXtest5_01") + ")");
+
+            EXECUTE("NGSDImportGenlab", "-test -ps_id DXtest3_03 -debug");
+            s_id = db.sampleId("DXtest3_03");
+            related_samples = db.relatedSamples(s_id.toInt(), "tumor-normal");
+            I_EQUAL(related_samples.count(), 1);
+            IS_TRUE(related_samples.contains(db.sampleId("DXtest5_01").toInt()));
+            ps_data = db.getProcessedSampleData(db.processedSampleId("DXtest3_03"));
+            S_EQUAL(ps_data.normal_sample_name, "");
+
+            EXECUTE("NGSDImportGenlab", "-test -ps_id DXtest3_03 -debug -action ADD_REPLACE");
+            s_id = db.sampleId("DXtest3_03");
+            related_samples = db.relatedSamples(s_id.toInt(), "tumor-normal");
+            I_EQUAL(related_samples.count(), 2);
+            IS_TRUE(related_samples.contains(db.sampleId("DXtest5_01").toInt()));
+            IS_TRUE(related_samples.contains(db.sampleId("DXtest1_02").toInt()));
+            ps_data = db.getProcessedSampleData(db.processedSampleId("DXtest3_03"));
+            S_EQUAL(ps_data.normal_sample_name, "DXtest1_02");
 
 
         }
@@ -317,7 +411,6 @@ private slots:
 
         void default_add_replace()
         {
-            //TODO also test relations
             if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab Database!");
 
             NGSD db(true);

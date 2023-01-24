@@ -111,10 +111,10 @@ public:
 			{
 				if (getFlag("debug")) qDebug() << "Adding relative relation: " << genlab_relation.sample1 << " - " << genlab_relation.relation << " - " << genlab_relation.sample2;
 				SqlQuery insert = db.getQuery();
-				insert.prepare("INSERT IGNORE INTO sample_relations (sample1_id, relation, sample2_id) VALUES (:0, :1, :2)");
-				insert.bindValue(0, genlab_relation.sample1);
+				insert.prepare("INSERT INTO sample_relations (sample1_id, relation, sample2_id) VALUES (:0, :1, :2)");
+				insert.bindValue(0, db.sampleId(genlab_relation.sample1));
 				insert.bindValue(1, genlab_relation.relation);
-				insert.bindValue(2, genlab_relation.sample2);
+				insert.bindValue(2, db.sampleId(genlab_relation.sample2));
 				insert.exec();
 			}
 		}
@@ -128,18 +128,21 @@ public:
 		{
 			if (data.is_tumor == current_sample_data.is_tumor) continue;
 			if (data.type != "DNA") continue;
-
+			qDebug() << "current sample to test tumor normal relation:";
+			qDebug() << data.name;
+			qDebug() << data.type;
 			//get processed samples:
-			QStringList ps_ids = db.getValues("SELECT id FROM processed_sample WHERE sample_id = '" + db.sampleId(current_sample_data.name) + "'");
+			QStringList ps_ids = db.getValues("SELECT id FROM processed_sample WHERE sample_id = '" + db.sampleId(data.name) + "'");
 
 			foreach (QString ps_id, ps_ids)
 			{
 				ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id);
-
+				qDebug() << "testing candidate: " << ps_data.name;
 				if (ps_data.processing_system_type != "Panel" && ps_data.processing_system_type != "WES") continue;
 				if (ps_data.quality == "bad") continue;
 				QString run_status = db.getValue("SELECT status FROM sequencing_run WHERE name='" + ps_data.run_name + "'").toString();
 				if (run_status == "n/a" || run_status == "run_started" || run_status == "run_aborted" || run_status == "analysis_not_possible") continue;
+				if (current_ps_data.processing_system != ps_data.processing_system) continue;
 
 				if (best_candidate.name.isEmpty())
 				{
@@ -147,28 +150,20 @@ public:
 				}
 				else
 				{
-					if (best_candidate.processing_system == current_ps_data.processing_system && ps_data.processing_system != current_ps_data.processing_system) continue;
-
-					// if new candidate is from the same run and the current best not always take it
-					if (ps_data.run_name == current_ps_data.run_name && best_candidate.run_name != current_ps_data.run_name)
-					{
-						best_candidate = ps_data;
-					}
 					// if current best isn't from the same run take the newer sample
-					else if (IsSampleNewer(best_candidate.name, ps_data.name))
+					if (IsSampleNewer(best_candidate.name, ps_data.name))
 					{
 						best_candidate = ps_data;
 					}
 				}
 			}
 		}
-
+		qDebug() << "Best candidate: " << best_candidate.name;
 		if (best_candidate.name.isEmpty()) return; // No acceptable candidate found.
 
 		SqlQuery insert = db.getQuery();
 		insert.prepare("INSERT IGNORE INTO sample_relations (sample1_id, relation, sample2_id) VALUES (:0,'tumor-normal',:1)");
 
-		QString related_sample_name = best_candidate.name.split("_")[0];
 		QString tumor_ps_id;
 		QString tumor_ps_name;
 		QString normal_ps_id;
@@ -177,18 +172,15 @@ public:
 
 		if (current_sample_data.is_tumor)
 		{
-			insert.bindValue(0, current_sample_data.name);
-			insert.bindValue(1, related_sample_name);
 			tumor_ps_id = db.processedSampleId(current_ps_data.name);
 			tumor_ps_name = current_ps_data.name;
 			normal_ps_id = db.processedSampleId(best_candidate.name);
 			normal_ps_name = best_candidate.name;
 			normal_sample_name = current_ps_data.normal_sample_name;
+
 		}
 		else
 		{
-			insert.bindValue(0, related_sample_name);
-			insert.bindValue(1, current_sample_data.name);
 			normal_ps_id = db.processedSampleId(current_ps_data.name);
 			normal_ps_name = current_ps_data.name;
 			tumor_ps_id = db.processedSampleId(best_candidate.name);
@@ -198,10 +190,12 @@ public:
 
 		//insert new relation:
 		if (getFlag("debug")) qDebug() << "Importing new tumor normal relation: " << tumor_ps_name << " tumor-normal " << normal_ps_name;
+		insert.bindValue(0, db.sampleId(tumor_ps_name));
+		insert.bindValue(1, db.sampleId(normal_ps_name));
 		insert.exec();
 
 		//update normal id:
-		if (current_sample_data.is_tumor && normal_sample_name == "")
+		if (normal_sample_name == "" || getEnum("action") == "ADD_REPLACE")
 		{
 			if (getFlag("debug")) qDebug() << "Updating normal_id for tumor sample: " << tumor_ps_name << " new normal sample " << normal_ps_name;
 			db.getQuery().exec("UPDATE `processed_sample` SET normal_id = " + normal_ps_id + " WHERE id=" + tumor_ps_id);
@@ -210,6 +204,7 @@ public:
 
 	void checkForSameSampleRelation(NGSD& db, GenLabDB& genlab, const SampleData& current_sample_data, const QList<SampleData>& related_sample_data)
 	{
+		qDebug() << "checking for same sample relations";
 		// search for a sample entered in the DnaRna table in GenLab:
 		ProcessedSampleData genlab_related_sample;
 
@@ -241,7 +236,7 @@ public:
 		if (! genlab_related_sample.name.isEmpty())
 		{
 			SqlQuery insert = db.getQuery();
-			insert.prepare("INSERT IGNORE INTO 'sample_relations' ('sample1_id', 'relation', 'sample2_id') VALUES (:0,'same sample',:1)");
+			insert.prepare("INSERT INTO sample_relations (sample1_id, relation, sample2_id) VALUES (:0,'same sample',:1)");
 			insert.bindValue(0, db.sampleId(current_sample_data.name));
 			insert.bindValue(1, db.sampleId(genlab_related_sample.name));
 			if (getFlag("debug")) qDebug() << "Importing sameSample relation based on genlabs dnarna table: " << current_sample_data.name << " same sample " << genlab_related_sample.name;
@@ -251,14 +246,13 @@ public:
 
 		//if there was nothing found in genlab DnaRna table search for a fitting sample in samples from the same patient.
 		ProcessedSampleData best_candidate;
-
 		foreach (SampleData data, related_sample_data)
 		{
 			if (data.is_tumor != current_sample_data.is_tumor) continue;
 			if (data.type != "DNA") continue;
 
 			//get processed samples:
-			QStringList ps_ids = db.getValues("SELECT id FROM processed_sample WHERE sample_id = '" + db.sampleId(current_sample_data.name) + "'");
+			QStringList ps_ids = db.getValues("SELECT id FROM processed_sample WHERE sample_id = '" + db.sampleId(data.name) + "'");
 
 			foreach (QString ps_id, ps_ids)
 			{
@@ -266,9 +260,8 @@ public:
 
 				if (ps_data.processing_system_type != "Panel" && ps_data.processing_system_type != "WES" && ps_data.processing_system_type != "WGS") continue;
 				if (ps_data.quality == "bad") continue;
-				QString run_status = db.getValue("SELECT status FROM sequencing_run WHERE name == '" + ps_data.run_name + "'").toString();
+				QString run_status = db.getValue("SELECT status FROM sequencing_run WHERE name = '" + ps_data.run_name + "'").toString();
 				if (run_status == "n/a" || run_status == "run_started" || run_status == "run_aborted" || run_status == "analysis_not_possible") continue;
-
 
 				if (best_candidate.name.isEmpty())
 				{
@@ -284,7 +277,7 @@ public:
 		if (! best_candidate.name.isEmpty())
 		{
 			SqlQuery insert = db.getQuery();
-			insert.prepare("INSERT IGNORE INTO 'sample_relations' ('sample1_id', 'relation', 'sample2_id') VALUES (:0,'same sample',:1)");
+			insert.prepare("INSERT INTO sample_relations (sample1_id, relation, sample2_id) VALUES (:0,'same sample',:1)");
 			insert.bindValue(0, db.sampleId(current_sample_data.name));
 			insert.bindValue(1, db.sampleId(best_candidate.name));
 			if (getFlag("debug")) qDebug() << "Importing sameSample relation based on metadata: " << current_sample_data.name << "same sample " << best_candidate.name;
@@ -446,11 +439,16 @@ public:
 
 	bool IsSampleNewer (QString current_sample, QString other_sample)
 	{
-		const QRegularExpression rx(QLatin1Literal("[^0-9]+"));
-		QString current_sample_number = rx.match(current_sample).captured(0);
-		QString other_sample_number = rx.match(other_sample).captured(0);
+		const QRegularExpression rx("\\d+_\\d+");
+		QStringList current_sample_numbers = rx.match(current_sample).captured(0).split("_");
+		QStringList other_sample_numbers = rx.match(other_sample).captured(0).split("_");
 
-		return current_sample_number < other_sample_number;
+		if (current_sample_numbers[0] == other_sample_numbers[0])
+		{
+			return current_sample_numbers[1].toInt() < other_sample_numbers[1].toInt();
+		}
+
+		return current_sample_numbers[0].toInt() < other_sample_numbers[0].toInt();
 	}
 
 };
