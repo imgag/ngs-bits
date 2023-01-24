@@ -144,10 +144,6 @@ private slots:
 
         void relations_import()
         {
-            //TODO when additional test samples exist in GenLab!
-            //each type: siblings, same sample, tumor-normal
-            //with "distractions" processed samples with different processing systems/RNA/cfDNA...
-
             if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab Database!");
 
             NGSD db(true);
@@ -250,6 +246,8 @@ private slots:
 
         void rna_tissue_import()
         {
+            if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab Database!");
+
             NGSD db(true);
             db.init();
             db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportGenlab_init1.sql"));
@@ -332,7 +330,6 @@ private slots:
 
         void default_ignore()
         {
-            //TODO also test relations
             if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab Database!");
 
             NGSD db(true);
