@@ -81,4 +81,16 @@ private slots:
 		IS_TRUE(BedLine("chr1", 1, 20) < BedLine("chr2", 5, 20));
 	}
 
+	void fromString_toString()
+	{
+		QString line = "chr1\t1\t20";
+		S_EQUAL(line, BedLine::fromString(line).toString(false));
+		line = "chr15\t3589921\t3699921";
+		S_EQUAL(line, BedLine::fromString(line).toString(false));
+		line = "chr1\t1\t20\tGene";
+		S_EQUAL(line, BedLine::fromString(line).toString(false));
+		line = "chr1\t1\t20\tGene\ttwo_Anno\tthree,Anno";
+		S_EQUAL(line, BedLine::fromString(line).toString(false));
+	}
+
 };

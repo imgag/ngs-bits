@@ -93,7 +93,7 @@ public:
 				lifted->write(line);
 				continue;
 			}
-
+			line = line.trimmed();
 			BedLine l = BedLine::fromString(line);
 			in_count++;
 			in_length += l.length();
@@ -115,6 +115,7 @@ public:
 					THROW(ArgumentException, "Region was mapped to a special chromosome.");
 				}
 
+				lifted_line.annotations() = l.annotations();
 				lifted->write(lifted_line.toString(false).toUtf8() + "\n");
 				lifted_count++;
 				lifted_length += lifted_line.length();
@@ -145,8 +146,6 @@ public:
 		out << "unlifted   : " << unlifted_in_length  << " (" << QString::number(100.0*unlifted_in_length/in_length, 'f', 2) << "%)" << endl;
 		out << endl;
 		out << "Bases after lifting: " << lifted_length << endl;
-
-
 
 	}
 };
