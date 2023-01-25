@@ -35,6 +35,7 @@ bool BedLine::operator<(const BedLine& rhs) const
 BedLine BedLine::fromString(QString str)
 {
 	//normalize
+	str = str.replace(',', ""); //remove thousands separator
 	str = str.replace(':', '\t').replace('-', '\t'); //also accept "[c]:[s]-[e]"
 	str = str.replace(QRegExp("[ ]+"), "\t"); //also accept "[c] [s] [e]" (with any number of spaces)
 
@@ -45,24 +46,7 @@ BedLine BedLine::fromString(QString str)
 	//convert
 	try
 	{
-		//remove thousands separator
-		parts[1] = parts[1].replace(',', "");
-		parts[2] = parts[2].replace(',', "");
-
-		if (parts.count() == 3)
-		{
-			return BedLine(parts[0], Helper::toInt(parts[1], "range start position", str), Helper::toInt(parts[2], "range end position", str));
-		}
-		else
-		{
-			QByteArrayList annotations;
-			for (int i=3; i<parts.count(); i++)
-			{
-				annotations.append(parts[i].toUtf8());
-			}
-
-			return BedLine(parts[0], Helper::toInt(parts[1], "range start position", str), Helper::toInt(parts[2], "range end position", str), annotations);
-		}
+		return BedLine(parts[0], Helper::toInt(parts[1], "range start position", str), Helper::toInt(parts[2], "range end position", str));
 	}
 	catch(...)
 	{

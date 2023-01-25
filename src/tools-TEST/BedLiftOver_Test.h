@@ -105,10 +105,4 @@ private slots:
 			I_EQUAL(count, expected_unmapped)
 		}
 	}
-
-	void test_annotations()
-	{
-		EXECUTE("BedLiftOver", "-in " + TESTDATA("../cppNGS-TEST/data_in/ChainFileReader_in2.bed") + " -chain hg19_hg38 -out out/BedLiftOver_out4_lifted.bed -unmapped out/BedLiftOver_out4_unmapped.bed");
-
-	}
 };
