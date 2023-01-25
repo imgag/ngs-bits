@@ -311,21 +311,6 @@ struct CPPNGSDSHARED_EXPORT ProcessingSystemData
 	QString genome;
 };
 
-///Sequencing run information.
-struct CPPNGSDSHARED_EXPORT SequencingRunData
-{
-	QString name;
-	QString fcid;
-	QString flowcell_type;
-	QDate start_date;
-	QDate end_date;
-	QString recipe;
-	QString comment;
-	QString quality;
-	QString status;
-	bool backup_done;
-};
-
 /// Germline gene information.
 struct CPPNGSDSHARED_EXPORT GeneInfo
 {
