@@ -84,13 +84,13 @@ private slots:
 	void fromString_toString()
 	{
 		QString line = "chr1\t1\t20";
-		S_EQUAL(line, BedLine::fromString(line).toString(false));
+		S_EQUAL(line, BedLine::fromString(line).toStringWithAnnotations());
 		line = "chr15\t3589921\t3699921";
-		S_EQUAL(line, BedLine::fromString(line).toString(false));
+		S_EQUAL(line, BedLine::fromString(line).toStringWithAnnotations());
 		line = "chr1\t1\t20\tGene";
-		S_EQUAL(line, BedLine::fromString(line).toString(false));
+		S_EQUAL(line, BedLine::fromString(line).toStringWithAnnotations());
 		line = "chr1\t1\t20\tGene\ttwo_Anno\tthree,Anno";
-		S_EQUAL(line, BedLine::fromString(line).toString(false));
+		S_EQUAL(line, BedLine::fromString(line).toStringWithAnnotations());
 	}
 
 };

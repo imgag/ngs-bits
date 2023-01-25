@@ -116,7 +116,7 @@ public:
 				}
 
 				lifted_line.annotations() = l.annotations();
-				lifted->write(lifted_line.toString(false).toUtf8() + "\n");
+				lifted->write(lifted_line.toStringWithAnnotations().toUtf8() + "\n");
 				lifted_count++;
 				lifted_length += lifted_line.length();
 			}
