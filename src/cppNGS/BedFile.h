@@ -121,11 +121,11 @@ public:
 		}
 	}
 
-	///Converts the position part of the line to a string
+	///Converts the chromosome range and annotation data to a string (tab-separated)
 	QString toStringWithAnnotations() const
 	{
 		QString line = chr().strNormalized(true) + "\t" + QString::number(start()) + "\t" + QString::number(end());
-		foreach (QByteArray a, annotations())
+		foreach (const QByteArray& a, annotations())
 		{
 			line += "\t" + a;
 		}
