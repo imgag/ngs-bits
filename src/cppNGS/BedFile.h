@@ -117,12 +117,7 @@ public:
 		}
 		else
 		{
-			QString line = chr().strNormalized(true) + "\t" + QString::number(start()) + "\t" + QString::number(end());
-			foreach (QByteArray a, annotations())
-			{
-				line += "\t" + a;
-			}
-			return line;
+			return chr().strNormalized(true) + "\t" + QString::number(start()) + "\t" + QString::number(end());
 		}
 	}
 

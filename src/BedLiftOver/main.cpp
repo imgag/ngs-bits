@@ -93,7 +93,9 @@ public:
 				lifted->write(line);
 				continue;
 			}
-			line = line.trimmed();
+
+			while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
+
 			BedLine l = BedLine::fromString(line);
 			in_count++;
 			in_length += l.length();
