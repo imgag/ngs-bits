@@ -240,8 +240,6 @@ private slots:
             IS_TRUE(related_samples.contains(db.sampleId("DXtest1_02").toInt()));
             ps_data = db.getProcessedSampleData(db.processedSampleId("DXtest3_03"));
             S_EQUAL(ps_data.normal_sample_name, "DXtest1_02");
-
-
         }
 
         void rna_tissue_import()
@@ -403,7 +401,6 @@ private slots:
             infos = db.getSampleDiseaseInfo(s_id, "RNA reference tissue");
             I_EQUAL(infos.count(), 1);
             S_EQUAL(infos[0].disease_info, "tissue");
-
         }
 
         void default_add_replace()
