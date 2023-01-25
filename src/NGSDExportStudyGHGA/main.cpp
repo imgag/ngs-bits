@@ -24,7 +24,7 @@ public:
 		//optional
 		addFlag("test", "Test mode: uses the test NGSD, does not calcualte size/checksum of BAMs, ...");
 
-		changeLog(2023,  1, 23, "Initial implementation (0.9.0)."); //TODO update
+		changeLog(2023,  1, 20, "Initial implementation (version 0.9.0 of schema).");
 	}
 
 	//returns an array from the input JSON
@@ -617,5 +617,6 @@ int main(int argc, char *argv[])
 
 //TODO questions
 //GHGA: BAM only ok like that?
+//GHGA: also VCF?
 //GHGA: tumor status? tumor-normal linking
 //NCCT: Total RNA?
