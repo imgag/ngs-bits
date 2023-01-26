@@ -16,13 +16,12 @@ The following depdendemcies have to be installed:
 
 ## htslib
 
-[This issue](https://github.com/samtools/htslib/issues/907) from the [official github repository](https://github.com/samtools/htslib) provides a lot of information about some potential problems with the Windows build. However, it should be sufficient to follow these steps:
-* Download [the latest release of htslib](https://github.com/samtools/htslib/releases/download/1.16/htslib-1.16.tar.bz2) (github page has a section with releases)
+There is a separate [manual on how to build htslib](https://github.com/imgag/ngs-bits/tree/master/tools/htslib) available. However, it should be sufficient to follow these steps, if you have MSYS2 already installed:
+* Download [the latest release of htslib](http://www.htslib.org/download/)
 * Unpack htslib: *tar -xjf htslib-[VERSION].tar.bz2*
-* Configure htslib to enable HTTPS support: `./configure --enable-libcurl --enable-plugins`
+* Configure htslib to enable HTTP/HTTPS support: `./configure --enable-libcurl`
 * Compile the library: `make`
-* Install it into the system (you can copy the binary files to use the libary on a different system): `make install`
-
+* Install it into the system (you can copy the binary files afterwards to use the libary on a different system): `make install`
 
 ## Download
 
@@ -35,7 +34,7 @@ Clone the most recent release of ngs-bits (the source code package of GitHub doe
 
 ## MySQL Plugin for Qt
 
-Qt distributions do not come with MySQL plugins by default. You will have to build one for you version of MySQL. Qt developers provide very good instructions on how to do that [here](https://doc.qt.io/qt-5/sql-driver.html#how-to-build-the-qmysql-plugin-on-windows). If you are using MSYS2, you will have to add the paths for qmake and C compilers the `PATH` environment variable.
+Qt distributions do not come with MySQL plugins by default. You will have to build one for you version of MySQL. Qt developers provide very good instructions on how to do that [here](https://doc.qt.io/qt-5/sql-driver.html#how-to-build-the-qmysql-plugin-on-windows). If you are using MSYS2, you will have to add the paths for qmake and C compilers to the `PATH` environment variable.
 
 ## Build
 Now you can build ngs-bits as if you are using Linux:
