@@ -29,6 +29,7 @@ public:
 		addEnum("action", desc, true, QStringList{"ADD_REPLACE", "IGNORE"}, "IGNORE");
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("debug", "Enables debug output.");
+		addFlag("dry_run", "Run as specified but do NOT change anything in the database.");
 	}
 
 	virtual void main()
@@ -66,9 +67,7 @@ public:
 
 		SampleData current_sample_data = db.getSampleData(current_sample_id);
 		ProcessedSampleData current_ps_data = db.getProcessedSampleData(current_ps_id);
-
 		QStringList samples = genlab.patientSamples(ps_name);
-		if (getFlag("debug")) qDebug() << "related samples (same patient): " << samples;
 
 		if (samples.count() == 0) return;
 
@@ -115,7 +114,7 @@ public:
 				insert.bindValue(0, db.sampleId(genlab_relation.sample1));
 				insert.bindValue(1, genlab_relation.relation);
 				insert.bindValue(2, db.sampleId(genlab_relation.sample2));
-				insert.exec();
+				if (!getFlag("dry_run")) insert.exec();
 			}
 		}
 	}
@@ -128,16 +127,14 @@ public:
 		{
 			if (data.is_tumor == current_sample_data.is_tumor) continue;
 			if (data.type != "DNA") continue;
-			qDebug() << "current sample to test tumor normal relation:";
-			qDebug() << data.name;
-			qDebug() << data.type;
+
 			//get processed samples:
 			QStringList ps_ids = db.getValues("SELECT id FROM processed_sample WHERE sample_id = '" + db.sampleId(data.name) + "'");
 
 			foreach (QString ps_id, ps_ids)
 			{
 				ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id);
-				qDebug() << "testing candidate: " << ps_data.name;
+
 				if (ps_data.processing_system_type != "Panel" && ps_data.processing_system_type != "WES") continue;
 				if (ps_data.quality == "bad") continue;
 				QString run_status = db.getValue("SELECT status FROM sequencing_run WHERE name='" + ps_data.run_name + "'").toString();
@@ -192,19 +189,18 @@ public:
 		if (getFlag("debug")) qDebug() << "Importing new tumor normal relation: " << tumor_ps_name << " tumor-normal " << normal_ps_name;
 		insert.bindValue(0, db.sampleId(tumor_ps_name));
 		insert.bindValue(1, db.sampleId(normal_ps_name));
-		insert.exec();
+		if (!getFlag("dry_run")) insert.exec();
 
 		//update normal id:
 		if (normal_sample_name == "" || getEnum("action") == "ADD_REPLACE")
 		{
 			if (getFlag("debug")) qDebug() << "Updating normal_id for tumor sample: " << tumor_ps_name << " new normal sample " << normal_ps_name;
-			db.getQuery().exec("UPDATE `processed_sample` SET normal_id = " + normal_ps_id + " WHERE id=" + tumor_ps_id);
+			if (!getFlag("dry_run")) db.getQuery().exec("UPDATE `processed_sample` SET normal_id = " + normal_ps_id + " WHERE id=" + tumor_ps_id);
 		}
 	}
 
 	void checkForSameSampleRelation(NGSD& db, GenLabDB& genlab, const SampleData& current_sample_data, const QList<SampleData>& related_sample_data)
 	{
-		qDebug() << "checking for same sample relations";
 		// search for a sample entered in the DnaRna table in GenLab:
 		ProcessedSampleData genlab_related_sample;
 
@@ -240,7 +236,7 @@ public:
 			insert.bindValue(0, db.sampleId(current_sample_data.name));
 			insert.bindValue(1, db.sampleId(genlab_related_sample.name));
 			if (getFlag("debug")) qDebug() << "Importing sameSample relation based on genlabs dnarna table: " << current_sample_data.name << " same sample " << genlab_related_sample.name;
-			insert.exec();
+			if (!getFlag("dry_run")) insert.exec();
 			return;
 		}
 
@@ -281,7 +277,7 @@ public:
 			insert.bindValue(0, db.sampleId(current_sample_data.name));
 			insert.bindValue(1, db.sampleId(best_candidate.name));
 			if (getFlag("debug")) qDebug() << "Importing sameSample relation based on metadata: " << current_sample_data.name << "same sample " << best_candidate.name;
-			insert.exec();
+			if (!getFlag("dry_run")) insert.exec();
 			return;
 		}
 	}
@@ -300,7 +296,7 @@ public:
 		if (gender != "" && (s_data.gender == "n/a" || (s_data.gender != gender && getEnum("action") == "ADD_REPLACE")))
 		{
 			if (getFlag("debug")) qDebug() << "Importing gender: " << gender;
-			db.getQuery().exec("UPDATE sample SET gender='" + gender + "' WHERE id=" + s_id);
+			if (!getFlag("dry_run")) db.getQuery().exec("UPDATE sample SET gender='" + gender + "' WHERE id=" + s_id);
 		}
 
 		//***patient_identifier
@@ -308,7 +304,7 @@ public:
 		if (patient_identifier != "" && (s_data.patient_identifier == "" || (s_data.patient_identifier != patient_identifier && getEnum("action") == "ADD_REPLACE")))
 		{
 			if (getFlag("debug")) qDebug() << "Importing patient identifier: " << patient_identifier;
-			db.getQuery().exec("UPDATE sample SET patient_identifier='" + patient_identifier + "' WHERE id=" + s_id);
+			if (!getFlag("dry_run"))db.getQuery().exec("UPDATE sample SET patient_identifier='" + patient_identifier + "' WHERE id=" + s_id);
 		}
 
 		//***disease group and status
@@ -318,13 +314,13 @@ public:
 		if (disease_group != "n/a" && (s_data.disease_group == "n/a" || (s_data.disease_group != disease_group && getEnum("action") == "ADD_REPLACE")))
 		{
 			if (getFlag("debug")) qDebug() << "Importing disease group: " << disease_group;
-			db.getQuery().exec("UPDATE sample SET disease_group='" + disease_group + "' WHERE id=" + s_id);
+			if (!getFlag("dry_run")) db.getQuery().exec("UPDATE sample SET disease_group='" + disease_group + "' WHERE id=" + s_id);
 		}
 
 		if (disease_status != "n/a" && (s_data.disease_status == "n/a" || (s_data.disease_status != disease_status && getEnum("action") == "ADD_REPLACE")))
 		{
 			if (getFlag("debug")) qDebug() << "Importing disease status: " << disease_status;
-			db.getQuery().exec("UPDATE sample SET disease_status='" + disease_status + "' WHERE id=" + s_id);
+			if (!getFlag("dry_run")) db.getQuery().exec("UPDATE sample SET disease_status='" + disease_status + "' WHERE id=" + s_id);
 		}
 
 		//*** disease details *** 'HPO term id','ICD10 code','OMIM disease/phenotype identifier','Orpha number','CGI cancer type','tumor fraction','age of onset','clinical phenotype (free text)','RNA reference tissue')
@@ -352,7 +348,8 @@ public:
 				if (!study_id.isValid()) INFO(ArgumentException, "GenLab study name '" + study + "' not found in NGSD! Please add the study to NGSD, or correcte the study name in GenLab!");
 
 				if (getFlag("debug")) qDebug() << "Importing new study: " << study;
-				db.getQuery().exec("INSERT INTO `study_sample`(`study_id`, `processed_sample_id`) VALUES ("+study_id.toString()+", "+ps_id+")");
+
+				if (!getFlag("dry_run")) db.getQuery().exec("INSERT INTO `study_sample`(`study_id`, `processed_sample_id`) VALUES ("+study_id.toString()+", "+ps_id+")");
 			}
 		}
 	}
@@ -374,7 +371,7 @@ public:
 				new_entry.date = QDateTime::currentDateTime();
 				disease_details << new_entry;
 				//NGSD Import:
-				db.setSampleDiseaseInfo(s_id, disease_details);
+				if (!getFlag("dry_run")) db.setSampleDiseaseInfo(s_id, disease_details);
 			}
 		}
 	}
