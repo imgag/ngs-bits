@@ -32,8 +32,8 @@ The process of building *htslib* on Windows is described in this [issue](https:/
 		> cd [htslib]
 		> PATH=/mingw64/bin:$PATH
 		> autoreconf -i
-		> ./configure
-    - Add `--enable-libcurl` option to the `./configure` command, if you want to access files (e.g. BAM) over HTTP/HTTPS protocol. Otherwise htslib will be able to work only with the local filesystem, accessing the server files will not be possible.
+		> ./configure --enable-libcurl
+    - `--enable-libcurl` option is needed, if you want to access files (e.g. BAM) over HTTP/HTTPS protocol. Otherwise htslib will be able to work only with the local filesystem, accessing the server files will not be possible.
     - After executing the script you will see the results of the configuration on your screen. Make sure that the features you need have been enabled.
 
 6. build htslib:
