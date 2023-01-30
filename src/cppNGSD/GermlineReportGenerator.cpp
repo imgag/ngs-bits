@@ -2320,6 +2320,7 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 	int i_gnomad = data_.variants.annotationIndexByName("gnomAD", true, true);
 	int i_ngsd_hom = data_.variants.annotationIndexByName("NGSD_hom", true, true);
 	int i_ngsd_het = data_.variants.annotationIndexByName("NGSD_het", true, true);
+	int i_filter = data_.variants.annotationIndexByName("filter", true, true);
 
 	//manual curation
 	if (conf.isManuallyCurated()) conf.updateVariant(v, genome_idx_, i_genotype);
@@ -2362,7 +2363,9 @@ void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const Re
 	stream << "     <tr>" << endl;
 	stream << "       <td>" << genes.join(", ") << "</td>" << endl;
 	stream << "       <td>" << types.join(", ") << "</td>" << endl;
-	stream << "       <td>" << v.annotations()[i_genotype] << "</td>" << endl;
+	QString genotype = v.annotations()[i_genotype];
+	if (v.annotations()[i_filter].contains("mosaic")) genotype += " (mosaic)";
+	stream << "       <td>" << genotype << "</td>" << endl;
 	stream << "       <td style='white-space: nowrap'>" << v.toString(false, 20) << "</td>" << endl;
 	stream << "       <td>" << conf.inheritance << "</td>" << endl;
 	stream << "       <td>" << hgvs_cs.join(", ") << "</td>" << endl;

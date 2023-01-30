@@ -121,6 +121,17 @@ public:
 		}
 	}
 
+	///Converts the chromosome range and annotation data to a string (tab-separated)
+	QString toStringWithAnnotations() const
+	{
+		QString line = chr().strNormalized(true) + "\t" + QString::number(start()) + "\t" + QString::number(end());
+		foreach (const QByteArray& a, annotations())
+		{
+			line += "\t" + a;
+		}
+		return line;
+	}
+
 	///Parses a chromosomal region string and constructs a line from it. An invalid line is returned, if the string cannot be parsed.
 	static BedLine fromString(QString str);
 

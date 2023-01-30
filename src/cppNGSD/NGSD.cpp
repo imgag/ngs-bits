@@ -20,11 +20,13 @@
 #include <QDir>
 #include <QThread>
 #include "cmath"
+#include "QUuid"
 
 NGSD::NGSD(bool test_db, QString name_suffix)
 	: test_db_(test_db)
 {
-	db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "NGSD_" + Helper::randomString(20))));
+	QString db_identifier = "NGSD_" + QUuid::createUuid().toString();
+	db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", db_identifier)));
 
 	//connect to DB
 	QString db_name;

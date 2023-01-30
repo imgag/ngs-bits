@@ -44,13 +44,19 @@ void DiseaseCourseWidget::VariantDoubleClicked(QTableWidgetItem* item)
 	QString coords = vcf_line.chr().strNormalized(true) + ":" + QString::number(vcf_line.start());
 	GlobalServiceProvider::gotoInIGV(coords, true);
 
-	// add cfDNA BAM Files to IGV
-	foreach (const cfDnaColumn& cf_dna, cf_dna_columns_)
+	// add cfDNA BAM Files to IGV when executed for the first time
+	if (!igv_initialized_)
 	{
-		QString ps_id = db_.processedSampleId(cf_dna.name);		
-		QString bam = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::BAM).filename;
-		GlobalServiceProvider::loadFileInIGV(bam, true);
+		foreach (const cfDnaColumn& cf_dna, cf_dna_columns_)
+		{
+			QString ps_id = db_.processedSampleId(cf_dna.name);
+			QString bam = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::BAM).filename;
+			GlobalServiceProvider::loadFileInIGV(bam, true);
+		}
+		igv_initialized_ = true;
 	}
+
+
 }
 
 void DiseaseCourseWidget::copyToClipboard()

@@ -48,6 +48,7 @@ private:
 	QStringList cf_dna_ps_ids_;
 	cfDnaColumn ref_column_;
 	QVector<cfDnaColumn> cf_dna_columns_;
+	bool igv_initialized_ = false;
 };
 
 #endif // DISEASECOURSEWIDGET_H

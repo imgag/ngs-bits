@@ -31,6 +31,7 @@ DBQCWidget::DBQCWidget(QWidget *parent)
 	connect(ui_.system, SIGNAL(currentTextChanged(QString)), this, SLOT(updatePlot()));
 	connect(ui_.highlight, SIGNAL(editingFinished()), this, SLOT(checkHighlightedSamples()));
 	connect(ui_.export_btn, SIGNAL(clicked(bool)), this, SLOT(copyQcMetricsToClipboard()));
+	connect(ui_.sample_type, SIGNAL(currentTextChanged(QString)), this, SLOT(updatePlot()));
 }
 
 void DBQCWidget::setSystemId(QString id)
@@ -231,16 +232,25 @@ void DBQCWidget::updatePlot()
 	//determine plot type
 	bool scatterplot = !ui_.term2->currentText().isEmpty();
 
+	QString sample_type_filter = "";
+	if (ui_.sample_type->currentText() == "tumor only")
+	{
+		sample_type_filter = " AND s.tumor = 1";
+	} else if (ui_.sample_type->currentText() == "normal only")
+	{
+		sample_type_filter = " AND s.tumor = 0";
+	}
+
 	//create query
 	QString query_string;
 	if (scatterplot)
 	{
 		QString term_id2 = ui_.term2->getCurrentId();
-		query_string = "SELECT qc.value, ps.quality, qc2.value, ps.id FROM processed_sample_qc qc, processed_sample_qc qc2, processed_sample ps WHERE qc.processed_sample_id=ps.id AND qc2.processed_sample_id=ps.id AND qc.qc_terms_id='" + term_id + "' AND qc2.qc_terms_id='" + term_id2 + "'";
+		query_string = "SELECT qc.value, ps.quality, qc2.value, ps.id FROM processed_sample_qc qc, processed_sample_qc qc2, processed_sample ps LEFT JOIN sample as s ON ps.sample_id = s.id WHERE qc.processed_sample_id=ps.id AND qc2.processed_sample_id=ps.id AND qc.qc_terms_id='" + term_id + "' AND qc2.qc_terms_id='" + term_id2 + "'" + sample_type_filter;
 	}
 	else
 	{
-		query_string = "SELECT qc.value, ps.quality, r.end_date, ps.id FROM processed_sample_qc qc, processed_sample ps, sequencing_run r WHERE qc.processed_sample_id=ps.id AND ps.sequencing_run_id=r.id AND qc.qc_terms_id='" + term_id + "'";
+		query_string = "SELECT qc.value, ps.quality, r.end_date, ps.id FROM processed_sample_qc qc, processed_sample ps LEFT JOIN sample as s ON ps.sample_id = s.id, sequencing_run r WHERE qc.processed_sample_id=ps.id AND ps.sequencing_run_id=r.id AND qc.qc_terms_id='" + term_id + "'" + sample_type_filter;
 	}
 	QString sys_id = ui_.system->getCurrentId();
 	if (!sys_id.isEmpty())
