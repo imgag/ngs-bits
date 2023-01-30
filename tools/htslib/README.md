@@ -7,7 +7,7 @@ The main problem with Windows is that htslib does not maintain a build system fo
 The process of building *htslib* on Windows is described in this [issue](https://github.com/samtools/htslib/issues/907).  
 
 
-1. Install 64-bit MYS2 from the [project website](https://msys2.github.io/)
+1. Install 64-bit MSYS2 (32-bit supoort is deprecated and available only for certain things, not recommended to use) from the [project website](https://msys2.github.io/)
 
 2. If behind a proxy, update proxy settings as described [here](https://stackoverflow.com/questions/29783065/msys2-pacman-cant-update-packages-through-corporate-firewall9):
 	- Uncomment and set proxy credentials in `[msys]\etc\wgetrc`:
@@ -32,7 +32,9 @@ The process of building *htslib* on Windows is described in this [issue](https:/
 		> cd [htslib]
 		> PATH=/mingw64/bin:$PATH
 		> autoreconf -i
-		> ./configure
+		> ./configure --enable-libcurl
+    - `--enable-libcurl` option is needed, if you want to access files (e.g. BAM) over HTTP/HTTPS protocol. Otherwise htslib will be able to work only with the local filesystem, accessing the server files will not be possible.
+    - After executing the script you will see the results of the configuration on your screen. Make sure that the features you need have been enabled.
 
 6. build htslib:
 
