@@ -27,7 +27,7 @@ The Qt distribution does not contains the MySQL driver.
 Thus, we need to install it manually:
 
 * Download the ZIP file of [MySQL Community Server 8.0.31](http://downloads.mysql.com/archives/community/) and extract it to C:\Qt\.  
-* Copy C:\Qt\mysql-8.0.31-winx64\lib\libmysql.dll to C:\Windows\
+* Copy C:\Qt\mysql-8.0.31-winx64\lib\libmysql.dll to `ngs-bits\bin`
 
 ### MySQL plugin for Qt
 
