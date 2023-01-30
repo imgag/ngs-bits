@@ -551,13 +551,16 @@ void BurdenTestWidget::performBurdenTest()
 		}
 		qDebug() << "calculating counts took: " << Helper::elapsedTime(timer);
 
+		//calculate p-value (fisher)
+		double p_value = BasicStatistics::fishersExactTest(n_cases, n_controls, case_samples_.size(), control_samples_.size());
+
 		//create table line
 		int row_idx = ui_->tw_gene_table->rowCount();
 		int column_idx = 0;
 		ui_->tw_gene_table->setRowCount(row_idx+1);
 
 		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(gene_name));
-		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(""));
+		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(QString::number(p_value, 'f', 5)));
 
 		ui_->tw_gene_table->setItem(row_idx, column_idx, GUIHelper::createTableItem(QString::number(n_cases)));
 		ui_->tw_gene_table->item(row_idx, column_idx++)->setToolTip(ps_names_cases.join(", "));
@@ -585,17 +588,17 @@ void BurdenTestWidget::prepareSqlQuery(int max_ngsd, double max_gnomad_af, const
 			+ " (germline_het>0 OR germline_hom>0) AND germline_het+germline_hom<=" + QString::number(max_ngsd)
 			+ " AND (gnomad IS NULL OR gnomad<=" + QString::number(max_gnomad_af) + ")"
 			+ " AND v.chr=:0 AND v.start>=:1 AND v.end<=:2";
-	if(impacts.size() > 0)
-	{
-		query_text += " AND (";
-		QStringList impact_query_statement;
-		foreach (const QString& impact, impacts)
-		{
-			impact_query_statement << "v.coding LIKE '%" + impact + "%'";
-		}
-		query_text += impact_query_statement.join(" OR ");
-		query_text += ")";
-	}
+//	if(impacts.size() > 0)
+//	{
+//		query_text += " AND (";
+//		QStringList impact_query_statement;
+//		foreach (const QString& impact, impacts)
+//		{
+//			impact_query_statement << "v.coding LIKE '%" + impact + "%'";
+//		}
+//		query_text += impact_query_statement.join(" OR ");
+//		query_text += ")";
+//	}
 	query_text += " ORDER BY start";
 
 	variant_query_.prepare(query_text);
