@@ -24,7 +24,7 @@ public:
 		//optional
 		addFlag("test", "Test mode: uses the test NGSD, does not calcualte size/checksum of BAMs, ...");
 
-		changeLog(2023,  1, 20, "Initial implementation (version 0.9.0 of schema).");
+		changeLog(2023,  1, 30, "Initial implementation (version 0.9.0 of schema).");
 	}
 
 	//returns an array from the input JSON
@@ -242,7 +242,7 @@ public:
 		foreach(const PSData& ps_data, data.ps_list)
 		{
 			QJsonObject obj;
-			obj.insert("alias", "BAM" + ps_data.pseudonym); //also add VCF?! (dataset type - Genomic variant calling)
+			obj.insert("alias", "BAM" + ps_data.pseudonym);
 			obj.insert("name", ps_data.pseudonym + ".bam");
 
 			if (data.test_mode)
@@ -288,7 +288,9 @@ public:
 		obj.insert("schema_type", "CreateDataAccessCommittee");
 		obj.insert("schema_version", data.version);
 
-		parent.insert("has_data_access_committee", obj);
+		QJsonArray array;
+		array.append(obj);
+		parent.insert("has_data_access_committee", array);
 
 		//create member object as well
 		obj = QJsonObject();
@@ -298,9 +300,9 @@ public:
 		obj.insert("schema_type", "CreateMember");
 		obj.insert("schema_version", data.version);
 
-		QJsonArray array;
-		array.append(obj);
-		parent.insert("has_member", array);
+		QJsonArray array2;
+		array2.append(obj);
+		parent.insert("has_member", array2);
 	}
 
 	void addDataAccessPolicy(QJsonObject& parent, const CommonData& data)
@@ -309,8 +311,8 @@ public:
 		obj.insert("alias", "DAP_"+data.study_name);
 		obj.insert("name", "Data access policy for study "+data.study_name);
 		obj.insert("description", "Data access policy for study "+data.study_name);
-		obj.insert("data_access_policy_text", data.dap_text);
-		obj.insert("data_access_policy_url", data.dap_url);
+		obj.insert("policy_text", data.dap_text);
+		obj.insert("policy_url", data.dap_url);
 		obj.insert("has_data_use_conditions", QJsonArray::fromStringList(QStringList() << data.dap_conditions));
 		obj.insert("has_data_access_committee", data.study_name + " DAC");
 		obj.insert("schema_type", "CreateDataAccessPolicy");
@@ -514,15 +516,19 @@ public:
 			obj.insert("vital_status", "unknown");
 			obj.insert("karyotype", "unknown");
 			obj.insert("geographical_region", "unknown");
+			QJsonArray ancestry_list;
 			QString ancestry = sampleAncestryToAncestry(ps_data.ps_info.ancestry);
-			if (ancestry=="")
+			if (ancestry!="")
 			{
-				obj.insert("ancestry", QJsonValue());
+				QJsonObject obj2;
+
+				obj2.insert("concept_name", ancestry);
+				obj2.insert("schema_type", "CreateAncestry");
+				obj2.insert("schema_version", data.version);
+
+				ancestry_list.append(obj2);
 			}
-			else
-			{
-				obj.insert("ancestry", QJsonArray::fromStringList(QStringList() << ancestry));
-			}
+			obj.insert("has_ancestry", ancestry_list);
 
 			obj.insert("schema_type", "CreateIndividual");
 			obj.insert("schema_version", data.version);
@@ -615,8 +621,5 @@ int main(int argc, char *argv[])
 	return tool.execute();
 }
 
-//TODO questions
-//GHGA: BAM only ok like that?
-//GHGA: also VCF?
-//GHGA: tumor status? tumor-normal linking
+//TODO questions:
 //NCCT: Total RNA?

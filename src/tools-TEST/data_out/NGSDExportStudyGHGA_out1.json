@@ -33,19 +33,19 @@
     ],
     "has_biospecimen": [
     ],
-    "has_data_access_committee": {
-        "alias": "Study4711 DAC",
-        "has_member": [
-            "norply@med.uni-tuebingen.de"
-        ],
-        "main_contact": "norply@med.uni-tuebingen.de",
-        "schema_type": "CreateDataAccessCommittee",
-        "schema_version": "0.9.0"
-    },
+    "has_data_access_committee": [
+        {
+            "alias": "Study4711 DAC",
+            "has_member": [
+                "norply@med.uni-tuebingen.de"
+            ],
+            "main_contact": "norply@med.uni-tuebingen.de",
+            "schema_type": "CreateDataAccessCommittee",
+            "schema_version": "0.9.0"
+        }
+    ],
     "has_data_access_policy": {
         "alias": "DAP_Study4711",
-        "data_access_policy_text": "Textual description of the DAP",
-        "data_access_policy_url": "http:://url.describing.the.dap.de",
         "description": "Data access policy for study Study4711",
         "has_data_access_committee": "Study4711 DAC",
         "has_data_use_conditions": [
@@ -53,6 +53,8 @@
             "Condition 2"
         ],
         "name": "Data access policy for study Study4711",
+        "policy_text": "Textual description of the DAP",
+        "policy_url": "http:://url.describing.the.dap.de",
         "schema_type": "CreateDataAccessPolicy",
         "schema_version": "0.9.0"
     },
@@ -159,10 +161,14 @@
         {
             "age": "unknown",
             "alias": "IND000111",
-            "ancestry": [
-                "European"
-            ],
             "geographical_region": "unknown",
+            "has_ancestry": [
+                {
+                    "concept_name": "European",
+                    "schema_type": "CreateAncestry",
+                    "schema_version": "0.9.0"
+                }
+            ],
             "has_phenotypic_feature": [
                 {
                     "concept_name": "HP:0033006",
@@ -184,8 +190,9 @@
         {
             "age": "unknown",
             "alias": "IND000222",
-            "ancestry": null,
             "geographical_region": "unknown",
+            "has_ancestry": [
+            ],
             "has_phenotypic_feature": [
             ],
             "karyotype": "unknown",
