@@ -1,3 +1,57 @@
+Release 1.3.0: 9th August 2022
+------------------------------
+
+The primary change in this release is a new SIMD enabled rANS codec.
+
+Changes
+
+- There is a 32-way unrolled rANS implementation.  This is accessed
+  using the existing rans 4x16 API with the RANS_ORDER_X32 bit set.
+  Implementations exist for SSE4.1, AVX2, AVX512 and ARM Neon, as
+  well as traditional non-SIMD scalar code in C and JavaScript. See
+  the commit logs for benchmarks.
+
+- Improved memory allocation via a new htscodecs_tls_alloc function.
+  This uses Thread Local Storage (TLS) to avoid multiple malloc/free
+  calls, reducing system CPU time.
+
+- Some external functions have been renamed, with the old ones still
+  existing in a deprecated fashion.  Every symbol should now start
+  hts_, rans_, arith_, fqz_ or tok3_*.
+
+- Improved test framework with an "entropy" tool that iterates over
+  all entropy encoders.
+
+- Updated the Appveyor CI image to user a newer gcc.  Also added ARM
+  to the list of processors to test on.
+
+- Tab vs space code changes.  Use "git diff -w" to see through these.
+
+- Reworked fuzzing infrastructure.
+
+- Small speed improvements to various rANS encoders and decoders.
+  These were tested on a broad range of compilers, versions and
+  systems.  The new code may be slightly slower with some combinations,
+  but is faster overall and removes a few outliers with considerably
+  degraded performance.
+
+- Substantial memory reduction to the name tokeniser (tok3).
+
+Bug fixes
+
+- Fixed undefined behaviour in our use of _builtin_clz().
+
+- Fixed a few redundant #includes.
+
+- Work around strict aliasing bugs, uncovered with gcc -O2.
+
+- Fixed an issue with encoding data blocks close to 2GB in size.
+  (Additionally blocks above 2GB now error, rather than crashing or
+  returning incorrect results.)
+
+- Fix encode error with large blocks using RANS_ORDER_STRIPE.
+
+
 Release 1.2.2: 1st April 2022
 -----------------------------
 

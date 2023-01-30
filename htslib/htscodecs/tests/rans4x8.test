@@ -13,13 +13,13 @@ do
     do
         printf 'Testing rans4x8 -r -o%s on %s\t' $o "$f"
 
-	# Round trip
+        # Round trip
         ./rans4x8 -r -o$o $out/r4x8-nl $out/r4x8.comp 2>>$out/r4x8.stderr || exit 1
-	wc -c < $out/r4x8.comp
+        wc -c < $out/r4x8.comp
         ./rans4x8 -r -d $out/r4x8.comp $out/r4x8.uncomp  2>>$out/r4x8.stderr || exit 1
         cmp $out/r4x8-nl $out/r4x8.uncomp || exit 1
 
-	# Precompressed data
+        # Precompressed data
         ./rans4x8 -r -d $comp.$o $out/r4x8.uncomp  2>>$out/r4x8.stderr || exit 1
         cmp $out/r4x8-nl $out/r4x8.uncomp || exit 1
     done

@@ -55,7 +55,7 @@
 #ifndef BLK_SIZE
 #define BLK_SIZE 1*1024*1024
 #endif
-static char blk[BLK_SIZE*2]; // temporary fix for decoder, which needs more space
+static char *blk;
 
 // Max 4GB
 static unsigned char *load(FILE *infp, uint32_t *lenp) {
@@ -65,18 +65,18 @@ static unsigned char *load(FILE *infp, uint32_t *lenp) {
     signed int len;
 
     do {
-	if (dsize - dcurr < BLK_SIZE) {
-	    dsize = dsize ? dsize * 2 : BLK_SIZE;
-	    data = realloc(data, dsize);
-	}
+        if (dsize - dcurr < BLK_SIZE) {
+            dsize = dsize ? dsize * 2 : BLK_SIZE;
+            data = realloc(data, dsize);
+        }
 
-	len = fread(data + dcurr, 1, BLK_SIZE, infp);
-	if (len > 0)
-	    dcurr += len;
+        len = fread(data + dcurr, 1, BLK_SIZE, infp);
+        if (len > 0)
+            dcurr += len;
     } while (len > 0);
 
     if (len == -1) {
-	perror("fread");
+        perror("fread");
     }
 
     *lenp = dcurr;
@@ -90,72 +90,74 @@ static int encode(int argc, char **argv) {
     int raw = 0;
 
     while (argc > 1 && argv[1][0] == '-') {
-	if (strcmp(argv[1], "-r") == 0) {
-	    raw = 1;
-	    argc--;
-	    argv++;
-	}
+        if (strcmp(argv[1], "-r") == 0) {
+            raw = 1;
+            argc--;
+            argv++;
+        }
 
-	else if (argv[1][1] >= '0' && argv[1][1] <= '9') {
-	    level = atoi(argv[1]+1);
-	    if (level > 10) {
-		level -= 10;
-		use_arith = 1;
-	    }
-	    argc--;
-	    argv++;
-	}
+        else if (argv[1][1] >= '0' && argv[1][1] <= '9') {
+            level = atoi(argv[1]+1);
+            if (level > 10) {
+                level -= 10;
+                use_arith = 1;
+            }
+            argc--;
+            argv++;
+        }
 
-	else
-	    exit(1);
+        else
+            exit(1);
     }
 
     if (argc > 1) {
-	fp = fopen(argv[1], "r");
-	if (!fp) {
-	    perror(argv[1]);
-	    return 1;
-	}
+        fp = fopen(argv[1], "r");
+        if (!fp) {
+            perror(argv[1]);
+            return 1;
+        }
     } else {
-	fp = stdin;
+        fp = stdin;
     }
 
     if (raw) {
-	// One naked / raw block, to match the specification
-	uint32_t in_len;
-	int out_len;
-	unsigned char *in = load(fp, &in_len), *out;
-	if (!in) exit(1);
-	out = encode_names((char *)in, in_len, level, use_arith, &out_len, NULL);
-	if (!out || write(1, out, out_len) < out_len) exit(1);   // encoded data
-	free(in);
-	free(out);
+        // One naked / raw block, to match the specification
+        uint32_t in_len;
+        int out_len;
+        unsigned char *in = load(fp, &in_len), *out;
+        if (!in) exit(1);
+        out = tok3_encode_names((char *)in, in_len, level, use_arith,
+                                &out_len, NULL);
+        if (!out || write(1, out, out_len) < out_len) exit(1);   // encoded data
+        free(in);
+        free(out);
     } else {
-	// Block based, to permit arbitrarily large files for benchmarking
-	int blk_offset = 0;
-	for (;;) {
-	    int last_start = 0;
+        // Block based, to permit arbitrarily large files for benchmarking
+        int blk_offset = 0;
+        for (;;) {
+            int last_start = 0;
 
-	    len = fread(blk+blk_offset, 1, BLK_SIZE-blk_offset, fp);
-	    if (len <= 0)
-		break;
-	    len += blk_offset;
+            len = fread(blk+blk_offset, 1, BLK_SIZE-blk_offset, fp);
+            if (len <= 0)
+                break;
+            len += blk_offset;
 
-	    int out_len;
-	    uint8_t *out = encode_names(blk, len, level, use_arith, &out_len, &last_start);
-	    if (write(1, &out_len, 4) < 4) exit(1);
-	    if (write(1, out, out_len) < out_len) exit(1);   // encoded data
-	    free(out);
+            int out_len;
+            uint8_t *out = tok3_encode_names(blk, len, level, use_arith,
+                                             &out_len, &last_start);
+            if (write(1, &out_len, 4) < 4) exit(1);
+            if (write(1, out, out_len) < out_len) exit(1);   // encoded data
+            free(out);
 
-	    if (len > last_start)
-		memmove(blk, &blk[last_start], len - last_start);
-	    blk_offset = len - last_start;
-	}
+            if (len > last_start)
+                memmove(blk, &blk[last_start], len - last_start);
+            blk_offset = len - last_start;
+        }
     }
 
     if (fclose(fp) < 0) {
-	perror("closing file");
-	return 1;
+        perror("closing file");
+        return 1;
     }
 
     return 0;
@@ -166,45 +168,45 @@ static int decode(int argc, char **argv) {
     int raw = 0;
 
     if (argc > 1 && strcmp(argv[1], "-r") == 0) {
-	raw = 1;
-	argc--;
-	argv++;
+        raw = 1;
+        argc--;
+        argv++;
     }
 
     if (raw) {
-	// One naked / raw block, to match the specification
-	uint32_t in_len;
-	unsigned char *in = load(stdin, &in_len), *out;
-	if (!in) exit(1);
+        // One naked / raw block, to match the specification
+        uint32_t in_len;
+        unsigned char *in = load(stdin, &in_len), *out;
+        if (!in) exit(1);
 
-	if ((out = decode_names(in, in_len, &out_sz)) == NULL)
-	    exit(1);
-	if (write(1, out, out_sz) != out_sz)
-	    exit(1);
+        if ((out = tok3_decode_names(in, in_len, &out_sz)) == NULL)
+            exit(1);
+        if (write(1, out, out_sz) != out_sz)
+            exit(1);
 
-	free(in);
-	free(out);
+        free(in);
+        free(out);
     } else {
-	while (fread(&in_sz, 1, 4, stdin) == 4) {
-	    uint8_t *in = malloc(in_sz), *out;
-	    if (!in)
-		return -1;
+        while (fread(&in_sz, 1, 4, stdin) == 4) {
+            uint8_t *in = malloc(in_sz), *out;
+            if (!in)
+                return -1;
 
-	    if (fread(in, 1, in_sz, stdin) != in_sz) {
-		free(in);
-		return -1;
-	    }
+            if (fread(in, 1, in_sz, stdin) != in_sz) {
+                free(in);
+                return -1;
+            }
 
-	    if ((out = decode_names(in, in_sz, &out_sz)) == NULL) {
-		free(in);
-		return -1;
-	    }
+            if ((out = tok3_decode_names(in, in_sz, &out_sz)) == NULL) {
+                free(in);
+                return -1;
+            }
 
-	    if (write(1, out, out_sz) < out_sz) exit(1);
+            if (write(1, out, out_sz) < out_sz) exit(1);
 
-	    free(in);
-	    free(out);
-	}
+            free(in);
+            free(out);
+        }
     }
 
     return 0;
@@ -216,8 +218,16 @@ int main(int argc, char **argv) {
         _setmode(_fileno(stdout), _O_BINARY);
 #endif
 
+    // temporary fix for decoder, which needs more space
+    blk = malloc(BLK_SIZE*2);
+
+    int ret;
+
     if (argc > 1 && strcmp(argv[1], "-d") == 0)
-	return decode(argc-1, argv+1);
+        ret = decode(argc-1, argv+1);
     else
-	return encode(argc, argv);
+        ret = encode(argc, argv);
+
+    free(blk);
+    return ret;
 }
