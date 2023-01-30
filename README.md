@@ -170,7 +170,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 Changes of master since last release:
 
-* none
+* Updated build instructions from Qt 5.9 (32 bit) to Qt 5.12 (64 bit)
 
 Changes in release 2022_12:
 
