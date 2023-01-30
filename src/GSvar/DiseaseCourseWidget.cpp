@@ -221,9 +221,9 @@ void DiseaseCourseWidget::createTableView()
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QByteArray::number(variant.start())));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.ref()));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.alt(0)));
-		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.info("gene", false)));
-		ui_->vars->setItem(row_idx, col_idx, GUIHelper::createTableItem(variant.info("coding_and_splicing", false)));
-		ui_->vars->item(row_idx, col_idx++)->setToolTip(variant.info("coding_and_splicing", false).replace(",", "\n"));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.info("gene")));
+		ui_->vars->setItem(row_idx, col_idx, GUIHelper::createTableItem(variant.info("coding_and_splicing")));
+		ui_->vars->item(row_idx, col_idx++)->setToolTip(variant.info("coding_and_splicing").replace(",", "\n"));
 
 		//store variant index (e.g. for IGV)
 		ui_->vars->setVerticalHeaderItem(row_idx, new QTableWidgetItem());
