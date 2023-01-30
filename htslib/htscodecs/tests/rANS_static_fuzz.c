@@ -33,17 +33,19 @@
  */
 
 /*
-Local instructions: compile, from a build subdir, with
-/software/badger/opt/llvm/7.0.0/bin/clang -O3 -g ../../tests/rANS_static_fuzz.c -I../.. ../../htscodecs/rANS_static.c  -pthread -fsanitize=fuzzer,address /software/badger/opt/gcc/8.1.0/lib64/libstdc++.a -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+For best results, configure, from a build subdir, to use the address and
+undefined behaviour sanitizers, and run "make fuzz".
+E.g.:
 
-(This bizarrity is because our local clang install wasn't built with
-C++ support.)
+../configure CFLAGS='-g -gdwarf-2 -O3 -Wall -fsanitize=address,undefined' CPPFLAGS='-DUBSAN'
+make fuzz
 
 Run with:
-    export ASAN_OPTIONS=allow_addr2line=true
-    ./a.out -rss_limit_mb=8000 corpus
-or 
-    ./a.out -rss_limit_mb=8000 -detect_leaks=0 corpus
+    export ASAN_OPTIONS=allow_addr2line=1
+    export UBSAN_OPTION=halt_on_error=1
+    tests/rANS_static_fuzz corpus
+or
+    tests/rANS_static_fuzz -detect_leaks=0 corpus
 
 I generated corpus as a whole bunch of precompressed tiny inputs from
 tests/dat/q4 for different compression modes.
@@ -64,13 +66,12 @@ stream.)
 #include <sys/time.h>
 
 #include "htscodecs/rANS_static.h"
-#include "htscodecs/rANS_static.c"
 
 int LLVMFuzzerTestOneInput(uint8_t *in, size_t in_size) {
     unsigned int uncomp_size;
     unsigned char *uncomp = rans_uncompress(in, in_size, &uncomp_size);
     if (uncomp)
-	free(uncomp);
+        free(uncomp);
     
     return 0;
 }
@@ -89,18 +90,18 @@ static unsigned char *load(char *fn, uint64_t *lenp) {
     int fd = open(fn, O_RDONLY);
 
     do {
-	if (dsize - dcurr < BS) {
-	    dsize = dsize ? dsize * 2 : BS;
-	    data = realloc(data, dsize);
-	}
+        if (dsize - dcurr < BS) {
+            dsize = dsize ? dsize * 2 : BS;
+            data = realloc(data, dsize);
+        }
 
-	len = read(fd, data + dcurr, BS);
-	if (len > 0)
-	    dcurr += len;
+        len = read(fd, data + dcurr, BS);
+        if (len > 0)
+            dcurr += len;
     } while (len > 0);
 
     if (len == -1) {
-	perror("read");
+        perror("read");
     }
 
     close(fd);
@@ -114,7 +115,7 @@ int main(int argc, char **argv) {
     unsigned int uncomp_size;
     unsigned char *uncomp = rans_uncompress(in, in_size, &uncomp_size);
     if (uncomp)
-	free(uncomp);
+        free(uncomp);
 
     free(in);
     

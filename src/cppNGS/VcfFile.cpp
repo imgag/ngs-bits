@@ -228,6 +228,11 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 		vcf_line->setInfo(info_values);
 
 	}
+	else
+	{
+		//init with empty hash to prevent null pointer exceptions
+		vcf_line->setInfoIdToIdxPtr(InfoIDToIdxPtr(new OrderedHash<QByteArray, int>));
+	}
 
 	//FORMAT && SAMPLE
 	if(line_parts.count() >= 9 && line_parts[FORMAT] != ".")
@@ -335,6 +340,11 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 				++format_count;
 			}
 		}
+	}
+	else
+	{
+		//init with empty hash to prevent null pointer exceptions
+		vcf_line->setFormatIdToIdxPtr(FormatIDToIdxPtr(new OrderedHash<QByteArray, int>));
 	}
 
 	vcf_lines_.push_back(vcf_line);
