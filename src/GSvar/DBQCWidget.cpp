@@ -361,12 +361,12 @@ void DBQCWidget::updatePlot()
 		axis->setTitleText("Date");
 		x_axis = axis;
 	}
-	chart->setAxisX(x_axis);
+	chart->addAxis(x_axis, Qt::AlignBottom);
 
 	QValueAxis* y_axis = new QValueAxis();
 	y_axis->setTitleText(ui_.term->currentText());
 	y_axis->setTickCount(8);
-	chart->setAxisY(y_axis);
+	chart->addAxis(y_axis, Qt::AlignLeft);
 
 	//add data series
 	addSeries(chart, x_axis, y_axis, series["n/a"]);
