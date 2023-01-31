@@ -12,7 +12,7 @@ ngs-bits depends on the following software to be installed
 
 For example, the installation of the dependencies using Ubuntu 20.04 looks like that:
 
-	> sudo apt-get install git make g++ qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql libqt5charts5-dev git python3 python3-matplotlib libbz2-dev liblzma-dev libcurl4 libcurl4-openssl-dev zlib1g-dev
+	> sudo apt-get install git make g++ qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql libqt5charts5-dev python3 python3-matplotlib libbz2-dev liblzma-dev libcurl4 libcurl4-openssl-dev zlib1g-dev
     
 ### Resolving proxy issues with git
 
@@ -36,7 +36,7 @@ Just execute the following make commands:
 	> make build_libs_release
 	> make build_tools_release
 
-If you need to build a different version of htslib, please follow [these instructions](build_htslib.md#linux_mac)
+If you need to build a different version of [htslib](https://github.com/samtools/htslib), please follow [these instructions](build_htslib.md#linux_mac)
 
 ## Executing
 

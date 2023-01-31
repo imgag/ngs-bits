@@ -8,12 +8,11 @@ Building process is almost identical on these platforms. Only the dependencies a
 
  - On Ubuntu Linux run:
 
-	> sudo apt-get install libbz2-dev liblzma-dev libcurl4 libcurl4-openssl-dev zlib1g-dev
-
+		> sudo apt-get install libbz2-dev liblzma-dev libcurl4 libcurl4-openssl-dev zlib1g-dev
 
  - On Mac (using Homebrew):
 
-	> brew install lzlib openssl
+		> brew install lzlib openssl
 
 
 After that follow the steps:
@@ -22,15 +21,15 @@ After that follow the steps:
 
 2. Configure htslib:
 
-    > ./configure --enable-libcurl
+    	> ./configure --enable-libcurl
 
 3. Build htslib:
 
-    > make
+    	> make
 
 4. Install it:
 
-    > make install
+    	> make install
 
 
 ## <a name="windows"></a>Windows (building the DLL)
