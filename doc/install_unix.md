@@ -36,6 +36,8 @@ Just execute the following make commands:
 	> make build_libs_release
 	> make build_tools_release
 
+If you need to build a different version of htslib, please follow [these instructions](build_htslib.md#linux_mac)
+
 ## Executing
 
 Now the executables and all required libraries can be found in the `bin` folder.

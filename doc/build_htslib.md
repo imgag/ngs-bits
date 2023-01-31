@@ -1,6 +1,39 @@
-# htslib build notes for Windows
+# Building htslib for different platforms
 
-## building the DLL
+GSvar comes with htslib's sources. It needs headers and htscodecs to work properly. The sources are stored in `ngs-bits/htslib/` folder. Whenever a new version of the library is released, the contents of the above mentioned folder have to be updated.
+
+## <a name="linux_mac"></a>Linux (Ubuntu) and MacOS
+
+Building process is almost identical on these platforms. Only the dependencies are installed in a slightly different way. 
+
+ - On Ubuntu Linux run:
+
+	> sudo apt-get install libbz2-dev liblzma-dev libcurl4 libcurl4-openssl-dev zlib1g-dev
+
+
+ - On Mac (using Homebrew):
+
+	> brew install lzlib openssl
+
+
+After that follow the steps:
+
+1. Download `htslib 1.16.0` from [http://www.htslib.org/download/](http://www.htslib.org/download/) and unpack it.
+
+2. Configure htslib:
+
+    > ./configure --enable-libcurl
+
+3. Build htslib:
+
+    > make
+
+4. Install it:
+
+    > make install
+
+
+## <a name="windows"></a>Windows (building the DLL)
 
 The main problem with Windows is that htslib does not maintain a build system for Windows.  
 
@@ -43,10 +76,4 @@ The process of building *htslib* on Windows is described in this [issue](https:/
 7. check htslib:
 
 		> make check
-
-
-
-
-
-
 
