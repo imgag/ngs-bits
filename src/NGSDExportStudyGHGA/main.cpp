@@ -24,7 +24,7 @@ public:
 		//optional
 		addFlag("test", "Test mode: uses the test NGSD, does not calcualte size/checksum of BAMs, ...");
 
-		changeLog(2023,  1, 30, "Initial implementation (version 0.9.0 of schema).");
+		changeLog(2023,  1, 31, "Initial implementation (version 0.9.0 of schema).");
 	}
 
 	//returns an array from the input JSON
@@ -620,6 +620,3 @@ int main(int argc, char *argv[])
 	ConcreteTool tool(argc, argv);
 	return tool.execute();
 }
-
-//TODO questions:
-//NCCT: Total RNA?
