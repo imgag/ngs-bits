@@ -511,3 +511,6 @@ SUBDIRS += VcfAdd
 tools-TEST.depends += VcfAdd
 VcfAdd.depends = cppNGS
 
+SUBDIRS += NGSDExportStudyGHGA
+tools-TEST.depends += NGSDExportStudyGHGA
+NGSDExportStudyGHGA.depends = cppNGSD
