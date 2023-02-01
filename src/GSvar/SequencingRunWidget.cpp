@@ -99,6 +99,9 @@ void SequencingRunWidget::updateRunSampleTable()
 														  " FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id='" + run_id_ + "' "
 														  " ORDER BY ps.lane ASC, ps.processing_system_id ASC, s.name ASC, ps.process_id");
 
+	int count_not_wgs = db.getValue("SELECT count(ps.id) FROM processed_sample ps, processing_system sys WHERE sys.id=ps.processing_system_id AND ps.sequencing_run_id='"+run_id_+"' AND sys.type!='WGS'").toInt();
+	bool is_wgs_run = count_not_wgs==0;
+
 	//format columns
 	samples.formatBooleanColumn(samples.columnIndex("tumor"));
 	samples.formatBooleanColumn(samples.columnIndex("ffpe"));
@@ -202,13 +205,29 @@ void SequencingRunWidget::updateRunSampleTable()
 			}
 			if (accession=="QC:2000025") //avg depth
 			{
-				ui_->samples->setBackgroundColorIfLt(header, orange, 80);
-				ui_->samples->setBackgroundColorIfLt(header, red, 30);
+				if (is_wgs_run)
+				{
+					ui_->samples->setBackgroundColorIfLt(header, orange, 35);
+					ui_->samples->setBackgroundColorIfLt(header, red, 30);
+				}
+				else
+				{
+					ui_->samples->setBackgroundColorIfLt(header, orange, 80);
+					ui_->samples->setBackgroundColorIfLt(header, red, 30);
+				}
 			}
 			if (accession=="QC:2000027") //cov 20x
 			{
-				ui_->samples->setBackgroundColorIfLt(header, orange, 95);
-				ui_->samples->setBackgroundColorIfLt(header, red, 90);
+				if (is_wgs_run)
+				{
+					ui_->samples->setBackgroundColorIfLt(header, orange, 99);
+					ui_->samples->setBackgroundColorIfLt(header, red, 95);
+				}
+				else
+				{
+					ui_->samples->setBackgroundColorIfLt(header, orange, 95);
+					ui_->samples->setBackgroundColorIfLt(header, red, 90);
+				}
 			}
 			if (accession=="QC:2000024") //duplicates
 			{
