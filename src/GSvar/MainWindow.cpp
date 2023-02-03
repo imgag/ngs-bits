@@ -301,6 +301,15 @@ MainWindow::MainWindow(QWidget *parent)
 
 	connect(ui_.vars, SIGNAL(publishToClinvarTriggered(int, int)), this, SLOT(uploadToClinvar(int, int)));
 	connect(ui_.vars, SIGNAL(alamutTriggered(QAction*)), this, SLOT(openAlamut(QAction*)));
+
+	QString curl_ca_bundle = Settings::string("curl_ca_bundle", true);
+	if ((Helper::isWindows()) && (!curl_ca_bundle.isEmpty()))
+	{
+		if (!qputenv("CURL_CA_BUNDLE", curl_ca_bundle.toUtf8()))
+		{
+			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM files over HTTPS may not be possible");
+		}
+	}
 }
 
 QString MainWindow::appName() const
@@ -4048,6 +4057,8 @@ int MainWindow::showAnalysisIssues(QList<QPair<Log::LogLevel, QString>>& issues,
 void MainWindow::on_actionAbout_triggered()
 {
 	QString about_text = appName()+ " " + QCoreApplication::applicationVersion();
+	about_text += "\nBuild CPU architecture: " + QSysInfo::buildCpuArchitecture();
+
 	if (NGSHelper::isClientServerMode())
 	{
 		ServerInfo server_info = NGSHelper::getServerInfo();
