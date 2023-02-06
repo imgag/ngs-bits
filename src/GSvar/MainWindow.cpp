@@ -3630,8 +3630,11 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 		}
 		Log::perf("Loading mosaic list took ", timer);
 
-
-		ui_.filters->setValidFilterEntries(variants_.filters().keys());
+		//determine valid filter entries from filter column (and add now filters low_mappability/mosaic to make old GSvar files work as well)
+		QStringList valid_filter_entries = variants_.filters().keys();
+		if (!valid_filter_entries.contains("low_mappability")) valid_filter_entries << "low_mappability";
+		if (!valid_filter_entries.contains("mosaic")) valid_filter_entries << "mosaic";
+		ui_.filters->setValidFilterEntries(valid_filter_entries);
 
 		//update data structures
 		Settings::setPath("path_variantlists", filename);
@@ -4057,7 +4060,7 @@ void MainWindow::on_actionAbout_triggered()
 			about_text += "\n";
 			about_text += "\nServer version: " + server_info.version;
 			about_text += "\nAPI version: " + server_info.api_version;
-			about_text += "\nServer start time: " + server_info.server_start_time.toString();
+			about_text += "\nServer start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
 		}
 	}
 	about_text += "\n\nA free viewing and filtering tool for genomic variants.\n\nInstitute of Medical Genetics and Applied Genomics\nUniversity Hospital Tübingen\nGermany\n\nMore information at:\nhttps://github.com/imgag/ngs-bits";
