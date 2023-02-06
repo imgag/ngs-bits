@@ -5,6 +5,13 @@
 #include <QSet>
 #include <QWidget>
 
+enum class Inheritance
+{
+	dominant,
+	de_novo,
+	recessive
+};
+
 namespace Ui {
 class BurdenTestWidget;
 }
@@ -25,16 +32,21 @@ private slots:
 	void updateGeneCounts();
 	void updateGeneSelectionMenu();
 	void performBurdenTest();
+	void copyToClipboard();
 
 private:
 	Ui::BurdenTestWidget *ui_;
 	QSet<int> case_samples_;
 	QSet<int> control_samples_;
+	bool cases_initialized_ = false;
+	bool controls_initialized_ = false;
 	GeneSet selected_genes_;
+	bool gene_set_initialized_ = false;
 	NGSD db_;
 	SqlQuery variant_query_;
 	bool test_running = false;
-	void prepareSqlQuery(int max_ngsd, double max_gnomad_af, const QStringList& ps_ids, const QStringList& impacts);
+	void prepareSqlQuery(int max_ngsd, double max_gnomad_af, const QStringList& impacts);
+	int countOccurences(const QSet<int>& variant_ids, const QSet<int>& ps_ids, const QMap<int, QSet<int> >& detected_variants, Inheritance inheritance, QStringList& ps_names);
 
 	QSet<int> loadSampleList(const QString& type, const QSet<int>& selected_ps_ids=QSet<int>());
 
