@@ -9,7 +9,6 @@
 #include <QFile>
 #include <QMenu>
 #include <QMessageBox>
-#include "RepeatExpansionWidget.h"
 #include "LoginManager.h"
 #include "GlobalServiceProvider.h"
 #include <QChartView>
@@ -910,19 +909,19 @@ void ExpressionGeneWidget::updateTable(int max_rows)
 						//db_columns
 						if(col_name == "cohort_mean")
 						{
-							ui_->expression_data->setItem(table_row_idx, col_idx, new NumericWidgetItem(QString::number(db_values.cohort_mean, 'f', precision_.at(col_idx))));
+							ui_->expression_data->setItem(table_row_idx, col_idx, GUIHelper::createTableItem(db_values.cohort_mean, precision_.at(col_idx)));
 						}
 						else if(col_name == "log2fc")
 						{
-							ui_->expression_data->setItem(table_row_idx, col_idx, new NumericWidgetItem(QString::number(db_values.log2fc, 'f', precision_.at(col_idx))));
+							ui_->expression_data->setItem(table_row_idx, col_idx, GUIHelper::createTableItem(db_values.log2fc, precision_.at(col_idx)));
 						}
 						else if(col_name == "zscore")
 						{
-							ui_->expression_data->setItem(table_row_idx, col_idx, new NumericWidgetItem(QString::number(db_values.zscore, 'f', precision_.at(col_idx))));
+							ui_->expression_data->setItem(table_row_idx, col_idx, GUIHelper::createTableItem(db_values.zscore, precision_.at(col_idx)));
 						}
 						else if(col_name == "pval")
 						{
-							ui_->expression_data->setItem(table_row_idx, col_idx, new NumericWidgetItem(QString::number(db_values.pvalue, 'f', precision_.at(col_idx))));
+							ui_->expression_data->setItem(table_row_idx, col_idx, GUIHelper::createTableItem(db_values.pvalue, precision_.at(col_idx)));
 						}
 						else
 						{
@@ -931,7 +930,7 @@ void ExpressionGeneWidget::updateTable(int max_rows)
 					}
 					else
 					{
-						ui_->expression_data->setItem(table_row_idx, col_idx, new NumericWidgetItem(""));
+						ui_->expression_data->setItem(table_row_idx, col_idx, GUIHelper::createTableItem(""));
 					}
 
 				}
@@ -946,14 +945,12 @@ void ExpressionGeneWidget::updateTable(int max_rows)
 						QString value = row.at(column_indices.at(col_idx));
 						if (value != "n/a" && !value.isEmpty())
 						{
-							QString rounded_number = QString::number(Helper::toDouble(value,
-																					  "TSV column " + QString::number(col_idx),
-																					  QString::number(table_row_idx)), 'f', precision_.at(col_idx));
-							ui_->expression_data->setItem(table_row_idx, col_idx, new NumericWidgetItem(rounded_number));
+							ui_->expression_data->setItem(table_row_idx, col_idx, GUIHelper::createTableItem(
+															  Helper::toDouble(value, "TSV column " + QString::number(col_idx), QString::number(table_row_idx)), precision_.at(col_idx)));
 						}
 						else
 						{
-							ui_->expression_data->setItem(table_row_idx, col_idx, new NumericWidgetItem(""));
+							ui_->expression_data->setItem(table_row_idx, col_idx, GUIHelper::createTableItem(""));
 						}
 					}
 					else

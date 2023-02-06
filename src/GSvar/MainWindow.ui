@@ -317,9 +317,12 @@
                 <bool>false</bool>
                </property>
                <attribute name="horizontalHeaderVisible">
-                <bool>false</bool>
+                <bool>true</bool>
                </attribute>
                <attribute name="verticalHeaderVisible">
+                <bool>true</bool>
+               </attribute>
+               <attribute name="verticalHeaderCascadingSectionResizes">
                 <bool>false</bool>
                </attribute>
               </widget>
@@ -420,8 +423,6 @@
     <addaction name="separator"/>
     <addaction name="actionGetGenomicSequence"/>
     <addaction name="actionBlatSearch"/>
-    <addaction name="separator"/>
-    <addaction name="actionBurdenTest"/>
    </widget>
    <widget class="QMenu" name="menuIGV">
     <property name="title">
@@ -475,6 +476,8 @@
      <addaction name="actionPreferredTranscripts"/>
      <addaction name="actionEditSomaticGeneRoles"/>
      <addaction name="actionEditSomaticPathwayGeneAssociations"/>
+     <addaction name="separator"/>
+     <addaction name="actionBurdenTest"/>
     </widget>
     <widget class="QMenu" name="menuPhenotypes_2">
      <property name="title">
@@ -1477,7 +1480,7 @@
   </action>
   <action name="actionBurdenTest">
    <property name="text">
-    <string>Burden Test</string>
+    <string>Gene-based burden test</string>
    </property>
   </action>
  </widget>

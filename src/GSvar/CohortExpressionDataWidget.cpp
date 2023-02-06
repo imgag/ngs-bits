@@ -3,9 +3,8 @@
 #include "TsvFile.h"
 #include "VersatileFile.h"
 #include "Helper.h"
-#include "RepeatExpansionWidget.h"
+#include "GUIHelper.h"
 
-#include <GUIHelper.h>
 
 CohortExpressionDataWidget::CohortExpressionDataWidget(QString tsv_filename, QWidget *parent, QString project_name, QString processing_system_name) :
 	QWidget(parent),
@@ -79,9 +78,7 @@ void CohortExpressionDataWidget::loadExpressionData()
 			{
 				// add numeric QTableWidgetItem
 				double value = Helper::toDouble(row.at(col_idx));
-				QString rounded_number = "0";
-				if (value != 0) rounded_number = QString::number(value, 'f', 3);
-				ui_->tw_cohort_data->setItem(row_idx, col_idx, new NumericWidgetItem(rounded_number));
+				ui_->tw_cohort_data->setItem(row_idx, col_idx, GUIHelper::createTableItem(value));
 			}
 			else
 			{

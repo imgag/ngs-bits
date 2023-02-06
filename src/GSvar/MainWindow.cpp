@@ -6707,7 +6707,7 @@ void MainWindow::on_actionBurdenTest_triggered()
 {
 	BurdenTestWidget* widget = new BurdenTestWidget(this);
 
-	auto dlg = GUIHelper::createDialog(widget, "Burden test");
+	auto dlg = GUIHelper::createDialog(widget, "Gene-based burden test");
 	addModelessDialog(dlg);
 }
 

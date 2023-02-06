@@ -1,5 +1,4 @@
 #include "FusionWidget.h"
-#include "RepeatExpansionWidget.h"
 #include "ui_FusionWidget.h"
 
 #include <GUIHelper.h>
@@ -74,12 +73,11 @@ void FusionWidget::loadFusionData()
 				QString value = row.at(column_indices.at(col_idx));
 				if (value != "n/a" && !value.isEmpty())
 				{
-					QString rounded_number = QString::number(Helper::toDouble(value, "TSV column " + QString::number(col_idx), QString::number(row_idx)), 'f', numeric_precision);
-					ui_->fusions->setItem(row_idx, col_idx, new NumericWidgetItem(rounded_number));
+					ui_->fusions->setItem(row_idx, col_idx, GUIHelper::createTableItem(Helper::toDouble(value, "TSV column " + QString::number(col_idx), QString::number(row_idx)), numeric_precision));
 				}
 				else
 				{
-					ui_->fusions->setItem(row_idx, col_idx, new NumericWidgetItem(""));
+					ui_->fusions->setItem(row_idx, col_idx, GUIHelper::createTableItem(""));
 				}
 			}
 			else

@@ -240,7 +240,7 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 		ui_.gaps->setItem(i, 3, item);
 
 		//type
-		item = GUIHelper::createTableItem(gap.isExonicSplicing() ? "exonic/splicing" : "intronic/intergenic");
+		item = GUIHelper::createTableItem(gap.isExonicSplicing() ? QByteArray("exonic/splicing") : QByteArray("intronic/intergenic"));
 		if (gap.isExonicSplicing()) highlightItem(item);
 		ui_.gaps->setItem(i, 4, item);
 
@@ -266,7 +266,7 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 		ui_.gaps->setItem(i, 6, item);
 
 		//NGSD status
-		item = GUIHelper::createTableItem("");
+		item = GUIHelper::createTableItem(QString());
 		ui_.gaps->setItem(i, ngsd_col_, item);
 	}
 

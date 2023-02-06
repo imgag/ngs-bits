@@ -204,7 +204,7 @@ QTableWidgetItem* CohortAnalysisWidget::addTableItem(int row, int col, QString t
 	item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
 	item->setData(Qt::EditRole, text);
 
-	ui_.output->setItem(row, col, item);
+	ui_.output->setItem(row, col, GUIHelper::createTableItem(text));
 
 	return item;
 }
