@@ -517,4 +517,3 @@ NGSDExportStudyGHGA.depends = cppNGSD
 
 SUBDIRS += VcfSubstract
 tools-TEST.depends += VcfSubstract
-VcfSubstract.depends = cppNGSD

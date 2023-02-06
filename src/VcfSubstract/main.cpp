@@ -1,6 +1,4 @@
 #include "ToolBase.h"
-#include "Settings.h"
-#include "VcfFile.h"
 #include "Helper.h"
 
 class ConcreteTool
@@ -16,7 +14,7 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Substracts the variants of  VCF from the input VCF.");
+		setDescription("Substracts the variants of 'in2' VCF from the 'in' VCF.");
 		addInfile("in2", "Variants in VCF format that are remove from 'in'", false);
 
 		//optional
@@ -38,7 +36,7 @@ public:
 		}
 
 		//load blacklist:
-		QHash<QByteArray, bool> blacklist_hash;
+		QSet<QByteArray> blacklist_hash;
 		QSharedPointer<QFile> in2_p = Helper::openFileForReading(in2, true);
 		while (!in2_p->atEnd())
 		{
@@ -48,7 +46,7 @@ public:
 			//skip empty lines and headers
 			if (line.isEmpty() || line[0]=='#') continue;
 
-			blacklist_hash.insert(variant_key(line), true);
+			blacklist_hash.insert(variant_key(line));
 		}
 
 		int removed_count = 0;
@@ -72,7 +70,7 @@ public:
 				continue;
 			}
 
-			if (blacklist_hash[variant_key(line)])
+			if (blacklist_hash.contains(variant_key(line)))
 			{
 				removed_count++;
 				continue;
@@ -91,7 +89,7 @@ public:
 
 private:
 
-	QByteArray variant_key(QByteArray vcf_line)
+	QByteArray variant_key(const QByteArray& vcf_line)
 	{
 		QByteArrayList parts = vcf_line.split('\t');
 		return parts[0] + ":" + parts[1] + " " + parts[3] + ">" + parts[4];
