@@ -340,8 +340,9 @@ void BurdenTestWidget::performBurdenTest()
 	QTime timer;
 	timer.start();
 
-	//delete old table
+	//delete old table and disable sorting
 	ui_->tw_gene_table->setRowCount(0);
+	ui_->tw_gene_table->setSortingEnabled(false);
 
 	//TODO: re-evaluate on 64bit GSvar (requires a lot of memory)
 	// get ids all detected variants
@@ -562,7 +563,9 @@ void BurdenTestWidget::performBurdenTest()
 
 	}
 
+	//final adjustments
 	GUIHelper::resizeTableCells(ui_->tw_gene_table, 200);
+	ui_->tw_gene_table->setSortingEnabled(true);
 
 
 	qDebug() << "Burden test took: " << Helper::elapsedTime(timer);
