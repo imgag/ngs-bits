@@ -454,3 +454,15 @@ bool GSvarHelper::colorMaxEntScan(QString anno, QList<double>& percentages, QLis
 		return false;
 	}
 }
+
+QString GSvarHelper::specialGenes(const GeneSet& genes)
+{
+	GeneSet special_genes;
+	special_genes << "ACTA2" << "BRAF" << "BRCA1" << "BRCA2" << "CFTR" << "CNBP" << "COL3A1" << "DMPK" << "F8" << "FBN1" << "FMR1" << "GJB2" << "GJB6" << "HTT" << "KRAS" << "MLH1" << "MSH2" << "MSH6" << "MYH11" << "MYLK" << "PMS2" << "PTPN11" << "RAF1" << "RIT1" << "SMAD3" << "SMN1" << "SMN2" << "SOS1" << "TGFB2" << "TGFBR1" << "TGFBR2";
+	GeneSet inter = genes.intersect(special_genes);
+
+	//output
+	if (inter.isEmpty()) return "";
+
+	return "Some genes (" + inter.join(", ") + ") require 'indikationsspezifische Abrechnung'!";
+}
