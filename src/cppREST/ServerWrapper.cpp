@@ -1,78 +1,65 @@
 #include "ServerWrapper.h"
 
-ServerWrapper::ServerWrapper(const quint16& port, const bool& insecure)
+ServerWrapper::ServerWrapper(const quint16& port)
 	: is_running_(false)
-{
-	if (Settings::boolean("use_http_api_only", true) && !insecure) return;
-
-	QString protocol_name;
-	if (!insecure)
+{	
+	QString ssl_certificate = ServerHelper::getStringSettingsValue("ssl_certificate");
+	if (ssl_certificate.isEmpty())
 	{
-		protocol_name = "HTTPS";
-		QString ssl_certificate = ServerHelper::getStringSettingsValue("ssl_certificate");
-		if (ssl_certificate.isEmpty())
-		{
-			ssl_certificate = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + QDir::separator() + "test-cert.crt";
-			Log::warn("SSL certificate has not been specified in the config. Using a test certificate: " + ssl_certificate);
-		}
-
-		QFile certFile(ssl_certificate);
-		if (!certFile.open(QIODevice::ReadOnly))
-		{
-			Log::error("Unable to load SSL certificate");
-			return;
-		}
-
-		QString ssl_key = ServerHelper::getStringSettingsValue("ssl_key");
-		if (ssl_key.isEmpty())
-		{
-			ssl_key = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + QDir::separator() + "test-key.key";
-			Log::warn("SSL key has not been specified in the config. Using a test key: " + ssl_key);
-		}
-
-		QFile keyFile(ssl_key);
-		if (!keyFile.open(QIODevice::ReadOnly))
-		{
-			Log::error("Unable to load SSL key");
-			return;
-		}
-
-		QString ssl_chain = ServerHelper::getStringSettingsValue("ssl_certificate_chain");
-		QList<QSslCertificate> ca_certificates;
-		if (!ssl_chain.isEmpty())
-		{
-			Log::info("Reading SSL certificate chain file");
-			ca_certificates = QSslCertificate::fromPath(ssl_chain, QSsl::Pem);
-		}
-
-		QSslCertificate cert(&certFile);
-		QSslKey key(&keyFile, QSsl::Rsa);
-
-		server_ = new SslServer(this);
-
-		QSslConfiguration config = server_->getSslConfiguration();
-		config.setLocalCertificate(cert);
-		config.setPrivateKey(key);
-
-		if (ca_certificates.size()>0)
-		{
-			Log::info("Loading SSL certificate chain");
-			config.setLocalCertificateChain(ca_certificates);
-		}
-
-		server_->setSslConfiguration(config);
+		ssl_certificate = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + QDir::separator() + "test-cert.crt";
+		Log::warn("SSL certificate has not been specified in the config. Using a test certificate: " + ssl_certificate);
 	}
-	else
+
+	QFile certFile(ssl_certificate);
+	if (!certFile.open(QIODevice::ReadOnly))
 	{
-		protocol_name = "HTTP";
-		Log::warn("Insecure server option has been selected");
-		server_ = new SslServer(this, true);
+		Log::error("Unable to load SSL certificate");
+		return;
 	}
+
+	QString ssl_key = ServerHelper::getStringSettingsValue("ssl_key");
+	if (ssl_key.isEmpty())
+	{
+		ssl_key = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + QDir::separator() + "test-key.key";
+		Log::warn("SSL key has not been specified in the config. Using a test key: " + ssl_key);
+	}
+
+	QFile keyFile(ssl_key);
+	if (!keyFile.open(QIODevice::ReadOnly))
+	{
+		Log::error("Unable to load SSL key");
+		return;
+	}
+
+	QString ssl_chain = ServerHelper::getStringSettingsValue("ssl_certificate_chain");
+	QList<QSslCertificate> ca_certificates;
+	if (!ssl_chain.isEmpty())
+	{
+		Log::info("Reading SSL certificate chain file");
+		ca_certificates = QSslCertificate::fromPath(ssl_chain, QSsl::Pem);
+	}
+
+	QSslCertificate cert(&certFile);
+	QSslKey key(&keyFile, QSsl::Rsa);
+
+	server_ = new SslServer(this);
+
+	QSslConfiguration config = server_->getSslConfiguration();
+	config.setLocalCertificate(cert);
+	config.setPrivateKey(key);
+
+	if (ca_certificates.size()>0)
+	{
+		Log::info("Loading SSL certificate chain");
+		config.setLocalCertificateChain(ca_certificates);
+	}
+	server_->setSslConfiguration(config);
+
 
 	if (server_->listen(QHostAddress::Any, port))
 	{
 		is_running_ = true;
-		Log::info(protocol_name + " server is running on port #" + QString::number(port));
+		Log::info("GSvar server is running on port #" + QString::number(port));
 
 		// Remove expired URLs on schedule
 		QTimer *url_timer = new QTimer(this);
@@ -86,7 +73,7 @@ ServerWrapper::ServerWrapper(const quint16& port, const bool& insecure)
 	}
 	else
 	{		
-		Log::error("Could not start " + protocol_name + " server on port #" + QString::number(port) + ": " + server_->errorString());
+		Log::error("Could not start GSvar server on port #" + QString::number(port) + ": " + server_->errorString());
 	}
 
 }

@@ -20,7 +20,7 @@ class CPPRESTSHARED_EXPORT ServerWrapper : public QObject
     Q_OBJECT
 
 public:
-	ServerWrapper(const quint16& port, const bool& insecure = false);
+	ServerWrapper(const quint16& port);
 	bool isRunning() const;
 
 private:

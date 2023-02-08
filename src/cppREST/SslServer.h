@@ -31,7 +31,6 @@ protected:
 
 private:
 	QSslConfiguration current_ssl_configuration_;
-	bool is_insecure_;
 };
 
 #endif // SSLSERVER_P_H

@@ -773,7 +773,7 @@ void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_r
 
 bool NGSHelper::isClientServerMode()
 {
-	return !Settings::string("server_host", true).trimmed().isEmpty() && !Settings::string("https_server_port", true).trimmed().isEmpty();
+	return !Settings::string("server_host", true).trimmed().isEmpty() && !Settings::string("server_port", true).trimmed().isEmpty();
 }
 
 bool NGSHelper::isRunningOnServer()
@@ -836,18 +836,9 @@ QString NGSHelper::serverApiVersion()
 	return "v1";
 }
 
-QString NGSHelper::serverApiUrl(const bool& return_http)
-{
-	QString protocol = return_http ? "http://" : "https://";
-	QString port = return_http ? Settings::string("http_server_port", true) : Settings::string("https_server_port", true);
-
-	if (Settings::boolean("use_http_api_only", true))
-	{
-		protocol = "http://";
-		port = Settings::string("http_server_port", true);
-	}
-
-	return protocol + Settings::string("server_host", true) + ":" + port + "/" + serverApiVersion() + "/";
+QString NGSHelper::serverApiUrl()
+{	
+	return  "https://" + Settings::string("server_host", true) + ":" + Settings::string("server_port", true) + "/" + serverApiVersion() + "/";
 }
 
 const QMap<QByteArray, QByteArrayList>& NGSHelper::transcriptMatches(GenomeBuild build)

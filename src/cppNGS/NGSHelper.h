@@ -139,7 +139,7 @@ public:
 	static QString serverApiVersion();
 
 	///Returns the URL used for sending requests to the GSvar server (use only when in client-server mode)
-	static QString serverApiUrl(const bool& return_http = false);
+	static QString serverApiUrl();
 
 	///Returns a map with matching Ensembl, RefSeq and CCDS transcript identifiers (without version numbers).
 	static const QMap<QByteArray, QByteArrayList>& transcriptMatches(GenomeBuild build);
