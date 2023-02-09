@@ -302,6 +302,15 @@ MainWindow::MainWindow(QWidget *parent)
 
 	connect(ui_.vars, SIGNAL(publishToClinvarTriggered(int, int)), this, SLOT(uploadToClinvar(int, int)));
 	connect(ui_.vars, SIGNAL(alamutTriggered(QAction*)), this, SLOT(openAlamut(QAction*)));
+
+	QString curl_ca_bundle = Settings::string("curl_ca_bundle", true);
+	if ((Helper::isWindows()) && (!curl_ca_bundle.isEmpty()))
+	{
+		if (!qputenv("CURL_CA_BUNDLE", curl_ca_bundle.toUtf8()))
+		{
+			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM files over HTTPS may not be possible");
+		}
+	}
 }
 
 QString MainWindow::appName() const
@@ -3630,7 +3639,7 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 		}
 		Log::perf("Loading mosaic list took ", timer);
 
-		//determine valid filter entries from filter column (and add now filters low_mappability/mosaic to make old GSvar files work as well)
+		//determine valid filter entries from filter column (and add new filters low_mappability/mosaic to make outdated GSvar files work as well)
 		QStringList valid_filter_entries = variants_.filters().keys();
 		if (!valid_filter_entries.contains("low_mappability")) valid_filter_entries << "low_mappability";
 		if (!valid_filter_entries.contains("mosaic")) valid_filter_entries << "mosaic";
@@ -4052,6 +4061,8 @@ int MainWindow::showAnalysisIssues(QList<QPair<Log::LogLevel, QString>>& issues,
 void MainWindow::on_actionAbout_triggered()
 {
 	QString about_text = appName()+ " " + QCoreApplication::applicationVersion();
+	about_text += "\nBuild CPU architecture: " + QSysInfo::buildCpuArchitecture();
+
 	if (NGSHelper::isClientServerMode())
 	{
 		ServerInfo server_info = NGSHelper::getServerInfo();

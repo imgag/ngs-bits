@@ -6,8 +6,51 @@
 #include "VariantList.h"
 #include "GenomeBuild.h"
 #include "NGSD.h"
+#include "TsvFile.h"
 #include <QTableWidgetItem>
 #include <QLabel>
+
+
+
+///Custom structs for data exchange
+
+///cfDNA disease course table
+struct CfdnaDiseaseCourseTable
+{
+	struct CfdnaDiseaseCourseTableCfdnaEntry
+	{
+		double multi_af;
+		int multi_alt;
+		int multi_ref;
+		double p_value;
+	};
+	struct CfdnaDiseaseCourseTableLine
+	{
+		VcfLine tumor_vcf_line;
+		QList<CfdnaDiseaseCourseTableCfdnaEntry> cfdna_columns;
+	};
+	struct PSInfo
+	{
+		QString name;
+		QString ps_id;
+		QDate date;
+
+		bool operator<(const PSInfo& other) const {
+			return date < other.date; // sort by date
+		}
+	};
+
+	//sample info
+	PSInfo tumor_sample;
+	QList<PSInfo> cfdna_samples;
+
+	//table content
+	QList<CfdnaDiseaseCourseTableLine> lines;
+
+	//mrd values
+	QList<TsvFile> mrd_tables;
+};
+
 
 
 ///Helper class for GSvar
@@ -53,6 +96,15 @@ public:
 
 	//returns if the change of MaxEntScan is large enough to color it in the VariantTable, also provides percent- and abs-changes of MaxEntScan.
 	static bool colorMaxEntScan(QString anno, QList<double>& percentages, QList<double>& absValues);
+
+	//returns a warning message if genes with 'indikationsspezifische Abrechnung' are contained
+	static QString specialGenes(const GeneSet& genes);
+
+	//Returns a table struct containing all related cfDNA variant info for a given tumor sample
+	static CfdnaDiseaseCourseTable cfdnaTable(const QString& tumor_ps_name, QStringList& errors, bool throw_if_fails=true);
+
+	//Returns the coding and splicing entry (and genes through GeneSet reference) for a given variant
+	static QList<QStringList> annotateCodingAndSplicing(const VcfLine& variant, GeneSet& genes, bool add_flags=true, int offset=5000);
 
 protected:
 	GSvarHelper() = delete;

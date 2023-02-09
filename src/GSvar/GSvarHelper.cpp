@@ -10,10 +10,12 @@
 #include "Exceptions.h"
 #include "ChainFileReader.h"
 #include "Log.h"
+#include "GlobalServiceProvider.h"
 #include <QDir>
 #include <QMessageBox>
 #include <QStandardPaths>
 #include <QBuffer>
+#include <VariantHgvsAnnotator.h>
 
 const GeneSet& GSvarHelper::impritingGenes()
 {
@@ -453,4 +455,262 @@ bool GSvarHelper::colorMaxEntScan(QString anno, QList<double>& percentages, QLis
 	{
 		return false;
 	}
+}
+
+
+QString GSvarHelper::specialGenes(const GeneSet& genes)
+{
+	GeneSet special_genes;
+	special_genes << "ACTA2" << "BRAF" << "BRCA1" << "BRCA2" << "CFTR" << "CNBP" << "COL3A1" << "DMPK" << "F8" << "FBN1" << "FMR1" << "GJB2" << "GJB6" << "HTT" << "KRAS" << "MLH1" << "MSH2" << "MSH6" << "MYH11" << "MYLK" << "PMS2" << "PTPN11" << "RAF1" << "RIT1" << "SMAD3" << "SMN1" << "SMN2" << "SOS1" << "TGFB2" << "TGFBR1" << "TGFBR2";
+	GeneSet inter = genes.intersect(special_genes);
+
+	//output
+	if (inter.isEmpty()) return "";
+
+	return "Some genes (" + inter.join(", ") + ") require 'indikationsspezifische Abrechnung'!";
+}
+
+CfdnaDiseaseCourseTable GSvarHelper::cfdnaTable(const QString& tumor_ps_name, QStringList& errors, bool throw_if_fails)
+{
+	if (!LoginManager::active())
+	{
+		THROW(ArgumentException, "No access to the NGSD! NGSD access is required to create table.");
+	}
+
+	//init NGSD
+	NGSD db;
+	CfdnaDiseaseCourseTable table;
+
+
+	// get all related cfDNA processed sample ids
+	//same samples
+	int sample_id = db.sampleId(tumor_ps_name).toInt();
+	QSet<int> same_sample_ids = db.relatedSamples(sample_id, "same sample");
+	same_sample_ids << sample_id; // add current sample id
+	// get all related cfDNA samples
+	QSet<int> cf_dna_sample_ids;
+	foreach (int cur_sample_id, same_sample_ids)
+	{
+		cf_dna_sample_ids.unite(db.relatedSamples(cur_sample_id, "tumor-cfDNA"));
+	}
+	// get corresponding processed sample
+	QStringList cf_dna_ps_ids;
+	foreach (int cf_dna_sample, cf_dna_sample_ids)
+	{
+		cf_dna_ps_ids << db.getValues("SELECT id FROM processed_sample WHERE sample_id=" + QString::number(cf_dna_sample));
+	}
+
+
+	//make sure every cfDNA has the same processing system
+	// get processing systems from cfDNA samples
+	QSet<QString> processing_systems;
+	foreach (const QString& cf_dna_ps_id, cf_dna_ps_ids)
+	{
+		processing_systems.insert(db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(db.processedSampleName(cf_dna_ps_id))).name_short);
+	}
+	if (processing_systems.size() > 1)
+	{
+		THROW(ArgumentException, "Multiple processing systems used for cfDNA analysis. Cannot compare samples!");
+	}
+	QString system_name = processing_systems.toList().at(0);
+
+
+	// load cfDNA panel
+	QList<CfdnaPanelInfo> cfdna_panels = db.cfdnaPanelInfo(db.processedSampleId(tumor_ps_name), db.processingSystemId(system_name));
+	if (cfdna_panels.size() < 1)
+	{
+		THROW(ArgumentException, "No matchin cfDNA panel for sample " + tumor_ps_name + " found in NGSD!");
+	}
+	CfdnaPanelInfo cfdna_panel_info  = cfdna_panels.at(0);
+	VcfFile cfdna_panel = db.cfdnaPanelVcf(cfdna_panel_info.id);
+
+
+	// get header infos
+	table.tumor_sample.name = tumor_ps_name;
+	table.tumor_sample.ps_id = db.processedSampleId(tumor_ps_name);
+	table.tumor_sample.date = QDate::fromString(db.getSampleData(db.sampleId(tumor_ps_name)).received, "dd.MM.yyyy");
+
+	TsvFile dummy_mrd_file;
+	dummy_mrd_file.addHeader("MRD_log10");
+	dummy_mrd_file.addHeader("MRD_pval");
+	dummy_mrd_file.addHeader("SUM_DP");
+	dummy_mrd_file.addHeader("SUM_ALT");
+	dummy_mrd_file.addHeader("Mean_AF");
+	dummy_mrd_file.addHeader("Median_AF");
+	dummy_mrd_file.addRow(QStringList() << "file not found" << "" << "" << "" << "" << "");
+
+	//load cfDNA VCFs
+	QMap<QString, QMap<QString,VcfLine>> cfdna_variants;
+	QMap<QString, TsvFile> mrd_files;
+	foreach (const QString& ps_id, cf_dna_ps_ids)
+	{
+		//store date/name for sorting
+		CfdnaDiseaseCourseTable::PSInfo cfdna_sample;
+		cfdna_sample.name = db.processedSampleName(ps_id);
+		cfdna_sample.ps_id = ps_id;
+		cfdna_sample.date = QDate::fromString(db.getSampleData(db.sampleId(cfdna_sample.name)).received, "dd.MM.yyyy");
+		table.cfdna_samples << cfdna_sample;
+
+
+		//load VCFs
+		FileLocation cfdna_fl = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::VCF_CF_DNA);
+		if(cfdna_fl.exists)
+		{
+			VcfFile vcf;
+			vcf.load(cfdna_fl.filename);
+			QMap<QString,VcfLine> current_cfdna_variants;
+			for (int i=0; i<vcf.count(); ++i)
+			{
+				const VcfLine& vcf_line = vcf[i];
+				current_cfdna_variants.insert(vcf_line.toString(), vcf_line);
+			}
+			cfdna_variants.insert(cfdna_sample.name, current_cfdna_variants);
+		}
+		else
+		{
+			if (throw_if_fails) THROW(FileAccessException, "cfDNA file '" + cfdna_fl.filename + "' doesn't exist!");
+
+			errors << "cfDNA file '" + cfdna_fl.filename + "' doesn't exist!";
+			//cfdna_variants.insert(cfdna_sample.name, QMap<QString,VcfLine>());
+		}
+
+
+		//load MRD
+		FileLocation mrd_file_fl = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::MRD_CF_DNA);
+		if (!mrd_file_fl.exists)
+		{
+			if (throw_if_fails) THROW(FileAccessException, "Could not find cfDNA MRD file for processed Sample " + cfdna_sample.name + "! ");
+
+			errors << "Could not find cfDNA MRD file for processed Sample " + cfdna_sample.name + "! ";
+
+			mrd_files.insert(cfdna_sample.name, dummy_mrd_file);
+		}
+		else
+		{
+			// load mrd table
+			TsvFile mrd_file;
+			mrd_file.load(mrd_file_fl.filename);
+
+			//check for correct table format
+			if(mrd_file.headers() != QStringList() << "MRD_log10" << "MRD_pval" << "SUM_DP" << "SUM_ALT" << "Mean_AF" << "Median_AF")
+			{
+				if(throw_if_fails) THROW(ArgumentException,  "Invalid MRD file format! Header doesn't match in MRD file for processed Sample " + cfdna_sample.name + "! ");
+				errors << "Invalid MRD file format! Header doesn't match in MRD file for processed Sample " + cfdna_sample.name + "! ";
+				mrd_files.insert(cfdna_sample.name, dummy_mrd_file);
+
+			}
+			else
+			{
+				mrd_files.insert(cfdna_sample.name, mrd_file);
+			}
+		}
+	}
+	//sort cfDNA samples
+	std::sort(table.cfdna_samples.begin(), table.cfdna_samples.end());
+
+
+	//collapse to table struct
+	for (int i=0; i<cfdna_panel.count(); i++)
+	{
+		CfdnaDiseaseCourseTable::CfdnaDiseaseCourseTableLine line;
+
+		line.tumor_vcf_line = cfdna_panel[i];
+		QString var_str = line.tumor_vcf_line.toString();
+
+		foreach (const auto& cfdna_sample, table.cfdna_samples)
+		{
+			CfdnaDiseaseCourseTable::CfdnaDiseaseCourseTableCfdnaEntry cfdna_entry;
+
+			if(cfdna_variants.contains(cfdna_sample.name))
+			{
+				if(cfdna_variants.value(cfdna_sample.name).contains(var_str))
+				{
+					const VcfLine& cfdna_variant = cfdna_variants.value(cfdna_sample.name).value(var_str);
+
+					// check umiVar VCF
+					QStringList missing_keys;
+					if (!cfdna_variant.formatKeys().contains("M_AF")) missing_keys << "M_AF";
+					if (!cfdna_variant.formatKeys().contains("M_AC")) missing_keys << "M_AC";
+					if (!cfdna_variant.formatKeys().contains("M_REF")) missing_keys << "M_REF";
+					if (!cfdna_variant.formatKeys().contains("Pval")) missing_keys << "Pval";
+					// old umiVar format
+					if (missing_keys.size() > 0)
+						THROW(FileParseException, "Keys '" + missing_keys.join("', '") + "'.\n Maybe sample '" + cfdna_sample.name + "' was analyzed with an old version of umiVar. Please redo the VC!");
+
+					//parse VCF line
+					cfdna_entry.multi_af = Helper::toDouble(cfdna_variant.formatValueFromSample("M_AF"), "M_AF", QString::number(i));
+					cfdna_entry.multi_alt = Helper::toDouble(cfdna_variant.formatValueFromSample("M_AC"), "M_AC", QString::number(i));
+					cfdna_entry.multi_ref = Helper::toDouble(cfdna_variant.formatValueFromSample("M_REF"), "M_REF", QString::number(i));
+					cfdna_entry.p_value = Helper::toDouble(cfdna_variant.formatValueFromSample("Pval"), "Pval", QString::number(i));
+
+				}
+				else
+				{
+					//variant not called in cfDNA
+					cfdna_entry.multi_af = 0.0;
+					cfdna_entry.multi_alt = 0;
+					cfdna_entry.multi_ref = 0;
+					cfdna_entry.p_value = 1.0;
+				}
+			}
+			else
+			{
+				//fallback if file-not-found
+				cfdna_entry.multi_af = std::numeric_limits<double>::quiet_NaN();
+				cfdna_entry.multi_alt = -1;
+				cfdna_entry.multi_ref = -1;
+				cfdna_entry.p_value = std::numeric_limits<double>::quiet_NaN();
+			}
+
+			line.cfdna_columns << cfdna_entry;
+		}
+
+		table.lines << line;
+	}
+
+	//add mrd files
+	foreach (const auto& cfdna_sample, table.cfdna_samples)
+	{
+		table.mrd_tables << mrd_files.value(cfdna_sample.name);
+	}
+
+	return table;
+}
+
+QList<QStringList> GSvarHelper::annotateCodingAndSplicing(const VcfLine& variant, GeneSet& genes, bool add_flags, int offset)
+{
+	if (!LoginManager::active())
+	{
+		THROW(ArgumentException, "No access to the NGSD! You need access to the NGSD for annotation!");
+	}
+
+	QList<QStringList> annotations;
+	genes.clear();
+
+	//get all transcripts containing the variant
+	TranscriptList transcripts  = NGSD().transcriptsOverlapping(variant.chr(), variant.start(), variant.end(), offset);
+	transcripts.sortByRelevance();
+
+	//annotate consequence for each transcript
+	FastaFileIndex genome_idx(Settings::string("reference_genome"));
+	VariantHgvsAnnotator hgvs_annotator(genome_idx);
+	foreach(const Transcript& trans, transcripts)
+	{
+		VariantConsequence consequence = hgvs_annotator.annotate(trans, variant);
+
+		QStringList entry;
+		entry << trans.gene() << trans.nameWithVersion() << consequence.typesToString() << consequence.hgvs_c << consequence.hgvs_p;
+		genes << trans.gene();
+
+		if(add_flags)
+		{
+			//flags for important transcripts
+			QStringList flags = trans.flags(true);
+			entry += flags;
+		}
+
+		annotations << entry;
+	}
+
+	return annotations;
 }
