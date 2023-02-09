@@ -92,6 +92,13 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 		}
 	}
 
+	//indikationsspezifische Abrechnung
+	QString warning = GSvarHelper::specialGenes(genes_);
+	if (!warning.isEmpty())
+	{
+		addMessage(warning, false, false);
+	}
+
 	//create target region
 	QString mode = ui_.mode->currentText();
 	QString messages;

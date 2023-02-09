@@ -301,6 +301,15 @@ MainWindow::MainWindow(QWidget *parent)
 
 	connect(ui_.vars, SIGNAL(publishToClinvarTriggered(int, int)), this, SLOT(uploadToClinvar(int, int)));
 	connect(ui_.vars, SIGNAL(alamutTriggered(QAction*)), this, SLOT(openAlamut(QAction*)));
+
+	QString curl_ca_bundle = Settings::string("curl_ca_bundle", true);
+	if ((Helper::isWindows()) && (!curl_ca_bundle.isEmpty()))
+	{
+		if (!qputenv("CURL_CA_BUNDLE", curl_ca_bundle.toUtf8()))
+		{
+			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM files over HTTPS may not be possible");
+		}
+	}
 }
 
 QString MainWindow::appName() const
@@ -3629,8 +3638,11 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 		}
 		Log::perf("Loading mosaic list took ", timer);
 
-
-		ui_.filters->setValidFilterEntries(variants_.filters().keys());
+		//determine valid filter entries from filter column (and add new filters low_mappability/mosaic to make outdated GSvar files work as well)
+		QStringList valid_filter_entries = variants_.filters().keys();
+		if (!valid_filter_entries.contains("low_mappability")) valid_filter_entries << "low_mappability";
+		if (!valid_filter_entries.contains("mosaic")) valid_filter_entries << "mosaic";
+		ui_.filters->setValidFilterEntries(valid_filter_entries);
 
 		//update data structures
 		Settings::setPath("path_variantlists", filename);
@@ -4048,6 +4060,8 @@ int MainWindow::showAnalysisIssues(QList<QPair<Log::LogLevel, QString>>& issues,
 void MainWindow::on_actionAbout_triggered()
 {
 	QString about_text = appName()+ " " + QCoreApplication::applicationVersion();
+	about_text += "\nBuild CPU architecture: " + QSysInfo::buildCpuArchitecture();
+
 	if (NGSHelper::isClientServerMode())
 	{
 		ServerInfo server_info = NGSHelper::getServerInfo();
@@ -4056,7 +4070,7 @@ void MainWindow::on_actionAbout_triggered()
 			about_text += "\n";
 			about_text += "\nServer version: " + server_info.version;
 			about_text += "\nAPI version: " + server_info.api_version;
-			about_text += "\nServer start time: " + server_info.server_start_time.toString();
+			about_text += "\nServer start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
 		}
 	}
 	about_text += "\n\nA free viewing and filtering tool for genomic variants.\n\nInstitute of Medical Genetics and Applied Genomics\nUniversity Hospital Tübingen\nGermany\n\nMore information at:\nhttps://github.com/imgag/ngs-bits";

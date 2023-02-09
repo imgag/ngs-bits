@@ -290,6 +290,21 @@ void DBQCWidget::updatePlot()
 		ui_.stdev->setText("n/a");
 	}
 
+	//check if all dates are unset > use 01.01.2000
+	bool all_dates_unset = true;
+	if (!scatterplot)
+	{
+		query.seek(-1);
+		while(query.next())
+		{
+			if (query.value(2).toDateTime().isValid())
+			{
+				all_dates_unset = false;
+				break;
+			}
+		}
+	}
+
 	//create series (colored by quality)
 	QHash<QString, QScatterSeries*> series;
 	series.insert("good", getSeries("qc: good", QColor("#11A50F")));
@@ -319,7 +334,11 @@ void DBQCWidget::updatePlot()
 		else
 		{
 			QDateTime datetime = query.value(2).toDateTime();
-			if (!datetime.isValid()) continue; //date can be null
+			if (!datetime.isValid()) //date can be null
+			{
+				if (!all_dates_unset) continue; //skip data points without date
+				datetime = QDateTime(QDate(2000, 1, 1));
+			}
 			value2 = datetime.toMSecsSinceEpoch();
 		}
 		if (value2<value2_min) value2_min = value2;
@@ -361,12 +380,12 @@ void DBQCWidget::updatePlot()
 		axis->setTitleText("Date");
 		x_axis = axis;
 	}
-	chart->setAxisX(x_axis);
+	chart->addAxis(x_axis, Qt::AlignBottom);
 
 	QValueAxis* y_axis = new QValueAxis();
 	y_axis->setTitleText(ui_.term->currentText());
 	y_axis->setTickCount(8);
-	chart->setAxisY(y_axis);
+	chart->addAxis(y_axis, Qt::AlignLeft);
 
 	//add data series
 	addSeries(chart, x_axis, y_axis, series["n/a"]);

@@ -18,7 +18,7 @@ First, we need to install Qt and some basic dependencies:
 
 We have pre-built `htslib 1.16.1` for Windows and it can be found inside the repository at `ngs-bits\htslib\htslib_win_64.zip`. Just unzip the contents of the ZIP archive into the `ngs-bits\htslib\` folder.
 
-If you want to use a different version, e.g. when testing the latest version of htslib, there is a [manual on how to build htslib](install_win_htslib.md) available.
+If you want to use a different version, e.g. when testing the latest version of htslib, there is a [manual on how to build htslib](build_htslib.md#windows) available.
 
 
 ### MySQL driver
@@ -27,7 +27,7 @@ The Qt distribution does not contains the MySQL driver.
 Thus, we need to install it manually:
 
 * Download the ZIP file of [MySQL Community Server 8.0.31](http://downloads.mysql.com/archives/community/) and extract it to C:\Qt\.  
-* Copy C:\Qt\mysql-8.0.31-winx64\lib\libmysql.dll to C:\Windows\
+* Copy C:\Qt\mysql-8.0.31-winx64\lib\libmysql.dll to `ngs-bits\bin`
 
 ### MySQL plugin for Qt
 

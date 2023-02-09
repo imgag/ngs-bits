@@ -617,28 +617,13 @@ void FilterWidget::updateGeneWarning()
 {
 	QStringList warnings;
 
+	//indikationsspezifische Abrechnung
 	if (roi_.isValid() && !roi_.genes.isEmpty())
 	{
-		//check non-coding in GRCh37
+		QString warning = GSvarHelper::specialGenes(roi_.genes);
+		if (!warning.isEmpty())
 		{
-			GeneSet non_coding;
-			non_coding << "PADI6" << "SRD5A2" << "SYN2" << "NEFL" << "ABO" << "NR2E3" << "TTC25";
-			GeneSet inter = roi_.genes.intersect(non_coding);
-			if (!inter.isEmpty())
-			{
-				warnings.append("Some genes (" + inter.join(", ") + ") of the target region are non-coding in the Ensembl annotation of GRCh37, but coding for GRCh38.\nVariants in non-coding genes have LOW/MODIFIER impact. Make sure to check these variants too!");
-			}
-		}
-
-		//check "indikationsspezifische Abrechnung"
-		{
-			GeneSet billing;
-			billing << "ACTA2" << "COL3A1" << "FBN1" << "MYH11" << "MYLK" << "SMAD3" << "TGFB2" << "TGFBR1" << "TGFBR2" << "MLH1" << "MSH2" << "MSH6" << "PMS2" << "GJB2" << "GJB6" << "SMN1" << "SMN2" << "F8" << "CNBP" << "DMPK" << "HTT" << "PTPN11" << "FMR1" << "SOS1" << "RAF1" << "RIT1" << "BRAF" << "KRAS" << "CFTR" << "DMD";
-			GeneSet inter = roi_.genes.intersect(billing);
-			if (!inter.isEmpty())
-			{
-				warnings.append("Some genes (" + inter.join(", ") + ") of the target region require 'indikationsspezifische Abrechnung'!");
-			}
+			warnings.append(warning);
 		}
 	}
 
