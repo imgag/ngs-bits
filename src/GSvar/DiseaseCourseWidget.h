@@ -41,7 +41,6 @@ protected slots:
 
 private:
 	void createTableView();
-	QStringList annotateVariant(const VcfLine& variant, GeneSet& genes);
 	Ui::DiseaseCourseWidget *ui_;
 	NGSD db_;
 	CfdnaDiseaseCourseTable table_data_;

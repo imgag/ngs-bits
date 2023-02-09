@@ -99,8 +99,12 @@ public:
 
 	//returns a warning message if genes with 'indikationsspezifische Abrechnung' are contained
 	static QString specialGenes(const GeneSet& genes);
+
 	//Returns a table struct containing all related cfDNA variant info for a given tumor sample
 	static CfdnaDiseaseCourseTable cfdnaTable(const QString& tumor_ps_name, QStringList& errors, bool throw_if_fails=true);
+
+	//Returns the coding and splicing entry (and genes through GeneSet reference) for a given variant
+	static QList<QStringList> annotateCodingAndSplicing(const VcfLine& variant, GeneSet& genes, bool add_flags=true, int offset=5000);
 
 protected:
 	GSvarHelper() = delete;

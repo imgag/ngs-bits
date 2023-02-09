@@ -15,6 +15,7 @@
 #include <QMessageBox>
 #include <QStandardPaths>
 #include <QBuffer>
+#include <VariantHgvsAnnotator.h>
 
 const GeneSet& GSvarHelper::impritingGenes()
 {
@@ -674,4 +675,42 @@ CfdnaDiseaseCourseTable GSvarHelper::cfdnaTable(const QString& tumor_ps_name, QS
 	}
 
 	return table;
+}
+
+QList<QStringList> GSvarHelper::annotateCodingAndSplicing(const VcfLine& variant, GeneSet& genes, bool add_flags, int offset)
+{
+	if (!LoginManager::active())
+	{
+		THROW(ArgumentException, "No access to the NGSD! You need access to the NGSD for annotation!");
+	}
+
+	QList<QStringList> annotations;
+	genes.clear();
+
+	//get all transcripts containing the variant
+	TranscriptList transcripts  = NGSD().transcriptsOverlapping(variant.chr(), variant.start(), variant.end(), offset);
+	transcripts.sortByRelevance();
+
+	//annotate consequence for each transcript
+	FastaFileIndex genome_idx(Settings::string("reference_genome"));
+	VariantHgvsAnnotator hgvs_annotator(genome_idx);
+	foreach(const Transcript& trans, transcripts)
+	{
+		VariantConsequence consequence = hgvs_annotator.annotate(trans, variant);
+
+		QStringList entry;
+		entry << trans.gene() << trans.nameWithVersion() << consequence.typesToString() << consequence.hgvs_c << consequence.hgvs_p;
+		genes << trans.gene();
+
+		if(add_flags)
+		{
+			//flags for important transcripts
+			QStringList flags = trans.flags(true);
+			entry += flags;
+		}
+
+		annotations << entry;
+	}
+
+	return annotations;
 }

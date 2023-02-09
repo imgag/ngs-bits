@@ -124,10 +124,16 @@ void DiseaseCourseWidget::createTableView()
 
 		//update gene and coding_and_splicing column with live annotation
 		GeneSet genes;
-		QStringList conding_splicing = annotateVariant(variant, genes);
+		QList<QStringList> coding_splicing_raw = GSvarHelper::annotateCodingAndSplicing(variant, genes, true, 5000);
+		QStringList coding_splicing_collapsed;
+		foreach (const QStringList& entry, coding_splicing_raw)
+		{
+			coding_splicing_collapsed << entry.join(":");
+		}
+
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(genes.toStringList().join(",")));
-		ui_->vars->setItem(row_idx, col_idx, GUIHelper::createTableItem(conding_splicing.join(", ")));
-		ui_->vars->item(row_idx, col_idx++)->setToolTip(conding_splicing.join("\n").replace(":", " "));
+		ui_->vars->setItem(row_idx, col_idx, GUIHelper::createTableItem(coding_splicing_collapsed.join(", ")));
+		ui_->vars->item(row_idx, col_idx++)->setToolTip(coding_splicing_collapsed.join("\n").replace(":", " "));
 
 		//store variant index (e.g. for IGV)
 		ui_->vars->setVerticalHeaderItem(row_idx, new QTableWidgetItem());
@@ -221,34 +227,4 @@ void DiseaseCourseWidget::createTableView()
 	// optimize cell sizes
 	GUIHelper::resizeTableCells(ui_->mrd, 250);
 
-}
-
-QStringList DiseaseCourseWidget::annotateVariant(const VcfLine& variant, GeneSet& genes)
-{
-	QStringList annotations;
-	genes.clear();
-
-	//get all transcripts containing the variant
-	TranscriptList transcripts  = db_.transcriptsOverlapping(variant.chr(), variant.start(), variant.end(), 5000);
-	transcripts.sortByRelevance();
-
-	//annotate consequence for each transcript
-	QStringList lines;
-	FastaFileIndex genome_idx(Settings::string("reference_genome"));
-	VariantHgvsAnnotator hgvs_annotator(genome_idx);
-	foreach(const Transcript& trans, transcripts)
-	{
-		VariantConsequence consequence = hgvs_annotator.annotate(trans, variant);
-
-		QStringList entry;
-		entry << trans.gene() << trans.nameWithVersion() << consequence.typesToString() << consequence.hgvs_c << consequence.hgvs_p;
-		genes << trans.gene();
-
-		//flags for important transcripts
-		QStringList flags = trans.flags(true);
-		entry += flags;
-		annotations << entry.join(":");
-	}
-
-	return annotations;
 }
