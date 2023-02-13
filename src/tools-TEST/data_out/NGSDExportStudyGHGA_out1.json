@@ -9,7 +9,7 @@
                 "BAM000111"
             ],
             "has_study": "Study4711",
-            "reference_chromosome": null,
+            "reference_chromosome": "unspecified",
             "reference_genome": "GRCh38",
             "schema_type": "CreateAnalysis",
             "schema_version": "0.9.0",
@@ -24,7 +24,7 @@
                 "BAM000222"
             ],
             "has_study": "Study4711",
-            "reference_chromosome": null,
+            "reference_chromosome": "unspecified",
             "reference_genome": "GRCh38",
             "schema_type": "CreateAnalysis",
             "schema_version": "0.9.0",
@@ -44,20 +44,22 @@
             "schema_version": "0.9.0"
         }
     ],
-    "has_data_access_policy": {
-        "alias": "DAP_Study4711",
-        "description": "Data access policy for study Study4711",
-        "has_data_access_committee": "Study4711 DAC",
-        "has_data_use_conditions": [
-            "Condition 1",
-            "Condition 2"
-        ],
-        "name": "Data access policy for study Study4711",
-        "policy_text": "Textual description of the DAP",
-        "policy_url": "http:://url.describing.the.dap.de",
-        "schema_type": "CreateDataAccessPolicy",
-        "schema_version": "0.9.0"
-    },
+    "has_data_access_policy": [
+        {
+            "alias": "DAP_Study4711",
+            "description": "Data access policy for study Study4711",
+            "has_data_access_committee": "Study4711 DAC",
+            "has_data_use_conditions": [
+                "Condition 1",
+                "Condition 2"
+            ],
+            "name": "Data access policy for study Study4711",
+            "policy_text": "Textual description of the DAP",
+            "policy_url": "http:://url.describing.the.dap.de",
+            "schema_type": "CreateDataAccessPolicy",
+            "schema_version": "0.9.0"
+        }
+    ],
     "has_dataset": [
         {
             "alias": "Study4711 dataset",
@@ -220,7 +222,7 @@
             "has_attribute": null,
             "library_layout": "PE",
             "library_name": "processed_sample.id:111",
-            "library_preparation": null,
+            "library_preparation": "unspecified",
             "library_preparation_kit_manufacturer": null,
             "library_preparation_kit_retail_name": "Illumina TruSeq DNA PCR-Free",
             "library_selection": "unspecified",
@@ -229,7 +231,9 @@
             "rnaseq_strandedness": null,
             "schema_type": "CreateLibraryPreparationProtocol",
             "schema_version": "0.9.0",
-            "target_regions": null
+            "target_regions": [
+                "unspecified"
+            ]
         },
         {
             "alias": "SEQ000111",
@@ -260,7 +264,7 @@
             "has_attribute": null,
             "library_layout": "PE",
             "library_name": "processed_sample.id:222",
-            "library_preparation": null,
+            "library_preparation": "unspecified",
             "library_preparation_kit_manufacturer": null,
             "library_preparation_kit_retail_name": "NEBNext Ultra II Directional RNA + QIAseq FastSelect rRNA removal UMI",
             "library_selection": "unspecified",
@@ -269,7 +273,9 @@
             "rnaseq_strandedness": null,
             "schema_type": "CreateLibraryPreparationProtocol",
             "schema_version": "0.9.0",
-            "target_regions": null
+            "target_regions": [
+                "unspecified"
+            ]
         },
         {
             "alias": "SEQ000222",

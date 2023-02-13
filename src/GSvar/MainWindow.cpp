@@ -3638,7 +3638,7 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 		}
 		Log::perf("Loading mosaic list took ", timer);
 
-		//determine valid filter entries from filter column (and add now filters low_mappability/mosaic to make old GSvar files work as well)
+		//determine valid filter entries from filter column (and add new filters low_mappability/mosaic to make outdated GSvar files work as well)
 		QStringList valid_filter_entries = variants_.filters().keys();
 		if (!valid_filter_entries.contains("low_mappability")) valid_filter_entries << "low_mappability";
 		if (!valid_filter_entries.contains("mosaic")) valid_filter_entries << "mosaic";
