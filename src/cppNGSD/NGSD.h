@@ -26,6 +26,7 @@
 #include "NGSHelper.h"
 #include "FileLocation.h"
 #include "FileInfo.h"
+#include "TsvFile.h"
 
 ///Sample relation datastructure
 struct CPPNGSDSHARED_EXPORT SampleRelation
@@ -546,6 +547,45 @@ enum RnaCohortDeterminationStategy
 	RNA_COHORT_GERMLINE_PROJECT, //based on processing system and project
 	RNA_COHORT_SOMATIC, //based on HPO or ICD10
 	RNA_COHORT_CUSTOM //list of processed samples needs to be provided
+};
+
+///Custom structs for data exchange
+
+///cfDNA disease course table
+struct CfdnaDiseaseCourseTable
+{
+	struct CfdnaDiseaseCourseTableCfdnaEntry
+	{
+		double multi_af;
+		int multi_alt;
+		int multi_ref;
+		double p_value;
+	};
+	struct CfdnaDiseaseCourseTableLine
+	{
+		VcfLine tumor_vcf_line;
+		QList<CfdnaDiseaseCourseTableCfdnaEntry> cfdna_columns;
+	};
+	struct PSInfo
+	{
+		QString name;
+		QString ps_id;
+		QDate date;
+
+		bool operator<(const PSInfo& other) const {
+			return date < other.date; // sort by date
+		}
+	};
+
+	//sample info
+	PSInfo tumor_sample;
+	QList<PSInfo> cfdna_samples;
+
+	//table content
+	QList<CfdnaDiseaseCourseTableLine> lines;
+
+	//mrd values
+	QList<TsvFile> mrd_tables;
 };
 
 /// NGSD accessor.

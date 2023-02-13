@@ -66,9 +66,11 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 	ui_.setupUi(this);
 
 	connect(ui_.report_type_rna, SIGNAL(clicked(bool)), this, SLOT(disableGUI()));
+	connect(ui_.report_type_cfdna, SIGNAL(clicked(bool)), this, SLOT(disableGUI()));
 	connect(ui_.report_type_dna, SIGNAL(clicked(bool)), this, SLOT(enableGUI()));
 
 	connect(ui_.report_type_rna, SIGNAL(clicked(bool)), this, SLOT(rnaSampleSelection()));
+	connect(ui_.report_type_cfdna, SIGNAL(clicked(bool)), this, SLOT(rnaSampleSelection()));
 	connect(ui_.report_type_dna, SIGNAL(clicked(bool)), this, SLOT(rnaSampleSelection()));
 
 	connect(ui_.include_cnv_burden, SIGNAL(stateChanged(int)), this, SLOT(cinState()));
@@ -507,6 +509,7 @@ void SomaticReportDialog::writeBackSettings()
 SomaticReportDialog::report_type SomaticReportDialog::getReportType()
 {
 	if(ui_.report_type_dna->isChecked()) return report_type::DNA;
+	else if (ui_.report_type_cfdna->isChecked()) return report_type::cfDNA;
 	else return report_type::RNA;
 }
 
@@ -515,11 +518,18 @@ QString SomaticReportDialog::getRNAid()
 	return ui_.rna_ids_for_report->currentText();
 }
 
-void SomaticReportDialog::enableChoiceReportType(bool enabled)
+void SomaticReportDialog::enableChoiceRnaReportType(bool enabled)
 {
 	ui_.report_type_label->setEnabled(enabled);
 	ui_.report_type_dna->setEnabled(enabled);
 	ui_.report_type_rna->setEnabled(enabled);
+}
+
+void SomaticReportDialog::enableChoicecfDnaReportType(bool enabled)
+{
+	ui_.report_type_label->setEnabled(enabled);
+	ui_.report_type_dna->setEnabled(enabled);
+	ui_.report_type_cfdna->setEnabled(enabled);
 }
 
 void SomaticReportDialog::cinState()

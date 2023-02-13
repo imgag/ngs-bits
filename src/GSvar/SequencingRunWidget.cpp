@@ -469,7 +469,7 @@ void SequencingRunWidget::setQCMetricAccessions(const QSet<QString>& sample_type
 	if (sample_types.contains("RNA"))
 	{
 		qc_metric_accessions_ << "QC:2000101"; // housekeeping genes read depth
-		qc_metric_accessions_ << "QC:2000103"; // housekeeping genes 20x percentage
+		qc_metric_accessions_ << "QC:2000102"; // housekeeping genes 10x percentage
 	}
 	if (sample_types.contains("DNA") || sample_types.contains("DNA (amplicon)") || sample_types.contains("DNA (native)"))
 	{

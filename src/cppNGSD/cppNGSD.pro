@@ -57,7 +57,8 @@ SOURCES += \
     StatisticsServiceRemote.cpp \
     TumorOnlyReportWorker.cpp \
     SomaticReportHelper.cpp \
-    SomaticRnaReport.cpp
+    SomaticRnaReport.cpp \
+    SomaticcfDNAReport.cpp
 
 HEADERS += \
     ApiCaller.h \
@@ -83,6 +84,7 @@ HEADERS += \
     TumorOnlyReportWorker.h \
     SomaticReportHelper.h \
     SomaticRnaReport.h \
+    SomaticcfDNAReport.h \
     UserPermissionList.h
 
 RESOURCES += \

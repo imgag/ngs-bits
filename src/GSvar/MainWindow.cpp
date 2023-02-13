@@ -138,6 +138,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "SplicingWidget.h"
 #include "VariantHgvsAnnotator.h"
 #include "VirusDetectionWidget.h"
+#include "SomaticcfDNAReport.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -4715,7 +4716,7 @@ void MainWindow::generateReportSomaticRTF()
 	QSet<int> rna_ids =   db.relatedSamples(db.sampleId(ps_tumor).toInt(), "same sample", "RNA");
 	if(!rna_ids.isEmpty())
 	{
-		dlg.enableChoiceReportType(true);
+		dlg.enableChoiceRnaReportType(true);
 
 		QStringList rna_names;
 		for(int rna_id : rna_ids)
@@ -4727,6 +4728,25 @@ void MainWindow::generateReportSomaticRTF()
 		}
 		dlg.setRNAids(rna_names);
 	}
+
+	//TODO check if cfDNAs exist:
+	// get all same samples
+	int sample_id = db.sampleId(variants_.mainSampleName()).toInt();
+	QSet<int> same_sample_ids = db.relatedSamples(sample_id, "same sample");
+	same_sample_ids << sample_id; // add current sample id
+
+	// get all related cfDNA
+	QSet<int> cf_dna_sample_ids;
+	foreach (int cur_sample_id, same_sample_ids)
+	{
+		cf_dna_sample_ids.unite(db.relatedSamples(cur_sample_id, "tumor-cfDNA"));
+	}
+
+	if (cf_dna_sample_ids.size() > 0)
+	{
+		dlg.enableChoicecfDnaReportType(true);
+	}
+
 
 	if(!dlg.exec())
 	{
@@ -4747,9 +4767,13 @@ void MainWindow::generateReportSomaticRTF()
 	{
 		destination_path = last_report_path_ + "/" + ps_tumor + "_DNA_report_somatic_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf";
 	}
-	else
+	else if (dlg.getReportType() == SomaticReportDialog::report_type::RNA)
 	{
 		destination_path = last_report_path_ + "/" + dlg.getRNAid() + "-" + ps_tumor + "_RNA_report_somatic_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf";
+	}
+	else
+	{
+		destination_path = last_report_path_ + "/" + ps_tumor + "_cfDNA_report_somatic_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf";
 	}
 
 	//get RTF file name
@@ -4835,7 +4859,7 @@ void MainWindow::generateReportSomaticRTF()
 			}
 		}
 	}
-	else //RNA report
+	else if (dlg.getReportType() == SomaticReportDialog::report_type::RNA)//RNA report
 	{
 		//Generate RTF
 		try
@@ -4918,6 +4942,43 @@ void MainWindow::generateReportSomaticRTF()
 		{
 			QDesktopServices::openUrl(QUrl::fromLocalFile(file_rep));
 		}
+	}
+	else if (dlg.getReportType() == SomaticReportDialog::report_type::cfDNA)
+	{
+		//TODO
+		//gather necessary data for the report!
+		qDebug() << "Trying to create cfDNA report!";
+		try
+		{
+			QStringList errors;
+			CfdnaDiseaseCourseTable table = GSvarHelper::cfdnaTable(ps_tumor, errors, true);
+			SomaticcfDNAReportData data(somatic_report_settings_, table);
+			SomaticcfDnaReport report(data);
+
+			QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
+			report.writeRtf(temp_filename);
+			ReportWorker::moveReport(temp_filename, file_rep);
+			QApplication::restoreOverrideCursor();
+
+			if (QMessageBox::question(this, "cfDNA report", "cfDNA report generated successfully!\nDo you want to open the report in your default RTF viewer?")==QMessageBox::Yes)
+			{
+				QDesktopServices::openUrl(QUrl::fromLocalFile(file_rep));
+			}
+		}
+		catch (Exception& error)
+		{
+			QApplication::restoreOverrideCursor();
+			QMessageBox::warning(this, "Error while gathering data for somatic cfDNA report.", error.message());
+			return;
+		}
+
+
+	}
+	else
+	{
+		QApplication::restoreOverrideCursor();
+		QMessageBox::warning(this, "Unknown somatic report type!", "Unknown somatic report type! This should not happen please inform the bioinformatic team.");
+		return;
 	}
 }
 

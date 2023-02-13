@@ -11,48 +11,6 @@
 #include <QLabel>
 
 
-
-///Custom structs for data exchange
-
-///cfDNA disease course table
-struct CfdnaDiseaseCourseTable
-{
-	struct CfdnaDiseaseCourseTableCfdnaEntry
-	{
-		double multi_af;
-		int multi_alt;
-		int multi_ref;
-		double p_value;
-	};
-	struct CfdnaDiseaseCourseTableLine
-	{
-		VcfLine tumor_vcf_line;
-		QList<CfdnaDiseaseCourseTableCfdnaEntry> cfdna_columns;
-	};
-	struct PSInfo
-	{
-		QString name;
-		QString ps_id;
-		QDate date;
-
-		bool operator<(const PSInfo& other) const {
-			return date < other.date; // sort by date
-		}
-	};
-
-	//sample info
-	PSInfo tumor_sample;
-	QList<PSInfo> cfdna_samples;
-
-	//table content
-	QList<CfdnaDiseaseCourseTableLine> lines;
-
-	//mrd values
-	QList<TsvFile> mrd_tables;
-};
-
-
-
 ///Helper class for GSvar
 class GSvarHelper
 {
