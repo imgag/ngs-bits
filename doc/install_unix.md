@@ -71,3 +71,19 @@ To build GSvar, execute the following command:
     > make build_gui_release
 
 Now you need to [configure GSVar](GSvar/configuration.md).
+
+## Running a development server on a local machine
+
+For the development and testing purposes it is possible to run a local instance of GSvar Server. However, if you are using self-signed certificates, you will have to make them trusted (otherwise IGV and libcurl will not be able to verify them):
+
+Install CA certificates package:
+
+    > sudo apt-get install ca-certificates
+
+Copy your self-signed certificate to this location:
+
+    > sudo cp YOUR_CERTIFICATE.crt /usr/local/share/ca-certificates
+
+Update the list of certificate authorities:
+
+    > sudo update-ca-certificates
