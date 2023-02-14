@@ -35,7 +35,8 @@ The Qt distribution no longer contains a MySQL plugin.
 
 Based on the [official instructions](https://doc.qt.io/qt-5/sql-driver.html#how-to-build-the-qmysql-plugin-on-windows), we have created these updated short instructions:
 
-* Open a Qt MinGW command line window via the Windows start menu.
+* Open a Windows CMD window.
+* Add the Qt paths to the PATH: *set PATH=C:\Qt\Qt5.12.12\5.12.12\mingw73_64\bin\;C:\Qt\Qt5.12.12\Tools\mingw730_64\bin\;%PATH%*
 * Navigate to `C:\Qt\Qt5.12.12\5.12.12\Src\qtbase\src\plugins\sqldrivers\`.
 * Execute `qmake -- MYSQL_INCDIR="C:\Qt\mysql-8.0.31-winx64\include" MYSQL_LIBDIR="C:\Qt\mysql-8.0.31-winx64\lib"`
 * Execute `mingw32-make sub-mysql`
@@ -84,4 +85,3 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 		<td>libmysql.dll</td>
 	</tr>
 </table>
-

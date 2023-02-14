@@ -222,7 +222,7 @@ public:
 			obj.insert("description", "short-read data analysis using megSAP: https://github.com/imgag/megSAP");
 			obj.insert("has_output", QJsonArray::fromStringList(QStringList() << "BAM" + ps_data.pseudonym));
 			obj.insert("has_study", data.study_name);
-			obj.insert("reference_chromosome", QJsonValue());
+			obj.insert("reference_chromosome", "unspecified");
 			obj.insert("reference_genome", "GRCh38");
 			obj.insert("type", "BAM");
 			obj.insert("has_input", QJsonArray());
@@ -307,6 +307,8 @@ public:
 
 	void addDataAccessPolicy(QJsonObject& parent, const CommonData& data)
 	{
+		QJsonArray array;
+
 		QJsonObject obj;
 		obj.insert("alias", "DAP_"+data.study_name);
 		obj.insert("name", "Data access policy for study "+data.study_name);
@@ -318,7 +320,10 @@ public:
 		obj.insert("schema_type", "CreateDataAccessPolicy");
 		obj.insert("schema_version", data.version);
 
-		parent.insert("has_data_access_policy", obj);
+
+		array.append(obj);
+
+		parent.insert("has_data_access_policy", array);
 	}
 
 	void addDatasets(QJsonObject& parent, const CommonData& data)
@@ -392,12 +397,12 @@ public:
 			obj.insert("library_selection", "unspecified");
 			obj.insert("library_preparation_kit_retail_name", ps_data.ps_info.processing_system);
 			obj.insert("library_preparation_kit_manufacturer", QJsonValue());
-			obj.insert("library_preparation", QJsonValue());
+			obj.insert("library_preparation", "unspecified");
 			obj.insert("end_bias", QJsonValue());
 			obj.insert("primer", QJsonValue());
 			obj.insert("has_attribute", QJsonValue());
 			obj.insert("rnaseq_strandedness", QJsonValue());
-			obj.insert("target_regions", QJsonValue());
+			obj.insert("target_regions", QJsonArray() << "unspecified");
 			obj.insert("schema_type", "CreateLibraryPreparationProtocol");
 			obj.insert("schema_version", data.version);
 
