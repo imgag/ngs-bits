@@ -5,15 +5,6 @@ RequestWorker::RequestWorker(QSslConfiguration ssl_configuration, qintptr socket
 	 ssl_configuration_(ssl_configuration)
 	, socket_(socket)
 	, is_terminated_(false)
-	, is_secure_(true)
-{
-}
-
-RequestWorker::RequestWorker(qintptr socket)
-	:
-	  socket_(socket)
-	, is_terminated_(false)
-	, is_secure_(false)
 {
 }
 
@@ -27,7 +18,7 @@ void RequestWorker::run()
 		Log::error("Could not create a socket: " + ssl_socket->errorString());
 		return;
 	}
-	if (is_secure_) ssl_socket->setSslConfiguration(ssl_configuration_);
+	ssl_socket->setSslConfiguration(ssl_configuration_);
 
 	if (!ssl_socket->setSocketDescriptor(socket_))
 	{
@@ -36,20 +27,14 @@ void RequestWorker::run()
 		return;
 	}
 
-	if (is_secure_)
-	{
-		typedef void (QSslSocket::* sslFailed)(const QList<QSslError> &);
-		connect(ssl_socket, static_cast<sslFailed>(&QSslSocket::sslErrors), this, &RequestWorker::sslFailed);
-		connect(ssl_socket, &QSslSocket::peerVerifyError, this, &RequestWorker::verificationFailed);
-		connect(ssl_socket, &QSslSocket::encrypted, this, &RequestWorker::securelyConnected);
-		connect(ssl_socket, &QSslSocket::disconnected, this, &RequestWorker::socketDisconnected);
-		connect(this, SIGNAL(securelyConnected()), this, SLOT(handleConnection()));
-	}
+	typedef void (QSslSocket::* sslFailed)(const QList<QSslError> &);
+	connect(ssl_socket, static_cast<sslFailed>(&QSslSocket::sslErrors), this, &RequestWorker::sslFailed);
+	connect(ssl_socket, &QSslSocket::peerVerifyError, this, &RequestWorker::verificationFailed);
+	connect(ssl_socket, &QSslSocket::encrypted, this, &RequestWorker::securelyConnected);
+	connect(ssl_socket, &QSslSocket::disconnected, this, &RequestWorker::socketDisconnected);
+	connect(this, SIGNAL(securelyConnected()), this, SLOT(handleConnection()));
 
-	if (is_secure_)
-	{
-		ssl_socket->startServerEncryption();
-	}
+	ssl_socket->startServerEncryption();
 
 	QByteArray all_request_parts;
 
@@ -67,9 +52,9 @@ void RequestWorker::run()
 
 	while (ssl_socket->waitForReadyRead())
 	{
-		if (is_secure_) ssl_socket->waitForEncrypted();
+		ssl_socket->waitForEncrypted();
 
-		if ((is_secure_ && !ssl_socket->isEncrypted()) || (ssl_socket->state() == QSslSocket::SocketState::UnconnectedState))
+		if (!ssl_socket->isEncrypted() || (ssl_socket->state() == QSslSocket::SocketState::UnconnectedState))
 		{
 			Log::error("Connection cannot be continued: " + ssl_socket->errorString());
 			closeAndDeleteSocket(ssl_socket);

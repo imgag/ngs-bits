@@ -20,11 +20,8 @@ public:
 	static int getNumSettingsValue(const QString& key);
 	static QString getStringSettingsValue(const QString& key);
 	static QString getUrlWithoutParams(const QString& url);
-	static QString getUrlProtocol(const bool& return_http);
-	static QString getUrlPort(const bool& return_http);
 
 	static bool hasBasicSettings();
-	static QString getServerUrl(const bool& return_http);
 	static QString getSessionBackupFileName();
 	static QString getUrlStorageBackupFileName();
 

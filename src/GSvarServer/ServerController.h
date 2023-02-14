@@ -105,7 +105,7 @@ private:
 	/// not allowed, according to the HTTP specification
 	static bool hasOverlappingRanges(const QList<ByteRange> ranges);
 	/// Creates a temporary URL for a file (includes a file name and its full path)
-	static QString createTempUrl(const QString& file, const QString& token, const bool& return_http);
+	static QString createTempUrl(const QString& file, const QString& token);
 	/// Serves a file for a byte range request (i.e. specific fragment of a file)
 	static HttpResponse createStaticFileRangeResponse(QString filename, QList<ByteRange> byte_ranges, ContentType type, bool is_downloadable);
 	/// Serves a stream, used to transfer large files without opening multiple connections
