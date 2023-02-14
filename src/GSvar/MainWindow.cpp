@@ -4729,7 +4729,6 @@ void MainWindow::generateReportSomaticRTF()
 		dlg.setRNAids(rna_names);
 	}
 
-	//TODO check if cfDNAs exist:
 	// get all same samples
 	int sample_id = db.sampleId(variants_.mainSampleName()).toInt();
 	QSet<int> same_sample_ids = db.relatedSamples(sample_id, "same sample");
@@ -4945,9 +4944,6 @@ void MainWindow::generateReportSomaticRTF()
 	}
 	else if (dlg.getReportType() == SomaticReportDialog::report_type::cfDNA)
 	{
-		//TODO
-		//gather necessary data for the report!
-		qDebug() << "Trying to create cfDNA report!";
 		try
 		{
 			QStringList errors;
@@ -4971,8 +4967,6 @@ void MainWindow::generateReportSomaticRTF()
 			QMessageBox::warning(this, "Error while gathering data for somatic cfDNA report.", error.message());
 			return;
 		}
-
-
 	}
 	else
 	{

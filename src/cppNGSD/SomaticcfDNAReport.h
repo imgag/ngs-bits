@@ -42,14 +42,14 @@ private:
 
 	RtfTable partSnvTable(int cfdna_idx_start, int cfdna_idx_end);
 	RtfParagraph partSnvExplanation();
-	RtfTable partMrdTable();
+	RtfTable partGeneralGeneticTable();
 	RtfTable partGeneralInfo();
 
 	///Formats double to float, in case it fails to "n/a"
 	RtfSourceCode formatDigits(double in, int digits=0);
 	QByteArray cleanConsequenceString(QByteArray consequence);
 	CodingSplicingAnno getPreferedCodingAndSplicing(const VcfLine& variant);
-	QByteArray getMrdTableValue(QByteArray type, int cfdna_idx);
+	QByteArray getMrdTableValue(const QByteArray& type, int cfdna_idx);
 
 };
 
