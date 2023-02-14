@@ -40,7 +40,7 @@ HttpResponse ServerController::serveStaticFromServerRoot(const HttpRequest& requ
 
 HttpResponse ServerController::serveStaticServerGenomes(const HttpRequest& request)
 {
-	return createStaticLocationResponse(findPathForServerFolder(request.getPathItems(), ServerHelper::getStringSettingsValue("server_genomes")), request);
+	return createStaticLocationResponse(findPathForServerFolder(request.getPathItems(), ServerHelper::getStringSettingsValue("data_folder") + "genomes/"), request);
 }
 
 HttpResponse ServerController::serveStaticFromTempUrl(const HttpRequest& request)
