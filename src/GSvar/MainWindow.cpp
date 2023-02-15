@@ -352,12 +352,12 @@ void MainWindow::checkServerAvailability()
 
 void MainWindow::on_actionDebug_triggered()
 {
+	QTime timer;
+	timer.start();
+
 	QString user = Helper::userName();
 	if (user=="ahsturm1")
 	{
-		QTime timer;
-		timer.start();
-
 		//VariantHgvsAnnotator debugging
 		/*
 		QString genome_file = Settings::string("reference_genome", false);
@@ -391,7 +391,7 @@ void MainWindow::on_actionDebug_triggered()
 		vcf.store("C:\\Marc\\class4_and_5.vcf");
 		*/
 
-		//export a transcript definition from NGSD forVariantHgvsAnnotator test
+		//export a transcript definition from NGSD for VariantHgvsAnnotator test
 		/*
 		QByteArray trans = "ENST00000252971";
 		NGSD db;
@@ -426,219 +426,11 @@ void MainWindow::on_actionDebug_triggered()
 		out << "}" << endl;
 		*/
 
-		//generate somatic XML files
+		//generate somatic XML files in batch
 		/*
 		NGSD db;
 		QStringList pairs;
 		pairs << "DNA2203823A1_01	DNA2202978A1_01";
-		pairs << "DNA2203982A1_01	DNA2203524A1_01";
-		pairs << "DNA2204093A1_01	DNA2203836A1_01";
-		pairs << "DNA2204094A1_01	DNA2203394A1_01";
-		pairs << "DNA2204213A1_01	DNA2201841A1_01";
-		pairs << "DNA2204369A1_01	DNA2203535A1_01";
-		pairs << "DNA2204449A1_01	DX209059_01";
-		pairs << "DNA2205111A1_01	DNA2204339A1_01";
-		pairs << "DNA2205158A1_01	DNA2204469A1_01";
-		pairs << "DNA2205237A1_01	DNA2205053A1_01";
-		pairs << "DNA2205619A1_01	DNA2205084A1_01";
-		pairs << "DNA2205821A1_01	DX2201350_01";
-		pairs << "DNA2206019A1_01	DNA2200932A1_01";
-		pairs << "DX182887_01	DX182760_01";
-		pairs << "DX184303_01	DX183974_01";
-		pairs << "DX197149_01	DX196952_01";
-		pairs << "DX197418_01	DX196579_01";
-		pairs << "DX198299_01	DX198266_01";
-		pairs << "DX200335_01	DX200022_01";
-		pairs << "DX200777_01	DX200527_01";
-		pairs << "DX200782_01	DX200626_01";
-		pairs << "DX200964_01	DX200397_01";
-		pairs << "DX200965_01	DX200734_01";
-		pairs << "DX201176_01	DX201030_01";
-		pairs << "DX201177_01	DX200546_01";
-		pairs << "DX201193_01	DX200983_01";
-		pairs << "DX201811_01	DX201049_01";
-		pairs << "DX201812_01	DX201120_01";
-		pairs << "DX201825_01	DX201263_01";
-		pairs << "DX201908_01	DX200695_01";
-		pairs << "DX201912_01	DX200250_01";
-		pairs << "DX202152_01	DX201827_01";
-		pairs << "DX202298_01	DX197580_02";
-		pairs << "DX202317_01	DX201387_01";
-		pairs << "DX202408_01	DX201504_01";
-		pairs << "DX202413_01	DX202185_01";
-		pairs << "DX202489_01	DX202280_01";
-		pairs << "DX202586_01	DX202168_01";
-		pairs << "DX202726_01	DX200134_01";
-		pairs << "DX202730_01	DX202425_01";
-		pairs << "DX202865_01	DX201390_01";
-		pairs << "DX202866_01	DX202571_01";
-		pairs << "DX203002_01	DX202623_01";
-		pairs << "DX203003_01	DX202898_01";
-		pairs << "DX203004_01	DX202852_01";
-		pairs << "DX203005_01	DX202553_01";
-		pairs << "DX203006_01	DX202930_01";
-		pairs << "DX203007_01	DX202511_01";
-		pairs << "DX203059_01	DX202446_01";
-		pairs << "DX203409_01	DX202971_01";
-		pairs << "DX203513_01	DX203137_01";
-		pairs << "DX203514_01	DX203058_01";
-		pairs << "DX203687_01	DX203169_01";
-		pairs << "DX203688_01	DX203366_01";
-		pairs << "DX203831_01	DX197447_01";
-		pairs << "DX203983_01	DX202962_01";
-		pairs << "DX204188_01	DX203752_01";
-		pairs << "DX204200_01	DX203949_01";
-		pairs << "DX204201_01	DX203771_01";
-		pairs << "DX204203_01	DX203909_01";
-		pairs << "DX204204_01	DX203779_01";
-		pairs << "DX204355_01	DX203144_01";
-		pairs << "DX204408_01	DX203343_01";
-		pairs << "DX204629_01	DX203099_01";
-		pairs << "DX204872_01	DX204765_01";
-		pairs << "DX205066_01	DX204390_01";
-		pairs << "DX205279_01	DX205116_01";
-		pairs << "DX205540_01	DX205102_01";
-		pairs << "DX205544_01	DX205018_01";
-		pairs << "DX206230_01	DX206002_01";
-		pairs << "DX206614_01	DX205500_01";
-		pairs << "DX207311_01	DX207344_01";
-		pairs << "DX207511_02	DX207172_01";
-		pairs << "DX207684_01	DX207932_01";
-		pairs << "DX207865_01	DX201580_01";
-		pairs << "DX207866_01	DX206088_01";
-		pairs << "DX207869_01	DX206870_01";
-		pairs << "DX207872_01	DX207668_01";
-		pairs << "DX207874_01	DX207629_01";
-		pairs << "DX207878_01	DX207750_01";
-		pairs << "DX207881_01	DX207156_01";
-		pairs << "DX207978_01	DX207799_01";
-		pairs << "DX208089_01	DX207445_01";
-		pairs << "DX208099_01	DX191921_02";
-		pairs << "DX208100_01	DX207935_01";
-		pairs << "DX208311_02	DX203560_04";
-		pairs << "DX208318_01	DX207947_01";
-		pairs << "DX208515_01	DX208176_01";
-		pairs << "DX208558_01	DX185058_04";
-		pairs << "DX208564_01	DX208267_01";
-		pairs << "DX208793_01	DX208573_01";
-		pairs << "DX209032_01	DX208185_01";
-		pairs << "DX209091_01	DX209614_01";
-		pairs << "DX209532_01	DX209276_01";
-		pairs << "DX209553_01	DX209550_01";
-		pairs << "DX209594_01	DX204207_02";
-		pairs << "DX209683_01	DX209507_01";
-		pairs << "DX209686_01	DX209318_02";
-		pairs << "DX209704_01	DX208777_01";
-		pairs << "DX2100159_01	DX209539_01";
-		pairs << "DX2100216_01	DX204647_01";
-		pairs << "DX2100226_01	DX207637_01";
-		pairs << "DX2100901_01	DX207827_01";
-		pairs << "DX2100903_01	DX2100832_01";
-		pairs << "DX2101100_02	DX2100613_01";
-		pairs << "DX2101107_01	DX2100615_01";
-		pairs << "DX2101581_01	DX2101212_01";
-		pairs << "DX2101587_01	DX2101077_01";
-		pairs << "DX2101588_01	DX2101068_01";
-		pairs << "DX2101591_01	DX2101266_01";
-		pairs << "DX2101592_01	DX2100874_01";
-		pairs << "DX2101593_01	DX2100203_01";
-		pairs << "DX2101676_01	DX207893_01";
-		pairs << "DX2101822_01	DX2101570_01";
-		pairs << "DX2101937_01	DX2101038_01";
-		pairs << "DX2101939_01	DX2101394_01";
-		pairs << "DX2102007_01	DX203751_01";
-		pairs << "DX2102015_01	DX2101639_01";
-		pairs << "DX2102017_01	DX2101635_01";
-		pairs << "DX2102019_01	DX2102018_01";
-		pairs << "DX2102202_01	DX2101618_01";
-		pairs << "DX2102204_01	DX2101725_01";
-		pairs << "DX2102205_01	DX2101861_01";
-		pairs << "DX2102206_01	DX2101863_01";
-		pairs << "DX2102207_01	DX2101163_01";
-		pairs << "DX2102234_01	DX2101980_01";
-		pairs << "DX2102239_01	DX2101961_01";
-		pairs << "DX2102269_01	DX2102071_01";
-		pairs << "DX2102271_01	DX2102033_01";
-		pairs << "DX2102285_02	DX206189_01";
-		pairs << "DX2102538_01	DX2102093_01";
-		pairs << "DX2102540_01	DX171593_02";
-		pairs << "DX2102717_01	DX2101773_01";
-		pairs << "DX2102773_01	DX2101912_01";
-		pairs << "DX2102927_01	DX2102577_01";
-		pairs << "DX2102931_01	DX197740_01";
-		pairs << "DX2102932_01	DX2102764_01";
-		pairs << "DX2103114_01	DX2102549_01";
-		pairs << "DX2103116_01	DX203261_01";
-		pairs << "DX2103124_01	DX2102476_01";
-		pairs << "DX2103596_01	DX197744_01";
-		pairs << "DX2103597_01	DX2103204_01";
-		pairs << "DX2103832_01	DX2103583_01";
-		pairs << "DX2103839_01	DX2103182_01";
-		pairs << "DX2104092_01	DX2101288_01";
-		pairs << "DX2104094_01	DX2103825_01";
-		pairs << "DX2104255_01	DX2104071_01";
-		pairs << "DX2104264_01	DX2104021_01";
-		pairs << "DX2104377_01	DX2103983_01";
-		pairs << "DX2104576_01	DX2104293_01";
-		pairs << "DX2104584_01	DX209435_01";
-		pairs << "DX2104713_02	DX2104547_02";
-		pairs << "DX2105480_01	DX2104767_01";
-		pairs << "DX2105683_01	DX2105143_01";
-		pairs << "DX2105892_01	DX2105619_01";
-		pairs << "DX2105957_01	DX196420_01";
-		pairs << "DX2106092_01	DX205932_01";
-		pairs << "DX2106099_01	DX2104727_01";
-		pairs << "DX2106225_01	DX2103354_01";
-		pairs << "DX2106233_01	DX2103997_01";
-		pairs << "DX2106293_01	DX207760_01";
-		pairs << "DX2106294_01	DX2104387_01";
-		pairs << "DX2106714_01	DX2106382_02";
-		pairs << "DX2107252_01	DX202464_01";
-		pairs << "DX2107253_01	DX2103543_01";
-		pairs << "DX2107254_01	DX2106604_01";
-		pairs << "DX2107419_01	DX2106889_01";
-		pairs << "DX2107573_01	DX2106717_01";
-		pairs << "DX2107628_01	DX2105074_03";
-		pairs << "DX2107852_01	DX2107603_01";
-		pairs << "DX2107976_01	DX2107709_01";
-		pairs << "DX2108059_01	DX2107846_01";
-		pairs << "DX2108061_01	DX2106566_01";
-		pairs << "DX2108565_01	DX2108105_01";
-		pairs << "DX2108845_01	DX171568_04";
-		pairs << "DX2109058_01	DX2108681_01";
-		pairs << "DX2109369_01	DX2109111_01";
-		pairs << "DX2109399_01	DX2107704_01";
-		pairs << "DX2109581_01	DX2108860_01";
-		pairs << "DX2109675_01	DX2109404_01";
-		pairs << "DX2109676_01	DX2109368_01";
-		pairs << "DX2109902_01	DX2109273_01";
-		pairs << "DX2109911_01	DX2109281_01";
-		pairs << "DX2110063_01	DX2109658_01";
-		pairs << "DX2110372_02	DX2110200_02";
-		pairs << "DX2110467_01	DX2110292_01";
-		pairs << "DX2110468_02	DX2109964_02";
-		pairs << "DX2110469_01	DX2109763_01";
-		pairs << "DX2110605_02	DX2109448_02";
-		pairs << "DX2110726_01	DX2110027_01";
-		pairs << "DX2110730_02	DX2110416_02";
-		pairs << "DX2110742_01	DX2110023_01";
-		pairs << "DX2111008_01	DX2110596_01";
-		pairs << "DX2111009_01	DX2110636_01";
-		pairs << "DX2200101_01	DX2109411_01";
-		pairs << "DX2200244_01	DX2110885_01";
-		pairs << "DX2200746_01	DX2200430_01";
-		pairs << "DX2201533_01	DX2200069_01";
-		pairs << "DX2201534_01	DX2200992_01";
-		pairs << "DX2201669_01	DX2201209_01";
-		pairs << "DX2202511_01	DX2201344_01";
-		pairs << "DX2202563_01	DX2109593_01";
-		pairs << "DX2202641_01	DX2201350_01";
-		pairs << "DX2202765_01	DX2202211_01";
-		pairs << "DX2203344_01	DX203658_01";
-		pairs << "DX2203486_01	DX2202553_01";
-		pairs << "DX2203490_01	DX2203159_01";
-		pairs << "DX2203584_01	DX2202405_01";
-		pairs << "DXcf208392_01	DX203751_01";
 		foreach(QString pair, pairs)
 		{
 			QStringList parts =  pair.split("\t");
@@ -1376,28 +1168,131 @@ void MainWindow::on_actionDebug_triggered()
 		}
 		*/
 
-		qDebug() << Helper::elapsedTime(timer, true);
+		//search for SVs with breakpoints inside genes matching the phenotype
+		NGSD db;
+		QSharedPointer<QFile> file = Helper::openFileForWriting("C:\\Marc\\large_sv_breakpoints.tsv");
+		QTextStream ostream(file.data());
+
+		QSharedPointer<QFile> file2 = Helper::openFileForWriting("C:\\Marc\\large_sv_breakpoints_stats.tsv");
+		QTextStream ostream2(file2.data());
+
+		QStringList ps_ids = db.getValues("SELECT ps.id FROM processed_sample ps, processing_system sys, project p, sample s WHERE ps.processing_system_id=sys.id AND sys.name_short='TruSeqPCRfree' AND ps.project_id=p.id AND p.type='diagnostic' AND ps.sample_id=s.id AND s.tumor='0' AND ps.quality!='bad' AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)");
+		ostream2 << "##diagnostic germline genomes: " << ps_ids.count() << endl;
+
+		QMap<QString, QStringList> ps_id2hpos;
+		foreach(QString ps_id, ps_ids)
+		{
+			QStringList hpo_terms = db.getValues("SELECT disease_info FROM sample_disease_info sdi, processed_sample ps WHERE sdi.sample_id=ps.sample_id AND ps.id='"+ps_id+"' AND type='HPO term id'");
+			std::for_each(hpo_terms.begin(), hpo_terms.end(), [](QString& value){ value = value.toUpper().trimmed(); });
+			hpo_terms.removeAll("HP:0032322"); //healthy
+			if (hpo_terms.count()>0)
+			{
+				ps_id2hpos[ps_id] = hpo_terms;
+			}
+		}
+		ostream2 << "##diagnostic germline genomes with HPO terms: " << ps_id2hpos.count() << endl;
+
+		FilterCascade filters = FilterCascade::fromText(QStringList()   << "SV type	Structural variant type=INV"
+																		<< "SV remove chr type	chromosome type=special chromosomes"
+																		<< "SV allele frequency NGSD	max_af=0.1"
+																		<< "SV filter columns	entries=PASS	action=FILTER"
+																		<< "SV break point density NGSD	max_density=20	remove_strict=no"
+																		<< "SV PE read depth	PE Read Depth=5	only_affected=no"
+																		<< "SV size	min_size=500000	max_size=0");
+		ostream << "#ps" << "\t" << "variant" << "\t" << "report_config_of_variant" << endl;
+		ostream2 << "#ps" << "\t" << "HPO_terms" << "\t" << "HPO_genes" << "\t" << "HPO_roi_bases" << "\t" << "SVs" << "\t" << "SVs_after_filter" << "\t" << "SVs_in_roi" << endl;
+		for(auto it=ps_id2hpos.begin(); it!=ps_id2hpos.end(); ++it)
+		{
+			QString ps_id = it.key();
+			QStringList hpos = it.value();
+			QString ps = db.processedSampleName(ps_id);
+			int rc_id = db.reportConfigId(ps_id);
+
+			GeneSet pheno_genes;
+			foreach(const QString& hpo, hpos)
+			{
+				int pheno_id = db.phenotypeIdByAccession(hpo.toUtf8(), false);
+				if (pheno_id==-1) continue;
+				Phenotype pheno = db.phenotype(pheno_id);
+				GeneSet genes = db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(pheno.accession()), QSet<PhenotypeSource>(), QSet<PhenotypeEvidenceLevel>(), true);
+				pheno_genes << genes;
+			}
+
+			//convert genes to ROI (using a cache to speed up repeating queries)
+			BedFile roi;
+			foreach(const QByteArray& gene, pheno_genes)
+			{
+				if (!gene2region_cache_.contains(gene))
+				{
+					BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
+					tmp.clearAnnotations();
+					tmp.merge();
+					gene2region_cache_[gene] = tmp;
+				}
+				roi.add(gene2region_cache_[gene]);
+			}
+			roi.merge();
+			if (roi.baseCount()==0) continue;
+
+			QVariant callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id='" + ps_id + "'", true);
+			if (!callset_id.isValid()) continue;
+
+			//get rare SVs of this case
+			QString sv_file = db.processedSamplePath(ps_id, PathType::STRUCTURAL_VARIANTS);
+			if (!QFile::exists(sv_file)) continue;
+
+			BedpeFile svs;
+			svs.load(sv_file);
+			int c_svs_nofilter = svs.count();
+
+			FilterResult filter_res = filters.apply(svs, false, false);
+			filter_res.removeFlagged(svs);
+
+			int c_snv_in_roi = 0;
+			for(int i=0; i<svs.count(); ++i)
+			{
+				const BedpeLine& sv = svs[i];
+
+				bool overlap = roi.overlapsWith(sv.chr1(), sv.start1(), sv.end1()) || roi.overlapsWith(sv.chr2(), sv.start2(), sv.end2());
+				if (overlap)
+				{
+					//check if RC exists
+					QString rc_exists = "no";
+
+					if (rc_id!=-1)
+					{
+						QString sv_id = db.svId(sv, callset_id.toInt(), svs);
+
+						QVariant causal = db.getValue("SELECT causal FROM report_configuration_sv WHERE report_configuration_id='" + QString::number(rc_id) + "' AND sv_inversion_id='" + sv_id + "'", true);
+						if (causal.isValid())
+						{
+							rc_exists = "yes";
+							if (causal.toBool())
+							{
+								rc_exists += " - causal";
+							}
+						}
+					}
+
+					ostream << ps << "\t" << sv.toString() << "\t" << rc_exists << endl;
+					c_snv_in_roi += 1;
+
+				}
+			}
+			ostream2 << ps << "\t" << hpos.join(", ") << "\t" << pheno_genes.count() << "\t" << roi.baseCount() << "\t" << c_svs_nofilter << "\t" << svs.count() << "\t" << c_snv_in_roi << endl;
+		}
 	}
 	else if (user=="ahgscha1")
 	{
-		qDebug() << GlobalServiceProvider::fileLocationProvider().getExpressionFiles(true).asStringList();
 	}
 	else if (user=="ahschul1")
 	{
-
 	}
 	else if (user=="ahott1a1")
 	{
-		QTime timer;
-		timer.start();
-		qDebug() << "starting debug: " << Helper::dateTime();
-
-		//
-
-		qDebug() << "finished debug in: " << Helper::elapsedTime(timer, true);
-
 	}
 
+	qDebug() << "Elapsed time debugging:" << Helper::elapsedTime(timer, true);
 }
 
 void MainWindow::on_actionConvertVcfToGSvar_triggered()

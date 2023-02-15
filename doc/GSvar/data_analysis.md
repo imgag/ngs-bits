@@ -9,9 +9,10 @@ It consists of read mapping and several variant calling and annotation steps:
 
 - **Mapping**: Assignment of reads to the position in the reference genome where they come from (mapping).  
   Part of the mapping is also determine the alignment of the read to the reference genome sequence in case it does not match completely.
-- **Variant calling**: Detection of deviations from the reference genome sequence.  
+- **Variant calling**: Detection of deviations from the reference genome sequence, i.e. detection of variants.  
   Here seperate variant callers are used for small variants, CNVs, structural variants, repeat expansions, etc.
-- **Annotation**: Addition of information from tools and databases to allow interpretetion of the variant like consequence on cDNA/protein level, fequency in populations, pathogenicity predictions, splicing effect prediction, etc.  
+- **Annotation**: Addition of information from tools and databases to the variants to allow interpretetion.  
+  The information is typically consequence on cDNA/protein level, frequency in populations, pathogenicity predictions, splicing effect prediction, etc.
   Most of this information comes from databases, e.g. 1000 Genomes, gnomAD, ClinVar, HGMD, OMIM.
 
 The following image shows a simplified single sample pipeline:
