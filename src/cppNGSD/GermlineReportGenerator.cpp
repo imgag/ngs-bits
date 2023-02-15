@@ -1422,7 +1422,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Ph&auml;notyp"] = "Phenotype information";
 		de2en["Filterkriterien"] = "Criteria for variant filtering";
 		de2en["Gefundene Varianten in Zielregion gesamt"] = "Variants in target region";
-		de2en["Anzahl Varianten ausgew&auml;hlt f&uuml;r Report"] = "Variants selected for report";
+		de2en["Anzahl SNVs/InDels ausgew&auml;hlt f&uuml;r Report"] = "SNVs/InDels selected for report";
 		de2en["Anzahl CNVs ausgew&auml;hlt f&uuml;r Report"] = "CNVs selected for report";
 		de2en["Anzahl SVs ausgew&auml;hlt f&uuml;r Report"] = "SVs selected for report";
 		de2en["Anzahl anderer Varianten ausgew&auml;hlt f&uuml;r Report"] = "Other variants selected for report";

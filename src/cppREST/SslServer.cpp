@@ -1,6 +1,6 @@
 #include "SslServer.h"
 
-SslServer::SslServer(QObject *parent, bool insecure) :
+SslServer::SslServer(QObject *parent) :
 	QTcpServer(parent)
 {
 	current_ssl_configuration_ = QSslConfiguration::defaultConfiguration();

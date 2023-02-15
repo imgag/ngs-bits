@@ -1169,6 +1169,7 @@ void MainWindow::on_actionDebug_triggered()
 		*/
 
 		//search for SVs with breakpoints inside genes matching the phenotype
+		/*
 		NGSD db;
 		QSharedPointer<QFile> file = Helper::openFileForWriting("C:\\Marc\\large_sv_breakpoints.tsv");
 		QTextStream ostream(file.data());
@@ -1281,6 +1282,7 @@ void MainWindow::on_actionDebug_triggered()
 			}
 			ostream2 << ps << "\t" << hpos.join(", ") << "\t" << pheno_genes.count() << "\t" << roi.baseCount() << "\t" << c_svs_nofilter << "\t" << svs.count() << "\t" << c_snv_in_roi << endl;
 		}
+		*/
 	}
 	else if (user=="ahgscha1")
 	{
