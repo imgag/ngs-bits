@@ -1,10 +1,10 @@
 ### SampleAncestry tool help
-	SampleAncestry (2021_12-80-g5ff26d8f)
+	SampleAncestry (2022_12-82-g025eb99e)
 	
 	Estimates the ancestry of a sample based on variants.
 	
 	Mandatory parameters:
-	  -in <filelist>        Input variant list(s) in VCF format.
+	  -in <filelist>        Input variant list(s) in VCF or VCF.GZ format.
 	
 	Optional parameters:
 	  -out <file>           Output TSV file. If unset, writes to STDOUT.
@@ -26,7 +26,7 @@
 	  --tdx                 Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleAncestry changelog
-	SampleAncestry 2021_12-80-g5ff26d8f
+	SampleAncestry 2022_12-82-g025eb99e
 	
 	2021-05-17 Population assignment is based on abolute score and on median/mad now. Should be much more accurate now especially for admixed samples.
 	2020-08-07 VCF files only as input format for variant list.

@@ -21,7 +21,7 @@ public:
 		addFlag("qual", "Also sort according to variant quality. Ignored if 'fai' file is given.");
 		addInfile("fai", "FAI file defining different chromosome order.", true, true);
 		addInt("compression_level", "Output VCF compression level from 1 (fastest) to 9 (best compression). If unset, an unzipped VCF is written.", true, BGZF_NO_COMPRESSION);
-		addFlag("remove_unused_contigs", "Also sort according to variant quality. Ignored if 'fai' file is given.");
+		addFlag("remove_unused_contigs", "Remove comment lines of contigs, i.e. chromosomes, that are not used in the output VCF.");
 
 		changeLog(2022, 12,  8, "Added parameter '-remove_unused_contigs'.");
 		changeLog(2020,  8, 12, "Added parameter '-compression_level' for compression level of output VCF files.");
