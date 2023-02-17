@@ -4,6 +4,7 @@
 SessionManager::SessionManager()
 	: backup_file_(Helper::openFileForWriting(ServerHelper::getSessionBackupFileName(), false, true))
 	, session_store_()
+	, current_client_info_()
 {	
 }
 
@@ -157,5 +158,20 @@ void SessionManager::removeExpiredSessions()
 	for (int i = 0; i < to_be_removed.count(); ++i)
 	{
 		removeSession(to_be_removed[i]);
+	}
+}
+
+ClientInfo SessionManager::getCurrentClientInfo()
+{
+	return instance().current_client_info_;
+}
+
+void SessionManager::setCurrentClientInfo(ClientInfo info)
+{
+	if (!info.isEmpty())
+	{
+		instance().mutex_.lock();
+		instance().current_client_info_ = info;
+		instance().mutex_.unlock();
 	}
 }

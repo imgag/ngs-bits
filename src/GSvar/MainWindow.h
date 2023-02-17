@@ -73,6 +73,9 @@ public:
 	const CnvList& getCnvList();
 	const BedpeFile& getSvList();
 
+	/// Checks if there is a new client version available
+	void checkClientUpdates();
+
 public slots:
 	///Upload variant to Clinvar
 	void uploadToClinvar(int variant_index1, int variant_index2=-1);
@@ -459,6 +462,7 @@ private:
 	QToolButton* rna_menu_btn_;
 	QToolButton* cfdna_menu_btn_;
 	int igv_port_manual = -1;
+	QToolBar *update_info_toolbar_;
 
 	//single vars context menu
 	struct ContextMenuActions
