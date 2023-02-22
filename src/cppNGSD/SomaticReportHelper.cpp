@@ -1033,7 +1033,7 @@ RtfSourceCode SomaticReportHelper::partPharmacoGenetics()
 RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impact_table)
 {
 	QByteArrayList headers = {"Gen", "Veränderung", "Typ", "Anteil", "Beschreibung", "Molekularer Signalweg"};
-	QList<int> col_widths = {1000, 1950, 1350, 600, 3000, 2022};
+	QList<int> col_widths = {1000, 1950, 1400, 600, 2950, 2022};
 
 	//headlines
 	RtfTable table;
