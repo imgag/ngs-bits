@@ -9,7 +9,6 @@ private slots:
 
 	void test()
 	{
-		ExportCBioPortalStudy test;
 
 		StudyData study;
 		study.name = "Test_study";
@@ -23,10 +22,12 @@ private slots:
 		cancer.color = "hot_pink";
 		cancer.parent = "";
 
-		test.setStudy(study);
-		test.setCancer(cancer);
 
-		test.exportStudy("C:/local_dev/data/cBioPortaltest/");
+		//TODO define sample list
+		//TODO generate functional CBioPortalExportSettings ??
+
+//		ExportCBioPortalStudy test(study, /*TODO*/);
+//		test.exportStudy("C:/local_dev/data/cBioPortaltest/");
 	}
 
 
