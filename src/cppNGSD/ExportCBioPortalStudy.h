@@ -98,13 +98,11 @@ struct CPPNGSDSHARED_EXPORT SampleAttribute
 };
 
 
-struct CPPNGSDSHARED_EXPORT PatientData
-{
-	QString patient_id;
-	QString gender;
-	QList<SampleData> samples;
-
-};
+//struct CPPNGSDSHARED_EXPORT PatientData
+//{
+//	QString patient_id;
+//	QString gender;
+//};
 
 struct CPPNGSDSHARED_EXPORT SampleFiles
 {
@@ -113,7 +111,6 @@ struct CPPNGSDSHARED_EXPORT SampleFiles
 	QString clincnv_file;
 	QString msi_file;
 };
-
 
 
 class CPPNGSDSHARED_EXPORT CBioPortalExportSettings
@@ -132,13 +129,14 @@ public:
 
 	QStringList ps_ids;
 	QList<ProcessedSampleData> ps_data;
+	QList<SampleData> s_data;
 
 
 	QList<SampleAttribute> sample_attributes; //required attributes: Patient_id, sample_id  ||  Others listed: cancer_type, cancer_type_detailed, sample_display_name, sample_class)
-	QMap<QString, PatientData> patient_map;
+//	QMap<QString, PatientData> patient_map;
 
 
-	void addSample(SomaticReportSettings settings, PatientData patient, SampleFiles files);
+	void addSample(SomaticReportSettings settings, /*PatientData patient,*/ SampleFiles files);
 
 	void setCancerData(CancerData cancer_data)
 	{
@@ -167,6 +165,9 @@ public:
 	QStringList getIcd10(int sample_idx);
 	QStringList getHpoTerms(int sample_idx);
 	QString getClinicalPhenotype(int sample_idx);
+	QString getSampleId(int sample_idx);
+	QString getPatientId(int sample_idx);
+	QString getGenomeBuild(int sample_idx);
 	QString getFormatedAttribute(Attribute att, int sample_idx);
 
 private:
@@ -191,6 +192,7 @@ private:
 	void exportPatientData(const QString& out_folder);
 	void exportSampleData(const QString& out_folder);
 	void exportSnvs(const QString& out_folder);
+	void writeSnvVariants(QSharedPointer<QFile> out_file, VariantList filtered_vl, int sample_idx);
 
 	NGSD db_;
 	CBioPortalExportSettings settings_;

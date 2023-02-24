@@ -140,6 +140,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "VirusDetectionWidget.h"
 #include "SomaticcfDNAReport.h"
 
+#include "ExportCBioPortalStudy.h"
+
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -1292,6 +1294,66 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahott1a1")
 	{
+		//test export of cBioPortalStudy:
+		QStringList tumor_samples;
+		//ssSC, Twist, ssSC old
+		tumor_samples << "DNA2300760A1_01" << "DNA2300102A1_01" << "DNA2203480A1_01";
+
+		StudyData study;
+		study.name = "Test study";
+		study.cancer_type = "mixed";
+		study.description = "Study to test gsvar export";
+		study.identifier = "TEST_STUDY_GSVAR";
+		study.reference_genome = "hg38";
+
+		CBioPortalExportSettings export_settings(study, false);
+
+		NGSD db(false);
+		const FileLocationProvider& fileprovider = GlobalServiceProvider::fileLocationProvider();
+		QString filterFileName = GSvarHelper::applicationBaseName() + "_filters.ini";
+		foreach(QString sample, tumor_samples)
+		{
+			qDebug() << "gathering Data for: " << sample;
+			QString ps_id = db.processedSampleId(sample);
+			QString normal_sample = db.normalSample(ps_id);
+			QString normal_id = db.processedSampleId(normal_sample);
+
+			qDebug() << "normal sample: " << normal_sample;
+
+			SampleFiles files;
+			files.clincnv_file = fileprovider.getAnalysisCnvFile().filename;
+			files.msi_file = fileprovider.getSomaticMsiFile().filename;
+			files.gsvar_germline = GlobalServiceProvider::database().processedSamplePath(normal_id, PathType::GSVAR).filename;
+			files.gsvar_somatic = GlobalServiceProvider::database().secondaryAnalyses(sample + "-" + normal_sample, "somatic")[0];
+
+			qDebug() << files.gsvar_somatic << "\n" << files.gsvar_germline << "\n" << files.clincnv_file << "\n" << files.msi_file << "\n";
+
+			VariantList somatic_vl;
+			somatic_vl.load(files.gsvar_somatic);
+			VariantList germline_vl;
+			germline_vl.load(files.gsvar_germline);
+			CnvList cnvs;
+			cnvs.load(files.clincnv_file);
+
+
+			QStringList messages;
+			SomaticReportSettings report_settings;
+			report_settings.normal_ps = normal_sample;
+			report_settings.tumor_ps = sample;
+			somatic_report_settings_.msi_file = GlobalServiceProvider::fileLocationProvider().getSomaticMsiFile().filename;
+			somatic_report_settings_.viral_file = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::VIRAL).filename;
+
+			report_settings.report_config = db.somaticReportConfig(ps_id, normal_id, somatic_vl, cnvs, germline_vl, messages);
+
+			qDebug() << report_settings.report_config.filter();
+			report_settings.filters = FilterCascadeFile::load(filterFileName, report_settings.report_config.filter());
+
+
+
+			export_settings.addSample(report_settings, files);
+		}
+
+
 	}
 
 	qDebug() << "Elapsed time debugging:" << Helper::elapsedTime(timer, true);

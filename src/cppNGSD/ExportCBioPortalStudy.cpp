@@ -4,6 +4,7 @@
 #include <Helper.h>
 #include "Exceptions.h"
 #include "SomaticReportHelper.h"
+#include "VariantHgvsAnnotator.h"
 
 //
 ///METAFILE:
@@ -62,17 +63,16 @@ CBioPortalExportSettings::CBioPortalExportSettings(const CBioPortalExportSetting
 	ps_data = other.ps_data;
 
 	sample_attributes = other.sample_attributes;
-	patient_map = other.patient_map;
+//	patient_map = other.patient_map;
 }
 
-void CBioPortalExportSettings::addSample(SomaticReportSettings settings, PatientData patient, SampleFiles files)
+void CBioPortalExportSettings::addSample(SomaticReportSettings settings, SampleFiles files)
 {
 	QString name = settings.tumor_ps;
 
 	if (sample_list.contains(name)) THROW(ArgumentException, "Given sample: '" + name + "' was already added to the sample list of the export.");
 
 	sample_list.append(name);
-	patient_map.insert(name, patient);
 	sample_files.append(files);
 	//TODO check if all necessary infos were entered
 	report_settings.append(settings);
@@ -80,6 +80,7 @@ void CBioPortalExportSettings::addSample(SomaticReportSettings settings, Patient
 	QString ps_id = db_.processedSampleId(name);
 	ps_ids.append(ps_id);
 	ps_data.append(db_.getProcessedSampleData(ps_id));
+	s_data.append(db_.getSampleData(db_.sampleId(settings.tumor_ps)));
 }
 
 double CBioPortalExportSettings::getMsiStatus(int sample_idx)
@@ -202,13 +203,31 @@ QString CBioPortalExportSettings::getClinicalPhenotype(int sample_idx)
 	return clin_phenotype.join(", ");
 }
 
+QString CBioPortalExportSettings::getSampleId(int sample_idx)
+{
+	return report_settings[sample_idx].tumor_ps;
+}
+
+QString CBioPortalExportSettings::getPatientId(int sample_idx)
+{
+	return s_data[sample_idx].patient_identifier;
+}
+
+QString CBioPortalExportSettings::getGenomeBuild(int sample_idx)
+{
+	int sys_id = db_.processingSystemIdFromProcessedSample(sample_list[sample_idx]);
+	return db_.getProcessingSystemData(sys_id).genome;
+}
+
 QString CBioPortalExportSettings::getFormatedAttribute(Attribute att, int sample_idx)
 {
 	switch (att) {
 		case Attribute::SAMPLE_ID:
-			return report_settings[sample_idx].tumor_ps + "-" + report_settings[sample_idx].normal_ps;
+			return getSampleId(sample_idx);
 		case Attribute::PATIENT_ID:
-			return patient_map[sample_list[sample_idx]].patient_id;
+//			return patient_map[sample_list[sample_idx]].patient_id;
+			return s_data[sample_idx].patient_identifier;
+
 		case Attribute::PROCESSING_SYSTEM:
 			return getProcessingSystem(sample_idx);
 		case Attribute::CLINICAL_PHENOTYPE:
@@ -318,13 +337,13 @@ void ExportCBioPortalStudy::exportPatientData(const QString &out_folder)
 	}
 
 	QSet<QString> pat_ids;
-	foreach (PatientData pd, settings_.patient_map)
+	for(int i=0; i< settings_.sample_list.count(); i++)
 	{
-		if (pat_ids.contains(pd.patient_id)) continue;
+		if (pat_ids.contains(settings_.s_data[i].patient_identifier)) continue;
 
 		QStringList line;
-		line << pd.patient_id;
-		line << pd.gender;
+		line << settings_.s_data[i].patient_identifier;
+		line << settings_.s_data[i].gender;
 
 		data_patients->write(line.join("\t").toUtf8() + "\n");
 	}
@@ -383,6 +402,78 @@ void ExportCBioPortalStudy::exportSnvs(const QString& out_folder)
 	//data file:
 	//"minimum" entrez_gene_id can be parsed from hgnc_db_file in GRCh38/share/db/HGNC/
 	// gene_symbol,(entrez_gene_id) ncbi_build, chromosome, start, end, variant_classification (missense, silent, inframe_deletion, ...), ref_allele, tum_allele, sample_id, hgvsp_short
+
+	QSharedPointer<QFile> out_file = Helper::openFileForWriting(out_folder + "/data_mutations.txt");
+
+	QByteArrayList columns;
+	columns << "Hugo_Symbol" << "NCBI_Build" << "Chromosome" << "Start_Position" << "End_Position" << "Variant_Classification" << "Reference_Allele" << "Tumor_Seq_Allele2" << "Tumor_Sample_Barcode" << "HGVSp_Short";
+
+	out_file->write(columns.join("\t") + "\n");
+	for(int idx=0; idx < settings_.sample_list.count(); idx++)
+	{
+		VariantList vl_somatic;
+		vl_somatic.load(settings_.sample_files[idx].gsvar_somatic);
+		//filter
+		vl_somatic = SomaticReportSettings::filterVariants(vl_somatic, settings_.report_settings[idx]);
+
+		writeSnvVariants(out_file, vl_somatic, idx);
+	}
+}
+
+void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, VariantList filtered_vl, int sample_idx)
+{
+	//TODO add switch for somatic vs Germline?
+
+	QByteArray build = settings_.getGenomeBuild(sample_idx).toUtf8();
+	QByteArray sample_id = settings_.getSampleId(sample_idx).toUtf8();
+
+	FastaFileIndex genome_idx(Settings::string("reference_genome"));
+	VariantHgvsAnnotator hgvs_annotator(genome_idx);
+
+	int idx_gene_anno = filtered_vl.annotationIndexByName("gene");
+	int idx_co_sp_anno = filtered_vl.annotationIndexByName("coding_and_splicing");
+
+	for (int i=0; i<filtered_vl.count(); i++)
+	{
+		QByteArrayList line_parts;
+		Variant var = filtered_vl[i];
+
+		line_parts << var.annotations()[idx_gene_anno];
+		line_parts << build;
+
+		line_parts << var.chr().strNormalized(true);
+		line_parts << QByteArray::number(var.start());
+		line_parts << QByteArray::number(var.end());
+		line_parts << var.annotations()[idx_co_sp_anno];
+		line_parts << var.ref();
+		line_parts << var.obs();
+		line_parts << sample_id;
+
+		TranscriptList transcripts  = db_.transcriptsOverlapping(var.chr(), var.start(), var.end(), 5000);
+		transcripts.sortByRelevance();
+
+		Transcript transcript;
+		VariantConsequence consequence;
+		//find prefered transcript and annotate:
+		foreach(const Transcript& trans, transcripts)
+		{
+			if (trans.isPreferredTranscript())
+			{
+				transcript = trans;
+				consequence = hgvs_annotator.annotate(trans, var);
+				break;
+			}
+		}
+
+		if ( ! transcript.isValid())
+		{
+			transcript = transcripts[0];
+			consequence = hgvs_annotator.annotate(transcripts[0], var);
+		}
+		line_parts << consequence.hgvs_p;
+
+		out_file->write(line_parts.join("\t") + "\n");
+	}
 }
 
 
