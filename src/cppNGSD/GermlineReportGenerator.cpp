@@ -1857,7 +1857,7 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 			}
 			else
 			{
-				genes_incomplete << it.key() + " <span style=\"font-size: 8pt;\">" + QByteArray::number(it.value()) + "</span> ";
+				genes_incomplete << it.key() + " <span style=\"font-size: 8pt;\">" + QByteArray::number(it.value()) + "</span>";
 			}
 		}
 		stream << "<p>";
