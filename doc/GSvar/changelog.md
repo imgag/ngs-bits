@@ -1,5 +1,11 @@
 # GSvar change log
 
+### 2023_02-13 (27.02.23)
+
+- run tab: added CNV count QC metric.
+- general: added filtering for tumor and/or normal samples in QC plots.
+- general: first version of cfDNA report.
+
 ### 2022_12-24 (09.01.23)
 
 - variant tab: showing mosaic flag after genotype.
