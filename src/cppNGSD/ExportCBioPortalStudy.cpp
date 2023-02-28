@@ -61,6 +61,7 @@ CBioPortalExportSettings::CBioPortalExportSettings(const CBioPortalExportSetting
 	sample_files = other.sample_files;
 	ps_ids = other.ps_ids;
 	ps_data = other.ps_data;
+	s_data = other.s_data;
 
 	sample_attributes = other.sample_attributes;
 //	patient_map = other.patient_map;
@@ -80,7 +81,7 @@ void CBioPortalExportSettings::addSample(SomaticReportSettings settings, SampleF
 	QString ps_id = db_.processedSampleId(name);
 	ps_ids.append(ps_id);
 	ps_data.append(db_.getProcessedSampleData(ps_id));
-	s_data.append(db_.getSampleData(db_.sampleId(settings.tumor_ps)));
+	s_data.append(db_.getSampleData(db_.sampleId(name)));
 }
 
 double CBioPortalExportSettings::getMsiStatus(int sample_idx)
@@ -161,7 +162,8 @@ QString CBioPortalExportSettings::getComments(int sample_idx)
 int CBioPortalExportSettings::getHrdScore(int sample_idx)
 {
 	QCCollection ps_qc = db_.getQCData(ps_ids[sample_idx]);
-	return ps_qc.value("QC:2000126", true).asInt();
+	qDebug() << "HRD of sample " << sample_idx << ": " << ps_qc.value("QC:2000126", true).asString().toInt();
+	return ps_qc.value("QC:2000126", true).asString().toInt();
 }
 
 float CBioPortalExportSettings::getTmb(int sample_idx)
@@ -261,6 +263,8 @@ QString CBioPortalExportSettings::getFormatedAttribute(Attribute att, int sample
 		case Attribute::TMB:
 			return QString::number(getTmb(sample_idx), 'f', 2);
 	}
+	qDebug() << static_cast<int>(att);
+	THROW(ArgumentException, "Unknown Attribute value!");
 }
 
 //
@@ -272,6 +276,18 @@ ExportCBioPortalStudy::ExportCBioPortalStudy(CBioPortalExportSettings settings, 
 	, settings_(settings)
 {
 	gatherData();
+
+	int count = settings_.sample_list.count();
+
+	qDebug() << "Sample count for export: " << count;
+	qDebug() << "s_data count for export: " << settings_.s_data.count();
+
+
+	if (settings_.sample_files.count() != count) THROW(ArgumentException, "SampleFile data not set correctly. Number is not equal to samples.");
+	if (settings_.report_settings.count() != count) THROW(ArgumentException, "ReportSettings data not set correctly. Number is not equal to samples.");
+	if (settings_.ps_data.count() != count) THROW(ArgumentException, "ps_data not set correctly. Number is not equal to samples.");
+	if (settings_.ps_ids.count() != count) THROW(ArgumentException, "ps_ids not set correctly. Number is not equal to samples.");
+	if (settings_.s_data.count() != count) THROW(ArgumentException, "s_data not set correctly. Number is not equal to samples.");
 }
 
 
@@ -284,6 +300,10 @@ void ExportCBioPortalStudy::exportStudy(const QString& out_folder)
 {
 	exportStudyFiles(out_folder);
 	exportCancerType(out_folder);
+	exportPatientData(out_folder);
+	exportSampleData(out_folder);
+	exportSnvs(out_folder);
+	exportCaseList(out_folder);
 }
 
 void ExportCBioPortalStudy::exportStudyFiles(const QString& out_folder)
@@ -310,6 +330,52 @@ void ExportCBioPortalStudy::exportCancerType(const QString& out_folder)
 	QSharedPointer<QFile> out_file = Helper::openFileForWriting(out_folder + "/data_cancer_type.txt");
 	QString line = settings_.study.cancer_type + "\t" + settings_.cancer.description + "\t" + settings_.cancer.color + "\t" + settings_.cancer.parent;
 	out_file->write(line.toUtf8());
+	out_file->write("\n");
+}
+
+void ExportCBioPortalStudy::exportCaseList(const QString& out_folder)
+{
+	QString case_list_dir = out_folder + "/case_lists/";
+	QDir().mkdir(case_list_dir);
+
+	//All
+//	QSharedPointer<QFile> cases_all = Helper::openFileForWriting(case_list_dir + "/cases_all.txt");
+//	cases_all->write("cancer_study_identifier: " + settings_.study.identifier.toUtf8() + "\n");
+//	cases_all->write("stable_id: " + settings_.study.identifier.toUtf8() + "_all\n");
+//	cases_all->write("case_list_category: all_cases_in_study\n");
+//	cases_all->write("case_list_name: All Cases\n");
+//	cases_all->write("case_list_description: All cases of study (" + QByteArray::number(settings_.sample_list.count()) + " samples)\n");
+//	cases_all->write("case_list_ids: ");
+
+//	QByteArrayList sample_ids;
+//	for (int idx=0; idx < settings_.sample_list.count(); idx++)
+//	{
+//		sample_ids.append(settings_.getSampleId(idx).toUtf8());
+//	}
+
+//	cases_all->write(sample_ids.join("\t"));
+//	cases_all->write("\n");
+
+	//sequenced -> all samples profiled for mutations:
+
+	QSharedPointer<QFile> cases_sequenced = Helper::openFileForWriting(case_list_dir + "/cases_sequenced.txt");
+	cases_sequenced->write("cancer_study_identifier: " + settings_.study.identifier.toUtf8() + "\n");
+	cases_sequenced->write("stable_id: " + settings_.study.identifier.toUtf8() + "_sequenced\n");
+	cases_sequenced->write("case_list_category: all_cases_with_mutation_data\n");
+	cases_sequenced->write("case_list_name: Sequenced Tumors\n");
+	cases_sequenced->write("case_list_description: All sequenced samples (" + QByteArray::number(settings_.sample_list.count()) + " samples)\n");
+	cases_sequenced->write("case_list_ids: ");
+
+	QByteArrayList sample_ids;
+	for (int idx=0; idx < settings_.sample_list.count(); idx++)
+	{
+		sample_ids.append(settings_.getSampleId(idx).toUtf8());
+	}
+
+	cases_sequenced->write(sample_ids.join("\t"));
+	cases_sequenced->write("\n");
+
+	//TODO other?
 }
 
 void ExportCBioPortalStudy::exportPatientData(const QString &out_folder)
@@ -321,23 +387,24 @@ void ExportCBioPortalStudy::exportPatientData(const QString &out_folder)
 	meta_clinical_patient.addValue("data_filename", "data_clinical_patients.txt");
 	meta_clinical_patient.store(out_folder + "/meta_clinical_patients.txt");
 
-	QSharedPointer<QFile> data_patients = Helper::openFileForWriting(out_folder + "/meta_clinical_patients.txt");
+	QSharedPointer<QFile> data_patients = Helper::openFileForWriting(out_folder + "/data_clinical_patients.txt");
 
 	QVector<QStringList> header_lines_patient(5);
-	foreach (SampleAttribute attribute, settings_.sample_attributes) {
-		header_lines_patient[0] << "Patient Identifier" << "Gender";
-		header_lines_patient[1] << "Patient identifier" << "Gender of patient";
-		header_lines_patient[2] << "STRING" << "STRING";
-		header_lines_patient[3] << "1" << "9";
-		header_lines_patient[4] << "PATIENT_IDENTIFIER" << "GENDER";
-	}
+	header_lines_patient[0] << "Patient Identifier" << "Gender";
+	header_lines_patient[1] << "Patient identifier" << "Gender of patient";
+	header_lines_patient[2] << "STRING" << "STRING";
+	header_lines_patient[3] << "1" << "9";
+	header_lines_patient[4] << "PATIENT_ID" << "GENDER";
 
-	foreach (QStringList header, header_lines_patient) {
+
+	for (int i=0; i<4; i++) {
+		const QStringList& header = header_lines_patient[i];
 		data_patients->write("#" + header.join("\t").toUtf8() + "\n");
 	}
+	data_patients->write(header_lines_patient[4].join("\t").toUtf8() + "\n");
 
 	QSet<QString> pat_ids;
-	for(int i=0; i< settings_.sample_list.count(); i++)
+	for(int i=0; i<settings_.sample_list.count(); i++)
 	{
 		if (pat_ids.contains(settings_.s_data[i].patient_identifier)) continue;
 
@@ -370,9 +437,11 @@ void ExportCBioPortalStudy::exportSampleData(const QString &out_folder)
 		header_lines_samples[4] << attribute.db_name;
 	}
 
-	foreach (const QStringList& header, header_lines_samples) {
+	for (int i=0; i<4; i++) {
+		const QStringList& header = header_lines_samples[i];
 		out_file->write("#" + header.join("\t").toUtf8() + "\n");
 	}
+	out_file->write(header_lines_samples[4].join("\t").toUtf8() + "\n");
 
 	//data file content:
 	for (int idx=0; idx < settings_.sample_list.count(); idx++)
@@ -400,13 +469,13 @@ void ExportCBioPortalStudy::exportSnvs(const QString& out_folder)
 	meta_snv_file.store(out_folder + "/meta_mutations.txt");
 
 	//data file:
-	//"minimum" entrez_gene_id can be parsed from hgnc_db_file in GRCh38/share/db/HGNC/
 	// gene_symbol,(entrez_gene_id) ncbi_build, chromosome, start, end, variant_classification (missense, silent, inframe_deletion, ...), ref_allele, tum_allele, sample_id, hgvsp_short
 
 	QSharedPointer<QFile> out_file = Helper::openFileForWriting(out_folder + "/data_mutations.txt");
 
 	QByteArrayList columns;
-	columns << "Hugo_Symbol" << "NCBI_Build" << "Chromosome" << "Start_Position" << "End_Position" << "Variant_Classification" << "Reference_Allele" << "Tumor_Seq_Allele2" << "Tumor_Sample_Barcode" << "HGVSp_Short";
+	columns << "Hugo_Symbol" /*<< "Entrez_Gene_Id"*/ << "NCBI_Build" << "Chromosome" << "Start_Position" << "End_Position" << "Variant_Classification" << "Reference_Allele" << "Tumor_Seq_Allele2" << "Tumor_Sample_Barcode"
+			<< "HGVSp_Short" << "t_alt_count" << "t_ref_count" << "n_alt_count" << "n_ref_count";
 
 	out_file->write(columns.join("\t") + "\n");
 	for(int idx=0; idx < settings_.sample_list.count(); idx++)
@@ -432,25 +501,46 @@ void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, Var
 
 	int idx_gene_anno = filtered_vl.annotationIndexByName("gene");
 	int idx_co_sp_anno = filtered_vl.annotationIndexByName("coding_and_splicing");
+	int idx_tumor_dp = filtered_vl.annotationIndexByName("tumor_dp");
+	int idx_tumor_af = filtered_vl.annotationIndexByName("tumor_af");
+	int idx_normal_dp = filtered_vl.annotationIndexByName("normal_dp");
+	int idx_normal_af = filtered_vl.annotationIndexByName("normal_af");
 
 	for (int i=0; i<filtered_vl.count(); i++)
 	{
 		QByteArrayList line_parts;
 		Variant var = filtered_vl[i];
 
-		line_parts << var.annotations()[idx_gene_anno];
-		line_parts << build;
-
-		line_parts << var.chr().strNormalized(true);
-		line_parts << QByteArray::number(var.start());
-		line_parts << QByteArray::number(var.end());
-		line_parts << var.annotations()[idx_co_sp_anno];
-		line_parts << var.ref();
-		line_parts << var.obs();
-		line_parts << sample_id;
-
 		TranscriptList transcripts  = db_.transcriptsOverlapping(var.chr(), var.start(), var.end(), 5000);
 		transcripts.sortByRelevance();
+
+
+//		qDebug() << "Annotated gene: " << var.annotations()[idx_gene_anno];
+//		foreach (auto trans, transcripts)
+//		{
+//			qDebug() << "transcripts: " << trans.gene() << "\t" << trans.nameWithVersion();
+//		}
+
+		GeneSet genes = GeneSet::createFromText(var.annotations()[idx_gene_anno], ',');
+
+//		qDebug() << "genes count: " << genes.count();
+
+		//remove transcripts of close genes
+		TranscriptList remove;
+		foreach(auto trans, transcripts)
+		{
+			if (! genes.contains(trans.gene()))
+			{
+				remove.append(trans);
+			}
+		}
+
+		foreach(auto trans, remove)
+		{
+//			qDebug() << "removing: " << trans.nameWithVersion();
+			transcripts.removeAll(trans);
+		}
+
 
 		Transcript transcript;
 		VariantConsequence consequence;
@@ -470,12 +560,62 @@ void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, Var
 			transcript = transcripts[0];
 			consequence = hgvs_annotator.annotate(transcripts[0], var);
 		}
+
+		qDebug() << var.toString() << "\t" << var.annotations()[idx_gene_anno] << "\t" << transcript.nameWithVersion() << "\t" << consequence.hgvs_p;
+
+
+		line_parts << var.annotations()[idx_gene_anno];
+//		line_parts << db_.getValue("SELECT ncbi_id FROM gene WHERE symbol=" + var.annotations()[idx_gene_anno]).toString().toUtf8();
+		line_parts << build;
+
+		line_parts << var.chr().strNormalized(true);
+		line_parts << QByteArray::number(var.start());
+		line_parts << QByteArray::number(var.end());
+		line_parts << formatVariantClassification(transcript, var.annotations()[idx_co_sp_anno]); // variant classification
+		line_parts << var.ref();
+		line_parts << var.obs();
+		line_parts << sample_id;
+
+
+
+
 		line_parts << consequence.hgvs_p;
+
+
+		int tumor_alt_count = static_cast<int>(std::round(var.annotations()[idx_tumor_dp].toDouble() * var.annotations()[idx_tumor_af].toDouble()));
+		int tumor_ref_count = var.annotations()[idx_tumor_dp].toInt() - tumor_alt_count;
+		line_parts << QByteArray::number(tumor_alt_count);
+		line_parts << QByteArray::number(tumor_ref_count);
+
+		int normal_alt_count = static_cast<int>(std::round(var.annotations()[idx_normal_dp].toDouble() * var.annotations()[idx_normal_af].toDouble()));
+		int normal_ref_count = var.annotations()[idx_normal_dp].toInt() - tumor_alt_count;
+		line_parts << QByteArray::number(normal_alt_count);
+		line_parts << QByteArray::number(normal_ref_count);
 
 		out_file->write(line_parts.join("\t") + "\n");
 	}
 }
 
+
+QByteArray ExportCBioPortalStudy::formatVariantClassification(const Transcript& trans, const QByteArray& coding_splicing)
+{
+	QByteArrayList annotated = (coding_splicing + ",").split(',');
+
+	foreach (QByteArray trans_anno, annotated)
+	{
+		if (trans_anno.isEmpty()) continue;
+
+		QByteArrayList parts = trans_anno.split(':');
+
+		if (parts[1] == trans.nameWithVersion())
+		{
+			return parts[2];
+		}
+	}
+
+	return annotated[0].split(':')[2];
+
+}
 
 
 

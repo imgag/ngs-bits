@@ -131,6 +131,8 @@ public:
 	QList<ProcessedSampleData> ps_data;
 	QList<SampleData> s_data;
 
+	//IF A NEW MEMBER VARIABLE IS ADDED REMEMBER TO ADD IT TO THE COPY CONSTRUCTOR!
+
 
 	QList<SampleAttribute> sample_attributes; //required attributes: Patient_id, sample_id  ||  Others listed: cancer_type, cancer_type_detailed, sample_display_name, sample_class)
 //	QMap<QString, PatientData> patient_map;
@@ -189,10 +191,13 @@ private:
 	//write meta_study.txt file
 	void exportStudyFiles(const QString& out_folder);
 	void exportCancerType(const QString& out_folder);
+	void exportCaseList(const QString& out_folder);
 	void exportPatientData(const QString& out_folder);
 	void exportSampleData(const QString& out_folder);
 	void exportSnvs(const QString& out_folder);
 	void writeSnvVariants(QSharedPointer<QFile> out_file, VariantList filtered_vl, int sample_idx);
+
+	QByteArray formatVariantClassification(const Transcript& trans, const QByteArray& coding_splicing);
 
 	NGSD db_;
 	CBioPortalExportSettings settings_;

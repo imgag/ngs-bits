@@ -1306,7 +1306,13 @@ void MainWindow::on_actionDebug_triggered()
 		study.identifier = "TEST_STUDY_GSVAR";
 		study.reference_genome = "hg38";
 
+		CancerData cancer;
+		cancer.color = "black";
+		cancer.description = "Mixed Cancer Types";
+		cancer.parent = "tissue";
+
 		CBioPortalExportSettings export_settings(study, false);
+		export_settings.cancer = cancer;
 
 		NGSD db(false);
 		const FileLocationProvider& fileprovider = GlobalServiceProvider::fileLocationProvider();
@@ -1348,10 +1354,48 @@ void MainWindow::on_actionDebug_triggered()
 			qDebug() << report_settings.report_config.filter();
 			report_settings.filters = FilterCascadeFile::load(filterFileName, report_settings.report_config.filter());
 
-
-
 			export_settings.addSample(report_settings, files);
 		}
+
+		//Sample Attributes:
+		SampleAttribute pat_id;
+		pat_id.attribute = Attribute::PATIENT_ID;
+		pat_id.datatype = "STRING";
+		pat_id.db_name = "PATIENT_ID";
+		pat_id.description = "Patient identifier";
+		pat_id.name = "Patient Identifier";
+		pat_id.priority = 1;
+
+		SampleAttribute sam_id;
+		sam_id.attribute = Attribute::SAMPLE_ID;
+		sam_id.datatype = "STRING";
+		sam_id.db_name = "SAMPLE_ID";
+		sam_id.description = "Sample identifier";
+		sam_id.name = "Sample Identifier";
+		sam_id.priority = 1;
+
+		SampleAttribute hpo;
+		hpo.attribute = Attribute::HRD_SCORE;
+		hpo.datatype = "NUMBER";
+		hpo.db_name = "HRD_SCORE";
+		hpo.description = "HRD score of sample";
+		hpo.name = "HRD score";
+		hpo.priority = 1;
+
+		SampleAttribute ploidy;
+		ploidy.attribute = Attribute::PLOIDY;
+		ploidy.datatype = "NUMBER";
+		ploidy.db_name = "PLOIDY";
+		ploidy.description = "ClinCNV ploidy of sample";
+		ploidy.name = "Ploidy";
+		ploidy.priority = 1;
+
+		export_settings.sample_attributes.clear();
+		export_settings.sample_attributes << pat_id << sam_id << hpo << ploidy;
+		qDebug() << "SAMPLE ATTRIBUTES COUNT: " << export_settings.sample_attributes.count();
+
+		ExportCBioPortalStudy exportStudy(export_settings, false);
+		exportStudy.exportStudy("W:/users/ahott1a1/projects/cBioPortal/gsvar_test_export");
 
 
 	}
