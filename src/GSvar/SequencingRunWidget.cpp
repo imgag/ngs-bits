@@ -216,6 +216,10 @@ void SequencingRunWidget::updateRunSampleTable()
 					ui_->samples->setBackgroundColorIfLt(header, red, 30);
 				}
 			}
+			if (accession=="QC:2000113") //CNV count
+			{
+				ui_->samples->setBackgroundColorIfLt(header, red, 1);
+			}
 			if (accession=="QC:2000027") //cov 20x
 			{
 				if (is_wgs_run)
@@ -480,6 +484,11 @@ void SequencingRunWidget::setQCMetricAccessions(const QSet<QString>& sample_type
 	{
 		qc_metric_accessions_ << "QC:2000051"; // SNV allele frequency deviation
 	}
+	if (sample_types.contains("DNA") || sample_types.contains("DNA (amplicon)") || sample_types.contains("DNA (native)"))
+	{
+		qc_metric_accessions_ << "QC:2000113"; // CNV count
+	}
+
 	if (sample_types.contains("RNA"))
 	{
 		qc_metric_accessions_ << "QC:2000109"; // covered gene count

@@ -139,6 +139,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "VariantHgvsAnnotator.h"
 #include "VirusDetectionWidget.h"
 #include "SomaticcfDNAReport.h"
+#include "MaintenanceDialog.h"
 
 #include "ExportCBioPortalStudy.h"
 
@@ -320,7 +321,7 @@ QString MainWindow::appName() const
 	QString name = QCoreApplication::applicationName();
 
 	GenomeBuild build = GSvarHelper::build();
-	if (build==GenomeBuild::HG38) name += " - " + buildToString(build);
+	if (build!=GenomeBuild::HG38) name += " - " + buildToString(build);
 
 	return name;
 }
@@ -551,67 +552,6 @@ void MainWindow::on_actionDebug_triggered()
 		{
 			QString type = db.getValue("SELECT type FROM gene WHERE id="+QString::number(gene_id)).toString();
 			if (type=="protein-coding gene") QTextStream(stdout) << db.getValue("SELECT symbol FROM gene WHERE id="+QString::number(gene_id)).toString() << "\t" << type << endl;
-		}
-		*/
-
-		//Delete variant that are not used
-		/*
-		NGSD db;
-		QStringList ref_tables;
-		foreach(QString table, db.tables())
-		{
-			const TableInfo& table_info = db.tableInfo(table);
-			foreach(QString field, table_info.fieldNames())
-			{
-				const TableFieldInfo& field_info = table_info.fieldInfo(field);
-				if (field_info.type==TableFieldInfo::FK && field_info.fk_table=="variant" && field_info.fk_field=="id")
-				{
-					ref_tables << table;
-				}
-			}
-		}
-
-		QSet<int> var_ids_pub = db.getValuesInt("SELECT variant_id FROM variant_publication WHERE variant_table='variant'").toSet();
-
-		foreach (const QString& chr_name, db.getEnum("variant", "chr"))
-		{
-			QList<int> v_ids = db.getValuesInt("SELECT id FROM variant WHERE chr='" + chr_name + "'");
-			qDebug() << QDateTime::currentDateTime() << chr_name << "variants to process:" << v_ids.count();
-			int c_deleted = 0;
-			int c_processed = 0;
-			foreach(int v_id , v_ids)
-			{
-				QString var_id_str = QString::number(v_id);
-				++c_processed;
-
-				bool remove = true;
-				foreach (const QString& table, ref_tables)
-				{
-					long long count = db.getValue("SELECT count(*) FROM " + table + " WHERE variant_id="+var_id_str).toLongLong();
-					if (count>0)
-					{
-						remove = false;
-						break;
-					}
-				}
-
-				if (var_ids_pub.contains(v_id))
-				{
-					remove = false;
-				}
-
-				if (remove)
-				{
-					db.getQuery().exec("DELETE FROM variant WHERE id="+var_id_str);
-					++c_deleted;
-				}
-
-				if (c_processed%1000000==0)
-				{
-					qDebug() << QDateTime::currentDateTime() << chr_name << "deleted " << c_deleted << "of" << c_processed << "processed variants";
-				}
-			}
-			qDebug() << QDateTime::currentDateTime() << chr_name << "deleted:" << c_deleted;
 		}
 		*/
 
@@ -3569,11 +3509,11 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 		if (Helper::isHttpUrl(filename))
 		{
 			GlobalServiceProvider::setFileLocationProvider(QSharedPointer<FileLocationProviderRemote>(new FileLocationProviderRemote(filename)));
-			mode_title = " (client-server mode)";
 		}
 		else
 		{
 			GlobalServiceProvider::setFileLocationProvider(QSharedPointer<FileLocationProviderLocal>(new FileLocationProviderLocal(filename, variants_.getSampleHeader(), variants_.type())));
+			mode_title = " (local mode)";
 		}
 
 		//load CNVs
@@ -4064,7 +4004,9 @@ int MainWindow::showAnalysisIssues(QList<QPair<Log::LogLevel, QString>>& issues,
 void MainWindow::on_actionAbout_triggered()
 {
 	QString about_text = appName()+ " " + QCoreApplication::applicationVersion();
-	about_text += "\nBuild CPU architecture: " + QSysInfo::buildCpuArchitecture();
+
+	about_text += "\n";
+	about_text += "\nArchitecture: " + QSysInfo::buildCpuArchitecture();
 
 	if (NGSHelper::isClientServerMode())
 	{
@@ -5977,9 +5919,35 @@ void MainWindow::on_actionGaps_triggered()
 
 void MainWindow::on_actionReplicateNGSD_triggered()
 {
-	NGSDReplicationWidget* widget = new NGSDReplicationWidget(this);
+	try
+	{
+		LoginManager::checkRoleIn(QStringList{"admin"});
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, "Permissions error", e.message());
+		return;
+	}
 
+	NGSDReplicationWidget* widget = new NGSDReplicationWidget(this);
 	auto dlg = GUIHelper::createDialog(widget, "Replicate NGSD (hg19 to hg38)");
+	dlg->exec();
+}
+
+void MainWindow::on_actionMaintenance_triggered()
+{
+	try
+	{
+		LoginManager::checkRoleIn(QStringList{"admin"});
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, "Permissions error", e.message());
+		return;
+	}
+
+
+	MaintenanceDialog* dlg = new MaintenanceDialog(this);
 	dlg->exec();
 }
 
@@ -5989,6 +5957,8 @@ void MainWindow::on_actionCohortAnalysis_triggered()
 	auto dlg = GUIHelper::createDialog(widget, "Cohort analysis");
 	addModelessDialog(dlg);
 }
+
+
 
 void MainWindow::on_actionGenderXY_triggered()
 {
