@@ -14,7 +14,7 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Substracts the variants of 'in2' VCF from the 'in' VCF.");
+		setDescription("Substracts the variants in a VCF from a second VCF.");
 		addInfile("in2", "Variants in VCF format that are remove from 'in'", false);
 
 		//optional

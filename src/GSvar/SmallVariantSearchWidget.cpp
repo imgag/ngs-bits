@@ -204,7 +204,6 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 
 	//prepare query constraints
 	QStringList constraints;
-	constraints << "(germline_het>0 OR germline_hom>0)"; //skip somatic only variants
 	int max_ngsd = ui_.filter_ngsd_count->value();
 	if (max_ngsd>0)
 	{

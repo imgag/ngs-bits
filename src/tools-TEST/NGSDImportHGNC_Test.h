@@ -21,9 +21,19 @@ private slots:
 
 		//check counts
 		int gene_count = db.getValue("SELECT count(*) FROM gene").toInt();
-		I_EQUAL(gene_count, 8)
+		I_EQUAL(gene_count, 8);
 		int alias_count = db.getValue("SELECT count(*) FROM gene_alias").toInt();
-		I_EQUAL(alias_count, 39)
+		I_EQUAL(alias_count, 39);
+
+		//check ncbi id (entrez_id)
+		int ncbi_id = db.getValue("SELECT ncbi_id FROM gene WHERE symbol='TP53'").toInt();
+		I_EQUAL(ncbi_id, 7157);
+		ncbi_id = db.getValue("SELECT ncbi_id FROM gene WHERE symbol='CA8'").toInt();
+		I_EQUAL(ncbi_id, 767);
+		ncbi_id = db.getValue("SELECT ncbi_id FROM gene WHERE symbol='BRCA1'").toInt();
+		I_EQUAL(ncbi_id, 672);
+		ncbi_id = db.getValue("SELECT ncbi_id FROM gene WHERE symbol='BRCA2'").toInt();
+		I_EQUAL(ncbi_id, 675);
 
 		//check TP53
 		int gene_id = db.getValue("SELECT id FROM gene WHERE symbol='TP53'").toInt();

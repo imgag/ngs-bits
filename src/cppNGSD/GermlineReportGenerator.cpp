@@ -155,7 +155,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		if (it->first==VariantType::CNVS) selected_cnvs_ << it->second;
 		if (it->first==VariantType::SVS) selected_svs_ << it->second;
 	}
-	stream << "<br />" << trans("Anzahl Varianten ausgew&auml;hlt f&uuml;r Report") << ": " << selected_small_.count() << endl;
+	stream << "<br />" << trans("Anzahl SNVs/InDels ausgew&auml;hlt f&uuml;r Report") << ": " << selected_small_.count() << endl;
 	stream << "<br />" << trans("Anzahl CNVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_cnvs_.count() << endl;
 	stream << "<br />" << trans("Anzahl SVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_svs_.count() << endl;
 	stream << "</p>" << endl;
@@ -501,7 +501,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 				{
 					zscore = "<b>" + zscore + "</b>";
 				}
-				if (population!=NGSHelper::populationCodeToHumanReadable("EUR"))
+				if (population!=NGSHelper::populationCodeToHumanReadable("EUR") || processed_sample_data.gender=="male")
 				{
 					zscore = "(" + zscore + ")";
 				}
@@ -1422,7 +1422,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Ph&auml;notyp"] = "Phenotype information";
 		de2en["Filterkriterien"] = "Criteria for variant filtering";
 		de2en["Gefundene Varianten in Zielregion gesamt"] = "Variants in target region";
-		de2en["Anzahl Varianten ausgew&auml;hlt f&uuml;r Report"] = "Variants selected for report";
+		de2en["Anzahl SNVs/InDels ausgew&auml;hlt f&uuml;r Report"] = "SNVs/InDels selected for report";
 		de2en["Anzahl CNVs ausgew&auml;hlt f&uuml;r Report"] = "CNVs selected for report";
 		de2en["Anzahl SVs ausgew&auml;hlt f&uuml;r Report"] = "SVs selected for report";
 		de2en["Anzahl anderer Varianten ausgew&auml;hlt f&uuml;r Report"] = "Other variants selected for report";
@@ -1857,7 +1857,7 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 			}
 			else
 			{
-				genes_incomplete << it.key() + " <span style=\"font-size: 8pt;\">" + QByteArray::number(it.value()) + "</span> ";
+				genes_incomplete << it.key() + " <span style=\"font-size: 8pt;\">" + QByteArray::number(it.value()) + "</span>";
 			}
 		}
 		stream << "<p>";

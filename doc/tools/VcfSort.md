@@ -14,7 +14,7 @@
 	                           Default value: ''
 	  -compression_level <int> Output VCF compression level from 1 (fastest) to 9 (best compression). If unset, an unzipped VCF is written.
 	                           Default value: '10'
-	  -remove_unused_contigs   Also sort according to variant quality. Ignored if 'fai' file is given.
+	  -remove_unused_contigs   Remove comment lines of contigs, i.e. chromosomes, that are not used in the output VCF.
 	                           Default value: 'false'
 	
 	Special parameters:

@@ -141,6 +141,7 @@ public slots:
 	void on_actionGaps_triggered();
 	void on_actionReplicateNGSD_triggered();
 	void on_actionCohortAnalysis_triggered();
+	void on_actionMaintenance_triggered();
 
     ///Gender determination
 	void on_actionGenderXY_triggered();
