@@ -2235,13 +2235,31 @@ void MainWindow::openVariantListFolder()
 {
 	if (filename_=="") return;
 
-	if (!GlobalServiceProvider::fileLocationProvider().isLocal())
+	QString sample_folder;
+	bool is_projects_folder_found = false;
+	NGSD db;
+	try
+	{
+		sample_folder = db.processedSamplePath(db.processedSampleId(variants_.mainSampleName()), PathType::SAMPLE_FOLDER);
+		if (QDir(sample_folder).exists()) is_projects_folder_found = true;
+	}
+	catch(Exception& e)
+	{
+		Log::warn("Could not get any accessable path for the processed sample: " + e.message());
+	}
+
+	if (!GlobalServiceProvider::fileLocationProvider().isLocal() && !is_projects_folder_found)
 	{
 		QMessageBox::information(this, "Open analysis folder", "Cannot open analysis folder in client-server mode!");
 		return;
 	}
 
-	QDesktopServices::openUrl(QFileInfo(filename_).absolutePath());
+	if (GlobalServiceProvider::fileLocationProvider().isLocal())
+	{
+		sample_folder = QFileInfo(filename_).absolutePath();
+	}
+
+	QDesktopServices::openUrl(sample_folder);
 }
 
 void MainWindow::openVariantListQcFiles()
