@@ -358,6 +358,8 @@ void MainWindow::checkServerAvailability()
 
 void MainWindow::checkClientUpdates()
 {
+	if (!NGSHelper::isClientServerMode()) return;
+
 	ClientInfo client_info = NGSHelper::getClientInfo();
 	if (client_info.isEmpty())
 	{
