@@ -2,6 +2,7 @@
 #include "Helper.h"
 #include "NGSD.h"
 #include <QTime>
+#include <QMetaMethod>
 
 MaintenanceDialog::MaintenanceDialog(QWidget *parent)
 	: QDialog(parent)
@@ -25,18 +26,31 @@ void MaintenanceDialog::executeAction()
 
 	try
 	{
-		QString action = ui_.action->currentText();
-		if (action=="Delete unused samples")
+		QString action = ui_.action->currentText().trimmed();
+		if (action.isEmpty() || action[0]=="[")
 		{
-			deleteUnusedSamples();
-		}
-		else if (action=="Delete unused variants")
-		{
-			deleteUnusedVariants();
+			appendOutputLine("No action selected!");
 		}
 		else
 		{
-			appendOutputLine("No action selected!");
+			//execute method with the same name as the action
+			bool method_found = false;
+			QString action_simplified = action.toLower().replace(" ", "");
+			const QMetaObject* metaObject = this->metaObject();
+			for(int i = metaObject->methodOffset(); i < metaObject->methodCount(); ++i)
+			{
+				QString method_simplified = metaObject->method(i).name().toLower().trimmed();
+				if (method_simplified==action_simplified)
+				{
+					metaObject->method(i).invoke(this,  Qt::DirectConnection);
+					method_found = true;
+				}
+			}
+
+			if (!method_found)
+			{
+				THROW(ProgrammingException, "No slot with name " + action_simplified + "' found!");
+			}
 		}
 	}
 	catch (Exception& e)

@@ -81,7 +81,7 @@
        </property>
        <item>
         <property name="text">
-         <string>[select]</string>
+         <string>[maintenance]</string>
         </property>
        </item>
        <item>
@@ -92,6 +92,11 @@
        <item>
         <property name="text">
          <string>Delete unused variants</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>[GenLab]</string>
         </property>
        </item>
       </widget>

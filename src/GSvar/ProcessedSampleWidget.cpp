@@ -410,18 +410,35 @@ void ProcessedSampleWidget::showPlot()
 
 void ProcessedSampleWidget::openSampleFolder()
 {
-	FileLocation folder = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER);
-	if (folder.isHttpUrl())
+	try
 	{
-		QMessageBox::information(this, "Open processed sample folder", "Cannot open processed sample folder in client-server mode!");
-		return;
+		QString sample_folder = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER).filename;
+		if (Helper::isHttpUrl(sample_folder))
+		{
+			NGSD db;
+			QString project_type = db.getProcessedSampleData(ps_id_).project_type;
+			QString project_folder = db.projectFolder(project_type).trimmed();
+			if (!project_folder.isEmpty())
+			{
+				sample_folder = db.processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER);
+				if (!QDir(sample_folder).exists()) THROW(Exception, "Sample folder does not exist: " + sample_folder);
+			}
+			else
+			{
+				THROW(Exception, "In client-server mode, opening analysis folders is only supported for germline single sample!");
+			}
+		}
+		else if (!QFile::exists(sample_folder))
+		{
+			THROW(Exception, "Folder does not exist: " + sample_folder);
+		}
+
+		QDesktopServices::openUrl(sample_folder);
 	}
-	else if (!QFile::exists(folder.filename))
+	catch(Exception& e)
 	{
-		QMessageBox::warning(this, "Error opening processed sample folder", "Folder does not exist:\n" + folder.filename);
-		return;
+		QMessageBox::information(this, "Open processed sample folder", "Could not open analysis folder:\n" + e.message());
 	}
-	QDesktopServices::openUrl(QUrl(folder.filename));
 }
 
 void ProcessedSampleWidget::openSampleTab()

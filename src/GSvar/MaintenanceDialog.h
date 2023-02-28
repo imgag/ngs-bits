@@ -14,12 +14,12 @@ public:
 
 private slots:
 	void executeAction();
+	void deleteUnusedSamples();
+	void deleteUnusedVariants();
+
 
 private:
 	Ui::MaintenanceDialog ui_;
-
-	void deleteUnusedSamples();
-	void deleteUnusedVariants();
 
 	void appendOutputLine(QString line);
 	QSet<QString> tablesReferencing(NGSD& db, QString referenced_table);

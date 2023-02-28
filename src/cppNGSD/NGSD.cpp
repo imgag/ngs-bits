@@ -4510,8 +4510,6 @@ FileInfo NGSD::analysisJobLatestLogInfo(int job_id)
 		QStringList files = Helper::findFiles(folder, "*.log", false);
 		if (!files.isEmpty())
 		{
-			QString latest_file;
-			QDateTime latest_mod;
 			foreach(QString file, files)
 			{
 				QFileInfo file_info(file);

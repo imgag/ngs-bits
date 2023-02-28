@@ -2175,31 +2175,41 @@ void MainWindow::openVariantListFolder()
 {
 	if (filename_=="") return;
 
-	QString sample_folder;
-	bool is_projects_folder_found = false;
-	NGSD db;
 	try
 	{
-		sample_folder = db.processedSamplePath(db.processedSampleId(variants_.mainSampleName()), PathType::SAMPLE_FOLDER);
-		if (QDir(sample_folder).exists()) is_projects_folder_found = true;
+		QString sample_folder;
+
+		if (GlobalServiceProvider::fileLocationProvider().isLocal())
+		{
+			sample_folder = QFileInfo(filename_).absolutePath();
+		}
+		else //client-server (allow opening folders if GSvar project paths are configured)
+		{
+			NGSD db;
+			if (variants_.type()==AnalysisType::GERMLINE_SINGLESAMPLE)
+			{
+				QString ps = variants_.mainSampleName();
+				QString ps_id = db.processedSampleId(ps);
+				QString project_type = db.getProcessedSampleData(ps_id).project_type;
+				QString project_folder = db.projectFolder(project_type).trimmed();
+				if (!project_folder.isEmpty())
+				{
+					sample_folder = db.processedSamplePath(ps_id, PathType::SAMPLE_FOLDER);
+					if (!QDir(sample_folder).exists()) THROW(Exception, "Sample folder does not exist: " + sample_folder);
+				}
+			}
+			else
+			{
+				THROW(Exception, "In client-server mode, opening analysis folders is only supported for germline single sample!");
+			}
+		}
+
+		QDesktopServices::openUrl(sample_folder);
 	}
 	catch(Exception& e)
 	{
-		Log::warn("Could not get any accessable path for the processed sample: " + e.message());
+		QMessageBox::information(this, "Open analysis folder", "Could not open analysis folder:\n" + e.message());
 	}
-
-	if (!GlobalServiceProvider::fileLocationProvider().isLocal() && !is_projects_folder_found)
-	{
-		QMessageBox::information(this, "Open analysis folder", "Cannot open analysis folder in client-server mode!");
-		return;
-	}
-
-	if (GlobalServiceProvider::fileLocationProvider().isLocal())
-	{
-		sample_folder = QFileInfo(filename_).absolutePath();
-	}
-
-	QDesktopServices::openUrl(sample_folder);
 }
 
 void MainWindow::openVariantListQcFiles()
@@ -5363,7 +5373,7 @@ void MainWindow::on_actionStatistics_triggered()
 {
 	try
 	{
-		LoginManager::checkRoleIn(QStringList{"admin"});
+		LoginManager::checkRoleIn(QStringList{"admin", "user"});
 	}
 	catch (Exception& e)
 	{
