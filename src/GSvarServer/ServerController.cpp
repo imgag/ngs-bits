@@ -1217,6 +1217,22 @@ HttpResponse ServerController::getRnaExpressionPlots(const HttpRequest& request)
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
+HttpResponse ServerController::getCurrentClientInfo(const HttpRequest& request)
+{
+	QJsonDocument json_doc_output;
+	QJsonObject json_object;
+
+	json_object.insert("version", SessionManager::getCurrentClientInfo().version);
+	json_object.insert("message", SessionManager::getCurrentClientInfo().message);
+	json_object.insert("date", SessionManager::getCurrentClientInfo().date.toSecsSinceEpoch());
+	json_doc_output.setObject(json_object);
+
+	BasicResponseData response_data;
+	response_data.length = json_doc_output.toJson().length();
+	response_data.content_type = ContentType::APPLICATION_JSON;
+	return HttpResponse(response_data, json_doc_output.toJson());
+}
+
 QString ServerController::findPathForTempUrl(QList<QString> path_parts)
 {
 	if (!path_parts.isEmpty())

@@ -95,6 +95,8 @@ public:
 	static HttpResponse getRnaFusionPics(const HttpRequest& request);
 	/// Returns a list RNA fusion plots needed for a report
 	static HttpResponse getRnaExpressionPlots(const HttpRequest& request);
+	/// Returns information about the latest available version of the desktop client
+	static HttpResponse getCurrentClientInfo(const HttpRequest& request);
 
 private:
 	/// Find file/folder name corresponding to the id from a temporary URL

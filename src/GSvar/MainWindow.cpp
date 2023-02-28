@@ -304,6 +304,8 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.vars, SIGNAL(publishToClinvarTriggered(int, int)), this, SLOT(uploadToClinvar(int, int)));
 	connect(ui_.vars, SIGNAL(alamutTriggered(QAction*)), this, SLOT(openAlamut(QAction*)));
 
+	// Environment variable containing the file path to the list of certificate authorities
+	// (needed for HTTPS to work correctly, especially for htslib and BamReader)
 	QString curl_ca_bundle = Settings::string("curl_ca_bundle", true);
 	if ((Helper::isWindows()) && (!curl_ca_bundle.isEmpty()))
 	{
@@ -312,6 +314,9 @@ MainWindow::MainWindow(QWidget *parent)
 			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM files over HTTPS may not be possible");
 		}
 	}
+	update_info_toolbar_ = new QToolBar;
+	update_info_toolbar_->hide();
+	addToolBar(Qt::TopToolBarArea, update_info_toolbar_);
 }
 
 QString MainWindow::appName() const
@@ -348,6 +353,40 @@ void MainWindow::checkServerAvailability()
 	if (!isServerRunning())
 	{
 		close();
+	}
+}
+
+void MainWindow::checkClientUpdates()
+{
+	if (!NGSHelper::isClientServerMode()) return;
+
+	ClientInfo client_info = NGSHelper::getClientInfo();
+	if (client_info.isEmpty())
+	{
+		QMessageBox::warning(this, "Updates information not available", "Could not retrieve updates information from the server");
+		return;
+	}
+
+	int commit_pos = QCoreApplication::applicationVersion().lastIndexOf("-");
+	if (commit_pos>-1)
+	{
+		QString short_version = QCoreApplication::applicationVersion().left(commit_pos);
+		if (ClientInfo(short_version, "").isOlderThan(client_info))
+		{
+			Log::info("Client version from the server: " + client_info.version);
+			update_info_toolbar_->clear();
+			update_info_toolbar_->setAutoFillBackground(true);
+			update_info_toolbar_->setStyleSheet("QToolBar {background: red;}");
+			QLabel *update_info_label = new QLabel;
+			update_info_label->setText(client_info.message.isEmpty() ? "Please restart the application" : client_info.message);
+			update_info_label->setStyleSheet("QLabel {color: white}");
+			update_info_toolbar_->addWidget(update_info_label);
+			update_info_toolbar_->show();
+		}
+		else
+		{
+			update_info_toolbar_->hide();
+		}
 	}
 }
 
@@ -3069,6 +3108,7 @@ void MainWindow::on_actionOpenByName_triggered()
 
 void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool search_multi)
 {
+	checkClientUpdates();
 	try
 	{
 		NGSD db;

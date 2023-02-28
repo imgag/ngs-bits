@@ -13,5 +13,14 @@
 - Create a new folder at Q:\AH\Apps\NGS-Tools-Public\GSvar_app and call it YEAR_MONTH_DAY of the build
 - Copy GSvar.exe to this folder alnong with all its dependencies (e.g. DLL files, database drivers, config files, etc.)
 - Update the GSvar.bat file in Q:\AH\Apps\NGS-Tools-Public\. The entry inside the file should point to the newly created version of the app
+- Create the GSvarServer_client.json file in `GSvarServer-current` folder. The file should include a JSON object with the following fields (the `date` field is optional):
+    ``` 
+    {
+        "version": GITHUB_RELEASE_TAG_WITHOUT_HASH,
+        "message": MESSAGE_FOR_THE_USER,
+        "date": UNIX_TIME_IN_SECONDS
+    }
+    ```
+
 3. ## Test on virtual machine *vswmg-fr-vpn-01*
 This VM allows to test some functionality available to the users outside our institution. 

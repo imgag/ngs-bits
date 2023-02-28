@@ -70,6 +70,13 @@ ServerWrapper::ServerWrapper(const quint16& port)
 		QTimer *session_timer = new QTimer(this);
 		connect(session_timer, &QTimer::timeout, this, &SessionManager::removeExpiredSessions);
 		url_timer->start(60 * 30 * 1000); // every 30 minutes
+
+		QFileSystemWatcher *watcher = new QFileSystemWatcher();
+		watcher->addPath(QCoreApplication::applicationDirPath());
+		connect(watcher, SIGNAL(directoryChanged(QString)), this, SLOT(updateClientInfo(QString)));
+
+		// Read the client version information during the initialization
+		SessionManager::setCurrentClientInfo(readClientInfoFromFile());
 	}
 	else
 	{		
@@ -81,4 +88,54 @@ ServerWrapper::ServerWrapper(const quint16& port)
 bool ServerWrapper::isRunning() const
 {
 	return is_running_;
+}
+
+void ServerWrapper::updateClientInfo(QString str)
+{
+	QDir dir;
+	dir.setPath(str);
+	if (!dir.exists()) return;
+	QFileInfoList list = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files, QDir::Time);
+	if (list.size() == 0) return;
+	if (CLIENT_INFO_FILE != list.first().fileName()) return;
+
+	SessionManager::setCurrentClientInfo(readClientInfoFromFile());
+	Log::info("Updated the desktop client version information to: " + SessionManager::getCurrentClientInfo().version);
+}
+
+ClientInfo ServerWrapper::readClientInfoFromFile()
+{
+
+	if (!QFile(QCoreApplication::applicationDirPath() + QDir::separator() + CLIENT_INFO_FILE).exists())
+	{
+		QFile empty_file(CLIENT_INFO_FILE);
+		if (!empty_file.open(QIODevice::WriteOnly)) Log::error("Could not create the clinet info file");
+	}
+
+	ClientInfo info;
+	try
+	{
+		QSharedPointer<QFile> client_info_file = Helper::openFileForReading(QCoreApplication::applicationDirPath() + QDir::separator() + CLIENT_INFO_FILE, false);
+		QByteArray content;
+		while(!client_info_file->atEnd())
+		{
+			QString line = client_info_file->readLine().trimmed();
+			content.append(line);
+		}
+		QJsonDocument json_input = QJsonDocument::fromJson(content);
+
+		if (json_input.isObject())
+		{
+			if (json_input.object().contains("version")) info.version = json_input.object().value("version").toString();
+			if (json_input.object().contains("message")) info.message = json_input.object().value("message").toString();
+			if (json_input.object().contains("date")) info.date = QDateTime::fromString(json_input.object().value("date").toString());
+		}
+	}
+	catch (Exception& e)
+	{
+		Log::error("Error while reading client version information: " + e.message());
+	}
+	Log::info("Reading the client version information from the settings: " + info.version);
+	if (info.version.isEmpty()) Log::warn("Client version information file is empty");
+	return info;
 }

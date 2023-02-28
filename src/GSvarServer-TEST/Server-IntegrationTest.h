@@ -217,6 +217,26 @@ private slots:
 		S_EQUAL(doc.object()["api_version"].toString(), "v1");
 		IS_TRUE(doc.object().contains("start_time"));
 	}
+
+	void test_client_info_retrieval()
+	{
+		if (!ServerHelper::hasBasicSettings())
+		{
+			SKIP("Server has not been configured correctly");
+		}
+
+		QByteArray reply;
+		HttpHeaders add_headers;
+		add_headers.insert("Accept", "application/json");
+		int code = sendGetRequest(reply, NGSHelper::serverApiUrl() + "current_client", add_headers);
+		if (code > 0)
+		{
+			SKIP("This test requieres a running server");
+		}
+
+		QJsonDocument out = QJsonDocument::fromJson(reply);
+		IS_TRUE(out.isObject());
+	}
 };
 
 #endif // SERVERINTEGRATIONTEST_H
