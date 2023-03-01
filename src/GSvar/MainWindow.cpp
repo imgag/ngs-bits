@@ -3967,21 +3967,28 @@ void MainWindow::on_actionAbout_triggered()
 {
 	QString about_text = appName()+ " " + QCoreApplication::applicationVersion();
 
+	about_text += "\n\nA free viewing and filtering tool for genomic variants.";
+
+	//general infos
 	about_text += "\n";
+	about_text += "\nGenome build: " + buildToString(GSvarHelper::build());
 	about_text += "\nArchitecture: " + QSysInfo::buildCpuArchitecture();
 
+	//client-server infos
+	about_text += "\n";
 	if (NGSHelper::isClientServerMode())
 	{
+		about_text += "\nMode: client-server";
 		ServerInfo server_info = NGSHelper::getServerInfo();
-		if (!server_info.isEmpty())
-		{
-			about_text += "\n";
-			about_text += "\nServer version: " + server_info.version;
-			about_text += "\nAPI version: " + server_info.api_version;
-			about_text += "\nServer start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
-		}
+		about_text += "\nServer version: " + server_info.version;
+		about_text += "\nAPI version: " + server_info.api_version;
+		about_text += "\nServer start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
 	}
-	about_text += "\n\nA free viewing and filtering tool for genomic variants.\n\nInstitute of Medical Genetics and Applied Genomics\nUniversity Hospital Tübingen\nGermany\n\nMore information at:\nhttps://github.com/imgag/ngs-bits";
+	else
+	{
+		about_text += "\nMode: stand-alone (no server)";
+	}
+
 	QMessageBox::about(this, "About " + appName(), about_text);
 }
 
