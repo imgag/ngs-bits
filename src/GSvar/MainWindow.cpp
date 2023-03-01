@@ -363,7 +363,7 @@ void MainWindow::checkClientUpdates()
 	ClientInfo client_info = NGSHelper::getClientInfo();
 	if (client_info.isEmpty())
 	{
-		QMessageBox::warning(this, "Updates information not available", "Could not retrieve updates information from the server");
+		Log::warn("Could not retrieve updates information from the server");
 		return;
 	}
 
