@@ -130,14 +130,13 @@ public:
 		THROW(NotImplementedException, "Unhandled ancestry '" + ancestry + "' in CV conversion!");
 	}
 
-
-
 	//Processed sample helper struct
 	struct PSData
 	{
 		QString ps_id;
 		QString name;
-		QString bam;
+		QString bam; //required
+		QString vcf; //optional - skipped when empty
 		QString pseudonym; //processed sample ID left-padded with '0' to 6 digits (prefixed with 3-character object type to generate the alias)
 		SampleData s_info;
 		ProcessedSampleData ps_info;
@@ -195,7 +194,10 @@ public:
 			obj.insert("alias", "EXP" + ps_data.pseudonym);
 			obj.insert("description", "short-read sequencing");
 			obj.insert("type", systemTypeToExperimentType(ps_data.ps_info.processing_system_type));
-			obj.insert("has_file", QJsonArray::fromStringList(QStringList() << "BAM" + ps_data.pseudonym));
+			QStringList files;
+			files << "BAM" + ps_data.pseudonym;
+			if (!ps_data.vcf.isEmpty()) files << "VCF" + ps_data.pseudonym;
+			obj.insert("has_file", QJsonArray::fromStringList(files));
 			obj.insert("has_protocol", QJsonArray::fromStringList(QStringList() << "LIB" + ps_data.pseudonym << "SEQ" + ps_data.pseudonym));
 			obj.insert("has_sample", QJsonArray::fromStringList(QStringList() << "SAM" + ps_data.pseudonym));
 			obj.insert("has_study", data.study_name);
@@ -220,7 +222,10 @@ public:
 			QJsonObject obj;
 			obj.insert("alias", "ANA" + ps_data.pseudonym);
 			obj.insert("description", "short-read data analysis using megSAP: https://github.com/imgag/megSAP");
-			obj.insert("has_output", QJsonArray::fromStringList(QStringList() << "BAM" + ps_data.pseudonym));
+			QStringList files;
+			files << "BAM" + ps_data.pseudonym;
+			if (!ps_data.vcf.isEmpty()) files << "VCF" + ps_data.pseudonym;
+			obj.insert("has_output", QJsonArray::fromStringList(files));
 			obj.insert("has_study", data.study_name);
 			obj.insert("reference_chromosome", "unspecified");
 			obj.insert("reference_genome", "GRCh38");
@@ -241,32 +246,66 @@ public:
 
 		foreach(const PSData& ps_data, data.ps_list)
 		{
-			QJsonObject obj;
-			obj.insert("alias", "BAM" + ps_data.pseudonym);
-			obj.insert("name", ps_data.pseudonym + ".bam");
-
-			if (data.test_mode)
+			//add BAM (required)
 			{
-				obj.insert("size", "6000000");
-				obj.insert("checksum", "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+				QJsonObject obj;
+				obj.insert("alias", "BAM" + ps_data.pseudonym);
+				obj.insert("name", "BAM" + ps_data.pseudonym + ".bam");
+
+				if (data.test_mode)
+				{
+					obj.insert("size", "6000000");
+					obj.insert("checksum", "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+				}
+				else
+				{
+					QFile file(ps_data.bam);
+					if (!file.open(QFile::ReadOnly)) THROW(FileAccessException, "Could not open file " + ps_data.bam);
+					obj.insert("size", file.size());
+
+					QCryptographicHash hash(QCryptographicHash::Md5);
+					if (!hash.addData(&file)) THROW(Exception, "Could not calcualate checksum of " + ps_data.bam);
+					obj.insert("checksum", QString(hash.result()));
+				}
+
+				obj.insert("format", "BAM");
+				obj.insert("checksum_type", "MD5");
+				obj.insert("schema_type", "CreateFile");
+				obj.insert("schema_version", data.version);
+
+				array.append(obj);
 			}
-			else
+
+			//add VCF (if available)
+			if (!ps_data.vcf.isEmpty())
 			{
-				QFile file(ps_data.bam);
-				if (!file.open(QFile::ReadOnly)) THROW(FileAccessException, "Could not open file " + ps_data.bam);
-				obj.insert("size", file.size());
+				QJsonObject obj;
+				obj.insert("alias", "VCF" + ps_data.pseudonym);
+				obj.insert("name", "VCF" + ps_data.pseudonym + ".vcf.gz");
 
-				QCryptographicHash hash(QCryptographicHash::Md5);
-				if (!hash.addData(&file)) THROW(Exception, "Could not calcualate checksum of " + ps_data.bam);
-				obj.insert("checksum", QString(hash.result()));
+				if (data.test_mode)
+				{
+					obj.insert("size", "7000000");
+					obj.insert("checksum", "123456789ABCDEFGHIJKLMNO");
+				}
+				else
+				{
+					QFile file(ps_data.vcf);
+					if (!file.open(QFile::ReadOnly)) THROW(FileAccessException, "Could not open file " + ps_data.vcf);
+					obj.insert("size", file.size());
+
+					QCryptographicHash hash(QCryptographicHash::Md5);
+					if (!hash.addData(&file)) THROW(Exception, "Could not calcualate checksum of " + ps_data.vcf);
+					obj.insert("checksum", QString(hash.result()));
+				}
+
+				obj.insert("format", "VCF");
+				obj.insert("checksum_type", "MD5");
+				obj.insert("schema_type", "CreateFile");
+				obj.insert("schema_version", data.version);
+
+				array.append(obj);
 			}
-
-			obj.insert("format", "bam");
-			obj.insert("checksum_type", "MD5");
-			obj.insert("schema_type", "CreateFile");
-			obj.insert("schema_version", data.version);
-
-			array.append(obj);
 		}
 
 		parent.insert("has_file", array);
@@ -363,6 +402,7 @@ public:
 		foreach(const PSData& ps_data, data.ps_list)
 		{
 			tmp << "BAM" + ps_data.pseudonym;
+			if (!ps_data.vcf.isEmpty()) tmp << "VCF" + ps_data.pseudonym;
 		}
 		obj.insert("has_file", QJsonArray::fromStringList(tmp));
 
@@ -588,7 +628,10 @@ public:
 			QString bam = row.value(bam_idx);
 			if (!QFile::exists(bam) && !data.test_mode) THROW(Exception, "Processed sample " + ps + " BAM missing: " + bam);
 
-			data.ps_list << PSData{ps_id, ps, bam, row.id().rightJustified(6, '0'), db.getSampleData(s_id), db.getProcessedSampleData(ps_id), db.samplePhenotypes(s_id)};
+			QString vcf = bam.replace(".bam", "_var.vcf.gz");
+			if (!QFile::exists(vcf) && !data.test_mode) vcf.clear();
+
+			data.ps_list << PSData{ps_id, ps, bam, vcf, row.id().rightJustified(6, '0'), db.getSampleData(s_id), db.getProcessedSampleData(ps_id), db.samplePhenotypes(s_id)};
 			QTextStream(stdout) << ps << " " << data.ps_list.last().phenotypes.count() << endl;
 			foreach(const Phenotype& pheno, data.ps_list.last().phenotypes)
 			{
