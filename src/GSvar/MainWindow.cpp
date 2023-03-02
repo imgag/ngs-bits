@@ -286,21 +286,6 @@ MainWindow::MainWindow(QWidget *parent)
 		server_ping_timer->start(10 * 60 * 1000); // every 10 minutes
 	}
 
-	QString virus_genome;
-	if (!NGSHelper::isClientServerMode())
-	{
-		virus_genome = Settings::string("igv_virus_genome", true);
-		if (virus_genome.isEmpty()) QMessageBox::information(this, "Virus genome not set", "Virus genome path is missing from the settings!");
-	}
-	else
-	{
-		virus_genome = NGSHelper::serverApiUrl() + "genome/somatic_viral.fa";
-	}
-	// Default IGV session (variants)
-	GlobalServiceProvider::createIGVSession(GlobalServiceProvider::findAvailablePortForIGV(), false, Settings::path("igv_genome"));
-	// IGV session for virus detection
-	GlobalServiceProvider::createIGVSession(GlobalServiceProvider::findAvailablePortForIGV(), false, virus_genome);
-
 	connect(ui_.vars, SIGNAL(publishToClinvarTriggered(int, int)), this, SLOT(uploadToClinvar(int, int)));
 	connect(ui_.vars, SIGNAL(alamutTriggered(QAction*)), this, SLOT(openAlamut(QAction*)));
 
@@ -1467,16 +1452,16 @@ void MainWindow::on_actionIgvClear_triggered()
 	commands << "new";
 	executeIGVCommands(commands, false, 0);
 
-	GlobalServiceProvider::setIGVInitialized(false, 0);
+	LoginManager::setIGVInitialized(false, 0);
 }
 
 void MainWindow::on_actionIgvPort_triggered()
 {
 	bool ok = false;
-	int igv_port_new = QInputDialog::getInt(this, "Change IGV port", "Set IGV port for this GSvar session:", GlobalServiceProvider::getIGVPort(0), 0, 900000, 1, &ok);
+	int igv_port_new = QInputDialog::getInt(this, "Change IGV port", "Set IGV port for this GSvar session:", LoginManager::getIGVPort(0), 0, 900000, 1, &ok);
 	if (ok)
 	{
-		GlobalServiceProvider::setIGVPort(igv_port_new, 0);
+		LoginManager::setIGVPort(igv_port_new, 0);
 	}
 }
 
@@ -2437,7 +2422,7 @@ void MainWindow::prepareAndRunIGVCommands(QAbstractSocket& socket, QStringList f
 	QStringList init_commands;
 	//genome command first, see https://github.com/igvteam/igv/issues/1094
 	//choose the correct genome
-	init_commands.append("genome " + GlobalServiceProvider::getIGVGenome(session_index));
+	init_commands.append("genome " + LoginManager::getIGVGenome(session_index));
 	init_commands.append("setSleepInterval 1500");
 	init_commands.append("new");
 	if (NGSHelper::isClientServerMode()) init_commands.append("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*");
@@ -2638,11 +2623,11 @@ bool MainWindow::prepareNormalIGV(QAbstractSocket& socket)
 		if (dlg.initializationAction()==IgvDialog::INIT)
 		{
 			prepareAndRunIGVCommands(socket, dlg.filesToLoad(), 0);
-			GlobalServiceProvider::setIGVInitialized(true, 0);
+			LoginManager::setIGVInitialized(true, 0);
 		}
 		else if (dlg.initializationAction()==IgvDialog::SKIP_SESSION)
 		{
-			GlobalServiceProvider::setIGVInitialized(true, 0);
+			LoginManager::setIGVInitialized(true, 0);
 		}
 		else if (dlg.initializationAction()==IgvDialog::SKIP_ONCE)
 		{
@@ -2666,7 +2651,7 @@ bool MainWindow::prepareNormalIGV(QAbstractSocket& socket)
 bool MainWindow::prepareVirusIGV(QAbstractSocket& socket)
 {
 	prepareAndRunIGVCommands(socket, QStringList{}, 1);
-	GlobalServiceProvider::setIGVInitialized(true, 1);
+	LoginManager::setIGVInitialized(true, 1);
 	return true;
 }
 
@@ -3443,8 +3428,8 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 	variants_changed_.clear();
 	cnvs_.clear();
 	svs_.clear();
-	GlobalServiceProvider::setIGVInitialized(false, true);
-	GlobalServiceProvider::setIGVInitialized(false, false);
+	LoginManager::setIGVInitialized(false, true);
+	LoginManager::setIGVInitialized(false, false);
 	ui_.vars->clearContents();
 	report_settings_ = ReportSettings();
 	connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
@@ -6964,7 +6949,7 @@ void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done,
 		//connect
 		QAbstractSocket socket(QAbstractSocket::UnknownSocketType, this);
 		QString igv_host = Settings::string("igv_host");
-		int igv_port = GlobalServiceProvider::getIGVPort(session_index);
+		int igv_port = LoginManager::getIGVPort(session_index);
 		if (debug) qDebug() << QDateTime::currentDateTime() << "CONNECTING:" << igv_host << igv_port;
 		socket.connectToHost(igv_host, igv_port);
 		if (!socket.waitForConnected(1000))
@@ -6975,7 +6960,7 @@ void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done,
 			QApplication::setOverrideCursor(Qt::BusyCursor);
 
 			if (debug) qDebug() << QDateTime::currentDateTime() << "FAILED - TRYING TO START IGV";			
-			GlobalServiceProvider::setIGVInitialized(false, session_index);
+			LoginManager::setIGVInitialized(false, session_index);
 
 			//try to start IGV
 			QString igv_app = Settings::path("igv_app").trimmed();
@@ -7015,7 +7000,7 @@ void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done,
 		QApplication::restoreOverrideCursor();
 
 		//init if necessary
-		if (!GlobalServiceProvider::isIGVInitialized(session_index) && init_if_not_done)
+		if (!LoginManager::isIGVInitialized(session_index) && init_if_not_done)
 		{
 			if (debug) qDebug() << QDateTime::currentDateTime() << "INITIALIZING IGV FOR CURRENT SAMPLE!";
 

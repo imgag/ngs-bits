@@ -149,6 +149,24 @@ void LoginManager::login(QString user, QString password, bool test_db)
 
 	//update last login
 	db.getQuery().exec("UPDATE user SET last_login=NOW() WHERE id='" + QString::number(manager.user_id_) + "'");
+
+	if (active())
+	{
+		QString virus_genome;
+		if (!NGSHelper::isClientServerMode())
+		{
+			virus_genome = Settings::string("igv_virus_genome", true);
+			if (virus_genome.isEmpty()) THROW(ProgrammingException, "Virus genome path is missing from the settings!");
+		}
+		else
+		{
+			virus_genome = NGSHelper::serverApiUrl() + "genome/somatic_viral.fa";
+		}
+		// Default IGV session (variants)
+		createIGVSession(findAvailablePortForIGV(), false, Settings::path("igv_genome"));
+		// IGV session for virus detection
+		createIGVSession(findAvailablePortForIGV(), false, virus_genome);
+	}
 }
 
 void LoginManager::renewLogin()
@@ -327,3 +345,102 @@ void LoginManager::checkRoleNotIn(QStringList roles)
 		INFO(AccessDeniedException, "Access denied.\nOnly users with the following roles have access to this functionality: " + roles.join(", ") + ".\nThe user '" + manager.user_login_ + "' has the role '" + NGSD().getUserRole(manager.userId()) + "'!");
 	}
 }
+
+int LoginManager::createIGVSession(int port, bool is_initialized, QString genome)
+{
+	if (port<=0) THROW(ProgrammingException, "Port number is not set!");
+	if (genome.isEmpty()) THROW(ProgrammingException, "Genome path is not set!");
+
+	instance().mutex_.lock();
+	instance().session_list_.append(IGVSession{port, is_initialized, genome});
+	instance().mutex_.unlock();
+	return instance().session_list_.count()-1;
+}
+
+void LoginManager::removeIGVSession(int session_index)
+{
+	if ((session_index<0) || (session_index>instance().session_list_.count()-1)) THROW(ProgrammingException, "Invalid session index!");
+	instance().mutex_.lock();
+	instance().session_list_.removeAt(session_index);
+	instance().mutex_.unlock();
+}
+
+int LoginManager::findAvailablePortForIGV()
+{
+	int port = Settings::integer("igv_port");
+	if (active())
+	{
+		port += userId();
+	}
+	port += instance().session_list_.count() * 1000 + 1000;
+	return port;
+}
+
+int LoginManager::getIGVPort(int session_index)
+{
+	if (session_index<0) THROW(ProgrammingException, "Invalid session index has not been provided!");
+	if (instance().session_list_.count()>=(session_index+1))
+	{
+		return instance().session_list_[session_index].port;
+	}
+	return -1;
+}
+
+void LoginManager::setIGVPort(int port, int session_index)
+{
+	if (port<=0) THROW(ProgrammingException, "Port number is not set!");
+	if (session_index<0) THROW(ProgrammingException, "Invalid session index has not been provided!");
+	if (instance().session_list_.count()>=(session_index-1))
+	{
+		instance().mutex_.lock();
+		instance().session_list_[session_index].port = port;
+		instance().mutex_.unlock();
+	}
+}
+
+QString LoginManager::getIGVGenome(int session_index)
+{
+	if (session_index<0) THROW(ProgrammingException, "Invalid session index has not been provided!");
+	if (instance().session_list_.count()>=(session_index+1))
+	{
+		return instance().session_list_[session_index].genome;
+	}
+	return "";
+}
+
+void LoginManager::setIGVGenome(QString genome, int session_index)
+{
+	if (genome.isEmpty()) THROW(ProgrammingException, "Genome is not set!");
+	if (session_index<0) THROW(ProgrammingException, "Invalid session index has not been provided!");
+	if (instance().session_list_.count()>=(session_index-1))
+	{
+		instance().mutex_.lock();
+		instance().session_list_[session_index].genome = genome;
+		instance().mutex_.unlock();
+	}
+}
+
+bool LoginManager::isIGVInitialized(int session_index)
+{
+	if (session_index<0) THROW(ProgrammingException, "Invalid session index has not been provided!");
+
+	if (instance().session_list_.count()>=(session_index+1))
+	{
+		return instance().session_list_[session_index].is_initialized;
+	}
+
+	return false;
+}
+
+void LoginManager::setIGVInitialized(bool is_initialized, int session_index)
+{
+	if (session_index<0) THROW(ProgrammingException, "Invalid session index has not been provided!");
+
+	if (instance().session_list_.count()>=(session_index+1))
+	{
+		instance().mutex_.lock();
+		instance().session_list_[session_index].is_initialized = is_initialized;
+		instance().mutex_.unlock();
+	}
+}
+

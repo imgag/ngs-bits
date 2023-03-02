@@ -2,8 +2,16 @@
 #define LOGINMANAGER_H
 
 #include <QString>
+#include <QMutex>
 #include "cppNGSD_global.h"
 #include "HttpRequestHandler.h"
+
+struct IGVSession
+{
+	int port;
+	bool is_initialized;
+	QString genome;
+};
 
 ///NGSD login manager (singleton)
 class CPPNGSDSHARED_EXPORT LoginManager
@@ -52,6 +60,17 @@ public:
 	//Checks if the logged-in user has none of the given roles. If has has, an exception is thrown.
 	static void checkRoleNotIn(QStringList roles);
 
+	//methods to handle dedicated IGV instances
+	static int createIGVSession(int port, bool is_initialized, QString genome);
+	static void removeIGVSession(int session_index);
+	static int findAvailablePortForIGV();
+	static int getIGVPort(int session_index);
+	static void setIGVPort(int port, int session_index);
+	static QString getIGVGenome(int session_index);
+	static void setIGVGenome(QString genome, int session_index);
+	static bool isIGVInitialized(int session_index);
+	static void setIGVInitialized(bool is_initialized, int session_index);
+
 private:
 	LoginManager();
 	static LoginManager& instance();
@@ -82,6 +101,9 @@ private:
 	QString genlab_name_;
 	QString genlab_user_;
 	QString genlab_password_;
+
+	QList<IGVSession> session_list_;
+	QMutex mutex_;
 };
 
 #endif // LOGINMANAGER_H

@@ -16,7 +16,7 @@ VirusDetectionWidget::VirusDetectionWidget(QString viral_file, QWidget* parent)
 	setSelectionBehavior(QAbstractItemView::SelectRows);
 	setContextMenuPolicy(Qt::CustomContextMenu);
 
-	GlobalServiceProvider::setIGVInitialized(false, true);
+	LoginManager::setIGVInitialized(false, true);
 	connect(this, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(callViewInIGV(int, int)));
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(callCustomMenu(QPoint)));
 
@@ -100,7 +100,7 @@ void VirusDetectionWidget::openInIGV(int row)
 	}
 
 	QStringList commands;
-	if (!GlobalServiceProvider::isIGVInitialized(true))
+	if (!LoginManager::isIGVInitialized(true))
 	{
 		foreach (FileLocation file, bam_files)
 		{
