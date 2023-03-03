@@ -1834,7 +1834,7 @@ void MainWindow::on_actionExpressionData_triggered()
 	else
 	{
 		bool ok;
-		count_file = QInputDialog::getItem(this, title, "Multiple RNA count files found.\nPlease select a file:", rna_count_files, 0, false, &ok);
+		count_file = getFileSelectionItem(title, "Multiple RNA count files found.\nPlease select a file:", rna_count_files, &ok);
 		if (!ok) return;
 	}
 
@@ -1925,7 +1925,7 @@ void MainWindow::on_actionExonExpressionData_triggered()
 	else
 	{
 		bool ok;
-		count_file = QInputDialog::getItem(this, title, "Multiple RNA count files found.\nPlease select a file:", rna_count_files, 0, false, &ok);
+		count_file = getFileSelectionItem(title,"Multiple RNA count files found.\nPlease select a file:", rna_count_files, &ok);
 		if (!ok) return;
 	}
 
@@ -1998,7 +1998,7 @@ void MainWindow::on_actionShowSplicing_triggered()
 	else
 	{
 		bool ok;
-		splicing_filepath = QInputDialog::getItem(this, "Multiple files found", "Multiple RNA splicing files found.\nPlease select a file:", splicing_files, 0, false, &ok);
+		splicing_filepath = getFileSelectionItem("Multiple files found", "Multiple RNA splicing files found.\nPlease select a file:", splicing_files, &ok);
 		if (!ok) return;
 	}
 
@@ -2043,7 +2043,7 @@ void MainWindow::on_actionShowRnaFusions_triggered()
 	else
 	{
 		bool ok;
-		fusion_filepath = QInputDialog::getItem(this, "Multiple files found", "Multiple RNA fusion files found.\nPlease select a file:", arriba_fusion_files, 0, false, &ok);
+		fusion_filepath = getFileSelectionItem("Multiple files found", "Multiple RNA fusion files found.\nPlease select a file:", arriba_fusion_files, &ok);
 		if (!ok) return;
 	}
 
@@ -7707,6 +7707,30 @@ QString MainWindow::normalSampleName()
 	}
 
 	return "";
+}
+
+QString MainWindow::getFileSelectionItem(QString window_title, QString label_text, QStringList file_list, bool *ok)
+{
+	QStringList rna_count_files_displayed_names = file_list;
+	if (NGSHelper::isClientServerMode())
+	{
+		rna_count_files_displayed_names.clear();
+		foreach (QString full_name, file_list)
+		{
+			rna_count_files_displayed_names << QUrl(full_name).fileName();
+		}
+	}
+
+	QString selected_file_name = QInputDialog::getItem(this, window_title, label_text, rna_count_files_displayed_names, 0, false, ok);
+	if (NGSHelper::isClientServerMode())
+	{
+		int selection_index = rna_count_files_displayed_names.indexOf(selected_file_name);
+		if (selection_index>-1) return file_list[selection_index];
+		QMessageBox::warning(this, "File URL not found", "Could not find the URL for the selected file!");
+		return "";
+	}
+
+	return selected_file_name;
 }
 
 

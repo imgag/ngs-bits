@@ -426,6 +426,10 @@ protected:
 	void closeEvent(QCloseEvent* event);
 	///Determines normal sample name from filename_, return "" otherwise (tumor-normal pairs)
 	QString normalSampleName();
+	///	Wrapper function for QInputDialog::getItem to handle long URLs:
+	/// the list visible to the user will contain only file names (not entire URLs). It makes the
+	/// list easier to read and saves some screen real estate
+	QString getFileSelectionItem(QString window_title, QString label_text, QStringList file_list, bool *ok);
 
 private:
 	//GUI
