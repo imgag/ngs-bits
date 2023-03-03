@@ -751,8 +751,11 @@ HttpResponse ServerController::saveQbicFiles(const HttpRequest& request)
 
 HttpResponse ServerController::uploadFile(const HttpRequest& request)
 {
-	if ((request.getFormDataParams().contains("ps_url_id")) && (!request.getMultipartFileName().isEmpty()))
-	{		
+	QStringList error_messages;
+	if (!request.getFormDataParams().contains("ps_url_id")) error_messages.append("Processed sample id is missing.");
+	if (request.getMultipartFileName().isEmpty()) error_messages.append("Filename is empty.");
+	if (error_messages.size()==0)
+	{
 		QString ps_url_id = request.getFormDataParams()["ps_url_id"];
 		UrlEntity url_entity = UrlManager::getURLById(ps_url_id.trimmed());
 		if (!url_entity.path.isEmpty())
@@ -769,7 +772,7 @@ HttpResponse ServerController::uploadFile(const HttpRequest& request)
 		}
 	}
 
-	return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Parameters have not been provided");
+	return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Parameters are missing: " + error_messages.join(" "));
 }
 
 HttpResponse ServerController::calculateLowCoverage(const HttpRequest& request)
