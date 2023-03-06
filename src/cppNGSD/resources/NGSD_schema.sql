@@ -213,7 +213,7 @@ CREATE  TABLE IF NOT EXISTS `sequencing_run`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
   `fcid` VARCHAR(45) NULL DEFAULT NULL,
-  `flowcell_type` ENUM('Illumina MiSeq v2','Illumina MiSeq v2 Micro','Illumina MiSeq v2 Nano','Illumina MiSeq v3','Illumina NextSeq High Output','Illumina NextSeq Mid Output','Illumina NovaSeq SP','Illumina NovaSeq S1','Illumina NovaSeq S2','Illumina NovaSeq S4','PromethION FLO-PRO002','SMRTCell 8M','n/a') NOT NULL DEFAULT 'n/a',
+  `flowcell_type` ENUM('Illumina MiSeq v2','Illumina MiSeq v2 Micro','Illumina MiSeq v2 Nano','Illumina MiSeq v3','Illumina NextSeq High Output','Illumina NextSeq Mid Output','Illumina NovaSeq SP','Illumina NovaSeq S1','Illumina NovaSeq S2','Illumina NovaSeq S4','PromethION FLO-PRO002','PromethION FLO-PRO114M','SMRTCell 8M','n/a') NOT NULL DEFAULT 'n/a',
   `start_date` DATE NULL DEFAULT NULL,
   `end_date` DATE NULL DEFAULT NULL,
   `device_id` INT(11) NOT NULL,
