@@ -148,6 +148,30 @@ struct CPPNGSSHARED_EXPORT ClientInfo
 	}
 };
 
+// Stores a notification displayed to the user of the client application (e.g. downtimes, maintenance, updates)
+struct CPPNGSSHARED_EXPORT UserNotification
+{
+	QString id;
+	QString message;
+
+	UserNotification()
+		: id()
+		, message()
+	{
+	}
+
+	UserNotification(QString id_, QString message_)
+		: id(id_)
+		, message(message_)
+	{
+	}
+
+	bool isEmpty()
+	{
+		return id.isEmpty() && message.isEmpty();
+	}
+};
+
 ///Helper class for NGS-specific stuff.
 class CPPNGSSHARED_EXPORT NGSHelper
 {
@@ -212,6 +236,9 @@ public:
 
 	///Requests the client version number from the server to inform about updates (if available)
 	static ClientInfo getClientInfo();
+
+	///Requests the user notification from the server
+	static UserNotification getUserNotification();
 
 	///Returns the server API version. Used to check that the server and the client have the same version.
 	static QString serverApiVersion();

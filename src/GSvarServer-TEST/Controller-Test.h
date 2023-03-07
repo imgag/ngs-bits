@@ -257,4 +257,29 @@ private slots:
 		S_EQUAL(out.object().value("version").toString(), current_info.version);
 		S_EQUAL(out.object().value("message").toString(), current_info.message);
 	}
+
+	void test_user_notification()
+	{
+		QString notification_message = "Server will be updated!";
+		SessionManager::setCurrentNotification(notification_message);
+
+		HttpRequest request;
+		request.setMethod(RequestMethod::HEAD);
+		request.setContentType(ContentType::TEXT_HTML);
+		request.addHeader("host", "localhost:8443");
+		request.addHeader("accept", "text/html");
+		request.addHeader("connection", "keep-alive");
+		request.setPrefix("v1");
+		request.setPath("notification");
+
+		HttpResponse response = ServerController::getCurrentNotification(request);
+
+		IS_TRUE(response.getStatusLine().split('\n').first().contains("200"));
+		IS_FALSE(response.getPayload().isNull());
+
+		QJsonDocument out = QJsonDocument::fromJson(response.getPayload());
+		IS_TRUE(out.isObject());
+		IS_TRUE(!out.object().value("id").toString().isEmpty());
+		S_EQUAL(out.object().value("message").toString(), notification_message);
+	}
 };
