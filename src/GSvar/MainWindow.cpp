@@ -285,6 +285,14 @@ MainWindow::MainWindow(QWidget *parent)
 		QTimer *server_ping_timer = new QTimer(this);
 		connect(server_ping_timer, SIGNAL(timeout()), this, SLOT(checkServerAvailability()));
 		server_ping_timer->start(10 * 60 * 1000); // every 10 minutes
+
+
+		//check if there are new notifications for the users
+		QTimer *user_notification_timer = new QTimer(this);
+		connect(user_notification_timer, SIGNAL(timeout()), this, SLOT(checkUserNotifications()));
+		user_notification_timer->start(12 * 60 * 1000); // every 12 minutes
+
+		displayed_maintenance_message_id_;
 	}
 
 	connect(ui_.vars, SIGNAL(publishToClinvarTriggered(int, int)), this, SLOT(uploadToClinvar(int, int)));
@@ -340,6 +348,17 @@ void MainWindow::checkServerAvailability()
 	{
 		close();
 	}
+}
+
+void MainWindow::checkUserNotifications()
+{
+	UserNotification user_notification = NGSHelper::getUserNotification();
+
+	if (user_notification.id.isEmpty() || user_notification.message.isEmpty()) return;
+	if ((!displayed_maintenance_message_id_.isEmpty()) && (displayed_maintenance_message_id_ == user_notification.id)) return;
+
+	displayed_maintenance_message_id_ = user_notification.id;
+	QMessageBox::information(this, "Important information", user_notification.message);
 }
 
 void MainWindow::checkClientUpdates()

@@ -863,6 +863,37 @@ ClientInfo NGSHelper::getClientInfo()
 	return info;
 }
 
+UserNotification NGSHelper::getUserNotification()
+{
+	UserNotification user_notification;
+	QByteArray response;
+	HttpHeaders add_headers;
+	add_headers.insert("Accept", "application/json");
+	try
+	{
+		response = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).get(NGSHelper::serverApiUrl()+ "notification", add_headers);
+	}
+	catch (Exception& e)
+	{
+		Log::error("Could not get any user notifications from the server: " + e.message());
+		return user_notification;
+	}
+
+	if (response.isEmpty())
+	{
+		Log::error("Could not parse the server response");
+		return user_notification;
+	}
+
+	QJsonDocument json_doc = QJsonDocument::fromJson(response);
+	if (json_doc.isObject())
+	{
+		if (json_doc.object().contains("id")) user_notification.id = json_doc.object()["id"].toString();
+		if (json_doc.object().contains("message")) user_notification.message = json_doc.object()["message"].toString();
+	}
+	return user_notification;
+}
+
 QString NGSHelper::serverApiVersion()
 {
 	return "v1";

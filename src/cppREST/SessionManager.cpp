@@ -5,6 +5,7 @@ SessionManager::SessionManager()
 	: backup_file_(Helper::openFileForWriting(ServerHelper::getSessionBackupFileName(), false, true))
 	, session_store_()
 	, current_client_info_()
+	, current_notification_()
 {	
 }
 
@@ -172,6 +173,21 @@ void SessionManager::setCurrentClientInfo(ClientInfo info)
 	{
 		instance().mutex_.lock();
 		instance().current_client_info_ = info;
+		instance().mutex_.unlock();
+	}
+}
+
+UserNotification SessionManager::getCurrentNotification()
+{
+	return instance().current_notification_;
+}
+
+void SessionManager::setCurrentNotification(QString message)
+{
+	if (!message.isEmpty())
+	{
+		instance().mutex_.lock();
+		instance().current_notification_ = UserNotification(ServerHelper::generateUniqueStr(), message);
 		instance().mutex_.unlock();
 	}
 }

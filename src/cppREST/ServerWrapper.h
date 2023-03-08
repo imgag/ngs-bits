@@ -22,14 +22,16 @@ class CPPRESTSHARED_EXPORT ServerWrapper : public QObject
 
 public:
 	const QString CLIENT_INFO_FILE = QCoreApplication::applicationName().replace(".exe", "") + "_client.json";
+	const QString NOTIFICATION_FILE = QCoreApplication::applicationName().replace(".exe", "") + "_notification.json";
 	ServerWrapper(const quint16& port);
 	bool isRunning() const;
 
 public slots:
-	void updateClientInfo(QString str);
+	void updateInfoForUsers(QString str);
 
 private:
 	ClientInfo readClientInfoFromFile();
+	QByteArray readUserNotificationFromFile();
 	SslServer *server_;
 	bool is_running_;
 };

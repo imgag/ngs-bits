@@ -346,6 +346,16 @@ int main(int argc, char **argv)
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
+						"notification",
+						QMap<QString, ParamProps> {},
+						RequestMethod::GET,
+						ContentType::APPLICATION_JSON,
+						AuthType::NONE,
+						"Information for the users of the desktop client (i.e. updates, maintenance, potential downtimes)",
+						&ServerController::getCurrentNotification
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
 						"qbic_report_data",
 						QMap<QString, ParamProps> {
 							{"filename", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "QBic data report file"}},

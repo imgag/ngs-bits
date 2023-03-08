@@ -81,6 +81,8 @@ public slots:
 	void uploadToClinvar(int variant_index1, int variant_index2=-1);
 	/// Checks (only in clinet-server mode) if the server is currently running
 	void checkServerAvailability();
+	/// Checks (only in clinet-server mode) if there is some new information needed to be displayed to the user (e.g. downtimes, maintenance, reboots, updates)
+	void checkUserNotifications();
 	///Loads a variant list. Unloads the variant list if no file name is given
 	void loadFile(QString filename="", bool show_only_error_issues=false);
 	///Checks if variant list is outdated
@@ -486,6 +488,7 @@ private:
 
 	//SPECIAL
 	DelayedInitializationTimer init_timer_;
+	QString displayed_maintenance_message_id_;
 };
 
 #endif // MAINWINDOW_H
