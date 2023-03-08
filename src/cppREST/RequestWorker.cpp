@@ -136,9 +136,17 @@ void RequestWorker::run()
 		Session user_session = SessionManager::getSessionBySecureToken(user_token);
 		if (!user_session.isEmpty())
 		{
-			QString user_login = NGSD().userLogin(user_session.user_id);
-			QString user_name = NGSD().userName(user_session.user_id);
-			user_info = " - requested by " + user_login + " (" + user_name + ")";
+			try
+			{
+				QString user_login = NGSD().userLogin(user_session.user_id);
+				QString user_name = NGSD().userName(user_session.user_id);
+				user_info = " - requested by " + user_login + " (" + user_name + ")";
+			}
+			catch (DatabaseException& e)
+			{
+				Log::error("Database request failed: " + e.message());
+				user_info = " - requested by unknown user";
+			}
 		}
 	}
 	QString client_type = "Unknown client";
