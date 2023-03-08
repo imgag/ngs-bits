@@ -5,7 +5,7 @@
 #include <QMap>
 #include <QDateTime>
 #include <QMutex>
-#include "NGSHelper.h"
+#include "ClientHelper.h"
 #include "ServerHelper.h"
 #include "Exceptions.h"
 

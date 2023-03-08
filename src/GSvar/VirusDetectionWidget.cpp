@@ -4,6 +4,7 @@
 #include "GlobalServiceProvider.h"
 #include "LoginManager.h"
 #include "IgvSessionManager.h"
+#include "ClientHelper.h"
 #include <QAction>
 #include <QMenu>
 #include <QMessageBox>
@@ -105,7 +106,7 @@ void VirusDetectionWidget::openInIGV(int row)
 	{
 		foreach (FileLocation file, bam_files)
 		{
-			commands.append("load \"" + NGSHelper::stripSecureToken(file.filename) + "\"");
+			commands.append("load \"" + ClientHelper::stripSecureToken(file.filename) + "\"");
 		}
 	}
 
