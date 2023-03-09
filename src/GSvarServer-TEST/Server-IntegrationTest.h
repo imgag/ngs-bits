@@ -60,7 +60,7 @@ private slots:
 		QByteArray reply;
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/html");
-		int code = sendGetRequest(reply, NGSHelper::serverApiUrl(), add_headers);
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
 		if (code > 0)
 		{
 			SKIP("This test requieres a running server");
@@ -80,7 +80,7 @@ private slots:
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/html");
 		add_headers.insert("Range", "bytes=114-140,399-430");
-		int code = sendGetRequest(reply, NGSHelper::serverApiUrl(), add_headers);
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
 		if (code > 0)
 		{
 			SKIP("This test requieres a running server");
@@ -101,7 +101,7 @@ private slots:
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/html");
 		add_headers.insert("Range", "bytes=454-");
-		int code = sendGetRequest(reply, NGSHelper::serverApiUrl(), add_headers);
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
 		if (code > 0)
 		{
 			SKIP("This test requieres a running server");
@@ -121,7 +121,7 @@ private slots:
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/html");
 		add_headers.insert("Range", "bytes=-8");
-		int code = sendGetRequest(reply, NGSHelper::serverApiUrl(), add_headers);
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
 		if (code > 0)
 		{
 			SKIP("This test requieres a running server");
@@ -132,7 +132,7 @@ private slots:
 		add_headers.clear();
 		add_headers.insert("Accept", "text/html");
 		add_headers.insert("Range", "bytes=0-5,5-8");
-		IS_THROWN(Exception, HttpRequestHandler(HttpRequestHandler::NONE).get(NGSHelper::serverApiUrl(), add_headers));
+		IS_THROWN(Exception, HttpRequestHandler(HttpRequestHandler::NONE).get(ClientHelper::serverApiUrl(), add_headers));
 	}	
 
 	void test_token_based_authentication()
@@ -146,7 +146,7 @@ private slots:
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/html");
 		QByteArray data = "name=ahmustm1&password=123456";
-		int code = sendPostRequest(reply, NGSHelper::serverApiUrl() + "login", add_headers, data);
+		int code = sendPostRequest(reply, ClientHelper::serverApiUrl() + "login", add_headers, data);
 		if (code > 0)
 		{
 			SKIP("This test requieres a running server");
@@ -157,13 +157,13 @@ private slots:
 		reply.clear();
 		add_headers.clear();
 		add_headers.insert("Accept", "application/json");
-		code = sendGetRequest(reply, NGSHelper::serverApiUrl() + "session?token=" + token, add_headers);
+		code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "session?token=" + token, add_headers);
 		QJsonDocument session_json = QJsonDocument::fromJson(reply);
 		IS_TRUE(session_json.isObject());
 
 		reply.clear();
 		add_headers.insert("Authorization", "Bearer "+token.toUtf8());
-		code = sendGetRequest(reply, NGSHelper::serverApiUrl() + "session", add_headers);
+		code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "session", add_headers);
 		session_json = QJsonDocument::fromJson(reply);
 		IS_TRUE(session_json.isObject());
 		bool is_db_token = session_json.object().value("is_db_token").toBool();
@@ -177,7 +177,7 @@ private slots:
 			SKIP("Server has not been configured correctly");
 		}
 
-		QString filename = NGSHelper::serverApiUrl() + "bam/rna.bam";
+		QString filename = ClientHelper::serverApiUrl() + "bam/rna.bam";
 
 		QByteArray reply;
 		HttpHeaders add_headers;
@@ -204,7 +204,7 @@ private slots:
 		QByteArray reply;
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "application/json");
-		int code = sendGetRequest(reply, NGSHelper::serverApiUrl() + "info", add_headers);
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "info", add_headers);
 		if (code > 0)
 		{
 			SKIP("This test requieres a running server");
@@ -228,7 +228,7 @@ private slots:
 		QByteArray reply;
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "application/json");
-		int code = sendGetRequest(reply, NGSHelper::serverApiUrl() + "current_client", add_headers);
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "current_client", add_headers);
 		if (code > 0)
 		{
 			SKIP("This test requieres a running server");

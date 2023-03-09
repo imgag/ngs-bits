@@ -9,6 +9,7 @@
 #include "GlobalServiceProvider.h"
 #include "AnalysisInformationWidget.h"
 #include "GSvarHelper.h"
+#include "ClientHelper.h"
 #include <QMenu>
 #include <QFileInfo>
 #include <QDesktopServices>
@@ -380,7 +381,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	}
 	if (text=="Open analysis folder(s)")
 	{
-		if (NGSHelper::isClientServerMode())
+		if (ClientHelper::isClientServerMode())
 		{
 			QMessageBox::warning(this, "No access", "Analysis folder browsing is not available in client-server mode");
 			return;
@@ -398,7 +399,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	}
 	if (text=="Open sample folders")
 	{
-		if (NGSHelper::isClientServerMode())
+		if (ClientHelper::isClientServerMode())
 		{
 			QMessageBox::warning(this, "No access", "Sample folder browsing is not available in client-server mode");
 			return;

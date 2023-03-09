@@ -206,7 +206,7 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 		json_object.insert("name", ToolBase::applicationName());
 		json_object.insert("description", "GSvar server");
 		json_object.insert("version", ToolBase::version());
-		json_object.insert("api_version", NGSHelper::serverApiVersion());
+		json_object.insert("api_version", ClientHelper::serverApiVersion());
 		json_object.insert("start_time", ServerHelper::getServerStartDateTime().toSecsSinceEpoch());
 		json_doc.setObject(json_object);
 
@@ -1308,7 +1308,7 @@ QString ServerController::createTempUrl(const QString& file, const QString& toke
 	QString id = ServerHelper::generateUniqueStr();
 	UrlManager::addNewUrl(id, UrlEntity(QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, id, QDateTime::currentDateTime()));
 
-	return NGSHelper::serverApiUrl() + "temp/" + id + "/" + QFileInfo(file).fileName() + "?token=" + token;
+	return ClientHelper::serverApiUrl() + "temp/" + id + "/" + QFileInfo(file).fileName() + "?token=" + token;
 }
 
 HttpResponse ServerController::createStaticFolderResponse(const QString path, const HttpRequest& request)
@@ -1324,7 +1324,7 @@ HttpResponse ServerController::createStaticFolderResponse(const QString path, co
 		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_HTML, "Requested folder does not exist");
 	}
 
-	QString base_folder_url = NGSHelper::serverApiUrl() + request.getPath();
+	QString base_folder_url = ClientHelper::serverApiUrl() + request.getPath();
 	if (!base_folder_url.endsWith("/"))
 	{
 		base_folder_url = base_folder_url + "/";

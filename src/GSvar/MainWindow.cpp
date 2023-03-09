@@ -46,6 +46,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "SubpanelArchiveDialog.h"
 #include "IgvDialog.h"
 #include "GapDialog.h"
+#include "EmailDialog.h"
 #include "CnvWidget.h"
 #include "CnvList.h"
 #include "RohWidget.h"
@@ -141,6 +142,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "VirusDetectionWidget.h"
 #include "SomaticcfDNAReport.h"
 #include "MaintenanceDialog.h"
+#include "ClientHelper.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -273,7 +275,7 @@ MainWindow::MainWindow(QWidget *parent)
 	QDir::setCurrent(QDir::tempPath());
 
 	//enable timers needed in client-server mode
-	if (NGSHelper::isClientServerMode())
+	if (ClientHelper::isClientServerMode())
 	{
 		// renew existing session, if it is about to expire
 		// a new token will be requested slightly in advance
@@ -325,7 +327,7 @@ QString MainWindow::appName() const
 
 bool MainWindow::isServerRunning()
 {
-	ServerInfo server_info = NGSHelper::getServerInfo();
+	ServerInfo server_info = ClientHelper::getServerInfo();
 
 	if (server_info.isEmpty())
 	{
@@ -333,9 +335,9 @@ bool MainWindow::isServerRunning()
 		return false;
 	}
 
-	if (NGSHelper::serverApiVersion() != server_info.api_version)
+	if (ClientHelper::serverApiVersion() != server_info.api_version)
 	{
-		QMessageBox::warning(this, "Version mismatch", "GSvar uses API " + NGSHelper::serverApiVersion() + ", while the server uses API " + server_info.api_version + ". No stable work can be guaranteed. The application will be closed");
+		QMessageBox::warning(this, "Version mismatch", "GSvar uses API " + ClientHelper::serverApiVersion() + ", while the server uses API " + server_info.api_version + ". No stable work can be guaranteed. The application will be closed");
 		return false;
 	}
 
@@ -352,7 +354,7 @@ void MainWindow::checkServerAvailability()
 
 void MainWindow::checkUserNotifications()
 {
-	UserNotification user_notification = NGSHelper::getUserNotification();
+	UserNotification user_notification = ClientHelper::getUserNotification();
 
 	if (user_notification.id.isEmpty() || user_notification.message.isEmpty()) return;
 	if ((!displayed_maintenance_message_id_.isEmpty()) && (displayed_maintenance_message_id_ == user_notification.id)) return;
@@ -363,9 +365,9 @@ void MainWindow::checkUserNotifications()
 
 void MainWindow::checkClientUpdates()
 {
-	if (!NGSHelper::isClientServerMode()) return;
+	if (!ClientHelper::isClientServerMode()) return;
 
-	ClientInfo client_info = NGSHelper::getClientInfo();
+	ClientInfo client_info = ClientHelper::getClientInfo();
 	if (client_info.isEmpty())
 	{
 		Log::warn("Could not retrieve updates information from the server");
@@ -2338,7 +2340,7 @@ void MainWindow::delayedInitialization()
 	}
 
 	//close the app if the server is not available
-	if (NGSHelper::isClientServerMode())
+	if (ClientHelper::isClientServerMode())
 	{
 		if (!isServerRunning())
 		{
@@ -2367,14 +2369,14 @@ void MainWindow::delayedInitialization()
 	}
 
 	QString virus_genome;
-	if (!NGSHelper::isClientServerMode())
+	if (!ClientHelper::isClientServerMode())
 	{
 	   virus_genome = Settings::string("igv_virus_genome", true);
 	   if (virus_genome.isEmpty()) QMessageBox::information(this, "Virus genome not set", "Virus genome path is missing from the settings!");
 	}
 	else
 	{
-	   virus_genome = NGSHelper::serverApiUrl() + "genome/somatic_viral.fa";
+	   virus_genome = ClientHelper::serverApiUrl() + "genome/somatic_viral.fa";
 	}
 	// Default IGV session (variants)
 	IgvSessionManager::createIGVSession(IgvSessionManager::findAvailablePortForIGV(), false, Settings::path("igv_genome"));
@@ -2460,12 +2462,12 @@ void MainWindow::prepareAndRunIGVCommands(QAbstractSocket& socket, QStringList f
 	init_commands.append("genome " + IgvSessionManager::getIGVGenome(session_index));
 	init_commands.append("setSleepInterval 1500");
 	init_commands.append("new");
-	if (NGSHelper::isClientServerMode()) init_commands.append("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*");
+	if (ClientHelper::isClientServerMode()) init_commands.append("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*");
 
 	//load non-BAM files
 	foreach(QString file, files_to_load)
 	{
-		if (!NGSHelper::isBamFile(file)) init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
+		if (!ClientHelper::isBamFile(file)) init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
 	}
 
 	//collapse tracks
@@ -2475,7 +2477,7 @@ void MainWindow::prepareAndRunIGVCommands(QAbstractSocket& socket, QStringList f
 	//load BAM files
 	foreach(QString file, files_to_load)
 	{
-		if (NGSHelper::isBamFile(file)) init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
+		if (ClientHelper::isBamFile(file)) init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
 	}
 	init_commands.append("viewaspairs");
 	init_commands.append("colorBy UNEXPECTED_PAIR");
@@ -3996,10 +3998,10 @@ void MainWindow::on_actionAbout_triggered()
 
 	//client-server infos
 	about_text += "\n";
-	if (NGSHelper::isClientServerMode())
+	if (ClientHelper::isClientServerMode())
 	{
 		about_text += "\nMode: client-server";
-		ServerInfo server_info = NGSHelper::getServerInfo();
+		ServerInfo server_info = ClientHelper::getServerInfo();
 		about_text += "\nServer version: " + server_info.version;
 		about_text += "\nAPI version: " + server_info.api_version;
 		about_text += "\nServer start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
@@ -5940,6 +5942,40 @@ void MainWindow::on_actionMaintenance_triggered()
 	dlg->exec();
 }
 
+void MainWindow::on_actionNotifyUsers_triggered()
+{
+	try
+	{
+		LoginManager::checkRoleIn(QStringList{"admin"});
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, "Permissions error", e.message());
+		return;
+	}
+
+	NGSD db;
+	QStringList to, body;
+	to = db.getValues("SELECT email from user WHERE user_role<>'special' AND active='1'");
+
+	QStringList excluded_emails = {"restricted_user@med.uni-tuebingen.de"};
+	foreach (QString email, excluded_emails)
+	{
+		int email_pos = to.indexOf(email);
+		if (email_pos>-1) to.removeAt(email_pos);
+	}
+
+	QString subject = "GSvar update";
+	body << "Dear all,";
+	body << "";
+	body << "";
+	body << "Best regards,";
+	body << LoginManager::userName();
+
+	EmailDialog dlg(this, to, subject, body);
+	dlg.exec();
+}
+
 void MainWindow::on_actionCohortAnalysis_triggered()
 {
 	CohortAnalysisWidget* widget = new CohortAnalysisWidget(this);
@@ -7266,7 +7302,7 @@ void MainWindow::storeCurrentVariantList()
 			add_headers.insert("Content-Length", QByteArray::number(json_doc.toJson().count()));
 
 			QString reply = HttpHandler(HttpRequestHandler::NONE).put(
-						NGSHelper::serverApiUrl() + "project_file?ps_url_id=" + ps_url_id + "&token=" + LoginManager::userToken(),
+						ClientHelper::serverApiUrl() + "project_file?ps_url_id=" + ps_url_id + "&token=" + LoginManager::userToken(),
 						json_doc.toJson(),
 						add_headers
 					);
@@ -7731,7 +7767,7 @@ QString MainWindow::normalSampleName()
 QString MainWindow::getFileSelectionItem(QString window_title, QString label_text, QStringList file_list, bool *ok)
 {
 	QStringList rna_count_files_displayed_names = file_list;
-	if (NGSHelper::isClientServerMode())
+	if (ClientHelper::isClientServerMode())
 	{
 		rna_count_files_displayed_names.clear();
 		foreach (QString full_name, file_list)
@@ -7741,7 +7777,7 @@ QString MainWindow::getFileSelectionItem(QString window_title, QString label_tex
 	}
 
 	QString selected_file_name = QInputDialog::getItem(this, window_title, label_text, rna_count_files_displayed_names, 0, false, ok);
-	if (NGSHelper::isClientServerMode())
+	if (ClientHelper::isClientServerMode())
 	{
 		int selection_index = rna_count_files_displayed_names.indexOf(selected_file_name);
 		if (selection_index>-1) return file_list[selection_index];

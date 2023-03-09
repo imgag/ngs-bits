@@ -6,6 +6,7 @@
 #include "Settings.h"
 #include "Exceptions.h"
 #include "Log.h"
+#include "ClientHelper.h"
 
 QMap<QString, TableInfo> GenLabDB::infos_;
 
@@ -19,7 +20,7 @@ GenLabDB::GenLabDB()
 	QString pass;
 
 	//get settings
-	if (NGSHelper::isClientServerMode() && !NGSHelper::isRunningOnServer())
+	if (ClientHelper::isClientServerMode() && !ClientHelper::isRunningOnServer())
 	{
 		genlab_mssql = LoginManager::genlab_mssql();
 		host = LoginManager::genlabHost();
@@ -76,7 +77,7 @@ bool GenLabDB::isOpen() const
 
 bool GenLabDB::isAvailable()
 {
-	if (NGSHelper::isClientServerMode() && !NGSHelper::isRunningOnServer())
+	if (ClientHelper::isClientServerMode() && !ClientHelper::isRunningOnServer())
 	{
 		return true;
 	}

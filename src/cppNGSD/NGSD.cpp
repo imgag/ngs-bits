@@ -21,6 +21,7 @@
 #include <QThread>
 #include "cmath"
 #include "QUuid"
+#include "ClientHelper.h"
 
 NGSD::NGSD(bool test_db, QString name_suffix)
 	: test_db_(test_db)
@@ -30,7 +31,7 @@ NGSD::NGSD(bool test_db, QString name_suffix)
 
 	//connect to DB
 	QString db_name;
-	if (NGSHelper::isClientServerMode() && !NGSHelper::isRunningOnServer() && !test_db_) //get credentials from server in client-server mode
+	if (ClientHelper::isClientServerMode() && !ClientHelper::isRunningOnServer() && !test_db_) //get credentials from server in client-server mode
 	{
 		db_->setHostName(LoginManager::ngsdHostName());
 		db_->setPort(LoginManager::ngsdPort());
@@ -60,7 +61,7 @@ NGSD::NGSD(bool test_db, QString name_suffix)
 
 bool NGSD::isAvailable(bool test_db)
 {
-	if (!test_db && NGSHelper::isClientServerMode() && !NGSHelper::isRunningOnServer())
+	if (!test_db && ClientHelper::isClientServerMode() && !ClientHelper::isRunningOnServer())
 	{
 		return true;
 	}

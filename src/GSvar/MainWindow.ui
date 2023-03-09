@@ -511,6 +511,7 @@
      <addaction name="separator"/>
      <addaction name="actionReplicateNGSD"/>
      <addaction name="actionMaintenance"/>
+     <addaction name="actionNotifyUsers"/>
     </widget>
     <widget class="QMenu" name="menuBatch_import">
      <property name="title">
@@ -1478,6 +1479,11 @@
   <action name="actionMaintenance">
    <property name="text">
     <string>Maintenance</string>
+   </property>
+  </action>
+  <action name="actionNotifyUsers">
+   <property name="text">
+    <string>Notify users</string>
    </property>
   </action>
  </widget>

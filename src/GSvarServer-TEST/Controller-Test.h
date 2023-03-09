@@ -20,7 +20,7 @@ private slots:
 		IS_TRUE(response.getStatusLine().contains("200"));
 		S_EQUAL(json_doc.object()["name"].toString(), ToolBase::applicationName());
 		S_EQUAL(json_doc.object()["version"].toString(), ToolBase::version());
-		S_EQUAL(json_doc.object()["api_version"].toString(), NGSHelper::serverApiVersion());
+		S_EQUAL(json_doc.object()["api_version"].toString(), ClientHelper::serverApiVersion());
     }
 
 	void test_saving_gsvar_file()
