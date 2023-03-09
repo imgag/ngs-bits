@@ -519,7 +519,7 @@ void MainWindow::on_actionDebug_triggered()
 				//get phenotype infos from NGSD
 				QStringList tmp_icd10;
 				QStringList tmp_phenotype;
-				for( const auto& entry : db.getSampleDiseaseInfo(db.sampleId(ps_tumor)) )
+				foreach(const auto& entry, db.getSampleDiseaseInfo(db.sampleId(ps_tumor)) )
 				{
 					if(entry.type == "ICD10 code") tmp_icd10.append(entry.disease_info);
 					if(entry.type == "clinical phenotype (free text)") tmp_phenotype.append(entry.disease_info);
@@ -2368,19 +2368,19 @@ void MainWindow::delayedInitialization()
 		}
 	}
 
+	//create default IGV session (variants)
+	IgvSessionManager::createIGVSession(IgvSessionManager::findAvailablePortForIGV(), false, Settings::path("igv_genome"));
+	//create IGV session for virus detection
 	QString virus_genome;
 	if (!ClientHelper::isClientServerMode())
 	{
-	   virus_genome = Settings::string("igv_virus_genome", true);
-	   if (virus_genome.isEmpty()) QMessageBox::information(this, "Virus genome not set", "Virus genome path is missing from the settings!");
+		virus_genome = Settings::string("igv_virus_genome", true);
+		if (virus_genome.isEmpty()) QMessageBox::information(this, "Virus genome not set", "Virus genome path is missing from the settings!");
 	}
 	else
 	{
 	   virus_genome = ClientHelper::serverApiUrl() + "genome/somatic_viral.fa";
 	}
-	// Default IGV session (variants)
-	IgvSessionManager::createIGVSession(IgvSessionManager::findAvailablePortForIGV(), false, Settings::path("igv_genome"));
-	// IGV session for virus detection
 	IgvSessionManager::createIGVSession(IgvSessionManager::findAvailablePortForIGV(), false, virus_genome);
 
 	//init GUI
@@ -2585,7 +2585,7 @@ bool MainWindow::prepareNormalIGV(QAbstractSocket& socket)
 	if (analysis_type==SOMATIC_SINGLESAMPLE || analysis_type==SOMATIC_PAIR)
 	{
 		FileLocationList som_low_cov_files = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFiles(false);
-		for(const FileLocation& loc : som_low_cov_files)
+		foreach(const FileLocation& loc, som_low_cov_files)
 		{
 			if(loc.filename.contains("somatic_custom_panel_stat"))
 			{
@@ -4636,7 +4636,7 @@ void MainWindow::generateReportSomaticRTF()
 	QStringList tmp_icd10;
 	QStringList tmp_phenotype;
 	QStringList tmp_rna_ref_tissue;
-	for( const auto& entry : db.getSampleDiseaseInfo(db.sampleId(ps_tumor)) )
+	foreach(const auto& entry, db.getSampleDiseaseInfo(db.sampleId(ps_tumor)))
 	{
 		if(entry.type == "ICD10 code") tmp_icd10.append(entry.disease_info);
 		if(entry.type == "clinical phenotype (free text)") tmp_phenotype.append(entry.disease_info);
@@ -4655,9 +4655,9 @@ void MainWindow::generateReportSomaticRTF()
 		dlg.enableChoiceRnaReportType(true);
 
 		QStringList rna_names;
-		for(int rna_id : rna_ids)
+		foreach(int rna_id, rna_ids)
 		{
-			for ( const auto& rna_ps_id : db.getValues("SELECT id FROM processed_sample WHERE sample_id=" + QString::number(rna_id)) )
+			foreach(const auto& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=" + QString::number(rna_id)) )
 			{
 				rna_names << db.processedSampleName(rna_ps_id);
 			}
@@ -4847,7 +4847,7 @@ void MainWindow::generateReportSomaticRTF()
 			}
 
 			//Look in tumor sample for HPA reference tissue
-			for( const auto& entry : db.getSampleDiseaseInfo(db.sampleId(dlg.getRNAid())) )
+			foreach(const auto& entry, db.getSampleDiseaseInfo(db.sampleId(dlg.getRNAid())) )
 			{
 				if(entry.type == "RNA reference tissue") tmp_rna_ref_tissue.append(entry.disease_info);
 			}
@@ -7615,7 +7615,7 @@ void MainWindow::applyFilters(bool debug_time)
 		//keep somatic variants that are marked with "include" in report settings (overrides possible filtering for that variant)
 		if( somaticReportSupported() && rc_filter != ReportConfigFilter::NO_RC)
 		{
-			for(int index : somatic_report_settings_.report_config.variantIndices(VariantType::SNVS_INDELS, false))
+			foreach(int index, somatic_report_settings_.report_config.variantIndices(VariantType::SNVS_INDELS, false))
 			{
 				filter_result_.flags()[index] = filter_result_.flags()[index] || somatic_report_settings_.report_config.variantConfig(index, VariantType::SNVS_INDELS).showInReport();
 			}

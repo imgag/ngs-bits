@@ -365,7 +365,7 @@ void ChunkProcessor::run()
 		//process data
 		QList<QByteArray> lines_new;
 		lines_new.reserve(job_.lines.size());
-		for(const QByteArray& line : job_.lines)
+		foreach(const QByteArray& line, job_.lines)
 		{
 			if (line.trimmed().isEmpty())  continue;
 

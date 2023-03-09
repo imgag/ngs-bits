@@ -2928,7 +2928,7 @@ void NGSD::executeQueriesFromFile(QString filename)
 {
 	QStringList lines = Helper::loadTextFile(filename, true);
 	QString query = "";
-	for(const QString& line : lines)
+	foreach(const QString& line, lines)
 	{
 		if (line.isEmpty()) continue;
 		if (line.startsWith("--")) continue;
@@ -7517,7 +7517,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 	query_cnv.prepare("INSERT INTO `somatic_report_configuration_cnv` (`somatic_report_configuration_id`, `somatic_cnv_id`, `exclude_artefact`, `exclude_low_tumor_content`, `exclude_low_copy_number`, `exclude_high_baf_deviation`, `exclude_other_reason`, `comment`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7)");
 
 
-	for(const auto& var_conf : config.variantConfig())
+	foreach(const auto& var_conf, config.variantConfig())
 	{
 		if(var_conf.variant_type == VariantType::SNVS_INDELS)
 		{
@@ -7593,7 +7593,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 
 		query_germl_var.prepare("INSERT INTO `somatic_report_configuration_germl_var` (`somatic_report_configuration_id`, `variant_id`, `tum_freq`, `tum_depth`) VALUES (:0, :1, :2, :3)");
 
-		for(const auto& var_conf : config.variantConfigGermline())
+		foreach(const auto& var_conf, config.variantConfigGermline())
 		{
 			//check whether indices exist in variant list
 			if(var_conf.variant_index<0 || var_conf.variant_index >= germl_snvs.count())

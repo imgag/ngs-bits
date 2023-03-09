@@ -289,7 +289,7 @@ void BedpeFile::parseHeader(const TSVFileStream& file)
 {
 	//comments
 	headers_ = file.comments();
-	for(const QByteArray& comment : headers_)
+	foreach(const QByteArray& comment, headers_)
 	{
 		if(comment.startsWith("##DESCRIPTION="))
 		{
@@ -503,12 +503,12 @@ QMap <QByteArray,QByteArray> BedpeFile::metaInfoDescriptionByID(const QByteArray
 void BedpeFile::toTSV(QString file_name)
 {
 	QSharedPointer<QFile> file = Helper::openFileForWriting(file_name,false,false);
-	for(const QByteArray& comment : headers_)
+	foreach(const QByteArray& comment, headers_)
 	{
 		file->write(comment + "\n");
 	}
 	file->write("#CHROM_A\tSTART_A\tEND_A\tCHROM_B\tSTART_B\tEND_B\t" + annotation_headers_.join("\t") + "\n");
-	for(const BedpeLine& line : lines_)
+	foreach(const BedpeLine& line, lines_)
 	{
 		file->write(line.toTsv() +"\n");
 	}
@@ -523,7 +523,7 @@ void BedpeFile::sort()
 
 BedpeFileFormat BedpeFile::format() const
 {
-	for(const QByteArray& comment : headers_)
+	foreach(const QByteArray& comment, headers_)
 	{
 		if(comment.contains("fileformat=BEDPE_TUMOR_NORMAL_PAIR")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL;
 		if(comment.contains("fileformat=BEDPE_TUMOR_ONLY")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY;
@@ -550,7 +550,7 @@ bool BedpeFile::isSomatic() const
 QByteArray BedpeFile::build()
 {
 	//parse header line, e.g. "##reference=file:///tmp/local_ngs_data/GRCh37.fa"
-	for(QByteArray line : headers_)
+	foreach(const QByteArray& line, headers_)
 	{
 		if (line.startsWith("##reference="))
 		{
