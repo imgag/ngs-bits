@@ -290,11 +290,14 @@ MainWindow::MainWindow(QWidget *parent)
 
 
 		//check if there are new notifications for the users
-		QTimer *user_notification_timer = new QTimer(this);
-		connect(user_notification_timer, SIGNAL(timeout()), this, SLOT(checkUserNotifications()));
-		user_notification_timer->start(12 * 60 * 1000); // every 12 minutes
+		if (Settings::boolean("display_user_notifications", true))
+		{
+			QTimer *user_notification_timer = new QTimer(this);
+			connect(user_notification_timer, SIGNAL(timeout()), this, SLOT(checkUserNotifications()));
+			user_notification_timer->start(12 * 60 * 1000); // every 12 minutes
+		}
 
-		displayed_maintenance_message_id_;
+		displayed_maintenance_message_id_ = "";
 	}
 
 	connect(ui_.vars, SIGNAL(publishToClinvarTriggered(int, int)), this, SLOT(uploadToClinvar(int, int)));

@@ -160,10 +160,10 @@ QByteArray ServerWrapper::readUserNotificationFromFile()
 	QByteArray content;
 	try
 	{
-		QSharedPointer<QFile> client_info_file = Helper::openFileForReading(QCoreApplication::applicationDirPath() + QDir::separator() + NOTIFICATION_FILE, false);
-		while(!client_info_file->atEnd())
+		QSharedPointer<QFile> notification_file = Helper::openFileForReading(QCoreApplication::applicationDirPath() + QDir::separator() + NOTIFICATION_FILE, false);
+		while(!notification_file->atEnd())
 		{
-			QString line = client_info_file->readLine().trimmed();
+			QString line = notification_file->readLine().trimmed();
 			content.append(line);
 		}
 	}

@@ -184,10 +184,7 @@ UserNotification SessionManager::getCurrentNotification()
 
 void SessionManager::setCurrentNotification(QString message)
 {
-	if (!message.isEmpty())
-	{
-		instance().mutex_.lock();
-		instance().current_notification_ = UserNotification(ServerHelper::generateUniqueStr(), message);
-		instance().mutex_.unlock();
-	}
+	instance().mutex_.lock();
+	instance().current_notification_ = UserNotification(ServerHelper::generateUniqueStr(), message);
+	instance().mutex_.unlock();
 }
