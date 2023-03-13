@@ -433,22 +433,21 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 	QString found_file_path;
 	try
 	{
-		NGSD db;
 		int id = request.getUrlParams()["ps_id"].toInt();
-		ps_name = db.processedSampleName(request.getUrlParams()["ps_id"]);
+		ps_name = NGSD().processedSampleName(request.getUrlParams()["ps_id"]);
 		Session current_session = SessionManager::getSessionBySecureToken(request.getUrlParams()["token"]);
 
 		//access restricted only for user role 'user_restricted'
-		QString role = db.getUserRole(current_session.user_id);
+		QString role = NGSD().getUserRole(current_session.user_id);
 		if (role=="user_restricted")
 		{
-			if (!db.userCanAccess(current_session.user_id, id))
+			if (!NGSD().userCanAccess(current_session.user_id, id))
 			{
 				return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "You do not have permissions to open this sample");
 			}
 		}
 
-		found_file_path =  db.processedSamplePath(QString::number(id), type);
+		found_file_path =  NGSD().processedSamplePath(QString::number(id), type);
 	}
 	catch (Exception& e)
 	{
@@ -484,11 +483,10 @@ HttpResponse ServerController::getAnalysisJobGSvarFile(const HttpRequest& reques
 
 	try
 	{
-		NGSD db;
 		int job_id = request.getUrlParams()["job_id"].toInt();
-		AnalysisJob job = db.analysisInfo(job_id, true);
-		ps_name = db.processedSampleName(db.processedSampleId(job.samples[0].name));
-		found_file_path = db.analysisJobGSvarFile(job_id);
+		AnalysisJob job = NGSD().analysisInfo(job_id, true);
+		ps_name = NGSD().processedSampleName(NGSD().processedSampleId(job.samples[0].name));
+		found_file_path = NGSD().analysisJobGSvarFile(job_id);
 	}
 	catch (Exception& e)
 	{
@@ -520,7 +518,17 @@ HttpResponse ServerController::getAnalysisJobLastUpdate(const HttpRequest& reque
 	QString last_update;
 	QJsonDocument json_doc_output;
 	QJsonObject last_update_as_json_object;
-	FileInfo log_info = NGSD().analysisJobLatestLogInfo(job_id);
+	FileInfo log_info;
+
+	try
+	{
+		log_info = NGSD().analysisJobLatestLogInfo(job_id);
+	}
+	catch(Exception& e)
+	{
+		Log::error("Error while reading the analysis job latest log info:" + e.message());
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), e.message());
+	}
 
 	if (!log_info.isEmpty())
 	{
@@ -544,10 +552,9 @@ HttpResponse ServerController::getAnalysisJobLog(const HttpRequest& request)
 
 	try
 	{
-		NGSD db;
 		int job_id = request.getUrlParams()["job_id"].toInt();
-		AnalysisJob job = db.analysisInfo(job_id, true);
-		QString id = db.processedSampleName(db.processedSampleId(job.samples[0].name));
+		AnalysisJob job = NGSD().analysisInfo(job_id, true);
+		QString id = NGSD().processedSampleName(NGSD().processedSampleId(job.samples[0].name));
 		QString log = NGSD().analysisJobLatestLogInfo(job_id).file_name_with_path;
 
 		analysis_job_log_file = FileLocation(id, PathType::OTHER, createTempUrl(log, request.getUrlParams()["token"]), QFile::exists(log));
@@ -901,7 +908,18 @@ HttpResponse ServerController::getMultiSampleAnalysisInfo(const HttpRequest& req
 				foreach(const SampleInfo& info, vl.getSampleHeader())
 				{					
 					ps_sample_name_array.append(info.id);
-					ps_sample_id_array.append(NGSD().processedSampleId(info.id));
+					QString current_ps_id;
+					try
+					{
+						current_ps_id = NGSD().processedSampleId(info.id);
+					}
+					catch (Exception& e)
+					{
+						Log::error("Error while looking for the processed sample id for a multisample analysis:" + e.message());
+						return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), e.message());
+					}
+
+					ps_sample_id_array.append(current_ps_id);
 				}
 				multi_sample_analysis_info_object.insert("ps_sample_name_list", ps_sample_name_array);
 				multi_sample_analysis_info_object.insert("ps_sample_id_list", ps_sample_id_array);
@@ -926,14 +944,34 @@ HttpResponse ServerController::performLogin(const HttpRequest& request)
 		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "No username or/and password were found");
 	}
 
-	NGSD db;
 	QString user_name = request.getFormUrlEncoded()["name"];
-	QString message = db.checkPassword(user_name, request.getFormUrlEncoded()["password"]);
+	QString message;
+	try
+	{
+		message = NGSD().checkPassword(user_name, request.getFormUrlEncoded()["password"]);
+	}
+	catch (Exception& e)
+	{
+		Log::error("Error while checking the user password:" + e.message());
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), e.message());
+	}
+
 	if (message.isEmpty())
 	{
 		QString secure_token = ServerHelper::generateUniqueStr();
-		Session cur_session = Session(db.userId(user_name), QDateTime::currentDateTime(), false);
 
+		int user_id;
+		try
+		{
+			user_id = NGSD().userId(user_name);
+		}
+		catch(Exception& e)
+		{
+			Log::error("Error while getting user id:" + e.message());
+			return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), e.message());
+		}
+
+		Session cur_session = Session(user_id, QDateTime::currentDateTime(), false);
 		SessionManager::addNewSession(secure_token, cur_session);
 		QByteArray body = secure_token.toUtf8();
 
@@ -977,7 +1015,16 @@ HttpResponse ServerController::getSessionInfo(const HttpRequest& request)
 
 HttpResponse ServerController::validateCredentials(const HttpRequest& request)
 {
-	QString message = NGSD().checkPassword(request.getFormUrlEncoded()["name"], request.getFormUrlEncoded()["password"]);
+	QString message;
+	try
+	{
+		message = NGSD().checkPassword(request.getFormUrlEncoded()["name"], request.getFormUrlEncoded()["password"]);
+	}
+	catch (Exception& e)
+	{
+		Log::error("Error while checking the user password:" + e.message());
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), e.message());
+	}
 
 	QByteArray body = message.toUtf8();
 	BasicResponseData response_data;
@@ -1061,7 +1108,8 @@ HttpResponse ServerController::performLogout(const HttpRequest& request)
 		try
 		{
 			SessionManager::removeSession(request.getFormUrlEncoded()["token"]);
-		} catch (Exception& e)
+		}
+		catch (Exception& e)
 		{
 			return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, request.getContentType(), e.message());
 		}
@@ -1072,8 +1120,15 @@ HttpResponse ServerController::performLogout(const HttpRequest& request)
 		response_data.content_type = request.getContentType();
 		response_data.is_downloadable = false;
 
-		Session current_session = SessionManager::getSessionBySecureToken(request.getFormUrlEncoded()["token"]);
-		if (!current_session.isEmpty()) Log::info("User " + NGSD().userName(current_session.user_id) + " has logged out");
+		Session current_session = SessionManager::getSessionBySecureToken(request.getFormUrlEncoded()["token"]);	
+		try
+		{
+			if (!current_session.isEmpty()) Log::info("User " + NGSD().userName(current_session.user_id) + " has logged out");
+		}
+		catch (Exception& e)
+		{
+			return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, request.getContentType(), e.message());
+		}
 		return HttpResponse(response_data, body);
 	}
 	return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "You have provided an invalid token");
@@ -1082,7 +1137,18 @@ HttpResponse ServerController::performLogout(const HttpRequest& request)
 HttpResponse ServerController::getProcessingSystemRegions(const HttpRequest& request)
 {
 	QString sys_id = request.getUrlParams()["sys_id"];
-	QString filename = NGSD().processingSystemRegionsFilePath(sys_id.toInt());
+	QString filename;
+
+	try
+	{
+		filename = NGSD().processingSystemRegionsFilePath(sys_id.toInt());
+	}
+	catch(Exception& e)
+	{
+		Log::error("Error while getting the processing system regions file path:" + e.message());
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), e.message());
+	}
+
 	if (filename.isEmpty())
 	{
 		return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Processing system regions file has not been found");
@@ -1093,7 +1159,18 @@ HttpResponse ServerController::getProcessingSystemRegions(const HttpRequest& req
 HttpResponse ServerController::getProcessingSystemAmplicons(const HttpRequest& request)
 {
 	QString sys_id = request.getUrlParams()["sys_id"];
-	QString filename = NGSD().processingSystemAmpliconsFilePath(sys_id.toInt());
+	QString filename;
+
+	try
+	{
+		filename = NGSD().processingSystemAmpliconsFilePath(sys_id.toInt());
+	}
+	catch(Exception& e)
+	{
+		Log::error("Error while getting the processing system amplicons file path:" + e.message());
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), e.message());
+	}
+
 	if (filename.isEmpty())
 	{
 		return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Processing system amplicons file has not been found");
@@ -1104,7 +1181,18 @@ HttpResponse ServerController::getProcessingSystemAmplicons(const HttpRequest& r
 HttpResponse ServerController::getProcessingSystemGenes(const HttpRequest& request)
 {
 	QString sys_id = request.getUrlParams()["sys_id"];
-	QString filename = NGSD().processingSystemGenesFilePath(sys_id.toInt());
+	QString filename;
+
+	try
+	{
+		filename = NGSD().processingSystemGenesFilePath(sys_id.toInt());
+	}
+	catch(Exception& e)
+	{
+		Log::error("Error while getting the processing system genes file path:" + e.message());
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), e.message());
+	}
+
 	if (filename.isEmpty())
 	{
 		return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Processing system genes file has not been found");
@@ -1153,13 +1241,21 @@ HttpResponse ServerController::getSecondaryAnalyses(const HttpRequest& request)
 HttpResponse ServerController::getRnaFusionPics(const HttpRequest& request)
 {
 	QString rna_id = request.getUrlParams()["rna_id"];
-	NGSD db;
-	QString ps_id = db.processedSampleId(rna_id);
-	if (ps_id.isEmpty())
+	QString ps_id;
+	QString filename;
+	try
 	{
-		return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Could not find a processed sample id " + rna_id);
+		ps_id = NGSD().processedSampleId(rna_id);
+		if (ps_id.isEmpty())
+		{
+			return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Could not find a processed sample id " + rna_id);
+		}
+		filename = NGSD().processedSamplePath(ps_id, PathType::FUSIONS_PIC_DIR);
 	}
-	QString filename = db.processedSamplePath(ps_id, PathType::FUSIONS_PIC_DIR);
+	catch(Exception& e)
+	{
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Could not get secondary analyses from the database");
+	}
 
 	if (filename.isEmpty())
 	{
@@ -1188,13 +1284,21 @@ HttpResponse ServerController::getRnaFusionPics(const HttpRequest& request)
 HttpResponse ServerController::getRnaExpressionPlots(const HttpRequest& request)
 {
 	QString rna_id = request.getUrlParams()["rna_id"];
-	NGSD db;
-	QString ps_id = db.processedSampleId(rna_id);
-	if (ps_id.isEmpty())
+	QString ps_id;
+	QString filename;
+	try
 	{
-		return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Could not find a processed sample id " + rna_id);
+		ps_id = NGSD().processedSampleId(rna_id);
+		if (ps_id.isEmpty())
+		{
+			return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Could not find a processed sample id " + rna_id);
+		}
+		filename = NGSD().processedSamplePath(ps_id, PathType::SAMPLE_FOLDER);
 	}
-	QString filename = db.processedSamplePath(ps_id, PathType::SAMPLE_FOLDER);
+	catch(Exception& e)
+	{
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Could not get secondary analyses from the database");
+	}
 
 	if (filename.isEmpty())
 	{
