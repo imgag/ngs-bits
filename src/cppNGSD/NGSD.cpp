@@ -1039,7 +1039,7 @@ QString NGSD::projectFolder(QString type)
 QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType type)
 {
 	SqlQuery query = getQuery();
-	query.prepare("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name, sys.name_short FROM processed_sample ps, sample s, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.project_id=p.id AND ps.id=:0");
+	query.prepare("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), ps.folder_override, p.type, p.name, sys.name_short FROM processed_sample ps, sample s, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.project_id=p.id AND ps.id=:0");
 	query.bindValue(0, processed_sample_id);
 	query.exec();
 	if (query.size()==0) THROW(DatabaseException, "Processed sample with id '" + processed_sample_id + "' not found in NGSD!");
@@ -1047,11 +1047,21 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 
 	//create sample folder
 	QString ps_name = query.value(0).toString();
-	QString p_type = query.value(1).toString();
-	QString output = projectFolder(p_type);
-	QString p_name = query.value(2).toString();
-	output += p_name + QDir::separator() + "Sample_" + ps_name + QDir::separator();
-	QString sys_name_short = query.value(3).toString();
+	QString ps_folder_override = query.value(1).toString();
+	QString output;
+	if (!ps_folder_override.isEmpty())
+	{
+		output = ps_folder_override;
+		if (!output.endsWith(QDir::separator())) output += QDir::separator();
+	}
+	else
+	{
+		QString p_type = query.value(2).toString();
+		output = projectFolder(p_type);
+		QString p_name = query.value(3).toString();
+		output += p_name + QDir::separator() + "Sample_" + ps_name + QDir::separator();
+	}
+	QString sys_name_short = query.value(4).toString();
 
 	//append file name if requested
 	if (type==PathType::BAM) output += ps_name + ".bam";
