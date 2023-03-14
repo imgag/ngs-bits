@@ -10,6 +10,7 @@
 #include <QSslSocket>
 #include <QStandardPaths>
 #include <QTimer>
+#include <QFileSystemWatcher>
 
 #include "Log.h"
 #include "SslServer.h"
@@ -20,10 +21,15 @@ class CPPRESTSHARED_EXPORT ServerWrapper : public QObject
     Q_OBJECT
 
 public:
-	ServerWrapper(const quint16& port, const bool& insecure = false);
+	const QString CLIENT_INFO_FILE = QCoreApplication::applicationName().replace(".exe", "") + "_client.json";
+	ServerWrapper(const quint16& port);
 	bool isRunning() const;
 
+public slots:
+	void updateClientInfo(QString str);
+
 private:
+	ClientInfo readClientInfoFromFile();
 	SslServer *server_;
 	bool is_running_;
 };

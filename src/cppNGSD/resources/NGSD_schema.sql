@@ -17,11 +17,13 @@ CREATE TABLE IF NOT EXISTS `gene`
 `name` TEXT NOT NULL,
 `type` enum('protein-coding gene','pseudogene','non-coding RNA','other') NOT NULL,
 `ensembl_id` varchar(40) DEFAULT NULL,
+`ncbi_id` int(10) DEFAULT NULL,
 
 PRIMARY KEY (`id`), 
 UNIQUE KEY `hgnc_id` (`hgnc_id`),
 UNIQUE KEY `symbol` (`symbol`),
 UNIQUE KEY `ensembl_id` (`ensembl_id`),
+UNIQUE KEY `ncbi_id` (`ncbi_id`),
 KEY `type` (`type`)
 )
 ENGINE=InnoDB DEFAULT
@@ -217,7 +219,7 @@ CREATE  TABLE IF NOT EXISTS `sequencing_run`
   `device_id` INT(11) NOT NULL,
   `recipe` VARCHAR(45) NOT NULL COMMENT 'Read length for reads and index reads separated by \'+\'',
   `pool_molarity` float DEFAULT NULL,
-  `pool_quantification_method` enum('n/a','Tapestation','Bioanalyzer','qPCR','Tapestation & Qubit','Bioanalyzer & Qubit','Bioanalyzer & Tecan Infinite','Fragment Analyzer & Qubit','Fragment Analyzer & Tecan Infinite','Illumina 450bp & Qubit ssDNA','PCR Size & ssDNA') NOT NULL DEFAULT 'n/a',
+  `pool_quantification_method` enum('n/a','Tapestation','Bioanalyzer','qPCR','Tapestation & Qubit','Bioanalyzer & Qubit','Bioanalyzer & Tecan Infinite','Fragment Analyzer & Qubit','Fragment Analyzer & Tecan Infinite','Illumina 450bp & Qubit ssDNA','PCR Size & ssDNA','FemtoPulse & Qubit') NOT NULL DEFAULT 'n/a',
   `comment` TEXT NULL DEFAULT NULL,
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
   `status` ENUM('n/a','run_started','run_finished','run_aborted','demultiplexing_started','analysis_started','analysis_finished','analysis_not_possible','analysis_and_backup_not_required') NOT NULL DEFAULT 'n/a',

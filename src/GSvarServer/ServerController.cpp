@@ -40,7 +40,7 @@ HttpResponse ServerController::serveStaticFromServerRoot(const HttpRequest& requ
 
 HttpResponse ServerController::serveStaticServerGenomes(const HttpRequest& request)
 {
-	return createStaticLocationResponse(findPathForServerFolder(request.getPathItems(), ServerHelper::getStringSettingsValue("server_genomes")), request);
+	return createStaticLocationResponse(findPathForServerFolder(request.getPathItems(), ServerHelper::getStringSettingsValue("data_folder") + "genomes/"), request);
 }
 
 HttpResponse ServerController::serveStaticFromTempUrl(const HttpRequest& request)
@@ -395,12 +395,8 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 		{
 			try
 			{
-				bool return_http = false;
-				if (requested_type == PathType::BAM)
-				{
-					return_http = true;
-				}
-				cur_json_item.insert("filename", createTempUrl(file_list[i].filename, request.getUrlParams()["token"], return_http));
+
+				cur_json_item.insert("filename", createTempUrl(file_list[i].filename, request.getUrlParams()["token"]));
 			}
 			catch (Exception& e)
 			{
@@ -460,10 +456,7 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), e.message());
 	}
 
-	bool return_http = false;
-	if (type == PathType::BAM) return_http = true;
-
-	FileLocation project_file = FileLocation(ps_name, type, createTempUrl(found_file_path, request.getUrlParams()["token"], return_http), QFile::exists(found_file_path));
+	FileLocation project_file = FileLocation(ps_name, type, createTempUrl(found_file_path, request.getUrlParams()["token"]), QFile::exists(found_file_path));
 
 	QJsonDocument json_doc_output;
 	QJsonArray file_location_as_json_list;
@@ -503,7 +496,7 @@ HttpResponse ServerController::getAnalysisJobGSvarFile(const HttpRequest& reques
 		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), e.message());
 	}
 
-	FileLocation analysis_job_gsvar_file = FileLocation(ps_name, PathType::GSVAR, createTempUrl(found_file_path, request.getUrlParams()["token"], false), QFile::exists(found_file_path));
+	FileLocation analysis_job_gsvar_file = FileLocation(ps_name, PathType::GSVAR, createTempUrl(found_file_path, request.getUrlParams()["token"]), QFile::exists(found_file_path));
 	QJsonDocument json_doc_output;
 	QJsonObject file_location_as_json_object;
 
@@ -557,7 +550,7 @@ HttpResponse ServerController::getAnalysisJobLog(const HttpRequest& request)
 		QString id = db.processedSampleName(db.processedSampleId(job.samples[0].name));
 		QString log = NGSD().analysisJobLatestLogInfo(job_id).file_name_with_path;
 
-		analysis_job_log_file = FileLocation(id, PathType::OTHER, createTempUrl(log, request.getUrlParams()["token"], false), QFile::exists(log));
+		analysis_job_log_file = FileLocation(id, PathType::OTHER, createTempUrl(log, request.getUrlParams()["token"]), QFile::exists(log));
 	}
 	catch (Exception& e)
 	{
@@ -758,8 +751,11 @@ HttpResponse ServerController::saveQbicFiles(const HttpRequest& request)
 
 HttpResponse ServerController::uploadFile(const HttpRequest& request)
 {
-	if ((request.getFormDataParams().contains("ps_url_id")) && (!request.getMultipartFileName().isEmpty()))
-	{		
+	QStringList error_messages;
+	if (!request.getFormDataParams().contains("ps_url_id")) error_messages.append("Processed sample id is missing.");
+	if (request.getMultipartFileName().isEmpty()) error_messages.append("Filename is empty.");
+	if (error_messages.size()==0)
+	{
 		QString ps_url_id = request.getFormDataParams()["ps_url_id"];
 		UrlEntity url_entity = UrlManager::getURLById(ps_url_id.trimmed());
 		if (!url_entity.path.isEmpty())
@@ -776,7 +772,7 @@ HttpResponse ServerController::uploadFile(const HttpRequest& request)
 		}
 	}
 
-	return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Parameters have not been provided");
+	return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Parameters are missing: " + error_messages.join(" "));
 }
 
 HttpResponse ServerController::calculateLowCoverage(const HttpRequest& request)
@@ -1141,7 +1137,7 @@ HttpResponse ServerController::getSecondaryAnalyses(const HttpRequest& request)
 	QJsonArray json_array;
 	for (int i = 0; i < secondary_analyses.count(); i++)
 	{
-		json_array.append(createTempUrl(secondary_analyses[i], request.getUrlParams()["token"], false));
+		json_array.append(createTempUrl(secondary_analyses[i], request.getUrlParams()["token"]));
 	}
 	json_doc_output.setArray(json_array);
 
@@ -1176,7 +1172,7 @@ HttpResponse ServerController::getRnaFusionPics(const HttpRequest& request)
 	QJsonArray json_array;
 	for (int i = 0; i < found_files.count(); i++)
 	{
-		json_array.append(createTempUrl(found_files[i], request.getUrlParams()["token"], false));
+		json_array.append(createTempUrl(found_files[i], request.getUrlParams()["token"]));
 	}
 	json_doc_output.setArray(json_array);
 
@@ -1211,7 +1207,7 @@ HttpResponse ServerController::getRnaExpressionPlots(const HttpRequest& request)
 	QJsonArray json_array;
 	for (int i = 0; i < found_files.count(); i++)
 	{
-		json_array.append(createTempUrl(found_files[i], request.getUrlParams()["token"], false));
+		json_array.append(createTempUrl(found_files[i], request.getUrlParams()["token"]));
 	}
 	json_doc_output.setArray(json_array);
 
@@ -1221,6 +1217,22 @@ HttpResponse ServerController::getRnaExpressionPlots(const HttpRequest& request)
 	response_data.content_type = request.getContentType();
 	response_data.is_downloadable = false;
 
+	return HttpResponse(response_data, json_doc_output.toJson());
+}
+
+HttpResponse ServerController::getCurrentClientInfo(const HttpRequest& request)
+{
+	QJsonDocument json_doc_output;
+	QJsonObject json_object;
+
+	json_object.insert("version", SessionManager::getCurrentClientInfo().version);
+	json_object.insert("message", SessionManager::getCurrentClientInfo().message);
+	json_object.insert("date", SessionManager::getCurrentClientInfo().date.toSecsSinceEpoch());
+	json_doc_output.setObject(json_object);
+
+	BasicResponseData response_data;
+	response_data.length = json_doc_output.toJson().length();
+	response_data.content_type = ContentType::APPLICATION_JSON;
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
@@ -1276,12 +1288,12 @@ bool ServerController::hasOverlappingRanges(const QList<ByteRange> ranges)
 	return false;
 }
 
-QString ServerController::createTempUrl(const QString& file, const QString& token, const bool& return_http)
+QString ServerController::createTempUrl(const QString& file, const QString& token)
 {
 	QString id = ServerHelper::generateUniqueStr();
 	UrlManager::addNewUrl(id, UrlEntity(QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, id, QDateTime::currentDateTime()));
 
-	return NGSHelper::serverApiUrl(return_http) + "temp/" + id + "/" + QFileInfo(file).fileName() + "?token=" + token;
+	return NGSHelper::serverApiUrl() + "temp/" + id + "/" + QFileInfo(file).fileName() + "?token=" + token;
 }
 
 HttpResponse ServerController::createStaticFolderResponse(const QString path, const HttpRequest& request)
@@ -1297,7 +1309,7 @@ HttpResponse ServerController::createStaticFolderResponse(const QString path, co
 		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_HTML, "Requested folder does not exist");
 	}
 
-	QString base_folder_url = ServerHelper::getUrlProtocol(false) + ServerHelper::getStringSettingsValue("server_host") + ":" + QString::number(ServerHelper::getNumSettingsValue("https_server_port")) + "/" + request.getPrefix() + "/" + request.getPath();
+	QString base_folder_url = NGSHelper::serverApiUrl() + request.getPath();
 	if (!base_folder_url.endsWith("/"))
 	{
 		base_folder_url = base_folder_url + "/";

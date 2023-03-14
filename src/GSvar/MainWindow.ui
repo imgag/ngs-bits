@@ -507,13 +507,15 @@
      <addaction name="actionSpecies"/>
      <addaction name="actionStudy"/>
      <addaction name="actionEditSomaticPathways"/>
-     <addaction name="separator"/>
      <addaction name="actionUsers"/>
+     <addaction name="separator"/>
      <addaction name="actionChangePassword"/>
      <addaction name="separator"/>
-     <addaction name="actionReplicateNGSD"/>
      <addaction name="actionExportTestData"/>
      <addaction name="actionImportTestData"/>
+     <addaction name="separator"/>
+     <addaction name="actionReplicateNGSD"/>
+     <addaction name="actionMaintenance"/>
     </widget>
     <widget class="QMenu" name="menuBatch_import">
      <property name="title">
@@ -1478,12 +1480,16 @@
     <string>Virus detection</string>
    </property>
   </action>
+  <action name="actionMaintenance">
+   <property name="text">
+    <string>Maintenance</string>
+   </property>
+  </action>
   <action name="actionBurdenTest">
    <property name="text">
     <string>Gene-based burden test</string>
    </property>
-  </action>
- </widget>
+  </action> </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>

@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2022_12
+	> git checkout 2023_02
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -134,6 +134,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [VcfLeftNormalize](doc/tools/VcfLeftNormalize.md) - Normalizes all variants and shifts indels to the left in a VCF file.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
 * [VcfStreamSort](doc/tools/VcfStreamSort.md) - Sorts entries of a VCF file according to genomic position using a stream.
+* [VcfSubstract](doc/tools/VcfSubstract.md) - Substracts the variants in a VCF from a second VCF.
 * [VcfToBed](doc/tools/VcfToBedpe.md) - Converts a VCF file to a BED file.
 * [VcfToBedpe](doc/tools/VcfToBedpe.md) - Converts a VCF file containing structural variants to BEDPE format.
 * [VcfToTsv](doc/tools/VcfToTsv.md) - Converts a VCF file to a tab-separated text file.
@@ -170,13 +171,21 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 Changes of master since last release:
 
-* Updated build instructions from Qt 5.9 (32 bit) to Qt 5.12 (64 bit)
+* none so far
 
-Changes in release 2022_12:
 
-* tool VcfAdd added
-* VcfFilter: added option `-remove_invalid`
-* VcfSort: added option `-remove_unused_contigs`
-* VcfAnnotateConsequence: improved error handling and load time for GFF file
+Changes in release 2023_02:
+
+* Updated build instructions for Windows from Qt 5.9 (32 bit) to Qt 5.12 (64 bit)
+* added tools VcfAdd, VcfSubstract
+* NGSDExportSamples: added ancestry and phenotype filter options
+* NGSDImportEnsembl: added import of transcript versions
+* VcfAnnotateConsequence: added multi-threading support
+* NGSD
+	* Added transcript version to 'gene_transcript' table
+	* Added more tissues to 'sample' table
+	* Added comment field to 'user' table
+	* Added table of variant to 'variant_publication' table to support ClinVar upload of CNVs and SVs
+	* Added mosaic status to 'detected_variant' table
 
 For older changes see [releases](https://github.com/imgag/ngs-bits/releases).

@@ -578,7 +578,7 @@
       <bool>false</bool>
      </property>
      <property name="columnCount">
-      <number>23</number>
+      <number>24</number>
      </property>
      <attribute name="verticalHeaderVisible">
       <bool>false</bool>
@@ -636,6 +636,11 @@
      <column>
       <property name="text">
        <string>external sample name</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>gender</string>
       </property>
      </column>
      <column>
@@ -702,6 +707,34 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>radio_genes</tabstop>
+  <tabstop>radio_region</tabstop>
+  <tabstop>genes</tabstop>
+  <tabstop>region</tabstop>
+  <tabstop>filter_af</tabstop>
+  <tabstop>filter_ngsd_count</tabstop>
+  <tabstop>filter_impact_high</tabstop>
+  <tabstop>filter_impact_moderate</tabstop>
+  <tabstop>filter_impact_low</tabstop>
+  <tabstop>filter_impact_modifier</tabstop>
+  <tabstop>filter_recessive</tabstop>
+  <tabstop>filter_denovo</tabstop>
+  <tabstop>q_ps_good</tabstop>
+  <tabstop>q_ps_medium</tabstop>
+  <tabstop>q_ps_bad</tabstop>
+  <tabstop>q_ps_na</tabstop>
+  <tabstop>p_diagnostic</tabstop>
+  <tabstop>p_research</tabstop>
+  <tabstop>p_external</tabstop>
+  <tabstop>p_test</tabstop>
+  <tabstop>filter_sys_wgs</tabstop>
+  <tabstop>filter_sys_wes</tabstop>
+  <tabstop>filter_sys_other</tabstop>
+  <tabstop>update_btn</tabstop>
+  <tabstop>copy_btn</tabstop>
+  <tabstop>variants</tabstop>
+ </tabstops>
  <resources>
   <include location="GSvar.qrc"/>
  </resources>

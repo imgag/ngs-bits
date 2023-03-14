@@ -232,4 +232,29 @@ private slots:
 		int length = rx.cap(2).toInt();
 		I_EQUAL(length, 18);
 	}
+
+	void test_current_client_info()
+	{
+		ClientInfo current_info("2023_02-21", "New updates available!");
+		SessionManager::setCurrentClientInfo(current_info);
+
+		HttpRequest request;
+		request.setMethod(RequestMethod::HEAD);
+		request.setContentType(ContentType::TEXT_HTML);
+		request.addHeader("host", "localhost:8443");
+		request.addHeader("accept", "text/html");
+		request.addHeader("connection", "keep-alive");
+		request.setPrefix("v1");
+		request.setPath("current_client");
+
+		HttpResponse response = ServerController::getCurrentClientInfo(request);
+
+		IS_TRUE(response.getStatusLine().split('\n').first().contains("200"));
+		IS_FALSE(response.getPayload().isNull());
+
+		QJsonDocument out = QJsonDocument::fromJson(response.getPayload());
+		IS_TRUE(out.isObject());
+		S_EQUAL(out.object().value("version").toString(), current_info.version);
+		S_EQUAL(out.object().value("message").toString(), current_info.message);
+	}
 };

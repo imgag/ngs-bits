@@ -5,6 +5,7 @@
 #include <QMap>
 #include <QDateTime>
 #include <QMutex>
+#include "NGSHelper.h"
 #include "ServerHelper.h"
 #include "Exceptions.h"
 
@@ -50,6 +51,9 @@ public:
 	static bool isTokenReal(QString token);
 	static void removeExpiredSessions();
 
+	static ClientInfo getCurrentClientInfo();
+	static void setCurrentClientInfo(ClientInfo info);
+
 protected:
 	SessionManager();
 
@@ -58,6 +62,7 @@ private:
 	QSharedPointer<QFile> backup_file_;
 	QMutex mutex_;
 	QMap<QString, Session> session_store_;
+	ClientInfo current_client_info_;
 };
 
 #endif // SESSIONMANAGER_H

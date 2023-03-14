@@ -183,13 +183,28 @@
       <string>Variants</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
+      <item row="9" column="3">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QCheckBox" name="cb_include_mosaic">
+          <property name="text">
+           <string>include</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
       <item row="9" column="1">
-       <widget class="QLabel" name="label_6">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
+       <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>inheritance:</string>
+         <string>mosaic variants:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>max. NGSD count: </string>
         </property>
        </widget>
       </item>
@@ -200,6 +215,16 @@
         </property>
        </widget>
       </item>
+      <item row="11" column="1">
+       <widget class="QLabel" name="label_6">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="text">
+         <string>inheritance:</string>
+        </property>
+       </widget>
+      </item>
       <item row="7" column="1">
        <widget class="QLabel" name="label_7">
         <property name="text">
@@ -207,7 +232,7 @@
         </property>
        </widget>
       </item>
-      <item row="9" column="3">
+      <item row="11" column="3">
        <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item>
          <widget class="QComboBox" name="cb_inheritance">
@@ -263,7 +288,7 @@
            <number>5</number>
           </property>
           <property name="value">
-           <number>50</number>
+           <number>20</number>
           </property>
          </widget>
         </item>
@@ -353,7 +378,7 @@
            <double>0.100000000000000</double>
           </property>
           <property name="value">
-           <double>1.000000000000000</double>
+           <double>0.100000000000000</double>
           </property>
          </widget>
         </item>
@@ -372,28 +397,30 @@
         </item>
        </layout>
       </item>
-      <item row="5" column="1">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>max. NGSD count: </string>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="1">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>mosaic variants:</string>
-        </property>
-       </widget>
-      </item>
       <item row="8" column="3">
-       <layout class="QHBoxLayout" name="horizontalLayout">
+       <layout class="QHBoxLayout" name="horizontalLayout_10">
         <item>
-         <widget class="QCheckBox" name="cb_include_mosaic">
+         <widget class="QCheckBox" name="cb_predict_patogenic">
           <property name="text">
-           <string>include</string>
+           <string>add variants with moderate/low/modifier impact only if CADD≥20 or SpliceAI≥0.5</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
           </property>
          </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </item>

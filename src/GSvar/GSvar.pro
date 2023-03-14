@@ -10,8 +10,10 @@ SOURCES += main.cpp\
     CfDNAPanelBatchImport.cpp \
     DatabaseServiceRemote.cpp \
     GlobalServiceProvider.cpp \
+    IgvSessionManager.cpp \
     MainWindow.cpp \
     ExternalToolDialog.cpp \
+    MaintenanceDialog.cpp \
     ReportDialog.cpp \
     ReportWorker.cpp \
     TrioDialog.cpp \
@@ -125,6 +127,8 @@ HEADERS += MainWindow.h \
     DatabaseServiceRemote.h \
     ExternalToolDialog.h \
     GlobalServiceProvider.h \
+    IgvSessionManager.h \
+    MaintenanceDialog.h \
     ReportDialog.h \
     ReportWorker.h \
     TrioDialog.h \
@@ -237,6 +241,7 @@ HEADERS += MainWindow.h \
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
+    MaintenanceDialog.ui \
     ReportDialog.ui \
     TrioDialog.ui \
     ClassificationDialog.ui \

@@ -773,7 +773,7 @@ void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_r
 
 bool NGSHelper::isClientServerMode()
 {
-	return !Settings::string("server_host", true).trimmed().isEmpty() && !Settings::string("https_server_port", true).trimmed().isEmpty();
+	return !Settings::string("server_host", true).trimmed().isEmpty() && !Settings::string("server_port", true).trimmed().isEmpty();
 }
 
 bool NGSHelper::isRunningOnServer()
@@ -831,23 +831,46 @@ ServerInfo NGSHelper::getServerInfo()
 	return info;
 }
 
+ClientInfo NGSHelper::getClientInfo()
+{
+	ClientInfo info;
+	QByteArray response;
+	HttpHeaders add_headers;
+	add_headers.insert("Accept", "application/json");
+	try
+	{
+		response = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).get(NGSHelper::serverApiUrl()+ "current_client", add_headers);
+	}
+	catch (Exception& e)
+	{
+		Log::error("Could not get the client version information from the server: " + e.message());
+		return info;
+	}
+
+	if (response.isEmpty())
+	{
+		Log::error("Could not parse the server response");
+		return info;
+	}
+
+	QJsonDocument json_doc = QJsonDocument::fromJson(response);
+	if (json_doc.isObject())
+	{
+		if (json_doc.object().contains("version")) info.version = json_doc.object()["version"].toString();
+		if (json_doc.object().contains("message")) info.message = json_doc.object()["message"].toString();
+		if (json_doc.object().contains("date")) info.date = QDateTime::fromSecsSinceEpoch(json_doc.object()["date"].toInt());
+	}
+	return info;
+}
+
 QString NGSHelper::serverApiVersion()
 {
 	return "v1";
 }
 
-QString NGSHelper::serverApiUrl(const bool& return_http)
-{
-	QString protocol = return_http ? "http://" : "https://";
-	QString port = return_http ? Settings::string("http_server_port", true) : Settings::string("https_server_port", true);
-
-	if (Settings::boolean("use_http_api_only", true))
-	{
-		protocol = "http://";
-		port = Settings::string("http_server_port", true);
-	}
-
-	return protocol + Settings::string("server_host", true) + ":" + port + "/" + serverApiVersion() + "/";
+QString NGSHelper::serverApiUrl()
+{	
+	return  "https://" + Settings::string("server_host", true) + ":" + Settings::string("server_port", true) + "/" + serverApiVersion() + "/";
 }
 
 const QMap<QByteArray, QByteArrayList>& NGSHelper::transcriptMatches(GenomeBuild build)

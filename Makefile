@@ -122,7 +122,7 @@ test_single_tool:
 	cd bin && ./tools-TEST -s $(T)
 
 NGSBITS_VER = $(shell  bin/SeqPurge --version | cut -d' ' -f2)/
-DEP_PATH=/mnt/share/opt/ngs-bits-hg38-$(NGSBITS_VER)
+DEP_PATH=/mnt/storage2/megSAP/tools/ngs-bits-$(NGSBITS_VER)
 deploy_nobuild:
 	@echo "#Clean up source"
 	rm -rf bin/out bin/*-TEST
@@ -136,10 +136,10 @@ deploy_nobuild:
 	chmod 775 $(DEP_PATH)*
 	@echo ""
 	@echo "#Deploy settings"
-	cp /mnt/share/opt/ngs-bits-settings/settings_hg38.ini $(DEP_PATH)settings.ini
+	cp /mnt/storage2/megSAP/tools/ngs-bits-settings/settings_hg38.ini $(DEP_PATH)settings.ini
 	@echo ""
 	@echo "#Activating"
-	rm /mnt/share/opt/ngs-bits-current && ln -s /mnt/share/opt/ngs-bits-hg38-$(NGSBITS_VER) /mnt/share/opt/ngs-bits-current
+	rm /mnt/storage2/megSAP/tools/ngs-bits-current && ln -s /mnt/storage2/megSAP/tools/ngs-bits-$(NGSBITS_VER) /mnt/storage2/megSAP/tools/ngs-bits-current
 	@echo ""
 	@echo "#Settings diff:"
 	diff bin/settings.ini $(DEP_PATH)settings.ini
