@@ -11,7 +11,7 @@
 #include "VcfFile.h"
 #include "GlobalServiceProvider.h"
 #include "GeneInfoDBs.h"
-#include "NGSHelper.h"
+#include "ClientHelper.h"
 #include "Log.h"
 
 NumericWidgetItem::NumericWidgetItem(QString text):
@@ -82,7 +82,7 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
     {
         //open SVG in browser
 		QString filename = image_loc.filename;
-		if (!NGSHelper::isClientServerMode()) filename = QFileInfo(image_loc.filename).absoluteFilePath();
+		if (!ClientHelper::isClientServerMode()) filename = QFileInfo(image_loc.filename).absoluteFilePath();
 
 		QDesktopServices::openUrl(QUrl(filename));
 	}

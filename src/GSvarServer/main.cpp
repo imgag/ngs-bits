@@ -21,13 +21,8 @@ int main(int argc, char **argv)
 			QCoreApplication::translate("main", "HTTPS server port number"),
 			QCoreApplication::translate("main", "https_port"));
 	parser.addOption(httpsServerPortOption);
-	QCommandLineOption httpServerPortOption(QStringList() << "i" << "http_port",
-			QCoreApplication::translate("main", "HTTP server port number"),
-			QCoreApplication::translate("main", "https_port"));
-	parser.addOption(httpServerPortOption);
 	parser.process(app);
-	QString https_port = parser.value(httpsServerPortOption);
-	QString http_port = parser.value(httpServerPortOption);
+	QString server_port_cli = parser.value(httpsServerPortOption);
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"",
@@ -340,6 +335,25 @@ int main(int argc, char **argv)
 						"List RNA expression plots needed for a report",
 						&ServerController::getRnaExpressionPlots
 					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"current_client",
+						QMap<QString, ParamProps> {},
+						RequestMethod::GET,
+						ContentType::APPLICATION_JSON,
+						AuthType::NONE,
+						"Information about the latest available desktop client application",
+						&ServerController::getCurrentClientInfo
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
+						"notification",
+						QMap<QString, ParamProps> {},
+						RequestMethod::GET,
+						ContentType::APPLICATION_JSON,
+						AuthType::NONE,
+						"Information for the users of the desktop client (i.e. updates, maintenance, potential downtimes)",
+						&ServerController::getCurrentNotification
+					});
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"qbic_report_data",
@@ -505,15 +519,14 @@ int main(int argc, char **argv)
 						&ServerController::performLogout
 					});
 
-	int https_port_setting = ServerHelper::getNumSettingsValue("https_server_port");
-	int http_port_setting = ServerHelper::getNumSettingsValue("http_server_port");
+	int server_port = ServerHelper::getNumSettingsValue("server_port");
 
-	if (!https_port.isEmpty())
+	if (!server_port_cli.isEmpty())
 	{
-		Log::info("HTTPS server port has been provided through the command line arguments:" + https_port);
-		https_port_setting = https_port.toInt();
+		Log::info("HTTPS server port has been provided through the command line arguments:" + server_port_cli);
+		server_port = server_port_cli.toInt();
 	}
-	if (https_port_setting == 0)
+	if (server_port == 0)
 	{
 		Log::error("HTTPS port number is invalid");
 		app.exit(EXIT_FAILURE);
@@ -526,29 +539,10 @@ int main(int argc, char **argv)
 	UrlManager::restoreFromFile();
 
 	Log::info("SSL version used for the build: " + QSslSocket::sslLibraryBuildVersionString());
-	ServerWrapper https_server(https_port_setting);
-	if (!https_server.isRunning() && !Settings::boolean("use_http_api_only", true))
+	ServerWrapper https_server(server_port);
+	if (!https_server.isRunning())
 	{
 		Log::error("HTTPS is not running. Exiting");
-		app.exit(EXIT_FAILURE);
-		return app.exec();
-	}
-
-	if (!http_port.isEmpty())
-	{
-		Log::info("HTTP server port has been provided through the command line arguments:" + http_port);
-		http_port_setting = https_port.toInt();
-	}
-	if (http_port_setting == 0)
-	{
-		Log::error("HTTP port number is invalid");
-		app.exit(EXIT_FAILURE);
-		return app.exec();
-	}
-	ServerWrapper http_server(http_port_setting, true);
-	if (!http_server.isRunning())
-	{
-		Log::error("HTTP is not running. Exiting");
 		app.exit(EXIT_FAILURE);
 		return app.exec();
 	}

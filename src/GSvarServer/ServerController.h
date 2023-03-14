@@ -95,6 +95,10 @@ public:
 	static HttpResponse getRnaFusionPics(const HttpRequest& request);
 	/// Returns a list RNA fusion plots needed for a report
 	static HttpResponse getRnaExpressionPlots(const HttpRequest& request);
+	/// Returns information about the latest available version of the desktop client
+	static HttpResponse getCurrentClientInfo(const HttpRequest& request);
+	// Returns some notification displayed to the users of the client application
+	static HttpResponse getCurrentNotification(const HttpRequest& request);
 
 private:
 	/// Find file/folder name corresponding to the id from a temporary URL
@@ -105,7 +109,7 @@ private:
 	/// not allowed, according to the HTTP specification
 	static bool hasOverlappingRanges(const QList<ByteRange> ranges);
 	/// Creates a temporary URL for a file (includes a file name and its full path)
-	static QString createTempUrl(const QString& file, const QString& token, const bool& return_http);
+	static QString createTempUrl(const QString& file, const QString& token);
 	/// Serves a file for a byte range request (i.e. specific fragment of a file)
 	static HttpResponse createStaticFileRangeResponse(QString filename, QList<ByteRange> byte_ranges, ContentType type, bool is_downloadable);
 	/// Serves a stream, used to transfer large files without opening multiple connections

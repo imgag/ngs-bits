@@ -1,5 +1,5 @@
 ### NGSDExportAnnotationData tool help
-	NGSDExportAnnotationData (2021_06-89-gbbd16264)
+	NGSDExportAnnotationData (2022_12-82-g025eb99e)
 	
 	Generates a VCF file with all variants and annotations from the NGSD and a BED file containing the gene information of the NGSD.
 	
@@ -22,6 +22,8 @@
 	                        Valid: 'germline,somatic'
 	  -vicc_config_details  Includes details about VICC interpretation. Works only in somatic mode.
 	                        Default value: 'false'
+	  -debug                Enables debug output (germline only).
+	                        Default value: 'false'
 	
 	Special parameters:
 	  --help                Shows this help and exits.
@@ -30,7 +32,7 @@
 	  --tdx                 Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportAnnotationData changelog
-	NGSDExportAnnotationData 2021_06-89-gbbd16264
+	NGSDExportAnnotationData 2022_12-82-g025eb99e
 	
 	2021-07-19 Code and parameter refactoring.
 	2021-07-19 Added support for 'germline_het' and 'germline_hom' columns in 'variant' table.

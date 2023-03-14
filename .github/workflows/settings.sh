@@ -16,12 +16,12 @@ echo "data_folder = \"\"" >> ./bin/settings.ini
 echo "liftover_hg19_hg38 = ../src/cppNGS-TEST/data_in/hg19ToHg38.over.chain.gz" >> ./bin/settings.ini
 echo "liftover_hg38_hg19 = ../src/cppNGS-TEST/data_in/hg38ToHg19.over.chain.gz" >> ./bin/settings.ini
 echo "threads = 1" >> ./bin/settings.ini
+echo "server_port = 8443" >> ./bin/settings.ini
 
 touch ./bin/GSvarServer-TEST.ini
 echo "url_lifetime = 5" >> ./bin/GSvarServer-TEST.ini
 echo "server_host = \"localhost\"" >> ./bin/GSvarServer-TEST.ini
-echo "http_server_port = 8080" >> ./bin/GSvarServer-TEST.ini
-echo "https_server_port = 8443" >> ./bin/GSvarServer-TEST.ini
+echo "server_port = 8443" >> ./bin/GSvarServer-TEST.ini
 echo "server_root = \"./bin\"" >> ./bin/GSvarServer-TEST.ini
 echo "allow_folder_listing = true" >> ./bin/GSvarServer-TEST.ini
 echo "ssl_certificate = \"$HOME/ssl/test-cert.crt\"" >> ./bin/GSvarServer-TEST.ini

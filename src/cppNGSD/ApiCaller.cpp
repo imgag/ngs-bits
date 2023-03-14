@@ -1,6 +1,7 @@
 #include "ApiCaller.h"
+#include "Settings.h"
 #include "Exceptions.h"
-#include "NGSHelper.h"
+#include "ClientHelper.h"
 #include "LoginManager.h"
 #include "Log.h"
 
@@ -15,11 +16,11 @@ QByteArray ApiCaller::get(QString api_path, RequestUrlParams url_params, HttpHea
 		if (needs_user_token) addUserTokenIfExists(url_params);
 		if (needs_db_token) addDbTokenIfExists(url_params);
 
-		return HttpRequestHandler(HttpRequestHandler::NONE).get(NGSHelper::serverApiUrl() + api_path + QUrl(url_params.asString()).toEncoded(), headers);
+		return HttpRequestHandler(HttpRequestHandler::NONE).get(ClientHelper::serverApiUrl() + api_path + QUrl(url_params.asString()).toEncoded(), headers);
 	}
 	catch (Exception& e)
 	{
-		QString message = "API GET call to \"" + NGSHelper::serverApiUrl() + api_path + "\" failed: " + e.message();
+		QString message = "API GET call to \"" + ClientHelper::serverApiUrl() + api_path + "\" failed: " + e.message();
 		Log::error(message);
 		if (rethrow_excpetion) THROW(Exception, message);
 	}
@@ -36,11 +37,11 @@ QByteArray ApiCaller::post(QString api_path, RequestUrlParams url_params, HttpHe
 		if (needs_user_token) addUserTokenIfExists(url_params);
 		if (needs_db_token) addDbTokenIfExists(url_params);
 
-		return HttpRequestHandler(HttpRequestHandler::NONE).post(NGSHelper::serverApiUrl() + api_path + QUrl(url_params.asString()).toEncoded(), data, headers);
+		return HttpRequestHandler(HttpRequestHandler::NONE).post(ClientHelper::serverApiUrl() + api_path + QUrl(url_params.asString()).toEncoded(), data, headers);
 	}
 	catch (Exception& e)
 	{				
-		Log::error("API POST call to \"" + NGSHelper::serverApiUrl() + api_path + "\" failed: " + e.message());
+		Log::error("API POST call to \"" + ClientHelper::serverApiUrl() + api_path + "\" failed: " + e.message());
 		if (rethrow_excpetion) THROW(Exception, e.message());
 	}
 

@@ -9,6 +9,7 @@
 #include "GlobalServiceProvider.h"
 #include "AnalysisInformationWidget.h"
 #include "GSvarHelper.h"
+#include "ClientHelper.h"
 #include <QMenu>
 #include <QFileInfo>
 #include <QDesktopServices>
@@ -277,7 +278,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	menu.addAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab");
 	menu.addAction(QIcon(":/Icons/NGSD_run.png"), "Open sequencing run tab");
 	menu.addAction(QIcon(":/Icons/Folder.png"), "Open analysis folder(s)");
-	if (rows.count()==1 && types.values()[0]!="single sample")
+	if (rows.count()==1)
 	{
 		menu.addAction(QIcon(":/Icons/Folder.png"), "Open sample folders");
 	}
@@ -295,7 +296,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 			//Show restart action only if only DNA or only RNA samples are selected
 			QSet<QString> sample_types;
 			NGSD db;
-			for(const AnalysisJobSample& sample : samples)
+			foreach(const AnalysisJobSample& sample, samples)
 			{
 				QString sample_type = db.getSampleData(db.sampleId(sample.name)).type;
 				if (sample_type=="RNA") sample_types << "RNA";
@@ -380,7 +381,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	}
 	if (text=="Open analysis folder(s)")
 	{
-		if (NGSHelper::isClientServerMode())
+		if (ClientHelper::isClientServerMode())
 		{
 			QMessageBox::warning(this, "No access", "Analysis folder browsing is not available in client-server mode");
 			return;
@@ -398,7 +399,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	}
 	if (text=="Open sample folders")
 	{
-		if (NGSHelper::isClientServerMode())
+		if (ClientHelper::isClientServerMode())
 		{
 			QMessageBox::warning(this, "No access", "Sample folder browsing is not available in client-server mode");
 			return;

@@ -27,7 +27,7 @@ jobs:
     - name: Update OS repositories
       run: sudo apt-get update
     - name: Setup test environment
-      run: sudo apt-get -y install make g++ git python3 python3-matplotlib qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql libqt5charts5-dev libbz2-dev liblzma-dev zlib1g-dev libcurl4 libcurl4-openssl-dev
+      run: sudo apt-get -y install make g++ git python3 python3-matplotlib qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql libqt5charts5-dev libbz2-dev liblzma-dev zlib1g-dev libcurl4 libcurl4-openssl-dev ca-certificates
     - name: Create symlink for python
       run: sudo ln -fs /bin/python3 /bin/python
     - name: Update submodules
@@ -42,6 +42,10 @@ jobs:
       shell: bash
     - name: Generate SSL certificate-key pair
       run: openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=DE/ST=BW/L=Tuebingen/O=test-certificate/CN=localhost" -keyout $HOME/ssl/test-key.key -out $HOME/ssl/test-cert.crt
+    - name: Add new certificates to the list of trusted certificates
+      run: sudo cp $HOME/ssl/test-cert.crt /usr/local/share/ca-certificates
+    - name: Update the list of certificates
+      run: sudo update-ca-certificates
     - name: Download test files
       run: make download_test_files
     - name: Start GSvar server and run tests

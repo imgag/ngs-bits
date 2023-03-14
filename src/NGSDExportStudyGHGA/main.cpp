@@ -130,14 +130,13 @@ public:
 		THROW(NotImplementedException, "Unhandled ancestry '" + ancestry + "' in CV conversion!");
 	}
 
-
-
 	//Processed sample helper struct
 	struct PSData
 	{
 		QString ps_id;
 		QString name;
-		QString bam;
+		QString bam; //required
+		QString vcf; //optional - skipped when empty
 		QString pseudonym; //processed sample ID left-padded with '0' to 6 digits (prefixed with 3-character object type to generate the alias)
 		SampleData s_info;
 		ProcessedSampleData ps_info;
@@ -160,7 +159,8 @@ public:
 		QString dac_organization;
 		QString dap_text;
 		QString dap_url;
-		QStringList dap_conditions; //attention, this is a CV!
+		QStringList dap_use_conditions; //attention, this is a CV!
+		QStringList dap_use_modifiers; //attention, this is a CV!
 
 		//processed samples
 		QList<PSData> ps_list;
@@ -195,7 +195,10 @@ public:
 			obj.insert("alias", "EXP" + ps_data.pseudonym);
 			obj.insert("description", "short-read sequencing");
 			obj.insert("type", systemTypeToExperimentType(ps_data.ps_info.processing_system_type));
-			obj.insert("has_file", QJsonArray::fromStringList(QStringList() << "BAM" + ps_data.pseudonym));
+			QStringList files;
+			files << "BAM" + ps_data.pseudonym;
+			if (!ps_data.vcf.isEmpty()) files << "VCF" + ps_data.pseudonym;
+			obj.insert("has_file", QJsonArray::fromStringList(files));
 			obj.insert("has_protocol", QJsonArray::fromStringList(QStringList() << "LIB" + ps_data.pseudonym << "SEQ" + ps_data.pseudonym));
 			obj.insert("has_sample", QJsonArray::fromStringList(QStringList() << "SAM" + ps_data.pseudonym));
 			obj.insert("has_study", data.study_name);
@@ -220,12 +223,16 @@ public:
 			QJsonObject obj;
 			obj.insert("alias", "ANA" + ps_data.pseudonym);
 			obj.insert("description", "short-read data analysis using megSAP: https://github.com/imgag/megSAP");
-			obj.insert("has_output", QJsonArray::fromStringList(QStringList() << "BAM" + ps_data.pseudonym));
+			QStringList files;
+			files << "BAM" + ps_data.pseudonym;
+			obj.insert("has_input", QJsonArray::fromStringList(files));
+			files.clear();
+			if (!ps_data.vcf.isEmpty()) files << "VCF" + ps_data.pseudonym;
+			obj.insert("has_output", QJsonArray::fromStringList(files));
 			obj.insert("has_study", data.study_name);
-			obj.insert("reference_chromosome", QJsonValue());
+			obj.insert("reference_chromosome", "unspecified");
 			obj.insert("reference_genome", "GRCh38");
 			obj.insert("type", "BAM");
-			obj.insert("has_input", QJsonArray());
 			obj.insert("schema_type", "CreateAnalysis");
 			obj.insert("schema_version", data.version);
 
@@ -241,32 +248,66 @@ public:
 
 		foreach(const PSData& ps_data, data.ps_list)
 		{
-			QJsonObject obj;
-			obj.insert("alias", "BAM" + ps_data.pseudonym);
-			obj.insert("name", ps_data.pseudonym + ".bam");
-
-			if (data.test_mode)
+			//add BAM (required)
 			{
-				obj.insert("size", "6000000");
-				obj.insert("checksum", "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+				QJsonObject obj;
+				obj.insert("alias", "BAM" + ps_data.pseudonym);
+				obj.insert("name", "BAM" + ps_data.pseudonym + ".bam");
+
+				if (data.test_mode)
+				{
+					obj.insert("size", "6000000");
+					obj.insert("checksum", "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+				}
+				else
+				{
+					QFile file(ps_data.bam);
+					if (!file.open(QFile::ReadOnly)) THROW(FileAccessException, "Could not open file " + ps_data.bam);
+					obj.insert("size", file.size());
+
+					QCryptographicHash hash(QCryptographicHash::Md5);
+					if (!hash.addData(&file)) THROW(Exception, "Could not calcualate checksum of " + ps_data.bam);
+					obj.insert("checksum", QString(hash.result()));
+				}
+
+				obj.insert("format", "BAM");
+				obj.insert("checksum_type", "MD5");
+				obj.insert("schema_type", "CreateFile");
+				obj.insert("schema_version", data.version);
+
+				array.append(obj);
 			}
-			else
+
+			//add VCF (if available)
+			if (!ps_data.vcf.isEmpty())
 			{
-				QFile file(ps_data.bam);
-				if (!file.open(QFile::ReadOnly)) THROW(FileAccessException, "Could not open file " + ps_data.bam);
-				obj.insert("size", file.size());
+				QJsonObject obj;
+				obj.insert("alias", "VCF" + ps_data.pseudonym);
+				obj.insert("name", "VCF" + ps_data.pseudonym + ".vcf.gz");
 
-				QCryptographicHash hash(QCryptographicHash::Md5);
-				if (!hash.addData(&file)) THROW(Exception, "Could not calcualate checksum of " + ps_data.bam);
-				obj.insert("checksum", QString(hash.result()));
+				if (data.test_mode)
+				{
+					obj.insert("size", "7000000");
+					obj.insert("checksum", "123456789ABCDEFGHIJKLMNO");
+				}
+				else
+				{
+					QFile file(ps_data.vcf);
+					if (!file.open(QFile::ReadOnly)) THROW(FileAccessException, "Could not open file " + ps_data.vcf);
+					obj.insert("size", file.size());
+
+					QCryptographicHash hash(QCryptographicHash::Md5);
+					if (!hash.addData(&file)) THROW(Exception, "Could not calcualate checksum of " + ps_data.vcf);
+					obj.insert("checksum", QString(hash.result()));
+				}
+
+				obj.insert("format", "VCF");
+				obj.insert("checksum_type", "MD5");
+				obj.insert("schema_type", "CreateFile");
+				obj.insert("schema_version", data.version);
+
+				array.append(obj);
 			}
-
-			obj.insert("format", "bam");
-			obj.insert("checksum_type", "MD5");
-			obj.insert("schema_type", "CreateFile");
-			obj.insert("schema_version", data.version);
-
-			array.append(obj);
 		}
 
 		parent.insert("has_file", array);
@@ -307,18 +348,24 @@ public:
 
 	void addDataAccessPolicy(QJsonObject& parent, const CommonData& data)
 	{
+		QJsonArray array;
+
 		QJsonObject obj;
 		obj.insert("alias", "DAP_"+data.study_name);
 		obj.insert("name", "Data access policy for study "+data.study_name);
 		obj.insert("description", "Data access policy for study "+data.study_name);
 		obj.insert("policy_text", data.dap_text);
 		obj.insert("policy_url", data.dap_url);
-		obj.insert("has_data_use_conditions", QJsonArray::fromStringList(QStringList() << data.dap_conditions));
+		obj.insert("has_data_use_permisson", QJsonArray::fromStringList(QStringList() << data.dap_use_conditions));
+		obj.insert("has_data_use_modifier", QJsonArray::fromStringList(QStringList() << data.dap_use_modifiers));
 		obj.insert("has_data_access_committee", data.study_name + " DAC");
 		obj.insert("schema_type", "CreateDataAccessPolicy");
 		obj.insert("schema_version", data.version);
 
-		parent.insert("has_data_access_policy", obj);
+
+		array.append(obj);
+
+		parent.insert("has_data_access_policy", array);
 	}
 
 	void addDatasets(QJsonObject& parent, const CommonData& data)
@@ -358,6 +405,7 @@ public:
 		foreach(const PSData& ps_data, data.ps_list)
 		{
 			tmp << "BAM" + ps_data.pseudonym;
+			if (!ps_data.vcf.isEmpty()) tmp << "VCF" + ps_data.pseudonym;
 		}
 		obj.insert("has_file", QJsonArray::fromStringList(tmp));
 
@@ -392,12 +440,12 @@ public:
 			obj.insert("library_selection", "unspecified");
 			obj.insert("library_preparation_kit_retail_name", ps_data.ps_info.processing_system);
 			obj.insert("library_preparation_kit_manufacturer", QJsonValue());
-			obj.insert("library_preparation", QJsonValue());
+			obj.insert("library_preparation", "unspecified");
 			obj.insert("end_bias", QJsonValue());
 			obj.insert("primer", QJsonValue());
 			obj.insert("has_attribute", QJsonValue());
 			obj.insert("rnaseq_strandedness", QJsonValue());
-			obj.insert("target_regions", QJsonValue());
+			obj.insert("target_regions", QJsonArray() << "unspecified");
 			obj.insert("schema_type", "CreateLibraryPreparationProtocol");
 			obj.insert("schema_version", data.version);
 
@@ -559,7 +607,8 @@ public:
 		data.dac_organization = getString(data_obj, "data_access_committee_organization");
 		data.dap_text = getString(data_obj, "data_access_policy_text");
 		data.dap_url = getString(data_obj, "data_access_policy_url");
-		data.dap_conditions = getArray(data_obj, "data_access_policy_conditions");
+		data.dap_use_conditions = getArray(data_obj, "data_access_policy_use_conditions");
+		data.dap_use_modifiers = getArray(data_obj, "data_access_policy_use_modifiers");
 
 		NGSD db(data.test_mode);
 
@@ -583,12 +632,10 @@ public:
 			QString bam = row.value(bam_idx);
 			if (!QFile::exists(bam) && !data.test_mode) THROW(Exception, "Processed sample " + ps + " BAM missing: " + bam);
 
-			data.ps_list << PSData{ps_id, ps, bam, row.id().rightJustified(6, '0'), db.getSampleData(s_id), db.getProcessedSampleData(ps_id), db.samplePhenotypes(s_id)};
-			QTextStream(stdout) << ps << " " << data.ps_list.last().phenotypes.count() << endl;
-			foreach(const Phenotype& pheno, data.ps_list.last().phenotypes)
-			{
-				QTextStream(stdout) << ps << " " << pheno.accession() << endl;
-			}
+			QString vcf = bam.replace(".bam", "_var.vcf.gz");
+			if (!QFile::exists(vcf) && !data.test_mode) vcf.clear();
+
+			data.ps_list << PSData{ps_id, ps, bam, vcf, row.id().rightJustified(6, '0'), db.getSampleData(s_id), db.getProcessedSampleData(ps_id), db.samplePhenotypes(s_id)};
 		}
 
 		//create JSON

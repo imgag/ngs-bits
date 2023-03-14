@@ -27,7 +27,7 @@ public:
 	void addAliases(SqlQuery& query, const QVariant& gene_id, const QByteArray& name_str, QVariant type)
 	{
 		QList<QByteArray> names = name_str.split('|');
-		for(QByteArray name : names)
+		foreach(QByteArray name, names)
 		{
 			name.replace("\"", "");
 			name = name.trimmed().toUpper();
@@ -210,7 +210,7 @@ public:
 
 		//prepare SQL queries
 		SqlQuery gene_query = db.getQuery();
-		gene_query.prepare("INSERT INTO gene (hgnc_id, symbol, name, type, ensembl_id) VALUES (:0, :1, :2, :3, :4);");
+		gene_query.prepare("INSERT INTO gene (hgnc_id, symbol, name, type, ensembl_id, ncbi_id) VALUES (:0, :1, :2, :3, :4, :5);");
 		SqlQuery alias_query = db.getQuery();
 		alias_query.prepare("INSERT INTO gene_alias (gene_id, symbol, type) VALUES (:0, :1, :2);");
 
@@ -251,12 +251,16 @@ public:
 				}
 			}
 
+			//extract ncbi id (entrez_id):
+			QByteArray ncbi_id = parts[18];
+
 			//insert gene
 			gene_query.bindValue(0, id);
 			gene_query.bindValue(1, symbol);
 			gene_query.bindValue(2, parts[2]);
 			gene_query.bindValue(3, locus);
 			gene_query.bindValue(4, ensg_id);
+			gene_query.bindValue(5, ncbi_id);
 			gene_query.exec();
 			QVariant gene_id = gene_query.lastInsertId();
 			n_imported++;

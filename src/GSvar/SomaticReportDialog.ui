@@ -1167,6 +1167,22 @@
       <property name="spacing">
        <number>3</number>
       </property>
+      <item row="0" column="5">
+       <spacer name="horizontalSpacer_5">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Expanding</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>60</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
       <item row="0" column="0">
        <widget class="QLabel" name="report_type_label">
         <property name="enabled">
@@ -1205,40 +1221,17 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="4">
-       <spacer name="horizontalSpacer_5">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Expanding</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>60</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_7">
+      <item row="1" column="1">
+       <widget class="QCheckBox" name="no_ngsd">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Do not store report settings to NGSD, just create files.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>Do not store report settings to NGSD, just create files.</string>
         </property>
         <property name="text">
-         <string>No NGSD:</string>
+         <string/>
         </property>
        </widget>
       </item>
       <item row="0" column="3">
-       <widget class="QComboBox" name="rna_ids_for_report">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
        <widget class="QRadioButton" name="report_type_rna">
         <property name="enabled">
          <bool>false</bool>
@@ -1251,13 +1244,33 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QCheckBox" name="no_ngsd">
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_7">
         <property name="toolTip">
-         <string>Do not store report settings to NGSD, just create files.</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Do not store report settings to NGSD, just create files.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
-         <string/>
+         <string>No NGSD:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="4">
+       <widget class="QComboBox" name="rna_ids_for_report">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QRadioButton" name="report_type_cfdna">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="toolTip">
+         <string>create cfDNA Report, option is only available if open Sample has cfDNA samples</string>
+        </property>
+        <property name="text">
+         <string>cfDNA</string>
         </property>
        </widget>
       </item>

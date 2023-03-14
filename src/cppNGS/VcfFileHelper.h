@@ -256,7 +256,7 @@ public:
 	Sequence altString() const
 	{
 		QByteArrayList alt_sequences;
-		for(const Sequence& seq : alt_)
+		foreach(const Sequence& seq, alt_)
 		{
 			alt_sequences.push_back(seq);
 		}
@@ -426,10 +426,9 @@ public:
 		{
 			return;
 		}
-		for(QByteArray& filter : filter_list)
+		foreach(const QByteArray& filter, filter_list)
 		{
-			filter = filter.trimmed();
-			filter_.push_back(strToPointer(filter));
+			filter_.push_back(strToPointer(filter.trimmed()));
 		}
 	}
 	void addFilter(QByteArray& tag)
@@ -495,7 +494,7 @@ public:
 	{
 		if(allow_several_alternatives)
 		{
-			for(const Sequence& alt_seq : alt())
+			foreach(const Sequence& alt_seq, alt())
 			{
 				if(alt_seq.length() != 1) return false;
 			}
