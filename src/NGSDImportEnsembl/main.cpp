@@ -173,18 +173,15 @@ public:
 		int n_found_gene_name_relations = 0;
 		int n_duplicate_pseudogenes = 0;
 
-		// extract file name
-		QString filename = QFileInfo(pseudogene_file_path).fileName();
 		// parse pseudogene file
 		QSharedPointer<QFile> pseudogene_fp = Helper::openFileForReading(pseudogene_file_path);
-
-
 		while(!pseudogene_fp->atEnd())
 		{
 			QByteArray line = pseudogene_fp->readLine().trimmed();
 			if (line.isEmpty() || line.startsWith("#") || line.startsWith("Pseudogene_id") || line.startsWith("ID")) continue;
 			QByteArrayList parts = line.split('\t');
-
+			if (parts.count()<8) continue;
+			
 			// parse ensembl transcript ids
 			QByteArray pseudogene_transcript_ensembl_id = parts.at(0).split('.').at(0).trimmed();
 			QByteArray parent_transcript_ensembl_id = parts.at(7).split('.').at(0).trimmed();
@@ -230,7 +227,7 @@ public:
 
 
 			}
-			else // fallback1 lookup gene name in ensembl file
+			else // fallback 1: lookup gene name in ensembl file
 			{
 				n_missing_pseudogene_transcript_id++;
 
@@ -293,7 +290,7 @@ public:
 		}
 
 		// print stats
-		out << "pseudogene flat file: " << filename << "\n";
+		out << "pseudogene flat file: " << QFileInfo(pseudogene_file_path).fileName() << "\n";
 		out << "\t missing parent transcript ids in File: " << n_missing_parent_in_file << "\n";
 		out << "\t missing pseudogene transcript ids in NGSD: " << n_missing_pseudogene_transcript_id << "\n";
 		out << "\t missing parent transcript ids in NGSD: " << n_missing_parent_transcript_id << "\n";
