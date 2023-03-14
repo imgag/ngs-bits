@@ -528,6 +528,7 @@ CREATE  TABLE IF NOT EXISTS `processed_sample`
   `molarity` FLOAT NULL DEFAULT NULL,
   `normal_id` INT(11) NULL DEFAULT NULL COMMENT 'For tumor samples, a normal sample can be given here which is used as reference sample during the data analysis.',
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
+  `folder_override` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `sample_psid_unique` (`sample_id` ASC, `process_id` ASC),
   INDEX `fk_processed_sample_samples1` (`sample_id` ASC),
