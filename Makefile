@@ -145,7 +145,7 @@ deploy_nobuild:
 	diff bin/settings.ini $(DEP_PATH)settings.ini
 
 	
-SERVER_DEP_PATH=/mnt/storage2/GRCh38/users/bioinf/GSvarServer/GSvarServer-$(NGSBITS_VER)
+SERVER_DEP_PATH=/mnt/storage2/GSvarServer/GSvarServer-$(NGSBITS_VER)
 deploy_server_nobuild:
 	@if [ ! -e ./bin/GSvarServer ] ; then echo "Error: bin/GSvarServer is missing!"; false; fi;
 	@if [ ! -e ./src/cppCORE/CRYPT_KEY.txt ] ; then echo "Error: src/cppCORE/CRYPT_KEY.txt is missing!"; false; fi;
@@ -157,7 +157,7 @@ deploy_server_nobuild:
 	find bin/ -type f  -or -type l | grep -v "settings" | xargs -I{} cp {} $(SERVER_DEP_PATH)
 	@echo ""
 	@echo "#Create a new link"
-	rm /mnt/storage2/GRCh38/users/bioinf/GSvarServer/GSvarServer-current && ln -s $(SERVER_DEP_PATH) /mnt/storage2/GRCh38/users/bioinf/GSvarServer/GSvarServer-current
+	rm /mnt/storage2/GSvarServer/GSvarServer-current && ln -s $(SERVER_DEP_PATH) /mnt/storage2/GSvarServer/GSvarServer-current
 	@echo ""
 	@echo "#Create an empty log file"
 	touch $(SERVER_DEP_PATH)/GSvarServer.log
