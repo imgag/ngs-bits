@@ -16,6 +16,7 @@ private slots:
 	void executeAction();
 	void deleteUnusedSamples();
 	void deleteUnusedVariants();
+	void importStudySamples();
 
 
 private:

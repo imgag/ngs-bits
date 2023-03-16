@@ -61,6 +61,9 @@ public:
 	///Returns the patient identifier, or an empty string if it could not be determined (tries sample name if processed sample name is not found)
 	QString patientIdentifier(QString ps_name);
 
+	///Returns all studies in GenLab.
+	QStringList studies();
+
 	///Returns the list of studies the sample is part of.
 	QStringList studies(QString ps_name);
 

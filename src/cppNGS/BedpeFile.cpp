@@ -129,7 +129,7 @@ int BedpeLine::size() const
 	THROW(ProgrammingException, "Unhandled variant type (int): " + BedpeFile::typeToString(t));
 }
 
-BedFile BedpeLine::affectedRegion(bool plus_one) const //TODO: this parameter should not be necessary any more when this is done: https://github.com/imgag/ngs-bits/issues/309
+BedFile BedpeLine::affectedRegion(bool plus_one) const
 {
 	BedFile sv_region;
 	int offset = plus_one ? 1 : 0;
