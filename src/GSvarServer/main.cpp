@@ -335,6 +335,25 @@ int main(int argc, char **argv)
 						"List RNA expression plots needed for a report",
 						&ServerController::getRnaExpressionPlots
 					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"current_client",
+						QMap<QString, ParamProps> {},
+						RequestMethod::GET,
+						ContentType::APPLICATION_JSON,
+						AuthType::NONE,
+						"Information about the latest available desktop client application",
+						&ServerController::getCurrentClientInfo
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
+						"notification",
+						QMap<QString, ParamProps> {},
+						RequestMethod::GET,
+						ContentType::APPLICATION_JSON,
+						AuthType::NONE,
+						"Information for the users of the desktop client (i.e. updates, maintenance, potential downtimes)",
+						&ServerController::getCurrentNotification
+					});
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"qbic_report_data",

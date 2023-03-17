@@ -73,11 +73,16 @@ public:
 	const CnvList& getCnvList();
 	const BedpeFile& getSvList();
 
+	/// Checks if there is a new client version available
+	void checkClientUpdates();
+
 public slots:
 	///Upload variant to Clinvar
 	void uploadToClinvar(int variant_index1, int variant_index2=-1);
 	/// Checks (only in clinet-server mode) if the server is currently running
 	void checkServerAvailability();
+	/// Checks (only in clinet-server mode) if there is some new information needed to be displayed to the user (e.g. downtimes, maintenance, reboots, updates)
+	void checkUserNotifications();
 	///Loads a variant list. Unloads the variant list if no file name is given
 	void loadFile(QString filename="", bool show_only_error_issues=false);
 	///Checks if variant list is outdated
@@ -139,6 +144,7 @@ public slots:
 	void on_actionReplicateNGSD_triggered();
 	void on_actionCohortAnalysis_triggered();
 	void on_actionMaintenance_triggered();
+	void on_actionNotifyUsers_triggered();
 
     ///Gender determination
 	void on_actionGenderXY_triggered();
@@ -423,6 +429,10 @@ protected:
 	void closeEvent(QCloseEvent* event);
 	///Determines normal sample name from filename_, return "" otherwise (tumor-normal pairs)
 	QString normalSampleName();
+	///	Wrapper function for QInputDialog::getItem to handle long URLs:
+	/// the list visible to the user will contain only file names (not entire URLs). It makes the
+	/// list easier to read and saves some screen real estate
+	QString getFileSelectionItem(QString window_title, QString label_text, QStringList file_list, bool *ok);
 
 private:
 	//GUI
@@ -460,6 +470,7 @@ private:
 	QToolButton* rna_menu_btn_;
 	QToolButton* cfdna_menu_btn_;
 	int igv_port_manual = -1;
+	QToolBar *update_info_toolbar_;
 
 	//single vars context menu
 	struct ContextMenuActions
@@ -478,6 +489,7 @@ private:
 
 	//SPECIAL
 	DelayedInitializationTimer init_timer_;
+	QString displayed_maintenance_message_id_;
 };
 
 #endif // MAINWINDOW_H

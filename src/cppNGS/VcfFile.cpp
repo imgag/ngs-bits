@@ -137,9 +137,9 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 		}
 	}
 	QByteArrayList id_list = line_parts[ID].split(';');
-	for(QByteArray& single_id : id_list)
+	for (int i=0; i<id_list.count(); ++i)
 	{
-		single_id = strToPointer(single_id);
+		id_list[i] = strToPointer(id_list[i]);
 	}
 	vcf_line->setId(id_list);
 	foreach(const QByteArray& alt, line_parts[ALT].split(','))
@@ -161,7 +161,7 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 
 	//FILTER
 	vcf_line->setFilter(line_parts[FILTER].split(';'));
-	for(const QByteArray& filter : vcf_line->filter())
+	foreach(const QByteArray& filter, vcf_line->filter())
 	{
 		if(filter == "PASS" || filter == "pass" || filter == "." || filter.isEmpty()) continue;
 		if(!filter_ids.contains(filter))
@@ -181,7 +181,7 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 		QByteArrayList info_values;
 		QList<ListOfInfoIds> info_ids_string_list;
 
-		for(const QByteArray& info : info_list)
+		foreach(const QByteArray& info, info_list)
 		{
 			QByteArrayList key_value_pair = info.split('=');
 			//check if the info is known in header
@@ -240,7 +240,7 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 		//FORMAT
 		QByteArrayList format_list = line_parts[FORMAT].split(':');
 		//check if the format is known in header
-		for(const QByteArray& format : format_list)
+		foreach(const QByteArray& format, format_list)
 		{
 			//first entry must be GT if given
 			if(format == "GT" && format_list[0]!="GT")
@@ -366,15 +366,15 @@ void VcfFile::processVcfLine(int& line_number, const QByteArray& line, QSet<QByt
 	{
 		parseHeaderFields(line, allow_multi_sample);
 		//all header lines hsould be read at this point
-		for(const InfoFormatLine& format : vcf_header_.formatLines())
+		foreach(const InfoFormatLine& format, vcf_header_.formatLines())
 		{
 			format_ids.insert(format.id);
 		}
-		for(const InfoFormatLine& info : vcf_header_.infoLines())
+		foreach(const InfoFormatLine& info, vcf_header_.infoLines())
 		{
 			info_ids.insert(info.id);
 		}
-		for(const FilterLine& filter : vcf_header_.filterLines())
+		foreach(const FilterLine& filter, vcf_header_.filterLines())
 		{
 			filter_ids.insert(filter.id);
 		}
@@ -481,7 +481,7 @@ void VcfFile::storeAsTsv(const QString& filename)
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
 	QTextStream stream(file.data());
 
-	for(const VcfHeaderLine& comment : vcfHeader().comments())
+	foreach(const VcfHeaderLine& comment, vcfHeader().comments())
 	{
 		comment.storeLine(stream);
 	}
@@ -492,19 +492,19 @@ void VcfFile::storeAsTsv(const QString& filename)
 	stream << "##DESCRIPTION=FILTER=Filter status\n";
 
 	//in tsv format every info entry is a column, and every combination of format and sample
-	for(InfoFormatLine info_line : vcfHeader().infoLines())
+	foreach(const InfoFormatLine& info_line, vcfHeader().infoLines())
 	{
 		if(info_line.id=="." || info_line.description=="") continue;
 		stream << "##DESCRIPTION=" + info_line.id + "_info=" + info_line.description << "\n";
 	}
-	for(InfoFormatLine format_line : vcfHeader().formatLines())
+	foreach(const InfoFormatLine& format_line, vcfHeader().formatLines())
 	{
 		if(format_line.id=="." || format_line.description=="") continue;
 		stream << "##DESCRIPTION=" + format_line.id + "_format=" + format_line.description << "\n";
 	}
 
 	//filter are added seperately
-	for(const FilterLine& filter_line : vcfHeader().filterLines())
+	foreach(const FilterLine& filter_line, vcfHeader().filterLines())
 	{
 		stream << "##FILTER=" << filter_line.id << "=" << filter_line.description << "\n";
 	}
@@ -512,15 +512,15 @@ void VcfFile::storeAsTsv(const QString& filename)
 	//header
 	stream << "#chr\tpos\tref\talt\tID\tQUAL\tFILTER";
 	//one column for every INFO field
-	for(const InfoFormatLine& info_line : vcfHeader().infoLines())
+	foreach(const InfoFormatLine& info_line, vcfHeader().infoLines())
 	{
 		if(info_line.id==".") continue;
 		stream << "\t" << info_line.id << "_info";
 	}
 	//one column for every combination of a FORMAT field and a SAMPLE
-	for(const QByteArray& sample_id : sampleIDs())
+	foreach(const QByteArray& sample_id, sampleIDs())
 	{
-		for(const InfoFormatLine& format_line : vcfHeader().formatLines())
+		foreach(const InfoFormatLine& format_line, vcfHeader().formatLines())
 		{
 			if(format_line.id==".") continue;
 			stream << "\t" << sample_id << "_" << format_line.id << "_format";
@@ -529,7 +529,7 @@ void VcfFile::storeAsTsv(const QString& filename)
 	stream << "\n";
 
 	//vcf lines
-	for(VcfLinePtr& v : vcfLines())
+	foreach(const VcfLinePtr& v, vcfLines())
 	{
 		//normalize variants and set symbol for empty sequence
 		stream << v->chr().str() << "\t" << QByteArray::number(v->start()) << "\t" << v->ref() << "\t" << v->altString() << "\t" << v->id().join(';') << "\t" << QByteArray::number(v->qual());
@@ -542,13 +542,13 @@ void VcfFile::storeAsTsv(const QString& filename)
 			stream << "\t" << v->filter().join(';');
 		}
 
-		for(const QByteArray& info_key : informationIDs())
+		foreach(const QByteArray& info_key, informationIDs())
 		{
 			stream << "\t" << v->info(info_key);
 		}
-		for(const QByteArray& sample_id : sampleIDs())
+		foreach(const QByteArray& sample_id, sampleIDs())
 		{
-			for(const QByteArray& format_key : formatIDs())
+			foreach(const QByteArray& format_key, formatIDs())
 			{
 				stream << "\t" << v->formatValueFromSample(format_key, sample_id);
 			}
@@ -634,9 +634,9 @@ void VcfFile::leftNormalize(QString reference_genome)
 {
 	FastaFileIndex reference(reference_genome);
 
-	for(VcfLinePtr& variant_line : vcfLines())
+	for(int i=0; i<vcfLines().count(); ++i)
 	{
-		variant_line->leftNormalize(reference, true);
+		vcfLines()[i]->leftNormalize(reference, true);
 	}
 }
 
@@ -689,7 +689,7 @@ QByteArrayList VcfFile::sampleIDs() const
 QByteArrayList VcfFile::informationIDs() const
 {
 	QByteArrayList informations;
-	for(const InfoFormatLine& info : vcfHeader().infoLines())
+	foreach(const InfoFormatLine& info, vcfHeader().infoLines())
 	{
 		informations.append(info.id);
 	}
@@ -699,7 +699,7 @@ QByteArrayList VcfFile::informationIDs() const
 QByteArrayList VcfFile::filterIDs() const
 {
 	QByteArrayList filters;
-	for(const FilterLine& filter : vcfHeader().filterLines())
+	foreach(const FilterLine& filter, vcfHeader().filterLines())
 	{
 		filters.append(filter.id);
 	}
@@ -709,7 +709,7 @@ QByteArrayList VcfFile::filterIDs() const
 QByteArrayList VcfFile::formatIDs() const
 {
 	QByteArrayList formats;
-	for(const InfoFormatLine& format : vcfHeader().formatLines())
+	foreach(const InfoFormatLine& format, vcfHeader().formatLines())
 	{
 		formats.append(format.id);
 	}
@@ -904,7 +904,7 @@ void VcfFile::copyMetaDataForSubsetting(const VcfFile& rhs)
 	//copy header information
 	vcf_header_ = rhs.vcfHeader();
 
-	for(const QByteArray& header : rhs.vcfColumnHeader())
+	foreach(const QByteArray& header, rhs.vcfColumnHeader())
 	{
 		column_headers_.push_back(header);
 	}
@@ -1041,7 +1041,7 @@ VcfFile VcfFile::fromGSvar(const VariantList& variant_list, const QString& refer
 	if(!genotype_columns.empty())
 	{
 		vcf_file.samples_exist_ = true;
-		for(const SampleInfo& genotype : genotype_columns)
+		foreach(const SampleInfo& genotype, genotype_columns)
 		{
 			vcf_file.column_headers_ << genotype.column_name.toUtf8();
 		}
@@ -1059,7 +1059,7 @@ VcfFile VcfFile::fromGSvar(const VariantList& variant_list, const QString& refer
 	QSet<int> indices_to_skip;
 	indices_to_skip.insert(qual_index);
 	indices_to_skip.insert(filter_index);
-	for(const SampleInfo& genotype : genotype_columns)
+	foreach(const SampleInfo& genotype, genotype_columns)
 	{
 		indices_to_skip.insert(genotype.column_index);
 	}
@@ -1105,7 +1105,7 @@ VcfFile VcfFile::fromGSvar(const VariantList& variant_list, const QString& refer
 			if(quality_index >= 0)
 			{
 				QByteArrayList quality_list = v.annotations().at(quality_index).split(';');
-				for(const QByteArray& element : quality_list)
+				foreach(const QByteArray& element, quality_list)
 				{
 					if(element.startsWith("QUAL"))
 					{
@@ -1190,7 +1190,7 @@ VcfFile VcfFile::fromGSvar(const VariantList& variant_list, const QString& refer
 			QList<QByteArrayList> all_samples_new;
 			bool all_samples_empty = true;
 
-			for(const SampleInfo& genotype_column : genotype_columns)
+			foreach(const SampleInfo& genotype_column, genotype_columns)
 			{
 				QByteArrayList formats_new;
 

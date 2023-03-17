@@ -20,7 +20,7 @@ private slots:
 		IS_TRUE(response.getStatusLine().contains("200"));
 		S_EQUAL(json_doc.object()["name"].toString(), ToolBase::applicationName());
 		S_EQUAL(json_doc.object()["version"].toString(), ToolBase::version());
-		S_EQUAL(json_doc.object()["api_version"].toString(), NGSHelper::serverApiVersion());
+		S_EQUAL(json_doc.object()["api_version"].toString(), ClientHelper::serverApiVersion());
     }
 
 	void test_saving_gsvar_file()
@@ -231,5 +231,55 @@ private slots:
 		IS_TRUE(pos > -1);
 		int length = rx.cap(2).toInt();
 		I_EQUAL(length, 18);
+	}
+
+	void test_current_client_info()
+	{
+		ClientInfo current_info("2023_02-21", "New updates available!");
+		SessionManager::setCurrentClientInfo(current_info);
+
+		HttpRequest request;
+		request.setMethod(RequestMethod::HEAD);
+		request.setContentType(ContentType::TEXT_HTML);
+		request.addHeader("host", "localhost:8443");
+		request.addHeader("accept", "text/html");
+		request.addHeader("connection", "keep-alive");
+		request.setPrefix("v1");
+		request.setPath("current_client");
+
+		HttpResponse response = ServerController::getCurrentClientInfo(request);
+
+		IS_TRUE(response.getStatusLine().split('\n').first().contains("200"));
+		IS_FALSE(response.getPayload().isNull());
+
+		QJsonDocument out = QJsonDocument::fromJson(response.getPayload());
+		IS_TRUE(out.isObject());
+		S_EQUAL(out.object().value("version").toString(), current_info.version);
+		S_EQUAL(out.object().value("message").toString(), current_info.message);
+	}
+
+	void test_user_notification()
+	{
+		QString notification_message = "Server will be updated!";
+		SessionManager::setCurrentNotification(notification_message);
+
+		HttpRequest request;
+		request.setMethod(RequestMethod::HEAD);
+		request.setContentType(ContentType::TEXT_HTML);
+		request.addHeader("host", "localhost:8443");
+		request.addHeader("accept", "text/html");
+		request.addHeader("connection", "keep-alive");
+		request.setPrefix("v1");
+		request.setPath("notification");
+
+		HttpResponse response = ServerController::getCurrentNotification(request);
+
+		IS_TRUE(response.getStatusLine().split('\n').first().contains("200"));
+		IS_FALSE(response.getPayload().isNull());
+
+		QJsonDocument out = QJsonDocument::fromJson(response.getPayload());
+		IS_TRUE(out.isObject());
+		IS_TRUE(!out.object().value("id").toString().isEmpty());
+		S_EQUAL(out.object().value("message").toString(), notification_message);
 	}
 };

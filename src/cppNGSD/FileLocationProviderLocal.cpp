@@ -294,7 +294,7 @@ FileLocationList FileLocationProviderLocal::getSomaticLowCoverageFiles(bool retu
 	QString folder = QFileInfo(gsvar_file_).absoluteDir().absolutePath();
 	QStringList beds = Helper::findFiles(folder, "*_lowcov.bed", false);
 
-	for(QString bed_file : beds)
+	foreach(QString bed_file,  beds)
 	{
 		FileLocation file = FileLocation(name, PathType::LOWCOV_BED, bed_file, QFile::exists(bed_file));
 		addToList(file, output, return_if_missing);

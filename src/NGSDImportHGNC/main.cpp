@@ -27,7 +27,7 @@ public:
 	void addAliases(SqlQuery& query, const QVariant& gene_id, const QByteArray& name_str, QVariant type)
 	{
 		QList<QByteArray> names = name_str.split('|');
-		for(QByteArray name : names)
+		foreach(QByteArray name, names)
 		{
 			name.replace("\"", "");
 			name = name.trimmed().toUpper();

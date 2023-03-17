@@ -4,9 +4,10 @@
             "alias": "ANA000111",
             "description": "short-read data analysis using megSAP: https://github.com/imgag/megSAP",
             "has_input": [
+                "BAM000111"
             ],
             "has_output": [
-                "BAM000111"
+                "VCF000111"
             ],
             "has_study": "Study4711",
             "reference_chromosome": "unspecified",
@@ -19,9 +20,10 @@
             "alias": "ANA000222",
             "description": "short-read data analysis using megSAP: https://github.com/imgag/megSAP",
             "has_input": [
+                "BAM000222"
             ],
             "has_output": [
-                "BAM000222"
+                "VCF000222"
             ],
             "has_study": "Study4711",
             "reference_chromosome": "unspecified",
@@ -49,7 +51,11 @@
             "alias": "DAP_Study4711",
             "description": "Data access policy for study Study4711",
             "has_data_access_committee": "Study4711 DAC",
-            "has_data_use_conditions": [
+            "has_data_use_modifier": [
+                "Modifier 1",
+                "Modifier 2"
+            ],
+            "has_data_use_permisson": [
                 "Condition 1",
                 "Condition 2"
             ],
@@ -75,7 +81,9 @@
             ],
             "has_file": [
                 "BAM000111",
-                "BAM000222"
+                "VCF000111",
+                "BAM000222",
+                "VCF000222"
             ],
             "has_sample": [
                 "SAM000111",
@@ -99,7 +107,8 @@
             "biological_replicates": "1",
             "description": "short-read sequencing",
             "has_file": [
-                "BAM000111"
+                "BAM000111",
+                "VCF000111"
             ],
             "has_protocol": [
                 "LIB000111",
@@ -120,7 +129,8 @@
             "biological_replicates": "1",
             "description": "short-read sequencing",
             "has_file": [
-                "BAM000222"
+                "BAM000222",
+                "VCF000222"
             ],
             "has_protocol": [
                 "LIB000222",
@@ -142,21 +152,41 @@
             "alias": "BAM000111",
             "checksum": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
             "checksum_type": "MD5",
-            "format": "bam",
-            "name": "000111.bam",
+            "format": "BAM",
+            "name": "BAM000111.bam",
             "schema_type": "CreateFile",
             "schema_version": "0.9.0",
             "size": "6000000"
         },
         {
+            "alias": "VCF000111",
+            "checksum": "123456789ABCDEFGHIJKLMNO",
+            "checksum_type": "MD5",
+            "format": "VCF",
+            "name": "VCF000111.vcf.gz",
+            "schema_type": "CreateFile",
+            "schema_version": "0.9.0",
+            "size": "7000000"
+        },
+        {
             "alias": "BAM000222",
             "checksum": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
             "checksum_type": "MD5",
-            "format": "bam",
-            "name": "000222.bam",
+            "format": "BAM",
+            "name": "BAM000222.bam",
             "schema_type": "CreateFile",
             "schema_version": "0.9.0",
             "size": "6000000"
+        },
+        {
+            "alias": "VCF000222",
+            "checksum": "123456789ABCDEFGHIJKLMNO",
+            "checksum_type": "MD5",
+            "format": "VCF",
+            "name": "VCF000222.vcf.gz",
+            "schema_type": "CreateFile",
+            "schema_version": "0.9.0",
+            "size": "7000000"
         }
     ],
     "has_individual": [

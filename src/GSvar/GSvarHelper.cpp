@@ -497,7 +497,8 @@ CfdnaDiseaseCourseTable GSvarHelper::cfdnaTable(const QString& tumor_ps_name, QS
 	QStringList cf_dna_ps_ids;
 	foreach (int cf_dna_sample, cf_dna_sample_ids)
 	{
-		cf_dna_ps_ids << db.getValues("SELECT id FROM processed_sample WHERE sample_id=" + QString::number(cf_dna_sample));
+		//ignore merged samples
+		cf_dna_ps_ids << db.getValues("SELECT ps.id FROM processed_sample ps WHERE sample_id=:0 AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)", QString::number(cf_dna_sample));
 	}
 
 

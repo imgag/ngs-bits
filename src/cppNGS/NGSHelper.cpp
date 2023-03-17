@@ -5,13 +5,11 @@
 #include "BamReader.h"
 #include "GeneSet.h"
 #include "ToolBase.h"
-#include "HttpRequestHandler.h"
 #include "Log.h"
 
 #include <QTextStream>
 #include <QFileInfo>
-#include <QDateTime>
-#include <QJsonDocument>
+
 #include <cmath>
 #include <vector>
 
@@ -769,76 +767,6 @@ void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_r
 	}
 
 	al.setCigarData(new_CIGAR);
-}
-
-bool NGSHelper::isClientServerMode()
-{
-	return !Settings::string("server_host", true).trimmed().isEmpty() && !Settings::string("server_port", true).trimmed().isEmpty();
-}
-
-bool NGSHelper::isRunningOnServer()
-{
-	return !Settings::string("ssl_certificate",true).trimmed().isEmpty() && !Settings::string("ssl_key",true).trimmed().isEmpty();
-}
-
-bool NGSHelper::isBamFile(QString filename)
-{
-	if (Helper::isHttpUrl(filename))
-	{
-		filename = QUrl(filename).toString(QUrl::RemoveQuery);
-	}
-
-	return filename.endsWith(".bam", Qt::CaseInsensitive);
-}
-
-QString NGSHelper::stripSecureToken(QString url)
-{
-	int token_pos = url.indexOf("?token", Qt::CaseInsensitive);
-	if (token_pos > -1) url = url.left(token_pos);
-	return  url;
-}
-
-ServerInfo NGSHelper::getServerInfo()
-{
-	ServerInfo info;
-	QByteArray response;
-	HttpHeaders add_headers;
-	add_headers.insert("Accept", "application/json");
-	try
-	{
-		response = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).get(NGSHelper::serverApiUrl()+ "info", add_headers);
-	}
-	catch (Exception& e)
-	{
-		Log::error("Server availability problem: " + e.message());
-		return info;
-	}
-
-	if (response.isEmpty())
-	{
-		Log::error("Could not parse the server response. The application will be closed");
-		return info;
-	}
-
-	QJsonDocument json_doc = QJsonDocument::fromJson(response);
-	if (json_doc.isObject())
-	{
-		if (json_doc.object().contains("version")) info.version = json_doc.object()["version"].toString();
-		if (json_doc.object().contains("api_version")) info.api_version = json_doc.object()["api_version"].toString();
-		if (json_doc.object().contains("start_time")) info.server_start_time = QDateTime::fromSecsSinceEpoch(json_doc.object()["start_time"].toInt());
-	}
-
-	return info;
-}
-
-QString NGSHelper::serverApiVersion()
-{
-	return "v1";
-}
-
-QString NGSHelper::serverApiUrl()
-{	
-	return  "https://" + Settings::string("server_host", true) + ":" + Settings::string("server_port", true) + "/" + serverApiVersion() + "/";
 }
 
 const QMap<QByteArray, QByteArrayList>& NGSHelper::transcriptMatches(GenomeBuild build)

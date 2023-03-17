@@ -3035,4 +3035,19 @@ private slots:
 
 		I_EQUAL(c_fail, 0);
 	}
+
+	void test_overriding_the_processed_sample_data_folder()
+	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in4.sql"));
+
+		QString path_with_override = db.processedSamplePath(db.processedSampleId("NA12878_02"), PathType::GSVAR);
+		IS_TRUE(path_with_override.endsWith("new/folder/NA12878_02.GSvar"));
+
+		QString path_without_override = db.processedSamplePath(db.processedSampleId("NA12878_03"), PathType::GSVAR);
+		IS_TRUE(path_without_override.endsWith("somatic/Sample_NA12878_03/NA12878_03.GSvar"));
+	}
 };

@@ -31,6 +31,7 @@ protected:
 
 private:
 	QSslConfiguration current_ssl_configuration_;
+	QString client_version_;
 };
 
 #endif // SSLSERVER_P_H

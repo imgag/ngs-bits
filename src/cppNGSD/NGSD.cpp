@@ -21,6 +21,7 @@
 #include <QThread>
 #include "cmath"
 #include "QUuid"
+#include "ClientHelper.h"
 
 NGSD::NGSD(bool test_db, QString name_suffix)
 	: test_db_(test_db)
@@ -30,7 +31,7 @@ NGSD::NGSD(bool test_db, QString name_suffix)
 
 	//connect to DB
 	QString db_name;
-	if (NGSHelper::isClientServerMode() && !NGSHelper::isRunningOnServer() && !test_db_) //get credentials from server in client-server mode
+	if (ClientHelper::isClientServerMode() && !ClientHelper::isRunningOnServer() && !test_db_) //get credentials from server in client-server mode
 	{
 		db_->setHostName(LoginManager::ngsdHostName());
 		db_->setPort(LoginManager::ngsdPort());
@@ -60,7 +61,7 @@ NGSD::NGSD(bool test_db, QString name_suffix)
 
 bool NGSD::isAvailable(bool test_db)
 {
-	if (!test_db && NGSHelper::isClientServerMode() && !NGSHelper::isRunningOnServer())
+	if (!test_db && ClientHelper::isClientServerMode() && !ClientHelper::isRunningOnServer())
 	{
 		return true;
 	}
@@ -1038,7 +1039,7 @@ QString NGSD::projectFolder(QString type)
 QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType type)
 {
 	SqlQuery query = getQuery();
-	query.prepare("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name, sys.name_short FROM processed_sample ps, sample s, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.project_id=p.id AND ps.id=:0");
+	query.prepare("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), ps.folder_override, p.type, p.name, sys.name_short FROM processed_sample ps, sample s, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.project_id=p.id AND ps.id=:0");
 	query.bindValue(0, processed_sample_id);
 	query.exec();
 	if (query.size()==0) THROW(DatabaseException, "Processed sample with id '" + processed_sample_id + "' not found in NGSD!");
@@ -1046,11 +1047,21 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 
 	//create sample folder
 	QString ps_name = query.value(0).toString();
-	QString p_type = query.value(1).toString();
-	QString output = projectFolder(p_type);
-	QString p_name = query.value(2).toString();
-	output += p_name + QDir::separator() + "Sample_" + ps_name + QDir::separator();
-	QString sys_name_short = query.value(3).toString();
+	QString ps_folder_override = query.value(1).toString();
+	QString output;
+	if (!ps_folder_override.isEmpty())
+	{
+		output = ps_folder_override;
+		if (!output.endsWith(QDir::separator())) output += QDir::separator();
+	}
+	else
+	{
+		QString p_type = query.value(2).toString();
+		output = projectFolder(p_type);
+		QString p_name = query.value(3).toString();
+		output += p_name + QDir::separator() + "Sample_" + ps_name + QDir::separator();
+	}
+	QString sys_name_short = query.value(4).toString();
 
 	//append file name if requested
 	if (type==PathType::BAM) output += ps_name + ".bam";
@@ -2927,7 +2938,7 @@ void NGSD::executeQueriesFromFile(QString filename)
 {
 	QStringList lines = Helper::loadTextFile(filename, true);
 	QString query = "";
-	for(const QString& line : lines)
+	foreach(const QString& line, lines)
 	{
 		if (line.isEmpty()) continue;
 		if (line.startsWith("--")) continue;
@@ -4510,8 +4521,6 @@ FileInfo NGSD::analysisJobLatestLogInfo(int job_id)
 		QStringList files = Helper::findFiles(folder, "*.log", false);
 		if (!files.isEmpty())
 		{
-			QString latest_file;
-			QDateTime latest_mod;
 			foreach(QString file, files)
 			{
 				QFileInfo file_info(file);
@@ -7518,7 +7527,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 	query_cnv.prepare("INSERT INTO `somatic_report_configuration_cnv` (`somatic_report_configuration_id`, `somatic_cnv_id`, `exclude_artefact`, `exclude_low_tumor_content`, `exclude_low_copy_number`, `exclude_high_baf_deviation`, `exclude_other_reason`, `comment`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7)");
 
 
-	for(const auto& var_conf : config.variantConfig())
+	foreach(const auto& var_conf, config.variantConfig())
 	{
 		if(var_conf.variant_type == VariantType::SNVS_INDELS)
 		{
@@ -7594,7 +7603,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 
 		query_germl_var.prepare("INSERT INTO `somatic_report_configuration_germl_var` (`somatic_report_configuration_id`, `variant_id`, `tum_freq`, `tum_depth`) VALUES (:0, :1, :2, :3)");
 
-		for(const auto& var_conf : config.variantConfigGermline())
+		foreach(const auto& var_conf, config.variantConfigGermline())
 		{
 			//check whether indices exist in variant list
 			if(var_conf.variant_index<0 || var_conf.variant_index >= germl_snvs.count())

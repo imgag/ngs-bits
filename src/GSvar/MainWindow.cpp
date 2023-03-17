@@ -46,6 +46,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "SubpanelArchiveDialog.h"
 #include "IgvDialog.h"
 #include "GapDialog.h"
+#include "EmailDialog.h"
 #include "CnvWidget.h"
 #include "CnvList.h"
 #include "RohWidget.h"
@@ -91,6 +92,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "GeneOmimInfoWidget.h"
 #include "LoginManager.h"
 #include "LoginDialog.h"
+#include "IgvSessionManager.h"
 #include "GeneInfoDBs.h"
 #include "VariantConversionWidget.h"
 #include "PasswordDialog.h"
@@ -140,6 +142,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "VirusDetectionWidget.h"
 #include "SomaticcfDNAReport.h"
 #include "MaintenanceDialog.h"
+#include "ClientHelper.h"
 
 #include "ExportCBioPortalStudy.h"
 
@@ -274,7 +277,7 @@ MainWindow::MainWindow(QWidget *parent)
 	QDir::setCurrent(QDir::tempPath());
 
 	//enable timers needed in client-server mode
-	if (NGSHelper::isClientServerMode())
+	if (ClientHelper::isClientServerMode())
 	{
 		// renew existing session, if it is about to expire
 		// a new token will be requested slightly in advance
@@ -286,26 +289,24 @@ MainWindow::MainWindow(QWidget *parent)
 		QTimer *server_ping_timer = new QTimer(this);
 		connect(server_ping_timer, SIGNAL(timeout()), this, SLOT(checkServerAvailability()));
 		server_ping_timer->start(10 * 60 * 1000); // every 10 minutes
-	}
 
-	QString virus_genome;
-	if (!NGSHelper::isClientServerMode())
-	{
-		virus_genome = Settings::string("igv_virus_genome", true);
-		if (virus_genome.isEmpty()) QMessageBox::information(this, "Virus genome not set", "Virus genome path is missing from the settings!");
+
+		//check if there are new notifications for the users
+		if (Settings::boolean("display_user_notifications", true))
+		{
+			QTimer *user_notification_timer = new QTimer(this);
+			connect(user_notification_timer, SIGNAL(timeout()), this, SLOT(checkUserNotifications()));
+			user_notification_timer->start(12 * 60 * 1000); // every 12 minutes
+		}
+
+		displayed_maintenance_message_id_ = "";
 	}
-	else
-	{
-		virus_genome = NGSHelper::serverApiUrl() + "genome/somatic_viral.fa";
-	}
-	// Default IGV session (variants)
-	GlobalServiceProvider::createIGVSession(GlobalServiceProvider::findAvailablePortForIGV(), false, Settings::path("igv_genome"));
-	// IGV session for virus detection
-	GlobalServiceProvider::createIGVSession(GlobalServiceProvider::findAvailablePortForIGV(), false, virus_genome);
 
 	connect(ui_.vars, SIGNAL(publishToClinvarTriggered(int, int)), this, SLOT(uploadToClinvar(int, int)));
 	connect(ui_.vars, SIGNAL(alamutTriggered(QAction*)), this, SLOT(openAlamut(QAction*)));
 
+	// Environment variable containing the file path to the list of certificate authorities
+	// (needed for HTTPS to work correctly, especially for htslib and BamReader)
 	QString curl_ca_bundle = Settings::string("curl_ca_bundle", true);
 	if ((Helper::isWindows()) && (!curl_ca_bundle.isEmpty()))
 	{
@@ -314,6 +315,9 @@ MainWindow::MainWindow(QWidget *parent)
 			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM files over HTTPS may not be possible");
 		}
 	}
+	update_info_toolbar_ = new QToolBar;
+	update_info_toolbar_->hide();
+	addToolBar(Qt::TopToolBarArea, update_info_toolbar_);
 }
 
 QString MainWindow::appName() const
@@ -328,7 +332,7 @@ QString MainWindow::appName() const
 
 bool MainWindow::isServerRunning()
 {
-	ServerInfo server_info = NGSHelper::getServerInfo();
+	ServerInfo server_info = ClientHelper::getServerInfo();
 
 	if (server_info.isEmpty())
 	{
@@ -336,9 +340,9 @@ bool MainWindow::isServerRunning()
 		return false;
 	}
 
-	if (NGSHelper::serverApiVersion() != server_info.api_version)
+	if (ClientHelper::serverApiVersion() != server_info.api_version)
 	{
-		QMessageBox::warning(this, "Version mismatch", "GSvar uses API " + NGSHelper::serverApiVersion() + ", while the server uses API " + server_info.api_version + ". No stable work can be guaranteed. The application will be closed");
+		QMessageBox::warning(this, "Version mismatch", "GSvar uses API " + ClientHelper::serverApiVersion() + ", while the server uses API " + server_info.api_version + ". No stable work can be guaranteed. The application will be closed");
 		return false;
 	}
 
@@ -350,6 +354,51 @@ void MainWindow::checkServerAvailability()
 	if (!isServerRunning())
 	{
 		close();
+	}
+}
+
+void MainWindow::checkUserNotifications()
+{
+	UserNotification user_notification = ClientHelper::getUserNotification();
+
+	if (user_notification.id.isEmpty() || user_notification.message.isEmpty()) return;
+	if ((!displayed_maintenance_message_id_.isEmpty()) && (displayed_maintenance_message_id_ == user_notification.id)) return;
+
+	displayed_maintenance_message_id_ = user_notification.id;
+	QMessageBox::information(this, "Important information", user_notification.message);
+}
+
+void MainWindow::checkClientUpdates()
+{
+	if (!ClientHelper::isClientServerMode()) return;
+
+	ClientInfo client_info = ClientHelper::getClientInfo();
+	if (client_info.isEmpty())
+	{
+		Log::warn("Could not retrieve updates information from the server");
+		return;
+	}
+
+	int commit_pos = QCoreApplication::applicationVersion().lastIndexOf("-");
+	if (commit_pos>-1)
+	{
+		QString short_version = QCoreApplication::applicationVersion().left(commit_pos);
+		if (ClientInfo(short_version, "").isOlderThan(client_info))
+		{
+			Log::info("Client version from the server: " + client_info.version);
+			update_info_toolbar_->clear();
+			update_info_toolbar_->setAutoFillBackground(true);
+			update_info_toolbar_->setStyleSheet("QToolBar {background: red;}");
+			QLabel *update_info_label = new QLabel;
+			update_info_label->setText(client_info.message.isEmpty() ? "Please restart the application" : client_info.message);
+			update_info_label->setStyleSheet("QLabel {color: white}");
+			update_info_toolbar_->addWidget(update_info_label);
+			update_info_toolbar_->show();
+		}
+		else
+		{
+			update_info_toolbar_->hide();
+		}
 	}
 }
 
@@ -475,7 +524,7 @@ void MainWindow::on_actionDebug_triggered()
 				//get phenotype infos from NGSD
 				QStringList tmp_icd10;
 				QStringList tmp_phenotype;
-				for( const auto& entry : db.getSampleDiseaseInfo(db.sampleId(ps_tumor)) )
+				foreach(const auto& entry, db.getSampleDiseaseInfo(db.sampleId(ps_tumor)) )
 				{
 					if(entry.type == "ICD10 code") tmp_icd10.append(entry.disease_info);
 					if(entry.type == "clinical phenotype (free text)") tmp_phenotype.append(entry.disease_info);
@@ -1534,16 +1583,16 @@ void MainWindow::on_actionIgvClear_triggered()
 	commands << "new";
 	executeIGVCommands(commands, false, 0);
 
-	GlobalServiceProvider::setIGVInitialized(false, 0);
+	IgvSessionManager::setIGVInitialized(false, 0);
 }
 
 void MainWindow::on_actionIgvPort_triggered()
 {
 	bool ok = false;
-	int igv_port_new = QInputDialog::getInt(this, "Change IGV port", "Set IGV port for this GSvar session:", GlobalServiceProvider::getIGVPort(0), 0, 900000, 1, &ok);
+	int igv_port_new = QInputDialog::getInt(this, "Change IGV port", "Set IGV port for this GSvar session:", IgvSessionManager::getIGVPort(0), 0, 900000, 1, &ok);
 	if (ok)
 	{
-		GlobalServiceProvider::setIGVPort(igv_port_new, 0);
+		IgvSessionManager::setIGVPort(igv_port_new, 0);
 	}
 }
 
@@ -1915,7 +1964,7 @@ void MainWindow::on_actionExpressionData_triggered()
 	else
 	{
 		bool ok;
-		count_file = QInputDialog::getItem(this, title, "Multiple RNA count files found.\nPlease select a file:", rna_count_files, 0, false, &ok);
+		count_file = getFileSelectionItem(title, "Multiple RNA count files found.\nPlease select a file:", rna_count_files, &ok);
 		if (!ok) return;
 	}
 
@@ -2006,7 +2055,7 @@ void MainWindow::on_actionExonExpressionData_triggered()
 	else
 	{
 		bool ok;
-		count_file = QInputDialog::getItem(this, title, "Multiple RNA count files found.\nPlease select a file:", rna_count_files, 0, false, &ok);
+		count_file = getFileSelectionItem(title,"Multiple RNA count files found.\nPlease select a file:", rna_count_files, &ok);
 		if (!ok) return;
 	}
 
@@ -2079,7 +2128,7 @@ void MainWindow::on_actionShowSplicing_triggered()
 	else
 	{
 		bool ok;
-		splicing_filepath = QInputDialog::getItem(this, "Multiple files found", "Multiple RNA splicing files found.\nPlease select a file:", splicing_files, 0, false, &ok);
+		splicing_filepath = getFileSelectionItem("Multiple files found", "Multiple RNA splicing files found.\nPlease select a file:", splicing_files, &ok);
 		if (!ok) return;
 	}
 
@@ -2124,7 +2173,7 @@ void MainWindow::on_actionShowRnaFusions_triggered()
 	else
 	{
 		bool ok;
-		fusion_filepath = QInputDialog::getItem(this, "Multiple files found", "Multiple RNA fusion files found.\nPlease select a file:", arriba_fusion_files, 0, false, &ok);
+		fusion_filepath = getFileSelectionItem("Multiple files found", "Multiple RNA fusion files found.\nPlease select a file:", arriba_fusion_files, &ok);
 		if (!ok) return;
 	}
 
@@ -2281,13 +2330,41 @@ void MainWindow::openVariantListFolder()
 {
 	if (filename_=="") return;
 
-	if (!GlobalServiceProvider::fileLocationProvider().isLocal())
+	try
 	{
-		QMessageBox::information(this, "Open analysis folder", "Cannot open analysis folder in client-server mode!");
-		return;
-	}
+		QString sample_folder;
 
-	QDesktopServices::openUrl(QFileInfo(filename_).absolutePath());
+		if (GlobalServiceProvider::fileLocationProvider().isLocal())
+		{
+			sample_folder = QFileInfo(filename_).absolutePath();
+		}
+		else //client-server (allow opening folders if GSvar project paths are configured)
+		{
+			NGSD db;
+			if (variants_.type()==AnalysisType::GERMLINE_SINGLESAMPLE)
+			{
+				QString ps = variants_.mainSampleName();
+				QString ps_id = db.processedSampleId(ps);
+				QString project_type = db.getProcessedSampleData(ps_id).project_type;
+				QString project_folder = db.projectFolder(project_type).trimmed();
+				if (!project_folder.isEmpty())
+				{
+					sample_folder = db.processedSamplePath(ps_id, PathType::SAMPLE_FOLDER);
+					if (!QDir(sample_folder).exists()) THROW(Exception, "Sample folder does not exist: " + sample_folder);
+				}
+			}
+			else
+			{
+				THROW(Exception, "In client-server mode, opening analysis folders is only supported for germline single sample!");
+			}
+		}
+
+		QDesktopServices::openUrl(sample_folder);
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::information(this, "Open analysis folder", "Could not open analysis folder:\n" + e.message());
+	}
 }
 
 void MainWindow::openVariantListQcFiles()
@@ -2372,7 +2449,7 @@ void MainWindow::delayedInitialization()
 	}
 
 	//close the app if the server is not available
-	if (NGSHelper::isClientServerMode())
+	if (ClientHelper::isClientServerMode())
 	{
 		if (!isServerRunning())
 		{
@@ -2399,6 +2476,21 @@ void MainWindow::delayedInitialization()
 			}
 		}
 	}
+
+	//create default IGV session (variants)
+	IgvSessionManager::createIGVSession(IgvSessionManager::findAvailablePortForIGV(), false, Settings::path("igv_genome"));
+	//create IGV session for virus detection
+	QString virus_genome;
+	if (!ClientHelper::isClientServerMode())
+	{
+		virus_genome = Settings::string("igv_virus_genome", true);
+		if (virus_genome.isEmpty()) QMessageBox::information(this, "Virus genome not set", "Virus genome path is missing from the settings!");
+	}
+	else
+	{
+	   virus_genome = ClientHelper::serverApiUrl() + "genome/somatic_viral.fa";
+	}
+	IgvSessionManager::createIGVSession(IgvSessionManager::findAvailablePortForIGV(), false, virus_genome);
 
 	//init GUI
 	updateRecentSampleMenu();
@@ -2476,15 +2568,15 @@ void MainWindow::prepareAndRunIGVCommands(QAbstractSocket& socket, QStringList f
 	QStringList init_commands;
 	//genome command first, see https://github.com/igvteam/igv/issues/1094
 	//choose the correct genome
-	init_commands.append("genome " + GlobalServiceProvider::getIGVGenome(session_index));
+	init_commands.append("genome " + IgvSessionManager::getIGVGenome(session_index));
 	init_commands.append("setSleepInterval 1500");
 	init_commands.append("new");
-	if (NGSHelper::isClientServerMode()) init_commands.append("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*");
+	if (ClientHelper::isClientServerMode()) init_commands.append("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*");
 
 	//load non-BAM files
 	foreach(QString file, files_to_load)
 	{
-		if (!NGSHelper::isBamFile(file)) init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
+		if (!ClientHelper::isBamFile(file)) init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
 	}
 
 	//collapse tracks
@@ -2494,7 +2586,7 @@ void MainWindow::prepareAndRunIGVCommands(QAbstractSocket& socket, QStringList f
 	//load BAM files
 	foreach(QString file, files_to_load)
 	{
-		if (NGSHelper::isBamFile(file)) init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
+		if (ClientHelper::isBamFile(file)) init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
 	}
 	init_commands.append("viewaspairs");
 	init_commands.append("colorBy UNEXPECTED_PAIR");
@@ -2602,7 +2694,7 @@ bool MainWindow::prepareNormalIGV(QAbstractSocket& socket)
 	if (analysis_type==SOMATIC_SINGLESAMPLE || analysis_type==SOMATIC_PAIR)
 	{
 		FileLocationList som_low_cov_files = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFiles(false);
-		for(const FileLocation& loc : som_low_cov_files)
+		foreach(const FileLocation& loc, som_low_cov_files)
 		{
 			if(loc.filename.contains("somatic_custom_panel_stat"))
 			{
@@ -2677,11 +2769,11 @@ bool MainWindow::prepareNormalIGV(QAbstractSocket& socket)
 		if (dlg.initializationAction()==IgvDialog::INIT)
 		{
 			prepareAndRunIGVCommands(socket, dlg.filesToLoad(), 0);
-			GlobalServiceProvider::setIGVInitialized(true, 0);
+			IgvSessionManager::setIGVInitialized(true, 0);
 		}
 		else if (dlg.initializationAction()==IgvDialog::SKIP_SESSION)
 		{
-			GlobalServiceProvider::setIGVInitialized(true, 0);
+			IgvSessionManager::setIGVInitialized(true, 0);
 		}
 		else if (dlg.initializationAction()==IgvDialog::SKIP_ONCE)
 		{
@@ -2705,7 +2797,7 @@ bool MainWindow::prepareNormalIGV(QAbstractSocket& socket)
 bool MainWindow::prepareVirusIGV(QAbstractSocket& socket)
 {
 	prepareAndRunIGVCommands(socket, QStringList{}, 1);
-	GlobalServiceProvider::setIGVInitialized(true, 1);
+	IgvSessionManager::setIGVInitialized(true, 1);
 	return true;
 }
 
@@ -3147,6 +3239,7 @@ void MainWindow::on_actionOpenByName_triggered()
 
 void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool search_multi)
 {
+	checkClientUpdates();
 	try
 	{
 		NGSD db;
@@ -3481,8 +3574,8 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 	variants_changed_.clear();
 	cnvs_.clear();
 	svs_.clear();
-	GlobalServiceProvider::setIGVInitialized(false, true);
-	GlobalServiceProvider::setIGVInitialized(false, false);
+	IgvSessionManager::setIGVInitialized(false, true);
+	IgvSessionManager::setIGVInitialized(false, false);
 	ui_.vars->clearContents();
 	report_settings_ = ReportSettings();
 	connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
@@ -4005,21 +4098,28 @@ void MainWindow::on_actionAbout_triggered()
 {
 	QString about_text = appName()+ " " + QCoreApplication::applicationVersion();
 
+	about_text += "\n\nA free viewing and filtering tool for genomic variants.";
+
+	//general infos
 	about_text += "\n";
+	about_text += "\nGenome build: " + buildToString(GSvarHelper::build());
 	about_text += "\nArchitecture: " + QSysInfo::buildCpuArchitecture();
 
-	if (NGSHelper::isClientServerMode())
+	//client-server infos
+	about_text += "\n";
+	if (ClientHelper::isClientServerMode())
 	{
-		ServerInfo server_info = NGSHelper::getServerInfo();
-		if (!server_info.isEmpty())
-		{
-			about_text += "\n";
-			about_text += "\nServer version: " + server_info.version;
-			about_text += "\nAPI version: " + server_info.api_version;
-			about_text += "\nServer start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
-		}
+		about_text += "\nMode: client-server";
+		ServerInfo server_info = ClientHelper::getServerInfo();
+		about_text += "\nServer version: " + server_info.version;
+		about_text += "\nAPI version: " + server_info.api_version;
+		about_text += "\nServer start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
 	}
-	about_text += "\n\nA free viewing and filtering tool for genomic variants.\n\nInstitute of Medical Genetics and Applied Genomics\nUniversity Hospital Tübingen\nGermany\n\nMore information at:\nhttps://github.com/imgag/ngs-bits";
+	else
+	{
+		about_text += "\nMode: stand-alone (no server)";
+	}
+
 	QMessageBox::about(this, "About " + appName(), about_text);
 }
 
@@ -4645,7 +4745,7 @@ void MainWindow::generateReportSomaticRTF()
 	QStringList tmp_icd10;
 	QStringList tmp_phenotype;
 	QStringList tmp_rna_ref_tissue;
-	for( const auto& entry : db.getSampleDiseaseInfo(db.sampleId(ps_tumor)) )
+	foreach(const auto& entry, db.getSampleDiseaseInfo(db.sampleId(ps_tumor)))
 	{
 		if(entry.type == "ICD10 code") tmp_icd10.append(entry.disease_info);
 		if(entry.type == "clinical phenotype (free text)") tmp_phenotype.append(entry.disease_info);
@@ -4664,9 +4764,9 @@ void MainWindow::generateReportSomaticRTF()
 		dlg.enableChoiceRnaReportType(true);
 
 		QStringList rna_names;
-		for(int rna_id : rna_ids)
+		foreach(int rna_id, rna_ids)
 		{
-			for ( const auto& rna_ps_id : db.getValues("SELECT id FROM processed_sample WHERE sample_id=" + QString::number(rna_id)) )
+			foreach(const auto& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=" + QString::number(rna_id)) )
 			{
 				rna_names << db.processedSampleName(rna_ps_id);
 			}
@@ -4856,7 +4956,7 @@ void MainWindow::generateReportSomaticRTF()
 			}
 
 			//Look in tumor sample for HPA reference tissue
-			for( const auto& entry : db.getSampleDiseaseInfo(db.sampleId(dlg.getRNAid())) )
+			foreach(const auto& entry, db.getSampleDiseaseInfo(db.sampleId(dlg.getRNAid())) )
 			{
 				if(entry.type == "RNA reference tissue") tmp_rna_ref_tissue.append(entry.disease_info);
 			}
@@ -5451,7 +5551,7 @@ void MainWindow::on_actionStatistics_triggered()
 {
 	try
 	{
-		LoginManager::checkRoleIn(QStringList{"admin"});
+		LoginManager::checkRoleIn(QStringList{"admin", "user"});
 	}
 	catch (Exception& e)
 	{
@@ -5949,6 +6049,40 @@ void MainWindow::on_actionMaintenance_triggered()
 
 	MaintenanceDialog* dlg = new MaintenanceDialog(this);
 	dlg->exec();
+}
+
+void MainWindow::on_actionNotifyUsers_triggered()
+{
+	try
+	{
+		LoginManager::checkRoleIn(QStringList{"admin"});
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, "Permissions error", e.message());
+		return;
+	}
+
+	NGSD db;
+	QStringList to, body;
+	to = db.getValues("SELECT email from user WHERE user_role<>'special' AND active='1'");
+
+	QStringList excluded_emails = {"restricted_user@med.uni-tuebingen.de"};
+	foreach (QString email, excluded_emails)
+	{
+		int email_pos = to.indexOf(email);
+		if (email_pos>-1) to.removeAt(email_pos);
+	}
+
+	QString subject = "GSvar update";
+	body << "Dear all,";
+	body << "";
+	body << "";
+	body << "Best regards,";
+	body << LoginManager::userName();
+
+	EmailDialog dlg(this, to, subject, body);
+	dlg.exec();
 }
 
 void MainWindow::on_actionCohortAnalysis_triggered()
@@ -6995,7 +7129,7 @@ void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done,
 		//connect
 		QAbstractSocket socket(QAbstractSocket::UnknownSocketType, this);
 		QString igv_host = Settings::string("igv_host");
-		int igv_port = GlobalServiceProvider::getIGVPort(session_index);
+		int igv_port = IgvSessionManager::getIGVPort(session_index);
 		if (debug) qDebug() << QDateTime::currentDateTime() << "CONNECTING:" << igv_host << igv_port;
 		socket.connectToHost(igv_host, igv_port);
 		if (!socket.waitForConnected(1000))
@@ -7006,7 +7140,7 @@ void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done,
 			QApplication::setOverrideCursor(Qt::BusyCursor);
 
 			if (debug) qDebug() << QDateTime::currentDateTime() << "FAILED - TRYING TO START IGV";			
-			GlobalServiceProvider::setIGVInitialized(false, session_index);
+			IgvSessionManager::setIGVInitialized(false, session_index);
 
 			//try to start IGV
 			QString igv_app = Settings::path("igv_app").trimmed();
@@ -7046,7 +7180,7 @@ void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done,
 		QApplication::restoreOverrideCursor();
 
 		//init if necessary
-		if (!GlobalServiceProvider::isIGVInitialized(session_index) && init_if_not_done)
+		if (!IgvSessionManager::isIGVInitialized(session_index) && init_if_not_done)
 		{
 			if (debug) qDebug() << QDateTime::currentDateTime() << "INITIALIZING IGV FOR CURRENT SAMPLE!";
 
@@ -7277,7 +7411,7 @@ void MainWindow::storeCurrentVariantList()
 			add_headers.insert("Content-Length", QByteArray::number(json_doc.toJson().count()));
 
 			QString reply = HttpHandler(HttpRequestHandler::NONE).put(
-						NGSHelper::serverApiUrl() + "project_file?ps_url_id=" + ps_url_id + "&token=" + LoginManager::userToken(),
+						ClientHelper::serverApiUrl() + "project_file?ps_url_id=" + ps_url_id + "&token=" + LoginManager::userToken(),
 						json_doc.toJson(),
 						add_headers
 					);
@@ -7590,7 +7724,7 @@ void MainWindow::applyFilters(bool debug_time)
 		//keep somatic variants that are marked with "include" in report settings (overrides possible filtering for that variant)
 		if( somaticReportSupported() && rc_filter != ReportConfigFilter::NO_RC)
 		{
-			for(int index : somatic_report_settings_.report_config.variantIndices(VariantType::SNVS_INDELS, false))
+			foreach(int index, somatic_report_settings_.report_config.variantIndices(VariantType::SNVS_INDELS, false))
 			{
 				filter_result_.flags()[index] = filter_result_.flags()[index] || somatic_report_settings_.report_config.variantConfig(index, VariantType::SNVS_INDELS).showInReport();
 			}
@@ -7737,6 +7871,30 @@ QString MainWindow::normalSampleName()
 	}
 
 	return "";
+}
+
+QString MainWindow::getFileSelectionItem(QString window_title, QString label_text, QStringList file_list, bool *ok)
+{
+	QStringList rna_count_files_displayed_names = file_list;
+	if (ClientHelper::isClientServerMode())
+	{
+		rna_count_files_displayed_names.clear();
+		foreach (QString full_name, file_list)
+		{
+			rna_count_files_displayed_names << QUrl(full_name).fileName();
+		}
+	}
+
+	QString selected_file_name = QInputDialog::getItem(this, window_title, label_text, rna_count_files_displayed_names, 0, false, ok);
+	if (ClientHelper::isClientServerMode())
+	{
+		int selection_index = rna_count_files_displayed_names.indexOf(selected_file_name);
+		if (selection_index>-1) return file_list[selection_index];
+		QMessageBox::warning(this, "File URL not found", "Could not find the URL for the selected file!");
+		return "";
+	}
+
+	return selected_file_name;
 }
 
 

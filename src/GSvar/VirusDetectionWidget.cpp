@@ -3,6 +3,8 @@
 #include "TSVFileStream.h"
 #include "GlobalServiceProvider.h"
 #include "LoginManager.h"
+#include "IgvSessionManager.h"
+#include "ClientHelper.h"
 #include <QAction>
 #include <QMenu>
 #include <QMessageBox>
@@ -16,7 +18,7 @@ VirusDetectionWidget::VirusDetectionWidget(QString viral_file, QWidget* parent)
 	setSelectionBehavior(QAbstractItemView::SelectRows);
 	setContextMenuPolicy(Qt::CustomContextMenu);
 
-	GlobalServiceProvider::setIGVInitialized(false, true);
+	IgvSessionManager::setIGVInitialized(false, true);
 	connect(this, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(callViewInIGV(int, int)));
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(callCustomMenu(QPoint)));
 
@@ -100,11 +102,11 @@ void VirusDetectionWidget::openInIGV(int row)
 	}
 
 	QStringList commands;
-	if (!GlobalServiceProvider::isIGVInitialized(true))
+	if (!IgvSessionManager::isIGVInitialized(true))
 	{
 		foreach (FileLocation file, bam_files)
 		{
-			commands.append("load \"" + NGSHelper::stripSecureToken(file.filename) + "\"");
+			commands.append("load \"" + ClientHelper::stripSecureToken(file.filename) + "\"");
 		}
 	}
 

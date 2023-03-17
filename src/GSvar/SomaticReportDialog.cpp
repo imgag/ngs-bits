@@ -4,6 +4,7 @@
 #include "GlobalServiceProvider.h"
 #include "Statistics.h"
 #include "MainWindow.h"
+#include "ClientHelper.h"
 #include <QMessageBox>
 #include <QBuffer>
 
@@ -650,7 +651,7 @@ void SomaticReportDialog::createIgvScreenshot()
 
 		try
 		{
-			HttpHandler(HttpRequestHandler::NONE).post(NGSHelper::serverApiUrl() + "upload?token=" + LoginManager::userToken(), multipart_form);
+			HttpHandler(HttpRequestHandler::NONE).post(ClientHelper::serverApiUrl() + "upload?token=" + LoginManager::userToken(), multipart_form);
 		}
 		catch (Exception& e)
 		{
