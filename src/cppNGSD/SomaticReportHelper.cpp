@@ -1376,8 +1376,107 @@ RtfTable SomaticReportHelper::hlaTable(QString ps_name, QByteArray type)
 
 	table.setUniqueBorder(1,"brdrhair",4);
 	return table;
-
 }
+
+RtfTable SomaticReportHelper::signatureTable()
+{
+
+
+	// load descriptions from file:
+	QSharedPointer<VersatileFile> desc_file = Helper::openVersatileFileForReading(":/resources/signature_description.tsv");
+
+	QMap<QByteArray, QByteArray> descriptions;
+
+	while (! desc_file->atEnd())
+	{
+		QByteArray line = desc_file->readLine();
+		line = line.trimmed();
+		if (line.startsWith('#') || line.isEmpty()) continue;
+
+		QByteArrayList parts = line.split('\t');
+		if (parts.count() != 2)
+		{
+			THROW(FileParseException, "Signature description file has a line with more or less than 2 elements: " + line);
+		}
+
+		descriptions.insert(parts[0], parts[1]);
+	}
+
+	RtfTable table;
+
+	QList<int> cell_widths = {1500, 1500, 1500, 2000, 3422};
+	table.addRow(RtfTableRow("Mutationssignaturen", doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4));
+	table.addRow(RtfTableRow({"Signatur", "Anteil [%]", "Korrelation", "Kosinus-Ähnlichkeit", "Aetiologie"}, cell_widths, RtfParagraph().setBold(true).setHorizontalAlignment("c")));
+
+	signatureTableHelper(table, settings_.sbs_signature, descriptions, "SBS92");
+	signatureTableHelper(table, settings_.id_signature, descriptions, "ID83");
+	signatureTableHelper(table, settings_.dbs_signature, descriptions, "DBS78");
+	signatureTableHelper(table, settings_.cnv_signature, descriptions, "CNV48");
+
+	table.setUniqueBorder(1,"brdrhair",4);
+
+	return table;
+}
+
+void SomaticReportHelper::signatureTableHelper(RtfTable &table, QString file, const QMap<QByteArray, QByteArray>& descriptions, const QByteArray& type)
+{
+	VersatileFile stream(file);
+
+	if (stream.exists())
+	{
+		QList<int> cell_widths = {1500, 1500, 1500, 2000, 3422};
+
+		QByteArray content = stream.readAll();
+		QByteArrayList lines = content.split('\n');
+		if (lines.count() < 2) return;
+
+//		QByteArray header = lines[0];
+		QByteArray values = lines[1];
+
+		QByteArrayList parts = values.split(',');
+
+		qDebug() << "data line parts: " << parts;
+
+		QByteArray cos_similarity = parts[5];
+		QByteArray correlation = parts[6];
+
+		//if there is only a single resulting signature it has no percentage after it.
+		if (parts[0].trimmed() == parts[1].trimmed())
+		{
+			table.addRow(RtfTableRow("Für die Mutationssignaturen des Typs " + type + " konnten keine COSMIC signaturen identifieziert werden.", doc_.maxWidth()));
+			return;
+		}
+
+		QByteArrayList signatures = (parts[1] + "&").split('&');
+
+		qDebug() << "Signature names + perc: " << signatures;
+		foreach (auto sig, signatures)
+		{
+			sig = sig.trimmed();
+			if (sig == "") continue;
+			sig.replace("Signature ", "");
+
+			QByteArray sig_name = sig.split(' ')[0];
+			QByteArray sig_perc = sig.split(' ')[1];
+			sig_perc.replace("(", "");
+			sig_perc.replace("%)", "");
+
+			RtfTableRow row;
+			row.addCell(cell_widths[0], sig_name);
+			row.addCell(cell_widths[1], sig_perc);
+			row.addCell(cell_widths[2], correlation);
+			row.addCell(cell_widths[3], cos_similarity);
+			row.addCell(cell_widths[4], descriptions[sig_name]);
+
+			table.addRow(row);
+		}
+	}
+	else
+	{
+		table.addRow(RtfTableRow("Die Mutationssignaturen des Typs " + type + " konnten nicht berechnet werden.", doc_.maxWidth()));
+	}
+}
+
 
 
 void SomaticReportHelper::storeRtf(const QByteArray& out_file)
@@ -1439,9 +1538,17 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	 *******************/
 
 	doc_.newPage();
-
 	doc_.addPart(RtfParagraph("").RtfCode());
 	doc_.addPart(partPathways());
+	doc_.addPart(RtfParagraph("").RtfCode());
+
+	/*******************
+	 * SIGNATURE TABLE *
+	 *******************/
+
+	doc_.addPart(RtfParagraph("").RtfCode());
+	doc_.addPart(signatureTable().RtfCode());
+	doc_.addPart(RtfParagraph("Nähere Informationen erhalten Sie aus der Datenbank COSMIC (https://cancer.sanger.ac.uk/signatures/)").setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
 
 	/*******************************************
@@ -1459,6 +1566,10 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 		doc_.addPart(RtfParagraph("").RtfCode());
 	}
 
+	/*************
+	 * HLA Table *
+	 *************/
+
 	doc_.addPart(RtfParagraph("").RtfCode());
 	doc_.addPart(hlaTable(settings_.normal_ps, "Normal").RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
@@ -1470,7 +1581,6 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	 ***********************/
 
 	doc_.newPage();
-
 	doc_.addPart(RtfParagraph("").RtfCode());
 	doc_.addPart(partBillingTable());
 	doc_.addPart(RtfParagraph("").RtfCode());

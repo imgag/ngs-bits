@@ -1257,6 +1257,16 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahott1a1")
 	{
+		FileLocation file = GlobalServiceProvider::fileLocationProvider().getSignatureSbsFile();
+		qDebug() << file.fileName(false);
+		QSharedPointer<VersatileFile> file_p = Helper::openVersatileFileForReading(file.filename, true);
+
+		qDebug() << file_p->readLine();
+		qDebug() << file_p->readLine();
+		qDebug() << file_p->readLine();
+
+		qDebug() << GlobalServiceProvider::fileLocationProvider().getSignatureDbsFile().fileName(false);
+		qDebug() << GlobalServiceProvider::fileLocationProvider().getSignatureCnvFile().fileName(false);
 	}
 
 	qDebug() << "Elapsed time debugging:" << Helper::elapsedTime(timer, true);
@@ -4032,6 +4042,11 @@ void MainWindow::loadSomaticReportConfig()
 	somatic_report_settings_.normal_ps = ps_normal;
 	somatic_report_settings_.msi_file = GlobalServiceProvider::fileLocationProvider().getSomaticMsiFile().filename;
 	somatic_report_settings_.viral_file = GlobalServiceProvider::database().processedSamplePath(ps_tumor_id, PathType::VIRAL).filename;
+
+	somatic_report_settings_.sbs_signature = GlobalServiceProvider::fileLocationProvider().getSignatureSbsFile().filename;
+	somatic_report_settings_.id_signature = GlobalServiceProvider::fileLocationProvider().getSignatureIdFile().filename;
+	somatic_report_settings_.dbs_signature = GlobalServiceProvider::fileLocationProvider().getSignatureDbsFile().filename;
+	somatic_report_settings_.cnv_signature = GlobalServiceProvider::fileLocationProvider().getSignatureCnvFile().filename;
 
 	try //load normal sample
 	{

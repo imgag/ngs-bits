@@ -391,7 +391,7 @@ FileLocation FileLocationProviderLocal::getSignatureSbsFile() const
 {
 	if (analysis_type_ != SOMATIC_SINGLESAMPLE && analysis_type_ != SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCfdnaCandidateFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 	QString name = QFileInfo(gsvar_file_).baseName();
-	QString file = QFileInfo(gsvar_file_).dir().absolutePath() + QDir::separator() + "snv_signatures" + QDir::separator() + "De_Novo_map_to_COSMIC_SBS96.csvv";
+	QString file = QFileInfo(gsvar_file_).dir().absolutePath() + QDir::separator() + "snv_signatures" + QDir::separator() + "De_Novo_map_to_COSMIC_SBS96.csv";
 
 	return FileLocation{name, PathType::SIGNATURE_SBS, file, QFile::exists(file)};
 }
