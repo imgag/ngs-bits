@@ -1209,6 +1209,14 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		{
 			w.writeAttribute("hgvs_suffix", var_conf.manual_sv_hgvs_suffix);
 		}
+		if (!var_conf.manual_sv_hgvs_type_bnd.isEmpty())
+		{
+			w.writeAttribute("hgvs_bnd_type", var_conf.manual_sv_hgvs_type_bnd);
+		}
+		if (!var_conf.manual_sv_hgvs_suffix_bnd.isEmpty())
+		{
+			w.writeAttribute("hgvs_bnd_suffix", var_conf.manual_sv_hgvs_suffix_bnd);
+		}
 
 		foreach(const QByteArray& gene, sv.genes(data_.svs.annotationHeaders(), false))
 		{
