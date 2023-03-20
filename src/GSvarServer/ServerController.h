@@ -61,6 +61,8 @@ public:
 	static HttpResponse saveQbicFiles(const HttpRequest& request);
 	/// Uploads a file to the sample folder (via multipart form POST request)
 	static HttpResponse uploadFile(const HttpRequest& request);
+	/// Uploads a VCF file, annotates it, and converts into GSvar
+	static HttpResponse annotateVariant(const HttpRequest& request);
 	/// Starts the calculation of low coverage regions
 	static HttpResponse calculateLowCoverage(const HttpRequest& request);
 	/// Starts the calculation of the average covarage for gaps
@@ -100,6 +102,7 @@ public:
 	// Returns some notification displayed to the users of the client application
 	static HttpResponse getCurrentNotification(const HttpRequest& request);
 
+	static HttpResponse uploadFileToFolder(QString upload_folder, QString filename, QByteArray content);
 private:
 	/// Find file/folder name corresponding to the id from a temporary URL
 	static QString findPathForTempUrl(QList<QString> path_parts);
