@@ -452,7 +452,6 @@ private:
 	QList<VariantListChange> variants_changed_;
 	CnvList cnvs_;
 	BedpeFile svs_;
-	VariantList mosaics_;
 	FilterResult filter_result_;
 	QString last_report_path_;
 	PhenotypeList last_phenos_; //phenotypes used to generate phenotype ROI (needed to check if they changed)

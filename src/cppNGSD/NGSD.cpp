@@ -1072,7 +1072,6 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==PathType::MANTA_EVIDENCE) output += "manta_evid/" + ps_name + "_manta_evidence.bam";
 	else if (type==PathType::BAF) output += ps_name + "_bafs.igv";
 	else if (type==PathType::STRUCTURAL_VARIANTS) output += ps_name + "_manta_var_structural.bedpe";
-	else if (type==PathType::MOSAIC_VARIANTS) output += ps_name + "_mosaic.GSvar";
 	else if (type==PathType::COPY_NUMBER_RAW_DATA) output += ps_name + "_cnvs_clincnv.seg";
 	else if (type==PathType::COPY_NUMBER_CALLS) output += ps_name + "_cnvs_clincnv.tsv";
 	else if (type==PathType::FUSIONS) output += ps_name + "_fusions_arriba.tsv";
