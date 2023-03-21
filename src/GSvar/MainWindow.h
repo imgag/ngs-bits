@@ -206,8 +206,6 @@ public slots:
 	void on_actionROH_triggered();
 	///Open SV dialog
 	void on_actionSV_triggered();
-	///Open Mosaic dialog
-	void on_actionMosaic_triggered();
 	///Open gene picker dialog
 	void on_actionGeneSelector_triggered();
 	///Open Circos plot
