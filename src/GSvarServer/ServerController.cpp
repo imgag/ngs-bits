@@ -291,9 +291,6 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 			case PathType::STRUCTURAL_VARIANTS:
 				file_list << file_locator->getAnalysisSvFile();
 				break;
-			case PathType::MOSAIC_VARIANTS:
-				file_list << file_locator->getAnalysisMosaicFile();
-				break;
 			case PathType::COPY_NUMBER_CALLS:
 				if (multiple_files)
 				{
