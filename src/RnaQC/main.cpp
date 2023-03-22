@@ -32,11 +32,12 @@ public:
 
 		//optional
 		addInfile("housekeeping_genes", "BED file containing the exon region of housekeeping genes.", true, true);
+		addInfile("roi", "BED file containing the target region of the analysis.", true, true);
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true, true);
 		addInfile("splicing", "TSV file containing spliced reads by gene.", true, true);
 		addInfile("expression", "TSV file containing RNA expression.", true, true);
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
-		addInt("min_mapq", "Set minimal mapping quality (default:0)", true, 1);
+		addInt("min_mapq", "Set minimal mapping quality (default:1)", true, 1);
 		addFlag("txt", "Writes TXT format instead of qcML.");
 
 
@@ -44,6 +45,7 @@ public:
 		changeLog(2022, 4, 27, "Initial version.");
 		changeLog(2022, 5, 12, "Changed TPM cutoffs.");
 		changeLog(2022, 7, 12, "Made housekeeping genes optional.");
+		changeLog(2023, 3, 22, "Added optional target region.");
 	}
 
 	virtual void main()
@@ -51,6 +53,7 @@ public:
 		// init
 		QString bam = getInfile("bam");
 		QString housekeeping_genes = getInfile("housekeeping_genes");
+		QString roi = getInfile("roi");
 		QString out = getOutfile("out");
 		QString splicing = getInfile("splicing");
 		QString expression = getInfile("expression");
@@ -67,7 +70,19 @@ public:
 			//get qc stats of housekeeping genes
 			BedFile housekeeping_genes_bed;
 			housekeeping_genes_bed.load(housekeeping_genes);
-			rna_qc = Statistics::mapping_housekeeping(housekeeping_genes_bed, bam, ref, min_mapq);
+			//limit to target region
+			if(!roi.trimmed().isEmpty())
+			{
+				BedFile roi_bed;
+				roi_bed.load(roi);
+				housekeeping_genes_bed.intersect(roi_bed);
+			}
+			//calculate QC only if remaining target region is not empty
+			if(housekeeping_genes_bed.baseCount() > 0)
+			{
+				rna_qc = Statistics::mapping_housekeeping(housekeeping_genes_bed, bam, ref, min_mapq);
+			}
+
 		}
 
 
@@ -105,7 +120,16 @@ public:
 			metadata << QCValue("source file", QFileInfo(expression).fileName(), " (expression)", "QC:1000005");
 			parameters += " -expression " + expression;
 		}
-		metadata << QCValue("linked file", QFileInfo(getInfile("housekeeping_genes")).fileName(), " (housekeeping genes)", "QC:1000006");
+		if(!housekeeping_genes.trimmed().isEmpty())
+		{
+			metadata << QCValue("linked file", QFileInfo(getInfile("housekeeping_genes")).fileName(), " (housekeeping genes)", "QC:1000006");
+			parameters += " -housekeeping_genes " + housekeeping_genes;
+		}
+		if(!roi.trimmed().isEmpty())
+		{
+			metadata << QCValue("linked file", QFileInfo(getInfile("roi")).fileName(), " (roi)", "QC:1000006");
+			parameters += " -roi " + roi;
+		}
 
 
 		if (getFlag("txt"))
