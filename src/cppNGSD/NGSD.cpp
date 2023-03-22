@@ -6066,6 +6066,12 @@ Transcript NGSD::bestTranscript(int gene_id)
 	//MANE plus clinical
 	//not necessary because each gene with MANE plus clinical also has a MANE select transcript
 
+	//Ensembl canonical
+	foreach(const Transcript& t, list)
+	{
+		if (t.isEnsemblCanonicalTranscript()) return t;
+	}
+
 	//longest coding
 	foreach(const Transcript& t, list)
 	{
@@ -6091,7 +6097,7 @@ TranscriptList NGSD::releventTranscripts(int gene_id)
 
 	foreach(const Transcript& t, transcripts(gene_id, Transcript::ENSEMBL, false))
 	{
-		if (t.isPreferredTranscript() || t.isManeSelectTranscript() || t.isManePlusClinicalTranscript())
+		if (t.isPreferredTranscript() || t.isManeSelectTranscript() || t.isManePlusClinicalTranscript() || t.isEnsemblCanonicalTranscript())
 		{
 			if (!output.contains(t)) output << t;
 		}
@@ -8357,7 +8363,7 @@ void NGSD::initTranscriptCache()
 
 	//create all transcripts
 	QHash<QByteArray, int> tmp_name2id;
-	query.exec("SELECT t.id, g.symbol, t.name, t.source, t.strand, t.chromosome, t.start_coding, t.end_coding, t.biotype, t.is_mane_select, t.is_mane_plus_clinical, t.version FROM gene_transcript t, gene g WHERE t.gene_id=g.id");
+	query.exec("SELECT t.id, g.symbol, t.name, t.source, t.strand, t.chromosome, t.start_coding, t.end_coding, t.biotype, t.is_gencode_basic, t.is_ensembl_canonical, t.is_mane_select, t.is_mane_plus_clinical, t.version FROM gene_transcript t, gene g WHERE t.gene_id=g.id");
 	while(query.next())
 	{
 		int trans_id = query.value(0).toInt();
@@ -8370,9 +8376,11 @@ void NGSD::initTranscriptCache()
 		transcript.setStrand(Transcript::stringToStrand(query.value(4).toByteArray()));
 		transcript.setBiotype(Transcript::stringToBiotype(query.value(8).toByteArray()));
 		transcript.setPreferredTranscript(pts.contains(transcript.name()));
-		transcript.setManeSelectTranscript(query.value(9).toInt()!=0);
-		transcript.setManePlusClinicalTranscript(query.value(10).toInt()!=0);
-		transcript.setVersion(query.value(11).toInt());
+		transcript.setGencodeBasicTranscript(query.value(9).toInt()!=0);
+		transcript.setEnsemblCanonicalTranscript(query.value(10).toInt()!=0);
+		transcript.setManeSelectTranscript(query.value(11).toInt()!=0);
+		transcript.setManePlusClinicalTranscript(query.value(12).toInt()!=0);
+		transcript.setVersion(query.value(13).toInt());
 
 		//get exons
 		BedFile regions;

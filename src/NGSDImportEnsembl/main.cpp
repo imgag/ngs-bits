@@ -21,15 +21,14 @@ public:
 	virtual void setup()
 	{
 		setDescription("Imports Ensembl/CCDS transcript information into NGSD.");
-		addInfile("in", "Ensembl transcript file (download and unzip https://ftp.ensembl.org/pub/grch37/release-87/gff3/homo_sapiens/Homo_sapiens.GRCh37.87.gff3.gz for GRCh37 and https://ftp.ensembl.org/pub/release-107/gff3/homo_sapiens/Homo_sapiens.GRCh38.107.gff3.gz for GRCh38).", false);
-		addInfile("ensembl_canonical", "Ensembl canonical transcript TSV file (download and unzip from https://ftp.ensembl.org/pub/release-105/tsv/homo_sapiens/Homo_sapiens.GRCh38.105.canonical.tsv.gz", false);
-		addInfile("mane", "GFF file with MANE information (download and unzip from https://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/release_1.0/MANE.GRCh38.v1.0.ensembl_genomic.gff.gz", false);
+		addInfile("in", "Ensembl transcript file (download and unzip https://ftp.ensembl.org/pub/release-109/gff3/homo_sapiens/Homo_sapiens.GRCh38.109.gff3.gz).", false);
 		//optional
 		addInfileList("pseudogenes", "Pseudogene flat file(s) (download from http://pseudogene.org/psidr/psiDR.v0.txt and http://pseudogene.org/psicube/data/gencode.v10.pgene.parents.txt).", true);
 		addFlag("all", "If set, all transcripts are imported (the default is to skip transcripts that do not have at least one of the flags 'GENCODE basic', 'Ensembl canonical', 'MANE select' or 'MANE plus clinical').");
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
 
+		changeLog(2023,  3, 22, "Removed parameters 'ensembl_canonical' and 'mane' as the information is now contained in the Ensembl GFF3 file.");
 		changeLog(2022, 10, 17, "Added transcript versions.");
 		changeLog(2022,  5, 29, "Added parameters 'ensembl_canonical' and 'mane'.");
 		changeLog(2021,  6,  9, "Added support for multiple pseudogene files and duplication check.");
@@ -37,60 +36,6 @@ public:
 		changeLog(2021,  1, 20, "Added import of pseudogene relations");
         changeLog(2019,  8, 12, "Added handling of HGNC identifiers to resolve ambiguous gene names");
 		changeLog(2017,  7,  6, "Added first version");
-	}
-
-	void loadEnsemblCanonical(QString filename, QSet<QByteArray>& ensembl_canonical)
-	{
-		QSharedPointer<QFile> file = Helper::openFileForReading(filename);
-		while(!file->atEnd())
-		{
-			QByteArray line = file->readLine().trimmed();
-			if (line.isEmpty() || line.startsWith("gene_stable_id")) continue;
-
-			QByteArrayList parts = line.split('\t');
-			if (parts.count()<3) continue;
-
-			QByteArray transcript_id = parts[1];
-			if (transcript_id.contains('.'))
-			{
-				transcript_id = transcript_id.split('.')[0];
-			}
-
-			ensembl_canonical << transcript_id;
-		}
-	}
-
-	void loadMane(QString filename, QSet<QByteArray>& mane_select, QSet<QByteArray>& mane_plus_clinical)
-	{
-		QSharedPointer<QFile> file = Helper::openFileForReading(filename);
-		while(!file->atEnd())
-		{
-			QByteArrayList parts = file->readLine().split('\t');
-			if (parts.count()<9) continue;
-
-			if (!parts[8].startsWith("ID=ENST")) continue;
-
-			QByteArray transcript_id;
-			foreach(const QByteArray& part, parts[8].split(';'))
-			{
-				//parse transcript id
-				if (part.startsWith("ID="))
-				{
-					transcript_id = part.mid(3);
-					if (transcript_id.contains('.'))
-					{
-						transcript_id = transcript_id.split('.')[0];
-					}
-				}
-
-				//parse tags
-				if (part.startsWith("tag="))
-				{
-					if (part.contains("MANE_Select")) mane_select << transcript_id;
-					if (part.contains("MANE_Plus_Clinical")) mane_plus_clinical << transcript_id;
-				}
-			}
-		}
 	}
 
     int geneByHGNC(SqlQuery& query, const QByteArray& hgnc_id)
@@ -341,13 +286,6 @@ public:
 		SqlQuery q_gene = db.getQuery();
 		q_gene.prepare("SELECT id FROM gene WHERE hgnc_id=:0;");
 
-		//load tag data
-		QSet<QByteArray> ensembl_canonical;
-		loadEnsemblCanonical(getInfile("ensembl_canonical"), ensembl_canonical);
-		QSet<QByteArray> mane_select;
-		QSet<QByteArray> mane_plus_clinical;
-		loadMane(getInfile("mane"), mane_select, mane_plus_clinical);
-
 		//parse input - format description at https://www.gencodegenes.org/data_format.html and http://www.ensembl.org/info/website/upload/gff3.html
 		GffSettings gff_settings;
 		gff_settings.print_to_stdout = true;
@@ -357,10 +295,10 @@ public:
 		foreach(const Transcript& t, data.transcripts)
         {
 			QByteArray transcript_id = t.name();
-			bool is_gencode_basic = data.gencode_basic.contains(transcript_id);
-			bool is_ensembl_canonical = ensembl_canonical.contains(transcript_id);
-			bool is_mane_select = mane_select.contains(transcript_id);
-			bool is_mane_plus_clinical = mane_plus_clinical.contains(transcript_id);
+			bool is_gencode_basic = t.isGencodeBasicTranscript();
+			bool is_ensembl_canonical = t.isEnsemblCanonicalTranscript();
+			bool is_mane_select = t.isManeSelectTranscript();
+			bool is_mane_plus_clinical = t.isManePlusClinicalTranscript();
 
 			//if not 'all' or has important flag > skip it
 			if (!all && !is_gencode_basic && !is_ensembl_canonical && !is_mane_select && !is_mane_plus_clinical) continue;

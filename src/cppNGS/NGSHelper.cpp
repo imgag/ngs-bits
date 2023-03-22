@@ -806,6 +806,10 @@ struct TranscriptData
 	int end_coding = 0;
 	QByteArray strand;
 	QByteArray biotype;
+	bool is_gencode_basic;
+	bool is_ensembl_canonical;
+	bool is_mane_select;
+	bool is_mane_plus_clinical;
 
 	BedFile exons;
 };
@@ -892,6 +896,10 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
                    coding_end = temp;
                 }
                 t.setRegions(t_data.exons, coding_start, coding_end);
+				t.setGencodeBasicTranscript(t_data.is_gencode_basic);
+				t.setEnsemblCanonicalTranscript(t_data.is_ensembl_canonical);
+				t.setManeSelectTranscript(t_data.is_mane_select);
+				t.setManePlusClinicalTranscript(t_data.is_mane_plus_clinical);
 
 				output.transcripts << t;
 			}
@@ -967,11 +975,8 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
 			output.enst2ensg.insert(transcript_id, data["Parent"].split(':').at(1));
 
 			// store GENCODE basic data
-			bool is_gencode_basic = data.value("tag")=="basic";
-			if (is_gencode_basic)
-			{
-				output.gencode_basic << transcript_id;
-			}
+			QByteArrayList tags = data.value("tag").split(',');
+			bool is_gencode_basic = tags.contains("basic");
 
 			if (settings.skip_not_gencode_basic && !is_gencode_basic)
 			{
@@ -994,6 +999,10 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
 			tmp.chr = chr;
 			tmp.strand = line.mid(seps[5]+1, seps[6]-seps[5]-1);
 			tmp.biotype = data["biotype"];
+			tmp.is_gencode_basic = is_gencode_basic;
+			tmp.is_ensembl_canonical = tags.contains("Ensembl_canonical");
+			tmp.is_mane_select = tags.contains("MANE_Select");
+			tmp.is_mane_plus_clinical = tags.contains("MANE_Plus_Clinical");
 			transcripts[data["ID"]] = tmp;
 		}
 

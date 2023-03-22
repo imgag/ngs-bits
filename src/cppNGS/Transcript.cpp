@@ -21,6 +21,8 @@ QStringList Transcript::flags(bool add_square_brackets) const
 	QStringList output;
 
 	if (isPreferredTranscript()) output += "NGSD preferred transcript";
+	if (isGencodeBasicTranscript()) output << "GENCODE basic";
+	if (isEnsemblCanonicalTranscript()) output << "Ensembl canonical";
 	if (isManeSelectTranscript()) output << "MANE select";
 	if (isManePlusClinicalTranscript()) output << "MANE plus clinical";
 
@@ -996,8 +998,8 @@ bool TranscriptList::TranscriptRelevanceComparator::operator()(const Transcript&
 	if (a_coding<b_coding) return false;
 
 	//relevant transcript (relevant first)
-	bool a_main_transcipt = a.isPreferredTranscript() || a.isManeSelectTranscript() || a.isManePlusClinicalTranscript();
-	bool b_main_transcipt = b.isPreferredTranscript() || b.isManeSelectTranscript() || b.isManePlusClinicalTranscript();
+	bool a_main_transcipt = a.isPreferredTranscript() || a.isManeSelectTranscript() || a.isManePlusClinicalTranscript() || a.isEnsemblCanonicalTranscript();
+	bool b_main_transcipt = b.isPreferredTranscript() || b.isManeSelectTranscript() || b.isManePlusClinicalTranscript() || a.isEnsemblCanonicalTranscript();
 	if (a_main_transcipt && !b_main_transcipt) return true;
 	if (!a_main_transcipt && b_main_transcipt) return false;
 
