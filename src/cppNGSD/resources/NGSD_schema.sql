@@ -1784,10 +1784,12 @@ CREATE TABLE IF NOT EXISTS `report_configuration_sv`
   `manual_start` INT(11) DEFAULT NULL,
   `manual_end` INT(11) DEFAULT NULL,
   `manual_genotype` ENUM('hom','het') DEFAULT NULL,
-  `manual_start_bnd` INT(11) DEFAULT NULL,
-  `manual_end_bnd` INT(11) DEFAULT NULL,
   `manual_hgvs_type` text DEFAULT NULL,
   `manual_hgvs_suffix` text DEFAULT NULL,
+  `manual_start_bnd` INT(11) DEFAULT NULL,
+  `manual_end_bnd` INT(11) DEFAULT NULL,
+  `manual_hgvs_type_bnd` text DEFAULT NULL,
+  `manual_hgvs_suffix_bnd` text DEFAULT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_report_configuration3`
     FOREIGN KEY (`report_configuration_id` )
