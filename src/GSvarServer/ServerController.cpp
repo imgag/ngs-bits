@@ -1,6 +1,7 @@
 #include "ServerController.h"
-
 #include <QUrl>
+#include <QProcess>
+#include <QTemporaryDir>
 
 ServerController::ServerController()
 {
@@ -754,29 +755,58 @@ HttpResponse ServerController::saveQbicFiles(const HttpRequest& request)
 }
 
 HttpResponse ServerController::uploadFile(const HttpRequest& request)
-{
-	QStringList error_messages;
-	if (!request.getFormDataParams().contains("ps_url_id")) error_messages.append("Processed sample id is missing.");
-	if (request.getMultipartFileName().isEmpty()) error_messages.append("Filename is empty.");
-	if (error_messages.size()==0)
+{	
+	if (!request.getFormDataParams().contains("ps_url_id"))
 	{
-		QString ps_url_id = request.getFormDataParams()["ps_url_id"];
-		UrlEntity url_entity = UrlManager::getURLById(ps_url_id.trimmed());
-		if (!url_entity.path.isEmpty())
-		{
-			if (!url_entity.path.endsWith("/")) url_entity.path = url_entity.path + "/";
-			QSharedPointer<QFile> outfile = Helper::openFileForWriting(url_entity.path + request.getMultipartFileName());
-			outfile->write(request.getMultipartFileContent());
-			return HttpResponse(ResponseStatus::OK, request.getContentType(), "File has been uploaded");
-		}
-		else
-		{
-			Log::error("Empty processed sample file name: " + ps_url_id);
-			return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Processed sample path has not been found");
-		}
+		return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Processed sample id is missing.");
 	}
+	UrlEntity url_entity = UrlManager::getURLById(request.getFormDataParams()["ps_url_id"].trimmed());
 
-	return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Parameters are missing: " + error_messages.join(" "));
+	return uploadFileToFolder(url_entity.path, request.getMultipartFileName(), request.getMultipartFileContent());
+}
+
+HttpResponse ServerController::annotateVariant(const HttpRequest& request)
+{
+	QTemporaryDir tmp_dir("variant");
+	if (!tmp_dir.isValid()) HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "Failed to craeate a temporary directory for the variant annotation");
+
+	HttpResponse upload_response = uploadFileToFolder(tmp_dir.path(), request.getMultipartFileName(), request.getMultipartFileContent());
+	if (upload_response.getStatus() != ResponseStatus::OK) return upload_response;
+
+	QString uploaded_file = upload_response.getPayload();
+
+	QString megsap_root = Settings::path("megsap_root", true);
+	if (megsap_root.isEmpty()) return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "megSAP root path is not set");
+
+	if (!megsap_root.endsWith(QDir::separator())) megsap_root = megsap_root + QDir::separator();
+
+	QProcess process;
+	process.setProcessChannelMode(QProcess::MergedChannels);
+	QString an_vep_out = "an_vep_out.vcf";
+	an_vep_out = QFileInfo(uploaded_file).path().endsWith(QDir::separator()) ? QFileInfo(uploaded_file).path() + an_vep_out : QFileInfo(uploaded_file).path() + QDir::separator() + an_vep_out;
+
+	Log::info("Running megSAP >> an_vep.php: " + an_vep_out);
+	process.start("php", QStringList() << megsap_root + "src/NGS/an_vep.php" << "-in" << uploaded_file << "-out" << an_vep_out);
+	bool success = process.waitForFinished(-1);
+	if (!success)
+	{
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), QString("Error while executing an_vep.php: " + process.readAll()));
+	}
+	Log::info(process.readAll());
+
+	QString vcf2gsvar_out = ServerHelper::generateUniqueStr() + ".gsvar";
+	vcf2gsvar_out = QDir::tempPath().endsWith(QDir::separator()) ? QDir::tempPath() + vcf2gsvar_out : QDir::tempPath() + QDir::separator() + vcf2gsvar_out;
+
+	Log::info("Running megSAP >> vcf2gsvar.php: " + vcf2gsvar_out);
+	process.start("php", QStringList() << megsap_root + "src/NGS/vcf2gsvar.php" << "-in" << an_vep_out << "-out" << vcf2gsvar_out);
+	success = process.waitForFinished(-1);
+	if (!success)
+	{
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), QString("Error while executing vcf2gsvar.php: " + process.readAll()));
+	}
+	Log::info(process.readAll());
+
+	return createStaticStreamResponse(vcf2gsvar_out, true);
 }
 
 HttpResponse ServerController::calculateLowCoverage(const HttpRequest& request)
@@ -1483,4 +1513,28 @@ HttpResponse ServerController::createStaticLocationResponse(const QString path, 
 	}
 
 	return createStaticFileResponse(path, request);
+}
+
+HttpResponse ServerController::uploadFileToFolder(QString upload_folder, QString filename, QByteArray content)
+{
+	QStringList error_messages;
+	if (upload_folder.isEmpty()) error_messages.append("Upload folder is missing");
+	if (filename.isEmpty()) error_messages.append("Filename is missing");
+	if (error_messages.size()==0)
+	{
+		if (!upload_folder.endsWith("/")) upload_folder = upload_folder + "/";
+		if (QDir(upload_folder).exists())
+		{
+			QSharedPointer<QFile> outfile = Helper::openFileForWriting(upload_folder + filename);
+			outfile->write(content);
+			return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, upload_folder + filename);
+		}
+		else
+		{
+			Log::error("Upload folder does not exist: " + upload_folder);
+			return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_PLAIN, "Upload destination does not exist on the server");
+		}
+	}
+
+	return HttpResponse(ResponseStatus::BAD_REQUEST, ContentType::TEXT_PLAIN, "Parameters are missing: " + error_messages.join(" "));
 }
