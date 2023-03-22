@@ -994,14 +994,6 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeAttribute("end", QString::number(cnv.end()));
 		w.writeAttribute("start_band", NGSHelper::cytoBand(data_.build, cnv.chr(), cnv.start()));
 		w.writeAttribute("end_band", NGSHelper::cytoBand(data_.build, cnv.chr(), cnv.end()));
-		if (var_conf.manualCnvStartIsValid())
-		{
-			w.writeAttribute("hgvs_start", var_conf.manual_cnv_start);
-		}
-		if (var_conf.manualCnvEndIsValid())
-		{
-			w.writeAttribute("hgvs_end", var_conf.manual_cnv_end);
-		}
 		int cn = cnv.copyNumber(data_.cnvs.annotationHeaders());
 		w.writeAttribute("type", cn>=2 ? "dup" : "del"); //2 can be dup in chrX/chrY
 		w.writeAttribute("cn", QString::number(cn));
@@ -1185,22 +1177,6 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeAttribute("rna_info", var_conf.rna_info);
 		w.writeAttribute("report_type", var_conf.report_type);
 
-		if (var_conf.manualSvStartIsValid())
-		{
-			w.writeAttribute("hgvs_start", var_conf.manual_sv_start);
-		}
-		if (var_conf.manualSvEndIsValid())
-		{
-			w.writeAttribute("hgvs_end", var_conf.manual_sv_end);
-		}
-		if (var_conf.manualSvStartBndIsValid())
-		{
-			w.writeAttribute("hgvs_bnd_start2", var_conf.manual_sv_start_bnd);
-		}
-		if (var_conf.manualSvEndBndIsValid())
-		{
-			w.writeAttribute("hgvs_bnd_end2", var_conf.manual_sv_end_bnd);
-		}
 		if (!var_conf.manual_sv_hgvs_type.isEmpty())
 		{
 			w.writeAttribute("hgvs_type", var_conf.manual_sv_hgvs_type);

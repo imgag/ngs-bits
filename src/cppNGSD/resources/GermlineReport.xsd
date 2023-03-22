@@ -932,16 +932,6 @@
 											<xs:documentation>cytogenetic band end position</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="hgvs_start" type="xs:string">
-										<xs:annotation>
-											<xs:documentation>manually cutated HGVS start position (deprecated, only contained until GenLab is adapted)</xs:documentation>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="hgvs_end" type="xs:string">
-										<xs:annotation>
-											<xs:documentation>manually cutated HGVS end position (deprecated, only contained until GenLab is adapted)</xs:documentation>
-										</xs:annotation>
-									</xs:attribute>
 									<xs:attribute name="type" use="required">
 										<xs:annotation>
 											<xs:documentation>cnv type</xs:documentation>
@@ -1347,16 +1337,6 @@
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
-									<xs:attribute name="hgvs_start" type="xs:string">
-										<xs:annotation>
-											<xs:documentation>manually cutated HGVS start position  (deprecated, only contained until GenLab is adapted)</xs:documentation>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="hgvs_end" type="xs:string">
-										<xs:annotation>
-											<xs:documentation>manually cutated HGVS end position  (deprecated, only contained until GenLab is adapted)</xs:documentation>
-										</xs:annotation>
-									</xs:attribute>
 									<xs:attribute name="hgvs_type" type="xs:string">
 										<xs:annotation>
 											<xs:documentation>HGVS variant type</xs:documentation>
@@ -1365,16 +1345,6 @@
 									<xs:attribute name="hgvs_suffix" type="xs:string">
 										<xs:annotation>
 											<xs:documentation>HGVS variant suffix after type</xs:documentation>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="hgvs_bnd_start2" type="xs:string">
-										<xs:annotation>
-											<xs:documentation>manually cutated HGVS start position of second region (only for breakend)  (deprecated, only contained until GenLab is adapted)</xs:documentation>
-										</xs:annotation>
-									</xs:attribute>
-									<xs:attribute name="hgvs_bnd_end2" type="xs:string">
-										<xs:annotation>
-											<xs:documentation>manually cutated HGVS end position of second region (only for breakend)  (deprecated, only contained until GenLab is adapted)</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="hgvs_bnd_type" type="xs:string">
