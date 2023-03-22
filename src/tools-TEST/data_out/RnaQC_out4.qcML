@@ -9,9 +9,20 @@
     <metaDataParameter ID="md0004" name="source file" value="RnaQC_in1.bam" cvRef="QC" accession="QC:1000005"/>
     <metaDataParameter ID="md0005" name="source file" value="RnaQC_in1_splicing_gene.tsv" cvRef="QC" accession="QC:1000005"/>
     <metaDataParameter ID="md0006" name="source file" value="RnaQC_in1_expr.tsv" cvRef="QC" accession="QC:1000005"/>
-    <qualityParameter ID="qp0001" name="aberrant spliced gene count" description="Number of aberrant spliced genes (&gt;= 5%)" value="3" cvRef="QC" accession="QC:2000110"/>
-    <qualityParameter ID="qp0002" name="outlier gene count" description="Number of outlier genes (zscore &gt;= 3.0)" value="3" cvRef="QC" accession="QC:2000111"/>
-    <qualityParameter ID="qp0003" name="covered gene count" description="Number of covered genes (TPM &gt;= 1.0)" value="36" cvRef="QC" accession="QC:2000109"/>
+    <metaDataParameter ID="md0007" name="linked file" value="RnaQC_in1_housekeeping_genes.bed" uri="RnaQC_in1_housekeeping_genes.bed" cvRef="QC" accession="QC:1000006" />
+    <metaDataParameter ID="md0008" name="linked file" value="RnaQC_in1_roi.bed" uri="RnaQC_in1_roi.bed" cvRef="QC" accession="QC:1000006" />
+    <qualityParameter ID="qp0001" name="housekeeping genes read percentage" description="Percentage of reads that could be mapped to the exon region of housekeeping genes." value="3.78" cvRef="QC" accession="QC:2000100"/>
+    <qualityParameter ID="qp0002" name="housekeeping genes read depth" description="Average sequencing depth in exon region of housekeeping genes." value="43.60" cvRef="QC" accession="QC:2000101"/>
+    <qualityParameter ID="qp0003" name="housekeeping genes 10x percentage" description="Percentage of the exon region of housekeeping genes that is covered at least 10-fold." value="100.00" cvRef="QC" accession="QC:2000102"/>
+    <qualityParameter ID="qp0004" name="housekeeping genes 20x percentage" description="Percentage of the exon region of housekeeping genes that is covered at least 20-fold." value="64.11" cvRef="QC" accession="QC:2000103"/>
+    <qualityParameter ID="qp0005" name="housekeeping genes 30x percentage" description="Percentage of the exon region of housekeeping genes that is covered at least 30-fold." value="63.67" cvRef="QC" accession="QC:2000104"/>
+    <qualityParameter ID="qp0006" name="housekeeping genes 50x percentage" description="Percentage of the exon region of housekeeping genes that is covered at least 50-fold." value="47.21" cvRef="QC" accession="QC:2000105"/>
+    <qualityParameter ID="qp0007" name="housekeeping genes 100x percentage" description="Percentage of the exon region of housekeeping genes that is covered at least 100-fold." value="0.41" cvRef="QC" accession="QC:2000106"/>
+    <qualityParameter ID="qp0008" name="housekeeping genes 200x percentage" description="Percentage of the exon region of housekeeping genes that is covered at least 200-fold." value="0.00" cvRef="QC" accession="QC:2000107"/>
+    <qualityParameter ID="qp0009" name="housekeeping genes 500x percentage" description="Percentage of the exon region of housekeeping genes that is covered at least 500-fold." value="0.00" cvRef="QC" accession="QC:2000108"/>
+    <qualityParameter ID="qp0010" name="aberrant spliced gene count" description="Number of aberrant spliced genes (&gt;= 5%)" value="3" cvRef="QC" accession="QC:2000110"/>
+    <qualityParameter ID="qp0011" name="outlier gene count" description="Number of outlier genes (zscore &gt;= 3.0)" value="3" cvRef="QC" accession="QC:2000111"/>
+    <qualityParameter ID="qp0012" name="covered gene count" description="Number of covered genes (TPM &gt;= 1.0)" value="36" cvRef="QC" accession="QC:2000109"/>
   </runQuality>
   <cvList>
     <cv uri="https://raw.githubusercontent.com/imgag/ngs-bits/master/src/cppNGS/Resources/qcML.obo" ID="QC" fullName="QC" version="0.1"/>
