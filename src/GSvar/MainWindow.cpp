@@ -1257,16 +1257,6 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahott1a1")
 	{
-		FileLocation file = GlobalServiceProvider::fileLocationProvider().getSignatureSbsFile();
-		qDebug() << file.fileName(false);
-		QSharedPointer<VersatileFile> file_p = Helper::openVersatileFileForReading(file.filename, true);
-
-		qDebug() << file_p->readLine();
-		qDebug() << file_p->readLine();
-		qDebug() << file_p->readLine();
-
-		qDebug() << GlobalServiceProvider::fileLocationProvider().getSignatureDbsFile().fileName(false);
-		qDebug() << GlobalServiceProvider::fileLocationProvider().getSignatureCnvFile().fileName(false);
 	}
 
 	qDebug() << "Elapsed time debugging:" << Helper::elapsedTime(timer, true);

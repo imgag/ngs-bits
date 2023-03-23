@@ -1451,8 +1451,6 @@ void SomaticReportHelper::signatureTableHelper(RtfTable &table, QString file, co
 
 		QByteArrayList parts = values.split(',');
 
-		qDebug() << "data line parts: " << parts;
-
 		QByteArray cos_similarity = parts[5];
 		QByteArray correlation = parts[6];
 
@@ -1465,7 +1463,6 @@ void SomaticReportHelper::signatureTableHelper(RtfTable &table, QString file, co
 
 		QByteArrayList signatures = (parts[1] + "&").split('&');
 
-		qDebug() << "Signature names + perc: " << signatures;
 		foreach (auto sig, signatures)
 		{
 			sig = sig.trimmed();
