@@ -3,7 +3,6 @@
 #include "OntologyTermCollection.h"
 #include "Helper.h"
 #include "TSVFileStream.h"
-#include "NGSHelper.h"
 #include "SomaticReportSettings.h"
 #include "NGSD.h"
 #include "XmlHelper.h"
@@ -11,6 +10,7 @@
 #include "SomaticVariantInterpreter.h"
 #include "LoginManager.h"
 #include "ApiCaller.h"
+#include "ClientHelper.h"
 #include <cmath>
 #include <QDir>
 #include <QMap>
@@ -754,7 +754,7 @@ RtfTableRow SomaticReportHelper::overlappingCnv(const CopyNumberVariant &cnv, QB
 
 void SomaticReportHelper::saveReportData(QString filename, QString path, QString content)
 {
-	if (!NGSHelper::isClientServerMode())
+	if (!ClientHelper::isClientServerMode())
 	{
 		if(!QDir(path).exists()) QDir().mkdir(path);
 
@@ -1309,7 +1309,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 RtfTable SomaticReportHelper::hlaTable(QString ps_name, QByteArray type)
 {
 	QString hla_file;
-	if (!NGSHelper::isClientServerMode())
+	if (!ClientHelper::isClientServerMode())
 	{
 		hla_file = db_.processedSamplePath(db_.processedSampleId(ps_name), PathType::HLA_GENOTYPER);
 	}

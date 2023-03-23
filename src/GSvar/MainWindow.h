@@ -81,6 +81,8 @@ public slots:
 	void uploadToClinvar(int variant_index1, int variant_index2=-1);
 	/// Checks (only in clinet-server mode) if the server is currently running
 	void checkServerAvailability();
+	/// Checks (only in clinet-server mode) if there is some new information needed to be displayed to the user (e.g. downtimes, maintenance, reboots, updates)
+	void checkUserNotifications();
 	///Loads a variant list. Unloads the variant list if no file name is given
 	void loadFile(QString filename="", bool show_only_error_issues=false);
 	///Checks if variant list is outdated
@@ -142,6 +144,7 @@ public slots:
 	void on_actionReplicateNGSD_triggered();
 	void on_actionCohortAnalysis_triggered();
 	void on_actionMaintenance_triggered();
+	void on_actionNotifyUsers_triggered();
 
     ///Gender determination
 	void on_actionGenderXY_triggered();
@@ -203,8 +206,6 @@ public slots:
 	void on_actionROH_triggered();
 	///Open SV dialog
 	void on_actionSV_triggered();
-	///Open Mosaic dialog
-	void on_actionMosaic_triggered();
 	///Open gene picker dialog
 	void on_actionGeneSelector_triggered();
 	///Open Circos plot
@@ -426,6 +427,10 @@ protected:
 	void closeEvent(QCloseEvent* event);
 	///Determines normal sample name from filename_, return "" otherwise (tumor-normal pairs)
 	QString normalSampleName();
+	///	Wrapper function for QInputDialog::getItem to handle long URLs:
+	/// the list visible to the user will contain only file names (not entire URLs). It makes the
+	/// list easier to read and saves some screen real estate
+	QString getFileSelectionItem(QString window_title, QString label_text, QStringList file_list, bool *ok);
 
 private:
 	//GUI
@@ -447,7 +452,6 @@ private:
 	QList<VariantListChange> variants_changed_;
 	CnvList cnvs_;
 	BedpeFile svs_;
-	VariantList mosaics_;
 	FilterResult filter_result_;
 	QString last_report_path_;
 	PhenotypeList last_phenos_; //phenotypes used to generate phenotype ROI (needed to check if they changed)
@@ -482,6 +486,7 @@ private:
 
 	//SPECIAL
 	DelayedInitializationTimer init_timer_;
+	QString displayed_maintenance_message_id_;
 };
 
 #endif // MAINWINDOW_H

@@ -511,6 +511,7 @@
      <addaction name="separator"/>
      <addaction name="actionReplicateNGSD"/>
      <addaction name="actionMaintenance"/>
+     <addaction name="actionNotifyUsers"/>
     </widget>
     <widget class="QMenu" name="menuBatch_import">
      <property name="title">
@@ -601,7 +602,6 @@
    <addaction name="actionROH"/>
    <addaction name="actionRE"/>
    <addaction name="actionPRS"/>
-   <addaction name="actionMosaic"/>
    <addaction name="actionCircos"/>
    <addaction name="separator"/>
    <addaction name="actionDebug"/>
@@ -1388,18 +1388,6 @@
     <string>Sample HPO terms</string>
    </property>
   </action>
-  <action name="actionMosaic">
-   <property name="icon">
-    <iconset resource="GSvar.qrc">
-     <normaloff>:/Icons/MosaicVariant.png</normaloff>:/Icons/MosaicVariant.png</iconset>
-   </property>
-   <property name="text">
-    <string>Mosaic</string>
-   </property>
-   <property name="toolTip">
-    <string>Show mosaic variants of the current sample (called only on exon/splice regions).</string>
-   </property>
-  </action>
   <action name="actionEditSomaticPathwayGeneAssociations">
    <property name="text">
     <string>Edit somatic pathway-gene associations</string>
@@ -1478,6 +1466,11 @@
   <action name="actionMaintenance">
    <property name="text">
     <string>Maintenance</string>
+   </property>
+  </action>
+  <action name="actionNotifyUsers">
+   <property name="text">
+    <string>Notify users</string>
    </property>
   </action>
  </widget>

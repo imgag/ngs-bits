@@ -474,7 +474,7 @@ QString CnvList::callerAsString() const
 QByteArray CnvList::build()
 {
 	//parse header line, e.g. "##GENOME_BUILD=GRCh38"
-	for(QByteArray line : comments_)
+	foreach(const QByteArray& line, comments_)
 	{
 		if (line.startsWith("##GENOME_BUILD="))
 		{
@@ -577,7 +577,7 @@ int CnvList::annotationIndexByName(const QByteArray& name, bool throw_on_error, 
 long long CnvList::totalCnvSize() const
 {
 	long long total_size = 0;
-	for(const CopyNumberVariant& variant : variants_)
+	foreach(const CopyNumberVariant& variant, variants_)
 	{
 		total_size += variant.size();
 	}

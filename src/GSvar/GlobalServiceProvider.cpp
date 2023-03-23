@@ -7,13 +7,14 @@
 #include "StatisticsServiceRemote.h"
 #include "MainWindow.h"
 #include "GSvarHelper.h"
+#include "ClientHelper.h"
 
 GlobalServiceProvider::GlobalServiceProvider()
   : file_location_provider_()
   , database_service_()
   , statistics_service_()
 {
-	if (NGSHelper::isClientServerMode())
+	if (ClientHelper::isClientServerMode())
 	{		
 		database_service_ = QSharedPointer<DatabaseService>(new DatabaseServiceRemote());
 		statistics_service_ = QSharedPointer<StatisticsService>(new StatisticsServiceRemote());
@@ -173,8 +174,8 @@ void GlobalServiceProvider::loadFileInIGV(QString filename, bool init_if_not_don
 	//normalize local files
 	filename = Helper::canonicalPath(filename);
 
-	if (NGSHelper::isClientServerMode()) executeCommandInIGV("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*", init_if_not_done, is_virus_genome);
-	executeCommandInIGV("load \"" + NGSHelper::stripSecureToken(filename) + "\"", init_if_not_done, is_virus_genome);
+	if (ClientHelper::isClientServerMode()) executeCommandInIGV("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*", init_if_not_done, is_virus_genome);
+	executeCommandInIGV("load \"" + ClientHelper::stripSecureToken(filename) + "\"", init_if_not_done, is_virus_genome);
 }
 
 void GlobalServiceProvider::openGSvarViaNGSD(QString processed_sample_name, bool search_multi)

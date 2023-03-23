@@ -6,6 +6,7 @@
 #include "Settings.h"
 #include "Exceptions.h"
 #include "Log.h"
+#include "ClientHelper.h"
 
 QMap<QString, TableInfo> GenLabDB::infos_;
 
@@ -19,7 +20,7 @@ GenLabDB::GenLabDB()
 	QString pass;
 
 	//get settings
-	if (NGSHelper::isClientServerMode() && !NGSHelper::isRunningOnServer())
+	if (ClientHelper::isClientServerMode() && !ClientHelper::isRunningOnServer())
 	{
 		genlab_mssql = LoginManager::genlab_mssql();
 		host = LoginManager::genlabHost();
@@ -76,7 +77,7 @@ bool GenLabDB::isOpen() const
 
 bool GenLabDB::isAvailable()
 {
-	if (NGSHelper::isClientServerMode() && !NGSHelper::isRunningOnServer())
+	if (ClientHelper::isClientServerMode() && !ClientHelper::isRunningOnServer())
 	{
 		return true;
 	}
@@ -414,6 +415,27 @@ QString GenLabDB::patientIdentifier(QString ps_name)
 	return output;
 }
 
+QStringList GenLabDB::studies()
+{
+	QStringList output;
+
+	SqlQuery query = getQuery();
+	query.exec("SELECT DISTINCT STUDIE FROM v_ngs_studie");
+	while (query.next())
+	{
+		QString study = query.value(0).toString().trimmed();
+		if (study.isEmpty()) continue;
+		if (!output.contains(study))
+		{
+			output << study;
+		}
+	}
+
+	output.sort();
+
+	return output;
+}
+
 QStringList GenLabDB::studies(QString ps_name)
 {
 	QStringList output;
@@ -440,14 +462,15 @@ QStringList GenLabDB::studies(QString ps_name)
 
 QList<int> GenLabDB::studySamples(QString study, QStringList& errors)
 {
-	QList<int> output;
+	QSet<int> output;
 	NGSD db;
 	errors.clear();
 
 	SqlQuery query = getQuery();
-	query.exec("SELECT [LABORNUMMER],[STUDIE] FROM [genlab].[dbo].[v_ngs_studie] WHERE STUDIE='"+study+"'");
+	query.exec("SELECT LABORNUMMER, SAMPLENAME FROM v_ngs_studie WHERE STUDIE='"+study+"'");
 	while(query.next())
 	{
+		//match based on LABORNUMMER (sample)
 		QString sample = query.value("LABORNUMMER").toString().replace("-", "").trimmed();
 		if (sample.isEmpty()) continue;
 
@@ -455,23 +478,39 @@ QList<int> GenLabDB::studySamples(QString study, QStringList& errors)
 		if (sample_id.isEmpty())
 		{
 			errors << "Sample '" + sample + "' not found in NGSD!";
-			continue;
 		}
-
-		QStringList ps_ids = db.getValues("SELECT ps.id FROM sample s, processed_sample ps WHERE s.id=" + sample_id + " AND ps.sample_id=s.id");
-		if (ps_ids.isEmpty())
+		else
 		{
-			errors << "Sample '" + sample + "' has no processed samples in NGSD!";
-			continue;
+			QStringList ps_ids = db.getValues("SELECT id FROM processed_sample WHERE sample_id=" + sample_id);
+			if (ps_ids.isEmpty())
+			{
+				errors << "Sample '" + sample + "' has no processed samples in NGSD!";
+			}
+			else
+			{
+				foreach(const QString& ps_id, ps_ids)
+				{
+					output << Helper::toInt(ps_id, "processed sample ID");
+				}
+			}
 		}
 
-		foreach(QString ps_id, ps_ids)
+		//match based on LABORNUMMER (sample)
+		QString ps = query.value("SAMPLENAME").toString().replace("-", "").trimmed();
+		if (ps.isEmpty()) continue;
+
+		QString ps_id = db.processedSampleId(ps, false);
+		if (ps_id=="")
+		{
+			errors << "Processed sample '" + ps + "' not in NGSD!";
+		}
+		else
 		{
 			output << Helper::toInt(ps_id, "processed sample ID");
 		}
 	}
 
-	return output;
+	return output.toList();
 }
 
 QStringList GenLabDB::names(QString ps_name)

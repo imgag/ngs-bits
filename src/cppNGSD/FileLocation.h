@@ -22,7 +22,6 @@ enum class PathType
 	COPY_NUMBER_CALLS, //copy number calls (TSV format)
 	COPY_NUMBER_CALLS_MOSAIC, //mosaic copy number calls (TSV format)
 	STRUCTURAL_VARIANTS, //structural variant call file (BEDPE format)
-	MOSAIC_VARIANTS, // mosaic variant calls (GSvar file)
 	REPEAT_EXPANSIONS, //repeat expansions (VCF format)
 	UPD, //UPD calls (TSV format)
 
@@ -159,8 +158,6 @@ struct FileLocation
 				return "CIRCOS_PLOT";
 			case PathType::STRUCTURAL_VARIANTS:
 				return "STRUCTURAL_VARIANTS";
-			case PathType::MOSAIC_VARIANTS:
-				return "MOSAIC_VARIANTS";
 			case PathType::REPEAT_EXPANSION_IMAGE:
 				return "REPEAT_EXPANSION_IMAGE";
 			case PathType::FUSIONS:
@@ -237,7 +234,6 @@ struct FileLocation
 		if (in_upper == "UPD") return PathType::UPD;
 		if (in_upper == "CIRCOS_PLOT") return PathType::CIRCOS_PLOT;
 		if (in_upper == "STRUCTURAL_VARIANTS") return PathType::STRUCTURAL_VARIANTS;
-		if (in_upper == "MOSAIC_VARIANTS") return PathType::MOSAIC_VARIANTS;
 		if (in_upper == "REPEAT_EXPANSION_IMAGE") return PathType::REPEAT_EXPANSION_IMAGE;
 		if (in_upper == "FUSIONS") return PathType::FUSIONS;
 		if (in_upper == "FUSIONS_BAM") return PathType::FUSIONS_BAM;
@@ -306,8 +302,6 @@ struct FileLocation
 				return "circos plot";
 			case PathType::STRUCTURAL_VARIANTS:
 				return "structural variant calls";
-			case PathType::MOSAIC_VARIANTS:
-				return "mosaic variant calls";
 			case PathType::UPD:
 				return "uniparental disomy regions";
 			case PathType::REPEAT_EXPANSION_IMAGE:

@@ -19,8 +19,6 @@ public:
 	//############################## analysis-specific files ##############################
 	//Returns the annotated VCF of the current analysis
 	virtual FileLocation getAnalysisVcf() const = 0;
-	//Returns the mosaic gsvar file of the current analysis
-	virtual FileLocation getAnalysisMosaicFile() const = 0;
 	//Returns the structural variant BEDPE file of the current analysis
 	virtual FileLocation getAnalysisSvFile() const = 0;
 	//Returns the copy-number call TSV file of the current analysis

@@ -259,20 +259,20 @@ void VcfHeader::storeHeaderInformation(QTextStream& stream) const
 	//first line should always be the fileformat
 	stream << "##fileformat=" << fileformat_ << "\n";
 	//store all comment lines
-	for(VcfHeaderLine comment : file_comments_)
+	foreach(const VcfHeaderLine& comment, file_comments_)
 	{
 		comment.storeLine(stream);
 	}
 	//store info, filter, format
-	for(InfoFormatLine info : info_lines_)
+	foreach(const InfoFormatLine& info, info_lines_)
 	{
 		info.storeLine(stream, INFO_DESCRIPTION);
 	}
-	for(FilterLine filter : filter_lines_)
+	foreach(const FilterLine& filter, filter_lines_)
 	{
 		filter.storeLine(stream);
 	}
-	for(InfoFormatLine format : format_lines_)
+	foreach(const InfoFormatLine& format, format_lines_)
 	{
 		format.storeLine(stream, FORMAT_DESCRIPTION);
 	}

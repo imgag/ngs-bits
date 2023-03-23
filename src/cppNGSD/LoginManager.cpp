@@ -2,6 +2,7 @@
 #include "NGSD.h"
 #include "ToolBase.h"
 #include "Log.h"
+#include "ClientHelper.h"
 #include <QJsonDocument>
 
 LoginManager::LoginManager()
@@ -35,7 +36,7 @@ QByteArray LoginManager::sendPostApiRequest(QString path, QString content, HttpH
 {
 	try
 	{
-		return HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(NGSHelper::serverApiUrl() + path, content.toUtf8(), add_headers);
+		return HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(ClientHelper::serverApiUrl() + path, content.toUtf8(), add_headers);
 	}
 	catch (Exception& e)
 	{
@@ -48,7 +49,7 @@ QByteArray LoginManager::sendGetApiRequest(QString path, HttpHeaders add_headers
 {
 	try
 	{
-		return HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).get(NGSHelper::serverApiUrl() + path, add_headers);
+		return HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).get(ClientHelper::serverApiUrl() + path, add_headers);
 	}
 	catch (Exception& e)
 	{
@@ -108,7 +109,7 @@ bool LoginManager::active()
 void LoginManager::login(QString user, QString password, bool test_db)
 {
 	LoginManager& manager = instance();
-	if (NGSHelper::isClientServerMode())
+	if (ClientHelper::isClientServerMode())
 	{
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");

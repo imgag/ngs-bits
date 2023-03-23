@@ -31,13 +31,14 @@ INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapt
 (3, 'ssSC_vTEST', 'SureSelect Somatic vTEST', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel', 1, '/mnt/share/data/enrichment/ssSC_test.bed', 1),
 (4, 'IDT_xGenPrism', 'IDT xGen Human ID + IDT xGen Prism DNA', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCA', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'cfDNA (patient-specific)', 1, 'idt_HumanID.bed', 1);
 
-INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`, `quality`, `comment`, `normal_id`) VALUES
-(3999, 1, 3, 1, '1', 1, 1, 'medium', 'comment_ps1', null),
-(4000, 1, 4, 1, '1', 1, 1, 'medium', 'comment_ps2', null),
-(4001, 2, 4, 1, '1', 1, 1, 'medium', 'comment_ps3', null),
-(4002, 3, 1, 1, '1', 1, 1, 'good', 'comment_ps4', 3999),
-(4003, 4, 1, 1, '1', 1, 1, 'good', 'comment_ps5', null),
-(4004, 5, 1, 1, '1', 1, 1, 'good', 'comment_ps6', 3999);
+INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`, `quality`, `comment`, `normal_id`, `folder_override`) VALUES
+(3998, 1, 2, 1, '1', 1, 1, 'medium', 'comment_ps1', null, '/new/folder'),
+(3999, 1, 3, 1, '1', 1, 1, 'medium', 'comment_ps1', null, null),
+(4000, 1, 4, 1, '1', 1, 1, 'medium', 'comment_ps2', null, null),
+(4001, 2, 4, 1, '1', 1, 1, 'medium', 'comment_ps3', null, null),
+(4002, 3, 1, 1, '1', 1, 1, 'good', 'comment_ps4', 3999, null),
+(4003, 4, 1, 1, '1', 1, 1, 'good', 'comment_ps5', null, null),
+(4004, 5, 1, 1, '1', 1, 1, 'good', 'comment_ps6', 3999, null);
 
 INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `outcome`, `comment`) VALUES
 (3999, 'done', 99, '2014-07-29 09:40:49', 'no significant findings', "free text"),

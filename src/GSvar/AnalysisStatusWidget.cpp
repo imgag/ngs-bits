@@ -9,10 +9,12 @@
 #include "GlobalServiceProvider.h"
 #include "AnalysisInformationWidget.h"
 #include "GSvarHelper.h"
+#include "ClientHelper.h"
 #include <QMenu>
 #include <QFileInfo>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QDir>
 #include <QMessageBox>
 #include <QMetaMethod>
 
@@ -237,7 +239,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 
 	//extract processed sample data
 	QList<AnalysisJobSample> samples;
-	QSet<QString> types;
+	QStringList types;
 	QSet<int> job_ids;
 	bool all_running = true;
 	bool all_finished = true;
@@ -252,7 +254,8 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 		}
 
 		job_ids << jobs_[row].ngsd_id;
-		types << jobs_[row].job_data.type;
+		QString type = jobs_[row].job_data.type;
+		if (!types.contains(type)) types << type;
 
 		if (jobs_[row].job_data.isRunning())
 		{
@@ -266,7 +269,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 
 	//set up menu
 	QMenu menu;
-	if (rows.count()==1 && types.values()[0]=="single sample")
+	if (rows.count()==1 && types[0]=="single sample")
 	{
 		menu.addAction(QIcon(":/Icons/analysis_info.png"), "Show analysis information");
 	}
@@ -277,9 +280,9 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	menu.addAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab");
 	menu.addAction(QIcon(":/Icons/NGSD_run.png"), "Open sequencing run tab");
 	menu.addAction(QIcon(":/Icons/Folder.png"), "Open analysis folder(s)");
-	if (rows.count()==1 && types.values()[0]!="single sample")
+	if (types.count()==1 && types[0]=="single sample")
 	{
-		menu.addAction(QIcon(":/Icons/Folder.png"), "Open sample folders");
+		menu.addAction(QIcon(":/Icons/Folder.png"), "Open sample folder(s)");
 	}
 	menu.addAction(QIcon(":/Icons/File.png"), "Open log file");
 	if (all_running)
@@ -288,14 +291,14 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	}
 	if (all_finished && types.count()==1)
 	{
-		QString type = types.values()[0];
+		QString type = types[0];
 
 		if (type=="single sample")
 		{
 			//Show restart action only if only DNA or only RNA samples are selected
 			QSet<QString> sample_types;
 			NGSD db;
-			for(const AnalysisJobSample& sample : samples)
+			foreach(const AnalysisJobSample& sample, samples)
 			{
 				QString sample_type = db.getSampleData(db.sampleId(sample.name)).type;
 				if (sample_type=="RNA") sample_types << "RNA";
@@ -380,7 +383,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	}
 	if (text=="Open analysis folder(s)")
 	{
-		if (NGSHelper::isClientServerMode())
+		if (ClientHelper::isClientServerMode())
 		{
 			QMessageBox::warning(this, "No access", "Analysis folder browsing is not available in client-server mode");
 			return;
@@ -396,18 +399,37 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 			}
 		}
 	}
-	if (text=="Open sample folders")
+	if (text=="Open sample folder(s)")
 	{
-		if (NGSHelper::isClientServerMode())
+		try
 		{
-			QMessageBox::warning(this, "No access", "Sample folder browsing is not available in client-server mode");
-			return;
-		}
+			NGSD db;
+			foreach(const AnalysisJobSample& sample, samples)
+			{
+				QString sample_folder;
 
-		NGSD db;
-		foreach(const AnalysisJobSample& sample, samples)
+				if (ClientHelper::isClientServerMode()) //client-server (allow opening folders if GSvar project paths are configured)
+				{
+					QString ps_id = db.processedSampleId(sample.name);
+					QString project_type = db.getProcessedSampleData(ps_id).project_type;
+					QString project_folder = db.projectFolder(project_type).trimmed();
+					if (!project_folder.isEmpty())
+					{
+						sample_folder = db.processedSamplePath(ps_id, PathType::SAMPLE_FOLDER);
+						if (!QDir(sample_folder).exists()) THROW(Exception, "Sample folder does not exist: " + sample_folder);
+					}
+				}
+				else
+				{
+					sample_folder = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(sample.name), PathType::SAMPLE_FOLDER).filename;
+				}
+
+				QDesktopServices::openUrl(sample_folder);
+			}
+		}
+		catch(Exception& e)
 		{
-			QDesktopServices::openUrl(GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(sample.name), PathType::SAMPLE_FOLDER).filename);
+			QMessageBox::information(this, "Open analysis folder", "Could not open analysis folder:\n" + e.message());
 		}
 	}
 	if (text=="Open log file")

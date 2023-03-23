@@ -346,6 +346,16 @@ int main(int argc, char **argv)
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
+						"notification",
+						QMap<QString, ParamProps> {},
+						RequestMethod::GET,
+						ContentType::APPLICATION_JSON,
+						AuthType::NONE,
+						"Information for the users of the desktop client (i.e. updates, maintenance, potential downtimes)",
+						&ServerController::getCurrentNotification
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
 						"qbic_report_data",
 						QMap<QString, ParamProps> {
 							{"filename", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "QBic data report file"}},
@@ -425,6 +435,18 @@ int main(int argc, char **argv)
 						AuthType::USER_TOKEN,
 						"File upload to a folder on the server",
 						&ServerController::uploadFile
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
+						"variant_annotation",
+						QMap<QString, ParamProps>{							
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::APPLICATION_OCTET_STREAM,
+						AuthType::USER_TOKEN,
+						"Variant annotation by using megSAP",
+						&ServerController::annotateVariant
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{

@@ -20,7 +20,7 @@ private slots:
 		IS_TRUE(response.getStatusLine().contains("200"));
 		S_EQUAL(json_doc.object()["name"].toString(), ToolBase::applicationName());
 		S_EQUAL(json_doc.object()["version"].toString(), ToolBase::version());
-		S_EQUAL(json_doc.object()["api_version"].toString(), NGSHelper::serverApiVersion());
+		S_EQUAL(json_doc.object()["api_version"].toString(), ClientHelper::serverApiVersion());
     }
 
 	void test_saving_gsvar_file()
@@ -256,5 +256,42 @@ private slots:
 		IS_TRUE(out.isObject());
 		S_EQUAL(out.object().value("version").toString(), current_info.version);
 		S_EQUAL(out.object().value("message").toString(), current_info.message);
+	}
+
+	void test_user_notification()
+	{
+		QString notification_message = "Server will be updated!";
+		SessionManager::setCurrentNotification(notification_message);
+
+		HttpRequest request;
+		request.setMethod(RequestMethod::HEAD);
+		request.setContentType(ContentType::TEXT_HTML);
+		request.addHeader("host", "localhost:8443");
+		request.addHeader("accept", "text/html");
+		request.addHeader("connection", "keep-alive");
+		request.setPrefix("v1");
+		request.setPath("notification");
+
+		HttpResponse response = ServerController::getCurrentNotification(request);
+
+		IS_TRUE(response.getStatusLine().split('\n').first().contains("200"));
+		IS_FALSE(response.getPayload().isNull());
+
+		QJsonDocument out = QJsonDocument::fromJson(response.getPayload());
+		IS_TRUE(out.isObject());
+		IS_TRUE(!out.object().value("id").toString().isEmpty());
+		S_EQUAL(out.object().value("message").toString(), notification_message);
+	}
+
+	void test_file_upload()
+	{
+		QString test_filename = "test_file.txt";
+		QByteArray test_content = "content";
+		HttpResponse upload_response = ServerController::uploadFileToFolder(QDir::tempPath(), test_filename, test_content);
+		IS_TRUE(upload_response.getStatus() == ResponseStatus::OK);
+		S_EQUAL(QFileInfo(upload_response.getPayload()).fileName(), test_filename);
+
+		QSharedPointer<QFile> outfile = Helper::openFileForReading(upload_response.getPayload());
+		S_EQUAL(outfile.data()->readAll(), test_content);
 	}
 };

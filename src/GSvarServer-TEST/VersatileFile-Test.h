@@ -5,7 +5,7 @@
 #include "VersatileFile.h"
 #include "HttpRequestHandler.h"
 #include "ServerHelper.h"
-#include "NGSHelper.h"
+#include "ClientHelper.h"
 
 TEST_CLASS(VersatileFile_Test)
 {
@@ -17,7 +17,7 @@ TEST_CLASS(VersatileFile_Test)
 			{
 				SKIP("Server has not been configured correctly");
 			}
-			const QString bam_file = NGSHelper::serverApiUrl() + "bam/rna.bam";
+			const QString bam_file = ClientHelper::serverApiUrl() + "bam/rna.bam";
 
 			VersatileFile file_over_https = VersatileFile(bam_file);
 			IS_TRUE(file_over_https.exists());
@@ -33,7 +33,7 @@ TEST_CLASS(VersatileFile_Test)
 				SKIP("Server has not been configured correctly");
 			}
 
-			const QString html_file = NGSHelper::serverApiUrl();
+			const QString html_file = ClientHelper::serverApiUrl();
 
 			QFile *local_asset_file = new QFile(":/assets/client/info.html");
 			local_asset_file->open(QIODevice::ReadOnly);

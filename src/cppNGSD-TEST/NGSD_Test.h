@@ -412,6 +412,10 @@ private slots:
 		I_EQUAL(transcripts[0].regions().baseCount(), 44);
 		I_EQUAL(transcripts[0].codingRegions().count(), 4);
 		I_EQUAL(transcripts[0].codingRegions().baseCount(), 44);
+		IS_TRUE(transcripts[0].isGencodeBasicTranscript());
+		IS_FALSE(transcripts[0].isEnsemblCanonicalTranscript());
+		IS_TRUE(transcripts[0].isManeSelectTranscript());
+		IS_FALSE(transcripts[0].isManePlusClinicalTranscript());
 
 		transcripts = db.transcripts(3, Transcript::ENSEMBL, true); //NIPA1, Ensembl, coding
 		I_EQUAL(transcripts.count(), 2);
@@ -422,7 +426,10 @@ private slots:
 		I_EQUAL(transcripts[0].regions().baseCount(), 224);
 		I_EQUAL(transcripts[0].codingRegions().count(), 2);
 		I_EQUAL(transcripts[0].codingRegions().baseCount(), 102);
+		IS_FALSE(transcripts[0].isGencodeBasicTranscript());
+		IS_TRUE(transcripts[0].isEnsemblCanonicalTranscript());
 		IS_FALSE(transcripts[0].isManeSelectTranscript());
+		IS_FALSE(transcripts[0].isManePlusClinicalTranscript());
 		S_EQUAL(transcripts[1].gene(), "NIPA1");
 		S_EQUAL(transcripts[1].name(), "NIPA1_TR1");
 		I_EQUAL(transcripts[1].strand(), Transcript::MINUS);
@@ -431,7 +438,10 @@ private slots:
 		I_EQUAL(transcripts[1].regions().baseCount(), 202);
 		I_EQUAL(transcripts[1].codingRegions().count(), 2);
 		I_EQUAL(transcripts[1].codingRegions().baseCount(), 202);
+		IS_FALSE(transcripts[1].isGencodeBasicTranscript());
+		IS_FALSE(transcripts[1].isEnsemblCanonicalTranscript());
 		IS_TRUE(transcripts[1].isManeSelectTranscript());
+		IS_TRUE(transcripts[1].isManePlusClinicalTranscript());
 
 		transcripts = db.transcripts(3, Transcript::ENSEMBL, false); //NIPA1, Ensembl, non-coding
 		I_EQUAL(transcripts.count(), 2);
@@ -512,8 +522,9 @@ private slots:
 
 		//releventTranscripts
 		transcripts = db.releventTranscripts(3); //NIPA1 (only best)
-		I_EQUAL(transcripts.count(), 1);
+		I_EQUAL(transcripts.count(), 2);
 		S_EQUAL(transcripts[0].name(), "NIPA1_TR1");
+		S_EQUAL(transcripts[1].name(), "NIPA1_TR2");
 		transcripts = db.releventTranscripts(652410); //SPG7 (best plus MANE select)
 		I_EQUAL(transcripts.count(), 2);
 		S_EQUAL(transcripts[0].name(), "ENST00000341316");
@@ -568,9 +579,9 @@ private slots:
 
 		//setGeneInfo (new gene)
 		ginfo.symbol = "NEWGENE";
-		ginfo.oe_syn = 0.11;
-		ginfo.oe_mis = 0.22;
-		ginfo.oe_lof = 0.33;
+		ginfo.oe_syn = "0.11";
+		ginfo.oe_mis = "0.22";
+		ginfo.oe_lof = "0.33";
 		db.setGeneInfo(ginfo);
 		ginfo = db.geneInfo("NEWGENE");
 		S_EQUAL(ginfo.symbol, "NEWGENE");
@@ -3034,5 +3045,20 @@ private slots:
 		}
 
 		I_EQUAL(c_fail, 0);
+	}
+
+	void test_overriding_the_processed_sample_data_folder()
+	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in4.sql"));
+
+		QString path_with_override = db.processedSamplePath(db.processedSampleId("NA12878_02"), PathType::GSVAR);
+		IS_TRUE(path_with_override.endsWith("new/folder/NA12878_02.GSvar"));
+
+		QString path_without_override = db.processedSamplePath(db.processedSampleId("NA12878_03"), PathType::GSVAR);
+		IS_TRUE(path_without_override.endsWith("somatic/Sample_NA12878_03/NA12878_03.GSvar"));
 	}
 };

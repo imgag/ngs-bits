@@ -16,11 +16,6 @@ FileLocation FileLocationProviderRemote::getAnalysisVcf() const
 	return getOneFileLocationByType(PathType::VCF, "");
 }
 
-FileLocation FileLocationProviderRemote::getAnalysisMosaicFile() const
-{
-	return getOneFileLocationByType(PathType::MOSAIC_VARIANTS, "");
-}
-
 FileLocation FileLocationProviderRemote::getAnalysisSvFile() const
 {
 	return getOneFileLocationByType(PathType::STRUCTURAL_VARIANTS, "");

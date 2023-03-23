@@ -18,13 +18,13 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportEnsembl_init.sql"));
 
 		//test
-		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDImportEnsembl_in.gff3") + " -ensembl_canonical " + TESTDATA("data_in/NGSDImportEnsembl_ensembl_canonical.tsv") + " -mane " + TESTDATA("data_in/NGSDImportEnsembl_mane.gff"));
+		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDImportEnsembl_in.gff3"));
 
 		//check transcripts
 		int count = db.getValue("SELECT count(*) FROM gene_transcript").toInt();
-		I_EQUAL(count, 13);
+		I_EQUAL(count, 14);
 		count = db.getValue("SELECT count(*) FROM gene_transcript WHERE source='ensembl'").toInt();
-		I_EQUAL(count, 9);
+		I_EQUAL(count, 10);
 		count = db.getValue("SELECT count(*) FROM gene_transcript WHERE source='ccds'").toInt();
 		I_EQUAL(count, 4);
 		count = db.getValue("SELECT count(*) FROM gene_transcript WHERE start_coding IS NULL AND end_coding IS NULL").toInt();
@@ -53,7 +53,7 @@ private slots:
         db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportEnsembl_init.sql"));
 
         //test
-		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDImportEnsembl_in.gff3") + " -pseudogenes " + TESTDATA("data_in/NGSDImportEnsembl_in_pseudogenes.txt") + " -ensembl_canonical " + TESTDATA("data_in/NGSDImportEnsembl_ensembl_canonical.tsv") + " -mane " + TESTDATA("data_in/NGSDImportEnsembl_mane.gff"));
+		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDImportEnsembl_in.gff3") + " -pseudogenes " + TESTDATA("data_in/NGSDImportEnsembl_in_pseudogenes.txt"));
 
         //check pseudogenes
         int n_pseudogenes = db.getValue("SELECT COUNT(*) FROM gene_pseudogene_relation").toInt();
@@ -84,7 +84,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportEnsembl_init.sql"));
 
 		//test
-		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDImportEnsembl_in.gff3") + " -pseudogenes " + TESTDATA("data_in/NGSDImportEnsembl_in_pseudogenes.txt") + " " +  TESTDATA("data_in/NGSDImportEnsembl_in_pseudogenes.txt") + " -ensembl_canonical " + TESTDATA("data_in/NGSDImportEnsembl_ensembl_canonical.tsv") + " -mane " + TESTDATA("data_in/NGSDImportEnsembl_mane.gff"));
+		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDImportEnsembl_in.gff3") + " -pseudogenes " + TESTDATA("data_in/NGSDImportEnsembl_in_pseudogenes.txt") + " " +  TESTDATA("data_in/NGSDImportEnsembl_in_pseudogenes.txt"));
 
 		//check pseudogenes
 		int n_pseudogenes = db.getValue("SELECT COUNT(*) FROM gene_pseudogene_relation").toInt();
@@ -115,7 +115,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportEnsembl_init.sql"));
 
 		//test
-		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDImportEnsembl_in.gff3") + " -pseudogenes " + TESTDATA("data_in/NGSDImportEnsembl_in_pseudogenes_s1.txt") + " " +  TESTDATA("data_in/NGSDImportEnsembl_in_pseudogenes_s2.txt")+ " -ensembl_canonical " + TESTDATA("data_in/NGSDImportEnsembl_ensembl_canonical.tsv") + " -mane " + TESTDATA("data_in/NGSDImportEnsembl_mane.gff"));
+		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDImportEnsembl_in.gff3") + " -pseudogenes " + TESTDATA("data_in/NGSDImportEnsembl_in_pseudogenes_s1.txt") + " " +  TESTDATA("data_in/NGSDImportEnsembl_in_pseudogenes_s2.txt"));
 
 		//check pseudogenes
 		int n_pseudogenes = db.getValue("SELECT COUNT(*) FROM gene_pseudogene_relation").toInt();
@@ -146,7 +146,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportEnsembl_init.sql"));
 
 		//test
-		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDImportEnsembl_in.gff3") + " -all -ensembl_canonical " + TESTDATA("data_in/NGSDImportEnsembl_ensembl_canonical.tsv") + " -mane " + TESTDATA("data_in/NGSDImportEnsembl_mane.gff"));
+		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDImportEnsembl_in.gff3") + " -all");
 
 		//check transcripts
 		int count = db.getValue("SELECT count(*) FROM gene_transcript").toInt();

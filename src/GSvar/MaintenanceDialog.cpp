@@ -1,6 +1,7 @@
 #include "MaintenanceDialog.h"
 #include "Helper.h"
 #include "NGSD.h"
+#include "GenLabDB.h"
 #include <QTime>
 #include <QMetaMethod>
 
@@ -143,6 +144,70 @@ void MaintenanceDialog::deleteUnusedVariants()
 			}
 		}
 		appendOutputLine(chr_name + " - deleted: " + QString::number(c_deleted));
+	}
+}
+
+void MaintenanceDialog::importStudySamples()
+{
+	//init
+	NGSD db;
+	QStringList studies_ngsd = db.getValues("SELECT name FROM study");
+	GenLabDB genlab;
+	QStringList studies_genlab = genlab.studies();
+
+	//determine studies in GenLab that are not in NGSD
+	QStringList missing;
+	foreach(const QString& study, studies_genlab)
+	{
+		if(!studies_ngsd.contains(study, Qt::CaseInsensitive))
+		{
+			missing << study;
+		}
+	}
+	appendOutputLine("Notice: The following studies are present in GenLab and not in NGSD: " + missing.join(", "));
+
+	//import study samples into NGSD
+	foreach(const QString& study, studies_genlab)
+	{
+		if (missing.contains(study)) continue;
+
+		appendOutputLine("");
+		appendOutputLine("Processing study " + study + "...");
+
+		QString study_id = db.getValue("SELECT id FROM study WHERE name COLLATE UTF8_GENERAL_CI LIKE '" + study + "'", false).toString();
+
+		//determine processed sample in study
+		QStringList errors;
+		QSet<int> genlab_ps_ids = genlab.studySamples(study, errors).toSet();
+		appendOutputLine("  Processed samples in study according to GenLab: " + QString::number(genlab_ps_ids.count()));
+
+		//add missing processed samples
+		int c_added = 0;
+		foreach(int ps_id, genlab_ps_ids)
+		{
+			//add if not present
+			QVariant entry_id = db.getValue("SELECT id FROM study_sample WHERE study_id='"+study_id+"' AND processed_sample_id='"+QString::number(ps_id)+"'", true);
+			if (!entry_id.isValid())
+			{
+				++c_added;
+				SqlQuery query = db.getQuery();
+				query.exec("INSERT INTO study_sample (study_id, processed_sample_id, study_sample_idendifier) VALUES ("+study_id+", "+QString::number(ps_id)+", 'GenLab import by "+Helper::userName()+" on "+QDate::currentDate().toString()+"')");
+			}
+		}
+		appendOutputLine("  Added processed sample to NGSD: " + QString::number(c_added));
+
+		//show samples that are only in study according to NGSD
+		QSet<int> extra_ids = db.getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id='" + study_id + "'").toSet();
+		extra_ids.subtract(genlab_ps_ids);
+		if (extra_ids.count()>0)
+		{
+			QStringList ps_names;
+			foreach(int ps_id, extra_ids)
+			{
+				ps_names << db.processedSampleName(QString::number(ps_id));
+			}
+			appendOutputLine("  Notice: Samples in NGSD that are not in GenLab: " + ps_names.join(", "));
+		}
 	}
 }
 

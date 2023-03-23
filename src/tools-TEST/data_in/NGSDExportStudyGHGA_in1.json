@@ -5,5 +5,6 @@
 	"data_access_committee_organization" : "UKT, Tübingen, Germany",
 	"data_access_policy_text" : "Textual description of the DAP",
 	"data_access_policy_url" : "http:://url.describing.the.dap.de",
-	"data_access_policy_conditions" : ["Condition 1", "Condition 2"]
+	"data_access_policy_use_condition" : "Use Condition",
+	"data_access_policy_use_modifiers" : ["Modifier 1", "Modifier 2"]
 }

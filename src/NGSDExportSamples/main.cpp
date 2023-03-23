@@ -18,7 +18,7 @@ public:
 
 		output << "";
 
-		foreach(PathType type, QList<PathType>() << PathType::SAMPLE_FOLDER << PathType::BAM << PathType::VCF << PathType::GSVAR << PathType::COPY_NUMBER_CALLS << PathType::STRUCTURAL_VARIANTS << PathType::MOSAIC_VARIANTS)
+		foreach(PathType type, QList<PathType>() << PathType::SAMPLE_FOLDER << PathType::BAM << PathType::VCF << PathType::GSVAR << PathType::COPY_NUMBER_CALLS << PathType::STRUCTURAL_VARIANTS)
 		{
 			output << FileLocation::typeToString(type);
 		}

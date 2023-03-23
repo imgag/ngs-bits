@@ -14,6 +14,7 @@ public:
 
 private slots:
 	void updateGUI();
+	void copyTableToClipboard();
 
 private:
 	Ui::AnalysisInformationWidget ui_;

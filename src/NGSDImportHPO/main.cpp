@@ -23,8 +23,8 @@ public:
 
 		//optional
 		addInfile("omim", "OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.", true);
-		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from 'https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2022/clinvar_20220702.vcf.gz' for GRCH37 or 'http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2021/clinvar_20211212.vcf.gz' for GRCh38.", true);
-		addInfile("hgmd", "HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2022.2.dump').", true);
+		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from 'http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2023/clinvar_20230311.vcf.gz'.", true);
+		addInfile("hgmd", "HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2022.4.dump').", true);
 
 		// optional (for evidence information):
 		addInfile("hpophen", "HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information. Download from http://purl.obolibrary.org/obo/hp/hpoa/phenotype.hpoa", true);
@@ -35,12 +35,12 @@ public:
 		addFlag("force", "If set, overwrites old data.");
 		addFlag("debug", "Enables debug output");
 
-		changeLog(2021,12,22, "Added support for GenCC and DECIPHER.");
-		changeLog(2020, 7, 7, "Added support of HGMD gene-phenotype relations.");
-		changeLog(2020, 3, 5, "Added support for new HPO annotation file.");
-		changeLog(2020, 3, 9, "Added optimization for hpo-gene relations.");
-		changeLog(2020, 3, 10, "Removed support for old HPO annotation file.");
-		changeLog(2020, 7, 6, "Added support for HGMD phenobase file.");
+		changeLog(2021, 12, 22, "Added support for GenCC and DECIPHER.");
+		changeLog(2020,  7,  7, "Added support of HGMD gene-phenotype relations.");
+		changeLog(2020,  3,  5, "Added support for new HPO annotation file.");
+		changeLog(2020,  3,  9, "Added optimization for hpo-gene relations.");
+		changeLog(2020,  3, 10, "Removed support for old HPO annotation file.");
+		changeLog(2020,  7,  6, "Added support for HGMD phenobase file.");
 	}
 
 	/// simple sruct to keep a set of source databases
@@ -507,51 +507,74 @@ public:
 		if (getInfile("gencc") == "") return;
 
 		// parse gencc_submission.csv file for evidence information
+		QTextStream out(stdout);
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("gencc"));
-		QByteArray line = fp->readLine(); // header
+		QString line = fp->readLine(); // header
 		QByteArray source = "GenCC";
-		int count =0;
-		int lineCount =0;
+		int c_imported = 0;
+		int c_not_omim = 0;
+		int c_invalid_gene = 0;
+		int c_no_evidence = 0;
+		int lineCount = 0;
+		QString sep = "\",\"";
 		while(! fp->atEnd())
 		{
+			//read line - some strings contain newlines...
 			lineCount++;
 			line = fp->readLine().trimmed();
-			while ( ! line.endsWith('"')) //some strings contain newlines..
+			while (line.count(sep)<29)
 			{
 				lineCount++;
 				line.append(fp->readLine().trimmed());
 			}
-
-			QByteArrayList parts = line.split(',');
-
-			parts = reconstructStrings(parts, 30);
-
-			QByteArray gene_symbol = parts[2].replace('"', ' ').trimmed();
-			QByteArray disease = parts[5].replace('"', ' ').trimmed(); // OMIM:XXXXXX, MONDO:XXXXXXX, Orphanet:XXXXX needs mapping from Orphanet and Mondo to Omim
-			QByteArray gencc_evi = parts[8].replace('"', ' ').trimmed();
-			PhenotypeEvidenceLevel evidence = translateGenccEvidence(gencc_evi);
-
+			
+			//split and check
+			QStringList parts = line.split(sep);
+			if (parts.count()!=30)
+			{
+				THROW(FileParseException, "GenCC line does not have 30 parts:\n" + line);
+			}
+			
+			//only OMIM entries
+			QByteArray disease = parts[5].trimmed().toLatin1(); // OMIM:XXXXXX, MONDO:XXXXXXX, Orphanet:XXXXX needs mapping from Orphanet and Mondo to Omim
+			if (!disease.startsWith("OMIM:"))
+			{
+				//out << "OMIM:" << disease << endl;
+				++c_not_omim;
+				continue;
+			}
+			
+			//parse gene
+			QByteArray gene_symbol = parts[2].trimmed().toLatin1();
+			int gene_db_id = db.geneId(gene_symbol);
+			if (gene_db_id == -1)
+			{
+				//out << "GENE:" << gene_symbol << endl;
+				++c_invalid_gene;
+				continue;
+			}
+			
+			//parse evidence level
+			QByteArray gencc_evi = parts[8].trimmed().toLatin1();
+			PhenotypeEvidenceLevel evidence = translateGenccEvidence(gencc_evi, line);
 			if (evidence == PhenotypeEvidenceLevel::NA || evidence == PhenotypeEvidenceLevel::AGAINST)
 			{
+				//out << "EVIDENCE:" << gencc_evi << endl;
+				++c_no_evidence;
 				continue;
 			}
 
-			if ( ! disease.startsWith("OMIM"))
-			{
-				continue;
-			}
-
-			int gene_db_id = db.geneId(gene_symbol);
-			if (gene_db_id == -1) continue;
 			ExactSources e_src = ExactSources();
 			e_src.disease2gene = QString("GenCC line") + QString::number(lineCount);
 			disease2genes[disease].add(db.geneSymbol(gene_db_id), source, gencc_evi, evidence, e_src);
-			count++;
+			c_imported++;
 		}
 		fp->close();
 
-		QTextStream out(stdout);
-		out << "Imported " << count << " disease-gene relations from GenCC." << endl;
+		out << "Imported " << c_imported << " disease-gene relations from GenCC" << endl;
+		out << "  Skipped " << c_not_omim << " lines without OMIM term." << endl;
+		out << "  Skipped " << c_invalid_gene << " lines without valid gene." << endl;
+		out << "  Skipped " << c_no_evidence << " lines without evidence." << endl;
 	}
 
 	QByteArrayList reconstructStrings(const QByteArrayList& parts, int expected_size=-1)
@@ -684,7 +707,7 @@ public:
 	}
 
 	/// turns a given GenCC Evidence value into one from the Evidences enum
-	static PhenotypeEvidenceLevel translateGenccEvidence(const QByteArray& gencc_evi)
+	static PhenotypeEvidenceLevel translateGenccEvidence(const QByteArray& gencc_evi, const QString& line)
 	{
 		//Definitive, Strong, Moderate, Supportive, Limited, Disputed, Refuted, Animal, No Known
 		if (gencc_evi == "No Known")
@@ -729,7 +752,7 @@ public:
 		}
 		else
 		{
-			THROW(ArgumentException, "Given Evidence is not a GenCC evidence value: " + QString(gencc_evi));
+			THROW(ArgumentException, "Given Evidence is not a GenCC evidence value: " + QString(gencc_evi) + " in line:\n" + line);
 		}
 	}
 

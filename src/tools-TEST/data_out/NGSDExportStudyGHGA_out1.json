@@ -4,9 +4,9 @@
             "alias": "ANA000111",
             "description": "short-read data analysis using megSAP: https://github.com/imgag/megSAP",
             "has_input": [
+                "BAM000111"
             ],
             "has_output": [
-                "BAM000111",
                 "VCF000111"
             ],
             "has_study": "Study4711",
@@ -20,9 +20,9 @@
             "alias": "ANA000222",
             "description": "short-read data analysis using megSAP: https://github.com/imgag/megSAP",
             "has_input": [
+                "BAM000222"
             ],
             "has_output": [
-                "BAM000222",
                 "VCF000222"
             ],
             "has_study": "Study4711",
@@ -51,10 +51,11 @@
             "alias": "DAP_Study4711",
             "description": "Data access policy for study Study4711",
             "has_data_access_committee": "Study4711 DAC",
-            "has_data_use_conditions": [
-                "Condition 1",
-                "Condition 2"
+            "has_data_use_modifier": [
+                "Modifier 1",
+                "Modifier 2"
             ],
+            "has_data_use_permisson": "Use Condition",
             "name": "Data access policy for study Study4711",
             "policy_text": "Textual description of the DAP",
             "policy_url": "http:://url.describing.the.dap.de",

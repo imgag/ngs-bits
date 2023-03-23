@@ -5,7 +5,7 @@
 #include <QMap>
 #include <QDateTime>
 #include <QMutex>
-#include "NGSHelper.h"
+#include "ClientHelper.h"
 #include "ServerHelper.h"
 #include "Exceptions.h"
 
@@ -54,6 +54,9 @@ public:
 	static ClientInfo getCurrentClientInfo();
 	static void setCurrentClientInfo(ClientInfo info);
 
+	static UserNotification getCurrentNotification();
+	static void setCurrentNotification(QString message);
+
 protected:
 	SessionManager();
 
@@ -63,6 +66,7 @@ private:
 	QMutex mutex_;
 	QMap<QString, Session> session_store_;
 	ClientInfo current_client_info_;
+	UserNotification current_notification_;
 };
 
 #endif // SESSIONMANAGER_H
