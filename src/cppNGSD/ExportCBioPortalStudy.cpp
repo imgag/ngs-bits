@@ -94,7 +94,6 @@ double CBioPortalExportSettings::getMsiStatus(int sample_idx)
 		QByteArrayList data = msi_file.readLine();
 		if(data.count() > 0) msi = data[1].toDouble();
 	}
-
 	return msi;
 }
 
@@ -162,14 +161,13 @@ QString CBioPortalExportSettings::getComments(int sample_idx)
 int CBioPortalExportSettings::getHrdScore(int sample_idx)
 {
 	QCCollection ps_qc = db_.getQCData(ps_ids[sample_idx]);
-	qDebug() << "HRD of sample " << sample_idx << ": " << ps_qc.value("QC:2000126", true).asString().toInt();
 	return ps_qc.value("QC:2000126", true).asString().toInt();
 }
 
 float CBioPortalExportSettings::getTmb(int sample_idx)
 {
 	QCCollection ps_qc = db_.getQCData(ps_ids[sample_idx]);
-	return  ps_qc.value("QC:2000053",true).asDouble();
+	return  ps_qc.value("QC:2000053",true).asString().toFloat();
 }
 
 QStringList CBioPortalExportSettings::getIcd10(int sample_idx)
@@ -263,7 +261,6 @@ QString CBioPortalExportSettings::getFormatedAttribute(Attribute att, int sample
 		case Attribute::TMB:
 			return QString::number(getTmb(sample_idx), 'f', 2);
 	}
-	qDebug() << static_cast<int>(att);
 	THROW(ArgumentException, "Unknown Attribute value!");
 }
 
@@ -278,10 +275,6 @@ ExportCBioPortalStudy::ExportCBioPortalStudy(CBioPortalExportSettings settings, 
 	gatherData();
 
 	int count = settings_.sample_list.count();
-
-	qDebug() << "Sample count for export: " << count;
-	qDebug() << "s_data count for export: " << settings_.s_data.count();
-
 
 	if (settings_.sample_files.count() != count) THROW(ArgumentException, "SampleFile data not set correctly. Number is not equal to samples.");
 	if (settings_.report_settings.count() != count) THROW(ArgumentException, "ReportSettings data not set correctly. Number is not equal to samples.");
@@ -303,6 +296,8 @@ void ExportCBioPortalStudy::exportStudy(const QString& out_folder)
 	exportPatientData(out_folder);
 	exportSampleData(out_folder);
 	exportSnvs(out_folder);
+	exportCnvs(out_folder);
+	exportSvs(out_folder);
 	exportCaseList(out_folder);
 }
 
@@ -514,16 +509,7 @@ void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, Var
 		TranscriptList transcripts  = db_.transcriptsOverlapping(var.chr(), var.start(), var.end(), 5000);
 		transcripts.sortByRelevance();
 
-
-//		qDebug() << "Annotated gene: " << var.annotations()[idx_gene_anno];
-//		foreach (auto trans, transcripts)
-//		{
-//			qDebug() << "transcripts: " << trans.gene() << "\t" << trans.nameWithVersion();
-//		}
-
 		GeneSet genes = GeneSet::createFromText(var.annotations()[idx_gene_anno], ',');
-
-//		qDebug() << "genes count: " << genes.count();
 
 		//remove transcripts of close genes
 		TranscriptList remove;
@@ -537,7 +523,6 @@ void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, Var
 
 		foreach(auto trans, remove)
 		{
-//			qDebug() << "removing: " << trans.nameWithVersion();
 			transcripts.removeAll(trans);
 		}
 
@@ -565,7 +550,6 @@ void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, Var
 
 
 		line_parts << var.annotations()[idx_gene_anno];
-//		line_parts << db_.getValue("SELECT ncbi_id FROM gene WHERE symbol=" + var.annotations()[idx_gene_anno]).toString().toUtf8();
 		line_parts << build;
 
 		line_parts << var.chr().strNormalized(true);
@@ -594,6 +578,16 @@ void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, Var
 
 		out_file->write(line_parts.join("\t") + "\n");
 	}
+}
+
+void ExportCBioPortalStudy::exportCnvs(const QString& out_folder)
+{
+
+}
+
+void ExportCBioPortalStudy::exportSvs(const QString& out_folder)
+{
+
 }
 
 

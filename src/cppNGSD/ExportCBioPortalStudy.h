@@ -195,6 +195,8 @@ private:
 	void exportPatientData(const QString& out_folder);
 	void exportSampleData(const QString& out_folder);
 	void exportSnvs(const QString& out_folder);
+	void exportCnvs(const QString& out_folder);
+	void exportSvs(const QString& out_folder);
 	void writeSnvVariants(QSharedPointer<QFile> out_file, VariantList filtered_vl, int sample_idx);
 
 	QByteArray formatVariantClassification(const Transcript& trans, const QByteArray& coding_splicing);

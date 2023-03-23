@@ -1347,6 +1347,22 @@ void MainWindow::on_actionDebug_triggered()
 		}
 
 		//Sample Attributes:
+		/*
+		  - SAMPLE_ID
+		  - PATIENT_ID
+		  - MSI_STATUS
+		  - PLOIDY
+		  - PURITY_HIST
+		  - PURITY_CNVS
+		  PROCESSING_SYSTEM
+		  - COMMENT
+		  - HRD_SCORE
+		  - TMB
+		  - ICD10
+		  - HPO_TERMS
+		  - CLINICAL_PHENOTYPE
+		*/
+
 		SampleAttribute pat_id;
 		pat_id.attribute = Attribute::PATIENT_ID;
 		pat_id.datatype = "STRING";
@@ -1379,12 +1395,76 @@ void MainWindow::on_actionDebug_triggered()
 		ploidy.name = "Ploidy";
 		ploidy.priority = 1;
 
+		SampleAttribute msi;
+		msi.attribute = Attribute::MSI_STATUS;
+		msi.datatype = "STRING";
+		msi.db_name = "MSI_STATUS";
+		msi.description = "MSI status of the sample";
+		msi.name = "MSI-Status";
+		msi.priority = 1;
+
+		SampleAttribute purity_hist;
+		purity_hist.attribute = Attribute::PURITY_HIST;
+		purity_hist.datatype = "NUMBER";
+		purity_hist.db_name = "PURITY_HIST";
+		purity_hist.description = "Tumor content based on histology";
+		purity_hist.name = "Tumor content (hist)";
+		purity_hist.priority = 1;
+
+		SampleAttribute purity_cnv;
+		purity_cnv.attribute = Attribute::PURITY_CNVS;
+		purity_cnv.datatype = "NUMBER";
+		purity_cnv.db_name = "PURITY_CNVS";
+		purity_cnv.description = "Tumor content based on CNVs";
+		purity_cnv.name = "Tumor content (CNV)";
+		purity_cnv.priority = 1;
+
+		SampleAttribute comment;
+		comment.attribute = Attribute::COMMENT;
+		comment.datatype = "STRING";
+		comment.db_name = "COMMENT";
+		comment.description = "Comment";
+		comment.name = "Comment";
+		comment.priority = 1;
+
+		SampleAttribute tmb;
+		tmb.attribute = Attribute::TMB;
+		tmb.datatype = "NUMBER";
+		tmb.db_name = "TMB";
+		tmb.description = "Tumor mutation burder";
+		tmb.name = "TMB";
+		tmb.priority = 1;
+
+		SampleAttribute icd10;
+		icd10.attribute = Attribute::ICD10;
+		icd10.datatype = "STRING";
+		icd10.db_name = "ICD10";
+		icd10.description = "ICD10 assoiciated with the sample";
+		icd10.name = "ICD10";
+		icd10.priority = 1;
+
+		SampleAttribute hpo_terms;
+		hpo_terms.attribute = Attribute::HPO_TERMS;
+		hpo_terms.datatype = "STRING";
+		hpo_terms.db_name = "HPO_TERMS";
+		hpo_terms.description = "HPO terms assoiciated with the sample";
+		hpo_terms.name = "HPO terms";
+		hpo_terms.priority = 1;
+
+		SampleAttribute clin_phen;
+		clin_phen.attribute = Attribute::CLINICAL_PHENOTYPE;
+		clin_phen.datatype = "STRING";
+		clin_phen.db_name = "CLINICAL_PHENOTYPE";
+		clin_phen.description = "Clinical phenotype (free text)";
+		clin_phen.name = "Clinical phenotype";
+		clin_phen.priority = 1;
+
 		export_settings.sample_attributes.clear();
-		export_settings.sample_attributes << pat_id << sam_id << hpo << ploidy;
+		export_settings.sample_attributes << pat_id << sam_id << hpo << ploidy << msi << purity_hist << purity_cnv << comment << tmb << icd10 << hpo_terms << clin_phen;
 		qDebug() << "SAMPLE ATTRIBUTES COUNT: " << export_settings.sample_attributes.count();
 
 		ExportCBioPortalStudy exportStudy(export_settings, false);
-		exportStudy.exportStudy("W:/users/ahott1a1/projects/cBioPortal/gsvar_test_export");
+		exportStudy.exportStudy("V:/users/ahott1a1/projects/cBioPortal/gsvar_test_export");
 
 
 	}
