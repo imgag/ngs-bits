@@ -1415,6 +1415,22 @@ RtfTable SomaticReportHelper::signatureTable()
 
 	table.setUniqueBorder(1,"brdrhair",4);
 
+	//Add table description
+	RtfSourceCode desc = "";
+	desc += RtfText("Beschreibung: ").setBold(true).setFontSize(14).RtfCode();
+	desc += RtfText("SBS").setFontSize(14).setBold(true).RtfCode() + " single base substitution Signatur, ";
+	desc += RtfText("ID").setFontSize(14).setBold(true).RtfCode() + " small insertions and deletions Signatur, ";
+	desc += RtfText("DBS").setFontSize(14).setBold(true).RtfCode() + " doublet base substitution Signatur, ";
+	desc += RtfText("CN").setFontSize(14).setBold(true).RtfCode() + " copy number Signatur, ";
+	desc += RtfText("Anteil").setFontSize(14).setBold(true).RtfCode() + " prozentualer Anteil der Signatur an allen extrahierten Signaturen dieses Signaturtyps, ";
+	desc += RtfText("Korrelation").setFontSize(14).setBold(true).RtfCode() + " statistisches Maß für die Plausibilität der extrahierten Mutationssignatur im Vergleich zu den beobachteten somatischen Veränderungen, ";
+	desc += RtfText("Kosinus-Ähnlichkeit:").setFontSize(14).setBold(true).RtfCode() + " Maß für die Ähnlichkeit zweier Vektoren der identifizierten Patienten-Signatur gegenüber den Referenzsignaturen, ";
+	desc += RtfText("Aetiologie: ").setFontSize(14).setBold(true).RtfCode();
+	desc += "biologischer Prozess, der mit der vorliegenden Mutationssignatur assoziiert wurde. Mutationssignaturen siehe PMID: 32025018, Kopienzahlsignaturen siehe PMID: 35705804. ";
+	desc += " Nähere Informationen erhalten Sie aus der Datenbank COSMIC (https://cancer.sanger.ac.uk/signatures/).";
+
+	table.addRow(RtfTableRow(desc,doc_.maxWidth(),RtfParagraph().setFontSize(14).setHorizontalAlignment("j")));
+
 	return table;
 }
 
@@ -1463,9 +1479,9 @@ void SomaticReportHelper::signatureTableHelper(RtfTable &table, QString file, co
 
 			RtfTableRow row;
 			row.addCell(cell_widths[0], sig_name);
-			row.addCell(cell_widths[1], sig_perc);
-			row.addCell(cell_widths[2], correlation);
-			row.addCell(cell_widths[3], cos_similarity);
+			row.addCell(cell_widths[1], sig_perc.replace(".", ",").trimmed());
+			row.addCell(cell_widths[2], correlation.replace(".", ",").trimmed());
+			row.addCell(cell_widths[3], cos_similarity.replace(".", ",").trimmed());
 			row.addCell(cell_widths[4], descriptions[sig_name]);
 
 			table.addRow(row);
@@ -1548,7 +1564,6 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 
 	doc_.addPart(RtfParagraph("").RtfCode());
 	doc_.addPart(signatureTable().RtfCode());
-	doc_.addPart(RtfParagraph("Nähere Informationen erhalten Sie aus der Datenbank COSMIC (https://cancer.sanger.ac.uk/signatures/)").setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
 
 	/*******************************************
