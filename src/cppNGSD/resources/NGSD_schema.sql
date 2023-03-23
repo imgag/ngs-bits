@@ -639,7 +639,8 @@ CONSTRAINT `fk_variant_publication_has_sample`
     FOREIGN KEY (`sample_id`)
     REFERENCES `sample` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION
+    ON UPDATE NO ACTION,
+INDEX `variant_id` (`variant_id` ASC)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
@@ -2250,7 +2251,7 @@ CREATE TABLE IF NOT EXISTS `expression`
   `processed_sample_id` INT(11) NOT NULL,
   `symbol` VARCHAR(40) NOT NULL,
   `tpm` FLOAT NOT NULL,
-  `raw` INT NOT NULL,
+  `raw` INT(11) NULL,
   PRIMARY KEY (`id`),
   INDEX(`processed_sample_id`),
   INDEX(`symbol`),
