@@ -269,6 +269,7 @@ QByteArray Transcript::biotypeToString(Transcript::BIOTYPE biotype)
 	else if (biotype==UNPROCESSED_PSEUDOGENE) return "unprocessed pseudogene";
 	else if (biotype==VAULTRNA) return "vaultRNA";
 	else if (biotype==ARTIFACT) return "artifact";
+	else if (biotype==PROTEIN_CODING_CDS_NOT_DEFINED) return "protein coding CDS not defined";
 
 	THROW(ProgrammingException, "Unhandled transcript biotype enum value '" + QString::number(biotype) + "!");
 }
@@ -324,6 +325,7 @@ Transcript::BIOTYPE Transcript::stringToBiotype(QByteArray biotype_orig)
 	else if (biotype=="VAULTRNA") return VAULTRNA;
 	else if (biotype=="VAULT_RNA") return VAULTRNA; //bug in Ensembl GFF in version 105
 	else if (biotype=="ARTIFACT") return ARTIFACT;
+	else if (biotype=="PROTEIN_CODING_CDS_NOT_DEFINED") return PROTEIN_CODING_CDS_NOT_DEFINED;
 
 	THROW(ProgrammingException, "Unknown transcript biotype string '" + biotype_orig + "'!");
 }
