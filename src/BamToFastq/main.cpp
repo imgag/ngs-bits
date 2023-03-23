@@ -18,11 +18,13 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Converts a coordinate-sorted BAM file to FASTQ files (paired-end only).");
+		setDescription("Converts a coordinate-sorted BAM file to FASTQ files.");
 		addInfile("in", "Input BAM/CRAM file.", false, true);
 		addOutfile("out1", "Read 1 output FASTQ.GZ file.", false);
-		addOutfile("out2", "Read 2 output FASTQ.GZ file.", false);
+
 		//optional
+		addOutfile("out2", "Read 2 output FASTQ.GZ file (required for pair-end samples).", true);
+		addEnum("mode", "Determine if BAM/CRAM contains paired-end or single-end reads (default: paired-end)", true, QStringList() << "paired-end" << "single-end", "paired-end");
 		addString("reg", "Export only reads in the given region. Format: chr:start-end.", true);
 		addFlag("remove_duplicates", "Does not export duplicate reads into the FASTQ file.");
 		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, 1);
@@ -32,6 +34,7 @@ public:
 		changeLog(2020,  11, 27, "Added CRAM support.");
 		changeLog(2020,  5, 29, "Massive speed-up by writing in background. Added 'compression_level' parameter.");
 		changeLog(2020,  3, 21, "Added 'reg' parameter.");
+		changeLog(2023, 3, 22, "Added mode for single-end samples.");
 	}
 
 	static void alignmentToFastq(const QSharedPointer<BamAlignment>& al, FastqEntry& e)
@@ -55,6 +58,14 @@ public:
 		timer.start();
 		QTextStream out(stdout);
 		BamReader reader(getInfile("in"), getInfile("ref"));
+
+		QString out1 = getOutfile("out1");
+		QString out2 = getOutfile("out2");
+		QString mode = getEnum("mode");
+
+		if (mode == "paired-end" && out2.trimmed().isEmpty()) THROW(ArgumentException, "'out2' has to be provided for paired-end reads!");
+		if (mode == "single-end" && out2.trimmed() != "") THROW(ArgumentException, "'out2' cannot be set for single-end reads!");
+
 		QString reg = getString("reg");
 		if (reg!="")
 		{
@@ -70,16 +81,34 @@ public:
 
 		int compression_level = getInt("compression_level");
 
+
+
+
+
+
 		//create background FASTQ writer
 		ReadPairPool pair_pool(write_buffer_size);
 		QThreadPool analysis_pool;
 		analysis_pool.setMaxThreadCount(1);
-		OutputWorker* output_worker = new OutputWorker(pair_pool, getOutfile("out1"), getOutfile("out2"), compression_level);
+		OutputWorker* output_worker;
+		if (mode == "paired-end")
+		{
+			output_worker = new OutputWorker(pair_pool, out1, out2, compression_level);
+		}
+		else if (mode == "single-end")
+		{
+			output_worker = new OutputWorker(pair_pool, out1, compression_level);
+		}
+		else
+		{
+			THROW(ArgumentException, "Invalid mode '" + mode + "' provided!")
+		}
 		analysis_pool.start(output_worker);
 
 		long long c_unpaired = 0;
 		long long c_paired = 0;
 		long long c_duplicates = 0;
+		long long c_single_end = 0;
 		int max_cached = 0;
 
 		//iterate through reads
@@ -100,49 +129,71 @@ public:
 				++c_duplicates;
 				continue;
 			}
-			
-			//skip unpaired
-			if(!al->isPaired())
-			{
-				++c_unpaired;
-				continue;
-			}
 
-			//store cached read when we encounter the mate
-			QByteArray name = al->name();
-			if (al_cache.contains(name))
+			if(mode == "paired-end")
 			{
-				QSharedPointer<BamAlignment> mate = al_cache.take(name);
-				//out << name << " [AL] First: " << al.isRead1() << " Reverse: " << al.isReverseStrand() << " Seq: " << al.QueryBases.data() << endl;
-				//out << name << " [MA] First: " << mate.isRead1() << " Reverse: " << mate.isReverseStrand() << " Seq: " << mate.QueryBases.data() << endl;
-				ReadPair& pair = pair_pool.nextFreePair();
-				if (al->isRead1())
+				//skip unpaired
+				if(!al->isPaired())
 				{
-					alignmentToFastq(al, pair.e1);
-					alignmentToFastq(mate, pair.e2);
+					++c_unpaired;
+					continue;
 				}
+
+				//store cached read when we encounter the mate
+				QByteArray name = al->name();
+				if (al_cache.contains(name))
+				{
+					QSharedPointer<BamAlignment> mate = al_cache.take(name);
+					//out << name << " [AL] First: " << al.isRead1() << " Reverse: " << al.isReverseStrand() << " Seq: " << al.QueryBases.data() << endl;
+					//out << name << " [MA] First: " << mate.isRead1() << " Reverse: " << mate.isReverseStrand() << " Seq: " << mate.QueryBases.data() << endl;
+					ReadPair& pair = pair_pool.nextFreePair();
+					if (al->isRead1())
+					{
+						alignmentToFastq(al, pair.e1);
+						alignmentToFastq(mate, pair.e2);
+					}
+					else
+					{
+						alignmentToFastq(mate, pair.e1);
+						alignmentToFastq(al, pair.e2);
+					}
+					pair.status = ReadPair::TO_BE_WRITTEN;
+					++c_paired;
+				}
+				//cache read for later retrieval
 				else
 				{
-					alignmentToFastq(mate, pair.e1);
-					alignmentToFastq(al, pair.e2);
+					al_cache.insert(name, al);
+					al = QSharedPointer<BamAlignment>(new BamAlignment());
 				}
-				pair.status = ReadPair::TO_BE_WRITTEN;
-				++c_paired;
+
+				max_cached = std::max(max_cached, al_cache.size());
 			}
-			//cache read for later retrieval
+			else if (mode == "single-end")
+			{
+				ReadPair& pair = pair_pool.nextFreePair();
+				alignmentToFastq(al, pair.e1);
+				pair.status = ReadPair::TO_BE_WRITTEN;
+				++c_single_end;
+			}
 			else
 			{
-				al_cache.insert(name, al);
-				al = QSharedPointer<BamAlignment>(new BamAlignment());
+				THROW(ArgumentException, "Invalid mode '" + mode + "' provided!")
 			}
-
-			max_cached = std::max(max_cached, al_cache.size());
 		}
 
 		//write debug output
-		out << "Pair reads (written)            : " << c_paired << endl;
-		out << "Unpaired reads (skipped)        : " << c_unpaired << endl;
-		out << "Unmatched paired reads (skipped): " << al_cache.size() << endl;
+		if(mode == "paired-end")
+		{
+			out << "Pair reads (written)            : " << c_paired << endl;
+			out << "Unpaired reads (skipped)        : " << c_unpaired << endl;
+			out << "Unmatched paired reads (skipped): " << al_cache.size() << endl;
+		}
+		else //single-end
+		{
+			out << "Reads (written)                 : " << c_single_end << endl;
+		}
+
 		if (remove_duplicates)
 		{
 			out << "Duplicate reads (skipped)       : " << c_duplicates << endl;
