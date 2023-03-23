@@ -252,7 +252,12 @@ public:
 			}
 
 			//extract ncbi id (entrez_id):
-			QByteArray ncbi_id = parts[18];
+			QVariant ncbi_id;
+			QByteArray entrez_id = parts[18].trimmed();
+			if (!entrez_id.isEmpty())
+			{
+				ncbi_id = Helper::toInt(entrez_id, "entrez_id", line);
+			}
 
 			//insert gene
 			gene_query.bindValue(0, id);
