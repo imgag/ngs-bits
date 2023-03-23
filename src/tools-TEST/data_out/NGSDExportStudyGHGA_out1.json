@@ -55,10 +55,7 @@
                 "Modifier 1",
                 "Modifier 2"
             ],
-            "has_data_use_permisson": [
-                "Condition 1",
-                "Condition 2"
-            ],
+            "has_data_use_permisson": "Use Condition",
             "name": "Data access policy for study Study4711",
             "policy_text": "Textual description of the DAP",
             "policy_url": "http:://url.describing.the.dap.de",

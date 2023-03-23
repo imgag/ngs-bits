@@ -23,8 +23,8 @@ public:
 
 		//optional
 		addInfile("omim", "OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.", true);
-		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from 'https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2022/clinvar_20220702.vcf.gz' for GRCH37 or 'http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2021/clinvar_20211212.vcf.gz' for GRCh38.", true);
-		addInfile("hgmd", "HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2022.2.dump').", true);
+		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from 'http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2023/clinvar_20230311.vcf.gz'.", true);
+		addInfile("hgmd", "HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2022.4.dump').", true);
 
 		// optional (for evidence information):
 		addInfile("hpophen", "HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information. Download from http://purl.obolibrary.org/obo/hp/hpoa/phenotype.hpoa", true);
@@ -35,12 +35,12 @@ public:
 		addFlag("force", "If set, overwrites old data.");
 		addFlag("debug", "Enables debug output");
 
-		changeLog(2021,12,22, "Added support for GenCC and DECIPHER.");
-		changeLog(2020, 7, 7, "Added support of HGMD gene-phenotype relations.");
-		changeLog(2020, 3, 5, "Added support for new HPO annotation file.");
-		changeLog(2020, 3, 9, "Added optimization for hpo-gene relations.");
-		changeLog(2020, 3, 10, "Removed support for old HPO annotation file.");
-		changeLog(2020, 7, 6, "Added support for HGMD phenobase file.");
+		changeLog(2021, 12, 22, "Added support for GenCC and DECIPHER.");
+		changeLog(2020,  7,  7, "Added support of HGMD gene-phenotype relations.");
+		changeLog(2020,  3,  5, "Added support for new HPO annotation file.");
+		changeLog(2020,  3,  9, "Added optimization for hpo-gene relations.");
+		changeLog(2020,  3, 10, "Removed support for old HPO annotation file.");
+		changeLog(2020,  7,  6, "Added support for HGMD phenobase file.");
 	}
 
 	/// simple sruct to keep a set of source databases

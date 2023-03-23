@@ -24,14 +24,6 @@ FileLocation FileLocationProviderLocal::getAnalysisVcf() const
 	return FileLocation{name, PathType::VCF, file, QFile::exists(file)};
 }
 
-FileLocation FileLocationProviderLocal::getAnalysisMosaicFile() const
-{
-	QString name = QFileInfo(gsvar_file_).baseName();
-	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_mosaic.GSvar";
-
-	return FileLocation{name, PathType::MOSAIC_VARIANTS, file, QFile::exists(file)};
-}
-
 FileLocation FileLocationProviderLocal::getAnalysisSvFile() const
 {
 	QString name = QFileInfo(gsvar_file_).baseName();

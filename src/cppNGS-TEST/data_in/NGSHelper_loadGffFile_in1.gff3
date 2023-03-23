@@ -29,7 +29,7 @@
 1	GRCh38	chromosome	1	248956422	.	.	.	ID=chromosome:1;Alias=CM000663.2,chr1,NC_000001.11
 ###
 1	ensembl_havana	gene	120150898	120176520	.	-	.	ID=gene:ENSG00000265808;Name=SEC22B;biotype=protein_coding;description=SEC22 homolog B%2C vesicle trafficking protein [Source:HGNC Symbol%3BAcc:HGNC:10700];gene_id=ENSG00000265808;logic_name=ensembl_havana_gene_homo_sapiens;version=4
-1	ensembl_havana	mRNA	120150898	120176520	.	-	.	ID=transcript:ENST00000578049;Parent=gene:ENSG00000265808;Name=SEC22B-201;biotype=protein_coding;ccdsid=CCDS83523.1;tag=basic;transcript_id=ENST00000578049;transcript_support_level=1 (assigned to previous version 3);version=4
+1	ensembl_havana	mRNA	120150898	120176520	.	-	.	ID=transcript:ENST00000578049;Parent=gene:ENSG00000265808;Name=SEC22B-201;biotype=protein_coding;ccdsid=CCDS83523.1;tag=basic,Ensembl_canonical,MANE_Select;transcript_id=ENST00000578049;transcript_support_level=1 (assigned to previous version 3);version=4
 1	ensembl_havana	three_prime_UTR	120150898	120157037	.	-	.	Parent=transcript:ENST00000578049
 1	ensembl_havana	exon	120150898	120157192	.	-	.	Parent=transcript:ENST00000578049;Name=ENSE00002732617;constitutive=0;ensembl_end_phase=-1;ensembl_phase=1;exon_id=ENSE00002732617;rank=5;version=3
 1	ensembl_havana	CDS	120157038	120157192	.	-	2	ID=CDS:ENSP00000463393;Parent=transcript:ENST00000578049;protein_id=ENSP00000463393
@@ -50,7 +50,7 @@
 1	havana	CDS	120160384	120160501	.	-	0	ID=CDS:ENSP00000484017;Parent=transcript:ENST00000618538;protein_id=ENSP00000484017
 ###
 1	havana	pseudogene	146321214	146401647	.	-	.	ID=gene:ENSG00000277406;Name=SEC22B4P;biotype=transcribed_unprocessed_pseudogene;description=SEC22 homolog B4%2C pseudogene [Source:HGNC Symbol%3BAcc:HGNC:53892];gene_id=ENSG00000277406;logic_name=havana_homo_sapiens;version=2
-1	havana	lnc_RNA	146321214	146401647	.	-	.	ID=transcript:ENST00000643391;Parent=gene:ENSG00000277406;Name=SEC22B4P-202;biotype=processed_transcript;tag=basic;transcript_id=ENST00000643391;version=1
+1	havana	lnc_RNA	146321214	146401647	.	-	.	ID=transcript:ENST00000643391;Parent=gene:ENSG00000277406;Name=SEC22B4P-202;biotype=processed_transcript;tag=basic,MANE_Plus_Clinical;transcript_id=ENST00000643391;version=1
 1	havana	exon	146321214	146321996	.	-	.	Parent=transcript:ENST00000643391;Name=ENSE00003815088;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00003815088;rank=5;version=1
 1	havana	exon	146325224	146325370	.	-	.	Parent=transcript:ENST00000643391;Name=ENSE00003714158;constitutive=1;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00003714158;rank=4;version=1
 1	havana	exon	146328051	146328211	.	-	.	Parent=transcript:ENST00000643391;Name=ENSE00003720279;constitutive=1;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00003720279;rank=3;version=1

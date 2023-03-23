@@ -216,7 +216,9 @@ public:
 
 		while(!fp->atEnd())
 		{
-			QByteArray line = fp->readLine().trimmed();
+			QByteArray line = fp->readLine();
+			while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
+			
 			if (line.isEmpty() || line.startsWith("hgnc_id")) continue;
 			QList<QByteArray> parts = line.split('\t');
 			if (parts.count()<11) THROW(FileParseException, "Invalid line (too few values): " + line);
@@ -235,7 +237,7 @@ public:
 			QByteArray id = parts[0].mid(5);
 			QByteArray symbol = parts[1].toUpper();
 
-			//extract Ensembl ID:
+			//extract Ensembl ID
 			QVariant ensg_id = QVariant();
 			if ((parts.size() > 19) && (!parts[19].trimmed().isEmpty()))
 			{
@@ -251,8 +253,13 @@ public:
 				}
 			}
 
-			//extract ncbi id (entrez_id):
-			QByteArray ncbi_id = parts[18];
+			//extract NCBI id (entrez_id)
+			QVariant ncbi_id;
+			QByteArray entrez_id = parts[18].trimmed();
+			if (!entrez_id.isEmpty())
+			{
+				ncbi_id = Helper::toInt(entrez_id, "entrez_id", line);
+			}
 
 			//insert gene
 			gene_query.bindValue(0, id);

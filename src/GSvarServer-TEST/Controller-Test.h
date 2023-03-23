@@ -282,4 +282,16 @@ private slots:
 		IS_TRUE(!out.object().value("id").toString().isEmpty());
 		S_EQUAL(out.object().value("message").toString(), notification_message);
 	}
+
+	void test_file_upload()
+	{
+		QString test_filename = "test_file.txt";
+		QByteArray test_content = "content";
+		HttpResponse upload_response = ServerController::uploadFileToFolder(QDir::tempPath(), test_filename, test_content);
+		IS_TRUE(upload_response.getStatus() == ResponseStatus::OK);
+		S_EQUAL(QFileInfo(upload_response.getPayload()).fileName(), test_filename);
+
+		QSharedPointer<QFile> outfile = Helper::openFileForReading(upload_response.getPayload());
+		S_EQUAL(outfile.data()->readAll(), test_content);
+	}
 };
