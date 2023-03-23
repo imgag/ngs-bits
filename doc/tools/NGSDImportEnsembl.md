@@ -1,32 +1,31 @@
 ### NGSDImportEnsembl tool help
-	NGSDImportEnsembl (2022_11-75-gf99b2041)
+	NGSDImportEnsembl (2023_02-56-g0fe5818f)
 	
 	Imports Ensembl/CCDS transcript information into NGSD.
 	
 	Mandatory parameters:
-	  -in <file>                Ensembl transcript file (download and unzip https://ftp.ensembl.org/pub/grch37/release-87/gff3/homo_sapiens/Homo_sapiens.GRCh37.87.gff3.gz for GRCh37 and https://ftp.ensembl.org/pub/release-107/gff3/homo_sapiens/Homo_sapiens.GRCh38.107.gff3.gz for GRCh38).
-	  -ensembl_canonical <file> Ensembl canonical transcript TSV file (download and unzip from https://ftp.ensembl.org/pub/release-105/tsv/homo_sapiens/Homo_sapiens.GRCh38.105.canonical.tsv.gz
-	  -mane <file>              GFF file with MANE information (download and unzip from https://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/release_1.0/MANE.GRCh38.v1.0.ensembl_genomic.gff.gz
+	  -in <file>              Ensembl transcript file (download and unzip https://ftp.ensembl.org/pub/release-109/gff3/homo_sapiens/Homo_sapiens.GRCh38.109.gff3.gz).
 	
 	Optional parameters:
-	  -pseudogenes <filelist>   Pseudogene flat file(s) (download from http://pseudogene.org/psidr/psiDR.v0.txt and http://pseudogene.org/psicube/data/gencode.v10.pgene.parents.txt).
-	                            Default value: ''
-	  -all                      If set, all transcripts are imported (the default is to skip transcripts that do not have at least one of the flags 'GENCODE basic', 'Ensembl canonical', 'MANE select' or 'MANE plus clinical').
-	                            Default value: 'false'
-	  -test                     Uses the test database instead of on the production database.
-	                            Default value: 'false'
-	  -force                    If set, overwrites old data.
-	                            Default value: 'false'
+	  -pseudogenes <filelist> Pseudogene flat file(s) (download from http://pseudogene.org/psidr/psiDR.v0.txt and http://pseudogene.org/psicube/data/gencode.v10.pgene.parents.txt).
+	                          Default value: ''
+	  -all                    If set, all transcripts are imported (the default is to skip transcripts that do not have at least one of the flags 'GENCODE basic', 'Ensembl canonical', 'MANE select' or 'MANE plus clinical').
+	                          Default value: 'false'
+	  -test                   Uses the test database instead of on the production database.
+	                          Default value: 'false'
+	  -force                  If set, overwrites old data.
+	                          Default value: 'false'
 	
 	Special parameters:
-	  --help                    Shows this help and exits.
-	  --version                 Prints version and exits.
-	  --changelog               Prints changeloge and exits.
-	  --tdx                     Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --help                  Shows this help and exits.
+	  --version               Prints version and exits.
+	  --changelog             Prints changeloge and exits.
+	  --tdx                   Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDImportEnsembl changelog
-	NGSDImportEnsembl 2022_11-75-gf99b2041
+	NGSDImportEnsembl 2023_02-56-g0fe5818f
 	
+	2023-03-22 Removed parameters 'ensembl_canonical' and 'mane' as the information is now contained in the Ensembl GFF3 file.
 	2022-10-17 Added transcript versions.
 	2022-05-29 Added parameters 'ensembl_canonical' and 'mane'.
 	2021-06-09 Added support for multiple pseudogene files and duplication check.

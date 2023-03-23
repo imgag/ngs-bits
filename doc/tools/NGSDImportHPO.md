@@ -1,5 +1,5 @@
 ### NGSDImportHPO tool help
-	NGSDImportHPO (2022_07-37-g22d4e20c)
+	NGSDImportHPO (2023_02-56-g0fe5818f)
 	
 	Imports HPO terms and gene-phenotype relations into the NGSD.
 	
@@ -10,9 +10,9 @@
 	Optional parameters:
 	  -omim <file>     OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.
 	                   Default value: ''
-	  -clinvar <file>  ClinVar VCF file for additional disease-gene information. Download and unzip from 'https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2022/clinvar_20220702.vcf.gz' for GRCH37 or 'http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2021/clinvar_20211212.vcf.gz' for GRCh38.
+	  -clinvar <file>  ClinVar VCF file for additional disease-gene information. Download and unzip from 'http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2023/clinvar_20230311.vcf.gz'.
 	                   Default value: ''
-	  -hgmd <file>     HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2022.2.dump').
+	  -hgmd <file>     HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2022.4.dump').
 	                   Default value: ''
 	  -hpophen <file>  HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information. Download from http://purl.obolibrary.org/obo/hp/hpoa/phenotype.hpoa
 	                   Default value: ''
@@ -34,7 +34,7 @@
 	  --tdx            Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDImportHPO changelog
-	NGSDImportHPO 2022_07-37-g22d4e20c
+	NGSDImportHPO 2023_02-56-g0fe5818f
 	
 	2021-12-22 Added support for GenCC and DECIPHER.
 	2020-07-07 Added support of HGMD gene-phenotype relations.
