@@ -639,7 +639,8 @@ CONSTRAINT `fk_variant_publication_has_sample`
     FOREIGN KEY (`sample_id`)
     REFERENCES `sample` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION
+    ON UPDATE NO ACTION,
+INDEX `variant_id` (`variant_id` ASC)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
@@ -1784,10 +1785,12 @@ CREATE TABLE IF NOT EXISTS `report_configuration_sv`
   `manual_start` INT(11) DEFAULT NULL,
   `manual_end` INT(11) DEFAULT NULL,
   `manual_genotype` ENUM('hom','het') DEFAULT NULL,
-  `manual_start_bnd` INT(11) DEFAULT NULL,
-  `manual_end_bnd` INT(11) DEFAULT NULL,
   `manual_hgvs_type` text DEFAULT NULL,
   `manual_hgvs_suffix` text DEFAULT NULL,
+  `manual_start_bnd` INT(11) DEFAULT NULL,
+  `manual_end_bnd` INT(11) DEFAULT NULL,
+  `manual_hgvs_type_bnd` text DEFAULT NULL,
+  `manual_hgvs_suffix_bnd` text DEFAULT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_report_configuration3`
     FOREIGN KEY (`report_configuration_id` )
@@ -2248,7 +2251,7 @@ CREATE TABLE IF NOT EXISTS `expression`
   `processed_sample_id` INT(11) NOT NULL,
   `symbol` VARCHAR(40) NOT NULL,
   `tpm` FLOAT NOT NULL,
-  `raw` INT NOT NULL,
+  `raw` INT(11) NULL,
   PRIMARY KEY (`id`),
   INDEX(`processed_sample_id`),
   INDEX(`symbol`),

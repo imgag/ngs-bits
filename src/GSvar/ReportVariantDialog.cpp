@@ -78,8 +78,13 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 		{
 			ui_.manual_label_sv_start_bnd->setVisible(false);
 			ui_.manual_label_sv_end_bnd->setVisible(false);
+			ui_.manual_label_sv_hgvs_type_bnd->setVisible(false);
+			ui_.manual_label_sv_hgvs_suffix_bnd->setVisible(false);
+
 			ui_.manual_sv_start_bnd->setVisible(false);
 			ui_.manual_sv_end_bnd->setVisible(false);
+			ui_.manual_sv_hgvs_type_bnd->setVisible(false);
+			ui_.manual_sv_hgvs_suffix_bnd->setVisible(false);
 		}
 	}
 
@@ -155,6 +160,8 @@ void ReportVariantDialog::updateGUI()
 		ui_.manual_sv_end_bnd->setText(config_.manual_sv_end_bnd.trimmed());
 		ui_.manual_sv_hgvs_type->setText(config_.manual_sv_hgvs_type.trimmed());
 		ui_.manual_sv_hgvs_suffix->setText(config_.manual_sv_hgvs_suffix.trimmed());
+		ui_.manual_sv_hgvs_type_bnd->setText(config_.manual_sv_hgvs_type_bnd.trimmed());
+		ui_.manual_sv_hgvs_suffix_bnd->setText(config_.manual_sv_hgvs_suffix_bnd.trimmed());
 	}
 }
 
@@ -216,6 +223,8 @@ void ReportVariantDialog::writeBack(ReportVariantConfiguration& rvc)
 		rvc.manual_sv_end_bnd = ui_.manual_sv_end_bnd->text().trimmed();
 		rvc.manual_sv_hgvs_type = ui_.manual_sv_hgvs_type->text().trimmed();
 		rvc.manual_sv_hgvs_suffix = ui_.manual_sv_hgvs_suffix->text().trimmed();
+		rvc.manual_sv_hgvs_type_bnd = ui_.manual_sv_hgvs_type_bnd->text().trimmed();
+		rvc.manual_sv_hgvs_suffix_bnd = ui_.manual_sv_hgvs_suffix_bnd->text().trimmed();
 	}
 }
 

@@ -159,7 +159,7 @@ public:
 		QString dac_organization;
 		QString dap_text;
 		QString dap_url;
-		QStringList dap_use_conditions; //attention, this is a CV!
+		QString dap_use_condition; //attention, this is a CV!
 		QStringList dap_use_modifiers; //attention, this is a CV!
 
 		//processed samples
@@ -356,7 +356,7 @@ public:
 		obj.insert("description", "Data access policy for study "+data.study_name);
 		obj.insert("policy_text", data.dap_text);
 		obj.insert("policy_url", data.dap_url);
-		obj.insert("has_data_use_permisson", QJsonArray::fromStringList(QStringList() << data.dap_use_conditions));
+		obj.insert("has_data_use_permisson", data.dap_use_condition);
 		obj.insert("has_data_use_modifier", QJsonArray::fromStringList(QStringList() << data.dap_use_modifiers));
 		obj.insert("has_data_access_committee", data.study_name + " DAC");
 		obj.insert("schema_type", "CreateDataAccessPolicy");
@@ -607,7 +607,7 @@ public:
 		data.dac_organization = getString(data_obj, "data_access_committee_organization");
 		data.dap_text = getString(data_obj, "data_access_policy_text");
 		data.dap_url = getString(data_obj, "data_access_policy_url");
-		data.dap_use_conditions = getArray(data_obj, "data_access_policy_use_conditions");
+		data.dap_use_condition = getString(data_obj, "data_access_policy_use_condition");
 		data.dap_use_modifiers = getArray(data_obj, "data_access_policy_use_modifiers");
 
 		NGSD db(data.test_mode);

@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2023_02
+	> git checkout 2023_03
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -174,18 +174,12 @@ Changes of master since last release:
 * none so far
 
 
-Changes in release 2023_02:
+Changes in release 2023_03:
 
-* Updated build instructions for Windows from Qt 5.9 (32 bit) to Qt 5.12 (64 bit)
-* added tools VcfAdd, VcfSubstract
-* NGSDExportSamples: added ancestry and phenotype filter options
-* NGSDImportEnsembl: added import of transcript versions
-* VcfAnnotateConsequence: added multi-threading support
+* NGSDImportEnsembl: Update to support Ensembl 109
+* RnaQC: Added target region to support targeted transcriptomics experiments
 * NGSD
-	* Added transcript version to 'gene_transcript' table
-	* Added more tissues to 'sample' table
-	* Added comment field to 'user' table
-	* Added table of variant to 'variant_publication' table to support ClinVar upload of CNVs and SVs
-	* Added mosaic status to 'detected_variant' table
-
+	* Added `ncbi_id` to `gene` table
+	* Added `folder_override`to `processed_sample` table
+	
 For older changes see [releases](https://github.com/imgag/ngs-bits/releases).

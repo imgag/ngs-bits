@@ -55,9 +55,6 @@ struct GffData
 
 	//Map from ENSG to gene symbol
 	QHash<QByteArray, QByteArray> ensg2symbol;
-
-	//Set of ENST identifiers that are flagged as GENCODE basic
-	QSet<QByteArray> gencode_basic;
 };
 
 

@@ -1,5 +1,9 @@
 # GSvar change log
 
+### 2023_02-53 (21.03.23)
+
+- removed mosaic dialog (no longer needed as mosaic variant are part of the main variant list now)
+
 ### 2023_02-13 (27.02.23)
 
 - run tab: added CNV count QC metric.
