@@ -265,6 +265,8 @@ public:
 	{
 		QTextStream out(stdout);
 		//prepare SQL queries
+		SqlQuery qi_obs = db.getQuery();
+		qi_obs.prepare("INSERT INTO hpo_obsolete (hpo_id, name, definition, replaced_by) VALUES (:0, :1, :2, :3);");
 		SqlQuery qi_term = db.getQuery();
 		qi_term.prepare("INSERT INTO hpo_term (hpo_id, name, definition, synonyms) VALUES (:0, :1, :2, :3);");
 		SqlQuery qi_parent = db.getQuery();
@@ -285,9 +287,10 @@ public:
 
 			id2ngsd.insert(term.id(), qi_term.lastInsertId().toInt());
 		}
-		out << "Imported " << db.getValue("SELECT COUNT(*) FROM hpo_term").toInt() << " non-obsolete HPO terms." << endl;
+		out << "Imported " << id2ngsd.count() << " non-obsolete HPO terms." << endl;
 
 		//insert parent-child relations between (valid) terms
+		int c_ins_parent = 0;
 		for (int i=0; i<terms.size(); ++i)
 		{
 			const OntologyTerm& term = terms.get(i);
@@ -299,50 +302,55 @@ public:
 			foreach(const QByteArray& p_id, term.parentIDs())
 			{
 				int p_db = id2ngsd.value(p_id, -1);
-				if (p_db==-1) continue;
+				if (p_db==-1)
+				{
+					out << "Notice: Parent term '" << p_id << "' is not a valid term!" << endl;
+					continue;
+				}
 
 				qi_parent.bindValue(0, p_db);
 				qi_parent.bindValue(1, c_db);
 				qi_parent.exec();
+
+				++c_ins_parent;
 			}
 		}
-		out << "Imported " << db.getValue("SELECT COUNT(*) FROM hpo_parent").toInt() << " parent-child relations between terms from HPO." << endl;
+		out << "Imported " << c_ins_parent << " parent-child relations between terms from HPO." << endl;
 
-		//replace obsolete terms used in disease_info table
-		int c_obsolote = 0;
-		int c_replaced = 0;
-		QByteArrayList invalid;
-		SqlQuery query = db.getQuery();
-		query.exec("SELECT id, disease_info FROM sample_disease_info WHERE type='HPO term id' order by disease_info ASC");
-		while(query.next())
+		//import obsolete terms and link to replacement terms
+		int c_ins_obs = 0;
+		int c_ins_obs_with_replace = 0;
+		for (int i=0; i<terms.size(); ++i)
 		{
-			QByteArray hpo_id = query.value("disease_info").toByteArray().trimmed();
-			try
+			const OntologyTerm& term = terms.get(i);
+			if (!term.isObsolete()) continue;
+
+			QVariant replace_id_db;
+			QByteArray replace_id = term.replacedById();
+			if (!replace_id.isEmpty())
 			{
-				const OntologyTerm& term = terms.getByID(hpo_id);
-				if (term.isObsolete())
+				int ngsd_id = id2ngsd.value(replace_id, -1);
+				if (ngsd_id==-1)
 				{
-					++c_obsolote;
-					if (!term.replacedById().isEmpty())
-					{
-						db.getQuery().exec("UPDATE sample_disease_info SET disease_info='" + term.replacedById() + "' WHERE id=" + query.value("id").toByteArray());
-						++c_replaced;
-					}
+					out << "Notice: Replacement term '" << replace_id << "' is not a valid term!" << endl;
+					continue;
+				}
+				else
+				{
+					replace_id_db = ngsd_id;
 				}
 			}
-			catch(const ArgumentException& /*e*/)
-			{
-				if (!invalid.contains(hpo_id)) invalid << hpo_id;
-			}
+
+			qi_obs.bindValue(0, term.id());
+			qi_obs.bindValue(1, term.name());
+			qi_obs.bindValue(2, term.definition());
+			qi_obs.bindValue(3, replace_id_db);
+			qi_obs.exec();
+
+			++c_ins_obs;
+			if (!replace_id_db.isNull()) ++c_ins_obs_with_replace;
 		}
-		if (c_obsolote>0)
-		{
-			out << "Found " << c_obsolote << " obsolete HPO terms in table 'disease_info'. Replaced " << c_replaced << " of these!" << endl;
-		}
-		if (invalid.count()>0)
-		{
-			out << "Found " << invalid.count() << " invalid HPO terms in table 'disease_info': '" << invalid.join("', '") << "'" << endl;
-		}
+		out << "Imported " << c_ins_obs << " obsolete HPO terms (" << c_ins_obs_with_replace << " with replacement)." << endl;
 
 		return id2ngsd;
 	}
@@ -767,6 +775,7 @@ public:
 		db.tableExists("hpo_term");
 		db.tableExists("hpo_parent");
 		db.tableExists("hpo_genes");
+		db.tableExists("hpo_obsolete");
 
 		//check if gene table exists and contains HGNC genes:
 		db.tableExists("gene");

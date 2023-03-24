@@ -655,8 +655,8 @@ void NGSDReplicationWidget::replicatePostProduction()
 				 QVariant target_id = db_target_->getValue("SELECT id FROM variant_validation WHERE variant_id='" + QString::number(target_variant_id) + "' AND sample_id='"+sample_id+"' LIMIT 1", true);
 				 if (!target_id.isValid())
 				 {
-					QString source_sample = db_source_->getValue("SELECT name FROM sample WHERE id='"+sample_id+"'").toString();
-					QString target_sample = db_target_->getValue("SELECT name FROM sample WHERE id='"+sample_id+"'").toString();
+					QString source_sample = db_source_->sampleName(sample_id);
+					QString target_sample = db_target_->sampleName(sample_id);
 					if (source_sample==target_sample)
 					{
 						q_add.bindValue(0, query_s.value("user_id"));
@@ -698,8 +698,8 @@ void NGSDReplicationWidget::replicatePostProduction()
 				 QVariant target_id = db_target_->getValue("SELECT id FROM variant_publication WHERE variant_id='" + QString::number(target_variant_id) + "' AND sample_id='"+sample_id+"' LIMIT 1", true);
 				 if (!target_id.isValid())
 				 {
-					QString source_sample = db_source_->getValue("SELECT name FROM sample WHERE id='"+sample_id+"'").toString();
-					QString target_sample = db_target_->getValue("SELECT name FROM sample WHERE id='"+sample_id+"'").toString();
+					QString source_sample = db_source_->sampleName(sample_id);
+					QString target_sample = db_target_->sampleName(sample_id);
 					if (source_sample==target_sample)
 					{
 						q_add.bindValue(0, sample_id);
