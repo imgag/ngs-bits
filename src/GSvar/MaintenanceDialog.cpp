@@ -260,8 +260,8 @@ void MaintenanceDialog::replaceObsolteHPOTerms()
 	appendOutputLine("");
 	appendOutputLine("Found " + QString::number(c_valid) + " valid HPO terms.");
 	appendOutputLine("Found " + QString::number(c_invalid) + " invalid HPO terms.");
-	appendOutputLine("Found " + QString::number(c_replaced) + " obolete HPO terms that were replaced.");
-	appendOutputLine("Found " + QString::number(c_not_replaced) + " obolete HPO terms that could not be replaced.");
+	appendOutputLine("Found " + QString::number(c_replaced) + " obsolete HPO terms that were replaced.");
+	appendOutputLine("Found " + QString::number(c_not_replaced) + " obsolete HPO terms that could not be replaced.");
 }
 
 void MaintenanceDialog::appendOutputLine(QString line)
