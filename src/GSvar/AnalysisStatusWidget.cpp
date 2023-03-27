@@ -35,7 +35,8 @@ AnalysisStatusWidget::AnalysisStatusWidget(QWidget* parent)
 	connect(ui_.analysisMulti, SIGNAL(clicked(bool)), this, SLOT(analyzeMultiSample()));
 	connect(ui_.analysisSomatic, SIGNAL(clicked(bool)), this, SLOT(analyzeSomatic()));
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
-	connect(ui_.f_text, SIGNAL(returnPressed()), this, SLOT(applyTextFilter()));
+	connect(ui_.f_text, SIGNAL(returnPressed()), this, SLOT(applyFilters()));
+	connect(ui_.f_mine, SIGNAL(stateChanged(int)), this, SLOT(applyFilters()));
 }
 
 void AnalysisStatusWidget::analyzeSingleSamples(QList<AnalysisJobSample> samples)
@@ -88,6 +89,9 @@ void AnalysisStatusWidget::refreshStatus()
 		ui_.analyses->clearContents();
 		ui_.analyses->setRowCount(0);
 		jobs_.clear();
+
+		//set default row height (makes the table nicer while loading)
+		ui_.analyses->verticalHeader()->setDefaultSectionSize(23);
 
 		//add lines
 		int row = -1;
@@ -217,15 +221,16 @@ void AnalysisStatusWidget::refreshStatus()
 			addItem(ui_.analyses, row, 8, last_update, bg_color);
 		}
 
-		//apply text filter
-		applyTextFilter();
+		//apply other filder
+		applyFilters();
 	}
 	catch (Exception& e)
 	{
 		QMessageBox::warning(this, "Update failed", "Could not update data:\n" + e.message());
 	}
 
-	GUIHelper::resizeTableCells(ui_.analyses, 350);
+	GUIHelper::resizeTableCells(ui_.analyses, 400);
+
 	QApplication::restoreOverrideCursor();
 }
 
@@ -594,19 +599,17 @@ void AnalysisStatusWidget::copyToClipboard()
 	GUIHelper::copyToClipboard(ui_.analyses);
 }
 
-void AnalysisStatusWidget::applyTextFilter()
+void AnalysisStatusWidget::applyFilters()
 {
-	QString f_text = ui_.f_text->text().trimmed();
-
-	//no search string => show all
-	if (f_text.isEmpty())
+	//show everything
+	for (int r=0; r<ui_.analyses->rowCount(); ++r)
 	{
-		for (int r=0; r<ui_.analyses->rowCount(); ++r)
-		{
-			ui_.analyses->setRowHidden(r, false);
-		}
+		ui_.analyses->setRowHidden(r, false);
 	}
-	else //search
+
+	//text filter
+	QString f_text = ui_.f_text->text().trimmed();
+	if (!f_text.isEmpty())
 	{
 		for (int r=0; r<ui_.analyses->rowCount(); ++r)
 		{
@@ -623,7 +626,26 @@ void AnalysisStatusWidget::applyTextFilter()
 				}
 			}
 
-			ui_.analyses->setRowHidden(r, !match);
+			if (!match)
+			{
+				ui_.analyses->setRowHidden(r, true);
+			}
+		}
+	}
+
+	//user filter
+	if (ui_.f_mine->isChecked())
+	{
+		QString f_user = Helper::userName();
+		for (int r=0; r<ui_.analyses->rowCount(); ++r)
+		{
+			QTableWidgetItem* item = ui_.analyses->item(r, 1);
+			if (item==nullptr) continue;
+
+			if (!item->text().contains(f_user, Qt::CaseInsensitive))
+			{
+				ui_.analyses->setRowHidden(r, true);
+			}
 		}
 	}
 

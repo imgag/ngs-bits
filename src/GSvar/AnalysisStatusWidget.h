@@ -28,7 +28,7 @@ protected slots:
 	void clearDetails();
 	void updateDetails();
 	void copyToClipboard();
-	void applyTextFilter();
+	void applyFilters();
 	void openProcessedSampleTab(int col, int row);
 
 private:
