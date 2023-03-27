@@ -44,6 +44,11 @@ public:
 	FileLocation getSomaticMsiFile() const override;
 	FileLocation getSomaticIgvScreenshotFile() const override;
 	FileLocation getSomaticCfdnaCandidateFile() const override;
+	FileLocation getSignatureSbsFile() const override;
+	FileLocation getSignatureIdFile() const override;
+	FileLocation getSignatureDbsFile() const override;
+	FileLocation getSignatureCnvFile() const override;
+
 
 private:
 	static void addToList(const FileLocation& loc, FileLocationList& list, bool add_if_missing=true); //Make add_if_missing mandatory when all

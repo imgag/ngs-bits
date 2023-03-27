@@ -46,6 +46,9 @@ FileLocationList FileLocationProviderRemote::getQcFiles() const
 	return getFileLocationsByType(PathType::QC, false);
 }
 
+
+
+
 FileLocationList FileLocationProviderRemote::getFileLocationsByType(PathType type, bool return_if_missing) const
 {
 	FileLocationList output;
@@ -243,3 +246,28 @@ FileLocation FileLocationProviderRemote::getSomaticCfdnaCandidateFile() const
 {
 	return getOneFileLocationByType(PathType::CFDNA_CANDIDATES, "");
 }
+
+FileLocation FileLocationProviderRemote::getSignatureSbsFile() const
+{
+	return getOneFileLocationByType(PathType::SIGNATURE_SBS, "");
+}
+
+FileLocation FileLocationProviderRemote::getSignatureIdFile() const
+{
+	return getOneFileLocationByType(PathType::SIGNATURE_ID, "");
+}
+
+FileLocation FileLocationProviderRemote::getSignatureDbsFile() const
+{
+	return getOneFileLocationByType(PathType::SIGNATURE_DBS, "");
+}
+
+FileLocation FileLocationProviderRemote::getSignatureCnvFile() const
+{
+	return getOneFileLocationByType(PathType::SIGNATURE_CNV, "");
+}
+
+
+
+
+
