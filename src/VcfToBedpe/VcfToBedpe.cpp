@@ -121,6 +121,16 @@ struct VcfToBedpe::bedpe_line
 				END_A = END_A + conf_end;
 			}
 		}
+		else if(info.value("STDEV_POS", "") != "") //Sniffles
+		{
+			//caclulate CI from stddev
+			if (info.value("SUPPORT", "") == "") THROW(FileAccessException, "INFO field 'SUPPORT' required to calculate the confidence interval!");
+			int n = info.value("SUPPORT").toInt();
+			double stdev = info.value("STDEV_POS").toDouble();
+			int offset = std::ceil(1.96 * (stdev / std::sqrt(n)));
+			START_A = START_A - offset;
+			END_A = END_A + offset;
+		}
 	}
 
 	void addCoordinatesB(const VcfToBedpe::vcf_line& line_in)
@@ -128,8 +138,38 @@ struct VcfToBedpe::bedpe_line
 		QMap<QByteArray,QByteArray> info = VcfToBedpe::parseInfoField(line_in.info);
 
 		CHROM_B = info.value("CHR2"); //get chr from "CHR2" entry (delly files)
-		if(info.value("END") != ".") START_B = info.value("END").toInt();
-		if(info.value("END") != ".") END_B = info.value("END").toInt();
+		if(info.value("END", ".") != ".")
+		{
+			START_B = info.value("END").toInt();
+			END_B = info.value("END").toInt();
+		}
+		else
+		{
+			//for BNDs: determine position from ALT column (e.g. sniffles, cuteSV or dipdiff)
+			if ((info.value("SVTYPE", "") == "BND") && (line_in.alt.startsWith("]") || line_in.alt.startsWith("[")|| line_in.alt.startsWith("N[") || line_in.alt.startsWith("N]")))
+			{
+				//parse 2nd breakpoint
+				QByteArrayList pos_b;
+				int str_length = line_in.alt.length() - 3;
+				if (line_in.alt.startsWith("N"))
+				{
+					pos_b = line_in.alt.mid(2, str_length).split(':');
+				}
+				else
+				{
+					pos_b = line_in.alt.mid(1, str_length).split(':');
+				}
+				START_B = pos_b.at(1).toInt();
+				END_B = START_B;
+				// use chr in ALT entry if no 'CHR2' entry in INFO column was found
+				if(CHROM_B.isEmpty()) CHROM_B = Chromosome(pos_b.at(0)).strNormalized(true);
+			}
+			else
+			{
+				THROW(FileParseException,"No entry \"END\" found in INFO field, but neccessary for simple breakpoints");
+			}
+
+		}
 
 		if(info.value("CIEND","") != "")
 		{
@@ -143,6 +183,16 @@ struct VcfToBedpe::bedpe_line
 				START_B = START_B + conf_start;
 				END_B = END_B + conf_end;
 			}
+		}	
+		else if(info.value("STDEV_LEN", "") != "") //Sniffles
+		{
+			//caclulate CI from stddev
+			if (info.value("SUPPORT", "") == "") THROW(FileAccessException, "INFO field 'SUPPORT' required to calculate the confidence interval!");
+			int n = info.value("SUPPORT").toInt();
+			double stdev = info.value("STDEV_LEN").toDouble();
+			int offset = std::ceil(1.96 * (stdev / std::sqrt(n)));
+			START_B = START_B - offset;
+			END_B = END_B + offset;
 		}
 	}
 };
@@ -256,11 +306,6 @@ QMap<QByteArray,QByteArray> VcfToBedpe::parseInfoField(const QByteArray &field)
 VcfToBedpe::bedpe_line VcfToBedpe::convertSingleLine(const VcfToBedpe::vcf_line &line_in, bool single_manta_bnd)
 {
 	QMap<QByteArray,QByteArray> info = parseInfoField(line_in.info);
-	//Check data for 2nd breakpoint is available
-	if(info.value("END","") == "" && !single_manta_bnd)
-	{
-		THROW(FileParseException,"No entry \"END\" found in INFO field, but neccessary for simple breakpoints");
-	}
 
 	QChar orientation1 = '.';
 	QChar orientation2 = '.';
