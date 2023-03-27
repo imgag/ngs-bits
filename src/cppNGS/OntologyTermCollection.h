@@ -90,7 +90,7 @@ public:
 	}
 	void setReplacedById(const QByteArray& id)
 	{
-		replaced_by_id_ = id;
+		replaced_by_id_ = id.trimmed();
 	}
 
 	///checks whether this term is a child of the passed parent ID

@@ -73,6 +73,11 @@
        </item>
        <item>
         <property name="text">
+         <string>Replace obsolte HPO terms</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
          <string>[GenLab]</string>
         </property>
        </item>

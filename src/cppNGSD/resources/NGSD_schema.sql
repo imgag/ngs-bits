@@ -1040,6 +1040,25 @@ DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
+-- Table `hpo_obsolete`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `hpo_obsolete`
+(
+    `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `hpo_id` VARCHAR(10) NOT NULL,
+    `name` TEXT NOT NULL,
+    `definition` TEXT NOT NULL,
+    `replaced_by` INT(10) UNSIGNED DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `hpo_id` (`hpo_id` ASC),
+    CONSTRAINT `hpo_obsolete_ibfk`
+      FOREIGN KEY (`replaced_by`)
+      REFERENCES `hpo_term` (`id`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
 -- Table `analysis_job`
 -- -----------------------------------------------------
 

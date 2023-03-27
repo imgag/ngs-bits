@@ -45,19 +45,19 @@ private slots:
 	{
 		OntologyTermCollection colletion("://Resources/so-xp_3_0_0.obo", false);
 
-		//non-obolete term
+		//non-obsolete term
 		IS_TRUE(colletion.containsByID("SO:0000013"));
 
-		//non-obolete term
+		//non-obsolete term
 		IS_TRUE(colletion.containsByID("SO:0000014"));
 
-		//obolete term
+		//obsolete term
 		IS_TRUE(colletion.containsByID("SO:0000038"));
 		S_EQUAL(colletion.getByID("SO:0000038").name(), "match_set");
 		S_EQUAL(colletion.getByID("SO:0000038").definition(), "A collection of match parts.");
 		S_EQUAL(colletion.getByID("SO:0000038").replacedById(), "");
 
-		//obolete term
+		//obsolete term
 		IS_TRUE(colletion.containsByID("SO:1000117"));
 		S_EQUAL(colletion.getByID("SO:1000117").name(), "sequence_variant_affecting_polypeptide_function");
 		S_EQUAL(colletion.getByID("SO:1000117").definition(), "");
