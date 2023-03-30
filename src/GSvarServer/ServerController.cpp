@@ -368,6 +368,18 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 			case PathType::IGV_SCREENSHOT:
 				file_list << file_locator->getSomaticIgvScreenshotFile();
 				break;
+			case PathType::SIGNATURE_SBS:
+				file_list << file_locator->getSignatureSbsFile();
+				break;
+			case PathType::SIGNATURE_ID:
+				file_list << file_locator->getSignatureIdFile();
+				break;
+			case PathType::SIGNATURE_DBS:
+				file_list << file_locator->getSignatureDbsFile();
+				break;
+			case PathType::SIGNATURE_CNV:
+				file_list << file_locator->getSignatureCnvFile();
+				break;
 			default:
 				FileLocation gsvar_file(
 					url_entity.file_id,

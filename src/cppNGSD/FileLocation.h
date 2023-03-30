@@ -54,6 +54,10 @@ enum class PathType
 	QC, // variant list QC (qcML) files
 	IGV_SCREENSHOT, //screenshot taken from IGV
 	HLA_GENOTYPER, // results from hla genotyper (TSV format)
+	SIGNATURE_SBS,  // Somatic: resut part from SigProfileExtractor for SNVs (CSV format)
+	SIGNATURE_ID,	// Somatic: resut part from SigProfileExtractor for SNVs (CSV format)
+	SIGNATURE_DBS,	// Somatic: resut part from SigProfileExtractor for SNVs (CSV format)
+	SIGNATURE_CNV,	// Somatic: resut from SigProfileExtractor for CNVs (CSV format)
 	OTHER // everything else
 };
 
@@ -194,6 +198,15 @@ struct FileLocation
 				return "IGV_SCREENSHOT";
 			case PathType::HLA_GENOTYPER:
 				return "HLA_GENOTYPER";
+			case PathType::SIGNATURE_SBS:
+				return "SIGNATURE_SBS";
+			case PathType::SIGNATURE_ID:
+				return "SIGNATURE_ID";
+			case PathType::SIGNATURE_DBS:
+				return "SIGNATURE_DBS";
+			case PathType::SIGNATURE_CNV:
+				return "SIGNATURE_CNV";
+
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToString()!");
 	}
@@ -242,6 +255,10 @@ struct FileLocation
 		if (in_upper == "CFDNA_CANDIDATES") return PathType::CFDNA_CANDIDATES;
 		if (in_upper == "IGV_SCREENSHOT") return PathType::IGV_SCREENSHOT;
 		if (in_upper == "HLA_GENOTYPER") return PathType::HLA_GENOTYPER;
+		if (in_upper == "SIGNATURE_SBS") return PathType::SIGNATURE_SBS;
+		if (in_upper == "SIGNATURE_ID") return PathType::SIGNATURE_ID;
+		if (in_upper == "SIGNATURE_DBS") return PathType::SIGNATURE_DBS;
+		if (in_upper == "SIGNATURE_CNV") return PathType::SIGNATURE_CNV;
 		THROW(ProgrammingException, "Unhandled path type string '" + in_upper + "' in stringToType()!");
 	}
 
@@ -329,6 +346,14 @@ struct FileLocation
 				return "IGV screenshot";
 			case PathType::HLA_GENOTYPER:
 				return "HLA called by hla genotyper";
+			case PathType::SIGNATURE_SBS:
+				return "SBS signature";
+			case PathType::SIGNATURE_ID:
+				return "ID signature";
+			case PathType::SIGNATURE_DBS:
+				return "DBS signature";
+			case PathType::SIGNATURE_CNV:
+				return "CNV signature";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToHumanReadableString()!");
 	}
