@@ -133,6 +133,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	{
 		stream << "<br />&nbsp;&nbsp;&nbsp;&nbsp;- " << data_.filters[i]->toText() << endl;
 	}
+	stream << "<br />";
 
 	//determine variant count (inside target region)
 	int var_count = data_.variants.count();
@@ -143,7 +144,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		var_count = filter_result.countPassing();
 	}
 
-	stream << "<br />" << trans("Gefundene Varianten in Zielregion gesamt") << ": " << var_count << endl;
+	stream << "<br />" << trans("Gefundene SNVs/InDels in Zielregion gesamt") << ": " << var_count << endl;
 	selected_small_.clear();
 	selected_cnvs_.clear();
 	selected_svs_.clear();
@@ -158,11 +159,10 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	stream << "<br />" << trans("Anzahl SVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_svs_.count() << endl;
 	stream << "</p>" << endl;
 
-	//output: selected variants
-	stream << endl;
-	stream << "<p><b>" << trans("Kleine Varianten nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
-	stream << "<br />" << trans("In der folgenden Tabelle werden neben wahrscheinlich pathogenen (Klasse 4) und pathogenen (Klasse 5) nur solche Varianten unklarer klinischer Signifikanz (Klasse 3) gelistet, f&uuml;r die in Zusammenschau von Literatur und Klinik des Patienten ein Beitrag zur Symptomatik denkbar ist und f&uuml;r die gegebenenfalls eine weitere Einordnung der klinischen Relevanz durch Folgeuntersuchungen sinnvoll ist. Eine Liste aller detektierten Varianten kann bei Bedarf angefordert werden.") << endl;
-	stream << "</p>" << endl;
+	stream << "<br />" << trans("In den folgenden Tabellen werden neben wahrscheinlich pathogenen (Klasse 4) und pathogenen (Klasse 5) nur solche Varianten unklarer klinischer Signifikanz (Klasse 3) gelistet, f&uuml;r die in Zusammenschau von Literatur und Klinik des Patienten ein Beitrag zur Symptomatik denkbar ist und f&uuml;r die gegebenenfalls eine weitere Einordnung der klinischen Relevanz durch Folgeuntersuchungen sinnvoll ist. Eine Liste aller detektierten Varianten kann bei Bedarf angefordert werden.") << endl;
+
+	//output: select small variants
+	stream << "<br /><br /><b>" << trans("Einzelbasenver&auml;nderungen (SNVs) und Insertionen/Deletionen (InDels) nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><td><b>" << trans("Variante") << "</b></td><td><b>" << trans("Genotyp") << "</b></td>";
 	if (is_trio)
@@ -170,7 +170,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<td><b>" << trans("Vater") << "</b></td>";
 		stream << "<td><b>" << trans("Mutter") << "</b></td>";
 	}
-	stream << "<td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>gnomAD</b></td><td><b>RNA</b></td></tr>" << endl;
+	stream << "<td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>gnomAD AF</b></td><td><b>RNA</b></td></tr>" << endl;
 	int colspan = 8;
 
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
@@ -214,8 +214,20 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<td>" << formatCodingSplicing(variant) << "</td>" << endl;
 		stream << "<td>" << variant.annotations().at(i_class) << "</td>" << endl;
 		stream << "<td>" << var_conf.inheritance << "</td>" << endl;
+		QByteArray gnomad_percentage = "n/a";
 		QByteArray freq = variant.annotations().at(i_gnomad).trimmed();
-		stream << "<td>" << (freq.isEmpty() ? "n/a" : freq) << "</td>" << endl;
+		if (!freq.isEmpty())
+		{
+			try
+			{
+				gnomad_percentage = QByteArray::number(100.0 * Helper::toDouble(freq, "gnomAD AF"), 'f', 3) + "%";
+			}
+			catch (Exception& e)
+			{
+				Log::warn("Could not convert gnomAD AF to number: " + e.message());
+			}
+		}
+		stream << "<td>" << gnomad_percentage << "</td>" << endl;
 		stream << "<td>" << trans(var_conf.rna_info) << "</td>" << endl;
 		stream << "</tr>" << endl;
 
@@ -236,8 +248,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	stream << "</table>" << endl;
 
 	//CNVs
-	stream << "<p>&nbsp;</p>" << endl;
-	stream << "<b>" << trans("Kopienzahlver&auml;nderungen (CNV) nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
+	stream << "<br /><b>" << trans("Kopienzahlver&auml;nderungen (CNV) nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><td><b>" << trans("CNV") << "</b></td><td><b>" << trans("Position") << "</b></td><td><b>" << trans("Gr&ouml;&szlig;e") << "</b></td><td><b>" << trans("Kopienzahl") << "</b></td><td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>RNA</b></td></tr>" << endl;
 	colspan = 8;
@@ -271,8 +282,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 
 	//--------------------------------------------------------------------------------------
 	//SVs
-	stream << "<p>&nbsp;</p>" << endl;
-	stream << "<b>" << trans("Strukturver&auml;nderungen (SV) nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
+	stream << "<br /><b>" << trans("Strukturver&auml;nderungen (SV) nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><td><b>" << trans("SV") << "</b></td><td><b>" << trans("Position") << "</b></td><td><b>" << trans("Gr&ouml;&szlig;e") << "</b></td><td><b>" << trans("Genotyp") << "</b></td><td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>RNA</b></td></tr>" << endl;
 	colspan = 8;
@@ -1404,12 +1414,12 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Auswertungssoftware"] = "Analysis software";
 		de2en["Ph&auml;notyp"] = "Phenotype information";
 		de2en["Filterkriterien"] = "Criteria for variant filtering";
-		de2en["Gefundene Varianten in Zielregion gesamt"] = "Variants in target region";
+		de2en["Gefundene SNVs/InDels in Zielregion gesamt"] = "Small variants in target region";
 		de2en["Anzahl SNVs/InDels ausgew&auml;hlt f&uuml;r Report"] = "SNVs/InDels selected for report";
 		de2en["Anzahl CNVs ausgew&auml;hlt f&uuml;r Report"] = "CNVs selected for report";
 		de2en["Anzahl SVs ausgew&auml;hlt f&uuml;r Report"] = "SVs selected for report";
 		de2en["Anzahl anderer Varianten ausgew&auml;hlt f&uuml;r Report"] = "Other variants selected for report";
-		de2en["Kleine Varianten nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized small variants";
+		de2en["Einzelbasenver&auml;nderungen (SNVs) und Insertionen/Deletionen (InDels) nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized small variants";
 		de2en["Kopienzahlver&auml;nderungen (CNV) nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized copy-number variants";
 		de2en["Strukturver&auml;nderungen (SV) nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized structural variants";
 		de2en["Vererbung"] = "Inheritance";
@@ -1485,7 +1495,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["nicht-detektierte kleine Variante (SNV/InDel)"] = "uncalled small variant (SNV/InDel)";
 		de2en["nicht-detektierte CNV"] = "uncalled CNV";
 		de2en["nicht-detektierte Strukturvariante"] = "uncalled structural variant";
-		de2en["In der folgenden Tabelle werden neben wahrscheinlich pathogenen (Klasse 4) und pathogenen (Klasse 5) nur solche Varianten unklarer klinischer Signifikanz (Klasse 3) gelistet, f&uuml;r die in Zusammenschau von Literatur und Klinik des Patienten ein Beitrag zur Symptomatik denkbar ist und f&uuml;r die gegebenenfalls eine weitere Einordnung der klinischen Relevanz durch Folgeuntersuchungen sinnvoll ist. Eine Liste aller detektierten Varianten kann bei Bedarf angefordert werden."] = "In addition to likely pathogenic variants (class 4) and pathogenic variants (class 5), the following table contains only those variants of uncertain significance (class 3), for which a contribution to the clinical symptoms of the patient is conceivable and for which a further evaluation of the clinical relevance by follow-up examinations may be useful.  A list of all detected variants can be provided on request.";
+		de2en["In den folgenden Tabellen werden neben wahrscheinlich pathogenen (Klasse 4) und pathogenen (Klasse 5) nur solche Varianten unklarer klinischer Signifikanz (Klasse 3) gelistet, f&uuml;r die in Zusammenschau von Literatur und Klinik des Patienten ein Beitrag zur Symptomatik denkbar ist und f&uuml;r die gegebenenfalls eine weitere Einordnung der klinischen Relevanz durch Folgeuntersuchungen sinnvoll ist. Eine Liste aller detektierten Varianten kann bei Bedarf angefordert werden."] = "In addition to likely pathogenic variants (class 4) and pathogenic variants (class 5), the following tables contains only those variants of uncertain significance (class 3), for which a contribution to the clinical symptoms of the patient is conceivable and for which a further evaluation of the clinical relevance by follow-up examinations may be useful.  A list of all detected variants can be provided on request.";
 		de2en["L&uuml;ckenschluss"] = "Gaps closed";
 		de2en["L&uuml;cken die mit Sanger-Sequenzierung geschlossen wurden:"] = "Gaps closed by Sanger sequencing:";
 		de2en["L&uuml;cken die mit visueller Inspektion der Rohdaten &uuml;berpr&uuml;ft wurden:"] = "Gaps checked by visual inspection of raw data:";
@@ -1746,7 +1756,7 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 
 	QString ext_string = (extend==0 ? "" : " +-" + QString::number(extend) + " ");
 	stream << endl;
-	stream << "<p><b>" << trans("Abdeckungsstatistik f&uuml;r CCDS") << " " << ext_string << "</b></p>" << endl;
+	stream << "<br /><b>" << trans("Abdeckungsstatistik f&uuml;r CCDS") << " " << ext_string << "</b>" << endl;
 	if (gap_table) stream << "<table>" << endl;
 	if (gap_table) stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Transcript") << "</b></td><td><b>" << trans("Gr&ouml;&szlig;e") << "</b></td><td><b>" << trans("Basen") << "</b></td><td><b>" << trans("Chromosom") << "</b></td><td><b>" << trans("Koordinaten (hg38)") << "</b></td></tr>";
 	QMap<QByteArray, int> gap_count;
@@ -1813,15 +1823,16 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 		bases_sequenced += bases_transcipt - bases_gaps;
 	}
 	if (gap_table) stream << "</table>" << endl;
+	else stream << "<br />" << endl;
 
 	//show warning if non-coding transcripts had to be used
 	if (!genes_noncoding.isEmpty())
 	{
-		stream << "<br />Using the longest *non-coding* transcript for genes " << genes_noncoding.join(", ");
+		stream << "Using the longest *non-coding* transcript for genes " << genes_noncoding.join(", ") << "<br />";
 	}
 	if (!genes_notranscript.isEmpty())
 	{
-		stream << "<br />No CCDS transcript defined for genes " << genes_notranscript.join(", ");
+		stream << "No CCDS transcript defined for genes " << genes_notranscript.join(", ") << "<br />";
 	}
 
 	//overall statistics
