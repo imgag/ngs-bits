@@ -141,17 +141,27 @@ private slots:
 		rvc.manual_sv_end_bnd = "1";
 		IS_TRUE(rvc.isManuallyCurated());
 
-		//CNV HGVS type
+		//SV HGVS type
 		rvc.manual_sv_end_bnd = "";
 		rvc.manual_sv_hgvs_type = "delins";
 		IS_TRUE(rvc.isManuallyCurated());
 
-		//CNV HGVS type
+		//SV HGVS suffix
 		rvc.manual_sv_hgvs_type = "";
 		rvc.manual_sv_hgvs_suffix = "(bla|bluff)";
 		IS_TRUE(rvc.isManuallyCurated());
 
+		//SV HGVS type 2
 		rvc.manual_sv_hgvs_suffix = "";
+		rvc.manual_sv_hgvs_type_bnd = "delins2";
+		IS_TRUE(rvc.isManuallyCurated());
+
+		//SV HGVS suffix 2
+		rvc.manual_sv_hgvs_type_bnd = "";
+		rvc.manual_sv_hgvs_suffix_bnd = "(bla2|bluff2)";
+		IS_TRUE(rvc.isManuallyCurated());
+
+		rvc.manual_sv_hgvs_suffix_bnd = "";
 		IS_FALSE(rvc.isManuallyCurated());
 	}
 

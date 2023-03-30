@@ -1072,7 +1072,6 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==PathType::MANTA_EVIDENCE) output += "manta_evid/" + ps_name + "_manta_evidence.bam";
 	else if (type==PathType::BAF) output += ps_name + "_bafs.igv";
 	else if (type==PathType::STRUCTURAL_VARIANTS) output += ps_name + "_manta_var_structural.bedpe";
-	else if (type==PathType::MOSAIC_VARIANTS) output += ps_name + "_mosaic.GSvar";
 	else if (type==PathType::COPY_NUMBER_RAW_DATA) output += ps_name + "_cnvs_clincnv.seg";
 	else if (type==PathType::COPY_NUMBER_CALLS) output += ps_name + "_cnvs_clincnv.tsv";
 	else if (type==PathType::FUSIONS) output += ps_name + "_fusions_arriba.tsv";
@@ -5726,6 +5725,27 @@ QString NGSD::omimPreferredPhenotype(const QByteArray& symbol, const QByteArray&
 	}
 }
 
+QString NGSD::sampleName(const QString& s_id, bool throw_if_fails)
+{
+	SqlQuery query = getQuery();
+	query.prepare("SELECT name FROM sample WHERE id=:0");
+	query.bindValue(0, s_id);
+	query.exec();
+	if (query.size()==0)
+	{
+		if(throw_if_fails)
+		{
+			THROW(DatabaseException, "Sample with ID '" + s_id + "' not found in NGSD!");
+		}
+		else
+		{
+			return "";
+		}
+	}
+	query.next();
+	return query.value(0).toString();
+}
+
 const GeneSet& NGSD::approvedGeneNames()
 {
 	GeneSet& output = getCache().approved_gene_names;
@@ -6067,6 +6087,12 @@ Transcript NGSD::bestTranscript(int gene_id)
 	//MANE plus clinical
 	//not necessary because each gene with MANE plus clinical also has a MANE select transcript
 
+	//Ensembl canonical
+	foreach(const Transcript& t, list)
+	{
+		if (t.isEnsemblCanonicalTranscript()) return t;
+	}
+
 	//longest coding
 	foreach(const Transcript& t, list)
 	{
@@ -6092,7 +6118,7 @@ TranscriptList NGSD::releventTranscripts(int gene_id)
 
 	foreach(const Transcript& t, transcripts(gene_id, Transcript::ENSEMBL, false))
 	{
-		if (t.isPreferredTranscript() || t.isManeSelectTranscript() || t.isManePlusClinicalTranscript())
+		if (t.isPreferredTranscript() || t.isManeSelectTranscript() || t.isManePlusClinicalTranscript() || t.isEnsemblCanonicalTranscript())
 		{
 			if (!output.contains(t)) output << t;
 		}
@@ -6563,6 +6589,8 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 				var_conf.manual_sv_end = query.value("manual_end").toString();
 			}
 			var_conf.manual_sv_genotype = query.value("manual_genotype").toString();
+			var_conf.manual_sv_hgvs_type = query.value("manual_hgvs_type").toString();
+			var_conf.manual_sv_hgvs_suffix = query.value("manual_hgvs_suffix").toString();
 			if (query.value("manual_start_bnd").toInt()>0)
 			{
 				var_conf.manual_sv_start_bnd = query.value("manual_start_bnd").toString();
@@ -6571,8 +6599,8 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 			{
 				var_conf.manual_sv_end_bnd = query.value("manual_end_bnd").toString();
 			}
-			var_conf.manual_sv_hgvs_type = query.value("manual_hgvs_type").toString();
-			var_conf.manual_sv_hgvs_suffix = query.value("manual_hgvs_suffix").toString();
+			var_conf.manual_sv_hgvs_type_bnd = query.value("manual_hgvs_type_bnd").toString();
+			var_conf.manual_sv_hgvs_suffix_bnd = query.value("manual_hgvs_suffix_bnd").toString();
 
 			output->set(var_conf);
 		}
@@ -6646,9 +6674,9 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 		SqlQuery query_update_cnv = getQuery();
 		query_update_cnv.prepare("UPDATE `report_configuration_cnv` SET `report_configuration_id`=:0, `cnv_id`=:1, `type`=:2, `causal`=:3, `class`=:4, `inheritance`=:5, `de_novo`=:6, `mosaic`=:7, `compound_heterozygous`=:8, `exclude_artefact`=:9, `exclude_frequency`=:10, `exclude_phenotype`=:11, `exclude_mechanism`=:12, `exclude_other`=:13, `comments`=:14, `comments2`=:15, `rna_info`=:16, `manual_start`=:17, `manual_end`=:18, `manual_cn`=:19, `manual_hgvs_type`=:20, `manual_hgvs_suffix`=:21 WHERE `id`=:22");
 		SqlQuery query_new_sv = getQuery();
-		query_new_sv.prepare("INSERT INTO `report_configuration_sv`(`report_configuration_id`, `sv_deletion_id`, `sv_duplication_id`, `sv_insertion_id`, `sv_inversion_id`, `sv_translocation_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`, `rna_info`, `manual_start`, `manual_end`, `manual_genotype`, `manual_start_bnd`, `manual_end_bnd`, `manual_hgvs_type`, `manual_hgvs_suffix`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25, :26, :27)");
+		query_new_sv.prepare("INSERT INTO `report_configuration_sv`(`report_configuration_id`, `sv_deletion_id`, `sv_duplication_id`, `sv_insertion_id`, `sv_inversion_id`, `sv_translocation_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`, `rna_info`, `manual_start`, `manual_end`, `manual_genotype`, `manual_start_bnd`, `manual_end_bnd`, `manual_hgvs_type`, `manual_hgvs_suffix`, `manual_hgvs_type_bnd`, `manual_hgvs_suffix_bnd`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25, :26, :27, :28, :29)");
 		SqlQuery query_update_sv = getQuery();
-		query_update_sv.prepare("UPDATE `report_configuration_sv` SET `report_configuration_id`=:0, `sv_deletion_id`=:1, `sv_duplication_id`=:2, `sv_insertion_id`=:3, `sv_inversion_id`=:4, `sv_translocation_id`=:5, `type`=:6, `causal`=:7, `class`=:8, `inheritance`=:9, `de_novo`=:10, `mosaic`=:11, `compound_heterozygous`=:12, `exclude_artefact`=:13, `exclude_frequency`=:14, `exclude_phenotype`=:15, `exclude_mechanism`=:16, `exclude_other`=:17, `comments`=:18, `comments2`=:19, `rna_info`=:20, `manual_start`=:21, `manual_end`=:22, `manual_genotype`=:23, `manual_start_bnd`=:24, `manual_end_bnd`=:25, `manual_hgvs_type`=:26, `manual_hgvs_suffix`=:27 WHERE `id`=:28");
+		query_update_sv.prepare("UPDATE `report_configuration_sv` SET `report_configuration_id`=:0, `sv_deletion_id`=:1, `sv_duplication_id`=:2, `sv_insertion_id`=:3, `sv_inversion_id`=:4, `sv_translocation_id`=:5, `type`=:6, `causal`=:7, `class`=:8, `inheritance`=:9, `de_novo`=:10, `mosaic`=:11, `compound_heterozygous`=:12, `exclude_artefact`=:13, `exclude_frequency`=:14, `exclude_phenotype`=:15, `exclude_mechanism`=:16, `exclude_other`=:17, `comments`=:18, `comments2`=:19, `rna_info`=:20, `manual_start`=:21, `manual_end`=:22, `manual_genotype`=:23, `manual_start_bnd`=:24, `manual_end_bnd`=:25, `manual_hgvs_type`=:26, `manual_hgvs_suffix`=:27 , `manual_hgvs_type_bnd`=:28, `manual_hgvs_suffix_bnd`=:29 WHERE `id`=:30");
 		SqlQuery query = getQuery();
 
 		QList<ReportVariantConfiguration> rvc_to_update;
@@ -6900,6 +6928,8 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 				query.bindValue(25, var_conf.manualSvEndBndIsValid() ? var_conf.manual_sv_end_bnd : QVariant());
 				query.bindValue(26, var_conf.manual_sv_hgvs_type);
 				query.bindValue(27, var_conf.manual_sv_hgvs_suffix);
+				query.bindValue(28, var_conf.manual_sv_hgvs_type_bnd);
+				query.bindValue(29, var_conf.manual_sv_hgvs_suffix_bnd);
 
 				// set SV id
 				switch (sv.type())
@@ -6934,7 +6964,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 				else
 				{
 					//update
-					query.bindValue(28, var_conf.id);
+					query.bindValue(30, var_conf.id);
 					query.exec();
 				}
 
@@ -8354,7 +8384,7 @@ void NGSD::initTranscriptCache()
 
 	//create all transcripts
 	QHash<QByteArray, int> tmp_name2id;
-	query.exec("SELECT t.id, g.symbol, t.name, t.source, t.strand, t.chromosome, t.start_coding, t.end_coding, t.biotype, t.is_mane_select, t.is_mane_plus_clinical, t.version FROM gene_transcript t, gene g WHERE t.gene_id=g.id");
+	query.exec("SELECT t.id, g.symbol, t.name, t.source, t.strand, t.chromosome, t.start_coding, t.end_coding, t.biotype, t.is_gencode_basic, t.is_ensembl_canonical, t.is_mane_select, t.is_mane_plus_clinical, t.version FROM gene_transcript t, gene g WHERE t.gene_id=g.id");
 	while(query.next())
 	{
 		int trans_id = query.value(0).toInt();
@@ -8367,9 +8397,11 @@ void NGSD::initTranscriptCache()
 		transcript.setStrand(Transcript::stringToStrand(query.value(4).toByteArray()));
 		transcript.setBiotype(Transcript::stringToBiotype(query.value(8).toByteArray()));
 		transcript.setPreferredTranscript(pts.contains(transcript.name()));
-		transcript.setManeSelectTranscript(query.value(9).toInt()!=0);
-		transcript.setManePlusClinicalTranscript(query.value(10).toInt()!=0);
-		transcript.setVersion(query.value(11).toInt());
+		transcript.setGencodeBasicTranscript(query.value(9).toInt()!=0);
+		transcript.setEnsemblCanonicalTranscript(query.value(10).toInt()!=0);
+		transcript.setManeSelectTranscript(query.value(11).toInt()!=0);
+		transcript.setManePlusClinicalTranscript(query.value(12).toInt()!=0);
+		transcript.setVersion(query.value(13).toInt());
 
 		//get exons
 		BedFile regions;

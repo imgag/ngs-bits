@@ -132,7 +132,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "FusionWidget.h"
 #include "CohortExpressionDataWidget.h"
 #include "CausalVariantEditDialog.h"
-#include "MosaicWidget.h"
 #include "VariantOpenDialog.h"
 #include "GeneSelectionDialog.h"
 #include "ExpressionOverviewWidget.h"
@@ -1189,7 +1188,7 @@ void MainWindow::on_actionDebug_triggered()
 																		<< "SV break point density NGSD	max_density=20	remove_strict=no"
 																		<< "SV PE read depth	PE Read Depth=5	only_affected=no"
 																		<< "SV size	min_size=500000	max_size=0");
-		ostream << "#ps" << "\t" << "variant" << "\t" << "report_config_of_variant" << endl;
+		ostream << "#ps" << "\t" << "variant" << "\t" << "report_config_of_variant" << "\t" << "disease" << "\t" << "outcome" << "\t" << "user_rc_create" << "\t" << "user_rc_last_edit" << endl;
 		ostream2 << "#ps" << "\t" << "HPO_terms" << "\t" << "HPO_genes" << "\t" << "HPO_roi_bases" << "\t" << "SVs" << "\t" << "SVs_after_filter" << "\t" << "SVs_in_roi" << endl;
 		for(auto it=ps_id2hpos.begin(); it!=ps_id2hpos.end(); ++it)
 		{
@@ -1197,6 +1196,10 @@ void MainWindow::on_actionDebug_triggered()
 			QStringList hpos = it.value();
 			QString ps = db.processedSampleName(ps_id);
 			int rc_id = db.reportConfigId(ps_id);
+			QString disease = db.getSampleData(db.sampleId(ps)).disease_group + " (" + db.getSampleData(db.sampleId(ps)).disease_status + ")";
+			QString outcome = db.getDiagnosticStatus(ps_id).outcome;
+			QString user_create = db.getValue("SELECT u.name FROM report_configuration rc, user u WHERE rc.created_by=u.id AND rc.id=" + QString::number(rc_id)).toString();
+			QString user_last = db.getValue("SELECT u.name FROM report_configuration rc, user u WHERE rc.last_edit_by=u.id AND rc.id=" + QString::number(rc_id)).toString();
 
 			GeneSet pheno_genes;
 			foreach(const QString& hpo, hpos)
@@ -1264,7 +1267,7 @@ void MainWindow::on_actionDebug_triggered()
 						}
 					}
 
-					ostream << ps << "\t" << sv.toString() << "\t" << rc_exists << endl;
+					ostream << ps << "\t" << sv.toString() << "\t" << rc_exists << "\t" << disease << "\t" << outcome << "\t" << user_create << "\t" << user_last << endl;
 					c_snv_in_roi += 1;
 
 				}
@@ -1576,47 +1579,6 @@ void MainWindow::on_actionSV_triggered()
 	{
 		QMessageBox::warning(this,"SV file not found",error.message());
 	}
-}
-
-void MainWindow::on_actionMosaic_triggered()
-{
-	if(filename_ == "") return;
-
-	if (!(mosaics_.count() > 0))	{
-		QMessageBox::information(this, "No mosaic variants", "No detected mosaic variants in the analysis!");
-		return;
-	}
-
-	try
-	{
-		//determine processed sample ID (needed for report config)
-		QString ps_id = "";
-		QSharedPointer<ReportConfiguration> report_config = nullptr;
-		if (germlineReportSupported())
-		{
-			ps_id = NGSD().processedSampleId(germlineReportSample(), false);
-			report_config = report_settings_.report_config;
-		}
-
-		//open mosaic widget
-		MosaicWidget* list;
-
-		// germline single, trio or multi sample
-		list = new MosaicWidget(mosaics_, report_settings_, gene2region_cache_, this);
-
-
-		auto dlg = GUIHelper::createDialog(list, "Mosaic variants of " + variants_.analysisName());
-		addModelessDialog(dlg);
-	}
-	catch(FileParseException error)
-	{
-		QMessageBox::warning(this,"File Parse Exception",error.message());
-	}
-	catch(FileAccessException error)
-	{
-		QMessageBox::warning(this,"Mosaic file not found",error.message());
-	}
-
 }
 
 void MainWindow::on_actionCNV_triggered()
@@ -3552,23 +3514,6 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 		}
 		Log::perf("Loading SV list took ", timer);
 
-		//load mosaics
-		timer.restart();
-		FileLocation mosaic_loc = GlobalServiceProvider::fileLocationProvider().getAnalysisMosaicFile();
-		if (mosaic_loc.exists)
-		{
-			try
-			{
-				mosaics_.load(mosaic_loc.filename);
-			}
-			catch(Exception& e)
-			{
-				QMessageBox::warning(this, "Error loading mosaic file", e.message());
-				svs_.clear();
-			}
-		}
-		Log::perf("Loading mosaic list took ", timer);
-
 		//determine valid filter entries from filter column (and add new filters low_mappability/mosaic to make outdated GSvar files work as well)
 		QStringList valid_filter_entries = variants_.filters().keys();
 		if (!valid_filter_entries.contains("low_mappability")) valid_filter_entries << "low_mappability";
@@ -3666,16 +3611,6 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 	else
 	{
 		ui_.actionPRS->setEnabled(false);
-	}
-
-	//activate mosaic menu item if available
-	if (type==GERMLINE_SINGLESAMPLE && GlobalServiceProvider::fileLocationProvider().getAnalysisMosaicFile().exists)
-	{
-		ui_.actionMosaic->setEnabled(true);
-	}
-	else
-	{
-		ui_.actionMosaic->setEnabled(false);
 	}
 
 	//activate virus table
@@ -4056,6 +3991,11 @@ void MainWindow::loadSomaticReportConfig()
 	somatic_report_settings_.normal_ps = ps_normal;
 	somatic_report_settings_.msi_file = GlobalServiceProvider::fileLocationProvider().getSomaticMsiFile().filename;
 	somatic_report_settings_.viral_file = GlobalServiceProvider::database().processedSamplePath(ps_tumor_id, PathType::VIRAL).filename;
+
+	somatic_report_settings_.sbs_signature = GlobalServiceProvider::fileLocationProvider().getSignatureSbsFile().filename;
+	somatic_report_settings_.id_signature = GlobalServiceProvider::fileLocationProvider().getSignatureIdFile().filename;
+	somatic_report_settings_.dbs_signature = GlobalServiceProvider::fileLocationProvider().getSignatureDbsFile().filename;
+	somatic_report_settings_.cnv_signature = GlobalServiceProvider::fileLocationProvider().getSignatureCnvFile().filename;
 
 	try //load normal sample
 	{

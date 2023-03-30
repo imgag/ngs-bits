@@ -639,7 +639,8 @@ CONSTRAINT `fk_variant_publication_has_sample`
     FOREIGN KEY (`sample_id`)
     REFERENCES `sample` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION
+    ON UPDATE NO ACTION,
+INDEX `variant_id` (`variant_id` ASC)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
@@ -1037,6 +1038,25 @@ CREATE TABLE IF NOT EXISTS `hpo_parent`
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
+
+-- -----------------------------------------------------
+-- Table `hpo_obsolete`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `hpo_obsolete`
+(
+    `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `hpo_id` VARCHAR(10) NOT NULL,
+    `name` TEXT NOT NULL,
+    `definition` TEXT NOT NULL,
+    `replaced_by` INT(10) UNSIGNED DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `hpo_id` (`hpo_id` ASC),
+    CONSTRAINT `hpo_obsolete_ibfk`
+      FOREIGN KEY (`replaced_by`)
+      REFERENCES `hpo_term` (`id`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
 -- Table `analysis_job`
@@ -1784,10 +1804,12 @@ CREATE TABLE IF NOT EXISTS `report_configuration_sv`
   `manual_start` INT(11) DEFAULT NULL,
   `manual_end` INT(11) DEFAULT NULL,
   `manual_genotype` ENUM('hom','het') DEFAULT NULL,
-  `manual_start_bnd` INT(11) DEFAULT NULL,
-  `manual_end_bnd` INT(11) DEFAULT NULL,
   `manual_hgvs_type` text DEFAULT NULL,
   `manual_hgvs_suffix` text DEFAULT NULL,
+  `manual_start_bnd` INT(11) DEFAULT NULL,
+  `manual_end_bnd` INT(11) DEFAULT NULL,
+  `manual_hgvs_type_bnd` text DEFAULT NULL,
+  `manual_hgvs_suffix_bnd` text DEFAULT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_report_configuration3`
     FOREIGN KEY (`report_configuration_id` )
@@ -2248,7 +2270,7 @@ CREATE TABLE IF NOT EXISTS `expression`
   `processed_sample_id` INT(11) NOT NULL,
   `symbol` VARCHAR(40) NOT NULL,
   `tpm` FLOAT NOT NULL,
-  `raw` INT NOT NULL,
+  `raw` INT(11) NULL,
   PRIMARY KEY (`id`),
   INDEX(`processed_sample_id`),
   INDEX(`symbol`),

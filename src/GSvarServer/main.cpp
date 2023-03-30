@@ -438,6 +438,18 @@ int main(int argc, char **argv)
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
+						"variant_annotation",
+						QMap<QString, ParamProps>{							
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::APPLICATION_OCTET_STREAM,
+						AuthType::USER_TOKEN,
+						"Variant annotation by using megSAP",
+						&ServerController::annotateVariant
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
 						"login",
 						QMap<QString, ParamProps>{
 							{"name", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "User name"}},

@@ -14,6 +14,7 @@
 #include <QFileInfo>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QDir>
 #include <QMessageBox>
 #include <QMetaMethod>
 
@@ -34,7 +35,8 @@ AnalysisStatusWidget::AnalysisStatusWidget(QWidget* parent)
 	connect(ui_.analysisMulti, SIGNAL(clicked(bool)), this, SLOT(analyzeMultiSample()));
 	connect(ui_.analysisSomatic, SIGNAL(clicked(bool)), this, SLOT(analyzeSomatic()));
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
-	connect(ui_.f_text, SIGNAL(returnPressed()), this, SLOT(applyTextFilter()));
+	connect(ui_.f_text, SIGNAL(returnPressed()), this, SLOT(applyFilters()));
+	connect(ui_.f_mine, SIGNAL(stateChanged(int)), this, SLOT(applyFilters()));
 }
 
 void AnalysisStatusWidget::analyzeSingleSamples(QList<AnalysisJobSample> samples)
@@ -87,6 +89,9 @@ void AnalysisStatusWidget::refreshStatus()
 		ui_.analyses->clearContents();
 		ui_.analyses->setRowCount(0);
 		jobs_.clear();
+
+		//set default row height (makes the table nicer while loading)
+		ui_.analyses->verticalHeader()->setDefaultSectionSize(23);
 
 		//add lines
 		int row = -1;
@@ -216,15 +221,16 @@ void AnalysisStatusWidget::refreshStatus()
 			addItem(ui_.analyses, row, 8, last_update, bg_color);
 		}
 
-		//apply text filter
-		applyTextFilter();
+		//apply other filder
+		applyFilters();
 	}
 	catch (Exception& e)
 	{
 		QMessageBox::warning(this, "Update failed", "Could not update data:\n" + e.message());
 	}
 
-	GUIHelper::resizeTableCells(ui_.analyses, 350);
+	GUIHelper::resizeTableCells(ui_.analyses, 400);
+
 	QApplication::restoreOverrideCursor();
 }
 
@@ -238,7 +244,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 
 	//extract processed sample data
 	QList<AnalysisJobSample> samples;
-	QSet<QString> types;
+	QStringList types;
 	QSet<int> job_ids;
 	bool all_running = true;
 	bool all_finished = true;
@@ -253,7 +259,8 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 		}
 
 		job_ids << jobs_[row].ngsd_id;
-		types << jobs_[row].job_data.type;
+		QString type = jobs_[row].job_data.type;
+		if (!types.contains(type)) types << type;
 
 		if (jobs_[row].job_data.isRunning())
 		{
@@ -267,7 +274,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 
 	//set up menu
 	QMenu menu;
-	if (rows.count()==1 && types.values()[0]=="single sample")
+	if (rows.count()==1 && types[0]=="single sample")
 	{
 		menu.addAction(QIcon(":/Icons/analysis_info.png"), "Show analysis information");
 	}
@@ -278,9 +285,9 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	menu.addAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab");
 	menu.addAction(QIcon(":/Icons/NGSD_run.png"), "Open sequencing run tab");
 	menu.addAction(QIcon(":/Icons/Folder.png"), "Open analysis folder(s)");
-	if (rows.count()==1)
+	if (types.count()==1 && types[0]=="single sample")
 	{
-		menu.addAction(QIcon(":/Icons/Folder.png"), "Open sample folders");
+		menu.addAction(QIcon(":/Icons/Folder.png"), "Open sample folder(s)");
 	}
 	menu.addAction(QIcon(":/Icons/File.png"), "Open log file");
 	if (all_running)
@@ -289,7 +296,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	}
 	if (all_finished && types.count()==1)
 	{
-		QString type = types.values()[0];
+		QString type = types[0];
 
 		if (type=="single sample")
 		{
@@ -397,18 +404,37 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 			}
 		}
 	}
-	if (text=="Open sample folders")
+	if (text=="Open sample folder(s)")
 	{
-		if (ClientHelper::isClientServerMode())
+		try
 		{
-			QMessageBox::warning(this, "No access", "Sample folder browsing is not available in client-server mode");
-			return;
-		}
+			NGSD db;
+			foreach(const AnalysisJobSample& sample, samples)
+			{
+				QString sample_folder;
 
-		NGSD db;
-		foreach(const AnalysisJobSample& sample, samples)
+				if (ClientHelper::isClientServerMode()) //client-server (allow opening folders if GSvar project paths are configured)
+				{
+					QString ps_id = db.processedSampleId(sample.name);
+					QString project_type = db.getProcessedSampleData(ps_id).project_type;
+					QString project_folder = db.projectFolder(project_type).trimmed();
+					if (!project_folder.isEmpty())
+					{
+						sample_folder = db.processedSamplePath(ps_id, PathType::SAMPLE_FOLDER);
+						if (!QDir(sample_folder).exists()) THROW(Exception, "Sample folder does not exist: " + sample_folder);
+					}
+				}
+				else
+				{
+					sample_folder = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(sample.name), PathType::SAMPLE_FOLDER).filename;
+				}
+
+				QDesktopServices::openUrl(sample_folder);
+			}
+		}
+		catch(Exception& e)
 		{
-			QDesktopServices::openUrl(GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(sample.name), PathType::SAMPLE_FOLDER).filename);
+			QMessageBox::information(this, "Open analysis folder", "Could not open analysis folder:\n" + e.message());
 		}
 	}
 	if (text=="Open log file")
@@ -573,19 +599,17 @@ void AnalysisStatusWidget::copyToClipboard()
 	GUIHelper::copyToClipboard(ui_.analyses);
 }
 
-void AnalysisStatusWidget::applyTextFilter()
+void AnalysisStatusWidget::applyFilters()
 {
-	QString f_text = ui_.f_text->text().trimmed();
-
-	//no search string => show all
-	if (f_text.isEmpty())
+	//show everything
+	for (int r=0; r<ui_.analyses->rowCount(); ++r)
 	{
-		for (int r=0; r<ui_.analyses->rowCount(); ++r)
-		{
-			ui_.analyses->setRowHidden(r, false);
-		}
+		ui_.analyses->setRowHidden(r, false);
 	}
-	else //search
+
+	//text filter
+	QString f_text = ui_.f_text->text().trimmed();
+	if (!f_text.isEmpty())
 	{
 		for (int r=0; r<ui_.analyses->rowCount(); ++r)
 		{
@@ -602,7 +626,26 @@ void AnalysisStatusWidget::applyTextFilter()
 				}
 			}
 
-			ui_.analyses->setRowHidden(r, !match);
+			if (!match)
+			{
+				ui_.analyses->setRowHidden(r, true);
+			}
+		}
+	}
+
+	//user filter
+	if (ui_.f_mine->isChecked())
+	{
+		QString f_user = Helper::userName();
+		for (int r=0; r<ui_.analyses->rowCount(); ++r)
+		{
+			QTableWidgetItem* item = ui_.analyses->item(r, 1);
+			if (item==nullptr) continue;
+
+			if (!item->text().contains(f_user, Qt::CaseInsensitive))
+			{
+				ui_.analyses->setRowHidden(r, true);
+			}
 		}
 	}
 

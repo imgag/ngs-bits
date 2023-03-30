@@ -19,8 +19,6 @@ public:
 	//############################## analysis-specific files ##############################
 	//Returns the annotated VCF of the current analysis
 	virtual FileLocation getAnalysisVcf() const = 0;
-	//Returns the mosaic gsvar file of the current analysis
-	virtual FileLocation getAnalysisMosaicFile() const = 0;
 	//Returns the structural variant BEDPE file of the current analysis
 	virtual FileLocation getAnalysisSvFile() const = 0;
 	//Returns the copy-number call TSV file of the current analysis
@@ -66,6 +64,7 @@ public:
 	//Returns the somatic low coverage files in BED format
 	virtual FileLocationList getSomaticLowCoverageFiles(bool return_if_missing) const = 0;
 
+
 	//############################## somatic-only files ##############################
 	//Returns the tumor-normal CNV coverage SEG file (throws an exception if not SOMATIC_PAIR or SOMATIC_SINGLE)
 	virtual FileLocation getSomaticCnvCoverageFile() const = 0;
@@ -79,6 +78,14 @@ public:
 	virtual FileLocation getSomaticIgvScreenshotFile() const = 0;
 	//Returns the pre-selection of monitoring variants for cfDNA panel design in VCF (throws an exception if not SOMATIC_PAIR or SOMATIC_SINGLE)
 	virtual FileLocation getSomaticCfdnaCandidateFile() const = 0;
+	//Returns the somatic SBS signature file.
+	virtual FileLocation getSignatureSbsFile() const = 0;
+	//Returns the somatic ID signature file.
+	virtual FileLocation getSignatureIdFile() const = 0;
+	//Returns the somatic DBS signature file.
+	virtual FileLocation getSignatureDbsFile() const = 0;
+	//Returns the somatic CNV signature file.
+	virtual FileLocation getSignatureCnvFile() const = 0;
 };
 
 #endif // FILELOCATIONPROVIDER_H

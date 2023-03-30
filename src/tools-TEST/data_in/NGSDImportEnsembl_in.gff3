@@ -106,7 +106,7 @@
 1	Eponine	biological_region	10870	10872	0.999	+	.	logic_name=eponine
 1	Eponine	biological_region	10890	10894	0.999	-	.	logic_name=eponine
 1	ensembl_havana	pseudogene	11869	14412	.	+	.	ID=gene:ENSG00000223972;Name=DDX11L1;biotype=pseudogene;description=DEAD/H (Asp-Glu-Ala-Asp/His) box helicase 11 like 1 [Source:HGNC Symbol%3BAcc:37102];gene_id=ENSG00000223972;logic_name=ensembl_havana_gene;version=4
-1	havana	processed_transcript	11869	14409	.	+	.	ID=transcript:ENST00000456328;Parent=gene:ENSG00000223972;Name=DDX11L1-002;biotype=processed_transcript;havana_transcript=OTTHUMT00000362751;havana_version=1;tag=basic;transcript_id=ENST00000456328;version=2
+1	havana	processed_transcript	11869	14409	.	+	.	ID=transcript:ENST00000456328;Parent=gene:ENSG00000223972;Name=DDX11L1-002;biotype=processed_transcript;havana_transcript=OTTHUMT00000362751;havana_version=1;tag=basic,MANE_Plus_Clinical;transcript_id=ENST00000456328;version=2
 1	havana	exon	11869	12227	.	+	.	Parent=transcript:ENST00000456328;Name=ENSE00002234944;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00002234944;rank=1;version=1
 1	havana	exon	12613	12721	.	+	.	Parent=transcript:ENST00000456328;Name=ENSE00003582793;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00003582793;rank=2;version=1
 1	havana	exon	13221	14409	.	+	.	Parent=transcript:ENST00000456328;Name=ENSE00002312635;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00002312635;rank=3;version=1
@@ -119,7 +119,7 @@
 1	ensembl	exon	12595	12721	.	+	.	Parent=transcript:ENST00000518655;Name=ENSE00002270865;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00002270865;rank=2;version=1
 1	ensembl	exon	13403	13655	.	+	.	Parent=transcript:ENST00000518655;Name=ENSE00002216795;constitutive=0;ensembl_end_phase=0;ensembl_phase=-1;exon_id=ENSE00002216795;rank=3;version=1
 1	ensembl	exon	13661	14409	.	+	.	Parent=transcript:ENST00000518655;Name=ENSE00002303382;constitutive=0;ensembl_end_phase=0;ensembl_phase=0;exon_id=ENSE00002303382;rank=4;version=1
-1	havana	pseudogenic_transcript	12010	13670	.	+	.	ID=transcript:ENST00000450305;Parent=gene:ENSG00000223972;Name=DDX11L1-001;biotype=transcribed_unprocessed_pseudogene;havana_transcript=OTTHUMT00000002844;havana_version=2;transcript_id=ENST00000450305;version=2
+1	havana	pseudogenic_transcript	12010	13670	.	+	.	ID=transcript:ENST00000450305;Parent=gene:ENSG00000223972;Name=DDX11L1-001;biotype=transcribed_unprocessed_pseudogene;havana_transcript=OTTHUMT00000002844;havana_version=2;tag=basic,Ensembl_canonical;transcript_id=ENST00000450305;version=2
 1	havana	exon	12010	12057	.	+	.	Parent=transcript:ENST00000450305;Name=ENSE00001948541;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00001948541;rank=1;version=1
 1	havana	exon	12179	12227	.	+	.	Parent=transcript:ENST00000450305;Name=ENSE00001671638;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00001671638;rank=2;version=2
 1	havana	exon	12613	12697	.	+	.	Parent=transcript:ENST00000450305;Name=ENSE00001758273;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00001758273;rank=3;version=2
@@ -128,7 +128,7 @@
 1	havana	exon	13453	13670	.	+	.	Parent=transcript:ENST00000450305;Name=ENSE00001863096;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00001863096;rank=6;version=1
 ###
 3	ensembl_havana	gene	49133365	49142553	.	-	.	ID=gene:ENSG00000172053;Name=QARS;biotype=protein_coding;description=glutaminyl-tRNA synthetase [Source:HGNC Symbol%3BAcc:9751];gene_id=ENSG00000172053;logic_name=ensembl_havana_gene;version=10
-3	ensembl_havana	mRNA	49133365	49142504	.	-	.	ID=transcript:ENST00000306125;Parent=gene:ENSG00000172053;Name=QARS-001;biotype=protein_coding;ccdsid=CCDS2788.1;havana_transcript=OTTHUMT00000345689;havana_version=2;tag=basic;transcript_id=ENST00000306125;version=6
+3	ensembl_havana	mRNA	49133365	49142504	.	-	.	ID=transcript:ENST00000306125;Parent=gene:ENSG00000172053;Name=QARS-001;biotype=protein_coding;ccdsid=CCDS2788.1;havana_transcript=OTTHUMT00000345689;havana_version=2;tag=basic,Ensembl_canonical,MANE_Select;transcript_id=ENST00000306125;version=6
 3	ensembl_havana	three_prime_UTR	49133365	49133461	.	-	.	Parent=transcript:ENST00000306125
 3	ensembl_havana	exon	49133365	49133512	.	-	.	Parent=transcript:ENST00000306125;Name=ENSE00003540328;constitutive=0;ensembl_end_phase=-1;ensembl_phase=0;exon_id=ENSE00003540328;rank=24;version=1
 3	ensembl_havana	CDS	49133462	49133512	.	-	0	ID=CDS:ENSP00000307567;Parent=transcript:ENST00000306125;protein_id=ENSP00000307567
@@ -453,7 +453,7 @@
 16	havana	exon	70288524	70288637	.	-	.	Parent=transcript:ENST00000569825;Name=ENSE00003679556;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00003679556;rank=3;version=1
 16	havana	exon	70289631	70289739	.	-	.	Parent=transcript:ENST00000569825;Name=ENSE00003612678;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00003612678;rank=2;version=1
 16	havana	exon	70291936	70292118	.	-	.	Parent=transcript:ENST00000569825;Name=ENSE00002621844;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00002621844;rank=1;version=1
-16	havana	mRNA	70288293	70296264	.	-	.	ID=transcript:ENST00000565361;Parent=gene:ENSG00000090861;Name=AARS-005;biotype=protein_coding;havana_transcript=OTTHUMT00000435023;havana_version=3;transcript_id=ENST00000565361;version=2
+16	havana	mRNA	70288293	70296264	.	-	.	ID=transcript:ENST00000565361;Parent=gene:ENSG00000090861;Name=AARS-005;biotype=protein_coding;havana_transcript=OTTHUMT00000435023;havana_version=3;tag=basic;transcript_id=ENST00000565361;version=2
 16	havana	exon	70288293	70288386	.	-	.	Parent=transcript:ENST00000565361;Name=ENSE00002601521;constitutive=0;ensembl_end_phase=-1;ensembl_phase=0;exon_id=ENSE00002601521;rank=7;version=1
 16	havana	CDS	70288293	70288386	.	-	0	ID=CDS:ENSP00000455360;Parent=transcript:ENST00000565361;protein_id=ENSP00000455360
 16	havana	exon	70288524	70288637	.	-	.	Parent=transcript:ENST00000565361;Name=ENSE00003581725;constitutive=0;ensembl_end_phase=0;ensembl_phase=0;exon_id=ENSE00003581725;rank=6;version=1
