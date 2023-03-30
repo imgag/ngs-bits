@@ -31,10 +31,10 @@ public:
 		addInt("write_buffer_size", "Output write buffer size (number of FASTQ entry pairs).", true, 100);
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 
-		changeLog(2020,  11, 27, "Added CRAM support.");
+		changeLog(2020, 11, 27, "Added CRAM support.");
 		changeLog(2020,  5, 29, "Massive speed-up by writing in background. Added 'compression_level' parameter.");
 		changeLog(2020,  3, 21, "Added 'reg' parameter.");
-		changeLog(2023, 3, 22, "Added mode for single-end samples.");
+		changeLog(2023,  3, 22, "Added mode for single-end samples (long reads).");
 	}
 
 	static void alignmentToFastq(const QSharedPointer<BamAlignment>& al, FastqEntry& e)
