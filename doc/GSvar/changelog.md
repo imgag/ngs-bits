@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2023_03-13 (30.03.23)
+
+- report: minor improvements to germline report.
+- analysis status: added checkbox to show own jobs only.
+
 ### 2023_02-53 (21.03.23)
 
 - removed mosaic dialog (no longer needed as mosaic variant are part of the main variant list now)
