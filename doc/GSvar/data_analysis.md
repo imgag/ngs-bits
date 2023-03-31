@@ -43,7 +43,7 @@ The analysis steps of the pipleine are:
 |step                          |main task                                  |additional tasks                        |
 |------------------------------|-------------------------------------------|----------------------------------------|
 |SNV/InDel calling + annotation|small variant calling and annotation       |                                        |
-|CNV calling + annotation      |copy-nnumber variant calling and annotation|UPD calling (trio only)                 |
+|CNV calling + annotation      |copy-number variant calling and annotation |UPD calling (trio only)                 |
 |SV calling + annotation       |structural variant calling and annoation   |                                        |
 |database import               |import of meta data analysis into NGSD     |                                        |
 
@@ -53,11 +53,32 @@ The analysis steps of the pipleine are:
 
 ### RNA pipeline
 
-//TODO Leon
+The RNA pipeline is used to analyze RNA single samples. Since the pipeline doesn't call small variants, no GSvar file will be created. This means a processed sample can't be displayed in GSvar directly. You can either see the results through the linked DNA sample or open the expression files through the processed sample tab.
+
+![alt text](pipeline_rna.png)
+
+|step                          |main task                                           |additional tasks |
+|------------------------------|----------------------------------------------------|-----------------|
+|mapping                       |mapping of reads to reference genome                |                 |
+|read counting                 |determine expression of genes and exons             |                 |
+|annotation                    |annotation of cohort statistics to expression files |                 |
+|fusion detection              |call fusions in RNA data                            |                 |
+|database import               |import of QC and expression data into NGSD          |                 |
 
 ### cfDNA pipeline
 
-//TODO Leon
+There are two types of cfDNA analysis. The first type is based on a given target region (defined by the processing system) and will report all small variants in this region (processing system type: `cfDNA`).  
+The second type is the monitoring of patient-specific tumor variants (processing system type: `cfDNA (patient-specific)`). This pipeline will only report the calls of a set of variants provided by the cfDNA panel of the patient. This panel is ideally created in GSvar through the tumor-normal variant view (`cfDNA` > `Design cfDNA panel`) and stored in the NGSD. If the tumor-cfDNA relation in the NGSD is set correctly the pipeline will automatically use the cfDNA panel in the analysis. Otherwise it has to be provided manually.  
+Here the overview of the cfDNA pipeline:
+![alt text](pipeline_cfDNA.png)
+
+The analysis steps of the pipleine are:
+
+|step                          |main task                                  |additional tasks                        |
+|------------------------------|-------------------------------------------|----------------------------------------|
+|mapping                       |mapping of reads to reference genome       |deduplication of reads using UMIs       |
+|SNV/InDel calling + annotation|small variant calling and annotation       |                                        |
+|database import               |import of QC data into NGSD                |check tumor/cfDNA relation              |
 
 ## What is the difference between re-annotation and a normal analysis.
 
