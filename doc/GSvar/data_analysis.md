@@ -49,7 +49,25 @@ The analysis steps of the pipleine are:
 
 ### somatic tumor-normal pipeline
 
-//TODO Alexander
+The somatic pipeline is used to analyse single tumor samples and tumor-normal sample pairs. It uses the single sample and RNA pipeline to map the fastq files and works with the resulting BAM files.
+
+
+The following image shows a simplified somatic analysis:
+
+![alt text](pipeline_somatic.png)
+
+The analysis steps of the pipleine are:
+
+|step                           |main task                                  |additional tasks                             |
+|-------------------------------|-------------------------------------------|---------------------------------------------|
+|variant calling 				| small variant calling and SV calling      | HLA genotyping and SNV mutational signature |
+|virus detection				| detection of virus DNA in the sample      |               						      |
+|copy number analysis			| copy-number variant calling and annotation| HRD and CNV mutational signature 		      |
+|annotation						| annotation of small variants 		        |                                             |
+|microsatellite analysis		| microsatellite stability analysis         |                                             |
+|annotate RNA data				| annotation of small variants with RNA data|                                             |
+|database import				| import of QC and variant data into NGSD   |                                             |
+
 
 ### RNA pipeline
 
