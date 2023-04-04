@@ -1862,7 +1862,7 @@ void MainWindow::on_actionExpressionData_triggered()
 
 	ExpressionGeneWidget* widget = new ExpressionGeneWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, project, rna_ps_id,
 															cohort_type, this);
-	auto dlg = GUIHelper::createDialog(widget, "Expression Data of " + db.processedSampleName(rna_ps_id));
+	auto dlg = GUIHelper::createDialog(widget, "Expression Data (Genes) of " + db.processedSampleName(rna_ps_id));
 	addModelessDialog(dlg);
 }
 
@@ -1945,7 +1945,7 @@ void MainWindow::on_actionExonExpressionData_triggered()
 	if (somaticReportSupported()) cohort_type = RNA_COHORT_SOMATIC;
 
 	ExpressionExonWidget* widget = new ExpressionExonWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, project, rna_ps_id, cohort_type, this);
-	auto dlg = GUIHelper::createDialog(widget, "Expression Data of " + db.processedSampleName(rna_ps_id));
+	auto dlg = GUIHelper::createDialog(widget, "Expression Data (Exons) of " + db.processedSampleName(rna_ps_id));
 	addModelessDialog(dlg);
 }
 
@@ -1990,7 +1990,7 @@ void MainWindow::on_actionShowSplicing_triggered()
 
 	SplicingWidget* splicing_widget = new SplicingWidget(splicing_filepath, this);
 
-	auto dlg = GUIHelper::createDialog(splicing_widget, "Splicing of " + variants_.analysisName());
+	auto dlg = GUIHelper::createDialog(splicing_widget, "Splicing Alterations of " + variants_.analysisName());
 	addModelessDialog(dlg);
 }
 

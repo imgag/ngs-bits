@@ -29,8 +29,8 @@ public:
 	~ExpressionGeneWidget();
 
 private slots:
-	void applyFilters(int max_rows=10000);
-	void updateTable(int max_rows=10000);
+	void applyFilters(int max_rows=5000);
+	void updateTable(int max_rows=5000);
 	void copyToClipboard();
 	void showBiotypeContextMenu(QPoint pos);
 	void selectAllBiotypes(bool deselect=false);
