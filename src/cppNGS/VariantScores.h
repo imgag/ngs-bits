@@ -10,7 +10,15 @@
 class CPPNGSSHARED_EXPORT VariantScores
 {
 public:
-	//Result of the scoring
+
+	//Scoring parameters
+	struct Parameters
+	{
+		bool use_ngsd_classifications = true;
+		bool use_blacklist = false;
+	};
+
+	//Scoring result
 	struct Result
 	{
 		//Algorithm name
@@ -35,17 +43,18 @@ public:
 	static QString description(QString algorithm);
 
 	//Returns a variant scores. Throws an error if the input is invalid.
-	static Result score(QString algorithm, const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const QList<Variant>& blacklist);
+	static Result score(QString algorithm, const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const Parameters& parameters);
 
 	//Annotates a variant list with the scoring result. Returns the number of variants that were scored.
 	static int annotate(VariantList& variants, const Result& result, bool add_explainations = false);
 
-	//Returns the variant blackist from the settings file.
-	static QList<Variant> blacklist();
-
 private:
-	static Result score_GSvar_V1(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const QList<Variant>& blacklist);
-	static Result score_GSvar_V1_noNGSD(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const QList<Variant>& blacklist);
+	//Returns the variant blackist from the settings file.
+	static QList<Variant> loadBlacklist();
+
+	static Result score_GSvar_v1(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const Parameters& parameters);
+	static Result score_GSvar_v2_dominant(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const Parameters& parameters);
+	static Result score_GSvar_v2_recessive(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const Parameters& parameters);
 };
 
 #endif // VARIANTSCORES_H
