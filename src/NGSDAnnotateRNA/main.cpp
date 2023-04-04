@@ -99,7 +99,7 @@ public:
 		{
 			if (mode == "genes")
 			{
-				expression_stats = db.calculateGeneExpressionStatistics(cohort);
+				expression_stats = db.calculateGeneExpressionStatistics(cohort, "", true);
 			}
 			else if(mode == "exons")
 			{

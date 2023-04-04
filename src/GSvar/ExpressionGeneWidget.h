@@ -68,7 +68,11 @@ private:
 	//db
 	NGSD db_;
 	QMap<QByteArray, QByteArray> ensg_mapping_;
+	QMap<int, QByteArray> id2gene_;
+	QMap<QByteArray, int> gene2id_;
+	QMap<QByteArray, int> gene_id_mapping_;
 	SqlQuery query_gene_stats_ = db_.getQuery();
+	SqlQuery query_gene_stats_old_ = db_.getQuery();
 	QMap<QByteArray, DBExpressionValues> ngsd_expression;
 	QSet<int> cohort_;
 
@@ -87,6 +91,7 @@ private:
 	bool filtering_in_progress_ = false;
 
 	static QVector<double> calculateRanks(const QVector<double>& values);
+
 };
 
 #endif // EXPRESSIONGENEWIDGET_H

@@ -813,8 +813,7 @@ public:
 	/* RNA related functions */
 	///Imports gene expression data to the NGSD
 	void importGeneExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
-	///Imports transcript expression data to the NGSD
-	void importTranscriptExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
+	int addGeneSymbolToExpressionTable(const QByteArray& gene_symbol);
 	///Imports exon expression data to the NGSD
 	void importExonExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
 	///Calculates statistics on all gene expression values for a list of processed sample ids
@@ -841,6 +840,10 @@ public:
 	QVector<double> getExonExpressionValues(const BedLine& exon, QSet<int> cohort, bool log2=false);
 	///Returns the expression values fo a single sample
 	QMap<QByteArray, double> getGeneExpressionValuesOfSample(const QString& ps_id, bool allow_empty=false);
+	///Returns the symbol<>id mapping of the gene expression helper table
+	QMap<int, QByteArray> getGeneExpressionId2GeneMapping();
+	QMap<QByteArray, int> getGeneExpressionGene2IdMapping();
+
 
 	/***User handling functions ***/
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.
@@ -1130,10 +1133,15 @@ protected:
 		ChromosomalIndex<TranscriptList> gene_transcripts_index;
 		QHash<int, int> gene_transcripts_id2index; //NGSD transcript id > index in 'gene_transcripts'
 		QHash<QByteArray, QSet<int>> gene_transcripts_symbol2indices; //gene symbol > indices in 'gene_transcripts'
+
+		//gene expression
+		QMap<int, QByteArray> gene_expression_id2gene;
+		QMap<QByteArray, int> gene_expression_gene2id;
 	};
 	static Cache& getCache();
 	void clearCache();
 	void initTranscriptCache();
+	void initGeneExpressionCache();
 };
 
 #endif // NGSD_H

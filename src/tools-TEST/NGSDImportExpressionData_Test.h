@@ -23,7 +23,8 @@ private slots:
 		EXECUTE("NGSDImportExpressionData", "-test -expression " + TESTDATA("data_in/NGSDImportExpressionData_in1_counts.tsv") + " -ps RX123456_03 -debug");
 
 		//check
-		int count = db.getValue("SELECT count(*) FROM expression").toInt();
+		//TODO reamne table
+		int count = db.getValue("SELECT count(*) FROM expression_test").toInt();
 		I_EQUAL(count, 7997);
 	}
 
@@ -42,19 +43,22 @@ private slots:
 		EXECUTE("NGSDImportExpressionData", "-test -expression " + TESTDATA("data_in/NGSDImportExpressionData_in1_counts.tsv") + " -ps RX123456_03 -debug");
 
 		//check
-		int count = db.getValue("SELECT count(*) FROM expression").toInt();
+		//TODO reamne table
+		int count = db.getValue("SELECT count(*) FROM expression_test").toInt();
 		I_EQUAL(count, 7997);
 
 		//try without 'force' parameter
 		EXECUTE_FAIL("NGSDImportExpressionData", "-test -expression " + TESTDATA("data_in/NGSDImportExpressionData_in2_counts.tsv") + " -ps RX123456_03 -debug");
 		//check if import failed
-		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		//TODO reamne table
+		count = db.getValue("SELECT count(*) FROM expression_test").toInt();
 		I_EQUAL(count, 7997);
 
 		//try with 'force' parameter
 		EXECUTE("NGSDImportExpressionData", "-test -force -expression " + TESTDATA("data_in/NGSDImportExpressionData_in2_counts.tsv") + " -ps RX123456_03 -debug");
 		//check if import worked
-		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		//TODO reamne table
+		count = db.getValue("SELECT count(*) FROM expression_test").toInt();
 		I_EQUAL(count, 102);
 
 	}

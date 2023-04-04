@@ -2706,41 +2706,44 @@ private slots:
 		S_EQUAL(gene_ensg_mapping.value("PLEKHN1"), "ENSG00000187583");
 
 		//Test expression data import
+		//TODO rename table
 		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in1.tsv"), "RX001_01", false, false);
-		int count = db.getValue("SELECT count(*) FROM expression").toInt();
+		int count = db.getValue("SELECT count(*) FROM expression_test").toInt();
 		I_EQUAL(count, 102);
 		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in2.tsv"), "RX002_01", false, false);
-		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		count = db.getValue("SELECT count(*) FROM expression_test").toInt();
 		I_EQUAL(count, 204);
 		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in3.tsv"), "RX003_01", false, false);
-		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		count = db.getValue("SELECT count(*) FROM expression_test").toInt();
 		I_EQUAL(count, 306);
 		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in4.tsv"), "RX004_01", false, false);
-		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		count = db.getValue("SELECT count(*) FROM expression_test").toInt();
 		I_EQUAL(count, 408);
 		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in5.tsv"), "RX005_01", false, false);
-		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		count = db.getValue("SELECT count(*) FROM expression_test").toInt();
 		I_EQUAL(count, 510);
 		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in6.tsv"), "RX006_01", false, false);
-		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		count = db.getValue("SELECT count(*) FROM expression_test").toInt();
 		I_EQUAL(count, 612);
 		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in7.tsv"), "RX007_01", false, false);
-		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		count = db.getValue("SELECT count(*) FROM expression_test").toInt();
 		I_EQUAL(count, 714);
 		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in8.tsv"), "RX008_01", false, false);
-		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		count = db.getValue("SELECT count(*) FROM expression_test").toInt();
 		I_EQUAL(count, 816);
 		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in8.tsv"), "RX008_01", true, false);
-		count = db.getValue("SELECT count(*) FROM expression").toInt();
+		count = db.getValue("SELECT count(*) FROM expression_test").toInt();
 		I_EQUAL(count, 816);
 
 		//check imported values
-		I_EQUAL(db.getValue("SELECT raw FROM expression WHERE processed_sample_id=5001 AND symbol='" + ensg_gene_mapping.value("ENSG00000049249") + "'").toInt(), 20934);
-		F_EQUAL2(db.getValue("SELECT tpm FROM expression WHERE processed_sample_id=5001 AND symbol='" + ensg_gene_mapping.value("ENSG00000215720") + "'").toFloat(), 116.816, 0.001);
-		I_EQUAL(db.getValue("SELECT raw FROM expression WHERE processed_sample_id=5002 AND symbol='" + ensg_gene_mapping.value("ENSG00000229716") + "'").toInt(), 1371);
-		F_EQUAL2(db.getValue("SELECT tpm FROM expression WHERE processed_sample_id=5002 AND symbol='" + ensg_gene_mapping.value("ENSG00000159189") + "'").toFloat(), 204.76, 0.001);
-		I_EQUAL(db.getValue("SELECT raw FROM expression WHERE processed_sample_id=5005 AND symbol='" + ensg_gene_mapping.value("ENSG00000227634") + "'").toInt(), 15679);
-		F_EQUAL2(db.getValue("SELECT tpm FROM expression WHERE processed_sample_id=5005 AND symbol='" + ensg_gene_mapping.value("ENSG00000282740") + "'").toFloat(), 0.0, 0.001);
+		QMap<QByteArray,int> gene2id = db.getGeneExpressionGene2IdMapping();
+		//TODO rename table
+		I_EQUAL(db.getValue("SELECT raw FROM expression_test WHERE processed_sample_id=5001 AND symbol_id=" + QString::number(gene2id.value(ensg_gene_mapping.value("ENSG00000049249")))).toInt(), 20934);
+		F_EQUAL2(db.getValue("SELECT tpm FROM expression_test WHERE processed_sample_id=5001 AND symbol_id=" + QString::number(gene2id.value(ensg_gene_mapping.value("ENSG00000215720")))).toFloat(), 116.816, 0.001);
+		I_EQUAL(db.getValue("SELECT raw FROM expression_test WHERE processed_sample_id=5002 AND symbol_id=" + QString::number(gene2id.value(ensg_gene_mapping.value("ENSG00000229716")))).toInt(), 1371);
+		F_EQUAL2(db.getValue("SELECT tpm FROM expression_test WHERE processed_sample_id=5002 AND symbol_id=" + QString::number(gene2id.value(ensg_gene_mapping.value("ENSG00000159189")))).toFloat(), 204.76, 0.001);
+		I_EQUAL(db.getValue("SELECT raw FROM expression_test WHERE processed_sample_id=5005 AND symbol_id=" + QString::number(gene2id.value(ensg_gene_mapping.value("ENSG00000227634")))).toInt(), 15679);
+		F_EQUAL2(db.getValue("SELECT tpm FROM expression_test WHERE processed_sample_id=5005 AND symbol_id=" + QString::number(gene2id.value(ensg_gene_mapping.value("ENSG00000282740")))).toFloat(), 0.0, 0.001);
 
 
 		//Test exon expression data import
