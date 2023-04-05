@@ -21,7 +21,7 @@ public:
 		addString("hpo_ids", "Comma-separated list of HPO identifiers.", false);
 		addOutfile("out", "Output variant list in GSvar format.", false);
 		addEnum("algorithm", "Algorithm used for ranking.", true, VariantScores::algorithms() , "GSvar_v1");
-		addFlag("add_explaination", "Add a third column with an explaination how that score was calculated.");
+		addFlag("add_explanation", "Add a third column with an explanation how that score was calculated.");
 		addFlag("use_blacklist", "Use variant blacklist from settings.ini file.");
 		addFlag("use_ngsd_classifications", "Use variant classifications from NGSD.");
 		addFlag("test", "Uses the test database instead of on the production database.");
@@ -34,7 +34,7 @@ public:
 		//init
 		QStringList hpo_ids = getString("hpo_ids").split(",");
 		QString algorithm = getEnum("algorithm");
-		bool add_explaination = getFlag("add_explaination");
+		bool add_explanation = getFlag("add_explanation");
 		NGSD db(getFlag("test"));
 
 		//load variants
@@ -80,7 +80,7 @@ public:
 		parameters.use_blacklist = getFlag("use_blacklist");
 		parameters.use_ngsd_classifications = getFlag("use_ngsd_classifications");
 		VariantScores::Result result = VariantScores::score(algorithm, variants, phenotype_rois, parameters);
-		VariantScores::annotate(variants, result, add_explaination);
+		VariantScores::annotate(variants, result, add_explanation);
 
 		//store result
 		variants.store(getOutfile("out"));

@@ -95,15 +95,15 @@ VariantScores::Result VariantScores::score(QString algorithm, const VariantList&
 	return result;
 }
 
-int VariantScores::annotate(VariantList& variants, const VariantScores::Result& result, bool add_explainations)
+int VariantScores::annotate(VariantList& variants, const VariantScores::Result& result, bool add_explanations)
 {
 	//check input
 	if (variants.count()!=result.scores.count()) THROW(ProgrammingException, "Variant list and scoring result differ in count!");
 
 	//add columns if missing
-	if (add_explainations && variants.annotationIndexByName("GSvar_score_explainations", true, false)==-1)
+	if (add_explanations && variants.annotationIndexByName("GSvar_score_explanations", true, false)==-1)
 	{
-		variants.prependAnnotation("GSvar_score_explainations", "GSvar score explainations.");
+		variants.prependAnnotation("GSvar_score_explanations", "GSvar score explanations.");
 	}
 	if (variants.annotationIndexByName("GSvar_score", true, false)==-1)
 	{
@@ -115,7 +115,7 @@ int VariantScores::annotate(VariantList& variants, const VariantScores::Result& 
 	}
 	int i_rank = variants.annotationIndexByName("GSvar_rank");
 	int i_score = variants.annotationIndexByName("GSvar_score");
-	int i_score_exp = add_explainations ? variants.annotationIndexByName("GSvar_score_explainations") : -1;
+	int i_score_exp = add_explanations ? variants.annotationIndexByName("GSvar_score_explanations") : -1;
 
 	//annotate
 	int c_scored = 0;
@@ -131,7 +131,7 @@ int VariantScores::annotate(VariantList& variants, const VariantScores::Result& 
 		}
 		variants[i].annotations()[i_score] = score_str;
 		variants[i].annotations()[i_rank] = rank_str;
-		if (add_explainations) variants[i].annotations()[i_score_exp] = result.score_explainations[i].join(", ").toUtf8();
+		if (add_explanations) variants[i].annotations()[i_score_exp] = result.score_explanations[i].join(", ").toUtf8();
 	}
 
 	return c_scored;
@@ -200,7 +200,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 		if(!cascade_result.passing(i))
 		{
 			output.scores << -1.0;
-			output.score_explainations << QStringList();
+			output.score_explanations << QStringList();
 			continue;
 		}
 
@@ -209,7 +209,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 		if (parameters.use_blacklist && blacklist.contains(v))
 		{
 			output.scores << -2.0;
-			output.score_explainations << QStringList();
+			output.score_explanations << QStringList();
 			continue;
 		}
 
@@ -222,14 +222,14 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 		}
 
 		double score = 0.0;
-		QStringList explainations;
+		QStringList explanations;
 
 		//in phenotype ROI
 		int index = roi_index.matchingIndex(v.chr(), v.start(), v.end());
 		if (index!=-1)
 		{
 			score += 2.0;
-			explainations << "HPO:2.0";
+			explanations << "HPO:2.0";
 		}
 
 		//impact
@@ -252,7 +252,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 		if (impact_score>0)
 		{
 			score += impact_score;
-			explainations << "impact:" + QString::number(impact_score, 'f', 1);
+			explanations << "impact:" + QString::number(impact_score, 'f', 1);
 		}
 
 		//gnomAD
@@ -260,7 +260,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 		if (af_gnomad=="")
 		{
 			score += 1.0;
-			explainations << "gnomAD:1.0";
+			explanations << "gnomAD:1.0";
 		}
 		else
 		{
@@ -268,7 +268,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 			if (af_gnomad2<=0.0001)
 			{
 				score += 0.5;
-				explainations << "gnomAD:0.5";
+				explanations << "gnomAD:0.5";
 			}
 		}
 
@@ -279,7 +279,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 			if (!omim.isEmpty())
 			{
 				score += 1.0;
-				explainations << "OMIM:1.0";
+				explanations << "OMIM:1.0";
 			}
 		}
 
@@ -303,7 +303,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 			if (hgmd_score>0)
 			{
 				score += hgmd_score;
-				explainations << "HGMD:" + QString::number(hgmd_score, 'f', 1);
+				explanations << "HGMD:" + QString::number(hgmd_score, 'f', 1);
 			}
 		}
 
@@ -325,7 +325,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 		if (clinvar_score>0)
 		{
 			score += clinvar_score;
-			explainations << "ClinVar:" + QString::number(clinvar_score, 'f', 1);
+			explanations << "ClinVar:" + QString::number(clinvar_score, 'f', 1);
 		}
 
 		//NGSD classification
@@ -335,12 +335,12 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 			if (classification=="4")
 			{
 				score += 0.5;
-				explainations << "NGSD class:0.5";
+				explanations << "NGSD class:0.5";
 			}
 			if (classification=="5")
 			{
 				score += 1;
-				explainations << "NGSD class:1.0";
+				explanations << "NGSD class:1.0";
 			}
 		}
 
@@ -349,7 +349,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 		if (genotype=="hom")
 		{
 			score += 1.0;
-			explainations << "homozygous:1.0";
+			explanations << "homozygous:1.0";
 		}
 
 		//gene-specific infos (gnomAD o/e lof, inheritance)
@@ -395,16 +395,16 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 		if (inh_match)
 		{
 			score += 0.5;
-			explainations << "gene_inheritance:0.5";
+			explanations << "gene_inheritance:0.5";
 		}
 		if (min_oe<0.1)
 		{
 			score += 0.5;
-			explainations << "gene_oe_lof:0.5";
+			explanations << "gene_oe_lof:0.5";
 		}
 
 		output.scores << score;
-		output.score_explainations << explainations;
+		output.score_explanations << explanations;
 	}
 
 	return output;
@@ -467,7 +467,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 		if(!cascade_result.passing(i))
 		{
 			output.scores << -1.0;
-			output.score_explainations << QStringList();
+			output.score_explanations << QStringList();
 			continue;
 		}
 
@@ -476,7 +476,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 		if (parameters.use_blacklist && blacklist.contains(v))
 		{
 			output.scores << -2.0;
-			output.score_explainations << QStringList();
+			output.score_explanations << QStringList();
 			continue;
 		}
 
@@ -489,45 +489,14 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 		}
 
 		double score = 0.0;
-		QStringList explainations;
+		QStringList explanations;
 
-		//in phenotype ROI
-		int index = roi_index.matchingIndex(v.chr(), v.start(), v.end());
-		if (index!=-1)
-		{
-			score += 2.0;
-			explainations << "HPO:2.0";
-		}
-
-		//impact
-		double impact_score = 0.0;
-		foreach(const VariantTranscript& transcript, transcript_info)
-		{
-			if(transcript.impact=="HIGH")
-			{
-				impact_score = std::max(impact_score, 3.0);
-			}
-			else if(transcript.impact=="MODERATE")
-			{
-				impact_score = std::max(impact_score, 2.0);
-			}
-			else if(transcript.impact=="LOW")
-			{
-				impact_score = std::max(impact_score, 1.0);
-			}
-		}
-		if (impact_score>0)
-		{
-			score += impact_score;
-			explainations << "impact:" + QString::number(impact_score, 'f', 1);
-		}
-
-		//gnomAD
+		//rarity: gnomAD
 		QByteArray af_gnomad = v.annotations()[i_gnomad].trimmed();
 		if (af_gnomad=="")
 		{
 			score += 1.0;
-			explainations << "gnomAD:1.0";
+			explanations << "gnomAD:1.0";
 		}
 		else
 		{
@@ -535,37 +504,34 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 			if (af_gnomad2<=0.0001)
 			{
 				score += 0.5;
-				explainations << "gnomAD:0.5";
+				explanations << "gnomAD:0.5";
 			}
 		}
 
-		//NGSD count
+		//rarity: NGSD count
 		QByteArray ngsd_het = v.annotations()[i_ngsd_het].trimmed();
 		bool ok = false;
 		double ngsd_het2 = ngsd_het.toInt(&ok);
 		if (ok && ngsd_het2<=2)
 		{
 			score += 1.0;
-			explainations << "NGSD:1.0";
+			explanations << "NGSD:1.0";
 		}
 		else if (ok && ngsd_het2<=5)
 		{
 			score += 0.5;
-			explainations << "NGSD:0.5";
+			explanations << "NGSD:0.5";
 		}
 
-		//OMIM gene
-		if (i_omim!=-1) //optional because of license
+		//disease association: in phenotype ROI
+		int index = roi_index.matchingIndex(v.chr(), v.start(), v.end());
+		if (index!=-1)
 		{
-			QByteArray omim = v.annotations()[i_omim].trimmed();
-			if (!omim.isEmpty())
-			{
-				score += 1.0;
-				explainations << "OMIM:1.0";
-			}
+			score += 2.0;
+			explanations << "HPO:2.0";
 		}
 
-		//HGMD
+		//disease association: HGMD variant
 		if (i_hgmd!=-1) //optional because of license
 		{
 			double hgmd_score = 0.0;
@@ -585,11 +551,11 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 			if (hgmd_score>0)
 			{
 				score += hgmd_score;
-				explainations << "HGMD:" + QString::number(hgmd_score, 'f', 1);
+				explanations << "HGMD:" + QString::number(hgmd_score, 'f', 1);
 			}
 		}
 
-		//ClinVar
+		//disease association: ClinVar variant
 		double clinvar_score = 0.0;
 		QByteArrayList clinvar = v.annotations()[i_clinvar].trimmed().split(';');
 		foreach(const QByteArray& entry, clinvar)
@@ -607,31 +573,64 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 		if (clinvar_score>0)
 		{
 			score += clinvar_score;
-			explainations << "ClinVar:" + QString::number(clinvar_score, 'f', 1);
+			explanations << "ClinVar:" + QString::number(clinvar_score, 'f', 1);
 		}
 
-		//NGSD classification
+		//disease association: NGSD classification
 		if (parameters.use_ngsd_classifications)
 		{
 			QByteArray classification = v.annotations()[i_classification].trimmed();
 			if (classification=="4")
 			{
 				score += 0.5;
-				explainations << "NGSD class:0.5";
+				explanations << "NGSD class:0.5";
 			}
 			if (classification=="5")
 			{
 				score += 1;
-				explainations << "NGSD class:1.0";
+				explanations << "NGSD class:1.0";
 			}
 		}
 
-		//genotype
-		QByteArray genotype = v.annotations()[i_genotye].trimmed();
+		//disease association: OMIM (gene-specific)
+		if (i_omim!=-1) //optional because of license
+		{
+			QByteArray omim = v.annotations()[i_omim].trimmed();
+			if (!omim.isEmpty())
+			{
 
-		//gene-specific infos (gnomAD o/e lof, inheritance)
+				score += 1.0;
+				explanations << "OMIM:1.0";
+			}
+		}
+
+		//impact (gene-specific)
+		double impact_score = 0.0;
+		foreach(const VariantTranscript& transcript, transcript_info)
+		{
+			if(transcript.impact=="HIGH")
+			{
+				impact_score = std::max(impact_score, 3.0);
+			}
+			else if(transcript.impact=="MODERATE")
+			{
+				impact_score = std::max(impact_score, 2.0);
+			}
+			else if(transcript.impact=="LOW")
+			{
+				impact_score = std::max(impact_score, 1.0);
+			}
+		}
+		if (impact_score>0)
+		{
+			score += impact_score;
+			explanations << "impact:" + QString::number(impact_score, 'f', 1);
+		}
+
+		//gnomAD o/e lof, inheritance (gene-specific)
 		bool inh_match = false;
 		double min_oe = 1;
+		QByteArray genotype = v.annotations()[i_genotye].trimmed();
 		QByteArrayList gene_infos = v.annotations()[i_gene_info].trimmed().split(',');
 		std::for_each(gene_infos.begin(), gene_infos.end(), [](QByteArray& value){ value = value.trimmed(); });
 		foreach(const QByteArray& gene, genes)
@@ -668,16 +667,16 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 		if (inh_match)
 		{
 			score += 0.5;
-			explainations << "gene_inheritance:0.5";
+			explanations << "gene_inheritance:0.5";
 		}
 		if (min_oe<0.1)
 		{
 			score += 0.5;
-			explainations << "gene_oe_lof:0.5";
+			explanations << "gene_oe_lof:0.5";
 		}
 
 		output.scores << score;
-		output.score_explainations << explainations;
+		output.score_explanations << explanations;
 	}
 
 	return output;
@@ -690,7 +689,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 
 //TODO Ideas:
 // - phenotypes
-//    - count OMIM, ClinVar, HGMD matches only if the HPO-terms match (possible? currently this information is not in GSvar file or NGSD)
 //    - test counting each phenotype ROI hit separatly OR using Germans model (email 09.12.2020)
 //    - higher weight for high evidence HPO-gene regions?
+//    - count OMIM, ClinVar, HGMD matches only if the HPO-terms match (possible? currently this information is not in GSvar file or NGSD)
 // - score relevant transcripts higher than other transcripts?

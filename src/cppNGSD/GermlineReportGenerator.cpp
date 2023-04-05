@@ -389,7 +389,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	stream << "<p>" << trans("Teilweise k&ouml;nnen bei Varianten unklarer Signifikanz (Klasse 3) -  in Abh&auml;ngigkeit von der Art der genetischen Ver&auml;nderung, der Familienanamnese und der Klinik des/der Patienten - weiterf&uuml;hrende Untersuchungen eine &Auml;nderung der Klassifizierung bewirken. Bei konkreten differentialdiagnostischen Hinweisen auf eine entsprechende Erkrankung k&ouml;nnen ggf. weiterf&uuml;hrende genetische Untersuchungen indiziert sein.") << endl;
 	stream << "</p>" << endl;
 
-	///classification explaination
+	///classification explanation
 	if (data_.report_settings.show_class_details)
 	{
 		stream << endl;

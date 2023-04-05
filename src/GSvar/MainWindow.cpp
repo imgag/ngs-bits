@@ -826,7 +826,7 @@ void MainWindow::on_actionDebug_triggered()
 		QSharedPointer<QFile> out_file = Helper::openFileForWriting("C:\\Marc\\ranking_" + QDate::currentDate().toString("yyyy-MM-dd") + "_" + algorithm + suffix + ".tsv");
 		QTextStream out_stream(out_file.data());
 		QStringList headers;
-		headers << "ps" << "system" << "HPO" << "variant" << "inheritance"  << "filter" << "impact" << "inheritance" << "oe_lof" << "gnomAD" << "gnomAD sub" << "NGSD het" << "NGSD hom" << "variants_scored" << "hpo_genes" << "score" << "score_explainations" << "rank";
+		headers << "ps" << "system" << "HPO" << "variant" << "inheritance"  << "filter" << "impact" << "inheritance" << "oe_lof" << "gnomAD" << "gnomAD sub" << "NGSD het" << "NGSD hom" << "variants_scored" << "hpo_genes" << "score" << "score_explanations" << "rank";
 		out_stream << "#" << headers.join("\t") << endl;
 
 		int c_all = 0;
@@ -944,7 +944,7 @@ void MainWindow::on_actionDebug_triggered()
 				int i_ngsd_hom = variants.annotationIndexByName("NGSD_hom");
 				int i_rank = variants.annotationIndexByName("GSvar_rank");
 				int i_score = variants.annotationIndexByName("GSvar_score");
-				int i_score_exp = variants.annotationIndexByName("GSvar_score_explainations");
+				int i_score_exp = variants.annotationIndexByName("GSvar_score_explanations");
 
 				auto addLine = [&] (const Variant& v, QString inheritance, bool causal = true)
 				{

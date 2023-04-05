@@ -38,7 +38,7 @@ private slots:
 		VariantScores::Result result = VariantScores::score("GSvar_v1", variants, pheno_rois, parameters);
 		S_EQUAL(result.algorithm, "GSvar_v1");
 		I_EQUAL(variants.count(), result.scores.count());
-		I_EQUAL(variants.count(), result.score_explainations.count());
+		I_EQUAL(variants.count(), result.score_explanations.count());
 		I_EQUAL(variants.count(), result.ranks.count());
 		I_EQUAL(result.warnings.count(), 0);
 		for(int i=0; i<variants.count(); ++i)
@@ -92,17 +92,17 @@ private slots:
 			}
 		}
 
-		//check that score explainations sum matches score
+		//check that score explanations sum matches score
 		for(int i=0; i<result.scores.count(); ++i)
 		{
 			if (result.scores[i]>=0)
 			{
 				double score_sum = 0.0;
-				QStringList explainations = result.score_explainations[i];
-				foreach(QString explaination, explainations)
+				QStringList explanations = result.score_explanations[i];
+				foreach(QString explanation, explanations)
 				{
-					QStringList tmp = (explaination+":").split(":");
-					score_sum += Helper::toDouble(tmp[1], explaination, variants[i].toString());
+					QStringList tmp = (explanation+":").split(":");
+					score_sum += Helper::toDouble(tmp[1], explanation, variants[i].toString());
 				}
 
 				F_EQUAL(score_sum, result.scores[i]);
@@ -128,7 +128,7 @@ private slots:
 		parameters.use_ngsd_classifications = false;
 		VariantScores::Result result = VariantScores::score("GSvar_v1", variants, pheno_rois, parameters);
 		I_EQUAL(variants.count(), result.scores.count());
-		I_EQUAL(variants.count(), result.score_explainations.count());
+		I_EQUAL(variants.count(), result.score_explanations.count());
 		I_EQUAL(variants.count(), result.ranks.count());
 		I_EQUAL(result.warnings.count(), 0);
 		for(int i=0; i<variants.count(); ++i)
@@ -185,17 +185,17 @@ private slots:
 			}
 		}
 
-		//check that score explainations sum matches score
+		//check that score explanations sum matches score
 		for(int i=0; i<result.scores.count(); ++i)
 		{
 			if (result.scores[i]>=0)
 			{
 				double score_sum = 0.0;
-				QStringList explainations = result.score_explainations[i];
-				foreach(QString explaination, explainations)
+				QStringList explanations = result.score_explanations[i];
+				foreach(QString explanation, explanations)
 				{
-					QStringList tmp = (explaination+":").split(":");
-					score_sum += Helper::toDouble(tmp[1], explaination, variants[i].toString());
+					QStringList tmp = (explanation+":").split(":");
+					score_sum += Helper::toDouble(tmp[1], explanation, variants[i].toString());
 				}
 
 				F_EQUAL(score_sum, result.scores[i]);
