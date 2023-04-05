@@ -34,12 +34,15 @@ FileLocation FileLocationProviderLocal::getAnalysisSvFile() const
 
 FileLocation FileLocationProviderLocal::getAnalysisCnvFile() const
 {
+	qDebug() << "Calls local file provider!";
 	QString name = QFileInfo(gsvar_file_).baseName();
 	QString base = gsvar_file_.left(gsvar_file_.length()-6);
+	qDebug() << "name " << name << " base " << base;
 
 	if (analysis_type_==SOMATIC_SINGLESAMPLE || analysis_type_==SOMATIC_PAIR)
 	{
 		QString file = base	+ "_clincnv.tsv";
+		qDebug() << "file: " << file;
 		return FileLocation{name, PathType::COPY_NUMBER_CALLS, file, QFile::exists(file)};
 	}
 	else

@@ -1289,7 +1289,7 @@ void MainWindow::on_actionDebug_triggered()
 		//test export of cBioPortalStudy:
 		QStringList tumor_samples;
 		//ssSC, Twist, ssSC old
-		tumor_samples << "DNA2300760A1_01" << "DNA2300102A1_01" << "DNA2203480A1_01";
+		tumor_samples << "DNA2300100A1_01" << "DNA2300102A1_01" << "DNA2203480A1_01";
 
 		StudyData study;
 		study.name = "Test study";
@@ -1307,8 +1307,8 @@ void MainWindow::on_actionDebug_triggered()
 		export_settings.cancer = cancer;
 
 		NGSD db(false);
-		const FileLocationProvider& fileprovider = GlobalServiceProvider::fileLocationProvider();
 		QString filterFileName = GSvarHelper::applicationBaseName() + "_filters.ini";
+
 		foreach(QString sample, tumor_samples)
 		{
 			qDebug() << "gathering Data for: " << sample;
@@ -1318,12 +1318,15 @@ void MainWindow::on_actionDebug_triggered()
 
 			qDebug() << "normal sample: " << normal_sample;
 
+			loadFile(GlobalServiceProvider::database().secondaryAnalyses(sample + "-" + normal_sample, "somatic")[0]);
+			const FileLocationProvider& fileprovider = GlobalServiceProvider::fileLocationProvider();
+
 			SampleFiles files;
 			files.clincnv_file = fileprovider.getAnalysisCnvFile().filename;
 			files.msi_file = fileprovider.getSomaticMsiFile().filename;
+			files.sv_file = fileprovider.getAnalysisSvFile().filename;
 			files.gsvar_germline = GlobalServiceProvider::database().processedSamplePath(normal_id, PathType::GSVAR).filename;
 			files.gsvar_somatic = GlobalServiceProvider::database().secondaryAnalyses(sample + "-" + normal_sample, "somatic")[0];
-
 			qDebug() << files.gsvar_somatic << "\n" << files.gsvar_germline << "\n" << files.clincnv_file << "\n" << files.msi_file << "\n";
 
 			VariantList somatic_vl;

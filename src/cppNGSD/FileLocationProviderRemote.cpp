@@ -23,6 +23,7 @@ FileLocation FileLocationProviderRemote::getAnalysisSvFile() const
 
 FileLocation FileLocationProviderRemote::getAnalysisCnvFile() const
 {
+	qDebug() << "Calls location provider remote:";
 	return getOneFileLocationByType(PathType::COPY_NUMBER_CALLS, "");
 }
 

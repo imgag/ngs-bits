@@ -110,6 +110,7 @@ struct CPPNGSDSHARED_EXPORT SampleFiles
 	QString gsvar_germline;
 	QString clincnv_file;
 	QString msi_file;
+	QString sv_file;
 };
 
 
@@ -200,6 +201,7 @@ private:
 	void writeSnvVariants(QSharedPointer<QFile> out_file, VariantList filtered_vl, int sample_idx);
 
 	QByteArray formatVariantClassification(const Transcript& trans, const QByteArray& coding_splicing);
+	QByteArray StructuratVariantTypeToStringLong(const StructuralVariantType& type);
 
 	NGSD db_;
 	CBioPortalExportSettings settings_;

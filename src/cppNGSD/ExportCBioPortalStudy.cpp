@@ -233,7 +233,7 @@ QString CBioPortalExportSettings::getFormatedAttribute(Attribute att, int sample
 		case Attribute::CLINICAL_PHENOTYPE:
 			return getClinicalPhenotype(sample_idx);
 		case Attribute::COMMENT:
-			return getComments(sample_idx);
+			return getComments(sample_idx).replace("\n", ", ").replace("\t", " ");
 		case Attribute::HPO_TERMS:
 			return getHpoTerms(sample_idx).join(", ");
 		case Attribute::HRD_SCORE:
@@ -297,7 +297,7 @@ void ExportCBioPortalStudy::exportStudy(const QString& out_folder)
 	exportSampleData(out_folder);
 	exportSnvs(out_folder);
 	exportCnvs(out_folder);
-	exportSvs(out_folder);
+//	exportSvs(out_folder);
 	exportCaseList(out_folder);
 }
 
@@ -369,6 +369,50 @@ void ExportCBioPortalStudy::exportCaseList(const QString& out_folder)
 
 	cases_sequenced->write(sample_ids.join("\t"));
 	cases_sequenced->write("\n");
+	cases_sequenced->close();
+
+	QSharedPointer<QFile> cases_with_cnvs = Helper::openFileForWriting(case_list_dir + "/cases_cnv.txt");
+	cases_with_cnvs->write("cancer_study_identifier: " + settings_.study.identifier.toUtf8() + "\n");
+	cases_with_cnvs->write("stable_id: " + settings_.study.identifier.toUtf8() + "_cna\n");
+	cases_with_cnvs->write("case_list_category: all_cases_with_cna_data\n");
+	cases_with_cnvs->write("case_list_name: Tumors with CNVs\n");
+	cases_with_cnvs->write("case_list_description: All samples with CNV data (" + QByteArray::number(settings_.sample_list.count()) + " samples)\n");
+	cases_with_cnvs->write("case_list_ids: ");
+
+	sample_ids.clear();
+	for (int idx=0; idx < settings_.sample_list.count(); idx++)
+	{
+		VersatileFile clin_cnv(settings_.sample_files[idx].clincnv_file);
+		if (clin_cnv.exists())
+		{
+			sample_ids.append(settings_.getSampleId(idx).toUtf8());
+		}
+	}
+
+	cases_with_cnvs->write(sample_ids.join("\t"));
+	cases_with_cnvs->write("\n");
+	cases_with_cnvs->close();
+
+	QSharedPointer<QFile> cases_with_svs = Helper::openFileForWriting(case_list_dir + "/cases_sv.txt");
+	cases_with_svs->write("cancer_study_identifier: " + settings_.study.identifier.toUtf8() + "\n");
+	cases_with_svs->write("stable_id: " + settings_.study.identifier.toUtf8() + "_sv\n");
+	cases_with_svs->write("case_list_category: all_cases_with_sv_data\n");
+	cases_with_svs->write("case_list_name: Tumors with SVs\n");
+	cases_with_svs->write("case_list_description: All samples with SV data (" + QByteArray::number(settings_.sample_list.count()) + " samples)\n");
+	cases_with_svs->write("case_list_ids: ");
+
+	sample_ids.clear();
+	for (int idx=0; idx < settings_.sample_list.count(); idx++)
+	{
+		VersatileFile sv_file(settings_.sample_files[idx].sv_file);
+		if (sv_file.exists())
+		{
+			sample_ids.append(settings_.getSampleId(idx).toUtf8());
+		}
+	}
+
+	cases_with_svs->write(sample_ids.join("\t") + "\n");
+	cases_with_cnvs->close();
 
 	//TODO other?
 }
@@ -460,6 +504,7 @@ void ExportCBioPortalStudy::exportSnvs(const QString& out_folder)
 	meta_snv_file.addValue("show_profile_in_analysis_tab", "true");
 	meta_snv_file.addValue("profile_description", "Mutation data");
 	meta_snv_file.addValue("profile_name", "Mutations");
+	meta_snv_file.addValue("namespaces", "TEST");
 	meta_snv_file.addValue("data_filename", "data_mutations.txt");
 	meta_snv_file.store(out_folder + "/meta_mutations.txt");
 
@@ -470,7 +515,7 @@ void ExportCBioPortalStudy::exportSnvs(const QString& out_folder)
 
 	QByteArrayList columns;
 	columns << "Hugo_Symbol" /*<< "Entrez_Gene_Id"*/ << "NCBI_Build" << "Chromosome" << "Start_Position" << "End_Position" << "Variant_Classification" << "Reference_Allele" << "Tumor_Seq_Allele2" << "Tumor_Sample_Barcode"
-			<< "HGVSp_Short" << "t_alt_count" << "t_ref_count" << "n_alt_count" << "n_ref_count";
+			<< "HGVSp_Short" << "t_alt_count" << "t_ref_count" << "n_alt_count" << "n_ref_count" << "TEST.string";
 
 	out_file->write(columns.join("\t") + "\n");
 	for(int idx=0; idx < settings_.sample_list.count(); idx++)
@@ -546,9 +591,6 @@ void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, Var
 			consequence = hgvs_annotator.annotate(transcripts[0], var);
 		}
 
-		qDebug() << var.toString() << "\t" << var.annotations()[idx_gene_anno] << "\t" << transcript.nameWithVersion() << "\t" << consequence.hgvs_p;
-
-
 		line_parts << var.annotations()[idx_gene_anno];
 		line_parts << build;
 
@@ -559,9 +601,6 @@ void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, Var
 		line_parts << var.ref();
 		line_parts << var.obs();
 		line_parts << sample_id;
-
-
-
 
 		line_parts << consequence.hgvs_p;
 
@@ -576,18 +615,241 @@ void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, Var
 		line_parts << QByteArray::number(normal_alt_count);
 		line_parts << QByteArray::number(normal_ref_count);
 
+
+		line_parts << "Test-Variant_number: " + QByteArray::number(i+1);
 		out_file->write(line_parts.join("\t") + "\n");
 	}
 }
 
 void ExportCBioPortalStudy::exportCnvs(const QString& out_folder)
 {
+	MetaFile meta_cnv;
+	meta_cnv.addValue("cancer_study_identifier", settings_.study.identifier);
+	meta_cnv.addValue("genetic_alteration_type", "COPY_NUMBER_ALTERATION");
+	meta_cnv.addValue("datatype", "DISCRETE");
+	meta_cnv.addValue("stable_id", "cna");
+	meta_cnv.addValue("profile_name", "Copy Number Variants");
+	meta_cnv.addValue("show_profile_in_analysis_tab", "true");
+	meta_cnv.addValue("profile_description", "Values: -2 = homozygous deletion; -1 = hemizygous deletion; 0 = neutral / no change; 1 = gain; 2 = high level amplification.");
+	meta_cnv.addValue("data_filename", "data_CNV.txt");
+	meta_cnv.store(out_folder + "/meta_CNV.txt");
 
+
+	QSharedPointer<QFile> out_file = Helper::openFileForWriting(out_folder + "/data_CNV.txt");
+
+	QByteArrayList columns;
+	columns << "Hugo_Symbol" /*<< "Entrez_Gene_Id"*/;
+
+	QList<QMap<QByteArray, int>> data;
+
+	GeneSet all_genes;
+
+	for(int idx=0; idx < settings_.sample_list.count(); idx++)
+	{
+		columns << settings_.getSampleId(idx).toUtf8();
+
+		CnvList cnvs;
+		cnvs.load(settings_.sample_files[idx].clincnv_file);
+		//filter
+		cnvs = SomaticReportSettings::filterCnvs(cnvs, settings_.report_settings[idx]);
+
+		data.append(QMap<QByteArray, int>());
+
+		for (int idx_var=0; idx_var < cnvs.count(); idx_var++)
+		{
+			CopyNumberVariant cnv = cnvs[idx_var];
+
+			all_genes.insert(cnv.genes());
+
+			foreach (QByteArray gene, cnv.genes())
+			{
+
+				if (cnv.copyNumber(cnvs.annotationHeaders()) == 0)
+				{
+					data[idx].insert(gene, -2);
+				}
+				else if (cnv.copyNumber(cnvs.annotationHeaders()) == 1)
+				{
+					data[idx].insert(gene, -1);
+				}
+				else if (cnv.copyNumber(cnvs.annotationHeaders()) == 2)
+				{
+					data[idx].insert(gene, 0);
+				}
+				else if (cnv.copyNumber(cnvs.annotationHeaders()) < 5)
+				{
+					data[idx].insert(gene, 1);
+				}
+				else
+				{
+					data[idx].insert(gene, 2);
+				}
+
+			}
+		}
+
+		qDebug() << settings_.getSampleId(idx) << ": found genes with CNVs - " << data[idx].count();
+	}
+
+	out_file->write(columns.join("\t") + "\n");
+
+	foreach (QByteArray gene, all_genes)
+	{
+		QByteArrayList line_parts;
+		line_parts << gene;
+
+		for(int idx=0; idx < settings_.sample_list.count(); idx++)
+		{
+			if (data[idx].contains(gene))
+			{
+				line_parts << QByteArray::number(data[idx][gene]);
+			}
+			else
+			{
+				line_parts << "0";
+			}
+		}
+		out_file->write(line_parts.join("\t") + "\n");
+
+	}
 }
 
 void ExportCBioPortalStudy::exportSvs(const QString& out_folder)
 {
+	MetaFile meta_svs;
+	meta_svs.addValue("cancer_study_identifier", settings_.study.identifier);
+	meta_svs.addValue("genetic_alteration_type", "STRUCTURAL_VARIANT");
+	meta_svs.addValue("datatype", "SV");
+	meta_svs.addValue("stable_id", "structural_variants");
+	meta_svs.addValue("profile_name", "Structural Variants");
+	meta_svs.addValue("show_profile_in_analysis_tab", "true");
+	meta_svs.addValue("profile_description", "Structural variants called with manta.");
+	meta_svs.addValue("data_filename", "data_SV.txt");
+	meta_svs.store(out_folder + "/meta_SV.txt");
 
+
+	QSharedPointer<QFile> out_file = Helper::openFileForWriting(out_folder + "/data_SV.txt");
+
+	QByteArrayList columns;
+	columns << "Sample_ID" << "SV_Status" << "Event_Info" << "Site1_Hugo_Symbol"/* << "Site1_Region_Number" << "Site1_Region" */<< "Site1_Chromosome" << "Site1_Position" << "Site2_Hugo_Symbol" /*<< "Site2_Region_Number" << "Site2_Region"*/ << "Site2_Chromosome" << "Site2_Position" << "Class" << "Tumor_Split_Read_Count" << "Tumor_Paired_End_Read_Count" << "Breakpoint_Type" << "SV_Length" << "Normal_Paired_End_Read_Count" << "Normal_Split_Read_Count";
+
+	out_file->write(columns.join("\t")+ "\n");
+	for(int idx=0; idx < settings_.sample_list.count(); idx++)
+	{
+		BedpeFile bedpe;
+		bedpe.load(settings_.sample_files[idx].sv_file);
+		int idx_tumor_src = bedpe.annotationIndexByName("TUM_SR_ALT");
+		int idx_tumor_prc = bedpe.annotationIndexByName("TUM_PR_ALT");
+
+		int idx_normal_src = bedpe.annotationIndexByName("NOR_SR_ALT");
+		int idx_normal_prc = bedpe.annotationIndexByName("NOR_PR_ALT");
+
+		int idx_flags = bedpe.annotationIndexByName("FLAGS");
+
+
+		// TODO write filter? In somatic report settings?
+
+		for(int idx_var=0; idx_var<bedpe.count(); idx_var++)
+		{
+			const BedpeLine& var = bedpe[idx_var];
+
+			if (! var.chr1().isNonSpecial() || ! var.chr2().isNonSpecial()) continue;
+
+			QByteArrayList line_parts;
+			// << "Sample_Id" << "SV_Status"
+			line_parts << settings_.getSampleId(idx).toUtf8();
+			line_parts << "SOMATIC";
+			line_parts << "Event info";
+
+			//<< "Site1_Hugo_Symbol" << "Site1_Region_Number" << "Site1_Region" << "Site1_Chromosome" << "Site1_Position"
+
+			int pos1 = (var.start1() + var.end1())/2;
+
+			GeneSet pos1_genes = db_.genesOverlapping(var.chr1(), pos1, pos1+1);
+
+			QByteArray gene1;
+			if (pos1_genes.count() != 1)
+			{
+				gene1 = "";
+			}
+			else
+			{
+				gene1 = pos1_genes[0];
+			}
+
+			line_parts << gene1;
+
+			line_parts << var.chr1().strNormalized(true);
+			line_parts << QByteArray::number((var.start1() + var.end1())/2);
+
+
+			//<< "Site2_Hugo_Symbol" << "Site2_Region_Number" << "Site2_Region" << "Site2_Chromosome" << "Site2_Position"
+
+			int pos2 = (var.start2() + var.end2())/2;
+
+			GeneSet pos2_genes = db_.genesOverlapping(var.chr2(), pos2, pos2+1);
+
+			QByteArray gene2;
+			if (pos2_genes.count() != 1)
+			{
+				gene2 = "";
+			}
+			else
+			{
+				gene2 = pos2_genes[0];
+			}
+			line_parts << gene2;
+			line_parts << var.chr2().strNormalized(true);
+			line_parts << QByteArray::number((var.start2() + var.end2())/2);
+
+
+			// << "Class" << "Tumor_Split_Read_Count" << "Tumor_Paired_End_Read_Count"
+			// Class
+			line_parts << StructuratVariantTypeToStringLong(var.type());
+			line_parts << var.annotations()[idx_tumor_src];
+			line_parts << var.annotations()[idx_tumor_prc];
+
+
+			//<< "Breakpoint_Type" << "SV_Length" << "Normal_Paired_End_Read_Count" << "Normal_Split_Read_Count"
+
+			if (var.annotations()[idx_flags].contains("IMPRECISE"))
+			{
+				line_parts << "IMPRECISE";
+			}
+			else
+			{
+				line_parts << "PRECISE";
+			}
+
+			line_parts << QByteArray::number(var.size());
+			line_parts << var.annotations()[idx_normal_prc];
+			line_parts << var.annotations()[idx_normal_src];
+
+			out_file->write(line_parts.join("\t")+ "\n");
+		}
+	}
+
+}
+
+QByteArray ExportCBioPortalStudy::StructuratVariantTypeToStringLong(const StructuralVariantType& type)
+{
+	switch (type)
+	{
+		case StructuralVariantType::DEL:
+			return "Deletion";
+		case StructuralVariantType::DUP:
+			return "Duplication";
+		case StructuralVariantType::INS:
+			return "Insertion";
+		case StructuralVariantType::INV:
+			return "Inversion";
+		case StructuralVariantType::BND:
+			return "Translocation";
+		case StructuralVariantType::UNKNOWN:
+			THROW(ArgumentException, "StructuralVariantType::UNKNOWN can only be used for the default constructor.");
+		default:
+			THROW(NotImplementedException, "Invalid StructuralVariantType!");
+	}
 }
 
 
