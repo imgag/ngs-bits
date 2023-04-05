@@ -92,7 +92,7 @@ void MaintenanceDialog::deleteUnusedSamples()
 
 		if (remove)
 		{
-			appendOutputLine("Deleting sample " + db.getValue("SELECT name FROM sample WHERE id='" + sample_id_str + "'").toString());
+			appendOutputLine("Deleting sample " + db.sampleName(sample_id_str));
 			db.getQuery().exec("DELETE FROM sample WHERE id="+sample_id_str);
 		}
 	}
@@ -209,6 +209,59 @@ void MaintenanceDialog::importStudySamples()
 			appendOutputLine("  Notice: Samples in NGSD that are not in GenLab: " + ps_names.join(", "));
 		}
 	}
+}
+
+void MaintenanceDialog::replaceObsolteHPOTerms()
+{
+	//init
+	NGSD db;
+	QSet<QString> hpo_terms_valid = db.getValues("SELECT hpo_id FROM hpo_term").toSet();
+	QSet<QString> hpo_terms_obsolete = db.getValues("SELECT hpo_id FROM hpo_obsolete").toSet();
+
+	//process disease info
+	int c_valid = 0;
+	int c_replaced = 0;
+	int c_not_replaced = 0;
+	int c_invalid = 0;
+	SqlQuery query = db.getQuery();
+	query.exec("SELECT id, sample_id, disease_info FROM sample_disease_info WHERE type='HPO term id' ORDER BY sample_id ASC");
+	while(query.next())
+	{
+		QByteArray sample_id = query.value("sample_id").toByteArray().trimmed();
+		QByteArray hpo_id = query.value("disease_info").toByteArray().trimmed();
+
+		if (hpo_terms_valid.contains(hpo_id))
+		{
+			++c_valid;
+		}
+		else if (hpo_terms_obsolete.contains(hpo_id)) //try to replace
+		{
+			QString replace_term_id = db.getValue("SELECT replaced_by FROM hpo_obsolete WHERE hpo_id='" + hpo_id + "'", false).toString().trimmed();
+			if(!replace_term_id.isEmpty()) //replacement term available => replace
+			{
+				QString replace_term = db.getValue("SELECT hpo_id FROM hpo_term WHERE id='" + replace_term_id + "'", false).toString().trimmed();
+				db.getQuery().exec("UPDATE sample_disease_info SET disease_info='" + replace_term + "' WHERE id=" + query.value("id").toByteArray());
+				++c_replaced;
+			}
+			else
+			{
+				appendOutputLine("Notice: HPO term '" + hpo_id  + "' for sample " + db.sampleName(sample_id) + " is obsolete, but could not be replaced!");
+				++c_not_replaced;
+			}
+		}
+		else
+		{
+			appendOutputLine("Warning: Invalid HPO term '" + hpo_id  + "' found for sample " + db.sampleName(sample_id) + "!");
+			++c_invalid;
+		}
+	}
+
+	//output
+	appendOutputLine("");
+	appendOutputLine("Found " + QString::number(c_valid) + " valid HPO terms.");
+	appendOutputLine("Found " + QString::number(c_invalid) + " invalid HPO terms.");
+	appendOutputLine("Found " + QString::number(c_replaced) + " obsolete HPO terms that were replaced.");
+	appendOutputLine("Found " + QString::number(c_not_replaced) + " obsolete HPO terms that could not be replaced.");
 }
 
 void MaintenanceDialog::appendOutputLine(QString line)

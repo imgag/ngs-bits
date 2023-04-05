@@ -20,6 +20,11 @@ struct CPPNGSDSHARED_EXPORT SomaticReportSettings
 	QString msi_file;
 	QString viral_file;
 
+	QString sbs_signature;
+	QString id_signature;
+	QString dbs_signature;
+	QString cnv_signature;
+
 	//ICD10 diagnosis
 	QString icd10;
 

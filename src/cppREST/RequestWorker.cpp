@@ -23,7 +23,7 @@ void RequestWorker::run()
 	if (!ssl_socket->setSocketDescriptor(socket_))
 	{
 		Log::error("Could not set a socket descriptor: " + ssl_socket->errorString());
-		delete ssl_socket;
+		ssl_socket->deleteLater();
 		return;
 	}
 
@@ -45,7 +45,7 @@ void RequestWorker::run()
 		if (!ssl_socket->isOpen())
 		{
 			Log::error("Could not open the socket for data exchange: " + ssl_socket->errorString());
-			delete ssl_socket;
+			ssl_socket->deleteLater();
 			return;
 		}
 

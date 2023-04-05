@@ -5725,6 +5725,27 @@ QString NGSD::omimPreferredPhenotype(const QByteArray& symbol, const QByteArray&
 	}
 }
 
+QString NGSD::sampleName(const QString& s_id, bool throw_if_fails)
+{
+	SqlQuery query = getQuery();
+	query.prepare("SELECT name FROM sample WHERE id=:0");
+	query.bindValue(0, s_id);
+	query.exec();
+	if (query.size()==0)
+	{
+		if(throw_if_fails)
+		{
+			THROW(DatabaseException, "Sample with ID '" + s_id + "' not found in NGSD!");
+		}
+		else
+		{
+			return "";
+		}
+	}
+	query.next();
+	return query.value(0).toString();
+}
+
 const GeneSet& NGSD::approvedGeneNames()
 {
 	GeneSet& output = getCache().approved_gene_names;

@@ -17,7 +17,7 @@ private slots:
 	void deleteUnusedSamples();
 	void deleteUnusedVariants();
 	void importStudySamples();
-
+	void replaceObsolteHPOTerms();
 
 private:
 	Ui::MaintenanceDialog ui_;
