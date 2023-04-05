@@ -150,6 +150,50 @@ QList<Variant> VariantScores::loadBlacklist()
 	return output;
 }
 
+void CategorizedScores::add(const QByteArray& category, double value)
+{
+	add(category, value, "*");
+}
+
+void CategorizedScores::add(const QByteArray& category, double value, const QByteArray& gene)
+{
+	//init
+	if (!operator[](gene).contains(category))
+	{
+		operator[](gene)[category] = 0.0;
+	}
+
+	operator[](gene)[category] = std::max(operator[](gene)[category], value);
+}
+
+double CategorizedScores::score() const
+{
+	double output = 0.0;
+
+	const QHash<QByteArray, double>& tmp = operator[]("*");
+	for (auto it=tmp.begin(); it!=tmp.end(); ++it)
+	{
+		output += it.value();
+	}
+
+	return output;
+}
+
+QStringList CategorizedScores::explainations() const
+{
+	QStringList output;
+
+	const QHash<QByteArray, double>& tmp = operator[]("*");
+	for (auto it=tmp.begin(); it!=tmp.end(); ++it)
+	{
+		output << it.key() + ":" + QString::number(it.value(), 'f', 1);
+	}
+
+	output.sort(Qt::CaseInsensitive);
+
+	return output;
+}
+
 VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const Parameters& parameters)
 {
 	Result output;
@@ -480,6 +524,9 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 			continue;
 		}
 
+		//init
+		CategorizedScores scores;
+
 		//get gene/transcript list
 		QList<VariantTranscript> transcript_info = v.transcriptAnnotations(i_coding);
 		GeneSet genes;
@@ -488,23 +535,20 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 			genes << transcript.gene;
 		}
 
-		double score = 0.0;
-		QStringList explanations;
+		QHash<QByteArray, QHash<QByteArray, double>> score;
 
 		//rarity: gnomAD
 		QByteArray af_gnomad = v.annotations()[i_gnomad].trimmed();
 		if (af_gnomad=="")
 		{
-			score += 1.0;
-			explanations << "gnomAD:1.0";
+			scores.add("gnomAD", 1.0);
 		}
 		else
 		{
 			double af_gnomad2 = Helper::toDouble(af_gnomad, "genomAD AF");
 			if (af_gnomad2<=0.0001)
 			{
-				score += 0.5;
-				explanations << "gnomAD:0.5";
+				scores.add("gnomAD", 0.5);
 			}
 		}
 
@@ -514,21 +558,18 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 		double ngsd_het2 = ngsd_het.toInt(&ok);
 		if (ok && ngsd_het2<=2)
 		{
-			score += 1.0;
-			explanations << "NGSD:1.0";
+			scores.add("NGSD", 1.0);
 		}
 		else if (ok && ngsd_het2<=5)
 		{
-			score += 0.5;
-			explanations << "NGSD:0.5";
+			scores.add("NGSD", 0.5);
 		}
 
 		//disease association: in phenotype ROI
 		int index = roi_index.matchingIndex(v.chr(), v.start(), v.end());
 		if (index!=-1)
 		{
-			score += 2.0;
-			explanations << "HPO:2.0";
+			scores.add("HPO", 2.0);
 		}
 
 		//disease association: HGMD variant
@@ -550,8 +591,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 			}
 			if (hgmd_score>0)
 			{
-				score += hgmd_score;
-				explanations << "HGMD:" + QString::number(hgmd_score, 'f', 1);
+				scores.add("HGMD", hgmd_score);
 			}
 		}
 
@@ -572,8 +612,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 		}
 		if (clinvar_score>0)
 		{
-			score += clinvar_score;
-			explanations << "ClinVar:" + QString::number(clinvar_score, 'f', 1);
+			scores.add("ClinVar", clinvar_score);
 		}
 
 		//disease association: NGSD classification
@@ -582,13 +621,11 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 			QByteArray classification = v.annotations()[i_classification].trimmed();
 			if (classification=="4")
 			{
-				score += 0.5;
-				explanations << "NGSD class:0.5";
+				scores.add("NGSD class", 0.5);
 			}
 			if (classification=="5")
 			{
-				score += 1;
-				explanations << "NGSD class:1.0";
+				scores.add("NGSD class", 1.0);
 			}
 		}
 
@@ -598,9 +635,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 			QByteArray omim = v.annotations()[i_omim].trimmed();
 			if (!omim.isEmpty())
 			{
-
-				score += 1.0;
-				explanations << "OMIM:1.0";
+				scores.add("OMIM", 1.0);
 			}
 		}
 
@@ -623,8 +658,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 		}
 		if (impact_score>0)
 		{
-			score += impact_score;
-			explanations << "impact:" + QString::number(impact_score, 'f', 1);
+			scores.add("impact", impact_score);
 		}
 
 		//gnomAD o/e lof, inheritance (gene-specific)
@@ -666,17 +700,15 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 		}
 		if (inh_match)
 		{
-			score += 0.5;
-			explanations << "gene_inheritance:0.5";
+			scores.add("gene_inheritance", 0.5);
 		}
 		if (min_oe<0.1)
 		{
-			score += 0.5;
-			explanations << "gene_oe_lof:0.5";
+			scores.add("gene_oe_lof", 0.5);
 		}
 
-		output.scores << score;
-		output.score_explanations << explanations;
+		output.scores << scores.score();
+		output.score_explanations << scores.explainations();
 	}
 
 	return output;

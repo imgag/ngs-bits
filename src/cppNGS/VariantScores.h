@@ -57,4 +57,21 @@ private:
 	static Result score_GSvar_v2_recessive(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const Parameters& parameters);
 };
 
+//Helper struct for scoring
+class CategorizedScores
+  : protected QHash<QByteArray, QHash<QByteArray, double>>
+{
+public:
+	//Adds score (not gene-specific)
+	void add(const QByteArray& category, double value);
+	//Adds score for a specific gene
+	void add(const QByteArray& category, double value, const QByteArray& gene);
+
+	//Returns the score
+	double score() const;
+
+	//Returns the explanations
+	QStringList explainations() const;
+};
+
 #endif // VARIANTSCORES_H
