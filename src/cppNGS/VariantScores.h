@@ -23,7 +23,7 @@ public:
 	{
 		//Algorithm name
 		QString algorithm;
-		//Scores per variant. Scores below 0 indicate that no score was calculated for the variant.
+		//Scores per variant. Scores below 0 indicate that no score was calculated for the variant. -1 means that the variant did not pass the pre-filtering. -2 means that the variant was blacklisted.
 		QList<double> scores;
 		//Score explainations per variant.
 		QList<QStringList> score_explainations;

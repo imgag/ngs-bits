@@ -415,15 +415,15 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 	//Performance history                  Rank1  / Top10
 	//version 1:                           70.27% / 93.92% (05.04.23 - reanno not finished yet)
 	//after fix of OE/inheritance parsing: 73.15% / 95.30% (05.04.23 - reanno not finished yet)
-
-	// - add score for NGSD count het<50 and hom<=2?
-	// - score by gene
+	//after adding NGSD score:             77.18% / 95.30% (05.04.23 - reanno not finished yet)
+	//score by gene                        xx.xx% / xx.xx%
 
 	Result output;
 
 	//get indices of annotations we need
 	int i_coding = variants.annotationIndexByName("coding_and_splicing");
 	int i_gnomad = variants.annotationIndexByName("gnomAD");
+	int i_ngsd_het = variants.annotationIndexByName("NGSD_het");
 	int i_omim = variants.annotationIndexByName("OMIM", true, false);
 	int i_hgmd = variants.annotationIndexByName("HGMD", true, false);
 	int i_clinvar = variants.annotationIndexByName("ClinVar");
@@ -537,6 +537,21 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 				score += 0.5;
 				explainations << "gnomAD:0.5";
 			}
+		}
+
+		//NGSD count
+		QByteArray ngsd_het = v.annotations()[i_ngsd_het].trimmed();
+		bool ok = false;
+		double ngsd_het2 = ngsd_het.toInt(&ok);
+		if (ok && ngsd_het2<=2)
+		{
+			score += 1.0;
+			explainations << "NGSD:1.0";
+		}
+		else if (ok && ngsd_het2<=5)
+		{
+			score += 0.5;
+			explainations << "NGSD:0.5";
 		}
 
 		//OMIM gene
