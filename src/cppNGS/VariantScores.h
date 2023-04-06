@@ -67,11 +67,13 @@ public:
 	//Adds score for a specific gene
 	void add(const QByteArray& category, double value, const QByteArray& gene);
 
-	//Returns the score
-	double score() const;
+	//Returns the maximum score of all genes
+	double score(QByteArrayList& best_genes) const;
 
-	//Returns the explanations
-	QStringList explainations() const;
+	//Returns the explanations for the given gene. If an empty gene is given, only the gene-independent scores are returned.
+	QStringList explainations(const QByteArray& gene) const;
+	//Returns the explanations for the given genes.
+	QStringList explainations(const QByteArrayList& best_genes) const;
 };
 
 #endif // VARIANTSCORES_H

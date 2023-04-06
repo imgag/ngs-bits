@@ -166,30 +166,86 @@ void CategorizedScores::add(const QByteArray& category, double value, const QByt
 	operator[](gene)[category] = std::max(operator[](gene)[category], value);
 }
 
-double CategorizedScores::score() const
+double CategorizedScores::score(QByteArrayList& best_genes) const
 {
 	double output = 0.0;
 
+	//gene-independent scores
 	const QHash<QByteArray, double>& tmp = operator[]("*");
 	for (auto it=tmp.begin(); it!=tmp.end(); ++it)
 	{
 		output += it.value();
 	}
 
-	return output;
+	//gene-specific scores
+	QHash<QByteArray, double> gene2score;
+	foreach(const QByteArray& gene, keys())
+	{
+		if (gene=="*") continue;
+
+		const QHash<QByteArray, double>& tmp = operator[](gene);
+		for (auto it=tmp.begin(); it!=tmp.end(); ++it)
+		{
+			gene2score[gene] += it.value();
+		}
+	}
+
+	//determine maximum score
+	double max_gene = 0.0;
+	for (auto it=gene2score.begin(); it!=gene2score.end(); ++it)
+	{
+		if (it.value()>max_gene) max_gene = it.value();
+	}
+
+	//determine best genes
+	best_genes.clear();
+	for (auto it=gene2score.begin(); it!=gene2score.end(); ++it)
+	{
+		if (it.value()==max_gene) best_genes << it.key();
+	}
+
+	return output + max_gene;
 }
 
-QStringList CategorizedScores::explainations() const
+QStringList CategorizedScores::explainations(const QByteArray& gene) const
 {
 	QStringList output;
 
+	//gene-independent scores
 	const QHash<QByteArray, double>& tmp = operator[]("*");
 	for (auto it=tmp.begin(); it!=tmp.end(); ++it)
 	{
 		output << it.key() + ":" + QString::number(it.value(), 'f', 1);
 	}
 
+	//gene-specific scores
+	if (!gene.isEmpty())
+	{
+		const QHash<QByteArray, double>& tmp2 = operator[](gene);
+		for (auto it=tmp2.begin(); it!=tmp2.end(); ++it)
+		{
+			output << it.key() + ":" + QString::number(it.value(), 'f', 1);
+		}
+	}
+
 	output.sort(Qt::CaseInsensitive);
+
+	return output;
+}
+
+QStringList CategorizedScores::explainations(const QByteArrayList& best_genes) const
+{
+	if  (best_genes.isEmpty())
+	{
+		return explainations("");
+	}
+
+	QStringList output;
+	foreach(const QByteArray& gene, best_genes)
+	{
+		if (best_genes.count()>1) output << "[" + gene + "]";
+		output << explainations(gene);
+	}
 
 	return output;
 }
@@ -448,6 +504,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 		}
 
 		output.scores << score;
+		explanations.sort(Qt::CaseInsensitive);
 		output.score_explanations << explanations;
 	}
 
@@ -459,8 +516,9 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 	//Performance history                  Rank1  / Top10
 	//version 1:                           70.27% / 93.92% (05.04.23 - reanno not finished yet)
 	//after fix of OE/inheritance parsing: 73.15% / 95.30% (05.04.23 - reanno not finished yet)
-	//after adding NGSD score:             77.18% / 95.30% (05.04.23 - reanno not finished yet)
-	//score by gene                        xx.xx% / xx.xx%
+	//after adding NGSD score:             77.70% / 96.65% (06.04.23 - reanno not finished yet)
+	//score by gene                        80.22% / 97.21% (06.04.23 - reanno not finished yet)
+	//score bonus for several HPO matches: xx.xx& / xx.xx%
 
 	Result output;
 
@@ -526,16 +584,6 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 
 		//init
 		CategorizedScores scores;
-
-		//get gene/transcript list
-		QList<VariantTranscript> transcript_info = v.transcriptAnnotations(i_coding);
-		GeneSet genes;
-		foreach(const VariantTranscript& transcript, transcript_info)
-		{
-			genes << transcript.gene;
-		}
-
-		QHash<QByteArray, QHash<QByteArray, double>> score;
 
 		//rarity: gnomAD
 		QByteArray af_gnomad = v.annotations()[i_gnomad].trimmed();
@@ -629,86 +677,104 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 			}
 		}
 
-		//disease association: OMIM (gene-specific)
+		//get gene/transcript list
+		QList<VariantTranscript> transcript_info = v.transcriptAnnotations(i_coding);
+		GeneSet genes; //TODO remove after testing - delete cached GSvar files...
+		foreach(const VariantTranscript& transcript, transcript_info)
+		{
+			genes << transcript.gene;
+		}
+
+		//disease association: OMIM (gene-specific) - format: 612316_[GENE=ATAD3A_PHENOS=...]&616101_[GENE=TMEM240_PHENOS=...]
 		if (i_omim!=-1) //optional because of license
 		{
 			QByteArray omim = v.annotations()[i_omim].trimmed();
 			if (!omim.isEmpty())
 			{
-				scores.add("OMIM", 1.0);
+				QByteArrayList entries = omim.split('&');
+				foreach(QByteArray entry, entries)
+				{
+					QByteArrayList parts = entry.replace("GENE=", "|").replace("_PHENOS=", "|").split('|');
+					if (parts.count()<3)
+					{
+						qDebug() << v.toString() << ": Invalid OMIM entry " << omim;
+						continue;
+					}
+					QByteArray gene = parts[1].trimmed();
+					if (!genes.contains(gene))
+					{
+						qDebug() << v.toString() << ": Gene " << gene << " not in transcript gene list!";
+					}
+					scores.add("OMIM", 1.0, gene);
+				}
 			}
 		}
 
 		//impact (gene-specific)
-		double impact_score = 0.0;
 		foreach(const VariantTranscript& transcript, transcript_info)
 		{
 			if(transcript.impact=="HIGH")
 			{
-				impact_score = std::max(impact_score, 3.0);
+				scores.add("impact", 3.0, transcript.gene);
 			}
 			else if(transcript.impact=="MODERATE")
 			{
-				impact_score = std::max(impact_score, 2.0);
+				scores.add("impact", 2.0, transcript.gene);
 			}
 			else if(transcript.impact=="LOW")
 			{
-				impact_score = std::max(impact_score, 1.0);
+				scores.add("impact", 1.0, transcript.gene);
 			}
 		}
-		if (impact_score>0)
-		{
-			scores.add("impact", impact_score);
-		}
 
-		//gnomAD o/e lof, inheritance (gene-specific)
-		bool inh_match = false;
-		double min_oe = 1;
-		QByteArray genotype = v.annotations()[i_genotye].trimmed();
-		QByteArrayList gene_infos = v.annotations()[i_gene_info].trimmed().split(',');
-		std::for_each(gene_infos.begin(), gene_infos.end(), [](QByteArray& value){ value = value.trimmed(); });
-		foreach(const QByteArray& gene, genes)
+		//gnomAD o/e lof, inheritance (gene-specific) - format: SAMD11 (inh=n/a oe_syn=1.70 oe_mis=1.51 oe_lof=0.90), NOC2L (inh=n/a oe_syn=1.60 oe_mis=1.25 oe_lof=1.03)
+		QByteArray v_genotype = v.annotations()[i_genotye].trimmed();
+		foreach(QByteArray gene_info, v.annotations()[i_gene_info].split(','))
 		{
-			foreach(const QByteArray& gene_info, gene_infos)
+			gene_info = gene_info.trimmed();
+			if (gene_info.isEmpty()) continue;
+
+			//remove bracket at end
+			gene_info.chop(1);
+
+			int start = gene_info.indexOf('(');
+			if (start==-1)
 			{
-				//use gene info for current gene only
-				if (!gene_info.startsWith(gene+" ")) continue;
+				qDebug() << v.toString() << ": Invalid gene info " << v.annotations()[i_gene_info];
+				continue;
+			}
 
-				int start = gene_info.indexOf('(');
-				QByteArrayList entries = gene_info.mid(start+1, gene_info.length()-start-2).split(' ');
-				foreach(const QByteArray& entry, entries)
+			QByteArray gene = gene_info.left(start-1).trimmed();
+			QByteArrayList entries = gene_info.mid(start+1).split(' ');
+			foreach(const QByteArray& entry, entries)
+			{
+				if (entry.startsWith("inh="))
 				{
-					if (entry.startsWith("inh="))
-					{
-						QByteArray mode = entry.split('=')[1].trimmed();
+					QByteArray mode = entry.split('=')[1].trimmed();
 
-						if (genotype=="het" && (mode.contains("AD") || mode.contains("XLD")))
-						{
-							inh_match = true;
-						}
-					}
-					if (entry.startsWith("oe_lof="))
+					if (v_genotype=="het" && (mode.contains("AD") || mode.contains("XLD")))
 					{
-						QByteArray oe = entry.split('=')[1].trimmed();
-						if (oe!="n/a" && !oe.isEmpty())
+						scores.add("gene_inheritance", 0.5, gene);
+					}
+				}
+				if (entry.startsWith("oe_lof="))
+				{
+					QByteArray oe = entry.split('=')[1].trimmed();
+					if (oe!="n/a" && !oe.isEmpty())
+					{
+						double oe_lof = Helper::toDouble(oe, "gnomAD o/e LOF");
+						if (oe_lof<0.1)
 						{
-							min_oe = std::min(min_oe, Helper::toDouble(oe, "gnomAD o/e LOF"));
+							scores.add("gene_oe_lof", 0.5, gene);
 						}
 					}
 				}
 			}
 		}
-		if (inh_match)
-		{
-			scores.add("gene_inheritance", 0.5);
-		}
-		if (min_oe<0.1)
-		{
-			scores.add("gene_oe_lof", 0.5);
-		}
 
-		output.scores << scores.score();
-		output.score_explanations << scores.explainations();
+		QByteArrayList best_genes;
+		output.scores << scores.score(best_genes);
+		output.score_explanations << scores.explainations(best_genes);
 	}
 
 	return output;
@@ -721,7 +787,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 
 //TODO Ideas:
 // - phenotypes
-//    - test counting each phenotype ROI hit separatly OR using Germans model (email 09.12.2020)
+//    - add bonus score if more than one phenotype matches OR using Germans model (email 09.12.2020)
 //    - higher weight for high evidence HPO-gene regions?
 //    - count OMIM, ClinVar, HGMD matches only if the HPO-terms match (possible? currently this information is not in GSvar file or NGSD)
 // - score relevant transcripts higher than other transcripts?
