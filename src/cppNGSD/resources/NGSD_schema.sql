@@ -213,7 +213,7 @@ CREATE  TABLE IF NOT EXISTS `sequencing_run`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
   `fcid` VARCHAR(45) NULL DEFAULT NULL,
-  `flowcell_type` ENUM('Illumina MiSeq v2','Illumina MiSeq v2 Micro','Illumina MiSeq v2 Nano','Illumina MiSeq v3','Illumina NextSeq High Output','Illumina NextSeq Mid Output','Illumina NovaSeq SP','Illumina NovaSeq S1','Illumina NovaSeq S2','Illumina NovaSeq S4','PromethION FLO-PRO002','SMRTCell 8M','n/a') NOT NULL DEFAULT 'n/a',
+  `flowcell_type` ENUM('Illumina MiSeq v2','Illumina MiSeq v2 Micro','Illumina MiSeq v2 Nano','Illumina MiSeq v3','Illumina NextSeq High Output','Illumina NextSeq Mid Output','Illumina NovaSeq SP','Illumina NovaSeq S1','Illumina NovaSeq S2','Illumina NovaSeq S4','PromethION FLO-PRO002','PromethION FLO-PRO114M','SMRTCell 8M','n/a') NOT NULL DEFAULT 'n/a',
   `start_date` DATE NULL DEFAULT NULL,
   `end_date` DATE NULL DEFAULT NULL,
   `device_id` INT(11) NOT NULL,
@@ -528,6 +528,7 @@ CREATE  TABLE IF NOT EXISTS `processed_sample`
   `molarity` FLOAT NULL DEFAULT NULL,
   `normal_id` INT(11) NULL DEFAULT NULL COMMENT 'For tumor samples, a normal sample can be given here which is used as reference sample during the data analysis.',
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
+  `folder_override` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `sample_psid_unique` (`sample_id` ASC, `process_id` ASC),
   INDEX `fk_processed_sample_samples1` (`sample_id` ASC),
@@ -638,7 +639,8 @@ CONSTRAINT `fk_variant_publication_has_sample`
     FOREIGN KEY (`sample_id`)
     REFERENCES `sample` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION
+    ON UPDATE NO ACTION,
+INDEX `variant_id` (`variant_id` ASC)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
@@ -1036,6 +1038,25 @@ CREATE TABLE IF NOT EXISTS `hpo_parent`
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
+
+-- -----------------------------------------------------
+-- Table `hpo_obsolete`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `hpo_obsolete`
+(
+    `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `hpo_id` VARCHAR(10) NOT NULL,
+    `name` TEXT NOT NULL,
+    `definition` TEXT NOT NULL,
+    `replaced_by` INT(10) UNSIGNED DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `hpo_id` (`hpo_id` ASC),
+    CONSTRAINT `hpo_obsolete_ibfk`
+      FOREIGN KEY (`replaced_by`)
+      REFERENCES `hpo_term` (`id`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
 -- Table `analysis_job`
@@ -1783,10 +1804,12 @@ CREATE TABLE IF NOT EXISTS `report_configuration_sv`
   `manual_start` INT(11) DEFAULT NULL,
   `manual_end` INT(11) DEFAULT NULL,
   `manual_genotype` ENUM('hom','het') DEFAULT NULL,
-  `manual_start_bnd` INT(11) DEFAULT NULL,
-  `manual_end_bnd` INT(11) DEFAULT NULL,
   `manual_hgvs_type` text DEFAULT NULL,
   `manual_hgvs_suffix` text DEFAULT NULL,
+  `manual_start_bnd` INT(11) DEFAULT NULL,
+  `manual_end_bnd` INT(11) DEFAULT NULL,
+  `manual_hgvs_type_bnd` text DEFAULT NULL,
+  `manual_hgvs_suffix_bnd` text DEFAULT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_report_configuration3`
     FOREIGN KEY (`report_configuration_id` )
@@ -2247,7 +2270,7 @@ CREATE TABLE IF NOT EXISTS `expression`
   `processed_sample_id` INT(11) NOT NULL,
   `symbol` VARCHAR(40) NOT NULL,
   `tpm` FLOAT NOT NULL,
-  `raw` INT NOT NULL,
+  `raw` INT(11) NULL,
   PRIMARY KEY (`id`),
   INDEX(`processed_sample_id`),
   INDEX(`symbol`),

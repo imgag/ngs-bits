@@ -743,6 +743,8 @@ public:
 	QString omimPreferredPhenotype(const QByteArray& symbol, const QByteArray& disease_group);
 
 	/*** Base functionality for file/variant processing ***/
+	///Returns the sample name for an ID. If it does not exist, an exception is thrown or an empty string is returned.
+	QString sampleName(const QString& s_id, bool throw_if_fails = true);
 	///Returns the processed sample name for an ID. If it does not exist, an exception is thrown or an empty string is returned.
 	QString processedSampleName(const QString& ps_id, bool throw_if_fails = true);
 	///Returns the NGSD sample ID file name. Throws an exception if it could not be determined.

@@ -73,10 +73,11 @@ ServerWrapper::ServerWrapper(const quint16& port)
 
 		QFileSystemWatcher *watcher = new QFileSystemWatcher();
 		watcher->addPath(QCoreApplication::applicationDirPath());
-		connect(watcher, SIGNAL(directoryChanged(QString)), this, SLOT(updateClientInfo(QString)));
+		connect(watcher, SIGNAL(directoryChanged(QString)), this, SLOT(updateInfoForUsers(QString)));
 
-		// Read the client version information during the initialization
+		// Read the client version and notification information during the initialization
 		SessionManager::setCurrentClientInfo(readClientInfoFromFile());
+		SessionManager::setCurrentNotification(readUserNotificationFromFile());
 	}
 	else
 	{		
@@ -90,17 +91,25 @@ bool ServerWrapper::isRunning() const
 	return is_running_;
 }
 
-void ServerWrapper::updateClientInfo(QString str)
+void ServerWrapper::updateInfoForUsers(QString str)
 {
 	QDir dir;
 	dir.setPath(str);
 	if (!dir.exists()) return;
 	QFileInfoList list = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files, QDir::Time);
 	if (list.size() == 0) return;
-	if (CLIENT_INFO_FILE != list.first().fileName()) return;
 
-	SessionManager::setCurrentClientInfo(readClientInfoFromFile());
-	Log::info("Updated the desktop client version information to: " + SessionManager::getCurrentClientInfo().version);
+	if (list.first().fileName() == CLIENT_INFO_FILE)
+	{
+		SessionManager::setCurrentClientInfo(readClientInfoFromFile());
+		Log::info("Updated the desktop client version information to: " + SessionManager::getCurrentClientInfo().version);
+	}
+
+	if (list.first().fileName() == NOTIFICATION_FILE)
+	{
+		SessionManager::setCurrentNotification(readUserNotificationFromFile());
+		Log::info("A new notification for the users has been providied");
+	}
 }
 
 ClientInfo ServerWrapper::readClientInfoFromFile()
@@ -108,8 +117,8 @@ ClientInfo ServerWrapper::readClientInfoFromFile()
 
 	if (!QFile(QCoreApplication::applicationDirPath() + QDir::separator() + CLIENT_INFO_FILE).exists())
 	{
-		QFile empty_file(CLIENT_INFO_FILE);
-		if (!empty_file.open(QIODevice::WriteOnly)) Log::error("Could not create the clinet info file");
+		QFile empty_file(QCoreApplication::applicationDirPath() + QDir::separator() + CLIENT_INFO_FILE);
+		if (!empty_file.open(QIODevice::WriteOnly)) Log::error("Could not create the client info file");
 	}
 
 	ClientInfo info;
@@ -138,4 +147,30 @@ ClientInfo ServerWrapper::readClientInfoFromFile()
 	Log::info("Reading the client version information from the settings: " + info.version);
 	if (info.version.isEmpty()) Log::warn("Client version information file is empty");
 	return info;
+}
+
+QByteArray ServerWrapper::readUserNotificationFromFile()
+{
+	if (!QFile(QCoreApplication::applicationDirPath() + QDir::separator() + NOTIFICATION_FILE).exists())
+	{
+		QFile empty_file(QCoreApplication::applicationDirPath() + QDir::separator() + NOTIFICATION_FILE);
+		if (!empty_file.open(QIODevice::WriteOnly)) Log::error("Could not create the notification file");
+	}
+
+	QByteArray content;
+	try
+	{
+		QSharedPointer<QFile> notification_file = Helper::openFileForReading(QCoreApplication::applicationDirPath() + QDir::separator() + NOTIFICATION_FILE, false);
+		while(!notification_file->atEnd())
+		{
+			QString line = notification_file->readLine().trimmed();
+			content.append(line);
+		}
+	}
+	catch (Exception& e)
+	{
+		Log::error("Error while reading the notification file: " + e.message());
+	}
+
+	return content;
 }

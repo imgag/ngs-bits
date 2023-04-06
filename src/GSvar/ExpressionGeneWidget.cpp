@@ -837,6 +837,7 @@ void ExpressionGeneWidget::updateQuery()
 	{
 		cohort_id_list << QByteArray::number(id);
 	}
+	qDebug() << "cohort size:" << cohort_id_list.size();
 	query_gene_stats_.prepare(QString() + "SELECT AVG(e.tpm), AVG(LOG2(e.tpm+1)), STD(LOG2(e.tpm+1)) FROM expression e "
 							  + "WHERE e.processed_sample_id IN (" + cohort_id_list.join(", ") + ") AND e.symbol=:0;");
 }

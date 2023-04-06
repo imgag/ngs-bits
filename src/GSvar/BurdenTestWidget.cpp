@@ -11,8 +11,7 @@
 
 BurdenTestWidget::BurdenTestWidget(QWidget *parent) :
 	QWidget(parent),
-	ui_(new Ui::BurdenTestWidget),
-	variant_query_(db_.getQuery())
+	ui_(new Ui::BurdenTestWidget)
 {
 	if (!LoginManager::active())
 	{
@@ -329,10 +328,10 @@ QSet<int> BurdenTestWidget::getVariantsForRegion(int max_ngsd, double max_gnomad
 	}
 
 	//execute query
-	QString query_text = createGeneQuery(max_ngsd, max_gnomad_af, regions, QStringList(), predict_pathogenic);
+	QString query_text = createGeneQuery(max_ngsd, max_gnomad_af, regions, impacts, predict_pathogenic);
 	SqlQuery query = db_.getQuery();
 	query.exec(query_text);
-	qDebug() << query.size();
+	qDebug() << "initial variants:" << query.size();
 
 	//process query
 	QSet<int> variant_ids;
@@ -341,10 +340,10 @@ QSet<int> BurdenTestWidget::getVariantsForRegion(int max_ngsd, double max_gnomad
 	int n_skipped_non_pathogenic = 0;
 	int n_skipped_gene = 0;
 
-	while(variant_query_.next())
+	while(query.next())
 	{
 		//filter by impact
-		QStringList parts = variant_query_.value("coding").toString().split(",");
+		QStringList parts = query.value("coding").toString().split(",");
 		QStringList parts_match;
 		foreach(const QString& part, parts)
 		{
@@ -369,15 +368,15 @@ QSet<int> BurdenTestWidget::getVariantsForRegion(int max_ngsd, double max_gnomad
 			{
 				if (part.contains(impact))
 				{
-					double cadd = variant_query_.value("cadd").toDouble();
-					double spliceai = variant_query_.value("spliceai").toDouble();
+					double cadd = query.value("cadd").toDouble();
+					double spliceai = query.value("spliceai").toDouble();
 					if (predict_pathogenic && (impact != "HIGH") && (cadd < 20) && (spliceai < 0.5))
 					{
 						n_skipped_non_pathogenic++;
-						qDebug() << "";
 						continue;
 					}
 					match = true;
+					break;
 				}
 			}
 			if (match)
@@ -395,14 +394,15 @@ QSet<int> BurdenTestWidget::getVariantsForRegion(int max_ngsd, double max_gnomad
 		}
 
 		// return variant id
-		variant_ids << variant_query_.value("id").toInt();
-
+		variant_ids.insert(query.value("id").toInt());
 	}
 
 //	qDebug() << "skipped id:" << n_skipped_id;
+	qDebug() << "skipped empty:" << n_skipped_empty;
 	qDebug() << "skipped wrong gene:" << n_skipped_gene;
 	qDebug() << "skipped wrong impact:" << n_skipped_impact;
 	qDebug() << "skipped non-pathogenic prediction: " << n_skipped_non_pathogenic;
+	qDebug() << "\t -> remaining variants:" << variant_ids.size();
 
 	return variant_ids;
 }
@@ -484,8 +484,8 @@ void BurdenTestWidget::performBurdenTest()
 	}
 
 	//prepare query
-	prepareSqlQuery(max_ngsd, max_gnomad_af, impacts, predict_pathogenic);
-	qDebug() << "prepare query: " << Helper::elapsedTime(timer);
+//	prepareSqlQuery(max_ngsd, max_gnomad_af, impacts, predict_pathogenic);
+//	qDebug() << "prepare query: " << Helper::elapsedTime(timer);
 
 	// get genes
 	QList<int> gene_ids;
@@ -505,7 +505,6 @@ void BurdenTestWidget::performBurdenTest()
 
 	int i=0;
 	double n_sec_single_query = 0;
-	double n_sec_multiple_queries = 0;
 	// perform search
 	foreach (int gene_id, gene_ids)
 	{
@@ -535,31 +534,35 @@ void BurdenTestWidget::performBurdenTest()
 
 		qDebug() << i << "get var ids for gene " + gene_name + ": "<< variant_ids.size() << Helper::elapsedTime(timer);
 
-		qDebug() << "old/new method (s): " << n_sec_multiple_queries/1000 << n_sec_single_query/1000;
+		qDebug() << "new method (s): " << n_sec_single_query/1000;
 
 		//skip genes with no selected variants
 //		if(variant_ids.size() == 0) continue;
 
 		// for all matching variants: get counts of case and control cohort
 		QMap<int,QSet<int>> detected_variants;
-		QStringList var_ids_str;
-		foreach (int id, variant_ids)
+		if(variant_ids.size() != 0)
 		{
-			var_ids_str << QString::number(id);
-		}
-		SqlQuery detected_variant_query = db_.getQuery();
-		detected_variant_query.exec("SELECT processed_sample_id, variant_id FROM detected_variant WHERE variant_id IN (" + var_ids_str.join(", ") + ") "
-									+ "AND processed_sample_id IN (" + ps_ids.join(", ") + ")" + ((include_mosaic)?"":" AND mosaic=0"));
-		while (detected_variant_query.next())
-		{
-			int ps_id = detected_variant_query.value("processed_sample_id").toInt();
-			int var_id = detected_variant_query.value("variant_id").toInt();
+			QStringList var_ids_str;
+			foreach (int id, variant_ids)
+			{
+				var_ids_str << QString::number(id);
+			}
+			SqlQuery detected_variant_query = db_.getQuery();
+			detected_variant_query.exec("SELECT processed_sample_id, variant_id FROM detected_variant WHERE variant_id IN (" + var_ids_str.join(", ") + ") "
+										+ "AND processed_sample_id IN (" + ps_ids.join(", ") + ")" + ((include_mosaic)?"":" AND mosaic=0"));
+			while (detected_variant_query.next())
+			{
+				int ps_id = detected_variant_query.value("processed_sample_id").toInt();
+				int var_id = detected_variant_query.value("variant_id").toInt();
 
-//			if(!detected_variants.keys().contains(ps_id)) detected_variants[ps_id] = QSet<int>();
-			detected_variants[ps_id] << var_id;
+	//			if(!detected_variants.keys().contains(ps_id)) detected_variants[ps_id] = QSet<int>();
+				detected_variants[ps_id] << var_id;
+			}
+
+	//		qDebug() << "get detected variants took: " << Helper::elapsedTime(timer);
 		}
 
-//		qDebug() << "get detected variants took: " << Helper::elapsedTime(timer);
 
 
 		QStringList ps_names_cases;
@@ -645,36 +648,36 @@ void BurdenTestWidget::copyToClipboard()
 	GUIHelper::copyToClipboard(ui_->tw_gene_table, false, comments);
 }
 
-void BurdenTestWidget::prepareSqlQuery(int max_ngsd, double max_gnomad_af, const QStringList& impacts, bool predict_pathogenic)
-{
-	//prepare db queries
-	QString query_text = QString() + "SELECT v.* FROM variant v WHERE"
-			+ " (germline_het>0 OR germline_hom>0) AND germline_het+germline_hom<=" + QString::number(max_ngsd)
-			+ " AND (gnomad IS NULL OR gnomad<=" + QString::number(max_gnomad_af) + ")"
-			+ " AND v.chr=:0 AND v.start>=:1 AND v.end<=:2";
-	if(impacts.size() > 0)
-	{
-		query_text += " AND (";
-		QStringList impact_query_statement;
-		foreach (const QString& impact, impacts)
-		{
-			if (!predict_pathogenic || impact == "HIGH")
-			{
-				impact_query_statement << "(v.coding LIKE '%" + impact + "%')";
-			}
-			else
-			{
-				impact_query_statement << "(v.coding LIKE '%" + impact + "%' AND (v.cadd>=20 OR v.spliceai>=0.5))";
-			}
+//void BurdenTestWidget::prepareSqlQuery(int max_ngsd, double max_gnomad_af, const QStringList& impacts, bool predict_pathogenic)
+//{
+//	//prepare db queries
+//	QString query_text = QString() + "SELECT v.* FROM variant v WHERE"
+//			+ " (germline_het>0 OR germline_hom>0) AND germline_het+germline_hom<=" + QString::number(max_ngsd)
+//			+ " AND (gnomad IS NULL OR gnomad<=" + QString::number(max_gnomad_af) + ")"
+//			+ " AND v.chr=:0 AND v.start>=:1 AND v.end<=:2";
+//	if(impacts.size() > 0)
+//	{
+//		query_text += " AND (";
+//		QStringList impact_query_statement;
+//		foreach (const QString& impact, impacts)
+//		{
+//			if (!predict_pathogenic || impact == "HIGH")
+//			{
+//				impact_query_statement << "(v.coding LIKE '%" + impact + "%')";
+//			}
+//			else
+//			{
+//				impact_query_statement << "(v.coding LIKE '%" + impact + "%' AND (v.cadd>=20 OR v.spliceai>=0.5))";
+//			}
 
-		}
-		query_text += impact_query_statement.join(" OR ");
-		query_text += ")";
-	}
-	query_text += " ORDER BY start";
+//		}
+//		query_text += impact_query_statement.join(" OR ");
+//		query_text += ")";
+//	}
+//	query_text += " ORDER BY start";
 
-	variant_query_.prepare(query_text);
-}
+//	variant_query_.prepare(query_text);
+//}
 
 QStringList BurdenTestWidget::createChromosomeQueryList(int max_ngsd, double max_gnomad_af, const BedFile& regions, const QStringList& impacts, bool predict_pathogenic)
 {

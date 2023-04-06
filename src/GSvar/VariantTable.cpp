@@ -591,7 +591,7 @@ void VariantTable::update(VariantList& variants, const FilterResult& filter_resu
 	//init
 	QHash<int, bool> index_show_report_icon;
 	QSet<int> index_causal;
-	for(int index : report_settings.report_config->variantIndices(VariantType::SNVS_INDELS, false))
+	foreach(int index, report_settings.report_config->variantIndices(VariantType::SNVS_INDELS, false))
 	{
 		const ReportVariantConfiguration& rc = report_settings.report_config->get(VariantType::SNVS_INDELS, index);
 		index_show_report_icon[index] = rc.showInReport();
@@ -606,7 +606,7 @@ void VariantTable::update(VariantList& variants, const FilterResult& filter_resu
 	//init
 	QHash<int, bool> index_show_report_icon;
 	QSet<int> index_causal;
-	for(int index : report_settings.report_config.variantIndices(VariantType::SNVS_INDELS, false))
+	foreach(int index, report_settings.report_config.variantIndices(VariantType::SNVS_INDELS, false))
 	{
 		index_show_report_icon[index] = report_settings.report_config.get(VariantType::SNVS_INDELS, index).showInReport();
 	}

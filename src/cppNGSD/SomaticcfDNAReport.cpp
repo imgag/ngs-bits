@@ -68,7 +68,6 @@ void SomaticcfDnaReport::writeRtf(QByteArray out_file)
 RtfTable SomaticcfDnaReport::partSnvTable(int cfdna_idx_start, int cfdna_idx_end)
 {
 	RtfTable table;
-
 	if(cfdna_idx_end > data_.table.cfdna_samples.count())
 	{
 		cfdna_idx_end = data_.table.cfdna_samples.count();
@@ -76,7 +75,6 @@ RtfTable SomaticcfDnaReport::partSnvTable(int cfdna_idx_start, int cfdna_idx_end
 
 	int cfdna_count = cfdna_idx_end - cfdna_idx_start;
 	int cfdna_width = 5200 / cfdna_count;
-
 	for(int i=0; i<data_.table.lines.count(); i++)
 	{
 		RtfTableRow row;
@@ -86,12 +84,21 @@ RtfTable SomaticcfDnaReport::partSnvTable(int cfdna_idx_start, int cfdna_idx_end
 		//skip ID SNPs
 		if (variant.id().contains("ID")) continue;
 
-
 		CodingSplicingAnno co_sp_anno = getPreferedCodingAndSplicing(variant);
 
+		QByteArray change_string;
+		QByteArray type_string;
 
-		QByteArray change_string = co_sp_anno.consequence.hgvs_c + ", " + co_sp_anno.consequence.hgvs_p + "\n\\line\n" + co_sp_anno.trans.nameWithVersion();
-		QByteArray type_string = co_sp_anno.consequence.typesToString();
+		if (co_sp_anno.trans.isValid())
+		{
+			change_string = co_sp_anno.consequence.hgvs_c + ", " + co_sp_anno.consequence.hgvs_p + "\n\\line\n" + co_sp_anno.trans.nameWithVersion();
+			type_string = co_sp_anno.consequence.typesToString();
+		}
+		else
+		{
+			change_string = variant.chr().strNormalized(false) + ":g." + QByteArray::number(variant.start()) + variant.ref() + ">" + variant.alt()[0];
+			type_string = "intergenic";
+		}
 
 
 		QByteArray tumor_af = QByteArray::number(variant.info("tumor_af").toDouble(), 'f', 2);
@@ -365,8 +372,11 @@ CodingSplicingAnno SomaticcfDnaReport::getPreferedCodingAndSplicing(const VcfLin
 	}
 
 	CodingSplicingAnno anno;
-	anno.trans = transcripts[0];
-	anno.consequence = hgvs_annotator.annotate(transcripts[0], variant);
+	if (transcripts.count() >= 1)
+	{
+		anno.trans = transcripts[0];
+		anno.consequence = hgvs_annotator.annotate(transcripts[0], variant);
+	}
 
 	return anno;
 }

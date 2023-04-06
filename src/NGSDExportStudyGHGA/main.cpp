@@ -159,7 +159,8 @@ public:
 		QString dac_organization;
 		QString dap_text;
 		QString dap_url;
-		QStringList dap_conditions; //attention, this is a CV!
+		QString dap_use_condition; //attention, this is a CV!
+		QStringList dap_use_modifiers; //attention, this is a CV!
 
 		//processed samples
 		QList<PSData> ps_list;
@@ -224,13 +225,14 @@ public:
 			obj.insert("description", "short-read data analysis using megSAP: https://github.com/imgag/megSAP");
 			QStringList files;
 			files << "BAM" + ps_data.pseudonym;
+			obj.insert("has_input", QJsonArray::fromStringList(files));
+			files.clear();
 			if (!ps_data.vcf.isEmpty()) files << "VCF" + ps_data.pseudonym;
 			obj.insert("has_output", QJsonArray::fromStringList(files));
 			obj.insert("has_study", data.study_name);
 			obj.insert("reference_chromosome", "unspecified");
 			obj.insert("reference_genome", "GRCh38");
 			obj.insert("type", "BAM");
-			obj.insert("has_input", QJsonArray());
 			obj.insert("schema_type", "CreateAnalysis");
 			obj.insert("schema_version", data.version);
 
@@ -354,7 +356,8 @@ public:
 		obj.insert("description", "Data access policy for study "+data.study_name);
 		obj.insert("policy_text", data.dap_text);
 		obj.insert("policy_url", data.dap_url);
-		obj.insert("has_data_use_conditions", QJsonArray::fromStringList(QStringList() << data.dap_conditions));
+		obj.insert("has_data_use_permisson", data.dap_use_condition);
+		obj.insert("has_data_use_modifier", QJsonArray::fromStringList(QStringList() << data.dap_use_modifiers));
 		obj.insert("has_data_access_committee", data.study_name + " DAC");
 		obj.insert("schema_type", "CreateDataAccessPolicy");
 		obj.insert("schema_version", data.version);
@@ -604,7 +607,8 @@ public:
 		data.dac_organization = getString(data_obj, "data_access_committee_organization");
 		data.dap_text = getString(data_obj, "data_access_policy_text");
 		data.dap_url = getString(data_obj, "data_access_policy_url");
-		data.dap_conditions = getArray(data_obj, "data_access_policy_conditions");
+		data.dap_use_condition = getString(data_obj, "data_access_policy_use_condition");
+		data.dap_use_modifiers = getArray(data_obj, "data_access_policy_use_modifiers");
 
 		NGSD db(data.test_mode);
 
@@ -632,11 +636,6 @@ public:
 			if (!QFile::exists(vcf) && !data.test_mode) vcf.clear();
 
 			data.ps_list << PSData{ps_id, ps, bam, vcf, row.id().rightJustified(6, '0'), db.getSampleData(s_id), db.getProcessedSampleData(ps_id), db.samplePhenotypes(s_id)};
-			QTextStream(stdout) << ps << " " << data.ps_list.last().phenotypes.count() << endl;
-			foreach(const Phenotype& pheno, data.ps_list.last().phenotypes)
-			{
-				QTextStream(stdout) << ps << " " << pheno.accession() << endl;
-			}
 		}
 
 		//create JSON

@@ -167,10 +167,10 @@ private:
 
 		if(vicc_config_details_)
 		{
-			for(QString key : SomaticViccData().configAsMap().keys())
+			foreach(const QString& key, SomaticViccData().configAsMap().keys())
 			{
-			if(key.contains("comment")) continue; //skip comment because it is already included
-			vcf_stream << "##INFO=<ID=SOM_VICC_" + key.toUpper() +",Number=1,Type=String,Description=\"Somatic VICC value for VICC parameter " + key + " in the NGSD.\">\n";
+				if(key.contains("comment")) continue; //skip comment because it is already included
+				vcf_stream << "##INFO=<ID=SOM_VICC_" + key.toUpper() +",Number=1,Type=String,Description=\"Somatic VICC value for VICC parameter " + key + " in the NGSD.\">\n";
 			}
 		}
 

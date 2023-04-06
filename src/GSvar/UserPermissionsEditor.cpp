@@ -64,7 +64,7 @@ void UserPermissionsEditor::updateTable()
 				human_readable_data = db.getValue("SELECT name FROM study WHERE id='"+ data_hint +"'").toString();
 				break;
 			case Permission::SAMPLE:
-				human_readable_data = db.getValue("SELECT name FROM sample WHERE id='"+ data_hint +"'").toString();				
+				human_readable_data = db.sampleName(data_hint);
 				break;
 		}
 

@@ -5,6 +5,7 @@
 #include "GSvarHelper.h"
 #include <QFileInfo>
 #include <QMessageBox>
+#include <QAction>
 
 AnalysisInformationWidget::AnalysisInformationWidget(QString ps_id, QWidget* parent)
 	: QWidget(parent)
@@ -12,6 +13,10 @@ AnalysisInformationWidget::AnalysisInformationWidget(QString ps_id, QWidget* par
 	, ps_id_(ps_id)
 {
 	ui_.setupUi(this);
+
+	QAction* action = new QAction(QIcon(":/Icons/CopyClipboard.png"), "Copy all", this);
+	ui_.table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(copyTableToClipboard()));
 
 	updateGUI();
 }
@@ -234,4 +239,9 @@ void AnalysisInformationWidget::updateGUI()
 	{
 		QMessageBox::warning(this, "Analysis information", "Error:\n" + e.message());
 	}
+}
+
+void AnalysisInformationWidget::copyTableToClipboard()
+{
+	GUIHelper::copyToClipboard(ui_.table, false);
 }

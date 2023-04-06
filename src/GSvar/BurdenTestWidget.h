@@ -43,9 +43,9 @@ private:
 	GeneSet selected_genes_;
 	bool gene_set_initialized_ = false;
 	NGSD db_;
-	SqlQuery variant_query_;
+//	SqlQuery variant_query_;
 	bool test_running = false;
-	void prepareSqlQuery(int max_ngsd, double max_gnomad_af, const QStringList& impacts, bool predict_pathogenic);
+//	void prepareSqlQuery(int max_ngsd, double max_gnomad_af, const QStringList& impacts, bool predict_pathogenic);
 	QStringList createChromosomeQueryList(int max_ngsd, double max_gnomad_af, const BedFile& regions, const QStringList& impacts, bool predict_pathogenic);
 	int countOccurences(const QSet<int>& variant_ids, const QSet<int>& ps_ids, const QMap<int, QSet<int> >& detected_variants, Inheritance inheritance, QStringList& ps_names);
 

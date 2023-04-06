@@ -129,7 +129,7 @@ public:
 		if(!no_time)
 		{
 			out << "Import took: " << Helper::elapsedTime(timer) << endl;
-			for(QString line : sub_times)
+			foreach(const QString& line, sub_times)
 			{
 				out << " " << line.trimmed() << endl;
 			}
@@ -281,7 +281,7 @@ private:
 	int variantQuality(const Variant& variant, int i_qual) const
 	{
 		QByteArrayList parts = variant.annotations()[i_qual].split(';');
-		for(QByteArray part : parts)
+		foreach(const QByteArray& part, parts)
 		{
 			if(part.startsWith("QUAL="))
 			{

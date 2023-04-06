@@ -241,6 +241,7 @@ private slots:
 		IS_FALSE(gff.transcripts.contains("ENST00000671898")); //not name and no HGNC-ID > skipped
 
 		gff.transcripts.sortByPosition(); //order is not defined because we use a hash while parsing
+
 		S_EQUAL(gff.transcripts[0].name(), "ENST00000578049");
 		I_EQUAL(gff.transcripts[0].version(), 4);
 		S_EQUAL(gff.transcripts[0].nameCcds(), "CCDS83523.1");
@@ -252,10 +253,22 @@ private slots:
 		I_EQUAL(gff.transcripts[0].regions().baseCount(), 6927);
 		I_EQUAL(gff.transcripts[0].codingRegions().count(), 5);
 		I_EQUAL(gff.transcripts[0].codingRegions().baseCount(), 648);
+		IS_TRUE(gff.transcripts[0].isGencodeBasicTranscript());
+		IS_TRUE(gff.transcripts[0].isEnsemblCanonicalTranscript());
+		IS_TRUE(gff.transcripts[0].isManeSelectTranscript());
+		IS_FALSE(gff.transcripts[0].isManePlusClinicalTranscript());
 
-		I_EQUAL(gff.gencode_basic.count(), 13);
-		IS_TRUE(gff.gencode_basic.contains("ENST00000578049"));
+		S_EQUAL(gff.transcripts[1].name(), "ENST00000618538");
+		IS_FALSE(gff.transcripts[1].isGencodeBasicTranscript());
+		IS_FALSE(gff.transcripts[1].isEnsemblCanonicalTranscript());
+		IS_FALSE(gff.transcripts[1].isManeSelectTranscript());
+		IS_FALSE(gff.transcripts[1].isManePlusClinicalTranscript());
 
+		S_EQUAL(gff.transcripts[2].name(), "ENST00000643391");
+		IS_TRUE(gff.transcripts[2].isGencodeBasicTranscript());
+		IS_FALSE(gff.transcripts[2].isEnsemblCanonicalTranscript());
+		IS_FALSE(gff.transcripts[2].isManeSelectTranscript());
+		IS_TRUE(gff.transcripts[2].isManePlusClinicalTranscript());
 
 		//skip GENCODE basic
 		settings.skip_not_gencode_basic = true;
@@ -266,9 +279,6 @@ private slots:
 		IS_TRUE(gff.transcripts.contains("ENST00000643044")); //last valid
 		IS_FALSE(gff.transcripts.contains("ENST00000613230")); //special chromosome > skipped
 		IS_FALSE(gff.transcripts.contains("ENST00000671898")); //not name and no HGNC-ID > skipped
-
-		I_EQUAL(gff.gencode_basic.count(), 13);
-		IS_TRUE(gff.gencode_basic.contains("ENST00000578049"));
 	}
 
 	void loadGffFile_gzipped()
@@ -283,9 +293,6 @@ private slots:
 		I_EQUAL(gff.transcripts.count(), 21);
 		IS_TRUE(gff.transcripts.contains("ENST00000578049")); //first valid
 		IS_TRUE(gff.transcripts.contains("ENST00000643044")); //last valid
-
-		I_EQUAL(gff.gencode_basic.count(), 13);
-		IS_TRUE(gff.gencode_basic.contains("ENST00000578049"));
 	}
 
 };

@@ -24,14 +24,6 @@ FileLocation FileLocationProviderLocal::getAnalysisVcf() const
 	return FileLocation{name, PathType::VCF, file, QFile::exists(file)};
 }
 
-FileLocation FileLocationProviderLocal::getAnalysisMosaicFile() const
-{
-	QString name = QFileInfo(gsvar_file_).baseName();
-	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_mosaic.GSvar";
-
-	return FileLocation{name, PathType::MOSAIC_VARIANTS, file, QFile::exists(file)};
-}
-
 FileLocation FileLocationProviderLocal::getAnalysisSvFile() const
 {
 	QString name = QFileInfo(gsvar_file_).baseName();
@@ -294,7 +286,7 @@ FileLocationList FileLocationProviderLocal::getSomaticLowCoverageFiles(bool retu
 	QString folder = QFileInfo(gsvar_file_).absoluteDir().absolutePath();
 	QStringList beds = Helper::findFiles(folder, "*_lowcov.bed", false);
 
-	for(QString bed_file : beds)
+	foreach(QString bed_file, beds)
 	{
 		FileLocation file = FileLocation(name, PathType::LOWCOV_BED, bed_file, QFile::exists(bed_file));
 		addToList(file, output, return_if_missing);
@@ -386,6 +378,44 @@ FileLocation FileLocationProviderLocal::getSomaticCfdnaCandidateFile() const
 
 	return FileLocation{name, PathType::CFDNA_CANDIDATES, file, QFile::exists(file)};
 }
+
+FileLocation FileLocationProviderLocal::getSignatureSbsFile() const
+{
+	if (analysis_type_ != SOMATIC_SINGLESAMPLE && analysis_type_ != SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCfdnaCandidateFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+	QString name = QFileInfo(gsvar_file_).baseName();
+	QString file = QFileInfo(gsvar_file_).dir().absolutePath() + QDir::separator() + "snv_signatures" + QDir::separator() + "De_Novo_map_to_COSMIC_SBS96.csv";
+
+	return FileLocation{name, PathType::SIGNATURE_SBS, file, QFile::exists(file)};
+}
+
+FileLocation FileLocationProviderLocal::getSignatureIdFile() const
+{
+	if (analysis_type_ != SOMATIC_SINGLESAMPLE && analysis_type_ != SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCfdnaCandidateFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+	QString name = QFileInfo(gsvar_file_).baseName();
+	QString file = QFileInfo(gsvar_file_).dir().absolutePath() + QDir::separator() + "snv_signatures" + QDir::separator() + "De_Novo_map_to_COSMIC_ID83.csv";
+
+	return FileLocation{name, PathType::SIGNATURE_ID, file, QFile::exists(file)};
+}
+
+FileLocation FileLocationProviderLocal::getSignatureDbsFile() const
+{
+	if (analysis_type_ != SOMATIC_SINGLESAMPLE && analysis_type_ != SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCfdnaCandidateFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+	QString name = QFileInfo(gsvar_file_).baseName();
+	QString file = QFileInfo(gsvar_file_).dir().absolutePath() + QDir::separator() + "snv_signatures" + QDir::separator() + "De_Novo_map_to_COSMIC_DBS78.csv";
+
+	return FileLocation{name, PathType::SIGNATURE_DBS, file, QFile::exists(file)};
+}
+
+FileLocation FileLocationProviderLocal::getSignatureCnvFile() const
+{
+	if (analysis_type_ != SOMATIC_SINGLESAMPLE && analysis_type_ != SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCfdnaCandidateFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+	QString name = QFileInfo(gsvar_file_).baseName();
+	QString file = QFileInfo(gsvar_file_).dir().absolutePath() + QDir::separator() + "cnv_signatures" + QDir::separator() + "De_Novo_map_to_COSMIC_CNV48.csv";
+
+	return FileLocation{name, PathType::CFDNA_CANDIDATES, file, QFile::exists(file)};
+}
+
+
 
 QString FileLocationProviderLocal::getAnalysisPath() const
 {

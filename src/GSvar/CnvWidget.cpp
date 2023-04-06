@@ -691,7 +691,7 @@ void CnvWidget::showContextMenu(QPoint p)
 		{
 			//Delete som variant configuration for more than one cnv
 			QModelIndexList selectedRows = ui->cnvs->selectionModel()->selectedRows();
-			for(const auto& selected_row : selectedRows)
+			foreach(const auto& selected_row, selectedRows)
 			{
 				if( ui->cnvs->isRowHidden(selected_row.row()) ) continue;
 				somatic_report_config_->remove(VariantType::CNVS, selected_row.row());
@@ -925,7 +925,7 @@ void CnvWidget::cnvHeaderContextMenu(QPoint pos)
 		{
 			//Delete som variant configuration for more than one cnv
 			QModelIndexList selectedRows = ui->cnvs->selectionModel()->selectedRows();
-			for(const auto& selected_row : selectedRows)
+			foreach(const auto& selected_row, selectedRows)
 			{
 				somatic_report_config_->remove(VariantType::CNVS, selected_row.row());
 				updateReportConfigHeaderIcon(selected_row.row());
@@ -951,10 +951,10 @@ void CnvWidget::editReportConfiguration(int row)
 		if(selectedRows.count() > 1)
 		{
 			QList<int> rows;
-			for(const auto& selectedRow : selectedRows)
+			foreach(const auto& selected_row, selectedRows)
 			{
-				if( ui->cnvs->isRowHidden(selectedRow.row()) ) continue;
-				rows << selectedRow.row();
+				if( ui->cnvs->isRowHidden(selected_row.row()) ) continue;
+				rows << selected_row.row();
 			}
 			editSomaticReportConfiguration(rows);
 		}

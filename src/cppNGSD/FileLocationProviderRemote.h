@@ -18,7 +18,6 @@ public:
 	bool isLocal() const override;
 
 	FileLocation getAnalysisVcf() const override;
-	FileLocation getAnalysisMosaicFile() const override;
 	FileLocation getAnalysisSvFile() const override;
 	FileLocation getAnalysisCnvFile() const override;
 	FileLocation getAnalysisMosaicCnvFile() const override;
@@ -49,6 +48,10 @@ public:
 	FileLocation getSomaticMsiFile() const override;
 	FileLocation getSomaticIgvScreenshotFile() const override;
 	FileLocation getSomaticCfdnaCandidateFile() const override;
+	FileLocation getSignatureSbsFile() const override;
+	FileLocation getSignatureIdFile() const override;
+	FileLocation getSignatureDbsFile() const override;
+	FileLocation getSignatureCnvFile() const override;
 
 private:
 	FileLocationList getFileLocationsByType(PathType type, bool return_if_missing) const;
