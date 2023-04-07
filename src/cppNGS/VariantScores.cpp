@@ -131,7 +131,7 @@ int VariantScores::annotate(VariantList& variants, const VariantScores::Result& 
 		}
 		variants[i].annotations()[i_score] = score_str;
 		variants[i].annotations()[i_rank] = rank_str;
-		if (add_explanations) variants[i].annotations()[i_score_exp] = result.score_explanations[i].join(", ").toUtf8();
+		if (add_explanations) variants[i].annotations()[i_score_exp] = result.score_explanations[i].join(" ").toUtf8();
 	}
 
 	return c_scored;

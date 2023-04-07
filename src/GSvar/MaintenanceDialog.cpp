@@ -268,7 +268,7 @@ void MaintenanceDialog::appendOutputLine(QString line)
 {
 	line = line.trimmed();
 
-	if (!line.isEmpty()) line = QDateTime::currentDateTime().toString(Qt::ISODate).replace("T", " ") + " " + line;
+	if (!line.isEmpty()) line = QDateTime::currentDateTime().toString(Qt::ISODate).replace("T", " ") + "\t" + line;
 
 	ui_.output->append(line);
 
@@ -294,3 +294,91 @@ QSet<QString> MaintenanceDialog::tablesReferencing(NGSD& db, QString referenced_
 
 	return output;
 }
+
+void MaintenanceDialog::findInconsistenciesForCausalDiagnosticVariants()
+{
+	NGSD db;
+	QStringList ps_names = db.getValues("SELECT DISTINCT CONCAT(s.name, '_0', ps.process_id) FROM sample s, processed_sample ps, report_configuration rc, report_configuration_variant rcv, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND (sys.type='WGS' OR sys.type='WES') AND ps.project_id=p.id AND p.type='diagnostic' AND ps.sample_id=s.id AND ps.quality!='bad' AND rc.processed_sample_id=ps.id AND rcv.report_configuration_id=rc.id AND rcv.causal='1' AND rcv.type='diagnostic variant' ORDER BY ps.id ASC");
+	int ps_nr = 0;
+	foreach(QString ps, ps_names)
+	{
+		if (ps_nr % 100==0)
+		{
+			appendOutputLine("##Progress " + QString::number(ps_nr) + " / " + QString::number(ps_names.count()));
+		}
+		++ps_nr;
+
+		QStringList errors;
+
+		//check outcome
+		QString ps_id = db.processedSampleId(ps);
+		DiagnosticStatusData diag_status_data = db.getDiagnosticStatus(ps_id);
+		if (diag_status_data.outcome!="significant findings")
+		{
+			errors << "causal variant, but outcome not 'significant findings'";
+		}
+
+		//check disease status
+		QString s_id = db.sampleId(ps);
+		SampleData sample_data = db.getSampleData(s_id);
+		if (sample_data.disease_status!="Affected")
+		{
+			errors << "causal variant, but disease status not 'Affected'";
+		}
+
+		//check HPO terms set
+		if (sample_data.phenotypes.isEmpty())
+		{
+			errors << "causal variant, but no HPO terms set";
+		}
+
+		//check causal variants
+		QString gsvar = db.processedSamplePath(ps_id, PathType::GSVAR);
+		VariantList variants;
+		variants.load(gsvar);
+
+		//check rank of causal variant
+		int rc_id = db.reportConfigId(ps_id);
+		if (rc_id==-1) THROW(ProgrammingException, "Processes sample '" + ps + "' has no report config!");
+		CnvList cnvs;
+		BedpeFile svs;
+		QSharedPointer<ReportConfiguration> rc_ptr = db.reportConfig(rc_id, variants, cnvs, svs);
+		foreach(const ReportVariantConfiguration& var_conf, rc_ptr->variantConfig())
+		{
+			if (var_conf.causal && var_conf.variant_type==VariantType::SNVS_INDELS && var_conf.report_type=="diagnostic variant")
+			{
+				int var_index = var_conf.variant_index;
+				if (var_index<0) THROW(ProgrammingException, "Processes sample '" + ps + "' variant list does not contain causal variant!");
+
+				const Variant& v = variants[var_index];
+
+				//check inheritance
+				QString inheritance = var_conf.inheritance;
+				if (inheritance.isEmpty() || inheritance=="n/a")
+				{
+					errors << "Causal variant " + v.toString() + " without inheritance mode in report configuration";
+				}
+
+				//check classification
+				QString classification = db.getClassification(v).classification;
+				if (classification!='4' && classification!='5')
+				{
+					errors << "Causal variant " + v.toString() + " not classified as class 4/5 (is '" + classification + "')";
+				}
+			}
+		}
+
+		if (!errors.isEmpty())
+		{
+			QStringList users;
+			users << rc_ptr->createdBy();
+			users << rc_ptr->lastUpdatedBy();
+			users << diag_status_data.user;
+			users.removeDuplicates();
+			users.removeAll("");
+			users.removeAll("Unknown user");
+			appendOutputLine(ps + "\t" + errors.join(" // ") + "\t" + users.join(", "));
+		}
+	}
+}
+
