@@ -128,7 +128,7 @@ struct VcfToBedpe::bedpe_line
 			int n = info.value("SUPPORT").toInt();
 			double stdev = info.value("STDEV_POS").toDouble();
 			int offset = std::ceil(1.96 * (stdev / std::sqrt(n)));
-			START_A = START_A - offset;
+			START_A = std::max(0, START_A - offset);
 			END_A = END_A + offset;
 		}
 	}
@@ -191,7 +191,7 @@ struct VcfToBedpe::bedpe_line
 			int n = info.value("SUPPORT").toInt();
 			double stdev = info.value("STDEV_LEN").toDouble();
 			int offset = std::ceil(1.96 * (stdev / std::sqrt(n)));
-			START_B = START_B - offset;
+			START_B = std::max(0, START_B - offset);
 			END_B = END_B + offset;
 		}
 	}
