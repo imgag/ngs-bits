@@ -706,7 +706,7 @@ void ProcessedSampleWidget::openGeneExpressionWidget()
 		int sys_id = db.processingSystemIdFromProcessedSample(processedSampleName());
 		QString tissue = db.getSampleData(db.sampleId(sampleName())).tissue;
 		ExpressionGeneWidget* widget = new ExpressionGeneWidget(file_location.filename, sys_id, tissue, "", GeneSet(), db.getProcessedSampleData(ps_id_).project_name, ps_id_, RNA_COHORT_GERMLINE, this);
-		auto dlg = GUIHelper::createDialog(widget, "Expression Data (Genes) of " + db.processedSampleName(ps_id_));
+		auto dlg = GUIHelper::createDialog(widget, "Gene expression of " + db.processedSampleName(ps_id_));
 		GlobalServiceProvider::addModelessDialog(dlg);
 	}
 	else
@@ -725,7 +725,7 @@ void ProcessedSampleWidget::openExonExpressionWidget()
 		int sys_id = db.processingSystemIdFromProcessedSample(processedSampleName());
 		QString tissue = db.getSampleData(db.sampleId(sampleName())).tissue;
 		ExpressionExonWidget* widget = new ExpressionExonWidget(file_location.filename, sys_id, tissue, "", GeneSet(), db.getProcessedSampleData(ps_id_).project_name, ps_id_, RNA_COHORT_GERMLINE, this);
-		auto dlg = GUIHelper::createDialog(widget, "Exon expression data (Exons) of " + db.processedSampleName(ps_id_));
+		auto dlg = GUIHelper::createDialog(widget, "Exon expression of " + db.processedSampleName(ps_id_));
 		GlobalServiceProvider::addModelessDialog(dlg);
 	}
 	else

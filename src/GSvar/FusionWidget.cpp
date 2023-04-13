@@ -85,7 +85,7 @@ void FusionWidget::loadFusionData()
 			else
 			{
 				// add standard QTableWidgetItem
-				ui_->fusions->setItem(row_idx, col_idx, new QTableWidgetItem(row.at(column_indices.at(col_idx))));
+				ui_->fusions->setItem(row_idx, col_idx, GUIHelper::createTableItem(row.at(column_indices.at(col_idx))));
 			}
 		}
 	}
