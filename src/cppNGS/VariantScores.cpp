@@ -513,13 +513,6 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 
 VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const Parameters& parameters)
 {
-	//Performance history                  Rank1  / Top10
-	//version 1:                           70.27% / 93.92% (05.04.23 - reanno not finished yet)
-	//after fix of OE/inheritance parsing: 73.15% / 95.30% (05.04.23 - reanno not finished yet)
-	//after adding NGSD score:             77.70% / 96.65% (06.04.23 - reanno not finished yet)
-	//score by gene                        80.22% / 97.21% (06.04.23 - reanno not finished yet)
-	//score bonus for several HPO matches: xx.xx& / xx.xx%
-
 	Result output;
 
 	//get indices of annotations we need
@@ -552,10 +545,11 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 	QStringList filters;
 	filters << "Allele frequency	max_af=0.1"
 			<< "Allele frequency (sub-populations)	max_af=0.1"
-			<< "Variant quality	qual=30	depth=5	mapq=20	strand_bias=-1	allele_balance=-1"
+			<< "Variant quality	qual=30	depth=1	mapq=20	strand_bias=-1	allele_balance=-1	min_occurences=0	min_af=0	max_af=1"
 			<< "Count NGSD	max_count=10	ignore_genotype=false"
 			<< "Impact	impact=HIGH,MODERATE,LOW"
 			<< "Annotated pathogenic	action=KEEP	sources=HGMD,ClinVar	also_likely_pathogenic=false"
+			<< "Splice effect	MaxEntScan=0	SpliceAi=0.5	action=KEEP"
 			<< "Allele frequency	max_af=1.0"
 			<< "Filter columns	entries=mosaic	action=REMOVE"
 			<< "Classification NGSD	action=REMOVE	classes=1,2";
@@ -785,7 +779,13 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 
 }
 
+//Performance history DOMINANT								Rank1  / Top10
+//version 1:												75.02% / 97.48% (17.04.23)
+//score by gene, NGSD score, fix of OE/inheritance parsing	79.37% / 97.40% (17.04.23)
+//score bonus for several HPO matches: xx.xx& / xx.xx%
+
 //TODO Ideas:
+// - handle recurring variants?
 // - phenotypes
 //    - add bonus score if more than one phenotype matches OR using Germans model (email 09.12.2020)
 //    - higher weight for high evidence HPO-gene regions?
