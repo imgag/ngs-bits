@@ -798,7 +798,7 @@ void MainWindow::on_actionDebug_triggered()
 		//evaluation GSvar score/rank
 
 		//init parameters and output stream
-		bool test_domiant = true;
+		bool test_domiant = false;
 		bool test_v1 = false;
 		QString algorithm;
 		QString suffix;
@@ -948,6 +948,11 @@ void MainWindow::on_actionDebug_triggered()
 
 				auto addLine = [&] (const Variant& v, QString inheritance, bool causal = true)
 				{
+					QList<int> affected_cols = variants.getSampleHeader().sampleColumns(true);
+					if (affected_cols.count()!=1) THROW(ArgumentException, "VariantScores: Algorihtm 'GSvar_v1' can only be applied to variant lists with exactly one affected patient!");
+					int i_genotye = affected_cols[0];
+					QString genotype = v.annotations()[i_genotye].trimmed();
+
 					QString gnomad_af = v.annotations()[i_gnomad].trimmed();
 					if (gnomad_af.isEmpty()) gnomad_af = "0";
 
@@ -997,14 +1002,16 @@ void MainWindow::on_actionDebug_triggered()
 					}
 
 					QStringList cols;
-					cols << ps << system << hpo_terms.join(", ") << v.toString() << inheritance  << v.annotations()[i_filter]<< impact.join(", ") << gene_inheritance.join(", ") << oe_lof.join(", ") << gnomad_af << gnomad_af_sub << v.annotations()[i_ngsd_het] << v.annotations()[i_ngsd_hom] << QString::number(c_scored) << QString::number(hpo_genes.count()) << score << v.annotations()[i_score_exp] << rank;
+					cols << ps << system << hpo_terms.join(", ") << (v.toString() + " (" + genotype + ")") << inheritance  << v.annotations()[i_filter]<< impact.join(", ") << gene_inheritance.join(", ") << oe_lof.join(", ") << gnomad_af << gnomad_af_sub << v.annotations()[i_ngsd_het] << v.annotations()[i_ngsd_hom] << QString::number(c_scored) << QString::number(hpo_genes.count()) << score << v.annotations()[i_score_exp] << rank;
 					out_stream << cols.join("\t") << endl;
 				};
 
-				//check rank of causal variant
+				//get report config
 				int rc_id = db.reportConfigId(ps_id);
 				if (rc_id==-1) THROW(ProgrammingException, "Processes sample '" + ps + "' has no report config!");
 
+				//get indices of causal variants
+				QSet<int> causal_indices;
 				CnvList cnvs;
 				BedpeFile svs;
 				QSharedPointer<ReportConfiguration> rc_ptr = db.reportConfig(rc_id, variants, cnvs, svs);
@@ -1020,40 +1027,57 @@ void MainWindow::on_actionDebug_triggered()
 						//remove special chromosomes
 						if (!var.chr().isAutosome() && !var.chr().isGonosome()) continue;
 
-						//add output line
-						QString inheritance = var_conf.inheritance;
-						if (test_domiant && inheritance!="AD" && inheritance!="XLD") continue;
-						if (!test_domiant && inheritance!="AR" && inheritance!="XLR") continue;
-						addLine(var, inheritance);
+						causal_indices << var_index;
+					}
+				}
 
-						++c_all;
+				int causal_var_nr = 0;
+				QSet<int> noncausal_indices_added;
+				foreach(const ReportVariantConfiguration& var_conf, rc_ptr->variantConfig())
+				{
+					int var_index = var_conf.variant_index;
+					if (!causal_indices.contains(var_index)) continue;
 
-						//statistics
-						try
+					const Variant& var = variants[var_index];
+
+					QString inheritance = var_conf.inheritance;
+
+					++causal_var_nr;
+					QString var_nr = " (" + QString::number(causal_var_nr) + "/" + QString::number(causal_indices.count()) + ")";
+
+					addLine(var, inheritance + var_nr);
+
+					++c_all;
+
+					//statistics
+					try
+					{
+						int rank = Helper::toInt(var.annotations()[i_rank]);
+						if (rank==1) ++c_top1;
+						if (rank<=5) ++c_top5;
+						if (rank<=10) ++c_top10;
+
+						//store top 5 variants ranking higher than the causal variant
+						if (rank>1 && rank<=10)
 						{
-							int rank = Helper::toInt(var.annotations()[i_rank]);
-							if (rank==1) ++c_top1;
-							if (rank<=5) ++c_top5;
-							if (rank<=10) ++c_top10;
-
-							//store variants ranking higher than the causal variant
-							if (rank>1 && rank<=10)
+							for(int v=0; v<variants.count() ; ++v)
 							{
-								for(int v=0; v<variants.count() ; ++v)
+								if (causal_indices.contains(v)) continue;
+								if (noncausal_indices_added.contains(v)) continue;
+
+								bool ok = false;
+								int rank2 = variants[v].annotations()[i_rank].toInt(&ok);
+								if (ok && rank2<rank && rank2<=5)
 								{
-									bool ok = false;
-									int rank2 = variants[v].annotations()[i_rank].toInt(&ok);
-									if (ok && rank2<rank && rank2<=5)
-									{
-										addLine(variants[v], inheritance, false);
-									}
+									addLine(variants[v], inheritance, false);
+									noncausal_indices_added << v;
 								}
 							}
 						}
-						catch(...)
-						{
-							++c_none;
-						}
+					}
+					catch(...)
+					{
+						++c_none;
 					}
 				}
 			}

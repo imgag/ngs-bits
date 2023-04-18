@@ -526,7 +526,6 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 	int i_classification = variants.annotationIndexByName("classification");
 	QList<int> affected_cols = variants.getSampleHeader().sampleColumns(true);
 	if (affected_cols.count()!=1) THROW(ArgumentException, "VariantScores: Algorihtm 'GSvar_v1' can only be applied to variant lists with exactly one affected patient!");
-	int i_genotye = affected_cols[0];
 
 	//get blacklist variants
 	QList<Variant> blacklist = loadBlacklist();
@@ -671,12 +670,241 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 			}
 		}
 
-		//get gene/transcript list
+		//disease association: OMIM (gene-specific) - format: 612316_[GENE=ATAD3A_PHENOS=...]&616101_[GENE=TMEM240_PHENOS=...]
+		if (i_omim!=-1) //optional because of license
+		{
+			QByteArray omim = v.annotations()[i_omim].trimmed();
+			if (!omim.isEmpty())
+			{
+				QByteArrayList entries = omim.split('&');
+				foreach(QByteArray entry, entries)
+				{
+					QByteArrayList parts = entry.replace("GENE=", "|").replace("_PHENOS=", "|").split('|');
+					if (parts.count()<3)
+					{
+						qDebug() << v.toString() << ": Invalid OMIM entry " << omim;
+						continue;
+					}
+					QByteArray gene = parts[1].trimmed();
+					scores.add("OMIM", 1.0, gene);
+				}
+			}
+		}
+
+		//impact (gene-specific)
 		QList<VariantTranscript> transcript_info = v.transcriptAnnotations(i_coding);
-		GeneSet genes; //TODO remove after testing - delete cached GSvar files...
 		foreach(const VariantTranscript& transcript, transcript_info)
 		{
-			genes << transcript.gene;
+			if(transcript.impact=="HIGH")
+			{
+				scores.add("impact", 3.0, transcript.gene);
+			}
+			else if(transcript.impact=="MODERATE")
+			{
+				scores.add("impact", 2.0, transcript.gene);
+			}
+			else if(transcript.impact=="LOW")
+			{
+				scores.add("impact", 1.0, transcript.gene);
+			}
+		}
+
+		//gnomAD o/e lof, inheritance (gene-specific) - format: SAMD11 (inh=n/a oe_syn=1.70 oe_mis=1.51 oe_lof=0.90), NOC2L (inh=n/a oe_syn=1.60 oe_mis=1.25 oe_lof=1.03)
+		foreach(QByteArray gene_info, v.annotations()[i_gene_info].split(','))
+		{
+			gene_info = gene_info.trimmed();
+			if (gene_info.isEmpty()) continue;
+
+			//remove bracket at end
+			gene_info.chop(1);
+
+			int start = gene_info.indexOf('(');
+			if (start==-1)
+			{
+				qDebug() << v.toString() << ": Invalid gene info " << v.annotations()[i_gene_info];
+				continue;
+			}
+
+			QByteArray gene = gene_info.left(start-1).trimmed();
+			QByteArrayList entries = gene_info.mid(start+1).split(' ');
+			foreach(const QByteArray& entry, entries)
+			{
+				if (entry.startsWith("inh="))
+				{
+					QByteArray mode = entry.split('=')[1].trimmed();
+
+					if (mode.contains("AD") || mode.contains("XLD"))
+					{
+						scores.add("gene_inheritance", 0.5, gene);
+					}
+				}
+				if (entry.startsWith("oe_lof="))
+				{
+					QByteArray oe = entry.split('=')[1].trimmed();
+					if (oe!="n/a" && !oe.isEmpty())
+					{
+						double oe_lof = Helper::toDouble(oe, "gnomAD o/e LOF");
+						if (oe_lof<0.1)
+						{
+							scores.add("gene_oe_lof", 0.5, gene);
+						}
+					}
+				}
+			}
+		}
+
+		QByteArrayList best_genes;
+		output.scores << scores.score(best_genes);
+		output.score_explanations << scores.explainations(best_genes);
+	}
+
+	return output;
+}
+
+VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const Parameters& parameters)
+{
+	Result output;
+
+	//get indices of annotations we need
+	int i_coding = variants.annotationIndexByName("coding_and_splicing");
+	int i_gnomad = variants.annotationIndexByName("gnomAD");
+	int i_omim = variants.annotationIndexByName("OMIM", true, false);
+	int i_hgmd = variants.annotationIndexByName("HGMD", true, false);
+	int i_clinvar = variants.annotationIndexByName("ClinVar");
+	int i_gene_info = variants.annotationIndexByName("gene_info");
+	int i_classification = variants.annotationIndexByName("classification");
+	QList<int> affected_cols = variants.getSampleHeader().sampleColumns(true);
+	if (affected_cols.count()!=1) THROW(ArgumentException, "VariantScores: Algorihtm 'GSvar_v1' can only be applied to variant lists with exactly one affected patient!");
+	int i_genotye = affected_cols[0];
+
+	//get blacklist variants
+	QList<Variant> blacklist = loadBlacklist();
+
+	//prepare ROI for fast lookup
+	if (phenotype_rois.count()==0) output.warnings << "No phenotype region(s) set!";
+	BedFile roi;
+	foreach(const BedFile& pheno_roi, phenotype_rois)
+	{
+		roi.add(pheno_roi);
+	}
+	roi.merge();
+	ChromosomalIndex<BedFile> roi_index(roi);
+
+	//apply pre-filters to reduce runtime
+	QStringList filters;
+	filters << "Allele frequency	max_af=0.1"
+			<< "Allele frequency (sub-populations)	max_af=0.1"
+			<< "Variant quality	qual=30	depth=1	mapq=20	strand_bias=-1	allele_balance=-1	min_occurences=0	min_af=0	max_af=1"
+			<< "Count NGSD	max_count=10	ignore_genotype=false"
+			<< "Impact	impact=HIGH,MODERATE,LOW"
+			<< "Annotated pathogenic	action=KEEP	sources=HGMD,ClinVar	also_likely_pathogenic=false"
+			<< "Splice effect	MaxEntScan=0	SpliceAi=0.5	action=KEEP"
+			<< "Allele frequency	max_af=1.0"
+			<< "Filter columns	entries=mosaic	action=REMOVE"
+			<< "Classification NGSD	action=REMOVE	classes=1,2";
+	if (parameters.use_ngsd_classifications) filters << "Classification NGSD	action=KEEP	classes=4,5";
+	FilterCascade cascade = FilterCascade::fromText(filters);
+	FilterResult cascade_result = cascade.apply(variants);
+
+	for (int i=0; i<variants.count(); ++i)
+	{
+		//skip pre-filtered variants
+		if(!cascade_result.passing(i))
+		{
+			output.scores << -1.0;
+			output.score_explanations << QStringList();
+			continue;
+		}
+
+		//skip blacklist variants
+		const Variant& v = variants[i];
+		if (parameters.use_blacklist && blacklist.contains(v))
+		{
+			output.scores << -2.0;
+			output.score_explanations << QStringList();
+			continue;
+		}
+
+		//init
+		CategorizedScores scores;
+
+		//rarity: gnomAD
+		QByteArray af_gnomad = v.annotations()[i_gnomad].trimmed();
+		if (af_gnomad=="")
+		{
+			scores.add("gnomAD", 1.0);
+		}
+		else
+		{
+			double af_gnomad2 = Helper::toDouble(af_gnomad, "genomAD AF");
+			if (af_gnomad2<=0.0001)
+			{
+				scores.add("gnomAD", 0.5);
+			}
+		}
+
+		//disease association: in phenotype ROI
+		int index = roi_index.matchingIndex(v.chr(), v.start(), v.end());
+		if (index!=-1)
+		{
+			scores.add("HPO", 2.0);
+		}
+
+		//disease association: HGMD variant
+		if (i_hgmd!=-1) //optional because of license
+		{
+			double hgmd_score = 0.0;
+			QByteArrayList hgmd = v.annotations()[i_hgmd].trimmed().split(';');
+			foreach(const QByteArray& entry, hgmd)
+			{
+				if (entry.contains("DM?"))
+				{
+					hgmd_score = std::max(hgmd_score, 0.3);
+				}
+				else if (entry.contains("DM"))
+				{
+					hgmd_score = std::max(hgmd_score, 0.5);
+				}
+
+			}
+			if (hgmd_score>0)
+			{
+				scores.add("HGMD", hgmd_score);
+			}
+		}
+
+		//disease association: ClinVar variant
+		double clinvar_score = 0.0;
+		QByteArrayList clinvar = v.annotations()[i_clinvar].trimmed().split(';');
+		foreach(const QByteArray& entry, clinvar)
+		{
+			if (entry.contains("likely pathogenic"))
+			{
+				clinvar_score = std::max(clinvar_score, 0.5);
+			}
+			else if (entry.contains("pathogenic"))
+			{
+				clinvar_score = std::max(clinvar_score, 1.0);
+			}
+
+		}
+		if (clinvar_score>0)
+		{
+			scores.add("ClinVar", clinvar_score);
+		}
+
+		//disease association: NGSD classification
+		if (parameters.use_ngsd_classifications)
+		{
+			QByteArray classification = v.annotations()[i_classification].trimmed();
+			if (classification=="4")
+			{
+				scores.add("NGSD class", 0.5);
+			}
+			if (classification=="5")
+			{
+				scores.add("NGSD class", 1.0);
+			}
 		}
 
 		//disease association: OMIM (gene-specific) - format: 612316_[GENE=ATAD3A_PHENOS=...]&616101_[GENE=TMEM240_PHENOS=...]
@@ -695,16 +923,13 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 						continue;
 					}
 					QByteArray gene = parts[1].trimmed();
-					if (!genes.contains(gene))
-					{
-						qDebug() << v.toString() << ": Gene " << gene << " not in transcript gene list!";
-					}
 					scores.add("OMIM", 1.0, gene);
 				}
 			}
 		}
 
 		//impact (gene-specific)
+		QList<VariantTranscript> transcript_info = v.transcriptAnnotations(i_coding);
 		foreach(const VariantTranscript& transcript, transcript_info)
 		{
 			if(transcript.impact=="HIGH")
@@ -746,7 +971,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 				{
 					QByteArray mode = entry.split('=')[1].trimmed();
 
-					if (v_genotype=="het" && (mode.contains("AD") || mode.contains("XLD")))
+					if (mode.contains("AR") || mode.contains("XLR"))
 					{
 						scores.add("gene_inheritance", 0.5, gene);
 					}
@@ -766,28 +991,35 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 			}
 		}
 
+		//genotype
+		if (v_genotype=="hom")
+		{
+			scores.add("genotype", 1.0); //TODO optimize score
+		}
+		//TODO handle comp-het
+
 		QByteArrayList best_genes;
 		output.scores << scores.score(best_genes);
 		output.score_explanations << scores.explainations(best_genes);
 	}
 
+
 	return output;
-}
-
-VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList& /*variants*/, QHash<Phenotype, BedFile> /*phenotype_rois*/, const Parameters& /*parameters*/)
-{
-
 }
 
 //Performance history DOMINANT								Rank1  / Top10
 //version 1:												75.02% / 97.48% (17.04.23)
-//score by gene, NGSD score, fix of OE/inheritance parsing	79.37% / 97.40% (17.04.23)
-//score bonus for several HPO matches: xx.xx& / xx.xx%
+//score by gene, NGSD score, fix of OE/inheritance parsing	79.60% / 97.48% (17.04.23)
+
+
+//Performance history RECESSIVE								Rank1  / Top10
+//version 1:												52.73% / 90.50% (18.04.23)
+//score by gene, fix of OE/inheritance parsing				53.30% / 92.56% (18.04.23)
 
 //TODO Ideas:
-// - handle recurring variants?
+// - recurring variants > blacklist ?
+// - score relevant transcripts higher than other transcripts?
 // - phenotypes
 //    - add bonus score if more than one phenotype matches OR using Germans model (email 09.12.2020)
 //    - higher weight for high evidence HPO-gene regions?
 //    - count OMIM, ClinVar, HGMD matches only if the HPO-terms match (possible? currently this information is not in GSvar file or NGSD)
-// - score relevant transcripts higher than other transcripts?
