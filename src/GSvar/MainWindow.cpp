@@ -831,7 +831,7 @@ void MainWindow::on_actionDebug_triggered()
 
 		int c_all = 0;
 		int c_top1 = 0;
-		int c_top5 = 0;
+		int c_top2 = 0;
 		int c_top10 = 0;
 		int c_none = 0;
 		QHash<QByteArray, GeneSet> pheno2genes_cache_;
@@ -934,7 +934,7 @@ void MainWindow::on_actionDebug_triggered()
 				//score
 				VariantScores::Result result = VariantScores::score(algorithm, variants, phenotype_rois, parameters);
 
-				//prepare labda for output
+				//prepare lambda for output
 				int c_scored = VariantScores::annotate(variants, result, true);
 				int i_filter = variants.annotationIndexByName("filter");
 				int i_coding = variants.annotationIndexByName("coding_and_splicing");
@@ -1027,6 +1027,11 @@ void MainWindow::on_actionDebug_triggered()
 						//remove special chromosomes
 						if (!var.chr().isAutosome() && !var.chr().isGonosome()) continue;
 
+						//filter by inheritance
+						QString inheritance = var_conf.inheritance;
+						if (test_domiant && inheritance!="AD" && inheritance!="XLD") continue;
+						if (!test_domiant && inheritance!="AR" && inheritance!="XLR") continue;
+
 						causal_indices << var_index;
 					}
 				}
@@ -1054,7 +1059,7 @@ void MainWindow::on_actionDebug_triggered()
 					{
 						int rank = Helper::toInt(var.annotations()[i_rank]);
 						if (rank==1) ++c_top1;
-						if (rank<=5) ++c_top5;
+						if (rank<=2) ++c_top2;
 						if (rank<=10) ++c_top10;
 
 						//store top 5 variants ranking higher than the causal variant
@@ -1088,7 +1093,7 @@ void MainWindow::on_actionDebug_triggered()
 			}
 		}
 		out_stream << "##Rank1: " << QString::number(c_top1) << " (" + QString::number(100.0*c_top1/c_all, 'f', 2) << "%)" << endl;
-		out_stream << "##Top5 : " << QString::number(c_top5) << " (" + QString::number(100.0*c_top5/c_all, 'f', 2) << "%)" << endl;
+		out_stream << "##Top2 : " << QString::number(c_top2) << " (" + QString::number(100.0*c_top2/c_all, 'f', 2) << "%)" << endl;
 		out_stream << "##Top10: " << QString::number(c_top10) << " (" + QString::number(100.0*c_top10/c_all, 'f', 2) << "%)" << endl;
 		out_stream << "##None : " << QString::number(c_none) << " (" + QString::number(100.0*c_none/c_all, 'f', 2) << "%)" << endl;
 
