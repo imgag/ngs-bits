@@ -806,6 +806,33 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 	FilterCascade cascade = FilterCascade::fromText(filters);
 	FilterResult cascade_result = cascade.apply(variants);
 
+	//determine number of hits per gene
+	QHash<QString, int> gene_hits_het;
+	for (int i=0; i<variants.count(); ++i)
+	{
+		//skip pre-filtered variants
+		if(!cascade_result.passing(i)) continue;
+
+		//skip blacklist variants
+		const Variant& v = variants[i];
+		if (parameters.use_blacklist && blacklist.contains(v)) continue;
+
+		//skip non-heterozygous variants
+		QByteArray v_genotype = v.annotations()[i_genotye].trimmed();
+		if (v_genotype!="het") continue;
+
+		//determine gene set (there are typically several transcripts per gene)
+		GeneSet genes;
+		foreach(const VariantTranscript& transcript, v.transcriptAnnotations(i_coding))
+		{
+			genes << transcript.gene;
+		}
+		foreach(const QByteArray& gene, genes)
+		{
+			gene_hits_het[gene] += 1;
+		}
+	}
+
 	for (int i=0; i<variants.count(); ++i)
 	{
 		//skip pre-filtered variants
@@ -991,12 +1018,22 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 			}
 		}
 
-		//genotype
+		//genotype (gene-specific for heterozygous variants)
 		if (v_genotype=="hom")
 		{
-			scores.add("genotype", 1.0); //TODO optimize score
+			scores.add("genotype_hom", 1.0);
 		}
-		//TODO handle comp-het
+		if (v_genotype=="het")
+		{
+			foreach(const VariantTranscript& transcript, transcript_info)
+			{
+				const QByteArray& gene = transcript.gene;
+				if(gene_hits_het.value(gene, 0)>=2)
+				{
+					scores.add("genotype_comp_het", 1.0, gene);
+				}
+			}
+		}
 
 		QByteArrayList best_genes;
 		output.scores << scores.score(best_genes);
@@ -1013,8 +1050,9 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 
 
 //Performance history RECESSIVE								Rank1  / Top10
-//version 1:												52.73% / 90.50% (18.04.23)
-//score by gene, fix of OE/inheritance parsing				53.30% / 92.56% (18.04.23)
+//version 1:												52.53% / 90.52% (18.04.23)
+//score by gene, fix of OE/inheritance parsing				53.02% / 92.56% (18.04.23)
+//score comp-het variants									55.27% / 94.31% (18.04.23)
 
 //TODO Ideas:
 // - recurring variants > blacklist ?
@@ -1023,3 +1061,4 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 //    - add bonus score if more than one phenotype matches OR using Germans model (email 09.12.2020)
 //    - higher weight for high evidence HPO-gene regions?
 //    - count OMIM, ClinVar, HGMD matches only if the HPO-terms match (possible? currently this information is not in GSvar file or NGSD)
+// - optimize scores by machine learning
