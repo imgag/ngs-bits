@@ -1035,6 +1035,17 @@ void MainWindow::on_actionDebug_triggered()
 						causal_indices << var_index;
 					}
 				}
+				if (test_domiant && causal_indices.count()>1)
+				{
+					qDebug() << "  skipped - dominant inheritance but more than one causal variant!";
+					continue;
+				}
+				if (!test_domiant && causal_indices.count()>2)
+				{
+					qDebug() << "  skipped - recessive inheritance but more than two causal variant!";
+					continue;
+				}
+
 
 				int causal_var_nr = 0;
 				QSet<int> noncausal_indices_added;

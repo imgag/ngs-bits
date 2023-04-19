@@ -1045,20 +1045,20 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 }
 
 //Performance history DOMINANT										Rank1  / Top10
-//version 1															75.02% / 97.48% (17.04.23)
-//score by gene, NGSD score, fix of OE/inheritance parsing			79.60% / 97.48% (17.04.23)
+//version 1															76.82% / 97.67% (19.04.23)
+//score by gene, NGSD score, fix of OE/inheritance parsing			81.72% / 97.51% (19.04.23)
 
 
 //Performance history RECESSIVE										Top2  / Top10
-//version 1															70.33% / 90.51% (18.04.23)
-//score by gene, fix of OE/inheritance parsing, comp-het variants	80.95% / 94.33% (18.04.23)
+//version 1															72.30% / 90.90% (19.04.23)
+//score by gene, fix of OE/inheritance parsing, comp-het variants	83.02% / 94.60% (19.04.23)
 
-//TODO Ideas:
-// - recurring variants > blacklist ?
-// - score relevant transcripts higher than other transcripts?
-// - phenotypes
-//    - add bonus score if more than one phenotype matches OR using Germans model (email 09.12.2020)
-//    - higher weight for high evidence HPO-gene regions?
-//    - count OMIM, ClinVar, HGMD matches only if the HPO-terms match (possible? currently this information is not in GSvar file or NGSD)
+//TODO: Ideas
+// - check non-ranked variants
+// - recurring variants > blacklist
+// - score only relevant transcripts or score them higher than other transcripts
+//  - count OMIM, ClinVar, HGMD matches only if the HPO-terms match (possible? currently this information is not in GSvar file or NGSD)
+//  - HPO: add bonus score if more than one phenotype matches OR using Germans model (email 09.12.2020)
+//  - HPO: higher weight for high evidence HPO-gene regions?
 // - create and use version of ClinVar without our commits (we submit to ClinVar)
 // - optimize scores by machine learning
