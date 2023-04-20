@@ -76,6 +76,8 @@ public:
 				BedFile roi_bed;
 				roi_bed.load(roi);
 				housekeeping_genes_bed.intersect(roi_bed);
+				housekeeping_genes_bed.sort();
+				housekeeping_genes_bed.merge();
 			}
 			//calculate QC only if remaining target region is not empty
 			if(housekeeping_genes_bed.baseCount() > 0)
