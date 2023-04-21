@@ -1054,11 +1054,17 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 //score by gene, fix of OE/inheritance parsing, comp-het variants	83.02% / 94.60% (19.04.23)
 
 //TODO: Ideas
-// - check non-ranked variants
+// - check non-ranked variants (add ClinVar, HGMD and NGSD class to output)
+//	 - only rank AF<1% in gnomAD?
 // - recurring variants > blacklist
+// - integrate conservedness (phyloP)?
 // - score only relevant transcripts or score them higher than other transcripts
-//  - count OMIM, ClinVar, HGMD matches only if the HPO-terms match (possible? currently this information is not in GSvar file or NGSD)
-//  - HPO: add bonus score if more than one phenotype matches OR using Germans model (email 09.12.2020)
-//  - HPO: higher weight for high evidence HPO-gene regions?
-// - create and use version of ClinVar without our commits (we submit to ClinVar)
+// - additional score if OMIM/ClinVar/HGMD also match HPO terms
+// - HPO: add bonus score if more than one phenotype matches OR using Germans model (email 09.12.2020)
+// - HPO: higher weight for high evidence HPO-gene regions?
 // - optimize scores by machine learning
+// - benchmark with existing tools:
+//   - create and use version of ClinVar without our commits (we submit to ClinVar)
+//   - https://www.cell.com/trends/genetics/fulltext/S0168-9525(22)00179-2
+//   - https://academic.oup.com/bib/article/23/2/bbac019/6521702
+
