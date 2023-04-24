@@ -159,7 +159,11 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	stream << "<br />" << trans("Anzahl SVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_svs_.count() << endl;
 	stream << "</p>" << endl;
 
-	stream << "<br />" << trans("In den folgenden Tabellen werden neben wahrscheinlich pathogenen (Klasse 4) und pathogenen (Klasse 5) nur solche Varianten unklarer klinischer Signifikanz (Klasse 3) gelistet, f&uuml;r die in Zusammenschau von Literatur und Klinik des Patienten ein Beitrag zur Symptomatik denkbar ist und f&uuml;r die gegebenenfalls eine weitere Einordnung der klinischen Relevanz durch Folgeuntersuchungen sinnvoll ist. Eine Liste aller detektierten Varianten kann bei Bedarf angefordert werden.") << endl;
+	stream << "<br />" << trans("Sofern vorhanden, werden in den nachfolgenden Tabellen erfasst: pathogene Varianten (Klasse 5)<sup>*</sup> und wahrscheinlich pathogene Varianten (Klasse 4)<sup>*</sup>, bei denen jeweils ein Zusammenhang mit der klinischen Fragestellung anzunehmen ist, sowie Varianten unklarer klinischer Signifikanz (Klasse 3)<sup>*</sup> f&uuml;r welche in Zusammenschau von Literatur und Klinik des Patienten ein Beitrag zur Symptomatik denkbar ist und f&uuml;r die gegebenenfalls eine weitere Einordnung der klinischen Relevanz durch Folgeuntersuchungen sinnvoll erscheint.") << endl;
+	stream << trans("Teilweise k&ouml;nnen - in Abh&auml;ngigkeit von der Art der genetischen Ver&auml;nderung, der Familienanamnese und der Klinik der Patientin/des Patienten - weiterf&uuml;hrende Untersuchungen eine &Auml;nderung der Klassifizierung bewirken.") << endl;
+	stream << "<br />" << trans("Eine (unkommentierte) Liste aller detektierten Varianten kann bei Bedarf angefordert werden.") << endl;
+	stream << "<br />" << trans("Bei konkreten differentialdiagnostischen Hinweisen auf eine konkrete Erkrankung k&ouml;nnen ggf. weiterf&uuml;hrende genetische Untersuchungen bzw. Untersuchungsmethoden indiziert sein.") << endl;
+	stream << "<br />" << trans("<sup>*</sup> F&uuml;r Informationen zur Klassifizierung von Varianten, siehe allgemeine Zusatzinformationen.") << endl;
 
 	//output: select small variants
 	stream << "<br /><br /><b>" << trans("Einzelbasenver&auml;nderungen (SNVs) und Insertionen/Deletionen (InDels) nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
@@ -170,7 +174,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<td><b>" << trans("Vater") << "</b></td>";
 		stream << "<td><b>" << trans("Mutter") << "</b></td>";
 	}
-	stream << "<td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>gnomAD AF</b></td><td><b>RNA</b></td></tr>" << endl;
+	stream << "<td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Erbgang") << "</b></td><td><b>" << trans("gnomAD Allelfrequenz") << "<br />(" << trans("Kontrollkohorte") << ")</b></td><td><b>RNA</b></td></tr>" << endl;
 	int colspan = 8;
 
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
@@ -250,7 +254,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	//CNVs
 	stream << "<br /><b>" << trans("Kopienzahlver&auml;nderungen (CNV) nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><td><b>" << trans("CNV") << "</b></td><td><b>" << trans("Position") << "</b></td><td><b>" << trans("Gr&ouml;&szlig;e") << "</b></td><td><b>" << trans("Kopienzahl") << "</b></td><td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>RNA</b></td></tr>" << endl;
+	stream << "<tr><td><b>" << trans("CNV") << "</b></td><td><b>" << trans("Position") << "</b></td><td><b>" << trans("Gr&ouml;&szlig;e") << "</b></td><td><b>" << trans("Kopienzahl") << "</b></td><td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Erbgang") << "</b></td><td><b>RNA</b></td></tr>" << endl;
 	colspan = 8;
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
@@ -284,7 +288,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	//SVs
 	stream << "<br /><b>" << trans("Strukturver&auml;nderungen (SV) nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><td><b>" << trans("SV") << "</b></td><td><b>" << trans("Position") << "</b></td><td><b>" << trans("Gr&ouml;&szlig;e") << "</b></td><td><b>" << trans("Genotyp") << "</b></td><td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>RNA</b></td></tr>" << endl;
+	stream << "<tr><td><b>" << trans("SV") << "</b></td><td><b>" << trans("Position") << "</b></td><td><b>" << trans("Gr&ouml;&szlig;e") << "</b></td><td><b>" << trans("Genotyp") << "</b></td><td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Erbgang") << "</b></td><td><b>RNA</b></td></tr>" << endl;
 	colspan = 8;
 
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
@@ -369,7 +373,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<p>&nbsp;</p>" << endl;
 		OtherCausalVariant causal_variant = data_.report_settings.report_config->otherCausalVariant();
 		stream << "<table>" << endl;
-		stream << "<tr><td><b>" << trans("Variantentyp") << "</b></td><td><b>" << trans("Regionen") << "</b></td><td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Vererbung")
+		stream << "<tr><td><b>" << trans("Variantentyp") << "</b></td><td><b>" << trans("Regionen") << "</b></td><td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Erbgang")
 			   << "</b></td><td><b>" << trans("Kommentar") << "</b></td></tr>" << endl;
 
 		stream << "<tr>" << endl;
@@ -382,12 +386,6 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "</table>" << endl;
 	}
 	//--------------------------------------------------------------------------------------
-
-	stream << "<p>" << trans("F&uuml;r Informationen zur Klassifizierung von Varianten, siehe allgemeine Zusatzinformationen.") << endl;
-	stream << "</p>" << endl;
-
-	stream << "<p>" << trans("Teilweise k&ouml;nnen bei Varianten unklarer Signifikanz (Klasse 3) -  in Abh&auml;ngigkeit von der Art der genetischen Ver&auml;nderung, der Familienanamnese und der Klinik des/der Patienten - weiterf&uuml;hrende Untersuchungen eine &Auml;nderung der Klassifizierung bewirken. Bei konkreten differentialdiagnostischen Hinweisen auf eine entsprechende Erkrankung k&ouml;nnen ggf. weiterf&uuml;hrende genetische Untersuchungen indiziert sein.") << endl;
-	stream << "</p>" << endl;
 
 	///classification explaination
 	if (data_.report_settings.show_class_details)
@@ -1422,14 +1420,14 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Einzelbasenver&auml;nderungen (SNVs) und Insertionen/Deletionen (InDels) nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized small variants";
 		de2en["Kopienzahlver&auml;nderungen (CNV) nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized copy-number variants";
 		de2en["Strukturver&auml;nderungen (SV) nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized structural variants";
-		de2en["Vererbung"] = "Inheritance";
+		de2en["Erbgang"] = "Inheritance";
+		de2en["gnomAD Allelfrequenz"] = "gnomAD allele frequency";
+		de2en["Kontrollkohorte"] = "control cohort";
 		de2en["Klasse"] = "Class";
 		de2en["Details"] = "Details";
 		de2en["Genotyp"] = "Genotype";
 		de2en["Variante"] = "Variant";
 		de2en["Gen"] = "Gene";
-		de2en["F&uuml;r Informationen zur Klassifizierung von Varianten, siehe allgemeine Zusatzinformationen."] = "For further information regarding the classification see Additional Information.";
-		de2en["Teilweise k&ouml;nnen bei Varianten unklarer Signifikanz (Klasse 3) -  in Abh&auml;ngigkeit von der Art der genetischen Ver&auml;nderung, der Familienanamnese und der Klinik des/der Patienten - weiterf&uuml;hrende Untersuchungen eine &Auml;nderung der Klassifizierung bewirken. Bei konkreten differentialdiagnostischen Hinweisen auf eine entsprechende Erkrankung k&ouml;nnen ggf. weiterf&uuml;hrende genetische Untersuchungen indiziert sein."] = "Depending on the type of genetic alteration, family history and clinical features of the patient further investigations might change the classification of variants of unknown significance (class 3). In case of a suspected clinical diagnosis genetic counseling is necessary to evaluate the indication/possibility of further genetic studies.";
 		de2en["Klassifikation von Varianten"] = "Classification of variants";
 		de2en["Die Klassifikation der Varianten erfolgt in Anlehnung an die Publikation von Plon et al. (Hum Mutat 2008)"] = "Classification and interpretation of variants: The classification of variants is based on the criteria of Plon et al. (PMID: 18951446). A short description of each class can be found in the following";
 		de2en["Klasse 5: Eindeutig pathogene Ver&auml;nderung / Mutation"] = "Class 5, pathogenic variant";
@@ -1495,7 +1493,6 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["nicht-detektierte kleine Variante (SNV/InDel)"] = "uncalled small variant (SNV/InDel)";
 		de2en["nicht-detektierte CNV"] = "uncalled CNV";
 		de2en["nicht-detektierte Strukturvariante"] = "uncalled structural variant";
-		de2en["In den folgenden Tabellen werden neben wahrscheinlich pathogenen (Klasse 4) und pathogenen (Klasse 5) nur solche Varianten unklarer klinischer Signifikanz (Klasse 3) gelistet, f&uuml;r die in Zusammenschau von Literatur und Klinik des Patienten ein Beitrag zur Symptomatik denkbar ist und f&uuml;r die gegebenenfalls eine weitere Einordnung der klinischen Relevanz durch Folgeuntersuchungen sinnvoll ist. Eine Liste aller detektierten Varianten kann bei Bedarf angefordert werden."] = "In addition to likely pathogenic variants (class 4) and pathogenic variants (class 5), the following tables contains only those variants of uncertain significance (class 3), for which a contribution to the clinical symptoms of the patient is conceivable and for which a further evaluation of the clinical relevance by follow-up examinations may be useful.  A list of all detected variants can be provided on request.";
 		de2en["L&uuml;ckenschluss"] = "Gaps closed";
 		de2en["L&uuml;cken die mit Sanger-Sequenzierung geschlossen wurden:"] = "Gaps closed by Sanger sequencing:";
 		de2en["L&uuml;cken die mit visueller Inspektion der Rohdaten &uuml;berpr&uuml;ft wurden:"] = "Gaps checked by visual inspection of raw data:";
@@ -1519,6 +1516,14 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Anzahl der Reads"] = "Number of reads";
 		de2en["Durchschnittliche Sequenziertiefe der Housekeeping-Gene"] = "Average sequencing depth of housekeeping genes";
 		de2en["kb"] = "kb";
+		de2en["Sofern vorhanden, werden in den nachfolgenden Tabellen erfasst: pathogene Varianten (Klasse 5)<sup>*</sup> und wahrscheinlich pathogene Varianten (Klasse 4)<sup>*</sup>, bei denen jeweils ein Zusammenhang mit der klinischen Fragestellung anzunehmen ist, sowie Varianten unklarer klinischer Signifikanz (Klasse 3)<sup>*</sup> f&uuml;r welche in Zusammenschau von Literatur und Klinik des Patienten ein Beitrag zur Symptomatik denkbar ist und f&uuml;r die gegebenenfalls eine weitere Einordnung der klinischen Relevanz durch Folgeuntersuchungen sinnvoll erscheint."]
+		  = "If present, the following tables contain: likely pathogenic variants (class 4)<sup>*</sup> and pathogenic variants (class 5)<sup>*</sup>, for which a contribution to the clinical symptoms of the patient is conceivable, and variants of uncertain significance (class 3)<sup>*</sup>, for which a further evaluation of the clinical relevance by follow-up examinations may be useful.";
+		de2en["Teilweise k&ouml;nnen - in Abh&auml;ngigkeit von der Art der genetischen Ver&auml;nderung, der Familienanamnese und der Klinik der Patientin/des Patienten - weiterf&uuml;hrende Untersuchungen eine &Auml;nderung der Klassifizierung bewirken."]
+		  = "Depending on the type of genetic alteration, family history and clinical features of the patient further investigations might change the classification of variants.";
+		de2en["Eine (unkommentierte) Liste aller detektierten Varianten kann bei Bedarf angefordert werden."] = "A (uncommented) list of all detected variants can be provided on request.";
+		de2en["Bei konkreten differentialdiagnostischen Hinweisen auf eine konkrete Erkrankung k&ouml;nnen ggf. weiterf&uuml;hrende genetische Untersuchungen bzw. Untersuchungsmethoden indiziert sein."]
+		  = "In case of a suspected clinical diagnosis genetic counseling is necessary to evaluate the indication/possibility of further genetic studies.";
+		de2en["<sup>*</sup> F&uuml;r Informationen zur Klassifizierung von Varianten, siehe allgemeine Zusatzinformationen."] = "<sup>*</sup> For information on the classification of variants, see the general information.";
 	}
 
 	//translate
