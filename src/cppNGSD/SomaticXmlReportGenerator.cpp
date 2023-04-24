@@ -97,7 +97,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 	//Element SomaticNgsReport
 	w.writeStartElement("SomaticNgsReport");
-	w.writeAttribute("version", "5");
+	w.writeAttribute("version", "4");
 	w.writeAttribute("genome_build", buildToString(data.build, true));
 
 	//Element ReportGeneration
