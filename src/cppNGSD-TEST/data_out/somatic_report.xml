@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<SomaticNgsReport version="4" genome_build="GRCh37">
+<SomaticNgsReport version="5" genome_build="GRCh37">
     <ReportGeneration date="2000-01-01" user_name="ahmustm1" software="cppNGSD-TEST 0.1-cppNGSD-TEST-Version"/>
     <PatientInfo sap_patient_identifier="SAP_TEST_IDENTIFIER">
         <DiseaseInfo type="ICD10" identifier="C17.2"/>

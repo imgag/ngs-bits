@@ -97,7 +97,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 	//Element SomaticNgsReport
 	w.writeStartElement("SomaticNgsReport");
-	w.writeAttribute("version", "4");
+	w.writeAttribute("version", "5");
 	w.writeAttribute("genome_build", buildToString(data.build, true));
 
 	//Element ReportGeneration
@@ -541,18 +541,15 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	w.writeEndElement();
 
 	w.writeEndDocument();
-}
+	out_file->close();
 
-
-void SomaticXmlReportGenerator::validateXml(QString file_name)
-{
-	QString xml_error = XmlHelper::isValidXml(file_name, ":/resources/SomaticReport.xsd");
-
+	//validate written XML file
+	QString filename = out_file->fileName();
+	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/SomaticReport.xsd");
 	if(xml_error!= "")
 	{
-		THROW(ProgrammingException, "SomaticXmlReportGenerator::generateXML produced an invalid XML file: " + xml_error);
+		THROW(ProgrammingException, "Invalid somatic report XML file " + filename+ " generated:\n" + xml_error);
 	}
-
 }
 
 void SomaticXmlReportGenerator::writeReportPartsElement(QXmlStreamWriter &w, QString name, RtfSourceCode rtf_part)
