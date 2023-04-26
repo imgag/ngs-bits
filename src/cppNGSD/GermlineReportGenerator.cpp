@@ -169,14 +169,14 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	stream << "<br /><br /><b>" << trans("Einzelbasenver&auml;nderungen (SNVs) und Insertionen/Deletionen (InDels) nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><td><b>" << trans("Variante") << "</b></td><td><b>" << trans("Genotyp") << "</b></td>";
+	int colspan = 8;
 	if (is_trio)
 	{
 		stream << "<td><b>" << trans("Vater") << "</b></td>";
 		stream << "<td><b>" << trans("Mutter") << "</b></td>";
+		colspan = 10;
 	}
 	stream << "<td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Erbgang") << "</b></td><td><b>" << trans("gnomAD Allelfrequenz") << "<br />(" << trans("Kontrollkohorte") << ")</b></td><td><b>RNA</b></td></tr>" << endl;
-	int colspan = 8;
-
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
@@ -197,7 +197,6 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		{
 			stream << "<td>" << formatGenotype(data_.build, "male", variant.annotations().at(info_father.column_index), variant) << "</td>";
 			stream << "<td>" << formatGenotype(data_.build, "female", variant.annotations().at(info_mother.column_index), variant) << "</td>";
-			colspan = 10;
 		}
 
 		stream << "<td>";

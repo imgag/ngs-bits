@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2023_03-28 (25.04.23)
+
+- somatic report: added sample type, FFPE and tissue to XML
+- somatic report: updated QC in RNA report
+
 ### 2023_03-13 (30.03.23)
 
 - report: minor improvements to germline report.
