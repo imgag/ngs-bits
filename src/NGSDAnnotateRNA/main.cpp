@@ -147,7 +147,7 @@ public:
 				QByteArray ensg = line.at(ensg_idx).trimmed();
 				QByteArray tissue = line.at(tissue_idx).trimmed();
 
-				double tpm = Helper::toDouble(line.at(tpm_idx), "TPM (hpa_file)", ensg);
+				double tpm = Helper::toDouble(line.at(tpm_idx), "nTPM (hpa_file)", ensg);
 
 				if(tissue == sample_hpa_tissues.at(0))
 				{
