@@ -138,8 +138,8 @@ public:
 			if (ensg_idx < 0) THROW(FileParseException, "Column 'Gene' missing in HPA file!");
 			int tissue_idx = hpa_file_header.indexOf("Tissue");
 			if (tissue_idx < 0) THROW(FileParseException, "Column 'Tissue' missing in HPA file!");
-			int tpm_idx = hpa_file_header.indexOf("TPM");
-			if (tpm_idx < 0) THROW(FileParseException, "Column 'TPM' missing in HPA file!");
+			int tpm_idx = hpa_file_header.indexOf("nTPM");
+			if (tpm_idx < 0) THROW(FileParseException, "Column 'nTPM' missing in HPA file!");
 
 			while(!hpa_file->atEnd())
 			{
