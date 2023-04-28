@@ -208,6 +208,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.filters, SIGNAL(filtersChanged()), this, SLOT(refreshVariantTable()));
 	connect(ui_.vars, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
 	connect(ui_.vars, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(variantCellDoubleClicked(int, int)));
+	connect(ui_.vars, SIGNAL(showMatchingCnvsAndSvs(BedLine)), this, SLOT(showMatchingCnvsAndSvs(BedLine)));
 	connect(ui_.vars->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(variantHeaderDoubleClicked(int)));
 	ui_.vars->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui_.vars->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(varHeaderContextMenu(QPoint)));
@@ -6701,6 +6702,82 @@ void MainWindow::openAlamut(QAction* action)
 		{
 			GUIHelper::showException(this, e, "Communication with Alamut failed!");
 		}
+	}
+}
+
+void MainWindow::showMatchingCnvsAndSvs(BedLine v_reg)
+{
+	try
+	{
+		//determine overlapping genes
+		NGSD db;
+		GeneSet genes = db.genesOverlapping(v_reg.chr(), v_reg.start(), v_reg.end());
+		if (genes.isEmpty()) THROW(Exception, "Could not find a gene overlapping the variant region (gene transcripts are not padded by 5000 bases)!");
+
+		//determine overlapping genes region
+		BedFile regions = db.genesToRegions(genes, Transcript::ENSEMBL, "gene", true);
+		regions.overlapping(v_reg); //sometimes genes have several loci due to duplicate gene names > exclude those
+		regions.merge();
+
+		//check target region
+		if (regions.count()==0) THROW(Exception, "Could not determine a target region overlapping variant from genes: " + genes.join(", "));
+		if (regions.count()>1) THROW(Exception, "Several target regions overlapping variant from genes: " + genes.join(", "));
+
+		//create table
+		TsvFile table;
+		table.addHeader("type");
+		table.addHeader("variant");
+		table.addHeader("genotype");
+		table.addHeader("details");
+
+		//select CNVs
+		{
+			const Chromosome& chr = regions[0].chr();
+			int start = regions[0].start();
+			int end = regions[0].end();
+			const QByteArrayList& headers = cnvs_.annotationHeaders();
+			for (int i=0; i<cnvs_.count(); ++i)
+			{
+				const CopyNumberVariant& v = cnvs_[i];
+				if (v.overlapsWith(chr, start, end))
+				{
+					int cn = v.copyNumber(headers);
+					QStringList row;
+					row << (cn<=1 ? "CNV - DEL" : "CNV - DUP");
+					row << v.toString();
+					row << "cn="+QString::number(cn);
+					row << "size="+QString::number(v.size()/1000.0, 'f', 3) + "kb regions="+QString::number(v.regions());
+					table.addRow(row);
+				}
+			}
+		}
+
+		//select SVs
+		{
+			QList<QByteArray> headers = svs_.annotationHeaders();
+			for (int i=0; i<svs_.count(); ++i)
+			{
+				const BedpeLine& v = svs_[i];
+				if (v.intersectsWith(regions))
+				{
+					QStringList row;
+					row << ("SV - " + StructuralVariantTypeToString(v.type()));
+					row << v.toString(false);
+					row << "genotype="+v.genotypeHumanReadable(headers);
+					row << "size="+QString::number(v.size()/1000.0, 'f', 3)+"kb";
+					table.addRow(row);
+				}
+			}
+		}
+
+		//show table
+		TsvTableWidget* widget = new TsvTableWidget(table, this);
+		QSharedPointer<QDialog> dlg = GUIHelper::createDialog(widget, "CNVs and SVs matching " + v_reg.toString(true));
+		dlg->exec();
+	}
+	catch(Exception& e)
+	{
+		GUIHelper::showException(this, e, "Showing matching CNVs and SVs failed!");
 	}
 }
 
