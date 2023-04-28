@@ -421,7 +421,7 @@ public slots:
 	//Open Alamut visualization
 	void openAlamut(QAction* action);
 	//Show matching CNVs and SVs
-	void showMatchingCnvsSvs(Chromosome chr, int start, int end);
+	void showMatchingCnvsAndSvs(BedLine region);
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);

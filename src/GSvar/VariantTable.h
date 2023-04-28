@@ -89,7 +89,7 @@ signals:
 	///Signal emitted when Alamut should be opened
 	void alamutTriggered(QAction* action);
 	///Signal to show CNVs/SVs matching a variant
-	void showMatchingCnvsAndSvs(Chromosome c, int start, int end);
+	void showMatchingCnvsAndSvs(BedLine region);
 
 protected:
 

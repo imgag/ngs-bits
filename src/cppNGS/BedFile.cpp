@@ -482,6 +482,11 @@ void BedFile::overlapping(const BedFile& file2)
 	removeInvalidLines();
 }
 
+void BedFile::overlapping(const BedLine& region)
+{
+	overlapping(region.chr(), region.start(), region.end());
+}
+
 void BedFile::overlapping(const Chromosome& chr, int start, int end)
 {
 	//overlapping
