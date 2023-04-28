@@ -162,16 +162,30 @@ BedFile BedpeLine::affectedRegion(bool plus_one) const
 	return sv_region;
 }
 
-QString BedpeLine::toString() const
+QString BedpeLine::toString(bool add_type) const
 {
 	BedFile region = affectedRegion(false);
-	if(type() == StructuralVariantType::BND)
+	if (add_type)
 	{
-		return "BND from " + region[0].toString(true) + " to " +region[1].toString(true);
+		if(type() == StructuralVariantType::BND)
+		{
+			return "BND from " + region[0].toString(true) + " to " +region[1].toString(true);
+		}
+		else
+		{
+			return BedpeFile::typeToString(type()) + " at " + region[0].toString(true);
+		}
 	}
 	else
 	{
-		return BedpeFile::typeToString(type()) + " at " + region[0].toString(true);
+		if(type() == StructuralVariantType::BND)
+		{
+			return region[0].toString(true) + " <> " +region[1].toString(true);
+		}
+		else
+		{
+			return region[0].toString(true);
+		}
 	}
 }
 

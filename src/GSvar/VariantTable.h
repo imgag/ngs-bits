@@ -88,6 +88,8 @@ signals:
 	void publishToClinvarTriggered(int index1, int index2=-1);
 	///Signal emitted when Alamut should be opened
 	void alamutTriggered(QAction* action);
+	///Signal to show CNVs/SVs matching a variant
+	void showMatchingCnvsAndSvs(Chromosome c, int start, int end);
 
 protected:
 

@@ -6698,6 +6698,73 @@ void MainWindow::openAlamut(QAction* action)
 	}
 }
 
+void MainWindow::showMatchingCnvsSvs(Chromosome v_chr, int v_start, int v_end)
+{
+	try
+	{
+		//determine overlapping genes (not padded by 5000)
+		NGSD db;
+		GeneSet genes = db.genesOverlapping(v_chr, v_start, v_end);
+
+		//determine overlapping genes region
+		BedFile regions = db.genesToRegions(genes, Transcript::ENSEMBL, "gene", true);
+		regions.overlapping(v_chr, v_start, v_end); //sometimes genes have several loci due to duplicate gene names > exclude those
+		regions.merge();
+
+		//check target region
+		if (regions.count()==0) THROW(Exception, "Could not a target region overlapping variant from genes: " + genes.join(", "));
+		if (regions.count()>1) THROW(Exception, "Several target regions overlapping variant from genes: " + genes.join(", "));
+
+		QList<QStringList> vars;
+
+		//select CNVs
+		{
+			const Chromosome& chr = regions[0].chr();
+			int start = regions[0].start();
+			int end = regions[0].end();
+			const QByteArrayList& headers = cnvs_.annotationHeaders();
+			for (int i=0; cnvs_.count(); ++i)
+			{
+				const CopyNumberVariant& v = cnvs_[i];
+				if (v.overlapsWith(chr, start, end))
+				{
+					int cn = v.copyNumber(headers);
+					QStringList tmp;
+					tmp << (cn<=1 ? "CNV - DEL" : "CNV - DUP");
+					tmp << v.toString();
+					tmp << "cn="+QString::number(cn);
+					tmp << "size="+QString::number(v.size()/1000.0, 'f', 3) + "kb regions="+QString::number(v.regions());
+					vars << tmp;
+				}
+			}
+		}
+
+		//select SVs
+		{
+			QList<QByteArray> headers = svs_.annotationHeaders();
+			for (int i=0; svs_.count(); ++i)
+			{
+				const BedpeLine& v = svs_[i];
+				if (v.intersectsWith(regions))
+				{
+					QStringList tmp;
+					tmp << ("SV - " + StructuralVariantTypeToString(v.type()));
+					tmp << v.toString(false);
+					tmp << "genotype="+v.genotypeHumanReadable(headers);
+					tmp << "size="+QString::number(v.size()/1000.0, 'f', 3);
+					vars << tmp;
+				}
+			}
+		}
+
+		qDebug() << vars;
+	}
+	catch(Exception& e)
+	{
+		GUIHelper::showException(this, e, "Showing matching CNVs and SVs failed!");
+	}
+}
+
 void MainWindow::on_actionVirusDetection_triggered()
 {
 	//get virus file
