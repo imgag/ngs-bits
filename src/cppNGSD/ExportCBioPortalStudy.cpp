@@ -87,11 +87,12 @@ void CBioPortalExportSettings::addSample(SomaticReportSettings settings, SampleF
 double CBioPortalExportSettings::getMsiStatus(int sample_idx)
 {
 	double msi = std::numeric_limits<double>::quiet_NaN();
-	if (QFile::exists(sample_files[sample_idx].msi_file))
+	if (VersatileFile(sample_files[sample_idx].msi_file).exists())
 	{
 		TSVFileStream msi_file(sample_files[sample_idx].msi_file);
 		//Use step wise difference (-> stored in the first line of MSI status file) for MSI status
 		QByteArrayList data = msi_file.readLine();
+		qDebug() << "MSI string:" << data;
 		if(data.count() > 0) msi = data[1].toDouble();
 	}
 	return msi;
@@ -99,7 +100,7 @@ double CBioPortalExportSettings::getMsiStatus(int sample_idx)
 
 float CBioPortalExportSettings::getPloidy(int sample_idx)
 {
-	if (QFile::exists(sample_files[sample_idx].clincnv_file))
+	if (VersatileFile(sample_files[sample_idx].clincnv_file).exists())
 	{
 		QStringList cnv_data = Helper::loadTextFile(sample_files[sample_idx].clincnv_file, true, QChar::Null, true);
 
@@ -124,22 +125,25 @@ float CBioPortalExportSettings::getPloidy(int sample_idx)
 
 float CBioPortalExportSettings::getPurityHist(int sample_idx)
 {
-	QList<SampleDiseaseInfo> disease_details = db_.getSampleDiseaseInfo(ps_ids[sample_idx], "tumor fraction");
+	QList<SampleDiseaseInfo> disease_details = db_.getSampleDiseaseInfo(db_.sampleId(sample_list[sample_idx]), "tumor fraction");
 	if (disease_details.count() >1)
 	{
 		THROW(ArgumentException, "Sample '" + sample_list[sample_idx] + "' has more than one entry for tumor fraction in the disease details.");
 	}
 	else if (disease_details.count() == 0)
 	{
+		qDebug() << "HIST Purity (disease info) not found in DB";
 		return std::numeric_limits<double>::quiet_NaN();
 	}
+
+	qDebug() << "HIST Purity (disease info): " << disease_details[0].disease_info;
 
 	return disease_details[0].disease_info.toDouble() / 100.0;
 }
 
 float CBioPortalExportSettings::getPurityCnvs(int sample_idx)
 {
-	if (QFile::exists(sample_files[sample_idx].clincnv_file))
+	if (VersatileFile(sample_files[sample_idx].clincnv_file).exists())
 	{
 		CnvList cnvs;
 		cnvs.load(sample_files[sample_idx].clincnv_file);
@@ -173,7 +177,7 @@ float CBioPortalExportSettings::getTmb(int sample_idx)
 QStringList CBioPortalExportSettings::getIcd10(int sample_idx)
 {
 	QStringList icd10;
-	QList<SampleDiseaseInfo> disease_details = db_.getSampleDiseaseInfo(ps_ids[sample_idx], "ICD10 code");
+	QList<SampleDiseaseInfo> disease_details = db_.getSampleDiseaseInfo(db_.sampleId(sample_list[sample_idx]), "ICD10 code");
 	foreach (const auto& dd, disease_details)
 	{
 		icd10.append(dd.disease_info);
@@ -184,7 +188,7 @@ QStringList CBioPortalExportSettings::getIcd10(int sample_idx)
 QStringList CBioPortalExportSettings::getHpoTerms(int sample_idx)
 {
 	QStringList hpo;
-	QList<SampleDiseaseInfo> disease_details = db_.getSampleDiseaseInfo(ps_ids[sample_idx], "HPO term id");
+	QList<SampleDiseaseInfo> disease_details = db_.getSampleDiseaseInfo(db_.sampleId(sample_list[sample_idx]), "HPO term id");
 	foreach (const auto& dd, disease_details)
 	{
 		hpo.append(dd.disease_info);
@@ -195,7 +199,7 @@ QStringList CBioPortalExportSettings::getHpoTerms(int sample_idx)
 QString CBioPortalExportSettings::getClinicalPhenotype(int sample_idx)
 {
 	QStringList clin_phenotype;
-	QList<SampleDiseaseInfo> disease_details = db_.getSampleDiseaseInfo(ps_ids[sample_idx], "clinical phenotype (free text)");
+	QList<SampleDiseaseInfo> disease_details = db_.getSampleDiseaseInfo(db_.sampleId(sample_list[sample_idx]), "clinical phenotype (free text)");
 	foreach (const auto& dd, disease_details)
 	{
 		clin_phenotype.append(dd.disease_info);
@@ -243,6 +247,7 @@ QString CBioPortalExportSettings::getFormatedAttribute(Attribute att, int sample
 		case Attribute::MSI_STATUS:
 		{
 			double msi_value = getMsiStatus(sample_idx);
+			qDebug() << "MSI value: " << msi_value;
 			if(ps_data[sample_idx].processing_system_type == "WES")
 			{
 				return msi_value <= 0.4 ? "kein Hinweis auf eine MSI" : "Hinweise auf MSI";
@@ -255,8 +260,10 @@ QString CBioPortalExportSettings::getFormatedAttribute(Attribute att, int sample
 		case Attribute::PLOIDY:
 			return QString::number(getPloidy(sample_idx), 'f', 2);
 		case Attribute::PURITY_CNVS:
+			qDebug() << "CNV tumor content: " << getPurityCnvs(sample_idx);
 			return QString::number(getPurityCnvs(sample_idx), 'f', 2);
 		case Attribute::PURITY_HIST:
+			qDebug() << "HIST tumor content: " << getPurityHist(sample_idx);
 			return QString::number(getPurityHist(sample_idx), 'f', 2);
 		case Attribute::TMB:
 			return QString::number(getTmb(sample_idx), 'f', 2);
@@ -291,12 +298,19 @@ void ExportCBioPortalStudy::gatherData()
 
 void ExportCBioPortalStudy::exportStudy(const QString& out_folder)
 {
+	QDir folder(out_folder);
+	if (! folder.exists())
+	{
+		QDir().mkdir(out_folder);
+	}
+
 	exportStudyFiles(out_folder);
 	exportCancerType(out_folder);
 	exportPatientData(out_folder);
 	exportSampleData(out_folder);
 	exportSnvs(out_folder);
 	exportCnvs(out_folder);
+	exportFusions(out_folder);
 //	exportSvs(out_folder);
 	exportCaseList(out_folder);
 }
@@ -504,7 +518,7 @@ void ExportCBioPortalStudy::exportSnvs(const QString& out_folder)
 	meta_snv_file.addValue("show_profile_in_analysis_tab", "true");
 	meta_snv_file.addValue("profile_description", "Mutation data");
 	meta_snv_file.addValue("profile_name", "Mutations");
-	meta_snv_file.addValue("namespaces", "TEST");
+	meta_snv_file.addValue("namespaces", "annotation");
 	meta_snv_file.addValue("data_filename", "data_mutations.txt");
 	meta_snv_file.store(out_folder + "/meta_mutations.txt");
 
@@ -515,11 +529,12 @@ void ExportCBioPortalStudy::exportSnvs(const QString& out_folder)
 
 	QByteArrayList columns;
 	columns << "Hugo_Symbol" /*<< "Entrez_Gene_Id"*/ << "NCBI_Build" << "Chromosome" << "Start_Position" << "End_Position" << "Variant_Classification" << "Reference_Allele" << "Tumor_Seq_Allele2" << "Tumor_Sample_Barcode"
-			<< "HGVSp_Short" << "t_alt_count" << "t_ref_count" << "n_alt_count" << "n_ref_count" << "TEST.string";
+			<< "HGVSp_Short" << "t_alt_count" << "t_ref_count" << "n_alt_count" << "n_ref_count" << "ANNOTATION.VICC";
 
 	out_file->write(columns.join("\t") + "\n");
 	for(int idx=0; idx < settings_.sample_list.count(); idx++)
 	{
+		qDebug() << "SNV sample: " << settings_.sample_list[idx];
 		VariantList vl_somatic;
 		vl_somatic.load(settings_.sample_files[idx].gsvar_somatic);
 		//filter
@@ -585,13 +600,15 @@ void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, Var
 			}
 		}
 
-		if ( ! transcript.isValid())
+		if ( ! transcript.isValid() && transcripts.count() > 0)
 		{
 			transcript = transcripts[0];
 			consequence = hgvs_annotator.annotate(transcripts[0], var);
 		}
 
-		line_parts << var.annotations()[idx_gene_anno];
+		if (transcript.gene() == "") continue;
+
+		line_parts << transcript.gene(); //var.annotations()[idx_gene_anno];
 		line_parts << build;
 
 		line_parts << var.chr().strNormalized(true);
@@ -616,7 +633,17 @@ void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, Var
 		line_parts << QByteArray::number(normal_ref_count);
 
 
-		line_parts << "Test-Variant_number: " + QByteArray::number(i+1);
+
+		SomaticViccData vicc = db_.getSomaticViccData(var,false);
+		if (vicc.isValid())
+		{
+			QString vicc_class = SomaticVariantInterpreter::viccScoreAsString(vicc);
+			line_parts << vicc_class.toUtf8();
+		}
+		else
+		{
+			line_parts << "";
+		}
 		out_file->write(line_parts.join("\t") + "\n");
 	}
 }
@@ -630,6 +657,7 @@ void ExportCBioPortalStudy::exportCnvs(const QString& out_folder)
 	meta_cnv.addValue("stable_id", "cna");
 	meta_cnv.addValue("profile_name", "Copy Number Variants");
 	meta_cnv.addValue("show_profile_in_analysis_tab", "true");
+	meta_cnv.addValue("namespaces", "annotation");
 	meta_cnv.addValue("profile_description", "Values: -2 = homozygous deletion; -1 = hemizygous deletion; 0 = neutral / no change; 1 = gain; 2 = high level amplification.");
 	meta_cnv.addValue("data_filename", "data_CNV.txt");
 	meta_cnv.store(out_folder + "/meta_CNV.txt");
@@ -646,6 +674,7 @@ void ExportCBioPortalStudy::exportCnvs(const QString& out_folder)
 
 	for(int idx=0; idx < settings_.sample_list.count(); idx++)
 	{
+		qDebug() << "CNV sample: " << settings_.sample_list[idx];
 		columns << settings_.getSampleId(idx).toUtf8();
 
 		CnvList cnvs;
@@ -828,8 +857,159 @@ void ExportCBioPortalStudy::exportSvs(const QString& out_folder)
 			out_file->write(line_parts.join("\t")+ "\n");
 		}
 	}
+}
+
+
+void ExportCBioPortalStudy::exportFusions(const QString& out_folder)
+{
+	MetaFile meta_svs;
+	meta_svs.addValue("cancer_study_identifier", settings_.study.identifier);
+	meta_svs.addValue("genetic_alteration_type", "STRUCTURAL_VARIANT");
+	meta_svs.addValue("datatype", "SV");
+	meta_svs.addValue("stable_id", "structural_variants");
+	meta_svs.addValue("profile_name", "Fusions");
+	meta_svs.addValue("show_profile_in_analysis_tab", "true");
+	meta_svs.addValue("profile_description", "Fusions called in the RNA with arriba.");
+	meta_svs.addValue("data_filename", "data_FU.txt");
+	meta_svs.store(out_folder + "/meta_FU.txt");
+
+
+	QSharedPointer<QFile> out_file = Helper::openFileForWriting(out_folder + "/data_FU.txt");
+
+	QByteArrayList columns;
+//	columns << "Sample_ID" << "SV_Status" << "Event_Info" << "Site1_Hugo_Symbol" << "Site1_Ensembl_Transcript_Id" << "Site1_Exon" << "Site1_Region_Number" << "Site1_Region" << "Site1_Chromosome" << "Site1_Position" << "Site2_Hugo_Symbol" << "Site2_Ensembl_Transcript_Id" << "Site2_Exon" << "Site2_Region_Number" << "Site2_Region" << "Site2_Chromosome" << "Site2_Position" << "Class" << "Tumor_Split_Read_Count" << "Tumor_Paired_End_Read_Count" << "Breakpoint_Type";
+	columns << "Sample_ID" << "NCBI_Build" << "SV_Status" << "Event_Info" << "Site1_Hugo_Symbol" << "Site1_Ensembl_Transcript_Id" << "Site1_Exon" << "Site1_Chromosome" << "Site1_Position" << "Site2_Hugo_Symbol" << "Site2_Ensembl_Transcript_Id" << "Site2_Exon" << "Site2_Chromosome" << "Site2_Position" << "Site2_Effect_On_Frame" << "Class" << "Tumor_Split_Read_Count" << "Tumor_Paired_End_Read_Count" << "Breakpoint_Type";
+
+	out_file->write(columns.join("\t")+ "\n");
+	for(int idx=0; idx < settings_.sample_list.count(); idx++)
+	{
+		if ( ! VersatileFile(settings_.sample_files[idx].rna_fusions).exists()) continue;
+
+		TsvFile fusions;
+		fusions.load(settings_.sample_files[idx].rna_fusions);
+
+		int idx_pos1 = fusions.columnIndex("breakpoint1");
+		int idx_pos2 = fusions.columnIndex("breakpoint2");
+
+		int idx_gene1 = fusions.columnIndex("gene1");
+		int idx_gene2 = fusions.columnIndex("gene2");
+
+		int idx_reading_frame = fusions.columnIndex("reading_frame");
+
+//		int idx_site1 = fusions.columnIndex("site1");
+//		int idx_site2 = fusions.columnIndex("site2");
+
+		int idx_class = fusions.columnIndex("type");
+		int idx_split_read1 = fusions.columnIndex("split_reads1");
+		int idx_split_read2 = fusions.columnIndex("split_reads2");
+		int idx_read_pairs = fusions.columnIndex("discordant_mates");
+
+//		int idx_cov1 = fusions.columnIndex("coverage1");
+//		int idx_cov2 = fusions.columnIndex("coverage2");
+
+//		int idx_transcript1_id = fusions.columnIndex("transcript_id1");
+//		int idx_transcript2_id = fusions.columnIndex("transcript_id2");
+
+		for(int idx_var=0; idx_var<fusions.rowCount(); idx_var++)
+		{
+			QByteArrayList line_parts;
+			// << "Sample_Id" << "SV_Status"
+			line_parts << settings_.getSampleId(idx).toUtf8();
+			line_parts << "GRCh38";
+			line_parts << "SOMATIC";
+			line_parts << "Event info";
+
+
+			QStringList var_parts = fusions.row(idx_var);
+
+			//<< "Site1_Hugo_Symbol" << "Site1_Ensembl_Transcript_Id"  << "Site1_Exon" << "Site1_Region_Number" << "Site1_Region" << "Site1_Chromosome" << "Site1_Position"
+
+
+			QByteArray pos1 = var_parts[idx_pos1].split(':')[1].toUtf8();
+			QByteArray chr1 = var_parts[idx_pos1].split(':')[0].toUtf8();
+
+			line_parts << var_parts[idx_gene1].toUtf8();
+
+			line_parts << "";
+			line_parts << "";
+
+//			line_parts << var_parts[idx_site1].toUtf8();
+
+			line_parts << chr1;
+			line_parts << pos1;
+
+
+			//<< "Site2_Hugo_Symbol" << "Site2_Ensembl_Transcript_Id" << "Site2_Exon" << "Site2_Region_Number" << "Site2_Region" << "Site2_Chromosome" << "Site2_Position"
+
+			QByteArray pos2 = var_parts[idx_pos2].split(':')[1].toUtf8();
+			QByteArray chr2 = var_parts[idx_pos2].split(':')[0].toUtf8();
+
+			line_parts << var_parts[idx_gene2].toUtf8();
+			line_parts << "";
+			line_parts << "";
+
+			line_parts << chr2;
+			line_parts << pos2;
+
+			//reading frame:
+			QString frame_effect = var_parts[idx_reading_frame];
+			if (frame_effect.contains("in-frame"))
+			{
+				line_parts << "in-frame";
+			}
+			else if (frame_effect.contains("out-of-frame"))
+			{
+				line_parts << "frameshift";
+			}
+			else
+			{
+				line_parts << "";
+			}
+
+			// << "Class" << "Tumor_Split_Read_Count" << "Tumor_Paired_End_Read_Count"
+			// Class
+
+			QString type = var_parts[idx_class];
+			if (type.contains("inversion"))
+			{
+				line_parts << "Inversion";
+			}
+			else if (type.contains("deletion"))
+			{
+				line_parts << "Deletion";
+			}
+			else if (type.contains("translocation"))
+			{
+				line_parts << "Translocation";
+			}
+			else if (type.contains("insertion"))
+			{
+				line_parts << "Insertion";
+			}
+			else if (type.contains("duplication"))
+			{
+				line_parts << "Duplication";
+			}
+			else
+			{
+				line_parts << "";
+			}
+
+			line_parts << QByteArray::number(var_parts[idx_split_read1].toInt() + var_parts[idx_split_read2].toInt());
+			line_parts << var_parts[idx_read_pairs].toUtf8();
+
+
+			//<< "Breakpoint_Type"
+
+			line_parts << "PRECISE";
+
+			out_file->write(line_parts.join("\t")+ "\n");
+		}
+	}
 
 }
+
+
 
 QByteArray ExportCBioPortalStudy::StructuratVariantTypeToStringLong(const StructuralVariantType& type)
 {

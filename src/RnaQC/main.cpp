@@ -84,7 +84,6 @@ public:
 			{
 				rna_qc = Statistics::mapping_housekeeping(housekeeping_genes_bed, bam, ref, min_mapq);
 			}
-
 		}
 
 

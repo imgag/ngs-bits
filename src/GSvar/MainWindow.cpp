@@ -1288,8 +1288,10 @@ void MainWindow::on_actionDebug_triggered()
 	{
 		//test export of cBioPortalStudy:
 		QStringList tumor_samples;
+		QStringList rna_samples;
 		//ssSC, Twist, ssSC old
 		tumor_samples << "DNA2300100A1_01" << "DNA2300102A1_01" << "DNA2203480A1_01";
+		rna_samples << "RNA2300101A1_01" << "" << "";
 
 		StudyData study;
 		study.name = "Test study";
@@ -1298,185 +1300,233 @@ void MainWindow::on_actionDebug_triggered()
 		study.identifier = "TEST_STUDY_GSVAR";
 		study.reference_genome = "hg38";
 
-		CancerData cancer;
-		cancer.color = "black";
-		cancer.description = "Mixed Cancer Types";
-		cancer.parent = "tissue";
+//		helper_export_cBioportal_study(study, tumor_samples, rna_samples);
 
-		CBioPortalExportSettings export_settings(study, false);
-		export_settings.cancer = cancer;
+		//test export of MTB OPEN:
+		tumor_samples.clear();
+		rna_samples.clear();
+		tumor_samples << "DNA2300100A1_01" << "DNA2300102A1_01" << "DNA2203480A1_01";
+		rna_samples << "RNA2300101A1_01" << "" << "";
 
-		NGSD db(false);
-		QString filterFileName = GSvarHelper::applicationBaseName() + "_filters.ini";
+		study.name = "MTB - Open cases";
+		study.cancer_type = "mixed";
+		study.description = "Study with Samples to be discussed in MTB";
+		study.identifier = "MTB_OPEN";
+		study.reference_genome = "hg38";
 
-		foreach(QString sample, tumor_samples)
-		{
-			qDebug() << "gathering Data for: " << sample;
-			QString ps_id = db.processedSampleId(sample);
-			QString normal_sample = db.normalSample(ps_id);
-			QString normal_id = db.processedSampleId(normal_sample);
+//		helper_export_cBioportal_study(study, tumor_samples, rna_samples);
 
-			qDebug() << "normal sample: " << normal_sample;
+		//test export of MTB CLOSED:
+		tumor_samples.clear();
+		rna_samples.clear();
+		tumor_samples << "DNA2203480A1_01" << "DNA2300069A1_01" << "DNA2300071A1_01" << "DNA2300072A1_01" << "DNA2300073A1_01" << "DNA2300100A1_01" << "DNA2300102A1_01" << "DNA2300103A1_01" << "DNA2300253A1_01" << "DNA2300254A1_01" << "DNA2300257A1_01" << "DNA2300259A1_01" << "DNA2300332A1_01" << "DNA2300428A1_01" << "DNA2300430A1_01" << "DNA2300431A1_01" << "DNA2300433A1_01" << "DNA2300435A1_01" << "DNA2300436A1_01" << "DNA2300475A1_01" << "DNA2300477A1_01";
+		rna_samples << "RNA2300101A1_01" << "" << "" << "" << "" << "" << "" << "" << "" << "" << "" << "" << "" << "" << "" << "" << "" << "" << "" << "" << "";
 
-			loadFile(GlobalServiceProvider::database().secondaryAnalyses(sample + "-" + normal_sample, "somatic")[0]);
-			const FileLocationProvider& fileprovider = GlobalServiceProvider::fileLocationProvider();
+		study.name = "MTB - Closed cases";
+		study.cancer_type = "mixed";
+		study.description = "Study with Samples that were discussed in MTB";
+		study.identifier = "MTB_CLOSED";
+		study.reference_genome = "hg38";
 
-			SampleFiles files;
-			files.clincnv_file = fileprovider.getAnalysisCnvFile().filename;
-			files.msi_file = fileprovider.getSomaticMsiFile().filename;
-			files.sv_file = fileprovider.getAnalysisSvFile().filename;
-			files.gsvar_germline = GlobalServiceProvider::database().processedSamplePath(normal_id, PathType::GSVAR).filename;
-			files.gsvar_somatic = GlobalServiceProvider::database().secondaryAnalyses(sample + "-" + normal_sample, "somatic")[0];
-			qDebug() << files.gsvar_somatic << "\n" << files.gsvar_germline << "\n" << files.clincnv_file << "\n" << files.msi_file << "\n";
-
-			VariantList somatic_vl;
-			somatic_vl.load(files.gsvar_somatic);
-			VariantList germline_vl;
-			germline_vl.load(files.gsvar_germline);
-			CnvList cnvs;
-			cnvs.load(files.clincnv_file);
-
-
-			QStringList messages;
-			SomaticReportSettings report_settings;
-			report_settings.normal_ps = normal_sample;
-			report_settings.tumor_ps = sample;
-			somatic_report_settings_.msi_file = GlobalServiceProvider::fileLocationProvider().getSomaticMsiFile().filename;
-			somatic_report_settings_.viral_file = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::VIRAL).filename;
-
-			report_settings.report_config = db.somaticReportConfig(ps_id, normal_id, somatic_vl, cnvs, germline_vl, messages);
-
-			qDebug() << report_settings.report_config.filter();
-			report_settings.filters = FilterCascadeFile::load(filterFileName, report_settings.report_config.filter());
-
-			export_settings.addSample(report_settings, files);
-		}
-
-		//Sample Attributes:
-		/*
-		  - SAMPLE_ID
-		  - PATIENT_ID
-		  - MSI_STATUS
-		  - PLOIDY
-		  - PURITY_HIST
-		  - PURITY_CNVS
-		  PROCESSING_SYSTEM
-		  - COMMENT
-		  - HRD_SCORE
-		  - TMB
-		  - ICD10
-		  - HPO_TERMS
-		  - CLINICAL_PHENOTYPE
-		*/
-
-		SampleAttribute pat_id;
-		pat_id.attribute = Attribute::PATIENT_ID;
-		pat_id.datatype = "STRING";
-		pat_id.db_name = "PATIENT_ID";
-		pat_id.description = "Patient identifier";
-		pat_id.name = "Patient Identifier";
-		pat_id.priority = 1;
-
-		SampleAttribute sam_id;
-		sam_id.attribute = Attribute::SAMPLE_ID;
-		sam_id.datatype = "STRING";
-		sam_id.db_name = "SAMPLE_ID";
-		sam_id.description = "Sample identifier";
-		sam_id.name = "Sample Identifier";
-		sam_id.priority = 1;
-
-		SampleAttribute hpo;
-		hpo.attribute = Attribute::HRD_SCORE;
-		hpo.datatype = "NUMBER";
-		hpo.db_name = "HRD_SCORE";
-		hpo.description = "HRD score of sample";
-		hpo.name = "HRD score";
-		hpo.priority = 1;
-
-		SampleAttribute ploidy;
-		ploidy.attribute = Attribute::PLOIDY;
-		ploidy.datatype = "NUMBER";
-		ploidy.db_name = "PLOIDY";
-		ploidy.description = "ClinCNV ploidy of sample";
-		ploidy.name = "Ploidy";
-		ploidy.priority = 1;
-
-		SampleAttribute msi;
-		msi.attribute = Attribute::MSI_STATUS;
-		msi.datatype = "STRING";
-		msi.db_name = "MSI_STATUS";
-		msi.description = "MSI status of the sample";
-		msi.name = "MSI-Status";
-		msi.priority = 1;
-
-		SampleAttribute purity_hist;
-		purity_hist.attribute = Attribute::PURITY_HIST;
-		purity_hist.datatype = "NUMBER";
-		purity_hist.db_name = "PURITY_HIST";
-		purity_hist.description = "Tumor content based on histology";
-		purity_hist.name = "Tumor content (hist)";
-		purity_hist.priority = 1;
-
-		SampleAttribute purity_cnv;
-		purity_cnv.attribute = Attribute::PURITY_CNVS;
-		purity_cnv.datatype = "NUMBER";
-		purity_cnv.db_name = "PURITY_CNVS";
-		purity_cnv.description = "Tumor content based on CNVs";
-		purity_cnv.name = "Tumor content (CNV)";
-		purity_cnv.priority = 1;
-
-		SampleAttribute comment;
-		comment.attribute = Attribute::COMMENT;
-		comment.datatype = "STRING";
-		comment.db_name = "COMMENT";
-		comment.description = "Comment";
-		comment.name = "Comment";
-		comment.priority = 1;
-
-		SampleAttribute tmb;
-		tmb.attribute = Attribute::TMB;
-		tmb.datatype = "NUMBER";
-		tmb.db_name = "TMB";
-		tmb.description = "Tumor mutation burder";
-		tmb.name = "TMB";
-		tmb.priority = 1;
-
-		SampleAttribute icd10;
-		icd10.attribute = Attribute::ICD10;
-		icd10.datatype = "STRING";
-		icd10.db_name = "ICD10";
-		icd10.description = "ICD10 assoiciated with the sample";
-		icd10.name = "ICD10";
-		icd10.priority = 1;
-
-		SampleAttribute hpo_terms;
-		hpo_terms.attribute = Attribute::HPO_TERMS;
-		hpo_terms.datatype = "STRING";
-		hpo_terms.db_name = "HPO_TERMS";
-		hpo_terms.description = "HPO terms assoiciated with the sample";
-		hpo_terms.name = "HPO terms";
-		hpo_terms.priority = 1;
-
-		SampleAttribute clin_phen;
-		clin_phen.attribute = Attribute::CLINICAL_PHENOTYPE;
-		clin_phen.datatype = "STRING";
-		clin_phen.db_name = "CLINICAL_PHENOTYPE";
-		clin_phen.description = "Clinical phenotype (free text)";
-		clin_phen.name = "Clinical phenotype";
-		clin_phen.priority = 1;
-
-		export_settings.sample_attributes.clear();
-		export_settings.sample_attributes << pat_id << sam_id << hpo << ploidy << msi << purity_hist << purity_cnv << comment << tmb << icd10 << hpo_terms << clin_phen;
-		qDebug() << "SAMPLE ATTRIBUTES COUNT: " << export_settings.sample_attributes.count();
-
-		ExportCBioPortalStudy exportStudy(export_settings, false);
-		exportStudy.exportStudy("V:/users/ahott1a1/projects/cBioPortal/gsvar_test_export");
-
-
+		helper_export_cBioportal_study(study, tumor_samples, rna_samples);
 	}
 
 	qDebug() << "Elapsed time debugging:" << Helper::elapsedTime(timer, true);
 }
+
+void MainWindow::helper_export_cBioportal_study(StudyData study, QStringList tumor_samples, QStringList rna_samples)
+{
+	if (tumor_samples.count() != rna_samples.count())
+	{
+		qDebug() << "Unequal number of tumor and rna samples: " << tumor_samples.count() << " tumors and " << rna_samples.count() << "rna samples.\n";
+		return;
+	}
+
+	CancerData cancer;
+	cancer.color = "black";
+	cancer.description = "Mixed Cancer Types";
+	cancer.parent = "tissue";
+
+	CBioPortalExportSettings export_settings(study, false);
+	export_settings.cancer = cancer;
+
+	NGSD db(false);
+	QString filterFileName = GSvarHelper::applicationBaseName() + "_filters.ini";
+
+	for(int idx=0; idx<tumor_samples.count(); idx++)
+	{
+		QString sample = tumor_samples[idx];
+		QString rna = rna_samples[idx];
+
+		qDebug() << "gathering Data for: " << sample;
+		QString ps_id = db.processedSampleId(sample);
+		QString normal_sample = db.normalSample(ps_id);
+		QString normal_id = db.processedSampleId(normal_sample);
+
+
+		qDebug() << "normal sample: " << normal_sample;
+
+		loadFile(GlobalServiceProvider::database().secondaryAnalyses(sample + "-" + normal_sample, "somatic")[0]);
+		const FileLocationProvider& fileprovider = GlobalServiceProvider::fileLocationProvider();
+
+		SampleFiles files;
+		files.clincnv_file = fileprovider.getAnalysisCnvFile().filename;
+		files.msi_file = fileprovider.getSomaticMsiFile().filename;
+		files.sv_file = fileprovider.getAnalysisSvFile().filename;
+		files.gsvar_germline = GlobalServiceProvider::database().processedSamplePath(normal_id, PathType::GSVAR).filename;
+		files.gsvar_somatic = GlobalServiceProvider::database().secondaryAnalyses(sample + "-" + normal_sample, "somatic")[0];
+
+		if (rna != "")
+		{
+			QString rna_id = db.processedSampleId(rna);
+			files.rna_fusions = GlobalServiceProvider::database().processedSamplePath(rna_id, PathType::FUSIONS).filename;
+		}
+		qDebug() << files.gsvar_somatic << "\n" << files.gsvar_germline << "\n" << files.clincnv_file << "\n" << files.msi_file << "\n" << files.rna_fusions << "\n";
+
+		VariantList somatic_vl;
+		somatic_vl.load(files.gsvar_somatic);
+		VariantList germline_vl;
+		germline_vl.load(files.gsvar_germline);
+		CnvList cnvs;
+		cnvs.load(files.clincnv_file);
+
+
+		QStringList messages;
+		SomaticReportSettings report_settings;
+		report_settings.normal_ps = normal_sample;
+		report_settings.tumor_ps = sample;
+		somatic_report_settings_.msi_file = GlobalServiceProvider::fileLocationProvider().getSomaticMsiFile().filename;
+		somatic_report_settings_.viral_file = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::VIRAL).filename;
+
+		report_settings.report_config = db.somaticReportConfig(ps_id, normal_id, somatic_vl, cnvs, germline_vl, messages);
+
+		qDebug() << report_settings.report_config.filter();
+		report_settings.filters = FilterCascadeFile::load(filterFileName, report_settings.report_config.filter());
+
+		export_settings.addSample(report_settings, files);
+	}
+
+	//Sample Attributes:
+	/*
+	  - SAMPLE_ID
+	  - PATIENT_ID
+	  - MSI_STATUS
+	  - PLOIDY
+	  - PURITY_HIST
+	  - PURITY_CNVS
+	  PROCESSING_SYSTEM
+	  - COMMENT
+	  - HRD_SCORE
+	  - TMB
+	  - ICD10
+	  - HPO_TERMS
+	  - CLINICAL_PHENOTYPE
+	*/
+
+	SampleAttribute pat_id;
+	pat_id.attribute = Attribute::PATIENT_ID;
+	pat_id.datatype = "STRING";
+	pat_id.db_name = "PATIENT_ID";
+	pat_id.description = "Patient identifier";
+	pat_id.name = "Patient Identifier";
+	pat_id.priority = 1;
+
+	SampleAttribute sam_id;
+	sam_id.attribute = Attribute::SAMPLE_ID;
+	sam_id.datatype = "STRING";
+	sam_id.db_name = "SAMPLE_ID";
+	sam_id.description = "Sample identifier";
+	sam_id.name = "Sample Identifier";
+	sam_id.priority = 1;
+
+	SampleAttribute hpo;
+	hpo.attribute = Attribute::HRD_SCORE;
+	hpo.datatype = "NUMBER";
+	hpo.db_name = "HRD_SCORE";
+	hpo.description = "HRD score of sample";
+	hpo.name = "HRD score";
+	hpo.priority = 1;
+
+	SampleAttribute ploidy;
+	ploidy.attribute = Attribute::PLOIDY;
+	ploidy.datatype = "NUMBER";
+	ploidy.db_name = "PLOIDY";
+	ploidy.description = "ClinCNV ploidy of sample";
+	ploidy.name = "Ploidy";
+	ploidy.priority = 1;
+
+	SampleAttribute msi;
+	msi.attribute = Attribute::MSI_STATUS;
+	msi.datatype = "STRING";
+	msi.db_name = "MSI_STATUS";
+	msi.description = "MSI status of the sample";
+	msi.name = "MSI-Status";
+	msi.priority = 1;
+
+	SampleAttribute purity_hist;
+	purity_hist.attribute = Attribute::PURITY_HIST;
+	purity_hist.datatype = "NUMBER";
+	purity_hist.db_name = "PURITY_HIST";
+	purity_hist.description = "Tumor content based on histology";
+	purity_hist.name = "Tumor content (hist)";
+	purity_hist.priority = 1;
+
+	SampleAttribute purity_cnv;
+	purity_cnv.attribute = Attribute::PURITY_CNVS;
+	purity_cnv.datatype = "NUMBER";
+	purity_cnv.db_name = "PURITY_CNVS";
+	purity_cnv.description = "Tumor content based on CNVs";
+	purity_cnv.name = "Tumor content (CNV)";
+	purity_cnv.priority = 1;
+
+//		SampleAttribute comment;
+//		comment.attribute = Attribute::COMMENT;
+//		comment.datatype = "STRING";
+//		comment.db_name = "COMMENT";
+//		comment.description = "Comment";
+//		comment.name = "Comment";
+//		comment.priority = 1;
+
+	SampleAttribute tmb;
+	tmb.attribute = Attribute::TMB;
+	tmb.datatype = "NUMBER";
+	tmb.db_name = "TMB";
+	tmb.description = "Tumor mutation burden";
+	tmb.name = "TMB";
+	tmb.priority = 1;
+
+	SampleAttribute icd10;
+	icd10.attribute = Attribute::ICD10;
+	icd10.datatype = "STRING";
+	icd10.db_name = "ICD10";
+	icd10.description = "ICD10 assoiciated with the sample";
+	icd10.name = "ICD10";
+	icd10.priority = 1;
+
+	SampleAttribute hpo_terms;
+	hpo_terms.attribute = Attribute::HPO_TERMS;
+	hpo_terms.datatype = "STRING";
+	hpo_terms.db_name = "HPO_TERMS";
+	hpo_terms.description = "HPO terms assoiciated with the sample";
+	hpo_terms.name = "HPO terms";
+	hpo_terms.priority = 1;
+
+	SampleAttribute clin_phen;
+	clin_phen.attribute = Attribute::CLINICAL_PHENOTYPE;
+	clin_phen.datatype = "STRING";
+	clin_phen.db_name = "CLINICAL_PHENOTYPE";
+	clin_phen.description = "Clinical phenotype (free text)";
+	clin_phen.name = "Clinical phenotype";
+	clin_phen.priority = 1;
+
+	export_settings.sample_attributes.clear();
+	export_settings.sample_attributes << pat_id << sam_id << hpo << ploidy << msi << purity_hist << purity_cnv /*<< comment*/ << tmb << icd10 << hpo_terms << clin_phen;
+	qDebug() << "SAMPLE ATTRIBUTES COUNT: " << export_settings.sample_attributes.count();
+
+	ExportCBioPortalStudy exportStudy(export_settings, false);
+	exportStudy.exportStudy("T:/users/ahott1a1/+analysis/cBioPortal/gsvar_test_export/" + study.identifier +"/");
+//	exportStudy.exportStudy("T:\\local_dev\\data\\cBioPortaltest\\" + study.identifier +"\\");
+};
 
 void MainWindow::on_actionConvertVcfToGSvar_triggered()
 {
@@ -3642,6 +3692,7 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 		//load variants
 		timer.restart();
 		variants_.load(filename);
+
 		Log::perf("Loading small variant list took ", timer);
 		QString mode_title = "";
 		if (Helper::isHttpUrl(filename))
@@ -4108,8 +4159,9 @@ int MainWindow::showAnalysisIssues(QList<QPair<Log::LogLevel, QString>>& issues,
 	//show dialog
 	QLabel* label = new QLabel(lines.join("<br>"));
 	label->setMargin(6);
-	auto dlg = GUIHelper::createDialog(label, "GSvar analysis issues", "The following issues were encountered when loading the analysis:", true);
-	return dlg->exec();
+//	auto dlg = GUIHelper::createDialog(label, "GSvar analysis issues", "The following issues were encountered when loading the analysis:", true);
+//	return dlg->exec();
+	return QDialog::Accepted;
 }
 
 void MainWindow::on_actionAbout_triggered()

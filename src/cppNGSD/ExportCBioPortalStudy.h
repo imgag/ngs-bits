@@ -111,6 +111,7 @@ struct CPPNGSDSHARED_EXPORT SampleFiles
 	QString clincnv_file;
 	QString msi_file;
 	QString sv_file;
+	QString rna_fusions;
 };
 
 
@@ -198,6 +199,7 @@ private:
 	void exportSnvs(const QString& out_folder);
 	void exportCnvs(const QString& out_folder);
 	void exportSvs(const QString& out_folder);
+	void exportFusions(const QString& out_folder);
 	void writeSnvVariants(QSharedPointer<QFile> out_file, VariantList filtered_vl, int sample_idx);
 
 	QByteArray formatVariantClassification(const Transcript& trans, const QByteArray& coding_splicing);

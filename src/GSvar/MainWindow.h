@@ -17,6 +17,7 @@
 #include "FileLocationProviderRemote.h"
 #include "VersatileTextStream.h"
 #include "Log.h"
+#include "ExportCBioPortalStudy.h"
 ///Main window class
 class MainWindow
 		: public QMainWindow
@@ -487,6 +488,8 @@ private:
 	//SPECIAL
 	DelayedInitializationTimer init_timer_;
 	QString displayed_maintenance_message_id_;
+
+	void helper_export_cBioportal_study(StudyData study, QStringList tumor_samples, QStringList rna_samples);
 };
 
 #endif // MAINWINDOW_H
