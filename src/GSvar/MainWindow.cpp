@@ -5130,7 +5130,13 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 			{
 				QString sample_name = row[0].trimmed();
 				QString sample_id = db.sampleId(sample_name);
-				row.append(db.nextProcessingId(sample_id));
+
+				QString next_id = db.nextProcessingId(sample_id);
+				if (next_id.toInt() > 99)
+				{
+					THROW(ArgumentException, "Error: For sample " + sample_name + " already exist 99 processed samples.\nCannot create more processed samples for " + sample_name + ".\n\nPlease import a new sample ex. NA12878 -> NA12878x2");
+				}
+				row.append(next_id);
 			}
 
 			//special handling of sample duplicates
