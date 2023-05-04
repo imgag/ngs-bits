@@ -6099,7 +6099,7 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	}
 	else if (LoginManager::active())
 	{
-		QMessageBox::StandardButton btn = QMessageBox::information(this, "Gaps error", "No target region filter set!<br>Do you want to look up gaps for a specific gene?", QMessageBox::Yes, QMessageBox::No);
+		QMessageBox::StandardButton btn = QMessageBox::information(this, "Gaps error", "No target region filter set!<br>Do you want to determine gaps for exon +- 20 bases of a specific gene?", QMessageBox::Yes, QMessageBox::No);
 		if (btn!=QMessageBox::Yes) return;
 
 		QByteArray symbol = selectGene().toUtf8();
