@@ -1630,8 +1630,6 @@ void SomaticReportHelper::storeXML(QString file_name)
 	QSharedPointer<QFile> out_file = Helper::openFileForWriting(file_name);
 	SomaticXmlReportGenerator::generateXML(data, out_file, db_, false);
 	out_file->close();
-
-	SomaticXmlReportGenerator::validateXml(file_name);
 }
 
 void SomaticReportHelper::storeQbicData(QString path)

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<SomaticNgsReport version="4" genome_build="GRCh37">
+<SomaticNgsReport version="5" genome_build="GRCh37">
     <ReportGeneration date="2000-01-01" user_name="ahmustm1" software="cppNGSD-TEST 0.1-cppNGSD-TEST-Version"/>
     <PatientInfo sap_patient_identifier="SAP_TEST_IDENTIFIER">
         <DiseaseInfo type="ICD10" identifier="C17.2"/>
         <DiseaseInfo type="ICD10" identifier="C20.21"/>
     </PatientInfo>
-    <TumorSample name="DX184894_01" processing_system="SureSelect Somatic vTEST" processing_system_type="Panel" sequencer="MiSeq" average_depth="457.34" tumor_content_histology="0.600" tumor_content_bioinformatic="0.800" mutation_burden="17.30" microsatellite_instability="0.74" hrd_score_chromo="58">
+    <TumorSample name="DX184894_01" processing_system="SureSelect Somatic vTEST" processing_system_type="Panel" sequencer="MiSeq" average_depth="457.34" type="DNA" is_ffpe="true" tissue="buccal mucosa" tumor_content_histology="0.600" tumor_content_bioinformatic="0.800" mutation_burden="17.30" microsatellite_instability="0.74" hrd_score_chromo="58">
         <QcTerm id="QC:2000025" name="target region read depth" def="Average sequencing depth in target region." value="457.34"/>
     </TumorSample>
     <NormalSample name="DX184263_01" processing_system="SureSelect Somatic vTEST" processing_system_type="Panel" sequencer="MiSeq" average_depth="251.78">
