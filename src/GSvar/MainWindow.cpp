@@ -6847,7 +6847,7 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 
 			//check if already uploaded to ClinVar
 			QString var_id = db.variantId(variant);
-			QString sample_id = db.sampleId(filename_);
+			QString sample_id = db.sampleId(germlineReportSample());
 			QString clinvar_class = db.getValue("SELECT `class`FROM `variant_publication` WHERE `variant_table`='variant' AND `db`='ClinVar' AND `sample_id`=" + sample_id
 												+ " AND `variant_id`=" + var_id).toString();
 			if(!clinvar_class.isEmpty())
