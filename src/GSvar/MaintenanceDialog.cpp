@@ -361,9 +361,9 @@ void MaintenanceDialog::findInconsistenciesForCausalDiagnosticVariants()
 
 				//check classification
 				QString classification = db.getClassification(v).classification;
-				if (classification!='4' && classification!='5')
+				if (classification!='3' && classification!='4' && classification!='5')
 				{
-					errors << "Causal variant " + v.toString() + " not classified as class 4/5 (is '" + classification + "')";
+					errors << "Causal variant " + v.toString() + " not classified as class 3/4/5 (is '" + classification + "')";
 				}
 			}
 		}
