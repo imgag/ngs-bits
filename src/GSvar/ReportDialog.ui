@@ -464,7 +464,7 @@
       <item>
        <widget class="QCheckBox" name="class_info">
         <property name="text">
-         <string>Add explaination of variant classification</string>
+         <string>Add explanation of variant classification</string>
         </property>
        </widget>
       </item>

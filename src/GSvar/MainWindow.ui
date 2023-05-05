@@ -214,6 +214,9 @@
                    <iconset resource="GSvar.qrc">
                     <normaloff>:/Icons/ranking.png</normaloff>:/Icons/ranking.png</iconset>
                   </property>
+                  <property name="popupMode">
+                   <enum>QToolButton::InstantPopup</enum>
+                  </property>
                  </widget>
                 </item>
                 <item>
