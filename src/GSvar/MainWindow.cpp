@@ -2693,8 +2693,12 @@ void MainWindow::editVariantValidation(int index)
 		if (!val_id.isValid())
 		{
 			//get genotype
+			QByteArray genotype = "het";
 			int i_genotype = variants_.getSampleHeader().infoByID(ps).column_index;
-			QByteArray genotype = variant.annotations()[i_genotype];
+			if (i_genotype!=-1) //genotype column only available in germline, but not for somatic analysis.
+			{
+				genotype = variant.annotations()[i_genotype];
+			}
 
 			//insert
 			SqlQuery query = db.getQuery();
