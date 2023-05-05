@@ -236,7 +236,9 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.report_btn->menu()->addAction("Transfer somatic data to MTB", this, SLOT(transferSomaticData()) );
 	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
 	connect(ui_.open_qc_files, SIGNAL(clicked(bool)), this, SLOT(openVariantListQcFiles()));
-	connect(ui_.vars_ranking, SIGNAL(clicked(bool)), this, SLOT(variantRanking()));
+	ui_.vars_ranking->setMenu(new QMenu());
+	ui_.vars_ranking->menu()->addAction("dominant model", this, SLOT(variantRanking()))->setObjectName("GSvar_v2_dominant");
+	ui_.vars_ranking->menu()->addAction("recessive model", this, SLOT(variantRanking()))->setObjectName("GSvar_v2_recessive");
 	ui_.vars_af_hist->setMenu(new QMenu());
 	ui_.vars_af_hist->menu()->addAction("Show AF histogram (all small variants)", this, SLOT(showAfHistogram_all()));
 	ui_.vars_af_hist->menu()->addAction("Show AF histogram (small variants after filter)", this, SLOT(showAfHistogram_filtered()));
@@ -7612,7 +7614,8 @@ void MainWindow::variantRanking()
 		//score
 		VariantScores::Parameters parameters;
 		parameters.use_ngsd_classifications = !Settings::boolean("debug_mode_enabled", true);
-		VariantScores::Result result = VariantScores::score("GSvar_v1", variants_, phenotype_rois, parameters);
+		QString algorithm = sender()->objectName();
+		VariantScores::Result result = VariantScores::score(algorithm, variants_, phenotype_rois, parameters);
 
 		//update variant list
 		VariantScores::annotate(variants_, result, true);
