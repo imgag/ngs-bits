@@ -420,6 +420,8 @@ public slots:
 	void execContextMenuAction(QAction* action, int index);
 	//Open Alamut visualization
 	void openAlamut(QAction* action);
+	//Show matching CNVs and SVs
+	void showMatchingCnvsAndSvs(BedLine region);
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);

@@ -126,7 +126,7 @@ public:
 	BedFile affectedRegion(bool plus_one = true) const;
 
 	///Returns the SV as String
-	QString toString() const;
+	QString toString(bool add_type=true) const;
 
 	///Returns the genotype in VCF/BEDPE format (empty string of error if GT entry in sample column is not found).
 	QByteArray genotype(const QList<QByteArray>& annotation_headers, bool error_if_not_found=true, int sample_idx = 0) const;

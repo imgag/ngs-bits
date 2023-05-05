@@ -23,7 +23,6 @@ void RequestWorker::run()
 	if (!ssl_socket->setSocketDescriptor(socket_))
 	{
 		Log::error("Could not set a socket descriptor: " + ssl_socket->errorString());
-		ssl_socket->deleteLater();
 		return;
 	}
 
@@ -36,8 +35,6 @@ void RequestWorker::run()
 
 	try
 	{
-
-
 		ssl_socket->startServerEncryption();
 
 		QByteArray all_request_parts;
@@ -45,7 +42,6 @@ void RequestWorker::run()
 		if (!ssl_socket->isOpen())
 		{
 			Log::error("Could not open the socket for data exchange: " + ssl_socket->errorString());
-			ssl_socket->deleteLater();
 			return;
 		}
 
@@ -61,7 +57,7 @@ void RequestWorker::run()
 			if (!ssl_socket->isEncrypted() || (ssl_socket->state() == QSslSocket::SocketState::UnconnectedState))
 			{
 				Log::error("Connection cannot be continued: " + ssl_socket->errorString());
-				closeAndDeleteSocket(ssl_socket);
+				closeConnection(ssl_socket);
 				return;
 			}
 
@@ -344,7 +340,7 @@ void RequestWorker::run()
 				sendResponseDataPart(ssl_socket, "\r\n");
 			}
 
-			closeAndDeleteSocket(ssl_socket);
+			closeConnection(ssl_socket);
 			return;
 		}
 		else if (!response.getPayload().isNull())
@@ -405,7 +401,7 @@ QString RequestWorker::intToHex(const int& input)
 	return QString("%1").arg(input, 10, 16, QLatin1Char('0')).toUpper();
 }
 
-void RequestWorker::closeAndDeleteSocket(QSslSocket* socket)
+void RequestWorker::closeConnection(QSslSocket* socket)
 {
 	is_terminated_ = true;
 
@@ -419,7 +415,6 @@ void RequestWorker::closeAndDeleteSocket(QSslSocket* socket)
 		socket->disconnect();
 		socket->disconnectFromHost();
 		socket->close();
-		socket->deleteLater();
 	}
 }
 
@@ -441,5 +436,5 @@ void RequestWorker::sendEntireResponse(QSslSocket* socket, HttpResponse response
 		socket->write(response.getHeaders());
 		socket->write(response.getPayload());
 	}
-	closeAndDeleteSocket(socket);
+	closeConnection(socket);
 }
