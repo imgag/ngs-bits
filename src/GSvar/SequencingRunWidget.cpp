@@ -61,6 +61,7 @@ void SequencingRunWidget::updateGUI()
 		ui_->recipe->setText(query.value("recipe").toString());
 		ui_->comments->setText(query.value("comment").toString());
 		ui_->device->setText(query.value("d_name").toString() + " (" + query.value("d_type").toString() + ")");
+		ui_->side->setText(query.value("side").toString());
 		QVariant molarity = query.value("pool_molarity");
 		if (!molarity.isNull())
 		{
