@@ -131,10 +131,13 @@ QCCollection StatisticsReads::getResult()
 	output.insert(QCValue::Image("base distribution plot", plotname, "Base distribution plot per cycle.", "QC:2000011"));
 	QFile::remove(plotname);
 
+
 	//create output quality distribution plot
 	for(int j=0; j<qualities1_.count(); ++j)
 	{
-		int depth = pileups_[j].depth(false, true) / 2;
+		int depth = pileups_[j].depth(false, true);
+		//divide by 2 if paired-end reads
+		if(c_reverse_ > 0) depth /= 2;
 		qualities1_[j] /= depth;
 		qualities2_[j] /= depth;
 	}
