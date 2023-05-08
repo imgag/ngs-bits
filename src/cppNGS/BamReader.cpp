@@ -183,7 +183,7 @@ void BamAlignment::setBases(const Sequence& bases)
 	}
 
 	/*
-	explaination how a base is retrieved by index 'i':
+	explanation how a base is retrieved by index 'i':
 	int index = (i>>1); //two bases are stored on one byte => half index
 	int shift = ((~(i)&1)<<2); //0 or 4 (for first/second half of the byte)
 	int mask = 0xf; //00001111 (keeps second half of byte);

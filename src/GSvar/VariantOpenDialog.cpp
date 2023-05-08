@@ -7,6 +7,7 @@
 VariantOpenDialog::VariantOpenDialog(QWidget* parent)
 	: QDialog(parent)
 	, ui_()
+	, init_timer_(this, true)
 	, ref_genome_idx_(Settings::string("reference_genome"))
 {
 	ui_.setupUi(this);
@@ -205,4 +206,9 @@ bool VariantOpenDialog::checkValid()
 void VariantOpenDialog::checkValidBeforeAccept()
 {
 	if (checkValid()) accept();
+}
+
+void VariantOpenDialog::delayedInitialization()
+{
+	ui_.variant->setFocus();
 }

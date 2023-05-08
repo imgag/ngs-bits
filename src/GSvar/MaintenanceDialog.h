@@ -18,6 +18,7 @@ private slots:
 	void deleteUnusedVariants();
 	void importStudySamples();
 	void replaceObsolteHPOTerms();
+	void findInconsistenciesForCausalDiagnosticVariants();
 
 private:
 	Ui::MaintenanceDialog ui_;

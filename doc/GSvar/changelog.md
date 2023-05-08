@@ -1,5 +1,11 @@
 # GSvar change log
 
+### 2023_03-36 (05.05.23)
+- general: added context menu entry for small variants to search for CNVs/SVs in the same gene (for compound-heterozygous variants).
+- bugfix: fixed crash when requesting small variant validation from tumor-only analysis.
+- bugfix: fixed error when classifying a variant in trio/multi mode.
+- bugfix: fixed formatting error in germline trio report.
+
 ### 2023_03-28 (25.04.23)
 
 - somatic report: added sample type, FFPE and tissue to XML
