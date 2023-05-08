@@ -399,12 +399,6 @@ void VcfFile::loadFromVCFGZ(const QString& filename, bool allow_multi_sample, Ch
 
 	if (Helper::isHttpUrl(filename))
 	{
-		// Temporary solution to handle remote VCF files (we assume that there are no *.vcf.gz files)
-		if (filename.toLower().endsWith(".vcf.gz")) //TODO this does not match because of the token
-		{
-			THROW(NotImplementedException, "The support for *.vcf.gz files has not been implemented!");
-		}
-
 		QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(filename, true);
 		while(!file->atEnd())
 		{

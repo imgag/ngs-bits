@@ -93,6 +93,8 @@ void VariantTable::customContextMenu(QPoint pos)
 	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(i_co_sp);
 	const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
 
+	QAction* a_cnv_sv = menu.addAction("show CNVs/SVs in gene");
+
 	QAction* a_visualize = menu.addAction("Visualize");
 	a_visualize->setEnabled(Settings::boolean("debug_mode_enabled", true));
 	menu.addSeparator();
@@ -231,6 +233,11 @@ void VariantTable::customContextMenu(QPoint pos)
 
 
 	//perform actions
+	if (action==a_cnv_sv)
+	{
+		emit showMatchingCnvsAndSvs(BedLine(variant.chr(), variant.start(), variant.end()));
+	}
+
 	if (action==a_visualize)
 	{
 		FastaFileIndex genome_idx(Settings::string("reference_genome", false));
