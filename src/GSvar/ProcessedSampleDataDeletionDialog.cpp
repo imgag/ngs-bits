@@ -179,8 +179,7 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 
 		if (ui_.expression_data->isChecked())
 		{
-			//TODO adapt to new name
-			db.getQuery().exec("DELETE FROM expression_test WHERE processed_sample_id=" + ps_ids_.join(" OR processed_sample_id="));
+			db.getQuery().exec("DELETE FROM expression WHERE processed_sample_id=" + ps_ids_.join(" OR processed_sample_id="));
 		}
 
 		//somatic variants

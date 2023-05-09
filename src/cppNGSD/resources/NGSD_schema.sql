@@ -2276,9 +2276,9 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
--- Table `expression_test`
+-- Table `expression`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `expression_test`
+CREATE TABLE IF NOT EXISTS `expression`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
@@ -2288,12 +2288,12 @@ CREATE TABLE IF NOT EXISTS `expression_test`
   PRIMARY KEY (`id`),
   INDEX(`symbol_id`),
   UNIQUE INDEX `expression_UNIQUE` (`processed_sample_id` ASC, `symbol_id` ASC),
-  CONSTRAINT `fk_expression_test_processed_sample_id`
+  CONSTRAINT `fk_expression_processed_sample_id`
     FOREIGN KEY (`processed_sample_id` )
     REFERENCES `processed_sample` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_expression_test_symbol_id`
+  CONSTRAINT `fk_expression_symbol_id`
     FOREIGN KEY (`symbol_id` )
     REFERENCES `expression_gene` (`id` )
     ON DELETE NO ACTION

@@ -1524,8 +1524,7 @@ void NGSD::importGeneExpressionData(const QString& expression_data_file_path, co
 	if(debug) outstream << "Processed sample: " << ps_name << endl;
 
 	// check if already imported
-	//TODO rename table
-	int n_prev_entries = getValue("SELECT COUNT(`id`) FROM `expression_test` WHERE `processed_sample_id`=:0", false, ps_id).toInt();
+	int n_prev_entries = getValue("SELECT COUNT(`id`) FROM `expression` WHERE `processed_sample_id`=:0", false, ps_id).toInt();
 	if(debug) outstream << "Previously imported expression values: " << n_prev_entries << endl;
 
 	if (!force && (n_prev_entries > 0))
@@ -1540,8 +1539,7 @@ void NGSD::importGeneExpressionData(const QString& expression_data_file_path, co
 	if (n_prev_entries > 0)
 	{
 		SqlQuery query = getQuery();
-		//TODO rename table
-		query.exec("DELETE FROM `expression_test` WHERE `processed_sample_id`='"+ps_id+"'");
+		query.exec("DELETE FROM `expression` WHERE `processed_sample_id`='"+ps_id+"'");
 		if(debug) outstream << QByteArray::number(n_prev_entries) + " previously imported expression values deleted." << endl;
 	}
 
@@ -1555,8 +1553,7 @@ void NGSD::importGeneExpressionData(const QString& expression_data_file_path, co
 
 	// prepare query
 	SqlQuery query = getQuery();
-	//TODO rename table
-	query.prepare("INSERT INTO `expression_test`(`processed_sample_id`, `symbol_id`, `tpm`, `raw`) VALUES ('" + ps_id + "', :0, :1, :2)");
+	query.prepare("INSERT INTO `expression`(`processed_sample_id`, `symbol_id`, `tpm`, `raw`) VALUES ('" + ps_id + "', :0, :1, :2)");
 
 
 	// open file and iterate over expression values
@@ -1798,8 +1795,7 @@ QVector<double> NGSD::getGeneExpressionValues(const QByteArray& gene, int sys_id
 	int symbol_id = gene2id.value(gene_approved);
 	if (gene_approved.isEmpty()) return expr_values;
 
-	//TODO rename table
-	QStringList expr_values_str = getValues(QString() + "SELECT ev.tpm FROM `expression_test` ev "
+	QStringList expr_values_str = getValues(QString() + "SELECT ev.tpm FROM `expression ev "
 											  + "INNER JOIN `processed_sample` ps ON ev.processed_sample_id = ps.id "
 											  + "INNER JOIN `sample` s ON ps.sample_id = s.id "
 											  + "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue=:0 AND ev.symbol=" + QString::number(symbol_id), tissue_type);
@@ -1838,8 +1834,7 @@ QVector<double> NGSD::getGeneExpressionValues(const QByteArray& gene, QVector<in
 	if (gene_approved.isEmpty()) THROW(ArgumentException, "Can't convert gene '" + gene + "' to approved symbol!");
 
 	SqlQuery query = getQuery();
-	//TODO rename table
-	query.prepare("SELECT ev.tpm FROM `expression_test` ev WHERE ev.symbol_id=" + QString::number(symbol_id) + " AND ev.processed_sample_id=:0");
+	query.prepare("SELECT ev.tpm FROM `expression` ev WHERE ev.symbol_id=" + QString::number(symbol_id) + " AND ev.processed_sample_id=:0");
 
 	foreach (int ps_id, cohort)
 	{
@@ -1912,8 +1907,7 @@ QMap<QByteArray, double> NGSD::getGeneExpressionValuesOfSample(const QString& ps
 
 	SqlQuery query = getQuery();
 	auto id2gene = getGeneExpressionId2GeneMapping();
-	//TODO rename table
-	query.prepare("SELECT symbol_id, tpm FROM expression_test WHERE processed_sample_id=:0");
+	query.prepare("SELECT symbol_id, tpm FROM expression WHERE processed_sample_id=:0");
 	query.bindValue(0, ps_id);
 	query.exec();
 
@@ -1963,9 +1957,8 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<i
 	QString q_str;
 	if (gene_symbol.isEmpty())
 	{
-		//TODO rename table
 		q_str = QString(
-					"SELECT SQL_NO_CACHE e.symbol_id, AVG(e.tpm), AVG(LOG2(e.tpm+1)), STD(LOG2(e.tpm+1)) FROM expression_test e "
+					"SELECT e.symbol_id, AVG(e.tpm), AVG(LOG2(e.tpm+1)), STD(LOG2(e.tpm+1)) FROM expression e "
 					"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") "
 					"GROUP BY e.symbol_id ORDER BY e.symbol_id;"
 					);
@@ -1978,9 +1971,8 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<i
 		gene_symbol = geneSymbol(gene_id);
 		if (!gene2id.contains(gene_symbol)) THROW(ArgumentException, "'" + gene_symbol + "' is not gene expression database!");
 
-		//TODO rename table
 		q_str = QString(
-					"SELECT e.symbol_id, AVG(e.tpm), AVG(LOG2(e.tpm+1)), STD(LOG2(e.tpm+1)) FROM expression_test e "
+					"SELECT e.symbol_id, AVG(e.tpm), AVG(LOG2(e.tpm+1)), STD(LOG2(e.tpm+1)) FROM expression e "
 					"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") AND e.symbol_id=" + QString::number(gene2id.value(gene_symbol))
 					);
 	}
@@ -2098,8 +2090,7 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 	QSet<int> all_ps_ids;
 	if (mode == "genes")
 	{
-		//TODO rename table
-		all_ps_ids = getValuesInt("SELECT DISTINCT e.processed_sample_id FROM expression_test e").toSet();
+		all_ps_ids = getValuesInt("SELECT DISTINCT e.processed_sample_id FROM expression e").toSet();
 	}
 	else if (mode == "exons")
 	{
