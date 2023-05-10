@@ -29,6 +29,7 @@ public:
 		addFlag("add_simple_gene_names", "Adds an additional column containing only the list of gene names.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
+		changeLog(2023, 5, 10, "Added column with gene names at breakpoints.");
 		changeLog(2020, 1, 27, "Bugfix: 0-based BEDPE positions are now converted into 1-based BED positions.");
 		changeLog(2020, 1, 21, "Added ability to reannotate BEDPE files by overwriting old annotation.");
 		changeLog(2020, 1, 20, "Updated overlap method, refactored code.");
@@ -39,8 +40,8 @@ public:
 	virtual void main()
 	{
 		//init
-		use_test_db_ = getFlag("test");
-		add_simple_gene_names_ = getFlag("add_simple_gene_names");
+		bool use_test_db_ = getFlag("test");
+		bool add_simple_gene_names_ = getFlag("add_simple_gene_names");
 		NGSD db(use_test_db_);
 		QTextStream out(stdout);
 
@@ -48,62 +49,54 @@ public:
 		QTime timer;
 		timer.start();
 
-		// generate BED files for whole gene region and exons:
+		//generate BED files for whole gene loci
+		out << "caching gene information from NGSD ..." << endl;
 		BedFile gene_regions;
-		QHash<QByteArray, BedFile> exon_regions;
-
-		// get gene names:
-		GeneSet gene_names = db.approvedGeneNames();
-
-		out << "parsing " << gene_names.count() << " genes ..." << endl;
-		int parsed_genes = 0;
-		// iterate over all gene names
-		foreach (QByteArray gene_name, gene_names)
+		foreach (const QByteArray& gene_name, db.approvedGeneNames())
 		{
-			// generate bed file for complete genes
-			gene_regions.add(getGeneRegion(gene_name, db, "gene"));
+			BedFile regions = db.geneToRegions(gene_name, Transcript::ENSEMBL, "gene", true, false);
+			regions.extend(5000);
+			gene_regions.add(regions);
+		}
+		gene_regions.sort();
+		ChromosomalIndex<BedFile> gene_regions_index(gene_regions);
 
-			// progress output
-			parsed_genes++;
-			if (parsed_genes % 10000 == 0)
+		//cache gnomAD o/e LOF values
+		QHash<QByteArray, QByteArray> gene_oe_lof;
+		foreach (const QByteArray& gene_name, db.approvedGeneNames())
+		{
+			QVariant tmp = db.getValue("SELECT gnomad_oe_lof FROM geneinfo_germline WHERE symbol='" + gene_name + "'");
+			if (tmp.isValid() && !tmp.isNull())
 			{
-				out << "\t\t" << parsed_genes << " of " << gene_names.count() << " genes parsed." << endl;
+				gene_oe_lof[gene_name] = tmp.toByteArray();
+			}
+			else
+			{
+				gene_oe_lof[gene_name] = "n/a";
 			}
 		}
 
-		out << "sorting BED file..." << endl;
-		if (!gene_regions.isSorted()) gene_regions.sort();
+		out << "caching gene information finished (runtime: " << Helper::elapsedTime(timer) << ")" << endl;
+		timer.restart();
 
-		out << "generating BED index..." << endl;
-		ChromosomalIndex<BedFile> gene_regions_index(gene_regions);
-
-		out << "preprocessing finished (runtime: " << Helper::elapsedTime(timer) << ")" << endl;
-
-
-		out << "annotate BEDPE file..." << endl;
 		// open input file
 		BedpeFile bedpe_input_file;
 		bedpe_input_file.load(getInfile("in"));
 
-		// check if BEDPE file already contains gene annotation:
-		int i_gene_column = bedpe_input_file.annotationIndexByName("GENES", false);
-		int i_gene_info_column = bedpe_input_file.annotationIndexByName("GENE_INFO", false);
-
-		// copy comments
-		QByteArrayList output_buffer;
-		output_buffer.append(bedpe_input_file.headers());
-
-		// get header
-		QByteArrayList header = bedpe_input_file.annotationHeaders();
-
 		// modify header if gene columns not already present
+		QByteArrayList header = bedpe_input_file.annotationHeaders();
+		int i_gene_column = bedpe_input_file.annotationIndexByName("GENES", false);
 		if (add_simple_gene_names_ && i_gene_column < 0) header.append("GENES");
+		int i_gene_info_column = bedpe_input_file.annotationIndexByName("GENE_INFO", false);
 		if (i_gene_info_column < 0) header.append("GENE_INFO");
 
-		// copy header
+		// copy header to output
+		QByteArrayList output_buffer;
+		output_buffer.append(bedpe_input_file.headers());
 		output_buffer << "#CHROM_A\tSTART_A\tEND_A\tCHROM_B\tSTART_B\tEND_B\t" + header.join("\t");
 
 		// iterate over all structural variants
+		QHash<QByteArray, BedFile> exon_regions;
 		for (int i=0; i < bedpe_input_file.count(); i++)
 		{
 			BedpeLine line = bedpe_input_file[i];
@@ -112,13 +105,12 @@ public:
 			BedFile sv_region = line.affectedRegion();
 
 			GeneSet matching_genes;
-			QHash<QByteArray, QByteArray> gnomad_oe_lof_values;
 			QHash<QByteArray, QByteArray> covered_regions;
 
 			// iterate over all BED entries
 			for (int j = 0; j < sv_region.count(); ++j)
 			{
-				BedLine sv_entry = sv_region[j];
+				const BedLine& sv_entry = sv_region[j];
 
 				// get all matching gene entries
 				QVector<int> matching_indices = gene_regions_index.matchingIndices(sv_entry.chr(), sv_entry.start(), sv_entry.end());
@@ -127,46 +119,44 @@ public:
 				foreach (int index, matching_indices)
 				{
 					// store gene name
-					QByteArray gene_name = gene_regions[index].annotations()[0].trimmed().toUpper();
+					QByteArray gene_name = gene_regions[index].annotations()[0];
 					matching_genes.insert(gene_name);
 
-					// store gnomad oe lof score
-					gnomad_oe_lof_values[gene_name] = db.geneInfo(gene_name).oe_lof.toUtf8();
-
-					// determine covered gene region
-					QByteArray covered_region;
+					// determine overlap of SV and gene
+					QByteArray overlap;
 					if (sv_entry.start() <= gene_regions[index].start() && sv_entry.end() >= gene_regions[index].end())
 					{
-						// SV convers the whole gene
-						covered_region = "complete";
+						overlap = "complete";
 					}
 					else
 					{
 						if (!exon_regions.contains(gene_name))
 						{
-							// get exon/splicing region from database
-							exon_regions[gene_name] = getGeneRegion(gene_name, db, "exon");
+							BedFile regions = db.geneToRegions(gene_name, Transcript::ENSEMBL, "exon", true, false);
+							regions.extend(20);
+							exon_regions[gene_name] = regions;
 						}
 						if (exon_regions[gene_name].overlapsWith(sv_entry.chr(), sv_entry.start(), sv_entry.end()))
 						{
-							covered_region = "exonic/splicing";
+							overlap = "exonic/splicing";
 						}
 						else
 						{
-							covered_region = "intronic/intergenic";
+							overlap = "intronic/intergenic";
 						}
 					}
 
+					//determine maximum overlap
 					if (covered_regions.contains(gene_name))
 					{
-						// merge regions
-						if (covered_region != covered_regions[gene_name])
+						QByteArray overlap_old = covered_regions[gene_name];
+						if (overlap != overlap_old)
 						{
-							if ((covered_regions[gene_name] == "complete") || (covered_region == "complete"))
+							if (overlap_old == "complete" || overlap == "complete")
 							{
 								covered_regions[gene_name] = "complete";
 							}
-							else if ((covered_regions[gene_name] == "exonic/splicing") || (covered_region == "exonic/splicing"))
+							else if (overlap_old == "exonic/splicing" || overlap == "exonic/splicing")
 							{
 								covered_regions[gene_name] = "exonic/splicing";
 							}
@@ -175,7 +165,7 @@ public:
 					}
 					else
 					{
-						covered_regions[gene_name] = covered_region;
+						covered_regions[gene_name] = overlap;
 					}
 				}
 			}
@@ -183,11 +173,10 @@ public:
 			// join gene info
 			QByteArrayList gene_info_entry;
 			QByteArrayList gene_entry;
-			foreach (QString gene, matching_genes)
+			foreach (const QByteArray& gene, matching_genes)
 			{
-				gene_entry.append(gene.toUtf8());
-				gene_info_entry.append(gene.toUtf8() + " (oe_lof=" + gnomad_oe_lof_values[gene.toUtf8()]
-						+ " region=" + covered_regions[gene.toUtf8()] + ")");
+				gene_entry.append(gene);
+				gene_info_entry.append(gene + " (oe_lof=" + gene_oe_lof[gene] + " region=" + covered_regions[gene] + ")");
 			}
 
 			// generate annotated line
@@ -228,7 +217,6 @@ public:
 			output_buffer << annotated_line;
 		}
 
-		out << "Writing output file..." << endl;
 		// open output file and write annotated SVs to file
 		QSharedPointer<QFile> sv_output_file = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream output_stream(sv_output_file.data());
@@ -244,44 +232,6 @@ public:
 		out << "annotation complete (runtime: " << Helper::elapsedTime(timer) << ")." << endl;
 
 	}
-private:
-	bool use_test_db_;
-	bool add_simple_gene_names_;
-
-	/*
-	 *	returns a BED file containing the whole extended gene region for the given gene
-	 */
-	BedFile getGeneRegion(const QByteArray& gene_name, NGSD& db, const QByteArray& mode)
-	{
-
-		// calculate region
-		GeneSet single_gene;
-		single_gene.insert(gene_name);
-		BedFile gene_regions = db.genesToRegions(single_gene, Transcript::ENSEMBL, mode, true, false);
-
-		if (mode == "gene")
-		{
-			// extend and merge gene regions
-			gene_regions.extend(5000);
-			gene_regions.merge();
-		}
-		else
-		{
-			// extend by splice region
-			gene_regions.extend(20);
-		}
-
-
-		for (int i = 0; i < gene_regions.count(); ++i)
-		{
-			// add gene name annotation
-			QByteArrayList annotation;
-			annotation.append(gene_name);
-			gene_regions[i].annotations() = annotation;
-		}
-		return gene_regions;
-	}
-
 };
 
 #include "main.moc"
