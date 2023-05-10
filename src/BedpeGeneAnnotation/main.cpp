@@ -50,7 +50,6 @@ public:
 		timer.start();
 
 		//generate BED files for whole gene loci
-		out << "caching gene information from NGSD ..." << endl;
 		BedFile gene_regions;
 		foreach (const QByteArray& gene_name, db.approvedGeneNames())
 		{
@@ -60,6 +59,8 @@ public:
 		}
 		gene_regions.sort();
 		ChromosomalIndex<BedFile> gene_regions_index(gene_regions);
+		out << "caching gene start/end finished (runtime: " << Helper::elapsedTime(timer) << ")" << endl;
+		timer.restart();
 
 		//cache gnomAD o/e LOF values
 		QHash<QByteArray, QByteArray> gene_oe_lof;
@@ -68,15 +69,14 @@ public:
 			QVariant tmp = db.getValue("SELECT gnomad_oe_lof FROM geneinfo_germline WHERE symbol='" + gene_name + "'");
 			if (tmp.isValid() && !tmp.isNull())
 			{
-				gene_oe_lof[gene_name] = tmp.toByteArray();
+				gene_oe_lof[gene_name] = QByteArray::number(tmp.toDouble(), 'f', 2);
 			}
 			else
 			{
 				gene_oe_lof[gene_name] = "n/a";
 			}
 		}
-
-		out << "caching gene information finished (runtime: " << Helper::elapsedTime(timer) << ")" << endl;
+		out << "caching gnomAD o/e finished (runtime: " << Helper::elapsedTime(timer) << ")" << endl;
 		timer.restart();
 
 		// open input file
