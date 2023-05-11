@@ -1,10 +1,14 @@
 # GSvar change log
 
-### 2023_03-36 (05.05.23)
+### 2023_03-43 (11.05.23)
 - general: added context menu entry for small variants to search for CNVs/SVs in the same gene (for compound-heterozygous variants).
+- general: added small variant ranking version 2b with separate models for dominant and recessive.
+- run tab: added sequencer side.
+- run tab: added overall qc metrics (Q30, error rate and yield)
 - bugfix: fixed crash when requesting small variant validation from tumor-only analysis.
 - bugfix: fixed error when classifying a variant in trio/multi mode.
 - bugfix: fixed formatting error in germline trio report.
+
 
 ### 2023_03-28 (25.04.23)
 
