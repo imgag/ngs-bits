@@ -591,24 +591,27 @@ void SequencingRunWidget::updateReadQualityTable()
 	}
 
 	//add QC summary
-	int row = table->rowCount();
-	table->setRowCount(row + 1);
+	if (!type2values.isEmpty())
+	{
+		int row = table->rowCount();
+		table->setRowCount(row + 1);
 
-	QTableWidgetItem* item = GUIHelper::createTableItem("overall");
-	highlightItem(item);
-	table->setItem(row, 0, item);
+		QTableWidgetItem* item = GUIHelper::createTableItem("overall");
+		highlightItem(item);
+		table->setItem(row, 0, item);
 
-	item = GUIHelper::createTableItem(QString::number(BasicStatistics::mean(type2values["q30"]), 'f', 2));
-	highlightItem(item);
-	table->setItem(row, 2, item);
+		item = GUIHelper::createTableItem(QString::number(BasicStatistics::mean(type2values["q30"]), 'f', 2));
+		highlightItem(item);
+		table->setItem(row, 2, item);
 
-	item = GUIHelper::createTableItem(QString::number(BasicStatistics::mean(type2values["error_rate"]), 'f', 2));
-	highlightItem(item);
-	table->setItem(row, 3, item);
+		item = GUIHelper::createTableItem(QString::number(BasicStatistics::mean(type2values["error_rate"]), 'f', 2));
+		highlightItem(item);
+		table->setItem(row, 3, item);
 
-	item = GUIHelper::createTableItem(QString::number(std::accumulate(type2values["yield"].begin(), type2values["yield"].end(), 0.0), 'f', 2));
-	highlightItem(item);
-	table->setItem(row, 7, item);
+		item = GUIHelper::createTableItem(QString::number(std::accumulate(type2values["yield"].begin(), type2values["yield"].end(), 0.0), 'f', 2));
+		highlightItem(item);
+		table->setItem(row, 7, item);
+	}
 
 	GUIHelper::resizeTableCells(table);
 }
