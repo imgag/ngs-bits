@@ -50,7 +50,6 @@ public:
 		timer.start();
 
 		//generate BED files for whole gene loci
-		out << "caching gene information from NGSD ..." << endl;
 		BedFile gene_regions;
 		foreach (const QByteArray& gene_name, db.approvedGeneNames())
 		{
@@ -60,6 +59,8 @@ public:
 		}
 		gene_regions.sort();
 		ChromosomalIndex<BedFile> gene_regions_index(gene_regions);
+		out << "caching gene start/end finished (runtime: " << Helper::elapsedTime(timer) << ")" << endl;
+		timer.restart();
 
 		//cache gnomAD o/e LOF values
 		QHash<QByteArray, QByteArray> gene_oe_lof;
@@ -68,15 +69,14 @@ public:
 			QVariant tmp = db.getValue("SELECT gnomad_oe_lof FROM geneinfo_germline WHERE symbol='" + gene_name + "'");
 			if (tmp.isValid() && !tmp.isNull())
 			{
-				gene_oe_lof[gene_name] = tmp.toByteArray();
+				gene_oe_lof[gene_name] = QByteArray::number(tmp.toDouble(), 'f', 2);
 			}
 			else
 			{
 				gene_oe_lof[gene_name] = "n/a";
 			}
 		}
-
-		out << "caching gene information finished (runtime: " << Helper::elapsedTime(timer) << ")" << endl;
+		out << "caching gnomAD o/e finished (runtime: " << Helper::elapsedTime(timer) << ")" << endl;
 		timer.restart();
 
 		// open input file
@@ -87,6 +87,8 @@ public:
 		QByteArrayList header = bedpe_input_file.annotationHeaders();
 		int i_gene_column = bedpe_input_file.annotationIndexByName("GENES", false);
 		if (add_simple_gene_names_ && i_gene_column < 0) header.append("GENES");
+		int i_gene_breakpoint_column = bedpe_input_file.annotationIndexByName("GENES_BREAKPOINTS", false);
+		if (add_simple_gene_names_ && i_gene_breakpoint_column < 0) header.append("GENES_BREAKPOINTS");
 		int i_gene_info_column = bedpe_input_file.annotationIndexByName("GENE_INFO", false);
 		if (i_gene_info_column < 0) header.append("GENE_INFO");
 
@@ -101,30 +103,29 @@ public:
 		{
 			BedpeLine line = bedpe_input_file[i];
 
-			// get region of SV
-			BedFile sv_region = line.affectedRegion();
+			//get regions affected by SV
 
+			//determine overlapping genes
 			GeneSet matching_genes;
+			GeneSet matching_genes_breakpoints;
 			QHash<QByteArray, QByteArray> covered_regions;
-
-			// iterate over all BED entries
-			for (int j = 0; j < sv_region.count(); ++j)
+			BedFile sv_regions = line.affectedRegion();
+			for (int j = 0; j < sv_regions.count(); ++j)
 			{
-				const BedLine& sv_entry = sv_region[j];
+				const BedLine& sv_region = sv_regions[j];
 
-				// get all matching gene entries
-				QVector<int> matching_indices = gene_regions_index.matchingIndices(sv_entry.chr(), sv_entry.start(), sv_entry.end());
-
-				// iterate over all matching BED entries and check coverage
+				//determine overlapping genes
+				QVector<int> matching_indices = gene_regions_index.matchingIndices(sv_region.chr(), sv_region.start(), sv_region.end());
 				foreach (int index, matching_indices)
 				{
+					const BedLine& gene_locus = gene_regions[index];
 					// store gene name
-					QByteArray gene_name = gene_regions[index].annotations()[0];
+					QByteArray gene_name = gene_locus.annotations()[0];
 					matching_genes.insert(gene_name);
 
 					// determine overlap of SV and gene
 					QByteArray overlap;
-					if (sv_entry.start() <= gene_regions[index].start() && sv_entry.end() >= gene_regions[index].end())
+					if (sv_region.start() <= gene_locus.start() && sv_region.end() >= gene_locus.end())
 					{
 						overlap = "complete";
 					}
@@ -136,7 +137,7 @@ public:
 							regions.extend(20);
 							exon_regions[gene_name] = regions;
 						}
-						if (exon_regions[gene_name].overlapsWith(sv_entry.chr(), sv_entry.start(), sv_entry.end()))
+						if (exon_regions[gene_name].overlapsWith(sv_region.chr(), sv_region.start(), sv_region.end()))
 						{
 							overlap = "exonic/splicing";
 						}
@@ -146,7 +147,7 @@ public:
 						}
 					}
 
-					//determine maximum overlap
+					//determine maximum overlap for gene
 					if (covered_regions.contains(gene_name))
 					{
 						QByteArray overlap_old = covered_regions[gene_name];
@@ -160,61 +161,66 @@ public:
 							{
 								covered_regions[gene_name] = "exonic/splicing";
 							}
-							// else: both intronic/intergenic
+							// both 'intronic/intergenic' > nothing to do
 						}
 					}
 					else
 					{
 						covered_regions[gene_name] = overlap;
 					}
+
+					//determine genes at breakpoints
+					if (gene_locus.overlapsWith(sv_region.start(), sv_region.start()) || gene_locus.overlapsWith(sv_region.end(), sv_region.end()))
+					{
+						matching_genes_breakpoints << gene_name;
+					}
 				}
 			}
-
-			// join gene info
-			QByteArrayList gene_info_entry;
-			QByteArrayList gene_entry;
-			foreach (const QByteArray& gene, matching_genes)
-			{
-				gene_entry.append(gene);
-				gene_info_entry.append(gene + " (oe_lof=" + gene_oe_lof[gene] + " region=" + covered_regions[gene] + ")");
-			}
-
-			// generate annotated line
-			QByteArrayList additional_annotations;
 
 			// gene names
 			if (add_simple_gene_names_)
 			{
 				if (i_gene_column >= 0)
 				{
-					QList<QByteArray> annotations = line.annotations();
-					annotations[i_gene_column] = gene_entry.join(",");
-					line.setAnnotations(annotations);
+					line.setAnnotation(i_gene_column, matching_genes.join(","));
 				}
 				else
 				{
-					additional_annotations.append(gene_entry.join(","));
+					line.appendAnnotation(matching_genes.join(","));
+				}
+			}
+
+			// gene names at breakpoints
+			if (add_simple_gene_names_)
+			{
+				if (i_gene_breakpoint_column >= 0)
+				{
+					line.setAnnotation(i_gene_breakpoint_column, matching_genes_breakpoints.join(","));
+				}
+				else
+				{
+					line.appendAnnotation(matching_genes_breakpoints.join(","));
 				}
 			}
 
 			// gene info
+			QByteArrayList gene_info_entry;
+			foreach (const QByteArray& gene, matching_genes)
+			{
+				gene_info_entry.append(gene + " (oe_lof=" + gene_oe_lof[gene] + " region=" + covered_regions[gene] + ")");
+			}
 			if (i_gene_info_column >= 0)
 			{
-				QList<QByteArray> annotations = line.annotations();
-				annotations[i_gene_info_column] = gene_info_entry.join(",");
-				line.setAnnotations(annotations);
+				line.setAnnotation(i_gene_info_column, gene_info_entry.join(","));
 			}
 			else
 			{
-				additional_annotations.append(gene_info_entry.join(","));
+				line.appendAnnotation(gene_info_entry.join(","));
 			}
 
 			// extend annotation
-			QByteArray annotated_line = line.toTsv();
-			if (additional_annotations.size() > 0) annotated_line += "\t" + additional_annotations.join("\t");
-
 			//add annotated line to buffer
-			output_buffer << annotated_line;
+			output_buffer << line.toTsv();
 		}
 
 		// open output file and write annotated SVs to file
