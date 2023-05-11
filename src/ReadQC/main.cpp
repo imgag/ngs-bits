@@ -34,7 +34,6 @@ public:
 	virtual void main()
 	{
 		//init
-		StatisticsReads stats;
 		FastqEntry entry;
 		QStringList infiles;
 		QStringList in1 = getInfileList("in1");
@@ -54,6 +53,7 @@ public:
 		bool write2 = out2!="";
 		if (write2) out2_stream = new FastqOutfileStream(out2, compression_level);
 		bool long_read = getFlag("long_read");
+		StatisticsReads stats(long_read);
 
 		//process
 		for (int i=0; i<in1.count(); ++i)
