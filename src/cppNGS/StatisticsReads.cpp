@@ -60,6 +60,53 @@ void StatisticsReads::update(const FastqEntry& entry, ReadDirection direction)
 	if (q_sum/cycles>=20.0) ++c_read_q20_;
 }
 
+void StatisticsReads::update(const BamAlignment& al)
+{
+	//update read counts
+	bool is_forward = al.isRead1();
+	if (is_forward)
+	{
+		++c_forward_;
+	}
+	else
+	{
+		++c_reverse_;
+	}
+
+	//check number of cycles
+	int cycles = al.bases().count();
+	bases_sequenced_ += cycles;
+	read_lengths_.insert(cycles);
+	if (cycles>pileups_.size())
+	{
+		pileups_.resize(cycles);
+		qualities1_.resize(cycles);
+		qualities2_.resize(cycles);
+	}
+
+	//create pileups
+	Sequence bases = al.bases();
+	for (int i=0; i<cycles; ++i) pileups_[i].inc(bases[i]);
+
+	//handle qualities
+	double q_sum = 0.0;
+	for (int i=0; i<cycles; ++i)
+	{
+		int q = al.quality(i);
+		q_sum += q;
+		if (q>=30.0) ++c_base_q30_;
+		if (is_forward)
+		{
+			qualities1_[i] += q;
+		}
+		else
+		{
+			qualities2_[i] += q;
+		}
+	}
+	if (q_sum/cycles>=20.0) ++c_read_q20_;
+}
+
 QCCollection StatisticsReads::getResult()
 {
 	//create output values

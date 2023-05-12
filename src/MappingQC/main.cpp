@@ -4,6 +4,7 @@
 #include "Statistics.h"
 #include "Exceptions.h"
 #include "Settings.h"
+#include "StatisticsReads.h"
 #include <QFileInfo>
 
 class ConcreteTool
@@ -34,8 +35,10 @@ public:
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addFlag("cfdna", "Add additional QC parameters for cfDNA samples. Only supported mit '-roi'.");
 		addInfile("somatic_custom_bed", "Somatic custom region of interest (subpanel of actual roi). If specified, additional depth metrics will be calculated.", true, true);
+		addOutfile("read_qc", "Calculate FASTQ QC metrics as well (same as calculated by ReadQC/SeqPurge).", true);
 
 		//changelog
+		changeLog(2023,  5, 12, "Added 'read_qc' parameter.");
 		changeLog(2022,  5, 25, "Added new QC metrics to WGS mode.");
 		changeLog(2021,  2,  9, "Added new QC metrics for uniformity of coverage (QC:2000057-QC:2000061).");
 		changeLog(2020, 11, 27, "Added CRAM support.");
@@ -55,11 +58,9 @@ public:
 		if (ref_file=="") ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 		bool cfdna = getFlag("cfdna");
-
 		int min_mapq = getInt("min_mapq");
 		bool debug = getFlag("debug");
-
-		QString somatic_custom_roi_file = getInfile("somatic_custom_bed");
+		QTextStream debug_stream(stdout);
 
 		// check that just one of roi_file, wgs, rna is set
 		int parameters_set =  (roi_file!="" ? 1 : 0) +  wgs + rna;
@@ -71,6 +72,29 @@ public:
 		{
 			 THROW(CommandLineParsingException, "The flag 'cfdna' can only be used with parameter 'roi'!");
 		}
+
+		//FASTQ QC
+		QTime timer;
+		timer.start();
+		QString read_qc = getOutfile("read_qc").trimmed();
+		if (!read_qc.isEmpty())
+		{
+			StatisticsReads stats;
+
+			BamAlignment al;
+			BamReader reader(in, ref_file);
+			while (reader.getNextAlignment(al))
+			{
+				stats.update(al);
+			}
+
+			QCCollection metrics_raw_data = stats.getResult();
+			metrics_raw_data.storeToQCML(read_qc, QStringList() << in, "");
+			if (debug) debug_stream << "Performing raw read QC took: " << Helper::elapsedTime(timer) << endl;
+		}
+
+		//perform main QC
+		timer.restart();
 		QStringList parameters;
 		QCCollection metrics;
 		if (wgs)
@@ -110,15 +134,21 @@ public:
 			parameters << "-roi" << QFileInfo(roi_file).fileName();
 			if (cfdna) parameters << "-cfdna";
 		}
+		if (debug) debug_stream << "Performing main QC took: " << Helper::elapsedTime(timer) << endl;
 
 		//sample contamination
+		timer.restart();
 		QCCollection metrics_cont;
 		if (!getFlag("no_cont") && getEnum("build") != "non_human")
 		{
 			GenomeBuild build = stringToBuild(getEnum("build"));
 			metrics_cont = Statistics::contamination(build, in, ref_file, debug);
+			if (debug) debug_stream << "Performing contamination chec took: " << Helper::elapsedTime(timer) << endl;
 		}
 
+		//somatic
+		timer.restart();
+		QString somatic_custom_roi_file = getInfile("somatic_custom_bed");
 		if(somatic_custom_roi_file != "")
 		{
 			BedFile custom_bed;
@@ -127,13 +157,8 @@ public:
 			QCCollection custom_depths = Statistics::somaticCustomDepth(custom_bed, in, ref_file, min_mapq);
 			metrics.insert(custom_depths);
 			parameters << "-somatic_custom_bed " + somatic_custom_roi_file;
+			if (debug) debug_stream << "Performing somatic special QC took: " << Helper::elapsedTime(timer) << endl;
 		}
-
-		//special QC for 3 exons
-		QMap<QString, int> precision_overwrite;
-		precision_overwrite.insert("error estimation N percentage", 4);
-		precision_overwrite.insert("error estimation SNV percentage", 4);
-		precision_overwrite.insert("error estimation indel percentage", 4);
 
 		//store output
 		QString out = getOutfile("out");
@@ -148,7 +173,7 @@ public:
 		else
 		{
 			metrics.insert(metrics_cont);
-			metrics.storeToQCML(out, QStringList() << in, parameters.join(" "), precision_overwrite);
+			metrics.storeToQCML(out, QStringList() << in, parameters.join(" "));
 		}
 	}
 };
