@@ -35,7 +35,7 @@ public:
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addFlag("cfdna", "Add additional QC parameters for cfDNA samples. Only supported mit '-roi'.");
 		addInfile("somatic_custom_bed", "Somatic custom region of interest (subpanel of actual roi). If specified, additional depth metrics will be calculated.", true, true);
-		addOutfile("read_qc", "Calculate FASTQ QC metrics as well (same as calculated by ReadQC/SeqPurge).", true);
+		addOutfile("read_qc", "If set, a read QC file in qcML format is created (just like ReadQC/SeqPurge).", true);
 
 		//changelog
 		changeLog(2023,  5, 12, "Added 'read_qc' parameter.");
@@ -143,7 +143,7 @@ public:
 		{
 			GenomeBuild build = stringToBuild(getEnum("build"));
 			metrics_cont = Statistics::contamination(build, in, ref_file, debug);
-			if (debug) debug_stream << "Performing contamination chec took: " << Helper::elapsedTime(timer) << endl;
+			if (debug) debug_stream << "Performing contamination check took: " << Helper::elapsedTime(timer) << endl;
 		}
 
 		//somatic
