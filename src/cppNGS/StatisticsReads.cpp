@@ -74,7 +74,7 @@ void StatisticsReads::update(const BamAlignment& al)
 	}
 
 	//check number of cycles
-	int cycles = al.bases().count();
+	int cycles = al.length();
 	bases_sequenced_ += cycles;
 	read_lengths_.insert(cycles);
 	if (cycles>pileups_.size())
@@ -83,10 +83,20 @@ void StatisticsReads::update(const BamAlignment& al)
 		qualities1_.resize(cycles);
 		qualities2_.resize(cycles);
 	}
-
+	
 	//create pileups
-	Sequence bases = al.bases();
-	for (int i=0; i<cycles; ++i) pileups_[i].inc(bases[i]);
+	QVector<int> base_ints = al.baseIntegers();
+	for (int i=0; i<cycles; ++i)
+	{
+		int base = base_ints[i];
+		
+		if (base==1) pileups_[i].incA();
+		else if (base==2) pileups_[i].incC();
+		else if (base==4) pileups_[i].incG();
+		else if (base==8) pileups_[i].incT();
+		else if (base==15) pileups_[i].incN();
+		else THROW(ProgrammingException, "Unknown base '" + QString::number(base_ints[i]) + "' in StatisticsReads::update!");
+	}
 
 	//handle qualities
 	double q_sum = 0.0;
