@@ -20,7 +20,8 @@
 #include <QMessageBox>
 #include <QInputDialog>
 
-const bool test_run = false;
+//TODO: change to production
+const bool test_run = true;
 const QString api_url = (test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/";
 
 ClinvarUploadDialog::ClinvarUploadDialog(QWidget *parent)
@@ -610,7 +611,8 @@ void ClinvarUploadDialog::upload()
 				details << "reupload_by=" + LoginManager::userLogin();
 			}
 
-			if (!test_run)
+			//TODO: Re-activate
+//			if (!test_run)
 			{
 				// log publication in NGSD
 				if (manual_upload_)
@@ -678,16 +680,19 @@ void ClinvarUploadDialog::upload()
 					}
 				}
 
+				// for reupload: flag previous upload as replaced
+				if (clinvar_upload_data_.variant_publication_id > 0) db_.flagVariantPublicationAsReplaced(clinvar_upload_data_.variant_publication_id);
 
+				// for update: flag all over uploads with same SCV as replaced
 				if (!clinvar_upload_data_.stable_id.trimmed().isEmpty())
 				{
 					//get variant publication id
-					clinvar_upload_data_.variant_publication_id = db_.getValue("SELECT id FROM variant_publication WHERE replaced = 0 AND result LIKE :0", false, "%" + clinvar_upload_data_.stable_id + "%").toInt();
-
+					QList<int> pub_ids_to_replace = db_.getValuesInt("SELECT id FROM variant_publication WHERE replaced = 0 AND result LIKE :0", "%" + clinvar_upload_data_.stable_id + "%");
+					foreach (int pub_id, pub_ids_to_replace)
+					{
+						db_.flagVariantPublicationAsReplaced(pub_id);
+					}
 				}
-
-				// for reupload: flag previous upload as replaced
-				if (clinvar_upload_data_.variant_publication_id > 0) db_.flagVariantPublicationAsReplaced(clinvar_upload_data_.variant_publication_id);
 			}
 
             //show result

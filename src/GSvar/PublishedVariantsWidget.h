@@ -7,12 +7,7 @@
 #include <QWidget>
 
 
-struct SubmissionStatus
-{
-	QString status;
-	QString stable_id;
-	QString comment;
-};
+
 
 namespace Ui {
 class PublishedVariantsWidget;
