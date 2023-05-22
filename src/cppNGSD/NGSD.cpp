@@ -19,6 +19,7 @@
 #include <QCryptographicHash>
 #include <QDir>
 #include <QThread>
+#include <ProxyDataService.h>
 #include "cmath"
 #include "QUuid"
 #include "ClientHelper.h"
@@ -4356,7 +4357,7 @@ void NGSD::linkVariantPublications(int variant_publication_id1, int variant_publ
 	query.exec();
 }
 
-void NGSD::updateClinvarSubmissionStatus()
+QPair<int, int> NGSD::updateClinvarSubmissionStatus(bool test_run)
 {
 	SqlQuery query = getQuery();
 
@@ -4401,11 +4402,11 @@ void NGSD::updateClinvarSubmissionStatus()
 			//skip already deleted
 			if(skip) continue;
 
-			ClinvarSubmissionStatus submission_status = getSubmissionStatus(submission_id);
+			ClinvarSubmissionStatus submission_status = getSubmissionStatus(submission_id, test_run);
 			n_var_checked++;
 			if (submission_status.status != result.split(";").at(2)) n_var_updated++;
 			result = QStringList{"deleted", stable_id, submission_id, submission_status.status, submission_status.comment}.join(";");
-			db.updateVariantPublicationResult(vp_id, result);
+			updateVariantPublicationResult(vp_id, result);
 
 		}
 		else
@@ -4423,7 +4424,7 @@ void NGSD::updateClinvarSubmissionStatus()
 				THROW(ArgumentException, "'details' column doesn't contain submission id!")
 			}
 
-			SubmissionStatus submission_status = getSubmissionStatus(submission_id);
+			ClinvarSubmissionStatus submission_status = getSubmissionStatus(submission_id, test_run);
 			n_var_checked++;
 
 			//update db if neccessary
@@ -4442,15 +4443,16 @@ void NGSD::updateClinvarSubmissionStatus()
 				}
 
 				//update result info in the NGSD
-				db.updateVariantPublicationResult(vp_id, result);
+				updateVariantPublicationResult(vp_id, result);
 				n_var_updated++;
 			}
 		}
 	}
 
+	return QPair<int,int>(n_var_checked, n_var_updated);
 }
 
-ClinvarSubmissionStatus NGSD::getSubmissionStatus(const QString& submission_id, HttpRequestHandler::ProxyType proxy, bool test_run)
+ClinvarSubmissionStatus NGSD::getSubmissionStatus(const QString& submission_id, bool test_run)
 {
 	//switch on/off testing
 	if(test_run) qDebug() << "Test run enabled!";
@@ -4462,7 +4464,7 @@ ClinvarSubmissionStatus NGSD::getSubmissionStatus(const QString& submission_id, 
 	if (api_key.isEmpty()) THROW(FileParseException, "Settings INI file does not contain ClinVar API key!");
 
 	ClinvarSubmissionStatus submission_status;
-	HttpRequestHandler request_handler(proxy);
+	HttpRequestHandler request_handler(ProxyDataService::getProxy());
 
 	try
 	{
@@ -4514,8 +4516,7 @@ ClinvarSubmissionStatus NGSD::getSubmissionStatus(const QString& submission_id, 
 	}
 	catch(Exception e)
 	{
-		QMessageBox::critical(this, "Status check failed", "Status check failed for submission " + submission_id + " (" + e.message() + ")!");
-
+		THROW(ArgumentException, "Status check failed for submission " + submission_id + " (" + e.message() + ")!");
 		return ClinvarSubmissionStatus();
 	}
 }

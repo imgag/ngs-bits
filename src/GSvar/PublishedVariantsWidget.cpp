@@ -20,7 +20,7 @@ const QString api_url = (test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/
 PublishedVariantsWidget::PublishedVariantsWidget(QWidget* parent)
 	: QWidget(parent)
 	, ui_(new Ui::PublishedVariantsWidget)
-	, http_handler_(HttpRequestHandler::INI, this)
+	, http_handler_(false, this)
 {
 	ui_->setupUi(this);
 	connect(ui_->search_btn, SIGNAL(clicked(bool)), this, SLOT(updateTable()));
@@ -313,105 +313,10 @@ void PublishedVariantsWidget::updateClinvarSubmissionStatus()
 	ui_->updateStatus_btn->setEnabled(false);
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
-	// parse variant publication table and update ClinVar submission status
-	NGSD db;
-	SqlQuery query = db.getQuery();
+	QPair<int,int> var_counts = NGSD().updateClinvarSubmissionStatus(test_run);
 
-	query.exec("SELECT id, details, result FROM variant_publication WHERE db='ClinVar'");
-
-	int n_var_checked = 0;
-	int n_var_updated = 0;
-
-	while(query.next())
-	{
-		int vp_id = query.value("id").toInt();
-		QString details = query.value("details").toString();
-		QString result = query.value("result").toString();
-
-		// skip publications without submission id
-		if (!details.contains("submission_id=SUB")) continue;
-
-		// skip publications which are already processed
-		if (result.startsWith("processed")) continue;
-		if (result.startsWith("error")) continue;
-
-		//extract submission id
-		QString submission_id;
-		QString stable_id;
-
-		//special handling of deletions
-		if(result.startsWith("deleted;"))
-		{
-			bool skip = false;
-			foreach (QString info, result.split(";"))
-			{
-				if(info.startsWith("SUB")) submission_id = info.trimmed();
-				if(info.startsWith("SCV")) stable_id = info.trimmed();
-				if(info.trimmed() == "processed") skip  = true;
-
-			}
-			if (submission_id.isEmpty())
-			{
-				THROW(ArgumentException, "'result' column doesn't contain submission id!")
-			}
-
-			//skip already deleted
-			if(skip) continue;
-
-			SubmissionStatus submission_status = getSubmissionStatus(submission_id);
-			n_var_checked++;
-			if (submission_status.status != result.split(";").at(2)) n_var_updated++;
-			result = QStringList{"deleted", stable_id, submission_id, submission_status.status, submission_status.comment}.join(";");
-			db.updateVariantPublicationResult(vp_id, result);
-
-		}
-		else
-		{
-			foreach (const QString& key_value_pair, details.split(';'))
-			{
-				if (key_value_pair.startsWith("submission_id=SUB"))
-				{
-					submission_id = key_value_pair.split("=").at(1).trimmed();
-					break;
-				}
-			}
-			if (submission_id.isEmpty())
-			{
-				THROW(ArgumentException, "'details' column doesn't contain submission id!")
-			}
-
-			SubmissionStatus submission_status = getSubmissionStatus(submission_id);
-			n_var_checked++;
-
-			//update db if neccessary
-			if (!result.startsWith(submission_status.status))
-			{
-				//update NGSD
-				result = submission_status.status;
-
-				if (submission_status.status == "processed")
-				{
-					result += ";" + submission_status.stable_id;
-				}
-				else if (submission_status.status == "error")
-				{
-					result += ";" + submission_status.comment;
-				}
-
-				//update result info in the NGSD
-				db.updateVariantPublicationResult(vp_id, result);
-				n_var_updated++;
-			}
-		}
-
-
-
-
-
-	}
-
-	QMessageBox::information(this, "ClinVar submission status updated", "The Submission status of " + QString::number(n_var_checked) + " published varaints has been checked, "
-							 + QString::number(n_var_updated) + " NGSD entries were updated." );
+	QMessageBox::information(this, "ClinVar submission status updated", "The Submission status of " + QString::number(var_counts.first) + " published varaints has been checked, "
+							 + QString::number(var_counts.second) + " NGSD entries were updated." );
 
 	//activate button and reset busy curser
 	ui_->updateStatus_btn->setEnabled(true);
@@ -597,7 +502,7 @@ void PublishedVariantsWidget::deleteClinvarSubmission()
 
 
 			// perform upload
-			static HttpHandler http_handler(HttpRequestHandler::INI); //static to allow caching of credentials
+			static HttpHandler http_handler(false); //static to allow caching of credentials
 			try
 			{
 				//switch on/off testing
@@ -706,7 +611,9 @@ void PublishedVariantsWidget::openVariantTab()
 	}
 }
 
-SubmissionStatus PublishedVariantsWidget::getSubmissionStatus(const QString& submission_id)
+/*
+
+ClinvarSubmissionStatus PublishedVariantsWidget::getSubmissionStatus(const QString& submission_id)
 {
 	//switch on/off testing
 	if(test_run) qDebug() << "Test run enabled!";
@@ -715,7 +622,7 @@ SubmissionStatus PublishedVariantsWidget::getSubmissionStatus(const QString& sub
 	QByteArray api_key = Settings::string("clinvar_api_key").trimmed().toUtf8();
 	if (api_key.isEmpty()) THROW(FileParseException, "Settings INI file does not contain ClinVar API key!");
 
-	SubmissionStatus submission_status;
+	ClinvarSubmissionStatus submission_status;
 
 	try
 	{
@@ -769,9 +676,11 @@ SubmissionStatus PublishedVariantsWidget::getSubmissionStatus(const QString& sub
 	{
 		QMessageBox::critical(this, "Status check failed", "Status check failed for submission " + submission_id + " (" + e.message() + ")!");
 
-		return SubmissionStatus();
+		return ClinvarSubmissionStatus();
 	}
 }
+
+*/
 
 ClinvarUploadData PublishedVariantsWidget::getClinvarUploadData(int var_pub_id)
 {

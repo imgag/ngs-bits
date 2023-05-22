@@ -1006,9 +1006,9 @@ public:
 	///Link two variant publications (comp. het. variant)
 	void linkVariantPublications(int variant_publication_id1, int variant_publication_id2);
 	///update submission status of uploaded variants from ClinVar
-	void updateClinvarSubmissionStatus();
+	QPair<int, int> updateClinvarSubmissionStatus(bool test_run);
 	///returns the submission status of a given ClinVar submission Id
-	ClinvarSubmissionStatus getSubmissionStatus(const QString& submission_id, HttpRequestHandler::ProxyType proxy, bool test_run=false);
+	ClinvarSubmissionStatus getSubmissionStatus(const QString& submission_id, bool test_run);
 
 	///Returns the comment of a variant in the NGSD.
 	QString comment(const Variant& variant);

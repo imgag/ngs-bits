@@ -442,7 +442,7 @@ void ClinvarUploadDialog::upload()
 
 
     // perform upload
-    static HttpHandler http_handler(HttpRequestHandler::INI); //static to allow caching of credentials
+	static HttpHandler http_handler(false); //static to allow caching of credentials
     try
     {
 		//switch on/off testing

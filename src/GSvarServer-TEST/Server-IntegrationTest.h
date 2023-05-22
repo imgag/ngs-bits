@@ -7,6 +7,7 @@
 #include "HttpRequestHandler.h"
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QNetworkProxy>
 #include "EndpointManager.h"
 #include "ServerController.h"
 
@@ -14,7 +15,7 @@ int sendGetRequest(QByteArray& reply, QString url, HttpHeaders headers)
 {
 	try
 	{
-		reply = HttpRequestHandler(HttpRequestHandler::NONE).get(url, headers);
+		reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(url, headers);
 	}
 	catch(Exception& e)
 	{
@@ -31,7 +32,7 @@ int sendPostRequest(QByteArray& reply, QString url, HttpHeaders headers, QByteAr
 {
 	try
 	{
-		reply = HttpRequestHandler(HttpRequestHandler::NONE).post(url, data, headers);
+		reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(url, data, headers);
 	}
 	catch(Exception& e)
 	{
@@ -132,7 +133,7 @@ private slots:
 		add_headers.clear();
 		add_headers.insert("Accept", "text/html");
 		add_headers.insert("Range", "bytes=0-5,5-8");
-		IS_THROWN(Exception, HttpRequestHandler(HttpRequestHandler::NONE).get(ClientHelper::serverApiUrl(), add_headers));
+		IS_THROWN(Exception, HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(ClientHelper::serverApiUrl(), add_headers));
 	}	
 
 	void test_token_based_authentication()

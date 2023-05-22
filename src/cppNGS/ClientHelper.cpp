@@ -1,5 +1,7 @@
 #include "ClientHelper.h"
 
+#include <QNetworkProxy>
+
 bool ClientHelper::isClientServerMode()
 {
 	return !Settings::string("server_host", true).trimmed().isEmpty() && !Settings::string("server_port", true).trimmed().isEmpty();
@@ -35,7 +37,7 @@ ServerInfo ClientHelper::getServerInfo()
 	add_headers.insert("Accept", "application/json");
 	try
 	{
-		response = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).get(serverApiUrl()+ "info", add_headers);
+		response = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(serverApiUrl()+ "info", add_headers);
 	}
 	catch (Exception& e)
 	{
@@ -68,7 +70,7 @@ ClientInfo ClientHelper::getClientInfo()
 	add_headers.insert("Accept", "application/json");
 	try
 	{
-		response = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).get(serverApiUrl()+ "current_client", add_headers);
+		response = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(serverApiUrl()+ "current_client", add_headers);
 	}
 	catch (Exception& e)
 	{
@@ -100,7 +102,7 @@ UserNotification ClientHelper::getUserNotification()
 	add_headers.insert("Accept", "application/json");
 	try
 	{
-		response = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).get(serverApiUrl()+ "notification", add_headers);
+		response = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(serverApiUrl()+ "notification", add_headers);
 	}
 	catch (Exception& e)
 	{

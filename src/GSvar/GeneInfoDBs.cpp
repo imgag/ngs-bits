@@ -18,7 +18,7 @@ void GeneInfoDBs::openUrl(QString db_name, QString gene_symbol)
 			QString url = db.url;
 			if (url.contains("[gene_id_ncbi]"))
 			{
-				static HttpHandler http_handler(HttpRequestHandler::INI); //static to allow caching of credentials
+				static HttpHandler http_handler(false); //static to allow caching of credentials
 				try
 				{
 					HttpHeaders add_headers;

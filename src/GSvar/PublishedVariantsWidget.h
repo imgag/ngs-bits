@@ -35,7 +35,7 @@ private slots:
 private:
 	Ui::PublishedVariantsWidget* ui_;
 	HttpHandler http_handler_;
-	SubmissionStatus getSubmissionStatus(const QString& submission_id);
+//	ClinvarSubmissionStatus getSubmissionStatus(const QString& submission_id);
 	ClinvarUploadData getClinvarUploadData(int var_pub_id);
 	QJsonObject createJsonForClinvarDeletion(QString stable_id);
 
