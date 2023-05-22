@@ -13,8 +13,8 @@
 #include "GUIHelper.h"
 #include "LoginManager.h"
 
-//TODO: change to production
-const bool test_run = true;
+
+const bool test_run = false;
 const QString api_url = (test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions/" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/";
 
 PublishedVariantsWidget::PublishedVariantsWidget(QWidget* parent)
@@ -611,76 +611,6 @@ void PublishedVariantsWidget::openVariantTab()
 	}
 }
 
-/*
-
-ClinvarSubmissionStatus PublishedVariantsWidget::getSubmissionStatus(const QString& submission_id)
-{
-	//switch on/off testing
-	if(test_run) qDebug() << "Test run enabled!";
-
-	// read API key
-	QByteArray api_key = Settings::string("clinvar_api_key").trimmed().toUtf8();
-	if (api_key.isEmpty()) THROW(FileParseException, "Settings INI file does not contain ClinVar API key!");
-
-	ClinvarSubmissionStatus submission_status;
-
-	try
-	{
-
-		//add headers
-		HttpHeaders add_headers;
-		add_headers.insert("Content-Type", "application/json");
-		add_headers.insert("SP-API-KEY", api_key);
-
-		//get request
-		QByteArray reply = http_handler_.get(api_url + submission_id.toUpper() + "/actions/", add_headers);
-		qDebug() << api_url + submission_id.toUpper() + "/actions/";
-		// parse response
-		QJsonObject response = QJsonDocument::fromJson(reply).object();
-
-		//extract status
-		QJsonArray actions = response.value("actions").toArray();
-		submission_status.status = actions.at(0).toObject().value("status").toString();
-
-		if (submission_status.status == "processed" || submission_status.status == "error")
-		{
-			//get summary file and extract stable id or error message
-			QString report_summary_file = actions.at(0).toObject().value("responses").toArray().at(0).toObject().value("files").toArray().at(0).toObject().value("url").toString();
-			QByteArray summary_reply = http_handler_.get(report_summary_file);
-			QJsonDocument summary_response = QJsonDocument::fromJson(summary_reply);
-
-			if (submission_status.status == "processed")
-			{
-				// get stable id
-				submission_status.stable_id = summary_response.object().value("submissions").toArray().at(0).toObject().value("identifiers").toObject().value("clinvarAccession").toString();
-			}
-			if (submission_status.status == "error")
-			{
-				// get error message
-				QJsonArray errors = summary_response.object().value("submissions").toArray().at(0).toObject().value("errors").toArray();
-				QStringList error_messages;
-				foreach (const QJsonValue& error, errors)
-				{
-					error_messages << error.toObject().value("output").toObject().value("errors").toArray().at(0).toObject().value("userMessage").toString();
-				}
-				submission_status.comment = error_messages.join("\n");
-			}
-		}
-
-		return submission_status;
-
-
-
-	}
-	catch(Exception e)
-	{
-		QMessageBox::critical(this, "Status check failed", "Status check failed for submission " + submission_id + " (" + e.message() + ")!");
-
-		return ClinvarSubmissionStatus();
-	}
-}
-
-*/
 
 ClinvarUploadData PublishedVariantsWidget::getClinvarUploadData(int var_pub_id)
 {

@@ -20,8 +20,8 @@
 #include <QMessageBox>
 #include <QInputDialog>
 
-//TODO: change to production
-const bool test_run = true;
+
+const bool test_run = false;
 const QString api_url = (test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/";
 
 ClinvarUploadDialog::ClinvarUploadDialog(QWidget *parent)
@@ -611,8 +611,7 @@ void ClinvarUploadDialog::upload()
 				details << "reupload_by=" + LoginManager::userLogin();
 			}
 
-			//TODO: Re-activate
-//			if (!test_run)
+			if (!test_run)
 			{
 				// log publication in NGSD
 				if (manual_upload_)
