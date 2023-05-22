@@ -1166,7 +1166,17 @@ class CPPNGSSHARED_EXPORT FilterSvTrio
 
 	protected:
 		QByteArray determineGenotype(const QByteArray& format_col, const QByteArray& data_col) const;
+};
 
+
+//NGSD SV break point density filter
+class CPPNGSSHARED_EXPORT FilterSvCnvOverlap
+	: public FilterBase
+{
+	public:
+		FilterSvCnvOverlap();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
 };
 
 #endif // FILTERCASCADE_H

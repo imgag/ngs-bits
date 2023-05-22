@@ -40,11 +40,40 @@ public:
     }
     ///Returns the base allele frequency in relation to the overall depth (but ignorning 'N').
     long long countOf(QChar base) const;
-    /**
-      @brief Increases the base count of base @p base by @p inc.
-      @note Valid bases are 'A','C','T','G','N' both upper-case and lower-case and '-' for deletions.
-    */
-    void inc(char base, long long inc=1);
+	
+    ///Increases the base count of geht given base. Valid bases are 'A','C','T','G','N' both upper-case and lower-case and '-' for deletions.
+    void inc(char base);
+	
+	///Increase count of A
+    void incA()
+	{
+		++a_;
+	}
+	///Increase count of A
+    void incC()
+	{
+		++c_;
+	}
+	///Increase count of A
+    void incG()
+	{
+		++g_;
+	}
+	///Increase count of A
+    void incT()
+	{
+		++t_;
+	}
+	///Increase count of A
+    void incN()
+	{
+		++n_;
+	}
+	///Increase count of deletions
+    void incDel()
+	{
+		++del_;
+	}
 
 	///Clears all counts and indels.
     void clear();

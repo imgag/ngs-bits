@@ -186,6 +186,8 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		{
 			return seq_nt16_str[bam_seqi(bam_get_seq(aln_), n)];
 		}
+		//Fills the given vector with integer representations of bases ()
+		QVector<int> baseIntegers() const;
 
 		//Returns the sequence qualities - ASCII encoded in Illumina 1.8 format i.e. 0-41 equals '!"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJ'
 		QByteArray qualities() const;

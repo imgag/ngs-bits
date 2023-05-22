@@ -1230,6 +1230,14 @@ void SvWidget::showContextMenu(QPoint pos)
 	int i_genes = sv_bedpe_file_.annotationIndexByName("GENES", false);
 	if (i_genes!=-1)
 	{
+		//use breakpoint genes only if the breakpoint genes column was right-clicked
+		int column_index_clicked = ui->svs->columnAt(pos.x());
+		QString column_name_clicked = ui->svs->horizontalHeaderItem(column_index_clicked)->text();
+		if (column_name_clicked=="GENES_BREAKPOINTS")
+		{
+			i_genes = sv_bedpe_file_.annotationIndexByName("GENES_BREAKPOINTS", false);
+		}
+
 		GeneSet genes = GeneSet::createFromText(sv_bedpe_file_[row].annotations()[i_genes], ',');
 		if (!genes.isEmpty())
 		{

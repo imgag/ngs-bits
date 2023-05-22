@@ -7048,16 +7048,12 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 			//check if already uploaded to ClinVar
 			QString var_id = db.variantId(variant);
 			QString sample_id = db.sampleId(germlineReportSample());
-			QString clinvar_class = db.getValue("SELECT `class`FROM `variant_publication` WHERE `variant_table`='variant' AND `db`='ClinVar' AND `sample_id`=" + sample_id
-												+ " AND `variant_id`=" + var_id).toString();
-			if(!clinvar_class.isEmpty())
+			QString clinvar_class = db.getValue("SELECT class FROM  variant_publication WHERE variant_table='variant' AND db='ClinVar' AND sample_id='" + sample_id + "' AND variant_id='" + var_id + "' ORDER BY id DESC LIMIT 1").toString();
+			if(!clinvar_class.isEmpty() && clinvar_class!=new_class)
 			{
-				if(clinvar_class != new_class)
-				{
-					//update on ClinVar
-					int return_value = QMessageBox::information(this, "Clinvar upload required!", "Variant already uploaded to ClinVar. You should also update the classification there!", QMessageBox::Ok, QMessageBox::NoButton);
-					if(return_value == QMessageBox::Ok)	uploadToClinvar(index);
-				}
+				//update on ClinVar
+				int return_value = QMessageBox::information(this, "Clinvar upload required!", "Variant already uploaded to ClinVar. You should also update the classification there!", QMessageBox::Ok, QMessageBox::NoButton);
+				if(return_value == QMessageBox::Ok)	uploadToClinvar(index);
 			}
 		}
 
