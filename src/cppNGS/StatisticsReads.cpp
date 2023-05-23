@@ -64,6 +64,63 @@ void StatisticsReads::update(const FastqEntry& entry, ReadDirection direction)
 	if (q_sum/cycles>=20.0) ++c_read_q20_;
 }
 
+void StatisticsReads::update(const BamAlignment& al)
+{
+	//update read counts
+	bool is_forward = al.isRead1();
+	if (is_forward)
+	{
+		++c_forward_;
+	}
+	else
+	{
+		++c_reverse_;
+	}
+
+	//check number of cycles
+	int cycles = al.length();
+	bases_sequenced_ += cycles;
+	read_lengths_.insert(cycles);
+	if (cycles>pileups_.size())
+	{
+		pileups_.resize(cycles);
+		qualities1_.resize(cycles);
+		qualities2_.resize(cycles);
+	}
+	
+	//create pileups
+	QVector<int> base_ints = al.baseIntegers();
+	for (int i=0; i<cycles; ++i)
+	{
+		int base = base_ints[i];
+		
+		if (base==1) pileups_[i].incA();
+		else if (base==2) pileups_[i].incC();
+		else if (base==4) pileups_[i].incG();
+		else if (base==8) pileups_[i].incT();
+		else if (base==15) pileups_[i].incN();
+		else THROW(ProgrammingException, "Unknown base '" + QString::number(base_ints[i]) + "' in StatisticsReads::update!");
+	}
+
+	//handle qualities
+	double q_sum = 0.0;
+	for (int i=0; i<cycles; ++i)
+	{
+		int q = al.quality(i);
+		q_sum += q;
+		if (q>=30.0) ++c_base_q30_;
+		if (is_forward)
+		{
+			qualities1_[i] += q;
+		}
+		else
+		{
+			qualities2_[i] += q;
+		}
+	}
+	if (q_sum/cycles>=20.0) ++c_read_q20_;
+}
+
 QCCollection StatisticsReads::getResult()
 {
 	//create output values

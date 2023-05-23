@@ -8,12 +8,9 @@
 #include "Pileup.h"
 #include <QMap>
 #include <QMutex>
+#include "BamReader.h"
 
-/*
-	@brief Read statistics for quality control.
-
-	@note This class is thread-safe, i.e. several threads can update statistics without corrupting the result.
-*/
+///Read statistics for quality control.
 class CPPNGSSHARED_EXPORT StatisticsReads
 {
 public:
@@ -27,8 +24,11 @@ public:
 
 	///Constructor.
 	StatisticsReads(bool long_read=false);
-	///Updates the statistics based on the given read.
+	///Updates the statistics based on the given read
 	void update(const FastqEntry& entry, ReadDirection direction);
+	///Updates the statistics based on the given alignment
+	void update(const BamAlignment& al);
+
 	///Returns the statistics result.
 	QCCollection getResult();
 

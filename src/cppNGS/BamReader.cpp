@@ -113,7 +113,7 @@ bool BamAlignment::cigarIsOnlyInsertion() const
 
 Sequence BamAlignment::bases() const
 {
-	QByteArray output;
+	Sequence output;
 	output.resize(aln_->core.l_qseq);
 
 	uint8_t* s = bam_get_seq(aln_);
@@ -123,6 +123,20 @@ Sequence BamAlignment::bases() const
 	}
 
 	return output;
+}
+
+QVector<int> BamAlignment::baseIntegers() const
+{
+	QVector<int> ints;
+	ints.resize(aln_->core.l_qseq);
+
+	uint8_t* s = bam_get_seq(aln_);
+	for(int i=0; i<aln_->core.l_qseq; ++i)
+	{
+		ints[i] = bam_seqi(s, i);
+	}
+	
+	return ints;
 }
 
 void BamAlignment::setBases(const Sequence& bases)

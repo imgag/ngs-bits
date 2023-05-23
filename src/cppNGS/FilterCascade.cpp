@@ -969,6 +969,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["SV allele frequency NGSD"] = &createInstance<FilterSvAfNGSD>;
 		output["SV break point density NGSD"] = &createInstance<FilterSvBreakpointDensityNGSD>;
         output["SV trio"] = &createInstance<FilterSvTrio>;
+		output["SV CNV overlap"] = &createInstance<FilterSvCnvOverlap>;
 		output["Splice effect"] = &createInstance<FilterSpliceEffect>;
 		output["RNA ASE allele frequency"] = &createInstance<FilterVariantRNAAseAlleleFrequency>;
 		output["RNA ASE depth"] = &createInstance<FilterVariantRNAAseDepth>;
@@ -5629,6 +5630,50 @@ void FilterVariantRNAExpressionZScore::apply(const VariantList& variants, Filter
 				break;
 			}
 		}
+	}
+}
+
+
+FilterSvCnvOverlap::FilterSvCnvOverlap()
+{
+	name_ = "SV CNV overlap";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Filter the removes DEL/DUP without support from CNV calling.";
+	params_ << FilterParameter("min_ol", FilterParameterType::DOUBLE, 0.50, "Minimum CNV overlap.");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+	params_ << FilterParameter("min_size", FilterParameterType::INT, 10000, "Minimum SV size in bases.");
+	params_.last().constraints["min"] = "0";
+}
+
+QString FilterSvCnvOverlap::toText() const
+{
+	return name() + " &ge; " + QString::number(getDouble("min_ol", false), 'f', 2)+ " (size &ge; " + QString::number(getInt("min_size", false), 'f', 2) + "kb)";
+}
+
+void FilterSvCnvOverlap::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	//init
+	double min_ol = getDouble("min_ol", false);
+	int ol_col = svs.annotationIndexByName("CNV_OVERLAP");
+	if (ol_col==-1) THROW(ProgrammingException, "Missing column CNV_OVERLAP");
+	int min_size = getInt("min_size", false);
+
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		//skip if no overlap is annotated, i.e. not DEL/DUP
+		QByteArray ol_str = svs[i].annotations()[ol_col].trimmed();
+		if (ol_str.isEmpty()) continue;
+
+		//skip too small DEL/DUP - they are hard to detect in CNV calling with 1kb window size
+		int sv_length = svs.estimatedSvSize(i);
+		if (sv_length < min_size) continue;
+
+		if (ol_str.toDouble() < min_ol) result.flags()[i] = false;
 	}
 }
 

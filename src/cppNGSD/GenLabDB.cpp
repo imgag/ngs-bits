@@ -8,8 +8,6 @@
 #include "Log.h"
 #include "ClientHelper.h"
 
-QMap<QString, TableInfo> GenLabDB::infos_;
-
 GenLabDB::GenLabDB()
 {
 	bool genlab_mssql;
