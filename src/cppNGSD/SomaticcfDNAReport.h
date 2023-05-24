@@ -40,6 +40,7 @@ private:
 	SomaticcfDNAReportData data_;
 	RtfDocument doc_;
 
+	RtfTable partResultTable();
 	RtfTable partSnvTable(int cfdna_idx_start, int cfdna_idx_end);
 	RtfParagraph partSnvExplanation();
 	RtfTable partGeneralGeneticTable();
