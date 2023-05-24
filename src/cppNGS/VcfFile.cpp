@@ -1265,6 +1265,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 
 		invalid_chars.append(kvp.key[0].toLatin1());
 	}
+	invalid_chars << ' '; //space is not valid
 
 
 	//perform checks
@@ -1546,7 +1547,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 					{
 						if (value.contains(invalid_char))
 						{
-							printError(out_stream, "Flag INFO '" + name + "' has a value which contains the invalid character '" + invalid_char + "' (value: '" + value + "')!", l, line);
+							printError(out_stream, "Value of INFO entry '" + name + "' has a value which contains the invalid character '" + invalid_char + "' (value: '" + value + "')!", l, line);
 							return false;
 						}
 					}
