@@ -1,0 +1,2 @@
+ERROR: Reference base(s) not correct. Is 'AGAC', should be 'AGAT'! - in line 12:
+chrX	136392285	.	AGAC	A	547	.	MQM=60;SAP=5;SAR=16;SAF=11;ABP=19	GT:DP:AO:GQ	0/1:78:27:160

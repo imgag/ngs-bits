@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Mit XMLSpy v2022 rel. 2 (x64) (http://www.altova.com) von Alexander Ott (Universitätsklinikum Tübingen) bearbeitet -->
+<!-- Mit XMLSpy v2022 rel. 2 (x64) (http://www.altova.com) von Marc Sturm (Universitätsklinikum Tübingen) bearbeitet -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" xmlns:altova="http://www.altova.com/xml-schema-extensions" elementFormDefault="qualified" attributeFormDefault="unqualified" vc:minVersion="1.1">
 	<xs:element name="SomaticNgsReport">
 		<xs:annotation>
@@ -156,6 +156,28 @@
 									<xs:minInclusive value="0"/>
 								</xs:restriction>
 							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="type">
+							<xs:annotation>
+								<xs:documentation>Sample type</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:enumeration value="DNA"/>
+									<xs:enumeration value="cfDNA"/>
+									<xs:enumeration value="RNA"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="is_ffpe" type="xs:boolean">
+							<xs:annotation>
+								<xs:documentation>If the sample is FFPE</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="tissue" type="xs:string" use="optional">
+							<xs:annotation>
+								<xs:documentation>Source tissue according to BRENDA tissue ontology</xs:documentation>
+							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute name="tumor_content_histology">
 							<xs:annotation>
@@ -910,8 +932,8 @@
 				</xs:annotation>
 				<xs:simpleType>
 					<xs:restriction base="xs:int">
-						<xs:minInclusive value="4"/>
-						<xs:maxInclusive value="4"/>
+						<xs:minInclusive value="5"/>
+						<xs:maxInclusive value="5"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>

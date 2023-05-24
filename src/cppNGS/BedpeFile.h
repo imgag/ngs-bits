@@ -93,6 +93,16 @@ public:
 	{
 		annotations_ = annos;
 	}
+	//Sets single annotation with given index
+	void setAnnotation(int index, const QByteArray& text)
+	{
+		annotations_[index] = text;
+	}
+	//Appends single annotation
+	void appendAnnotation( const QByteArray& text)
+	{
+		annotations_ << text;
+	}
 
 	///Converts line into tsv format
 	QByteArray toTsv() const;
@@ -126,7 +136,7 @@ public:
 	BedFile affectedRegion(bool plus_one = true) const;
 
 	///Returns the SV as String
-	QString toString() const;
+	QString toString(bool add_type=true) const;
 
 	///Returns the genotype in VCF/BEDPE format (empty string of error if GT entry in sample column is not found).
 	QByteArray genotype(const QList<QByteArray>& annotation_headers, bool error_if_not_found=true, int sample_idx = 0) const;
@@ -241,7 +251,7 @@ public:
 		return annotation_headers_;
 	}
 	///Sets the annotation headers for the BEDPE file
-	void setAnnotationHeaders(QList<QByteArray> annotation_headers)
+	void setAnnotationHeaders(const QList<QByteArray>& annotation_headers)
 	{
 		annotation_headers_ = annotation_headers;
 	}

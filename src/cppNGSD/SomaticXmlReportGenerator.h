@@ -57,9 +57,6 @@ public:
 
 	static void generateXML(const SomaticXmlReportGeneratorData& data, QSharedPointer<QFile> out_file, NGSD& db, bool test=false);
 
-	///validates somatic xml report against .xsd file in resources dir
-	static void validateXml(QString file_name);
-
 	///writes a ReportDocumentParts element
 	static void writeReportPartsElement(QXmlStreamWriter& w, QString name, RtfSourceCode rtf_part);
 

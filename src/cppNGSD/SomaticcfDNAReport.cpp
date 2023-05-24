@@ -32,6 +32,9 @@ void SomaticcfDnaReport::writeRtf(QByteArray out_file)
 	doc_.addColor(242, 242, 242);
 	doc_.addColor(255,0,0);
 
+	doc_.addPart(partResultTable().RtfCode());
+	doc_.addPart(RtfParagraph("").RtfCode());
+
 	if (data_.table.cfdna_samples.count() <= 3)
 	{
 		doc_.addPart(RtfParagraph("Patientenspezifische somatische Variante(n):").setFontSize(18).setBold(true).RtfCode());
@@ -62,6 +65,46 @@ void SomaticcfDnaReport::writeRtf(QByteArray out_file)
 	doc_.addPart(partGeneralInfo().RtfCode());
 
 	doc_.save(out_file);
+}
+
+RtfTable SomaticcfDnaReport::partResultTable()
+{
+
+	RtfTable table;
+
+
+	for(int i=0; i<data_.table.cfdna_samples.count(); i++)
+	{
+		RtfTableRow row;
+
+
+		row.addCell(3321, data_.table.cfdna_samples[i].name.toUtf8(), RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
+		row.addCell(3300, data_.table.cfdna_samples[i].date.toString("dd.MM.yyyy").toUtf8(),RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
+
+		QByteArray str_p_value = getMrdTableValue("MRD p-value", i);
+		double p_value = str_p_value.toDouble();
+		QByteArray p_value_final = p_value < 0.01 ? "<0.01" : QByteArray::number(p_value, 'f', 2);
+		if (p_value < 0.05)
+		{
+			row.addCell(3300, "ja (p=" + p_value_final + ")", RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
+		}
+		else
+		{
+			row.addCell(3300, "nein (p=" + p_value_final + ")", RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
+		}
+
+		table.addRow(row);
+	}
+
+	table.setUniqueBorder(1, "brdrhair", 2);
+
+	RtfTableRow header = RtfTableRow({"Probe", "Datum", "Tumornachweis"},{3321,3300,3300}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
+	table.prependRow(header.setHeader().setBorders(1, "brdrhair", 2));
+
+	table.prependRow(RtfTableRow("Beurteilung", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
+
+	return table;
+
 }
 
 
@@ -139,7 +182,7 @@ RtfTable SomaticcfDnaReport::partSnvTable(int cfdna_idx_start, int cfdna_idx_end
 				{
 					serum = QByteArray::number(cfdna_af, 'f', 3);
 				}
-				row.addCell(cfdna_width, serum + " (" + QByteArray::number(alt_count) + "/" + QByteArray::number(depth) + ")\n\\line\n" + QByteArray::number(cfdna_entry.p_value, 'f', 2), RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
+				row.addCell(cfdna_width, serum + " (" + QByteArray::number(alt_count) + "/" + QByteArray::number(depth) + ")", RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
 			}
 		}
 		table.addRow(row);
@@ -177,7 +220,7 @@ RtfParagraph SomaticcfDnaReport::partSnvExplanation()
 	out += " Insertionen/Deletionen, ";
 	out += bold("Veränderung:") + " Kodierende Position und Auswirkung auf das Protein, ";
 	out += bold("Anteil Tumor:") + " Allelfrequenze der gelisteten Variante (SNV, INDEL) in der Tumorprobe " + data_.table.tumor_sample.name + ", ";
-	out += bold("Anteil Plasma:") + " Anteil der Allele mit der gelisteten Variante (SNV, INDEL) in den untersuchten Proben. In Klammern die Anzahl der Reads mit Variante / gesamte Anzahl der Reads und in der zweiten Zeile der p-Wert, ";
+	out += bold("Anteil Plasma:") + " Anteil der Allele mit der gelisteten Variante (SNV, INDEL) in den untersuchten Proben. In Klammern die Anzahl der Reads mit mind. einem Duplikat mit Variante / gesamte Anzahl der Reads mit mind. einem Duplikat, ";
 	out += bold("n.d.") + " nicht detektiert, " + bold("n/a:") + " nicht analysiert.\n\\line\n";
 
 	return RtfParagraph(out).setFontSize(16).setHorizontalAlignment("j");
@@ -207,7 +250,7 @@ RtfTable SomaticcfDnaReport::partGeneralGeneticTable()
 		ProcessedSampleData ps_data = db_.getProcessedSampleData(sample.ps_id);
 	}
 
-	table.addRow(RtfTableRow("Allgemeine genetische Charakteristika", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
+	table.addRow(RtfTableRow("Qualitätsparameter", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 	RtfTableRow header = RtfTableRow("", first_column_width, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
 	for(int i=0; i<cfdna_count; i++)
 	{
@@ -215,29 +258,11 @@ RtfTable SomaticcfDnaReport::partGeneralGeneticTable()
 	}
 	table.addRow(header.setHeader().setBorders(1, "brdrhair", 2));
 
-	RtfTableRow row_p_val;
-	row_p_val.addCell(first_column_width, "Tumornachweis:");
-	for(int i=0; i<data_.table.cfdna_samples.count(); i++)
-	{
-		QByteArray str_p_value = getMrdTableValue("MRD p-value", i);
-		double p_value = str_p_value.toDouble();
-		QByteArray p_value_final = p_value < 0.01 ? "<0.01" : QByteArray::number(p_value, 'f', 2);
-		if (p_value < 0.05)
-		{
-			row_p_val.addCell(cfdna_width, "ja (p=" + p_value_final + ")");
-		}
-		else
-		{
-			row_p_val.addCell(cfdna_width, "nein (p=" + p_value_final + ")");
-		}
-	}
-	table.addRow(row_p_val);
-
 	RtfTableRow row_depth;
 	row_depth.addCell(first_column_width, "Durchschnittliche Tiefe:");
 	foreach(auto d, depth)
 	{
-		row_depth.addCell(cfdna_width, QByteArray::number(d, 'f', 0));
+		row_depth.addCell(cfdna_width, QByteArray::number(d, 'f', 0), RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
 	}
 	table.addRow(row_depth);
 
@@ -245,7 +270,7 @@ RtfTable SomaticcfDnaReport::partGeneralGeneticTable()
 	row_m_depth.addCell(first_column_width, "Durchschnittliche Tiefe:\n\\line\n" + RtfText("(min. 1 Duplikat)").setFontSize(14).RtfCode());
 	foreach(auto d, d_depth)
 	{
-		row_m_depth.addCell(cfdna_width, QByteArray::number(d, 'f', 0));
+		row_m_depth.addCell(cfdna_width, QByteArray::number(d, 'f', 0), RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
 	}
 	table.addRow(row_m_depth);
 
@@ -254,11 +279,9 @@ RtfTable SomaticcfDnaReport::partGeneralGeneticTable()
 	foreach(auto d, error)
 	{
 		QByteArrayList parts = QByteArray::number(d, 'e', 2).split('e');
-		row_error.addCell(cfdna_width, parts[0] + "x10{\\super " + QByteArray::number(parts[1].toInt()) +"}" );
+		row_error.addCell(cfdna_width, parts[0] + "x10{\\super " + QByteArray::number(parts[1].toInt()) +"}" , RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
 	}
 	table.addRow(row_error);
-
-
 
 	table.setUniqueBorder(1, "brdrhair", 2);
 
@@ -329,9 +352,8 @@ RtfTable SomaticcfDnaReport::partGeneralInfo()
 		sys << ps_data.processing_system;
 	}
 
-	table.addRow( RtfTableRow( {"Proben-ID (Plasma): ", ids.join(", ")}, {2000,7921}, RtfParagraph().setFontSize(14)) );
 	table.addRow( RtfTableRow( {"Tumor-ID: ", data_.table.tumor_sample.name.toUtf8()}, {2000,7921}, RtfParagraph().setFontSize(14)) );
-
+	table.addRow( RtfTableRow( {"Plasma-ID(s): ", ids.join(", ")}, {2000,7921}, RtfParagraph().setFontSize(14)) );
 	table.addRow( RtfTableRow( {"Prozessierungssystem:", "Patientenspezifisches Panel " + sys.toList().join(", ").toUtf8()}, {2000,7921}, RtfParagraph().setFontSize(14)) );
 
 	return table;
@@ -353,7 +375,14 @@ CodingSplicingAnno SomaticcfDnaReport::getPreferedCodingAndSplicing(const VcfLin
 	//update gene and coding_and_splicing column with live annotation
 
 	//get all transcripts containing the variant
-	TranscriptList transcripts  = db_.transcriptsOverlapping(variant.chr(), variant.start(), variant.end(), 5000);
+	TranscriptList transcripts = db_.transcriptsOverlapping(variant.chr(), variant.start(), variant.end());
+
+	// if there are no transcripts that are directly affected, search for transcripts up- and downstream
+	if (transcripts.count() == 0)
+	{
+		transcripts = db_.transcriptsOverlapping(variant.chr(), variant.start(), variant.end(), 5000);
+	}
+
 	transcripts.sortByRelevance();
 
 	//find prefered transcript and annotate:

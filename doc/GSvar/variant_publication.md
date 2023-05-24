@@ -55,6 +55,18 @@ Here you get a slightly modified upload dialog. This dialog has some additional 
   - (3) Add here a compound-heterozygous variant if needed
   - (4) Here you can add the disease info (Warning: will be overwritten if sample name is changed)
 
+### Updating a submission
+
+To update a submission, e.g. to change a class, open the variant publication dialog:
+
+![alt](published_variants_open.png)
+
+Then you can edit the submission in the context menu:
+
+![alt](published_variants_edit.png)
+
+
+
 ### Submitting through the ClinVar Submission Portal
 
 For the submission of variants which are not supported by the ClinVar API (e.g. translocations), use the Submission Portal of ClinVar:

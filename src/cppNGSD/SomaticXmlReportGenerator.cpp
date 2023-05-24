@@ -85,6 +85,7 @@ void SomaticXmlReportGenerator::checkSomaticVariantAnnotation(const VariantList 
 void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData &data, QSharedPointer<QFile> out_file, NGSD& db, bool test)
 {
 	QString tumor_ps_id = db.processedSampleId(data.settings.tumor_ps);
+	QString tumor_s_id = db.sampleId(data.settings.tumor_ps);
 	QString normal_ps_id = db.processedSampleId(data.settings.normal_ps);
 
 	QXmlStreamWriter w(out_file.data());
@@ -96,7 +97,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 	//Element SomaticNgsReport
 	w.writeStartElement("SomaticNgsReport");
-	w.writeAttribute("version", "4");
+	w.writeAttribute("version", "5");
 	w.writeAttribute("genome_build", buildToString(data.build, true));
 
 	//Element ReportGeneration
@@ -119,7 +120,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 			w.writeAttribute("sap_patient_identifier", genlab.sapID(data.settings.tumor_ps) );
 		}
 
-		QList<SampleDiseaseInfo> disease_infos = db.getSampleDiseaseInfo(db.sampleId(data.settings.tumor_ps), "ICD10 code");
+		QList<SampleDiseaseInfo> disease_infos = db.getSampleDiseaseInfo(tumor_s_id, "ICD10 code");
 		if(!disease_infos.empty())
 		{
 			for(const auto& disease_info : disease_infos)
@@ -141,7 +142,23 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	w.writeAttribute("processing_system_type", t_ps_data.processing_system_type);
 	w.writeAttribute("sequencer", db.getValue("SELECT d.type FROM device as d, sequencing_run as sr WHERE d.id = sr.device_id AND sr.name = '" + t_ps_data.run_name +  "'", false).toString());
 	QCCollection t_qc = db.getQCData(tumor_ps_id);
-	w.writeAttribute("average_depth", t_qc.value("QC:2000025", true).asString() );
+	w.writeAttribute("average_depth", t_qc.value("QC:2000025", true).asString());
+	SampleData t_s_data = db.getSampleData(tumor_s_id);
+	QString type = t_s_data.type;
+	if (type.startsWith("DNA")) // handle all DNA entries
+	{
+		w.writeAttribute("type", "DNA");
+	}
+	else
+	{
+		w.writeAttribute("type", type);
+	}
+	w.writeAttribute("is_ffpe", t_s_data.is_ffpe ? "true" : "false");
+	QString tissue = t_s_data.tissue.trimmed();
+	if (!tissue.isEmpty() && tissue!="n/a")
+	{
+		w.writeAttribute("tissue", tissue);
+	}
 	if( data.settings.report_config.tumContentByHistological())
 	{
 		w.writeAttribute("tumor_content_histology", QByteArray::number(data.tumor_content_histology, 'f', 3) );
@@ -524,18 +541,15 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	w.writeEndElement();
 
 	w.writeEndDocument();
-}
+	out_file->close();
 
-
-void SomaticXmlReportGenerator::validateXml(QString file_name)
-{
-	QString xml_error = XmlHelper::isValidXml(file_name, ":/resources/SomaticReport.xsd");
-
+	//validate written XML file
+	QString filename = out_file->fileName();
+	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/SomaticReport.xsd");
 	if(xml_error!= "")
 	{
-		THROW(ProgrammingException, "SomaticXmlReportGenerator::generateXML produced an invalid XML file: " + xml_error);
+		THROW(ProgrammingException, "Invalid somatic report XML file " + filename+ " generated:\n" + xml_error);
 	}
-
 }
 
 void SomaticXmlReportGenerator::writeReportPartsElement(QXmlStreamWriter &w, QString name, RtfSourceCode rtf_part)
