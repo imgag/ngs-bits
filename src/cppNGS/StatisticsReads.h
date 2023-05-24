@@ -6,6 +6,8 @@
 #include "FastqFileStream.h"
 #include "QCCollection.h"
 #include "Pileup.h"
+#include <QMap>
+#include <QMutex>
 #include "BamReader.h"
 
 ///Read statistics for quality control.
@@ -21,7 +23,7 @@ public:
 	};
 
 	///Constructor.
-	StatisticsReads();
+	StatisticsReads(bool long_read=false);
 	///Updates the statistics based on the given read
 	void update(const FastqEntry& entry, ReadDirection direction);
 	///Updates the statistics based on the given alignment
@@ -33,13 +35,14 @@ public:
 private:
 	long long c_forward_;
 	long long c_reverse_;
-	QSet<int> read_lengths_;
+	QMap<int,long long> read_lengths_;
     long long bases_sequenced_;
 	long long c_read_q20_;
 	long long c_base_q30_;
 	QVector<Pileup> pileups_;
 	QVector<double> qualities1_;
 	QVector<double> qualities2_;
+	bool long_read_;
 };
 
 #endif // STATISTICSREADS_H
