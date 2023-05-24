@@ -80,7 +80,7 @@ void StatisticsReads::update(const BamAlignment& al)
 	//check number of cycles
 	int cycles = al.length();
 	bases_sequenced_ += cycles;
-	read_lengths_.insert(cycles);
+	read_lengths_[cycles]++;
 	if (cycles>pileups_.size())
 	{
 		pileups_.resize(cycles);
