@@ -24,7 +24,9 @@ public:
 		addOutfile("out1", "If set, writes merged forward FASTQs to this file (gzipped).", true);
 		addOutfile("out2", "If set, writes merged reverse FASTQs to this file (gzipped)", true);
 		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, Z_BEST_SPEED);
+		addFlag("long_read", "Support long reads (> 1kb).");
 
+		changeLog(2023,  4,  18, "Added support for LongRead");
 		changeLog(2021,  2,  3, "Added option to write out merged input FASTQs (out1/out2).");
 		changeLog(2016,  8, 19, "Added support for multiple input files.");
 	}
@@ -32,7 +34,6 @@ public:
 	virtual void main()
 	{
 		//init
-		StatisticsReads stats;
 		FastqEntry entry;
 		QStringList infiles;
 		QStringList in1 = getInfileList("in1");
@@ -51,12 +52,14 @@ public:
 		QString out2 = getOutfile("out2");
 		bool write2 = out2!="";
 		if (write2) out2_stream = new FastqOutfileStream(out2, compression_level);
+		bool long_read = getFlag("long_read");
+		StatisticsReads stats(long_read);
 
 		//process
 		for (int i=0; i<in1.count(); ++i)
 		{
 			//forward
-			FastqFileStream stream(in1[i]);
+			FastqFileStream stream(in1[i], true, long_read);
 			while(!stream.atEnd())
 			{
 				stream.readEntry(entry);
@@ -72,7 +75,7 @@ public:
 			//reverse (optional)
 			if (i<in2.count())
 			{
-				FastqFileStream stream2(in2[i]);
+				FastqFileStream stream2(in2[i], true, long_read);
 				while(!stream2.atEnd())
 				{
 					 stream2.readEntry(entry);

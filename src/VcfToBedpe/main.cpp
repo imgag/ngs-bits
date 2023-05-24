@@ -29,6 +29,8 @@ public:
 		addInfile("in", "Input structural variant list in VCF format.", false, true);
 		addOutfile("out", "Output structural variant list in BEDPE format.", false, true);
 		addFlag("no_sort","Do not sort results");
+
+		changeLog(2023, 3, 23, "Added support for Sniffles, cuteSV and dipdiff");
 	}
 
 	virtual void main()
