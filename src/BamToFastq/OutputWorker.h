@@ -35,6 +35,7 @@ class OutputWorker
 {
 public:
 	OutputWorker(ReadPairPool& pair_pool, QString out1, QString out2, int compression_level);
+	OutputWorker(ReadPairPool& pair_pool, QString out, int compression_level);
 	void run();
 	void terminate()
 	{

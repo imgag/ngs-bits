@@ -402,18 +402,21 @@ public:
 			}
 
 			// parse caller and caller version
-			// Manta:  ##source=GenerateSVCandidates 1.6.0
-			// DRAGEN: ##source=DRAGEN 01.011.608.3.9.3
+			// Manta:    ##source=GenerateSVCandidates 1.6.0
+			// DRAGEN:   ##source=DRAGEN 01.011.608.3.9.3
+			// Sniffles: ##source=Sniffles2_2.0.7
 			if (header.startsWith("##source="))
 			{
 				QByteArray application_string = header.split('=')[1].trimmed();
 
 				int sep_idx = application_string.indexOf(" ");
-				if (sep_idx==-1)  THROW(FileParseException, "Source line does not contain version after first space: " + header);
+				if(sep_idx==-1) sep_idx = application_string.indexOf("_"); //fallback: use '_' as version seperator
+				if(sep_idx==-1)  THROW(FileParseException, "Source line does not contain version after first space/underscore: " + header);
 
 				QByteArray tmp = application_string.left(sep_idx).trimmed();
 				if (tmp=="GenerateSVCandidates") caller = "Manta";
 				else if (tmp=="DRAGEN") caller = "DRAGEN";
+				else if (tmp=="Sniffles2") caller = "Sniffles2";
 
 				caller_version = application_string.mid(sep_idx).trimmed();
 			}

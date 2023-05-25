@@ -10,6 +10,16 @@ OutputWorker::OutputWorker(ReadPairPool& pair_pool, QString out1, QString out2, 
 	setAutoDelete(false);
 }
 
+OutputWorker::OutputWorker(ReadPairPool& pair_pool, QString out, int compression_level)
+	: QRunnable()
+	, terminate_(false)
+	, pair_pool_(pair_pool)
+	, ostream1_(new FastqOutfileStream(out, compression_level))
+	, ostream2_(nullptr)
+{
+	setAutoDelete(false);
+}
+
 void OutputWorker::run()
 {
 	while(!terminate_)
@@ -23,7 +33,7 @@ void OutputWorker::run()
 			try
 			{
 				ostream1_->write(pair.e1);
-				ostream2_->write(pair.e2);
+				if (!ostream2_.isNull()) ostream2_->write(pair.e2);
 				pair.status = ReadPair::FREE;
 			}
 			catch(Exception& e)

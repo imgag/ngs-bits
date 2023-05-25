@@ -4,6 +4,7 @@
 #include <Pileup.h>
 #include <QFile>
 #include <QThreadPool>
+#include <QMutex>
 #include "FastqFileStream.h"
 #include "StatisticsReads.h"
 

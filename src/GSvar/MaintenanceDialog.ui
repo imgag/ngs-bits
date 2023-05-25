@@ -58,7 +58,7 @@
        </property>
        <item>
         <property name="text">
-         <string>[maintenance]</string>
+         <string>[NGSD]</string>
         </property>
        </item>
        <item>
@@ -74,6 +74,11 @@
        <item>
         <property name="text">
          <string>Replace obsolte HPO terms</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Find inconsistencies for causal diagnostic variants</string>
         </property>
        </item>
        <item>

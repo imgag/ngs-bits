@@ -85,8 +85,6 @@ protected:
 
 	///The database adapter
 	QSharedPointer<QSqlDatabase> db_;
-
-	static QMap<QString, TableInfo> infos_;
 };
 
 

@@ -2,7 +2,10 @@
 #include "LinePlot.h"
 #include "Helper.h"
 
-StatisticsReads::StatisticsReads()
+#include <BarPlot.h>
+#include <Histogram.h>
+
+StatisticsReads::StatisticsReads(bool long_read)
 	: c_forward_(0)
 	, c_reverse_(0)
 	, read_lengths_()
@@ -12,6 +15,7 @@ StatisticsReads::StatisticsReads()
 	, pileups_()
 	, qualities1_()
 	, qualities2_()
+	, long_read_(long_read)
 {
 }
 
@@ -30,7 +34,7 @@ void StatisticsReads::update(const FastqEntry& entry, ReadDirection direction)
 	//check number of cycles
 	int cycles = entry.bases.count();
     bases_sequenced_ += cycles;
-	read_lengths_.insert(cycles);
+	read_lengths_[cycles]++;
 	if (cycles>pileups_.size())
 	{
 		pileups_.resize(cycles);
@@ -60,6 +64,63 @@ void StatisticsReads::update(const FastqEntry& entry, ReadDirection direction)
 	if (q_sum/cycles>=20.0) ++c_read_q20_;
 }
 
+void StatisticsReads::update(const BamAlignment& al)
+{
+	//update read counts
+	bool is_forward = al.isRead1();
+	if (is_forward)
+	{
+		++c_forward_;
+	}
+	else
+	{
+		++c_reverse_;
+	}
+
+	//check number of cycles
+	int cycles = al.length();
+	bases_sequenced_ += cycles;
+	read_lengths_[cycles]++;
+	if (cycles>pileups_.size())
+	{
+		pileups_.resize(cycles);
+		qualities1_.resize(cycles);
+		qualities2_.resize(cycles);
+	}
+	
+	//create pileups
+	QVector<int> base_ints = al.baseIntegers();
+	for (int i=0; i<cycles; ++i)
+	{
+		int base = base_ints[i];
+		
+		if (base==1) pileups_[i].incA();
+		else if (base==2) pileups_[i].incC();
+		else if (base==4) pileups_[i].incG();
+		else if (base==8) pileups_[i].incT();
+		else if (base==15) pileups_[i].incN();
+		else THROW(ProgrammingException, "Unknown base '" + QString::number(base_ints[i]) + "' in StatisticsReads::update!");
+	}
+
+	//handle qualities
+	double q_sum = 0.0;
+	for (int i=0; i<cycles; ++i)
+	{
+		int q = al.quality(i);
+		q_sum += q;
+		if (q>=30.0) ++c_base_q30_;
+		if (is_forward)
+		{
+			qualities1_[i] += q;
+		}
+		else
+		{
+			qualities2_[i] += q;
+		}
+	}
+	if (q_sum/cycles>=20.0) ++c_read_q20_;
+}
+
 QCCollection StatisticsReads::getResult()
 {
 	//create output values
@@ -78,7 +139,7 @@ QCCollection StatisticsReads::getResult()
 
 	output.insert(QCValue("read count", total_reads, "Total number of reads (forward and reverse reads of paired-end sequencing count as two reads).", "QC:2000005"));
 	QString lengths = "";
-	QList<int> tmp = read_lengths_.toList(); //why? QSet is hash-based!
+	QList<int> tmp = read_lengths_.keys();
 	std::sort(tmp.begin(), tmp.end());
 	if (tmp.size()<4)
 	{
@@ -93,7 +154,7 @@ QCCollection StatisticsReads::getResult()
 		lengths = QString::number(tmp[0]) + "-" + QString::number(tmp[tmp.size()-1]);
 	}
 	output.insert(QCValue("read length", lengths, "Raw read length of a single read before trimming. Comma-separated list of lenghs or length range, if reads have different lengths.", "QC:2000006"));
-    output.insert(QCValue("bases sequenced (MB)", (double)bases_sequenced_/1000000.0, "Bases sequenced in total (in megabases).", "QC:2000049"));
+	output.insert(QCValue("bases sequenced (MB)", (double)bases_sequenced_/1000000.0, "Bases sequenced in total (in megabases).", "QC:2000049"));
     output.insert(QCValue("Q20 read percentage", 100.0*c_read_q20_/total_reads, "The percentage of reads with a mean base quality score greater than Q20.", "QC:2000007"));
 	output.insert(QCValue("Q30 base percentage", 100.0*c_base_q30_/bases_total, "The percentage of bases with a minimum quality score of Q30.", "QC:2000008"));
 	output.insert(QCValue("no base call percentage", 100.0*c_base_n/bases_total, "The percentage of bases without base call (N).", "QC:2000009"));
@@ -131,10 +192,13 @@ QCCollection StatisticsReads::getResult()
 	output.insert(QCValue::Image("base distribution plot", plotname, "Base distribution plot per cycle.", "QC:2000011"));
 	QFile::remove(plotname);
 
+
 	//create output quality distribution plot
 	for(int j=0; j<qualities1_.count(); ++j)
 	{
-		int depth = pileups_[j].depth(false, true) / 2;
+		int depth = pileups_[j].depth(false, true);
+		//divide by 2 if paired-end reads
+		if(c_reverse_ > 0) depth /= 2;
 		qualities1_[j] /= depth;
 		qualities2_[j] /= depth;
 	}
@@ -152,6 +216,66 @@ QCCollection StatisticsReads::getResult()
 	plot2.store(plotname2);
 	output.insert(QCValue::Image("Q score plot", plotname2, "Mean Q score per cycle for forward/reverse reads.", "QC:2000012"));
 	QFile::remove(plotname2);
+
+	//calculate long read QC values:
+	if(long_read_)
+	{
+		//calculate N50 value
+		long long bases = 0;
+		int n50 = 0;
+		QMapIterator<int,long long> it(read_lengths_);
+		it.toBack();
+		while(it.hasPrevious())
+		{
+			it.previous();
+			bases += it.key() * it.value();
+
+			// break if 50% of bases_sequenced is reached
+			if(bases > (bases_sequenced_/2))
+			{
+				n50 = it.key();
+				break;
+			}
+		}
+		output.insert(QCValue("N50", n50, "Minimum read length to reach 50% of sequenced bases.", "QC:2000131"));
+
+		//create read length histogram
+		qDebug() << 0 << read_lengths_.lastKey();
+		Histogram read_length_hist = Histogram(std::max(0, read_lengths_.firstKey() - 20), read_lengths_.lastKey() + 20, std::max(1, (read_lengths_.lastKey()-read_lengths_.firstKey())/50));
+		it.toFront();
+		while(it.hasNext())
+		{
+			it.next();
+			for (int i = 0; i < it.value(); ++i) read_length_hist.inc(it.key());
+		}
+
+		//add depth distribtion plot
+		BarPlot plot3;
+		plot3.setXLabel("read length (bp)");
+		plot3.setYLabel("read counts");
+		plot3.setYRange(0, (int) ((read_length_hist.maxValue() + 1) * 1.2));
+		plot3.setXRange(-2, read_length_hist.binCount() + 2);
+		QList<QString> bins;
+		foreach (double x, read_length_hist.xCoords())
+		{
+			if(((int) x) % 10 == 0)
+			{
+				bins << QString::number((int) x);
+			}
+			else
+			{
+				bins << "";
+			}
+		}
+		plot3.setValues(read_length_hist.yCoords().toList(), bins);
+		QString plotname3 = Helper::tempFileName(".png");
+		plot3.store(plotname3);
+		output.insert(QCValue::Image("Read length histogram", plotname3, "Histogram of read lengths", "QC:2000132"));
+		QFile::remove(plotname3);
+	}
+
+
+
 
 	return output;
 }

@@ -1,6 +1,6 @@
 #include "FastqFileStream.h"
 
-void FastqEntry::validate() const
+void FastqEntry::validate(bool long_read) const
 {
 	QString message = "Invalid Fastq file entry: ";
 
@@ -26,10 +26,18 @@ void FastqEntry::validate() const
 	foreach(char c, qualities)
     {
         int value = c;
-        if (value<33 || value>74)
-        {
+		//Nanopore quality range: 33-126 (offset 33) (https://en.wikipedia.org/wiki/FASTQ_format#Encoding)
+		if (long_read)
+		{
+			if(value<33 || value>126)
+			{
+				THROW(FileParseException, message + "Invalid nanopore quality character '" + c + "' with value '" + QString::number(value) + "' encountered in sequence '" + header + "'.");
+			}
+		}
+		else if (value<33 || value>74)
+		{
 			THROW(FileParseException, message + "Invalid quality character '" + c + "' with value '" + QString::number(value) + "' encountered in sequence '" + header + "'.");
-        }
+		}
     }
 }
 
@@ -108,7 +116,7 @@ int FastqEntry::trimN(int num_n)
     return 0;
 }
 
-FastqFileStream::FastqFileStream(QString filename, bool auto_validate)
+FastqFileStream::FastqFileStream(QString filename, bool auto_validate, bool long_read)
 	: filename_(filename)
 	, gzfile_(NULL)
 	, buffer_(0)
@@ -116,6 +124,7 @@ FastqFileStream::FastqFileStream(QString filename, bool auto_validate)
     , last_output_(NULL)
     , entry_index_(-1)
     , auto_validate_(auto_validate)
+	, long_read_(long_read)
 {
     gzfile_ = gzopen(filename.toUtf8().data(), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
     if (gzfile_ == NULL)
@@ -123,9 +132,11 @@ FastqFileStream::FastqFileStream(QString filename, bool auto_validate)
 		THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
     }
 
-	gzbuffer(gzfile_, 131072);
+	buffer_size_ =  ((long_read_)?8388608:1024);
 
-	buffer_ = new char[1024];
+	gzbuffer(gzfile_, 128*buffer_size_);
+
+	buffer_ = new char[buffer_size_];
 }
 
 FastqFileStream::~FastqFileStream()
@@ -139,7 +150,7 @@ void FastqFileStream::readEntry(FastqEntry& entry)
     //special cases handling
     if (is_first_entry_)
     {
-		last_output_ = gzgets(gzfile_, buffer_, 1024);
+		last_output_ = gzgets(gzfile_, buffer_, buffer_size_);
         is_first_entry_ = false;
     }
 
@@ -169,7 +180,7 @@ void FastqFileStream::readEntry(FastqEntry& entry)
     ++entry_index_;
 
     //validate
-	if (auto_validate_) entry.validate();
+	if (auto_validate_) entry.validate(long_read_);
 }
 
 void FastqFileStream::extractLine(QByteArray& line)
@@ -177,7 +188,7 @@ void FastqFileStream::extractLine(QByteArray& line)
 	line = QByteArray(buffer_);
 	while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
 
-	last_output_ = gzgets(gzfile_, buffer_, 1024);
+	last_output_ = gzgets(gzfile_, buffer_, buffer_size_);
 
 	//handle errors like truncated GZ file
 	if (last_output_==nullptr)

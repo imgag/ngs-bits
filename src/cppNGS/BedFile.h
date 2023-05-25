@@ -227,8 +227,12 @@ public:
     void subtract(const BedFile& file2);
     ///Removed all parts of regions that do not overlap with the given file.
     void intersect(const BedFile& file2);
-    ///Removes all regions that do not overlap with the given file.
+	///Removes all regions that do not overlap with the given file.
     void overlapping(const BedFile& file2);
+	///Removes all regions that do not overlap with the given region.
+	void overlapping(const BedLine& region);
+	///Removes all regions that do not overlap with the given region.
+	void overlapping(const Chromosome& chr, int start, int end);
     ///Splits all regions to chunks of an approximate size.
     void chunk(int size);
 

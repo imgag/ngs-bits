@@ -22,4 +22,10 @@ private slots:
 		EXECUTE("FastqExtract", "-in " + TESTDATA("data_in/FastqExtract_in1.fastq.gz") + " -ids " + TESTDATA("data_in/FastqExtract_in1.txt") + " -v -out out/FastqExtract_out3.fastq.gz");
 		COMPARE_GZ_FILES("out/FastqExtract_out3.fastq.gz", TESTDATA("data_out/FastqExtract_out3.fastq.gz"));
 	}
+
+	void test_long_read()
+	{
+		EXECUTE("FastqExtract", "-in " + TESTDATA("data_in/FastqExtract_in3.fastq.gz") + " -long_read -ids " + TESTDATA("data_in/FastqExtract_in3.txt") + " -out out/FastqExtract_out4.fastq.gz");
+		COMPARE_GZ_FILES("out/FastqExtract_out4.fastq.gz", TESTDATA("data_out/FastqExtract_out4.fastq.gz"));
+	}
 };

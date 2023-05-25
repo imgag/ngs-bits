@@ -399,12 +399,6 @@ void VcfFile::loadFromVCFGZ(const QString& filename, bool allow_multi_sample, Ch
 
 	if (Helper::isHttpUrl(filename))
 	{
-		// Temporary solution to handle remote VCF files (we assume that there are no *.vcf.gz files)
-		if (filename.toLower().endsWith(".vcf.gz")) //TODO this does not match because of the token
-		{
-			THROW(NotImplementedException, "The support for *.vcf.gz files has not been implemented!");
-		}
-
 		QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(filename, true);
 		while(!file->atEnd())
 		{
@@ -1271,6 +1265,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 
 		invalid_chars.append(kvp.key[0].toLatin1());
 	}
+	invalid_chars << ' '; //space is not valid
 
 
 	//perform checks
@@ -1450,10 +1445,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 				Sequence ref_exp = reference.seq(chr, pos, ref.length());
 				if (ref!=ref_exp)
 				{
-					if (ref_exp=="N" || ref_exp=="A" || ref_exp=="C" || ref_exp=="G" || ref_exp=="T") //ignore ambiguous bases, e.g. M or R.
-					{
-						printError(out_stream, "Reference base(s) not correct. Is '" + ref + "', should be '" + ref_exp + "'!", l, line);
-					}
+					printError(out_stream, "Reference base(s) not correct. Is '" + ref + "', should be '" + ref_exp + "'!", l, line);
 				}
 			}
 
@@ -1555,7 +1547,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 					{
 						if (value.contains(invalid_char))
 						{
-							printError(out_stream, "Flag INFO '" + name + "' has a value which contains the invalid character '" + invalid_char + "' (value: '" + value + "')!", l, line);
+							printError(out_stream, "Value of INFO entry '" + name + "' has a value which contains the invalid character '" + invalid_char + "' (value: '" + value + "')!", l, line);
 							return false;
 						}
 					}

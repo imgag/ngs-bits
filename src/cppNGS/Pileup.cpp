@@ -14,20 +14,20 @@ Pileup::Pileup()
 {
 }
 
-void Pileup::inc(char base, long long inc)
+void Pileup::inc(char base)
 {
-	if (base=='A') a_ += inc;
-	else if (base=='C') c_ += inc;
-	else if (base=='G') g_ += inc;
-	else if (base=='T') t_ += inc;
-	else if (base=='N') n_ += inc;
-	else if (base=='-') del_ += inc;
+	if (base=='A') ++a_;
+	else if (base=='C') ++c_;
+	else if (base=='G') ++g_;
+	else if (base=='T') ++t_;
+	else if (base=='N') ++n_;
+	else if (base=='-') ++del_;
 	else if (base=='~') {}
-	else if (base=='a') a_ += inc;
-	else if (base=='c') c_ += inc;
-	else if (base=='g') g_ += inc;
-	else if (base=='t') t_ += inc;
-	else if (base=='n') n_ += inc;
+	else if (base=='a') ++a_;
+	else if (base=='c') ++c_;
+	else if (base=='g') ++g_;
+	else if (base=='t') ++t_;
+	else if (base=='n') ++n_;
 	else THROW(ArgumentException, "Unknown base '" + QString(QChar(base)) + "' in pileup!");
 }
 
