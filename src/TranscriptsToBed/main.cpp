@@ -44,9 +44,14 @@ public:
 
 		//process
 		BedFile output;
-		QStringList transcripts = Helper::loadTextFile(getInfile("in"), true, '#', true);
-		foreach(QString transcript, transcripts)
+		QSharedPointer<QFile> file = Helper::openFileForReading(getInfile("in"), true);
+		QTextStream stream(file.data());
+		while(!stream.atEnd())
 		{
+			QString transcript = stream.readLine().trimmed();
+
+			if(transcript.isEmpty() || transcript.startsWith('#')) continue;
+
 			try
 			{
 				output.add(db.transcriptToRegions(transcript.toLatin1(), mode));
