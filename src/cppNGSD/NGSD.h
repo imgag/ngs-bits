@@ -704,6 +704,8 @@ public:
 	BedFile geneToRegions(const QByteArray& gene, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
 	///Returns the chromosomal regions corresponding to the given genes. Messages about unknown gene symbols etc. are written to the steam, if given.
 	BedFile genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
+	///Returns the chromosomal regions corresponding to the given transcript. Messages about unknown transcripts etc. are written to the steam, if given.
+	BedFile transcriptToRegions(const QByteArray& name, QString mode);
 	///Returns transcript by id. Throws an exception if not found in NGSD.
 	const Transcript& transcript(int id);
 	///Returns transcript identifier. Throws an exception if not found in NGSD, or returns -1.

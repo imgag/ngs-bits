@@ -518,3 +518,7 @@ NGSDExportStudyGHGA.depends = cppNGSD
 SUBDIRS += VcfSubstract
 tools-TEST.depends += VcfSubstract
 VcfSubstract.depends = cppNGS
+
+SUBDIRS += TranscriptsToBed
+tools-TEST.depends += TranscriptsToBed
+TranscriptsToBed.depends = cppNGSD

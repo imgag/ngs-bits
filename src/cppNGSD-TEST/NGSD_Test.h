@@ -540,6 +540,22 @@ private slots:
 		I_EQUAL(db.geneIdOfTranscript("NON-CODING_TR1"), 4);
 		I_EQUAL(db.geneIdOfTranscript("HARSTEM_ROX", false), -1); //not present
 
+		//transcriptToRegions
+		regions = db.transcriptToRegions("NIPA1_TR2", "gene");
+		I_EQUAL(regions.count(), 1);
+		S_EQUAL(regions[0].annotations()[0], "NIPA1 NIPA1_TR2.5");
+		I_EQUAL(regions.baseCount(), 341);
+
+		regions = db.transcriptToRegions("NIPA1_TR2.5", "exon");
+		I_EQUAL(regions.count(), 2);
+		S_EQUAL(regions[0].annotations()[0], "NIPA1 NIPA1_TR2.5");
+		I_EQUAL(regions.baseCount(), 102);
+
+		regions = db.transcriptToRegions("NON-CODING_TR1", "exon");
+		I_EQUAL(regions.count(), 2);
+		S_EQUAL(regions[0].annotations()[0], "NON-CODING NON-CODING_TR1.6");
+		I_EQUAL(regions.baseCount(), 202);
+
 		//geneInfo
 		GeneInfo ginfo = db.geneInfo("BRCA1");
 		S_EQUAL(ginfo.symbol, "BRCA1");
