@@ -3099,11 +3099,10 @@ void MainWindow::showBafHistogram()
 
 		//determine CN values
 		Histogram hist(0.0, 1.0, 0.025);
-		QSharedPointer<QFile> file = Helper::openFileForReading(baf_files[0]);
-		QTextStream stream(file.data());
-		while (!stream.atEnd())
-		{
-			QString line = stream.readLine();
+        QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(baf_files[0]);
+        while (!file->atEnd())
+        {
+            QString line = file->readLine();
 			QStringList parts = line.split("\t");
 			if (parts.count()<5) continue;
 
