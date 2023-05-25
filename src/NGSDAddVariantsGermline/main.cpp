@@ -416,9 +416,9 @@ public:
 				QByteArray tmp = application_string.left(sep_idx).trimmed();
 				if (tmp=="GenerateSVCandidates") caller = "Manta";
 				else if (tmp=="DRAGEN") caller = "DRAGEN";
-				else if (tmp=="Sniffles2") caller = "Sniffles2";
+				else if (tmp=="Sniffles2") caller = "Sniffles";
 
-				caller_version = application_string.mid(sep_idx).trimmed();
+				caller_version = application_string.mid(sep_idx+1).trimmed();
 			}
 		}
 
