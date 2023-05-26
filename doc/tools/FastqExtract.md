@@ -1,5 +1,5 @@
 ### FastqExtract tool help
-	FastqExtract (2020_03-159-g5c8b2e82)
+	FastqExtract (2023_03-63-gec44de43)
 	
 	Extracts reads from a FASTQ file according to an ID list. Trims the reads if lengths are given.
 	
@@ -13,6 +13,8 @@
 	                           Default value: 'false'
 	  -compression_level <int> Output FASTQ compression level from 1 (fastest) to 9 (best compression).
 	                           Default value: '1'
+	  -long_read               Support long reads (> 1kb).
+	                           Default value: 'false'
 	
 	Special parameters:
 	  --help                   Shows this help and exits.
@@ -21,7 +23,8 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### FastqExtract changelog
-	FastqExtract 2020_03-159-g5c8b2e82
+	FastqExtract 2023_03-63-gec44de43
 	
+	2023-04-18 Added support for long reads.
 	2020-07-15 Added 'compression_level' parameter.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
