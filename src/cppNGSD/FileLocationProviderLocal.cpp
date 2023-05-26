@@ -432,37 +432,40 @@ QString FileLocationProviderLocal::getProjectPath() const
 QList<KeyValuePair> FileLocationProviderLocal::getBaseLocations() const
 {
     QList<KeyValuePair> output;
-    switch(analysis_type_)
+
+    if (analysis_type_==GERMLINE_SINGLESAMPLE || analysis_type_==SOMATIC_SINGLESAMPLE || analysis_type_==CFDNA)
     {
-        case GERMLINE_SINGLESAMPLE:
-        case SOMATIC_SINGLESAMPLE:
-        case CFDNA:
-            output << KeyValuePair(header_info_.begin()->id, getAnalysisPath() + "/" + header_info_.begin()->id);
-            break;
-        case GERMLINE_TRIO: return output;
-        case GERMLINE_MULTISAMPLE: return output;
-        case SOMATIC_PAIR:
-            foreach(const SampleInfo& info, header_info_)
+        QString id = header_info_.begin()->id;
+        output << KeyValuePair(id, getAnalysisPath() + "/" + id);
+    }
+    else if (analysis_type_==GERMLINE_TRIO || analysis_type_==GERMLINE_MULTISAMPLE || analysis_type_==SOMATIC_PAIR)
+    {
+        QString project_folder = getProjectPath();
+
+        foreach(const SampleInfo& info, header_info_)
+        {
+            if (Settings::boolean("NGSD_enabled", true))
             {
-                if (Settings::boolean("NGSD_enabled", true))
+                try
                 {
-                    try
-                    {
-                        QString id = NGSD().processedSampleId(info.id, false);
-                        QString sample_path = NGSD().processedSamplePath(id, PathType::SAMPLE_FOLDER);
-                        output << KeyValuePair(info.id, sample_path + info.id);
-                        continue;
-                    }
-                    catch (...)
-                    {
-                        // We fall back to the standard behaviour, if the sample cannot be found
-                    }
+                    QString id = NGSD().processedSampleId(info.id, false);
+                    QString sample_path = NGSD().processedSamplePath(id, PathType::SAMPLE_FOLDER);
+                    output << KeyValuePair(info.id, sample_path + info.id);
+                    continue;
                 }
-                output << KeyValuePair(info.id, getProjectPath() + "/Sample_" + info.id + "/" + info.id);
+                catch (...)
+                {
+                    // We fall back to the standard behaviour, if the sample cannot be found
+                }
+
             }
-            break;
-        default:
-            THROW(ProgrammingException, "Cannot handle unknown analysis type");
+
+            output << KeyValuePair(info.id, project_folder + "/Sample_" + info.id + "/" + info.id);
+        }
+    }
+    else
+    {
+        THROW(ProgrammingException, "Cannot handle unknown analysis type");
     }
 
     return output;
