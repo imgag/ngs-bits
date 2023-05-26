@@ -522,3 +522,9 @@ VcfSubstract.depends = cppNGS
 SUBDIRS += TranscriptsToBed
 tools-TEST.depends += TranscriptsToBed
 TranscriptsToBed.depends = cppNGSD
+
+SUBDIRS += GenesToTranscripts
+tools-TEST.depends += GenesToTranscripts
+GenesToTranscripts.depends = cppNGSD
+
+

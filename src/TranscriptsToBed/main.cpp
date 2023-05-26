@@ -1,15 +1,6 @@
 #include "Exceptions.h"
 #include "ToolBase.h"
-#include "Helper.h"
-#include "Log.h"
-#include "BedFile.h"
-#include "Settings.h"
 #include "NGSD.h"
-#include "NGSHelper.h"
-
-#include <QSet>
-#include <QFile>
-#include <QTextStream>
 
 class ConcreteTool
 		: public ToolBase
