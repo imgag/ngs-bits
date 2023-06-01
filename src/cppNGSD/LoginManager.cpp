@@ -4,6 +4,7 @@
 #include "Log.h"
 #include "ClientHelper.h"
 #include <QJsonDocument>
+#include <QNetworkProxy>
 
 LoginManager::LoginManager()
 	: user_login_()
@@ -36,7 +37,7 @@ QByteArray LoginManager::sendPostApiRequest(QString path, QString content, HttpH
 {
 	try
 	{
-		return HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(ClientHelper::serverApiUrl() + path, content.toUtf8(), add_headers);
+		return HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(ClientHelper::serverApiUrl() + path, content.toUtf8(), add_headers);
 	}
 	catch (Exception& e)
 	{
@@ -49,7 +50,7 @@ QByteArray LoginManager::sendGetApiRequest(QString path, HttpHeaders add_headers
 {
 	try
 	{
-		return HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).get(ClientHelper::serverApiUrl() + path, add_headers);
+		return HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(ClientHelper::serverApiUrl() + path, add_headers);
 	}
 	catch (Exception& e)
 	{

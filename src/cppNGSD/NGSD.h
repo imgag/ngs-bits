@@ -27,6 +27,7 @@
 #include "FileLocation.h"
 #include "FileInfo.h"
 #include "TsvFile.h"
+#include "HttpRequestHandler.h"
 
 ///Sample relation datastructure
 struct CPPNGSDSHARED_EXPORT SampleRelation
@@ -588,6 +589,14 @@ struct CfdnaDiseaseCourseTable
 	QList<TsvFile> mrd_tables;
 };
 
+///custum struct to store the submission status of ClinVarUploads
+struct CPPNGSDSHARED_EXPORT ClinvarSubmissionStatus
+{
+	QString status;
+	QString stable_id;
+	QString comment;
+};
+
 /// NGSD accessor.
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
@@ -695,6 +704,8 @@ public:
 	BedFile geneToRegions(const QByteArray& gene, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
 	///Returns the chromosomal regions corresponding to the given genes. Messages about unknown gene symbols etc. are written to the steam, if given.
 	BedFile genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
+	///Returns the chromosomal regions corresponding to the given transcript. Messages about unknown transcripts etc. are written to the steam, if given.
+	BedFile transcriptToRegions(const QByteArray& name, QString mode);
 	///Returns transcript by id. Throws an exception if not found in NGSD.
 	const Transcript& transcript(int id);
 	///Returns transcript identifier. Throws an exception if not found in NGSD, or returns -1.
@@ -996,6 +1007,10 @@ public:
 	void flagVariantPublicationAsReplaced(int variant_publication_id);
 	///Link two variant publications (comp. het. variant)
 	void linkVariantPublications(int variant_publication_id1, int variant_publication_id2);
+	///update submission status of uploaded variants from ClinVar
+	QPair<int, int> updateClinvarSubmissionStatus(bool test_run);
+	///returns the submission status of a given ClinVar submission Id
+	ClinvarSubmissionStatus getSubmissionStatus(const QString& submission_id, bool test_run);
 
 	///Returns the comment of a variant in the NGSD.
 	QString comment(const Variant& variant);
