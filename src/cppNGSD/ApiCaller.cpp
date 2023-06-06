@@ -5,6 +5,8 @@
 #include "LoginManager.h"
 #include "Log.h"
 
+#include <QNetworkProxy>
+
 ApiCaller::ApiCaller()
 {
 }
@@ -16,7 +18,7 @@ QByteArray ApiCaller::get(QString api_path, RequestUrlParams url_params, HttpHea
 		if (needs_user_token) addUserTokenIfExists(url_params);
 		if (needs_db_token) addDbTokenIfExists(url_params);
 
-		return HttpRequestHandler(HttpRequestHandler::NONE).get(ClientHelper::serverApiUrl() + api_path + QUrl(url_params.asString()).toEncoded(), headers);
+		return HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(ClientHelper::serverApiUrl() + api_path + QUrl(url_params.asString()).toEncoded(), headers);
 	}
 	catch (Exception& e)
 	{
@@ -37,7 +39,7 @@ QByteArray ApiCaller::post(QString api_path, RequestUrlParams url_params, HttpHe
 		if (needs_user_token) addUserTokenIfExists(url_params);
 		if (needs_db_token) addDbTokenIfExists(url_params);
 
-		return HttpRequestHandler(HttpRequestHandler::NONE).post(ClientHelper::serverApiUrl() + api_path + QUrl(url_params.asString()).toEncoded(), data, headers);
+		return HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(ClientHelper::serverApiUrl() + api_path + QUrl(url_params.asString()).toEncoded(), data, headers);
 	}
 	catch (Exception& e)
 	{				

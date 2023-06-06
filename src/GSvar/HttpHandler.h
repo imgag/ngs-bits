@@ -5,6 +5,7 @@
 #include <QString>
 #include <QSslError>
 #include <QNetworkAccessManager>
+#include <QNetworkProxy>
 #include <QHttpMultiPart>
 #include "HttpRequestHandler.h"
 
@@ -18,7 +19,7 @@ class HttpHandler
 
 public:
 	///Constructor
-	HttpHandler(HttpRequestHandler::ProxyType proxy_type, QObject* parent=0);
+	HttpHandler(bool internal, QObject* parent=0);
 
 	///Returns basic headers used for all get/post requests. Additional headers that are only used for one request can be given in the get/post methods.
 	const HttpHeaders& headers() const;
@@ -37,15 +38,17 @@ public:
 	QByteArray post(QString url, QHttpMultiPart* parts, const HttpHeaders& add_headers = HttpHeaders() );
 
 public slots:
-	///Handles proxy authentification
-	void handleProxyAuthentification(const QNetworkProxy& , QAuthenticator*);
+
 
 private:
 	QNetworkAccessManager nmgr_;
-	HttpRequestHandler::ProxyType proxy_type_;
-	QString proxy_user_;
-	QString proxy_password_;
+	bool internal_;
+	QNetworkProxy proxy_;
 	HttpHeaders headers_;
+
+	///Handles proxy authentification
+	void handleProxyAuthentification();
+
 	//declared away
 	HttpHandler() = delete;
 };

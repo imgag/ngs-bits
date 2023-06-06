@@ -1623,7 +1623,7 @@ CREATE  TABLE IF NOT EXISTS `sv_callset`
 (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
-  `caller` ENUM('Manta', 'DRAGEN') NOT NULL,
+  `caller` ENUM('Manta', 'DRAGEN', 'Sniffles') NOT NULL,
   `caller_version` varchar(25) NOT NULL,
   `call_date` DATETIME DEFAULT NULL,
   PRIMARY KEY (`id`),

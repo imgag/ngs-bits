@@ -36,7 +36,7 @@ void BlatWidget::performSearch()
 		if (sequence.length()<20) THROW(ArgumentException, "Input sequence too short! Must be at least 20 bases!");
 
 		//perform API request
-		static HttpHandler http_handler(HttpRequestHandler::INI); //static to allow caching of credentials
+		static HttpHandler http_handler(false); //static to allow caching of credentials
 		QByteArray response_text = http_handler.get("https://genome.ucsc.edu/cgi-bin/hgBlat?userSeq="+sequence+"&type=DNA&db="+ui_.genome->currentText()+"&output=json");
 		QJsonObject response = QJsonDocument::fromJson(response_text).object();
 

@@ -554,7 +554,7 @@ int main(int argc, char **argv)
 	ServerWrapper https_server(server_port);
 	if (!https_server.isRunning())
 	{
-		Log::error("HTTPS is not running. Exiting");
+        Log::error("Could not start HTTPS server. Exiting...");
 		app.exit(EXIT_FAILURE);
 		return app.exec();
 	}

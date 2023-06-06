@@ -27,6 +27,7 @@ public:
 	bool isRunning() const;
 
 public slots:
+    void updateClinVarSubmissionStatus();
 	void updateInfoForUsers(QString str);
 
 private:

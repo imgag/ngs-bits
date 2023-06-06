@@ -1499,3 +1499,20 @@ def: "Viruses whose DNA was detected." [PXS:QC]
 is_a: QC:2000125 ! NGS quality parameter
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
 created_by: ott
+
+[Term]
+id: QC:2000131
+name: N50
+def: "Minimum read length to reach 50% of sequenced bases." [PXS:QC]
+is_a: QC:2000002 ! NGS aquisition parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000132
+name: read length distribution plot
+def: "Plots a histogram of the read length distribution." [PXS:QC]
+is_a: QC:2000002 ! NGS aquisition parameter
+is_a: QC:0000050 ! image plot
+xref: value-type:xsd\:base64Binary "The allowed value-type for this CV term."
+created_by: schuetz

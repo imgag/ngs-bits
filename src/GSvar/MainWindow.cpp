@@ -14,6 +14,7 @@
 #include <QUrl>
 #include <QTcpSocket>
 #include <QTime>
+#include <ProxyDataService.h>
 #include "ExternalToolDialog.h"
 #include "ReportDialog.h"
 #include <QBrush>
@@ -142,6 +143,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "SomaticcfDNAReport.h"
 #include "MaintenanceDialog.h"
 #include "ClientHelper.h"
+#include "ProxyDataService.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -408,6 +410,7 @@ void MainWindow::on_actionDebug_triggered()
 	timer.start();
 
 	QString user = Helper::userName();
+	qDebug() << user;
 	if (user=="ahsturm1")
 	{
 		//VariantHgvsAnnotator debugging
@@ -1478,10 +1481,24 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahschul1")
 	{
+		//test google reply times
+		qDebug() << "Test google reply times";
+
+		static HttpHandler http_handler(false);
+
+		for (int i = 0; i < 10; ++i)
+		{
+			QTime timer;
+			timer.start();
+			QByteArray reply = http_handler.get("https://www.google.com");
+			qDebug() << "reply took:" << Helper::elapsedTime(timer, true);
+			QThread::sleep(10);
+		}
 	}
 	else if (user=="ahott1a1")
 	{
 	}
+
 
 	qDebug() << "Elapsed time debugging:" << Helper::elapsedTime(timer, true);
 }
@@ -3099,11 +3116,10 @@ void MainWindow::showBafHistogram()
 
 		//determine CN values
 		Histogram hist(0.0, 1.0, 0.025);
-		QSharedPointer<QFile> file = Helper::openFileForReading(baf_files[0]);
-		QTextStream stream(file.data());
-		while (!stream.atEnd())
-		{
-			QString line = stream.readLine();
+        QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(baf_files[0]);
+        while (!file->atEnd())
+        {
+            QString line = file->readLine();
 			QStringList parts = line.split("\t");
 			if (parts.count()<5) continue;
 
@@ -4662,7 +4678,7 @@ QList<RtfPicture> pngsFromFiles(QStringList files)
 		QImage pic;
 		if (path.startsWith("http", Qt::CaseInsensitive))
 		{
-			QByteArray response = HttpHandler(HttpRequestHandler::NONE).get(path);
+			QByteArray response = HttpHandler(true).get(path);
 			if (!response.isEmpty()) pic.loadFromData(response);
 		}
 		else
@@ -6896,7 +6912,7 @@ void MainWindow::openAlamut(QAction* action)
 			QString host = Settings::string("alamut_host");
 			QString institution = Settings::string("alamut_institution");
 			QString apikey = Settings::string("alamut_apikey");
-			HttpHandler(HttpRequestHandler::NONE).get(host+"/search?institution="+institution+"&apikey="+apikey+"&request="+value);
+			HttpHandler(true).get(host+"/search?institution="+institution+"&apikey="+apikey+"&request="+value);
 		}
 		catch (Exception& e)
 		{
@@ -7523,7 +7539,7 @@ void MainWindow::storeCurrentVariantList()
 			add_headers.insert("Content-Type", "application/json");
 			add_headers.insert("Content-Length", QByteArray::number(json_doc.toJson().count()));
 
-			QString reply = HttpHandler(HttpRequestHandler::NONE).put(
+			QString reply = HttpHandler(true).put(
 						ClientHelper::serverApiUrl() + "project_file?ps_url_id=" + ps_url_id + "&token=" + LoginManager::userToken(),
 						json_doc.toJson(),
 						add_headers
