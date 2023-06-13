@@ -565,8 +565,11 @@ private:
 		foreach (const QString& chr_name, QStringList() << db.getEnum("variant", "chr"))
 		{
 			chr_timer.start();
+
 			// get all ids of all variants on this chromosome
+			tmp_timer.restart();
 			QList<int> variant_ids = db.getValuesInt("SELECT id FROM variant WHERE chr='" + chr_name + "' ORDER BY start ASC, end ASC");
+			out << "Getting variant IDs for " << chr_name << " took " << getTimeString(tmp_timer.nsecsElapsed()/1000000.0) << endl;
 
 			// iterate over all variants
 			foreach (int variant_id, variant_ids)
