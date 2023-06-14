@@ -1300,7 +1300,7 @@ Variant NGSD::variant(const QString& variant_id)
 GenotypeCounts NGSD::genotypeCountsCached(const QString &variant_id)
 {
 	SqlQuery query = getQuery();
-	query.exec("SELECT germline_het, germline_hom, germline_mosaic FROM variant WHERE id=" + variant_id);
+	query.exec("SELECT germline_hom, germline_het, germline_mosaic FROM variant WHERE id=" + variant_id);
 	query.next();
 
 	return GenotypeCounts{query.value(0).toInt(), query.value(1).toInt(), query.value(2).toInt()};
@@ -1308,7 +1308,9 @@ GenotypeCounts NGSD::genotypeCountsCached(const QString &variant_id)
 
 GenotypeCounts NGSD::genotypeCounts(const QString& variant_id)
 {
-	GenotypeCounts output;
+	int c_het = 0;
+	int c_hom = 0;
+	int c_mosaic = 0;
 
 	QSet<int> samples_done_het;
 	QSet<int> samples_done_hom;
@@ -1326,14 +1328,14 @@ GenotypeCounts NGSD::genotypeCounts(const QString& variant_id)
 		{
 			if (!mosaic && !samples_done_het.contains(sample_id))
 			{
-				++output.het;
+				++c_het;
 
 				samples_done_het << sample_id;
 				samples_done_het.unite(sameSamples(sample_id));
 			}
 			if (mosaic && !samples_done_mosaic.contains(sample_id))
 			{
-				++output.mosaic;
+				++c_mosaic;
 
 				samples_done_mosaic << sample_id;
 				samples_done_mosaic.unite(sameSamples(sample_id));
@@ -1342,14 +1344,14 @@ GenotypeCounts NGSD::genotypeCounts(const QString& variant_id)
 		}
 		if (genotype=="hom" && !samples_done_hom.contains(sample_id))
 		{
-			++output.hom;
+			++c_hom;
 
 			samples_done_hom << sample_id;
 			samples_done_hom.unite(sameSamples(sample_id));
 		}
 	}
 
-	return output;
+	return GenotypeCounts{c_hom, c_het, c_mosaic};
 }
 
 void NGSD::deleteSomaticVariants(QString t_ps_id, QString n_ps_id)

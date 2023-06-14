@@ -562,7 +562,7 @@ private:
 		QStringList disease_groups = db.getEnum("sample", "disease_group");
 
 		// write info column descriptions
-		vcf_stream << "##INFO=<ID=COUNTS,Number=2,Type=Integer,Description=\"Homozygous/Heterozygous variant counts in NGSD.\">\n";
+		vcf_stream << "##INFO=<ID=COUNTS,Number=3,Type=Integer,Description=\"Homozygous/Heterozygous/Mosaic variant counts in NGSD.\">\n";
 
 		// create info column entry for all disease groups
 		for(int i = 0; i < disease_groups.size(); i++)
@@ -630,7 +630,6 @@ private:
 					QByteArray new_ref_seq, new_obs_seq;
 					if (variant.start() != 1)
 					{
-
 						// update position for deletion
 						if (variant.obs() == "-")
 						{
@@ -738,7 +737,7 @@ private:
 					ngsd_count_calculation_sum += tmp_timer.nsecsElapsed()/1000000.0;
 
 					// store counts in vcf
-					info_column.append("COUNTS=" + QByteArray::number(count_hom) + "," + QByteArray::number(count_het));
+					info_column.append("COUNTS=" + QByteArray::number(count_hom) + "," + QByteArray::number(count_het) + "," + QByteArray::number(count_mosaic));
 
 					for(int i = 0; i < disease_groups.size(); i++)
 					{
@@ -755,7 +754,7 @@ private:
 					// update variant table if counts changed
 					if (count_het!=germline_het || count_hom!=germline_hom || count_mosaic!=germline_mosaic)
 					{
-						count_cache.insert(variant_id, GenotypeCounts{count_het, count_hom, count_mosaic});
+						count_cache.insert(variant_id, GenotypeCounts{count_hom, count_het, count_mosaic});
 						if (count_cache.count()>=10000)
 						{
 							tmp_timer.restart();

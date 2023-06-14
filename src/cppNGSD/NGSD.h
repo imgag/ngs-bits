@@ -600,8 +600,8 @@ struct CPPNGSDSHARED_EXPORT ClinvarSubmissionStatus
 ///Variant genotype counts
 struct CPPNGSDSHARED_EXPORT GenotypeCounts
 {
-	int het;
 	int hom;
+	int het;
 	int mosaic;
 };
 

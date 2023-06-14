@@ -1332,14 +1332,15 @@ FilterVariantCountNGSD::FilterVariantCountNGSD()
 	description_ = QStringList() << "Filter based on the hom/het occurances of a variant in the NGSD.";
 	params_ << FilterParameter("max_count", FilterParameterType::INT, 20, "Maximum NGSD count");
 	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("ignore_genotype", FilterParameterType::BOOL, false, "If set, all NGSD entries are counted independent of the variant genotype. Otherwise, for homozygous variants only homozygous NGSD entries are counted and for heterozygous variants all NGSD entries are counted.");
+	params_ << FilterParameter("ignore_genotype", FilterParameterType::BOOL, false, "If set, all variants in NGSD are counted independent of the genotype. Otherwise, for homozygous variants only homozygous NGSD variants are counted and for heterozygous variants homozygous and heterozygous NGSD variants are counted.");
+	params_ << FilterParameter("mosaic_as_het", FilterParameterType::BOOL, false, "If set, mosaic variants are counted as heterozygous. Otherwise, they are not counted.");
 
 	checkIsRegistered();
 }
 
 QString FilterVariantCountNGSD::toText() const
 {
-	return name() + " &le; " + QString::number(getInt("max_count", false)) + (getBool("ignore_genotype") ? " (ignore genotype)" : "");
+	return name() + " &le; " + QString::number(getInt("max_count", false)) + (getBool("ignore_genotype") ? " (ignore genotype)" : "") + + (getBool("mosaic_as_het") ? " (mosaic as het)" : "");
 }
 
 void FilterVariantCountNGSD::apply(const VariantList& variants, FilterResult& result) const
@@ -1350,6 +1351,8 @@ void FilterVariantCountNGSD::apply(const VariantList& variants, FilterResult& re
 
 	int i_ihdb_hom = annotationColumn(variants, "NGSD_hom");
 	int i_ihdb_het = annotationColumn(variants, "NGSD_het");
+	int i_ihdb_mosaic = annotationColumn(variants, "NGSD_mosaic", false);
+	bool mosaic_as_het = getBool("mosaic_as_het");
 
 	if (getBool("ignore_genotype"))
 	{
@@ -1357,7 +1360,10 @@ void FilterVariantCountNGSD::apply(const VariantList& variants, FilterResult& re
 		{
 			if (!result.flags()[i]) continue;
 
-			result.flags()[i] = (variants[i].annotations()[i_ihdb_hom].toInt() + variants[i].annotations()[i_ihdb_het].toInt()) <= max_count;
+			int count = variants[i].annotations()[i_ihdb_het].toInt() + variants[i].annotations()[i_ihdb_hom].toInt();
+			if (mosaic_as_het && i_ihdb_mosaic!=-1) count += variants[i].annotations()[i_ihdb_mosaic].toInt();
+
+			result.flags()[i] = count <= max_count;
 		}
 	}
 	else
@@ -1386,7 +1392,11 @@ void FilterVariantCountNGSD::apply(const VariantList& variants, FilterResult& re
 				}
 			}
 
-			result.flags()[i] = (variants[i].annotations()[i_ihdb_hom].toInt() + (var_is_hom ? 0 : variants[i].annotations()[i_ihdb_het].toInt())) <= max_count;
+			int count = variants[i].annotations()[i_ihdb_hom].toInt();
+			if (!var_is_hom) count += variants[i].annotations()[i_ihdb_het].toInt();
+			if (!var_is_hom && mosaic_as_het && i_ihdb_mosaic!=-1) count += variants[i].annotations()[i_ihdb_mosaic].toInt();
+
+			result.flags()[i] = count <= max_count;
 		}
 	}
 }
