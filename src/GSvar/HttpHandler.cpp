@@ -104,8 +104,8 @@ void HttpHandler::handleProxyAuthentification()
 	int max_retries = 5;
 	for (int i = 0; i < max_retries; ++i)
 	{
-		QString user = QInputDialog::getText(QApplication::activeWindow(), "Proxy user required", "Proxy user for " + proxy_.hostName(), QLineEdit::Normal, Helper::userName());
-		QString password = QInputDialog::getText(QApplication::activeWindow(), "Proxy password required", "Proxy password for " + proxy_.hostName(), QLineEdit::Password);
+		QString user = QInputDialog::getText(QApplication::activeWindow(), "Proxy user required", "Proxy user", QLineEdit::Normal, Helper::userName());
+		QString password = QInputDialog::getText(QApplication::activeWindow(), "Proxy password required", "Proxy password", QLineEdit::Password);
 
 		if(ProxyDataService::setCredentials(user, password))
 		{

@@ -90,9 +90,19 @@ private:
 	//returns a formatted time string (QByteArray) from a given time in milliseconds
 	QByteArray getTimeString(double milliseconds)
 	{
-		QTime time(0,0,0);
-		time = time.addMSecs(milliseconds);
-		return time.toString("hh:mm:ss.zzz").toUtf8();
+		//calculate minutes and seconds
+		double s = milliseconds/1000.0;
+		double m = floor(s/60.0);
+		s -= 60.0 * m;
+		double h = floor(m/60.0);
+		m -= 60.0 * h;
+
+		//create strings
+		QByteArray sec = QByteArray::number(s, 'f', 3) + "s";
+		QByteArray min = m==0.0 ? "" : QByteArray::number(m, 'f', 0) + "m ";
+		QByteArray hours = h==0.0 ? "" : QByteArray::number(h, 'f', 0) + "h ";
+
+		return hours + min + sec;
 	}
 
 	//writes the germline variant annotation data from the NGSD to a vcf file
@@ -415,7 +425,7 @@ private:
 	//Function that stores cached variant counts
 	void storeCountCache(QTextStream& out, NGSD& db, QVector<CountCache>& count_cache)
 	{
-		out << "Updating variant counts (" << count_cache.count() << " variants)";
+		out << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Updating variant counts (" << count_cache.count() << " variants)";
 		
 		QElapsedTimer timer;
 		timer.start();
@@ -473,7 +483,7 @@ private:
 		FastaFileIndex reference_file(reference_file_path);
 		
 		//cache infos from NGSD to avoid joins with detected variant table
-		out << "Caching sample data... " << endl;
+		out << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Caching sample data... " << endl;
 		
 		struct ProcessedSampleInfo
 		{
@@ -496,21 +506,37 @@ private:
 			info.disease_group = query.value(4).toString();
 			ps_infos.insert(id, info);
 		}
-		
+
+		//cache classification data
+		out << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Caching classification data... " << endl;
+
+		struct ClassificationData
+		{
+			QByteArray classification = "";
+			QByteArray comment = "";
+		};
+
+		QHash<int, ClassificationData> class_infos;
+		query.exec("SELECT variant_id, class, comment FROM variant_classification");
+		while(query.next())
+		{
+			int variant_id =query.value(0).toInt();
+			ClassificationData info;
+			info.classification = query.value(1).toByteArray().trimmed().replace("n/a", "");
+			info.comment = VcfFile::encodeInfoValue(query.value(2).toByteArray()).toUtf8();
+			class_infos.insert(variant_id, info);
+		}
+
 		//prepare queries
 		SqlQuery ngsd_count_query = db.getQuery();
 		ngsd_count_query.prepare("SELECT processed_sample_id, genotype FROM detected_variant WHERE variant_id=:0");
-		SqlQuery variant_query = db.getQuery();
-		variant_query.prepare("SELECT chr, start, end, ref, obs, gnomad, comment, germline_het, germline_hom FROM variant WHERE id=:0");
 
 		//timers
 		QElapsedTimer chr_timer;
 		QElapsedTimer tmp_timer;
 		double ref_lookup_sum = 0;
 		double vcf_file_writing_sum = 0;
-		double ngsd_variant_query_sum = 0;
 		double ngsd_count_query_sum = 0;
-		double ngsd_class_query_sum = 0;
 		double ngsd_count_update = 0;
 
 		out << "Exporting germline variants to VCF file... " << endl;
@@ -565,24 +591,21 @@ private:
 		foreach (const QString& chr_name, QStringList() << db.getEnum("variant", "chr"))
 		{
 			chr_timer.start();
+
 			// get all ids of all variants on this chromosome
-			QList<int> variant_ids = db.getValuesInt("SELECT id FROM variant WHERE chr='" + chr_name + "' ORDER BY start ASC, end ASC");
+			tmp_timer.restart();
+			SqlQuery variant_query = db.getQuery();
+			variant_query.exec("SELECT chr, start, end, ref, obs, gnomad, comment, germline_het, germline_hom, id FROM variant WHERE chr='" + chr_name + "' ORDER BY start ASC, end ASC");
+			out << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Getting variants for " << chr_name << " took " << getTimeString(tmp_timer.nsecsElapsed()/1000000.0) << endl;
 
 			// iterate over all variants
-			foreach (int variant_id, variant_ids)
+			while(variant_query.next())
 			{
 				QElapsedTimer v_timer;
 				v_timer.start();
 
+				//parse query
 				Variant variant;
-				tmp_timer.restart();
-				variant_query.bindValue(0, variant_id);
-				variant_query.exec();
-				if (variant_query.size()!=1) THROW(DatabaseException, "Invalid number of database results found: " + QString::number(variant_query.size()));
-				ngsd_variant_query_sum += tmp_timer.nsecsElapsed()/1000000.0;
-
-				// parse query
-				variant_query.first();
 				variant.setChr(Chromosome(variant_query.value(0).toByteArray()));
 				variant.setStart(variant_query.value(1).toInt());
 				variant.setEnd(variant_query.value(2).toInt());
@@ -592,6 +615,7 @@ private:
 				QByteArray comment = variant_query.value(6).toByteArray();
 				int germline_het = variant_query.value(7).toInt();
 				int germline_hom = variant_query.value(8).toInt();
+				int variant_id = variant_query.value(9).toInt();
 
 				//prepend reference base required in VCF to insertions/deletions
 				if ((variant.ref() == "-") || (variant.obs() == "-"))
@@ -739,16 +763,11 @@ private:
 				}
 
 				// get classification
-				SqlQuery query = db.getQuery();
-				tmp_timer.restart();
-				query.exec("SELECT class, comment FROM variant_classification WHERE variant_id='" + QString::number(variant_id) + "'");
-				ngsd_class_query_sum += tmp_timer.nsecsElapsed()/1000000.0;
-				if (query.size() > 0)
+				if (class_infos.contains(variant_id))
 				{
-					query.first();
-					QByteArray classification = query.value(0).toByteArray().trimmed().replace("n/a", "");
-					QByteArray clas_comment = VcfFile::encodeInfoValue(query.value(1).toByteArray()).toUtf8();
+					QByteArray classification = class_infos[variant_id].classification;
 					if (classification != "") info_column.append("CLAS=" + classification);
+					QByteArray clas_comment = class_infos[variant_id].comment;
 					if (clas_comment != "") info_column.append("CLAS_COM=\"" + clas_comment + "\"");
 				}
 
@@ -773,14 +792,11 @@ private:
 				if (debug_) out << variant.toString(false) << " gnomAD=" << gnomad << " time=" << getTimeString(v_timer.elapsed()) << endl;
 			}
 
-
-			out << "finished " << chr_name << ": " << variant_ids.count() << " variants exported.\n"
+			out << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Finished " << chr_name << ": " << query.size() << " variants exported.\n"
 				<< "  " << getTimeString(chr_timer.elapsed()) << " overall\n"
 				<< "  " << getTimeString(ref_lookup_sum) << " for ref sequence lookup\n"
 				<< "  " << getTimeString(vcf_file_writing_sum) << " for vcf writing\n"
-				<< "  " << getTimeString(ngsd_variant_query_sum) << " for database queries (variant)\n"
 				<< "  " << getTimeString(ngsd_count_query_sum) << " for database queries (variant counts)\n"
-				<< "  " << getTimeString(ngsd_class_query_sum) << " for database queries (variant class)\n"
 				<< "  " << getTimeString(ngsd_count_update) << " for database update (variant counts)\n";
 			out.flush();
 		}
