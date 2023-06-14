@@ -597,6 +597,14 @@ struct CPPNGSDSHARED_EXPORT ClinvarSubmissionStatus
 	QString comment;
 };
 
+///Variant genotype counts
+struct CPPNGSDSHARED_EXPORT GenotypeCounts
+{
+	int het;
+	int hom;
+	int mosaic;
+};
+
 /// NGSD accessor.
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
@@ -780,8 +788,10 @@ public:
 	QString variantId(const Variant& variant, bool throw_if_fails = true);
 	///Returns the variant corresponding to the given identifier or throws an exception if the ID does not exist.
 	Variant variant(const QString& variant_id);
-	///Returns the number of het/hom occurances of the variant in the NGSD (only one occurance per sample is counted).
-	QPair<int, int> variantCounts(const QString& variant_id, bool use_cached_data_from_variant_table=false);
+	///Returns the number of hom/het/mosaic occurances of the variant in the NGSD (only one occurance per sample is counted).
+	GenotypeCounts genotypeCounts(const QString& variant_id);
+	///Returns the number of hom/het/mosaic occurances of the variant in the NGSD (only one occurance per sample is counted) - returns counts cached in 'variant' table which is faster.
+	GenotypeCounts genotypeCountsCached(const QString& variant_id);
 	///Deletes the variants of a processed sample (all types)
 	void deleteVariants(const QString& ps_id);
 	///Deletes the variants of a processed sample (a specific type)

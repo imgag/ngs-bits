@@ -1297,51 +1297,59 @@ Variant NGSD::variant(const QString& variant_id)
 	return Variant(query.value("chr").toByteArray(), query.value("start").toInt(), query.value("end").toInt(), query.value("ref").toByteArray(), query.value("obs").toByteArray());
 }
 
-QPair<int, int> NGSD::variantCounts(const QString& variant_id, bool use_cached_data_from_variant_table)
+GenotypeCounts NGSD::genotypeCountsCached(const QString &variant_id)
 {
-	//count variants
-	int count_het = 0;
-	int count_hom = 0;
+	SqlQuery query = getQuery();
+	query.exec("SELECT germline_het, germline_hom, germline_mosaic FROM variant WHERE id=" + variant_id);
+	query.next();
 
-	if (use_cached_data_from_variant_table)
-	{
-		SqlQuery query = getQuery();
-		query.exec("SELECT germline_het, germline_hom FROM variant WHERE id=" + variant_id);
-		query.next();
+	return GenotypeCounts{query.value(0).toInt(), query.value(1).toInt(), query.value(2).toInt()};
+}
 
-		count_het = query.value(0).toInt();
-		count_hom = query.value(1).toInt();
-	}
-	else
+GenotypeCounts NGSD::genotypeCounts(const QString& variant_id)
+{
+	GenotypeCounts output;
+
+	QSet<int> samples_done_het;
+	QSet<int> samples_done_hom;
+	QSet<int> samples_done_mosaic;
+	SqlQuery query = getQuery();
+	query.exec("SELECT ps.sample_id, dv.genotype, dv.mosaic FROM detected_variant dv, processed_sample ps WHERE dv.variant_id='" + variant_id + "' AND dv.processed_sample_id=ps.id");
+	while(query.next())
 	{
-		QSet<int> samples_done_het;
-		QSet<int> samples_done_hom;
-		SqlQuery query = getQuery();
-		query.exec("SELECT ps.sample_id, dv.genotype FROM detected_variant dv, processed_sample ps WHERE dv.variant_id='" + variant_id + "' AND dv.processed_sample_id=ps.id");
-		while(query.next())
+		//use sample ID to prevent counting variants several times if a sample was sequenced more than once.
+		int sample_id = query.value(0).toInt();
+		QByteArray genotype = query.value(1).toByteArray();
+		bool mosaic = query.value(2).toBool();
+
+		if (genotype=="het")
 		{
-			//use sample ID to prevent counting variants several times if a sample was sequenced more than once.
-			int sample_id = query.value(0).toInt();
-			QString genotype = query.value(1).toString();
-
-			if (genotype=="het" && !samples_done_het.contains(sample_id))
+			if (!mosaic && !samples_done_het.contains(sample_id))
 			{
-				++count_het;
+				++output.het;
 
 				samples_done_het << sample_id;
 				samples_done_het.unite(sameSamples(sample_id));
 			}
-			if (genotype=="hom" && !samples_done_hom.contains(sample_id))
+			if (mosaic && !samples_done_mosaic.contains(sample_id))
 			{
-				++count_hom;
+				++output.mosaic;
 
-				samples_done_hom << sample_id;
-				samples_done_hom.unite(sameSamples(sample_id));
+				samples_done_mosaic << sample_id;
+				samples_done_mosaic.unite(sameSamples(sample_id));
 			}
+
+		}
+		if (genotype=="hom" && !samples_done_hom.contains(sample_id))
+		{
+			++output.hom;
+
+			samples_done_hom << sample_id;
+			samples_done_hom.unite(sameSamples(sample_id));
 		}
 	}
 
-	return qMakePair(count_het, count_hom);
+	return output;
 }
 
 void NGSD::deleteSomaticVariants(QString t_ps_id, QString n_ps_id)

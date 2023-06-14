@@ -35,6 +35,7 @@ public:
 		addFlag("vicc_config_details", "Includes details about VICC interpretation. Works only in somatic mode.");
 		addFlag("debug", "Enables debug output (germline only).");
 
+		changeLog(2023,  6, 14, "Added support for 'germline_mosaic' column in 'variant' table.");
 		changeLog(2021,  7, 19, "Code and parameter refactoring.");
 		changeLog(2021,  7, 19, "Added support for 'germline_het' and 'germline_hom' columns in 'variant' table.");
 		changeLog(2019, 12,  6, "Comments are now URL encoded.");
@@ -414,16 +415,8 @@ private:
 			<< "\t(count computation: "<< getTimeString(count_computation_sum) << ")\n"<< endl;
 	}
 
-	//Struct for variant counts
-	struct CountCache
-	{
-		int variant_id;
-		int count_het;
-		int count_hom;
-	};
-
 	//Function that stores cached variant counts
-	void storeCountCache(QTextStream& out, NGSD& db, QVector<CountCache>& count_cache)
+	void storeCountCache(QTextStream& out, NGSD& db, QHash<int, GenotypeCounts>& count_cache)
 	{
 		out << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Updating variant counts (" << count_cache.count() << " variants)";
 		
@@ -440,12 +433,13 @@ private:
 				db.transaction();
 
 				SqlQuery query = db.getQuery();
-				query.prepare("UPDATE variant SET germline_het=:0, germline_hom=:1 WHERE id=:2");
-				foreach(const CountCache& entry, count_cache)
+				query.prepare("UPDATE variant SET germline_het=:0, germline_hom=:1, germline_mosaic=:2 WHERE id=:3");
+				for(auto it=count_cache.begin(); it!=count_cache.end(); ++it)
 				{
-					query.bindValue(0, entry.count_het);
-					query.bindValue(1, entry.count_hom);
-					query.bindValue(2, entry.variant_id);
+					query.bindValue(0, it.value().het);
+					query.bindValue(1, it.value().hom);
+					query.bindValue(2, it.value().mosaic);
+					query.bindValue(3, it.key());
 					query.exec();
 				}
 
@@ -467,7 +461,7 @@ private:
 			}
 		}
 		
-		out << " took " << getTimeString(timer.nsecsElapsed()/1000000.0) << " s" << endl;
+		out << " took " << getTimeString(timer.nsecsElapsed()/1000000.0) << endl;
 
 		//clear cache
 		count_cache.clear();
@@ -476,7 +470,7 @@ private:
 	//writes the somantic variant annotation data from the NGSD to a vcf file
 	void exportingVariantsToVcfGermline(QString reference_file_path, QString vcf_file_path, NGSD& db)
 	{
-		QVector<CountCache> count_cache;
+		QHash<int, GenotypeCounts> count_cache;
 
 		//init
 		QTextStream out(stdout);
@@ -529,7 +523,7 @@ private:
 
 		//prepare queries
 		SqlQuery ngsd_count_query = db.getQuery();
-		ngsd_count_query.prepare("SELECT processed_sample_id, genotype FROM detected_variant WHERE variant_id=:0");
+		ngsd_count_query.prepare("SELECT processed_sample_id, genotype, mosaic FROM detected_variant WHERE variant_id=:0");
 
 		//timers
 		QElapsedTimer chr_timer;
@@ -537,6 +531,7 @@ private:
 		double ref_lookup_sum = 0;
 		double vcf_file_writing_sum = 0;
 		double ngsd_count_query_sum = 0;
+		double ngsd_count_calculation_sum = 0;
 		double ngsd_count_update = 0;
 
 		out << "Exporting germline variants to VCF file... " << endl;
@@ -595,14 +590,14 @@ private:
 			// get all ids of all variants on this chromosome
 			tmp_timer.restart();
 			SqlQuery variant_query = db.getQuery();
-			variant_query.exec("SELECT chr, start, end, ref, obs, gnomad, comment, germline_het, germline_hom, id FROM variant WHERE chr='" + chr_name + "' ORDER BY start ASC, end ASC");
+			variant_query.exec("SELECT chr, start, end, ref, obs, gnomad, comment, germline_het, germline_hom, germline_mosaic, id FROM variant WHERE chr='" + chr_name + "' ORDER BY start ASC, end ASC");
 			out << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Getting variants for " << chr_name << " took " << getTimeString(tmp_timer.nsecsElapsed()/1000000.0) << endl;
 
 			// iterate over all variants
 			while(variant_query.next())
 			{
 				QElapsedTimer v_timer;
-				v_timer.start();
+				if (debug_) v_timer.start();
 
 				//parse query
 				Variant variant;
@@ -615,7 +610,8 @@ private:
 				QByteArray comment = variant_query.value(6).toByteArray();
 				int germline_het = variant_query.value(7).toInt();
 				int germline_hom = variant_query.value(8).toInt();
-				int variant_id = variant_query.value(9).toInt();
+				int germline_mosaic = variant_query.value(9).toInt();
+				int variant_id = variant_query.value(10).toInt();
 
 				//prepend reference base required in VCF to insertions/deletions
 				if ((variant.ref() == "-") || (variant.obs() == "-"))
@@ -678,15 +674,21 @@ private:
 					// calculate NGSD counts for each variant
 					int count_het = 0;
 					int count_hom = 0;
+					int count_mosaic = 0;
 					//counts per group/status
 					QHash<QString, int> hom_per_group, het_per_group;
-					QSet<int> samples_done_het, samples_done_hom;
-					tmp_timer.restart();
+					QSet<int> samples_done_het, samples_done_hom, samples_done_mosaic;
+					tmp_timer.start();
 					ngsd_count_query.bindValue(0, variant_id);
 					ngsd_count_query.exec();
+					ngsd_count_query_sum += tmp_timer.nsecsElapsed()/1000000.0;
+
+					tmp_timer.start();
 					while(ngsd_count_query.next())
 					{
 						int ps_id = ngsd_count_query.value(0).toInt();
+						QByteArray genotype = ngsd_count_query.value(1).toByteArray();
+						bool mosaic = ngsd_count_query.value(2).toBool();
 						
 						//ignore processed samples imported while this tool is running
 						if (!ps_infos.contains(ps_id)) continue; 
@@ -699,20 +701,29 @@ private:
 						//sample was sequenced more than once.
 
 						// count heterozygous variants
-						if (ngsd_count_query.value(1) == "het" && !samples_done_het.contains(info.s_id))
+						if (genotype == "het")
 						{
-							++count_het;
-							samples_done_het << info.s_id;
-							samples_done_het.unite(db.sameSamples(info.s_id));
-
-							if (info.affected)
+							if (!mosaic && !samples_done_het.contains(info.s_id))
 							{
-								het_per_group[info.disease_group] += 1;
+								++count_het;
+								samples_done_het << info.s_id;
+								samples_done_het.unite(db.sameSamples(info.s_id));
+
+								if (info.affected)
+								{
+									het_per_group[info.disease_group] += 1;
+								}
+							}
+							if (mosaic && !samples_done_mosaic.contains(info.s_id))
+							{
+								++count_mosaic;
+								samples_done_mosaic << info.s_id;
+								samples_done_mosaic.unite(db.sameSamples(info.s_id));
 							}
 						}
 
 						// count homozygous variants
-						if (ngsd_count_query.value(1) == "hom" && !samples_done_hom.contains(info.s_id))
+						if (genotype == "hom" && !samples_done_hom.contains(info.s_id))
 						{
 							++count_hom;
 							samples_done_hom << info.s_id;
@@ -724,7 +735,7 @@ private:
 							}
 						}
 					}
-					ngsd_count_query_sum += tmp_timer.nsecsElapsed()/1000000.0;
+					ngsd_count_calculation_sum += tmp_timer.nsecsElapsed()/1000000.0;
 
 					// store counts in vcf
 					info_column.append("COUNTS=" + QByteArray::number(count_hom) + "," + QByteArray::number(count_het));
@@ -742,9 +753,9 @@ private:
 					}
 
 					// update variant table if counts changed
-					if (count_het!=germline_het || count_hom!=germline_hom)
+					if (count_het!=germline_het || count_hom!=germline_hom || count_mosaic!=germline_mosaic)
 					{
-						count_cache << CountCache{variant_id, count_het, count_hom};
+						count_cache.insert(variant_id, GenotypeCounts{count_het, count_hom, count_mosaic});
 						if (count_cache.count()>=10000)
 						{
 							tmp_timer.restart();
@@ -797,6 +808,7 @@ private:
 				<< "  " << getTimeString(ref_lookup_sum) << " for ref sequence lookup\n"
 				<< "  " << getTimeString(vcf_file_writing_sum) << " for vcf writing\n"
 				<< "  " << getTimeString(ngsd_count_query_sum) << " for database queries (variant counts)\n"
+				<< "  " << getTimeString(ngsd_count_calculation_sum) << " for genotype calucations (variant counts)\n"
 				<< "  " << getTimeString(ngsd_count_update) << " for database update (variant counts)\n";
 			out.flush();
 		}
