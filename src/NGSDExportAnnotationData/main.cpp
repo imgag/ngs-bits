@@ -473,31 +473,6 @@ private:
 		count_cache.clear();
 	}
 
-/*
-Caching sample data...
-Exporting germline variants to VCF file...
-Updating variant counts (10000 variants) took 00:00:45.137 s
-Updating variant counts (10000 variants) took 00:00:16.246 s
-Updating variant counts (10000 variants) took 00:00:17.501 s
-finished chr1: 14277152 variants exported.
-  06:52:23.232 overall
-  00:00:45.711 for ref sequence lookup
-  00:01:55.387 for vcf writing
-  03:09:52.023 for database queries (variant)
-  00:56:04.990 for database queries (variant counts)
-  01:44:55.269 for database queries (variant class)
-  00:01:18.948 for database update (variant counts)
-
-finished chr1: 14273963 variants exported.
-  09:35:15.826 overall
-  00:00:41.764 for ref sequence lookup
-  00:01:53.477 for vcf writing
-  03:15:00.759 for database queries (variant)
-  03:37:44.208 for database queries (variant counts)
-  01:45:03.606 for database queries (variant class)
-  00:03:43.143 for database update (variant counts)
-
-*/
 	//writes the somantic variant annotation data from the NGSD to a vcf file
 	void exportingVariantsToVcfGermline(QString reference_file_path, QString vcf_file_path, NGSD& db)
 	{
