@@ -23,4 +23,10 @@ private slots:
 		COMPARE_GZ_FILES("out/FastqTrim_out3.fastq.gz", TESTDATA("data_out/FastqTrim_out3.fastq.gz"));
 	}
 
+	void long_read()
+	{
+		EXECUTE("FastqTrim", "-long_read -in " + TESTDATA("data_in/FastqTrim_in2.fastq.gz") + " -out out/FastqTrim_out4.fastq.gz -len 1000");
+		COMPARE_GZ_FILES("out/FastqTrim_out4.fastq.gz", TESTDATA("data_out/FastqTrim_out4.fastq.gz"));
+	}
+
 };
