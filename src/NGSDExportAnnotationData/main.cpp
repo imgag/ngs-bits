@@ -33,7 +33,8 @@ public:
 		addInt("gene_offset", "Defines the number of bases by which the region of each gene is extended.", true, 5000);
 		addEnum("mode", "Determines the database which is exported.", true, QStringList() << "germline" << "somatic", "germline");
 		addFlag("vicc_config_details", "Includes details about VICC interpretation. Works only in somatic mode.");
-		addFlag("debug", "Enables debug output (germline only).");
+		addFlag("debug", "Enables verbose debug output (germline mode).");
+		addInt("max_vcf_lines", "Maximum number of VCF lines to write - used for debugging (germline mode)", true, -1);
 
 		changeLog(2023,  6, 14, "Added support for 'germline_mosaic' column in 'variant' table.");
 		changeLog(2021,  7, 19, "Code and parameter refactoring.");
@@ -49,6 +50,7 @@ public:
 		//init
 		use_test_db_ = getFlag("test");
 		debug_ = getFlag("debug");
+		max_vcf_lines_ = getInt("max_vcf_lines");
 		vicc_config_details_ = getFlag("vicc_config_details");
 		NGSD db(use_test_db_);
 		QTextStream out(stdout);
@@ -84,6 +86,7 @@ public:
 private:
 	bool use_test_db_;
 	bool debug_;
+	int max_vcf_lines_;
 	bool vicc_config_details_;
 	float max_allel_frequency_;
 	int gene_offset_;
@@ -533,6 +536,7 @@ private:
 		double ngsd_count_query_sum = 0;
 		double ngsd_count_calculation_sum = 0;
 		double ngsd_count_update = 0;
+		long long vcf_lines_written = 0;
 
 		out << "Exporting germline variants to VCF file... " << endl;
 
@@ -591,7 +595,7 @@ private:
 			tmp_timer.restart();
 			SqlQuery variant_query = db.getQuery();
 			variant_query.exec("SELECT chr, start, end, ref, obs, gnomad, comment, germline_het, germline_hom, germline_mosaic, id FROM variant WHERE chr='" + chr_name + "' ORDER BY start ASC, end ASC");
-			out << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Getting variants for " << chr_name << " took " << getTimeString(tmp_timer.nsecsElapsed()/1000000.0) << endl;
+			out << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Getting " << variant_query.size() << " variants for " << chr_name << " took " << getTimeString(tmp_timer.nsecsElapsed()/1000000.0) << endl;
 
 			// iterate over all variants
 			while(variant_query.next())
@@ -760,9 +764,6 @@ private:
 							tmp_timer.restart();
 							storeCountCache(out, db, count_cache);
 							ngsd_count_update += tmp_timer.nsecsElapsed()/1000000.0;
-
-							//flush VCF stream to disk from time to time. Otherwise monitoring the progress is impossible.
-							vcf_stream.flush();
 						}
 					}
 				}
@@ -797,19 +798,25 @@ private:
 				{
 					vcf_stream << ".\n";
 				}
+				++vcf_lines_written;
+				if (vcf_lines_written%1000==0) vcf_stream.flush(); //flush VCF stream from time to time to make monitoring the progress possible
 				vcf_file_writing_sum += tmp_timer.nsecsElapsed()/1000000.0;
 
 				if (debug_) out << variant.toString(false) << " gnomAD=" << gnomad << " time=" << getTimeString(v_timer.elapsed()) << endl;
+
+				if (max_vcf_lines_>0 && vcf_lines_written>=max_vcf_lines_) break;
 			}
 
-			out << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Finished " << chr_name << ": " << query.size() << " variants exported.\n"
+			out << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Finished " << chr_name << ": " << vcf_lines_written << " variants exported.\n"
 				<< "  " << getTimeString(chr_timer.elapsed()) << " overall\n"
 				<< "  " << getTimeString(ref_lookup_sum) << " for ref sequence lookup\n"
 				<< "  " << getTimeString(vcf_file_writing_sum) << " for vcf writing\n"
 				<< "  " << getTimeString(ngsd_count_query_sum) << " for database queries (variant counts)\n"
-				<< "  " << getTimeString(ngsd_count_calculation_sum) << " for genotype calucations (variant counts)\n"
+				<< "  " << getTimeString(ngsd_count_calculation_sum) << " for genotype calcuations (variant counts)\n"
 				<< "  " << getTimeString(ngsd_count_update) << " for database update (variant counts)\n";
 			out.flush();
+
+			if (max_vcf_lines_>0 && vcf_lines_written>=max_vcf_lines_) break;
 		}
 
 		//store remaining entries in cache
