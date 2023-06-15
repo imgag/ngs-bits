@@ -7,7 +7,7 @@
 - bugfix: fixed error when no filters are selected in ExpressionGeneWidget
 - bugfix: fixed missing BAM files in IGV in cfDNA analysis
 
-### 2023_03-46 (11.05.23)
+### 2023_03-46 (15.05.23)
 
 - SVs: added column with genes at breakoints
 - SVs: added filter for CNV overlap
