@@ -23,8 +23,10 @@ public:
 		addOutfile("out", "Output gzipped FASTQ file.", false);
 		//optional
 		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, 1);
+		addFlag("long_read", "Support long reads (> 1kb).");
 
 		//changelog
+		changeLog(2023, 6, 15, "Added support for long reads.");
 		changeLog(2020, 7, 15, "Added 'compression_level' parameter.");
 		changeLog(2019, 4, 8, "Initial version of this tool");
 	}
@@ -41,7 +43,7 @@ public:
 		foreach(QString in_file, in_files)
 		{
 			// get next input file:
-			FastqFileStream input_stream(in_file, false);
+			FastqFileStream input_stream(in_file, false, getFlag("long_read"));
 
 			// write input file in output
 			while (!input_stream.atEnd())

@@ -83,13 +83,13 @@ bool ServerHelper::hasBasicSettings()
 }
 
 QString ServerHelper::getSessionBackupFileName()
-{	
-	return getStandardFileLocation() + QCoreApplication::applicationName() + "_sessions.txt";
+{
+    return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName() + "_sessions.txt";
 }
 
 QString ServerHelper::getUrlStorageBackupFileName()
-{	
-	return getStandardFileLocation() + QCoreApplication::applicationName() + "_urls.txt";
+{
+    return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName() + "_urls.txt";
 }
 
 void ServerHelper::setServerStartDateTime(QDateTime date_and_time)
