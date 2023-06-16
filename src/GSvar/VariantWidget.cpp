@@ -57,9 +57,12 @@ void VariantWidget::updateGUI()
 	QVariant spliceai = query1.value("spliceai");
 	ui_.spliceai->setText(spliceai.isNull() ? "" : spliceai.toString());
 
-	QPair<int, int> counts = db.variantCounts(variant_id);
-	ui_.ngsd_het->setText(QString::number(counts.first));
-	ui_.ngsd_hom->setText(QString::number(counts.second));
+	GenotypeCounts counts = db.genotypeCounts(variant_id);
+	QString text;
+	text += QString::number(counts.hom)+"x hom, ";
+	text += QString::number(counts.het)+"x het, ";
+	text += QString::number(counts.mosaic)+"x mosaic";
+	ui_.ngsd_counts->setText(text);
 	GSvarHelper::limitLines(ui_.comments, query1.value("comment").toString());
 
 

@@ -889,25 +889,30 @@ private slots:
 		//variant
 		IS_TRUE(db.variant(var_id)==vl[0]);
 
-		//variantCounts
+		//genotypeCounts
 		QString variant_id = db.variantId(Variant("chr10",43613843,43613843,"G","T")); //hom
-		QPair<int, int> ngsd_counts = db.variantCounts(variant_id);
-		I_EQUAL(ngsd_counts.first, 0);
-		I_EQUAL(ngsd_counts.second, 1);
+		GenotypeCounts ngsd_counts = db.genotypeCounts(variant_id);
+		I_EQUAL(ngsd_counts.hom, 1);
+		I_EQUAL(ngsd_counts.het, 0);
+		I_EQUAL(ngsd_counts.mosaic, 0);
 
 		variant_id = db.variantId(Variant("chr17",7579472,7579472,"G","C")); //het
-		ngsd_counts = db.variantCounts(variant_id);
-		I_EQUAL(ngsd_counts.first, 1);
-		I_EQUAL(ngsd_counts.second, 0);
+		ngsd_counts = db.genotypeCounts(variant_id);
+		I_EQUAL(ngsd_counts.hom, 0);
+		I_EQUAL(ngsd_counts.het, 1);
+		I_EQUAL(ngsd_counts.mosaic, 0);
 
-		ngsd_counts = db.variantCounts(variant_id, true);
-		I_EQUAL(ngsd_counts.first, 0);
-		I_EQUAL(ngsd_counts.second, 0);
+		//genotypeCountsCached
+		ngsd_counts = db.genotypeCountsCached(variant_id);
+		I_EQUAL(ngsd_counts.hom, 0);
+		I_EQUAL(ngsd_counts.het, 0);
+		I_EQUAL(ngsd_counts.mosaic, 0);
 
 		db.getQuery().exec("UPDATE variant SET germline_het=17, germline_hom=7 WHERE id=" + variant_id);
-		ngsd_counts = db.variantCounts(variant_id, true);
-		I_EQUAL(ngsd_counts.first, 17);
-		I_EQUAL(ngsd_counts.second, 7);
+		ngsd_counts = db.genotypeCountsCached(variant_id);
+		I_EQUAL(ngsd_counts.hom, 7);
+		I_EQUAL(ngsd_counts.het, 17);
+		I_EQUAL(ngsd_counts.mosaic, 0);
 
 		//getSampleDiseaseInfo
 		sample_id = db.sampleId("NA12878");
