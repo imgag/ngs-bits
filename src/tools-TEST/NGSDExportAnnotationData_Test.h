@@ -67,6 +67,14 @@ private slots:
 
 	void test_somatic_with_vicc()
 	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+		if (Settings::string("reference_genome", true)=="") SKIP("Test needs access to the reference genome!");
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExportAnnotationData_init2.sql"));
+
 		//test export of VICC configuration details
 		EXECUTE("NGSDExportAnnotationData", "-test -variants out/NGSDExportAnnotationData_out4.vcf -mode somatic -vicc_config_details");
 		REMOVE_LINES("out/NGSDExportAnnotationData_out4.vcf", QRegExp("##fileDate="));
