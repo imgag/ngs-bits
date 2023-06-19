@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QHash>
+#include <QSet>
 #include "cmath"
 
 //Parameters for germline export
@@ -57,6 +58,7 @@ struct SharedData
 	QStringList chrs;
 	QHash<int, ProcessedSampleInfo> ps_infos; //Sample data cached from NGSD to speed up processing
 	QHash<int, ClassificationData> class_infos; //Classification data cached from NGSD to speed up processing
+	QSet<int> somatic_variant_ids; //variant ids of somatic variants (looking them up once is faster then a join between 'variant' and 'detected_somatic_variant'
 };
 
 //Returns a formatted time string from a given time in milliseconds

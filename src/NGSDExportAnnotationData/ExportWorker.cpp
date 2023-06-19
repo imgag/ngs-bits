@@ -54,7 +54,7 @@ void ExportWorker::run()
 			tmp_timer.restart();
 			SqlQuery variant_query = db.getQuery();
 			variant_query.exec("SELECT chr, start, end, ref, obs, gnomad, comment, germline_het, germline_hom, germline_mosaic, id FROM variant WHERE chr='" + chr_ + "' ORDER BY start ASC, end ASC");
-			emit log(chr_, "Getting " + QString::number(variant_query.size()) + " germline variants for " + chr_ + " took " + getTimeString(tmp_timer.nsecsElapsed()/1000000.0));
+			emit log(chr_, "Getting " + QString::number(variant_query.size()) + " variants for " + chr_ + " took " + getTimeString(tmp_timer.nsecsElapsed()/1000000.0));
 
 			// iterate over all variants
 			while(variant_query.next())
@@ -310,12 +310,13 @@ void ExportWorker::run()
 			//get somatic variants on this chromosome
 			tmp_timer.start();
 			SqlQuery variant_query = db.getQuery();
-			variant_query.exec("SELECT DISTINCT v.id, v.chr, v.start, v.end, v.ref, v.obs FROM detected_somatic_variant as dsv, variant as v WHERE dsv.variant_id=v.id AND chr='" + chr_ + "' ORDER BY v.start ASC, v.end ASC");
-			emit log(chr_, "Getting " + QString::number(variant_query.size()) + " somatic variants for " + chr_ + " took " + getTimeString(tmp_timer.nsecsElapsed()/1000000.0));
+			variant_query.exec("SELECT id, chr, start, end, ref, obs FROM variant WHERE chr='" + chr_ + "' ORDER BY start ASC, end ASC");
+			emit log(chr_, "Getting " + QString::number(variant_query.size()) + " variants for " + chr_ + " took " + getTimeString(tmp_timer.nsecsElapsed()/1000000.0));
 
 			while(variant_query.next())
 			{
 				int variant_id = variant_query.value(0).toInt();
+				if (!shared_data_.somatic_variant_ids.contains(variant_id)) continue;
 
 				Variant variant;
 				variant.setChr(Chromosome(variant_query.value(1).toByteArray()));
@@ -328,7 +329,7 @@ void ExportWorker::run()
 				tmp_timer.start();
 				ngsd_count_query.bindValue(0, variant_id);
 				ngsd_count_query.exec();
-				db_query_sum += tmp_timer.nsecsElapsed();
+				db_query_sum += tmp_timer.nsecsElapsed()/1000000.0;
 
 				//process variants
 				tmp_timer.start();

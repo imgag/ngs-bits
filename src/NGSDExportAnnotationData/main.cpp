@@ -25,7 +25,7 @@ public:
 		addFloat("max_af", "Maximum allel frequency of exported variants (germline).",  true, 0.05);
 		addInt("gene_offset", "Defines the number of bases by which the regions of genes are extended (genes).", true, 5000);
 		addFlag("vicc_config_details", "Includes details about VICC interpretation (somatic).");
-		addInt("threads", "Number of threads to use.", true, 10);
+		addInt("threads", "Number of threads to use.", true, 5);
 		addFlag("verbose", "Enables verbose debug output.");
 		addInt("max_vcf_lines", "Maximum number of VCF lines to write per chromosome - for debugging.", true, -1);
 		addFlag("test", "Uses the test database instead of on the production database.");

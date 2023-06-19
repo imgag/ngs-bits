@@ -41,6 +41,17 @@ ThreadCoordinator::ThreadCoordinator(QObject* parent, const ExportParameters& pa
 		shared_data_.class_infos.insert(variant_id, info);
 	}
 
+	//cache somatic variant ids
+	log("coordinator", "Caching somatic variant ids data");
+	if (!params_.somatic.isEmpty())
+	{
+		query.exec("SELECT DISTINCT variant_id FROM detected_somatic_variant");
+		while(query.next())
+		{
+			shared_data_.somatic_variant_ids << query.value(0).toInt();
+		}
+	}
+
 	//start analysis
 	log("coordinator", "Starting export of variants");
 	shared_data_.chrs = db.getEnum("variant", "chr");
