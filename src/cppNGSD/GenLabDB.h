@@ -51,6 +51,8 @@ public:
 
 	///Returns SAP patient identifier (tries sample name if processed sample name is not found)
 	QString sapID(QString ps_name);
+	///Returns list of processed samples corresponding to the given SAP patient identifier
+	QStringList samplesWithSapID(QString sap_id, QString sys_long="");
 
 	///Returns sample relations
 	QList<SampleRelation> relatives(QString ps_name);

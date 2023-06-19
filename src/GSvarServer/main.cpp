@@ -545,10 +545,19 @@ int main(int argc, char **argv)
 		return app.exec();
 	}
 
-	Log::info("Restore previous sessions");
-	SessionManager::restoreFromFile();
-	Log::info("Restore previous URLs");
-	UrlManager::restoreFromFile();
+    try
+    {
+        Log::info("Restore previous sessions");
+        SessionManager::restoreFromFile();
+        Log::info("Restore previous URLs");
+        UrlManager::restoreFromFile();
+    }
+    catch (Exception& e)
+    {
+        Log::error("Failed to restore the previous state: " + e.message());
+    }
+
+
 
 	Log::info("SSL version used for the build: " + QSslSocket::sslLibraryBuildVersionString());
 	ServerWrapper https_server(server_port);

@@ -1054,6 +1054,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 //score by gene, fix of OE/inheritance parsing, comp-het variants	83.02% / 94.60% (19.04.23)
 
 //TODO: Ideas
+// - test effect of "mosaic_as_het" in NGSD count filter
 // - check non-ranked variants (add ClinVar, HGMD and NGSD class to output)
 //	 - only rank AF<1% in gnomAD?
 // - recurring variants > blacklist
