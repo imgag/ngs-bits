@@ -28,7 +28,8 @@ void ExportWorker::run()
 		//export germline
 		if (!params_.germline.isEmpty())
 		{
-			emit log(chr_, "Starting germline export");
+			QString tmp_vcf = params_.tempVcf(chr_, "germline");
+			emit log(chr_, "Starting germline export to " + tmp_vcf);
 
 			QHash<int, GenotypeCounts> count_cache;
 
@@ -47,7 +48,7 @@ void ExportWorker::run()
 			ngsd_count_query.prepare("SELECT processed_sample_id, genotype, mosaic FROM detected_variant WHERE variant_id=:0");
 
 			// write meta-information lines
-			QSharedPointer<QFile> vcf_file = Helper::openFileForWriting(params_.tempVcf(chr_, "germline"), true);
+			QSharedPointer<QFile> vcf_file = Helper::openFileForWriting(tmp_vcf, true);
 			QTextStream vcf_stream(vcf_file.data());
 
 			// get all ids of all variants on this chromosome
@@ -281,28 +282,29 @@ void ExportWorker::run()
 			emit log(chr_, "Time for ref sequence lookup: " + getTimeString(ref_lookup_sum));
 			emit log(chr_, "Time for VCF writing: " + getTimeString(vcf_file_writing_sum));
 			emit log(chr_, "Time for database queries (variant counts): " + getTimeString(ngsd_count_query_sum));
-			emit log(chr_, "Time for genotype calcuations (variant counts): " + getTimeString(ngsd_count_calculation_sum));
+			emit log(chr_, "Time for calcuations (variant counts): " + getTimeString(ngsd_count_calculation_sum));
 			emit log(chr_, "Time for for database update (variant counts): " + getTimeString(ngsd_count_update));
 		}
 
 		if (!params_.somatic.isEmpty())
 		{
-			emit log(chr_, "Starting somatic export");
+			QString tmp_vcf = params_.tempVcf(chr_, "somatic");
+			emit log(chr_, "Starting somatic export to " + tmp_vcf);
 
 			QElapsedTimer chr_timer;
 			chr_timer.start();
 			QElapsedTimer tmp_timer;
-			qint64 ref_lookup_sum = 0;
-			qint64 count_computation_sum = 0;
-			qint64 db_query_sum = 0;
-			qint64  vcf_file_writing_sum = 0;
+			double ref_lookup_sum = 0;
+			double count_computation_sum = 0;
+			double db_query_sum = 0;
+			double vcf_file_writing_sum = 0;
 
 			// define query to get the NGSD counts for each variant
 			SqlQuery ngsd_count_query = db.getQuery();
 			ngsd_count_query.prepare("SELECT s.id, dsv.processed_sample_id_tumor, p.name FROM detected_somatic_variant as dsv, processed_sample ps, sample as s, project as p WHERE ps.project_id=p.id AND ps.quality!='bad' AND dsv.processed_sample_id_tumor=ps.id AND ps.sample_id=s.id AND s.tumor='1' AND dsv.variant_id=:0");
 
 			//open output stream
-			QSharedPointer<QFile> vcf_file = Helper::openFileForWriting(params_.tempVcf(chr_, "somatic"), true);
+			QSharedPointer<QFile> vcf_file = Helper::openFileForWriting(tmp_vcf, true);
 			QTextStream vcf_stream(vcf_file.data());
 
 			long long vcf_lines_written = 0;
@@ -483,7 +485,7 @@ void ExportWorker::run()
 			emit log(chr_, "Time for ref sequence lookup: " + getTimeString(ref_lookup_sum));
 			emit log(chr_, "Time for VCF writing: " + getTimeString(vcf_file_writing_sum));
 			emit log(chr_, "Time for database queries (variant counts): " + getTimeString(db_query_sum));
-			emit log(chr_, "Time for genotype calcuations (variant counts): " + getTimeString(count_computation_sum));
+			emit log(chr_, "Time for calcuations (variant counts): " + getTimeString(count_computation_sum));
 		}
 
 		//signal that the chromosome is done
