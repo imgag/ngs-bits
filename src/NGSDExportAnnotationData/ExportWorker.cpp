@@ -329,7 +329,7 @@ void ExportWorker::run()
 				tmp_timer.start();
 				ngsd_count_query.bindValue(0, variant_id);
 				ngsd_count_query.exec();
-				db_query_sum += tmp_timer.nsecsElapsed();
+				db_query_sum += tmp_timer.nsecsElapsed()/1000000.0;
 
 				//process variants
 				tmp_timer.start();
