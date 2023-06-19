@@ -33,6 +33,7 @@ public:
 		addString("sample", "Sample name filter (substring match).", true, "");
 		addFlag("no_bad_samples", "If set, processed samples with 'bad' quality are excluded.");
 		addFlag("no_tumor", "If set, tumor samples are excluded.");
+		addFlag("no_normal", "If set, germline samples are excluded.");
 		addFlag("no_ffpe", "If set, FFPE samples are excluded.");
 		addFlag("match_external_names", "If set, also samples for which the external name matches 'sample' are exported.");
 		addFlag("with_merged", "If set, processed samples that were merged into another sample are included.");
@@ -101,6 +102,7 @@ public:
 		params.s_study = getString("study");
 		params.include_bad_quality_samples = !getFlag("no_bad_samples");
 		params.include_tumor_samples = !getFlag("no_tumor");
+		params.include_germline_samples = !getFlag("no_normal");
 		params.include_ffpe_samples = !getFlag("no_ffpe");
 		params.include_merged_samples = getFlag("with_merged");
 		params.p_name = getString("project");
@@ -130,6 +132,12 @@ public:
 		params.add_comments = getFlag("add_comments");
 
 		//check parameters
+
+		if (! params.include_germline_samples && ! params.include_tumor_samples)
+		{
+			THROW(ArgumentException, "Flags 'no_normal' and 'no_tumor' can't be provided for the same export.");
+		}
+
 		if (params.p_name!="")
 		{
 			//check that name is valid
