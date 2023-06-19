@@ -17,12 +17,8 @@ public:
 	virtual void setup()
 	{
 		setDescription("Converts a FASTQ file to FASTA format.");
-		addInfile("in", "Input TSV file with samples (tumor, normal, rna) to be exported.", false);
-		addString("study_name", "Name for the study.", false);
-		addString("study_ident", "Identifier for the study.", false);
-		addString("study_desc", "Description for the study.", false);
-		addString("cancer_type", "Cancer type of samples in the study.", false);
-		addString("reference", "Cancer type of samples in the study.", false);
+		addInfile("samples", "Input TSV file with samples (tumor, normal, rna) to be exported and their clinical data.", false);
+		addInfile("study", "Input TSV file with Infos about the stuy that should be created.", false);
 		addString("out", "Output folder that will contain all files for the cBioPortal study.", false);
 	}
 
