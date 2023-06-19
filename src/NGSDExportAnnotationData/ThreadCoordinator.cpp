@@ -3,7 +3,7 @@
 #include "NGSD.h"
 #include <QElapsedTimer>
 
-ThreadCoordinator::ThreadCoordinator(QObject* parent, const GermlineParameters& params)
+ThreadCoordinator::ThreadCoordinator(QObject* parent, const ExportParameters& params)
 	: QObject(parent)
 	, params_(params)
 	, shared_data_()
@@ -13,7 +13,6 @@ ThreadCoordinator::ThreadCoordinator(QObject* parent, const GermlineParameters& 
 	thread_pool_.setMaxThreadCount(params.threads);
 
 	NGSD db(params.use_test_db);
-	log("coordinator", "Parameters: " + params_.toString());
 
 	//cache processed sample infos
 	log("coordinator", "Caching sample data");
@@ -47,9 +46,6 @@ ThreadCoordinator::ThreadCoordinator(QObject* parent, const GermlineParameters& 
 	shared_data_.chrs = db.getEnum("variant", "chr");
 	foreach (QString chr, shared_data_.chrs)
 	{
-		QString chr_tmp_file = params_.output_file.mid(0, params_.output_file.length()-4) + "_" + chr + ".vcf";
-		shared_data_.chr2vcf.insert(chr,  chr_tmp_file);
-
 		ExportWorker* worker = new ExportWorker(chr, params_, shared_data_);
 		connect(worker, SIGNAL(log(QString,QString)), this, SLOT(log(QString,QString)));
 		connect(worker, SIGNAL(done(QString)), this, SLOT(done(QString)));
@@ -74,17 +70,17 @@ void ThreadCoordinator::error(QString chr, QString message)
 	THROW(Exception, "Exception in worker for " + chr + ": " + message);
 }
 
-void ThreadCoordinator::writeVcf()
+void ThreadCoordinator::writeGermlineVcf()
 {
 	QElapsedTimer timer;
 	timer.start();
 
-	log("coordinator", "Starting the merge of VCF files");
+	log("coordinator", "Starting the merge of germline VCF files");
 
 	FastaFileIndex reference_file(params_.ref_file);
 	NGSD db(params_.use_test_db);
 
-	QSharedPointer<QFile> vcf_file = Helper::openFileForWriting(params_.output_file, true);
+	QSharedPointer<QFile> vcf_file = Helper::openFileForWriting(params_.germline, true);
 	QTextStream vcf_stream(vcf_file.data());
 	vcf_stream << "##fileformat=VCFv4.2\n";
 	vcf_stream << "##fileDate=" << QDate::currentDate().toString("yyyyMMdd") << "\n";
@@ -116,26 +112,102 @@ void ThreadCoordinator::writeVcf()
 	//merge VCFs and delete temporary files
 	foreach(QString chr, shared_data_.chrs)
 	{
-		auto infile = Helper::openFileForReading(shared_data_.chr2vcf[chr]);
+		QString tmp_vcf = params_.tempVcf(chr, "germline");
+		auto infile = Helper::openFileForReading(tmp_vcf);
 		while(!infile->atEnd())
 		{
 			QByteArray line = infile->readLine();
 			if (line.length()>4) vcf_stream << line;
 		}
+		infile->close();
+
+		//remove
+		QFile::remove(tmp_vcf);
 	}
 
-	log("coordinator", "Runtime VCF merge: " + getTimeString(timer.elapsed()));
+	log("coordinator", "Runtime germline VCF merge: " + getTimeString(timer.elapsed()));
+}
+
+void ThreadCoordinator::writeSomaticVcf()
+{
+	QElapsedTimer timer;
+	timer.start();
+
+	log("coordinator", "Starting the merge of somatic VCF files");
+
+	FastaFileIndex reference_file(params_.ref_file);
+	NGSD db(params_.use_test_db);
+
+	//write meta-information lines
+	QSharedPointer<QFile> vcf_file = Helper::openFileForWriting(params_.somatic, true);
+	QTextStream vcf_stream(vcf_file.data());
+
+	vcf_stream << "##fileformat=VCFv4.2\n";
+	vcf_stream << "##fileDate=" << QDate::currentDate().toString("yyyyMMdd") << "\n";
+	vcf_stream << "##source=NGSDExportAnnotationData " << params_.version << "\n";
+	vcf_stream << "##reference=" << params_.ref_file << "\n";
+
+	//write contigs
+	foreach (const QString& chr_name, db.getEnum("variant", "chr"))
+	{
+		int chr_length = reference_file.lengthOf(Chromosome(chr_name));
+		vcf_stream << "##contig=<ID=" << chr_name << ",length=" << chr_length << ">\n";
+	}
+
+	// write info column descriptions
+	vcf_stream << "##INFO=<ID=SOM_C,Number=1,Type=Integer,Description=\"Somatic variant count in the NGSD.\">\n";
+	vcf_stream << "##INFO=<ID=SOM_P,Number=.,Type=String,Description=\"Project names of project containing this somatic variant in the NGSD.\">\n";
+	vcf_stream << "##INFO=<ID=SOM_VICC,Number=1,Type=String,Description=\"Somatic variant interpretation according VICC standard in the NGSD.\">\n";
+	vcf_stream << "##INFO=<ID=SOM_VICC_COMMENT,Number=1,Type=String,Description=\"Somatic VICC interpretation comment in the NGSD.\">\n";
+	if(params_.vicc_config_details)
+	{
+		foreach(const QString& key, SomaticViccData().configAsMap().keys())
+		{
+			if(key.contains("comment")) continue; //skip comment because it is already included
+			vcf_stream << "##INFO=<ID=SOM_VICC_" + key.toUpper() +",Number=1,Type=String,Description=\"Somatic VICC value for VICC parameter " + key + " in the NGSD.\">\n";
+		}
+	}
+
+	// write header line
+	vcf_stream << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
+
+	//merge VCFs and delete temporary files
+	foreach(QString chr, shared_data_.chrs)
+	{
+		QString tmp_vcf = params_.tempVcf(chr, "somatic");
+		auto infile = Helper::openFileForReading(tmp_vcf);
+		while(!infile->atEnd())
+		{
+			QByteArray line = infile->readLine();
+			if (line.length()>4) vcf_stream << line;
+		}
+		infile->close();
+
+		//remove
+		QFile::remove(tmp_vcf);
+	}
+
+	log("coordinator", "Runtime somatic VCF merge: " + getTimeString(timer.elapsed()));
 }
 
 void ThreadCoordinator::done(QString chr)
 {
 	chrs_done_ << chr;
 
-	bool variant_export_done = shared_data_.chr2vcf.count()==chrs_done_.count();
+	bool variant_export_done = shared_data_.chrs.count()==chrs_done_.count();
 	if (!variant_export_done) return;
 
-	//merge VCFs
-	writeVcf();
+	//merge germline VCFs
+	if (!params_.germline.isEmpty())
+	{
+		writeGermlineVcf();
+	}
+
+	//merge somatic VCFs
+	if (!params_.somatic.isEmpty())
+	{
+		writeSomaticVcf();
+	}
 
 	//export gene information
 	if (!params_.genes.isEmpty())

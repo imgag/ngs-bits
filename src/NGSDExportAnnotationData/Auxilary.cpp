@@ -1,4 +1,6 @@
 #include "Auxilary.h"
+#include "Helper.h"
+#include <QDir>
 
 QByteArray getTimeString(double milliseconds)
 {
@@ -15,4 +17,9 @@ QByteArray getTimeString(double milliseconds)
 	QByteArray hours = h==0.0 ? "" : QByteArray::number(h, 'f', 0) + "h ";
 
 	return hours + min + sec;
+}
+
+QString ExportParameters::tempVcf(QString chr, QString mode) const
+{
+	return Helper::canonicalPath(QDir::tempPath() + "/" + QCoreApplication::applicationName() + "_" + mode + "_" + datetime + "_" + chr + ".vcf");
 }
