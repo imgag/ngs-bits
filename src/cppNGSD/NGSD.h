@@ -394,6 +394,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	QString s_ancestry;
 	bool include_bad_quality_samples = true;
 	bool include_tumor_samples = true;
+	bool include_germline_samples = true;
 	bool include_ffpe_samples = true;
 	bool include_merged_samples = false;
 

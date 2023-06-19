@@ -324,6 +324,10 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	{
 		conditions << "s.tumor='0'";
 	}
+	if (!p.include_germline_samples)
+	{
+		conditions << "s.tumor='1'";
+	}
 	if (!p.include_ffpe_samples)
 	{
 		conditions << "s.ffpe='0'";
