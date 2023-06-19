@@ -527,4 +527,8 @@ SUBDIRS += GenesToTranscripts
 tools-TEST.depends += GenesToTranscripts
 GenesToTranscripts.depends = cppNGSD
 
+SUBDIRS += ExportcBioportal
+tools-TEST.depends += ExportcBioportal
+ExportcBioportal.depends = cppNGSD
+
 
