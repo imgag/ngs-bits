@@ -13,7 +13,7 @@ class ThreadCoordinator
 {
 	Q_OBJECT
 public:
-	ThreadCoordinator(QObject* parent, const GermlineParameters& params);
+	ThreadCoordinator(QObject* parent, const ExportParameters& params);
 	~ThreadCoordinator();
 
 signals:
@@ -29,12 +29,12 @@ private slots:
 	void error(QString chr, QString message);
 
 protected:
-	void writeVcf();
-	//Export gene information
+	void writeGermlineVcf();
+	void writeSomaticVcf();
 	void exportGeneInformation();
 
 private:
-	GermlineParameters params_; //not const ref! We need to copy the parameters because the original instance is deleted when the main loop terminates
+	ExportParameters params_; //not const ref! We need to copy the parameters because the original instance is deleted when the main loop terminates
 	SharedData shared_data_;
 	QThreadPool thread_pool_;
 	QTextStream out_;

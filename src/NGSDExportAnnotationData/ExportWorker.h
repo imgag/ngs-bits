@@ -14,7 +14,7 @@ class ExportWorker
 	Q_OBJECT
 
 public:
-	ExportWorker(QString chr, const GermlineParameters& params, const SharedData& shared_data);
+	ExportWorker(QString chr, const ExportParameters& params, const SharedData& shared_data);
 	virtual ~ExportWorker();
 	virtual void run() override;
 
@@ -28,7 +28,7 @@ private slots:
 
 private:
 	QString chr_;
-	const GermlineParameters& params_;
+	const ExportParameters& params_;
 	const SharedData& shared_data_;
 };
 

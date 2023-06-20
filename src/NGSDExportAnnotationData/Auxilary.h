@@ -3,20 +3,26 @@
 
 #include <QString>
 #include <QHash>
+#include <QSet>
 #include "cmath"
 
 //Parameters for germline export
-struct GermlineParameters
+struct ExportParameters
 {
 	//general stuff
 	QString ref_file;
 	QString version;
-
-	//main paramters
-	QString output_file;
+	QString datetime; //used to generate temporary file names
 	int threads;
-	double max_af;
 	int max_vcf_lines;
+
+	//germline paramters
+	QString germline;
+	double max_af;
+
+	//somatic parameters
+	QString somatic;
+	bool vicc_config_details;
 
 	//gene export parameters
 	QString genes;
@@ -26,10 +32,7 @@ struct GermlineParameters
 	bool use_test_db;
 	bool verbose;
 
-	QString toString() const
-	{
-		return QString("test_db=")+(use_test_db ? "yes" : "no");
-	}
+	QString tempVcf(QString chr, QString mode) const;
 };
 
 
@@ -53,9 +56,9 @@ struct ClassificationData
 struct SharedData
 {
 	QStringList chrs;
-	QHash<QString, QString> chr2vcf;
 	QHash<int, ProcessedSampleInfo> ps_infos; //Sample data cached from NGSD to speed up processing
 	QHash<int, ClassificationData> class_infos; //Classification data cached from NGSD to speed up processing
+	QSet<int> somatic_variant_ids; //variant ids of somatic variants (looking them up once is faster then a join between 'variant' and 'detected_somatic_variant'
 };
 
 //Returns a formatted time string from a given time in milliseconds
