@@ -513,6 +513,8 @@
      <addaction name="actionImportTestData"/>
      <addaction name="separator"/>
      <addaction name="actionReplicateNGSD"/>
+     <addaction name="actionPrepareGhgaUpload"/>
+     <addaction name="separator"/>
      <addaction name="actionMaintenance"/>
      <addaction name="actionNotifyUsers"/>
     </widget>
@@ -1474,6 +1476,11 @@
   <action name="actionNotifyUsers">
    <property name="text">
     <string>Notify users</string>
+   </property>
+  </action>
+  <action name="actionPrepareGhgaUpload">
+   <property name="text">
+    <string>Prepare GHGA upload</string>
    </property>
   </action>
  </widget>

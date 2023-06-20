@@ -144,6 +144,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "MaintenanceDialog.h"
 #include "ClientHelper.h"
 #include "ProxyDataService.h"
+#include "GHGAUploadDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -413,6 +414,9 @@ void MainWindow::on_actionDebug_triggered()
 	qDebug() << user;
 	if (user=="ahsturm1")
 	{
+		on_actionPrepareGhgaUpload_triggered();
+		return;
+
 		//VariantHgvsAnnotator debugging
 		/*
 		QString genome_file = Settings::string("reference_genome", false);
@@ -6089,6 +6093,12 @@ void MainWindow::on_actionReplicateNGSD_triggered()
 	NGSDReplicationWidget* widget = new NGSDReplicationWidget(this);
 	auto dlg = GUIHelper::createDialog(widget, "Replicate NGSD (hg19 to hg38)");
 	dlg->exec();
+}
+
+void MainWindow::on_actionPrepareGhgaUpload_triggered()
+{
+	GHGAUploadDialog dlg(this);
+	dlg.exec();
 }
 
 void MainWindow::on_actionMaintenance_triggered()
