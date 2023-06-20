@@ -604,6 +604,7 @@ CREATE  TABLE IF NOT EXISTS `variant`
   `spliceai` FLOAT NULL DEFAULT NULL,
   `germline_het` INT(11) NOT NULL DEFAULT '0',
   `germline_hom` INT(11) NOT NULL DEFAULT '0',
+  `germline_mosaic` INT(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `variant_UNIQUE` (`chr` ASC, `start` ASC, `end` ASC, `ref`(500) ASC, `obs`(500) ASC),
   INDEX `gnomad` (`gnomad` ASC),
