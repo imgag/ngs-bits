@@ -144,6 +144,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "MaintenanceDialog.h"
 #include "ClientHelper.h"
 #include "ProxyDataService.h"
+#include "RefGenomeService.h"
 #include "GHGAUploadDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -318,6 +319,8 @@ MainWindow::MainWindow(QWidget *parent)
 			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM files over HTTPS may not be possible");
 		}
 	}
+    RefGenomeService::setReferenceGenome(Settings::string("reference_genome"));
+
 	update_info_toolbar_ = new QToolBar;
 	update_info_toolbar_->hide();
 	addToolBar(Qt::TopToolBarArea, update_info_toolbar_);
