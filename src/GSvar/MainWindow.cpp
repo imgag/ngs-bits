@@ -6304,8 +6304,13 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 {
 	if (filename_=="") return;
 
+	//only available for gmerline and somatic single sample
+	AnalysisType type = variants_.type();
+	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO && type!=GERMLINE_MULTISAMPLE && type!=SOMATIC_SINGLESAMPLE) return;
+
+
 	//check for BAM file
-	QString ps = germlineReportSample();
+	QString ps = type==SOMATIC_SINGLESAMPLE ? variants_.getSampleHeader()[0].id : germlineReportSample();
 	QStringList bams = GlobalServiceProvider::fileLocationProvider().getBamFiles(false).filterById(ps).asStringList();
 	if (bams.empty())
 	{
