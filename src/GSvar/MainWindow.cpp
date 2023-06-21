@@ -6289,7 +6289,8 @@ void MainWindow::on_actionGapsLookup_triggered()
 		QStringList parts = line.split('\t');
 		if(parts.count()==4 && parts[3].contains(gene, Qt::CaseInsensitive))
 		{
-			output.append(line);
+			double size_kb = (parts[2].toDouble() - parts[1].toDouble()) / 1000.0;
+			output.append(line + "\t" + QString::number(size_kb, 'f', 3) + " kb");
 		}
 	}
 

@@ -412,6 +412,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool include_bad_quality_runs = true;
 	bool run_finished = false;
 	QDate r_before = QDate();
+	QDate r_after = QDate();
 	QString r_device_name;
 
 	//filter output to processed samples that user has access to

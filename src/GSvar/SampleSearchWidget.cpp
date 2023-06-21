@@ -110,16 +110,28 @@ void SampleSearchWidget::search()
 		params.include_bad_quality_runs = ui_.r_bad_quality->isChecked();
 		params.run_finished = ui_.r_analysis_finished->isChecked();
 
-		QString run_start_date_text = ui_.r_run_start_date->text().trimmed();
-		if(run_start_date_text!="")
+		QString run_before_text = ui_.r_date_before->text().trimmed();
+		if(run_before_text!="")
 		{
-			QDate run_start_date = QDate::fromString(ui_.r_run_start_date->text(), Qt::ISODate);
-			if (!run_start_date.isValid())
+			QDate run_before_date = QDate::fromString(run_before_text, Qt::ISODate);
+			if (!run_before_date.isValid())
 			{
-				THROW(ArgumentException, "Invalid date format for run start given.\nThe expected format is a ISO date, e.g. '2012-09-27'.");
+				THROW(ArgumentException, "Invalid date format for run before given.\nThe expected format is a ISO date, e.g. '2012-09-27'.");
 			}
-			params.r_before = run_start_date;
+			params.r_before = run_before_date;
 		}
+
+		QString run_after_text = ui_.r_date_after->text().trimmed();
+		if(run_after_text!="")
+		{
+			QDate run_after_date = QDate::fromString(run_after_text, Qt::ISODate);
+			if (!run_after_date.isValid())
+			{
+				THROW(ArgumentException, "Invalid date format for run after given.\nThe expected format is a ISO date, e.g. '2012-09-27'.");
+			}
+			params.r_after = run_after_date;
+		}
+
 		params.r_device_name = ui_.r_device_name->text();
 
 		params.add_outcome = ui_.add_outcome->isChecked();

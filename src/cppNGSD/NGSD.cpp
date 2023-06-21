@@ -398,6 +398,10 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	{
 		conditions << "r.start_date<='" + p.r_before.toString(Qt::ISODate)+"'";
 	}
+	if (p.r_after.isValid())
+	{
+		conditions << "r.start_date>='" + p.r_after.toString(Qt::ISODate)+"'";
+	}
 	if (p.r_device_name.trimmed()!="")
 	{
 		tables << "device d";

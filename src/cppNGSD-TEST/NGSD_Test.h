@@ -1003,6 +1003,7 @@ private slots:
 		params.include_bad_quality_runs = false;
 		params.run_finished = true;
 		params.r_before = QDate::fromString("2021-02-19", Qt::ISODate);
+		params.r_after = QDate::fromString("1900-02-19", Qt::ISODate);
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 0);
 		I_EQUAL(ps_table.columnCount(), 75);
