@@ -398,6 +398,10 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	{
 		conditions << "r.start_date<='" + p.r_before.toString(Qt::ISODate)+"'";
 	}
+	if (p.r_after.isValid())
+	{
+		conditions << "r.start_date>='" + p.r_after.toString(Qt::ISODate)+"'";
+	}
 	if (p.r_device_name.trimmed()!="")
 	{
 		tables << "device d";
@@ -1069,7 +1073,17 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	QString sys_name_short = query.value(4).toString();
 
 	//append file name if requested
-	if (type==PathType::BAM) output += ps_name + ".bam";
+    if (type==PathType::BAM)
+    {
+        if (QFile::exists(output + ps_name + ".cram"))
+        {
+            output += ps_name + ".cram";
+        }
+        else
+        {
+            output += ps_name + ".bam";
+        }
+    }
 	else if (type==PathType::GSVAR) output += ps_name + ".GSvar";
 	else if (type==PathType::VCF) output += ps_name + "_var_annotated.vcf.gz";
 	else if (type==PathType::VCF_CF_DNA) output += ps_name + "_var.vcf";

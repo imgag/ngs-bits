@@ -1,5 +1,10 @@
 # GSvar change log
 
+
+### 2023_03-84 (20.06.23)
+
+- general: enabled gap calculation for somatic single-sample analysis
+
 ### 2023_03-67 (13.06.23)
 
 - general: updated relaxed trio filter

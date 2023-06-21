@@ -9,6 +9,7 @@ RC_FILE	 = icon.rc
 SOURCES += main.cpp\
     CfDNAPanelBatchImport.cpp \
     DatabaseServiceRemote.cpp \
+    GHGAUploadDialog.cpp \
     GlobalServiceProvider.cpp \
     IgvSessionManager.cpp \
     MainWindow.cpp \
@@ -124,6 +125,7 @@ HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
     DatabaseServiceRemote.h \
     ExternalToolDialog.h \
+    GHGAUploadDialog.h \
     GlobalServiceProvider.h \
     IgvSessionManager.h \
     MaintenanceDialog.h \
@@ -237,6 +239,7 @@ HEADERS += MainWindow.h \
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
+    GHGAUploadDialog.ui \
     MaintenanceDialog.ui \
     ReportDialog.ui \
     TrioDialog.ui \

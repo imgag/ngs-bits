@@ -53,7 +53,8 @@ public:
 		addString("run", "Sequencing run name filter.", true, "");
 		addFlag("run_finished", "Only show samples where the analysis of the run is finished.");
 		addString("run_device", "Sequencing run device name filter.", true, "");
-		addString("run_before", "Sequencing run start date before or equal to the given date.", true, "");
+		addString("run_before", "Sequencing run before or equal to the given date.", true, "");
+		addString("run_after", "Sequencing run after or equal to the given date.", true, "");
 		addFlag("no_bad_runs", "If set, sequencing runs with 'bad' quality are excluded.");
 		addFlag("add_qc", "If set, QC columns are added to output.");
 		addFlag("add_outcome", "If set, diagnostic outcome columns are added to output.");
@@ -122,6 +123,15 @@ public:
 				THROW(ArgumentException, "Invalid date given for 'run_before' parameter.\nThe expected format is a ISO date, e.g. '2012-09-27'.");
 			}
 			params.r_before = run_start_date;
+		}
+		if (getString("run_after").trimmed()!="")
+		{
+			QDate run_start_date = QDate::fromString(getString("run_after"), Qt::ISODate);
+			if (!run_start_date.isValid())
+			{
+				THROW(ArgumentException, "Invalid date given for 'run_after' parameter.\nThe expected format is a ISO date, e.g. '2012-09-27'.");
+			}
+			params.r_after = run_start_date;
 		}
 		params.add_qc = getFlag("add_qc");
 		params.add_outcome = getFlag("add_outcome");

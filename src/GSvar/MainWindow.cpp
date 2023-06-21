@@ -144,6 +144,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "MaintenanceDialog.h"
 #include "ClientHelper.h"
 #include "ProxyDataService.h"
+#include "RefGenomeService.h"
+#include "GHGAUploadDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -317,6 +319,8 @@ MainWindow::MainWindow(QWidget *parent)
 			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM files over HTTPS may not be possible");
 		}
 	}
+    RefGenomeService::setReferenceGenome(Settings::string("reference_genome"));
+
 	update_info_toolbar_ = new QToolBar;
 	update_info_toolbar_->hide();
 	addToolBar(Qt::TopToolBarArea, update_info_toolbar_);
@@ -413,6 +417,9 @@ void MainWindow::on_actionDebug_triggered()
 	qDebug() << user;
 	if (user=="ahsturm1")
 	{
+		on_actionPrepareGhgaUpload_triggered();
+		return;
+
 		//VariantHgvsAnnotator debugging
 		/*
 		QString genome_file = Settings::string("reference_genome", false);
@@ -6091,6 +6098,12 @@ void MainWindow::on_actionReplicateNGSD_triggered()
 	dlg->exec();
 }
 
+void MainWindow::on_actionPrepareGhgaUpload_triggered()
+{
+	GHGAUploadDialog dlg(this);
+	dlg.exec();
+}
+
 void MainWindow::on_actionMaintenance_triggered()
 {
 	try
@@ -6276,7 +6289,8 @@ void MainWindow::on_actionGapsLookup_triggered()
 		QStringList parts = line.split('\t');
 		if(parts.count()==4 && parts[3].contains(gene, Qt::CaseInsensitive))
 		{
-			output.append(line);
+			double size_kb = (parts[2].toDouble() - parts[1].toDouble()) / 1000.0;
+			output.append(line + "\t" + QString::number(size_kb, 'f', 3) + " kb");
 		}
 	}
 
@@ -6294,8 +6308,13 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 {
 	if (filename_=="") return;
 
+	//only available for gmerline and somatic single sample
+	AnalysisType type = variants_.type();
+	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO && type!=GERMLINE_MULTISAMPLE && type!=SOMATIC_SINGLESAMPLE) return;
+
+
 	//check for BAM file
-	QString ps = germlineReportSample();
+	QString ps = type==SOMATIC_SINGLESAMPLE ? variants_.getSampleHeader()[0].id : germlineReportSample();
 	QStringList bams = GlobalServiceProvider::fileLocationProvider().getBamFiles(false).filterById(ps).asStringList();
 	if (bams.empty())
 	{
