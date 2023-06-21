@@ -360,7 +360,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1431,7 +1431,7 @@
      <normaloff>:/Icons/RNA.png</normaloff>:/Icons/RNA.png</iconset>
    </property>
    <property name="text">
-    <string>Show Expression Data (Exon)</string>
+    <string>Show Expression Data (Exons)</string>
    </property>
    <property name="toolTip">
     <string>Show Expression Data of Exons</string>
@@ -1439,7 +1439,7 @@
   </action>
   <action name="actionShowSplicing">
    <property name="text">
-    <string>Show splicing</string>
+    <string>Show Splicing Alterations</string>
    </property>
    <property name="toolTip">
     <string>Show splicing prediction of RNA sample</string>

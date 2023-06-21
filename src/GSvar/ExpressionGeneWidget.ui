@@ -95,7 +95,7 @@
        </property>
        <property name="maximumSize">
         <size>
-         <width>300</width>
+         <width>320</width>
          <height>300</height>
         </size>
        </property>
@@ -198,12 +198,12 @@
            <widget class="QComboBox" name="cb_sample_quality">
             <property name="minimumSize">
              <size>
-              <width>200</width>
+              <width>220</width>
               <height>0</height>
              </size>
             </property>
             <property name="currentText">
-             <string>Remove samples with quality 'bad'</string>
+             <string>Select all samples</string>
             </property>
             <item>
              <property name="text">
@@ -263,7 +263,7 @@
        </property>
        <property name="maximumSize">
         <size>
-         <width>300</width>
+         <width>320</width>
          <height>16777215</height>
         </size>
        </property>
@@ -420,8 +420,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>258</width>
-                <height>165</height>
+                <width>270</width>
+                <height>158</height>
                </rect>
               </property>
              </widget>
