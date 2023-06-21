@@ -60,7 +60,7 @@ public:
 
         }
 
-        //qDebug() << genes;
+        //qDebug() << genes; test
         return genes;
     }
 
