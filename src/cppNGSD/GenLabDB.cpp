@@ -335,6 +335,42 @@ QString GenLabDB::sapID(QString ps_name)
 	return output;
 }
 
+QStringList GenLabDB::samplesWithSapID(QString sap_id, QString sys_type)
+{
+	//get DNA number via SAP id
+	QStringList dna_nrs;
+	SqlQuery query = getQuery();
+	query.exec("SELECT labornummer FROM v_ngs_patient_ids WHERE SAPID='" + sap_id + "'");
+	while (query.next())
+	{
+		QString dna_nr = query.value(0).toString().trimmed();
+		if (!dna_nr.isEmpty())
+		{
+			dna_nrs << dna_nr;
+		}
+	}
+
+	//convert DNA number to processed sample names
+	QStringList output;
+	NGSD db;
+	foreach(QString dna_nr, dna_nrs)
+	{
+		ProcessedSampleSearchParameters params;
+		params.s_name=dna_nr;
+		params.include_bad_quality_samples=false;
+		params.include_merged_samples=false;
+		if (!sys_type.isEmpty()) params.sys_type = sys_type;
+
+		DBTable res = db.processedSampleSearch(params);
+		for(int r=0; r<res.rowCount(); ++r)
+		{
+			output << res.row(r).value(0);
+		}
+	}
+
+	return output;
+}
+
 QList<SampleRelation> GenLabDB::relatives(QString ps_name)
 {
 	NGSD db;

@@ -19,6 +19,7 @@
 #include <QCryptographicHash>
 #include <QDir>
 #include <QThread>
+#include <ProxyDataService.h>
 #include "cmath"
 #include "QUuid"
 #include "ClientHelper.h"
@@ -323,6 +324,10 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	{
 		conditions << "s.tumor='0'";
 	}
+	if (!p.include_germline_samples)
+	{
+		conditions << "s.tumor='1'";
+	}
 	if (!p.include_ffpe_samples)
 	{
 		conditions << "s.ffpe='0'";
@@ -392,6 +397,10 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	if (p.r_before.isValid())
 	{
 		conditions << "r.start_date<='" + p.r_before.toString(Qt::ISODate)+"'";
+	}
+	if (p.r_after.isValid())
+	{
+		conditions << "r.start_date>='" + p.r_after.toString(Qt::ISODate)+"'";
 	}
 	if (p.r_device_name.trimmed()!="")
 	{
@@ -1064,7 +1073,17 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	QString sys_name_short = query.value(4).toString();
 
 	//append file name if requested
-	if (type==PathType::BAM) output += ps_name + ".bam";
+    if (type==PathType::BAM)
+    {
+        if (QFile::exists(output + ps_name + ".cram"))
+        {
+            output += ps_name + ".cram";
+        }
+        else
+        {
+            output += ps_name + ".bam";
+        }
+    }
 	else if (type==PathType::GSVAR) output += ps_name + ".GSvar";
 	else if (type==PathType::VCF) output += ps_name + "_var_annotated.vcf.gz";
 	else if (type==PathType::VCF_CF_DNA) output += ps_name + "_var.vcf";
@@ -1296,51 +1315,61 @@ Variant NGSD::variant(const QString& variant_id)
 	return Variant(query.value("chr").toByteArray(), query.value("start").toInt(), query.value("end").toInt(), query.value("ref").toByteArray(), query.value("obs").toByteArray());
 }
 
-QPair<int, int> NGSD::variantCounts(const QString& variant_id, bool use_cached_data_from_variant_table)
+GenotypeCounts NGSD::genotypeCountsCached(const QString &variant_id)
 {
-	//count variants
-	int count_het = 0;
-	int count_hom = 0;
+	SqlQuery query = getQuery();
+	query.exec("SELECT germline_hom, germline_het, germline_mosaic FROM variant WHERE id=" + variant_id);
+	query.next();
 
-	if (use_cached_data_from_variant_table)
-	{
-		SqlQuery query = getQuery();
-		query.exec("SELECT germline_het, germline_hom FROM variant WHERE id=" + variant_id);
-		query.next();
+	return GenotypeCounts{query.value(0).toInt(), query.value(1).toInt(), query.value(2).toInt()};
+}
 
-		count_het = query.value(0).toInt();
-		count_hom = query.value(1).toInt();
-	}
-	else
+GenotypeCounts NGSD::genotypeCounts(const QString& variant_id)
+{
+	int c_het = 0;
+	int c_hom = 0;
+	int c_mosaic = 0;
+
+	QSet<int> samples_done_het;
+	QSet<int> samples_done_hom;
+	QSet<int> samples_done_mosaic;
+	SqlQuery query = getQuery();
+	query.exec("SELECT ps.sample_id, dv.genotype, dv.mosaic FROM detected_variant dv, processed_sample ps WHERE dv.variant_id='" + variant_id + "' AND dv.processed_sample_id=ps.id");
+	while(query.next())
 	{
-		QSet<int> samples_done_het;
-		QSet<int> samples_done_hom;
-		SqlQuery query = getQuery();
-		query.exec("SELECT ps.sample_id, dv.genotype FROM detected_variant dv, processed_sample ps WHERE dv.variant_id='" + variant_id + "' AND dv.processed_sample_id=ps.id");
-		while(query.next())
+		//use sample ID to prevent counting variants several times if a sample was sequenced more than once.
+		int sample_id = query.value(0).toInt();
+		QByteArray genotype = query.value(1).toByteArray();
+		bool mosaic = query.value(2).toBool();
+
+		if (genotype=="het")
 		{
-			//use sample ID to prevent counting variants several times if a sample was sequenced more than once.
-			int sample_id = query.value(0).toInt();
-			QString genotype = query.value(1).toString();
-
-			if (genotype=="het" && !samples_done_het.contains(sample_id))
+			if (!mosaic && !samples_done_het.contains(sample_id))
 			{
-				++count_het;
+				++c_het;
 
 				samples_done_het << sample_id;
 				samples_done_het.unite(sameSamples(sample_id));
 			}
-			if (genotype=="hom" && !samples_done_hom.contains(sample_id))
+			if (mosaic && !samples_done_mosaic.contains(sample_id))
 			{
-				++count_hom;
+				++c_mosaic;
 
-				samples_done_hom << sample_id;
-				samples_done_hom.unite(sameSamples(sample_id));
+				samples_done_mosaic << sample_id;
+				samples_done_mosaic.unite(sameSamples(sample_id));
 			}
+
+		}
+		if (genotype=="hom" && !samples_done_hom.contains(sample_id))
+		{
+			++c_hom;
+
+			samples_done_hom << sample_id;
+			samples_done_hom.unite(sameSamples(sample_id));
 		}
 	}
 
-	return qMakePair(count_het, count_hom);
+	return GenotypeCounts{c_hom, c_het, c_mosaic};
 }
 
 void NGSD::deleteSomaticVariants(QString t_ps_id, QString n_ps_id)
@@ -1546,9 +1575,14 @@ void NGSD::importGeneExpressionData(const QString& expression_data_file_path, co
 	//get ENSG -> id mapping
 	QMap<QByteArray,QByteArray> gene_mapping = getEnsemblGeneMapping();
 
+	//get id <-> gene mapping from expression gene table
+	QMap<QByteArray,int>& gene2id = getCache().gene_expression_gene2id;
+	if(gene2id.isEmpty()) initGeneExpressionCache();
+
+
 	// prepare query
 	SqlQuery query = getQuery();
-	query.prepare("INSERT INTO `expression`(`processed_sample_id`, `symbol`, `tpm`, `raw`) VALUES ('" + ps_id + "', :0, :1, :2)");
+	query.prepare("INSERT INTO `expression`(`processed_sample_id`, `symbol_id`, `tpm`, `raw`) VALUES ('" + ps_id + "', :0, :1, :2)");
 
 
 	// open file and iterate over expression values
@@ -1573,8 +1607,23 @@ void NGSD::importGeneExpressionData(const QString& expression_data_file_path, co
 			continue;
 		}
 
+		//get gene symbol id in expression
+		int symbol_id;
+		QByteArray gene_symbol = gene_mapping.value(ensg);
+		if (gene2id.contains(gene_symbol))
+		{
+			symbol_id = gene2id.value(gene_symbol);
+		}
+		else
+		{
+			//add symbol to helper table
+			symbol_id = addGeneSymbolToExpressionTable(gene_symbol);
+			//add the new key-value pair to the cache (avoid reconstruction or gene name clashes)
+			gene2id.insert(gene_symbol, symbol_id);
+		}
+
 		// import value
-		query.bindValue(0, gene_mapping.value(ensg));
+		query.bindValue(0, symbol_id);
 		query.bindValue(1, tpm);
 		query.bindValue(2, raw);
 		query.exec();
@@ -1590,87 +1639,19 @@ void NGSD::importGeneExpressionData(const QString& expression_data_file_path, co
 	if(debug) outstream << QByteArray::number(n_skipped) + " expression values skipped." << endl;
 }
 
-void NGSD::importTranscriptExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug)
+int NGSD::addGeneSymbolToExpressionTable(const QByteArray& gene_symbol)
 {
-
-	QTextStream outstream(stdout);
-	QTime timer;
-	timer.start();
-	//check ps_name
-	QString ps_id = processedSampleId(ps_name);
-	if(debug) outstream << "Processed sample: " << ps_name << endl;
-
-	// check if already imported
-	int n_prev_entries = getValue("SELECT COUNT(`id`) FROM `expression_transcript` WHERE `processed_sample_id`=:0", false, ps_id).toInt();
-	if(debug) outstream << "Previously imported expression values: " << n_prev_entries << endl;
-
-	if (!force && (n_prev_entries > 0))
-	{
-		THROW(DatabaseException, "Expression values for sample '" + ps_name + "' already imported and method called without '-force' parameter: Cannot import data!");
-	}
-
-	// start transaction
-	transaction();
-
-	// delete old entries
-	if (n_prev_entries > 0)
-	{
-		SqlQuery query = getQuery();
-		query.exec("DELETE FROM `expression_transcript` WHERE `processed_sample_id`='"+ps_id+"'");
-		if(debug) outstream << QByteArray::number(n_prev_entries) + " previously imported expression values deleted." << endl;
-	}
-
-
+	//only add approved gene names
+	int gene_id = geneId(gene_symbol);
+	if ( gene_id == -1) THROW(DatabaseException, "'" + gene_symbol + "' is not an approved gene name and cannot be added to the NGSD table!");
 	// prepare query
 	SqlQuery query = getQuery();
-	query.prepare("INSERT INTO `expression_transcript`(`processed_sample_id`, `name`, `raw`, `rpb`, `srpb`) VALUES ('" + ps_id + "', :0, :1, :2, :3)");
-
-
-	// open file and iterate over expression values
-	TSVFileStream tsv_file(expression_data_file_path);
-	int idx_name = tsv_file.colIndex("transcript_id", true);
-	int idx_raw = tsv_file.colIndex("raw", true);
-	int idx_rpb = tsv_file.colIndex("rpb", true);
-	int idx_srpb = tsv_file.colIndex("srpb", true);
-
-	int n_imported = 0;
-	int n_skipped = 0;
-
-	QSet<QString> valid_transcripts = getValues("SELECT `name` FROM `gene_transcript`").toSet();
-
-	while (!tsv_file.atEnd())
-	{
-		QByteArrayList tsv_line = tsv_file.readLine();
-		QByteArray name = tsv_line.at(idx_name);
-
-		int raw = Helper::toInt(tsv_line.at(idx_raw), "raw value");
-		double rpb = Helper::toDouble(tsv_line.at(idx_rpb), "rpb value");
-		double srpb = Helper::toDouble(tsv_line.at(idx_srpb), "srpb value");
-
-		//skip ENSG ids which are not in the NGSD
-		if (!valid_transcripts.contains(name))
-		{
-			n_skipped++;
-			continue;
-		}
-
-		// import value
-		query.bindValue(0, name);
-		query.bindValue(1, raw);
-		query.bindValue(2, rpb);
-		query.bindValue(3, srpb);
-		query.exec();
-		n_imported++;
-	}
-
-
-	// commit
-	commit();
-
-	if(debug) outstream << "runtime: " << Helper::elapsedTime(timer) << endl;
-	if(debug) outstream << QByteArray::number(n_imported) + " expression values imported into the NGSD." << endl;
-	if(debug) outstream << QByteArray::number(n_skipped) + " expression values skipped." << endl;
+	query.prepare("INSERT INTO `expression_gene`(`symbol`) VALUES (:0)");
+	query.bindValue(0, gene_symbol);
+	query.exec();
+	return query.lastInsertId().toInt();
 }
+
 
 void NGSD::importExonExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug)
 {
@@ -1839,12 +1820,14 @@ QVector<double> NGSD::getGeneExpressionValues(const QByteArray& gene, int sys_id
 {
 	QVector<double> expr_values;
 	QByteArray gene_approved = geneToApproved(gene);
+	auto gene2id = getGeneExpressionGene2IdMapping();
+	int symbol_id = gene2id.value(gene_approved);
 	if (gene_approved.isEmpty()) return expr_values;
 
-	QStringList expr_values_str = getValues(QString() + "SELECT ev.tpm FROM `expression` ev "
+	QStringList expr_values_str = getValues(QString() + "SELECT ev.tpm FROM `expression ev "
 											  + "INNER JOIN `processed_sample` ps ON ev.processed_sample_id = ps.id "
 											  + "INNER JOIN `sample` s ON ps.sample_id = s.id "
-											  + "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue=:0 AND ev.symbol='" + gene_approved + "'", tissue_type);
+											  + "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " AND s.tissue=:0 AND ev.symbol=" + QString::number(symbol_id), tissue_type);
 
 	foreach (const QString& value, expr_values_str)
 	{
@@ -1875,10 +1858,12 @@ QVector<double> NGSD::getGeneExpressionValues(const QByteArray& gene, QVector<in
 {
 	QVector<double> expr_values;
 	QByteArray gene_approved = geneToApproved(gene);
+	auto gene2id = getGeneExpressionGene2IdMapping();
+	int symbol_id = gene2id.value(gene_approved);
 	if (gene_approved.isEmpty()) THROW(ArgumentException, "Can't convert gene '" + gene + "' to approved symbol!");
 
 	SqlQuery query = getQuery();
-	query.prepare("SELECT ev.tpm FROM `expression` ev WHERE ev.symbol='" + gene_approved + "' AND ev.processed_sample_id=:0");
+	query.prepare("SELECT ev.tpm FROM `expression` ev WHERE ev.symbol_id=" + QString::number(symbol_id) + " AND ev.processed_sample_id=:0");
 
 	foreach (int ps_id, cohort)
 	{
@@ -1950,7 +1935,8 @@ QMap<QByteArray, double> NGSD::getGeneExpressionValuesOfSample(const QString& ps
 	QMap<QByteArray, double> expression_data;
 
 	SqlQuery query = getQuery();
-	query.prepare("SELECT symbol, tpm FROM expression WHERE processed_sample_id=:0");
+	auto id2gene = getGeneExpressionId2GeneMapping();
+	query.prepare("SELECT symbol_id, tpm FROM expression WHERE processed_sample_id=:0");
 	query.bindValue(0, ps_id);
 	query.exec();
 
@@ -1958,9 +1944,23 @@ QMap<QByteArray, double> NGSD::getGeneExpressionValuesOfSample(const QString& ps
 
 	while(query.next())
 	{
-		expression_data.insert(query.value(0).toByteArray(), query.value(1).toDouble());
+		expression_data.insert(id2gene.value(query.value(0).toInt()), query.value(1).toDouble());
 	}
 	return expression_data;
+}
+
+QMap<int, QByteArray> NGSD::getGeneExpressionId2GeneMapping()
+{
+	QMap<int, QByteArray>& id2gene = getCache().gene_expression_id2gene;
+	if(id2gene.isEmpty()) initGeneExpressionCache();
+	return id2gene;
+}
+
+QMap<QByteArray, int> NGSD::getGeneExpressionGene2IdMapping()
+{
+	QMap<QByteArray, int>& gene2id = getCache().gene_expression_gene2id;
+	if(gene2id.isEmpty()) initGeneExpressionCache();
+	return gene2id;
 }
 
 QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<int>& cohort, QByteArray gene_symbol, bool debug)
@@ -1969,6 +1969,9 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<i
 	timer.start();
 
 	QMap<QByteArray, ExpressionStats> gene_stats;
+
+	QMap<int,QByteArray> id2gene = getGeneExpressionId2GeneMapping();
+	QMap<QByteArray,int> gene2id = getGeneExpressionGene2IdMapping();
 
 	//processed sample IDs as string list
 	QStringList ps_ids_str;
@@ -1984,9 +1987,9 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<i
 	if (gene_symbol.isEmpty())
 	{
 		q_str = QString(
-					"SELECT e.symbol, AVG(e.tpm), AVG(LOG2(e.tpm+1)), STD(LOG2(e.tpm+1)) FROM expression e "
+					"SELECT e.symbol_id, AVG(e.tpm), AVG(LOG2(e.tpm+1)), STD(LOG2(e.tpm+1)) FROM expression e "
 					"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") "
-					"GROUP BY e.symbol ORDER BY e.symbol;"
+					"GROUP BY e.symbol_id ORDER BY e.symbol_id;"
 					);
 	}
 	else
@@ -1994,10 +1997,12 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<i
 		//check if gene name is approved symbol
 		int gene_id = geneId(gene_symbol);
 		if (gene_id < 0 ) THROW(ArgumentException, "'" + gene_symbol + "' is not an approved gene symbol!");
+		gene_symbol = geneSymbol(gene_id);
+		if (!gene2id.contains(gene_symbol)) THROW(ArgumentException, "'" + gene_symbol + "' is not gene expression database!");
 
 		q_str = QString(
-					"SELECT e.symbol, AVG(e.tpm), AVG(LOG2(e.tpm+1)), STD(LOG2(e.tpm+1)) FROM expression e "
-					"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") AND e.symbol='" + geneSymbol(gene_id) + "';"
+					"SELECT e.symbol_id, AVG(e.tpm), AVG(LOG2(e.tpm+1)), STD(LOG2(e.tpm+1)) FROM expression e "
+					"WHERE e.processed_sample_id IN (" + ps_ids_str.join(", ") + ") AND e.symbol_id=" + QString::number(gene2id.value(gene_symbol))
 					);
 	}
 
@@ -2009,7 +2014,7 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateGeneExpressionStatistics(QSet<i
 	//parse results
 	while (q.next())
 	{
-		QByteArray gene_symbol = q.value(0).toByteArray();
+		QByteArray gene_symbol = id2gene.value(q.value(0).toInt());
 		ExpressionStats stats;
 		stats.mean = q.value(1).toDouble();
 		stats.mean_log2 = q.value(2).toDouble();
@@ -4356,6 +4361,171 @@ void NGSD::linkVariantPublications(int variant_publication_id1, int variant_publ
 	query.exec();
 }
 
+QPair<int, int> NGSD::updateClinvarSubmissionStatus(bool test_run)
+{
+	SqlQuery query = getQuery();
+
+	query.exec("SELECT id, details, result FROM variant_publication WHERE db='ClinVar'");
+
+	int n_var_checked = 0;
+	int n_var_updated = 0;
+
+	while(query.next())
+	{
+		int vp_id = query.value("id").toInt();
+		QString details = query.value("details").toString();
+		QString result = query.value("result").toString();
+
+		// skip publications without submission id
+		if (!details.contains("submission_id=SUB")) continue;
+
+		// skip publications which are already processed
+		if (result.startsWith("processed")) continue;
+		if (result.startsWith("error")) continue;
+
+		//extract submission id
+		QString submission_id;
+		QString stable_id;
+
+		//special handling of deletions
+		if(result.startsWith("deleted;"))
+		{
+			bool skip = false;
+			foreach (QString info, result.split(";"))
+			{
+				if(info.startsWith("SUB")) submission_id = info.trimmed();
+				if(info.startsWith("SCV")) stable_id = info.trimmed();
+				if(info.trimmed() == "processed") skip  = true;
+
+			}
+			if (submission_id.isEmpty())
+			{
+				THROW(ArgumentException, "'result' column doesn't contain submission id!")
+			}
+
+			//skip already deleted
+			if(skip) continue;
+
+			ClinvarSubmissionStatus submission_status = getSubmissionStatus(submission_id, test_run);
+			n_var_checked++;
+			if (submission_status.status != result.split(";").at(2)) n_var_updated++;
+			result = QStringList{"deleted", stable_id, submission_id, submission_status.status, submission_status.comment}.join(";");
+			updateVariantPublicationResult(vp_id, result);
+
+		}
+		else
+		{
+			foreach (const QString& key_value_pair, details.split(';'))
+			{
+				if (key_value_pair.startsWith("submission_id=SUB"))
+				{
+					submission_id = key_value_pair.split("=").at(1).trimmed();
+					break;
+				}
+			}
+			if (submission_id.isEmpty())
+			{
+				THROW(ArgumentException, "'details' column doesn't contain submission id!")
+			}
+
+			ClinvarSubmissionStatus submission_status = getSubmissionStatus(submission_id, test_run);
+			n_var_checked++;
+
+			//update db if neccessary
+			if (!result.startsWith(submission_status.status))
+			{
+				//update NGSD
+				result = submission_status.status;
+
+				if (submission_status.status == "processed")
+				{
+					result += ";" + submission_status.stable_id;
+				}
+				else if (submission_status.status == "error")
+				{
+					result += ";" + submission_status.comment;
+				}
+
+				//update result info in the NGSD
+				updateVariantPublicationResult(vp_id, result);
+				n_var_updated++;
+			}
+		}
+	}
+
+	return QPair<int,int>(n_var_checked, n_var_updated);
+}
+
+ClinvarSubmissionStatus NGSD::getSubmissionStatus(const QString& submission_id, bool test_run)
+{
+	//switch on/off testing
+	if(test_run) qDebug() << "Test run enabled!";
+	const QString api_url = (test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions/" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/";
+
+
+	// read API key
+	QByteArray api_key = Settings::string("clinvar_api_key").trimmed().toUtf8();
+	if (api_key.isEmpty()) THROW(FileParseException, "Settings INI file does not contain ClinVar API key!");
+
+	ClinvarSubmissionStatus submission_status;
+	HttpRequestHandler request_handler(ProxyDataService::getProxy());
+
+	try
+	{
+
+		//add headers
+		HttpHeaders add_headers;
+		add_headers.insert("Content-Type", "application/json");
+		add_headers.insert("SP-API-KEY", api_key);
+
+		//get request
+		QByteArray reply = request_handler.get(api_url + submission_id.toUpper() + "/actions/", add_headers);
+		qDebug() << api_url + submission_id.toUpper() + "/actions/";
+		// parse response
+		QJsonObject response = QJsonDocument::fromJson(reply).object();
+
+		//extract status
+		QJsonArray actions = response.value("actions").toArray();
+		submission_status.status = actions.at(0).toObject().value("status").toString();
+
+		if (submission_status.status == "processed" || submission_status.status == "error")
+		{
+			//get summary file and extract stable id or error message
+			QString report_summary_file = actions.at(0).toObject().value("responses").toArray().at(0).toObject().value("files").toArray().at(0).toObject().value("url").toString();
+			QByteArray summary_reply = request_handler.get(report_summary_file);
+			QJsonDocument summary_response = QJsonDocument::fromJson(summary_reply);
+
+			if (submission_status.status == "processed")
+			{
+				// get stable id
+				submission_status.stable_id = summary_response.object().value("submissions").toArray().at(0).toObject().value("identifiers").toObject().value("clinvarAccession").toString();
+			}
+			if (submission_status.status == "error")
+			{
+				// get error message
+				QJsonArray errors = summary_response.object().value("submissions").toArray().at(0).toObject().value("errors").toArray();
+				QStringList error_messages;
+				foreach (const QJsonValue& error, errors)
+				{
+					error_messages << error.toObject().value("output").toObject().value("errors").toArray().at(0).toObject().value("userMessage").toString();
+				}
+				submission_status.comment = error_messages.join("\n");
+			}
+		}
+
+		return submission_status;
+
+
+
+	}
+	catch(Exception e)
+	{
+		THROW(ArgumentException, "Status check failed for submission " + submission_id + " (" + e.message() + ")!");
+		return ClinvarSubmissionStatus();
+	}
+}
+
+
 QString NGSD::comment(const Variant& variant)
 {
 	return getValue("SELECT comment FROM variant WHERE id='" + variantId(variant) + "'").toString();
@@ -5989,7 +6159,7 @@ BedFile NGSD::geneToRegions(const QByteArray& gene, Transcript::SOURCE source, Q
 		*messages << "No transcripts found for gene '" + gene + "'. Skipping it!" << endl;
 	}
 
-	output.sort();
+	if (!output.isSorted()) output.sort();
 	if (!annotate_transcript_names) output.removeDuplicates();
 
 	return output;
@@ -6004,8 +6174,53 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 		output.add(geneToRegions(gene, source, mode, fallback, annotate_transcript_names, messages));
 	}
 
-	output.sort();
+	if (!output.isSorted()) output.sort();
 	if (!annotate_transcript_names) output.removeDuplicates();
+
+	return output;
+}
+
+BedFile NGSD::transcriptToRegions(const QByteArray& name, QString mode)
+{
+	//check mode
+	QStringList valid_modes;
+	valid_modes << "gene" << "exon";
+	if (!valid_modes.contains(mode))
+	{
+		THROW(ArgumentException, "Invalid mode '" + mode + "'. Valid modes are: " + valid_modes.join(", ") + ".");
+	}
+
+	//get transcript id
+	int id = transcriptId(name, false);
+	if (id==-1)
+	{
+		THROW(ArgumentException, "Transcript '" + name + "' not found in NGSD.");
+	}
+
+	//get transcript
+	const Transcript& trans = transcript(id);
+
+	//prepare annotations
+	QByteArrayList annos;
+	annos << (trans.gene() + " " + trans.nameWithVersion());
+
+	//create output
+	BedFile output;
+	if (mode=="gene")
+	{
+		output.append(BedLine(trans.chr(), trans.start(), trans.end(), annos));
+	}
+	else
+	{
+		const BedFile& regions = trans.isCoding() ? trans.codingRegions() : trans.regions();
+		for(int i=0; i<regions.count(); ++i)
+		{
+			const BedLine& line = regions[i];
+			output.append(BedLine(line.chr(), line.start(), line.end(), annos));
+		}
+	}
+
+	if (!output.isSorted()) output.sort();
 
 	return output;
 }
@@ -8334,6 +8549,9 @@ void NGSD::clearCache()
 	cache_instance.gene_transcripts_index.createIndex();
 	cache_instance.gene_transcripts_id2index.clear();
 	cache_instance.gene_transcripts_symbol2indices.clear();
+
+	cache_instance.gene_expression_id2gene.clear();
+	cache_instance.gene_expression_gene2id.clear();
 }
 
 
@@ -8438,6 +8656,37 @@ void NGSD::initTranscriptCache()
 
 	//build index
 	index.createIndex();
+
+	initializing = false;
+}
+void NGSD::initGeneExpressionCache()
+{
+	//make sure initialization is done only once
+	static bool initializing = false;
+	if (initializing)
+	{
+		while(initializing)
+		{
+			QThread::msleep(1);
+		}
+		return;
+	}
+	initializing = true;
+
+	QMap<int, QByteArray>& id2gene = getCache().gene_expression_id2gene;
+	QMap<QByteArray, int>& gene2id = getCache().gene_expression_gene2id;
+
+	//reset cache
+	id2gene.clear();
+	gene2id.clear();
+
+	SqlQuery query = getQuery();
+	query.exec("SELECT id, symbol FROM expression_gene");
+	while(query.next())
+	{
+		id2gene.insert(query.value(0).toInt(), query.value(1).toByteArray());
+		gene2id.insert(query.value(1).toByteArray(), query.value(0).toInt());
+	}
 
 	initializing = false;
 }

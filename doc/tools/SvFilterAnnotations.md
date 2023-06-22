@@ -1,5 +1,5 @@
 ### SvFilterAnnotations tool help
-	SvFilterAnnotations (2021_12-170-g1acf8802)
+	SvFilterAnnotations (2023_03-63-gec44de43)
 	
 	Filter a structural variant list in BEDPE format based on variant annotations.
 	
@@ -14,6 +14,10 @@
 	  KEEP - Force variants to be kept, even if filtered out by previous filter steps.
 	
 	The following filters are supported:
+	SV CNV overlap              Filter the removes DEL/DUP without support from CNV calling.
+	                            Parameters:
+	                              min_ol - Minimum CNV overlap. [default=0.5] [min=0.0] [max=1.0]
+	                              min_size - Minimum SV size in bases. [default=10000] [min=0]
 	SV OMIM genes               Filter for OMIM genes i.e. the 'OMIM' column is not empty.
 	                            Parameters:
 	                              action - Action to perform [default=FILTER] [valid=REMOVE,FILTER]
@@ -105,7 +109,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SvFilterAnnotations changelog
-	SvFilterAnnotations 2021_12-170-g1acf8802
+	SvFilterAnnotations 2023_03-63-gec44de43
 	
 	2020-04-16 Initial version of the tool. Based on VariantFilterAnnotations.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

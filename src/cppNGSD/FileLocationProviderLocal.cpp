@@ -113,6 +113,7 @@ FileLocationList FileLocationProviderLocal::getBamFiles(bool return_if_missing) 
 	foreach(const KeyValuePair& loc, getBaseLocations())
 	{
 		FileLocation file = FileLocation{loc.key, PathType::BAM, loc.value + ".bam", false};
+        if (QFile::exists(loc.value + ".cram")) file.filename = loc.value + ".cram";
 		addToList(file, output, return_if_missing);
 	}
 
@@ -431,38 +432,42 @@ QString FileLocationProviderLocal::getProjectPath() const
 
 QList<KeyValuePair> FileLocationProviderLocal::getBaseLocations() const
 {
-	QList<KeyValuePair> output;
+    QList<KeyValuePair> output;
 
-	if (analysis_type_==GERMLINE_SINGLESAMPLE || analysis_type_==SOMATIC_SINGLESAMPLE)
-	{
-		QString id = header_info_.begin()->id;
-		output << KeyValuePair(id, getAnalysisPath() + "/" + id);
-	}
-	else if (analysis_type_==GERMLINE_TRIO || analysis_type_==GERMLINE_MULTISAMPLE || analysis_type_==SOMATIC_PAIR)
-	{
-		QString project_folder = getProjectPath();
+    if (analysis_type_==GERMLINE_SINGLESAMPLE || analysis_type_==SOMATIC_SINGLESAMPLE || analysis_type_==CFDNA)
+    {
+        QString id = header_info_.begin()->id;
+        output << KeyValuePair(id, getAnalysisPath() + "/" + id);
+    }
+    else if (analysis_type_==GERMLINE_TRIO || analysis_type_==GERMLINE_MULTISAMPLE || analysis_type_==SOMATIC_PAIR)
+    {
+        QString project_folder = getProjectPath();
 
-		foreach(const SampleInfo& info, header_info_)
-		{
-			if (Settings::boolean("NGSD_enabled", true))
-			{
-				try
-				{
-					QString id = NGSD().processedSampleId(info.id, false);
-					QString sample_path = NGSD().processedSamplePath(id, PathType::SAMPLE_FOLDER);
-					output << KeyValuePair(info.id, sample_path + info.id);
-					continue;
-				}
-				catch (...)
-				{
-					// We fall back to the standard behaviour, if the sample cannot be found
-				}
+        foreach(const SampleInfo& info, header_info_)
+        {
+            if (Settings::boolean("NGSD_enabled", true))
+            {
+                try
+                {
+                    QString id = NGSD().processedSampleId(info.id, false);
+                    QString sample_path = NGSD().processedSamplePath(id, PathType::SAMPLE_FOLDER);
+                    output << KeyValuePair(info.id, sample_path + info.id);
+                    continue;
+                }
+                catch (...)
+                {
+                    // We fall back to the standard behaviour, if the sample cannot be found
+                }
 
-			}
+            }
 
-			output << KeyValuePair(info.id, project_folder + "/Sample_" + info.id + "/" + info.id);
-		}
-	}
+            output << KeyValuePair(info.id, project_folder + "/Sample_" + info.id + "/" + info.id);
+        }
+    }
+    else
+    {
+        THROW(ProgrammingException, "Cannot handle unknown analysis type");
+    }
 
-	return output;
+    return output;
 }

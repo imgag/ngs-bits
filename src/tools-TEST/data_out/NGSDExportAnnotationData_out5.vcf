@@ -1,0 +1,53 @@
+##fileformat=VCFv4.2
+##contig=<ID=chr1,length=248956422>
+##contig=<ID=chr2,length=242193529>
+##contig=<ID=chr3,length=198295559>
+##contig=<ID=chr4,length=190214555>
+##contig=<ID=chr5,length=181538259>
+##contig=<ID=chr6,length=170805979>
+##contig=<ID=chr7,length=159345973>
+##contig=<ID=chr8,length=145138636>
+##contig=<ID=chr9,length=138394717>
+##contig=<ID=chr10,length=133797422>
+##contig=<ID=chr11,length=135086622>
+##contig=<ID=chr12,length=133275309>
+##contig=<ID=chr13,length=114364328>
+##contig=<ID=chr14,length=107043718>
+##contig=<ID=chr15,length=101991189>
+##contig=<ID=chr16,length=90338345>
+##contig=<ID=chr17,length=83257441>
+##contig=<ID=chr18,length=80373285>
+##contig=<ID=chr19,length=58617616>
+##contig=<ID=chr20,length=64444167>
+##contig=<ID=chr21,length=46709983>
+##contig=<ID=chr22,length=50818468>
+##contig=<ID=chrY,length=57227415>
+##contig=<ID=chrX,length=156040895>
+##contig=<ID=chrMT,length=16569>
+##INFO=<ID=COUNTS,Number=3,Type=Integer,Description="Homozygous/Heterozygous/Mosaic variant counts in NGSD.">
+##INFO=<ID=GSC01,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for n/a.">
+##INFO=<ID=GSC02,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for neoplasms.">
+##INFO=<ID=GSC03,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the blood or blood-forming organs.">
+##INFO=<ID=GSC04,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the immune system.">
+##INFO=<ID=GSC05,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for endocrine, nutritional or metabolic diseases.">
+##INFO=<ID=GSC06,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for mental, behavioural or neurodevelopmental disorders.">
+##INFO=<ID=GSC07,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for sleep-wake disorders.">
+##INFO=<ID=GSC08,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the nervous system.">
+##INFO=<ID=GSC09,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the visual system.">
+##INFO=<ID=GSC10,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the ear or mastoid process.">
+##INFO=<ID=GSC11,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the circulatory system.">
+##INFO=<ID=GSC12,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the respiratory system.">
+##INFO=<ID=GSC13,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the digestive system.">
+##INFO=<ID=GSC14,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the skin.">
+##INFO=<ID=GSC15,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the musculoskeletal system or connective tissue.">
+##INFO=<ID=GSC16,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the genitourinary system.">
+##INFO=<ID=GSC17,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for developmental anomalies.">
+##INFO=<ID=GSC18,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for other diseases.">
+##INFO=<ID=HAF,Number=0,Type=Flag,Description="Indicates a allele frequency above a threshold of 0.05.">
+##INFO=<ID=CLAS,Number=1,Type=String,Description="Classification from the NGSD.">
+##INFO=<ID=CLAS_COM,Number=1,Type=String,Description="Classification comment from the NGSD.">
+##INFO=<ID=COM,Number=1,Type=String,Description="Variant comments from the NGSD.">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+chr1	62263112	1	A	G	.	.	COUNTS=0,0,0
+chr2	47805601	3	A	AT	.	.	COUNTS=0,0,0
+chr3	142558733	2	A	T	.	.	COUNTS=0,0,0

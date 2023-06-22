@@ -1,0 +1,4 @@
+#transcripts
+CCDS2302
+uc001uua
+NOTRANSCRIPT

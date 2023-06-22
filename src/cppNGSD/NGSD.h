@@ -27,6 +27,7 @@
 #include "FileLocation.h"
 #include "FileInfo.h"
 #include "TsvFile.h"
+#include "HttpRequestHandler.h"
 
 ///Sample relation datastructure
 struct CPPNGSDSHARED_EXPORT SampleRelation
@@ -393,6 +394,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	QString s_ancestry;
 	bool include_bad_quality_samples = true;
 	bool include_tumor_samples = true;
+	bool include_germline_samples = true;
 	bool include_ffpe_samples = true;
 	bool include_merged_samples = false;
 
@@ -410,6 +412,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool include_bad_quality_runs = true;
 	bool run_finished = false;
 	QDate r_before = QDate();
+	QDate r_after = QDate();
 	QString r_device_name;
 
 	//filter output to processed samples that user has access to
@@ -588,6 +591,22 @@ struct CfdnaDiseaseCourseTable
 	QList<TsvFile> mrd_tables;
 };
 
+///custum struct to store the submission status of ClinVarUploads
+struct CPPNGSDSHARED_EXPORT ClinvarSubmissionStatus
+{
+	QString status;
+	QString stable_id;
+	QString comment;
+};
+
+///Variant genotype counts
+struct CPPNGSDSHARED_EXPORT GenotypeCounts
+{
+	int hom;
+	int het;
+	int mosaic;
+};
+
 /// NGSD accessor.
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
@@ -695,6 +714,8 @@ public:
 	BedFile geneToRegions(const QByteArray& gene, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
 	///Returns the chromosomal regions corresponding to the given genes. Messages about unknown gene symbols etc. are written to the steam, if given.
 	BedFile genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
+	///Returns the chromosomal regions corresponding to the given transcript. Messages about unknown transcripts etc. are written to the steam, if given.
+	BedFile transcriptToRegions(const QByteArray& name, QString mode);
 	///Returns transcript by id. Throws an exception if not found in NGSD.
 	const Transcript& transcript(int id);
 	///Returns transcript identifier. Throws an exception if not found in NGSD, or returns -1.
@@ -769,8 +790,10 @@ public:
 	QString variantId(const Variant& variant, bool throw_if_fails = true);
 	///Returns the variant corresponding to the given identifier or throws an exception if the ID does not exist.
 	Variant variant(const QString& variant_id);
-	///Returns the number of het/hom occurances of the variant in the NGSD (only one occurance per sample is counted).
-	QPair<int, int> variantCounts(const QString& variant_id, bool use_cached_data_from_variant_table=false);
+	///Returns the number of hom/het/mosaic occurances of the variant in the NGSD (only one occurance per sample is counted).
+	GenotypeCounts genotypeCounts(const QString& variant_id);
+	///Returns the number of hom/het/mosaic occurances of the variant in the NGSD (only one occurance per sample is counted) - returns counts cached in 'variant' table which is faster.
+	GenotypeCounts genotypeCountsCached(const QString& variant_id);
 	///Deletes the variants of a processed sample (all types)
 	void deleteVariants(const QString& ps_id);
 	///Deletes the variants of a processed sample (a specific type)
@@ -813,8 +836,7 @@ public:
 	/* RNA related functions */
 	///Imports gene expression data to the NGSD
 	void importGeneExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
-	///Imports transcript expression data to the NGSD
-	void importTranscriptExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
+	int addGeneSymbolToExpressionTable(const QByteArray& gene_symbol);
 	///Imports exon expression data to the NGSD
 	void importExonExpressionData(const QString& expression_data_file_path, const QString& ps_name, bool force, bool debug);
 	///Calculates statistics on all gene expression values for a list of processed sample ids
@@ -841,6 +863,10 @@ public:
 	QVector<double> getExonExpressionValues(const BedLine& exon, QSet<int> cohort, bool log2=false);
 	///Returns the expression values fo a single sample
 	QMap<QByteArray, double> getGeneExpressionValuesOfSample(const QString& ps_id, bool allow_empty=false);
+	///Returns the symbol<>id mapping of the gene expression helper table
+	QMap<int, QByteArray> getGeneExpressionId2GeneMapping();
+	QMap<QByteArray, int> getGeneExpressionGene2IdMapping();
+
 
 	/***User handling functions ***/
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.
@@ -996,6 +1022,10 @@ public:
 	void flagVariantPublicationAsReplaced(int variant_publication_id);
 	///Link two variant publications (comp. het. variant)
 	void linkVariantPublications(int variant_publication_id1, int variant_publication_id2);
+	///update submission status of uploaded variants from ClinVar
+	QPair<int, int> updateClinvarSubmissionStatus(bool test_run);
+	///returns the submission status of a given ClinVar submission Id
+	ClinvarSubmissionStatus getSubmissionStatus(const QString& submission_id, bool test_run);
 
 	///Returns the comment of a variant in the NGSD.
 	QString comment(const Variant& variant);
@@ -1130,10 +1160,15 @@ protected:
 		ChromosomalIndex<TranscriptList> gene_transcripts_index;
 		QHash<int, int> gene_transcripts_id2index; //NGSD transcript id > index in 'gene_transcripts'
 		QHash<QByteArray, QSet<int>> gene_transcripts_symbol2indices; //gene symbol > indices in 'gene_transcripts'
+
+		//gene expression
+		QMap<int, QByteArray> gene_expression_id2gene;
+		QMap<QByteArray, int> gene_expression_gene2id;
 	};
 	static Cache& getCache();
 	void clearCache();
 	void initTranscriptCache();
+	void initGeneExpressionCache();
 };
 
 #endif // NGSD_H

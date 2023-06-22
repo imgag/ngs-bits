@@ -479,7 +479,7 @@ void SomaticReportDialog::writeBackSettings()
 		{
 			try
 			{
-				QByteArray response = HttpHandler(HttpRequestHandler::NONE).get(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename);
+				QByteArray response = HttpHandler(true).get(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename);
 				if (!response.isEmpty()) picture.loadFromData(response);
 			}
 			catch (Exception& e)
@@ -651,7 +651,7 @@ void SomaticReportDialog::createIgvScreenshot()
 
 		try
 		{
-			HttpHandler(HttpRequestHandler::NONE).post(ClientHelper::serverApiUrl() + "upload?token=" + LoginManager::userToken(), multipart_form);
+			HttpHandler(true).post(ClientHelper::serverApiUrl() + "upload?token=" + LoginManager::userToken(), multipart_form);
 		}
 		catch (Exception& e)
 		{

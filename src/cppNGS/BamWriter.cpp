@@ -38,7 +38,7 @@ BamWriter::BamWriter(const QString& bam_file, const QString& ref_file)
 		int fai = hts_set_fai_filename(fp_, ref_file.toUtf8().constData());
 		if(fai < 0)
 		{
-			THROW(FileAccessException, "Error while setting reference genome for cram file!");
+            THROW(FileAccessException, "Error while setting reference genome for cram file " + bam_file);
 		}
 	}
 

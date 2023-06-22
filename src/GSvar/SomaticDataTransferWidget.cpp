@@ -21,7 +21,7 @@ SomaticDataTransferWidget::SomaticDataTransferWidget(QString t_ps_id, QString n_
 	ui(new Ui::SomaticDataTransferWidget),
 	init_timer_(this, true),
 	db_(),
-	http_handler_(HttpRequestHandler::ProxyType::NONE, this),
+	http_handler_(true, this),
 	t_ps_id_(t_ps_id),
 	n_ps_id_(n_ps_id),
 	api_ok_(false)

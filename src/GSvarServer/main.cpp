@@ -545,16 +545,25 @@ int main(int argc, char **argv)
 		return app.exec();
 	}
 
-	Log::info("Restore previous sessions");
-	SessionManager::restoreFromFile();
-	Log::info("Restore previous URLs");
-	UrlManager::restoreFromFile();
+    try
+    {
+        Log::info("Restore previous sessions");
+        SessionManager::restoreFromFile();
+        Log::info("Restore previous URLs");
+        UrlManager::restoreFromFile();
+    }
+    catch (Exception& e)
+    {
+        Log::error("Failed to restore the previous state: " + e.message());
+    }
+
+
 
 	Log::info("SSL version used for the build: " + QSslSocket::sslLibraryBuildVersionString());
 	ServerWrapper https_server(server_port);
 	if (!https_server.isRunning())
 	{
-		Log::error("HTTPS is not running. Exiting");
+        Log::error("Could not start HTTPS server. Exiting...");
 		app.exit(EXIT_FAILURE);
 		return app.exec();
 	}

@@ -33,6 +33,7 @@ public:
 		addString("sample", "Sample name filter (substring match).", true, "");
 		addFlag("no_bad_samples", "If set, processed samples with 'bad' quality are excluded.");
 		addFlag("no_tumor", "If set, tumor samples are excluded.");
+		addFlag("no_normal", "If set, germline samples are excluded.");
 		addFlag("no_ffpe", "If set, FFPE samples are excluded.");
 		addFlag("match_external_names", "If set, also samples for which the external name matches 'sample' are exported.");
 		addFlag("with_merged", "If set, processed samples that were merged into another sample are included.");
@@ -52,7 +53,8 @@ public:
 		addString("run", "Sequencing run name filter.", true, "");
 		addFlag("run_finished", "Only show samples where the analysis of the run is finished.");
 		addString("run_device", "Sequencing run device name filter.", true, "");
-		addString("run_before", "Sequencing run start date before or equal to the given date.", true, "");
+		addString("run_before", "Sequencing run before or equal to the given date.", true, "");
+		addString("run_after", "Sequencing run after or equal to the given date.", true, "");
 		addFlag("no_bad_runs", "If set, sequencing runs with 'bad' quality are excluded.");
 		addFlag("add_qc", "If set, QC columns are added to output.");
 		addFlag("add_outcome", "If set, diagnostic outcome columns are added to output.");
@@ -101,6 +103,7 @@ public:
 		params.s_study = getString("study");
 		params.include_bad_quality_samples = !getFlag("no_bad_samples");
 		params.include_tumor_samples = !getFlag("no_tumor");
+		params.include_germline_samples = !getFlag("no_normal");
 		params.include_ffpe_samples = !getFlag("no_ffpe");
 		params.include_merged_samples = getFlag("with_merged");
 		params.p_name = getString("project");
@@ -121,6 +124,15 @@ public:
 			}
 			params.r_before = run_start_date;
 		}
+		if (getString("run_after").trimmed()!="")
+		{
+			QDate run_start_date = QDate::fromString(getString("run_after"), Qt::ISODate);
+			if (!run_start_date.isValid())
+			{
+				THROW(ArgumentException, "Invalid date given for 'run_after' parameter.\nThe expected format is a ISO date, e.g. '2012-09-27'.");
+			}
+			params.r_after = run_start_date;
+		}
 		params.add_qc = getFlag("add_qc");
 		params.add_outcome = getFlag("add_outcome");
 		params.add_disease_details = getFlag("add_disease_details");
@@ -130,6 +142,12 @@ public:
 		params.add_comments = getFlag("add_comments");
 
 		//check parameters
+
+		if (! params.include_germline_samples && ! params.include_tumor_samples)
+		{
+			THROW(ArgumentException, "Flags 'no_normal' and 'no_tumor' can't be provided for the same export.");
+		}
+
 		if (params.p_name!="")
 		{
 			//check that name is valid

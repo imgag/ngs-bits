@@ -14,6 +14,7 @@
 #include <QUrl>
 #include <QTcpSocket>
 #include <QTime>
+#include <ProxyDataService.h>
 #include "ExternalToolDialog.h"
 #include "ReportDialog.h"
 #include <QBrush>
@@ -142,8 +143,10 @@ QT_CHARTS_USE_NAMESPACE
 #include "SomaticcfDNAReport.h"
 #include "MaintenanceDialog.h"
 #include "ClientHelper.h"
+#include "ProxyDataService.h"
+#include "RefGenomeService.h"
+#include "GHGAUploadDialog.h"
 #include "BurdenTestWidget.h"
-
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -316,6 +319,8 @@ MainWindow::MainWindow(QWidget *parent)
 			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM files over HTTPS may not be possible");
 		}
 	}
+    RefGenomeService::setReferenceGenome(Settings::string("reference_genome"));
+
 	update_info_toolbar_ = new QToolBar;
 	update_info_toolbar_->hide();
 	addToolBar(Qt::TopToolBarArea, update_info_toolbar_);
@@ -409,8 +414,12 @@ void MainWindow::on_actionDebug_triggered()
 	timer.start();
 
 	QString user = Helper::userName();
+	qDebug() << user;
 	if (user=="ahsturm1")
 	{
+		on_actionPrepareGhgaUpload_triggered();
+		return;
+
 		//VariantHgvsAnnotator debugging
 		/*
 		QString genome_file = Settings::string("reference_genome", false);
@@ -1479,10 +1488,24 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahschul1")
 	{
+		//test google reply times
+		qDebug() << "Test google reply times";
+
+		static HttpHandler http_handler(false);
+
+		for (int i = 0; i < 10; ++i)
+		{
+			QTime timer;
+			timer.start();
+			QByteArray reply = http_handler.get("https://www.google.com");
+			qDebug() << "reply took:" << Helper::elapsedTime(timer, true);
+			QThread::sleep(10);
+		}
 	}
 	else if (user=="ahott1a1")
 	{
 	}
+
 
 	qDebug() << "Elapsed time debugging:" << Helper::elapsedTime(timer, true);
 }
@@ -2060,7 +2083,7 @@ void MainWindow::on_actionExpressionData_triggered()
 
 	ExpressionGeneWidget* widget = new ExpressionGeneWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, project, rna_ps_id,
 															cohort_type, this);
-	auto dlg = GUIHelper::createDialog(widget, "Expression Data of " + db.processedSampleName(rna_ps_id));
+	auto dlg = GUIHelper::createDialog(widget, "Gene expression of " + db.processedSampleName(rna_ps_id) + " (DNA: " + variants_.analysisName() + ")");
 	addModelessDialog(dlg);
 }
 
@@ -2143,7 +2166,7 @@ void MainWindow::on_actionExonExpressionData_triggered()
 	if (somaticReportSupported()) cohort_type = RNA_COHORT_SOMATIC;
 
 	ExpressionExonWidget* widget = new ExpressionExonWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, project, rna_ps_id, cohort_type, this);
-	auto dlg = GUIHelper::createDialog(widget, "Expression Data of " + db.processedSampleName(rna_ps_id));
+	auto dlg = GUIHelper::createDialog(widget, "Exon expression of " + db.processedSampleName(rna_ps_id) + " (DNA: " + variants_.analysisName() + ")");
 	addModelessDialog(dlg);
 }
 
@@ -2188,7 +2211,7 @@ void MainWindow::on_actionShowSplicing_triggered()
 
 	SplicingWidget* splicing_widget = new SplicingWidget(splicing_filepath, this);
 
-	auto dlg = GUIHelper::createDialog(splicing_widget, "Splicing of " + variants_.analysisName());
+	auto dlg = GUIHelper::createDialog(splicing_widget, "Splicing Alterations of " + variants_.analysisName());
 	addModelessDialog(dlg);
 }
 
@@ -4662,7 +4685,7 @@ QList<RtfPicture> pngsFromFiles(QStringList files)
 		QImage pic;
 		if (path.startsWith("http", Qt::CaseInsensitive))
 		{
-			QByteArray response = HttpHandler(HttpRequestHandler::NONE).get(path);
+			QByteArray response = HttpHandler(true).get(path);
 			if (!response.isEmpty()) pic.loadFromData(response);
 		}
 		else
@@ -6075,6 +6098,12 @@ void MainWindow::on_actionReplicateNGSD_triggered()
 	dlg->exec();
 }
 
+void MainWindow::on_actionPrepareGhgaUpload_triggered()
+{
+	GHGAUploadDialog dlg(this);
+	dlg.exec();
+}
+
 void MainWindow::on_actionMaintenance_triggered()
 {
 	try
@@ -6260,7 +6289,8 @@ void MainWindow::on_actionGapsLookup_triggered()
 		QStringList parts = line.split('\t');
 		if(parts.count()==4 && parts[3].contains(gene, Qt::CaseInsensitive))
 		{
-			output.append(line);
+			double size_kb = (parts[2].toDouble() - parts[1].toDouble()) / 1000.0;
+			output.append(line + "\t" + QString::number(size_kb, 'f', 3) + " kb");
 		}
 	}
 
@@ -6278,8 +6308,13 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 {
 	if (filename_=="") return;
 
+	//only available for gmerline and somatic single sample
+	AnalysisType type = variants_.type();
+	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO && type!=GERMLINE_MULTISAMPLE && type!=SOMATIC_SINGLESAMPLE) return;
+
+
 	//check for BAM file
-	QString ps = germlineReportSample();
+	QString ps = type==SOMATIC_SINGLESAMPLE ? variants_.getSampleHeader()[0].id : germlineReportSample();
 	QStringList bams = GlobalServiceProvider::fileLocationProvider().getBamFiles(false).filterById(ps).asStringList();
 	if (bams.empty())
 	{
@@ -6896,7 +6931,7 @@ void MainWindow::openAlamut(QAction* action)
 			QString host = Settings::string("alamut_host");
 			QString institution = Settings::string("alamut_institution");
 			QString apikey = Settings::string("alamut_apikey");
-			HttpHandler(HttpRequestHandler::NONE).get(host+"/search?institution="+institution+"&apikey="+apikey+"&request="+value);
+			HttpHandler(true).get(host+"/search?institution="+institution+"&apikey="+apikey+"&request="+value);
 		}
 		catch (Exception& e)
 		{
@@ -7531,7 +7566,7 @@ void MainWindow::storeCurrentVariantList()
 			add_headers.insert("Content-Type", "application/json");
 			add_headers.insert("Content-Length", QByteArray::number(json_doc.toJson().count()));
 
-			QString reply = HttpHandler(HttpRequestHandler::NONE).put(
+			QString reply = HttpHandler(true).put(
 						ClientHelper::serverApiUrl() + "project_file?ps_url_id=" + ps_url_id + "&token=" + LoginManager::userToken(),
 						json_doc.toJson(),
 						add_headers

@@ -55,40 +55,63 @@ ServerWrapper::ServerWrapper(const quint16& port)
 	}
 	server_->setSslConfiguration(config);
 
+    try
+    {
+        if (server_->listen(QHostAddress::Any, port))
+        {
+            is_running_ = true;
+            Log::info("GSvar server is running on port #" + QString::number(port));
 
-	if (server_->listen(QHostAddress::Any, port))
-	{
-		is_running_ = true;
-		Log::info("GSvar server is running on port #" + QString::number(port));
+            // Remove expired URLs on schedule
+            QTimer *url_timer = new QTimer(this);
+            connect(url_timer, &QTimer::timeout, this, &UrlManager::removeExpiredUrls);
+            url_timer->start(60 * 30 * 1000); // every 30 minutes
 
-		// Remove expired URLs on schedule
-		QTimer *url_timer = new QTimer(this);
-		connect(url_timer, &QTimer::timeout, this, &UrlManager::removeExpiredUrls);
-		url_timer->start(60 * 30 * 1000); // every 30 minutes
+            // Remove expired sessions (invalidate tokens) on schedule
+            QTimer *session_timer = new QTimer(this);
+            connect(session_timer, &QTimer::timeout, this, &SessionManager::removeExpiredSessions);
+            url_timer->start(60 * 30 * 1000); // every 30 minutes
 
-		// Remove expired sessions (invalidate tokens) on schedule
-		QTimer *session_timer = new QTimer(this);
-		connect(session_timer, &QTimer::timeout, this, &SessionManager::removeExpiredSessions);
-		url_timer->start(60 * 30 * 1000); // every 30 minutes
+            // ClinVar submission status automatic update on schedule
+            QTimer *clinvar_timer = new QTimer(this);
+            connect(clinvar_timer, SIGNAL(timeout()), this, SLOT(updateClinVarSubmissionStatus()));
+            clinvar_timer->start(60 * 60 * 1000); // every 60 minutes
 
-		QFileSystemWatcher *watcher = new QFileSystemWatcher();
-		watcher->addPath(QCoreApplication::applicationDirPath());
-		connect(watcher, SIGNAL(directoryChanged(QString)), this, SLOT(updateInfoForUsers(QString)));
+            QFileSystemWatcher *watcher = new QFileSystemWatcher();
+            watcher->addPath(QCoreApplication::applicationDirPath());
+            connect(watcher, SIGNAL(directoryChanged(QString)), this, SLOT(updateInfoForUsers(QString)));
 
-		// Read the client version and notification information during the initialization
-		SessionManager::setCurrentClientInfo(readClientInfoFromFile());
-		SessionManager::setCurrentNotification(readUserNotificationFromFile());
-	}
-	else
-	{		
-		Log::error("Could not start GSvar server on port #" + QString::number(port) + ": " + server_->errorString());
-	}
-
+            // Read the client version and notification information during the initialization
+            SessionManager::setCurrentClientInfo(readClientInfoFromFile());
+            SessionManager::setCurrentNotification(readUserNotificationFromFile());
+        }
+        else
+        {
+            Log::error("Could not start GSvar server on port #" + QString::number(port) + ": " + server_->errorString());
+        }
+    }
+    catch (Exception& e)
+    {
+        Log::error("Failed to start the server: " + e.message());
+    }
 }
 
 bool ServerWrapper::isRunning() const
 {
-	return is_running_;
+    return is_running_;
+}
+
+void ServerWrapper::updateClinVarSubmissionStatus()
+{
+    try
+    {
+        QPair<int,int> var_counts = NGSD().updateClinvarSubmissionStatus(false);
+        Log::info("The submission status of " + QString::number(var_counts.first) + " published varaints has been checked, " + QString::number(var_counts.second) + " NGSD entries were updated." );
+    }
+    catch (Exception& e)
+    {
+        Log::error("An error has been detected while updating a ClinVar submission status: " + e.message());
+    }
 }
 
 void ServerWrapper::updateInfoForUsers(QString str)
