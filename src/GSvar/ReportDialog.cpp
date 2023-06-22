@@ -100,7 +100,8 @@ void ReportDialog::initGUI()
 	//settings
 	ui_.details_cov->setChecked(settings_.show_coverage_details);
 	ui_.min_cov->setValue(settings_.min_depth);
-	ui_.details_cov_roi->setChecked(settings_.roi_low_cov);
+	ui_.cov_based_on_exons->setChecked(settings_.cov_based_on_exons);
+	ui_.cov_exon_padding->setValue(settings_.cov_exon_padding);
 	ui_.depth_calc->setChecked(settings_.recalculate_avg_depth);
 	ui_.omim_table->setChecked(settings_.show_omim_table);
 	ui_.omim_table_one_only->setChecked(settings_.show_one_entry_in_omim_table);
@@ -117,10 +118,10 @@ void ReportDialog::initGUI()
 		ui_.depth_calc->setChecked(false);
 		ui_.depth_calc->setEnabled(false);
 
-		ui_.details_cov_roi->setChecked(false);
-		ui_.details_cov_roi->setEnabled(false);
+		ui_.cov_based_on_exons->setChecked(false);
+		ui_.cov_based_on_exons->setEnabled(false);
+		ui_.cov_exon_padding->setEnabled(false);
 
-		ui_.min_cov_label->setEnabled(false);
 		ui_.min_cov->setEnabled(false);
 
 		ui_.omim_table->setChecked(false);
@@ -273,10 +274,9 @@ void ReportDialog::updateCoverageCheckboxStatus()
 		ui_.min_cov_label->setEnabled(add_cov_details);
 		ui_.depth_calc->setEnabled(add_cov_details);
 		if (!add_cov_details) ui_.depth_calc->setChecked(false);
-		ui_.details_cov_roi->setEnabled(add_cov_details);
-		if (!add_cov_details) ui_.details_cov_roi->setChecked(false);
+		ui_.cov_based_on_exons->setEnabled(add_cov_details);
+		ui_.cov_exon_padding->setEnabled(add_cov_details);
 	}
-
 }
 
 void ReportDialog::validateReportConfig()
@@ -482,7 +482,8 @@ void ReportDialog::writeBackSettings()
 
 	settings_.show_coverage_details = ui_.details_cov->isChecked();
 	settings_.min_depth = ui_.min_cov->value();
-	settings_.roi_low_cov = ui_.details_cov_roi->isChecked();
+	settings_.cov_based_on_exons = ui_.cov_based_on_exons->isChecked();
+	settings_.cov_exon_padding = ui_.cov_exon_padding->value();
 	settings_.recalculate_avg_depth = ui_.depth_calc->isChecked();
 	settings_.show_omim_table = ui_.omim_table->isChecked();
 	settings_.show_one_entry_in_omim_table = ui_.omim_table_one_only->isChecked();

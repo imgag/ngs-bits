@@ -405,13 +405,9 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	{
 		writeCoverageReport(stream);
 
-		writeRNACoverageReport(stream);
-
-		writeCoverageReportCCDS(stream, 0, false, false);
-
-		writeCoverageReportCCDS(stream, 5, true, true);
-
 		writeClosedGapsReport(stream);
+
+		writeRNACoverageReport(stream);
 	}
 
 	//OMIM table
@@ -1553,6 +1549,14 @@ QString GermlineReportGenerator::trans(const QString& text)
 
 void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 {
+	//determine region on which the gaps should be calculated
+	BedFile gap_region = data_.roi.regions;
+	if (data_.report_settings.cov_based_on_exons)
+	{
+		if (data_.roi.genes.isEmpty()) THROW(ArgumentException, "Cannot calculate gaps based on target region genes - target region gene list is empty!");
+		//TODO
+	}
+
 	//get target region coverages (from NGSD or calculate)
 	double target_region_read_depth = -1.0;
 
@@ -1573,7 +1577,7 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 	{
 		if (!data_.report_settings.recalculate_avg_depth) Log::warn("Average target region depth from NGSD cannot be determined! Recalculating it...");
 
-		target_region_read_depth = data_.statistics_service.targetRegionReadDepth(data_.roi.regions, data_.ps_bam, data_.threads);
+		target_region_read_depth = data_.statistics_service.targetRegionReadDepth(gap_region, data_.ps_bam, data_.threads);
 	}
 
 	stream << endl;
@@ -1596,12 +1600,12 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 			BedFile gaps;
 			gaps.load(data_.ps_lowcov, false, false);
 
-			low_cov = GermlineReportGenerator::precalculatedGaps(gaps, data_.roi.regions, data_.report_settings.min_depth, data_.processing_system_roi);
+			low_cov = GermlineReportGenerator::precalculatedGaps(gaps, gap_region, data_.report_settings.min_depth, data_.processing_system_roi);
 		}
 		catch(Exception e)
 		{
 			Log::warn("Low-coverage statistics needs to be calculated. Pre-calculated gap file cannot be used because: " + e.message());
-			low_cov = data_.statistics_service.lowCoverage(data_.roi.regions, data_.ps_bam, data_.report_settings.min_depth);
+			low_cov = data_.statistics_service.lowCoverage(gap_region, data_.ps_bam, data_.report_settings.min_depth);
 		}
 
 		//group gaps by gene
@@ -1628,9 +1632,9 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 			}
 			stream << "<br />" << trans("Komplett abgedeckte Gene") << ": " << complete_genes.join(", ") << endl;
 		}
-		if (data_.roi.regions.baseCount()>0)
+		if (gap_region.baseCount()>0)
 		{
-			gap_percentage_ = 100.0 * low_cov.baseCount()/data_.roi.regions.baseCount();
+			gap_percentage_ = 100.0 * low_cov.baseCount()/gap_region.baseCount();
 			stream << "<br />" << trans("Anteil Regionen mit Tiefe &lt;") << data_.report_settings.min_depth << ": " << QString::number(gap_percentage_, 'f', 2) << "%" << endl;
 		}
 
@@ -1747,127 +1751,6 @@ void GermlineReportGenerator::writeClosedGapsReport(QTextStream& stream)
 		stream << trans("Anteil Regionen mit Tiefe &lt;") << data_.report_settings.min_depth << " " << trans("nach L&uuml;ckenschluss") << ": " << QString::number(gap_percentage_after_closing_gaps, 'f', 2) << "%" << endl;
 		stream << "</p>";
 	}
-}
-
-void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int extend, bool gap_table, bool gene_details)
-{
-	//load gaps file (if present)
-	BedFile ps_lowcov;
-	if (VersatileFile(data_.ps_lowcov).exists())
-	{
-		ps_lowcov.load(data_.ps_lowcov, false, false);
-	}
-
-	QString ext_string = (extend==0 ? "" : " +-" + QString::number(extend) + " ");
-	stream << endl;
-	stream << "<br /><b>" << trans("Abdeckungsstatistik f&uuml;r CCDS") << " " << ext_string << "</b>" << endl;
-	if (gap_table) stream << "<table>" << endl;
-	if (gap_table) stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Transcript") << "</b></td><td><b>" << trans("Gr&ouml;&szlig;e") << "</b></td><td><b>" << trans("Basen") << "</b></td><td><b>" << trans("Chromosom") << "</b></td><td><b>" << trans("Koordinaten (hg38)") << "</b></td></tr>";
-	QMap<QByteArray, int> gap_count;
-	long long bases_overall = 0;
-	long long bases_sequenced = 0;
-	GeneSet genes_noncoding;
-	GeneSet genes_notranscript;
-	foreach(const QByteArray& gene, data_.roi.genes)
-	{
-		int gene_id = db_.geneId(gene);
-		if (gene_id==-1) continue;
-
-		//approved gene symbol
-		QByteArray symbol = db_.geneSymbol(gene_id);
-
-		//longest coding transcript
-		Transcript transcript = db_.longestCodingTranscript(gene_id, Transcript::CCDS, true);
-		if (!transcript.isValid())
-		{
-			transcript = db_.longestCodingTranscript(gene_id, Transcript::CCDS, true, true);
-			if (!transcript.isValid() || transcript.codingRegions().baseCount()==0)
-			{
-				genes_notranscript.insert(gene);
-				if (gap_table) stream << "<tr><td>" + symbol + "</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td></tr>";
-				continue;
-			}
-			else
-			{
-				genes_noncoding.insert(gene);
-			}
-		}
-
-		//gaps
-		BedFile roi = transcript.codingRegions();
-		if (extend>0)
-		{
-			roi.extend(extend);
-			roi.merge();
-		}
-		BedFile gaps;
-		try
-		{
-			//prevent look-up of mito genes (they are not part of the target region as they are treated speparately in the pipeline)
-			if (roi.chromosomes().contains("chrMT")) THROW(Exception, "chrMT not contained in target region and thus not in pre-calculated low coverage regions");
-
-			gaps = GermlineReportGenerator::precalculatedGaps(ps_lowcov, roi, data_.report_settings.min_depth, data_.processing_system_roi);
-		}
-		catch(Exception e)
-		{
-			Log::warn("Low-coverage statistics for transcript " + transcript.nameWithVersion() + " needs to be calculated. Pre-calculated gap file cannot be used because: " + e.message());
-			gaps = data_.statistics_service.lowCoverage(roi, data_.ps_bam, data_.report_settings.min_depth);
-		}
-
-		long long bases_transcipt = roi.baseCount();
-		long long bases_gaps = gaps.baseCount();
-		QStringList coords;
-		for (int i=0; i<gaps.count(); ++i)
-		{
-			coords << QString::number(gaps[i].start()) + "-" + QString::number(gaps[i].end());
-		}
-		if (gap_table) stream << "<tr><td>" + symbol + "</td><td>" << transcript.nameWithVersion() << "</td><td>" << bases_transcipt << "</td><td>" << bases_gaps << "</td><td>" << roi[0].chr().str() << "</td><td>" << coords.join(", ") << "</td></tr>";
-		gap_count[symbol] += bases_gaps;
-		bases_overall += bases_transcipt;
-		bases_sequenced += bases_transcipt - bases_gaps;
-	}
-	if (gap_table) stream << "</table>" << endl;
-	else stream << "<br />" << endl;
-
-	//show warning if non-coding transcripts had to be used
-	if (!genes_noncoding.isEmpty())
-	{
-		stream << "Using the longest *non-coding* transcript for genes " << genes_noncoding.join(", ") << "<br />";
-	}
-	if (!genes_notranscript.isEmpty())
-	{
-		stream << "No CCDS transcript defined for genes " << genes_notranscript.join(", ") << "<br />";
-	}
-
-	//overall statistics
-	stream << "CCDS " << ext_string << trans("gesamt") << ": " << bases_overall << endl;
-	stream << "<br />CCDS " << ext_string << trans("mit Tiefe") << " &ge;" << data_.report_settings.min_depth << ": " << bases_sequenced << " (" << QString::number(100.0 * bases_sequenced / bases_overall, 'f', 2)<< "%)" << endl;
-	long long gaps = bases_overall - bases_sequenced;
-	stream << "<br />CCDS " << ext_string << trans("mit Tiefe") << " &lt;" << data_.report_settings.min_depth << ": " << gaps << " (" << QString::number(100.0 * gaps / bases_overall, 'f', 2)<< "%)" << endl;
-	stream << "<br />";
-
-	//gene statistics
-	if (gene_details)
-	{
-		QByteArrayList genes_complete;
-		QByteArrayList genes_incomplete;
-		for (auto it = gap_count.cbegin(); it!=gap_count.cend(); ++it)
-		{
-			if (it.value()==0)
-			{
-				genes_complete << it.key();
-			}
-			else
-			{
-				genes_incomplete << it.key() + " <span style=\"font-size: 8pt;\">(" + QByteArray::number(it.value()) + ")</span>";
-			}
-		}
-		stream << "<br />" << trans("Komplett abgedeckte Gene") << ": " << genes_complete.join(", ") << endl;
-		stream << "<br />";
-		stream << "<br />" << trans("Unvollst&auml;ndig abgedeckte Gene (fehlende Basen in bp)") << ": " << genes_incomplete.join(", ") << endl;
-	}
-
-	if (extend==0) bases_ccds_sequenced_ = bases_sequenced;
 }
 
 void GermlineReportGenerator::writeRNACoverageReport(QTextStream& stream)

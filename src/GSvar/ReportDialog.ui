@@ -351,18 +351,53 @@
          </spacer>
         </item>
         <item>
-         <widget class="QCheckBox" name="details_cov_roi">
+         <widget class="QCheckBox" name="cov_exon">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Generate a target region based on gene exons from the gene list of the selected target region.&lt;/p&gt;&lt;p&gt;This option is usefull if the target region is based on the entire gene locus, but coverage details like gaps should be calcualted for the exon/splice region only.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
           <property name="text">
-           <string>Add target region coverage details (otherwise details are only shown for CCDS+-5)</string>
+           <string>Also calculate gaps based on gene exons. Pad gene Exons by:</string>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
           </property>
          </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="cov_exon_padding">
+          <property name="minimum">
+           <number>0</number>
+          </property>
+          <property name="maximum">
+           <number>20</number>
+          </property>
+          <property name="singleStep">
+           <number>1</number>
+          </property>
+          <property name="value">
+           <number>20</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <layout class="QHBoxLayout" name="horizontalLayout_8">
         <item>
-         <spacer name="horizontalSpacer_2">
+         <spacer name="horizontalSpacer_9">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -404,7 +439,7 @@
          </widget>
         </item>
         <item>
-         <spacer name="horizontalSpacer_3">
+         <spacer name="horizontalSpacer_10">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>

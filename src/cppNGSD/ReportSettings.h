@@ -20,7 +20,8 @@ public:
 
 	bool show_coverage_details; //slow low-coverage details
 	int min_depth; //cutoff for low-coverage statistics
-	bool roi_low_cov; //low-coverage details for the ROI are added (not only for CCDS)
+	bool cov_based_on_exons; //calcualte low-coverage details based on exons of genes. Otherwise, that target region is used.
+	int cov_exon_padding; //number of bases to pad the gene exons with, see cov_based_on_exons.
 	bool recalculate_avg_depth; //average coverage should be calculated for the target region (otherwise the processing system average depth is used)
 
 	bool show_omim_table; //show OMIM table
