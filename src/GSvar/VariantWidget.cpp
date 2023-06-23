@@ -415,7 +415,7 @@ void VariantWidget::pubmedClicked(QString link)
 	}
 }
 
-void VariantWidget::tableCellDoubleClicked(int row, int column)
+void VariantWidget::tableCellDoubleClicked(int row, int /*column*/)
 {
 	QString ps = ui_.table->item(row, 0)->text();
 	GlobalServiceProvider::openProcessedSampleTab(ps);
