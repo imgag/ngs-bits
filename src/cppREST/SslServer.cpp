@@ -27,7 +27,14 @@ QSslSocket *SslServer::nextPendingConnection()
 
 void SslServer::incomingConnection(qintptr socket)
 {
-	RequestWorker *request_worker = new RequestWorker(current_ssl_configuration_, socket);
-	connect(request_worker, &RequestWorker::finished, request_worker, &QObject::deleteLater);
-	request_worker->start();
+    try
+    {
+        RequestWorker *request_worker = new RequestWorker(current_ssl_configuration_, socket);
+        connect(request_worker, &RequestWorker::finished, request_worker, &QObject::deleteLater);
+        request_worker->start();
+    }
+    catch (...)
+    {
+        Log::error("Unexpected error while processing a client request");
+    }
 }

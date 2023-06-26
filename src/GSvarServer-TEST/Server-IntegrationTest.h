@@ -61,6 +61,7 @@ private slots:
 		QByteArray reply;
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/html");
+        add_headers.insert("Content-Type", "text/html");
 		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
 		if (code > 0)
 		{
@@ -80,6 +81,7 @@ private slots:
 		QByteArray reply;
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/html");
+        add_headers.insert("Content-Type", "text/html");
 		add_headers.insert("Range", "bytes=114-140,399-430");
 		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
 		if (code > 0)
@@ -101,6 +103,7 @@ private slots:
 		QByteArray reply;
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/html");
+        add_headers.insert("Content-Type", "text/html");
 		add_headers.insert("Range", "bytes=454-");
 		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
 		if (code > 0)
@@ -121,6 +124,7 @@ private slots:
 		QByteArray reply;
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/html");
+        add_headers.insert("Content-Type", "text/html");
 		add_headers.insert("Range", "bytes=-8");
 		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
 		if (code > 0)
@@ -132,6 +136,7 @@ private slots:
 
 		add_headers.clear();
 		add_headers.insert("Accept", "text/html");
+        add_headers.insert("Content-Type", "text/html");
 		add_headers.insert("Range", "bytes=0-5,5-8");
 		IS_THROWN(Exception, HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(ClientHelper::serverApiUrl(), add_headers));
 	}	
@@ -146,6 +151,7 @@ private slots:
 		QByteArray reply;
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/html");
+        add_headers.insert("Content-Type", "text/html");
 		QByteArray data = "name=ahmustm1&password=123456";
 		int code = sendPostRequest(reply, ClientHelper::serverApiUrl() + "login", add_headers, data);
 		if (code > 0)
@@ -158,6 +164,7 @@ private slots:
 		reply.clear();
 		add_headers.clear();
 		add_headers.insert("Accept", "application/json");
+        add_headers.insert("Content-Type", "application/json");
 		code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "session?token=" + token, add_headers);
 		QJsonDocument session_json = QJsonDocument::fromJson(reply);
 		IS_TRUE(session_json.isObject());
@@ -183,6 +190,7 @@ private slots:
 		QByteArray reply;
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "application/octet-stream");
+        add_headers.insert("Content-Type", "application/octet-stream");
 		int code = sendGetRequest(reply, filename, add_headers);
 		if (code > 0)
 		{
@@ -205,6 +213,7 @@ private slots:
 		QByteArray reply;
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "application/json");
+        add_headers.insert("Content-Type", "application/json");
 		int code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "info", add_headers);
 		if (code > 0)
 		{
@@ -229,6 +238,7 @@ private slots:
 		QByteArray reply;
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "application/json");
+        add_headers.insert("Content-Type", "application/json");
 		int code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "current_client", add_headers);
 		if (code > 0)
 		{
