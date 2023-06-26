@@ -2083,7 +2083,7 @@ void MainWindow::on_actionExpressionData_triggered()
 
 	ExpressionGeneWidget* widget = new ExpressionGeneWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, project, rna_ps_id,
 															cohort_type, this);
-	auto dlg = GUIHelper::createDialog(widget, "Expression Data of " + db.processedSampleName(rna_ps_id));
+	auto dlg = GUIHelper::createDialog(widget, "Gene expression of " + db.processedSampleName(rna_ps_id) + " (DNA: " + variants_.analysisName() + ")");
 	addModelessDialog(dlg);
 }
 
@@ -2166,7 +2166,7 @@ void MainWindow::on_actionExonExpressionData_triggered()
 	if (somaticReportSupported()) cohort_type = RNA_COHORT_SOMATIC;
 
 	ExpressionExonWidget* widget = new ExpressionExonWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, project, rna_ps_id, cohort_type, this);
-	auto dlg = GUIHelper::createDialog(widget, "Expression Data of " + db.processedSampleName(rna_ps_id));
+	auto dlg = GUIHelper::createDialog(widget, "Exon expression of " + db.processedSampleName(rna_ps_id) + " (DNA: " + variants_.analysisName() + ")");
 	addModelessDialog(dlg);
 }
 
@@ -2211,7 +2211,7 @@ void MainWindow::on_actionShowSplicing_triggered()
 
 	SplicingWidget* splicing_widget = new SplicingWidget(splicing_filepath, this);
 
-	auto dlg = GUIHelper::createDialog(splicing_widget, "Splicing of " + variants_.analysisName());
+	auto dlg = GUIHelper::createDialog(splicing_widget, "Splicing Alterations of " + variants_.analysisName());
 	addModelessDialog(dlg);
 }
 
@@ -6247,6 +6247,7 @@ void MainWindow::on_actionGapsLookup_triggered()
 		QMessageBox::warning(this, "Gap lookup", "No look-up of gaps is possible!\nCould not find a low-coverage file for sample " + ps_name + ".");
 		return;
 	}
+	if (low_cov_files.count()>1) Log::warn( "Several gap files found for " + ps_name + ".");
 
 	//get gene name from user
 	QString gene = QInputDialog::getText(this, "Display gaps", "Gene:").trimmed();
@@ -6359,6 +6360,7 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	//show dialog
 	QStringList low_covs = GlobalServiceProvider::fileLocationProvider().getLowCoverageFiles(false).filterById(ps).asStringList();
 	low_covs << ""; //add empty string in case there is no low-coverage file > this case is handled inside the dialog
+	if (low_covs.count()>1) Log::warn( "Several gap files found for " + ps + ".");
 	GapDialog dlg(this, ps, bams[0], low_covs[0], roi, genes);
 	dlg.exec();
 }

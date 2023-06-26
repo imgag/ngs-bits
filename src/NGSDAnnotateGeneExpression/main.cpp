@@ -71,7 +71,7 @@ public:
 		SampleData s_data = db.getSampleData(s_id);
 		int sys_id = db.processingSystemId(ps_data.processing_system);
 		QSet<int> rna_cohort_ps_ids;
-		QMap<QByteArray, ExpressionStats> expression_stats = db.calculateCohortExpressionStatistics(sys_id, s_data.tissue,  rna_cohort_ps_ids, ps_data.project_name, ps_id, cohort_strategy);
+		QMap<QByteArray, ExpressionStats> expression_stats = db.calculateCohortExpressionStatistics(sys_id, s_data.tissue, rna_cohort_ps_ids, ps_data.project_name, ps_id, cohort_strategy);
 
 
 		//parse GSvar file

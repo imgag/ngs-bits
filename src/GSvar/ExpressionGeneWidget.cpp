@@ -352,7 +352,6 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 				filter_result_.flags()[row_idx] = false;
 				continue;
 			}
-
 			double tpm = 0.0;
 			QString value = expression_data_.row(row_idx).at(tpm_idx).toUtf8().trimmed();
 			if (!(value.isEmpty() || value == "n/a"))
@@ -824,7 +823,12 @@ void ExpressionGeneWidget::initTable()
 	}
 
 	//init db ensg gene mapping
+	QTime timer;
+	timer.start();
 	ensg_mapping_ = db_.getEnsemblGeneMapping();
+	id2gene_ = db_.getGeneExpressionId2GeneMapping();
+	gene2id_ = db_.getGeneExpressionGene2IdMapping();
+	qDebug() << "init mapping took:" << Helper::elapsedTime(timer);
 
 }
 
@@ -838,7 +842,7 @@ void ExpressionGeneWidget::updateQuery()
 	}
 	qDebug() << "cohort size:" << cohort_id_list.size();
 	query_gene_stats_.prepare(QString() + "SELECT AVG(e.tpm), AVG(LOG2(e.tpm+1)), STD(LOG2(e.tpm+1)) FROM expression e "
-							  + "WHERE e.processed_sample_id IN (" + cohort_id_list.join(", ") + ") AND e.symbol=:0;");
+							  + "WHERE e.processed_sample_id IN (" + cohort_id_list.join(", ") + ") AND e.symbol_id=:0;");
 }
 
 
@@ -1024,7 +1028,7 @@ void ExpressionGeneWidget::initBiotypeList()
 
 bool ExpressionGeneWidget::getGeneStats(const QByteArray& gene, double tpm)
 {
-	query_gene_stats_.bindValue(0, gene);
+	query_gene_stats_.bindValue(0, gene2id_.value(gene));
 	query_gene_stats_.exec();
 	if(query_gene_stats_.size() > 0)
 	{

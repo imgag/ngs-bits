@@ -136,6 +136,12 @@ void ExpressionExonWidget::initFilter()
 	ui_->sb_low_expression->setValue(0.1);
 	ui_->sb_min_zscore->setValue(2.0);
 
+	//set gene filter
+	if(!variant_gene_filter_.isEmpty())
+	{
+		ui_->le_gene_filter->setText(variant_gene_filter_);
+	}
+
 	initBiotypeList();
 
 	qDebug() << "filter initialized";
@@ -433,13 +439,13 @@ void ExpressionExonWidget::applyFilters()
 			int idx_srpb = expression_data_.headers().indexOf("srpb");
 
 
-			if ((idx_cohort_mean == -1))
+			if (idx_cohort_mean == -1)
 			{
 				QMessageBox::warning(this, "Filtering error", "Table does not contain a 'cohort_mean' column! \nFiltering based on cohort mean value is not possible. Please reannotate the RNA sample.");
 			}
 			else
 			{
-				if ((idx_srpb == -1))
+				if (idx_srpb == -1)
 				{
 					QMessageBox::warning(this, "Filtering error", "Table does not contain a 'srpb' column! \nFiltering based on srpb value is not possible. Please reannotate the RNA sample.");
 				}
@@ -668,11 +674,12 @@ void ExpressionExonWidget::showHistogram(int row_idx)
 	BedLine exon = BedLine::fromString(expression_data_.row(row_idx).at(expression_data_.columnIndex("exon")));
 	QSet<int> cohort = db.getRNACohort(sys_id_, tissue_, project_, ps_id_, cohort_type_, "exons");
 	QVector<double> expr_values = db.getExonExpressionValues(exon, cohort, false);
+	double srpb = ui_->tw_expression_table->item(row_idx, 4)->text().toDouble();
 
 	if(expr_values.size() == 0) return;
 	//create histogram
 	std::sort(expr_values.begin(), expr_values.end());
-	double max = expr_values.constLast();
+	double max = std::max(expr_values.constLast(), srpb);
 	if (max == 0.0) max += 0.01;
 	Histogram hist(0.0, max, max/40.0);
 	foreach(double expr_value, expr_values)
@@ -681,7 +688,7 @@ void ExpressionExonWidget::showHistogram(int row_idx)
 	}
 
 	//show chart
-	QChartView* view = GUIHelper::histogramChart(hist, "Exon expression value distribution (SRPB, " + QString::number(expr_values.size()) + " samples)");
+	QChartView* view = GUIHelper::histogramChart(hist, "Exon expression value distribution (SRPB, " + QString::number(expr_values.size()) + " samples)", hist.binIndex(srpb));
 	auto dlg = GUIHelper::createDialog(view, "Exon expression value distribution (" + exon.toString(true) + ")");
 	dlg->exec();
 }

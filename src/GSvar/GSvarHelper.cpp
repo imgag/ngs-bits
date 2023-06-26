@@ -410,54 +410,6 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 	return false;
 }
 
-
-bool GSvarHelper::colorMaxEntScan(QString anno, QList<double>& percentages, QList<double>& abs_values)
-{
-	double max_relevant_change = 0;
-	foreach (const QString value, anno.split(','))
-	{
-		QStringList parts = value.split('>');
-
-		if (parts.count() == 2)
-		{
-			double percent_change;
-			double base = parts[0].toDouble();
-			double new_value = parts[1].toDouble();
-			double abs_change = std::abs(base-new_value);
-			abs_values.append(abs_change);
-
-			// calculate percentage change:
-			if (base != 0)
-			{
-				if (base > 0)
-				{
-					percent_change = (new_value - base) / base;
-				} else {
-					percent_change = (base - new_value) / base;
-				}
-			}
-			percent_change = std::abs(percent_change);
-			percentages.append(percent_change);
-
-			//Don't color if absChange smaller than 0.5
-			if ((abs_change > 0.5) && percent_change > max_relevant_change)
-			{
-				max_relevant_change = percent_change;
-			}
-		}
-	}
-
-	if (max_relevant_change >= 0.15)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-
-
 QString GSvarHelper::specialGenes(const GeneSet& genes)
 {
 	GeneSet special_genes;

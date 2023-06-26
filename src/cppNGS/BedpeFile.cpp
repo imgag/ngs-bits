@@ -119,7 +119,7 @@ int BedpeLine::size() const
 	StructuralVariantType t = type();
 	if (t==StructuralVariantType::DEL || t==StructuralVariantType::DUP || t==StructuralVariantType::INV)
 	{
-		return end2() - start1();
+		return end2() - start1() +1;
 	}
 	else if (t==StructuralVariantType::INS || t==StructuralVariantType::BND)
 	{

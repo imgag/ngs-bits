@@ -171,6 +171,7 @@ void LoginManager::renewLogin()
 	}
 
 	add_headers.insert("Accept", "application/json");
+    add_headers.insert("Content-type", "application/x-www-form-urlencoded");
 	QByteArray session_info = sendGetApiRequest("session?token=" + manager.userToken(), add_headers);
 	QJsonDocument session_json = QJsonDocument::fromJson(session_info);
 
@@ -185,6 +186,7 @@ void LoginManager::renewLogin()
 
 			add_headers.clear();
 			add_headers.insert("Accept", "text/plain");
+            add_headers.insert("Content-type", "application/x-www-form-urlencoded");
 
 			QString content = "name="+user_login+"&password="+user_password;
 			manager.user_token_ = sendPostApiRequest("login", content, add_headers);
