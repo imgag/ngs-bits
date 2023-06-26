@@ -151,8 +151,8 @@ private slots:
 		QByteArray reply;
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/html");
-        add_headers.insert("Content-Type", "text/html");
-		QByteArray data = "name=ahmustm1&password=123456";
+        add_headers.insert("Content-Type", "application/x-www-form-urlencoded");
+        QByteArray data = "name=ahmustm1&password=123456";
 		int code = sendPostRequest(reply, ClientHelper::serverApiUrl() + "login", add_headers, data);
 		if (code > 0)
 		{
