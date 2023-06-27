@@ -144,6 +144,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "MaintenanceDialog.h"
 #include "ClientHelper.h"
 #include "ProxyDataService.h"
+#include "RefGenomeService.h"
+#include "GHGAUploadDialog.h"
 
 #include "ExportCBioPortalStudy.h"
 
@@ -319,6 +321,8 @@ MainWindow::MainWindow(QWidget *parent)
 			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM files over HTTPS may not be possible");
 		}
 	}
+    RefGenomeService::setReferenceGenome(Settings::string("reference_genome"));
+
 	update_info_toolbar_ = new QToolBar;
 	update_info_toolbar_->hide();
 	addToolBar(Qt::TopToolBarArea, update_info_toolbar_);
@@ -415,6 +419,9 @@ void MainWindow::on_actionDebug_triggered()
 	qDebug() << user;
 	if (user=="ahsturm1")
 	{
+		on_actionPrepareGhgaUpload_triggered();
+		return;
+
 		//VariantHgvsAnnotator debugging
 		/*
 		QString genome_file = Settings::string("reference_genome", false);
@@ -2315,7 +2322,7 @@ void MainWindow::on_actionExpressionData_triggered()
 
 	ExpressionGeneWidget* widget = new ExpressionGeneWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, project, rna_ps_id,
 															cohort_type, this);
-	auto dlg = GUIHelper::createDialog(widget, "Expression Data of " + db.processedSampleName(rna_ps_id));
+	auto dlg = GUIHelper::createDialog(widget, "Gene expression of " + db.processedSampleName(rna_ps_id) + " (DNA: " + variants_.analysisName() + ")");
 	addModelessDialog(dlg);
 }
 
@@ -2398,7 +2405,7 @@ void MainWindow::on_actionExonExpressionData_triggered()
 	if (somaticReportSupported()) cohort_type = RNA_COHORT_SOMATIC;
 
 	ExpressionExonWidget* widget = new ExpressionExonWidget(count_file, rna_sys_id, tissue, ui_.filters->genes().toStringList().join(", "), variant_target_region, project, rna_ps_id, cohort_type, this);
-	auto dlg = GUIHelper::createDialog(widget, "Expression Data of " + db.processedSampleName(rna_ps_id));
+	auto dlg = GUIHelper::createDialog(widget, "Exon expression of " + db.processedSampleName(rna_ps_id) + " (DNA: " + variants_.analysisName() + ")");
 	addModelessDialog(dlg);
 }
 
@@ -2443,7 +2450,7 @@ void MainWindow::on_actionShowSplicing_triggered()
 
 	SplicingWidget* splicing_widget = new SplicingWidget(splicing_filepath, this);
 
-	auto dlg = GUIHelper::createDialog(splicing_widget, "Splicing of " + variants_.analysisName());
+	auto dlg = GUIHelper::createDialog(splicing_widget, "Splicing Alterations of " + variants_.analysisName());
 	addModelessDialog(dlg);
 }
 
@@ -6332,6 +6339,12 @@ void MainWindow::on_actionReplicateNGSD_triggered()
 	dlg->exec();
 }
 
+void MainWindow::on_actionPrepareGhgaUpload_triggered()
+{
+	GHGAUploadDialog dlg(this);
+	dlg.exec();
+}
+
 void MainWindow::on_actionMaintenance_triggered()
 {
 	try
@@ -6475,6 +6488,7 @@ void MainWindow::on_actionGapsLookup_triggered()
 		QMessageBox::warning(this, "Gap lookup", "No look-up of gaps is possible!\nCould not find a low-coverage file for sample " + ps_name + ".");
 		return;
 	}
+	if (low_cov_files.count()>1) Log::warn( "Several gap files found for " + ps_name + ".");
 
 	//get gene name from user
 	QString gene = QInputDialog::getText(this, "Display gaps", "Gene:").trimmed();
@@ -6517,7 +6531,8 @@ void MainWindow::on_actionGapsLookup_triggered()
 		QStringList parts = line.split('\t');
 		if(parts.count()==4 && parts[3].contains(gene, Qt::CaseInsensitive))
 		{
-			output.append(line);
+			double size_kb = (parts[2].toDouble() - parts[1].toDouble()) / 1000.0;
+			output.append(line + "\t" + QString::number(size_kb, 'f', 3) + " kb");
 		}
 	}
 
@@ -6535,8 +6550,13 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 {
 	if (filename_=="") return;
 
+	//only available for gmerline and somatic single sample
+	AnalysisType type = variants_.type();
+	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO && type!=GERMLINE_MULTISAMPLE && type!=SOMATIC_SINGLESAMPLE) return;
+
+
 	//check for BAM file
-	QString ps = germlineReportSample();
+	QString ps = type==SOMATIC_SINGLESAMPLE ? variants_.getSampleHeader()[0].id : germlineReportSample();
 	QStringList bams = GlobalServiceProvider::fileLocationProvider().getBamFiles(false).filterById(ps).asStringList();
 	if (bams.empty())
 	{
@@ -6581,6 +6601,7 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	//show dialog
 	QStringList low_covs = GlobalServiceProvider::fileLocationProvider().getLowCoverageFiles(false).filterById(ps).asStringList();
 	low_covs << ""; //add empty string in case there is no low-coverage file > this case is handled inside the dialog
+	if (low_covs.count()>1) Log::warn( "Several gap files found for " + ps + ".");
 	GapDialog dlg(this, ps, bams[0], low_covs[0], roi, genes);
 	dlg.exec();
 }

@@ -6,6 +6,7 @@
 #include <QFileInfo>
 #include <QDir>
 #include <SampleSimilarity.h>
+#include "TSVFileStream.h"
 #include "Settings.h"
 
 struct GeneCount

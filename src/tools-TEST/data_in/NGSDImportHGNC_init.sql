@@ -52,9 +52,15 @@ INSERT INTO `somatic_pathway_gene` (`symbol`, `pathway_id`) VALUES
 ('FANCD1', 1),
 ('FANCD1', 4);
 
-INSERT INTO `expression` (`symbol`, `processed_sample_id`, `tpm`, `raw`) VALUES
-('BRCA1', 3999, 8.765, 1),
-('RNF53', 3999, 9.87654, 3),
-('BLABLA', 3999, 2.584, 4),
-('FANCD1', 3999, 2.3456, 7),
-('FANCD1', 4000, 1.23456, 987);
+INSERT INTO `expression_gene` (`id`, `symbol`) VALUES
+(1, 'BRCA1'),
+(2, 'RNF53'),
+(3, 'BLABLA'),
+(4, 'FANCD1');
+
+INSERT INTO `expression` (`symbol_id`, `processed_sample_id`, `tpm`, `raw`) VALUES
+(1, 3999, 8.765, 1),
+(2, 3999, 9.87654, 3),
+(3, 3999, 2.584, 4),
+(4, 3999, 2.3456, 7),
+(4, 4000, 1.23456, 987);

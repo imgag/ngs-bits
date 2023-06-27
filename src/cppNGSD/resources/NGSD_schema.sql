@@ -2264,27 +2264,67 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
+-- Table `expression_gene`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `expression_gene`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `symbol` VARCHAR(40) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `symbol` (`symbol`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
 -- Table `expression`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `expression`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
-  `symbol` VARCHAR(40) NOT NULL,
+  `symbol_id` INT(11) NOT NULL,
   `tpm` FLOAT NOT NULL,
   `raw` INT(11) NULL,
   PRIMARY KEY (`id`),
-  INDEX(`processed_sample_id`),
-  INDEX(`symbol`),
-  UNIQUE INDEX `expression_UNIQUE` (`processed_sample_id` ASC, `symbol` ASC),
+  INDEX(`symbol_id`),
+  UNIQUE INDEX `expression_UNIQUE` (`processed_sample_id` ASC, `symbol_id` ASC),
   CONSTRAINT `fk_expression_processed_sample_id`
     FOREIGN KEY (`processed_sample_id` )
     REFERENCES `processed_sample` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_expression_symbol_id`
+    FOREIGN KEY (`symbol_id` )
+    REFERENCES `expression_gene` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
+
+-- -- -----------------------------------------------------
+-- -- Table `expression`
+-- -- -----------------------------------------------------
+-- CREATE TABLE IF NOT EXISTS `expression`
+-- (
+--   `id` INT(11) NOT NULL AUTO_INCREMENT,
+--   `processed_sample_id` INT(11) NOT NULL,
+--   `symbol` VARCHAR(40) NOT NULL,
+--   `tpm` FLOAT NOT NULL,
+--   `raw` INT(11) NULL,
+--   PRIMARY KEY (`id`),
+--   INDEX(`processed_sample_id`),
+--   INDEX(`symbol`),
+--   UNIQUE INDEX `expression_UNIQUE` (`processed_sample_id` ASC, `symbol` ASC),
+--   CONSTRAINT `fk_expression_processed_sample_id`
+--     FOREIGN KEY (`processed_sample_id` )
+--     REFERENCES `processed_sample` (`id` )
+--     ON DELETE NO ACTION
+--     ON UPDATE NO ACTION
+-- )
+-- ENGINE = InnoDB
+-- DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
 -- Table `expression_exon`

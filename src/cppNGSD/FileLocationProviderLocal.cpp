@@ -116,6 +116,7 @@ FileLocationList FileLocationProviderLocal::getBamFiles(bool return_if_missing) 
 	foreach(const KeyValuePair& loc, getBaseLocations())
 	{
 		FileLocation file = FileLocation{loc.key, PathType::BAM, loc.value + ".bam", false};
+        if (QFile::exists(loc.value + ".cram")) file.filename = loc.value + ".cram";
 		addToList(file, output, return_if_missing);
 	}
 

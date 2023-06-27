@@ -335,7 +335,7 @@ QString GenLabDB::sapID(QString ps_name)
 	return output;
 }
 
-QStringList GenLabDB::samplesWithSapID(QString sap_id, QString sys_long)
+QStringList GenLabDB::samplesWithSapID(QString sap_id, QString sys_type)
 {
 	//get DNA number via SAP id
 	QStringList dna_nrs;
@@ -359,8 +359,7 @@ QStringList GenLabDB::samplesWithSapID(QString sap_id, QString sys_long)
 		params.s_name=dna_nr;
 		params.include_bad_quality_samples=false;
 		params.include_merged_samples=false;
-		params.run_finished=true;
-		if (!sys_long.isEmpty()) params.sys_name = sys_long;
+		if (!sys_type.isEmpty()) params.sys_type = sys_type;
 
 		DBTable res = db.processedSampleSearch(params);
 		for(int r=0; r<res.rowCount(); ++r)

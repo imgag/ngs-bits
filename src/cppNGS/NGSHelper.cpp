@@ -1,17 +1,8 @@
 #include "NGSHelper.h"
-#include "Exceptions.h"
 #include "Helper.h"
-#include "BasicStatistics.h"
-#include "BamReader.h"
-#include "GeneSet.h"
-#include "ToolBase.h"
-#include "Log.h"
+#include "FilterCascade.h"
 
-#include <QTextStream>
 #include <QFileInfo>
-
-#include <cmath>
-#include <vector>
 
 namespace {
 
@@ -790,6 +781,116 @@ const QMap<QByteArray, QByteArrayList>& NGSHelper::transcriptMatches(GenomeBuild
 	}
 
 	return output[build];
+}
+
+MaxEntScanImpact NGSHelper::maxEntScanImpact(const QByteArrayList& score_pairs, QByteArray& score_pairs_with_impact, bool splice_site_only)
+{
+	if (score_pairs.count()<1) THROW(ArgumentException, "MaxEntScan annotation contains less than one score pair");
+	if (score_pairs.count()>3) THROW(ArgumentException, "MaxEntScan annotation contains more than three score pair");
+
+	QList<MaxEntScanImpact> impacts;
+	QByteArrayList score_pairs_new;
+
+	for (int i=0; i<score_pairs.count(); ++i)
+	{
+		const QByteArray& score_pair = score_pairs[i];
+
+		//no data - this may happen e.g. for intronic variants where the first prediction is not available
+		QByteArrayList parts = score_pair.split('>');
+		if (parts.count()!=2)
+		{
+			score_pairs_new << "-";
+			continue;
+		}
+
+		if (splice_site_only && i>0)
+		{
+			score_pairs_new << score_pair;
+			continue;
+		}
+
+		//convert numbers
+		bool ok1 = false;
+		double ref = parts[0].toDouble(&ok1);
+		if (ref<0) ref = 0;
+		bool ok2 = false;
+		double alt = parts[1].toDouble(&ok2);
+		if (alt<0) alt = 0;
+		if (!ok1 || !ok2) THROW(ArgumentException, "MaxEntScan annotation contains invalid number: " + score_pair);
+		double diff = ref - alt;
+
+		//first score pair (native splice site) - impact implement similar to in https://doi.org/10.1093/bioinformatics/bty960
+		if (i==0)
+		{
+			bool low_impact = true;
+			if (diff>0 && ref>=3)
+			{
+				if (alt<6.2)
+				{
+					if (diff>=1.15)
+					{
+						impacts << MaxEntScanImpact::HIGH;
+						score_pairs_new << score_pair+"(HIGH)";
+						low_impact = false;
+					}
+					else
+					{
+						impacts << MaxEntScanImpact::MODERATE;
+						score_pairs_new << score_pair+"(MODERATE)";
+						low_impact = false;
+					}
+				}
+				else if (alt<=8.5)
+				{
+					if (diff>1.15)
+					{
+						impacts << MaxEntScanImpact::MODERATE;
+						score_pairs_new << score_pair+"(MODERATE)";
+						low_impact = false;
+					}
+				}
+			}
+
+			if (low_impact)
+			{
+				score_pairs_new << score_pair;
+			}
+		}
+
+		//second/third score pair (de-novo gain of splice acceptor/donor)
+		else
+		{
+			bool low_impact = true;
+			if (diff<-1.15 && ref<3)
+			{
+				if (alt>8.5)
+				{
+					impacts << MaxEntScanImpact::HIGH;
+					score_pairs_new << score_pair+"(HIGH)";
+					low_impact = false;
+				}
+				else if (alt>=6.2)
+				{
+					impacts << MaxEntScanImpact::MODERATE;
+					score_pairs_new << score_pair+"(MODERATE)";
+					low_impact = false;
+				}
+			}
+
+			if (low_impact)
+			{
+				score_pairs_new << score_pair;
+			}
+		}
+	}
+
+	//write
+	score_pairs_with_impact = score_pairs_new.join(" / ");
+
+	//output
+	if (impacts.contains(MaxEntScanImpact::HIGH)) return MaxEntScanImpact::HIGH;
+	if (impacts.contains(MaxEntScanImpact::MODERATE)) return MaxEntScanImpact::MODERATE;
+	return MaxEntScanImpact::LOW;
 }
 
 //Helper struct for GFF parsing
