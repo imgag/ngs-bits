@@ -548,7 +548,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 			<< "Count NGSD	max_count=10	ignore_genotype=false"
 			<< "Impact	impact=HIGH,MODERATE,LOW"
 			<< "Annotated pathogenic	action=KEEP	sources=HGMD,ClinVar	also_likely_pathogenic=false"
-			<< "Splice effect	MaxEntScan=0	SpliceAi=0.5	action=KEEP"
+			<< "Splice effect	MaxEntScan=LOW	SpliceAi=0.5	action=KEEP"
 			<< "Allele frequency	max_af=1.0"
 			<< "Filter columns	entries=mosaic	action=REMOVE"
 			<< "Classification NGSD	action=REMOVE	classes=1,2";
@@ -798,7 +798,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 			<< "Count NGSD	max_count=10	ignore_genotype=false"
 			<< "Impact	impact=HIGH,MODERATE,LOW"
 			<< "Annotated pathogenic	action=KEEP	sources=HGMD,ClinVar	also_likely_pathogenic=false"
-			<< "Splice effect	MaxEntScan=0	SpliceAi=0.5	action=KEEP"
+			<< "Splice effect	MaxEntScan=LOW	SpliceAi=0.5	action=KEEP"
 			<< "Allele frequency	max_af=1.0"
 			<< "Filter columns	entries=mosaic	action=REMOVE"
 			<< "Classification NGSD	action=REMOVE	classes=1,2";

@@ -6247,6 +6247,7 @@ void MainWindow::on_actionGapsLookup_triggered()
 		QMessageBox::warning(this, "Gap lookup", "No look-up of gaps is possible!\nCould not find a low-coverage file for sample " + ps_name + ".");
 		return;
 	}
+	if (low_cov_files.count()>1) Log::warn( "Several gap files found for " + ps_name + ".");
 
 	//get gene name from user
 	QString gene = QInputDialog::getText(this, "Display gaps", "Gene:").trimmed();
@@ -6359,6 +6360,7 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	//show dialog
 	QStringList low_covs = GlobalServiceProvider::fileLocationProvider().getLowCoverageFiles(false).filterById(ps).asStringList();
 	low_covs << ""; //add empty string in case there is no low-coverage file > this case is handled inside the dialog
+	if (low_covs.count()>1) Log::warn( "Several gap files found for " + ps + ".");
 	GapDialog dlg(this, ps, bams[0], low_covs[0], roi, genes);
 	dlg.exec();
 }

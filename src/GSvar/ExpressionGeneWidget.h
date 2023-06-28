@@ -2,9 +2,9 @@
 #define EXPRESSIONGENEWIDGET_H
 
 #include "NGSD.h"
+#include "FilterCascade.h"
 #include <GeneSet.h>
 #include <QTableWidget>
-#include <QWidget>
 #include <TsvFile.h>
 
 namespace Ui {

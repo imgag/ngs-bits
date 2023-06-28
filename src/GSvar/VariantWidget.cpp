@@ -27,6 +27,7 @@ VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	connect(ui_.transcripts, SIGNAL(linkActivated(QString)), this, SLOT(openGeneTab(QString)));
 	connect(ui_.af_gnomad, SIGNAL(linkActivated(QString)), this, SLOT(gnomadClicked(QString)));
 	connect(ui_.pubmed, SIGNAL(linkActivated(QString)), this, SLOT(pubmedClicked(QString)));
+	connect(ui_.table, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(tableCellDoubleClicked(int, int)));
 
 	//add sample table context menu entries
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
@@ -412,5 +413,11 @@ void VariantWidget::pubmedClicked(QString link)
 			QDesktopServices::openUrl(QUrl("https://pubmed.ncbi.nlm.nih.gov/" + id + "/"));
 		}
 	}
+}
+
+void VariantWidget::tableCellDoubleClicked(int row, int /*column*/)
+{
+	QString ps = ui_.table->item(row, 0)->text();
+	GlobalServiceProvider::openProcessedSampleTab(ps);
 }
 

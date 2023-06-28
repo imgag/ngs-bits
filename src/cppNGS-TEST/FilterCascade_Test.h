@@ -934,35 +934,35 @@ private slots:
 		filter.setString("action", "FILTER");
 
 		// all filters off
-		filter.setInteger("MaxEntScan", 0);
+		filter.setString("MaxEntScan", "LOW");
 		filter.setDouble("SpliceAi", 0);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), result.flags().count());
 
-		//only MES: increase
+		//only MES MODERATE
 		result.reset();
-		filter.setInteger("MaxEntScan", 15);
-		filter.setDouble("SpliceAi", 0);
-		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 1);
-
-		//only MES: decrease
-		result.reset();
-		filter.setInteger("MaxEntScan", -15);
+		filter.setString("MaxEntScan", "MODERATE");
 		filter.setDouble("SpliceAi", 0);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 2);
 
+		//only MES HIGH
+		result.reset();
+		filter.setString("MaxEntScan", "HIGH");
+		filter.setDouble("SpliceAi", 0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 1);
+
 		//only SpliceAi
 		result.reset();
-		filter.setInteger("MaxEntScan", 0);
+		filter.setString("MaxEntScan", "LOW");
 		filter.setDouble("SpliceAi", 0.2);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 5);
 
 		//combined
 		result.reset();
-		filter.setInteger("MaxEntScan", -15);
+		filter.setString("MaxEntScan", "MODERATE");
 		filter.setDouble("SpliceAi", 0.4);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 3);
@@ -970,39 +970,31 @@ private slots:
 		// MODUS KEEP combined
 		filter.setString("action", "KEEP");
 		result.reset(false);
-		filter.setInteger("MaxEntScan", -15);
+		filter.setString("MaxEntScan", "MODERATE");
 		filter.setDouble("SpliceAi", 0.4);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 3);
 
 		//only MES: increase
 		result.reset(false);
-		filter.setInteger("MaxEntScan", 15);
-		filter.setDouble("SpliceAi", 0);
-		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 1);
-
-		//only MES: decrease
-		result.reset(false);
-		filter.setInteger("MaxEntScan", -15);
+		filter.setString("MaxEntScan", "MODERATE");
 		filter.setDouble("SpliceAi", 0);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 2);
 
 		//only SpliceAi
 		result.reset(false);
-		filter.setInteger("MaxEntScan", 0);
+		filter.setString("MaxEntScan", "LOW");
 		filter.setDouble("SpliceAi", 0.2);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 5);
 
 		// all filters off:
 		result.reset(false);
-		filter.setInteger("MaxEntScan", 0);
+		filter.setString("MaxEntScan", "LOW");;
 		filter.setDouble("SpliceAi", 0);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 0);
-
 	}
 
 	void FilterVariantRNAAseAlleleFrequency_apply()
