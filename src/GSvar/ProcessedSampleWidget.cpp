@@ -410,18 +410,35 @@ void ProcessedSampleWidget::showPlot()
 
 void ProcessedSampleWidget::openSampleFolder()
 {
-	FileLocation folder = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER);
-	if (folder.isHttpUrl())
+	try
 	{
-		QMessageBox::information(this, "Open processed sample folder", "Cannot open processed sample folder in client-server mode!");
-		return;
+		QString sample_folder = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER).filename;
+		if (Helper::isHttpUrl(sample_folder))
+		{
+			NGSD db;
+			QString project_type = db.getProcessedSampleData(ps_id_).project_type;
+			QString project_folder = db.projectFolder(project_type).trimmed();
+			if (!project_folder.isEmpty())
+			{
+				sample_folder = db.processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER);
+				if (!QDir(sample_folder).exists()) THROW(Exception, "Sample folder does not exist: " + sample_folder);
+			}
+			else
+			{
+				THROW(Exception, "In client-server mode, opening analysis folders is only supported for germline single sample!");
+			}
+		}
+		else if (!QFile::exists(sample_folder))
+		{
+			THROW(Exception, "Folder does not exist: " + sample_folder);
+		}
+
+		QDesktopServices::openUrl(sample_folder);
 	}
-	else if (!QFile::exists(folder.filename))
+	catch(Exception& e)
 	{
-		QMessageBox::warning(this, "Error opening processed sample folder", "Folder does not exist:\n" + folder.filename);
-		return;
+		QMessageBox::information(this, "Open processed sample folder", "Could not open analysis folder:\n" + e.message());
 	}
-	QDesktopServices::openUrl(QUrl(folder.filename));
 }
 
 void ProcessedSampleWidget::openSampleTab()
@@ -689,7 +706,7 @@ void ProcessedSampleWidget::openGeneExpressionWidget()
 		int sys_id = db.processingSystemIdFromProcessedSample(processedSampleName());
 		QString tissue = db.getSampleData(db.sampleId(sampleName())).tissue;
 		ExpressionGeneWidget* widget = new ExpressionGeneWidget(file_location.filename, sys_id, tissue, "", GeneSet(), db.getProcessedSampleData(ps_id_).project_name, ps_id_, RNA_COHORT_GERMLINE, this);
-		auto dlg = GUIHelper::createDialog(widget, "Expression Data of " + db.processedSampleName(ps_id_));
+		auto dlg = GUIHelper::createDialog(widget, "Gene expression of " + db.processedSampleName(ps_id_));
 		GlobalServiceProvider::addModelessDialog(dlg);
 	}
 	else
@@ -708,7 +725,7 @@ void ProcessedSampleWidget::openExonExpressionWidget()
 		int sys_id = db.processingSystemIdFromProcessedSample(processedSampleName());
 		QString tissue = db.getSampleData(db.sampleId(sampleName())).tissue;
 		ExpressionExonWidget* widget = new ExpressionExonWidget(file_location.filename, sys_id, tissue, "", GeneSet(), db.getProcessedSampleData(ps_id_).project_name, ps_id_, RNA_COHORT_GERMLINE, this);
-		auto dlg = GUIHelper::createDialog(widget, "Exon expression data of " + db.processedSampleName(ps_id_));
+		auto dlg = GUIHelper::createDialog(widget, "Exon expression of " + db.processedSampleName(ps_id_));
 		GlobalServiceProvider::addModelessDialog(dlg);
 	}
 	else
@@ -723,7 +740,7 @@ void ProcessedSampleWidget::openSplicingWidget()
 	if (file_location.exists)
 	{
 		SplicingWidget* widget = new SplicingWidget(file_location.filename, this);
-		auto dlg = GUIHelper::createDialog(widget, "Splicing of " + processedSampleName());
+		auto dlg = GUIHelper::createDialog(widget, "Splicing Alterations of " + processedSampleName());
 		GlobalServiceProvider::addModelessDialog(dlg);
 	}
 	else
@@ -880,6 +897,8 @@ QStringList ProcessedSampleWidget::limitedQCParameter(const QString& sample_type
 		parameter_list << "QC:2000024"; // duplicate read percentage
 		parameter_list << "QC:2000027"; // target region 20x percentage
 		parameter_list << "QC:2000051"; // SNV allele frequency deviation
+		parameter_list << "QC:2000040"; // Sample correlation (somatic tumor sample)
+		parameter_list << "QC:2000045"; // known somatic variants percentage (somatic tumor sample)
 	}
 	else if(sample_type == "cfDNA")
 	{

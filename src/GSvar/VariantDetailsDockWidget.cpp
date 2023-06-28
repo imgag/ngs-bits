@@ -559,6 +559,10 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			{
 				text = formatText(anno, ORANGE);
 			}
+			else if (ok && value >= 0.8)
+			{
+				text = formatText(anno, RED);
+			}
 			else
 			{
 				text = anno;
@@ -566,36 +570,29 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		}
 		else if(name=="MaxEntScan")
 		{
-			if (anno != "")
+			if (!anno.isEmpty())
 			{
-				QString new_anno = "";
-
-				QList<double> percentages;
-				QList<double> abs_values;
-
-				bool color = GSvarHelper::colorMaxEntScan(anno, percentages, abs_values);
-				QStringList values = anno.split(',');
-				for (int i=0; i<values.size(); i++)
+				//iterate over predictions per transcript
+				QList<MaxEntScanImpact> impacts;
+				foreach(const QString& anno, anno.split(','))
 				{
-					if (abs_values[i] > 0.5)
-					{
-						new_anno += values[i] + "(" + QString::number(percentages[i]*100, 'f', 1) + "%), ";
-					}
-					else
-					{
-						new_anno += values[i] + ", ";
-					}
+					QByteArray score_pairs_with_impact;
+					impacts << NGSHelper::maxEntScanImpact(anno.toUtf8().split('/'), score_pairs_with_impact, false);
+					tooltip += nobr() + score_pairs_with_impact;
 				}
-				new_anno.chop(2);
 
-				//color item
-				if (color)
+				//output: max import
+				if (impacts.contains(MaxEntScanImpact::HIGH))
 				{
-					text = formatText(new_anno, ORANGE);
+					text = formatText("HIGH (see tooltip)", RED);
+				}
+				else if (impacts.contains(MaxEntScanImpact::MODERATE))
+				{
+					text = formatText("MODERATE (see tooltip)", ORANGE);
 				}
 				else
 				{
-					text = new_anno;
+					text = "LOW";
 				}
 			}
 		}

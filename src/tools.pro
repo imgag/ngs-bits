@@ -516,3 +516,20 @@ SUBDIRS += VcfAdd
 tools-TEST.depends += VcfAdd
 VcfAdd.depends = cppNGS
 
+SUBDIRS += NGSDExportStudyGHGA
+tools-TEST.depends += NGSDExportStudyGHGA
+NGSDExportStudyGHGA.depends = cppNGSD
+
+SUBDIRS += VcfSubstract
+tools-TEST.depends += VcfSubstract
+VcfSubstract.depends = cppNGS
+
+SUBDIRS += TranscriptsToBed
+tools-TEST.depends += TranscriptsToBed
+TranscriptsToBed.depends = cppNGSD
+
+SUBDIRS += GenesToTranscripts
+tools-TEST.depends += GenesToTranscripts
+GenesToTranscripts.depends = cppNGSD
+
+

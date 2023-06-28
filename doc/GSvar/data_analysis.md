@@ -9,9 +9,10 @@ It consists of read mapping and several variant calling and annotation steps:
 
 - **Mapping**: Assignment of reads to the position in the reference genome where they come from (mapping).  
   Part of the mapping is also determine the alignment of the read to the reference genome sequence in case it does not match completely.
-- **Variant calling**: Detection of deviations from the reference genome sequence.  
+- **Variant calling**: Detection of deviations from the reference genome sequence, i.e. detection of variants.  
   Here seperate variant callers are used for small variants, CNVs, structural variants, repeat expansions, etc.
-- **Annotation**: Addition of information from tools and databases to allow interpretetion of the variant like consequence on cDNA/protein level, fequency in populations, pathogenicity predictions, splicing effect prediction, etc.  
+- **Annotation**: Addition of information from tools and databases to the variants to allow interpretetion.  
+  The information is typically consequence on cDNA/protein level, frequency in populations, pathogenicity predictions, splicing effect prediction, etc.
   Most of this information comes from databases, e.g. 1000 Genomes, gnomAD, ClinVar, HGMD, OMIM.
 
 The following image shows a simplified single sample pipeline:
@@ -42,21 +43,60 @@ The analysis steps of the pipleine are:
 |step                          |main task                                  |additional tasks                        |
 |------------------------------|-------------------------------------------|----------------------------------------|
 |SNV/InDel calling + annotation|small variant calling and annotation       |                                        |
-|CNV calling + annotation      |copy-nnumber variant calling and annotation|UPD calling (trio only)                 |
+|CNV calling + annotation      |copy-number variant calling and annotation |UPD calling (trio only)                 |
 |SV calling + annotation       |structural variant calling and annoation   |                                        |
 |database import               |import of meta data analysis into NGSD     |                                        |
 
 ### somatic tumor-normal pipeline
 
-//TODO Alexander
+The somatic pipeline is used to analyse single tumor samples and tumor-normal sample pairs. It uses the single sample and RNA pipeline to map the fastq files and works with the resulting BAM files.
+
+
+The following image shows a simplified somatic analysis:
+
+![alt text](pipeline_somatic.png)
+
+The analysis steps of the pipleine are:
+
+|step                           |main task                                  |additional tasks                             |
+|-------------------------------|-------------------------------------------|---------------------------------------------|
+|variant calling 				| small variant calling and SV calling      | HLA genotyping and SNV mutational signature |
+|virus detection				| detection of virus DNA in the sample      |               						      |
+|copy number analysis			| copy-number variant calling and annotation| HRD and CNV mutational signature 		      |
+|annotation						| annotation of small variants 		        |                                             |
+|microsatellite analysis		| microsatellite stability analysis         |                                             |
+|annotate RNA data				| annotation of small variants with RNA data|                                             |
+|database import				| import of QC and variant data into NGSD   |                                             |
+
 
 ### RNA pipeline
 
-//TODO Leon
+The RNA pipeline is used to analyze RNA single samples. Since the pipeline doesn't call small variants, no GSvar file will be created. This means a processed sample can't be displayed in GSvar directly. You can either see the results through the linked DNA sample or open the expression files through the processed sample tab.
+
+![alt text](pipeline_rna.png)
+
+|step                          |main task                                           |additional tasks |
+|------------------------------|----------------------------------------------------|-----------------|
+|mapping                       |mapping of reads to reference genome                |                 |
+|read counting                 |determine expression of genes and exons             |                 |
+|annotation                    |annotation of cohort statistics to expression files |                 |
+|fusion detection              |call fusions in RNA data                            |                 |
+|database import               |import of QC and expression data into NGSD          |                 |
 
 ### cfDNA pipeline
 
-//TODO Leon
+There are two types of cfDNA analysis. The first type is based on a given target region (defined by the processing system) and will report all small variants in this region (processing system type: `cfDNA`).  
+The second type is the monitoring of patient-specific tumor variants (processing system type: `cfDNA (patient-specific)`). This pipeline will only report the calls of a set of variants provided by the cfDNA panel of the patient. This panel is ideally created in GSvar through the tumor-normal variant view (`cfDNA` > `Design cfDNA panel`) and stored in the NGSD. If the tumor-cfDNA relation in the NGSD is set correctly the pipeline will automatically use the cfDNA panel in the analysis. Otherwise it has to be provided manually.  
+Here the overview of the cfDNA pipeline:
+![alt text](pipeline_cfDNA.png)
+
+The analysis steps of the pipleine are:
+
+|step                          |main task                                  |additional tasks                        |
+|------------------------------|-------------------------------------------|----------------------------------------|
+|mapping                       |mapping of reads to reference genome       |deduplication of reads using UMIs       |
+|SNV/InDel calling + annotation|small variant calling and annotation       |                                        |
+|database import               |import of QC data into NGSD                |check tumor/cfDNA relation              |
 
 ## What is the difference between re-annotation and a normal analysis.
 
@@ -66,14 +106,14 @@ Existing variant calls are used and annotations are updated.
 This is usually done when the annotation data is older than a few months.  
 Up-to-data annotation data is important as public databases (ClinVar, HGMD, OMIM, ...) are updated regularly.
 
-**Note:** Re-anotation is always possible. Re-calling of variants is only possible as long as no report configuration exists for the respecitve variant type. If a report-configuration exists, you need to delete it first: use the delete button in the processed sample tab.
+**Note:** Re-anotation is always possible if variants are already called. Re-calling of variants is only possible as long as no report configuration exists for the respecitve variant type. If a report-configuration exists, you need to delete it first: use the delete button in the processed sample tab.
 
 
 ## Where can I trigger analysis jobs?
 
 You can trigger the (re-)analysis of the processed samples from several places in GSvar.
 
-###Analysis status tab
+### Analysis status tab
 
 The `analysis status` tab is opened from the GSvar tool bar (![alt text](analysis_status.png)):
 

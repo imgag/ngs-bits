@@ -21,7 +21,8 @@ public:
 	enum report_type
 	{
 		DNA,
-		RNA
+		RNA,
+		cfDNA
 	};
 
 	///Returns whether report type shall be DNA or RNA
@@ -31,7 +32,8 @@ public:
 	QString getRNAid();
 
 	///enable option to choose between DNA or RNA report
-	void enableChoiceReportType(bool enabled);
+	void enableChoiceRnaReportType(bool enabled);
+	void enableChoicecfDnaReportType(bool enabled);
 
 	///adds RNA ids to combo box
 	void setRNAids(const QStringList& rna_ids);

@@ -137,6 +137,10 @@ private:
 	RtfTable snvTable(const QSet<int>& indices, bool high_impact_table=true);
 	//creates table with hla_genotyper information
 	RtfTable hlaTable(QString ps_name, QByteArray type);
+	//creates table with hla_genotyper information
+	RtfTable signatureTable();
+
+	void signatureTableHelper(RtfTable& table, QString file, const QMap<QByteArray, QByteArray>& descriptions, const QByteArray& type);
 
 	QByteArray prepareTranscriptType(QByteArray transcript_type);
 	double getTumorContentBioinf();

@@ -174,9 +174,7 @@ void NGSDReplicationWidget::updateTable(QString table, bool contains_variant_id,
 	q_del.prepare("DELETE FROM "+table+" WHERE id=:0");
 
 	SqlQuery q_add = db_target_->getQuery();
-	QString extra_fields;
-	if (table=="project") extra_fields = ", '0'";
-	q_add.prepare("INSERT INTO "+table+" VALUES (:" + fields.join(", :") + extra_fields + ")");
+	q_add.prepare("INSERT INTO "+table+" VALUES (:" + fields.join(", :") + ")");
 
 	SqlQuery q_get = db_target_->getQuery();
 	q_get.prepare("SELECT * FROM "+table+" WHERE id=:0");
@@ -655,8 +653,8 @@ void NGSDReplicationWidget::replicatePostProduction()
 				 QVariant target_id = db_target_->getValue("SELECT id FROM variant_validation WHERE variant_id='" + QString::number(target_variant_id) + "' AND sample_id='"+sample_id+"' LIMIT 1", true);
 				 if (!target_id.isValid())
 				 {
-					QString source_sample = db_source_->getValue("SELECT name FROM sample WHERE id='"+sample_id+"'").toString();
-					QString target_sample = db_target_->getValue("SELECT name FROM sample WHERE id='"+sample_id+"'").toString();
+					QString source_sample = db_source_->sampleName(sample_id);
+					QString target_sample = db_target_->sampleName(sample_id);
 					if (source_sample==target_sample)
 					{
 						q_add.bindValue(0, query_s.value("user_id"));
@@ -698,8 +696,8 @@ void NGSDReplicationWidget::replicatePostProduction()
 				 QVariant target_id = db_target_->getValue("SELECT id FROM variant_publication WHERE variant_id='" + QString::number(target_variant_id) + "' AND sample_id='"+sample_id+"' LIMIT 1", true);
 				 if (!target_id.isValid())
 				 {
-					QString source_sample = db_source_->getValue("SELECT name FROM sample WHERE id='"+sample_id+"'").toString();
-					QString target_sample = db_target_->getValue("SELECT name FROM sample WHERE id='"+sample_id+"'").toString();
+					QString source_sample = db_source_->sampleName(sample_id);
+					QString target_sample = db_target_->sampleName(sample_id);
 					if (source_sample==target_sample)
 					{
 						q_add.bindValue(0, sample_id);

@@ -28,8 +28,7 @@ The server is configurable via the GSVarServer.ini file located at the `bin/` fo
 These are the most important config parameters:
 * `ssl_certificate` - location of your SSL certificate
 * `ssl_key` - location of your private key
-* `http_server_port` - port used by the server for HTTP protocol
-* `https_server_port` - port used by the server for HTTPS protocol
+* `server_port` - port used by the server
 * `server_host` - domain name used be the server
 * `server_root` - folder to be served as static content (any possible file formats)
 * `url_lifetime` - lifespan (seconds) of a temporary URL genereated by the server

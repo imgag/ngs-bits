@@ -2,7 +2,7 @@
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-include("/mnt/users/bioinf/megSAP/src/Common/all.php");
+include("/mnt/storage2/megSAP/pipeline/src/Common/all.php");
 
 // parse command line arguments
 $parser = new ToolBase("tarball", "Creates a tarball for a tagged version of ngs-bits.");

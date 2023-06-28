@@ -309,10 +309,10 @@ public:
 
 			if ((entry.f==HOM && entry.c==WT) || (entry.f==WT && entry.c==HOM)) ++err_f;
 			if ((entry.m==HOM && entry.c==WT) || (entry.m==WT && entry.c==HOM)) ++err_m;
-			if ((entry.m==HOM && entry.f==WT) || (entry.m==WT && entry.m==HOM)) ++err_fm;
+			if ((entry.m==HOM && entry.f==WT) || (entry.m==WT && entry.f==HOM)) ++err_fm;
 		}
-		stream << "Found " << err_f << " (" << QByteArray::number(100.0*err_f/data.count(), 'f', 2) << "%) mendelian errors for mother-child pair" << endl;
-		stream << "Found " << err_m << " (" << QByteArray::number(100.0*err_m/data.count(), 'f', 2) << "%) mendelian errors for father-child pair" << endl;
+		stream << "Found " << err_f << " (" << QByteArray::number(100.0*err_f/data.count(), 'f', 2) << "%) mendelian errors for father-child pair" << endl;
+		stream << "Found " << err_m << " (" << QByteArray::number(100.0*err_m/data.count(), 'f', 2) << "%) mendelian errors for mother-child pair" << endl;
 		stream << "Found " << err_fm << " (" << QByteArray::number(100.0*err_fm/data.count(), 'f', 2) << "%) mendelian errors for father-mother pair (expected to be high)" << endl;
 		if (err_f>err_fm || err_m>err_fm)
 		{

@@ -20,7 +20,6 @@ class CPPRESTSHARED_EXPORT RequestWorker : public QThread
 	Q_OBJECT
 public:
 	RequestWorker(QSslConfiguration ssl_configuration, qintptr socket);
-	RequestWorker(qintptr socket);
 	void run();
 
 protected slots:
@@ -37,14 +36,13 @@ private:
 	const int STREAM_CHUNK_SIZE = 1024*10;
 	QString intToHex(const int &input);
 
-	void closeAndDeleteSocket(QSslSocket* socket);
+	void closeConnection(QSslSocket* socket);
 	void sendResponseDataPart(QSslSocket *socket, QByteArray data);
 	void sendEntireResponse(QSslSocket *socket, HttpResponse response);
 
 	QSslConfiguration ssl_configuration_;
 	qintptr socket_;
 	bool is_terminated_;
-	bool is_secure_;
 };
 
 #endif // REQUESTWORKER_H

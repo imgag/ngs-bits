@@ -99,7 +99,7 @@ public:
 		{
 			if (mode == "genes")
 			{
-				expression_stats = db.calculateGeneExpressionStatistics(cohort);
+				expression_stats = db.calculateGeneExpressionStatistics(cohort, "", true);
 			}
 			else if(mode == "exons")
 			{
@@ -138,8 +138,8 @@ public:
 			if (ensg_idx < 0) THROW(FileParseException, "Column 'Gene' missing in HPA file!");
 			int tissue_idx = hpa_file_header.indexOf("Tissue");
 			if (tissue_idx < 0) THROW(FileParseException, "Column 'Tissue' missing in HPA file!");
-			int tpm_idx = hpa_file_header.indexOf("TPM");
-			if (tpm_idx < 0) THROW(FileParseException, "Column 'TPM' missing in HPA file!");
+			int tpm_idx = hpa_file_header.indexOf("nTPM");
+			if (tpm_idx < 0) THROW(FileParseException, "Column 'nTPM' missing in HPA file!");
 
 			while(!hpa_file->atEnd())
 			{
@@ -147,7 +147,7 @@ public:
 				QByteArray ensg = line.at(ensg_idx).trimmed();
 				QByteArray tissue = line.at(tissue_idx).trimmed();
 
-				double tpm = Helper::toDouble(line.at(tpm_idx), "TPM (hpa_file)", ensg);
+				double tpm = Helper::toDouble(line.at(tpm_idx), "nTPM (hpa_file)", ensg);
 
 				if(tissue == sample_hpa_tissues.at(0))
 				{

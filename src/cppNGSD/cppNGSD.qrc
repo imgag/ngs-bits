@@ -5,5 +5,6 @@
         <file>resources/NGSD_initial_data.sql</file>
         <file>resources/TumorOnlyNGSReport_v1.xsd</file>
         <file>resources/GermlineReport.xsd</file>
+        <file>resources/signature_description.tsv</file>
     </qresource>
 </RCC>

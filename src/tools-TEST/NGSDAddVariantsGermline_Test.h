@@ -205,6 +205,36 @@ private slots:
 		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line184.log", QRegExp("^filename:"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line184.log", TESTDATA("data_out/NGSDAddVariantsGermline_out11.log"));
 	}
+
+	void sv_longread_import()
+	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAddVariantsGermline_init.sql"));
+
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -sv " + TESTDATA("data_in/NGSDAddVariantsGermline_in4.bedpe"));
+
+		//check db content
+		int count = db.getValue("SELECT count(*) FROM sv_deletion").toInt();
+		I_EQUAL(count, 123);
+		count = db.getValue("SELECT count(*) FROM sv_duplication").toInt();
+		I_EQUAL(count, 1);
+		count = db.getValue("SELECT count(*) FROM sv_insertion").toInt();
+		I_EQUAL(count, 142);
+		count = db.getValue("SELECT count(*) FROM sv_inversion").toInt();
+		I_EQUAL(count, 1);
+		count = db.getValue("SELECT count(*) FROM sv_translocation").toInt();
+		I_EQUAL(count, 3);
+		count = db.getValue("SELECT count(*) FROM sv_callset").toInt();
+		I_EQUAL(count, 1);
+
+		//check log
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line79.log", QRegExp("^filename:"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line79.log", TESTDATA("data_out/NGSDAddVariantsGermline_out5.log"));
+	}
 };
 
 

@@ -12,7 +12,7 @@ ngs-bits depends on the following software to be installed
 
 For example, the installation of the dependencies using Ubuntu 20.04 looks like that:
 
-	> sudo apt-get install git make g++ qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql libqt5charts5-dev git python3 python3-matplotlib libbz2-dev liblzma-dev libcurl4 libcurl4-openssl-dev zlib1g-dev
+	> sudo apt-get install git make g++ qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql libqt5charts5-dev python3 python3-matplotlib libbz2-dev liblzma-dev libcurl4 libcurl4-openssl-dev zlib1g-dev
     
 ### Resolving proxy issues with git
 
@@ -35,6 +35,8 @@ Just execute the following make commands:
     > make build_3rdparty
 	> make build_libs_release
 	> make build_tools_release
+
+If you need to build a different version of [htslib](https://github.com/samtools/htslib), please follow [these instructions](build_htslib.md#linux_mac)
 
 ## Executing
 
@@ -69,3 +71,19 @@ To build GSvar, execute the following command:
     > make build_gui_release
 
 Now you need to [configure GSVar](GSvar/configuration.md).
+
+## Running a development server on a local machine
+
+For the development and testing purposes it is possible to run a local instance of GSvar Server. However, if you are using self-signed certificates, you will have to make them trusted (otherwise IGV and libcurl will not be able to verify them):
+
+Install CA certificates package:
+
+    > sudo apt-get install ca-certificates
+
+Copy your self-signed certificate to this location:
+
+    > sudo cp YOUR_CERTIFICATE.crt /usr/local/share/ca-certificates
+
+Update the list of certificate authorities:
+
+    > sudo update-ca-certificates

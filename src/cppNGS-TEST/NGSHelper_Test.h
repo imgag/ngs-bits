@@ -241,6 +241,7 @@ private slots:
 		IS_FALSE(gff.transcripts.contains("ENST00000671898")); //not name and no HGNC-ID > skipped
 
 		gff.transcripts.sortByPosition(); //order is not defined because we use a hash while parsing
+
 		S_EQUAL(gff.transcripts[0].name(), "ENST00000578049");
 		I_EQUAL(gff.transcripts[0].version(), 4);
 		S_EQUAL(gff.transcripts[0].nameCcds(), "CCDS83523.1");
@@ -252,10 +253,22 @@ private slots:
 		I_EQUAL(gff.transcripts[0].regions().baseCount(), 6927);
 		I_EQUAL(gff.transcripts[0].codingRegions().count(), 5);
 		I_EQUAL(gff.transcripts[0].codingRegions().baseCount(), 648);
+		IS_TRUE(gff.transcripts[0].isGencodeBasicTranscript());
+		IS_TRUE(gff.transcripts[0].isEnsemblCanonicalTranscript());
+		IS_TRUE(gff.transcripts[0].isManeSelectTranscript());
+		IS_FALSE(gff.transcripts[0].isManePlusClinicalTranscript());
 
-		I_EQUAL(gff.gencode_basic.count(), 13);
-		IS_TRUE(gff.gencode_basic.contains("ENST00000578049"));
+		S_EQUAL(gff.transcripts[1].name(), "ENST00000618538");
+		IS_FALSE(gff.transcripts[1].isGencodeBasicTranscript());
+		IS_FALSE(gff.transcripts[1].isEnsemblCanonicalTranscript());
+		IS_FALSE(gff.transcripts[1].isManeSelectTranscript());
+		IS_FALSE(gff.transcripts[1].isManePlusClinicalTranscript());
 
+		S_EQUAL(gff.transcripts[2].name(), "ENST00000643391");
+		IS_TRUE(gff.transcripts[2].isGencodeBasicTranscript());
+		IS_FALSE(gff.transcripts[2].isEnsemblCanonicalTranscript());
+		IS_FALSE(gff.transcripts[2].isManeSelectTranscript());
+		IS_TRUE(gff.transcripts[2].isManePlusClinicalTranscript());
 
 		//skip GENCODE basic
 		settings.skip_not_gencode_basic = true;
@@ -266,9 +279,6 @@ private slots:
 		IS_TRUE(gff.transcripts.contains("ENST00000643044")); //last valid
 		IS_FALSE(gff.transcripts.contains("ENST00000613230")); //special chromosome > skipped
 		IS_FALSE(gff.transcripts.contains("ENST00000671898")); //not name and no HGNC-ID > skipped
-
-		I_EQUAL(gff.gencode_basic.count(), 13);
-		IS_TRUE(gff.gencode_basic.contains("ENST00000578049"));
 	}
 
 	void loadGffFile_gzipped()
@@ -283,9 +293,60 @@ private slots:
 		I_EQUAL(gff.transcripts.count(), 21);
 		IS_TRUE(gff.transcripts.contains("ENST00000578049")); //first valid
 		IS_TRUE(gff.transcripts.contains("ENST00000643044")); //last valid
-
-		I_EQUAL(gff.gencode_basic.count(), 13);
-		IS_TRUE(gff.gencode_basic.contains("ENST00000578049"));
 	}
 
+	void maxEntScanImpact()
+	{
+		QByteArrayList score_pairs;
+		MaxEntScanImpact impact;
+		QByteArray score_pairs_with_impact;
+
+		//only native splice site - no effect
+		score_pairs = QByteArrayList() << "";
+		impact = NGSHelper::maxEntScanImpact(score_pairs, score_pairs_with_impact, false);
+		I_EQUAL(impact, MaxEntScanImpact::LOW);
+		S_EQUAL(score_pairs_with_impact, "-");
+
+		//only native splice site - no effect
+		score_pairs = QByteArrayList() << "9.5>8.5";
+		impact = NGSHelper::maxEntScanImpact(score_pairs, score_pairs_with_impact, false);
+		I_EQUAL(impact, MaxEntScanImpact::LOW);
+		S_EQUAL(score_pairs_with_impact, "9.5>8.5");
+
+		//only native splice site - moderate effect
+		score_pairs = QByteArrayList() << "9.5>8.2";
+		impact = NGSHelper::maxEntScanImpact(score_pairs, score_pairs_with_impact, false);
+		I_EQUAL(impact, MaxEntScanImpact::MODERATE);
+		S_EQUAL(score_pairs_with_impact, "9.5>8.2(MODERATE)");
+
+		//only native splice site - moderate effect
+		score_pairs = QByteArrayList() << "7.1>6.1";
+		impact = NGSHelper::maxEntScanImpact(score_pairs, score_pairs_with_impact, false);
+		I_EQUAL(impact, MaxEntScanImpact::MODERATE);
+		S_EQUAL(score_pairs_with_impact, "7.1>6.1(MODERATE)");
+
+		//only native splice site - high effect
+		score_pairs = QByteArrayList() << "8.5>6.1";
+		impact = NGSHelper::maxEntScanImpact(score_pairs, score_pairs_with_impact, false);
+		I_EQUAL(impact, MaxEntScanImpact::HIGH);
+		S_EQUAL(score_pairs_with_impact, "8.5>6.1(HIGH)");
+
+		//intronic prediction - native splice site missing - no effect
+		score_pairs = QByteArrayList() << "" << "-3.4>4.5" << "2.7>3.3";
+		impact = NGSHelper::maxEntScanImpact(score_pairs, score_pairs_with_impact, false);
+		I_EQUAL(impact, MaxEntScanImpact::LOW);
+		S_EQUAL(score_pairs_with_impact, "- / -3.4>4.5 / 2.7>3.3");
+
+		//intronic prediction - moderate effect
+		score_pairs = QByteArrayList() << "9.5>8.5" << "-3.4>6.5" << "2.7>6.7";
+		impact = NGSHelper::maxEntScanImpact(score_pairs, score_pairs_with_impact, false);
+		I_EQUAL(impact, MaxEntScanImpact::MODERATE);
+		S_EQUAL(score_pairs_with_impact, "9.5>8.5 / -3.4>6.5(MODERATE) / 2.7>6.7(MODERATE)");
+
+		//intronic prediction - high effect
+		score_pairs = QByteArrayList() << "9.5>8.5" << "-3.4>8.7" << "2.7>8.6";
+		impact = NGSHelper::maxEntScanImpact(score_pairs, score_pairs_with_impact, false);
+		I_EQUAL(impact, MaxEntScanImpact::HIGH);
+		S_EQUAL(score_pairs_with_impact, "9.5>8.5 / -3.4>8.7(HIGH) / 2.7>8.6(HIGH)");
+	}
 };

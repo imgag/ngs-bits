@@ -1,5 +1,5 @@
 ### MappingQC tool help
-	MappingQC (2022_07-37-g22d4e20c)
+	MappingQC (2023_03-63-gec44de43)
 	
 	Calculates QC metrics based on mapped NGS reads.
 	
@@ -32,6 +32,8 @@
 	                             Default value: 'false'
 	  -somatic_custom_bed <file> Somatic custom region of interest (subpanel of actual roi). If specified, additional depth metrics will be calculated.
 	                             Default value: ''
+	  -read_qc <file>            If set, a read QC file in qcML format is created (just like ReadQC/SeqPurge).
+	                             Default value: ''
 	
 	Special parameters:
 	  --help                     Shows this help and exits.
@@ -40,8 +42,9 @@
 	  --tdx                      Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### MappingQC changelog
-	MappingQC 2022_07-37-g22d4e20c
+	MappingQC 2023_03-63-gec44de43
 	
+	2023-05-12 Added 'read_qc' parameter.
 	2022-05-25 Added new QC metrics to WGS mode.
 	2021-02-09 Added new QC metrics for uniformity of coverage (QC:2000057-QC:2000061).
 	2020-11-27 Added CRAM support.

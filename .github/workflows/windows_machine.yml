@@ -9,18 +9,18 @@ jobs:
       run:
         shell: msys2 {0}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: msys2/setup-msys2@v2
         with:
-          msystem: MINGW32
+          msystem: MINGW64
           update: true
-          install: git base-devel mingw-w64-i686-toolchain mingw-w64-i686-zlib mingw-w64-i686-bzip2 mingw-w64-i686-xz mingw-w64-i686-curl mingw-w64-i686-dlfcn mingw-w64-i686-qt5 mingw-w64-i686-libmariadbclient mingw-w64-i686-python mingw-w64-i686-python-numpy mingw-w64-i686-python-matplotlib mingw-w64-i686-python-packaging unzip
-
+          release: true
+          install: git base-devel mingw-w64-x86_64-toolchain mingw-w64-x86_64-zlib mingw-w64-x86_64-bzip2 mingw-w64-x86_64-xz mingw-w64-x86_64-curl mingw-w64-x86_64-dlfcn mingw-w64-x86_64-qt5 mingw-w64-x86_64-libmariadbclient mingw-w64-x86_64-python mingw-w64-x86_64-python-numpy mingw-w64-x86_64-python-matplotlib mingw-w64-x86_64-python-packaging unzip
       - name: Update submodules
         run: git submodule update --recursive --init
       - name: Unpack htslib
         working-directory: ./htslib
-        run: unzip htslib_win.zip
+        run: unzip htslib_win_64.zip
       - name: Copy htslib to bin folder
         run: (cp htslib/lib/hts.dll.a bin/) && (cp htslib/lib/hts-3.dll bin/) && (cp htslib/lib/libhts.a bin/)
       - name: Download test files

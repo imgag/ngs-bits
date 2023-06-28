@@ -139,7 +139,7 @@ ValidationDialog::ValidationDialog(QWidget* parent, int id)
 
 
 
-	ui_.sample->setText(db_.getValue("SELECT name FROM sample WHERE id=" + query.value("sample_id").toString()).toString());
+	ui_.sample->setText(db_.sampleName(query.value("sample_id").toString()));
 
 	ui_.requested_by->setText(db_.getValue("SELECT name FROM user WHERE id=" + query.value("user_id").toString()).toString());
 

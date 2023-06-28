@@ -23,7 +23,10 @@ public:
 		addInt("end", "Trim this number of bases from the end of the read.", true, 0);
 		addInt("len", "Restrict read length to this value (after trimming from start/end).", true, 0);
 		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, Z_BEST_SPEED);
+		addFlag("long_read", "Support long reads (> 1kb).");
 
+		//changelog
+		changeLog(2023, 6, 15, "Added support for long reads.");
 		changeLog(2020, 7, 15, "Added 'compression_level' parameter.");
 		changeLog(2016, 8, 26, "Added 'len' parameter.");
 	}
@@ -38,7 +41,7 @@ public:
 		//process
 		int compression_level = getInt("compression_level");
 		FastqOutfileStream outstream(getOutfile("out"), compression_level);
-		FastqFileStream stream( getInfile("in"), false);
+		FastqFileStream stream( getInfile("in"), false, getFlag("long_read"));
 		FastqEntry entry;
 		while (!stream.atEnd())
 		{

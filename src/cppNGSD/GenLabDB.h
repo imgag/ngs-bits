@@ -51,6 +51,8 @@ public:
 
 	///Returns SAP patient identifier (tries sample name if processed sample name is not found)
 	QString sapID(QString ps_name);
+	///Returns list of processed samples corresponding to the given SAP patient identifier
+	QStringList samplesWithSapID(QString sap_id, QString sys_type="");
 
 	///Returns sample relations
 	QList<SampleRelation> relatives(QString ps_name);
@@ -60,6 +62,9 @@ public:
 
 	///Returns the patient identifier, or an empty string if it could not be determined (tries sample name if processed sample name is not found)
 	QString patientIdentifier(QString ps_name);
+
+	///Returns all studies in GenLab.
+	QStringList studies();
 
 	///Returns the list of studies the sample is part of.
 	QStringList studies(QString ps_name);
@@ -82,8 +87,6 @@ protected:
 
 	///The database adapter
 	QSharedPointer<QSqlDatabase> db_;
-
-	static QMap<QString, TableInfo> infos_;
 };
 
 

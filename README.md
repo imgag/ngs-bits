@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2022_12
+	> git checkout 2023_03
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -134,6 +134,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [VcfLeftNormalize](doc/tools/VcfLeftNormalize.md) - Normalizes all variants and shifts indels to the left in a VCF file.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
 * [VcfStreamSort](doc/tools/VcfStreamSort.md) - Sorts entries of a VCF file according to genomic position using a stream.
+* [VcfSubstract](doc/tools/VcfSubstract.md) - Substracts the variants in a VCF from a second VCF.
 * [VcfToBed](doc/tools/VcfToBedpe.md) - Converts a VCF file to a BED file.
 * [VcfToBedpe](doc/tools/VcfToBedpe.md) - Converts a VCF file containing structural variants to BEDPE format.
 * [VcfToTsv](doc/tools/VcfToTsv.md) - Converts a VCF file to a tab-separated text file.
@@ -153,7 +154,9 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [GraphStringDb](doc/tools/GraphStringDb.md): Creates simple representation of String-DB interaction graph.
 * [GenesToApproved](doc/tools/GenesToApproved.md) - Replaces gene symbols by approved symbols using the HGNC database (needs [NGSD](doc/install_ngsd.md)).
 * [GenesToBed](doc/tools/GenesToBed.md) - Converts a text file with gene names to a BED file (needs [NGSD](doc/install_ngsd.md)).
+* [GenesToTranscripts](doc/tools/GenesToTranscripts .md) - Converts a text file with gene names to transcript names (needs [NGSD](doc/install_ngsd.md)).
 * [NGSDExportGenes](doc/tools/NGSDExportGenes.md) - Lists genes from NGSD (needs [NGSD](doc/install_ngsd.md)).
+* [TranscriptsToBed](doc/tools/TranscriptsToBed.md) - Converts a text file with transcript names to a BED file (needs [NGSD](doc/install_ngsd.md)).
 
 ### Phenotype handling tools
 
@@ -170,13 +173,15 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 Changes of master since last release:
 
-* none
+* none so far
 
-Changes in release 2022_12:
 
-* tool VcfAdd added
-* VcfFilter: added option `-remove_invalid`
-* VcfSort: added option `-remove_unused_contigs`
-* VcfAnnotateConsequence: improved error handling and load time for GFF file
+Changes in release 2023_03:
 
+* NGSDImportEnsembl: Update to support Ensembl 109
+* RnaQC: Added target region to support targeted transcriptomics experiments
+* NGSD
+	* Added `ncbi_id` to `gene` table
+	* Added `folder_override`to `processed_sample` table
+	
 For older changes see [releases](https://github.com/imgag/ngs-bits/releases).

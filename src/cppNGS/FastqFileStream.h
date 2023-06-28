@@ -26,7 +26,7 @@ struct CPPNGSSHARED_EXPORT FastqEntry
 		return (int)(qualities[i]) - offset;
     }
     ///Checks if the entry is valid. If not, a FileParseException is thrown.
-    void validate() const;
+	void validate(bool long_read = false) const;
     ///Resets the entry
     void clear();
     ///Trims the read by quality from the end using a sliding window approach. Returns the number of trimmed bases.
@@ -45,7 +45,7 @@ class CPPNGSSHARED_EXPORT FastqFileStream
 {
 public:
     ///Constructor.
-    FastqFileStream(QString filename, bool auto_validate=true);
+	FastqFileStream(QString filename, bool auto_validate=true, bool long_read=false);
     ///Destructor.
     ~FastqFileStream();
 
@@ -76,6 +76,8 @@ protected:
     char* last_output_;
     int entry_index_;
     bool auto_validate_;
+	bool long_read_;
+	int buffer_size_;
 	void extractLine(QByteArray& line);
 
     //declared away methods

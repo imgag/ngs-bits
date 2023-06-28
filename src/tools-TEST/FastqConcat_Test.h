@@ -14,4 +14,12 @@ private slots:
 		COMPARE_GZ_FILES("out/FastqConcat_out.fastq.gz", TESTDATA("data_out/FastqConcat_out.fastq.gz"));
 	}
 
+	void long_test()
+	{
+		EXECUTE("FastqConcat", "-long_read -in " + TESTDATA("data_in/FastqConcat_in4.fastq.gz") + " "
+				+ TESTDATA("data_in/FastqConcat_in5.fastq.gz")
+				+ " -out out/FastqConcat_out2.fastq.gz");
+		COMPARE_GZ_FILES("out/FastqConcat_out2.fastq.gz", TESTDATA("data_out/FastqConcat_out2.fastq.gz"));
+	}
+
 };

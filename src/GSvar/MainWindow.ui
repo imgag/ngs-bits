@@ -214,6 +214,9 @@
                    <iconset resource="GSvar.qrc">
                     <normaloff>:/Icons/ranking.png</normaloff>:/Icons/ranking.png</iconset>
                   </property>
+                  <property name="popupMode">
+                   <enum>QToolButton::InstantPopup</enum>
+                  </property>
                  </widget>
                 </item>
                 <item>
@@ -357,7 +360,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -502,13 +505,18 @@
      <addaction name="actionSpecies"/>
      <addaction name="actionStudy"/>
      <addaction name="actionEditSomaticPathways"/>
-     <addaction name="separator"/>
      <addaction name="actionUsers"/>
+     <addaction name="separator"/>
      <addaction name="actionChangePassword"/>
      <addaction name="separator"/>
-     <addaction name="actionReplicateNGSD"/>
      <addaction name="actionExportTestData"/>
      <addaction name="actionImportTestData"/>
+     <addaction name="separator"/>
+     <addaction name="actionReplicateNGSD"/>
+     <addaction name="actionPrepareGhgaUpload"/>
+     <addaction name="separator"/>
+     <addaction name="actionMaintenance"/>
+     <addaction name="actionNotifyUsers"/>
     </widget>
     <widget class="QMenu" name="menuBatch_import">
      <property name="title">
@@ -599,7 +607,6 @@
    <addaction name="actionROH"/>
    <addaction name="actionRE"/>
    <addaction name="actionPRS"/>
-   <addaction name="actionMosaic"/>
    <addaction name="actionCircos"/>
    <addaction name="separator"/>
    <addaction name="actionDebug"/>
@@ -1386,18 +1393,6 @@
     <string>Sample HPO terms</string>
    </property>
   </action>
-  <action name="actionMosaic">
-   <property name="icon">
-    <iconset resource="GSvar.qrc">
-     <normaloff>:/Icons/MosaicVariant.png</normaloff>:/Icons/MosaicVariant.png</iconset>
-   </property>
-   <property name="text">
-    <string>Mosaic</string>
-   </property>
-   <property name="toolTip">
-    <string>Show mosaic variants of the current sample (called only on exon/splice regions).</string>
-   </property>
-  </action>
   <action name="actionEditSomaticPathwayGeneAssociations">
    <property name="text">
     <string>Edit somatic pathway-gene associations</string>
@@ -1436,7 +1431,7 @@
      <normaloff>:/Icons/RNA.png</normaloff>:/Icons/RNA.png</iconset>
    </property>
    <property name="text">
-    <string>Show Expression Data (Exon)</string>
+    <string>Show Expression Data (Exons)</string>
    </property>
    <property name="toolTip">
     <string>Show Expression Data of Exons</string>
@@ -1444,7 +1439,7 @@
   </action>
   <action name="actionShowSplicing">
    <property name="text">
-    <string>Show splicing</string>
+    <string>Show Splicing Alterations</string>
    </property>
    <property name="toolTip">
     <string>Show splicing prediction of RNA sample</string>
@@ -1471,6 +1466,21 @@
    </property>
    <property name="text">
     <string>Virus detection</string>
+   </property>
+  </action>
+  <action name="actionMaintenance">
+   <property name="text">
+    <string>Maintenance</string>
+   </property>
+  </action>
+  <action name="actionNotifyUsers">
+   <property name="text">
+    <string>Notify users</string>
+   </property>
+  </action>
+  <action name="actionPrepareGhgaUpload">
+   <property name="text">
+    <string>Prepare GHGA upload</string>
    </property>
   </action>
  </widget>

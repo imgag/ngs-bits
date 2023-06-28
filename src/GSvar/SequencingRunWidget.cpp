@@ -10,8 +10,10 @@
 #include "EmailDialog.h"
 #include "DBQCWidget.h"
 #include "GlobalServiceProvider.h"
+#include "BasicStatistics.h"
 #include <QMessageBox>
 #include <QInputDialog>
+#include <numeric>
 
 SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	: QWidget(parent)
@@ -61,6 +63,7 @@ void SequencingRunWidget::updateGUI()
 		ui_->recipe->setText(query.value("recipe").toString());
 		ui_->comments->setText(query.value("comment").toString());
 		ui_->device->setText(query.value("d_name").toString() + " (" + query.value("d_type").toString() + ")");
+		ui_->side->setText(query.value("side").toString());
 		QVariant molarity = query.value("pool_molarity");
 		if (!molarity.isNull())
 		{
@@ -98,6 +101,9 @@ void SequencingRunWidget::updateRunSampleTable()
 	DBTable samples = db.createTable("processed_sample", "SELECT ps.id, ps.lane, ps.quality, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, s.sample_type, (SELECT CONCAT(name, ' (', type, ')') FROM project WHERE id=ps.project_id), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid2_i5), (SELECT name FROM species WHERE id=s.species_id), (SELECT name_manufacturer FROM processing_system WHERE id=ps.processing_system_id), ps.processing_input, (SELECT name FROM user WHERE id=ps.operator_id), ps.comment "
 														  " FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id='" + run_id_ + "' "
 														  " ORDER BY ps.lane ASC, ps.processing_system_id ASC, s.name ASC, ps.process_id");
+
+	int count_not_wgs = db.getValue("SELECT count(ps.id) FROM processed_sample ps, processing_system sys WHERE sys.id=ps.processing_system_id AND ps.sequencing_run_id='"+run_id_+"' AND sys.type!='WGS'").toInt();
+	bool is_wgs_run = count_not_wgs==0;
 
 	//format columns
 	samples.formatBooleanColumn(samples.columnIndex("tumor"));
@@ -202,13 +208,33 @@ void SequencingRunWidget::updateRunSampleTable()
 			}
 			if (accession=="QC:2000025") //avg depth
 			{
-				ui_->samples->setBackgroundColorIfLt(header, orange, 80);
-				ui_->samples->setBackgroundColorIfLt(header, red, 30);
+				if (is_wgs_run)
+				{
+					ui_->samples->setBackgroundColorIfLt(header, orange, 35);
+					ui_->samples->setBackgroundColorIfLt(header, red, 30);
+				}
+				else
+				{
+					ui_->samples->setBackgroundColorIfLt(header, orange, 80);
+					ui_->samples->setBackgroundColorIfLt(header, red, 30);
+				}
+			}
+			if (accession=="QC:2000113") //CNV count
+			{
+				ui_->samples->setBackgroundColorIfLt(header, red, 1);
 			}
 			if (accession=="QC:2000027") //cov 20x
 			{
-				ui_->samples->setBackgroundColorIfLt(header, orange, 95);
-				ui_->samples->setBackgroundColorIfLt(header, red, 90);
+				if (is_wgs_run)
+				{
+					ui_->samples->setBackgroundColorIfLt(header, orange, 99);
+					ui_->samples->setBackgroundColorIfLt(header, red, 95);
+				}
+				else
+				{
+					ui_->samples->setBackgroundColorIfLt(header, orange, 95);
+					ui_->samples->setBackgroundColorIfLt(header, red, 90);
+				}
 			}
 			if (accession=="QC:2000024") //duplicates
 			{
@@ -450,7 +476,7 @@ void SequencingRunWidget::setQCMetricAccessions(const QSet<QString>& sample_type
 	if (sample_types.contains("RNA"))
 	{
 		qc_metric_accessions_ << "QC:2000101"; // housekeeping genes read depth
-		qc_metric_accessions_ << "QC:2000103"; // housekeeping genes 20x percentage
+		qc_metric_accessions_ << "QC:2000102"; // housekeeping genes 10x percentage
 	}
 	if (sample_types.contains("DNA") || sample_types.contains("DNA (amplicon)") || sample_types.contains("DNA (native)"))
 	{
@@ -461,6 +487,11 @@ void SequencingRunWidget::setQCMetricAccessions(const QSet<QString>& sample_type
 	{
 		qc_metric_accessions_ << "QC:2000051"; // SNV allele frequency deviation
 	}
+	if (sample_types.contains("DNA") || sample_types.contains("DNA (amplicon)") || sample_types.contains("DNA (native)"))
+	{
+		qc_metric_accessions_ << "QC:2000113"; // CNV count
+	}
+
 	if (sample_types.contains("RNA"))
 	{
 		qc_metric_accessions_ << "QC:2000109"; // covered gene count
@@ -500,9 +531,12 @@ void SequencingRunWidget::updateReadQualityTable()
 	{
 		table->setHorizontalHeaderItem(c, GUIHelper::createTableItem(headers[c], Qt::AlignCenter));
 	}
+
+	//add QC of reads/lanes
 	NGSD db;
 	SqlQuery q_reads = db.getQuery();
 	q_reads.exec("SELECT * FROM runqc_read WHERE sequencing_run_id=" + run_id_ + " ORDER BY read_num ASC");
+	QHash<QString, QVector<double>> type2values;
 	while(q_reads.next())
 	{
 		//all lanes summary line
@@ -510,7 +544,8 @@ void SequencingRunWidget::updateReadQualityTable()
 		table->setRowCount(row + 1);
 
 		QString text = "R" + q_reads.value("read_num").toString() + " (" + q_reads.value("cycles").toString() + "cycles";
-		if (q_reads.value("is_index").toInt()==1) text += ", index";
+		bool is_index = q_reads.value("is_index").toBool();
+		if (is_index) text += ", index";
 		text += ")";
 		QTableWidgetItem* item = GUIHelper::createTableItem(text);
 		highlightItem(item);
@@ -539,15 +574,45 @@ void SequencingRunWidget::updateReadQualityTable()
 
 			table->setItem(row, 0, GUIHelper::createTableItem(""));
 			table->setItem(row, 1, GUIHelper::createTableItem(q_lanes.value("lane_num").toString()));
-			table->setItem(row, 2, GUIHelper::createTableItem(QString::number(q_lanes.value("q30_perc").toDouble(), 'f', 2)));
-			table->setItem(row, 3, GUIHelper::createTableItem(QString::number(q_lanes.value("error_rate").toDouble(), 'f', 2)));
+			double q30 = q_lanes.value("q30_perc").toDouble();
+			table->setItem(row, 2, GUIHelper::createTableItem(QString::number(q30, 'f', 2)));
+			if (!is_index)type2values["q30"] << q30;
+			double error_rate = q_lanes.value("error_rate").toDouble();
+			table->setItem(row, 3, GUIHelper::createTableItem(QString::number(error_rate, 'f', 2)));
+			if (!is_index) type2values["error_rate"] << error_rate;
 			table->setItem(row, 4, GUIHelper::createTableItem(QString::number(q_lanes.value("occupied_perc").toDouble(), 'f', 2)));
 			double density = q_lanes.value("cluster_density").toDouble();
 			table->setItem(row, 5, GUIHelper::createTableItem(QString::number(density/1000.0, 'f', 2)));
 			table->setItem(row, 6, GUIHelper::createTableItem(QString::number(q_lanes.value("cluster_density_pf").toDouble()/density*100.0, 'f', 2)));
-			table->setItem(row, 7, GUIHelper::createTableItem(QString::number(q_lanes.value("yield").toDouble()/1000000000.0, 'f', 2)));
+			double yield_gb = q_lanes.value("yield").toDouble()/1000000000.0;
+			table->setItem(row, 7, GUIHelper::createTableItem(QString::number(yield_gb, 'f', 2)));
+			type2values["yield"] << yield_gb;
 		}
 	}
+
+	//add QC summary
+	if (!type2values.isEmpty())
+	{
+		int row = table->rowCount();
+		table->setRowCount(row + 1);
+
+		QTableWidgetItem* item = GUIHelper::createTableItem("overall");
+		highlightItem(item);
+		table->setItem(row, 0, item);
+
+		item = GUIHelper::createTableItem(QString::number(BasicStatistics::mean(type2values["q30"]), 'f', 2));
+		highlightItem(item);
+		table->setItem(row, 2, item);
+
+		item = GUIHelper::createTableItem(QString::number(BasicStatistics::mean(type2values["error_rate"]), 'f', 2));
+		highlightItem(item);
+		table->setItem(row, 3, item);
+
+		item = GUIHelper::createTableItem(QString::number(std::accumulate(type2values["yield"].begin(), type2values["yield"].end(), 0.0), 'f', 2));
+		highlightItem(item);
+		table->setItem(row, 7, item);
+	}
+
 	GUIHelper::resizeTableCells(table);
 }
 

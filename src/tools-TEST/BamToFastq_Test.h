@@ -32,6 +32,13 @@ private slots:
 		COMPARE_GZ_FILES("out/BamToFastq_out5.fastq.gz", TESTDATA("data_out/BamToFastq_out5.fastq.gz"));
 		COMPARE_GZ_FILES("out/BamToFastq_out6.fastq.gz", TESTDATA("data_out/BamToFastq_out6.fastq.gz"));
 	}
+
+	void single_end()
+	{
+		EXECUTE("BamToFastq", "-in " + TESTDATA("data_in/BamToFastq_in3.bam") + " -out1 out/BamToFastq_out7.fastq.gz -mode single-end -write_buffer_size 1");
+		IS_TRUE(QFile::exists("out/BamToFastq_out7.fastq.gz"));
+		COMPARE_GZ_FILES("out/BamToFastq_out7.fastq.gz", TESTDATA("data_out/BamToFastq_out7.fastq.gz"));
+	}
 };
 
 

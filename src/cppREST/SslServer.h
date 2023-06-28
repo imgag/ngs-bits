@@ -9,13 +9,14 @@
 #include <QList>
 #include "Exceptions.h"
 #include "RequestWorker.h"
+#include "Log.h"
 
 class CPPRESTSHARED_EXPORT SslServer : public QTcpServer
 {
     Q_OBJECT
 
 public:
-	SslServer(QObject *parent = nullptr, bool insecure = false);
+	SslServer(QObject *parent = nullptr);
 	virtual ~SslServer();
 	QSslConfiguration getSslConfiguration() const;
 	void setSslConfiguration(const QSslConfiguration &ssl_configuration);
@@ -31,7 +32,7 @@ protected:
 
 private:
 	QSslConfiguration current_ssl_configuration_;
-	bool is_insecure_;
+	QString client_version_;
 };
 
 #endif // SSLSERVER_P_H

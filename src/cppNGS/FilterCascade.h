@@ -1,20 +1,13 @@
 #ifndef FILTERCASCADE_H
 #define FILTERCASCADE_H
 
-#include "VariantList.h"
-#include "VcfFile.h"
-#include "CnvList.h"
-#include "GeneSet.h"
-#include "VariantType.h"
 #include "BedpeFile.h"
+#include "NGSHelper.h"
+#include "CnvList.h"
+#include "VariantType.h"
 
-#include <QVariant>
-#include <QString>
-#include <QList>
-#include <QSharedPointer>
-#include <QMap>
-#include <QBitArray>
 #include <QRegularExpression>
+
 
 //Parameter type
 enum class FilterParameterType
@@ -686,8 +679,8 @@ public:
 	void apply(const VariantList &variant_list, FilterResult &result) const override;
 private:
 	double calculatePercentageChangeMES_(const QByteArray& value) const;
-	bool applyMaxEntScanFilter_(const Variant& var, int idx_mes) const;
-	bool applySpliceAi_(const Variant& var, int idx_sai) const;
+	bool applyMaxEntScanFilter_(const QByteArray& mes_anno, MaxEntScanImpact min_mes, bool splice_site_only) const;
+	bool applySpliceAi_(const QByteArray& sai_anno, double min_sai) const;
 };
 
 //Filter RNA ASE allele frequency
@@ -1166,7 +1159,17 @@ class CPPNGSSHARED_EXPORT FilterSvTrio
 
 	protected:
 		QByteArray determineGenotype(const QByteArray& format_col, const QByteArray& data_col) const;
+};
 
+
+//NGSD SV break point density filter
+class CPPNGSSHARED_EXPORT FilterSvCnvOverlap
+	: public FilterBase
+{
+	public:
+		FilterSvCnvOverlap();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
 };
 
 #endif // FILTERCASCADE_H

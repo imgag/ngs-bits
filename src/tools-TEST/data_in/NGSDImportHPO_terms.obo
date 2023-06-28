@@ -75,6 +75,13 @@ is_obsolete: true
 replaced_by: HP:0001626
 
 [Term]
+id: HP:0000489
+name: obsolete Abnormality of globe location or size
+is_obsolete: true
+consider: HP:0100886
+consider: HP:0100887
+
+[Term]
 id: HP:0006625
 name: Multifocal breast carcinoma
 def: "Breast carcinoma that is bilateral or otherwise multifocal." [HPO:probinson]

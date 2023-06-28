@@ -11,7 +11,17 @@ QT       += sql
 CONFIG   += console
 CONFIG   -= app_bundle
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    Auxilary.cpp \
+    ThreadCoordinator.cpp \
+    ExportWorker.cpp
+
+
+HEADERS += \
+    Auxilary.h \
+    ExportWorker.h \
+    ThreadCoordinator.h
+
 
 include("../app_cli.pri")
 

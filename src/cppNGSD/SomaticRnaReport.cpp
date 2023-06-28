@@ -688,8 +688,8 @@ RtfTable SomaticRnaReport::partGeneralInfo()
 	table.addRow( RtfTableRow( {"Proben-ID (Tumor-RNA):", data_.rna_ps_name.toUtf8(), "Anzahl Reads ", data_.rna_qcml_data.value("QC:2000005",true).toString().toUtf8()}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14)) );
 	table.addRow( RtfTableRow( {"Prozessierungssystem:", db_.getProcessingSystemData( db_.processingSystemIdFromProcessedSample(data_.rna_ps_name) ).name.toUtf8(), "On-Target Read Percentage:", data_.rna_qcml_data.value("QC:2000021",true).toString().toUtf8() + "\%"}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14)) );
 	table.addRow( RtfTableRow( {"ICD10:", data_.icd10.toUtf8(), "Target Region Read Depth:", data_.rna_qcml_data.value("QC:2000025",true).toString().toUtf8() +"x"}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14)) );
-	table.addRow( RtfTableRow( {"Tumortyp:", data_.phenotype.toUtf8(), "House Keeping Genes Read Depth:", data_.rna_qcml_data.value("QC:2000101",true).toString().toUtf8() + "x"}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14)) );
-	table.addRow( RtfTableRow( {"Korrelation der Expression mit der Tumorentität:", QByteArray::number(data_.expression_correlation, 'f', 2) + " (n=" + QByteArray::number(data_.cohort_size) + ")" , "House Keeping Genes Read Percentage:", data_.rna_qcml_data.value("QC:2000100",true).toString().toUtf8() + "\%"}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14) ) );
+	table.addRow( RtfTableRow( {"Tumortyp:", data_.phenotype.toUtf8(), "House Keeping Genes 10x Percentage:", data_.rna_qcml_data.value("QC:2000102",true).toString().toUtf8() + "%"}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14)) );
+	table.addRow( RtfTableRow( {"Korrelation der Expression mit der Tumorentität:", QByteArray::number(data_.expression_correlation, 'f', 2) + " (n=" + QByteArray::number(data_.cohort_size) + ")" , "", ""}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14) ) );
 
 	return table;
 }

@@ -7,6 +7,7 @@
 #include "VcfFile.h"
 #include "NGSD.h"
 #include "LoginManager.h"
+#include "GSvarHelper.h"
 
 struct cfDnaColumn
 {
@@ -39,15 +40,12 @@ protected slots:
 
 
 private:
-	void getCfDNASampleIds();
-	void loadVariantLists();
 	void createTableView();
 	Ui::DiseaseCourseWidget *ui_;
 	NGSD db_;
+	CfdnaDiseaseCourseTable table_data_;
 	QString tumor_sample_name_;
-	QStringList cf_dna_ps_ids_;
-	cfDnaColumn ref_column_;
-	QVector<cfDnaColumn> cf_dna_columns_;
+	bool igv_initialized_ = false;
 };
 
 #endif // DISEASECOURSEWIDGET_H

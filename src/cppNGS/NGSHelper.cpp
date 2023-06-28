@@ -1,19 +1,8 @@
 #include "NGSHelper.h"
-#include "Exceptions.h"
 #include "Helper.h"
-#include "BasicStatistics.h"
-#include "BamReader.h"
-#include "GeneSet.h"
-#include "ToolBase.h"
-#include "HttpRequestHandler.h"
-#include "Log.h"
+#include "FilterCascade.h"
 
-#include <QTextStream>
 #include <QFileInfo>
-#include <QDateTime>
-#include <QJsonDocument>
-#include <cmath>
-#include <vector>
 
 namespace {
 
@@ -771,85 +760,6 @@ void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_r
 	al.setCigarData(new_CIGAR);
 }
 
-bool NGSHelper::isClientServerMode()
-{
-	return !Settings::string("server_host", true).trimmed().isEmpty() && !Settings::string("https_server_port", true).trimmed().isEmpty();
-}
-
-bool NGSHelper::isRunningOnServer()
-{
-	return !Settings::string("ssl_certificate",true).trimmed().isEmpty() && !Settings::string("ssl_key",true).trimmed().isEmpty();
-}
-
-bool NGSHelper::isBamFile(QString filename)
-{
-	if (Helper::isHttpUrl(filename))
-	{
-		filename = QUrl(filename).toString(QUrl::RemoveQuery);
-	}
-
-	return filename.endsWith(".bam", Qt::CaseInsensitive);
-}
-
-QString NGSHelper::stripSecureToken(QString url)
-{
-	int token_pos = url.indexOf("?token", Qt::CaseInsensitive);
-	if (token_pos > -1) url = url.left(token_pos);
-	return  url;
-}
-
-ServerInfo NGSHelper::getServerInfo()
-{
-	ServerInfo info;
-	QByteArray response;
-	HttpHeaders add_headers;
-	add_headers.insert("Accept", "application/json");
-	try
-	{
-		response = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).get(NGSHelper::serverApiUrl()+ "info", add_headers);
-	}
-	catch (Exception& e)
-	{
-		Log::error("Server availability problem: " + e.message());
-		return info;
-	}
-
-	if (response.isEmpty())
-	{
-		Log::error("Could not parse the server response. The application will be closed");
-		return info;
-	}
-
-	QJsonDocument json_doc = QJsonDocument::fromJson(response);
-	if (json_doc.isObject())
-	{
-		if (json_doc.object().contains("version")) info.version = json_doc.object()["version"].toString();
-		if (json_doc.object().contains("api_version")) info.api_version = json_doc.object()["api_version"].toString();
-		if (json_doc.object().contains("start_time")) info.server_start_time = QDateTime::fromSecsSinceEpoch(json_doc.object()["start_time"].toInt());
-	}
-
-	return info;
-}
-
-QString NGSHelper::serverApiVersion()
-{
-	return "v1";
-}
-
-QString NGSHelper::serverApiUrl(const bool& return_http)
-{
-	QString protocol = return_http ? "http://" : "https://";
-	QString port = return_http ? Settings::string("http_server_port", true) : Settings::string("https_server_port", true);
-
-	if (Settings::boolean("use_http_api_only", true))
-	{
-		protocol = "http://";
-		port = Settings::string("http_server_port", true);
-	}
-
-	return protocol + Settings::string("server_host", true) + ":" + port + "/" + serverApiVersion() + "/";
-}
-
 const QMap<QByteArray, QByteArrayList>& NGSHelper::transcriptMatches(GenomeBuild build)
 {
 	static QMap<GenomeBuild, QMap<QByteArray, QByteArrayList>> output;
@@ -873,6 +783,116 @@ const QMap<QByteArray, QByteArrayList>& NGSHelper::transcriptMatches(GenomeBuild
 	return output[build];
 }
 
+MaxEntScanImpact NGSHelper::maxEntScanImpact(const QByteArrayList& score_pairs, QByteArray& score_pairs_with_impact, bool splice_site_only)
+{
+	if (score_pairs.count()<1) THROW(ArgumentException, "MaxEntScan annotation contains less than one score pair");
+	if (score_pairs.count()>3) THROW(ArgumentException, "MaxEntScan annotation contains more than three score pair");
+
+	QList<MaxEntScanImpact> impacts;
+	QByteArrayList score_pairs_new;
+
+	for (int i=0; i<score_pairs.count(); ++i)
+	{
+		const QByteArray& score_pair = score_pairs[i];
+
+		//no data - this may happen e.g. for intronic variants where the first prediction is not available
+		QByteArrayList parts = score_pair.split('>');
+		if (parts.count()!=2)
+		{
+			score_pairs_new << "-";
+			continue;
+		}
+
+		if (splice_site_only && i>0)
+		{
+			score_pairs_new << score_pair;
+			continue;
+		}
+
+		//convert numbers
+		bool ok1 = false;
+		double ref = parts[0].toDouble(&ok1);
+		if (ref<0) ref = 0;
+		bool ok2 = false;
+		double alt = parts[1].toDouble(&ok2);
+		if (alt<0) alt = 0;
+		if (!ok1 || !ok2) THROW(ArgumentException, "MaxEntScan annotation contains invalid number: " + score_pair);
+		double diff = ref - alt;
+
+		//first score pair (native splice site) - impact implement similar to in https://doi.org/10.1093/bioinformatics/bty960
+		if (i==0)
+		{
+			bool low_impact = true;
+			if (diff>0 && ref>=3)
+			{
+				if (alt<6.2)
+				{
+					if (diff>=1.15)
+					{
+						impacts << MaxEntScanImpact::HIGH;
+						score_pairs_new << score_pair+"(HIGH)";
+						low_impact = false;
+					}
+					else
+					{
+						impacts << MaxEntScanImpact::MODERATE;
+						score_pairs_new << score_pair+"(MODERATE)";
+						low_impact = false;
+					}
+				}
+				else if (alt<=8.5)
+				{
+					if (diff>1.15)
+					{
+						impacts << MaxEntScanImpact::MODERATE;
+						score_pairs_new << score_pair+"(MODERATE)";
+						low_impact = false;
+					}
+				}
+			}
+
+			if (low_impact)
+			{
+				score_pairs_new << score_pair;
+			}
+		}
+
+		//second/third score pair (de-novo gain of splice acceptor/donor)
+		else
+		{
+			bool low_impact = true;
+			if (diff<-1.15 && ref<3)
+			{
+				if (alt>8.5)
+				{
+					impacts << MaxEntScanImpact::HIGH;
+					score_pairs_new << score_pair+"(HIGH)";
+					low_impact = false;
+				}
+				else if (alt>=6.2)
+				{
+					impacts << MaxEntScanImpact::MODERATE;
+					score_pairs_new << score_pair+"(MODERATE)";
+					low_impact = false;
+				}
+			}
+
+			if (low_impact)
+			{
+				score_pairs_new << score_pair;
+			}
+		}
+	}
+
+	//write
+	score_pairs_with_impact = score_pairs_new.join(" / ");
+
+	//output
+	if (impacts.contains(MaxEntScanImpact::HIGH)) return MaxEntScanImpact::HIGH;
+	if (impacts.contains(MaxEntScanImpact::MODERATE)) return MaxEntScanImpact::MODERATE;
+	return MaxEntScanImpact::LOW;
+}
+
 //Helper struct for GFF parsing
 struct TranscriptData
 {
@@ -887,6 +907,10 @@ struct TranscriptData
 	int end_coding = 0;
 	QByteArray strand;
 	QByteArray biotype;
+	bool is_gencode_basic;
+	bool is_ensembl_canonical;
+	bool is_mane_select;
+	bool is_mane_plus_clinical;
 
 	BedFile exons;
 };
@@ -973,6 +997,10 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
                    coding_end = temp;
                 }
                 t.setRegions(t_data.exons, coding_start, coding_end);
+				t.setGencodeBasicTranscript(t_data.is_gencode_basic);
+				t.setEnsemblCanonicalTranscript(t_data.is_ensembl_canonical);
+				t.setManeSelectTranscript(t_data.is_mane_select);
+				t.setManePlusClinicalTranscript(t_data.is_mane_plus_clinical);
 
 				output.transcripts << t;
 			}
@@ -1048,11 +1076,8 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
 			output.enst2ensg.insert(transcript_id, data["Parent"].split(':').at(1));
 
 			// store GENCODE basic data
-			bool is_gencode_basic = data.value("tag")=="basic";
-			if (is_gencode_basic)
-			{
-				output.gencode_basic << transcript_id;
-			}
+			QByteArrayList tags = data.value("tag").split(',');
+			bool is_gencode_basic = tags.contains("basic");
 
 			if (settings.skip_not_gencode_basic && !is_gencode_basic)
 			{
@@ -1075,6 +1100,10 @@ GffData NGSHelper::loadGffFile(QString filename, GffSettings settings)
 			tmp.chr = chr;
 			tmp.strand = line.mid(seps[5]+1, seps[6]-seps[5]-1);
 			tmp.biotype = data["biotype"];
+			tmp.is_gencode_basic = is_gencode_basic;
+			tmp.is_ensembl_canonical = tags.contains("Ensembl_canonical");
+			tmp.is_mane_select = tags.contains("MANE_Select");
+			tmp.is_mane_plus_clinical = tags.contains("MANE_Plus_Clinical");
 			transcripts[data["ID"]] = tmp;
 		}
 

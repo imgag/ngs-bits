@@ -313,140 +313,137 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 
 		qDebug() << filter_result_.countPassing();
 
+
 		//filter based on NGSD information
-		if ((ui_->abs_logfc->value() != 0.0) || (ui_->abs_zscore->value() != 0.0) || (ui_->tpm_cohort_value->value() != 0.0) || (ui_->low_expr_tpm->value() != 0.0))
+
+		// check for valid cohort
+		if(cohort_.size() == 0) THROW(ArgumentException, "Selected cohort does not contain any samples! Cannot filter based on NGSD cohort data.");
+
+		qDebug() << "Filter by NGSD columns";
+		int gene_id_idx = expression_data_.columnIndex("gene_id");
+		int tpm_idx = expression_data_.columnIndex("tpm");
+
+
+		//get cut-offs
+		double logfc_cutoff = ui_->abs_logfc->value();
+		double zscore_cutoff = ui_->abs_zscore->value();
+		double min_cohort_tpm_value = ui_->tpm_cohort_value->value();
+		double low_expr_tpm = ui_->low_expr_tpm->value();
+
+		//count number of kept rows
+		int n_kept_rows = 0;
+
+		for(int row_idx=0; row_idx<row_count; ++row_idx)
 		{
-			// check for valid cohort
-			if(cohort_.size() == 0) THROW(ArgumentException, "Selected cohort does not contain any samples! Cannot filter based on NGSD cohort data.");
+			//skip already filtered
+			if (!filter_result_.flags()[row_idx]) continue;
 
-			qDebug() << "Filter by NGSD columns";
-			int gene_id_idx = expression_data_.columnIndex("gene_id");
-			int tpm_idx = expression_data_.columnIndex("tpm");
+			//get gene and tpm value
+			bool in_db = false;
+			QByteArray ensg_number = expression_data_.row(row_idx).at(gene_id_idx).toUtf8().trimmed();
+			QByteArray gene_symbol;
 
-
-			//get cut-offs
-			double logfc_cutoff = ui_->abs_logfc->value();
-			double zscore_cutoff = ui_->abs_zscore->value();
-			double min_cohort_tpm_value = ui_->tpm_cohort_value->value();
-			double low_expr_tpm = ui_->low_expr_tpm->value();
-
-			//count number of kept rows
-			int n_kept_rows = 0;
-
-			for(int row_idx=0; row_idx<row_count; ++row_idx)
+			if(ensg_mapping_.contains(ensg_number))
 			{
-				//skip already filtered
-				if (!filter_result_.flags()[row_idx]) continue;
+				gene_symbol = ensg_mapping_.value(ensg_number);
+			}
+			if(gene_symbol.isEmpty())
+			{
+				filter_result_.flags()[row_idx] = false;
+				continue;
+			}
+			double tpm = 0.0;
+			QString value = expression_data_.row(row_idx).at(tpm_idx).toUtf8().trimmed();
+			if (!(value.isEmpty() || value == "n/a"))
+			{
+				tpm = Helper::toDouble(value);
+			}
 
-				//get gene and tpm value
-				bool in_db = false;
-				QByteArray ensg_number = expression_data_.row(row_idx).at(gene_id_idx).toUtf8().trimmed();
-				QByteArray gene_symbol;
+			//get stats from database
+			DBExpressionValues db_values;
+			if (!ngsd_expression.contains(gene_symbol)) getGeneStats(gene_symbol, tpm);
+			if (ngsd_expression.contains(gene_symbol))
+			{
+				db_values = ngsd_expression.value(gene_symbol);
+				in_db = true;
+			}
 
-				if(ensg_mapping_.contains(ensg_number))
-				{
-					gene_symbol = ensg_mapping_.value(ensg_number);
-				}
-				if(gene_symbol.isEmpty())
+
+			//filter by log fold change
+			if (logfc_cutoff != 0.0)
+			{
+//					qDebug() << "filter by log fc";
+				if (!in_db)
 				{
 					filter_result_.flags()[row_idx] = false;
 					continue;
 				}
 
-				double tpm = 0.0;
-				QString value = expression_data_.row(row_idx).at(tpm_idx).toUtf8().trimmed();
-				if (!(value.isEmpty() || value == "n/a"))
+				if(fabs(db_values.log2fc) <= logfc_cutoff)
 				{
-					tpm = Helper::toDouble(value);
+					filter_result_.flags()[row_idx] = false;
+					continue;
 				}
-
-				//get stats from database
-				DBExpressionValues db_values;
-				if (!ngsd_expression.contains(gene_symbol)) getGeneStats(gene_symbol, tpm);
-				if (ngsd_expression.contains(gene_symbol))
-				{
-					db_values = ngsd_expression.value(gene_symbol);
-					in_db = true;
-				}
-
-
-				//filter by log fold change
-				if (logfc_cutoff != 0.0)
-				{
-//					qDebug() << "filter by log fc";
-					if (!in_db)
-					{
-						filter_result_.flags()[row_idx] = false;
-						continue;
-					}
-
-					if(fabs(db_values.log2fc) <= logfc_cutoff)
-					{
-						filter_result_.flags()[row_idx] = false;
-						continue;
-					}
-
-				}
-
-				//filter by cohort z-score
-				if (zscore_cutoff != 0.0)
-				{
-//					qDebug() << "filter by zscore";
-					if (!in_db)
-					{
-						filter_result_.flags()[row_idx] = false;
-						continue;
-					}
-
-					if(fabs(db_values.zscore) <= zscore_cutoff)
-					{
-						filter_result_.flags()[row_idx] = false;
-						continue;
-					}
-				}
-
-				//filter by cohort tpm value
-				if (min_cohort_tpm_value != 0.0)
-				{
-//					qDebug() << "filter by cohort mean";
-					if (!in_db)
-					{
-						filter_result_.flags()[row_idx] = false;
-						continue;
-					}
-
-					if(db_values.cohort_mean <= min_cohort_tpm_value)
-					{
-						filter_result_.flags()[row_idx] = false;
-						continue;
-					}
-				}
-
-				//filter by low expression tpm value (2nd part (db-based))
-				if (low_expr_tpm != 0.0)
-				{
-//					qDebug() << "filter by low expression";
-					if (!in_db)
-					{
-						filter_result_.flags()[row_idx] = false;
-						continue;
-					}
-
-					if(db_values.cohort_mean <= low_expr_tpm)
-					{
-						filter_result_.flags()[row_idx] = false;
-						continue;
-					}
-				}
-
-				//row passed all filters
-				n_kept_rows++;
-
-
-				//stop filtering if enough rows pass filter
-				if(n_kept_rows > max_rows) break;
 
 			}
+
+			//filter by cohort z-score
+			if (zscore_cutoff != 0.0)
+			{
+//					qDebug() << "filter by zscore";
+				if (!in_db)
+				{
+					filter_result_.flags()[row_idx] = false;
+					continue;
+				}
+
+				if(fabs(db_values.zscore) <= zscore_cutoff)
+				{
+					filter_result_.flags()[row_idx] = false;
+					continue;
+				}
+			}
+
+			//filter by cohort tpm value
+			if (min_cohort_tpm_value != 0.0)
+			{
+//					qDebug() << "filter by cohort mean";
+				if (!in_db)
+				{
+					filter_result_.flags()[row_idx] = false;
+					continue;
+				}
+
+				if(db_values.cohort_mean <= min_cohort_tpm_value)
+				{
+					filter_result_.flags()[row_idx] = false;
+					continue;
+				}
+			}
+
+			//filter by low expression tpm value (2nd part (db-based))
+			if (low_expr_tpm != 0.0)
+			{
+//					qDebug() << "filter by low expression";
+				if (!in_db)
+				{
+					filter_result_.flags()[row_idx] = false;
+					continue;
+				}
+
+				if(db_values.cohort_mean <= low_expr_tpm)
+				{
+					filter_result_.flags()[row_idx] = false;
+					continue;
+				}
+			}
+
+			//row passed all filters
+			n_kept_rows++;
+
+
+			//stop filtering if enough rows pass filter
+			if(n_kept_rows > max_rows) break;
 		}
 
 		qDebug() << "Filtering took " << Helper::elapsedTime(timer);
@@ -460,7 +457,7 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 		toggleCohortStats(true);
 
 		QApplication::restoreOverrideCursor();
-		filtering_in_progress_ = false;
+	filtering_in_progress_ = false;
 
 
 	}
@@ -826,7 +823,12 @@ void ExpressionGeneWidget::initTable()
 	}
 
 	//init db ensg gene mapping
+	QTime timer;
+	timer.start();
 	ensg_mapping_ = db_.getEnsemblGeneMapping();
+	id2gene_ = db_.getGeneExpressionId2GeneMapping();
+	gene2id_ = db_.getGeneExpressionGene2IdMapping();
+	qDebug() << "init mapping took:" << Helper::elapsedTime(timer);
 
 }
 
@@ -838,8 +840,9 @@ void ExpressionGeneWidget::updateQuery()
 	{
 		cohort_id_list << QByteArray::number(id);
 	}
+	qDebug() << "cohort size:" << cohort_id_list.size();
 	query_gene_stats_.prepare(QString() + "SELECT AVG(e.tpm), AVG(LOG2(e.tpm+1)), STD(LOG2(e.tpm+1)) FROM expression e "
-							  + "WHERE e.processed_sample_id IN (" + cohort_id_list.join(", ") + ") AND e.symbol=:0;");
+							  + "WHERE e.processed_sample_id IN (" + cohort_id_list.join(", ") + ") AND e.symbol_id=:0;");
 }
 
 
@@ -1025,7 +1028,7 @@ void ExpressionGeneWidget::initBiotypeList()
 
 bool ExpressionGeneWidget::getGeneStats(const QByteArray& gene, double tpm)
 {
-	query_gene_stats_.bindValue(0, gene);
+	query_gene_stats_.bindValue(0, gene2id_.value(gene));
 	query_gene_stats_.exec();
 	if(query_gene_stats_.size() > 0)
 	{

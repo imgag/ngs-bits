@@ -56,3 +56,9 @@ custom_menu_small_variants = ""
 use_free_hgmd_version = false
 allow_report_with_all_types = false
 gsvar_file_outdated_before = 2021-12-01
+
+#Path to the file that includes root and intermediate certificates, needed to access BAM files over HTTPS
+curl_ca_bundle = "ca-bundle.crt"
+
+#Check for the user notifications comming from the server (e.g. information about updates)
+display_user_notifications = true

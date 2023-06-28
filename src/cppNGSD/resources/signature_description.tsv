@@ -1,0 +1,134 @@
+##Scraped from https://cancer.sanger.ac.uk/signatures/ sub-sites with script at /mnt/users/ahott1a1/projects/20230314_Signature_desc_web_scraping/get_descriptions.py
+#signature	description
+SBS1	Spontaneous deamination of 5-methylcytosine (clock-like signature)
+SBS2	Activity of APOBEC family of cytidine deaminases
+SBS3	Defective homologous recombination DNA damage repair
+SBS4	Tobacco smoking
+SBS5	Unknown (clock-like signature)
+SBS6	Defective DNA mismatch repair
+SBS7a	Ultraviolet light exposure
+SBS7b	Ultraviolet light exposure
+SBS7c	Ultraviolet light exposure
+SBS7d	Ultraviolet light exposure
+SBS8	Unknown
+SBS9	Polimerase eta somatic hypermutation activity
+SBS10a	Polymerase epsilon exonuclease domain mutations
+SBS10b	Polymerase epsilon exonuclease domain mutations
+SBS10c	Defective POLD1 proofreading
+SBS10d	Defective POLD1 proofreading
+SBS11	Temozolomide treatment
+SBS12	Unknown
+SBS13	Activity of APOBEC family of cytidine deaminases
+SBS14	Concurrent polymerase epsilon mutation and defective DNA mismatch repair
+SBS15	Defective DNA mismatch repair
+SBS16	Unknown
+SBS17a	Unknown
+SBS17b	Unknown
+SBS18	Damage by reactive oxygen species
+SBS19	Unknown
+SBS20	Concurrent POLD1 mutations and defective DNA mismatch repair
+SBS21	Defective DNA mismatch repair
+SBS22	Aristolochic acid exposure
+SBS23	Unknown
+SBS24	Aflatoxin exposure
+SBS25	Chemotherapy treatment
+SBS26	Defective DNA mismatch repair
+SBS28	Unknown
+SBS29	Tobacco chewing
+SBS30	Defective DNA base excision repair due to NTHL1 mutations
+SBS31	Platinum chemotherapy treatment
+SBS32	Azathioprine treatment
+SBS33	Unknown
+SBS34	Unknown
+SBS35	Platinum chemotherapy treatment
+SBS36	Defective DNA base excision repair due to MUTYH mutations
+SBS37	Unknown
+SBS38	Indirect effect of ultraviolet light
+SBS39	Unknown
+SBS40	Unknown
+SBS41	Unknown
+SBS42	Haloalkane exposure
+SBS44	Defective DNA mismatch repair
+SBS84	Activity of activation-induced cytidine deaminase (AID)
+SBS85	Indirect effects of activation-induced cytidine deaminase (AID)
+SBS86	Unknown chemotherapy treatment
+SBS87	Thiopurine chemotherapy treatment
+SBS88	Colibactin exposure (E.coli bacteria carrying pks pathogenicity island)
+SBS89	Unknown
+SBS90	Duocarmycin exposure
+SBS91	Unknown
+SBS92	Tobacco smoking
+SBS93	Unknown
+SBS94	Unknown
+SBS27	possible sequencing artefact
+SBS43	possible sequencing artefact
+SBS45	possible sequencing artefact
+SBS46	possible sequencing artefact
+SBS47	possible sequencing artefact
+SBS48	possible sequencing artefact
+SBS49	possible sequencing artefact
+SBS50	possible sequencing artefact
+SBS51	possible sequencing artefact
+SBS52	possible sequencing artefact
+SBS53	possible sequencing artefact
+SBS54	possible sequencing artefact
+SBS55	possible sequencing artefact
+SBS56	possible sequencing artefact
+SBS57	possible sequencing artefact
+SBS58	possible sequencing artefact
+SBS59	possible sequencing artefact
+SBS60	possible sequencing artefact
+SBS95	possible sequencing artefact
+ID1	Slippage during DNA replication of the replicated DNA strand
+ID2	Slippage during DNA replication of the replicated DNA strand
+ID3	Tobacco smoking
+ID4	Unknown
+ID5	Unknown
+ID6	Defective homologous recombination DNA damage repair
+ID7	Defective DNA mismatch repair
+ID8	Repair of DNA double strand breaks by NHEJ or mutations in TOP2A
+ID9	Unknown
+ID10	Unknown
+ID11	Unknown
+ID12	Unknown
+ID13	Ultraviolet light exposure
+ID14	Unknown
+ID15	Unknown
+ID16	Unknown
+ID17	Mutations in topoisomerase TOP2A
+ID18	Colibactin exposure (E.coli bacteria carrying pks pathogenicity island)
+DBS1	Ultraviolet light exposure
+DBS2	Tobacco smoking and other mutagens (e.g. acetaldehyde)
+DBS3	Polymerase epsilon exonuclease domain mutations
+DBS4	Unknown
+DBS5	Platinum chemotherapy treatment
+DBS6	Unknown
+DBS7	Defective DNA mismatch repair
+DBS8	Unknown
+DBS9	Unknown
+DBS10	Defective DNA mismatch repair
+DBS11	Unknown
+CN1	Diploidy
+CN2	Tetraploidy
+CN3	Octoploidy
+CN4	Chromothripsis
+CN5	Chromothripsis
+CN6	Chromothripsis before whole genome duplication
+CN7	Chromothripsis associated amplification
+CN8	Chromothripsis associated amplification
+CN9	Focal LOH - diploid and chromosomal instability
+CN10	Focal LOH - 1x whole genome duplication
+CN11	Focal LOH - 2x whole genome duplication
+CN12	Focal LOH - chromosomal instability and 1x whole genome duplication
+CN13	Chromosomal LOH
+CN14	Chromosomal LOH - 1x whole genome duplication
+CN15	Chromosomal LOH - 2x whole genome duplication
+CN16	Chromosomal LOH - chromosomal instability and 1x whole genome duplication
+CN17	Tandem duplication and HRD
+CN18	Unknown
+CN19	Unknown
+CN20	Unknown
+CN21	Unknown
+CN22	possible sequencing artefact
+CN23	possible sequencing artefact
+CN24	possible sequencing artefact

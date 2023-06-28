@@ -131,6 +131,7 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 		}
 		else
 		{
+			bool csq2_entry_exists = variants.informationIDs().contains("CSQ2");
 			double dbsnp_count = 0;
 			double high_impact_count = 0;
 			for(int i=0; i<variants.count(); ++i)
@@ -140,6 +141,10 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 					++dbsnp_count;
 				}
 				if (variants.vcfLine(i).info("CSQ").contains("|HIGH|")) //works without splitting by transcript
+				{
+					++high_impact_count;
+				}
+				else if (csq2_entry_exists && variants.vcfLine(i).info("CSQ2").contains("|HIGH|")) //fallback to annotation with VcfAnnotateConsequence
 				{
 					++high_impact_count;
 				}

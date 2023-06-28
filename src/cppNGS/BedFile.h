@@ -121,6 +121,17 @@ public:
 		}
 	}
 
+	///Converts the chromosome range and annotation data to a string (tab-separated)
+	QString toStringWithAnnotations() const
+	{
+		QString line = chr().strNormalized(true) + "\t" + QString::number(start()) + "\t" + QString::number(end());
+		foreach (const QByteArray& a, annotations())
+		{
+			line += "\t" + a;
+		}
+		return line;
+	}
+
 	///Parses a chromosomal region string and constructs a line from it. An invalid line is returned, if the string cannot be parsed.
 	static BedLine fromString(QString str);
 
@@ -216,8 +227,12 @@ public:
     void subtract(const BedFile& file2);
     ///Removed all parts of regions that do not overlap with the given file.
     void intersect(const BedFile& file2);
-    ///Removes all regions that do not overlap with the given file.
+	///Removes all regions that do not overlap with the given file.
     void overlapping(const BedFile& file2);
+	///Removes all regions that do not overlap with the given region.
+	void overlapping(const BedLine& region);
+	///Removes all regions that do not overlap with the given region.
+	void overlapping(const Chromosome& chr, int start, int end);
     ///Splits all regions to chunks of an approximate size.
     void chunk(int size);
 

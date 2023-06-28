@@ -2,10 +2,11 @@
 #define NGSHELPER_H
 
 #include "cppNGS_global.h"
-#include "BamReader.h"
-#include "FilterCascade.h"
 #include "GenomeBuild.h"
 #include "Transcript.h"
+#include "GeneSet.h"
+#include "VcfFile.h"
+#include "BamReader.h"
 
 //Helper datastructure for gene impringing info.
 struct ImprintingInfo
@@ -55,22 +56,15 @@ struct GffData
 
 	//Map from ENSG to gene symbol
 	QHash<QByteArray, QByteArray> ensg2symbol;
-
-	//Set of ENST identifiers that are flagged as GENCODE basic
-	QSet<QByteArray> gencode_basic;
 };
 
-//Contains information about the GSvarServer (used in client-server mode)
-struct ServerInfo
-{
-	QString version; // server version
-	QString api_version; // server API version
-	QDateTime server_start_time; // date and time when the server was started
 
-	bool isEmpty()
-	{
-		return version.isEmpty() && api_version.isEmpty() && server_start_time.isNull();
-	}
+//Impact of MaxEntScan prediction
+enum MaxEntScanImpact
+{
+	LOW,
+	MODERATE,
+	HIGH
 };
 
 ///Helper class for NGS-specific stuff.
@@ -123,26 +117,11 @@ public:
 	///Returns transcripts with features from a Ensembl GFF file, transcript_gene_relation (ENST>ENSG) and gene_name_relation (ENSG>gene symbol).
 	static GffData loadGffFile(QString filename, GffSettings settings);
 
-	///Returns if the application is running in client-server mode (mainly used for GSvar).
-	static bool isClientServerMode();
-	///Checks if the application is running on the server or on a client machine
-	static bool isRunningOnServer();
-	///Checks if a given local file or URL is a BAM file
-	static bool isBamFile(QString filename);
-	///Removes a secure token from the URL that is given to IGV
-	static QString stripSecureToken(QString url);
-
-	///Requests information about GSvarServer
-	static ServerInfo getServerInfo();
-
-	///Returns the server API version. Used to check that the server and the client have the same version.
-	static QString serverApiVersion();
-
-	///Returns the URL used for sending requests to the GSvar server (use only when in client-server mode)
-	static QString serverApiUrl(const bool& return_http = false);
-
 	///Returns a map with matching Ensembl, RefSeq and CCDS transcript identifiers (without version numbers).
 	static const QMap<QByteArray, QByteArrayList>& transcriptMatches(GenomeBuild build);
+
+	///Returns the MaxEntScan impact. 'score_pairs_with_impact' returns the score apirs with annotation of impact (if not low).
+	static MaxEntScanImpact maxEntScanImpact(const QByteArrayList& score_pairs, QByteArray& score_pairs_with_impact, bool splice_site_only);
 
 private:
 	///Constructor declared away

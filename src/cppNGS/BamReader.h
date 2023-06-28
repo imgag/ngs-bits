@@ -10,6 +10,7 @@
 
 #include "QHash"
 
+#include "RefGenomeService.h"
 #include "htslib/sam.h"
 #include "htslib/cram.h"
 
@@ -186,6 +187,8 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		{
 			return seq_nt16_str[bam_seqi(bam_get_seq(aln_), n)];
 		}
+		//Fills the given vector with integer representations of bases ()
+		QVector<int> baseIntegers() const;
 
 		//Returns the sequence qualities - ASCII encoded in Illumina 1.8 format i.e. 0-41 equals '!"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJ'
 		QByteArray qualities() const;
@@ -280,7 +283,7 @@ class CPPNGSSHARED_EXPORT BamReader
 		BamReader(const QString& bam_file);
 		//CRAM Constructor with explicit reference genome
 		//reference genome is mandatory for CRAM support
-		BamReader(const QString& bam_file, const QString& ref_genome);
+        BamReader(const QString& bam_file, QString ref_genome);
 
 		//Destructor
 		~BamReader();
@@ -336,7 +339,7 @@ class CPPNGSSHARED_EXPORT BamReader
 		//Releases resources held by the iterator (index is not cleared)
 		void clearIterator();
 		void verify_chromosome_length(const QString& ref_genome);
-		void init(const QString& bam_file, const QString& ref_genome = QString());
+        void init(const QString& bam_file, QString ref_genome = QString());
 
 		//"declared away" methods
 		BamReader(const BamReader&) = delete;

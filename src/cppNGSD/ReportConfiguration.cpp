@@ -34,10 +34,12 @@ ReportVariantConfiguration::ReportVariantConfiguration()
 	, manual_sv_start()
 	, manual_sv_end()
 	, manual_sv_genotype()
-	, manual_sv_start_bnd()
-	, manual_sv_end_bnd()
 	, manual_sv_hgvs_type()
 	, manual_sv_hgvs_suffix()
+	, manual_sv_start_bnd()
+	, manual_sv_end_bnd()
+	, manual_sv_hgvs_type_bnd()
+	, manual_sv_hgvs_suffix_bnd()
 {
 }
 
@@ -197,10 +199,12 @@ bool ReportVariantConfiguration::operator==(const ReportVariantConfiguration& rh
 			manual_sv_start == rhs.manual_sv_start &&
 			manual_sv_end == rhs.manual_sv_end &&
 			manual_sv_genotype == rhs.manual_sv_genotype &&
+			manual_sv_hgvs_type == rhs.manual_sv_hgvs_type &&
+			manual_sv_hgvs_suffix == rhs.manual_sv_hgvs_suffix &&
 			manual_sv_start_bnd == rhs.manual_sv_start_bnd &&
 			manual_sv_end_bnd == rhs.manual_sv_end_bnd &&
-			manual_sv_hgvs_type == rhs.manual_sv_hgvs_type &&
-			manual_sv_hgvs_suffix == rhs.manual_sv_hgvs_suffix;
+			manual_sv_hgvs_type_bnd == rhs.manual_sv_hgvs_type_bnd &&
+			manual_sv_hgvs_suffix_bnd == rhs.manual_sv_hgvs_suffix_bnd;
 }
 
 bool ReportVariantConfiguration::isManuallyCurated() const
@@ -215,7 +219,7 @@ bool ReportVariantConfiguration::isManuallyCurated() const
 	}
 	else if (variant_type==VariantType::SVS)
 	{
-		return manualSvStartIsValid() || manualSvEndIsValid() || manualSvGenoIsValid() || manualSvStartBndIsValid() || manualSvEndBndIsValid() || !manual_sv_hgvs_type.isEmpty() || !manual_sv_hgvs_suffix.isEmpty();
+		return manualSvStartIsValid() || manualSvEndIsValid() || manualSvGenoIsValid() || manualSvStartBndIsValid() || manualSvEndBndIsValid() || !manual_sv_hgvs_type.isEmpty() || !manual_sv_hgvs_suffix.isEmpty() || !manual_sv_hgvs_type_bnd.isEmpty() || !manual_sv_hgvs_suffix_bnd.isEmpty();
 	}
 
 	THROW(ArgumentException, "ReportVariantConfiguration::isManuallyCurated() called on invalid variant type!");

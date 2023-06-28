@@ -1,5 +1,56 @@
 # GSvar change log
 
+### 2023_03-89 
+
+ - RNA: improved loading times of Gene Expression Widget
+
+### 2023_03-84 (20.06.23)
+
+- general: enabled gap calculation for somatic single-sample analysis
+
+### 2023_03-67 (13.06.23)
+
+- general: updated relaxed trio filter
+- somatic report: added cfDNA
+- bugfix: fixed error when no filters are selected in ExpressionGeneWidget
+- bugfix: fixed missing BAM files in IGV in cfDNA analysis
+
+### 2023_03-46 (15.05.23)
+
+- SVs: added column with genes at breakoints
+- SVs: added filter for CNV overlap
+
+### 2023_03-43 (11.05.23)
+
+- general: added context menu entry for small variants to search for CNVs/SVs in the same gene (for compound-heterozygous variants).
+- general: added small variant ranking version 2b with separate models for dominant and recessive.
+- run tab: added sequencer side.
+- run tab: added overall qc metrics (Q30, error rate and yield)
+- bugfix: fixed crash when requesting small variant validation from tumor-only analysis.
+- bugfix: fixed error when classifying a variant in trio/multi mode.
+- bugfix: fixed formatting error in germline trio report.
+
+
+### 2023_03-28 (25.04.23)
+
+- somatic report: added sample type, FFPE and tissue to XML
+- somatic report: updated QC in RNA report
+
+### 2023_03-13 (30.03.23)
+
+- report: minor improvements to germline report.
+- analysis status: added checkbox to show own jobs only.
+
+### 2023_02-53 (21.03.23)
+
+- removed mosaic dialog (no longer needed as mosaic variant are part of the main variant list now)
+
+### 2023_02-13 (27.02.23)
+
+- run tab: added CNV count QC metric.
+- general: added filtering for tumor and/or normal samples in QC plots.
+- general: first version of cfDNA report.
+
 ### 2022_12-24 (09.01.23)
 
 - variant tab: showing mosaic flag after genotype.
