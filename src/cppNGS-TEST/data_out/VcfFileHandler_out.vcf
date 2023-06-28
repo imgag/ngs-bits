@@ -20,7 +20,14 @@
 ##INFO=<ID=QSS_NT,Number=1,Type=String,Description="no description available">
 ##INFO=<ID=TQSS,Number=1,Type=String,Description="no description available">
 ##INFO=<ID=TQSS_NT,Number=1,Type=String,Description="no description available">
+##INFO=<ID=DP,Number=1,Type=String,Description="no description available">
+##INFO=<ID=MQ,Number=1,Type=String,Description="no description available">
+##INFO=<ID=MQ0,Number=1,Type=String,Description="no description available">
+##INFO=<ID=ReadPosRankSum,Number=1,Type=String,Description="no description available">
+##INFO=<ID=SNVSB,Number=1,Type=String,Description="no description available">
+##INFO=<ID=SomaticEVS,Number=1,Type=String,Description="no description available">
 ##FILTER=<ID=q10,Description="Quality below 10">
+##FILTER=<ID=test,Description="This Filter entry tests that '=' can be used inside a Filter description">
 ##FILTER=<ID=new_filter,Description="no description available">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="no description available">
 ##FORMAT=<ID=AU,Number=2,Type=Integer,Description="Number of 'A' alleles used in tiers 1,2">
@@ -43,3 +50,4 @@ chr17	26898195	.	G	GC	0	PASS	IC=2;IHP=5;NT=ref;QSI=68;QSI_NT=68;RC=1;RU=C;SGT=re
 chr17	38645127	.	G	A	.	new_filter	NT=ref;QSS=86;QSS_NT=86;SGT=GG->AG;TQSS=1;TQSS_NT=1;SOMATIC_IN_HEADER;CSQ=A|splice_region_variant&intron_variant|LOW|TNS4|TNS4|transcript|NM_032865.5|protein_coding|2/12|c.440-6C>T||||||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:0,0:90:1:89,91:0:0:0,0	20,21:0,0:70:2:48,50:0:0:0,0
 chr17	26898195	.	G	GC	0	.	IC=2;IHP=5;NT=ref;QSI=68;QSI_NT=68;RC=1;RU=C;SGT=ref->het;TQSI=1;TQSI_NT=1;SOMATIC=TRUE;CSQ=GC|frameshift_variant|HIGH|PIGS|PIGS|transcript|NM_033198.3|protein_coding|2/12|c.58dupG|p.Ala20fs|431/2873|58/1668|20/555||	GT:DP:DP2:DP50:FDP50:SUBDP50:TAR:TIR:TOR	1|0:52:52:59.58:0.02:0.00:51,51:0,0:0,0	1|0:52:52:56.41:0.07:0.00:27,27:17,17:7,7
 chr17	38645127	.	G	A	.	new_filter	NT=ref;QSS=86;QSS_NT=86;SGT=GG->AG;TQSS=1;TQSS_NT=1;SOMATIC_IN_HEADER;CSQ=A|splice_region_variant&intron_variant|LOW|TNS4|TNS4|transcript|NM_032865.5|protein_coding|2/12|c.440-6C>T||||||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:0,0:90:1:89,91:0:0:0,0	20,21:0,0:70:2:48,50:0:0:0,0
+chrX	53407604	.	G	A	0	test	DP=2536;MQ=60.00;MQ0=0;NT=ref;QSS=641;QSS_NT=3070;ReadPosRankSum=1.27;SGT=GG->AG;SNVSB=0.00;SomaticEVS=19.98;TQSS=1;TQSS_NT=1;SOMATIC=TRUE	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	711:0:0:0:0,0:1,1:710,713:0,0	1811:2:0:0:378,379:0,0:1431,1442:0,0
