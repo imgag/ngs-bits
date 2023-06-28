@@ -458,7 +458,6 @@ void ClinvarUploadDialog::upload()
 
         //post request
 		QByteArray reply = http_handler.post(api_url, QJsonDocument(post_request).toJson(QJsonDocument::Compact), add_headers);
-		qDebug() << api_url;
 
         // parse response
         bool success = false;

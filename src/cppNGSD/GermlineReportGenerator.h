@@ -42,6 +42,12 @@ struct CPPNGSDSHARED_EXPORT GermlineReportGeneratorData
 	const StatisticsService& statistics_service;
 };
 
+struct GapDetails
+{
+	double gap_percentage;
+	QMap<QByteArray, BedFile> gaps_per_gene;
+};
+
 //Report generator class
 class CPPNGSDSHARED_EXPORT GermlineReportGenerator
 {
@@ -72,9 +78,9 @@ private:
 	FastaFileIndex genome_idx_;
 
 	QString ps_id_;
-	double gap_percentage_ = -1; //cached by HTML report for use in XML
-	int bases_ccds_sequenced_ = -1; //cached by HTML report for use in XML
-	QMap<QByteArray, BedFile> gaps_by_gene_; //cached by HTML report for use in XML
+	double gap_percentage_ = -1; //cached by HTML report for use in XML (from entire target region gap details)
+	int bases_ccds_sequenced_ = -1; //cached by HTML report for use in XML (from exon-based gap details)
+	QMap<QByteArray, BedFile> gaps_by_gene_; //cached by HTML report for use in XML (from entire target region gap details)
 	QSet<int> selected_small_;
 	QSet<int> selected_cnvs_;
 	QSet<int> selected_svs_;
@@ -82,7 +88,7 @@ private:
 	static void writeHtmlHeader(QTextStream& stream, QString sample_name);
 	static void writeHtmlFooter(QTextStream& stream);
 	QString trans(const QString& text);
-	double writeCoverageDetails(QTextStream& stream, const TargetRegionInfo& roi);
+	GapDetails writeCoverageDetails(QTextStream& stream, const TargetRegionInfo& roi);
 	void writeClosedGapsReport(QTextStream& stream);
 	void writeRNACoverageReport(QTextStream& stream);
 	static QByteArray formatGenotype(GenomeBuild build, const QByteArray& gender, const QByteArray& genotype, const Variant& variant);

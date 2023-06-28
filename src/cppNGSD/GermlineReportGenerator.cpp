@@ -447,7 +447,9 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		if (data_.report_settings.cov_based_on_complete_roi)
 		{
 			stream << "<p><b>" << trans("L&uuml;ckenreport Zielregion") << "</b>" << endl;
-			gap_percentage_ = writeCoverageDetails(stream, data_.roi);
+			GapDetails details = writeCoverageDetails(stream, data_.roi);
+			gap_percentage_ = details.gap_percentage;
+			gaps_by_gene_ = details.gaps_per_gene;
 			stream << "</p>" << endl;
 		}
 
@@ -466,9 +468,11 @@ void GermlineReportGenerator::writeHTML(QString filename)
 			foreach(const QByteArray& gene, exon_roi.genes)
 			{
 				BedFile tmp = db_.geneToRegions(gene, Transcript::CCDS, "exon", false);
-				if (tmp.isEmpty())
+				if (tmp.isEmpty()) //fallback to Ensembl
 				{
-					tmp = db_.geneToRegions(gene, Transcript::ENSEMBL, "exon", false);
+					int gene_id = db_.geneId(gene);
+					Transcript best_trans = db_.bestTranscript(gene_id);
+					tmp = (best_trans.isCoding() ? best_trans.codingRegions() : best_trans.regions());
 					if (tmp.isEmpty())
 					{
 						genes_without_roi << gene;
@@ -478,14 +482,20 @@ void GermlineReportGenerator::writeHTML(QString filename)
 						genes_without_ccds << gene;
 					}
 				}
-				if (data_.report_settings.cov_exon_padding>0) tmp.extend(data_.report_settings.cov_exon_padding);
 				exon_roi.regions.add(tmp);
 			}
+
+			//set CCDS base count without padding
+			exon_roi.regions.merge();
+			bases_ccds_sequenced_ = exon_roi.regions.baseCount();
+
+			//pad and sort
+			if (data_.report_settings.cov_exon_padding>0) exon_roi.regions.extend(data_.report_settings.cov_exon_padding);
 			exon_roi.regions.merge();
 			exon_roi.regions.sort();
 
 			//output
-			stream << "<p><b>" << trans("L&uuml;ckenreport basierend auf Exons") << "</b>" << endl;
+			stream << "<p><b>" << trans("L&uuml;ckenreport basierend auf Exons der Zielregion") << "</b>" << endl;
 
 			if (!genes_without_roi.isEmpty())
 			{
@@ -497,9 +507,6 @@ void GermlineReportGenerator::writeHTML(QString filename)
 			}
 			writeCoverageDetails(stream, exon_roi);
 			stream << "</p>" << endl;
-
-			//set number of bases
-			bases_ccds_sequenced_ = exon_roi.regions.baseCount();
 		}
 
 		writeRNACoverageReport(stream);
@@ -688,7 +695,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	for (int i=0; i<qc_data.count(); ++i)
 	{
 		const QCValue& term = qc_data[i];
-		if (term.type()==QVariant::ByteArray) continue; //skip plots
+		if (term.type()==QCValueType::IMAGE) continue;
 		w.writeStartElement("QcTerm");
 		w.writeAttribute("id", term.accession());
 		w.writeAttribute("name", term.name());
@@ -1557,7 +1564,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Chromosom"] = "Chromosome";
 		de2en["Basen"] = "Bases";
 		de2en["L&uuml;ckenreport Zielregion"] = "Gap report based on entire target region";
-		de2en["L&uuml;ckenreport basierend auf Exons"] = "Gap report based on exons";
+		de2en["L&uuml;ckenreport basierend auf Exons der Zielregion"] = "Gap report based on exons of target region";
 		de2en["Gene f&uuml;r die keine genomische Region bestimmt werden konnte"] = "Genes for which no genomic region could be determined";
 		de2en["Gene f&uuml;r die kein CCDS-Transkript vorhanden ist und daher Ensembl-Transkripte genutzt wurden"] = "Genes for which Ensembl transcripts were unsed because not CCDS transcript was available";
 		de2en["Gr&ouml;&szlig;e"] = "Size";
@@ -1646,7 +1653,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 	THROW(ProgrammingException, "Unsupported language '" + data_.report_settings.language + "'!");
 }
 
-double GermlineReportGenerator::writeCoverageDetails(QTextStream& stream, const TargetRegionInfo& roi)
+GapDetails GermlineReportGenerator::writeCoverageDetails(QTextStream& stream, const TargetRegionInfo& roi)
 {
 	//get low-coverage regions (precalculated or calculate on the fly)
 	BedFile low_cov;
@@ -1673,16 +1680,22 @@ double GermlineReportGenerator::writeCoverageDetails(QTextStream& stream, const 
 	stream << "<br />" << trans("Prozent L&uuml;cken") << ": " << QString::number(gap_percentage, 'f', 2) << "%" << endl;
 
 	//group gaps by gene
+	QMap<QByteArray, BedFile> gaps_by_gene;
 	long long gap_bases_no_gene = 0;
 	for(int i=0; i<low_cov.count(); ++i)
 	{
 		const BedLine& line = low_cov[i];
 		GeneSet genes = db_.genesOverlapping(line.chr(), line.start(), line.end(), 20); //extend by 20 to annotate splicing regions as well
+		bool gene_match = false;
 		foreach(const QByteArray& gene, genes)
 		{
-			gaps_by_gene_[gene].append(line);
+			if (roi.genes.contains(gene))
+			{
+				gaps_by_gene[gene].append(line);
+				gene_match = true;
+			}
 		}
-		if (genes.isEmpty())
+		if (gene_match==false)
 		{
 			gap_bases_no_gene += line.length();
 		}
@@ -1693,13 +1706,13 @@ double GermlineReportGenerator::writeCoverageDetails(QTextStream& stream, const 
 	QStringList incomplete_genes;
 	foreach(const QByteArray& gene, roi.genes)
 	{
-		if (!gaps_by_gene_.contains(gene))
+		if (!gaps_by_gene.contains(gene))
 		{
 			complete_genes << gene;
 		}
 		else
 		{
-			incomplete_genes << gene + " <span style=\"font-size: 8pt;\">(" + QString::number(gaps_by_gene_[gene].baseCount()) + ")</span>";
+			incomplete_genes << gene + " <span style=\"font-size: 8pt;\">(" + QString::number(gaps_by_gene[gene].baseCount()) + ")</span>";
 		}
 	}
 	stream << "<br />" << trans("Komplett abgedeckte Gene") << ": " << complete_genes.join(", ") << endl;
@@ -1710,7 +1723,7 @@ double GermlineReportGenerator::writeCoverageDetails(QTextStream& stream, const 
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Basen") << "</b></td><td><b>" << trans("Chromosom") << "</b></td><td><b>" << trans("Koordinaten (hg38)") << "</b></td></tr>" << endl;
-	for (auto it=gaps_by_gene_.cbegin(); it!=gaps_by_gene_.cend(); ++it)
+	for (auto it=gaps_by_gene.cbegin(); it!=gaps_by_gene.cend(); ++it)
 	{
 		stream << "<tr>" << endl;
 		stream << "<td>" << endl;
@@ -1804,7 +1817,7 @@ double GermlineReportGenerator::writeCoverageDetails(QTextStream& stream, const 
 	stream << "<br />" << trans("Prozent L&uuml;cken") << " " << trans("nach L&uuml;ckenschluss") << ": " << QString::number(gap_percentage_after_closing_gaps, 'f', 2) << "%" << endl;
 	stream << "</p>";
 
-	return gap_percentage;
+	return GapDetails {gap_percentage, gaps_by_gene};
 }
 
 void GermlineReportGenerator::writeRNACoverageReport(QTextStream& stream)

@@ -38,7 +38,7 @@
         <QcTerm id="QC:2000101" name="housekeeping genes read depth" def="Average sequencing depth in exon region of housekeeping genes." value="263.87"/>
         <QcTerm id="QC:2000109" name="covered gene count" def="Number of covered genes (TPM &gt;= 1.0)" value="136985"/>
     </RNASample>
-    <TargetRegion name="panel" regions="1532" bases="271536" gap_cutoff="20" gap_percentage="5.69" ccds_bases_sequenced="6161">
+    <TargetRegion name="panel" regions="1532" bases="271536" gap_cutoff="20" gap_percentage="5.69" ccds_bases_sequenced="4815">
         <Gene name="CYP7B1" identifier="HGNC:2652" bases="2202">
             <Omim gene="603711" phenotype="Bile acid synthesis defect, congenital, 3, 613812 (3)" phenotype_number="613812"/>
             <Omim gene="603711" phenotype="Spastic paraplegia 5A, autosomal recessive, 270800 (3)" phenotype_number="270800"/>
@@ -46,22 +46,15 @@
             <Gap chr="chr8" start="64616216" end="64616218"/>
             <Gap chr="chr8" start="64624393" end="64624515"/>
             <Gap chr="chr8" start="64798456" end="64798544"/>
-            <Gap chr="chr8" start="64615713" end="64615740"/>
-            <Gap chr="chr8" start="64616216" end="64616218"/>
-            <Gap chr="chr8" start="64624383" end="64624515"/>
-            <Gap chr="chr8" start="64798446" end="64798544"/>
         </Gene>
         <Gene name="SLC25A15" identifier="HGNC:10985" bases="1586">
             <Omim gene="603861" phenotype="Hyperornithinemia-hyperammonemia-homocitrullinemia syndrome, 238970 (3)" phenotype_number="238970"/>
-            <Gap chr="chr13" start="40799186" end="40799314"/>
             <Gap chr="chr13" start="40799186" end="40799314"/>
         </Gene>
         <Gene name="SPG7" identifier="HGNC:11237" bases="3076">
             <Omim gene="602783" phenotype="Spastic paraplegia 7, autosomal recessive, 607259 (3)" phenotype_number="607259"/>
             <Gap chr="chr16" start="89524046" end="89524104"/>
             <Gap chr="chr16" start="89554476" end="89554542"/>
-            <Gap chr="chr16" start="89524046" end="89524104"/>
-            <Gap chr="chr16" start="89554466" end="89554542"/>
         </Gene>
     </TargetRegion>
     <VariantList overall_number="319" genome_build="GRCh38">

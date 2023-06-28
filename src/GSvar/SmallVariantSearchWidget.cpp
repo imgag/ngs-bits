@@ -348,7 +348,6 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 				het_hits[line[i_ps].toString()] += 1;
 			}
 		}
-		//qDebug() << het_hits;
 
 		//remove samples with less than two hits
 		var_data.erase(std::remove_if(var_data.begin(), var_data.end(), [het_hits, i_ps, i_geno](const QList<QVariant>& line){return !(line[i_geno].toString()=="hom" || het_hits[line[i_ps].toString()]>=2);}), var_data.end());

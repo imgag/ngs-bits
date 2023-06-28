@@ -243,9 +243,9 @@ RtfTable SomaticcfDnaReport::partGeneralGeneticTable()
 	foreach(auto sample, data_.table.cfdna_samples)
 	{
 		QCCollection qc = db_.getQCData(sample.ps_id);
-		d_depth << qc.value("QC:2000071", true).asString().toDouble(); //two fold duplication
-		error << qc.value("QC:2000086", true).asString().toDouble(); //two fold depth
-		depth << qc.value("QC:2000025", true).asString().toDouble(); //depth
+		d_depth << qc.value("QC:2000071", true).asDouble(); //two fold duplication
+		error << qc.value("QC:2000086", true).asDouble(); //two fold depth
+		depth << qc.value("QC:2000025", true).asDouble(); //depth
 
 		ProcessedSampleData ps_data = db_.getProcessedSampleData(sample.ps_id);
 	}

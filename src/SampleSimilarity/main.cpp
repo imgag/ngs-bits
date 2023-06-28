@@ -149,7 +149,7 @@ public:
 		}
 		if (debug)
 		{
-			out << "##calcualted similarity (took: " << Helper::elapsedTime(timer, true) << ")" << endl;
+			out << "##calculated similarity (took: " << Helper::elapsedTime(timer, true) << ")" << endl;
 		}
 	}
 

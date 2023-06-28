@@ -6,6 +6,38 @@ TEST_CLASS(QCCollection_Test)
 Q_OBJECT
 private slots:
 
+	void QCValue_string_constructor()
+	{
+		QCValue value("name", "bla", "desc", "QC:???????");
+		I_EQUAL(value.type(), QCValueType::STRING);
+		S_EQUAL(value.asString(), "bla");
+		S_EQUAL(value.toString(), "bla");
+	}
+
+	void QCValue_double_constructor()
+	{
+		QCValue value("name", 14.56, "desc", "QC:???????");
+		I_EQUAL(value.type(), QCValueType::DOUBLE);
+		F_EQUAL(value.asDouble(), 14.56);
+		S_EQUAL(value.toString(), "14.56");
+	}
+
+	void QCValue_long_constructor()
+	{
+		QCValue value("name", 5147483647, "desc", "QC:???????");
+		I_EQUAL(value.type(), QCValueType::INT);
+		I_EQUAL(value.asInt(), 5147483647);
+		S_EQUAL(value.toString(), "5147483647");
+	}
+
+	void QCValue_long_constructor_from_int()
+	{
+		QCValue value("name", 4711, "desc", "QC:???????");
+		I_EQUAL(value.type(), QCValueType::INT);
+		I_EQUAL(value.asInt(), 4711);
+		S_EQUAL(value.toString(), "4711");
+	}
+
 	void storeToQCML()
 	{
 		QCCollection col;

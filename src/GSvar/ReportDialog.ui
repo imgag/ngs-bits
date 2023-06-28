@@ -351,7 +351,7 @@
          </spacer>
         </item>
         <item>
-         <widget class="QLabel" name="label_3">
+         <widget class="QLabel" name="cov_exon_padding_label">
           <property name="toolTip">
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Exon-based gap calculation is performed based on the relevant transcripts of the genes defined in the selected target region.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
@@ -361,7 +361,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="cov_exon_padding_2">
+         <widget class="QSpinBox" name="cov_exon_padding">
           <property name="minimum">
            <number>0</number>
           </property>
@@ -412,7 +412,7 @@
         <item>
          <widget class="QLabel" name="min_cov_label">
           <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Note: Changing the cutoff can be very slow for large target regions because then the pre-calcualted gaps cannot be used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Note: Changing the cutoff can be very slow for large target regions because then the pre-calculated gaps cannot be used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="text">
            <string>Minimum coverage for gap calculation:</string>
@@ -469,7 +469,7 @@
          </spacer>
         </item>
         <item>
-         <widget class="QCheckBox" name="cov_exon">
+         <widget class="QCheckBox" name="cov_based_on_complete_roi">
           <property name="toolTip">
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Generate a gap report based on the selected target region in addition to the exon-based gap report.&lt;/p&gt;&lt;p&gt;This option is usefull if the target region is based on entire gene loci and a gap report is needed for the entire target region.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>

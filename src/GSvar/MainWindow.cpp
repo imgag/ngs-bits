@@ -5132,6 +5132,7 @@ void MainWindow::generateReportGermline()
 	if (ui_.filters->targetRegion().isValid())
 	{
 		data.roi = ui_.filters->targetRegion();
+		data.roi.genes = db.genesToApproved(data.roi.genes, true);
 	}
 
 	//show busy dialog
