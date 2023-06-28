@@ -9,6 +9,7 @@
 #include <QList>
 #include "Exceptions.h"
 #include "RequestWorker.h"
+#include "Log.h"
 
 class CPPRESTSHARED_EXPORT SslServer : public QTcpServer
 {

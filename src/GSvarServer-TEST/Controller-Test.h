@@ -145,6 +145,7 @@ private slots:
 		request.setContentType(ContentType::TEXT_HTML);
 		request.addHeader("host", "localhost:8443");
 		request.addHeader("accept", "text/html");
+        request.addHeader("content-type", "text/html");
 		request.addHeader("connection", "keep-alive");
 		request.addHeader("range", "bytes=10-17");
 		request.setPrefix("v1");
@@ -155,7 +156,6 @@ private slots:
 
 		HttpResponse response = ServerController::serveStaticFromTempUrl(request);
 
-		qDebug() << "response.getStatusLine()" << response.getStatusLine();
 		IS_TRUE(response.getStatusLine().split('\n').first().contains("206"));
 		IS_TRUE(response.getPayload().isNull());
 
@@ -177,6 +177,7 @@ private slots:
 		request.setContentType(ContentType::TEXT_HTML);
 		request.addHeader("host", "localhost:8443");
 		request.addHeader("accept", "text/html");
+        request.addHeader("content-type", "text/html");
 		request.addHeader("connection", "keep-alive");
 		request.setPrefix("v1");
 		request.setPath("temp");
@@ -212,6 +213,7 @@ private slots:
 		request.setContentType(ContentType::TEXT_HTML);
 		request.addHeader("host", "localhost:8443");
 		request.addHeader("accept", "text/html");
+        request.addHeader("content-type", "text/html");
 		request.addHeader("connection", "keep-alive");
 		request.setPrefix("v1");
 		request.setPath("temp");
@@ -243,6 +245,7 @@ private slots:
 		request.setContentType(ContentType::TEXT_HTML);
 		request.addHeader("host", "localhost:8443");
 		request.addHeader("accept", "text/html");
+        request.addHeader("content-type", "text/html");
 		request.addHeader("connection", "keep-alive");
 		request.setPrefix("v1");
 		request.setPath("current_client");
@@ -268,6 +271,7 @@ private slots:
 		request.setContentType(ContentType::TEXT_HTML);
 		request.addHeader("host", "localhost:8443");
 		request.addHeader("accept", "text/html");
+        request.addHeader("content-type", "text/html");
 		request.addHeader("connection", "keep-alive");
 		request.setPrefix("v1");
 		request.setPath("notification");
