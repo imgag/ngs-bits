@@ -35,6 +35,7 @@ ServerInfo ClientHelper::getServerInfo()
 	QByteArray response;
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "application/json");
+    add_headers.insert("Content-type", "application/json");
 	try
 	{
 		response = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(serverApiUrl()+ "info", add_headers);
@@ -68,6 +69,7 @@ ClientInfo ClientHelper::getClientInfo()
 	QByteArray response;
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "application/json");
+    add_headers.insert("Content-type", "application/json");
 	try
 	{
 		response = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(serverApiUrl()+ "current_client", add_headers);
@@ -100,6 +102,7 @@ UserNotification ClientHelper::getUserNotification()
 	QByteArray response;
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "application/json");
+    add_headers.insert("Content-type", "application/json");
 	try
 	{
 		response = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(serverApiUrl()+ "notification", add_headers);

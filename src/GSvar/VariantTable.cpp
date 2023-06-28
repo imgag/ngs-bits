@@ -517,11 +517,23 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 				item->setBackgroundColor(QColor(255, 135, 60)); //orange
 				is_notice_line = true;
 			}
-			else if (j==i_maxentscan &&  (! anno.isEmpty()))
+			else if (j==i_maxentscan && !anno.isEmpty())
 			{
-				//color item
-				QList<double> percentages, abs_values;
-				if (GSvarHelper::colorMaxEntScan(anno, percentages, abs_values))
+				//iterate over predictions per transcript
+				QList<MaxEntScanImpact> impacts;
+				foreach(const QByteArray& entry, anno.split(','))
+				{
+					QByteArray anno_with_percentages;
+					impacts << NGSHelper::maxEntScanImpact(entry.split('/'), anno_with_percentages, false);
+				}
+
+				//output: max import
+				if (impacts.contains(MaxEntScanImpact::HIGH))
+				{
+					item->setBackgroundColor(Qt::red); //orange
+					is_notice_line = true;
+				}
+				else if (impacts.contains(MaxEntScanImpact::MODERATE))
 				{
 					item->setBackgroundColor(QColor(255, 135, 60)); //orange
 					is_notice_line = true;

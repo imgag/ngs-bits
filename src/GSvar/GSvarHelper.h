@@ -52,9 +52,6 @@ public:
 	//Queue the analysis of samples
 	static bool queueSampleAnalysis(AnalysisType type, const QList<AnalysisJobSample>& samples, QWidget* parent = 0);
 
-	//returns if the change of MaxEntScan is large enough to color it in the VariantTable, also provides percent- and abs-changes of MaxEntScan.
-	static bool colorMaxEntScan(QString anno, QList<double>& percentages, QList<double>& absValues);
-
 	//returns a warning message if genes with 'indikationsspezifische Abrechnung' are contained
 	static QString specialGenes(const GeneSet& genes);
 

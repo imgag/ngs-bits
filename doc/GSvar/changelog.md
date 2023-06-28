@@ -1,5 +1,8 @@
 # GSvar change log
 
+### 2023_03-89 
+
+ - RNA: improved loading times of Gene Expression Widget
 
 ### 2023_03-84 (20.06.23)
 

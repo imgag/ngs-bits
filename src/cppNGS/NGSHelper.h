@@ -2,10 +2,11 @@
 #define NGSHELPER_H
 
 #include "cppNGS_global.h"
-#include "BamReader.h"
-#include "FilterCascade.h"
 #include "GenomeBuild.h"
 #include "Transcript.h"
+#include "GeneSet.h"
+#include "VcfFile.h"
+#include "BamReader.h"
 
 //Helper datastructure for gene impringing info.
 struct ImprintingInfo
@@ -58,6 +59,13 @@ struct GffData
 };
 
 
+//Impact of MaxEntScan prediction
+enum MaxEntScanImpact
+{
+	LOW,
+	MODERATE,
+	HIGH
+};
 
 ///Helper class for NGS-specific stuff.
 class CPPNGSSHARED_EXPORT NGSHelper
@@ -111,6 +119,9 @@ public:
 
 	///Returns a map with matching Ensembl, RefSeq and CCDS transcript identifiers (without version numbers).
 	static const QMap<QByteArray, QByteArrayList>& transcriptMatches(GenomeBuild build);
+
+	///Returns the MaxEntScan impact. 'score_pairs_with_impact' returns the score apirs with annotation of impact (if not low).
+	static MaxEntScanImpact maxEntScanImpact(const QByteArrayList& score_pairs, QByteArray& score_pairs_with_impact, bool splice_site_only);
 
 private:
 	///Constructor declared away
