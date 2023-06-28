@@ -79,11 +79,10 @@ private:
 	QSet<int> selected_cnvs_;
 	QSet<int> selected_svs_;
 	bool selected_other_causal_variant_;
-
 	static void writeHtmlHeader(QTextStream& stream, QString sample_name);
 	static void writeHtmlFooter(QTextStream& stream);
 	QString trans(const QString& text);
-	void writeCoverageReport(QTextStream& stream);
+	double writeCoverageDetails(QTextStream& stream, const TargetRegionInfo& roi);
 	void writeClosedGapsReport(QTextStream& stream);
 	void writeRNACoverageReport(QTextStream& stream);
 	static QByteArray formatGenotype(GenomeBuild build, const QByteArray& gender, const QByteArray& genotype, const Variant& variant);
