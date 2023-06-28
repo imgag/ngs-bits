@@ -24,7 +24,7 @@ private slots:
 
 	void QCValue_long_constructor()
 	{
-		QCValue value("name", 5147483647, "desc", "QC:???????");
+		QCValue value("name", 5147483647ll, "desc", "QC:???????");
 		I_EQUAL(value.type(), QCValueType::INT);
 		I_EQUAL(value.asInt(), 5147483647);
 		S_EQUAL(value.toString(), "5147483647");
