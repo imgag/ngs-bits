@@ -571,7 +571,7 @@ void BurdenTestWidget::performBurdenTest()
 		int n_cases = countOccurences(variant_ids, case_samples_, detected_variants, inheritance, ps_names_cases);
 		int n_controls = countOccurences(variant_ids, control_samples_, detected_variants, inheritance, ps_names_controls);
 		//calculate p-value (fisher)
-		double p_value = BasicStatistics::fishersExactTest(n_cases, n_controls, case_samples_.size(), control_samples_.size());
+		double p_value = BasicStatistics::fishersExactTest(n_cases, n_controls, case_samples_.size(), control_samples_.size(), "greater");
 
 		qDebug() << gene_name << "calculating counts took: " << Helper::elapsedTime(timer);
 
