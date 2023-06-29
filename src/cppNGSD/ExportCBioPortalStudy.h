@@ -94,6 +94,66 @@ struct CPPNGSDSHARED_EXPORT SampleAttribute
 	Attribute attribute;	// enum that specifies which data from the sample will be exported.
 	int priority;			// Visual priority of attribute, decides how prominent the plots of this property are (0 -> hidden, 1 default, no upper limit)
 
+	static Attribute determineAttribute(QString db_name)
+	{
+		if (db_name == "PATIENT_ID")
+		{
+			return Attribute::SAMPLE_ID;
+		}
+		else if (db_name == "SAMPLE_ID")
+		{
+			return Attribute::SAMPLE_ID;
+		}
+		else if (db_name == "HRD_SCORE")
+		{
+			return Attribute::HRD_SCORE;
+		}
+		else if (db_name == "PLOIDY")
+		{
+			return Attribute::PLOIDY;
+		}
+		else if (db_name == "MSI_STATUS")
+		{
+			return Attribute::MSI_STATUS;
+		}
+		else if (db_name == "PURITY_HIST")
+		{
+			return Attribute::PURITY_HIST;
+		}
+		else if (db_name == "PURITY_CNVS")
+		{
+			return Attribute::PURITY_CNVS;
+		}
+		else if (db_name == "TMB")
+		{
+			return Attribute::TMB;
+		}
+		else if (db_name == "ICD10")
+		{
+			return Attribute::ICD10;
+		}
+		else if (db_name == "HPO_TERMS")
+		{
+			return Attribute::HPO_TERMS;
+		}
+		else if (db_name == "CLINICAL_PHENOTYPE")
+		{
+			return Attribute::CLINICAL_PHENOTYPE;
+		}
+		else if (db_name == "COMMENT")
+		{
+			return Attribute::COMMENT;
+		}
+		else if (db_name == "PROCESSING_SYSTEM")
+		{
+			return Attribute::PROCESSING_SYSTEM;
+		}
+		else
+		{
+			THROW(ArgumentException, "Unknown attribute DB name: " + db_name);
+		}
+
+	}
 
 };
 
@@ -150,6 +210,11 @@ public:
 	void addSampleAttribute(SampleAttribute attribute)
 	{
 		sample_attributes.append(attribute);
+	}
+
+	void setSampleAttributes(QList<SampleAttribute> attributes)
+	{
+		sample_attributes = attributes;
 	}
 
 	//get index of
