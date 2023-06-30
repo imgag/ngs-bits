@@ -13,7 +13,7 @@ public:
 	GHGAUploadDialog(QWidget *parent = nullptr);
 
 private slots:
-	void test();
+	void search();
 
 private:
 	Ui::GHGAUploadDialog ui_;

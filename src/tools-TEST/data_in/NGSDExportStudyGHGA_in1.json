@@ -1,5 +1,6 @@
 {
 	"study" : "Study4711",
+	"study_description" : "Descripion of the study",
 	"study_affiliations" : ["Affiliation 1", "Affiliation 2"],
 	"data_access_committee_email" : "norply@med.uni-tuebingen.de",
 	"data_access_committee_organization" : "UKT, Tübingen, Germany",
