@@ -626,11 +626,12 @@ public:
 
 			QString pseudonym = parts[0];
 
-			QString ps = parts[2];
-			QString s_id = db.sampleId(ps);
+			QString ps = parts[2].trimmed();
+			if(ps.startsWith("Skipped - ")) continue; // samples which were skipped in the preparation dialog
+
 			QString ps_id = db.processedSampleId(ps);
 
-
+			QString s_id = db.sampleId(ps);
 			QString bam = db.processedSamplePath(ps_id, PathType::BAM);
 			if (!QFile::exists(bam) && !data.test_mode) THROW(Exception, "Processed sample " + ps + " BAM missing: " + bam);
 
