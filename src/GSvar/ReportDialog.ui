@@ -353,10 +353,10 @@
         <item>
          <widget class="QLabel" name="cov_exon_padding_label">
           <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Exon-based gap calculation is performed based on the CCDS transcript exons of the genes defined in the selected target region.&lt;br/&gt;&lt;br/&gt;The exons are then padded by the given number of bases.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Exon-based gap calculation is performed based on the CCDS transcript exons of the genes defined in the selected target region.&lt;br/&gt;&lt;br/&gt;The exons are then extended by the given number of bases to cover the splice region as well.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="text">
-           <string>Pad gene exons by:</string>
+           <string>Extend gene exons by x bases:</string>
           </property>
          </widget>
         </item>
