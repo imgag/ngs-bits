@@ -623,7 +623,7 @@ private slots:
 		vcf_file.load(TESTDATA("data_in/VcfFileHandler_in.vcf"));
 
 		QByteArrayList info_ids = vcf_file.informationIDs();
-		I_EQUAL(info_ids.count(), 17);
+		I_EQUAL(info_ids.count(), 23);
 		S_EQUAL(info_ids.at(0), "CSQ"); //the first INFO ID that was already in the header
 		S_EQUAL(info_ids.at(2), "IC"); //the first INFO ID not mentioned in header and parsed from VcfLine
 		S_EQUAL(info_ids.at(16), "TQSS_NT"); //the last INFO ID not mentioned in header and parsed from VcfLine
@@ -646,9 +646,10 @@ private slots:
 		vcf_file.load(TESTDATA("data_in/VcfFileHandler_in.vcf"));
 
 		QByteArrayList filter_ids = vcf_file.filterIDs();
-		I_EQUAL(filter_ids.count(), 2);
+		I_EQUAL(filter_ids.count(), 3);
 		S_EQUAL(filter_ids.at(0), "q10");
-		S_EQUAL(filter_ids.at(1), "new_filter");
+		S_EQUAL(filter_ids.at(1), "test");
+		S_EQUAL(filter_ids.at(2), "new_filter");
 	}
 
     void vcf_check_default_params()
