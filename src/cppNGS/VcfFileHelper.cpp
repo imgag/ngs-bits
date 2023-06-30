@@ -317,6 +317,17 @@ void VcfHeader::setFilterLine(const QByteArray& line, const int line_number)
 {
 	//split at '=' to get id and description part
 	QByteArrayList parts = line.mid(13, line.length()-15).split('=');
+
+	// ignore '=' in description part of filter header
+	if(parts.at(0).endsWith("Description"))
+	{
+		QByteArrayList tmp;
+		tmp << parts.at(0);
+		parts.removeFirst();
+		tmp << parts.join("=");
+		parts = tmp;
+	}
+
 	if(parts.count()!=2) THROW(FileParseException, "Malformed FILTER line " + QString::number(line_number) + " : conains more/less than two parts: " + line);
 
 	//remove 'Description' from first part

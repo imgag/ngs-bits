@@ -28,7 +28,7 @@ public:
 
 	virtual void main()
 	{
-		//init
+		//init init
 		NGSD db(getFlag("test"));
 		bool add_disease_info = getFlag("add_disease_info");
 		
