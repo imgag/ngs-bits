@@ -8,7 +8,7 @@ GHGAUploadDialog::GHGAUploadDialog(QWidget *parent)
 	, ui_()
 {
 	ui_.setupUi(this);
-	connect(ui_.btn_test, SIGNAL(clicked()), this, SLOT(test()));
+	connect(ui_.btn_search, SIGNAL(clicked()), this, SLOT(search()));
 
 	NGSD db;
 	ui_.s_project_type->addItem("");
@@ -19,11 +19,10 @@ GHGAUploadDialog::GHGAUploadDialog(QWidget *parent)
 	ui_.s_system_type->setCurrentText("WGS");
 }
 
-void GHGAUploadDialog::test()
+void GHGAUploadDialog::search()
 {
 	//init
 	ui_.output->clear();
-	ui_.btn_create->setEnabled(false);
 
 	//determine search paramters
 	ProcessedSampleSearchParameters params;
