@@ -474,7 +474,7 @@
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Generate a gap report based on the selected target region in addition to the exon-based gap report.&lt;/p&gt;&lt;p&gt;This option is usefull if the target region is based on entire gene loci only.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="text">
-           <string>Also calculate gaps based on the entire target region.</string>
+           <string>Also calculate gap report based on the entire target region.</string>
           </property>
           <property name="checked">
            <bool>false</bool>
@@ -517,7 +517,7 @@
            <string>Note: This option can be very slow for large target regions!</string>
           </property>
           <property name="text">
-           <string>List only one phenotype per gene (preferred phenotype or first phenotype)</string>
+           <string>List only one phenotype per gene (preferred phenotype or first phenotype).</string>
           </property>
           <property name="checked">
            <bool>false</bool>
