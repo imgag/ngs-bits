@@ -94,7 +94,7 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 
 	//NGSD (all optional)
 	ui->label_ngsd_class->setToolTip(vl.annotationDescriptionByName("classification", false).description());
-	ui->label_ngsd_count->setToolTip("Homozygous / heterozygous variant count in NGSD.");
+	ui->label_ngsd_count->setToolTip("Homozygous / heterozygous / mosac variant count in NGSD.");
 	ui->label_ngsd_group->setToolTip(vl.annotationDescriptionByName("NGSD_group", false).description());
 	ui->label_ngsd_comment->setToolTip(vl.annotationDescriptionByName("comment", false).description());
 	ui->label_ngsd_validation->setToolTip(vl.annotationDescriptionByName("validation", false).description());
@@ -194,17 +194,20 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	QString ngsd_count = "";
 	int hom_index = vl.annotationIndexByName("NGSD_hom", true, false);
 	int het_index = vl.annotationIndexByName("NGSD_het", true, false);
+	int mos_index = vl.annotationIndexByName("NGSD_mosaic", true, false);
 	if(hom_index!=-1 && het_index!=-1)
 	{
 		QString hom = vl[index].annotations()[hom_index];
 		QString het = vl[index].annotations()[het_index];
-		if (hom.startsWith("n/a") && het.startsWith("n/a"))
+		if (hom.startsWith("n/a") && het.startsWith("n/a")) //AF too high
 		{
 			ngsd_count = hom;
 		}
 		else
 		{
-			ngsd_count = hom + " / " + het;
+			QString text =  hom + " / " + het;
+			if (mos_index>0) text += " / " + vl[index].annotations()[mos_index];
+			ngsd_count = text;
 		}
 	}
 	ui->ngsd_count->setText(ngsd_count);

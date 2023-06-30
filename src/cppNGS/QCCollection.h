@@ -3,8 +3,15 @@
 
 #include "cppNGS_global.h"
 #include <QVariant>
-#include <QVector>
 #include <QtXml/QDomElement>
+
+enum class QCValueType
+{
+	INT, //integer (stored as long long)
+	DOUBLE, //floating point number
+	STRING, //string
+	IMAGE //image
+};
 
 ///QC value.
 class CPPNGSSHARED_EXPORT QCValue
@@ -14,7 +21,7 @@ public:
 	QCValue();
 	///Integer constructor.
 	QCValue(const QString& name, int value, const QString& description="", const QString& accession="NONE");
-	///Long long constructor.
+	///Long long constructor (treated as QCValueType::INT).
 	QCValue(const QString& name, long long value, const QString& description="", const QString& accession="NONE");
 	///Float constructor.
 	QCValue(const QString& name, double value, const QString& description="", const QString& accession="NONE");
@@ -27,19 +34,17 @@ public:
 	///Returns the name.
 	const QString& name() const;
 	///Returns the type.
-	QVariant::Type type() const;
+	QCValueType type() const;
 	///Returns the description.
 	const QString& description() const;
 	///Returns the accession, e.g. of an ontology.
 	const QString& accession() const;
 
 	///Returns the integer value - or throws a TypeConversionException if the QC value has a different type.
-	int asInt() const;
-	///Returns the long long value - or throws a TypeConversionException if the QC value has a different type.
-	long long asLongLong() const;
+	long long asInt() const;
 	///Returns the integer value - or throws a TypeConversionException if the QC value has a different type.
 	double asDouble() const;
-	///Returns the integer value - or throws a TypeConversionException if the QC value has a different type.
+	///Returns the string value - or throws a TypeConversionException if the QC value has a different type.
 	QString asString() const;
 	///Returns the base64-encoded PNG image - or throws a TypeConversionException if the QC value has a different type.
 	QByteArray asImage() const;
@@ -49,6 +54,7 @@ public:
 protected:
 	QString name_;
 	QVariant value_;
+	QCValueType type_;
 	QString description_;
 	QString accession_;
 };

@@ -240,7 +240,6 @@ QCCollection StatisticsReads::getResult()
 		output.insert(QCValue("N50", n50, "Minimum read length to reach 50% of sequenced bases.", "QC:2000131"));
 
 		//create read length histogram
-		qDebug() << 0 << read_lengths_.lastKey();
 		Histogram read_length_hist = Histogram(std::max(0, read_lengths_.firstKey() - 20), read_lengths_.lastKey() + 20, std::max(1, (read_lengths_.lastKey()-read_lengths_.firstKey())/50));
 		it.toFront();
 		while(it.hasNext())

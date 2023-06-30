@@ -259,11 +259,11 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[20].name(), QString("GC dropout"));
 		S_EQUAL(stats[20].toString(), QString("1.18"));
 		S_EQUAL(stats[21].name(), QString("depth distribution plot"));
-		IS_TRUE(stats[21].type()==QVariant::ByteArray);
+		IS_TRUE(stats[21].type()==QCValueType::IMAGE);
 		S_EQUAL(stats[22].name(), QString("insert size distribution plot"));
-		IS_TRUE(stats[22].type()==QVariant::ByteArray);
+		IS_TRUE(stats[22].type()==QCValueType::IMAGE);
 		S_EQUAL(stats[23].name(), QString("GC bias plot"));
-		IS_TRUE(stats[23].type()==QVariant::ByteArray);
+		IS_TRUE(stats[23].type()==QCValueType::IMAGE);
 
 		//check that there is a description for each term
 		for (int i=0; i<stats.count(); ++i)
@@ -335,11 +335,11 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[20].name(), QString("GC dropout"));
 		S_EQUAL(stats[20].toString(), QString("14.22"));
 		S_EQUAL(stats[21].name(), QString("depth distribution plot"));
-		IS_TRUE(stats[21].type()==QVariant::ByteArray);
+		IS_TRUE(stats[21].type()==QCValueType::IMAGE);
 		S_EQUAL(stats[22].name(), QString("insert size distribution plot"));
-		IS_TRUE(stats[22].type()==QVariant::ByteArray);
+		IS_TRUE(stats[22].type()==QCValueType::IMAGE);
 		S_EQUAL(stats[23].name(), QString("GC bias plot"));
-		IS_TRUE(stats[23].type()==QVariant::ByteArray);
+		IS_TRUE(stats[23].type()==QCValueType::IMAGE);
 	}
 
 	void mapping()
@@ -364,7 +364,7 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[8].name(), QString("target region read depth"));
 		S_EQUAL(stats[8].toString(8), QString("0.00005488"));
 		S_EQUAL(stats[9].name(), QString("insert size distribution plot"));
-		IS_TRUE(stats[9].type()==QVariant::ByteArray);
+		IS_TRUE(stats[9].type()==QCValueType::IMAGE);
 		I_EQUAL(stats.count(), 10);
 	}
 
@@ -394,7 +394,7 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[8].name(), QString("target region read depth"));
 		S_EQUAL(stats[8].toString(8), QString("0.00005488"));
 		S_EQUAL(stats[9].name(), QString("insert size distribution plot"));
-		IS_TRUE(stats[9].type()==QVariant::ByteArray);
+		IS_TRUE(stats[9].type()==QCValueType::IMAGE);
 
 		I_EQUAL(stats.count(), 10);
 
@@ -441,11 +441,11 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[19].name(), QString("GC dropout"));
 		S_EQUAL(stats[19].toString(), QString("0.30"));
 		S_EQUAL(stats[20].name(), QString("depth distribution plot"));
-		IS_TRUE(stats[20].type()==QVariant::ByteArray);
+		IS_TRUE(stats[20].type()==QCValueType::IMAGE);
 		S_EQUAL(stats[21].name(), QString("insert size distribution plot"));
-		IS_TRUE(stats[21].type()==QVariant::ByteArray);
+		IS_TRUE(stats[21].type()==QCValueType::IMAGE);
 		S_EQUAL(stats[22].name(), QString("GC bias plot"));
-		IS_TRUE(stats[22].type()==QVariant::ByteArray);
+		IS_TRUE(stats[22].type()==QCValueType::IMAGE);
 
 		I_EQUAL(stats.count(), 23);
 	}
@@ -524,15 +524,15 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[30].name(), QString("GC dropout"));
 		S_EQUAL(stats[30].toString(), QString("0.00"));
 		S_EQUAL(stats[31].name(), QString("depth distribution plot"));
-		IS_TRUE(stats[31].type()==QVariant::ByteArray);
+		IS_TRUE(stats[31].type()==QCValueType::IMAGE);
 		S_EQUAL(stats[32].name(), QString("insert size distribution plot"));
-		IS_TRUE(stats[32].type()==QVariant::ByteArray);
+		IS_TRUE(stats[32].type()==QCValueType::IMAGE);
 		S_EQUAL(stats[33].name(), QString("fragment duplication distribution plot"));
-		IS_TRUE(stats[33].type()==QVariant::ByteArray);
+		IS_TRUE(stats[33].type()==QCValueType::IMAGE);
 		S_EQUAL(stats[34].name(), QString("duplication-coverage plot"));
-		IS_TRUE(stats[34].type()==QVariant::ByteArray);
+		IS_TRUE(stats[34].type()==QCValueType::IMAGE);
 		S_EQUAL(stats[35].name(), QString("GC bias plot"));
-		IS_TRUE(stats[35].type()==QVariant::ByteArray);
+		IS_TRUE(stats[35].type()==QCValueType::IMAGE);
 	}
 
 	void region1()

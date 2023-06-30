@@ -22,6 +22,7 @@ public:
         addFlag("test", "Uses the test database instead of on the production database.");
 	}
 
+	//TODO add test + refactoring to use Transcript class
 
     QList<QHash<QString, QByteArray>> get_genes() 
     {

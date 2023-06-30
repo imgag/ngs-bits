@@ -142,7 +142,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	w.writeAttribute("processing_system_type", t_ps_data.processing_system_type);
 	w.writeAttribute("sequencer", db.getValue("SELECT d.type FROM device as d, sequencing_run as sr WHERE d.id = sr.device_id AND sr.name = '" + t_ps_data.run_name +  "'", false).toString());
 	QCCollection t_qc = db.getQCData(tumor_ps_id);
-	w.writeAttribute("average_depth", t_qc.value("QC:2000025", true).asString());
+	w.writeAttribute("average_depth", t_qc.value("QC:2000025", true).toString());
 	SampleData t_s_data = db.getSampleData(tumor_s_id);
 	QString type = t_s_data.type;
 	if (type.startsWith("DNA")) // handle all DNA entries
@@ -180,7 +180,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	for (int i=0; i<qc_data.count(); ++i)
 	{
 		const QCValue& term = qc_data[i];
-		if (term.type()==QVariant::ByteArray) continue; //skip plots
+		if (term.type()==QCValueType::IMAGE) continue;
 		w.writeStartElement("QcTerm");
 		w.writeAttribute("id", term.accession());
 		w.writeAttribute("name", term.name());
@@ -199,14 +199,14 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	w.writeAttribute("processing_system_type", n_ps_data.processing_system_type);
 	w.writeAttribute("sequencer", db.getValue("SELECT d.type FROM device as d, sequencing_run as sr WHERE d.id = sr.device_id AND sr.name = '" + n_ps_data.run_name +  "'", false).toString() );
 	QCCollection n_qc = db.getQCData(normal_ps_id);
-	w.writeAttribute("average_depth", n_qc.value("QC:2000025", true).asString() );
+	w.writeAttribute("average_depth", n_qc.value("QC:2000025", true).toString());
 
 	//QC data
 	qc_data = db.getQCData(normal_ps_id);
 	for (int i=0; i<qc_data.count(); ++i)
 	{
 		const QCValue& term = qc_data[i];
-		if (term.type()==QVariant::ByteArray) continue; //skip plots
+		if (term.type()==QCValueType::IMAGE) continue;
 		w.writeStartElement("QcTerm");
 		w.writeAttribute("id", term.accession());
 		w.writeAttribute("name", term.name());

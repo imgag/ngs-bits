@@ -289,7 +289,7 @@
       <item>
        <widget class="QCheckBox" name="details_cov">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Added information about the coverage of the target region.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Note: Disabled if no target region is set.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Added information about the coverage of the target region and about gaps.&lt;/p&gt;&lt;p&gt;Note: Disabled if no target region is set.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>Add coverage details</string>
@@ -333,9 +333,9 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <layout class="QHBoxLayout" name="horizontalLayout_9">
         <item>
-         <spacer name="horizontalSpacer_6">
+         <spacer name="horizontalSpacer_11">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -351,18 +351,50 @@
          </spacer>
         </item>
         <item>
-         <widget class="QCheckBox" name="details_cov_roi">
+         <widget class="QLabel" name="cov_exon_padding_label">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Exon-based gap calculation is performed based on the CCDS transcript exons of the genes defined in the selected target region.&lt;br/&gt;&lt;br/&gt;The exons are then padded by the given number of bases.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
           <property name="text">
-           <string>Add target region coverage details (otherwise details are only shown for CCDS+-5)</string>
+           <string>Pad gene exons by:</string>
           </property>
          </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="cov_exon_padding">
+          <property name="minimum">
+           <number>0</number>
+          </property>
+          <property name="maximum">
+           <number>20</number>
+          </property>
+          <property name="singleStep">
+           <number>1</number>
+          </property>
+          <property name="value">
+           <number>20</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <layout class="QHBoxLayout" name="horizontalLayout_8">
         <item>
-         <spacer name="horizontalSpacer_2">
+         <spacer name="horizontalSpacer_9">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -380,7 +412,7 @@
         <item>
          <widget class="QLabel" name="min_cov_label">
           <property name="toolTip">
-           <string>Note: Changing the cutoff can be very slow for large target regions!</string>
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Note: Changing the cutoff can be very slow for large target regions because then the pre-calculated gaps cannot be used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="text">
            <string>Minimum coverage for gap calculation:</string>
@@ -404,7 +436,7 @@
          </widget>
         </item>
         <item>
-         <spacer name="horizontalSpacer_3">
+         <spacer name="horizontalSpacer_10">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -415,6 +447,39 @@
            </size>
           </property>
          </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <item>
+         <spacer name="horizontalSpacer_6">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>5</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cov_based_on_complete_roi">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Generate a gap report based on the selected target region in addition to the exon-based gap report.&lt;/p&gt;&lt;p&gt;This option is usefull if the target region is based on entire gene loci only.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>Also calculate gap report based on the entire target region.</string>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -452,7 +517,7 @@
            <string>Note: This option can be very slow for large target regions!</string>
           </property>
           <property name="text">
-           <string>List only one phenotype per gene (preferred phenotype or first phenotype)</string>
+           <string>List only one phenotype per gene (preferred phenotype or first phenotype).</string>
           </property>
           <property name="checked">
            <bool>false</bool>

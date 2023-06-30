@@ -246,6 +246,29 @@
          </widget>
         </item>
         <item>
+         <spacer name="horizontalSpacer_8">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>5</width>
+            <height>5</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="mosaic_as_het">
+          <property name="text">
+           <string>also count mosaic variants</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="horizontalSpacer_7">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -555,6 +578,13 @@
     </layout>
    </item>
    <item>
+    <widget class="QSlider" name="horizontalSlider">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QTableWidget" name="variants">
      <property name="contextMenuPolicy">
       <enum>Qt::CustomContextMenu</enum>
@@ -578,7 +608,7 @@
       <bool>false</bool>
      </property>
      <property name="columnCount">
-      <number>24</number>
+      <number>25</number>
      </property>
      <attribute name="verticalHeaderVisible">
       <bool>false</bool>
@@ -595,12 +625,17 @@
      </column>
      <column>
       <property name="text">
+       <string>NGSD hom</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
        <string>NGSD het</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>NGSD hom</string>
+       <string>NGSD mosaic</string>
       </property>
      </column>
      <column>

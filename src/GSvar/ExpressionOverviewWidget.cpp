@@ -340,9 +340,6 @@ void ExpressionOverviewWidget::showExpressionData()
 		GUIHelper::resizeTableCells(ui_->tw_expression);
 
 		QApplication::restoreOverrideCursor();
-
-		qDebug() << "Get processing system expression level: " << Helper::elapsedTime(timer);
-
 	}
 	catch (Exception& e)
 	{
@@ -357,8 +354,6 @@ void ExpressionOverviewWidget::applyGeneFilter()
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 		NGSD db;
 		GeneSet genes;
-
-		qDebug() << "determine genes";
 
 		//get genes from phenotype filter
 		if (phenotypes_.count() > 0)

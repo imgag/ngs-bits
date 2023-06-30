@@ -809,7 +809,7 @@ void MainWindow::on_actionDebug_triggered()
 		*/
 
 		//evaluation GSvar score/rank
-
+		/*
 		//init parameters and output stream
 		bool test_domiant = false;
 		bool test_v1 = false;
@@ -1120,6 +1120,7 @@ void MainWindow::on_actionDebug_triggered()
 		out_stream << "##Top2 : " << QString::number(c_top2) << " (" + QString::number(100.0*c_top2/c_all, 'f', 2) << "%)" << endl;
 		out_stream << "##Top10: " << QString::number(c_top10) << " (" + QString::number(100.0*c_top10/c_all, 'f', 2) << "%)" << endl;
 		out_stream << "##None : " << QString::number(c_none) << " (" + QString::number(100.0*c_none/c_all, 'f', 2) << "%)" << endl;
+		*/
 
 		//import of sample relations from GenLab
 		/*
@@ -5132,6 +5133,7 @@ void MainWindow::generateReportGermline()
 	if (ui_.filters->targetRegion().isValid())
 	{
 		data.roi = ui_.filters->targetRegion();
+		data.roi.genes = db.genesToApproved(data.roi.genes, true);
 	}
 
 	//show busy dialog

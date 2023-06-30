@@ -13,6 +13,7 @@
 QCValue::QCValue()
 	: name_("")
 	, value_()
+	, type_(QCValueType::STRING)
 	, description_("")
 {
 
@@ -21,6 +22,7 @@ QCValue::QCValue()
 QCValue::QCValue(const QString& name, int value, const QString& description, const QString& accession)
 	: name_(name)
 	, value_(value)
+	, type_(QCValueType::INT)
 	, description_(description)
 	, accession_(accession)
 {
@@ -29,6 +31,7 @@ QCValue::QCValue(const QString& name, int value, const QString& description, con
 QCValue::QCValue(const QString& name, long long value, const QString& description, const QString& accession)
 	: name_(name)
 	, value_(value)
+	, type_(QCValueType::INT)
 	, description_(description)
 	, accession_(accession)
 {
@@ -37,6 +40,7 @@ QCValue::QCValue(const QString& name, long long value, const QString& descriptio
 QCValue::QCValue(const QString& name, double value, const QString& description, const QString& accession)
 	: name_(name)
 	, value_(value)
+	, type_(QCValueType::DOUBLE)
 	, description_(description)
 	, accession_(accession)
 {
@@ -45,6 +49,7 @@ QCValue::QCValue(const QString& name, double value, const QString& description, 
 QCValue::QCValue(const QString& name, const QString& value, const QString& description, const QString& accession)
 	: name_(name)
 	, value_(value)
+	, type_(QCValueType::STRING)
 	, description_(description)
 	, accession_(accession)
 {
@@ -66,6 +71,7 @@ QCValue QCValue::Image(const QString& name, const QString& filename, const QStri
 	QCValue value;
 	value.name_ = name;
 	value.value_ = data;
+	value.type_ = QCValueType::IMAGE;
 	value.description_ = description;
 	value.accession_ = accession;
 
@@ -77,9 +83,9 @@ const QString& QCValue::name() const
 	return name_;
 }
 
-QVariant::Type QCValue::type() const
+QCValueType QCValue::type() const
 {
-	return value_.type();
+	return type_;
 }
 
 const QString& QCValue::description() const
@@ -92,30 +98,23 @@ const QString& QCValue::accession() const
 	return accession_;
 }
 
-int QCValue::asInt() const
+long long QCValue::asInt() const
 {
-	if (value_.type()!=QVariant::Int) THROW(TypeConversionException, "QCValue '" + name_ + "' requested as integer, but has different type!");
+	if (type_!=QCValueType::INT) THROW(TypeConversionException, "QCValue '" + name_ + "' requested as integer, but has different type!");
 
-	return value_.toInt();
-}
-
-long long QCValue::asLongLong() const
-{
-	if (value_.type()!=QVariant::LongLong) THROW(TypeConversionException, "QCValue '" + name_ + "' requested as long long, but has different type!");
-
-	return value_.toULongLong();
+	return value_.toLongLong();
 }
 
 double QCValue::asDouble() const
 {
-	if (value_.type()!=QVariant::Double) THROW(TypeConversionException, "QCValue '" + name_ + "' requested as double, but has different type!");
+	if (type_!=QCValueType::DOUBLE) THROW(TypeConversionException, "QCValue '" + name_ + "' requested as double, but has different type!");
 
 	return value_.toDouble();
 }
 
 QString QCValue::asString() const
 {
-	if (value_.type()!=QVariant::String) THROW(TypeConversionException, "QCValue '" + name_ + "' requested as string, but has different type!");
+	if (type_!=QCValueType::STRING) THROW(TypeConversionException, "QCValue '" + name_ + "' requested as string, but has different type!");
 
 	return value_.toString();
 }
@@ -123,14 +122,14 @@ QString QCValue::asString() const
 
 QByteArray QCValue::asImage() const
 {
-	if (value_.type()!=QVariant::ByteArray) THROW(TypeConversionException, "QCValue '" + name_ + "' requested as image, but has different type!");
+	if (type_!=QCValueType::IMAGE) THROW(TypeConversionException, "QCValue '" + name_ + "' requested as image, but has different type!");
 
 	return value_.toByteArray();
 }
 
 QString QCValue::toString(int double_precision) const
 {
-	if (type()==QVariant::Double)
+	if (type()==QCValueType::DOUBLE)
 	{
 		return QString::number(value_.toDouble(), 'f', double_precision);
 	}
@@ -235,14 +234,14 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 	foreach(const QCValue& md, metadata)
 	{
 		if(md.accession()=="QC:1000006")	stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"" << md.name() << "\" value=\"" << QFileInfo(md.asString()).fileName() << "\" uri=\"" << md.asString() << "\" cvRef=\"QC\" accession=\"" << md.accession() << "\" />" << endl;
-		else	stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"" << md.name() << "\" value=\"" << md.asString() << "\" cvRef=\"QC\" accession=\"" << md.accession() << "\"/>" << endl;
+		else	stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"" << md.name() << "\" value=\"" << md.toString() << "\" cvRef=\"QC\" accession=\"" << md.accession() << "\"/>" << endl;
 		++idx;
 	}
 
 	//write quality parameters
 	for (int i=0; i<count(); ++i)
 	{
-		if (values_[i].type()==QVariant::ByteArray) continue;
+		if (values_[i].type()==QCValueType::IMAGE) continue;
 
 		QString name = values_[i].name();
 		QString value = values_[i].toString();
@@ -255,7 +254,7 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 	}
 	for (int i=0; i<count(); ++i)
 	{
-		if (values_[i].type()!=QVariant::ByteArray) continue;
+		if (values_[i].type()!=QCValueType::IMAGE) continue;
 		stream << "    <attachment ID=\"qp" << QString::number(i+1).rightJustified(4, '0') << "\" name=\"" << values_[i].name() << "\" description=\"" << values_[i].description().toHtmlEscaped() << "\" cvRef=\"QC\" accession=\"" << values_[i].accession() << "\">" << endl;
 		stream << "      <binary>" << values_[i].asImage() << "</binary>" << endl;
 		stream << "    </attachment>" << endl;
@@ -375,7 +374,7 @@ void QCCollection::appendToStringList(QStringList& list, QMap<QString, int> prec
 {
 	for(int i=0; i<count(); ++i)
 	{
-		if (values_[i].type()==QVariant::ByteArray) continue;
+		if (values_[i].type()==QCValueType::IMAGE) continue;
 
 		QString name = values_[i].name();
 		QString value = values_[i].toString();
