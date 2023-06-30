@@ -19,7 +19,7 @@ QCValue::QCValue()
 
 }
 
-QCValue::QCValue(const QString& name, int value, const QString& description, const QString& accession) //TODO check if necessary of if init with INT works as well
+QCValue::QCValue(const QString& name, int value, const QString& description, const QString& accession)
 	: name_(name)
 	, value_(value)
 	, type_(QCValueType::INT)

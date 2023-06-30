@@ -353,7 +353,7 @@
         <item>
          <widget class="QLabel" name="cov_exon_padding_label">
           <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Exon-based gap calculation is performed based on the relevant transcripts of the genes defined in the selected target region.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Exon-based gap calculation is performed based on the CCDS transcript exons of the genes defined in the selected target region.&lt;br/&gt;&lt;br/&gt;The exons are then padded by the given number of bases.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="text">
            <string>Pad gene exons by:</string>
@@ -471,7 +471,7 @@
         <item>
          <widget class="QCheckBox" name="cov_based_on_complete_roi">
           <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Generate a gap report based on the selected target region in addition to the exon-based gap report.&lt;/p&gt;&lt;p&gt;This option is usefull if the target region is based on entire gene loci and a gap report is needed for the entire target region.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Generate a gap report based on the selected target region in addition to the exon-based gap report.&lt;/p&gt;&lt;p&gt;This option is usefull if the target region is based on entire gene loci only.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="text">
            <string>Also calculate gaps based on the entire target region.</string>

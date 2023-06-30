@@ -279,8 +279,16 @@ void ReportDialog::updateCoverageCheckboxStatus()
 		if (!add_cov_details) ui_.depth_calc->setChecked(false);
 		ui_.cov_based_on_complete_roi->setEnabled(add_cov_details);
 		if (!add_cov_details) ui_.cov_based_on_complete_roi->setChecked(false);
-		ui_.cov_exon_padding->setEnabled(add_cov_details);
-		ui_.cov_exon_padding_label->setEnabled(add_cov_details);
+		if (roi_.genes.isEmpty())
+		{
+			ui_.cov_exon_padding->setEnabled(false);
+			ui_.cov_exon_padding_label->setEnabled(false);
+		}
+		else
+		{
+			ui_.cov_exon_padding->setEnabled(add_cov_details);
+			ui_.cov_exon_padding_label->setEnabled(add_cov_details);
+		}
 	}
 }
 

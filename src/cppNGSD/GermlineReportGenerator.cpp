@@ -454,9 +454,10 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		}
 
 		//gap report based on exons
+		stream << "<p><b>" << trans("L&uuml;ckenreport basierend auf Exons der Zielregion") << "</b>" << endl;
 		if (data_.roi.genes.isEmpty())
 		{
-			Log::warn("Cannot create exon-based gap report. No genes for the target region are defined!");
+			stream << "<br />" << trans("Konnte nicht erstellt werden, weil keine Gene der Zielregion definiert wurden.") << endl;
 		}
 		else
 		{
@@ -495,8 +496,6 @@ void GermlineReportGenerator::writeHTML(QString filename)
 			exon_roi.regions.sort();
 
 			//output
-			stream << "<p><b>" << trans("L&uuml;ckenreport basierend auf Exons der Zielregion") << "</b>" << endl;
-
 			if (!genes_without_roi.isEmpty())
 			{
 				stream << "<br />" << trans("Gene f&uuml;r die keine genomische Region bestimmt werden konnte") << ": " << genes_without_roi.join(", ") << endl;
@@ -506,8 +505,8 @@ void GermlineReportGenerator::writeHTML(QString filename)
 				stream << "<br />" << trans("Gene f&uuml;r die kein CCDS-Transkript vorhanden ist und daher Ensembl-Transkripte genutzt wurden") << ": " << genes_without_ccds.join(", ") << endl;
 			}
 			writeCoverageDetails(stream, exon_roi);
-			stream << "</p>" << endl;
 		}
+		stream << "</p>" << endl;
 
 		writeRNACoverageReport(stream);
 	}
@@ -1625,6 +1624,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 		  = "In case of a suspected clinical diagnosis genetic counseling is necessary to evaluate the indication/possibility of further genetic studies.";
 		de2en["<sup>*</sup> F&uuml;r Informationen zur Klassifizierung von Varianten, siehe allgemeine Zusatzinformationen."] = "<sup>*</sup> For information on the classification of variants, see the general information.";
 		de2en["kein &Uuml;berlappung mit Gen"] = "no gene overlap";
+		de2en["Konnte nicht erstellt werden, weil keine Gene der Zielregion definiert wurden."] = "Could not be performed because no target region genes are definded.";
 	}
 
 	//translate
