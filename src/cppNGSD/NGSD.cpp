@@ -5317,26 +5317,35 @@ bool NGSD::transaction()
 {
 	if(!db_->driver()->hasFeature(QSqlDriver::Transactions))
 	{
-		Log::warn("transactions are not supported by the current driver! (" + db_->driverName() + ")");
+		Log::warn("transactions are not supported by the current driver: (" + db_->driverName() + ")");
 	}
 
-	if (db_->transaction()) return true;
-	Log::warn("transactions: db_->transaction() failed!");
-	return false;
+	if (!db_->transaction())
+	{
+		Log::warn("Starting transactions failed: " + db_->lastError().text());
+		return false;
+	}
+	return true;
 }
 
 bool NGSD::commit()
 {
-	if (db_->commit()) return true;
-	Log::warn("transactions: db_->commit() failed!");
-	return false;
+	if (!db_->commit())
+	{
+		Log::warn("Committing transactions failed: " + db_->lastError().text());
+		return false;
+	}
+	return true;
 }
 
 bool NGSD::rollback()
 {
-	if (db_->rollback()) return true;
-	Log::warn("db_->rollback() failed!");
-	return false;
+	if (!db_->rollback())
+	{
+		Log::warn("Transaction rollback failed: " + db_->lastError().text());
+		return false;
+	}
+	return true;
 }
 
 int NGSD::geneId(const QByteArray& gene)

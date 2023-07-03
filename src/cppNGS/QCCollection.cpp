@@ -8,7 +8,7 @@
 #include <QFileInfo>
 #include <QList>
 #include <QFile>
-#include <OntologyTermCollection.h>
+#include "OntologyTermCollection.h"
 
 QCValue::QCValue()
 	: name_("")
@@ -55,17 +55,15 @@ QCValue::QCValue(const QString& name, const QString& value, const QString& descr
 {
 }
 
-QCValue QCValue::Image(const QString& name, const QString& filename, const QString& description, const QString& accession)
+QCValue QCValue::ImageFromFile(const QString& name, const QString& filename, const QString& description, const QString& accession)
 {
 	//load file
 	QByteArray data = "";
-	if(QFileInfo(filename).isFile())
-	{
-		QFile file(filename);
-		file.open(QIODevice::ReadOnly);
-		data = file.readAll().toBase64();
-		file.close();
-	}
+	if(!QFile::exists(filename)) THROW(FileAccessException, "QCValue::ImageFromFile: File '" + filename + "' does not exist!");
+	QFile file(filename);
+	if (!file.open(QIODevice::ReadOnly)) THROW(FileAccessException, "QCValue::ImageFromFile: File '" + filename + "' could not be opened!");
+	data = file.readAll().toBase64();
+	file.close();
 
 	//create value
 	QCValue value;
@@ -78,24 +76,16 @@ QCValue QCValue::Image(const QString& name, const QString& filename, const QStri
 	return value;
 }
 
-const QString& QCValue::name() const
+QCValue QCValue::ImageFromText(const QString& name, const QByteArray& data_base64_encoded, const QString& description, const QString& accession)
 {
-	return name_;
-}
+	QCValue value;
+	value.name_ = name;
+	value.value_ = data_base64_encoded;
+	value.type_ = QCValueType::IMAGE;
+	value.description_ = description;
+	value.accession_ = accession;
 
-QCValueType QCValue::type() const
-{
-	return type_;
-}
-
-const QString& QCValue::description() const
-{
-	return description_;
-}
-
-const QString& QCValue::accession() const
-{
-	return accession_;
+	return value;
 }
 
 long long QCValue::asInt() const
@@ -173,11 +163,6 @@ void QCCollection::insert(const QCCollection& collection)
 	}
 }
 
-const QCValue& QCCollection::operator[](int index) const
-{
-	return values_[index];
-}
-
 const QCValue& QCCollection::value(const QString& name, bool by_accession) const
 {
 	for (int i=0; i<count(); ++i)
@@ -193,16 +178,6 @@ const QCValue& QCCollection::value(const QString& name, bool by_accession) const
 	}
 
 	THROW(ArgumentException, "QC value with name/accession '" + name + "' not found in QC collection.")
-}
-
-int QCCollection::count() const
-{
-	return values_.count();
-}
-
-void QCCollection::clear()
-{
-	values_.clear();
 }
 
 void QCCollection::storeToQCML(QString filename, const QStringList& source_files, QString parameters, QMap<QString, int> precision_overwrite, QList<QCValue> metadata)
@@ -387,54 +362,92 @@ void QCCollection::appendToStringList(QStringList& list, QMap<QString, int> prec
 	}
 }
 
-QCCollection QCCollection::fromQCML(QString filename)
+QCCollection QCCollection::fromQCML(QString filename, QString obo, QStringList& errors)
 {
-	QFile f(filename);
+	QCCollection ouput;
 
+	//check against schema
+	QString xml_error = XmlHelper::isValidXml(filename, "://Resources/qcML_0.0.8.xsd");
+	if (xml_error!="")
+	{
+		THROW(ProgrammingException, "QC file '" + filename + "' does not match schema: " + xml_error);
+	}
+
+	//load OBO
+	OntologyTermCollection terms(obo, false);
+
+	//open file
 	QDomDocument doc;
 	QString error_msg;
 	int error_line, error_column;
-
+	QFile f(filename);
 	if(!doc.setContent(&f, &error_msg, &error_line, &error_column))
 	{
-		THROW(FileParseException, "qcML file " + filename + " is invalid: " + error_msg + " line: " + QString::number(error_line) + " column: " +  QString::number(error_column));
+		THROW(FileParseException, "QC file '" + filename + "' is invalid: " + error_msg + " line: " + QString::number(error_line) + " column: " +  QString::number(error_column));
 	}
 	
 	//make list of all elements in doc
 	QList<QDomElement> found_elements;
 	QCCollection::findElements(doc.documentElement(),found_elements);
-
-
-	QCCollection result_collection;
-
-	foreach(QDomElement element, found_elements)
+	foreach(const QDomElement& element, found_elements)
 	{
-		QCValue tmp;
 		//only keep elements with qcML data
-		if(element.hasAttribute("accession"))
+		if(element.nodeName()=="qualityParameter" || element.nodeName()=="attachment")
 		{
 			QString name = element.attribute("name");
-			QVariant value = QVariant(element.attribute("value"));
-			QString accession = element.attribute("accession");
+			QString value = element.attribute("value");
+			QByteArray accession = element.attribute("accession").toUtf8();
 			QString description = element.attribute("description");
 
-			//check whether value is a double
-			if(value.toDouble() != 0.)
+			//check accession exists
+			if (!terms.containsByID(accession))
 			{
-				tmp = QCValue(name,value.toDouble(),description,accession);
-			}//check whether value can be an image
-			else if(value.canConvert(QVariant::Image))
-			{
-				tmp = QCValue::Image(name,value.toString(),description,accession);
+				errors << "Skipped metric with unknown accession (accession=" + accession + "/" + name + ")";
+				continue;
 			}
-			else if(value.type() == QVariant::String)
+
+			//convert value to correct type
+			QCValue tmp;
+			const OntologyTerm& term = terms.getByID(accession);
+			if (term.type()=="int")
 			{
-				tmp = QCValue(name,value.toString(),description,accession);
+				bool ok = false;
+				long long num_value = value.toLongLong(&ok);
+				if (!ok)
+				{
+					errors << "Skipped metric with invalid integer value '" + value + "' (accession=" + accession + "/" + name + ")";
+					continue;
+				}
+				tmp = QCValue(name,num_value,description,accession);
 			}
+			else if (term.type()=="float")
+			{
+				bool ok = false;
+				double num_value = value.toDouble(&ok);
+				if (!ok)
+				{
+					errors << "Skipped metric with invalid float value '" + value + "' (accession=" + accession + "/" + name + ")";
+					continue;
+				}
+				tmp = QCValue(name,num_value,description,accession);
+			}
+			else if (term.type()=="base64Binary") //image
+			{
+				QDomNode child = element.firstChild();
+				if (child.isElement() && child.nodeName()=="binary")
+				{
+					tmp = QCValue::ImageFromText(name,child.toElement().text().toUtf8(),description,accession);
+				}
+			}
+			else //everything else is handled as string
+			{
+				tmp = QCValue(name,value,description,accession);
+			}
+			ouput.insert(tmp);
 		}
-		result_collection.insert(tmp);
 	}
-	return result_collection;
+
+	return ouput;
 }
 
 void QCCollection::findElements(const QDomElement &elem, QList<QDomElement>& foundElements)
@@ -451,8 +464,7 @@ void QCCollection::findElements(const QDomElement &elem, QList<QDomElement>& fou
 
 void QCCollection::findElementsWithAttributes(const QDomElement &elem, const QString &attr, QList<QDomElement>& foundElements)
 {
-	if(elem.attributes().contains(attr))
-		foundElements.append(elem);
+	if(elem.attributes().contains(attr)) foundElements.append(elem);
 	QDomElement child = elem.firstChildElement();
 
 	while(!child.isNull())

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xml" href="#stylesheet"?>
+<!DOCTYPE catelog [
+  <!ATTLIST xsl:stylesheet
+  id  ID  #REQUIRED>
+  ]>
+<qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
+  <runQuality ID="rq0001">
+    <metaDataParameter ID="md0001" name="creation software" value="SomaticQC 2023_03-31-gce34a8dd" cvRef="QC" accession="QC:1000002"/>
+    <metaDataParameter ID="md0002" name="creation software parameters" value=" -target_bed /mnt/storage2/megSAP/data//enrichment/twistCustomExomeV2_2021_12_14.bed -blacklist /mnt/storage2/megSAP/pipeline//data/gene_lists/somatic_tmb_blacklist.bed -tsg_bed /mnt/storage2/megSAP/pipeline//data/gene_lists/somatic_tmb_tsg.bed -target_exons /mnt/storage2/megSAP/pipeline//data/gene_lists/gene_exons.bed" cvRef="QC" accession="QC:1000003"/>
+    <metaDataParameter ID="md0003" name="creation date" value="2023-06-10T01:17:03" cvRef="QC" accession="QC:1000004"/>
+    <metaDataParameter ID="md0004" name="source file" value="DNA2304487A1_01.bam (tumor)" cvRef="QC" accession="QC:1000005"/>
+    <metaDataParameter ID="md0005" name="source file" value="DNA2303941A1_01.bam (normal)" cvRef="QC" accession="QC:1000005"/>
+    <metaDataParameter ID="md0006" name="source file" value="DNA2304487A1_01-DNA2303941A1_01_var_annotated.vcf.gz" cvRef="QC" accession="QC:1000005"/>
+    <metaDataParameter ID="md0007" name="linked file" value="DNA2304487A1_01_stats_fastq.qcML" uri="../Sample_DNA2304487A1_01/DNA2304487A1_01_stats_fastq.qcML" cvRef="QC" accession="QC:1000006" />
+    <metaDataParameter ID="md0008" name="linked file" value="DNA2304487A1_01_stats_map.qcML" uri="../Sample_DNA2304487A1_01/DNA2304487A1_01_stats_map.qcML" cvRef="QC" accession="QC:1000006" />
+    <metaDataParameter ID="md0009" name="linked file" value="DNA2303941A1_01_stats_fastq.qcML" uri="../Sample_DNA2303941A1_01/DNA2303941A1_01_stats_fastq.qcML" cvRef="QC" accession="QC:1000006" />
+    <metaDataParameter ID="md0010" name="linked file" value="DNA2303941A1_01_stats_map.qcML" uri="../Sample_DNA2303941A1_01/DNA2303941A1_01_stats_map.qcML" cvRef="QC" accession="QC:1000006" />
+    <qualityParameter ID="qp0001" name="sample correlation" description="Correlation of high-quality SNV genotypes between tumor and normal sample." value="0.99" cvRef="QC" accession="QC:2000040"/>
+    <qualityParameter ID="qp0002" name="variant count" description="Total number of variants in the target region." value="2474" cvRef="QC" accession="QC:2000013"/>
+    <qualityParameter ID="qp0003" name="somatic variant count" description="Total number of somatic variants in the target region." value="261" cvRef="QC" accession="QC:2000041"/>
+    <qualityParameter ID="qp0004" name="known somatic variants percentage" description="Percentage of somatic variants that are listed as germline variants in public datbases (e.g. AF&gt;1% in gnomAD)." value="0.77" cvRef="QC" accession="QC:2000045"/>
+    <qualityParameter ID="qp0005" name="somatic indel variants percentage" description="Percentage of somatic variants that are insertions/deletions." value="57.47" cvRef="QC" accession="QC:2000042"/>
+    <qualityParameter ID="qp0006" name="somatic transition/transversion ratio" description="Transition/transversion ratio of somatic single nucleotide variants." value="0.52" cvRef="QC" accession="QC:2000043"/>
+    <qualityParameter ID="qp0007" name="tumor content estimate" description="Estimate of tumor content." value="83.57" cvRef="QC" accession="QC:2000054"/>
+    <qualityParameter ID="qp0012" name="somatic variant rate" description="Categorized somatic variant rate followed by the somatic variant rate [variants/Mbp] normalized for the target region and exome size and corrected for tumor suppressors." value="5.01" cvRef="QC" accession="QC:2000053"/>
+    <qualityParameter ID="qp0013" name="raw somatic variant rate" description="Somatic variant rate in variants per Megabase without normalization to TSG/Oncogenes or exome size. SNVs in blacklisted genes were discarded for the calculation." value="5.45" cvRef="QC" accession="QC:2000089"/>
+  </runQuality>
+  <cvList>
+    <cv uri="https://raw.githubusercontent.com/imgag/ngs-bits/master/src/cppNGS/Resources/qcML.obo" ID="QC" fullName="QC" version="0.1"/>
+  </cvList>
+  <xsl:stylesheet id="stylesheet" version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:ns="http://www.prime-xs.eu/ms/qcml" xmlns="">
+      <xsl:template match="/">
+          <html>
+            <style type="text/css">
+            table {border: 1px solid #bbb; border-collapse: collapse; }
+            td {border: 1px solid #bbb; padding: 1px 2px 1px 2px; vertical-align: top; }
+            th {border: 1px solid #bbb; padding: 1px 2px 1px 2px; text-align: left; background-color: #eee; }
+            </style>
+              <body>
+                  <h2>Meta data:</h2>
+                  <table>
+                    <tr>
+                      <th>Accession</th><th>Name</th><th>Value</th>
+                    </tr>
+                    <xsl:for-each select="ns:qcML/ns:runQuality">
+                      <xsl:for-each select="ns:metaDataParameter">
+                        <tr>
+                          <td><xsl:value-of select="@accession"/></td>
+                          <td><span title="{@description}"><xsl:value-of select="@name"/></span></td>
+                          <td>
+                            <xsl:choose>
+                              <xsl:when test="@accession = 'QC:1000006'"><a href="{@uri}" title="{@uri}" target="blank"><xsl:value-of select="@value"/></a></xsl:when>
+                              <xsl:otherwise><xsl:value-of select="@value"/></xsl:otherwise>
+                            </xsl:choose>
+                          </td>
+                        </tr>
+                      </xsl:for-each>
+                    </xsl:for-each>
+                  </table>
+                  <h2>Quality parameters:</h2>
+                  <table>
+                    <tr>
+                      <th>Accession</th><th>Name</th><th>Value</th>
+                    </tr>
+                    <xsl:for-each select="ns:qcML/ns:runQuality">
+                      <xsl:for-each select="ns:qualityParameter">
+                        <tr>
+                          <td><xsl:value-of select="@accession"/></td>
+                          <td><span title="{@description}"><xsl:value-of select="@name"/></span></td>
+                          <td><xsl:value-of select="@value"/></td>
+                        </tr>
+                      </xsl:for-each>
+                    </xsl:for-each>
+                    <xsl:for-each select="ns:qcML/ns:runQuality">
+                      <xsl:for-each select="ns:attachment">
+                          <xsl:choose>
+                              <xsl:when test="ns:binary">
+                                <tr>
+                                  <td><xsl:value-of select="@accession"/></td>
+                                  <td><span title="{@description}"><xsl:value-of select="@name"/></span></td>
+                                  <td>
+                                    <img>
+                                      <xsl:attribute name="src">
+                                        data:image/png;base64,<xsl:value-of select="ns:binary"/>
+                                      </xsl:attribute>
+                                    </img>
+                                  </td>
+                                </tr>
+                              </xsl:when>
+                          </xsl:choose>
+                      </xsl:for-each>
+                    </xsl:for-each>
+                  </table>
+              </body>
+          </html>
+      </xsl:template>
+  </xsl:stylesheet>
+</qcML>
