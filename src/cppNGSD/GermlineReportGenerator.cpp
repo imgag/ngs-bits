@@ -472,15 +472,22 @@ void GermlineReportGenerator::writeHTML(QString filename)
 				if (tmp.isEmpty()) //fallback to Ensembl
 				{
 					int gene_id = db_.geneId(gene);
-					Transcript best_trans = db_.bestTranscript(gene_id);
-					tmp = (best_trans.isCoding() ? best_trans.codingRegions() : best_trans.regions());
-					if (tmp.isEmpty())
+					if (gene_id!=-1)
 					{
-						genes_without_roi << gene;
+						Transcript best_trans = db_.bestTranscript(gene_id);
+						tmp = (best_trans.isCoding() ? best_trans.codingRegions() : best_trans.regions());
+						if (tmp.isEmpty())
+						{
+							genes_without_roi << gene;
+						}
+						else
+						{
+							genes_without_ccds << gene;
+						}
 					}
 					else
 					{
-						genes_without_ccds << gene;
+						genes_without_roi << gene;
 					}
 				}
 				exon_roi.regions.add(tmp);
