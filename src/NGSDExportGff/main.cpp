@@ -18,7 +18,7 @@ public:
 	virtual void setup()
 	{
         setDescription("Writes all transcripts and exons of all genes to a gff3 file.");
-        addOutfile("out", "The output file directory.", false);
+		addOutfile("out", "The output GFF file.", false);
         addFlag("test", "Uses the test database instead of on the production database.");
 	}
 
