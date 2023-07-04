@@ -188,8 +188,6 @@ void CfDNAPanelDesignDialog::loadPreviousPanels()
 
 void CfDNAPanelDesignDialog::loadVariants()
 {
-	qDebug() << "load Variants";
-
 	// load reference
 	FastaFileIndex genome_reference(Settings::string("reference_genome", false));
 
@@ -388,7 +386,6 @@ void CfDNAPanelDesignDialog::loadVariants()
 		row_idx++;
 	}
 
-	qDebug() << "loaded filtered VarList";
 	// resize after filling the table:
 	ui_->vars->setRowCount(row_idx);
 
@@ -451,8 +448,6 @@ void CfDNAPanelDesignDialog::loadVariants()
 			row_idx++;
 		}
 	}
-
-	qDebug() << "added missing vars";
 
 	if(missing_prev_vars.size() > 0)
 	{

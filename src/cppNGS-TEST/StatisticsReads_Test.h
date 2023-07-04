@@ -40,9 +40,9 @@ private slots:
         S_EQUAL(result[6].name(), QString("gc content percentage"));
         S_EQUAL(result[6].toString(), QString("46.26"));
         S_EQUAL(result[7].name(), QString("base distribution plot"));
-        IS_TRUE(result[7].type()==QVariant::ByteArray);
+		IS_TRUE(result[7].type()==QCValueType::IMAGE);
         S_EQUAL(result[8].name(), QString("Q score plot"));
-        IS_TRUE(result[8].type()==QVariant::ByteArray);
+		IS_TRUE(result[8].type()==QCValueType::IMAGE);
         I_EQUAL(result.count(), 9);
 
 		//check that there is a description for each term

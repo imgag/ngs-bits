@@ -710,7 +710,9 @@ private slots:
 		QCCollection qc_data = db.getQCData(db.processedSampleId("NA12878_03"));
 		I_EQUAL(qc_data.count(), 2);
 		S_EQUAL(qc_data.value("target region 20x percentage").toString(2), "95.96");
+		I_EQUAL(qc_data.value("target region 20x percentage").type(), QCValueType::DOUBLE);
 		S_EQUAL(qc_data.value("target region read depth").toString(2), "103.24");
+		I_EQUAL(qc_data.value("target region 20x percentage").type(), QCValueType::DOUBLE);
 
 		//getQCValues
 		QVector<double> qc_values = db.getQCValues("QC:2000025", db.processedSampleId("NA12878_03"));
@@ -1823,7 +1825,8 @@ private slots:
 		report_settings.report_type = "diagnostic variant";
 		report_settings.min_depth = 20;
 		report_settings.show_coverage_details = false;
-		report_settings.roi_low_cov = false;
+		report_settings.cov_based_on_complete_roi = false;
+		report_settings.cov_exon_padding = 20;
 		report_settings.recalculate_avg_depth = false;
 		report_settings.show_omim_table = false;
 		report_settings.show_one_entry_in_omim_table = false;
@@ -1958,7 +1961,7 @@ private slots:
 			report_settings.show_refseq_transcripts = true;
 
 			report_settings.show_coverage_details = true;
-			report_settings.roi_low_cov = true;
+			report_settings.cov_based_on_complete_roi = true;
 			report_settings.recalculate_avg_depth = true;
 			report_settings.show_omim_table = true;
 			report_settings.show_one_entry_in_omim_table = true;

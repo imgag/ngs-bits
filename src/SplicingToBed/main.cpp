@@ -231,14 +231,9 @@ public:
 		//gene-wise statistics
 		QMap<QByteArray,QMap<QByteArray,int>> gene_stats;
 
-		int line_counter = 0;
 		auto fp = Helper::openFileForReading(getInfile("in"));
 		while (!fp->atEnd())
 		{
-			if (++line_counter % 1000 == 0)
-			{
-				qDebug() << "line" << line_counter;
-			}
 			QByteArray line = fp->readLine().trimmed();
 			if (line.isEmpty()) continue;
 

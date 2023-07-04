@@ -97,7 +97,6 @@ public:
 		}
 
 		QCCollection metrics;
-		qDebug() << "starting somatic qc in statistics!";
 		metrics = Statistics::somatic(build, tumor_bam, normal_bam, somatic_vcf, ref, target_bed_file, skip_plots);
 
 		//mutation burden corrected for TSG and exome size

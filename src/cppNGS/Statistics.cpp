@@ -2608,5 +2608,5 @@ void Statistics::addQcPlot(QCCollection& output, QByteArray accession, QByteArra
 		THROW(ProgrammingException, "qcML term with accession '" + accession + "' does not have name '" + name + "'!");
 	}
 
-	output.insert(QCValue::Image(name, filename, term.definition(), accession));
+	output.insert(QCValue::ImageFromFile(name, filename, term.definition(), accession));
 }

@@ -1,5 +1,5 @@
 ### NGSDExportSamples tool help
-	NGSDExportSamples (2023_02-56-g0fe5818f)
+	NGSDExportSamples (2023_03-107-g2a1d2478)
 	
 	Lists processed samples from the NGSD.
 	
@@ -11,6 +11,8 @@
 	  -no_bad_samples          If set, processed samples with 'bad' quality are excluded.
 	                           Default value: 'false'
 	  -no_tumor                If set, tumor samples are excluded.
+	                           Default value: 'false'
+	  -no_normal               If set, germline samples are excluded.
 	                           Default value: 'false'
 	  -no_ffpe                 If set, FFPE samples are excluded.
 	                           Default value: 'false'
@@ -50,7 +52,9 @@
 	                           Default value: 'false'
 	  -run_device <string>     Sequencing run device name filter.
 	                           Default value: ''
-	  -run_before <string>     Sequencing run start date before or equal to the given date.
+	  -run_before <string>     Sequencing run before or equal to the given date.
+	                           Default value: ''
+	  -run_after <string>      Sequencing run after or equal to the given date.
 	                           Default value: ''
 	  -no_bad_runs             If set, sequencing runs with 'bad' quality are excluded.
 	                           Default value: 'false'
@@ -79,7 +83,7 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportSamples changelog
-	NGSDExportSamples 2023_02-56-g0fe5818f
+	NGSDExportSamples 2023_03-107-g2a1d2478
 	
 	2022-11-11 Added 'ancestry' and 'phenotypes' filter options.
 	2022-03-03 Added 'disease_group', 'disease_status', 'project_type' and 'tissue' filter options.

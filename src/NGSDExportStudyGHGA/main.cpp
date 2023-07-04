@@ -18,6 +18,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Exports meta data of a study from NGSD to a JSON format for import into GHGA.");
+		addInfile("samples", "TSV file with pseudonym, SAP ID and processed sample ID", false);
 		addInfile("data", "JSON file with data that is not contained in NGSD.", false);
 		addOutfile("out", "Output JSON file.", false, false);
 
@@ -137,7 +138,7 @@ public:
 		QString name;
 		QString bam; //required
 		QString vcf; //optional - skipped when empty
-		QString pseudonym; //processed sample ID left-padded with '0' to 6 digits (prefixed with 3-character object type to generate the alias)
+		QString pseudonym;
 		SampleData s_info;
 		ProcessedSampleData ps_info;
 		PhenotypeList phenotypes;
@@ -152,6 +153,7 @@ public:
 
 		//study
 		QString study_name;
+		QString study_description;
 		QStringList study_affilitions;
 
 		//data access
@@ -166,14 +168,13 @@ public:
 		QList<PSData> ps_list;
 	};
 
-	void addStudy(QJsonObject& parent, const CommonData& data, const NGSD& db)
+	void addStudy(QJsonObject& parent, const CommonData& data)
 	{
 		QJsonObject obj;
 
 		obj.insert("alias", data.study_name);
 		obj.insert("title", data.study_name);
-		QString desc = db.getValue("SELECT description FROM study WHERE name='" + data.study_name + "'").toByteArray();
-		obj.insert("description", desc);
+		obj.insert("description", data.study_description);
 		obj.insert("affiliation", QJsonArray::fromStringList(data.study_affilitions));
 		obj.insert("type", "resequencing");
 		obj.insert("has_attribute", QJsonValue());
@@ -602,6 +603,7 @@ public:
 		data.version = "0.9.0";
 		data.test_mode = getFlag("test");
 		data.study_name = getString(data_obj, "study");
+		data.study_description = getString(data_obj, "study_description");
 		data.study_affilitions = getArray(data_obj, "study_affiliations");
 		data.dac_email = getString(data_obj, "data_access_committee_email");
 		data.dac_organization = getString(data_obj, "data_access_committee_organization");
@@ -612,37 +614,38 @@ public:
 
 		NGSD db(data.test_mode);
 
-		//determine processed samples to export
-		ProcessedSampleSearchParameters params;
-		params.include_bad_quality_runs = false;
-		params.include_bad_quality_samples = false;
-		params.include_merged_samples = false;
-		params.s_study = data.study_name;
-		params.add_path = "BAM";
-		DBTable ps_table = db.processedSampleSearch(params);
-		int bam_idx = ps_table.columnIndex("path");
-		for(int r=0; r<ps_table.rowCount(); ++r)
+		//load processed samples to export
+		auto handle = Helper::openFileForReading(getInfile("samples"), false);
+		while(!handle->atEnd())
 		{
-			const DBRow& row = ps_table.row(r);
+			QByteArray line = handle->readLine().trimmed();
+			if (line.isEmpty() || line[0]=='#') continue;
 
-			QString ps = row.value(0);
+			QByteArrayList parts = line.split('\t');
+			if (parts.count()!=3) THROW(FileParseException, "Invalid sample line: " + line);
+
+			QString pseudonym = parts[0];
+
+			QString ps = parts[2].trimmed();
+			if(ps.startsWith("Skipped - ")) continue; // samples which were skipped in the preparation dialog
+
+			QString ps_id = db.processedSampleId(ps);
+
 			QString s_id = db.sampleId(ps);
-			QString ps_id = row.id();
-
-			QString bam = row.value(bam_idx);
+			QString bam = db.processedSamplePath(ps_id, PathType::BAM);
 			if (!QFile::exists(bam) && !data.test_mode) THROW(Exception, "Processed sample " + ps + " BAM missing: " + bam);
 
-			QString vcf = bam.replace(".bam", "_var.vcf.gz");
+			QString vcf = db.processedSamplePath(ps_id, PathType::VCF);
 			if (!QFile::exists(vcf) && !data.test_mode) vcf.clear();
 
-			data.ps_list << PSData{ps_id, ps, bam, vcf, row.id().rightJustified(6, '0'), db.getSampleData(s_id), db.getProcessedSampleData(ps_id), db.samplePhenotypes(s_id)};
+			data.ps_list << PSData{ps_id, ps, bam, vcf, pseudonym, db.getSampleData(s_id), db.getProcessedSampleData(ps_id), db.samplePhenotypes(s_id)};
 		}
 
 		//create JSON
 		QJsonObject root;
 		root.insert("schema_type", "CreateSubmission");
 		root.insert("schema_version", data.version);
-		addStudy(root, data, db);
+		addStudy(root, data);
 		addDataAccessCommittee(root, data);
 		addDataAccessPolicy(root, data);
 		addExperiments(root, data);

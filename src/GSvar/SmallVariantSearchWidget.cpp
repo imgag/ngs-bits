@@ -207,7 +207,14 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 	int max_ngsd = ui_.filter_ngsd_count->value();
 	if (max_ngsd>0)
 	{
-		constraints << "germline_het+germline_hom<=" + QString::number(max_ngsd);
+		if (ui_.mosaic_as_het->isChecked())
+		{
+			constraints << "germline_het+germline_hom+germline_mosaic<=" + QString::number(max_ngsd);
+		}
+		else
+		{
+			constraints << "germline_het+germline_hom<=" + QString::number(max_ngsd);
+		}
 	}
 	double max_af = ui_.filter_af->value()/100.0;
 	if (max_af<1.0)
@@ -254,8 +261,9 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 
 		if (parts_match.count()==0) continue;
 
-		int germline_het = query.value("germline_het").toInt();
 		int germline_hom = query.value("germline_hom").toInt();
+		int germline_het = query.value("germline_het").toInt();
+		int germline_mosaic = query.value("germline_mosaic").toInt();
 
 		//format transcript info
 		QSet<QString> types;
@@ -328,7 +336,7 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 			QString genotype = query2.value("genotype").toString();
 			if (query2.value("mosaic").toInt()==1) genotype += " (mosaic)";
 			if (is_denovo) genotype += " (de-novo)";
-			var_data.append(QList<QVariant>() << gene << var << germline_het << germline_hom << gnomad << cadd << spliceai << type << coding << query2.value("ps_name").toString() << query2.value("name_external").toString() << query2.value("gender").toString() << genotype << query2.value("sys_name").toString()<< query2.value("p_name").toString() << query2.value("disease_group").toString() << query2.value("disease_status").toString() << phenotypes.toString() << query2.value("class").toString() << query2.value("outcome").toString() << query2.value("comment").toString().replace("\n", " ") << genes_causal.join(',') << genes_candidate.join(',')<< related_samples.join(", "));
+			var_data.append(QList<QVariant>() << gene << var << germline_hom << germline_het << germline_mosaic << gnomad << cadd << spliceai << type << coding << query2.value("ps_name").toString() << query2.value("name_external").toString() << query2.value("gender").toString() << genotype << query2.value("sys_name").toString()<< query2.value("p_name").toString() << query2.value("disease_group").toString() << query2.value("disease_status").toString() << phenotypes.toString() << query2.value("class").toString() << query2.value("outcome").toString() << query2.value("comment").toString().replace("\n", " ") << genes_causal.join(',') << genes_candidate.join(',')<< related_samples.join(", "));
 		}
 	}
 	QString comment = gene + " - " + QString::number(vars_distinct.count()) + " distinct variants in " + QString::number(var_data.count()) + " hits";
@@ -348,7 +356,6 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 				het_hits[line[i_ps].toString()] += 1;
 			}
 		}
-		//qDebug() << het_hits;
 
 		//remove samples with less than two hits
 		var_data.erase(std::remove_if(var_data.begin(), var_data.end(), [het_hits, i_ps, i_geno](const QList<QVariant>& line){return !(line[i_geno].toString()=="hom" || het_hits[line[i_ps].toString()]>=2);}), var_data.end());

@@ -109,8 +109,6 @@ void GeneSelectionDialog::determineGenes()
 		NGSD db;
 		GeneSet genes;
 
-		qDebug() << "determine genes";
-
 		//get genes from phenotype filter
 		if (phenotypes_.count() > 0)
 		{

@@ -454,8 +454,6 @@ void PublishedVariantsWidget::deleteClinvarSubmission()
 		return;
 	}
 
-	qDebug() << "Delete submission...";
-
 	QSet<int> rows = ui_->table->selectedRows();
 	if (rows.size() != 1) //only available if a single line is selected
 	{
@@ -517,7 +515,6 @@ void PublishedVariantsWidget::deleteClinvarSubmission()
 
 				//post request
 				QByteArray reply = http_handler.post(api_url, QJsonDocument(post_request).toJson(QJsonDocument::Compact), add_headers);
-				qDebug() << api_url;
 
 				// parse response
 				bool success = false;

@@ -3734,11 +3734,32 @@ QCCollection NGSD::getQCData(const QString& processed_sample_id)
 {
 	//get QC data
 	SqlQuery q = getQuery();
-	q.exec("SELECT n.name, nm.value, n.description, n.qcml_id FROM processed_sample_qc as nm, qc_terms as n WHERE nm.processed_sample_id='" + processed_sample_id + "' AND nm.qc_terms_id=n.id AND n.obsolete=0");
+	q.exec("SELECT n.name, nm.value, n.description, n.qcml_id, n.type FROM processed_sample_qc as nm, qc_terms as n WHERE nm.processed_sample_id='" + processed_sample_id + "' AND nm.qc_terms_id=n.id AND n.obsolete=0");
 	QCCollection output;
 	while(q.next())
 	{
-		output.insert(QCValue(q.value(0).toString(), q.value(1).toString(), q.value(2).toString(), q.value(3).toString()));
+		QString name = q.value(0).toString();
+		QString value = q.value(1).toString();
+		QString desc = q.value(2).toString();
+		QString qcml_id = q.value(3).toString();
+		QString type = q.value(4).toString();
+		if (type=="int")
+		{
+			bool ok = false;
+			output.insert(QCValue(name, value.toLongLong(&ok), desc, qcml_id));
+			if (!ok) THROW(DatabaseException, "Could not convert QC value '" + value + "'  ("+ qcml_id + " - " + name + ") to " + type);
+		}
+		else if (type=="float")
+		{
+			bool ok = false;
+			output.insert(QCValue(name, value.toDouble(&ok), desc, qcml_id));
+			if (!ok) THROW(DatabaseException, "Could not convert QC value '" + value + "'  ("+ qcml_id + " - " + name + ") to " + type);
+		}
+		else if (type=="string")
+		{
+			output.insert(QCValue(name, value, desc, qcml_id));
+		}
+		else THROW(ProgrammingException, "Invalid QC term type '" + type + "' in getQCData!");
 	}
 
 	return output;
@@ -5296,26 +5317,35 @@ bool NGSD::transaction()
 {
 	if(!db_->driver()->hasFeature(QSqlDriver::Transactions))
 	{
-		Log::warn("transactions are not supported by the current driver! (" + db_->driverName() + ")");
+		Log::warn("transactions are not supported by the current driver: (" + db_->driverName() + ")");
 	}
 
-	if (db_->transaction()) return true;
-	Log::warn("transactions: db_->transaction() failed!");
-	return false;
+	if (!db_->transaction())
+	{
+		Log::warn("Starting transactions failed: " + db_->lastError().text());
+		return false;
+	}
+	return true;
 }
 
 bool NGSD::commit()
 {
-	if (db_->commit()) return true;
-	Log::warn("transactions: db_->commit() failed!");
-	return false;
+	if (!db_->commit())
+	{
+		Log::warn("Committing transactions failed: " + db_->lastError().text());
+		return false;
+	}
+	return true;
 }
 
 bool NGSD::rollback()
 {
-	if (db_->rollback()) return true;
-	Log::warn("db_->rollback() failed!");
-	return false;
+	if (!db_->rollback())
+	{
+		Log::warn("Transaction rollback failed: " + db_->lastError().text());
+		return false;
+	}
+	return true;
 }
 
 int NGSD::geneId(const QByteArray& gene)
