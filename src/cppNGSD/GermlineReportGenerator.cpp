@@ -454,7 +454,12 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		}
 
 		//gap report based on exons
-		stream << "<p><b>" << trans("L&uuml;ckenreport basierend auf Exons der Zielregion") << "</b>" << endl;
+		stream << "<p><b>" << trans("L&uuml;ckenreport basierend auf Exons der Zielregion");
+		if (data_.report_settings.cov_exon_padding>0)
+		{
+			stream << " &#177; " << data_.report_settings.cov_exon_padding << " " << trans("Basen");
+		}
+		stream << "</b>" << endl;
 		if (data_.roi.genes.isEmpty())
 		{
 			stream << "<br />" << trans("Konnte nicht erstellt werden, weil keine Gene der Zielregion definiert wurden.") << endl;
