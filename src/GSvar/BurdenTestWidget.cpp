@@ -27,14 +27,9 @@ BurdenTestWidget::BurdenTestWidget(QWidget *parent) :
 	connect(ui_->b_load_samples_controls, SIGNAL(clicked(bool)), this, SLOT(loadControlSamples()));
 	connect(ui_->b_burden_test, SIGNAL(clicked(bool)), this, SLOT(performBurdenTest()));
 	connect(ui_->b_load_genes, SIGNAL(clicked(bool)), this, SLOT(loadGeneList()));
-	connect(ui_->rb_custom, SIGNAL(toggled(bool)), this, SLOT(updateGeneSelectionMenu()));
 	connect(ui_->b_copy_clipboard, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
-	connect(ui_->rb_custom, SIGNAL(toggled(bool)), this, SLOT(validateInputData()));
-	connect(ui_->rb_protein_coding, SIGNAL(toggled(bool)), this, SLOT(validateInputData()));
-	connect(ui_->rb_gene_all, SIGNAL(toggled(bool)), this, SLOT(validateInputData()));
 
 	//initial GUI setup:
-	updateGeneSelectionMenu();
 	validateInputData();
 }
 
@@ -110,14 +105,6 @@ void BurdenTestWidget::validateInputData()
 		errors << "ERROR: The samples " + ps_names.join(", ") + " are present in both case and control cohort!";
 	}
 
-	// check not 0
-//	if(case_samples_.size() < 1) errors << "ERROR: The case cohort doesn't contain any samples!";
-//	if(control_samples_.size() < 1) errors << "ERROR: The control cohort doesn't contain any samples!";
-
-
-	//check custom gene set
-	if(gene_set_initialized_ && ui_->rb_custom->isChecked() && selected_genes_.count() < 1) errors << "ERROR: Custom gene mode, but no genes selected!";
-
 	if(errors.size() > 0)
 	{
 		QMessageBox::warning(this, "Validation error", "During cohort validation the following errors occured:\n" +  errors.join("\n"));
@@ -126,7 +113,7 @@ void BurdenTestWidget::validateInputData()
 	else
 	{
 		// enable if control and case samples are set
-		ui_->b_burden_test->setEnabled(cases_initialized_ && controls_initialized_ && (!ui_->rb_custom->isChecked() || (selected_genes_.count() > 0)));
+		ui_->b_burden_test->setEnabled(cases_initialized_ && controls_initialized_ && (selected_genes_.count() > 0));
 	}
 
 	qDebug() << "Case:" << case_samples_.size() << case_samples_;
@@ -135,27 +122,14 @@ void BurdenTestWidget::validateInputData()
 
 void BurdenTestWidget::updateSampleCounts()
 {
-	ui_->l_cases->setText("(" + QString::number(case_samples_.size()) + " Samples)");
-	ui_->l_controls->setText("(" + QString::number(control_samples_.size()) + " Samples)");
+	ui_->l_cases->setText(QString::number(case_samples_.size()) + " samples");
+	ui_->l_controls->setText(QString::number(control_samples_.size()) + " samples");
 }
 
 void BurdenTestWidget::updateGeneCounts()
 {
-	ui_->l_gene_count->setText("(" + QString::number(selected_genes_.count()) + " genes)");
+	ui_->l_gene_count->setText(QString::number(selected_genes_.count()) + " genes");
 	validateInputData();
-}
-
-void BurdenTestWidget::updateGeneSelectionMenu()
-{
-	//(de-)activate custom gene list
-	ui_->b_load_genes->setEnabled(ui_->rb_custom->isChecked());
-	ui_->l_gene_count->setEnabled(ui_->rb_custom->isChecked());
-
-	//show warning if all genes are selected
-	if(ui_->rb_gene_all->isChecked() || ui_->rb_protein_coding->isChecked())
-	{
-		QMessageBox::warning(this, "All genes selected", "You are trying to perform a burden test on all genes. Depending on the cohort size this can take several hours. ");
-	}
 }
 
 QSet<int> BurdenTestWidget::loadSampleList(const QString& type, const QSet<int>& selected_ps_ids)
@@ -489,16 +463,9 @@ void BurdenTestWidget::performBurdenTest()
 
 	// get genes
 	QList<int> gene_ids;
-	if(ui_->rb_custom->isChecked())
+	foreach (QByteArray gene, selected_genes_)
 	{
-		foreach (QByteArray gene, selected_genes_)
-		{
-			gene_ids << db_.geneId(gene);
-		}
-	}
-	else
-	{
-		gene_ids = db_.getValuesInt(QString() + "SELECT `id` FROM `gene`" + ((ui_->rb_protein_coding->isChecked())? " WHERE `type`='protein-coding gene'": ""));
+		gene_ids << db_.geneId(gene);
 	}
 	qDebug() << "get gene ids: " << Helper::elapsedTime(timer);
 
@@ -536,9 +503,6 @@ void BurdenTestWidget::performBurdenTest()
 
 		qDebug() << "new method (s): " << n_sec_single_query/1000;
 
-		//skip genes with no selected variants
-//		if(variant_ids.size() == 0) continue;
-
 		// for all matching variants: get counts of case and control cohort
 		QMap<int,QSet<int>> detected_variants;
 		if(variant_ids.size() != 0)
@@ -575,26 +539,32 @@ void BurdenTestWidget::performBurdenTest()
 
 		qDebug() << gene_name << "calculating counts took: " << Helper::elapsedTime(timer);
 
-		if(!ui_->rb_custom->isChecked() && ((n_cases == 0) || (n_controls == 0))) continue;
-
 		//create table line
 		int row_idx = ui_->tw_gene_table->rowCount();
 		int column_idx = 0;
 		ui_->tw_gene_table->setRowCount(row_idx+1);
 
 		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(gene_name));
-		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(QString::number(p_value, 'f', 5)));
+		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(p_value,  5));
 
-		ui_->tw_gene_table->setItem(row_idx, column_idx, GUIHelper::createTableItem(QString::number(n_cases)));
+		ui_->tw_gene_table->setItem(row_idx, column_idx, GUIHelper::createTableItem(n_cases));
 		ui_->tw_gene_table->item(row_idx, column_idx++)->setToolTip(ps_names_cases.join(", "));
-		ui_->tw_gene_table->setItem(row_idx, column_idx, GUIHelper::createTableItem(QString::number(n_controls)));
+		ui_->tw_gene_table->setItem(row_idx, column_idx, GUIHelper::createTableItem(n_controls));
 		ui_->tw_gene_table->item(row_idx, column_idx++)->setToolTip(ps_names_controls.join(", "));
+
+		// add infos for hidden columns (ps names)
+		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(ps_names_cases.join(", ")));
+		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(ps_names_controls.join(", ")));
 
 	}
 
 	//final adjustments
+	ui_->tw_gene_table->verticalHeader()->hide();
+	ui_->tw_gene_table->setColumnHidden(4, true);
+	ui_->tw_gene_table->setColumnHidden(5, true);
 	GUIHelper::resizeTableCells(ui_->tw_gene_table, 200);
 	ui_->tw_gene_table->setSortingEnabled(true);
+	ui_->tw_gene_table->sortByColumn(1, Qt::AscendingOrder);
 
 
 	qDebug() << "Burden test took: " << Helper::elapsedTime(timer);
@@ -624,14 +594,8 @@ void BurdenTestWidget::copyToClipboard()
 	std::sort(control_sample_list.begin(), control_sample_list.end());
 	comments << "controls=" + control_sample_list.join(",");
 
-	// genes
-	if(ui_->rb_protein_coding->isChecked()) comments << "genes=[all protein-coding genes]";
-	else if(ui_->rb_gene_all->isChecked()) comments << "genes=[all genes]";
-	else
-	{
-		//custom gene set
-		comments << "genes=" + selected_genes_.toStringList().join(",");
-	}
+	//custom gene set
+	comments << "genes=" + selected_genes_.toStringList().join(",");
 
 	//filter parameter
 	comments << "max_gnomad_af=" + QString::number(ui_->sb_max_gnomad_af->value(), 'f', 2);
@@ -648,42 +612,13 @@ void BurdenTestWidget::copyToClipboard()
 	GUIHelper::copyToClipboard(ui_->tw_gene_table, false, comments);
 }
 
-//void BurdenTestWidget::prepareSqlQuery(int max_ngsd, double max_gnomad_af, const QStringList& impacts, bool predict_pathogenic)
-//{
-//	//prepare db queries
-//	QString query_text = QString() + "SELECT v.* FROM variant v WHERE"
-//			+ " (germline_het>0 OR germline_hom>0) AND germline_het+germline_hom<=" + QString::number(max_ngsd)
-//			+ " AND (gnomad IS NULL OR gnomad<=" + QString::number(max_gnomad_af) + ")"
-//			+ " AND v.chr=:0 AND v.start>=:1 AND v.end<=:2";
-//	if(impacts.size() > 0)
-//	{
-//		query_text += " AND (";
-//		QStringList impact_query_statement;
-//		foreach (const QString& impact, impacts)
-//		{
-//			if (!predict_pathogenic || impact == "HIGH")
-//			{
-//				impact_query_statement << "(v.coding LIKE '%" + impact + "%')";
-//			}
-//			else
-//			{
-//				impact_query_statement << "(v.coding LIKE '%" + impact + "%' AND (v.cadd>=20 OR v.spliceai>=0.5))";
-//			}
 
-//		}
-//		query_text += impact_query_statement.join(" OR ");
-//		query_text += ")";
-//	}
-//	query_text += " ORDER BY start";
-
-//	variant_query_.prepare(query_text);
-//}
-
-QStringList BurdenTestWidget::createChromosomeQueryList(int max_ngsd, double max_gnomad_af, const BedFile& regions, const QStringList& impacts, bool predict_pathogenic)
+QStringList BurdenTestWidget::createChromosomeQueryList(int max_ngsd, double max_gnomad_af, const BedFile& regions, const QStringList& impacts, bool predict_pathogenic, bool include_mosaic)
 {
+	QString ngsd_counts = (include_mosaic)?"(germline_het+germline_hom+germline_mosaic)<=":"(germline_het+germline_hom)<=";
 	//prepare db queries
 	QString query_text_prefix = QString() + "SELECT v.id, v.start, v.end FROM variant v WHERE"
-			+ " (germline_het>0 OR germline_hom>0) AND germline_het+germline_hom<=" + QString::number(max_ngsd)
+			+ " (germline_het>0 OR germline_hom>0) AND " + ngsd_counts + QString::number(max_ngsd)
 			+ " AND (gnomad IS NULL OR gnomad<=" + QString::number(max_gnomad_af) + ")"
 			+ " AND v.chr='" + regions[0].chr().strNormalized(true) + "'";
 	//impacts
