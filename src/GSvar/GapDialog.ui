@@ -38,7 +38,7 @@
    <item>
     <widget class="QGroupBox" name="groupBox_3">
      <property name="title">
-      <string>General information</string>
+      <string>General</string>
      </property>
      <property name="flat">
       <bool>true</bool>
@@ -61,10 +61,70 @@
       </property>
       <item>
        <widget class="QLabel" name="label">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to check gaps and decide which gaps must be closed by Sanger sequencing.&lt;br/&gt;&lt;br/&gt;If genes are defined for the target region, the genes are highlighted.&lt;br/&gt;Exonic/splicing region is defined as Ensembl transcripts +-5 bases.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to check gaps and decide which gaps must be closed by Sanger sequencing. If genes are defined for the target region, the genes are highlighted.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <property name="spacing">
+         <number>3</number>
+        </property>
+        <item>
+         <widget class="QCheckBox" name="reduce_exon_splicing">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Convert target region genes to a coding/splicing region (exons +- 20 bases) using the relevant transcripts.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>reduce target region to exon/splicing region</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QPushButton" name="gap_btn">
+          <property name="text">
+           <string>calculate gaps</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
@@ -257,7 +317,7 @@
        <string>type</string>
       </property>
       <property name="toolTip">
-       <string>CCDS exons +- 5 bases flanking regions are marked as &quot;exonic/splicing&quot;.</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Exons +- 20 bases flanking regions are marked as &amp;quot;exonic/splicing&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </column>
      <column>
@@ -265,7 +325,7 @@
        <string>preferred transcript</string>
       </property>
       <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shows if the gap overlaps a preferred transcript (exons +- 5 bases flanking regions).&lt;/p&gt;&lt;p&gt;Gaps overlapping the splice region (6 to 20 bases from coding region), are marked with '&lt;span style=&quot; font-style:italic;&quot;&gt;yes (splice region)&lt;/span&gt;'.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;If no preferred transcripts are defined for the gene(s), it stays empty.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shows if the gap overlaps a preferred transcript.&lt;/p&gt;&lt;p&gt;Gaps overlapping the splice region (up to 20 bases from coding region), are marked with '&lt;span style=&quot; font-style:italic;&quot;&gt;yes (splice region)&lt;/span&gt;'.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;If no preferred transcripts are defined for the gene(s), it stays empty.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </column>
      <column>

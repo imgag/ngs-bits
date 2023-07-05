@@ -6362,7 +6362,7 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	//show dialog
 	QStringList low_covs = GlobalServiceProvider::fileLocationProvider().getLowCoverageFiles(false).filterById(ps).asStringList();
 	low_covs << ""; //add empty string in case there is no low-coverage file > this case is handled inside the dialog
-	if (low_covs.count()>1) Log::warn( "Several gap files found for " + ps + ".");
+	if (low_covs.count()>1) Log::warn("Several gap files found for " + ps + ".");
 	GapDialog dlg(this, ps, bams[0], low_covs[0], roi, genes);
 	dlg.exec();
 }
