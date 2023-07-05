@@ -284,7 +284,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 	filters << "Allele frequency	max_af=0.1"
 			<< "Allele frequency (sub-populations)	max_af=0.1"
 			<< "Variant quality	qual=30	depth=5	mapq=20	strand_bias=-1	allele_balance=-1"
-			<< "Count NGSD	max_count=10	ignore_genotype=false"
+			<< "Count NGSD	max_count=10	ignore_genotype=false	mosaic_as_het=false"
 			<< "Impact	impact=HIGH,MODERATE,LOW"
 			<< "Annotated pathogenic	action=KEEP	sources=HGMD,ClinVar	also_likely_pathogenic=false"
 			<< "Allele frequency	max_af=1.0"
@@ -545,7 +545,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 	filters << "Allele frequency	max_af=0.1"
 			<< "Allele frequency (sub-populations)	max_af=0.1"
 			<< "Variant quality	qual=30	depth=1	mapq=20	strand_bias=-1	allele_balance=-1	min_occurences=0	min_af=0	max_af=1"
-			<< "Count NGSD	max_count=10	ignore_genotype=false"
+			<< "Count NGSD	max_count=10	ignore_genotype=false	mosaic_as_het=false"
 			<< "Impact	impact=HIGH,MODERATE,LOW"
 			<< "Annotated pathogenic	action=KEEP	sources=HGMD,ClinVar	also_likely_pathogenic=false"
 			<< "Splice effect	MaxEntScan=LOW	SpliceAi=0.5	action=KEEP"
@@ -795,7 +795,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 	filters << "Allele frequency	max_af=0.1"
 			<< "Allele frequency (sub-populations)	max_af=0.1"
 			<< "Variant quality	qual=30	depth=1	mapq=20	strand_bias=-1	allele_balance=-1	min_occurences=0	min_af=0	max_af=1"
-			<< "Count NGSD	max_count=10	ignore_genotype=false"
+			<< "Count NGSD	max_count=10	ignore_genotype=false	mosaic_as_het=false"
 			<< "Impact	impact=HIGH,MODERATE,LOW"
 			<< "Annotated pathogenic	action=KEEP	sources=HGMD,ClinVar	also_likely_pathogenic=false"
 			<< "Splice effect	MaxEntScan=LOW	SpliceAi=0.5	action=KEEP"
@@ -1044,25 +1044,30 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 	return output;
 }
 
-//Performance history DOMINANT										Rank1  / Top10
-//version 1															76.82% / 97.67% (19.04.23)
-//score by gene, NGSD score, fix of OE/inheritance parsing			81.72% / 97.51% (19.04.23)
+//Performance history DOMINANT										Samples / Rank1  / Top10
+//version 1															?       / 76.82% / 97.67% (19.04.23)
+//score by gene, NGSD score, fix of OE/inheritance parsing			?       / 81.72% / 97.51% (19.04.23)
+//more data, pre-filtering of cases by variant genotype				1283    / 81.37% / 97.51% (05.07.23)
 
+//Performance history RECESSIVE										Samples / Top2   / Top10
+//version 1															?       / 72.30% / 90.90% (19.04.23)
+//score by gene, fix of OE/inheritance parsing, comp-het variants	?       / 83.02% / 94.60% (19.04.23)
 
-//Performance history RECESSIVE										Top2  / Top10
-//version 1															72.30% / 90.90% (19.04.23)
-//score by gene, fix of OE/inheritance parsing, comp-het variants	83.02% / 94.60% (19.04.23)
+//Performance history RECESSIVE - HOMOYZGOUOS						Samples / Top1   / Top10
+//more data, pre-filtering of cases by variant genotype				553     / 76.13% / 94.58% (19.04.23)
+
+//Performance history RECESSIVE - COMP-HET							Samples / Top2   / Top10
+//more data, pre-filtering of cases by variant genotype				775     / 81.94% / 95.35% (19.04.23)
 
 //TODO: Ideas
-// - test effect of "mosaic_as_het" in NGSD count filter
-// - check non-ranked variants (add ClinVar, HGMD and NGSD class to output)
-//	 - only rank AF<1% in gnomAD?
-// - recurring variants > blacklist
+// - filter by variant class 4/5
+// - score only relevant transcripts OR score them higher than other transcripts
+// - check if recurring variants are a problem > blacklist
+// - test effect of "mosaic_as_het" in NGSD count filter (needs re-annotation and re-caluclation of pre-filtered files)
 // - integrate conservedness (phyloP)?
-// - score only relevant transcripts or score them higher than other transcripts
 // - additional score if OMIM/ClinVar/HGMD also match HPO terms
 // - HPO: add bonus score if more than one phenotype matches OR using Germans model (email 09.12.2020)
-// - HPO: higher weight for high evidence HPO-gene regions?
+//Ideas if we want to publish it separately:
 // - optimize scores by machine learning
 // - benchmark with existing tools:
 //   - create and use version of ClinVar without our commits (we submit to ClinVar)
