@@ -468,34 +468,27 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		{
 			//determine target region
 			GeneSet genes_without_roi;
-			GeneSet genes_without_ccds;
 			TargetRegionInfo exon_roi;
 			exon_roi.genes = data_.roi.genes;
 			foreach(const QByteArray& gene, exon_roi.genes)
 			{
-				BedFile tmp = db_.geneToRegions(gene, Transcript::CCDS, "exon", false);
-				if (tmp.isEmpty()) //fallback to Ensembl
+				int gene_id = db_.geneId(gene);
+				if (gene_id==-1)
 				{
-					int gene_id = db_.geneId(gene);
-					if (gene_id!=-1)
-					{
-						Transcript best_trans = db_.bestTranscript(gene_id);
-						tmp = (best_trans.isCoding() ? best_trans.codingRegions() : best_trans.regions());
-						if (tmp.isEmpty())
-						{
-							genes_without_roi << gene;
-						}
-						else
-						{
-							genes_without_ccds << gene;
-						}
-					}
-					else
-					{
-						genes_without_roi << gene;
-					}
+					genes_without_roi << gene;
+					continue;
 				}
-				exon_roi.regions.add(tmp);
+
+				TranscriptList transcripts = db_.releventTranscripts(gene_id);
+				if (transcripts.isEmpty())
+				{
+					genes_without_roi << gene;
+					continue;
+				}
+				foreach(const Transcript& transcript, transcripts)
+				{
+					exon_roi.regions.add(transcript.isCoding() ? transcript.codingRegions() : transcript.regions());
+				}
 			}
 
 			//set CCDS base count without padding
@@ -511,10 +504,6 @@ void GermlineReportGenerator::writeHTML(QString filename)
 			if (!genes_without_roi.isEmpty())
 			{
 				stream << "<br />" << trans("Gene f&uuml;r die keine genomische Region bestimmt werden konnte") << ": " << genes_without_roi.join(", ") << endl;
-			}
-			if (!genes_without_ccds.isEmpty())
-			{
-				stream << "<br />" << trans("Gene f&uuml;r die kein CCDS-Transkript vorhanden ist und daher Ensembl-Transkripte genutzt wurden") << ": " << genes_without_ccds.join(", ") << endl;
 			}
 			writeCoverageDetails(stream, exon_roi);
 		}
@@ -1577,7 +1566,6 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["L&uuml;ckenreport Zielregion"] = "Gap report based on entire target region";
 		de2en["L&uuml;ckenreport basierend auf Exons der Zielregion"] = "Gap report based on exons of target region";
 		de2en["Gene f&uuml;r die keine genomische Region bestimmt werden konnte"] = "Genes for which no genomic region could be determined";
-		de2en["Gene f&uuml;r die kein CCDS-Transkript vorhanden ist und daher Ensembl-Transkripte genutzt wurden"] = "Genes for which Ensembl transcripts were unsed because not CCDS transcript was available";
 		de2en["Gr&ouml;&szlig;e"] = "Size";
 		de2en["Transcript"] = "Transcript";
 		de2en["gesamt"] = "overall";
