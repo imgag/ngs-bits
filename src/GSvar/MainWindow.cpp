@@ -807,8 +807,8 @@ void MainWindow::on_actionDebug_triggered()
 
 		//evaluation GSvar score/rank
 		//init parameters and output stream
-		bool test_domiant = false;
-		bool test_recessive_hom = false; //incase of recessive - switch beteen hom and comp-het
+		bool test_domiant = true;
+		bool test_recessive_hom = true; //in case of recessive - switch beteen hom and comp-het
 		bool test_v1 = false;
 		bool test_with_ngsd = false;
 		QString algorithm;
@@ -1058,7 +1058,8 @@ void MainWindow::on_actionDebug_triggered()
 						if (!test_domiant && !test_recessive_hom && genotype!="het") continue;//recessive comp-het > expecting het
 
 						//filter by variant class
-						//TODO
+						QString classification = db.getClassification(var).classification;
+						if (classification!="4" && classification!="5") continue;
 
 						causal_indices << var_index;
 					}
