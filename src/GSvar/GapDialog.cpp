@@ -274,6 +274,7 @@ void GapDialog::calculteGaps()
 			item = GUIHelper::createTableItem(gap.preferred_transcript);
 			if (gap.preferred_transcript=="yes") highlightItem(item);
 			ui_.gaps->setItem(i, 5, item);
+
 			//suggested action
 			QString action;
 			if (gap.isExonicSplicing())
@@ -295,17 +296,10 @@ void GapDialog::calculteGaps()
 			ui_.gaps->setItem(i, ngsd_col_, item);
 		}
 
-<<<<<<< .mine
-		//NGSD status
-		item = GUIHelper::createTableItem(QString());
-		ui_.gaps->setItem(i, ngsd_col_, item);
-
-=======
 		GUIHelper::resizeTableCells(ui_.gaps);
 
 		//update NGSD column
 		updateNGSDColumn();
->>>>>>> .theirs
 	}
 	catch (Exception& e)
 	{
