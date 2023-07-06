@@ -1050,16 +1050,19 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 //more data, pre-filtering of cases by variant genotype				1283     / 81.37% / 97.51% (05.07.23)
 //prefilter variants by class 4/5									1278     / 81.69% / 97.50% (05.07.23)
 //removing extend 5000 of ROI										1278     / 81.92% / 97.50% (06.07.23)
+//improved benchmark variant pre-check								1278     / 81.92% / 97.50% (06.07.23)
 
 //Performance history RECESSIVE - HOMOYZGOUOS						Variants / Top1   / Top10
 //more data, pre-filtering of cases by variant genotype				553      / 76.13% / 94.58% (05.07.23)
 //prefilter variants by class 4/5									549      / 76.68% / 94.72% (05.07.23)
 //removing extend 5000 of ROI										549      / 76.87% / 94.72% (06.07.23)
+//improved benchmark variant pre-check								523      / 79.54% / 97.13% (06.07.23)
 
 //Performance history RECESSIVE - COMP-HET							Variants / Top2   / Top10
 //more data, pre-filtering of cases by variant genotype				775      / 81.94% / 95.35% (05.07.23)
 //prefilter variants by class 4/5									770      / 83.77% / 95.84% (05.07.23)
 //removing extend 5000 of ROI										770      / 84.03% / 96.10% (06.07.23)
+//improved benchmark variant pre-check								700      / 84.57% / 96.57% (06.07.23)
 
 //TODO: Ideas
 // - score only relevant transcripts OR score them higher than other transcripts
