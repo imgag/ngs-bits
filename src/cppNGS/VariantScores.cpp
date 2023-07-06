@@ -525,6 +525,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 	int i_clinvar = variants.annotationIndexByName("ClinVar");
 	int i_gene_info = variants.annotationIndexByName("gene_info");
 	int i_classification = variants.annotationIndexByName("classification");
+	int i_phylop = variants.annotationIndexByName("phyloP");
 	QList<int> affected_cols = variants.getSampleHeader().sampleColumns(true);
 	if (affected_cols.count()!=1) THROW(ArgumentException, "VariantScores: Algorihtm 'GSvar_v1' can only be applied to variant lists with exactly one affected patient!");
 
@@ -697,6 +698,13 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 			}
 		}
 
+		//disease association: conservedness
+		double phylop = v.annotations()[i_phylop].trimmed().toDouble(); //0 if no conversion possible;
+		if (phylop>=1.6)
+		{
+			scores.add("phyloP", 0.3);
+		}
+
 		//impact (gene-specific)
 		QList<VariantTranscript> transcript_info = v.transcriptAnnotations(i_coding);
 		foreach(const VariantTranscript& transcript, transcript_info)
@@ -779,6 +787,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 	int i_clinvar = variants.annotationIndexByName("ClinVar");
 	int i_gene_info = variants.annotationIndexByName("gene_info");
 	int i_classification = variants.annotationIndexByName("classification");
+	int i_phylop = variants.annotationIndexByName("phyloP");
 	QList<int> affected_cols = variants.getSampleHeader().sampleColumns(true);
 	if (affected_cols.count()!=1) THROW(ArgumentException, "VariantScores: Algorihtm 'GSvar_v1' can only be applied to variant lists with exactly one affected patient!");
 	int i_genotye = affected_cols[0];
@@ -966,6 +975,13 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 			}
 		}
 
+		//disease association: conservedness
+		double phylop = v.annotations()[i_phylop].trimmed().toDouble(); //0 if no conversion possible;
+		if (phylop>=1.6)
+		{
+			scores.add("phyloP", 0.3);
+		}
+
 		//impact (gene-specific)
 		QList<VariantTranscript> transcript_info = v.transcriptAnnotations(i_coding);
 		foreach(const VariantTranscript& transcript, transcript_info)
@@ -1063,6 +1079,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 //removing extend 5000 of ROI										1278     / 81.92% / 97.50% (06.07.23)
 //improved benchmark variant pre-check								1278     / 81.92% / 97.50% (06.07.23)
 //scoring of multiple HPO hits (sqrt)								1279     / 86.24% / 97.89% (06.07.23)
+//phloP																1280     / 86.64% / 98.13% (06.07.23)
 
 //Performance history RECESSIVE - HOMOYZGOUOS						Variants / Top1   / Top10
 //more data, pre-filtering of cases by variant genotype				553      / 76.13% / 94.58% (05.07.23)
@@ -1070,6 +1087,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 //removing extend 5000 of ROI										549      / 76.87% / 94.72% (06.07.23)
 //improved benchmark variant pre-check								523      / 79.54% / 97.13% (06.07.23)
 //scoring of multiple HPO hits (sqrt)								524      / 84.73% / 97.14% (06.07.23)
+//phloP																524      / 85.88% / 97.52% (06.07.23)
 
 //Performance history RECESSIVE - COMP-HET							Variants / Top2   / Top10
 //more data, pre-filtering of cases by variant genotype				775      / 81.94% / 95.35% (05.07.23)
@@ -1077,9 +1095,9 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 //removing extend 5000 of ROI										770      / 84.03% / 96.10% (06.07.23)
 //improved benchmark variant pre-check								700      / 84.57% / 96.57% (06.07.23)
 //scoring of multiple HPO hits (sqrt)								700      / 87.29% / 97.43% (06.07.23)
+//phloP																700      / 88.00% / 96.86% (06.07.23)
 
 //TODO: Ideas
-// - integrate conservedness (phyloP)?
 // - test effect of "mosaic_as_het" in NGSD count filter (needs re-annotation and re-caluclation of pre-filtered files)
 //Ideas if we want to publish it separately:
 // - optimize scores by machine learning
