@@ -86,10 +86,26 @@ public:
 			db.transaction();
 			for (int i=0; i<metrics.count(); ++i)
 			{
+				const QCValue& metric = metrics[i];
 				query.bindValue(0, ps_id);
-				QString term_id = db.getValue("SELECT id FROM qc_terms WHERE qcml_id=:0", false, metrics[i].accession()).toString();
+				QString term_id = db.getValue("SELECT id FROM qc_terms WHERE qcml_id=:0", false, metric.accession()).toString();
 				query.bindValue(1, term_id);
-				query.bindValue(2, metrics[i].toString(6));
+				if (metric.type()==QCValueType::STRING)
+				{
+					query.bindValue(2, metric.asString());
+				}
+				else if (metric.type()==QCValueType::INT)
+				{
+					query.bindValue(2, metric.asInt());
+				}
+				else if (metric.type()==QCValueType::DOUBLE)
+				{
+					query.bindValue(2, metric.asDouble());
+				}
+				else
+				{
+					THROW(ProgrammingException, "Unhandled QC metric type: " + QString::number((int)(metric.type())));
+				}
 				query.exec();
 			}
 			db.commit();

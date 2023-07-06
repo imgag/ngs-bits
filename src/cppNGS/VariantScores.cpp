@@ -4,6 +4,7 @@
 #include "GeneSet.h"
 #include "FilterCascade.h"
 #include "Settings.h"
+#include <math.h>
 
 VariantScores::VariantScores()
 {
@@ -532,13 +533,11 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 
 	//prepare ROI for fast lookup
 	if (phenotype_rois.count()==0) output.warnings << "No phenotype region(s) set!";
-	BedFile roi;
-	foreach(const BedFile& pheno_roi, phenotype_rois)
+	QHash<Phenotype, QSharedPointer<ChromosomalIndex<BedFile>>> phenotype_rois_indices;
+	for(auto it=phenotype_rois.begin(); it!=phenotype_rois.end(); ++it)
 	{
-		roi.add(pheno_roi);
+		phenotype_rois_indices.insert(it.key(), QSharedPointer<ChromosomalIndex<BedFile>>(new ChromosomalIndex<BedFile>(it.value())));
 	}
-	roi.merge();
-	ChromosomalIndex<BedFile> roi_index(roi);
 
 	//apply pre-filters to reduce runtime
 	QStringList filters;
@@ -607,10 +606,17 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 		}
 
 		//disease association: in phenotype ROI
-		int index = roi_index.matchingIndex(v.chr(), v.start(), v.end());
-		if (index!=-1)
+		int pheno_roi_hits = 0;
+		for(auto it=phenotype_rois_indices.begin(); it!=phenotype_rois_indices.end(); ++it)
 		{
-			scores.add("HPO", 2.0);
+			int index = it.value()->matchingIndex(v.chr(), v.start(), v.end());
+			if (index!=-1) ++pheno_roi_hits;
+		}
+		if (pheno_roi_hits>0)
+		{
+			double pheno_score = 1.0 + sqrt(pheno_roi_hits);
+			pheno_score = truncf(pheno_score * 10.0) / 10.0;
+			scores.add("HPO", pheno_score);
 		}
 
 		//disease association: HGMD variant
@@ -782,13 +788,11 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 
 	//prepare ROI for fast lookup
 	if (phenotype_rois.count()==0) output.warnings << "No phenotype region(s) set!";
-	BedFile roi;
-	foreach(const BedFile& pheno_roi, phenotype_rois)
+	QHash<Phenotype, QSharedPointer<ChromosomalIndex<BedFile>>> phenotype_rois_indices;
+	for(auto it=phenotype_rois.begin(); it!=phenotype_rois.end(); ++it)
 	{
-		roi.add(pheno_roi);
+		phenotype_rois_indices.insert(it.key(), QSharedPointer<ChromosomalIndex<BedFile>>(new ChromosomalIndex<BedFile>(it.value())));
 	}
-	roi.merge();
-	ChromosomalIndex<BedFile> roi_index(roi);
 
 	//apply pre-filters to reduce runtime
 	QStringList filters;
@@ -871,10 +875,17 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 		}
 
 		//disease association: in phenotype ROI
-		int index = roi_index.matchingIndex(v.chr(), v.start(), v.end());
-		if (index!=-1)
+		int pheno_roi_hits = 0;
+		for(auto it=phenotype_rois_indices.begin(); it!=phenotype_rois_indices.end(); ++it)
 		{
-			scores.add("HPO", 2.0);
+			int index = it.value()->matchingIndex(v.chr(), v.start(), v.end());
+			if (index!=-1) ++pheno_roi_hits;
+		}
+		if (pheno_roi_hits>0)
+		{
+			double pheno_score = 1.0 + sqrt(pheno_roi_hits);
+			pheno_score = truncf(pheno_score * 10.0) / 10.0;
+			scores.add("HPO", pheno_score);
 		}
 
 		//disease association: HGMD variant
@@ -1051,27 +1062,25 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 //prefilter variants by class 4/5									1278     / 81.69% / 97.50% (05.07.23)
 //removing extend 5000 of ROI										1278     / 81.92% / 97.50% (06.07.23)
 //improved benchmark variant pre-check								1278     / 81.92% / 97.50% (06.07.23)
+//scoring of multiple HPO hits (sqrt)								1279     / 86.24% / 97.89% (06.07.23)
 
 //Performance history RECESSIVE - HOMOYZGOUOS						Variants / Top1   / Top10
 //more data, pre-filtering of cases by variant genotype				553      / 76.13% / 94.58% (05.07.23)
 //prefilter variants by class 4/5									549      / 76.68% / 94.72% (05.07.23)
 //removing extend 5000 of ROI										549      / 76.87% / 94.72% (06.07.23)
 //improved benchmark variant pre-check								523      / 79.54% / 97.13% (06.07.23)
+//scoring of multiple HPO hits (sqrt)								524      / 84.73% / 97.14% (06.07.23)
 
 //Performance history RECESSIVE - COMP-HET							Variants / Top2   / Top10
 //more data, pre-filtering of cases by variant genotype				775      / 81.94% / 95.35% (05.07.23)
 //prefilter variants by class 4/5									770      / 83.77% / 95.84% (05.07.23)
 //removing extend 5000 of ROI										770      / 84.03% / 96.10% (06.07.23)
 //improved benchmark variant pre-check								700      / 84.57% / 96.57% (06.07.23)
+//scoring of multiple HPO hits (sqrt)								700      / 87.29% / 97.43% (06.07.23)
 
 //TODO: Ideas
-// - score only relevant transcripts OR score them higher than other transcripts
-// - check if recurring variants are a problem > blacklist
-// - check missed variants - why were they filtered out?
-// - test effect of "mosaic_as_het" in NGSD count filter (needs re-annotation and re-caluclation of pre-filtered files)
 // - integrate conservedness (phyloP)?
-// - additional score if OMIM/ClinVar/HGMD also match HPO terms
-// - HPO: add bonus score if more than one phenotype matches OR using Germans model (email 09.12.2020)
+// - test effect of "mosaic_as_het" in NGSD count filter (needs re-annotation and re-caluclation of pre-filtered files)
 //Ideas if we want to publish it separately:
 // - optimize scores by machine learning
 // - benchmark with existing tools:

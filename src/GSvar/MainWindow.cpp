@@ -807,8 +807,8 @@ void MainWindow::on_actionDebug_triggered()
 
 		//evaluation GSvar score/rank
 		//init parameters and output stream
-		bool test_domiant = true;
-		bool test_recessive_hom = true; //in case of recessive - switch beteen hom and comp-het
+		bool test_domiant = false;
+		bool test_recessive_hom = false; //in case of recessive - switch beteen hom and comp-het
 		bool test_v1 = false;
 		bool test_with_ngsd = false;
 		QString algorithm;
@@ -7642,7 +7642,6 @@ void MainWindow::variantRanking() //TODO check that everything is as in the benc
 				{
 					BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
 					tmp.clearAnnotations();
-					tmp.extend(5000);
 					tmp.merge();
 					gene2region_cache_[gene] = tmp;
 				}
