@@ -4000,7 +4000,7 @@ void MainWindow::checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues)
 		NGSD db;
 		int sys_id = db.processingSystemIdFromProcessedSample(germlineReportSample());
 		ProcessingSystemData sys_data = db.getProcessingSystemData(sys_id);
-		if (sys_data.type=="WES" || sys_data.type=="WGS")
+		if (sys_data.type=="WES" || sys_data.type=="WGS" || sys_data.type=="lrGS")
 		{
 			QSet<Chromosome> chromosomes;
 			for(int i=0; i<variants_.count(); ++i)
@@ -4101,7 +4101,7 @@ void MainWindow::checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>
 		{
 
 			QString sys_type = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(ps)).type;
-			if (sys_type=="WGS" || sys_type=="WES")
+			if (sys_type=="WGS" || sys_type=="WES" || sys_type=="lrGS")
 			{
 				ImportStatusGermline import_status = db.importStatus(ps_id);
 				if (import_status.small_variants==0)
@@ -5633,7 +5633,7 @@ void MainWindow::on_actionStatistics_triggered()
 
 	//table header
 	table.addHeader("month");
-	QStringList sys_types = QStringList() << "WGS" << "WES" << "Panel" << "RNA";
+	QStringList sys_types = QStringList() << "WGS" << "WES" << "Panel" << "RNA" << "lrGS";
 	QStringList pro_types = QStringList() << "diagnostic" << "research";
 	foreach(QString pro, pro_types)
 	{

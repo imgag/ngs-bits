@@ -193,12 +193,14 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 	//processing system types
 	QStringList sys_types;
 	if (ui_.filter_sys_wgs->isChecked()) sys_types << "WGS";
+	if (ui_.filter_sys_lrgs->isChecked()) sys_types << "lrGS";
 	if (ui_.filter_sys_wes->isChecked()) sys_types << "WES";
 	if (ui_.filter_sys_other->isChecked())
 	{
 		QStringList types_other = db.getEnum("processing_system", "type");
 		types_other.removeAll("WGS");
 		types_other.removeAll("WES");
+		types_other.removeAll("lrGS");
 		sys_types << types_other;
 	}
 

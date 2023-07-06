@@ -65,7 +65,7 @@ void ProcessingSystemWidget::updateGUI()
 
 	try
 	{
-		if (ps_data.type!="WGS") //no genes file for WGS
+		if (ps_data.type!="WGS" && ps_data.type!="lrGS") //no genes file for WGS & lrGS
 		{
 			GeneSet roi_genes = GlobalServiceProvider::database().processingSystemGenes(sys_id_, true);
 			if (!roi_genes.isEmpty())
