@@ -1044,22 +1044,22 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 	return output;
 }
 
-//Performance history DOMINANT										Samples / Rank1  / Top10
-//version 1															?       / 76.82% / 97.67% (19.04.23)
-//score by gene, NGSD score, fix of OE/inheritance parsing			?       / 81.72% / 97.51% (19.04.23)
-//more data, pre-filtering of cases by variant genotype				1283    / 81.37% / 97.51% (05.07.23)
-//prefilter variants by class 4/5									1278    / 81.69% / 97.50% (05.07.23)
-//removing extend 5000 of ROI										1278    / 81.92% / 97.50% (06.07.23)
+//Performance history DOMINANT										Variants / Rank1  / Top10
+//version 1															?        / 76.82% / 97.67% (19.04.23)
+//score by gene, NGSD score, fix of OE/inheritance parsing			?        / 81.72% / 97.51% (19.04.23)
+//more data, pre-filtering of cases by variant genotype				1283     / 81.37% / 97.51% (05.07.23)
+//prefilter variants by class 4/5									1278     / 81.69% / 97.50% (05.07.23)
+//removing extend 5000 of ROI										1278     / 81.92% / 97.50% (06.07.23)
 
-//Performance history RECESSIVE - HOMOYZGOUOS						Samples / Top1   / Top10
-//more data, pre-filtering of cases by variant genotype				553     / 76.13% / 94.58% (05.07.23)
-//prefilter variants by class 4/5									549     / 76.68% / 94.72% (05.07.23)
-//removing extend 5000 of ROI										549     / 76.87% / 94.72% (06.07.23)
+//Performance history RECESSIVE - HOMOYZGOUOS						Variants / Top1   / Top10
+//more data, pre-filtering of cases by variant genotype				553      / 76.13% / 94.58% (05.07.23)
+//prefilter variants by class 4/5									549      / 76.68% / 94.72% (05.07.23)
+//removing extend 5000 of ROI										549      / 76.87% / 94.72% (06.07.23)
 
-//Performance history RECESSIVE - COMP-HET							Samples / Top2   / Top10
-//more data, pre-filtering of cases by variant genotype				775     / 81.94% / 95.35% (05.07.23)
-//prefilter variants by class 4/5									770     / 83.77% / 95.84% (05.07.23)
-//removing extend 5000 of ROI										770     / 84.03% / 96.10% (06.07.23)
+//Performance history RECESSIVE - COMP-HET							Variants / Top2   / Top10
+//more data, pre-filtering of cases by variant genotype				775      / 81.94% / 95.35% (05.07.23)
+//prefilter variants by class 4/5									770      / 83.77% / 95.84% (05.07.23)
+//removing extend 5000 of ROI										770      / 84.03% / 96.10% (06.07.23)
 
 //TODO: Ideas
 // - score only relevant transcripts OR score them higher than other transcripts

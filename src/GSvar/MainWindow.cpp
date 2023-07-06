@@ -841,6 +841,9 @@ void MainWindow::on_actionDebug_triggered()
 		headers << "ps" << "system" << "HPO" << "variant" << "inheritance"  << "filter" << "impact" << "inheritance" << "oe_lof" << "gnomAD" << "gnomAD sub" << "NGSD hom" << "NGSD het" << "NGSD mosaic" << "variants_scored" << "hpo_genes" << "score" << "score_explanations" << "rank";
 		out_stream << "#" << headers.join("\t") << endl;
 
+		QSet<QString> samples_skipped_other_variants;
+		QSet<QString> samples_skipped_incorrect_causal_variant_count;
+		QSet<QString> samples_skipped_no_hpo;
 		int c_all = 0;
 		int c_top1 = 0;
 		int c_top2 = 0;
@@ -849,16 +852,14 @@ void MainWindow::on_actionDebug_triggered()
 		QHash<QByteArray, GeneSet> pheno2genes_cache_;
 		NGSD db;
 		QString inheritance_constraint = test_domiant ? "AND (rcv.inheritance='AD' OR rcv.inheritance='XLD')" : "AND (rcv.inheritance='AR' OR rcv.inheritance='XLR')";
-		QStringList ps_names = db.getValues("SELECT DISTINCT CONCAT(s.name, '_0', ps.process_id) FROM sample s, processed_sample ps, diag_status ds, report_configuration rc, report_configuration_variant rcv, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND (sys.type='WGS' OR sys.type='WES') AND ps.project_id=p.id AND p.type='diagnostic' AND ps.sample_id=s.id AND ps.quality!='bad' AND ds.processed_sample_id=ps.id AND ds.outcome='significant findings' AND rc.processed_sample_id=ps.id AND rcv.report_configuration_id=rc.id AND rcv.causal='1' AND rcv.mosaic='0' AND rcv.type='diagnostic variant' AND s.disease_status='Affected' " + inheritance_constraint + " ORDER BY ps.id ASC");
-		qDebug() << "Processed samples to check:" << ps_names.count();
+		QStringList ps_ids = db.getValues("SELECT DISTINCT ps.id FROM sample s, processed_sample ps, diag_status ds, report_configuration rc, report_configuration_variant rcv, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND (sys.type='WGS' OR sys.type='WES') AND ps.project_id=p.id AND p.type='diagnostic' AND ps.sample_id=s.id AND ps.quality!='bad' AND ds.processed_sample_id=ps.id AND ds.outcome='significant findings' AND rc.processed_sample_id=ps.id AND rcv.report_configuration_id=rc.id AND rcv.causal='1' AND rcv.mosaic='0' AND rcv.type='diagnostic variant' AND s.disease_status='Affected' " + inheritance_constraint + " ORDER BY ps.id ASC");
 		int ps_nr = 0;
-		foreach(QString ps, ps_names)
+		foreach(const QString& ps_id, ps_ids)
 		{
 			try
 			{
-				qDebug() << (++ps_nr) << ps;
 
-				QString ps_id = db.processedSampleId(ps);
+				QString ps = db.processedSampleName(ps_id);
 				int rc_id = db.reportConfigId(ps_id);
 
 				//check that there are only small variants that are causal
@@ -867,7 +868,37 @@ void MainWindow::on_actionDebug_triggered()
 				QList<int> causal_other = db.getValuesInt("SELECT id FROM report_configuration_other_causal_variant WHERE report_configuration_id=:0", QString::number(rc_id));
 				if (causal_cnvs.count()>0 || causal_svs.count()>0 || causal_other.count()>0)
 				{
-					qDebug() << "  skipped - has causal CNV, causal SV or other causal variant";
+					samples_skipped_other_variants << ps;
+					continue;
+				}
+
+				//check that there are the right number of causal variant for the inheritance mode (class 4/5, correct genotype, not mito)
+				QString expected_inheritance = "(rcv.inheritance='AD' OR rcv.inheritance='XLD')";
+				QString expected_genotype = "het";
+				int expected_causal_variant_count = 1;
+				if (!test_domiant && test_recessive_hom)
+				{
+					expected_inheritance = "(rcv.inheritance='AR' OR rcv.inheritance='XLR')";
+					expected_genotype = "hom";
+					expected_causal_variant_count = 1;
+				}
+				if (!test_domiant && !test_recessive_hom)
+				{
+					expected_inheritance = "(rcv.inheritance='AR' OR rcv.inheritance='XLR')";
+					expected_genotype = "het";
+					expected_causal_variant_count = 2;
+				}
+				int causal_variant_count = 0;
+				foreach(QString v_id, db.getValues("SELECT rcv.variant_id FROM report_configuration_variant rcv, variant v, variant_classification vc WHERE rcv.variant_id=v.id AND rcv.variant_id=vc.variant_id AND rcv.report_configuration_id='" + QString::number(rc_id) + "' AND rcv.causal='1' AND rcv.type='diagnostic variant' AND v.chr!='chrMT' AND (vc.class='4' OR vc.class='5') AND " + expected_inheritance))
+				{
+					if (db.getValue("SELECT genotype FROM detected_variant WHERE processed_sample_id=" + ps_id + " AND variant_id=" + v_id + " AND mosaic=0").toByteArray()==expected_genotype)
+					{
+						++causal_variant_count;
+					}
+				}
+				if (causal_variant_count!=expected_causal_variant_count)
+				{
+					samples_skipped_incorrect_causal_variant_count << ps;
 					continue;
 				}
 
@@ -877,9 +908,12 @@ void MainWindow::on_actionDebug_triggered()
 				PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
 				if (phenotypes.count()==0)
 				{
-					qDebug() << "  skipped - no phenotypes!";
+					samples_skipped_no_hpo << ps;
 					continue;
 				}
+
+				qDebug() << (++ps_nr) << ps;
+
 				GeneSet hpo_genes;
 				QStringList hpo_terms;
 				foreach(const Phenotype& pheno, phenotypes)
@@ -950,7 +984,6 @@ void MainWindow::on_actionDebug_triggered()
 
 				//prepare lambda for output
 				int c_scored = VariantScores::annotate(variants, result, true);
-				int i_geno = variants.annotationIndexByName(ps);
 				int i_filter = variants.annotationIndexByName("filter");
 				int i_coding = variants.annotationIndexByName("coding_and_splicing");
 				int i_gnomad = variants.annotationIndexByName("gnomAD");
@@ -1049,13 +1082,6 @@ void MainWindow::on_actionDebug_triggered()
 						if (test_domiant && inheritance!="AD" && inheritance!="XLD") continue;
 						if (!test_domiant && inheritance!="AR" && inheritance!="XLR") continue;
 
-						//filter by variant genotype
-						QString genotype = var.annotations()[i_geno];
-						if (genotype!="het" && genotype!="hom") THROW(ProgrammingException, "Invalid genotype '" + genotype + "' in '" + ps + "'!");
-						if (test_domiant && genotype!="het") continue;
-						if (!test_domiant && test_recessive_hom && genotype!="hom") continue; //recessive > expecting hom
-						if (!test_domiant && !test_recessive_hom && genotype!="het") continue;//recessive comp-het > expecting het
-
 						//filter by variant class
 						QString classification = db.getClassification(var).classification;
 						if (classification!="4" && classification!="5") continue;
@@ -1136,7 +1162,11 @@ void MainWindow::on_actionDebug_triggered()
 				continue;
 			}
 		}
-		out_stream << "##Number of samples used for benchmark: " << c_all << endl;
+		out_stream << "##Number of samples skipped because of other causal variant: " << samples_skipped_other_variants.count() << endl;
+		out_stream << "##Number of samples skipped because of incorrect causal variant count: " << samples_skipped_incorrect_causal_variant_count.count() << endl;
+		out_stream << "##Number of samples skipped because of missing HPO terms: " << samples_skipped_no_hpo.count() << endl;
+		out_stream << "##Number of samples used for benchmark: " << ps_nr << endl;
+		out_stream << "##Number of variants used for benchmark: " << c_all << endl;
 		out_stream << "##Rank1: " << QString::number(c_top1) << " (" + QString::number(100.0*c_top1/c_all, 'f', 2) << "%)" << endl;
 		out_stream << "##Top2 : " << QString::number(c_top2) << " (" + QString::number(100.0*c_top2/c_all, 'f', 2) << "%)" << endl;
 		out_stream << "##Top10: " << QString::number(c_top10) << " (" + QString::number(100.0*c_top10/c_all, 'f', 2) << "%)" << endl;
