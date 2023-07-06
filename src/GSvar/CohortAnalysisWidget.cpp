@@ -199,10 +199,7 @@ void CohortAnalysisWidget::outputToClipboard()
 
 QTableWidgetItem* CohortAnalysisWidget::addTableItem(int row, int col, QString text)
 {
-	QTableWidgetItem* item = new QTableWidgetItem();
-
-	item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-	item->setData(Qt::EditRole, text);
+	QTableWidgetItem* item = GUIHelper::createTableItem(text, Qt::AlignLeft|Qt::AlignTop, Qt::ItemIsSelectable|Qt::ItemIsEnabled);
 
 	ui_.output->setItem(row, col, item);
 
@@ -211,10 +208,7 @@ QTableWidgetItem* CohortAnalysisWidget::addTableItem(int row, int col, QString t
 
 QTableWidgetItem* CohortAnalysisWidget::addTableItem(int row, int col, int value)
 {
-	QTableWidgetItem* item = new QTableWidgetItem();
-
-	item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-	item->setData(Qt::EditRole, value);
+	QTableWidgetItem* item = GUIHelper::createTableItem(value, Qt::AlignLeft|Qt::AlignTop, Qt::ItemIsSelectable|Qt::ItemIsEnabled);
 
 	ui_.output->setItem(row, col, item);
 

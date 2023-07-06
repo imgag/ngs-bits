@@ -1,7 +1,5 @@
 #include "ExpressionExonWidget.h"
-#include "RepeatExpansionWidget.h"
 #include "ui_ExpressionExonWidget.h"
-
 #include "GUIHelper.h"
 #include "Helper.h"
 #include "NGSD.h"
@@ -796,14 +794,12 @@ void ExpressionExonWidget::updateTable()
 					QString value = row.at(column_indices.at(col_idx));
 					if (value != "n/a" && !value.isEmpty())
 					{
-						QString rounded_number = QString::number(Helper::toDouble(value,
-																				  "TSV column " + QString::number(col_idx),
-																				  QString::number(file_line_idx)), 'f', precision_.at(col_idx));
-						ui_->tw_expression_table->setItem(table_row_idx, col_idx, new NumericWidgetItem(rounded_number));
+						ui_->tw_expression_table->setItem(table_row_idx, col_idx, GUIHelper::createTableItem(
+															  Helper::toDouble(value, "TSV column " + QString::number(col_idx), QString::number(file_line_idx)), precision_.at(col_idx)));
 					}
 					else
 					{
-						ui_->tw_expression_table->setItem(table_row_idx, col_idx, new NumericWidgetItem(""));
+						ui_->tw_expression_table->setItem(table_row_idx, col_idx, GUIHelper::createTableItem(""));
 					}
 				}
 				else
@@ -826,8 +822,6 @@ void ExpressionExonWidget::updateTable()
 			//update row
 			table_row_idx++;
 		}
-
-
 
 
 		//enable sorting

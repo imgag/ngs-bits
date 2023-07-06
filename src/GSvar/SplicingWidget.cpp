@@ -1,7 +1,5 @@
 #include "SplicingWidget.h"
 #include "ui_SplicingWidget.h"
-
-#include "RepeatExpansionWidget.h"
 #include "TSVFileStream.h"
 #include "GUIHelper.h"
 #include "Helper.h"
@@ -78,7 +76,7 @@ void SplicingWidget::loadSplicingFile(const QString& file_path)
 		{
 			if (numeric_columns.contains(col_idx))
 			{
-				ui_->tw_splicing->setItem(row_idx, col_idx, new NumericWidgetItem(row.at(col_idx)));
+				ui_->tw_splicing->setItem(row_idx, col_idx, GUIHelper::createTableItem(row.at(col_idx).toDouble()));
 			}
 			else
 			{
