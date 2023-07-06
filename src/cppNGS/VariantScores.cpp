@@ -1097,8 +1097,6 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 //scoring of multiple HPO hits (sqrt)								700      / 87.29% / 97.43% (06.07.23)
 //phloP																700      / 88.00% / 96.86% (06.07.23)
 
-//TODO: Ideas
-// - test effect of "mosaic_as_het" in NGSD count filter (needs re-annotation and re-caluclation of pre-filtered files)
 //Ideas if we want to publish it separately:
 // - optimize scores by machine learning
 // - benchmark with existing tools:
