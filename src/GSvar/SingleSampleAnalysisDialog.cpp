@@ -40,9 +40,25 @@ void SingleSampleAnalysisDialog::setAnalysisSteps()
 		}
 		else if (analysis_type_.startsWith("DNA"))
 		{
-			steps_ = loadSteps("analysis_steps_single_sample");
-			ui_.annotate_only->setEnabled(true);
-			ui_.l_annotation_only->setEnabled(true);
+			//check if longread
+			QSet<QString> sys_types;
+			foreach (const SampleDetails& sample_details, samples_) sys_types.insert(db_.getProcessingSystemData(db_.processingSystemId(sample_details.system)).type);
+
+			if(sys_types.contains("lrGS"))
+			{
+				if(sys_types.size() > 1) THROW(ArgumentException, "Error: Multiple processing types selected (" + sys_types.toList().join(", ") + "). Cannot start analysis!");
+				steps_ = loadSteps("analysis_steps_single_sample_lr");
+				ui_.annotate_only->setEnabled(false);
+				ui_.l_annotation_only->setEnabled(false);
+				ui_.annotate_only->setChecked(false);
+			}
+			else
+			{
+				steps_ = loadSteps("analysis_steps_single_sample");
+				ui_.annotate_only->setEnabled(true);
+				ui_.l_annotation_only->setEnabled(true);
+			}
+
 		}
 		else
 		{
@@ -116,6 +132,22 @@ QString SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<Sa
 		if (analysis_type != sample_type)
 		{
 			THROW(ArgumentException, "Sample " + ps_name + " doesn't match previously determined analysis typ (" + analysis_type + ")!");
+		}
+	}
+
+	//check if added a shortread sample to a longread sample list or the other way around
+	if(samples.size() > 0)
+	{
+		QSet<QString> sys_types;
+		foreach (const SampleDetails& sample_details, samples)
+		{
+			sys_types.insert(db.getProcessingSystemData(db.processingSystemId(sample_details.system)).type);
+		}
+		bool sample_table_is_longread = sys_types.contains("lrGS");
+		bool new_sample_is_longread = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(ps_name)).type == "lrGS";
+		if (sample_table_is_longread != new_sample_is_longread)
+		{
+			THROW(ArgumentException, "Cannot queue longread and shortread analysis in one batch!");
 		}
 	}
 

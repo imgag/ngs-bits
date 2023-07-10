@@ -27,7 +27,12 @@ FileLocation FileLocationProviderLocal::getAnalysisVcf() const
 FileLocation FileLocationProviderLocal::getAnalysisSvFile() const
 {
 	QString name = QFileInfo(gsvar_file_).baseName();
-	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_manta_var_structural.bedpe";
+	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_var_structural_variants.bedpe";
+	if(!QFile::exists(file))
+	{
+		//Fallback to support old manta file name:
+		file = gsvar_file_.left(gsvar_file_.length()-6) + "_manta_var_structural.bedpe";
+	}
 
 	return FileLocation{name, PathType::STRUCTURAL_VARIANTS, file, QFile::exists(file)};
 }

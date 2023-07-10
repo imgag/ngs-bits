@@ -345,11 +345,18 @@ void ProcessedSampleWidget::updateQCMetrics()
 						if (value<35) color = orange;
 						if (value<30) color = red;
 					}
+					else if (sys_type=="lrGS")
+					{
+						//TODO: adjust limits for lrGS
+						if (value<20) color = orange;
+						if (value<15) color = red;
+					}
 					else
 					{
 						if (value<80) color = orange;
 						if (value<50) color = red;
 					}
+
 				}
 				else if (accession=="QC:2000027") //cov 20x
 				{
