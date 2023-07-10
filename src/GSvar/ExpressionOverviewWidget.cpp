@@ -1,6 +1,5 @@
 #include "ExpressionOverviewWidget.h"
 #include "FilterWidget.h"
-#include "RepeatExpansionWidget.h"
 #include "ui_ExpressionOverviewWidget.h"
 #include "GlobalServiceProvider.h"
 #include "LoginManager.h"
@@ -317,14 +316,14 @@ void ExpressionOverviewWidget::showExpressionData()
 				if(expression.contains(QPair<QString, QString>(tissue, gene)))
 				{
 					const ExpressioData& data = expression.value(QPair<QString, QString>(tissue, gene));
-					ui_->tw_expression->setItem(row_idx, col_idx++, new NumericWidgetItem(QString::number(data.tpm_mean, 'f', 3)));
-					ui_->tw_expression->setItem(row_idx, col_idx++, new NumericWidgetItem(QString::number(data.tpm_stdev, 'f', 3)));
-					ui_->tw_expression->setItem(row_idx, col_idx++, new NumericWidgetItem(QString::number(data.tpm_01_perc * 100, 'f', 1)));
-					ui_->tw_expression->setItem(row_idx, col_idx++, new NumericWidgetItem(QString::number(data.tpm_1_perc * 100, 'f', 1)));
+					ui_->tw_expression->setItem(row_idx, col_idx++, GUIHelper::createTableItem(data.tpm_mean));
+					ui_->tw_expression->setItem(row_idx, col_idx++, GUIHelper::createTableItem(data.tpm_stdev));
+					ui_->tw_expression->setItem(row_idx, col_idx++, GUIHelper::createTableItem(data.tpm_01_perc * 100));
+					ui_->tw_expression->setItem(row_idx, col_idx++, GUIHelper::createTableItem(data.tpm_1_perc * 100));
 				}
 				else
 				{
-					for (int i = 0; i < 4; ++i) ui_->tw_expression->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+					for (int i = 0; i < 4; ++i) ui_->tw_expression->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
 				}
 
 			}
@@ -340,9 +339,6 @@ void ExpressionOverviewWidget::showExpressionData()
 		GUIHelper::resizeTableCells(ui_->tw_expression);
 
 		QApplication::restoreOverrideCursor();
-
-		qDebug() << "Get processing system expression level: " << Helper::elapsedTime(timer);
-
 	}
 	catch (Exception& e)
 	{
@@ -357,8 +353,6 @@ void ExpressionOverviewWidget::applyGeneFilter()
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 		NGSD db;
 		GeneSet genes;
-
-		qDebug() << "determine genes";
 
 		//get genes from phenotype filter
 		if (phenotypes_.count() > 0)

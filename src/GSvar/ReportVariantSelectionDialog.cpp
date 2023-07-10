@@ -57,7 +57,6 @@ SelectedReportVariant ReportVariantSelectionDialog::getSelectedReportVariant()
 		THROW(ArgumentException, "Invalid variant type")
 	}
 
-	qDebug() << "var_id: " << report_variant.variant_id;
 	return report_variant;
 }
 
@@ -195,9 +194,7 @@ void ReportVariantSelectionDialog::updateSelection()
 	else
 	{
 		//update selection
-		qDebug() << selected_rows.at(0);
 		selected_rvc_id_ = ui_->tw_report_variants->item(selected_rows.at(0), 1)->data(Qt::UserRole).toInt();
-		qDebug() << selected_rvc_id_;
 		VariantType variant_type = stringToVariantType(ui_->tw_report_variants->item(selected_rows.at(0), 0)->text());
 		selected_report_variant_ = report_variants_.value(QPair<int, VariantType>(selected_rvc_id_, variant_type));
 		ui_->buttonBox->setEnabled(true);

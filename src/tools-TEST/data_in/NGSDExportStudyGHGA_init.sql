@@ -44,12 +44,3 @@ INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane
 -- processed_sample_ancestry
 INSERT INTO processed_sample_ancestry(processed_sample_id, num_snps, score_afr, score_eur, score_sas, score_eas, population) VALUES
 (111, 47,0.0,1.0,0.0,0.0,'EUR');
-
---study
-INSERT INTO study (id, name, description) VALUES 
-(1, 'Study4711', 'Descripion of the study');
-
--- study_sample
-INSERT INTO study_sample (id, study_id, processed_sample_id) VALUES 
-(1, 1, 111),
-(2, 1, 222);

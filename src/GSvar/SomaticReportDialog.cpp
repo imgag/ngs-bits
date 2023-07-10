@@ -84,7 +84,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 	QCCollection res = db_.getQCData(db_.processedSampleId(settings.tumor_ps, true));
 	try
 	{
-		tum_cont_snps_ = Helper::toDouble(res.value("QC:2000054", true).asString());
+		tum_cont_snps_ = res.value("QC:2000054", true).asDouble();
 	}
 	catch(ArgumentException){} //nothing to do
 	catch(TypeConversionException){} //nothing to do

@@ -335,10 +335,10 @@ QString GenLabDB::sapID(QString ps_name)
 	return output;
 }
 
-QStringList GenLabDB::samplesWithSapID(QString sap_id, QString sys_type)
+QStringList GenLabDB::samplesWithSapID(QString sap_id, ProcessedSampleSearchParameters params)
 {
 	//get DNA number via SAP id
-	QStringList dna_nrs;
+	QSet<QString> dna_nrs;
 	SqlQuery query = getQuery();
 	query.exec("SELECT labornummer FROM v_ngs_patient_ids WHERE SAPID='" + sap_id + "'");
 	while (query.next())
@@ -351,16 +351,11 @@ QStringList GenLabDB::samplesWithSapID(QString sap_id, QString sys_type)
 	}
 
 	//convert DNA number to processed sample names
-	QStringList output;
+	QSet<QString> output;
 	NGSD db;
 	foreach(QString dna_nr, dna_nrs)
 	{
-		ProcessedSampleSearchParameters params;
-		params.s_name=dna_nr;
-		params.include_bad_quality_samples=false;
-		params.include_merged_samples=false;
-		if (!sys_type.isEmpty()) params.sys_type = sys_type;
-
+		params.s_name = dna_nr;
 		DBTable res = db.processedSampleSearch(params);
 		for(int r=0; r<res.rowCount(); ++r)
 		{
@@ -368,7 +363,7 @@ QStringList GenLabDB::samplesWithSapID(QString sap_id, QString sys_type)
 		}
 	}
 
-	return output;
+	return output.toList();
 }
 
 QList<SampleRelation> GenLabDB::relatives(QString ps_name)

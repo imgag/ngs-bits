@@ -1154,6 +1154,16 @@ AnalysisType VariantList::type(bool allow_fallback_germline_single_sample) const
 	THROW(FileParseException, "No ANALYSISTYPE line found in variant list header!");
 }
 
+int VariantList::indexOf(const Variant& var)
+{
+	for (int i=0; i<count(); ++i)
+	{
+		if (variants_[i]==var) return i;
+	}
+
+	return -1;
+}
+
 void Variant::normalize(int& start, Sequence& ref, Sequence& obs)
 {
 	//remove common first base

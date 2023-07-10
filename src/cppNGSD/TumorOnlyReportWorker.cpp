@@ -74,7 +74,7 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 	for (int i=0; i<qc_data.count(); ++i)
 	{
 		const QCValue& term = qc_data[i];
-		if (term.type()==QVariant::ByteArray) continue; //skip plots
+		if (term.type()==QCValueType::IMAGE) continue;
 		w.writeStartElement("QcTerm");
 		w.writeAttribute("id", term.accession());
 		w.writeAttribute("name", term.name());

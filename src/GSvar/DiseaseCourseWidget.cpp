@@ -118,7 +118,7 @@ void DiseaseCourseWidget::createTableView()
 
 		col_idx = 0;
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.chr().str()));
-		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString::number(variant.start(), 'f', 0), Qt::AlignTop|Qt::AlignRight));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.start()));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.ref()));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.alt(0)));
 
@@ -158,17 +158,17 @@ void DiseaseCourseWidget::createTableView()
 			{
 				//special handling: VCF not found
 				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem("file not found!", Qt::AlignTop|Qt::AlignRight));
-				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem("", Qt::AlignTop|Qt::AlignRight));
-				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem("", Qt::AlignTop|Qt::AlignRight));
-				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem("", Qt::AlignTop|Qt::AlignRight));
+				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
 			}
 			else
 			{
 				//default case
-				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString::number(cfdna_af, 'f', 5), Qt::AlignTop|Qt::AlignRight));
-				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString::number(alt_count, 'f', 0), Qt::AlignTop|Qt::AlignRight));
-				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString::number(depth, 'f', 0), Qt::AlignTop|Qt::AlignRight));
-				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString::number(p_value, 'f', 4), Qt::AlignTop|Qt::AlignRight));
+				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(cfdna_af, 5));
+				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(alt_count));
+				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(depth));
+				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(p_value,  4));
 			}
 
 
@@ -203,12 +203,12 @@ void DiseaseCourseWidget::createTableView()
 	{
 		ui_->mrd->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem(table_data_.cfdna_samples.at(col_idx).name));
 	}
-	ui_->mrd->setVerticalHeaderItem(0, new QTableWidgetItem("MRD log10:"));
-	ui_->mrd->setVerticalHeaderItem(1, new QTableWidgetItem("MRD p-value:"));
-	ui_->mrd->setVerticalHeaderItem(2, new QTableWidgetItem("Depth:"));
-	ui_->mrd->setVerticalHeaderItem(3, new QTableWidgetItem("Alt:"));
-	ui_->mrd->setVerticalHeaderItem(4, new QTableWidgetItem("Mean AF:"));
-	ui_->mrd->setVerticalHeaderItem(5, new QTableWidgetItem("Median AF:"));
+	ui_->mrd->setVerticalHeaderItem(0, GUIHelper::createTableItem("MRD log10:"));
+	ui_->mrd->setVerticalHeaderItem(1, GUIHelper::createTableItem("MRD p-value:"));
+	ui_->mrd->setVerticalHeaderItem(2, GUIHelper::createTableItem("Depth:"));
+	ui_->mrd->setVerticalHeaderItem(3, GUIHelper::createTableItem("Alt:"));
+	ui_->mrd->setVerticalHeaderItem(4, GUIHelper::createTableItem("Mean AF:"));
+	ui_->mrd->setVerticalHeaderItem(5, GUIHelper::createTableItem("Median AF:"));
 
 	// fill table
 	for (int row_idx = 0; row_idx < 6; ++row_idx)

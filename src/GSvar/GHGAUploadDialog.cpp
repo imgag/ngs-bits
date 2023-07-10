@@ -8,14 +8,43 @@ GHGAUploadDialog::GHGAUploadDialog(QWidget *parent)
 	, ui_()
 {
 	ui_.setupUi(this);
-	connect(ui_.btn_test, SIGNAL(clicked()), this, SLOT(test()));
+	connect(ui_.btn_search, SIGNAL(clicked()), this, SLOT(search()));
+
+	NGSD db;
+	ui_.s_project_type->addItem("");
+	ui_.s_project_type->addItems(db.getEnum("project", "type"));
+	ui_.s_project_type->setCurrentText("diagnostic");
+	ui_.s_system_type->addItem("");
+	ui_.s_system_type->addItems(db.getEnum("processing_system", "type"));
+	ui_.s_system_type->setCurrentText("WGS");
 }
 
-void GHGAUploadDialog::test()
+void GHGAUploadDialog::search()
 {
 	//init
 	ui_.output->clear();
-	ui_.btn_create->setEnabled(false);
+
+	//determine search paramters
+	ProcessedSampleSearchParameters params;
+	params.include_bad_quality_samples=false;
+	params.include_merged_samples=false;
+	params.run_finished=true;
+	if (ui_.s_project_type->currentText()!="")
+	{
+		params.p_type = ui_.s_project_type->currentText();
+	}
+	if (ui_.s_system_type->currentText()!="")
+	{
+		params.sys_type = ui_.s_system_type->currentText();
+	}
+	if (ui_.s_tumor_status->currentText()=="no tumor")
+	{
+		params.include_tumor_samples = false;
+	}
+	if (ui_.s_tumor_status->currentText()=="tumor only")
+	{
+		params.include_germline_samples = false;
+	}
 
 	//process
 	try
@@ -36,19 +65,23 @@ void GHGAUploadDialog::test()
 
 			QString pseudonym = parts[0];
 			QString sap_id = parts[1];
-			QString system_type = parts[2];
 
 			//determine processed samples for line
 			QString selected_ps;
-			QStringList ps_list = genlab.samplesWithSapID(sap_id, system_type);
+			QStringList ps_list = genlab.samplesWithSapID(sap_id, params);
 			if (ps_list.count()==0)
 			{
 				selected_ps = "Skipped - No processed sample found for SAP id '" + sap_id +"'";
 			}
-			if (ps_list.count()>1)
+			else if (ps_list.count()>1)
 			{
-				selected_ps = "Skipped - " + QString::number(ps_list.count()) + " processed samples found for SAP id '" + sap_id +"'";
+				selected_ps = "Skipped - " + QString::number(ps_list.count()) + " processed samples found for SAP id '" + sap_id +"': " + ps_list.join(", ");
 			}
+			else
+			{
+				selected_ps = ps_list.first();
+			}
+
 			ui_.output->appendPlainText(pseudonym + "\t" + sap_id + "\t" + selected_ps);
 			qApp->processEvents(); //update GUI
 		}

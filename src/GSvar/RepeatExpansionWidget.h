@@ -17,16 +17,6 @@ struct RepeatCutoffInfo
 	QByteArrayList additional_info;
 };
 
-
-// custom QTableWidgetItem class to allow inplace sorting of doubles
-class NumericWidgetItem
-	: public QTableWidgetItem
-{
-public:
-	NumericWidgetItem(QString text);
-	bool operator< (const QTableWidgetItem &other) const;
-};
-
 class RepeatExpansionWidget
 	: public QWidget
 {

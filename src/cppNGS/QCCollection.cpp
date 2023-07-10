@@ -8,11 +8,12 @@
 #include <QFileInfo>
 #include <QList>
 #include <QFile>
-#include <OntologyTermCollection.h>
+#include "OntologyTermCollection.h"
 
 QCValue::QCValue()
 	: name_("")
 	, value_()
+	, type_(QCValueType::STRING)
 	, description_("")
 {
 
@@ -21,6 +22,7 @@ QCValue::QCValue()
 QCValue::QCValue(const QString& name, int value, const QString& description, const QString& accession)
 	: name_(name)
 	, value_(value)
+	, type_(QCValueType::INT)
 	, description_(description)
 	, accession_(accession)
 {
@@ -29,6 +31,7 @@ QCValue::QCValue(const QString& name, int value, const QString& description, con
 QCValue::QCValue(const QString& name, long long value, const QString& description, const QString& accession)
 	: name_(name)
 	, value_(value)
+	, type_(QCValueType::INT)
 	, description_(description)
 	, accession_(accession)
 {
@@ -37,6 +40,7 @@ QCValue::QCValue(const QString& name, long long value, const QString& descriptio
 QCValue::QCValue(const QString& name, double value, const QString& description, const QString& accession)
 	: name_(name)
 	, value_(value)
+	, type_(QCValueType::DOUBLE)
 	, description_(description)
 	, accession_(accession)
 {
@@ -45,77 +49,62 @@ QCValue::QCValue(const QString& name, double value, const QString& description, 
 QCValue::QCValue(const QString& name, const QString& value, const QString& description, const QString& accession)
 	: name_(name)
 	, value_(value)
+	, type_(QCValueType::STRING)
 	, description_(description)
 	, accession_(accession)
 {
 }
 
-QCValue QCValue::Image(const QString& name, const QString& filename, const QString& description, const QString& accession)
+QCValue QCValue::ImageFromFile(const QString& name, const QString& filename, const QString& description, const QString& accession)
 {
 	//load file
 	QByteArray data = "";
-	if(QFileInfo(filename).isFile())
-	{
-		QFile file(filename);
-		file.open(QIODevice::ReadOnly);
-		data = file.readAll().toBase64();
-		file.close();
-	}
+	if(!QFile::exists(filename)) THROW(FileAccessException, "QCValue::ImageFromFile: File '" + filename + "' does not exist!");
+	QFile file(filename);
+	if (!file.open(QIODevice::ReadOnly)) THROW(FileAccessException, "QCValue::ImageFromFile: File '" + filename + "' could not be opened!");
+	data = file.readAll().toBase64();
+	file.close();
 
 	//create value
 	QCValue value;
 	value.name_ = name;
 	value.value_ = data;
+	value.type_ = QCValueType::IMAGE;
 	value.description_ = description;
 	value.accession_ = accession;
 
 	return value;
 }
 
-const QString& QCValue::name() const
+QCValue QCValue::ImageFromText(const QString& name, const QByteArray& data_base64_encoded, const QString& description, const QString& accession)
 {
-	return name_;
+	QCValue value;
+	value.name_ = name;
+	value.value_ = data_base64_encoded;
+	value.type_ = QCValueType::IMAGE;
+	value.description_ = description;
+	value.accession_ = accession;
+
+	return value;
 }
 
-QVariant::Type QCValue::type() const
+long long QCValue::asInt() const
 {
-	return value_.type();
-}
+	if (type_!=QCValueType::INT) THROW(TypeConversionException, "QCValue '" + name_ + "' requested as integer, but has different type!");
 
-const QString& QCValue::description() const
-{
-	return description_;
-}
-
-const QString& QCValue::accession() const
-{
-	return accession_;
-}
-
-int QCValue::asInt() const
-{
-	if (value_.type()!=QVariant::Int) THROW(TypeConversionException, "QCValue '" + name_ + "' requested as integer, but has different type!");
-
-	return value_.toInt();
-}
-
-long long QCValue::asLongLong() const
-{
-	if (value_.type()!=QVariant::LongLong) THROW(TypeConversionException, "QCValue '" + name_ + "' requested as long long, but has different type!");
-
-	return value_.toULongLong();
+	return value_.toLongLong();
 }
 
 double QCValue::asDouble() const
 {
-	if (value_.type()!=QVariant::Double) THROW(TypeConversionException, "QCValue '" + name_ + "' requested as double, but has different type!");
+	if (type_!=QCValueType::DOUBLE) THROW(TypeConversionException, "QCValue '" + name_ + "' requested as double, but has different type!");
 
 	return value_.toDouble();
 }
 
 QString QCValue::asString() const
 {
-	if (value_.type()!=QVariant::String) THROW(TypeConversionException, "QCValue '" + name_ + "' requested as string, but has different type!");
+	if (type_!=QCValueType::STRING) THROW(TypeConversionException, "QCValue '" + name_ + "' requested as string, but has different type!");
 
 	return value_.toString();
 }
@@ -123,14 +112,14 @@ QString QCValue::asString() const
 
 QByteArray QCValue::asImage() const
 {
-	if (value_.type()!=QVariant::ByteArray) THROW(TypeConversionException, "QCValue '" + name_ + "' requested as image, but has different type!");
+	if (type_!=QCValueType::IMAGE) THROW(TypeConversionException, "QCValue '" + name_ + "' requested as image, but has different type!");
 
 	return value_.toByteArray();
 }
 
 QString QCValue::toString(int double_precision) const
 {
-	if (type()==QVariant::Double)
+	if (type()==QCValueType::DOUBLE)
 	{
 		return QString::number(value_.toDouble(), 'f', double_precision);
 	}
@@ -174,11 +163,6 @@ void QCCollection::insert(const QCCollection& collection)
 	}
 }
 
-const QCValue& QCCollection::operator[](int index) const
-{
-	return values_[index];
-}
-
 const QCValue& QCCollection::value(const QString& name, bool by_accession) const
 {
 	for (int i=0; i<count(); ++i)
@@ -194,16 +178,6 @@ const QCValue& QCCollection::value(const QString& name, bool by_accession) const
 	}
 
 	THROW(ArgumentException, "QC value with name/accession '" + name + "' not found in QC collection.")
-}
-
-int QCCollection::count() const
-{
-	return values_.count();
-}
-
-void QCCollection::clear()
-{
-	values_.clear();
 }
 
 void QCCollection::storeToQCML(QString filename, const QStringList& source_files, QString parameters, QMap<QString, int> precision_overwrite, QList<QCValue> metadata)
@@ -235,14 +209,14 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 	foreach(const QCValue& md, metadata)
 	{
 		if(md.accession()=="QC:1000006")	stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"" << md.name() << "\" value=\"" << QFileInfo(md.asString()).fileName() << "\" uri=\"" << md.asString() << "\" cvRef=\"QC\" accession=\"" << md.accession() << "\" />" << endl;
-		else	stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"" << md.name() << "\" value=\"" << md.asString() << "\" cvRef=\"QC\" accession=\"" << md.accession() << "\"/>" << endl;
+		else	stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"" << md.name() << "\" value=\"" << md.toString() << "\" cvRef=\"QC\" accession=\"" << md.accession() << "\"/>" << endl;
 		++idx;
 	}
 
 	//write quality parameters
 	for (int i=0; i<count(); ++i)
 	{
-		if (values_[i].type()==QVariant::ByteArray) continue;
+		if (values_[i].type()==QCValueType::IMAGE) continue;
 
 		QString name = values_[i].name();
 		QString value = values_[i].toString();
@@ -255,7 +229,7 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 	}
 	for (int i=0; i<count(); ++i)
 	{
-		if (values_[i].type()!=QVariant::ByteArray) continue;
+		if (values_[i].type()!=QCValueType::IMAGE) continue;
 		stream << "    <attachment ID=\"qp" << QString::number(i+1).rightJustified(4, '0') << "\" name=\"" << values_[i].name() << "\" description=\"" << values_[i].description().toHtmlEscaped() << "\" cvRef=\"QC\" accession=\"" << values_[i].accession() << "\">" << endl;
 		stream << "      <binary>" << values_[i].asImage() << "</binary>" << endl;
 		stream << "    </attachment>" << endl;
@@ -375,7 +349,7 @@ void QCCollection::appendToStringList(QStringList& list, QMap<QString, int> prec
 {
 	for(int i=0; i<count(); ++i)
 	{
-		if (values_[i].type()==QVariant::ByteArray) continue;
+		if (values_[i].type()==QCValueType::IMAGE) continue;
 
 		QString name = values_[i].name();
 		QString value = values_[i].toString();
@@ -388,54 +362,92 @@ void QCCollection::appendToStringList(QStringList& list, QMap<QString, int> prec
 	}
 }
 
-QCCollection QCCollection::fromQCML(QString filename)
+QCCollection QCCollection::fromQCML(QString filename, QString obo, QStringList& errors)
 {
-	QFile f(filename);
+	QCCollection ouput;
 
+	//check against schema
+	QString xml_error = XmlHelper::isValidXml(filename, "://Resources/qcML_0.0.8.xsd");
+	if (xml_error!="")
+	{
+		THROW(ProgrammingException, "QC file '" + filename + "' does not match schema: " + xml_error);
+	}
+
+	//load OBO
+	OntologyTermCollection terms(obo, false);
+
+	//open file
 	QDomDocument doc;
 	QString error_msg;
 	int error_line, error_column;
-
+	QFile f(filename);
 	if(!doc.setContent(&f, &error_msg, &error_line, &error_column))
 	{
-		THROW(FileParseException, "qcML file " + filename + " is invalid: " + error_msg + " line: " + QString::number(error_line) + " column: " +  QString::number(error_column));
+		THROW(FileParseException, "QC file '" + filename + "' is invalid: " + error_msg + " line: " + QString::number(error_line) + " column: " +  QString::number(error_column));
 	}
 	
 	//make list of all elements in doc
 	QList<QDomElement> found_elements;
 	QCCollection::findElements(doc.documentElement(),found_elements);
-
-
-	QCCollection result_collection;
-
-	foreach(QDomElement element, found_elements)
+	foreach(const QDomElement& element, found_elements)
 	{
-		QCValue tmp;
 		//only keep elements with qcML data
-		if(element.hasAttribute("accession"))
+		if(element.nodeName()=="qualityParameter" || element.nodeName()=="attachment")
 		{
 			QString name = element.attribute("name");
-			QVariant value = QVariant(element.attribute("value"));
-			QString accession = element.attribute("accession");
+			QString value = element.attribute("value");
+			QByteArray accession = element.attribute("accession").toUtf8();
 			QString description = element.attribute("description");
 
-			//check whether value is a double
-			if(value.toDouble() != 0.)
+			//check accession exists
+			if (!terms.containsByID(accession))
 			{
-				tmp = QCValue(name,value.toDouble(),description,accession);
-			}//check whether value can be an image
-			else if(value.canConvert(QVariant::Image))
-			{
-				tmp = QCValue::Image(name,value.toString(),description,accession);
+				errors << "Skipped metric with unknown accession (accession=" + accession + "/" + name + ")";
+				continue;
 			}
-			else if(value.type() == QVariant::String)
+
+			//convert value to correct type
+			QCValue tmp;
+			const OntologyTerm& term = terms.getByID(accession);
+			if (term.type()=="int")
 			{
-				tmp = QCValue(name,value.toString(),description,accession);
+				bool ok = false;
+				long long num_value = value.toLongLong(&ok);
+				if (!ok)
+				{
+					errors << "Skipped metric with invalid integer value '" + value + "' (accession=" + accession + "/" + name + ")";
+					continue;
+				}
+				tmp = QCValue(name,num_value,description,accession);
 			}
+			else if (term.type()=="float")
+			{
+				bool ok = false;
+				double num_value = value.toDouble(&ok);
+				if (!ok)
+				{
+					errors << "Skipped metric with invalid float value '" + value + "' (accession=" + accession + "/" + name + ")";
+					continue;
+				}
+				tmp = QCValue(name,num_value,description,accession);
+			}
+			else if (term.type()=="base64Binary") //image
+			{
+				QDomNode child = element.firstChild();
+				if (child.isElement() && child.nodeName()=="binary")
+				{
+					tmp = QCValue::ImageFromText(name,child.toElement().text().toUtf8(),description,accession);
+				}
+			}
+			else //everything else is handled as string
+			{
+				tmp = QCValue(name,value,description,accession);
+			}
+			ouput.insert(tmp);
 		}
-		result_collection.insert(tmp);
 	}
-	return result_collection;
+
+	return ouput;
 }
 
 void QCCollection::findElements(const QDomElement &elem, QList<QDomElement>& foundElements)
@@ -452,8 +464,7 @@ void QCCollection::findElements(const QDomElement &elem, QList<QDomElement>& fou
 
 void QCCollection::findElementsWithAttributes(const QDomElement &elem, const QString &attr, QList<QDomElement>& foundElements)
 {
-	if(elem.attributes().contains(attr))
-		foundElements.append(elem);
+	if(elem.attributes().contains(attr)) foundElements.append(elem);
 	QDomElement child = elem.firstChildElement();
 
 	while(!child.isNull())

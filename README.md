@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2023_03
+	> git checkout 2023_06
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -176,12 +176,20 @@ Changes of master since last release:
 * none so far
 
 
-Changes in release 2023_03:
+Changes in release 2023_06:
 
-* NGSDImportEnsembl: Update to support Ensembl 109
-* RnaQC: Added target region to support targeted transcriptomics experiments
+* new tools: GenesToTranscripts, NGSDImportSampleQC, GenesToTranscripts, TranscriptsToBed, NGSDExportGff.
+* BamToFastq: Added support for single-end.
+* MappingQC: Added support for read QC.
+* VcfToBedpe: Added support for Sniffles, cuteSV and dipdiff.
+* FastqExtract: Added parameter 'long_read'.
+* ReadQC: Added parameter 'long_read'.
+* NGSDExportSamples: added parameters 'run_after' and 'no_normal'.
+* NGSDExportAnnotationData: speed-up by parallelization.
 * NGSD
-	* Added `ncbi_id` to `gene` table
-	* Added `folder_override`to `processed_sample` table
+	* Added 'side' enum to 'sequencing_run' table
+	* Added 'germline_mosaic' to 'variant' table
+	* Added 'hpo_obsolete' table with obsolete HPO terms
+	* Refactoring of 'expression' and 'gene_expression' tables to speed-up queries
 	
 For older changes see [releases](https://github.com/imgag/ngs-bits/releases).

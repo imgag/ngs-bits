@@ -189,7 +189,7 @@ QCCollection StatisticsReads::getResult()
 	plot.addLine(line_gc, "GC");
 	QString plotname = Helper::tempFileName(".png");
 	plot.store(plotname);
-	output.insert(QCValue::Image("base distribution plot", plotname, "Base distribution plot per cycle.", "QC:2000011"));
+	output.insert(QCValue::ImageFromFile("base distribution plot", plotname, "Base distribution plot per cycle.", "QC:2000011"));
 	QFile::remove(plotname);
 
 
@@ -214,7 +214,7 @@ QCCollection StatisticsReads::getResult()
 	}
 	QString plotname2 = Helper::tempFileName(".png");
 	plot2.store(plotname2);
-	output.insert(QCValue::Image("Q score plot", plotname2, "Mean Q score per cycle for forward/reverse reads.", "QC:2000012"));
+	output.insert(QCValue::ImageFromFile("Q score plot", plotname2, "Mean Q score per cycle for forward/reverse reads.", "QC:2000012"));
 	QFile::remove(plotname2);
 
 	//calculate long read QC values:
@@ -240,7 +240,6 @@ QCCollection StatisticsReads::getResult()
 		output.insert(QCValue("N50", n50, "Minimum read length to reach 50% of sequenced bases.", "QC:2000131"));
 
 		//create read length histogram
-		qDebug() << 0 << read_lengths_.lastKey();
 		Histogram read_length_hist = Histogram(std::max(0, read_lengths_.firstKey() - 20), read_lengths_.lastKey() + 20, std::max(1, (read_lengths_.lastKey()-read_lengths_.firstKey())/50));
 		it.toFront();
 		while(it.hasNext())
@@ -270,7 +269,7 @@ QCCollection StatisticsReads::getResult()
 		plot3.setValues(read_length_hist.yCoords().toList(), bins);
 		QString plotname3 = Helper::tempFileName(".png");
 		plot3.store(plotname3);
-		output.insert(QCValue::Image("Read length histogram", plotname3, "Histogram of read lengths", "QC:2000132"));
+		output.insert(QCValue::ImageFromFile("Read length histogram", plotname3, "Histogram of read lengths", "QC:2000132"));
 		QFile::remove(plotname3);
 	}
 
