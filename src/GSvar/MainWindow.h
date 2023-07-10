@@ -273,6 +273,8 @@ public slots:
 	void on_actionBlatSearch_triggered();
 	///Opens a virus table based on a corresponding TSV file
 	void on_actionVirusDetection_triggered();
+	///Perform Burden test
+	void on_actionBurdenTest_triggered();
 	///Load report configuration
 	void loadReportConfig();
 	///Store report configuration

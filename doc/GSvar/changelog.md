@@ -1,6 +1,10 @@
 # GSvar change log
 
-### 2023_03_98 (28.06.23)
+### 2023_06-4 (05.07.23)
+
+-  general: gap calculation in germline report and gap dialog is now done coding/splicing region by default and based on relevant transcripts.
+
+### 2023_03-98 (28.06.23)
 
 - general: Splice effect filter now supports de-novo acceptor/donor prediction of MaxEntScan as well
 - RNA: improved loading times of expression dialog

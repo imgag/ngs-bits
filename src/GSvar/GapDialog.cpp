@@ -69,17 +69,23 @@ void GapDialog::calculteGaps()
 	BedFile roi;
 	if (ui_.reduce_exon_splicing->isChecked())
 	{
-		GeneSet invalid_genes;
+		GeneSet genes_invalid;
+		GeneSet genes_no_transcript;
 		foreach(const QByteArray& gene, genes_)
 		{
 			int gene_id = db_.geneId(gene);
 			if (gene_id==-1)
 			{
-				invalid_genes << gene;
+				genes_invalid << gene;
 				continue;
 			}
 
 			TranscriptList transcripts = db_.releventTranscripts(gene_id);
+			if (transcripts.count()==0)
+			{
+				genes_no_transcript << gene;
+				continue;
+			}
 			foreach(const Transcript& transcript, transcripts)
 			{
 				if (transcript.isCoding())
@@ -96,9 +102,13 @@ void GapDialog::calculteGaps()
 		roi.merge();
 		roi.sort();
 
-		if (!invalid_genes.isEmpty())
+		if (!genes_invalid.isEmpty())
 		{
-			output << "Invalid gene names could not be converted to exons: " + invalid_genes.join(", ");
+			output << "Invalid gene names could not be converted to exons: " + genes_invalid.join(", ");
+		}
+		if (!genes_no_transcript.isEmpty())
+		{
+			output << "Genes without transcripts could not be converted to exons: " + genes_invalid.join(", ");
 		}
 	}
 	else

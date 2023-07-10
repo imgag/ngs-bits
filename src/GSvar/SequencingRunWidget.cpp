@@ -551,7 +551,7 @@ void SequencingRunWidget::updateReadQualityTable()
 		highlightItem(item);
 		table->setItem(row, 0, item);
 
-		item = GUIHelper::createTableItem("all");
+		item = GUIHelper::createTableItem(QString("all"));
 		highlightItem(item);
 		table->setItem(row, 1, item);
 
@@ -572,7 +572,7 @@ void SequencingRunWidget::updateReadQualityTable()
 			row = table->rowCount();
 			table->setRowCount(row + 1);
 
-			table->setItem(row, 0, GUIHelper::createTableItem(""));
+			table->setItem(row, 0, GUIHelper::createTableItem(QString()));
 			table->setItem(row, 1, GUIHelper::createTableItem(q_lanes.value("lane_num").toString()));
 			double q30 = q_lanes.value("q30_perc").toDouble();
 			table->setItem(row, 2, GUIHelper::createTableItem(QString::number(q30, 'f', 2)));

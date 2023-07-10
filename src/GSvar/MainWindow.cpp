@@ -146,7 +146,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "ProxyDataService.h"
 #include "RefGenomeService.h"
 #include "GHGAUploadDialog.h"
-
+#include "BurdenTestWidget.h"
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -417,9 +417,6 @@ void MainWindow::on_actionDebug_triggered()
 	qDebug() << user;
 	if (user=="ahsturm1")
 	{
-		on_actionPrepareGhgaUpload_triggered();
-		return;
-
 		//VariantHgvsAnnotator debugging
 		/*
 		QString genome_file = Settings::string("reference_genome", false);
@@ -809,10 +806,11 @@ void MainWindow::on_actionDebug_triggered()
 		*/
 
 		//evaluation GSvar score/rank
-		/*
 		//init parameters and output stream
 		bool test_domiant = false;
+		bool test_recessive_hom = false; //in case of recessive - switch beteen hom and comp-het
 		bool test_v1 = false;
+		bool test_with_ngsd = false;
 		QString algorithm;
 		QString suffix;
 		if (test_v1)
@@ -827,9 +825,10 @@ void MainWindow::on_actionDebug_triggered()
 		else
 		{
 			algorithm = "GSvar_v2_recessive";
+			suffix += test_recessive_hom ? "_hom" : "_comphet";
 		}
 		VariantScores::Parameters parameters;
-		if (true)
+		if (!test_with_ngsd)
 		{
 			parameters.use_ngsd_classifications = false;
 			suffix += "_noNGSD";
@@ -839,9 +838,12 @@ void MainWindow::on_actionDebug_triggered()
 		QSharedPointer<QFile> out_file = Helper::openFileForWriting("C:\\Marc\\ranking_" + QDate::currentDate().toString("yyyy-MM-dd") + "_" + algorithm + suffix + ".tsv");
 		QTextStream out_stream(out_file.data());
 		QStringList headers;
-		headers << "ps" << "system" << "HPO" << "variant" << "inheritance"  << "filter" << "impact" << "inheritance" << "oe_lof" << "gnomAD" << "gnomAD sub" << "NGSD het" << "NGSD hom" << "variants_scored" << "hpo_genes" << "score" << "score_explanations" << "rank";
+		headers << "ps" << "system" << "HPO" << "variant" << "variant_type"  << "filter" << "impact" << "inheritance" << "oe_lof" << "gnomAD" << "gnomAD sub" << "NGSD hom" << "NGSD het" << "NGSD mosaic" << "variants_scored" << "hpo_genes" << "score" << "score_explanations" << "rank";
 		out_stream << "#" << headers.join("\t") << endl;
 
+		QSet<QString> samples_skipped_other_variants;
+		QSet<QString> samples_skipped_incorrect_causal_variant_count;
+		QSet<QString> samples_skipped_no_hpo;
 		int c_all = 0;
 		int c_top1 = 0;
 		int c_top2 = 0;
@@ -850,70 +852,104 @@ void MainWindow::on_actionDebug_triggered()
 		QHash<QByteArray, GeneSet> pheno2genes_cache_;
 		NGSD db;
 		QString inheritance_constraint = test_domiant ? "AND (rcv.inheritance='AD' OR rcv.inheritance='XLD')" : "AND (rcv.inheritance='AR' OR rcv.inheritance='XLR')";
-		QStringList ps_names = db.getValues("SELECT DISTINCT CONCAT(s.name, '_0', ps.process_id) FROM sample s, processed_sample ps, diag_status ds, report_configuration rc, report_configuration_variant rcv, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND (sys.type='WGS' OR sys.type='WES') AND ps.project_id=p.id AND p.type='diagnostic' AND ps.sample_id=s.id AND ps.quality!='bad' AND ds.processed_sample_id=ps.id AND ds.outcome='significant findings' AND rc.processed_sample_id=ps.id AND rcv.report_configuration_id=rc.id AND rcv.causal='1' AND rcv.mosaic='0' AND rcv.type='diagnostic variant' AND s.disease_status='Affected' " + inheritance_constraint + " ORDER BY ps.id ASC");
-		qDebug() << "Processed samples to check:" << ps_names.count();
+		QStringList ps_ids = db.getValues("SELECT DISTINCT ps.id FROM sample s, processed_sample ps, diag_status ds, report_configuration rc, report_configuration_variant rcv, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND (sys.type='WGS' OR sys.type='WES') AND ps.project_id=p.id AND p.type='diagnostic' AND ps.sample_id=s.id AND ps.quality!='bad' AND ds.processed_sample_id=ps.id AND ds.outcome='significant findings' AND rc.processed_sample_id=ps.id AND rcv.report_configuration_id=rc.id AND rcv.causal='1' AND rcv.mosaic='0' AND rcv.type='diagnostic variant' AND s.disease_status='Affected' " + inheritance_constraint + " ORDER BY ps.id ASC");
 		int ps_nr = 0;
-		foreach(QString ps, ps_names)
+		foreach(const QString& ps_id, ps_ids)
 		{
-			qDebug() << (++ps_nr) << ps;
-
-			QString ps_id = db.processedSampleId(ps);
-			if (db.getDiagnosticStatus(ps_id).outcome!="significant findings")
-			{
-				qDebug() << "  skipped - no significant findings!";
-				continue;
-			}
-
-			int sys_id = db.processingSystemIdFromProcessedSample(ps);
-			QString system = db.getProcessingSystemData(sys_id).name;
-
-			//create phenotype list
-			QHash<Phenotype, BedFile> phenotype_rois;
-			QString sample_id = db.sampleId(ps);
-			PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
-			if (phenotypes.count()==0)
-			{
-				qDebug() << "  skipped - no phenotypes!";
-				continue;
-			}
-			GeneSet hpo_genes;
-			QStringList hpo_terms;
-			foreach(const Phenotype& pheno, phenotypes)
-			{
-				//pheno > genes
-				QByteArray pheno_accession = pheno.accession();
-				if (!pheno2genes_cache_.contains(pheno_accession))
-				{
-					pheno2genes_cache_[pheno_accession] = db.phenotypeToGenes(db.phenotypeIdByAccession(pheno_accession), true);
-				}
-				GeneSet genes = pheno2genes_cache_[pheno_accession];
-
-				hpo_terms << pheno.name();
-				hpo_genes << genes;
-
-				//genes > roi
-				BedFile roi;
-				foreach(const QByteArray& gene, genes)
-				{
-					if (!gene2region_cache_.contains(gene))
-					{
-						BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
-						tmp.clearAnnotations();
-						tmp.extend(5000);
-						tmp.merge();
-						gene2region_cache_[gene] = tmp;
-					}
-					roi.add(gene2region_cache_[gene]);
-				}
-				roi.merge();
-
-				phenotype_rois[pheno] = roi;
-			}
-			hpo_terms.sort();
-			hpo_terms.removeDuplicates();
-
 			try
 			{
+
+				QString ps = db.processedSampleName(ps_id);
+				int rc_id = db.reportConfigId(ps_id);
+
+				//check that there are only small variants that are causal
+				QList<int> causal_cnvs = db.getValuesInt("SELECT id FROM report_configuration_cnv WHERE report_configuration_id=:0 AND causal='1'", QString::number(rc_id));
+				QList<int> causal_svs = db.getValuesInt("SELECT id FROM report_configuration_sv WHERE report_configuration_id=:0 AND causal='1'", QString::number(rc_id));
+				QList<int> causal_other = db.getValuesInt("SELECT id FROM report_configuration_other_causal_variant WHERE report_configuration_id=:0", QString::number(rc_id));
+				if (causal_cnvs.count()>0 || causal_svs.count()>0 || causal_other.count()>0)
+				{
+					samples_skipped_other_variants << ps;
+					continue;
+				}
+
+				//check that there are the right number of causal variant for the inheritance mode (class 4/5, correct genotype, not mito)
+				QString expected_inheritance = "(rcv.inheritance='AD' OR rcv.inheritance='XLD')";
+				QString expected_genotype = "het";
+				int expected_causal_variant_count = 1;
+				if (!test_domiant && test_recessive_hom)
+				{
+					expected_inheritance = "(rcv.inheritance='AR' OR rcv.inheritance='XLR')";
+					expected_genotype = "hom";
+					expected_causal_variant_count = 1;
+				}
+				if (!test_domiant && !test_recessive_hom)
+				{
+					expected_inheritance = "(rcv.inheritance='AR' OR rcv.inheritance='XLR')";
+					expected_genotype = "het";
+					expected_causal_variant_count = 2;
+				}
+				VariantList causal_variants;
+				foreach(QString v_id, db.getValues("SELECT rcv.variant_id FROM report_configuration_variant rcv, variant v, variant_classification vc WHERE rcv.variant_id=v.id AND rcv.variant_id=vc.variant_id AND rcv.report_configuration_id='" + QString::number(rc_id) + "' AND rcv.causal='1' AND rcv.type='diagnostic variant' AND v.chr!='chrMT' AND (vc.class='4' OR vc.class='5') AND " + expected_inheritance))
+				{
+					if (db.getValue("SELECT genotype FROM detected_variant WHERE processed_sample_id=" + ps_id + " AND variant_id=" + v_id + " AND mosaic=0").toByteArray()==expected_genotype)
+					{
+						causal_variants.append(db.variant(v_id));
+					}
+				}
+				if (causal_variants.count()!=expected_causal_variant_count)
+				{
+					samples_skipped_incorrect_causal_variant_count << ps;
+					continue;
+				}
+
+				//create phenotype list
+				QHash<Phenotype, BedFile> phenotype_rois;
+				QString sample_id = db.sampleId(ps);
+				PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
+				if (phenotypes.count()==0)
+				{
+					samples_skipped_no_hpo << ps;
+					continue;
+				}
+
+				qDebug() << (++ps_nr) << ps;
+
+				//determine HPO terms and HPO genes for output
+				GeneSet hpo_genes;
+				QStringList hpo_terms;
+				foreach(const Phenotype& pheno, phenotypes)
+				{
+					//pheno > genes
+					QByteArray pheno_accession = pheno.accession();
+					if (!pheno2genes_cache_.contains(pheno_accession))
+					{
+						pheno2genes_cache_[pheno_accession] = db.phenotypeToGenes(db.phenotypeIdByAccession(pheno_accession), true);
+					}
+					GeneSet genes = pheno2genes_cache_[pheno_accession];
+
+					hpo_terms << pheno.name();
+					hpo_genes << genes;
+
+					//genes > roi
+					BedFile roi;
+					foreach(const QByteArray& gene, genes)
+					{
+						if (!gene2region_cache_.contains(gene))
+						{
+							BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
+							tmp.clearAnnotations();
+							tmp.merge();
+							gene2region_cache_[gene] = tmp;
+						}
+						roi.add(gene2region_cache_[gene]);
+					}
+					roi.merge();
+
+					phenotype_rois[pheno] = roi;
+				}
+				hpo_terms.sort();
+				hpo_terms.removeDuplicates();
+
 				//load variants
 				QString gsvar = db.processedSamplePath(ps_id, PathType::GSVAR);
 				QFileInfo gsvar_info(gsvar);
@@ -933,7 +969,7 @@ void MainWindow::on_actionDebug_triggered()
 
 					FilterCascade cascade = FilterCascade::fromText(QStringList() <<
 						"Allele frequency	max_af=1.0" <<
-						"Count NGSD	max_count=50	ignore_genotype=false" <<
+						"Count NGSD	max_count=50	ignore_genotype=false	mosaic_as_het=false" <<
 						"Annotated pathogenic	action=KEEP	sources=HGMD,ClinVar	also_likely_pathogenic=true" <<
 						"Classification NGSD	action=KEEP	classes=4,5");
 					FilterResult cascade_result = cascade.apply(variants_tmp);
@@ -944,7 +980,7 @@ void MainWindow::on_actionDebug_triggered()
 				VariantList variants;
 				variants.load(tmp);
 
-				//score
+				//score variants
 				VariantScores::Result result = VariantScores::score(algorithm, variants, phenotype_rois, parameters);
 
 				//prepare lambda for output
@@ -953,13 +989,11 @@ void MainWindow::on_actionDebug_triggered()
 				int i_coding = variants.annotationIndexByName("coding_and_splicing");
 				int i_gnomad = variants.annotationIndexByName("gnomAD");
 				int i_gnomad_sub = variants.annotationIndexByName("gnomAD_sub");
-				int i_ngsd_het = variants.annotationIndexByName("NGSD_het");
-				int i_ngsd_hom = variants.annotationIndexByName("NGSD_hom");
 				int i_rank = variants.annotationIndexByName("GSvar_rank");
 				int i_score = variants.annotationIndexByName("GSvar_score");
 				int i_score_exp = variants.annotationIndexByName("GSvar_score_explanations");
 
-				auto addLine = [&] (const Variant& v, QString inheritance, bool causal = true)
+				auto addLine = [&] (const Variant& v, QString variant_type)
 				{
 					QList<int> affected_cols = variants.getSampleHeader().sampleColumns(true);
 					if (affected_cols.count()!=1) THROW(ArgumentException, "VariantScores: Algorihtm 'GSvar_v1' can only be applied to variant lists with exactly one affected patient!");
@@ -992,8 +1026,6 @@ void MainWindow::on_actionDebug_triggered()
 					QString score = v.annotations()[i_score].trimmed();
 					if (score.isEmpty()) rank = "-3";
 
-					if (!causal) inheritance += " (non-causal high-ranked variant)";
-
 					QByteArrayList impact;
 					QByteArrayList gene_inheritance;
 					QByteArrayList oe_lof;
@@ -1014,69 +1046,38 @@ void MainWindow::on_actionDebug_triggered()
 						oe_lof += gene + "=" + gene_info.oe_lof.toLatin1();
 					}
 
+					//get system name
+					int sys_id = db.processingSystemIdFromProcessedSample(ps);
+					QString system = db.getProcessingSystemData(sys_id).name;
+
+					//get variant counts
+					QString var_id = db.variantId(v);
+					GenotypeCounts geno_counts = db.genotypeCountsCached(var_id);
+
 					QStringList cols;
-					cols << ps << system << hpo_terms.join(", ") << (v.toString() + " (" + genotype + ")") << inheritance  << v.annotations()[i_filter]<< impact.join(", ") << gene_inheritance.join(", ") << oe_lof.join(", ") << gnomad_af << gnomad_af_sub << v.annotations()[i_ngsd_het] << v.annotations()[i_ngsd_hom] << QString::number(c_scored) << QString::number(hpo_genes.count()) << score << v.annotations()[i_score_exp] << rank;
+					cols << ps << system << hpo_terms.join(", ") << (v.toString() + " (" + genotype + ")") << variant_type  << v.annotations()[i_filter]<< impact.join(", ") << gene_inheritance.join(", ") << oe_lof.join(", ") << gnomad_af << gnomad_af_sub << QString::number(geno_counts.hom) << QString::number(geno_counts.het) << QString::number(geno_counts.mosaic) << QString::number(c_scored) << QString::number(hpo_genes.count()) << score << v.annotations()[i_score_exp] << rank;
 					out_stream << cols.join("\t") << endl;
 				};
 
-				//get report config
-				int rc_id = db.reportConfigId(ps_id);
-				if (rc_id==-1) THROW(ProgrammingException, "Processes sample '" + ps + "' has no report config!");
-
-				//get indices of causal variants
-				QSet<int> causal_indices;
-				CnvList cnvs;
-				BedpeFile svs;
-				QSharedPointer<ReportConfiguration> rc_ptr = db.reportConfig(rc_id, variants, cnvs, svs);
-				foreach(const ReportVariantConfiguration& var_conf, rc_ptr->variantConfig())
-				{
-					if (var_conf.causal && var_conf.variant_type==VariantType::SNVS_INDELS && var_conf.report_type=="diagnostic variant")
-					{
-						int var_index = var_conf.variant_index;
-						if (var_index<0) THROW(ProgrammingException, "Processes sample '" + ps + "' variant list does not contain causal variant!");
-
-						const Variant& var = variants[var_index];
-
-						//remove special chromosomes
-						if (!var.chr().isAutosome() && !var.chr().isGonosome()) continue;
-
-						//filter by inheritance
-						QString inheritance = var_conf.inheritance;
-						if (test_domiant && inheritance!="AD" && inheritance!="XLD") continue;
-						if (!test_domiant && inheritance!="AR" && inheritance!="XLR") continue;
-
-						causal_indices << var_index;
-					}
-				}
-				if (test_domiant && causal_indices.count()>1)
-				{
-					qDebug() << "  skipped - dominant inheritance but more than one causal variant!";
-					continue;
-				}
-				if (!test_domiant && causal_indices.count()>2)
-				{
-					qDebug() << "  skipped - recessive inheritance but more than two causal variant!";
-					continue;
-				}
-
-
-				int causal_var_nr = 0;
+				//perform rank statistics on causal variants
 				QSet<int> noncausal_indices_added;
-				foreach(const ReportVariantConfiguration& var_conf, rc_ptr->variantConfig())
+				for (int i=0; i<causal_variants.count(); ++i)
 				{
-					int var_index = var_conf.variant_index;
-					if (!causal_indices.contains(var_index)) continue;
+					++c_all;
+					Variant causal_var = causal_variants[i];
+					//qDebug() << __LINE__ << ps << i << causal_var.toString();
+
+					int var_index = variants.indexOf(causal_var);
+					if (var_index==-1)
+					{
+						causal_var.annotations() << QVector<QByteArray>(100).toList(); //no annotations would crash
+						addLine(causal_var, "missed causal variant - not in pre-filtered variant list");
+						continue;
+					}
 
 					const Variant& var = variants[var_index];
 
-					QString inheritance = var_conf.inheritance;
-
-					++causal_var_nr;
-					QString var_nr = " (" + QString::number(causal_var_nr) + "/" + QString::number(causal_indices.count()) + ")";
-
-					addLine(var, inheritance + var_nr);
-
-					++c_all;
+					addLine(var, "causal " + QString::number(i+1) + "/" + QString::number(causal_variants.count()));
 
 					//statistics
 					try
@@ -1091,36 +1092,42 @@ void MainWindow::on_actionDebug_triggered()
 						{
 							for(int v=0; v<variants.count() ; ++v)
 							{
-								if (causal_indices.contains(v)) continue;
+								const Variant& var2 = variants[v];
+								if (causal_variants.contains(var2)) continue;
 								if (noncausal_indices_added.contains(v)) continue;
 
 								bool ok = false;
 								int rank2 = variants[v].annotations()[i_rank].toInt(&ok);
 								if (ok && rank2<rank && rank2<=5)
 								{
-									addLine(variants[v], inheritance, false);
+									addLine(variants[v], "non-causal high-ranked variant");
 									noncausal_indices_added << v;
 								}
 							}
 						}
 					}
-					catch(...)
+					catch(Exception& e)
 					{
+						addLine(var, "missed causal variant - not ranked");
 						++c_none;
 					}
 				}
 			}
 			catch(Exception& e)
 			{
-				qDebug() << "  Error processing GSvar:" << e.message();
+				qDebug() << "  Error processing sample:" << e.message();
 				continue;
 			}
 		}
+		out_stream << "##Number of samples skipped because of other causal variant: " << samples_skipped_other_variants.count() << endl;
+		out_stream << "##Number of samples skipped because of incorrect causal variant count: " << samples_skipped_incorrect_causal_variant_count.count() << endl;
+		out_stream << "##Number of samples skipped because of missing HPO terms: " << samples_skipped_no_hpo.count() << endl;
+		out_stream << "##Number of samples used for benchmark: " << ps_nr << endl;
+		out_stream << "##Number of variants used for benchmark: " << c_all << endl;
 		out_stream << "##Rank1: " << QString::number(c_top1) << " (" + QString::number(100.0*c_top1/c_all, 'f', 2) << "%)" << endl;
 		out_stream << "##Top2 : " << QString::number(c_top2) << " (" + QString::number(100.0*c_top2/c_all, 'f', 2) << "%)" << endl;
 		out_stream << "##Top10: " << QString::number(c_top10) << " (" + QString::number(100.0*c_top10/c_all, 'f', 2) << "%)" << endl;
 		out_stream << "##None : " << QString::number(c_none) << " (" + QString::number(100.0*c_none/c_all, 'f', 2) << "%)" << endl;
-		*/
 
 		//import of sample relations from GenLab
 		/*
@@ -4379,7 +4386,7 @@ void MainWindow::generateEvaluationSheet()
 		evaluation_sheet_data.review_date2 = QDate::currentDate();
 	}
 
-	//Show VaraintSheetEditDialog
+	//Show VariantSheetEditDialog
 	EvaluationSheetEditDialog* edit_dialog = new EvaluationSheetEditDialog(this);
 	edit_dialog->importEvaluationSheetData(evaluation_sheet_data);
 	if (edit_dialog->exec() != QDialog::Accepted) return;
@@ -7034,6 +7041,14 @@ void MainWindow::on_actionVirusDetection_triggered()
 	addModelessDialog(dlg);
 }
 
+void MainWindow::on_actionBurdenTest_triggered()
+{
+	BurdenTestWidget* widget = new BurdenTestWidget(this);
+
+	auto dlg = GUIHelper::createDialog(widget, "Gene-based burden test");
+	addModelessDialog(dlg);
+}
+
 
 void MainWindow::editVariantClassification(VariantList& variants, int index, bool is_somatic)
 {
@@ -7603,7 +7618,7 @@ void MainWindow::showNotification(QString text)
 	QToolTip::showText(pos, text);
 }
 
-void MainWindow::variantRanking()
+void MainWindow::variantRanking() //TODO check that everything is as in the benchmark (extend, ...)
 {
 	if (filename_.isEmpty()) return;
 	if (!LoginManager::active()) return;
@@ -7635,7 +7650,6 @@ void MainWindow::variantRanking()
 				{
 					BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
 					tmp.clearAnnotations();
-					tmp.extend(5000);
 					tmp.merge();
 					gene2region_cache_[gene] = tmp;
 				}

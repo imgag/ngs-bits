@@ -64,14 +64,11 @@ void DBTableWidget::setData(const DBTable& table, int max_col_width, QSet<QStrin
 		{
 			if (col_is_numeric[c])
 			{
-				QTableWidgetItem* item = new QTableWidgetItem;
-				item->setData(Qt::EditRole, row.value(c).toDouble());
-				item->setTextAlignment(Qt::AlignRight|Qt::AlignTop);
-				setItem(r, c,  item);
+				setItem(r, c, GUIHelper::createTableItem(row.value(c).toDouble()));
 			}
 			else
 			{
-				setItem(r, c,  GUIHelper::createTableItem(row.value(c)));
+				setItem(r, c, GUIHelper::createTableItem(row.value(c)));
 			}
 		}
 	}
