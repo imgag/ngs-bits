@@ -166,6 +166,8 @@ int CBioPortalExportSettings::getHrdScore(int sample_idx)
 {
 	QCCollection ps_qc = db_.getQCData(ps_ids[sample_idx]);
 	return ps_qc.value("QC:2000126", true).asString().toInt();
+
+
 }
 
 float CBioPortalExportSettings::getTmb(int sample_idx)
@@ -308,11 +310,16 @@ void ExportCBioPortalStudy::exportStudy(const QString& out_folder)
 	exportCancerType(out_folder);
 	exportPatientData(out_folder);
 	exportSampleData(out_folder);
+	qDebug() << "Exporting SNVs.";
 	exportSnvs(out_folder);
+	qDebug() << "Exporting CNVs.";
 	exportCnvs(out_folder);
+	qDebug() << "Exporting Fusion.";
 	exportFusions(out_folder);
 //	exportSvs(out_folder);
+	qDebug() << "Exporting Caselists.";
 	exportCaseList(out_folder);
+	qDebug() << "DONE!";
 }
 
 void ExportCBioPortalStudy::exportStudyFiles(const QString& out_folder)
@@ -464,6 +471,8 @@ void ExportCBioPortalStudy::exportPatientData(const QString &out_folder)
 		QStringList line;
 		line << settings_.s_data[i].patient_identifier;
 		line << settings_.s_data[i].gender;
+
+		pat_ids.insert(settings_.s_data[i].patient_identifier);
 
 		data_patients->write(line.join("\t").toUtf8() + "\n");
 	}
@@ -666,7 +675,7 @@ void ExportCBioPortalStudy::exportCnvs(const QString& out_folder)
 	QSharedPointer<QFile> out_file = Helper::openFileForWriting(out_folder + "/data_CNV.txt");
 
 	QByteArrayList columns;
-	columns << "Hugo_Symbol" /*<< "Entrez_Gene_Id"*/;
+	columns << "Hugo_Symbol" << "Entrez_Gene_Id";
 
 	QList<QMap<QByteArray, int>> data;
 

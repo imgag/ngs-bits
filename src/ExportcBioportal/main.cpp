@@ -5,6 +5,8 @@
 #include "ExportCBioPortalStudy.h"
 #include <QFile>
 #include "FileLocationProviderLocal.h"
+#include <QFileInfo>
+#include <QDir>
 
 class ConcreteTool
 		: public ToolBase
@@ -52,87 +54,130 @@ public:
 
 		for (int i=0; i< samples.rowCount(); i++)
 		{
+			// TODO also use sample metadata provided in the file!
+
 			QStringList row = samples.row(i);
 			QString sample_name = db.getValue("SELECT name FROM sample WHERE name_external LIKE '%" + row[idx_ext_name] + "%'").toString();
 			QString sample_id = db.sampleId(sample_name, true);
 
-			qDebug() << "Sample: " << sample_name;
+//			qDebug() << "Sample: " << sample_name;
 
-			QStringList processed_samples = db.getValues("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps LEFT JOIN sample s ON s.id = ps.sample_id WHERE ps.sample_id = '" + sample_id + "'");
-			foreach(QString ps_name, processed_samples)
+			QStringList processed_samples = db.getValues("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps LEFT JOIN sample s ON s.id = ps.sample_id LEFT JOIN project as p ON ps.project_id = p.id WHERE p.type='diagnostic' AND ps.sample_id = '" + sample_id + "'");
+			foreach(QString tumor_ps, processed_samples)
 			{
-				qDebug() << "\tps: " << ps_name;
+				qDebug() << "\tps: " << tumor_ps;
+				QString tumor_id = db.processedSampleId(tumor_ps);
 
-				QString gsvar_file; // TODO get gsvar file path
+				QString normal_ps = db.normalSample(tumor_id);
+				QString normal_id = db.processedSampleId(normal_ps);
+//				qDebug() << "\tn: " << normal_ps;
+				if (normal_ps == "") THROW(ArgumentException, "No normal sample set for tumor: " + tumor_ps);
 
+				QString rna_ps = getRnaSample(db, tumor_ps);
+
+				qDebug() << "\trna: " << rna_ps;
+
+				QString tumor_folder = db.processedSamplePath(tumor_id, PathType::SAMPLE_FOLDER);
+				tumor_folder.chop(1); // remove seperator at end
+
+				QString project_folder = QFileInfo(tumor_folder).dir().absolutePath();
+				QString somatic_prefix = tumor_ps + "-" + normal_ps;
+				QString somatic_folder = project_folder + QDir::separator() + "Somatic_"+somatic_prefix + QDir::separator();
+
+				QString gsvar_file = somatic_folder + somatic_prefix + ".GSvar";
 				VariantList variants;
 				variants.load(gsvar_file);
 
-				FileLocationProviderLocal(gsvar_file, variants.getSampleHeader(), variants.type());
+				FileLocationProviderLocal fileprovider (gsvar_file, variants.getSampleHeader(), variants.type());
 
+				SampleFiles files;
+				files.clincnv_file = fileprovider.getAnalysisCnvFile().filename;
+				files.msi_file = fileprovider.getSomaticMsiFile().filename;
+				files.sv_file = fileprovider.getAnalysisSvFile().filename;
+				files.gsvar_germline = db.processedSamplePath(normal_id, PathType::GSVAR);
+				files.gsvar_somatic = gsvar_file;
+
+				if (rna_ps != "")
+				{
+					QString rna_id = db.processedSampleId(rna_ps);
+					files.rna_fusions = db.processedSamplePath(rna_id, PathType::FUSIONS);
+				}
+
+//				qDebug() << files.gsvar_somatic << "\n" << files.gsvar_germline << "\n" << files.clincnv_file << "\n" << files.msi_file << "\n" << files.rna_fusions << "\n";
+
+				VariantList somatic_vl;
+				somatic_vl.load(files.gsvar_somatic);
+				VariantList germline_vl;
+				germline_vl.load(files.gsvar_germline);
+				CnvList cnvs;
+				cnvs.load(files.clincnv_file);
+
+				QStringList messages;
+				SomaticReportSettings report_settings;
+				report_settings.normal_ps = normal_ps;
+				report_settings.tumor_ps = tumor_ps;
+				report_settings.msi_file = fileprovider.getSomaticMsiFile().filename;
+				report_settings.viral_file = db.processedSamplePath(tumor_id, PathType::VIRAL);
+
+				report_settings.report_config = db.somaticReportConfig(tumor_id, normal_id, somatic_vl, cnvs, germline_vl, messages);
+
+//				qDebug() << report_settings.report_config.filter();
+				QString filterFileName = QCoreApplication::applicationDirPath() + QDir::separator() + "GSvar_filters.ini";
+				report_settings.filters = FilterCascadeFile::load(filterFileName, report_settings.report_config.filter());
+
+				export_settings.addSample(report_settings, files);
+			}
+		}
+
+		ExportCBioPortalStudy exportStudy(export_settings, false);
+		exportStudy.exportStudy(getString("out") + "/" + study.identifier + "/");
+
+		//TODO compare to Mainwindow export helper
+	}
+
+	QString getRnaSample(NGSD& db, QString tumor)
+	{
+		QString tumor_sample_id = db.sampleId(tumor);
+		QSet<int> rna_sample_ids = db.relatedSamples(tumor_sample_id.toInt(), "same sample", "RNA"); // TODO bug here!
+
+//		qDebug() << "POTENTIAL RNA IDS: " << rna_sample_ids;
+
+		if (rna_sample_ids.count() == 0)
+		{
+			return "";
+		}
+		else
+		{
+			QStringList rna_processed_samples;
+			foreach (int rna_id, rna_sample_ids)
+			{
+				rna_processed_samples.append(db.getValues("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as name FROM processed_sample as ps LEFT JOIN sample as s ON s.id = ps.sample_id WHERE s.id = :1 ORDER BY name DESC", QString::number(rna_id)));
 			}
 
-			//gather necessary files
-			//get variant lists
+			if (rna_processed_samples.count() == 0) return "";
 
 
-			/*
-		QString sample = tumor_samples[idx];
-		QString rna = rna_samples[idx];
+			QString newest = "2000-01-01";
+			QString newest_rna = "";
 
-		qDebug() << "gathering Data for: " << sample;
-		QString ps_id = db.processedSampleId(sample);
-		QString normal_sample = db.normalSample(ps_id);
-		QString normal_id = db.processedSampleId(normal_sample);
+			foreach (QString rna_ps, rna_processed_samples)
+			{
 
+				QString seq_id = db.getValue("SELECT sequencing_run_id FROM processed_sample WHERE id=:1", false, db.processedSampleId(rna_ps)).toString();
+				QString seq_date = db.getValue("SELECT start_date FROM sequencing_run WHERE id=:1", false, seq_id).toString();
 
-		qDebug() << "normal sample: " << normal_sample;
+				if (newest < seq_date)
+				{
+					newest = seq_date;
+					newest_rna = rna_ps;
+				}
+			}
 
-		loadFile(GlobalServiceProvider::database().secondaryAnalyses(sample + "-" + normal_sample, "somatic")[0]);
-		const FileLocationProvider& fileprovider = GlobalServiceProvider::fileLocationProvider();
+			if (newest_rna == "") THROW(ArgumentException, "Expected to find rna processed sample for the tumor but couldn't. Tumor sample id:" + tumor_sample_id);
 
-		SampleFiles files;
-		files.clincnv_file = fileprovider.getAnalysisCnvFile().filename;
-		files.msi_file = fileprovider.getSomaticMsiFile().filename;
-		files.sv_file = fileprovider.getAnalysisSvFile().filename;
-		files.gsvar_germline = GlobalServiceProvider::database().processedSamplePath(normal_id, PathType::GSVAR).filename;
-		files.gsvar_somatic = GlobalServiceProvider::database().secondaryAnalyses(sample + "-" + normal_sample, "somatic")[0];
-
-		if (rna != "")
-		{
-			QString rna_id = db.processedSampleId(rna);
-			files.rna_fusions = GlobalServiceProvider::database().processedSamplePath(rna_id, PathType::FUSIONS).filename;
-		}
-		qDebug() << files.gsvar_somatic << "\n" << files.gsvar_germline << "\n" << files.clincnv_file << "\n" << files.msi_file << "\n" << files.rna_fusions << "\n";
-
-		VariantList somatic_vl;
-		somatic_vl.load(files.gsvar_somatic);
-		VariantList germline_vl;
-		germline_vl.load(files.gsvar_germline);
-		CnvList cnvs;
-		cnvs.load(files.clincnv_file);
-
-
-		QStringList messages;
-		SomaticReportSettings report_settings;
-		report_settings.normal_ps = normal_sample;
-		report_settings.tumor_ps = sample;
-		somatic_report_settings_.msi_file = GlobalServiceProvider::fileLocationProvider().getSomaticMsiFile().filename;
-		somatic_report_settings_.viral_file = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::VIRAL).filename;
-
-		report_settings.report_config = db.somaticReportConfig(ps_id, normal_id, somatic_vl, cnvs, germline_vl, messages);
-
-		qDebug() << report_settings.report_config.filter();
-		report_settings.filters = FilterCascadeFile::load(filterFileName, report_settings.report_config.filter());
-
-		export_settings.addSample(report_settings, files);
-			*/
+			return newest_rna;
 		}
 
-
-
-
-		//compare to Mainwindow export helper
 	}
 
 	QList<SampleAttribute> parseAttributeData(QString file)

@@ -1520,7 +1520,7 @@ void MainWindow::on_actionDebug_triggered()
 		study.identifier = "TEST_STUDY_GSVAR";
 		study.reference_genome = "hg38";
 
-//		helper_export_cBioportal_study(study, tumor_samples, rna_samples);
+		helper_export_cBioportal_study(study, tumor_samples, rna_samples);
 
 		//test export of MTB OPEN:
 		tumor_samples.clear();
@@ -1548,7 +1548,7 @@ void MainWindow::on_actionDebug_triggered()
 		study.identifier = "MTB_CLOSED";
 		study.reference_genome = "hg38";
 
-		helper_export_cBioportal_study(study, tumor_samples, rna_samples);
+//		helper_export_cBioportal_study(study, tumor_samples, rna_samples);
 	}
 
 
@@ -1745,7 +1745,7 @@ void MainWindow::helper_export_cBioportal_study(StudyData study, QStringList tum
 	qDebug() << "SAMPLE ATTRIBUTES COUNT: " << export_settings.sample_attributes.count();
 
 	ExportCBioPortalStudy exportStudy(export_settings, false);
-	exportStudy.exportStudy("T:/users/ahott1a1/+analysis/cBioPortal/gsvar_test_export/" + study.identifier +"/");
+	exportStudy.exportStudy("T:/users/ahott1a1/projects/+analysis/cBioPortal/gsvar_test_export/" + study.identifier +"/");
 //	exportStudy.exportStudy("T:\\local_dev\\data\\cBioPortaltest\\" + study.identifier +"\\");
 };
 

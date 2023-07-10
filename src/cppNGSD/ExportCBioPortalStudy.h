@@ -98,7 +98,7 @@ struct CPPNGSDSHARED_EXPORT SampleAttribute
 	{
 		if (db_name == "PATIENT_ID")
 		{
-			return Attribute::SAMPLE_ID;
+			return Attribute::PATIENT_ID;
 		}
 		else if (db_name == "SAMPLE_ID")
 		{
