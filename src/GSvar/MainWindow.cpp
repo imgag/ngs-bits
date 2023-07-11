@@ -811,6 +811,7 @@ void MainWindow::on_actionDebug_triggered()
 		bool test_recessive_hom = false; //in case of recessive - switch beteen hom and comp-het
 		bool test_v1 = false;
 		bool test_with_ngsd = false;
+		bool test_with_clinvar = true;
 		QString algorithm;
 		QString suffix;
 		if (test_v1)
@@ -833,6 +834,11 @@ void MainWindow::on_actionDebug_triggered()
 			parameters.use_ngsd_classifications = false;
 			suffix += "_noNGSD";
 		}
+		if (!test_with_clinvar)
+		{
+			parameters.use_clinvar = false;
+			suffix += "_noClinVar";
+		}
 		qDebug() << "algorithm:" << algorithm << "suffix:" << suffix;
 
 		QSharedPointer<QFile> out_file = Helper::openFileForWriting("C:\\Marc\\ranking_" + QDate::currentDate().toString("yyyy-MM-dd") + "_" + algorithm + suffix + ".tsv");
@@ -846,7 +852,7 @@ void MainWindow::on_actionDebug_triggered()
 		QSet<QString> samples_skipped_no_hpo;
 		int c_all = 0;
 		int c_top1 = 0;
-		int c_top2 = 0;
+		int c_top3 = 0;
 		int c_top10 = 0;
 		int c_none = 0;
 		QHash<QByteArray, GeneSet> pheno2genes_cache_;
@@ -1059,6 +1065,30 @@ void MainWindow::on_actionDebug_triggered()
 					out_stream << cols.join("\t") << endl;
 				};
 
+				//determine causal variant ranks to fix statistics for comp-het case
+				QList<int> causal_variant_ranks;
+				if (!test_domiant && !test_recessive_hom)
+				{
+					for (int i=0; i<causal_variants.count(); ++i)
+					{
+
+						try
+						{
+
+						int var_index = variants.indexOf(causal_variants[i]);
+						if (var_index==-1) THROW(Exception, "not found");
+
+						int rank = Helper::toInt(variants[var_index].annotations()[i_rank]);
+						causal_variant_ranks << rank;
+						}
+						catch(Exception& e)
+						{
+							causal_variant_ranks << 9999;
+						}
+					}
+				}
+				std::sort(causal_variant_ranks.begin(), causal_variant_ranks.end());
+
 				//perform rank statistics on causal variants
 				QSet<int> noncausal_indices_added;
 				for (int i=0; i<causal_variants.count(); ++i)
@@ -1083,8 +1113,9 @@ void MainWindow::on_actionDebug_triggered()
 					try
 					{
 						int rank = Helper::toInt(var.annotations()[i_rank]);
+						if (!test_domiant && !test_recessive_hom && rank>causal_variant_ranks[0]) rank -= 1; //ignore first variant in comp-het case to make the comparison between inheritance modes fair
 						if (rank==1) ++c_top1;
-						if (rank<=2) ++c_top2;
+						if (rank<=3) ++c_top3;
 						if (rank<=10) ++c_top10;
 
 						//store top 5 variants ranking higher than the causal variant
@@ -1125,7 +1156,7 @@ void MainWindow::on_actionDebug_triggered()
 		out_stream << "##Number of samples used for benchmark: " << ps_nr << endl;
 		out_stream << "##Number of variants used for benchmark: " << c_all << endl;
 		out_stream << "##Rank1: " << QString::number(c_top1) << " (" + QString::number(100.0*c_top1/c_all, 'f', 2) << "%)" << endl;
-		out_stream << "##Top2 : " << QString::number(c_top2) << " (" + QString::number(100.0*c_top2/c_all, 'f', 2) << "%)" << endl;
+		out_stream << "##Top3 : " << QString::number(c_top3) << " (" + QString::number(100.0*c_top3/c_all, 'f', 2) << "%)" << endl;
 		out_stream << "##Top10: " << QString::number(c_top10) << " (" + QString::number(100.0*c_top10/c_all, 'f', 2) << "%)" << endl;
 		out_stream << "##None : " << QString::number(c_none) << " (" + QString::number(100.0*c_none/c_all, 'f', 2) << "%)" << endl;
 
@@ -7618,7 +7649,7 @@ void MainWindow::showNotification(QString text)
 	QToolTip::showText(pos, text);
 }
 
-void MainWindow::variantRanking() //TODO check that everything is as in the benchmark (extend, ...)
+void MainWindow::variantRanking()
 {
 	if (filename_.isEmpty()) return;
 	if (!LoginManager::active()) return;
@@ -7662,7 +7693,6 @@ void MainWindow::variantRanking() //TODO check that everything is as in the benc
 
 		//score
 		VariantScores::Parameters parameters;
-		parameters.use_ngsd_classifications = !Settings::boolean("debug_mode_enabled", true);
 		QString algorithm = sender()->objectName();
 		VariantScores::Result result = VariantScores::score(algorithm, variants_, phenotype_rois, parameters);
 

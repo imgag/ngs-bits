@@ -16,6 +16,7 @@ public:
 	{
 		bool use_ngsd_classifications = true;
 		bool use_blacklist = false;
+		bool use_clinvar = true;
 	};
 
 	//Scoring result

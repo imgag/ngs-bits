@@ -546,12 +546,19 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 			<< "Allele frequency (sub-populations)	max_af=0.1"
 			<< "Variant quality	qual=30	depth=1	mapq=20	strand_bias=-1	allele_balance=-1	min_occurences=0	min_af=0	max_af=1"
 			<< "Count NGSD	max_count=10	ignore_genotype=false	mosaic_as_het=false"
-			<< "Impact	impact=HIGH,MODERATE,LOW"
-			<< "Annotated pathogenic	action=KEEP	sources=HGMD,ClinVar	also_likely_pathogenic=false"
-			<< "Splice effect	MaxEntScan=LOW	SpliceAi=0.5	action=KEEP"
+			<< "Impact	impact=HIGH,MODERATE,LOW";
+	if (parameters.use_clinvar)
+	{
+			filters << "Annotated pathogenic	action=KEEP	sources=HGMD,ClinVar	also_likely_pathogenic=false";
+	}
+	else
+	{
+		filters << "Annotated pathogenic	action=KEEP	sources=HGMD	also_likely_pathogenic=false";
+	}
+	filters	<< "Splice effect	MaxEntScan=LOW	SpliceAi=0.5	action=KEEP"
 			<< "Allele frequency	max_af=1.0"
-			<< "Filter columns	entries=mosaic	action=REMOVE"
-			<< "Classification NGSD	action=REMOVE	classes=1,2";
+			<< "Filter columns	entries=mosaic	action=REMOVE";
+	if (parameters.use_ngsd_classifications) filters << "Classification NGSD	action=REMOVE	classes=1,2";
 	if (parameters.use_ngsd_classifications) filters << "Classification NGSD	action=KEEP	classes=4,5";
 	FilterCascade cascade = FilterCascade::fromText(filters);
 	FilterResult cascade_result = cascade.apply(variants);
@@ -644,23 +651,26 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 		}
 
 		//disease association: ClinVar variant
-		double clinvar_score = 0.0;
-		QByteArrayList clinvar = v.annotations()[i_clinvar].trimmed().split(';');
-		foreach(const QByteArray& entry, clinvar)
+		if (parameters.use_clinvar)
 		{
-			if (entry.contains("likely pathogenic"))
+			double clinvar_score = 0.0;
+			QByteArrayList clinvar = v.annotations()[i_clinvar].trimmed().split(';');
+			foreach(const QByteArray& entry, clinvar)
 			{
-				clinvar_score = std::max(clinvar_score, 0.5);
-			}
-			else if (entry.contains("pathogenic"))
-			{
-				clinvar_score = std::max(clinvar_score, 1.0);
-			}
+				if (entry.contains("likely pathogenic"))
+				{
+					clinvar_score = std::max(clinvar_score, 0.5);
+				}
+				else if (entry.contains("pathogenic"))
+				{
+					clinvar_score = std::max(clinvar_score, 1.0);
+				}
 
-		}
-		if (clinvar_score>0)
-		{
-			scores.add("ClinVar", clinvar_score);
+			}
+			if (clinvar_score>0)
+			{
+				scores.add("ClinVar", clinvar_score);
+			}
 		}
 
 		//disease association: NGSD classification
@@ -809,12 +819,19 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 			<< "Allele frequency (sub-populations)	max_af=0.1"
 			<< "Variant quality	qual=30	depth=1	mapq=20	strand_bias=-1	allele_balance=-1	min_occurences=0	min_af=0	max_af=1"
 			<< "Count NGSD	max_count=10	ignore_genotype=false	mosaic_as_het=false"
-			<< "Impact	impact=HIGH,MODERATE,LOW"
-			<< "Annotated pathogenic	action=KEEP	sources=HGMD,ClinVar	also_likely_pathogenic=false"
-			<< "Splice effect	MaxEntScan=LOW	SpliceAi=0.5	action=KEEP"
+			<< "Impact	impact=HIGH,MODERATE,LOW";
+	if (parameters.use_clinvar)
+	{
+			filters << "Annotated pathogenic	action=KEEP	sources=HGMD,ClinVar	also_likely_pathogenic=false";
+	}
+	else
+	{
+		filters << "Annotated pathogenic	action=KEEP	sources=HGMD	also_likely_pathogenic=false";
+	}
+	filters		<< "Splice effect	MaxEntScan=LOW	SpliceAi=0.5	action=KEEP"
 			<< "Allele frequency	max_af=1.0"
-			<< "Filter columns	entries=mosaic	action=REMOVE"
-			<< "Classification NGSD	action=REMOVE	classes=1,2";
+			<< "Filter columns	entries=mosaic	action=REMOVE";
+	if (parameters.use_ngsd_classifications) filters << "Classification NGSD	action=REMOVE	classes=1,2";
 	if (parameters.use_ngsd_classifications) filters << "Classification NGSD	action=KEEP	classes=4,5";
 	FilterCascade cascade = FilterCascade::fromText(filters);
 	FilterResult cascade_result = cascade.apply(variants);
@@ -921,23 +938,26 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 		}
 
 		//disease association: ClinVar variant
-		double clinvar_score = 0.0;
-		QByteArrayList clinvar = v.annotations()[i_clinvar].trimmed().split(';');
-		foreach(const QByteArray& entry, clinvar)
+		if (parameters.use_clinvar)
 		{
-			if (entry.contains("likely pathogenic"))
+			double clinvar_score = 0.0;
+			QByteArrayList clinvar = v.annotations()[i_clinvar].trimmed().split(';');
+			foreach(const QByteArray& entry, clinvar)
 			{
-				clinvar_score = std::max(clinvar_score, 0.5);
-			}
-			else if (entry.contains("pathogenic"))
-			{
-				clinvar_score = std::max(clinvar_score, 1.0);
-			}
+				if (entry.contains("likely pathogenic"))
+				{
+					clinvar_score = std::max(clinvar_score, 0.5);
+				}
+				else if (entry.contains("pathogenic"))
+				{
+					clinvar_score = std::max(clinvar_score, 1.0);
+				}
 
-		}
-		if (clinvar_score>0)
-		{
-			scores.add("ClinVar", clinvar_score);
+			}
+			if (clinvar_score>0)
+			{
+				scores.add("ClinVar", clinvar_score);
+			}
 		}
 
 		//disease association: NGSD classification
@@ -1071,34 +1091,24 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 	return output;
 }
 
-//Performance history DOMINANT										Variants / Rank1  / Top10
-//version 1															?        / 76.82% / 97.67% (19.04.23)
-//score by gene, NGSD score, fix of OE/inheritance parsing			?        / 81.72% / 97.51% (19.04.23)
-//more data, pre-filtering of cases by variant genotype				1283     / 81.37% / 97.51% (05.07.23)
-//prefilter variants by class 4/5									1278     / 81.69% / 97.50% (05.07.23)
-//removing extend 5000 of ROI										1278     / 81.92% / 97.50% (06.07.23)
-//improved benchmark variant pre-check								1278     / 81.92% / 97.50% (06.07.23)
-//scoring of multiple HPO hits (sqrt)								1279     / 86.24% / 97.89% (06.07.23)
-//phloP																1280     / 86.64% / 98.13% (06.07.23)
+//Performance history DOMINANT										Variants / Rank1  / Top3   / Top10
+//v2 no NGSD														1280     / 86.56% / 94.30% / 98.13% (10.07.23)
+//v2 no NGSD, no ClinVar											1280     / 78.44% / 90.78% / 97.19% (10.07.23)
+//v2 with NGSD														1280     / 92.42% / 96.95% / 98.83% (10.07.23)
 
-//Performance history RECESSIVE - HOMOYZGOUOS						Variants / Top1   / Top10
-//more data, pre-filtering of cases by variant genotype				553      / 76.13% / 94.58% (05.07.23)
-//prefilter variants by class 4/5									549      / 76.68% / 94.72% (05.07.23)
-//removing extend 5000 of ROI										549      / 76.87% / 94.72% (06.07.23)
-//improved benchmark variant pre-check								523      / 79.54% / 97.13% (06.07.23)
-//scoring of multiple HPO hits (sqrt)								524      / 84.73% / 97.14% (06.07.23)
-//phloP																524      / 85.88% / 97.52% (06.07.23)
+//Performance history RECESSIVE - HOMOYZGOUOS						Variants / Rank1  / Top3   / Top10
+//v2 no NGSD														524      / 85.88% / 94.27% / 97.52% (10.07.23)
+//v2 no NGSD, no ClinVar											525      / 78.67% / 89.71% / 96.00% (10.07.23)
+//v2 with NGSD														524      / 91.41% / 97.52% / 99.05% (10.07.23)
 
-//Performance history RECESSIVE - COMP-HET							Variants / Top2   / Top10
-//more data, pre-filtering of cases by variant genotype				775      / 81.94% / 95.35% (05.07.23)
-//prefilter variants by class 4/5									770      / 83.77% / 95.84% (05.07.23)
-//removing extend 5000 of ROI										770      / 84.03% / 96.10% (06.07.23)
-//improved benchmark variant pre-check								700      / 84.57% / 96.57% (06.07.23)
-//scoring of multiple HPO hits (sqrt)								700      / 87.29% / 97.43% (06.07.23)
-//phloP																700      / 88.00% / 96.86% (06.07.23)
+//Performance history RECESSIVE - COMP-HET							Variants / Rank1  / Top3   / Top10
+//v2 no NGSD														700      / 85.43% / 94.00% / 97.14% (10.07.23)
+//v2 no NGSD, no ClinVar											702      / 79.77% / 90.31% / 95.58% (10.07.23)
+//v2 with NGSD														702      / 91.03% / 97.58% / 99.57% (10.07.23)
+
 
 //Ideas if we want to publish it separately:
-// - optimize scores by machine learning
+// - optimize score weights by machine learning or use machine learning for entire scoring
 // - benchmark with existing tools:
 //   - create and use version of ClinVar without our commits (we submit to ClinVar)
 //   - https://www.cell.com/trends/genetics/fulltext/S0168-9525(22)00179-2
