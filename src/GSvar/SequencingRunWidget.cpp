@@ -11,8 +11,7 @@
 #include "DBQCWidget.h"
 #include "GlobalServiceProvider.h"
 #include "BasicStatistics.h"
-#include <QMessageBox>
-#include <QInputDialog>
+#include "GSvarHelper.h"
 #include <numeric>
 
 SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
@@ -61,7 +60,7 @@ void SequencingRunWidget::updateGUI()
 		ui_->start->setText(query.value("start_date").toString());
 		ui_->end->setText(query.value("end_date").toString());
 		ui_->recipe->setText(query.value("recipe").toString());
-		ui_->comments->setText(query.value("comment").toString());
+		GSvarHelper::limitLines(ui_->comments, query.value("comment").toString());
 		ui_->device->setText(query.value("d_name").toString() + " (" + query.value("d_type").toString() + ")");
 		ui_->side->setText(query.value("side").toString());
 		QVariant molarity = query.value("pool_molarity");

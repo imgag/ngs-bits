@@ -7,13 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>950</width>
-    <height>950</height>
+    <height>1020</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>950</width>
-    <height>950</height>
+    <height>1020</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -22,6 +22,9 @@
   <layout class="QVBoxLayout" name="verticalLayout_5">
    <property name="spacing">
     <number>3</number>
+   </property>
+   <property name="sizeConstraint">
+    <enum>QLayout::SetMinimumSize</enum>
    </property>
    <property name="leftMargin">
     <number>3</number>
@@ -47,6 +50,9 @@
       <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,0,0,0,0,0,0,0,0">
        <property name="spacing">
         <number>3</number>
+       </property>
+       <property name="sizeConstraint">
+        <enum>QLayout::SetMinimumSize</enum>
        </property>
        <property name="bottomMargin">
         <number>5</number>
@@ -191,6 +197,9 @@
           <bool>true</bool>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_10">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetMinimumSize</enum>
+          </property>
           <property name="leftMargin">
            <number>3</number>
           </property>
@@ -205,6 +214,9 @@
           </property>
           <item>
            <layout class="QFormLayout" name="formLayout_2">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetMinimumSize</enum>
+            </property>
             <property name="horizontalSpacing">
              <number>3</number>
             </property>
@@ -320,6 +332,9 @@
               <property name="spacing">
                <number>3</number>
               </property>
+              <property name="sizeConstraint">
+               <enum>QLayout::SetMinimumSize</enum>
+              </property>
               <item>
                <widget class="QLabel" name="r_quality">
                 <property name="text">
@@ -428,7 +443,7 @@
               <property name="minimumSize">
                <size>
                 <width>0</width>
-                <height>16</height>
+                <height>0</height>
                </size>
               </property>
               <property name="text">
@@ -506,6 +521,19 @@
              </widget>
             </item>
             <item>
+             <spacer name="verticalSpacer">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>5</width>
+                <height>5</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
              <widget class="QWidget" name="widget_5" native="true"/>
             </item>
            </layout>
@@ -524,6 +552,9 @@
          <layout class="QHBoxLayout" name="horizontalLayout_9">
           <property name="spacing">
            <number>3</number>
+          </property>
+          <property name="sizeConstraint">
+           <enum>QLayout::SetMinimumSize</enum>
           </property>
           <property name="leftMargin">
            <number>3</number>
@@ -565,6 +596,9 @@
              <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,1">
               <property name="spacing">
                <number>6</number>
+              </property>
+              <property name="sizeConstraint">
+               <enum>QLayout::SetMinimumSize</enum>
               </property>
               <item>
                <widget class="QLabel" name="s_quality">
@@ -789,7 +823,17 @@
              </widget>
             </item>
             <item>
-             <widget class="QWidget" name="widget_4" native="true"/>
+             <spacer name="verticalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>5</width>
+                <height>5</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </item>
@@ -808,6 +852,9 @@
           <property name="spacing">
            <number>3</number>
           </property>
+          <property name="sizeConstraint">
+           <enum>QLayout::SetMinimumSize</enum>
+          </property>
           <property name="leftMargin">
            <number>3</number>
           </property>
@@ -823,7 +870,7 @@
           <item>
            <layout class="QFormLayout" name="formLayout">
             <property name="sizeConstraint">
-             <enum>QLayout::SetMaximumSize</enum>
+             <enum>QLayout::SetMinimumSize</enum>
             </property>
             <property name="horizontalSpacing">
              <number>3</number>
@@ -936,7 +983,20 @@
              </widget>
             </item>
             <item>
-             <widget class="QWidget" name="widget" native="true"/>
+             <spacer name="verticalSpacer_4">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Expanding</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>5</width>
+                <height>5</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </item>
@@ -1028,6 +1088,9 @@
           <property name="spacing">
            <number>3</number>
           </property>
+          <property name="sizeConstraint">
+           <enum>QLayout::SetMaximumSize</enum>
+          </property>
           <property name="leftMargin">
            <number>3</number>
           </property>
@@ -1085,7 +1148,17 @@
              </widget>
             </item>
             <item>
-             <widget class="QWidget" name="widget_2" native="true"/>
+             <spacer name="verticalSpacer_5">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>5</width>
+                <height>5</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </item>
@@ -1178,7 +1251,17 @@
              </widget>
             </item>
             <item>
-             <widget class="QWidget" name="widget_3" native="true"/>
+             <spacer name="verticalSpacer_6">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>5</width>
+                <height>5</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </item>
@@ -1285,7 +1368,17 @@
              </widget>
             </item>
             <item>
-             <widget class="QWidget" name="widget_6" native="true"/>
+             <spacer name="verticalSpacer_7">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>5</width>
+                <height>5</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </item>

@@ -188,9 +188,9 @@ void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 	}
 }
 
-void GSvarHelper::limitLines(QLabel* label, QString text, QString sep, int max_lines)
+void GSvarHelper::limitLines(QLabel* label, QString text, int max_lines)
 {
-	QStringList lines = text.split(sep);
+	QStringList lines = text.split("\n");
 	if (lines.count()<max_lines)
 	{
 		label->setText(text);
@@ -198,8 +198,8 @@ void GSvarHelper::limitLines(QLabel* label, QString text, QString sep, int max_l
 	else
 	{
 		while(lines.count()>max_lines) lines.removeLast();
-		lines.append("...");
-		label->setText(lines.join(sep));
+		lines.append("<i>[text truncated - see tooltip/edit dialog for complete text]</i>");
+		label->setText(lines.join("<br>"));
 		label->setToolTip(text);
 	}
 }

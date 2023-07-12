@@ -160,7 +160,7 @@ void ProcessedSampleWidget::updateGUI()
 	ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id_);
 	styleQualityLabel(ui_->quality, ps_data.quality);
 	ui_->name->setText(ps_data.name);
-	ui_->comments_processed_sample->setText(ps_data.comments);
+	GSvarHelper::limitLines(ui_->comments_processed_sample, ps_data.comments);
 	QString name_short = db.getValue("SELECT name_short FROM processing_system WHERE name_manufacturer=:0", true, ps_data.processing_system).toString();
 	ui_->system->setText("<a href=\"" + name_short + "\">"+ps_data.processing_system+"</a>");
 	ui_->project->setText("<a href=\"" + ps_data.project_name + "\">"+ps_data.project_name+"</a>");
@@ -203,7 +203,7 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->gender->setText(s_data.gender);
 	ui_->disease_group_status->setText(s_data.disease_group + " (" + s_data.disease_status + ")");
 	ui_->tissue->setText(s_data.tissue);
-	ui_->comments_sample->setText(s_data.comments);
+	GSvarHelper::limitLines(ui_->comments_sample, s_data.comments);
 	QStringList groups;
 	foreach(SampleGroup group, s_data.sample_groups)
 	{
@@ -215,7 +215,7 @@ void ProcessedSampleWidget::updateGUI()
 	DiagnosticStatusData diag = db.getDiagnosticStatus(ps_id_);
 	ui_->status->setText(diag.dagnostic_status + " (by " + diag.user + " on " + diag.date.toString("dd.MM.yyyy")+")");
 	ui_->outcome->setText(diag.outcome);
-	ui_->comments_diag->setText(diag.comments);
+	GSvarHelper::limitLines(ui_->comments_diag, diag.comments);
 	ui_->report_config->setText(db.reportConfigSummaryText(ps_id_));
 
 
