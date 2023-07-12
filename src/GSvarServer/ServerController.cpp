@@ -379,7 +379,10 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 				break;
 			case PathType::SIGNATURE_CNV:
 				file_list << file_locator->getSignatureCnvFile();
-				break;
+                break;
+            case PathType::CFDNA_CANDIDATES:
+                file_list << file_locator->getSomaticCfdnaCandidateFile();
+                break;
 			default:
 				FileLocation gsvar_file(
 					url_entity.file_id,
