@@ -72,8 +72,43 @@ To build GSvar, execute the following command:
 
 Now you need to [configure GSVar](GSvar/configuration.md).
 
-## Running a development server on a local machine
+## Running a development server on a (local) machine
 
+### Setting up a GSvar server for testing (on Ubuntu)
+
+First you need a unused port on the development server. You can either select a random 5-digit port and check with `netstat -lntu` if the port is already used.
+Or you can use the following 1-liner to get a free port from the kernel:
+
+    > python -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()' 
+
+Additionally you have to provide a certificate. If you do not have a valid certificate for your machine you can create a self-signed one:
+
+    > openssl genrsa -out GSvarServer.key 2048
+    > openssl req -new -key GSvarServer.key -out GSvarServer.csr
+    > openssl x509 -signkey GSvarServer.key -in GSvarServer.csr -req -days 365 -out GSvarServer.crt
+
+If you use self-signed certificates IGV and libcurl will not work.(See possible fix [below](#trust-self-signed-certificates-on-ubuntu))
+
+Next you have to create a `GSvarServer.ini` in the `bin`folder:
+
+    > cp bin/GSvarServer.ini.example bin/GSvarServer.ini
+
+And fill in all required settings (like port, NGSD credentials, sample paths, ...). If the server runs on a different machine than the client you have to use the hostname/dns name of the server for `server_host`.
+
+If you use encrypted passwords you have to add the crypt key to the `cppCORE` directory (sometimes not working on linux) or directly to the `cppCORE.pro` file. 
+
+Next step is to build the server:
+
+    > make build_libs_release build_server_release
+
+And run it:
+
+    > ./bin/GSvarServer
+
+Now you can adapt the settings in your client and connect to the server.
+
+
+### Trust self-signed certificates on Ubuntu
 For the development and testing purposes it is possible to run a local instance of GSvar Server. However, if you are using self-signed certificates, you will have to make them trusted (otherwise IGV and libcurl will not be able to verify them):
 
 Install CA certificates package:
@@ -87,3 +122,4 @@ Copy your self-signed certificate to this location:
 Update the list of certificate authorities:
 
     > sudo update-ca-certificates
+
