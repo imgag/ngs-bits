@@ -177,8 +177,8 @@ public:
                 continue;
             }
 
-            qDebug() << variant.start();
-            qDebug() << variant.end();
+            //qDebug() << variant.start();
+            //qDebug() << variant.end();
 
 
 
@@ -210,12 +210,6 @@ public:
 
 
         }
-
-        
-        
-
-
-
     }
 
 private:
@@ -278,8 +272,52 @@ private:
         return QRegExp("[ACGT]*").exactMatch(sequence);
     }
 
+    /*
+    void write_vcf(const FastaFileIndex& reference) {
+        QTime timer;
+		timer.start();
+        QString gff_path = "/mnt/storage2/users/ahdoebm1/MaxEntScanStats/input/MANE_transcripts.gff.gz";
+        GffSettings gff_settings;
+		gff_settings.print_to_stdout = true;
+		gff_settings.skip_not_gencode_basic = false;
+		GffData gff_file = NGSHelper::loadGffFile(gff_path, gff_settings);
+        QTextStream stream(stdout);
+        stream << "Parsed " << QString::number(gff_file.transcripts.count()) << " transcripts from input GFF file." << endl;
+		stream << "Parsing transcripts took: " << Helper::elapsedTime(timer) << endl;
+        gff_file.transcripts.sortByPosition();
+
+        QSharedPointer<QFile> writer = Helper::openFileForWriting("/mnt/storage2/users/ahdoebm1/MaxEntScanStats/output/mane_variants.vcf", true);
 
 
+        foreach(Transcript transcript, gff_file.transcripts) {
+            BedFile coding_regions = transcript.codingRegions();
+            for ( int i=0; i<coding_regions.count(); ++i ) {
+            
+                BedLine coding_region = coding_regions[i];
+
+                if (i != 0) {
+                    int position = coding_region.start() - 1;
+                    Sequence ref = reference.seq(coding_region.chr(), position, 1);
+                    Sequence alt = ref.replace("G", "T");
+                    //#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+                    QList<QByteArray> vcf_line({coding_region.chr().strNormalized(true), QByteArray::number(position), ".", ref, alt, ".", "transcript=" + transcript.name()});
+                    writer->write(vcf_line.join('\t') + '\n');
+                }
+                if (i != coding_regions.count()) {
+                    int position = coding_region.end() + 1;
+                    Sequence ref = reference.seq(coding_region.chr(), position, 1);
+                    Sequence alt = ref.replace("G", "T");
+                    //#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+                    QList<QByteArray> vcf_line({coding_region.chr().strNormalized(true), QByteArray::number(position), ".", ref, alt, ".", "transcript=" + transcript.name()});
+                    writer->write(vcf_line.join('\t') + '\n');
+                }
+            
+            }
+        }
+
+
+    }
+    */
 
 
     QList<QByteArray> runSWA(const Variant& variant, const ChromosomalIndex<TranscriptList>& transcripts, const FastaFileIndex& reference) {
@@ -295,7 +333,7 @@ private:
             // 5 prime ss / donor ss
             //Sequence ref_context = reference.seq(variant.chr(), variant.start()-8, 17);
             QList<Sequence> donor_seqs = get_seqs(variant, variant.start()-8, variant.end()+8, 17, reference, current_transcript);
-            qDebug() << donor_seqs;
+            //qDebug() << donor_seqs;
             ref_context = donor_seqs[0];
             alt_context = donor_seqs[1];
             QList<float> max_ref_donor = get_max_score(ref_context, 9, &ConcreteTool::score5);
@@ -314,7 +352,7 @@ private:
 
             // 3 prime ss / acceptor ss
             QList<Sequence> acceptor_seqs = get_seqs(variant, variant.start()-22, variant.end()+22, 45, reference, current_transcript);
-            qDebug() << acceptor_seqs;
+            //qDebug() << acceptor_seqs;
             ref_context = acceptor_seqs[0];
             alt_context = acceptor_seqs[1];
             QList<float> max_ref_acceptor = get_max_score(ref_context, 23, &ConcreteTool::score3);
@@ -384,17 +422,20 @@ private:
                 int slice_start_five;
                 int slice_end_five;
 
+
+
+
                 // EEEEEEEEEEEEGUXXXIIIIIIIIIIIIIIAPPPXXAGEEEEEEEEEEEE
                 // -----Exon---5'ss-----Intron------3'ss------Exon----
 
                 if (current_transcript.isPlusStrand()) {
                     // check 5 prime ss if it is not the first exon (bc. there is no 5' ss)
-                    if (i != coding_regions.count()) {
+                    if (i != 0) {
                         slice_start_three = coding_region.start() - 20;
                         slice_end_three = coding_region.start() + 2;
                         overlaps_three_prime = variant.overlapsWith(slice_start_three, slice_end_three);
                     }
-                    if (i != 0) {
+                    if (i != coding_regions.count()) {
                         slice_start_five = coding_region.end() - 2;
                         slice_end_five = coding_region.end() + 6;
                         overlaps_five_prime = variant.overlapsWith(slice_start_five, slice_end_five);
