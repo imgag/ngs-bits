@@ -197,6 +197,7 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->s_name->setText(s_data.name);
 	ui_->name_external->setText(s_data.name_external);
 	ui_->patient_identifier->setText(s_data.patient_identifier);
+	ui_->year_ob_birth->setText(s_data.year_of_birth);
 	ui_->sender->setText(s_data.sender + " (received on " + s_data.received + " by " + s_data.received_by +")");
 	ui_->species_type->setText(s_data.species + " / " + s_data.type);
 	ui_->tumor_ffpe->setText(QString(s_data.is_tumor ? "<font color=red>yes</font>" : "no") + " / " + (s_data.is_ffpe ? "<font color=red>yes</font>" : "no"));

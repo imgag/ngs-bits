@@ -50,7 +50,7 @@ void MaintenanceDialog::executeAction()
 
 			if (!method_found)
 			{
-				THROW(ProgrammingException, "No slot with name " + action_simplified + "' found!");
+				THROW(ProgrammingException, "No slot with name '" + action_simplified + "' found!");
 			}
 		}
 	}
@@ -380,5 +380,47 @@ void MaintenanceDialog::findInconsistenciesForCausalDiagnosticVariants()
 			appendOutputLine(ps + "\t" + errors.join(" // ") + "\t" + users.join(", "));
 		}
 	}
+}
+
+void MaintenanceDialog::importYearOfBirth()
+{
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
+	NGSD db;
+	GenLabDB genlab;
+
+	int c_imported = 0;
+	int c_not_in_genlab = 0;
+
+	//import study samples from GenLab
+	QStringList ps_list = db.getValues("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id and p.type='diagnostic'");
+	foreach(const QString& ps, ps_list)
+	{
+		QString yob = genlab.yearOfBirth(ps).trimmed();
+		if (yob.isEmpty())
+		{
+			++c_not_in_genlab;
+			continue;
+		}
+
+		//if already in NGSD, check if consistent
+		QString s_id = db.sampleId(ps);
+		QVariant yob_ngsd = db.getValue("SELECT year_of_birth FROM sample WHERE id='" + s_id + "'");
+		if (!yob_ngsd.isNull() && yob_ngsd.toString()!=yob)
+		{
+			appendOutputLine(ps  + " skipped: NGSD contains " + yob_ngsd.toString() + ", but GenLab contains '" + yob);
+			continue;
+		}
+
+		//update NGSD
+		db.getQuery().exec("UPDATE sample SET year_of_birth='" + yob +"' WHERE id='" + s_id + "'");
+	}
+
+	QApplication::restoreOverrideCursor();
+
+	//output
+	appendOutputLine("");
+	appendOutputLine("Imported dates: " + QString::number(c_imported));
+	appendOutputLine("Skipped because no date available in GenLab: " + QString::number(c_not_in_genlab));
 }
 

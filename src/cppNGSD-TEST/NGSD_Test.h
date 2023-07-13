@@ -261,6 +261,7 @@ private slots:
 		S_EQUAL(sample_data.name, "NA12878");
 		S_EQUAL(sample_data.name_external, "ex1");
 		S_EQUAL(sample_data.patient_identifier, "pat1");
+		S_EQUAL(sample_data.year_of_birth, "1977");
 		S_EQUAL(sample_data.quality, "good");
 		S_EQUAL(sample_data.comments, "comment_s1");
 		S_EQUAL(sample_data.disease_group, "Diseases of the blood or blood-forming organs");
@@ -274,6 +275,7 @@ private slots:
 		S_EQUAL(sample_data.name, "NA12345");
 		S_EQUAL(sample_data.name_external, "ex3");
 		S_EQUAL(sample_data.patient_identifier, "pat3");
+		S_EQUAL(sample_data.year_of_birth, "");
 		S_EQUAL(sample_data.quality, "bad");
 		S_EQUAL(sample_data.comments, "comment_s3");
 		S_EQUAL(sample_data.disease_group, "Diseases of the immune system");

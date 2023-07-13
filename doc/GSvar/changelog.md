@@ -1,5 +1,11 @@
 # GSvar change log
 
+### 2023_06-18 (13.07.23)
+
+- run tab: added option to sort processed sample in order of sample entry
+- general: improved variant ranking
+- gereral: added burden test
+
 ### 2023_06-4 (05.07.23)
 
 -  general: gap calculation in germline report and gap dialog is now done coding/splicing region by default and based on relevant transcripts.

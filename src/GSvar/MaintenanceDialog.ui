@@ -91,6 +91,11 @@
          <string>Import study samples</string>
         </property>
        </item>
+       <item>
+        <property name="text">
+         <string>Import year of birth</string>
+        </property>
+       </item>
       </widget>
      </item>
      <item>

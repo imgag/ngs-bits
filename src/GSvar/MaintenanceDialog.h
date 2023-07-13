@@ -19,6 +19,7 @@ private slots:
 	void importStudySamples();
 	void replaceObsolteHPOTerms();
 	void findInconsistenciesForCausalDiagnosticVariants();
+	void importYearOfBirth();
 
 private:
 	Ui::MaintenanceDialog ui_;

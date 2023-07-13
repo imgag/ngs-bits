@@ -255,6 +255,7 @@ struct CPPNGSDSHARED_EXPORT SampleData
 	QString name;
 	QString name_external;
 	QString patient_identifier;
+	QString year_of_birth;
 	QString type;
 	QString gender;
 	QString quality;
@@ -426,6 +427,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool add_report_config = false;
 	bool add_comments = false;
 	bool add_normal_sample = false;
+	bool add_dates = false;
 };
 
 ///Meta data about somatic report configuration (e.g. creation/update, target bed file)

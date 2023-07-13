@@ -423,6 +423,13 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 				<< "ds.comment as outcome_comment";
 	}
 
+	//add dates
+	if (p.add_dates)
+	{
+		fields << "s.year_of_birth as year_of_birth";
+		fields << "YEAR(s.received) as year_received";
+	}
+
 	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
 
 	//filter by user access rights (for restricted users only)
@@ -549,7 +556,7 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 {
 	//execute query
 	SqlQuery query = getQuery();
-	query.exec("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe, s.sample_type, s.sender_id, s.species_id, s.received, s.receiver_id, s.tissue, s.patient_identifier FROM sample s WHERE id=" + sample_id);
+	query.exec("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe, s.sample_type, s.sender_id, s.species_id, s.received, s.receiver_id, s.tissue, s.patient_identifier, s.year_of_birth FROM sample s WHERE id=" + sample_id);
 	if (query.size()==0)
 	{
 		THROW(ProgrammingException, "Invalid 'id' for table 'sample' given: '" + sample_id + "'");
@@ -584,6 +591,11 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 
 	output.tissue = query.value(14).toString();
 	output.patient_identifier = query.value(15).toString();
+	QVariant year_of_birth = query.value(16);
+	if (!year_of_birth.isNull())
+	{
+		output.year_of_birth = year_of_birth.toString();
+	}
 
 	//sample groups
 	SqlQuery group_query = getQuery();
@@ -3363,7 +3375,7 @@ DBTable NGSD::createTable(QString table, QString query, int pk_col_index)
 		for (int c=0; c<record.count(); ++c)
 		{
 			QVariant value = query_result.value(c);
-			QString value_as_string = value.toString();
+			QString value_as_string = value.isNull() ? ""  : value.toString();
 			if (value.type()==QVariant::DateTime)
 			{
 				value_as_string = value_as_string.replace("T", " ");
