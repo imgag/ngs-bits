@@ -687,16 +687,21 @@ void NGSD::setSampleDiseaseInfo(const QString& sample_id, const QList<SampleDise
 	query.exec("DELETE FROM sample_disease_info WHERE sample_id=" + sample_id);
 
 	//insert new entries
-	SqlQuery query_insert = getQuery();
-	query_insert.prepare("INSERT INTO sample_disease_info (`sample_id`, `disease_info`, `type`, `user_id`, `date`) VALUES (" + sample_id + ", :0, :1, :2, :3)");
 	foreach(const SampleDiseaseInfo& entry, disease_info)
 	{
-		query_insert.bindValue(0, entry.disease_info);
-		query_insert.bindValue(1, entry.type);
-		query_insert.bindValue(2, userId(entry.user));
-		query_insert.bindValue(3, entry.date.toString(Qt::ISODate));
-		query_insert.exec();
+		addSampleDiseaseInfo(sample_id, entry);
 	}
+}
+
+void NGSD::addSampleDiseaseInfo(const QString& sample_id, const SampleDiseaseInfo& entry)
+{
+	SqlQuery query_insert = getQuery();
+	query_insert.prepare("INSERT INTO sample_disease_info (`sample_id`, `disease_info`, `type`, `user_id`, `date`) VALUES (" + sample_id + ", :0, :1, :2, :3)");
+	query_insert.bindValue(0, entry.disease_info);
+	query_insert.bindValue(1, entry.type);
+	query_insert.bindValue(2, userId(entry.user));
+	query_insert.bindValue(3, entry.date.toString(Qt::ISODate));
+	query_insert.exec();
 }
 
 QString NGSD::normalSample(const QString& processed_sample_id)

@@ -1,77 +1,69 @@
 #disease_details_HPO_term_id	Tissue_consensus
-HP:0001402	liver
-HP:0002664	keine Referenzgewebe
-HP:0002669	bone marrow
-HP:0002858	cerebral cortex
-HP:0002860	esophagus
-HP:0002861	skin
-HP:0002885	medulla oblongata
-HP:0002888	epididymis
-HP:0002890	thyroid gland
-HP:0002893	pituitary gland
-HP:0002894	pancreas
-HP:0003002	breast
-HP:0003003	colon
-HP:0003006	spinal cord
-HP:0005506	lymph node
-HP:0005584	kidney
-HP:0006739	skin
-HP:0006765	bone marrow
-HP:0007716	retina
-HP:0008069	skin
-HP:0009592	cerebral cortex
-HP:0009725	urinary bladder
-HP:0009731	keine Referenzgewebe
-HP:0009733	cerebral cortex
-HP:0010788	testis
-HP:0010797	keine Referenzgewebe
-HP:0010799	thalamus
-HP:0012056	skin
-HP:0012114	endometrium
-HP:0012118	esophagus
-HP:0012125	prostate
-HP:0012126	stomach
-HP:0012142	pancreas
-HP:0012174	cerebral cortex
-HP:0012182	keine Referenzgewebe
-HP:0012191	lymph node
-HP:0012192	skin
 HP:0012268	adipose tissue
-HP:0025318	ovary
-HP:0030063	spinal cord
-HP:0030072	keine Referenzgewebe
-HP:0030078	lung
+HP:0100243	adipose tissue
+HP:0031499	appendix
+HP:0033664	basal ganglia
+HP:0002669	bone marrow
+HP:0006765	bone marrow
+HP:0003002	breast
+HP:0002858	cerebral cortex
+HP:0009592	cerebral cortex
+HP:0009733	cerebral cortex
+HP:0012174	cerebral cortex
+HP:0100836	cerebral cortex
+HP:0032241	cervix
+HP:0003003	colon
+HP:0012114	endometrium
+HP:0002888	epididymis
+HP:0002860	esophagus
+HP:0012118	esophagus
+HP:0100751	esophagus
+HP:0100575	gallbladder
+HP:0005584	kidney
+HP:0001402	liver
 HP:0030153	liver
+HP:0030078	lung
 HP:0030357	lung
 HP:0030358	lung
 HP:0030359	lung
 HP:0030360	lung
-HP:0030413	smooth muscle
-HP:0030416	vagina
-HP:0030418	vagina
-HP:0030448	smooth muscle
-HP:0031499	appendix
-HP:0032186	rectum
-HP:0032241	cervix
-HP:0033664	basal ganglia
-HP:0033681	spinal cord
+HP:0100634	lung
+HP:0005506	lymph node
+HP:0012191	lymph node
+HP:0002885	medulla oblongata
+HP:0025318	ovary
+HP:0002894	pancreas
+HP:0012142	pancreas
+HP:0002893	pituitary gland
 HP:0040277	pituitary gland
-HP:0100002	keine Referenzgewebe
+HP:0012125	prostate
+HP:0032186	rectum
+HP:0100743	rectum
+HP:0007716	retina
+HP:0100684	salivary gland
+HP:0100616	seminal vesicle
+HP:0002861	skin
+HP:0006739	skin
+HP:0008069	skin
+HP:0012056	skin
+HP:0012192	skin
+HP:0100833	small intestine
+HP:0030413	smooth muscle
+HP:0030448	smooth muscle
 HP:0100003	smooth muscle
 HP:0100242	smooth muscle
-HP:0100243	adipose tissue
-HP:0100517	urinary bladder
-HP:0100521	thymus
-HP:0100575	gallbladder
 HP:0100604	smooth muscle
-HP:0100616	seminal vesicle
-HP:0100634	lung
-HP:0100648	tongue
-HP:0100684	salivary gland
+HP:0003006	spinal cord
+HP:0030063	spinal cord
+HP:0033681	spinal cord
 HP:0100697	spinal cord
-HP:0100743	rectum
-HP:0100743	rectum
-HP:0100751	esophagus
-HP:0100833	small intestine
-HP:0100836	cerebral cortex
-HP:0200058	keine Referenzgewebe
+HP:0012126	stomach
+HP:0010788	testis
+HP:0010799	thalamus
+HP:0100521	thymus
+HP:0002890	thyroid gland
+HP:0100648	tongue
+HP:0009725	urinary bladder
+HP:0100517	urinary bladder
+HP:0030416	vagina
+HP:0030418	vagina

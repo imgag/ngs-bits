@@ -917,6 +917,8 @@ public:
 	QList<SampleDiseaseInfo> getSampleDiseaseInfo(const QString& sample_id, QString only_type="");
 	///Sets the disease details of a sample.
 	void setSampleDiseaseInfo(const QString& sample_id, const QList<SampleDiseaseInfo>& disease_info);
+	///Adds a disease entry to a sample.
+	void addSampleDiseaseInfo(const QString& sample_id, const SampleDiseaseInfo& entry);
 	///Sets the disease group/status of a sample.
 	void setSampleDiseaseData(const QString& sample_id, const QString& disease_group, const QString& disease_status);
 	///Returns all phenotypes associated to the given sample
