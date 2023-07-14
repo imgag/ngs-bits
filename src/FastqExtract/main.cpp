@@ -24,7 +24,9 @@ public:
 		//optional
 		addFlag("v", "Invert match: keep non-matching reads.");
 		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, Z_BEST_SPEED);
+		addFlag("long_read", "Support long reads (> 1kb).");
 
+		changeLog(2023,  4,  18, "Added support for long reads.");
 		changeLog(2020, 7, 15, "Added 'compression_level' parameter.");
 	}
 
@@ -32,6 +34,7 @@ public:
 	{
 		//init
 		bool v = getFlag("v");
+		bool long_read = getFlag("long_read");
 
 		//load ids and lengths
 		QHash<QByteArray, int> ids;
@@ -54,7 +57,7 @@ public:
 		FastqOutfileStream outfile(getOutfile("out"), compression_level);
 
 		//parse input and write output
-		FastqFileStream stream(getInfile("in"));
+		FastqFileStream stream(getInfile("in"), true, long_read);
 		FastqEntry entry;
 		while (!stream.atEnd())
 		{

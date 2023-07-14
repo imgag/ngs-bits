@@ -482,6 +482,26 @@ void BedFile::overlapping(const BedFile& file2)
 	removeInvalidLines();
 }
 
+void BedFile::overlapping(const BedLine& region)
+{
+	overlapping(region.chr(), region.start(), region.end());
+}
+
+void BedFile::overlapping(const Chromosome& chr, int start, int end)
+{
+	//overlapping
+	for (int i=0; i<lines_.count(); ++i)
+	{
+		if (!lines_[i].overlapsWith(chr, start, end))
+		{
+			lines_[i].setStart(0);
+			lines_[i].setEnd(0);
+		}
+	}
+
+	removeInvalidLines();
+}
+
 void BedFile::chunk(int chunk_size)
 {
 	QVector<BedLine> new_lines;

@@ -67,7 +67,6 @@ private slots:
 		S_EQUAL(igv_files[2].filename, project_folder+"/Sample_Control1/Control1_bafs.igv");
 		S_EQUAL(igv_files[3].filename, project_folder+"/Sample_Control2/Control2_bafs.igv");
 
-
 		manta_files = fp.getMantaEvidenceFiles(true);
 		I_EQUAL(manta_files.length(), 4);
 		S_EQUAL(manta_files[0].filename, project_folder+"/Sample_Affected1/manta_evid/Affected1_manta_evidence.bam");

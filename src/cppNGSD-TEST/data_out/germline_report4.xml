@@ -38,7 +38,7 @@
         <QcTerm id="QC:2000101" name="housekeeping genes read depth" def="Average sequencing depth in exon region of housekeeping genes." value="263.87"/>
         <QcTerm id="QC:2000109" name="covered gene count" def="Number of covered genes (TPM &gt;= 1.0)" value="136985"/>
     </RNASample>
-    <TargetRegion name="panel" regions="1532" bases="271536" gap_cutoff="20" gap_percentage="5.69" ccds_bases_sequenced="4347">
+    <TargetRegion name="panel" regions="1532" bases="271536" gap_cutoff="20" gap_percentage="5.69" ccds_bases_sequenced="4815">
         <Gene name="CYP7B1" identifier="HGNC:2652" bases="2202">
             <Omim gene="603711" phenotype="Bile acid synthesis defect, congenital, 3, 613812 (3)" phenotype_number="613812"/>
             <Omim gene="603711" phenotype="Spastic paraplegia 5A, autosomal recessive, 270800 (3)" phenotype_number="270800"/>
@@ -75,7 +75,7 @@
             <ExternalLink url="http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg38/?name=chr21:10541092-10649856" type="DGV"/>
             <ExternalLink url="https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&amp;position=chr21:10541092-10649856" type="UCSC"/>
         </Cnv>
-        <Cnv chr="chr21" start="26799369" end="26991734" start_band="21q21.3" end_band="21q21.3" hgvs_start="26799369" hgvs_end="26991734" type="del" cn="0" regions="13" causal="false" de_novo="false" comp_het="true" mosaic="false" rna_info="no splicing effect found in RNA dataset" report_type="diagnostic variant" hgvs_type="cnv_type" hgvs_suffix="cnv_suffix">
+        <Cnv chr="chr21" start="26799369" end="26991734" start_band="21q21.3" end_band="21q21.3" type="del" cn="0" regions="13" causal="false" de_novo="false" comp_het="true" mosaic="false" rna_info="no splicing effect found in RNA dataset" report_type="diagnostic variant" hgvs_type="cnv_type" hgvs_suffix="cnv_suffix">
             <ExternalLink url="http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg38/?name=chr21:26799369-26991734" type="DGV"/>
             <ExternalLink url="https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&amp;position=chr21:26799369-26991734" type="UCSC"/>
         </Cnv>
@@ -84,7 +84,7 @@
         <Sv type="Insertion" chr="chr1" start="934143" end="934144" start_band="1p36.33" end_band="1p36.33" genotype="hom" ins_sequence="GGGAGGGCGCGGAGCGGAGGGGAGGGCGCGGAGCGGAGGGGAGGGCGCGGAGCGGAGG" causal="false" de_novo="false" comp_het="false" mosaic="false" rna_info="RNA dataset not usable" report_type="diagnostic variant">
             <Gene name="HES4" identifier="n/a"/>
         </Sv>
-        <Sv type="Breakend" chr="chr1" start="1584540" end="1584550" start_band="1p36.33" end_band="19p13.3" genotype="hom" bnd_chr2="chr19" bnd_start2="2301860" bnd_end2="2301870" causal="false" de_novo="false" comp_het="false" mosaic="false" rna_info="n/a" report_type="diagnostic variant" hgvs_start="1584540" hgvs_end="1584550" hgvs_bnd_start2="2301860" hgvs_bnd_end2="2301870" hgvs_type="sv_type" hgvs_suffix="sv_suffix"/>
+        <Sv type="Breakend" chr="chr1" start="1584540" end="1584550" start_band="1p36.33" end_band="19p13.3" genotype="hom" bnd_chr2="chr19" bnd_start2="2301860" bnd_end2="2301870" causal="false" de_novo="false" comp_het="false" mosaic="false" rna_info="n/a" report_type="diagnostic variant" hgvs_type="sv_type" hgvs_suffix="sv_suffix"/>
         <Sv type="Deletion" chr="chr1" start="1598413" end="1598580" start_band="1p36.33" end_band="1p36.33" genotype="hom" causal="false" de_novo="false" comp_het="false" mosaic="false" rna_info="n/a" report_type="diagnostic variant">
             <Gene name="SLC35E2B" identifier="n/a"/>
         </Sv>

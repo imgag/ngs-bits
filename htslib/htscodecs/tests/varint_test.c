@@ -55,7 +55,7 @@ typedef struct signed_test {
 
 void dump_encoding(size_t sz, const uint8_t *buffer) {
     size_t byte;
-    for	(byte = 0; byte < sz; byte++) {
+    for (byte = 0; byte < sz; byte++) {
         printf("%s0x%02x", byte ? " " : "", buffer[byte]);
     }
 }

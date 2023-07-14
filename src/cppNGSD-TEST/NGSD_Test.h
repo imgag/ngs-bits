@@ -261,6 +261,7 @@ private slots:
 		S_EQUAL(sample_data.name, "NA12878");
 		S_EQUAL(sample_data.name_external, "ex1");
 		S_EQUAL(sample_data.patient_identifier, "pat1");
+		S_EQUAL(sample_data.year_of_birth, "1977");
 		S_EQUAL(sample_data.quality, "good");
 		S_EQUAL(sample_data.comments, "comment_s1");
 		S_EQUAL(sample_data.disease_group, "Diseases of the blood or blood-forming organs");
@@ -274,6 +275,7 @@ private slots:
 		S_EQUAL(sample_data.name, "NA12345");
 		S_EQUAL(sample_data.name_external, "ex3");
 		S_EQUAL(sample_data.patient_identifier, "pat3");
+		S_EQUAL(sample_data.year_of_birth, "");
 		S_EQUAL(sample_data.quality, "bad");
 		S_EQUAL(sample_data.comments, "comment_s3");
 		S_EQUAL(sample_data.disease_group, "Diseases of the immune system");
@@ -412,6 +414,10 @@ private slots:
 		I_EQUAL(transcripts[0].regions().baseCount(), 44);
 		I_EQUAL(transcripts[0].codingRegions().count(), 4);
 		I_EQUAL(transcripts[0].codingRegions().baseCount(), 44);
+		IS_TRUE(transcripts[0].isGencodeBasicTranscript());
+		IS_FALSE(transcripts[0].isEnsemblCanonicalTranscript());
+		IS_TRUE(transcripts[0].isManeSelectTranscript());
+		IS_FALSE(transcripts[0].isManePlusClinicalTranscript());
 
 		transcripts = db.transcripts(3, Transcript::ENSEMBL, true); //NIPA1, Ensembl, coding
 		I_EQUAL(transcripts.count(), 2);
@@ -422,7 +428,10 @@ private slots:
 		I_EQUAL(transcripts[0].regions().baseCount(), 224);
 		I_EQUAL(transcripts[0].codingRegions().count(), 2);
 		I_EQUAL(transcripts[0].codingRegions().baseCount(), 102);
+		IS_FALSE(transcripts[0].isGencodeBasicTranscript());
+		IS_TRUE(transcripts[0].isEnsemblCanonicalTranscript());
 		IS_FALSE(transcripts[0].isManeSelectTranscript());
+		IS_FALSE(transcripts[0].isManePlusClinicalTranscript());
 		S_EQUAL(transcripts[1].gene(), "NIPA1");
 		S_EQUAL(transcripts[1].name(), "NIPA1_TR1");
 		I_EQUAL(transcripts[1].strand(), Transcript::MINUS);
@@ -431,7 +440,10 @@ private slots:
 		I_EQUAL(transcripts[1].regions().baseCount(), 202);
 		I_EQUAL(transcripts[1].codingRegions().count(), 2);
 		I_EQUAL(transcripts[1].codingRegions().baseCount(), 202);
+		IS_FALSE(transcripts[1].isGencodeBasicTranscript());
+		IS_FALSE(transcripts[1].isEnsemblCanonicalTranscript());
 		IS_TRUE(transcripts[1].isManeSelectTranscript());
+		IS_TRUE(transcripts[1].isManePlusClinicalTranscript());
 
 		transcripts = db.transcripts(3, Transcript::ENSEMBL, false); //NIPA1, Ensembl, non-coding
 		I_EQUAL(transcripts.count(), 2);
@@ -512,8 +524,9 @@ private slots:
 
 		//releventTranscripts
 		transcripts = db.releventTranscripts(3); //NIPA1 (only best)
-		I_EQUAL(transcripts.count(), 1);
+		I_EQUAL(transcripts.count(), 2);
 		S_EQUAL(transcripts[0].name(), "NIPA1_TR1");
+		S_EQUAL(transcripts[1].name(), "NIPA1_TR2");
 		transcripts = db.releventTranscripts(652410); //SPG7 (best plus MANE select)
 		I_EQUAL(transcripts.count(), 2);
 		S_EQUAL(transcripts[0].name(), "ENST00000341316");
@@ -528,6 +541,22 @@ private slots:
 		I_EQUAL(db.geneIdOfTranscript("NIPA1_TR2"), 3);
 		I_EQUAL(db.geneIdOfTranscript("NON-CODING_TR1"), 4);
 		I_EQUAL(db.geneIdOfTranscript("HARSTEM_ROX", false), -1); //not present
+
+		//transcriptToRegions
+		regions = db.transcriptToRegions("NIPA1_TR2", "gene");
+		I_EQUAL(regions.count(), 1);
+		S_EQUAL(regions[0].annotations()[0], "NIPA1 NIPA1_TR2.5");
+		I_EQUAL(regions.baseCount(), 341);
+
+		regions = db.transcriptToRegions("NIPA1_TR2.5", "exon");
+		I_EQUAL(regions.count(), 2);
+		S_EQUAL(regions[0].annotations()[0], "NIPA1 NIPA1_TR2.5");
+		I_EQUAL(regions.baseCount(), 102);
+
+		regions = db.transcriptToRegions("NON-CODING_TR1", "exon");
+		I_EQUAL(regions.count(), 2);
+		S_EQUAL(regions[0].annotations()[0], "NON-CODING NON-CODING_TR1.6");
+		I_EQUAL(regions.baseCount(), 202);
 
 		//geneInfo
 		GeneInfo ginfo = db.geneInfo("BRCA1");
@@ -568,9 +597,9 @@ private slots:
 
 		//setGeneInfo (new gene)
 		ginfo.symbol = "NEWGENE";
-		ginfo.oe_syn = 0.11;
-		ginfo.oe_mis = 0.22;
-		ginfo.oe_lof = 0.33;
+		ginfo.oe_syn = "0.11";
+		ginfo.oe_mis = "0.22";
+		ginfo.oe_lof = "0.33";
 		db.setGeneInfo(ginfo);
 		ginfo = db.geneInfo("NEWGENE");
 		S_EQUAL(ginfo.symbol, "NEWGENE");
@@ -683,7 +712,9 @@ private slots:
 		QCCollection qc_data = db.getQCData(db.processedSampleId("NA12878_03"));
 		I_EQUAL(qc_data.count(), 2);
 		S_EQUAL(qc_data.value("target region 20x percentage").toString(2), "95.96");
+		I_EQUAL(qc_data.value("target region 20x percentage").type(), QCValueType::DOUBLE);
 		S_EQUAL(qc_data.value("target region read depth").toString(2), "103.24");
+		I_EQUAL(qc_data.value("target region 20x percentage").type(), QCValueType::DOUBLE);
 
 		//getQCValues
 		QVector<double> qc_values = db.getQCValues("QC:2000025", db.processedSampleId("NA12878_03"));
@@ -862,25 +893,30 @@ private slots:
 		//variant
 		IS_TRUE(db.variant(var_id)==vl[0]);
 
-		//variantCounts
+		//genotypeCounts
 		QString variant_id = db.variantId(Variant("chr10",43613843,43613843,"G","T")); //hom
-		QPair<int, int> ngsd_counts = db.variantCounts(variant_id);
-		I_EQUAL(ngsd_counts.first, 0);
-		I_EQUAL(ngsd_counts.second, 1);
+		GenotypeCounts ngsd_counts = db.genotypeCounts(variant_id);
+		I_EQUAL(ngsd_counts.hom, 1);
+		I_EQUAL(ngsd_counts.het, 0);
+		I_EQUAL(ngsd_counts.mosaic, 0);
 
 		variant_id = db.variantId(Variant("chr17",7579472,7579472,"G","C")); //het
-		ngsd_counts = db.variantCounts(variant_id);
-		I_EQUAL(ngsd_counts.first, 1);
-		I_EQUAL(ngsd_counts.second, 0);
+		ngsd_counts = db.genotypeCounts(variant_id);
+		I_EQUAL(ngsd_counts.hom, 0);
+		I_EQUAL(ngsd_counts.het, 1);
+		I_EQUAL(ngsd_counts.mosaic, 0);
 
-		ngsd_counts = db.variantCounts(variant_id, true);
-		I_EQUAL(ngsd_counts.first, 0);
-		I_EQUAL(ngsd_counts.second, 0);
+		//genotypeCountsCached
+		ngsd_counts = db.genotypeCountsCached(variant_id);
+		I_EQUAL(ngsd_counts.hom, 0);
+		I_EQUAL(ngsd_counts.het, 0);
+		I_EQUAL(ngsd_counts.mosaic, 0);
 
 		db.getQuery().exec("UPDATE variant SET germline_het=17, germline_hom=7 WHERE id=" + variant_id);
-		ngsd_counts = db.variantCounts(variant_id, true);
-		I_EQUAL(ngsd_counts.first, 17);
-		I_EQUAL(ngsd_counts.second, 7);
+		ngsd_counts = db.genotypeCountsCached(variant_id);
+		I_EQUAL(ngsd_counts.hom, 7);
+		I_EQUAL(ngsd_counts.het, 17);
+		I_EQUAL(ngsd_counts.mosaic, 0);
 
 		//getSampleDiseaseInfo
 		sample_id = db.sampleId("NA12878");
@@ -971,6 +1007,7 @@ private slots:
 		params.include_bad_quality_runs = false;
 		params.run_finished = true;
 		params.r_before = QDate::fromString("2021-02-19", Qt::ISODate);
+		params.r_after = QDate::fromString("1900-02-19", Qt::ISODate);
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 0);
 		I_EQUAL(ps_table.columnCount(), 75);
@@ -1790,7 +1827,8 @@ private slots:
 		report_settings.report_type = "diagnostic variant";
 		report_settings.min_depth = 20;
 		report_settings.show_coverage_details = false;
-		report_settings.roi_low_cov = false;
+		report_settings.cov_based_on_complete_roi = false;
+		report_settings.cov_exon_padding = 20;
 		report_settings.recalculate_avg_depth = false;
 		report_settings.show_omim_table = false;
 		report_settings.show_one_entry_in_omim_table = false;
@@ -1925,7 +1963,7 @@ private slots:
 			report_settings.show_refseq_transcripts = true;
 
 			report_settings.show_coverage_details = true;
-			report_settings.roi_low_cov = true;
+			report_settings.cov_based_on_complete_roi = true;
 			report_settings.recalculate_avg_depth = true;
 			report_settings.show_omim_table = true;
 			report_settings.show_one_entry_in_omim_table = true;
@@ -2695,6 +2733,7 @@ private slots:
 		S_EQUAL(gene_ensg_mapping.value("PLEKHN1"), "ENSG00000187583");
 
 		//Test expression data import
+		//TODO rename table
 		db.importGeneExpressionData(TESTDATA("data_in/NGSD_expr_in1.tsv"), "RX001_01", false, false);
 		int count = db.getValue("SELECT count(*) FROM expression").toInt();
 		I_EQUAL(count, 102);
@@ -2724,12 +2763,14 @@ private slots:
 		I_EQUAL(count, 816);
 
 		//check imported values
-		I_EQUAL(db.getValue("SELECT raw FROM expression WHERE processed_sample_id=5001 AND symbol='" + ensg_gene_mapping.value("ENSG00000049249") + "'").toInt(), 20934);
-		F_EQUAL2(db.getValue("SELECT tpm FROM expression WHERE processed_sample_id=5001 AND symbol='" + ensg_gene_mapping.value("ENSG00000215720") + "'").toFloat(), 116.816, 0.001);
-		I_EQUAL(db.getValue("SELECT raw FROM expression WHERE processed_sample_id=5002 AND symbol='" + ensg_gene_mapping.value("ENSG00000229716") + "'").toInt(), 1371);
-		F_EQUAL2(db.getValue("SELECT tpm FROM expression WHERE processed_sample_id=5002 AND symbol='" + ensg_gene_mapping.value("ENSG00000159189") + "'").toFloat(), 204.76, 0.001);
-		I_EQUAL(db.getValue("SELECT raw FROM expression WHERE processed_sample_id=5005 AND symbol='" + ensg_gene_mapping.value("ENSG00000227634") + "'").toInt(), 15679);
-		F_EQUAL2(db.getValue("SELECT tpm FROM expression WHERE processed_sample_id=5005 AND symbol='" + ensg_gene_mapping.value("ENSG00000282740") + "'").toFloat(), 0.0, 0.001);
+		QMap<QByteArray,int> gene2id = db.getGeneExpressionGene2IdMapping();
+		//TODO rename table
+		I_EQUAL(db.getValue("SELECT raw FROM expression WHERE processed_sample_id=5001 AND symbol_id=" + QString::number(gene2id.value(ensg_gene_mapping.value("ENSG00000049249")))).toInt(), 20934);
+		F_EQUAL2(db.getValue("SELECT tpm FROM expression WHERE processed_sample_id=5001 AND symbol_id=" + QString::number(gene2id.value(ensg_gene_mapping.value("ENSG00000215720")))).toFloat(), 116.816, 0.001);
+		I_EQUAL(db.getValue("SELECT raw FROM expression WHERE processed_sample_id=5002 AND symbol_id=" + QString::number(gene2id.value(ensg_gene_mapping.value("ENSG00000229716")))).toInt(), 1371);
+		F_EQUAL2(db.getValue("SELECT tpm FROM expression WHERE processed_sample_id=5002 AND symbol_id=" + QString::number(gene2id.value(ensg_gene_mapping.value("ENSG00000159189")))).toFloat(), 204.76, 0.001);
+		I_EQUAL(db.getValue("SELECT raw FROM expression WHERE processed_sample_id=5005 AND symbol_id=" + QString::number(gene2id.value(ensg_gene_mapping.value("ENSG00000227634")))).toInt(), 15679);
+		F_EQUAL2(db.getValue("SELECT tpm FROM expression WHERE processed_sample_id=5005 AND symbol_id=" + QString::number(gene2id.value(ensg_gene_mapping.value("ENSG00000282740")))).toFloat(), 0.0, 0.001);
 
 
 		//Test exon expression data import
@@ -3034,5 +3075,20 @@ private slots:
 		}
 
 		I_EQUAL(c_fail, 0);
+	}
+
+	void test_overriding_the_processed_sample_data_folder()
+	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in4.sql"));
+
+		QString path_with_override = db.processedSamplePath(db.processedSampleId("NA12878_02"), PathType::GSVAR);
+		IS_TRUE(path_with_override.endsWith("new/folder/NA12878_02.GSvar"));
+
+		QString path_without_override = db.processedSamplePath(db.processedSampleId("NA12878_03"), PathType::GSVAR);
+		IS_TRUE(path_without_override.endsWith("somatic/Sample_NA12878_03/NA12878_03.GSvar"));
 	}
 };

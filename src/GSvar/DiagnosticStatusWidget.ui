@@ -78,7 +78,7 @@
    <item row="3" column="0">
     <widget class="QLabel" name="label_8">
      <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Further explaination of the findings, e.g.:&lt;br/&gt;- variant type: SNV/InDel/CNV/SV&lt;br/&gt;- if the variant occurs as a mosaik&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Further explanation of the findings, e.g.:&lt;br/&gt;- variant type: SNV/InDel/CNV/SV&lt;br/&gt;- if the variant occurs as a mosaik&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="text">
       <string>Comment:</string>

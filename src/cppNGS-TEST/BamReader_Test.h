@@ -380,7 +380,6 @@ private slots:
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		if (!ref_file.endsWith("GRCh38.fa")) SKIP("Test needs reference genome GRCh38!");
-		if (Helper::isWindows()) SKIP("CRAM is not supported on Windows!");
 
 		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
 
@@ -436,7 +435,6 @@ private slots:
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		if (!ref_file.endsWith("GRCh38.fa")) SKIP("Test needs reference genome GRCh38!");
-		if (Helper::isWindows()) SKIP("CRAM is not supported on Windows!");
 
 		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
 		BamAlignment al;
@@ -472,7 +470,6 @@ private slots:
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		if (!ref_file.endsWith("GRCh38.fa")) SKIP("Test needs reference genome GRCh38!");
-		if (Helper::isWindows()) SKIP("CRAM is not supported on Windows!");
 
 		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
 

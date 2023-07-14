@@ -3,7 +3,6 @@
 #include "OntologyTermCollection.h"
 #include "Helper.h"
 #include "TSVFileStream.h"
-#include "NGSHelper.h"
 #include "SomaticReportSettings.h"
 #include "NGSD.h"
 #include "XmlHelper.h"
@@ -11,6 +10,7 @@
 #include "SomaticVariantInterpreter.h"
 #include "LoginManager.h"
 #include "ApiCaller.h"
+#include "ClientHelper.h"
 #include <cmath>
 #include <QDir>
 #include <QMap>
@@ -163,10 +163,10 @@ RtfSourceCode SomaticReportHelper::partBillingTable()
 		size = 123670;
 	}
 
-	for(const auto& gene : ebm_genes_)
+	foreach(const auto& gene, ebm_genes_)
 	{
 		QByteArrayList omim_mims;
-		for(const auto& info :  db_.omimInfo(gene) )
+		foreach(const auto& info,  db_.omimInfo(gene) )
 		{
 			omim_mims << info.mim;
 		}
@@ -505,7 +505,7 @@ void SomaticReportHelper::somaticCnvForQbic(QString path_target_folder)
 		stream << "\t";
 
 		QByteArrayList gene_effects;
-		for(const auto& gene : genes)
+		foreach(const auto& gene, genes)
 		{
 			SomaticGeneRole gene_role = db_.getSomaticGeneRole(gene);
 			if (!gene_role.isValid()) continue;
@@ -754,7 +754,7 @@ RtfTableRow SomaticReportHelper::overlappingCnv(const CopyNumberVariant &cnv, QB
 
 void SomaticReportHelper::saveReportData(QString filename, QString path, QString content)
 {
-	if (!NGSHelper::isClientServerMode())
+	if (!ClientHelper::isClientServerMode())
 	{
 		if(!QDir(path).exists()) QDir().mkdir(path);
 
@@ -888,7 +888,7 @@ RtfSourceCode SomaticReportHelper::partVirusTable()
 	RtfTable virus_table;
 	virus_table.addRow(RtfTableRow("Virale DNA",doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4));
 	virus_table.addRow(RtfTableRow({"Virus","Gen","Genom","Region","Abdeckung","Bewertung"},{963,964,1927,1927,1927,1929},RtfParagraph().setBold(true)));
-	for(const auto& virus : validated_viruses_)
+	foreach(const auto& virus, validated_viruses_)
 	{
 		RtfTableRow row;
 
@@ -967,15 +967,15 @@ RtfSourceCode SomaticReportHelper::partPharmacoGenetics()
 	{
 		const Variant& snv = germline_vl_[i];
 
-		for(const auto& key : data.uniqueKeys())
+		foreach(const auto& key, data.uniqueKeys())
 		{
 			if(snv.annotations().at(i_dbsnp).contains(key))
 			{
-				for(const auto& value : data.values(key))
+				foreach(const auto& value, data.values(key))
 				{
 					RtfTableRow row;
 
-					VariantTranscript trans = snv.transcriptAnnotations(i_co_sp)[0];
+					VariantTranscript trans = snv.transcriptAnnotations(i_co_sp).at(0);
 
 					if (key == "rs3918290" || key == "rs55886062" || key == "rs67376798" || key == "rs56038477")
 					{
@@ -1024,7 +1024,7 @@ RtfSourceCode SomaticReportHelper::partPharmacoGenetics()
 		table.prependRow(RtfTableRow({"RS-Nummer","Gen","Veränderung","Genotyp","Relevanz","Assoziierte Stoffe"},{1200,800,1800,800,1300,4021},RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)).setHeader());
 		table.prependRow(RtfTableRow({"Pharmakogenetisch relevante Polymorphismen"},doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4).setHeader());
 		table.setUniqueBorder(1,"brdrhair",4);
-		table.addRow(RtfTableRow("Nähere Informationen erhalten Sie aus der Datenbank pharmGKB (https://www.pharmgkb.org)",{doc_.maxWidth()},RtfParagraph().setFontSize(14)));
+		table.addRow(RtfTableRow("Nähere Informationen erhalten Sie aus der Datenbank pharmGKB (https://www.pharmgkb.org)",doc_.maxWidth(), RtfParagraph().setFontSize(14)));
 	}
 
 	return table.RtfCode();
@@ -1033,7 +1033,7 @@ RtfSourceCode SomaticReportHelper::partPharmacoGenetics()
 RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impact_table)
 {
 	QByteArrayList headers = {"Gen", "Veränderung", "Typ", "Anteil", "Beschreibung", "Molekularer Signalweg"};
-	QList<int> col_widths = {1000, 1950, 1350, 600, 3000, 2022};
+	QList<int> col_widths = {1000, 1950, 1400, 600, 2950, 2022};
 
 	//headlines
 	RtfTable table;
@@ -1223,7 +1223,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 
 			GeneSet genes = settings_.target_region_filter.genes.intersect(db_.genesOverlapping(cnv.chr(), cnv.start(), cnv.end()));
 
-			for(const auto& gene : genes)
+			foreach(const auto& gene, genes)
 			{
 				//skip genes without defined gene role
 				SomaticGeneRole gene_role = db_.getSomaticGeneRole(gene);
@@ -1276,7 +1276,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 
 		//sort CNV rows according gene name
 		std::sort(cnv_rows.begin(), cnv_rows.end(), [](const RtfTableRow& rhs, const RtfTableRow& lhs){return rhs[0].format().content() < lhs[0].format().content();});
-		for(const auto& row : cnv_rows)
+		foreach(const auto& row, cnv_rows)
 		{
 			table.addRow(row);
 		}
@@ -1301,7 +1301,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 	desc += " Veränderungen dargestellt.";
 	if(som_var_in_normal.count() > 0 && high_impact_table) desc += "\n\\line\n{\\super#} auch in der Normalprobe nachgewiesen.";
 
-	table.addRow(RtfTableRow(desc,{doc_.maxWidth()},RtfParagraph().setFontSize(14).setHorizontalAlignment("j")));
+	table.addRow(RtfTableRow(desc,doc_.maxWidth(),RtfParagraph().setFontSize(14).setHorizontalAlignment("j")));
 
 	return table;
 }
@@ -1309,7 +1309,7 @@ RtfTable SomaticReportHelper::snvTable(const QSet<int>& indices, bool high_impac
 RtfTable SomaticReportHelper::hlaTable(QString ps_name, QByteArray type)
 {
 	QString hla_file;
-	if (!NGSHelper::isClientServerMode())
+	if (!ClientHelper::isClientServerMode())
 	{
 		hla_file = db_.processedSamplePath(db_.processedSampleId(ps_name), PathType::HLA_GENOTYPER);
 	}
@@ -1376,8 +1376,120 @@ RtfTable SomaticReportHelper::hlaTable(QString ps_name, QByteArray type)
 
 	table.setUniqueBorder(1,"brdrhair",4);
 	return table;
-
 }
+
+RtfTable SomaticReportHelper::signatureTable()
+{
+
+
+	// load descriptions from file:
+	QSharedPointer<VersatileFile> desc_file = Helper::openVersatileFileForReading(":/resources/signature_description.tsv");
+
+	QMap<QByteArray, QByteArray> descriptions;
+
+	while (! desc_file->atEnd())
+	{
+		QByteArray line = desc_file->readLine();
+		line = line.trimmed();
+		if (line.startsWith('#') || line.isEmpty()) continue;
+
+		QByteArrayList parts = line.split('\t');
+		if (parts.count() != 2)
+		{
+			THROW(FileParseException, "Signature description file has a line with more or less than 2 elements: " + line);
+		}
+
+		descriptions.insert(parts[0], parts[1]);
+	}
+
+	RtfTable table;
+
+	QList<int> cell_widths = {1500, 1500, 1500, 2000, 3422};
+	table.addRow(RtfTableRow("Mutationssignaturen", doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4));
+	table.addRow(RtfTableRow({"Signatur", "Anteil [%]", "Korrelation", "Kosinus-Ähnlichkeit", "Aetiologie"}, cell_widths, RtfParagraph().setBold(true).setHorizontalAlignment("c")));
+
+	signatureTableHelper(table, settings_.sbs_signature, descriptions, "SBS92");
+	signatureTableHelper(table, settings_.id_signature, descriptions, "ID83");
+	signatureTableHelper(table, settings_.dbs_signature, descriptions, "DBS78");
+	signatureTableHelper(table, settings_.cnv_signature, descriptions, "CNV48");
+
+	table.setUniqueBorder(1,"brdrhair",4);
+
+	//Add table description
+	RtfSourceCode desc = "";
+	desc += RtfText("Beschreibung: ").setBold(true).setFontSize(14).RtfCode();
+	desc += RtfText("SBS").setFontSize(14).setBold(true).RtfCode() + " single base substitution Signatur, ";
+	desc += RtfText("ID").setFontSize(14).setBold(true).RtfCode() + " small insertions and deletions Signatur, ";
+	desc += RtfText("DBS").setFontSize(14).setBold(true).RtfCode() + " doublet base substitution Signatur, ";
+	desc += RtfText("CN").setFontSize(14).setBold(true).RtfCode() + " copy number Signatur, ";
+	desc += RtfText("Anteil").setFontSize(14).setBold(true).RtfCode() + " prozentualer Anteil der Signatur an allen extrahierten Signaturen dieses Signaturtyps, ";
+	desc += RtfText("Korrelation").setFontSize(14).setBold(true).RtfCode() + " statistisches Maß für die Plausibilität der extrahierten Mutationssignatur im Vergleich zu den beobachteten somatischen Veränderungen, ";
+	desc += RtfText("Kosinus-Ähnlichkeit:").setFontSize(14).setBold(true).RtfCode() + " Maß für die Ähnlichkeit zweier Vektoren der identifizierten Patienten-Signatur gegenüber den Referenzsignaturen, ";
+	desc += RtfText("Aetiologie: ").setFontSize(14).setBold(true).RtfCode();
+	desc += "biologischer Prozess, der mit der vorliegenden Mutationssignatur assoziiert wurde. Mutationssignaturen siehe PMID: 32025018, Kopienzahlsignaturen siehe PMID: 35705804. ";
+	desc += " Nähere Informationen erhalten Sie aus der Datenbank COSMIC (https://cancer.sanger.ac.uk/signatures/).";
+
+	table.addRow(RtfTableRow(desc,doc_.maxWidth(),RtfParagraph().setFontSize(14).setHorizontalAlignment("j")));
+
+	return table;
+}
+
+void SomaticReportHelper::signatureTableHelper(RtfTable &table, QString file, const QMap<QByteArray, QByteArray>& descriptions, const QByteArray& type)
+{
+	VersatileFile stream(file);
+
+	if (stream.exists())
+	{
+		QList<int> cell_widths = {1500, 1500, 1500, 2000, 3422};
+
+		QByteArray content = stream.readAll();
+		QByteArrayList lines = content.split('\n');
+		if (lines.count() < 2) return;
+
+//		QByteArray header = lines[0];
+		QByteArray values = lines[1];
+
+		QByteArrayList parts = values.split(',');
+
+		QByteArray cos_similarity = parts[5];
+		QByteArray correlation = parts[6];
+
+		//if there is only a single resulting signature it has no percentage after it.
+		if (parts[0].trimmed() == parts[1].trimmed())
+		{
+			table.addRow(RtfTableRow("Für die Mutationssignaturen des Typs " + type + " konnten keine COSMIC signaturen identifieziert werden.", doc_.maxWidth()));
+			return;
+		}
+
+		QByteArrayList signatures = (parts[1] + "&").split('&');
+
+		foreach (auto sig, signatures)
+		{
+			sig = sig.trimmed();
+			if (sig == "") continue;
+			sig.replace("Signature ", "");
+
+			QByteArray sig_name = sig.split(' ')[0];
+			QByteArray sig_perc = sig.split(' ')[1];
+			sig_perc.replace("(", "");
+			sig_perc.replace("%)", "");
+
+			RtfTableRow row;
+			row.addCell(cell_widths[0], sig_name);
+			row.addCell(cell_widths[1], sig_perc.replace(".", ",").trimmed());
+			row.addCell(cell_widths[2], correlation.replace(".", ",").trimmed());
+			row.addCell(cell_widths[3], cos_similarity.replace(".", ",").trimmed());
+			row.addCell(cell_widths[4], descriptions[sig_name]);
+
+			table.addRow(row);
+		}
+	}
+	else
+	{
+		table.addRow(RtfTableRow("Die Mutationssignaturen des Typs " + type + " konnten nicht berechnet werden.", doc_.maxWidth()));
+	}
+}
+
 
 
 void SomaticReportHelper::storeRtf(const QByteArray& out_file)
@@ -1439,9 +1551,16 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	 *******************/
 
 	doc_.newPage();
-
 	doc_.addPart(RtfParagraph("").RtfCode());
 	doc_.addPart(partPathways());
+	doc_.addPart(RtfParagraph("").RtfCode());
+
+	/*******************
+	 * SIGNATURE TABLE *
+	 *******************/
+
+	doc_.addPart(RtfParagraph("").RtfCode());
+	doc_.addPart(signatureTable().RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
 
 	/*******************************************
@@ -1459,6 +1578,10 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 		doc_.addPart(RtfParagraph("").RtfCode());
 	}
 
+	/*************
+	 * HLA Table *
+	 *************/
+
 	doc_.addPart(RtfParagraph("").RtfCode());
 	doc_.addPart(hlaTable(settings_.normal_ps, "Normal").RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
@@ -1470,7 +1593,6 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	 ***********************/
 
 	doc_.newPage();
-
 	doc_.addPart(RtfParagraph("").RtfCode());
 	doc_.addPart(partBillingTable());
 	doc_.addPart(RtfParagraph("").RtfCode());
@@ -1508,8 +1630,6 @@ void SomaticReportHelper::storeXML(QString file_name)
 	QSharedPointer<QFile> out_file = Helper::openFileForWriting(file_name);
 	SomaticXmlReportGenerator::generateXML(data, out_file, db_, false);
 	out_file->close();
-
-	SomaticXmlReportGenerator::validateXml(file_name);
 }
 
 void SomaticReportHelper::storeQbicData(QString path)
@@ -1618,7 +1738,7 @@ RtfSourceCode SomaticReportHelper::partSummary()
 
 	//Virus DNA status
 	QByteArrayList virus_names;
-	for(const auto& virus : validated_viruses_)
+	foreach(const auto& virus, validated_viruses_)
 	{
 		virus_names << virus.virusName();
 	}
@@ -1819,7 +1939,7 @@ RtfSourceCode SomaticReportHelper::partPathways()
 					int cn = cnv.copyNumber(cnvs_.annotationHeaders());
 
 					GeneSet genes_cnv = db_.genesOverlapping(cnv.chr(), cnv.start(), cnv.end());
-					for(const QByteArray& gene : genes_cnv)
+					foreach(const QByteArray& gene, genes_cnv)
 					{
 						if (!genes_pathway.contains(gene)) continue;
 						if (!cnv_high_impact_indices_[i].contains(gene)) continue;
@@ -1856,7 +1976,7 @@ RtfSourceCode SomaticReportHelper::partPathways()
 	RtfSourceCode desc = "";
 	desc += RtfText("Beschreibung: ").setFontSize(14).setBold(true).RtfCode();
 	desc += "Die nachgewiesenen potentiell relevanten somatischen Veränderungen und die unklaren Varianten (in eckigen Klammern) wurden nach den wichtigsten molekularen Signalwegen sortiert. Die Zugehörigkeit eines Gens zu einem bestimmten Signalweg wurde durch das Molekulare Tumorboard Tübingen festgestellt.";
-	table.addRow(RtfTableRow(desc,{doc_.maxWidth()},RtfParagraph().setFontSize(14).setHorizontalAlignment("j")));
+	table.addRow(RtfTableRow(desc,doc_.maxWidth(),RtfParagraph().setFontSize(14).setHorizontalAlignment("j")));
 
 	return table.RtfCode();
 }

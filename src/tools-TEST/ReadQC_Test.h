@@ -50,5 +50,13 @@ private slots:
 		COMPARE_GZ_FILES("out/ReadQC_out6_R1.fastq.gz", TESTDATA("data_in/ReadQC_in1.fastq.gz"));
 		COMPARE_GZ_FILES("out/ReadQC_out6_R2.fastq.gz", TESTDATA("data_in/ReadQC_in2.fastq.gz"));
 	}
+
+	void long_read_test()
+	{
+		EXECUTE("ReadQC", "-in1 " + TESTDATA("data_in/ReadQC_in5.fastq.gz") + " -long_read -out out/ReadQC_out7.qcML");
+		REMOVE_LINES("out/ReadQC_out7.qcML", QRegExp("creation "));
+		REMOVE_LINES("out/ReadQC_out7.qcML", QRegExp("<binary>"));
+		COMPARE_FILES("out/ReadQC_out7.qcML", TESTDATA("data_out/ReadQC_out7.qcML"));
+	}
 };
 

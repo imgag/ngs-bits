@@ -20,6 +20,7 @@
 #include <QMessageBox>
 #include <QInputDialog>
 
+
 const bool test_run = false;
 const QString api_url = (test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/";
 
@@ -441,7 +442,7 @@ void ClinvarUploadDialog::upload()
 
 
     // perform upload
-    static HttpHandler http_handler(HttpRequestHandler::INI); //static to allow caching of credentials
+	static HttpHandler http_handler(false); //static to allow caching of credentials
     try
     {
 		//switch on/off testing
@@ -457,7 +458,6 @@ void ClinvarUploadDialog::upload()
 
         //post request
 		QByteArray reply = http_handler.post(api_url, QJsonDocument(post_request).toJson(QJsonDocument::Compact), add_headers);
-		qDebug() << api_url;
 
         // parse response
         bool success = false;
@@ -678,16 +678,19 @@ void ClinvarUploadDialog::upload()
 					}
 				}
 
+				// for reupload: flag previous upload as replaced
+				if (clinvar_upload_data_.variant_publication_id > 0) db_.flagVariantPublicationAsReplaced(clinvar_upload_data_.variant_publication_id);
 
+				// for update: flag all over uploads with same SCV as replaced
 				if (!clinvar_upload_data_.stable_id.trimmed().isEmpty())
 				{
 					//get variant publication id
-					clinvar_upload_data_.variant_publication_id = db_.getValue("SELECT id FROM variant_publication WHERE replaced = 0 AND result LIKE :0", false, "%" + clinvar_upload_data_.stable_id + "%").toInt();
-
+					QList<int> pub_ids_to_replace = db_.getValuesInt("SELECT id FROM variant_publication WHERE replaced = 0 AND result LIKE :0", "%" + clinvar_upload_data_.stable_id + "%");
+					foreach (int pub_id, pub_ids_to_replace)
+					{
+						db_.flagVariantPublicationAsReplaced(pub_id);
+					}
 				}
-
-				// for reupload: flag previous upload as replaced
-				if (clinvar_upload_data_.variant_publication_id > 0) db_.flagVariantPublicationAsReplaced(clinvar_upload_data_.variant_publication_id);
 			}
 
             //show result

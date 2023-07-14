@@ -5,6 +5,7 @@
 #include "VersatileFile.h"
 #include "HttpRequestHandler.h"
 #include "ServerHelper.h"
+#include "ClientHelper.h"
 
 TEST_CLASS(VersatileFile_Test)
 {
@@ -16,16 +17,11 @@ TEST_CLASS(VersatileFile_Test)
 			{
 				SKIP("Server has not been configured correctly");
 			}
+			const QString bam_file = ClientHelper::serverApiUrl() + "bam/rna.bam";
 
-			const QString bam_file_http = ServerHelper::getServerUrl(true) + "/v1/bam/rna.bam";
-			const QString bam_file_https = ServerHelper::getServerUrl(false) + "/v1/bam/rna.bam";
-
-			VersatileFile file_over_http = VersatileFile(bam_file_http);
-			IS_TRUE(file_over_http.exists());
-
-			VersatileFile file_over_https = VersatileFile(bam_file_https);
+			VersatileFile file_over_https = VersatileFile(bam_file);
 			IS_TRUE(file_over_https.exists());
-			S_EQUAL(file_over_https.fileName(), bam_file_https)
+			S_EQUAL(file_over_https.fileName(), bam_file)
 			I_EQUAL(file_over_https.size(), 117570);
 			IS_TRUE(file_over_https.isReadable());
 		}
@@ -37,7 +33,7 @@ TEST_CLASS(VersatileFile_Test)
 				SKIP("Server has not been configured correctly");
 			}
 
-			const QString html_file = ServerHelper::getServerUrl(false) + "/v1/";
+			const QString html_file = ClientHelper::serverApiUrl();
 
 			QFile *local_asset_file = new QFile(":/assets/client/info.html");
 			local_asset_file->open(QIODevice::ReadOnly);

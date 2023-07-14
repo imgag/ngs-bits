@@ -479,9 +479,14 @@ RnaQC.depends = cppNGS
 SUBDIRS += NGSDImportExpressionData
 tools-TEST.depends += NGSDImportExpressionData
 NGSDImportExpressionData.depends = cppNGSD
+
 SUBDIRS += VcfAnnotateHexplorer
 tools-TEST.depends += VcfAnnotateHexplorer
 VcfAnnotateHexplorer.depends = cppNGS
+
+SUBDIRS += NGSDExportGff
+tools-TEST.depends += NGSDExportGff
+NGSDExportGff.depends = cppNGS
 
 SUBDIRS += NGSDAnnotateRNA
 tools-TEST.depends += NGSDAnnotateRNA
@@ -514,4 +519,25 @@ NGSDImportClinvarAccessions.depends = cppNGSD
 SUBDIRS += VcfAdd
 tools-TEST.depends += VcfAdd
 VcfAdd.depends = cppNGS
+
+SUBDIRS += NGSDExportStudyGHGA
+tools-TEST.depends += NGSDExportStudyGHGA
+NGSDExportStudyGHGA.depends = cppNGSD
+
+SUBDIRS += VcfSubstract
+tools-TEST.depends += VcfSubstract
+VcfSubstract.depends = cppNGS
+
+SUBDIRS += TranscriptsToBed
+tools-TEST.depends += TranscriptsToBed
+TranscriptsToBed.depends = cppNGSD
+
+SUBDIRS += GenesToTranscripts
+tools-TEST.depends += GenesToTranscripts
+GenesToTranscripts.depends = cppNGSD
+
+SUBDIRS += NGSDImportSampleQC
+tools-TEST.depends += NGSDImportSampleQC
+NGSDImportSampleQC.depends = cppNGSD
+
 

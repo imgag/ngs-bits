@@ -19,14 +19,14 @@ INSERT INTO `project` (`id`, `name`, `type`, `internal_coordinator_id`, `analysi
 INSERT INTO `sequencing_run` (`id`, `name`, `fcid`, `start_date`, `device_id`, `recipe`, `status`) VALUES
 (1, '#00372', 'AB2J9', '2021-02-19', 1, '158+8+158', 'analysis_finished');
 
-INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`, `gender`, `quality`, `tumor`, `ffpe`, `sender_id`, `comment`, `disease_group`, `disease_status`, `tissue`, `patient_identifier`) VALUES
-(1, 'NA12878', 'ex1', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'Diseases of the blood or blood-forming organs', 'Unaffected', 'blood', 'pat1'),
-(2, 'NA12123', 'ex2', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s2', 'Neoplasms', 'Affected', 'skin', 'pat2'),
-(3, 'NA12345', 'ex3', 'DNA', 1, 'male', 'bad', 1 ,1, 1, 'comment_s3', 'Diseases of the immune system', 'Affected', 'blood', 'pat3'),
-(4, 'NA12123repeat', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s4', 'Neoplasms', 'Affected', 'n/a', NULL),
-(5, 'DX184894', 'ex5', 'DNA', 1, 'female', 'good', 1, 1, 1, 'comment_s5', 'Neoplasms', 'Affected', 'buccal mucosa', NULL),
-(6, 'DX184263', 'ex6', 'DNA', 1, 'female', 'good', 0, 0, 1, 'comment_s6', 'Neoplasms', 'Affected', 'skin', NULL),
-(7, 'NA12123repeat2', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s4', 'Neoplasms', 'Affected', 'n/a', 'pat2');
+INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`, `gender`, `quality`, `tumor`, `ffpe`, `sender_id`, `comment`, `disease_group`, `disease_status`, `tissue`, `patient_identifier`, `year_of_birth`) VALUES
+(1, 'NA12878', 'ex1', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'Diseases of the blood or blood-forming organs', 'Unaffected', 'blood', 'pat1', 1977),
+(2, 'NA12123', 'ex2', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s2', 'Neoplasms', 'Affected', 'skin', 'pat2', NULL),
+(3, 'NA12345', 'ex3', 'DNA', 1, 'male', 'bad', 1 ,1, 1, 'comment_s3', 'Diseases of the immune system', 'Affected', 'blood', 'pat3', NULL),
+(4, 'NA12123repeat', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s4', 'Neoplasms', 'Affected', 'n/a', NULL, NULL),
+(5, 'DX184894', 'ex5', 'DNA', 1, 'female', 'good', 1, 1, 1, 'comment_s5', 'Neoplasms', 'Affected', 'buccal mucosa', NULL, NULL),
+(6, 'DX184263', 'ex6', 'DNA', 1, 'female', 'good', 0, 0, 1, 'comment_s6', 'Neoplasms', 'Affected', 'skin', NULL, NULL),
+(7, 'NA12123repeat2', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s4', 'Neoplasms', 'Affected', 'n/a', 'pat2', NULL);
 
 INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapter1_p5`, `adapter2_p7`, `type`, `shotgun`, `target_file`, `genome_id`) VALUES
 (1, 'hpHBOCv5', 'HaloPlex HBOC v5', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel Haloplex', 0, 'hpHBOCv5.bed', 1),
@@ -76,17 +76,17 @@ INSERT INTO `gene_alias` (`gene_id`, `symbol`, `type`) VALUES
 (415153, 'QARS', 'previous'),
 (433401, 'QARS', 'previous');
 
-INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `version`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`, `is_mane_select`) VALUES
-(1, 1,'BRCA1_TR1','2','ccds','17',100,200,'+',1),
-(2, 2,'BRCA2_TR1','3','ccds','13',100,200,'+',1),
-(3, 3,'NIPA1_TR1','4','ensembl','15',100,400,'-',1),
-(4, 3,'NIPA1_TR2','5','ensembl','15',150,350,'-',0),
-(5, 4,'NON-CODING_TR1','6','ensembl','22',NULL,NULL,'-',0),
-(1572612, 642528, 'ENST00000331920', '7', 'ensembl', '9', 98209194, 98270643, '-',1),
-(1568912, 622167, 'ENST00000310193', '8', 'ensembl', '8', 65509199, 65711144, '-',1),
-(1503635, 650913, 'ENST00000338625', '9', 'ensembl', '13', 41367363, 41383803, '+',1),
-(1515928, 652410, 'ENST00000268704', '10', 'ensembl', '16', 89574826, 89623501, '+',1),
-(1515930, 652410, 'ENST00000341316', '11', 'ensembl', '16', 89574826, 89603318, '+',0);
+INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `version`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`, `is_gencode_basic`, `is_ensembl_canonical`, `is_mane_select`, `is_mane_plus_clinical`) VALUES
+(1, 1,'BRCA1_TR1','2','ccds','17',100,200,'+',1,0,1,0),
+(2, 2,'BRCA2_TR1','3','ccds','13',100,200,'+',0,0,1,0),
+(3, 3,'NIPA1_TR1','4','ensembl','15',100,400,'-',0,0,1,1),
+(4, 3,'NIPA1_TR2','5','ensembl','15',150,350,'-',0,1,0,0),
+(5, 4,'NON-CODING_TR1','6','ensembl','22',NULL,NULL,'-',0,0,0,0),
+(1572612, 642528, 'ENST00000331920', '7', 'ensembl', '9', 98209194, 98270643, '-',0,0,1,0),
+(1568912, 622167, 'ENST00000310193', '8', 'ensembl', '8', 65509199, 65711144, '-',0,0,1,0),
+(1503635, 650913, 'ENST00000338625', '9', 'ensembl', '13', 41367363, 41383803, '+',0,0,1,0),
+(1515928, 652410, 'ENST00000268704', '10', 'ensembl', '16', 89574826, 89623501, '+',0,0,1,0),
+(1515930, 652410, 'ENST00000341316', '11', 'ensembl', '16', 89574826, 89603318, '+',0,0,0,0);
 
 INSERT INTO `preferred_transcripts`(`name`, `added_by`, `added_date`) VALUES
 ('ENST00000341316', 99, '2020-09-04 10:48:01');

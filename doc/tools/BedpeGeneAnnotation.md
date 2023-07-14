@@ -1,5 +1,5 @@
 ### BedpeGeneAnnotation tool help
-	BedpeGeneAnnotation (2019_11-153-ge9f0496d)
+	BedpeGeneAnnotation (2023_03-63-gec44de43)
 	
 	Annotates a BEDPE file with gene information from the NGSD.
 	
@@ -20,8 +20,9 @@
 	  --tdx                   Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedpeGeneAnnotation changelog
-	BedpeGeneAnnotation 2019_11-153-ge9f0496d
+	BedpeGeneAnnotation 2023_03-63-gec44de43
 	
+	2023-05-10 Added column with gene names at breakpoints.
 	2020-01-27 Bugfix: 0-based BEDPE positions are now converted into 1-based BED positions.
 	2020-01-21 Added ability to reannotate BEDPE files by overwriting old annotation.
 	2020-01-20 Updated overlap method, refactored code.

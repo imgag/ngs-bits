@@ -4,6 +4,7 @@
 #include "GlobalServiceProvider.h"
 #include "Statistics.h"
 #include "MainWindow.h"
+#include "ClientHelper.h"
 #include <QMessageBox>
 #include <QBuffer>
 
@@ -66,9 +67,11 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 	ui_.setupUi(this);
 
 	connect(ui_.report_type_rna, SIGNAL(clicked(bool)), this, SLOT(disableGUI()));
+	connect(ui_.report_type_cfdna, SIGNAL(clicked(bool)), this, SLOT(disableGUI()));
 	connect(ui_.report_type_dna, SIGNAL(clicked(bool)), this, SLOT(enableGUI()));
 
 	connect(ui_.report_type_rna, SIGNAL(clicked(bool)), this, SLOT(rnaSampleSelection()));
+	connect(ui_.report_type_cfdna, SIGNAL(clicked(bool)), this, SLOT(rnaSampleSelection()));
 	connect(ui_.report_type_dna, SIGNAL(clicked(bool)), this, SLOT(rnaSampleSelection()));
 
 	connect(ui_.include_cnv_burden, SIGNAL(stateChanged(int)), this, SLOT(cinState()));
@@ -81,7 +84,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 	QCCollection res = db_.getQCData(db_.processedSampleId(settings.tumor_ps, true));
 	try
 	{
-		tum_cont_snps_ = Helper::toDouble(res.value("QC:2000054", true).asString());
+		tum_cont_snps_ = res.value("QC:2000054", true).asDouble();
 	}
 	catch(ArgumentException){} //nothing to do
 	catch(TypeConversionException){} //nothing to do
@@ -476,7 +479,7 @@ void SomaticReportDialog::writeBackSettings()
 		{
 			try
 			{
-				QByteArray response = HttpHandler(HttpRequestHandler::NONE).get(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename);
+				QByteArray response = HttpHandler(true).get(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename);
 				if (!response.isEmpty()) picture.loadFromData(response);
 			}
 			catch (Exception& e)
@@ -507,6 +510,7 @@ void SomaticReportDialog::writeBackSettings()
 SomaticReportDialog::report_type SomaticReportDialog::getReportType()
 {
 	if(ui_.report_type_dna->isChecked()) return report_type::DNA;
+	else if (ui_.report_type_cfdna->isChecked()) return report_type::cfDNA;
 	else return report_type::RNA;
 }
 
@@ -515,11 +519,18 @@ QString SomaticReportDialog::getRNAid()
 	return ui_.rna_ids_for_report->currentText();
 }
 
-void SomaticReportDialog::enableChoiceReportType(bool enabled)
+void SomaticReportDialog::enableChoiceRnaReportType(bool enabled)
 {
 	ui_.report_type_label->setEnabled(enabled);
 	ui_.report_type_dna->setEnabled(enabled);
 	ui_.report_type_rna->setEnabled(enabled);
+}
+
+void SomaticReportDialog::enableChoicecfDnaReportType(bool enabled)
+{
+	ui_.report_type_label->setEnabled(enabled);
+	ui_.report_type_dna->setEnabled(enabled);
+	ui_.report_type_cfdna->setEnabled(enabled);
 }
 
 void SomaticReportDialog::cinState()
@@ -640,7 +651,7 @@ void SomaticReportDialog::createIgvScreenshot()
 
 		try
 		{
-			HttpHandler(HttpRequestHandler::NONE).post(NGSHelper::serverApiUrl() + "upload?token=" + LoginManager::userToken(), multipart_form);
+			HttpHandler(true).post(ClientHelper::serverApiUrl() + "upload?token=" + LoginManager::userToken(), multipart_form);
 		}
 		catch (Exception& e)
 		{

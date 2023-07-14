@@ -24,7 +24,7 @@
 ##contig=<ID=chrY,length=57227415>
 ##contig=<ID=chrX,length=156040895>
 ##contig=<ID=chrMT,length=16569>
-##INFO=<ID=COUNTS,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD.">
+##INFO=<ID=COUNTS,Number=3,Type=Integer,Description="Homozygous/Heterozygous/Mosaic variant counts in NGSD.">
 ##INFO=<ID=GSC01,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for n/a.">
 ##INFO=<ID=GSC02,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for neoplasms.">
 ##INFO=<ID=GSC03,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for diseases of the blood or blood-forming organs.">
@@ -48,24 +48,24 @@
 ##INFO=<ID=CLAS_COM,Number=1,Type=String,Description="Classification comment from the NGSD.">
 ##INFO=<ID=COM,Number=1,Type=String,Description="Variant comments from the NGSD.">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
-chr1	13656	10	CAG	C	.	.	COUNTS=1,3;GSC02=0,2;GSC04=1,1;COM="NA12878_38_Dragen_abra"
-chr1	17385	11	G	A	.	.	COUNTS=0,2;GSC02=0,2;COM="NA12878_38_Dragen_abra"
-chr1	494515	12	T	A	.	.	COUNTS=0,1;GSC02=0,1;COM="NA12878_38_Dragen_abra"
-chr1	826893	13	G	A	.	.	COUNTS=8,0;GSC02=4,0;GSC04=1,0;GSC09=1,0;GSC11=1,0;GSC15=1,0;COM="NA12878_38_Dragen_abra"
-chr1	827209	14	G	C	.	.	COUNTS=4,0;GSC02=3,0;GSC04=1,0;COM="NA12878_38_Dragen_abra"
+chr1	13656	10	CAG	C	.	.	COUNTS=1,1,2;GSC04=1,1;COM="NA12878_38_Dragen_abra"
+chr1	17385	11	G	A	.	.	COUNTS=0,2,0;GSC02=0,2;COM="NA12878_38_Dragen_abra"
+chr1	494515	12	T	A	.	.	COUNTS=0,1,0;GSC02=0,1;COM="NA12878_38_Dragen_abra"
+chr1	826893	13	G	A	.	.	COUNTS=8,0,0;GSC02=4,0;GSC04=1,0;GSC09=1,0;GSC11=1,0;GSC15=1,0;COM="NA12878_38_Dragen_abra"
+chr1	827209	14	G	C	.	.	COUNTS=4,0,0;GSC02=3,0;GSC04=1,0;COM="NA12878_38_Dragen_abra"
 chr1	827212	15	C	G	.	.	HAF;COM="NA12878_38_Dragen_abra"
 chr1	827221	16	T	C	.	.	HAF;COM="NA12878_38_Dragen_abra"
-chr1	827252	17	T	A	.	.	COUNTS=0,0;COM="NA12878_38_Dragen_abra"
-chr1	931132	18	C	CCCCT	.	.	COUNTS=0,0;COM="NA12878_38_Dragen_abra"
-chr1	935954	19	G	T	.	.	COUNTS=0,0;COM="NA12878_38_Dragen_abra"
-chr1	941119	20	A	G	.	.	COUNTS=0,0;COM="NA12878_38_Dragen_abra"
-chr1	62247552	1	C	G	.	.	COUNTS=2,2;GSC02=1,0;GSC14=1,2;COM="from%20NA12880"
-chr1	62247574	2	G	A	.	.	COUNTS=0,0;CLAS=5;CLAS_COM="pathogenic"
-chr1	62263112	3	A	G	.	.	COUNTS=0,1;GSC14=0,1
-chr1	62263166	4	T	C	.	.	COUNTS=1,2;GSC04=1,0;GSC14=0,2;COM="from%20DUMMY"
-chr1	119996708	5	C	T	.	.	COUNTS=1,0;GSC02=1,0
-chr1	120069350	6	G	A	.	.	COUNTS=0,0
-chr1	120069420	7	T	G	.	.	COUNTS=0,0
+chr1	827252	17	T	A	.	.	COUNTS=0,0,0;COM="NA12878_38_Dragen_abra"
+chr1	931132	18	C	CCCCT	.	.	COUNTS=0,0,0;COM="NA12878_38_Dragen_abra"
+chr1	935954	19	G	T	.	.	COUNTS=0,0,0;COM="NA12878_38_Dragen_abra"
+chr1	941119	20	A	G	.	.	COUNTS=0,0,0;COM="NA12878_38_Dragen_abra"
+chr1	62247552	1	C	G	.	.	COUNTS=2,2,0;GSC02=1,0;GSC14=1,2;COM="from%20NA12880"
+chr1	62247574	2	G	A	.	.	COUNTS=0,0,0;CLAS=5;CLAS_COM="pathogenic"
+chr1	62263112	3	A	G	.	.	COUNTS=0,1,0;GSC14=0,1
+chr1	62263166	4	T	C	.	.	COUNTS=1,2,0;GSC04=1,0;GSC14=0,2;COM="from%20DUMMY"
+chr1	119996708	5	C	T	.	.	COUNTS=1,0,0;GSC02=1,0
+chr1	120069350	6	G	A	.	.	COUNTS=0,0,0
+chr1	120069420	7	T	G	.	.	COUNTS=0,0,0
 chr1	120069426	8	T	TCCTCCTCCG	.	.	HAF;CLAS=1
-chr5	132589791	9	G	C	.	.	COUNTS=0,0
-chr6	81752209	21	GACGCGCGGCGGCGGAGAGC	GCCCC	.	.	COUNTS=1,1;GSC02=1,1;COM="NA12878_38_Dragen_abra"
+chr5	132589791	9	G	C	.	.	COUNTS=0,0,0
+chr6	81752209	21	GACGCGCGGCGGCGGAGAGC	GCCCC	.	.	COUNTS=1,1,0;GSC02=1,1;COM="NA12878_38_Dragen_abra"

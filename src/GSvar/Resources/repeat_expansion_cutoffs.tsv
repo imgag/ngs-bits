@@ -7,20 +7,20 @@ CNBP_CAGA	CAGA				1	only relevant as interruption of CAGG stretch
 CNBP_CA	CA				0	only relevant as interruption of CAGG stretch
 HTT	CAG	26	39	dominant	1	
 HTT_CCG	CCG				1	Polymorphism not disease causing
-RFC1	AARRG	13	400	rezessive		
+RFC1	AARRG	13	400	rezessive		shoud be validated conventionally before writing a report
 PHOX2B	GCN	20	24	dominant	1	
 PPP2R2B	GCT	32	66	dominant	1	
 ATXN1	TGC	35	39	dominant	1	
 TBP	GCA	40	49	dominant	0	
-C9ORF72	GGCCCC	20	30	dominant	0	
+C9ORF72	GGCCCC	20	30	dominant	0	shoud be validated conventionally before writing a report
 FXN_A	A					Not relevant
-FXN	GAA	35	66	rezessive		
+FXN	GAA	35	66	rezessive		shoud be validated conventionally before writing a report
 CBL	CGG				1	
 ATN1	CAG	35	48	dominant	1	
 DIP2B	GGC	23	350		1	
 ATXN2	GCT	31	33	dominant	1	
-ATXN8OS_CTA	CTA	50	80	dominant		
-ATXN8OS	CTG	50	80	dominant		
+ATXN8OS_CTA	CTA	50	80	dominant		Attention: ATXN8OS and ATXN8OS_CTA should be evaluted together
+ATXN8OS	CTG	50	80	dominant		Attention: ATXN8OS and ATXN8OS_CTA should be evaluted together
 ATXN3	GCT	44	60	dominant	1	
 NIPA1	CGC	9	9		1	apparently only in combination with C9orf72 expansion relevant
 JPH3	CTG	28	41	dominant	1	
@@ -32,5 +32,5 @@ NOP56_CGCCTG	CGCCTG			dominant	1	Not relevant
 CSTB	CGCGGGGCGGGG	3	30	rezessive	1	
 ATXN10	ATTCT	32	800	dominant		
 AR	GCA	34	35	x-chromosomal	1	
-FMR1	CGG	45	55	x-chromosomal	0	
+FMR1	CGG	45	55	x-chromosomal	0	shoud be validated conventionally before writing a report
 AFF2	GCC	39	200	x-chromosomal		

@@ -6,6 +6,7 @@
 #include "VariantList.h"
 #include "GenomeBuild.h"
 #include "NGSD.h"
+#include "TsvFile.h"
 #include <QTableWidgetItem>
 #include <QLabel>
 
@@ -33,7 +34,7 @@ public:
 	//colors imprinting and non-haploinsufficiency genes.
 	static void colorGeneItem(QTableWidgetItem* item, const GeneSet& genes);
 	//limit QLabel to certain number of lines
-	static void limitLines(QLabel* label, QString text, QString sep="\n", int max_lines=15);
+	static void limitLines(QLabel* label, QString text, int max_lines=15);
 
 	//Lift-over region from GRCh37 to GRCh38 (or the other way). Throws ArgumentException if conversion not possible.
 	static BedLine liftOver(const Chromosome& chr, int start, int end, bool hg19_to_hg38);
@@ -51,8 +52,14 @@ public:
 	//Queue the analysis of samples
 	static bool queueSampleAnalysis(AnalysisType type, const QList<AnalysisJobSample>& samples, QWidget* parent = 0);
 
-	//returns if the change of MaxEntScan is large enough to color it in the VariantTable, also provides percent- and abs-changes of MaxEntScan.
-	static bool colorMaxEntScan(QString anno, QList<double>& percentages, QList<double>& absValues);
+	//returns a warning message if genes with 'indikationsspezifische Abrechnung' are contained
+	static QString specialGenes(const GeneSet& genes);
+
+	//Returns a table struct containing all related cfDNA variant info for a given tumor sample
+	static CfdnaDiseaseCourseTable cfdnaTable(const QString& tumor_ps_name, QStringList& errors, bool throw_if_fails=true);
+
+	//Returns the coding and splicing entry (and genes through GeneSet reference) for a given variant
+	static QList<QStringList> annotateCodingAndSplicing(const VcfLine& variant, GeneSet& genes, bool add_flags=true, int offset=5000);
 
 protected:
 	GSvarHelper() = delete;

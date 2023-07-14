@@ -259,20 +259,20 @@ void VcfHeader::storeHeaderInformation(QTextStream& stream) const
 	//first line should always be the fileformat
 	stream << "##fileformat=" << fileformat_ << "\n";
 	//store all comment lines
-	for(VcfHeaderLine comment : file_comments_)
+	foreach(const VcfHeaderLine& comment, file_comments_)
 	{
 		comment.storeLine(stream);
 	}
 	//store info, filter, format
-	for(InfoFormatLine info : info_lines_)
+	foreach(const InfoFormatLine& info, info_lines_)
 	{
 		info.storeLine(stream, INFO_DESCRIPTION);
 	}
-	for(FilterLine filter : filter_lines_)
+	foreach(const FilterLine& filter, filter_lines_)
 	{
 		filter.storeLine(stream);
 	}
-	for(InfoFormatLine format : format_lines_)
+	foreach(const InfoFormatLine& format, format_lines_)
 	{
 		format.storeLine(stream, FORMAT_DESCRIPTION);
 	}
@@ -317,6 +317,17 @@ void VcfHeader::setFilterLine(const QByteArray& line, const int line_number)
 {
 	//split at '=' to get id and description part
 	QByteArrayList parts = line.mid(13, line.length()-15).split('=');
+
+	// ignore '=' in description part of filter header
+	if(parts.at(0).endsWith("Description"))
+	{
+		QByteArrayList tmp;
+		tmp << parts.at(0);
+		parts.removeFirst();
+		tmp << parts.join("=");
+		parts = tmp;
+	}
+
 	if(parts.count()!=2) THROW(FileParseException, "Malformed FILTER line " + QString::number(line_number) + " : conains more/less than two parts: " + line);
 
 	//remove 'Description' from first part

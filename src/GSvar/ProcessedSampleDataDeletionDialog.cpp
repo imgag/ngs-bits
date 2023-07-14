@@ -48,7 +48,7 @@ ProcessedSampleDataDeletionDialog::ProcessedSampleDataDeletionDialog(QWidget* pa
 	ui_.sample_table->setData(ps_table);
 
 	//Activate option for somatic variants/cnvs/report configuration if ids contains matched tumor-control
-	for(const auto& ps_id: ps_ids_)
+	foreach(const QString& ps_id, ps_ids_)
 	{
 		if(db.getProcessedSampleData(ps_id).normal_sample_name != "")
 		{
@@ -129,7 +129,7 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 		//somatic report config first (it references som. variants)
 		if (ui_.somatic_report_config->isChecked())
 		{
-			for(const auto& ps_tumor_id : ps_ids_)
+			foreach(const QString& ps_tumor_id, ps_ids_)
 			{
 				QString ps_normal_id = matchedNormalPsID(db, ps_tumor_id);
 				if(ps_normal_id == "") continue;
@@ -185,7 +185,7 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 		//somatic variants
 		if (ui_.somatic_var_small->isChecked())
 		{
-			for(const auto& ps_tumor_id : ps_ids_)
+			foreach(const QString& ps_tumor_id, ps_ids_)
 			{
 				QString ps_normal_id = matchedNormalPsID(db, ps_tumor_id);
 				if(ps_normal_id == "") continue;
@@ -195,7 +195,7 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 
 		if (ui_.somatic_var_cnv->isChecked())
 		{
-			for(const auto& ps_tumor_id : ps_ids_)
+			foreach(const QString& ps_tumor_id, ps_ids_)
 			{
 				QString ps_normal_id = matchedNormalPsID(db, ps_tumor_id);
 				if(ps_normal_id == "") continue;

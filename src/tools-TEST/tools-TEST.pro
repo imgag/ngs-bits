@@ -145,8 +145,13 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     NGSDExtractRNACohort_Test.h \
     VcfToBed_Test.h \
     TsvToQC_Test.h \
-        VcfAdd_Test.h \
-    NGSDImportGenlab_Test.h
+    VcfAdd_Test.h \
+    NGSDImportGenlab_Test.h \
+    NGSDExportStudyGHGA_Test.h \
+    VcfSubstract_Test.h \
+    TranscriptsToBed_Test.h \
+    GenesToTranscripts_Test.h \
+    NGSDImportSampleQC_Test.h
 
 SOURCES += \
     main.cpp

@@ -246,6 +246,29 @@
          </widget>
         </item>
         <item>
+         <spacer name="horizontalSpacer_8">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>5</width>
+            <height>5</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="mosaic_as_het">
+          <property name="text">
+           <string>also count mosaic variants</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="horizontalSpacer_7">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -338,10 +361,23 @@
         <item>
          <widget class="QCheckBox" name="filter_sys_wgs">
           <property name="toolTip">
-           <string>Whole genome sequencing.</string>
+           <string>Short-read whole genome sequencing.</string>
           </property>
           <property name="text">
-           <string>genomes</string>
+           <string>WGS</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="filter_sys_lrgs">
+          <property name="toolTip">
+           <string>Long-read whole genome sequencing.</string>
+          </property>
+          <property name="text">
+           <string>lrGS</string>
           </property>
           <property name="checked">
            <bool>true</bool>
@@ -351,7 +387,7 @@
         <item>
          <widget class="QCheckBox" name="filter_sys_wes">
           <property name="toolTip">
-           <string>Whole exome sequencing.</string>
+           <string>Short-read whole exome sequencing.</string>
           </property>
           <property name="text">
            <string>exomes</string>
@@ -578,7 +614,7 @@
       <bool>false</bool>
      </property>
      <property name="columnCount">
-      <number>23</number>
+      <number>25</number>
      </property>
      <attribute name="verticalHeaderVisible">
       <bool>false</bool>
@@ -595,12 +631,17 @@
      </column>
      <column>
       <property name="text">
+       <string>NGSD hom</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
        <string>NGSD het</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>NGSD hom</string>
+       <string>NGSD mosaic</string>
       </property>
      </column>
      <column>
@@ -636,6 +677,11 @@
      <column>
       <property name="text">
        <string>external sample name</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>gender</string>
       </property>
      </column>
      <column>
@@ -702,6 +748,34 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>radio_genes</tabstop>
+  <tabstop>radio_region</tabstop>
+  <tabstop>genes</tabstop>
+  <tabstop>region</tabstop>
+  <tabstop>filter_af</tabstop>
+  <tabstop>filter_ngsd_count</tabstop>
+  <tabstop>filter_impact_high</tabstop>
+  <tabstop>filter_impact_moderate</tabstop>
+  <tabstop>filter_impact_low</tabstop>
+  <tabstop>filter_impact_modifier</tabstop>
+  <tabstop>filter_recessive</tabstop>
+  <tabstop>filter_denovo</tabstop>
+  <tabstop>q_ps_good</tabstop>
+  <tabstop>q_ps_medium</tabstop>
+  <tabstop>q_ps_bad</tabstop>
+  <tabstop>q_ps_na</tabstop>
+  <tabstop>p_diagnostic</tabstop>
+  <tabstop>p_research</tabstop>
+  <tabstop>p_external</tabstop>
+  <tabstop>p_test</tabstop>
+  <tabstop>filter_sys_wgs</tabstop>
+  <tabstop>filter_sys_wes</tabstop>
+  <tabstop>filter_sys_other</tabstop>
+  <tabstop>update_btn</tabstop>
+  <tabstop>copy_btn</tabstop>
+  <tabstop>variants</tabstop>
+ </tabstops>
  <resources>
   <include location="GSvar.qrc"/>
  </resources>

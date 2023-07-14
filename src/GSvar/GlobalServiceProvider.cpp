@@ -7,13 +7,14 @@
 #include "StatisticsServiceRemote.h"
 #include "MainWindow.h"
 #include "GSvarHelper.h"
+#include "ClientHelper.h"
 
 GlobalServiceProvider::GlobalServiceProvider()
   : file_location_provider_()
   , database_service_()
   , statistics_service_()
 {
-	if (NGSHelper::isClientServerMode())
+	if (ClientHelper::isClientServerMode())
 	{		
 		database_service_ = QSharedPointer<DatabaseService>(new DatabaseServiceRemote());
 		statistics_service_ = QSharedPointer<StatisticsService>(new StatisticsServiceRemote());
@@ -173,106 +174,8 @@ void GlobalServiceProvider::loadFileInIGV(QString filename, bool init_if_not_don
 	//normalize local files
 	filename = Helper::canonicalPath(filename);
 
-	if (NGSHelper::isClientServerMode()) executeCommandInIGV("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*", init_if_not_done, is_virus_genome);
-	executeCommandInIGV("load \"" + NGSHelper::stripSecureToken(filename) + "\"", init_if_not_done, is_virus_genome);
-}
-
-int GlobalServiceProvider::createIGVSession(int port, bool is_initialized, QString genome)
-{
-	if (port<=0) THROW(ProgrammingException, "Port number is not set!");
-	if (genome.isEmpty()) THROW(ProgrammingException, "Genome path is not set!");
-
-	instance().mutex_.lock();
-	instance().session_list_.append(IGVSession{port, is_initialized, genome});
-	instance().mutex_.unlock();
-	return instance().session_list_.count()-1;
-}
-
-void GlobalServiceProvider::removeIGVSession(int session_index)
-{
-	if ((session_index<0) || (session_index>instance().session_list_.count()-1)) THROW(ProgrammingException, "Invalid session index!");
-	instance().mutex_.lock();
-	instance().session_list_.removeAt(session_index);
-	instance().mutex_.unlock();
-}
-
-int GlobalServiceProvider::findAvailablePortForIGV()
-{
-	int port = Settings::integer("igv_port");
-	if (LoginManager::active())
-	{
-		port += LoginManager::userId();
-	}
-	port += instance().session_list_.count() * 1000 + 1000;
-	return port;
-}
-
-int GlobalServiceProvider::getIGVPort(int session_index)
-{
-	if (session_index<0) THROW(ProgrammingException, "Invalid session index has not been provided!");
-	if (instance().session_list_.count()>=(session_index+1))
-	{
-		return instance().session_list_[session_index].port;
-	}
-	return -1;
-}
-
-void GlobalServiceProvider::setIGVPort(int port, int session_index)
-{
-	if (port<=0) THROW(ProgrammingException, "Port number is not set!");
-	if (session_index<0) THROW(ProgrammingException, "Invalid session index has not been provided!");
-	if (instance().session_list_.count()>=(session_index-1))
-	{
-		instance().mutex_.lock();
-		instance().session_list_[session_index].port = port;
-		instance().mutex_.unlock();
-	}
-}
-
-QString GlobalServiceProvider::getIGVGenome(int session_index)
-{
-	if (session_index<0) THROW(ProgrammingException, "Invalid session index has not been provided!");
-	if (instance().session_list_.count()>=(session_index+1))
-	{
-		return instance().session_list_[session_index].genome;
-	}
-	return "";
-}
-
-void GlobalServiceProvider::setIGVGenome(QString genome, int session_index)
-{
-	if (genome.isEmpty()) THROW(ProgrammingException, "Genome is not set!");
-	if (session_index<0) THROW(ProgrammingException, "Invalid session index has not been provided!");
-	if (instance().session_list_.count()>=(session_index-1))
-	{
-		instance().mutex_.lock();
-		instance().session_list_[session_index].genome = genome;
-		instance().mutex_.unlock();
-	}
-}
-
-bool GlobalServiceProvider::isIGVInitialized(int session_index)
-{
-	if (session_index<0) THROW(ProgrammingException, "Invalid session index has not been provided!");
-
-	if (instance().session_list_.count()>=(session_index+1))
-	{
-		return instance().session_list_[session_index].is_initialized;
-	}
-
-	return false;
-}
-
-void GlobalServiceProvider::setIGVInitialized(bool is_initialized, int session_index)
-{
-	if (session_index<0) THROW(ProgrammingException, "Invalid session index has not been provided!");
-
-	if (instance().session_list_.count()>=(session_index+1))
-	{
-		instance().mutex_.lock();
-		instance().session_list_[session_index].is_initialized = is_initialized;
-		instance().mutex_.unlock();
-	}
+	if (ClientHelper::isClientServerMode()) executeCommandInIGV("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*", init_if_not_done, is_virus_genome);
+	executeCommandInIGV("load \"" + ClientHelper::stripSecureToken(filename) + "\"", init_if_not_done, is_virus_genome);
 }
 
 void GlobalServiceProvider::openGSvarViaNGSD(QString processed_sample_name, bool search_multi)

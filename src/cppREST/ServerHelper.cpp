@@ -68,25 +68,9 @@ QString ServerHelper::getUrlWithoutParams(const QString& url)
 	return url_parts[0];
 }
 
-QString ServerHelper::getUrlProtocol(const bool& return_http)
-{
-	if (return_http) return "http://";
-	return "https://";
-}
-
-QString ServerHelper::getUrlPort(const bool& return_http)
-{
-	QString port = "";
-	if (return_http) port = ServerHelper::getStringSettingsValue("http_server_port");
-	if (!return_http) port = ServerHelper::getStringSettingsValue("https_server_port");
-	if (!port.isEmpty()) port = ":" + port;
-	return port;
-}
-
 bool ServerHelper::hasBasicSettings()
 {
-	if (!ServerHelper::getStringSettingsValue("https_server_port").isEmpty() &&
-		!ServerHelper::getStringSettingsValue("http_server_port").isEmpty() &&
+	if (!ServerHelper::getStringSettingsValue("server_port").isEmpty() &&
 		!ServerHelper::getStringSettingsValue("server_host").isEmpty() &&
 		!ServerHelper::getStringSettingsValue("ssl_certificate").isEmpty() &&
 		!ServerHelper::getStringSettingsValue("ssl_key").isEmpty() &&
@@ -98,20 +82,14 @@ bool ServerHelper::hasBasicSettings()
 	return false;
 }
 
-QString ServerHelper::getServerUrl(const bool& return_http)
-{
-	return getUrlProtocol(return_http) + ServerHelper::getStringSettingsValue("server_host") +
-			ServerHelper::getUrlPort(return_http);
-}
-
 QString ServerHelper::getSessionBackupFileName()
-{	
-	return getStandardFileLocation() + QCoreApplication::applicationName() + "_sessions.txt";
+{
+    return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName() + "_sessions.txt";
 }
 
 QString ServerHelper::getUrlStorageBackupFileName()
-{	
-	return getStandardFileLocation() + QCoreApplication::applicationName() + "_urls.txt";
+{
+    return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName() + "_urls.txt";
 }
 
 void ServerHelper::setServerStartDateTime(QDateTime date_and_time)

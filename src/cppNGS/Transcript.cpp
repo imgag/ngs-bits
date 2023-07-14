@@ -21,6 +21,8 @@ QStringList Transcript::flags(bool add_square_brackets) const
 	QStringList output;
 
 	if (isPreferredTranscript()) output += "NGSD preferred transcript";
+	if (isGencodeBasicTranscript()) output << "GENCODE basic";
+	if (isEnsemblCanonicalTranscript()) output << "Ensembl canonical";
 	if (isManeSelectTranscript()) output << "MANE select";
 	if (isManePlusClinicalTranscript()) output << "MANE plus clinical";
 
@@ -267,6 +269,7 @@ QByteArray Transcript::biotypeToString(Transcript::BIOTYPE biotype)
 	else if (biotype==UNPROCESSED_PSEUDOGENE) return "unprocessed pseudogene";
 	else if (biotype==VAULTRNA) return "vaultRNA";
 	else if (biotype==ARTIFACT) return "artifact";
+	else if (biotype==PROTEIN_CODING_CDS_NOT_DEFINED) return "protein coding CDS not defined";
 
 	THROW(ProgrammingException, "Unhandled transcript biotype enum value '" + QString::number(biotype) + "!");
 }
@@ -322,6 +325,7 @@ Transcript::BIOTYPE Transcript::stringToBiotype(QByteArray biotype_orig)
 	else if (biotype=="VAULTRNA") return VAULTRNA;
 	else if (biotype=="VAULT_RNA") return VAULTRNA; //bug in Ensembl GFF in version 105
 	else if (biotype=="ARTIFACT") return ARTIFACT;
+	else if (biotype=="PROTEIN_CODING_CDS_NOT_DEFINED") return PROTEIN_CODING_CDS_NOT_DEFINED;
 
 	THROW(ProgrammingException, "Unknown transcript biotype string '" + biotype_orig + "'!");
 }
@@ -434,15 +438,15 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 		THROW(ProgrammingException, "Invalid HGVS.c prefix '" + hgvs_c.left(2) + "'. Must be 'c.' or 'n.'!");
 	}
 
-	int length = hgvs_c.length();
-	if (length<4) THROW(ProgrammingException, "Invalid cDNA change '" + hgvs_c + "'!");
-	//qDebug() << "### cDNA:" << hgvs_c << "###";
-
 	//fix unneeded suffixes at the end of 'dup' and 'del' entries
 	hgvs_c.replace(QRegExp("dup[ACGTN]+"), "dup");
 	hgvs_c.replace(QRegExp("del[ACGTN]+"), "del");
 	hgvs_c.replace(QRegExp("dup[0-9]+"), "dup");
 	hgvs_c.replace(QRegExp("del[0-9]+"), "del");
+
+	int length = hgvs_c.length();
+	if (length<4) THROW(ProgrammingException, "Invalid cDNA change '" + hgvs_c + "'!");
+	//qDebug() << "### cDNA:" << hgvs_c << "###";
 
 	//SNV
 	if(hgvs_c.at(length-4).isDigit() && hgvs_c.at(length-3).isLetter() && hgvs_c.at(length-2)=='>' && hgvs_c.at(length-1).isLetter())
@@ -996,8 +1000,8 @@ bool TranscriptList::TranscriptRelevanceComparator::operator()(const Transcript&
 	if (a_coding<b_coding) return false;
 
 	//relevant transcript (relevant first)
-	bool a_main_transcipt = a.isPreferredTranscript() || a.isManeSelectTranscript() || a.isManePlusClinicalTranscript();
-	bool b_main_transcipt = b.isPreferredTranscript() || b.isManeSelectTranscript() || b.isManePlusClinicalTranscript();
+	bool a_main_transcipt = a.isPreferredTranscript() || a.isManeSelectTranscript() || a.isManePlusClinicalTranscript() || a.isEnsemblCanonicalTranscript();
+	bool b_main_transcipt = b.isPreferredTranscript() || b.isManeSelectTranscript() || b.isManePlusClinicalTranscript() || a.isEnsemblCanonicalTranscript();
 	if (a_main_transcipt && !b_main_transcipt) return true;
 	if (!a_main_transcipt && b_main_transcipt) return false;
 

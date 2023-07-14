@@ -150,7 +150,7 @@
       <item row="1" column="0" colspan="2">
        <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Here, the likelihood of seeing a at least as extreme distribution as the given depth/allele count is calcualted for a heterozygous variant.&lt;br/&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note: a probability of 50% for each allele is assumed. The calcualted likelihood is not correct if this does not hold, e.g. when part of the enrichment probes in WES do not bind because of a variant. For WGS, the assumption should hold.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Here, the likelihood of seeing a at least as extreme distribution as the given depth/allele count is calculated for a heterozygous variant.&lt;br/&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note: a probability of 50% for each allele is assumed. The calculated likelihood is not correct if this does not hold, e.g. when part of the enrichment probes in WES do not bind because of a variant. For WGS, the assumption should hold.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="wordWrap">
          <bool>true</bool>

@@ -27,7 +27,7 @@ public:
 	void addAliases(SqlQuery& query, const QVariant& gene_id, const QByteArray& name_str, QVariant type)
 	{
 		QList<QByteArray> names = name_str.split('|');
-		for(QByteArray name : names)
+		foreach(QByteArray name, names)
 		{
 			name.replace("\"", "");
 			name = name.trimmed().toUpper();
@@ -210,13 +210,15 @@ public:
 
 		//prepare SQL queries
 		SqlQuery gene_query = db.getQuery();
-		gene_query.prepare("INSERT INTO gene (hgnc_id, symbol, name, type, ensembl_id) VALUES (:0, :1, :2, :3, :4);");
+		gene_query.prepare("INSERT INTO gene (hgnc_id, symbol, name, type, ensembl_id, ncbi_id) VALUES (:0, :1, :2, :3, :4, :5);");
 		SqlQuery alias_query = db.getQuery();
 		alias_query.prepare("INSERT INTO gene_alias (gene_id, symbol, type) VALUES (:0, :1, :2);");
 
 		while(!fp->atEnd())
 		{
-			QByteArray line = fp->readLine().trimmed();
+			QByteArray line = fp->readLine();
+			while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
+			
 			if (line.isEmpty() || line.startsWith("hgnc_id")) continue;
 			QList<QByteArray> parts = line.split('\t');
 			if (parts.count()<11) THROW(FileParseException, "Invalid line (too few values): " + line);
@@ -235,7 +237,7 @@ public:
 			QByteArray id = parts[0].mid(5);
 			QByteArray symbol = parts[1].toUpper();
 
-			//extract Ensembl ID:
+			//extract Ensembl ID
 			QVariant ensg_id = QVariant();
 			if ((parts.size() > 19) && (!parts[19].trimmed().isEmpty()))
 			{
@@ -251,12 +253,21 @@ public:
 				}
 			}
 
+			//extract NCBI id (entrez_id)
+			QVariant ncbi_id;
+			QByteArray entrez_id = parts[18].trimmed();
+			if (!entrez_id.isEmpty())
+			{
+				ncbi_id = Helper::toInt(entrez_id, "entrez_id", line);
+			}
+
 			//insert gene
 			gene_query.bindValue(0, id);
 			gene_query.bindValue(1, symbol);
 			gene_query.bindValue(2, parts[2]);
 			gene_query.bindValue(3, locus);
 			gene_query.bindValue(4, ensg_id);
+			gene_query.bindValue(5, ncbi_id);
 			gene_query.exec();
 			QVariant gene_id = gene_query.lastInsertId();
 			n_imported++;
@@ -269,7 +280,8 @@ public:
 
 		//update gene symbols in geneinfo_germline and somatic_gene_role table
 		updateTable(db, "geneinfo_germline");
-		updateTable(db, "expression");
+		//TODO: delete all deprecated entries?
+		//updateTable(db, "expression");
 		updateTable(db, "somatic_gene_role");
 		updateTable(db, "somatic_pathway_gene");
 

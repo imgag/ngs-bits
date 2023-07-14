@@ -62,9 +62,11 @@ Just execute the following make commands:
 	> make build_libs_release
 	> make build_tools_release
 
+If you need to build a different version of htslib, please follow [these instructions](build_htslib.md#linux_mac)
+
 ## Deployment
 
-For yet unknown reasons, GSvar could not detect *.dylib files located at the same folder on testing machines. It looks searches for the libraries at /usr/local/lib instead.
+For yet unknown reasons, GSvar could not detect *.dylib files located at the same folder on testing machines. It searches for the libraries at /usr/local/lib instead.
 
 Currently used temporary fix looks like that:
  

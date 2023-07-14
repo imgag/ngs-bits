@@ -12,7 +12,7 @@ ngs-bits depends on the following software to be installed
 
 For example, the installation of the dependencies using Ubuntu 20.04 looks like that:
 
-	> sudo apt-get install git make g++ qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql libqt5charts5-dev git python3 python3-matplotlib libbz2-dev liblzma-dev libcurl4 libcurl4-openssl-dev zlib1g-dev
+	> sudo apt-get install git make g++ qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql libqt5charts5-dev python3 python3-matplotlib libbz2-dev liblzma-dev libcurl4 libcurl4-openssl-dev zlib1g-dev
     
 ### Resolving proxy issues with git
 
@@ -35,6 +35,8 @@ Just execute the following make commands:
     > make build_3rdparty
 	> make build_libs_release
 	> make build_tools_release
+
+If you need to build a different version of [htslib](https://github.com/samtools/htslib), please follow [these instructions](build_htslib.md#linux_mac)
 
 ## Executing
 
@@ -69,3 +71,55 @@ To build GSvar, execute the following command:
     > make build_gui_release
 
 Now you need to [configure GSVar](GSvar/configuration.md).
+
+## Running a development server on a (local) machine
+
+### Setting up a GSvar server for testing (on Ubuntu)
+
+First you need a unused port on the development server. You can either select a random 5-digit port and check with `netstat -lntu` if the port is already used.
+Or you can use the following 1-liner to get a free port from the kernel:
+
+    > python -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()' 
+
+Additionally you have to provide a certificate. If you do not have a valid certificate for your machine you can create a self-signed one:
+
+    > openssl genrsa -out GSvarServer.key 2048
+    > openssl req -new -key GSvarServer.key -out GSvarServer.csr
+    > openssl x509 -signkey GSvarServer.key -in GSvarServer.csr -req -days 365 -out GSvarServer.crt
+
+If you use self-signed certificates IGV and libcurl will not work.(See possible fix [below](#trust-self-signed-certificates-on-ubuntu))
+
+Next you have to create a `GSvarServer.ini` in the `bin`folder:
+
+    > cp bin/GSvarServer.ini.example bin/GSvarServer.ini
+
+And fill in all required settings (like port, NGSD credentials, sample paths, ...). If the server runs on a different machine than the client you have to use the hostname/dns name of the server for `server_host`.
+
+If you use encrypted passwords you have to add the crypt key to the `cppCORE` directory (sometimes not working on linux) or directly to the `cppCORE.pro` file. 
+
+Next step is to build the server:
+
+    > make build_libs_release build_server_release
+
+And run it:
+
+    > ./bin/GSvarServer
+
+Now you can adapt the settings in your client and connect to the server.
+
+
+### Trust self-signed certificates on Ubuntu
+For the development and testing purposes it is possible to run a local instance of GSvar Server. However, if you are using self-signed certificates, you will have to make them trusted (otherwise IGV and libcurl will not be able to verify them):
+
+Install CA certificates package:
+
+    > sudo apt-get install ca-certificates
+
+Copy your self-signed certificate to this location:
+
+    > sudo cp YOUR_CERTIFICATE.crt /usr/local/share/ca-certificates
+
+Update the list of certificate authorities:
+
+    > sudo update-ca-certificates
+

@@ -1,46 +1,18 @@
+#include "RepeatExpansionWidget.h"
 #include <QDir>
 #include <QFile>
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QDesktopServices>
 #include <QMenu>
-#include "RepeatExpansionWidget.h"
 #include "Helper.h"
 #include "GUIHelper.h"
 #include "TsvFile.h"
 #include "VcfFile.h"
 #include "GlobalServiceProvider.h"
 #include "GeneInfoDBs.h"
-#include "NGSHelper.h"
+#include "ClientHelper.h"
 #include "Log.h"
-
-NumericWidgetItem::NumericWidgetItem(QString text):
-	QTableWidgetItem(text)
-{
-	setTextAlignment(Qt::AlignRight);
-	// make cell readonly
-	setFlags(flags() & (~Qt::ItemIsEditable));
-}
-
-bool NumericWidgetItem::operator<(const QTableWidgetItem& other) const
-{
-	// return false for empty cells
-	if (text().trimmed().isEmpty()) return false;
-	if (other.text().trimmed().isEmpty()) return true;
-
-	//handle numeric limits
-	if (text() == "nan") return true;
-	if (other.text() == "nan") return false;
-//	if (text() == "-inf") return true;
-//	if (other.text() == "-inf") return false;
-//	if (text() == "inf") return false;
-//	if (other.text() == "inf") return true;
-
-	//convert text to double
-	double this_value = Helper::toDouble(text());
-	double other_value = Helper::toDouble(other.text());
-	return (this_value < other_value);
-}
 
 RepeatExpansionWidget::RepeatExpansionWidget(QString vcf_filename, bool is_exome, QWidget* parent)
 	: QWidget(parent)
@@ -82,7 +54,7 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
     {
         //open SVG in browser
 		QString filename = image_loc.filename;
-		if (!NGSHelper::isClientServerMode()) filename = QFileInfo(image_loc.filename).absoluteFilePath();
+		if (!ClientHelper::isClientServerMode()) filename = QFileInfo(image_loc.filename).absoluteFilePath();
 
 		QDesktopServices::openUrl(QUrl(filename));
 	}
@@ -247,7 +219,7 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 
 		//create repeat tool tip:
 		QStringList repeat_tool_tip_text;
-		if(cutoff_info.max_normal != -1) repeat_tool_tip_text.append("normal: \t≤ " + QString::number(cutoff_info.max_normal));
+		if(cutoff_info.max_normal != -1) repeat_tool_tip_text.append("normal:  \t\t≤ " + QString::number(cutoff_info.max_normal));
 		else repeat_tool_tip_text.append("normal: \t unkown ");
 		if(cutoff_info.min_pathogenic != -1) repeat_tool_tip_text.append("pathogenic: \t≥ " + QString::number(cutoff_info.min_pathogenic));
 		else repeat_tool_tip_text.append("pathogenic: \t unkown ");
@@ -256,8 +228,8 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 
 		//add position
 		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString(re.chr().strNormalized(true))));
-		ui_.repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(QString::number(re.start())));
-		ui_.repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(info_end));
+		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(re.start()));
+		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(info_end.toInt()));
 
 		//add repeat
 		QTableWidgetItem* repeat_id_cell = GUIHelper::createTableItem(info_repid);
@@ -310,7 +282,7 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 		repeat_cell->setToolTip(repeat_tool_tip_text.join('\n'));
 
 		ui_.repeat_expansions->setItem(row_idx, col_idx++, repeat_cell);
-		ui_.repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(info_ref));
+		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(info_ref.toInt()));
 
 		//add additional info
 		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(format_repci.replace(".", "-")));
@@ -322,7 +294,7 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 
 		//round local coverage
 		double coverage = Helper::toDouble(format_lc);
-		ui_.repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(QString::number(coverage, 'f', 2)));
+		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(coverage, 2));
 
 		//add read counts
 		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(format_adfl.replace(".", "-")));

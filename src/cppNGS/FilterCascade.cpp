@@ -969,6 +969,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["SV allele frequency NGSD"] = &createInstance<FilterSvAfNGSD>;
 		output["SV break point density NGSD"] = &createInstance<FilterSvBreakpointDensityNGSD>;
         output["SV trio"] = &createInstance<FilterSvTrio>;
+		output["SV CNV overlap"] = &createInstance<FilterSvCnvOverlap>;
 		output["Splice effect"] = &createInstance<FilterSpliceEffect>;
 		output["RNA ASE allele frequency"] = &createInstance<FilterVariantRNAAseAlleleFrequency>;
 		output["RNA ASE depth"] = &createInstance<FilterVariantRNAAseDepth>;
@@ -1331,14 +1332,15 @@ FilterVariantCountNGSD::FilterVariantCountNGSD()
 	description_ = QStringList() << "Filter based on the hom/het occurances of a variant in the NGSD.";
 	params_ << FilterParameter("max_count", FilterParameterType::INT, 20, "Maximum NGSD count");
 	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("ignore_genotype", FilterParameterType::BOOL, false, "If set, all NGSD entries are counted independent of the variant genotype. Otherwise, for homozygous variants only homozygous NGSD entries are counted and for heterozygous variants all NGSD entries are counted.");
+	params_ << FilterParameter("ignore_genotype", FilterParameterType::BOOL, false, "If set, all variants in NGSD are counted independent of the genotype. Otherwise, for homozygous variants only homozygous NGSD variants are counted and for heterozygous variants homozygous and heterozygous NGSD variants are counted.");
+	params_ << FilterParameter("mosaic_as_het", FilterParameterType::BOOL, false, "If set, mosaic variants are counted as heterozygous. Otherwise, they are not counted.");
 
 	checkIsRegistered();
 }
 
 QString FilterVariantCountNGSD::toText() const
 {
-	return name() + " &le; " + QString::number(getInt("max_count", false)) + (getBool("ignore_genotype") ? " (ignore genotype)" : "");
+	return name() + " &le; " + QString::number(getInt("max_count", false)) + (getBool("ignore_genotype") ? " (ignore genotype)" : "") + + (getBool("mosaic_as_het") ? " (mosaic as het)" : "");
 }
 
 void FilterVariantCountNGSD::apply(const VariantList& variants, FilterResult& result) const
@@ -1349,6 +1351,8 @@ void FilterVariantCountNGSD::apply(const VariantList& variants, FilterResult& re
 
 	int i_ihdb_hom = annotationColumn(variants, "NGSD_hom");
 	int i_ihdb_het = annotationColumn(variants, "NGSD_het");
+	int i_ihdb_mosaic = annotationColumn(variants, "NGSD_mosaic", false);
+	bool mosaic_as_het = getBool("mosaic_as_het");
 
 	if (getBool("ignore_genotype"))
 	{
@@ -1356,7 +1360,10 @@ void FilterVariantCountNGSD::apply(const VariantList& variants, FilterResult& re
 		{
 			if (!result.flags()[i]) continue;
 
-			result.flags()[i] = (variants[i].annotations()[i_ihdb_hom].toInt() + variants[i].annotations()[i_ihdb_het].toInt()) <= max_count;
+			int count = variants[i].annotations()[i_ihdb_het].toInt() + variants[i].annotations()[i_ihdb_hom].toInt();
+			if (mosaic_as_het && i_ihdb_mosaic!=-1) count += variants[i].annotations()[i_ihdb_mosaic].toInt();
+
+			result.flags()[i] = count <= max_count;
 		}
 	}
 	else
@@ -1385,7 +1392,11 @@ void FilterVariantCountNGSD::apply(const VariantList& variants, FilterResult& re
 				}
 			}
 
-			result.flags()[i] = (variants[i].annotations()[i_ihdb_hom].toInt() + (var_is_hom ? 0 : variants[i].annotations()[i_ihdb_het].toInt())) <= max_count;
+			int count = variants[i].annotations()[i_ihdb_hom].toInt();
+			if (!var_is_hom) count += variants[i].annotations()[i_ihdb_het].toInt();
+			if (!var_is_hom && mosaic_as_het && i_ihdb_mosaic!=-1) count += variants[i].annotations()[i_ihdb_mosaic].toInt();
+
+			result.flags()[i] = count <= max_count;
 		}
 	}
 }
@@ -5144,10 +5155,13 @@ FilterSpliceEffect::FilterSpliceEffect()
 	name_="Splice effect";
 	type_ = VariantType::SNVS_INDELS;
 	description_ = QStringList() << "Filter based on the predicted change in splice effect";
-	params_ << FilterParameter("MaxEntScan", FilterParameterType::INT, -15, "Minimum percentage change in the value of MaxEntScan. Positive min. increase, negative min. decrease. Disabled if set to zero.");
-	params_ << FilterParameter("SpliceAi", FilterParameterType::DOUBLE, 0.5, "Minimum SpliceAi value. Disabled if set to zero.");
+	params_ << FilterParameter("SpliceAi", FilterParameterType::DOUBLE, 0.5, "Minimum SpliceAi score. Disabled if set to zero.");
 	params_.last().constraints["min"] = "0";
 	params_.last().constraints["max"] = "1";
+	params_ << FilterParameter("MaxEntScan", FilterParameterType::STRING, "HIGH", "Minimum predicted splice effect. Disabled if set to LOW.");
+	params_.last().constraints["valid"] = "HIGH,MODERATE,LOW";
+	params_ << FilterParameter("splice_site_only", FilterParameterType::BOOL, true, "Use native splice site predictions only. Skip de-novo acceptor/donor predictions (MaxEntScan).");
+	params_.last().constraints["valid"] = "both,native splice sites,de-novo acceptors/donors";
 	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
 	params_.last().constraints["valid"] = "KEEP,FILTER";
 	checkIsRegistered();
@@ -5156,10 +5170,24 @@ FilterSpliceEffect::FilterSpliceEffect()
 QString FilterSpliceEffect::toText() const
 {
 	QString text = this->name() + " " + getString("action");
-	int mes = getInt("MaxEntScan", false);
-	text += " maxEntScan>=" + QString::number(mes) +"%";
-	double sai = getDouble("SpliceAi", false);
-	text += " SpliceAi>=" + QString::number(sai);
+
+	double min_sai = getDouble("SpliceAi", false);
+	if (min_sai>0)
+	{
+		text += " SpliceAi>=" + QString::number(min_sai, 'f', 2);
+	}
+
+	QString min_mes = getString("MaxEntScan", false);
+	if (min_mes!="LOW")
+	{
+		text += " maxEntScan>=" + min_mes;
+	}
+
+	if (getBool("splice_site_only"))
+	{
+		text += " (splice_site_only)";
+	}
+
 	return text;
 }
 
@@ -5168,13 +5196,18 @@ void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &re
 	if (!enabled_) return;
 
 	int idx_sai = annotationColumn(variant_list, "SpliceAi");
-	double sai = getDouble("SpliceAi");
+	double min_sai = getDouble("SpliceAi");
 
 	int idx_mes = annotationColumn(variant_list, "MaxEntScan");
-	int mes = getInt("MaxEntScan");
+	MaxEntScanImpact min_mes = MaxEntScanImpact::LOW;
+	QByteArray min_mes_str = getString("MaxEntScan").toUtf8();
+	if (min_mes_str=="MODERATE") min_mes = MaxEntScanImpact::MODERATE;
+	if (min_mes_str=="HIGH") min_mes = MaxEntScanImpact::HIGH;
+
+	bool splice_site_only = getBool("splice_site_only");
 
 	// if all filters are deactivated return
-	if (sai == 0 && mes == 0) return;
+	if (min_sai==0 && min_mes==MaxEntScanImpact::LOW) return;
 
 	// action FILTER
 	if (getString("action") == "FILTER")
@@ -5184,23 +5217,18 @@ void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &re
 			if (!result.flags()[i]) continue;
 
 			//If the variant has no value for all possible filters remove it
-			if (variant_list[i].annotations()[idx_sai].isEmpty() && variant_list[i].annotations()[idx_mes].isEmpty())
+			QByteArray sai_anno = variant_list[i].annotations()[idx_sai].trimmed();
+			QByteArray mes_anno = variant_list[i].annotations()[idx_mes].trimmed();
+			if (sai_anno.isEmpty() && mes_anno.isEmpty())
 			{
 				result.flags()[i] = false;
 				continue;
 			}
 
-			// SpliceAi filter:
-			if (sai > 0)
-			{
-				if (applySpliceAi_(variant_list[i], idx_sai)) continue;
-			}
+			//apply filters
+			if (applySpliceAi_(sai_anno, min_sai)) continue;
+			if (applyMaxEntScanFilter_(mes_anno, min_mes, splice_site_only)) continue;
 
-			// MaxEntScan filter:
-			if (mes != 0)
-			{
-				if (applyMaxEntScanFilter_(variant_list[i], idx_mes)) continue;
-			}
 			result.flags()[i] = false;
 		}
 	}
@@ -5211,92 +5239,41 @@ void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &re
 		{
 			if (result.flags()[i]) continue;
 
-			// SpliceAi filter:
-			if (sai > 0)
+			if (applySpliceAi_(variant_list[i].annotations()[idx_sai].trimmed(), min_sai))
 			{
-				if (applySpliceAi_(variant_list[i], idx_sai))
-				{
-					result.flags()[i] = true;
-					continue;
-				}
+				result.flags()[i] = true;
+				continue;
 			}
 
-			// MaxEntScan filter:
-			if (mes != 0)
+			if (applyMaxEntScanFilter_(variant_list[i].annotations()[idx_mes].trimmed(), min_mes, splice_site_only))
 			{
-				if (applyMaxEntScanFilter_(variant_list[i], idx_mes))
-				{
-					result.flags()[i] = true;
-					continue;
-				}
+				result.flags()[i] = true;
+				continue;
 			}
 		}
 	}
 }
 
-double FilterSpliceEffect::calculatePercentageChangeMES_(const QByteArray& value) const
+bool FilterSpliceEffect::applyMaxEntScanFilter_(const QByteArray& mes_anno, MaxEntScanImpact min_mes, bool splice_site_only) const
 {
-	QByteArrayList parts = value.split('>');
-	if (parts.count() < 2) return 0;
-	double percentChange;
-	double base = parts[0].toDouble();
-	double newValue = parts[1].toDouble();
-
-	if (base == 0) return 0; // infinite change... ?
-
-	if (base > 0)
+	if (!mes_anno.isEmpty() && min_mes!=MaxEntScanImpact::LOW)
 	{
-		percentChange = (newValue - base) / base;
-	}
-	else
-	{
-		percentChange = (base - newValue) / base;
-	}
-
-	return percentChange*100;
-}
-
-bool FilterSpliceEffect::applyMaxEntScanFilter_(const Variant& var, int idx_mes) const
-{
-	int mes = getInt("MaxEntScan");
-
-	QByteArray var_mes = var.annotations()[idx_mes];
-	if ( ! var_mes.trimmed().isEmpty())
-	{
-		QByteArrayList var_mes_list = var_mes.split(',');
-		foreach (QByteArray value, var_mes_list)
+		foreach (QByteArray entry, mes_anno.split(','))
 		{
-			double percentChange = calculatePercentageChangeMES_(value);
-			if (mes < 0)
-			{
-				if (percentChange <= mes)
-				{
-					return true;
-				}
-			}
-			else
-			{
-				if (percentChange >= mes)
-				{
-					return true;
-				}
-			}
+			QByteArray details;
+			MaxEntScanImpact impact = NGSHelper::maxEntScanImpact(entry.split('/'), details, splice_site_only);
+			if (impact==MaxEntScanImpact::HIGH) return true;
+			if (impact==MaxEntScanImpact::MODERATE && min_mes==MaxEntScanImpact::MODERATE) return true;
 		}
 	}
 	return false;
 }
 
-bool FilterSpliceEffect::applySpliceAi_(const Variant& var, int idx_sai) const
+bool FilterSpliceEffect::applySpliceAi_(const QByteArray& sai_anno, double min_sai) const
 {
-	double sai = getDouble("SpliceAi");
-
-	QByteArray sai_value = var.annotations()[idx_sai];
-	if ( ! sai_value.trimmed().isEmpty())
+	if (!sai_anno.isEmpty() && min_sai>0)
 	{
-		if (sai_value.toDouble() >= sai)
-		{
-			return true;
-		}
+		if (sai_anno.toDouble() >= min_sai)	return true;
 	}
 	return false;
 }
@@ -5629,6 +5606,50 @@ void FilterVariantRNAExpressionZScore::apply(const VariantList& variants, Filter
 				break;
 			}
 		}
+	}
+}
+
+
+FilterSvCnvOverlap::FilterSvCnvOverlap()
+{
+	name_ = "SV CNV overlap";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Filter the removes DEL/DUP without support from CNV calling.";
+	params_ << FilterParameter("min_ol", FilterParameterType::DOUBLE, 0.50, "Minimum CNV overlap.");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+	params_ << FilterParameter("min_size", FilterParameterType::INT, 10000, "Minimum SV size in bases.");
+	params_.last().constraints["min"] = "0";
+}
+
+QString FilterSvCnvOverlap::toText() const
+{
+	return name() + " &ge; " + QString::number(getDouble("min_ol", false), 'f', 2)+ " (size &ge; " + QString::number(getInt("min_size", false)/1000.0, 'f', 2) + "kb)";
+}
+
+void FilterSvCnvOverlap::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	//init
+	double min_ol = getDouble("min_ol", false);
+	int ol_col = svs.annotationIndexByName("CNV_OVERLAP");
+	if (ol_col==-1) THROW(ProgrammingException, "Missing column CNV_OVERLAP");
+	int min_size = getInt("min_size", false);
+
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		//skip if no overlap is annotated, i.e. not DEL/DUP
+		QByteArray ol_str = svs[i].annotations()[ol_col].trimmed();
+		if (ol_str.isEmpty()) continue;
+
+		//skip too small DEL/DUP - they are hard to detect in CNV calling with 1kb window size
+		int sv_length = svs.estimatedSvSize(i);
+		if (sv_length < min_size) continue;
+
+		if (ol_str.toDouble() < min_ol) result.flags()[i] = false;
 	}
 }
 

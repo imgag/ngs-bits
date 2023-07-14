@@ -44,7 +44,6 @@ p
 <br />Processing system type: Panel Haloplex
 <br />Reference genome: GRCh37
 <br />Date: 19.02.2021
-<br />User: ahmustm1
 <br />Analysis pipeline: megSAP 0.2-486-gc928f885
 <br />Analysis software: cppNGSD-TEST 
 </p>
@@ -55,22 +54,24 @@ p
 <p><b>Target region</b>
 <br /><span style="font-size: 8pt;">The target region includes CCDS ("consensus coding sequence") of the genes listed below &plusmn;20 flanking bases of the intronic sequence. It may comprise additional exons and/or flanking bases.
 <br />Name: panel
-<br />Genes analyzed (3): CYP7B1, SLC25A15, SPG7
+<br />Genes analyzed: 3 (see coverage statistics)
 </span></p>
 
 <p><b>Criteria for variant filtering </b>
 <br />&nbsp;&nbsp;&nbsp;&nbsp;- Allele frequency &le; 1.00%
-<br />Variants in target region: 135
-<br />Variants selected for report: 2
+<br /><br />Small variants in target region: 135
+<br />SNVs/InDels selected for report: 2
 <br />CNVs selected for report: 2
 <br />SVs selected for report: 3
 </p>
-
-<p><b>List of prioritized variants</b>
-<br />In addition to likely pathogenic variants (class 4) and pathogenic variants (class 5), the following table contains only those variants of uncertain significance (class 3), for which a contribution to the clinical symptoms of the patient is conceivable and for which a further evaluation of the clinical relevance by follow-up examinations may be useful.  A list of all detected variants can be provided on request.
-</p>
+<br />If present, the following tables contain: likely pathogenic variants (class 4)<sup>*</sup> and pathogenic variants (class 5)<sup>*</sup>, for which a contribution to the clinical symptoms of the patient is conceivable, and variants of uncertain significance (class 3)<sup>*</sup>, for which a further evaluation of the clinical relevance by follow-up examinations may be useful.
+Depending on the type of genetic alteration, family history and clinical features of the patient further investigations might change the classification of variants.
+<br />A (uncommented) list of all detected variants can be provided on request.
+<br />In case of a suspected clinical diagnosis genetic counseling is necessary to evaluate the indication/possibility of further genetic studies.
+<br /><sup>*</sup> For information on the classification of variants, see the general information.
+<br /><br /><b>List of prioritized small variants</b>
 <table>
-<tr><td><b>Variant</b></td><td><b>Genotype</b></td><td><b>Genes</b></td><td><b>Details</b></td><td><b>Class</b></td><td><b>Inheritance</b></td><td><b>gnomAD</b></td><td><b>RNA</b></td></tr>
+<tr><td><b>Variant</b></td><td><b>Genotype</b></td><td><b>Genes</b></td><td><b>Details</b></td><td><b>Class</b></td><td><b>Inheritance</b></td><td><b>gnomAD allele frequency<br />(control cohort)</b></td><td><b>RNA</b></td></tr>
 <tr>
 <td>
 chr13:40793233&nbsp;T&nbsp;&gt;&nbsp;A</td><td>hom (comp-het)</td>
@@ -91,17 +92,18 @@ chr16:89531961&nbsp;G&nbsp;&gt;&nbsp;A</td><td>het (de-novo) (mosaic)</td>
 <td>SPG7:ENST00000268704.1:c.1045G>A:p.Gly349Ser</td>
 <td>5</td>
 <td>n/a</td>
-<td>0.0008</td>
+<td>0.080%</td>
 <td>n/a</td>
 </tr>
 <tr><td colspan="8">OMIM ID: 602783 Details: GENE=SPG7 PHENOS=Spastic paraplegia 7,autosomal recessive,607259,Autosomal recessive,Autosomal dominant</td></tr>
 </table>
-<p>&nbsp;</p>
+<br /><b>List of prioritized copy-number variants</b>
 <table>
-<tr><td><b>CNV</b></td><td><b>regions</b></td><td><b>CN</b></td><td><b>Genes</b></td><td><b>Class</b></td><td><b>Inheritance</b></td><td><b>RNA</b></td></tr>
+<tr><td><b>CNV</b></td><td><b>Position</b></td><td><b>Size</b></td><td><b>copy-number</b></td><td><b>Genes</b></td><td><b>Class</b></td><td><b>Inheritance</b></td><td><b>RNA</b></td></tr>
 <tr>
+<td>deletion</td>
 <td>chr21:10541092-10649856</td>
-<td>22</td>
+<td>108.765 kb / 22 regions</td>
 <td>1 (comp-het)</td>
 <td>IGHV1OR21-1, TPTE</td>
 <td>n/a</td>
@@ -109,8 +111,9 @@ chr16:89531961&nbsp;G&nbsp;&gt;&nbsp;A</td><td>het (de-novo) (mosaic)</td>
 <td>no splicing effect found in RNA dataset</td>
 </tr>
 <tr>
-<td>chr21:26799369-26991734 (manually curated)</td>
-<td>13</td>
+<td>deletion</td>
+<td>chr21:26799369-26991734</td>
+<td>192.366 kb / 13 regions</td>
 <td>0 (comp-het)</td>
 <td></td>
 <td>n/a</td>
@@ -118,13 +121,13 @@ chr16:89531961&nbsp;G&nbsp;&gt;&nbsp;A</td><td>het (de-novo) (mosaic)</td>
 <td>no splicing effect found in RNA dataset</td>
 </tr>
 </table>
-<p>&nbsp;</p>
+<br /><b>List of prioritized structural variants</b>
 <table>
-<tr><td><b>SV</b></td><td><b>Position</b></td><td><b>Genotype</b></td><td><b>Genes</b></td><td><b>Class</b></td><td><b>Inheritance</b></td><td><b>RNA</b></td></tr>
+<tr><td><b>SV</b></td><td><b>Position</b></td><td><b>Size</b></td><td><b>Genotype</b></td><td><b>Genes</b></td><td><b>Class</b></td><td><b>Inheritance</b></td><td><b>RNA</b></td></tr>
 <tr>
 <td>insertion</td>
 <td>chr1:934143-934144</td>
-<td>hom</td>
+<td></td><td>hom</td>
 <td>HES4</td>
 <td>n/a</td>
 <td>n/a</td>
@@ -133,7 +136,7 @@ chr16:89531961&nbsp;G&nbsp;&gt;&nbsp;A</td><td>het (de-novo) (mosaic)</td>
 <tr>
 <td>translocation</td>
 <td>chr1:1584540-1584550 &lt;-&gt; chr19:2301860-2301870</td>
-<td>hom</td>
+<td></td><td>hom</td>
 <td></td>
 <td>n/a</td>
 <td>n/a</td>
@@ -142,7 +145,7 @@ chr16:89531961&nbsp;G&nbsp;&gt;&nbsp;A</td><td>het (de-novo) (mosaic)</td>
 <tr>
 <td>deletion</td>
 <td>chr1:1598413-1598580</td>
-<td>hom</td>
+<td>0.168 kb</td><td>hom</td>
 <td>SLC35E2B</td>
 <td>n/a</td>
 <td>n/a</td>
@@ -163,11 +166,6 @@ chr16:89531961&nbsp;G&nbsp;&gt;&nbsp;A</td><td>het (de-novo) (mosaic)</td>
 </td>
 </tr>
 </table>
-<p>&nbsp;</p>
-<p>For further information regarding the classification see Additional Information.
-</p>
-<p>Depending on the type of genetic alteration, family history and clinical features of the patient further investigations might change the classification of variants of unknown significance (class 3). In case of a suspected clinical diagnosis genetic counseling is necessary to evaluate the indication/possibility of further genetic studies.
-</p>
 
 <p><b>Classification of variants:</b>
 <br />Classification and interpretation of variants: The classification of variants is based on the criteria of Plon et al. (PMID: 18951446). A short description of each class can be found in the following
@@ -178,13 +176,16 @@ chr16:89531961&nbsp;G&nbsp;&gt;&nbsp;A</td><td>het (de-novo) (mosaic)</td>
 <br /><b>Class 1, benign variants:</b> The variant is not considered to be the cause of the tested disease. Class 1 variants are not reported, but can be provided upon request.
 </p>
 
-<p><b>Coverage statistics</b>
+<p><b>Coverage statistics of target region</b>
 <br />Average sequencing depth: 125.47
 <br />Average sequencing depth (chrMT): 0.00
 </p>
+<p><b>Gap report based on entire target region</b>
+<br />Bases: 271536
+<br />Percentage of regions with depth &lt;20: 15449
+<br />Percentage gaps: 5.69%
 <br />Genes without gaps: 
-<br />Percentage of regions with depth &lt;20: 5.69%
-<br />Number of missing bases for genes with gaps: CYP7B1 <span style="font-size: 8pt;">243</span>, SLC25A15 <span style="font-size: 8pt;">129</span>, SPG7 <span style="font-size: 8pt;">126</span>
+<br />Genes with incomplete coverage (missing bp in brackets): CYP7B1 <span style="font-size: 8pt;">(243)</span>, SLC25A15 <span style="font-size: 8pt;">(129)</span>, SPG7 <span style="font-size: 8pt;">(126)</span>
 <p>Details regions with depth &lt;20:
 </p>
 <table>
@@ -204,7 +205,68 @@ SLC25A15</td><td>129</td><td>chr13</td><td>40799186-40799314
 SPG7</td><td>126</td><td>chr16</td><td>89524046-89524104, 89554476-89554542
 </td>
 </tr>
+<tr>
+<td>no gene overlap</td><td>14951</td><td>-</td><td>-</td>
+</tr>
 </table>
+<br />Gaps closed by Sanger sequencing:<br /><table>
+<tr><td><b>Gene</b></td><td><b>Bases</b></td><td><b>Chromosome</b></td><td><b>Coordinates (hg38)</b></td></tr>
+<tr>
+<td>SPG7</td><td>59</td><td>chr16</td><td>89524046-89524104</td></tr>
+</table>
+Base sum:59<p>Gaps checked by visual inspection of raw data:<br /><table>
+<tr><td><b>Gene</b></td><td><b>Bases</b></td><td><b>Chromosome</b></td><td><b>Coordinates (hg38)</b></td></tr>
+<tr>
+<td>CYP7B1</td><td>28</td><td>chr8</td><td>64615713-64615740</td></tr>
+<tr>
+<td>CYP7B1</td><td>3</td><td>chr8</td><td>64616216-64616218</td></tr>
+</table>
+Base sum:31</p>
+<p>Percentage of regions with depth &lt;20 after closing gaps: 15359
+<br />Percentage gaps after closing gaps: 5.66%
+</p></p>
+<p><b>Gap report based on exons of target region &#177; 20 Bases</b>
+<br />Bases: 5975
+<br />Percentage of regions with depth &lt;20: 528
+<br />Percentage gaps: 8.84%
+<br />Genes without gaps: 
+<br />Genes with incomplete coverage (missing bp in brackets): CYP7B1 <span style="font-size: 8pt;">(263)</span>, SLC25A15 <span style="font-size: 8pt;">(129)</span>, SPG7 <span style="font-size: 8pt;">(136)</span>
+<p>Details regions with depth &lt;20:
+</p>
+<table>
+<tr><td><b>Gene</b></td><td><b>Bases</b></td><td><b>Chromosome</b></td><td><b>Coordinates (hg38)</b></td></tr>
+<tr>
+<td>
+CYP7B1</td><td>263</td><td>chr8</td><td>64615713-64615740, 64616216-64616218, 64624383-64624515, 64798446-64798544
+</td>
+</tr>
+<tr>
+<td>
+SLC25A15</td><td>129</td><td>chr13</td><td>40799186-40799314
+</td>
+</tr>
+<tr>
+<td>
+SPG7</td><td>136</td><td>chr16</td><td>89524046-89524104, 89554466-89554542
+</td>
+</tr>
+</table>
+<br />Gaps closed by Sanger sequencing:<br /><table>
+<tr><td><b>Gene</b></td><td><b>Bases</b></td><td><b>Chromosome</b></td><td><b>Coordinates (hg38)</b></td></tr>
+<tr>
+<td>SPG7</td><td>59</td><td>chr16</td><td>89524046-89524104</td></tr>
+</table>
+Base sum:59<p>Gaps checked by visual inspection of raw data:<br /><table>
+<tr><td><b>Gene</b></td><td><b>Bases</b></td><td><b>Chromosome</b></td><td><b>Coordinates (hg38)</b></td></tr>
+<tr>
+<td>CYP7B1</td><td>28</td><td>chr8</td><td>64615713-64615740</td></tr>
+<tr>
+<td>CYP7B1</td><td>3</td><td>chr8</td><td>64616216-64616218</td></tr>
+</table>
+Base sum:31</p>
+<p>Percentage of regions with depth &lt;20 after closing gaps: 438
+<br />Percentage gaps after closing gaps: 7.33%
+</p></p>
 
 <p><b>Coverage statistics of RNA sample</b>
 <br />Number of reads: 10.99 Mio
@@ -213,39 +275,6 @@ SPG7</td><td>126</td><td>chr16</td><td>89524046-89524104, 89554476-89554542
 <br />Covered genes: 136985
 </p>
 
-<p><b>Coverage statistics for CCDS </b></p>
-<p>CCDS overall: 4815
-<br />CCDS with depth &ge;20: 4347 (90.28%)
-<br />CCDS with depth &lt;20: 468 (9.72%)
-</p>
-
-<p><b>Coverage statistics for CCDS  +-5 </b></p>
-<p><table>
-<tr><td><b>Gene</b></td><td><b>Transcript</b></td><td><b>Size</b></td><td><b>Bases</b></td><td><b>Chromosome</b></td><td><b>Coordinates (hg38)</b></td></tr><tr><td>CYP7B1</td><td>ENST00000310193.1</td><td>1581</td><td>233</td><td>chr8</td><td>64615713-64615740, 64616216-64616218, 64624398-64624515, 64798461-64798544</td></tr><tr><td>SLC25A15</td><td>ENST00000338625.1</td><td>966</td><td>129</td><td>chr13</td><td>40799186-40799314</td></tr><tr><td>SPG7</td><td>ENST00000268704.1</td><td>2558</td><td>121</td><td>chr16</td><td>89524046-89524104, 89554481-89554542</td></tr></table></p>
-<p>CCDS  +-5 overall: 5105
-<br />CCDS  +-5 with depth &ge;20: 4622 (90.54%)
-<br />CCDS  +-5 with depth &lt;20: 483 (9.46%)
-</p>
-<p>Genes without gaps: 
-<br />Number of missing bases for genes with gaps: CYP7B1 <span style="font-size: 8pt;">233</span> , SLC25A15 <span style="font-size: 8pt;">129</span> , SPG7 <span style="font-size: 8pt;">121</span> 
-</p>
-<p><b>Gaps closed</b></p>
-<p>Gaps closed by Sanger sequencing:<br /><table>
-<tr><td><b>Gene</b></td><td><b>Bases</b></td><td><b>Chromosome</b></td><td><b>Coordinates (hg38)</b></td></tr>
-<tr>
-<td>SPG7</td><td>59</td><td>chr16</td><td>89524046-89524104</td></tr>
-</table>
-Base sum:59</p>
-<p>Gaps checked by visual inspection of raw data:<br /><table>
-<tr><td><b>Gene</b></td><td><b>Bases</b></td><td><b>Chromosome</b></td><td><b>Coordinates (hg38)</b></td></tr>
-<tr>
-<td>CYP7B1</td><td>28</td><td>chr8</td><td>64615713-64615740</td></tr>
-<tr>
-<td>CYP7B1</td><td>3</td><td>chr8</td><td>64616216-64616218</td></tr>
-</table>
-Base sum:31</p>
-<p>Percentage of regions with depth &lt;20 after closing gaps: 5.66%
-</p>
 <p><b>OMIM gene and phenotypes</b>
 </p>
 <table>

@@ -26,6 +26,7 @@ private slots:
 	void editClassification();
 	void gnomadClicked(QString var_id);
 	void pubmedClicked(QString link);
+	void tableCellDoubleClicked(int row, int column);
 
 private:
 	Ui::VariantWidget ui_;

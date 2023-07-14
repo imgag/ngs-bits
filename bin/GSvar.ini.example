@@ -21,6 +21,7 @@ analysis_steps_trio=vc - SNV/InDel calling + annotation, cn - CNV calling + anno
 analysis_steps_somatic=vc - variant calling, vi - virus detection, cn - copy number calling, an - annotation, msi - microsatellite instabilty, an_rna - RNA annotation, db - database import
 analysis_steps_single_sample_rna = ma - mapping, rc - read counting, an -annotation, plt - plot, fu - fusion, db - database import
 analysis_steps_cfdna=ma - mapping, vc - SNV/InDel calling + annotation, db - database import
+analysis_steps_single_sample_lr=ma - mapping, vc - SNV/InDel calling, cn - CNV calling, sv - SV calling, an - annotation, db - database import
 
 #webservice URLs
 PrimerDesign = ""
@@ -56,3 +57,9 @@ custom_menu_small_variants = ""
 use_free_hgmd_version = false
 allow_report_with_all_types = false
 gsvar_file_outdated_before = 2021-12-01
+
+#Path to the file that includes root and intermediate certificates, needed to access BAM files over HTTPS
+curl_ca_bundle = "ca-bundle.crt"
+
+#Check for the user notifications comming from the server (e.g. information about updates)
+display_user_notifications = true

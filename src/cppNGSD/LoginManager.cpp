@@ -2,7 +2,9 @@
 #include "NGSD.h"
 #include "ToolBase.h"
 #include "Log.h"
+#include "ClientHelper.h"
 #include <QJsonDocument>
+#include <QNetworkProxy>
 
 LoginManager::LoginManager()
 	: user_login_()
@@ -35,7 +37,7 @@ QByteArray LoginManager::sendPostApiRequest(QString path, QString content, HttpH
 {
 	try
 	{
-		return HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(NGSHelper::serverApiUrl() + path, content.toUtf8(), add_headers);
+		return HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(ClientHelper::serverApiUrl() + path, content.toUtf8(), add_headers);
 	}
 	catch (Exception& e)
 	{
@@ -48,7 +50,7 @@ QByteArray LoginManager::sendGetApiRequest(QString path, HttpHeaders add_headers
 {
 	try
 	{
-		return HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).get(NGSHelper::serverApiUrl() + path, add_headers);
+		return HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(ClientHelper::serverApiUrl() + path, add_headers);
 	}
 	catch (Exception& e)
 	{
@@ -108,7 +110,7 @@ bool LoginManager::active()
 void LoginManager::login(QString user, QString password, bool test_db)
 {
 	LoginManager& manager = instance();
-	if (NGSHelper::isClientServerMode())
+	if (ClientHelper::isClientServerMode())
 	{
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");
@@ -169,6 +171,7 @@ void LoginManager::renewLogin()
 	}
 
 	add_headers.insert("Accept", "application/json");
+    add_headers.insert("Content-type", "application/x-www-form-urlencoded");
 	QByteArray session_info = sendGetApiRequest("session?token=" + manager.userToken(), add_headers);
 	QJsonDocument session_json = QJsonDocument::fromJson(session_info);
 
@@ -183,6 +186,7 @@ void LoginManager::renewLogin()
 
 			add_headers.clear();
 			add_headers.insert("Accept", "text/plain");
+            add_headers.insert("Content-type", "application/x-www-form-urlencoded");
 
 			QString content = "name="+user_login+"&password="+user_password;
 			manager.user_token_ = sendPostApiRequest("login", content, add_headers);

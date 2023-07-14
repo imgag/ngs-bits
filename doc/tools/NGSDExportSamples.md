@@ -1,5 +1,5 @@
 ### NGSDExportSamples tool help
-	NGSDExportSamples (2022_11-75-gf99b2041)
+	NGSDExportSamples (2023_03-107-g2a1d2478)
 	
 	Lists processed samples from the NGSD.
 	
@@ -11,6 +11,8 @@
 	  -no_bad_samples          If set, processed samples with 'bad' quality are excluded.
 	                           Default value: 'false'
 	  -no_tumor                If set, tumor samples are excluded.
+	                           Default value: 'false'
+	  -no_normal               If set, germline samples are excluded.
 	                           Default value: 'false'
 	  -no_ffpe                 If set, FFPE samples are excluded.
 	                           Default value: 'false'
@@ -50,7 +52,9 @@
 	                           Default value: 'false'
 	  -run_device <string>     Sequencing run device name filter.
 	                           Default value: ''
-	  -run_before <string>     Sequencing run start date before or equal to the given date.
+	  -run_before <string>     Sequencing run before or equal to the given date.
+	                           Default value: ''
+	  -run_after <string>      Sequencing run after or equal to the given date.
 	                           Default value: ''
 	  -no_bad_runs             If set, sequencing runs with 'bad' quality are excluded.
 	                           Default value: 'false'
@@ -62,7 +66,7 @@
 	                           Default value: 'false'
 	  -add_path <enum>         Adds a column with the given path type.
 	                           Default value: ''
-	                           Valid: ',SAMPLE_FOLDER,BAM,VCF,GSVAR,COPY_NUMBER_CALLS,STRUCTURAL_VARIANTS,MOSAIC_VARIANTS'
+	                           Valid: ',SAMPLE_FOLDER,BAM,VCF,GSVAR,COPY_NUMBER_CALLS,STRUCTURAL_VARIANTS'
 	  -add_report_config       Adds a column with report configuration information (if it exists and if causal variants exist).
 	                           Default value: 'false'
 	  -add_comments            Adds sample and processed sample comments columns.
@@ -79,7 +83,7 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportSamples changelog
-	NGSDExportSamples 2022_11-75-gf99b2041
+	NGSDExportSamples 2023_03-107-g2a1d2478
 	
 	2022-11-11 Added 'ancestry' and 'phenotypes' filter options.
 	2022-03-03 Added 'disease_group', 'disease_status', 'project_type' and 'tissue' filter options.

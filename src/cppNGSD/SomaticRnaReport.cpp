@@ -66,13 +66,13 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 	QByteArrayList pathway_genes;
 
 	GeneSet genes_of_interest = GeneSet::createFromStringList({
-								"AKT1", "AKT2", "ATM", "ATR", "BAP1", "BRAF", "BRCA1", "BRCA2", "CCND1", "CCND2", "CCND3",
+								"ADAM12", "AKT1", "AKT2", "ATM", "ATR", "BAP1", "BRAF", "BRCA1", "BRCA2", "CCND1", "CCND2", "CCND3",
 								"CCNE1", "CD274", "CDK12", "CDK4", "CDK6", "CDKN1A", "CDKN1B", "CDKN2A", "CDKN2B", "CDKN2C",
 								"CDKN3B", "CHEK2", "EGFR", "EPHA3", "ERBB2", "ERCC1", "FANCA", "FANCC", "FANCD2", "FBXW7",
 								"FGF19", "FGF3", "FGF4", "FGFR1", "FGFR2", "FGFR3", "FRS2", "INPP4B", "JAK2", "JUN", "KDR",
 								"KIT", "MAP2K4", "MEN1", "MET", "MITF", "MLH1", "MSH2", "MTOR", "MYC", "NF1", "NF2", "PAK1",
 								"PDGFRA", "PDPK1", "PIK3CA", "PTEN", "RB1", "RICTOR", "RPS6", "SETD2", "SH2B3", "SMARCA4",
-								"SMARCB1", "STK11", "SYK", "TACSTD2", "TNFAIP3", "TSC1", "TSC2"
+								"SMARCB1", "STK11", "SYK", "TACSTD2", "TNFAIP3", "TOP2A", "TSC1", "TSC2"
 	});
 
 	genes_of_interest = db_.genesToApproved(genes_of_interest);
@@ -688,8 +688,8 @@ RtfTable SomaticRnaReport::partGeneralInfo()
 	table.addRow( RtfTableRow( {"Proben-ID (Tumor-RNA):", data_.rna_ps_name.toUtf8(), "Anzahl Reads ", data_.rna_qcml_data.value("QC:2000005",true).toString().toUtf8()}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14)) );
 	table.addRow( RtfTableRow( {"Prozessierungssystem:", db_.getProcessingSystemData( db_.processingSystemIdFromProcessedSample(data_.rna_ps_name) ).name.toUtf8(), "On-Target Read Percentage:", data_.rna_qcml_data.value("QC:2000021",true).toString().toUtf8() + "\%"}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14)) );
 	table.addRow( RtfTableRow( {"ICD10:", data_.icd10.toUtf8(), "Target Region Read Depth:", data_.rna_qcml_data.value("QC:2000025",true).toString().toUtf8() +"x"}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14)) );
-	table.addRow( RtfTableRow( {"Tumortyp:", data_.phenotype.toUtf8(), "House Keeping Genes Read Depth:", data_.rna_qcml_data.value("QC:2000101",true).toString().toUtf8() + "x"}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14)) );
-	table.addRow( RtfTableRow( {"Korrelation der Expression mit der Tumorentität:", QByteArray::number(data_.expression_correlation, 'f', 2) + " (n=" + QByteArray::number(data_.cohort_size) + ")" , "House Keeping Genes Read Percentage:", data_.rna_qcml_data.value("QC:2000100",true).toString().toUtf8() + "\%"}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14) ) );
+	table.addRow( RtfTableRow( {"Tumortyp:", data_.phenotype.toUtf8(), "House Keeping Genes 10x Percentage:", data_.rna_qcml_data.value("QC:2000102",true).toString().toUtf8() + "%"}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14)) );
+	table.addRow( RtfTableRow( {"Korrelation der Expression mit der Tumorentität:", QByteArray::number(data_.expression_correlation, 'f', 2) + " (n=" + QByteArray::number(data_.cohort_size) + ")" , "", ""}, {2000,3061,2500,2361}, RtfParagraph().setFontSize(14) ) );
 
 	return table;
 }

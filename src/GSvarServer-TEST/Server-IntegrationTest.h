@@ -7,6 +7,7 @@
 #include "HttpRequestHandler.h"
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QNetworkProxy>
 #include "EndpointManager.h"
 #include "ServerController.h"
 
@@ -14,7 +15,7 @@ int sendGetRequest(QByteArray& reply, QString url, HttpHeaders headers)
 {
 	try
 	{
-		reply = HttpRequestHandler(HttpRequestHandler::NONE).get(url, headers);
+		reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(url, headers);
 	}
 	catch(Exception& e)
 	{
@@ -31,7 +32,7 @@ int sendPostRequest(QByteArray& reply, QString url, HttpHeaders headers, QByteAr
 {
 	try
 	{
-		reply = HttpRequestHandler(HttpRequestHandler::NONE).post(url, data, headers);
+		reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(url, data, headers);
 	}
 	catch(Exception& e)
 	{
@@ -60,7 +61,8 @@ private slots:
 		QByteArray reply;
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/html");
-		int code = sendGetRequest(reply, ServerHelper::getServerUrl(false) + "/v1/", add_headers);
+        add_headers.insert("Content-Type", "text/html");
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
 		if (code > 0)
 		{
 			SKIP("This test requieres a running server");
@@ -79,8 +81,9 @@ private slots:
 		QByteArray reply;
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/html");
+        add_headers.insert("Content-Type", "text/html");
 		add_headers.insert("Range", "bytes=114-140,399-430");
-		int code = sendGetRequest(reply, ServerHelper::getServerUrl(false) + "/v1/", add_headers);
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
 		if (code > 0)
 		{
 			SKIP("This test requieres a running server");
@@ -100,8 +103,9 @@ private slots:
 		QByteArray reply;
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/html");
+        add_headers.insert("Content-Type", "text/html");
 		add_headers.insert("Range", "bytes=454-");
-		int code = sendGetRequest(reply, ServerHelper::getServerUrl(false) + "/v1/", add_headers);
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
 		if (code > 0)
 		{
 			SKIP("This test requieres a running server");
@@ -120,8 +124,9 @@ private slots:
 		QByteArray reply;
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/html");
+        add_headers.insert("Content-Type", "text/html");
 		add_headers.insert("Range", "bytes=-8");
-		int code = sendGetRequest(reply, ServerHelper::getServerUrl(false) + "/v1/", add_headers);
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
 		if (code > 0)
 		{
 			SKIP("This test requieres a running server");
@@ -131,8 +136,9 @@ private slots:
 
 		add_headers.clear();
 		add_headers.insert("Accept", "text/html");
+        add_headers.insert("Content-Type", "text/html");
 		add_headers.insert("Range", "bytes=0-5,5-8");
-		IS_THROWN(Exception, HttpRequestHandler(HttpRequestHandler::NONE).get(ServerHelper::getServerUrl(false) + "/v1/", add_headers));
+		IS_THROWN(Exception, HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(ClientHelper::serverApiUrl(), add_headers));
 	}	
 
 	void test_token_based_authentication()
@@ -145,8 +151,9 @@ private slots:
 		QByteArray reply;
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/html");
-		QByteArray data = "name=ahmustm1&password=123456";
-		int code = sendPostRequest(reply, ServerHelper::getServerUrl(true) + "/v1/login", add_headers, data);
+        add_headers.insert("Content-Type", "application/x-www-form-urlencoded");
+        QByteArray data = "name=ahmustm1&password=123456";
+		int code = sendPostRequest(reply, ClientHelper::serverApiUrl() + "login", add_headers, data);
 		if (code > 0)
 		{
 			SKIP("This test requieres a running server");
@@ -157,42 +164,44 @@ private slots:
 		reply.clear();
 		add_headers.clear();
 		add_headers.insert("Accept", "application/json");
-		code = sendGetRequest(reply, ServerHelper::getServerUrl(true) + "/v1/session?token=" + token, add_headers);
+        add_headers.insert("Content-Type", "application/json");
+		code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "session?token=" + token, add_headers);
 		QJsonDocument session_json = QJsonDocument::fromJson(reply);
 		IS_TRUE(session_json.isObject());
 
 		reply.clear();
 		add_headers.insert("Authorization", "Bearer "+token.toUtf8());
-		code = sendGetRequest(reply, ServerHelper::getServerUrl(true) + "/v1/session", add_headers);
+		code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "session", add_headers);
 		session_json = QJsonDocument::fromJson(reply);
 		IS_TRUE(session_json.isObject());
 		bool is_db_token = session_json.object().value("is_db_token").toBool();
 		IS_FALSE(is_db_token);
 	}
 
-//	void test_access_to_bam_files_over_http()
-//	{
-//		if (!ServerHelper::hasBasicSettings())
-//		{
-//			SKIP("Server has not been configured correctly");
-//		}
+	void test_access_to_remote_bam_files()
+	{
+		if (!ServerHelper::hasBasicSettings())
+		{
+			SKIP("Server has not been configured correctly");
+		}
 
-//		QString filename = ServerHelper::getServerUrl(true) + "/v1/bam/rna.bam";
+		QString filename = ClientHelper::serverApiUrl() + "bam/rna.bam";
 
-//		QByteArray reply;
-//		HttpHeaders add_headers;
-//		add_headers.insert("Accept", "application/octet-stream");
-//		int code = sendGetRequest(reply, filename, add_headers);
-//		if (code > 0)
-//		{
-//			SKIP("This test requieres a running server");
-//		}
+		QByteArray reply;
+		HttpHeaders add_headers;
+		add_headers.insert("Accept", "application/octet-stream");
+        add_headers.insert("Content-Type", "application/octet-stream");
+		int code = sendGetRequest(reply, filename, add_headers);
+		if (code > 0)
+		{
+			SKIP("This test requieres a running server");
+		}
 
-//		// Read the BAM file, if the server is running
-//		BamReader reader(filename);
-//		I_EQUAL(reader.headerLines().count(), 2588);
-//		I_EQUAL(reader.chromosomes().count(), 2580);
-//	}
+		// Read the BAM file, if the server is running
+		BamReader reader(filename);
+		I_EQUAL(reader.headerLines().count(), 2588);
+		I_EQUAL(reader.chromosomes().count(), 2580);
+	}
 
 	void test_server_info_retrieval()
 	{
@@ -204,7 +213,8 @@ private slots:
 		QByteArray reply;
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "application/json");
-		int code = sendGetRequest(reply, ServerHelper::getServerUrl(true) + "/v1/info", add_headers);
+        add_headers.insert("Content-Type", "application/json");
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "info", add_headers);
 		if (code > 0)
 		{
 			SKIP("This test requieres a running server");
@@ -216,6 +226,27 @@ private slots:
 		IS_TRUE(doc.object().contains("api_version"));
 		S_EQUAL(doc.object()["api_version"].toString(), "v1");
 		IS_TRUE(doc.object().contains("start_time"));
+	}
+
+	void test_client_info_retrieval()
+	{
+		if (!ServerHelper::hasBasicSettings())
+		{
+			SKIP("Server has not been configured correctly");
+		}
+
+		QByteArray reply;
+		HttpHeaders add_headers;
+		add_headers.insert("Accept", "application/json");
+        add_headers.insert("Content-Type", "application/json");
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "current_client", add_headers);
+		if (code > 0)
+		{
+			SKIP("This test requieres a running server");
+		}
+
+		QJsonDocument out = QJsonDocument::fromJson(reply);
+		IS_TRUE(out.isObject());
 	}
 };
 

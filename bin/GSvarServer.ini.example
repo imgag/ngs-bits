@@ -1,7 +1,7 @@
 #General server settings
 server_host = localhost
-https_server_port = 8443
-http_server_port = 8889
+server_port = 8443
+#Run both HTTP and HTTP servers on corresponding ports
 reference_genome = ""
 
 #SSL certificate-key pair needed for HTTPS

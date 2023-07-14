@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2022_11-72-g9164a905)
+	VariantFilterAnnotations (2023_03-107-g2a1d2478)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -41,7 +41,8 @@
 	Count NGSD                         Filter based on the hom/het occurances of a variant in the NGSD.
 	                                   Parameters:
 	                                     max_count - Maximum NGSD count [default=20] [min=0]
-	                                     ignore_genotype - If set, all NGSD entries are counted independent of the variant genotype. Otherwise, for homozygous variants only homozygous NGSD entries are counted and for heterozygous variants all NGSD entries are counted. [default=false]
+	                                     ignore_genotype - If set, all variants in NGSD are counted independent of the genotype. Otherwise, for homozygous variants only homozygous NGSD variants are counted and for heterozygous variants homozygous and heterozygous NGSD variants are counted. [default=false]
+	                                     mosaic_as_het - If set, mosaic variants are counted as heterozygous. Otherwise, they are not counted. [default=false]
 	Filter column empty                Filter that perserves variants which have no entry in the 'filter' column.
 	Filter columns                     Filter based on the entries of the 'filter' column.
 	                                   Parameters:
@@ -126,8 +127,9 @@
 	                                     max_af_nor - Maximum allele frequency in normal sample [%] [default=1] [min=0.0] [max=100.0]
 	Splice effect                      Filter based on the predicted change in splice effect
 	                                   Parameters:
-	                                     MaxEntScan - Minimum percentage change in the value of MaxEntScan. Positive min. increase, negative min. decrease. Disabled if set to zero. [default=-15]
-	                                     SpliceAi - Minimum SpliceAi value. Disabled if set to zero. [default=0.5] [min=0] [max=1]
+	                                     SpliceAi - Minimum SpliceAi score. Disabled if set to zero. [default=0.5] [min=0] [max=1]
+	                                     MaxEntScan - Minimum predicted splice effect. Disabled if set to LOW. [default=HIGH] [valid=HIGH,MODERATE,LOW]
+	                                     splice_site_only - Use native splice site predictions only. Skip de-novo acceptor/donor predictions (MaxEntScan). [default=true]
 	                                     action - Action to perform [default=FILTER] [valid=KEEP,FILTER]
 	Text search                        Filter for text match in variant annotations.
 	                                   The text comparison ignores the case.
@@ -173,7 +175,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2022_11-72-g9164a905
+	VariantFilterAnnotations 2023_03-107-g2a1d2478
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

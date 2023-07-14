@@ -19,7 +19,7 @@ public:
 
 private slots:
 	void delayedInitialization();
-	QStringList calculteGapsAndInitGUI();
+	void calculteGaps();
 	void gapDoubleClicked(QTableWidgetItem* item);
 	void updateFilters();
 	void updateNGSDColumn();

@@ -94,7 +94,7 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 
 	//NGSD (all optional)
 	ui->label_ngsd_class->setToolTip(vl.annotationDescriptionByName("classification", false).description());
-	ui->label_ngsd_count->setToolTip("Homozygous / heterozygous variant count in NGSD.");
+	ui->label_ngsd_count->setToolTip("Homozygous / heterozygous / mosac variant count in NGSD.");
 	ui->label_ngsd_group->setToolTip(vl.annotationDescriptionByName("NGSD_group", false).description());
 	ui->label_ngsd_comment->setToolTip(vl.annotationDescriptionByName("comment", false).description());
 	ui->label_ngsd_validation->setToolTip(vl.annotationDescriptionByName("validation", false).description());
@@ -194,17 +194,20 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	QString ngsd_count = "";
 	int hom_index = vl.annotationIndexByName("NGSD_hom", true, false);
 	int het_index = vl.annotationIndexByName("NGSD_het", true, false);
+	int mos_index = vl.annotationIndexByName("NGSD_mosaic", true, false);
 	if(hom_index!=-1 && het_index!=-1)
 	{
 		QString hom = vl[index].annotations()[hom_index];
 		QString het = vl[index].annotations()[het_index];
-		if (hom.startsWith("n/a") && het.startsWith("n/a"))
+		if (hom.startsWith("n/a") && het.startsWith("n/a")) //AF too high
 		{
 			ngsd_count = hom;
 		}
 		else
 		{
-			ngsd_count = hom + " / " + het;
+			QString text =  hom + " / " + het;
+			if (mos_index>0) text += " / " + vl[index].annotations()[mos_index];
+			ngsd_count = text;
 		}
 	}
 	ui->ngsd_count->setText(ngsd_count);
@@ -559,6 +562,10 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			{
 				text = formatText(anno, ORANGE);
 			}
+			else if (ok && value >= 0.8)
+			{
+				text = formatText(anno, RED);
+			}
 			else
 			{
 				text = anno;
@@ -566,36 +573,29 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		}
 		else if(name=="MaxEntScan")
 		{
-			if (anno != "")
+			if (!anno.isEmpty())
 			{
-				QString new_anno = "";
-
-				QList<double> percentages;
-				QList<double> abs_values;
-
-				bool color = GSvarHelper::colorMaxEntScan(anno, percentages, abs_values);
-				QStringList values = anno.split(',');
-				for (int i=0; i<values.size(); i++)
+				//iterate over predictions per transcript
+				QList<MaxEntScanImpact> impacts;
+				foreach(const QString& anno, anno.split(','))
 				{
-					if (abs_values[i] > 0.5)
-					{
-						new_anno += values[i] + "(" + QString::number(percentages[i]*100, 'f', 1) + "%), ";
-					}
-					else
-					{
-						new_anno += values[i] + ", ";
-					}
+					QByteArray score_pairs_with_impact;
+					impacts << NGSHelper::maxEntScanImpact(anno.toUtf8().split('/'), score_pairs_with_impact, false);
+					tooltip += nobr() + score_pairs_with_impact;
 				}
-				new_anno.chop(2);
 
-				//color item
-				if (color)
+				//output: max import
+				if (impacts.contains(MaxEntScanImpact::HIGH))
 				{
-					text = formatText(new_anno, ORANGE);
+					text = formatText("HIGH (see tooltip)", RED);
+				}
+				else if (impacts.contains(MaxEntScanImpact::MODERATE))
+				{
+					text = formatText("MODERATE (see tooltip)", ORANGE);
 				}
 				else
 				{
-					text = new_anno;
+					text = "LOW";
 				}
 			}
 		}

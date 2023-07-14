@@ -9,9 +9,12 @@ RC_FILE	 = icon.rc
 SOURCES += main.cpp\
     CfDNAPanelBatchImport.cpp \
     DatabaseServiceRemote.cpp \
+    GHGAUploadDialog.cpp \
     GlobalServiceProvider.cpp \
+    IgvSessionManager.cpp \
     MainWindow.cpp \
     ExternalToolDialog.cpp \
+    MaintenanceDialog.cpp \
     ReportDialog.cpp \
     ReportWorker.cpp \
     TrioDialog.cpp \
@@ -108,7 +111,6 @@ SOURCES += main.cpp\
     CohortExpressionDataWidget.cpp \
     GapClosingEditDialog.cpp \
     CausalVariantEditDialog.cpp \
-    MosaicWidget.cpp \
     VariantOpenDialog.cpp \
     PhenotypeSettingsDialog.cpp \
     GenLabImportDialog.cpp \
@@ -117,13 +119,17 @@ SOURCES += main.cpp\
     ExpressionOverviewWidget.cpp \
     SplicingWidget.cpp \
     ExpressionGeneWidget.cpp \
-    ReportVariantSelectionDialog.cpp
+    ReportVariantSelectionDialog.cpp \
+    BurdenTestWidget.cpp
 
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
     DatabaseServiceRemote.h \
     ExternalToolDialog.h \
+    GHGAUploadDialog.h \
     GlobalServiceProvider.h \
+    IgvSessionManager.h \
+    MaintenanceDialog.h \
     ReportDialog.h \
     ReportWorker.h \
     TrioDialog.h \
@@ -221,7 +227,6 @@ HEADERS += MainWindow.h \
     CohortExpressionDataWidget.h \
     GapClosingEditDialog.h \
     CausalVariantEditDialog.h \
-    MosaicWidget.h \
     VariantOpenDialog.h \
     PhenotypeSettingsDialog.h \
     GenLabImportDialog.h \
@@ -230,11 +235,14 @@ HEADERS += MainWindow.h \
     ExpressionOverviewWidget.h \
     SplicingWidget.h \
     ExpressionGeneWidget.h \
-    ReportVariantSelectionDialog.h
+    ReportVariantSelectionDialog.h \
+    BurdenTestWidget.h
 
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
+    GHGAUploadDialog.ui \
+    MaintenanceDialog.ui \
     ReportDialog.ui \
     TrioDialog.ui \
     ClassificationDialog.ui \
@@ -319,7 +327,6 @@ FORMS    += MainWindow.ui \
     CohortExpressionDataWidget.ui \
     GapClosingEditDialog.ui \
     CausalVariantEditDialog.ui \
-    MosaicWidget.ui \
     VariantOpenDialog.ui \
     PhenotypeSettingsDialog.ui \
     GenLabImportDialog.ui \
@@ -328,7 +335,8 @@ FORMS    += MainWindow.ui \
     ExpressionOverviewWidget.ui \
     SplicingWidget.ui \
     ExpressionGeneWidget.ui \
-    ReportVariantSelectionDialog.ui
+    ReportVariantSelectionDialog.ui \
+    BurdenTestWidget.ui
 
 include("../app_gui.pri")
 

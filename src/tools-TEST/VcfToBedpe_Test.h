@@ -85,4 +85,28 @@ private slots:
 		REMOVE_LINES("out/VcfToBedpe_out2_delly.bedpe",QRegExp("##fileDate="));
 		COMPARE_FILES("out/VcfToBedpe_out2_delly.bedpe", TESTDATA("data_out/VcfToBedpe_out2_delly.bedpe"));
 	}
+
+	void convert_sniffles_file()
+	{
+		//Unsorted output
+		EXECUTE("VcfToBedpe","-in " + TESTDATA("data_in/VcfToBedpe_in3_sniffles.vcf.gz") + " -out out/VcfToBedpe_out1_sniffles.bedpe -no_sort");
+		REMOVE_LINES("out/VcfToBedpe_out1_sniffles.bedpe",QRegExp("##fileDate="));
+		COMPARE_FILES("out/VcfToBedpe_out1_sniffles.bedpe", TESTDATA("data_out/VcfToBedpe_out1_sniffles.bedpe"));
+	}
+
+	void convert_cutesv_file()
+	{
+		//Unsorted output
+		EXECUTE("VcfToBedpe","-in " + TESTDATA("data_in/VcfToBedpe_in4_cutesv.vcf.gz") + " -out out/VcfToBedpe_out1_cutesv.bedpe -no_sort");
+		REMOVE_LINES("out/VcfToBedpe_out1_cutesv.bedpe",QRegExp("##fileDate="));
+		COMPARE_FILES("out/VcfToBedpe_out1_cutesv.bedpe", TESTDATA("data_out/VcfToBedpe_out1_cutesv.bedpe"));
+	}
+
+	void convert_dipdiff_file()
+	{
+		//Unsorted output
+		EXECUTE("VcfToBedpe","-in " + TESTDATA("data_in/VcfToBedpe_in5_dipdiff.vcf.gz") + " -out out/VcfToBedpe_out1_dipdiff.bedpe -no_sort");
+		REMOVE_LINES("out/VcfToBedpe_out1_dipdiff.bedpe",QRegExp("##fileDate="));
+		COMPARE_FILES("out/VcfToBedpe_out1_dipdiff.bedpe", TESTDATA("data_out/VcfToBedpe_out1_dipdiff.bedpe"));
+	}
 };

@@ -160,7 +160,7 @@ void ProcessedSampleWidget::updateGUI()
 	ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id_);
 	styleQualityLabel(ui_->quality, ps_data.quality);
 	ui_->name->setText(ps_data.name);
-	ui_->comments_processed_sample->setText(ps_data.comments);
+	GSvarHelper::limitLines(ui_->comments_processed_sample, ps_data.comments);
 	QString name_short = db.getValue("SELECT name_short FROM processing_system WHERE name_manufacturer=:0", true, ps_data.processing_system).toString();
 	ui_->system->setText("<a href=\"" + name_short + "\">"+ps_data.processing_system+"</a>");
 	ui_->project->setText("<a href=\"" + ps_data.project_name + "\">"+ps_data.project_name+"</a>");
@@ -197,13 +197,14 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->s_name->setText(s_data.name);
 	ui_->name_external->setText(s_data.name_external);
 	ui_->patient_identifier->setText(s_data.patient_identifier);
+	ui_->year_ob_birth->setText(s_data.year_of_birth);
 	ui_->sender->setText(s_data.sender + " (received on " + s_data.received + " by " + s_data.received_by +")");
 	ui_->species_type->setText(s_data.species + " / " + s_data.type);
 	ui_->tumor_ffpe->setText(QString(s_data.is_tumor ? "<font color=red>yes</font>" : "no") + " / " + (s_data.is_ffpe ? "<font color=red>yes</font>" : "no"));
 	ui_->gender->setText(s_data.gender);
 	ui_->disease_group_status->setText(s_data.disease_group + " (" + s_data.disease_status + ")");
 	ui_->tissue->setText(s_data.tissue);
-	ui_->comments_sample->setText(s_data.comments);
+	GSvarHelper::limitLines(ui_->comments_sample, s_data.comments);
 	QStringList groups;
 	foreach(SampleGroup group, s_data.sample_groups)
 	{
@@ -215,7 +216,7 @@ void ProcessedSampleWidget::updateGUI()
 	DiagnosticStatusData diag = db.getDiagnosticStatus(ps_id_);
 	ui_->status->setText(diag.dagnostic_status + " (by " + diag.user + " on " + diag.date.toString("dd.MM.yyyy")+")");
 	ui_->outcome->setText(diag.outcome);
-	ui_->comments_diag->setText(diag.comments);
+	GSvarHelper::limitLines(ui_->comments_diag, diag.comments);
 	ui_->report_config->setText(db.reportConfigSummaryText(ps_id_));
 
 
@@ -345,11 +346,18 @@ void ProcessedSampleWidget::updateQCMetrics()
 						if (value<35) color = orange;
 						if (value<30) color = red;
 					}
+					else if (sys_type=="lrGS")
+					{
+						//TODO: adjust limits for lrGS
+						if (value<20) color = orange;
+						if (value<15) color = red;
+					}
 					else
 					{
 						if (value<80) color = orange;
 						if (value<50) color = red;
 					}
+
 				}
 				else if (accession=="QC:2000027") //cov 20x
 				{
@@ -410,18 +418,35 @@ void ProcessedSampleWidget::showPlot()
 
 void ProcessedSampleWidget::openSampleFolder()
 {
-	FileLocation folder = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER);
-	if (folder.isHttpUrl())
+	try
 	{
-		QMessageBox::information(this, "Open processed sample folder", "Cannot open processed sample folder in client-server mode!");
-		return;
+		QString sample_folder = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER).filename;
+		if (Helper::isHttpUrl(sample_folder))
+		{
+			NGSD db;
+			QString project_type = db.getProcessedSampleData(ps_id_).project_type;
+			QString project_folder = db.projectFolder(project_type).trimmed();
+			if (!project_folder.isEmpty())
+			{
+				sample_folder = db.processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER);
+				if (!QDir(sample_folder).exists()) THROW(Exception, "Sample folder does not exist: " + sample_folder);
+			}
+			else
+			{
+				THROW(Exception, "In client-server mode, opening analysis folders is only supported for germline single sample!");
+			}
+		}
+		else if (!QFile::exists(sample_folder))
+		{
+			THROW(Exception, "Folder does not exist: " + sample_folder);
+		}
+
+		QDesktopServices::openUrl(sample_folder);
 	}
-	else if (!QFile::exists(folder.filename))
+	catch(Exception& e)
 	{
-		QMessageBox::warning(this, "Error opening processed sample folder", "Folder does not exist:\n" + folder.filename);
-		return;
+		QMessageBox::information(this, "Open processed sample folder", "Could not open analysis folder:\n" + e.message());
 	}
-	QDesktopServices::openUrl(QUrl(folder.filename));
 }
 
 void ProcessedSampleWidget::openSampleTab()
@@ -689,7 +714,7 @@ void ProcessedSampleWidget::openGeneExpressionWidget()
 		int sys_id = db.processingSystemIdFromProcessedSample(processedSampleName());
 		QString tissue = db.getSampleData(db.sampleId(sampleName())).tissue;
 		ExpressionGeneWidget* widget = new ExpressionGeneWidget(file_location.filename, sys_id, tissue, "", GeneSet(), db.getProcessedSampleData(ps_id_).project_name, ps_id_, RNA_COHORT_GERMLINE, this);
-		auto dlg = GUIHelper::createDialog(widget, "Expression Data of " + db.processedSampleName(ps_id_));
+		auto dlg = GUIHelper::createDialog(widget, "Gene expression of " + db.processedSampleName(ps_id_));
 		GlobalServiceProvider::addModelessDialog(dlg);
 	}
 	else
@@ -708,7 +733,7 @@ void ProcessedSampleWidget::openExonExpressionWidget()
 		int sys_id = db.processingSystemIdFromProcessedSample(processedSampleName());
 		QString tissue = db.getSampleData(db.sampleId(sampleName())).tissue;
 		ExpressionExonWidget* widget = new ExpressionExonWidget(file_location.filename, sys_id, tissue, "", GeneSet(), db.getProcessedSampleData(ps_id_).project_name, ps_id_, RNA_COHORT_GERMLINE, this);
-		auto dlg = GUIHelper::createDialog(widget, "Exon expression data of " + db.processedSampleName(ps_id_));
+		auto dlg = GUIHelper::createDialog(widget, "Exon expression of " + db.processedSampleName(ps_id_));
 		GlobalServiceProvider::addModelessDialog(dlg);
 	}
 	else
@@ -723,7 +748,7 @@ void ProcessedSampleWidget::openSplicingWidget()
 	if (file_location.exists)
 	{
 		SplicingWidget* widget = new SplicingWidget(file_location.filename, this);
-		auto dlg = GUIHelper::createDialog(widget, "Splicing of " + processedSampleName());
+		auto dlg = GUIHelper::createDialog(widget, "Splicing Alterations of " + processedSampleName());
 		GlobalServiceProvider::addModelessDialog(dlg);
 	}
 	else

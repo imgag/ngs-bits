@@ -16,13 +16,13 @@ enum class PathType
 	//mapping data
 	BAM, //BAM file
 	VIRAL_BAM, //BAM file for a virus
+    CRAM, //compressed version of BAM
 	//variant data
 	VCF, //small variants (VCF.GZ format)
 	GSVAR, //small variants (GSvar format)
 	COPY_NUMBER_CALLS, //copy number calls (TSV format)
 	COPY_NUMBER_CALLS_MOSAIC, //mosaic copy number calls (TSV format)
 	STRUCTURAL_VARIANTS, //structural variant call file (BEDPE format)
-	MOSAIC_VARIANTS, // mosaic variant calls (GSvar file)
 	REPEAT_EXPANSIONS, //repeat expansions (VCF format)
 	UPD, //UPD calls (TSV format)
 
@@ -55,6 +55,10 @@ enum class PathType
 	QC, // variant list QC (qcML) files
 	IGV_SCREENSHOT, //screenshot taken from IGV
 	HLA_GENOTYPER, // results from hla genotyper (TSV format)
+	SIGNATURE_SBS,  // Somatic: resut part from SigProfileExtractor for SNVs (CSV format)
+	SIGNATURE_ID,	// Somatic: resut part from SigProfileExtractor for SNVs (CSV format)
+	SIGNATURE_DBS,	// Somatic: resut part from SigProfileExtractor for SNVs (CSV format)
+	SIGNATURE_CNV,	// Somatic: resut from SigProfileExtractor for CNVs (CSV format)
 	OTHER // everything else
 };
 
@@ -120,7 +124,9 @@ struct FileLocation
 			case PathType::BAM:
 				return "BAM";
 			case PathType::VIRAL_BAM:
-				return "VIRAL_BAM";
+                return "VIRAL_BAM";
+            case PathType::CRAM:
+                return "CRAM";
 			case PathType::GSVAR:
 				return "GSVAR";
 			case PathType::VCF:
@@ -155,8 +161,6 @@ struct FileLocation
 				return "CIRCOS_PLOT";
 			case PathType::STRUCTURAL_VARIANTS:
 				return "STRUCTURAL_VARIANTS";
-			case PathType::MOSAIC_VARIANTS:
-				return "MOSAIC_VARIANTS";
 			case PathType::REPEAT_EXPANSION_IMAGE:
 				return "REPEAT_EXPANSION_IMAGE";
 			case PathType::FUSIONS:
@@ -197,6 +201,15 @@ struct FileLocation
 				return "IGV_SCREENSHOT";
 			case PathType::HLA_GENOTYPER:
 				return "HLA_GENOTYPER";
+			case PathType::SIGNATURE_SBS:
+				return "SIGNATURE_SBS";
+			case PathType::SIGNATURE_ID:
+				return "SIGNATURE_ID";
+			case PathType::SIGNATURE_DBS:
+				return "SIGNATURE_DBS";
+			case PathType::SIGNATURE_CNV:
+				return "SIGNATURE_CNV";
+
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToString()!");
 	}
@@ -208,6 +221,7 @@ struct FileLocation
 		if (in_upper == "SAMPLE_FOLDER") return PathType::SAMPLE_FOLDER;
 		if (in_upper == "BAM") return PathType::BAM;
 		if (in_upper == "VIRAL_BAM") return PathType::VIRAL_BAM;
+        if (in_upper == "CRAM") return PathType::CRAM;
 		if (in_upper == "GSVAR") return PathType::GSVAR;
 		if (in_upper == "VCF") return PathType::VCF;
 		if (in_upper == "BAF") return PathType::BAF;
@@ -224,7 +238,6 @@ struct FileLocation
 		if (in_upper == "UPD") return PathType::UPD;
 		if (in_upper == "CIRCOS_PLOT") return PathType::CIRCOS_PLOT;
 		if (in_upper == "STRUCTURAL_VARIANTS") return PathType::STRUCTURAL_VARIANTS;
-		if (in_upper == "MOSAIC_VARIANTS") return PathType::MOSAIC_VARIANTS;
 		if (in_upper == "REPEAT_EXPANSION_IMAGE") return PathType::REPEAT_EXPANSION_IMAGE;
 		if (in_upper == "FUSIONS") return PathType::FUSIONS;
 		if (in_upper == "FUSIONS_BAM") return PathType::FUSIONS_BAM;
@@ -246,6 +259,10 @@ struct FileLocation
 		if (in_upper == "CFDNA_CANDIDATES") return PathType::CFDNA_CANDIDATES;
 		if (in_upper == "IGV_SCREENSHOT") return PathType::IGV_SCREENSHOT;
 		if (in_upper == "HLA_GENOTYPER") return PathType::HLA_GENOTYPER;
+		if (in_upper == "SIGNATURE_SBS") return PathType::SIGNATURE_SBS;
+		if (in_upper == "SIGNATURE_ID") return PathType::SIGNATURE_ID;
+		if (in_upper == "SIGNATURE_DBS") return PathType::SIGNATURE_DBS;
+		if (in_upper == "SIGNATURE_CNV") return PathType::SIGNATURE_CNV;
 		THROW(ProgrammingException, "Unhandled path type string '" + in_upper + "' in stringToType()!");
 	}
 
@@ -256,7 +273,9 @@ struct FileLocation
 			case PathType::SAMPLE_FOLDER:
 				return "sample/analysis folder";
 			case PathType::BAM:
-				return "BAM file";
+                return "BAM file";
+            case PathType::CRAM:
+                return "compressed version of a BAM file";
 			case PathType::VIRAL_BAM:
 				return "viral BAM file";
 			case PathType::VCF:
@@ -289,8 +308,6 @@ struct FileLocation
 				return "circos plot";
 			case PathType::STRUCTURAL_VARIANTS:
 				return "structural variant calls";
-			case PathType::MOSAIC_VARIANTS:
-				return "mosaic variant calls";
 			case PathType::UPD:
 				return "uniparental disomy regions";
 			case PathType::REPEAT_EXPANSION_IMAGE:
@@ -335,6 +352,14 @@ struct FileLocation
 				return "IGV screenshot";
 			case PathType::HLA_GENOTYPER:
 				return "HLA called by hla genotyper";
+			case PathType::SIGNATURE_SBS:
+				return "SBS signature";
+			case PathType::SIGNATURE_ID:
+				return "ID signature";
+			case PathType::SIGNATURE_DBS:
+				return "DBS signature";
+			case PathType::SIGNATURE_CNV:
+				return "CNV signature";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToHumanReadableString()!");
 	}

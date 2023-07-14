@@ -113,7 +113,7 @@ bool BamAlignment::cigarIsOnlyInsertion() const
 
 Sequence BamAlignment::bases() const
 {
-	QByteArray output;
+	Sequence output;
 	output.resize(aln_->core.l_qseq);
 
 	uint8_t* s = bam_get_seq(aln_);
@@ -123,6 +123,20 @@ Sequence BamAlignment::bases() const
 	}
 
 	return output;
+}
+
+QVector<int> BamAlignment::baseIntegers() const
+{
+	QVector<int> ints;
+	ints.resize(aln_->core.l_qseq);
+
+	uint8_t* s = bam_get_seq(aln_);
+	for(int i=0; i<aln_->core.l_qseq; ++i)
+	{
+		ints[i] = bam_seqi(s, i);
+	}
+	
+	return ints;
 }
 
 void BamAlignment::setBases(const Sequence& bases)
@@ -183,7 +197,7 @@ void BamAlignment::setBases(const Sequence& bases)
 	}
 
 	/*
-	explaination how a base is retrieved by index 'i':
+	explanation how a base is retrieved by index 'i':
 	int index = (i>>1); //two bases are stored on one byte => half index
 	int shift = ((~(i)&1)<<2); //0 or 4 (for first/second half of the byte)
 	int mask = 0xf; //00001111 (keeps second half of byte);
@@ -446,7 +460,7 @@ void BamReader::verify_chromosome_length(const QString& ref_genome)
 	}
 }
 
-void BamReader::init(const QString& bam_file, const QString& ref_genome)
+void BamReader::init(const QString& bam_file, QString ref_genome)
 {
 	//open file
 	if (fp_==nullptr)
@@ -462,33 +476,20 @@ void BamReader::init(const QString& bam_file, const QString& ref_genome)
 	}
 
 	//set reference for CRAM files
-	if(fp_->is_cram)
+    if(fp_->is_cram)
 	{
-		if (Helper::isWindows())
-		{
-			THROW(FileAccessException, "CRAM is not supported on Windows!");
-		}
-		else
-		{
-			//load reference file for cram
-			if(!(ref_genome.isNull() || ref_genome == ""))
-			{
-				//load custom reference genome
-				int fai = hts_set_fai_filename(fp_, ref_genome.toUtf8().constData());
-				if(fai < 0)
-				{
-					THROW(FileAccessException, "Error while setting reference genome for cram file!");
-				}
+        if(ref_genome.isNull() || ref_genome == "") ref_genome = RefGenomeService::getReferenceGenome();
 
-				//check chromosomes are of same length
-				verify_chromosome_length(ref_genome);
-			}
-			else
-			{
-				THROW(FileAccessException, "Reference genome necessary for opening CRAM file " + bam_file + ".");
-			}
-		}
-	}
+        //load custom reference genome
+        int fai = hts_set_fai_filename(fp_, ref_genome.toUtf8().constData());
+        if(fai < 0)
+        {
+            THROW(FileAccessException, "Error while setting reference genome for cram file " + bam_file);
+        }
+
+        //check chromosomes are of same length
+        verify_chromosome_length(ref_genome);
+    }
 
 	//parse chromosome names and sizes
 	for(int i=0; i<header_->n_targets; ++i)
@@ -503,10 +504,17 @@ BamReader::BamReader(const QString& bam_file)
 	: bam_file_(Helper::canonicalPath(bam_file))
 	, fp_(sam_open(bam_file.toUtf8().constData(), "r"))
 {
-	init(bam_file);
+    if(fp_->is_cram)
+    {
+        init(bam_file, RefGenomeService::getReferenceGenome());
+    }
+    else
+    {
+        init(bam_file);
+    }
 }
 
-BamReader::BamReader(const QString& bam_file, const QString& ref_genome)
+BamReader::BamReader(const QString& bam_file, QString ref_genome)
 	: bam_file_(Helper::canonicalPath(bam_file))
 	, fp_(sam_open(bam_file.toUtf8().constData(), "r"))
 {

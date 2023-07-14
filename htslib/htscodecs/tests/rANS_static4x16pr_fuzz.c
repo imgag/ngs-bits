@@ -33,17 +33,19 @@
  */
 
 /*
-Local instructions: compile, from a build subdir, with
-/software/badger/opt/llvm/7.0.0/bin/clang -O3 -g ../../tests/rANS_static4x16pr_fuzz.c -I../.. ../../htscodecs/rANS_static4x16pr.c  -pthread -fsanitize=fuzzer,address /software/badger/opt/gcc/8.1.0/lib64/libstdc++.a
+For best results, configure, from a build subdir, to use the address and
+undefined behaviour sanitizers, and run "make fuzz".
+E.g.:
 
-(This bizarrity is because our local clang install wasn't built with
-C++ support.)
+../configure CFLAGS='-g -gdwarf-2 -O3 -Wall -fsanitize=address,undefined' CPPFLAGS='-DUBSAN'
+make fuzz
 
 Run with:
-    export ASAN_OPTIONS=allow_addr2line=true
-    ./a.out corpus
+    export ASAN_OPTIONS=allow_addr2line=1
+    export UBSAN_OPTION=halt_on_error=1
+    tests/rANS_static4x16pr_fuzz corpus
 or 
-    ./a.out -detect_leaks=0 corpus
+    tests/rANS_static4x16pr_fuzz -detect_leaks=0 corpus
 
 I generated corpus as a whole bunch of precompressed tiny inputs from
 tests/dat/q4 for different compression modes.
@@ -64,14 +66,29 @@ stream.)
 #include <sys/time.h>
 
 #include "htscodecs/rANS_static4x16.h"
-#include "htscodecs/rANS_static4x16pr.c"
 
 int LLVMFuzzerTestOneInput(uint8_t *in, size_t in_size) {
-    unsigned int uncomp_size;
-    unsigned char *uncomp = rans_uncompress_4x16(in, in_size, &uncomp_size);
-    if (uncomp)
-	free(uncomp);
-    
+    int c;
+    unsigned int uncomp_size = 0;
+    unsigned char *uncomp;
+
+    const int cpu_dec_a[] = {
+        0
+#if defined(__x86_64__)
+        , RANS_CPU_DEC_SSE4, RANS_CPU_DEC_AVX2, RANS_CPU_DEC_AVX512
+#endif
+#if defined(__ARM_NEON)
+        , RANS_CPU_DEC_NEON
+#endif
+    };
+
+    for (c = 0; c < sizeof(cpu_dec_a)/sizeof(*cpu_dec_a); c++) {
+        rans_set_cpu(cpu_dec_a[c]);
+        uncomp = rans_uncompress_4x16(in, in_size, &uncomp_size);
+        if (uncomp)
+            free(uncomp);
+    }
+
     return 0;
 }
 
@@ -89,18 +106,18 @@ static unsigned char *load(char *fn, uint64_t *lenp) {
     int fd = open(fn, O_RDONLY);
 
     do {
-	if (dsize - dcurr < BS) {
-	    dsize = dsize ? dsize * 2 : BS;
-	    data = realloc(data, dsize);
-	}
+        if (dsize - dcurr < BS) {
+            dsize = dsize ? dsize * 2 : BS;
+            data = realloc(data, dsize);
+        }
 
-	len = read(fd, data + dcurr, BS);
-	if (len > 0)
-	    dcurr += len;
+        len = read(fd, data + dcurr, BS);
+        if (len > 0)
+            dcurr += len;
     } while (len > 0);
 
     if (len == -1) {
-	perror("read");
+        perror("read");
     }
 
     close(fd);

@@ -17,11 +17,13 @@ CREATE TABLE IF NOT EXISTS `gene`
 `name` TEXT NOT NULL,
 `type` enum('protein-coding gene','pseudogene','non-coding RNA','other') NOT NULL,
 `ensembl_id` varchar(40) DEFAULT NULL,
+`ncbi_id` int(10) DEFAULT NULL,
 
 PRIMARY KEY (`id`), 
 UNIQUE KEY `hgnc_id` (`hgnc_id`),
 UNIQUE KEY `symbol` (`symbol`),
 UNIQUE KEY `ensembl_id` (`ensembl_id`),
+UNIQUE KEY `ncbi_id` (`ncbi_id`),
 KEY `type` (`type`)
 )
 ENGINE=InnoDB DEFAULT
@@ -169,7 +171,7 @@ CREATE  TABLE IF NOT EXISTS `processing_system`
   `name_manufacturer` VARCHAR(100) NOT NULL,
   `adapter1_p5` VARCHAR(45) NULL DEFAULT NULL,
   `adapter2_p7` VARCHAR(45) NULL DEFAULT NULL,
-  `type` ENUM('WGS','WGS (shallow)','WES','Panel','Panel Haloplex','Panel MIPs','RNA','ChIP-Seq', 'cfDNA (patient-specific)', 'cfDNA') NOT NULL,
+  `type` ENUM('WGS','WGS (shallow)','WES','Panel','Panel Haloplex','Panel MIPs','RNA','ChIP-Seq', 'cfDNA (patient-specific)', 'cfDNA', 'lrGS') NOT NULL,
   `shotgun` TINYINT(1) NOT NULL,
   `umi_type` ENUM('n/a','HaloPlex HS','SureSelect HS','ThruPLEX','Safe-SeqS','MIPs','QIAseq','IDT-UDI-UMI','IDT-xGen-Prism','Twist') NOT NULL DEFAULT 'n/a',
   `target_file` VARCHAR(255) NULL DEFAULT NULL COMMENT 'filename of sub-panel BED file relative to the megSAP enrichment folder.',
@@ -211,13 +213,14 @@ CREATE  TABLE IF NOT EXISTS `sequencing_run`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
   `fcid` VARCHAR(45) NULL DEFAULT NULL,
-  `flowcell_type` ENUM('Illumina MiSeq v2','Illumina MiSeq v2 Micro','Illumina MiSeq v2 Nano','Illumina MiSeq v3','Illumina NextSeq High Output','Illumina NextSeq Mid Output','Illumina NovaSeq SP','Illumina NovaSeq S1','Illumina NovaSeq S2','Illumina NovaSeq S4','PromethION FLO-PRO002','SMRTCell 8M','n/a') NOT NULL DEFAULT 'n/a',
+  `flowcell_type` ENUM('Illumina MiSeq v2','Illumina MiSeq v2 Micro','Illumina MiSeq v2 Nano','Illumina MiSeq v3','Illumina NextSeq High Output','Illumina NextSeq Mid Output','Illumina NovaSeq SP','Illumina NovaSeq S1','Illumina NovaSeq S2','Illumina NovaSeq S4','PromethION FLO-PRO002','PromethION FLO-PRO114M','SMRTCell 8M','n/a') NOT NULL DEFAULT 'n/a',
   `start_date` DATE NULL DEFAULT NULL,
   `end_date` DATE NULL DEFAULT NULL,
   `device_id` INT(11) NOT NULL,
+  `side` ENUM('n/a','A','B') NOT NULL DEFAULT 'n/a',
   `recipe` VARCHAR(45) NOT NULL COMMENT 'Read length for reads and index reads separated by \'+\'',
   `pool_molarity` float DEFAULT NULL,
-  `pool_quantification_method` enum('n/a','Tapestation','Bioanalyzer','qPCR','Tapestation & Qubit','Bioanalyzer & Qubit','Bioanalyzer & Tecan Infinite','Fragment Analyzer & Qubit','Fragment Analyzer & Tecan Infinite','Illumina 450bp & Qubit ssDNA','PCR Size & ssDNA') NOT NULL DEFAULT 'n/a',
+  `pool_quantification_method` enum('n/a','Tapestation','Bioanalyzer','qPCR','Tapestation & Qubit','Bioanalyzer & Qubit','Bioanalyzer & Tecan Infinite','Fragment Analyzer & Qubit','Fragment Analyzer & Tecan Infinite','Illumina 450bp & Qubit ssDNA','PCR Size & ssDNA','FemtoPulse & Qubit') NOT NULL DEFAULT 'n/a',
   `comment` TEXT NULL DEFAULT NULL,
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
   `status` ENUM('n/a','run_started','run_finished','run_aborted','demultiplexing_started','analysis_started','analysis_finished','analysis_not_possible','analysis_and_backup_not_required') NOT NULL DEFAULT 'n/a',
@@ -390,6 +393,7 @@ CREATE  TABLE IF NOT EXISTS `sample`
   `sender_id` INT(11) NOT NULL,
   `disease_group` ENUM('n/a','Neoplasms','Diseases of the blood or blood-forming organs','Diseases of the immune system','Endocrine, nutritional or metabolic diseases','Mental, behavioural or neurodevelopmental disorders','Sleep-wake disorders','Diseases of the nervous system','Diseases of the visual system','Diseases of the ear or mastoid process','Diseases of the circulatory system','Diseases of the respiratory system','Diseases of the digestive system','Diseases of the skin','Diseases of the musculoskeletal system or connective tissue','Diseases of the genitourinary system','Developmental anomalies','Other diseases') NOT NULL DEFAULT 'n/a',
   `disease_status` ENUM('n/a','Affected','Unaffected','Unclear') NOT NULL DEFAULT 'n/a',
+  `year_of_birth` INT(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC),
   INDEX `fk_samples_species1` (`species_id` ASC),
@@ -526,6 +530,7 @@ CREATE  TABLE IF NOT EXISTS `processed_sample`
   `molarity` FLOAT NULL DEFAULT NULL,
   `normal_id` INT(11) NULL DEFAULT NULL COMMENT 'For tumor samples, a normal sample can be given here which is used as reference sample during the data analysis.',
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
+  `folder_override` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `sample_psid_unique` (`sample_id` ASC, `process_id` ASC),
   INDEX `fk_processed_sample_samples1` (`sample_id` ASC),
@@ -600,6 +605,7 @@ CREATE  TABLE IF NOT EXISTS `variant`
   `spliceai` FLOAT NULL DEFAULT NULL,
   `germline_het` INT(11) NOT NULL DEFAULT '0',
   `germline_hom` INT(11) NOT NULL DEFAULT '0',
+  `germline_mosaic` INT(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `variant_UNIQUE` (`chr` ASC, `start` ASC, `end` ASC, `ref`(500) ASC, `obs`(500) ASC),
   INDEX `gnomad` (`gnomad` ASC),
@@ -636,7 +642,8 @@ CONSTRAINT `fk_variant_publication_has_sample`
     FOREIGN KEY (`sample_id`)
     REFERENCES `sample` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION
+    ON UPDATE NO ACTION,
+INDEX `variant_id` (`variant_id` ASC)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
@@ -1034,6 +1041,25 @@ CREATE TABLE IF NOT EXISTS `hpo_parent`
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
+
+-- -----------------------------------------------------
+-- Table `hpo_obsolete`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `hpo_obsolete`
+(
+    `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `hpo_id` VARCHAR(10) NOT NULL,
+    `name` TEXT NOT NULL,
+    `definition` TEXT NOT NULL,
+    `replaced_by` INT(10) UNSIGNED DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `hpo_id` (`hpo_id` ASC),
+    CONSTRAINT `hpo_obsolete_ibfk`
+      FOREIGN KEY (`replaced_by`)
+      REFERENCES `hpo_term` (`id`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
 -- Table `analysis_job`
@@ -1599,7 +1625,7 @@ CREATE  TABLE IF NOT EXISTS `sv_callset`
 (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
-  `caller` ENUM('Manta', 'DRAGEN') NOT NULL,
+  `caller` ENUM('Manta', 'DRAGEN', 'Sniffles') NOT NULL,
   `caller_version` varchar(25) NOT NULL,
   `call_date` DATETIME DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -1781,10 +1807,12 @@ CREATE TABLE IF NOT EXISTS `report_configuration_sv`
   `manual_start` INT(11) DEFAULT NULL,
   `manual_end` INT(11) DEFAULT NULL,
   `manual_genotype` ENUM('hom','het') DEFAULT NULL,
-  `manual_start_bnd` INT(11) DEFAULT NULL,
-  `manual_end_bnd` INT(11) DEFAULT NULL,
   `manual_hgvs_type` text DEFAULT NULL,
   `manual_hgvs_suffix` text DEFAULT NULL,
+  `manual_start_bnd` INT(11) DEFAULT NULL,
+  `manual_end_bnd` INT(11) DEFAULT NULL,
+  `manual_hgvs_type_bnd` text DEFAULT NULL,
+  `manual_hgvs_suffix_bnd` text DEFAULT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_report_configuration3`
     FOREIGN KEY (`report_configuration_id` )
@@ -2237,27 +2265,67 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
+-- Table `expression_gene`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `expression_gene`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `symbol` VARCHAR(40) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `symbol` (`symbol`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
 -- Table `expression`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `expression`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
-  `symbol` VARCHAR(40) NOT NULL,
+  `symbol_id` INT(11) NOT NULL,
   `tpm` FLOAT NOT NULL,
-  `raw` INT NOT NULL,
+  `raw` INT(11) NULL,
   PRIMARY KEY (`id`),
-  INDEX(`processed_sample_id`),
-  INDEX(`symbol`),
-  UNIQUE INDEX `expression_UNIQUE` (`processed_sample_id` ASC, `symbol` ASC),
+  INDEX(`symbol_id`),
+  UNIQUE INDEX `expression_UNIQUE` (`processed_sample_id` ASC, `symbol_id` ASC),
   CONSTRAINT `fk_expression_processed_sample_id`
     FOREIGN KEY (`processed_sample_id` )
     REFERENCES `processed_sample` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_expression_symbol_id`
+    FOREIGN KEY (`symbol_id` )
+    REFERENCES `expression_gene` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
+
+-- -- -----------------------------------------------------
+-- -- Table `expression`
+-- -- -----------------------------------------------------
+-- CREATE TABLE IF NOT EXISTS `expression`
+-- (
+--   `id` INT(11) NOT NULL AUTO_INCREMENT,
+--   `processed_sample_id` INT(11) NOT NULL,
+--   `symbol` VARCHAR(40) NOT NULL,
+--   `tpm` FLOAT NOT NULL,
+--   `raw` INT(11) NULL,
+--   PRIMARY KEY (`id`),
+--   INDEX(`processed_sample_id`),
+--   INDEX(`symbol`),
+--   UNIQUE INDEX `expression_UNIQUE` (`processed_sample_id` ASC, `symbol` ASC),
+--   CONSTRAINT `fk_expression_processed_sample_id`
+--     FOREIGN KEY (`processed_sample_id` )
+--     REFERENCES `processed_sample` (`id` )
+--     ON DELETE NO ACTION
+--     ON UPDATE NO ACTION
+-- )
+-- ENGINE = InnoDB
+-- DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
 -- Table `expression_exon`
