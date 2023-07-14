@@ -1,0 +1,16 @@
+##fileformat=VCFv4.2
+##fileDate=20230705
+##reference=GRCh38.fa
+##INFO=<ID=type,Number=1,Type=String,Description=\"Description of the variant.\">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+chr2	214769312	.	C	T	.	.	type=acceptor_ss_rev_variant
+chr2	214769230	.	A	C	.	.	type=donor_ss_rev_variant
+chr2	42656200	.	G	T	.	.	type=acceptor_ss_fwd_variant
+chr2	42656303	.	G	T	.	.	type=donor_ss_fwd_variant
+chr2	42656090	.	A	T	.	.	type=intronic_variant
+chr2	42897800	.	A	T	.	.	type=not_within_any_transcript
+chr2	12	.	N	G	.	.	type=invalid_sequence
+chr2	42656380	.	C	CTTTTTTTTTTTTAGCACGGTGAGTATGTTTTTTTTTTTTTTTTTTTT	.	.	type=insertion_only_swa
+chr2	42656200	.	GAGA	G	.	.	type=deletion_only_swa
+chr1	3069297	.	G	T	.	.	.
+chrY	22168819	.	G	T	.	.	.

@@ -435,18 +435,18 @@ private:
                         slice_end_three = coding_region.start() + 2;
                         overlaps_three_prime = variant.overlapsWith(slice_start_three, slice_end_three);
                     }
-                    if (i != coding_regions.count()) {
+                    if (i != coding_regions.count() - 1) {
                         slice_start_five = coding_region.end() - 2;
                         slice_end_five = coding_region.end() + 6;
                         overlaps_five_prime = variant.overlapsWith(slice_start_five, slice_end_five);
                     }
                 } else {
-                    if (i != 0) {
+                    if (i != coding_regions.count() - 1) {
                         slice_start_three = coding_region.end() - 2;
                         slice_end_three = coding_region.end() + 20;
                         overlaps_three_prime = variant.overlapsWith(slice_start_three, slice_end_three);
                     }
-                    if (i != coding_regions.count()) {
+                    if (i != 0) {
                         slice_start_five = coding_region.start() - 6;
                         slice_end_five = coding_region.start() + 2;
                         overlaps_five_prime = variant.overlapsWith(slice_start_five, slice_end_five);
