@@ -86,6 +86,7 @@ public:
 	{
 		if (device_type=="NextSeq500") return "Illumina NextSeq 500";
 		if (device_type=="NovaSeq6000") return "Illumina NovaSeq 6000";
+		if (device_type=="NovaSeqXPlus") return "Illumina NovaSeq X Plus";
 
 		THROW(NotImplementedException, "Unhandled device type '" + device_type + "' in CV conversion!");
 	}

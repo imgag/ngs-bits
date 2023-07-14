@@ -510,17 +510,14 @@ QList<int> GenLabDB::studySamples(QString study, QStringList& errors)
 		}
 		else
 		{
-			QStringList ps_ids = db.getValues("SELECT id FROM processed_sample WHERE sample_id=" + sample_id);
+			QList<int> ps_ids = db.getValuesInt("SELECT id FROM processed_sample WHERE sample_id=" + sample_id);
 			if (ps_ids.isEmpty())
 			{
 				errors << "Sample '" + sample + "' has no processed samples in NGSD!";
 			}
 			else
 			{
-				foreach(const QString& ps_id, ps_ids)
-				{
-					output << Helper::toInt(ps_id, "processed sample ID");
-				}
+				output.unite(ps_ids.toSet());
 			}
 		}
 
@@ -545,20 +542,21 @@ QList<int> GenLabDB::studySamples(QString study, QStringList& errors)
 QStringList GenLabDB::patientSamples(QString ps_name)
 {
 	QStringList output;
-	QString genlab_id = patientIdentifier(ps_name);
 
-	QString q_str = "SELECT LABORNUMMER FROM v_ngs_patient_ids WHERE GenlabID = '" + genlab_id + "' ";
-	foreach (QString name, names(ps_name)) {
-		q_str += "AND LABORNUMMER != '" + name + "' ";
+	QString query_str = "SELECT LABORNUMMER FROM v_ngs_patient_ids WHERE GenlabID = '" + patientIdentifier(ps_name) + "'";
+	foreach (QString name, names(ps_name))
+	{
+		query_str += " AND LABORNUMMER != '" + name + "'";
 	}
-	q_str += "ORDER BY LABORNUMMER";
+	query_str += " ORDER BY LABORNUMMER";
 
 	SqlQuery query = getQuery();
-	query.exec(q_str);
+	query.exec(query_str);
 	while (query.next())
 	{
 		QString sample = query.value(0).toString().trimmed();
 		if (sample.isEmpty()) continue;
+		if (sample.endsWith("_01") || sample.endsWith("_02") || sample.endsWith("_03") || sample.endsWith("_04") || sample.endsWith("_05") || sample.endsWith("_06")) sample.chop(3);
 		if (!output.contains(sample))
 		{
 			output << sample;
@@ -580,6 +578,10 @@ QStringList GenLabDB::dnaSamplesofRna(QString external_name)
 
 	while(query.next())
 	{
+		QString sample = query.value(0).toString().trimmed();
+		if (sample.isEmpty()) continue;
+		if (sample.endsWith("_01") || sample.endsWith("_02") || sample.endsWith("_03") || sample.endsWith("_04") || sample.endsWith("_05") || sample.endsWith("_06")) sample.chop(3);
+
 		output << query.value(0).toString().trimmed();
 	}
 
