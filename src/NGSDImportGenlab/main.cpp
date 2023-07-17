@@ -90,6 +90,7 @@ public:
 		//relatives patient relations (parents, siblings)
 		foreach (const SampleRelation& genlab_relation, genlab.relatives(ps_name))
 		{
+			if (debug) QTextStream(stdout) << "related sample: " << genlab_relation.sample1 << " " << genlab_relation.relation << " " << genlab_relation.sample2;
 			QSet<int> sample_ids_ngsd = db.relatedSamples(s_id.toInt(), genlab_relation.relation);
 			int sample2_id = db.sampleId(genlab_relation.sample1).toInt();
 

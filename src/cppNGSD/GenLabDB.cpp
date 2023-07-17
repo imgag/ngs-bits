@@ -545,15 +545,8 @@ QStringList GenLabDB::patientSamples(QString ps_name)
 {
 	QStringList output;
 
-	QString query_str = "SELECT LABORNUMMER FROM v_ngs_patient_ids WHERE GenlabID = '" + patientIdentifier(ps_name) + "'";
-	foreach (QString name, names(ps_name))
-	{
-		query_str += " AND LABORNUMMER != '" + name + "'";
-	}
-	query_str += " ORDER BY LABORNUMMER";
-
 	SqlQuery query = getQuery();
-	query.exec(query_str);
+	query.exec("SELECT LABORNUMMER FROM v_ngs_patient_ids WHERE GenlabID = '" + patientIdentifier(ps_name) + "' ORDER BY LABORNUMMER");
 	while (query.next())
 	{
 		QString sample = query.value(0).toString().trimmed();

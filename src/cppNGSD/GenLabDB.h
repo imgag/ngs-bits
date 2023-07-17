@@ -72,7 +72,7 @@ public:
 	///Returns a list of processed sample IDs of a study
 	QList<int> studySamples(QString study, QStringList& errors);
 
-	///Returns a list of all other sample names of the same patient.
+	///Returns a list of all sample names of the patient with the given processed sample.
 	QStringList patientSamples(QString ps_name);
 
 	///Returns
