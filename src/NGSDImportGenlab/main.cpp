@@ -124,7 +124,7 @@ public:
 				if (ps_data.quality == "bad") continue;
 
 				QString run_status = db.getValue("SELECT status FROM sequencing_run WHERE name='" + ps_data.run_name + "'").toString();
-				if (run_status!="demultiplexing_started" && run_status!="analysis_started" && run_status!="analysis_finished") continue;
+				if (run_status!="run_started" && run_status!="demultiplexing_started" && run_status!="analysis_started" && run_status!="analysis_finished") continue;
 
 				if (best_candidate.name.isEmpty())
 				{
@@ -231,7 +231,7 @@ public:
 				if (ps_data.processing_system_type != "Panel" && ps_data.processing_system_type != "WES" && ps_data.processing_system_type != "WGS") continue;
 				if (ps_data.quality == "bad") continue;
 				QString run_status = db.getValue("SELECT status FROM sequencing_run WHERE name = '" + ps_data.run_name + "'").toString();
-				if (run_status!="demultiplexing_started" && run_status!="analysis_started" && run_status!="analysis_finished") continue;
+				if (run_status!="run_started" && run_status!="demultiplexing_started" && run_status!="analysis_started" && run_status!="analysis_finished") continue;
 
 				if (best_candidate.name.isEmpty())
 				{
@@ -388,7 +388,6 @@ public:
 				}
 				else if (rna_reference_tissue!=map[term.disease_info])
 				{
-					//TODO warning or error?
 					THROW(ArgumentException, "Cannot determine rna reference tissue! Sample " +  ps_name + " has multiple HPO terms that are mapped to contradicting rna reference tissues.");
 				}
 			}
