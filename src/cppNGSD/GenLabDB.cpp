@@ -51,7 +51,9 @@ GenLabDB::GenLabDB()
 	else //Microsoft SQL server
 	{
 		db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QODBC3", "GENLAB_" + Helper::randomString(20))));
-		db_->setDatabaseName("DRIVER={SQL Server};SERVER="+host+"\\"+name+";UID="+user+";PWD="+pass+";");
+
+		QString driver = Helper::isWindows() ? "SQL Server" : "ODBC Driver 17 for SQL Server";
+		db_->setDatabaseName("DRIVER={" + driver + "};SERVER="+host+"\\"+name+";UID="+user+";PWD="+pass+";");
 	}
 
 	if (!db_->open())
@@ -510,17 +512,14 @@ QList<int> GenLabDB::studySamples(QString study, QStringList& errors)
 		}
 		else
 		{
-			QStringList ps_ids = db.getValues("SELECT id FROM processed_sample WHERE sample_id=" + sample_id);
+			QList<int> ps_ids = db.getValuesInt("SELECT id FROM processed_sample WHERE sample_id=" + sample_id);
 			if (ps_ids.isEmpty())
 			{
 				errors << "Sample '" + sample + "' has no processed samples in NGSD!";
 			}
 			else
 			{
-				foreach(const QString& ps_id, ps_ids)
-				{
-					output << Helper::toInt(ps_id, "processed sample ID");
-				}
+				output.unite(ps_ids.toSet());
 			}
 		}
 
@@ -541,6 +540,56 @@ QList<int> GenLabDB::studySamples(QString study, QStringList& errors)
 
 	return output.toList();
 }
+
+QStringList GenLabDB::patientSamples(QString ps_name)
+{
+	QStringList output;
+
+	QString query_str = "SELECT LABORNUMMER FROM v_ngs_patient_ids WHERE GenlabID = '" + patientIdentifier(ps_name) + "'";
+	foreach (QString name, names(ps_name))
+	{
+		query_str += " AND LABORNUMMER != '" + name + "'";
+	}
+	query_str += " ORDER BY LABORNUMMER";
+
+	SqlQuery query = getQuery();
+	query.exec(query_str);
+	while (query.next())
+	{
+		QString sample = query.value(0).toString().trimmed();
+		if (sample.isEmpty()) continue;
+		if (sample.endsWith("_01") || sample.endsWith("_02") || sample.endsWith("_03") || sample.endsWith("_04") || sample.endsWith("_05") || sample.endsWith("_06")) sample.chop(3);
+		if (!output.contains(sample))
+		{
+			output << sample;
+		}
+	}
+
+	output.sort();
+	return output;
+}
+
+QStringList GenLabDB::dnaSamplesofRna(QString external_name)
+{
+	SqlQuery query = getQuery();
+	query.prepare("SELECT LABORNUMMER FROM v_ngs_dnarna WHERE T_UNTERSUCHUNG_1_MATERIALINFO = :0 ORDER BY LABORNUMMER");
+	query.bindValue(0, external_name);
+	query.exec();
+
+	QStringList output;
+
+	while(query.next())
+	{
+		QString sample = query.value(0).toString().trimmed();
+		if (sample.isEmpty()) continue;
+		if (sample.endsWith("_01") || sample.endsWith("_02") || sample.endsWith("_03") || sample.endsWith("_04") || sample.endsWith("_05") || sample.endsWith("_06")) sample.chop(3);
+
+		output << query.value(0).toString().trimmed();
+	}
+
+	return output;
+}
+
 
 QStringList GenLabDB::names(QString ps_name)
 {

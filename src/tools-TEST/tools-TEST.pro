@@ -146,6 +146,7 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     VcfToBed_Test.h \
     TsvToQC_Test.h \
     VcfAdd_Test.h \
+    NGSDImportGenlab_Test.h \
     NGSDExportStudyGHGA_Test.h \
     VcfSubstract_Test.h \
     TranscriptsToBed_Test.h \
