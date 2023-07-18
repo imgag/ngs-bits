@@ -1,5 +1,11 @@
 # GSvar change log
 
+### 2023_06-30 (18.07.23)
+
+- sample/sample search/Genlab import: added year of birth 
+- germline report: fixed invalid genes being shown as completely coverered
+- germline report: fixed chrMT genes always being shown as gaps
+
 ### 2023_06-18 (13.07.23)
 
 - run tab: added option to sort processed sample in order of sample entry
