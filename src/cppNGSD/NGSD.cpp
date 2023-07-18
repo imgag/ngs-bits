@@ -1064,8 +1064,15 @@ QString NGSD::projectFolder(QString type)
 
 QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType type)
 {
+	//create query
+	QString query_str ="SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name, sys.name_short, ";
+	bool is_client = ClientHelper::isClientServerMode() && !ClientHelper::isRunningOnServer();
+	query_str += is_client ? "ps.folder_override_client, p.folder_override_client" : "ps.folder_override, p.folder_override";
+	query_str += " FROM processed_sample ps, sample s, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.project_id=p.id AND ps.id=:0";
+
+	//execute query
 	SqlQuery query = getQuery();
-	query.prepare("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), ps.folder_override, p.type, p.name, sys.name_short FROM processed_sample ps, sample s, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.project_id=p.id AND ps.id=:0");
+	query.prepare(query_str);
 	query.bindValue(0, processed_sample_id);
 	query.exec();
 	if (query.size()==0) THROW(DatabaseException, "Processed sample with id '" + processed_sample_id + "' not found in NGSD!");
@@ -1073,34 +1080,41 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 
 	//create sample folder
 	QString ps_name = query.value(0).toString();
-	QString ps_folder_override = query.value(1).toString();
+	QString ps_folder_override = query.value(4).toString();
+	QString p_folder_override = query.value(5).toString();
 	QString output;
 	if (!ps_folder_override.isEmpty())
 	{
 		output = ps_folder_override;
 		if (!output.endsWith(QDir::separator())) output += QDir::separator();
 	}
+	else if (!p_folder_override.isEmpty())
+	{
+		output = p_folder_override;
+		if (!output.endsWith(QDir::separator())) output += QDir::separator();
+		output += "Sample_" + ps_name + QDir::separator();
+	}
 	else
 	{
-		QString p_type = query.value(2).toString();
+		QString p_type = query.value(1).toString();
 		output = projectFolder(p_type);
-		QString p_name = query.value(3).toString();
+		QString p_name = query.value(2).toString();
 		output += p_name + QDir::separator() + "Sample_" + ps_name + QDir::separator();
 	}
-	QString sys_name_short = query.value(4).toString();
+	QString sys_name_short = query.value(3).toString();
 
 	//append file name if requested
-    if (type==PathType::BAM)
-    {
-        if (QFile::exists(output + ps_name + ".cram"))
-        {
-            output += ps_name + ".cram";
-        }
-        else
-        {
-            output += ps_name + ".bam";
-        }
-    }
+	if (type==PathType::BAM)
+	{
+		if (QFile::exists(output + ps_name + ".cram"))
+		{
+			output += ps_name + ".cram";
+		}
+		else
+		{
+			output += ps_name + ".bam";
+		}
+	}
 	else if (type==PathType::GSVAR) output += ps_name + ".GSvar";
 	else if (type==PathType::VCF) output += ps_name + "_var_annotated.vcf.gz";
 	else if (type==PathType::VCF_CF_DNA) output += ps_name + "_var.vcf";
