@@ -23,7 +23,7 @@ public:
 		addOutfile("out", "Output JSON file.", false, false);
 
 		//optional
-		addFlag("test", "Test mode: uses the test NGSD, does not calcualte size/checksum of BAMs, ...");
+		addFlag("test", "Test mode: uses the test NGSD, does not calculate size/checksum of BAMs, ...");
 
 		changeLog(2023,  1, 31, "Initial implementation (version 0.9.0 of schema).");
 	}

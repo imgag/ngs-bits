@@ -386,7 +386,7 @@ int main(int argc, char **argv)
 	EndpointManager::appendEndpoint(Endpoint{
 						"avg_coverage_gaps",
 						QMap<QString, ParamProps>{
-							{"low_cov", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "Regions of interest"}},
+							{"low_cov", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "Regions of interest"}}, //TODO Alexandr: should be called "roi"
 							{"bam_url_id", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "An id of a temporary URL pointing to a BAM file"}},
 							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},

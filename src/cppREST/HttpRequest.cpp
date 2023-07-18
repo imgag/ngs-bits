@@ -43,7 +43,7 @@ void HttpRequest::addHeader(QString key, QString value)
 	}
 }
 
-QMap<QString, QList<QString>> HttpRequest::getHeaders() const
+const QMap<QString, QList<QString>>& HttpRequest::getHeaders() const
 {
 	return headers_;
 }
@@ -73,7 +73,7 @@ void HttpRequest::addFormDataParam(QString key, QString value)
 	form_data_params_.insert(key, value);
 }
 
-QMap<QString, QString> HttpRequest::getFormDataParams() const
+const QMap<QString, QString>& HttpRequest::getFormDataParams() const
 {
 	return form_data_params_;
 }
@@ -136,12 +136,12 @@ void HttpRequest::addUrlParam(QString key, QString value)
 	}
 }
 
-void HttpRequest::setUrlParams(QMap<QString, QString> params)
+void HttpRequest::setUrlParams(const QMap<QString, QString>& params)
 {
 	url_params_ = params;
 }
 
-QMap<QString, QString> HttpRequest::getUrlParams() const
+const QMap<QString, QString>& HttpRequest::getUrlParams() const
 {
 	return url_params_;
 }
@@ -154,12 +154,12 @@ void HttpRequest::addFormUrlEncoded(QString key, QString value)
 	}
 }
 
-void HttpRequest::setFormUrlEncoded(QMap<QString, QString> form_params)
+void HttpRequest::setFormUrlEncoded(const QMap<QString, QString>& form_params)
 {
 	form_urlencoded_ = form_params;
 }
 
-QMap<QString, QString> HttpRequest::getFormUrlEncoded() const
+const QMap<QString, QString>& HttpRequest::getFormUrlEncoded() const
 {
 	return form_urlencoded_;
 }
@@ -169,7 +169,7 @@ void HttpRequest::addPathItem(QString param)
 	path_items_.append(param);
 }
 
-void HttpRequest::setPathItems(QList<QString> params)
+void HttpRequest::setPathItems(const QList<QString>& params)
 {
 	path_items_ = params;
 }

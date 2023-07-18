@@ -352,7 +352,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 						}
 					}
 
-					//calcualte GC statistics
+					//calculate GC statistics
 					indices = dropout_index.matchingIndices(chr, start_pos, end_pos);
 					foreach(int index, indices)
 					{
@@ -920,7 +920,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 			//skip secondary alignments
 			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment() || al.isUnmapped()) continue;
 
-			//calcualte GC statistics
+			//calculate GC statistics
 			QVector<int> indices = dropout_index.matchingIndices(reader.chromosome(al.chromosomeID()), al.start(), al.end());
 			foreach(int index, indices)
 			{

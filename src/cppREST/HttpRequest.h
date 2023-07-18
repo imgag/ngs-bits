@@ -17,14 +17,14 @@ public:
 	ContentType getContentType() const;
 
 	void addHeader(QString key, QString value);
-	QMap<QString, QList<QString>> getHeaders() const;
+	const QMap<QString, QList<QString>>& getHeaders() const;
 	QList<QString> getHeaderByName(QString key) const;
 
 	void setBody(QByteArray body);
 	QByteArray getBody() const;
 
 	void addFormDataParam(QString key, QString value);
-	QMap<QString, QString> getFormDataParams() const;
+	const QMap<QString, QString>& getFormDataParams() const;
 
 	void setMultipartFileName(QString file);
 	QString getMultipartFileName() const;
@@ -42,15 +42,15 @@ public:
 	QString getRemoteAddress() const;
 
 	void addUrlParam(QString key, QString value);
-	void setUrlParams(QMap<QString, QString> params);
-	QMap<QString, QString> getUrlParams() const;
+	void setUrlParams(const QMap<QString, QString>& params);
+	const QMap<QString, QString>& getUrlParams() const;
 
 	void addFormUrlEncoded(QString key, QString value);
-	void setFormUrlEncoded(QMap<QString, QString> form_params);
-	QMap<QString, QString> getFormUrlEncoded() const;
+	void setFormUrlEncoded(const QMap<QString, QString>& form_params);
+	const QMap<QString, QString>& getFormUrlEncoded() const;
 
 	void addPathItem(QString param);
-	void setPathItems(QList<QString> params);
+	void setPathItems(const QList<QString>& params);
 	QList<QString> getPathItems() const;
 
 private:

@@ -846,27 +846,23 @@ HttpResponse ServerController::calculateLowCoverage(const HttpRequest& request)
 	int threads = Settings::integer("threads");
 	BedFile low_cov = Statistics::lowCoverage(roi, bam_file_name, cutoff, threads);
 
-	if(!low_cov.toText().isEmpty())
-	{
-		QByteArray body = low_cov.toText().toUtf8();
+	QByteArray body = low_cov.toText().toUtf8();
 
-		BasicResponseData response_data;
-		response_data.length = body.length();
-		response_data.content_type = request.getContentType();
-		response_data.is_downloadable = false;
-		return HttpResponse(response_data, body);
-	}
-	return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, request.getContentType(), "Low coverage regions are empty");
+	BasicResponseData response_data;
+	response_data.length = body.length();
+	response_data.content_type = request.getContentType();
+	response_data.is_downloadable = false;
+	return HttpResponse(response_data, body);
 }
 
 HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 {
-	BedFile low_cov;
+	BedFile roi;
 	QString bam_file_name;
 
-	if (request.getFormUrlEncoded().contains("low_cov"))
+	if (request.getFormUrlEncoded().contains("low_cov")) //TODO Alexandr: should be called "roi"
 	{
-		low_cov = low_cov.fromText(request.getFormUrlEncoded()["low_cov"].toUtf8());
+		roi = roi.fromText(request.getFormUrlEncoded()["low_cov"].toUtf8());
 	}
 	if (request.getFormUrlEncoded().contains("bam_url_id"))
 	{
@@ -874,10 +870,10 @@ HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 	}
 
 	int threads = Settings::integer("threads");
-	Statistics::avgCoverage(low_cov, bam_file_name, 1, threads);
-	if(!low_cov.toText().isEmpty())
+	Statistics::avgCoverage(roi, bam_file_name, 1, threads);
+	if(!roi.isEmpty())
 	{
-		QByteArray body = low_cov.toText().toUtf8();
+		QByteArray body = roi.toText().toUtf8();
 
 		BasicResponseData response_data;
 		response_data.length = body.length();
