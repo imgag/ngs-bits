@@ -8,20 +8,26 @@
 
 ## Variant filtering and QC
 
+Germline analysis:  
+
 - [Sample quality control](sample_quality_control.md)
 - [Small variant analysis](variant_filtering.md)
 - [CNV analysis](cnv_analysis.md)
 - [SV analysis](sv_analysis.md)
 - [Repeat expansions analysis](repeat_expansion_view.md)
 - [ROH analysis](roh_analysis.md)
-- [RNA analysis](rna_analysis.md)
 - [Report generation](report_generation.md)
+
+Other analysis
+
+- [RNA analysis](rna_analysis.md)
 
 ## Auxilary functionality
 
 - [IGV integration](igv_integration.md)
 - [Preferred transcripts](preferred_transcripts.md)
 - [Variant publication](variant_publication.md)
+- [Burden test](burden_test.md)
 
 ## Misc
 
