@@ -490,6 +490,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 					exon_roi.regions.add(transcript.isCoding() ? transcript.codingRegions() : transcript.regions());
 				}
 			}
+			exon_roi.genes.remove(genes_without_roi);
 
 			//set CCDS base count without padding
 			exon_roi.regions.merge();

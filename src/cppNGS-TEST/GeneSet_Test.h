@@ -255,4 +255,46 @@ private slots:
 		S_EQUAL(list[1], "B");
 		S_EQUAL(list[2], "C");
 	}
+
+	void remove_single()
+	{
+		GeneSet set;
+		set.insert("A");
+		set.insert("B");
+		set.insert("C");
+		set.insert("D");
+
+		set.remove("b");
+
+		I_EQUAL(set.count(), 3);
+		IS_FALSE(set.contains("B"));
+	}
+
+	void remove_list()
+	{
+		GeneSet set;
+		set.insert("A");
+		set.insert("B");
+		set.insert("C");
+		set.insert("D");
+
+		set.remove(QByteArrayList() << "B" << "D");
+		I_EQUAL(set.count(), 2);
+		IS_FALSE(set.contains("B"));
+		IS_FALSE(set.contains("D"));
+	}
+
+	void remove_set()
+	{
+		GeneSet set;
+		set.insert("A");
+		set.insert("B");
+		set.insert("C");
+		set.insert("D");
+
+		set.remove(GeneSet() << "B" << "D");
+		I_EQUAL(set.count(), 2);
+		IS_FALSE(set.contains("B"));
+		IS_FALSE(set.contains("D"));
+	}
 };
