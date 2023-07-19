@@ -165,15 +165,13 @@ QString CBioPortalExportSettings::getComments(int sample_idx)
 int CBioPortalExportSettings::getHrdScore(int sample_idx)
 {
 	QCCollection ps_qc = db_.getQCData(ps_ids[sample_idx]);
-	return ps_qc.value("QC:2000126", true).asString().toInt();
-
-
+	return ps_qc.value("QC:2000126", true).asInt();
 }
 
 float CBioPortalExportSettings::getTmb(int sample_idx)
 {
 	QCCollection ps_qc = db_.getQCData(ps_ids[sample_idx]);
-	return  ps_qc.value("QC:2000053",true).asString().toFloat();
+	return  ps_qc.value("QC:2000053",true).asDouble();
 }
 
 QStringList CBioPortalExportSettings::getIcd10(int sample_idx)
@@ -249,7 +247,6 @@ QString CBioPortalExportSettings::getFormatedAttribute(Attribute att, int sample
 		case Attribute::MSI_STATUS:
 		{
 			double msi_value = getMsiStatus(sample_idx);
-			qDebug() << "MSI value: " << msi_value;
 			if(ps_data[sample_idx].processing_system_type == "WES")
 			{
 				return msi_value <= 0.4 ? "kein Hinweis auf eine MSI" : "Hinweise auf MSI";
@@ -262,10 +259,8 @@ QString CBioPortalExportSettings::getFormatedAttribute(Attribute att, int sample
 		case Attribute::PLOIDY:
 			return QString::number(getPloidy(sample_idx), 'f', 2);
 		case Attribute::PURITY_CNVS:
-			qDebug() << "CNV tumor content: " << getPurityCnvs(sample_idx);
 			return QString::number(getPurityCnvs(sample_idx), 'f', 2);
 		case Attribute::PURITY_HIST:
-			qDebug() << "HIST tumor content: " << getPurityHist(sample_idx);
 			return QString::number(getPurityHist(sample_idx), 'f', 2);
 		case Attribute::TMB:
 			return QString::number(getTmb(sample_idx), 'f', 2);
