@@ -66,7 +66,7 @@ public:
 	//check if the OrderedHash is empty
 	bool empty() const
 	{
-		return (ordered_keys_.empty());
+		return ordered_keys_.empty();
 	}
 
 	//returns keys in order
@@ -311,6 +311,7 @@ public:
 			if (error_if_key_absent) THROW(ArgumentException, "Key ' " + key + "' not found in INFO entries of variant " + toString());
 			return empty;
 		}
+		//qDebug() << __FILE__ << __LINE__ << key << info_pos << info_.count();
 
 		return info_.at(info_pos);
 	}
@@ -434,11 +435,8 @@ public:
 		}
 		filter_.push_back(strToPointer(tag));
 	}
-	//Set the list storing all info values
-	void setInfo(const QByteArrayList& info_values)
-	{
-		info_ = info_values;
-	}
+	//Set the list storing all info values. Make sure to call setInfoIdToIdxPtr before this method!
+	void setInfo(const QByteArrayList& info_values);
 	//Set the list, which stores for every sample a list of all format values
 	void setSample(const QList<QByteArrayList>& sample)
 	{

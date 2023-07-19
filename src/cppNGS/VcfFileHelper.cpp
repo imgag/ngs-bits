@@ -58,6 +58,25 @@ VcfLine::VcfLine(const Chromosome& chr, int pos, const Sequence& ref, const QLis
 	sampleIdxOf_ = sample_id_to_idx_entry;
 }
 
+void VcfLine::setInfo(const QByteArrayList& info_values)
+{
+	info_ = info_values;
+
+	//check that index map is set
+	if (!infoIdxOf_) THROW(ProgrammingException, "VcfLine::setInfo used before VcfLine::setInfoIdToIdxPtr");
+
+	//check that indices are valid
+	foreach(const QByteArray& key, infoIdxOf_->keys())
+	{
+		int index = infoIdxOf_->operator[](key);
+		if (index<0 || index>=info_.count())
+		{
+			THROW(ProgrammingException, "Index " + QString::number(index) + " of key '" + key + "' is not valid. Info array has " + QString::number(info_.count()) + " elements.");
+		}
+	}
+
+}
+
 VcfFormat::LessComparator::LessComparator(bool use_quality)
 	: use_quality(use_quality)
 {

@@ -50,7 +50,7 @@ public:
 	///returns a QList of all information IDs in the vcf file
 	QByteArrayList informationIDs() const;
 	///returns a QList of all sample names
-	QByteArrayList sampleIDs() const;
+	const QByteArrayList& sampleIDs() const;
 	///save a variant line as string
 	QString lineToString(int pos) const;
 

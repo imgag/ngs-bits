@@ -3708,8 +3708,9 @@ QList<CfdnaGeneEntry> NGSD::cfdnaGenes()
 VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, const BedFile& target_region, bool tumor_only, bool throw_on_fail)
 {
 	VcfFile vcf;
-	vcf.sampleIDs().append("TUMOR");
-	if(!tumor_only)vcf.sampleIDs().append("NORMAL");
+	//TODO Leon: the two lines below did nothing. I changed sampleIDs() to return a const ref now they don't compile anymore
+	//vcf.sampleIDs().append("TUMOR")
+	//if(!tumor_only) vcf.sampleIDs().append("NORMAL");
 
 	ProcessingSystemData sys = getProcessingSystemData(sys_id);
 
@@ -3728,8 +3729,6 @@ VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, const BedFile& target_re
 	QByteArray value = sys.name_short.toUtf8();
 	info.push_back(value);
 	info_ptr->push_back(key, static_cast<unsigned char>(0));
-
-//	BedFile target_region = processingSystemRegions(sys_id, false);
 
 	QByteArrayList format_ids = QByteArrayList() << "GT";
 	QByteArrayList sample_ids = QByteArrayList() << "TUMOR";
@@ -3754,8 +3753,8 @@ VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, const BedFile& target_re
 				return VcfFile();
 			}
 			VcfLinePtr vcf_ptr = QSharedPointer<VcfLine>(new VcfLine(line.chr(), line.start(), variant_info.at(0), QList<Sequence>() << variant_info.at(1), format_ids, sample_ids, list_of_format_values));
-			vcf_ptr->setInfo(info);
 			vcf_ptr->setInfoIdToIdxPtr(info_ptr);
+			vcf_ptr->setInfo(info);
 			vcf_ptr->setId(QByteArrayList() << "ID");
 			vcf.vcfLines() << vcf_ptr;
 		}

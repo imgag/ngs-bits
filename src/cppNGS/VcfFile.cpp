@@ -211,11 +211,7 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 
 		//save info order
 		ListOfInfoIds info_ids_string = info_ids_string_list.join();
-		if(info_id_to_idx_list_.contains(info_ids_string))
-		{
-			vcf_line->setInfoIdToIdxPtr(info_id_to_idx_list_[info_ids_string]);
-		}
-		else
+		if(!info_id_to_idx_list_.contains(info_ids_string))
 		{
 			InfoIDToIdxPtr new_info_id_to_idx_entry = InfoIDToIdxPtr(new OrderedHash<QByteArray, int>);
 			for(int i = 0; i < info_ids_string_list.count(); ++i)
@@ -223,8 +219,8 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 				new_info_id_to_idx_entry->push_back(info_ids_string_list.at(i), i);
 			}
 			info_id_to_idx_list_.insert(info_ids_string, new_info_id_to_idx_entry);
-			vcf_line->setInfoIdToIdxPtr(info_id_to_idx_list_[info_ids_string]);
 		}
+		vcf_line->setInfoIdToIdxPtr(info_id_to_idx_list_[info_ids_string]);
 		vcf_line->setInfo(info_values);
 
 	}
@@ -670,12 +666,12 @@ void VcfFile::removeDuplicates(bool sort_by_quality)
 	vcf_lines_.swap(output);
 }
 
-QByteArrayList VcfFile::sampleIDs() const
+const QByteArrayList& VcfFile::sampleIDs() const
 {
+	static QByteArrayList empty;
 	if(!sample_id_to_idx_ || sample_id_to_idx_->empty())
 	{
-		QByteArrayList empty_list;
-		return empty_list;
+		return empty;
 	}
 	return sample_id_to_idx_->keys();
 }
@@ -761,6 +757,7 @@ void VcfFile::storeLineInformation(QTextStream& stream, const VcfLine& line) con
 	//info
 	stream << "\t";
 	const QByteArrayList& info_keys = line.infoKeys();
+	//qDebug() << __LINE__ << line.toString() << info_keys.join(", ");
 	if(info_keys.isEmpty())
 	{
 		stream << ".";
@@ -771,8 +768,8 @@ void VcfFile::storeLineInformation(QTextStream& stream, const VcfLine& line) con
 		for(int i=0; i<info_keys.size(); ++i)
 		{
 			const QByteArray& key = info_keys.at(i);
-			const QByteArray& info_value = line.info(key, true);
-			if(info_value == "TRUE" && vcfHeader().infoLineByID(key).type == "Flag")
+			const QByteArray& value = line.info(key, true);
+			if(value == "TRUE" && vcfHeader().infoLineByID(key).type == "Flag")
 			{
 				if (!is_first_entry) stream  << ";";
 				stream << key;
@@ -780,7 +777,7 @@ void VcfFile::storeLineInformation(QTextStream& stream, const VcfLine& line) con
 			else
 			{
 				if (!is_first_entry) stream  << ";";
-				stream << key << "=" << info_value;
+				stream << key << "=" << value;
 			}
 
 			is_first_entry = false;
@@ -1127,7 +1124,6 @@ VcfFile VcfFile::fromGSvar(const VariantList& variant_list, const QString& refer
 		//add all columns into info
 		QByteArrayList info;
 		QByteArrayList all_info_keys;
-		QList<int> all_positions;
 
 		for (int i=0; i<v.annotations().count(); ++i)
 		{
@@ -1149,26 +1145,22 @@ VcfFile VcfFile::fromGSvar(const VariantList& variant_list, const QString& refer
 				}
 
 				all_info_keys.push_back(anno_header.name().toUtf8());
-				all_positions.push_back(i);
 			}
 		}
 
 		//save info order
 		ListOfInfoIds info_ids_string = all_info_keys.join();
-		if(info_id_to_idx_list.contains(info_ids_string))
-		{
-			vcf_line->setInfoIdToIdxPtr(info_id_to_idx_list[info_ids_string]);
-		}
-		else
+		if(!info_id_to_idx_list.contains(info_ids_string))
 		{
 			InfoIDToIdxPtr new_info_id_to_idx_entry = InfoIDToIdxPtr(new OrderedHash<QByteArray, int>);
 			for(int i = 0; i < all_info_keys.count(); ++i)
 			{
-				new_info_id_to_idx_entry->push_back(all_info_keys.at(i), all_positions.at(i));
+				new_info_id_to_idx_entry->push_back(all_info_keys.at(i), i);
 			}
 			info_id_to_idx_list.insert(info_ids_string, new_info_id_to_idx_entry);
 			vcf_line->setInfoIdToIdxPtr(new_info_id_to_idx_entry);
 		}
+		vcf_line->setInfoIdToIdxPtr(info_id_to_idx_list[info_ids_string]);
 		vcf_line->setInfo(info);
 
 		//write genotype

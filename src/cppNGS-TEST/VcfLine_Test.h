@@ -105,9 +105,9 @@ TEST_CLASS(VcfLine_Test)
             QByteArray value = "value of " + QByteArray::number(i);
             info.push_back(value);
             info_ptr->push_back(key, static_cast<unsigned char>(i));
-        }
-        variant.setInfo(info);
+		}
         variant.setInfoIdToIdxPtr(info_ptr);
+		variant.setInfo(info);
 		I_EQUAL(variant.infoKeys().size(), 10);
 		S_EQUAL(variant.info("key of 3"), "value of 3");
         S_EQUAL(variant.info("key of 4"), "value of 4");
