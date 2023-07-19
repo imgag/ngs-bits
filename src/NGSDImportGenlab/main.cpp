@@ -24,7 +24,6 @@ public:
 		addFlag("no_rna_tissue", "Do not import RNA reference tissue from HPO terms.");
 		addFlag("no_metadata", "Do not search and import metadata from GenLAB (disease group, ICD10, HPO, ...)");
 		addFlag("test", "Uses the test database instead of on the production database.");
-		addFlag("debug", "Enables debug output.");
 		addFlag("dry_run", "Run as specified but do NOT change anything in the database.");
 	}
 
@@ -36,27 +35,26 @@ public:
 		GenLabDB genlab;
 
 		QString ps = getString("ps");
-		bool debug = getFlag("debug");
 		bool dry_run = getFlag("dry_run");
 
 		//import
 		if (!getFlag("no_metadata"))
 		{
-			importGenLabMetadata(ps, db, genlab, debug, dry_run);
+			importGenLabMetadata(ps, db, genlab, dry_run);
 		}
 
 		if (!getFlag("no_relations"))
 		{
-			importSampleRelations(ps, db, genlab, debug, dry_run);
+			importSampleRelations(ps, db, genlab, dry_run);
 		}
 
 		if (!getFlag("no_rna_tissue"))
 		{
-			importRnaReferenceTissue(ps, db, debug, dry_run);
+			importRnaReferenceTissue(ps, db, dry_run);
 		}
 	}
 
-	void importSampleRelations(const QString& ps_name, NGSD& db, GenLabDB& genlab, bool debug, bool dry_run)
+	void importSampleRelations(const QString& ps_name, NGSD& db, GenLabDB& genlab, bool dry_run)
 	{
 		QStringList samples = genlab.patientSamples(ps_name);
 		if (samples.count() == 0) return;
@@ -80,23 +78,22 @@ public:
 		QStringList ngsd_relations = db.getValues("SELECT relation FROM sample_relations WHERE sample1_id = "+ s_id + " OR sample2_id = " + s_id);
 		if (!ngsd_relations.contains("tumor-normal"))
 		{
-			checkForTumorNormalRelation(db, sample_data, ps_data, related_sample_data, debug, dry_run);
+			checkForTumorNormalRelation(db, sample_data, ps_data, related_sample_data, dry_run);
 		}
-		if (!ngsd_relations.contains("same sample") && ps_data.processing_system_type=="RNA")
+		if (!ngsd_relations.contains("same sample") && sample_data.type=="RNA")
 		{
-			checkForDnaRnaRelation(db, genlab, sample_data, related_sample_data, debug, dry_run);
+			checkForDnaRnaRelation(db, genlab, sample_data, related_sample_data, dry_run);
 		}
 
 		//relatives patient relations (parents, siblings)
 		foreach (const SampleRelation& genlab_relation, genlab.relatives(ps_name))
 		{
-			if (debug) QTextStream(stdout) << "related sample: " << genlab_relation.sample1 << " " << genlab_relation.relation << " " << genlab_relation.sample2;
 			QSet<int> sample_ids_ngsd = db.relatedSamples(s_id.toInt(), genlab_relation.relation);
 			int sample2_id = db.sampleId(genlab_relation.sample1).toInt();
 
 			if (!sample_ids_ngsd.contains(sample2_id))
 			{
-				if (debug) QTextStream(stdout) << "Adding relative relation: " << genlab_relation.sample1 << " - " << genlab_relation.relation << " - " << genlab_relation.sample2 << endl;
+				QTextStream(stdout) << "Adding relative relation: " << genlab_relation.sample1 << " - " << genlab_relation.relation << " - " << genlab_relation.sample2 << endl;
 				SqlQuery insert = db.getQuery();
 				insert.prepare("INSERT INTO sample_relations (sample1_id, relation, sample2_id) VALUES (:0, :1, :2)");
 				insert.bindValue(0, db.sampleId(genlab_relation.sample1));
@@ -107,7 +104,7 @@ public:
 		}
 	}
 
-	void checkForTumorNormalRelation(NGSD& db, const SampleData& current_sample_data, const ProcessedSampleData& current_ps_data, const QList<SampleData>& related_sample_data, bool debug, bool dry_run)
+	void checkForTumorNormalRelation(NGSD& db, const SampleData& current_sample_data, const ProcessedSampleData& current_ps_data, const QList<SampleData>& related_sample_data, bool dry_run)
 	{
 		//determine best match for tumor-normal relation
 		ProcessedSampleData best_candidate;
@@ -162,7 +159,7 @@ public:
 			normal_sample_name = best_candidate.normal_sample_name;
 		}
 
-		if (debug) QTextStream(stdout) << "Importing new tumor normal relation: " << tumor_ps_name << " tumor-normal " << normal_ps_name << endl;
+		QTextStream(stdout) << "Adding new tumor normal relation: " << tumor_ps_name << " tumor-normal " << normal_ps_name << endl;
 
 		SqlQuery insert = db.getQuery();
 		insert.prepare("INSERT IGNORE INTO sample_relations (sample1_id, relation, sample2_id) VALUES (:0,'tumor-normal',:1)");
@@ -173,12 +170,12 @@ public:
 		//update normal id of tumor
 		if (db.normalSample(tumor_ps_id)=="")
 		{
-			if (debug) QTextStream(stdout) << "Updating normal_id for tumor sample: " << tumor_ps_name << " new normal sample " << normal_ps_name << endl;
+			QTextStream(stdout) << "Updating normal ID for tumor sample: " << tumor_ps_name << " - normal sample is: " << normal_ps_name << endl;
 			if (!dry_run) db.getQuery().exec("UPDATE `processed_sample` SET normal_id = " + normal_ps_id + " WHERE id=" + tumor_ps_id);
 		}
 	}
 
-	void checkForDnaRnaRelation(NGSD& db, GenLabDB& genlab, const SampleData& current_sample_data, const QList<SampleData>& related_sample_data, bool debug, bool dry_run)
+	void checkForDnaRnaRelation(NGSD& db, GenLabDB& genlab, const SampleData& current_sample_data, const QList<SampleData>& related_sample_data, bool dry_run)
 	{
 		// search for a related DNA sample
 		ProcessedSampleData genlab_related_sample;
@@ -208,7 +205,7 @@ public:
 		//found a related sample in genlab -> import and stop
 		if (!genlab_related_sample.name.isEmpty())
 		{
-			if (debug) QTextStream(stdout) << "Importing DNA-RNA relation based on GenLab dnarna table: " << current_sample_data.name << " same sample " << genlab_related_sample.name << endl;
+			QTextStream(stdout) << "Adding DNA-RNA relation based on GenLab v_ngs_dnarna table: " << current_sample_data.name << " same sample " << genlab_related_sample.name << endl;
 			SqlQuery insert = db.getQuery();
 			insert.prepare("INSERT INTO sample_relations (sample1_id, relation, sample2_id) VALUES (:0,'same sample',:1)");
 			insert.bindValue(0, db.sampleId(current_sample_data.name));
@@ -247,7 +244,7 @@ public:
 
 		if (! best_candidate.name.isEmpty())
 		{
-			if (debug) QTextStream(stdout) << "Importing DNA-RNA relation based on NGSD: " << current_sample_data.name << "same sample " << best_candidate.name << endl;
+			QTextStream(stdout) << "Adding DNA-RNA relation based on NGSD: " << current_sample_data.name << " same sample " << best_candidate.name << endl;
 			SqlQuery insert = db.getQuery();
 			insert.prepare("INSERT INTO sample_relations (sample1_id, relation, sample2_id) VALUES (:0,'same sample',:1)");
 			insert.bindValue(0, db.sampleId(current_sample_data.name));
@@ -257,20 +254,17 @@ public:
 		}
 	}
 
-	void importGenLabMetadata(QString& ps_name, NGSD& db, GenLabDB& genlab, bool debug, bool dry_run)
+	void importGenLabMetadata(QString& ps_name, NGSD& db, GenLabDB& genlab, bool dry_run)
 	{
 		QString ps_id = db.processedSampleId(ps_name);
 		QString s_id = db.sampleId(ps_name);
 		SampleData s_data = db.getSampleData(s_id);
 
-		if (debug) QTextStream(stdout) << "Metadata import for " << ps_name << endl;
-		if (debug) QTextStream(stdout) << "s_id " << s_id << endl;
-
 		//gender
 		QString gender = genlab.gender(ps_name);
 		if (gender!="" && s_data.gender=="n/a")
 		{
-			if (debug) QTextStream(stdout) << "Importing gender: " << gender << endl;
+			QTextStream(stdout) << "Adding gender: " << gender << endl;
 			if (!dry_run) db.getQuery().exec("UPDATE sample SET gender='" + gender + "' WHERE id=" + s_id);
 		}
 
@@ -278,7 +272,7 @@ public:
 		QString patient_identifier = genlab.patientIdentifier(ps_name);
 		if (patient_identifier!="" && s_data.patient_identifier=="")
 		{
-			if (debug) QTextStream(stdout) << "Importing patient identifier: " << patient_identifier << endl;
+			QTextStream(stdout) << "Adding patient identifier: " << patient_identifier << endl;
 			if (!dry_run)db.getQuery().exec("UPDATE sample SET patient_identifier='" + patient_identifier + "' WHERE id=" + s_id);
 		}
 
@@ -286,7 +280,7 @@ public:
 		QString yob = genlab.yearOfBirth(ps_name);
 		if (yob!="" && s_data.year_of_birth=="")
 		{
-			if (debug) QTextStream(stdout) << "Importing year of birth: " << yob << endl;
+			QTextStream(stdout) << "Adding year of birth: " << yob << endl;
 			if (!dry_run) db.getQuery().exec("UPDATE sample SET year_of_birth='" + yob + "' WHERE id=" + s_id);
 		}
 
@@ -296,27 +290,27 @@ public:
 		QString disease_status = disease_data.second;
 		if (disease_group!="n/a" && s_data.disease_group=="n/a")
 		{
-			if (debug) QTextStream(stdout) << "Importing disease group: " << disease_group << endl;
+			QTextStream(stdout) << "Adding disease group: " << disease_group << endl;
 			if (!dry_run) db.getQuery().exec("UPDATE sample SET disease_group='" + disease_group + "' WHERE id=" + s_id);
 		}
 		if (disease_status!="n/a" && s_data.disease_status=="n/a")
 		{
-			if (debug) QTextStream(stdout) << "Importing disease status: " << disease_status << endl;
+			QTextStream(stdout) << "Adding disease status: " << disease_status << endl;
 			if (!dry_run) db.getQuery().exec("UPDATE sample SET disease_status='" + disease_status + "' WHERE id=" + s_id);
 		}
 
 		//disease details
-		importDiseaseDetails(db, s_id, genlab.anamnesis(ps_name), "clinical phenotype (free text)", debug, dry_run);
-		importDiseaseDetails(db, s_id, genlab.orphanet(ps_name), "Orpha number", debug, dry_run);
-		importDiseaseDetails(db, s_id, genlab.diagnosis(ps_name), "ICD10 code", debug, dry_run);
-		importDiseaseDetails(db, s_id, genlab.tumorFraction(ps_name), "tumor fraction", debug, dry_run);
+		importDiseaseDetails(db, s_id, genlab.anamnesis(ps_name), "clinical phenotype (free text)", dry_run);
+		importDiseaseDetails(db, s_id, genlab.orphanet(ps_name), "Orpha number", dry_run);
+		importDiseaseDetails(db, s_id, genlab.diagnosis(ps_name), "ICD10 code", dry_run);
+		importDiseaseDetails(db, s_id, genlab.tumorFraction(ps_name), "tumor fraction", dry_run);
 		PhenotypeList phenotypes = genlab.phenotypes(ps_name);
 		QStringList hpo_accessions;
 		foreach (const Phenotype& genlab_v, phenotypes)
 		{
 			hpo_accessions << genlab_v.accession();
 		}
-		importDiseaseDetails(db, s_id, hpo_accessions, "HPO term id", debug, dry_run);
+		importDiseaseDetails(db, s_id, hpo_accessions, "HPO term id", dry_run);
 
 		//sudies
 		QStringList genlab_studies = genlab.studies(ps_name);
@@ -328,14 +322,14 @@ public:
 				QVariant study_id = db.getValue("SELECT id FROM study WHERE name=:0", true, study);
 				if (!study_id.isValid()) INFO(ArgumentException, "GenLab study name '" + study + "' not found in NGSD! Please add the study to NGSD, or correct the study name in GenLab!");
 
-				if (debug) QTextStream(stdout) << "Importing new study: " << study << endl;
+				QTextStream(stdout) << "Adding study: " << study << endl;
 
 				if (!dry_run) db.getQuery().exec("INSERT INTO `study_sample`(`study_id`, `processed_sample_id`) VALUES ("+study_id.toString()+", "+ps_id+")");
 			}
 		}
 	}
 
-	void importDiseaseDetails(NGSD& db, QString s_id, QStringList genlab_values, QString type, bool debug, bool dry_run)
+	void importDiseaseDetails(NGSD& db, QString s_id, QStringList genlab_values, QString type, bool dry_run)
 	{
 		//get values already in NGSD
 		QSet<QString> ngsd_values;
@@ -349,7 +343,7 @@ public:
 		{
 			if (!ngsd_values.contains(genlab_v))
 			{
-				if (debug) QTextStream(stdout) << "Adding disease details: " << type << " - " << genlab_v << endl;
+				QTextStream(stdout) << "Adding disease details: " << type << " - " << genlab_v << endl;
 
 				SampleDiseaseInfo new_entry;
 				new_entry.disease_info = genlab_v;
@@ -362,8 +356,13 @@ public:
 		}
 	}
 
-	void importRnaReferenceTissue(QString& ps_name, NGSD& db, bool debug, bool dry_run)
+	void importRnaReferenceTissue(QString& ps_name, NGSD& db, bool dry_run)
 	{
+		//check that this is a RNA sample
+		QString s_id = db.sampleId(ps_name);
+		SampleData s_data = db.getSampleData(s_id);
+		if (s_data.type!="RNA") return;
+
 		//load HPO-tissue map
 		QStringList lines = Helper::loadTextFile(":/HPO_to_RnaReferenceTissue.tsv", true, '#', true);
 		QMap<QString, QString> map;
@@ -375,27 +374,24 @@ public:
 			map.insert(parts[0], parts[1]);
 		}
 
-		//determine RNA reference tissue based on
-		QString s_id = db.sampleId(ps_name);
-		QList<SampleDiseaseInfo> hpo_terms = db.getSampleDiseaseInfo(s_id, "HPO term id");
-		QString rna_reference_tissue;
-		foreach(const SampleDiseaseInfo& term, hpo_terms)
+		//determine RNA reference tissue based on HPO terms
+		QSet<QString> rna_reference_tissue;
+		foreach(const SampleDiseaseInfo& term, db.getSampleDiseaseInfo(s_id, "HPO term id"))
 		{
 			if(map.contains(term.disease_info))
 			{
-				if (rna_reference_tissue.isEmpty())
-				{
-					rna_reference_tissue = map[term.disease_info];
-				}
-				else if (rna_reference_tissue!=map[term.disease_info])
-				{
-					THROW(ArgumentException, "Cannot determine rna reference tissue! Sample " +  ps_name + " has multiple HPO terms that are mapped to contradicting rna reference tissues.");
-				}
+				rna_reference_tissue << map[term.disease_info];
 			}
 		}
-		if (rna_reference_tissue != "")
+		if (rna_reference_tissue.count()==1)
 		{
-			importDiseaseDetails(db, s_id, QStringList() << rna_reference_tissue, "RNA reference tissue", debug, dry_run);
+			QString tissue = *(rna_reference_tissue.begin());
+			importDiseaseDetails(db, s_id, QStringList() << tissue, "RNA reference tissue", dry_run);
+		}
+		else if (rna_reference_tissue.count()>1)
+		{
+
+			QTextStream(stdout) << "WARNING: Cannot determine RNA reference tissue! Sample " +  ps_name + " has multiple HPO terms that are mapped to contradicting RNA reference tissues." << endl;
 		}
 	}
 
