@@ -710,7 +710,7 @@ QByteArrayList VcfFile::formatIDs() const
 	return formats;
 }
 
-void VcfFile::storeLineInformation(QTextStream& stream, VcfLine line) const
+void VcfFile::storeLineInformation(QTextStream& stream, const VcfLine& line) const
 {
 	//chr
 	stream << line.chr().str()  << "\t" << line.start();
@@ -758,39 +758,32 @@ void VcfFile::storeLineInformation(QTextStream& stream, VcfLine line) const
 		stream << "\t.";
 	}
 
-	//if info exists
-	if(line.infoKeys().empty())
+	//info
+	stream << "\t";
+	const QByteArrayList& info_keys = line.infoKeys();
+	if(info_keys.isEmpty())
 	{
-		stream << "\t.";
+		stream << ".";
 	}
 	else
 	{
-		//if info is only TRUE, print key only
-		QByteArray info_line_value = line.infoValues().at(0);
-		QByteArray info_line_key = line.infoKeys().at(0);
-		if(info_line_value == "TRUE" && vcfHeader().infoLineByID(info_line_key, false).type == "Flag")
+		bool is_first_entry = true;
+		for(int i=0; i<info_keys.size(); ++i)
 		{
-			stream  << "\t"<< line.infoKeys().at(0);
-		}
-		else
-		{
-			stream  << "\t"<< line.infoKeys().at(0) << "=" << line.infoValues().at(0);;
-		}
-		if(line.infoKeys().size() > 1)
-		{
-			for(int i = 1; i < line.infoKeys().size(); ++i)
+			const QByteArray& key = info_keys.at(i);
+			const QByteArray& info_value = line.info(key, true);
+			if(info_value == "TRUE" && vcfHeader().infoLineByID(key).type == "Flag")
 			{
-				QByteArray info_line_value = line.infoValues().at(i);
-				QByteArray info_line_key = line.infoKeys().at(i);
-				if(info_line_value == "TRUE" && vcfHeader().infoLineByID(info_line_key).type == "Flag")
-				{
-					stream  << ";"<< line.infoKeys().at(i);
-				}
-				else
-				{
-					stream  << ";"<< line.infoKeys().at(i) << "=" << line.infoValues().at(i);;
-				}
+				if (!is_first_entry) stream  << ";";
+				stream << key;
 			}
+			else
+			{
+				if (!is_first_entry) stream  << ";";
+				stream << key << "=" << info_value;
+			}
+
+			is_first_entry = false;
 		}
 	}
 

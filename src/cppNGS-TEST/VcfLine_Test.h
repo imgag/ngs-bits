@@ -108,12 +108,8 @@ TEST_CLASS(VcfLine_Test)
         }
         variant.setInfo(info);
         variant.setInfoIdToIdxPtr(info_ptr);
-        S_EQUAL(variant.info("key of 3"), "value of 3");
-        I_EQUAL(variant.infoKeys().size(), 10);
-        I_EQUAL(variant.infoValues().size(), 10);
-
-        QByteArrayList received_info_values = variant.infoValues();
-        S_EQUAL(received_info_values.at(4), "value of 4");
+		I_EQUAL(variant.infoKeys().size(), 10);
+		S_EQUAL(variant.info("key of 3"), "value of 3");
         S_EQUAL(variant.info("key of 4"), "value of 4");
     }
 
