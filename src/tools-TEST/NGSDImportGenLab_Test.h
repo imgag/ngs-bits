@@ -12,7 +12,7 @@ private:
             db.init();
             db.executeQueriesFromFile(sql);
 
-			EXECUTE("NGSDImportGenlab", "-test -ps " + import + " -debug");
+			EXECUTE("NGSDImportGenlab", "-test -ps " + import);
             QString s_id = db.sampleId(import);
             SampleData s_data = db.getSampleData(s_id);
             QSet<int> related_samples = db.relatedSamples(s_id.toInt(), "tumor-normal");
@@ -38,7 +38,7 @@ private:
             db.init();
             db.executeQueriesFromFile(sql);
 
-			EXECUTE("NGSDImportGenlab", "-test -ps " + import + " -debug");
+			EXECUTE("NGSDImportGenlab", "-test -ps " + import);
             QString s_id = db.sampleId(import);
             QSet<int> related_samples = db.relatedSamples(s_id.toInt(), "same sample");
 
@@ -56,7 +56,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportGenlab_init1.sql"));
 
 		//test sample 1
-		EXECUTE("NGSDImportGenlab", "-test -ps DXtest1_01 -no_relations -no_rna_tissue -debug");
+		EXECUTE("NGSDImportGenlab", "-test -ps DXtest1_01 -no_relations -no_rna_tissue");
 
 		QString s_id = db.sampleId("DXtest1_01");
 		SampleData s_data = db.getSampleData(s_id);
@@ -88,7 +88,7 @@ private slots:
 		S_EQUAL(infos[1].disease_info, "HP:0007281");
 
 		//test sample 2
-		EXECUTE("NGSDImportGenlab", "-test -ps DXtest2_01 -no_relations -no_rna_tissue -debug");
+		EXECUTE("NGSDImportGenlab", "-test -ps DXtest2_01 -no_relations -no_rna_tissue");
 
 		s_id = db.sampleId("DXtest2_01");
 		s_data = db.getSampleData(s_id);
@@ -118,7 +118,7 @@ private slots:
 		S_EQUAL(infos[1].disease_info, "HP:0002070");
 
 		//sample not in genlab -> no import
-		EXECUTE("NGSDImportGenlab", "-test -ps DXtest5_01 -no_relations -no_rna_tissue -debug");
+		EXECUTE("NGSDImportGenlab", "-test -ps DXtest5_01 -no_relations -no_rna_tissue");
 
 		s_id = db.sampleId("DXtest5_01");
 		s_data = db.getSampleData(s_id);
@@ -152,7 +152,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportGenlab_init1.sql"));
 
 		//same sample:
-		EXECUTE("NGSDImportGenlab", "-test -ps DXtest4_01 -debug");
+		EXECUTE("NGSDImportGenlab", "-test -ps DXtest4_01");
 		QString s_id = db.sampleId("DXtest4_01");
 		QSet<int> related_samples = db.relatedSamples(s_id.toInt(), "same sample");
 		I_EQUAL(related_samples.count(), 1);
@@ -161,7 +161,7 @@ private slots:
 		//tumor-normal simple case:
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportGenlab_init1.sql"));
-		EXECUTE("NGSDImportGenlab", "-test -ps DXtest1_01 -debug");
+		EXECUTE("NGSDImportGenlab", "-test -ps DXtest1_01");
 		s_id = db.sampleId("DXtest1_01");
 		related_samples = db.relatedSamples(s_id.toInt(), "tumor-normal");
 		I_EQUAL(related_samples.count(), 1);
@@ -178,7 +178,7 @@ private slots:
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportGenlab_init1.sql"));
 
-		EXECUTE("NGSDImportGenlab", "-test -ps DXtest3_01 -debug");
+		EXECUTE("NGSDImportGenlab", "-test -ps DXtest3_01");
 		s_id = db.sampleId("DXtest3_01");
 		related_samples = db.relatedSamples(s_id.toInt(), "tumor-normal");
 		I_EQUAL(related_samples.count(), 1);
@@ -206,7 +206,7 @@ private slots:
 		db.getQuery().exec("INSERT INTO sample_relations (sample1_id, relation, sample2_id) VALUES (" + db.sampleId("DXtest4_01") + ",'same sample'," + db.sampleId("DXtest1_01") + ")");
 
 
-		EXECUTE("NGSDImportGenlab", "-test -ps DXtest4_01 -debug");
+		EXECUTE("NGSDImportGenlab", "-test -ps DXtest4_01");
 		s_id = db.sampleId("DXtest4_01");
 		related_samples = db.relatedSamples(s_id.toInt(), "same sample");
 		I_EQUAL(related_samples.count(), 1);
@@ -218,7 +218,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportGenlab_init3.sql"));
 		db.getQuery().exec("INSERT INTO sample_relations (sample1_id, relation, sample2_id) VALUES (" + db.sampleId("DXtest3_03") + ",'tumor-normal'," + db.sampleId("DXtest5_01") + ")");
 
-		EXECUTE("NGSDImportGenlab", "-test -ps DXtest3_03 -debug");
+		EXECUTE("NGSDImportGenlab", "-test -ps DXtest3_03");
 		s_id = db.sampleId("DXtest3_03");
 		related_samples = db.relatedSamples(s_id.toInt(), "tumor-normal");
 		I_EQUAL(related_samples.count(), 1);
@@ -233,7 +233,7 @@ private slots:
 
 		NGSD db(true);
 		db.init();
-		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportGenlab_init1.sql"));
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportGenlab_init4.sql"));
 
 		//single HPO term tests
 		QString s_id = db.sampleId("DXtest1_01");
@@ -243,28 +243,28 @@ private slots:
 		hpo.user = "ahtest";
 		hpo.disease_info = "HP:0012268";
 		db.setSampleDiseaseInfo(s_id, QList<SampleDiseaseInfo>{hpo});
-		EXECUTE("NGSDImportGenlab", "-test -ps DXtest1_01 -no_metadata -no_relations -debug");
+		EXECUTE("NGSDImportGenlab", "-test -ps DXtest1_01 -no_metadata -no_relations");
 		QList<SampleDiseaseInfo> infos = db.getSampleDiseaseInfo(s_id, "RNA reference tissue");
 		I_EQUAL(infos.count(), 1);
 		S_EQUAL(infos[0].disease_info, "adipose tissue");
 
 		hpo.disease_info = "HP:0100634";
 		db.setSampleDiseaseInfo(s_id, QList<SampleDiseaseInfo>{hpo});
-		EXECUTE("NGSDImportGenlab", "-test -ps DXtest1_01 -no_metadata -no_relations -debug");
+		EXECUTE("NGSDImportGenlab", "-test -ps DXtest1_01 -no_metadata -no_relations");
 		infos = db.getSampleDiseaseInfo(s_id, "RNA reference tissue");
 		I_EQUAL(infos.count(), 1);
 		S_EQUAL(infos[0].disease_info, "lung");
 
 		hpo.disease_info = "HP:0003002";
 		db.setSampleDiseaseInfo(s_id, QList<SampleDiseaseInfo>{hpo});
-		EXECUTE("NGSDImportGenlab", "-test -ps DXtest1_01 -no_metadata -no_relations -debug");
+		EXECUTE("NGSDImportGenlab", "-test -ps DXtest1_01 -no_metadata -no_relations");
 		infos = db.getSampleDiseaseInfo(s_id, "RNA reference tissue");
 		I_EQUAL(infos.count(), 1);
 		S_EQUAL(infos[0].disease_info, "breast");
 
 		hpo.disease_info = "HP:9999999"; // not mappable
 		db.setSampleDiseaseInfo(s_id, QList<SampleDiseaseInfo>{hpo});
-		EXECUTE("NGSDImportGenlab", "-test -ps DXtest1_01 -no_metadata -no_relations -debug");
+		EXECUTE("NGSDImportGenlab", "-test -ps DXtest1_01 -no_metadata -no_relations");
 		infos = db.getSampleDiseaseInfo(s_id, "RNA reference tissue");
 		I_EQUAL(infos.count(), 0);
 
@@ -275,7 +275,7 @@ private slots:
 		hpo1.disease_info = "HP:0100634"; //lung
 		hpo2.disease_info = "HP:0030360"; //lung
 		db.setSampleDiseaseInfo(s_id, QList<SampleDiseaseInfo>{hpo1, hpo2});
-		EXECUTE("NGSDImportGenlab", "-test -ps DXtest1_01 -no_metadata -no_relations -debug");
+		EXECUTE("NGSDImportGenlab", "-test -ps DXtest1_01 -no_metadata -no_relations");
 		infos = db.getSampleDiseaseInfo(s_id, "RNA reference tissue");
 		I_EQUAL(infos.count(), 1);
 		S_EQUAL(infos[0].disease_info, "lung");
@@ -284,7 +284,7 @@ private slots:
 		hpo1.disease_info = "HP:0100634"; //lung
 		hpo2.disease_info = "HP:9999999"; //none
 		db.setSampleDiseaseInfo(s_id, QList<SampleDiseaseInfo>{hpo1, hpo2});
-		EXECUTE("NGSDImportGenlab", "-test -ps DXtest1_01 -no_metadata -no_relations -debug");
+		EXECUTE("NGSDImportGenlab", "-test -ps DXtest1_01 -no_metadata -no_relations");
 		infos = db.getSampleDiseaseInfo(s_id, "RNA reference tissue");
 		I_EQUAL(infos.count(), 1);
 		S_EQUAL(infos[0].disease_info, "lung");
@@ -293,7 +293,7 @@ private slots:
 		hpo1.disease_info = "HP:0100634"; //lung
 		hpo2.disease_info = "HP:0012056"; //skin
 		db.setSampleDiseaseInfo(s_id, QList<SampleDiseaseInfo>{hpo1, hpo2});
-		EXECUTE_FAIL("NGSDImportGenlab", "-test -ps DXtest1_01 -no_metadata -no_relations -debug");
+		EXECUTE_FAIL("NGSDImportGenlab", "-test -ps DXtest1_01 -no_metadata -no_relations");
 	}
 
 	void add_information_to_existing_information()
@@ -305,7 +305,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportGenlab_init2.sql"));
 
 		//test sample 1
-		EXECUTE("NGSDImportGenlab", "-test -ps DXtest1_01 -no_relations -debug");
+		EXECUTE("NGSDImportGenlab", "-test -ps DXtest1_01 -no_relations");
 
 		QString s_id = db.sampleId("DXtest1_01");
 		SampleData s_data = db.getSampleData(s_id);
@@ -345,7 +345,7 @@ private slots:
 		S_EQUAL(infos[0].disease_info, "tissue");
 
 		//test sample 2
-		EXECUTE("NGSDImportGenlab", "-test -ps DXtest2_01 -no_relations -debug");
+		EXECUTE("NGSDImportGenlab", "-test -ps DXtest2_01 -no_relations");
 
 		s_id = db.sampleId("DXtest2_01");
 		s_data = db.getSampleData(s_id);
