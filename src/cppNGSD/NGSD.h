@@ -270,6 +270,7 @@ struct CPPNGSDSHARED_EXPORT SampleData
 	QString species;
 	QString received;
 	QString received_by;
+	QString sampling_date;
 	QList<SampleGroup> sample_groups;
 };
 

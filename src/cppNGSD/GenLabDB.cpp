@@ -254,6 +254,21 @@ QString GenLabDB::yearOfBirth(QString ps_name)
 	return "";
 }
 
+QString GenLabDB::samplingDate(QString ps_name)
+{
+	foreach(QString name, names(ps_name))
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT Probe_Entnahmedatum FROM v_ngs_dates WHERE LABORNUMMER='" + name + "' AND Probe_Entnahmedatum IS NOT NULL");
+		while(query.next())
+		{
+			return query.value(0).toDateTime().toString("yyyy-MM-dd");
+		}
+	}
+
+	return "";
+}
+
 QString GenLabDB::yearOfOrderEntry(QString ps_name)
 {
 	foreach(QString name, names(ps_name))

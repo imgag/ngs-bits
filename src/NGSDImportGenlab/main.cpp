@@ -284,6 +284,14 @@ public:
 			if (!dry_run) db.getQuery().exec("UPDATE sample SET year_of_birth='" + yob + "' WHERE id=" + s_id);
 		}
 
+		//sampling date
+		QString sampling_date = genlab.samplingDate(ps_name);
+		if (sampling_date!="" && s_data.sampling_date=="")
+		{
+			QTextStream(stdout) << "Adding sampling date: " << sampling_date << endl;
+			if (!dry_run) db.getQuery().exec("UPDATE sample SET sampling_date='" + sampling_date + "' WHERE id=" + s_id);
+		}
+
 		//disease group and status
 		QPair<QString, QString> disease_data = genlab.diseaseInfo(ps_name);
 		QString disease_group = disease_data.first;
