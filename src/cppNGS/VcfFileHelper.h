@@ -66,7 +66,7 @@ public:
 	//check if the OrderedHash is empty
 	bool empty() const
 	{
-		return (ordered_keys_.empty());
+		return ordered_keys_.empty();
 	}
 
 	//returns keys in order
@@ -199,9 +199,9 @@ public:
 	void storeHeaderInformation(QTextStream& stream) const;
 
 	//functions returning single info, format, filter lines by its ID
-	InfoFormatLine infoLineByID(const QByteArray& id, bool error_not_found = true) const;
-	InfoFormatLine formatLineByID(const QByteArray& id, bool error_not_found = true) const;
-	FilterLine filterLineByID(const QByteArray& id, bool error_not_found = true) const;
+	const InfoFormatLine& infoLineByID(const QByteArray& id, bool error_not_found = true) const;
+	const InfoFormatLine& formatLineByID(const QByteArray& id, bool error_not_found = true) const;
+	const FilterLine& filterLineByID(const QByteArray& id, bool error_not_found = true) const;
 
 	//looks up the position of name in the list of VEP annotations from the info line in the header (CSQ line)
 	int vepIndexByName(const QString& name, bool error_if_not_found = true) const;
@@ -219,7 +219,7 @@ private:
 	QVector<InfoFormatLine> format_lines_;
 
 	bool parseInfoFormatLine(const QByteArray& line,InfoFormatLine& info_format_line, QByteArray type, const int line_number);
-	InfoFormatLine lineByID(const QByteArray& id, const QVector<InfoFormatLine>& lines, bool error_not_found = true) const;
+	const InfoFormatLine& lineByID(const QByteArray& id, const QVector<InfoFormatLine>& lines, bool error_not_found = true) const;
 };
 
 ///Representation of a line of a VCF file
@@ -290,34 +290,28 @@ public:
 	}
 
 	//Returns a list of all info IDs
-	QByteArrayList infoKeys() const
+	const QList<QByteArray>& infoKeys() const
 	{
+		static QList<QByteArray> empty;
 		if(!infoIdxOf_)
 		{
-			return QByteArrayList();
+			return empty;
 		}
 		return infoIdxOf_->keys();
 	}
 
-	//Returns a list of all info values in order of the info IDs
-	QByteArrayList infoValues()
-	{
-		if(!infoIdxOf_)
-		{
-			return QByteArrayList();
-		}
-		return info_;
-	}
-
 	//Returns the value for an info ID as key
-	QByteArray info(const QByteArray& key, bool error_if_key_absent = false) const
+	const QByteArray& info(const QByteArray& key, bool error_if_key_absent = false) const
 	{
+		static QByteArray empty;
+
 		int info_pos = -1;
 		if(!infoIdxOf_->hasKey(key, info_pos))
 		{
 			if (error_if_key_absent) THROW(ArgumentException, "Key ' " + key + "' not found in INFO entries of variant " + toString());
-			return "";
+			return empty;
 		}
+		//qDebug() << __FILE__ << __LINE__ << key << info_pos << info_.count();
 
 		return info_.at(info_pos);
 	}
@@ -441,11 +435,8 @@ public:
 		}
 		filter_.push_back(strToPointer(tag));
 	}
-	//Set the list storing all info values
-	void setInfo(const QByteArrayList& info_values)
-	{
-		info_ = info_values;
-	}
+	//Set the list storing all info values. Make sure to call setInfoIdToIdxPtr before this method!
+	void setInfo(const QByteArrayList& info_values);
 	//Set the list, which stores for every sample a list of all format values
 	void setSample(const QList<QByteArrayList>& sample)
 	{

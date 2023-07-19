@@ -58,6 +58,25 @@ VcfLine::VcfLine(const Chromosome& chr, int pos, const Sequence& ref, const QLis
 	sampleIdxOf_ = sample_id_to_idx_entry;
 }
 
+void VcfLine::setInfo(const QByteArrayList& info_values)
+{
+	info_ = info_values;
+
+	//check that index map is set
+	if (!infoIdxOf_) THROW(ProgrammingException, "VcfLine::setInfo used before VcfLine::setInfoIdToIdxPtr");
+
+	//check that indices are valid
+	foreach(const QByteArray& key, infoIdxOf_->keys())
+	{
+		int index = infoIdxOf_->operator[](key);
+		if (index<0 || index>=info_.count())
+		{
+			THROW(ProgrammingException, "Index " + QString::number(index) + " of key '" + key + "' is not valid. Info array has " + QString::number(info_.count()) + " elements.");
+		}
+	}
+
+}
+
 VcfFormat::LessComparator::LessComparator(bool use_quality)
 	: use_quality(use_quality)
 {
@@ -150,8 +169,9 @@ void VcfHeader::clear()
 	format_lines_.clear();
 }
 
-InfoFormatLine VcfHeader::lineByID(const QByteArray& id, const QVector<InfoFormatLine>& lines, bool error_not_found) const
+const InfoFormatLine& VcfHeader::lineByID(const QByteArray& id, const QVector<InfoFormatLine>& lines, bool error_not_found) const
 {
+	static InfoFormatLine empty;
 	bool found_multiple = false;
 
 	int index = -1;
@@ -159,33 +179,34 @@ InfoFormatLine VcfHeader::lineByID(const QByteArray& id, const QVector<InfoForma
 	{
 		if(lines.at(i).id==id)
 		{
-			if(index!=-1)	found_multiple = true;
+			if(index!=-1) found_multiple = true;
 			index = i;
 		}
 	}
 
-	if(error_not_found && index==-1)	THROW(ProgrammingException, "Could not find column description '" + id + "'.");
-	if(error_not_found && found_multiple)	THROW(ProgrammingException, "Description for '" + id + "' occurs more than once.");
+	if(error_not_found && index==-1) THROW(ProgrammingException, "Could not find column description '" + id + "'.");
+	if(error_not_found && found_multiple) THROW(ProgrammingException, "Description for '" + id + "' occurs more than once.");
 
 	if(!error_not_found && (found_multiple || index==-1))
 	{
-		return InfoFormatLine();
+		return empty;
 	}
 	return lines.at(index);
 }
 
-InfoFormatLine VcfHeader::infoLineByID(const QByteArray& id, bool error_not_found) const
+const InfoFormatLine& VcfHeader::infoLineByID(const QByteArray& id, bool error_not_found) const
 {
 	return lineByID(id, infoLines(), error_not_found);
 }
 
-InfoFormatLine VcfHeader::formatLineByID(const QByteArray& id, bool error_not_found) const
+const InfoFormatLine& VcfHeader::formatLineByID(const QByteArray& id, bool error_not_found) const
 {
 	return lineByID(id, formatLines(), error_not_found);
 }
 
-FilterLine VcfHeader::filterLineByID(const QByteArray& id, bool error_not_found) const
+const FilterLine& VcfHeader::filterLineByID(const QByteArray& id, bool error_not_found) const
 {
+	static FilterLine empty;
 	bool found_multiple = false;
 
 	int index = -1;
@@ -193,17 +214,17 @@ FilterLine VcfHeader::filterLineByID(const QByteArray& id, bool error_not_found)
 	{
 		if(filterLines().at(i).id==id)
 		{
-			if(index!=-1)	found_multiple = true;
+			if(index!=-1) found_multiple = true;
 			index = i;
 		}
 	}
 
-	if(error_not_found && index==-1)	THROW(ProgrammingException, "Could not find column description '" + id + "'.");
-	if(error_not_found && found_multiple)	THROW(ProgrammingException, "Description for '" + id + "' occurs more than once.");
+	if(error_not_found && index==-1) THROW(ProgrammingException, "Could not find column description '" + id + "'.");
+	if(error_not_found && found_multiple) THROW(ProgrammingException, "Description for '" + id + "' occurs more than once.");
 
 	if(!error_not_found && (found_multiple || index==-1))
 	{
-		return FilterLine();
+		return empty;
 	}
 	return filterLines().at(index);
 }

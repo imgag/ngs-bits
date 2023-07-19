@@ -50,7 +50,7 @@ public:
 	///returns a QList of all information IDs in the vcf file
 	QByteArrayList informationIDs() const;
 	///returns a QList of all sample names
-	QByteArrayList sampleIDs() const;
+	const QByteArrayList& sampleIDs() const;
 	///save a variant line as string
 	QString lineToString(int pos) const;
 
@@ -190,7 +190,7 @@ private:
 	void parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteArray>& info_ids, QSet<QByteArray>& format_ids, QSet<QByteArray>& filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
 	void parseVcfHeader(int line_number, const QByteArray& line);
 	void processVcfLine(int& line_number, const QByteArray& line, QSet<QByteArray>& info_ids, QSet<QByteArray>& format_ids, QSet<QByteArray>& filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
-	void storeLineInformation(QTextStream& stream, VcfLine line) const;
+	void storeLineInformation(QTextStream& stream, const VcfLine& line) const;
 
 	QVector<VcfLinePtr> vcf_lines_; //variant lines
 	VcfHeader vcf_header_; //all informations from header
