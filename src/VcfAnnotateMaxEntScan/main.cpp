@@ -182,7 +182,7 @@ public:
 
 
 
-            if (do_mes && (variant.start() == variant.end())) { // only calculate for small variants
+            if (do_mes && (variant.ref().length() == 1 && variant.obs().length() == 1)) { // only calculate for small variants
                 QList<QByteArray> all_mes_strings = runMES(variant, transcripts, reference);
                 if (all_mes_strings.count() > 0) { // add to info column & remove . if it was there
                     if (variant.annotations()[0] == ".") {
@@ -336,17 +336,27 @@ private:
             //qDebug() << donor_seqs;
             ref_context = donor_seqs[0];
             alt_context = donor_seqs[1];
-            QList<float> max_ref_donor = get_max_score(ref_context, 9, &ConcreteTool::score5);
-            QList<float> max_alt_donor = get_max_score(alt_context, 9, &ConcreteTool::score5);
+            QByteArray ref_donor = "";
+            QByteArray alt_donor = "";
+            QByteArray comp_donor = "";
+            if (is_valid_sequence(ref_context) && is_valid_sequence(alt_context)) {
+                QList<float> max_ref_donor = get_max_score(ref_context, 9, &ConcreteTool::score5);
+                QList<float> max_alt_donor = get_max_score(alt_context, 9, &ConcreteTool::score5);
 
-            float donor_comp;
-            if (variant.ref().length() == variant.obs().length()) {
-                int donor_alt_frame = static_cast<int>(max_alt_donor[1]);
-                Sequence donor_comp_seq = ref_context.mid(donor_alt_frame, 9);
-                donor_comp = score_maxent(donor_comp_seq, &ConcreteTool::score5);
-            } else {  // take the max ref score
-                donor_comp = max_ref_donor[0];
+                float donor_comp;
+                if (variant.ref().length() == variant.obs().length()) {
+                    int donor_alt_frame = static_cast<int>(max_alt_donor[1]);
+                    Sequence donor_comp_seq = ref_context.mid(donor_alt_frame, 9);
+                    donor_comp = score_maxent(donor_comp_seq, &ConcreteTool::score5);
+                } else {  // take the max ref score
+                    donor_comp = max_ref_donor[0];
+                }
+                ref_donor = QByteArray::number(max_ref_donor[0]);
+                alt_donor = QByteArray::number(max_alt_donor[0]);
+                comp_donor = QByteArray::number(donor_comp);
             }
+            
+
             
 
 
@@ -355,20 +365,29 @@ private:
             //qDebug() << acceptor_seqs;
             ref_context = acceptor_seqs[0];
             alt_context = acceptor_seqs[1];
-            QList<float> max_ref_acceptor = get_max_score(ref_context, 23, &ConcreteTool::score3);
-            QList<float> max_alt_acceptor = get_max_score(alt_context, 23, &ConcreteTool::score3);
+            QByteArray ref_acceptor = "";
+            QByteArray alt_acceptor = "";
+            QByteArray comp_acceptor = "";
+            if (is_valid_sequence(ref_context) && is_valid_sequence(alt_context)) {
+                QList<float> max_ref_acceptor = get_max_score(ref_context, 23, &ConcreteTool::score3);
+                QList<float> max_alt_acceptor = get_max_score(alt_context, 23, &ConcreteTool::score3);
 
-            float acceptor_comp;
-            if (variant.start() == variant.end()) {
-                int acceptor_alt_frame = static_cast<int>(max_alt_acceptor[1]);
-                Sequence acceptor_comp_seq = ref_context.mid(acceptor_alt_frame, 23);
-                acceptor_comp = score_maxent(acceptor_comp_seq, &ConcreteTool::score3);
-            } else {  // take the max ref score
-                acceptor_comp = max_ref_acceptor[0];
+                float acceptor_comp;
+                if (variant.ref().length() == variant.obs().length()) {
+                    int acceptor_alt_frame = static_cast<int>(max_alt_acceptor[1]);
+                    Sequence acceptor_comp_seq = ref_context.mid(acceptor_alt_frame, 23);
+                    acceptor_comp = score_maxent(acceptor_comp_seq, &ConcreteTool::score3);
+                } else {  // take the max ref score
+                    acceptor_comp = max_ref_acceptor[0];
+                }
+                ref_acceptor = QByteArray::number(max_ref_acceptor[0]);
+                alt_acceptor = QByteArray::number(max_alt_acceptor[0]);
+                comp_acceptor = QByteArray::number(acceptor_comp);
             }
 
+
             // save 
-            QList<QByteArray> new_mes({QByteArray::number(max_ref_donor[0]), QByteArray::number(max_alt_donor[0]), QByteArray::number(donor_comp), QByteArray::number(max_ref_acceptor[0]), QByteArray::number(max_alt_acceptor[0]), QByteArray::number(acceptor_comp), current_transcript.name()});
+            QList<QByteArray> new_mes({ref_donor, alt_donor, comp_donor, ref_acceptor, alt_acceptor, comp_acceptor, current_transcript.name()});
             QByteArray new_mes_string = new_mes.join('&');
             all_mes_swa_strings.append(new_mes_string);
         }
@@ -379,15 +398,18 @@ private:
     QList<float> get_max_score(const Sequence& context, const float& window_size, float (ConcreteTool::*scorefunc)(const Sequence&)) {
         float maxscore = -1 * std::numeric_limits<int>::max();
         int frame = -1;
-        for (int i = 1; i <= context.length() - window_size + 1; i++) {
+        Sequence max_seq;
+        for (int i = 0; i <= context.length() - window_size; i++) {
             Sequence current_sequence = context.mid(i, window_size);
             float current_score = score_maxent(current_sequence, scorefunc); //(this->*scorefunc)(current_sequence);
             if (current_score > maxscore) {
                 maxscore = current_score;
                 frame = i;
+                max_seq = current_sequence;
             }
         }
         QList<float> result({maxscore, static_cast<float>(frame)});
+        //qDebug() << max_seq;
         return result;
     }
 
@@ -424,7 +446,7 @@ private:
 
 
 
-
+                
                 // EEEEEEEEEEEEGUXXXIIIIIIIIIIIIIIAPPPXXAGEEEEEEEEEEEE
                 // -----Exon---5'ss-----Intron------3'ss------Exon----
 
@@ -459,22 +481,25 @@ private:
                     QList<Sequence> seqs = get_seqs(variant, slice_start_three, slice_end_three, 23, reference, current_transcript);
                     Sequence ref_seq = seqs[0];
                     Sequence alt_seq = seqs[1];
+                    if (is_valid_sequence(ref_seq) && is_valid_sequence(alt_seq)) {
+                        // get scores
+                        float maxentscan_ref = score_maxent(ref_seq, &ConcreteTool::score3);
+                        float maxentscan_alt = score_maxent(alt_seq, &ConcreteTool::score3);
 
-                    // get scores
-                    float maxentscan_ref = score_maxent(ref_seq, &ConcreteTool::score3);
-                    float maxentscan_alt = score_maxent(alt_seq, &ConcreteTool::score3);
+                    
+                        //qDebug() << ref_seq;
+                        //qDebug() << alt_seq;
+                        //qDebug() << "refscore three:" << maxentscan_ref;
+                        //qDebug() << "altscore three:" << maxentscan_alt;
+                    
 
-                    /*
-                    qDebug() << ref_seq;
-                    qDebug() << alt_seq;
-                    qDebug() << "refscore three:" << maxentscan_ref;
-                    qDebug() << "altscore three:" << maxentscan_alt;
-                    */
+                        // save 
+                        QList<QByteArray> new_mes({QByteArray::number(maxentscan_ref), QByteArray::number(maxentscan_alt), current_transcript.name()});
+                        QByteArray new_mes_string = new_mes.join('&');
+                        all_mes_strings.append(new_mes_string);
+                    }
 
-                    // save 
-                    QList<QByteArray> new_mes({QByteArray::number(maxentscan_ref), QByteArray::number(maxentscan_alt), current_transcript.name()});
-                    QByteArray new_mes_string = new_mes.join('&');
-                    all_mes_strings.append(new_mes_string);
+
 
                 }
 
@@ -483,22 +508,25 @@ private:
                     QList<Sequence> seqs = get_seqs(variant, slice_start_five, slice_end_five, 9, reference, current_transcript);
                     Sequence ref_seq = seqs[0];
                     Sequence alt_seq = seqs[1];
+                    if (is_valid_sequence(ref_seq) && is_valid_sequence(alt_seq)) {
+                        // get scores
+                        float maxentscan_ref = score_maxent(ref_seq, &ConcreteTool::score5);
+                        float maxentscan_alt = score_maxent(alt_seq, &ConcreteTool::score5);
 
-                    // get scores
-                    float maxentscan_ref = score_maxent(ref_seq, &ConcreteTool::score5);
-                    float maxentscan_alt = score_maxent(alt_seq, &ConcreteTool::score5);
+                        /*
+                        qDebug() << ref_seq;
+                        qDebug() << alt_seq;
+                        qDebug() << "refscore three:" << maxentscan_ref;
+                        qDebug() << "altscore three:" << maxentscan_alt;
+                        */
 
-                    /*
-                    qDebug() << ref_seq;
-                    qDebug() << alt_seq;
-                    qDebug() << "refscore three:" << maxentscan_ref;
-                    qDebug() << "altscore three:" << maxentscan_alt;
-                    */
+                        // save 
+                        QList<QByteArray> new_mes({QByteArray::number(maxentscan_ref), QByteArray::number(maxentscan_alt), current_transcript.name()});
+                        QByteArray new_mes_string = new_mes.join('&');
+                        all_mes_strings.append(new_mes_string);
+                    }
 
-                    // save 
-                    QList<QByteArray> new_mes({QByteArray::number(maxentscan_ref), QByteArray::number(maxentscan_alt), current_transcript.name()});
-                    QByteArray new_mes_string = new_mes.join('&');
-                    all_mes_strings.append(new_mes_string);
+
                 }
 
 
@@ -514,9 +542,6 @@ private:
 
     QList<Sequence> get_seqs(const Variant& variant, const int& slice_start, const int& slice_end, const int& length, const FastaFileIndex& reference, const Transcript& transcript) {
         Sequence ref_seq = reference.seq(variant.chr(), slice_start, length + variant.end() - variant.start());
-        if (!is_valid_sequence(ref_seq)) {
-            THROW(Exception, "Invalid reference sequence encountered in variant: " + variant.toString())
-        }
         Sequence alt_base = variant.obs();
         int variant_position_in_slice = variant.start() - slice_start;
         if (transcript.isMinusStrand()) {
@@ -526,9 +551,6 @@ private:
         }
         Sequence alt_seq = ref_seq;
         alt_seq = alt_seq.replace(variant_position_in_slice, variant.ref().length(), alt_base);
-        if (!is_valid_sequence(alt_seq)) {
-            THROW(Exception, "Invalid alternative sequence encountered in variant: " + variant.toString())
-        }
 
         QList<Sequence> result({ref_seq, alt_seq});
         return result;
