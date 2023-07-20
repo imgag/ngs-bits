@@ -1,5 +1,9 @@
 # GSvar change log
 
+### 2023_06-37 (20.07.23)
+
+- subpanel design: previous gene names are now corrected and invalid gene names removed
+
 ### 2023_06-30 (18.07.23)
 
 - sample/sample search/Genlab import: added year of birth 
