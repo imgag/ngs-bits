@@ -24,7 +24,7 @@ public:
     // original MaxEntScan code: http://hollywood.mit.edu/burgelab/maxent/download/fordownload/
     // VEP plugin MaxEntScan code: https://github.com/Ensembl/VEP_plugins/blob/release/109/MaxEntScan.pm#L642
     // The VEP plugin also contains the SWA
-    // This tool is basically a C++ reimplementation of the VEP plugin
+    // This tool is basically a C++ reimplementation of the VEP MaxEntScan plugin
 
 
     virtual void setup()
@@ -58,12 +58,6 @@ public:
 
     virtual void main()
     {
-
-        //chr2	42656200	.	G	T	.	.	. maxent_ref=6.763;maxentscan_alt=4.688
-        // ref sequence: TTTATTTATTTTTGGACAGGAGA
-        // alt sequence: TTTATTTATTTTTGGACAGTAGA
-
-
         // read in input vcf
         QString in_file = getInfile("in");
         QSharedPointer<QFile> reader = Helper::openFileForReading(in_file, true);
@@ -96,9 +90,6 @@ public:
         stream << "Parsed " << QString::number(gff_file.transcripts.count()) << " transcripts from input GFF file." << endl;
 		stream << "Parsing transcripts took: " << Helper::elapsedTime(timer) << endl;
         gff_file.transcripts.sortByPosition();
-
-        //qDebug() << gff_file.transcripts[23547].name();
-        //qDebug() << gff_file.transcripts[23547].regions()[0].start();
 
         // get splice site regions as bedfile
         ChromosomalIndex<TranscriptList> transcripts = ChromosomalIndex<TranscriptList>(gff_file.transcripts);
@@ -168,19 +159,12 @@ public:
             Variant variant = Variant(chr, start, end, ref, alt, info);
 
 
-
-
             //write out multi-allelic and structural variants without annotation
             // write out insertions and deletions without annotation
             if(alt.contains(',') || alt.startsWith("<") || !is_valid_sequence(variant.obs()) || !variant.isValid()) {
                 writer->write(line);
                 continue;
             }
-
-            //qDebug() << variant.start();
-            //qDebug() << variant.end();
-
-
 
             if (do_mes && (variant.ref().length() == 1 && variant.obs().length() == 1)) { // only calculate for small variants
                 QList<QByteArray> all_mes_strings = runMES(variant, transcripts, reference);
@@ -202,13 +186,8 @@ public:
                 }
             }
 
-
-
-        
             parts[7] = variant.annotations().join(';');
             writer->write(parts.join('\t') + '\n');
-
-
         }
     }
 
@@ -251,188 +230,16 @@ private:
     QHash<int,QHash<int,float>> score3_rest_;
     QHash<Sequence,float> maxent_cache;
 
-    /*
-    QByteArray collect_info(const QByteArray& old_info, const QByteArray& prefix, const QByteArray& new_info, const QByteArray& sep=";")
-    {
-        const QByteArray prefixed_new_info = prefix + new_info;
-        if (old_info == "." || old_info.trimmed().isEmpty())
-        {
-            return prefixed_new_info;
-        } else {
-            return old_info + sep + prefixed_new_info;
-        }
-    }
-    */
-
-    Sequence curate_sequence(const Sequence& sequence) {
-        return sequence.toUpper();
-    }
-
-    bool is_valid_sequence(const Sequence& sequence) {
-        return QRegExp("[ACGT]*").exactMatch(sequence);
-    }
-
-    /*
-    void write_vcf(const FastaFileIndex& reference) {
-        QTime timer;
-		timer.start();
-        QString gff_path = "/mnt/storage2/users/ahdoebm1/MaxEntScanStats/input/MANE_transcripts.gff.gz";
-        GffSettings gff_settings;
-		gff_settings.print_to_stdout = true;
-		gff_settings.skip_not_gencode_basic = false;
-		GffData gff_file = NGSHelper::loadGffFile(gff_path, gff_settings);
-        QTextStream stream(stdout);
-        stream << "Parsed " << QString::number(gff_file.transcripts.count()) << " transcripts from input GFF file." << endl;
-		stream << "Parsing transcripts took: " << Helper::elapsedTime(timer) << endl;
-        gff_file.transcripts.sortByPosition();
-
-        QSharedPointer<QFile> writer = Helper::openFileForWriting("/mnt/storage2/users/ahdoebm1/MaxEntScanStats/output/mane_variants.vcf", true);
-
-
-        foreach(Transcript transcript, gff_file.transcripts) {
-            BedFile coding_regions = transcript.codingRegions();
-            for ( int i=0; i<coding_regions.count(); ++i ) {
-            
-                BedLine coding_region = coding_regions[i];
-
-                if (i != 0) {
-                    int position = coding_region.start() - 1;
-                    Sequence ref = reference.seq(coding_region.chr(), position, 1);
-                    Sequence alt = ref.replace("G", "T");
-                    //#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
-                    QList<QByteArray> vcf_line({coding_region.chr().strNormalized(true), QByteArray::number(position), ".", ref, alt, ".", "transcript=" + transcript.name()});
-                    writer->write(vcf_line.join('\t') + '\n');
-                }
-                if (i != coding_regions.count()) {
-                    int position = coding_region.end() + 1;
-                    Sequence ref = reference.seq(coding_region.chr(), position, 1);
-                    Sequence alt = ref.replace("G", "T");
-                    //#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
-                    QList<QByteArray> vcf_line({coding_region.chr().strNormalized(true), QByteArray::number(position), ".", ref, alt, ".", "transcript=" + transcript.name()});
-                    writer->write(vcf_line.join('\t') + '\n');
-                }
-            
-            }
-        }
-
-
-    }
-    */
-
-
-    QList<QByteArray> runSWA(const Variant& variant, const ChromosomalIndex<TranscriptList>& transcripts, const FastaFileIndex& reference) {
-        QList<QByteArray> all_mes_swa_strings;
-
-        QVector<int> transcripts_oi = transcripts.matchingIndices(variant.chr(), variant.start(), variant.end());
-
-        foreach(int transcript_index, transcripts_oi) {
-            Transcript current_transcript = transcripts.container()[transcript_index];
-            Sequence ref_context;
-            Sequence alt_context;
-
-            // 5 prime ss / donor ss
-            //Sequence ref_context = reference.seq(variant.chr(), variant.start()-8, 17);
-            QList<Sequence> donor_seqs = get_seqs(variant, variant.start()-8, variant.end()+8, 17, reference, current_transcript);
-            //qDebug() << donor_seqs;
-            ref_context = donor_seqs[0];
-            alt_context = donor_seqs[1];
-            QByteArray ref_donor = "";
-            QByteArray alt_donor = "";
-            QByteArray comp_donor = "";
-            if (is_valid_sequence(ref_context) && is_valid_sequence(alt_context)) {
-                QList<float> max_ref_donor = get_max_score(ref_context, 9, &ConcreteTool::score5);
-                QList<float> max_alt_donor = get_max_score(alt_context, 9, &ConcreteTool::score5);
-
-                float donor_comp;
-                if (variant.ref().length() == variant.obs().length()) {
-                    int donor_alt_frame = static_cast<int>(max_alt_donor[1]);
-                    Sequence donor_comp_seq = ref_context.mid(donor_alt_frame, 9);
-                    donor_comp = score_maxent(donor_comp_seq, &ConcreteTool::score5);
-                } else {  // take the max ref score
-                    donor_comp = max_ref_donor[0];
-                }
-                ref_donor = QByteArray::number(max_ref_donor[0]);
-                alt_donor = QByteArray::number(max_alt_donor[0]);
-                comp_donor = QByteArray::number(donor_comp);
-            }
-            
-
-            
-
-
-            // 3 prime ss / acceptor ss
-            QList<Sequence> acceptor_seqs = get_seqs(variant, variant.start()-22, variant.end()+22, 45, reference, current_transcript);
-            //qDebug() << acceptor_seqs;
-            ref_context = acceptor_seqs[0];
-            alt_context = acceptor_seqs[1];
-            QByteArray ref_acceptor = "";
-            QByteArray alt_acceptor = "";
-            QByteArray comp_acceptor = "";
-            if (is_valid_sequence(ref_context) && is_valid_sequence(alt_context)) {
-                QList<float> max_ref_acceptor = get_max_score(ref_context, 23, &ConcreteTool::score3);
-                QList<float> max_alt_acceptor = get_max_score(alt_context, 23, &ConcreteTool::score3);
-
-                float acceptor_comp;
-                if (variant.ref().length() == variant.obs().length()) {
-                    int acceptor_alt_frame = static_cast<int>(max_alt_acceptor[1]);
-                    Sequence acceptor_comp_seq = ref_context.mid(acceptor_alt_frame, 23);
-                    acceptor_comp = score_maxent(acceptor_comp_seq, &ConcreteTool::score3);
-                } else {  // take the max ref score
-                    acceptor_comp = max_ref_acceptor[0];
-                }
-                ref_acceptor = QByteArray::number(max_ref_acceptor[0]);
-                alt_acceptor = QByteArray::number(max_alt_acceptor[0]);
-                comp_acceptor = QByteArray::number(acceptor_comp);
-            }
-
-
-            // save 
-            QList<QByteArray> new_mes({ref_donor, alt_donor, comp_donor, ref_acceptor, alt_acceptor, comp_acceptor, current_transcript.name()});
-            QByteArray new_mes_string = new_mes.join('&');
-            all_mes_swa_strings.append(new_mes_string);
-        }
-
-        return all_mes_swa_strings;
-    }
-
-    QList<float> get_max_score(const Sequence& context, const float& window_size, float (ConcreteTool::*scorefunc)(const Sequence&)) {
-        float maxscore = -1 * std::numeric_limits<int>::max();
-        int frame = -1;
-        Sequence max_seq;
-        for (int i = 0; i <= context.length() - window_size; i++) {
-            Sequence current_sequence = context.mid(i, window_size);
-            float current_score = score_maxent(current_sequence, scorefunc); //(this->*scorefunc)(current_sequence);
-            if (current_score > maxscore) {
-                maxscore = current_score;
-                frame = i;
-                max_seq = current_sequence;
-            }
-        }
-        QList<float> result({maxscore, static_cast<float>(frame)});
-        //qDebug() << max_seq;
-        return result;
-    }
-
-
-
-
-
-
-
-
 
 
     QList<QByteArray> runMES(const Variant& variant, const ChromosomalIndex<TranscriptList>& transcripts, const FastaFileIndex& reference) {
         QList<QByteArray> all_mes_strings;
         QVector<int> transcripts_oi = transcripts.matchingIndices(variant.chr(), variant.start(), variant.end());
 
-        //qDebug() << transcripts_oi;
-
         // get splice site regions of transcripts oi
         foreach(int transcript_index, transcripts_oi) {
             Transcript current_transcript = transcripts.container()[transcript_index];
             //printTranscript(current_transcript);
-
 
             BedFile coding_regions = current_transcript.codingRegions();
             for ( int i=0; i<coding_regions.count(); ++i ) {
@@ -444,9 +251,6 @@ private:
                 int slice_start_five;
                 int slice_end_five;
 
-
-
-                
                 // EEEEEEEEEEEEGUXXXIIIIIIIIIIIIIIAPPPXXAGEEEEEEEEEEEE
                 // -----Exon---5'ss-----Intron------3'ss------Exon----
 
@@ -485,22 +289,11 @@ private:
                         // get scores
                         float maxentscan_ref = score_maxent(ref_seq, &ConcreteTool::score3);
                         float maxentscan_alt = score_maxent(alt_seq, &ConcreteTool::score3);
-
-                    
-                        //qDebug() << ref_seq;
-                        //qDebug() << alt_seq;
-                        //qDebug() << "refscore three:" << maxentscan_ref;
-                        //qDebug() << "altscore three:" << maxentscan_alt;
-                    
-
                         // save 
                         QList<QByteArray> new_mes({QByteArray::number(maxentscan_ref), QByteArray::number(maxentscan_alt), current_transcript.name()});
                         QByteArray new_mes_string = new_mes.join('&');
                         all_mes_strings.append(new_mes_string);
                     }
-
-
-
                 }
 
                 if (overlaps_five_prime) {
@@ -512,14 +305,6 @@ private:
                         // get scores
                         float maxentscan_ref = score_maxent(ref_seq, &ConcreteTool::score5);
                         float maxentscan_alt = score_maxent(alt_seq, &ConcreteTool::score5);
-
-                        /*
-                        qDebug() << ref_seq;
-                        qDebug() << alt_seq;
-                        qDebug() << "refscore three:" << maxentscan_ref;
-                        qDebug() << "altscore three:" << maxentscan_alt;
-                        */
-
                         // save 
                         QList<QByteArray> new_mes({QByteArray::number(maxentscan_ref), QByteArray::number(maxentscan_alt), current_transcript.name()});
                         QByteArray new_mes_string = new_mes.join('&');
@@ -537,6 +322,95 @@ private:
         }
 
         return all_mes_strings;
+    }
+
+
+
+    QList<QByteArray> runSWA(const Variant& variant, const ChromosomalIndex<TranscriptList>& transcripts, const FastaFileIndex& reference) {
+        QList<QByteArray> all_mes_swa_strings;
+
+        QVector<int> transcripts_oi = transcripts.matchingIndices(variant.chr(), variant.start(), variant.end());
+
+        foreach(int transcript_index, transcripts_oi) {
+            Transcript current_transcript = transcripts.container()[transcript_index];
+            Sequence ref_context;
+            Sequence alt_context;
+
+            // 5 prime ss / donor ss
+            QList<Sequence> donor_seqs = get_seqs(variant, variant.start()-8, variant.end()+8, 17, reference, current_transcript);
+            //qDebug() << donor_seqs;
+            ref_context = donor_seqs[0];
+            alt_context = donor_seqs[1];
+            QByteArray ref_donor = "";
+            QByteArray alt_donor = "";
+            QByteArray comp_donor = "";
+            if (is_valid_sequence(ref_context) && is_valid_sequence(alt_context)) {
+                QList<float> max_ref_donor = get_max_score(ref_context, 9, &ConcreteTool::score5);
+                QList<float> max_alt_donor = get_max_score(alt_context, 9, &ConcreteTool::score5);
+
+                float donor_comp;
+                if (variant.ref().length() == variant.obs().length()) {
+                    int donor_alt_frame = static_cast<int>(max_alt_donor[1]);
+                    Sequence donor_comp_seq = ref_context.mid(donor_alt_frame, 9);
+                    donor_comp = score_maxent(donor_comp_seq, &ConcreteTool::score5);
+                } else {  // take the max ref score
+                    donor_comp = max_ref_donor[0];
+                }
+                ref_donor = QByteArray::number(max_ref_donor[0]);
+                alt_donor = QByteArray::number(max_alt_donor[0]);
+                comp_donor = QByteArray::number(donor_comp);
+            }
+            
+            // 3 prime ss / acceptor ss
+            QList<Sequence> acceptor_seqs = get_seqs(variant, variant.start()-22, variant.end()+22, 45, reference, current_transcript);
+            //qDebug() << acceptor_seqs;
+            ref_context = acceptor_seqs[0];
+            alt_context = acceptor_seqs[1];
+            QByteArray ref_acceptor = "";
+            QByteArray alt_acceptor = "";
+            QByteArray comp_acceptor = "";
+            if (is_valid_sequence(ref_context) && is_valid_sequence(alt_context)) {
+                QList<float> max_ref_acceptor = get_max_score(ref_context, 23, &ConcreteTool::score3);
+                QList<float> max_alt_acceptor = get_max_score(alt_context, 23, &ConcreteTool::score3);
+
+                float acceptor_comp;
+                if (variant.ref().length() == variant.obs().length()) {
+                    int acceptor_alt_frame = static_cast<int>(max_alt_acceptor[1]);
+                    Sequence acceptor_comp_seq = ref_context.mid(acceptor_alt_frame, 23);
+                    acceptor_comp = score_maxent(acceptor_comp_seq, &ConcreteTool::score3);
+                } else {  // take the max ref score
+                    acceptor_comp = max_ref_acceptor[0];
+                }
+                ref_acceptor = QByteArray::number(max_ref_acceptor[0]);
+                alt_acceptor = QByteArray::number(max_alt_acceptor[0]);
+                comp_acceptor = QByteArray::number(acceptor_comp);
+            }
+
+
+            // save 
+            QList<QByteArray> new_mes({ref_donor, alt_donor, comp_donor, ref_acceptor, alt_acceptor, comp_acceptor, current_transcript.name()});
+            QByteArray new_mes_string = new_mes.join('&');
+            all_mes_swa_strings.append(new_mes_string);
+        }
+
+        return all_mes_swa_strings;
+    }
+
+
+    // utility functions
+    QList<float> get_max_score(const Sequence& context, const float& window_size, float (ConcreteTool::*scorefunc)(const Sequence&)) {
+        float maxscore = -1 * std::numeric_limits<int>::max();
+        int frame = -1;
+        for (int i = 0; i <= context.length() - window_size; i++) {
+            Sequence current_sequence = context.mid(i, window_size);
+            float current_score = score_maxent(current_sequence, scorefunc); //(this->*scorefunc)(current_sequence);
+            if (current_score > maxscore) {
+                maxscore = current_score;
+                frame = i;
+            }
+        }
+        QList<float> result({maxscore, static_cast<float>(frame)});
+        return result;
     }
 
 
@@ -636,17 +510,11 @@ private:
 
 
     int hashseq(const QByteArray& sequence) {
-        //QByteArray sequence_numbers = sequence;
-        //sequence_numbers = sequence_numbers.replace('A', '0');
-        //sequence_numbers = sequence_numbers.replace('C', '1');
-        //sequence_numbers = sequence_numbers.replace('G', '2');
-        //sequence_numbers = sequence_numbers.replace('T', '3');
         QList<int> pow_four({1,4,16,64,256,1024,4096,16384});
         int result = 0;
         int seqlength = sequence.length();
         for (int i = 0; i<seqlength; i++) {
             result += base_to_int(sequence[i]) * pow_four[seqlength - i - 1];
-            //result += ((int) sequence_numbers[i]) * pow(4, sequence_numbers.length() - i - 1);
         }
         return result;
     }
@@ -691,6 +559,14 @@ private:
         }
         result.insert(last_index, current_inner);
         return result;
+    }
+
+    Sequence curate_sequence(const Sequence& sequence) {
+        return sequence.toUpper();
+    }
+
+    bool is_valid_sequence(const Sequence& sequence) {
+        return QRegExp("[ACGT]*").exactMatch(sequence);
     }
 
 };
