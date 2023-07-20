@@ -174,7 +174,7 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 	}
 
 	// check that there is exactly one sample
-	QByteArrayList samples = repeat_expansions.sampleIDs();
+	const QByteArrayList& samples = repeat_expansions.sampleIDs();
 	if (samples.count()!=1)
 	{
 		THROW(ArgumentException, "Repeat expansion VCF file '" + vcf_filename_ + "' does not contain exactly one sample!");

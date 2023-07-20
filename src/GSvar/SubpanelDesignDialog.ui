@@ -292,7 +292,7 @@
    <item row="7" column="1">
     <widget class="QCheckBox" name="ignore_gene_errors">
      <property name="text">
-      <string>ignore unknown gene names and genes without transcript</string>
+      <string>Skip genes with invalid gene names and skip genes without transcript</string>
      </property>
     </widget>
    </item>
