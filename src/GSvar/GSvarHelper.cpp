@@ -501,7 +501,14 @@ CfdnaDiseaseCourseTable GSvarHelper::cfdnaTable(const QString& tumor_ps_name, QS
 		CfdnaDiseaseCourseTable::PSInfo cfdna_sample;
 		cfdna_sample.name = db.processedSampleName(ps_id);
 		cfdna_sample.ps_id = ps_id;
-		cfdna_sample.date = QDate::fromString(db.getSampleData(db.sampleId(cfdna_sample.name)).received, "dd.MM.yyyy");
+		SampleData sample_data = db.getSampleData(db.sampleId(cfdna_sample.name));
+		cfdna_sample.received_date = QDate::fromString(sample_data.received, "dd.MM.yyyy");
+
+		if (sample_data.sampling_date != "")
+		{
+			cfdna_sample.sampling_date = QDate::fromString(sample_data.sampling_date, "dd.MM.yyyy");
+		}
+
 		table.cfdna_samples << cfdna_sample;
 
 

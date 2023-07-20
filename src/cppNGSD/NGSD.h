@@ -576,10 +576,18 @@ struct CfdnaDiseaseCourseTable
 	{
 		QString name;
 		QString ps_id;
-		QDate date;
+		QDate received_date;
+		QDate sampling_date;
 
 		bool operator<(const PSInfo& other) const {
-			return date < other.date; // sort by date
+			if (sampling_date.isNull() || other.sampling_date.isNull())
+			{
+				return received_date < other.received_date; // sort by date
+			}
+			else
+			{
+				return sampling_date < other.sampling_date;
+			}
 		}
 	};
 
