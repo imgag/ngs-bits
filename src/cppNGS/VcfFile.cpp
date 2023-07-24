@@ -160,11 +160,10 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 	}
 
 	//FILTER
-	vcf_line->setFilter(line_parts[FILTER].split(';'));
-	foreach(const QByteArray& filter, vcf_line->filter())
+	vcf_line->setFilters(line_parts[FILTER].split(';'));
+	foreach(const QByteArray& filter, vcf_line->filters())
 	{
-		if(filter == "PASS" || filter == "pass" || filter == "." || filter.isEmpty()) continue;
-		if(!filter_ids.contains(filter))
+		if(!filter_ids.contains(filter) && filter!="PASS")
 		{
 			FilterLine new_filter_line;
 			new_filter_line.id = strToPointer(filter);
@@ -361,7 +360,7 @@ void VcfFile::processVcfLine(int& line_number, const QByteArray& line, QSet<QByt
 	else if (line.startsWith("#CHROM"))
 	{
 		parseHeaderFields(line, allow_multi_sample);
-		//all header lines hsould be read at this point
+		//all header lines should be read at this point
 		foreach(const InfoFormatLine& format, vcf_header_.formatLines())
 		{
 			format_ids.insert(format.id);
@@ -519,28 +518,28 @@ void VcfFile::storeAsTsv(const QString& filename)
 	stream << "\n";
 
 	//vcf lines
-	foreach(const VcfLinePtr& v, vcfLines())
+	foreach(const VcfLinePtr& v, vcf_lines_)
 	{
 		//normalize variants and set symbol for empty sequence
 		stream << v->chr().str() << "\t" << QByteArray::number(v->start()) << "\t" << v->ref() << "\t" << v->altString() << "\t" << v->id().join(';') << "\t" << QByteArray::number(v->qual());
-		if(v->filter().empty())
+		if(v->filters().isEmpty())
 		{
 			stream << "\t.";
 		}
 		else
 		{
-			stream << "\t" << v->filter().join(';');
+			stream << "\t" << v->filters().join(';');
 		}
 
-		foreach(const QByteArray& info_key, informationIDs())
+		foreach(const InfoFormatLine& line, vcfHeader().infoLines())
 		{
-			stream << "\t" << v->info(info_key);
+			stream << "\t" << v->info(line.id);
 		}
 		foreach(const QByteArray& sample_id, sampleIDs())
 		{
-			foreach(const QByteArray& format_key, formatIDs())
+			foreach(const InfoFormatLine& line, vcf_header_.formatLines())
 			{
-				stream << "\t" << v->formatValueFromSample(format_key, sample_id);
+				stream << "\t" << v->formatValueFromSample(line.id, sample_id);
 			}
 		}
 		stream << "\n";
@@ -576,7 +575,7 @@ void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int comp
 		//write vcf lines
 		for(int i = 0; i < vcf_lines_.count(); ++i)
 		{
-			storeLineInformation(file_stream, vcfLine(i));
+			storeLineInformation(file_stream, i);
 		}
 	}
 	else
@@ -610,7 +609,7 @@ void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int comp
 
 		for(int i = 0; i < vcf_lines_.count(); ++i)
 		{
-			storeLineInformation(stream, vcfLine(i));
+			storeLineInformation(stream, i);
 		}
 
 		writeBGZipped(instream, vcf_file);
@@ -624,22 +623,22 @@ void VcfFile::leftNormalize(QString reference_genome)
 {
 	FastaFileIndex reference(reference_genome);
 
-	for(int i=0; i<vcfLines().count(); ++i)
+	for(int i=0; i<vcf_lines_.count(); ++i)
 	{
-		vcfLines()[i]->leftNormalize(reference, true);
+		vcf_lines_[i]->leftNormalize(reference, true);
 	}
 }
 
 void VcfFile::sort(bool use_quality)
 {
-	if (vcfLines().count()==0) return;
-	std::sort(vcf_lines_.begin(), vcf_lines_.end(), VcfFormat::LessComparator(use_quality));
+	if (vcf_lines_.count()==0) return;
+	std::sort(vcf_lines_.begin(), vcf_lines_.end(), LessComparator(use_quality));
 
 }
 
-void VcfFile::sortByFile(QString filename)
+void VcfFile::sortByFile(QString fai_file)
 {
-	sortCustom(VcfFormat::LessComparatorByFile(filename));
+	sortCustom(LessComparatorByFile(fai_file));
 }
 
 void VcfFile::removeDuplicates(bool sort_by_quality)
@@ -648,8 +647,8 @@ void VcfFile::removeDuplicates(bool sort_by_quality)
 
 	//remove duplicates (same chr, start, obs, ref) - avoid linear time remove() calls by copying the data to a new vector.
 	QVector<VcfLinePtr> output;
-	output.reserve(vcfLines().count());
-	for (int i=0; i<vcfLines().count()-1; ++i)
+	output.reserve(vcf_lines_.count());
+	for (int i=0; i<vcf_lines_.count()-1; ++i)
 	{
 		int j = i+1;
 		if (vcf_lines_.at(i)->chr() != vcf_lines_.at(j)->chr() || vcf_lines_.at(i)->start() != vcf_lines_.at(j)->start() || vcf_lines_.at(i)->ref() !=vcf_lines_.at(j)->ref() || !qEqual(vcf_lines_.at(i)->alt().begin(),  vcf_lines_.at(i)->alt().end(), vcf_lines_.at(j)->alt().begin()))
@@ -676,38 +675,9 @@ const QByteArrayList& VcfFile::sampleIDs() const
 	return sample_id_to_idx_->keys();
 }
 
-QByteArrayList VcfFile::informationIDs() const
+void VcfFile::storeLineInformation(QTextStream& stream, int i) const
 {
-	QByteArrayList informations;
-	foreach(const InfoFormatLine& info, vcfHeader().infoLines())
-	{
-		informations.append(info.id);
-	}
-	return informations;
-}
-
-QByteArrayList VcfFile::filterIDs() const
-{
-	QByteArrayList filters;
-	foreach(const FilterLine& filter, vcfHeader().filterLines())
-	{
-		filters.append(filter.id);
-	}
-	return filters;
-}
-
-QByteArrayList VcfFile::formatIDs() const
-{
-	QByteArrayList formats;
-	foreach(const InfoFormatLine& format, vcfHeader().formatLines())
-	{
-		formats.append(format.id);
-	}
-	return formats;
-}
-
-void VcfFile::storeLineInformation(QTextStream& stream, const VcfLine& line) const
-{
+	const VcfLine& line = *(vcf_lines_[i]);
 	//chr
 	stream << line.chr().str()  << "\t" << line.start();
 
@@ -745,9 +715,9 @@ void VcfFile::storeLineInformation(QTextStream& stream, const VcfLine& line) con
 	stream  << "\t"<< quality;
 
 	//if filter exists
-	if(!line.filter().empty() && !(line.filter().count() == 1 && line.filter().first() == ""))
+	if(!line.filters().isEmpty())
 	{
-		stream  << "\t"<< line.filter().join(';');
+		stream  << "\t"<< line.filters().join(';');
 	}
 	else
 	{
@@ -835,14 +805,6 @@ void VcfFile::storeLineInformation(QTextStream& stream, const VcfLine& line) con
 	stream << "\n";
 }
 
-QString VcfFile::lineToString(int pos) const
-{
-	QString line;
-	QTextStream stream(&line);
-	storeLineInformation(stream, vcfLine(pos));
-	return line;
-}
-
 void VcfFile::storeHeaderColumns(QTextStream &stream) const
 {
 	if(vcfColumnHeader().count() < MIN_COLS)
@@ -883,7 +845,7 @@ void VcfFile::storeHeaderColumns(QTextStream &stream) const
 	stream << headers.at(headers.count() - 1) << "\n";
 }
 
-void VcfFile::copyMetaDataForSubsetting(const VcfFile& rhs)
+void VcfFile::copyMetaData(const VcfFile& rhs)
 {
 	//copy header information
 	vcf_header_ = rhs.vcfHeader();
@@ -912,7 +874,7 @@ QByteArray VcfFile::toText() const
 
 	for(int i = 0; i < vcf_lines_.count(); ++i)
 	{
-		storeLineInformation(stream, vcfLine(i));
+		storeLineInformation(stream, i);
 	}
 
 	return output.toUtf8();
@@ -1112,7 +1074,7 @@ VcfFile VcfFile::fromGSvar(const VariantList& variant_list, const QString& refer
 		}
 		if(filter_index >= 0)
 		{
-			vcf_line->setFilter(v.annotations().at(filter_index).split(';'));
+			vcf_line->setFilters(v.annotations().at(filter_index).split(';'));
 		}
 
 		VcfLine tmp = v.toVCF(reference);
@@ -1890,3 +1852,69 @@ void VcfFile::removeUnusedContigHeaders()
 }
 
 
+
+VcfFile::LessComparator::LessComparator(bool use_quality)
+	: use_quality(use_quality)
+{
+}
+
+bool VcfFile::LessComparator::operator()(const VcfLinePtr& a, const VcfLinePtr& b) const
+{
+	if (a->chr()<b->chr()) return true;//compare chromsomes
+	else if (a->chr()>b->chr()) return false;
+	else if (a->start()<b->start()) return true;//compare start positions
+	else if (a->start()>b->start()) return false;
+	else if (a->ref().length()<b->ref().length()) return true;//compare end positions by comparing length of ref
+	else if (a->ref().length()>b->ref().length()) return false;
+	else if (a->ref()<b->ref()) return true;//compare reference seqs
+	else if (a->ref()>b->ref()) return false;
+	else if (a->alt(0)<b->alt(0)) return true;//compare alternative seqs
+	else if (a->alt(0)>b->alt(0)) return false;
+	else if (use_quality)
+	{
+		double q_a=a->qual();
+		double q_b=b->qual();
+		if(q_a<q_b) return true;
+	}
+	return false;
+}
+
+VcfFile::LessComparatorByFile::LessComparatorByFile(QString fai_file)
+	: filename_(fai_file)
+{
+	//build chromosome (as QString) to rank (as int) dictionary from file (rank=position in file)
+	QStringList lines=Helper::loadTextFile(filename_);
+	int rank=0;
+	foreach(const QString& line, lines)
+	{
+		rank++;
+		Chromosome chr(line.split('\t')[0]);
+		chrom_rank_[chr.num()]=rank;
+	}
+}
+
+bool VcfFile::LessComparatorByFile::operator()(const VcfLinePtr& a, const VcfLinePtr& b) const
+{
+	int a_chr_num = a->chr().num();
+	int b_chr_num = b->chr().num();
+	if (!chrom_rank_.contains(a_chr_num))
+	{
+		THROW(FileParseException, "Reference file for sorting does not contain chromosome '" + a->chr().str() + "'!");
+	}
+	if (!chrom_rank_.contains(b_chr_num))
+	{
+		THROW(FileParseException, "Reference file for sorting does not contain chromosome '" + b->chr().str() + "'!");
+	}
+
+	if (chrom_rank_[a_chr_num]<chrom_rank_[b_chr_num]) return true; //compare rank of chromosome
+	else if (chrom_rank_[a_chr_num]>chrom_rank_[b_chr_num]) return false;
+	else if (a->start()<b->start()) return true; //compare start position
+	else if (a->start()>b->start()) return false;
+	else if (a->ref().length()<b->ref().length()) return true; //compare end position
+	else if (a->ref().length()>b->ref().length()) return false;
+	else if (a->ref()<b->ref()) return true; //compare ref sequence
+	else if (a->ref()>b->ref()) return false;
+	else if (a->alt(0)<b->alt(0)) return true; //compare obs sequence
+	else if (a->alt(0)>b->alt(0)) return false;
+	return false;
+}

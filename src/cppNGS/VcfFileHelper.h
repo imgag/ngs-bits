@@ -198,6 +198,11 @@ public:
 	void setFormat(const QByteArray& line);
 	void storeHeaderInformation(QTextStream& stream) const;
 
+	//functions to check if info, format filter lines exist
+	bool infoIdDefined(const QByteArray& id) const;
+	bool formatIdDefined(const QByteArray& id) const;
+	bool filterIdDefined(const QByteArray& id) const;
+
 	//functions returning single info, format, filter lines by its ID
 	const InfoFormatLine& infoLineByID(const QByteArray& id, bool error_not_found = true) const;
 	const InfoFormatLine& formatLineByID(const QByteArray& id, bool error_not_found = true) const;
@@ -264,7 +269,7 @@ public:
 	}
 	const Sequence& alt(int pos) const
 	{
-		if (pos>=alt_.length()) THROW(ArgumentException, "Invalid alternative sequence index " + QString::number(pos) + " for variant " + toString());
+		if (pos<0 || pos>=alt_.length()) THROW(ArgumentException, "Invalid alternative sequence index " + QString::number(pos) + " for variant " + toString());
 		return alt_.at(pos);
 	}
 	const QByteArrayList& id() const
@@ -275,9 +280,14 @@ public:
 	{
 		return qual_;
 	}
-	const QByteArrayList& filter() const
+	//Returns the filter entries. ATTENTION: PASS entry is also contained - use filtersFailed() to check if all filters are passed or not.
+	const QByteArrayList& filters() const
 	{
 		return filter_;
+	}
+	bool filtersPassed() const
+	{
+		return filter_.isEmpty() || (filter_.count()==1 && filter_[0]=="PASS");
 	}
 	//Returns a list of all format IDs
 	QByteArrayList formatKeys() const
@@ -414,25 +424,17 @@ public:
 	{
 		qual_ = qual;
 	}
-	void setFilter(QByteArrayList filter_list)
+	void setFilters(const QByteArrayList& filter_list)
 	{
-		if(filter_list.size() == 1 && filter_list.at(0) == ".")
-		{
-			return;
-		}
 		foreach(const QByteArray& filter, filter_list)
 		{
-			filter_.push_back(strToPointer(filter.trimmed()));
+			addFilter(filter);
 		}
 	}
-	void addFilter(QByteArray& tag)
+	void addFilter(QByteArray tag)
 	{
 		tag = tag.trimmed();
-		//if all filters are passed, only the first index is set
-		if(filter_.count() == 1 && (filter_.at(0) == "" || filter_.at(0) == "." || filter_.at(0) == "PASS" || filter_.at(0) == "PASSED"))
-		{
-			filter_.removeFirst();
-		}
+		if (tag.isEmpty() || tag==".") return;
 		filter_.push_back(strToPointer(tag));
 	}
 	//Set the list storing all info values. Make sure to call setInfoIdToIdxPtr before this method!
@@ -512,8 +514,6 @@ public:
 	bool isValid() const;
 	//Overload of the above function that also checks if the reference bases of the variants are correct.
 	bool isValid(const FastaFileIndex& reference) const;
-	//Returns all not passed filters
-	QByteArrayList failedFilters() const;
 	//Returns a string representation of the variant (chr, pos, ref, alt).
 	QByteArray toString(bool add_end=false) const;
 	QByteArrayList vepAnnotations(int field_index) const;
@@ -534,12 +534,12 @@ private:
 	Chromosome chr_;
 	int pos_;
 	Sequence ref_;
-	QList<Sequence> alt_; //comma seperated list of alternative sequences
+	QList<Sequence> alt_;
 
-	QByteArrayList id_; //; seperated list of id-strings
+	QByteArrayList id_; //semicolon-seperated list of id-strings
 	double qual_;
 
-	QByteArrayList filter_; //; seperated list of failed filters or "PASS"
+	QByteArrayList filter_; //list of filter entries. ATTENTION: PASS is contained
 
 	InfoIDToIdxPtr infoIdxOf_;
 	QByteArrayList info_;
@@ -548,32 +548,3 @@ private:
 	FormatIDToIdxPtr formatIdxOf_;
 	QList<QByteArrayList> sample_values_;
 };
-using VcfLinePtr = QSharedPointer<VcfLine>;
-
-namespace VcfFormat
-{
-//Comparator helper class that used by sort().
-class LessComparator
-{
-public:
-	///Constructor.
-	LessComparator(bool use_quality);
-	bool operator()(const VcfLinePtr& a, const VcfLinePtr& b) const;
-
-private:
-	bool use_quality;
-};
-//Comparator helper class used by sortByFile.
-class LessComparatorByFile
-{
-public:
-	//Constructor with FAI file, which determines the chromosome order.
-	LessComparatorByFile(QString filename);
-	bool operator()(const VcfLinePtr& a, const VcfLinePtr& b) const;
-
-private:
-	QString filename_;
-	QHash<int, int> chrom_rank_;
-};
-
-} //end namespace VcfFormat

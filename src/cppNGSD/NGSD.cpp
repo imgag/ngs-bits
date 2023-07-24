@@ -3752,11 +3752,11 @@ VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, const BedFile& target_re
 				}
 				return VcfFile();
 			}
-			VcfLinePtr vcf_ptr = QSharedPointer<VcfLine>(new VcfLine(line.chr(), line.start(), variant_info.at(0), QList<Sequence>() << variant_info.at(1), format_ids, sample_ids, list_of_format_values));
-			vcf_ptr->setInfoIdToIdxPtr(info_ptr);
-			vcf_ptr->setInfo(info);
-			vcf_ptr->setId(QByteArrayList() << "ID");
-			vcf.vcfLines() << vcf_ptr;
+			VcfLine vcf_line(line.chr(), line.start(), variant_info.at(0), QList<Sequence>() << variant_info.at(1), format_ids, sample_ids, list_of_format_values);
+			vcf_line.setInfoIdToIdxPtr(info_ptr);
+			vcf_line.setInfo(info);
+			vcf_line.setId(QByteArrayList() << "ID");
+			vcf.append(vcf_line);
 		}
 		else
 		{

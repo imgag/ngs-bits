@@ -111,7 +111,7 @@ void CfDNAPanelDesignDialog::loadPreviousPanels()
 			VcfFile prev_panel = NGSD().cfdnaPanelVcf(cfdna_panel_info_.id);
 			for (int i = 0; i < prev_panel.count(); ++i)
 			{
-				const VcfLine& var = prev_panel.vcfLine(i);
+				const VcfLine& var = prev_panel[i];
 				if (var.id().join("") == "ID")
 				{
 					prev_id_snp_ = true;
@@ -161,7 +161,7 @@ void CfDNAPanelDesignDialog::loadPreviousPanels()
 			preselection_vcf.load(preseletion_file.filename);
 			for (int i = 0; i < preselection_vcf.count(); ++i)
 			{
-				const VcfLine& var = preselection_vcf.vcfLine(i);
+				const VcfLine& var = preselection_vcf[i];
 				// create vcf pos string
 				QString vcf_pos = var.chr().strNormalized(true) + ":" + QString::number(var.start()) + " " + var.ref() + ">" + var.altString();
 				candidate_vars_.insert(vcf_pos, false);
@@ -690,9 +690,9 @@ VcfFile CfDNAPanelDesignDialog::createVcfFile()
 		BedFile target_region = GlobalServiceProvider::database().processingSystemRegions(sys_id, false);
 		VcfFile sys_id_snps = NGSD().getIdSnpsFromProcessingSystem(sys_id, target_region, (variants_.type() == SOMATIC_SINGLESAMPLE));
 
-		foreach (const VcfLinePtr& vcf_line, sys_id_snps.vcfLines())
+		for (int i=0; i<sys_id_snps.count(); ++i)
 		{
-			id_vcf.vcfLines() << vcf_line;
+			id_vcf.append(sys_id_snps[i]);
 		}
 	}
 
@@ -701,15 +701,15 @@ VcfFile CfDNAPanelDesignDialog::createVcfFile()
 	VcfFile vcf_file = VcfFile::fromGSvar(selected_variants, ref_genome);
 
 	// set ID column
-	foreach (const VcfLinePtr& vcf_line, vcf_file.vcfLines())
+	for (int i=0; i<vcf_file.count(); ++i)
 	{
-		vcf_line->setId(QByteArrayList() << "M");
+		vcf_file[i].setId(QByteArrayList() << "M");
 	}
 
 	// append ID SNPs
-	foreach (const VcfLinePtr& vcf_line, id_vcf.vcfLines())
+	for (int i=0; i<id_vcf.count(); ++i)
 	{
-		vcf_file.vcfLines() << vcf_line;
+		vcf_file.append(id_vcf[i]);
 	}
 
 	//sort vcf file

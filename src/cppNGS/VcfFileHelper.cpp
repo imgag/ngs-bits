@@ -77,83 +77,18 @@ void VcfLine::setInfo(const QByteArrayList& info_values)
 
 }
 
-VcfFormat::LessComparator::LessComparator(bool use_quality)
-	: use_quality(use_quality)
-{
-}
-
-bool VcfFormat::LessComparator::operator()(const VcfLinePtr& a, const VcfLinePtr& b) const
-{
-	if (a->chr()<b->chr()) return true;//compare chromsomes
-	else if (a->chr()>b->chr()) return false;
-	else if (a->start()<b->start()) return true;//compare start positions
-	else if (a->start()>b->start()) return false;
-	else if (a->ref().length()<b->ref().length()) return true;//compare end positions by comparing length of ref
-	else if (a->ref().length()>b->ref().length()) return false;
-	else if (a->ref()<b->ref()) return true;//compare reference seqs
-	else if (a->ref()>b->ref()) return false;
-	else if (a->alt(0)<b->alt(0)) return true;//compare alternative seqs
-	else if (a->alt(0)>b->alt(0)) return false;
-	else if (use_quality)
-	{
-		double q_a=a->qual();
-		double q_b=b->qual();
-		if(q_a<q_b) return true;
-	}
-	return false;
-}
-
-VcfFormat::LessComparatorByFile::LessComparatorByFile(QString filename)
-	: filename_(filename)
-{
-	//build chromosome (as QString) to rank (as int) dictionary from file (rank=position in file)
-	QStringList lines=Helper::loadTextFile(filename_);
-	int rank=0;
-	foreach(const QString& line, lines)
-	{
-		rank++;
-		Chromosome chr(line.split('\t')[0]);
-		chrom_rank_[chr.num()]=rank;
-	}
-}
-
-bool VcfFormat::LessComparatorByFile::operator()(const VcfLinePtr& a, const VcfLinePtr& b) const
-{
-	int a_chr_num = a->chr().num();
-	int b_chr_num = b->chr().num();
-	if (!chrom_rank_.contains(a_chr_num))
-	{
-		THROW(FileParseException, "Reference file for sorting does not contain chromosome '" + a->chr().str() + "'!");
-	}
-	if (!chrom_rank_.contains(b_chr_num))
-	{
-		THROW(FileParseException, "Reference file for sorting does not contain chromosome '" + b->chr().str() + "'!");
-	}
-
-	if (chrom_rank_[a_chr_num]<chrom_rank_[b_chr_num]) return true; //compare rank of chromosome
-	else if (chrom_rank_[a_chr_num]>chrom_rank_[b_chr_num]) return false;
-	else if (a->start()<b->start()) return true; //compare start position
-	else if (a->start()>b->start()) return false;
-	else if (a->ref().length()<b->ref().length()) return true; //compare end position
-	else if (a->ref().length()>b->ref().length()) return false;
-	else if (a->ref()<b->ref()) return true; //compare ref sequence
-	else if (a->ref()>b->ref()) return false;
-	else if (a->alt(0)<b->alt(0)) return true; //compare obs sequence
-	else if (a->alt(0)>b->alt(0)) return false;
-	return false;
-}
 
 const QByteArrayList VcfHeader::InfoTypes = {"Integer", "Float", "Flag", "Character", "String"};
 const QByteArrayList VcfHeader::FormatTypes =  {"Integer", "Float", "Character", "String"};
 
 const QByteArray& strToPointer(const QByteArray& str)
 {
-	static QSet<QByteArray> uniq_8;
+	static QSet<QByteArray> cache;
 
-	auto it = uniq_8.find(str);
-	if (it==uniq_8.cend())
+	QSet<QByteArray>::iterator it = cache.find(str);
+	if (it==cache.end())
 	{
-		it = uniq_8.insert(str);
+		it = cache.insert(str);
 	}
 
 	return *it;
@@ -299,6 +234,33 @@ void VcfHeader::storeHeaderInformation(QTextStream& stream) const
 	}
 }
 
+bool VcfHeader::infoIdDefined(const QByteArray& id) const
+{
+	foreach(const InfoFormatLine& line, info_lines_)
+	{
+		if (line.id==id) return true;
+	}
+	return false;
+}
+
+bool VcfHeader::formatIdDefined(const QByteArray& id) const
+{
+	foreach(const InfoFormatLine& line, format_lines_)
+	{
+		if (line.id==id) return true;
+	}
+	return false;
+}
+
+bool VcfHeader::filterIdDefined(const QByteArray& id) const
+{
+	foreach(const FilterLine& line, filter_lines_)
+	{
+		if (line.id==id) return true;
+	}
+	return false;
+}
+
 void VcfHeader::setFormat(const QByteArray& line)
 {
 	QList<QByteArray> splitted_line=line.split('=');
@@ -362,7 +324,7 @@ void VcfHeader::setFilterLine(const QByteArray& line, const int line_number)
 	filter_line.id = strToPointer(first_part[0]);
 	filter_line.description = QString(parts[1].mid(1)); //remove '\"'
 
-	filter_lines_.push_back(filter_line);
+	addFilterLine(filter_line);
 }
 
 void VcfHeader::setCommentLine(const QByteArray& line, const int line_number)
@@ -532,22 +494,6 @@ bool VcfLine::isDel() const
 	if(isMultiAllelic()) THROW(Exception, "Cannot determine if multi-allelic variant is deletion.")
 
 	return alt(0).length() == 1 && ref().length() > 1 && alt(0).at(0) == ref().at(0);
-}
-
-//returns all not passed filters
-QByteArrayList VcfLine::failedFilters() const
-{
-	QByteArrayList filters;
-	foreach(QByteArray tag, filter_)
-	{
-		tag = tag.trimmed();
-
-		if (tag!="" && tag!="." && tag.toUpper()!="PASS" && tag.toUpper()!="PASSED")
-		{
-			filters.append(tag);
-		}
-	}
-	return filters;
 }
 
 QByteArray VcfLine::toString(bool add_end) const
