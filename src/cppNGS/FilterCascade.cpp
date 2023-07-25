@@ -137,7 +137,7 @@ void FilterResult::removeFlagged(VcfFile& variants)
 	}
 
 	//resize to new size
-	variants.resize(to_index);
+	variants.restrictTo(to_index);
 
 	//update flags
 	pass = QBitArray(variants.count(), true);

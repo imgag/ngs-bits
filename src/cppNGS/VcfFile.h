@@ -64,18 +64,18 @@ public:
 	///Returns the VCF line at the given position
 	const VcfLine& operator[](int index) const
 	{
-		return *(vcf_lines_[index]);
+		return vcf_lines_[index];
 	}
 	///Returns a VCF file that can be modified
 	VcfLine& operator[](int index)
 	{
-		return *(vcf_lines_[index]);
+		return vcf_lines_[index];
 	}
 
 	///Append a VCF line
-	void append(const VcfLine& line_ptr)
+	void append(const VcfLine& line)
 	{
-		vcf_lines_ << VcfLinePtr(new VcfLine(line_ptr));
+		vcf_lines_ << line;
 	}
 	///Returns the vcf header
 	const VcfHeader& vcfHeader() const
@@ -113,10 +113,10 @@ public:
 		return info_id_to_idx_list_;
 	}
 
-	///Resize vector of vcf lines.
-	void resize(int size)
+	///Restrict to a certein number of lines.
+	void restrictTo(int size)
 	{
-		vcf_lines_.resize(size);
+		while (vcf_lines_.count() > size) vcf_lines_.pop_back();
 	}
 
 	///Copies meta data from a VcfFile (comment, header, column headers), but not the variants. Should be used to subset a VcfFile, not to add entirely new variants.
@@ -150,10 +150,9 @@ private:
 	void parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteArray>& info_ids, QSet<QByteArray>& format_ids, QSet<QByteArray>& filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
 	void parseVcfHeader(int line_number, const QByteArray& line);
 	void processVcfLine(int& line_number, const QByteArray& line, QSet<QByteArray>& info_ids, QSet<QByteArray>& format_ids, QSet<QByteArray>& filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
-	void storeLineInformation(QTextStream& stream, int i) const;
+	void storeLineInformation(QTextStream& stream, const VcfLine& line) const;
 
-	typedef QSharedPointer<VcfLine> VcfLinePtr;
-	QVector<VcfLinePtr> vcf_lines_; //variant lines
+	QList<VcfLine> vcf_lines_; //variant lines
 	VcfHeader vcf_header_; //all informations from header
 	QVector<QByteArray> column_headers_; //heading of variant lines
 
@@ -221,7 +220,7 @@ private:
 	public:
 		///Constructor.
 		LessComparator(bool use_quality);
-		bool operator()(const VcfLinePtr& a, const VcfLinePtr& b) const;
+		bool operator()(const VcfLine& a, const VcfLine& b) const;
 
 	private:
 		bool use_quality;
@@ -232,7 +231,7 @@ private:
 	public:
 		//Constructor with FAI file, which determines the chromosome order.
 		LessComparatorByFile(QString fai_file);
-		bool operator()(const VcfLinePtr& a, const VcfLinePtr& b) const;
+		bool operator()(const VcfLine& a, const VcfLine& b) const;
 
 	private:
 		QString filename_;

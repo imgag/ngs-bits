@@ -18,6 +18,12 @@ private slots:
 		vcf.load("C:\\Users\\ahsturm1\\Desktop\\Data\\NGS\\GiaB\\Sample_NA12878_45\\NA12878_45_var.vcf");
 		qDebug() << "loading took: " << Helper::elapsedTime(timer);
 		timer.restart();
+		vcf.removeUnusedContigHeaders();
+		qDebug() << "removing contigs took: " << Helper::elapsedTime(timer);
+		timer.restart();
+		vcf.sort(true);
+		qDebug() << "sorting took: " << Helper::elapsedTime(timer);
+		timer.restart();
 		vcf.store("C:\\Users\\ahsturm1\\Desktop\\Data\\NGS\\GiaB\\Sample_NA12878_45\\NA12878_45_var_new.vcf");
 		qDebug() << "storing took: " << Helper::elapsedTime(timer);
 	}
