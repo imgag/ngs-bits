@@ -68,7 +68,7 @@ public:
 	/// Starts the calculation of the average covarage for gaps
 	static HttpResponse calculateAvgCoverage(const HttpRequest& request);
 	/// Calculates target region read depth used in germline report
-	static HttpResponse calculateTargetRegionReadDepth(const HttpRequest& request);
+    static HttpResponse calculateTargetRegionReadDepth(const HttpRequest& request);
 	/// Creates a list of analysis names for multi-samples
 	static HttpResponse getMultiSampleAnalysisInfo(const HttpRequest& request);
 	/// Requests a secure token that is needed for the communication with the server
@@ -102,7 +102,7 @@ public:
 	// Returns some notification displayed to the users of the client application
 	static HttpResponse getCurrentNotification(const HttpRequest& request);
 
-	static HttpResponse uploadFileToFolder(QString upload_folder, QString filename, QByteArray content);
+    static HttpResponse uploadFileToFolder(QString upload_folder, const HttpRequest& request);
 private:
 	/// Find file/folder name corresponding to the id from a temporary URL
 	static QString findPathForTempUrl(QList<QString> path_parts);
@@ -110,14 +110,14 @@ private:
 	static QString findPathForServerFolder(const QList<QString>& path_parts, QString server_folder);
 	/// Check if byte-range request contains overlapping ranges, they are
 	/// not allowed, according to the HTTP specification
-	static bool hasOverlappingRanges(const QList<ByteRange> ranges);
+    static bool hasOverlappingRanges(const QList<ByteRange>& ranges);
 	/// Creates a temporary URL for a file (includes a file name and its full path)
 	static QString createTempUrl(const QString& file, const QString& token);
 	/// Serves a file for a byte range request (i.e. specific fragment of a file)
-	static HttpResponse createStaticFileRangeResponse(QString filename, QList<ByteRange> byte_ranges, ContentType type, bool is_downloadable);
+    static HttpResponse createStaticFileRangeResponse(const QString& filename, const QList<ByteRange>& byte_ranges, const ContentType& type, const bool& is_downloadable);
 	/// Serves a stream, used to transfer large files without opening multiple connections
-	static HttpResponse createStaticStreamResponse(QString filename, bool is_downloadable);
-	static HttpResponse createStaticFileResponse(QString filename, const HttpRequest& request);
+    static HttpResponse createStaticStreamResponse(const QString& filename, const bool& is_downloadable);
+    static HttpResponse createStaticFileResponse(const QString& filename, const HttpRequest& request);
 	static HttpResponse createStaticFolderResponse(const QString path, const HttpRequest& request);
 	static HttpResponse createStaticLocationResponse(const QString path, const HttpRequest& request);
 };

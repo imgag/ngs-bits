@@ -11,7 +11,7 @@ public:
 
 	void setMethod(RequestMethod type);
 	RequestMethod getMethod() const;
-	QString methodAsString();
+    QString methodAsString() const;
 
 	void setContentType(ContentType type);
 	ContentType getContentType() const;

@@ -45,7 +45,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "GenesToRegionsDialog.h"
 #include "SubpanelDesignDialog.h"
 #include "SubpanelArchiveDialog.h"
-#include "IgvDialog.h"
 #include "GapDialog.h"
 #include "EmailDialog.h"
 #include "CnvWidget.h"
@@ -153,6 +152,8 @@ MainWindow::MainWindow(QWidget *parent)
 	, var_last_(-1)
 	, busy_dialog_(nullptr)
 	, notification_label_(new QLabel())
+    , normal_igv_label_(new ClickableLabel())
+    , virus_igv_label_(new ClickableLabel())
 	, filename_()
 	, variants_changed_()
 	, last_report_path_(QDir::homePath())
@@ -266,6 +267,28 @@ MainWindow::MainWindow(QWidget *parent)
 	notification_label_->setPixmap(QPixmap(":/Icons/email.png"));
 	ui_.statusBar->addPermanentWidget(notification_label_);	
 	ui_.actionVirusDetection->setEnabled(false);
+
+
+
+    normal_igv_label_->show();
+    normal_igv_label_->setScaledContents(true);
+    normal_igv_label_->setMaximumSize(16,16);
+    normal_igv_label_->setPixmap(QPixmap(":/Icons/igv_message_normal.png"));
+    ui_.statusBar->addPermanentWidget(normal_igv_label_);
+
+
+    connect(normal_igv_label_, SIGNAL(clicked()), this, SLOT(displayNormalIgvMessages()));
+
+
+
+    virus_igv_label_->show();
+    virus_igv_label_->setScaledContents(true);
+    virus_igv_label_->setMaximumSize(16,16);
+    virus_igv_label_->setPixmap(QPixmap(":/Icons/igv_message_virus.png"));
+    ui_.statusBar->addPermanentWidget(virus_igv_label_);
+
+
+    connect(virus_igv_label_, SIGNAL(clicked()), this, SLOT(displayVirusIgvMessages()));
 
 	//init cache in background thread (it takes about 6 seconds)
 	CacheInitWorker* worker = new CacheInitWorker();
@@ -1746,10 +1769,10 @@ void MainWindow::on_actionIgvClear_triggered()
 void MainWindow::on_actionIgvPort_triggered()
 {
 	bool ok = false;
-	int igv_port_new = QInputDialog::getInt(this, "Change IGV port", "Set IGV port for this GSvar session:", IgvSessionManager::getIGVPort(0), 0, 900000, 1, &ok);
+    int igv_port_new = QInputDialog::getInt(this, "Change IGV port", "Set IGV port for this GSvar session:", IgvSessionManager::getPort(0), 0, 900000, 1, &ok);
 	if (ok)
 	{
-		IgvSessionManager::setIGVPort(igv_port_new, 0);
+        IgvSessionManager::setPort(igv_port_new, 0);
 	}
 }
 
@@ -2594,7 +2617,7 @@ void MainWindow::delayedInitialization()
 	}
 
 	//create default IGV session (variants)
-	IgvSessionManager::createIGVSession(IgvSessionManager::findAvailablePortForIGV(), false, Settings::path("igv_genome"));
+    IgvSessionManager::create(Settings::path("igv_app").trimmed(), Settings::string("igv_host"), IgvSessionManager::findAvailablePortForIGV(), Settings::path("igv_genome"), false);
 	//create IGV session for virus detection
 	QString virus_genome;
 	if (!ClientHelper::isClientServerMode())
@@ -2606,7 +2629,7 @@ void MainWindow::delayedInitialization()
 	{
 	   virus_genome = ClientHelper::serverApiUrl() + "genome/somatic_viral.fa";
 	}
-	IgvSessionManager::createIGVSession(IgvSessionManager::findAvailablePortForIGV(), false, virus_genome);
+    IgvSessionManager::create(Settings::path("igv_app").trimmed(), Settings::string("igv_host"), IgvSessionManager::findAvailablePortForIGV(), virus_genome, false);
 
 	//init GUI
 	updateRecentSampleMenu();
@@ -2679,14 +2702,17 @@ void MainWindow::variantHeaderDoubleClicked(int row)
 	editVariantReportConfiguration(var_index);
 }
 
-void MainWindow::prepareAndRunIGVCommands(QAbstractSocket& socket, QStringList files_to_load, int session_index)
+void MainWindow::prepareAndRunIGVCommands(QStringList files_to_load, int session_index)
 {
 	QStringList init_commands;
 	//genome command first, see https://github.com/igvteam/igv/issues/1094
 	//choose the correct genome
-	init_commands.append("genome " + IgvSessionManager::getIGVGenome(session_index));
-	init_commands.append("setSleepInterval 1500");
-	init_commands.append("new");
+    init_commands.append("new");
+    init_commands.append("genome " + IgvSessionManager::getGenome(session_index));
+//	init_commands.append("setSleepInterval 1500");
+//  init_commands.append("currentGenomePath");
+
+
 	if (ClientHelper::isClientServerMode()) init_commands.append("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*");
 
 	//load non-BAM files
@@ -2707,30 +2733,64 @@ void MainWindow::prepareAndRunIGVCommands(QAbstractSocket& socket, QStringList f
 	init_commands.append("viewaspairs");
 	init_commands.append("colorBy UNEXPECTED_PAIR");
 
-	//execute commands
-	bool debug = false;
-	foreach(QString command, init_commands)
-	{
-		if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;
-		socket.write((command + "\n").toUtf8());
-		bool ok = socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)
-		QString answer = socket.readAll().trimmed();
-		if (!ok || answer!="OK")
-		{
-			if (debug) qDebug() << QDateTime::currentDateTime() << "FAILED: answer:" << answer << " socket error:" << socket.errorString();
-			THROW(Exception, "Could not execute IGV command '" + command + "'.\nAnswer: " + answer + "\nSocket error:" + socket.errorString());
-		}
-		else
-		{
-			if (debug) qDebug() << QDateTime::currentDateTime() << "DONE";
-		}
-	}
+    try
+    {
+        IgvSessionManager::getCommandExecutor(session_index).data()->execute(init_commands);
+    }
+    catch (Exception& e)
+    {
+        QMessageBox::warning(this, "Error while executing an IGV command", e.message());
+    }
+    catch(...)
+    {
+        QMessageBox::warning(this, "Error while executing an IGV command", "Unknown error has occurred");
+    }
 }
 
-bool MainWindow::prepareNormalIGV(QAbstractSocket& socket)
+bool MainWindow::igvDialogButtonHandler(IgvDialog& dlg, int session_index)
+{
+    // switch to MainWindow to prevent dialog to appear behind other widgets
+    raise();
+    activateWindow();
+    setFocus();
+
+    //execute dialog
+    if (!dlg.exec()) return false;
+
+    QApplication::setOverrideCursor(Qt::BusyCursor);
+    try
+    {
+        if (dlg.initializationAction()==IgvDialog::INIT)
+        {
+            prepareAndRunIGVCommands(dlg.filesToLoad(), session_index);
+            IgvSessionManager::setIGVInitialized(true, session_index);
+        }
+        else if (dlg.initializationAction()==IgvDialog::SKIP_SESSION)
+        {
+            IgvSessionManager::setIGVInitialized(true, session_index);
+        }
+        else if (dlg.initializationAction()==IgvDialog::SKIP_ONCE)
+        {
+            //nothing to do there
+        }
+
+        QApplication::restoreOverrideCursor();
+
+        return true;
+    }
+    catch(Exception& e)
+    {
+        QApplication::restoreOverrideCursor();
+
+        QMessageBox::warning(this, "Error while initializing IGV", e.message());
+
+        return false;
+    }
+}
+
+bool MainWindow::prepareNormalIGV(int session_index)
 {
 	AnalysisType analysis_type = variants_.type();
-
 	IgvDialog dlg(this);
 
 	//sample BAM file(s)
@@ -2871,50 +2931,27 @@ bool MainWindow::prepareNormalIGV(QAbstractSocket& socket)
 		}
 	}
 
-	// switch to MainWindow to prevent dialog to appear behind other widgets
-	raise();
-	activateWindow();
-	setFocus();
-
-	//execute dialog
-	if (!dlg.exec()) return false;
-
-	QApplication::setOverrideCursor(Qt::BusyCursor);
-	try
-	{
-		if (dlg.initializationAction()==IgvDialog::INIT)
-		{
-			prepareAndRunIGVCommands(socket, dlg.filesToLoad(), 0);
-			IgvSessionManager::setIGVInitialized(true, 0);
-		}
-		else if (dlg.initializationAction()==IgvDialog::SKIP_SESSION)
-		{
-			IgvSessionManager::setIGVInitialized(true, 0);
-		}
-		else if (dlg.initializationAction()==IgvDialog::SKIP_ONCE)
-		{
-			//nothing to do there
-		}
-
-		QApplication::restoreOverrideCursor();
-
-		return true;
-	}
-	catch(Exception& e)
-	{
-		QApplication::restoreOverrideCursor();
-
-		QMessageBox::warning(this, "Error while initializing IGV", e.message());
-
-		return false;
-	}
+    return igvDialogButtonHandler(dlg, session_index);
 }
 
-bool MainWindow::prepareVirusIGV(QAbstractSocket& socket)
+bool MainWindow::prepareVirusIGV(int session_index)
 {
-	prepareAndRunIGVCommands(socket, QStringList{}, 1);
-	IgvSessionManager::setIGVInitialized(true, 1);
-	return true;
+    IgvDialog dlg(this);
+
+    //sample BAM file(s)
+    FileLocationList bams = GlobalServiceProvider::fileLocationProvider().getViralBamFiles(false);
+    if (bams.isEmpty())
+    {
+        QMessageBox::information(this, "BAM files not found", "There are no BAM files associated with the virus!");
+        return false;
+    }
+
+    foreach(const FileLocation& file, bams)
+    {
+        dlg.addFile(file, true);
+    }
+
+    return igvDialogButtonHandler(dlg, session_index);
 }
 
 void MainWindow::openCustomIgvTrack()
@@ -7054,8 +7091,36 @@ void MainWindow::showMatchingCnvsAndSvs(BedLine v_reg)
 	}
 	catch(Exception& e)
 	{
-		GUIHelper::showException(this, e, "Showing matching CNVs and SVs failed!");
-	}
+        GUIHelper::showException(this, e, "Showing matching CNVs and SVs failed!");
+    }
+}
+
+void MainWindow::displayNormalIgvMessages()
+{
+    QStringList error_messages = IgvSessionManager::getCommandExecutor(0).data()->getErrorMessages();
+
+    if (!error_messages.isEmpty())
+    {
+        QMessageBox::warning(this, "IGV command execution", "The following errors have occurred:\n" + error_messages.join("\n"));
+    }
+    else
+    {
+        QMessageBox::information(this, "IGV command execution", "No errors");
+    }
+}
+
+void MainWindow::displayVirusIgvMessages()
+{
+    QStringList error_messages = IgvSessionManager::getCommandExecutor(1).data()->getErrorMessages();
+
+    if (!error_messages.isEmpty())
+    {
+        QMessageBox::warning(this, "Virus IGV command execution", "The following errors have occurred:\n" + error_messages.join("\n"));
+    }
+    else
+    {
+        QMessageBox::information(this, "Virus IGV command execution", "No errors");
+    }
 }
 
 void MainWindow::on_actionVirusDetection_triggered()
@@ -7318,105 +7383,64 @@ void MainWindow::updateVariantDetails()
 
 void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done, int session_index)
 {
-	bool debug = false;
+    bool is_igv_running = false;
+    try
+    {
+        is_igv_running = IgvSessionManager::getCommandExecutor(session_index).data()->isIgvRunning();
+    }
+    catch (Exception& e)
+    {
+        QMessageBox::warning(this, "Error while IGV availability check", e.message());
+    }
+    catch(...)
+    {
+        QMessageBox::warning(this, "Error while IGV availability check", "Unknown error has occurred");
+    }
 
-	try
-	{
-		QApplication::setOverrideCursor(Qt::BusyCursor);
+    if (!is_igv_running)
+    {
+        if (QMessageBox::information(this, "IGV not running", "IGV is not running on port " + QString::number(IgvSessionManager::getPort(session_index)) + ".\nIt will be started now!", QMessageBox::Ok|QMessageBox::Default, QMessageBox::Cancel|QMessageBox::Escape)!=QMessageBox::Ok) return;
+        try
+        {
+            IgvSessionManager::getCommandExecutor(session_index).data()->initIGV();
+        }
+        catch (Exception& e)
+        {
+            QMessageBox::warning(this, "Error while launching IGV", e.message());
+        }
+        catch(...)
+        {
+            QMessageBox::warning(this, "Error while launching IGV", "Unknown error has occurred");
+        }
+        IgvSessionManager::setIGVInitialized(false, session_index);
+        init_if_not_done = true;
+    }
 
-		//connect
-		QAbstractSocket socket(QAbstractSocket::UnknownSocketType, this);
-		QString igv_host = Settings::string("igv_host");
-		int igv_port = IgvSessionManager::getIGVPort(session_index);
-		if (debug) qDebug() << QDateTime::currentDateTime() << "CONNECTING:" << igv_host << igv_port;
-		socket.connectToHost(igv_host, igv_port);
-		if (!socket.waitForConnected(1000))
-		{
-			//show message to user
-			QApplication::restoreOverrideCursor();
-			if (QMessageBox::information(this, "IGV not running", "IGV is not running on port " + QString::number(igv_port) + ".\nIt will be started now!", QMessageBox::Ok|QMessageBox::Default, QMessageBox::Cancel|QMessageBox::Escape)!=QMessageBox::Ok) return;
-			QApplication::setOverrideCursor(Qt::BusyCursor);
+    if (!IgvSessionManager::isIGVInitialized(session_index) && init_if_not_done)
+    {
+        Log::info("Initialzing IGV for the current sample");
 
-			if (debug) qDebug() << QDateTime::currentDateTime() << "FAILED - TRYING TO START IGV";			
-			IgvSessionManager::setIGVInitialized(false, session_index);
+        bool is_igv_ready = false;
+        if (session_index == 0) is_igv_ready = prepareNormalIGV(session_index);
+        if (session_index == 1) is_igv_ready = prepareVirusIGV(session_index);
+        if (!is_igv_ready) return;
 
-			//try to start IGV
-			QString igv_app = Settings::path("igv_app").trimmed();
-			if (igv_app.isEmpty())
-			{
-				THROW(Exception, "Could not start IGV: No settings entry for 'igv_app' found!");
-			}
-			if (!QFile::exists(igv_app))
-			{
-				THROW(Exception, "Could not start IGV: IGV application '" + igv_app + "' does not exist!");
-			}
-			bool started = QProcess::startDetached(igv_app + " --port " + QString::number(igv_port));
-			if (!started)
-			{
-				THROW(Exception, "Could not start IGV: IGV application '" + igv_app + "' did not start!");
-			}
-			if (debug) qDebug() << QDateTime::currentDateTime() << "STARTED IGV - WAITING UNTIL CONNECTING TO THE PORT WORKS";
+        IgvSessionManager::setIGVInitialized(true, session_index);
+    }
 
-			//wait for IGV to respond after start
-			bool connected = false;
-			QDateTime max_wait = QDateTime::currentDateTime().addSecs(40);
-			while (QDateTime::currentDateTime() < max_wait)
-			{
-				socket.connectToHost(igv_host, igv_port);
-				if (socket.waitForConnected(1000))
-				{
-					if (debug) qDebug() << QDateTime::currentDateTime() << "CONNECTING TO THE PORT WORKS";
-					connected = true;
-					break;
-				}
-			}
-			if (!connected)
-			{
-				THROW(Exception, "Could not start IGV: IGV application '" + igv_app + "' started, but does not respond!");
-			}
-		}
-		QApplication::restoreOverrideCursor();
+    try
+    {
+        IgvSessionManager::getCommandExecutor(session_index).data()->execute(commands);
+    }
+    catch (Exception& e)
+    {
+        QMessageBox::warning(this, "Error while executing an IGV command", e.message());
+    }
+    catch(...)
+    {
+        QMessageBox::warning(this, "Error while executing an IGV command", "Unknown error has occurred");
+    }
 
-		//init if necessary
-		if (!IgvSessionManager::isIGVInitialized(session_index) && init_if_not_done)
-		{
-			if (debug) qDebug() << QDateTime::currentDateTime() << "INITIALIZING IGV FOR CURRENT SAMPLE!";
-
-			bool is_igv_ready = false;
-			if (session_index == 0) is_igv_ready = prepareNormalIGV(socket);
-			if (session_index == 1) is_igv_ready = prepareVirusIGV(socket);
-			if (!is_igv_ready) return;
-		}
-
-		//execute commands
-		QApplication::setOverrideCursor(Qt::BusyCursor);
-		foreach(QString command, commands)
-		{
-			if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;
-			socket.write((command + "\n").toUtf8());
-			bool ok = socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)
-			QString answer = socket.readAll().trimmed();
-			if (!ok || answer!="OK")
-			{
-				if (debug) qDebug() << QDateTime::currentDateTime() << "FAILED: answer:" << answer << " socket error:" << socket.errorString();
-				THROW(Exception, "Could not execute IGV command '" + command + "'.\nAnswer: " + answer + "\nSocket error:" + socket.errorString());
-			}
-			else
-			{
-				if (debug) qDebug() << QDateTime::currentDateTime() << "DONE";
-			}
-		}
-
-		//disconnect
-		socket.disconnectFromHost();
-		QApplication::restoreOverrideCursor();
-	}
-	catch(Exception& e)
-	{
-		QApplication::restoreOverrideCursor();
-
-		QMessageBox::warning(this, "Error while sending command to IGV", e.message());
-	}
 }
 
 void MainWindow::editVariantReportConfiguration(int index)

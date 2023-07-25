@@ -8,6 +8,7 @@
 #include "BedFile.h"
 #include "NGSD.h"
 #include "BusyDialog.h"
+#include "IgvDialog.h"
 #include "FilterCascade.h"
 #include "ReportSettings.h"
 #include "DelayedInitializationTimer.h"
@@ -17,6 +18,9 @@
 #include "FileLocationProviderRemote.h"
 #include "VersatileTextStream.h"
 #include "Log.h"
+#include "IGVCommandExecutor.h"
+#include "ClickableLabel.h"
+
 ///Main window class
 class MainWindow
 		: public QMainWindow
@@ -322,11 +326,13 @@ public slots:
 	///A variant header has beed double-clicked > edit report config
 	void variantHeaderDoubleClicked(int row);
 	///Preprocesses and executes the list of IGV commands based on the files needed to be loaded
-	void prepareAndRunIGVCommands(QAbstractSocket& socket, QStringList files_to_load, int session_index);
-	///Load regular IGV configuration
-	bool prepareNormalIGV(QAbstractSocket& socket);
+    void prepareAndRunIGVCommands(QStringList files_to_load, int session_index);
+    ///Detects which button inside the dialog is pressed and handles exceptions
+    bool igvDialogButtonHandler(IgvDialog& dlg, int session_index);
+    ///Load regular IGV configuration
+    bool prepareNormalIGV(int session_index);
 	///Load IGV configuration for the virus detection
-	bool prepareVirusIGV(QAbstractSocket& socket);
+    bool prepareVirusIGV(int session_index);
 	///Opens a custom track in IGV
 	void openCustomIgvTrack();
 
@@ -426,6 +432,10 @@ public slots:
 	//Show matching CNVs and SVs
 	void showMatchingCnvsAndSvs(BedLine region);
 
+
+    void displayNormalIgvMessages();
+    void displayVirusIgvMessages();
+
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
 	virtual void dropEvent(QDropEvent* e);
@@ -444,6 +454,8 @@ private:
 	BusyDialog* busy_dialog_;
 	QList<QSharedPointer<QDialog>> modeless_dialogs_;
 	QLabel* notification_label_;
+    ClickableLabel* normal_igv_label_;
+    ClickableLabel* virus_igv_label_;
 
 	//DATA
 	QString filename_;

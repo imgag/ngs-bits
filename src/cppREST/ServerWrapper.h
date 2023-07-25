@@ -29,6 +29,7 @@ public:
 public slots:
     void updateClinVarSubmissionStatus();
 	void updateInfoForUsers(QString str);
+    void switchLogFile();
 
 private:
 	ClientInfo readClientInfoFromFile();

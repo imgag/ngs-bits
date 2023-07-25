@@ -94,24 +94,7 @@ void VirusDetectionWidget::callCopyToClipboard()
 
 void VirusDetectionWidget::openInIGV(int row)
 {
-	FileLocationList bam_files = GlobalServiceProvider::fileLocationProvider().getViralBamFiles(false);
-	if (bam_files.isEmpty())
-	{
-		QMessageBox::information(this, "BAM files not found", "There are no BAM files associated with the virus!");
-		return;
-	}
-
-	QStringList commands;
-	if (!IgvSessionManager::isIGVInitialized(true))
-	{
-		foreach (FileLocation file, bam_files)
-		{
-			commands.append("load \"" + ClientHelper::stripSecureToken(file.filename) + "\"");
-		}
-	}
-
-	commands.append("goto " + item(row, 0)->text() + ":" + item(row, 1)->text() + "-" + item(row, 2)->text());
-	GlobalServiceProvider::executeCommandListInIGV(commands, true, true);
+    GlobalServiceProvider::executeCommandListInIGV(QStringList{"goto " + item(row, 0)->text() + ":" + item(row, 1)->text() + "-" + item(row, 2)->text()}, true, 1);
 }
 
 void VirusDetectionWidget::keyPressEvent(QKeyEvent* event)
