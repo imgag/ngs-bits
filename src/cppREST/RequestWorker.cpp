@@ -124,8 +124,8 @@ void RequestWorker::run()
 		}
 		catch (ArgumentException& e)
 		{
-			Log::warn("Parameter validation has failed: " + e.message());
-			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::BAD_REQUEST, error_type, e.message()));
+            Log::warn(EndpointManager::formatResponseMessage(parsed_request, "Parameter validation has failed: " + e.message()));
+            sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::BAD_REQUEST, error_type, EndpointManager::formatResponseMessage(parsed_request, e.message())));
 			return;
 		}
 
@@ -143,8 +143,8 @@ void RequestWorker::run()
 					user_info = " - requested by " + user_login + " (" + user_name + ")";
 				}
 				catch (DatabaseException& e)
-				{
-					Log::error("Database request failed: " + e.message());
+                {
+                    Log::error(EndpointManager::formatResponseMessage(parsed_request, "Database request failed: " + e.message()));
 					user_info = " - requested by unknown user";
 				}
 			}
@@ -176,8 +176,8 @@ void RequestWorker::run()
 			if (current_endpoint.authentication_type == AuthType::DB_TOKEN) auth_response = EndpointManager::getDbTokenAuthStatus(parsed_request);
 
 			if (auth_response.getStatus() != ResponseStatus::OK)
-			{
-				Log::error("Token check failed: response code " + QString::number(HttpUtils::convertResponseStatusToStatusCodeNumber(auth_response.getStatus())) + user_info + client_type);
+            {
+                Log::error(EndpointManager::formatResponseMessage(parsed_request, "Token check failed: response code " + QString::number(HttpUtils::convertResponseStatusToStatusCodeNumber(auth_response.getStatus())) + user_info + client_type));
 				sendEntireResponse(ssl_socket, auth_response);
 				return;
 			}
@@ -191,23 +191,22 @@ void RequestWorker::run()
 			response = (*endpoint_action_)(parsed_request);
 		}
 		catch (Exception& e)
-		{
-			Log::error("Error while executing an action: " + e.message());
-			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, error_type, "Could not process endpoint action: " + e.message()));
+        {
+            Log::error(EndpointManager::formatResponseMessage(parsed_request, "Error while executing an action: " + e.message()));
+            sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, error_type, EndpointManager::formatResponseMessage(parsed_request, "Could not process endpoint action: " + e.message())));
 			return;
 		}
 
-
-		Log::info(HttpUtils::convertMethodTypeToString(current_endpoint.method).toUpper() + " " + current_endpoint.url + " - " + current_endpoint.comment + user_info + client_type);
+        Log::info(EndpointManager::formatResponseMessage(parsed_request, current_endpoint.comment + user_info + client_type));
 
 		if (response.isStream())
-		{
-			Log::info("Initiating a stream: " + response.getFilename() + user_info + client_type);
+        {
+            Log::info(EndpointManager::formatResponseMessage(parsed_request, "Initiating a stream: " + response.getFilename() + user_info + client_type));
 
 			if (response.getFilename().isEmpty())
 			{
-				HttpResponse error_response;
-				QString error_message = "Streaming request contains an empty file name";
+                HttpResponse error_response;
+                QString error_message = EndpointManager::formatResponseMessage(parsed_request, "Streaming request contains an empty file name");
 				Log::error(error_message + user_info + client_type);
 				sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, error_type, error_message));
 				return;
@@ -215,24 +214,24 @@ void RequestWorker::run()
 
 			QSharedPointer<QFile> streamed_file = QSharedPointer<QFile>(new QFile(response.getFilename()));
 			if (!streamed_file.data()->exists())
-			{
-				QString error_message = "Requested file does not exist: " + response.getFilename();
+            {
+                QString error_message = EndpointManager::formatResponseMessage(parsed_request, "Requested file does not exist: " + response.getFilename());
 				Log::error(error_message + user_info + client_type);
 				sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, error_type, error_message));
 				return;
 			}
 
 			if (!streamed_file.data()->open(QFile::ReadOnly))
-			{
-				QString error_message = "Could not open a file for streaming: " + response.getFilename();
+            {
+                QString error_message = EndpointManager::formatResponseMessage(parsed_request, "Could not open a file for streaming: " + response.getFilename());
 				Log::error(error_message + user_info + client_type);
 				sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, error_type, error_message));
 				return;
 			}
 
 			if (!streamed_file.data()->isOpen())
-			{
-				QString error_message = "File is not open: " + response.getFilename();
+            {
+                QString error_message = EndpointManager::formatResponseMessage(parsed_request, "File is not open: " + response.getFilename());
 				Log::error(error_message + user_info + client_type);
 				sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, error_type, error_message));
 				return;
@@ -273,8 +272,8 @@ void RequestWorker::run()
 				while(pos<(ranges[i].end+1))
 				{
 					if ((is_terminated_) || (ssl_socket->state() == QSslSocket::SocketState::UnconnectedState) || (ssl_socket->state() == QSslSocket::SocketState::ClosingState))
-					{
-						Log::info("Range streaming request process has been terminated: " + response.getFilename() + user_info + client_type);
+                    {
+                        Log::info(EndpointManager::formatResponseMessage(parsed_request, "Range streaming request process has been terminated: " + response.getFilename() + user_info + client_type));
 						streamed_file.data()->close();
 						return;
 					}
@@ -307,8 +306,8 @@ void RequestWorker::run()
 				while(!streamed_file.data()->atEnd())
 				{
 					if ((pos > file_size) || (is_terminated_) || (ssl_socket->state() == QSslSocket::SocketState::UnconnectedState) || (ssl_socket->state() == QSslSocket::SocketState::ClosingState))
-					{
-						Log::info("Streaming request process has been terminated: " + response.getFilename() + user_info + client_type);
+                    {
+                        Log::info(EndpointManager::formatResponseMessage(parsed_request, "Streaming request process has been terminated: " + response.getFilename() + user_info + client_type));
 						streamed_file.data()->close();
 						return;
 					}
@@ -366,20 +365,20 @@ void RequestWorker::run()
 			return;
 		}
 		else if (response.getPayload().isNull())
-		{
-			QString error_message = "Could not produce any output";
+        {
+            QString error_message = EndpointManager::formatResponseMessage(parsed_request, "Could not produce any output");
 			Log::error(error_message + user_info + client_type);
 			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, error_type, error_message));
 			return;
 		}
 
-		QString error_message = "The requested resource does not exist: " + parsed_request.getPath() + ". Check the URL and try again";
+        QString error_message = EndpointManager::formatResponseMessage(parsed_request, "The requested resource does not exist: " + parsed_request.getPath() + ". Check the URL and try again");
 		Log::error(error_message + user_info + client_type);
 		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, error_type, error_message));
 	}
 	catch (...)
-	{
-		QString error_message = "Unexpected error inside the request worker. See logs for more details";
+    {
+        QString error_message = "Unexpected error inside the request worker. See logs for more details";
 		Log::error(error_message);
 		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_PLAIN, error_message));
 	}
@@ -392,8 +391,7 @@ void RequestWorker::handleConnection()
 
 void RequestWorker::socketDisconnected()
 {
-	Log::info("Client has disconnected from the socket");
-	exit(0);
+    Log::info("Client has disconnected from the socket");
 }
 
 QString RequestWorker::intToHex(const int& input)

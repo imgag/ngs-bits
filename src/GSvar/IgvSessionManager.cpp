@@ -68,7 +68,7 @@ void IgvSessionManager::setIGVPort(int port, int session_index)
 
 QString IgvSessionManager::getIGVGenome(int session_index)
 {
-	if (session_index<0) THROW(ProgrammingException, "Invalid session index has not been provided!");
+    if (session_index<0) THROW(ProgrammingException, "Invalid session index has been provided!");
 	if (instance().session_list_.count()>=(session_index+1))
 	{
 		return instance().session_list_[session_index].genome;
@@ -79,7 +79,7 @@ QString IgvSessionManager::getIGVGenome(int session_index)
 void IgvSessionManager::setIGVGenome(QString genome, int session_index)
 {
 	if (genome.isEmpty()) THROW(ProgrammingException, "Genome is not set!");
-	if (session_index<0) THROW(ProgrammingException, "Invalid session index has not been provided!");
+    if (session_index<0) THROW(ProgrammingException, "Invalid session index has been provided!");
 	if (instance().session_list_.count()>=(session_index-1))
 	{
 		instance().mutex_.lock();
@@ -90,7 +90,7 @@ void IgvSessionManager::setIGVGenome(QString genome, int session_index)
 
 bool IgvSessionManager::isIGVInitialized(int session_index)
 {
-	if (session_index<0) THROW(ProgrammingException, "Invalid session index has not been provided!");
+    if (session_index<0) THROW(ProgrammingException, "Invalid session index has been provided!");
 
 	if (instance().session_list_.count()>=(session_index+1))
 	{
@@ -102,7 +102,7 @@ bool IgvSessionManager::isIGVInitialized(int session_index)
 
 void IgvSessionManager::setIGVInitialized(bool is_initialized, int session_index)
 {
-	if (session_index<0) THROW(ProgrammingException, "Invalid session index has not been provided!");
+    if (session_index<0) THROW(ProgrammingException, "Invalid session index has been provided!");
 
 	if (instance().session_list_.count()>=(session_index+1))
 	{

@@ -5,7 +5,7 @@ EndpointManager::EndpointManager()
 {
 }
 
-HttpResponse EndpointManager::getBasicHttpAuthStatus(HttpRequest request)
+HttpResponse EndpointManager::getBasicHttpAuthStatus(const HttpRequest& request)
 {
 	QString auth_header = request.getHeaderByName("Authorization").length() > 0 ? request.getHeaderByName("Authorization")[0] : "";
 	if (auth_header.isEmpty())
@@ -49,7 +49,7 @@ HttpResponse EndpointManager::getBasicHttpAuthStatus(HttpRequest request)
 	return HttpResponse(ResponseStatus::OK, request.getContentType(), "Successful authorization");
 }
 
-QString EndpointManager::getTokenFromHeader(HttpRequest request)
+QString EndpointManager::getTokenFromHeader(const HttpRequest& request)
 {
 	QList<QString> auth_header = request.getHeaderByName("Authorization");
 	if (auth_header.count()>0)
@@ -60,7 +60,7 @@ QString EndpointManager::getTokenFromHeader(HttpRequest request)
 	return "";
 }
 
-QString EndpointManager::getTokenIfAvailable(HttpRequest request)
+QString EndpointManager::getTokenIfAvailable(const HttpRequest& request)
 {
 	QString token = "";
 	if (request.getUrlParams().contains("token"))
@@ -86,13 +86,13 @@ HttpResponse EndpointManager::getUserTokenAuthStatus(const HttpRequest& request)
 {
 	if (!SessionManager::isTokenReal(getTokenIfAvailable(request)))
 	{
-		Log::warn("Invalid or empty secure token has been used");
+        Log::warn(EndpointManager::formatResponseMessage(request, "Invalid or empty secure token has been used"));
 		return HttpResponse(ResponseStatus::FORBIDDEN, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized with a valid user token");
 	}
 
 	if (SessionManager::isSessionExpired(getTokenIfAvailable(request)))
-	{
-		return HttpResponse(ResponseStatus::REQUEST_TIMEOUT, request.getContentType(), "Secure token has expired");
+    {
+        return HttpResponse(ResponseStatus::REQUEST_TIMEOUT, request.getContentType(), EndpointManager::formatResponseMessage(request, "Secure token has expired"));
 	}
 
 	return HttpResponse(ResponseStatus::OK, request.getContentType(), "OK");
@@ -101,26 +101,26 @@ HttpResponse EndpointManager::getUserTokenAuthStatus(const HttpRequest& request)
 HttpResponse EndpointManager::getDbTokenAuthStatus(const HttpRequest& request)
 {
 	if (!SessionManager::isTokenReal(request.getFormUrlEncoded()["dbtoken"]))
-	{
-		return HttpResponse(ResponseStatus::FORBIDDEN, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), "You are not authorized with a valid database token");
+    {
+        return HttpResponse(ResponseStatus::FORBIDDEN, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "You are not authorized with a valid database token"));
 	}
 
 	if (SessionManager::isSessionExpired(request.getFormUrlEncoded()["dbtoken"]))
-	{
-		return HttpResponse(ResponseStatus::REQUEST_TIMEOUT, request.getContentType(), "Database token has expired");
+    {
+        return HttpResponse(ResponseStatus::REQUEST_TIMEOUT, request.getContentType(), EndpointManager::formatResponseMessage(request, "Database token has expired"));
 	}
 
 	if (!request.getHeaderByName("User-Agent").contains("GSvar"))
-	{
-		Log::warn("Unauthorized entity tried to request the database credentials");
-		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "You are not allowed to request the database credentials. This incident will be reported");
+    {
+        Log::warn(EndpointManager::formatResponseMessage(request, "Unauthorized entity tried to request the database credentials"));
+        return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), EndpointManager::formatResponseMessage(request, "You are not allowed to request the database credentials. This incident will be reported"));
 	}
 
 	bool ok = true;
 	if (request.getFormUrlEncoded()["secret"].toULongLong(&ok, 16) != ToolBase::encryptionKey("encryption helper"))
-	{
-		Log::warn("Secret check failed for the database credentials");
-		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "You are not allowed to request the database credentials. This incident will be reported");
+    {
+        Log::warn(EndpointManager::formatResponseMessage(request, "Secret check failed for the database credentials"));
+        return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), EndpointManager::formatResponseMessage(request, "You are not allowed to request the database credentials. This incident will be reported"));
 	}
 
 	return HttpResponse(ResponseStatus::OK, request.getContentType(), "OK");
@@ -130,52 +130,48 @@ HttpResponse EndpointManager::getDbTokenAuthStatus(const HttpRequest& request)
 void EndpointManager::validateInputData(Endpoint* current_endpoint, const HttpRequest& request)
 {	
 	QMapIterator<QString, ParamProps> i(current_endpoint->params);
+    int mandatory_path_params_count = 0;
+    QList<QString> mandatory_params;
 	while (i.hasNext())
 	{
-		i.next();		
+        i.next();
 		bool is_found = false;
+        if (i.value().is_optional) continue;
+
 		if (i.value().category == ParamProps::ParamCategory::POST_OCTET_STREAM)
 		{
-			if (request.getBody().length()>0)
-			{
-				is_found = true;
-			}
+            if (!request.getBody().isEmpty()) is_found = true;
 		}
 
 		if ((i.value().category == ParamProps::ParamCategory::POST_URL_ENCODED) || (i.value().category == ParamProps::ParamCategory::ANY))
 		{
-			if (request.getFormUrlEncoded().contains(i.key()))
-			{
-				is_found = true;
-			}
+            if (hasKey(i.key(), request.getFormUrlEncoded())) is_found = true;
 		}
 
 		if ((i.value().category == ParamProps::ParamCategory::GET_URL_PARAM) || (i.value().category == ParamProps::ParamCategory::ANY))
-		{
-			if (request.getUrlParams().contains(i.key()))
-			{
-				is_found = true;
-			}
-		}
+        {
+            if (hasKey(i.key(), request.getUrlParams())) is_found = true;
+		}		
 
-		if ((i.value().category == ParamProps::ParamCategory::PATH_PARAM) || (i.value().category == ParamProps::ParamCategory::ANY))
-		{
-			if (request.getPathItems().size()>0)
-			{
-				is_found = true;
-			}
-		}
+        if ((i.value().category == ParamProps::ParamCategory::AUTH_HEADER) || (i.value().category == ParamProps::ParamCategory::ANY))
+        {
+            if (!getTokenFromHeader(request).isEmpty()) is_found = true;
+        }
 
-		if (!getTokenFromHeader(request).isEmpty())
-		{
-			is_found = true;
-		}
+        if ((i.value().category == ParamProps::ParamCategory::PATH_PARAM) || (i.value().category == ParamProps::ParamCategory::ANY) && (!is_found))
+        {
+            mandatory_path_params_count++;
+            mandatory_params.append(i.key());
+        }
 
-		if ((!i.value().is_optional) && (!is_found))
-		{
-			THROW(ArgumentException, "Parameter " + i.key() + " is missing");
-		}
+        if (i.value().category == ParamProps::ParamCategory::PATH_PARAM) is_found = true;
+
+        if (!is_found) THROW(ArgumentException, "Parameter " + i.key() + " is missing for: " + HttpUtils::convertMethodTypeToString(current_endpoint->method).toUpper() + " - " + current_endpoint->url);
 	}
+    if (request.getPathItems().size()<mandatory_path_params_count)
+    {
+        THROW(ArgumentException, QString::number(request.getPathItems().size()) + " out of " + QString::number(mandatory_path_params_count) + " mandatory parameters (" + mandatory_params.join(", ") + ") not found for: " + HttpUtils::convertMethodTypeToString(current_endpoint->method).toUpper() + " - " + current_endpoint->url);
+    }
 }
 
 void EndpointManager::appendEndpoint(Endpoint new_endpoint)
@@ -253,11 +249,34 @@ QString EndpointManager::getEndpointHelpTemplate(QList<Endpoint> endpoint_list)
 
 	stream << HtmlEngine::getPageFooter();
 
-	return output;
+    return output;
+}
+
+QString EndpointManager::formatResponseMessage(const HttpRequest& request, const QString& message)
+{
+    return request.methodAsString().toUpper() + " " + (request.getPath().startsWith("/") ? request.getPath() : "/" + request.getPath()) + " - " + message;
 }
 
 EndpointManager& EndpointManager::instance()
 {
-	static EndpointManager endpoint_factory;
-	return endpoint_factory;
+    static EndpointManager endpoint_factory;
+    return endpoint_factory;
+}
+
+bool EndpointManager::hasKey(const QString& key, const QList<QString>& list)
+{
+    foreach(const QString& item, list)
+    {        
+        if (item.toLower() == key.toLower()) return true;
+    }
+    return false;
+}
+
+bool EndpointManager::hasKey(const QString& key, const QMap<QString, QString>& map)
+{
+    foreach(const QString& item, map.keys())
+    {
+        if (item.toLower() == key.toLower()) return true;
+    }
+    return false;
 }
