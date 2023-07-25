@@ -129,16 +129,6 @@ const InfoFormatLine& VcfHeader::lineByID(const QByteArray& id, const QVector<In
 	return lines.at(index);
 }
 
-const InfoFormatLine& VcfHeader::infoLineByID(const QByteArray& id, bool error_not_found) const
-{
-	return lineByID(id, infoLines(), error_not_found);
-}
-
-const InfoFormatLine& VcfHeader::formatLineByID(const QByteArray& id, bool error_not_found) const
-{
-	return lineByID(id, formatLines(), error_not_found);
-}
-
 const FilterLine& VcfHeader::filterLineByID(const QByteArray& id, bool error_not_found) const
 {
 	static FilterLine empty;
@@ -496,16 +486,6 @@ bool VcfLine::isDel() const
 	return alt(0).length() == 1 && ref().length() > 1 && alt(0).at(0) == ref().at(0);
 }
 
-QByteArray VcfLine::toString(bool add_end) const
-{
-	return chr_.str() + ":" + QByteArray::number(start()) + (add_end ? "-" + QByteArray::number(end()): "") + " " + ref() + ">" + altString();
-}
-
-bool VcfLine::operator==(const VcfLine& rhs) const
-{
-	return pos_==rhs.start() && chr_==rhs.chr() && ref_==rhs.ref() && altString()==rhs.altString();
-}
-
 bool VcfLine::operator<(const VcfLine& rhs) const
 {
 	if (chr_<rhs.chr_) return true; //compare chromosome
@@ -659,14 +639,4 @@ void VcfLine::normalize(ShiftDirection shift_dir, const FastaFileIndex& referenc
             }
         }
     }
-}
-
-void VcfLine::leftNormalize(FastaFileIndex& reference, bool check_reference)
-{
-	normalize(ShiftDirection::LEFT, reference, check_reference);
-}
-
-void VcfLine::rightNormalize(FastaFileIndex& reference, bool check_reference)
-{
-	normalize(ShiftDirection::RIGHT, reference, check_reference);
 }

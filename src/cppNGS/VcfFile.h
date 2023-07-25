@@ -103,12 +103,12 @@ public:
 		return sample_id_to_idx_;
 	}
 	///Returns the hash storing all possible format ID orders in the vcf file
-	const QHash<ListOfFormatIds, FormatIDToIdxPtr>& formatIDToIdxList() const
+	const QHash<QByteArray, FormatIDToIdxPtr>& formatIDToIdxList() const
 	{
 		return format_id_to_idx_list_;
 	}
 	///Returns the hash storing all possible info ID orders in the vcf file
-	const QHash<ListOfInfoIds, FormatIDToIdxPtr>& infoIDToIdxList() const
+	const QHash<QByteArray, FormatIDToIdxPtr>& infoIDToIdxList() const
 	{
 		return info_id_to_idx_list_;
 	}
@@ -158,8 +158,8 @@ private:
 	QVector<QByteArray> column_headers_; //heading of variant lines
 
 	SampleIDToIdxPtr sample_id_to_idx_; //Hash of SampleID to its position
-	QHash<ListOfFormatIds, FormatIDToIdxPtr> format_id_to_idx_list_; //Hash storing all possible format orders
-	QHash<ListOfInfoIds, FormatIDToIdxPtr> info_id_to_idx_list_; //Hash storing all possible info orders
+	QHash<QByteArray, FormatIDToIdxPtr> format_id_to_idx_list_; //Hash storing all possible format orders
+	QHash<QByteArray, FormatIDToIdxPtr> info_id_to_idx_list_; //Hash storing all possible info orders
 
 	mutable bool samples_exist_;
 

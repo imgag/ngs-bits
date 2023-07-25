@@ -38,12 +38,11 @@ public:
 	}
 
 	//check if key exists
-	bool hasKey(const K& key, V& value) const
+	int indexOf(const K& key) const
 	{
 		auto iter = hash_.find(key);
-		if (iter == hash_.end()) return false;
-		value = iter.value();
-		return true;
+		if (iter == hash_.end()) return -1;
+		return iter.value();
 	}
 
 	//access value by order
@@ -90,8 +89,6 @@ enum InfoFormatType {INFO_DESCRIPTION, FORMAT_DESCRIPTION};
 using SampleIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, int>>; //Hashing sample ID to position in value list
 using FormatIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, int>>; //Hashing format ID to position in value list
 using InfoIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, int>>; //Hashing info ID to position in value list
-using ListOfFormatIds = QByteArray; //an array of all ordered FORMAT ids to use as hash key
-using ListOfInfoIds = QByteArray; //an array of all ordered INFO ids to use as hash key
 
 //basic header line storing comments (every comment must be a key=value pair)
 struct CPPNGSSHARED_EXPORT VcfHeaderLine
@@ -204,8 +201,14 @@ public:
 	bool filterIdDefined(const QByteArray& id) const;
 
 	//functions returning single info, format, filter lines by its ID
-	const InfoFormatLine& infoLineByID(const QByteArray& id, bool error_not_found = true) const;
-	const InfoFormatLine& formatLineByID(const QByteArray& id, bool error_not_found = true) const;
+	const InfoFormatLine& infoLineByID(const QByteArray& id, bool error_not_found = true) const
+	{
+		return lineByID(id, infoLines(), error_not_found);
+	}
+	const InfoFormatLine& formatLineByID(const QByteArray& id, bool error_not_found = true) const
+	{
+		return lineByID(id, formatLines(), error_not_found);
+	}
 	const FilterLine& filterLineByID(const QByteArray& id, bool error_not_found = true) const;
 
 	//looks up the position of name in the list of VEP annotations from the info line in the header (CSQ line)
@@ -290,11 +293,12 @@ public:
 		return filter_.isEmpty() || (filter_.count()==1 && filter_[0]=="PASS");
 	}
 	//Returns a list of all format IDs
-	QByteArrayList formatKeys() const
+	const QByteArrayList& formatKeys() const
 	{
+		static QByteArrayList empty;
 		if(!formatIdxOf_)
 		{
-			return QByteArrayList();
+			return empty;
 		}
 		return formatIdxOf_->keys();
 	}
@@ -315,8 +319,8 @@ public:
 	{
 		static QByteArray empty;
 
-		int info_pos = -1;
-		if(!infoIdxOf_->hasKey(key, info_pos))
+		int info_pos = infoIdxOf_->indexOf(key);
+		if(info_pos==-1)
 		{
 			if (error_if_key_absent) THROW(ArgumentException, "Key ' " + key + "' not found in INFO entries of variant " + toString());
 			return empty;
@@ -344,53 +348,35 @@ public:
 		return sample_values_.at(pos);
 	}
 	///Returns the value for a format and sample ID
-	QByteArray formatValueFromSample(const QByteArray& format_key, const QByteArray& sample_name, bool error_if_format_key_absent = false) const
+	const QByteArray& formatValueFromSample(const QByteArray& format_key, const QByteArray& sample_name) const
 	{
-		if(error_if_format_key_absent)
-		{
-			int s_idx = (*sampleIdxOf_)[sample_name];
-			int f_idx = (*formatIdxOf_)[format_key];
+		static QByteArray empty;
 
-			return sample_values_.at(s_idx).at(f_idx);
+		int sample_pos = sampleIdxOf_->indexOf(sample_name);
+		int format_pos = formatIdxOf_->indexOf(format_key);
+		if(sample_pos!=-1 && format_pos!=-1)
+		{
+			return sample_values_.at(sample_pos).at(format_pos);;
 		}
 		else
 		{
-			int sample_pos;
-			int format_pos;
-			if(sampleIdxOf_->hasKey(sample_name, sample_pos) && formatIdxOf_->hasKey(format_key, format_pos))
-			{
-				return sample_values_.at(sample_pos).at(format_pos);;
-			}
-			else
-			{
-				return "";
-			}
+			return empty;
 		}
 	}
 	///Returns the value for a format ID and sample position (default is first sample)
-	QByteArray formatValueFromSample(const QByteArray& format_key, int sample_pos = 0, bool error_if_format_key_absent = false) const
+	const QByteArray& formatValueFromSample(const QByteArray& format_key, int sample_pos = 0) const
 	{
-
+		static QByteArray empty;
 		if(sample_pos >= samples().size()) THROW(ArgumentException, QString::number(sample_pos) + " is out of range for SAMPLES. The VCF file provides " + QString::number(samples().size()) + " SAMPLES");
 
-		QByteArrayList format_values = sample_values_.at(sample_pos);
-
-		if(error_if_format_key_absent)
+		int format_pos = formatIdxOf_->indexOf(format_key);
+		if(format_pos!=-1)
 		{
-			int f_idx = (*formatIdxOf_)[format_key];
-			return sample_values_.at(sample_pos).at(f_idx);
+			return sample_values_[sample_pos][format_pos];
 		}
 		else
 		{
-			int format_pos;
-			if(formatIdxOf_->hasKey(format_key, format_pos))
-			{
-				return format_values.at(format_pos);;
-			}
-			else
-			{
-				return "";
-			}
+			return empty;
 		}
 	}
 
@@ -515,18 +501,30 @@ public:
 	//Overload of the above function that also checks if the reference bases of the variants are correct.
 	bool isValid(const FastaFileIndex& reference) const;
 	//Returns a string representation of the variant (chr, pos, ref, alt).
-	QByteArray toString(bool add_end=false) const;
+	QByteArray toString(bool add_end=false) const
+	{
+		return chr_.str() + ":" + QByteArray::number(start()) + (add_end ? "-" + QByteArray::number(end()): "") + " " + ref() + ">" + altString();
+	}
 	QByteArrayList vepAnnotations(int field_index) const;
 	// Left-normalize all variants.
-	void leftNormalize(FastaFileIndex& reference, bool check_reference);
+	void leftNormalize(FastaFileIndex& reference, bool check_reference)
+	{
+		normalize(ShiftDirection::LEFT, reference, check_reference);
+	}
 	//Right-normalize all variants
-	void rightNormalize(FastaFileIndex& reference, bool check_reference=true);
+	void rightNormalize(FastaFileIndex& reference, bool check_reference=true)
+	{
+		normalize(ShiftDirection::RIGHT, reference, check_reference);
+	}
     // Removes the common prefix/suffix from indels, shifts the variant left or right, and adds a common reference base
 	enum ShiftDirection {LEFT, RIGHT};
 	void normalize(ShiftDirection shift_dir, const FastaFileIndex& reference, bool check_reference, bool add_prefix_base_to_mnps=false);
 
 	//Equality operator (only compares the variant location itself, not further annotations).
-	bool operator==(const VcfLine& rhs) const;
+	bool operator==(const VcfLine& rhs) const
+	{
+		return pos_==rhs.start() && chr_==rhs.chr() && ref_==rhs.ref() && altString()==rhs.altString();
+	}
 	//Less-than operator.
 	bool operator<(const VcfLine& rhs) const;
 
@@ -536,7 +534,7 @@ private:
 	Sequence ref_;
 	QList<Sequence> alt_;
 
-	QByteArrayList id_; //semicolon-seperated list of id-strings
+	QByteArrayList id_;
 	double qual_;
 
 	QByteArrayList filter_; //list of filter entries. ATTENTION: PASS is contained
