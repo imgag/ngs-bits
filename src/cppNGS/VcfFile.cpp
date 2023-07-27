@@ -6,25 +6,15 @@
 VcfFile::VcfFile()
 	: vcf_lines_()
 	, vcf_header_()
-	, column_headers_()
-	, sample_id_to_idx_()
-	, format_id_to_idx_list_()
-	, info_id_to_idx_list_()	
-	, samples_exist_(false)
+	, sample_names_()
 {
 }
 
 void VcfFile::clear()
 {
 	vcf_lines_.clear();
-	column_headers_.clear();
 	vcf_header_.clear();
-
-	sample_id_to_idx_.clear();
-	format_id_to_idx_list_.clear();
-	info_id_to_idx_list_.clear();
-
-	samples_exist_ = false;
+	sample_names_.clear();
 }
 
 void VcfFile::parseVcfHeader(int line_number, const QByteArray& line)
@@ -82,24 +72,11 @@ void VcfFile::parseHeaderFields(const QByteArray& line, bool allow_multi_sample)
 			THROW(FileParseException, "VCF file header line has only FORMAT column but no sample columns.");
 		}
 
-		samples_exist_ = header_fields.count() >= 10;
-
-		int header_count;
-		allow_multi_sample ? header_count=header_fields.count() : header_count=std::min(10, header_fields.count());
-
-		for(int i = 0; i < header_count; ++i)
+		//determine column and sample names
+		int header_count = allow_multi_sample ? header_fields.count() : std::min(10, header_fields.count());
+		for(int i = 9; i < header_count; ++i)
 		{
-			column_headers_.push_back(header_fields.at(i));
-		}
-
-		//samples are all columns after the 10th
-		sample_id_to_idx_ = SampleIDToIdxPtr(new OrderedHash<QByteArray, int>);
-		if(column_headers_.count() >= 10)
-		{
-			for(int i = 9; i < column_headers_.count(); ++i)
-			{
-				sample_id_to_idx_->push_back(column_headers_.at(i), i-9);
-			}
+			sample_names_ << header_fields.at(i);
 		}
 	}
 }
@@ -113,7 +90,7 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 	}
 
 	VcfLine vcf_line;
-	vcf_line.setChromosome(strToPointer(line_parts[CHROM]));
+	vcf_line.setChromosome(strCache(line_parts[CHROM]));
 	if(!vcf_line.chr().isValid())
 	{
 		THROW(ArgumentException, "Invalid variant chromosome string in line " + QString::number(line_number) + ": " + vcf_line.chr().str() + ".");
@@ -123,7 +100,7 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 	{
 		THROW(ArgumentException, "Invalid variant position range in line " + QString::number(line_number) + ": " + QString::number(vcf_line.start()) + ".");
 	}
-	vcf_line.setRef(strToPointer(line_parts[REF].toUpper()));
+	vcf_line.setRef(strCache(line_parts[REF].toUpper()));
 
 	//Skip variants that are not in the target region (if given)
 	if (roi_idx!=nullptr)
@@ -139,13 +116,13 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 	QByteArrayList id_list = line_parts[ID].split(';');
 	for (int i=0; i<id_list.count(); ++i)
 	{
-		id_list[i] = strToPointer(id_list[i]);
+		id_list[i] = strCache(id_list[i]);
 	}
-	vcf_line.setId(id_list);
+	vcf_line.setId(strArrayCache(id_list));
 
 	foreach(const QByteArray& alt, line_parts[ALT].split(','))
 	{
-		vcf_line.addAlt(strToPointer(alt.toUpper()));
+		vcf_line.addAlt(strCache(alt.toUpper()));
 	}
 	if(line_parts[QUAL]==".")
 	{
@@ -163,13 +140,14 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 	vcf_line.setFilters(line_parts[FILTER].split(';'));
 	foreach(const QByteArray& filter, vcf_line.filters())
 	{
-		if(!filter_ids.contains(filter) && filter!="PASS")
+		if(!filter_ids.contains(filter) && filter!="PASS" && filter!=".")
 		{
 			FilterLine new_filter_line;
-			new_filter_line.id = strToPointer(filter);
-			new_filter_line.description = strToPointer("no description available");
+			new_filter_line.id = strCache(filter);
+			new_filter_line.description = strCache("no description available");
 			vcf_header_.addFilterLine(new_filter_line);
-			filter_ids.insert(strToPointer(filter));
+
+			filter_ids.insert(strCache(filter));
 		}
 	}
 
@@ -182,16 +160,16 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 		foreach(const QByteArray& info, line_parts[INFO].split(';'))
 		{
 			int sep_index = info.indexOf('=');
-			const QByteArray& key = strToPointer(sep_index==-1 ? info : info.left(sep_index));
+			const QByteArray& key = strCache(sep_index==-1 ? info : info.left(sep_index));
 
 			//check if the info is known in header
 			if(!info_ids.contains(key))
 			{
 				InfoFormatLine new_info_line;
 				new_info_line.id = key;
-				new_info_line.number = strToPointer("1");
-				new_info_line.type = strToPointer("String");
-				new_info_line.description = strToPointer("no description available");
+				new_info_line.number = strCache("1");
+				new_info_line.type = strCache("String");
+				new_info_line.description = strCache("no description available");
 				vcf_header_.addInfoLine(new_info_line);
 
 				info_ids.insert(key);
@@ -199,41 +177,25 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 
 			if(sep_index==-1) //Flag
 			{
-				info_values.push_back(strToPointer("TRUE"));
+				info_values.push_back(strCache("TRUE"));
 			}
 			else //other types
 			{
-				info_values.push_back(strToPointer(info.mid(sep_index+1)));
+				info_values.push_back(strCache(info.mid(sep_index+1)));
 			}
 			info_keys.push_back(key);
 		}
 
-		//save info order
-		QByteArray info_ids_string = info_keys.join();
-		if(!info_id_to_idx_list_.contains(info_ids_string))
-		{
-			InfoIDToIdxPtr new_info_id_to_idx_entry = InfoIDToIdxPtr(new OrderedHash<QByteArray, int>);
-			for(int i = 0; i < info_keys.count(); ++i)
-			{
-				new_info_id_to_idx_entry->push_back(info_keys.at(i), i);
-			}
-			info_id_to_idx_list_.insert(info_ids_string, new_info_id_to_idx_entry);
-		}
-		vcf_line.setInfoIdToIdxPtr(info_id_to_idx_list_[info_ids_string]);
-		vcf_line.setInfo(info_values);
-	}
-	else
-	{
-		//init with empty hash to prevent null pointer exceptions
-		vcf_line.setInfoIdToIdxPtr(InfoIDToIdxPtr(new OrderedHash<QByteArray, int>));
+		vcf_line.setInfo(strArrayCache(info_keys), strArrayCache(info_values));
 	}
 
 	//FORMAT && SAMPLE
-	if(line_parts.count() >= 9 && line_parts[FORMAT] != ".")
+	if(line_parts.count() >= 9)
 	{
 		//parse format entries
 		bool is_first = true;
 		QByteArrayList format_list = line_parts[FORMAT].split(':');
+		//QTextStream(stdout) << __FILE__ << " " << __LINE__ << " " << format_list.count() << " " << endl;
 		foreach(const QByteArray& format, format_list)
 		{
 			//first entry must be GT if GT is present
@@ -243,13 +205,13 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 			}
 			is_first = false;
 
-			if(!format_ids.contains(format))
+			if(!format_ids.contains(format) && format!=".")
 			{
 				InfoFormatLine new_format_line;
 				new_format_line.id = format;
-				new_format_line.number = strToPointer("1");
-				new_format_line.type = strToPointer("String");
-				new_format_line.description = strToPointer("no description available");
+				new_format_line.number = strCache("1");
+				new_format_line.type = strCache("String");
+				new_format_line.description = strCache("no description available");
 				vcf_header_.addFormatLine(new_format_line);
 
 				if(format == "GT")
@@ -257,25 +219,16 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 					vcf_header_.moveFormatLine(vcf_header_.formatLines().count()-1, 0);
 				}
 
-				format_ids.insert(strToPointer(format));
+				format_ids.insert(strCache(format));
 			}
 		}
 
 		//set format indices
-		QByteArray format_ids_string = format_list.join();
-		if(!format_id_to_idx_list_.contains(format_ids_string))
+		for(int i = 0; i < format_list.count(); ++i)
 		{
-			FormatIDToIdxPtr new_format_id_to_idx_entry = FormatIDToIdxPtr(new OrderedHash<QByteArray, int>);
-			for(int i = 0; i < format_list.count(); ++i)
-			{
-				new_format_id_to_idx_entry->push_back(strToPointer(format_list[i]), i);
-			}
-			format_id_to_idx_list_.insert(format_ids_string, new_format_id_to_idx_entry);
+			format_list[i] = strCache(format_list[i]);
 		}
-		vcf_line.setFormatIdToIdxPtr(format_id_to_idx_list_[format_ids_string]);
-
-		//set samples idices
-		vcf_line.setSampleIdToIdxPtr(sample_id_to_idx_);
+		vcf_line.setFormatKeys(strArrayCache(format_list));
 
 		//SAMPLE
 		if(line_parts.count() >= 10)
@@ -284,7 +237,7 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 
 			if(allow_multi_sample && sampleIDs().count() != line_parts.count() - 9)
 			{
-				THROW(FileParseException, "Number of samples does not equal number of samples in header for line " + QString::number(line_number) + ": " + line);
+				THROW(FileParseException, "Number of samples in line (" + QString::number(line_parts.count() - 9) + ") not equal to number of samples in header (" + QString::number(sampleIDs().count()) + ")  in line " + QString::number(line_number) + ": " + line);
 			}
 
 			for(int i = 9; i < last_column_to_parse; ++i)
@@ -300,9 +253,10 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 				//parse all available entries
 				for(int i=0; i<sample_entries.count(); ++i)
 				{
-					sample_entries[i] = strToPointer(sample_entries[i]);
+					sample_entries[i] = strCache(sample_entries[i]);
 				}
-				vcf_line.addFormatValues(sample_entries);
+				vcf_line.addFormatValues(strArrayCache(sample_entries));
+				//QTextStream(stdout) << __FILE__ << " " << __LINE__ << " " << sample_entries.count() << " " << endl;
 			}
 		}
 		else
@@ -310,11 +264,10 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 			THROW(FileParseException, "Format column but no sample columns present in line " + QString::number(line_number) + ": " + line);
 		}
 	}
-	else
-	{
-		//init with empty hash to prevent null pointer exceptions
-		vcf_line.setFormatIdToIdxPtr(FormatIDToIdxPtr(new OrderedHash<QByteArray, int>));
-	}
+
+	//set sample names
+	vcf_line.setSamplNames(sample_names_);
+
 	vcf_lines_.append(vcf_line);
 }
 
@@ -645,16 +598,6 @@ void VcfFile::removeDuplicates(bool sort_by_quality)
 	vcf_lines_.swap(output);
 }
 
-const QByteArrayList& VcfFile::sampleIDs() const
-{
-	static QByteArrayList empty;
-	if(!sample_id_to_idx_ || sample_id_to_idx_->empty())
-	{
-		return empty;
-	}
-	return sample_id_to_idx_->keys();
-}
-
 void VcfFile::storeLineInformation(QTextStream& stream, const VcfLine& line) const
 {
 	//chr
@@ -703,27 +646,13 @@ void VcfFile::storeLineInformation(QTextStream& stream, const VcfLine& line) con
 	}
 
 	//format  and samples
-	if (samples_exist_)
+	if (!sample_names_.isEmpty())
 	{
-		if(!line.formatKeys().empty())
-		{
-			stream << '\t' << line.formatKeys().join(':');
-		}
-		else
-		{
-			stream << "\t.";
-		}
+		stream << '\t' << line.formatKeys().join(':');
 
-		if (!line.samples().isEmpty())
+		foreach(const QByteArrayList& sample_entry, line.samples())
 		{
-			foreach(const QByteArrayList& sample_entry, line.samples())
-			{
-				stream << '\t' << (sample_entry.empty() ? "." : sample_entry.join(':'));
-			}
-		}
-		else
-		{
-			stream << "\t.";
+			stream << '\t' << (sample_entry.empty() ? "." : sample_entry.join(':'));
 		}
 	}
 
@@ -732,57 +661,24 @@ void VcfFile::storeLineInformation(QTextStream& stream, const VcfLine& line) con
 
 void VcfFile::storeHeaderColumns(QTextStream &stream) const
 {
-	if(vcfColumnHeader().count() < MIN_COLS)
-	{
-		THROW(ArgumentException, "Number of column headers is " + QString::number(vcfColumnHeader().count()) + ", but the minimum expected number of columns is: " + QString::number(MIN_COLS) + ".");
-	}
-	QVector<QByteArray> headers(column_headers_);
-	// if column headers are missing FORMAT and or sample headers.
-	if (headers.count() < 10)
-	{
-		samples_exist_ = false;
+	stream << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
 
-		foreach (const VcfLine& line, vcf_lines_)
+	if (!sample_names_.isEmpty())
+	{
+		stream << "\tFORMAT";
+		foreach(const QByteArray& sample, sample_names_)
 		{
-			if (line.samples().count() > 0)
-			{
-				samples_exist_ = true;
-
-				headers.append("FORMAT");
-
-				for(int i=0; i<line.samples().count(); i++)
-				{
-					headers.append("Sample_" + QByteArray::number(i+1));
-				}
-				// when one with samples was found no other line can have more samples as it would break writing the file
-				break;
-			}
+			stream << '\t' << sample;
 		}
 	}
 
-	stream << "#";
-	for(int i = 0; i < headers.count() - 1; ++i)
-	{
-		stream << headers.at(i) << '\t';
-	}
-
-	stream << headers.at(headers.count() - 1) << "\n";
+	stream << '\n';
 }
 
 void VcfFile::copyMetaData(const VcfFile& rhs)
 {
-	//copy header information
 	vcf_header_ = rhs.vcfHeader();
-
-	foreach(const QByteArray& header, rhs.vcfColumnHeader())
-	{
-		column_headers_.push_back(header);
-	}
-
-	//copy information about samples and possible info/ format lines
-	sample_id_to_idx_ = rhs.sampleIDToIdx();
-	format_id_to_idx_list_ = rhs.formatIDToIdxList();
-	info_id_to_idx_list_ = rhs.infoIDToIdxList();
+	sample_names_ = rhs.sample_names_;
 }
 
 QByteArray VcfFile::toText() const
@@ -897,25 +793,17 @@ VcfFile VcfFile::fromGSvar(const VariantList& variant_list, const QString& refer
 		++it;
 	}
 
-	//add header fields
-	vcf_file.column_headers_ << "CHROM" << "POS" << "ID" << "REF" << "ALT" << "QUAL" << "FILTER" << "INFO" << "FORMAT";
 	//search for genotype on annotations
-	SampleHeaderInfo genotype_columns;
+	SampleHeaderInfo sample_headers;
 	try
 	{
-		genotype_columns = variant_list.getSampleHeader();
+		sample_headers = variant_list.getSampleHeader();
 	}
 	catch(...){} //nothing to do here
 
 	//write genotype Format into header
-	if(!genotype_columns.empty())
+	if(!sample_headers.empty())
 	{
-		vcf_file.samples_exist_ = true;
-		foreach(const SampleInfo& genotype, genotype_columns)
-		{
-			vcf_file.column_headers_ << genotype.column_name.toUtf8();
-		}
-
 		InfoFormatLine format_line;
 		format_line.id = "GT";
 		format_line.number = "1";
@@ -924,43 +812,36 @@ VcfFile VcfFile::fromGSvar(const VariantList& variant_list, const QString& refer
 		vcf_file.vcf_header_.addFormatLine(format_line);
 	}
 
+	//determine indices to skip
 	int qual_index = variant_list.annotationIndexByName("QUAL", true, false);
 	int filter_index = variant_list.annotationIndexByName("FILTER", true, false);
 	QSet<int> indices_to_skip;
 	indices_to_skip.insert(qual_index);
 	indices_to_skip.insert(filter_index);
-	foreach(const SampleInfo& genotype, genotype_columns)
+	foreach(const SampleInfo& sample_header, sample_headers)
 	{
-		indices_to_skip.insert(genotype.column_index);
+		indices_to_skip << sample_header.column_index;
 	}
 
-	//sample order is set for all lines
-	SampleIDToIdxPtr sample_id_to_idx = SampleIDToIdxPtr(new OrderedHash<QByteArray, int>);
-	sample_id_to_idx = SampleIDToIdxPtr(new OrderedHash<QByteArray, int>);
-
-	for(int i = 0; i < genotype_columns.size(); ++i)
+	//determine sample names
+	QByteArrayList sample_names;
+	foreach(const SampleInfo& sample_header, sample_headers)
 	{
-		const SampleInfo& genotype = genotype_columns.at(i);
-		sample_id_to_idx->push_back(genotype.column_name.toUtf8(), i);
+		sample_names << sample_header.column_name.toLatin1();
 	}
+	vcf_file.setSampleNames(sample_names);
 
-	//format contains only GT
-	QHash<QByteArray, FormatIDToIdxPtr> format_id_to_idx_list;
-	QByteArray list_storing_genotype_only;
-	list_storing_genotype_only.push_back("GT");
-	FormatIDToIdxPtr gt_to_first_position = FormatIDToIdxPtr(new OrderedHash<QByteArray, int>);
-	gt_to_first_position->push_back("GT", 1);
-	format_id_to_idx_list.insert(list_storing_genotype_only, gt_to_first_position);
-
-	QHash<QByteArray, InfoIDToIdxPtr> info_id_to_idx_list;
+	//format keys (only GT)
+	QByteArrayList format_keys;
+	format_keys << "GT";
 
 	//add variant lines
 	for(int i = 0; i < variant_list.count(); ++i)
 	{
 		Variant v = variant_list[i];
 		VcfLine vcf_line;
-		vcf_line.setFormatIdToIdxPtr(gt_to_first_position);
-		vcf_line.setSampleIdToIdxPtr(sample_id_to_idx);
+		vcf_line.setFormatKeys(format_keys);
+		vcf_line.setSamplNames(sample_names);
 
 		QByteArrayList id_list;
 		id_list.push_back(".");
@@ -1023,78 +904,54 @@ VcfFile VcfFile::fromGSvar(const VariantList& variant_list, const QString& refer
 
 				if (anno_desc.type()==VariantAnnotationDescription::FLAG) //Flags should not have values in VCF
 				{
-					info.push_back(strToPointer("TRUE"));
+					info.push_back(strCache("TRUE"));
 				}
 				else //everything else is just added to info
 				{
-					info.push_back(strToPointer(encodeInfoValue(anno_val).toUtf8()));
+					info.push_back(strCache(encodeInfoValue(anno_val).toUtf8()));
 				}
 
 				all_info_keys.push_back(anno_header.name().toUtf8());
 			}
 		}
 
-		//save info order
-		QByteArray info_ids_string = all_info_keys.join();
-		if(!info_id_to_idx_list.contains(info_ids_string))
-		{
-			InfoIDToIdxPtr new_info_id_to_idx_entry = InfoIDToIdxPtr(new OrderedHash<QByteArray, int>);
-			for(int i = 0; i < all_info_keys.count(); ++i)
-			{
-				new_info_id_to_idx_entry->push_back(all_info_keys.at(i), i);
-			}
-			info_id_to_idx_list.insert(info_ids_string, new_info_id_to_idx_entry);
-			vcf_line.setInfoIdToIdxPtr(new_info_id_to_idx_entry);
-		}
-		vcf_line.setInfoIdToIdxPtr(info_id_to_idx_list[info_ids_string]);
-		vcf_line.setInfo(info);
+		//set info
+		vcf_line.setInfo(all_info_keys, info);
 
 		//write genotype
-		if(!genotype_columns.empty())
+		foreach(const SampleInfo& sample_header, sample_headers)
 		{
-			QList<QByteArrayList> all_samples_new;
-			bool all_samples_empty = true;
-
-			foreach(const SampleInfo& genotype_column, genotype_columns)
+			int genotype_index = variant_list.annotationIndexByName(sample_header.column_name, true, false);
+			if(genotype_index == -1)
 			{
-				QByteArrayList formats_new;
-
-				int genotype_index = variant_list.annotationIndexByName(genotype_column.column_name, true, false);
-				if(genotype_index == -1)
-				{
-					all_samples_new.push_back(formats_new);
-					continue;
-				}
-
-				QByteArray gt = v.annotations().at(genotype_index).trimmed();
-				if(gt.isEmpty() || gt == "." || gt == "n/a")
-				{
-					formats_new.push_back("./.");
-				}
-				else if(gt == "wt")
-				{
-					formats_new.push_back("0/0");
-				}
-				else if(gt == "hom")
-				{
-					formats_new.push_back("1/1");
-				}
-				else if(gt == "het")
-				{
-					formats_new.push_back("1/0");
-				}
-				else
-				{
-					THROW(ArgumentException, "Genotype column in GSvar file contains invalid entry '" + gt + "'.");
-				}
-				all_samples_empty = false;
-				all_samples_new.push_back(formats_new);
+				//qDebug() << __LINE__ << sample_header.column_name;
+				vcf_line.addFormatValues(QByteArrayList() << ".");
+				continue;
 			}
-			vcf_line.setSample(all_samples_new);
 
-			//we store only the genotype in the sample columns, however if it is not present
-			//format information has to be reset as well
-			if(all_samples_empty) vcf_line.setFormatIdToIdxPtr(nullptr);
+			QByteArrayList formats_new;
+			QByteArray gt = v.annotations().at(genotype_index).trimmed();
+			if(gt.isEmpty() || gt == "." || gt == "n/a")
+			{
+				formats_new.push_back("./.");
+			}
+			else if(gt == "wt")
+			{
+				formats_new.push_back("0/0");
+			}
+			else if(gt == "hom")
+			{
+				formats_new.push_back("1/1");
+			}
+			else if(gt == "het")
+			{
+				formats_new.push_back("1/0");
+			}
+			else
+			{
+				THROW(ArgumentException, "Genotype column in GSvar file contains invalid entry '" + gt + "'.");
+			}
+			vcf_line.addFormatValues(formats_new);
 		}
 
 		vcf_file.vcf_lines_.push_back(vcf_line);
@@ -1713,6 +1570,32 @@ void VcfFile::checkValues(const DefinitionLine& def, const QByteArrayList& value
 			printWarning(out, "For " + where + " '" + def.id + "', the value '" + value + "' is not a '" + def.type + "'!", l, line);
 		}
 	}
+}
+
+const QByteArray& VcfFile::strCache(const QByteArray& str)
+{
+	static QSet<QByteArray> cache;
+
+	QSet<QByteArray>::iterator it = cache.find(str);
+	if (it==cache.end())
+	{
+		it = cache.insert(str);
+	}
+
+	return *it;
+}
+
+const QByteArrayList& VcfFile::strArrayCache(const QByteArrayList& str)
+{
+	static QSet<QByteArrayList> cache;
+
+	QSet<QByteArrayList>::iterator it = cache.find(str);
+	if (it==cache.end())
+	{
+		it = cache.insert(str);
+	}
+
+	return *it;
 }
 
 //Define URL encoding

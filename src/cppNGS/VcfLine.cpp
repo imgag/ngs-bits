@@ -1,4 +1,4 @@
-#include "VcfFileHelper.h"
+#include "VcfLine.h"
 #include "Helper.h"
 #include "Log.h"
 #include "VariantList.h"
@@ -11,10 +11,7 @@ VcfLine::VcfLine()
 	, id_()
 	, qual_(-1)
 	, filter_()
-	, infoIdxOf_()
 	, info_()
-	, sampleIdxOf_()
-	, formatIdxOf_()
 	, sample_values_()
 {
 }
@@ -27,72 +24,36 @@ VcfLine::VcfLine(const Chromosome& chr, int pos, const Sequence& ref, const QLis
 	, id_()
 	, qual_(-1)
 	, filter_()
-	, infoIdxOf_()
+	, info_keys_()
 	, info_()
-	, sampleIdxOf_()
-	, formatIdxOf_()
+	, sample_names_(sample_ids)
+	, format_keys_(format_ids)
 	, sample_values_(list_of_format_values)
 {
 	if(list_of_format_values.size() != sample_ids.size())
 	{
 		THROW(ArgumentException, "number of samples must equal the number of QByteArrayLists in list_of_format_values.")
 	}
-	//generate Hash for Format entries
-	FormatIDToIdxPtr format_id_to_idx_entry = FormatIDToIdxPtr(new OrderedHash<QByteArray, int>);
-	for(int i=0; i < format_ids.size(); ++i)
-	{
-		if(list_of_format_values.at(i).size() != format_ids.size())
-		{
-			THROW(ArgumentException, "number of formats must equal the number of QByteArray elements in each list of list_of_format_values.")
-		}
-		format_id_to_idx_entry->push_back(format_ids.at(i), i);
-	}
-	formatIdxOf_ = format_id_to_idx_entry;
-
-	//generate Hash for smaple entries
-	SampleIDToIdxPtr sample_id_to_idx_entry = SampleIDToIdxPtr(new OrderedHash<QByteArray, int>);
-	for(int i=0; i < sample_ids.size(); ++i)
-	{
-		sample_id_to_idx_entry->push_back(sample_ids.at(i), i);
-	}
-	sampleIdxOf_ = sample_id_to_idx_entry;
 }
 
-void VcfLine::setInfo(const QByteArrayList& info_values)
+void VcfLine::setInfo(const QByteArrayList& info_keys, const QByteArrayList& info_values)
 {
+	info_keys_ = info_keys;
 	info_ = info_values;
 
-	//check that index map is set
-	if (!infoIdxOf_) THROW(ProgrammingException, "VcfLine::setInfo used before VcfLine::setInfoIdToIdxPtr");
+	if (info_.count()!=info_keys_.count()) THROW(ProgrammingException, "Info keys and values have differing counts: " + QString::number(info_keys_.count()) + " / " + QString::number(info_.count()));
+}
 
-	//check that indices are valid
-	foreach(const QByteArray& key, infoIdxOf_->keys())
-	{
-		int index = infoIdxOf_->operator[](key);
-		if (index<0 || index>=info_.count())
-		{
-			THROW(ProgrammingException, "Index " + QString::number(index) + " of key '" + key + "' is not valid. Info array has " + QString::number(info_.count()) + " elements.");
-		}
-	}
+void VcfLine::addFormatValues(const QByteArrayList& format_values)
+{
+	sample_values_.push_back(format_values);
 
+	if (format_values.count()!=format_keys_.count()) THROW(ProgrammingException, "Format keys and values have differing counts: " + QString::number(format_keys_.count()) + " / " + QString::number(format_values.count()));
 }
 
 
 const QByteArrayList VcfHeader::InfoTypes = {"Integer", "Float", "Flag", "Character", "String"};
 const QByteArrayList VcfHeader::FormatTypes =  {"Integer", "Float", "Character", "String"};
-
-const QByteArray& strToPointer(const QByteArray& str)
-{
-	static QSet<QByteArray> cache;
-
-	QSet<QByteArray>::iterator it = cache.find(str);
-	if (it==cache.end())
-	{
-		it = cache.insert(str);
-	}
-
-	return *it;
-}
 
 void VcfHeader::clear()
 {
@@ -311,7 +272,7 @@ void VcfHeader::setFilterLine(const QByteArray& line, const int line_number)
 	}
 
 	FilterLine filter_line;
-	filter_line.id = strToPointer(first_part[0]);
+	filter_line.id = first_part[0];
 	filter_line.description = QString(parts[1].mid(1)); //remove '\"'
 
 	addFilterLine(filter_line);
@@ -363,7 +324,7 @@ bool VcfHeader::parseInfoFormatLine(const QByteArray& line,InfoFormatLine& info_
 		THROW(FileParseException, "Malformed " + type + " line: does not start with ID-field " + splitted_ID_entry[0]);
 	}
 	ID_entry = ID_entry.split('=')[1];
-	info_format_line.id = strToPointer(ID_entry);
+	info_format_line.id = ID_entry;
 	comma_splitted_line.pop_front();//pop ID-field
 	//parse number field
 	QByteArray number_entry=comma_splitted_line.first();
@@ -385,7 +346,7 @@ bool VcfHeader::parseInfoFormatLine(const QByteArray& line,InfoFormatLine& info_
 	{
 		THROW(FileParseException, "Malformed " + type +" line: undefined value for type " + line.trimmed() + "'");
 	}
-	info_format_line.type = strToPointer(s_type);
+	info_format_line.type = s_type;
 	comma_splitted_line.pop_front();//pop type-field
 	//parse description field
 	QByteArray description_entry=comma_splitted_line.front();

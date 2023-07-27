@@ -1,7 +1,7 @@
 #pragma once
 
 #include "BedFile.h"
-#include "VcfFileHelper.h"
+#include "VcfLine.h"
 #include "KeyValuePair.h"
 #include "ChromosomalIndex.h"
 #include "VariantList.h"
@@ -42,7 +42,20 @@ public:
 		return vcf_lines_.count();
 	}
 	///Returns a QList of all sample names
-	const QByteArrayList& sampleIDs() const;
+	const QByteArrayList& sampleIDs() const
+	{
+		return sample_names_;
+	}
+	///Sets the sample names (also for all lines) - this is only needed if you construct VCF files manually
+	void setSampleNames(const QByteArrayList& names)
+	{
+		sample_names_ = names;
+
+		for (int i=0; i<vcf_lines_.count(); ++i)
+		{
+			vcf_lines_[i].setSamplNames(names);
+		}
+	}
 
 	///Left-normalize every VCF line in the vcf file according to a reference genome
 	void leftNormalize(QString reference_genome);
@@ -87,31 +100,6 @@ public:
 	{
 		return vcf_header_;
 	}
-	///Returns a QVector of all column headers for a vcf line
-	const QVector<QByteArray>& vcfColumnHeader() const
-	{
-		return column_headers_;
-	}
-	///Read-Write access to column headers for a vcf line
-	QVector<QByteArray>& vcfColumnHeader()
-	{
-		return column_headers_;
-	}
-	///Returns the pointer hashing each sample ID to its position in the sample list
-	const SampleIDToIdxPtr& sampleIDToIdx() const
-	{
-		return sample_id_to_idx_;
-	}
-	///Returns the hash storing all possible format ID orders in the vcf file
-	const QHash<QByteArray, FormatIDToIdxPtr>& formatIDToIdxList() const
-	{
-		return format_id_to_idx_list_;
-	}
-	///Returns the hash storing all possible info ID orders in the vcf file
-	const QHash<QByteArray, FormatIDToIdxPtr>& infoIDToIdxList() const
-	{
-		return info_id_to_idx_list_;
-	}
 
 	///Restrict to a certein number of lines.
 	void restrictTo(int size)
@@ -154,13 +142,7 @@ private:
 
 	QList<VcfLine> vcf_lines_; //variant lines
 	VcfHeader vcf_header_; //all informations from header
-	QVector<QByteArray> column_headers_; //heading of variant lines
-
-	SampleIDToIdxPtr sample_id_to_idx_; //Hash of SampleID to its position
-	QHash<QByteArray, FormatIDToIdxPtr> format_id_to_idx_list_; //Hash storing all possible format orders
-	QHash<QByteArray, FormatIDToIdxPtr> info_id_to_idx_list_; //Hash storing all possible info orders
-
-	mutable bool samples_exist_;
+	QByteArrayList sample_names_;
 
 	//INFO/FORMAT/FILTER definition line for VCFCHECK only
 	struct DefinitionLine
@@ -239,4 +221,8 @@ private:
 	};
 	//for using the parse functions in testing
 	friend class VcfLine_Test;
+
+	//storing all QByteArrays in a list of unique QByteArrays
+	static const QByteArray& strCache(const QByteArray& str);
+	static const QByteArrayList& strArrayCache(const QByteArrayList& str);
 };

@@ -404,16 +404,11 @@ private slots:
 		VcfFile vl;
 		vl.load(TESTDATA("data_in/sort_in.vcf"));
 		vl.sort();
-		FormatIDToIdxPtr format_id_to_idx_entry = FormatIDToIdxPtr(new OrderedHash<QByteArray, int>);
-		format_id_to_idx_entry->push_back("CT", 0);
-		for (int i=0; i<(vl.count()); i++)
+		vl.setSampleNames(QByteArrayList() << "Sample_1");
+		for (int i=0; i<vl.count(); i++)
 		{
-			vl[i].setFormatIdToIdxPtr(format_id_to_idx_entry);
-			QList<QByteArrayList> samples;
-			QByteArrayList value;
-			value << QByteArray::number(i);
-			samples << value;
-			vl[i].setSample(samples);
+			vl[i].setFormatKeys(QByteArrayList() << "CT");
+			vl[i].addFormatValues(QByteArrayList() << QByteArray::number(i));
 		}
 		vl.store("out/sort_out2.vcf", false, BGZF_NO_COMPRESSION);
 		COMPARE_FILES("out/sort_out2.vcf",TESTDATA("data_out/sort_out2.vcf"));
@@ -425,18 +420,13 @@ private slots:
 		VcfFile vl;
 		vl.load(TESTDATA("data_in/sort_in.vcf"));
 		vl.sort();
-		FormatIDToIdxPtr format_id_to_idx_entry = FormatIDToIdxPtr(new OrderedHash<QByteArray, int>);
-		format_id_to_idx_entry->push_back("CT", 0);
+		vl.setSampleNames(QByteArrayList() << "Sample_1" << "Sample_2" << "Sample_3");
 		for (int i=0; i<(vl.count()); i++)
 		{
-			vl[i].setFormatIdToIdxPtr(format_id_to_idx_entry);
-			QList<QByteArrayList> samples;
-			QByteArrayList value;
-			value << QByteArray::number(i);
-			samples << value;
-			samples << value;
-			samples << value;
-			vl[i].setSample(samples);
+			vl[i].setFormatKeys(QByteArrayList() << "CT");
+			vl[i].addFormatValues(QByteArrayList() << QByteArray::number(i));
+			vl[i].addFormatValues(QByteArrayList() << QByteArray::number(i));
+			vl[i].addFormatValues(QByteArrayList() << QByteArray::number(i));
 		}
 		vl.store("out/sort_out3.vcf", false, BGZF_NO_COMPRESSION);
 		COMPARE_FILES("out/sort_out3.vcf",TESTDATA("data_out/sort_out3.vcf"));
@@ -694,11 +684,6 @@ private slots:
 		I_EQUAL(vl2.vcfHeader().comments().count(), 1);
 		S_EQUAL(vl2.vcfHeader().comments().at(0).key, QString("CommentKey"));
 
-		//check pointer to samples is not set
-		X_EQUAL(vl2.sampleIDToIdx(), nullptr);
-		IS_TRUE(vl2.infoIDToIdxList().empty());
-		IS_TRUE(vl2.formatIDToIdxList().empty());
-
 		//check no variants
 		I_EQUAL(vl2.count(), 0);
 	}
@@ -708,12 +693,13 @@ private slots:
 		VcfFile vcf_file;
 		vcf_file.load(TESTDATA("data_in/panel_snpeff.vcf"));
 
-		SampleIDToIdxPtr s_ptr = vcf_file.sampleIDToIdx();
-		S_EQUAL(s_ptr->keys().at(0), QString("./Sample_GS120297A3/GS120297A3.bam"));
-		I_EQUAL(s_ptr->keys().count(), 1);
+		I_EQUAL(vcf_file.sampleIDs().count(), 1);
+		S_EQUAL(vcf_file.sampleIDs().at(0), QString("./Sample_GS120297A3/GS120297A3.bam"));
 
-		I_EQUAL(vcf_file.formatIDToIdxList().keys().count(), 1);
-		I_EQUAL(vcf_file.infoIDToIdxList().keys().count(), 4);
+
+		I_EQUAL(vcf_file.count(), 14);
+		I_EQUAL(vcf_file[0].formatKeys().count(), 3);
+		I_EQUAL(vcf_file[0].infoKeys().count(), 9);
 	}
 
     void convertToStringAndParseFromString()
@@ -739,9 +725,8 @@ private slots:
     {
         VcfFile vcf_file;
 		vcf_file.load(TESTDATA("data_in/panel_vep.vcf"));
-        vcf_file.store("out/panel_vep_loadStore.vcf");
+		vcf_file.store("out/panel_vep_loadStore.vcf");
 		COMPARE_FILES("out/panel_vep_loadStore.vcf", TESTDATA("data_in/panel_vep.vcf"));
-
     }
 
 };

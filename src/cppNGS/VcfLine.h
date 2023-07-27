@@ -7,88 +7,9 @@
 #include "FastaFileIndex.h"
 #include "BasicStatistics.h"
 #include "BedFile.h"
-
-///Data structure containing a vector of keys (to retrieve its order) and a hash of the key to value
-template<typename K, typename V>
-class CPPNGSSHARED_EXPORT OrderedHash {
-
-public:
-
-	//add key=value pair to the end of OrderedHash
-	void push_back(const K& key,const V& value)
-	{
-		auto iter = hash_.find(key);
-		if (iter != hash_.end()) {
-			return;
-		}
-
-		ordered_keys_.push_back(key);
-		hash_.insert(key, value);
-	}
-
-	//access value by key
-	const V& operator[](const K& key) const
-	{
-		auto iter = hash_.find(key);
-		if (iter == hash_.end())
-		{
-			THROW(ArgumentException, "Key " + key + " does not exist in OrderedHash.");
-		}
-		return iter.value();
-	}
-
-	//check if key exists
-	int indexOf(const K& key) const
-	{
-		auto iter = hash_.find(key);
-		if (iter == hash_.end()) return -1;
-		return iter.value();
-	}
-
-	//access value by order
-	typename QHash<K, V>::const_iterator at(int i) const
-	{
-		if(i >= size())
-		{
-			THROW(ArgumentException, "Index " + QString::number(i) + " is out of range for OrderedHash of size " + size() + ".");
-		}
-		K key = ordered_keys_.at(i);
-		return hash_.find(key);
-	}
-
-	//get the number of inserted key=value pairs
-	int size() const
-	{
-		return ordered_keys_.size();
-	}
-
-	//check if the OrderedHash is empty
-	bool empty() const
-	{
-		return ordered_keys_.empty();
-	}
-
-	//returns keys in order
-	const QList<K>& keys()
-	{
-		return ordered_keys_;
-	}
-
-private:
-
-	QList<K> ordered_keys_;
-	QHash<K, V> hash_;
-
-};
-
-//storing all QByteArrays in a list of unique QByteArrays
-const QByteArray& strToPointer(const QByteArray& str);
+#include "Helper.h"
 
 enum InfoFormatType {INFO_DESCRIPTION, FORMAT_DESCRIPTION};
-
-using SampleIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, int>>; //Hashing sample ID to position in value list
-using FormatIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, int>>; //Hashing format ID to position in value list
-using InfoIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, int>>; //Hashing info ID to position in value list
 
 //basic header line storing comments (every comment must be a key=value pair)
 struct CPPNGSSHARED_EXPORT VcfHeaderLine
@@ -295,35 +216,23 @@ public:
 	//Returns a list of all format IDs
 	const QByteArrayList& formatKeys() const
 	{
-		static QByteArrayList empty;
-		if(!formatIdxOf_)
-		{
-			return empty;
-		}
-		return formatIdxOf_->keys();
+		return format_keys_;
 	}
 
 	//Returns a list of all info IDs
 	const QList<QByteArray>& infoKeys() const
 	{
-		static QList<QByteArray> empty;
-		if(!infoIdxOf_)
-		{
-			return empty;
-		}
-		return infoIdxOf_->keys();
+		return info_keys_;
 	}
 
 	//Returns the value for an info ID as key
 	const QByteArray& info(const QByteArray& key, bool error_if_key_absent = false) const
 	{
-		static QByteArray empty;
-
-		int info_pos = infoIdxOf_->indexOf(key);
+		int info_pos = info_keys_.indexOf(key);
 		if(info_pos==-1)
 		{
 			if (error_if_key_absent) THROW(ArgumentException, "Key ' " + key + "' not found in INFO entries of variant " + toString());
-			return empty;
+			return Helper::empty();
 		}
 		//qDebug() << __FILE__ << __LINE__ << key << info_pos << info_.count();
 
@@ -339,7 +248,10 @@ public:
 	///Returns a list of all values for every format ID for the sample sample_name
 	const QByteArrayList& sample(const QByteArray& sample_name) const
 	{
-		return sample_values_.at((*sampleIdxOf_)[sample_name]);
+		int pos = sample_names_.indexOf(sample_name);
+		if(pos >= sample_values_.count()) THROW(ArgumentException, "Sample name " + sample_name + " not found in VCF sample name list!");
+
+		return sample_values_.at(pos);
 	}
 	///Returns a list of all values for every format ID for the sample at position pos
 	const QByteArrayList& sample(int pos) const
@@ -350,33 +262,31 @@ public:
 	///Returns the value for a format and sample ID
 	const QByteArray& formatValueFromSample(const QByteArray& format_key, const QByteArray& sample_name) const
 	{
-		static QByteArray empty;
-
-		int sample_pos = sampleIdxOf_->indexOf(sample_name);
-		int format_pos = formatIdxOf_->indexOf(format_key);
+		int sample_pos = sample_names_.indexOf(sample_name);
+		int format_pos = format_keys_.indexOf(format_key);
+		//qDebug() << sample_pos << format_pos << sample_names_ << format_keys_;
 		if(sample_pos!=-1 && format_pos!=-1)
 		{
 			return sample_values_.at(sample_pos).at(format_pos);;
 		}
 		else
 		{
-			return empty;
+			return Helper::empty();
 		}
 	}
 	///Returns the value for a format ID and sample position (default is first sample)
 	const QByteArray& formatValueFromSample(const QByteArray& format_key, int sample_pos = 0) const
 	{
-		static QByteArray empty;
 		if(sample_pos >= samples().size()) THROW(ArgumentException, QString::number(sample_pos) + " is out of range for SAMPLES. The VCF file provides " + QString::number(samples().size()) + " SAMPLES");
 
-		int format_pos = formatIdxOf_->indexOf(format_key);
+		int format_pos = format_keys_.indexOf(format_key);
 		if(format_pos!=-1)
 		{
 			return sample_values_[sample_pos][format_pos];
 		}
 		else
 		{
-			return empty;
+			return Helper::empty();
 		}
 	}
 
@@ -421,34 +331,21 @@ public:
 	{
 		tag = tag.trimmed();
 		if (tag.isEmpty() || tag==".") return;
-		filter_.push_back(strToPointer(tag));
+		filter_.push_back(tag);
 	}
-	//Set the list storing all info values. Make sure to call setInfoIdToIdxPtr before this method!
-	void setInfo(const QByteArrayList& info_values);
+	//Sets info keys and values
+	void setInfo(const QByteArrayList& info_keys, const QByteArrayList& info_values);
+	//Sets format keys
+	void setFormatKeys(const QByteArrayList& keys)
+	{
+		format_keys_ = keys;
+	}
 	//Set the list, which stores for every sample a list of all format values
-	void setSample(const QList<QByteArrayList>& sample)
+	void setSamplNames(const QByteArrayList& sample_names)
 	{
-		sample_values_ = sample;
+		sample_names_ = sample_names;
 	}
-	void addFormatValues(const QByteArrayList& format_value_list)
-	{
-		sample_values_.push_back(format_value_list);
-	}
-	//Set the pointer storing the ordered list of sample IDs
-	void setSampleIdToIdxPtr(const SampleIDToIdxPtr& ptr)
-	{
-		sampleIdxOf_ = ptr;
-	}
-	//Set the pointer storing the ordered list of format IDs
-	void setFormatIdToIdxPtr(const FormatIDToIdxPtr& ptr)
-	{
-		formatIdxOf_ = ptr;
-	}
-	//Set the pointer storing the ordered list of info IDs
-	void setInfoIdToIdxPtr(const InfoIDToIdxPtr& ptr)
-	{
-		infoIdxOf_ = ptr;
-	}
+	void addFormatValues(const QByteArrayList& format_values);
 
 	//Overlap check for chromosome and position range.
 	bool overlapsWith(const Chromosome& input_chr, int input_start, int input_end) const
@@ -539,10 +436,11 @@ private:
 
 	QByteArrayList filter_; //list of filter entries. ATTENTION: PASS is contained
 
-	InfoIDToIdxPtr infoIdxOf_;
+	QByteArrayList info_keys_;
 	QByteArrayList info_;
 
-	SampleIDToIdxPtr sampleIdxOf_;
-	FormatIDToIdxPtr formatIdxOf_;
+	QByteArrayList sample_names_;
+
+	QByteArrayList format_keys_;
 	QList<QByteArrayList> sample_values_;
 };

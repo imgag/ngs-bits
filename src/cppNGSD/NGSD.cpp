@@ -3723,12 +3723,10 @@ VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, const BedFile& target_re
 	vcf.vcfHeader().addInfoLine(id_source);
 
 	//prepare info for VCF line
+	QByteArrayList info_keys;
+	info_keys << "ID_Source";
 	QByteArrayList info;
-	InfoIDToIdxPtr info_ptr = InfoIDToIdxPtr(new OrderedHash<QByteArray, int>);
-	QByteArray key = "ID_Source";
-	QByteArray value = sys.name_short.toUtf8();
-	info.push_back(value);
-	info_ptr->push_back(key, static_cast<unsigned char>(0));
+	info.push_back(sys.name_short.toUtf8());
 
 	QByteArrayList format_ids = QByteArrayList() << "GT";
 	QByteArrayList sample_ids = QByteArrayList() << "TUMOR";
@@ -3753,8 +3751,7 @@ VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, const BedFile& target_re
 				return VcfFile();
 			}
 			VcfLine vcf_line(line.chr(), line.start(), variant_info.at(0), QList<Sequence>() << variant_info.at(1), format_ids, sample_ids, list_of_format_values);
-			vcf_line.setInfoIdToIdxPtr(info_ptr);
-			vcf_line.setInfo(info);
+			vcf_line.setInfo(info_keys, info);
 			vcf_line.setId(QByteArrayList() << "ID");
 			vcf.append(vcf_line);
 		}
