@@ -219,7 +219,7 @@ RtfParagraph SomaticcfDnaReport::partSnvExplanation()
 	out += bold("INDEL:");
 	out += " Insertionen/Deletionen, ";
 	out += bold("Veränderung:") + " Kodierende Position und Auswirkung auf das Protein, ";
-	out += bold("Anteil Tumor:") + " Allelfrequenze der gelisteten Variante (SNV, INDEL) in der Tumorprobe " + data_.table.tumor_sample.name + ", ";
+    out += bold("Anteil Tumor:") + " Allelfrequenze der gelisteten Variante (SNV, INDEL) in der Tumorprobe " + data_.table.tumor_sample.name.toUtf8() + ", ";
 	out += bold("Anteil Plasma:") + " Anteil der Allele mit der gelisteten Variante (SNV, INDEL) in den untersuchten Proben. In Klammern die Anzahl der Reads mit mind. einem Duplikat mit Variante / gesamte Anzahl der Reads mit mind. einem Duplikat, ";
 	out += bold("n.d.") + " nicht detektiert, " + bold("n/a:") + " nicht analysiert.\n\\line\n";
 

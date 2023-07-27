@@ -204,8 +204,7 @@ void RequestWorker::run()
             Log::info(EndpointManager::formatResponseMessage(parsed_request, "Initiating a stream: " + response.getFilename() + user_info + client_type));
 
 			if (response.getFilename().isEmpty())
-			{
-                HttpResponse error_response;
+            {
                 QString error_message = EndpointManager::formatResponseMessage(parsed_request, "Streaming request contains an empty file name");
 				Log::error(error_message + user_info + client_type);
 				sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, error_type, error_message));

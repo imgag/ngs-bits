@@ -158,7 +158,7 @@ void EndpointManager::validateInputData(Endpoint* current_endpoint, const HttpRe
             if (!getTokenFromHeader(request).isEmpty()) is_found = true;
         }
 
-        if ((i.value().category == ParamProps::ParamCategory::PATH_PARAM) || (i.value().category == ParamProps::ParamCategory::ANY) && (!is_found))
+        if ((i.value().category == ParamProps::ParamCategory::PATH_PARAM || i.value().category == ParamProps::ParamCategory::ANY) && !is_found)
         {
             mandatory_path_params_count++;
             mandatory_params.append(i.key());

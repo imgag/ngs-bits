@@ -167,7 +167,7 @@ ClientInfo ServerWrapper::readClientInfoFromFile()
 		while(!client_info_file->atEnd())
 		{
 			QString line = client_info_file->readLine().trimmed();
-			content.append(line);
+            content.append(line.toUtf8());
 		}
 		QJsonDocument json_input = QJsonDocument::fromJson(content);
 
@@ -202,7 +202,7 @@ QByteArray ServerWrapper::readUserNotificationFromFile()
 		while(!notification_file->atEnd())
 		{
 			QString line = notification_file->readLine().trimmed();
-			content.append(line);
+            content.append(line.toUtf8());
 		}
 	}
 	catch (Exception& e)
