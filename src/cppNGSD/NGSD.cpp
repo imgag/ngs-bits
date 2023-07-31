@@ -3708,9 +3708,6 @@ QList<CfdnaGeneEntry> NGSD::cfdnaGenes()
 VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, const BedFile& target_region, bool tumor_only, bool throw_on_fail)
 {
 	VcfFile vcf;
-	//TODO Leon: the two lines below did nothing. I changed sampleIDs() to return a const ref now they don't compile anymore
-	//vcf.sampleIDs().append("TUMOR")
-	//if(!tumor_only) vcf.sampleIDs().append("NORMAL");
 
 	ProcessingSystemData sys = getProcessingSystemData(sys_id);
 

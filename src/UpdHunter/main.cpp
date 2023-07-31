@@ -240,13 +240,13 @@ public:
 				QByteArray tmp = v.formatValueFromSample("DP", c);
 
 				bool ok = true;
-				int dp1 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
+				int dp1 = (tmp.isEmpty() || tmp==".") ? 0 : tmp.toInt(&ok);
 				if (!ok) THROW(ArgumentException, "Depth of child '" + tmp + "' is no integer - variant " + v.toString(true));
 				tmp = v.formatValueFromSample("DP", f);
-				int dp2 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
+				int dp2 = (tmp.isEmpty() || tmp==".") ? 0 : tmp.toInt(&ok);
 				if (!ok) THROW(ArgumentException, "Depth of father  '" + tmp + "' is no integer - variant " + v.toString(true));
 				tmp = v.formatValueFromSample("DP", m);
-				int dp3 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
+				int dp3 = (tmp.isEmpty() || tmp==".") ? 0 : tmp.toInt(&ok);
 				if (!ok) THROW(ArgumentException, "Depth of mother  '" + tmp + "' is no integer - variant " + v.toString(true));
 				if (dp1<var_min_dp || dp2<var_min_dp || dp3<var_min_dp)
 				{
