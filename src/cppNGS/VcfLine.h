@@ -7,91 +7,9 @@
 #include "FastaFileIndex.h"
 #include "BasicStatistics.h"
 #include "BedFile.h"
-
-///Data structure containing a vector of keys (to retrieve its order) and a hash of the key to value
-template<typename K, typename V>
-class CPPNGSSHARED_EXPORT OrderedHash {
-
-public:
-
-	//add key=value pair to the end of OrderedHash
-	void push_back(const K& key,const V& value)
-	{
-		auto iter = hash_.find(key);
-		if (iter != hash_.end()) {
-			return;
-		}
-
-		ordered_keys_.push_back(key);
-		hash_.insert(key, value);
-	}
-
-	//access value by key
-	const V& operator[](const K& key) const
-	{
-		auto iter = hash_.find(key);
-		if (iter == hash_.end())
-		{
-			THROW(ArgumentException, "Key " + key + " does not exist in OrderedHash.");
-		}
-		return iter.value();
-	}
-
-	//check if key exists
-	bool hasKey(const K& key, V& value) const
-	{
-		auto iter = hash_.find(key);
-		if (iter == hash_.end()) return false;
-		value = iter.value();
-		return true;
-	}
-
-	//access value by order
-	typename QHash<K, V>::const_iterator at(int i) const
-	{
-		if(i >= size())
-		{
-			THROW(ArgumentException, "Index " + QString::number(i) + " is out of range for OrderedHash of size " + size() + ".");
-		}
-		K key = ordered_keys_.at(i);
-		return hash_.find(key);
-	}
-
-	//get the number of inserted key=value pairs
-	int size() const
-	{
-		return ordered_keys_.size();
-	}
-
-	//check if the OrderedHash is empty
-	bool empty() const
-	{
-		return ordered_keys_.empty();
-	}
-
-	//returns keys in order
-	const QList<K>& keys()
-	{
-		return ordered_keys_;
-	}
-
-private:
-
-	QList<K> ordered_keys_;
-	QHash<K, V> hash_;
-
-};
-
-//storing all QByteArrays in a list of unique QByteArrays
-const QByteArray& strToPointer(const QByteArray& str);
+#include "Helper.h"
 
 enum InfoFormatType {INFO_DESCRIPTION, FORMAT_DESCRIPTION};
-
-using SampleIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, int>>; //Hashing sample ID to position in value list
-using FormatIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, int>>; //Hashing format ID to position in value list
-using InfoIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, int>>; //Hashing info ID to position in value list
-using ListOfFormatIds = QByteArray; //an array of all ordered FORMAT ids to use as hash key
-using ListOfInfoIds = QByteArray; //an array of all ordered INFO ids to use as hash key
 
 //basic header line storing comments (every comment must be a key=value pair)
 struct CPPNGSSHARED_EXPORT VcfHeaderLine
@@ -198,9 +116,20 @@ public:
 	void setFormat(const QByteArray& line);
 	void storeHeaderInformation(QTextStream& stream) const;
 
+	//functions to check if info, format filter lines exist
+	bool infoIdDefined(const QByteArray& id) const;
+	bool formatIdDefined(const QByteArray& id) const;
+	bool filterIdDefined(const QByteArray& id) const;
+
 	//functions returning single info, format, filter lines by its ID
-	const InfoFormatLine& infoLineByID(const QByteArray& id, bool error_not_found = true) const;
-	const InfoFormatLine& formatLineByID(const QByteArray& id, bool error_not_found = true) const;
+	const InfoFormatLine& infoLineByID(const QByteArray& id, bool error_not_found = true) const
+	{
+		return lineByID(id, infoLines(), error_not_found);
+	}
+	const InfoFormatLine& formatLineByID(const QByteArray& id, bool error_not_found = true) const
+	{
+		return lineByID(id, formatLines(), error_not_found);
+	}
 	const FilterLine& filterLineByID(const QByteArray& id, bool error_not_found = true) const;
 
 	//looks up the position of name in the list of VEP annotations from the info line in the header (CSQ line)
@@ -264,7 +193,7 @@ public:
 	}
 	const Sequence& alt(int pos) const
 	{
-		if (pos>=alt_.length()) THROW(ArgumentException, "Invalid alternative sequence index " + QString::number(pos) + " for variant " + toString());
+		if (pos<0 || pos>=alt_.length()) THROW(ArgumentException, "Invalid alternative sequence index " + QString::number(pos) + " for variant " + toString());
 		return alt_.at(pos);
 	}
 	const QByteArrayList& id() const
@@ -275,41 +204,35 @@ public:
 	{
 		return qual_;
 	}
-	const QByteArrayList& filter() const
+	//Returns the filter entries. ATTENTION: PASS entry is also contained - use filtersPassed() to check if all filters are passed or not.
+	const QByteArrayList& filters() const
 	{
-		return filter_;
+		return filters_;
+	}
+	bool filtersPassed() const
+	{
+		return filters_.isEmpty() || (filters_.count()==1 && filters_[0]=="PASS");
 	}
 	//Returns a list of all format IDs
-	QByteArrayList formatKeys() const
+	const QByteArrayList& formatKeys() const
 	{
-		if(!formatIdxOf_)
-		{
-			return QByteArrayList();
-		}
-		return formatIdxOf_->keys();
+		return format_keys_;
 	}
 
 	//Returns a list of all info IDs
 	const QList<QByteArray>& infoKeys() const
 	{
-		static QList<QByteArray> empty;
-		if(!infoIdxOf_)
-		{
-			return empty;
-		}
-		return infoIdxOf_->keys();
+		return info_keys_;
 	}
 
 	//Returns the value for an info ID as key
 	const QByteArray& info(const QByteArray& key, bool error_if_key_absent = false) const
 	{
-		static QByteArray empty;
-
-		int info_pos = -1;
-		if(!infoIdxOf_->hasKey(key, info_pos))
+		int info_pos = info_keys_.indexOf(key);
+		if(info_pos==-1)
 		{
 			if (error_if_key_absent) THROW(ArgumentException, "Key ' " + key + "' not found in INFO entries of variant " + toString());
-			return empty;
+			return Helper::empty();
 		}
 		//qDebug() << __FILE__ << __LINE__ << key << info_pos << info_.count();
 
@@ -325,7 +248,10 @@ public:
 	///Returns a list of all values for every format ID for the sample sample_name
 	const QByteArrayList& sample(const QByteArray& sample_name) const
 	{
-		return sample_values_.at((*sampleIdxOf_)[sample_name]);
+		int pos = sample_names_.indexOf(sample_name);
+		if(pos >= sample_values_.count()) THROW(ArgumentException, "Sample name " + sample_name + " not found in VCF sample name list!");
+
+		return sample_values_.at(pos);
 	}
 	///Returns a list of all values for every format ID for the sample at position pos
 	const QByteArrayList& sample(int pos) const
@@ -334,53 +260,33 @@ public:
 		return sample_values_.at(pos);
 	}
 	///Returns the value for a format and sample ID
-	QByteArray formatValueFromSample(const QByteArray& format_key, const QByteArray& sample_name, bool error_if_format_key_absent = false) const
+	const QByteArray& formatValueFromSample(const QByteArray& format_key, const QByteArray& sample_name) const
 	{
-		if(error_if_format_key_absent)
+		int sample_pos = sample_names_.indexOf(sample_name);
+		int format_pos = format_keys_.indexOf(format_key);
+		//qDebug() << sample_pos << format_pos << sample_names_ << format_keys_;
+		if(sample_pos!=-1 && format_pos!=-1)
 		{
-			int s_idx = (*sampleIdxOf_)[sample_name];
-			int f_idx = (*formatIdxOf_)[format_key];
-
-			return sample_values_.at(s_idx).at(f_idx);
+			return sample_values_.at(sample_pos).at(format_pos);;
 		}
 		else
 		{
-			int sample_pos;
-			int format_pos;
-			if(sampleIdxOf_->hasKey(sample_name, sample_pos) && formatIdxOf_->hasKey(format_key, format_pos))
-			{
-				return sample_values_.at(sample_pos).at(format_pos);;
-			}
-			else
-			{
-				return "";
-			}
+			return Helper::empty();
 		}
 	}
 	///Returns the value for a format ID and sample position (default is first sample)
-	QByteArray formatValueFromSample(const QByteArray& format_key, int sample_pos = 0, bool error_if_format_key_absent = false) const
+	const QByteArray& formatValueFromSample(const QByteArray& format_key, int sample_pos = 0) const
 	{
-
 		if(sample_pos >= samples().size()) THROW(ArgumentException, QString::number(sample_pos) + " is out of range for SAMPLES. The VCF file provides " + QString::number(samples().size()) + " SAMPLES");
 
-		QByteArrayList format_values = sample_values_.at(sample_pos);
-
-		if(error_if_format_key_absent)
+		int format_pos = format_keys_.indexOf(format_key);
+		if(format_pos!=-1)
 		{
-			int f_idx = (*formatIdxOf_)[format_key];
-			return sample_values_.at(sample_pos).at(f_idx);
+			return sample_values_[sample_pos][format_pos];
 		}
 		else
 		{
-			int format_pos;
-			if(formatIdxOf_->hasKey(format_key, format_pos))
-			{
-				return format_values.at(format_pos);;
-			}
-			else
-			{
-				return "";
-			}
+			return Helper::empty();
 		}
 	}
 
@@ -414,53 +320,53 @@ public:
 	{
 		qual_ = qual;
 	}
-	void setFilter(QByteArrayList filter_list)
+	void setFilters(const QByteArrayList& filter_list)
 	{
-		if(filter_list.size() == 1 && filter_list.at(0) == ".")
-		{
-			return;
-		}
+		filters_.clear();
 		foreach(const QByteArray& filter, filter_list)
 		{
-			filter_.push_back(strToPointer(filter.trimmed()));
+			addFilter(filter);
 		}
 	}
-	void addFilter(QByteArray& tag)
+	void addFilter(QByteArray tag)
 	{
 		tag = tag.trimmed();
-		//if all filters are passed, only the first index is set
-		if(filter_.count() == 1 && (filter_.at(0) == "" || filter_.at(0) == "." || filter_.at(0) == "PASS" || filter_.at(0) == "PASSED"))
+
+		//skip empty entries
+		if (tag.isEmpty() || tag==".") return;
+
+
+		if (tag=="PASS")
 		{
-			filter_.removeFirst();
+			//skip PASS if already contained
+			if (filters_.contains(tag)) return;
+
+			//PASS can only be added if empty
+			if  (!filters_.isEmpty())
+			{
+				THROW(ProgrammingException, "Cannot add filter entry PASS because the following filter entries are already present: " + filters_.join(", "));
+			}
 		}
-		filter_.push_back(strToPointer(tag));
+		else if (filters_.contains("PASS")) //remove PASS if other filter entry is added
+		{
+			filters_.removeAll("PASS");
+		}
+
+		filters_.push_back(tag);
 	}
-	//Set the list storing all info values. Make sure to call setInfoIdToIdxPtr before this method!
-	void setInfo(const QByteArrayList& info_values);
+	//Sets info keys and values
+	void setInfo(const QByteArrayList& info_keys, const QByteArrayList& info_values);
+	//Sets format keys
+	void setFormatKeys(const QByteArrayList& keys)
+	{
+		format_keys_ = keys;
+	}
 	//Set the list, which stores for every sample a list of all format values
-	void setSample(const QList<QByteArrayList>& sample)
+	void setSamplNames(const QByteArrayList& sample_names)
 	{
-		sample_values_ = sample;
+		sample_names_ = sample_names;
 	}
-	void addFormatValues(const QByteArrayList& format_value_list)
-	{
-		sample_values_.push_back(format_value_list);
-	}
-	//Set the pointer storing the ordered list of sample IDs
-	void setSampleIdToIdxPtr(const SampleIDToIdxPtr& ptr)
-	{
-		sampleIdxOf_ = ptr;
-	}
-	//Set the pointer storing the ordered list of format IDs
-	void setFormatIdToIdxPtr(const FormatIDToIdxPtr& ptr)
-	{
-		formatIdxOf_ = ptr;
-	}
-	//Set the pointer storing the ordered list of info IDs
-	void setInfoIdToIdxPtr(const InfoIDToIdxPtr& ptr)
-	{
-		infoIdxOf_ = ptr;
-	}
+	void addFormatValues(const QByteArrayList& format_values);
 
 	//Overlap check for chromosome and position range.
 	bool overlapsWith(const Chromosome& input_chr, int input_start, int input_end) const
@@ -512,21 +418,31 @@ public:
 	bool isValid() const;
 	//Overload of the above function that also checks if the reference bases of the variants are correct.
 	bool isValid(const FastaFileIndex& reference) const;
-	//Returns all not passed filters
-	QByteArrayList failedFilters() const;
 	//Returns a string representation of the variant (chr, pos, ref, alt).
-	QByteArray toString(bool add_end=false) const;
+	QByteArray toString(bool add_end=false) const
+	{
+		return chr_.str() + ":" + QByteArray::number(start()) + (add_end ? "-" + QByteArray::number(end()): "") + " " + ref() + ">" + altString();
+	}
 	QByteArrayList vepAnnotations(int field_index) const;
 	// Left-normalize all variants.
-	void leftNormalize(FastaFileIndex& reference, bool check_reference);
+	void leftNormalize(FastaFileIndex& reference, bool check_reference)
+	{
+		normalize(ShiftDirection::LEFT, reference, check_reference);
+	}
 	//Right-normalize all variants
-	void rightNormalize(FastaFileIndex& reference, bool check_reference=true);
+	void rightNormalize(FastaFileIndex& reference, bool check_reference=true)
+	{
+		normalize(ShiftDirection::RIGHT, reference, check_reference);
+	}
     // Removes the common prefix/suffix from indels, shifts the variant left or right, and adds a common reference base
 	enum ShiftDirection {LEFT, RIGHT};
 	void normalize(ShiftDirection shift_dir, const FastaFileIndex& reference, bool check_reference, bool add_prefix_base_to_mnps=false);
 
 	//Equality operator (only compares the variant location itself, not further annotations).
-	bool operator==(const VcfLine& rhs) const;
+	bool operator==(const VcfLine& rhs) const
+	{
+		return pos_==rhs.start() && chr_==rhs.chr() && ref_==rhs.ref() && altString()==rhs.altString();
+	}
 	//Less-than operator.
 	bool operator<(const VcfLine& rhs) const;
 
@@ -534,46 +450,18 @@ private:
 	Chromosome chr_;
 	int pos_;
 	Sequence ref_;
-	QList<Sequence> alt_; //comma seperated list of alternative sequences
+	QList<Sequence> alt_;
 
-	QByteArrayList id_; //; seperated list of id-strings
+	QByteArrayList id_;
 	double qual_;
 
-	QByteArrayList filter_; //; seperated list of failed filters or "PASS"
+	QByteArrayList filters_; //list of filter entries. ATTENTION: PASS is contained
 
-	InfoIDToIdxPtr infoIdxOf_;
+	QByteArrayList info_keys_;
 	QByteArrayList info_;
 
-	SampleIDToIdxPtr sampleIdxOf_;
-	FormatIDToIdxPtr formatIdxOf_;
+	QByteArrayList sample_names_;
+
+	QByteArrayList format_keys_;
 	QList<QByteArrayList> sample_values_;
 };
-using VcfLinePtr = QSharedPointer<VcfLine>;
-
-namespace VcfFormat
-{
-//Comparator helper class that used by sort().
-class LessComparator
-{
-public:
-	///Constructor.
-	LessComparator(bool use_quality);
-	bool operator()(const VcfLinePtr& a, const VcfLinePtr& b) const;
-
-private:
-	bool use_quality;
-};
-//Comparator helper class used by sortByFile.
-class LessComparatorByFile
-{
-public:
-	//Constructor with FAI file, which determines the chromosome order.
-	LessComparatorByFile(QString filename);
-	bool operator()(const VcfLinePtr& a, const VcfLinePtr& b) const;
-
-private:
-	QString filename_;
-	QHash<int, int> chrom_rank_;
-};
-
-} //end namespace VcfFormat

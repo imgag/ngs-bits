@@ -123,7 +123,7 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 	}
 	else
 	{
-		bool csq_entry_exists = variants.informationIDs().contains("CSQ");
+		bool csq_entry_exists = variants.vcfHeader().infoIdDefined("CSQ");
 		if (!csq_entry_exists)
 		{
 			addQcValue(output, "QC:2000014", "known variants percentage", "n/a (CSQ info field missing)");
@@ -131,20 +131,20 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 		}
 		else
 		{
-			bool csq2_entry_exists = variants.informationIDs().contains("CSQ2");
+			bool csq2_entry_exists = variants.vcfHeader().infoIdDefined("CSQ2");
 			double dbsnp_count = 0;
 			double high_impact_count = 0;
 			for(int i=0; i<variants.count(); ++i)
 			{
-				if (variants.vcfLine(i).info("CSQ").contains("|rs") ) //works without splitting by transcript
+				if (variants[i].info("CSQ").contains("|rs") ) //works without splitting by transcript
 				{
 					++dbsnp_count;
 				}
-				if (variants.vcfLine(i).info("CSQ").contains("|HIGH|")) //works without splitting by transcript
+				if (variants[i].info("CSQ").contains("|HIGH|")) //works without splitting by transcript
 				{
 					++high_impact_count;
 				}
-				else if (csq2_entry_exists && variants.vcfLine(i).info("CSQ2").contains("|HIGH|")) //fallback to annotation with VcfAnnotateConsequence
+				else if (csq2_entry_exists && variants[i].info("CSQ2").contains("|HIGH|")) //fallback to annotation with VcfAnnotateConsequence
 				{
 					++high_impact_count;
 				}
@@ -155,13 +155,13 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 	}
 
 	//homozygous variants
-	bool gt_entry_exists = variants.formatIDs().contains("GT");
+	bool gt_entry_exists = variants.vcfHeader().formatIdDefined("GT");
 	if (variants.count()!=0 && gt_entry_exists)
 	{
 		double hom_count = 0;
 		for(int i=0; i<variants.count(); ++i)
 		{
-			QByteArray geno = variants.vcfLine(i).formatValueFromSample("GT");
+			QByteArray geno = variants[i].formatValueFromSample("GT");
 			if (geno=="1/1" || geno=="1|1")
 			{
 				++hom_count;
@@ -181,7 +181,7 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 	for(int i=0; i<variants.count(); ++i)
 	{
 		//only first variant is analyzed
-		const  VcfLine& var = variants.vcfLine(i);
+		const  VcfLine& var = variants[i];
 		if (var.isIns() || var.isDel())
 		{
 			++indel_count;
@@ -1199,17 +1199,17 @@ QCValue Statistics::mutationBurden(QString somatic_vcf, QString target, QString 
 	for(int i=0;i<vcf_file.count();++i)
 	{
 		//Skip low quality filtered variants
-		if(vcf_file.vcfLine(i).failedFilters().contains("freq-nor")) continue;
-		if(vcf_file.vcfLine(i).failedFilters().contains("freq-tum")) continue;
-		if(vcf_file.vcfLine(i).failedFilters().contains("depth-nor")) continue;
-		if(vcf_file.vcfLine(i).failedFilters().contains("depth-tum")) continue;
-		if(vcf_file.vcfLine(i).failedFilters().contains("lt-3-reads")) continue;
-		if(vcf_file.vcfLine(i).failedFilters().contains("LowEVS")) continue; //Skip strelka2 low quality variants
-		if(vcf_file.vcfLine(i).failedFilters().contains("LowDepth")) continue; //Skip strelka2 low depth variants
+		if(vcf_file[i].filters().contains("freq-nor")) continue;
+		if(vcf_file[i].filters().contains("freq-tum")) continue;
+		if(vcf_file[i].filters().contains("depth-nor")) continue;
+		if(vcf_file[i].filters().contains("depth-tum")) continue;
+		if(vcf_file[i].filters().contains("lt-3-reads")) continue;
+		if(vcf_file[i].filters().contains("LowEVS")) continue; //Skip strelka2 low quality variants
+		if(vcf_file[i].filters().contains("LowDepth")) continue; //Skip strelka2 low depth variants
 
-		const Chromosome chr = vcf_file.vcfLine(i).chr();
-		int start = vcf_file.vcfLine(i).start();
-		int end = vcf_file.vcfLine(i).end();
+		const Chromosome chr = vcf_file[i].chr();
+		int start = vcf_file[i].start();
+		int end = vcf_file[i].end();
 		if(target_file.overlapsWith(chr, start, end))
 		{
 			++somatic_var_count;
@@ -1272,17 +1272,17 @@ QCValue Statistics::mutationBurdenNormalized(QString somatic_vcf, QString exons,
 	int somatic_count_in_tsg = 0;
 	for(int i=0;i<vcf_file.count();++i)
 	{
-		if(vcf_file.vcfLine(i).failedFilters().contains("freq-nor")) continue;
-		if(vcf_file.vcfLine(i).failedFilters().contains("freq-tum")) continue;
-		if(vcf_file.vcfLine(i).failedFilters().contains("depth-nor")) continue;
-		if(vcf_file.vcfLine(i).failedFilters().contains("depth-tum")) continue;
-		if(vcf_file.vcfLine(i).failedFilters().contains("lt-3-reads")) continue;
-		if(vcf_file.vcfLine(i).failedFilters().contains("LowEVS")) continue; //Skip strelka2 low quality variants
-		if(vcf_file.vcfLine(i).failedFilters().contains("LowDepth")) continue; //Skip strelka2 low depth variants
+		if(vcf_file[i].filters().contains("freq-nor")) continue;
+		if(vcf_file[i].filters().contains("freq-tum")) continue;
+		if(vcf_file[i].filters().contains("depth-nor")) continue;
+		if(vcf_file[i].filters().contains("depth-tum")) continue;
+		if(vcf_file[i].filters().contains("lt-3-reads")) continue;
+		if(vcf_file[i].filters().contains("LowEVS")) continue; //Skip strelka2 low quality variants
+		if(vcf_file[i].filters().contains("LowDepth")) continue; //Skip strelka2 low depth variants
 
-		const Chromosome chr = vcf_file.vcfLine(i).chr();
-		int start = vcf_file.vcfLine(i).start();
-		int end = vcf_file.vcfLine(i).end();
+		const Chromosome chr = vcf_file[i].chr();
+		int start = vcf_file[i].start();
+		int end = vcf_file[i].end();
 
 		if(target_file.overlapsWith(chr, start, end))
 		{
@@ -1476,20 +1476,20 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	int somatic_count = 0;
 	for(int i=0; i<variants.count(); ++i)
 	{
-		if (!variants[i].failedFilters().empty())	continue;
+		if (!variants[i].filtersPassed())	continue;
 		++somatic_count;
 	}
 	addQcValue(output, "QC:2000041", "somatic variant count", somatic_count);
 
 	//percentage known variants
 	double known_count = 0;
-	if (variants.informationIDs().contains("gnomADg_AF"))
+	if (variants.vcfHeader().infoIdDefined("gnomADg_AF"))
 	{
 		if (variants.count()!=0)
 		{
 			for(int i=0; i<variants.count(); ++i)
 			{
-				if (!variants[i].failedFilters().empty())	continue;
+				if (!variants[i].filtersPassed())	continue;
 
 				QByteArray anno = variants[i].info("gnomADg_AF");
 
@@ -1521,7 +1521,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	double tv_count = 0;
 	for(int i=0; i<variants.count(); ++i)
 	{
-		if (!variants[i].failedFilters().empty())	continue;
+		if (!variants[i].filtersPassed()) continue;
 
 		const  VcfLine& var = variants[i];
 		if (var.isIns() || var.isDel())
@@ -1569,7 +1569,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 
 		if (!v.isSNV()) continue;
 		if (!v.chr().isAutosome()) continue;
-		if(!variants[i].failedFilters().empty())	continue;	//skip non-somatic variants
+		if(!variants[i].filtersPassed()) continue;	//skip non-somatic variants
 
 		Pileup pileup_tu = reader_tumor.getPileup(v.chr(), v.start());
 		if (pileup_tu.depth(true) < min_depth) continue;
@@ -1619,7 +1619,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 		if(!variants[i].isSNV())	continue;	//skip indels
 
 		//strelka SNV tumor and normal
-		if( variants.formatIDs().contains("AU") && !variants[i].formatValueFromSample("AU", tumor_id.toUtf8()).isEmpty() )
+		if( variants.vcfHeader().formatIdDefined("AU") && !variants[i].formatValueFromSample("AU", tumor_id.toUtf8()).isEmpty() )
 		{
 			int count_mut = 0;
 			int count_all = 0;
@@ -1632,35 +1632,35 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 			if(count_all>0)
 			{
 				hist_all.inc((double)count_mut/count_all);
-				if(variants[i].failedFilters().empty())	hist_filtered.inc((double)count_mut/count_all);
+				if(variants[i].filtersPassed()) hist_filtered.inc((double)count_mut/count_all);
 			}
 		}
 		//freebayes tumor and normal
 		//##FORMAT=<ID=RO,Number=1,Type=Integer,Description="Reference allele observation count">
 		//##FORMAT=<ID=AO,RONumber=A,Type=Integer,Description="Alternate allele observation count">
-		else if(variants.formatIDs().contains("AO"))
+		else if(variants.vcfHeader().formatIdDefined("AO"))
 		{
 			int count_mut = variants[i].formatValueFromSample("AO", tumor_id.toUtf8()).toInt();
 			int count_all = count_mut + variants[i].formatValueFromSample( "RO", tumor_id.toUtf8()).toInt();
 			if(count_all>0)
 			{
 				hist_all.inc((double)count_mut/count_all);
-				if(variants[i].failedFilters().empty())	hist_filtered.inc((double)count_mut/count_all);
+				if(variants[i].filtersPassed())	hist_filtered.inc((double)count_mut/count_all);
 			}
 		}
 		//mutect
 		//##FORMAT=<ID=FA,Number=A,Type=Float,Description="Allele fraction of the alternate allele with regard to reference">
-		else if(variants.formatIDs().contains("FA"))
+		else if(variants.vcfHeader().formatIdDefined("FA"))
 		{
 			hist_all.inc(variants[i].formatValueFromSample("FA", tumor_id.toUtf8()).toDouble());;
-			if(variants[i].failedFilters().empty())	hist_filtered.inc(variants[i].formatValueFromSample("FA", tumor_id.toUtf8()).toDouble());
+			if(variants[i].filtersPassed()) hist_filtered.inc(variants[i].formatValueFromSample("FA", tumor_id.toUtf8()).toDouble());
 		}
         //MuTect2
         //##FORMAT=<ID=AF,Number=A,Type=Float,Description="Allele fractions of alternate alleles in the tumor">
-        else if(variants.formatIDs().contains("AF"))
+		else if(variants.vcfHeader().formatIdDefined("AF"))
         {
             hist_all.inc(variants[i].formatValueFromSample("AF", tumor_id.toUtf8()).toDouble());;
-            if(variants[i].failedFilters().empty())	hist_filtered.inc(variants[i].formatValueFromSample("AF", tumor_id.toUtf8()).toDouble());
+			if(variants[i].filtersPassed()) hist_filtered.inc(variants[i].formatValueFromSample("AF", tumor_id.toUtf8()).toDouble());
         }
 		// else: strelka indel
 	}
@@ -1687,8 +1687,8 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	QList<QString> colors({"b","k","r","g","c","y"});
 	for(int i=0; i<variants.count(); ++i)
 	{
-		if(!variants[i].failedFilters().empty())	continue;	//skip non-somatic variants
-		if(!variants[i].isSNV())	continue;	//skip indels
+		if(!variants[i].filtersPassed()) continue;	//skip non-somatic variants
+		if(!variants[i].isSNV()) continue;	//skip indels
 
 		VcfLine v = variants[i];
 		QString n = v.ref()+">"+v.alt(0);
@@ -1738,7 +1738,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 		int count_all = 0;
 
 		//strelka SNV tumor and normal
-		if( variants.formatIDs().contains("TIR") && !variants[i].formatValueFromSample("AU", tumor_id.toUtf8()).isEmpty() )
+		if( variants.vcfHeader().formatIdDefined("TIR") && !variants[i].formatValueFromSample("AU", tumor_id.toUtf8()).isEmpty() )
 		{
 			count_mut = 0;
 			count_all = 0;
@@ -1760,7 +1760,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 			}
 			if(count_all>0)	af_normal = (double)count_mut/count_all;
 		}
-		else if( variants.formatIDs().contains("TIR") && !variants[i].formatValueFromSample("TIR", tumor_id.toUtf8()).isEmpty() )	//indels strelka
+		else if( variants.vcfHeader().formatIdDefined("TIR") && !variants[i].formatValueFromSample("TIR", tumor_id.toUtf8()).isEmpty() )	//indels strelka
 		{
 			//TIR + TAR tumor
 			count_mut = 0;
@@ -1779,7 +1779,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 		//freebayes tumor and normal
 		//##FORMAT=<ID=RO,Number=1,Type=Integer,Description="Reference allele observation count">
 		//##FORMAT=<ID=AO,RONumber=A,Type=Integer,Description="Alternate allele observation count">
-		else if(variants.formatIDs().contains("AO"))
+		else if(variants.vcfHeader().formatIdDefined("AO"))
 		{
 			count_mut = variants[i].formatValueFromSample("AO", tumor_id.toUtf8()).toInt();
 			count_all = count_mut + variants[i].formatValueFromSample("RO", tumor_id.toUtf8()).toInt();
@@ -1791,14 +1791,14 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 		}
 		//mutect
 		//##FORMAT=<ID=FA,Number=A,Type=Float,Description="Allele fraction of the alternate allele with regard to reference">
-		else if(variants.formatIDs().contains("FA"))
+		else if(variants.vcfHeader().formatIdDefined("FA"))
 		{
             af_tumor = variants[i].formatValueFromSample("FA", tumor_id.toUtf8()).toDouble();
 			af_normal = variants[i].formatValueFromSample("FA", normal_id.toUtf8()).toDouble();
 		}
         //MuTect2
         //##FORMAT=<ID=AF,Number=A,Type=Float,Description="Allele fractions of alternate alleles in the tumor">
-        else if(variants.formatIDs().contains("AF"))
+		else if(variants.vcfHeader().formatIdDefined("AF"))
         {
             af_tumor = variants[i].formatValueFromSample("AF", tumor_id.toUtf8()).toDouble();
             af_normal = variants[i].formatValueFromSample("AF", normal_id.toUtf8()).toDouble();
@@ -1812,7 +1812,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 		QPair<double,double> point;
 		point.first = af_tumor;
 		point.second = af_normal;
-		if (!variants[i].failedFilters().empty())	points_black.append(point);
+		if (!variants[i].filtersPassed())	points_black.append(point);
 		else points_green.append(point);
 	}
 
@@ -1879,8 +1879,8 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	FastaFileIndex reference(ref_fasta);
 	for(int i=0; i<variants.count(); ++i)
 	{
-		if(!variants[i].failedFilters().empty())	continue;	//skip non-somatic variants
-		if(!variants[i].isSNV())	continue;	//skip indels
+		if(!variants[i].filtersPassed()) continue;	//skip non-somatic variants
+		if(!variants[i].isSNV()) continue;	//skip indels
 
 		const  VcfLine& v = variants[i];
 
@@ -2030,8 +2030,8 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 		double max = 0;
 		for(int i=0; i<variants.count(); ++i)	//list has to be sorted by chrom. position
 		{
-			if(!variants[i].chr().isNonSpecial())	continue;
-			if(!variants[i].failedFilters().empty())	continue;	//skip non-somatic variants
+			if(!variants[i].chr().isNonSpecial()) continue;
+			if(!variants[i].filtersPassed()) continue;	//skip non-somatic variants
 
 			if(tmp_chr == variants[i].chr().str())	//same chromosome
 			{
@@ -2162,7 +2162,7 @@ AncestryEstimates Statistics::ancestry(GenomeBuild build, QString filename, int 
 	BedFile roi;
 	for(int i=0; i<vars_ancestry.count(); ++i)
 	{
-		const VcfLine& var = vars_ancestry.vcfLine(i);
+		const VcfLine& var = vars_ancestry[i];
 		roi.append(BedLine(var.chr(), var.start(), var.end()));
 	}
 	roi.merge(true);
@@ -2178,7 +2178,7 @@ AncestryEstimates Statistics::ancestry(GenomeBuild build, QString filename, int 
 	}
 
 	//determine required annotation indices
-	if(!vl.formatIDs().contains("GT"))
+	if(!vl.vcfHeader().formatIdDefined("GT"))
 	{
 		THROW(ArgumentException, "VCF file does not contain FORMAT entry 'GT', which is required for ancestry estimation!")
 	}
@@ -2191,7 +2191,7 @@ AncestryEstimates Statistics::ancestry(GenomeBuild build, QString filename, int 
 	QVector<double> af_eas;
 	for(int i=0; i<vl.count(); ++i)
 	{
-		const VcfLine& v = vl.vcfLine(i);
+		const VcfLine& v = vl[i];
 
 		//skip non-informative SNPs
 		int index = vars_ancestry_idx.matchingIndex(v.chr(), v.start(), v.end());
@@ -2201,7 +2201,7 @@ AncestryEstimates Statistics::ancestry(GenomeBuild build, QString filename, int 
 		if (v.ref()!=v2.ref() || v.alt()!=v2.alt()) continue;
 
 		//genotype sample
-		geno_sample << vl.vcfLine(i).formatValueFromSample("GT").count('1');
+		geno_sample << vl[i].formatValueFromSample("GT").count('1');
 
 		//population AFs
 		af_afr << v2.info("AF_AFR").toDouble();
