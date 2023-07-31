@@ -402,17 +402,15 @@ void RequestWorker::closeConnection(QSslSocket* socket)
 {
 	is_terminated_ = true;
 
-	if ((socket->state() == QSslSocket::SocketState::UnconnectedState) || (socket->state() == QSslSocket::SocketState::ClosingState))
-	{
-		exit(0);
+    if ((socket->state() == QSslSocket::SocketState::UnconnectedState) || (socket->state() == QSslSocket::SocketState::ClosingState))
+    {
+        return;
 	}
-	else
-	{
-		if (socket->bytesToWrite()) socket->waitForBytesWritten(5000);
-		socket->disconnect();
-		socket->disconnectFromHost();
-		socket->close();
-	}
+
+    if (socket->bytesToWrite()) socket->waitForBytesWritten(5000);
+    socket->disconnect();
+    socket->disconnectFromHost();
+    socket->close();
 }
 
 void RequestWorker::sendResponseDataPart(QSslSocket* socket, QByteArray data)
