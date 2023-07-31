@@ -204,14 +204,14 @@ public:
 	{
 		return qual_;
 	}
-	//Returns the filter entries. ATTENTION: PASS entry is also contained - use filtersFailed() to check if all filters are passed or not.
+	//Returns the filter entries. ATTENTION: PASS entry is also contained - use filtersPassed() to check if all filters are passed or not.
 	const QByteArrayList& filters() const
 	{
-		return filter_;
+		return filters_;
 	}
 	bool filtersPassed() const
 	{
-		return filter_.isEmpty() || (filter_.count()==1 && filter_[0]=="PASS");
+		return filters_.isEmpty() || (filters_.count()==1 && filters_[0]=="PASS");
 	}
 	//Returns a list of all format IDs
 	const QByteArrayList& formatKeys() const
@@ -322,6 +322,7 @@ public:
 	}
 	void setFilters(const QByteArrayList& filter_list)
 	{
+		filters_.clear();
 		foreach(const QByteArray& filter, filter_list)
 		{
 			addFilter(filter);
@@ -330,8 +331,28 @@ public:
 	void addFilter(QByteArray tag)
 	{
 		tag = tag.trimmed();
+
+		//skip empty entries
 		if (tag.isEmpty() || tag==".") return;
-		filter_.push_back(tag);
+
+
+		if (tag=="PASS")
+		{
+			//skip PASS if already contained
+			if (filters_.contains(tag)) return;
+
+			//PASS can only be added if empty
+			if  (!filters_.isEmpty())
+			{
+				THROW(ProgrammingException, "Cannot add filter entry PASS because the following filter entries are already present: " + filters_.join(", "));
+			}
+		}
+		else if (filters_.contains("PASS")) //remove PASS if other filter entry is added
+		{
+			filters_.removeAll("PASS");
+		}
+
+		filters_.push_back(tag);
 	}
 	//Sets info keys and values
 	void setInfo(const QByteArrayList& info_keys, const QByteArrayList& info_values);
@@ -434,7 +455,7 @@ private:
 	QByteArrayList id_;
 	double qual_;
 
-	QByteArrayList filter_; //list of filter entries. ATTENTION: PASS is contained
+	QByteArrayList filters_; //list of filter entries. ATTENTION: PASS is contained
 
 	QByteArrayList info_keys_;
 	QByteArrayList info_;
