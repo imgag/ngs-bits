@@ -670,7 +670,7 @@ void CnvWidget::showContextMenu(QPoint p)
 			QString region = GSvarHelper::build()==GenomeBuild::HG38 ? cnvs_[row].toString() : GSvarHelper::liftOver(cnvs_[row].chr(), cnvs_[row].start(), cnvs_[row].end(), true).toString(true);
 			region.remove("chr");
 
-			QDesktopServices::openUrl(QUrl("https://decipher.sanger.ac.uk/browser#q/" + region));
+			QDesktopServices::openUrl(QUrl("https://www.deciphergenomics.org/browser#q/" + region));
 		}
 		catch(Exception& e)
 		{
