@@ -191,11 +191,16 @@ public:
 
 		QCCollection metrics;
 		metrics.insert(QCValue("monitoring variant read depth", monitoring_avg_depth, "", "QC:2000077"));
-		metrics.insert(QCValue("ID variant read depth", id_avg_depth, "", "QC:2000078"));
+
 		metrics.insert(QCValue("monitoring variant count", monitoring_snps.count(), "", "QC:2000079"));
 		metrics.insert(QCValue("250x coverage monitoring variant percentage", 100.0 * (float) covered_monitoring_snps/monitoring_snps.count(), "", "QC:2000080"));
 		metrics.insert(QCValue("ID variant count", id_snps.count(), "", "QC:2000081"));
-		metrics.insert(QCValue("250x coverage ID variant percentage", 100.0 * (float) covered_id_snps/id_snps.count(), "", "QC:2000082"));
+		if (id_snps.count() > 0)
+		{
+			metrics.insert(QCValue("ID variant read depth", id_avg_depth, "", "QC:2000078"));
+			metrics.insert(QCValue("250x coverage ID variant percentage", 100.0 * (float) covered_id_snps/id_snps.count(), "", "QC:2000082"));
+		}
+
 
 		if (!tumor_bam.isEmpty())
 		{
