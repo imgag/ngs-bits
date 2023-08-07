@@ -30,6 +30,7 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	connect(ui_->email_btn, SIGNAL(clicked(bool)), this, SLOT(sendStatusEmail()));
 	connect(ui_->mid_check_btn, SIGNAL(clicked(bool)), this, SLOT(checkMids()));
 	connect(ui_->samples, SIGNAL(rowDoubleClicked(int)), this, SLOT(openSampleTab(int)));
+	connect(ui_->b_export_sample_sheet, SIGNAL(clicked(bool)), this, SLOT(exportSampleSheet()));
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_->samples->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSelectedSampleTabs()));
@@ -461,6 +462,27 @@ void SequencingRunWidget::checkMids()
 	catch (Exception& e)
 	{
 		QMessageBox::warning(this, "MID clash detection", "Error: MID clash detection could not be performed:\n" + e.message());
+	}
+}
+
+void SequencingRunWidget::exportSampleSheet()
+{
+	NGSD db;
+	try
+	{
+		QString output_path = Settings::string("sample_sheet_path") + "/" + ui_->name->text().remove(0, 1) + ".csv";
+		QString sample_sheet = db.createSampleSheet(run_id_);
+
+		QSharedPointer<QFile> output_file = Helper::openFileForWriting(output_path);
+		output_file->write(sample_sheet.toLatin1());
+		output_file->flush();
+		output_file->close();
+
+		QMessageBox::information(this, "SampleSheet exported", "SampleSheet for NovaSeq X Plus exported!");
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, "SampleSheet export failed", e.message());
 	}
 }
 

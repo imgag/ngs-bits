@@ -169,7 +169,7 @@
              </size>
             </property>
             <attribute name="horizontalHeaderVisible">
-             <bool>true</bool>
+             <bool>false</bool>
             </attribute>
             <attribute name="verticalHeaderVisible">
              <bool>false</bool>
@@ -551,6 +551,13 @@
          </property>
          <property name="text">
           <string>sort in entry order</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="9">
+        <widget class="QPushButton" name="b_export_sample_sheet">
+         <property name="text">
+          <string>Export SampleSheet</string>
          </property>
         </widget>
        </item>

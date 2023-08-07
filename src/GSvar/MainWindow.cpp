@@ -1527,19 +1527,11 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahschul1")
 	{
-		//test google reply times
-		qDebug() << "Test google reply times";
+		//Test sample sheet
+		QString run_id = NGSD().getValue("SELECT id FROM sequencing_run WHERE name='#03178'").toString();
 
-		static HttpHandler http_handler(false);
+		QMessageBox::information(this, "SampleSheet", NGSD().createSampleSheet(run_id));
 
-		for (int i = 0; i < 10; ++i)
-		{
-			QTime timer;
-			timer.start();
-			QByteArray reply = http_handler.get("https://www.google.com");
-			qDebug() << "reply took:" << Helper::elapsedTime(timer, true);
-			QThread::sleep(10);
-		}
 	}
 	else if (user=="ahott1a1")
 	{
@@ -2358,7 +2350,10 @@ void MainWindow::on_actionDesignCfDNAPanel_triggered()
 	if (!LoginManager::active()) return;
 	if (!(somaticReportSupported()||tumoronlyReportSupported())) return;
 
-	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
+	// Workaround to manual add panels for non patient-specific processing systems
+	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)' OR type='cfDNA'");
+	// TODO: reactivate
+//	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
 
 	QSharedPointer<CfDNAPanelDesignDialog> dialog(new CfDNAPanelDesignDialog(variants_, filter_result_, somatic_report_settings_.report_config, variants_.mainSampleName(), cfdna_processing_systems, this));
 	dialog->setWindowFlags(Qt::Window);
