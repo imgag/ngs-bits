@@ -1530,7 +1530,7 @@ void MainWindow::on_actionDebug_triggered()
 		//Test sample sheet
 		QString run_id = NGSD().getValue("SELECT id FROM sequencing_run WHERE name='#03178'").toString();
 
-		QMessageBox::information(this, "SampleSheet", NGSD().createSampleSheet(run_id));
+		QMessageBox::information(this, "SampleSheet", NGSD().createSampleSheet(run_id.toInt()));
 
 	}
 	else if (user=="ahott1a1")

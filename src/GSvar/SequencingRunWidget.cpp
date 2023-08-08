@@ -471,7 +471,7 @@ void SequencingRunWidget::exportSampleSheet()
 	try
 	{
 		QString output_path = Settings::string("sample_sheet_path") + "/" + ui_->name->text().remove(0, 1) + ".csv";
-		QString sample_sheet = db.createSampleSheet(run_id_);
+		QString sample_sheet = db.createSampleSheet(Helper::toInt(run_id_, "Sequencing run id"));
 
 		QSharedPointer<QFile> output_file = Helper::openFileForWriting(output_path);
 		output_file->write(sample_sheet.toLatin1());
