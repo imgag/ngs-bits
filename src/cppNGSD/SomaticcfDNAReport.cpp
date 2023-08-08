@@ -79,7 +79,7 @@ RtfTable SomaticcfDnaReport::partResultTable()
 
 
 		row.addCell(3321, data_.table.cfdna_samples[i].name.toUtf8(), RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
-		row.addCell(3300, data_.table.cfdna_samples[i].date.toString("dd.MM.yyyy").toUtf8(),RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
+		row.addCell(3300, data_.table.cfdna_samples[i].sampling_date.toString("dd.MM.yyyy").toUtf8(),RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
 
 		QByteArray str_p_value = getMrdTableValue("MRD p-value", i);
 		double p_value = str_p_value.toDouble();
@@ -194,7 +194,7 @@ RtfTable SomaticcfDnaReport::partSnvTable(int cfdna_idx_start, int cfdna_idx_end
 	RtfTableRow header = RtfTableRow({"Gen", "Veränderung", "Typ", "Anteil Tumor"},{821,1900,1300,700}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
 	for(int i=cfdna_idx_start; i<cfdna_idx_end; i++)
 	{
-		header.addCell(cfdna_width, "Anteil Plasma\n\\line\n" + data_.table.cfdna_samples[i].name.toUtf8() + "\n\\line\n(" + data_.table.cfdna_samples[i].date.toString("dd.MM.yyyy").toUtf8() + ")", RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
+		header.addCell(cfdna_width, "Anteil Plasma\n\\line\n" + data_.table.cfdna_samples[i].name.toUtf8() + "\n\\line\n(" + data_.table.cfdna_samples[i].sampling_date.toString("dd.MM.yyyy").toUtf8() + ")", RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
 	}
 	table.prependRow(header.setHeader().setBorders(1, "brdrhair", 2));
 
@@ -219,7 +219,7 @@ RtfParagraph SomaticcfDnaReport::partSnvExplanation()
 	out += bold("INDEL:");
 	out += " Insertionen/Deletionen, ";
 	out += bold("Veränderung:") + " Kodierende Position und Auswirkung auf das Protein, ";
-	out += bold("Anteil Tumor:") + " Allelfrequenze der gelisteten Variante (SNV, INDEL) in der Tumorprobe " + data_.table.tumor_sample.name + ", ";
+    out += bold("Anteil Tumor:") + " Allelfrequenze der gelisteten Variante (SNV, INDEL) in der Tumorprobe " + data_.table.tumor_sample.name.toUtf8() + ", ";
 	out += bold("Anteil Plasma:") + " Anteil der Allele mit der gelisteten Variante (SNV, INDEL) in den untersuchten Proben. In Klammern die Anzahl der Reads mit mind. einem Duplikat mit Variante / gesamte Anzahl der Reads mit mind. einem Duplikat, ";
 	out += bold("n.d.") + " nicht detektiert, " + bold("n/a:") + " nicht analysiert.\n\\line\n";
 

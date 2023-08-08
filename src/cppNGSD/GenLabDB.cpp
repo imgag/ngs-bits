@@ -598,6 +598,25 @@ QStringList GenLabDB::dnaSamplesofRna(QString external_name)
 	return output;
 }
 
+QString GenLabDB::tissue(QString ps_name)
+{
+	foreach(QString name, names(ps_name))
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT PROBENART_LANGFORM FROM v_ngs_eingangsprobe WHERE LABORNUMMER='" + name + "'");
+		while (query.next())
+		{
+			QString type = query.value(0).toString().trimmed();
+			if (type=="Wangenschleimhaut") return "buccal mucosa";
+			if (type=="Paxgene") return "blood";
+			if (type=="Heparin-Blut") return "blood";
+			if (type=="Fibroblasten-Kultur") return "fibroblast";
+			if (type=="EDTA-Blut") return "blood";
+		}
+	}
+
+	return "";
+}
 
 QStringList GenLabDB::names(QString ps_name)
 {

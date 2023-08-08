@@ -227,7 +227,7 @@ public:
 			}
 
 			//filter by quality
-			if (v.qual() < 0) THROW(ArgumentException, "Quality '" + QString::number(v.qual()) + "' is not given in " + variants.lineToString(i));
+			if (v.qual() < 0) THROW(ArgumentException, "Quality '" + QString::number(v.qual()) + "' is not given in " + v.toString(true));
 			if (v.qual()<var_min_q)
 			{
 				++skip_qual;
@@ -235,19 +235,19 @@ public:
 			}
 
 			//filter by depth
-			if(variants.formatIDs().contains("DP"))
+			if(variants.vcfHeader().formatIdDefined("DP"))
 			{
 				QByteArray tmp = v.formatValueFromSample("DP", c);
 
-				bool ok;
-				int dp1 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
-				if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of child '" + tmp + "' is no integer - variant " + variants.lineToString(i));
+				bool ok = true;
+				int dp1 = (tmp.isEmpty() || tmp==".") ? 0 : tmp.toInt(&ok);
+				if (!ok) THROW(ArgumentException, "Depth of child '" + tmp + "' is no integer - variant " + v.toString(true));
 				tmp = v.formatValueFromSample("DP", f);
-				int dp2 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
-				if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of father  '" + tmp + "' is no integer - variant " + variants.lineToString(i));
+				int dp2 = (tmp.isEmpty() || tmp==".") ? 0 : tmp.toInt(&ok);
+				if (!ok) THROW(ArgumentException, "Depth of father  '" + tmp + "' is no integer - variant " + v.toString(true));
 				tmp = v.formatValueFromSample("DP", m);
-				int dp3 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
-				if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of mother  '" + tmp + "' is no integer - variant " + variants.lineToString(i));
+				int dp3 = (tmp.isEmpty() || tmp==".") ? 0 : tmp.toInt(&ok);
+				if (!ok) THROW(ArgumentException, "Depth of mother  '" + tmp + "' is no integer - variant " + v.toString(true));
 				if (dp1<var_min_dp || dp2<var_min_dp || dp3<var_min_dp)
 				{
 					++skip_dp;
@@ -268,7 +268,7 @@ public:
 			entry.end = v.end();
 			entry.ref = v.ref();
 			entry.obs = v.altString();
-			if((variants.formatIDs().contains("GT")))
+			if(variants.vcfHeader().formatIdDefined("GT"))
 			{
 				entry.c = str2geno(v.formatValueFromSample("GT", c));
 				entry.f = str2geno(v.formatValueFromSample("GT", f));
@@ -329,12 +329,12 @@ public:
 
 		bool in_range = false;
 		UpdRange current_range;
-		for (auto it=data.begin(); it!=data.end(); ++it)
+		for (auto it=data.cbegin(); it!=data.cend(); ++it)
 		{
 
 			if (in_range)
 			{
-				if (it->type==BIPARENTAL || it->type==EXCLUDED || it->chr!=current_range.start->chr || it+1==data.end())
+				if (it->type==BIPARENTAL || it->type==EXCLUDED || it->chr!=current_range.start->chr || it+1==data.cend())
 				{
 					output.append(current_range);
 					in_range = false;

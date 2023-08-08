@@ -18,80 +18,6 @@ TEST_CLASS(NGSD_Test)
 Q_OBJECT
 private slots:
 
-	void batch_test_HGVS2GSvar()
-	{
-		return; //TODO check wrong variants - is VEP wrong there?
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
-		FastaFileIndex idx(ref_file);
-
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
-		NGSD db;
-
-		QHash<QString, Transcript> transcrips;
-		VariantList vl;
-		vl.load("D:\\Data\\NGS\\Sample_NA12878_38\\NA12878_38.GSvar");
-		int i_co = vl.annotationIndexByName("coding_and_splicing");
-		int tests = 0;
-		int correct = 0;
-		int wrong = 0;
-		int error = 0;
-		for (int i=0; i<vl.count(); ++i)
-		{
-			QStringList vep_annos = QString(vl[i].annotations()[i_co]).split(',');
-			foreach(QString vep_anno, vep_annos)
-			{
-				QStringList parts = vep_anno.split(":");
-				//qDebug() << parts;
-				QString gene = parts[0];
-				QString trans_name = parts[1];
-				QString type = parts[2];
-				QString cdna = parts[5].trimmed();
-				if (cdna.isEmpty()) continue;
-
-				if (!transcrips.contains(trans_name))
-				{
-					try
-					{
-						int trans_id = db.transcriptId(trans_name);
-						transcrips[trans_name] = db.transcript(trans_id);
-					}
-					catch(Exception& e)
-					{
-						continue;
-					}
-				}
-
-				++tests;
-				Transcript trans = transcrips[trans_name];
-				try
-				{
-					Variant v = trans.hgvsToVariant(cdna, idx);
-					if (v==vl[i]) ++correct;
-					else
-					{
-						++wrong;
-						qDebug() << "Conversion wrong:" << gene << trans_name << cdna << type;
-						qDebug() << "  should be:" << vl[i].toString();
-						qDebug() << "  is       :" << v.toString();
-					}
-				}
-				catch(Exception& e)
-				{
-					++error;
-					qDebug() << "Conversion error:" << gene << trans_name << cdna << type;
-					qDebug() << "  " << e.message();
-				}
-			}
-		}
-
-		qDebug() << "variants: " << vl.count();
-		qDebug() << "tests   : " << tests;
-		qDebug() << "correct : " << correct << " (" << QString::number(100.0 * correct / tests, 'f', 3) << "%)";
-		qDebug() << "wrong   : " << wrong << " (" << QString::number(100.0 * wrong / tests, 'f', 3) << "%)";
-		qDebug() << "error   : " << error << " (" << QString::number(100.0 * error / tests, 'f', 3) << "%)";
-	}
-
 	//Normally, one member is tested in one QT slot.
 	//Because initializing the database takes very long, all NGSD functionality is tested in one slot.
 	void main_tests()
@@ -1587,7 +1513,7 @@ private slots:
 		target_region.load(TESTDATA("../cppNGSD-TEST/data_in/cfDNA_id_snp.bed"));
 		VcfFile id_snps_tumor_normal = db.getIdSnpsFromProcessingSystem(db.processingSystemId("IDT_xGenPrism"), target_region, false, true);
 		QByteArrayList vcf_lines;
-		for (int i = 0; i < id_snps_tumor_normal.vcfLines().count(); ++i) vcf_lines << id_snps_tumor_normal.vcfLine(i).toString();
+		for (int i = 0; i < id_snps_tumor_normal.count(); ++i) vcf_lines << id_snps_tumor_normal[i].toString();
 		QByteArrayList expected;
 		expected << "chr1:13828907 G>A" << "chr1:88923261 A>C" << "chr1:107441476 A>G" << "chr1:160816880 A>G" << "chr1:233312667 C>T" << "chr2:9945593 G>A" << "chr2:59773585 T>C"
 				  << "chr2:106122379 A>G" << "chr2:181548532 A>G" << "chr19:4569797 A>C" << "chr19:39069167 A>C" << "chr19:49401772 T>C" << "chr20:52679623 T>C" << "chr21:14109044 G>T"

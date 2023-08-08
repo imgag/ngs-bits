@@ -28,13 +28,13 @@ public:
 	static void setServerStartDateTime(QDateTime date_and_time);
 	static QDateTime getServerStartDateTime();
 
+    static QString getCurrentServerLogFile();
 
 protected:
 	ServerHelper();
 
 private:	
 	static ServerHelper& instance();
-	static QString getStandardFileLocation();
 	QDateTime server_start_date_time_;
 
 

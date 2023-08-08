@@ -78,8 +78,11 @@ public:
 	///Returns a list of all sample names of the patient with the given processed sample.
 	QStringList patientSamples(QString ps_name);
 
-	///Returns
+	///Returns DNA samples corresponding to a RNA sample
 	QStringList dnaSamplesofRna(QString external_name);
+
+	///Returns the tissue type of a sample, or an empty string if it could not be determined.
+	QString tissue(QString ps_name);
 
 protected:
 	///Copy constructor "declared away".

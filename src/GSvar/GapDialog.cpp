@@ -217,7 +217,7 @@ void GapDialog::calculteGaps()
 
 			if (pt_exon_regions.count()==0) //no preferred transcripts defined
 			{
-				info.preferred_transcript = "";
+				info.preferred_transcript = "not defined";
 			}
 			else
 			{

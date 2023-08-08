@@ -165,5 +165,14 @@ private slots:
 		S_EQUAL(db.studies("DXtest1")[1], "Genome+");
 		I_EQUAL(db.studies("DXtest2").count(), 0);
 	}
+
+	void tissue()
+	{
+		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab database!");
+
+		GenLabDB db;
+		S_EQUAL(db.tissue("DXtest1"), ""); //is 'DNA' but this cannot be converted to tissue
+		S_EQUAL(db.tissue("DXtest2"), ""); //not set
+	}
 };
 

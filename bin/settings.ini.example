@@ -5,7 +5,7 @@
 #Path to the reference genome FASTA file for GRCh38
 reference_genome = ""
 
-#Data for lift-over between genome builds (GRCh38 <> GRCh19)
+#Data for lift-over between genome builds (GRCh38 <> GRCh37)
 reference_genome_hg19 = ""
 liftover_hg19_hg38 = ""
 liftover_hg38_hg19 = ""

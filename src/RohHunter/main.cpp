@@ -212,7 +212,7 @@ public:
 		out << "Variants in VCF: " << vl.count() << endl;
 
 		//determine quality indices
-		if (!vl.formatIDs().contains("DP")) THROW(ArgumentException, "Could not find 'DP' annotation in vcf header!");
+		if (!vl.vcfHeader().formatIdDefined("DP")) THROW(ArgumentException, "Could not find 'DP' annotation in vcf header!");
 
 		QVector<int> csq_af_indices;
 		QByteArray tmp = getString("var_af_keys_vep").toUtf8().trimmed();

@@ -291,7 +291,20 @@ private slots:
 	{
 		QString test_filename = "test_file.txt";
 		QByteArray test_content = "content";
-		HttpResponse upload_response = ServerController::uploadFileToFolder(QDir::tempPath(), test_filename, test_content);
+
+        HttpRequest request;
+        request.setMethod(RequestMethod::HEAD);
+        request.setContentType(ContentType::TEXT_HTML);
+        request.addHeader("host", "localhost:8443");
+        request.addHeader("accept", "text/html");
+        request.addHeader("content-type", "text/html");
+        request.addHeader("connection", "keep-alive");
+        request.setPrefix("v1");
+        request.setPath("upload");
+        request.setMultipartFileName(test_filename);
+        request.setMultipartFileContent(test_content);
+
+        HttpResponse upload_response = ServerController::uploadFileToFolder(QDir::tempPath(), request);
 		IS_TRUE(upload_response.getStatus() == ResponseStatus::OK);
 		S_EQUAL(QFileInfo(upload_response.getPayload()).fileName(), test_filename);
 

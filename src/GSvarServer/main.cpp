@@ -9,7 +9,8 @@ int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
 	QCoreApplication::setApplicationVersion(SERVER_VERSION);
-	Log::setFileName(QCoreApplication::applicationFilePath().replace(".exe", "") + ".log");
+
+    Log::setFileName(ServerHelper::getCurrentServerLogFile());
 	Log::setCMDEnabled(true);
 	Log::appInfo();
 

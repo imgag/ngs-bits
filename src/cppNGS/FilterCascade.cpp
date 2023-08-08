@@ -130,14 +130,14 @@ void FilterResult::removeFlagged(VcfFile& variants)
 		{
 			if (to_index!=i)
 			{
-				variants.vcfLine(to_index) = variants.vcfLine(i);
+				variants[to_index] = variants[i];
 			}
 			++to_index;
 		}
 	}
 
 	//resize to new size
-	variants.resize(to_index);
+	variants.restrictTo(to_index);
 
 	//update flags
 	pass = QBitArray(variants.count(), true);
@@ -189,7 +189,7 @@ void FilterResult::removeFlagged(BedpeFile& svs)
     pass = QBitArray(svs.count(), true);
 }
 
-void FilterResult::tagNonPassing(VariantList& variants, QByteArray tag, QByteArray description)
+void FilterResult::tagNonPassing(VariantList& variants, const QByteArray& tag, const QByteArray& description)
 {
 	if (pass.count()!=variants.count()) THROW(ProgrammingException, "Variant and filter result count not equal in FilterResult::tagNonPassing!");
 
@@ -212,12 +212,12 @@ void FilterResult::tagNonPassing(VariantList& variants, QByteArray tag, QByteArr
 	}
 }
 
-void FilterResult::tagNonPassing(VcfFile& variants, QByteArray tag, QString description)
+void FilterResult::tagNonPassing(VcfFile& variants, const QByteArray& tag, const QString& description)
 {
 	if (pass.count()!=variants.count()) THROW(ProgrammingException, "Variant and filter result count not equal in FilterResult::tagNonPassing!");
 
 	//add tag description (if missing)
-	if (!variants.filterIDs().contains(tag))
+	if (!variants.vcfHeader().filterIdDefined(tag))
 	{
 		variants.vcfHeader().addFilter(tag, description);
 	}
@@ -1189,7 +1189,7 @@ void FilterFilterColumnEmpty::apply(const VcfFile& variants, FilterResult& resul
 	{
 		if (!result.flags()[i]) continue;
 
-		result.flags()[i] = variants.vcfLine(i).failedFilters().isEmpty();
+		result.flags()[i] = variants[i].filtersPassed();
 	}
 }
 

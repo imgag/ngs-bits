@@ -63,7 +63,7 @@ SOURCES += BedFile.cpp \
     TabixIndexedFile.cpp \
     BedpeFile.cpp \
     MidCheck.cpp \
-    VcfFileHelper.cpp \
+    VcfLine.cpp \
     VcfFile.cpp \
     PhenotypeList.cpp \
     VariantScores.cpp \
@@ -111,7 +111,7 @@ HEADERS += BedFile.h \
     KeyValuePair.h \
     VariantType.h \
     MidCheck.h \
-    VcfFileHelper.h \
+    VcfLine.h \
     VcfFile.h \
     PhenotypeList.h \
     VariantScores.h \

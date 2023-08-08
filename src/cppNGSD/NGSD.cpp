@@ -3715,8 +3715,6 @@ QList<CfdnaGeneEntry> NGSD::cfdnaGenes()
 VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, const BedFile& target_region, bool tumor_only, bool throw_on_fail)
 {
 	VcfFile vcf;
-	vcf.sampleIDs().append("TUMOR");
-	if(!tumor_only)vcf.sampleIDs().append("NORMAL");
 
 	ProcessingSystemData sys = getProcessingSystemData(sys_id);
 
@@ -3729,14 +3727,10 @@ VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, const BedFile& target_re
 	vcf.vcfHeader().addInfoLine(id_source);
 
 	//prepare info for VCF line
+	QByteArrayList info_keys;
+	info_keys << "ID_Source";
 	QByteArrayList info;
-	InfoIDToIdxPtr info_ptr = InfoIDToIdxPtr(new OrderedHash<QByteArray, int>);
-	QByteArray key = "ID_Source";
-	QByteArray value = sys.name_short.toUtf8();
-	info.push_back(value);
-	info_ptr->push_back(key, static_cast<unsigned char>(0));
-
-//	BedFile target_region = processingSystemRegions(sys_id, false);
+	info.push_back(sys.name_short.toUtf8());
 
 	QByteArrayList format_ids = QByteArrayList() << "GT";
 	QByteArrayList sample_ids = QByteArrayList() << "TUMOR";
@@ -3760,11 +3754,10 @@ VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, const BedFile& target_re
 				}
 				return VcfFile();
 			}
-			VcfLinePtr vcf_ptr = QSharedPointer<VcfLine>(new VcfLine(line.chr(), line.start(), variant_info.at(0), QList<Sequence>() << variant_info.at(1), format_ids, sample_ids, list_of_format_values));
-			vcf_ptr->setInfo(info);
-			vcf_ptr->setInfoIdToIdxPtr(info_ptr);
-			vcf_ptr->setId(QByteArrayList() << "ID");
-			vcf.vcfLines() << vcf_ptr;
+			VcfLine vcf_line(line.chr(), line.start(), variant_info.at(0), QList<Sequence>() << variant_info.at(1), format_ids, sample_ids, list_of_format_values);
+			vcf_line.setInfo(info_keys, info);
+			vcf_line.setId(QByteArrayList() << "ID");
+			vcf.append(vcf_line);
 		}
 		else
 		{
