@@ -284,6 +284,14 @@ public:
 			if (!dry_run) db.getQuery().exec("UPDATE sample SET year_of_birth='" + yob + "' WHERE id=" + s_id);
 		}
 
+		//tissue
+		QString tissue = genlab.tissue(ps_name);
+		if (tissue!="" && s_data.tissue=="n/a")
+		{
+			QTextStream(stdout) << "Adding tissue: " << tissue << endl;
+			if (!dry_run) db.getQuery().exec("UPDATE sample SET tissue='" + tissue + "' WHERE id=" + s_id);
+		}
+
 		//disease group and status
 		QPair<QString, QString> disease_data = genlab.diseaseInfo(ps_name);
 		QString disease_group = disease_data.first;
