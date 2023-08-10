@@ -27,6 +27,7 @@ BurdenTestWidget::BurdenTestWidget(QWidget *parent) :
 	connect(ui_->b_load_samples_controls, SIGNAL(clicked(bool)), this, SLOT(loadControlSamples()));
 	connect(ui_->b_burden_test, SIGNAL(clicked(bool)), this, SLOT(performBurdenTest()));
 	connect(ui_->b_load_genes, SIGNAL(clicked(bool)), this, SLOT(loadGeneList()));
+	connect(ui_->b_load_excluded_regions, SIGNAL(clicked(bool)), this, SLOT(loadBedFile()));
 	connect(ui_->b_copy_clipboard, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 
 	//initial GUI setup:
@@ -89,6 +90,38 @@ void BurdenTestWidget::loadGeneList()
 	updateGeneCounts();
 }
 
+void BurdenTestWidget::loadBedFile()
+{
+	//create dialog
+	QTextEdit* te_excluded_regions = new QTextEdit();
+	if(excluded_regions_.count() > 0)
+	{
+		te_excluded_regions->setText(excluded_regions_.toText());
+	}
+	QSharedPointer<QDialog> dialog = GUIHelper::createDialog(te_excluded_regions, "Excluded region selection",
+															 "Paste a list of regions which should be excluded from the varaint search (BED format).", true);
+
+	//show dialog
+	if(dialog->exec()!=QDialog::Accepted) return;
+
+	try
+	{
+		BedFile excluded_region = BedFile::fromText(te_excluded_regions->toPlainText().toUtf8());
+		excluded_region.clearAnnotations();
+		excluded_region.clearHeaders();
+
+		//apply new exclusion
+		excluded_regions_ = excluded_region;
+
+		//update counts
+		updateExcludedRegions();
+	}
+	catch (Exception e)
+	{
+		QMessageBox::critical(this, "BED file parsing failed!", "Parsing of provided regions failed:\n\n" + e.message());
+	}
+}
+
 void BurdenTestWidget::validateInputData()
 {
 	QStringList errors;
@@ -104,6 +137,8 @@ void BurdenTestWidget::validateInputData()
 		}
 		errors << "ERROR: The samples " + ps_names.join(", ") + " are present in both case and control cohort!";
 	}
+
+	//TODO: check same processing system
 
 	if(errors.size() > 0)
 	{
@@ -129,6 +164,12 @@ void BurdenTestWidget::updateSampleCounts()
 void BurdenTestWidget::updateGeneCounts()
 {
 	ui_->l_gene_count->setText(QString::number(selected_genes_.count()) + " genes");
+	validateInputData();
+}
+
+void BurdenTestWidget::updateExcludedRegions()
+{
+	ui_->l_excluded_regions->setText(QString::number(excluded_regions_.count()) + " regions (" + QString::number(((float) excluded_regions_.baseCount()/1000000.0), 'f', 2) + " Mb)");
 	validateInputData();
 }
 
@@ -534,6 +575,11 @@ void BurdenTestWidget::performBurdenTest()
 
 		int n_cases = countOccurences(variant_ids, case_samples_, detected_variants, inheritance, ps_names_cases);
 		int n_controls = countOccurences(variant_ids, control_samples_, detected_variants, inheritance, ps_names_controls);
+
+		//sort processed samples
+		std::sort(ps_names_cases.begin(), ps_names_cases.end());
+		std::sort(ps_names_controls.begin(), ps_names_controls.end());
+
 		//calculate p-value (fisher)
 		double p_value = BasicStatistics::fishersExactTest(n_cases, n_controls, case_samples_.size(), control_samples_.size(), "greater");
 
@@ -674,8 +720,23 @@ int BurdenTestWidget::countOccurences(const QSet<int>& variant_ids, const QSet<i
 		QSet<int> intersection = variant_ids;
 		intersection = intersection.intersect(detected_variants.value(ps_id));
 
+		if (!excluded_regions_.isEmpty())
+		{
+			//filter matches based on blacklist BED file
+			QSet<int> filtered_intersection;
+			foreach (int variant_id, intersection)
+			{
+				Variant var = db_.variant(QString::number(variant_id));
+				if (!excluded_regions_.overlapsWith(var.chr(), var.start(), var.end())) filtered_intersection.insert(variant_id);
+			}
+			//update id list
+			intersection = filtered_intersection;
+		}
+
 		//no match
 		if (intersection.size() == 0) continue;
+
+
 
 		//check for de-novo
 		if(inheritance == Inheritance::de_novo)

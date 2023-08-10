@@ -438,7 +438,7 @@
      </property>
      <property name="minimumSize">
       <size>
-       <width>300</width>
+       <width>400</width>
        <height>0</height>
       </size>
      </property>
@@ -588,6 +588,27 @@
        <widget class="QLabel" name="l_gene_count">
         <property name="text">
          <string>0 genes</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_8">
+        <property name="text">
+         <string>Excluded regions:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QLabel" name="l_excluded_regions">
+        <property name="text">
+         <string>0 regions (0.00 Mb)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="2">
+       <widget class="QPushButton" name="b_load_excluded_regions">
+        <property name="text">
+         <string>load regions</string>
         </property>
        </widget>
       </item>
