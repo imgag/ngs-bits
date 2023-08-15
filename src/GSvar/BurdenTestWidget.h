@@ -3,6 +3,7 @@
 
 #include <NGSD.h>
 #include <QSet>
+#include <QTextEdit>
 #include <QWidget>
 
 enum class Inheritance
@@ -27,6 +28,8 @@ private slots:
 	void loadCaseSamples();
 	void loadControlSamples();
 	void loadGeneList();
+	void loadExcludedRegions();
+	void clearExcludedRegions();
 	void loadBedFile();
 	void validateInputData();
 	void updateSampleCounts();
@@ -47,6 +50,7 @@ private:
 	NGSD db_;
 	BedFile excluded_regions_;
 	bool test_running = false;
+	QTextEdit* te_excluded_regions_;
 	QStringList createChromosomeQueryList(int max_ngsd, double max_gnomad_af, const BedFile& regions, const QStringList& impacts, bool predict_pathogenic, bool include_mosaic);
 	int countOccurences(const QSet<int>& variant_ids, const QSet<int>& ps_ids, const QMap<int, QSet<int> >& detected_variants, Inheritance inheritance, QStringList& ps_names);
 	QSet<int> loadSampleList(const QString& type, const QSet<int>& selected_ps_ids=QSet<int>());

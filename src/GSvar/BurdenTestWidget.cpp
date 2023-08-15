@@ -5,6 +5,7 @@
 #include <LoginManager.h>
 #include <NGSD.h>
 #include <QDialog>
+#include <QFileDialog>
 #include <QMessageBox>
 #include <QTextEdit>
 
@@ -27,11 +28,14 @@ BurdenTestWidget::BurdenTestWidget(QWidget *parent) :
 	connect(ui_->b_load_samples_controls, SIGNAL(clicked(bool)), this, SLOT(loadControlSamples()));
 	connect(ui_->b_burden_test, SIGNAL(clicked(bool)), this, SLOT(performBurdenTest()));
 	connect(ui_->b_load_genes, SIGNAL(clicked(bool)), this, SLOT(loadGeneList()));
-	connect(ui_->b_load_excluded_regions, SIGNAL(clicked(bool)), this, SLOT(loadBedFile()));
+	connect(ui_->b_add_excluded_regions, SIGNAL(clicked(bool)), this, SLOT(loadExcludedRegions()));
+	connect(ui_->b_clear_excluded_regions, SIGNAL(clicked(bool)), this, SLOT(clearExcludedRegions()));
 	connect(ui_->b_copy_clipboard, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
+	connect(ui_->b_check_input, SIGNAL(clicked(bool)), this, SLOT(validateInputData()));
 
 	//initial GUI setup:
-	validateInputData();
+	//disable test start until data is validated
+	ui_->b_burden_test->setEnabled(false);
 }
 
 BurdenTestWidget::~BurdenTestWidget()
@@ -48,7 +52,8 @@ void BurdenTestWidget::loadCaseSamples()
 	qDebug() << "Case:" << case_samples_.size() << case_samples_;
 
 	updateSampleCounts();
-	validateInputData();
+	//disable test start until data is validated
+	ui_->b_burden_test->setEnabled(false);
 }
 
 void BurdenTestWidget::loadControlSamples()
@@ -60,7 +65,8 @@ void BurdenTestWidget::loadControlSamples()
 	qDebug() << "Control:" << control_samples_.size() << control_samples_;
 
 	updateSampleCounts();
-	validateInputData();
+	//disable test start until data is validated
+	ui_->b_burden_test->setEnabled(false);
 }
 
 void BurdenTestWidget::loadGeneList()
@@ -90,31 +96,52 @@ void BurdenTestWidget::loadGeneList()
 	updateGeneCounts();
 }
 
-void BurdenTestWidget::loadBedFile()
+void BurdenTestWidget::loadExcludedRegions()
 {
 	//create dialog
-	QTextEdit* te_excluded_regions = new QTextEdit();
-	if(excluded_regions_.count() > 0)
-	{
-		te_excluded_regions->setText(excluded_regions_.toText());
-	}
-	QSharedPointer<QDialog> dialog = GUIHelper::createDialog(te_excluded_regions, "Excluded region selection",
-															 "Paste a list of regions which should be excluded from the varaint search (BED format).", true);
+	te_excluded_regions_ = new QTextEdit();
+	te_excluded_regions_->setMinimumWidth(640);
+	te_excluded_regions_->setMinimumHeight(480);
+	QPushButton* b_open_bed_file = new QPushButton("Open BED file");
+	QSpacerItem* h_spacer = new QSpacerItem(40, 20, QSizePolicy::Expanding);
+	QHBoxLayout* h_box = new QHBoxLayout();
+	h_box->addWidget(b_open_bed_file);
+	h_box->addItem(h_spacer);
+	QVBoxLayout* v_box = new QVBoxLayout();
+	v_box->addWidget(te_excluded_regions_);
+	v_box->addItem(h_box);
+	QWidget* dlg = new QWidget();
+	dlg->setLayout(v_box);
+	connect(b_open_bed_file, SIGNAL(clicked(bool)), this, SLOT(loadBedFile()));
+	QSharedPointer<QDialog> dialog = GUIHelper::createDialog(dlg, "Excluded region selection",
+															 "Paste a list of regions which should be added to the list of excluded regions for the varaint search (BED format).", true);
 
 	//show dialog
 	if(dialog->exec()!=QDialog::Accepted) return;
 
 	try
 	{
-		BedFile excluded_region = BedFile::fromText(te_excluded_regions->toPlainText().toUtf8());
+		BedFile excluded_region = BedFile::fromText(te_excluded_regions_->toPlainText().toUtf8());
 		excluded_region.clearAnnotations();
 		excluded_region.clearHeaders();
 
+		//get previous counts
+		int prev_region_counts = excluded_regions_.count();
+		float prev_base_count = (float) excluded_regions_.baseCount()/1000000.0;
+
 		//apply new exclusion
-		excluded_regions_ = excluded_region;
+		excluded_regions_.add(excluded_region);
+		excluded_regions_.sort();
+		excluded_regions_.merge();
 
 		//update counts
 		updateExcludedRegions();
+
+		//show info message
+		QMessageBox::information(this, "Excluded regions extended", "The excluded regions have been extended from " + QString::number(prev_region_counts) + " regions ("
+								 + QString::number(prev_base_count, 'f', 2) + " Mb) to " + QString::number(excluded_regions_.count()) + " regions ("
+								 + QString::number((float) excluded_regions_.baseCount()/1000000.0, 'f', 2) + " Mb).");
+
 	}
 	catch (Exception e)
 	{
@@ -122,9 +149,34 @@ void BurdenTestWidget::loadBedFile()
 	}
 }
 
+void BurdenTestWidget::clearExcludedRegions()
+{
+	excluded_regions_.clear();
+	updateExcludedRegions();
+	QMessageBox::information(this, "Excluded regions cleared", "The excluded regions have been removed.");
+}
+
+void BurdenTestWidget::loadBedFile()
+{
+	try
+	{
+
+		const QString& init_path = Settings::path("burden_test_files");
+		QString bed_file_path = QFileDialog::getOpenFileName(this, "Open BED file", init_path, "BED files (*.bed)");
+		BedFile excluded_regions;
+		excluded_regions.load(bed_file_path);
+		te_excluded_regions_->setText(excluded_regions.toText());
+	}
+	catch (Exception e)
+	{
+		QMessageBox::critical(this, "BED file opening failed!", "Opening of BED file failed:\n\n" + e.message());
+	}
+}
+
 void BurdenTestWidget::validateInputData()
 {
 	QStringList errors;
+	QStringList warnings;
 
 	// check overlap
 	QSet<int> overlap = case_samples_ & control_samples_;
@@ -138,17 +190,84 @@ void BurdenTestWidget::validateInputData()
 		errors << "ERROR: The samples " + ps_names.join(", ") + " are present in both case and control cohort!";
 	}
 
-	//TODO: check same processing system
+	//check same processing system and ancestry
+	QSet<int> ps_ids = case_samples_ + control_samples_;
+	QSet<QString> processing_systems;
+	QSet<QString> ancestry;
+	QMap<int,int> sample_ids;
+	foreach (int ps_id, ps_ids)
+	{
+		QString ps_name = db_.processedSampleName(QString::number(ps_id));
+		ProcessedSampleData ps_info = db_.getProcessedSampleData(QString::number(ps_id));
+		processing_systems.insert(ps_info.processing_system);
+		ancestry.insert(ps_info.ancestry);
+
+		sample_ids[db_.sampleId(ps_name).toInt()]++;
+	}
+	//check for duplicate samples
+	QSet<int> sample_id_set = sample_ids.keys().toSet();
+	foreach (int s_id, sample_ids.keys())
+	{
+		if (sample_ids.value(s_id) > 1)
+		{
+			warnings << "WARNING: Sample " + db_.sampleName(QString::number(s_id)) + " ocurres multiple times in cohort!";
+		}
+		//check for same sample relations
+		QSet<int> same_sample_overlap = db_.sameSamples(s_id) & sample_id_set;
+		if (same_sample_overlap.size() > 0)
+		{
+			QStringList same_sample_list;
+			foreach (int id, same_sample_overlap)
+			{
+				same_sample_list << db_.sampleName(QString::number(id));
+			}
+			warnings << "WARNING: Sample " + db_.sampleName(QString::number(s_id)) + " has a same-sample/same-patient relation with the sample(s) " + same_sample_list.join(", ") + " in the cohort!";
+		}
+		//check for related samples
+		QStringList relation_types = QStringList() << "parent-child" << "siblings" << "cousins" << "twins" << "twins (monozygotic)";
+		foreach (const QString& relation, relation_types)
+		{
+			QSet<int> related_sample_overlap = db_.relatedSamples(s_id, relation) & sample_id_set;
+			if (related_sample_overlap.size() > 0)
+			{
+				QStringList related_sample_list;
+				foreach (int id, related_sample_overlap)
+				{
+					related_sample_list << db_.sampleName(QString::number(id));
+				}
+				warnings << "WARNING: Sample " + db_.sampleName(QString::number(s_id)) + " has a " + relation + " relation with the sample(s) " + related_sample_list.join(", ") + " in the cohort!";
+			}
+		}
+	}
+
+
+	if (processing_systems.size() > 1) warnings << "WARNING: The cohort contains multiple processing systems (" + processing_systems.toList().join(", ")+ ")!";
+	if (processing_systems.size() > 1) warnings << "WARNING: The cohort contains multiple ancestries (" + ancestry.toList().join(", ")+ ")!";
 
 	if(errors.size() > 0)
 	{
 		QMessageBox::warning(this, "Validation error", "During cohort validation the following errors occured:\n" +  errors.join("\n"));
 		ui_->b_burden_test->setEnabled(false);
+		return;
 	}
 	else
 	{
 		// enable if control and case samples are set
 		ui_->b_burden_test->setEnabled(cases_initialized_ && controls_initialized_ && (selected_genes_.count() > 0));
+	}
+
+	if(warnings.size() > 0)
+	{
+		//create dialog
+		QTextEdit* te_warnings = new QTextEdit();
+		te_warnings->setText(warnings.join("\n"));
+		te_warnings->setReadOnly(true);
+		te_warnings->setMinimumWidth(720);
+		te_warnings->setMinimumHeight(480);
+		QSharedPointer<QDialog> dialog = GUIHelper::createDialog(te_warnings, "Validation warning", "During cohort validation the following problems occured:\n", true);
+
+		//show dialog
+		dialog->exec();
 	}
 
 	qDebug() << "Case:" << case_samples_.size() << case_samples_;
@@ -161,17 +280,22 @@ void BurdenTestWidget::updateSampleCounts()
 	ui_->l_controls->setText(QString::number(control_samples_.size()) + " samples");
 }
 
+
 void BurdenTestWidget::updateGeneCounts()
 {
 	ui_->l_gene_count->setText(QString::number(selected_genes_.count()) + " genes");
-	validateInputData();
+	//disable test start until data is validated
+	ui_->b_burden_test->setEnabled(false);
 }
+
 
 void BurdenTestWidget::updateExcludedRegions()
 {
 	ui_->l_excluded_regions->setText(QString::number(excluded_regions_.count()) + " regions (" + QString::number(((float) excluded_regions_.baseCount()/1000000.0), 'f', 2) + " Mb)");
-	validateInputData();
+	//disable test start until data is validated
+	ui_->b_burden_test->setEnabled(false);
 }
+
 
 QSet<int> BurdenTestWidget::loadSampleList(const QString& type, const QSet<int>& selected_ps_ids)
 {
@@ -245,95 +369,6 @@ QSet<int> BurdenTestWidget::loadSampleList(const QString& type, const QSet<int>&
 	return ps_ids;
 }
 
-/*
-QSet<int> BurdenTestWidget::getVariantsForRegion(const BedLine& region, const QString& gene_symbol, const QStringList& impacts, const QSet<int>& valid_variant_ids, bool predict_pathogenic)
-{
-	QSet<int> variant_ids;
-
-	//bind values and execute query
-	variant_query_.bindValue(0, region.chr().strNormalized(true));
-	variant_query_.bindValue(1, region.start());
-	variant_query_.bindValue(2, region.end());
-	variant_query_.exec();
-
-//	qDebug() << "SQL results for gene " +  gene_symbol + ": " << variant_query_.size();
-	int n_skipped_id = 0;
-	int n_skipped_impact = 0;
-	int n_skipped_empty = 0;
-//	int n_skipped_gene = 0;
-
-
-	//get variants in chromosomal range
-	while(variant_query_.next())
-	{
-		int var_id = variant_query_.value("id").toInt();
-		//skip variants which doesn't occure in cohort
-		if((valid_variant_ids.size() > 0) && !valid_variant_ids.contains(var_id))
-		{
-			n_skipped_id++;
-			continue;
-		}
-
-		//filter by impact
-		QStringList parts = variant_query_.value("coding").toString().split(",");
-		QStringList parts_match;
-		foreach(const QString& part, parts)
-		{
-			//skip empty enties
-			int index = part.indexOf(':');
-			if (index==-1)
-			{
-				n_skipped_empty++;
-				continue;
-			}
-
-			//skip all entries which doesn't describe the current gene
-			if(!part.trimmed().startsWith(gene_symbol)) continue;
-
-			//filter by impact
-			bool match = false;
-			foreach(const QString& impact, impacts)
-			{
-				if (part.contains(impact))
-				{
-					double cadd = variant_query_.value("cadd").toDouble();
-					double spliceai = variant_query_.value("spliceai").toDouble();
-					if (predict_pathogenic && (impact != "HIGH") && (cadd < 20) && (spliceai < 0.5))
-					{
-						qDebug() << "skipped non-pathogenic prediction";
-						continue;
-					}
-					match = true;
-				}
-			}
-			if (match)
-			{
-				parts_match << part;
-			}
-
-			//TODO: filter by live-calculated impact
-		}
-
-		if (parts_match.count()==0)
-		{
-			n_skipped_impact++;
-			continue;
-		}
-
-
-		// return variant id
-		variant_ids << variant_query_.value("id").toInt();
-
-	}
-
-//	qDebug() << "skipped id:" << n_skipped_id;
-//	qDebug() << "skipped wrong gene:" << n_skipped_gene;
-//	qDebug() << "skipped wrong impact:" << n_skipped_impact;
-
-	return variant_ids;
-
-}
-*/
 
 QSet<int> BurdenTestWidget::getVariantsForRegion(int max_ngsd, double max_gnomad_af, const BedFile& regions, const QString& gene_symbol, const QStringList& impacts, bool predict_pathogenic)
 {
