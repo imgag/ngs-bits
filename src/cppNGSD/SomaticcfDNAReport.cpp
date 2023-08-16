@@ -33,7 +33,9 @@ void SomaticcfDnaReport::writeRtf(QByteArray out_file)
 	doc_.addColor(255,0,0);
 
 	doc_.addPart(partResultTable().RtfCode());
+	doc_.addPart(RtfParagraph("*AF: Allelfrequenz, Anteil mutierte Fragmente").setFontSize(16).setHorizontalAlignment("j").RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
+
 
 	if (data_.table.cfdna_samples.count() <= 3)
 	{
@@ -69,28 +71,36 @@ void SomaticcfDnaReport::writeRtf(QByteArray out_file)
 
 RtfTable SomaticcfDnaReport::partResultTable()
 {
-
 	RtfTable table;
-
-
 	for(int i=0; i<data_.table.cfdna_samples.count(); i++)
 	{
 		RtfTableRow row;
 
 
 		row.addCell(3321, data_.table.cfdna_samples[i].name.toUtf8(), RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
-		row.addCell(3300, data_.table.cfdna_samples[i].date.toString("dd.MM.yyyy").toUtf8(),RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
+		row.addCell(1650, data_.table.cfdna_samples[i].order_date.toString("dd.MM.yyyy").toUtf8(), RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
+
+		double maxAF = getMaxAf(i);
+		if (maxAF > 0 && maxAF < 0.001)
+		{
+			row.addCell(1650, "< 0.001" , RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
+		}
+		else
+		{
+			row.addCell(1650, formatDigits(maxAF, 3) , RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
+		}
+		row.addCell(1650, getMeanAf(i), RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
 
 		QByteArray str_p_value = getMrdTableValue("MRD p-value", i);
 		double p_value = str_p_value.toDouble();
 		QByteArray p_value_final = p_value < 0.01 ? "<0.01" : QByteArray::number(p_value, 'f', 2);
 		if (p_value < 0.05)
 		{
-			row.addCell(3300, "ja (p=" + p_value_final + ")", RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
+			row.addCell(1650, "ja (p=" + p_value_final + ")", RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
 		}
 		else
 		{
-			row.addCell(3300, "nein (p=" + p_value_final + ")", RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
+			row.addCell(1650, "nein (p=" + p_value_final + ")", RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
 		}
 
 		table.addRow(row);
@@ -98,10 +108,10 @@ RtfTable SomaticcfDnaReport::partResultTable()
 
 	table.setUniqueBorder(1, "brdrhair", 2);
 
-	RtfTableRow header = RtfTableRow({"Probe", "Datum", "Tumornachweis"},{3321,3300,3300}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
+	RtfTableRow header = RtfTableRow({"Probe", "Datum", "Max. AF*", "Mittelwert AF*", "Tumornachweis"},{3321,1650, 1650, 1650, 1650}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
 	table.prependRow(header.setHeader().setBorders(1, "brdrhair", 2));
 
-	table.prependRow(RtfTableRow("Beurteilung", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
+	table.prependRow(RtfTableRow("Probenübersicht", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
 	return table;
 
@@ -194,7 +204,14 @@ RtfTable SomaticcfDnaReport::partSnvTable(int cfdna_idx_start, int cfdna_idx_end
 	RtfTableRow header = RtfTableRow({"Gen", "Veränderung", "Typ", "Anteil Tumor"},{821,1900,1300,700}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
 	for(int i=cfdna_idx_start; i<cfdna_idx_end; i++)
 	{
-		header.addCell(cfdna_width, "Anteil Plasma\n\\line\n" + data_.table.cfdna_samples[i].name.toUtf8() + "\n\\line\n(" + data_.table.cfdna_samples[i].date.toString("dd.MM.yyyy").toUtf8() + ")", RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
+		if(data_.table.cfdna_samples[i].order_date.isValid())
+		{
+			header.addCell(cfdna_width, "Anteil Plasma\n\\line\n" + data_.table.cfdna_samples[i].name.toUtf8() + "\n\\line\n(" + data_.table.cfdna_samples[i].order_date.toString("dd.MM.yyyy").toUtf8() + ")", RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
+		}
+		else
+		{
+			header.addCell(cfdna_width, "Anteil Plasma\n\\line\n" + data_.table.cfdna_samples[i].name.toUtf8() + "\n\\line\n(" + RtfText(data_.table.cfdna_samples[i].received_date.toString("dd.MM.yyyy").toUtf8()).setFontColor(5).RtfCode() + ")", RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
+		}
 	}
 	table.prependRow(header.setHeader().setBorders(1, "brdrhair", 2));
 
@@ -410,6 +427,41 @@ CodingSplicingAnno SomaticcfDnaReport::getPreferedCodingAndSplicing(const VcfLin
 	return anno;
 }
 
+double SomaticcfDnaReport::getMaxAf(int cfdna_idx)
+{
+	double max = -1;
+
+	for(int i=0; i<data_.table.lines.count(); i++)
+	{
+		auto line = data_.table.lines[i];
+		const VcfLine& variant = line.tumor_vcf_line;
+		//skip ID SNPs
+		if (variant.id().contains("ID")) continue;
+		auto cfdna_entry = line.cfdna_columns[cfdna_idx];
+		double var_af = cfdna_entry.multi_af;
+
+		if (var_af > max) max = var_af;
+	}
+
+	return max;
+}
+
+QByteArray SomaticcfDnaReport::getMeanAf(int cfdna_idx)
+{
+	double sum = 0;
+	double count = 0;
+	for(int i=0; i<data_.table.lines.count(); i++)
+	{
+		auto line = data_.table.lines[i];
+		const VcfLine& variant = line.tumor_vcf_line;
+		//skip ID SNPs
+		if (variant.id().contains("ID")) continue;
+		auto cfdna_entry = line.cfdna_columns[cfdna_idx];
+		sum += cfdna_entry.multi_af;
+		count++;
+	}
+	return formatDigits(sum/count, 3);
+}
 
 RtfSourceCode SomaticcfDnaReport::formatDigits(double in, int digits)
 {

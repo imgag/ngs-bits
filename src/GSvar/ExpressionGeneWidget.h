@@ -34,7 +34,7 @@ private slots:
 	void copyToClipboard();
 	void showBiotypeContextMenu(QPoint pos);
 	void selectAllBiotypes(bool deselect=false);
-	void showHistogram(int row_idx);
+	void showHistogram(const QByteArray& ensg, double tpm);
 	void showExpressionTableContextMenu(QPoint pos);
 	void showCohort();
 	void copyCohortToClipboard();

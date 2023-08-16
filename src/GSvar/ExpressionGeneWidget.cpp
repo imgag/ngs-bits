@@ -505,11 +505,9 @@ void ExpressionGeneWidget::selectAllBiotypes(bool deselect)
 	}
 }
 
-void ExpressionGeneWidget::showHistogram(int row_idx)
+void ExpressionGeneWidget::showHistogram(const QByteArray& ensg, double tpm)
 {
-	QByteArray ensg = ui_->expression_data->item(row_idx, 0)->text().toUtf8();
 	QVector<double> expr_values = db_.getGeneExpressionValues(db_.getEnsemblGeneMapping().value(ensg), cohort_, false);
-	double tpm = ui_->expression_data->item(row_idx, 4)->text().toDouble();
 
 	if(expr_values.size() == 0) return;
 	//create histogram
@@ -531,10 +529,13 @@ void ExpressionGeneWidget::showExpressionTableContextMenu(QPoint pos)
 {
 	// create menu
 	int row_idx = ui_->expression_data->itemAt(pos)->row();
+
 	QMenu menu(ui_->expression_data);
 	QAction* a_show_histogram = menu.addAction("Show histogram");
 	QString tpm_mean = ui_->expression_data->item(row_idx, column_names_.indexOf("cohort_mean"))->text();
 	if(tpm_mean=="") a_show_histogram->setEnabled(false);
+	double tpm = ui_->expression_data->item(row_idx, 4)->text().toDouble();
+	QByteArray ensg = ui_->expression_data->item(row_idx, 0)->text().toUtf8();
 
 	// execute menu
 	QAction* action = menu.exec(ui_->expression_data->viewport()->mapToGlobal(pos));
@@ -542,7 +543,7 @@ void ExpressionGeneWidget::showExpressionTableContextMenu(QPoint pos)
 	// react
 	if (action == a_show_histogram)
 	{
-		showHistogram(row_idx);
+		showHistogram(ensg, tpm);
 	}
 	else
 	{
