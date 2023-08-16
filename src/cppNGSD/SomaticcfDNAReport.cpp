@@ -80,8 +80,15 @@ RtfTable SomaticcfDnaReport::partResultTable()
 		row.addCell(3321, data_.table.cfdna_samples[i].name.toUtf8(), RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
 		row.addCell(1650, data_.table.cfdna_samples[i].order_date.toString("dd.MM.yyyy").toUtf8(), RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
 
-		//TODO
-		row.addCell(1650, getMaxAf(i) , RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
+		double maxAF = getMaxAf(i);
+		if (maxAF > 0 && maxAF < 0.001)
+		{
+			row.addCell(1650, "< 0.001" , RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
+		}
+		else
+		{
+			row.addCell(1650, formatDigits(maxAF, 3) , RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
+		}
 		row.addCell(1650, getMeanAf(i), RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
 
 		QByteArray str_p_value = getMrdTableValue("MRD p-value", i);
@@ -420,7 +427,7 @@ CodingSplicingAnno SomaticcfDnaReport::getPreferedCodingAndSplicing(const VcfLin
 	return anno;
 }
 
-QByteArray SomaticcfDnaReport::getMaxAf(int cfdna_idx)
+double SomaticcfDnaReport::getMaxAf(int cfdna_idx)
 {
 	double max = -1;
 
@@ -436,7 +443,7 @@ QByteArray SomaticcfDnaReport::getMaxAf(int cfdna_idx)
 		if (var_af > max) max = var_af;
 	}
 
-	return formatDigits(max, 2);
+	return max;
 }
 
 QByteArray SomaticcfDnaReport::getMeanAf(int cfdna_idx)

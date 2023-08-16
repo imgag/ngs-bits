@@ -51,7 +51,7 @@ private:
 	QByteArray cleanConsequenceString(QByteArray consequence);
 	CodingSplicingAnno getPreferedCodingAndSplicing(const VcfLine& variant);
 	QByteArray getMrdTableValue(const QByteArray& type, int cfdna_idx);
-	QByteArray getMaxAf(int cfdna_idx);
+	double getMaxAf(int cfdna_idx);
 	QByteArray getMeanAf(int cfdna_idx);
 
 };
