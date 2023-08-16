@@ -87,13 +87,13 @@ private slots:
 		S_EQUAL(db.yearOfBirth("DXtest2"), "2001");
 	}
 
-	void yearOfOrderEntry()
+	void orderEntryDate()
 	{
 		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab database!");
 
 		GenLabDB db;
-		S_EQUAL(db.yearOfOrderEntry("DXtest1"), "2022");
-		S_EQUAL(db.yearOfOrderEntry("DXtest2"), "2022");
+		S_EQUAL(db.orderEntryDate("DXtest1"), "2022-05-03");
+		S_EQUAL(db.orderEntryDate("DXtest2"), "2022-05-03");
 	}
 
 	void diseaseInfo()

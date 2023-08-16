@@ -427,7 +427,9 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	if (p.add_dates)
 	{
 		fields << "s.year_of_birth as year_of_birth";
-		fields << "YEAR(s.received) as year_received";
+		fields << "s.received as received_date";
+		fields << "s.sampling_date as sampling_date";
+		fields << "s.order_date as order_date";
 	}
 
 	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
@@ -556,7 +558,7 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 {
 	//execute query
 	SqlQuery query = getQuery();
-	query.exec("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe, s.sample_type, s.sender_id, s.species_id, s.received, s.receiver_id, s.tissue, s.patient_identifier, s.year_of_birth FROM sample s WHERE id=" + sample_id);
+	query.exec("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe, s.sample_type, s.sender_id, s.species_id, s.received, s.receiver_id, s.tissue, s.patient_identifier, s.year_of_birth, s.order_date, s.sampling_date FROM sample s WHERE id=" + sample_id);
 	if (query.size()==0)
 	{
 		THROW(ProgrammingException, "Invalid 'id' for table 'sample' given: '" + sample_id + "'");
@@ -595,6 +597,18 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 	if (!year_of_birth.isNull())
 	{
 		output.year_of_birth = year_of_birth.toString();
+	}
+
+	QVariant order_date = query.value(17);
+	if (!order_date.isNull())
+	{
+		output.order_date = order_date.toDate().toString("dd.MM.yyyy");
+	}
+
+	QVariant sampling_date = query.value(18);
+	if (!sampling_date.isNull())
+	{
+		output.sampling_date = sampling_date.toDate().toString("dd.MM.yyyy");
 	}
 
 	//sample groups

@@ -43,8 +43,11 @@ public:
 	///Returns the GenLab year of birth for a sample (tries sample name if processed sample name is not found)
 	QString yearOfBirth(QString ps_name);
 
+	///Returns the GenLab date of sampling for a sample (tries sample name if processed sample name is not found)
+	QString samplingDate(QString ps_name);
+
 	///Returns the GenLab year of order entry for a sample (tries sample name if processed sample name is not found)
-	QString yearOfOrderEntry(QString ps_name);
+	QString orderEntryDate(QString ps_name);
 
 	///Returns disease group and disease status of a processed sample (tries sample name if processed sample name is not found)
 	QPair<QString, QString> diseaseInfo(QString ps_name);
