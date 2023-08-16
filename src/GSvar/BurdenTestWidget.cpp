@@ -134,6 +134,10 @@ void BurdenTestWidget::loadExcludedRegions()
 		excluded_regions_.sort();
 		excluded_regions_.merge();
 
+		//check for file name
+		QString bed_file_path = te_excluded_regions_->property("file_path").toString();
+		if (!bed_file_path.trimmed().isEmpty()) excluded_regions_file_names << bed_file_path.trimmed();
+
 		//update counts
 		updateExcludedRegions();
 
@@ -152,6 +156,7 @@ void BurdenTestWidget::loadExcludedRegions()
 void BurdenTestWidget::clearExcludedRegions()
 {
 	excluded_regions_.clear();
+	excluded_regions_file_names.clear();
 	updateExcludedRegions();
 	QMessageBox::information(this, "Excluded regions cleared", "The excluded regions have been removed.");
 }
@@ -166,6 +171,7 @@ void BurdenTestWidget::loadBedFile()
 		BedFile excluded_regions;
 		excluded_regions.load(bed_file_path);
 		te_excluded_regions_->setText(excluded_regions.toText());
+		te_excluded_regions_->setProperty("file_path", bed_file_path);
 	}
 	catch (Exception e)
 	{
@@ -677,6 +683,11 @@ void BurdenTestWidget::copyToClipboard()
 
 	//custom gene set
 	comments << "genes=" + selected_genes_.toStringList().join(",");
+
+	//excluded regions
+	comments << "excluded_regions=" + QString::number(excluded_regions_.count());
+	comments << "excluded_bases=" + QString::number(excluded_regions_.baseCount());
+	if(excluded_regions_file_names.size() > 0) comments << "excluded_region_file_names=" + excluded_regions_file_names.join(",");
 
 	//filter parameter
 	comments << "max_gnomad_af=" + QString::number(ui_->sb_max_gnomad_af->value(), 'f', 2);

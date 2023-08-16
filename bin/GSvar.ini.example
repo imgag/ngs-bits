@@ -40,6 +40,7 @@ gsvar_xml_folder = ""
 gsvar_publication_folder = ""
 gsvar_variantsheet_folder = ""
 gsvar_variant_export_folder = ""
+burden_test_files = ""
 
 #debugging
 debug_mode_enabled=false
