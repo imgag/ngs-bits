@@ -284,6 +284,14 @@ public:
 			if (!dry_run) db.getQuery().exec("UPDATE sample SET year_of_birth='" + yob + "' WHERE id=" + s_id);
 		}
 
+		//order date
+		QString order_date = genlab.orderEntryDate(ps_name);
+		if (order_date!="" && s_data.order_date=="")
+		{
+			QTextStream(stdout) << "Adding order date: " << order_date << endl;
+			if (!dry_run) db.getQuery().exec("UPDATE sample SET order_date='" + order_date + "' WHERE id=" + s_id);
+		}
+
 		//sampling date
 		QString sampling_date = genlab.samplingDate(ps_name);
 		if (sampling_date!="" && s_data.sampling_date=="")

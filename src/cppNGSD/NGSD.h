@@ -270,6 +270,7 @@ struct CPPNGSDSHARED_EXPORT SampleData
 	QString species;
 	QString received;
 	QString received_by;
+	QString order_date;
 	QString sampling_date;
 	QList<SampleGroup> sample_groups;
 };
@@ -577,16 +578,16 @@ struct CfdnaDiseaseCourseTable
 		QString name;
 		QString ps_id;
 		QDate received_date;
-		QDate sampling_date;
+		QDate order_date;
 
 		bool operator<(const PSInfo& other) const {
-			if (sampling_date.isNull() || other.sampling_date.isNull())
+			if (order_date.isNull() || other.order_date.isNull())
 			{
 				return received_date < other.received_date; // sort by date
 			}
 			else
 			{
-				return sampling_date < other.sampling_date;
+				return order_date < other.order_date;
 			}
 		}
 	};
