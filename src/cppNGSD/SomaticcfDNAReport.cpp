@@ -33,7 +33,9 @@ void SomaticcfDnaReport::writeRtf(QByteArray out_file)
 	doc_.addColor(255,0,0);
 
 	doc_.addPart(partResultTable().RtfCode());
+	doc_.addPart(RtfParagraph("*AF: Allelfrequenz, Anteil mutierte Fragmente").setFontSize(16).setHorizontalAlignment("j").RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
+
 
 	if (data_.table.cfdna_samples.count() <= 3)
 	{
@@ -99,7 +101,7 @@ RtfTable SomaticcfDnaReport::partResultTable()
 
 	table.setUniqueBorder(1, "brdrhair", 2);
 
-	RtfTableRow header = RtfTableRow({"Probe", "Datum", "Max. AF", "Mittelwert AF", "Tumornachweis"},{3321,1650, 1650, 1650, 1650}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
+	RtfTableRow header = RtfTableRow({"Probe", "Datum", "Max. AF*", "Mittelwert AF*", "Tumornachweis"},{3321,1650, 1650, 1650, 1650}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
 	table.prependRow(header.setHeader().setBorders(1, "brdrhair", 2));
 
 	table.prependRow(RtfTableRow("Probenübersicht", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
