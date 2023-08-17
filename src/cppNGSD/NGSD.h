@@ -298,6 +298,8 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleData
 	QString run_name;
 	QString normal_sample_name;
 	QString lab_operator;
+	QString processing_modus;
+	QString batch_number;
 	QString processing_input;
 	QString molarity;
 	QString ancestry;

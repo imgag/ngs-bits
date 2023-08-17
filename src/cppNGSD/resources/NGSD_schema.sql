@@ -532,6 +532,8 @@ CREATE  TABLE IF NOT EXISTS `processed_sample`
   `project_id` INT(11) NOT NULL,
   `processing_input` FLOAT NULL DEFAULT NULL,
   `molarity` FLOAT NULL DEFAULT NULL,
+  `processing_modus` ENUM('n/a','manual','Biomek i5','Biomek i7', 'Bravo') NOT NULL DEFAULT 'n/a',
+  `batch_number` VARCHAR(100) NULL DEFAULT NULL,
   `normal_id` INT(11) NULL DEFAULT NULL COMMENT 'For tumor samples, a normal sample can be given here which is used as reference sample during the data analysis.',
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
   `folder_override` TEXT NULL DEFAULT NULL COMMENT 'Override for sample folder',
