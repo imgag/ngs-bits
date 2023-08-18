@@ -255,57 +255,48 @@ RtfTable SomaticcfDnaReport::partGeneralGeneticTable()
 {
 	RtfTable table;
 
-	int cfdna_count = data_.table.cfdna_samples.count();
-	int first_column_width = 2000;
-	int cfdna_width = (9921 - first_column_width) / cfdna_count;
+//	int cfdna_count = data_.table.cfdna_samples.count();
+//	int first_column_width = 2000;
+//	int cfdna_width = (9921 - first_column_width) / cfdna_count;
 
-	QList<double> depth; // QC
-	QList<double> d_depth; // QC ....71
-	QList<double> error; // QC ....86
+//	QList<double> depth; // QC
+//	QList<double> d_depth; // QC ....71
+//	QList<double> error; // QC ....86
 
 	//get QC values:
-	foreach(auto sample, data_.table.cfdna_samples)
-	{
-		QCCollection qc = db_.getQCData(sample.ps_id);
-		d_depth << qc.value("QC:2000071", true).asDouble(); //two fold duplication
-		error << qc.value("QC:2000086", true).asDouble(); //two fold depth
-		depth << qc.value("QC:2000025", true).asDouble(); //depth
+//	foreach(auto sample, data_.table.cfdna_samples)
+//	{
+//		QCCollection qc = db_.getQCData(sample.ps_id);
+//		d_depth << qc.value("QC:2000071", true).asDouble(); //two fold duplication
+//		error << qc.value("QC:2000086", true).asDouble(); //two fold depth
+//		depth << qc.value("QC:2000025", true).asDouble(); //depth
 
-		ProcessedSampleData ps_data = db_.getProcessedSampleData(sample.ps_id);
-	}
+//		ProcessedSampleData ps_data = db_.getProcessedSampleData(sample.ps_id);
+//	}
 
 	table.addRow(RtfTableRow("Qualitätsparameter", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
-	RtfTableRow header = RtfTableRow("", first_column_width, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
-	for(int i=0; i<cfdna_count; i++)
-	{
-		header.addCell(cfdna_width, data_.table.cfdna_samples[i].name.toUtf8(), RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
-	}
+	RtfTableRow header = RtfTableRow({"Probe", "Durchschnittliche Tiefe:", "Durchschnittliche Tiefe:\n\\line\n" + RtfText("(min. 1 Duplikat)").setFontSize(14).RtfCode(), "Fehlerrate:\n\\line\n" + RtfText("(min. 1 Duplikat)").setFontSize(14).RtfCode()},{2121,2600,2600,2600}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
 	table.addRow(header.setHeader().setBorders(1, "brdrhair", 2));
 
-	RtfTableRow row_depth;
-	row_depth.addCell(first_column_width, "Durchschnittliche Tiefe:");
-	foreach(auto d, depth)
+	foreach(auto sample, data_.table.cfdna_samples)
 	{
-		row_depth.addCell(cfdna_width, QByteArray::number(d, 'f', 0), RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
-	}
-	table.addRow(row_depth);
 
-	RtfTableRow row_m_depth;
-	row_m_depth.addCell(first_column_width, "Durchschnittliche Tiefe:\n\\line\n" + RtfText("(min. 1 Duplikat)").setFontSize(14).RtfCode());
-	foreach(auto d, d_depth)
-	{
-		row_m_depth.addCell(cfdna_width, QByteArray::number(d, 'f', 0), RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
-	}
-	table.addRow(row_m_depth);
+		QCCollection qc = db_.getQCData(sample.ps_id);
+		double d_depth = qc.value("QC:2000071", true).asDouble(); //two fold duplication
+		double error = qc.value("QC:2000086", true).asDouble(); //two fold depth
+		double depth = qc.value("QC:2000025", true).asDouble(); //depth
 
-	RtfTableRow row_error;
-	row_error.addCell(first_column_width, "Fehlerrate:\n\\line\n" + RtfText("(min. 1 Duplikat)").setFontSize(14).RtfCode());
-	foreach(auto d, error)
-	{
-		QByteArrayList parts = QByteArray::number(d, 'e', 2).split('e');
-		row_error.addCell(cfdna_width, parts[0] + "x10{\\super " + QByteArray::number(parts[1].toInt()) +"}" , RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
+
+		QByteArrayList parts = QByteArray::number(error, 'e', 2).split('e');
+		QByteArray error_str = parts[0] + "x10{\\super " + QByteArray::number(parts[1].toInt()) +"}";
+
+		ProcessedSampleData ps_data = db_.getProcessedSampleData(sample.ps_id);
+
+
+
+		RtfTableRow sample_row = RtfTableRow({sample.name.toUtf8(), formatDigits(depth, 0), formatDigits(d_depth, 0), error_str},{2121,2600,2600,2600}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
+		table.addRow(sample_row);
 	}
-	table.addRow(row_error);
 
 	table.setUniqueBorder(1, "brdrhair", 2);
 
