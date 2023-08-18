@@ -294,7 +294,7 @@ RtfTable SomaticcfDnaReport::partGeneralGeneticTable()
 
 
 
-		RtfTableRow sample_row = RtfTableRow({sample.name.toUtf8(), formatDigits(depth, 0), formatDigits(d_depth, 0), error_str},{2121,2600,2600,2600}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
+		RtfTableRow sample_row = RtfTableRow({sample.name.toUtf8(), formatDigits(depth, 0), formatDigits(d_depth, 0), error_str},{2121,2600,2600,2600}, RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
 		table.addRow(sample_row);
 	}
 
