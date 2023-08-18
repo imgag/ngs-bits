@@ -508,6 +508,11 @@ CfdnaDiseaseCourseTable GSvarHelper::cfdnaTable(const QString& tumor_ps_name, QS
 			cfdna_sample.order_date = QDate::fromString(sample_data.order_date,  "dd.MM.yyyy");
 		}
 
+		if (sample_data.sampling_date != "")
+		{
+			cfdna_sample.sampling_date = QDate::fromString(sample_data.sampling_date, "dd.MM.yyyy");
+		}
+
 		table.cfdna_samples << cfdna_sample;
 
 

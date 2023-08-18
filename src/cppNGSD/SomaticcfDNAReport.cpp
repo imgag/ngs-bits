@@ -78,7 +78,14 @@ RtfTable SomaticcfDnaReport::partResultTable()
 
 
 		row.addCell(3321, data_.table.cfdna_samples[i].name.toUtf8(), RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
-		row.addCell(1650, data_.table.cfdna_samples[i].order_date.toString("dd.MM.yyyy").toUtf8(), RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
+		if (data_.table.cfdna_samples[i].sampling_date.isValid())
+		{
+			row.addCell(1650, data_.table.cfdna_samples[i].sampling_date.toString("dd.MM.yyyy").toUtf8(), RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
+		}
+		else
+		{
+			row.addCell(1650, "", RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
+		}
 
 		double maxAF = getMaxAf(i);
 		if (maxAF > 0 && maxAF < 0.001)
@@ -204,13 +211,13 @@ RtfTable SomaticcfDnaReport::partSnvTable(int cfdna_idx_start, int cfdna_idx_end
 	RtfTableRow header = RtfTableRow({"Gen", "Veränderung", "Typ", "Anteil Tumor"},{821,1900,1300,700}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
 	for(int i=cfdna_idx_start; i<cfdna_idx_end; i++)
 	{
-		if(data_.table.cfdna_samples[i].order_date.isValid())
+		if(data_.table.cfdna_samples[i].sampling_date.isValid())
 		{
-			header.addCell(cfdna_width, "Anteil Plasma\n\\line\n" + data_.table.cfdna_samples[i].name.toUtf8() + "\n\\line\n(" + data_.table.cfdna_samples[i].order_date.toString("dd.MM.yyyy").toUtf8() + ")", RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
+			header.addCell(cfdna_width, "Anteil Plasma\n\\line\n" + data_.table.cfdna_samples[i].name.toUtf8() + "\n\\line\n(" + data_.table.cfdna_samples[i].sampling_date.toString("dd.MM.yyyy").toUtf8() + ")", RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
 		}
 		else
 		{
-			header.addCell(cfdna_width, "Anteil Plasma\n\\line\n" + data_.table.cfdna_samples[i].name.toUtf8() + "\n\\line\n(" + RtfText(data_.table.cfdna_samples[i].received_date.toString("dd.MM.yyyy").toUtf8()).setFontColor(5).RtfCode() + ")", RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
+			header.addCell(cfdna_width, "Anteil Plasma\n\\line\n" + data_.table.cfdna_samples[i].name.toUtf8() + "\n\\line\n()", RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c"));
 		}
 	}
 	table.prependRow(header.setHeader().setBorders(1, "brdrhair", 2));
