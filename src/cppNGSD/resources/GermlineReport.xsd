@@ -177,6 +177,7 @@
 									<xs:enumeration value="Panel Haloplex"/>
 									<xs:enumeration value="Panel MIPs"/>
 									<xs:enumeration value="WGS (shallow)"/>
+									<xs:enumeration value="lrGS"/>
 								</xs:restriction>
 							</xs:simpleType>
 						</xs:attribute>
