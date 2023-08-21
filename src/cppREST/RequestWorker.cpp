@@ -1,8 +1,8 @@
 #include "RequestWorker.h"
 
 RequestWorker::RequestWorker(QSslConfiguration ssl_configuration, qintptr socket)
-	:
-	 ssl_configuration_(ssl_configuration)
+    : QRunnable()
+    , ssl_configuration_(ssl_configuration)
 	, socket_(socket)
 	, is_terminated_(false)
 {
@@ -25,13 +25,6 @@ void RequestWorker::run()
 		Log::error("Could not set a socket descriptor: " + ssl_socket->errorString());
 		return;
 	}
-
-	typedef void (QSslSocket::* sslFailed)(const QList<QSslError> &);
-	connect(ssl_socket, static_cast<sslFailed>(&QSslSocket::sslErrors), this, &RequestWorker::sslFailed);
-	connect(ssl_socket, &QSslSocket::peerVerifyError, this, &RequestWorker::verificationFailed);
-	connect(ssl_socket, &QSslSocket::encrypted, this, &RequestWorker::securelyConnected);
-	connect(ssl_socket, &QSslSocket::disconnected, this, &RequestWorker::socketDisconnected);
-	connect(this, SIGNAL(securelyConnected()), this, SLOT(handleConnection()));
 
 	try
 	{
@@ -381,16 +374,6 @@ void RequestWorker::run()
 		Log::error(error_message);
 		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_PLAIN, error_message));
 	}
-}
-
-void RequestWorker::handleConnection()
-{
-	Log::info("Secure connection has been established");
-}
-
-void RequestWorker::socketDisconnected()
-{
-    Log::info("Client has disconnected from the socket");
 }
 
 QString RequestWorker::intToHex(const int& input)
