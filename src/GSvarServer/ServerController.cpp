@@ -452,12 +452,11 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 
 		//access restricted only for user role 'user_restricted'
         QString role = NGSD().getUserRole(current_session.user_id);
-        if (role=="user_restricted" || !NGSD().userCanAccess(current_session.user_id, id))
+        if (role=="user_restricted" && !NGSD().userCanAccess(current_session.user_id, id))
 		{
             return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "You do not have permissions to open this sample"));
-		}
-
-		found_file_path =  NGSD().processedSamplePath(QString::number(id), type);
+        }
+        found_file_path = NGSD().processedSamplePath(QString::number(id), type);
 	}
 	catch (Exception& e)
 	{
