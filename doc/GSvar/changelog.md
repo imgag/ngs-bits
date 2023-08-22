@@ -1,8 +1,15 @@
 # GSvar change log
 
+### 2023_06-57 (17.08.23)
+
+- general: added fields 'processing method' (enum) and 'batch number' (100 chars) to processed sample data and to processed sample batch import
+- burden test: added exclude regions
+- cfDNA report: several improvements
+- GenLab import: added tissue import
+
 ### 2023_06-43 (31.07.23)
 
-- general: fixed link to Desipher browser
+- general: fixed link to Decipher browser
 
 
 ### 2023_06-37 (20.07.23)
