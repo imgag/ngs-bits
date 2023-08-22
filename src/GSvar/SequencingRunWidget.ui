@@ -556,8 +556,18 @@
        </item>
        <item row="0" column="9">
         <widget class="QPushButton" name="b_export_sample_sheet">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>Export SampleSheet for illumina NovaSeq X (Plus)</string>
+         </property>
          <property name="text">
-          <string>Export SampleSheet</string>
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="GSvar.qrc">
+           <normaloff>:/Icons/Table.png</normaloff>:/Icons/Table.png</iconset>
          </property>
         </widget>
        </item>

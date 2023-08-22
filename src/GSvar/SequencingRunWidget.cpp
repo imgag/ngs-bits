@@ -80,6 +80,9 @@ void SequencingRunWidget::updateGUI()
 		ui_->status->setText(status);
 		ui_->backup->setText(query.value("backup_done").toString()=="1" ? "yes" : "no");
 
+		//#### activate SampleSheet ####
+		ui_->b_export_sample_sheet->setEnabled((query.value("d_type").toString() == "NovaSeqXPlus") || (query.value("d_type").toString() == "NovaSeqX"));
+
 		//#### run quality ####
 		updateReadQualityTable();
 
