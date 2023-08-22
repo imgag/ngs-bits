@@ -177,6 +177,8 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->run->setText("<a href=\"" + run + "\">"+run+"</a>");
 	ui_->merged->setText(mergedSamples());
 	ui_->lab_operator->setText(ps_data.lab_operator);
+	ui_->processing_modus->setText(ps_data.processing_modus);
+	ui_->batch_number->setText(ps_data.batch_number);
 	ui_->processing_input->setText(ps_data.processing_input);
 	ui_->molarity->setText(ps_data.molarity);
 	QString normal_sample = ps_data.normal_sample_name;
@@ -198,6 +200,8 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->name_external->setText(s_data.name_external);
 	ui_->patient_identifier->setText(s_data.patient_identifier);
 	ui_->year_ob_birth->setText(s_data.year_of_birth);
+	ui_->sampling_date->setText(s_data.sampling_date);
+	ui_->order_date->setText(s_data.order_date);
 	ui_->sender->setText(s_data.sender + " (received on " + s_data.received + " by " + s_data.received_by +")");
 	ui_->species_type->setText(s_data.species + " / " + s_data.type);
 	ui_->tumor_ffpe->setText(QString(s_data.is_tumor ? "<font color=red>yes</font>" : "no") + " / " + (s_data.is_ffpe ? "<font color=red>yes</font>" : "no"));
@@ -218,7 +222,6 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->outcome->setText(diag.outcome);
 	GSvarHelper::limitLines(ui_->comments_diag, diag.comments);
 	ui_->report_config->setText(db.reportConfigSummaryText(ps_id_));
-
 
 	//#### kasp status ####
 	try

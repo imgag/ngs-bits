@@ -8,8 +8,8 @@ TEST_CLASS(VcfLine_Test)
     private slots:
 
     void constructLineWithoutFile()
-    {
-        QByteArrayList format_ids;
+	{
+		QByteArrayList format_ids;
         format_ids.push_back("GT");
         format_ids.push_back("X");
 
@@ -27,15 +27,15 @@ TEST_CLASS(VcfLine_Test)
         list.push_back("B");
         list_of_format_values.push_back(list);
 
-        VcfLine variant(Chromosome("chr4"), 777, "A", QList<Sequence>() << "T", format_ids, sample_ids, list_of_format_values);
+		VcfLine variant(Chromosome("chr4"), 777, "A", QList<Sequence>() << "T", format_ids, sample_ids, list_of_format_values);
         X_EQUAL(variant.chr(), Chromosome("chr4"));
-        I_EQUAL(variant.start(), 777);
-        S_EQUAL(variant.ref(), "A");
-        S_EQUAL(variant.altString(), "T");
-        QByteArrayList format = variant.formatKeys();
-        S_EQUAL(format.at(0), "GT");
-        S_EQUAL(format.at(1), "X");
-        S_EQUAL(format.size(), 2);
+		I_EQUAL(variant.start(), 777);
+		S_EQUAL(variant.ref(), "A");
+		S_EQUAL(variant.altString(), "T");
+		QByteArrayList format = variant.formatKeys();
+		S_EQUAL(format.size(), 2);
+		S_EQUAL(format.at(0), "GT");
+		S_EQUAL(format.at(1), "X");
 
         S_EQUAL(variant.formatValueFromSample("GT", "sample_1"), "1/1");
         S_EQUAL(variant.formatValueFromSample("X", "sample_1"), "A");
@@ -45,7 +45,7 @@ TEST_CLASS(VcfLine_Test)
 
 
     void infoLinefromHeader()
-    {
+	{
         VcfHeader header;
         InfoFormatLine added_info;
         for(int i = 0; i < 10; ++i)
@@ -65,7 +65,7 @@ TEST_CLASS(VcfLine_Test)
     }
 
     void formatLineFromHeader()
-    {
+	{
         VcfHeader header;
         InfoFormatLine added_format;
         for(int i = 0; i < 10; ++i)
@@ -97,17 +97,14 @@ TEST_CLASS(VcfLine_Test)
     void infoFromInfoId()
     {
         VcfLine variant;
-        QByteArrayList info;
-        InfoIDToIdxPtr info_ptr = InfoIDToIdxPtr(new OrderedHash<QByteArray, int>);
+		QByteArrayList info_keys;
+		QByteArrayList info;
         for(int i = 0; i < 10; ++i)
         {
-            QByteArray key = "key of " + QByteArray::number(i);
-            QByteArray value = "value of " + QByteArray::number(i);
-            info.push_back(value);
-            info_ptr->push_back(key, static_cast<unsigned char>(i));
+			info_keys << "key of " + QByteArray::number(i);
+			info << "value of " + QByteArray::number(i);
 		}
-        variant.setInfoIdToIdxPtr(info_ptr);
-		variant.setInfo(info);
+		variant.setInfo(info_keys, info);
 		I_EQUAL(variant.infoKeys().size(), 10);
 		S_EQUAL(variant.info("key of 3"), "value of 3");
         S_EQUAL(variant.info("key of 4"), "value of 4");

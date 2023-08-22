@@ -34,16 +34,16 @@ INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapt
 (3, 'ssSC_vTEST', 'SureSelect Somatic vTEST', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel', 1, '/mnt/share/data/enrichment/ssSC_test.bed', 1),
 (4, 'IDT_xGenPrism', 'IDT xGen Human ID + IDT xGen Prism DNA', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCA', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'cfDNA (patient-specific)', 1, 'idt_HumanID.bed', 1);
 
-INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`, `quality`, `comment`, `normal_id`) VALUES
-(3999, 1, 3, 1, '1', 1, 1, 'medium', 'comment_ps1', null),
-(4000, 1, 4, 1, '1', 1, 1, 'medium', 'comment_ps2', null),
-(4001, 2, 4, 1, '1', 1, 1, 'medium', 'comment_ps3', null),
-(4002, 3, 1, 1, '1', 1, 1, 'good', 'comment_ps4', 3999),
-(4003, 4, 1, 1, '1', 1, 1, 'good', 'comment_ps4', null),
-(5, 2, 23, 1, '1', 1, 1, 'medium', 'comment_ps5', null),
-(6, 3, 44, 1, '1', 1, 1, 'medium', 'comment_ps6', null),
-(7, 6, 1, '1', '1,2,3,4', 3, 2, 'good', 'comment_ps7', null),
-(8, 5, 1, '1', '1,2,3,4', 3, 2, 'good', 'comment_ps8', 7);
+INSERT INTO `processed_sample` (`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`, `quality`, `comment`, `normal_id`, `processing_modus`, `batch_number`) VALUES
+(3999, 1, 3, 1, '1', 1, 1, 'medium', 'comment_ps1', null, 'manual', 'batch 17'),
+(4000, 1, 4, 1, '1', 1, 1, 'medium', 'comment_ps2', null, 'n/a', null),
+(4001, 2, 4, 1, '1', 1, 1, 'medium', 'comment_ps3', null, 'n/a', null),
+(4002, 3, 1, 1, '1', 1, 1, 'good', 'comment_ps4', 3999, 'n/a', null),
+(4003, 4, 1, 1, '1', 1, 1, 'good', 'comment_ps4', null, 'n/a', null),
+(5, 2, 23, 1, '1', 1, 1, 'medium', 'comment_ps5', null, 'n/a', null),
+(6, 3, 44, 1, '1', 1, 1, 'medium', 'comment_ps6', null, 'n/a', null),
+(7, 6, 1, '1', '1,2,3,4', 3, 2, 'good', 'comment_ps7', null, 'n/a', null),
+(8, 5, 1, '1', '1,2,3,4', 3, 2, 'good', 'comment_ps8', 7, 'n/a', null);
 
 INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `outcome`, `comment`) VALUES
 (3999, 'done', 99, '2014-07-29 09:40:49', 'no significant findings', "free text");

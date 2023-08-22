@@ -199,15 +199,8 @@ void VariantValidationWidget::openPrimerDesign()
 			Chromosome chr = variant.chr();
 			int start = variant.start();
 			int end = variant.end();
-			if(GSvarHelper::build()==GenomeBuild::HG38) //PrimerDesign supports HG19 only
-			{
-				BedLine region = GSvarHelper::liftOver(chr, start, end, false);
-				chr = region.chr();
-				start = region.start();
-				end = region.end();
-			}
 
-			QString url = Settings::string("PrimerDesign")+"/index.php?user="+LoginManager::userLogin()+"&sample="+sample+"&chr="+chr.str()+"&start="+QString::number(start)+"&end="+QString::number(end)+"";
+			QString url = Settings::string("PrimerDesign") + "primer3/query?region=" + chr.str() + ":" + QString::number(start) + "-" + QString::number(end);
 			QDesktopServices::openUrl(QUrl(url));
 		}
 	}

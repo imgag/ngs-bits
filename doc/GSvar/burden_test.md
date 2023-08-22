@@ -38,7 +38,7 @@ Please select not more than 200 genes unless you want to wait for a very long ti
 
 ## Running the burden test
 
-Afer entering cases, controls and genes, you have to specify which variants should be included into the test.  
+After entering cases, controls and genes, you have to specify which variants should be included into the test. You can also add a region which should be excluded (e.g. low confident regions).  
 Then you can run the test and copy the results to the clipboard:
 
 ![alt text](burden_test_dialog.png)

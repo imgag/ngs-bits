@@ -43,8 +43,11 @@ public:
 	///Returns the GenLab year of birth for a sample (tries sample name if processed sample name is not found)
 	QString yearOfBirth(QString ps_name);
 
+	///Returns the GenLab date of sampling for a sample (tries sample name if processed sample name is not found)
+	QString samplingDate(QString ps_name);
+
 	///Returns the GenLab year of order entry for a sample (tries sample name if processed sample name is not found)
-	QString yearOfOrderEntry(QString ps_name);
+	QString orderEntryDate(QString ps_name);
 
 	///Returns disease group and disease status of a processed sample (tries sample name if processed sample name is not found)
 	QPair<QString, QString> diseaseInfo(QString ps_name);
@@ -75,8 +78,11 @@ public:
 	///Returns a list of all sample names of the patient with the given processed sample.
 	QStringList patientSamples(QString ps_name);
 
-	///Returns
+	///Returns DNA samples corresponding to a RNA sample
 	QStringList dnaSamplesofRna(QString external_name);
+
+	///Returns the tissue type of a sample, or an empty string if it could not be determined.
+	QString tissue(QString ps_name);
 
 protected:
 	///Copy constructor "declared away".

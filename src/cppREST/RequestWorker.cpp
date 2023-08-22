@@ -1,8 +1,8 @@
 #include "RequestWorker.h"
 
 RequestWorker::RequestWorker(QSslConfiguration ssl_configuration, qintptr socket)
-	:
-	 ssl_configuration_(ssl_configuration)
+    : QRunnable()
+    , ssl_configuration_(ssl_configuration)
 	, socket_(socket)
 	, is_terminated_(false)
 {
@@ -25,13 +25,6 @@ void RequestWorker::run()
 		Log::error("Could not set a socket descriptor: " + ssl_socket->errorString());
 		return;
 	}
-
-	typedef void (QSslSocket::* sslFailed)(const QList<QSslError> &);
-	connect(ssl_socket, static_cast<sslFailed>(&QSslSocket::sslErrors), this, &RequestWorker::sslFailed);
-	connect(ssl_socket, &QSslSocket::peerVerifyError, this, &RequestWorker::verificationFailed);
-	connect(ssl_socket, &QSslSocket::encrypted, this, &RequestWorker::securelyConnected);
-	connect(ssl_socket, &QSslSocket::disconnected, this, &RequestWorker::socketDisconnected);
-	connect(this, SIGNAL(securelyConnected()), this, SLOT(handleConnection()));
 
 	try
 	{
@@ -383,16 +376,6 @@ void RequestWorker::run()
 	}
 }
 
-void RequestWorker::handleConnection()
-{
-	Log::info("Secure connection has been established");
-}
-
-void RequestWorker::socketDisconnected()
-{
-    Log::info("Client has disconnected from the socket");
-}
-
 QString RequestWorker::intToHex(const int& input)
 {
 	return QString("%1").arg(input, 10, 16, QLatin1Char('0')).toUpper();
@@ -402,17 +385,15 @@ void RequestWorker::closeConnection(QSslSocket* socket)
 {
 	is_terminated_ = true;
 
-	if ((socket->state() == QSslSocket::SocketState::UnconnectedState) || (socket->state() == QSslSocket::SocketState::ClosingState))
-	{
-		exit(0);
+    if ((socket->state() == QSslSocket::SocketState::UnconnectedState) || (socket->state() == QSslSocket::SocketState::ClosingState))
+    {
+        return;
 	}
-	else
-	{
-		if (socket->bytesToWrite()) socket->waitForBytesWritten(5000);
-		socket->disconnect();
-		socket->disconnectFromHost();
-		socket->close();
-	}
+
+    if (socket->bytesToWrite()) socket->waitForBytesWritten(5000);
+    socket->disconnect();
+    socket->disconnectFromHost();
+    socket->close();
 }
 
 void RequestWorker::sendResponseDataPart(QSslSocket* socket, QByteArray data)

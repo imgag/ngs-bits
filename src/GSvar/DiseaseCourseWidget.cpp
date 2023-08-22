@@ -94,12 +94,12 @@ void DiseaseCourseWidget::createTableView()
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).");
 
 	// set header for sample
-	ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem(table_data_.tumor_sample.name + "\n(" + table_data_.tumor_sample.date.toString("dd.MM.yyyy") + ")\nAllele frequency", Qt::AlignBottom));
+	ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem(table_data_.tumor_sample.name + "\n(" + table_data_.tumor_sample.received_date.toString("dd.MM.yyyy") + ")\nAllele frequency", Qt::AlignBottom));
 
 	// set cfDNA header
 	foreach (const auto& cfdna_sample, table_data_.cfdna_samples)
 	{
-		ui_->vars-> setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem(cfdna_sample.name + "\n(" + cfdna_sample.date.toString("dd.MM.yyyy") + ")\nAllele fequency", Qt::AlignBottom));
+		ui_->vars-> setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem(cfdna_sample.name + "\n(" + cfdna_sample.received_date.toString("dd.MM.yyyy") + ")\nAllele fequency", Qt::AlignBottom));
 		ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("multi-UMI allele frequency");
 		ui_->vars-> setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("Alt count", Qt::AlignBottom));
 		ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("multi-UMI alternative counts");

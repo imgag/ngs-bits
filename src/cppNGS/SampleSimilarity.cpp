@@ -11,7 +11,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesVcf(const VcfFile&
 		THROW(FileParseException, "The genotype can not be determined correctly for a VCF line with multiple samples. File name:  " + filename + " .");
 	}
 
-	if (!variants.formatIDs().contains("GT"))
+	if (!variants.vcfHeader().formatIdDefined("GT"))
 	{
 		THROW(FileParseException, "Could not determine genotype column for variant list " + filename);
 	}
@@ -115,7 +115,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString fi
 		THROW(FileParseException, "The genotype can not be determined correctly for a VCF line with multiple samples. File name:  " + filename + " .");
 	}
 
-	if (!variants.formatIDs().contains("GT"))
+	if (!variants.vcfHeader().formatIdDefined("GT"))
 	{
 		THROW(FileParseException, "Could not determine genotype column for variant list " + filename);
 	}
@@ -136,7 +136,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString fi
 		THROW(FileParseException, "The genotype can not be determined correctly for a VCF line with multiple samples. File name:  " + filename + " .");
 	}
 
-	if (!variants.formatIDs().contains("GT"))
+	if (!variants.vcfHeader().formatIdDefined("GT"))
 	{
 		THROW(FileParseException, "Could not determine genotype column for variant list " + filename);
 	}

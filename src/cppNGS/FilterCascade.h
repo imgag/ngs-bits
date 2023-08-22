@@ -98,8 +98,8 @@ class CPPNGSSHARED_EXPORT FilterResult
         void removeFlagged(BedpeFile& svs);
 
 		///Tag variants that did not pass the filter using the 'filter' column.
-		void tagNonPassing(VariantList& variants, QByteArray tag, QByteArray description);
-		void tagNonPassing(VcfFile& variants, QByteArray tag, QString description);
+		void tagNonPassing(VariantList& variants, const QByteArray& tag, const QByteArray& description);
+		void tagNonPassing(VcfFile& variants, const QByteArray& tag, const QString& description);
 
 	private:
 		QBitArray pass;

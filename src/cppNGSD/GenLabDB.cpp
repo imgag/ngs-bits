@@ -254,7 +254,22 @@ QString GenLabDB::yearOfBirth(QString ps_name)
 	return "";
 }
 
-QString GenLabDB::yearOfOrderEntry(QString ps_name)
+QString GenLabDB::samplingDate(QString ps_name)
+{
+	foreach(QString name, names(ps_name))
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT Probe_Entnahmedatum FROM v_ngs_dates WHERE LABORNUMMER='" + name + "' AND Probe_Entnahmedatum IS NOT NULL");
+		while(query.next())
+		{
+			return query.value(0).toDateTime().toString("yyyy-MM-dd");
+		}
+	}
+
+	return "";
+}
+
+QString GenLabDB::orderEntryDate(QString ps_name)
 {
 	foreach(QString name, names(ps_name))
 	{
@@ -262,7 +277,7 @@ QString GenLabDB::yearOfOrderEntry(QString ps_name)
 		query.exec("SELECT Datum_Auftragseingang FROM v_ngs_dates WHERE LABORNUMMER='" + name + "' AND Datum_Auftragseingang IS NOT NULL");
 		while(query.next())
 		{
-			return query.value(0).toDateTime().toString("yyyy");
+			return query.value(0).toDateTime().toString("yyyy-MM-dd");
 		}
 	}
 
@@ -583,6 +598,25 @@ QStringList GenLabDB::dnaSamplesofRna(QString external_name)
 	return output;
 }
 
+QString GenLabDB::tissue(QString ps_name)
+{
+	foreach(QString name, names(ps_name))
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT PROBENART_LANGFORM FROM v_ngs_eingangsprobe WHERE LABORNUMMER='" + name + "'");
+		while (query.next())
+		{
+			QString type = query.value(0).toString().trimmed();
+			if (type=="Wangenschleimhaut") return "buccal mucosa";
+			if (type=="Paxgene") return "blood";
+			if (type=="Heparin-Blut") return "blood";
+			if (type=="Fibroblasten-Kultur") return "fibroblast";
+			if (type=="EDTA-Blut") return "blood";
+		}
+	}
+
+	return "";
+}
 
 QStringList GenLabDB::names(QString ps_name)
 {

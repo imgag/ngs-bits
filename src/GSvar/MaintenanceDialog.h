@@ -20,6 +20,7 @@ private slots:
 	void replaceObsolteHPOTerms();
 	void findInconsistenciesForCausalDiagnosticVariants();
 	void importYearOfBirth();
+	void importTissue();
 
 private:
 	Ui::MaintenanceDialog ui_;

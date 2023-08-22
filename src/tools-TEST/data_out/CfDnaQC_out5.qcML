@@ -10,10 +10,10 @@
     <metaDataParameter ID="md0005" name="linked file" value="CfDnaQC_in_panel.bed" uri="CfDnaQC_in_panel.bed" cvRef="QC" accession="QC:1000006" />
     <metaDataParameter ID="md0006" name="linked file" value="CfDnaQC_in_error_rates.tsv" uri="CfDnaQC_in_error_rates.tsv" cvRef="QC" accession="QC:1000006" />
     <qualityParameter ID="qp0001" name="monitoring variant read depth" description="" value="5765.20" cvRef="QC" accession="QC:2000077"/>
-    <qualityParameter ID="qp0002" name="ID variant read depth" description="" value="4468.11" cvRef="QC" accession="QC:2000078"/>
-    <qualityParameter ID="qp0003" name="monitoring variant count" description="" value="5" cvRef="QC" accession="QC:2000079"/>
-    <qualityParameter ID="qp0004" name="250x coverage monitoring variant percentage" description="" value="100.00" cvRef="QC" accession="QC:2000080"/>
-    <qualityParameter ID="qp0005" name="ID variant count" description="" value="9" cvRef="QC" accession="QC:2000081"/>
+    <qualityParameter ID="qp0002" name="monitoring variant count" description="" value="5" cvRef="QC" accession="QC:2000079"/>
+    <qualityParameter ID="qp0003" name="250x coverage monitoring variant percentage" description="" value="100.00" cvRef="QC" accession="QC:2000080"/>
+    <qualityParameter ID="qp0004" name="ID variant count" description="" value="9" cvRef="QC" accession="QC:2000081"/>
+    <qualityParameter ID="qp0005" name="ID variant read depth" description="" value="4468.11" cvRef="QC" accession="QC:2000078"/>
     <qualityParameter ID="qp0006" name="250x coverage ID variant percentage" description="" value="100.00" cvRef="QC" accession="QC:2000082"/>
     <qualityParameter ID="qp0007" name="umiVar error rate 1-fold duplication" description="" value="0.00135846" cvRef="QC" accession="QC:2000085"/>
     <qualityParameter ID="qp0008" name="umiVar error rate 2-fold duplication" description="" value="0.00027984" cvRef="QC" accession="QC:2000086"/>

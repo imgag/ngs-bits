@@ -427,7 +427,9 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	if (p.add_dates)
 	{
 		fields << "s.year_of_birth as year_of_birth";
-		fields << "YEAR(s.received) as year_received";
+		fields << "s.received as received_date";
+		fields << "s.sampling_date as sampling_date";
+		fields << "s.order_date as order_date";
 	}
 
 	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
@@ -556,7 +558,7 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 {
 	//execute query
 	SqlQuery query = getQuery();
-	query.exec("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe, s.sample_type, s.sender_id, s.species_id, s.received, s.receiver_id, s.tissue, s.patient_identifier, s.year_of_birth FROM sample s WHERE id=" + sample_id);
+	query.exec("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe, s.sample_type, s.sender_id, s.species_id, s.received, s.receiver_id, s.tissue, s.patient_identifier, s.year_of_birth, s.order_date, s.sampling_date FROM sample s WHERE id=" + sample_id);
 	if (query.size()==0)
 	{
 		THROW(ProgrammingException, "Invalid 'id' for table 'sample' given: '" + sample_id + "'");
@@ -597,6 +599,18 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 		output.year_of_birth = year_of_birth.toString();
 	}
 
+	QVariant order_date = query.value(17);
+	if (!order_date.isNull())
+	{
+		output.order_date = order_date.toDate().toString("dd.MM.yyyy");
+	}
+
+	QVariant sampling_date = query.value(18);
+	if (!sampling_date.isNull())
+	{
+		output.sampling_date = sampling_date.toDate().toString("dd.MM.yyyy");
+	}
+
 	//sample groups
 	SqlQuery group_query = getQuery();
 	group_query.exec("SELECT sg.name, sg.comment FROM sample_group sg, nm_sample_sample_group nm WHERE sg.id=nm.sample_group_id AND nm.sample_id=" + sample_id);
@@ -612,7 +626,7 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 {
 	//execute query
 	SqlQuery query = getQuery();
-	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, sys.name_manufacturer as sys_name, sys.type as sys_type, ps.quality, ps.comment, p.name as p_name, p.type as p_type, r.name as r_name, ps.normal_id, s.gender, ps.operator_id, ps.processing_input, ps.molarity FROM sample s, project p, processing_system sys, processed_sample ps LEFT JOIN sequencing_run r ON ps.sequencing_run_id=r.id WHERE ps.sample_id=s.id AND ps.project_id=p.id AND ps.processing_system_id=sys.id AND ps.id=" + processed_sample_id);
+	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, sys.name_manufacturer as sys_name, sys.type as sys_type, ps.quality, ps.comment, p.name as p_name, p.type as p_type, r.name as r_name, ps.normal_id, s.gender, ps.operator_id, ps.processing_input, ps.molarity, ps.processing_modus, ps.batch_number FROM sample s, project p, processing_system sys, processed_sample ps LEFT JOIN sequencing_run r ON ps.sequencing_run_id=r.id WHERE ps.sample_id=s.id AND ps.project_id=p.id AND ps.processing_system_id=sys.id AND ps.id=" + processed_sample_id);
 	if (query.size()==0)
 	{
 		THROW(ProgrammingException, "Invalid 'id' for table 'processed_sample' given: '" + processed_sample_id + "'");
@@ -640,6 +654,8 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 	{
 		output.lab_operator = userName(operator_id.toInt());
 	}
+	output.processing_modus = query.value("processing_modus").toString().trimmed();
+	output.batch_number = query.value("batch_number").toString().trimmed();
 	output.processing_input = query.value("processing_input").toString().trimmed();
 	output.molarity = query.value("molarity").toString().trimmed();
 	output.ancestry = getValue("SELECT `population` FROM `processed_sample_ancestry` WHERE `processed_sample_id`=:0", true, processed_sample_id).toString();
@@ -3708,9 +3724,6 @@ QList<CfdnaGeneEntry> NGSD::cfdnaGenes()
 VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, const BedFile& target_region, bool tumor_only, bool throw_on_fail)
 {
 	VcfFile vcf;
-	//TODO Leon: the two lines below did nothing. I changed sampleIDs() to return a const ref now they don't compile anymore
-	//vcf.sampleIDs().append("TUMOR")
-	//if(!tumor_only) vcf.sampleIDs().append("NORMAL");
 
 	ProcessingSystemData sys = getProcessingSystemData(sys_id);
 
@@ -3723,12 +3736,10 @@ VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, const BedFile& target_re
 	vcf.vcfHeader().addInfoLine(id_source);
 
 	//prepare info for VCF line
+	QByteArrayList info_keys;
+	info_keys << "ID_Source";
 	QByteArrayList info;
-	InfoIDToIdxPtr info_ptr = InfoIDToIdxPtr(new OrderedHash<QByteArray, int>);
-	QByteArray key = "ID_Source";
-	QByteArray value = sys.name_short.toUtf8();
-	info.push_back(value);
-	info_ptr->push_back(key, static_cast<unsigned char>(0));
+	info.push_back(sys.name_short.toUtf8());
 
 	QByteArrayList format_ids = QByteArrayList() << "GT";
 	QByteArrayList sample_ids = QByteArrayList() << "TUMOR";
@@ -3752,11 +3763,10 @@ VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, const BedFile& target_re
 				}
 				return VcfFile();
 			}
-			VcfLinePtr vcf_ptr = QSharedPointer<VcfLine>(new VcfLine(line.chr(), line.start(), variant_info.at(0), QList<Sequence>() << variant_info.at(1), format_ids, sample_ids, list_of_format_values));
-			vcf_ptr->setInfoIdToIdxPtr(info_ptr);
-			vcf_ptr->setInfo(info);
-			vcf_ptr->setId(QByteArrayList() << "ID");
-			vcf.vcfLines() << vcf_ptr;
+			VcfLine vcf_line(line.chr(), line.start(), variant_info.at(0), QList<Sequence>() << variant_info.at(1), format_ids, sample_ids, list_of_format_values);
+			vcf_line.setInfo(info_keys, info);
+			vcf_line.setId(QByteArrayList() << "ID");
+			vcf.append(vcf_line);
 		}
 		else
 		{
