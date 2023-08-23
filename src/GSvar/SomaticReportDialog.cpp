@@ -570,7 +570,9 @@ void SomaticReportDialog::limitationState()
 
 void SomaticReportDialog::createIgvScreenshot()
 {
-	//create commands
+    updateIgvText();
+
+    //create commands
 	QStringList commands;
 	commands << "genome " + Settings::path("igv_genome");
 	for(auto loc : GlobalServiceProvider::fileLocationProvider().getBafFiles(false))
@@ -587,15 +589,19 @@ void SomaticReportDialog::createIgvScreenshot()
 	loc = GlobalServiceProvider::fileLocationProvider().getSomaticCnvCallFile();
 	if (loc.exists) commands << "load " + Helper::canonicalPath(loc.filename);
 
-	QString screenshot_file_location = Helper::canonicalPath(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename);
-	if (!GlobalServiceProvider::fileLocationProvider().isLocal())
+    FileLocation screenshot_file_location = GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile();
+    if (screenshot_file_location.exists) return;
+
+    QString screenshot_filename = Helper::canonicalPath(screenshot_file_location.filename);
+
+    if (!GlobalServiceProvider::fileLocationProvider().isLocal())
 	{
-		// For client-server mode we create a temporary file locally first
-		screenshot_file_location = QDir(QDir::tempPath()).filePath(screenshot_file_location);
+        // For client-server mode we create a temporary file locally first
+        screenshot_filename = QDir(QDir::tempPath()).filePath(QUrl(screenshot_filename).fileName());
 	}
 
 	commands << "maxPanelHeight 400";
-	commands << "snapshot " + screenshot_file_location;
+    commands << "snapshot " + screenshot_filename;
 
 	//create screenshot
 	try
@@ -609,9 +615,15 @@ void SomaticReportDialog::createIgvScreenshot()
 			}
 		}
 
-		QMessageBox::information(this, "IGV screenshot", "IGV screenshot was created.");
+        if (QFileInfo(screenshot_filename).exists())
+        {
+            QMessageBox::information(this, "IGV screenshot", "IGV screenshot was created.");
+        }
+        else
+        {
+            QMessageBox::warning(this, "IGV screenshot", "IGV screenshot does not exist.");
+        }
 
-		updateIgvText();
 	}
 	catch(Exception e)
 	{
@@ -621,7 +633,7 @@ void SomaticReportDialog::createIgvScreenshot()
 	// Upload screenshot to the server, if the client-server mode is activated
 	if (!GlobalServiceProvider::fileLocationProvider().isLocal())
 	{
-		QFile *file = new QFile(screenshot_file_location);
+        QFile *file = new QFile(screenshot_filename);
 		if (!file->exists())
 		{
 			QMessageBox::warning(this, "Screenshot file error", "Could not find the screenshot file!");
@@ -641,7 +653,7 @@ void SomaticReportDialog::createIgvScreenshot()
 
 		QHttpPart binary_form_data;
 		binary_form_data.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("image/png"));
-		binary_form_data.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"image\"; filename=\"" + QFileInfo(screenshot_file_location).fileName() + "\""));
+        binary_form_data.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"image\"; filename=\"" + QFileInfo(screenshot_filename).fileName() + "\""));
 
 		file->open(QIODevice::ReadOnly);
 		binary_form_data.setBodyDevice(file);
@@ -660,7 +672,6 @@ void SomaticReportDialog::createIgvScreenshot()
 	}
 
 	updateIgvText();
-
 }
 
 QList<QString> SomaticReportDialog::resolveCIN()
