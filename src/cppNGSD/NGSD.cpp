@@ -20,6 +20,7 @@
 #include <QDir>
 #include <QThread>
 #include <ProxyDataService.h>
+#include <QMap>
 #include "cmath"
 #include "QUuid"
 #include "ClientHelper.h"
@@ -5282,6 +5283,212 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 	{
 		*messages << "Warning: Cannot perform check for invalid HPO identifierts because not HPO terms were imported into the NGSD!" << endl;
 	}
+}
+
+QString NGSD::createSampleSheet(int run_id)
+{
+	QStringList sample_sheet;
+
+	QString sw_version = Settings::string("nova_seq_x_sw_version");
+	QString app_version = Settings::string("nova_seq_x_app_version");
+	int barcode_mismatch_index1 = 1; //TODO: make adjustable?
+	int barcode_mismatch_index2 = 1; //TODO: make adjustable?
+
+
+
+	//get info from db
+	SqlQuery query = getQuery();
+	query.exec("SELECT r.*, d.name d_name, d.type d_type FROM sequencing_run r, device d WHERE r.device_id=d.id AND r.id='" + QString::number(run_id) + "'");
+	query.next();
+	QString run_name = query.value("name").toString();
+	QStringList recipe = query.value("recipe").toString().split("+");
+	if (recipe.size() != 4)
+	{
+		THROW(ArgumentException, "Invalid recipe '" + query.value("recipe").toString() + "' provided! It has to contain 4 read lengths (forward, index1, index2, reverse), divided by '+'.");
+	}
+	int forward_read_length = Helper::toInt(recipe.at(0), "forward read");
+	int index1_read_length = Helper::toInt(recipe.at(1), "index1");
+	int index2_read_length = Helper::toInt(recipe.at(2), "index2");
+	int reverse_read_length = Helper::toInt(recipe.at(3), "reverse read");
+
+
+	//create header
+	sample_sheet.append("[Header],");
+	sample_sheet.append("FileFormatVersion,2");
+	sample_sheet.append("RunName," + run_name.remove(0, 1));
+	sample_sheet.append("InstrumentPlatform,NovaSeqXSeries");
+	sample_sheet.append("InstrumentType," + query.value("d_type").toString());
+	sample_sheet.append("IndexOrientation,Forward");
+	sample_sheet.append("");
+
+	//create read info
+	sample_sheet.append("[Reads]");
+	sample_sheet.append("Read1Cycles," + QString::number(forward_read_length));
+	sample_sheet.append("Read2Cycles," + QString::number(reverse_read_length));
+	sample_sheet.append("Index1Cycles,"+ QString::number(index1_read_length));
+	sample_sheet.append("Index2Cycles,"+ QString::number(index2_read_length));
+	sample_sheet.append("");
+
+	//get sample info
+	QSet<QString> adapter_sequences_read1;
+	QSet<QString> adapter_sequences_read2;
+	QStringList bcl_convert;
+	QStringList germline_analysis;
+	QStringList enrichment_analysis;
+	QStringList rna_analysis;
+
+	query.exec("SELECT ps.id, ps.lane, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, s.tumor, s.sample_type, (SELECT sequence FROM mid WHERE id=ps.mid1_i7) as mid1,"
+			   " (SELECT sequence FROM mid WHERE id=ps.mid2_i5) as mid2, (SELECT name_short FROM processing_system WHERE id=ps.processing_system_id) as system_name,"
+			   " (SELECT type FROM processing_system WHERE id=ps.processing_system_id) as system_type, (SELECT name FROM project WHERE id=ps.project_id) as project "
+			   " FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id='" + QString::number(run_id) + "' ORDER BY ps.lane ASC, ps.id");
+	while (query.next())
+	{
+		QStringList lanes = query.value("lane").toString().split(",");
+		QString ps_name = query.value("ps_name").toString();
+		Sequence mid1 = Sequence(query.value("mid1").toByteArray());
+		Sequence mid2 = Sequence(query.value("mid2").toByteArray());
+		QString sample_type = query.value("sample_type").toString();
+		QByteArray system_type = query.value("system_type").toByteArray();
+		QByteArray system_name = query.value("system_name").toByteArray();
+		QString project = query.value("project").toString();
+
+		//get adapter sequence
+		ProcessingSystemData sys_info = getProcessingSystemData(processingSystemId(system_name));
+		adapter_sequences_read1.insert(sys_info.adapter1_p5);
+		adapter_sequences_read2.insert(sys_info.adapter2_p7);
+
+		if (sample_type == "DNA")
+		{
+			if (system_type == "WGS")
+			{
+				germline_analysis.append(ps_name);
+			}
+			else if (system_type == "WES")
+			{
+				enrichment_analysis.append(ps_name + "," + system_name + ".bed");
+			}
+		}
+		else if (sample_type == "RNA")
+		{
+			rna_analysis.append(ps_name);
+		}
+		else
+		{
+			THROW(ArgumentException, "Invalid sample type '" + sample_type + "'!");
+		}
+
+		//create line for BCLConvert
+		foreach (const QString& lane, lanes)
+		{
+			QStringList line;
+			line.append(lane);
+			line.append(ps_name);
+			line.append(mid1);
+			line.append(mid2);
+
+			//TODO: add UMIs
+			QString override_cycles;
+			// forward read
+			override_cycles = "Y" + QString::number(forward_read_length) + ";";
+			// index1
+			override_cycles += "I" + QString::number(mid1.length());
+			if (index1_read_length - mid1.length() < 0) THROW(ArgumentException, "Index1 read longer than seqeuncing length!")
+			if (index1_read_length - mid1.length() > 0) override_cycles += "N" + QString::number(index1_read_length - mid1.length());
+			override_cycles += ";";
+			//index2
+			if (index2_read_length - mid2.length() < 0) THROW(ArgumentException, "Index2 read longer than seqeuncing length!")
+			if (index2_read_length - mid2.length() > 0) override_cycles += "N" + QString::number(index2_read_length - mid2.length());
+			override_cycles += "I" + QString::number(mid2.length()) + ";";
+			// reverse read
+			override_cycles += "Y" + QString::number(reverse_read_length);
+			line.append(override_cycles);
+
+			line.append(QString::number(barcode_mismatch_index1));
+			line.append(QString::number(barcode_mismatch_index2));
+			line.append(project);
+
+			bcl_convert.append(line.join(","));
+		}
+	}
+
+
+	//BCLConvert
+	sample_sheet.append("[BCLConvert_Settings]");
+	sample_sheet.append("SoftwareVersion,"  + sw_version);
+//	sample_sheet.append("BarcodeMismatchesIndex1,1");//TODO: make adjustable
+//	sample_sheet.append("BarcodeMismatchesIndex2,1");//TODO: make adjustable
+	sample_sheet.append("AdapterRead1," + adapter_sequences_read1.toList().join("+"));
+	sample_sheet.append("AdapterRead2," + adapter_sequences_read2.toList().join("+"));
+	sample_sheet.append("FastqCompressionFormat,gzip"); //TODO: make adjustable
+	sample_sheet.append("");
+	sample_sheet.append("[BCLConvert_Data]");
+	sample_sheet.append("Lane,Sample_ID,Index,Index2,OverrideCycles,BarcodeMismatchesIndex1,BarcodeMismatchesIndex2,Sample_Project");
+	sample_sheet.append(bcl_convert);
+	sample_sheet.append("");
+
+
+	//DRAGEN Germline
+	if (germline_analysis.size() > 0)
+	{
+		sample_sheet.append("[DragenGermline_Settings]");
+		sample_sheet.append("SoftwareVersion," + sw_version);
+		sample_sheet.append("AppVersion," + app_version);
+		sample_sheet.append("KeepFastq,true");
+		sample_sheet.append("MapAlignOutFormat,bam");
+		sample_sheet.append("ReferenceGenomeDir,GRCh38"); //TODO: read from settings/NGSD
+		sample_sheet.append("VariantCallingMode,AllVariantCallers");
+		sample_sheet.append("");
+		sample_sheet.append("[DragenGermline_Data]");
+		sample_sheet.append("Sample_ID");
+		sample_sheet.append(germline_analysis);
+		sample_sheet.append("");
+	}
+
+	//DRAGEN Enrichment
+	if (enrichment_analysis.size() > 0)
+	{
+		sample_sheet.append("[DragenEnrichment_Settings]");
+		sample_sheet.append("SoftwareVersion," + sw_version);
+		sample_sheet.append("AppVersion," + app_version);
+		sample_sheet.append("KeepFastq,true");
+		sample_sheet.append("MapAlignOutFormat,bam");
+		sample_sheet.append("ReferenceGenomeDir,GRCh38"); //TODO: read from settings/NGSD
+//		sample_sheet.append("Bedfile,/usr/local/illumina/target_region/" + sys_name + ".bed"); //TODO: read from settings/NGSD
+		sample_sheet.append("GermlineOrSomatic,germline");
+//		sample_sheet.append("AuxNoiseBaselineFile,/usr/local/illumina/cnv/" + sys_name + ".txt"); //TODO: get format
+//		sample_sheet.append("AuxCnvPanelOfNormalsFile,/usr/local/illumina/cnv/" + sys_name + ".txt");
+		sample_sheet.append("VariantCallingMode,AllVariantCallers");
+		sample_sheet.append("");
+		sample_sheet.append("[DragenEnrichment_Data]");
+		sample_sheet.append("Sample_ID,BedFile");
+		sample_sheet.append(enrichment_analysis);
+		sample_sheet.append("");
+	}
+
+	//DRAGEN RNA
+	if (rna_analysis.size() > 0)
+	{
+		sample_sheet.append("[DragenRNA_Settings]");
+		sample_sheet.append("SoftwareVersion," + sw_version);
+		sample_sheet.append("AppVersion," + app_version);
+		sample_sheet.append("KeepFastq,true");
+		sample_sheet.append("MapAlignOutFormat,bam");
+		sample_sheet.append("ReferenceGenomeDir,GRCh38"); //TODO: read from settings/NGSD
+//		sample_sheet.append("RnaGeneAnnotationFile,/usr/local/illumina/genes/GRCh38.gtf"); //TODO: read from settings/NGSD
+		sample_sheet.append("RnaPipelineMode,FullPipeline"); //TODO: read from settings/NGSD
+		sample_sheet.append("GermlineOrSomatic,germline");
+//		sample_sheet.append("AuxNoiseBaselineFile,/usr/local/illumina/cnv/" + sys_name + ".txt"); //TODO: get format
+//		sample_sheet.append("AuxCnvPanelOfNormalsFile,/usr/local/illumina/cnv/" + sys_name + ".txt");
+		sample_sheet.append("VariantCallingMode,AllVariantCallers");
+		sample_sheet.append("");
+		sample_sheet.append("[DragenRNA_Data]");
+		sample_sheet.append("Sample_ID");
+		sample_sheet.append(rna_analysis);
+		sample_sheet.append("");
+	}
+
+
+	return sample_sheet.join("\n");
 }
 
 void NGSD::setComment(const Variant& variant, const QString& text)

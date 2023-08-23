@@ -1138,6 +1138,9 @@ public:
 	///Checks for errors/inconsistencies and fixes them if @p fix_errors is set.
 	void maintain(QTextStream* messages, bool fix_errors);
 
+	///Returns the content of a NovaSeqX Plus SampleSheet for a given run
+	QString createSampleSheet(int run_id);
+
 signals:
 	void initProgress(QString text, bool percentage);
 	void updateProgress(int percentage);
