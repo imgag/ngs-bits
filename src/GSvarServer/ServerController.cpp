@@ -404,7 +404,7 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 		{
 			if (request.getUrlParams()["path"].toLower() == "absolute") needs_url = false;
 		}
-		if ((needs_url) && (file_list[i].exists))
+        if (needs_url)
 		{
 			try
 			{
@@ -1441,7 +1441,15 @@ bool ServerController::hasOverlappingRanges(const QList<ByteRange>& ranges)
 QString ServerController::createTempUrl(const QString& file, const QString& token)
 {
 	QString id = ServerHelper::generateUniqueStr();
-	UrlManager::addNewUrl(id, UrlEntity(QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, id, QDateTime::currentDateTime()));
+
+    if (QFileInfo(file).exists())
+    {
+        UrlManager::addNewUrl(id, UrlEntity(QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, id, QDateTime::currentDateTime()));
+    }
+    else
+    {
+        UrlManager::addNewUrl(id, UrlEntity(file, "", file, id, QDateTime::currentDateTime()));
+    }
 
 	return ClientHelper::serverApiUrl() + "temp/" + id + "/" + QFileInfo(file).fileName() + "?token=" + token;
 }
