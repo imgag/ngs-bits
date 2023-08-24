@@ -1,5 +1,6 @@
 #include <QCoreApplication>
 #include <QCommandLineParser>
+#include <QProcessEnvironment>
 #include "Log.h"
 #include "ServerWrapper.h"
 #include "ServerHelper.h"
@@ -570,5 +571,12 @@ int main(int argc, char **argv)
 	}
 
 	ServerHelper::setServerStartDateTime(QDateTime::currentDateTime());
+
+    Log::info("List of all environment variables (" + QString::number(QProcessEnvironment::systemEnvironment().keys().count()) + " in total):");
+    foreach (QString key, QProcessEnvironment::systemEnvironment().keys())
+    {
+        Log::info(key + "=" + QProcessEnvironment::systemEnvironment().value(key));
+    }
+
 	return app.exec();
 }
