@@ -429,7 +429,7 @@ int main(int argc, char **argv)
 	EndpointManager::appendEndpoint(Endpoint{
 						"upload",
 						QMap<QString, ParamProps>{
-							{"ps_url_id", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "An id of a temporary URL pointing to a specific processed sample"}},
+                            {"ps_url_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "An id of a temporary URL pointing to a specific processed sample"}},
 							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::POST,
@@ -558,8 +558,6 @@ int main(int argc, char **argv)
     {
         Log::error("Failed to restore the previous state: " + e.message());
     }
-
-
 
 	Log::info("SSL version used for the build: " + QSslSocket::sslLibraryBuildVersionString());
 	ServerWrapper https_server(server_port);

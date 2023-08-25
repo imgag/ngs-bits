@@ -761,11 +761,11 @@ HttpResponse ServerController::saveQbicFiles(const HttpRequest& request)
 
 HttpResponse ServerController::uploadFile(const HttpRequest& request)
 {	
-	if (!request.getFormDataParams().contains("ps_url_id"))
+    if (!request.getUrlParams().contains("ps_url_id"))
     {
         return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Processed sample id is missing."));
 	}
-	UrlEntity url_entity = UrlManager::getURLById(request.getFormDataParams()["ps_url_id"].trimmed());
+    UrlEntity url_entity = UrlManager::getURLById(request.getUrlParams()["ps_url_id"].trimmed());
 
     return uploadFileToFolder(url_entity.path, request);
 }

@@ -7,7 +7,7 @@ RequestParser::RequestParser()
 
 HttpRequest RequestParser::parse(QByteArray *request) const
 {
-	HttpRequest parsed_request;
+    HttpRequest parsed_request;
 	QList<QByteArray> body = getRawRequestHeaders(*request);	
 	for (int i = 0; i < body.count(); ++i)
 	{
@@ -62,8 +62,8 @@ HttpRequest RequestParser::parse(QByteArray *request) const
 		QList<QString> content_type_header_list = headers[0].split(";");
 		QString content_type;
 		if (content_type_header_list.count() > 1)
-		{
-			content_type = content_type_header_list[0];
+        {
+            content_type = content_type_header_list[0];
 			QString boundary = "--" + content_type_header_list[1].trimmed().replace("boundary=", "", Qt::CaseInsensitive).replace("\"", "");
 
 			// Parse mutipart form data request
@@ -86,11 +86,12 @@ HttpRequest RequestParser::parse(QByteArray *request) const
 					{
 						boundary_end_position = (boundary_start_positions[p]+boundary.length()) - (form_body.length());
 					}
-					QByteArray multipart_item = form_body.mid(boundary_start_positions[p]+boundary.length(), boundary_end_position);
+					QByteArray multipart_item = form_body.mid(boundary_start_positions[p]+boundary.length(), boundary_end_position);                  
 
 					if (multipart_item!="--")
-					{						
-						if (!multipart_item.toLower().contains("content-type"))
+                    {
+
+                        if (!multipart_item.toLower().contains("content-type"))
 						{
 							// Parse form paramenters (i.e. form fields)
 							int name_pos = multipart_item.toLower().indexOf("name");
@@ -118,9 +119,12 @@ HttpRequest RequestParser::parse(QByteArray *request) const
 						}
 						else
 						{
-							// Parse file related content							
-							parsed_request.setMultipartFileName(getMultipartFileName(multipart_item));
-							parsed_request.setMultipartFileContent(getMultipartFileContent(multipart_item));
+                            // Parse file related content
+                            if (parsed_request.getMultipartFileName().isEmpty())
+                            {
+                                parsed_request.setMultipartFileName(getMultipartFileName(multipart_item));
+                                parsed_request.setMultipartFileContent(getMultipartFileContent(multipart_item));
+                            }
 						}
 						multipart_list.append(multipart_item);
 					}
@@ -274,8 +278,8 @@ RequestMethod RequestParser::inferRequestMethod(const QByteArray& input) const
 
 QList<int> RequestParser::getBoundaryStartPositions(const QByteArray& form, const QString& boundary) const
 {
-	QList<int> boundary_start_positions;
-	QRegularExpression boundary_reg_exp(boundary);
+    QList<int> boundary_start_positions;
+    QRegularExpression boundary_reg_exp(QRegularExpression::escape(boundary));
 	QRegularExpressionMatchIterator i = boundary_reg_exp.globalMatch(form);
 	while (i.hasNext())
 	{

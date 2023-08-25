@@ -249,10 +249,16 @@ void RequestWorker::run()
 			QList<ByteRange> ranges = response.getByteRanges();
 			int ranges_count = ranges.count();
 
-			// Range request
+            if (ranges_count>0)
+            {
+                Log::info(EndpointManager::formatResponseMessage(parsed_request, QString::number(ranges_count) + " range(-s) found in request headers: " + response.getFilename() + user_info + client_type));
+            }
+
+            // Range request
 			for (int i = 0; i < ranges_count; ++i)
-			{
-				chunk_size = STREAM_CHUNK_SIZE;
+            {
+                Log::info(EndpointManager::formatResponseMessage(parsed_request, "Byte range [" + QString::number(ranges[i].start) + ", " + QString::number(ranges[i].end) + "] from " + QString::number(file_size) + " bytes in total: " + response.getFilename() + user_info + client_type));
+                chunk_size = STREAM_CHUNK_SIZE;
 				pos = ranges[i].start;
 				if (ranges_count > 1)
 				{
@@ -396,7 +402,7 @@ void RequestWorker::closeConnection(QSslSocket* socket)
     socket->close();
 }
 
-void RequestWorker::sendResponseDataPart(QSslSocket* socket, QByteArray data)
+void RequestWorker::sendResponseDataPart(QSslSocket* socket, const QByteArray& data)
 {
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState)
 	{
@@ -405,7 +411,7 @@ void RequestWorker::sendResponseDataPart(QSslSocket* socket, QByteArray data)
 	}
 }
 
-void RequestWorker::sendEntireResponse(QSslSocket* socket, HttpResponse response)
+void RequestWorker::sendEntireResponse(QSslSocket* socket, const HttpResponse& response)
 {
 	if (response.getStatusCode() > 200) Log::warn("The server returned " + QString::number(response.getStatusCode()) + " - " + HttpUtils::convertResponseStatusToReasonPhrase(response.getStatus()));
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState)

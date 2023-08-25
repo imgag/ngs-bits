@@ -92,7 +92,7 @@ private slots:
 
 		HttpResponse response = ServerController::uploadFile(request);
 		IS_TRUE(response.getStatusLine().contains("400"));
-		request.addFormDataParam("ps_url_id", url_id);
+        request.addUrlParam("ps_url_id", url_id);
 		response = ServerController::uploadFile(request);
 		IS_TRUE(response.getStatusLine().contains("200"));
 		QString file_copy = TESTDATA("data/" + copy_name.toUtf8());

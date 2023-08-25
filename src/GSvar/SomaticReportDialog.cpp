@@ -646,24 +646,19 @@ void SomaticReportDialog::createIgvScreenshot()
 			return;
 		}
 
-		QHttpMultiPart* multipart_form = new QHttpMultiPart(QHttpMultiPart::FormDataType);
-		QHttpPart text_form_data;
-		text_form_data.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"ps_url_id\""));
-		text_form_data.setBody(filename_parts[filename_parts.size()-2].toUtf8());
-
+        QHttpMultiPart* multipart_form = new QHttpMultiPart(QHttpMultiPart::FormDataType);
 		QHttpPart binary_form_data;
 		binary_form_data.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("image/png"));
         binary_form_data.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"image\"; filename=\"" + QFileInfo(screenshot_filename).fileName() + "\""));
 
 		file->open(QIODevice::ReadOnly);
 		binary_form_data.setBodyDevice(file);
-		file->setParent(multipart_form);
-		multipart_form->append(text_form_data);
+        file->setParent(multipart_form);
 		multipart_form->append(binary_form_data);
 
 		try
-		{
-			HttpHandler(true).post(ClientHelper::serverApiUrl() + "upload?token=" + LoginManager::userToken(), multipart_form);
+        {
+            HttpHandler(true).post(ClientHelper::serverApiUrl() + "upload?ps_url_id=" + QUrl(filename_parts[filename_parts.size()-2].toUtf8()).toEncoded() + "&token=" + LoginManager::userToken(), multipart_form);
 		}
 		catch (Exception& e)
 		{
