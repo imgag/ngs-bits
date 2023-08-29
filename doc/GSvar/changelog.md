@@ -1,5 +1,11 @@
 # GSvar change log
 
+### 2023_06-57 (18.08.23)
+
+- update cfDNA report
+- fixed PrimerDesign link
+- fixed long-read report XML
+
 ### 2023_06-57 (17.08.23)
 
 - general: added fields 'processing method' (enum) and 'batch number' (100 chars) to processed sample data and to processed sample batch import

@@ -32,6 +32,8 @@ alamut_apikey = ""
 #proxy settings for GSvar
 proxy_host = ""
 proxy_port = 
+proxy_user = ""
+proxy_password = ""
 
 #special folders for GSvar
 gsvar_report_folder = ""
