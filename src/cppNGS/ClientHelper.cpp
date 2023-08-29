@@ -19,7 +19,7 @@ bool ClientHelper::isBamFile(QString filename)
 		filename = QUrl(filename).toString(QUrl::RemoveQuery);
 	}
 
-	return filename.endsWith(".bam", Qt::CaseInsensitive);
+	return filename.endsWith(".bam", Qt::CaseInsensitive) ||  filename.endsWith(".cram", Qt::CaseInsensitive);
 }
 
 QString ClientHelper::stripSecureToken(QString url)
