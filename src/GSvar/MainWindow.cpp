@@ -146,7 +146,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "ProxyDataService.h"
 #include "RefGenomeService.h"
 #include "GHGAUploadDialog.h"
-
 #include "ExportCBioPortalStudy.h"
 #include "BurdenTestWidget.h"
 
@@ -4418,8 +4417,8 @@ int MainWindow::showAnalysisIssues(QList<QPair<Log::LogLevel, QString>>& issues,
 	//show dialog
 	QLabel* label = new QLabel(lines.join("<br>"));
 	label->setMargin(6);
-//	auto dlg = GUIHelper::createDialog(label, "GSvar analysis issues", "The following issues were encountered when loading the analysis:", true);
-//	return dlg->exec();
+	auto dlg = GUIHelper::createDialog(label, "GSvar analysis issues", "The following issues were encountered when loading the analysis:", true);
+	return dlg->exec();
 	return QDialog::Accepted;
 }
 
