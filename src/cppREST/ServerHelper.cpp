@@ -1,4 +1,5 @@
 #include "ServerHelper.h"
+#include "Helper.h"
 #include <QStandardPaths>
 #include <QDir>
 
@@ -99,29 +100,49 @@ void ServerHelper::setServerStartDateTime(QDateTime date_and_time)
 
 QDateTime ServerHelper::getServerStartDateTime()
 {
-	return instance().server_start_date_time_;
+    return instance().server_start_date_time_;
+}
+
+QString ServerHelper::getCurrentServerLogFile()
+{
+    QDir directory(QCoreApplication::applicationDirPath());
+    QStringList logs = directory.entryList(QStringList() << "*.log" << "*.LOG", QDir::Files);
+
+    QDateTime last_mod_time;
+    QString last_mod_file;
+    foreach(QString filename, logs)
+    {
+        if (QFileInfo(filename).lastModified() > last_mod_time)
+        {
+            last_mod_time = QFileInfo(filename).lastModified();
+            last_mod_file = filename;
+        }
+    }
+
+    if (last_mod_file.isEmpty()) return QCoreApplication::applicationFilePath().replace(".exe", "") + ".log";
+    if (QFileInfo(last_mod_file).size()>(1024*1024*50))
+    {
+        QList<QString> name_items = last_mod_file.split(".");
+        if (name_items.size()>1)
+        {
+            name_items[name_items.count()-2] = name_items[name_items.count()-2] + "_" + QDateTime().currentDateTime().toString("hh-mm-ss-dd-MM-yyyy");
+            last_mod_file = name_items.join(".");
+        }
+    }
+
+    if (!QCoreApplication::applicationDirPath().endsWith(QDir::separator()))
+    {
+        last_mod_file = QDir::separator() + last_mod_file;
+    }
+
+    last_mod_file = QCoreApplication::applicationDirPath() + last_mod_file;
+    if (!QFile::exists(last_mod_file)) Helper::touchFile(last_mod_file);
+
+    return last_mod_file;
 }
 
 ServerHelper& ServerHelper::instance()
 {
 	static ServerHelper server_helper;
 	return server_helper;
-}
-
-QString ServerHelper::getStandardFileLocation()
-{
-	QString path = QDir::tempPath();
-	QStringList default_paths = QStandardPaths::standardLocations(QStandardPaths::AppLocalDataLocation);
-	if(default_paths.isEmpty())
-	{
-		Log::warn("No local application data path was found!");
-	}
-	else
-	{
-		path = default_paths[0];
-	}
-	if (!QDir().exists(path)) return "";
-
-	if (!path.endsWith(QDir::separator())) path = path + QDir::separator();
-	return path;
 }

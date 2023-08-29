@@ -1,5 +1,33 @@
 # GSvar change log
 
+### 2023_06-57 (17.08.23)
+
+- general: added fields 'processing method' (enum) and 'batch number' (100 chars) to processed sample data and to processed sample batch import
+- burden test: added exclude regions
+- cfDNA report: several improvements
+- GenLab import: added tissue import
+
+### 2023_06-43 (31.07.23)
+
+- general: fixed link to Decipher browser
+
+
+### 2023_06-37 (20.07.23)
+
+- subpanel design: previous gene names are now corrected and invalid gene names removed
+
+### 2023_06-30 (18.07.23)
+
+- sample/sample search/Genlab import: added year of birth 
+- germline report: fixed invalid genes being shown as completely coverered
+- germline report: fixed chrMT genes always being shown as gaps
+
+### 2023_06-18 (13.07.23)
+
+- run tab: added option to sort processed sample in order of sample entry
+- general: improved variant ranking
+- gereral: added burden test
+
 ### 2023_06-4 (05.07.23)
 
 -  general: gap calculation in germline report and gap dialog is now done coding/splicing region by default and based on relevant transcripts.

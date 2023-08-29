@@ -2,7 +2,7 @@
 #define REQUESTWORKER_H
 
 #include "cppREST_global.h"
-#include <QThread>
+#include <QRunnable>
 #include <QSslSocket>
 #include <QSslError>
 #include <QSslConfiguration>
@@ -15,30 +15,21 @@
 #include "RequestParser.h"
 #include "EndpointManager.h"
 
-class CPPRESTSHARED_EXPORT RequestWorker : public QThread
+class CPPRESTSHARED_EXPORT RequestWorker
+    : public QRunnable
 {
-	Q_OBJECT
+
 public:
-	RequestWorker(QSslConfiguration ssl_configuration, qintptr socket);
-	void run();
-
-protected slots:
-	void handleConnection();
-	void socketDisconnected();
-
-Q_SIGNALS:
-	void sslFailed(const QList<QSslError> &error);
-	void verificationFailed(const QSslError &error);
-	void securelyConnected();
-
+    explicit RequestWorker(QSslConfiguration ssl_configuration, qintptr socket);
+    void run() override;
 
 private:
 	const int STREAM_CHUNK_SIZE = 1024*10;
 	QString intToHex(const int &input);
 
 	void closeConnection(QSslSocket* socket);
-	void sendResponseDataPart(QSslSocket *socket, QByteArray data);
-	void sendEntireResponse(QSslSocket *socket, HttpResponse response);
+    void sendResponseDataPart(QSslSocket *socket, const QByteArray& data);
+    void sendEntireResponse(QSslSocket *socket, const HttpResponse& response);
 
 	QSslConfiguration ssl_configuration_;
 	qintptr socket_;

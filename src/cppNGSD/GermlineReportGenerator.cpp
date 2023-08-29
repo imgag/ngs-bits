@@ -490,6 +490,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 					exon_roi.regions.add(transcript.isCoding() ? transcript.codingRegions() : transcript.regions());
 				}
 			}
+			exon_roi.genes.remove(genes_without_roi);
 
 			//set CCDS base count without padding
 			exon_roi.regions.merge();
@@ -1664,6 +1665,19 @@ GapDetails GermlineReportGenerator::writeCoverageDetails(QTextStream& stream, co
 		gaps.load(data_.ps_lowcov, false, false);
 
 		low_cov = GermlineReportGenerator::precalculatedGaps(gaps, roi.regions, data_.report_settings.min_depth, data_.processing_system_roi);
+
+		//calculate mito coverage if necessary (mito is not part of the target region)
+		BedFile mito_roi;
+		for (int i=0; i<roi.regions.count(); ++i)
+		{
+			if (roi.regions[i].chr().isM()) mito_roi.append(roi.regions[i]);
+		}
+		if(!mito_roi.isEmpty())
+		{
+			low_cov.subtract(mito_roi);
+			BedFile mito_gaps = data_.statistics_service.lowCoverage(mito_roi, data_.ps_bam, data_.report_settings.min_depth);
+			low_cov.add(mito_gaps);
+		}
 	}
 	catch(Exception e)
 	{

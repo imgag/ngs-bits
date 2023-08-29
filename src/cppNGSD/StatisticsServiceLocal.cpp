@@ -28,7 +28,7 @@ double StatisticsServiceLocal::targetRegionReadDepth(const BedFile& bed_file, co
 	QString ref_file = Settings::string("reference_genome");
 	Statistics::avgCoverage(bed_file_anno, bam_file, 1, threads, 10, ref_file);
 
-	//calcualte overall depth
+	//calculate overall depth
 	double depth = 0.0;
 	double length_sum = 0.0;
 	for (int i=0; i<bed_file_anno.count(); ++i)

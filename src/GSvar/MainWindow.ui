@@ -743,7 +743,7 @@
      <normaloff>:/Icons/Gaps_calculate.png</normaloff>:/Icons/Gaps_calculate.png</iconset>
    </property>
    <property name="text">
-    <string>Recalcualte gaps</string>
+    <string>Recalculate gaps</string>
    </property>
    <property name="toolTip">
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Determine low-coverage regions (gaps) and request closing the gaps if necessary.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>

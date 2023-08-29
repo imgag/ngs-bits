@@ -1,7 +1,8 @@
 #include "SslServer.h"
 
-SslServer::SslServer(QObject *parent) :
-	QTcpServer(parent)
+SslServer::SslServer(QObject *parent)
+    : QTcpServer(parent)
+    , thread_pool_()
 {
 	current_ssl_configuration_ = QSslConfiguration::defaultConfiguration();
 }
@@ -30,8 +31,7 @@ void SslServer::incomingConnection(qintptr socket)
     try
     {
         RequestWorker *request_worker = new RequestWorker(current_ssl_configuration_, socket);
-        connect(request_worker, &RequestWorker::finished, request_worker, &QObject::deleteLater);
-        request_worker->start();
+        thread_pool_.start(request_worker);
     }
     catch (...)
     {

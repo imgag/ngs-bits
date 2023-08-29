@@ -506,7 +506,7 @@ void ExportWorker::storeCountCache(NGSD& db, QHash<int, GenotypeCounts>& count_c
 	timer.start();
 
 	//update counts
-	int tries_max = 5;
+	int tries_max = 10;
 	int try_nr = 1;
 	while (try_nr <= tries_max)
 	{

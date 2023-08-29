@@ -1,5 +1,6 @@
 #include <QCoreApplication>
 #include <QCommandLineParser>
+#include <QProcessEnvironment>
 #include "Log.h"
 #include "ServerWrapper.h"
 #include "ServerHelper.h"
@@ -9,7 +10,8 @@ int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
 	QCoreApplication::setApplicationVersion(SERVER_VERSION);
-	Log::setFileName(QCoreApplication::applicationFilePath().replace(".exe", "") + ".log");
+
+    Log::setFileName(ServerHelper::getCurrentServerLogFile());
 	Log::setCMDEnabled(true);
 	Log::appInfo();
 
@@ -386,7 +388,7 @@ int main(int argc, char **argv)
 	EndpointManager::appendEndpoint(Endpoint{
 						"avg_coverage_gaps",
 						QMap<QString, ParamProps>{
-							{"low_cov", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "Regions of interest"}},
+							{"low_cov", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "Regions of interest"}}, //TODO Alexandr: should be called "roi"
 							{"bam_url_id", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "An id of a temporary URL pointing to a BAM file"}},
 							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
@@ -427,7 +429,7 @@ int main(int argc, char **argv)
 	EndpointManager::appendEndpoint(Endpoint{
 						"upload",
 						QMap<QString, ParamProps>{
-							{"ps_url_id", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, true, "An id of a temporary URL pointing to a specific processed sample"}},
+                            {"ps_url_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "An id of a temporary URL pointing to a specific processed sample"}},
 							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
 						RequestMethod::POST,
@@ -557,8 +559,6 @@ int main(int argc, char **argv)
         Log::error("Failed to restore the previous state: " + e.message());
     }
 
-
-
 	Log::info("SSL version used for the build: " + QSslSocket::sslLibraryBuildVersionString());
 	ServerWrapper https_server(server_port);
 	if (!https_server.isRunning())
@@ -569,5 +569,12 @@ int main(int argc, char **argv)
 	}
 
 	ServerHelper::setServerStartDateTime(QDateTime::currentDateTime());
+
+    Log::info("List of all environment variables (" + QString::number(QProcessEnvironment::systemEnvironment().keys().count()) + " in total):");
+    foreach (QString key, QProcessEnvironment::systemEnvironment().keys())
+    {
+        Log::info(key + "=" + QProcessEnvironment::systemEnvironment().value(key));
+    }
+
 	return app.exec();
 }

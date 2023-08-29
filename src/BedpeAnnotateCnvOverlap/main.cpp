@@ -63,7 +63,7 @@ public:
 
 			// divide list by copy-number
 			if (cnvs[i].copyNumber(cnvs.annotationHeaders()) < 2) cnvs_del.append(cnvs[i]);
-			else if (cnvs[i].copyNumber(cnvs.annotationHeaders()) > 2) cnvs_dup.append(cnvs[i]);
+			else if (cnvs[i].copyNumber(cnvs.annotationHeaders()) >= 2) cnvs_dup.append(cnvs[i]);
 		}
 
 

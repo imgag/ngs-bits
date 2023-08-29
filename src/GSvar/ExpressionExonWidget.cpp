@@ -665,14 +665,12 @@ void ExpressionExonWidget::selectAllBiotypes(bool deselect)
 	}
 }
 
-void ExpressionExonWidget::showHistogram(int row_idx)
+void ExpressionExonWidget::showHistogram(const BedLine& exon, double srpb)
 {
 	NGSD db;
-
-	BedLine exon = BedLine::fromString(expression_data_.row(row_idx).at(expression_data_.columnIndex("exon")));
+	qDebug() << exon.toString(true);
 	QSet<int> cohort = db.getRNACohort(sys_id_, tissue_, project_, ps_id_, cohort_type_, "exons");
 	QVector<double> expr_values = db.getExonExpressionValues(exon, cohort, false);
-	double srpb = ui_->tw_expression_table->item(row_idx, 4)->text().toDouble();
 
 	if(expr_values.size() == 0) return;
 	//create histogram
@@ -694,7 +692,10 @@ void ExpressionExonWidget::showHistogram(int row_idx)
 void ExpressionExonWidget::showExpressionTableContextMenu(QPoint pos)
 {
 	// create menu
-	int row_idx = ui_->tw_expression_table->itemAt(pos)->row();
+	QTableWidgetItem* item = ui_->tw_expression_table->itemAt(pos);
+	int row_idx = item->row();
+	BedLine exon = BedLine::fromString(ui_->tw_expression_table->item(row_idx, 1)->text());
+	double srpb = Helper::toDouble(ui_->tw_expression_table->item(row_idx, 4)->text(), "srpb from table");
 	QMenu menu(ui_->tw_expression_table);
 	QAction* a_show_histogram = menu.addAction("Show histogram");
 	QString tpm_mean = ui_->tw_expression_table->item(row_idx, column_names_.indexOf("cohort_mean"))->text();
@@ -706,7 +707,8 @@ void ExpressionExonWidget::showExpressionTableContextMenu(QPoint pos)
 	// react
 	if (action == a_show_histogram)
 	{
-		showHistogram(row_idx);
+		qDebug() << row_idx;
+		showHistogram(exon, srpb);
 	}
 	else
 	{

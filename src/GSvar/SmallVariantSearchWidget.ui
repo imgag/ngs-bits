@@ -361,10 +361,23 @@
         <item>
          <widget class="QCheckBox" name="filter_sys_wgs">
           <property name="toolTip">
-           <string>Whole genome sequencing.</string>
+           <string>Short-read whole genome sequencing.</string>
           </property>
           <property name="text">
-           <string>genomes</string>
+           <string>WGS</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="filter_sys_lrgs">
+          <property name="toolTip">
+           <string>Long-read whole genome sequencing.</string>
+          </property>
+          <property name="text">
+           <string>lrGS</string>
           </property>
           <property name="checked">
            <bool>true</bool>
@@ -374,7 +387,7 @@
         <item>
          <widget class="QCheckBox" name="filter_sys_wes">
           <property name="toolTip">
-           <string>Whole exome sequencing.</string>
+           <string>Short-read whole exome sequencing.</string>
           </property>
           <property name="text">
            <string>exomes</string>

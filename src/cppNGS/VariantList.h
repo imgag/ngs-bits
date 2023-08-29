@@ -7,7 +7,7 @@
 #include "BedFile.h"
 #include "OntologyTermCollection.h"
 #include "GenomeBuild.h"
-#include "VcfFileHelper.h"
+#include "VcfLine.h"
 
 ///Transcript annotations e.g. from SnpEff/VEP.
 struct CPPNGSSHARED_EXPORT VariantTranscript

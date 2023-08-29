@@ -211,8 +211,8 @@ private slots:
 		{
 			for (int p=1; p<=100*c; ++p)
 			{
-				VcfLinePtr variant = VcfLinePtr(new VcfLine(Chromosome("chr" + QString::number(c)), p, "AAAAAAAAAAA", QList<Sequence>() << "AG" ));
-				var_list.vcfLines().push_back(variant);
+				VcfLine variant(Chromosome("chr" + QString::number(c)), p, "AAAAAAAAAAA", QList<Sequence>() << "AG");
+				var_list.append(variant);
 			}
 		}
 		ChromosomalIndex<VcfFile> var_index(var_list);
@@ -262,8 +262,8 @@ private slots:
 		{
 			for (int p=1; p<=100*c; ++p)
 			{
-				VcfLinePtr variant = VcfLinePtr(new VcfLine(Chromosome("chr" + QString::number(c)), p, "AAAAAAAAAAA", QList<Sequence>() << "AG"));
-				var_list.vcfLines().push_back(variant);
+				VcfLine variant(Chromosome("chr" + QString::number(c)), p, "AAAAAAAAAAA", QList<Sequence>() << "AG");
+				var_list.append(variant);
 			}
 		}
 		ChromosomalIndex<VcfFile> var_index(var_list);

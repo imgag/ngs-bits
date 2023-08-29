@@ -29,6 +29,7 @@ protected slots:
 	void edit();
 	void sendStatusEmail();
 	void checkMids();
+	void exportSampleSheet();
 
 private:
 	Ui::SequencingRunWidget* ui_;

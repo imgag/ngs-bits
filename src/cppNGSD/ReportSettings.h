@@ -22,7 +22,7 @@ public:
 	bool recalculate_avg_depth; //average coverage should be calculated for the target region (otherwise the processing system average depth is used)
 	int min_depth; //depth cutoff for gap statistics
 	int cov_exon_padding; //number of bases to pad the gene exons with.
-	bool cov_based_on_complete_roi; //calcualte second gap report based on the complete target region.
+	bool cov_based_on_complete_roi; //calculate second gap report based on the complete target region.
 
 	bool show_omim_table; //show OMIM table
 	bool show_one_entry_in_omim_table; //show only one phenotype entry per gene in OMIM table

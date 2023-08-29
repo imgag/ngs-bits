@@ -814,6 +814,7 @@ void MainWindow::on_actionDebug_triggered()
 		bool test_recessive_hom = false; //in case of recessive - switch beteen hom and comp-het
 		bool test_v1 = false;
 		bool test_with_ngsd = false;
+		bool test_with_clinvar = true;
 		QString algorithm;
 		QString suffix;
 		if (test_v1)
@@ -836,6 +837,11 @@ void MainWindow::on_actionDebug_triggered()
 			parameters.use_ngsd_classifications = false;
 			suffix += "_noNGSD";
 		}
+		if (!test_with_clinvar)
+		{
+			parameters.use_clinvar = false;
+			suffix += "_noClinVar";
+		}
 		qDebug() << "algorithm:" << algorithm << "suffix:" << suffix;
 
 		QSharedPointer<QFile> out_file = Helper::openFileForWriting("C:\\Marc\\ranking_" + QDate::currentDate().toString("yyyy-MM-dd") + "_" + algorithm + suffix + ".tsv");
@@ -849,7 +855,7 @@ void MainWindow::on_actionDebug_triggered()
 		QSet<QString> samples_skipped_no_hpo;
 		int c_all = 0;
 		int c_top1 = 0;
-		int c_top2 = 0;
+		int c_top3 = 0;
 		int c_top10 = 0;
 		int c_none = 0;
 		QHash<QByteArray, GeneSet> pheno2genes_cache_;
@@ -1062,6 +1068,30 @@ void MainWindow::on_actionDebug_triggered()
 					out_stream << cols.join("\t") << endl;
 				};
 
+				//determine causal variant ranks to fix statistics for comp-het case
+				QList<int> causal_variant_ranks;
+				if (!test_domiant && !test_recessive_hom)
+				{
+					for (int i=0; i<causal_variants.count(); ++i)
+					{
+
+						try
+						{
+
+						int var_index = variants.indexOf(causal_variants[i]);
+						if (var_index==-1) THROW(Exception, "not found");
+
+						int rank = Helper::toInt(variants[var_index].annotations()[i_rank]);
+						causal_variant_ranks << rank;
+						}
+						catch(Exception& e)
+						{
+							causal_variant_ranks << 9999;
+						}
+					}
+				}
+				std::sort(causal_variant_ranks.begin(), causal_variant_ranks.end());
+
 				//perform rank statistics on causal variants
 				QSet<int> noncausal_indices_added;
 				for (int i=0; i<causal_variants.count(); ++i)
@@ -1086,8 +1116,9 @@ void MainWindow::on_actionDebug_triggered()
 					try
 					{
 						int rank = Helper::toInt(var.annotations()[i_rank]);
+						if (!test_domiant && !test_recessive_hom && rank>causal_variant_ranks[0]) rank -= 1; //ignore first variant in comp-het case to make the comparison between inheritance modes fair
 						if (rank==1) ++c_top1;
-						if (rank<=2) ++c_top2;
+						if (rank<=3) ++c_top3;
 						if (rank<=10) ++c_top10;
 
 						//store top 5 variants ranking higher than the causal variant
@@ -1128,7 +1159,7 @@ void MainWindow::on_actionDebug_triggered()
 		out_stream << "##Number of samples used for benchmark: " << ps_nr << endl;
 		out_stream << "##Number of variants used for benchmark: " << c_all << endl;
 		out_stream << "##Rank1: " << QString::number(c_top1) << " (" + QString::number(100.0*c_top1/c_all, 'f', 2) << "%)" << endl;
-		out_stream << "##Top2 : " << QString::number(c_top2) << " (" + QString::number(100.0*c_top2/c_all, 'f', 2) << "%)" << endl;
+		out_stream << "##Top3 : " << QString::number(c_top3) << " (" + QString::number(100.0*c_top3/c_all, 'f', 2) << "%)" << endl;
 		out_stream << "##Top10: " << QString::number(c_top10) << " (" + QString::number(100.0*c_top10/c_all, 'f', 2) << "%)" << endl;
 		out_stream << "##None : " << QString::number(c_none) << " (" + QString::number(100.0*c_none/c_all, 'f', 2) << "%)" << endl;
 
@@ -1499,19 +1530,11 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahschul1")
 	{
-		//test google reply times
-		qDebug() << "Test google reply times";
+		//Test sample sheet
+		QString run_id = NGSD().getValue("SELECT id FROM sequencing_run WHERE name='#03178'").toString();
 
-		static HttpHandler http_handler(false);
+		QMessageBox::information(this, "SampleSheet", NGSD().createSampleSheet(run_id.toInt()));
 
-		for (int i = 0; i < 10; ++i)
-		{
-			QTime timer;
-			timer.start();
-			QByteArray reply = http_handler.get("https://www.google.com");
-			qDebug() << "reply took:" << Helper::elapsedTime(timer, true);
-			QThread::sleep(10);
-		}
 	}
 	else if (user=="ahott1a1")
 	{
@@ -2567,7 +2590,10 @@ void MainWindow::on_actionDesignCfDNAPanel_triggered()
 	if (!LoginManager::active()) return;
 	if (!(somaticReportSupported()||tumoronlyReportSupported())) return;
 
-	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
+	// Workaround to manual add panels for non patient-specific processing systems
+	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)' OR type='cfDNA'");
+	// TODO: reactivate
+//	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
 
 	QSharedPointer<CfDNAPanelDesignDialog> dialog(new CfDNAPanelDesignDialog(variants_, filter_result_, somatic_report_settings_.report_config, variants_.mainSampleName(), cfdna_processing_systems, this));
 	dialog->setWindowFlags(Qt::Window);
@@ -4248,7 +4274,7 @@ void MainWindow::checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues)
 		NGSD db;
 		int sys_id = db.processingSystemIdFromProcessedSample(germlineReportSample());
 		ProcessingSystemData sys_data = db.getProcessingSystemData(sys_id);
-		if (sys_data.type=="WES" || sys_data.type=="WGS")
+		if (sys_data.type=="WES" || sys_data.type=="WGS" || sys_data.type=="lrGS")
 		{
 			QSet<Chromosome> chromosomes;
 			for(int i=0; i<variants_.count(); ++i)
@@ -4349,7 +4375,7 @@ void MainWindow::checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>
 		{
 
 			QString sys_type = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(ps)).type;
-			if (sys_type=="WGS" || sys_type=="WES")
+			if (sys_type=="WGS" || sys_type=="WES" || sys_type=="lrGS")
 			{
 				ImportStatusGermline import_status = db.importStatus(ps_id);
 				if (import_status.small_variants==0)
@@ -5882,7 +5908,7 @@ void MainWindow::on_actionStatistics_triggered()
 
 	//table header
 	table.addHeader("month");
-	QStringList sys_types = QStringList() << "WGS" << "WES" << "Panel" << "RNA";
+	QStringList sys_types = QStringList() << "WGS" << "WES" << "Panel" << "RNA" << "lrGS";
 	QStringList pro_types = QStringList() << "diagnostic" << "research";
 	foreach(QString pro, pro_types)
 	{
@@ -6263,9 +6289,9 @@ void MainWindow::on_actionImportSamples_triggered()
 void MainWindow::on_actionImportProcessedSamples_triggered()
 {
 	importBatch("Import processed samples",
-				"Batch import of processed samples. Must contain the following tab-separated fields:<br><b>sample</b>, <b>project</b>, <b>run name</b>, <b>lane</b>, mid1 name, mid2 name, operator, <b>processing system</b>, processing input [ng], molarity [nM], comment, normal processed sample",
+				"Batch import of processed samples. Must contain the following tab-separated fields:<br><b>sample</b>, <b>project</b>, <b>run name</b>, <b>lane</b>, mid1 name, mid2 name, operator, <b>processing system</b>, processing input [ng], molarity [nM], comment, normal processed sample, <b>processing modus</b>, batch number",
 				"processed_sample",
-				QStringList() << "sample_id" << "project_id" << "sequencing_run_id" << "lane" << "mid1_i7" << "mid2_i5" << "operator_id" << "processing_system_id" << "processing_input" << "molarity" << "comment" << "normal_id"
+				QStringList() << "sample_id" << "project_id" << "sequencing_run_id" << "lane" << "mid1_i7" << "mid2_i5" << "operator_id" << "processing_system_id" << "processing_input" << "molarity" << "comment" << "normal_id" << "processing_modus" << "batch_number"
 				);
 }
 
@@ -7860,7 +7886,7 @@ void MainWindow::showNotification(QString text)
 	QToolTip::showText(pos, text);
 }
 
-void MainWindow::variantRanking() //TODO check that everything is as in the benchmark (extend, ...)
+void MainWindow::variantRanking()
 {
 	if (filename_.isEmpty()) return;
 	if (!LoginManager::active()) return;
@@ -7904,7 +7930,6 @@ void MainWindow::variantRanking() //TODO check that everything is as in the benc
 
 		//score
 		VariantScores::Parameters parameters;
-		parameters.use_ngsd_classifications = !Settings::boolean("debug_mode_enabled", true);
 		QString algorithm = sender()->objectName();
 		VariantScores::Result result = VariantScores::score(algorithm, variants_, phenotype_rois, parameters);
 

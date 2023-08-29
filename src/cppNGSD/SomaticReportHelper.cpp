@@ -280,7 +280,6 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 				tmp.idendity = parts[file.colIndex("identity\%",true)].toDouble();
 
 				if(tmp.coverage < 100) continue;
-				if(tmp.idendity < 90) continue;
 
 				validated_viruses_ << tmp;
 			}
@@ -887,20 +886,27 @@ RtfSourceCode SomaticReportHelper::partVirusTable()
 {
 	RtfTable virus_table;
 	virus_table.addRow(RtfTableRow("Virale DNA",doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4));
-	virus_table.addRow(RtfTableRow({"Virus","Gen","Genom","Region","Abdeckung","Bewertung"},{963,964,1927,1927,1927,1929},RtfParagraph().setBold(true)));
+	virus_table.addRow(RtfTableRow({"Virus","Gen","Genom","Region","Abdeckung","Bewertung"},{1000,1000,2000,1921,2000,2000},RtfParagraph().setBold(true)));
 	foreach(const auto& virus, validated_viruses_)
 	{
 		RtfTableRow row;
 
-		row.addCell(963,virus.virusName());
+		if (virus.idendity >= 90)
+		{
+			row.addCell(1000,virus.virusName());
+		}
+		else
+		{
+			row.addCell(1000,RtfText(virus.virusName()).highlight(3).RtfCode());
+		}
 
-		row.addCell(964,virus.virusGene());
-		row.addCell(1927,virus.chr);
+		row.addCell(1000,virus.virusGene());
+		row.addCell(2000,virus.chr);
 
 		QByteArray region = QByteArray::number(virus.start) + "-" + QByteArray::number(virus.end);
-		row.addCell(1927,region);
-		row.addCell(1927,QByteArray::number(virus.coverage,'f',1));
-		row.addCell(1929,"nachgewiesen*");
+		row.addCell(1921,region);
+		row.addCell(2000,QByteArray::number(virus.coverage,'f',1));
+		row.addCell(2000,"nachgewiesen*");
 
 		virus_table.addRow(row);
 	}

@@ -508,6 +508,10 @@ SUBDIRS += TsvToQC
 tools-TEST.depends += TsvToQC
 TsvToQC.depends = cppNGS
 
+SUBDIRS += NGSDImportGenlab
+tools-TEST.depends += NGSDImportGenlab
+NGSDImportGenlab.depends = cppNGS
+
 SUBDIRS += NGSDImportClinvarAccessions
 tools-TEST.depends += NGSDImportClinvarAccessions
 NGSDImportClinvarAccessions.depends = cppNGSD
@@ -539,6 +543,11 @@ ExportcBioportal.depends = cppNGSD
 SUBDIRS += NGSDImportSampleQC
 tools-TEST.depends += NGSDImportSampleQC
 NGSDImportSampleQC.depends = cppNGSD
+
+SUBDIRS += SamplePath
+tools-TEST.depends += SamplePath
+SamplePath.depends = cppNGSD
+
 
 
 

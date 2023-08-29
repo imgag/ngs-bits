@@ -67,6 +67,13 @@ class CPPNGSSHARED_EXPORT GeneSet
 			return *this;
 		}
 
+		///Removes a gene
+		void remove(const QByteArray& gene);
+		///Removes a gene set
+		void remove(const GeneSet& genes);
+		///Removes a gene list
+		void remove(const QByteArrayList& genes);
+
 		///Clears the gene set
 		void clear()
 		{

@@ -3,6 +3,7 @@
 #include "DiagnosticStatusOverviewDialog.h"
 #include "DBEditor.h"
 #include "GUIHelper.h"
+#include "GSvarHelper.h"
 #include "GlobalServiceProvider.h"
 
 ProjectWidget::ProjectWidget(QWidget* parent, QString name)
@@ -43,7 +44,7 @@ void ProjectWidget::updateGUI()
 																	email = "<a href='mailto:" + email + "'>" + email + "</a>";
 																  });
 	ui_.email_notification->setText(emails.join("; "));
-	ui_.comment->setText(query.value("comment").toString());
+	GSvarHelper::limitLines(ui_.comment, query.value("comment").toString());
 	ui_.archived->setText(query.value("archived").toString()=="1" ? "yes" : "no");
 
 	//### samples

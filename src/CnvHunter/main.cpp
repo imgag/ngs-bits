@@ -331,7 +331,7 @@ public:
         QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + "_samples.tsv");
         QTextStream outstream(file.data());
 
-        //calcualte z-score statistics for each sample
+        //calculate z-score statistics for each sample
 		QHash<QSharedPointer<SampleData>, float> z_scores;
         QSharedPointer<SampleData> curr;
 		QVector<float> zs;
@@ -1113,7 +1113,7 @@ public:
 			samples[s]->ref.reserve(exons.count());
 			samples[s]->ref_stdev.reserve(exons.count());
 
-			//calcualte reference mean and stddev for each exon
+			//calculate reference mean and stddev for each exon
 			for (int e=0; e<exons.count(); ++e)
 			{
 				float exon_median = exons[e]->median;

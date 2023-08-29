@@ -58,7 +58,7 @@ private slots:
 	void copyToClipboard();
 	void showBiotypeContextMenu(QPoint pos);
 	void selectAllBiotypes(bool deselect=false);
-	void showHistogram(int row_idx);
+	void showHistogram(const BedLine& exon, double srpb);
 	void showExpressionTableContextMenu(QPoint pos);
 	void OpenInIGV(QTableWidgetItem* item);
 

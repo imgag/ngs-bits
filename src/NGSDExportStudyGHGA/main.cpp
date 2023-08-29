@@ -23,7 +23,7 @@ public:
 		addOutfile("out", "Output JSON file.", false, false);
 
 		//optional
-		addFlag("test", "Test mode: uses the test NGSD, does not calcualte size/checksum of BAMs, ...");
+		addFlag("test", "Test mode: uses the test NGSD, does not calculate size/checksum of BAMs, ...");
 
 		changeLog(2023,  1, 31, "Initial implementation (version 0.9.0 of schema).");
 	}
@@ -86,6 +86,7 @@ public:
 	{
 		if (device_type=="NextSeq500") return "Illumina NextSeq 500";
 		if (device_type=="NovaSeq6000") return "Illumina NovaSeq 6000";
+		if (device_type=="NovaSeqXPlus") return "Illumina NovaSeq X Plus";
 
 		THROW(NotImplementedException, "Unhandled device type '" + device_type + "' in CV conversion!");
 	}
@@ -593,6 +594,7 @@ public:
 	virtual void main()
 	{
 		//init
+		QTextStream stream(stdout);
 		QJsonParseError parse_error;
 		QJsonDocument data_doc = QJsonDocument::fromJson(Helper::loadTextFile(getInfile("data")).join("\n").toUtf8(), &parse_error);
 		if (data_doc.isNull()) THROW(FileParseException, "Could not read '" + getInfile("data") + "': " + parse_error.errorString());
@@ -615,6 +617,7 @@ public:
 		NGSD db(data.test_mode);
 
 		//load processed samples to export
+		stream << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Loading processed sample list..." << endl;
 		auto handle = Helper::openFileForReading(getInfile("samples"), false);
 		while(!handle->atEnd())
 		{
@@ -640,6 +643,7 @@ public:
 
 			data.ps_list << PSData{ps_id, ps, bam, vcf, pseudonym, db.getSampleData(s_id), db.getProcessedSampleData(ps_id), db.samplePhenotypes(s_id)};
 		}
+		stream << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Writing JSON for " << data.ps_list.count() << " samples..." << endl;
 
 		//create JSON
 		QJsonObject root;
@@ -660,6 +664,8 @@ public:
 		//store JSON
 		QJsonDocument doc(root);
 		Helper::storeTextFile(getOutfile("out"), QStringList() << doc.toJson());
+
+		stream << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << " Done" << endl;
 	}
 };
 

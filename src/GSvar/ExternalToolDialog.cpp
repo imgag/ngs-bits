@@ -214,7 +214,7 @@ QString ExternalToolDialog::getFileName(FileType type, bool ngsd_instead_of_file
 	{
 		//prepare filters
 		QStringList filters;
-		if (type==BAM) filters << "BAM files (*.bam)";
+		if (type==BAM) filters << "BAM files (*.bam *.cram)";
 		if (type==GSVAR) filters << "GSvar files (*.GSvar)";
 		if (type==VCF) filters << "VCF files (*.vcf *.vcf.gz)";
 		if (type==BED) filters << "BED files (*.bed)";

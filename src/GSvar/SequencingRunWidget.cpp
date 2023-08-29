@@ -11,8 +11,7 @@
 #include "DBQCWidget.h"
 #include "GlobalServiceProvider.h"
 #include "BasicStatistics.h"
-#include <QMessageBox>
-#include <QInputDialog>
+#include "GSvarHelper.h"
 #include <numeric>
 
 SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
@@ -23,12 +22,15 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	ui_->setupUi(this);
 	GUIHelper::styleSplitter(ui_->splitter);
 	ui_->splitter->setSizes(QList<int>() << 200 << 800);
-	connect(ui_->show_qc, SIGNAL(toggled(bool)), this, SLOT(updateGUI()));
+	connect(ui_->show_qc_cols, SIGNAL(toggled(bool)), this, SLOT(updateGUI()));
+	connect(ui_->show_lab_cols, SIGNAL(toggled(bool)), this, SLOT(updateGUI()));
+	connect(ui_->sort_by_ps_id, SIGNAL(toggled(bool)), this, SLOT(updateGUI()));
 	connect(ui_->update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
 	connect(ui_->edit_btn, SIGNAL(clicked(bool)), this, SLOT(edit()));
 	connect(ui_->email_btn, SIGNAL(clicked(bool)), this, SLOT(sendStatusEmail()));
 	connect(ui_->mid_check_btn, SIGNAL(clicked(bool)), this, SLOT(checkMids()));
 	connect(ui_->samples, SIGNAL(rowDoubleClicked(int)), this, SLOT(openSampleTab(int)));
+	connect(ui_->b_export_sample_sheet, SIGNAL(clicked(bool)), this, SLOT(exportSampleSheet()));
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_->samples->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSelectedSampleTabs()));
@@ -61,7 +63,7 @@ void SequencingRunWidget::updateGUI()
 		ui_->start->setText(query.value("start_date").toString());
 		ui_->end->setText(query.value("end_date").toString());
 		ui_->recipe->setText(query.value("recipe").toString());
-		ui_->comments->setText(query.value("comment").toString());
+		GSvarHelper::limitLines(ui_->comments, query.value("comment").toString());
 		ui_->device->setText(query.value("d_name").toString() + " (" + query.value("d_type").toString() + ")");
 		ui_->side->setText(query.value("side").toString());
 		QVariant molarity = query.value("pool_molarity");
@@ -77,6 +79,9 @@ void SequencingRunWidget::updateGUI()
 		QString status = query.value("status").toString();
 		ui_->status->setText(status);
 		ui_->backup->setText(query.value("backup_done").toString()=="1" ? "yes" : "no");
+
+		//#### activate SampleSheet ####
+		ui_->b_export_sample_sheet->setEnabled((query.value("d_type").toString() == "NovaSeqXPlus") || (query.value("d_type").toString() == "NovaSeqX"));
 
 		//#### run quality ####
 		updateReadQualityTable();
@@ -100,7 +105,7 @@ void SequencingRunWidget::updateRunSampleTable()
 	NGSD db;
 	DBTable samples = db.createTable("processed_sample", "SELECT ps.id, ps.lane, ps.quality, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, s.sample_type, (SELECT CONCAT(name, ' (', type, ')') FROM project WHERE id=ps.project_id), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid2_i5), (SELECT name FROM species WHERE id=s.species_id), (SELECT name_manufacturer FROM processing_system WHERE id=ps.processing_system_id), ps.processing_input, (SELECT name FROM user WHERE id=ps.operator_id), ps.comment "
 														  " FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id='" + run_id_ + "' "
-														  " ORDER BY ps.lane ASC, ps.processing_system_id ASC, s.name ASC, ps.process_id");
+														  " ORDER BY ps.lane ASC, "+ (ui_->sort_by_ps_id->isChecked() ? "ps.id" : "ps.processing_system_id ASC, s.name ASC, ps.process_id"));
 
 	int count_not_wgs = db.getValue("SELECT count(ps.id) FROM processed_sample ps, processing_system sys WHERE sys.id=ps.processing_system_id AND ps.sequencing_run_id='"+run_id_+"' AND sys.type!='WGS'").toInt();
 	bool is_wgs_run = count_not_wgs==0;
@@ -124,7 +129,7 @@ void SequencingRunWidget::updateRunSampleTable()
 
 	//add QC data
 	const QStringList& accessions = qc_metric_accessions_;
-	if (ui_->show_qc->isChecked())
+	if (ui_->show_qc_cols->isChecked())
 	{
 		//create column data
 		QList<QStringList> cols;
@@ -180,6 +185,15 @@ void SequencingRunWidget::updateRunSampleTable()
 	}
 	samples.setHeaders(headers);
 
+	//remove lab columns
+	if (!ui_->show_lab_cols->isChecked())
+	{
+		samples.takeColumn(samples.columnIndex("MID i7"));
+		samples.takeColumn(samples.columnIndex("MID i5"));
+		samples.takeColumn(samples.columnIndex("input [ng]"));
+		samples.takeColumn(samples.columnIndex("operator"));
+	}
+
 	//show table in GUI
 	QStringList quality_values = samples.takeColumn(samples.columnIndex("quality"));
 	ui_->samples->setData(samples);
@@ -189,7 +203,7 @@ void SequencingRunWidget::updateRunSampleTable()
 	//colors
 	QColor orange = QColor(255,150,0,125);
 	QColor red = QColor(255,0,0,125);
-	if (ui_->show_qc->isChecked())
+	if (ui_->show_qc_cols->isChecked())
 	{
 		for(int i=0; i<accessions.count(); ++i)
 		{
@@ -451,6 +465,27 @@ void SequencingRunWidget::checkMids()
 	catch (Exception& e)
 	{
 		QMessageBox::warning(this, "MID clash detection", "Error: MID clash detection could not be performed:\n" + e.message());
+	}
+}
+
+void SequencingRunWidget::exportSampleSheet()
+{
+	NGSD db;
+	try
+	{
+		QString output_path = Settings::string("sample_sheet_path") + "/" + ui_->name->text().remove(0, 1) + ".csv";
+		QString sample_sheet = db.createSampleSheet(Helper::toInt(run_id_, "Sequencing run id"));
+
+		QSharedPointer<QFile> output_file = Helper::openFileForWriting(output_path);
+		output_file->write(sample_sheet.toLatin1());
+		output_file->flush();
+		output_file->close();
+
+		QMessageBox::information(this, "SampleSheet exported", "SampleSheet for NovaSeq X Plus exported!");
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, "SampleSheet export failed", e.message());
 	}
 }
 

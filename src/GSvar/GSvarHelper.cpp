@@ -188,9 +188,9 @@ void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 	}
 }
 
-void GSvarHelper::limitLines(QLabel* label, QString text, QString sep, int max_lines)
+void GSvarHelper::limitLines(QLabel* label, QString text, int max_lines)
 {
-	QStringList lines = text.split(sep);
+	QStringList lines = text.split("\n");
 	if (lines.count()<max_lines)
 	{
 		label->setText(text);
@@ -198,8 +198,8 @@ void GSvarHelper::limitLines(QLabel* label, QString text, QString sep, int max_l
 	else
 	{
 		while(lines.count()>max_lines) lines.removeLast();
-		lines.append("...");
-		label->setText(lines.join(sep));
+		lines.append("<i>[text truncated - see tooltip/edit dialog for complete text]</i>");
+		label->setText(lines.join("<br>"));
 		label->setToolTip(text);
 	}
 }
@@ -453,7 +453,6 @@ CfdnaDiseaseCourseTable GSvarHelper::cfdnaTable(const QString& tumor_ps_name, QS
 		cf_dna_ps_ids << db.getValues("SELECT ps.id FROM processed_sample ps WHERE sample_id=:0 AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)", QString::number(cf_dna_sample));
 	}
 
-
 	//make sure every cfDNA has the same processing system
 	// get processing systems from cfDNA samples
 	QSet<QString> processing_systems;
@@ -481,7 +480,7 @@ CfdnaDiseaseCourseTable GSvarHelper::cfdnaTable(const QString& tumor_ps_name, QS
 	// get header infos
 	table.tumor_sample.name = tumor_ps_name;
 	table.tumor_sample.ps_id = db.processedSampleId(tumor_ps_name);
-	table.tumor_sample.date = QDate::fromString(db.getSampleData(db.sampleId(tumor_ps_name)).received, "dd.MM.yyyy");
+	table.tumor_sample.received_date = QDate::fromString(db.getSampleData(db.sampleId(tumor_ps_name)).received, "dd.MM.yyyy");
 
 	TsvFile dummy_mrd_file;
 	dummy_mrd_file.addHeader("MRD_log10");
@@ -501,7 +500,19 @@ CfdnaDiseaseCourseTable GSvarHelper::cfdnaTable(const QString& tumor_ps_name, QS
 		CfdnaDiseaseCourseTable::PSInfo cfdna_sample;
 		cfdna_sample.name = db.processedSampleName(ps_id);
 		cfdna_sample.ps_id = ps_id;
-		cfdna_sample.date = QDate::fromString(db.getSampleData(db.sampleId(cfdna_sample.name)).received, "dd.MM.yyyy");
+		SampleData sample_data = db.getSampleData(db.sampleId(cfdna_sample.name));
+		cfdna_sample.received_date = QDate::fromString(sample_data.received, "dd.MM.yyyy");
+
+		if (sample_data.order_date != "")
+		{
+			cfdna_sample.order_date = QDate::fromString(sample_data.order_date,  "dd.MM.yyyy");
+		}
+
+		if (sample_data.sampling_date != "")
+		{
+			cfdna_sample.sampling_date = QDate::fromString(sample_data.sampling_date, "dd.MM.yyyy");
+		}
+
 		table.cfdna_samples << cfdna_sample;
 
 

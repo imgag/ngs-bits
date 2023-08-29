@@ -174,7 +174,7 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 	}
 
 	// check that there is exactly one sample
-	QByteArrayList samples = repeat_expansions.sampleIDs();
+	const QByteArrayList& samples = repeat_expansions.sampleIDs();
 	if (samples.count()!=1)
 	{
 		THROW(ArgumentException, "Repeat expansion VCF file '" + vcf_filename_ + "' does not contain exactly one sample!");
@@ -288,7 +288,7 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(format_repci.replace(".", "-")));
 
 		//add filter column and color background if not 'PASS'
-		QTableWidgetItem* filter_cell = GUIHelper::createTableItem(re.filter().join(","));
+		QTableWidgetItem* filter_cell = GUIHelper::createTableItem(re.filters().join(","));
 		if(filter_cell->text().trimmed() != "PASS") filter_cell->setBackgroundColor(bg_orange);
 		ui_.repeat_expansions->setItem(row_idx, col_idx++, filter_cell);
 
