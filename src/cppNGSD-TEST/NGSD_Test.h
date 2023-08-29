@@ -890,19 +890,23 @@ private slots:
 		params.add_qc = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 71);
+		I_EQUAL(ps_table.columnCount(), 73);
+		S_EQUAL(ps_table.headers().at(32), "sample_quality");
+		S_EQUAL(ps_table.headers().at(33), "processed_sample_quality");
+		S_EQUAL(ps_table.row(0).value(32), "good");
+		S_EQUAL(ps_table.row(0).value(33), "good");
 		//add report config
 		params.add_report_config = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 72);
-		S_EQUAL(ps_table.row(0).value(71), "");
-		S_EQUAL(ps_table.row(4).value(71), "exists, causal variant: chr9:98232224-98232224 A>- (genotype:het genes:PTCH1), causal CNV: chr1:3000-4000 (cn:1 classification:4), causal uncalled CNV: chr2:123456-789012 (genes: EPRS)");
+		I_EQUAL(ps_table.columnCount(), 74);
+		S_EQUAL(ps_table.row(0).value(73), "");
+		S_EQUAL(ps_table.row(4).value(73), "exists, causal variant: chr9:98232224-98232224 A>- (genotype:het genes:PTCH1), causal CNV: chr1:3000-4000 (cn:1 classification:4), causal uncalled CNV: chr2:123456-789012 (genes: EPRS)");
 		//add comments
 		params.add_comments = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 74);
+		I_EQUAL(ps_table.columnCount(), 76);
 		S_EQUAL(ps_table.headers().at(20), "comment_sample");
 		S_EQUAL(ps_table.headers().at(21), "comment_processed_sample");
 		S_EQUAL(ps_table.row(0).value(20), "comment_s6");
@@ -911,11 +915,11 @@ private slots:
 		params.add_normal_sample = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 75);
-		I_EQUAL(ps_table.headers().count(), 75);
-		I_EQUAL(ps_table.columnIndex("normal_sample"), 74);
+		I_EQUAL(ps_table.columnCount(), 77);
+		I_EQUAL(ps_table.headers().count(), 77);
+		I_EQUAL(ps_table.columnIndex("normal_sample"), 76);
 		S_EQUAL(ps_table.row(5).value(0), "NA12345_01");
-		S_EQUAL(ps_table.row(5).value(74), "NA12878_03");
+		S_EQUAL(ps_table.row(5).value(76), "NA12878_03");
 		//apply all search parameters
 		params.s_name = "NA12878";
 		params.s_species = "human";
@@ -940,7 +944,7 @@ private slots:
 		params.r_after = QDate::fromString("1900-02-19", Qt::ISODate);
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 0);
-		I_EQUAL(ps_table.columnCount(), 75);
+		I_EQUAL(ps_table.columnCount(), 77);
 		//filter based on access rights (restricted user)
 		params = ProcessedSampleSearchParameters();
 		params.restricted_user = "ahkerra1";

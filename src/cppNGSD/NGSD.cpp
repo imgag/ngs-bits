@@ -433,6 +433,13 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		fields << "s.order_date as order_date";
 	}
 
+	//add processed sample and sample quality
+	if (p.add_qc)
+	{
+		fields << "s.quality as sample_quality"
+			   << "ps.quality as processed_sample_quality";
+	}
+
 	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
 
 	//filter by user access rights (for restricted users only)
@@ -505,6 +512,12 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 
 	if (p.add_qc)
 	{
+		//reorder columns to put sample and processed sample quality at the start of the qc block:
+		QStringList sample_quality = output.takeColumn(output.columnIndex("sample_quality"));
+		output.addColumn(sample_quality, "sample_quality");
+		QStringList ps_quality = output.takeColumn(output.columnIndex("processed_sample_quality"));
+		output.addColumn(sample_quality, "processed_sample_quality");
+
 		//headers
 		QStringList qc_names = getValues("SELECT name FROM qc_terms WHERE obsolete=0 ORDER BY qcml_id");
 		QVector<QStringList> cols(qc_names.count());
