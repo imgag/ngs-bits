@@ -1608,6 +1608,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Population (gesch&auml;tzt aus NGS)"] = "population (estimated from NGS)";
 		de2en["Die Einsch&auml;tzung der klinischen Bedeutung eines PRS ist nur unter Verwendung eines entsprechenden validierten Risiko-Kalkulations-Programms und unter Ber&uuml;cksichtigung der ethnischen Zugeh&ouml;rigkeit m&ouml;glich (z.B. CanRisk.org f&uuml;r Brustkrebs)."] = "A validated risk estimation program must be used to judge the clinical importance of a PRS, e.g. CanRisk.org for breast cancer. The ethnicity of the patient must also be considered.";
 		de2en["nach L&uuml;ckenschluss"] = "after closing gaps";
+		de2en["Verbleibende L&uuml;cken nach L&uuml;ckenschluss"] = "gaps remaining";
 		de2en["splicing effect validated by RNA dataset"] = "splicing effect validated by RNA dataset";
 		de2en["no splicing effect found in RNA dataset"] = "no splicing effect found in RNA dataset";
 		de2en["RNA dataset not usable"] = "RNA dataset not usable";
@@ -1696,24 +1697,7 @@ GapDetails GermlineReportGenerator::writeCoverageDetails(QTextStream& stream, co
 	//group gaps by gene
 	QMap<QByteArray, BedFile> gaps_by_gene;
 	long long gap_bases_no_gene = 0;
-	for(int i=0; i<low_cov.count(); ++i)
-	{
-		const BedLine& line = low_cov[i];
-		GeneSet genes = db_.genesOverlapping(line.chr(), line.start(), line.end(), 20); //extend by 20 to annotate splicing regions as well
-		bool gene_match = false;
-		foreach(const QByteArray& gene, genes)
-		{
-			if (roi.genes.contains(gene))
-			{
-				gaps_by_gene[gene].append(line);
-				gene_match = true;
-			}
-		}
-		if (gene_match==false)
-		{
-			gap_bases_no_gene += line.length();
-		}
-	}
+	gapsByGene(low_cov, roi.genes, gaps_by_gene, gap_bases_no_gene);
 
 	//print genes that have gaps and that have no gaps
 	GeneSet complete_genes;
@@ -1735,38 +1719,13 @@ GapDetails GermlineReportGenerator::writeCoverageDetails(QTextStream& stream, co
 	//table gaps by gene
 	stream << "<p>" << trans("Details Regionen mit Tiefe &lt;") << data_.report_settings.min_depth << ":" << endl;
 	stream << "</p>" << endl;
-	stream << "<table>" << endl;
-	stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Basen") << "</b></td><td><b>" << trans("Chromosom") << "</b></td><td><b>" << trans("Koordinaten (hg38)") << "</b></td></tr>" << endl;
-	for (auto it=gaps_by_gene.cbegin(); it!=gaps_by_gene.cend(); ++it)
-	{
-		stream << "<tr>" << endl;
-		stream << "<td>" << endl;
-		const BedFile& gaps = it.value();
-		QString chr = gaps[0].chr().str();
-		QStringList coords;
-		for (int i=0; i<gaps.count(); ++i)
-		{
-			coords << QString::number(gaps[i].start()) + "-" + QString::number(gaps[i].end());
-		}
-		stream << it.key() << "</td><td>" << gaps.baseCount() << "</td><td>" << chr << "</td><td>" << coords.join(", ") << endl;
-
-		stream << "</td>" << endl;
-		stream << "</tr>" << endl;
-	}
-	if (gap_bases_no_gene>0)
-	{
-		stream << "<tr>" << endl;
-		stream << "<td>" << trans("kein &Uuml;berlappung mit Gen") << "</td><td>" << gap_bases_no_gene << "</td><td>-</td><td>-</td>" << endl;
-		stream << "</tr>" << endl;
-	}
-	stream << "</table>" << endl;
-
+	writeGapsByGeneTable(stream, gaps_by_gene, gap_bases_no_gene);
 
 	//init gap closing
 	ChromosomalIndex<BedFile> roi_idx(roi.regions);
 	SqlQuery query = db_.getQuery();
 	query.prepare("SELECT chr, start, end, status FROM gaps WHERE processed_sample_id='" + ps_id_ + "' AND status=:0 ORDER BY chr,start,end");
-	int gap_bases_closed = 0;
+	BedFile gaps_closed;
 
 	//closed by Sanger
 	{
@@ -1784,6 +1743,7 @@ GapDetails GermlineReportGenerator::writeCoverageDetails(QTextStream& stream, co
 			if (roi_idx.matchingIndex(chr, start, end)==-1) continue;
 
 			base_sum += end-start+1;
+			gaps_closed.append(BedLine(chr, start, end));
 
 			stream << "<tr>" << endl;
 			stream << "<td>" << db_.genesOverlapping(chr, start, end).join(", ") << "</td><td>" << QString::number(end-start+1) << "</td><td>" << chr.str() << "</td><td>" << QString::number(start) << "-" << QString::number(end) << "</td>";
@@ -1791,8 +1751,6 @@ GapDetails GermlineReportGenerator::writeCoverageDetails(QTextStream& stream, co
 		}
 		stream << "</table>" << endl;
 		stream << trans("Basen gesamt:") << QString::number(base_sum);
-
-		gap_bases_closed += base_sum;
 	}
 
 	//closed by visual inspection
@@ -1811,6 +1769,7 @@ GapDetails GermlineReportGenerator::writeCoverageDetails(QTextStream& stream, co
 			if (roi_idx.matchingIndex(chr, start, end)==-1) continue;
 
 			base_sum += end-start+1;
+			gaps_closed.append(BedLine(chr, start, end));
 
 			stream << "<tr>" << endl;
 			stream << "<td>" << db_.genesOverlapping(chr, start, end).join(", ") << "</td><td>" << QString::number(end-start+1) << "</td><td>" << chr.str() << "</td><td>" << QString::number(start) << "-" << QString::number(end) << "</td>";
@@ -1819,17 +1778,30 @@ GapDetails GermlineReportGenerator::writeCoverageDetails(QTextStream& stream, co
 		stream << "</table>" << endl;
 		stream << trans("Basen gesamt:") << QString::number(base_sum);
 		stream << "</p>" << endl;
-
-		gap_bases_closed += base_sum;
 	}
 
-	//add gap percentage after closing gaps
-	long long gaps_after_closing_gaps = gap_bases-gap_bases_closed;
-	double gap_percentage_after_closing_gaps = 100.0 * (gaps_after_closing_gaps)/roi_bases;
-	stream << "<p>";
-	stream << trans("Basen mit Tiefe &lt;") << data_.report_settings.min_depth << " " << trans("nach L&uuml;ckenschluss") << ": " << QString::number(gaps_after_closing_gaps) << endl;
-	stream << "<br />" << trans("Prozent L&uuml;cken") << " " << trans("nach L&uuml;ckenschluss") << ": " << QString::number(gap_percentage_after_closing_gaps, 'f', 2) << "%" << endl;
-	stream << "</p>";
+	//print gaps that were not closed
+	if (!gaps_closed.isEmpty())
+	{
+		//calcualte remaining gaps
+		BedFile gaps_remaining = low_cov;
+		gaps_closed.merge(); //argument of subtract needs to sorted and merged
+		gaps_remaining.subtract(gaps_closed);
+		gapsByGene(gaps_remaining, roi.genes, gaps_by_gene, gap_bases_no_gene);
+
+		//write gap table after closing gaps
+		stream << "<p>" << trans("Verbleibende L&uuml;cken nach L&uuml;ckenschluss") << endl;
+		stream << "</p>" << endl;
+		writeGapsByGeneTable(stream, gaps_by_gene, gap_bases_no_gene);
+
+		//add gap percentage after closing gaps
+		long long gap_bases_remaining = gaps_remaining.baseCount();
+		gap_percentage = 100.0 * gap_bases_remaining/roi_bases;
+		stream << "<p>";
+		stream << trans("Basen mit Tiefe &lt;") << data_.report_settings.min_depth << " " << trans("nach L&uuml;ckenschluss") << ": " << QString::number(gap_bases_remaining) << endl;
+		stream << "<br />" << trans("Prozent L&uuml;cken") << " " << trans("nach L&uuml;ckenschluss") << ": " << QString::number(gap_percentage, 'f', 2) << "%" << endl;
+		stream << "</p>";
+	}
 
 	return GapDetails {gap_percentage, gaps_by_gene};
 }
@@ -2490,4 +2462,61 @@ QString GermlineReportGenerator::exclusionCriteria(const ReportVariantConfigurat
 	if (conf.exclude_mechanism) exclustion_criteria << "Pathomechanismus";
 	if (conf.exclude_other) exclustion_criteria << "Anderer (siehe Kommentare)";
 	return exclustion_criteria.join(", ");
+}
+
+void GermlineReportGenerator::gapsByGene(const BedFile& low_cov, const GeneSet& roi_genes, QMap<QByteArray, BedFile>& gaps_by_gene, long long& gap_bases_no_gene)
+{
+	//clear
+	gaps_by_gene.clear();
+	gap_bases_no_gene = 0;
+
+	//calculate
+	for(int i=0; i<low_cov.count(); ++i)
+	{
+		const BedLine& line = low_cov[i];
+		GeneSet genes = db_.genesOverlapping(line.chr(), line.start(), line.end(), 20); //extend by 20 to annotate splicing regions as well
+		bool gene_match = false;
+		foreach(const QByteArray& gene, genes)
+		{
+			if (roi_genes.contains(gene))
+			{
+				gaps_by_gene[gene].append(line);
+				gene_match = true;
+			}
+		}
+		if (gene_match==false)
+		{
+			gap_bases_no_gene += line.length();
+		}
+	}
+}
+
+void GermlineReportGenerator::writeGapsByGeneTable(QTextStream& stream, QMap<QByteArray, BedFile>& gaps_by_gene, long long& gap_bases_no_gene)
+{
+	stream << "<table>" << endl;
+	stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Basen") << "</b></td><td><b>" << trans("Chromosom") << "</b></td><td><b>" << trans("Koordinaten (hg38)") << "</b></td></tr>" << endl;
+	for (auto it=gaps_by_gene.cbegin(); it!=gaps_by_gene.cend(); ++it)
+	{
+		stream << "<tr>" << endl;
+		stream << "<td>" << endl;
+		const BedFile& gaps = it.value();
+		QString chr = gaps[0].chr().str();
+		QStringList coords;
+		for (int i=0; i<gaps.count(); ++i)
+		{
+			coords << QString::number(gaps[i].start()) + "-" + QString::number(gaps[i].end());
+		}
+		stream << it.key() << "</td><td>" << gaps.baseCount() << "</td><td>" << chr << "</td><td>" << coords.join(", ") << endl;
+
+		stream << "</td>" << endl;
+		stream << "</tr>" << endl;
+	}
+	if (gap_bases_no_gene>0)
+	{
+		stream << "<tr>" << endl;
+		stream << "<td>" << trans("kein &Uuml;berlappung mit Gen") << "</td><td>" << gap_bases_no_gene << "</td><td>-</td><td>-</td>" << endl;
+		stream << "</tr>" << endl;
+	}
+	stream << "</table>" << endl;
+
 }
