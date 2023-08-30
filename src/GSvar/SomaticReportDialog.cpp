@@ -590,7 +590,11 @@ void SomaticReportDialog::createIgvScreenshot()
 	if (loc.exists) commands << "load " + Helper::canonicalPath(loc.filename);
 
     FileLocation screenshot_file_location = GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile();
-    if (screenshot_file_location.exists) return;
+	if (screenshot_file_location.exists)
+	{
+		QMessageBox::Button b = QMessageBox::warning(this, "IGV screenshot", "IGV screenshot already exists. Do you want to recreate it?", QMessageBox::Yes|QMessageBox::Cancel, QMessageBox::Cancel);
+		if (b != QMessageBox::Yes) return;
+	}
 
     QString screenshot_filename = Helper::canonicalPath(screenshot_file_location.filename);
 
@@ -628,6 +632,7 @@ void SomaticReportDialog::createIgvScreenshot()
 	catch(Exception e)
 	{
 		QMessageBox::warning(this, "IGV screenshot", "Could not create IGV screenshot. Error message: " + e.message());
+		return;
 	}
 
 	// Upload screenshot to the server, if the client-server mode is activated
@@ -689,7 +694,7 @@ void SomaticReportDialog::updateIgvText()
 {
 	if(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().exists)
 	{
-		ui_.label_hint_igv_screenshot_available->setText("<span style=\"color:#000000;\">available</span>");
+		ui_.label_hint_igv_screenshot_available->setText("<span style=\"color:#000000;\">available</span> <a href='bal'>[recreate]</a>");
 	}
 	else
 	{
