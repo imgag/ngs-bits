@@ -4111,6 +4111,7 @@ void FilterSvPeReadDepth::apply(const BedpeFile& svs, FilterResult& result) cons
     bool only_affected = getBool("only_affected");
 
 	int format_col_index = svs.annotationIndexByName("FORMAT");
+	if (format_col_index==-1) THROW(ProgrammingException, "Missing column FORMAT");
 
 	// determine analysis type
 	int sample_count = 1;
@@ -4138,8 +4139,10 @@ void FilterSvPeReadDepth::apply(const BedpeFile& svs, FilterResult& result) cons
 			QByteArrayList format_values = svs[i].annotations()[format_col_index + sample_idx + 1].split(':');
 
             // get total read number
-            QByteArrayList pe_read_entry = format_values[format_keys.indexOf("PR")].split(',');
-            if (pe_read_entry.size() != 2) THROW(FileParseException, "Invalid paired read entry (PR) in sv " + QByteArray::number(i) + "!")
+			int pr_index = format_keys.indexOf("PR");
+			if (pr_index==-1) THROW(FileParseException, "Missing paired read entry (PR) in SV " + svs[i].toString(true) + "!");
+			QByteArrayList pe_read_entry = format_values[pr_index].split(',');
+			if (pe_read_entry.size() != 2) THROW(FileParseException, "Invalid paired read entry (PR) in SV " + svs[i].toString(true) + "!")
             int pe_read_depth = Helper::toInt(pe_read_entry[1]);
 
             // compare AF with filter

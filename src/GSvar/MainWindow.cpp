@@ -1770,7 +1770,7 @@ void MainWindow::on_actionSV_triggered()
 	{
 		//check that a filter was applied (otherwise this can take forever)
 		int passing_vars = filter_result_.countPassing();
-		if (passing_vars>2000)
+		if (passing_vars>3000)
 		{
 			int res = QMessageBox::question(this, "Continue?", "There are " + QString::number(passing_vars) + " variants that pass the filters.\nGenerating the list of candidate genes for compound-heterozygous hits may take very long for this amount of variants.\nDo you want to continue?", QMessageBox::Yes, QMessageBox::No);
 			if(res==QMessageBox::No) return;
@@ -1855,7 +1855,7 @@ void MainWindow::on_actionCNV_triggered()
 	{
 		//check that a filter was applied (otherwise this can take forever)
 		int passing_vars = filter_result_.countPassing();
-		if (passing_vars>2000)
+		if (passing_vars>3000)
 		{
 			int res = QMessageBox::question(this, "Continue?", "There are " + QString::number(passing_vars) + " variants that pass the filters.\nGenerating the list of candidate genes for compound-heterozygous hits may take very long for this amount of variants.\nPlease set a filter for the variant list, e.g. the recessive filter, and retry!\nDo you want to continue?", QMessageBox::Yes, QMessageBox::No);
 			if(res==QMessageBox::No) return;
