@@ -1004,7 +1004,21 @@ HttpResponse ServerController::performLogin(const HttpRequest& request)
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
     }
 
-    Session cur_session = Session(user_id, QDateTime::currentDateTime(), false);
+    QString user_login = "unknown";
+    QString user_real_name = "unknown";
+
+    try
+    {
+        user_login = NGSD().userLogin(user_id);
+        user_real_name = NGSD().userName(user_id);
+    }
+    catch (DatabaseException& e)
+    {
+        Log::error(EndpointManager::formatResponseMessage(request, "Database request failed: " + e.message()));
+        return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
+    }
+
+    Session cur_session = Session(user_id, user_login, user_real_name, QDateTime::currentDateTime(), false);
     SessionManager::addNewSession(secure_token, cur_session);
     QByteArray body = secure_token.toUtf8();
 
@@ -1072,9 +1086,9 @@ HttpResponse ServerController::getDbToken(const HttpRequest& request)
 	if (user_session.isEmpty())
     {
         return HttpResponse(ResponseStatus::UNAUTHORIZED, request.getContentType(), EndpointManager::formatResponseMessage(request, "You need to log in first"));
-	}
+    }
 
-	Session cur_session = Session(user_session.user_id, QDateTime::currentDateTime(), true);
+    Session cur_session = Session(user_session.user_id, user_session.user_login, user_session.user_name, QDateTime::currentDateTime(), true);
 	QString db_token = ServerHelper::generateUniqueStr();
 	SessionManager::addNewSession(db_token, cur_session);
 	QByteArray body = db_token.toUtf8();

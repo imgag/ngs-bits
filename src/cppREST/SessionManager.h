@@ -12,18 +12,24 @@
 struct CPPRESTSHARED_EXPORT Session
 {
 	int user_id;
+    QString user_login;
+    QString user_name;
 	QDateTime login_time;
-	bool is_for_db_only;
+    bool is_for_db_only;
 
 	Session()
 		: user_id()
+        , user_login()
+        , user_name()
 		, login_time()
 		, is_for_db_only()
 	{
 	}
 
-	Session(const int& user_id_, const QDateTime login_time_, const bool is_for_db_only_ = false)
+    Session(const int& user_id_, const QString& user_login, const QString& user_name, const QDateTime login_time_, const bool is_for_db_only_ = false)
 		: user_id(user_id_)
+        , user_login(user_login)
+        , user_name(user_name)
 		, login_time(login_time_)
 		, is_for_db_only(is_for_db_only_)
 	{

@@ -25,8 +25,8 @@ void SessionManager::saveEverythingToFile()
 	{
 		i.next();
 		if (i.value().user_id > 0)
-		{
-			out << i.key() << "\t" << i.value().user_id << "\t" << i.value().login_time.toString() << "\t" << i.value().is_for_db_only << "\n";
+        {
+            out << i.key() << "\t" << i.value().user_id << "\t" << i.value().user_login << "\t" << i.value().user_name << "\t" << i.value().login_time.toString() << "\t" << i.value().is_for_db_only << "\n";
 		}
 	}
 	instance().mutex_.unlock();
@@ -36,8 +36,8 @@ void SessionManager::saveSessionToFile(QString id, Session in)
 {
 	QTextStream out(instance().backup_file_.data());
 	if (!in.isEmpty())
-	{
-		out << id << "\t" << in.user_id << "\t" << in.login_time.toSecsSinceEpoch() << "\t" << in.is_for_db_only << "\n";
+    {
+        out << id << "\t" << in.user_id << "\t" << in.user_login << "\t" << in.user_name << "\t" << in.login_time.toSecsSinceEpoch() << "\t" << in.is_for_db_only << "\n";
 	}
 }
 
@@ -54,11 +54,11 @@ void SessionManager::restoreFromFile()
 			if(line.isEmpty()) break;
 
 			QList<QString> line_list = line.split("\t");
-			if (line_list.count() > 3)
+            if (line_list.count() > 5)
 			{
 				bool ok;
 				restored_items++;
-				addNewSession(line_list[0], Session(line_list[1].toInt(), QDateTime::fromSecsSinceEpoch(line_list[2].toLongLong(&ok,10)), line_list[3].toInt()), false);
+                addNewSession(line_list[0], Session(line_list[1].toInt(), line_list[2], line_list[3], QDateTime::fromSecsSinceEpoch(line_list[4].toLongLong(&ok,10)), line_list[5].toInt()), false);
 			}
 		}
 		Log::info("Number of restored sessions: " + QString::number(restored_items));
