@@ -387,8 +387,6 @@ void RequestWorker::closeConnection(QSslSocket* socket)
 	}
 
     if (socket->bytesToWrite()) socket->waitForBytesWritten(5000);
-    socket->disconnect();
-    socket->disconnectFromHost();
     socket->close();
 }
 
