@@ -48,15 +48,54 @@ QByteArray LoginManager::sendPostApiRequest(QString path, QString content, HttpH
 
 QByteArray LoginManager::sendGetApiRequest(QString path, HttpHeaders add_headers)
 {
-	try
+    QByteArray reply;
+    try
 	{
-		return HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(ClientHelper::serverApiUrl() + path, add_headers);
+        reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(ClientHelper::serverApiUrl() + path, add_headers);
 	}
 	catch (Exception& e)
 	{
 		Log::error("Login manager encountered an error while sending GET request: " + e.message());
-	}
-	return QByteArray{};
+        reply = e.message().toUtf8();
+    }
+    return reply;
+}
+
+void LoginManager::setAllTokens(const QString& user, const QString& password)
+{
+    LoginManager& manager = instance();
+    if (ClientHelper::isClientServerMode())
+    {
+        HttpHeaders add_headers;
+        add_headers.insert("Accept", "text/plain");
+        add_headers.insert("Content-type", "application/x-www-form-urlencoded");
+        manager.user_token_ = sendPostApiRequest("login", "name="+user+"&password="+password, add_headers);
+        manager.db_token_ = sendPostApiRequest("db_token", "token="+manager.user_token_, add_headers);
+        QByteArray ngsd_credentials = sendPostApiRequest("ngsd_credentials", "dbtoken="+manager.db_token_+"&secret="+QString::number(ToolBase::encryptionKey("encryption helper"), 16), add_headers);
+        QJsonDocument ngsd_json = QJsonDocument::fromJson(ngsd_credentials);
+
+        if (ngsd_json.isObject())
+        {
+            manager.ngsd_host_name_ = ngsd_json.object().value("ngsd_host").toString();
+            manager.ngsd_port_ = ngsd_json.object().value("ngsd_port").toString().toInt();
+            manager.ngsd_name_ = ngsd_json.object().value("ngsd_name").toString();
+            manager.ngsd_user_ = ngsd_json.object().value("ngsd_user").toString();
+            manager.ngsd_password_ = ngsd_json.object().value("ngsd_pass").toString();
+        }
+
+        QByteArray genlab_credentials = sendPostApiRequest("genlab_credentials", "dbtoken="+manager.db_token_+"&secret="+QString::number(ToolBase::encryptionKey("encryption helper"), 16), add_headers);
+        QJsonDocument genlab_json = QJsonDocument::fromJson(genlab_credentials);
+
+        if (genlab_json.isObject())
+        {
+            manager.genlab_mssql_ = genlab_json.object().value("genlab_mssql").toBool();
+            manager.genlab_host_ = genlab_json.object().value("genlab_host").toString();
+            manager.genlab_port_ = genlab_json.object().value("genlab_port").toInt();
+            manager.genlab_name_ = genlab_json.object().value("genlab_name").toString();
+            manager.genlab_user_ = genlab_json.object().value("genlab_user").toString();
+            manager.genlab_password_ = genlab_json.object().value("genlab_pass").toString();
+        }
+    }
 }
 
 QString LoginManager::userLogin()
@@ -109,39 +148,9 @@ bool LoginManager::active()
 
 void LoginManager::login(QString user, QString password, bool test_db)
 {
-	LoginManager& manager = instance();
-	if (ClientHelper::isClientServerMode())
-	{
-		HttpHeaders add_headers;
-		add_headers.insert("Accept", "text/plain");
-		add_headers.insert("Content-type", "application/x-www-form-urlencoded");
-		manager.user_token_ = sendPostApiRequest("login", "name="+user+"&password="+password, add_headers);
-		manager.db_token_ = sendPostApiRequest("db_token", "token="+manager.user_token_, add_headers);
-		QByteArray ngsd_credentials = sendPostApiRequest("ngsd_credentials", "dbtoken="+manager.db_token_+"&secret="+QString::number(ToolBase::encryptionKey("encryption helper"), 16), add_headers);
-		QJsonDocument ngsd_json = QJsonDocument::fromJson(ngsd_credentials);
+    LoginManager& manager = instance();
 
-		if (ngsd_json.isObject())
-		{
-			manager.ngsd_host_name_ = ngsd_json.object().value("ngsd_host").toString();
-			manager.ngsd_port_ = ngsd_json.object().value("ngsd_port").toString().toInt();
-			manager.ngsd_name_ = ngsd_json.object().value("ngsd_name").toString();
-			manager.ngsd_user_ = ngsd_json.object().value("ngsd_user").toString();
-			manager.ngsd_password_ = ngsd_json.object().value("ngsd_pass").toString();
-		}
-
-		QByteArray genlab_credentials = sendPostApiRequest("genlab_credentials", "dbtoken="+manager.db_token_+"&secret="+QString::number(ToolBase::encryptionKey("encryption helper"), 16), add_headers);
-		QJsonDocument genlab_json = QJsonDocument::fromJson(genlab_credentials);
-
-		if (genlab_json.isObject())
-		{
-			manager.genlab_mssql_ = genlab_json.object().value("genlab_mssql").toBool();
-			manager.genlab_host_ = genlab_json.object().value("genlab_host").toString();
-			manager.genlab_port_ = genlab_json.object().value("genlab_port").toInt();
-			manager.genlab_name_ = genlab_json.object().value("genlab_name").toString();
-			manager.genlab_user_ = genlab_json.object().value("genlab_user").toString();
-			manager.genlab_password_ = genlab_json.object().value("genlab_pass").toString();
-		}
-	}
+    setAllTokens(user, password); // for client-server mode
 
 	NGSD db(test_db);
 	manager.user_id_ = db.userId(user, true);
@@ -156,7 +165,6 @@ void LoginManager::login(QString user, QString password, bool test_db)
 void LoginManager::renewLogin()
 {
 	LoginManager& manager = instance();
-	HttpHeaders add_headers;
 
 	QString user_login;
 	QString user_password;
@@ -165,14 +173,16 @@ void LoginManager::renewLogin()
 		user_login = manager.userLogin();
 		user_password = manager.userPassword();
 	}
-	catch (Exception& e) {
+    catch (...)
+    {
 		Log::info("The user has not logged in yet. No need to update the credentials");
 		return;
 	}
 
-	add_headers.insert("Accept", "application/json");
-    add_headers.insert("Content-type", "application/x-www-form-urlencoded");
-	QByteArray session_info = sendGetApiRequest("session?token=" + manager.userToken(), add_headers);
+    HttpHeaders session_headers;
+    session_headers.insert("Accept", "application/json");
+    session_headers.insert("Content-type", "application/x-www-form-urlencoded");
+    QByteArray session_info = sendGetApiRequest("session?token=" + manager.userToken(), session_headers);
 	QJsonDocument session_json = QJsonDocument::fromJson(session_info);
 
 	if (session_json.isObject())
@@ -183,15 +193,15 @@ void LoginManager::renewLogin()
 		if ((login_time + valid_period - (0.5 * 3600 * 1000)) < QDateTime::currentDateTime().toSecsSinceEpoch())
 		{
 			if ((user_login.isEmpty()) || (user_password.isEmpty())) return;
-
-			add_headers.clear();
-			add_headers.insert("Accept", "text/plain");
-            add_headers.insert("Content-type", "application/x-www-form-urlencoded");
-
-			QString content = "name="+user_login+"&password="+user_password;
-			manager.user_token_ = sendPostApiRequest("login", content, add_headers);
+            setAllTokens(user_login, user_password);
 		}
 	}
+    else if (session_info.contains("expired"))
+    {
+        // the server could not return session info, the current token is likely expired
+        Log::info("Token has expired, request a new one");
+        setAllTokens(user_login, user_password);
+    }
 }
 
 QString LoginManager::dbToken()
