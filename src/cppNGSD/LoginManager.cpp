@@ -35,14 +35,15 @@ LoginManager& LoginManager::instance()
 
 QByteArray LoginManager::sendPostApiRequest(QString path, QString content, HttpHeaders add_headers)
 {
-	try
+    try
 	{
-		return HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(ClientHelper::serverApiUrl() + path, content.toUtf8(), add_headers);
+        return HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(ClientHelper::serverApiUrl() + path, content.toUtf8(), add_headers).body;
 	}
 	catch (Exception& e)
 	{
 		Log::error("Login manager encountered an error while sending POST request: " + e.message());
 	}
+
 	return QByteArray{};
 }
 
@@ -51,7 +52,7 @@ QByteArray LoginManager::sendGetApiRequest(QString path, HttpHeaders add_headers
     QByteArray reply;
     try
 	{
-        reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(ClientHelper::serverApiUrl() + path, add_headers);
+        reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(ClientHelper::serverApiUrl() + path, add_headers).body;
 	}
 	catch (Exception& e)
 	{

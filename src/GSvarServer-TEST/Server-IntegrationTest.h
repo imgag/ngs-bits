@@ -15,7 +15,7 @@ int sendGetRequest(QByteArray& reply, QString url, HttpHeaders headers)
 {
 	try
 	{
-		reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(url, headers);
+        reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(url, headers).body;
 	}
 	catch(Exception& e)
 	{
@@ -32,7 +32,7 @@ int sendPostRequest(QByteArray& reply, QString url, HttpHeaders headers, QByteAr
 {
 	try
 	{
-		reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(url, data, headers);
+        reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(url, data, headers).body;
 	}
 	catch(Exception& e)
 	{

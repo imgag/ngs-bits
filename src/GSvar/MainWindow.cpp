@@ -338,13 +338,20 @@ QString MainWindow::appName() const
 
 bool MainWindow::isServerRunning()
 {
-	ServerInfo server_info = ClientHelper::getServerInfo();
+    int status_code = -1;
+    ServerInfo server_info = ClientHelper::getServerInfo(status_code);
 
-	if (server_info.isEmpty())
+    if (server_info.isEmpty())
 	{
 		QMessageBox::warning(this, "Server not available", "GSvar is configured for the client-server mode, but the server is not available. The application will be closed");
 		return false;
 	}
+
+    if (status_code!=200)
+    {
+        QMessageBox::warning(this, "Server availability problem", "Server replied with " + QString::number(status_code) + " code. The application will be closed");
+        return false;
+    }
 
 	if (ClientHelper::serverApiVersion() != server_info.api_version)
 	{
@@ -4197,11 +4204,19 @@ void MainWindow::on_actionAbout_triggered()
 	if (ClientHelper::isClientServerMode())
 	{
 		about_text += "\nMode: client-server";
-		ServerInfo server_info = ClientHelper::getServerInfo();
-		about_text += "\nServer version: " + server_info.version;
-		about_text += "\nAPI version: " + server_info.api_version;
-		about_text += "\nServer start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
-	}
+        int status_code = -1;
+        ServerInfo server_info = ClientHelper::getServerInfo(status_code);
+        if (status_code!=200)
+        {
+            about_text += "\nServer returned " + QString::number(status_code);
+        }
+        else
+        {
+            about_text += "\nServer version: " + server_info.version;
+            about_text += "\nAPI version: " + server_info.api_version;
+            about_text += "\nServer start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
+        }
+    }
 	else
 	{
 		about_text += "\nMode: stand-alone (no server)";

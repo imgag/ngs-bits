@@ -76,27 +76,27 @@ void HttpHandler::setHeader(const QByteArray& key, const QByteArray& value)
 
 QMap<QByteArray, QByteArray> HttpHandler::head(QString url, const HttpHeaders& add_headers)
 {
-	return HttpRequestHandler(proxy_, this).head(url, add_headers);
+    return HttpRequestHandler(proxy_, this).head(url, add_headers).headers;
 }
 
 QByteArray HttpHandler::get(QString url, const HttpHeaders& add_headers)
 {
-	return HttpRequestHandler(proxy_, this).get(url, add_headers);
+    return HttpRequestHandler(proxy_, this).get(url, add_headers).body;
 }
 
 QByteArray HttpHandler::put(QString url, const QByteArray& data, const HttpHeaders& add_headers)
 {
-	return HttpRequestHandler(proxy_, this).put(url, data, add_headers);
+    return HttpRequestHandler(proxy_, this).put(url, data, add_headers).body;
 }
 
 QByteArray HttpHandler::post(QString url, const QByteArray& data, const HttpHeaders& add_headers)
 {
-	return HttpRequestHandler(proxy_, this).post(url, data, add_headers);
+    return HttpRequestHandler(proxy_, this).post(url, data, add_headers).body;
 }
 
 QByteArray HttpHandler::post(QString url, QHttpMultiPart* parts, const HttpHeaders& add_headers)
 {
-	return HttpRequestHandler(proxy_, this).post(url, parts, add_headers);
+    return HttpRequestHandler(proxy_, this).post(url, parts, add_headers).body;
 }
 
 void HttpHandler::handleProxyAuthentification()

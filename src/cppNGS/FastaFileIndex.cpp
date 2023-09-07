@@ -18,7 +18,7 @@ FastaFileIndex::FastaFileIndex(QString fasta_file)
 	{
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");
-		QByteArrayList reply_lines = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(index_name_, add_headers).trimmed().split('\n');
+        QByteArrayList reply_lines = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(index_name_, add_headers).body.trimmed().split('\n');
 		for (int i = 0; i < reply_lines.count(); i++)
 		{
 			if (reply_lines[i].length()==0 && i==reply_lines.count()-1) break;
@@ -96,7 +96,7 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, bool to_upper) const
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");
 		add_headers.insert("Range", byte_range.toUtf8());
-		output = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(fasta_name_, add_headers).replace("\n", 1, "", 0);
+        output = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(fasta_name_, add_headers).body.replace("\n", 1, "", 0);
 	}
 
 	//output
@@ -156,7 +156,7 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, int start, int length, bool 
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");
 		add_headers.insert("Range", byte_range.toUtf8());
-		output = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(fasta_name_, add_headers).replace("\n", 1, "", 0);
+        output = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(fasta_name_, add_headers).body.replace("\n", 1, "", 0);
 	}
 
 	//output
