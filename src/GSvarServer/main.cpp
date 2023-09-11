@@ -559,7 +559,14 @@ int main(int argc, char **argv)
         Log::error("Failed to restore the previous state: " + e.message());
     }
 
-    RefGenomeService::setReferenceGenome(Settings::string("reference_genome"));
+    if (!Settings::string("reference_genome", true).isEmpty())
+    {
+        RefGenomeService::setReferenceGenome(Settings::string("reference_genome"));
+    }
+    else
+    {
+        Log::error("Reference genome has not been provided. Server functionality will be limited");
+    }
 
 	Log::info("SSL version used for the build: " + QSslSocket::sslLibraryBuildVersionString());
 	ServerWrapper https_server(server_port);
