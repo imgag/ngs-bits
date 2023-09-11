@@ -578,12 +578,12 @@ int main(int argc, char **argv)
 	}
 
 	ServerHelper::setServerStartDateTime(QDateTime::currentDateTime());
-
-    Log::info("List of all environment variables (" + QString::number(QProcessEnvironment::systemEnvironment().keys().count()) + " in total):");
+    QString env_var_list;
     foreach (QString key, QProcessEnvironment::systemEnvironment().keys())
-    {
-        Log::info(key + "=" + QProcessEnvironment::systemEnvironment().value(key));
+    {               
+        env_var_list+=key + "=" + QProcessEnvironment::systemEnvironment().value(key)+"\n";
     }
+    Log::info("List of all environment variables (" + QString::number(QProcessEnvironment::systemEnvironment().keys().count()) + " in total):\n"+env_var_list);
 
 	return app.exec();
 }
