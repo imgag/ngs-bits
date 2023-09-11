@@ -559,6 +559,8 @@ int main(int argc, char **argv)
         Log::error("Failed to restore the previous state: " + e.message());
     }
 
+    RefGenomeService::setReferenceGenome(Settings::string("reference_genome"));
+
 	Log::info("SSL version used for the build: " + QSslSocket::sslLibraryBuildVersionString());
 	ServerWrapper https_server(server_port);
 	if (!https_server.isRunning())
