@@ -156,7 +156,8 @@ MainWindow::MainWindow(QWidget *parent)
 	, filename_()
 	, variants_changed_()
 	, last_report_path_(QDir::homePath())
-	, init_timer_(this, true)
+    , init_timer_(this, true)
+    , server_version_()
 {
 	//setup GUI
 	ui_.setupUi(this);
@@ -352,6 +353,12 @@ bool MainWindow::isServerRunning()
         QMessageBox::warning(this, "Server availability problem", "Server replied with " + QString::number(status_code) + " code. The application will be closed");
         return false;
     }
+
+    if (!server_version_.isEmpty() && (server_version_ != server_info.version))
+    {
+        QMessageBox::information(this, "Server version changed", "Server version has changed from " + server_version_ + " to " + server_info.version + ". No action is required");
+    }
+    server_version_ = server_info.version;
 
 	if (ClientHelper::serverApiVersion() != server_info.api_version)
 	{
