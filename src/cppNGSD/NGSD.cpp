@@ -5304,6 +5304,7 @@ QString NGSD::createSampleSheet(int run_id)
 
 	QString sw_version = Settings::string("nova_seq_x_sw_version");
 	QString app_version = Settings::string("nova_seq_x_app_version");
+	QString fastq_compression_format = "dragen"; //can be "gzip" or "dragen" //TODO: make adjustable?
 	int barcode_mismatch_index1 = 1; //TODO: make adjustable?
 	int barcode_mismatch_index2 = 1; //TODO: make adjustable?
 
@@ -5432,7 +5433,7 @@ QString NGSD::createSampleSheet(int run_id)
 //	sample_sheet.append("BarcodeMismatchesIndex2,1");//TODO: make adjustable
 	sample_sheet.append("AdapterRead1," + adapter_sequences_read1.toList().join("+"));
 	sample_sheet.append("AdapterRead2," + adapter_sequences_read2.toList().join("+"));
-	sample_sheet.append("FastqCompressionFormat,gzip"); //TODO: make adjustable
+	sample_sheet.append("FastqCompressionFormat," +fastq_compression_format);
 	sample_sheet.append("");
 	sample_sheet.append("[BCLConvert_Data]");
 	sample_sheet.append("Lane,Sample_ID,Index,Index2,OverrideCycles,BarcodeMismatchesIndex1,BarcodeMismatchesIndex2,Sample_Project");
