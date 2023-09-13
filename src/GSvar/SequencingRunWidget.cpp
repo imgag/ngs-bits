@@ -357,7 +357,7 @@ void SequencingRunWidget::showPlot()
 
 	//show widget
 	auto dlg = GUIHelper::createDialog(qc_widget, "QC plot");
-	dlg->exec();
+	emit addModelessDialog(dlg, false);
 }
 
 void SequencingRunWidget::edit()

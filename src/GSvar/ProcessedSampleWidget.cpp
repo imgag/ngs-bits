@@ -416,7 +416,7 @@ void ProcessedSampleWidget::showPlot()
 		qc_widget->setSecondTermId(qc_term_id2);
 	}
 	auto dlg = GUIHelper::createDialog(qc_widget, "QC plot");
-	dlg->exec();
+	emit addModelessDialog(dlg, false);
 }
 
 void ProcessedSampleWidget::openSampleFolder()

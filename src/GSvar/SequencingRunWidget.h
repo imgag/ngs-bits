@@ -18,6 +18,9 @@ public:
 	SequencingRunWidget(QWidget* parent, QString run_id);
 	~SequencingRunWidget();
 
+signals:
+	void addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize);
+
 protected slots:
 	void updateGUI();
 	void openSelectedSampleTabs();

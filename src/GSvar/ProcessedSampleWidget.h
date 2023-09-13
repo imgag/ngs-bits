@@ -25,6 +25,7 @@ public:
 
 signals:
 	void clearMainTableSomReport(QString ps_name);
+	void addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize);
 
 protected slots:
 	void updateGUI();

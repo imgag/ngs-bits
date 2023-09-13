@@ -3294,13 +3294,7 @@ void MainWindow::addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize)
 	}
 	modeless_dialogs_.append(dlg);
 
-	//we always clean up when we add another dialog.
-	//Like that, only one dialog can be closed and not destroyed at the same time.
-	cleanUpModelessDialogs();
-}
-
-void MainWindow::cleanUpModelessDialogs()
-{
+	//Clean up when we add another dialog. Like that, only one dialog can be closed and not destroyed at the same time.
 	for (int i=modeless_dialogs_.count()-1; i>=0; --i)
 	{
 		if (modeless_dialogs_[i]->isHidden())
@@ -3534,6 +3528,7 @@ void MainWindow::openProcessedSampleTab(QString ps_name)
 
 		ProcessedSampleWidget* widget = new ProcessedSampleWidget(this, ps_id);
 		connect(widget, SIGNAL(clearMainTableSomReport(QString)), this, SLOT(clearSomaticReportSettings(QString)));
+		connect(widget, SIGNAL(addModelessDialog(QSharedPointer<QDialog>, bool)), this, SLOT(addModelessDialog(QSharedPointer<QDialog>, bool)));
 		int index = openTab(QIcon(":/Icons/NGSD_sample.png"), ps_name, widget);
 		if (Settings::boolean("debug_mode_enabled"))
 		{
@@ -3560,6 +3555,7 @@ void MainWindow::openRunTab(QString run_name)
 	}
 
 	SequencingRunWidget* widget = new SequencingRunWidget(this, run_id);
+	connect(widget, SIGNAL(addModelessDialog(QSharedPointer<QDialog>, bool)), this, SLOT(addModelessDialog(QSharedPointer<QDialog>, bool)));
 	int index = openTab(QIcon(":/Icons/NGSD_run.png"), run_name, widget);
 	if (Settings::boolean("debug_mode_enabled"))
 	{
