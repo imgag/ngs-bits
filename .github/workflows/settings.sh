@@ -27,6 +27,7 @@ echo "allow_folder_listing = true" >> ./bin/GSvarServer-TEST.ini
 echo "ssl_certificate = \"$HOME/ssl/test-cert.crt\"" >> ./bin/GSvarServer-TEST.ini
 echo "ssl_key = \"$HOME/ssl/test-key.key\"" >> ./bin/GSvarServer-TEST.ini
 echo "session_duration = 36000" >> ./bin/GSvarServer-TEST.ini
+echo "test_mode = true" >> ./bin/GSvarServer-TEST.ini
 cp ./bin/GSvarServer-TEST.ini ./bin/GSvarServer.ini
 
 sed -i '/CRYPT/d' src/cppCORE/cppCORE.pro
