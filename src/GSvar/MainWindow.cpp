@@ -320,7 +320,6 @@ MainWindow::MainWindow(QWidget *parent)
 			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM files over HTTPS may not be possible");
 		}
 	}
-    RefGenomeService::setReferenceGenome(Settings::string("reference_genome"));
 
 	update_info_toolbar_ = new QToolBar;
 	update_info_toolbar_->hide();
