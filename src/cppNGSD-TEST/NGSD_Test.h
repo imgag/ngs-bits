@@ -3025,4 +3025,24 @@ private slots:
 		QString path_without_override = db.processedSamplePath(db.processedSampleId("NA12878_03"), PathType::GSVAR);
 		IS_TRUE(path_without_override.endsWith("somatic/Sample_NA12878_03/NA12878_03.GSvar"));
 	}
+
+	void test_create_sample_sheet_for_novaseqx()
+	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in5.sql"));
+
+		QString sample_sheet = db.createSampleSheet(1);
+
+		//write to file
+		QSharedPointer<QFile> output_file = Helper::openFileForWriting("out/NovaSeqX_samplesheet.csv");
+		output_file->write(sample_sheet.toLatin1());
+		output_file->flush();
+		output_file->close();
+
+		COMPARE_FILES("out/NovaSeqX_samplesheet.csv",  TESTDATA("data_out/NovaSeqX_samplesheet.csv") );
+
+	}
 };

@@ -5371,6 +5371,7 @@ QString NGSD::createSampleSheet(int run_id)
 		adapter_sequences_read1.insert(sys_info.adapter1_p5);
 		adapter_sequences_read2.insert(sys_info.adapter2_p7);
 
+
 		if (sample_type == "DNA")
 		{
 			if (system_type == "WGS")
@@ -5394,20 +5395,31 @@ QString NGSD::createSampleSheet(int run_id)
 		//create line for BCLConvert
 		foreach (const QString& lane, lanes)
 		{
+			int umi_length = 0;
 			QStringList line;
 			line.append(lane);
 			line.append(ps_name);
 			line.append(mid1);
 			line.append(mid2);
 
-			//TODO: add UMIs
 			QString override_cycles;
 			// forward read
 			override_cycles = "Y" + QString::number(forward_read_length) + ";";
 			// index1
 			override_cycles += "I" + QString::number(mid1.length());
-			if (index1_read_length - mid1.length() < 0) THROW(ArgumentException, "Index1 read longer than seqeuncing length!")
-			if (index1_read_length - mid1.length() > 0) override_cycles += "N" + QString::number(index1_read_length - mid1.length());
+			if(sys_info.umi_type == "IDT-UDI-UMI")
+			{
+				//add UMIs:
+				override_cycles += "Y11";
+				umi_length = 11;
+			}
+			else if(sys_info.umi_type != "n/a")
+			{
+				//TODO: extend
+				THROW(NotImplementedException, "Unsupported UMI type '" + sys_info.umi_type + "!");
+			}
+			if (index1_read_length - (mid1.length() + umi_length) < 0) THROW(ArgumentException, "Index1 (+ UMI) read longer than seqeuncing length!")
+			if (index1_read_length - (mid1.length() + umi_length) > 0) override_cycles += "N" + QString::number(index1_read_length - mid1.length());
 			override_cycles += ";";
 			//index2
 			if (index2_read_length - mid2.length() < 0) THROW(ArgumentException, "Index2 read longer than seqeuncing length!")
@@ -5431,8 +5443,15 @@ QString NGSD::createSampleSheet(int run_id)
 	sample_sheet.append("SoftwareVersion,"  + sw_version);
 //	sample_sheet.append("BarcodeMismatchesIndex1,1");//TODO: make adjustable
 //	sample_sheet.append("BarcodeMismatchesIndex2,1");//TODO: make adjustable
-	sample_sheet.append("AdapterRead1," + adapter_sequences_read1.toList().join("+"));
-	sample_sheet.append("AdapterRead2," + adapter_sequences_read2.toList().join("+"));
+
+	//sort adapter to make it testable
+	QStringList adapter_sequences_read1_list = adapter_sequences_read1.toList();
+	adapter_sequences_read1_list.sort();
+	sample_sheet.append("AdapterRead1," + adapter_sequences_read1_list.join("+"));
+	QStringList adapter_sequences_read2_list = adapter_sequences_read2.toList();
+	adapter_sequences_read2_list.sort();
+	sample_sheet.append("AdapterRead2," + adapter_sequences_read2_list.join("+"));
+
 	sample_sheet.append("FastqCompressionFormat," +fastq_compression_format);
 	sample_sheet.append("");
 	sample_sheet.append("[BCLConvert_Data]");
@@ -5478,7 +5497,8 @@ QString NGSD::createSampleSheet(int run_id)
 		sample_sheet.append(enrichment_analysis);
 		sample_sheet.append("");
 	}
-
+//disabled until further testing
+/*
 	//DRAGEN RNA
 	if (rna_analysis.size() > 0)
 	{
@@ -5500,7 +5520,7 @@ QString NGSD::createSampleSheet(int run_id)
 		sample_sheet.append(rna_analysis);
 		sample_sheet.append("");
 	}
-
+*/
 
 	return sample_sheet.join("\n");
 }
