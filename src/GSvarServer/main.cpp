@@ -559,13 +559,10 @@ int main(int argc, char **argv)
         Log::error("Failed to restore the previous state: " + e.message());
     }
 
-    if (!Settings::string("reference_genome", true).isEmpty())
+	//TODO Alexandr: check that all non-optional settings are really set (host, port, genome, ssl_*, folders, NSGD, ...). Otherwise refuse to start the server.
+	if (Settings::string("reference_genome", true).isEmpty())
     {
-        RefGenomeService::setReferenceGenome(Settings::string("reference_genome"));
-    }
-    else
-    {
-        Log::error("Reference genome has not been provided. Server functionality will be limited");
+		THROW(ArgumentException, "Reference genome not in settings!");
     }
 
 	Log::info("SSL version used for the build: " + QSslSocket::sslLibraryBuildVersionString());
