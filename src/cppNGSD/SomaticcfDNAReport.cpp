@@ -36,7 +36,7 @@ void SomaticcfDnaReport::writeRtf(QByteArray out_file)
 	doc_.addPart(RtfParagraph("*AF: Allelfrequenz, Anteil mutierte Fragmente").setFontSize(16).setHorizontalAlignment("j").RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
 
-
+	//Only use the latest 3 cfDNAs for the report:
 	if (data_.table.cfdna_samples.count() <= 3)
 	{
 		doc_.addPart(RtfParagraph("Patientenspezifische somatische Variante(n):").setFontSize(18).setBold(true).RtfCode());
@@ -45,17 +45,8 @@ void SomaticcfDnaReport::writeRtf(QByteArray out_file)
 	}
 	else
 	{
-		int i=1;
-		while (i*3 < data_.table.cfdna_samples.count())
-		{
-			doc_.addPart(RtfParagraph("Patientenspezifische somatische Variante(n) - Teil " + QByteArray::number(i) + ":").setFontSize(18).setBold(true).RtfCode());
-			doc_.addPart(partSnvTable((i-1)*3, (i*3)).RtfCode());
-			doc_.addPart(partSnvExplanation().RtfCode());
-			i++;
-		}
-
-		doc_.addPart(RtfParagraph("Patientenspezifische somatische Variante(n) - Teil " + QByteArray::number(i) + ":").setFontSize(18).setBold(true).RtfCode());
-		doc_.addPart(partSnvTable((i-1)*3, data_.table.cfdna_samples.count()).RtfCode());
+		doc_.addPart(RtfParagraph("Patientenspezifische somatische Variante(n):").setFontSize(18).setBold(true).RtfCode());
+		doc_.addPart(partSnvTable(data_.table.cfdna_samples.count()-3, data_.table.cfdna_samples.count()).RtfCode());
 		doc_.addPart(partSnvExplanation().RtfCode());
 	}
 	doc_.addPart(RtfParagraph("").RtfCode());
