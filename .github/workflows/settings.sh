@@ -17,6 +17,9 @@ echo "liftover_hg19_hg38 = ../src/cppNGS-TEST/data_in/hg19ToHg38.over.chain.gz" 
 echo "liftover_hg38_hg19 = ../src/cppNGS-TEST/data_in/hg38ToHg19.over.chain.gz" >> ./bin/settings.ini
 echo "threads = 1" >> ./bin/settings.ini
 echo "server_port = 8443" >> ./bin/settings.ini
+echo "sample_sheet_path =" >> ./bin/settings.ini
+echo "nova_seq_x_sw_version = \"4.1.7\"" >> ./bin/settings.ini
+echo "nova_seq_x_app_version = \"1.1.4\"" >> ./bin/settings.ini
 
 touch ./bin/GSvarServer-TEST.ini
 echo "url_lifetime = 5" >> ./bin/GSvarServer-TEST.ini
