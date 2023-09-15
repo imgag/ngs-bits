@@ -47,10 +47,10 @@ public:
 		QStringList desc;
 
 		desc << "This is essentially a multithreaded C++ reimplementation of the MaxEntScan plugin for VEP (https://github.com/Ensembl/VEP_plugins/blob/release/109/MaxEntScan.pm). MaxEntScan was first introduced by Shamsani et al. (https://doi.org/10.1093/bioinformatics/bty960).";
-        desc << "Benchmarking of this tool showed that it is up to 10x faster than the VEP plugin when using one thread."
-        desc << "The standard MES scores are only computed for variants which are close to known splice sites (which are computed from the provided gff file)."
-        desc << "De-novo splice sites can be found by using the MES scores from the sliding window approach (swa)."
-        desc << "Intergenic variants never get MES scores."
+        desc << "Benchmarking of this tool showed that it is up to 10x faster than the VEP plugin when using one thread.";
+        desc << "The standard MES scores are only computed for variants which are close to known splice sites (which are computed from the provided gff file).";
+        desc << "De-novo splice sites can be found by using the MES scores from the sliding window approach (swa).";
+        desc << "Intergenic variants never get MES scores.";
 
 		return desc;
 	}
