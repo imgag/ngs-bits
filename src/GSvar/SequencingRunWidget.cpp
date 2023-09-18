@@ -100,10 +100,10 @@ void SequencingRunWidget::updateRunSampleTable()
 {
 	//get data from NGSD
 	QStringList headers;
-	headers << "lane" << "quality" << "sample" << "name external" << "is_tumor" << "is_ffpe" << "sample type" << "project" << "MID i7" << "MID i5" << "species" << "processing system" << "input [ng]" << "operator" << "processing modus" << "batch number" << "comments";
+	headers << "lane" << "quality" << "sample" << "name external" << "is_tumor" << "is_ffpe" << "sample type" << "project" << "MID i7" << "MID i5" << "species" << "processing system" << "input [ng]" << "molarity [nM]" << "operator" << "processing modus" << "batch number" << "comments";
 
 	NGSD db;
-	DBTable samples = db.createTable("processed_sample", "SELECT ps.id, ps.lane, ps.quality, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, s.sample_type, (SELECT CONCAT(name, ' (', type, ')') FROM project WHERE id=ps.project_id), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid2_i5), (SELECT name FROM species WHERE id=s.species_id), (SELECT name_manufacturer FROM processing_system WHERE id=ps.processing_system_id), ps.processing_input, (SELECT name FROM user WHERE id=ps.operator_id), ps.processing_modus, ps.batch_number, ps.comment "
+	DBTable samples = db.createTable("processed_sample", "SELECT ps.id, ps.lane, ps.quality, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, s.sample_type, (SELECT CONCAT(name, ' (', type, ')') FROM project WHERE id=ps.project_id), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid2_i5), (SELECT name FROM species WHERE id=s.species_id), (SELECT name_manufacturer FROM processing_system WHERE id=ps.processing_system_id), ps.processing_input, ps.molarity, (SELECT name FROM user WHERE id=ps.operator_id), ps.processing_modus, ps.batch_number, ps.comment "
 														  " FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id='" + run_id_ + "' "
 														  " ORDER BY ps.lane ASC, "+ (ui_->sort_by_ps_id->isChecked() ? "ps.id" : "ps.processing_system_id ASC, s.name ASC, ps.process_id"));
 
@@ -191,6 +191,7 @@ void SequencingRunWidget::updateRunSampleTable()
 		samples.takeColumn(samples.columnIndex("MID i7"));
 		samples.takeColumn(samples.columnIndex("MID i5"));
 		samples.takeColumn(samples.columnIndex("input [ng]"));
+		samples.takeColumn(samples.columnIndex("molarity [nM]"));
 		samples.takeColumn(samples.columnIndex("operator"));
 		samples.takeColumn(samples.columnIndex("processing modus"));
 		samples.takeColumn(samples.columnIndex("batch number"));
