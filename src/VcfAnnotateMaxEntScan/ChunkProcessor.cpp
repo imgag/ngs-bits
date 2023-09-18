@@ -403,7 +403,7 @@ void ChunkProcessor::run()
             	    continue;
             	}
 
-            	if (params_.do_mes && (variant.ref().length() == 1 && variant.obs().length() == 1)) { // only calculate for small variants
+				if (variant.ref().length() == 1 && variant.obs().length() == 1) { // only calculate for small variants
             	    QList<QByteArray> all_mes_strings = runMES(variant, meta_.transcripts, meta_.reference);
             	    if (all_mes_strings.count() > 0) { // add to info column & remove . if it was there
             	        if (variant.annotations()[0] == ".") {
@@ -413,7 +413,7 @@ void ChunkProcessor::run()
             	    }
             	}
 
-            	if (params_.do_mes_swa) {
+				if (params_.swa) {
             	    QList<QByteArray> all_mes_swa_strings = runSWA(variant, meta_.transcripts, meta_.reference);
             	    if (all_mes_swa_strings.count() > 0) { // add to info column & remove . if it was there
             	        if (variant.annotations()[0] == ".") {

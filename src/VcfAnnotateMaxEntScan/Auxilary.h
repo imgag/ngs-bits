@@ -21,8 +21,7 @@ struct Parameters
 	int threads;
 	int block_size;
 	bool debug;
-	bool do_mes;
-	bool do_mes_swa;
+	bool swa;
 };
 
 //Analysis data for worker thread
