@@ -62,35 +62,45 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 		return;
 	}
 
-	//check gene names
+	//parse genes from GUI
 	genes_.clear();
 	QByteArrayList lines = ui_.genes->toPlainText().toUtf8().split('\n');
 	foreach(QByteArray line, lines)
 	{
-		int tab_idx = line.indexOf("\t");
-		if (tab_idx==-1)
-		{
-			genes_.insert(line);
-		}
-		else
-		{
-			genes_.insert(line.left(tab_idx));
-		}
+		QByteArray gene = line.split('\t')[0].trimmed();
+		if (gene.isEmpty()) continue;
+
+		genes_ << gene;
 	}
 	if (genes_.count()==0)
 	{
 		addMessage("Genes are not set!", true, true);
 		return;
 	}
+	addMessage("Number of genes given: " + QString::number(genes_.count()), false, true);
+
+	//check gene names
 	bool ignore_gene_errors = ui_.ignore_gene_errors->isChecked();
+	GeneSet valid_genes;
 	foreach(QString gene, genes_)
 	{
 		QPair<QString, QString> geneinfo = db.geneToApprovedWithMessage(gene);
-		if (geneinfo.first!=gene || geneinfo.second.startsWith("ERROR"))
+		QByteArray gene_new = geneinfo.first.toLatin1();
+		if (geneinfo.second.startsWith("ERROR"))
 		{
-			addMessage("Gene " + geneinfo.first + ": " + geneinfo.second, !ignore_gene_errors, false);
+			addMessage("Gene name " + gene + " is not valid > skipped", !ignore_gene_errors, true);
+		}
+		else if (gene_new!=gene)
+		{
+			valid_genes << gene_new;
+			addMessage("Gene name " + gene + " is a previous gene name - replaced by " + gene_new, false, true);
+		}
+		else
+		{
+			valid_genes << gene_new;
 		}
 	}
+	genes_ = valid_genes;
 
 	//indikationsspezifische Abrechnung
 	QString warning = GSvarHelper::specialGenes(genes_);

@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>HPO_to_RnaReferenceTissue.tsv</file>
+    </qresource>
+</RCC>

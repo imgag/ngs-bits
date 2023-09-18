@@ -27,5 +27,25 @@ private slots:
 		VCF_IS_VALID("out/VcfLeftNormalize_out2.vcf")
 	}
 
+	void test_03_right()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		EXECUTE("VcfLeftNormalize", "-right -in " + TESTDATA("data_in/VcfLeftNormalize_in3.vcf") + " -out out/VcfLeftNormalize_out3.vcf -ref " + ref_file);
+		COMPARE_FILES("out/VcfLeftNormalize_out3.vcf", TESTDATA("data_out/VcfLeftNormalize_out3.vcf"));
+		VCF_IS_VALID("out/VcfLeftNormalize_out3.vcf")
+	}
+
+	void test_04_right_stream()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		EXECUTE("VcfLeftNormalize", "-right -stream -in " + TESTDATA("data_in/VcfLeftNormalize_in3.vcf") + " -out out/VcfLeftNormalize_out4.vcf -ref " + ref_file);
+		COMPARE_FILES("out/VcfLeftNormalize_out4.vcf", TESTDATA("data_out/VcfLeftNormalize_out4.vcf"));
+		VCF_IS_VALID("out/VcfLeftNormalize_out4.vcf")
+	}
+
 };
 

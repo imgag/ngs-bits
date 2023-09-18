@@ -1,4 +1,5 @@
 #include "ServerHelper.h"
+#include "Helper.h"
 #include <QStandardPaths>
 #include <QDir>
 
@@ -41,7 +42,7 @@ int ServerHelper::getNumSettingsValue(const QString& key)
 	}
 	catch (Exception& e)
 	{
-		Log::warn("Numerical settings value unavailable: " + e.message());
+        Log::warn("Numerical setting value unavailable: " + e.message());
 	}
 
 	return num_value;
@@ -56,7 +57,7 @@ QString ServerHelper::getStringSettingsValue(const QString& key)
 	}
 	catch (Exception& e)
 	{
-		Log::warn("String settings value unavailable: " + e.message());
+        Log::warn("String setting value unavailable: " + e.message());
 	}
 
 	return string_value;
@@ -68,28 +69,61 @@ QString ServerHelper::getUrlWithoutParams(const QString& url)
 	return url_parts[0];
 }
 
-bool ServerHelper::hasBasicSettings()
+bool ServerHelper::hasMinimalSettings()
 {
-	if (!ServerHelper::getStringSettingsValue("server_port").isEmpty() &&
-		!ServerHelper::getStringSettingsValue("server_host").isEmpty() &&
-		!ServerHelper::getStringSettingsValue("ssl_certificate").isEmpty() &&
-		!ServerHelper::getStringSettingsValue("ssl_key").isEmpty() &&
-		(ServerHelper::getNumSettingsValue("url_lifetime")>0) &&
-		(ServerHelper::getNumSettingsValue("session_duration")>0))
-	{
-		return true;
-	}
-	return false;
+    return (!ServerHelper::getStringSettingsValue("server_port").isEmpty() &&
+        !ServerHelper::getStringSettingsValue("server_host").isEmpty() &&
+        !ServerHelper::getStringSettingsValue("ssl_certificate").isEmpty() &&
+        !ServerHelper::getStringSettingsValue("ssl_key").isEmpty() &&
+        (ServerHelper::getNumSettingsValue("url_lifetime")>0) &&
+        (ServerHelper::getNumSettingsValue("session_duration")>0));
+}
+
+bool ServerHelper::hasProdSettings()
+{
+    if (!hasMinimalSettings()) return false;
+
+    return
+    (
+        !ServerHelper::getStringSettingsValue("reference_genome").isEmpty() &&
+
+        !ServerHelper::getStringSettingsValue("ngsd_host").isEmpty() &&
+        (ServerHelper::getNumSettingsValue("ngsd_port")>0) &&
+        !ServerHelper::getStringSettingsValue("ngsd_name").isEmpty() &&
+        !ServerHelper::getStringSettingsValue("ngsd_user").isEmpty() &&
+        !ServerHelper::getStringSettingsValue("ngsd_pass").isEmpty() &&
+
+        !ServerHelper::getStringSettingsValue("projects_folder_diagnostic").isEmpty() &&
+        !ServerHelper::getStringSettingsValue("projects_folder_research").isEmpty() &&
+        !ServerHelper::getStringSettingsValue("projects_folder_test").isEmpty() &&
+        !ServerHelper::getStringSettingsValue("projects_folder_external").isEmpty()
+    );
 }
 
 QString ServerHelper::getSessionBackupFileName()
 {
-    return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName() + "_sessions.txt";
+    QDir app_folder = QDir(QCoreApplication::applicationDirPath());
+    app_folder.cdUp();
+    QString session_file = app_folder.absolutePath() + QDir::separator() + QCoreApplication::applicationName() + "_sessions.txt";
+    if (!QFile::exists(session_file))
+    {
+        Log::info("Session file does not exist. Creating one: " + session_file);
+        Helper::touchFile(session_file);
+    }
+    return session_file;
 }
 
 QString ServerHelper::getUrlStorageBackupFileName()
 {
-    return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName() + "_urls.txt";
+    QDir app_folder = QDir(QCoreApplication::applicationDirPath());
+    app_folder.cdUp();
+    QString url_file = app_folder.absolutePath() + QDir::separator() + QCoreApplication::applicationName() + "_urls.txt";
+    if (!QFile::exists(url_file))
+    {
+        Log::info("URL file does not exist. Creating one: " + url_file);
+        Helper::touchFile(url_file);
+    }
+    return url_file;
 }
 
 void ServerHelper::setServerStartDateTime(QDateTime date_and_time)
@@ -99,29 +133,49 @@ void ServerHelper::setServerStartDateTime(QDateTime date_and_time)
 
 QDateTime ServerHelper::getServerStartDateTime()
 {
-	return instance().server_start_date_time_;
+    return instance().server_start_date_time_;
+}
+
+QString ServerHelper::getCurrentServerLogFile()
+{
+    QDir directory(QCoreApplication::applicationDirPath());
+    QStringList logs = directory.entryList(QStringList() << "*.log" << "*.LOG", QDir::Files);
+
+    QDateTime last_mod_time;
+    QString last_mod_file;
+    foreach(QString filename, logs)
+    {
+        if (QFileInfo(filename).lastModified() > last_mod_time)
+        {
+            last_mod_time = QFileInfo(filename).lastModified();
+            last_mod_file = filename;
+        }
+    }
+
+    if (last_mod_file.isEmpty()) return QCoreApplication::applicationFilePath().replace(".exe", "") + ".log";
+    if (QFileInfo(last_mod_file).size()>(1024*1024*50))
+    {
+        QList<QString> name_items = last_mod_file.split(".");
+        if (name_items.size()>1)
+        {
+            name_items[name_items.count()-2] = name_items[name_items.count()-2] + "_" + QDateTime().currentDateTime().toString("hh-mm-ss-dd-MM-yyyy");
+            last_mod_file = name_items.join(".");
+        }
+    }
+
+    if (!QCoreApplication::applicationDirPath().endsWith(QDir::separator()))
+    {
+        last_mod_file = QDir::separator() + last_mod_file;
+    }
+
+    last_mod_file = QCoreApplication::applicationDirPath() + last_mod_file;
+    if (!QFile::exists(last_mod_file)) Helper::touchFile(last_mod_file);
+
+    return last_mod_file;
 }
 
 ServerHelper& ServerHelper::instance()
 {
 	static ServerHelper server_helper;
 	return server_helper;
-}
-
-QString ServerHelper::getStandardFileLocation()
-{
-	QString path = QDir::tempPath();
-	QStringList default_paths = QStandardPaths::standardLocations(QStandardPaths::AppLocalDataLocation);
-	if(default_paths.isEmpty())
-	{
-		Log::warn("No local application data path was found!");
-	}
-	else
-	{
-		path = default_paths[0];
-	}
-	if (!QDir().exists(path)) return "";
-
-	if (!path.endsWith(QDir::separator())) path = path + QDir::separator();
-	return path;
 }

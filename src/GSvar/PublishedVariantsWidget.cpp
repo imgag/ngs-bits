@@ -383,7 +383,7 @@ void PublishedVariantsWidget::retryClinvarSubmission()
 		QSet<int> rows = ui_->table->selectedRows();
 		if (rows.size() != 1) //only available if a single line is selected
 		{
-			INFO(ArgumentException, "Please select exactly one varaint for re-upload!");
+			INFO(ArgumentException, "Please select exactly one variant for re-upload!");
 		}
 
 		int row_idx = rows.values().at(0);
@@ -457,7 +457,7 @@ void PublishedVariantsWidget::deleteClinvarSubmission()
 	QSet<int> rows = ui_->table->selectedRows();
 	if (rows.size() != 1) //only available if a single line is selected
 	{
-		INFO(ArgumentException, "Please select exactly one varaint for re-upload!");
+		INFO(ArgumentException, "Please select exactly one variant for re-upload!");
 	}
 
 	int row_idx = rows.values().at(0);

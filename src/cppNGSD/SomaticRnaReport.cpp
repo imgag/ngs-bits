@@ -66,13 +66,13 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 	QByteArrayList pathway_genes;
 
 	GeneSet genes_of_interest = GeneSet::createFromStringList({
-								"AKT1", "AKT2", "ATM", "ATR", "BAP1", "BRAF", "BRCA1", "BRCA2", "CCND1", "CCND2", "CCND3",
+								"ADAM12", "AKT1", "AKT2", "ATM", "ATR", "BAP1", "BRAF", "BRCA1", "BRCA2", "CCND1", "CCND2", "CCND3",
 								"CCNE1", "CD274", "CDK12", "CDK4", "CDK6", "CDKN1A", "CDKN1B", "CDKN2A", "CDKN2B", "CDKN2C",
 								"CDKN3B", "CHEK2", "EGFR", "EPHA3", "ERBB2", "ERCC1", "FANCA", "FANCC", "FANCD2", "FBXW7",
 								"FGF19", "FGF3", "FGF4", "FGFR1", "FGFR2", "FGFR3", "FRS2", "INPP4B", "JAK2", "JUN", "KDR",
 								"KIT", "MAP2K4", "MEN1", "MET", "MITF", "MLH1", "MSH2", "MTOR", "MYC", "NF1", "NF2", "PAK1",
 								"PDGFRA", "PDPK1", "PIK3CA", "PTEN", "RB1", "RICTOR", "RPS6", "SETD2", "SH2B3", "SMARCA4",
-								"SMARCB1", "STK11", "SYK", "TACSTD2", "TNFAIP3", "TSC1", "TSC2"
+								"SMARCB1", "STK11", "SYK", "TACSTD2", "TNFAIP3", "TOP2A", "TSC1", "TSC2"
 	});
 
 	genes_of_interest = db_.genesToApproved(genes_of_interest);

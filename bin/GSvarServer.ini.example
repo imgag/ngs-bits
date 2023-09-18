@@ -42,3 +42,9 @@ genlab_host = ""
 genlab_name = ""
 genlab_user = ""
 genlab_pass = ""
+
+#proxy settings
+proxy_host = ""
+proxy_port = 
+proxy_user = ""
+proxy_password = ""

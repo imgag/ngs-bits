@@ -19,14 +19,14 @@ INSERT INTO `project` (`id`, `name`, `type`, `internal_coordinator_id`, `analysi
 INSERT INTO `sequencing_run` (`id`, `name`, `fcid`, `start_date`, `device_id`, `recipe`, `status`) VALUES
 (1, '#00372', 'AB2J9', '2021-02-19', 1, '158+8+158', 'analysis_finished');
 
-INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`, `gender`, `quality`, `tumor`, `ffpe`, `sender_id`, `comment`, `disease_group`, `disease_status`, `tissue`, `patient_identifier`) VALUES
-(1, 'NA12878', 'ex1', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'Diseases of the blood or blood-forming organs', 'Unaffected', 'blood', 'pat1'),
-(2, 'NA12123', 'ex2', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s2', 'Neoplasms', 'Affected', 'skin', 'pat2'),
-(3, 'NA12345', 'ex3', 'DNA', 1, 'male', 'bad', 1 ,1, 1, 'comment_s3', 'Diseases of the immune system', 'Affected', 'blood', 'pat3'),
-(4, 'NA12123repeat', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s4', 'Neoplasms', 'Affected', 'n/a', NULL),
-(5, 'DX184894', 'ex5', 'DNA', 1, 'female', 'good', 1, 1, 1, 'comment_s5', 'Neoplasms', 'Affected', 'buccal mucosa', NULL),
-(6, 'DX184263', 'ex6', 'DNA', 1, 'female', 'good', 0, 0, 1, 'comment_s6', 'Neoplasms', 'Affected', 'skin', NULL),
-(7, 'NA12123repeat2', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s4', 'Neoplasms', 'Affected', 'n/a', 'pat2');
+INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`, `gender`, `quality`, `tumor`, `ffpe`, `sender_id`, `comment`, `disease_group`, `disease_status`, `tissue`, `patient_identifier`, `year_of_birth`) VALUES
+(1, 'NA12878', 'ex1', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'Diseases of the blood or blood-forming organs', 'Unaffected', 'blood', 'pat1', 1977),
+(2, 'NA12123', 'ex2', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s2', 'Neoplasms', 'Affected', 'skin', 'pat2', NULL),
+(3, 'NA12345', 'ex3', 'DNA', 1, 'male', 'bad', 1 ,1, 1, 'comment_s3', 'Diseases of the immune system', 'Affected', 'blood', 'pat3', NULL),
+(4, 'NA12123repeat', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s4', 'Neoplasms', 'Affected', 'n/a', NULL, NULL),
+(5, 'DX184894', 'ex5', 'DNA', 1, 'female', 'good', 1, 1, 1, 'comment_s5', 'Neoplasms', 'Affected', 'buccal mucosa', NULL, NULL),
+(6, 'DX184263', 'ex6', 'DNA', 1, 'female', 'good', 0, 0, 1, 'comment_s6', 'Neoplasms', 'Affected', 'skin', NULL, NULL),
+(7, 'NA12123repeat2', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s4', 'Neoplasms', 'Affected', 'n/a', 'pat2', NULL);
 
 INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapter1_p5`, `adapter2_p7`, `type`, `shotgun`, `target_file`, `genome_id`) VALUES
 (1, 'hpHBOCv5', 'HaloPlex HBOC v5', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel Haloplex', 0, 'hpHBOCv5.bed', 1),
@@ -34,16 +34,16 @@ INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapt
 (3, 'ssSC_vTEST', 'SureSelect Somatic vTEST', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel', 1, '/mnt/share/data/enrichment/ssSC_test.bed', 1),
 (4, 'IDT_xGenPrism', 'IDT xGen Human ID + IDT xGen Prism DNA', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCA', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'cfDNA (patient-specific)', 1, 'idt_HumanID.bed', 1);
 
-INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`, `quality`, `comment`, `normal_id`) VALUES
-(3999, 1, 3, 1, '1', 1, 1, 'medium', 'comment_ps1', null),
-(4000, 1, 4, 1, '1', 1, 1, 'medium', 'comment_ps2', null),
-(4001, 2, 4, 1, '1', 1, 1, 'medium', 'comment_ps3', null),
-(4002, 3, 1, 1, '1', 1, 1, 'good', 'comment_ps4', 3999),
-(4003, 4, 1, 1, '1', 1, 1, 'good', 'comment_ps4', null),
-(5, 2, 23, 1, '1', 1, 1, 'medium', 'comment_ps5', null),
-(6, 3, 44, 1, '1', 1, 1, 'medium', 'comment_ps6', null),
-(7, 6, 1, '1', '1,2,3,4', 3, 2, 'good', 'comment_ps7', null),
-(8, 5, 1, '1', '1,2,3,4', 3, 2, 'good', 'comment_ps8', 7);
+INSERT INTO `processed_sample` (`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`, `quality`, `comment`, `normal_id`, `processing_modus`, `batch_number`) VALUES
+(3999, 1, 3, 1, '1', 1, 1, 'medium', 'comment_ps1', null, 'manual', 'batch 17'),
+(4000, 1, 4, 1, '1', 1, 1, 'medium', 'comment_ps2', null, 'n/a', null),
+(4001, 2, 4, 1, '1', 1, 1, 'medium', 'comment_ps3', null, 'n/a', null),
+(4002, 3, 1, 1, '1', 1, 1, 'good', 'comment_ps4', 3999, 'n/a', null),
+(4003, 4, 1, 1, '1', 1, 1, 'good', 'comment_ps4', null, 'n/a', null),
+(5, 2, 23, 1, '1', 1, 1, 'medium', 'comment_ps5', null, 'n/a', null),
+(6, 3, 44, 1, '1', 1, 1, 'medium', 'comment_ps6', null, 'n/a', null),
+(7, 6, 1, '1', '1,2,3,4', 3, 2, 'good', 'comment_ps7', null, 'n/a', null),
+(8, 5, 1, '1', '1,2,3,4', 3, 2, 'good', 'comment_ps8', 7, 'n/a', null);
 
 INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `outcome`, `comment`) VALUES
 (3999, 'done', 99, '2014-07-29 09:40:49', 'no significant findings', "free text");

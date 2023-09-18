@@ -9,7 +9,6 @@
 #include <QFile>
 #include <QMenu>
 #include <QMessageBox>
-#include "RepeatExpansionWidget.h"
 #include "LoginManager.h"
 #include "GlobalServiceProvider.h"
 #include <QChartView>
@@ -75,7 +74,7 @@ ExpressionGeneWidget::ExpressionGeneWidget(QString tsv_filename, int sys_id, QSt
 	if (cohort_type == RNA_COHORT_SOMATIC) ui_->rb_somatic->setChecked(true);
 
 
-	//(de-)activate varaint list gene filter
+	//(de-)activate variant list gene filter
 	if (!variant_gene_set_.isEmpty())
 	{
 		ui_->cb_filter_by_var_list->setEnabled(true);
@@ -506,11 +505,9 @@ void ExpressionGeneWidget::selectAllBiotypes(bool deselect)
 	}
 }
 
-void ExpressionGeneWidget::showHistogram(int row_idx)
+void ExpressionGeneWidget::showHistogram(const QByteArray& ensg, double tpm)
 {
-	QByteArray ensg = ui_->expression_data->item(row_idx, 0)->text().toUtf8();
 	QVector<double> expr_values = db_.getGeneExpressionValues(db_.getEnsemblGeneMapping().value(ensg), cohort_, false);
-	double tpm = ui_->expression_data->item(row_idx, 4)->text().toDouble();
 
 	if(expr_values.size() == 0) return;
 	//create histogram
@@ -532,10 +529,13 @@ void ExpressionGeneWidget::showExpressionTableContextMenu(QPoint pos)
 {
 	// create menu
 	int row_idx = ui_->expression_data->itemAt(pos)->row();
+
 	QMenu menu(ui_->expression_data);
 	QAction* a_show_histogram = menu.addAction("Show histogram");
 	QString tpm_mean = ui_->expression_data->item(row_idx, column_names_.indexOf("cohort_mean"))->text();
 	if(tpm_mean=="") a_show_histogram->setEnabled(false);
+	double tpm = ui_->expression_data->item(row_idx, 4)->text().toDouble();
+	QByteArray ensg = ui_->expression_data->item(row_idx, 0)->text().toUtf8();
 
 	// execute menu
 	QAction* action = menu.exec(ui_->expression_data->viewport()->mapToGlobal(pos));
@@ -543,7 +543,7 @@ void ExpressionGeneWidget::showExpressionTableContextMenu(QPoint pos)
 	// react
 	if (action == a_show_histogram)
 	{
-		showHistogram(row_idx);
+		showHistogram(ensg, tpm);
 	}
 	else
 	{
@@ -913,19 +913,19 @@ void ExpressionGeneWidget::updateTable(int max_rows)
 						//db_columns
 						if(col_name == "cohort_mean")
 						{
-							ui_->expression_data->setItem(table_row_idx, col_idx, new NumericWidgetItem(QString::number(db_values.cohort_mean, 'f', precision_.at(col_idx))));
+							ui_->expression_data->setItem(table_row_idx, col_idx, GUIHelper::createTableItem(db_values.cohort_mean, precision_.at(col_idx)));
 						}
 						else if(col_name == "log2fc")
 						{
-							ui_->expression_data->setItem(table_row_idx, col_idx, new NumericWidgetItem(QString::number(db_values.log2fc, 'f', precision_.at(col_idx))));
+							ui_->expression_data->setItem(table_row_idx, col_idx, GUIHelper::createTableItem(db_values.log2fc, precision_.at(col_idx)));
 						}
 						else if(col_name == "zscore")
 						{
-							ui_->expression_data->setItem(table_row_idx, col_idx, new NumericWidgetItem(QString::number(db_values.zscore, 'f', precision_.at(col_idx))));
+							ui_->expression_data->setItem(table_row_idx, col_idx, GUIHelper::createTableItem(db_values.zscore, precision_.at(col_idx)));
 						}
 						else if(col_name == "pval")
 						{
-							ui_->expression_data->setItem(table_row_idx, col_idx, new NumericWidgetItem(QString::number(db_values.pvalue, 'f', precision_.at(col_idx))));
+							ui_->expression_data->setItem(table_row_idx, col_idx, GUIHelper::createTableItem(db_values.pvalue, precision_.at(col_idx)));
 						}
 						else
 						{
@@ -934,7 +934,7 @@ void ExpressionGeneWidget::updateTable(int max_rows)
 					}
 					else
 					{
-						ui_->expression_data->setItem(table_row_idx, col_idx, new NumericWidgetItem(""));
+						ui_->expression_data->setItem(table_row_idx, col_idx, GUIHelper::createTableItem(""));
 					}
 
 				}
@@ -949,14 +949,12 @@ void ExpressionGeneWidget::updateTable(int max_rows)
 						QString value = row.at(column_indices.at(col_idx));
 						if (value != "n/a" && !value.isEmpty())
 						{
-							QString rounded_number = QString::number(Helper::toDouble(value,
-																					  "TSV column " + QString::number(col_idx),
-																					  QString::number(table_row_idx)), 'f', precision_.at(col_idx));
-							ui_->expression_data->setItem(table_row_idx, col_idx, new NumericWidgetItem(rounded_number));
+							ui_->expression_data->setItem(table_row_idx, col_idx, GUIHelper::createTableItem(
+															  Helper::toDouble(value, "TSV column " + QString::number(col_idx), QString::number(table_row_idx)), precision_.at(col_idx)));
 						}
 						else
 						{
-							ui_->expression_data->setItem(table_row_idx, col_idx, new NumericWidgetItem(""));
+							ui_->expression_data->setItem(table_row_idx, col_idx, GUIHelper::createTableItem(""));
 						}
 					}
 					else

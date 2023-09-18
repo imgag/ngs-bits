@@ -255,6 +255,7 @@ struct CPPNGSDSHARED_EXPORT SampleData
 	QString name;
 	QString name_external;
 	QString patient_identifier;
+	QString year_of_birth;
 	QString type;
 	QString gender;
 	QString quality;
@@ -269,6 +270,8 @@ struct CPPNGSDSHARED_EXPORT SampleData
 	QString species;
 	QString received;
 	QString received_by;
+	QString order_date;
+	QString sampling_date;
 	QList<SampleGroup> sample_groups;
 };
 
@@ -295,6 +298,8 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleData
 	QString run_name;
 	QString normal_sample_name;
 	QString lab_operator;
+	QString processing_modus;
+	QString batch_number;
 	QString processing_input;
 	QString molarity;
 	QString ancestry;
@@ -426,6 +431,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool add_report_config = false;
 	bool add_comments = false;
 	bool add_normal_sample = false;
+	bool add_dates = false;
 };
 
 ///Meta data about somatic report configuration (e.g. creation/update, target bed file)
@@ -573,10 +579,19 @@ struct CfdnaDiseaseCourseTable
 	{
 		QString name;
 		QString ps_id;
-		QDate date;
+		QDate received_date;
+		QDate sampling_date;
+		QDate order_date;
 
 		bool operator<(const PSInfo& other) const {
-			return date < other.date; // sort by date
+			if (sampling_date.isValid() && other.sampling_date.isValid())
+			{
+				return sampling_date < other.sampling_date;
+			}
+			else
+			{
+				return received_date < other.received_date; // sort by date
+			}
 		}
 	};
 
@@ -915,6 +930,8 @@ public:
 	QList<SampleDiseaseInfo> getSampleDiseaseInfo(const QString& sample_id, QString only_type="");
 	///Sets the disease details of a sample.
 	void setSampleDiseaseInfo(const QString& sample_id, const QList<SampleDiseaseInfo>& disease_info);
+	///Adds a disease entry to a sample.
+	void addSampleDiseaseInfo(const QString& sample_id, const SampleDiseaseInfo& entry);
 	///Sets the disease group/status of a sample.
 	void setSampleDiseaseData(const QString& sample_id, const QString& disease_group, const QString& disease_status);
 	///Returns all phenotypes associated to the given sample
@@ -1016,9 +1033,9 @@ public:
 	QString getVariantPublication(QString filename, const Variant& variant);
 	QString getVariantPublication(QString filename, const CopyNumberVariant& cnv);
 	QString getVariantPublication(QString filename, const BedpeLine& sv, const BedpeFile& svs);
-	///Updates ClinVar result of a varaint publication
+	///Updates ClinVar result of a variant publication
 	void updateVariantPublicationResult(int variant_publication_id, QString result);
-	///Flag a varaint publication as replaced
+	///Flag a variant publication as replaced
 	void flagVariantPublicationAsReplaced(int variant_publication_id);
 	///Link two variant publications (comp. het. variant)
 	void linkVariantPublications(int variant_publication_id1, int variant_publication_id2);
@@ -1120,6 +1137,9 @@ public:
 
 	///Checks for errors/inconsistencies and fixes them if @p fix_errors is set.
 	void maintain(QTextStream* messages, bool fix_errors);
+
+	///Returns the content of a NovaSeqX Plus SampleSheet for a given run
+	QString createSampleSheet(int run_id);
 
 signals:
 	void initProgress(QString text, bool percentage);

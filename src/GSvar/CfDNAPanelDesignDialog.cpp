@@ -7,14 +7,13 @@
 #include "GlobalServiceProvider.h"
 #include "VariantTable.h"
 #include "VariantOpenDialog.h"
-#include "RepeatExpansionWidget.h"
-
 #include <QMessageBox>
 #include <QMenu>
 #include <QDir>
 #include <QPushButton>
 #include <QFileDialog>
 #include <QHeaderView>
+
 
 CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, const FilterResult& filter_result, const SomaticReportConfiguration& somatic_report_configuration, const QString& processed_sample_name, const DBTable& processing_systems, QWidget *parent) :
 	QDialog(parent),
@@ -112,7 +111,7 @@ void CfDNAPanelDesignDialog::loadPreviousPanels()
 			VcfFile prev_panel = NGSD().cfdnaPanelVcf(cfdna_panel_info_.id);
 			for (int i = 0; i < prev_panel.count(); ++i)
 			{
-				const VcfLine& var = prev_panel.vcfLine(i);
+				const VcfLine& var = prev_panel[i];
 				if (var.id().join("") == "ID")
 				{
 					prev_id_snp_ = true;
@@ -162,7 +161,7 @@ void CfDNAPanelDesignDialog::loadPreviousPanels()
 			preselection_vcf.load(preseletion_file.filename);
 			for (int i = 0; i < preselection_vcf.count(); ++i)
 			{
-				const VcfLine& var = preselection_vcf.vcfLine(i);
+				const VcfLine& var = preselection_vcf[i];
 				// create vcf pos string
 				QString vcf_pos = var.chr().strNormalized(true) + ":" + QString::number(var.start()) + " " + var.ref() + ">" + var.altString();
 				candidate_vars_.insert(vcf_pos, false);
@@ -316,7 +315,7 @@ void CfDNAPanelDesignDialog::loadVariants()
 		int col_idx = 0;
 
 		// vertical header
-		QTableWidgetItem* item = new NumericWidgetItem(QByteArray::number(i+1));
+		QTableWidgetItem* item = GUIHelper::createTableItem(i+1);
 		item->setData(Qt::UserRole, i); //store variant index in user data (for selection methods)
 		if (report_config_indices.contains(i))
 		{
@@ -332,29 +331,29 @@ void CfDNAPanelDesignDialog::loadVariants()
 		ui_->vars->setItem(row_idx, col_idx++, select_item);
 
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.chr().str()));
-		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(QByteArray::number(variant.start())));
-		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(QByteArray::number(variant.end())));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.start()));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.end()));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.ref()));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.obs()));
 
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[gene_idx]));
-		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(variant.annotations()[tumor_af_idx]));
-		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(variant.annotations()[tumor_dp_idx]));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[tumor_af_idx].toDouble(), 4));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[tumor_dp_idx].toInt()));
 		if(variants_.type() == SOMATIC_PAIR)
 		{
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(variant.annotations()[normal_af_idx]));
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(variant.annotations()[normal_dp_idx]));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[normal_af_idx].toDouble(), 4));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[normal_dp_idx].toInt()));
 		}
 		else // SOMATIC_SINGLESAMPLE
 		{
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
 		}
 
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[filter_idx]));
-		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(variant.annotations()[gnomad_idx]));
-		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(variant.annotations()[ngsd_hom_idx]));
-		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(variant.annotations()[ngsd_het_idx]));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[gnomad_idx].toDouble(), 4));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[ngsd_hom_idx].toInt()));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[ngsd_het_idx].toInt()));
 
 
 		if (prev_var_missing)
@@ -376,11 +375,11 @@ void CfDNAPanelDesignDialog::loadVariants()
 
 		if (candidate_scores_.contains(vcf_pos))
 		{
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(QString::number(candidate_scores_.value(vcf_pos))));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(candidate_scores_.value(vcf_pos)));
 		}
 		else
 		{
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
 		}
 
 		// increase row index
@@ -416,30 +415,30 @@ void CfDNAPanelDesignDialog::loadVariants()
 			select_item->setCheckState(Qt::Checked);
 			ui_->vars->setItem(row_idx, col_idx++, select_item);
 			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.chr().str()));
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(QByteArray::number(variant.start())));
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(QByteArray::number(variant.end())));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.start()));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.end()));
 			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.ref()));
 			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.obs()));
 			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
 			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
 			QTableWidgetItem* info_item = GUIHelper::createTableItem("manually added in previous panel");
 			info_item->setToolTip("This variant was manually added during a previous cfDNA panel design.");
 			ui_->vars->setItem(row_idx, col_idx++, info_item);
 
 			if (candidate_scores_.contains(vcf_string))
 			{
-				ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(QString::number(candidate_scores_.value(vcf_string))));
+				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(candidate_scores_.value(vcf_string)));
 			}
 			else
 			{
-				ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
 			}
 
 			// optimize cell sizes
@@ -473,7 +472,7 @@ void CfDNAPanelDesignDialog::loadVariants()
 			ui_->vars->setRowCount(row_idx + 1);
 
 			// add variant
-			QTableWidgetItem* item = new NumericWidgetItem("");
+			QTableWidgetItem* item = GUIHelper::createTableItem("");
 			item->setData(Qt::UserRole, -1);
 			ui_->vars->setItem(row_idx, col_idx++, item);
 			QTableWidgetItem* select_item = GUIHelper::createTableItem("");
@@ -481,30 +480,30 @@ void CfDNAPanelDesignDialog::loadVariants()
 			select_item->setCheckState(Qt::Checked);
 			ui_->vars->setItem(row_idx, col_idx++, select_item);
 			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.chr().str()));
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(QByteArray::number(variant.start())));
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(QByteArray::number(variant.end())));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QByteArray::number(variant.start())));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QByteArray::number(variant.end())));
 			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.ref()));
 			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.obs()));
 			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
 			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
-			ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+			ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
 			QTableWidgetItem* info_item = GUIHelper::createTableItem("pre-selected variant");
 			info_item->setToolTip("This variant is part of the preselection file, but missing in the current variant calls.");
 			ui_->vars->setItem(row_idx, col_idx++, info_item);
 
 			if (candidate_scores_.contains(vcf_string))
 			{
-				ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(QString::number(candidate_scores_.value(vcf_string))));
+				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(candidate_scores_.value(vcf_string)));
 			}
 			else
 			{
-				ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
 			}
 
 			// optimize cell sizes
@@ -691,9 +690,9 @@ VcfFile CfDNAPanelDesignDialog::createVcfFile()
 		BedFile target_region = GlobalServiceProvider::database().processingSystemRegions(sys_id, false);
 		VcfFile sys_id_snps = NGSD().getIdSnpsFromProcessingSystem(sys_id, target_region, (variants_.type() == SOMATIC_SINGLESAMPLE));
 
-		foreach (const VcfLinePtr& vcf_line, sys_id_snps.vcfLines())
+		for (int i=0; i<sys_id_snps.count(); ++i)
 		{
-			id_vcf.vcfLines() << vcf_line;
+			id_vcf.append(sys_id_snps[i]);
 		}
 	}
 
@@ -702,15 +701,15 @@ VcfFile CfDNAPanelDesignDialog::createVcfFile()
 	VcfFile vcf_file = VcfFile::fromGSvar(selected_variants, ref_genome);
 
 	// set ID column
-	foreach (const VcfLinePtr& vcf_line, vcf_file.vcfLines())
+	for (int i=0; i<vcf_file.count(); ++i)
 	{
-		vcf_line->setId(QByteArrayList() << "M");
+		vcf_file[i].setId(QByteArrayList() << "M");
 	}
 
 	// append ID SNPs
-	foreach (const VcfLinePtr& vcf_line, id_vcf.vcfLines())
+	for (int i=0; i<id_vcf.count(); ++i)
 	{
-		vcf_file.vcfLines() << vcf_line;
+		vcf_file.append(id_vcf[i]);
 	}
 
 	//sort vcf file
@@ -1028,24 +1027,24 @@ void CfDNAPanelDesignDialog::addVariant()
 		select_item->setCheckState(Qt::Checked);
 		ui_->vars->setItem(row_idx, col_idx++, select_item);
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.chr().str()));
-		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(QByteArray::number(variant.start())));
-		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(QByteArray::number(variant.end())));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.start()));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.end()));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.ref()));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.obs()));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
-		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
-		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
-		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
-		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
-		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
-		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
-		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
 		QTableWidgetItem* info_item = GUIHelper::createTableItem("manually added");
 		info_item->setToolTip("This variant was manually added during the cfDNA panel design.");
 		ui_->vars->setItem(row_idx, col_idx++, info_item);
 
-		ui_->vars->setItem(row_idx, col_idx++, new NumericWidgetItem(""));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
 
 
 		// optimize cell sizes

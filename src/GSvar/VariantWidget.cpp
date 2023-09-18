@@ -271,7 +271,7 @@ void VariantWidget::calculateSimilarity()
 		ps_vars << db.getValues("SELECT variant_id FROM detected_variant WHERE processed_sample_id=" + ps_id).toSet();
 	}
 
-	//calcualte and show overlap
+	//calculate and show overlap
 	QTableWidget* table = new QTableWidget(this);
 	table->setMinimumSize(700, 550);
 	table->setEditTriggers(QTableWidget::NoEditTriggers);

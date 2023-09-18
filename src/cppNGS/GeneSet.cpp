@@ -17,6 +17,30 @@ void GeneSet::insert(const QByteArray& gene)
 	set_.insert(tmp);
 }
 
+void GeneSet::remove(const QByteArray& gene)
+{
+	QByteArray tmp = gene.trimmed().toUpper();
+	removeAll(tmp);
+
+	set_.remove(tmp);
+}
+
+void GeneSet::remove(const GeneSet& genes)
+{
+	foreach(const QByteArray& gene, genes)
+	{
+		remove(gene);
+	}
+}
+
+void GeneSet::remove(const QByteArrayList& genes)
+{
+	foreach(const QByteArray& gene, genes)
+	{
+		remove(gene);
+	}
+}
+
 bool GeneSet::containsAll(const GeneSet& genes) const
 {
 	foreach(const QByteArray& gene, genes)

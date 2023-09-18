@@ -273,6 +273,8 @@ public slots:
 	void on_actionBlatSearch_triggered();
 	///Opens a virus table based on a corresponding TSV file
 	void on_actionVirusDetection_triggered();
+	///Perform Burden test
+	void on_actionBurdenTest_triggered();
 	///Load report configuration
 	void loadReportConfig();
 	///Store report configuration
@@ -356,9 +358,6 @@ public slots:
 
 	///Adds and shows a modeless dialog
 	void addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize=false);
-	///Removes all modeless dialogs that have been closed
-	void cleanUpModelessDialogs();
-
 	///Imports phenotype data from NGSD
 	void importPhenotypesFromNGSD();
 	///Create sub-panel from phenotype
@@ -490,6 +489,8 @@ private:
 	//SPECIAL
 	DelayedInitializationTimer init_timer_;
 	QString displayed_maintenance_message_id_;
+    //current server version (if in client-server mode)
+    QString server_version_;
 };
 
 #endif // MAINWINDOW_H

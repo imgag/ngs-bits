@@ -20,6 +20,7 @@
 #include <QDir>
 #include <QThread>
 #include <ProxyDataService.h>
+#include <QMap>
 #include "cmath"
 #include "QUuid"
 #include "ClientHelper.h"
@@ -423,6 +424,22 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 				<< "ds.comment as outcome_comment";
 	}
 
+	//add dates
+	if (p.add_dates)
+	{
+		fields << "s.year_of_birth as year_of_birth";
+		fields << "s.received as received_date";
+		fields << "s.sampling_date as sampling_date";
+		fields << "s.order_date as order_date";
+	}
+
+	//add processed sample and sample quality
+	if (p.add_qc)
+	{
+		fields << "s.quality as sample_quality"
+			   << "ps.quality as processed_sample_quality";
+	}
+
 	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
 
 	//filter by user access rights (for restricted users only)
@@ -495,6 +512,12 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 
 	if (p.add_qc)
 	{
+		//reorder columns to put sample and processed sample quality at the start of the qc block:
+		QStringList sample_quality = output.takeColumn(output.columnIndex("sample_quality"));
+		output.addColumn(sample_quality, "sample_quality");
+		QStringList ps_quality = output.takeColumn(output.columnIndex("processed_sample_quality"));
+		output.addColumn(sample_quality, "processed_sample_quality");
+
 		//headers
 		QStringList qc_names = getValues("SELECT name FROM qc_terms WHERE obsolete=0 ORDER BY qcml_id");
 		QVector<QStringList> cols(qc_names.count());
@@ -549,7 +572,7 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 {
 	//execute query
 	SqlQuery query = getQuery();
-	query.exec("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe, s.sample_type, s.sender_id, s.species_id, s.received, s.receiver_id, s.tissue, s.patient_identifier FROM sample s WHERE id=" + sample_id);
+	query.exec("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe, s.sample_type, s.sender_id, s.species_id, s.received, s.receiver_id, s.tissue, s.patient_identifier, s.year_of_birth, s.order_date, s.sampling_date FROM sample s WHERE id=" + sample_id);
 	if (query.size()==0)
 	{
 		THROW(ProgrammingException, "Invalid 'id' for table 'sample' given: '" + sample_id + "'");
@@ -584,6 +607,23 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 
 	output.tissue = query.value(14).toString();
 	output.patient_identifier = query.value(15).toString();
+	QVariant year_of_birth = query.value(16);
+	if (!year_of_birth.isNull())
+	{
+		output.year_of_birth = year_of_birth.toString();
+	}
+
+	QVariant order_date = query.value(17);
+	if (!order_date.isNull())
+	{
+		output.order_date = order_date.toDate().toString("dd.MM.yyyy");
+	}
+
+	QVariant sampling_date = query.value(18);
+	if (!sampling_date.isNull())
+	{
+		output.sampling_date = sampling_date.toDate().toString("dd.MM.yyyy");
+	}
 
 	//sample groups
 	SqlQuery group_query = getQuery();
@@ -600,7 +640,7 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 {
 	//execute query
 	SqlQuery query = getQuery();
-	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, sys.name_manufacturer as sys_name, sys.type as sys_type, ps.quality, ps.comment, p.name as p_name, p.type as p_type, r.name as r_name, ps.normal_id, s.gender, ps.operator_id, ps.processing_input, ps.molarity FROM sample s, project p, processing_system sys, processed_sample ps LEFT JOIN sequencing_run r ON ps.sequencing_run_id=r.id WHERE ps.sample_id=s.id AND ps.project_id=p.id AND ps.processing_system_id=sys.id AND ps.id=" + processed_sample_id);
+	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, sys.name_manufacturer as sys_name, sys.type as sys_type, ps.quality, ps.comment, p.name as p_name, p.type as p_type, r.name as r_name, ps.normal_id, s.gender, ps.operator_id, ps.processing_input, ps.molarity, ps.processing_modus, ps.batch_number FROM sample s, project p, processing_system sys, processed_sample ps LEFT JOIN sequencing_run r ON ps.sequencing_run_id=r.id WHERE ps.sample_id=s.id AND ps.project_id=p.id AND ps.processing_system_id=sys.id AND ps.id=" + processed_sample_id);
 	if (query.size()==0)
 	{
 		THROW(ProgrammingException, "Invalid 'id' for table 'processed_sample' given: '" + processed_sample_id + "'");
@@ -628,6 +668,8 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 	{
 		output.lab_operator = userName(operator_id.toInt());
 	}
+	output.processing_modus = query.value("processing_modus").toString().trimmed();
+	output.batch_number = query.value("batch_number").toString().trimmed();
 	output.processing_input = query.value("processing_input").toString().trimmed();
 	output.molarity = query.value("molarity").toString().trimmed();
 	output.ancestry = getValue("SELECT `population` FROM `processed_sample_ancestry` WHERE `processed_sample_id`=:0", true, processed_sample_id).toString();
@@ -675,16 +717,21 @@ void NGSD::setSampleDiseaseInfo(const QString& sample_id, const QList<SampleDise
 	query.exec("DELETE FROM sample_disease_info WHERE sample_id=" + sample_id);
 
 	//insert new entries
-	SqlQuery query_insert = getQuery();
-	query_insert.prepare("INSERT INTO sample_disease_info (`sample_id`, `disease_info`, `type`, `user_id`, `date`) VALUES (" + sample_id + ", :0, :1, :2, :3)");
 	foreach(const SampleDiseaseInfo& entry, disease_info)
 	{
-		query_insert.bindValue(0, entry.disease_info);
-		query_insert.bindValue(1, entry.type);
-		query_insert.bindValue(2, userId(entry.user));
-		query_insert.bindValue(3, entry.date.toString(Qt::ISODate));
-		query_insert.exec();
+		addSampleDiseaseInfo(sample_id, entry);
 	}
+}
+
+void NGSD::addSampleDiseaseInfo(const QString& sample_id, const SampleDiseaseInfo& entry)
+{
+	SqlQuery query_insert = getQuery();
+	query_insert.prepare("INSERT INTO sample_disease_info (`sample_id`, `disease_info`, `type`, `user_id`, `date`) VALUES (" + sample_id + ", :0, :1, :2, :3)");
+	query_insert.bindValue(0, entry.disease_info);
+	query_insert.bindValue(1, entry.type);
+	query_insert.bindValue(2, userId(entry.user));
+	query_insert.bindValue(3, entry.date.toString(Qt::ISODate));
+	query_insert.exec();
 }
 
 QString NGSD::normalSample(const QString& processed_sample_id)
@@ -1047,8 +1094,15 @@ QString NGSD::projectFolder(QString type)
 
 QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType type)
 {
+	//create query
+	QString query_str ="SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name, sys.name_short, ";
+	bool is_client = ClientHelper::isClientServerMode() && !ClientHelper::isRunningOnServer();
+	query_str += is_client ? "ps.folder_override_client, p.folder_override_client" : "ps.folder_override, p.folder_override";
+	query_str += " FROM processed_sample ps, sample s, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.project_id=p.id AND ps.id=:0";
+
+	//execute query
 	SqlQuery query = getQuery();
-	query.prepare("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), ps.folder_override, p.type, p.name, sys.name_short FROM processed_sample ps, sample s, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.project_id=p.id AND ps.id=:0");
+	query.prepare(query_str);
 	query.bindValue(0, processed_sample_id);
 	query.exec();
 	if (query.size()==0) THROW(DatabaseException, "Processed sample with id '" + processed_sample_id + "' not found in NGSD!");
@@ -1056,41 +1110,59 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 
 	//create sample folder
 	QString ps_name = query.value(0).toString();
-	QString ps_folder_override = query.value(1).toString();
+	QString ps_folder_override = query.value(4).toString();
+	QString p_folder_override = query.value(5).toString();
 	QString output;
 	if (!ps_folder_override.isEmpty())
 	{
 		output = ps_folder_override;
 		if (!output.endsWith(QDir::separator())) output += QDir::separator();
 	}
+	else if (!p_folder_override.isEmpty())
+	{
+		output = p_folder_override;
+		if (!output.endsWith(QDir::separator())) output += QDir::separator();
+		output += "Sample_" + ps_name + QDir::separator();
+	}
 	else
 	{
-		QString p_type = query.value(2).toString();
+		QString p_type = query.value(1).toString();
 		output = projectFolder(p_type);
-		QString p_name = query.value(3).toString();
+		QString p_name = query.value(2).toString();
 		output += p_name + QDir::separator() + "Sample_" + ps_name + QDir::separator();
 	}
-	QString sys_name_short = query.value(4).toString();
+	QString sys_name_short = query.value(3).toString();
 
 	//append file name if requested
-    if (type==PathType::BAM)
-    {
-        if (QFile::exists(output + ps_name + ".cram"))
-        {
-            output += ps_name + ".cram";
-        }
-        else
-        {
-            output += ps_name + ".bam";
-        }
-    }
+	if (type==PathType::BAM)
+	{
+		if (QFile::exists(output + ps_name + ".cram"))
+		{
+			output += ps_name + ".cram";
+		}
+		else
+		{
+			output += ps_name + ".bam";
+		}
+	}
 	else if (type==PathType::GSVAR) output += ps_name + ".GSvar";
 	else if (type==PathType::VCF) output += ps_name + "_var_annotated.vcf.gz";
 	else if (type==PathType::VCF_CF_DNA) output += ps_name + "_var.vcf";
 	else if (type==PathType::LOWCOV_BED) output += ps_name + "_" + sys_name_short + "_lowcov.bed";
 	else if (type==PathType::MANTA_EVIDENCE) output += "manta_evid/" + ps_name + "_manta_evidence.bam";
 	else if (type==PathType::BAF) output += ps_name + "_bafs.igv";
-	else if (type==PathType::STRUCTURAL_VARIANTS) output += ps_name + "_manta_var_structural.bedpe";
+	else if (type==PathType::STRUCTURAL_VARIANTS)
+	{
+		if (QFile::exists(output + ps_name + "_var_structural_variants.bedpe"))
+		{
+			output += ps_name + "_var_structural_variants.bedpe";
+		}
+		else
+		{
+			//Fallback for old manta file name
+			output += ps_name + "_manta_var_structural.bedpe";
+		}
+	}
 	else if (type==PathType::COPY_NUMBER_RAW_DATA) output += ps_name + "_cnvs_clincnv.seg";
 	else if (type==PathType::COPY_NUMBER_CALLS) output += ps_name + "_cnvs_clincnv.tsv";
 	else if (type==PathType::FUSIONS) output += ps_name + "_fusions_arriba.tsv";
@@ -3352,7 +3424,7 @@ DBTable NGSD::createTable(QString table, QString query, int pk_col_index)
 		for (int c=0; c<record.count(); ++c)
 		{
 			QVariant value = query_result.value(c);
-			QString value_as_string = value.toString();
+			QString value_as_string = value.isNull() ? ""  : value.toString();
 			if (value.type()==QVariant::DateTime)
 			{
 				value_as_string = value_as_string.replace("T", " ");
@@ -3666,8 +3738,6 @@ QList<CfdnaGeneEntry> NGSD::cfdnaGenes()
 VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, const BedFile& target_region, bool tumor_only, bool throw_on_fail)
 {
 	VcfFile vcf;
-	vcf.sampleIDs().append("TUMOR");
-	if(!tumor_only)vcf.sampleIDs().append("NORMAL");
 
 	ProcessingSystemData sys = getProcessingSystemData(sys_id);
 
@@ -3680,14 +3750,10 @@ VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, const BedFile& target_re
 	vcf.vcfHeader().addInfoLine(id_source);
 
 	//prepare info for VCF line
+	QByteArrayList info_keys;
+	info_keys << "ID_Source";
 	QByteArrayList info;
-	InfoIDToIdxPtr info_ptr = InfoIDToIdxPtr(new OrderedHash<QByteArray, int>);
-	QByteArray key = "ID_Source";
-	QByteArray value = sys.name_short.toUtf8();
-	info.push_back(value);
-	info_ptr->push_back(key, static_cast<unsigned char>(0));
-
-//	BedFile target_region = processingSystemRegions(sys_id, false);
+	info.push_back(sys.name_short.toUtf8());
 
 	QByteArrayList format_ids = QByteArrayList() << "GT";
 	QByteArrayList sample_ids = QByteArrayList() << "TUMOR";
@@ -3711,11 +3777,10 @@ VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, const BedFile& target_re
 				}
 				return VcfFile();
 			}
-			VcfLinePtr vcf_ptr = QSharedPointer<VcfLine>(new VcfLine(line.chr(), line.start(), variant_info.at(0), QList<Sequence>() << variant_info.at(1), format_ids, sample_ids, list_of_format_values));
-			vcf_ptr->setInfo(info);
-			vcf_ptr->setInfoIdToIdxPtr(info_ptr);
-			vcf_ptr->setId(QByteArrayList() << "ID");
-			vcf.vcfLines() << vcf_ptr;
+			VcfLine vcf_line(line.chr(), line.start(), variant_info.at(0), QList<Sequence>() << variant_info.at(1), format_ids, sample_ids, list_of_format_values);
+			vcf_line.setInfo(info_keys, info);
+			vcf_line.setId(QByteArrayList() << "ID");
+			vcf.append(vcf_line);
 		}
 		else
 		{
@@ -4500,7 +4565,7 @@ ClinvarSubmissionStatus NGSD::getSubmissionStatus(const QString& submission_id, 
 		add_headers.insert("SP-API-KEY", api_key);
 
 		//get request
-		QByteArray reply = request_handler.get(api_url + submission_id.toUpper() + "/actions/", add_headers);
+        QByteArray reply = request_handler.get(api_url + submission_id.toUpper() + "/actions/", add_headers).body;
 		qDebug() << api_url + submission_id.toUpper() + "/actions/";
 		// parse response
 		QJsonObject response = QJsonDocument::fromJson(reply).object();
@@ -4513,7 +4578,7 @@ ClinvarSubmissionStatus NGSD::getSubmissionStatus(const QString& submission_id, 
 		{
 			//get summary file and extract stable id or error message
 			QString report_summary_file = actions.at(0).toObject().value("responses").toArray().at(0).toObject().value("files").toArray().at(0).toObject().value("url").toString();
-			QByteArray summary_reply = request_handler.get(report_summary_file);
+            QByteArray summary_reply = request_handler.get(report_summary_file).body;
 			QJsonDocument summary_response = QJsonDocument::fromJson(summary_reply);
 
 			if (submission_status.status == "processed")
@@ -5231,6 +5296,233 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 	{
 		*messages << "Warning: Cannot perform check for invalid HPO identifierts because not HPO terms were imported into the NGSD!" << endl;
 	}
+}
+
+QString NGSD::createSampleSheet(int run_id)
+{
+	QStringList sample_sheet;
+
+	QString sw_version = Settings::string("nova_seq_x_sw_version");
+	QString app_version = Settings::string("nova_seq_x_app_version");
+	QString fastq_compression_format = "dragen"; //can be "gzip" or "dragen" //TODO: make adjustable?
+	int barcode_mismatch_index1 = 1; //TODO: make adjustable?
+	int barcode_mismatch_index2 = 1; //TODO: make adjustable?
+
+
+
+	//get info from db
+	SqlQuery query = getQuery();
+	query.exec("SELECT r.*, d.name d_name, d.type d_type FROM sequencing_run r, device d WHERE r.device_id=d.id AND r.id='" + QString::number(run_id) + "'");
+	query.next();
+	QString run_name = query.value("name").toString();
+	QStringList recipe = query.value("recipe").toString().split("+");
+	if (recipe.size() != 4)
+	{
+		THROW(ArgumentException, "Invalid recipe '" + query.value("recipe").toString() + "' provided! It has to contain 4 read lengths (forward, index1, index2, reverse), divided by '+'.");
+	}
+	int forward_read_length = Helper::toInt(recipe.at(0), "forward read");
+	int index1_read_length = Helper::toInt(recipe.at(1), "index1");
+	int index2_read_length = Helper::toInt(recipe.at(2), "index2");
+	int reverse_read_length = Helper::toInt(recipe.at(3), "reverse read");
+
+
+	//create header
+	sample_sheet.append("[Header],");
+	sample_sheet.append("FileFormatVersion,2");
+	sample_sheet.append("RunName," + run_name.remove(0, 1));
+	sample_sheet.append("InstrumentPlatform,NovaSeqXSeries");
+	sample_sheet.append("InstrumentType," + query.value("d_type").toString());
+	sample_sheet.append("IndexOrientation,Forward");
+	sample_sheet.append("");
+
+	//create read info
+	sample_sheet.append("[Reads]");
+	sample_sheet.append("Read1Cycles," + QString::number(forward_read_length));
+	sample_sheet.append("Read2Cycles," + QString::number(reverse_read_length));
+	sample_sheet.append("Index1Cycles,"+ QString::number(index1_read_length));
+	sample_sheet.append("Index2Cycles,"+ QString::number(index2_read_length));
+	sample_sheet.append("");
+
+	//get sample info
+	QSet<QString> adapter_sequences_read1;
+	QSet<QString> adapter_sequences_read2;
+	QStringList bcl_convert;
+	QStringList germline_analysis;
+	QStringList enrichment_analysis;
+	QStringList rna_analysis;
+
+	query.exec("SELECT ps.id, ps.lane, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, s.tumor, s.sample_type, (SELECT sequence FROM mid WHERE id=ps.mid1_i7) as mid1,"
+			   " (SELECT sequence FROM mid WHERE id=ps.mid2_i5) as mid2, (SELECT name_short FROM processing_system WHERE id=ps.processing_system_id) as system_name,"
+			   " (SELECT type FROM processing_system WHERE id=ps.processing_system_id) as system_type, (SELECT name FROM project WHERE id=ps.project_id) as project "
+			   " FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id='" + QString::number(run_id) + "' ORDER BY ps.lane ASC, ps.id");
+	while (query.next())
+	{
+		QStringList lanes = query.value("lane").toString().split(",");
+		QString ps_name = query.value("ps_name").toString();
+		Sequence mid1 = Sequence(query.value("mid1").toByteArray());
+		Sequence mid2 = Sequence(query.value("mid2").toByteArray());
+		QString sample_type = query.value("sample_type").toString();
+		QByteArray system_type = query.value("system_type").toByteArray();
+		QByteArray system_name = query.value("system_name").toByteArray();
+		QString project = query.value("project").toString();
+
+		//get adapter sequence
+		ProcessingSystemData sys_info = getProcessingSystemData(processingSystemId(system_name));
+		adapter_sequences_read1.insert(sys_info.adapter1_p5);
+		adapter_sequences_read2.insert(sys_info.adapter2_p7);
+
+
+		if (sample_type == "DNA")
+		{
+			if (system_type == "WGS")
+			{
+				germline_analysis.append(ps_name);
+			}
+			else if (system_type == "WES")
+			{
+				enrichment_analysis.append(ps_name + "," + system_name + ".bed");
+			}
+		}
+		else if (sample_type == "RNA")
+		{
+			rna_analysis.append(ps_name);
+		}
+		else
+		{
+			THROW(ArgumentException, "Invalid sample type '" + sample_type + "'!");
+		}
+
+		//create line for BCLConvert
+		foreach (const QString& lane, lanes)
+		{
+			int umi_length = 0;
+			QStringList line;
+			line.append(lane);
+			line.append(ps_name);
+			line.append(mid1);
+			line.append(mid2);
+
+			QString override_cycles;
+			// forward read
+			override_cycles = "Y" + QString::number(forward_read_length) + ";";
+			// index1
+			override_cycles += "I" + QString::number(mid1.length());
+			if(sys_info.umi_type == "IDT-UDI-UMI")
+			{
+				//add UMIs:
+				override_cycles += "Y11";
+				umi_length = 11;
+			}
+			else if(sys_info.umi_type != "n/a")
+			{
+				//TODO: extend
+				THROW(NotImplementedException, "Unsupported UMI type '" + sys_info.umi_type + "!");
+			}
+			if (index1_read_length - (mid1.length() + umi_length) < 0) THROW(ArgumentException, "Index1 (+ UMI) read longer than seqeuncing length!")
+			if (index1_read_length - (mid1.length() + umi_length) > 0) override_cycles += "N" + QString::number(index1_read_length - mid1.length());
+			override_cycles += ";";
+			//index2
+			if (index2_read_length - mid2.length() < 0) THROW(ArgumentException, "Index2 read longer than seqeuncing length!")
+			if (index2_read_length - mid2.length() > 0) override_cycles += "N" + QString::number(index2_read_length - mid2.length());
+			override_cycles += "I" + QString::number(mid2.length()) + ";";
+			// reverse read
+			override_cycles += "Y" + QString::number(reverse_read_length);
+			line.append(override_cycles);
+
+			line.append(QString::number(barcode_mismatch_index1));
+			line.append(QString::number(barcode_mismatch_index2));
+			line.append(project);
+
+			bcl_convert.append(line.join(","));
+		}
+	}
+
+
+	//BCLConvert
+	sample_sheet.append("[BCLConvert_Settings]");
+	sample_sheet.append("SoftwareVersion,"  + sw_version);
+//	sample_sheet.append("BarcodeMismatchesIndex1,1");//TODO: make adjustable
+//	sample_sheet.append("BarcodeMismatchesIndex2,1");//TODO: make adjustable
+
+	//sort adapter to make it testable
+	QStringList adapter_sequences_read1_list = adapter_sequences_read1.toList();
+	adapter_sequences_read1_list.sort();
+	sample_sheet.append("AdapterRead1," + adapter_sequences_read1_list.join("+"));
+	QStringList adapter_sequences_read2_list = adapter_sequences_read2.toList();
+	adapter_sequences_read2_list.sort();
+	sample_sheet.append("AdapterRead2," + adapter_sequences_read2_list.join("+"));
+
+	sample_sheet.append("FastqCompressionFormat," +fastq_compression_format);
+	sample_sheet.append("");
+	sample_sheet.append("[BCLConvert_Data]");
+	sample_sheet.append("Lane,Sample_ID,Index,Index2,OverrideCycles,BarcodeMismatchesIndex1,BarcodeMismatchesIndex2,Sample_Project");
+	sample_sheet.append(bcl_convert);
+	sample_sheet.append("");
+
+
+	//DRAGEN Germline
+	if (germline_analysis.size() > 0)
+	{
+		sample_sheet.append("[DragenGermline_Settings]");
+		sample_sheet.append("SoftwareVersion," + sw_version);
+		sample_sheet.append("AppVersion," + app_version);
+		sample_sheet.append("KeepFastq,true");
+		sample_sheet.append("MapAlignOutFormat,bam");
+		sample_sheet.append("ReferenceGenomeDir,GRCh38"); //TODO: read from settings/NGSD
+		sample_sheet.append("VariantCallingMode,AllVariantCallers");
+		sample_sheet.append("");
+		sample_sheet.append("[DragenGermline_Data]");
+		sample_sheet.append("Sample_ID");
+		sample_sheet.append(germline_analysis);
+		sample_sheet.append("");
+	}
+
+	//DRAGEN Enrichment
+	if (enrichment_analysis.size() > 0)
+	{
+		sample_sheet.append("[DragenEnrichment_Settings]");
+		sample_sheet.append("SoftwareVersion," + sw_version);
+		sample_sheet.append("AppVersion," + app_version);
+		sample_sheet.append("KeepFastq,true");
+		sample_sheet.append("MapAlignOutFormat,bam");
+		sample_sheet.append("ReferenceGenomeDir,GRCh38"); //TODO: read from settings/NGSD
+//		sample_sheet.append("Bedfile,/usr/local/illumina/target_region/" + sys_name + ".bed"); //TODO: read from settings/NGSD
+		sample_sheet.append("GermlineOrSomatic,germline");
+//		sample_sheet.append("AuxNoiseBaselineFile,/usr/local/illumina/cnv/" + sys_name + ".txt"); //TODO: get format
+//		sample_sheet.append("AuxCnvPanelOfNormalsFile,/usr/local/illumina/cnv/" + sys_name + ".txt");
+		sample_sheet.append("VariantCallingMode,AllVariantCallers");
+		sample_sheet.append("");
+		sample_sheet.append("[DragenEnrichment_Data]");
+		sample_sheet.append("Sample_ID,BedFile");
+		sample_sheet.append(enrichment_analysis);
+		sample_sheet.append("");
+	}
+//disabled until further testing
+/*
+	//DRAGEN RNA
+	if (rna_analysis.size() > 0)
+	{
+		sample_sheet.append("[DragenRNA_Settings]");
+		sample_sheet.append("SoftwareVersion," + sw_version);
+		sample_sheet.append("AppVersion," + app_version);
+		sample_sheet.append("KeepFastq,true");
+		sample_sheet.append("MapAlignOutFormat,bam");
+		sample_sheet.append("ReferenceGenomeDir,GRCh38"); //TODO: read from settings/NGSD
+//		sample_sheet.append("RnaGeneAnnotationFile,/usr/local/illumina/genes/GRCh38.gtf"); //TODO: read from settings/NGSD
+		sample_sheet.append("RnaPipelineMode,FullPipeline"); //TODO: read from settings/NGSD
+		sample_sheet.append("GermlineOrSomatic,germline");
+//		sample_sheet.append("AuxNoiseBaselineFile,/usr/local/illumina/cnv/" + sys_name + ".txt"); //TODO: get format
+//		sample_sheet.append("AuxCnvPanelOfNormalsFile,/usr/local/illumina/cnv/" + sys_name + ".txt");
+		sample_sheet.append("VariantCallingMode,AllVariantCallers");
+		sample_sheet.append("");
+		sample_sheet.append("[DragenRNA_Data]");
+		sample_sheet.append("Sample_ID");
+		sample_sheet.append(rna_analysis);
+		sample_sheet.append("");
+	}
+*/
+
+	return sample_sheet.join("\n");
 }
 
 void NGSD::setComment(const Variant& variant, const QString& text)

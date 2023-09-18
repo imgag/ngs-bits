@@ -54,7 +54,7 @@ private slots:
 		IS_TRUE(list.contains("G11.0"));
 	}
 
-	void anamnesis()
+	void anamnesis() //Wenn der Test fehlschlägt, muss das Freigabedatum der Untersuchungen in Genlab auf das aktuelle Datum gesetzt werden für 'Karl/Karla Bioinformatik'. Der View enthält nur die Daten der letzten 9 Monate.
 	{
 		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab database!");
 
@@ -87,13 +87,13 @@ private slots:
 		S_EQUAL(db.yearOfBirth("DXtest2"), "2001");
 	}
 
-	void yearOfOrderEntry()
+	void orderEntryDate()
 	{
 		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab database!");
 
 		GenLabDB db;
-		S_EQUAL(db.yearOfOrderEntry("DXtest1"), "2022");
-		S_EQUAL(db.yearOfOrderEntry("DXtest2"), "2022");
+		S_EQUAL(db.orderEntryDate("DXtest1"), "2022-05-03");
+		S_EQUAL(db.orderEntryDate("DXtest2"), "2022-05-03");
 	}
 
 	void diseaseInfo()
@@ -164,6 +164,15 @@ private slots:
 		S_EQUAL(db.studies("DXtest1")[0], "DISCO-TWIN");
 		S_EQUAL(db.studies("DXtest1")[1], "Genome+");
 		I_EQUAL(db.studies("DXtest2").count(), 0);
+	}
+
+	void tissue()
+	{
+		if (!GenLabDB::isAvailable()) SKIP("Test needs access to the GenLab database!");
+
+		GenLabDB db;
+		S_EQUAL(db.tissue("DXtest1"), ""); //is 'DNA' but this cannot be converted to tissue
+		S_EQUAL(db.tissue("DXtest2"), ""); //not set
 	}
 };
 

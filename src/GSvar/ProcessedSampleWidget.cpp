@@ -160,7 +160,7 @@ void ProcessedSampleWidget::updateGUI()
 	ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id_);
 	styleQualityLabel(ui_->quality, ps_data.quality);
 	ui_->name->setText(ps_data.name);
-	ui_->comments_processed_sample->setText(ps_data.comments);
+	GSvarHelper::limitLines(ui_->comments_processed_sample, ps_data.comments);
 	QString name_short = db.getValue("SELECT name_short FROM processing_system WHERE name_manufacturer=:0", true, ps_data.processing_system).toString();
 	ui_->system->setText("<a href=\"" + name_short + "\">"+ps_data.processing_system+"</a>");
 	ui_->project->setText("<a href=\"" + ps_data.project_name + "\">"+ps_data.project_name+"</a>");
@@ -177,6 +177,8 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->run->setText("<a href=\"" + run + "\">"+run+"</a>");
 	ui_->merged->setText(mergedSamples());
 	ui_->lab_operator->setText(ps_data.lab_operator);
+	ui_->processing_modus->setText(ps_data.processing_modus);
+	ui_->batch_number->setText(ps_data.batch_number);
 	ui_->processing_input->setText(ps_data.processing_input);
 	ui_->molarity->setText(ps_data.molarity);
 	QString normal_sample = ps_data.normal_sample_name;
@@ -197,13 +199,16 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->s_name->setText(s_data.name);
 	ui_->name_external->setText(s_data.name_external);
 	ui_->patient_identifier->setText(s_data.patient_identifier);
+	ui_->year_ob_birth->setText(s_data.year_of_birth);
+	ui_->sampling_date->setText(s_data.sampling_date);
+	ui_->order_date->setText(s_data.order_date);
 	ui_->sender->setText(s_data.sender + " (received on " + s_data.received + " by " + s_data.received_by +")");
 	ui_->species_type->setText(s_data.species + " / " + s_data.type);
 	ui_->tumor_ffpe->setText(QString(s_data.is_tumor ? "<font color=red>yes</font>" : "no") + " / " + (s_data.is_ffpe ? "<font color=red>yes</font>" : "no"));
 	ui_->gender->setText(s_data.gender);
 	ui_->disease_group_status->setText(s_data.disease_group + " (" + s_data.disease_status + ")");
 	ui_->tissue->setText(s_data.tissue);
-	ui_->comments_sample->setText(s_data.comments);
+	GSvarHelper::limitLines(ui_->comments_sample, s_data.comments);
 	QStringList groups;
 	foreach(SampleGroup group, s_data.sample_groups)
 	{
@@ -215,9 +220,8 @@ void ProcessedSampleWidget::updateGUI()
 	DiagnosticStatusData diag = db.getDiagnosticStatus(ps_id_);
 	ui_->status->setText(diag.dagnostic_status + " (by " + diag.user + " on " + diag.date.toString("dd.MM.yyyy")+")");
 	ui_->outcome->setText(diag.outcome);
-	ui_->comments_diag->setText(diag.comments);
+	GSvarHelper::limitLines(ui_->comments_diag, diag.comments);
 	ui_->report_config->setText(db.reportConfigSummaryText(ps_id_));
-
 
 	//#### kasp status ####
 	try
@@ -345,11 +349,18 @@ void ProcessedSampleWidget::updateQCMetrics()
 						if (value<35) color = orange;
 						if (value<30) color = red;
 					}
+					else if (sys_type=="lrGS")
+					{
+						//TODO: adjust limits for lrGS
+						if (value<20) color = orange;
+						if (value<15) color = red;
+					}
 					else
 					{
 						if (value<80) color = orange;
 						if (value<50) color = red;
 					}
+
 				}
 				else if (accession=="QC:2000027") //cov 20x
 				{
@@ -405,7 +416,7 @@ void ProcessedSampleWidget::showPlot()
 		qc_widget->setSecondTermId(qc_term_id2);
 	}
 	auto dlg = GUIHelper::createDialog(qc_widget, "QC plot");
-	dlg->exec();
+	emit addModelessDialog(dlg, false);
 }
 
 void ProcessedSampleWidget::openSampleFolder()

@@ -310,7 +310,7 @@ VcfToBedpe::bedpe_line VcfToBedpe::convertSingleLine(const VcfToBedpe::vcf_line 
 	QChar orientation1 = '.';
 	QChar orientation2 = '.';
 
-	if(info.keys().contains("STRANDS") && info.value("STRANDS").count() == 2)
+	if(info.contains("STRANDS") && info.value("STRANDS").count() == 2)
 	{
 		orientation1 = info.value("STRANDS").at(0);
 		orientation2 = info.value("STRANDS").at(1);
@@ -394,7 +394,7 @@ VcfToBedpe::bedpe_line VcfToBedpe::convertComplexLine(const VcfToBedpe::vcf_line
 		out.START_B = line_b.pos.toInt();
 		out.END_B = line_b.pos.toInt();
 		QMap<QByteArray,QByteArray> info_b = parseInfoField(line_b.info);
-		if(info_b.keys().contains("CIPOS"))
+		if(info_b.contains("CIPOS"))
 		{
 			QList<QByteArray> vals = info_b.value("CIPOS").split(',');
 
@@ -485,12 +485,12 @@ void VcfToBedpe::convert(QString out_file)
 
 		QByteArray converted_line = "";
 
-		if(!line_info.keys().contains("MATEID") || line_info.value("SVTYPE","") != "BND")
+		if(!line_info.contains("MATEID") || line_info.value("SVTYPE","") != "BND")
 		{
 			if(line_info.value("SVTYPE").contains("MantaBND")) converted_line =  convertSingleLine(line_in,true).toText();
 			else converted_line =  convertSingleLine(line_in).toText();
 		}
-		else if(line_info.keys().contains("MATEID")) //complex breakpoints that have a Mate
+		else if(line_info.contains("MATEID")) //complex breakpoints that have a Mate
 		{
 			complex_lines.insert(line_in.id,line_in);
 			continue;
@@ -517,7 +517,7 @@ void VcfToBedpe::convert(QString out_file)
 		QByteArray converted_line;
 		vcf_line line_b;
 
-		if(!complex_lines.keys().contains(mate_id)) //Parse Mates for which no MATE-ID is included in VCF file
+		if(!complex_lines.contains(mate_id)) //Parse Mates for which no MATE-ID is included in VCF file
 		{
 			bedpe_line temp =  convertComplexLine(line_a,line_b,true);
 			converted_line = temp.toText();

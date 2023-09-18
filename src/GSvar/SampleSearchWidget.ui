@@ -513,7 +513,7 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="0">
+          <item row="6" column="0">
            <widget class="QLabel" name="label_19">
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Run start date before or equal to the given date.&lt;br/&gt;Use ISO format: YYYY-MM-DD&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -523,10 +523,10 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
+          <item row="6" column="1">
            <widget class="QLineEdit" name="r_date_before"/>
           </item>
-          <item row="6" column="0">
+          <item row="5" column="0">
            <widget class="QLabel" name="label_25">
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Run start date before or equal to the given date.&lt;br/&gt;Use ISO format: YYYY-MM-DD&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -536,7 +536,7 @@
             </property>
            </widget>
           </item>
-          <item row="6" column="1">
+          <item row="5" column="1">
            <widget class="QLineEdit" name="r_date_after"/>
           </item>
          </layout>
@@ -564,23 +564,6 @@
       <property name="spacing">
        <number>3</number>
       </property>
-      <item row="0" column="1">
-       <widget class="QCheckBox" name="add_disease_details">
-        <property name="text">
-         <string>add disease details</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="5">
-       <widget class="QCheckBox" name="add_qc">
-        <property name="text">
-         <string>add QC metrics</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="4">
        <widget class="QCheckBox" name="add_report_config">
         <property name="toolTip">
@@ -597,17 +580,17 @@
          <string>add diagnostic outcome</string>
         </property>
         <property name="checked">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
-      <item row="0" column="0">
-       <widget class="QCheckBox" name="add_comments">
+      <item row="0" column="1">
+       <widget class="QCheckBox" name="add_disease_details">
         <property name="text">
-         <string>add comments</string>
+         <string>add disease details</string>
         </property>
         <property name="checked">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -618,6 +601,33 @@
         </property>
         <property name="text">
          <string>add normal sample</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="5">
+       <widget class="QCheckBox" name="add_qc">
+        <property name="text">
+         <string>add QC metrics</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QCheckBox" name="add_comments">
+        <property name="text">
+         <string>add comments</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="7">
+       <widget class="QCheckBox" name="add_dates">
+        <property name="toolTip">
+         <string>Adds year of birth and year of sample entry</string>
+        </property>
+        <property name="text">
+         <string>add dates</string>
         </property>
        </widget>
       </item>

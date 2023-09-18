@@ -154,7 +154,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [GraphStringDb](doc/tools/GraphStringDb.md): Creates simple representation of String-DB interaction graph.
 * [GenesToApproved](doc/tools/GenesToApproved.md) - Replaces gene symbols by approved symbols using the HGNC database (needs [NGSD](doc/install_ngsd.md)).
 * [GenesToBed](doc/tools/GenesToBed.md) - Converts a text file with gene names to a BED file (needs [NGSD](doc/install_ngsd.md)).
-* [GenesToTranscripts](doc/tools/GenesToTranscripts .md) - Converts a text file with gene names to transcript names (needs [NGSD](doc/install_ngsd.md)).
+* [GenesToTranscripts](doc/tools/GenesToTranscripts.md) - Converts a text file with gene names to transcript names (needs [NGSD](doc/install_ngsd.md)).
 * [NGSDExportGenes](doc/tools/NGSDExportGenes.md) - Lists genes from NGSD (needs [NGSD](doc/install_ngsd.md)).
 * [TranscriptsToBed](doc/tools/TranscriptsToBed.md) - Converts a text file with transcript names to a BED file (needs [NGSD](doc/install_ngsd.md)).
 

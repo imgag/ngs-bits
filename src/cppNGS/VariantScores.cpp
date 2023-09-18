@@ -4,6 +4,7 @@
 #include "GeneSet.h"
 #include "FilterCascade.h"
 #include "Settings.h"
+#include <math.h>
 
 VariantScores::VariantScores()
 {
@@ -284,7 +285,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 	filters << "Allele frequency	max_af=0.1"
 			<< "Allele frequency (sub-populations)	max_af=0.1"
 			<< "Variant quality	qual=30	depth=5	mapq=20	strand_bias=-1	allele_balance=-1"
-			<< "Count NGSD	max_count=10	ignore_genotype=false"
+			<< "Count NGSD	max_count=10	ignore_genotype=false	mosaic_as_het=false"
 			<< "Impact	impact=HIGH,MODERATE,LOW"
 			<< "Annotated pathogenic	action=KEEP	sources=HGMD,ClinVar	also_likely_pathogenic=false"
 			<< "Allele frequency	max_af=1.0"
@@ -524,6 +525,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 	int i_clinvar = variants.annotationIndexByName("ClinVar");
 	int i_gene_info = variants.annotationIndexByName("gene_info");
 	int i_classification = variants.annotationIndexByName("classification");
+	int i_phylop = variants.annotationIndexByName("phyloP");
 	QList<int> affected_cols = variants.getSampleHeader().sampleColumns(true);
 	if (affected_cols.count()!=1) THROW(ArgumentException, "VariantScores: Algorihtm 'GSvar_v1' can only be applied to variant lists with exactly one affected patient!");
 
@@ -532,26 +534,31 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 
 	//prepare ROI for fast lookup
 	if (phenotype_rois.count()==0) output.warnings << "No phenotype region(s) set!";
-	BedFile roi;
-	foreach(const BedFile& pheno_roi, phenotype_rois)
+	QHash<Phenotype, QSharedPointer<ChromosomalIndex<BedFile>>> phenotype_rois_indices;
+	for(auto it=phenotype_rois.begin(); it!=phenotype_rois.end(); ++it)
 	{
-		roi.add(pheno_roi);
+		phenotype_rois_indices.insert(it.key(), QSharedPointer<ChromosomalIndex<BedFile>>(new ChromosomalIndex<BedFile>(it.value())));
 	}
-	roi.merge();
-	ChromosomalIndex<BedFile> roi_index(roi);
 
 	//apply pre-filters to reduce runtime
 	QStringList filters;
 	filters << "Allele frequency	max_af=0.1"
 			<< "Allele frequency (sub-populations)	max_af=0.1"
 			<< "Variant quality	qual=30	depth=1	mapq=20	strand_bias=-1	allele_balance=-1	min_occurences=0	min_af=0	max_af=1"
-			<< "Count NGSD	max_count=10	ignore_genotype=false"
-			<< "Impact	impact=HIGH,MODERATE,LOW"
-			<< "Annotated pathogenic	action=KEEP	sources=HGMD,ClinVar	also_likely_pathogenic=false"
-			<< "Splice effect	MaxEntScan=LOW	SpliceAi=0.5	action=KEEP"
+			<< "Count NGSD	max_count=10	ignore_genotype=false	mosaic_as_het=false"
+			<< "Impact	impact=HIGH,MODERATE,LOW";
+	if (parameters.use_clinvar)
+	{
+			filters << "Annotated pathogenic	action=KEEP	sources=HGMD,ClinVar	also_likely_pathogenic=false";
+	}
+	else
+	{
+		filters << "Annotated pathogenic	action=KEEP	sources=HGMD	also_likely_pathogenic=false";
+	}
+	filters	<< "Splice effect	MaxEntScan=LOW	SpliceAi=0.5	action=KEEP"
 			<< "Allele frequency	max_af=1.0"
-			<< "Filter columns	entries=mosaic	action=REMOVE"
-			<< "Classification NGSD	action=REMOVE	classes=1,2";
+			<< "Filter columns	entries=mosaic	action=REMOVE";
+	if (parameters.use_ngsd_classifications) filters << "Classification NGSD	action=REMOVE	classes=1,2";
 	if (parameters.use_ngsd_classifications) filters << "Classification NGSD	action=KEEP	classes=4,5";
 	FilterCascade cascade = FilterCascade::fromText(filters);
 	FilterResult cascade_result = cascade.apply(variants);
@@ -607,10 +614,17 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 		}
 
 		//disease association: in phenotype ROI
-		int index = roi_index.matchingIndex(v.chr(), v.start(), v.end());
-		if (index!=-1)
+		int pheno_roi_hits = 0;
+		for(auto it=phenotype_rois_indices.begin(); it!=phenotype_rois_indices.end(); ++it)
 		{
-			scores.add("HPO", 2.0);
+			int index = it.value()->matchingIndex(v.chr(), v.start(), v.end());
+			if (index!=-1) ++pheno_roi_hits;
+		}
+		if (pheno_roi_hits>0)
+		{
+			double pheno_score = 1.0 + sqrt(pheno_roi_hits);
+			pheno_score = truncf(pheno_score * 10.0) / 10.0;
+			scores.add("HPO", pheno_score);
 		}
 
 		//disease association: HGMD variant
@@ -637,23 +651,26 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 		}
 
 		//disease association: ClinVar variant
-		double clinvar_score = 0.0;
-		QByteArrayList clinvar = v.annotations()[i_clinvar].trimmed().split(';');
-		foreach(const QByteArray& entry, clinvar)
+		if (parameters.use_clinvar)
 		{
-			if (entry.contains("likely pathogenic"))
+			double clinvar_score = 0.0;
+			QByteArrayList clinvar = v.annotations()[i_clinvar].trimmed().split(';');
+			foreach(const QByteArray& entry, clinvar)
 			{
-				clinvar_score = std::max(clinvar_score, 0.5);
-			}
-			else if (entry.contains("pathogenic"))
-			{
-				clinvar_score = std::max(clinvar_score, 1.0);
-			}
+				if (entry.contains("likely pathogenic"))
+				{
+					clinvar_score = std::max(clinvar_score, 0.5);
+				}
+				else if (entry.contains("pathogenic"))
+				{
+					clinvar_score = std::max(clinvar_score, 1.0);
+				}
 
-		}
-		if (clinvar_score>0)
-		{
-			scores.add("ClinVar", clinvar_score);
+			}
+			if (clinvar_score>0)
+			{
+				scores.add("ClinVar", clinvar_score);
+			}
 		}
 
 		//disease association: NGSD classification
@@ -689,6 +706,13 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 					scores.add("OMIM", 1.0, gene);
 				}
 			}
+		}
+
+		//disease association: conservedness
+		double phylop = v.annotations()[i_phylop].trimmed().toDouble(); //0 if no conversion possible;
+		if (phylop>=1.6)
+		{
+			scores.add("phyloP", 0.3);
 		}
 
 		//impact (gene-specific)
@@ -773,6 +797,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 	int i_clinvar = variants.annotationIndexByName("ClinVar");
 	int i_gene_info = variants.annotationIndexByName("gene_info");
 	int i_classification = variants.annotationIndexByName("classification");
+	int i_phylop = variants.annotationIndexByName("phyloP");
 	QList<int> affected_cols = variants.getSampleHeader().sampleColumns(true);
 	if (affected_cols.count()!=1) THROW(ArgumentException, "VariantScores: Algorihtm 'GSvar_v1' can only be applied to variant lists with exactly one affected patient!");
 	int i_genotye = affected_cols[0];
@@ -782,26 +807,31 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 
 	//prepare ROI for fast lookup
 	if (phenotype_rois.count()==0) output.warnings << "No phenotype region(s) set!";
-	BedFile roi;
-	foreach(const BedFile& pheno_roi, phenotype_rois)
+	QHash<Phenotype, QSharedPointer<ChromosomalIndex<BedFile>>> phenotype_rois_indices;
+	for(auto it=phenotype_rois.begin(); it!=phenotype_rois.end(); ++it)
 	{
-		roi.add(pheno_roi);
+		phenotype_rois_indices.insert(it.key(), QSharedPointer<ChromosomalIndex<BedFile>>(new ChromosomalIndex<BedFile>(it.value())));
 	}
-	roi.merge();
-	ChromosomalIndex<BedFile> roi_index(roi);
 
 	//apply pre-filters to reduce runtime
 	QStringList filters;
 	filters << "Allele frequency	max_af=0.1"
 			<< "Allele frequency (sub-populations)	max_af=0.1"
 			<< "Variant quality	qual=30	depth=1	mapq=20	strand_bias=-1	allele_balance=-1	min_occurences=0	min_af=0	max_af=1"
-			<< "Count NGSD	max_count=10	ignore_genotype=false"
-			<< "Impact	impact=HIGH,MODERATE,LOW"
-			<< "Annotated pathogenic	action=KEEP	sources=HGMD,ClinVar	also_likely_pathogenic=false"
-			<< "Splice effect	MaxEntScan=LOW	SpliceAi=0.5	action=KEEP"
+			<< "Count NGSD	max_count=10	ignore_genotype=false	mosaic_as_het=false"
+			<< "Impact	impact=HIGH,MODERATE,LOW";
+	if (parameters.use_clinvar)
+	{
+			filters << "Annotated pathogenic	action=KEEP	sources=HGMD,ClinVar	also_likely_pathogenic=false";
+	}
+	else
+	{
+		filters << "Annotated pathogenic	action=KEEP	sources=HGMD	also_likely_pathogenic=false";
+	}
+	filters		<< "Splice effect	MaxEntScan=LOW	SpliceAi=0.5	action=KEEP"
 			<< "Allele frequency	max_af=1.0"
-			<< "Filter columns	entries=mosaic	action=REMOVE"
-			<< "Classification NGSD	action=REMOVE	classes=1,2";
+			<< "Filter columns	entries=mosaic	action=REMOVE";
+	if (parameters.use_ngsd_classifications) filters << "Classification NGSD	action=REMOVE	classes=1,2";
 	if (parameters.use_ngsd_classifications) filters << "Classification NGSD	action=KEEP	classes=4,5";
 	FilterCascade cascade = FilterCascade::fromText(filters);
 	FilterResult cascade_result = cascade.apply(variants);
@@ -871,10 +901,17 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 		}
 
 		//disease association: in phenotype ROI
-		int index = roi_index.matchingIndex(v.chr(), v.start(), v.end());
-		if (index!=-1)
+		int pheno_roi_hits = 0;
+		for(auto it=phenotype_rois_indices.begin(); it!=phenotype_rois_indices.end(); ++it)
 		{
-			scores.add("HPO", 2.0);
+			int index = it.value()->matchingIndex(v.chr(), v.start(), v.end());
+			if (index!=-1) ++pheno_roi_hits;
+		}
+		if (pheno_roi_hits>0)
+		{
+			double pheno_score = 1.0 + sqrt(pheno_roi_hits);
+			pheno_score = truncf(pheno_score * 10.0) / 10.0;
+			scores.add("HPO", pheno_score);
 		}
 
 		//disease association: HGMD variant
@@ -901,23 +938,26 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 		}
 
 		//disease association: ClinVar variant
-		double clinvar_score = 0.0;
-		QByteArrayList clinvar = v.annotations()[i_clinvar].trimmed().split(';');
-		foreach(const QByteArray& entry, clinvar)
+		if (parameters.use_clinvar)
 		{
-			if (entry.contains("likely pathogenic"))
+			double clinvar_score = 0.0;
+			QByteArrayList clinvar = v.annotations()[i_clinvar].trimmed().split(';');
+			foreach(const QByteArray& entry, clinvar)
 			{
-				clinvar_score = std::max(clinvar_score, 0.5);
-			}
-			else if (entry.contains("pathogenic"))
-			{
-				clinvar_score = std::max(clinvar_score, 1.0);
-			}
+				if (entry.contains("likely pathogenic"))
+				{
+					clinvar_score = std::max(clinvar_score, 0.5);
+				}
+				else if (entry.contains("pathogenic"))
+				{
+					clinvar_score = std::max(clinvar_score, 1.0);
+				}
 
-		}
-		if (clinvar_score>0)
-		{
-			scores.add("ClinVar", clinvar_score);
+			}
+			if (clinvar_score>0)
+			{
+				scores.add("ClinVar", clinvar_score);
+			}
 		}
 
 		//disease association: NGSD classification
@@ -953,6 +993,13 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 					scores.add("OMIM", 1.0, gene);
 				}
 			}
+		}
+
+		//disease association: conservedness
+		double phylop = v.annotations()[i_phylop].trimmed().toDouble(); //0 if no conversion possible;
+		if (phylop>=1.6)
+		{
+			scores.add("phyloP", 0.3);
 		}
 
 		//impact (gene-specific)
@@ -1044,26 +1091,24 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 	return output;
 }
 
-//Performance history DOMINANT										Rank1  / Top10
-//version 1															76.82% / 97.67% (19.04.23)
-//score by gene, NGSD score, fix of OE/inheritance parsing			81.72% / 97.51% (19.04.23)
+//Performance history DOMINANT										Variants / Rank1  / Top3   / Top10
+//v2 no NGSD														1280     / 86.56% / 94.30% / 98.13% (10.07.23)
+//v2 no NGSD, no ClinVar											1280     / 78.44% / 90.78% / 97.19% (10.07.23)
+//v2 with NGSD														1280     / 92.42% / 96.95% / 98.83% (10.07.23)
+
+//Performance history RECESSIVE - HOMOYZGOUOS						Variants / Rank1  / Top3   / Top10
+//v2 no NGSD														524      / 85.88% / 94.27% / 97.52% (10.07.23)
+//v2 no NGSD, no ClinVar											525      / 78.67% / 89.71% / 96.00% (10.07.23)
+//v2 with NGSD														524      / 91.41% / 97.52% / 99.05% (10.07.23)
+
+//Performance history RECESSIVE - COMP-HET							Variants / Rank1  / Top3   / Top10
+//v2 no NGSD														700      / 85.43% / 94.00% / 97.14% (10.07.23)
+//v2 no NGSD, no ClinVar											702      / 79.77% / 90.31% / 95.58% (10.07.23)
+//v2 with NGSD														702      / 91.03% / 97.58% / 99.57% (10.07.23)
 
 
-//Performance history RECESSIVE										Top2  / Top10
-//version 1															72.30% / 90.90% (19.04.23)
-//score by gene, fix of OE/inheritance parsing, comp-het variants	83.02% / 94.60% (19.04.23)
-
-//TODO: Ideas
-// - test effect of "mosaic_as_het" in NGSD count filter
-// - check non-ranked variants (add ClinVar, HGMD and NGSD class to output)
-//	 - only rank AF<1% in gnomAD?
-// - recurring variants > blacklist
-// - integrate conservedness (phyloP)?
-// - score only relevant transcripts or score them higher than other transcripts
-// - additional score if OMIM/ClinVar/HGMD also match HPO terms
-// - HPO: add bonus score if more than one phenotype matches OR using Germans model (email 09.12.2020)
-// - HPO: higher weight for high evidence HPO-gene regions?
-// - optimize scores by machine learning
+//Ideas if we want to publish it separately:
+// - optimize score weights by machine learning or use machine learning for entire scoring
 // - benchmark with existing tools:
 //   - create and use version of ClinVar without our commits (we submit to ClinVar)
 //   - https://www.cell.com/trends/genetics/fulltext/S0168-9525(22)00179-2

@@ -43,6 +43,12 @@ void GenLabImportDialog::initTable()
 		QString patient_identifier = genlab.patientIdentifier(ps_name);
 		addItem("sample: patient identifier", s_data.patient_identifier, patient_identifier);
 
+		QString year_of_birth = genlab.yearOfBirth(ps_name);
+		addItem("sample: year of birth", s_data.year_of_birth, year_of_birth);
+
+		QString tissue = genlab.tissue(ps_name).trimmed();
+		addItem("sample: tissue", s_data.tissue, tissue);
+
 		auto disease_data = genlab.diseaseInfo(ps_name);
 		addItem("sample: disease group", s_data.disease_group, disease_data.first);
 		addItem("sample: disease status", s_data.disease_status, disease_data.second);
@@ -247,6 +253,14 @@ void GenLabImportDialog::importSelectedData()
 			else if (type=="sample: patient identifier")
 			{
 				db_.getQuery().exec("UPDATE sample SET patient_identifier='" + data + "' WHERE id=" + s_id);
+			}
+			else if (type=="sample: year of birth")
+			{
+				db_.getQuery().exec("UPDATE sample SET year_of_birth='" + data + "' WHERE id=" + s_id);
+			}
+			else if (type=="sample: tissue")
+			{
+				db_.getQuery().exec("UPDATE sample SET tissue='" + data + "' WHERE id=" + s_id);
 			}
 			else if (type=="sample: disease group")
 			{

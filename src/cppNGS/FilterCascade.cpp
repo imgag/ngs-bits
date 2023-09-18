@@ -130,14 +130,14 @@ void FilterResult::removeFlagged(VcfFile& variants)
 		{
 			if (to_index!=i)
 			{
-				variants.vcfLine(to_index) = variants.vcfLine(i);
+				variants[to_index] = variants[i];
 			}
 			++to_index;
 		}
 	}
 
 	//resize to new size
-	variants.resize(to_index);
+	variants.restrictTo(to_index);
 
 	//update flags
 	pass = QBitArray(variants.count(), true);
@@ -189,7 +189,7 @@ void FilterResult::removeFlagged(BedpeFile& svs)
     pass = QBitArray(svs.count(), true);
 }
 
-void FilterResult::tagNonPassing(VariantList& variants, QByteArray tag, QByteArray description)
+void FilterResult::tagNonPassing(VariantList& variants, const QByteArray& tag, const QByteArray& description)
 {
 	if (pass.count()!=variants.count()) THROW(ProgrammingException, "Variant and filter result count not equal in FilterResult::tagNonPassing!");
 
@@ -212,12 +212,12 @@ void FilterResult::tagNonPassing(VariantList& variants, QByteArray tag, QByteArr
 	}
 }
 
-void FilterResult::tagNonPassing(VcfFile& variants, QByteArray tag, QString description)
+void FilterResult::tagNonPassing(VcfFile& variants, const QByteArray& tag, const QString& description)
 {
 	if (pass.count()!=variants.count()) THROW(ProgrammingException, "Variant and filter result count not equal in FilterResult::tagNonPassing!");
 
 	//add tag description (if missing)
-	if (!variants.filterIDs().contains(tag))
+	if (!variants.vcfHeader().filterIdDefined(tag))
 	{
 		variants.vcfHeader().addFilter(tag, description);
 	}
@@ -1189,7 +1189,7 @@ void FilterFilterColumnEmpty::apply(const VcfFile& variants, FilterResult& resul
 	{
 		if (!result.flags()[i]) continue;
 
-		result.flags()[i] = variants.vcfLine(i).failedFilters().isEmpty();
+		result.flags()[i] = variants[i].filtersPassed();
 	}
 }
 
@@ -4111,6 +4111,7 @@ void FilterSvPeReadDepth::apply(const BedpeFile& svs, FilterResult& result) cons
     bool only_affected = getBool("only_affected");
 
 	int format_col_index = svs.annotationIndexByName("FORMAT");
+	if (format_col_index==-1) THROW(ProgrammingException, "Missing column FORMAT");
 
 	// determine analysis type
 	int sample_count = 1;
@@ -4138,8 +4139,10 @@ void FilterSvPeReadDepth::apply(const BedpeFile& svs, FilterResult& result) cons
 			QByteArrayList format_values = svs[i].annotations()[format_col_index + sample_idx + 1].split(':');
 
             // get total read number
-            QByteArrayList pe_read_entry = format_values[format_keys.indexOf("PR")].split(',');
-            if (pe_read_entry.size() != 2) THROW(FileParseException, "Invalid paired read entry (PR) in sv " + QByteArray::number(i) + "!")
+			int pr_index = format_keys.indexOf("PR");
+			if (pr_index==-1) THROW(FileParseException, "Missing paired read entry (PR) in SV " + svs[i].toString(true) + "!");
+			QByteArrayList pe_read_entry = format_values[pr_index].split(',');
+			if (pe_read_entry.size() != 2) THROW(FileParseException, "Invalid paired read entry (PR) in SV " + svs[i].toString(true) + "!")
             int pe_read_depth = Helper::toInt(pe_read_entry[1]);
 
             // compare AF with filter

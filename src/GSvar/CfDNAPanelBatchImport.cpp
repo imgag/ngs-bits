@@ -193,7 +193,7 @@ VcfFile CfDNAPanelBatchImport::createCfdnaPanelVcf(const QString& ps_name, const
 	input_file.load(vcf_file_path, false);
 	for (int i = 0; i < input_file.count(); ++i)
 	{
-		VcfLine vcf_line = input_file.vcfLine(i);
+		const VcfLine& vcf_line = input_file[i];
 
 		// skip ID SNPs
 		if (vcf_line.id().contains("ID")) continue;
@@ -290,7 +290,7 @@ VcfFile CfDNAPanelBatchImport::createCfdnaPanelVcf(const QString& ps_name, const
 	VcfFile vcf_file = VcfFile::fromGSvar(cfdna_panel, Settings::string("reference_genome"));
 	for (int i = 0; i < vcf_file.count(); ++i)
 	{
-		vcf_file.vcfLines().at(i)->setId(QByteArrayList() << "M");
+		vcf_file[i].setId(QByteArrayList() << "M");
 	}
 
 	return vcf_file;
@@ -419,9 +419,9 @@ void CfDNAPanelBatchImport::importPanels()
 			if (add_sample_identifier)
 			{
 				// add KASP SNPs
-				foreach (VcfLinePtr vcf_line_ptr, general_sample_ids.vcfLines())
+				for (int i=0; general_sample_ids.count(); ++i)
 				{
-					cfdna_panel.vcfLines() << vcf_line_ptr;
+					cfdna_panel.append(general_sample_ids[i]);
 				}
 
 				// add ID SNPs from processing system
@@ -430,9 +430,9 @@ void CfDNAPanelBatchImport::importPanels()
 					BedFile target_region = GlobalServiceProvider::database().processingSystemRegions(processing_system_id, false);
 					proc_sys_sample_ids.insert(processing_system_id, db_.getIdSnpsFromProcessingSystem(processing_system_id, target_region, true));
 				}
-				foreach (VcfLinePtr vcf_line_ptr, proc_sys_sample_ids.value(processing_system_id).vcfLines())
+				for (int i=0; proc_sys_sample_ids.value(processing_system_id).count(); ++i)
 				{
-					cfdna_panel.vcfLines() << vcf_line_ptr;
+					cfdna_panel.append(proc_sys_sample_ids.value(processing_system_id)[i]);
 				}
 
 				cfdna_panel.sort();
@@ -443,8 +443,7 @@ void CfDNAPanelBatchImport::importPanels()
 			for (int i=0; i<cfdna_panel.count(); i++)
 			{
 				QByteArray annotation = (cfdna_panel[i].id().contains("M"))?"patient_specific_somatic_variant:" : "SNP_for_sample_identification:";
-				cfdna_panel_region.append(BedLine(cfdna_panel[i].chr(), cfdna_panel[i].start(), cfdna_panel[i].end(),
-												  QByteArrayList() << (annotation + cfdna_panel[i].ref() + ">" + cfdna_panel[i].altString() + ":" + cfdna_panel[i].info("ID_Source"))));
+				cfdna_panel_region.append(BedLine(cfdna_panel[i].chr(), cfdna_panel[i].start(), cfdna_panel[i].end(), QByteArrayList() << (annotation + cfdna_panel[i].ref() + ">" + cfdna_panel[i].altString() + ":" + cfdna_panel[i].info("ID_Source"))));
 			}
 
 			// import into NGSD

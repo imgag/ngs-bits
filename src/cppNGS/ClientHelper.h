@@ -140,7 +140,7 @@ public:
 	static QString stripSecureToken(QString url);
 
 	///Requests information about GSvarServer
-	static ServerInfo getServerInfo();
+    static ServerInfo getServerInfo(int& status_code);
 	///Requests the client version number from the server to inform about updates (if available)
 	static ClientInfo getClientInfo();
 	///Requests the user notification from the server

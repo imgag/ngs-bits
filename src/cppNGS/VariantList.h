@@ -7,7 +7,7 @@
 #include "BedFile.h"
 #include "OntologyTermCollection.h"
 #include "GenomeBuild.h"
-#include "VcfFileHelper.h"
+#include "VcfLine.h"
 
 ///Transcript annotations e.g. from SnpEff/VEP.
 struct CPPNGSSHARED_EXPORT VariantTranscript
@@ -416,11 +416,14 @@ public:
 	///Returns the analysis type from the header.
 	AnalysisType type(bool allow_fallback_germline_single_sample=true) const;
 
-	///Returns whether list contains variant with same chr, start, end, ref and obs
+	///Returns whether list contains variant with same chr, start, end, ref and obs. Warning: this is quite slow as is uses linear search - use ChromosomalIndex for quick access to variants.
 	bool contains(const Variant& var)
 	{
 		return variants_.contains(var);
 	}
+
+	///Searches for the given variant in the list and returns its index. Returns -1 if the variant is not found.  Warning: this is quite slow as is uses linear search - use ChromosomalIndex for quick access to variants.
+	int indexOf(const Variant& var);
 
 protected:
     QStringList comments_;

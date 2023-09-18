@@ -15,7 +15,7 @@ int sendGetRequest(QByteArray& reply, QString url, HttpHeaders headers)
 {
 	try
 	{
-		reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(url, headers);
+        reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(url, headers).body;
 	}
 	catch(Exception& e)
 	{
@@ -32,7 +32,7 @@ int sendPostRequest(QByteArray& reply, QString url, HttpHeaders headers, QByteAr
 {
 	try
 	{
-		reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(url, data, headers);
+        reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(url, data, headers).body;
 	}
 	catch(Exception& e)
 	{
@@ -53,7 +53,7 @@ private slots:
 
 	void test_if_server_is_running()
 	{
-		if (!ServerHelper::hasBasicSettings())
+        if (!ServerHelper::hasMinimalSettings())
 		{
 			SKIP("Server has not been configured correctly");
 		}
@@ -73,7 +73,7 @@ private slots:
 
 	void test_partial_content_multirange_request()
 	{
-		if (!ServerHelper::hasBasicSettings())
+        if (!ServerHelper::hasMinimalSettings())
 		{
 			SKIP("Server has not been configured correctly");
 		}
@@ -95,7 +95,7 @@ private slots:
 
 	void test_partial_content_empty_end_request()
 	{
-		if (!ServerHelper::hasBasicSettings())
+        if (!ServerHelper::hasMinimalSettings())
 		{
 			SKIP("Server has not been configured correctly");
 		}
@@ -116,7 +116,7 @@ private slots:
 
 	void test_partial_content_empty_start_request()
 	{
-		if (!ServerHelper::hasBasicSettings())
+        if (!ServerHelper::hasMinimalSettings())
 		{
 			SKIP("Server has not been configured correctly");
 		}
@@ -143,7 +143,7 @@ private slots:
 
 	void test_token_based_authentication()
 	{
-		if (!ServerHelper::hasBasicSettings())
+        if (!ServerHelper::hasMinimalSettings())
 		{
 			SKIP("Server has not been configured correctly");
 		}
@@ -180,7 +180,7 @@ private slots:
 
 	void test_access_to_remote_bam_files()
 	{
-		if (!ServerHelper::hasBasicSettings())
+        if (!ServerHelper::hasMinimalSettings())
 		{
 			SKIP("Server has not been configured correctly");
 		}
@@ -205,7 +205,7 @@ private slots:
 
 	void test_server_info_retrieval()
 	{
-		if (!ServerHelper::hasBasicSettings())
+        if (!ServerHelper::hasMinimalSettings())
 		{
 			SKIP("Server has not been configured correctly");
 		}
@@ -230,7 +230,7 @@ private slots:
 
 	void test_client_info_retrieval()
 	{
-		if (!ServerHelper::hasBasicSettings())
+        if (!ServerHelper::hasMinimalSettings())
 		{
 			SKIP("Server has not been configured correctly");
 		}

@@ -18,80 +18,6 @@ TEST_CLASS(NGSD_Test)
 Q_OBJECT
 private slots:
 
-	void batch_test_HGVS2GSvar()
-	{
-		return; //TODO check wrong variants - is VEP wrong there?
-		QString ref_file = Settings::string("reference_genome", true);
-		if (ref_file=="") SKIP("Test needs the reference genome!");
-		FastaFileIndex idx(ref_file);
-
-		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
-		NGSD db;
-
-		QHash<QString, Transcript> transcrips;
-		VariantList vl;
-		vl.load("D:\\Data\\NGS\\Sample_NA12878_38\\NA12878_38.GSvar");
-		int i_co = vl.annotationIndexByName("coding_and_splicing");
-		int tests = 0;
-		int correct = 0;
-		int wrong = 0;
-		int error = 0;
-		for (int i=0; i<vl.count(); ++i)
-		{
-			QStringList vep_annos = QString(vl[i].annotations()[i_co]).split(',');
-			foreach(QString vep_anno, vep_annos)
-			{
-				QStringList parts = vep_anno.split(":");
-				//qDebug() << parts;
-				QString gene = parts[0];
-				QString trans_name = parts[1];
-				QString type = parts[2];
-				QString cdna = parts[5].trimmed();
-				if (cdna.isEmpty()) continue;
-
-				if (!transcrips.contains(trans_name))
-				{
-					try
-					{
-						int trans_id = db.transcriptId(trans_name);
-						transcrips[trans_name] = db.transcript(trans_id);
-					}
-					catch(Exception& e)
-					{
-						continue;
-					}
-				}
-
-				++tests;
-				Transcript trans = transcrips[trans_name];
-				try
-				{
-					Variant v = trans.hgvsToVariant(cdna, idx);
-					if (v==vl[i]) ++correct;
-					else
-					{
-						++wrong;
-						qDebug() << "Conversion wrong:" << gene << trans_name << cdna << type;
-						qDebug() << "  should be:" << vl[i].toString();
-						qDebug() << "  is       :" << v.toString();
-					}
-				}
-				catch(Exception& e)
-				{
-					++error;
-					qDebug() << "Conversion error:" << gene << trans_name << cdna << type;
-					qDebug() << "  " << e.message();
-				}
-			}
-		}
-
-		qDebug() << "variants: " << vl.count();
-		qDebug() << "tests   : " << tests;
-		qDebug() << "correct : " << correct << " (" << QString::number(100.0 * correct / tests, 'f', 3) << "%)";
-		qDebug() << "wrong   : " << wrong << " (" << QString::number(100.0 * wrong / tests, 'f', 3) << "%)";
-		qDebug() << "error   : " << error << " (" << QString::number(100.0 * error / tests, 'f', 3) << "%)";
-	}
-
 	//Normally, one member is tested in one QT slot.
 	//Because initializing the database takes very long, all NGSD functionality is tested in one slot.
 	void main_tests()
@@ -261,6 +187,7 @@ private slots:
 		S_EQUAL(sample_data.name, "NA12878");
 		S_EQUAL(sample_data.name_external, "ex1");
 		S_EQUAL(sample_data.patient_identifier, "pat1");
+		S_EQUAL(sample_data.year_of_birth, "1977");
 		S_EQUAL(sample_data.quality, "good");
 		S_EQUAL(sample_data.comments, "comment_s1");
 		S_EQUAL(sample_data.disease_group, "Diseases of the blood or blood-forming organs");
@@ -274,6 +201,7 @@ private slots:
 		S_EQUAL(sample_data.name, "NA12345");
 		S_EQUAL(sample_data.name_external, "ex3");
 		S_EQUAL(sample_data.patient_identifier, "pat3");
+		S_EQUAL(sample_data.year_of_birth, "");
 		S_EQUAL(sample_data.quality, "bad");
 		S_EQUAL(sample_data.comments, "comment_s3");
 		S_EQUAL(sample_data.disease_group, "Diseases of the immune system");
@@ -296,6 +224,8 @@ private slots:
 		S_EQUAL(processed_sample_data.normal_sample_name, "");
 		S_EQUAL(processed_sample_data.processing_system, "HaloPlex HBOC v5");
 		S_EQUAL(processed_sample_data.processing_system_type, "Panel Haloplex");
+		S_EQUAL(processed_sample_data.processing_modus, "manual");
+		S_EQUAL(processed_sample_data.batch_number, "batch 17");
 		//second sample (tumor)
 		processed_sample_id = db.processedSampleId("NA12345_01");
 		processed_sample_data = db.getProcessedSampleData(processed_sample_id);
@@ -306,6 +236,8 @@ private slots:
 		S_EQUAL(processed_sample_data.project_name, "KontrollDNACoriell");
 		S_EQUAL(processed_sample_data.run_name, "#00372");
 		S_EQUAL(processed_sample_data.normal_sample_name, "NA12878_03");
+		S_EQUAL(processed_sample_data.processing_modus, "n/a");
+		S_EQUAL(processed_sample_data.batch_number, "");
 
 		//genesToRegions
 		QString messages;
@@ -958,19 +890,23 @@ private slots:
 		params.add_qc = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 71);
+		I_EQUAL(ps_table.columnCount(), 73);
+		S_EQUAL(ps_table.headers().at(32), "sample_quality");
+		S_EQUAL(ps_table.headers().at(33), "processed_sample_quality");
+		S_EQUAL(ps_table.row(0).value(32), "good");
+		S_EQUAL(ps_table.row(0).value(33), "good");
 		//add report config
 		params.add_report_config = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 72);
-		S_EQUAL(ps_table.row(0).value(71), "");
-		S_EQUAL(ps_table.row(4).value(71), "exists, causal variant: chr9:98232224-98232224 A>- (genotype:het genes:PTCH1), causal CNV: chr1:3000-4000 (cn:1 classification:4), causal uncalled CNV: chr2:123456-789012 (genes: EPRS)");
+		I_EQUAL(ps_table.columnCount(), 74);
+		S_EQUAL(ps_table.row(0).value(73), "");
+		S_EQUAL(ps_table.row(4).value(73), "exists, causal variant: chr9:98232224-98232224 A>- (genotype:het genes:PTCH1), causal CNV: chr1:3000-4000 (cn:1 classification:4), causal uncalled CNV: chr2:123456-789012 (genes: EPRS)");
 		//add comments
 		params.add_comments = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 74);
+		I_EQUAL(ps_table.columnCount(), 76);
 		S_EQUAL(ps_table.headers().at(20), "comment_sample");
 		S_EQUAL(ps_table.headers().at(21), "comment_processed_sample");
 		S_EQUAL(ps_table.row(0).value(20), "comment_s6");
@@ -979,11 +915,11 @@ private slots:
 		params.add_normal_sample = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 75);
-		I_EQUAL(ps_table.headers().count(), 75);
-		I_EQUAL(ps_table.columnIndex("normal_sample"), 74);
+		I_EQUAL(ps_table.columnCount(), 77);
+		I_EQUAL(ps_table.headers().count(), 77);
+		I_EQUAL(ps_table.columnIndex("normal_sample"), 76);
 		S_EQUAL(ps_table.row(5).value(0), "NA12345_01");
-		S_EQUAL(ps_table.row(5).value(74), "NA12878_03");
+		S_EQUAL(ps_table.row(5).value(76), "NA12878_03");
 		//apply all search parameters
 		params.s_name = "NA12878";
 		params.s_species = "human";
@@ -1008,7 +944,7 @@ private slots:
 		params.r_after = QDate::fromString("1900-02-19", Qt::ISODate);
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 0);
-		I_EQUAL(ps_table.columnCount(), 75);
+		I_EQUAL(ps_table.columnCount(), 77);
 		//filter based on access rights (restricted user)
 		params = ProcessedSampleSearchParameters();
 		params.restricted_user = "ahkerra1";
@@ -1585,7 +1521,7 @@ private slots:
 		target_region.load(TESTDATA("../cppNGSD-TEST/data_in/cfDNA_id_snp.bed"));
 		VcfFile id_snps_tumor_normal = db.getIdSnpsFromProcessingSystem(db.processingSystemId("IDT_xGenPrism"), target_region, false, true);
 		QByteArrayList vcf_lines;
-		for (int i = 0; i < id_snps_tumor_normal.vcfLines().count(); ++i) vcf_lines << id_snps_tumor_normal.vcfLine(i).toString();
+		for (int i = 0; i < id_snps_tumor_normal.count(); ++i) vcf_lines << id_snps_tumor_normal[i].toString();
 		QByteArrayList expected;
 		expected << "chr1:13828907 G>A" << "chr1:88923261 A>C" << "chr1:107441476 A>G" << "chr1:160816880 A>G" << "chr1:233312667 C>T" << "chr2:9945593 G>A" << "chr2:59773585 T>C"
 				  << "chr2:106122379 A>G" << "chr2:181548532 A>G" << "chr19:4569797 A>C" << "chr19:39069167 A>C" << "chr19:49401772 T>C" << "chr20:52679623 T>C" << "chr21:14109044 G>T"
@@ -3088,5 +3024,25 @@ private slots:
 
 		QString path_without_override = db.processedSamplePath(db.processedSampleId("NA12878_03"), PathType::GSVAR);
 		IS_TRUE(path_without_override.endsWith("somatic/Sample_NA12878_03/NA12878_03.GSvar"));
+	}
+
+	void test_create_sample_sheet_for_novaseqx()
+	{
+		if (!NGSD::isAvailable(true)) SKIP("Test needs access to the NGSD test database!");
+
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in5.sql"));
+
+		QString sample_sheet = db.createSampleSheet(1);
+
+		//write to file
+		QSharedPointer<QFile> output_file = Helper::openFileForWriting("out/NovaSeqX_samplesheet.csv");
+		output_file->write(sample_sheet.toLatin1());
+		output_file->flush();
+		output_file->close();
+
+		COMPARE_FILES("out/NovaSeqX_samplesheet.csv",  TESTDATA("data_out/NovaSeqX_samplesheet.csv") );
+
 	}
 };

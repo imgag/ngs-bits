@@ -328,7 +328,7 @@
        <string>preferred transcript</string>
       </property>
       <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shows if the gap overlaps a preferred transcript.&lt;/p&gt;&lt;p&gt;Gaps overlapping the splice region (up to 20 bases from coding region), are marked with '&lt;span style=&quot; font-style:italic;&quot;&gt;yes (splice region)&lt;/span&gt;'.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;If no preferred transcripts are defined for the gene(s), it stays empty.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shows if the gap overlaps a preferred transcript.&lt;/p&gt;&lt;p&gt;Gaps overlapping the splice region (up to 20 bases from coding region), are marked with '&lt;span style=&quot; font-style:italic;&quot;&gt;yes (splice region)&lt;/span&gt;'.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;If no preferred transcripts are defined for the gene(s), 'not defined' is shown.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </column>
      <column>

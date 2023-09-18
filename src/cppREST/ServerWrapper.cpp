@@ -77,6 +77,11 @@ ServerWrapper::ServerWrapper(const quint16& port)
             connect(clinvar_timer, SIGNAL(timeout()), this, SLOT(updateClinVarSubmissionStatus()));
             clinvar_timer->start(60 * 60 * 1000); // every 60 minutes
 
+            // Switch to a new log file on schedule (to avoid using large files)
+            QTimer *log_check_timer = new QTimer(this);
+            connect(log_check_timer, SIGNAL(timeout()), this, SLOT(switchLogFile()));
+            log_check_timer->start(60 * 60 * 1000); // every 60 minutes
+
             QFileSystemWatcher *watcher = new QFileSystemWatcher();
             watcher->addPath(QCoreApplication::applicationDirPath());
             connect(watcher, SIGNAL(directoryChanged(QString)), this, SLOT(updateInfoForUsers(QString)));
@@ -131,8 +136,18 @@ void ServerWrapper::updateInfoForUsers(QString str)
 	if (list.first().fileName() == NOTIFICATION_FILE)
 	{
 		SessionManager::setCurrentNotification(readUserNotificationFromFile());
-		Log::info("A new notification for the users has been providied");
-	}
+        Log::info("A new notification for the users has been providied");
+    }
+}
+
+void ServerWrapper::switchLogFile()
+{
+    QString new_log_file = ServerHelper::getCurrentServerLogFile();
+    if (Log::fileName()!=new_log_file)
+    {
+        Log::setFileName(new_log_file);
+        Log::info("Started a new log file: " + new_log_file);
+    }
 }
 
 ClientInfo ServerWrapper::readClientInfoFromFile()
@@ -152,7 +167,7 @@ ClientInfo ServerWrapper::readClientInfoFromFile()
 		while(!client_info_file->atEnd())
 		{
 			QString line = client_info_file->readLine().trimmed();
-			content.append(line);
+            content.append(line.toUtf8());
 		}
 		QJsonDocument json_input = QJsonDocument::fromJson(content);
 
@@ -187,7 +202,7 @@ QByteArray ServerWrapper::readUserNotificationFromFile()
 		while(!notification_file->atEnd())
 		{
 			QString line = notification_file->readLine().trimmed();
-			content.append(line);
+            content.append(line.toUtf8());
 		}
 	}
 	catch (Exception& e)

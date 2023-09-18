@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS `gene`
 `ensembl_id` varchar(40) DEFAULT NULL,
 `ncbi_id` int(10) DEFAULT NULL,
 
-PRIMARY KEY (`id`), 
+PRIMARY KEY (`id`),
 UNIQUE KEY `hgnc_id` (`hgnc_id`),
 UNIQUE KEY `symbol` (`symbol`),
 UNIQUE KEY `ensembl_id` (`ensembl_id`),
@@ -48,8 +48,8 @@ CONSTRAINT `fk_gene_id1`
   ON UPDATE NO ACTION,
 KEY `symbol` (`symbol`),
 KEY `type` (`type`)
-) 
-ENGINE=InnoDB DEFAULT 
+)
+ENGINE=InnoDB DEFAULT
 CHARSET=utf8
 COMMENT='Alternative symbols of genes';
 
@@ -84,10 +84,10 @@ UNIQUE KEY `gene_name_unique` (`gene_id`, `name`),
 UNIQUE KEY `name` (`name`) ,
 KEY `source` (`source`),
 KEY `chromosome` (`chromosome`),
-KEY `start_coding` (`start_coding`), 
+KEY `start_coding` (`start_coding`),
 KEY `end_coding` (`end_coding`)
-) 
-ENGINE=InnoDB DEFAULT 
+)
+ENGINE=InnoDB DEFAULT
 CHARSET=utf8
 COMMENT='Gene transcipts';
 
@@ -107,10 +107,10 @@ CONSTRAINT `fk_transcript_id2`
   REFERENCES `gene_transcript` (`id` )
   ON DELETE NO ACTION
   ON UPDATE NO ACTION,
-KEY `start` (`start`), 
+KEY `start` (`start`),
 KEY `end` (`end`)
-) 
-ENGINE=InnoDB DEFAULT 
+)
+ENGINE=InnoDB DEFAULT
 CHARSET=utf8
 COMMENT='Transcript exons';
 
@@ -171,7 +171,7 @@ CREATE  TABLE IF NOT EXISTS `processing_system`
   `name_manufacturer` VARCHAR(100) NOT NULL,
   `adapter1_p5` VARCHAR(45) NULL DEFAULT NULL,
   `adapter2_p7` VARCHAR(45) NULL DEFAULT NULL,
-  `type` ENUM('WGS','WGS (shallow)','WES','Panel','Panel Haloplex','Panel MIPs','RNA','ChIP-Seq', 'cfDNA (patient-specific)', 'cfDNA') NOT NULL,
+  `type` ENUM('WGS','WGS (shallow)','WES','Panel','Panel Haloplex','Panel MIPs','RNA','ChIP-Seq', 'cfDNA (patient-specific)', 'cfDNA', 'lrGS') NOT NULL,
   `shotgun` TINYINT(1) NOT NULL,
   `umi_type` ENUM('n/a','HaloPlex HS','SureSelect HS','ThruPLEX','Safe-SeqS','MIPs','QIAseq','IDT-UDI-UMI','IDT-xGen-Prism','Twist') NOT NULL DEFAULT 'n/a',
   `target_file` VARCHAR(255) NULL DEFAULT NULL COMMENT 'filename of sub-panel BED file relative to the megSAP enrichment folder.',
@@ -195,7 +195,7 @@ DEFAULT CHARACTER SET = utf8;
 CREATE  TABLE IF NOT EXISTS `device`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `type` ENUM('GAIIx','MiSeq','HiSeq2500','NextSeq500','NovaSeq5000','NovaSeq6000','MGI-2000','SequelII','PromethION') NOT NULL,
+  `type` ENUM('GAIIx','MiSeq','HiSeq2500','NextSeq500','NovaSeq5000','NovaSeq6000', 'MGI-2000','SequelII','PromethION', 'NovaSeqXPlus') NOT NULL,
   `name` VARCHAR(45) NOT NULL,
   `comment` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -213,7 +213,7 @@ CREATE  TABLE IF NOT EXISTS `sequencing_run`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
   `fcid` VARCHAR(45) NULL DEFAULT NULL,
-  `flowcell_type` ENUM('Illumina MiSeq v2','Illumina MiSeq v2 Micro','Illumina MiSeq v2 Nano','Illumina MiSeq v3','Illumina NextSeq High Output','Illumina NextSeq Mid Output','Illumina NovaSeq SP','Illumina NovaSeq S1','Illumina NovaSeq S2','Illumina NovaSeq S4','PromethION FLO-PRO002','PromethION FLO-PRO114M','SMRTCell 8M','n/a') NOT NULL DEFAULT 'n/a',
+  `flowcell_type` ENUM('Illumina MiSeq v2','Illumina MiSeq v2 Micro','Illumina MiSeq v2 Nano','Illumina MiSeq v3','Illumina NextSeq High Output','Illumina NextSeq Mid Output','Illumina NovaSeq SP','Illumina NovaSeq S1','Illumina NovaSeq S2','Illumina NovaSeq S4','Illumina NovaSeqX 1.5B','Illumina NovaSeqX 10B','Illumina NovaSeqX 25B','PromethION FLO-PRO002','PromethION FLO-PRO114M','SMRTCell 8M','n/a') NOT NULL DEFAULT 'n/a',
   `start_date` DATE NULL DEFAULT NULL,
   `end_date` DATE NULL DEFAULT NULL,
   `device_id` INT(11) NOT NULL,
@@ -393,6 +393,9 @@ CREATE  TABLE IF NOT EXISTS `sample`
   `sender_id` INT(11) NOT NULL,
   `disease_group` ENUM('n/a','Neoplasms','Diseases of the blood or blood-forming organs','Diseases of the immune system','Endocrine, nutritional or metabolic diseases','Mental, behavioural or neurodevelopmental disorders','Sleep-wake disorders','Diseases of the nervous system','Diseases of the visual system','Diseases of the ear or mastoid process','Diseases of the circulatory system','Diseases of the respiratory system','Diseases of the digestive system','Diseases of the skin','Diseases of the musculoskeletal system or connective tissue','Diseases of the genitourinary system','Developmental anomalies','Other diseases') NOT NULL DEFAULT 'n/a',
   `disease_status` ENUM('n/a','Affected','Unaffected','Unclear') NOT NULL DEFAULT 'n/a',
+  `year_of_birth` INT(11) DEFAULT NULL,
+  `order_date` DATE NULL DEFAULT NULL,
+  `sampling_date` DATE NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC),
   INDEX `fk_samples_species1` (`species_id` ASC),
@@ -496,6 +499,8 @@ CREATE  TABLE IF NOT EXISTS `project`
   `preserve_fastqs` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Prevents FASTQ files from being deleted after mapping in this project.<br>Has no effect if megSAP is not configured to delete FASTQs automatically.<br>For diagnostics, do not check. For other project types ask the bioinformatician in charge.',
   `email_notification` varchar(200) DEFAULT NULL COMMENT 'List of email addresses (separated by semicolon) that are notified in addition to the project coordinator when new samples are available.',
   `archived` TINYINT(1) NOT NULL DEFAULT 0,
+  `folder_override` TEXT NULL DEFAULT NULL COMMENT 'Override for project folder',
+  `folder_override_client` TEXT NULL DEFAULT NULL COMMENT 'Override for project folder used in GSvar client',
 PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC),
   INDEX `internal_coordinator_id` (`internal_coordinator_id` ASC),
@@ -527,9 +532,12 @@ CREATE  TABLE IF NOT EXISTS `processed_sample`
   `project_id` INT(11) NOT NULL,
   `processing_input` FLOAT NULL DEFAULT NULL,
   `molarity` FLOAT NULL DEFAULT NULL,
+  `processing_modus` ENUM('n/a','manual','Biomek i5','Biomek i7', 'Bravo') NOT NULL DEFAULT 'n/a',
+  `batch_number` VARCHAR(100) NULL DEFAULT NULL,
   `normal_id` INT(11) NULL DEFAULT NULL COMMENT 'For tumor samples, a normal sample can be given here which is used as reference sample during the data analysis.',
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
-  `folder_override` TEXT NULL DEFAULT NULL,
+  `folder_override` TEXT NULL DEFAULT NULL COMMENT 'Override for sample folder',
+  `folder_override_client` TEXT NULL DEFAULT NULL COMMENT 'Override for sample folder used in GSvar client',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `sample_psid_unique` (`sample_id` ASC, `process_id` ASC),
   INDEX `fk_processed_sample_samples1` (`sample_id` ASC),
@@ -598,7 +606,7 @@ CREATE  TABLE IF NOT EXISTS `variant`
   `ref` TEXT NOT NULL,
   `obs` TEXT NOT NULL,
   `gnomad` FLOAT NULL DEFAULT NULL,
-  `coding` TEXT NULL DEFAULT NULL,  
+  `coding` TEXT NULL DEFAULT NULL,
   `comment` TEXT NULL DEFAULT NULL,
   `cadd` FLOAT NULL DEFAULT NULL,
   `spliceai` FLOAT NULL DEFAULT NULL,
@@ -679,13 +687,13 @@ CREATE TABLE IF NOT EXISTS `somatic_variant_classification`
   `comment` TEXT,
   PRIMARY KEY (`id`),
   UNIQUE KEY `somatic_variant_classification_has_variant` (`variant_id`),
-  CONSTRAINT `somatic_variant_classification_has_variant` 
+  CONSTRAINT `somatic_variant_classification_has_variant`
     FOREIGN KEY (`variant_id`)
     REFERENCES `variant` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
 )
-ENGINE = InnoDB 
+ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
@@ -724,10 +732,10 @@ CONSTRAINT `somatic_vicc_interpretation_has_variant`
   REFERENCES `variant` (`id`)
   ON DELETE NO ACTION
   ON UPDATE NO ACTION,
-CONSTRAINT `somatic_vicc_interpretation_created_by_user` 
+CONSTRAINT `somatic_vicc_interpretation_created_by_user`
   FOREIGN KEY (`created_by`)
-  REFERENCES `user` (`id`) 
-  ON DELETE NO ACTION 
+  REFERENCES `user` (`id`)
+  ON DELETE NO ACTION
   ON UPDATE NO ACTION,
 CONSTRAINT `somatic_vicc_interpretation_last_edit_by_user`
   FOREIGN KEY (`last_edit_by`)
@@ -1227,13 +1235,13 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration` (
   `fusions_detected` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'fusions or other SVs were detected. Cannot be determined automatically, because manta files contain too many false positives',
   `cin_chr` TEXT NULL DEFAULT NULL COMMENT 'comma separated list of instable chromosomes',
   `limitations` TEXT NULL DEFAULT NULL COMMENT 'manually created text if the analysis has special limitations',
-  `filter` VARCHAR(255) NULL DEFAULT NULL COMMENT 'name of the variant filter', 
+  `filter` VARCHAR(255) NULL DEFAULT NULL COMMENT 'name of the variant filter',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `combo_som_rep_conf_ids` (`ps_tumor_id` ASC, `ps_normal_id` ASC),
-  CONSTRAINT `somatic_report_config_created_by_user` 
+  CONSTRAINT `somatic_report_config_created_by_user`
     FOREIGN KEY (`created_by`)
-    REFERENCES `user` (`id`) 
-    ON DELETE NO ACTION 
+    REFERENCES `user` (`id`)
+    ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `somatic_report_config_last_edit_by_user`
     FOREIGN KEY (`last_edit_by`)
@@ -1246,9 +1254,9 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `somatic_report_config_ps_tumor_id`
-    FOREIGN KEY (`ps_tumor_id`) 
-    REFERENCES `processed_sample` (`id`) 
-    ON DELETE NO ACTION 
+    FOREIGN KEY (`ps_tumor_id`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
     ON UPDATE NO ACTION
 )
 ENGINE = InnoDB
@@ -1270,10 +1278,10 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration_variant` (
   `include_variant_description` text DEFAULT NULL,
   `comment` text NOT NULL,
   PRIMARY KEY (`id`),
-  CONSTRAINT `som_rep_conf_var_has_som_rep_conf_id` 
-    FOREIGN KEY (`somatic_report_configuration_id`) 
-    REFERENCES `somatic_report_configuration` (`id`) 
-    ON DELETE NO ACTION 
+  CONSTRAINT `som_rep_conf_var_has_som_rep_conf_id`
+    FOREIGN KEY (`somatic_report_configuration_id`)
+    REFERENCES `somatic_report_configuration` (`id`)
+    ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `somatic_report_configuration_variant_has_variant_id`
     FOREIGN KEY (`variant_id`)
@@ -1297,14 +1305,14 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration_germl_var` (
   PRIMARY KEY (`id`),
   CONSTRAINT `som_rep_conf_germl_var_has_rep_conf_id`
     FOREIGN KEY (`somatic_report_configuration_id`)
-	REFERENCES `somatic_report_configuration` (`id`)
-	ON DELETE NO ACTION
-	ON UPDATE NO ACTION,
+        REFERENCES `somatic_report_configuration` (`id`)
+        ON DELETE NO ACTION
+        ON UPDATE NO ACTION,
   CONSTRAINT `som_rep_germl_var_has_var_id`
     FOREIGN KEY (`variant_id`)
-	REFERENCES `variant` (`id`)
-	ON DELETE NO ACTION
-	ON UPDATE NO ACTION,
+        REFERENCES `variant` (`id`)
+        ON DELETE NO ACTION
+        ON UPDATE NO ACTION,
   UNIQUE INDEX `som_conf_germl_var_combo_uni_idx` (`somatic_report_configuration_id` ASC, `variant_id` ASC)
 ) COMMENT='variants detected in control tissue that are marked as tumor related by the user'
 ENGINE=InnoDB
@@ -1335,9 +1343,9 @@ CREATE  TABLE IF NOT EXISTS `somatic_cnv_callset`
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `som_cnv_callset_ps_tumor_id`
-    FOREIGN KEY (`ps_tumor_id`) 
-    REFERENCES `processed_sample` (`id`) 
-    ON DELETE NO ACTION 
+    FOREIGN KEY (`ps_tumor_id`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
     ON UPDATE NO ACTION
 )
 ENGINE = InnoDB
@@ -1378,7 +1386,7 @@ COMMENT='somatic CNV';
 -- -----------------------------------------------------
 -- Table `somatic_report_configuration_cnv`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `somatic_report_configuration_cnv` 
+CREATE TABLE IF NOT EXISTS `somatic_report_configuration_cnv`
 (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `somatic_report_configuration_id` int(11) NOT NULL,
@@ -1390,10 +1398,10 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration_cnv`
   `exclude_other_reason` BOOLEAN NOT NULL,
   `comment` text NOT NULL,
   PRIMARY KEY (`id`),
-  CONSTRAINT `som_rep_conf_cnv_has_som_rep_conf_id` 
-    FOREIGN KEY (`somatic_report_configuration_id`) 
-    REFERENCES `somatic_report_configuration` (`id`) 
-    ON DELETE NO ACTION 
+  CONSTRAINT `som_rep_conf_cnv_has_som_rep_conf_id`
+    FOREIGN KEY (`somatic_report_configuration_id`)
+    REFERENCES `somatic_report_configuration` (`id`)
+    ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `som_report_conf_cnv_has_som_cnv_id`
     FOREIGN KEY (`somatic_cnv_id`)
@@ -1854,7 +1862,7 @@ DEFAULT CHARACTER SET = utf8;
 CREATE TABLE IF NOT EXISTS `evaluation_sheet_data`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `processed_sample_id` INT(11) NOT NULL, 
+  `processed_sample_id` INT(11) NOT NULL,
   `dna_rna_id` TEXT CHARACTER SET 'utf8' DEFAULT NULL,
   `reviewer1` INT NOT NULL,
   `review_date1` DATE NOT NULL,
@@ -2102,8 +2110,8 @@ CONSTRAINT `fk_pseudogene_gene_id`
 UNIQUE KEY `pseudo_gene_relation` (`parent_gene_id`, `pseudogene_gene_id`, `gene_name`),
 INDEX `parent_gene_id` (`parent_gene_id` ASC),
 INDEX `pseudogene_gene_id` (`pseudogene_gene_id` ASC)
-) 
-ENGINE=InnoDB DEFAULT 
+)
+ENGINE=InnoDB DEFAULT
 CHARSET=utf8
 COMMENT='Gene-Pseudogene relation';
 

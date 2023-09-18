@@ -45,7 +45,7 @@ private slots:
 		json_doc.setArray(json_array);
 
 
-		Session cur_session(1, QDateTime::currentDateTime());
+        Session cur_session(1, "jsmith", "John Smith", QDateTime::currentDateTime());
 		SessionManager::addNewSession("token", cur_session);
 
 		HttpRequest request;
@@ -74,8 +74,8 @@ private slots:
 		UrlManager::addNewUrl(url_id, UrlEntity(QFileInfo(upload_file).fileName(), QFileInfo(upload_file).absolutePath(), upload_file, url_id, QDateTime::currentDateTime()));
 		IS_TRUE(UrlManager::isInStorageAlready(upload_file));
 
-		Session cur_session(1, QDateTime::currentDateTime());
-		SessionManager::addNewSession("token", cur_session);
+        Session cur_session(1, "jsmith", "John Smith", QDateTime::currentDateTime());
+        SessionManager::addNewSession("token", cur_session);
 
 		HttpRequest request;
 		request.setMethod(RequestMethod::POST);
@@ -92,7 +92,7 @@ private slots:
 
 		HttpResponse response = ServerController::uploadFile(request);
 		IS_TRUE(response.getStatusLine().contains("400"));
-		request.addFormDataParam("ps_url_id", url_id);
+        request.addUrlParam("ps_url_id", url_id);
 		response = ServerController::uploadFile(request);
 		IS_TRUE(response.getStatusLine().contains("200"));
 		QString file_copy = TESTDATA("data/" + copy_name.toUtf8());
@@ -103,7 +103,7 @@ private slots:
 	void test_session_info()
 	{
 		QDateTime login_time = QDateTime::currentDateTime();
-		Session cur_session(1, login_time);
+        Session cur_session(1, "jsmith", "John Smith", login_time);
 		SessionManager::addNewSession("token", cur_session);
 
 		HttpRequest request;
@@ -137,7 +137,7 @@ private slots:
 		UrlManager::addNewUrl(url_id, UrlEntity(QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, url_id, QDateTime::currentDateTime()));
 		IS_TRUE(UrlManager::isInStorageAlready(file));
 
-		Session cur_session(1, QDateTime::currentDateTime());
+        Session cur_session(1, "jsmith", "John Smith", QDateTime::currentDateTime());
 		SessionManager::addNewSession("token", cur_session);
 
 		HttpRequest request;
@@ -169,7 +169,7 @@ private slots:
 
 	void test_head_response_with_empty_body_for_missing_file()
 	{
-		Session cur_session(1, QDateTime::currentDateTime());
+        Session cur_session(1, "jsmith", "John Smith", QDateTime::currentDateTime());
 		SessionManager::addNewSession("token", cur_session);
 
 		HttpRequest request;
@@ -205,7 +205,7 @@ private slots:
 		QByteArray file = TESTDATA("data/text.txt");
 		UrlManager::addNewUrl(url_id, UrlEntity(QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, url_id, QDateTime::currentDateTime()));
 
-		Session cur_session(1, QDateTime::currentDateTime());
+        Session cur_session(1, "jsmith", "John Smith", QDateTime::currentDateTime());
 		SessionManager::addNewSession("token", cur_session);
 
 		HttpRequest request;
@@ -291,7 +291,20 @@ private slots:
 	{
 		QString test_filename = "test_file.txt";
 		QByteArray test_content = "content";
-		HttpResponse upload_response = ServerController::uploadFileToFolder(QDir::tempPath(), test_filename, test_content);
+
+        HttpRequest request;
+        request.setMethod(RequestMethod::HEAD);
+        request.setContentType(ContentType::TEXT_HTML);
+        request.addHeader("host", "localhost:8443");
+        request.addHeader("accept", "text/html");
+        request.addHeader("content-type", "text/html");
+        request.addHeader("connection", "keep-alive");
+        request.setPrefix("v1");
+        request.setPath("upload");
+        request.setMultipartFileName(test_filename);
+        request.setMultipartFileContent(test_content);
+
+        HttpResponse upload_response = ServerController::uploadFileToFolder(QDir::tempPath(), request);
 		IS_TRUE(upload_response.getStatus() == ResponseStatus::OK);
 		S_EQUAL(QFileInfo(upload_response.getPayload()).fileName(), test_filename);
 
