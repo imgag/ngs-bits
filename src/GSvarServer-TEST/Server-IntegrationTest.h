@@ -13,36 +13,21 @@
 
 int sendGetRequest(QByteArray& reply, QString url, HttpHeaders headers)
 {
-	try
+    int status_code;
+    try
 	{
-        reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(url, headers).body;
+        ServerReply server_reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(url, headers);
+        reply = server_reply.body;
+        status_code = server_reply.status_code;
 	}
-	catch(Exception& e)
-	{
-		if(e.message().contains("Network error 1", Qt::CaseInsensitive))
-		{
-			return 1;
-		}
-		Log::error(e.message());
-	}
-	return 0;
-}
+    catch(HttpException& e)
+    {
+        reply = e.body();
+        status_code = e.status_code();
 
-int sendPostRequest(QByteArray& reply, QString url, HttpHeaders headers, QByteArray data)
-{
-	try
-	{
-        reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(url, data, headers).body;
-	}
-	catch(Exception& e)
-	{
-		if(e.message().contains("Network error 1", Qt::CaseInsensitive))
-		{
-			return 1;
-		}
 		Log::error(e.message());
 	}
-	return 0;
+    return status_code;
 }
 
 TEST_CLASS(Server_IntegrationTest)
@@ -63,7 +48,7 @@ private slots:
 		add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
 		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
-		if (code > 0)
+        if (code == 0)
 		{
 			SKIP("This test requieres a running server");
 		}
@@ -84,11 +69,11 @@ private slots:
         add_headers.insert("Content-Type", "text/html");
 		add_headers.insert("Range", "bytes=114-140,399-430");
 		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
-		if (code > 0)
+        if (code == 0)
 		{
 			SKIP("This test requieres a running server");
 		}
-
+        I_EQUAL(code, 206);
 		IS_TRUE(reply.contains("Welcome to the GSvar server"));
 		IS_TRUE(reply.contains("help"));
 	}
@@ -106,11 +91,11 @@ private slots:
         add_headers.insert("Content-Type", "text/html");
 		add_headers.insert("Range", "bytes=454-");
 		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
-		if (code > 0)
+        if (code == 0)
 		{
 			SKIP("This test requieres a running server");
 		}
-
+        I_EQUAL(code, 206);
 		S_EQUAL(reply.trimmed(), "</html>");
 	}
 
@@ -127,18 +112,18 @@ private slots:
         add_headers.insert("Content-Type", "text/html");
 		add_headers.insert("Range", "bytes=-8");
 		int code = sendGetRequest(reply, ClientHelper::serverApiUrl(), add_headers);
-		if (code > 0)
+        if (code == 0)
 		{
 			SKIP("This test requieres a running server");
 		}
-
+        I_EQUAL(code, 206);
 		S_EQUAL(reply.trimmed(), "</html>");
 
 		add_headers.clear();
 		add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "text/html");
 		add_headers.insert("Range", "bytes=0-5,5-8");
-		IS_THROWN(Exception, HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(ClientHelper::serverApiUrl(), add_headers));
+        IS_THROWN(HttpException, HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(ClientHelper::serverApiUrl(), add_headers));
 	}	
 
 	void test_token_based_authentication()
@@ -153,11 +138,23 @@ private slots:
 		add_headers.insert("Accept", "text/html");
         add_headers.insert("Content-Type", "application/x-www-form-urlencoded");
         QByteArray data = "name=ahmustm1&password=123456";
-		int code = sendPostRequest(reply, ClientHelper::serverApiUrl() + "login", add_headers, data);
-		if (code > 0)
-		{
-			SKIP("This test requieres a running server");
-		}
+        int code = 200;
+
+        try
+        {
+            code = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(ClientHelper::serverApiUrl() + "login", data, add_headers).status_code;
+        }
+        catch(HttpException& e)
+        {
+            code = e.status_code();
+        }
+
+        if (code == 0)
+        {
+            SKIP("This test requieres a running server");
+        }
+        I_EQUAL(code, 200);
+
 		QString token = reply.trimmed();
 		IS_TRUE(!token.isEmpty());
 
@@ -192,7 +189,7 @@ private slots:
 		add_headers.insert("Accept", "application/octet-stream");
         add_headers.insert("Content-Type", "application/octet-stream");
 		int code = sendGetRequest(reply, filename, add_headers);
-		if (code > 0)
+        if (code == 0)
 		{
 			SKIP("This test requieres a running server");
 		}
@@ -215,7 +212,7 @@ private slots:
 		add_headers.insert("Accept", "application/json");
         add_headers.insert("Content-Type", "application/json");
 		int code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "info", add_headers);
-		if (code > 0)
+        if (code == 0)
 		{
 			SKIP("This test requieres a running server");
 		}
@@ -240,7 +237,7 @@ private slots:
 		add_headers.insert("Accept", "application/json");
         add_headers.insert("Content-Type", "application/json");
 		int code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "current_client", add_headers);
-		if (code > 0)
+        if (code == 0)
 		{
 			SKIP("This test requieres a running server");
 		}
