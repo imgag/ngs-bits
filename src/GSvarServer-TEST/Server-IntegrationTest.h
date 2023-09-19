@@ -142,7 +142,9 @@ private slots:
 
         try
         {
-            code = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(ClientHelper::serverApiUrl() + "login", data, add_headers).status_code;
+            ServerReply server_reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(ClientHelper::serverApiUrl() + "login", data, add_headers);
+            code = server_reply.status_code;
+            reply = server_reply.body;
         }
         catch(HttpException& e)
         {
