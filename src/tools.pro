@@ -544,5 +544,7 @@ SUBDIRS += SamplePath
 tools-TEST.depends += SamplePath
 SamplePath.depends = cppNGSD
 
-
+SUBDIRS += NGSDImportOncotree
+tools-TEST.depends += NGSDImportOncotree
+NGSDImportOncotree.depends = cppNGSD
 

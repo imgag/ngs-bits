@@ -59,6 +59,13 @@ void SampleDiseaseInfoWidget::updateDiseaseInfoTable()
 			int id = db_.phenotypeIdByAccession(disease_info.toUtf8(), false);
 			disease_info +=  " (" + (id==-1 ? "invalid" : db_.phenotype(id).name()) + ")";
 		}
+		if (entry.type == "Oncotree code")
+		{
+			bool ok = false;
+			int id = db_.getValue("SELECT id FROM Oncotree_term WHERE oncotree_code='" + disease_info.toUtf8() + "'").toInt(&ok);
+
+			disease_info += " (" + (!ok ? "invalid" : db_.getValue("SELECT name FROM oncotree_term WHERE id=" + QString::number(id)).toString());
+		}
 		ui_->disease_info->setItem(i, 0, new QTableWidgetItem(disease_info));
 		ui_->disease_info->setItem(i, 1, new QTableWidgetItem(entry.type));
 		ui_->disease_info->setItem(i, 2, new QTableWidgetItem(entry.user));
