@@ -41,6 +41,8 @@ class CPPNGSSHARED_EXPORT Statistics
 public:
 	///Calculates QC metrics on a variant list (only for VCF).
 	static QCCollection variantList(VcfFile variants, bool filter);
+	////Calculates QC metrics for phasing on a VCF file (long read data) and returns the phasing blocks as BED file
+	static QCCollection phasing(VcfFile variants, bool filter, BedFile& phasing_blocks);
 	///Calculates mapping QC metrics for a target region from a BAM file. The input BED file must be merged!
 	static QCCollection mapping(const BedFile& bed_file, const QString& bam_file, const QString& ref_file, int min_mapq=1, bool is_cfdna = false);
 	///Calculates mapping QC metrics from a BAM file.
