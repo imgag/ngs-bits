@@ -62,12 +62,13 @@ CBioPortalExportSettings::CBioPortalExportSettings(const CBioPortalExportSetting
 	ps_ids = other.ps_ids;
 	ps_data = other.ps_data;
 	s_data = other.s_data;
+	s_mtb_data = other.s_mtb_data;
 
 	sample_attributes = other.sample_attributes;
 //	patient_map = other.patient_map;
 }
 
-void CBioPortalExportSettings::addSample(SomaticReportSettings settings, SampleFiles files)
+void CBioPortalExportSettings::addSample(SomaticReportSettings settings, SampleFiles files, SampleMTBmetadata mtb_data)
 {
 	QString name = settings.tumor_ps;
 
@@ -82,6 +83,7 @@ void CBioPortalExportSettings::addSample(SomaticReportSettings settings, SampleF
 	ps_ids.append(ps_id);
 	ps_data.append(db_.getProcessedSampleData(ps_id));
 	s_data.append(db_.getSampleData(db_.sampleId(name)));
+	s_mtb_data.append(mtb_data);
 }
 
 double CBioPortalExportSettings::getMsiStatus(int sample_idx)
@@ -165,13 +167,22 @@ QString CBioPortalExportSettings::getComments(int sample_idx)
 int CBioPortalExportSettings::getHrdScore(int sample_idx)
 {
 	QCCollection ps_qc = db_.getQCData(ps_ids[sample_idx]);
-	return ps_qc.value("QC:2000126", true).asInt();
+	if (ps_qc.contains("QC:2000126", true))
+	{
+		return ps_qc.value("QC:2000126", true).asInt();
+	}
+
+	return -1;
 }
 
 float CBioPortalExportSettings::getTmb(int sample_idx)
 {
 	QCCollection ps_qc = db_.getQCData(ps_ids[sample_idx]);
-	return  ps_qc.value("QC:2000053",true).asDouble();
+	if (ps_qc.contains("QC:2000053", true))
+	{
+		return ps_qc.value("QC:2000053", true).asDouble();
+	}
+	return  -1;
 }
 
 QStringList CBioPortalExportSettings::getIcd10(int sample_idx)
@@ -229,8 +240,7 @@ QString CBioPortalExportSettings::getFormatedAttribute(Attribute att, int sample
 		case Attribute::SAMPLE_ID:
 			return getSampleId(sample_idx);
 		case Attribute::PATIENT_ID:
-//			return patient_map[sample_list[sample_idx]].patient_id;
-			return s_data[sample_idx].patient_identifier;
+			return QString::number(s_mtb_data[sample_idx].sap_id);
 
 		case Attribute::PROCESSING_SYSTEM:
 			return getProcessingSystem(sample_idx);
@@ -241,7 +251,17 @@ QString CBioPortalExportSettings::getFormatedAttribute(Attribute att, int sample
 		case Attribute::HPO_TERMS:
 			return getHpoTerms(sample_idx).join(", ");
 		case Attribute::HRD_SCORE:
-			return QString::number(getHrdScore(sample_idx));
+		{
+			int hrd = getHrdScore(sample_idx);
+			if (hrd != -1)
+			{
+				return QString::number(hrd);
+			}
+			else
+			{
+				return "";
+			}
+		}
 		case Attribute::ICD10:
 			return getIcd10(sample_idx).join(", ");
 		case Attribute::MSI_STATUS:
@@ -263,7 +283,22 @@ QString CBioPortalExportSettings::getFormatedAttribute(Attribute att, int sample
 		case Attribute::PURITY_HIST:
 			return QString::number(getPurityHist(sample_idx), 'f', 2);
 		case Attribute::TMB:
-			return QString::number(getTmb(sample_idx), 'f', 2);
+		{
+			double tmb = getTmb(sample_idx);
+			if(tmb != -1)
+			{
+				return QString::number(getTmb(sample_idx), 'f', 2);
+			}
+			else
+			{
+				return "";
+			}
+		}
+		case Attribute::GENLAB_PAT_ID:
+			return s_data[sample_idx].patient_identifier;
+		case Attribute::MTB_CASE_ID:
+			return s_mtb_data[sample_idx].mtb_case_id;
+
 	}
 	THROW(ArgumentException, "Unknown Attribute value!");
 }
@@ -445,12 +480,11 @@ void ExportCBioPortalStudy::exportPatientData(const QString &out_folder)
 	QSharedPointer<QFile> data_patients = Helper::openFileForWriting(out_folder + "/data_clinical_patients.txt");
 
 	QVector<QStringList> header_lines_patient(5);
-	header_lines_patient[0] << "Patient Identifier" << "Gender";
-	header_lines_patient[1] << "Patient identifier" << "Gender of patient";
-	header_lines_patient[2] << "STRING" << "STRING";
-	header_lines_patient[3] << "1" << "9";
-	header_lines_patient[4] << "PATIENT_ID" << "GENDER";
-
+	header_lines_patient[0] << "Patient Identifier" << "Gender" << "Genlab Patient ID" << "MTB case ID";
+	header_lines_patient[1] << "Patient identifier" << "Gender of patient" << "Patient identifier of genlab" << "ID of the MTB case";
+	header_lines_patient[2] << "STRING" << "STRING" << "STRING" << "STRING";
+	header_lines_patient[3] << "1" << "9" << "9" << "9";
+	header_lines_patient[4] << "PATIENT_ID" << "GENDER" << "GENLAB_PAT_ID" << "MTB_CASE_ID";
 
 	for (int i=0; i<4; i++) {
 		const QStringList& header = header_lines_patient[i];
@@ -461,13 +495,16 @@ void ExportCBioPortalStudy::exportPatientData(const QString &out_folder)
 	QSet<QString> pat_ids;
 	for(int i=0; i<settings_.sample_list.count(); i++)
 	{
-		if (pat_ids.contains(settings_.s_data[i].patient_identifier)) continue;
+		QString pat_id = settings_.getFormatedAttribute(Attribute::PATIENT_ID, i);
+		if (pat_ids.contains(pat_id)) continue;
 
 		QStringList line;
-		line << settings_.s_data[i].patient_identifier;
+		line << pat_id;
 		line << settings_.s_data[i].gender;
+		line << settings_.getFormatedAttribute(Attribute::GENLAB_PAT_ID, i);
+		line << settings_.getFormatedAttribute(Attribute::MTB_CASE_ID, i);
 
-		pat_ids.insert(settings_.s_data[i].patient_identifier);
+		pat_ids.insert(pat_id);
 
 		data_patients->write(line.join("\t").toUtf8() + "\n");
 	}

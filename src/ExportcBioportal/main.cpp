@@ -50,15 +50,32 @@ public:
 
 		NGSD db(getFlag("test"));
 
-		int idx_ext_name = samples.columnIndex("external_name");
+//		int idx_ext_name = samples.columnIndex("external_name");
+		int idx_tumor_name = samples.columnIndex("tumor_ps_name");
+		int idx_normal_name = samples.columnIndex("normal_ps_name");
+		int idx_sap_id = samples.columnIndex("sap_id");
+		int idx_mtb_case_id = samples.columnIndex("mtb_case_id");
+		int idx_mtb_registration_date = samples.columnIndex("mtb_registration_date");
+		int idx_mtb_board_date = samples.columnIndex("mtb_board_date");
+		int idx_patient_mpi = samples.columnIndex("patient_mpi");
+		int idx_icd10_code = samples.columnIndex("icd10_code");
+		int idx_icd10_catalog = samples.columnIndex("icd10_catalog");
+		int idx_oncotree_code = samples.columnIndex("oncotree_code");
 
 		for (int i=0; i< samples.rowCount(); i++)
 		{
-			// TODO also use sample metadata provided in the file!
-
 			QStringList row = samples.row(i);
-			QString sample_name = db.getValue("SELECT name FROM sample WHERE name_external LIKE '%" + row[idx_ext_name] + "%'").toString();
-			QString sample_id = db.sampleId(sample_name, true);
+			QString sample_id = db.sampleId(row[idx_tumor_name], true);
+
+			SampleMTBmetadata mtb_data;
+			mtb_data.mtb_case_id = row[idx_mtb_case_id];
+			mtb_data.mtb_board_date = QDate::fromString(row[idx_mtb_board_date], "yyyy-MM-dd");
+			mtb_data.mtb_registration_date = QDate::fromString(row[idx_mtb_registration_date], "yyyy-MM-dd");
+			mtb_data.sap_id = row[idx_sap_id].toInt();
+			mtb_data.patient_mpi_id = row[idx_patient_mpi];
+			mtb_data.icd10_code = row[idx_icd10_code];
+			mtb_data.icd10_cataloge = row[idx_icd10_catalog];
+			mtb_data.oncotree_code = row[idx_oncotree_code];
 
 //			qDebug() << "Sample: " << sample_name;
 
@@ -125,7 +142,7 @@ public:
 				QString filterFileName = QCoreApplication::applicationDirPath() + QDir::separator() + "GSvar_filters.ini";
 				report_settings.filters = FilterCascadeFile::load(filterFileName, report_settings.report_config.filter());
 
-				export_settings.addSample(report_settings, files);
+				export_settings.addSample(report_settings, files, mtb_data);
 			}
 		}
 

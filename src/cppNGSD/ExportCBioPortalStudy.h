@@ -72,6 +72,7 @@ enum Attribute
 	{
 	  SAMPLE_ID
 	, PATIENT_ID
+	, GENLAB_PAT_ID
 	, MSI_STATUS
 	, PLOIDY
 	, PURITY_HIST
@@ -83,6 +84,7 @@ enum Attribute
 	, ICD10
 	, HPO_TERMS
 	, CLINICAL_PHENOTYPE
+	, MTB_CASE_ID
 	};
 
 struct CPPNGSDSHARED_EXPORT SampleAttribute
@@ -148,6 +150,14 @@ struct CPPNGSDSHARED_EXPORT SampleAttribute
 		{
 			return Attribute::PROCESSING_SYSTEM;
 		}
+		else if (db_name == "GENLAB_PAT_ID")
+		{
+			return Attribute::GENLAB_PAT_ID;
+		}
+		else if (db_name == "MTB_CASE_ID")
+		{
+			return Attribute::MTB_CASE_ID;
+		}
 		else
 		{
 			THROW(ArgumentException, "Unknown attribute DB name: " + db_name);
@@ -174,6 +184,18 @@ struct CPPNGSDSHARED_EXPORT SampleFiles
 	QString rna_fusions;
 };
 
+struct CPPNGSDSHARED_EXPORT SampleMTBmetadata
+{
+	int sap_id;
+	QString patient_mpi_id;
+	QString mtb_case_id;
+	QDate mtb_registration_date;
+	QDate mtb_board_date;
+	QString icd10_code;
+	QString icd10_cataloge;
+	QString oncotree_code;
+};
+
 
 class CPPNGSDSHARED_EXPORT CBioPortalExportSettings
 {
@@ -192,15 +214,14 @@ public:
 	QStringList ps_ids;
 	QList<ProcessedSampleData> ps_data;
 	QList<SampleData> s_data;
+	QList<SampleMTBmetadata> s_mtb_data;
 
 	//IF A NEW MEMBER VARIABLE IS ADDED REMEMBER TO ADD IT TO THE COPY CONSTRUCTOR!
 
-
 	QList<SampleAttribute> sample_attributes; //required attributes: Patient_id, sample_id  ||  Others listed: cancer_type, cancer_type_detailed, sample_display_name, sample_class)
-//	QMap<QString, PatientData> patient_map;
 
 
-	void addSample(SomaticReportSettings settings, /*PatientData patient,*/ SampleFiles files);
+	void addSample(SomaticReportSettings settings, SampleFiles files, SampleMTBmetadata mtb_data);
 
 	void setCancerData(CancerData cancer_data)
 	{
@@ -229,6 +250,7 @@ public:
 	float getPurityCnvs(int sample_idx);
 	QString getProcessingSystem(int sample_idx);
 	QString getComments(int sample_idx);
+	/// returns the hrd score of the given sample index if it exists otherwise it returns -1
 	int getHrdScore(int sample_idx);
 	float getTmb(int sample_idx);
 	QStringList getIcd10(int sample_idx);
