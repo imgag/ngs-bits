@@ -19,7 +19,7 @@ bool ClientHelper::isBamFile(QString filename)
 		filename = QUrl(filename).toString(QUrl::RemoveQuery);
 	}
 
-	return filename.endsWith(".bam", Qt::CaseInsensitive);
+	return filename.endsWith(".bam", Qt::CaseInsensitive) ||  filename.endsWith(".cram", Qt::CaseInsensitive);
 }
 
 QString ClientHelper::stripSecureToken(QString url)
@@ -29,30 +29,31 @@ QString ClientHelper::stripSecureToken(QString url)
 	return  url;
 }
 
-ServerInfo ClientHelper::getServerInfo()
+ServerInfo ClientHelper::getServerInfo(int& status_code)
 {
 	ServerInfo info;
-	QByteArray response;
+    ServerReply reply;
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "application/json");
     add_headers.insert("Content-type", "application/json");
 	try
 	{
-		response = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(serverApiUrl()+ "info", add_headers);
+        reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(serverApiUrl()+ "info", add_headers);
+        status_code = reply.status_code;
 	}
-	catch (Exception& e)
+    catch (HttpException& e)
 	{
 		Log::error("Server availability problem: " + e.message());
 		return info;
 	}
 
-	if (response.isEmpty())
+    if (reply.body.isEmpty())
 	{
 		Log::error("Could not parse the server response. The application will be closed");
 		return info;
 	}
 
-	QJsonDocument json_doc = QJsonDocument::fromJson(response);
+    QJsonDocument json_doc = QJsonDocument::fromJson(reply.body);
 	if (json_doc.isObject())
 	{
 		if (json_doc.object().contains("version")) info.version = json_doc.object()["version"].toString();
@@ -66,27 +67,27 @@ ServerInfo ClientHelper::getServerInfo()
 ClientInfo ClientHelper::getClientInfo()
 {
 	ClientInfo info;
-	QByteArray response;
+    ServerReply reply;
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "application/json");
     add_headers.insert("Content-type", "application/json");
 	try
 	{
-		response = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(serverApiUrl()+ "current_client", add_headers);
+        reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(serverApiUrl()+ "current_client", add_headers);
 	}
-	catch (Exception& e)
+    catch (HttpException& e)
 	{
 		Log::error("Could not get the client version information from the server: " + e.message());
 		return info;
 	}
 
-	if (response.isEmpty())
+    if (reply.body.isEmpty())
 	{
 		Log::error("Could not parse the server response");
 		return info;
 	}
 
-	QJsonDocument json_doc = QJsonDocument::fromJson(response);
+    QJsonDocument json_doc = QJsonDocument::fromJson(reply.body);
 	if (json_doc.isObject())
 	{
 		if (json_doc.object().contains("version")) info.version = json_doc.object()["version"].toString();
@@ -99,27 +100,27 @@ ClientInfo ClientHelper::getClientInfo()
 UserNotification ClientHelper::getUserNotification()
 {
 	UserNotification user_notification;
-	QByteArray response;
+    ServerReply reply;
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "application/json");
     add_headers.insert("Content-type", "application/json");
 	try
 	{
-		response = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(serverApiUrl()+ "notification", add_headers);
+        reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(serverApiUrl()+ "notification", add_headers);
 	}
-	catch (Exception& e)
+    catch (HttpException& e)
 	{
 		Log::error("Could not get any user notifications from the server: " + e.message());
 		return user_notification;
 	}
 
-	if (response.isEmpty())
+    if (reply.body.isEmpty())
 	{
 		Log::error("Could not parse the server response");
 		return user_notification;
 	}
 
-	QJsonDocument json_doc = QJsonDocument::fromJson(response);
+    QJsonDocument json_doc = QJsonDocument::fromJson(reply.body);
 	if (json_doc.isObject())
 	{
 		if (json_doc.object().contains("id")) user_notification.id = json_doc.object()["id"].toString();

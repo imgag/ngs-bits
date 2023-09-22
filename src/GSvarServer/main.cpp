@@ -559,6 +559,13 @@ int main(int argc, char **argv)
         Log::error("Failed to restore the previous state: " + e.message());
     }
 
+    if (!Settings::boolean("test_mode", true) && !ServerHelper::hasProdSettings())
+    {
+        Log::error("Server cannot be started: production settings are missing. Exiting...");
+        app.exit(EXIT_FAILURE);
+        return app.exec();
+    }
+
 	Log::info("SSL version used for the build: " + QSslSocket::sslLibraryBuildVersionString());
 	ServerWrapper https_server(server_port);
 	if (!https_server.isRunning())
@@ -569,12 +576,12 @@ int main(int argc, char **argv)
 	}
 
 	ServerHelper::setServerStartDateTime(QDateTime::currentDateTime());
-
-    Log::info("List of all environment variables (" + QString::number(QProcessEnvironment::systemEnvironment().keys().count()) + " in total):");
+    QString env_var_list;
     foreach (QString key, QProcessEnvironment::systemEnvironment().keys())
-    {
-        Log::info(key + "=" + QProcessEnvironment::systemEnvironment().value(key));
+    {               
+        env_var_list+=key + "=" + QProcessEnvironment::systemEnvironment().value(key)+"\n";
     }
+    Log::info("List of all environment variables (" + QString::number(QProcessEnvironment::systemEnvironment().keys().count()) + " in total):\n"+env_var_list);
 
 	return app.exec();
 }

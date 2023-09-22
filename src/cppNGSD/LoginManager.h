@@ -57,6 +57,7 @@ private:
 	static LoginManager& instance();
 	static QByteArray sendPostApiRequest(QString path, QString content, HttpHeaders add_headers);
 	static QByteArray sendGetApiRequest(QString path, HttpHeaders add_headers);
+    static void setAllTokens(const QString& user, const QString& password);
 
 	//User info
 	QString user_login_;

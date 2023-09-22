@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resources/score5_matrix.tsv</file>
+        <file>resources/score3_matrix.tsv</file>
+    </qresource>
+</RCC>

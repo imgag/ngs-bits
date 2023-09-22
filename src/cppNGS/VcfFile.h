@@ -59,6 +59,8 @@ public:
 
 	///Left-normalize every VCF line in the vcf file according to a reference genome
 	void leftNormalize(QString reference_genome);
+	///Right-normalize every VCF line in the vcf file according to a reference genome
+	void rightNormalize(QString reference_genome);
 	///Load a VCF file
 	void load(const QString& filename, bool allow_multi_sample = true);
 	///Load part of a VCF file defied by a region (inside the region of invert=false and outside the region otherwise)

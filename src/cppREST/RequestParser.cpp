@@ -8,6 +8,12 @@ RequestParser::RequestParser()
 HttpRequest RequestParser::parse(QByteArray *request) const
 {
     HttpRequest parsed_request;
+
+    if (Settings::boolean("show_raw_request", true))
+    {
+        Log::info(*request);
+    }
+
 	QList<QByteArray> body = getRawRequestHeaders(*request);	
 	for (int i = 0; i < body.count(); ++i)
 	{

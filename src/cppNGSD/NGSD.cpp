@@ -433,6 +433,13 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		fields << "s.order_date as order_date";
 	}
 
+	//add processed sample and sample quality
+	if (p.add_qc)
+	{
+		fields << "s.quality as sample_quality"
+			   << "ps.quality as processed_sample_quality";
+	}
+
 	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
 
 	//filter by user access rights (for restricted users only)
@@ -505,6 +512,12 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 
 	if (p.add_qc)
 	{
+		//reorder columns to put sample and processed sample quality at the start of the qc block:
+		QStringList sample_quality = output.takeColumn(output.columnIndex("sample_quality"));
+		output.addColumn(sample_quality, "sample_quality");
+		QStringList ps_quality = output.takeColumn(output.columnIndex("processed_sample_quality"));
+		output.addColumn(sample_quality, "processed_sample_quality");
+
 		//headers
 		QStringList qc_names = getValues("SELECT name FROM qc_terms WHERE obsolete=0 ORDER BY qcml_id");
 		QVector<QStringList> cols(qc_names.count());
@@ -4552,7 +4565,7 @@ ClinvarSubmissionStatus NGSD::getSubmissionStatus(const QString& submission_id, 
 		add_headers.insert("SP-API-KEY", api_key);
 
 		//get request
-		QByteArray reply = request_handler.get(api_url + submission_id.toUpper() + "/actions/", add_headers);
+        QByteArray reply = request_handler.get(api_url + submission_id.toUpper() + "/actions/", add_headers).body;
 		qDebug() << api_url + submission_id.toUpper() + "/actions/";
 		// parse response
 		QJsonObject response = QJsonDocument::fromJson(reply).object();
@@ -4565,7 +4578,7 @@ ClinvarSubmissionStatus NGSD::getSubmissionStatus(const QString& submission_id, 
 		{
 			//get summary file and extract stable id or error message
 			QString report_summary_file = actions.at(0).toObject().value("responses").toArray().at(0).toObject().value("files").toArray().at(0).toObject().value("url").toString();
-			QByteArray summary_reply = request_handler.get(report_summary_file);
+            QByteArray summary_reply = request_handler.get(report_summary_file).body;
 			QJsonDocument summary_response = QJsonDocument::fromJson(summary_reply);
 
 			if (submission_status.status == "processed")
@@ -5291,6 +5304,7 @@ QString NGSD::createSampleSheet(int run_id)
 
 	QString sw_version = Settings::string("nova_seq_x_sw_version");
 	QString app_version = Settings::string("nova_seq_x_app_version");
+	QString fastq_compression_format = "dragen"; //can be "gzip" or "dragen" //TODO: make adjustable?
 	int barcode_mismatch_index1 = 1; //TODO: make adjustable?
 	int barcode_mismatch_index2 = 1; //TODO: make adjustable?
 
@@ -5357,6 +5371,7 @@ QString NGSD::createSampleSheet(int run_id)
 		adapter_sequences_read1.insert(sys_info.adapter1_p5);
 		adapter_sequences_read2.insert(sys_info.adapter2_p7);
 
+
 		if (sample_type == "DNA")
 		{
 			if (system_type == "WGS")
@@ -5380,20 +5395,31 @@ QString NGSD::createSampleSheet(int run_id)
 		//create line for BCLConvert
 		foreach (const QString& lane, lanes)
 		{
+			int umi_length = 0;
 			QStringList line;
 			line.append(lane);
 			line.append(ps_name);
 			line.append(mid1);
 			line.append(mid2);
 
-			//TODO: add UMIs
 			QString override_cycles;
 			// forward read
 			override_cycles = "Y" + QString::number(forward_read_length) + ";";
 			// index1
 			override_cycles += "I" + QString::number(mid1.length());
-			if (index1_read_length - mid1.length() < 0) THROW(ArgumentException, "Index1 read longer than seqeuncing length!")
-			if (index1_read_length - mid1.length() > 0) override_cycles += "N" + QString::number(index1_read_length - mid1.length());
+			if(sys_info.umi_type == "IDT-UDI-UMI")
+			{
+				//add UMIs:
+				override_cycles += "Y11";
+				umi_length = 11;
+			}
+			else if(sys_info.umi_type != "n/a")
+			{
+				//TODO: extend
+				THROW(NotImplementedException, "Unsupported UMI type '" + sys_info.umi_type + "!");
+			}
+			if (index1_read_length - (mid1.length() + umi_length) < 0) THROW(ArgumentException, "Index1 (+ UMI) read longer than seqeuncing length!")
+			if (index1_read_length - (mid1.length() + umi_length) > 0) override_cycles += "N" + QString::number(index1_read_length - mid1.length());
 			override_cycles += ";";
 			//index2
 			if (index2_read_length - mid2.length() < 0) THROW(ArgumentException, "Index2 read longer than seqeuncing length!")
@@ -5417,9 +5443,16 @@ QString NGSD::createSampleSheet(int run_id)
 	sample_sheet.append("SoftwareVersion,"  + sw_version);
 //	sample_sheet.append("BarcodeMismatchesIndex1,1");//TODO: make adjustable
 //	sample_sheet.append("BarcodeMismatchesIndex2,1");//TODO: make adjustable
-	sample_sheet.append("AdapterRead1," + adapter_sequences_read1.toList().join("+"));
-	sample_sheet.append("AdapterRead2," + adapter_sequences_read2.toList().join("+"));
-	sample_sheet.append("FastqCompressionFormat,gzip"); //TODO: make adjustable
+
+	//sort adapter to make it testable
+	QStringList adapter_sequences_read1_list = adapter_sequences_read1.toList();
+	adapter_sequences_read1_list.sort();
+	sample_sheet.append("AdapterRead1," + adapter_sequences_read1_list.join("+"));
+	QStringList adapter_sequences_read2_list = adapter_sequences_read2.toList();
+	adapter_sequences_read2_list.sort();
+	sample_sheet.append("AdapterRead2," + adapter_sequences_read2_list.join("+"));
+
+	sample_sheet.append("FastqCompressionFormat," +fastq_compression_format);
 	sample_sheet.append("");
 	sample_sheet.append("[BCLConvert_Data]");
 	sample_sheet.append("Lane,Sample_ID,Index,Index2,OverrideCycles,BarcodeMismatchesIndex1,BarcodeMismatchesIndex2,Sample_Project");
@@ -5464,7 +5497,8 @@ QString NGSD::createSampleSheet(int run_id)
 		sample_sheet.append(enrichment_analysis);
 		sample_sheet.append("");
 	}
-
+//disabled until further testing
+/*
 	//DRAGEN RNA
 	if (rna_analysis.size() > 0)
 	{
@@ -5486,7 +5520,7 @@ QString NGSD::createSampleSheet(int run_id)
 		sample_sheet.append(rna_analysis);
 		sample_sheet.append("");
 	}
-
+*/
 
 	return sample_sheet.join("\n");
 }

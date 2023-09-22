@@ -244,7 +244,7 @@ public:
 			//skip low quality variants
 			bool ok = true;
 			int dp_value = v.formatValueFromSample("DP").toInt(&ok);
-			if (!ok) THROW(ArgumentException, "Could not convert 'DP' value of variant " + v.toString() + " to integer.");
+			if (!ok) continue; //GENE_CONVERSION events from DRAGEN
 			if (dp_value < var_min_dp) continue;
 			int qual_value = v.qual();
 			if (qual_value < var_min_q) continue;

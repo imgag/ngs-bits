@@ -562,6 +562,16 @@ void VcfFile::leftNormalize(QString reference_genome)
 	}
 }
 
+void VcfFile::rightNormalize(QString reference_genome)
+{
+	FastaFileIndex reference(reference_genome);
+
+	for(int i=0; i<vcf_lines_.count(); ++i)
+	{
+		vcf_lines_[i].rightNormalize(reference, true);
+	}
+}
+
 void VcfFile::sort(bool use_quality)
 {
 	if (vcf_lines_.count()==0) return;

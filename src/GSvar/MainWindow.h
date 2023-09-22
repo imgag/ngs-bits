@@ -359,9 +359,6 @@ public slots:
 
 	///Adds and shows a modeless dialog
 	void addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize=false);
-	///Removes all modeless dialogs that have been closed
-	void cleanUpModelessDialogs();
-
 	///Imports phenotype data from NGSD
 	void importPhenotypesFromNGSD();
 	///Create sub-panel from phenotype
@@ -494,7 +491,9 @@ private:
 	DelayedInitializationTimer init_timer_;
 	QString displayed_maintenance_message_id_;
 
-	void helper_export_cBioportal_study(StudyData study, QStringList tumor_samples, QStringList rna_samples);
+    //current server version (if in client-server mode)
+    QString server_version_;
+
 };
 
 #endif // MAINWINDOW_H
