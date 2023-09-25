@@ -20,14 +20,14 @@ void StatisticsServiceRemote::avgCoverage(BedFile& bed_file, const QString& bam_
 {
 	QStringList bam_file_parts = bam_file.split("/");
 	if (bam_file_parts.count()<=1) THROW(ArgumentException, "BAM file URL id is missing");
-    bed_file = bed_file.fromText(ApiCaller().post("avg_coverage_gaps", RequestUrlParams(), HttpHeaders(), QString("low_cov="+bed_file.toText().toUtf8()+"&bam_url_id="+bam_file_parts[bam_file_parts.count()-2]).toUtf8(), true, true));
+    bed_file = bed_file.fromText(ApiCaller().post("avg_coverage_gaps", RequestUrlParams(), HttpHeaders(), QString("roi="+bed_file.toText().toUtf8()+"&bam_url_id="+bam_file_parts[bam_file_parts.count()-2]).toUtf8(), true, true));
 }
 
 double StatisticsServiceRemote::targetRegionReadDepth(const BedFile& bed_file, const QString& bam_file, int /*threads*/) const //number of threads is taken from the server config INI
 {
 	QStringList bam_file_parts = bam_file.split("/");
 	if (bam_file_parts.count()<=1) THROW(ArgumentException, "BAM file URL id is missing");
-    QByteArray response = ApiCaller().post("target_region_read_depth", RequestUrlParams(), HttpHeaders(), QString("regions="+bed_file.toText().toUtf8()+"&bam_url_id="+bam_file_parts[bam_file_parts.count()-2]).toUtf8(), true, true);
+    QByteArray response = ApiCaller().post("target_region_read_depth", RequestUrlParams(), HttpHeaders(), QString("roi="+bed_file.toText().toUtf8()+"&bam_url_id="+bam_file_parts[bam_file_parts.count()-2]).toUtf8(), true, true);
 
 	return response.toDouble();
 }

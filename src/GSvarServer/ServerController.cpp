@@ -852,9 +852,9 @@ HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 	BedFile roi;
 	QString bam_file_name;
 
-	if (request.getFormUrlEncoded().contains("low_cov")) //TODO Alexandr: should be called "roi"
+    if (request.getFormUrlEncoded().contains("roi"))
 	{
-		roi = roi.fromText(request.getFormUrlEncoded()["low_cov"].toUtf8());
+        roi = roi.fromText(request.getFormUrlEncoded()["roi"].toUtf8());
 	}
 	if (request.getFormUrlEncoded().contains("bam_url_id"))
 	{
@@ -878,12 +878,12 @@ HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 
 HttpResponse ServerController::calculateTargetRegionReadDepth(const HttpRequest& request)
 {
-	BedFile regions;
+    BedFile roi;
 	QString bam_file_name;
 
-	if (request.getFormUrlEncoded().contains("regions"))
+    if (request.getFormUrlEncoded().contains("roi"))
 	{
-		regions = regions.fromText(request.getFormUrlEncoded()["regions"].toUtf8());
+        roi = roi.fromText(request.getFormUrlEncoded()["roi"].toUtf8());
 	}
 	if (request.getFormUrlEncoded().contains("bam_url_id"))
 	{
@@ -891,7 +891,7 @@ HttpResponse ServerController::calculateTargetRegionReadDepth(const HttpRequest&
 	}
 
 	QString ref_file = Settings::string("reference_genome");
-	QCCollection stats = Statistics::mapping(regions, bam_file_name, ref_file);
+    QCCollection stats = Statistics::mapping(roi, bam_file_name, ref_file);
 
 	for (int i=0; i<stats.count(); ++i)
 	{
