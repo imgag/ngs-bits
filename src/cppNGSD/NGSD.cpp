@@ -516,7 +516,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		QStringList sample_quality = output.takeColumn(output.columnIndex("sample_quality"));
 		output.addColumn(sample_quality, "sample_quality");
 		QStringList ps_quality = output.takeColumn(output.columnIndex("processed_sample_quality"));
-		output.addColumn(sample_quality, "processed_sample_quality");
+		output.addColumn(ps_quality, "processed_sample_quality");
 
 		//headers
 		QStringList qc_names = getValues("SELECT name FROM qc_terms WHERE obsolete=0 ORDER BY qcml_id");
