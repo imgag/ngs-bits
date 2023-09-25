@@ -3,6 +3,7 @@ CONFIG += console
 
 #Library targets and depdendencies
 SUBDIRS = cppCORE\
+        BedpeExtractGenotype \
         cppXML \
         cppNGS \
         cppNGSD
