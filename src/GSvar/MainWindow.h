@@ -423,6 +423,9 @@ public slots:
 	//Show matching CNVs and SVs
 	void showMatchingCnvsAndSvs(BedLine region);
 
+    ///close the app and logout (if in client-sever mode)
+    void closeAndLogout();
+
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
 	virtual void dropEvent(QDropEvent* e);
@@ -433,6 +436,8 @@ protected:
 	/// the list visible to the user will contain only file names (not entire URLs). It makes the
 	/// list easier to read and saves some screen real estate
 	QString getFileSelectionItem(QString window_title, QString label_text, QStringList file_list, bool *ok);
+    /// Removes a user's session on the server (in client-server mode)
+    void performLogout();
 
 private:
 	//GUI
