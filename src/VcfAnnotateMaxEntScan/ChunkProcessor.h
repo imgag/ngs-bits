@@ -12,7 +12,7 @@ class ChunkProcessor
 	Q_OBJECT
 
 public:
-	ChunkProcessor(AnalysisJob &job, const MetaData& meta, Parameters& params);
+	ChunkProcessor(AnalysisJob &job, const MetaData& meta, const Parameters& params);
 	~ChunkProcessor();
 	virtual void run() override;
 
@@ -21,11 +21,9 @@ signals:
 	void error(int i, QString message); //signal emitted when job failed
 
 private:
-	QByteArray getInfoHeaderValue(const QByteArray &header_line, QByteArray key);
 	int hashseq(const QByteArray& sequence);
-	Sequence curate_sequence(const Sequence& sequence);
 	bool is_valid_sequence(const Sequence& sequence);
-	int base_to_int(const char base);
+	int base_to_int(char base);
 	QList<Sequence> get_seqs(const Variant& variant, const int& slice_start, const int& slice_end, const int& length, const FastaFileIndex& reference, const Transcript& transcript);
 	float score5_consensus(const Sequence& sequence);
 	float score5_rest(const Sequence& sequence);
@@ -34,15 +32,16 @@ private:
 	float score3_consensus(const Sequence& sequence);
 	float score3_rest(const Sequence& sequence);
 	float score_maxent(const Sequence& sequence, float (ChunkProcessor::*scorefunc)(const Sequence&));
-	QList<float> get_max_score(const Sequence& context, const float& window_size, float (ChunkProcessor::*scorefunc)(const Sequence&));
+	QPair<float, int> get_max_score(const Sequence& context, const float& window_size, float (ChunkProcessor::*scorefunc)(const Sequence&));
 	QList<QByteArray> runMES(const Variant& variant, const ChromosomalIndex<TranscriptList>& transcripts, const FastaFileIndex& reference);
 	QList<QByteArray> runSWA(const Variant& variant, const ChromosomalIndex<TranscriptList>& transcripts, const FastaFileIndex& reference);
 	QByteArray format_score(float score);
 
 	AnalysisJob& job_;
 	const MetaData& meta_;
-	Parameters& params_;
-	const FastaFileIndex reference;
+	const Parameters& params_;
+	FastaFileIndex reference_;
+	QTime timer_;
 
 	//constants
 	QHash<char,float> bgd_ = {
