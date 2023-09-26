@@ -1,299 +1,299 @@
-#Format: HPO-id<tab>HPO label<tab>entrez-gene-id<tab>entrez-gene-symbol<tab>Additional Info from G-D source<tab>G-D source<tab>disease-ID for link
-HP:0000006	Autosomal dominant inheritance	5573	PRKAR1A	-	mim2gene	OMIM:610489
-HP:0000006	Autosomal dominant inheritance	147495	APCDD1	-	mim2gene	OMIM:605389
-HP:0000006	Autosomal dominant inheritance	8493	PPM1D	-	mim2gene	OMIM:617450
-HP:0000006	Autosomal dominant inheritance	6391	SDHC	-	mim2gene	OMIM:605373
-HP:0000006	Autosomal dominant inheritance	5071	PRKN	-	mim2gene	OMIM:211980
-HP:0000006	Autosomal dominant inheritance	4000	LMNA	-	mim2gene	OMIM:181350
-HP:0000006	Autosomal dominant inheritance	6390	SDHB	-	mim2gene	OMIM:606764
-HP:0000006	Autosomal dominant inheritance	7015	TERT	susceptibility	mim2gene	OMIM:614742
-HP:0000006	Autosomal dominant inheritance	2263	FGFR2	-	mim2gene	OMIM:614592
-HP:0000006	Autosomal dominant inheritance	6390	SDHB	-	mim2gene	OMIM:171300
-HP:0000006	Autosomal dominant inheritance	9782	MATR3	-	mim2gene	OMIM:606070
-HP:0000006	Autosomal dominant inheritance	9821	RB1CC1	-	mim2gene	OMIM:114480
-HP:0000006	Autosomal dominant inheritance	6392	SDHD	-	mim2gene	OMIM:171300
-HP:0000006	Autosomal dominant inheritance	7291	TWIST1	-	mim2gene	OMIM:180750
-HP:0000006	Autosomal dominant inheritance	10483	SEC23B	question	mim2gene	OMIM:616858
-HP:0000006	Autosomal dominant inheritance	3418	IDH2	-	mim2gene	OMIM:613657
-HP:0000006	Autosomal dominant inheritance	5002	SLC22A18	-	mim2gene	OMIM:114480
-HP:0000006	Autosomal dominant inheritance	2778	GNAS	-	mim2gene	OMIM:612463
-HP:0000006	Autosomal dominant inheritance	5002	SLC22A18	-	mim2gene	OMIM:211980
-HP:0000006	Autosomal dominant inheritance	5290	PIK3CA	-	mim2gene	OMIM:615108
-HP:0000006	Autosomal dominant inheritance	7157	TP53	-	mim2gene	OMIM:114550
-HP:0000006	Autosomal dominant inheritance	51271	UBAP1	-	mim2gene	OMIM:618418
-HP:0000006	Autosomal dominant inheritance	2263	FGFR2	-	mim2gene	OMIM:123150
-HP:0000006	Autosomal dominant inheritance	7157	TP53	susceptibility	mim2gene	OMIM:114500
-HP:0000006	Autosomal dominant inheritance	7157	TP53	susceptibility	mim2gene	OMIM:260500
-HP:0000006	Autosomal dominant inheritance	11200	CHEK2	-	mim2gene	OMIM:609265
-HP:0000006	Autosomal dominant inheritance	1019	CDK4	susceptibility	mim2gene	OMIM:609048
-HP:0000006	Autosomal dominant inheritance	65057	ACD	question	mim2gene	OMIM:616553
-HP:0000006	Autosomal dominant inheritance	207	AKT1	-	mim2gene	OMIM:615109
-HP:0000006	Autosomal dominant inheritance	1029	CDKN2A	susceptibility	mim2gene	OMIM:155755
-HP:0000006	Autosomal dominant inheritance	324	APC	-	mim2gene	OMIM:175100
-HP:0000006	Autosomal dominant inheritance	207	AKT1	-	mim2gene	OMIM:114480
-HP:0000006	Autosomal dominant inheritance	324	APC	-	mim2gene	OMIM:114550
-HP:0000006	Autosomal dominant inheritance	7015	TERT	-	mim2gene	OMIM:178500
-HP:0000006	Autosomal dominant inheritance	7015	TERT	susceptibility	mim2gene	OMIM:613989
-HP:0000006	Autosomal dominant inheritance	2263	FGFR2	-	mim2gene	OMIM:123790
-HP:0000006	Autosomal dominant inheritance	7291	TWIST1	-	mim2gene	OMIM:123100
-HP:0000006	Autosomal dominant inheritance	3845	KRAS	-	mim2gene	OMIM:260350
-HP:0000006	Autosomal dominant inheritance	2778	GNAS	-	mim2gene	OMIM:603233
-HP:0000006	Autosomal dominant inheritance	999	CDH1	susceptibility	mim2gene	OMIM:114480
-HP:0000006	Autosomal dominant inheritance	999	CDH1	-	mim2gene	OMIM:137215
-HP:0000006	Autosomal dominant inheritance	6794	STK11	-	mim2gene	OMIM:260350
-HP:0000006	Autosomal dominant inheritance	7291	TWIST1	-	mim2gene	OMIM:101400
-HP:0000006	Autosomal dominant inheritance	3845	KRAS	-	mim2gene	OMIM:614470
-HP:0000006	Autosomal dominant inheritance	5290	PIK3CA	-	mim2gene	OMIM:182000
-HP:0000006	Autosomal dominant inheritance	3417	IDH1	susceptibility; somatic	mim2gene	OMIM:137800
-HP:0000006	Autosomal dominant inheritance	149775	GNAS-AS1	-	mim2gene	OMIM:603233
-HP:0000006	Autosomal dominant inheritance	2263	FGFR2	-	mim2gene	OMIM:207410
-HP:0000006	Autosomal dominant inheritance	7015	TERT	susceptibility	mim2gene	OMIM:601626
-HP:0000006	Autosomal dominant inheritance	5573	PRKAR1A	-	mim2gene	OMIM:101800
-HP:0000006	Autosomal dominant inheritance	3845	KRAS	-	mim2gene	OMIM:114480
-HP:0000006	Autosomal dominant inheritance	5290	PIK3CA	-	mim2gene	OMIM:167000
-HP:0000006	Autosomal dominant inheritance	4286	MITF	-	mim2gene	OMIM:193510
-HP:0000006	Autosomal dominant inheritance	545	ATR	question	mim2gene	OMIM:614564
-HP:0000006	Autosomal dominant inheritance	3845	KRAS	-	mim2gene	OMIM:609942
-HP:0000006	Autosomal dominant inheritance	324	APC	-	mim2gene	OMIM:135290
-HP:0000006	Autosomal dominant inheritance	8493	PPM1D	-	mim2gene	OMIM:114480
-HP:0000006	Autosomal dominant inheritance	6391	SDHC	-	mim2gene	OMIM:606764
-HP:0000006	Autosomal dominant inheritance	2956	MSH6	-	mim2gene	OMIM:614350
-HP:0000006	Autosomal dominant inheritance	999	CDH1	-	mim2gene	OMIM:167000
-HP:0000006	Autosomal dominant inheritance	1499	CTNNB1	-	mim2gene	OMIM:617572
-HP:0000006	Autosomal dominant inheritance	79719	AAGAB	-	mim2gene	OMIM:148600
-HP:0000006	Autosomal dominant inheritance	11200	CHEK2	susceptibility	mim2gene	OMIM:176807
-HP:0000006	Autosomal dominant inheritance	7157	TP53	susceptibility	mim2gene	OMIM:614740
-HP:0000006	Autosomal dominant inheritance	8314	BAP1	-	mim2gene	OMIM:614327
-HP:0000006	Autosomal dominant inheritance	5290	PIK3CA	-	mim2gene	OMIM:114500
-HP:0000006	Autosomal dominant inheritance	4286	MITF	susceptibility	mim2gene	OMIM:614456
-HP:0000006	Autosomal dominant inheritance	4000	LMNA	-	mim2gene	OMIM:212112
-HP:0000006	Autosomal dominant inheritance	672	BRCA1	-	mim2gene	OMIM:114480
-HP:0000006	Autosomal dominant inheritance	4286	MITF	-	mim2gene	OMIM:103470
-HP:0000006	Autosomal dominant inheritance	3845	KRAS	-	mim2gene	OMIM:211980
-HP:0000006	Autosomal dominant inheritance	1499	CTNNB1	-	mim2gene	OMIM:132600
-HP:0000006	Autosomal dominant inheritance	6390	SDHB	-	mim2gene	OMIM:115310
-HP:0000006	Autosomal dominant inheritance	3845	KRAS	-	mim2gene	OMIM:137215
-HP:0000006	Autosomal dominant inheritance	2778	GNAS	-	mim2gene	OMIM:103580
-HP:0000006	Autosomal dominant inheritance	3845	KRAS	-	mim2gene	OMIM:108010
-HP:0000006	Autosomal dominant inheritance	1499	CTNNB1	-	mim2gene	OMIM:114550
-HP:0000006	Autosomal dominant inheritance	7157	TP53	-	mim2gene	OMIM:618165
-HP:0000006	Autosomal dominant inheritance	5071	PRKN	-	mim2gene	OMIM:167000
-HP:0000006	Autosomal dominant inheritance	4000	LMNA	-	mim2gene	OMIM:176670
-HP:0000006	Autosomal dominant inheritance	2778	GNAS	-	mim2gene	OMIM:219080
-HP:0000006	Autosomal dominant inheritance	2263	FGFR2	-	mim2gene	OMIM:101400
-HP:0000006	Autosomal dominant inheritance	5290	PIK3CA	-	mim2gene	OMIM:114550
-HP:0000006	Autosomal dominant inheritance	7291	TWIST1	-	mim2gene	OMIM:617746
-HP:0000006	Autosomal dominant inheritance	324	APC	-	mim2gene	OMIM:175100
-HP:0000006	Autosomal dominant inheritance	1013	CDH15	-	mim2gene	OMIM:612580
-HP:0000006	Autosomal dominant inheritance	7015	TERT	-	mim2gene	OMIM:127550
-HP:0000006	Autosomal dominant inheritance	5728	PTEN	-	mim2gene	OMIM:158350
-HP:0000006	Autosomal dominant inheritance	3845	KRAS	-	mim2gene	OMIM:109800
-HP:0000006	Autosomal dominant inheritance	6392	SDHD	-	mim2gene	OMIM:168000
-HP:0000006	Autosomal dominant inheritance	83990	BRIP1	susceptibility	mim2gene	OMIM:114480
-HP:0000006	Autosomal dominant inheritance	4436	MSH2	-	mim2gene	OMIM:120435
-HP:0000006	Autosomal dominant inheritance	3845	KRAS	-	mim2gene	OMIM:615278
-HP:0000006	Autosomal dominant inheritance	5290	PIK3CA	-	mim2gene	OMIM:211980
-HP:0000006	Autosomal dominant inheritance	324	APC	-	mim2gene	OMIM:114500
-HP:0000006	Autosomal dominant inheritance	1499	CTNNB1	-	mim2gene	OMIM:155255
-HP:0000006	Autosomal dominant inheritance	2263	FGFR2	-	mim2gene	OMIM:149730
-HP:0000006	Autosomal dominant inheritance	7157	TP53	-	mim2gene	OMIM:151623
-HP:0000006	Autosomal dominant inheritance	207	AKT1	-	mim2gene	OMIM:114500
-HP:0000006	Autosomal dominant inheritance	3845	KRAS	-	mim2gene	OMIM:601626
-HP:0000006	Autosomal dominant inheritance	7015	TERT	susceptibility	mim2gene	OMIM:615134
-HP:0000006	Autosomal dominant inheritance	7157	TP53	susceptibility	mim2gene	OMIM:202300
-HP:0000006	Autosomal dominant inheritance	1499	CTNNB1	-	mim2gene	OMIM:114500
-HP:0000006	Autosomal dominant inheritance	2778	GNAS	-	mim2gene	OMIM:166350
-HP:0000006	Autosomal dominant inheritance	5290	PIK3CA	-	mim2gene	OMIM:162900
-HP:0000006	Autosomal dominant inheritance	4000	LMNA	-	mim2gene	OMIM:613205
-HP:0000006	Autosomal dominant inheritance	999	CDH1	susceptibility	mim2gene	OMIM:176807
-HP:0000006	Autosomal dominant inheritance	5728	PTEN	susceptibility	mim2gene	OMIM:607174
-HP:0000006	Autosomal dominant inheritance	2778	GNAS	-	mim2gene	OMIM:612462
-HP:0000006	Autosomal dominant inheritance	4286	MITF	-	mim2gene	OMIM:103500
-HP:0000006	Autosomal dominant inheritance	1499	CTNNB1	-	mim2gene	OMIM:167000
-HP:0000006	Autosomal dominant inheritance	25913	POT1	susceptibility	mim2gene	OMIM:615848
-HP:0000006	Autosomal dominant inheritance	2263	FGFR2	-	mim2gene	OMIM:101600
-HP:0000006	Autosomal dominant inheritance	7157	TP53	-	mim2gene	OMIM:260350
-HP:0000006	Autosomal dominant inheritance	4292	MLH1	-	mim2gene	OMIM:158320
-HP:0000006	Autosomal dominant inheritance	207	AKT1	susceptibility	mim2gene	OMIM:181500
-HP:0000006	Autosomal dominant inheritance	1029	CDKN2A	susceptibility	mim2gene	OMIM:155601
-HP:0000006	Autosomal dominant inheritance	7157	TP53	-	mim2gene	OMIM:114480
-HP:0000006	Autosomal dominant inheritance	1029	CDKN2A	susceptibility	mim2gene	OMIM:606719
-HP:0000006	Autosomal dominant inheritance	5573	PRKAR1A	-	mim2gene	OMIM:255960
-HP:0000006	Autosomal dominant inheritance	4000	LMNA	-	mim2gene	OMIM:610140
-HP:0000006	Autosomal dominant inheritance	6794	STK11	-	mim2gene	OMIM:175200
-HP:0000006	Autosomal dominant inheritance	4000	LMNA	-	mim2gene	OMIM:115200
-HP:0000006	Autosomal dominant inheritance	2263	FGFR2	-	mim2gene	OMIM:101200
-HP:0000006	Autosomal dominant inheritance	11200	CHEK2	susceptibility	mim2gene	OMIM:114480
-HP:0000006	Autosomal dominant inheritance	791114	PWRN1	-	mim2gene	OMIM:176270
-HP:0000006	Autosomal dominant inheritance	7157	TP53	susceptibility	mim2gene	OMIM:137800
-HP:0000006	Autosomal dominant inheritance	3845	KRAS	-	mim2gene	OMIM:600268
-HP:0000006	Autosomal dominant inheritance	25913	POT1	susceptibility	mim2gene	OMIM:616568
-HP:0000006	Autosomal dominant inheritance	5728	PTEN	-	mim2gene	OMIM:605309
-HP:0000006	Autosomal dominant inheritance	4436	MSH2	-	mim2gene	OMIM:158320
-HP:0000006	Autosomal dominant inheritance	4292	MLH1	-	mim2gene	OMIM:609310
-HP:0000006	Autosomal dominant inheritance	2263	FGFR2	-	mim2gene	OMIM:123500
-HP:0000006	Autosomal dominant inheritance	5290	PIK3CA	-	mim2gene	OMIM:114480
-HP:0000006	Autosomal dominant inheritance	5728	PTEN	-	mim2gene	OMIM:176807
-HP:0000006	Autosomal dominant inheritance	5573	PRKAR1A	-	mim2gene	OMIM:160980
-HP:0000006	Autosomal dominant inheritance	4000	LMNA	-	mim2gene	OMIM:151660
-HP:0000006	Autosomal dominant inheritance	1499	CTNNB1	-	mim2gene	OMIM:615075
-HP:0000006	Autosomal dominant inheritance	207	AKT1	-	mim2gene	OMIM:167000
-HP:0000006	Autosomal dominant inheritance	999	CDH1	-	mim2gene	OMIM:119580
-HP:0000006	Autosomal dominant inheritance	672	BRCA1	susceptibility	mim2gene	OMIM:604370
-HP:0100013	Neoplasm of the breast	8493	PPM1D	-	mim2gene	OMIM:114480
-HP:0100013	Neoplasm of the breast	1499	CTNNB1	-	mim2gene	OMIM:167000
-HP:0100013	Neoplasm of the breast	5728	PTEN		orphadata	ORPHA:137608
-HP:0100013	Neoplasm of the breast	4255	MGMT		orphadata	ORPHA:618
-HP:0100013	Neoplasm of the breast	207	AKT1	-	mim2gene	OMIM:615109
-HP:0100013	Neoplasm of the breast	672	BRCA1	-	mim2gene	OMIM:114480
-HP:0100013	Neoplasm of the breast	5002	SLC22A18	-	mim2gene	OMIM:114480
-HP:0100013	Neoplasm of the breast	672	BRCA1		orphadata	ORPHA:145
-HP:0100013	Neoplasm of the breast	6391	SDHC		orphadata	ORPHA:201
-HP:0100013	Neoplasm of the breast	4913	NTHL1	-	mim2gene	OMIM:616415
-HP:0100013	Neoplasm of the breast	324	APC	-	mim2gene	OMIM:175100
-HP:0100013	Neoplasm of the breast	3417	IDH1		orphadata	ORPHA:163634
-HP:0100013	Neoplasm of the breast	4000	LMNA		orphadata	ORPHA:79474
-HP:0100013	Neoplasm of the breast	1030	CDKN2B		orphadata	ORPHA:618
-HP:0100013	Neoplasm of the breast	5290	PIK3CA	-	mim2gene	OMIM:114480
-HP:0100013	Neoplasm of the breast	11200	CHEK2		orphadata	ORPHA:145
-HP:0100013	Neoplasm of the breast	4913	NTHL1		orphadata	ORPHA:454840
-HP:0100013	Neoplasm of the breast	2778	GNAS		orphadata	ORPHA:562
-HP:0100013	Neoplasm of the breast	324	APC	-	mim2gene	OMIM:175100
-HP:0100013	Neoplasm of the breast	5290	PIK3CA	-	mim2gene	OMIM:615108
-HP:0100013	Neoplasm of the breast	6392	SDHD		orphadata	ORPHA:201
-HP:0100013	Neoplasm of the breast	3845	KRAS		orphadata	ORPHA:1333
-HP:0100013	Neoplasm of the breast	8314	BAP1		orphadata	ORPHA:618
-HP:0100013	Neoplasm of the breast	3418	IDH2		orphadata	ORPHA:163634
-HP:0100013	Neoplasm of the breast	207	AKT1	-	mim2gene	OMIM:114480
-HP:0100013	Neoplasm of the breast	11200	CHEK2	susceptibility	mim2gene	OMIM:114480
-HP:0100013	Neoplasm of the breast	1029	CDKN2A		orphadata	ORPHA:524
-HP:0100013	Neoplasm of the breast	999	CDH1	-	mim2gene	OMIM:167000
-HP:0100013	Neoplasm of the breast	1019	CDK4		orphadata	ORPHA:618
-HP:0100013	Neoplasm of the breast	672	BRCA1	-	mim2gene	OMIM:617883
-HP:0100013	Neoplasm of the breast	54386	TERF2IP		orphadata	ORPHA:618
-HP:0100013	Neoplasm of the breast	11200	CHEK2		orphadata	ORPHA:524
-HP:0100013	Neoplasm of the breast	4292	MLH1	-	mim2gene	OMIM:158320
-HP:0100013	Neoplasm of the breast	672	BRCA1		orphadata	ORPHA:1333
-HP:0100013	Neoplasm of the breast	5573	PRKAR1A		orphadata	ORPHA:1359
-HP:0100013	Neoplasm of the breast	25913	POT1		orphadata	ORPHA:618
-HP:0100013	Neoplasm of the breast	999	CDH1	susceptibility	mim2gene	OMIM:114480
-HP:0100013	Neoplasm of the breast	7015	TERT		orphadata	ORPHA:618
-HP:0100013	Neoplasm of the breast	324	APC		orphadata	ORPHA:79665
-HP:0100013	Neoplasm of the breast	4292	MLH1		orphadata	ORPHA:587
-HP:0100013	Neoplasm of the breast	207	AKT1		orphadata	ORPHA:201
-HP:0100013	Neoplasm of the breast	7157	TP53	-	mim2gene	OMIM:114480
-HP:0100013	Neoplasm of the breast	7157	TP53	-	mim2gene	OMIM:151623
-HP:0100013	Neoplasm of the breast	7373	COL14A1		orphadata	ORPHA:79501
-HP:0100013	Neoplasm of the breast	207	AKT1	-	mim2gene	OMIM:167000
-HP:0100013	Neoplasm of the breast	4193	MDM2		orphadata	ORPHA:524
-HP:0100013	Neoplasm of the breast	5728	PTEN	-	mim2gene	OMIM:158350
-HP:0100013	Neoplasm of the breast	2956	MSH6		orphadata	ORPHA:587
-HP:0100013	Neoplasm of the breast	9821	RB1CC1	-	mim2gene	OMIM:114480
-HP:0100013	Neoplasm of the breast	3845	KRAS	-	mim2gene	OMIM:114480
-HP:0100013	Neoplasm of the breast	65057	ACD		orphadata	ORPHA:618
-HP:0100013	Neoplasm of the breast	5290	PIK3CA	-	mim2gene	OMIM:167000
-HP:0100013	Neoplasm of the breast	83990	BRIP1		orphadata	ORPHA:145
-HP:0100013	Neoplasm of the breast	7157	TP53		orphadata	ORPHA:145
-HP:0100013	Neoplasm of the breast	6794	STK11		orphadata	ORPHA:2869
-HP:0100013	Neoplasm of the breast	5071	PRKN	-	mim2gene	OMIM:167000
-HP:0100013	Neoplasm of the breast	100144748	KLLN		orphadata	ORPHA:201
-HP:0100013	Neoplasm of the breast	4436	MSH2		orphadata	ORPHA:587
-HP:0100013	Neoplasm of the breast	10483	SEC23B		orphadata	ORPHA:201
-HP:0100013	Neoplasm of the breast	5728	PTEN		orphadata	ORPHA:201
-HP:0100013	Neoplasm of the breast	5290	PIK3CA		orphadata	ORPHA:201
-HP:0100013	Neoplasm of the breast	672	BRCA1	susceptibility	mim2gene	OMIM:604370
-HP:0100013	Neoplasm of the breast	4286	MITF		orphadata	ORPHA:618
-HP:0100013	Neoplasm of the breast	83990	BRIP1	susceptibility	mim2gene	OMIM:114480
-HP:0100013	Neoplasm of the breast	7157	TP53		orphadata	ORPHA:1333
-HP:0100013	Neoplasm of the breast	79719	AAGAB		orphadata	ORPHA:79501
-HP:0100013	Neoplasm of the breast	6794	STK11	-	mim2gene	OMIM:175200
-HP:0100013	Neoplasm of the breast	10483	SEC23B	question	mim2gene	OMIM:616858
-HP:0100013	Neoplasm of the breast	7486	WRN		orphadata	ORPHA:902
-HP:0100013	Neoplasm of the breast	5728	PTEN		orphadata	ORPHA:109
-HP:0100013	Neoplasm of the breast	5728	PTEN		orphadata	ORPHA:65285
-HP:0100013	Neoplasm of the breast	545	ATR	question	mim2gene	OMIM:614564
-HP:0100013	Neoplasm of the breast	1029	CDKN2A		orphadata	ORPHA:618
-HP:0100013	Neoplasm of the breast	7291	TWIST1	-	mim2gene	OMIM:101400
-HP:0100013	Neoplasm of the breast	6390	SDHB		orphadata	ORPHA:201
-HP:0100013	Neoplasm of the breast	4436	MSH2	-	mim2gene	OMIM:158320
-HP:0100013	Neoplasm of the breast	4157	MC1R		orphadata	ORPHA:618
-HP:0100013	Neoplasm of the breast	2263	FGFR2	-	mim2gene	OMIM:101400
-HP:0100013	Neoplasm of the breast	7157	TP53		orphadata	ORPHA:524
-HP:0100013	Neoplasm of the breast	5728	PTEN		orphadata	ORPHA:145
-HP:0100013	Neoplasm of the breast	11200	CHEK2	-	mim2gene	OMIM:609265
-HP:0100013	Neoplasm of the breast	1029	CDKN2A		orphadata	ORPHA:1333
-HP:0100013	Neoplasm of the breast	324	APC		orphadata	ORPHA:247806
-HP:0003002	Breast carcinoma	7157	TP53	-	mim2gene	OMIM:114480
-HP:0003002	Breast carcinoma	8493	PPM1D	-	mim2gene	OMIM:114480
-HP:0003002	Breast carcinoma	1499	CTNNB1	-	mim2gene	OMIM:167000
-HP:0003002	Breast carcinoma	7157	TP53	-	mim2gene	OMIM:151623
-HP:0003002	Breast carcinoma	7373	COL14A1		orphadata	ORPHA:79501
-HP:0003002	Breast carcinoma	207	AKT1	-	mim2gene	OMIM:615109
-HP:0003002	Breast carcinoma	207	AKT1	-	mim2gene	OMIM:167000
-HP:0003002	Breast carcinoma	4193	MDM2		orphadata	ORPHA:524
-HP:0003002	Breast carcinoma	672	BRCA1	-	mim2gene	OMIM:114480
-HP:0003002	Breast carcinoma	5002	SLC22A18	-	mim2gene	OMIM:114480
-HP:0003002	Breast carcinoma	672	BRCA1		orphadata	ORPHA:145
-HP:0003002	Breast carcinoma	6391	SDHC		orphadata	ORPHA:201
-HP:0003002	Breast carcinoma	4913	NTHL1	-	mim2gene	OMIM:616415
-HP:0003002	Breast carcinoma	5728	PTEN	-	mim2gene	OMIM:158350
-HP:0003002	Breast carcinoma	2956	MSH6		orphadata	ORPHA:587
-HP:0003002	Breast carcinoma	3417	IDH1		orphadata	ORPHA:163634
-HP:0003002	Breast carcinoma	9821	RB1CC1	-	mim2gene	OMIM:114480
-HP:0003002	Breast carcinoma	5290	PIK3CA	-	mim2gene	OMIM:114480
-HP:0003002	Breast carcinoma	3845	KRAS	-	mim2gene	OMIM:114480
-HP:0003002	Breast carcinoma	5290	PIK3CA	-	mim2gene	OMIM:167000
-HP:0003002	Breast carcinoma	11200	CHEK2		orphadata	ORPHA:145
-HP:0003002	Breast carcinoma	83990	BRIP1		orphadata	ORPHA:145
-HP:0003002	Breast carcinoma	4913	NTHL1		orphadata	ORPHA:454840
-HP:0003002	Breast carcinoma	7157	TP53		orphadata	ORPHA:145
-HP:0003002	Breast carcinoma	6794	STK11		orphadata	ORPHA:2869
-HP:0003002	Breast carcinoma	5071	PRKN	-	mim2gene	OMIM:167000
-HP:0003002	Breast carcinoma	5290	PIK3CA	-	mim2gene	OMIM:615108
-HP:0003002	Breast carcinoma	100144748	KLLN		orphadata	ORPHA:201
-HP:0003002	Breast carcinoma	4436	MSH2		orphadata	ORPHA:587
-HP:0003002	Breast carcinoma	6392	SDHD		orphadata	ORPHA:201
-HP:0003002	Breast carcinoma	3845	KRAS		orphadata	ORPHA:1333
-HP:0003002	Breast carcinoma	10483	SEC23B		orphadata	ORPHA:201
-HP:0003002	Breast carcinoma	5728	PTEN		orphadata	ORPHA:201
-HP:0003002	Breast carcinoma	5290	PIK3CA		orphadata	ORPHA:201
-HP:0003002	Breast carcinoma	3418	IDH2		orphadata	ORPHA:163634
-HP:0003002	Breast carcinoma	672	BRCA1	susceptibility	mim2gene	OMIM:604370
-HP:0003002	Breast carcinoma	83990	BRIP1	susceptibility	mim2gene	OMIM:114480
-HP:0003002	Breast carcinoma	7157	TP53		orphadata	ORPHA:1333
-HP:0003002	Breast carcinoma	79719	AAGAB		orphadata	ORPHA:79501
-HP:0003002	Breast carcinoma	207	AKT1	-	mim2gene	OMIM:114480
-HP:0003002	Breast carcinoma	6794	STK11	-	mim2gene	OMIM:175200
-HP:0003002	Breast carcinoma	11200	CHEK2	susceptibility	mim2gene	OMIM:114480
-HP:0003002	Breast carcinoma	1029	CDKN2A		orphadata	ORPHA:524
-HP:0003002	Breast carcinoma	10483	SEC23B	question	mim2gene	OMIM:616858
-HP:0003002	Breast carcinoma	999	CDH1	-	mim2gene	OMIM:167000
-HP:0003002	Breast carcinoma	7486	WRN		orphadata	ORPHA:902
-HP:0003002	Breast carcinoma	545	ATR	question	mim2gene	OMIM:614564
-HP:0003002	Breast carcinoma	7291	TWIST1	-	mim2gene	OMIM:101400
-HP:0003002	Breast carcinoma	6390	SDHB		orphadata	ORPHA:201
-HP:0003002	Breast carcinoma	4436	MSH2	-	mim2gene	OMIM:158320
-HP:0003002	Breast carcinoma	672	BRCA1	-	mim2gene	OMIM:617883
-HP:0003002	Breast carcinoma	11200	CHEK2		orphadata	ORPHA:524
-HP:0003002	Breast carcinoma	4292	MLH1	-	mim2gene	OMIM:158320
-HP:0003002	Breast carcinoma	672	BRCA1		orphadata	ORPHA:1333
-HP:0003002	Breast carcinoma	2263	FGFR2	-	mim2gene	OMIM:101400
-HP:0003002	Breast carcinoma	7157	TP53		orphadata	ORPHA:524
-HP:0003002	Breast carcinoma	999	CDH1	susceptibility	mim2gene	OMIM:114480
-HP:0003002	Breast carcinoma	5728	PTEN		orphadata	ORPHA:145
-HP:0003002	Breast carcinoma	11200	CHEK2	-	mim2gene	OMIM:609265
-HP:0003002	Breast carcinoma	1029	CDKN2A		orphadata	ORPHA:1333
-HP:0003002	Breast carcinoma	324	APC		orphadata	ORPHA:79665
-HP:0003002	Breast carcinoma	4292	MLH1		orphadata	ORPHA:587
-HP:0003002	Breast carcinoma	207	AKT1		orphadata	ORPHA:201
-HP:0003002	Breast carcinoma	324	APC		orphadata	ORPHA:247806
-HP:0010619	Fibroadenoma of the breast	207	AKT1	-	mim2gene	OMIM:615109
-HP:0010619	Fibroadenoma of the breast	324	APC	-	mim2gene	OMIM:175100
-HP:0010619	Fibroadenoma of the breast	5290	PIK3CA	-	mim2gene	OMIM:615108
-HP:0010619	Fibroadenoma of the breast	5573	PRKAR1A		orphadata	ORPHA:1359
-HP:0010619	Fibroadenoma of the breast	5728	PTEN	-	mim2gene	OMIM:158350
-HP:0010619	Fibroadenoma of the breast	324	APC	-	mim2gene	OMIM:175100
-HP:0010619	Fibroadenoma of the breast	5728	PTEN		orphadata	ORPHA:65285
-HP:0010619	Fibroadenoma of the breast	324	APC		orphadata	ORPHA:247806
-HP:0000006	Autosomal dominant inheritance	1234	no gene			OMIM:123456
-HP:0003002	Breast carcinoma	1234	no gene			OMIM:123456
+hpo_id	hpo_name	ncbi_gene_id	gene_symbol	disease_id
+HP:0000006	Autosomal dominant inheritance	5573	PRKAR1A	OMIM:610489
+HP:0000006	Autosomal dominant inheritance	147495	APCDD1	OMIM:605389
+HP:0000006	Autosomal dominant inheritance	8493	PPM1D	OMIM:617450
+HP:0000006	Autosomal dominant inheritance	6391	SDHC	OMIM:605373
+HP:0000006	Autosomal dominant inheritance	5071	PRKN	OMIM:211980
+HP:0000006	Autosomal dominant inheritance	4000	LMNA	OMIM:181350
+HP:0000006	Autosomal dominant inheritance	6390	SDHB	OMIM:606764
+HP:0000006	Autosomal dominant inheritance	7015	TERT	OMIM:614742
+HP:0000006	Autosomal dominant inheritance	2263	FGFR2	OMIM:614592
+HP:0000006	Autosomal dominant inheritance	6390	SDHB	OMIM:171300
+HP:0000006	Autosomal dominant inheritance	9782	MATR3	OMIM:606070
+HP:0000006	Autosomal dominant inheritance	9821	RB1CC1	OMIM:114480
+HP:0000006	Autosomal dominant inheritance	6392	SDHD	OMIM:171300
+HP:0000006	Autosomal dominant inheritance	7291	TWIST1	OMIM:180750
+HP:0000006	Autosomal dominant inheritance	10483	SEC23B	OMIM:616858
+HP:0000006	Autosomal dominant inheritance	3418	IDH2	OMIM:613657
+HP:0000006	Autosomal dominant inheritance	5002	SLC22A18	OMIM:114480
+HP:0000006	Autosomal dominant inheritance	2778	GNAS	OMIM:612463
+HP:0000006	Autosomal dominant inheritance	5002	SLC22A18	OMIM:211980
+HP:0000006	Autosomal dominant inheritance	5290	PIK3CA	OMIM:615108
+HP:0000006	Autosomal dominant inheritance	7157	TP53	OMIM:114550
+HP:0000006	Autosomal dominant inheritance	51271	UBAP1	OMIM:618418
+HP:0000006	Autosomal dominant inheritance	2263	FGFR2	OMIM:123150
+HP:0000006	Autosomal dominant inheritance	7157	TP53	OMIM:114500
+HP:0000006	Autosomal dominant inheritance	7157	TP53	OMIM:260500
+HP:0000006	Autosomal dominant inheritance	11200	CHEK2	OMIM:609265
+HP:0000006	Autosomal dominant inheritance	1019	CDK4	OMIM:609048
+HP:0000006	Autosomal dominant inheritance	65057	ACD	OMIM:616553
+HP:0000006	Autosomal dominant inheritance	207	AKT1	OMIM:615109
+HP:0000006	Autosomal dominant inheritance	1029	CDKN2A	OMIM:155755
+HP:0000006	Autosomal dominant inheritance	324	APC	OMIM:175100
+HP:0000006	Autosomal dominant inheritance	207	AKT1	OMIM:114480
+HP:0000006	Autosomal dominant inheritance	324	APC	OMIM:114550
+HP:0000006	Autosomal dominant inheritance	7015	TERT	OMIM:178500
+HP:0000006	Autosomal dominant inheritance	7015	TERT	OMIM:613989
+HP:0000006	Autosomal dominant inheritance	2263	FGFR2	OMIM:123790
+HP:0000006	Autosomal dominant inheritance	7291	TWIST1	OMIM:123100
+HP:0000006	Autosomal dominant inheritance	3845	KRAS	OMIM:260350
+HP:0000006	Autosomal dominant inheritance	2778	GNAS	OMIM:603233
+HP:0000006	Autosomal dominant inheritance	999	CDH1	OMIM:114480
+HP:0000006	Autosomal dominant inheritance	999	CDH1	OMIM:137215
+HP:0000006	Autosomal dominant inheritance	6794	STK11	OMIM:260350
+HP:0000006	Autosomal dominant inheritance	7291	TWIST1	OMIM:101400
+HP:0000006	Autosomal dominant inheritance	3845	KRAS	OMIM:614470
+HP:0000006	Autosomal dominant inheritance	5290	PIK3CA	OMIM:182000
+HP:0000006	Autosomal dominant inheritance	3417	IDH1	OMIM:137800
+HP:0000006	Autosomal dominant inheritance	149775	GNAS-AS1	OMIM:603233
+HP:0000006	Autosomal dominant inheritance	2263	FGFR2	OMIM:207410
+HP:0000006	Autosomal dominant inheritance	7015	TERT	OMIM:601626
+HP:0000006	Autosomal dominant inheritance	5573	PRKAR1A	OMIM:101800
+HP:0000006	Autosomal dominant inheritance	3845	KRAS	OMIM:114480
+HP:0000006	Autosomal dominant inheritance	5290	PIK3CA	OMIM:167000
+HP:0000006	Autosomal dominant inheritance	4286	MITF	OMIM:193510
+HP:0000006	Autosomal dominant inheritance	545	ATR	OMIM:614564
+HP:0000006	Autosomal dominant inheritance	3845	KRAS	OMIM:609942
+HP:0000006	Autosomal dominant inheritance	324	APC	OMIM:135290
+HP:0000006	Autosomal dominant inheritance	8493	PPM1D	OMIM:114480
+HP:0000006	Autosomal dominant inheritance	6391	SDHC	OMIM:606764
+HP:0000006	Autosomal dominant inheritance	2956	MSH6	OMIM:614350
+HP:0000006	Autosomal dominant inheritance	999	CDH1	OMIM:167000
+HP:0000006	Autosomal dominant inheritance	1499	CTNNB1	OMIM:617572
+HP:0000006	Autosomal dominant inheritance	79719	AAGAB	OMIM:148600
+HP:0000006	Autosomal dominant inheritance	11200	CHEK2	OMIM:176807
+HP:0000006	Autosomal dominant inheritance	7157	TP53	OMIM:614740
+HP:0000006	Autosomal dominant inheritance	8314	BAP1	OMIM:614327
+HP:0000006	Autosomal dominant inheritance	5290	PIK3CA	OMIM:114500
+HP:0000006	Autosomal dominant inheritance	4286	MITF	OMIM:614456
+HP:0000006	Autosomal dominant inheritance	4000	LMNA	OMIM:212112
+HP:0000006	Autosomal dominant inheritance	672	BRCA1	OMIM:114480
+HP:0000006	Autosomal dominant inheritance	4286	MITF	OMIM:103470
+HP:0000006	Autosomal dominant inheritance	3845	KRAS	OMIM:211980
+HP:0000006	Autosomal dominant inheritance	1499	CTNNB1	OMIM:132600
+HP:0000006	Autosomal dominant inheritance	6390	SDHB	OMIM:115310
+HP:0000006	Autosomal dominant inheritance	3845	KRAS	OMIM:137215
+HP:0000006	Autosomal dominant inheritance	2778	GNAS	OMIM:103580
+HP:0000006	Autosomal dominant inheritance	3845	KRAS	OMIM:108010
+HP:0000006	Autosomal dominant inheritance	1499	CTNNB1	OMIM:114550
+HP:0000006	Autosomal dominant inheritance	7157	TP53	OMIM:618165
+HP:0000006	Autosomal dominant inheritance	5071	PRKN	OMIM:167000
+HP:0000006	Autosomal dominant inheritance	4000	LMNA	OMIM:176670
+HP:0000006	Autosomal dominant inheritance	2778	GNAS	OMIM:219080
+HP:0000006	Autosomal dominant inheritance	2263	FGFR2	OMIM:101400
+HP:0000006	Autosomal dominant inheritance	5290	PIK3CA	OMIM:114550
+HP:0000006	Autosomal dominant inheritance	7291	TWIST1	OMIM:617746
+HP:0000006	Autosomal dominant inheritance	324	APC	OMIM:175100
+HP:0000006	Autosomal dominant inheritance	1013	CDH15	OMIM:612580
+HP:0000006	Autosomal dominant inheritance	7015	TERT	OMIM:127550
+HP:0000006	Autosomal dominant inheritance	5728	PTEN	OMIM:158350
+HP:0000006	Autosomal dominant inheritance	3845	KRAS	OMIM:109800
+HP:0000006	Autosomal dominant inheritance	6392	SDHD	OMIM:168000
+HP:0000006	Autosomal dominant inheritance	83990	BRIP1	OMIM:114480
+HP:0000006	Autosomal dominant inheritance	4436	MSH2	OMIM:120435
+HP:0000006	Autosomal dominant inheritance	3845	KRAS	OMIM:615278
+HP:0000006	Autosomal dominant inheritance	5290	PIK3CA	OMIM:211980
+HP:0000006	Autosomal dominant inheritance	324	APC	OMIM:114500
+HP:0000006	Autosomal dominant inheritance	1499	CTNNB1	OMIM:155255
+HP:0000006	Autosomal dominant inheritance	2263	FGFR2	OMIM:149730
+HP:0000006	Autosomal dominant inheritance	7157	TP53	OMIM:151623
+HP:0000006	Autosomal dominant inheritance	207	AKT1	OMIM:114500
+HP:0000006	Autosomal dominant inheritance	3845	KRAS	OMIM:601626
+HP:0000006	Autosomal dominant inheritance	7015	TERT	OMIM:615134
+HP:0000006	Autosomal dominant inheritance	7157	TP53	OMIM:202300
+HP:0000006	Autosomal dominant inheritance	1499	CTNNB1	OMIM:114500
+HP:0000006	Autosomal dominant inheritance	2778	GNAS	OMIM:166350
+HP:0000006	Autosomal dominant inheritance	5290	PIK3CA	OMIM:162900
+HP:0000006	Autosomal dominant inheritance	4000	LMNA	OMIM:613205
+HP:0000006	Autosomal dominant inheritance	999	CDH1	OMIM:176807
+HP:0000006	Autosomal dominant inheritance	5728	PTEN	OMIM:607174
+HP:0000006	Autosomal dominant inheritance	2778	GNAS	OMIM:612462
+HP:0000006	Autosomal dominant inheritance	4286	MITF	OMIM:103500
+HP:0000006	Autosomal dominant inheritance	1499	CTNNB1	OMIM:167000
+HP:0000006	Autosomal dominant inheritance	25913	POT1	OMIM:615848
+HP:0000006	Autosomal dominant inheritance	2263	FGFR2	OMIM:101600
+HP:0000006	Autosomal dominant inheritance	7157	TP53	OMIM:260350
+HP:0000006	Autosomal dominant inheritance	4292	MLH1	OMIM:158320
+HP:0000006	Autosomal dominant inheritance	207	AKT1	OMIM:181500
+HP:0000006	Autosomal dominant inheritance	1029	CDKN2A	OMIM:155601
+HP:0000006	Autosomal dominant inheritance	7157	TP53	OMIM:114480
+HP:0000006	Autosomal dominant inheritance	1029	CDKN2A	OMIM:606719
+HP:0000006	Autosomal dominant inheritance	5573	PRKAR1A	OMIM:255960
+HP:0000006	Autosomal dominant inheritance	4000	LMNA	OMIM:610140
+HP:0000006	Autosomal dominant inheritance	6794	STK11	OMIM:175200
+HP:0000006	Autosomal dominant inheritance	4000	LMNA	OMIM:115200
+HP:0000006	Autosomal dominant inheritance	2263	FGFR2	OMIM:101200
+HP:0000006	Autosomal dominant inheritance	11200	CHEK2	OMIM:114480
+HP:0000006	Autosomal dominant inheritance	791114	PWRN1	OMIM:176270
+HP:0000006	Autosomal dominant inheritance	7157	TP53	OMIM:137800
+HP:0000006	Autosomal dominant inheritance	3845	KRAS	OMIM:600268
+HP:0000006	Autosomal dominant inheritance	25913	POT1	OMIM:616568
+HP:0000006	Autosomal dominant inheritance	5728	PTEN	OMIM:605309
+HP:0000006	Autosomal dominant inheritance	4436	MSH2	OMIM:158320
+HP:0000006	Autosomal dominant inheritance	4292	MLH1	OMIM:609310
+HP:0000006	Autosomal dominant inheritance	2263	FGFR2	OMIM:123500
+HP:0000006	Autosomal dominant inheritance	5290	PIK3CA	OMIM:114480
+HP:0000006	Autosomal dominant inheritance	5728	PTEN	OMIM:176807
+HP:0000006	Autosomal dominant inheritance	5573	PRKAR1A	OMIM:160980
+HP:0000006	Autosomal dominant inheritance	4000	LMNA	OMIM:151660
+HP:0000006	Autosomal dominant inheritance	1499	CTNNB1	OMIM:615075
+HP:0000006	Autosomal dominant inheritance	207	AKT1	OMIM:167000
+HP:0000006	Autosomal dominant inheritance	999	CDH1	OMIM:119580
+HP:0000006	Autosomal dominant inheritance	672	BRCA1	OMIM:604370
+HP:0100013	Neoplasm of the breast	8493	PPM1D	OMIM:114480
+HP:0100013	Neoplasm of the breast	1499	CTNNB1	OMIM:167000
+HP:0100013	Neoplasm of the breast	5728	PTEN	ORPHA:137608
+HP:0100013	Neoplasm of the breast	4255	MGMT	ORPHA:618
+HP:0100013	Neoplasm of the breast	207	AKT1	OMIM:615109
+HP:0100013	Neoplasm of the breast	672	BRCA1	OMIM:114480
+HP:0100013	Neoplasm of the breast	5002	SLC22A18	OMIM:114480
+HP:0100013	Neoplasm of the breast	672	BRCA1	ORPHA:145
+HP:0100013	Neoplasm of the breast	6391	SDHC	ORPHA:201
+HP:0100013	Neoplasm of the breast	4913	NTHL1	OMIM:616415
+HP:0100013	Neoplasm of the breast	324	APC	OMIM:175100
+HP:0100013	Neoplasm of the breast	3417	IDH1	ORPHA:163634
+HP:0100013	Neoplasm of the breast	4000	LMNA	ORPHA:79474
+HP:0100013	Neoplasm of the breast	1030	CDKN2B	ORPHA:618
+HP:0100013	Neoplasm of the breast	5290	PIK3CA	OMIM:114480
+HP:0100013	Neoplasm of the breast	11200	CHEK2	ORPHA:145
+HP:0100013	Neoplasm of the breast	4913	NTHL1	ORPHA:454840
+HP:0100013	Neoplasm of the breast	2778	GNAS	ORPHA:562
+HP:0100013	Neoplasm of the breast	324	APC	OMIM:175100
+HP:0100013	Neoplasm of the breast	5290	PIK3CA	OMIM:615108
+HP:0100013	Neoplasm of the breast	6392	SDHD	ORPHA:201
+HP:0100013	Neoplasm of the breast	3845	KRAS	ORPHA:1333
+HP:0100013	Neoplasm of the breast	8314	BAP1	ORPHA:618
+HP:0100013	Neoplasm of the breast	3418	IDH2	ORPHA:163634
+HP:0100013	Neoplasm of the breast	207	AKT1	OMIM:114480
+HP:0100013	Neoplasm of the breast	11200	CHEK2	OMIM:114480
+HP:0100013	Neoplasm of the breast	1029	CDKN2A	ORPHA:524
+HP:0100013	Neoplasm of the breast	999	CDH1	OMIM:167000
+HP:0100013	Neoplasm of the breast	1019	CDK4	ORPHA:618
+HP:0100013	Neoplasm of the breast	672	BRCA1	OMIM:617883
+HP:0100013	Neoplasm of the breast	54386	TERF2IP	ORPHA:618
+HP:0100013	Neoplasm of the breast	11200	CHEK2	ORPHA:524
+HP:0100013	Neoplasm of the breast	4292	MLH1	OMIM:158320
+HP:0100013	Neoplasm of the breast	672	BRCA1	ORPHA:1333
+HP:0100013	Neoplasm of the breast	5573	PRKAR1A	ORPHA:1359
+HP:0100013	Neoplasm of the breast	25913	POT1	ORPHA:618
+HP:0100013	Neoplasm of the breast	999	CDH1	OMIM:114480
+HP:0100013	Neoplasm of the breast	7015	TERT	ORPHA:618
+HP:0100013	Neoplasm of the breast	324	APC	ORPHA:79665
+HP:0100013	Neoplasm of the breast	4292	MLH1	ORPHA:587
+HP:0100013	Neoplasm of the breast	207	AKT1	ORPHA:201
+HP:0100013	Neoplasm of the breast	7157	TP53	OMIM:114480
+HP:0100013	Neoplasm of the breast	7157	TP53	OMIM:151623
+HP:0100013	Neoplasm of the breast	7373	COL14A1	ORPHA:79501
+HP:0100013	Neoplasm of the breast	207	AKT1	OMIM:167000
+HP:0100013	Neoplasm of the breast	4193	MDM2	ORPHA:524
+HP:0100013	Neoplasm of the breast	5728	PTEN	OMIM:158350
+HP:0100013	Neoplasm of the breast	2956	MSH6	ORPHA:587
+HP:0100013	Neoplasm of the breast	9821	RB1CC1	OMIM:114480
+HP:0100013	Neoplasm of the breast	3845	KRAS	OMIM:114480
+HP:0100013	Neoplasm of the breast	65057	ACD	ORPHA:618
+HP:0100013	Neoplasm of the breast	5290	PIK3CA	OMIM:167000
+HP:0100013	Neoplasm of the breast	83990	BRIP1	ORPHA:145
+HP:0100013	Neoplasm of the breast	7157	TP53	ORPHA:145
+HP:0100013	Neoplasm of the breast	6794	STK11	ORPHA:2869
+HP:0100013	Neoplasm of the breast	5071	PRKN	OMIM:167000
+HP:0100013	Neoplasm of the breast	100144748	KLLN	ORPHA:201
+HP:0100013	Neoplasm of the breast	4436	MSH2	ORPHA:587
+HP:0100013	Neoplasm of the breast	10483	SEC23B	ORPHA:201
+HP:0100013	Neoplasm of the breast	5728	PTEN	ORPHA:201
+HP:0100013	Neoplasm of the breast	5290	PIK3CA	ORPHA:201
+HP:0100013	Neoplasm of the breast	672	BRCA1	OMIM:604370
+HP:0100013	Neoplasm of the breast	4286	MITF	ORPHA:618
+HP:0100013	Neoplasm of the breast	83990	BRIP1	OMIM:114480
+HP:0100013	Neoplasm of the breast	7157	TP53	ORPHA:1333
+HP:0100013	Neoplasm of the breast	79719	AAGAB	ORPHA:79501
+HP:0100013	Neoplasm of the breast	6794	STK11	OMIM:175200
+HP:0100013	Neoplasm of the breast	10483	SEC23B	OMIM:616858
+HP:0100013	Neoplasm of the breast	7486	WRN	ORPHA:902
+HP:0100013	Neoplasm of the breast	5728	PTEN	ORPHA:109
+HP:0100013	Neoplasm of the breast	5728	PTEN	ORPHA:65285
+HP:0100013	Neoplasm of the breast	545	ATR	OMIM:614564
+HP:0100013	Neoplasm of the breast	1029	CDKN2A	ORPHA:618
+HP:0100013	Neoplasm of the breast	7291	TWIST1	OMIM:101400
+HP:0100013	Neoplasm of the breast	6390	SDHB	ORPHA:201
+HP:0100013	Neoplasm of the breast	4436	MSH2	OMIM:158320
+HP:0100013	Neoplasm of the breast	4157	MC1R	ORPHA:618
+HP:0100013	Neoplasm of the breast	2263	FGFR2	OMIM:101400
+HP:0100013	Neoplasm of the breast	7157	TP53	ORPHA:524
+HP:0100013	Neoplasm of the breast	5728	PTEN	ORPHA:145
+HP:0100013	Neoplasm of the breast	11200	CHEK2	OMIM:609265
+HP:0100013	Neoplasm of the breast	1029	CDKN2A	ORPHA:1333
+HP:0100013	Neoplasm of the breast	324	APC	ORPHA:247806
+HP:0003002	Breast carcinoma	7157	TP53	OMIM:114480
+HP:0003002	Breast carcinoma	8493	PPM1D	OMIM:114480
+HP:0003002	Breast carcinoma	1499	CTNNB1	OMIM:167000
+HP:0003002	Breast carcinoma	7157	TP53	OMIM:151623
+HP:0003002	Breast carcinoma	7373	COL14A1	ORPHA:79501
+HP:0003002	Breast carcinoma	207	AKT1	OMIM:615109
+HP:0003002	Breast carcinoma	207	AKT1	OMIM:167000
+HP:0003002	Breast carcinoma	4193	MDM2	ORPHA:524
+HP:0003002	Breast carcinoma	672	BRCA1	OMIM:114480
+HP:0003002	Breast carcinoma	5002	SLC22A18	OMIM:114480
+HP:0003002	Breast carcinoma	672	BRCA1	ORPHA:145
+HP:0003002	Breast carcinoma	6391	SDHC	ORPHA:201
+HP:0003002	Breast carcinoma	4913	NTHL1	OMIM:616415
+HP:0003002	Breast carcinoma	5728	PTEN	OMIM:158350
+HP:0003002	Breast carcinoma	2956	MSH6	ORPHA:587
+HP:0003002	Breast carcinoma	3417	IDH1	ORPHA:163634
+HP:0003002	Breast carcinoma	9821	RB1CC1	OMIM:114480
+HP:0003002	Breast carcinoma	5290	PIK3CA	OMIM:114480
+HP:0003002	Breast carcinoma	3845	KRAS	OMIM:114480
+HP:0003002	Breast carcinoma	5290	PIK3CA	OMIM:167000
+HP:0003002	Breast carcinoma	11200	CHEK2	ORPHA:145
+HP:0003002	Breast carcinoma	83990	BRIP1	ORPHA:145
+HP:0003002	Breast carcinoma	4913	NTHL1	ORPHA:454840
+HP:0003002	Breast carcinoma	7157	TP53	ORPHA:145
+HP:0003002	Breast carcinoma	6794	STK11	ORPHA:2869
+HP:0003002	Breast carcinoma	5071	PRKN	OMIM:167000
+HP:0003002	Breast carcinoma	5290	PIK3CA	OMIM:615108
+HP:0003002	Breast carcinoma	100144748	KLLN	ORPHA:201
+HP:0003002	Breast carcinoma	4436	MSH2	ORPHA:587
+HP:0003002	Breast carcinoma	6392	SDHD	ORPHA:201
+HP:0003002	Breast carcinoma	3845	KRAS	ORPHA:1333
+HP:0003002	Breast carcinoma	10483	SEC23B	ORPHA:201
+HP:0003002	Breast carcinoma	5728	PTEN	ORPHA:201
+HP:0003002	Breast carcinoma	5290	PIK3CA	ORPHA:201
+HP:0003002	Breast carcinoma	3418	IDH2	ORPHA:163634
+HP:0003002	Breast carcinoma	672	BRCA1	OMIM:604370
+HP:0003002	Breast carcinoma	83990	BRIP1	OMIM:114480
+HP:0003002	Breast carcinoma	7157	TP53	ORPHA:1333
+HP:0003002	Breast carcinoma	79719	AAGAB	ORPHA:79501
+HP:0003002	Breast carcinoma	207	AKT1	OMIM:114480
+HP:0003002	Breast carcinoma	6794	STK11	OMIM:175200
+HP:0003002	Breast carcinoma	11200	CHEK2	OMIM:114480
+HP:0003002	Breast carcinoma	1029	CDKN2A	ORPHA:524
+HP:0003002	Breast carcinoma	10483	SEC23B	OMIM:616858
+HP:0003002	Breast carcinoma	999	CDH1	OMIM:167000
+HP:0003002	Breast carcinoma	7486	WRN	ORPHA:902
+HP:0003002	Breast carcinoma	545	ATR	OMIM:614564
+HP:0003002	Breast carcinoma	7291	TWIST1	OMIM:101400
+HP:0003002	Breast carcinoma	6390	SDHB	ORPHA:201
+HP:0003002	Breast carcinoma	4436	MSH2	OMIM:158320
+HP:0003002	Breast carcinoma	672	BRCA1	OMIM:617883
+HP:0003002	Breast carcinoma	11200	CHEK2	ORPHA:524
+HP:0003002	Breast carcinoma	4292	MLH1	OMIM:158320
+HP:0003002	Breast carcinoma	672	BRCA1	ORPHA:1333
+HP:0003002	Breast carcinoma	2263	FGFR2	OMIM:101400
+HP:0003002	Breast carcinoma	7157	TP53	ORPHA:524
+HP:0003002	Breast carcinoma	999	CDH1	OMIM:114480
+HP:0003002	Breast carcinoma	5728	PTEN	ORPHA:145
+HP:0003002	Breast carcinoma	11200	CHEK2	OMIM:609265
+HP:0003002	Breast carcinoma	1029	CDKN2A	ORPHA:1333
+HP:0003002	Breast carcinoma	324	APC	ORPHA:79665
+HP:0003002	Breast carcinoma	4292	MLH1	ORPHA:587
+HP:0003002	Breast carcinoma	207	AKT1	ORPHA:201
+HP:0003002	Breast carcinoma	324	APC	ORPHA:247806
+HP:0010619	Fibroadenoma of the breast	207	AKT1	OMIM:615109
+HP:0010619	Fibroadenoma of the breast	324	APC	OMIM:175100
+HP:0010619	Fibroadenoma of the breast	5290	PIK3CA	OMIM:615108
+HP:0010619	Fibroadenoma of the breast	5573	PRKAR1A	ORPHA:1359
+HP:0010619	Fibroadenoma of the breast	5728	PTEN	OMIM:158350
+HP:0010619	Fibroadenoma of the breast	324	APC	OMIM:175100
+HP:0010619	Fibroadenoma of the breast	5728	PTEN	ORPHA:65285
+HP:0010619	Fibroadenoma of the breast	324	APC	ORPHA:247806
+HP:0000006	Autosomal dominant inheritance	1234	no gene	OMIM:123456
+HP:0003002	Breast carcinoma	1234	no gene	OMIM:123456

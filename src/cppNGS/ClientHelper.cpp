@@ -41,7 +41,7 @@ ServerInfo ClientHelper::getServerInfo(int& status_code)
         reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(serverApiUrl()+ "info", add_headers);
         status_code = reply.status_code;
 	}
-	catch (Exception& e)
+    catch (HttpException& e)
 	{
 		Log::error("Server availability problem: " + e.message());
 		return info;
@@ -75,7 +75,7 @@ ClientInfo ClientHelper::getClientInfo()
 	{
         reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(serverApiUrl()+ "current_client", add_headers);
 	}
-	catch (Exception& e)
+    catch (HttpException& e)
 	{
 		Log::error("Could not get the client version information from the server: " + e.message());
 		return info;
@@ -108,7 +108,7 @@ UserNotification ClientHelper::getUserNotification()
 	{
         reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(serverApiUrl()+ "notification", add_headers);
 	}
-	catch (Exception& e)
+    catch (HttpException& e)
 	{
 		Log::error("Could not get any user notifications from the server: " + e.message());
 		return user_notification;

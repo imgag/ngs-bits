@@ -138,7 +138,7 @@ void GapDialog::calculteGaps()
 
 				low_cov = GermlineReportGenerator::precalculatedGaps(gaps, roi, cutoff, sys_roi);
 			}
-			catch(Exception e)
+            catch(Exception& e)
 			{
 				output << "Low-coverage statistics had to be re-calculated!";
 				output << "Pre-calculated gap file could not be used because:";

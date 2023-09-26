@@ -516,7 +516,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		QStringList sample_quality = output.takeColumn(output.columnIndex("sample_quality"));
 		output.addColumn(sample_quality, "sample_quality");
 		QStringList ps_quality = output.takeColumn(output.columnIndex("processed_sample_quality"));
-		output.addColumn(sample_quality, "processed_sample_quality");
+		output.addColumn(ps_quality, "processed_sample_quality");
 
 		//headers
 		QStringList qc_names = getValues("SELECT name FROM qc_terms WHERE obsolete=0 ORDER BY qcml_id");
@@ -5410,7 +5410,7 @@ QString NGSD::createSampleSheet(int run_id)
 			if(sys_info.umi_type == "IDT-UDI-UMI")
 			{
 				//add UMIs:
-				override_cycles += "Y11";
+				override_cycles += "U11";
 				umi_length = 11;
 			}
 			else if(sys_info.umi_type != "n/a")
@@ -5467,7 +5467,7 @@ QString NGSD::createSampleSheet(int run_id)
 		sample_sheet.append("SoftwareVersion," + sw_version);
 		sample_sheet.append("AppVersion," + app_version);
 		sample_sheet.append("KeepFastq,true");
-		sample_sheet.append("MapAlignOutFormat,bam");
+		sample_sheet.append("MapAlignOutFormat,cram");
 		sample_sheet.append("ReferenceGenomeDir,GRCh38"); //TODO: read from settings/NGSD
 		sample_sheet.append("VariantCallingMode,AllVariantCallers");
 		sample_sheet.append("");
@@ -5484,7 +5484,7 @@ QString NGSD::createSampleSheet(int run_id)
 		sample_sheet.append("SoftwareVersion," + sw_version);
 		sample_sheet.append("AppVersion," + app_version);
 		sample_sheet.append("KeepFastq,true");
-		sample_sheet.append("MapAlignOutFormat,bam");
+		sample_sheet.append("MapAlignOutFormat,cram");
 		sample_sheet.append("ReferenceGenomeDir,GRCh38"); //TODO: read from settings/NGSD
 //		sample_sheet.append("Bedfile,/usr/local/illumina/target_region/" + sys_name + ".bed"); //TODO: read from settings/NGSD
 		sample_sheet.append("GermlineOrSomatic,germline");

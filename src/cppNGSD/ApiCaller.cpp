@@ -20,11 +20,11 @@ QByteArray ApiCaller::get(QString api_path, RequestUrlParams url_params, HttpHea
 
         return HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(ClientHelper::serverApiUrl() + api_path + QUrl(url_params.asString()).toEncoded(), headers).body;
 	}
-	catch (Exception& e)
+    catch (HttpException& e)
 	{
 		QString message = "API GET call to \"" + ClientHelper::serverApiUrl() + api_path + "\" failed: " + e.message();
 		Log::error(message);
-		if (rethrow_excpetion) THROW(Exception, message);
+        if (rethrow_excpetion) THROW_HTTP(HttpException, message, e.status_code(), e.headers(), e.body());
 	}
 
 	return QByteArray{};
@@ -41,10 +41,10 @@ QByteArray ApiCaller::post(QString api_path, RequestUrlParams url_params, HttpHe
 
         return HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(ClientHelper::serverApiUrl() + api_path + QUrl(url_params.asString()).toEncoded(), data, headers).body;
 	}
-	catch (Exception& e)
+    catch (HttpException& e)
 	{				
 		Log::error("API POST call to \"" + ClientHelper::serverApiUrl() + api_path + "\" failed: " + e.message());
-		if (rethrow_excpetion) THROW(Exception, e.message());
+        if (rethrow_excpetion) THROW_HTTP(HttpException, e.message(), e.status_code(), e.headers(), e.body());
 	}
 
 	return QByteArray{};

@@ -25,13 +25,13 @@ Lane,Sample_ID,Index,Index2,OverrideCycles,BarcodeMismatchesIndex1,BarcodeMismat
 3,NA12878_59,AAAAATTTTT,CCCCCGGGGG,Y151;I10N9;I10;Y151,1,1,NovaSeqX_Exomes
 4,DX000002_01,TTTTTAAAAA,GGGGGCCCCC,Y151;I10N9;I10;Y151,1,1,NovaSeqX_Exomes
 4,DX000001_01,TTTTTCCCCC,GGGGGAAAAA,Y151;I10N9;I10;Y151,1,1,NovaSeqX_Exomes
-5,RX123456_01,ATATATAT,CGCGCGCG,Y151;I8Y11;N2I8;Y151,1,1,NovaSeqX_RNA
+5,RX123456_01,ATATATAT,CGCGCGCG,Y151;I8U11;N2I8;Y151,1,1,NovaSeqX_RNA
 
 [DragenGermline_Settings]
 SoftwareVersion,4.1.7
 AppVersion,1.1.4
 KeepFastq,true
-MapAlignOutFormat,bam
+MapAlignOutFormat,cram
 ReferenceGenomeDir,GRCh38
 VariantCallingMode,AllVariantCallers
 
@@ -43,7 +43,7 @@ NA12878_45
 SoftwareVersion,4.1.7
 AppVersion,1.1.4
 KeepFastq,true
-MapAlignOutFormat,bam
+MapAlignOutFormat,cram
 ReferenceGenomeDir,GRCh38
 GermlineOrSomatic,germline
 VariantCallingMode,AllVariantCallers
