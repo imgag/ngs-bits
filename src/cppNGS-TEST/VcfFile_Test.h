@@ -8,26 +8,6 @@ TEST_CLASS(VcfFile_Test)
 Q_OBJECT
 private slots:
 
-
-	void time_benchmark() //TODO remove
-	{
-		return;
-		VcfFile vcf;
-		QTime timer;
-		timer.start();
-		vcf.load("C:\\Users\\ahsturm1\\Desktop\\Data\\NGS\\GiaB\\Sample_NA12878_45\\NA12878_45_var.vcf");
-		qDebug() << "loading took: " << Helper::elapsedTime(timer);
-		timer.restart();
-		vcf.removeUnusedContigHeaders();
-		qDebug() << "removing contigs took: " << Helper::elapsedTime(timer);
-		timer.restart();
-		vcf.sort(true);
-		qDebug() << "sorting took: " << Helper::elapsedTime(timer);
-		timer.restart();
-		vcf.store("C:\\Users\\ahsturm1\\Desktop\\Data\\NGS\\GiaB\\Sample_NA12878_45\\NA12878_45_var_new.vcf");
-		qDebug() << "storing took: " << Helper::elapsedTime(timer);
-	}
-
 	void removeDuplicates_VCF()
 	{
 		VcfFile vl,vl2;

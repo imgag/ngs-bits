@@ -4,5 +4,4 @@ build-*
 t.log
 *.crt
 *.key
-gsvar-server-log.txt
-
+*.txt

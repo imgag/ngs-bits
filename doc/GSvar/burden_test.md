@@ -19,6 +19,11 @@ The samples of the case cohort should fulfill the following criteria:
 - all samples have the same ancestry (EUR if possible, since that is 90% of our data)
 - all samples should be unrelated
 - all samples have the same processing system (WGS if possible, since it has the least biases)
+  - exclude the low-coverage region for this processing system
+  - if you want to mix different processing systems (not recomended), make sure to:
+    - exclude all low-coverage regions of all included processing systems
+    - remove duplicate samples (exome, genome)
+    - have the same distribution of processing systems in cases and controls     
 
 ## Selecting control samples
 

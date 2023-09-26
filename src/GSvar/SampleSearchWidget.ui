@@ -513,7 +513,7 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="0">
+          <item row="6" column="0">
            <widget class="QLabel" name="label_19">
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Run start date before or equal to the given date.&lt;br/&gt;Use ISO format: YYYY-MM-DD&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -523,10 +523,10 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
+          <item row="6" column="1">
            <widget class="QLineEdit" name="r_date_before"/>
           </item>
-          <item row="6" column="0">
+          <item row="5" column="0">
            <widget class="QLabel" name="label_25">
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Run start date before or equal to the given date.&lt;br/&gt;Use ISO format: YYYY-MM-DD&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -536,7 +536,7 @@
             </property>
            </widget>
           </item>
-          <item row="6" column="1">
+          <item row="5" column="1">
            <widget class="QLineEdit" name="r_date_after"/>
           </item>
          </layout>

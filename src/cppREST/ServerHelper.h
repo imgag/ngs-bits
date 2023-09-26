@@ -21,7 +21,8 @@ public:
 	static QString getStringSettingsValue(const QString& key);
 	static QString getUrlWithoutParams(const QString& url);
 
-	static bool hasBasicSettings();
+	static bool hasMinimalSettings();
+    static bool hasProdSettings();
 	static QString getSessionBackupFileName();
 	static QString getUrlStorageBackupFileName();
 

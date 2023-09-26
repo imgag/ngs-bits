@@ -109,6 +109,10 @@ private:
 	void printVariantSheetRowOtherVariant(QTextStream& stream, OtherCausalVariant variant);
 	static QString exclusionCriteria(const ReportVariantConfiguration& conf);
 
+	//determine gaps by gene
+	void gapsByGene(const BedFile& low_cov, const GeneSet& roi_genes, QMap<QByteArray, BedFile>& gaps_by_gene, long long& gap_bases_no_gene);
+	void writeGapsByGeneTable(QTextStream& stream, QMap<QByteArray, BedFile>& gaps_by_gene, long long& gap_bases_no_gene);
+
 	GermlineReportGenerator() = delete;
 };
 

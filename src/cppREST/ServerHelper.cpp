@@ -42,7 +42,7 @@ int ServerHelper::getNumSettingsValue(const QString& key)
 	}
 	catch (Exception& e)
 	{
-		Log::warn("Numerical settings value unavailable: " + e.message());
+        Log::warn("Numerical setting value unavailable: " + e.message());
 	}
 
 	return num_value;
@@ -57,7 +57,7 @@ QString ServerHelper::getStringSettingsValue(const QString& key)
 	}
 	catch (Exception& e)
 	{
-		Log::warn("String settings value unavailable: " + e.message());
+        Log::warn("String setting value unavailable: " + e.message());
 	}
 
 	return string_value;
@@ -69,28 +69,61 @@ QString ServerHelper::getUrlWithoutParams(const QString& url)
 	return url_parts[0];
 }
 
-bool ServerHelper::hasBasicSettings()
+bool ServerHelper::hasMinimalSettings()
 {
-	if (!ServerHelper::getStringSettingsValue("server_port").isEmpty() &&
-		!ServerHelper::getStringSettingsValue("server_host").isEmpty() &&
-		!ServerHelper::getStringSettingsValue("ssl_certificate").isEmpty() &&
-		!ServerHelper::getStringSettingsValue("ssl_key").isEmpty() &&
-		(ServerHelper::getNumSettingsValue("url_lifetime")>0) &&
-		(ServerHelper::getNumSettingsValue("session_duration")>0))
-	{
-		return true;
-	}
-	return false;
+    return (!ServerHelper::getStringSettingsValue("server_port").isEmpty() &&
+        !ServerHelper::getStringSettingsValue("server_host").isEmpty() &&
+        !ServerHelper::getStringSettingsValue("ssl_certificate").isEmpty() &&
+        !ServerHelper::getStringSettingsValue("ssl_key").isEmpty() &&
+        (ServerHelper::getNumSettingsValue("url_lifetime")>0) &&
+        (ServerHelper::getNumSettingsValue("session_duration")>0));
+}
+
+bool ServerHelper::hasProdSettings()
+{
+    if (!hasMinimalSettings()) return false;
+
+    return
+    (
+        !ServerHelper::getStringSettingsValue("reference_genome").isEmpty() &&
+
+        !ServerHelper::getStringSettingsValue("ngsd_host").isEmpty() &&
+        (ServerHelper::getNumSettingsValue("ngsd_port")>0) &&
+        !ServerHelper::getStringSettingsValue("ngsd_name").isEmpty() &&
+        !ServerHelper::getStringSettingsValue("ngsd_user").isEmpty() &&
+        !ServerHelper::getStringSettingsValue("ngsd_pass").isEmpty() &&
+
+        !ServerHelper::getStringSettingsValue("projects_folder_diagnostic").isEmpty() &&
+        !ServerHelper::getStringSettingsValue("projects_folder_research").isEmpty() &&
+        !ServerHelper::getStringSettingsValue("projects_folder_test").isEmpty() &&
+        !ServerHelper::getStringSettingsValue("projects_folder_external").isEmpty()
+    );
 }
 
 QString ServerHelper::getSessionBackupFileName()
 {
-    return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName() + "_sessions.txt";
+    QDir app_folder = QDir(QCoreApplication::applicationDirPath());
+    app_folder.cdUp();
+    QString session_file = app_folder.absolutePath() + QDir::separator() + QCoreApplication::applicationName() + "_sessions.txt";
+    if (!QFile::exists(session_file))
+    {
+        Log::info("Creating a new session backup file: " + session_file);
+        Helper::touchFile(session_file);
+    }
+    return session_file;
 }
 
 QString ServerHelper::getUrlStorageBackupFileName()
 {
-    return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName() + "_urls.txt";
+    QDir app_folder = QDir(QCoreApplication::applicationDirPath());
+    app_folder.cdUp();
+    QString url_file = app_folder.absolutePath() + QDir::separator() + QCoreApplication::applicationName() + "_urls.txt";
+    if (!QFile::exists(url_file))
+    {
+        Log::info("Creating a new URL backup file: " + url_file);
+        Helper::touchFile(url_file);
+    }
+    return url_file;
 }
 
 void ServerHelper::setServerStartDateTime(QDateTime date_and_time)

@@ -157,7 +157,8 @@ MainWindow::MainWindow(QWidget *parent)
 	, filename_()
 	, variants_changed_()
 	, last_report_path_(QDir::homePath())
-	, init_timer_(this, true)
+    , init_timer_(this, true)
+    , server_version_()
 {
 	//setup GUI
 	ui_.setupUi(this);
@@ -209,7 +210,8 @@ MainWindow::MainWindow(QWidget *parent)
 	cfdna_menu_btn_->setEnabled(false);
 
 	//signals and slots
-	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(close()));
+    connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(closeAndLogout()));
+
 	connect(ui_.filters, SIGNAL(filtersChanged()), this, SLOT(refreshVariantTable()));
 	connect(ui_.vars, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
 	connect(ui_.vars, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(variantCellDoubleClicked(int, int)));
@@ -342,7 +344,6 @@ MainWindow::MainWindow(QWidget *parent)
 			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM files over HTTPS may not be possible");
 		}
 	}
-    RefGenomeService::setReferenceGenome(Settings::string("reference_genome"));
 
 	update_info_toolbar_ = new QToolBar;
 	update_info_toolbar_->hide();
@@ -361,13 +362,26 @@ QString MainWindow::appName() const
 
 bool MainWindow::isServerRunning()
 {
-	ServerInfo server_info = ClientHelper::getServerInfo();
+    int status_code = -1;
+    ServerInfo server_info = ClientHelper::getServerInfo(status_code);
 
-	if (server_info.isEmpty())
+    if (server_info.isEmpty())
 	{
 		QMessageBox::warning(this, "Server not available", "GSvar is configured for the client-server mode, but the server is not available. The application will be closed");
 		return false;
 	}
+
+    if (status_code!=200)
+    {
+        QMessageBox::warning(this, "Server availability problem", "Server replied with " + QString::number(status_code) + " code. The application will be closed");
+        return false;
+    }
+
+    if (!server_version_.isEmpty() && (server_version_ != server_info.version))
+    {
+        QMessageBox::information(this, "Server version changed", "Server version has changed from " + server_version_ + " to " + server_info.version + ". No action is required");
+    }
+    server_version_ = server_info.version;
 
 	if (ClientHelper::serverApiVersion() != server_info.api_version)
 	{
@@ -1550,19 +1564,11 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahschul1")
 	{
-		//test google reply times
-		qDebug() << "Test google reply times";
+		//Test sample sheet
+		QString run_id = NGSD().getValue("SELECT id FROM sequencing_run WHERE name='#03178'").toString();
 
-		static HttpHandler http_handler(false);
+		QMessageBox::information(this, "SampleSheet", NGSD().createSampleSheet(run_id.toInt()));
 
-		for (int i = 0; i < 10; ++i)
-		{
-			QTime timer;
-			timer.start();
-			QByteArray reply = http_handler.get("https://www.google.com");
-			qDebug() << "reply took:" << Helper::elapsedTime(timer, true);
-			QThread::sleep(10);
-		}
 	}
 	else if (user=="ahott1a1")
 	{
@@ -1801,7 +1807,7 @@ void MainWindow::on_actionSV_triggered()
 	{
 		//check that a filter was applied (otherwise this can take forever)
 		int passing_vars = filter_result_.countPassing();
-		if (passing_vars>2000)
+		if (passing_vars>3000)
 		{
 			int res = QMessageBox::question(this, "Continue?", "There are " + QString::number(passing_vars) + " variants that pass the filters.\nGenerating the list of candidate genes for compound-heterozygous hits may take very long for this amount of variants.\nDo you want to continue?", QMessageBox::Yes, QMessageBox::No);
 			if(res==QMessageBox::No) return;
@@ -1886,7 +1892,7 @@ void MainWindow::on_actionCNV_triggered()
 	{
 		//check that a filter was applied (otherwise this can take forever)
 		int passing_vars = filter_result_.countPassing();
-		if (passing_vars>2000)
+		if (passing_vars>3000)
 		{
 			int res = QMessageBox::question(this, "Continue?", "There are " + QString::number(passing_vars) + " variants that pass the filters.\nGenerating the list of candidate genes for compound-heterozygous hits may take very long for this amount of variants.\nPlease set a filter for the variant list, e.g. the recessive filter, and retry!\nDo you want to continue?", QMessageBox::Yes, QMessageBox::No);
 			if(res==QMessageBox::No) return;
@@ -2381,7 +2387,10 @@ void MainWindow::on_actionDesignCfDNAPanel_triggered()
 	if (!LoginManager::active()) return;
 	if (!(somaticReportSupported()||tumoronlyReportSupported())) return;
 
-	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
+	// Workaround to manual add panels for non patient-specific processing systems
+	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)' OR type='cfDNA'");
+	// TODO: reactivate
+//	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
 
 	QSharedPointer<CfDNAPanelDesignDialog> dialog(new CfDNAPanelDesignDialog(variants_, filter_result_, somatic_report_settings_.report_config, variants_.mainSampleName(), cfdna_processing_systems, this));
 	dialog->setWindowFlags(Qt::Window);
@@ -3322,13 +3331,7 @@ void MainWindow::addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize)
 	}
 	modeless_dialogs_.append(dlg);
 
-	//we always clean up when we add another dialog.
-	//Like that, only one dialog can be closed and not destroyed at the same time.
-	cleanUpModelessDialogs();
-}
-
-void MainWindow::cleanUpModelessDialogs()
-{
+	//Clean up when we add another dialog. Like that, only one dialog can be closed and not destroyed at the same time.
 	for (int i=modeless_dialogs_.count()-1; i>=0; --i)
 	{
 		if (modeless_dialogs_[i]->isHidden())
@@ -3562,6 +3565,7 @@ void MainWindow::openProcessedSampleTab(QString ps_name)
 
 		ProcessedSampleWidget* widget = new ProcessedSampleWidget(this, ps_id);
 		connect(widget, SIGNAL(clearMainTableSomReport(QString)), this, SLOT(clearSomaticReportSettings(QString)));
+		connect(widget, SIGNAL(addModelessDialog(QSharedPointer<QDialog>, bool)), this, SLOT(addModelessDialog(QSharedPointer<QDialog>, bool)));
 		int index = openTab(QIcon(":/Icons/NGSD_sample.png"), ps_name, widget);
 		if (Settings::boolean("debug_mode_enabled"))
 		{
@@ -3588,6 +3592,7 @@ void MainWindow::openRunTab(QString run_name)
 	}
 
 	SequencingRunWidget* widget = new SequencingRunWidget(this, run_id);
+	connect(widget, SIGNAL(addModelessDialog(QSharedPointer<QDialog>, bool)), this, SLOT(addModelessDialog(QSharedPointer<QDialog>, bool)));
 	int index = openTab(QIcon(":/Icons/NGSD_run.png"), run_name, widget);
 	if (Settings::boolean("debug_mode_enabled"))
 	{
@@ -4239,11 +4244,19 @@ void MainWindow::on_actionAbout_triggered()
 	if (ClientHelper::isClientServerMode())
 	{
 		about_text += "\nMode: client-server";
-		ServerInfo server_info = ClientHelper::getServerInfo();
-		about_text += "\nServer version: " + server_info.version;
-		about_text += "\nAPI version: " + server_info.api_version;
-		about_text += "\nServer start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
-	}
+        int status_code = -1;
+        ServerInfo server_info = ClientHelper::getServerInfo(status_code);
+        if (status_code!=200)
+        {
+            about_text += "\nServer returned " + QString::number(status_code);
+        }
+        else
+        {
+            about_text += "\nServer version: " + server_info.version;
+            about_text += "\nAPI version: " + server_info.api_version;
+            about_text += "\nServer start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
+        }
+    }
 	else
 	{
 		about_text += "\nMode: stand-alone (no server)";
@@ -6786,6 +6799,9 @@ void MainWindow::closeEvent(QCloseEvent* event)
 	//unload the data
 	loadFile();
 
+    //close user session on the server
+    if (ClientHelper::isClientServerMode()) performLogout();
+
 	//here one could cancel closing the window by calling event->ignore()
 
 	event->accept();
@@ -7093,6 +7109,12 @@ void MainWindow::showMatchingCnvsAndSvs(BedLine v_reg)
 	{
         GUIHelper::showException(this, e, "Showing matching CNVs and SVs failed!");
     }
+}
+
+void MainWindow::closeAndLogout()
+{
+    if (ClientHelper::isClientServerMode()) performLogout();
+    close();
 }
 
 void MainWindow::displayNormalIgvMessages()
@@ -8117,7 +8139,14 @@ QString MainWindow::getFileSelectionItem(QString window_title, QString label_tex
 		return "";
 	}
 
-	return selected_file_name;
+    return selected_file_name;
+}
+
+void MainWindow::performLogout()
+{
+    if (!LoginManager::active()) return;
+
+    LoginManager::logout();
 }
 
 

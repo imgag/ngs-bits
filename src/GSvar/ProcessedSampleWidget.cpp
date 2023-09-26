@@ -245,11 +245,19 @@ void ProcessedSampleWidget::updateGUI()
 	//append merge HPO id and name
 	QStringList hpo_names = dd_table.takeColumn(dd_table.columnIndex("hpo_name"));
 	QStringList info_entries = dd_table.extractColumn(dd_table.columnIndex("disease_info"));
+	QStringList types = dd_table.extractColumn(dd_table.columnIndex("type"));
 	for (int i=0; i<info_entries.count(); ++i)
 	{
 		if (info_entries[i].startsWith("HP:"))
 		{
 			info_entries[i] += " (" + hpo_names[i] + ")";
+		}
+
+		if (types[i] == "Oncotree code")
+		{
+			QString name = db.getValue("SELECT name from oncotree_term WHERE oncotree_code ='" + info_entries[i] + "'", true).toString();
+
+			info_entries[i] += " (" + (name == "" ? "invalid" : name) + ")";
 		}
 	}
 	dd_table.setColumn(dd_table.columnIndex("disease_info"), info_entries);
@@ -416,7 +424,7 @@ void ProcessedSampleWidget::showPlot()
 		qc_widget->setSecondTermId(qc_term_id2);
 	}
 	auto dlg = GUIHelper::createDialog(qc_widget, "QC plot");
-	dlg->exec();
+	emit addModelessDialog(dlg, false);
 }
 
 void ProcessedSampleWidget::openSampleFolder()

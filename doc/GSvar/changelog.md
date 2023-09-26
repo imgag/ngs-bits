@@ -1,5 +1,19 @@
 # GSvar change log
 
+### 2023_06-81 (30.08.23)
+
+- long-reads: fixed crash when filtering long-read SVs
+- run tab: show columns 'processing modus' and 'batch number' in sample table
+- sample search: add processed sample quality and sample quality if QC is added
+- germline report: added table with gaps after closing gaps
+- somatic report: allow recreation of IGV screenshot
+
+### 2023_06-63 (18.08.23)
+
+- update cfDNA report
+- fixed PrimerDesign link
+- fixed long-read report XML
+
 ### 2023_06-57 (17.08.23)
 
 - general: added fields 'processing method' (enum) and 'batch number' (100 chars) to processed sample data and to processed sample batch import

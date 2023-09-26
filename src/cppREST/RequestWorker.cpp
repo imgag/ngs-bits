@@ -128,18 +128,8 @@ void RequestWorker::run()
 		{
 			Session user_session = SessionManager::getSessionBySecureToken(user_token);
 			if (!user_session.isEmpty())
-			{
-				try
-				{
-					QString user_login = NGSD().userLogin(user_session.user_id);
-					QString user_name = NGSD().userName(user_session.user_id);
-					user_info = " - requested by " + user_login + " (" + user_name + ")";
-				}
-				catch (DatabaseException& e)
-                {
-                    Log::error(EndpointManager::formatResponseMessage(parsed_request, "Database request failed: " + e.message()));
-					user_info = " - requested by unknown user";
-				}
+            {
+                user_info = " - requested by " + user_session.user_login + " (" + user_session.user_name + ")";
 			}
 		}
 		QString client_type = "Unknown client";
@@ -205,7 +195,7 @@ void RequestWorker::run()
 			}
 
 			QSharedPointer<QFile> streamed_file = QSharedPointer<QFile>(new QFile(response.getFilename()));
-			if (!streamed_file.data()->exists())
+            if (!streamed_file->exists())
             {
                 QString error_message = EndpointManager::formatResponseMessage(parsed_request, "Requested file does not exist: " + response.getFilename());
 				Log::error(error_message + user_info + client_type);
@@ -213,7 +203,7 @@ void RequestWorker::run()
 				return;
 			}
 
-			if (!streamed_file.data()->open(QFile::ReadOnly))
+            if (!streamed_file->open(QFile::ReadOnly))
             {
                 QString error_message = EndpointManager::formatResponseMessage(parsed_request, "Could not open a file for streaming: " + response.getFilename());
 				Log::error(error_message + user_info + client_type);
@@ -221,7 +211,7 @@ void RequestWorker::run()
 				return;
 			}
 
-			if (!streamed_file.data()->isOpen())
+            if (!streamed_file->isOpen())
             {
                 QString error_message = EndpointManager::formatResponseMessage(parsed_request, "File is not open: " + response.getFilename());
 				Log::error(error_message + user_info + client_type);
@@ -233,7 +223,7 @@ void RequestWorker::run()
 			sendResponseDataPart(ssl_socket, response.getHeaders());
 
 			quint64 pos = 0;
-			quint64 file_size = streamed_file.data()->size();
+            quint64 file_size = streamed_file->size();
 			bool transfer_encoding_chunked = false;
 
 			if (!parsed_request.getHeaderByName("Transfer-Encoding").isEmpty())
@@ -249,10 +239,16 @@ void RequestWorker::run()
 			QList<ByteRange> ranges = response.getByteRanges();
 			int ranges_count = ranges.count();
 
-			// Range request
+            if (ranges_count>0)
+            {
+                Log::info(EndpointManager::formatResponseMessage(parsed_request, QString::number(ranges_count) + " range(-s) found in request headers: " + response.getFilename() + user_info + client_type));
+            }
+
+            // Range request
 			for (int i = 0; i < ranges_count; ++i)
-			{
-				chunk_size = STREAM_CHUNK_SIZE;
+            {
+                Log::info(EndpointManager::formatResponseMessage(parsed_request, "Byte range [" + QString::number(ranges[i].start) + ", " + QString::number(ranges[i].end) + "] from " + QString::number(file_size) + " bytes in total: " + response.getFilename() + user_info + client_type));
+                chunk_size = STREAM_CHUNK_SIZE;
 				pos = ranges[i].start;
 				if (ranges_count > 1)
 				{
@@ -266,12 +262,12 @@ void RequestWorker::run()
 					if ((is_terminated_) || (ssl_socket->state() == QSslSocket::SocketState::UnconnectedState) || (ssl_socket->state() == QSslSocket::SocketState::ClosingState))
                     {
                         Log::info(EndpointManager::formatResponseMessage(parsed_request, "Range streaming request process has been terminated: " + response.getFilename() + user_info + client_type));
-						streamed_file.data()->close();
+                        streamed_file->close();
 						return;
 					}
 
 					if (pos >= (file_size-1)) break;
-					streamed_file.data()->seek(pos);
+                    streamed_file->seek(pos);
 
 					if ((pos+chunk_size)>(ranges[i].end+1))
 					{
@@ -279,7 +275,7 @@ void RequestWorker::run()
 					}
 
 					if (chunk_size <= 0) break;
-					data = streamed_file.data()->read(chunk_size);
+                    data = streamed_file->read(chunk_size);
 					sendResponseDataPart(ssl_socket, data);
 					pos = pos + data.size();
 				}
@@ -295,17 +291,17 @@ void RequestWorker::run()
 			// Regular stream
 			if (ranges_count == 0)
 			{
-				while(!streamed_file.data()->atEnd())
+                while(!streamed_file->atEnd())
 				{
 					if ((pos > file_size) || (is_terminated_) || (ssl_socket->state() == QSslSocket::SocketState::UnconnectedState) || (ssl_socket->state() == QSslSocket::SocketState::ClosingState))
                     {
                         Log::info(EndpointManager::formatResponseMessage(parsed_request, "Streaming request process has been terminated: " + response.getFilename() + user_info + client_type));
-						streamed_file.data()->close();
+                        streamed_file->close();
 						return;
 					}
 
-					streamed_file.data()->seek(pos);
-					data = streamed_file.data()->read(chunk_size);
+                    streamed_file->seek(pos);
+                    data = streamed_file->read(chunk_size);
 					pos = pos + chunk_size;
 
 					if (transfer_encoding_chunked)
@@ -322,7 +318,7 @@ void RequestWorker::run()
 				}
 			}
 
-			streamed_file.data()->close();
+            streamed_file->close();
 
 			// Should be used for chunked transfer (without content-lenght)
 			if (transfer_encoding_chunked)
@@ -391,12 +387,10 @@ void RequestWorker::closeConnection(QSslSocket* socket)
 	}
 
     if (socket->bytesToWrite()) socket->waitForBytesWritten(5000);
-    socket->disconnect();
-    socket->disconnectFromHost();
     socket->close();
 }
 
-void RequestWorker::sendResponseDataPart(QSslSocket* socket, QByteArray data)
+void RequestWorker::sendResponseDataPart(QSslSocket* socket, const QByteArray& data)
 {
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState)
 	{
@@ -405,7 +399,7 @@ void RequestWorker::sendResponseDataPart(QSslSocket* socket, QByteArray data)
 	}
 }
 
-void RequestWorker::sendEntireResponse(QSslSocket* socket, HttpResponse response)
+void RequestWorker::sendEntireResponse(QSslSocket* socket, const HttpResponse& response)
 {
 	if (response.getStatusCode() > 200) Log::warn("The server returned " + QString::number(response.getStatusCode()) + " - " + HttpUtils::convertResponseStatusToReasonPhrase(response.getStatus()));
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState)

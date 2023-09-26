@@ -13,7 +13,7 @@ TEST_CLASS(VersatileFile_Test)
 	private slots:
 		void test_metadata()
 		{
-			if (!ServerHelper::hasBasicSettings())
+			if (!ServerHelper::hasMinimalSettings())
 			{
 				SKIP("Server has not been configured correctly");
 			}
@@ -28,7 +28,7 @@ TEST_CLASS(VersatileFile_Test)
 
 		void test_readability()
 		{
-			if (!ServerHelper::hasBasicSettings())
+			if (!ServerHelper::hasMinimalSettings())
 			{
 				SKIP("Server has not been configured correctly");
 			}

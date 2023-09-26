@@ -404,7 +404,7 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 		{
 			if (request.getUrlParams()["path"].toLower() == "absolute") needs_url = false;
 		}
-		if ((needs_url) && (file_list[i].exists))
+        if (needs_url)
 		{
 			try
 			{
@@ -452,12 +452,11 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 
 		//access restricted only for user role 'user_restricted'
         QString role = NGSD().getUserRole(current_session.user_id);
-        if (role=="user_restricted" || !NGSD().userCanAccess(current_session.user_id, id))
+        if (role=="user_restricted" && !NGSD().userCanAccess(current_session.user_id, id))
 		{
             return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "You do not have permissions to open this sample"));
-		}
-
-		found_file_path =  NGSD().processedSamplePath(QString::number(id), type);
+        }
+        found_file_path = NGSD().processedSamplePath(QString::number(id), type);
 	}
 	catch (Exception& e)
 	{
@@ -492,15 +491,16 @@ HttpResponse ServerController::getAnalysisJobGSvarFile(const HttpRequest& reques
 	QString found_file_path;
 
 	try
-	{
-		int job_id = request.getUrlParams()["job_id"].toInt();
-		AnalysisJob job = NGSD().analysisInfo(job_id, true);
-		ps_name = NGSD().processedSampleName(NGSD().processedSampleId(job.samples[0].name));
-		found_file_path = NGSD().analysisJobGSvarFile(job_id);
+    {
+        NGSD db;
+        int job_id = request.getUrlParams()["job_id"].toInt();
+        AnalysisJob job = db.analysisInfo(job_id, true);
+        ps_name = db.processedSampleName(db.processedSampleId(job.samples[0].name));
+        found_file_path = db.analysisJobGSvarFile(job_id);
 	}
 	catch (Exception& e)
 	{
-        Log::error("Error while looking for the analysis job GSvar file in NGSD:" + e.message());
+        Log::error("Error while looking for the analysis job GSvar file in NGSD: " + e.message());
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
 	}
 
@@ -561,11 +561,12 @@ HttpResponse ServerController::getAnalysisJobLog(const HttpRequest& request)
 	FileLocation analysis_job_log_file;
 
 	try
-	{
-		int job_id = request.getUrlParams()["job_id"].toInt();
-		AnalysisJob job = NGSD().analysisInfo(job_id, true);
-		QString id = NGSD().processedSampleName(NGSD().processedSampleId(job.samples[0].name));
-		QString log = NGSD().analysisJobLatestLogInfo(job_id).file_name_with_path;
+    {
+        NGSD db;
+        int job_id = request.getUrlParams()["job_id"].toInt();
+        AnalysisJob job = db.analysisInfo(job_id, true);
+        QString id = db.processedSampleName(db.processedSampleId(job.samples[0].name));
+        QString log = db.analysisJobLatestLogInfo(job_id).file_name_with_path;
 
 		analysis_job_log_file = FileLocation(id, PathType::OTHER, createTempUrl(log, request.getUrlParams()["token"]), QFile::exists(log));
 	}
@@ -762,11 +763,11 @@ HttpResponse ServerController::saveQbicFiles(const HttpRequest& request)
 
 HttpResponse ServerController::uploadFile(const HttpRequest& request)
 {	
-	if (!request.getFormDataParams().contains("ps_url_id"))
+    if (!request.getUrlParams().contains("ps_url_id"))
     {
         return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Processed sample id is missing."));
 	}
-	UrlEntity url_entity = UrlManager::getURLById(request.getFormDataParams()["ps_url_id"].trimmed());
+    UrlEntity url_entity = UrlManager::getURLById(request.getUrlParams()["ps_url_id"].trimmed());
 
     return uploadFileToFolder(url_entity.path, request);
 }
@@ -829,6 +830,12 @@ HttpResponse ServerController::calculateLowCoverage(const HttpRequest& request)
 	{
 		bam_file_name = UrlManager::getURLById(request.getFormUrlEncoded()["bam_url_id"]).filename_with_path;
 	}
+
+    if (!QFile(bam_file_name).exists())
+    {
+        return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), EndpointManager::formatResponseMessage(request, "BAM file does not exist: " + bam_file_name));
+    }
+
 	if (request.getFormUrlEncoded().contains("cutoff"))
 	{
 		cutoff = request.getFormUrlEncoded()["cutoff"].toInt();
@@ -851,14 +858,19 @@ HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 	BedFile roi;
 	QString bam_file_name;
 
-	if (request.getFormUrlEncoded().contains("low_cov")) //TODO Alexandr: should be called "roi"
+    if (request.getFormUrlEncoded().contains("roi"))
 	{
-		roi = roi.fromText(request.getFormUrlEncoded()["low_cov"].toUtf8());
+        roi = roi.fromText(request.getFormUrlEncoded()["roi"].toUtf8());
 	}
 	if (request.getFormUrlEncoded().contains("bam_url_id"))
 	{
 		bam_file_name = UrlManager::getURLById(request.getFormUrlEncoded()["bam_url_id"]).filename_with_path;
 	}
+
+    if (!QFile(bam_file_name).exists())
+    {
+        return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), EndpointManager::formatResponseMessage(request, "BAM file does not exist: " + bam_file_name));
+    }
 
 	int threads = Settings::integer("threads");
 	Statistics::avgCoverage(roi, bam_file_name, 1, threads);
@@ -877,20 +889,25 @@ HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 
 HttpResponse ServerController::calculateTargetRegionReadDepth(const HttpRequest& request)
 {
-	BedFile regions;
+    BedFile roi;
 	QString bam_file_name;
 
-	if (request.getFormUrlEncoded().contains("regions"))
+    if (request.getFormUrlEncoded().contains("roi"))
 	{
-		regions = regions.fromText(request.getFormUrlEncoded()["regions"].toUtf8());
+        roi = roi.fromText(request.getFormUrlEncoded()["roi"].toUtf8());
 	}
 	if (request.getFormUrlEncoded().contains("bam_url_id"))
 	{
 		bam_file_name = UrlManager::getURLById(request.getFormUrlEncoded()["bam_url_id"]).filename_with_path;
 	}
 
+    if (!QFile(bam_file_name).exists())
+    {
+        return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), EndpointManager::formatResponseMessage(request, "BAM file does not exist: " + bam_file_name));
+    }
+
 	QString ref_file = Settings::string("reference_genome");
-	QCCollection stats = Statistics::mapping(regions, bam_file_name, ref_file);
+    QCCollection stats = Statistics::mapping(roi, bam_file_name, ref_file);
 
 	for (int i=0; i<stats.count(); ++i)
 	{
@@ -977,9 +994,10 @@ HttpResponse ServerController::performLogin(const HttpRequest& request)
 
 	QString user_name = request.getFormUrlEncoded()["name"];
 	QString message;
+    NGSD db;
 	try
 	{
-		message = NGSD().checkPassword(user_name, request.getFormUrlEncoded()["password"]);
+        message = db.checkPassword(user_name, request.getFormUrlEncoded()["password"]);
 	}
 	catch (Exception& e)
     {
@@ -997,7 +1015,7 @@ HttpResponse ServerController::performLogin(const HttpRequest& request)
     int user_id;
     try
     {
-        user_id = NGSD().userId(user_name);
+        user_id = db.userId(user_name);
     }
     catch(Exception& e)
     {
@@ -1005,7 +1023,21 @@ HttpResponse ServerController::performLogin(const HttpRequest& request)
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
     }
 
-    Session cur_session = Session(user_id, QDateTime::currentDateTime(), false);
+    QString user_login = "unknown";
+    QString user_real_name = "unknown";
+
+    try
+    {
+        user_login = db.userLogin(user_id);
+        user_real_name = db.userName(user_id);
+    }
+    catch (DatabaseException& e)
+    {
+        Log::error(EndpointManager::formatResponseMessage(request, "Database request failed: " + e.message()));
+        return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
+    }
+
+    Session cur_session = Session(user_id, user_login, user_real_name, QDateTime::currentDateTime(), false);
     SessionManager::addNewSession(secure_token, cur_session);
     QByteArray body = secure_token.toUtf8();
 
@@ -1073,9 +1105,9 @@ HttpResponse ServerController::getDbToken(const HttpRequest& request)
 	if (user_session.isEmpty())
     {
         return HttpResponse(ResponseStatus::UNAUTHORIZED, request.getContentType(), EndpointManager::formatResponseMessage(request, "You need to log in first"));
-	}
+    }
 
-	Session cur_session = Session(user_session.user_id, QDateTime::currentDateTime(), true);
+    Session cur_session = Session(user_session.user_id, user_session.user_login, user_session.user_name, QDateTime::currentDateTime(), true);
 	QString db_token = ServerHelper::generateUniqueStr();
 	SessionManager::addNewSession(db_token, cur_session);
 	QByteArray body = db_token.toUtf8();
@@ -1139,6 +1171,7 @@ HttpResponse ServerController::performLogout(const HttpRequest& request)
         return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), EndpointManager::formatResponseMessage(request, "You have provided an invalid token"));
     }
 
+    Session current_session = SessionManager::getSessionBySecureToken(request.getFormUrlEncoded()["token"]);
     try
     {
         SessionManager::removeSession(request.getFormUrlEncoded()["token"]);
@@ -1154,10 +1187,9 @@ HttpResponse ServerController::performLogout(const HttpRequest& request)
     response_data.content_type = request.getContentType();
     response_data.is_downloadable = false;
 
-    Session current_session = SessionManager::getSessionBySecureToken(request.getFormUrlEncoded()["token"]);
     try
     {
-        if (!current_session.isEmpty()) Log::info(EndpointManager::formatResponseMessage(request, "User " + NGSD().userName(current_session.user_id) + " has logged out"));
+        if (!current_session.isEmpty()) Log::info(EndpointManager::formatResponseMessage(request, "User " + current_session.user_login + " (" + current_session.user_name + ") has logged out"));
     }
     catch (Exception& e)
     {
@@ -1275,18 +1307,19 @@ HttpResponse ServerController::getRnaFusionPics(const HttpRequest& request)
 	QString rna_id = request.getUrlParams()["rna_id"];
 	QString ps_id;
 	QString filename;
+    NGSD db;
 	try
 	{
-		ps_id = NGSD().processedSampleId(rna_id);
+        ps_id = db.processedSampleId(rna_id);
 		if (ps_id.isEmpty())
         {
             return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Could not find a processed sample id " + rna_id));
 		}
-		filename = NGSD().processedSamplePath(ps_id, PathType::FUSIONS_PIC_DIR);
+        filename = db.processedSamplePath(ps_id, PathType::FUSIONS_PIC_DIR);
 	}
 	catch(Exception& e)
     {
-        return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Could not get secondary analyses from the database"));
+        return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Could not get secondary analyses from the database: " + e.message()));
 	}
 
 	if (filename.isEmpty())
@@ -1318,18 +1351,19 @@ HttpResponse ServerController::getRnaExpressionPlots(const HttpRequest& request)
 	QString rna_id = request.getUrlParams()["rna_id"];
 	QString ps_id;
 	QString filename;
+    NGSD db;
 	try
 	{
-		ps_id = NGSD().processedSampleId(rna_id);
+        ps_id = db.processedSampleId(rna_id);
 		if (ps_id.isEmpty())
         {
             return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Could not find a processed sample id " + rna_id));
 		}
-		filename = NGSD().processedSamplePath(ps_id, PathType::SAMPLE_FOLDER);
+        filename = db.processedSamplePath(ps_id, PathType::SAMPLE_FOLDER);
 	}
 	catch(Exception& e)
     {
-        return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Could not get secondary analyses from the database"));
+        return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Could not get secondary analyses from the database: " + e.message()));
 	}
 
 	if (filename.isEmpty())
@@ -1442,7 +1476,15 @@ bool ServerController::hasOverlappingRanges(const QList<ByteRange>& ranges)
 QString ServerController::createTempUrl(const QString& file, const QString& token)
 {
 	QString id = ServerHelper::generateUniqueStr();
-	UrlManager::addNewUrl(id, UrlEntity(QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, id, QDateTime::currentDateTime()));
+
+    if (QFileInfo(file).exists())
+    {
+        UrlManager::addNewUrl(id, UrlEntity(QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file, id, QDateTime::currentDateTime()));
+    }
+    else
+    {
+        UrlManager::addNewUrl(id, UrlEntity(file, "", file, id, QDateTime::currentDateTime()));
+    }
 
 	return ClientHelper::serverApiUrl() + "temp/" + id + "/" + QFileInfo(file).fileName() + "?token=" + token;
 }

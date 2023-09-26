@@ -55,8 +55,8 @@ void LoginDialog::checkPassword()
 	{
 		LoginManager::login(user_name, password);
 		accept();
-
-	}  catch (Exception& e)
+    }
+    catch (Exception& e)
 	{
 		showMessage(e.message());
 	}

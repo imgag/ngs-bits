@@ -28,8 +28,8 @@ private:
 	QString intToHex(const int &input);
 
 	void closeConnection(QSslSocket* socket);
-	void sendResponseDataPart(QSslSocket *socket, QByteArray data);
-	void sendEntireResponse(QSslSocket *socket, HttpResponse response);
+    void sendResponseDataPart(QSslSocket *socket, const QByteArray& data);
+    void sendEntireResponse(QSslSocket *socket, const HttpResponse& response);
 
 	QSslConfiguration ssl_configuration_;
 	qintptr socket_;

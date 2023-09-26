@@ -27,6 +27,7 @@ public:
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addInt("compression_level", "Output VCF compression level from 1 (fastest) to 9 (best compression). If unset, an unzipped VCF is written.", true, BGZF_NO_COMPRESSION);
 		addFlag("stream", "Allows to stream the input and output VCF without loading the whole file into memory. Only supported with uncompressed VCF files.");
+		addFlag("right", "Right normalize vcf. Reverse direction and shift indels to the right.");
 
 		changeLog(2020, 8, 12, "Added parameter '-compression_level' for compression level of output vcf files.");
 		changeLog(2016, 06, 24, "Initial implementation.");
@@ -63,7 +64,7 @@ public:
 			Chromosome chr = parts[0];
 			int pos = Helper::toInt(parts[1], "VCF position");
 			Sequence ref = parts[3].toUpper();
-			Sequence alt = parts[4].toUpper();
+			QByteArray alt = parts[4].toUpper();
 
 			//write out multi-allelic variants unchanged
 			if (alt.contains(','))
@@ -72,87 +73,22 @@ public:
 				continue;
 			}
 
-			//write out SNVs unchanged
-			if (ref.length()==1 && alt.length()==1)
+			QList<Sequence> alts;
+			alts.append(alt);
+
+			VcfLine vcf_line = VcfLine(chr, pos, ref, alts);
+
+			if (! getFlag("right"))
 			{
-				writeLine(out_p, parts, pos, ref, alt);
-				continue;
+				vcf_line.leftNormalize(reference, true);
 			}
-
-			//skip all variants starting at first base of chromosome
-			if (pos==1)
-			{
-				writeLine(out_p, parts, pos, ref, alt);
-				continue;
-			}
-
-			//skip SNVs disguised as indels (e.g. ACGT => AXGT)
-			Variant::normalize(pos, ref, alt);
-			if (ref.length()==1 && alt.length()==1)
-			{
-				writeLine(out_p, parts, pos, ref, alt);
-				continue;
-			}
-
-			//skip complex indels (e.g. ACGT => CA)
-			if (ref.length()!=0 && alt.length()!=0)
-			{
-				writeLine(out_p, parts, pos, ref, alt);
-				continue;
-			}
-
-			//left-align INSERTION
-			if (ref.length()==0)
-			{
-				//shift block to the left
-				Sequence block = Variant::minBlock(alt);
-				pos -= block.length();
-				while(pos>0 && reference.seq(chr, pos, block.length())==block)
-				{
-					pos -= block.length();
-				}
-				pos += block.length();
-
-				//prepend prefix base
-				pos -= 1;
-				ref = reference.seq(chr, pos, 1);
-				alt = ref + alt;
-
-				//shift single-base to the left
-				while(ref[0]==alt[alt.count()-1])
-				{
-					pos -= 1;
-					ref = reference.seq(chr, pos, 1);
-					alt = ref + alt.left(alt.length()-1);
-				}
-			}
-
-			//left-align DELETION
 			else
 			{
-				//shift block to the left
-				Sequence block = Variant::minBlock(ref);
-				while(pos>=1 && reference.seq(chr, pos, block.length())==block)
-				{
-					pos -= block.length();
-				}
-				pos += block.length();
-
-				//prepend prefix base
-				pos -= 1;
-				alt = reference.seq(chr, pos, 1);
-				ref = alt + ref;
-
-				//shift single-base to the left
-				while(ref[ref.count()-1]==alt[0])
-				{
-					pos -= 1;
-					alt = reference.seq(chr, pos, 1);
-					ref = alt + ref.left(ref.length()-1);
-				}
+				vcf_line.rightNormalize(reference, true);
 			}
 
-			writeLine(out_p, parts, pos, ref, alt);
+			writeLine(out_p, parts, vcf_line.start(), vcf_line.ref(), vcf_line.alt()[0]); // only one alt value allowed
+
 		}
 	}
 
@@ -196,7 +132,14 @@ public:
 		{
 			VcfFile vcf_file;
 			vcf_file.load(in);
-			vcf_file.leftNormalize(ref_file);
+			if (!getFlag("right"))
+			{
+				vcf_file.leftNormalize(ref_file);
+			}
+			else
+			{
+				vcf_file.rightNormalize(ref_file);
+			}
 			vcf_file.store(out, true, compression_level);
 		}
     }
