@@ -28,6 +28,7 @@ void InputWorker::run()
 	try
 	{
 		job_.clear();
+		job_.lines.reserve(params_.block_size);
 
 		//reading input is done
 		if (reading_done) return;

@@ -120,23 +120,17 @@ public:
 		out << "Output file: \t" << params.out << "\n";
 		out << "Threads: \t" << params.threads << "\n";
 		out << "Block (Chunk) size: \t" << params.block_size << "\n";
-		out << "Parsing transcripts took: " << Helper::elapsedTime(timer) << endl;
 
 		//create coordinator instance
-		out << "Performing annotation" << endl;
-		out << QDateTime::currentDateTime().toString(Qt::ISODate) << "Thread coordinator is started..." << endl;
-
+		out << "Performing annotation..." << endl;
 		ThreadCoordinator* coordinator = new ThreadCoordinator(this, params, meta);
 		connect(coordinator, SIGNAL(finished()), QCoreApplication::instance(), SLOT(quit()));
     }
 
 private:
 
-
-	
-
-
-    QHash<QByteArray,float> read_matrix_5prime(const QByteArray& path) {
+	QHash<QByteArray,float> read_matrix_5prime(const QByteArray& path)
+	{
         QHash<QByteArray,float> result;
         QStringList lines = Helper::loadTextFile(path, true, '#', true);
         foreach(const QString& line, lines){
@@ -150,7 +144,8 @@ private:
         return result;
     }
 
-    QHash<int,QHash<int,float>> read_matrix_3prime(const QByteArray& path) {
+	QHash<int,QHash<int,float>> read_matrix_3prime(const QByteArray& path)
+	{
         QHash<int,QHash<int,float>> result;
         QHash<int,float> current_inner;
         QStringList lines = Helper::loadTextFile(path, true, '#', true);
