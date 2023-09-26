@@ -2,6 +2,7 @@
 #include "ui_SampleDiseaseInfoWidget.h"
 #include "GUIHelper.h"
 #include "PhenotypeSelectionWidget.h"
+#include "OncoTreeSelector.h"
 #include <QMenu>
 #include <QInputDialog>
 #include <QMessageBox>
@@ -62,9 +63,9 @@ void SampleDiseaseInfoWidget::updateDiseaseInfoTable()
 		if (entry.type == "Oncotree code")
 		{
 			bool ok = false;
-			int id = db_.getValue("SELECT id FROM Oncotree_term WHERE oncotree_code='" + disease_info.toUtf8() + "'").toInt(&ok);
+			int id = db_.getValue("SELECT id FROM oncotree_term WHERE oncotree_code='" + disease_info.toUtf8() + "'", true).toInt(&ok);
 
-			disease_info += " (" + (!ok ? "invalid" : db_.getValue("SELECT name FROM oncotree_term WHERE id=" + QString::number(id)).toString());
+			disease_info += " (" + (!ok ? "invalid" : db_.getValue("SELECT name FROM oncotree_term WHERE id=" + QString::number(id)).toString()) + ")";
 		}
 		ui_->disease_info->setItem(i, 0, new QTableWidgetItem(disease_info));
 		ui_->disease_info->setItem(i, 1, new QTableWidgetItem(entry.type));
@@ -96,6 +97,18 @@ void SampleDiseaseInfoWidget::addDiseaseInfo()
 		{
 			tmp.disease_info = pheno.accession();
 			disease_info_ <<  tmp;
+		}
+	}
+	else if (type=="Oncotree code")
+	{
+		OncoTreeSelector* selector = new OncoTreeSelector(this);
+		auto dlg = GUIHelper::createDialog(selector, "Select Oncotree code", "", true);
+		if (dlg->exec()!=QDialog::Accepted) return;
+
+		if (selector->oncotreeCode() != "")
+		{
+			tmp.disease_info = selector->oncotreeCode();
+			disease_info_ << tmp;
 		}
 	}
 	else
