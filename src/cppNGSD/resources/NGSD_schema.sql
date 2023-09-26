@@ -434,7 +434,7 @@ CREATE  TABLE IF NOT EXISTS `sample_disease_info`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `sample_id` INT(11) NOT NULL,
   `disease_info` TEXT NOT NULL,
-  `type` ENUM('HPO term id', 'ICD10 code', 'OMIM disease/phenotype identifier', 'Orpha number', 'CGI cancer type', 'tumor fraction', 'age of onset', 'clinical phenotype (free text)', 'RNA reference tissue') NOT NULL,
+  `type` ENUM('HPO term id', 'ICD10 code', 'OMIM disease/phenotype identifier', 'Orpha number', 'CGI cancer type', 'tumor fraction', 'age of onset', 'clinical phenotype (free text)', 'RNA reference tissue', 'Oncotree code') NOT NULL,
   `user_id` int(11) DEFAULT NULL,
   `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -2372,3 +2372,60 @@ CREATE TABLE IF NOT EXISTS `db_info`
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
+-- -----------------------------------------------------
+-- Table `oncotree_term`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `oncotree_term`
+(
+  `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `oncotree_code` VARCHAR(20) NOT NULL,
+  `name` TEXT NOT NULL,
+  `color` VARCHAR(20),
+  `level` INT UNSIGNED NOT NULL,
+  `UMLS` TEXT,
+  `NCI` TEXT,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `oncotree_code` (`oncotree_code` ASC),
+  INDEX `name` (`name`(100) ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `oncotree_parent`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `oncotree_parent`
+(
+  `parent` INT(10) UNSIGNED NOT NULL,
+  `child` INT(10) UNSIGNED NOT NULL,
+  PRIMARY KEY (`parent`, `child`),
+  INDEX `child` (`child` ASC),
+  CONSTRAINT `oncotree_child_fk`
+    FOREIGN KEY (`child`)
+    REFERENCES `oncotree_term` (`id`),
+  CONSTRAINT `oncotree_parent_fk`
+    FOREIGN KEY (`parent`)
+    REFERENCES `oncotree_term` (`id`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `oncotree_obsolete`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `oncotree_obsolete`
+(
+    `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `oncotree_code` VARCHAR(20) NOT NULL,
+    `reason` VARCHAR(15) NOT NULL,
+    `replaced_by` INT(10) UNSIGNED DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `oncotree_obsolete_idx` (`oncotree_code`,`reason`,`replaced_by` ASC),
+    CONSTRAINT `oncotree_obsolete_fk`
+      FOREIGN KEY (`replaced_by`)
+      REFERENCES `oncotree_term` (`id`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
