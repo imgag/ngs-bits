@@ -36,6 +36,7 @@ ThreadCoordinator::ThreadCoordinator(QObject* parent, Parameters params, MetaDat
 	{
 		read(i);
 	}
+	QTextStream(stdout) << QDateTime::currentDateTime().toString(Qt::ISODate) << "Thread coordinator constructor done!" << endl;
 }
 
 ThreadCoordinator::~ThreadCoordinator()

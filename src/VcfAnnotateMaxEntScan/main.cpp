@@ -4,6 +4,7 @@
 #include <QFile>
 #include <QSharedPointer>
 #include <QThreadPool>
+#include <QDateTime>
 #include "ChunkProcessor.h"
 #include "OutputWorker.h"
 #include "ThreadCoordinator.h"
@@ -79,28 +80,30 @@ public:
 		if (params.in!="" && params.in==params.out) THROW(ArgumentException, "Input and output files must be different when streaming!");
 
         // read in reference genome
+		QTime timer;
+		timer.start();
         QString ref_file = getInfile("ref");
         if (ref_file=="") ref_file = Settings::string("reference_genome", true);
         if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
         FastaFileIndex reference(ref_file);
+		out << "Reading reference took: " << Helper::elapsedTime(timer) << endl;
 
         // read in matrices
-        QHash<QByteArray,float> score5_rest_ = read_matrix_5prime(":/resources/score5_matrix.tsv");
-        QHash<int,QHash<int,float>> score3_rest_ = read_matrix_3prime(":/resources/score3_matrix.tsv");
-
-        // parse GFF file
-		QTextStream stream(stdout);
-		QTime timer;
 		timer.start();
+		QHash<QByteArray,float> score5_rest_ = read_matrix_5prime(":/resources/score5_matrix.tsv");
+        QHash<int,QHash<int,float>> score3_rest_ = read_matrix_3prime(":/resources/score3_matrix.tsv");
+		out << "Parsing matrices from resources took: " << Helper::elapsedTime(timer) << endl;
 
+		// parse GFF file
+		timer.start();
         QString gff_path = getInfile("gff");
         bool all = getFlag("all");
         GffSettings gff_settings;
 		gff_settings.print_to_stdout = true;
 		gff_settings.skip_not_gencode_basic = !all;
 		GffData gff_file = NGSHelper::loadGffFile(gff_path, gff_settings);
-        stream << "Parsed " << QString::number(gff_file.transcripts.count()) << " transcripts from input GFF file." << endl;
-		stream << "Parsing transcripts took: " << Helper::elapsedTime(timer) << endl;
+		out << "Parsed " << QString::number(gff_file.transcripts.count()) << " transcripts from input GFF file." << endl;
+		out << "Parsing transcripts took: " << Helper::elapsedTime(timer) << endl;
         gff_file.transcripts.sortByPosition();
 
 		QByteArrayList annotation_header_lines;
@@ -110,14 +113,19 @@ public:
 			annotation_header_lines.append("##INFO=<ID="+params.tag_swa.toLatin1()+",Number=1,Type=String,Description=\"The MaxEntScan SWA scores. FORMAT: A | separated list of maxentscan_ref_donor&maxentscan_alt_donor&maxentscan_donor_comp&maxentscan_ref_acceptor&maxentscan_alt_acceptor&maxentscan_acceptor_comp&transcript_name items.\">\n");
 		}
 
+		//set up meta data
+		timer.start();
 		MetaData meta(ref_file, gff_file.transcripts, score5_rest_, score3_rest_, annotation_header_lines);
 		out << "Input file: \t" << params.in << "\n";
 		out << "Output file: \t" << params.out << "\n";
 		out << "Threads: \t" << params.threads << "\n";
 		out << "Block (Chunk) size: \t" << params.block_size << "\n";
+		out << "Parsing transcripts took: " << Helper::elapsedTime(timer) << endl;
 
 		//create coordinator instance
 		out << "Performing annotation" << endl;
+		out << QDateTime::currentDateTime().toString(Qt::ISODate) << "Thread coordinator is started..." << endl;
+
 		ThreadCoordinator* coordinator = new ThreadCoordinator(this, params, meta);
 		connect(coordinator, SIGNAL(finished()), QCoreApplication::instance(), SLOT(quit()));
     }
