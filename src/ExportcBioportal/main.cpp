@@ -77,8 +77,6 @@ public:
 			mtb_data.icd10_cataloge = row[idx_icd10_catalog];
 			mtb_data.oncotree_code = row[idx_oncotree_code];
 
-//			qDebug() << "Sample: " << sample_name;
-
 			QStringList processed_samples = db.getValues("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps LEFT JOIN sample s ON s.id = ps.sample_id LEFT JOIN project as p ON ps.project_id = p.id WHERE p.type='diagnostic' AND ps.sample_id = '" + sample_id + "'");
 			foreach(QString tumor_ps, processed_samples)
 			{
@@ -87,8 +85,9 @@ public:
 
 				QString normal_ps = db.normalSample(tumor_id);
 				QString normal_id = db.processedSampleId(normal_ps);
-//				qDebug() << "\tn: " << normal_ps;
+
 				if (normal_ps == "") THROW(ArgumentException, "No normal sample set for tumor: " + tumor_ps);
+				if (normal_ps != row[idx_normal_name]) THROW(ArgumentException, "The set normal sample in NGSD is a different one compared to the given normale sample. Given: " + row[idx_normal_name] + ", in NGSD set: " + normal_ps);
 
 				QString rna_ps = getRnaSample(db, tumor_ps);
 
@@ -119,8 +118,6 @@ public:
 					QString rna_id = db.processedSampleId(rna_ps);
 					files.rna_fusions = db.processedSamplePath(rna_id, PathType::FUSIONS);
 				}
-
-//				qDebug() << files.gsvar_somatic << "\n" << files.gsvar_germline << "\n" << files.clincnv_file << "\n" << files.msi_file << "\n" << files.rna_fusions << "\n";
 
 				VariantList somatic_vl;
 				somatic_vl.load(files.gsvar_somatic);
