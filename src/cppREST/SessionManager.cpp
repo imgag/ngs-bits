@@ -15,20 +15,34 @@ SessionManager& SessionManager::instance()
 	return session_manager;
 }
 
-void SessionManager::saveEverythingToFile()
+void SessionManager::rewriteFile()
 {
 	instance().mutex_.lock();
-	QMapIterator<QString, Session> i(instance().session_store_);
-	QTextStream out(instance().backup_file_.data());
+    instance().backup_file_.data()->close();
 
-	while (i.hasNext())
-	{
-		i.next();
-		if (i.value().user_id > 0)
+    if (instance().backup_file_.data()->remove())
+    {
+        Log::info("Session backup file has been removed");
+        instance().backup_file_ = Helper::openFileForWriting(ServerHelper::getSessionBackupFileName(), false, true);
+
+        QMapIterator<QString, Session> i(instance().session_store_);
+        QTextStream out(instance().backup_file_.data());
+
+        while (i.hasNext())
         {
-            out << i.key() << "\t" << i.value().user_id << "\t" << i.value().user_login << "\t" << i.value().user_name << "\t" << i.value().login_time.toString() << "\t" << i.value().is_for_db_only << "\n";
-		}
-	}
+            i.next();
+            if (i.value().user_id > 0)
+            {
+                out << i.key() << "\t" << i.value().user_id << "\t" << i.value().user_login << "\t" << i.value().user_name << "\t" << i.value().login_time.toSecsSinceEpoch() << "\t" << i.value().is_for_db_only << "\n";
+            }
+        }
+
+    }
+    else
+    {
+        Log::error("Could not remove the session backup file");
+    }
+
 	instance().mutex_.unlock();
 }
 
@@ -64,15 +78,7 @@ void SessionManager::restoreFromFile()
 		Log::info("Number of restored sessions: " + QString::number(restored_items));
 		instance().backup_file_.data()->close();
 
-		instance().backup_file_ = Helper::openFileForWriting(ServerHelper::getSessionBackupFileName(), false, false);
-		QMapIterator<QString, Session> i(instance().session_store_);
-		while (i.hasNext())
-		{
-			i.next();
-			if (isSessionExpired(i.value())) continue;
-			saveSessionToFile(i.key(), i.value());
-		}
-		instance().backup_file_ = Helper::openFileForWriting(ServerHelper::getSessionBackupFileName(), false, true);
+        removeExpiredSessions();
 	}
 	else
 	{
@@ -156,10 +162,15 @@ void SessionManager::removeExpiredSessions()
 		}
 	}
 
+    Log::info("Number of removed sessions: " + QString::number(to_be_removed.length()));
+
 	for (int i = 0; i < to_be_removed.count(); ++i)
 	{
 		removeSession(to_be_removed[i]);
 	}
+
+    //wipe the backup file out and write active sessions
+    rewriteFile();
 }
 
 ClientInfo SessionManager::getCurrentClientInfo()
