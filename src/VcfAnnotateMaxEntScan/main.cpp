@@ -27,14 +27,18 @@ public:
         setDescription("Annotates a VCF file with MaxEntScan scores.");
         addInfile("gff", "Ensembl-style GFF file with transcripts, e.g. from https://ftp.ensembl.org/pub/release-107/gff3/homo_sapiens/Homo_sapiens.GRCh38.107.gff3.gz.", false);
         //optional
-		addOutfile("out", "Output VCF file containing the MaxEntScan scores in the INFO column. Writes to stdout if unset.", true);
+		addOutfile("out", "Output VCF file containing the MaxEntScan scores in the INFO column. If unset, writes to STDOUT.", true);
         addInfile("in", "Input VCF file. If unset, reads from STDIN.", true);
-        addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true);
-		addFlag("all", "If set, all transcripts are imported (the default is to skip transcripts not labeled with the 'GENCODE basic' tag).");
-		addFlag("swa", "Enables sliding window approach of MaxEntScan.");
-		addInt("threads", "The number of threads used to process VCF lines.", true, 1);
+		addFlag("swa", "Enables sliding window approach, i.e. predictions of de-novo acceptor/donor sites.");
+		addFlag("all", "If set, all transcripts are used for annotation (the default is to skip transcripts not labeled with the 'GENCODE basic' tag).");
+		addString("tag", "Info entry name used for native splice site scores.", true, "MES");
+		addString("tag_swa", "Info entry name used for SWA scores.", true, "MES_SWA");
+		addInt("decimals", "Number of decimals of output scores.", true, 2);
+		addFloat("min_score", "Minimum score to report.", true, -1000.0);
+		addInt("threads", "The number of threads used to process VCF line chunk.", true, 1);
 		addInt("block_size", "Number of VCF lines processed in one chunk.", true, 10000);
 		addInt("prefetch", "Maximum number of chunks that may be pre-fetched into memory.", true, 64);
+		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true);
 		addFlag("debug", "Enables debug output (use only with one thread).");
     }
 
@@ -44,8 +48,8 @@ public:
 
 		desc << "This is essentially a multithreaded C++ reimplementation of the MaxEntScan plugin for VEP (https://github.com/Ensembl/VEP_plugins/blob/release/109/MaxEntScan.pm). MaxEntScan was first introduced by Shamsani et al. (https://doi.org/10.1093/bioinformatics/bty960).";
         desc << "Benchmarking of this tool showed that it is up to 10x faster than the VEP plugin when using one thread.";
-        desc << "The standard MES scores are only computed for variants which are close to known splice sites (which are computed from the provided gff file).";
-        desc << "De-novo splice sites can be found by using the MES scores from the sliding window approach (swa).";
+		desc << "The standard MES scores are only computed for variants which are close to known splice sites (which are computed from the provided GFF file).";
+		desc << "De-novo splice sites can be found by using the MES scores from the sliding window approach (SWA).";
 		desc << "Intergenic variants never get a MES scores.";
 
 		return desc;
@@ -58,6 +62,10 @@ public:
 		Parameters params;
 		params.in = getInfile("in");
 		params.out = getOutfile("out");
+		params.tag = getString("tag");
+		params.tag_swa = getString("tag_swa");
+		params.decimals = getInt("decimals");
+		params.min_score = getFloat("min_score");
 		params.threads = getInt("threads");
 		params.prefetch = getInt("prefetch");
 		params.block_size = getInt("block_size");
@@ -96,10 +104,10 @@ public:
         gff_file.transcripts.sortByPosition();
 
 		QByteArrayList annotation_header_lines;
-		annotation_header_lines.append("##INFO=<ID=mes,Number=1,Type=String,Description=\"The MaxEntScan scores. FORMAT: A | separated list of maxentscan_ref&maxentscan_alt&transcript_name items.\">\n");
+		annotation_header_lines.append("##INFO=<ID="+params.tag.toLatin1()+",Number=1,Type=String,Description=\"The MaxEntScan scores. FORMAT: A | separated list of maxentscan_ref&maxentscan_alt&transcript_name items.\">\n");
 		if (params.swa)
 		{
-			annotation_header_lines.append("##INFO=<ID=mes_swa,Number=1,Type=String,Description=\"The MaxEntScan SWA scores. FORMAT: A | separated list of maxentscan_ref_donor&maxentscan_alt_donor&maxentscan_donor_comp&maxentscan_ref_acceptor&maxentscan_alt_acceptor&maxentscan_acceptor_comp&transcript_name items.\">\n");
+			annotation_header_lines.append("##INFO=<ID="+params.tag_swa.toLatin1()+",Number=1,Type=String,Description=\"The MaxEntScan SWA scores. FORMAT: A | separated list of maxentscan_ref_donor&maxentscan_alt_donor&maxentscan_donor_comp&maxentscan_ref_acceptor&maxentscan_alt_acceptor&maxentscan_acceptor_comp&transcript_name items.\">\n");
 		}
 
 		MetaData meta(ref_file, gff_file.transcripts, score5_rest_, score3_rest_, annotation_header_lines);

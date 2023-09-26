@@ -37,6 +37,7 @@ private:
 	QList<float> get_max_score(const Sequence& context, const float& window_size, float (ChunkProcessor::*scorefunc)(const Sequence&));
 	QList<QByteArray> runMES(const Variant& variant, const ChromosomalIndex<TranscriptList>& transcripts, const FastaFileIndex& reference);
 	QList<QByteArray> runSWA(const Variant& variant, const ChromosomalIndex<TranscriptList>& transcripts, const FastaFileIndex& reference);
+	QByteArray format_score(float score);
 
 	AnalysisJob& job_;
 	const MetaData& meta_;

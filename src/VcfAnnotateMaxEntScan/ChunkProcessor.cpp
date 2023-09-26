@@ -86,7 +86,7 @@ int ChunkProcessor::base_to_int(const char base) {
     else if (base == 84){ // T
         return 3;
     } else {
-        THROW (Exception, "Unknown base encountered: " + base)
+		THROW (Exception, "Unknown base encountered: " + QString(base))
     }
 }
 
@@ -236,35 +236,32 @@ QList<QByteArray> ChunkProcessor::runMES(const Variant& variant, const Chromosom
             }
 
 
-            if (overlaps_three_prime) {
+			if (overlaps_three_prime)
+			{
                 // get sequences
                 QList<Sequence> seqs = get_seqs(variant, slice_start_three, slice_end_three, 23, reference, current_transcript);
                 Sequence ref_seq = seqs[0];
                 Sequence alt_seq = seqs[1];
-                if (is_valid_sequence(ref_seq) && is_valid_sequence(alt_seq)) {
+				if (is_valid_sequence(ref_seq) && is_valid_sequence(alt_seq))
+				{
                     // get scores
                     float maxentscan_ref = score_maxent(ref_seq, &ChunkProcessor::score3);
                     float maxentscan_alt = score_maxent(alt_seq, &ChunkProcessor::score3);
-                    // save 
-                    QList<QByteArray> new_mes({QByteArray::number(maxentscan_ref), QByteArray::number(maxentscan_alt), current_transcript.name()});
-                    QByteArray new_mes_string = new_mes.join('&');
-                    all_mes_strings.append(new_mes_string);
+					all_mes_strings.append(format_score(maxentscan_ref)+'&'+format_score(maxentscan_alt)+'&'+current_transcript.name());
                 }
             }
 
-            if (overlaps_five_prime) {
+			if (overlaps_five_prime)
+			{
                 // get sequences
                 QList<Sequence> seqs = get_seqs(variant, slice_start_five, slice_end_five, 9, reference, current_transcript);
                 Sequence ref_seq = seqs[0];
                 Sequence alt_seq = seqs[1];
-                if (is_valid_sequence(ref_seq) && is_valid_sequence(alt_seq)) {
-                    // get scores
+				if (is_valid_sequence(ref_seq) && is_valid_sequence(alt_seq))
+				{
                     float maxentscan_ref = score_maxent(ref_seq, &ChunkProcessor::score5);
                     float maxentscan_alt = score_maxent(alt_seq, &ChunkProcessor::score5);
-                    // save 
-                    QList<QByteArray> new_mes({QByteArray::number(maxentscan_ref), QByteArray::number(maxentscan_alt), current_transcript.name()});
-                    QByteArray new_mes_string = new_mes.join('&');
-                    all_mes_strings.append(new_mes_string);
+					all_mes_strings.append(format_score(maxentscan_ref)+'&'+format_score(maxentscan_alt)+'&'+current_transcript.name());
                 }
             }
         }
@@ -304,9 +301,9 @@ QList<QByteArray> ChunkProcessor::runSWA(const Variant& variant, const Chromosom
             } else {  // take the max ref score
                 donor_comp = max_ref_donor[0];
             }
-            ref_donor = QByteArray::number(max_ref_donor[0]);
-            alt_donor = QByteArray::number(max_alt_donor[0]);
-            comp_donor = QByteArray::number(donor_comp);
+			ref_donor = format_score(max_ref_donor[0]);
+			alt_donor = format_score(max_alt_donor[0]);
+			comp_donor = QByteArray::number(donor_comp, 'f', params_.decimals);
         }
             
         // 3 prime ss / acceptor ss
@@ -329,22 +326,23 @@ QList<QByteArray> ChunkProcessor::runSWA(const Variant& variant, const Chromosom
             } else {  // take the max ref score
                 acceptor_comp = max_ref_acceptor[0];
             }
-            ref_acceptor = QByteArray::number(max_ref_acceptor[0]);
-            alt_acceptor = QByteArray::number(max_alt_acceptor[0]);
-            comp_acceptor = QByteArray::number(acceptor_comp);
+			ref_acceptor = format_score(max_ref_acceptor[0]);
+			alt_acceptor = format_score(max_alt_acceptor[0]);
+			comp_acceptor = QByteArray::number(acceptor_comp, 'f', params_.decimals);
         }
-        // save 
-        QList<QByteArray> new_mes({ref_donor, alt_donor, comp_donor, ref_acceptor, alt_acceptor, comp_acceptor, current_transcript.name()});
-        QByteArray new_mes_string = new_mes.join('&');
-        all_mes_swa_strings.append(new_mes_string);
+		// save
+		all_mes_swa_strings.append(ref_donor+'&'+alt_donor+'&'+comp_donor+'&'+ref_acceptor+'&'+alt_acceptor+'&'+comp_acceptor+'&'+current_transcript.name());
     }
 
-    return all_mes_swa_strings;
+	return all_mes_swa_strings;
 }
 
+QByteArray ChunkProcessor::format_score(float score)
+{
+	if (score<params_.min_score) score = params_.min_score;
 
-
-
+	return QByteArray::number(score, 'f', params_.decimals);
+}
 
 // single chunks are processed
 void ChunkProcessor::run()
@@ -362,15 +360,6 @@ void ChunkProcessor::run()
 
 			if (line.startsWith('#')) //header line
 			{
-				// check if new annotation name already exists in input file
-				//if (line.startsWith("##INFO=<"))
-				//{
-				//	QByteArray id_value = getInfoHeaderValue(line, "mes");
-				//	if (meta_.unique_output_ids.contains(id_value)) THROW(Exception, "INFO name '" + id_value + "' already exists in input file: " + line);
-				//	id_value = getInfoHeaderValue(line, "mes_swa");
-				//	if (meta_.unique_output_ids.contains(id_value)) THROW(Exception, "INFO name '" + id_value + "' already exists in input file: " + line);
-				//}
-
 				//append header line for new annotation
 				if (line.startsWith("#CHROM"))
 				{
@@ -409,7 +398,7 @@ void ChunkProcessor::run()
             	        if (variant.annotations()[0] == ".") {
             	            variant.annotations().removeAt(0);
             	        }
-            	        variant.annotations() << "mes=" + all_mes_strings.join('|');
+						variant.annotations() << params_.tag.toLatin1()+"=" + all_mes_strings.join('|');
             	    }
             	}
 
@@ -419,7 +408,7 @@ void ChunkProcessor::run()
             	        if (variant.annotations()[0] == ".") {
             	            variant.annotations().removeAt(0);
             	        }
-            	        variant.annotations() << "mes_swa=" + all_mes_swa_strings.join('|');
+						variant.annotations() << params_.tag_swa.toLatin1()+"=" + all_mes_swa_strings.join('|');
             	    }
             	}
 

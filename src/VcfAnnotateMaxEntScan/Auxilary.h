@@ -17,6 +17,10 @@ struct Parameters
 {
 	QString in;
 	QString out;
+	QString tag;
+	QString tag_swa;
+	int decimals;
+	float min_score;
 	int prefetch;
 	int threads;
 	int block_size;
