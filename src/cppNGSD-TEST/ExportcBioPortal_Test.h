@@ -9,25 +9,7 @@ private slots:
 
 	void test()
 	{
-
-		StudyData study;
-		study.name = "Test_study";
-		study.description = "A study to test the export";
-		study.identifier = "TEST_STUDY_1";
-		study.reference_genome = "hg38";
-		study.cancer_type = "breast";
-
-		CancerData cancer;
-		cancer.description = "Cancer of the breast";
-		cancer.color = "hot_pink";
-		cancer.parent = "";
-
-
-		//TODO define sample list
-		//TODO generate functional CBioPortalExportSettings ??
-
-//		ExportCBioPortalStudy test(study, /*TODO*/);
-//		test.exportStudy("C:/local_dev/data/cBioPortaltest/");
+		// find a way to simulate the files/structure for samples
 	}
 
 
