@@ -546,7 +546,7 @@ NGSDImportSampleQC.depends = cppNGSD
 
 SUBDIRS += VcfAnnotateMaxEntScan
 tools-TEST.depends += VcfAnnotateMaxEntScan
-NGSDImportSampleQC.depends = cppNGSD
+VcfAnnotateMaxEntScan.depends = cppNGSD
 
 SUBDIRS += SamplePath
 tools-TEST.depends += SamplePath
