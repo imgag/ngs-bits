@@ -9,12 +9,11 @@
 #include <QMutex>
 #include "BigWigReader.h"
 
-ChunkProcessor::ChunkProcessor(AnalysisJob &job, const QByteArray& name, const QByteArray& desc, const QByteArray& bw_filepath, const QString& modus)
+ChunkProcessor::ChunkProcessor(AnalysisJob &job, const QByteArray& name, const QByteArray& bw_filepath, const QString& modus)
 	:QRunnable()
 	, terminate_(false)
 	, job_(job)
 	, name_(name)
-	, desc_(desc)
 	, bw_filepath_(bw_filepath)
 	, bw_reader_(bw_filepath)
 	, modus_(modus)
@@ -41,7 +40,7 @@ void ChunkProcessor::run()
 			//append header line for new annotation
 			if (line.startsWith("#CHROM"))
 			{
-				job_.current_chunk_processed.append("##INFO=<ID=" + name_ + ",Number=1,Type=Float,Description=\"" + desc_ + "\">\n");
+				job_.current_chunk_processed.append("##INFO=<ID=" + name_ + ",Number=1,Type=Float,Description=\"Annotation from " + QFileInfo(bw_filepath_).fileName().toLatin1() + " (mode " + modus_.toLatin1() + ")\">\n");
 			}
 			job_.current_chunk_processed.append(line + "\n");
 			continue;

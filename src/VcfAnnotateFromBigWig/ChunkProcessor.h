@@ -10,7 +10,7 @@ class ChunkProcessor
 		:public QRunnable
 {
 public:
-	ChunkProcessor(AnalysisJob &job, const QByteArray& name, const QByteArray& desc, const QByteArray& bw_filepath, const QString& modus);
+	ChunkProcessor(AnalysisJob &job, const QByteArray& name, const QByteArray& bw_filepath, const QString& modus);
 	void run();
 	QList<float> getAnnotation(const QByteArray& chr, int start, int end, const QByteArray& ref, const QByteArray& alt);
 
@@ -25,7 +25,6 @@ private:
 	bool terminate_;
 	AnalysisJob& job_;
 	const QByteArray name_;
-	const QByteArray desc_;
 	const QByteArray bw_filepath_;
 	BigWigReader bw_reader_;
 	const QString modus_;

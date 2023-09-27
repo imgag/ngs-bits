@@ -206,7 +206,7 @@ public:
 	}
 
 
-	QList<OncotreeCode> parseOncotreeJson(QString oncotree_file, bool debug)
+	QList<OncotreeCode> parseOncotreeJson(QString oncotree_file)
 	{
 		QSharedPointer<QFile> fp = Helper::openFileForReading(oncotree_file);
 		QByteArray content = fp->readAll();
@@ -259,9 +259,8 @@ public:
 		}
 
 
-		QList<OncotreeCode> codes = parseOncotreeJson(getInfile("tree"), debug);
+		QList<OncotreeCode> codes = parseOncotreeJson(getInfile("tree"));
 		importOncotree(db, codes, debug);
-
 	}
 };
 
