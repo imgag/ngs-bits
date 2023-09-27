@@ -15,7 +15,6 @@ SOURCES += main.cpp
 
 include("../app_cli.pri")
 
-
-#include cppNGS library
+#include cppNGSD library
 INCLUDEPATH += $$PWD/../cppNGSD
 LIBS += -L$$PWD/../bin -lcppNGSD

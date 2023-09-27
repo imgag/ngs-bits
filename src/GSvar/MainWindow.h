@@ -17,7 +17,7 @@
 #include "FileLocationProviderRemote.h"
 #include "VersatileTextStream.h"
 #include "Log.h"
-#include "ExportCBioPortalStudy.h"
+
 ///Main window class
 class MainWindow
 		: public QMainWindow

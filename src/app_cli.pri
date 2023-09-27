@@ -20,10 +20,6 @@ LIBS += -L$$PWD/../bin -lcppXML
 INCLUDEPATH += $$PWD/cppNGS
 LIBS += -L$$PWD/../bin -lcppNGS
 
-#include cppNGSD library
-INCLUDEPATH += $$PWD/cppNGSD
-LIBS += -L$$PWD/../bin -lcppNGSD
-
 #include htslib library
 INCLUDEPATH += $$PWD/../htslib/include/
 LIBS += -L$$PWD/../htslib/lib/ -lhts
