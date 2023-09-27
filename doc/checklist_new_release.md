@@ -4,8 +4,8 @@
 1. Update check documentation: `make doc_check_urls doc_find_missing_tools`
 1. Update the changelog in `ngs-bits/README.md`.
 
-	> git diff [last-tag] master src/cppNGSD/resources/NGSD_schema.sql  
-	> git diff [last-tag] master doc/tools/
+	> git diff -w [last-tag] master src/cppNGSD/resources/NGSD_schema.sql  
+	> git diff -w [last-tag] master doc/tools/
  
 
 1. Update the download version in `ngs-bits/README.md`.

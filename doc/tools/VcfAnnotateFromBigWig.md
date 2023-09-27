@@ -1,5 +1,5 @@
 ### VcfAnnotateFromBigWig tool help
-	VcfAnnotateFromBigWig (2021_12-80-g5ff26d8f)
+	VcfAnnotateFromBigWig (2023_06-98-g044e3ed3)
 	
 	Annotates the INFO column of a VCF with data from a bigWig file.
 	
@@ -14,7 +14,6 @@
 	  -in <file>        Input VCF file. If unset, reads from STDIN.
 	  -bw <file>        BigWig file containen the data to be used in the annotation.
 	  -name <string>    Name of the new INFO column.
-	  -desc <string>    Description of the new INFO column.
 	  -mode <enum>      Annotate mode: How the annotation is chosen when multiple bases are affected.
 	                    Valid: 'max,min,avg,none'
 	
@@ -37,7 +36,7 @@
 	  --tdx             Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfAnnotateFromBigWig changelog
-	VcfAnnotateFromBigWig 2021_12-80-g5ff26d8f
+	VcfAnnotateFromBigWig 2023_06-98-g044e3ed3
 	
 	2022-01-14 Initial implementation.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
