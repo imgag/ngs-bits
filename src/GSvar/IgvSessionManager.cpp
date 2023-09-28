@@ -136,6 +136,7 @@ void IgvSessionManager::setIGVInitialized(bool is_initialized, int session_index
 	{
 		instance().mutex_.lock();
 		instance().session_list_[session_index].is_initialized = is_initialized;
+        if (!is_initialized) instance().session_list_[session_index].command_executor.data()->clearHistory();
 		instance().mutex_.unlock();
 	}
 }

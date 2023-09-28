@@ -22,6 +22,7 @@ public:
 
 signals:
     void commandFailed(QString message);
+    void commandReported(QString status);
 
 protected:   
     QString igv_host_;

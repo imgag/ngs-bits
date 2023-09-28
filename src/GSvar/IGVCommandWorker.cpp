@@ -37,13 +37,15 @@ void IGVCommandWorker::run()
             foreach(QString command, commands_)
             {
                 Log::info("Executing IGV command: " + command);
+                emit commandReported(QDateTime::currentDateTime().toString("MMMM d hh:mm:ss") + "\t'" + command + "'\tstarted");
 
                 socket.write((command + "\n").toUtf8());
                 socket.waitForBytesWritten();
                 bool ok = socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)
                 if (!ok)
                 {
-                    emit commandFailed("Could not execute IGV command '");
+                    emit commandFailed("IGV command '" + command + "' timed out");
+                    emit commandReported(QDateTime::currentDateTime().toString("MMMM d hh:mm:ss") + "\t'" + command + "'\ttimed out");
                 }
 
                 answer = socket.readAll().trimmed();
@@ -53,10 +55,12 @@ void IGVCommandWorker::run()
                 if (answer.toLower().startsWith("error") || answer.toLower().startsWith("unkown command"))
                 {
                     emit commandFailed("Could not execute IGV command '" + command + "'.\nAnswer: " + answer + "\nSocket error:" + socket.errorString());
+                    emit commandReported(QDateTime::currentDateTime().toString("MMMM d hh:mm:ss") + "\t'" + command + "'\tfailed");
                 }
                 else
                 {
                     Log::info("'" + command + "' - Done");
+                    emit commandReported(QDateTime::currentDateTime().toString("MMMM d hh:mm:ss") + "\t'" + command + "'\tfinished");
                 }
             }
         }
@@ -66,5 +70,6 @@ void IGVCommandWorker::run()
     catch (...)
     {
         emit commandFailed("Unknown error while executing IGV commands");
+        emit commandReported(QDateTime::currentDateTime().toString("MMMM d hh:mm:ss") + "\t---\tunknown error");
     }
 }

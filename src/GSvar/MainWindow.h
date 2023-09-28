@@ -36,6 +36,8 @@ public:
 
 	/// Gets server API information to make sure ther the server is currently running
 	bool isServerRunning();
+    /// Set normal IGV or virus IGV history buttons visible/invisible
+    void displayIgvHistoryButton(bool visible, int index);
 
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
@@ -430,8 +432,8 @@ public slots:
 	void showMatchingCnvsAndSvs(BedLine region);
 
 
-    void displayNormalIgvMessages();
-    void displayVirusIgvMessages();
+    void displayNormalIgvHistory();
+    void displayVirusIgvHistory();
     ///close the app and logout (if in client-sever mode)
     void closeAndLogout();
 

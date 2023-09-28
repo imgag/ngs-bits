@@ -146,6 +146,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "RefGenomeService.h"
 #include "GHGAUploadDialog.h"
 #include "BurdenTestWidget.h"
+#include "IgvLogWidget.h"
+
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -270,27 +272,21 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.statusBar->addPermanentWidget(notification_label_);	
 	ui_.actionVirusDetection->setEnabled(false);
 
-
-
-    normal_igv_label_->show();
+    normal_igv_label_->hide();
     normal_igv_label_->setScaledContents(true);
     normal_igv_label_->setMaximumSize(16,16);
     normal_igv_label_->setPixmap(QPixmap(":/Icons/igv_message_normal.png"));
+    normal_igv_label_->setToolTip("Show IGV errors");
     ui_.statusBar->addPermanentWidget(normal_igv_label_);
+    connect(normal_igv_label_, SIGNAL(clicked()), this, SLOT(displayNormalIgvHistory()));
 
-
-    connect(normal_igv_label_, SIGNAL(clicked()), this, SLOT(displayNormalIgvMessages()));
-
-
-
-    virus_igv_label_->show();
+    virus_igv_label_->hide();
     virus_igv_label_->setScaledContents(true);
     virus_igv_label_->setMaximumSize(16,16);
     virus_igv_label_->setPixmap(QPixmap(":/Icons/igv_message_virus.png"));
-    ui_.statusBar->addPermanentWidget(virus_igv_label_);
-
-
-    connect(virus_igv_label_, SIGNAL(clicked()), this, SLOT(displayVirusIgvMessages()));
+    virus_igv_label_->setToolTip("Show IGV (viral table) errors");
+    ui_.statusBar->addPermanentWidget(virus_igv_label_);    
+    connect(virus_igv_label_, SIGNAL(clicked()), this, SLOT(displayVirusIgvHistory()));
 
 	//init cache in background thread (it takes about 6 seconds)
 	CacheInitWorker* worker = new CacheInitWorker();
@@ -389,7 +385,34 @@ bool MainWindow::isServerRunning()
 		return false;
 	}
 
-	return true;
+    return true;
+}
+
+void MainWindow::displayIgvHistoryButton(bool visible, int index)
+{
+    if (index==0)
+    {
+        if (visible)
+        {
+            normal_igv_label_->show();
+        }
+        else
+        {
+            normal_igv_label_->hide();
+        }
+    }
+
+    if (index==1)
+    {
+        if (visible)
+        {
+            virus_igv_label_->show();
+        }
+        else
+        {
+            virus_igv_label_->hide();
+        }
+    }
 }
 
 void MainWindow::checkServerAvailability()
@@ -1770,6 +1793,7 @@ void MainWindow::on_actionIgvClear_triggered()
 	executeIGVCommands(commands, false, 0);
 
 	IgvSessionManager::setIGVInitialized(false, 0);
+    displayIgvHistoryButton(false, 0);
 }
 
 void MainWindow::on_actionIgvPort_triggered()
@@ -2773,10 +2797,12 @@ bool MainWindow::igvDialogButtonHandler(IgvDialog& dlg, int session_index)
         {
             prepareAndRunIGVCommands(dlg.filesToLoad(), session_index);
             IgvSessionManager::setIGVInitialized(true, session_index);
+            displayIgvHistoryButton(true, session_index);
         }
         else if (dlg.initializationAction()==IgvDialog::SKIP_SESSION)
         {
             IgvSessionManager::setIGVInitialized(true, session_index);
+            displayIgvHistoryButton(true, session_index);
         }
         else if (dlg.initializationAction()==IgvDialog::SKIP_ONCE)
         {
@@ -3735,8 +3761,10 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 	variants_changed_.clear();
 	cnvs_.clear();
 	svs_.clear();
-	IgvSessionManager::setIGVInitialized(false, true);
-	IgvSessionManager::setIGVInitialized(false, false);
+    IgvSessionManager::setIGVInitialized(false, 0);
+    displayIgvHistoryButton(false, 0);
+    IgvSessionManager::setIGVInitialized(false, 1);
+    displayIgvHistoryButton(false, 1);
 	ui_.vars->clearContents();
 	report_settings_ = ReportSettings();
 	connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
@@ -7117,32 +7145,18 @@ void MainWindow::closeAndLogout()
     close();
 }
 
-void MainWindow::displayNormalIgvMessages()
-{
-    QStringList error_messages = IgvSessionManager::getCommandExecutor(0).data()->getErrorMessages();
-
-    if (!error_messages.isEmpty())
-    {
-        QMessageBox::warning(this, "IGV command execution", "The following errors have occurred:\n" + error_messages.join("\n"));
-    }
-    else
-    {
-        QMessageBox::information(this, "IGV command execution", "No errors");
-    }
+void MainWindow::displayNormalIgvHistory()
+{    
+    IgvLogWidget* widget = new IgvLogWidget(this, 0);
+    auto dlg = GUIHelper::createDialog(widget, "Igv command history");
+    dlg->exec();
 }
 
-void MainWindow::displayVirusIgvMessages()
+void MainWindow::displayVirusIgvHistory()
 {
-    QStringList error_messages = IgvSessionManager::getCommandExecutor(1).data()->getErrorMessages();
-
-    if (!error_messages.isEmpty())
-    {
-        QMessageBox::warning(this, "Virus IGV command execution", "The following errors have occurred:\n" + error_messages.join("\n"));
-    }
-    else
-    {
-        QMessageBox::information(this, "Virus IGV command execution", "No errors");
-    }
+    IgvLogWidget* widget = new IgvLogWidget(this, 1);
+    auto dlg = GUIHelper::createDialog(widget, "Igv command history (virus table)");
+    dlg->exec();
 }
 
 void MainWindow::on_actionVirusDetection_triggered()
@@ -7435,6 +7449,7 @@ void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done,
             QMessageBox::warning(this, "Error while launching IGV", "Unknown error has occurred");
         }
         IgvSessionManager::setIGVInitialized(false, session_index);
+        displayIgvHistoryButton(false, session_index);
         init_if_not_done = true;
     }
 
@@ -7448,6 +7463,7 @@ void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done,
         if (!is_igv_ready) return;
 
         IgvSessionManager::setIGVInitialized(true, session_index);
+        displayIgvHistoryButton(true, session_index);
     }
 
     try

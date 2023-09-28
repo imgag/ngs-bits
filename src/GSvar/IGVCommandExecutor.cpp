@@ -24,6 +24,7 @@ void IGVCommandExecutor::execute(const QStringList& commands)
     if (commands.count() == 1) execution_dealay_ms = 0;
     IGVCommandWorker* command_worker = new IGVCommandWorker(igv_host_, igv_port_, commands, responses_, execution_dealay_ms);
     connect(command_worker, SIGNAL(commandFailed(QString)), this, SLOT(handleExecptions(QString)));
+    connect(command_worker, SIGNAL(commandReported(QString)), this, SLOT(addToHistory(QString)));
     execution_pool_.start(command_worker);
 }
 
@@ -44,9 +45,32 @@ bool IGVCommandExecutor::isIgvRunning()
     return false;
 }
 
+bool IGVCommandExecutor::hasRunningCommands()
+{
+    return (execution_pool_.activeThreadCount()>0);
+}
+
 QStringList IGVCommandExecutor::getErrorMessages()
 {
     return error_messages_;
+}
+
+QStringList IGVCommandExecutor::getHistory()
+{
+    if (execution_pool_.activeThreadCount()>0) return QStringList{};
+    return command_history_;
+}
+
+void IGVCommandExecutor::clearHistory()
+{
+    if (execution_pool_.activeThreadCount()>0) return;
+    command_history_.clear();
+}
+
+void IGVCommandExecutor::addToHistory(QString status)
+{
+    command_history_.append(status);
+    emit historyUpdated(command_history_);
 }
 
 void IGVCommandExecutor::handleExecptions(QString message)
