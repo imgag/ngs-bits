@@ -47,6 +47,7 @@ LIBS += -lz
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 HEADERS += \
+	ExportcBioPortal_Test.h \
 	NGSD_Test.h \
 	FileLocationProvider_Test.h \
 	FileLocation_Test.h \

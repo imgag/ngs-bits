@@ -13,21 +13,32 @@ UrlManager& UrlManager::instance()
 	return url_manager;
 }
 
-void UrlManager::saveEverythingToFile()
+void UrlManager::rewriteFile()
 {
 	instance().mutex_.lock();
-	QMapIterator<QString, UrlEntity> i(instance().url_storage_);
-	QTextStream out(instance().backup_file_.data());
+    instance().backup_file_.data()->close();
+    if (instance().backup_file_.data()->remove())
+    {
+        Log::info("URL backup file has been removed");
+        instance().backup_file_ = Helper::openFileForWriting(ServerHelper::getUrlStorageBackupFileName(), false, true);
 
-	while (i.hasNext())
-	{
-		i.next();
-		if (!i.value().filename.isEmpty())
-		{
-			out << i.key() << "\t" << i.value().filename << "\t" << i.value().path << "\t" << i.value().filename_with_path <<
-				"\t" << i.value().file_id << "\t" << i.value().created.toString() << "\n";
-		}
-	}
+        QMapIterator<QString, UrlEntity> i(instance().url_storage_);
+        QTextStream out(instance().backup_file_.data());
+
+        while (i.hasNext())
+        {
+            i.next();
+            if (!i.value().filename.isEmpty())
+            {
+                out << i.key() << "\t" << i.value().filename << "\t" << i.value().path << "\t" << i.value().filename_with_path <<
+                    "\t" << i.value().file_id << "\t" << i.value().created.toSecsSinceEpoch() << "\n";
+            }
+        }
+    }
+    else
+    {
+        Log::error("Could not remove URL backup file");
+    }
 
 	instance().mutex_.unlock();
 }
@@ -66,15 +77,7 @@ void UrlManager::restoreFromFile()
 		Log::info("Number of restored URLs: " + QString::number(restored_items));
 		instance().backup_file_.data()->close();
 
-		removeExpiredUrls();
-		instance().backup_file_ = Helper::openFileForWriting(ServerHelper::getUrlStorageBackupFileName(), false, false);
-		QMapIterator<QString, UrlEntity> i(instance().url_storage_);
-		while (i.hasNext())
-		{
-			i.next();
-			saveUrlToFile(i.key(), i.value());
-		}
-		instance().backup_file_ = Helper::openFileForWriting(ServerHelper::getUrlStorageBackupFileName(), false, true);
+		removeExpiredUrls();		
 	}
 	else
 	{
@@ -136,15 +139,19 @@ void UrlManager::removeExpiredUrls()
 	QMapIterator<QString, UrlEntity> i(instance().url_storage_);
 	while (i.hasNext()) {
 		i.next();
-		int lifetime = (QDateTime::currentDateTime().toSecsSinceEpoch() - i.value().created.toSecsSinceEpoch()) / 60;		
-		if (lifetime >= url_lifetime)
+        if ((QDateTime::currentDateTime().toSecsSinceEpoch() - i.value().created.toSecsSinceEpoch()) >= url_lifetime)
 		{
 			to_be_removed.append(i.key());
 		}
 	}
 
+    Log::info("Number of removed URLs: " + QString::number(to_be_removed.length()));
+
 	for (int i = 0; i < to_be_removed.count(); ++i)
 	{
 		removeUrl(to_be_removed[i]);
 	}
+
+    //wipe the backup file out and write valid URLs
+    rewriteFile();
 }

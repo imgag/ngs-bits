@@ -89,6 +89,8 @@ public:
 	{
 		return values_[index];
 	}
+	///returns true if a given name (or accession) exists in the collection.
+	bool contains(const QString& name, bool by_accession=false) const;
 	///QC value accessor by name (or accession). If no such value exists, @p ArgumentException in thrown.
 	const QCValue& value(const QString& name, bool by_accession=false) const;
 	///Returns the QC value count.

@@ -1,5 +1,5 @@
 ### NGSDExportStudyGHGA tool help
-	NGSDExportStudyGHGA (2023_03-107-g2a1d2478)
+	NGSDExportStudyGHGA (2023_06-98-g044e3ed3)
 	
 	Exports meta data of a study from NGSD to a JSON format for import into GHGA.
 	
@@ -9,7 +9,7 @@
 	  -out <file>     Output JSON file.
 	
 	Optional parameters:
-	  -test           Test mode: uses the test NGSD, does not calcualte size/checksum of BAMs, ...
+	  -test           Test mode: uses the test NGSD, does not calculate size/checksum of BAMs, ...
 	                  Default value: 'false'
 	
 	Special parameters:
@@ -19,7 +19,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportStudyGHGA changelog
-	NGSDExportStudyGHGA 2023_03-107-g2a1d2478
+	NGSDExportStudyGHGA 2023_06-98-g044e3ed3
 	
 	2023-01-31 Initial implementation (version 0.9.0 of schema).
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

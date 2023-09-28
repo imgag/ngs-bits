@@ -42,7 +42,7 @@ void ChunkProcessor::run()
 			//append header line for new annotation
 			if (line.startsWith("#CHROM"))
 			{
-				job.current_chunk_processed.append("##INFO=<ID=" + name + ",Number=.,Type=String,Description=\"Annotation from " + bed_file_path + " delimited by '" + sep + "'\">\n");
+				job.current_chunk_processed.append("##INFO=<ID=" + name + ",Number=.,Type=String,Description=\"Annotation from " + QFileInfo(bed_file_path).fileName().toLatin1() + " delimited by '" + sep + "'\">\n");
 			}
 			job.current_chunk_processed.append(line + "\n");
 			continue;

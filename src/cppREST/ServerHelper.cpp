@@ -107,7 +107,7 @@ QString ServerHelper::getSessionBackupFileName()
     QString session_file = app_folder.absolutePath() + QDir::separator() + QCoreApplication::applicationName() + "_sessions.txt";
     if (!QFile::exists(session_file))
     {
-        Log::info("Session file does not exist. Creating one: " + session_file);
+        Log::info("Creating a new session backup file: " + session_file);
         Helper::touchFile(session_file);
     }
     return session_file;
@@ -120,7 +120,7 @@ QString ServerHelper::getUrlStorageBackupFileName()
     QString url_file = app_folder.absolutePath() + QDir::separator() + QCoreApplication::applicationName() + "_urls.txt";
     if (!QFile::exists(url_file))
     {
-        Log::info("URL file does not exist. Creating one: " + url_file);
+        Log::info("Creating a new URL backup file: " + url_file);
         Helper::touchFile(url_file);
     }
     return url_file;

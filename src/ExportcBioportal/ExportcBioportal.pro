@@ -5,7 +5,6 @@
 #-------------------------------------------------
 
 TEMPLATE = app
-
 QT       -= gui
 QT       += sql
 CONFIG   += console

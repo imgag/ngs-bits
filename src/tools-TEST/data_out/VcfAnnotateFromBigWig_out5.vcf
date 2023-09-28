@@ -63,7 +63,7 @@
 ##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
 ##PIPELINE=megSAP 0.2-660-g1c2b0c04
 ##SAMPLE=<ID=NA12878_38,Gender=female,ExternalSampleName=Coriell-DNA,IsTumor=no,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=affected>
-##INFO=<ID=PHYLOP,Number=1,Type=Float,Description="phylop_value">
+##INFO=<ID=PHYLOP,Number=1,Type=Float,Description="Annotation from VcfAnnotateFromBigWig_phyloP_chr1_part.bw (mode none)">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878_38
 chr1	10917	.	A	T	23	.	MQM=22;SAP=25;ABP=4	GT:DP:AO:GQ	0/1:24:10:8
 chr1	10918	.	G	C	23	.	MQM=22;SAP=25;ABP=4;PHYLOP=0.064	GT:DP:AO:GQ	0/1:24:10:8

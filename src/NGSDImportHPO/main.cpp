@@ -834,13 +834,16 @@ public:
 			{
 				lineCount++;
 				exactSource = QString("Anno line ") + QString::number(lineCount);
-				QByteArray line =  fp->readLine();
-				QByteArrayList parts =line.split('\t');
 
-				if (parts.count()<7) continue;
+				QByteArrayList parts = fp->readLine().split('\t');
+				if (parts.count()<5) continue;
+				if (parts.count()>5) THROW(FileParseException, "Found line with more than 5 tab-separated parts in " + getInfile("anno") + ". The file might by outdated!");
+				
+				//skip header line
+				if (parts[0]=="hpo_id") continue;
 
 				// parse line
-				QByteArray disease = parts[6].trimmed();
+				QByteArray disease = parts[4].trimmed();
 				QByteArray gene = parts[3].trimmed();
 				QByteArray term_accession = parts[0].trimmed();
 
