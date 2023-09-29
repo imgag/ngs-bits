@@ -273,7 +273,7 @@ class CPPNGSDSHARED_EXPORT ExportCBioPortalStudy
 public:
 	ExportCBioPortalStudy(CBioPortalExportSettings settings, bool test_db);
 
-	void exportStudy(const QString& out_folder);
+	void exportStudy(const QString& out_folder, bool debug);
 
 private:
 	void gatherData();
@@ -283,10 +283,10 @@ private:
 	void exportCaseList(const QString& out_folder);
 	void exportPatientData(const QString& out_folder);
 	void exportSampleData(const QString& out_folder);
-	void exportSnvs(const QString& out_folder);
-	void exportCnvs(const QString& out_folder);
-	void exportSvs(const QString& out_folder);
-	void exportFusions(const QString& out_folder);
+	void exportSnvs(const QString& out_folder, bool debug);
+	void exportCnvs(const QString& out_folder, bool debug);
+	void exportSvs(const QString& out_folder, bool debug);
+	void exportFusions(const QString& out_folder, bool debug);
 	void writeSnvVariants(QSharedPointer<QFile> out_file, VariantList filtered_vl, int sample_idx);
 
 	QByteArray formatVariantClassification(const Transcript& trans, const QByteArray& coding_splicing);
