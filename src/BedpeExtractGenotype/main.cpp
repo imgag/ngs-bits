@@ -59,7 +59,7 @@ public:
 
 			// get genotype/phasing
 			QByteArray phased_genotype = getFormatValue("GT", line, bedpe_file.annotationHeaders());
-			QByteArray phasing_block = getFormatValue("GT", line, bedpe_file.annotationHeaders());
+			QByteArray phasing_block = getFormatValue("PS", line, bedpe_file.annotationHeaders());
 
 			QByteArray phasing_entry;
 			if (phased_genotype.contains("|")) phasing_entry = phased_genotype + " (" + phasing_block + ")";
@@ -103,3 +103,11 @@ private:
 		return line.annotations().at(format_idx + 1).split(':').at(key_idx);
 	}
 };
+
+#include "main.moc"
+
+int main(int argc, char *argv[])
+{
+	ConcreteTool tool(argc, argv);
+	return tool.execute();
+}

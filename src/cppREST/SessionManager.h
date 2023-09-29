@@ -45,7 +45,7 @@ class CPPRESTSHARED_EXPORT SessionManager
 {
 public:
 	static const qint64 DEFAULT_VALID_PERIOD = 3600; // in seconds
-	static void saveEverythingToFile();
+	static void rewriteFile();
 	static void saveSessionToFile(QString id, Session in);
 	static void restoreFromFile();
 	static void addNewSession(QString id, Session in, bool save_to_file = true);
@@ -55,7 +55,7 @@ public:
 	static bool isSessionExpired(QString token);
 
 	static bool isTokenReal(QString token);
-	static void removeExpiredSessions();
+    static void removeExpiredSessions();
 
 	static ClientInfo getCurrentClientInfo();
 	static void setCurrentClientInfo(ClientInfo info);

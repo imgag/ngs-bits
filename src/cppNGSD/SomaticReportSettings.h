@@ -48,7 +48,7 @@ struct CPPNGSDSHARED_EXPORT SomaticReportSettings
 
 
 	///returns variant list according filters and include/exclude report_config settings. Include from settings will overwrite FilterCascade entry
-	static VariantList filterVariants(const VariantList& snvs, const SomaticReportSettings& sett);
+	static VariantList filterVariants(const VariantList& snvs, const SomaticReportSettings& sett, bool throw_errors=true);
 	///returns cnv list according excluded cnvs from somatic report_config settings
 	static CnvList filterCnvs(const CnvList& cnvs, const SomaticReportSettings& sett);
 	///returns list containing germline variants.

@@ -50,7 +50,7 @@ struct CPPRESTSHARED_EXPORT StaticFile
 class CPPRESTSHARED_EXPORT UrlManager
 {
 public:
-	static void saveEverythingToFile();
+	static void rewriteFile();
 	static void saveUrlToFile(QString id, UrlEntity in);
 	static void restoreFromFile();
 	static void addNewUrl(QString id, UrlEntity url_entity, bool save_to_file = true);

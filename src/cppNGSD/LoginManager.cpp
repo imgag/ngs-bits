@@ -216,6 +216,15 @@ QString LoginManager::dbToken()
 void LoginManager::logout()
 {
 	LoginManager& manager = instance();
+
+    if (ClientHelper::isClientServerMode())
+    {
+        HttpHeaders add_headers;
+        add_headers.insert("Accept", "text/plain");
+        add_headers.insert("Content-type", "application/x-www-form-urlencoded");
+        sendPostApiRequest("logout", "token="+manager.userToken(), add_headers);
+    }
+
 	manager.user_login_.clear();
 	manager.user_name_.clear();
 	manager.user_id_ = -1;

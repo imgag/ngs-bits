@@ -120,7 +120,8 @@ SOURCES += main.cpp\
     SplicingWidget.cpp \
     ExpressionGeneWidget.cpp \
     ReportVariantSelectionDialog.cpp \
-    BurdenTestWidget.cpp
+    BurdenTestWidget.cpp \
+    OncoTreeSelector.cpp
 
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
@@ -236,7 +237,8 @@ HEADERS += MainWindow.h \
     SplicingWidget.h \
     ExpressionGeneWidget.h \
     ReportVariantSelectionDialog.h \
-    BurdenTestWidget.h
+    BurdenTestWidget.h \
+    OncoTreeSelector.h
 
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
@@ -336,7 +338,8 @@ FORMS    += MainWindow.ui \
     SplicingWidget.ui \
     ExpressionGeneWidget.ui \
     ReportVariantSelectionDialog.ui \
-    BurdenTestWidget.ui
+    BurdenTestWidget.ui \
+    OncoTreeSelector.ui
 
 include("../app_gui.pri")
 

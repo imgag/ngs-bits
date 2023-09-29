@@ -830,6 +830,12 @@ HttpResponse ServerController::calculateLowCoverage(const HttpRequest& request)
 	{
 		bam_file_name = UrlManager::getURLById(request.getFormUrlEncoded()["bam_url_id"]).filename_with_path;
 	}
+
+    if (!QFile(bam_file_name).exists())
+    {
+        return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), EndpointManager::formatResponseMessage(request, "BAM file does not exist: " + bam_file_name));
+    }
+
 	if (request.getFormUrlEncoded().contains("cutoff"))
 	{
 		cutoff = request.getFormUrlEncoded()["cutoff"].toInt();
@@ -852,14 +858,19 @@ HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 	BedFile roi;
 	QString bam_file_name;
 
-	if (request.getFormUrlEncoded().contains("low_cov")) //TODO Alexandr: should be called "roi"
+    if (request.getFormUrlEncoded().contains("roi"))
 	{
-		roi = roi.fromText(request.getFormUrlEncoded()["low_cov"].toUtf8());
+        roi = roi.fromText(request.getFormUrlEncoded()["roi"].toUtf8());
 	}
 	if (request.getFormUrlEncoded().contains("bam_url_id"))
 	{
 		bam_file_name = UrlManager::getURLById(request.getFormUrlEncoded()["bam_url_id"]).filename_with_path;
 	}
+
+    if (!QFile(bam_file_name).exists())
+    {
+        return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), EndpointManager::formatResponseMessage(request, "BAM file does not exist: " + bam_file_name));
+    }
 
 	int threads = Settings::integer("threads");
 	Statistics::avgCoverage(roi, bam_file_name, 1, threads);
@@ -878,20 +889,25 @@ HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 
 HttpResponse ServerController::calculateTargetRegionReadDepth(const HttpRequest& request)
 {
-	BedFile regions;
+    BedFile roi;
 	QString bam_file_name;
 
-	if (request.getFormUrlEncoded().contains("regions"))
+    if (request.getFormUrlEncoded().contains("roi"))
 	{
-		regions = regions.fromText(request.getFormUrlEncoded()["regions"].toUtf8());
+        roi = roi.fromText(request.getFormUrlEncoded()["roi"].toUtf8());
 	}
 	if (request.getFormUrlEncoded().contains("bam_url_id"))
 	{
 		bam_file_name = UrlManager::getURLById(request.getFormUrlEncoded()["bam_url_id"]).filename_with_path;
 	}
 
+    if (!QFile(bam_file_name).exists())
+    {
+        return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), EndpointManager::formatResponseMessage(request, "BAM file does not exist: " + bam_file_name));
+    }
+
 	QString ref_file = Settings::string("reference_genome");
-	QCCollection stats = Statistics::mapping(regions, bam_file_name, ref_file);
+    QCCollection stats = Statistics::mapping(roi, bam_file_name, ref_file);
 
 	for (int i=0; i<stats.count(); ++i)
 	{

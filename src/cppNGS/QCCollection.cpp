@@ -163,6 +163,22 @@ void QCCollection::insert(const QCCollection& collection)
 	}
 }
 
+bool QCCollection::contains(const QString& name, bool by_accession) const
+{
+	for (int i=0; i<count(); ++i)
+	{
+		if (!by_accession && values_[i].name()==name)
+		{
+			return true;
+		}
+		else if (by_accession && values_[i].accession()==name)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 const QCValue& QCCollection::value(const QString& name, bool by_accession) const
 {
 	for (int i=0; i<count(); ++i)

@@ -147,6 +147,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "RefGenomeService.h"
 #include "GHGAUploadDialog.h"
 #include "BurdenTestWidget.h"
+
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -209,7 +210,8 @@ MainWindow::MainWindow(QWidget *parent)
 	cfdna_menu_btn_->setEnabled(false);
 
 	//signals and slots
-	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(close()));
+    connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(closeAndLogout()));
+
 	connect(ui_.filters, SIGNAL(filtersChanged()), this, SLOT(refreshVariantTable()));
 	connect(ui_.vars, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
 	connect(ui_.vars, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(variantCellDoubleClicked(int, int)));
@@ -1548,11 +1550,13 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahott1a1")
 	{
-	}
 
+	}
 
 	qDebug() << "Elapsed time debugging:" << Helper::elapsedTime(timer, true);
 }
+
+
 
 void MainWindow::on_actionConvertVcfToGSvar_triggered()
 {
@@ -3720,6 +3724,7 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 		//load variants
 		timer.restart();
 		variants_.load(filename);
+
 		Log::perf("Loading small variant list took ", timer);
 		QString mode_title = "";
 		if (Helper::isHttpUrl(filename))
@@ -6761,6 +6766,9 @@ void MainWindow::closeEvent(QCloseEvent* event)
 	//unload the data
 	loadFile();
 
+    //close user session on the server
+    if (ClientHelper::isClientServerMode()) performLogout();
+
 	//here one could cancel closing the window by calling event->ignore()
 
 	event->accept();
@@ -7066,8 +7074,14 @@ void MainWindow::showMatchingCnvsAndSvs(BedLine v_reg)
 	}
 	catch(Exception& e)
 	{
-		GUIHelper::showException(this, e, "Showing matching CNVs and SVs failed!");
-	}
+        GUIHelper::showException(this, e, "Showing matching CNVs and SVs failed!");
+    }
+}
+
+void MainWindow::closeAndLogout()
+{
+    if (ClientHelper::isClientServerMode()) performLogout();
+    close();
 }
 
 void MainWindow::on_actionVirusDetection_triggered()
@@ -8105,7 +8119,14 @@ QString MainWindow::getFileSelectionItem(QString window_title, QString label_tex
 		return "";
 	}
 
-	return selected_file_name;
+    return selected_file_name;
+}
+
+void MainWindow::performLogout()
+{
+    if (!LoginManager::active()) return;
+
+    LoginManager::logout();
 }
 
 

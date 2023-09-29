@@ -4,6 +4,7 @@
 #include <QFile>
 #include <QSharedPointer>
 #include <QThreadPool>
+#include <QDateTime>
 #include "ChunkProcessor.h"
 #include "OutputWorker.h"
 #include "ThreadCoordinator.h"
@@ -27,14 +28,18 @@ public:
         setDescription("Annotates a VCF file with MaxEntScan scores.");
         addInfile("gff", "Ensembl-style GFF file with transcripts, e.g. from https://ftp.ensembl.org/pub/release-107/gff3/homo_sapiens/Homo_sapiens.GRCh38.107.gff3.gz.", false);
         //optional
-		addOutfile("out", "Output VCF file containing the MaxEntScan scores in the INFO column. Writes to stdout if unset.", true);
+		addOutfile("out", "Output VCF file containing the MaxEntScan scores in the INFO column. If unset, writes to STDOUT.", true);
         addInfile("in", "Input VCF file. If unset, reads from STDIN.", true);
-        addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true);
-		addFlag("all", "If set, all transcripts are imported (the default is to skip transcripts not labeled with the 'GENCODE basic' tag).");
-		addFlag("swa", "Enables sliding window approach of MaxEntScan.");
-		addInt("threads", "The number of threads used to process VCF lines.", true, 1);
+		addFlag("swa", "Enables sliding window approach, i.e. predictions of de-novo acceptor/donor sites.");
+		addFlag("all", "If set, all transcripts are used for annotation (the default is to skip transcripts not labeled with the 'GENCODE basic' tag).");
+		addString("tag", "Info entry name used for native splice site scores.", true, "MES");
+		addString("tag_swa", "Info entry name used for SWA scores.", true, "MES_SWA");
+		addInt("decimals", "Number of decimals of output scores.", true, 2);
+		addFloat("min_score", "Minimum score to report.", true, -1000.0);
+		addInt("threads", "The number of threads used to process VCF line chunk.", true, 1);
 		addInt("block_size", "Number of VCF lines processed in one chunk.", true, 10000);
 		addInt("prefetch", "Maximum number of chunks that may be pre-fetched into memory.", true, 64);
+		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true);
 		addFlag("debug", "Enables debug output (use only with one thread).");
     }
 
@@ -44,8 +49,8 @@ public:
 
 		desc << "This is essentially a multithreaded C++ reimplementation of the MaxEntScan plugin for VEP (https://github.com/Ensembl/VEP_plugins/blob/release/109/MaxEntScan.pm). MaxEntScan was first introduced by Shamsani et al. (https://doi.org/10.1093/bioinformatics/bty960).";
         desc << "Benchmarking of this tool showed that it is up to 10x faster than the VEP plugin when using one thread.";
-        desc << "The standard MES scores are only computed for variants which are close to known splice sites (which are computed from the provided gff file).";
-        desc << "De-novo splice sites can be found by using the MES scores from the sliding window approach (swa).";
+		desc << "The standard MES scores are only computed for variants which are close to known splice sites (which are computed from the provided GFF file).";
+		desc << "De-novo splice sites can be found by using the MES scores from the sliding window approach (SWA).";
 		desc << "Intergenic variants never get a MES scores.";
 
 		return desc;
@@ -58,6 +63,10 @@ public:
 		Parameters params;
 		params.in = getInfile("in");
 		params.out = getOutfile("out");
+		params.tag = getString("tag");
+		params.tag_swa = getString("tag_swa");
+		params.decimals = getInt("decimals");
+		params.min_score = getFloat("min_score");
 		params.threads = getInt("threads");
 		params.prefetch = getInt("prefetch");
 		params.block_size = getInt("block_size");
@@ -71,37 +80,41 @@ public:
 		if (params.in!="" && params.in==params.out) THROW(ArgumentException, "Input and output files must be different when streaming!");
 
         // read in reference genome
+		QTime timer;
+		timer.start();
         QString ref_file = getInfile("ref");
         if (ref_file=="") ref_file = Settings::string("reference_genome", true);
         if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
         FastaFileIndex reference(ref_file);
+		out << "Reading reference took: " << Helper::elapsedTime(timer) << endl;
 
         // read in matrices
-        QHash<QByteArray,float> score5_rest_ = read_matrix_5prime(":/resources/score5_matrix.tsv");
-        QHash<int,QHash<int,float>> score3_rest_ = read_matrix_3prime(":/resources/score3_matrix.tsv");
-
-        // parse GFF file
-		QTextStream stream(stdout);
-		QTime timer;
 		timer.start();
+		QHash<QByteArray,float> score5_rest_ = read_matrix_5prime(":/resources/score5_matrix.tsv");
+        QHash<int,QHash<int,float>> score3_rest_ = read_matrix_3prime(":/resources/score3_matrix.tsv");
+		out << "Parsing matrices from resources took: " << Helper::elapsedTime(timer) << endl;
 
+		// parse GFF file
+		timer.start();
         QString gff_path = getInfile("gff");
         bool all = getFlag("all");
         GffSettings gff_settings;
 		gff_settings.print_to_stdout = true;
 		gff_settings.skip_not_gencode_basic = !all;
 		GffData gff_file = NGSHelper::loadGffFile(gff_path, gff_settings);
-        stream << "Parsed " << QString::number(gff_file.transcripts.count()) << " transcripts from input GFF file." << endl;
-		stream << "Parsing transcripts took: " << Helper::elapsedTime(timer) << endl;
+		out << "Parsed " << QString::number(gff_file.transcripts.count()) << " transcripts from input GFF file." << endl;
+		out << "Parsing transcripts took: " << Helper::elapsedTime(timer) << endl;
         gff_file.transcripts.sortByPosition();
 
 		QByteArrayList annotation_header_lines;
-		annotation_header_lines.append("##INFO=<ID=mes,Number=1,Type=String,Description=\"The MaxEntScan scores. FORMAT: A | separated list of maxentscan_ref&maxentscan_alt&transcript_name items.\">\n");
+		annotation_header_lines.append("##INFO=<ID="+params.tag.toLatin1()+",Number=1,Type=String,Description=\"The MaxEntScan scores. FORMAT: A | separated list of maxentscan_ref&maxentscan_alt&transcript_name items.\">\n");
 		if (params.swa)
 		{
-			annotation_header_lines.append("##INFO=<ID=mes_swa,Number=1,Type=String,Description=\"The MaxEntScan SWA scores. FORMAT: A | separated list of maxentscan_ref_donor&maxentscan_alt_donor&maxentscan_donor_comp&maxentscan_ref_acceptor&maxentscan_alt_acceptor&maxentscan_acceptor_comp&transcript_name items.\">\n");
+			annotation_header_lines.append("##INFO=<ID="+params.tag_swa.toLatin1()+",Number=1,Type=String,Description=\"The MaxEntScan SWA scores. FORMAT: A | separated list of maxentscan_ref_donor&maxentscan_alt_donor&maxentscan_donor_comp&maxentscan_ref_acceptor&maxentscan_alt_acceptor&maxentscan_acceptor_comp&transcript_name items.\">\n");
 		}
 
+		//set up meta data
+		timer.start();
 		MetaData meta(ref_file, gff_file.transcripts, score5_rest_, score3_rest_, annotation_header_lines);
 		out << "Input file: \t" << params.in << "\n";
 		out << "Output file: \t" << params.out << "\n";
@@ -109,18 +122,15 @@ public:
 		out << "Block (Chunk) size: \t" << params.block_size << "\n";
 
 		//create coordinator instance
-		out << "Performing annotation" << endl;
+		out << "Performing annotation..." << endl;
 		ThreadCoordinator* coordinator = new ThreadCoordinator(this, params, meta);
 		connect(coordinator, SIGNAL(finished()), QCoreApplication::instance(), SLOT(quit()));
     }
 
 private:
 
-
-	
-
-
-    QHash<QByteArray,float> read_matrix_5prime(const QByteArray& path) {
+	QHash<QByteArray,float> read_matrix_5prime(const QByteArray& path)
+	{
         QHash<QByteArray,float> result;
         QStringList lines = Helper::loadTextFile(path, true, '#', true);
         foreach(const QString& line, lines){
@@ -134,7 +144,8 @@ private:
         return result;
     }
 
-    QHash<int,QHash<int,float>> read_matrix_3prime(const QByteArray& path) {
+	QHash<int,QHash<int,float>> read_matrix_3prime(const QByteArray& path)
+	{
         QHash<int,QHash<int,float>> result;
         QHash<int,float> current_inner;
         QStringList lines = Helper::loadTextFile(path, true, '#', true);

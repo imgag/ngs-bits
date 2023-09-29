@@ -6,12 +6,12 @@ TEST_CLASS(VcfAnnotateMaxEntScan_Test)
 Q_OBJECT
 private slots:
 	
-	void default_parameters()
+	void with_tags_decimals_minscore()
 	{
         QString ref_file = Settings::string("reference_genome", true);
         if (ref_file=="") SKIP("Test needs the reference genome!");
 
-		EXECUTE("VcfAnnotateMaxEntScan", "-in " + TESTDATA("data_in/VcfAnnotateMaxEntScan_in1.vcf") + " -out out/VcfAnnotateMaxEntScan_out1.vcf" + " -gff " + TESTDATA("data_in/VcfAnnotateMaxEntScan_transcripts.gff3") + " -swa");
+		EXECUTE("VcfAnnotateMaxEntScan", "-in " + TESTDATA("data_in/VcfAnnotateMaxEntScan_in1.vcf") + " -out out/VcfAnnotateMaxEntScan_out1.vcf" + " -gff " + TESTDATA("data_in/VcfAnnotateMaxEntScan_transcripts.gff3") + " -swa -tag mes -tag_swa mes_swa -min_score 0 -decimals 1");
 		COMPARE_FILES("out/VcfAnnotateMaxEntScan_out1.vcf", TESTDATA("data_out/VcfAnnotateMaxEntScan_out1.vcf"));
 		VCF_IS_VALID("out/VcfAnnotateMaxEntScan_out1.vcf");
 	}

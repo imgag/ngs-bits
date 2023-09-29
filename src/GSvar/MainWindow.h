@@ -17,6 +17,7 @@
 #include "FileLocationProviderRemote.h"
 #include "VersatileTextStream.h"
 #include "Log.h"
+
 ///Main window class
 class MainWindow
 		: public QMainWindow
@@ -423,6 +424,9 @@ public slots:
 	//Show matching CNVs and SVs
 	void showMatchingCnvsAndSvs(BedLine region);
 
+    ///close the app and logout (if in client-sever mode)
+    void closeAndLogout();
+
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
 	virtual void dropEvent(QDropEvent* e);
@@ -433,6 +437,8 @@ protected:
 	/// the list visible to the user will contain only file names (not entire URLs). It makes the
 	/// list easier to read and saves some screen real estate
 	QString getFileSelectionItem(QString window_title, QString label_text, QStringList file_list, bool *ok);
+    /// Removes a user's session on the server (in client-server mode)
+    void performLogout();
 
 private:
 	//GUI
@@ -489,8 +495,10 @@ private:
 	//SPECIAL
 	DelayedInitializationTimer init_timer_;
 	QString displayed_maintenance_message_id_;
+
     //current server version (if in client-server mode)
     QString server_version_;
+
 };
 
 #endif // MAINWINDOW_H
