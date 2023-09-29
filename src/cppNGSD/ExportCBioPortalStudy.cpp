@@ -328,7 +328,7 @@ void ExportCBioPortalStudy::gatherData()
 
 }
 
-void ExportCBioPortalStudy::exportStudy(const QString& out_folder)
+void ExportCBioPortalStudy::exportStudy(const QString& out_folder, bool debug)
 {
 	QDir folder(out_folder);
 	if (! folder.exists())
@@ -341,11 +341,11 @@ void ExportCBioPortalStudy::exportStudy(const QString& out_folder)
 	exportPatientData(out_folder);
 	exportSampleData(out_folder);
 	qDebug() << "Exporting SNVs.";
-	exportSnvs(out_folder);
+	exportSnvs(out_folder, debug);
 	qDebug() << "Exporting CNVs.";
-	exportCnvs(out_folder);
+	exportCnvs(out_folder, debug);
 	qDebug() << "Exporting Fusion.";
-	exportFusions(out_folder);
+	exportFusions(out_folder, debug);
 //	exportSvs(out_folder);
 	qDebug() << "Exporting Caselists.";
 	exportCaseList(out_folder);
@@ -549,8 +549,9 @@ void ExportCBioPortalStudy::exportSampleData(const QString &out_folder)
 	}
 }
 
-void ExportCBioPortalStudy::exportSnvs(const QString& out_folder)
+void ExportCBioPortalStudy::exportSnvs(const QString& out_folder, bool debug)
 {
+	QTextStream out(stdout);
 	MetaFile meta_snv_file;
 	meta_snv_file.addValue("cancer_study_identifier", settings_.study.identifier);
 	meta_snv_file.addValue("genetic_alteration_type", "MUTATION_EXTENDED");
@@ -575,11 +576,26 @@ void ExportCBioPortalStudy::exportSnvs(const QString& out_folder)
 	out_file->write(columns.join("\t") + "\n");
 	for(int idx=0; idx < settings_.sample_list.count(); idx++)
 	{
-		qDebug() << "SNV sample: " << settings_.sample_list[idx];
+		if(debug)
+		{
+			out << "exporting SNVs sample: " << settings_.sample_list[idx];
+		}
 		VariantList vl_somatic;
 		vl_somatic.load(settings_.sample_files[idx].gsvar_somatic);
+
 		//filter
-		vl_somatic = SomaticReportSettings::filterVariants(vl_somatic, settings_.report_settings[idx]);
+		bool throw_errors = false;
+		vl_somatic = SomaticReportSettings::filterVariants(vl_somatic, settings_.report_settings[idx], throw_errors);
+		if (debug)
+		{
+			out << " - Errors When filtering:";
+			for (int i=0;i<settings_.report_settings[idx].filters.count(); i++ ) {
+				out << settings_.report_settings[idx].filters.errors(i).join("; ");
+			}
+			out << "\n";
+			out.flush();
+		}
+
 
 		writeSnvVariants(out_file, vl_somatic, idx);
 	}
@@ -689,7 +705,7 @@ void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, Var
 	}
 }
 
-void ExportCBioPortalStudy::exportCnvs(const QString& out_folder)
+void ExportCBioPortalStudy::exportCnvs(const QString& out_folder, bool debug)
 {
 	MetaFile meta_cnv;
 	meta_cnv.addValue("cancer_study_identifier", settings_.study.identifier);
@@ -703,7 +719,7 @@ void ExportCBioPortalStudy::exportCnvs(const QString& out_folder)
 	meta_cnv.addValue("data_filename", "data_CNV.txt");
 	meta_cnv.store(out_folder + "/meta_CNV.txt");
 
-
+	QTextStream out(stdout);
 	QSharedPointer<QFile> out_file = Helper::openFileForWriting(out_folder + "/data_CNV.txt");
 
 	QByteArrayList columns;
@@ -715,7 +731,10 @@ void ExportCBioPortalStudy::exportCnvs(const QString& out_folder)
 
 	for(int idx=0; idx < settings_.sample_list.count(); idx++)
 	{
-		qDebug() << "CNV sample: " << settings_.sample_list[idx];
+		if (debug)
+		{
+			out << "CNV sample: " << settings_.sample_list[idx] << "\n";
+		}
 		columns << settings_.getSampleId(idx).toUtf8();
 
 		CnvList cnvs;
@@ -757,8 +776,10 @@ void ExportCBioPortalStudy::exportCnvs(const QString& out_folder)
 
 			}
 		}
-
-		qDebug() << settings_.getSampleId(idx) << ": found genes with CNVs - " << data[idx].count();
+		if (debug)
+		{
+			out << settings_.getSampleId(idx) << ": found genes with CNVs - " << data[idx].count() << "\n";
+		}
 	}
 
 	out_file->write(columns.join("\t") + "\n");
@@ -784,7 +805,7 @@ void ExportCBioPortalStudy::exportCnvs(const QString& out_folder)
 	}
 }
 
-void ExportCBioPortalStudy::exportSvs(const QString& out_folder)
+void ExportCBioPortalStudy::exportSvs(const QString& out_folder, bool debug)
 {
 	MetaFile meta_svs;
 	meta_svs.addValue("cancer_study_identifier", settings_.study.identifier);
@@ -901,7 +922,7 @@ void ExportCBioPortalStudy::exportSvs(const QString& out_folder)
 }
 
 
-void ExportCBioPortalStudy::exportFusions(const QString& out_folder)
+void ExportCBioPortalStudy::exportFusions(const QString& out_folder, bool debug)
 {
 	MetaFile meta_svs;
 	meta_svs.addValue("cancer_study_identifier", settings_.study.identifier);

@@ -27,6 +27,7 @@ public:
 		addInfile("attribute_data", "Input TSV file with Infos about the sample attributes that should be contained in the study.", false);
 		addString("out", "Output folder that will contain all files for the cBioPortal study.", false);
 		addFlag("test", "Uses the test database instead of on the production database.");
+		addFlag("debug", "Provide additional debug output on stdout.");
 	}
 
 	virtual void main()
@@ -143,10 +144,8 @@ public:
 			}
 		}
 
-		ExportCBioPortalStudy exportStudy(export_settings, false);
-		exportStudy.exportStudy(getString("out") + "/" + study.identifier + "/");
-
-		//TODO compare to Mainwindow export helper
+		ExportCBioPortalStudy exportStudy(export_settings, getFlag("test"));
+		exportStudy.exportStudy(getString("out") + "/" + study.identifier + "/", getFlag("debug"));
 	}
 
 	QString getRnaSample(NGSD& db, QString tumor)
