@@ -38,7 +38,7 @@ The main columns in the GSvar format are:
 
 * *chr*: Chromosome the variant is located on.
 * *start*: Start position of the variant on the chromosome. For insertions, the position of the base before the insertion is shown.
-* *end*: End position of the the variant on the chromosome. For insertions, the position of the base before the insertion is shown.
+* *end*: End position of the variant on the chromosome. For insertions, the position of the base before the insertion is shown.
 * *ref*: Reference bases in the reference genome at the variant position. `-` in case of an insertion.
 * *obs*: Alternate bases observed in the sample. `-` in case of an deletion.
 * *filter*: Filter columns with entries according to `##FILTER`headers.

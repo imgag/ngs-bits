@@ -126,6 +126,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [VcfAnnotateFromBigWig](doc/tools/VcfAnnotateFromBigWig.md) - Annotates the INFO column of a VCF with data from a BED file.
 * [VcfAnnotateFromVcf](doc/tools/VcfAnnotateFromVcf/index.md) - Annotates a VCF file with data from one or more source VCF files.
 * [VcfAnnotateHexplorer](doc/tools/VcfAnnotateHexplorer.md) - Annotates a VCF with Hexplorer and HBond scores.
+* [VcfAnnotateMaxEntScan](doc/tools/VcfAnnotateMaxEntScan.md) - Annotates a VCF file with MaxEntScan scores.
 * [VcfBreakMulti](doc/tools/VcfBreakMulti.md) - Breaks multi-allelic variants into several lines, making sure that allele-specific INFO/SAMPLE fields are still valid.
 * [VcfCalculatePRS](doc/tools/VcfCalculatePRS.md) - Calculates the Polgenic Risk Score(s) for a sample.
 * [VcfCheck](doc/tools/VcfCheck.md) - Checks a VCF file for errors.

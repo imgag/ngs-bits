@@ -687,7 +687,7 @@ public:
 	QStringList getEnum(QString table, QString column) const;
 	///Checks if a table exists.
 	bool tableExists(QString table, bool throw_error_if_not_existing=true) const;
-	///Checks if a row the the given id exists in the table.
+	///Checks if a row the given id exists in the table.
 	bool rowExists(QString table, int id) const;
 	///Checks if a table is empty.
 	bool tableEmpty(QString table) const;
@@ -709,13 +709,13 @@ public:
 	QByteArray geneSymbol(int id);
 	///Returns the HGNC identifier of a gene.
 	QByteArray geneHgncId(int id);
-	///Returns the the approved gene symbol or "" if it could not be determined.
+	///Returns the approved gene symbol or "" if it could not be determined.
 	QByteArray geneToApproved(QByteArray gene, bool return_input_when_unconvertable=false);
-	///Returns the the approved gene symbols.
+	///Returns the approved gene symbols.
 	GeneSet genesToApproved(GeneSet genes, bool return_input_when_unconvertable=false);
-	///Returns the the approved/original gene symbol and a status message.
+	///Returns the approved/original gene symbol and a status message.
 	QPair<QString, QString> geneToApprovedWithMessage(const QString& gene);
-	///Returns the the approved/original gene symbol and a status message - if ambugous several pairs are returned.
+	///Returns the approved/original gene symbol and a status message - if ambugous several pairs are returned.
 	QList<QPair<QByteArray, QByteArray>> geneToApprovedWithMessageAndAmbiguous(const QByteArray& gene);
 	///Returns previous symbols of a gene.
 	GeneSet previousSymbols(int id);

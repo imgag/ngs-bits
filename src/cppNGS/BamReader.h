@@ -182,7 +182,7 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		Sequence bases() const;
 		//Sets the sequence bases.
 		void setBases(const Sequence& bases);
-		//Returns the the n-th base.
+		//Returns the n-th base.
 		char base(int n) const
 		{
 			return seq_nt16_str[bam_seqi(bam_get_seq(aln_), n)];
