@@ -340,10 +340,11 @@ QByteArray ChunkProcessor::format_score(float score)
 // single chunks are processed
 void ChunkProcessor::run()
 {
+	QRegExp base_regexp("[ACGT]*");
 	ChromosomalIndex<TranscriptList> transcript_index(meta_.transcripts);
+	Variant variant;
 	try
 	{
-
 		//process data
 		QList<QByteArray> lines_new;
 		lines_new.reserve(job_.lines.size());
@@ -372,31 +373,31 @@ void ChunkProcessor::run()
 				Sequence alt = parts[4].toUpper();
             	int start = atoi(parts[1]);
             	int end = start + ref.length() - 1;
-            	QList<QByteArray> info = parts[7].split(';');
+				QByteArray& info = parts[7];
 
-				Variant variant(chr, start, end, ref, alt, info);
+				variant = Variant(chr, start, end, ref, alt);
 
 
-            	//write out multi-allelic and structural variants without annotation
-            	// write out insertions and deletions without annotation
-				if(alt.contains(',') || alt.startsWith("<") || !is_valid_sequence(variant.obs()) || !variant.isValid())
+				//write out multi-allelic, variants with non-standard bases and structural variants without annotation
+				if(!base_regexp.exactMatch(ref) || !base_regexp.exactMatch(alt) || !variant.isValid())
 				{
 					lines_new << parts.join('\t') + '\n';
             	    continue;
 				}
+
 				if (variant.ref().length() == 1 && variant.obs().length() == 1) // only calculate for SNPs
 				{
 					QList<QByteArray> all_mes_strings = runMES(variant, transcript_index, reference_);
 					if (all_mes_strings.count() > 0) // add to info column & remove . if it was there
 					{
 						QByteArray anno = params_.tag.toLatin1()+"=" + all_mes_strings.join('|');
-						if (variant.annotations()[0] == ".")
+						if (info == ".")
 						{
-							variant.annotations()[0] = anno;
+							info = anno;
 						}
 						else
 						{
-							variant.annotations() << anno;
+							info += ";" + anno;
 						}
 					}
 				}
@@ -407,19 +408,17 @@ void ChunkProcessor::run()
 					if (all_mes_swa_strings.count() > 0) // add to info column & remove . if it was there
 					{
 						QByteArray anno = params_.tag_swa.toLatin1()+"=" + all_mes_swa_strings.join('|');
-						if (variant.annotations()[0] == ".")
+						if (info == ".")
 						{
-							variant.annotations()[0] = anno;
+							info = anno;
 						}
 						else
 						{
-							variant.annotations() << anno;
+							info += ";" + anno;
 						}
-						if (variant.annotations()[0] == ".") variant.annotations().removeAt(0); //TODO
 					}
 				}
 
-				parts[7] = variant.annotations().join(';');
 				lines_new << parts.join('\t') + '\n';
 			}
 		}
@@ -429,6 +428,6 @@ void ChunkProcessor::run()
 	}
 	catch(Exception& e)
 	{
-		emit error(job_.index, e.message());
+		emit error(job_.index, e.message() + " while processing variant:" + variant.toString());
 	}
 }
