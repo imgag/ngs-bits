@@ -22,9 +22,8 @@ signals:
 
 private:
 	int hashseq(const QByteArray& sequence);
-	bool is_valid_sequence(const Sequence& sequence);
 	int base_to_int(char base);
-	QList<Sequence> get_seqs(const Variant& variant, const int& slice_start, const int& slice_end, const int& length, const FastaFileIndex& reference, const Transcript& transcript);
+	void get_seqs(const Variant& variant, int slice_start, int slice_end, int length, const Transcript& transcript, Sequence& ref_seq, Sequence& alt_seq);
 	float score5_consensus(const Sequence& sequence);
 	float score5_rest(const Sequence& sequence);
 	float score5(const Sequence& sequence);
@@ -33,15 +32,15 @@ private:
 	float score3_rest(const Sequence& sequence);
 	float score_maxent(const Sequence& sequence, float (ChunkProcessor::*scorefunc)(const Sequence&));
 	QPair<float, int> get_max_score(const Sequence& context, const float& window_size, float (ChunkProcessor::*scorefunc)(const Sequence&));
-	QList<QByteArray> runMES(const Variant& variant, const ChromosomalIndex<TranscriptList>& transcripts, const FastaFileIndex& reference);
-	QList<QByteArray> runSWA(const Variant& variant, const ChromosomalIndex<TranscriptList>& transcripts, const FastaFileIndex& reference);
+	QList<QByteArray> runMES(const Variant& variant, const ChromosomalIndex<TranscriptList>& transcripts);
+	QList<QByteArray> runSWA(const Variant& variant, const ChromosomalIndex<TranscriptList>& transcripts);
 	QByteArray format_score(float score);
 
 	AnalysisJob& job_;
 	const MetaData& meta_;
 	const Parameters& params_;
 	FastaFileIndex reference_;
-	QTime timer_;
+	QRegExp acgt_regexp_;
 
 	//constants
 	QHash<char,float> bgd_ = {
