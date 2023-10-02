@@ -34,3 +34,4 @@ ATXN10	ATTCT	32	800	dominant
 AR	GCA	34	35	x-chromosomal	1	
 FMR1	CGG	45	55	x-chromosomal	0	shoud be validated conventionally before writing a report
 AFF2	GCC	39	200	x-chromosomal		
+FGF14	GAA	44	250	dominant	0	should be validated conventionally if one allel >45 (uniterrupted) as the lenght determination in NGS is not working well
