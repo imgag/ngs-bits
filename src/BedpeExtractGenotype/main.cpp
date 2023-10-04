@@ -23,8 +23,10 @@ public:
 		//optional
 		addInfile("in", "Input BEDPE file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output BEDPE file. If unset, writes to STDOUT.", true);
+		addFlag("include_unphased", "Also annotate genotype of unphased SVs.");
 
 		changeLog(2023, 9, 22, "Initial commit.");
+		changeLog(2023, 10, 4, "Added parameter to also annotate unphased genotype.");
 	}
 
 	virtual void main()
@@ -41,7 +43,7 @@ public:
 		if (bedpe_file.sampleHeaderInfo().size() > 1) THROW(ArgumentException, "Multisamples are not supported!");
 
 		// check if annotation already exisits:
-		int i_annotation = bedpe_file.annotationIndexByName("genotype_phased", false);
+		int i_annotation = bedpe_file.annotationIndexByName("GENOTYPE", false);
 
 		// create output buffer and copy comments and header
 		QByteArrayList output_buffer;
@@ -49,7 +51,7 @@ public:
 		// get header
 		QByteArrayList updated_header = bedpe_file.annotationHeaders();
 		// modify header if gene columns not already present
-		if (i_annotation < 0) updated_header.prepend("genotype_phased");
+		if (i_annotation < 0) updated_header.prepend("GENOTYPE");
 		// copy header
 		output_buffer << "#CHROM_A\tSTART_A\tEND_A\tCHROM_B\tSTART_B\tEND_B\t" + updated_header.join("\t");
 
@@ -58,11 +60,12 @@ public:
 			BedpeLine line = bedpe_file[i];
 
 			// get genotype/phasing
-			QByteArray phased_genotype = getFormatValue("GT", line, bedpe_file.annotationHeaders());
+			QByteArray genotype = getFormatValue("GT", line, bedpe_file.annotationHeaders());
 			QByteArray phasing_block = getFormatValue("PS", line, bedpe_file.annotationHeaders());
 
 			QByteArray phasing_entry;
-			if (phased_genotype.contains("|")) phasing_entry = phased_genotype + " (" + phasing_block + ")";
+			if (genotype.contains("|")) phasing_entry = genotype + " (" + phasing_block + ")";
+			else if(getFlag("include_unphased")) phasing_entry = genotype;
 
 			//add phasing to output
 			QList<QByteArray> annotations = line.annotations();
