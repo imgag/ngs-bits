@@ -17,7 +17,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Splits all regions to chunks of an approximate desired size.");
-		addInt("n", "The desired chunk size. Note: Not all chunks will have this size. Regions are split to chunks that are closest to the the desired size.", false);
+		addInt("n", "The desired chunk size. Note: Not all chunks will have this size. Regions are split to chunks that are closest to the desired size.", false);
 		//optional
 		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);

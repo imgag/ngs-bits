@@ -36,7 +36,7 @@ If additional information is available the entries are colored:
 
 ### Repeat expansion view
 
-To open a visualization of the the repeat expansion, use the context menu:  
+To open a visualization of the repeat expansion, use the context menu:  
 ![alt text](repeat_expansion_reviewer.png)  
 It opens a SVG image that shows the repeat expansion for each allele.
 

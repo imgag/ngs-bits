@@ -118,7 +118,7 @@ To activate the database upload, the API key for ClinVar need to be set in the `
 
 ### Phenotypes are not automatically imported from GenLab.
 
-Make sure the the field 'Labornummer' is filled in for your assay in GenLab. Otherwise the sample cannot be matched to the NGS data.
+Make sure the field 'Labornummer' is filled in for your assay in GenLab. Otherwise the sample cannot be matched to the NGS data.
 
 --
 

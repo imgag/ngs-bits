@@ -399,7 +399,7 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 	setHorizontalHeaderItem(1, createTableItem("start"));
 	horizontalHeaderItem(1)->setToolTip("Start position of the variant on the chromosome.\nFor insertions, the position of the base before the insertion is shown.");
 	setHorizontalHeaderItem(2, createTableItem("end"));
-	horizontalHeaderItem(2)->setToolTip("End position of the the variant on the chromosome.\nFor insertions, the position of the base before the insertion is shown.");
+	horizontalHeaderItem(2)->setToolTip("End position of the variant on the chromosome.\nFor insertions, the position of the base before the insertion is shown.");
 	setHorizontalHeaderItem(3, createTableItem("ref"));
 	horizontalHeaderItem(3)->setToolTip("Reference bases in the reference genome at the variant position.\n`-` in case of an insertion.");
 	setHorizontalHeaderItem(4, createTableItem("obs"));
