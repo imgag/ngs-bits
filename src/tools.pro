@@ -555,6 +555,11 @@ SamplePath.depends = cppNGSD
 SUBDIRS += NGSDImportOncotree
 tools-TEST.depends += NGSDImportOncotree
 NGSDImportOncotree.depends = cppNGS
+
 SUBDIRS += BedpeExtractGenotype
 tools-TEST.depends += BedpeExtractGenotype
+SamplePath.depends = cppNGS
+
+SUBDIRS += BedpeExtractInfoField
+tools-TEST.depends += BedpeExtractInfoField
 SamplePath.depends = cppNGS
