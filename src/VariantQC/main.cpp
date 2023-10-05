@@ -22,7 +22,7 @@ public:
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true);
 		addFlag("txt", "Writes TXT format instead of qcML.");
 		addFlag("longread", "Adds LongRead specific QC values (e.g. phasing information)");
-		addOutfile("phasing_bed", "Output BED file containing phasing blocks with id.", true);
+		addOutfile("phasing_bed", "Output BED file containing phasing blocks with id. (requires parameter '-longread')", true);
 
 		//changelog
 		changeLog(2023,  9, 21, "Added parameter 'longread' to add longread specific QC values.");

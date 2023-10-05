@@ -286,16 +286,14 @@ QCCollection Statistics::phasing(VcfFile variants, bool filter, BedFile& phasing
 	addQcValue(output, "QC:2000135", "phasing block count", phasing_ids.count());
 	addQcValue(output, "QC:2000136", "phased variants percentage", 100.00 * ((float) n_phased_variants/variants.count()));
 	//create histogram
-	Histogram phasing_block_distribution(0, max_block_size * 1.1, max_block_size * 0.0011);
-	foreach (double size, block_sizes) phasing_block_distribution.inc(size, false);
-	//add distribtion plot
-	LinePlot plot;
-	plot.setXLabel("phasing block size");
-	plot.setYLabel("count");
-	plot.setXValues(phasing_block_distribution.xCoords());
-	plot.addLine(phasing_block_distribution.yCoords(true));
+	Histogram phasing_block_distribution(0, max_block_size/1000.0, (max_block_size * 0.05)/1000.0);
+	phasing_block_distribution.setXLabel("phasing block size (kb)");
+	phasing_block_distribution.setYLabel("count");
+	//add data
+	foreach (double size, block_sizes) phasing_block_distribution.inc(size/1000.0, false);
+	//write to file
 	QString plotname = Helper::tempFileName(".png");
-	plot.store(plotname);
+	phasing_block_distribution.store(plotname, false, true, 0.5);
 	addQcPlot(output, "QC:2000137", "phasing block distribution plot", plotname);
 	QFile::remove(plotname);
 
