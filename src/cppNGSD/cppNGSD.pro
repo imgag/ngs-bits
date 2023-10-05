@@ -39,6 +39,7 @@ QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 SOURCES += \
     ApiCaller.cpp \
+    ExportCBioPortalStudy.cpp \
     FileLocationList.cpp \
     FileLocationProviderLocal.cpp \
     FileLocationProviderRemote.cpp \
@@ -62,6 +63,7 @@ SOURCES += \
 
 HEADERS += \
     ApiCaller.h \
+    ExportCBioPortalStudy.h \
     FileLocation.h \
     FileLocationList.h \
     FileLocationProvider.h \

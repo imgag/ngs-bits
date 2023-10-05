@@ -507,8 +507,10 @@ private:
 	//SPECIAL
 	DelayedInitializationTimer init_timer_;
 	QString displayed_maintenance_message_id_;
+
     //current server version (if in client-server mode)
     QString server_version_;
+
 };
 
 #endif // MAINWINDOW_H

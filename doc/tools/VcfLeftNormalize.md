@@ -1,5 +1,5 @@
 ### VcfLeftNormalize tool help
-	VcfLeftNormalize (2021_03-23-g5c26fea8)
+	VcfLeftNormalize (2023_06-98-g044e3ed3)
 	
 	Normalizes all variants and shifts indels to the left in a VCF file. Multi-allelic and complex variant are not changed!
 	
@@ -14,6 +14,8 @@
 	                           Default value: '10'
 	  -stream                  Allows to stream the input and output VCF without loading the whole file into memory. Only supported with uncompressed VCF files.
 	                           Default value: 'false'
+	  -right                   Right normalize vcf. Reverse direction and shift indels to the right.
+	                           Default value: 'false'
 	
 	Special parameters:
 	  --help                   Shows this help and exits.
@@ -22,7 +24,7 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfLeftNormalize changelog
-	VcfLeftNormalize 2021_03-23-g5c26fea8
+	VcfLeftNormalize 2023_06-98-g044e3ed3
 	
 	2020-08-12 Added parameter '-compression_level' for compression level of output vcf files.
 	2016-06-24 Initial implementation.

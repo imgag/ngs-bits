@@ -1595,11 +1595,13 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahott1a1")
 	{
-	}
 
+	}
 
 	qDebug() << "Elapsed time debugging:" << Helper::elapsedTime(timer, true);
 }
+
+
 
 void MainWindow::on_actionConvertVcfToGSvar_triggered()
 {
@@ -3786,6 +3788,7 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 		//load variants
 		timer.restart();
 		variants_.load(filename);
+
 		Log::perf("Loading small variant list took ", timer);
 		QString mode_title = "";
 		if (Helper::isHttpUrl(filename))

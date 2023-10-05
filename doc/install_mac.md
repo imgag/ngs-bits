@@ -31,7 +31,7 @@ get Qt source code and to compile the plugin by your self:
 	> git checkout 5.15
 	> git submodule update --recursive --init
 
-The last step may take a lot of time, since some module are huge. It is recommended to exclude WebEngine modules. Now you need to go the the _qtbase_ module and find the plugin:
+The last step may take a lot of time, since some module are huge. It is recommended to exclude WebEngine modules. Now you need to go the _qtbase_ module and find the plugin:
 
 	> cd qtbase/src/plugins/sqldrivers
 

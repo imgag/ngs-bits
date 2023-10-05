@@ -536,13 +536,17 @@ SUBDIRS += GenesToTranscripts
 tools-TEST.depends += GenesToTranscripts
 GenesToTranscripts.depends = cppNGSD
 
+SUBDIRS += ExportcBioportal
+tools-TEST.depends += ExportcBioportal
+ExportcBioportal.depends = cppNGSD
+
 SUBDIRS += NGSDImportSampleQC
 tools-TEST.depends += NGSDImportSampleQC
 NGSDImportSampleQC.depends = cppNGSD
 
 SUBDIRS += VcfAnnotateMaxEntScan
 tools-TEST.depends += VcfAnnotateMaxEntScan
-NGSDImportSampleQC.depends = cppNGSD
+VcfAnnotateMaxEntScan.depends = cppNGSD
 
 SUBDIRS += SamplePath
 tools-TEST.depends += SamplePath

@@ -31,7 +31,6 @@ public:
 		addOutfile("out", "Output VCF or VCF or VCF.GZ file. If unset, writes to STDOUT.", true, true);
 		addInfile("bw", "BigWig file containen the data to be used in the annotation.", false, true);
 		addString("name", "Name of the new INFO column.", false);
-		addString("desc", "Description of the new INFO column.", false);
 		QStringList modi;
 		modi << "max" << "min" << "avg" << "none";
 		addEnum("mode", "Annotate mode: How the annotation is chosen when multiple bases are affected.", false, modi);
@@ -66,7 +65,6 @@ public:
 
 		QString bw_path = getInfile("bw");
 		QString name = getString("name");
-		QString desc = getString("desc");
 		QString mode = getEnum("mode");
 
 		//init multithreading
@@ -138,7 +136,7 @@ public:
 								vcf_line_idx++;
 							}
 							vcf_line_idx = 0;
-							analysis_pool.start(new ChunkProcessor(job, name.toUtf8(), desc.toUtf8(), bw_path.toUtf8(), mode));
+							analysis_pool.start(new ChunkProcessor(job, name.toUtf8(), bw_path.toUtf8(), mode));
 							++current_chunk;
 							break;
 

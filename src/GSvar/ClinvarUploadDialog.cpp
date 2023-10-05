@@ -467,7 +467,7 @@ void ClinvarUploadDialog::upload()
         //successful dry-run
         if (response.isEmpty())
         {
-            messages << "MESSAGE: Dry-run successful!";
+			messages << "ERROR: API return empty response!";
         }
         else if (response.contains("id"))
         {

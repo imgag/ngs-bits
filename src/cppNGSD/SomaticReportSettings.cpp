@@ -9,7 +9,7 @@ SomaticReportSettings::SomaticReportSettings()
 {
 }
 
-VariantList SomaticReportSettings::filterVariants(const VariantList &snvs, const SomaticReportSettings& sett)
+VariantList SomaticReportSettings::filterVariants(const VariantList &snvs, const SomaticReportSettings& sett, bool throw_errors)
 {
 	QSet<int> variant_indices = sett.report_config.variantIndices(VariantType::SNVS_INDELS, false).toSet();
 
@@ -17,7 +17,7 @@ VariantList SomaticReportSettings::filterVariants(const VariantList &snvs, const
 
 	result.copyMetaData(snvs);
 
-	FilterResult filter_res = sett.filters.apply(snvs); //does not regard "include" result of report_config
+	FilterResult filter_res = sett.filters.apply(snvs, throw_errors); //does not regard "include" result of report_config
 
 	//filter for target region
 	if(sett.target_region_filter.regions.count() > 0)

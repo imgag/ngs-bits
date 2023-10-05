@@ -210,7 +210,7 @@ void CfDNAPanelDesignDialog::loadVariants()
 	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("start"));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Start position of the variant on the chromosome.\nFor insertions, the position of the base before the insertion is shown.");
 	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("end"));
-	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("End position of the the variant on the chromosome.\nFor insertions, the position of the base before the insertion is shown.");
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("End position of the variant on the chromosome.\nFor insertions, the position of the base before the insertion is shown.");
 	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("ref"));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Reference bases in the reference genome at the variant position.\n`-` in case of an insertion.");
 	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("obs"));

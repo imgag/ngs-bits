@@ -21,15 +21,14 @@ ChunkProcessor::ChunkProcessor(AnalysisJob& job, const MetaData& meta, const Par
 	, meta_(meta)
 	, params_(params)
 	, reference_(meta.reference)
-	
+	, acgt_regexp_("[ACGT]+")
 {
-	timer_.start();
 	if (params_.debug) QTextStream(stdout) << "ChunkProcessor(): " << job_.index << endl;
 }
 
 ChunkProcessor::~ChunkProcessor()
 {
-	if (params_.debug) QTextStream(stdout) << "~ChunkProcessor(): " << job_.index << " (processing time:" << Helper::elapsedTime(timer_) << ")" << endl;
+	if (params_.debug) QTextStream(stdout) << "~ChunkProcessor(): " << job_.index << endl;
 }
 
 // utility functions
@@ -43,12 +42,6 @@ int ChunkProcessor::hashseq(const QByteArray& sequence)
         result += base_to_int(sequence[i]) * pow_four[seqlength - i - 1];
     }
     return result;
-}
-
-
-bool ChunkProcessor::is_valid_sequence(const Sequence& sequence)
-{
-	return QRegExp("[ACGT]*").exactMatch(sequence);
 }
 
 int ChunkProcessor::base_to_int(char base)
@@ -69,22 +62,26 @@ int ChunkProcessor::base_to_int(char base)
 }
 
 
-QList<Sequence> ChunkProcessor::get_seqs(const Variant& variant, const int& slice_start, const int& slice_end, const int& length, const FastaFileIndex& reference, const Transcript& transcript)
+void ChunkProcessor::get_seqs(const Variant& variant, int slice_start, int slice_end, int length, const Transcript& transcript, Sequence& ref_seq, Sequence& alt_seq)
 {
-    Sequence ref_seq = reference.seq(variant.chr(), slice_start, length + variant.end() - variant.start());
-    Sequence alt_base = variant.obs();
+	ref_seq = reference_.seq(variant.chr(), slice_start, length + variant.end() - variant.start());
+	if (!acgt_regexp_.exactMatch(ref_seq))
+	{
+		ref_seq.clear();
+		alt_seq.clear();
+		return;
+	}
 
+	Sequence alt_base = variant.obs();
     int variant_position_in_slice = variant.start() - slice_start;
 	if (transcript.isMinusStrand())
 	{
         ref_seq.reverseComplement();
         alt_base.reverseComplement();
-        variant_position_in_slice = slice_end - slice_start - variant_position_in_slice;
+		variant_position_in_slice = slice_end - slice_start - variant_position_in_slice;
     }
-    Sequence alt_seq = ref_seq;
+	alt_seq = ref_seq;
     alt_seq = alt_seq.replace(variant_position_in_slice, variant.ref().length(), alt_base);
-
-	return QList<Sequence>{ref_seq, alt_seq};
 }
 
 float ChunkProcessor::score5_consensus(const Sequence& sequence)
@@ -166,7 +163,7 @@ QPair<float, int> ChunkProcessor::get_max_score(const Sequence& context, const f
 	return qMakePair(maxscore, frame);
 }
 
-QList<QByteArray> ChunkProcessor::runMES(const Variant& variant, const ChromosomalIndex<TranscriptList>& transcripts, const FastaFileIndex& reference)
+QList<QByteArray> ChunkProcessor::runMES(const Variant& variant, const ChromosomalIndex<TranscriptList>& transcripts)
 {
 	QList<QByteArray> all_mes_strings;
 
@@ -182,10 +179,10 @@ QList<QByteArray> ChunkProcessor::runMES(const Variant& variant, const Chromosom
 			const BedLine& coding_region = coding_regions[i];
             bool overlaps_three_prime = false;
             bool overlaps_five_prime = false;
-            int slice_start_three;
-            int slice_end_three;
-            int slice_start_five;
-            int slice_end_five;
+			int slice_start_three = 0;
+			int slice_end_three = 0;
+			int slice_start_five = 0;
+			int slice_end_five = 0;
 
             // EEEEEEEEEEEEGUXXXIIIIIIIIIIIIIIAPPPXXAGEEEEEEEEEEEE
             // -----Exon---5'ss-----Intron------3'ss------Exon----
@@ -225,10 +222,10 @@ QList<QByteArray> ChunkProcessor::runMES(const Variant& variant, const Chromosom
 			if (overlaps_three_prime)
 			{
                 // get sequences
-                QList<Sequence> seqs = get_seqs(variant, slice_start_three, slice_end_three, 23, reference, current_transcript);
-                Sequence ref_seq = seqs[0];
-                Sequence alt_seq = seqs[1];
-				if (is_valid_sequence(ref_seq) && is_valid_sequence(alt_seq))
+				Sequence ref_seq;
+				Sequence alt_seq;
+				get_seqs(variant, slice_start_three, slice_end_three, 23, current_transcript, ref_seq, alt_seq);
+				if (!ref_seq.isEmpty())
 				{
                     // get scores
                     float maxentscan_ref = score_maxent(ref_seq, &ChunkProcessor::score3);
@@ -239,11 +236,11 @@ QList<QByteArray> ChunkProcessor::runMES(const Variant& variant, const Chromosom
 
 			if (overlaps_five_prime)
 			{
-                // get sequences
-                QList<Sequence> seqs = get_seqs(variant, slice_start_five, slice_end_five, 9, reference, current_transcript);
-                Sequence ref_seq = seqs[0];
-                Sequence alt_seq = seqs[1];
-				if (is_valid_sequence(ref_seq) && is_valid_sequence(alt_seq))
+				// get sequences
+				Sequence ref_seq;
+				Sequence alt_seq;
+				get_seqs(variant, slice_start_five, slice_end_five, 9, current_transcript,  ref_seq, alt_seq);
+				if (!ref_seq.isEmpty())
 				{
                     float maxentscan_ref = score_maxent(ref_seq, &ChunkProcessor::score5);
                     float maxentscan_alt = score_maxent(alt_seq, &ChunkProcessor::score5);
@@ -258,7 +255,7 @@ QList<QByteArray> ChunkProcessor::runMES(const Variant& variant, const Chromosom
 
 
 
-QList<QByteArray> ChunkProcessor::runSWA(const Variant& variant, const ChromosomalIndex<TranscriptList>& transcripts, const FastaFileIndex& reference)
+QList<QByteArray> ChunkProcessor::runSWA(const Variant& variant, const ChromosomalIndex<TranscriptList>& transcripts)
 {
     QList<QByteArray> all_mes_swa_strings;
 
@@ -267,14 +264,14 @@ QList<QByteArray> ChunkProcessor::runSWA(const Variant& variant, const Chromosom
 	{
 		const Transcript& current_transcript = transcripts.container()[transcript_index];
         // 5 prime ss / donor ss
-        QList<Sequence> donor_seqs = get_seqs(variant, variant.start()-8, variant.end()+8, 17, reference, current_transcript);
-        //qDebug() << donor_seqs;
-		Sequence ref_context = donor_seqs[0];
-		Sequence alt_context = donor_seqs[1];
+		Sequence ref_context;
+		Sequence alt_context;
+		get_seqs(variant, variant.start()-8, variant.end()+8, 17, current_transcript, ref_context, alt_context);
+		//qDebug() << donor_seqs;
         QByteArray ref_donor = "";
         QByteArray alt_donor = "";
         QByteArray comp_donor = "";
-		if (is_valid_sequence(ref_context) && is_valid_sequence(alt_context))
+		if (!ref_context.isEmpty())
 		{
 			QPair<float, int> max_ref_donor = get_max_score(ref_context, 9, &ChunkProcessor::score5);
 			QPair<float, int> max_alt_donor = get_max_score(alt_context, 9, &ChunkProcessor::score5);
@@ -295,15 +292,13 @@ QList<QByteArray> ChunkProcessor::runSWA(const Variant& variant, const Chromosom
 			comp_donor = QByteArray::number(donor_comp, 'f', params_.decimals);
         }
             
-        // 3 prime ss / acceptor ss
-        QList<Sequence> acceptor_seqs = get_seqs(variant, variant.start()-22, variant.end()+22, 45, reference, current_transcript);
-        //qDebug() << acceptor_seqs;
-        ref_context = acceptor_seqs[0];
-        alt_context = acceptor_seqs[1];
+		// 3 prime ss / acceptor ss
+		get_seqs(variant, variant.start()-22, variant.end()+22, 45, current_transcript, ref_context, alt_context);
+		//qDebug() << acceptor_seqs;
         QByteArray ref_acceptor = "";
         QByteArray alt_acceptor = "";
         QByteArray comp_acceptor = "";
-		if (is_valid_sequence(ref_context) && is_valid_sequence(alt_context))
+		if (!ref_context.isEmpty())
 		{
 			QPair<float, int> max_ref_acceptor = get_max_score(ref_context, 23, &ChunkProcessor::score3);
 			QPair<float, int> max_alt_acceptor = get_max_score(alt_context, 23, &ChunkProcessor::score3);
@@ -341,9 +336,9 @@ QByteArray ChunkProcessor::format_score(float score)
 void ChunkProcessor::run()
 {
 	ChromosomalIndex<TranscriptList> transcript_index(meta_.transcripts);
+	Variant variant;
 	try
 	{
-
 		//process data
 		QList<QByteArray> lines_new;
 		lines_new.reserve(job_.lines.size());
@@ -372,54 +367,52 @@ void ChunkProcessor::run()
 				Sequence alt = parts[4].toUpper();
             	int start = atoi(parts[1]);
             	int end = start + ref.length() - 1;
-            	QList<QByteArray> info = parts[7].split(';');
+				QByteArray& info = parts[7];
 
-				Variant variant(chr, start, end, ref, alt, info);
+				variant = Variant(chr, start, end, ref, alt);
 
 
-            	//write out multi-allelic and structural variants without annotation
-            	// write out insertions and deletions without annotation
-				if(alt.contains(',') || alt.startsWith("<") || !is_valid_sequence(variant.obs()) || !variant.isValid())
+				//write out multi-allelic, variants with non-standard bases and structural variants without annotation
+				if(!acgt_regexp_.exactMatch(ref) || !acgt_regexp_.exactMatch(alt) || !variant.isValid())
 				{
 					lines_new << parts.join('\t') + '\n';
             	    continue;
 				}
+
 				if (variant.ref().length() == 1 && variant.obs().length() == 1) // only calculate for SNPs
 				{
-					QList<QByteArray> all_mes_strings = runMES(variant, transcript_index, reference_);
+					QList<QByteArray> all_mes_strings = runMES(variant, transcript_index);
 					if (all_mes_strings.count() > 0) // add to info column & remove . if it was there
 					{
 						QByteArray anno = params_.tag.toLatin1()+"=" + all_mes_strings.join('|');
-						if (variant.annotations()[0] == ".")
+						if (info == ".")
 						{
-							variant.annotations()[0] = anno;
+							info = anno;
 						}
 						else
 						{
-							variant.annotations() << anno;
+							info += ";" + anno;
 						}
 					}
 				}
 
 				if (params_.swa)
 				{
-					QList<QByteArray> all_mes_swa_strings = runSWA(variant, transcript_index, reference_);
+					QList<QByteArray> all_mes_swa_strings = runSWA(variant, transcript_index);
 					if (all_mes_swa_strings.count() > 0) // add to info column & remove . if it was there
 					{
 						QByteArray anno = params_.tag_swa.toLatin1()+"=" + all_mes_swa_strings.join('|');
-						if (variant.annotations()[0] == ".")
+						if (info == ".")
 						{
-							variant.annotations()[0] = anno;
+							info = anno;
 						}
 						else
 						{
-							variant.annotations() << anno;
+							info += ";" + anno;
 						}
-						if (variant.annotations()[0] == ".") variant.annotations().removeAt(0); //TODO
 					}
 				}
 
-				parts[7] = variant.annotations().join(';');
 				lines_new << parts.join('\t') + '\n';
 			}
 		}
@@ -429,6 +422,6 @@ void ChunkProcessor::run()
 	}
 	catch(Exception& e)
 	{
-		emit error(job_.index, e.message());
+		emit error(job_.index, e.message() + " while processing variant:" + variant.toString());
 	}
 }

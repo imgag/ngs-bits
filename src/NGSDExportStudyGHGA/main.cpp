@@ -377,8 +377,8 @@ public:
 		QJsonObject obj;
 
 		obj.insert("alias", data.study_name + " dataset");
-		obj.insert("title", "Dataset of the the study " + data.study_name);
-		obj.insert("description", "Dataset of the the study " + data.study_name);
+		obj.insert("title", "Dataset of the study " + data.study_name);
+		obj.insert("description", "Dataset of the study " + data.study_name);
 		obj.insert("has_study", QJsonArray::fromStringList(QStringList() << data.study_name));
 		obj.insert("has_data_access_policy", "DAP_"+data.study_name);
 

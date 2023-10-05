@@ -66,7 +66,7 @@ Additionally, generic annotation columns are added (4), e.g.:
 * overlap af_genomes_imgag: overlap with copy-number-polymorphism regions
 	* The first number is the overlap with the CNP regions (AF>2%) determined from 650 in-house genomes. The range is 0 (no overlap) to 1 (complete overlap).
     * The numbers in brackets are the allele-frequency (i.e. the fraction of samples with CN not equal to 2) of sub-regions within the overlap.
-	* These numbers are calculated from the the `AF TruSeqPCRfree` track described below.
+        * These numbers are calculated from the `AF TruSeqPCRfree` track described below.
 * cn_pathogenic: in-house database of pathogenic CNVs
 * dosage_sensitive_disease_genes: dosage-sensitive disease genes (from [ClinGen Dosage Sensitivity Map](https://www.ncbi.nlm.nih.gov/projects/dbvar/clingen/))
 * clinvar_cnvs: overlapping (likely-)pathogenic CNVs in ClinVar
