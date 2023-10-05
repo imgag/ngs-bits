@@ -11,6 +11,7 @@
 #include "Exceptions.h"
 #include "Log.h"
 
+//A worker class that starts an IGV app and checks if it has been done correctly
 class IGVInitWorker
     : public QRunnable
 {

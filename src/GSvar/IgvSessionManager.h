@@ -6,41 +6,37 @@
 #include "LoginManager.h"
 #include "Exceptions.h"
 #include "Settings.h"
-#include "IGVCommandExecutor.h"
+#include "IGVSession.h"
 
-struct IGVSession
-{
-    QString app;
-    QString host;
-    int port;
-	QString genome;
-    QSharedPointer<IGVCommandExecutor> command_executor;
-    bool is_initialized;
-};
-
+//A manager class to handle multiple instances of IGV from GSvar. Each instance uses its own pool of
+//threads, each command runs in a separate thread. It keeps GSvar from freezing and from
+//showing "Not responding" messages
 class IgvSessionManager
 {
 public:
-    static int create(QString app, QString host, int port, QString genome, bool is_initialized);
-    static void remove(int session_index);
-	static int findAvailablePortForIGV();
-    static QString getHost(int session_index);
-    static void setHost(QString host, int session_index);
-    static int getPort(int session_index);
-    static void setPort(int port, int session_index);
-    static QString getGenome(int session_index);
-    static void setGenome(QString genome, int session_index);
-    static QSharedPointer<IGVCommandExecutor> getCommandExecutor(int session_index);
-	static bool isIGVInitialized(int session_index);
-	static void setIGVInitialized(bool is_initialized, int session_index);
+    //instantiate a new IGV
+    static void create(QWidget *parent, Ui::MainWindow parent_ui, const QString& name, const QString& app, const QString& host, const QString& genome);
+    //removes a session by index
+    static void remove(const int& session_index);
+    //finds a session index by its name
+    static const int indexByName(const QString& name);
+    //returns a reference to an IGVSession object
+    static IGVSession& get(const int& session_index);
+    //total number of IGV sessions
+    static const int count();
+    //for each opened sample IGV has to be reset (since each sample has a different set of files to be passed to IGV)
+    static void resetIGVInitialized();
+    //checks among all available IGV sessions if there is at least one command running
+    static const bool hasAtLeastOneActiveIGV();
 
 protected:
-	IgvSessionManager();
-	~IgvSessionManager();
-	static IgvSessionManager& instance();
+    IgvSessionManager();
+    ~IgvSessionManager();
+    static IgvSessionManager& instance();
+    static int findAvailablePortForIGV();
 
 private:
-	QList<IGVSession> session_list_;
+    QList<QSharedPointer<IGVSession>> session_list_;
     QMutex mutex_;
 };
 

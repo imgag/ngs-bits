@@ -2,13 +2,25 @@
 #include "IgvSessionManager.h"
 #include "GUIHelper.h"
 
-IgvLogWidget::IgvLogWidget(QWidget* parent, int index)
+IgvLogWidget::IgvLogWidget(QWidget* parent)
     : QWidget(parent)
     , ui_()
 {
     ui_.setupUi(this);
-    updateTable(IgvSessionManager::getCommandExecutor(index).data()->getHistory());
-    connect(IgvSessionManager::getCommandExecutor(index).data(), SIGNAL(historyUpdated(QStringList)), this, SLOT(updateTable(QStringList)));
+
+    for (int i = 0; i < IgvSessionManager::count(); i++)
+    {
+        ui_.igv_instance->addItem(IgvSessionManager::get(i).getName(), i);
+    }
+
+    connect(ui_.igv_instance, SIGNAL(currentIndexChanged(int)), this, SLOT(switchCurrentSession(int)));
+    if (IgvSessionManager::count()>0) switchCurrentSession(0);
+}
+
+void IgvLogWidget::switchCurrentSession(int index)
+{
+    updateTable(IgvSessionManager::get(index).getHistory());
+    connect(&(IgvSessionManager::get(index)), SIGNAL(historyUpdated(QStringList)), this, SLOT(updateTable(QStringList)));
 }
 
 void IgvLogWidget::updateTable(QStringList updated_history)

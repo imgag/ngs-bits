@@ -10,6 +10,8 @@
 #include "Exceptions.h"
 #include "Log.h"
 
+//A worker class for running IGV commands. Commands are executed one after another and do not run
+//in parallel. Status and errors are reported by emited signals and inside "responses" variable
 class IGVCommandWorker
     : public QObject
     , public QRunnable
@@ -23,6 +25,8 @@ public:
 signals:
     void commandFailed(QString message);
     void commandReported(QString status);
+    void commandQueueStarted();
+    void commandQueueFinished();
 
 protected:   
     QString igv_host_;

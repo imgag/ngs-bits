@@ -10,7 +10,7 @@
 #include <QMessageBox>
 
 VirusDetectionWidget::VirusDetectionWidget(QString viral_file, QWidget* parent)
-	: QTableWidget(parent)
+    : QTableWidget(parent)
 	, viral_file_(viral_file)
 	, igv_initialized_(false)
 {
@@ -18,7 +18,6 @@ VirusDetectionWidget::VirusDetectionWidget(QString viral_file, QWidget* parent)
 	setSelectionBehavior(QAbstractItemView::SelectRows);
 	setContextMenuPolicy(Qt::CustomContextMenu);
 
-	IgvSessionManager::setIGVInitialized(false, true);
 	connect(this, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(callViewInIGV(int, int)));
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(callCustomMenu(QPoint)));
 
@@ -94,7 +93,7 @@ void VirusDetectionWidget::callCopyToClipboard()
 
 void VirusDetectionWidget::openInIGV(int row)
 {
-    GlobalServiceProvider::executeCommandListInIGV(QStringList{"goto " + item(row, 0)->text() + ":" + item(row, 1)->text() + "-" + item(row, 2)->text()}, true, 1);
+    IgvSessionManager::get(1).prepareIfNotAndExecute(QStringList{"goto " + item(row, 0)->text() + ":" + item(row, 1)->text() + "-" + item(row, 2)->text()}, true);
 }
 
 void VirusDetectionWidget::keyPressEvent(QKeyEvent* event)

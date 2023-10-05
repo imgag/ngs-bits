@@ -18,7 +18,7 @@
 #include "FileLocationProviderRemote.h"
 #include "VersatileTextStream.h"
 #include "Log.h"
-#include "IGVCommandExecutor.h"
+#include "IGVSession.h"
 #include "ClickableLabel.h"
 
 ///Main window class
@@ -37,7 +37,7 @@ public:
 	/// Gets server API information to make sure ther the server is currently running
 	bool isServerRunning();
     /// Set normal IGV or virus IGV history buttons visible/invisible
-    void displayIgvHistoryButton(bool visible, int index);
+    void displayIgvHistoryButton(bool visible);
 
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
@@ -81,6 +81,8 @@ public:
 
 	/// Checks if there is a new client version available
 	void checkClientUpdates();
+    QString getCurrentFileName();
+    AnalysisType getCurrentAnalysisType();
 
 public slots:
 	///Upload variant to Clinvar
@@ -327,14 +329,6 @@ public slots:
 	void variantCellDoubleClicked(int row, int col);
 	///A variant header has beed double-clicked > edit report config
 	void variantHeaderDoubleClicked(int row);
-	///Preprocesses and executes the list of IGV commands based on the files needed to be loaded
-    void prepareAndRunIGVCommands(QStringList files_to_load, int session_index);
-    ///Detects which button inside the dialog is pressed and handles exceptions
-    bool igvDialogButtonHandler(IgvDialog& dlg, int session_index);
-    ///Load regular IGV configuration
-    bool prepareNormalIGV(int session_index);
-	///Load IGV configuration for the virus detection
-    bool prepareVirusIGV(int session_index);
 	///Opens a custom track in IGV
 	void openCustomIgvTrack();
 
@@ -396,9 +390,6 @@ public slots:
 	///Closes a tab by index
 	void closeTab(int index);
 
-	///Sends commands to IGV through the socket. Returns if the commands executed successfully.
-	void executeIGVCommands(QStringList commands, bool init_if_not_done, int session_index);
-
 	///Edits the variant configuration for the variant with the given index
 	void editVariantReportConfiguration(int index);
 	///Updates the variant table icon for the variant with the given index
@@ -431,9 +422,13 @@ public slots:
 	//Show matching CNVs and SVs
 	void showMatchingCnvsAndSvs(BedLine region);
 
+    //Open a window with the IGV command history
+    void displayIgvHistoryTable(QPoint pos);
+    //Show in the status bar that IGV is currently executing a command
+    void changeIgvIconToActive();
+    //Show in the status bar that IGV is idle
+    void changeIgvIconToNormal();
 
-    void displayNormalIgvHistory();
-    void displayVirusIgvHistory();
     ///close the app and logout (if in client-sever mode)
     void closeAndLogout();
 
@@ -457,8 +452,7 @@ private:
 	BusyDialog* busy_dialog_;
 	QList<QSharedPointer<QDialog>> modeless_dialogs_;
 	QLabel* notification_label_;
-    ClickableLabel* normal_igv_label_;
-    ClickableLabel* virus_igv_label_;
+    ClickableLabel* igv_history_label_;
 
 	//DATA
 	QString filename_;

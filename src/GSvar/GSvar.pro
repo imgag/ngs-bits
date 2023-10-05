@@ -8,13 +8,12 @@ RC_FILE	 = icon.rc
 
 SOURCES += main.cpp\
     CfDNAPanelBatchImport.cpp \
-    ClickableLabel.cpp \
     DatabaseServiceRemote.cpp \
     GHGAUploadDialog.cpp \
     GlobalServiceProvider.cpp \
-    IGVCommandExecutor.cpp \
     IGVCommandWorker.cpp \
     IGVInitWorker.cpp \
+    IGVSession.cpp \
     IgvLogWidget.cpp \
     IgvSessionManager.cpp \
     MainWindow.cpp \
@@ -130,14 +129,13 @@ SOURCES += main.cpp\
 
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
-    ClickableLabel.h \
     DatabaseServiceRemote.h \
     ExternalToolDialog.h \
     GHGAUploadDialog.h \
     GlobalServiceProvider.h \
-    IGVCommandExecutor.h \
     IGVCommandWorker.h \
     IGVInitWorker.h \
+    IGVSession.h \
     IgvLogWidget.h \
     IgvSessionManager.h \
     MaintenanceDialog.h \

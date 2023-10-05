@@ -14,23 +14,33 @@ IgvSessionManager& IgvSessionManager::instance()
 	return instance;
 }
 
-int IgvSessionManager::create(QString app, QString host, int port, QString genome, bool is_initialized)
-{
-	if (port<=0) THROW(ProgrammingException, "Port number is not set!");
+void IgvSessionManager::create(QWidget *parent, Ui::MainWindow parent_ui, const QString& name, const QString& app, const QString& host, const QString& genome)
+{	
 	if (genome.isEmpty()) THROW(ProgrammingException, "Genome path is not set!");
 
 	instance().mutex_.lock();
-    instance().session_list_.append(IGVSession{app, host, port, genome, QSharedPointer<IGVCommandExecutor>(new IGVCommandExecutor(app, host, port)), is_initialized});
+    instance().session_list_.append(QSharedPointer<IGVSession>(new IGVSession(parent, parent_ui, name, app, host, findAvailablePortForIGV(), genome)));
 	instance().mutex_.unlock();
-	return instance().session_list_.count()-1;
 }
 
-void IgvSessionManager::remove(int session_index)
+void IgvSessionManager::remove(const int& session_index)
 {
 	if ((session_index<0) || (session_index>instance().session_list_.count()-1)) THROW(ProgrammingException, "Invalid session index!");
 	instance().mutex_.lock();
-	instance().session_list_.removeAt(session_index);
-	instance().mutex_.unlock();
+    instance().session_list_.removeAt(session_index);
+    instance().mutex_.unlock();
+}
+
+const int IgvSessionManager::indexByName(const QString& name)
+{
+    int index = -1;
+    instance().mutex_.lock();
+    for (int i = 0; i < instance().session_list_.count(); i++)
+    {
+        if (instance().session_list_[i].data()->getName().toLower() == name.toLower()) index = i;
+    }
+    instance().mutex_.unlock();
+    return index;
 }
 
 int IgvSessionManager::findAvailablePortForIGV()
@@ -44,99 +54,46 @@ int IgvSessionManager::findAvailablePortForIGV()
     return port;
 }
 
-QString IgvSessionManager::getHost(int session_index)
-{
-    if (session_index<0) THROW(ProgrammingException, "Invalid session index has been provided!");
-    if (instance().session_list_.count()>=(session_index+1))
-    {
-        return instance().session_list_[session_index].host;
-    }
-    return "";
-}
-
-void IgvSessionManager::setHost(QString host, int session_index)
-{
-    if (host.isEmpty()) THROW(ProgrammingException, "Host is not set!");
-    if (session_index<0) THROW(ProgrammingException, "Invalid session index has not been provided!");
-    if (instance().session_list_.count()>=(session_index-1))
-    {
-        instance().mutex_.lock();
-        instance().session_list_[session_index].host = host;
-        instance().mutex_.unlock();
-    }
-}
-
-int IgvSessionManager::getPort(int session_index)
-{
-	if (session_index<0) THROW(ProgrammingException, "Invalid session index has not been provided!");
-	if (instance().session_list_.count()>=(session_index+1))
-	{
-		return instance().session_list_[session_index].port;
-	}
-	return -1;
-}
-
-void IgvSessionManager::setPort(int port, int session_index)
-{
-	if (port<=0) THROW(ProgrammingException, "Port number is not set!");
-	if (session_index<0) THROW(ProgrammingException, "Invalid session index has not been provided!");
-	if (instance().session_list_.count()>=(session_index-1))
-	{
-		instance().mutex_.lock();
-		instance().session_list_[session_index].port = port;
-		instance().mutex_.unlock();
-	}
-}
-
-QString IgvSessionManager::getGenome(int session_index)
-{
-    if (session_index<0) THROW(ProgrammingException, "Invalid session index has been provided!");
-	if (instance().session_list_.count()>=(session_index+1))
-	{
-		return instance().session_list_[session_index].genome;
-	}
-	return "";
-}
-
-void IgvSessionManager::setGenome(QString genome, int session_index)
-{
-	if (genome.isEmpty()) THROW(ProgrammingException, "Genome is not set!");
-    if (session_index<0) THROW(ProgrammingException, "Invalid session index has been provided!");
-	if (instance().session_list_.count()>=(session_index-1))
-	{
-		instance().mutex_.lock();
-		instance().session_list_[session_index].genome = genome;
-        instance().mutex_.unlock();
-    }
-}
-
-QSharedPointer<IGVCommandExecutor> IgvSessionManager::getCommandExecutor(int session_index)
+IGVSession& IgvSessionManager::get(const int& session_index)
 {
     if (session_index<0 || instance().session_list_.count()<(session_index-1)) THROW(ProgrammingException, "Invalid session index has been provided!");
-    return instance().session_list_[session_index].command_executor;
+    return *(instance().session_list_[session_index].data());
 }
 
-bool IgvSessionManager::isIGVInitialized(int session_index)
+const int IgvSessionManager::count()
 {
-    if (session_index<0) THROW(ProgrammingException, "Invalid session index has been provided!");
+    instance().mutex_.lock();
+    int session_count = instance().session_list_.count();
+    instance().mutex_.unlock();
 
-	if (instance().session_list_.count()>=(session_index+1))
-	{
-		return instance().session_list_[session_index].is_initialized;
-	}
-
-	return false;
+    return session_count;
 }
 
-void IgvSessionManager::setIGVInitialized(bool is_initialized, int session_index)
+void IgvSessionManager::resetIGVInitialized()
 {
-    if (session_index<0) THROW(ProgrammingException, "Invalid session index has been provided!");
-
-	if (instance().session_list_.count()>=(session_index+1))
-	{
-		instance().mutex_.lock();
-		instance().session_list_[session_index].is_initialized = is_initialized;
-        if (!is_initialized) instance().session_list_[session_index].command_executor.data()->clearHistory();
-		instance().mutex_.unlock();
-	}
+    instance().mutex_.lock();
+    foreach (QSharedPointer<IGVSession> session, instance().session_list_)
+    {
+        session.data()->clearHistory();
+        session.data()->setIGVInitialized(false);
+    }
+    instance().mutex_.unlock();
 }
+
+const bool IgvSessionManager::hasAtLeastOneActiveIGV()
+{
+    bool hasActiveInstance = false;
+    instance().mutex_.lock();
+    foreach (QSharedPointer<IGVSession> session, instance().session_list_)
+    {
+        if (session.data()->hasRunningCommands())
+        {
+            hasActiveInstance = true;
+            break;
+        }
+    }
+    instance().mutex_.unlock();
+
+    return hasActiveInstance;
+}
+

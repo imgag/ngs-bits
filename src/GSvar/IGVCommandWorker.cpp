@@ -11,6 +11,7 @@ IGVCommandWorker::IGVCommandWorker(const QString& igv_host, const int& igv_port,
 
 void IGVCommandWorker::run()
 {
+    emit commandQueueStarted();
     try
     {
         QTcpSocket socket;
@@ -72,4 +73,5 @@ void IGVCommandWorker::run()
         emit commandFailed("Unknown error while executing IGV commands");
         emit commandReported(QDateTime::currentDateTime().toString("MMMM d hh:mm:ss") + "\t---\tunknown error");
     }
+    emit commandQueueFinished();
 }
