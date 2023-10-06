@@ -26,6 +26,7 @@ INCLUDEPATH += $$PWD/../VcfToBedpe
 
 
 HEADERS += NGSDAddVariantsSomatic_Test.h \
+    FastqCheckUMI.h \
     SampleAncestry_Test.h \
     SvFilterAnnotations_Test.h \
     UpdHunter_Test.h \

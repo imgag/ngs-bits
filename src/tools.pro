@@ -554,4 +554,8 @@ SamplePath.depends = cppNGSD
 
 SUBDIRS += NGSDImportOncotree
 tools-TEST.depends += NGSDImportOncotree
-NGSDImportOncotree.depends = cppNGSD
+NGSDImportOncotree.depends = cppNGS
+
+SUBDIRS += FastqCheckUMI
+tools-TEST.depends += FastqCheckUMI
+SamplePath.depends = cppNGS
