@@ -196,7 +196,6 @@ public:
 		QString info = getString("info");
 		QString sample = getString("sample");
 
-
         QRegularExpression filter_re;
 		if (filter != "")
         {
@@ -271,6 +270,7 @@ public:
 		}
 
         // Read input
+		QTextStream std_err(stderr);
 		int column_count = 0;
         while (!in_p->atEnd())
         {
@@ -351,6 +351,7 @@ public:
 				VcfLine vcf_line(col(parts, VcfFile::CHROM), Helper::toInt(col(parts, VcfFile::POS), "genomic position"), col(parts, VcfFile::REF), alts);
 				if (!vcf_line.isValid())
 				{
+					std_err << "filtered invalid variant: " << vcf_line.chr().strNormalized(true) << ":" << vcf_line.start() << " " << vcf_line.ref() << ">" << vcf_line.altString() << "\n";
 					continue;
 				}
 			}
