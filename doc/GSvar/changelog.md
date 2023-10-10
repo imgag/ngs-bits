@@ -1,5 +1,13 @@
 # GSvar change log
 
+## 2023_09-15 (10.10.23)
+
+- repeat expansions: added cutoffs and general information for FGF14.
+- run tab: showing molarity in sample table now
+- QC plot: several instances can be opened now
+- QC plot: added more filter options
+- report config dialog: fixed crash when overriding small variant for indels larger than 10 bases
+
 ### 2023_06-81 (30.08.23)
 
 - long-reads: fixed crash when filtering long-read SVs

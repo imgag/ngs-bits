@@ -805,7 +805,7 @@ void ExportCBioPortalStudy::exportCnvs(const QString& out_folder, bool debug)
 	}
 }
 
-void ExportCBioPortalStudy::exportSvs(const QString& out_folder, bool debug)
+void ExportCBioPortalStudy::exportSvs(const QString& out_folder, bool /*debug*/)
 {
 	MetaFile meta_svs;
 	meta_svs.addValue("cancer_study_identifier", settings_.study.identifier);
@@ -922,7 +922,7 @@ void ExportCBioPortalStudy::exportSvs(const QString& out_folder, bool debug)
 }
 
 
-void ExportCBioPortalStudy::exportFusions(const QString& out_folder, bool debug)
+void ExportCBioPortalStudy::exportFusions(const QString& out_folder, bool /*debug*/)
 {
 	MetaFile meta_svs;
 	meta_svs.addValue("cancer_study_identifier", settings_.study.identifier);
