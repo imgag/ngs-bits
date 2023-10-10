@@ -13,7 +13,7 @@ private slots:
 
 	void load_SequencOntology()
 	{
-		OntologyTermCollection colletion("://Resources/so-xp_3_0_0.obo", true);
+		OntologyTermCollection colletion("://Resources/so-xp_3_1_0.obo", true);
 
 		//not contained
 		IS_FALSE(colletion.containsByName("lajfdslajfe"));
@@ -25,8 +25,9 @@ private slots:
 		IS_TRUE(colletion.containsByName("scRNA"));
 		S_EQUAL(colletion.getByID("SO:0000013").name(), "scRNA");
 		S_EQUAL(colletion.getByID("SO:0000013").definition(), "A small non coding RNA sequence, present in the cytoplasm.");
-		I_EQUAL(colletion.getByID("SO:0000013").synonyms().count(), 1);
-		S_EQUAL(colletion.getByID("SO:0000013").synonyms()[0], "small cytoplasmic RNA");
+		I_EQUAL(colletion.getByID("SO:0000013").synonyms().count(), 2);
+		S_EQUAL(colletion.getByID("SO:0000013").synonyms()[0], "INSDC_qualifier:scRNA");
+		S_EQUAL(colletion.getByID("SO:0000013").synonyms()[1], "small cytoplasmic RNA");
 		IS_TRUE(colletion.getByID("SO:0000013").isChildOf("SO:0000655"));
 		IS_FALSE(colletion.getByID("SO:0000013").isChildOf("SO:0000658"));
 		IS_TRUE(colletion.getByID("SO:0000013").isChildOf("SO:0000655"));
@@ -43,7 +44,7 @@ private slots:
 
 	void load_SequencOntology_withObsolete()
 	{
-		OntologyTermCollection colletion("://Resources/so-xp_3_0_0.obo", false);
+		OntologyTermCollection colletion("://Resources/so-xp_3_1_0.obo", false);
 
 		//non-obsolete term
 		IS_TRUE(colletion.containsByID("SO:0000013"));
