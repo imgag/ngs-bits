@@ -7485,7 +7485,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 		}
 
 		//exec dialog
-		ReportVariantDialog dlg(variant.toString(false, 10), inheritance_by_gene, var_config, this);
+		ReportVariantDialog dlg(variant.toString(false), inheritance_by_gene, var_config, this);
 		dlg.setEnabled(!report_settings_.report_config->isFinalized());
 		if (dlg.exec()!=QDialog::Accepted) return;
 
