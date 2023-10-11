@@ -440,7 +440,22 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 			   << "ps.quality as processed_sample_quality";
 	}
 
-	DBTable output = createTable("processed_sample", "SELECT DISTINCT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
+	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
+
+	//remove duplicates
+	QSet<int> done;
+	for(int r=output.rowCount()-1; r>=0; --r) //reverse, so that all indices are valid
+	{
+		int ps_id = output.row(r).id().toInt();
+		if (done.contains(ps_id))
+		{
+			output.removeRow(r);
+		}
+		else
+		{
+			done << ps_id;
+		}
+	}
 
 	//filter by user access rights (for restricted users only)
 	if (p.restricted_user!="")
