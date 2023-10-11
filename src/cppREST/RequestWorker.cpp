@@ -354,10 +354,10 @@ void RequestWorker::run()
 		}
 		else if (response.getPayload().isNull())
         {
-            QString error_message = EndpointManager::formatResponseMessage(parsed_request, "Could not produce any output");
-			Log::error(error_message + user_info + client_type);
-			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, error_type, error_message));
-			return;
+            // send empty response
+            Log::warning("Sending an empty response: " + QString::number(response.getStatusCode()) + user_info + client_type);
+            sendEntireResponse(ssl_socket, response);
+            return;
 		}
 
         QString error_message = EndpointManager::formatResponseMessage(parsed_request, "The requested resource does not exist: " + parsed_request.getPath() + ". Check the URL and try again");
