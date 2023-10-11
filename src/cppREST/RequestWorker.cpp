@@ -355,7 +355,7 @@ void RequestWorker::run()
 		else if (response.getPayload().isNull())
         {
             // send empty response
-            Log::warning("Sending an empty response: " + QString::number(response.getStatusCode()) + user_info + client_type);
+            Log::warn("Sending an empty response: " + QString::number(response.getStatusCode()) + user_info + client_type);
             sendEntireResponse(ssl_socket, response);
             return;
 		}
