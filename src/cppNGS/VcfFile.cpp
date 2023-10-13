@@ -987,7 +987,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 	FastaFileIndex reference(ref_file);
 
 	//load MISO terms
-	OntologyTermCollection obo_terms("://Resources/so-xp_3_0_0.obo", true);
+	OntologyTermCollection obo_terms("://Resources/so-xp_3_1_0.obo", true);
 
 	//ALT allele regexp
 	QRegExp alt_regexp("[ACGTN]+");

@@ -565,7 +565,7 @@ void MainWindow::on_actionDebug_triggered()
 				somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
 
 				//get SO-terms
-				OntologyTermCollection obo_terms("://Resources/so-xp_3_0_0.obo", true);
+				OntologyTermCollection obo_terms("://Resources/so-xp_3_1_0.obo", true);
 				QList<QByteArray> ids;
 				ids << obo_terms.childIDs("SO:0001580",true); //coding variants
 				ids << obo_terms.childIDs("SO:0001568",true); //splicing variants
@@ -4584,7 +4584,7 @@ void MainWindow::generateReportSomaticRTF()
 	//load obo terms for filtering coding/splicing variants
 	if (somatic_report_settings_.obo_terms_coding_splicing.size() == 0)
 	{
-		OntologyTermCollection obo_terms("://Resources/so-xp_3_0_0.obo",true);
+		OntologyTermCollection obo_terms("://Resources/so-xp_3_1_0.obo",true);
 		QList<QByteArray> ids;
 		ids << obo_terms.childIDs("SO:0001580",true); //coding variants
 		ids << obo_terms.childIDs("SO:0001568",true); //splicing variants
@@ -7201,7 +7201,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 		}
 
 		//exec dialog
-		ReportVariantDialog dlg(variant.toString(false, 10), inheritance_by_gene, var_config, this);
+		ReportVariantDialog dlg(variant.toString(false), inheritance_by_gene, var_config, this);
 		dlg.setEnabled(!report_settings_.report_config->isFinalized());
 		if (dlg.exec()!=QDialog::Accepted) return;
 

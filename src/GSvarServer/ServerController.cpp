@@ -874,17 +874,14 @@ HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 
 	int threads = Settings::integer("threads");
 	Statistics::avgCoverage(roi, bam_file_name, 1, threads);
-	if(!roi.isEmpty())
-	{
-		QByteArray body = roi.toText().toUtf8();
 
-		BasicResponseData response_data;
-		response_data.length = body.length();
-		response_data.content_type = request.getContentType();
-		response_data.is_downloadable = false;
-		return HttpResponse(response_data, body);
-    }
-    return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, request.getContentType(), EndpointManager::formatResponseMessage(request, "Average coverage for gaps is empty"));
+    QByteArray body = roi.toText().toUtf8();
+
+    BasicResponseData response_data;
+    response_data.length = body.length();
+    response_data.content_type = request.getContentType();
+    response_data.is_downloadable = false;
+    return HttpResponse(response_data, body);
 }
 
 HttpResponse ServerController::calculateTargetRegionReadDepth(const HttpRequest& request)
@@ -919,7 +916,6 @@ HttpResponse ServerController::calculateTargetRegionReadDepth(const HttpRequest&
 			response_data.content_type = request.getContentType();
 			response_data.is_downloadable = false;
 			return HttpResponse(response_data, body);
-
 		}
 	}
 
