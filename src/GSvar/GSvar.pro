@@ -11,6 +11,10 @@ SOURCES += main.cpp\
     DatabaseServiceRemote.cpp \
     GHGAUploadDialog.cpp \
     GlobalServiceProvider.cpp \
+    IGVCommandWorker.cpp \
+    IGVInitWorker.cpp \
+    IGVSession.cpp \
+    IgvLogWidget.cpp \
     IgvSessionManager.cpp \
     MainWindow.cpp \
     ExternalToolDialog.cpp \
@@ -129,6 +133,10 @@ HEADERS += MainWindow.h \
     ExternalToolDialog.h \
     GHGAUploadDialog.h \
     GlobalServiceProvider.h \
+    IGVCommandWorker.h \
+    IGVInitWorker.h \
+    IGVSession.h \
+    IgvLogWidget.h \
     IgvSessionManager.h \
     MaintenanceDialog.h \
     ReportDialog.h \
@@ -244,6 +252,7 @@ FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
     GHGAUploadDialog.ui \
+    IgvLogWidget.ui \
     MaintenanceDialog.ui \
     ReportDialog.ui \
     TrioDialog.ui \

@@ -3,6 +3,7 @@
 #include "GUIHelper.h"
 #include "Settings.h"
 #include "GlobalServiceProvider.h"
+#include "IgvSessionManager.h"
 #include "VariantHgvsAnnotator.h"
 #include <QDir>
 #include <QMessageBox>
@@ -42,7 +43,7 @@ void DiseaseCourseWidget::VariantDoubleClicked(QTableWidgetItem* item)
 
 	const VcfLine& vcf_line = table_data_.lines.at(variant_idx).tumor_vcf_line;
 	QString coords = vcf_line.chr().strNormalized(true) + ":" + QString::number(vcf_line.start());
-	GlobalServiceProvider::gotoInIGV(coords, true);
+    IgvSessionManager::get(0).gotoInIGV(coords, true);
 
 	// add cfDNA BAM Files to IGV when executed for the first time
 	if (!igv_initialized_)
@@ -50,7 +51,7 @@ void DiseaseCourseWidget::VariantDoubleClicked(QTableWidgetItem* item)
 		foreach (const auto& cfdna_sample, table_data_.cfdna_samples)
 		{
 			QString bam = GlobalServiceProvider::database().processedSamplePath(cfdna_sample.ps_id, PathType::BAM).filename;
-			GlobalServiceProvider::loadFileInIGV(bam, true);
+            IgvSessionManager::get(0).loadFileInIGV(bam, true);
 		}
 		igv_initialized_ = true;
 	}

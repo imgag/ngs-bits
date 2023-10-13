@@ -30,12 +30,6 @@ public:
 	static void openProjectTab(QString project_name);
 	static void openProcessingSystemTab(QString system_short_name);
 
-	//IGV functionality
-	static void executeCommandListInIGV(QStringList commands, bool init_if_not_done, int session_index);
-	static void executeCommandInIGV(QString command, bool init_if_not_done, int session_index);
-	static void gotoInIGV(QString region, bool init_if_not_done, int session_index = 0);
-	static void loadFileInIGV(QString filename, bool init_if_not_done, bool is_virus_genome = false);
-
 	//opening GSvar files
 	static void openGSvarViaNGSD(QString processed_sample_name, bool search_multi);
 

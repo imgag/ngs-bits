@@ -123,5 +123,6 @@
         <file>Icons/settings.png</file>
         <file>Icons/check.png</file>
         <file>Icons/Virus.png</file>
+        <file>Icons/IGV_active.png</file>
     </qresource>
 </RCC>

@@ -12,8 +12,8 @@
 #include "GSvarHelper.h"
 #include "LoginManager.h"
 #include "GlobalServiceProvider.h"
+#include "IgvSessionManager.h"
 #include <QMessageBox>
-#include "GlobalServiceProvider.h"
 #include "AnalysisInformationWidget.h"
 #include "ExpressionGeneWidget.h"
 #include "FusionWidget.h"
@@ -688,7 +688,7 @@ void ProcessedSampleWidget::openIgvTrack()
 	PathType type = static_cast<PathType>(action->data().toInt());
 
 	QString file = GlobalServiceProvider::database().processedSamplePath(ps_id_, type).filename;
-	GlobalServiceProvider::loadFileInIGV(file, false);
+    IgvSessionManager::get(0).loadFileInIGV(file, false);
 }
 
 void ProcessedSampleWidget::somRepDeleted()

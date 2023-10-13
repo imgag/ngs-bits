@@ -5,6 +5,7 @@
 #include "Statistics.h"
 #include "MainWindow.h"
 #include "ClientHelper.h"
+#include "IgvSessionManager.h"
 #include <QMessageBox>
 #include <QBuffer>
 
@@ -615,7 +616,7 @@ void SomaticReportDialog::createIgvScreenshot()
 			MainWindow* main_window = qobject_cast<MainWindow*>(widget);
 			if (main_window!=nullptr)
 			{
-				main_window->executeIGVCommands(commands, false, 0);
+                IgvSessionManager::get(0).prepareIfNotAndExecute(commands, false);
 			}
 		}
 

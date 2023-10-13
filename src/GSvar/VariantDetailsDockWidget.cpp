@@ -16,6 +16,7 @@
 #include "LoginManager.h"
 #include "GUIHelper.h"
 #include "GlobalServiceProvider.h"
+#include "IgvSessionManager.h"
 #include <QHeaderView>
 
 VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
@@ -829,7 +830,7 @@ void VariantDetailsDockWidget::previousTanscript()
 void VariantDetailsDockWidget::variantClicked(QString link)
 {
 	QString region = link.left(link.indexOf(' '));
-	GlobalServiceProvider::gotoInIGV(region, true);
+    IgvSessionManager::get(0).gotoInIGV(region, true);
 }
 
 QString VariantDetailsDockWidget::formatLink(QString text, QString url, Color bgcolor)

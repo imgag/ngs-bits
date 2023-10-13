@@ -16,6 +16,7 @@
 #include <QMessageBox>
 #include "LoginManager.h"
 #include "GlobalServiceProvider.h"
+#include "IgvSessionManager.h"
 #include <QClipboard>
 
 FilterWidget::FilterWidget(QWidget *parent)
@@ -610,7 +611,7 @@ void FilterWidget::openTargetRegionInIGV()
 	QString roi_file = GSvarHelper::localRoiFolder() + roi_.name + ".bed";
 	roi_.regions.store(roi_file);
 
-	GlobalServiceProvider::loadFileInIGV(roi_file, false);
+    IgvSessionManager::get(0).loadFileInIGV(roi_file, false);
 }
 
 void FilterWidget::updateGeneWarning()

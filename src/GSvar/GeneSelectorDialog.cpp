@@ -9,6 +9,7 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include "GlobalServiceProvider.h"
+#include "IgvSessionManager.h"
 
 GeneSelectorDialog::GeneSelectorDialog(QString sample_name, QWidget* parent)
 	: QDialog(parent)
@@ -205,7 +206,7 @@ void GeneSelectorDialog::geneDoubleClicked(QTableWidgetItem* item)
 {
 	if (item==nullptr) return;
 
-	GlobalServiceProvider::gotoInIGV(ui->details->item(item->row(), 0)->text(), true);
+    IgvSessionManager::get(0).gotoInIGV(ui->details->item(item->row(), 0)->text(), true);
 }
 
 QString GeneSelectorDialog::report()

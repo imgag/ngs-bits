@@ -11,6 +11,7 @@
 #include <QMessageBox>
 #include "LoginManager.h"
 #include "GlobalServiceProvider.h"
+#include "IgvSessionManager.h"
 #include <QChartView>
 #include <QDialogButtonBox>
 #include <QSignalMapper>
@@ -623,7 +624,7 @@ void ExpressionGeneWidget::OpenInIGV(QTableWidgetItem* item)
 
 	QString gene_name = ui_->expression_data->item(row_idx, gene_col_idx)->text();
 
-	GlobalServiceProvider::gotoInIGV(gene_name, true);
+    IgvSessionManager::get(0).gotoInIGV(gene_name, true);
 }
 
 void ExpressionGeneWidget::showCustomCohortDialog()
