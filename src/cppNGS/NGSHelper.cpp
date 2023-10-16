@@ -502,15 +502,32 @@ const QMap<QByteArray, ImprintingInfo>& NGSHelper::imprintingGenes()
 	return output;
 }
 
-void NGSHelper::parseRegion(const QString& text, Chromosome& chr, int& start, int& end)
+void NGSHelper::parseRegion(const QString& text, Chromosome& chr, int& start, int& end, bool allow_chr_only)
 {
+	//split
 	QString simplyfied = text;
 	simplyfied.replace("-", " ");
 	simplyfied.replace(":", " ");
 	simplyfied.replace(",", "");
+	simplyfied = simplyfied.trimmed();
 	QStringList parts = simplyfied.split(QRegularExpression("\\W+"), QString::SkipEmptyParts);
-	if (parts.count()!=3) THROW(ArgumentException, "Could not split chromosomal range '" + text + "' in three parts: " + QString::number(parts.count()) + " parts found.");
 
+	//support for chrosomome only
+	if (allow_chr_only && parts.count()==1 && Chromosome(simplyfied).isNonSpecial())
+	{
+		parts.clear();
+		parts << simplyfied;
+		parts << "1";
+		parts << "999999999";
+	}
+
+	//not three parts
+	if (parts.count()!=3)
+	{
+		THROW(ArgumentException, "Could not split chromosomal range '" + text + "' in three parts: " + QString::number(parts.count()) + " parts found.");
+	}
+
+	//set output
 	chr = Chromosome(parts[0]);
 	if (!chr.isValid()) THROW(ArgumentException, "Invalid chromosome given in chromosomal range '" + text + "': " + parts[0]);
 	start = Helper::toInt(parts[1], "Start coordinate", text);

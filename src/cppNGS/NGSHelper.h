@@ -103,7 +103,7 @@ public:
 	static const QMap<QByteArray, ImprintingInfo>& imprintingGenes();
 
 	///Parses a chromosomal region from the given text. Throws an error, if the region is not valid.
-	static void parseRegion(const QString& text, Chromosome& chr, int& start, int& end);
+	static void parseRegion(const QString& text, Chromosome& chr, int& start, int& end, bool allow_chr_only = false);
 
 	///Returns Bed File with coordinates of centromeres.
 	static const BedFile& centromeres(GenomeBuild build);

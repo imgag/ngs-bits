@@ -2888,7 +2888,7 @@ void MainWindow::showCnHistogram()
 		QString region_text = QInputDialog::getText(this, title, "genomic region");
 		if (region_text=="") return;
 
-		NGSHelper::parseRegion(region_text, chr, start, end);
+		NGSHelper::parseRegion(region_text, chr, start, end, true);
 
 		//determine CN values
 		QVector<double> cn_values;
@@ -2967,7 +2967,7 @@ void MainWindow::showBafHistogram()
 		QString region_text = QInputDialog::getText(this, title, "genomic region");
 		if (region_text=="") return;
 
-		NGSHelper::parseRegion(region_text, chr, start, end);
+		NGSHelper::parseRegion(region_text, chr, start, end, true);
 
 		//determine CN values
 		Histogram hist(0.0, 1.0, 0.025);
@@ -7534,7 +7534,7 @@ void MainWindow::applyFilters(bool debug_time)
 			}
 		}
 
-		//target region filter
+		//region filter
 		QString region_text = ui_.filters->region();
 		BedLine region = BedLine::fromString(region_text);
 		if (!region.isValid()) //check if valid chr
