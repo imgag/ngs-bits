@@ -1350,7 +1350,7 @@ RtfTable SomaticReportHelper::hlaTable(QString ps_name, QByteArray type)
 	QList<int> cell_widths = {2000,1000,1500,1500,800,722,800,800,800};
 	RtfTable table;
 	table.addRow(RtfTableRow("HLA Resultate " + type,doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4));
-	table.addRow(RtfTableRow({"Sample","Gen","a1","a2","p-Wert","qual","a1 reads","a2 reads", "a1+a2"}, cell_widths, RtfParagraph().setBold(true).setHorizontalAlignment("c")));
+	table.addRow(RtfTableRow({"Sample","Gene","a1","a2","Precision","Qual","a1 reads","a2 reads", "a1+a2"}, cell_widths, RtfParagraph().setBold(true).setHorizontalAlignment("c")));
 
 	if (VersatileFile(hla_file).exists())
 	{
