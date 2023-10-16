@@ -1,6 +1,6 @@
-#include "IGVInitWorker.h"
+#include "IGVStartWorker.h"
 
-IGVInitWorker::IGVInitWorker(const QString& igv_host, const int& igv_port, const QString& igv_app)
+IGVStartWorker::IGVStartWorker(const QString& igv_host, const int& igv_port, const QString& igv_app)
     : igv_host_(igv_host)
     , igv_port_(igv_port)
     , igv_app_(igv_app)
@@ -15,7 +15,7 @@ IGVInitWorker::IGVInitWorker(const QString& igv_host, const int& igv_port, const
     }
 }
 
-void IGVInitWorker::run()
+void IGVStartWorker::run()
 {
     bool started = QProcess::startDetached(igv_app_ + " --port " + QString::number(igv_port_));
     if (!started)
@@ -32,7 +32,7 @@ void IGVInitWorker::run()
         socket.connectToHost(igv_host_, igv_port_);
         if (socket.waitForConnected(1000))
         {
-            Log::info("Connecting to the IGV ports works");
+			//Log::info("Connecting to the IGV ports works");
             connected = true;
             break;
         }

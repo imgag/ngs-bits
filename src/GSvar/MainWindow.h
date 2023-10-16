@@ -360,6 +360,8 @@ public slots:
 
 	///Adds and shows a modeless dialog
 	void addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize=false);
+	///Adds and shows a modeless dialog
+	void deleteClosedModelessDialogs();
 	///Imports phenotype data from NGSD
 	void importPhenotypesFromNGSD();
 	///Create sub-panel from phenotype

@@ -12,8 +12,8 @@ SOURCES += main.cpp\
     GHGAUploadDialog.cpp \
     GlobalServiceProvider.cpp \
     IGVCommandWorker.cpp \
-    IGVInitWorker.cpp \
     IGVSession.cpp \
+    IGVStartWorker.cpp \
     IgvLogWidget.cpp \
     IgvSessionManager.cpp \
     MainWindow.cpp \
@@ -134,8 +134,8 @@ HEADERS += MainWindow.h \
     GHGAUploadDialog.h \
     GlobalServiceProvider.h \
     IGVCommandWorker.h \
-    IGVInitWorker.h \
     IGVSession.h \
+    IGVStartWorker.h \
     IgvLogWidget.h \
     IgvSessionManager.h \
     MaintenanceDialog.h \

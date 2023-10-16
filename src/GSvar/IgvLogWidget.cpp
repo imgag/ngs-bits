@@ -20,23 +20,22 @@ IgvLogWidget::IgvLogWidget(QWidget* parent)
 void IgvLogWidget::switchCurrentSession(int index)
 {
     updateTable(IgvSessionManager::get(index).getHistory());
-    connect(&(IgvSessionManager::get(index)), SIGNAL(historyUpdated(QStringList)), this, SLOT(updateTable(QStringList)));
+	connect(&(IgvSessionManager::get(index)), SIGNAL(historyUpdated(QList<IGVCommand>)), this, SLOT(updateTable(QList<IGVCommand>)));
 }
 
-void IgvLogWidget::updateTable(QStringList updated_history)
+void IgvLogWidget::updateTable(const QList<IGVCommand>& updated_history)
 {
     ui_.table->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    ui_.table->setRowCount(updated_history.count());
+	ui_.table->setRowCount(updated_history.count());
     int i = 0;
-    foreach(QString item, updated_history)
+	foreach(const IGVCommand& command, updated_history)
     {
-        QList<QString> fragments = item.split("\t");
-        if (fragments.count()==3)
-        {
-            ui_.table->setItem(i, 0, GUIHelper::createTableItem(fragments[0]));
-            ui_.table->setItem(i, 1, GUIHelper::createTableItem(fragments[1]));
-            ui_.table->setItem(i, 2, GUIHelper::createTableItem(fragments[2]));
-        }
-        i++;
+		ui_.table->setItem(i, 0, GUIHelper::createTableItem(command.command));
+		QTableWidgetItem* item = GUIHelper::createTableItem(IGVSession::statusToString(command.status));
+		item->setBackgroundColor(IGVSession::statusToColor(command.status));
+		ui_.table->setItem(i, 1, item);
+		ui_.table->setItem(i, 2, GUIHelper::createTableItem(QString::number(command.execution_time_sec, 'f', 2)));
+		ui_.table->setItem(i, 3, GUIHelper::createTableItem(command.answer));
+		++i;
     }
 }

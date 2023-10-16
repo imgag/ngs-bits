@@ -1778,6 +1778,7 @@ void MainWindow::on_actionIgvClear_triggered()
 	QStringList commands;
 	commands << ("genome " + Settings::path("igv_genome")); //genome command first, see https://github.com/igvteam/igv/issues/1094
 	commands << "new";
+	IgvSessionManager::get(0).clearHistory();
     IgvSessionManager::get(0).prepareIfNotAndExecute(commands, false);
     IgvSessionManager::get(0).setIGVInitialized(false);
 }
@@ -2636,7 +2637,7 @@ void MainWindow::delayedInitialization()
 	}
 
 	//create default IGV session (variants)
-    IgvSessionManager::create(this, ui_, "Regular IGV", Settings::path("igv_app").trimmed(), Settings::string("igv_host"), Settings::path("igv_genome"));
+	IgvSessionManager::create(this, ui_, "Default IGV", Settings::path("igv_app").trimmed(), Settings::string("igv_host"), Settings::path("igv_genome"));
 	//create IGV session for virus detection
 	QString virus_genome;
 	if (!ClientHelper::isClientServerMode())
@@ -2648,7 +2649,7 @@ void MainWindow::delayedInitialization()
 	{
 	   virus_genome = ClientHelper::serverApiUrl() + "genome/somatic_viral.fa";
 	}
-    IgvSessionManager::create(this, ui_, "Virus table IGV", Settings::path("igv_app").trimmed(), Settings::string("igv_host"), virus_genome);
+	IgvSessionManager::create(this, ui_, "Virus IGV", Settings::path("igv_app").trimmed(), Settings::string("igv_host"), virus_genome);
 
     connect(&(IgvSessionManager::get(0)), SIGNAL(started()), this, SLOT(changeIgvIconToActive()));
     connect(&(IgvSessionManager::get(0)), SIGNAL(finished()), this, SLOT(changeIgvIconToNormal()));
@@ -3092,8 +3093,14 @@ void MainWindow::addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize)
 	{
 		dlg->show();
 	}
-	modeless_dialogs_.append(dlg);
 
+	connect(dlg.data(), SIGNAL(finished(int)), this, SLOT(deleteClosedModelessDialogs()));
+
+	modeless_dialogs_.append(dlg);
+}
+
+void MainWindow::deleteClosedModelessDialogs()
+{
 	//Clean up when we add another dialog. Like that, only one dialog can be closed and not destroyed at the same time.
 	for (int i=modeless_dialogs_.count()-1; i>=0; --i)
 	{
@@ -6883,9 +6890,19 @@ void MainWindow::closeAndLogout()
 
 void MainWindow::displayIgvHistoryTable(QPoint /*pos*/)
 {
+	//check if already present > bring to front
+	QList<IgvLogWidget*> dialogs = findChildren<IgvLogWidget*>();
+	if (!dialogs.isEmpty())
+	{
+		QDialog* dlg = qobject_cast<QDialog*>(dialogs.at(0)->parent());
+		dlg->raise();
+		return;
+	}
+
+	//open new dialog
     IgvLogWidget* widget = new IgvLogWidget(this);
     auto dlg = GUIHelper::createDialog(widget, "Igv command history");
-    dlg->exec();
+	addModelessDialog(dlg);
 }
 
 void MainWindow::changeIgvIconToActive()
@@ -6896,8 +6913,8 @@ void MainWindow::changeIgvIconToActive()
 
 void MainWindow::changeIgvIconToNormal()
 {
-    if (!IgvSessionManager::hasAtLeastOneActiveIGV())
-    {
+	if (!IgvSessionManager::hasAtLeastOneActiveIGV())
+	{
         igv_history_label_->setPixmap(QPixmap(":/Icons/IGV.png"));
         igv_history_label_->setToolTip("IGV is idle at the moment");
     }

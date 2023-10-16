@@ -1,5 +1,5 @@
-#ifndef IGVINITWORKER_H
-#define IGVINITWORKER_H
+#ifndef IGVSTARTWORKER_H
+#define IGVSTARTWORKER_H
 
 #include <QRunnable>
 #include <QFile>
@@ -12,11 +12,11 @@
 #include "Log.h"
 
 //A worker class that starts an IGV app and checks if it has been done correctly
-class IGVInitWorker
+class IGVStartWorker
     : public QRunnable
 {
 public:
-    IGVInitWorker(const QString& igv_host, const int& igv_port, const QString& igv_app);
+    IGVStartWorker(const QString& igv_host, const int& igv_port, const QString& igv_app);
     void run();
 
 protected:
@@ -25,4 +25,4 @@ protected:
     QString igv_app_;
 };
 
-#endif // IGVINITWORKER_H
+#endif // IGVSTARTWORKER_H

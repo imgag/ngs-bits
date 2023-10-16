@@ -3,9 +3,10 @@
 
 #include <QWidget>
 #include "ui_IgvLogWidget.h"
+#include "IGVSession.h"
 
-
-class IgvLogWidget: public QWidget
+class IgvLogWidget
+	: public QWidget
 {
     Q_OBJECT
 
@@ -14,7 +15,7 @@ public:
 
 public slots:
     void switchCurrentSession(int index);
-    void updateTable(QStringList updated_history);
+	void updateTable(const QList<IGVCommand>& updated_history);
 
 private:
     Ui::IgvLogWidget ui_;

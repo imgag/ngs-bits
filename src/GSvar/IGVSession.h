@@ -7,11 +7,12 @@
 #include <QProcess>
 #include <QEventLoop>
 #include <QMessageBox>
+#include <QMutex>
 
 #include "Exceptions.h"
 #include "Settings.h"
 #include "IGVCommandWorker.h"
-#include "IGVInitWorker.h"
+#include "IGVStartWorker.h"
 #include "IgvDialog.h"
 #include "ClientHelper.h"
 #include "GSvarHelper.h"
@@ -19,8 +20,28 @@
 #include "GlobalServiceProvider.h"
 #include "MainWindow.h"
 
+//Status of a IGV command
+enum IGVStatus
+{
+	QUEUED,
+	STARTED,
+	FINISHED,
+	FAILED
+};
+
+//IGV command struct
+struct IGVCommand
+{
+	int id;
+	QString command;
+	IGVStatus status;
+	QString answer;
+	double execution_time_sec;
+};
+
 //Keeps information about an individual instance of IGV, allows to run commands, and gives info about their status
-class IGVSession : public QObject
+class IGVSession
+	: public QObject
 {
     Q_OBJECT
 
@@ -64,11 +85,14 @@ public:
     //checks if an IGV instance is currently executing a command
     bool hasRunningCommands();
     //contains a list of errors for all commands (each item in the list corresponds to an item in the list of commands)
-    const QStringList getErrorMessages();
+	QStringList getErrorMessages();
     //history of executed commands (for the current session)
-    const QStringList getHistory();
+	QList<IGVCommand> getHistory();
     //removes the history of executed commands
     void clearHistory();
+
+	static QString statusToString(IGVStatus status);
+	static QColor statusToColor(IGVStatus status);
 
 protected:
     QString getCurrentFileName();
@@ -81,16 +105,17 @@ protected:
     bool igvDialogButtonHandler(IgvDialog& dlg);
 
 signals:
-    void historyUpdated(QStringList updated_history);
+	void historyUpdated(QList<IGVCommand> updated_history);
     void started();
     void finished();
 
 public slots:
-    void handleExecptions(QString message);
-    void addToHistory(QString status);
+	void updateHistoryStart(int id);
+	void updateHistoryFinished(int id, QString answer, double sec_elapsed);
+	void updateHistoryFailed(int id, QString error, double sec_elapsed);
 
 private:
-    QWidget *parent_;
+	QWidget* parent_;
     Ui::MainWindow parent_ui_;
     QThreadPool execution_pool_;
 
@@ -101,10 +126,11 @@ private:
     QString igv_genome_;
 
     bool is_initialized_;
-    bool is_igv_running_;
-    QStringList responses_;
+	bool is_igv_running_;
     QStringList error_messages_;
-    QStringList command_history_;
+	int next_id_ = 1;
+	QList<IGVCommand> command_history_;
+	QMutex command_history_mutex_;
 };
 
 #endif // IGVSESSION_H

@@ -9,8 +9,7 @@ IGVSession::IGVSession(QWidget *parent, Ui::MainWindow parent_ui, QString igv_na
     , igv_port_(igv_port)
     , igv_genome_(genome)
     , is_initialized_(false)
-    , is_igv_running_(false)
-    , responses_({})
+	, is_igv_running_(false)
     , error_messages_()
 {
     execution_pool_.setMaxThreadCount(1);
@@ -18,7 +17,7 @@ IGVSession::IGVSession(QWidget *parent, Ui::MainWindow parent_ui, QString igv_na
 
 const QString IGVSession::getName()
 {
-    return igv_name_;
+	return igv_name_;
 }
 
 void IGVSession::setName(const QString& name)
@@ -68,21 +67,36 @@ bool IGVSession::isIGVInitialized()
 
 void IGVSession::initIGV()
 {
-    IGVInitWorker* init_worker = new IGVInitWorker(igv_host_, igv_port_, igv_app_);
+	IGVStartWorker* init_worker = new IGVStartWorker(igv_host_, igv_port_, igv_app_);
     execution_pool_.start(init_worker);
 }
 
 void IGVSession::execute(const QStringList& commands)
 {
-    int execution_dealay_ms = 5000;
+	//add commands to history and create worker commands
+	QList<IgvWorkerCommand> worker_commands;
+	foreach (const QString& command, commands)
+	{
+		worker_commands << IgvWorkerCommand{next_id_, command};
+		++next_id_;
+	}
 
-    if (commands.count() == 1) execution_dealay_ms = 0;
-    IGVCommandWorker* command_worker = new IGVCommandWorker(igv_host_, igv_port_, commands, responses_, execution_dealay_ms);
-    connect(command_worker, SIGNAL(commandFailed(QString)), this, SLOT(handleExecptions(QString)));
-    connect(command_worker, SIGNAL(commandReported(QString)), this, SLOT(addToHistory(QString)));
+	//add commands to history
+	command_history_mutex_.lock();
+	foreach (const IgvWorkerCommand& command, worker_commands)
+	{
+		command_history_ << IGVCommand{command.id, command.text, IGVStatus::QUEUED, "", 0.0};
+	}
+	emit historyUpdated(command_history_);
+	command_history_mutex_.unlock();
 
-    connect(command_worker, SIGNAL(commandQueueStarted()), this, SIGNAL(started()));
-    connect(command_worker, SIGNAL(commandQueueFinished()), this, SIGNAL(finished()));
+	//start commands
+	IGVCommandWorker* command_worker = new IGVCommandWorker(igv_host_, igv_port_, worker_commands, commands.count()==1 ? 0 : 5000); //TODO refactor as soon as there is new IGV release
+	connect(command_worker, SIGNAL(commandStarted(int)), this, SLOT(updateHistoryStart(int)));
+	connect(command_worker, SIGNAL(commandFailed(int, QString, double)), this, SLOT(updateHistoryFailed(int, QString, double)));
+	connect(command_worker, SIGNAL(commandFinished(int, QString, double)), this, SLOT(updateHistoryFinished(int, QString, double)));
+	connect(command_worker, SIGNAL(processingStarted()), this, SIGNAL(started()));
+	connect(command_worker, SIGNAL(processingFinished()), this, SIGNAL(finished()));
 
     execution_pool_.start(command_worker);
 }
@@ -90,9 +104,10 @@ void IGVSession::execute(const QStringList& commands)
 void IGVSession::prepareIfNotAndExecute(const QStringList& commands, bool init_if_not_done)
 {
     bool is_igv_running = false;
+	bool commands_are_running = hasRunningCommands();
     try
     {
-        is_igv_running = isIgvRunning();
+		is_igv_running = commands_are_running || isIgvRunning();
     }
     catch (Exception& e)
     {
@@ -123,18 +138,19 @@ void IGVSession::prepareIfNotAndExecute(const QStringList& commands, bool init_i
         init_if_not_done = true;
     }
 
-    if (!isIGVInitialized() && init_if_not_done)
+	if (!isIGVInitialized() && init_if_not_done && !commands_are_running)
     {
-        Log::info("Initialzing IGV for the current sample");
+		Log::info("Initialzing IGV for the current sample");
+
+		clearHistory();
+		displayIgvHistoryButton(true);
 
         bool is_igv_ready = false;
-        if (getName().toLower().contains("regular")) is_igv_ready = prepareRegularIGV();
-        if (getName().toLower().contains("virus")) is_igv_ready = prepareVirusIGV();
+		if (getName()=="Default IGV") is_igv_ready = prepareRegularIGV();
+		if (getName()=="Virus IGV") is_igv_ready = prepareVirusIGV();
         if (!is_igv_ready) return;
 
-        clearHistory();
-        setIGVInitialized(true);
-        displayIgvHistoryButton(true);
+		setIGVInitialized(true);
     }
 
     try
@@ -172,41 +188,88 @@ void IGVSession::loadFileInIGV(QString filename, bool init_if_not_done)
 
 bool IGVSession::isIgvRunning()
 {
-    Log::info("IGV availability check");
-    QStringList commands = {"echo running"};
+	QTime timer;
+	timer.start();
+	//Log::info("IGV availability check");
+	QList<IgvWorkerCommand> commands;
+	commands << IgvWorkerCommand{-1, "echo running"};
 
-    IGVCommandWorker* command_worker = new IGVCommandWorker(igv_host_, igv_port_, commands, responses_, 0);
+	//start command
+	IGVCommandWorker* command_worker = new IGVCommandWorker(igv_host_, igv_port_, commands, 0, 500);
+	command_worker->setAutoDelete(false);
     execution_pool_.start(command_worker);
-    execution_pool_.waitForDone();
 
-    if (responses_.count()>0)
-    {
-        if (responses_[0].toLower() == "running") return true;
-    }
+	//get answer
+	execution_pool_.waitForDone();
+	QString answer = command_worker->answer();
+	command_worker->deleteLater();
 
-    return false;
+	return answer=="running";
 }
 
 bool IGVSession::hasRunningCommands()
 {
-    return (execution_pool_.activeThreadCount()>0);
+	return execution_pool_.activeThreadCount()>0;
 }
 
-const QStringList IGVSession::getErrorMessages()
+QStringList IGVSession::getErrorMessages()
 {
     return error_messages_;
 }
 
-const QStringList IGVSession::getHistory()
+QList<IGVCommand> IGVSession::getHistory()
 {
-    if (execution_pool_.activeThreadCount()>0) return QStringList{};
-    return command_history_;
+	command_history_mutex_.lock();
+	QList<IGVCommand> history = command_history_;
+	command_history_mutex_.unlock();
+	return history;
 }
 
 void IGVSession::clearHistory()
 {
-    if (execution_pool_.activeThreadCount()>0) return;
-    command_history_.clear();
+	command_history_mutex_.lock();
+	command_history_.clear();
+	command_history_mutex_.unlock();
+}
+
+QString IGVSession::statusToString(IGVStatus status)
+{
+	switch(status)
+	{
+		case IGVStatus::QUEUED:
+			return "queued";
+			break;
+		case IGVStatus::STARTED:
+			return "started";
+			break;
+		case IGVStatus::FINISHED:
+			return "finished";
+			break;
+		case IGVStatus::FAILED:
+			return "failed";
+			break;
+	}
+	THROW(ProgrammingException, "Unknown IGV status " + QString::number(status));
+}
+
+QColor IGVSession::statusToColor(IGVStatus status)
+{
+	switch(status)
+	{
+		case IGVStatus::QUEUED:
+			return Qt::lightGray;
+			break;
+		case IGVStatus::STARTED:
+			return QColor("#90EE90");
+			break;
+		case IGVStatus::FINISHED:
+			return QColor("#44BB44");
+			break;
+		case IGVStatus::FAILED:
+			return QColor("#FF0000");
+			break;
+	}
+	THROW(ProgrammingException, "Unknown IGV status " + QString::number(status));
 }
 
 QString IGVSession::getCurrentFileName()
@@ -434,9 +497,7 @@ void IGVSession::prepareAndRunIGVCommands(QStringList files_to_load)
     //genome command first, see https://github.com/igvteam/igv/issues/1094
     //choose the correct genome
     init_commands.append("new");
-    init_commands.append("genome " + getGenome());
-    //	init_commands.append("setSleepInterval 1500");
-    //  init_commands.append("currentGenomePath");
+	init_commands.append("genome " + getGenome());
 
 
     if (ClientHelper::isClientServerMode()) init_commands.append("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*");
@@ -516,14 +577,69 @@ bool IGVSession::igvDialogButtonHandler(IgvDialog& dlg)
     }
 }
 
-void IGVSession::addToHistory(QString status)
+void IGVSession::updateHistoryStart(int id)
 {
-    command_history_.append(status);
-    emit historyUpdated(command_history_);
+	//ignore commands without valid ID (we used them e.g. for checking if IGV runs)
+	if (id==-1) return;
+
+	command_history_mutex_.lock();
+
+	for (int i=0; i<command_history_.count(); ++i)
+	{
+		IGVCommand& command = command_history_[i];
+		if (command.id==id)
+		{
+			command.status = IGVStatus::STARTED;
+		}
+	}
+
+	emit historyUpdated(command_history_);
+
+	command_history_mutex_.unlock();
 }
 
-void IGVSession::handleExecptions(QString message)
+void IGVSession::updateHistoryFinished(int id, QString answer, double sec_elapsed)
 {
-    Log::error(message);
-    error_messages_.append(message);
+	//ignore commands without valid ID (we used them e.g. for checking if IGV runs)
+	if (id==-1) return;
+
+	command_history_mutex_.lock();
+
+	for (int i=0; i<command_history_.count(); ++i)
+	{
+		IGVCommand& command = command_history_[i];
+		if (command.id==id)
+		{
+			command.status = IGVStatus::FINISHED;
+			command.answer = answer;
+			command.execution_time_sec = sec_elapsed;
+		}
+	}
+
+	emit historyUpdated(command_history_);
+
+	command_history_mutex_.unlock();
+}
+
+void IGVSession::updateHistoryFailed(int id, QString error, double sec_elapsed)
+{
+	//ignore commands without valid ID (we used them e.g. for checking if IGV runs)
+	if (id==-1) return;
+
+	command_history_mutex_.lock();
+
+	for (int i=0; i<command_history_.count(); ++i)
+	{
+		IGVCommand& command = command_history_[i];
+		if (command.id==id)
+		{
+			command.status = IGVStatus::FAILED;
+			command.answer = error;
+			command.execution_time_sec = sec_elapsed;
+		}
+	}
+
+	emit historyUpdated(command_history_);
+
+	command_history_mutex_.unlock();
 }
