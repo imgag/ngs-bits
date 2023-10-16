@@ -31,7 +31,7 @@ void IgvSessionManager::remove(const int& session_index)
     instance().mutex_.unlock();
 }
 
-const int IgvSessionManager::indexByName(const QString& name)
+int IgvSessionManager::indexByName(const QString& name)
 {
     int index = -1;
     instance().mutex_.lock();
@@ -60,7 +60,7 @@ IGVSession& IgvSessionManager::get(const int& session_index)
     return *(instance().session_list_[session_index].data());
 }
 
-const int IgvSessionManager::count()
+int IgvSessionManager::count()
 {
     instance().mutex_.lock();
     int session_count = instance().session_list_.count();
@@ -80,7 +80,7 @@ void IgvSessionManager::resetIGVInitialized()
     instance().mutex_.unlock();
 }
 
-const bool IgvSessionManager::hasAtLeastOneActiveIGV()
+bool IgvSessionManager::hasAtLeastOneActiveIGV()
 {
     bool hasActiveInstance = false;
     instance().mutex_.lock();
