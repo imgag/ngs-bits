@@ -1776,18 +1776,15 @@ void MainWindow::on_actionCloseMetaDataTabs_triggered()
 void MainWindow::on_actionIgvClear_triggered()
 {
 	IGVSession& session = IgvSessionManager::get(0);
-	QStringList commands;
 
 	//start IGV
 	if (!session.isIgvRunning())
 	{
 		session.startIGV();
-		commands << ("genome " + Settings::path("igv_genome")); //genome command first, see https://github.com/igvteam/igv/issues/1094
 	}
 
 	//clear
-	commands << "new";
-	session.execute(commands);
+	session.execute(QStringList() << "new");
 	session.clearHistory();
 }
 

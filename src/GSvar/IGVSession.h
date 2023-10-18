@@ -50,18 +50,10 @@ public:
 
     //name of a given IGV instance
     const QString getName();
-    //define a name for a specific IGV instance
-    void setName(const QString& name);
-    //host where an IGV instance is running
-    const QString getHost();
-    //define a host for an IGV instance
-    void setHost(const QString& host);
-    //port number where an IGV instance is running
+	//port number where an IGV instance is running
     int getPort();
     //define a port number where an IGV instance is running
     void setPort(const int& port);
-    //reference genome that is used for an IGV instance
-    const QString getGenome();
     //define a reference genome to be loaded for an IGV instance
     void setGenome(const QString& genome);
     //sets a flag indicating that a list of files for IGV has been defined

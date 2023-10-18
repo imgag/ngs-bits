@@ -18,21 +18,6 @@ const QString IGVSession::getName()
 	return igv_name_;
 }
 
-void IGVSession::setName(const QString& name)
-{
-    igv_name_ = name;
-}
-
-const QString IGVSession::getHost()
-{
-    return igv_host_;
-}
-
-void IGVSession::setHost(const QString& host)
-{
-    igv_host_ = host;
-}
-
 int IGVSession::getPort()
 {
     return igv_port_;
@@ -41,11 +26,6 @@ int IGVSession::getPort()
 void IGVSession::setPort(const int& port)
 {
     igv_port_ = port;
-}
-
-const QString IGVSession::getGenome()
-{
-    return igv_genome_;
 }
 
 void IGVSession::setGenome(const QString& genome)
@@ -60,7 +40,7 @@ void IGVSession::setIGVInitialized(const bool& is_initialized)
 
 bool IGVSession::isIGVInitialized()
 {
-    return is_initialized_;
+	return is_initialized_;
 }
 
 void IGVSession::startIGV()
@@ -69,9 +49,10 @@ void IGVSession::startIGV()
 	igv_start_error.clear();
 
 	//start IGV
-	IGVStartWorker* init_worker = new IGVStartWorker(igv_host_, igv_port_, igv_app_);
+	IGVStartWorker* init_worker = new IGVStartWorker(igv_host_, igv_port_, igv_app_, igv_genome_);
 	connect(init_worker, SIGNAL(failed(QString)), this, SLOT(igvStartFailed(QString)));
-    execution_pool_.start(init_worker);
+	execution_pool_.start(init_worker);
+	execution_pool_.waitForDone();
 
 	//thow exception if IGV could not be started
 	if(!igv_start_error.isEmpty())
@@ -510,8 +491,7 @@ void IGVSession::prepareAndRunIGVCommands(QStringList files_to_load)
     QStringList init_commands;
     //genome command first, see https://github.com/igvteam/igv/issues/1094
     //choose the correct genome
-    init_commands.append("new");
-	init_commands.append("genome " + getGenome());
+	init_commands.append("new");
 
 
     if (ClientHelper::isClientServerMode()) init_commands.append("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*");

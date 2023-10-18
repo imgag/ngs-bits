@@ -4,10 +4,11 @@
 #include <QProcess>
 #include <QTcpSocket>
 
-IGVStartWorker::IGVStartWorker(const QString& igv_host, const int& igv_port, const QString& igv_app)
+IGVStartWorker::IGVStartWorker(QString igv_host, int igv_port, QString igv_app, QString genome_file)
     : igv_host_(igv_host)
     , igv_port_(igv_port)
 	, igv_app_(igv_app)
+	, genome_(genome_file)
 {
     if (igv_app_.isEmpty())
     {
@@ -29,20 +30,27 @@ void IGVStartWorker::run()
     }
 
     //wait for IGV to respond after start
-    bool connected = false;
-	for (int i=0; i<30; ++i)
+	QTcpSocket socket;
+	for (int i=0; i<30; ++i) //try up to 30 times
 	{
-		QTcpSocket socket;
         socket.connectToHost(igv_host_, igv_port_);
         if (socket.waitForConnected(1000))
 		{
-			connected = true;
             break;
 		}
 		socket.abort();
     }
-    if (!connected)
+	if (!socket.isValid())
     {
-		emit failed("Could not start IGV: IGV application '" + igv_app_ + "' started, but does not respond on port '" + QString::number(igv_port_) + "'!");
+		emit failed("Could not start IGV: IGV application '" + igv_app_ + "' started on port '" + QString::number(igv_port_) + "', but does not respond !");
+	}
+	
+	//load genome
+	socket.write("genome " + genome_.toUtf8() + "\n");
+	socket.waitForBytesWritten();
+	bool ok = socket.waitForReadyRead(60000); // 1 min timeout ~ takes about 8 sec
+	if (!ok)
+	{
+		emit failed("Could not start IGV: IGV application '" + igv_app_ + "' started on port '" + QString::number(igv_port_) + "', could not load genome!");
 	}
 }
