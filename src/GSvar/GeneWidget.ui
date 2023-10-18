@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>854</width>
-    <height>624</height>
+    <width>1225</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -528,6 +528,9 @@
       </property>
       <item>
        <widget class="QTableWidget" name="transcripts">
+        <property name="frameShape">
+         <enum>QFrame::Box</enum>
+        </property>
         <attribute name="verticalHeaderVisible">
          <bool>false</bool>
         </attribute>

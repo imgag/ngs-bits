@@ -262,17 +262,19 @@ void ProcessedSampleWidget::updateGUI()
 	}
 	dd_table.setColumn(dd_table.columnIndex("disease_info"), info_entries);
 	ui_->disease_details->setData(dd_table);
-
+	GUIHelper::resizeTableHeight(ui_->disease_details);
 
 	//#### sample relations ####
 	DBTable rel_table = db.createTable("sample_relations", "SELECT id, (SELECT name FROM sample WHERE id=sample1_id), (SELECT sample_type FROM sample WHERE id=sample1_id), relation, (SELECT name FROM sample WHERE id=sample2_id), (SELECT sample_type  FROM sample WHERE id=sample2_id), (SELECT name FROM user WHERE id=sample_relations.user_id), date FROM sample_relations WHERE sample1_id='" + s_id + "' OR sample2_id='" + s_id + "'");
 	rel_table.setHeaders(QStringList() << "sample 1" << "type 1" << "relation" << "sample 2" << "type 2" << "added_by" << "added_date");
 	ui_->sample_relations->setData(rel_table);
+	GUIHelper::resizeTableHeight(ui_->sample_relations);
 
 	//#### studies ####
 	DBTable study_table = db.createTable("study_sample", "SELECT id, (SELECT name FROM study WHERE id=study_id), study_sample_idendifier FROM study_sample WHERE processed_sample_id='" + ps_id_ + "'");
 	study_table.setHeaders(QStringList() << "study" << "study sample identifier");
 	ui_->studies->setData(study_table);
+	GUIHelper::resizeTableHeight(ui_->studies);
 
 	//#### QC ####
 	updateQCMetrics();

@@ -319,4 +319,5 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 	}
 
 	GUIHelper::resizeTableCells(ui_.transcripts);
+	GUIHelper::resizeTableHeight(ui_.transcripts);
 }
