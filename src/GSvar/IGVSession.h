@@ -68,8 +68,8 @@ public:
     void setIGVInitialized(const bool& is_initialized);
     //checks if the user has selected files to be loaded into IGV
     bool isIGVInitialized();
-    //launches and initializes IGV app
-    void initIGV();
+	//launches the IGV app. Make sure it is not running before using this function. Throws an exception if IGV cannot be started.
+	void startIGV();
     //sends a list of commands to IGV
     void execute(const QStringList& commands);
     //checks if an instance of IGV has been started and initialized, and if yes, a list of commands is executed
@@ -84,8 +84,6 @@ public:
     bool isIgvRunning();
     //checks if an IGV instance is currently executing a command
     bool hasRunningCommands();
-    //contains a list of errors for all commands (each item in the list corresponds to an item in the list of commands)
-	QStringList getErrorMessages();
     //history of executed commands (for the current session)
 	QList<IGVCommand> getHistory();
     //removes the history of executed commands
@@ -99,7 +97,9 @@ protected:
     AnalysisType getCurrentAnalysisType();
     void displayIgvHistoryButton(bool visible);
     QString germlineReportSample();
+	//initialize IGV with tracks from current sample (shows dialog for track selection to user). Returns if the user accepted the dialog.
     bool prepareRegularIGV();
+	//initialize IGV with tracks from current sample (shows dialog for track selection to user). Returns if the user accepted the dialog.
     bool prepareVirusIGV();
     void prepareAndRunIGVCommands(QStringList files_to_load);
     bool igvDialogButtonHandler(IgvDialog& dlg);
@@ -109,7 +109,8 @@ signals:
     void started();
     void finished();
 
-public slots:
+private slots:
+	void igvStartFailed(QString error);
 	void updateHistoryStart(int id);
 	void updateHistoryFinished(int id, QString answer, double sec_elapsed);
 	void updateHistoryFailed(int id, QString error, double sec_elapsed);
@@ -125,10 +126,10 @@ private:
     int igv_port_;
     QString igv_genome_;
 
-    bool is_initialized_;
-	bool is_igv_running_;
-    QStringList error_messages_;
-	int next_id_ = 1;
+	bool is_initialized_;
+	QString igv_start_error;
+
+	int next_id_ = 1; //ID of next command (used to identify commands, e.g. for the history)
 	QList<IGVCommand> command_history_;
 	QMutex command_history_mutex_;
 };

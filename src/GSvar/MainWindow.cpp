@@ -1775,12 +1775,20 @@ void MainWindow::on_actionCloseMetaDataTabs_triggered()
 
 void MainWindow::on_actionIgvClear_triggered()
 {
+	IGVSession& session = IgvSessionManager::get(0);
 	QStringList commands;
-	commands << ("genome " + Settings::path("igv_genome")); //genome command first, see https://github.com/igvteam/igv/issues/1094
+
+	//start IGV
+	if (!session.isIgvRunning())
+	{
+		session.startIGV();
+		commands << ("genome " + Settings::path("igv_genome")); //genome command first, see https://github.com/igvteam/igv/issues/1094
+	}
+
+	//clear
 	commands << "new";
-	IgvSessionManager::get(0).clearHistory();
-    IgvSessionManager::get(0).prepareIfNotAndExecute(commands, false);
-    IgvSessionManager::get(0).setIGVInitialized(false);
+	session.execute(commands);
+	session.clearHistory();
 }
 
 void MainWindow::on_actionIgvPort_triggered()
@@ -6901,7 +6909,7 @@ void MainWindow::displayIgvHistoryTable(QPoint /*pos*/)
 
 	//open new dialog
     IgvLogWidget* widget = new IgvLogWidget(this);
-    auto dlg = GUIHelper::createDialog(widget, "Igv command history");
+	auto dlg = GUIHelper::createDialog(widget, "IGV command history");
 	addModelessDialog(dlg);
 }
 

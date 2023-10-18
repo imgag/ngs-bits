@@ -1,9 +1,13 @@
 #include "IGVStartWorker.h"
+#include "Exceptions.h"
+#include <QFile>
+#include <QProcess>
+#include <QTcpSocket>
 
 IGVStartWorker::IGVStartWorker(const QString& igv_host, const int& igv_port, const QString& igv_app)
     : igv_host_(igv_host)
     , igv_port_(igv_port)
-    , igv_app_(igv_app)
+	, igv_app_(igv_app)
 {
     if (igv_app_.isEmpty())
     {
@@ -20,26 +24,25 @@ void IGVStartWorker::run()
     bool started = QProcess::startDetached(igv_app_ + " --port " + QString::number(igv_port_));
     if (!started)
     {
-        THROW(Exception, "Could not start IGV: IGV application '" + igv_app_ + "' did not start!");
+		emit failed("Could not start IGV: IGV application '" + igv_app_ + "' did not start!");
+		return;
     }
 
-    QTcpSocket socket;
     //wait for IGV to respond after start
     bool connected = false;
-    QDateTime max_wait = QDateTime::currentDateTime().addSecs(40);
-    while (QDateTime::currentDateTime() < max_wait)
-    {
+	for (int i=0; i<30; ++i)
+	{
+		QTcpSocket socket;
         socket.connectToHost(igv_host_, igv_port_);
         if (socket.waitForConnected(1000))
-        {
-			//Log::info("Connecting to the IGV ports works");
-            connected = true;
+		{
+			connected = true;
             break;
-        }
+		}
+		socket.abort();
     }
     if (!connected)
     {
-        THROW(Exception, "Could not start IGV: IGV application '" + igv_app_ + "' started, but does not respond!");
-    }
-    socket.disconnectFromHost();
+		emit failed("Could not start IGV: IGV application '" + igv_app_ + "' started, but does not respond on port '" + QString::number(igv_port_) + "'!");
+	}
 }
