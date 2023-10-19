@@ -588,12 +588,18 @@ void ExportCBioPortalStudy::exportSnvs(const QString& out_folder, bool debug)
 		vl_somatic = SomaticReportSettings::filterVariants(vl_somatic, settings_.report_settings[idx], throw_errors);
 		if (debug)
 		{
-			out << " - Errors When filtering:";
+			QString errors;
 			for (int i=0;i<settings_.report_settings[idx].filters.count(); i++ ) {
-				out << settings_.report_settings[idx].filters.errors(i).join("; ");
+				errors += settings_.report_settings[idx].filters.errors(i).join("; ");
 			}
-			out << "\n";
-			out.flush();
+
+			if (errors.length() > 0)
+			{
+				out << " - Errors When filtering: " << errors;
+			}
+
+			out << "\n"; //flush intended
+
 		}
 
 
