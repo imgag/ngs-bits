@@ -8,9 +8,7 @@ IGVSession::IGVSession(QWidget *parent, Ui::MainWindow parent_ui, QString igv_na
     , igv_host_(igv_host)
     , igv_port_(igv_port)
     , igv_genome_(genome)
-    , is_initialized_(false)
-	, is_igv_running_(false)
-    , error_messages_()
+	, is_initialized_(false)
 {
     execution_pool_.setMaxThreadCount(1);
 }
@@ -18,21 +16,6 @@ IGVSession::IGVSession(QWidget *parent, Ui::MainWindow parent_ui, QString igv_na
 const QString IGVSession::getName()
 {
 	return igv_name_;
-}
-
-void IGVSession::setName(const QString& name)
-{
-    igv_name_ = name;
-}
-
-const QString IGVSession::getHost()
-{
-    return igv_host_;
-}
-
-void IGVSession::setHost(const QString& host)
-{
-    igv_host_ = host;
 }
 
 int IGVSession::getPort()
@@ -43,11 +26,6 @@ int IGVSession::getPort()
 void IGVSession::setPort(const int& port)
 {
     igv_port_ = port;
-}
-
-const QString IGVSession::getGenome()
-{
-    return igv_genome_;
 }
 
 void IGVSession::setGenome(const QString& genome)
@@ -62,13 +40,25 @@ void IGVSession::setIGVInitialized(const bool& is_initialized)
 
 bool IGVSession::isIGVInitialized()
 {
-    return is_initialized_;
+	return is_initialized_;
 }
 
-void IGVSession::initIGV()
+void IGVSession::startIGV()
 {
-	IGVStartWorker* init_worker = new IGVStartWorker(igv_host_, igv_port_, igv_app_);
-    execution_pool_.start(init_worker);
+	//clear error string
+	igv_start_error.clear();
+
+	//start IGV
+	IGVStartWorker* init_worker = new IGVStartWorker(igv_host_, igv_port_, igv_app_, igv_genome_);
+	connect(init_worker, SIGNAL(failed(QString)), this, SLOT(igvStartFailed(QString)));
+	execution_pool_.start(init_worker);
+	execution_pool_.waitForDone();
+
+	//thow exception if IGV could not be started
+	if(!igv_start_error.isEmpty())
+	{
+		THROW(Exception, igv_start_error);
+	}
 }
 
 void IGVSession::execute(const QStringList& commands)
@@ -103,11 +93,11 @@ void IGVSession::execute(const QStringList& commands)
 
 void IGVSession::prepareIfNotAndExecute(const QStringList& commands, bool init_if_not_done)
 {
+	//check if IGV is running
     bool is_igv_running = false;
-	bool commands_are_running = hasRunningCommands();
     try
     {
-		is_igv_running = commands_are_running || isIgvRunning();
+		is_igv_running = isIgvRunning();
     }
     catch (Exception& e)
     {
@@ -118,12 +108,13 @@ void IGVSession::prepareIfNotAndExecute(const QStringList& commands, bool init_i
         QMessageBox::warning(parent_, "Error while IGV availability check", "Unknown error has occurred");
     }
 
+	//start IGV if not running
     if (!is_igv_running)
     {
         if (QMessageBox::information(parent_, "IGV not running", "IGV is not running on port " + QString::number(getPort()) + ".\nIt will be started now!", QMessageBox::Ok|QMessageBox::Default, QMessageBox::Cancel|QMessageBox::Escape)!=QMessageBox::Ok) return;
         try
         {
-            initIGV();
+			startIGV();
         }
         catch (Exception& e)
         {
@@ -138,17 +129,22 @@ void IGVSession::prepareIfNotAndExecute(const QStringList& commands, bool init_i
         init_if_not_done = true;
     }
 
-	if (!isIGVInitialized() && init_if_not_done && !commands_are_running)
+	//initialize IGV with tracks from current sample
+	if (!isIGVInitialized() && init_if_not_done && !hasRunningCommands())
     {
 		Log::info("Initialzing IGV for the current sample");
 
 		clearHistory();
 		displayIgvHistoryButton(true);
 
-        bool is_igv_ready = false;
-		if (getName()=="Default IGV") is_igv_ready = prepareRegularIGV();
-		if (getName()=="Virus IGV") is_igv_ready = prepareVirusIGV();
-        if (!is_igv_ready) return;
+		if (igv_name_=="Default IGV")
+		{
+			if (!prepareRegularIGV()) return; //abort when user cancels the dialog
+		}
+		if (igv_name_=="Virus IGV")
+		{
+			if (!prepareVirusIGV()) return; //abort when user cancels the dialog
+		}
 
 		setIGVInitialized(true);
     }
@@ -188,6 +184,10 @@ void IGVSession::loadFileInIGV(QString filename, bool init_if_not_done)
 
 bool IGVSession::isIgvRunning()
 {
+	//commands are being executed > IGV is running
+	if (hasRunningCommands()) return true;
+
+	//no commands are executed > ping IGV
 	QTime timer;
 	timer.start();
 	//Log::info("IGV availability check");
@@ -210,11 +210,6 @@ bool IGVSession::isIgvRunning()
 bool IGVSession::hasRunningCommands()
 {
 	return execution_pool_.activeThreadCount()>0;
-}
-
-QStringList IGVSession::getErrorMessages()
-{
-    return error_messages_;
 }
 
 QList<IGVCommand> IGVSession::getHistory()
@@ -496,8 +491,7 @@ void IGVSession::prepareAndRunIGVCommands(QStringList files_to_load)
     QStringList init_commands;
     //genome command first, see https://github.com/igvteam/igv/issues/1094
     //choose the correct genome
-    init_commands.append("new");
-	init_commands.append("genome " + getGenome());
+	init_commands.append("new");
 
 
     if (ClientHelper::isClientServerMode()) init_commands.append("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*");
@@ -574,7 +568,12 @@ bool IGVSession::igvDialogButtonHandler(IgvDialog& dlg)
         QMessageBox::warning(parent_, "Error while initializing IGV", e.message());
 
         return false;
-    }
+	}
+}
+
+void IGVSession::igvStartFailed(QString error)
+{
+	igv_start_error = error;
 }
 
 void IGVSession::updateHistoryStart(int id)

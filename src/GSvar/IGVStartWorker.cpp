@@ -1,9 +1,14 @@
 #include "IGVStartWorker.h"
+#include "Exceptions.h"
+#include <QFile>
+#include <QProcess>
+#include <QTcpSocket>
 
-IGVStartWorker::IGVStartWorker(const QString& igv_host, const int& igv_port, const QString& igv_app)
+IGVStartWorker::IGVStartWorker(QString igv_host, int igv_port, QString igv_app, QString genome_file)
     : igv_host_(igv_host)
     , igv_port_(igv_port)
-    , igv_app_(igv_app)
+	, igv_app_(igv_app)
+	, genome_(genome_file)
 {
     if (igv_app_.isEmpty())
     {
@@ -20,26 +25,32 @@ void IGVStartWorker::run()
     bool started = QProcess::startDetached(igv_app_ + " --port " + QString::number(igv_port_));
     if (!started)
     {
-        THROW(Exception, "Could not start IGV: IGV application '" + igv_app_ + "' did not start!");
+		emit failed("Could not start IGV: IGV application '" + igv_app_ + "' did not start!");
+		return;
     }
 
-    QTcpSocket socket;
     //wait for IGV to respond after start
-    bool connected = false;
-    QDateTime max_wait = QDateTime::currentDateTime().addSecs(40);
-    while (QDateTime::currentDateTime() < max_wait)
-    {
+	QTcpSocket socket;
+	for (int i=0; i<30; ++i) //try up to 30 times
+	{
         socket.connectToHost(igv_host_, igv_port_);
         if (socket.waitForConnected(1000))
-        {
-			//Log::info("Connecting to the IGV ports works");
-            connected = true;
+		{
             break;
-        }
+		}
+		socket.abort();
     }
-    if (!connected)
+	if (!socket.isValid())
     {
-        THROW(Exception, "Could not start IGV: IGV application '" + igv_app_ + "' started, but does not respond!");
-    }
-    socket.disconnectFromHost();
+		emit failed("Could not start IGV: IGV application '" + igv_app_ + "' started on port '" + QString::number(igv_port_) + "', but does not respond !");
+	}
+	
+	//load genome
+	socket.write("genome " + genome_.toUtf8() + "\n");
+	socket.waitForBytesWritten();
+	bool ok = socket.waitForReadyRead(60000); // 1 min timeout ~ takes about 8 sec
+	if (!ok)
+	{
+		emit failed("Could not start IGV: IGV application '" + igv_app_ + "' started on port '" + QString::number(igv_port_) + "', could not load genome!");
+	}
 }

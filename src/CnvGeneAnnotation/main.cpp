@@ -45,39 +45,20 @@ public:
 		QTime timer;
 		timer.start();
 
-		// generate BED files for whole gene region and exons:
-		BedFile gene_regions;
-		QHash<QByteArray, BedFile> exon_regions;
-
-		// get gene names:
+		// generate whole gene BED file and index
 		GeneSet gene_names = db.approvedGeneNames();
-
-		out << "parsing " << gene_names.count() << " genes ..." << endl;
-		int parsed_genes = 0;
-		// iterate over all gene names
-		foreach (QByteArray gene_name, gene_names)
+		out << "Getting gene regions from NGSD for " << gene_names.count() << " genes ..." << endl;
+		BedFile gene_regions;
+		foreach (const QByteArray& gene_name, gene_names)
 		{
-			// generate bed file for complete genes
 			gene_regions.add(getGeneRegion(gene_name, db, "gene"));
-
-			// progress output
-			parsed_genes++;
-			if (parsed_genes % 10000 == 0)
-			{
-				out << "\t\t" << parsed_genes << " of " << gene_names.count() << " genes parsed." << endl;
-			}
 		}
-
-		out << "sorting BED file..." << endl;
 		if (!gene_regions.isSorted()) gene_regions.sort();
-
-		out << "generating BED index..." << endl;
 		ChromosomalIndex<BedFile> gene_regions_index(gene_regions);
+		out << "preprocessing done (runtime: " << Helper::elapsedTime(timer) << ")" << endl;
+		timer.restart();
 
-		out << "preprocessing finished (runtime: " << Helper::elapsedTime(timer) << ")" << endl;
-
-
-		out << "annotate TSV file..." << endl;
+		out << "annotating CNV file..." << endl;
 
 		// copy comments
 		TSVFileStream cnv_input_file(getInfile("in"));
@@ -90,7 +71,7 @@ public:
 		int i_gene_info = header.indexOf("gene_info");
 
 		// modify header if neccessary
-		if ((i_genes < 0) && add_simple_gene_names_) header.append("genes");
+		if (i_genes<0 && add_simple_gene_names_) header.append("genes");
 		if (i_gene_info < 0) header.append("gene_info");
 		output_buffer << "#" + header.join("\t");
 
@@ -100,6 +81,7 @@ public:
 		int i_end = cnv_input_file.colIndex("end", true);
 
 		// iterate over input file and annotate each cnv
+		QHash<QByteArray, BedFile> exon_regions;
 		while (!cnv_input_file.atEnd())
 		{
 			// read next line:
@@ -128,11 +110,13 @@ public:
 				}
 				else
 				{
+					// get exon/splicing region from database
 					if (!exon_regions.contains(gene_name))
 					{
-						// get exon/splicing region from database
 						exon_regions[gene_name] = getGeneRegion(gene_name, db, "exon");
 					}
+
+					// annotate overlap type
 					if (exon_regions[gene_name].overlapsWith(chr, start, end))
 					{
 						covered_region = "exonic/splicing";
@@ -174,9 +158,7 @@ public:
 		output_stream.flush();
 		cnv_output_file->close();
 
-
-		out << "annotation complete (runtime: " << Helper::elapsedTime(timer) << ")." << endl;
-
+		out << "annotation done (runtime: " << Helper::elapsedTime(timer) << ")." << endl;
 	}
 private:
 	bool use_test_db_;
@@ -187,35 +169,26 @@ private:
 	 */
 	BedFile getGeneRegion(const QByteArray& gene_name, NGSD& db, const QByteArray& mode)
 	{
-
 		// calculate region
-		GeneSet single_gene;
-		single_gene.insert(gene_name);
-		BedFile gene_regions = db.genesToRegions(single_gene, Transcript::ENSEMBL, mode, true, false);
+		BedFile gene_regions = db.geneToRegions(gene_name, Transcript::ENSEMBL, mode, true, false);
 
-		if (mode == "gene")
+		if (mode=="gene")
 		{
-			// extend and merge gene regions
 			gene_regions.extend(5000);
 			gene_regions.merge();
 		}
 		else
 		{
-			// extend by splice region
 			gene_regions.extend(20);
 		}
 
-
+		// add gene name annotation
 		for (int i = 0; i < gene_regions.count(); ++i)
 		{
-			// add gene name annotation
-			QByteArrayList annotation;
-			annotation.append(gene_name);
-			gene_regions[i].annotations() = annotation;
+			gene_regions[i].annotations() = QByteArrayList() << gene_name;
 		}
 		return gene_regions;
 	}
-
 
 };
 

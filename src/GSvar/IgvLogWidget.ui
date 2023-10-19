@@ -49,7 +49,7 @@
      <item>
       <widget class="QLabel" name="label_3">
        <property name="text">
-        <string>IGV history:</string>
+        <string>IGV instance:</string>
        </property>
       </widget>
      </item>
