@@ -5,6 +5,7 @@
 #include "SomaticXmlReportGenerator.h"
 #include "SomaticReportSettings.h"
 #include "SomaticReportHelper.h"
+#include "SomaticVariantInterpreter.h"
 #include "GermlineReportGenerator.h"
 #include "TumorOnlyReportWorker.h"
 #include "StatisticsServiceLocal.h"
@@ -2264,9 +2265,6 @@ private slots:
 		IS_TRUE(res2.exclude_other_reason);
 		S_EQUAL(res2.comment, "This test somatic cnv shall be excluded.");
 
-
-
-
 		//Delete a somatic report configuration
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration").toInt(), 3);
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_cnv").toInt(), 2); //one CNV is already inserted by NGSD init.
@@ -2346,8 +2344,10 @@ private slots:
 		IS_THROWN(DatabaseException, db.getSomaticViccData(Variant("chr1", 112175770, 112175770, "C", "A")) );
 
 
+
 		//somatic Variant Interpretation for Cancer Consortium
 		SomaticViccData vicc_data1 = db.getSomaticViccData(Variant("chr13", 32929387, 32929387, "T", "C"));
+
 		I_EQUAL(vicc_data1.null_mutation_in_tsg, SomaticViccData::State::VICC_TRUE);
 		I_EQUAL(vicc_data1.known_oncogenic_aa, SomaticViccData::State::VICC_FALSE);
 		I_EQUAL(vicc_data1.strong_cancerhotspot, SomaticViccData::State::VICC_FALSE);
@@ -2365,6 +2365,9 @@ private slots:
 		I_EQUAL(vicc_data1.benign_computational_evidence, SomaticViccData::State::VICC_FALSE);
 		I_EQUAL(vicc_data1.synonymous_mutation, SomaticViccData::State::NOT_APPLICABLE);
 		S_EQUAL(vicc_data1.comment, "this variant was evaluated as an oncogenic variant");
+		S_EQUAL(db.getValue("SELECT classification FROM somatic_vicc_interpretation WHERE id=" + QString::number(db.getSomaticViccId(Variant("chr13", 32929387, 32929387, "T", "C")))).toString(), "ONCOGENIC");
+		S_EQUAL(db.getValue("SELECT classification FROM somatic_vicc_interpretation WHERE id=" + QString::number(db.getSomaticViccId(Variant("chr13", 32929387, 32929387, "T", "C")))).toString(), SomaticVariantInterpreter::viccScoreAsString(vicc_data1));
+
 
 		S_EQUAL(vicc_data1.created_by, "ahmustm1");
 		S_EQUAL(vicc_data1.created_at.toString("yyyy-MM-dd hh:mm:ss"), "2020-11-05 13:06:13");
@@ -2375,6 +2378,8 @@ private slots:
 		S_EQUAL(vicc_data2.comment, "this variant was evaluated as variant of unclear significance");
 		S_EQUAL(vicc_data2.last_updated_by, "ahkerra1");
 		S_EQUAL(vicc_data2.last_updated_at.toString("yyyy-MM-dd hh:mm:ss"),  "2020-12-08 13:45:11");
+		S_EQUAL(db.getValue("SELECT classification FROM somatic_vicc_interpretation WHERE id=" + QString::number(db.getSomaticViccId(Variant("chr15", 43707808, 43707808, "A", "T")))).toString(), "UNCERTAIN_SIGNIFICANCE");
+
 
 		//Update somatic VICC data in NGSD
 		SomaticViccData vicc_update = vicc_data2;
@@ -2412,9 +2417,9 @@ private slots:
 		I_EQUAL(vicc_data2.benign_computational_evidence, SomaticViccData::State::VICC_FALSE);
 		I_EQUAL(vicc_data2.synonymous_mutation, SomaticViccData::State::VICC_FALSE);
 		S_EQUAL(vicc_data2.comment, "This variant was reevaluated as oncogenic!");
+		S_EQUAL(db.getValue("SELECT classification FROM somatic_vicc_interpretation WHERE id=" + QString::number(db.getSomaticViccId(Variant("chr15", 43707808, 43707808, "A", "T")))).toString(), "ONCOGENIC");
 		S_EQUAL(vicc_data2.last_updated_by, "ahmustm1");
 		IS_TRUE(vicc_data2.last_updated_at.toString("yyyy-MM-dd hh:mm:ss") != "2020-12-08 13:45:11");
-
 		//Insert new somatic VICC interpretation
 		SomaticViccData new_vicc_data;
 		new_vicc_data.null_mutation_in_tsg = SomaticViccData::State::VICC_FALSE;
