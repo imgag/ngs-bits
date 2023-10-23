@@ -362,3 +362,4 @@ LIBS += -L$$PWD/../bin -lcppVISUAL
 
 RESOURCES += \
     GSvar.qrc
+

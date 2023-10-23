@@ -32,10 +32,14 @@ BurdenTestWidget::BurdenTestWidget(QWidget *parent) :
 	connect(ui_->b_clear_excluded_regions, SIGNAL(clicked(bool)), this, SLOT(clearExcludedRegions()));
 	connect(ui_->b_copy_clipboard, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 	connect(ui_->b_check_input, SIGNAL(clicked(bool)), this, SLOT(validateInputData()));
+	connect(ui_->cb_only_ccr, SIGNAL(stateChanged(int state)), this, SLOT(validateCCRGenes()));
 
 	//initial GUI setup:
 	//disable test start until data is validated
 	ui_->b_burden_test->setEnabled(false);
+
+	initCCR();
+
 }
 
 BurdenTestWidget::~BurdenTestWidget()
@@ -84,16 +88,43 @@ void BurdenTestWidget::loadGeneList()
 	if(dialog->exec()!=QDialog::Accepted) return;
 
 	//parse text field
-	GeneSet selected_genes = GeneSet::createFromText(te_genes->toPlainText().toUtf8());
+	GeneSet selected_genes;
+	QByteArray input_text = te_genes->toPlainText().toUtf8();
+	if(input_text.contains('\t'))
+	{
+		//TSV
+		foreach (QByteArray line, input_text.split('\n'))
+		{
+			if(line.startsWith("#")) continue;
+			selected_genes.insert(line.split('\t').at(0));
+		}
+	}
+	else if(input_text.contains(';') || input_text.contains(','))
+	{
+		//comma/semicolon separated list
+		selected_genes = GeneSet::createFromText(input_text.replace(",", ";"));
+	}
+	else
+	{
+		//one line per gene
+		selected_genes = GeneSet::createFromText(te_genes->toPlainText().toUtf8());
+	}
 
-	selected_genes = db_.genesToApproved(selected_genes);
+
+	selected_genes = db_.genesToApproved(selected_genes, true);
+	GeneSet approved_genes = db_.genesToApproved(selected_genes, false);
+
+	QSet<QByteArray> invalid_genes = selected_genes.toSet() - approved_genes.toSet();
+
+	QMessageBox::warning(this, "Invalid genes", "The following genes couldn't be converted into approved gene names and were removed:\n" + invalid_genes.toList().join(", "));
 
 	//apply new gene set
-	selected_genes_ = selected_genes;
+	selected_genes_ = approved_genes;
 
 	gene_set_initialized_ = true;
 
 	updateGeneCounts();
+	validateCCRGenes();
 }
 
 void BurdenTestWidget::loadExcludedRegions()
@@ -184,7 +215,12 @@ void BurdenTestWidget::validateInputData()
 	QStringList errors;
 	QStringList warnings;
 
-	// check overlap
+	//table for relation warnings
+	QStringList warning_table_header;
+	warning_table_header << "Sample" << "Cohort" << "Problem" << "Affected samples" << "Keep";
+	QList<QStringList> warning_table;
+
+	// check overlap (processed samples)
 	QSet<int> overlap = case_samples_ & control_samples_;
 	if(overlap.size() > 0)
 	{
@@ -196,88 +232,383 @@ void BurdenTestWidget::validateInputData()
 		errors << "ERROR: The samples " + ps_names.join(", ") + " are present in both case and control cohort!";
 	}
 
+
 	//check same processing system and ancestry
-	QSet<int> ps_ids = case_samples_ + control_samples_;
 	QSet<QString> processing_systems;
 	QSet<QString> ancestry;
-	QMap<int,int> sample_ids;
-	foreach (int ps_id, ps_ids)
+	QMap<int,QList<int>> sample_ids_cases;
+	QMap<int,QList<int>> sample_ids_controls;
+
+	//get all sample ids for the given processed samples
+	foreach (int ps_id, case_samples_)
 	{
 		QString ps_name = db_.processedSampleName(QString::number(ps_id));
 		ProcessedSampleData ps_info = db_.getProcessedSampleData(QString::number(ps_id));
 		processing_systems.insert(ps_info.processing_system);
 		ancestry.insert(ps_info.ancestry);
 
-		sample_ids[db_.sampleId(ps_name).toInt()]++;
+		sample_ids_cases[db_.sampleId(ps_name).toInt()].append(ps_id);
 	}
-	//check for duplicate samples
-	QSet<int> sample_id_set = sample_ids.keys().toSet();
-	foreach (int s_id, sample_ids.keys())
+	foreach (int ps_id, control_samples_)
 	{
-		if (sample_ids.value(s_id) > 1)
-		{
-			warnings << "WARNING: Sample " + db_.sampleName(QString::number(s_id)) + " ocurres multiple times in cohort!";
-		}
-		//check for same sample relations
-		QSet<int> same_sample_overlap = db_.sameSamples(s_id) & sample_id_set;
-		if (same_sample_overlap.size() > 0)
-		{
-			QStringList same_sample_list;
-			foreach (int id, same_sample_overlap)
-			{
-				same_sample_list << db_.sampleName(QString::number(id));
-			}
-			warnings << "WARNING: Sample " + db_.sampleName(QString::number(s_id)) + " has a same-sample/same-patient relation with the sample(s) " + same_sample_list.join(", ") + " in the cohort!";
-		}
-		//check for related samples
-		QStringList relation_types = QStringList() << "parent-child" << "siblings" << "cousins" << "twins" << "twins (monozygotic)";
-		foreach (const QString& relation, relation_types)
-		{
-			QSet<int> related_sample_overlap = db_.relatedSamples(s_id, relation) & sample_id_set;
-			if (related_sample_overlap.size() > 0)
-			{
-				QStringList related_sample_list;
-				foreach (int id, related_sample_overlap)
-				{
-					related_sample_list << db_.sampleName(QString::number(id));
-				}
-				warnings << "WARNING: Sample " + db_.sampleName(QString::number(s_id)) + " has a " + relation + " relation with the sample(s) " + related_sample_list.join(", ") + " in the cohort!";
-			}
-		}
+		QString ps_name = db_.processedSampleName(QString::number(ps_id));
+		ProcessedSampleData ps_info = db_.getProcessedSampleData(QString::number(ps_id));
+		processing_systems.insert(ps_info.processing_system);
+		ancestry.insert(ps_info.ancestry);
+
+		sample_ids_controls[db_.sampleId(ps_name).toInt()].append(ps_id);
 	}
 
+	// check overlap (samples)
+	overlap = sample_ids_cases.keys().toSet() & sample_ids_controls.keys().toSet();
+	if(overlap.size() > 0)
+	{
+		QStringList sample_names;
+		foreach (int s_id, overlap)
+		{
+			sample_names << db_.sampleName(QString::number(s_id));
+		}
+		errors << "ERROR: The samples " + sample_names.join(", ") + " are present in both case and control cohort!";
+	}
 
-	if (processing_systems.size() > 1) warnings << "WARNING: The cohort contains multiple processing systems (" + processing_systems.toList().join(", ")+ ")!";
-	if (processing_systems.size() > 1) warnings << "WARNING: The cohort contains multiple ancestries (" + ancestry.toList().join(", ")+ ")!";
-
+	//abort, no need to check relations
 	if(errors.size() > 0)
 	{
 		QMessageBox::warning(this, "Validation error", "During cohort validation the following errors occured:\n" +  errors.join("\n"));
 		ui_->b_burden_test->setEnabled(false);
 		return;
 	}
+
+	//check for duplicate samples in cases/controls
+	foreach (int s_id, sample_ids_cases.keys())
+	{
+		if(sample_ids_cases.value(s_id).size() > 1)
+		{
+			QSet<int> ps_ids = sample_ids_cases.value(s_id).toSet();
+			QStringList ps_list;
+			foreach (int id, ps_ids) ps_list << db_.processedSampleName(QString::number(id));
+			int ps_id = getNewestProcessedSample(ps_ids);
+			ps_ids.remove(ps_id);
+			foreach (int ps_id_to_remove, ps_ids)
+			{
+				sample_ids_cases[s_id].removeAll(ps_id_to_remove);
+			}
+			//sanity check
+			if(sample_ids_cases.value(s_id).size() > 1) THROW(ProgrammingException, "List still contains multiple values. This should not happen!")
+			warning_table.append(QStringList() << db_.sampleName(QString::number(s_id)) << "cases" << "multiple processed samples" << ps_list.join(", ") << db_.processedSampleName(QString::number(ps_id)));
+		}
+	}
+	foreach (int s_id, sample_ids_controls.keys())
+	{
+		if(sample_ids_controls.value(s_id).size() > 1)
+		{
+			QSet<int> ps_ids = sample_ids_controls.value(s_id).toSet();
+			QStringList ps_list;
+			foreach (int id, ps_ids) ps_list << db_.processedSampleName(QString::number(id));
+			int ps_id = getNewestProcessedSample(ps_ids);
+			ps_ids.remove(ps_id);
+			foreach (int ps_id_to_remove, ps_ids)
+			{
+				sample_ids_controls[s_id].removeAll(ps_id_to_remove);
+			}
+			//sanity check
+			if(sample_ids_controls.value(s_id).size() > 1) THROW(ProgrammingException, "List still contains multiple values. This should not happen!")
+			warning_table.append(QStringList() << db_.sampleName(QString::number(s_id)) << "controls" << "multiple processed samples" << ps_list.join(", ") << db_.processedSampleName(QString::number(ps_id)));
+		}
+	}
+
+	//check for same-sample relations
+	//cases
+	QSet<int> s_ids_to_remove_cases;
+	QSet<int> s_ids_to_remove_controls;
+	foreach (int s_id, sample_ids_cases.keys())
+	{
+		//skip samples which will be removed anyways
+		if(s_ids_to_remove_cases.contains(s_id)) continue;
+		QSet<int> same_sample_overlap = (db_.sameSamples(s_id) & sample_ids_cases.keys().toSet());
+		if (same_sample_overlap.size() > 1)
+		{
+			QStringList same_sample_list;
+			foreach (int id, same_sample_overlap)
+			{
+				same_sample_list << db_.sampleName(QString::number(id));
+			}
+			int newest_s_id = getNewestSample(same_sample_overlap);
+			same_sample_overlap.remove(newest_s_id);
+			s_ids_to_remove_cases += same_sample_overlap;
+			warning_table.append(QStringList() << db_.sampleName(QString::number(s_id)) << "cases" << "same-sample/same-patient relation" << same_sample_list.join(", ") << db_.sampleName(QString::number(newest_s_id)));
+		}
+		//check controls and remove all overlaps
+		same_sample_overlap = db_.sameSamples(s_id) & sample_ids_controls.keys().toSet();
+		if (same_sample_overlap.size() > 1)
+		{
+			QStringList same_sample_list;
+			foreach (int id, same_sample_overlap)
+			{
+				same_sample_list << db_.sampleName(QString::number(id));
+			}
+			s_ids_to_remove_controls += same_sample_overlap;
+			warning_table.append(QStringList() << db_.sampleName(QString::number(s_id)) << "cases/controls" << "same-sample/same-patient relation" << same_sample_list.join(", ") << db_.sampleName(QString::number(s_id)));
+		}
+	}
+	//remove samples
+	foreach (int s_id, s_ids_to_remove_cases)
+	{
+		sample_ids_cases.remove(s_id);
+	}
+	foreach (int s_id, s_ids_to_remove_controls)
+	{
+		sample_ids_controls.remove(s_id);
+	}
+	s_ids_to_remove_cases.clear();
+	s_ids_to_remove_controls.clear();
+
+	//controls
+	foreach (int s_id, sample_ids_controls.keys())
+	{
+		//skip samples which will be removed anyways
+		if(s_ids_to_remove_controls.contains(s_id)) continue;
+		QSet<int> same_sample_overlap = db_.sameSamples(s_id) & sample_ids_controls.keys().toSet();
+		if (same_sample_overlap.size() > 1)
+		{
+			QStringList same_sample_list;
+			foreach (int id, same_sample_overlap)
+			{
+				same_sample_list << db_.sampleName(QString::number(id));
+			}
+			int newest_s_id = getNewestSample(same_sample_overlap);
+			same_sample_overlap.remove(newest_s_id);
+			s_ids_to_remove_controls += same_sample_overlap;
+			warning_table.append(QStringList() << db_.sampleName(QString::number(s_id)) << "controls" << "same-sample/same-patient relation" << same_sample_list.join(", ") << db_.sampleName(QString::number(newest_s_id)));
+		}
+
+	}
+	foreach (int s_id, s_ids_to_remove_controls)
+	{
+		sample_ids_controls.remove(s_id);
+	}
+	s_ids_to_remove_controls.clear();
+
+	//check for related samples
+	QStringList relation_types = db_.getEnum("sample_relations", "relation");
+	//cases
+	foreach (int s_id, sample_ids_cases.keys())
+	{
+		//skip samples which will be removed anyways
+		if(s_ids_to_remove_cases.contains(s_id)) continue;
+		QStringList stati_to_remove;
+		stati_to_remove << "Unaffected" << "n/a";
+		foreach (const QString& relation, relation_types)
+		{
+			QSet<int> related_sample_overlap = db_.relatedSamples(s_id, relation) &  sample_ids_cases.keys().toSet();
+			if (related_sample_overlap.size() > 1)
+			{
+				QStringList related_sample_list;
+				foreach (int id, related_sample_overlap)
+				{
+					related_sample_list << db_.sampleName(QString::number(id));
+				}
+				QSet<int> affected_samples = removeDiseaseStatus(related_sample_overlap, stati_to_remove);
+				int newest_s_id;
+				if(affected_samples.size() > 0)
+				{
+					newest_s_id = getNewestSample(affected_samples);
+				}
+				else
+				{
+					//if no affected sample: -> use the newest
+					newest_s_id = getNewestSample(related_sample_overlap);
+				}
+				related_sample_overlap.remove(newest_s_id);
+				s_ids_to_remove_cases += related_sample_overlap;
+
+				warning_table.append(QStringList() << db_.sampleName(QString::number(s_id)) << "cases" << relation + " relation" << related_sample_list.join(", ") << db_.sampleName(QString::number(newest_s_id)));
+
+			}
+
+			//check/remove related samples from controls
+			related_sample_overlap = db_.relatedSamples(s_id, relation) &  sample_ids_controls.keys().toSet();
+			if (related_sample_overlap.size() > 1)
+			{
+				QStringList related_sample_list;
+				foreach (int id, related_sample_overlap)
+				{
+					related_sample_list << db_.sampleName(QString::number(id));
+				}
+				s_ids_to_remove_controls += related_sample_overlap;
+
+				warning_table.append(QStringList() << db_.sampleName(QString::number(s_id)) << "cases/controls" << relation + " relation" << related_sample_list.join(", ") << db_.sampleName(QString::number(s_id)));
+			}
+		}
+	}
+	//remove samples
+	foreach (int s_id, s_ids_to_remove_cases)
+	{
+		sample_ids_cases.remove(s_id);
+	}
+	foreach (int s_id, s_ids_to_remove_controls)
+	{
+		sample_ids_controls.remove(s_id);
+	}
+	s_ids_to_remove_cases.clear();
+	s_ids_to_remove_controls.clear();
+
+
+	//controls
+	foreach (int s_id, sample_ids_controls.keys())
+	{
+		//skip samples which will be removed anyways
+		if(s_ids_to_remove_controls.contains(s_id)) continue;
+		QStringList stati_to_remove;
+		stati_to_remove << "Affected";
+		foreach (const QString& relation, relation_types)
+		{
+			QSet<int> related_sample_overlap = db_.relatedSamples(s_id, relation) &  sample_ids_controls.keys().toSet();
+			if (related_sample_overlap.size() > 1)
+			{
+				QStringList related_sample_list;
+				foreach (int id, related_sample_overlap)
+				{
+					related_sample_list << db_.sampleName(QString::number(id));
+				}
+				QSet<int> unaffected_samples = removeDiseaseStatus(related_sample_overlap, stati_to_remove);
+				int newest_s_id;
+				if(unaffected_samples.size() >0)
+				{
+					newest_s_id = getNewestSample(unaffected_samples);
+				}
+				else
+				{
+					//if no affected sample: -> use the newest
+					newest_s_id = getNewestSample(related_sample_overlap);
+				}
+				related_sample_overlap.remove(newest_s_id);
+				s_ids_to_remove_controls += related_sample_overlap;
+
+				warning_table.append(QStringList() << db_.sampleName(QString::number(s_id)) << "controls" << relation + " relation" << related_sample_list.join(", ") << db_.sampleName(QString::number(s_id)));
+			}
+		}
+	}
+	//remove samples
+	foreach (int s_id, s_ids_to_remove_controls)
+	{
+		sample_ids_controls.remove(s_id);
+	}
+	s_ids_to_remove_controls.clear();
+
+
+
+	if (processing_systems.size() > 1) warnings << "WARNING: The cohort contains multiple processing systems (" + processing_systems.toList().join(", ")+ ")!";
+	if (processing_systems.size() > 1) warnings << "WARNING: The cohort contains multiple ancestries (" + ancestry.toList().join(", ")+ ")!";
+
+
 	else
 	{
 		// enable if control and case samples are set
 		ui_->b_burden_test->setEnabled(cases_initialized_ && controls_initialized_ && (selected_genes_.count() > 0));
 	}
 
-	if(warnings.size() > 0)
+	if((warnings.size() > 0 )|| (warning_table.size() > 0))
 	{
 		//create dialog
-		QTextEdit* te_warnings = new QTextEdit();
-		te_warnings->setText(warnings.join("\n"));
-		te_warnings->setReadOnly(true);
-		te_warnings->setMinimumWidth(720);
-		te_warnings->setMinimumHeight(480);
-		QSharedPointer<QDialog> dialog = GUIHelper::createDialog(te_warnings, "Validation warning", "During cohort validation the following problems occured:\n", true);
+		tw_warnings_ = new QTableWidget();
+		int n_rows = warning_table.size();
+		int n_cols = warning_table_header.size();
+		tw_warnings_->setRowCount(n_rows);
+		tw_warnings_->setColumnCount(n_cols);
+		for (int col = 0; col < n_cols; ++col)
+		{
+			//set header
+			tw_warnings_->setHorizontalHeaderItem(col, GUIHelper::createTableItem(warning_table_header.at(col)));
+			for (int row = 0; row < n_rows; ++row)
+			{
+				tw_warnings_->setItem(row, col, GUIHelper::createTableItem(warning_table.at(row).at(col)));
+			}
+		}
+		GUIHelper::resizeTableCells(tw_warnings_);
+
+		//create table view with copy option
+		QWidget* view = new QWidget();
+		QVBoxLayout* v_layout = new QVBoxLayout(view);
+		v_layout->addWidget(new QLabel(warnings.join("<br>")));
+		v_layout->setSpacing(3);
+		v_layout->setMargin(0);
+		if(warning_table.size() > 0)
+		{
+			QPushButton* bt_copy_table = new QPushButton(QIcon(":/Icons/CopyClipboard.png"), "");
+			bt_copy_table->setFixedWidth(25);
+			connect(bt_copy_table, SIGNAL(clicked(bool)), this, SLOT(copyWarningsToClipboard()));
+			QWidget* h_view = new QWidget();
+			QVBoxLayout* h_layout = new QVBoxLayout(h_view);
+			h_layout->addWidget(bt_copy_table);
+			h_layout->addSpacerItem(new QSpacerItem(1,1, QSizePolicy::Expanding, QSizePolicy::Fixed));
+			h_layout->setMargin(0);
+			v_layout->addWidget(tw_warnings_);
+			v_layout->addWidget(h_view);
+		}
+
+		QSharedPointer<QDialog> dialog  = GUIHelper::createDialog(view, "Validation warning", "During cohort validation the following problems occured:", true);
+		dialog->setMinimumWidth(800);
+		dialog->setMaximumHeight(600);
 
 		//show dialog
 		dialog->exec();
 	}
 
-	qDebug() << "Case:" << case_samples_.size() << case_samples_;
-	qDebug() << "Control:" << control_samples_.size() << control_samples_;
+	qDebug() << "Case:" << case_samples_.size();
+	qDebug() << "Control:" << control_samples_.size();
+
+	//automatically remove samples
+	//get all remaining processed samples
+	QSet<int> case_samples_to_keep;
+	QSet<int> control_samples_to_keep;
+	foreach(int s_id, sample_ids_cases.keys())
+	{
+		case_samples_to_keep += sample_ids_cases.value(s_id).toSet();
+	}
+	foreach(int s_id, sample_ids_controls.keys())
+	{
+		control_samples_to_keep += sample_ids_controls.value(s_id).toSet();
+	}
+
+	QSet<int> case_samples_to_remove = case_samples_.subtract(case_samples_to_keep);
+	QSet<int> control_samples_to_remove = control_samples_.subtract(control_samples_to_keep);
+
+	if((case_samples_to_remove.size() > 0) || (control_samples_to_remove.size() > 0))
+	{
+		QStringList case_ps_to_remove;
+		foreach (int ps_id, case_samples_to_remove)
+		{
+			case_ps_to_remove << db_.processedSampleName(QString::number(ps_id));
+		}
+		std::sort(case_ps_to_remove.begin(), case_ps_to_remove.end());
+		QStringList control_ps_to_remove;
+		foreach (int ps_id, control_samples_to_remove)
+		{
+			control_ps_to_remove << db_.processedSampleName(QString::number(ps_id));
+		}
+		std::sort(control_ps_to_remove.begin(), control_ps_to_remove.end());
+
+		QLabel* label = new QLabel(this);
+		label->setText(((case_ps_to_remove.size()>0)?"Cases:\n" + case_ps_to_remove.join(", ") + "\n\n":"")
+					   + ((control_ps_to_remove.size()>0)?"Controls:\n" + control_ps_to_remove.join(", ") + "\n\n":"")
+					   + "Would you like to procreed?");
+		label->setWordWrap(true);
+		auto dlg = GUIHelper::createDialog(label, "Removing samples", "The following related samples can be removed automatically:\n ", true);
+		int btn = dlg->exec();
+		if (btn == 1)
+		{
+			case_samples_ = case_samples_to_keep;
+			control_samples_ = control_samples_to_keep;
+			qDebug() << "Case:" << case_samples_.size() << case_samples_;
+			qDebug() << "Control:" << control_samples_.size() << control_samples_;
+			updateSampleCounts();
+		}
+	}
+
+	//activate Burden test
+	ui_->b_burden_test->setEnabled(true);
+
 }
 
 void BurdenTestWidget::updateSampleCounts()
@@ -501,6 +832,44 @@ QString BurdenTestWidget::createGeneQuery(int max_ngsd, double max_gnomad_af, co
 	return query_text;
 }
 
+int BurdenTestWidget::getNewestProcessedSample(const QSet<int>& ps_list)
+{
+	QMap<int,int> sample_map;
+	foreach (int ps_id, ps_list)
+	{
+		int process_id = db_.getValue("SELECT `process_id` FROM `processed_sample` WHERE `id`=:0", false, QString::number(ps_id)).toInt();
+		sample_map.insert(process_id, ps_id);
+	}
+	//since QMap is sorted last element ist newest
+	return sample_map.last();
+}
+
+int BurdenTestWidget::getNewestSample(const QSet<int>& s_list)
+{
+	QMap<QDate,int> sample_map;
+	foreach (int s_id, s_list)
+	{
+		QDate received_date = db_.getValue("SELECT `received` FROM `sample` WHERE `id`=:0", false, QString::number(s_id)).toDate();
+		sample_map.insert(received_date, s_id);
+	}
+	//since QMap is sorted last element ist newest
+	return sample_map.last();
+}
+
+QSet<int> BurdenTestWidget::removeDiseaseStatus(const QSet<int>& s_list, const QStringList& stati_to_remove)
+{
+	QSet<int> s_ids;
+	foreach (int s_id, s_list)
+	{
+		QString disease_status = db_.getValue("SELECT `disease_status` FROM `sample` WHERE `id`=:0", false, QString::number(s_id)).toString();
+		if(!stati_to_remove.contains(disease_status))
+		{
+			s_ids << s_id;
+		}
+	}
+	return s_ids;
+}
+
 void BurdenTestWidget::performBurdenTest()
 {
 
@@ -539,10 +908,6 @@ void BurdenTestWidget::performBurdenTest()
 		ps_ids << QString::number(id);
 	}
 
-	//prepare query
-//	prepareSqlQuery(max_ngsd, max_gnomad_af, impacts, predict_pathogenic);
-//	qDebug() << "prepare query: " << Helper::elapsedTime(timer);
-
 	// get genes
 	QList<int> gene_ids;
 	foreach (QByteArray gene, selected_genes_)
@@ -561,7 +926,18 @@ void BurdenTestWidget::performBurdenTest()
 		QByteArray gene_name = db_.geneSymbol(gene_id);
 
 		// get gene region
-		BedFile gene_regions = db_.geneToRegions(gene_name, Transcript::ENSEMBL, "exon", true);
+		BedFile gene_regions;
+		if(ui_->cb_only_ccr->isChecked())
+		{
+			//limit region only to CCR80
+			if(ccr80_region_.contains(gene_name)) gene_regions = ccr80_region_.value(gene_name);
+		}
+		else
+		{
+			//use exon region
+			gene_regions = db_.geneToRegions(gene_name, Transcript::ENSEMBL, "exon", true);
+		}
+
 		gene_regions.sort();
 		gene_regions.merge();
 
@@ -583,8 +959,6 @@ void BurdenTestWidget::performBurdenTest()
 
 		qDebug() << i << "get var ids for gene " + gene_name + ": "<< variant_ids.size() << Helper::elapsedTime(timer);
 
-		qDebug() << "new method (s): " << n_sec_single_query/1000;
-
 		// for all matching variants: get counts of case and control cohort
 		QMap<int,QSet<int>> detected_variants;
 		if(variant_ids.size() != 0)
@@ -602,11 +976,9 @@ void BurdenTestWidget::performBurdenTest()
 				int ps_id = detected_variant_query.value("processed_sample_id").toInt();
 				int var_id = detected_variant_query.value("variant_id").toInt();
 
-	//			if(!detected_variants.keys().contains(ps_id)) detected_variants[ps_id] = QSet<int>();
 				detected_variants[ps_id] << var_id;
 			}
 
-	//		qDebug() << "get detected variants took: " << Helper::elapsedTime(timer);
 		}
 
 
@@ -632,7 +1004,7 @@ void BurdenTestWidget::performBurdenTest()
 		ui_->tw_gene_table->setRowCount(row_idx+1);
 
 		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(gene_name));
-		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(p_value,  5));
+		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(p_value,  8));
 
 		ui_->tw_gene_table->setItem(row_idx, column_idx, GUIHelper::createTableItem(n_cases));
 		ui_->tw_gene_table->item(row_idx, column_idx++)->setToolTip(ps_names_cases.join(", "));
@@ -689,6 +1061,9 @@ void BurdenTestWidget::copyToClipboard()
 	comments << "excluded_bases=" + QString::number(excluded_regions_.baseCount());
 	if(excluded_regions_file_names.size() > 0) comments << "excluded_region_file_names=" + excluded_regions_file_names.join(",");
 
+	//CCR80
+	if(ui_->cb_only_ccr->isChecked()) comments << "region_limited_to_CCR80=true";
+
 	//filter parameter
 	comments << "max_gnomad_af=" + QString::number(ui_->sb_max_gnomad_af->value(), 'f', 2);
 	comments << "max_ngsd_count=" + QString::number(ui_->sb_max_ngsd_count->value());
@@ -702,6 +1077,53 @@ void BurdenTestWidget::copyToClipboard()
 	comments << "inheritance=" + ui_->cb_inheritance->currentText();
 
 	GUIHelper::copyToClipboard(ui_->tw_gene_table, false, comments);
+}
+
+void BurdenTestWidget::copyWarningsToClipboard()
+{
+	GUIHelper::copyToClipboard(tw_warnings_, false);
+}
+
+void BurdenTestWidget::validateCCRGenes()
+{
+	//check only if CCR is checked
+	if(!ui_->cb_only_ccr->isChecked()) return;
+
+	GeneSet unsupported_genes;
+	foreach(const QByteArray& gene, selected_genes_)
+	{
+		if(!ccr_genes_.contains(gene))
+		{
+			unsupported_genes.insert(gene);
+		}
+	}
+
+	if(unsupported_genes.count() > 0)
+	{
+		GUIHelper::showMessage("Unsupported Genes", "The foillowing genes are not supported by the constrained coding region and will be removed:\n" + unsupported_genes.toStringList().join(", "));
+		selected_genes_.remove(unsupported_genes);
+		updateGeneCounts();
+	}
+}
+
+void BurdenTestWidget::initCCR()
+{
+
+	//read CCR gene list and update the gene names
+	ccr_genes_ = db_.genesToApproved(GeneSet::createFromFile(":/Resources/CCR_supported_genes.txt"));
+
+	//create CCR region for each gene
+	BedFile combined_ccr;
+	combined_ccr.load(":/Resources/CCR80_GRCh38.bed");
+	ccr80_region_.clear();
+	for (int i=0; i<combined_ccr.count(); i++)
+	{
+		const BedLine& line = combined_ccr[i];
+		QByteArray gene = db_.geneToApproved(line.annotations().at(1));
+		//skip invalid genes
+		if(gene.isEmpty()) continue;
+		ccr80_region_[gene].append(BedLine(line.chr(), line.start(), line.end()));
+	}
 }
 
 
