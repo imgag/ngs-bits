@@ -10,6 +10,7 @@
 #include "TsvFile.h"
 #include "VcfFile.h"
 #include "GlobalServiceProvider.h"
+#include "IgvSessionManager.h"
 #include "GeneInfoDBs.h"
 #include "ClientHelper.h"
 #include "Log.h"
@@ -77,7 +78,7 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 void RepeatExpansionWidget::cellDoubleClicked(int row, int /*col*/)
 {
 	QString region = ui_.repeat_expansions->item(row, 0)->text() + ":" + ui_.repeat_expansions->item(row, 1)->text() + "-" + ui_.repeat_expansions->item(row, 2)->text();
-	GlobalServiceProvider::gotoInIGV(region, true);
+    IgvSessionManager::get(0).gotoInIGV(region, true);
 }
 
 void RepeatExpansionWidget::keyPressEvent(QKeyEvent* event)

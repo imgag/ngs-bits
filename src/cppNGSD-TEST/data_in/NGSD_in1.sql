@@ -577,11 +577,11 @@ INSERT INTO `somatic_report_configuration_cnv` (`somatic_report_configuration_id
 (3, 4, true, false, false, false, false, "");
 
 -- somatic_vicc
-INSERT INTO `somatic_vicc_interpretation` (`id`, `variant_id`, `null_mutation_in_tsg`, `known_oncogenic_aa`, `strong_cancerhotspot`, `located_in_canerhotspot`, `absent_from_controls`, `protein_length_change`, `other_aa_known_oncogenic`, `weak_cancerhotspot`, `computational_evidence`, `mutation_in_gene_with_etiology`, `very_weak_cancerhotspot`, `very_high_maf`, `benign_functional_studies`, `high_maf`, `benign_computational_evidence`, `synonymous_mutation`, `comment`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES
-(1, 210585, true, false, false, true, true, null, true, false, null, false, true, false, false, false, false, null, 'this variant was evaluated as an oncogenic variant', 99, '2020-11-05 13:06:13', 101, '2020-12-07 11:06:10'),
-(2, 213346, false, true, false, true, true, null, true, false, null, false, true, true, true, true, true, true, 'this variant was evaluated as variant of unclear significance', 99, '2020-12-05 12:07:11', 101, '2020-12-08 13:45:11'),
-(3, 2407600,  true, false, false, true, true, null, true, false, null, false, true, false, false, false, false, null, 'this variant was evaluated as an oncogenic variant', 99, '2021-01-05 13:06:13', 101, '2021-02-07 11:06:10'),
-(4, 2407601,  false, false, false, false, true, null, true, false, null, false, true, true, true, false, false, null, 'this variant was evaluated as an oncogenic variant', 99, '2021-02-06 11:06:14', 101, '2021-02-08 13:06:10');
+INSERT INTO `somatic_vicc_interpretation` (`id`, `variant_id`, `null_mutation_in_tsg`, `known_oncogenic_aa`, `strong_cancerhotspot`, `located_in_canerhotspot`, `absent_from_controls`, `protein_length_change`, `other_aa_known_oncogenic`, `weak_cancerhotspot`, `computational_evidence`, `mutation_in_gene_with_etiology`, `very_weak_cancerhotspot`, `very_high_maf`, `benign_functional_studies`, `high_maf`, `benign_computational_evidence`, `synonymous_mutation`, `classification`, `comment`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES
+(1, 210585, true, false, false, true, true, null, true, false, null, false, true, false, false, false, false, null, 'ONCOGENIC', 'this variant was evaluated as an oncogenic variant', 99, '2020-11-05 13:06:13', 101, '2020-12-07 11:06:10'),
+(2, 213346, false, true, false, true, true, null, true, false, null, false, true, true, true, true, true, true, 'UNCERTAIN_SIGNIFICANCE', 'this variant was evaluated as variant of unclear significance', 99, '2020-12-05 12:07:11', 101, '2020-12-08 13:45:11'),
+(3, 2407600,  true, false, false, true, true, null, true, false, null, false, true, false, false, false, false, null, 'ONCOGENIC', 'this variant was evaluated as an oncogenic variant', 99, '2021-01-05 13:06:13', 101, '2021-02-07 11:06:10'),
+(4, 2407601,  false, false, false, false, true, null, true, false, null, false, true, true, true, false, false, null, 'BENIGN', 'this variant was evaluated as an benign variant', 99, '2021-02-06 11:06:14', 101, '2021-02-08 13:06:10');
 
 -- somatic_pathway
 INSERT INTO `somatic_pathway` (`id`, `name`) VALUES

@@ -3,6 +3,7 @@
 #include "GSvarHelper.h"
 #include "GermlineReportGenerator.h"
 #include "GlobalServiceProvider.h"
+#include "IgvSessionManager.h"
 #include "Log.h"
 #include <QMessageBox>
 #include <QMenu>
@@ -329,7 +330,7 @@ void GapDialog::gapDoubleClicked(QTableWidgetItem* item)
 	if (item==nullptr) return;
 
 	QString region = ui_.gaps->item(item->row(), 0)->text();
-	GlobalServiceProvider::gotoInIGV(region, true);
+    IgvSessionManager::get(0).gotoInIGV(region, true);
 }
 
 void GapDialog::updateFilters()

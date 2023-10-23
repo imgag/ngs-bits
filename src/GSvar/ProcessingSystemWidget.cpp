@@ -4,6 +4,7 @@
 #include "NGSD.h"
 #include "GUIHelper.h"
 #include "GlobalServiceProvider.h"
+#include "IgvSessionManager.h"
 #include <QDir>
 #include <QDesktopServices>
 #include <QProcess>
@@ -130,6 +131,6 @@ void ProcessingSystemWidget::openRoiInIGV()
 	roi_file = Helper::canonicalPath(roi_file);
 	roi.store(roi_file);
 
-	GlobalServiceProvider::loadFileInIGV(roi_file, false);
+    IgvSessionManager::get(0).loadFileInIGV(roi_file, false);
 
 }

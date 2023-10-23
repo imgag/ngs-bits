@@ -442,6 +442,21 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 
 	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
 
+	//remove duplicates
+	QSet<int> done;
+	for(int r=output.rowCount()-1; r>=0; --r) //reverse, so that all indices are valid
+	{
+		int ps_id = output.row(r).id().toInt();
+		if (done.contains(ps_id))
+		{
+			output.removeRow(r);
+		}
+		else
+		{
+			done << ps_id;
+		}
+	}
+
 	//filter by user access rights (for restricted users only)
 	if (p.restricted_user!="")
 	{
@@ -4027,7 +4042,6 @@ void NGSD::setSomaticViccData(const Variant& variant, const SomaticViccData& vic
 	}
 
 	QString variant_id = variantId(variant);
-
 	SqlQuery query = getQuery();
 
 	//this lambda binds all values needed for both inserting and updating
@@ -4057,23 +4071,25 @@ void NGSD::setSomaticViccData(const Variant& variant, const SomaticViccData& vic
 		query.bindValue(14 , stateToVar( vicc_data.high_maf ) );
 		query.bindValue(15 , stateToVar( vicc_data.benign_computational_evidence ) );
 		query.bindValue(16 , stateToVar( vicc_data.synonymous_mutation ) );
-		query.bindValue(17 , vicc_data.comment );
-		query.bindValue(18 , userId(user_name) );
+		query.bindValue(17 , SomaticVariantInterpreter::viccScoreAsString(vicc_data)); //set classification by interpreter to make sure it fits with the states
+		query.bindValue(18 , vicc_data.comment );
+		query.bindValue(19 , userId(user_name) );
+
 	};
 
 	int vicc_id = getSomaticViccId(variant);
 	if(vicc_id != -1) //update data set
 	{
-		query.prepare("UPDATE `somatic_vicc_interpretation` SET  `null_mutation_in_tsg`=:0, `known_oncogenic_aa`=:1, `oncogenic_funtional_studies`=:2, `strong_cancerhotspot`=:3, `located_in_canerhotspot`=:4,  `absent_from_controls`=:5, `protein_length_change`=:6, `other_aa_known_oncogenic`=:7, `weak_cancerhotspot`=:8, `computational_evidence`=:9, `mutation_in_gene_with_etiology`=:10, `very_weak_cancerhotspot`=:11, `very_high_maf`=:12, `benign_functional_studies`=:13, `high_maf`=:14, `benign_computational_evidence`=:15, `synonymous_mutation`=:16, `comment`=:17, `last_edit_by`=:18, `last_edit_date`= CURRENT_TIMESTAMP WHERE `id`=" + QByteArray::number(vicc_id) );
+		query.prepare("UPDATE `somatic_vicc_interpretation` SET  `null_mutation_in_tsg`=:0, `known_oncogenic_aa`=:1, `oncogenic_funtional_studies`=:2, `strong_cancerhotspot`=:3, `located_in_canerhotspot`=:4,  `absent_from_controls`=:5, `protein_length_change`=:6, `other_aa_known_oncogenic`=:7, `weak_cancerhotspot`=:8, `computational_evidence`=:9, `mutation_in_gene_with_etiology`=:10, `very_weak_cancerhotspot`=:11, `very_high_maf`=:12, `benign_functional_studies`=:13, `high_maf`=:14, `benign_computational_evidence`=:15, `synonymous_mutation`=:16, `classification`=:17, `comment`=:18, `last_edit_by`=:19, `last_edit_date`= CURRENT_TIMESTAMP WHERE `id`=" + QByteArray::number(vicc_id));
 		bind();
 		query.exec();
 	}
 	else //insert new data set
 	{
-		query.prepare("INSERT INTO `somatic_vicc_interpretation` (`null_mutation_in_tsg`, `known_oncogenic_aa`, `oncogenic_funtional_studies`, `strong_cancerhotspot`, `located_in_canerhotspot`,  `absent_from_controls`, `protein_length_change`, `other_aa_known_oncogenic`, `weak_cancerhotspot`, `computational_evidence`, `mutation_in_gene_with_etiology`, `very_weak_cancerhotspot`, `very_high_maf`, `benign_functional_studies`, `high_maf`, `benign_computational_evidence`, `synonymous_mutation`, `comment`, `last_edit_by`, `last_edit_date`, `created_by`, `created_date`, `variant_id`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, CURRENT_TIMESTAMP, :19, CURRENT_TIMESTAMP, :20)");
+		query.prepare("INSERT INTO `somatic_vicc_interpretation` (`null_mutation_in_tsg`, `known_oncogenic_aa`, `oncogenic_funtional_studies`, `strong_cancerhotspot`, `located_in_canerhotspot`,  `absent_from_controls`, `protein_length_change`, `other_aa_known_oncogenic`, `weak_cancerhotspot`, `computational_evidence`, `mutation_in_gene_with_etiology`, `very_weak_cancerhotspot`, `very_high_maf`, `benign_functional_studies`, `high_maf`, `benign_computational_evidence`, `synonymous_mutation`, `classification`, `comment`, `last_edit_by`, `last_edit_date`, `created_by`, `created_date`, `variant_id`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, CURRENT_TIMESTAMP, :20, CURRENT_TIMESTAMP, :21)");
 		bind();
-		query.bindValue(19, userId(user_name) );
-		query.bindValue(20, variant_id);
+		query.bindValue(20, userId(user_name) );
+		query.bindValue(21, variant_id);
 		query.exec();
 	}
 }

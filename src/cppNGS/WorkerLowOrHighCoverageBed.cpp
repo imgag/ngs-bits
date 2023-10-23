@@ -18,8 +18,6 @@ void WorkerLowOrHighCoverageBed::run()
 {
 	try
 	{				
-		if (cutoff_>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
-
 		BamReader reader(bam_file_, ref_file_);
 		for (int i=bed_chunk_.start; i<=bed_chunk_.end; ++i)
 		{

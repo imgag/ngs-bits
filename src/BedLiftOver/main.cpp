@@ -95,8 +95,18 @@ public:
 			}
 
 			while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
+			QByteArrayList parts = line.split('\t');
+			QByteArrayList annotations;
+			if (parts.count() > 3)
+			{
+				for (int i=3; i<parts.count(); i++)
+				{
+					annotations.append(parts[i]);
+				}
+			}
 
-			BedLine l = BedLine::fromString(line);
+			BedLine l = BedLine(parts[0], Helper::toInt(parts[1], "range start position", line), Helper::toInt(parts[2], "range end position", line), annotations);
+
 			in_count++;
 			in_length += l.length();
 

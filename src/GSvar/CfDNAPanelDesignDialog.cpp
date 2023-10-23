@@ -5,6 +5,7 @@
 #include "NGSD.h"
 #include "GSvarHelper.h"
 #include "GlobalServiceProvider.h"
+#include "IgvSessionManager.h"
 #include "VariantTable.h"
 #include "VariantOpenDialog.h"
 #include <QMessageBox>
@@ -909,7 +910,7 @@ void CfDNAPanelDesignDialog::openVariantInIGV(QTableWidgetItem* item)
 
 	const Variant& var = variants_[var_idx];
 	QString coords = var.chr().strNormalized(true) + ":" + QString::number(var.start()) + "-" + QString::number(var.end());
-	GlobalServiceProvider::gotoInIGV(coords, true);
+    IgvSessionManager::get(0).gotoInIGV(coords, true);
 }
 
 void CfDNAPanelDesignDialog::updateSystemSelection()

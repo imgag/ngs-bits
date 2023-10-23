@@ -102,6 +102,13 @@ public:
 				QString somatic_folder = project_folder + QDir::separator() + "Somatic_"+somatic_prefix + QDir::separator();
 
 				QString gsvar_file = somatic_folder + somatic_prefix + ".GSvar";
+
+				if (! QFile(gsvar_file).exists())
+				{
+					qDebug() << "No Gsvar file found for tumor: " + tumor_ps + " - skipping sample.";
+					continue;
+				}
+
 				VariantList variants;
 				variants.load(gsvar_file);
 

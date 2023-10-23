@@ -720,6 +720,7 @@ CREATE TABLE IF NOT EXISTS `somatic_vicc_interpretation`
   `high_maf` BOOLEAN NULL DEFAULT NULL,
   `benign_computational_evidence` BOOLEAN NULL DEFAULT NULL,
   `synonymous_mutation` BOOLEAN NULL DEFAULT NULL,
+  `classification` ENUM('ONCOGENIC', 'LIKELY_ONCOGENIC', 'BENIGN', 'LIKELY_BENIGN', 'UNCERTAIN_SIGNIFICANCE') NULL DEFAULT NULL,
   `comment` TEXT NULL DEFAULT NULL,
   `created_by` int(11) DEFAULT NULL,
   `created_date` DATETIME NOT NULL,

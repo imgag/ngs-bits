@@ -8,6 +8,7 @@
 #include "Settings.h"
 #include "GSvarHelper.h"
 #include "GlobalServiceProvider.h"
+#include "IgvSessionManager.h"
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QBitArray>
@@ -75,7 +76,7 @@ void RohWidget::rohDoubleClicked(QTableWidgetItem* item)
 	}
 	else
 	{
-		GlobalServiceProvider::gotoInIGV(rohs[item->row()].toString(), true);
+        IgvSessionManager::get(0).gotoInIGV(rohs[item->row()].toString(), true);
 	}
 }
 

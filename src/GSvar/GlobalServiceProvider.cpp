@@ -147,37 +147,6 @@ void GlobalServiceProvider::openProcessingSystemTab(QString system_short_name)
 	}
 }
 
-void GlobalServiceProvider::executeCommandListInIGV(QStringList commands, bool init_if_not_done, int session_index)
-{
-	foreach(QWidget* widget, QApplication::topLevelWidgets())
-	{
-		MainWindow* mw = qobject_cast<MainWindow*>(widget);
-		if (mw!=nullptr)
-		{
-			mw->executeIGVCommands(commands, init_if_not_done, session_index);
-		}
-	}
-}
-
-void GlobalServiceProvider::executeCommandInIGV(QString command, bool init_if_not_done, int session_index)
-{
-	executeCommandListInIGV(QStringList() << command, init_if_not_done, session_index);
-}
-
-void GlobalServiceProvider::gotoInIGV(QString region, bool init_if_not_done, int session_index)
-{
-	executeCommandInIGV("goto " + region, init_if_not_done, session_index);
-}
-
-void GlobalServiceProvider::loadFileInIGV(QString filename, bool init_if_not_done, bool is_virus_genome)
-{
-	//normalize local files
-	filename = Helper::canonicalPath(filename);
-
-	if (ClientHelper::isClientServerMode()) executeCommandInIGV("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*", init_if_not_done, is_virus_genome);
-	executeCommandInIGV("load \"" + ClientHelper::stripSecureToken(filename) + "\"", init_if_not_done, is_virus_genome);
-}
-
 void GlobalServiceProvider::openGSvarViaNGSD(QString processed_sample_name, bool search_multi)
 {
 	foreach(QWidget* widget, QApplication::topLevelWidgets())

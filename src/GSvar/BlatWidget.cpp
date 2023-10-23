@@ -5,6 +5,7 @@
 #include "GSvarHelper.h"
 #include "GUIHelper.h"
 #include "GlobalServiceProvider.h"
+#include "IgvSessionManager.h"
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QJsonArray>
@@ -88,7 +89,7 @@ void BlatWidget::resultContextMenu(QPoint pos)
 		if (item==nullptr) return;
 
 		int r = item->row();
-		GlobalServiceProvider::gotoInIGV(ui_.table->item(r, 3)->text(), false);
+        IgvSessionManager::get(0).gotoInIGV(ui_.table->item(r, 3)->text(), false);
 	}
 }
 

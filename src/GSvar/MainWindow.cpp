@@ -45,7 +45,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "GenesToRegionsDialog.h"
 #include "SubpanelDesignDialog.h"
 #include "SubpanelArchiveDialog.h"
-#include "IgvDialog.h"
 #include "GapDialog.h"
 #include "EmailDialog.h"
 #include "CnvWidget.h"
@@ -147,6 +146,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "RefGenomeService.h"
 #include "GHGAUploadDialog.h"
 #include "BurdenTestWidget.h"
+#include "IgvLogWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -154,6 +154,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, var_last_(-1)
 	, busy_dialog_(nullptr)
 	, notification_label_(new QLabel())
+    , igv_history_label_(new ClickableLabel())
 	, filename_()
 	, variants_changed_()
 	, last_report_path_(QDir::homePath())
@@ -270,6 +271,14 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.statusBar->addPermanentWidget(notification_label_);	
 	ui_.actionVirusDetection->setEnabled(false);
 
+    igv_history_label_->hide();
+    igv_history_label_->setScaledContents(true);
+    igv_history_label_->setMaximumSize(16,16);
+    igv_history_label_->setPixmap(QPixmap(":/Icons/IGV.png"));
+    igv_history_label_->setToolTip("Show the history of IGV commands");
+    ui_.statusBar->addPermanentWidget(igv_history_label_);
+    connect(igv_history_label_, SIGNAL(clicked(QPoint)), this, SLOT(displayIgvHistoryTable(QPoint)));
+
 	//init cache in background thread (it takes about 6 seconds)
 	CacheInitWorker* worker = new CacheInitWorker();
 	worker->start();
@@ -367,7 +376,19 @@ bool MainWindow::isServerRunning()
 		return false;
 	}
 
-	return true;
+    return true;
+}
+
+void MainWindow::displayIgvHistoryButton(bool visible)
+{
+    if (visible)
+    {
+        igv_history_label_->show();
+    }
+    else
+    {
+        igv_history_label_->hide();
+    }
 }
 
 void MainWindow::checkServerAvailability()
@@ -419,8 +440,18 @@ void MainWindow::checkClientUpdates()
 		else
 		{
 			update_info_toolbar_->hide();
-		}
-	}
+        }
+    }
+}
+
+QString MainWindow::getCurrentFileName()
+{
+    return filename_;
+}
+
+AnalysisType MainWindow::getCurrentAnalysisType()
+{
+    return variants_.type();
 }
 
 void MainWindow::on_actionDebug_triggered()
@@ -534,7 +565,7 @@ void MainWindow::on_actionDebug_triggered()
 				somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
 
 				//get SO-terms
-				OntologyTermCollection obo_terms("://Resources/so-xp_3_0_0.obo", true);
+				OntologyTermCollection obo_terms("://Resources/so-xp_3_1_0.obo", true);
 				QList<QByteArray> ids;
 				ids << obo_terms.childIDs("SO:0001580",true); //coding variants
 				ids << obo_terms.childIDs("SO:0001568",true); //splicing variants
@@ -1744,21 +1775,26 @@ void MainWindow::on_actionCloseMetaDataTabs_triggered()
 
 void MainWindow::on_actionIgvClear_triggered()
 {
-	QStringList commands;
-	commands << ("genome " + Settings::path("igv_genome")); //genome command first, see https://github.com/igvteam/igv/issues/1094
-	commands << "new";
-	executeIGVCommands(commands, false, 0);
+	IGVSession& session = IgvSessionManager::get(0);
 
-	IgvSessionManager::setIGVInitialized(false, 0);
+	//start IGV
+	if (!session.isIgvRunning())
+	{
+		session.startIGV();
+	}
+
+	//clear
+	session.execute(QStringList() << "new");
+	session.clearHistory();
 }
 
 void MainWindow::on_actionIgvPort_triggered()
 {
 	bool ok = false;
-	int igv_port_new = QInputDialog::getInt(this, "Change IGV port", "Set IGV port for this GSvar session:", IgvSessionManager::getIGVPort(0), 0, 900000, 1, &ok);
+    int igv_port_new = QInputDialog::getInt(this, "Change IGV port", "Set IGV port for this GSvar session:", IgvSessionManager::get(0).getPort(), 0, 900000, 1, &ok);
 	if (ok)
 	{
-		IgvSessionManager::setIGVPort(igv_port_new, 0);
+        IgvSessionManager::get(0).setPort(igv_port_new);
 	}
 }
 
@@ -2606,7 +2642,7 @@ void MainWindow::delayedInitialization()
 	}
 
 	//create default IGV session (variants)
-	IgvSessionManager::createIGVSession(IgvSessionManager::findAvailablePortForIGV(), false, Settings::path("igv_genome"));
+	IgvSessionManager::create(this, ui_, "Default IGV", Settings::path("igv_app").trimmed(), Settings::string("igv_host"), Settings::path("igv_genome"));
 	//create IGV session for virus detection
 	QString virus_genome;
 	if (!ClientHelper::isClientServerMode())
@@ -2618,7 +2654,12 @@ void MainWindow::delayedInitialization()
 	{
 	   virus_genome = ClientHelper::serverApiUrl() + "genome/somatic_viral.fa";
 	}
-	IgvSessionManager::createIGVSession(IgvSessionManager::findAvailablePortForIGV(), false, virus_genome);
+	IgvSessionManager::create(this, ui_, "Virus IGV", Settings::path("igv_app").trimmed(), Settings::string("igv_host"), virus_genome);
+
+    connect(&(IgvSessionManager::get(0)), SIGNAL(started()), this, SLOT(changeIgvIconToActive()));
+    connect(&(IgvSessionManager::get(0)), SIGNAL(finished()), this, SLOT(changeIgvIconToNormal()));
+    connect(&(IgvSessionManager::get(1)), SIGNAL(started()), this, SLOT(changeIgvIconToActive()));
+    connect(&(IgvSessionManager::get(1)), SIGNAL(finished()), this, SLOT(changeIgvIconToNormal()));
 
 	//init GUI
 	updateRecentSampleMenu();
@@ -2679,8 +2720,8 @@ void MainWindow::delayedInitialization()
 
 void MainWindow::variantCellDoubleClicked(int row, int /*col*/)
 {
-	const Variant& v = variants_[ui_.vars->rowToVariantIndex(row)];
-	GlobalServiceProvider::gotoInIGV(v.chr().str() + ":" + QString::number(v.start()) + "-" + QString::number(v.end()), true);
+    const Variant& v = variants_[ui_.vars->rowToVariantIndex(row)];
+    IgvSessionManager::get(0).gotoInIGV(v.chr().str() + ":" + QString::number(v.start()) + "-" + QString::number(v.end()), true);
 }
 
 void MainWindow::variantHeaderDoubleClicked(int row)
@@ -2691,250 +2732,12 @@ void MainWindow::variantHeaderDoubleClicked(int row)
 	editVariantReportConfiguration(var_index);
 }
 
-void MainWindow::prepareAndRunIGVCommands(QAbstractSocket& socket, QStringList files_to_load, int session_index)
-{
-	QStringList init_commands;
-	//genome command first, see https://github.com/igvteam/igv/issues/1094
-	//choose the correct genome
-	init_commands.append("genome " + IgvSessionManager::getIGVGenome(session_index));
-	init_commands.append("setSleepInterval 1500");
-	init_commands.append("new");
-	if (ClientHelper::isClientServerMode()) init_commands.append("SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*");
-
-	//load non-BAM files
-	foreach(QString file, files_to_load)
-	{
-		if (!ClientHelper::isBamFile(file)) init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
-	}
-
-	//collapse tracks
-	init_commands.append("setSleepInterval 0");
-	init_commands.append("collapse");
-
-	//load BAM files
-	foreach(QString file, files_to_load)
-	{
-		if (ClientHelper::isBamFile(file)) init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
-	}
-	init_commands.append("viewaspairs");
-	init_commands.append("colorBy UNEXPECTED_PAIR");
-
-	//execute commands
-	bool debug = false;
-	foreach(QString command, init_commands)
-	{
-		if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;
-		socket.write((command + "\n").toUtf8());
-		bool ok = socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)
-		QString answer = socket.readAll().trimmed();
-		if (!ok || answer!="OK")
-		{
-			if (debug) qDebug() << QDateTime::currentDateTime() << "FAILED: answer:" << answer << " socket error:" << socket.errorString();
-			THROW(Exception, "Could not execute IGV command '" + command + "'.\nAnswer: " + answer + "\nSocket error:" + socket.errorString());
-		}
-		else
-		{
-			if (debug) qDebug() << QDateTime::currentDateTime() << "DONE";
-		}
-	}
-}
-
-bool MainWindow::prepareNormalIGV(QAbstractSocket& socket)
-{
-	AnalysisType analysis_type = variants_.type();
-
-	IgvDialog dlg(this);
-
-	//sample BAM file(s)
-	FileLocationList bams = GlobalServiceProvider::fileLocationProvider().getBamFiles(true);
-	foreach(const FileLocation& file, bams)
-	{
-		dlg.addFile(file, true);
-	}
-
-	//sample BAF file(s)
-	FileLocationList bafs = GlobalServiceProvider::fileLocationProvider().getBafFiles(true);
-	foreach(const FileLocation& file, bafs)
-	{
-		if(analysis_type == SOMATIC_PAIR && !file.id.contains("somatic")) continue;
-		dlg.addFile(file, true);
-	}
-
-	//analysis VCF
-	FileLocation vcf = GlobalServiceProvider::fileLocationProvider().getAnalysisVcf();
-	dlg.addFile(vcf, ui_.actionIgvSample->isChecked());
-
-	//analysis SV file
-	FileLocation bedpe = GlobalServiceProvider::fileLocationProvider().getAnalysisSvFile();
-	dlg.addFile(bedpe, ui_.actionSampleBedpe->isChecked());
-
-	//CNV files
-	if (analysis_type==SOMATIC_SINGLESAMPLE || analysis_type==SOMATIC_PAIR)
-	{
-		FileLocation file = GlobalServiceProvider::fileLocationProvider().getSomaticCnvCoverageFile();
-		dlg.addFile(file, true);
-
-		FileLocation file2 = GlobalServiceProvider::fileLocationProvider().getSomaticCnvCallFile();
-		dlg.addFile(file2, true);
-	}
-	else
-	{
-		FileLocationList segs = GlobalServiceProvider::fileLocationProvider().getCnvCoverageFiles(true);
-		foreach(const FileLocation& file, segs)
-		{
-			dlg.addFile(file, true);
-		}
-	}
-
-	//Manta evidence file(s)
-	FileLocationList evidence_files = GlobalServiceProvider::fileLocationProvider().getMantaEvidenceFiles(true);
-	foreach(const FileLocation& file, evidence_files)
-	{
-		dlg.addFile(file, false);
-	}
-
-	//target region
-	if (ui_.filters->targetRegion().isValid())
-	{
-		QString roi_file = GSvarHelper::localRoiFolder() + ui_.filters->targetRegion().name + ".bed";
-		ui_.filters->targetRegion().regions.store(roi_file);
-
-		dlg.addFile(FileLocation{"target region (selected in GSvar)", PathType::OTHER, roi_file, true}, true);
-	}
-
-	//amplicon file (of processing system)
-	try
-	{
-		NGSD db;
-		int sys_id = db.processingSystemIdFromProcessedSample(germlineReportSample());
-		BedFile ampilicons = GlobalServiceProvider::database().processingSystemAmplicons(sys_id, true);
-		if (!ampilicons.isEmpty())
-		{
-			QString amp_file = GSvarHelper::localRoiFolder() + db.getProcessingSystemData(sys_id).name_short + "_amplicons.bed";
-			ampilicons.store(amp_file);
-
-			dlg.addFile(FileLocation{"amplicons track (of processing system)", PathType::OTHER, amp_file, true}, true);
-		}
-	}
-	catch(...) {} //Nothing to do here
-
-	//sample low-coverage
-	if (analysis_type==SOMATIC_SINGLESAMPLE || analysis_type==SOMATIC_PAIR)
-	{
-		FileLocationList som_low_cov_files = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFiles(false);
-		foreach(const FileLocation& loc, som_low_cov_files)
-		{
-			if(loc.filename.contains("somatic_custom_panel_stat"))
-			{
-				dlg.addFile(FileLocation{loc.id + " (somatic custom panel)", PathType::LOWCOV_BED, loc.filename, QFile::exists(loc.filename)}, ui_.actionIgvLowcov->isChecked());
-			}
-			else
-			{
-				dlg.addFile(loc, ui_.actionIgvLowcov->isChecked());
-			}
-		}
-	}
-	else
-	{
-		FileLocationList low_cov_files = GlobalServiceProvider::fileLocationProvider().getLowCoverageFiles(true);
-		foreach(const FileLocation& file, low_cov_files)
-		{
-			dlg.addFile(file, ui_.actionIgvLowcov->isChecked());
-		}
-	}
-
-	//custom tracks
-	QList<QAction*> igv_actions = ui_.menuTrackDefaults->findChildren<QAction*>();
-	foreach(QAction* action, igv_actions)
-	{
-		QString name = action->text();
-		if (!name.startsWith("custom track:")) continue;
-
-		QString filename = action->toolTip().trimmed();
-		dlg.addFile(FileLocation{name, PathType::OTHER, filename, QFile::exists(filename)}, action->isChecked());
-	}
-
-	//related RNA tracks
-	if (LoginManager::active())
-	{
-		NGSD db;
-
-		QString sample_id = db.sampleId(filename_, false);
-		if (sample_id!="")
-		{
-			foreach (int rna_sample_id, db.relatedSamples(sample_id.toInt(), "same sample", "RNA"))
-			{
-				// iterate over all processed RNA samples
-				foreach (const QString& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", QString::number(rna_sample_id)))
-				{
-					//add RNA BAM
-					FileLocation rna_bam_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::BAM);
-					if (rna_bam_file.exists) dlg.addFile(rna_bam_file, false);
-
-					//add fusions BAM
-					FileLocation rna_fusions_bam_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS_BAM);
-					if (rna_fusions_bam_file.exists) dlg.addFile(rna_fusions_bam_file, false);
-
-					//add splicing BED
-					FileLocation rna_splicing_bed_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::SPLICING_BED);
-					if (rna_splicing_bed_file.exists) dlg.addFile(rna_splicing_bed_file, false);
-				}
-			}
-		}
-	}
-
-	// switch to MainWindow to prevent dialog to appear behind other widgets
-	raise();
-	activateWindow();
-	setFocus();
-
-	//execute dialog
-	if (!dlg.exec()) return false;
-
-	QApplication::setOverrideCursor(Qt::BusyCursor);
-	try
-	{
-		if (dlg.initializationAction()==IgvDialog::INIT)
-		{
-			prepareAndRunIGVCommands(socket, dlg.filesToLoad(), 0);
-			IgvSessionManager::setIGVInitialized(true, 0);
-		}
-		else if (dlg.initializationAction()==IgvDialog::SKIP_SESSION)
-		{
-			IgvSessionManager::setIGVInitialized(true, 0);
-		}
-		else if (dlg.initializationAction()==IgvDialog::SKIP_ONCE)
-		{
-			//nothing to do there
-		}
-
-		QApplication::restoreOverrideCursor();
-
-		return true;
-	}
-	catch(Exception& e)
-	{
-		QApplication::restoreOverrideCursor();
-
-		QMessageBox::warning(this, "Error while initializing IGV", e.message());
-
-		return false;
-	}
-}
-
-bool MainWindow::prepareVirusIGV(QAbstractSocket& socket)
-{
-	prepareAndRunIGVCommands(socket, QStringList{}, 1);
-	IgvSessionManager::setIGVInitialized(true, 1);
-	return true;
-}
-
 void MainWindow::openCustomIgvTrack()
 {
 	QAction* action = qobject_cast<QAction*>(sender());
 	if (action==nullptr) return;
 
-	GlobalServiceProvider::loadFileInIGV(action->toolTip(), false);
+    IgvSessionManager::get(0).loadFileInIGV(action->toolTip(), false);
 }
 
 void MainWindow::editVariantValidation(int index)
@@ -3091,7 +2894,7 @@ void MainWindow::showCnHistogram()
 		QString region_text = QInputDialog::getText(this, title, "genomic region");
 		if (region_text=="") return;
 
-		NGSHelper::parseRegion(region_text, chr, start, end);
+		NGSHelper::parseRegion(region_text, chr, start, end, true);
 
 		//determine CN values
 		QVector<double> cn_values;
@@ -3170,7 +2973,7 @@ void MainWindow::showBafHistogram()
 		QString region_text = QInputDialog::getText(this, title, "genomic region");
 		if (region_text=="") return;
 
-		NGSHelper::parseRegion(region_text, chr, start, end);
+		NGSHelper::parseRegion(region_text, chr, start, end, true);
 
 		//determine CN values
 		Histogram hist(0.0, 1.0, 0.025);
@@ -3295,8 +3098,14 @@ void MainWindow::addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize)
 	{
 		dlg->show();
 	}
-	modeless_dialogs_.append(dlg);
 
+	connect(dlg.data(), SIGNAL(finished(int)), this, SLOT(deleteClosedModelessDialogs()));
+
+	modeless_dialogs_.append(dlg);
+}
+
+void MainWindow::deleteClosedModelessDialogs()
+{
 	//Clean up when we add another dialog. Like that, only one dialog can be closed and not destroyed at the same time.
 	for (int i=modeless_dialogs_.count()-1; i>=0; --i)
 	{
@@ -3701,8 +3510,8 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 	variants_changed_.clear();
 	cnvs_.clear();
 	svs_.clear();
-	IgvSessionManager::setIGVInitialized(false, true);
-	IgvSessionManager::setIGVInitialized(false, false);
+    IgvSessionManager::resetIGVInitialized();
+    displayIgvHistoryButton(false);
 	ui_.vars->clearContents();
 	report_settings_ = ReportSettings();
 	connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
@@ -4787,7 +4596,7 @@ void MainWindow::generateReportSomaticRTF()
 	//load obo terms for filtering coding/splicing variants
 	if (somatic_report_settings_.obo_terms_coding_splicing.size() == 0)
 	{
-		OntologyTermCollection obo_terms("://Resources/so-xp_3_0_0.obo",true);
+		OntologyTermCollection obo_terms("://Resources/so-xp_3_1_0.obo",true);
 		QList<QByteArray> ids;
 		ids << obo_terms.childIDs("SO:0001580",true); //coding variants
 		ids << obo_terms.childIDs("SO:0001568",true); //splicing variants
@@ -7084,6 +6893,38 @@ void MainWindow::closeAndLogout()
     close();
 }
 
+void MainWindow::displayIgvHistoryTable(QPoint /*pos*/)
+{
+	//check if already present > bring to front
+	QList<IgvLogWidget*> dialogs = findChildren<IgvLogWidget*>();
+	if (!dialogs.isEmpty())
+	{
+		QDialog* dlg = qobject_cast<QDialog*>(dialogs.at(0)->parent());
+		dlg->raise();
+		return;
+	}
+
+	//open new dialog
+    IgvLogWidget* widget = new IgvLogWidget(this);
+	auto dlg = GUIHelper::createDialog(widget, "IGV command history");
+	addModelessDialog(dlg);
+}
+
+void MainWindow::changeIgvIconToActive()
+{
+    igv_history_label_->setPixmap(QPixmap(":/Icons/IGV_active.png"));
+    igv_history_label_->setToolTip("IGV is currently processing a command");
+}
+
+void MainWindow::changeIgvIconToNormal()
+{
+	if (!IgvSessionManager::hasAtLeastOneActiveIGV())
+	{
+        igv_history_label_->setPixmap(QPixmap(":/Icons/IGV.png"));
+        igv_history_label_->setToolTip("IGV is idle at the moment");
+    }
+}
+
 void MainWindow::on_actionVirusDetection_triggered()
 {
 	//get virus file
@@ -7342,109 +7183,6 @@ void MainWindow::updateVariantDetails()
 	var_last_ = var_current;
 }
 
-void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done, int session_index)
-{
-	bool debug = false;
-
-	try
-	{
-		QApplication::setOverrideCursor(Qt::BusyCursor);
-
-		//connect
-		QAbstractSocket socket(QAbstractSocket::UnknownSocketType, this);
-		QString igv_host = Settings::string("igv_host");
-		int igv_port = IgvSessionManager::getIGVPort(session_index);
-		if (debug) qDebug() << QDateTime::currentDateTime() << "CONNECTING:" << igv_host << igv_port;
-		socket.connectToHost(igv_host, igv_port);
-		if (!socket.waitForConnected(1000))
-		{
-			//show message to user
-			QApplication::restoreOverrideCursor();
-			if (QMessageBox::information(this, "IGV not running", "IGV is not running on port " + QString::number(igv_port) + ".\nIt will be started now!", QMessageBox::Ok|QMessageBox::Default, QMessageBox::Cancel|QMessageBox::Escape)!=QMessageBox::Ok) return;
-			QApplication::setOverrideCursor(Qt::BusyCursor);
-
-			if (debug) qDebug() << QDateTime::currentDateTime() << "FAILED - TRYING TO START IGV";			
-			IgvSessionManager::setIGVInitialized(false, session_index);
-
-			//try to start IGV
-			QString igv_app = Settings::path("igv_app").trimmed();
-			if (igv_app.isEmpty())
-			{
-				THROW(Exception, "Could not start IGV: No settings entry for 'igv_app' found!");
-			}
-			if (!QFile::exists(igv_app))
-			{
-				THROW(Exception, "Could not start IGV: IGV application '" + igv_app + "' does not exist!");
-			}
-			bool started = QProcess::startDetached(igv_app + " --port " + QString::number(igv_port));
-			if (!started)
-			{
-				THROW(Exception, "Could not start IGV: IGV application '" + igv_app + "' did not start!");
-			}
-			if (debug) qDebug() << QDateTime::currentDateTime() << "STARTED IGV - WAITING UNTIL CONNECTING TO THE PORT WORKS";
-
-			//wait for IGV to respond after start
-			bool connected = false;
-			QDateTime max_wait = QDateTime::currentDateTime().addSecs(40);
-			while (QDateTime::currentDateTime() < max_wait)
-			{
-				socket.connectToHost(igv_host, igv_port);
-				if (socket.waitForConnected(1000))
-				{
-					if (debug) qDebug() << QDateTime::currentDateTime() << "CONNECTING TO THE PORT WORKS";
-					connected = true;
-					break;
-				}
-			}
-			if (!connected)
-			{
-				THROW(Exception, "Could not start IGV: IGV application '" + igv_app + "' started, but does not respond!");
-			}
-		}
-		QApplication::restoreOverrideCursor();
-
-		//init if necessary
-		if (!IgvSessionManager::isIGVInitialized(session_index) && init_if_not_done)
-		{
-			if (debug) qDebug() << QDateTime::currentDateTime() << "INITIALIZING IGV FOR CURRENT SAMPLE!";
-
-			bool is_igv_ready = false;
-			if (session_index == 0) is_igv_ready = prepareNormalIGV(socket);
-			if (session_index == 1) is_igv_ready = prepareVirusIGV(socket);
-			if (!is_igv_ready) return;
-		}
-
-		//execute commands
-		QApplication::setOverrideCursor(Qt::BusyCursor);
-		foreach(QString command, commands)
-		{
-			if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;
-			socket.write((command + "\n").toUtf8());
-			bool ok = socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)
-			QString answer = socket.readAll().trimmed();
-			if (!ok || answer!="OK")
-			{
-				if (debug) qDebug() << QDateTime::currentDateTime() << "FAILED: answer:" << answer << " socket error:" << socket.errorString();
-				THROW(Exception, "Could not execute IGV command '" + command + "'.\nAnswer: " + answer + "\nSocket error:" + socket.errorString());
-			}
-			else
-			{
-				if (debug) qDebug() << QDateTime::currentDateTime() << "DONE";
-			}
-		}
-
-		//disconnect
-		socket.disconnectFromHost();
-		QApplication::restoreOverrideCursor();
-	}
-	catch(Exception& e)
-	{
-		QApplication::restoreOverrideCursor();
-
-		QMessageBox::warning(this, "Error while sending command to IGV", e.message());
-	}
-}
-
 void MainWindow::editVariantReportConfiguration(int index)
 {
 	if (!germlineReportSupported() && !somaticReportSupported())
@@ -7485,7 +7223,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 		}
 
 		//exec dialog
-		ReportVariantDialog dlg(variant.toString(false, 10), inheritance_by_gene, var_config, this);
+		ReportVariantDialog dlg(variant.toString(false), inheritance_by_gene, var_config, this);
 		dlg.setEnabled(!report_settings_.report_config->isFinalized());
 		if (dlg.exec()!=QDialog::Accepted) return;
 
@@ -7818,7 +7556,7 @@ void MainWindow::applyFilters(bool debug_time)
 			}
 		}
 
-		//target region filter
+		//region filter
 		QString region_text = ui_.filters->region();
 		BedLine region = BedLine::fromString(region_text);
 		if (!region.isValid()) //check if valid chr

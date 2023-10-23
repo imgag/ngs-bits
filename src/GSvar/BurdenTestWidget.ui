@@ -483,10 +483,86 @@
       <property name="spacing">
        <number>3</number>
       </property>
-      <item row="5" column="3">
-       <widget class="QPushButton" name="b_clear_excluded_regions">
+      <item row="0" column="2" colspan="2">
+       <widget class="QPushButton" name="b_load_samples_cases">
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>0</height>
+         </size>
+        </property>
         <property name="text">
-         <string>clear regions</string>
+         <string>load Samples</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0" colspan="2">
+       <widget class="QLabel" name="l_docu_link">
+        <property name="text">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/imgag/ngs-bits/blob/master/doc/GSvar/burden_test.md&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#007af4;&quot;&gt;Selecting samples for Burden test&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::RichText</enum>
+        </property>
+        <property name="openExternalLinks">
+         <bool>true</bool>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::TextBrowserInteraction</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Cohort 1 (cases):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Gene set:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QLabel" name="l_gene_count">
+        <property name="text">
+         <string>0 genes</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="2">
+       <widget class="QPushButton" name="b_add_excluded_regions">
+        <property name="text">
+         <string>add regions</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2" colspan="2">
+       <widget class="QPushButton" name="b_load_samples_controls">
+        <property name="text">
+         <string>load Samples</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="label_8">
+        <property name="text">
+         <string>Excluded regions:</string>
         </property>
        </widget>
       </item>
@@ -509,68 +585,28 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="label_8">
+      <item row="6" column="3">
+       <widget class="QPushButton" name="b_clear_excluded_regions">
         <property name="text">
-         <string>Excluded regions:</string>
+         <string>clear regions</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QLabel" name="l_controls">
+      <item row="4" column="2" colspan="2">
+       <widget class="QPushButton" name="b_load_genes">
         <property name="text">
-         <string>0 samples</string>
+         <string>load genes</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Cohort 2 (controls):</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label">
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Cohort 1 (cases):</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QLabel" name="l_gene_count">
-        <property name="text">
-         <string>0 genes</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="1">
+      <item row="6" column="1">
        <widget class="QLabel" name="l_excluded_regions">
         <property name="text">
          <string>0 regions (0.00 Mb)</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="2">
-       <widget class="QPushButton" name="b_add_excluded_regions">
-        <property name="text">
-         <string>add regions</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="0">
+      <item row="8" column="0">
        <spacer name="verticalSpacer_3">
         <property name="orientation">
          <enum>Qt::Vertical</enum>
@@ -586,35 +622,8 @@
         </property>
        </spacer>
       </item>
-      <item row="4" column="2" colspan="2">
-       <widget class="QPushButton" name="b_load_genes">
-        <property name="text">
-         <string>load genes</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2" colspan="2">
-       <widget class="QPushButton" name="b_load_samples_controls">
-        <property name="text">
-         <string>load Samples</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2" colspan="2">
-       <widget class="QPushButton" name="b_load_samples_cases">
-        <property name="minimumSize">
-         <size>
-          <width>100</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>load Samples</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_3">
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_2">
         <property name="font">
          <font>
           <weight>50</weight>
@@ -622,23 +631,21 @@
          </font>
         </property>
         <property name="text">
-         <string>Gene set:</string>
+         <string>Cohort 2 (controls):</string>
         </property>
        </widget>
       </item>
-      <item row="6" column="0" colspan="2">
-       <widget class="QLabel" name="l_docu_link">
+      <item row="2" column="1">
+       <widget class="QLabel" name="l_controls">
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/imgag/ngs-bits/blob/master/doc/GSvar/burden_test.md&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#007af4;&quot;&gt;Selecting samples for Burden test&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>0 samples</string>
         </property>
-        <property name="textFormat">
-         <enum>Qt::RichText</enum>
-        </property>
-        <property name="openExternalLinks">
-         <bool>true</bool>
-        </property>
-        <property name="textInteractionFlags">
-         <set>Qt::TextBrowserInteraction</set>
+       </widget>
+      </item>
+      <item row="5" column="1" colspan="3">
+       <widget class="QCheckBox" name="cb_only_ccr">
+        <property name="text">
+         <string>limit genes to constrained coding regions</string>
         </property>
        </widget>
       </item>

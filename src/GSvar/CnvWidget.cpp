@@ -16,6 +16,7 @@
 #include "GeneInfoDBs.h"
 #include "ValidationDialog.h"
 #include "GlobalServiceProvider.h"
+#include "IgvSessionManager.h"
 #include "ClinvarUploadDialog.h"
 #include <QMessageBox>
 #include <QFileInfo>
@@ -178,7 +179,7 @@ void CnvWidget::cnvDoubleClicked(QTableWidgetItem* item)
 	}
 	else
 	{
-		GlobalServiceProvider::gotoInIGV(cnvs_[item->row()].toString(), true);
+        IgvSessionManager::get(0).gotoInIGV(cnvs_[item->row()].toString(), true);
 	}
 }
 

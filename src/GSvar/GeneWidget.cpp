@@ -132,13 +132,26 @@ void GeneWidget::updateGUI()
 	ui_.hgnc_synonymous->setText(db.synonymousSymbols(gene_id).join(", "));
 
 	//show phenotypes/diseases from HPO
-    QByteArrayList hpo_links;
+	QStringList hpo_links;
 	PhenotypeList pheno_list = db.phenotypes(symbol_);
 	foreach(const Phenotype& pheno, pheno_list)
 	{
-        hpo_links << "<a href=\"https://hpo.jax.org/app/browse/term/" + pheno.accession()+ "\">" + pheno.accession() + "</a> " + pheno.name();
+		int pheno_id = db.phenotypeIdByAccession(pheno.accession());
+		QSet<QString> sources;
+		foreach(QString details, db.getValues("SELECT details FROM hpo_genes WHERE gene='" + symbol_ +"' AND hpo_term_id=" + QString::number(pheno_id)))
+		{
+			QStringList source_parts = details.split(';');
+			foreach(QString source_part, source_parts)
+			{
+				source_part = source_part.trimmed();
+				source_part = source_part.mid(1, source_part.length()-2);
+				sources << source_part.split(',').at(0);
+			}
+
+		}
+		hpo_links << "<a href=\"https://hpo.jax.org/app/browse/term/" + pheno.accession()+ "\">" + pheno.accession() + "</a> " + pheno.name() + " (sources: " + sources.toList().join(", ") + ")";
 	}
-	ui_.hpo->setText(hpo_links.join(hpo_links.count()>20 ? " "  : "<br>"));
+	ui_.hpo->setText(hpo_links.join("<br>"));
 
     //show OMIM info
 	QStringList omim_lines;
@@ -306,4 +319,5 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 	}
 
 	GUIHelper::resizeTableCells(ui_.transcripts);
+	GUIHelper::resizeTableHeight(ui_.transcripts);
 }
