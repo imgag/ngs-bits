@@ -2001,21 +2001,22 @@ bool FilterAnnotationPathogenic::annotatedPathogenic(const Variant& v) const
 FilterPredictionPathogenic::FilterPredictionPathogenic()
 {
 	name_ = "Predicted pathogenic";
-	description_ = QStringList() << "Filter for variants predicted to be pathogenic." << "Pathogenicity predictions used by this filter are: phyloP, Sift, PolyPhen, CADD and REVEL.";
+	description_ = QStringList() << "Filter for variants predicted to be pathogenic." << "Pathogenicity predictions used by this filter are: phyloP, CADD, REVEL and AlphaMissense.";
 	params_ << FilterParameter("min", FilterParameterType::INT, 1, "Minimum number of pathogenic predictions");
 	params_.last().constraints["min"] = "1";
 	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
 	params_.last().constraints["valid"] = "KEEP,FILTER";
 	params_ << FilterParameter("skip_high_impact", FilterParameterType::BOOL, false, "Do not apply this filter to variants with impact 'HIGH'.");
 	//cutoffs
+	params_ << FilterParameter("cutoff_phylop", FilterParameterType::DOUBLE, 1.6, "Minimum phyloP score for a pathogenic prediction. The phyloP score is not used if set to -10.0.");
 	params_ << FilterParameter("cutoff_cadd", FilterParameterType::DOUBLE, 20.0, "Minimum CADD score for a pathogenic prediction. The CADD score is not used if set to 0.0.");
 	params_.last().constraints["min"] = "0";
 	params_ << FilterParameter("cutoff_revel", FilterParameterType::DOUBLE, 0.9, "Minimum REVEL score for a pathogenic prediction. The REVEL score is not used if set to 0.0.");
 	params_.last().constraints["min"] = "0";
 	params_.last().constraints["max"] = "1";
-	params_ << FilterParameter("cutoff_phylop", FilterParameterType::DOUBLE, 1.6, "Minimum phyloP score for a pathogenic prediction. The phyloP score is not used if set to -10.0.");
-	params_ << FilterParameter("ignore_sift", FilterParameterType::BOOL, false, "Do not used the Sift score. If unset, Sift consequence 'D' is considered pathogenic.");
-	params_ << FilterParameter("ignore_polyphen", FilterParameterType::BOOL, false, "Do not used the PolyPhen score. If unset, PolyPhen consequence 'D' is considered pathogenic.");
+	params_ << FilterParameter("cutoff_alphamissense", FilterParameterType::DOUBLE, 0.564, "Minimum AlphaMissense score for a pathogenic prediction. The AlphaMissense score is not used if set to 0.0.");
+	params_.last().constraints["min"] = "0";
+	params_.last().constraints["max"] = "1";
 
 	checkIsRegistered();
 }
@@ -2031,18 +2032,17 @@ void FilterPredictionPathogenic::apply(const VariantList& variants, FilterResult
 
 	min = getInt("min");
 	i_phylop = annotationColumn(variants, "phyloP");
-	i_sift = annotationColumn(variants, "Sift");
-	i_polyphen = annotationColumn(variants, "PolyPhen");
 	i_cadd = annotationColumn(variants, "CADD");
 	i_revel = annotationColumn(variants, "REVEL");
+	i_alphamissense =  annotationColumn(variants, "AlphaMissense", false); //optional to support old GSvar files without AlphaMissense
+
 	skip_high_impact = getBool("skip_high_impact");
 	i_co_sp = annotationColumn(variants, "coding_and_splicing");
 
 	cutoff_cadd = getDouble("cutoff_cadd");
 	cutoff_revel = getDouble("cutoff_revel");
 	cutoff_phylop = getDouble("cutoff_phylop");
-	ignore_sift = getBool("ignore_sift");
-	ignore_polyphen = getBool("ignore_polyphen");
+	cutoff_alphamissense = getDouble("cutoff_alphamissense");
 
 	if (getString("action")=="FILTER")
 	{
@@ -2069,16 +2069,6 @@ void FilterPredictionPathogenic::apply(const VariantList& variants, FilterResult
 bool FilterPredictionPathogenic::predictedPathogenic(const Variant& v) const
 {
 	int count = 0;
-
-	if (!ignore_sift && v.annotations()[i_sift].contains("D"))
-	{
-		++count;
-	}
-
-	if (!ignore_polyphen && v.annotations()[i_polyphen].contains("D"))
-	{
-		++count;
-	}
 
 	if (cutoff_phylop>-10)
 	{
@@ -2107,6 +2097,16 @@ bool FilterPredictionPathogenic::predictedPathogenic(const Variant& v) const
 		bool ok;
 		double value = v.annotations()[i_revel].toDouble(&ok);
 		if (ok && value>=cutoff_revel)
+		{
+			++count;
+		}
+	}
+
+	if (i_alphamissense>=0 && cutoff_alphamissense>0) //optional to support old GSvar files without AlphaMissense
+	{
+		bool ok;
+		double value = v.annotations()[i_alphamissense].toDouble(&ok);
+		if (ok && value>=cutoff_alphamissense)
 		{
 			++count;
 		}

@@ -633,26 +633,18 @@ private slots:
 		filter.setString("action", "FILTER");
 		filter.setInteger("min", 1);
 		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 24);
+		I_EQUAL(result.countPassing(), 17);
 
 		filter.setInteger("min", 2);
-		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 6);
-
-		filter.setInteger("min", 3);
-		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 1);
-
-		filter.setInteger("min", 4);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 0);
 
 		//KEEP
 		result.reset(false);
 		filter.setString("action", "KEEP");
-		filter.setInteger("min", 2);
+		filter.setInteger("min", 1);
 		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 6);
+		I_EQUAL(result.countPassing(), 17);
 	}
 
 	void FilterAnnotationText_apply()

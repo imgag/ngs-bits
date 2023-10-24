@@ -548,18 +548,16 @@ class CPPNGSSHARED_EXPORT FilterPredictionPathogenic
 
 		mutable int min;
 		mutable int i_phylop;
-		mutable int i_sift;
-		mutable int i_polyphen;
 		mutable int i_cadd;
 		mutable int i_revel;
+		mutable int i_alphamissense;
 		mutable bool skip_high_impact;
 		mutable int i_co_sp;
 
 		mutable double cutoff_cadd;
 		mutable double cutoff_revel;
 		mutable double cutoff_phylop;
-		mutable bool ignore_sift;
-		mutable bool ignore_polyphen;
+		mutable double cutoff_alphamissense;
 };
 
 //Annotation text filter

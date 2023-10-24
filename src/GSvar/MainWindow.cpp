@@ -5896,7 +5896,7 @@ void MainWindow::on_actionImportSampleRelations_triggered()
 void MainWindow::on_actionImportSampleHpoTerms_triggered()
 {
 	importBatch("Import sample HPO terms",
-				"Batch import of sample HPO terms. Must contain the following tab-separated fields:<br><b>sample1</b>, <b>HPO term id, e.g. 'HP:0003002'</b>",
+				"Batch import of sample HPO terms. Must contain the following tab-separated fields:<br><b>sample1</b>, <b>HPO term id e.g. 'HP:0003002'</b>",
 				"sample_disease_info",
 				QStringList() << "sample_id" << "disease_info"
 				);
