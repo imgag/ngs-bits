@@ -13,7 +13,6 @@ SOURCES += main.cpp\
     GlobalServiceProvider.cpp \
     IGVCommandWorker.cpp \
     IGVSession.cpp \
-    IGVStartWorker.cpp \
     IgvLogWidget.cpp \
     IgvSessionManager.cpp \
     MainWindow.cpp \
@@ -21,6 +20,7 @@ SOURCES += main.cpp\
     MaintenanceDialog.cpp \
     ReportDialog.cpp \
     ReportWorker.cpp \
+    SettingsDialog.cpp \
     TrioDialog.cpp \
     HttpHandler.cpp \
     UserPermissionsEditor.cpp \
@@ -135,12 +135,12 @@ HEADERS += MainWindow.h \
     GlobalServiceProvider.h \
     IGVCommandWorker.h \
     IGVSession.h \
-    IGVStartWorker.h \
     IgvLogWidget.h \
     IgvSessionManager.h \
     MaintenanceDialog.h \
     ReportDialog.h \
     ReportWorker.h \
+    SettingsDialog.h \
     TrioDialog.h \
     HttpHandler.h \
     UserPermissionsEditor.h \
@@ -255,6 +255,7 @@ FORMS    += MainWindow.ui \
     IgvLogWidget.ui \
     MaintenanceDialog.ui \
     ReportDialog.ui \
+    SettingsDialog.ui \
     TrioDialog.ui \
     ClassificationDialog.ui \
     UserPermissionsEditor.ui \

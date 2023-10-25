@@ -3,37 +3,25 @@
 
 #include <QString>
 #include <QMutex>
-#include "LoginManager.h"
-#include "Exceptions.h"
-#include "Settings.h"
 #include "IGVSession.h"
 
-//A manager class to handle multiple instances of IGV from GSvar. Each instance uses its own pool of
-//threads, each command runs in a separate thread. It keeps GSvar from freezing and from
-//showing "Not responding" messages
+//A manager class to handle multiple IGV session
 class IgvSessionManager
 {
 public:
-    //instantiate a new IGV
-    static void create(QWidget *parent, Ui::MainWindow parent_ui, const QString& name, const QString& app, const QString& host, const QString& genome);
-    //removes a session by index
-    static void remove(const int& session_index);
-    //finds a session index by its name
-    static int indexByName(const QString& name);
-    //returns a reference to an IGVSession object
+	//instantiate a new IGV session
+	static IGVSession* create(QWidget* parent, const QString& name, const QString& app, const QString& host, const QString& genome);
+	//returns a reference to an IGV session with the given index
     static IGVSession& get(const int& session_index);
     //total number of IGV sessions
     static int count();
-    //for each opened sample IGV has to be reset (since each sample has a different set of files to be passed to IGV)
-    static void resetIGVInitialized();
-    //checks among all available IGV sessions if there is at least one command running
-    static bool hasAtLeastOneActiveIGV();
+	//Clears all instances of IGV. Used e.g. when loading a new GSvar file.
+	static void clearAll();
 
 protected:
     IgvSessionManager();
     ~IgvSessionManager();
-    static IgvSessionManager& instance();
-    static int findAvailablePortForIGV();
+	static IgvSessionManager& instance();
 
 private:
     QList<QSharedPointer<IGVSession>> session_list_;

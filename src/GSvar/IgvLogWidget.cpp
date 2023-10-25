@@ -7,6 +7,7 @@ IgvLogWidget::IgvLogWidget(QWidget* parent)
     , ui_()
 {
     ui_.setupUi(this);
+	ui_.table->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
     for (int i = 0; i < IgvSessionManager::count(); i++)
     {
@@ -14,28 +15,40 @@ IgvLogWidget::IgvLogWidget(QWidget* parent)
     }
 
     connect(ui_.igv_instance, SIGNAL(currentIndexChanged(int)), this, SLOT(switchCurrentSession(int)));
-    if (IgvSessionManager::count()>0) switchCurrentSession(0);
+	if (IgvSessionManager::count()>0) switchCurrentSession(0);
 }
 
 void IgvLogWidget::switchCurrentSession(int index)
 {
-    updateTable(IgvSessionManager::get(index).getHistory());
-	connect(&(IgvSessionManager::get(index)), SIGNAL(historyUpdated(QList<IGVCommand>)), this, SLOT(updateTable(QList<IGVCommand>)));
+	IGVSession& session = IgvSessionManager::get(index);
+	updateTable(session.getName(), session.getCommands());
+	connect(&session, SIGNAL(historyUpdated(QString, QList<IGVCommand>)), this, SLOT(updateTable(QString, QList<IGVCommand>)));
 }
 
-void IgvLogWidget::updateTable(const QList<IGVCommand>& updated_history)
+void IgvLogWidget::updateTable(QString name, QList<IGVCommand> commands)
 {
-    ui_.table->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-	ui_.table->setRowCount(updated_history.count());
-    int i = 0;
-	foreach(const IGVCommand& command, updated_history)
+	//set instance in combobox
+	ui_.igv_instance->blockSignals(true);
+	ui_.igv_instance->setCurrentText(name);
+	ui_.igv_instance->blockSignals(false);
+
+	//update table
+	ui_.table->setRowCount(0);
+	int row = 0;
+	foreach(const IGVCommand& command, commands)
     {
-		ui_.table->setItem(i, 0, GUIHelper::createTableItem(command.command));
+		if (command.command.startsWith("SetAccessToken ")) continue;
+
+		ui_.table->setRowCount(row+1);
+		ui_.table->setItem(row, 0, GUIHelper::createTableItem(command.command));
 		QTableWidgetItem* item = GUIHelper::createTableItem(IGVSession::statusToString(command.status));
 		item->setBackgroundColor(IGVSession::statusToColor(command.status));
-		ui_.table->setItem(i, 1, item);
-		ui_.table->setItem(i, 2, GUIHelper::createTableItem(QString::number(command.execution_time_sec, 'f', 2)));
-		ui_.table->setItem(i, 3, GUIHelper::createTableItem(command.answer));
-		++i;
-    }
+		ui_.table->setItem(row, 1, item);
+		ui_.table->setItem(row, 2, GUIHelper::createTableItem(QString::number(command.execution_time_sec, 'f', 2)));
+		ui_.table->setItem(row, 3, GUIHelper::createTableItem(command.answer));
+		++row;
+	}
+
+	//scroll to last entry
+	ui_.table->scrollToBottom();
 }

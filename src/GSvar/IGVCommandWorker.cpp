@@ -1,10 +1,11 @@
 #include "IGVCommandWorker.h"
 
-IGVCommandWorker::IGVCommandWorker(const QString& igv_host, int igv_port, const QList<IgvWorkerCommand>& commands, int delay_ms, int max_command_exec_ms)
-    : igv_host_(igv_host)
-    , igv_port_(igv_port)
+#include <QProcess>
+#include <QThread>
+
+IGVCommandWorker::IGVCommandWorker(const IGVData& igv_data, const QList<IgvWorkerCommand>& commands, int max_command_exec_ms)
+	: igv_data_(igv_data)
 	, commands_(commands)
-    , delay_ms_(delay_ms)
 	, max_command_exec_ms_(max_command_exec_ms)
 {
 }
@@ -14,9 +15,53 @@ void IGVCommandWorker::run()
 	//Log::info("Prepearing to execute IGV commands (" + QString::number(commands_.count()) + " in total)");
 	emit processingStarted();
 
+	//special handling of first command if it is "launch IGV"
+	int launch_command_id = -1;
+	if (!commands_.isEmpty() && commands_.at(0).text=="launch IGV")
+	{
+		QTime timer;
+		timer.start();
+
+		launch_command_id = commands_.at(0).id;
+
+		emit commandStarted(launch_command_id);
+
+		//start IGV
+		bool started = QProcess::startDetached(igv_data_.executable + " --port " + QString::number(igv_data_.port));
+		if (!started)
+		{
+			emit commandFailed(launch_command_id, "Could not start IGV: IGV application '" + igv_data_.executable + "' did not start!", (double)(timer.elapsed())/1000.0);
+		}
+		else
+		{
+			//wait for IGV to respond after start
+			QTcpSocket socket;
+			for (int i=0; i<30; ++i) //try up to 30 times, i.e. 30 secs
+			{
+				socket.connectToHost(igv_data_.host, igv_data_.port);
+				if (socket.waitForConnected(1000))
+				{
+					break;
+				}
+				socket.abort();
+			}
+			if (!socket.isValid())
+			{
+				emit commandFailed(launch_command_id, "Could not start IGV: IGV application '" + igv_data_.executable + "' started on port '" + QString::number(igv_data_.port) + "', but does not respond!", (double)(timer.elapsed())/1000.0);
+			}
+
+			//wait 5s until the genome is loaded //TODO Alexandr: remove as soon as there is IGV release with a function to check if the genome is loaded
+			QThread::msleep(5000);
+
+			emit commandFinished(launch_command_id, answer_, (double)(timer.elapsed())/1000.0);
+		}
+	}
+
 	//open socket
 	QTcpSocket socket;
-	socket.connectToHost(igv_host_, igv_port_);
+	socket.connectToHost(igv_data_.host, igv_data_.port);
+
+	//if no socket connection is possible > mark all commands as failed and abort
 	if (!socket.waitForConnected(max_command_exec_ms_))
 	{
 		foreach(const IgvWorkerCommand& command, commands_)
@@ -27,28 +72,26 @@ void IGVCommandWorker::run()
 		return;
 	}
 
-	//wait before first command (IGV bug)
-	if (delay_ms_>0)
-	{
-		//Log::info("Command execution delay is active: " + QString::number(delay_ms_) + " ms");
-
-		QTimer timer;
-		timer.setSingleShot(true);
-		QEventLoop loop;
-		connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
-		timer.start(delay_ms_);
-		loop.exec();
-	}
-
+	//execute all commands
 	foreach(const IgvWorkerCommand& command, commands_)
 	{
 		try
 		{
-			//Log::info("Executing IGV command: " + command.text);
-			emit commandStarted(command.id);
+			//skip all launch commands
+			if (command.text=="launch IGV")
+			{
+				if (command.id!=launch_command_id) //flag secondary launch commands as skipped
+				{
+					emit commandStarted(command.id);
+					emit commandFinished(command.id, "Skipped - IGV already running", 0.0);
+				}
+				continue;
+			}
 
 			QTime timer;
 			timer.start();
+
+			emit commandStarted(command.id);
 
 			socket.write((command.text + "\n").toUtf8());
 			socket.waitForBytesWritten();
@@ -60,14 +103,12 @@ void IGVCommandWorker::run()
 			}
 
 			answer_ = socket.readAll().trimmed();
-			//Log::info(answer);
 			if (answer_.startsWith("error", Qt::CaseInsensitive) || answer_.startsWith("unkown command", Qt::CaseInsensitive))
 			{
 				emit commandFailed(command.id, answer_, (double)(timer.elapsed())/1000.0);
 			}
 			else
 			{
-				//Log::info("'" + command + "' - Done");
 				emit commandFinished(command.id, answer_, (double)(timer.elapsed())/1000.0);
 			}
 		}
