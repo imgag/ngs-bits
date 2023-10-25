@@ -1,5 +1,5 @@
 ### ExportcBioportal tool help
-	ExportcBioportal (2023_06-98-g044e3ed3)
+	ExportcBioportal (2023_09-38-ga9141a54)
 	
 	Converts a FASTQ file to FASTA format.
 	
@@ -12,6 +12,8 @@
 	Optional parameters:
 	  -test                  Uses the test database instead of on the production database.
 	                         Default value: 'false'
+	  -debug                 Provide additional debug output on stdout.
+	                         Default value: 'false'
 	
 	Special parameters:
 	  --help                 Shows this help and exits.
@@ -20,6 +22,6 @@
 	  --tdx                  Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### ExportcBioportal changelog
-	ExportcBioportal 2023_06-98-g044e3ed3
+	ExportcBioportal 2023_09-38-ga9141a54
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

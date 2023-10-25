@@ -83,10 +83,9 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 
 	//pathogenicity predictions
 	ui->label_phylop->setToolTip(vl.annotationDescriptionByName("phyloP").description());
-	ui->label_sift->setToolTip(vl.annotationDescriptionByName("Sift").description());
-	ui->label_polyphen->setToolTip(vl.annotationDescriptionByName("PolyPhen").description());
 	ui->label_cadd->setToolTip(vl.annotationDescriptionByName("CADD").description());
-	ui->label_revel->setToolTip(vl.annotationDescriptionByName("REVEL").description());
+	ui->label_revel->setToolTip(vl.annotationDescriptionByName("REVEL", false).description()); // optional
+	ui->label_alphamissense->setToolTip(vl.annotationDescriptionByName("AlphaMissense", false).description()); // optional (license and support of old
 
 	//splicing/regulatory
 	ui->label_maxentscan->setToolTip(vl.annotationDescriptionByName("MaxEntScan").description());
@@ -180,10 +179,9 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 
 	//pathogenity predictions
 	setAnnotation(ui->phylop, vl, index, "phyloP");
-	setAnnotation(ui->sift, vl, index, "Sift");
-	setAnnotation(ui->polyphen, vl, index, "PolyPhen");
 	setAnnotation(ui->cadd, vl, index, "CADD");
 	setAnnotation(ui->revel, vl, index, "REVEL");
+	setAnnotation(ui->alphamissense, vl, index, "AlphaMissense");
 
 	//splicing/regulatory
 	setAnnotation(ui->maxentscan, vl, index, "MaxEntScan");
@@ -410,10 +408,6 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				text = anno;
 			}
 		}
-		else if(name=="Sift" || name=="PolyPhen")
-		{
-			text = anno.replace("D", formatText("D", RED)).replace("P", formatText("P", ORANGE));
-		}
 		else if(name=="REVEL")
 		{
 			bool ok = true;
@@ -425,6 +419,23 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			else if (ok && value>=0.5)
 			{
 				text = formatText(anno, ORANGE);
+			}
+			else
+			{
+				text = anno;
+			}
+		}
+		else if(name=="AlphaMissense")
+		{
+			bool ok = true;
+			double value = anno.toDouble(&ok);
+			if (ok && value>=0.564)
+			{
+				text = formatText(anno, RED);
+			}
+			else if (ok && value<=0.34)
+			{
+				text = formatText(anno, GREEN);
 			}
 			else
 			{
