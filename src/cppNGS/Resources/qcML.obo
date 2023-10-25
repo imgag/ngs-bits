@@ -1544,7 +1544,7 @@ created_by: schuetz
 [Term]
 id: QC:2000136
 name: phased variants percentage
-def: "Percentage of variants which contains phasing annotations." [PXS:QC]
+def: "Percentage of (heterozygous) variants which contains phasing annotations." [PXS:QC]
 is_a: QC:2000002 ! NGS aquisition parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: schuetz

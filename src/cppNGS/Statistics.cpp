@@ -238,17 +238,20 @@ QCCollection Statistics::phasing(VcfFile variants, bool filter, BedFile& phasing
 	}
 
 	//iterate over all variants and extract phasing information
-	QSet<QString> phasing_ids;
 	BedLine current_phasing_block;
 	int n_phased_variants = 0;
+	int n_het_vars = 0;
 	for(int i=0; i<variants.count(); ++i)
 	{
+		//count hom variants (no phasing possible => has to be ignored)
+		QByteArray genotype = variants[i].formatValueFromSample("GT");
+		if (genotype=="0/1" || genotype=="1/0" || genotype=="0|1" || genotype=="1|0") n_het_vars++;
+
 		//update phasing blocks
-		QByteArray phasing_block_id = variants[i].formatValueFromSample("PS");
+		QByteArray phasing_block_id = variants[i].formatValueFromSample("PS").trimmed();
 		//skip unphased variants
 		if(phasing_block_id == ".") continue;
 		n_phased_variants++;
-		phasing_ids.insert(phasing_block_id);
 		if(current_phasing_block.isValid())
 		{
 			if(phasing_block_id == current_phasing_block.annotations().at(0))
@@ -283,8 +286,9 @@ QCCollection Statistics::phasing(VcfFile variants, bool filter, BedFile& phasing
 	double max_block_size = *std::max_element(block_sizes.constBegin(), block_sizes.constEnd());
 	addQcValue(output, "QC:2000133", "mean phasing block size", mean_block_size);
 	addQcValue(output, "QC:2000134", "median phasing block size", median_block_size);
-	addQcValue(output, "QC:2000135", "phasing block count", phasing_ids.count());
-	addQcValue(output, "QC:2000136", "phased variants percentage", 100.00 * ((float) n_phased_variants/variants.count()));
+	addQcValue(output, "QC:2000135", "phasing block count", phasing_blocks.count());
+	addQcValue(output, "QC:2000136", "phased variants percentage", 100.00 * ((float) n_phased_variants/n_het_vars));
+
 	//create histogram
 	Histogram phasing_block_distribution(0, max_block_size/1000.0, (max_block_size * 0.05)/1000.0);
 	phasing_block_distribution.setXLabel("phasing block size (kb)");
