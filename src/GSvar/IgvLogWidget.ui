@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1400</width>
-    <height>750</height>
+    <width>1200</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,8 +18,8 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>1400</width>
-    <height>750</height>
+    <width>1200</width>
+    <height>600</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -68,6 +68,20 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>port:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="port">
+       <property name="text">
+        <string>xx</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

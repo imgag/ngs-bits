@@ -44,7 +44,7 @@
      <item>
       <widget class="QPushButton" name="b_burden_test">
        <property name="text">
-        <string>Perform burden test</string>
+        <string>perform burden test</string>
        </property>
       </widget>
      </item>
@@ -492,7 +492,7 @@
          </size>
         </property>
         <property name="text">
-         <string>load Samples</string>
+         <string>load samples</string>
         </property>
        </widget>
       </item>
@@ -555,7 +555,7 @@
       <item row="2" column="2" colspan="2">
        <widget class="QPushButton" name="b_load_samples_controls">
         <property name="text">
-         <string>load Samples</string>
+         <string>load samples</string>
         </property>
        </widget>
       </item>

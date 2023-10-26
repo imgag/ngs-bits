@@ -23,6 +23,7 @@ void IgvLogWidget::switchCurrentSession(int index)
 	IGVSession& session = IgvSessionManager::get(index);
 	updateTable(session.getName(), session.getCommands());
 	connect(&session, SIGNAL(historyUpdated(QString, QList<IGVCommand>)), this, SLOT(updateTable(QString, QList<IGVCommand>)));
+	ui_.port->setText(QString::number(session.getPort()));
 }
 
 void IgvLogWidget::updateTable(QString name, QList<IGVCommand> commands)

@@ -65,7 +65,7 @@ public:
     void gotoInIGV(const QString& region, bool init_if_not_done);
     //opens a file in IGV using "load" command (in client-server mode a secure token is also set)
     void loadFileInIGV(QString filename, bool init_if_not_done);
-
+	//wait until all commands are executed
 	void waitForDone();
 
 	//Executed commands of the current session (since creation or last clear)
