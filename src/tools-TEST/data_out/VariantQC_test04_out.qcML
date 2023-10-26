@@ -16,7 +16,7 @@
     <qualityParameter ID="qp0007" name="mean phasing block size" description="Mean size of all annotated phasing blocks." value="149254.00" cvRef="QC" accession="QC:2000133"/>
     <qualityParameter ID="qp0008" name="median phasing block size" description="Median size of all annotated phasing blocks." value="247795.00" cvRef="QC" accession="QC:2000134"/>
     <qualityParameter ID="qp0009" name="phasing block count" description="Number of different phasing bocks." value="3" cvRef="QC" accession="QC:2000135"/>
-    <qualityParameter ID="qp0010" name="phased variants percentage" description="Percentage of variants which contains phasing annotations." value="51.35" cvRef="QC" accession="QC:2000136"/>
+    <qualityParameter ID="qp0010" name="phased variants percentage" description="Percentage of (heterozygous) variants which contains phasing annotations." value="89.09" cvRef="QC" accession="QC:2000136"/>
     <attachment ID="qp0011" name="phasing block distribution plot" description="Plots a histogram of phasing block size distribution." cvRef="QC" accession="QC:2000137">
     </attachment>
   </runQuality>
