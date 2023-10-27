@@ -1,5 +1,11 @@
 # GSvar change log
 
+## 2023_09-53 (27.10.23)
+
+- IGV is controlled in the background now (click IGV icon in the status bar to see details)
+- replaced Sift and PolyPhen by AlphaMissense
+- gene tab:  added HPO sources
+
 ## 2023_09-15 (10.10.23)
 
 - repeat expansions: added cutoffs and general information for FGF14.
