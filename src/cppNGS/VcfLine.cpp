@@ -474,7 +474,7 @@ void VcfLine::normalize(ShiftDirection shift_dir, const FastaFileIndex& referenc
     //skip multi-allelic and empty variants
 	if(isMultiAllelic() || alt().empty()) return;
 
-	//skip SNVs, also SNVs disguised as indels (e.g. ACGT => AXGT)
+	//skip SNVs and MNPs
 	Variant::normalize(pos_, ref_, alt_[0]);
 	if (ref_.length()==1 && alt_[0].length()==1) return;
 
