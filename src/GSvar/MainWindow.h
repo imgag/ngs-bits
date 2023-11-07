@@ -205,6 +205,8 @@ public slots:
 	void on_actionIgvClear_triggered();
 	///Open IGV documentation in browser
 	void on_actionIgvDocumentation_triggered();
+	///Delete IGV folder
+	void on_actionDeleteIgvFolder_triggered();
 	///Open CNV dialog
 	void on_actionCNV_triggered();
 	///Open ROH dialog

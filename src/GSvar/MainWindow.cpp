@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QStandardPaths>
 #include "Settings.h"
 #include "Exceptions.h"
 #include "ChromosomalIndex.h"
@@ -1770,7 +1771,25 @@ void MainWindow::on_actionIgvClear_triggered()
 
 void MainWindow::on_actionIgvDocumentation_triggered()
 {
-	QDesktopServices::openUrl(QUrl("https://software.broadinstitute.org/software/igv/UserGuide"));
+	QDesktopServices::openUrl(QUrl("https://igv.org/doc/desktop/#UserGuide/reference_genome/"));
+}
+
+void MainWindow::on_actionDeleteIgvFolder_triggered()
+{
+	QString title = "Delete IGV folder";
+	QString path = QStandardPaths::standardLocations(QStandardPaths::HomeLocation).at(0) + QDir::separator() + "igv" + QDir::separator();
+	QString path_canonical = QFileInfo(path).canonicalFilePath();
+	if(path_canonical.isEmpty())
+	{
+	   QMessageBox::information(this, title, "IGV folder does not exist:\n" + path);
+	   return;
+	}
+
+	int res = QMessageBox::question(this, "Delete IGV folder", "Do you want to delete the IGV folder?\nLocation: "+path_canonical+"\n\nYou will use all settings (proxy, alignment options, ...)!");
+	if (res==QMessageBox::Yes)
+	{
+		QDir(path_canonical).removeRecursively();
+	}
 }
 
 void MainWindow::on_actionSV_triggered()

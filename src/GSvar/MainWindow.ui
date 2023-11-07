@@ -437,8 +437,12 @@
       <string>Open custom track</string>
      </property>
     </widget>
+    <addaction name="actionIgvDocumentation"/>
+    <addaction name="separator"/>
     <addaction name="actionIgvClear"/>
     <addaction name="menuOpenCustomTrack"/>
+    <addaction name="separator"/>
+    <addaction name="actionDeleteIgvFolder"/>
    </widget>
    <widget class="QMenu" name="menuVariants">
     <property name="title">
@@ -1456,6 +1460,11 @@
   <action name="actionSettings">
    <property name="text">
     <string>Settings</string>
+   </property>
+  </action>
+  <action name="actionDeleteIgvFolder">
+   <property name="text">
+    <string>Delete IGV folder</string>
    </property>
   </action>
  </widget>
