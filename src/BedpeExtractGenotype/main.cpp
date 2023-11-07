@@ -39,6 +39,7 @@ public:
 		BedpeFile bedpe_file;
 		bedpe_file.load(in);
 
+		//TODO: add multisample support
 		//check if multisample
 		if (bedpe_file.sampleHeaderInfo().size() > 1) THROW(ArgumentException, "Multisamples are not supported!");
 
