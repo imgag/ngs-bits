@@ -97,13 +97,15 @@ SomaticViccData SomaticVariantInterpreter::predictViccValue(const VariantList &v
 	VariantTranscript trans = var.transcriptAnnotations(i_co_sp)[0]; //take first transcript
 
 	//very strong oncogenic evidence: null mutation in TSG
-	if(is_tsg && (trans.type.contains("stop_gained") || trans.type.contains("frameshift") || trans.type.contains("splice") || trans.type.contains("start_codon")) )
+	if(is_tsg && (trans.type.contains("stop_gained") || trans.type.contains("frameshift") || trans.type.contains("start_codon") || trans.type.contains("start_lost")) )
+	{
+		out.null_mutation_in_tsg = SomaticViccData::State::VICC_TRUE;
+	}
+	else if (is_tsg && (trans.type.contains("splice_acceptor") || trans.type.contains("splice_donor")))
 	{
 		out.null_mutation_in_tsg = SomaticViccData::State::VICC_TRUE;
 	}
 	else out.null_mutation_in_tsg = SomaticViccData::State::VICC_FALSE;
-
-
 
 
 	//strong oncogenic evidence 1: known oncogenic amino acid change;

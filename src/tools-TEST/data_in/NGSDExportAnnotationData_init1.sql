@@ -87,7 +87,9 @@ INSERT INTO variant (id, chr, start, end, ref, obs, comment, gnomad) VALUES
 (19, 'chr1', 935954, 935954, 'G', 'T', 'NA12878_38_Dragen_abra', 0.04),
 (20, 'chr1', 941119, 941119, 'A', 'G', 'NA12878_38_Dragen_abra', 0.04),
 (21, 'chr6', 81752209, 81752209, 'GACGCGCGGCGGCGGAGAGC', 'GCCCC', 'NA12878_38_Dragen_abra', 0.04),
-(22, 'chr1', 249064688, 249064688, '-', 'TA', 'pos_after_chromosome_end', 0.00);
+(22, 'chr1', 249064688, 249064688, '-', 'TA', 'pos_after_chromosome_end', 0.00),
+(23, 'chr8', 100717889, 100718087, 'CTAGGGAAAAACATATACCCATTTTTCTTTATTTGCTATTGATTTAACATTTGTTCAGTGTTGAGAGACAATCTGTTAGCCATCTAACCTGGATATTTGTGAAATAAAGATATCCATTACTGCACAGTTCCTATTTCAAGCACTAAACTAAATGTAGCTCAACAATGTAAACATGTGTATCGGACATTTTTGGCTTACC', 'T', 'complex variant', 0.00);
+
 
 --variant_classification
 INSERT INTO variant_classification (id, variant_id, class, comment) VALUES
@@ -127,7 +129,8 @@ INSERT INTO detected_variant (processed_sample_id, variant_id, genotype, mosaic)
 (10, 5, 'hom', 0),
 (8, 10, 'hom', 0),
 (4, 13, 'hom', 0),
-(17, 13, 'hom', 0);
+(17, 13, 'hom', 0),
+(17, 23, 'het', 0);
 
 
 

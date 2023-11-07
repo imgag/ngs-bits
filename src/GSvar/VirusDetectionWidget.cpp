@@ -93,7 +93,8 @@ void VirusDetectionWidget::callCopyToClipboard()
 
 void VirusDetectionWidget::openInIGV(int row)
 {
-    IgvSessionManager::get(1).prepareIfNotAndExecute(QStringList{"goto " + item(row, 0)->text() + ":" + item(row, 1)->text() + "-" + item(row, 2)->text()}, true);
+	IGVSession& session = IgvSessionManager::get(1);
+	session.gotoInIGV(item(row, 0)->text() + ":" + item(row, 1)->text() + "-" + item(row, 2)->text(), true);
 }
 
 void VirusDetectionWidget::keyPressEvent(QKeyEvent* event)

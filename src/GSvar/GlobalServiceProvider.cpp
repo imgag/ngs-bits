@@ -77,134 +77,65 @@ StatisticsService& GlobalServiceProvider::statistics()
 
 void GlobalServiceProvider::openProcessedSampleTab(QString processed_sample_name)
 {
-	foreach(QWidget* widget, QApplication::topLevelWidgets())
-	{
-		MainWindow* mw = qobject_cast<MainWindow*>(widget);
-		if (mw!=nullptr)
-		{
-			mw->openProcessedSampleTab(processed_sample_name);
-		}
-	}
+	mainWindow()->openProcessedSampleTab(processed_sample_name);
 }
 
 void GlobalServiceProvider::openRunTab(QString run_name)
 {
-	foreach(QWidget* widget, QApplication::topLevelWidgets())
-	{
-		MainWindow* mw = qobject_cast<MainWindow*>(widget);
-		if (mw!=nullptr)
-		{
-			mw->openRunTab(run_name);
-		}
-	}
+	mainWindow()->openRunTab(run_name);
 }
 
 void GlobalServiceProvider::openGeneTab(QString symbol)
 {
-	foreach(QWidget* widget, QApplication::topLevelWidgets())
-	{
-		MainWindow* mw = qobject_cast<MainWindow*>(widget);
-		if (mw!=nullptr)
-		{
-			mw->openGeneTab(symbol);
-		}
-	}
+	mainWindow()->openGeneTab(symbol);
 }
 
 void GlobalServiceProvider::openVariantTab(Variant variant)
 {
-	foreach(QWidget* widget, QApplication::topLevelWidgets())
-	{
-		MainWindow* mw = qobject_cast<MainWindow*>(widget);
-		if (mw!=nullptr)
-		{
-			mw->openVariantTab(variant);
-		}
-	}
+	mainWindow()->openVariantTab(variant);
 }
 
 void GlobalServiceProvider::openProjectTab(QString project_name)
 {
-	foreach(QWidget* widget, QApplication::topLevelWidgets())
-	{
-		MainWindow* mw = qobject_cast<MainWindow*>(widget);
-		if (mw!=nullptr)
-		{
-			mw->openProjectTab(project_name);
-		}
-	}
+	mainWindow()->openProjectTab(project_name);
 }
 
 void GlobalServiceProvider::openProcessingSystemTab(QString system_short_name)
 {
-	foreach(QWidget* widget, QApplication::topLevelWidgets())
-	{
-		MainWindow* mw = qobject_cast<MainWindow*>(widget);
-		if (mw!=nullptr)
-		{
-			mw->openProcessingSystemTab(system_short_name);
-		}
-	}
+	mainWindow()->openProcessingSystemTab(system_short_name);
 }
 
 void GlobalServiceProvider::openGSvarViaNGSD(QString processed_sample_name, bool search_multi)
 {
-	foreach(QWidget* widget, QApplication::topLevelWidgets())
-	{
-		MainWindow* mw = qobject_cast<MainWindow*>(widget);
-		if (mw!=nullptr)
-		{
-			mw->openProcessedSampleFromNGSD(processed_sample_name, search_multi);
-		}
-	}
+	mainWindow()->openProcessedSampleFromNGSD(processed_sample_name, search_multi);
 }
 
 void GlobalServiceProvider::addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize)
 {
-	foreach(QWidget* widget, QApplication::topLevelWidgets())
-	{
-		MainWindow* mw = qobject_cast<MainWindow*>(widget);
-		if (mw!=nullptr)
-		{
-			mw->addModelessDialog(dlg, maximize);
-		}
-	}
+	mainWindow()->addModelessDialog(dlg, maximize);
 }
-const VariantList&GlobalServiceProvider::getSmallVariantList()
+const VariantList& GlobalServiceProvider::getSmallVariantList()
 {
-	foreach(QWidget* widget, QApplication::topLevelWidgets())
-	{
-		MainWindow* mw = qobject_cast<MainWindow*>(widget);
-		if (mw!=nullptr)
-		{
-			return mw->getSmallVariantList();
-		}
-	}
-	THROW(ProgrammingException, "MainWindow not found!");
+	return mainWindow()->getSmallVariantList();
 }
 
-const CnvList&GlobalServiceProvider::getCnvList()
+const CnvList& GlobalServiceProvider::getCnvList()
 {
-	foreach(QWidget* widget, QApplication::topLevelWidgets())
-	{
-		MainWindow* mw = qobject_cast<MainWindow*>(widget);
-		if (mw!=nullptr)
-		{
-			return mw->getCnvList();
-		}
-	}
-	THROW(ProgrammingException, "MainWindow not found!");
+	return mainWindow()->getCnvList();
 }
 
-const BedpeFile&GlobalServiceProvider::getSvList()
+const BedpeFile& GlobalServiceProvider::getSvList()
+{
+	return mainWindow()->getSvList();
+}
+
+MainWindow* GlobalServiceProvider::mainWindow()
 {
 	foreach(QWidget* widget, QApplication::topLevelWidgets())
 	{
-		MainWindow* mw = qobject_cast<MainWindow*>(widget);
-		if (mw!=nullptr)
-		{
-			return mw->getSvList();
-		}
+		MainWindow* w = qobject_cast<MainWindow*>(widget);
+		if (w!=nullptr) return w;
 	}
-	THROW(ProgrammingException, "MainWindow not found!");
+
+	THROW(ProgrammingException, "Could not find main window!");
 }

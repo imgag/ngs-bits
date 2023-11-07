@@ -575,8 +575,9 @@ void SomaticReportDialog::createIgvScreenshot()
 
     //create commands
 	QStringList commands;
+
 	commands << "genome " + Settings::path("igv_genome");
-	for(auto loc : GlobalServiceProvider::fileLocationProvider().getBafFiles(false))
+	for(auto& loc : GlobalServiceProvider::fileLocationProvider().getBafFiles(false))
 	{
 		if (!loc.exists) continue;
 		if (!loc.id.contains("somatic")) continue;
@@ -611,24 +612,14 @@ void SomaticReportDialog::createIgvScreenshot()
 	//create screenshot
 	try
 	{
-		for(QWidget* widget : QApplication::topLevelWidgets())
-		{
-			MainWindow* main_window = qobject_cast<MainWindow*>(widget);
-			if (main_window!=nullptr)
-			{
-                IgvSessionManager::get(0).prepareIfNotAndExecute(commands, false);
-			}
-		}
+		IGVSession& session = IgvSessionManager::get(0);
+		session.execute(commands, false);
+		session.waitForDone();
 
-        if (QFileInfo(screenshot_filename).exists())
+		if (!QFileInfo::exists(screenshot_filename))
         {
-            QMessageBox::information(this, "IGV screenshot", "IGV screenshot was created.");
+			THROW(Exception, "IGV screenshot was not created!")
         }
-        else
-        {
-            QMessageBox::warning(this, "IGV screenshot", "IGV screenshot does not exist.");
-        }
-
 	}
 	catch(Exception e)
 	{
@@ -639,12 +630,6 @@ void SomaticReportDialog::createIgvScreenshot()
 	// Upload screenshot to the server, if the client-server mode is activated
 	if (!GlobalServiceProvider::fileLocationProvider().isLocal())
 	{
-        QFile *file = new QFile(screenshot_filename);
-		if (!file->exists())
-		{
-			QMessageBox::warning(this, "Screenshot file error", "Could not find the screenshot file!");
-		}
-
 		QList<QString> filename_parts = project_filename_.split("/");
 		if (filename_parts.size()<=3)
 		{
@@ -657,6 +642,7 @@ void SomaticReportDialog::createIgvScreenshot()
 		binary_form_data.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("image/png"));
         binary_form_data.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"image\"; filename=\"" + QFileInfo(screenshot_filename).fileName() + "\""));
 
+		QFile* file = new QFile(screenshot_filename);
 		file->open(QIODevice::ReadOnly);
 		binary_form_data.setBodyDevice(file);
         file->setParent(multipart_form);

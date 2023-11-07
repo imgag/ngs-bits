@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>442</width>
-    <height>423</height>
+    <width>600</width>
+    <height>700</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>600</width>
+    <height>700</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Initialize IGV</string>
@@ -32,7 +38,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the first time you jump to a position in IGV for the current sample.&lt;br/&gt;Do you want to initialize IGV?&lt;/p&gt;&lt;p&gt;If so, select the tracks to open:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the first time you jump to a position in IGV for the current sample/analysis.&lt;br/&gt;Select the tracks to initialize IGV with:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -58,69 +64,45 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <property name="spacing">
-      <number>3</number>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="skip_session">
-       <property name="toolTip">
-        <string>Skip IGV initialization for the whole session, i.e. until a new sample is loaded.</string>
-       </property>
-       <property name="text">
-        <string>Skip (session)</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="skip_once">
-       <property name="text">
-        <string>Skip (once)</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="ok">
-       <property name="text">
-        <string>Ok</string>
-       </property>
-       <property name="default">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-    </layout>
+    </widget>
    </item>
   </layout>
  </widget>
  <resources/>
  <connections>
   <connection>
-   <sender>ok</sender>
-   <signal>clicked()</signal>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
    <receiver>IgvDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>178</x>
-     <y>258</y>
+     <x>220</x>
+     <y>408</y>
     </hint>
     <hint type="destinationlabel">
-     <x>196</x>
-     <y>136</y>
+     <x>220</x>
+     <y>211</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>IgvDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>220</x>
+     <y>408</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>220</x>
+     <y>211</y>
     </hint>
    </hints>
   </connection>

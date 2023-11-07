@@ -13,12 +13,10 @@
 #include "ReportSettings.h"
 #include "DelayedInitializationTimer.h"
 #include "SomaticReportSettings.h"
-#include "GlobalServiceProvider.h"
 #include "FileLocationProviderLocal.h"
 #include "FileLocationProviderRemote.h"
 #include "VersatileTextStream.h"
 #include "Log.h"
-#include "IGVSession.h"
 #include "ClickableLabel.h"
 
 ///Main window class
@@ -36,8 +34,6 @@ public:
 
 	/// Gets server API information to make sure ther the server is currently running
 	bool isServerRunning();
-    /// Set normal IGV or virus IGV history buttons visible/invisible
-    void displayIgvHistoryButton(bool visible);
 
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
@@ -70,6 +66,8 @@ public:
 	static QString selectGene();
 	///Lets the user select a processed sample from the current variant list. If only one processed sample is contained, it is returned. If the user aborts, "" is returned.
 	QString selectProcessedSample();
+	///Target region information of filter widget.
+	const TargetRegionInfo& targetRegion();
 
 	///Performs batch import of table rows
 	void importBatch(QString title, QString text, QString table, QStringList fields);
@@ -205,8 +203,6 @@ public slots:
 	void on_actionCloseMetaDataTabs_triggered();
 	///Clear IGV
 	void on_actionIgvClear_triggered();
-	///Override IGV prot
-	void on_actionIgvPort_triggered();
 	///Open IGV documentation in browser
 	void on_actionIgvDocumentation_triggered();
 	///Open CNV dialog
@@ -348,6 +344,8 @@ public slots:
 	void showAfHistogram(bool filtered);
 	///Show encryption helper
 	void on_actionEncrypt_triggered();
+	///Show settings dialog
+	void on_actionSettings_triggered();
 	///reannotates VICC data from NGSD to list and stores updated list to variants file
 	void on_actionAnnotateSomaticVariantInterpretation_triggered();
 	///Show sample search dialog

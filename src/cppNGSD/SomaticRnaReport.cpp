@@ -248,8 +248,6 @@ RtfTable SomaticRnaReport::partFusions()
 
 	for(const auto& sv : svs_)
 	{
-		if( !sv.type.contains("translocation") && !sv.type.contains("inversion") && ( !(sv.type.contains("duplication") && sv.gene_left != sv.gene_right) ) ) continue;
-
 		RtfTableRow temp;
 
 		temp.addCell( 1600, sv.gene_left + "::" + sv.gene_right, RtfParagraph().setItalic(true).setFontSize(16) );
