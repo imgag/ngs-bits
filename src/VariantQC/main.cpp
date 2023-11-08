@@ -21,7 +21,7 @@ public:
 		addFlag("ignore_filter", "Ignore filter entries, i.e. consider variants that did not pass filters.");
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true);
 		addFlag("txt", "Writes TXT format instead of qcML.");
-		addFlag("longread", "Adds LongRead specific QC values (e.g. phasing information)");
+		addFlag("long_read", "Adds LongRead specific QC values (e.g. phasing information)");
 		addOutfile("phasing_bed", "Output BED file containing phasing blocks with id. (requires parameter '-longread')", true);
 
 		//changelog
@@ -42,7 +42,7 @@ public:
 		QCCollection metrics = Statistics::variantList(vl, !getFlag("ignore_filter"));
 
 		//calculate phasing metrics
-		if (getFlag("longread"))
+		if (getFlag("long_read"))
 		{
 			BedFile phasing_blocks;
 			QCCollection phasing_metrics = Statistics::phasing(vl, !getFlag("ignore_filter"), phasing_blocks);

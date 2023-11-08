@@ -25,9 +25,9 @@ private slots:
 		COMPARE_FILES("out/VariantQC_test03_out.qcML", TESTDATA("data_out/VariantQC_test03_out.qcML"));
 	}
 
-	void test_qcML_longread()
+	void test_qcML_long_read()
 	{
-		EXECUTE("VariantQC", "-longread -in " + TESTDATA("data_in/VariantQC_in2.vcf") + " -out out/VariantQC_test04_out.qcML -phasing_bed out/VariantQC_test04_out.bed");
+		EXECUTE("VariantQC", "-long_read -in " + TESTDATA("data_in/VariantQC_in2.vcf") + " -out out/VariantQC_test04_out.qcML -phasing_bed out/VariantQC_test04_out.bed");
 		REMOVE_LINES("out/VariantQC_test04_out.qcML", QRegExp("creation "));
 		REMOVE_LINES("out/VariantQC_test04_out.qcML", QRegExp("<binary>"));
 		COMPARE_FILES("out/VariantQC_test04_out.qcML", TESTDATA("data_out/VariantQC_test04_out.qcML"));

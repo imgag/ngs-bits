@@ -36,8 +36,10 @@ public:
 		addFlag("cfdna", "Add additional QC parameters for cfDNA samples. Only supported mit '-roi'.");
 		addInfile("somatic_custom_bed", "Somatic custom region of interest (subpanel of actual roi). If specified, additional depth metrics will be calculated.", true, true);
 		addOutfile("read_qc", "If set, a read QC file in qcML format is created (just like ReadQC/SeqPurge).", true);
+		addFlag("long_read", "Support long reads (> 1kb).");
 
 		//changelog
+		changeLog(2023, 11,  8, "Added long_read support.");
 		changeLog(2023,  5, 12, "Added 'read_qc' parameter.");
 		changeLog(2022,  5, 25, "Added new QC metrics to WGS mode.");
 		changeLog(2021,  2,  9, "Added new QC metrics for uniformity of coverage (QC:2000057-QC:2000061).");
@@ -60,6 +62,7 @@ public:
 		bool cfdna = getFlag("cfdna");
 		int min_mapq = getInt("min_mapq");
 		bool debug = getFlag("debug");
+		bool long_read = getFlag("long_read");
 		QTextStream debug_stream(stdout);
 
 		// check that just one of roi_file, wgs, rna is set
@@ -79,14 +82,34 @@ public:
 		QString read_qc = getOutfile("read_qc").trimmed();
 		if (!read_qc.isEmpty())
 		{
-			StatisticsReads stats;
+			StatisticsReads stats(long_read);
 
 			BamAlignment al;
 			BamReader reader(in, ref_file);
+
+			//TODO: remove
+			int c_r1 = 0;
+			int c_r2 = 0;
+			int c_r_unknown = 0;
+			int c_all = 0;
 			while (reader.getNextAlignment(al))
 			{
 				stats.update(al);
+
+				//TEST:
+				if(al.isRead1()) c_r1++;
+				if(al.isRead2()) c_r2++;
+				if(!al.isRead1() && !al.isRead2()) c_r_unknown++;
+				c_all++;
+
 			}
+
+			//TODO: remove
+			qDebug() << "reads all: " << c_all;
+			qDebug() << "reads R1: " << c_r1;
+			qDebug() << "reads R2: " << c_r2;
+			qDebug() << "reads !R1!R2: " << c_r_unknown;
+//			return;
 
 			QCCollection metrics_raw_data = stats.getResult();
 			metrics_raw_data.storeToQCML(read_qc, QStringList() << in, "");
