@@ -86,30 +86,10 @@ public:
 
 			BamAlignment al;
 			BamReader reader(in, ref_file);
-
-			//TODO: remove
-			int c_r1 = 0;
-			int c_r2 = 0;
-			int c_r_unknown = 0;
-			int c_all = 0;
 			while (reader.getNextAlignment(al))
 			{
 				stats.update(al);
-
-				//TEST:
-				if(al.isRead1()) c_r1++;
-				if(al.isRead2()) c_r2++;
-				if(!al.isRead1() && !al.isRead2()) c_r_unknown++;
-				c_all++;
-
 			}
-
-			//TODO: remove
-			qDebug() << "reads all: " << c_all;
-			qDebug() << "reads R1: " << c_r1;
-			qDebug() << "reads R2: " << c_r2;
-			qDebug() << "reads !R1!R2: " << c_r_unknown;
-//			return;
 
 			QCCollection metrics_raw_data = stats.getResult();
 			metrics_raw_data.storeToQCML(read_qc, QStringList() << in, "");

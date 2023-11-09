@@ -134,9 +134,6 @@ void StatisticsReads::update(const BamAlignment& al)
 
 QCCollection StatisticsReads::getResult()
 {
-	//debug:
-	qDebug() << "Reverse reads: " << c_reverse_;
-
 	//create output values
 	QCCollection output;
 
