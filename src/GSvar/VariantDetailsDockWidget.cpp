@@ -882,7 +882,7 @@ QString VariantDetailsDockWidget::nobr()
 void VariantDetailsDockWidget::gnomadClicked(QString variant_string)
 {
 	Variant v = Variant::fromString(variant_string);
-	QString link = GSvarHelper::gnomADLink(v, GSvarHelper::build());
+	QString link = GSvarHelper::gnomADLink(v, false);
 	QDesktopServices::openUrl(QUrl(link));
 }
 
@@ -1031,16 +1031,14 @@ void VariantDetailsDockWidget::gnomadContextMenu(QPoint pos)
 	if (GSvarHelper::build()!=GenomeBuild::HG38) return;
 
 	QMenu menu;
-	QAction* a_v2 = menu.addAction("Lift-over to gnomAD 2.1");
+	QAction* a_v4 = menu.addAction("Open in gnomAD 4.0");
 
 	QAction* action = menu.exec(ui->gnomad->mapToGlobal(pos));
-	if (action==nullptr) return;
 
-	if (action==a_v2)
+	if (action==a_v4)
 	{
 		Variant v = Variant::fromString(variant_str);
-		Variant v2 = GSvarHelper::liftOverVariant(v, false);
-		QString link = GSvarHelper::gnomADLink(v2, GenomeBuild::HG19);
+		QString link = GSvarHelper::gnomADLink(v, true);
 		QDesktopServices::openUrl(QUrl(link));
 	}
 }
