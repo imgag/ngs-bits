@@ -2,14 +2,10 @@
 #define IGVCOMMANDWORKER_H
 
 #include <QRunnable>
-#include <QDateTime>
-#include <QTcpSocket>
-#include <QTimer>
-#include <QEventLoop>
 
-#include "Exceptions.h"
-#include "Log.h"
+#include "IGVSession.h"
 
+//Datastructure for IGV commands with ID.
 struct IgvWorkerCommand
 {
 	int id;
@@ -25,7 +21,7 @@ class IGVCommandWorker
     Q_OBJECT
 
 public:
-	IGVCommandWorker(const QString& igv_host, int igv_port, const QList<IgvWorkerCommand>& commands, int delay_ms=0, int max_command_exec_ms=180000);
+	IGVCommandWorker(const IGVData& igv_data, const QList<IgvWorkerCommand>& commands, int max_command_exec_ms=180000);
 	void run();
 	const QString& answer() const;
 
@@ -43,10 +39,8 @@ signals:
 	void commandFailed(int id, QString error, double sec_elapsed);
 
 protected:   
-    QString igv_host_;
-    int igv_port_;
+	const IGVData& igv_data_;
 	QList<IgvWorkerCommand> commands_;
-    int delay_ms_;
 	int max_command_exec_ms_;
 
 	QString answer_;

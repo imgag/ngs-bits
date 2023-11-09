@@ -6,7 +6,6 @@
 
 IgvDialog::IgvDialog(QWidget *parent)
 	: QDialog(parent)
-	, init_action_(IgvDialog::INIT)
 {
 	ui_.setupUi(this);
 	connect(ui_.tree, SIGNAL(itemChanged(QTreeWidgetItem*,int)), this, SLOT(treeItemChanged(QTreeWidgetItem*)));
@@ -61,11 +60,6 @@ void IgvDialog::addFile(const FileLocation& file, bool checked)
 	group->setCheckState(0, group_checked ? Qt::Checked : Qt::Unchecked);
 }
 
-IgvDialog::InitAction IgvDialog::initializationAction() const
-{
-	return init_action_;
-}
-
 QStringList IgvDialog::filesToLoad()
 {
 	QStringList output;
@@ -84,18 +78,6 @@ QStringList IgvDialog::filesToLoad()
 	}
 
 	return output;
-}
-
-void IgvDialog::on_skip_once_clicked()
-{
-	init_action_ = SKIP_ONCE;
-	accept();
-}
-
-void IgvDialog::on_skip_session_clicked()
-{
-	init_action_ = SKIP_SESSION;
-	accept();
 }
 
 void IgvDialog::treeItemChanged(QTreeWidgetItem* item)

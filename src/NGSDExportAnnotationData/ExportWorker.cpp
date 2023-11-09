@@ -77,49 +77,22 @@ void ExportWorker::run()
 				int germline_mosaic = variant_query.value(9).toInt();
 				int variant_id = variant_query.value(10).toInt();
 
-				//prepend reference base required in VCF to insertions/deletions
-				if ((variant.ref() == "-") || (variant.obs() == "-"))
+				//check that coordinates are inside the chromosome
+				if (variant.start()>reference_file.lengthOf(variant.chr()))
 				{
-					//check that coordinates are inside the chromosome
-					if (variant.start()>reference_file.lengthOf(variant.chr()))
-					{
-						if (params_.verbose) emit log(chr_, "Variant " + variant.toString() + " skipped because chromosomal position is after chromosome end!");
-						continue;
-					}
-
-					// benchmark
-					tmp_timer.restart();
-
-					//include base before (after) to the variant
-					QByteArray new_ref_seq, new_obs_seq;
-					if (variant.start() != 1)
-					{
-						// update position for deletion
-						if (variant.obs() == "-")
-						{
-							variant.setStart(variant.start() - 1);
-						}
-
-						// add base before ref and alt sequence
-						Sequence previous_base = reference_file.seq(variant.chr(), variant.start(), 1);
-						new_ref_seq = previous_base + variant.ref();
-						new_obs_seq = previous_base + variant.obs();
-					}
-					else
-					{
-						// add base after ref and alt sequence
-						Sequence next_base = reference_file.seq(variant.chr(), variant.start() + 1, 1);
-						new_ref_seq = variant.ref() + next_base;
-						new_obs_seq = variant.obs() + next_base;
-					}
-					new_ref_seq.replace("-", "");
-					new_obs_seq.replace("-", "");
-					variant.setRef(new_ref_seq);
-					variant.setObs(new_obs_seq);
-
-					// benchmark
-					ref_lookup_sum += tmp_timer.nsecsElapsed()/1000000.0;
+					if (params_.verbose) emit log(chr_, "Variant " + variant.toString() + " skipped because chromosomal position is after chromosome end!");
+					continue;
 				}
+
+				//convert to VCF format (prepend ref base)
+				tmp_timer.restart();
+				VcfLine vcf_line = variant.toVCF(reference_file);
+				variant.setStart(vcf_line.start());
+				variant.setRef(vcf_line.ref());
+				variant.setObs(vcf_line.altString());
+				ref_lookup_sum += tmp_timer.nsecsElapsed()/1000000.0;
+
+				//output
 				tmp_timer.restart();
 				vcf_stream << variant.chr().strNormalized(true) << "\t";
 				vcf_stream << variant.start() << "\t";

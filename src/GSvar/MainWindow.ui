@@ -363,7 +363,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -386,6 +386,7 @@
     <addaction name="actionOpenDocumentation"/>
     <addaction name="actionChangeLog"/>
     <addaction name="separator"/>
+    <addaction name="actionSettings"/>
     <addaction name="actionEncrypt"/>
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
@@ -431,25 +432,17 @@
     <property name="title">
      <string>IGV</string>
     </property>
-    <widget class="QMenu" name="menuTrackDefaults">
-     <property name="title">
-      <string>Track defaults</string>
-     </property>
-     <addaction name="actionIgvSample"/>
-     <addaction name="actionSampleBedpe"/>
-     <addaction name="actionIgvLowcov"/>
-     <addaction name="separator"/>
-    </widget>
     <widget class="QMenu" name="menuOpenCustomTrack">
      <property name="title">
       <string>Open custom track</string>
      </property>
     </widget>
+    <addaction name="actionIgvDocumentation"/>
+    <addaction name="separator"/>
     <addaction name="actionIgvClear"/>
     <addaction name="menuOpenCustomTrack"/>
     <addaction name="separator"/>
-    <addaction name="menuTrackDefaults"/>
-    <addaction name="actionIgvPort"/>
+    <addaction name="actionDeleteIgvFolder"/>
    </widget>
    <widget class="QMenu" name="menuVariants">
     <property name="title">
@@ -614,8 +607,8 @@
    <addaction name="actionPRS"/>
    <addaction name="actionCircos"/>
    <addaction name="separator"/>
-   <addaction name="actionDebug"/>
    <addaction name="actionVirusDetection"/>
+   <addaction name="actionDebug"/>
   </widget>
   <action name="actionOpen">
    <property name="text">
@@ -706,25 +699,6 @@
    </property>
    <property name="text">
     <string>Show HGMD track</string>
-   </property>
-  </action>
-  <action name="actionIgvSample">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Sample variants VCF file</string>
-   </property>
-  </action>
-  <action name="actionIgvLowcov">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Sample low-coverage BED file</string>
    </property>
   </action>
   <action name="actionImportTranscripts">
@@ -1269,11 +1243,6 @@
     <string>Show cfDNA panel</string>
    </property>
   </action>
-  <action name="actionIgvPort">
-   <property name="text">
-    <string>Change port</string>
-   </property>
-  </action>
   <action name="actionAlleleBalance">
    <property name="text">
     <string>Allele balance</string>
@@ -1321,11 +1290,6 @@
   <action name="actionImportSampleRelations">
    <property name="text">
     <string>Sample relations</string>
-   </property>
-  </action>
-  <action name="actionSampleBedpe">
-   <property name="text">
-    <string>Sample structural variants BEDPE file</string>
    </property>
   </action>
   <action name="actionShowRnaFusions">
@@ -1489,12 +1453,23 @@
    </property>
   </action>
   <action name="actionBurdenTest">
-  <property name="text">
+   <property name="text">
     <string>Gene-based burden test</string>
    </property>
   </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
+   </property>
+  </action>
+  <action name="actionDeleteIgvFolder">
+   <property name="text">
+    <string>Delete IGV folder</string>
+   </property>
+  </action>
  </widget>
- <layoutdefault spacing="6" margin="11"/> <customwidgets>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
   <customwidget>
    <class>VariantDetailsDockWidget</class>
    <extends>QWidget</extends>

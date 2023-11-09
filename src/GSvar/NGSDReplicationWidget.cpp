@@ -568,9 +568,6 @@ void NGSDReplicationWidget::replicatePostProduction()
 				if (target_variant_id>0) ++c_del_lift;
 			}
 		}
-		qDebug() << c_snv << c_snv_lift;
-		qDebug() << c_ins << c_ins_lift;
-		qDebug() << c_del << c_del_lift;
 		return;
 	}
 

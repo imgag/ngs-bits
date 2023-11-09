@@ -288,7 +288,7 @@ Variant GSvarHelper::liftOverVariant(const Variant& v, bool hg19_to_hg38)
 	return v2;
 }
 
-QString GSvarHelper::gnomADLink(const Variant& v, GenomeBuild build)
+QString GSvarHelper::gnomADLink(const Variant& v, bool open_in_v4)
 {
 	QString url = "https://gnomad.broadinstitute.org/variant/" + v.chr().strNormalized(false) + "-";
 
@@ -298,12 +298,7 @@ QString GSvarHelper::gnomADLink(const Variant& v, GenomeBuild build)
 	}
 	else
 	{
-		QString genome_key = "reference_genome";
-		if (GSvarHelper::build()==GenomeBuild::HG38 && build==GenomeBuild::HG19) //GSvar for HG38, but link for HG19 > use special genome key
-		{
-			genome_key = "reference_genome_hg19";
-		}
-		FastaFileIndex idx(Settings::string(genome_key));
+		FastaFileIndex idx(Settings::string("reference_genome"));
 
 		if (v.obs()=="-") //deletion
 		{
@@ -319,10 +314,7 @@ QString GSvarHelper::gnomADLink(const Variant& v, GenomeBuild build)
 		}
 	}
 
-	//genome build
-	if (build==GenomeBuild::HG38) url += "?dataset=gnomad_r3";
-
-	return url;
+	return url + "?dataset=" + (open_in_v4 ? "gnomad_r4" : "gnomad_r3");
 }
 
 QString GSvarHelper::clinVarSearchLink(const Variant& v, GenomeBuild build)

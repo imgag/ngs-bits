@@ -394,7 +394,7 @@ void VariantWidget::gnomadClicked(QString var_id)
 {
 	NGSD db;
 	Variant v = db.variant(var_id);
-	QString link = GSvarHelper::gnomADLink(v, GSvarHelper::build());
+	QString link = GSvarHelper::gnomADLink(v, false);
 	QDesktopServices::openUrl(QUrl(link));
 }
 

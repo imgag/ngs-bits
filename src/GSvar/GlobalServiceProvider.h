@@ -5,6 +5,7 @@
 #include "FileLocationProvider.h"
 #include "DatabaseService.h"
 #include "StatisticsService.h"
+#include "MainWindow.h"
 #include <QDialog>
 
 ///Provider class for GSvar-wide services
@@ -35,10 +36,15 @@ public:
 
 	//add modeless dialog
 	static void addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize=false);
+
 	//get sample variants
 	static const VariantList& getSmallVariantList();
 	static const CnvList& getCnvList();
 	static const BedpeFile& getSvList();
+
+	//general
+	static MainWindow* mainWindow();
+
 protected:
 	GlobalServiceProvider();
 	~GlobalServiceProvider();

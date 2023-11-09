@@ -396,22 +396,30 @@ VcfLine Variant::toVCF(const FastaFileIndex& genome_index) const
 		bool is_mnp = ref.length()==alt.length() && ref!="-" && alt!="-";
 		if (!is_mnp)
 		{
-			if (ref=="-")
+			bool prepend_ref_base = false;
+			if (ref=="-" || ref.isEmpty()) //insertion
 			{
 				ref.clear();
+				prepend_ref_base = true;
 			}
-			else if (alt=="-")
+			else if (alt=="-" || alt.isEmpty()) //deletion
 			{
 				pos -= 1;
 				alt.clear();
+				prepend_ref_base = true;
 			}
-			else if(ref.size() > 1 || alt.size() > 1)
+			else if(ref[0]!=alt[0]) //complex variant (insertion plus deletion), but not already prefixed
 			{
 				pos -= 1;
+				prepend_ref_base = true;
 			}
-			Sequence prefix_base = genome_index.seq(chr_, pos, 1);
-			ref = prefix_base + ref;
-			alt = prefix_base + alt;
+
+			if (prepend_ref_base)
+			{
+				Sequence prefix_base = genome_index.seq(chr_, pos, 1);
+				ref = prefix_base + ref;
+				alt = prefix_base + alt;
+			}
 		}
 	}
 

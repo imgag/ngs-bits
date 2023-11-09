@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QStandardPaths>
 #include "Settings.h"
 #include "Exceptions.h"
 #include "ChromosomalIndex.h"
@@ -147,6 +148,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "GHGAUploadDialog.h"
 #include "BurdenTestWidget.h"
 #include "IgvLogWidget.h"
+#include "SettingsDialog.h"
+#include "GlobalServiceProvider.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -172,6 +175,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.splitter_2->setStretchFactor(1, 1);
 	connect(ui_.tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 	ui_.actionDebug->setVisible(Settings::boolean("debug_mode_enabled", true));
+	ui_.actionEncrypt->setVisible(Settings::boolean("debug_mode_enabled", true));
 
 	// add rna menu
 	rna_menu_btn_ = new QToolButton();
@@ -271,7 +275,6 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.statusBar->addPermanentWidget(notification_label_);	
 	ui_.actionVirusDetection->setEnabled(false);
 
-    igv_history_label_->hide();
     igv_history_label_->setScaledContents(true);
     igv_history_label_->setMaximumSize(16,16);
     igv_history_label_->setPixmap(QPixmap(":/Icons/IGV.png"));
@@ -377,18 +380,6 @@ bool MainWindow::isServerRunning()
 	}
 
     return true;
-}
-
-void MainWindow::displayIgvHistoryButton(bool visible)
-{
-    if (visible)
-    {
-        igv_history_label_->show();
-    }
-    else
-    {
-        igv_history_label_->hide();
-    }
 }
 
 void MainWindow::checkServerAvailability()
@@ -1775,32 +1766,30 @@ void MainWindow::on_actionCloseMetaDataTabs_triggered()
 
 void MainWindow::on_actionIgvClear_triggered()
 {
-	IGVSession& session = IgvSessionManager::get(0);
-
-	//start IGV
-	if (!session.isIgvRunning())
-	{
-		session.startIGV();
-	}
-
-	//clear
-	session.execute(QStringList() << "new");
-	session.clearHistory();
-}
-
-void MainWindow::on_actionIgvPort_triggered()
-{
-	bool ok = false;
-    int igv_port_new = QInputDialog::getInt(this, "Change IGV port", "Set IGV port for this GSvar session:", IgvSessionManager::get(0).getPort(), 0, 900000, 1, &ok);
-	if (ok)
-	{
-        IgvSessionManager::get(0).setPort(igv_port_new);
-	}
+	IgvSessionManager::get(0).clear();
 }
 
 void MainWindow::on_actionIgvDocumentation_triggered()
 {
-	QDesktopServices::openUrl(QUrl("https://software.broadinstitute.org/software/igv/UserGuide"));
+	QDesktopServices::openUrl(QUrl("https://igv.org/doc/desktop/#UserGuide/reference_genome/"));
+}
+
+void MainWindow::on_actionDeleteIgvFolder_triggered()
+{
+	QString title = "Delete IGV folder";
+	QString path = QStandardPaths::standardLocations(QStandardPaths::HomeLocation).at(0) + QDir::separator() + "igv" + QDir::separator();
+	QString path_canonical = QFileInfo(path).canonicalFilePath();
+	if(path_canonical.isEmpty())
+	{
+	   QMessageBox::information(this, title, "IGV folder does not exist:\n" + path);
+	   return;
+	}
+
+	int res = QMessageBox::question(this, "Delete IGV folder", "Do you want to delete the IGV folder?\nLocation: "+path_canonical+"\n\nYou will use all settings (proxy, alignment options, ...)!");
+	if (res==QMessageBox::Yes)
+	{
+		QDir(path_canonical).removeRecursively();
+	}
 }
 
 void MainWindow::on_actionSV_triggered()
@@ -2642,7 +2631,10 @@ void MainWindow::delayedInitialization()
 	}
 
 	//create default IGV session (variants)
-	IgvSessionManager::create(this, ui_, "Default IGV", Settings::path("igv_app").trimmed(), Settings::string("igv_host"), Settings::path("igv_genome"));
+	IGVSession* igv_default = IgvSessionManager::create(this, "Default IGV", Settings::path("igv_app").trimmed(), Settings::string("igv_host"), Settings::path("igv_genome"));
+	connect(igv_default, SIGNAL(started()), this, SLOT(changeIgvIconToActive()));
+	connect(igv_default, SIGNAL(finished()), this, SLOT(changeIgvIconToNormal()));
+
 	//create IGV session for virus detection
 	QString virus_genome;
 	if (!ClientHelper::isClientServerMode())
@@ -2654,12 +2646,9 @@ void MainWindow::delayedInitialization()
 	{
 	   virus_genome = ClientHelper::serverApiUrl() + "genome/somatic_viral.fa";
 	}
-	IgvSessionManager::create(this, ui_, "Virus IGV", Settings::path("igv_app").trimmed(), Settings::string("igv_host"), virus_genome);
-
-    connect(&(IgvSessionManager::get(0)), SIGNAL(started()), this, SLOT(changeIgvIconToActive()));
-    connect(&(IgvSessionManager::get(0)), SIGNAL(finished()), this, SLOT(changeIgvIconToNormal()));
-    connect(&(IgvSessionManager::get(1)), SIGNAL(started()), this, SLOT(changeIgvIconToActive()));
-    connect(&(IgvSessionManager::get(1)), SIGNAL(finished()), this, SLOT(changeIgvIconToNormal()));
+	IGVSession* igv_virus = IgvSessionManager::create(this, "Virus IGV", Settings::path("igv_app").trimmed(), Settings::string("igv_host"), virus_genome);
+	connect(igv_virus, SIGNAL(started()), this, SLOT(changeIgvIconToActive()));
+	connect(igv_virus, SIGNAL(finished()), this, SLOT(changeIgvIconToNormal()));
 
 	//init GUI
 	updateRecentSampleMenu();
@@ -3074,6 +3063,15 @@ void MainWindow::on_actionEncrypt_triggered()
 	edit->setText(out_lines.join("\n"));
 	auto dlg = GUIHelper::createDialog(edit, "Encryption output");
 	dlg->exec();
+}
+
+void MainWindow::on_actionSettings_triggered()
+{
+	SettingsDialog dlg(this);
+	if (dlg.exec()==QDialog::Accepted)
+	{
+		dlg.storeSettings();
+	}
 }
 
 void MainWindow::on_actionSampleSearch_triggered()
@@ -3510,8 +3508,7 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 	variants_changed_.clear();
 	cnvs_.clear();
 	svs_.clear();
-    IgvSessionManager::resetIGVInitialized();
-    displayIgvHistoryButton(false);
+	IgvSessionManager::clearAll();
 	ui_.vars->clearContents();
 	report_settings_ = ReportSettings();
 	connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
@@ -5121,6 +5118,11 @@ QString MainWindow::selectProcessedSample()
 	if (ok) return selected;
 
 	return "";
+}
+
+const TargetRegionInfo& MainWindow::targetRegion()
+{
+	return ui_.filters->targetRegion();
 }
 
 void MainWindow::importBatch(QString title, QString text, QString table, QStringList fields)
@@ -6918,11 +6920,8 @@ void MainWindow::changeIgvIconToActive()
 
 void MainWindow::changeIgvIconToNormal()
 {
-	if (!IgvSessionManager::hasAtLeastOneActiveIGV())
-	{
-        igv_history_label_->setPixmap(QPixmap(":/Icons/IGV.png"));
-        igv_history_label_->setToolTip("IGV is idle at the moment");
-    }
+	igv_history_label_->setPixmap(QPixmap(":/Icons/IGV.png"));
+	igv_history_label_->setToolTip("IGV is idle at the moment");
 }
 
 void MainWindow::on_actionVirusDetection_triggered()
@@ -7733,8 +7732,6 @@ void MainWindow::updateIGVMenu()
 	QStringList entries = Settings::stringList("igv_menu");
 	if (entries.count()==0)
 	{
-		ui_.menuTrackDefaults->addAction("No custom entries in INI file!");
-
 		ui_.menuOpenCustomTrack->addAction("No custom entries in INI file!");
 	}
 	else
@@ -7744,17 +7741,10 @@ void MainWindow::updateIGVMenu()
 			QStringList parts = entry.trimmed().split("\t");
 			if(parts.count()!=3) continue;
 
-			QString name = parts[0];
 			QString filename = parts[2];
 
-			//add to menu "custom track default settings"
-			QAction* action = ui_.menuTrackDefaults->addAction("custom track: " + name);
-			action->setCheckable(true);
-			action->setChecked(parts[1]=="1");
-			action->setToolTip(filename); //file path is taken from tooltip in IGV dialog
-
 			//add to menu "open custom track"
-			action = ui_.menuOpenCustomTrack->addAction(parts[0], this, SLOT(openCustomIgvTrack()));
+			QAction* action = ui_.menuOpenCustomTrack->addAction(parts[0], this, SLOT(openCustomIgvTrack()));
 			action->setToolTip(filename); //file path is taken from tooltip when opening track
 			if (!QFile::exists(filename))
 			{

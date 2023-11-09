@@ -276,7 +276,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<tr>" << endl;
 		stream << "<td>" << (cn<2 ? trans("Deletion") : trans("Duplikation")) << "</td>" << endl;
 		stream << "<td>" << cnv.toString() << "</td>" << endl;
-		stream << "<td>" << QString::number(cnv.size()/1000.0, 'f', 3) << " " << trans("kb") << " / " << std::max(1, cnv.regions()) << " " << trans("Regionen") << "</td>" << endl; //TODO trio CNV lists don't contain number of regions > fix
+		stream << "<td>" << QString::number(cnv.size()/1000.0, 'f', 3) << " " << trans("kb") << " / " << std::max(1, cnv.regions()) << " " << trans("Regionen") << "</td>" << endl;
 		QString cn_str = QString::number(cn);
 		if (var_conf.de_novo) cn_str += " (de-novo)";
 		if (var_conf.mosaic) cn_str += " (mosaic)";

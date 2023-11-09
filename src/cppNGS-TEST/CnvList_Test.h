@@ -61,8 +61,4 @@ private slots:
 		COMPARE_FILES("out/CnvList_CnvHunter_germline.tsv", TESTDATA("data_out/CnvList_CnvHunter_germline.tsv"));
 	}
 
-
-	//TODO: test reference copy number determination
-
-
 };
