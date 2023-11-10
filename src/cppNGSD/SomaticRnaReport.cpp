@@ -51,10 +51,11 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 		int i_breakpoint_left = in_file.colIndex("breakpoint1", true);
 		int i_breakpoint_right = in_file.colIndex("breakpoint2", true);
 		int i_type = in_file.colIndex("type", true);
+		int i_reading_frame = in_file.colIndex("reading_frame", true);
 		while(!in_file.atEnd())
 		{
 			QByteArrayList parts = in_file.readLine();
-			arriba_sv temp{parts[i_gene_left], parts[i_gene_right], parts[i_transcript_left], parts[i_transcript_right], parts[i_breakpoint_left], parts[i_breakpoint_right], parts[i_type]};
+			arriba_sv temp{parts[i_gene_left], parts[i_gene_right], parts[i_transcript_left], parts[i_transcript_right], parts[i_breakpoint_left], parts[i_breakpoint_right], parts[i_type], parts[i_reading_frame]};
 			svs_.append(temp);
 		}
 	}
@@ -244,18 +245,19 @@ RtfTable SomaticRnaReport::partFusions()
 	RtfTable fusion_table;
 	fusion_table.addRow(RtfTableRow("Fusionen", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1));
 
-	fusion_table.addRow(RtfTableRow({"Strukturvariante", "Transkript links", "Bruchpunkt Gen 1", "Transkript rechts", "Bruchpunkt Gen 2", "Typ"},{1600,1800,1400,1800,1400,1921}, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)).setHeader());
+	fusion_table.addRow(RtfTableRow({"Strukturvariante", "Transkript links", "Bruchpunkt Gen 1", "Transkript rechts", "Bruchpunkt Gen 2", "Typ", "Leseraster"},{1600,1400,1400,1400,1400,1700, 1021}, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)).setHeader());
 
 	for(const auto& sv : svs_)
 	{
 		RtfTableRow temp;
 
 		temp.addCell( 1600, sv.gene_left + "::" + sv.gene_right, RtfParagraph().setItalic(true).setFontSize(16) );
-		temp.addCell( 1800, sv.transcipt_left, RtfParagraph().setFontSize(16) );
+		temp.addCell( 1400, sv.transcipt_left, RtfParagraph().setFontSize(16) );
 		temp.addCell( 1400, sv.breakpoint_left , RtfParagraph().setFontSize(16) );
-		temp.addCell( 1800, sv.transcipt_right, RtfParagraph().setFontSize(16) );
+		temp.addCell( 1400, sv.transcipt_right, RtfParagraph().setFontSize(16) );
 		temp.addCell( 1400, sv.breakpoint_right, RtfParagraph().setFontSize(16) );
-		temp.addCell( 1921, trans(sv.type), RtfParagraph().setFontSize(16) );
+		temp.addCell( 1700, trans(sv.type), RtfParagraph().setFontSize(16) );
+		temp.addCell( 1021, sv.reading_frame, RtfParagraph().setFontSize(16) );
 		fusion_table.addRow( temp );
 	}
 

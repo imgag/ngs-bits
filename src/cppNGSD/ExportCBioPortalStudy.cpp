@@ -742,13 +742,18 @@ void ExportCBioPortalStudy::exportCnvs(const QString& out_folder, bool debug)
 			out << "CNV sample: " << settings_.sample_list[idx] << "\n";
 		}
 		columns << settings_.getSampleId(idx).toUtf8();
+		data.append(QMap<QByteArray, int>());
+
+		if (! VersatileFile(settings_.sample_files[idx].clincnv_file).exists())
+		{
+			out << "No clincnv file! skipping... " << settings_.sample_list[idx] << "\n";
+			continue;
+		}
 
 		CnvList cnvs;
 		cnvs.load(settings_.sample_files[idx].clincnv_file);
 		//filter
 		cnvs = SomaticReportSettings::filterCnvs(cnvs, settings_.report_settings[idx]);
-
-		data.append(QMap<QByteArray, int>());
 
 		for (int idx_var=0; idx_var < cnvs.count(); idx_var++)
 		{

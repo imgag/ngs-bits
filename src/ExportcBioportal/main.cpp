@@ -132,7 +132,10 @@ public:
 				VariantList germline_vl;
 				germline_vl.load(files.gsvar_germline);
 				CnvList cnvs;
-				cnvs.load(files.clincnv_file);
+				if (VersatileFile(files.clincnv_file).exists())
+				{
+					cnvs.load(files.clincnv_file);
+				}
 
 				QStringList messages;
 				SomaticReportSettings report_settings;

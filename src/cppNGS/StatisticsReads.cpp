@@ -67,15 +67,26 @@ void StatisticsReads::update(const FastqEntry& entry, ReadDirection direction)
 void StatisticsReads::update(const BamAlignment& al)
 {
 	//update read counts
-	bool is_forward = al.isRead1();
-	if (is_forward)
+	bool is_forward;
+	if(long_read_)
 	{
+		//LongReads are neuther R1 nor R2
+		is_forward = true;
 		++c_forward_;
 	}
 	else
 	{
-		++c_reverse_;
+		is_forward = al.isRead1();
+		if (is_forward)
+		{
+			++c_forward_;
+		}
+		else
+		{
+			++c_reverse_;
+		}
 	}
+
 
 	//check number of cycles
 	int cycles = al.length();

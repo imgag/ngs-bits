@@ -148,6 +148,7 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 				{
 					++high_impact_count;
 				}
+
 			}
 			addQcValue(output, "QC:2000014", "known variants percentage", 100.0*dbsnp_count/variants.count());
 			addQcValue(output, "QC:2000015", "high-impact variants percentage", 100.0*high_impact_count/variants.count());
@@ -213,6 +214,92 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 	{
 		addQcValue(output, "QC:2000018", "transition/transversion ratio", "n/a (no variants or tansversions)");
 	}
+
+	return output;
+}
+
+QCCollection Statistics::phasing(VcfFile variants, bool filter, BedFile& phasing_blocks)
+{
+	//support only single sample vcf files
+	if(variants.sampleIDs().count() > 1)
+	{
+		THROW(FileParseException, "Can not generate QCCollection for a vcf file with multiple samples.");
+	}
+
+	QCCollection output;
+
+	//filter variants
+	if (filter)
+	{
+		FilterResult filter_result(variants.count());
+		FilterFilterColumnEmpty filter;
+		filter.apply(variants, filter_result);
+		filter_result.removeFlagged(variants);
+	}
+
+	//iterate over all variants and extract phasing information
+	BedLine current_phasing_block;
+	int n_phased_variants = 0;
+	int n_het_vars = 0;
+	for(int i=0; i<variants.count(); ++i)
+	{
+		//count hom variants (no phasing possible => has to be ignored)
+		QByteArray genotype = variants[i].formatValueFromSample("GT");
+		if (genotype=="0/1" || genotype=="1/0" || genotype=="0|1" || genotype=="1|0") n_het_vars++;
+
+		//update phasing blocks
+		QByteArray phasing_block_id = variants[i].formatValueFromSample("PS").trimmed();
+		//skip unphased variants
+		if(phasing_block_id == ".") continue;
+		n_phased_variants++;
+		if(current_phasing_block.isValid())
+		{
+			if(phasing_block_id == current_phasing_block.annotations().at(0))
+			{
+				//extend block
+				current_phasing_block.setEnd(variants[i].end());
+			}
+			else
+			{
+				//store old block and start new block
+				phasing_blocks.append(current_phasing_block);
+				current_phasing_block = BedLine(variants[i].chr(), variants[i].start(), variants[i].end(), QByteArrayList() << phasing_block_id);
+			}
+		}
+		else
+		{
+			//special case: first variant
+			current_phasing_block = BedLine(variants[i].chr(), variants[i].start(), variants[i].end(), QByteArrayList() << phasing_block_id);
+		}
+	}
+	//add last block
+	phasing_blocks.append(current_phasing_block);
+	//get lengths of phasing blocks
+	QVector<double> block_sizes;
+	for (int j = 0; j < phasing_blocks.count(); j++)
+	{
+		block_sizes.append(phasing_blocks[j].length());
+	}
+	//calculate statistics
+	double mean_block_size = BasicStatistics::mean(block_sizes);
+	double median_block_size = BasicStatistics::median(block_sizes);
+	double max_block_size = *std::max_element(block_sizes.constBegin(), block_sizes.constEnd());
+	addQcValue(output, "QC:2000133", "mean phasing block size", mean_block_size);
+	addQcValue(output, "QC:2000134", "median phasing block size", median_block_size);
+	addQcValue(output, "QC:2000135", "phasing block count", phasing_blocks.count());
+	addQcValue(output, "QC:2000136", "phased variants percentage", 100.00 * ((float) n_phased_variants/n_het_vars));
+
+	//create histogram
+	Histogram phasing_block_distribution(0, max_block_size/1000.0, (max_block_size * 0.05)/1000.0);
+	phasing_block_distribution.setXLabel("phasing block size (kb)");
+	phasing_block_distribution.setYLabel("count");
+	//add data
+	foreach (double size, block_sizes) phasing_block_distribution.inc(size/1000.0, false);
+	//write to file
+	QString plotname = Helper::tempFileName(".png");
+	phasing_block_distribution.store(plotname, false, true, 0.5);
+	addQcPlot(output, "QC:2000137", "phasing block distribution plot", plotname);
+	QFile::remove(plotname);
 
 	return output;
 }

@@ -64,6 +64,7 @@ public:
 		QByteArray breakpoint_right;
 
 		QByteArray type;
+		QByteArray reading_frame;
 	};
 
 	///Checks whether all annotations neccessary for creating an RNA report are available
