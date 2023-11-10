@@ -21,9 +21,12 @@ public:
 		addFlag("ignore_filter", "Ignore filter entries, i.e. consider variants that did not pass filters.");
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true);
 		addFlag("txt", "Writes TXT format instead of qcML.");
+		addFlag("long_read", "Adds LongRead specific QC values (e.g. phasing information)");
+		addOutfile("phasing_bed", "Output BED file containing phasing blocks with id. (requires parameter '-longread')", true);
 
 		//changelog
-        changeLog(2020,  8, 07, "VCF files only as input format for variant list.");
+		changeLog(2023,  9, 21, "Added parameter 'longread' to add longread specific QC values.");
+		changeLog(2020,  8,  7, "VCF files only as input format for variant list.");
 		changeLog(2018,  9, 12, "Now supports VEP CSQ annotations (no longer support SnpEff ANN annotations).");
 		changeLog(2017,  1,  5, "Added 'ignore_filter' flag.");
 	}
@@ -37,6 +40,17 @@ public:
 
 		//calculate metrics
 		QCCollection metrics = Statistics::variantList(vl, !getFlag("ignore_filter"));
+
+		//calculate phasing metrics
+		if (getFlag("long_read"))
+		{
+			BedFile phasing_blocks;
+			QCCollection phasing_metrics = Statistics::phasing(vl, !getFlag("ignore_filter"), phasing_blocks);
+			metrics.insert(phasing_metrics);
+
+			//store BED file (optional)
+			if (!getOutfile("phasing_bed").isEmpty()) phasing_blocks.store(getOutfile("phasing_bed"), false);
+		}
 
 		//store output
 		if (getFlag("txt"))
