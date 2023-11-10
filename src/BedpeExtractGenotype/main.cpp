@@ -19,7 +19,7 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Extract the phased genotype into seperate column.");
+		setDescription("Extracts the phased genotype into seperate column.");
 		//optional
 		addInfile("in", "Input BEDPE file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output BEDPE file. If unset, writes to STDOUT.", true);
@@ -52,7 +52,7 @@ public:
 		// get header
 		QByteArrayList updated_header = bedpe_file.annotationHeaders();
 		// modify header if gene columns not already present
-		if (i_annotation < 0) updated_header.prepend("GENOTYPE");
+		if (i_annotation < 0) updated_header.append("GENOTYPE");
 		// copy header
 		output_buffer << "#CHROM_A\tSTART_A\tEND_A\tCHROM_B\tSTART_B\tEND_B\t" + updated_header.join("\t");
 
@@ -70,13 +70,13 @@ public:
 
 			//add phasing to output
 			QList<QByteArray> annotations = line.annotations();
-			if (i_annotation > -1)
+			if (i_annotation < 0)
 			{
-				annotations[i_annotation] = phasing_entry;
+				annotations.append(phasing_entry);
 			}
 			else
 			{
-				annotations.prepend(phasing_entry);
+				annotations[i_annotation] = phasing_entry;
 			}
 			line.setAnnotations(annotations);
 
