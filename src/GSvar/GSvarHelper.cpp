@@ -290,31 +290,8 @@ Variant GSvarHelper::liftOverVariant(const Variant& v, bool hg19_to_hg38)
 
 QString GSvarHelper::gnomADLink(const Variant& v, bool open_in_v4)
 {
-	QString url = "https://gnomad.broadinstitute.org/variant/" + v.chr().strNormalized(false) + "-";
-
-	if (v.obs()!="-" && v.ref()!="-") //SNV
-	{
-		url += QString::number(v.start()) + "-" + v.ref() + "-" + v.obs();
-	}
-	else
-	{
-		FastaFileIndex idx(Settings::string("reference_genome"));
-
-		if (v.obs()=="-") //deletion
-		{
-			int pos = v.start()-1;
-			QString base = idx.seq(v.chr(), pos, 1);
-			url += QString::number(pos) + "-" + base + v.ref() + "-" + base;
-		}
-		else if (v.ref()=="-") //insertion
-		{
-			int pos = v.start();
-			QString base = idx.seq(v.chr(), pos, 1);
-			url += QString::number(v.start()) + "-" + base + "-" + base + v.obs();
-		}
-	}
-
-	return url + "?dataset=" + (open_in_v4 ? "gnomad_r4" : "gnomad_r3");
+	FastaFileIndex idx(Settings::string("reference_genome"));
+	return "https://gnomad.broadinstitute.org/variant/" + v.toGnomAD(idx) + "?dataset=" + (open_in_v4 ? "gnomad_r4" : "gnomad_r3");
 }
 
 QString GSvarHelper::clinVarSearchLink(const Variant& v, GenomeBuild build)

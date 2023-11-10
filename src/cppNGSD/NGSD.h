@@ -798,6 +798,8 @@ public:
 	QStringList secondaryAnalyses(QString processed_sample_name, QString analysis_type);
 
 	///Adds a variant to the NGSD. Returns the variant ID.
+	QString addVariant(const Variant& variant);
+	///Adds a variant to the NGSD including gnomAD AF and coding/splicing information. Returns the variant ID.
 	QString addVariant(const Variant& variant, const VariantList& variant_list);
 	///Adds all missing variants to the NGSD and returns the variant DB identifiers (or -1 if the variant was skipped due to 'max_af' or because it is over 500 bases long)
 	QList<int> addVariants(const VariantList& variant_list, double max_af, int& c_add, int& c_update);

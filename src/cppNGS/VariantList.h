@@ -198,6 +198,8 @@ public:
 	QString toHGVS(const FastaFileIndex& genome_index) const;
 	/// Returns the VCF line notation of the variant up to the INFO column.
 	VcfLine toVCF(const FastaFileIndex& genome_index) const;
+	/// Returns the gnomAD notation of the variant.
+	QString toGnomAD(const FastaFileIndex& genome_index) const;
 
     ///Auxilary function: Removes common prefix and suffix bases from indels and adapts the start position accordingly.
 	static void normalize(int& start, Sequence& ref, Sequence& obs);

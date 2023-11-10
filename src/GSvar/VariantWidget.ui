@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1500</width>
+    <width>1554</width>
     <height>700</height>
    </rect>
   </property>
@@ -76,7 +76,7 @@
         <item row="0" column="0">
          <widget class="QLabel" name="label_5">
           <property name="text">
-           <string>Name:</string>
+           <string>name:</string>
           </property>
          </widget>
         </item>
@@ -105,7 +105,7 @@
         <item row="1" column="0">
          <widget class="QLabel" name="label_4">
           <property name="text">
-           <string>AF gnomAD:</string>
+           <string>gnomAD AF:</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -286,6 +286,23 @@
           </property>
           <property name="shortcut">
            <string>F5</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="format_btn">
+          <property name="toolTip">
+           <string>Copy variant to clipboard in the selected format.</string>
+          </property>
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="icon">
+           <iconset resource="GSvar.qrc">
+            <normaloff>:/Icons/CopyClipboard.png</normaloff>:/Icons/CopyClipboard.png</iconset>
+          </property>
+          <property name="popupMode">
+           <enum>QToolButton::InstantPopup</enum>
           </property>
          </widget>
         </item>

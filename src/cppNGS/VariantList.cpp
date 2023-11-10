@@ -426,6 +426,33 @@ VcfLine Variant::toVCF(const FastaFileIndex& genome_index) const
 	return VcfLine(chr_, pos, ref, QList<Sequence>() << alt);
 }
 
+QString Variant::toGnomAD(const FastaFileIndex& genome_index) const
+{
+	QString output = chr_.strNormalized(false) + "-";
+
+	if (obs_!="-" && ref_!="-") //SNV
+	{
+		output += QString::number(start_) + "-" + ref_ + "-" + obs_;
+	}
+	else
+	{
+		if (obs_=="-") //deletion
+		{
+			int pos = start_-1;
+			QString base = genome_index.seq(chr_, pos, 1);
+			output += QString::number(pos) + "-" + base + ref_ + "-" + base;
+		}
+		else if (ref_=="-") //insertion
+		{
+			int pos = start_;
+			QString base = genome_index.seq(chr_, pos, 1);
+			output += QString::number(start_) + "-" + base + "-" + base + obs_;
+		}
+	}
+
+	return output;
+}
+
 VariantList::LessComparatorByAnnotation::LessComparatorByAnnotation(int annotation_index)
 	: annotation_index_(annotation_index)
 {

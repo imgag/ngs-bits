@@ -1231,6 +1231,21 @@ QStringList NGSD::secondaryAnalyses(QString processed_sample_name, QString analy
 	return output;
 }
 
+QString NGSD::addVariant(const Variant& variant)
+{
+	SqlQuery query = getQuery(); //use binding (user input)
+	query.prepare("INSERT INTO variant (chr, start, end, ref, obs, comment) VALUES (:0,:1,:2,:3,:4,:5)");
+	query.bindValue(0, variant.chr().strNormalized(true));
+	query.bindValue(1, variant.start());
+	query.bindValue(2, variant.end());
+	query.bindValue(3, variant.ref());
+	query.bindValue(4, variant.obs());
+	query.bindValue(5, "Added manually by "+Helper::userName()+" at "+ QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss")+".");
+	query.exec();
+
+	return query.lastInsertId().toString();
+}
+
 QString NGSD::addVariant(const Variant& variant, const VariantList& variant_list)
 {
 	SqlQuery query = getQuery(); //use binding (user input)

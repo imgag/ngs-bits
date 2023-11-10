@@ -3400,7 +3400,7 @@ void MainWindow::openVariantTab(Variant variant)
 
 		//open tab
 		VariantWidget* widget = new VariantWidget(variant, this);
-		int index = openTab(QIcon(":/Icons/NGSD_variant.png"), variant.toString(), widget);
+		int index = openTab(QIcon(":/Icons/NGSD_variant.png"), variant.toString(false, -1, true), widget);
 
 		//add database id
 		if (Settings::boolean("debug_mode_enabled"))
@@ -5438,14 +5438,26 @@ void MainWindow::on_actionOpenVariantTab_triggered()
 	try
 	{
 		VariantOpenDialog dlg(this);
-
 		if (dlg.exec()!=QDialog::Accepted) return;
 
-		openVariantTab(dlg.variant());
+		Variant v = dlg.variant();
+
+		//check if variant is in NGSD
+		NGSD db;
+		QString v_id = db.variantId(v, false);
+		if (v_id.isEmpty())
+		{
+			int res = QMessageBox::question(this, "Add variant to NGSD?", "Variant '" + v.toString() + "' not found in NGSD.\nDo you want to add it?");
+			if (res!=QMessageBox::Yes) return;
+
+			db.addVariant(v);
+		}
+
+		openVariantTab(v);
 	}
 	catch(Exception& e)
 	{
-		QMessageBox::warning(this, "Invalid variant text", e.message());
+		QMessageBox::warning(this, "Error opening variant", e.message());
 	}
 }
 

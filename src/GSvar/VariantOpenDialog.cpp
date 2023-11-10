@@ -11,31 +11,39 @@ VariantOpenDialog::VariantOpenDialog(QWidget* parent)
 	, ref_genome_idx_(Settings::string("reference_genome"))
 {
 	ui_.setupUi(this);
-
-	connect(ui_.style, SIGNAL(currentIndexChanged(int)), this, SLOT(updateStyleHint()));
-	connect(ui_.style, SIGNAL(currentIndexChanged(int)), this, SLOT(checkValid()));
-	connect(ui_.variant, SIGNAL(editingFinished()), this, SLOT(checkValid()));
+	connect(ui_.format_gsvar->group(), SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(checkValid()));
+	connect(ui_.variant, SIGNAL(textChanged(const QString&)), this, SLOT(checkValid()));
 	connect(ui_.ok_btn, SIGNAL(clicked(bool)), this, SLOT(checkValidBeforeAccept()));
-
-	updateStyleHint();
 }
 
-void VariantOpenDialog::setDefaultStyle(QString style)
+QString VariantOpenDialog::selectedFormat() const
 {
-	int index = ui_.style->findText(style);
-	if (index==-1)
+	foreach(QRadioButton* button, findChildren<QRadioButton*>())
 	{
-		THROW(ArgumentException, "Invalid variant style '" + style + "' given!");
+		if (button->isChecked()) return button->text();
 	}
-	ui_.style->setCurrentIndex(index);
+	THROW(ProgrammingException, "No selected format found!");
+}
+
+void VariantOpenDialog::setDefaultFormat(QString format)
+{
+	foreach(QRadioButton* button, findChildren<QRadioButton*>())
+	{
+		if (button->text()==format)
+		{
+			button->setChecked(true);
+			return;
+		}
+	}
+	THROW(ArgumentException, "Invalid variant style '" + format + "' given!");
 }
 
 Variant VariantOpenDialog::variant()
 {
 	Variant output;
 
-	QString style = ui_.style->currentText();
-	if (style=="GSvar")
+	QString format = selectedFormat();
+	if (format=="GSvar")
 	{
 		//Examples:
 		//chr1:55042704-55042704 T>C
@@ -43,7 +51,7 @@ Variant VariantOpenDialog::variant()
 		//chr1:55056268-55056285 GGGCTTCTTGTGGCACGT>-
 		output = Variant::fromString(ui_.variant->text());
 	}
-	else if (style=="VCF")
+	else if (format=="VCF")
 	{
 		//Examples:
 		//1	55042704	.	T	C	.	.
@@ -64,7 +72,7 @@ Variant VariantOpenDialog::variant()
 		output = Variant(chr, start, end, ref, alt);
 		output.normalize("-", true);
 	}
-	else if (style=="gnomAD")
+	else if (format=="gnomAD")
 	{
 		//gnomAD uses VCF-style but no ID column and '-' as separator. Examples:
 		//https://gnomad.broadinstitute.org/variant/1-55042704-T-C?dataset=gnomad_r3
@@ -86,7 +94,7 @@ Variant VariantOpenDialog::variant()
 		output = Variant(chr, start, end, ref, alt);
 		output.normalize("-", true);
 	}
-	else if (style=="HGVS.c")
+	else if (format=="HGVS.c")
 	{
 		//Examples:
 		//ENST00000302118.5:c.208-1139T>C
@@ -156,27 +164,6 @@ Variant VariantOpenDialog::variant()
 	output.checkValid(ref_genome_idx_);
 
 	return output;
-}
-
-void VariantOpenDialog::updateStyleHint()
-{
-	QString style = ui_.style->currentText();
-	if (style=="GSvar")
-	{
-		ui_.style_hint->setToolTip("format: chr, start, end, ref, alt (tab-separated)");
-	}
-	else if (style=="VCF")
-	{
-		ui_.style_hint->setToolTip("format: chr, pos, id, ref, alt, ... (tab-separated)");
-	}
-	else if (style=="gnomAD")
-	{
-		ui_.style_hint->setToolTip("format: chr, pos, ref, alt (separated by '-')");
-	}
-	else if (style=="HGVS.c")
-	{
-		ui_.style_hint->setToolTip("format: transcript, cDNA change (separated by ':').\nNote: if a gene name is provided instead of a transcript, the MANE select transcript of the gene is used.");
-	}
 }
 
 bool VariantOpenDialog::checkValid()
