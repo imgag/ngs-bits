@@ -516,7 +516,7 @@ QString VariantList::analysisName() const
 	SampleHeaderInfo header_info = getSampleHeader();
 	foreach(const SampleInfo& info, header_info)
 	{
-		samples << info.id;
+		samples << info.name;
 	}
 
 	return analysisTypeToString(type(), true) + " " + samples.join("/");
@@ -532,7 +532,7 @@ QString VariantList::mainSampleName() const
 		case CFDNA:
 			foreach(const SampleInfo& entry, getSampleHeader())
 			{
-				samples << entry.id;
+				samples << entry.name;
 			}
 			break;
 		case GERMLINE_TRIO:
@@ -541,7 +541,7 @@ QString VariantList::mainSampleName() const
 			{
 				if (entry.isAffected())
 				{
-					samples << entry.id;
+					samples << entry.name;
 				}
 			}
 			break;
@@ -550,7 +550,7 @@ QString VariantList::mainSampleName() const
 			{
 				if (entry.isTumor())
 				{
-					samples << entry.id;
+					samples << entry.name;
 				}
 			}
 			break;
@@ -1049,11 +1049,11 @@ void VariantList::checkValid(const FastaFileIndex& reference) const
 	}
 }
 
-SampleHeaderInfo VariantList::getSampleHeader() const
+SampleHeaderInfo VariantList::getSampleHeader(bool thow_if_no_samples) const
 {
 	SampleHeaderInfo output;
 
-	foreach(QString line, comments())
+	foreach(QString line, comments_)
 	{
 		line = line.trimmed();
 
@@ -1079,8 +1079,7 @@ SampleHeaderInfo VariantList::getSampleHeader() const
 				if (key=="ID")
 				{
 					SampleInfo tmp;
-					tmp.id = value;
-					tmp.column_name = value;
+					tmp.name = value;
 					output << tmp;
 				}
 				else
@@ -1091,13 +1090,13 @@ SampleHeaderInfo VariantList::getSampleHeader() const
 		}
 	}
 
-	if (output.count()==0) THROW(ProgrammingException, "No sample information found in the variant list header!");
+	if (thow_if_no_samples && output.count()==0) THROW(ProgrammingException, "No sample information found in the variant list header!");
 
-	//determine column index
+	//determine column indices
 	AnalysisType analysis_type = type();
 	for (int i=0; i<output.count(); ++i)
 	{
-		output[i].column_index = annotationIndexByName(output[i].column_name, true, analysis_type!=SOMATIC_SINGLESAMPLE && analysis_type!=SOMATIC_PAIR && analysis_type!=CFDNA);
+		output[i].column_index = annotationIndexByName(output[i].name, true, analysis_type!=SOMATIC_SINGLESAMPLE && analysis_type!=SOMATIC_PAIR && analysis_type!=CFDNA);
 	}
 
 	return output;

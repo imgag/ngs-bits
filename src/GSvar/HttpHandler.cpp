@@ -5,7 +5,7 @@
 #include "GSvarHelper.h"
 #include "ProxyDataService.h"
 #include "LoginManager.h"
-
+#include "GUIHelper.h"
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QEventLoop>
@@ -104,16 +104,16 @@ void HttpHandler::handleProxyAuthentification()
 	int max_retries = 5;
 	for (int i = 0; i < max_retries; ++i)
 	{
-		QString user = QInputDialog::getText(QApplication::activeWindow(), "Proxy user required", "Proxy user", QLineEdit::Normal, Helper::userName());
-		QString password = QInputDialog::getText(QApplication::activeWindow(), "Proxy password required", "Proxy password", QLineEdit::Password);
+		QString user = QInputDialog::getText(GUIHelper::mainWindow(), "Proxy user required", "Proxy user", QLineEdit::Normal, Helper::userName());
+		QString password = QInputDialog::getText(GUIHelper::mainWindow(), "Proxy password required", "Proxy password", QLineEdit::Password);
 
 		if(ProxyDataService::setCredentials(user, password))
 		{
-			QMessageBox::information(QApplication::activeWindow(), "Proxy successfully configured", "The proxy was successfully configured with the provided credentials.");
+			QMessageBox::information(GUIHelper::mainWindow(), "Proxy successfully configured", "The proxy was successfully configured with the provided credentials.");
 			return;
 		}
 
-		QMessageBox::critical(QApplication::activeWindow(), "Proxy configuration failed.", QString("The provided credentials are incorrect. The proxy couldn't be configured. ") + ((i+1<max_retries)?"Please try again.":""));
+		QMessageBox::critical(GUIHelper::mainWindow(), "Proxy configuration failed.", QString("The provided credentials are incorrect. The proxy couldn't be configured. ") + ((i+1<max_retries)?"Please try again.":""));
 
 	}
 }

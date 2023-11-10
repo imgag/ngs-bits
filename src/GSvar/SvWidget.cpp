@@ -119,7 +119,7 @@ void SvWidget::initGUI()
         ps_names_.clear();
         foreach (const SampleInfo& sample_info, sv_bedpe_file_.sampleHeaderInfo())
         {
-			ps_names_ << sample_info.id;
+			ps_names_ << sample_info.name;
         }
 
         // get processed sample ids from NGSD

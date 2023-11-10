@@ -1241,7 +1241,7 @@ const SampleInfo& SampleHeaderInfo::infoByID(const QString& id) const
 {
 	foreach(const SampleInfo& info, *this)
 	{
-		if (info.id==id)
+		if (info.name==id)
 		{
 			return info;
 		}
@@ -1276,13 +1276,24 @@ const SampleInfo& SampleHeaderInfo::infoByStatus(bool affected, QString gender) 
 
 QList<int> SampleHeaderInfo::sampleColumns(bool affected) const
 {
-	QList<int>  output;
+	QList<int> output;
 	foreach(const SampleInfo& info, *this)
 	{
 		if (affected==info.isAffected())
 		{
 			output << info.column_index;
 		}
+	}
+
+	return output;
+}
+
+QSet<QString> SampleHeaderInfo::sampleNames() const
+{
+	QSet<QString> output;
+	foreach(const SampleInfo& info, *this)
+	{
+		output << info.name;
 	}
 
 	return output;

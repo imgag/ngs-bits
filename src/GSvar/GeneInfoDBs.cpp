@@ -2,6 +2,7 @@
 #include "Exceptions.h"
 #include "HttpHandler.h"
 #include "Settings.h"
+#include "GUIHelper.h"
 #include <QMessageBox>
 #include <QApplication>
 #include <QDesktopServices>
@@ -36,7 +37,7 @@ void GeneInfoDBs::openUrl(QString db_name, QString gene_symbol)
 				}
 				catch(Exception& e)
 				{
-					QMessageBox::warning(QApplication::activeWindow(), "Could not get NCBI gene identifier from HGNC", e.message());
+					QMessageBox::warning(GUIHelper::mainWindow(), "Could not get NCBI gene identifier for gene " + gene_symbol, e.message());
 					return;
 				}
 			}

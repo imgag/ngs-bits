@@ -63,8 +63,8 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	if (is_trio)
 	{
 		stream << "<br />" << endl;
-		stream << "<br />" << trans("Vater") << ": "  << info_father.id << endl;
-		stream << "<br />" << trans("Mutter") << ": "  << info_mother.id << endl;
+		stream << "<br />" << trans("Vater") << ": "  << info_father.name << endl;
+		stream << "<br />" << trans("Mutter") << ": "  << info_mother.name << endl;
 	}
 	stream << "<br />" << endl;
 	stream << "<br />" << trans("Geschlecht") << ": " << trans(processed_sample_data.gender) << endl;
@@ -845,7 +845,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 					int index = 0;
 					while (index<header_info.count())
 					{
-						if (header_info[index].column_name==data_.ps) break;
+						if (header_info[index].name==data_.ps) break;
 						++index;
 					}
 
@@ -865,7 +865,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 					int index = 0;
 					while (index<header_info.count())
 					{
-						if (header_info[index].column_name==data_.ps) break;
+						if (header_info[index].name==data_.ps) break;
 						++index;
 					}
 

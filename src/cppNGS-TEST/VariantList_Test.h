@@ -351,8 +351,7 @@ private slots:
 		I_EQUAL(info.sampleColumns(false).count(), 0);
 
 		SampleInfo entry = info.infoByStatus(true);
-		S_EQUAL(entry.id, "NA12878_03");
-		S_EQUAL(entry.column_name, "NA12878_03");
+		S_EQUAL(entry.name, "NA12878_03");
 		I_EQUAL(entry.column_index, 0);
 
 		S_EQUAL(vl.analysisName(), "single-sample analysis NA12878_03");

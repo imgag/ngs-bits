@@ -425,7 +425,7 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 		SampleHeaderInfo sample_data = variants.getSampleHeader();
 		foreach(const SampleInfo& info, sample_data)
 		{
-			if (info.column_name==anno)
+			if (info.name==anno)
 			{
 				auto it = info.properties.cbegin();
 				while(it != info.properties.cend())
@@ -843,7 +843,7 @@ void VariantTable::adaptColumnWidthsCustom()
 	SampleHeaderInfo header_info;
 	foreach(const SampleInfo& info, header_info)
 	{
-		index =  GUIHelper::columnIndex(this, info.column_name, false);
+		index =  GUIHelper::columnIndex(this, info.name, false);
 		if (index!=-1) setColumnWidth(index, size_med);
 	}
 	index =  GUIHelper::columnIndex(this, "gene", false);

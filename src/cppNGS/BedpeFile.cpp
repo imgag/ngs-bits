@@ -720,9 +720,8 @@ void BedpeFile::parseSampleHeaderInfo()
                 if (key=="ID")
                 {
                     SampleInfo tmp;
-                    tmp.id = value;
-                    tmp.column_name = value;
-                    sample_header_info_ << tmp;
+					tmp.name = value;
+					sample_header_info_ << tmp;
                 }
                 else
                 {
@@ -735,6 +734,6 @@ void BedpeFile::parseSampleHeaderInfo()
     //determine column index
     for (int i=0; i<sample_header_info_.count(); ++i)
     {
-        sample_header_info_[i].column_index = annotationIndexByName(sample_header_info_[i].column_name.toUtf8());
+		sample_header_info_[i].column_index = annotationIndexByName(sample_header_info_[i].name.toUtf8());
     }
 }

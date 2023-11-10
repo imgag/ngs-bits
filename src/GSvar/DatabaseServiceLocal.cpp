@@ -118,8 +118,8 @@ QList<MultiSampleAnalysisInfo> DatabaseServiceLocal::getMultiSampleAnalysisInfo(
 
 		foreach(const SampleInfo& info, vl.getSampleHeader())
 		{
-			analysis_info.ps_sample_name_list.append(info.id);
-			analysis_info.ps_sample_id_list.append(db.processedSampleId(info.id));
+			analysis_info.ps_sample_name_list.append(info.name);
+			analysis_info.ps_sample_id_list.append(db.processedSampleId(info.name));
 		}
 		out.append(analysis_info);
 	}

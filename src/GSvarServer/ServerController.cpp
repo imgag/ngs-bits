@@ -955,11 +955,11 @@ HttpResponse ServerController::getMultiSampleAnalysisInfo(const HttpRequest& req
         QJsonArray ps_sample_id_array;
         foreach(const SampleInfo& info, vl.getSampleHeader())
         {
-            ps_sample_name_array.append(info.id);
+            ps_sample_name_array.append(info.name);
             QString current_ps_id;
             try
             {
-                current_ps_id = NGSD().processedSampleId(info.id);
+                current_ps_id = NGSD().processedSampleId(info.name);
             }
             catch (Exception& e)
             {
