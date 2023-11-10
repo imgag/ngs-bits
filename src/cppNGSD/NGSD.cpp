@@ -5447,7 +5447,6 @@ QString NGSD::createSampleSheet(int run_id)
 
 			line.append(QString::number(barcode_mismatch_index1));
 			line.append(QString::number(barcode_mismatch_index2));
-			line.append(project);
 
 			bcl_convert.append(line.join(","));
 		}
@@ -5471,7 +5470,7 @@ QString NGSD::createSampleSheet(int run_id)
 	sample_sheet.append("FastqCompressionFormat," +fastq_compression_format);
 	sample_sheet.append("");
 	sample_sheet.append("[BCLConvert_Data]");
-	sample_sheet.append("Lane,Sample_ID,Index,Index2,OverrideCycles,BarcodeMismatchesIndex1,BarcodeMismatchesIndex2,Sample_Project");
+	sample_sheet.append("Lane,Sample_ID,Index,Index2,OverrideCycles,BarcodeMismatchesIndex1,BarcodeMismatchesIndex2");
 	sample_sheet.append(bcl_convert);
 	sample_sheet.append("");
 
