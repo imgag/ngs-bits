@@ -48,8 +48,8 @@ public:
 			out << endl;
 		}
 
-		//import genomAD o/e scores
-		out << "Importing genomAD constraints..." << endl;
+		//import gnomAD o/e scores
+		out << "Importing gnomAD constraints..." << endl;
 		{
 			int c_inserted = 0;
 

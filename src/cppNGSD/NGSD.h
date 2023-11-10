@@ -335,11 +335,11 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 	//gene inheritance mode
 	QString inheritance;
 
-	//genomAD o/e score for synonymous variants (default is NULL).
+	//gnomAD o/e score for synonymous variants (default is NULL).
 	QString oe_syn;
-	//genomAD o/e score for missense variants (default is NULL).
+	//gnomAD o/e score for missense variants (default is NULL).
 	QString oe_mis;
-	//genomAD o/e score for loss-of-function variants (default is NULL).
+	//gnomAD o/e score for loss-of-function variants (default is NULL).
 	QString oe_lof;
 
 	//status of imprinting information

@@ -365,7 +365,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 		}
 		else
 		{
-			double af_gnomad2 = Helper::toDouble(af_gnomad, "genomAD AF");
+			double af_gnomad2 = Helper::toDouble(af_gnomad, "gnomAD AF");
 			if (af_gnomad2<=0.0001)
 			{
 				score += 0.5;
@@ -593,7 +593,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 		}
 		else
 		{
-			double af_gnomad2 = Helper::toDouble(af_gnomad, "genomAD AF");
+			double af_gnomad2 = Helper::toDouble(af_gnomad, "gnomAD AF");
 			if (af_gnomad2<=0.0001)
 			{
 				scores.add("gnomAD", 0.5);
@@ -893,7 +893,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 		}
 		else
 		{
-			double af_gnomad2 = Helper::toDouble(af_gnomad, "genomAD AF");
+			double af_gnomad2 = Helper::toDouble(af_gnomad, "gnomAD AF");
 			if (af_gnomad2<=0.0001)
 			{
 				scores.add("gnomAD", 0.5);

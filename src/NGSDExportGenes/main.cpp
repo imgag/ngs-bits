@@ -40,9 +40,9 @@ public:
 		output->write("\tname");
 		output->write("\ttranscripts coding (ensembl)");
 		output->write("\ttranscripts non-coding (ensembl)");
-		output->write("\tgenomAD oe (syn)");
-		output->write("\tgenomAD oe (mis)");
-		output->write("\tgenomAD oe (lof)");
+		output->write("\tgnomAD oe (syn)");
+		output->write("\tgnomAD oe (mis)");
+		output->write("\tgnomAD oe (lof)");
 		output->write("\tinheritance");
 		output->write("\timprinting");
 		output->write("\tpseudogenes");
