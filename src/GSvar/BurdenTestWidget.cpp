@@ -8,6 +8,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QTextEdit>
+#include "GSvarHelper.h"
 
 
 BurdenTestWidget::BurdenTestWidget(QWidget *parent) :
@@ -116,7 +117,10 @@ void BurdenTestWidget::loadGeneList()
 
 	QSet<QByteArray> invalid_genes = selected_genes.toSet() - approved_genes.toSet();
 
-	QMessageBox::warning(this, "Invalid genes", "The following genes couldn't be converted into approved gene names and were removed:\n" + invalid_genes.toList().join(", "));
+	if (invalid_genes.size() > 0)
+	{
+		QMessageBox::warning(this, "Invalid genes", "The following genes couldn't be converted into approved gene names and were removed:\n" + invalid_genes.toList().join(", "));
+	}
 
 	//apply new gene set
 	selected_genes_ = approved_genes;
@@ -605,7 +609,12 @@ void BurdenTestWidget::validateInputData()
 			updateSampleCounts();
 		}
 	}
-
+	else
+	{
+		// keep all samples
+		case_samples_ = case_samples_to_keep;
+		control_samples_ = control_samples_to_keep;
+	}
 	//activate Burden test
 	ui_->b_burden_test->setEnabled(true);
 
@@ -908,6 +917,11 @@ void BurdenTestWidget::performBurdenTest()
 		ps_ids << QString::number(id);
 	}
 
+	//Debug:
+	qDebug() << "case samples: " << case_samples_.size();
+	qDebug() << "control samples: " << control_samples_.size();
+	qDebug() << "combined list: " << ps_ids.size();
+
 	// get genes
 	QList<int> gene_ids;
 	foreach (QByteArray gene, selected_genes_)
@@ -936,6 +950,9 @@ void BurdenTestWidget::performBurdenTest()
 		{
 			//use exon region
 			gene_regions = db_.geneToRegions(gene_name, Transcript::ENSEMBL, "exon", true);
+
+			//extend exon region by splice region
+			gene_regions.extend(ui_->sb_splice_region_size->value());
 		}
 
 		gene_regions.sort();
@@ -1055,6 +1072,7 @@ void BurdenTestWidget::copyToClipboard()
 
 	//custom gene set
 	comments << "genes=" + selected_genes_.toStringList().join(",");
+	comments << "splice_region_size=" + QString::number(ui_->sb_splice_region_size->value());
 
 	//excluded regions
 	comments << "excluded_regions=" + QString::number(excluded_regions_.count());
@@ -1126,7 +1144,7 @@ void BurdenTestWidget::initCCR()
 	}
 }
 
-
+/*
 QStringList BurdenTestWidget::createChromosomeQueryList(int max_ngsd, double max_gnomad_af, const BedFile& regions, const QStringList& impacts, bool predict_pathogenic, bool include_mosaic)
 {
 	QString ngsd_counts = (include_mosaic)?"(germline_het+germline_hom+germline_mosaic)<=":"(germline_het+germline_hom)<=";
@@ -1177,6 +1195,7 @@ QStringList BurdenTestWidget::createChromosomeQueryList(int max_ngsd, double max
 	qDebug() << queries;
 	return queries;
 }
+*/
 
 int BurdenTestWidget::countOccurences(const QSet<int>& variant_ids, const QSet<int>& ps_ids, const QMap<int, QSet<int>>& detected_variants, Inheritance inheritance, QStringList& ps_names)
 {
@@ -1202,9 +1221,7 @@ int BurdenTestWidget::countOccurences(const QSet<int>& variant_ids, const QSet<i
 		}
 
 		//no match
-		if (intersection.size() == 0) continue;
-
-
+		if (intersection.size() == 0) continue;		
 
 		//check for de-novo
 		if(inheritance == Inheritance::de_novo)
@@ -1223,13 +1240,26 @@ int BurdenTestWidget::countOccurences(const QSet<int>& variant_ids, const QSet<i
 		}
 		else if((inheritance == Inheritance::recessive) && (intersection.size() == 1))
 		{
+			int variant_id = intersection.toList().at(0);
 			// check for hom var
 			QString genotype = db_.getValue("SELECT genotype FROM detected_variant WHERE processed_sample_id=" + QString::number(ps_id) + " AND variant_id="
-											+ QString::number(intersection.toList().at(0))).toString();
-			if (genotype != "hom") continue;
-		}
+											+ QString::number(variant_id)).toString();
+			// skip het vars
+			if (genotype != "hom")
+			{
+				continue;
+			}
+			// skip hom vars in X on male samples
+			QString gender = db_.getSampleData(db_.processedSampleName(QString::number(ps_id))).gender;
+			if (gender == "male")
+			{
+				Variant var = db_.variant(QString::number(variant_id));
+				BedFile par = NGSHelper::pseudoAutosomalRegion(GSvarHelper::build());
+				if (var.chr().isX() && (!par.overlapsWith(var.chr(), var.start(), var.end()))) continue;
+			}
 
-		//else (at least two hits or non-ressesive)
+		}
+		//else (at least two hits or non-ressesive:
 		n_hits++;
 		ps_names << db_.processedSampleName(QString::number(ps_id));
 	}
