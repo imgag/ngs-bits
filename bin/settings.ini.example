@@ -50,5 +50,5 @@ python_exe = ""
 
 #NovaSeqX
 sample_sheet_path = 
-nova_seq_x_sw_version = "4.1.7"
-nova_seq_x_app_version = "1.1.4"
+nova_seq_x_sw_version = "4.1.23"
+nova_seq_x_app_version = "1.2.1"
