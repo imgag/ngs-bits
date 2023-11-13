@@ -105,7 +105,7 @@ QString SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<Sa
 	//get sample name if unset
 	if (force_showing_dialog || ps_name.isEmpty())
 	{
-		ProcessedSampleSelector dlg(QApplication::activeWindow(), false);
+		ProcessedSampleSelector dlg(GUIHelper::mainWindow(), false);
 		dlg.setLabel(status.isEmpty() ? "Processed sample:" : status + ":");
 		dlg.setSelection(ps_name);
 		if (dlg.exec())

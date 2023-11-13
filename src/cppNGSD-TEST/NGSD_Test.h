@@ -1462,14 +1462,14 @@ private slots:
 		// the user has permissions to access each sample from the analysis
 		foreach(const SampleInfo& info, multi_sample.getSampleHeader())
 		{
-			QString processed_sample_id = db.processedSampleId(info.id);
+			QString processed_sample_id = db.processedSampleId(info.name);
 			IS_TRUE(db.userCanAccess(db.userId("restricted"), processed_sample_id.toInt()));
 		}
 		// the user has a permission to access only one sample
 		bool can_access_all = true;
 		foreach(const SampleInfo& info, multi_sample.getSampleHeader())
 		{
-			QString processed_sample_id = db.processedSampleId(info.id);
+			QString processed_sample_id = db.processedSampleId(info.name);
 			if (!db.userCanAccess(db.userId("restricted_one_sample"), processed_sample_id.toInt()))
 			{
 				can_access_all = false;

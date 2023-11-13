@@ -1,3 +1,7 @@
+-- ----------------------------------------------------------------------------------------------------------
+-- DISABLE CHECKS
+-- ----------------------------------------------------------------------------------------------------------
+
 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL';
@@ -1927,10 +1931,6 @@ CREATE TABLE IF NOT EXISTS `preferred_transcripts`
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
-SET SQL_MODE=@OLD_SQL_MODE;
-SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
-SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
-
 -- -----------------------------------------------------
 -- Table `variant_validation`
 -- -----------------------------------------------------
@@ -2312,29 +2312,6 @@ CREATE TABLE IF NOT EXISTS `expression`
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
--- -- -----------------------------------------------------
--- -- Table `expression`
--- -- -----------------------------------------------------
--- CREATE TABLE IF NOT EXISTS `expression`
--- (
---   `id` INT(11) NOT NULL AUTO_INCREMENT,
---   `processed_sample_id` INT(11) NOT NULL,
---   `symbol` VARCHAR(40) NOT NULL,
---   `tpm` FLOAT NOT NULL,
---   `raw` INT(11) NULL,
---   PRIMARY KEY (`id`),
---   INDEX(`processed_sample_id`),
---   INDEX(`symbol`),
---   UNIQUE INDEX `expression_UNIQUE` (`processed_sample_id` ASC, `symbol` ASC),
---   CONSTRAINT `fk_expression_processed_sample_id`
---     FOREIGN KEY (`processed_sample_id` )
---     REFERENCES `processed_sample` (`id` )
---     ON DELETE NO ACTION
---     ON UPDATE NO ACTION
--- )
--- ENGINE = InnoDB
--- DEFAULT CHARACTER SET = utf8;
-
 -- -----------------------------------------------------
 -- Table `expression_exon`
 -- -----------------------------------------------------
@@ -2430,3 +2407,12 @@ CREATE TABLE IF NOT EXISTS `oncotree_obsolete`
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
+
+
+-- ----------------------------------------------------------------------------------------------------------
+-- RE-ENABLE CHECKS WE DISABLED AT START
+-- ----------------------------------------------------------------------------------------------------------
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;

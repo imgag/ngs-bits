@@ -441,7 +441,7 @@ QList<KeyValuePair> FileLocationProviderLocal::getBaseLocations() const
 
     if (analysis_type_==GERMLINE_SINGLESAMPLE || analysis_type_==SOMATIC_SINGLESAMPLE || analysis_type_==CFDNA)
     {
-        QString id = header_info_.begin()->id;
+        QString id = header_info_.begin()->name;
         output << KeyValuePair(id, getAnalysisPath() + "/" + id);
     }
     else if (analysis_type_==GERMLINE_TRIO || analysis_type_==GERMLINE_MULTISAMPLE || analysis_type_==SOMATIC_PAIR)
@@ -454,9 +454,9 @@ QList<KeyValuePair> FileLocationProviderLocal::getBaseLocations() const
             {
                 try
                 {
-                    QString id = NGSD().processedSampleId(info.id, false);
+                    QString id = NGSD().processedSampleId(info.name, false);
                     QString sample_path = NGSD().processedSamplePath(id, PathType::SAMPLE_FOLDER);
-                    output << KeyValuePair(info.id, sample_path + info.id);
+                    output << KeyValuePair(info.name, sample_path + info.name);
                     continue;
                 }
                 catch (...)
@@ -466,7 +466,7 @@ QList<KeyValuePair> FileLocationProviderLocal::getBaseLocations() const
 
             }
 
-            output << KeyValuePair(info.id, project_folder + "/Sample_" + info.id + "/" + info.id);
+            output << KeyValuePair(info.name, project_folder + "/Sample_" + info.name + "/" + info.name);
         }
     }
     else

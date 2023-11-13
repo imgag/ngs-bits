@@ -273,7 +273,7 @@ void ReportVariantDialog::activateOkButtonIfValid()
 void ReportVariantDialog::importManualSmallVariant()
 {
 	VariantOpenDialog dlg(this);
-	dlg.setDefaultStyle("HGVS.c");
+	dlg.setDefaultFormat("HGVS.c");
 	if (dlg.exec()!=QDialog::Accepted) return;
 
 	try

@@ -10,6 +10,7 @@
 #include <QAction>
 #include <QDesktopServices>
 #include <QInputDialog>
+#include <QClipboard>
 #include "VariantHgvsAnnotator.h"
 
 VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
@@ -29,6 +30,13 @@ VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	connect(ui_.pubmed, SIGNAL(linkActivated(QString)), this, SLOT(pubmedClicked(QString)));
 	connect(ui_.table, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(tableCellDoubleClicked(int, int)));
 
+	//set up copy button for different formats
+	QMenu* menu = new QMenu();
+	menu->addAction("GSvar", this, SLOT(copyVariant()));
+	menu->addAction("VCF", this, SLOT(copyVariant()));
+	menu->addAction("gnomAD", this, SLOT(copyVariant()));
+	ui_.format_btn->setMenu(menu);
+
 	//add sample table context menu entries
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_.table->addAction(action);
@@ -46,7 +54,7 @@ void VariantWidget::updateGUI()
 	QString variant_id = db.variantId(variant_);
 
 	//variant base info
-	ui_.variant->setText(variant_.toString());
+	ui_.variant->setText(variant_.toString(false, -1, true));
 
 	SqlQuery query1 = db.getQuery();
 	query1.exec("SELECT * FROM variant WHERE id=" + variant_id);
@@ -419,5 +427,29 @@ void VariantWidget::tableCellDoubleClicked(int row, int /*column*/)
 {
 	QString ps = ui_.table->item(row, 0)->text();
 	GlobalServiceProvider::openProcessedSampleTab(ps);
+}
+
+void VariantWidget::copyVariant()
+{
+	QString format = qobject_cast<QAction*>(sender())->text().trimmed();
+	if (format=="GSvar")
+	{
+		QApplication::clipboard()->setText(variant_.toString());
+	}
+	else if (format=="VCF")
+	{
+		FastaFileIndex genome_idx(Settings::string("reference_genome"));
+		VcfLine vcf = variant_.toVCF(genome_idx);
+		QApplication::clipboard()->setText(vcf.chr().strNormalized(true) + "\t" + QString::number(vcf.start()) + "\t.\t" + vcf.ref() + "\t" + vcf.altString());
+	}
+	else if (format=="gnomAD")
+	{
+		FastaFileIndex genome_idx(Settings::string("reference_genome"));
+		QApplication::clipboard()->setText(variant_.toGnomAD(genome_idx));
+	}
+	else
+	{
+		THROW(ProgrammingException, "Unprocessed format '" + format + "' selected!");
+	}
 }
 

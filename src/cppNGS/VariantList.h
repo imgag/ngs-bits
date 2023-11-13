@@ -33,8 +33,7 @@ struct CPPNGSSHARED_EXPORT VariantTranscript
 ///Sample header struct for samples in variant lists.
 struct CPPNGSSHARED_EXPORT SampleInfo
 {
-	QString id; //sample name/identifier
-	QString column_name; //sample column in VCF/GSvar format
+	QString name; //sample name
 	int column_index; //column index of the sample genotype column (for germline only, below zero for somatic)
 	QMap<QString, QString> properties;
 
@@ -59,6 +58,8 @@ class CPPNGSSHARED_EXPORT SampleHeaderInfo
 		const SampleInfo& infoByStatus(bool affected, QString gender = "n/a") const;
 		///Returns sample genotype column indices of affected/unaffected samples.
 		QList<int> sampleColumns(bool affected) const;
+		///Returns all sample names.
+		QSet<QString> sampleNames() const;
 };
 
 ///Genetic variant or mutation (1-based).
@@ -197,6 +198,8 @@ public:
 	QString toHGVS(const FastaFileIndex& genome_index) const;
 	/// Returns the VCF line notation of the variant up to the INFO column.
 	VcfLine toVCF(const FastaFileIndex& genome_index) const;
+	/// Returns the gnomAD notation of the variant.
+	QString toGnomAD(const FastaFileIndex& genome_index) const;
 
     ///Auxilary function: Removes common prefix and suffix bases from indels and adapts the start position accordingly.
 	static void normalize(int& start, Sequence& ref, Sequence& obs);
@@ -405,7 +408,7 @@ public:
 	void checkValid(const FastaFileIndex& reference) const;
 
 	///Parses and returns sample data from variant list header (only for GSvar).
-	SampleHeaderInfo getSampleHeader() const;
+	SampleHeaderInfo getSampleHeader(bool thow_if_no_samples=true) const;
 
 	///Returns the genome build that the coordinates are based on.
 	GenomeBuild build();

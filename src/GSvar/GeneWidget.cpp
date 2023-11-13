@@ -60,8 +60,25 @@ void GeneWidget::updateGUI()
     html.replace(QRegExp("((?:https?|ftp)://\\S+)"), "<a href=\"\\1\">\\1</a>");
 	GSvarHelper::limitLines(ui_.comments, html);
 
-    //add pseudogenes/parent genes
+	//ids
 	int gene_id = db.geneId(symbol_);
+	QStringList ids;
+	QString hgnc_id = info.hgnc_id.replace("HGNC:", "");
+	ids << ("HGNC:<a href='https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/" + hgnc_id + "'>" + hgnc_id + "</a>");
+	QString ensembl_id = db.getValue("SELECT ensembl_id FROM gene WHERE id="+QString::number(gene_id)).toString().trimmed();
+	if (!ensembl_id.isEmpty())
+	{
+		ids << ("Ensembl:<a href='http://www.ensembl.org/Homo_sapiens/Gene/Summary?g=" + ensembl_id + "'>" + ensembl_id + "</a>");
+	}
+	QString ncbi_id = db.getValue("SELECT ncbi_id FROM gene WHERE id="+QString::number(gene_id)).toString().trimmed();
+	if (!ncbi_id.isEmpty())
+	{
+		ids << ("NCBI:<a href='https://www.ncbi.nlm.nih.gov/gene/" + ncbi_id + "'>" + ncbi_id + "</a>");
+	}
+	ui_.ids->setText(ids.join(" "));
+
+
+	//add pseudogenes/parent genes
 	QStringList pseudogene_link_list;
 	QStringList parent_gene_link_list;
 	QStringList pseudogene_ids = db.getValues("SELECT pseudogene_gene_id FROM gene_pseudogene_relation WHERE parent_gene_id=" + QString::number(gene_id) + " AND pseudogene_gene_id IS NOT NULL");
@@ -126,8 +143,7 @@ void GeneWidget::updateGUI()
 		ui_.notice->setVisible(true);
 	}
 
-	//HGNC info
-	ui_.hgnc_id->setText("<a href='https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/" + info.hgnc_id + "'>" + info.hgnc_id + "</a>");
+	//HGNC previous/synonymous symbols
 	ui_.hgnc_previous->setText(db.previousSymbols(gene_id).join(", "));
 	ui_.hgnc_synonymous->setText(db.synonymousSymbols(gene_id).join(", "));
 

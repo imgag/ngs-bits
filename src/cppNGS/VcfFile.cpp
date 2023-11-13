@@ -837,7 +837,7 @@ VcfFile VcfFile::fromGSvar(const VariantList& variant_list, const QString& refer
 	QByteArrayList sample_names;
 	foreach(const SampleInfo& sample_header, sample_headers)
 	{
-		sample_names << sample_header.column_name.toLatin1();
+		sample_names << sample_header.name.toLatin1();
 	}
 	vcf_file.setSampleNames(sample_names);
 
@@ -931,7 +931,7 @@ VcfFile VcfFile::fromGSvar(const VariantList& variant_list, const QString& refer
 		//write genotype
 		foreach(const SampleInfo& sample_header, sample_headers)
 		{
-			int genotype_index = variant_list.annotationIndexByName(sample_header.column_name, true, false);
+			int genotype_index = variant_list.annotationIndexByName(sample_header.name, true, false);
 			if(genotype_index == -1)
 			{
 				//qDebug() << __LINE__ << sample_header.column_name;

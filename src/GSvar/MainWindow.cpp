@@ -1766,7 +1766,7 @@ void MainWindow::on_actionCloseMetaDataTabs_triggered()
 
 void MainWindow::on_actionIgvClear_triggered()
 {
-	IgvSessionManager::get(0).clear();
+	IgvSessionManager::clearAll();
 }
 
 void MainWindow::on_actionIgvDocumentation_triggered()
@@ -2548,13 +2548,13 @@ void MainWindow::on_actionReanalyze_triggered()
 	QList<AnalysisJobSample> samples;
 	if (type==GERMLINE_SINGLESAMPLE  || type==CFDNA || type==SOMATIC_SINGLESAMPLE)
 	{
-		samples << AnalysisJobSample {header_info[0].id, ""};
+		samples << AnalysisJobSample {header_info[0].name, ""};
 	}
 	else if (type==GERMLINE_MULTISAMPLE)
 	{
 		foreach(const SampleInfo& info, header_info)
 		{
-			samples << AnalysisJobSample {info.id, info.isAffected() ? "affected" : "control"};
+			samples << AnalysisJobSample {info.name, info.isAffected() ? "affected" : "control"};
 		}
 	}
 	else if (type==GERMLINE_TRIO)
@@ -2563,11 +2563,11 @@ void MainWindow::on_actionReanalyze_triggered()
 		{
 			if(info.isAffected())
 			{
-				samples << AnalysisJobSample {info.id, "child"};
+				samples << AnalysisJobSample {info.name, "child"};
 			}
 			else
 			{
-				samples << AnalysisJobSample {info.id, info.gender()=="male" ? "father" : "mother"};
+				samples << AnalysisJobSample {info.name, info.gender()=="male" ? "father" : "mother"};
 			}
 		}
 	}
@@ -2575,7 +2575,7 @@ void MainWindow::on_actionReanalyze_triggered()
 	{
 		foreach(const SampleInfo& info, header_info)
 		{
-			samples << AnalysisJobSample {info.id, info.isTumor() ? "tumor" : "normal"};
+			samples << AnalysisJobSample {info.name, info.isTumor() ? "tumor" : "normal"};
 		}
 	}
 
@@ -3311,7 +3311,7 @@ void MainWindow::checkMendelianErrorRate(double cutoff_perc)
 
 			double percentage = 100.0 * errors / autosomal;
 			if (percentage>cutoff_perc) above_cutoff = true;
-			mers << infos.infoByStatus(true).id + " - " + info.id + ": " + QString::number(errors) + "/" + QString::number(autosomal) + " ~ " + QString::number(percentage, 'f', 2) + "%";
+			mers << infos.infoByStatus(true).name + " - " + info.name + ": " + QString::number(errors) + "/" + QString::number(autosomal) + " ~ " + QString::number(percentage, 'f', 2) + "%";
 		}
 
 		if (above_cutoff)
@@ -3400,7 +3400,7 @@ void MainWindow::openVariantTab(Variant variant)
 
 		//open tab
 		VariantWidget* widget = new VariantWidget(variant, this);
-		int index = openTab(QIcon(":/Icons/NGSD_variant.png"), variant.toString(), widget);
+		int index = openTab(QIcon(":/Icons/NGSD_variant.png"), variant.toString(false, -1, true), widget);
 
 		//add database id
 		if (Settings::boolean("debug_mode_enabled"))
@@ -3500,6 +3500,15 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 	QTime timer;
 	timer.start();
 
+	//clear IGV only if there is no overlapping samples between old and new analysis
+	QSet<QString> samples_old = variants_.getSampleHeader(false).sampleNames();
+	if (filename!="") variants_.loadHeaderOnly(filename);
+	QSet<QString> samples_new = variants_.getSampleHeader(false).sampleNames();
+	if (!samples_old.intersects(samples_new))
+	{
+		IgvSessionManager::clearAll();
+	}
+
 	//reset GUI and data structures
 	setWindowTitle(appName());
 	filename_ = "";
@@ -3508,17 +3517,13 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 	variants_changed_.clear();
 	cnvs_.clear();
 	svs_.clear();
-	IgvSessionManager::clearAll();
 	ui_.vars->clearContents();
 	report_settings_ = ReportSettings();
 	connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
 	germline_report_ps_ = "";
 	somatic_report_settings_ = SomaticReportSettings();
-
 	ui_.tabs->setCurrentIndex(0);
-
 	ui_.filters->reset(true);
-
 	Log::perf("Clearing variant table took ", timer);
 
 	if (filename=="") return;
@@ -3530,7 +3535,6 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 		//load variants
 		timer.restart();
 		variants_.load(filename);
-
 		Log::perf("Loading small variant list took ", timer);
 		QString mode_title = "";
 		if (Helper::isHttpUrl(filename))
@@ -3886,7 +3890,7 @@ void MainWindow::checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues)
 		NGSD db;
 		foreach(const SampleInfo& info, variants_.getSampleHeader())
 		{
-			QString ps_name = info.id;
+			QString ps_name = info.name;
 			QString ps_id = db.processedSampleId(ps_name, false);
 			if (ps_id=="") continue; //not in NGSD
 
@@ -3912,7 +3916,7 @@ void MainWindow::checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>
 
 	foreach(const SampleInfo& info, variants_.getSampleHeader())
 	{
-		QString ps = info.id;
+		QString ps = info.name;
 		QString ps_id = db.processedSampleId(ps, false);
 		if (ps_id=="") continue;
 
@@ -5035,7 +5039,7 @@ void MainWindow::openProcessedSampleTabsCurrentAnalysis()
 	SampleHeaderInfo infos = variants_.getSampleHeader();
 	foreach(const SampleInfo& info, infos)
 	{
-		openProcessedSampleTab(info.id);
+		openProcessedSampleTab(info.name);
 	}
 }
 
@@ -5070,7 +5074,7 @@ void MainWindow::on_actionOpenSequencingRunTabByName_triggered()
 QString MainWindow::selectGene()
 {
 	//create
-	DBSelector* selector = new DBSelector(QApplication::activeWindow());
+	DBSelector* selector = new DBSelector(GUIHelper::mainWindow());
 	NGSD db;
 	selector->fill(db.createTable("gene", "SELECT id, symbol FROM gene"));
 
@@ -5097,7 +5101,7 @@ QString MainWindow::selectProcessedSample()
 	QStringList ps_list;
 	foreach(const SampleInfo& info, variants_.getSampleHeader())
 	{
-		ps_list << info.id.trimmed();
+		ps_list << info.name.trimmed();
 	}
 
 	//no samples => error
@@ -5434,14 +5438,26 @@ void MainWindow::on_actionOpenVariantTab_triggered()
 	try
 	{
 		VariantOpenDialog dlg(this);
-
 		if (dlg.exec()!=QDialog::Accepted) return;
 
-		openVariantTab(dlg.variant());
+		Variant v = dlg.variant();
+
+		//check if variant is in NGSD
+		NGSD db;
+		QString v_id = db.variantId(v, false);
+		if (v_id.isEmpty())
+		{
+			int res = QMessageBox::question(this, "Add variant to NGSD?", "Variant '" + v.toString() + "' not found in NGSD.\nDo you want to add it?");
+			if (res!=QMessageBox::Yes) return;
+
+			db.addVariant(v);
+		}
+
+		openVariantTab(v);
 	}
 	catch(Exception& e)
 	{
-		QMessageBox::warning(this, "Invalid variant text", e.message());
+		QMessageBox::warning(this, "Error opening variant", e.message());
 	}
 }
 
@@ -6183,7 +6199,7 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 
 
 	//check for BAM file
-	QString ps = type==SOMATIC_SINGLESAMPLE ? variants_.getSampleHeader()[0].id : germlineReportSample();
+	QString ps = type==SOMATIC_SINGLESAMPLE ? variants_.getSampleHeader()[0].name : germlineReportSample();
 	QStringList bams = GlobalServiceProvider::fileLocationProvider().getBamFiles(false).filterById(ps).asStringList();
 	if (bams.empty())
 	{
@@ -7107,7 +7123,7 @@ bool MainWindow::germlineReportSupported(bool require_ngsd)
 		{
 			if(info.isAffected())
 			{
-				if (db.processedSampleId(info.id.trimmed(), false)=="") return false;
+				if (db.processedSampleId(info.name.trimmed(), false)=="") return false;
 			}
 		}
 	}
@@ -7131,7 +7147,7 @@ QString MainWindow::germlineReportSample()
 		{
 			if(info.isAffected())
 			{
-				affected_ps << info.id.trimmed();
+				affected_ps << info.name.trimmed();
 			}
 		}
 
@@ -7820,7 +7836,7 @@ QString MainWindow::normalSampleName()
 
 	foreach(const SampleInfo& info, variants_.getSampleHeader())
 	{
-		if (!info.isTumor()) return info.id;
+		if (!info.isTumor()) return info.name;
 	}
 
 	return "";

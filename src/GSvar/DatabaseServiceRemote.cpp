@@ -3,6 +3,7 @@
 #include "DatabaseServiceRemote.h"
 #include "Settings.h"
 #include "ApiCaller.h"
+#include "GUIHelper.h"
 
 DatabaseServiceRemote::DatabaseServiceRemote()
 	: enabled_(true)
@@ -312,7 +313,7 @@ QByteArray DatabaseServiceRemote::makeGetApiCall(QString api_path, RequestUrlPar
 	}
 	catch (Exception& e)
 	{
-		if (!ignore_if_missing) QMessageBox::warning(QApplication::activeWindow(), "Database API GET call error", e.message());
+		if (!ignore_if_missing) QMessageBox::warning(GUIHelper::mainWindow(), "Database API GET call error", e.message());
 	}
 
 	return QByteArray{};
@@ -326,7 +327,7 @@ QByteArray DatabaseServiceRemote::makePostApiCall(QString api_path, RequestUrlPa
 	}
 	catch (Exception& e)
 	{
-		if (!ignore_if_missing) QMessageBox::warning(QApplication::activeWindow(), "Database API POST call error", e.message());
+		if (!ignore_if_missing) QMessageBox::warning(GUIHelper::mainWindow(), "Database API POST call error", e.message());
 	}
 
 	return QByteArray{};
