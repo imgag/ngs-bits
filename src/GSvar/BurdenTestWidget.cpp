@@ -54,7 +54,7 @@ void BurdenTestWidget::loadCaseSamples()
 	if(ps_ids.size() > 0) case_samples_ = ps_ids;
 	cases_initialized_ = (case_samples_.size() > 0);
 
-	qDebug() << "Case:" << case_samples_.size() << case_samples_;
+	qDebug() << "Case:" << case_samples_.size();
 
 	updateSampleCounts();
 	//disable test start until data is validated
@@ -67,7 +67,7 @@ void BurdenTestWidget::loadControlSamples()
 	if(ps_ids.size() > 0) control_samples_ = ps_ids;
 	controls_initialized_ = (control_samples_.size() > 0);
 
-	qDebug() << "Control:" << control_samples_.size() << control_samples_;
+	qDebug() << "Control:" << control_samples_.size();
 
 	updateSampleCounts();
 	//disable test start until data is validated
@@ -329,7 +329,12 @@ void BurdenTestWidget::validateInputData()
 	{
 		//skip samples which will be removed anyways
 		if(s_ids_to_remove_cases.contains(s_id)) continue;
-		QSet<int> same_sample_overlap = (db_.sameSamples(s_id) & sample_ids_cases.keys().toSet());
+		QSet<int> same_samples = db_.sameSamples(s_id);
+		qDebug() << "same samples" << same_samples;
+		//add sample itself
+		same_samples.insert(s_id);
+		qDebug() << "same samples + self " << same_samples;
+		QSet<int> same_sample_overlap = same_samples & sample_ids_cases.keys().toSet();
 		if (same_sample_overlap.size() > 1)
 		{
 			QStringList same_sample_list;
@@ -343,10 +348,12 @@ void BurdenTestWidget::validateInputData()
 			warning_table.append(QStringList() << db_.sampleName(QString::number(s_id)) << "cases" << "same-sample/same-patient relation" << same_sample_list.join(", ") << db_.sampleName(QString::number(newest_s_id)));
 		}
 		//check controls and remove all overlaps
-		same_sample_overlap = db_.sameSamples(s_id) & sample_ids_controls.keys().toSet();
-		if (same_sample_overlap.size() > 1)
+		same_sample_overlap = same_samples & sample_ids_controls.keys().toSet();
+		if (same_sample_overlap.size() > 0)
 		{
 			QStringList same_sample_list;
+			// add case sample to warning
+			same_sample_list <<  db_.sampleName(QString::number(s_id));
 			foreach (int id, same_sample_overlap)
 			{
 				same_sample_list << db_.sampleName(QString::number(id));
@@ -372,9 +379,14 @@ void BurdenTestWidget::validateInputData()
 	{
 		//skip samples which will be removed anyways
 		if(s_ids_to_remove_controls.contains(s_id)) continue;
-		QSet<int> same_sample_overlap = db_.sameSamples(s_id) & sample_ids_controls.keys().toSet();
+		QSet<int> same_samples = db_.sameSamples(s_id);
+		//add sample itself
+		same_samples.insert(s_id);
+		QSet<int> same_sample_overlap = same_samples & sample_ids_controls.keys().toSet();
 		if (same_sample_overlap.size() > 1)
 		{
+			//add sample itself
+			same_sample_overlap.insert(s_id);
 			QStringList same_sample_list;
 			foreach (int id, same_sample_overlap)
 			{
@@ -559,9 +571,6 @@ void BurdenTestWidget::validateInputData()
 		dialog->exec();
 	}
 
-	qDebug() << "Case:" << case_samples_.size();
-	qDebug() << "Control:" << control_samples_.size();
-
 	//automatically remove samples
 	//get all remaining processed samples
 	QSet<int> case_samples_to_keep;
@@ -604,8 +613,6 @@ void BurdenTestWidget::validateInputData()
 		{
 			case_samples_ = case_samples_to_keep;
 			control_samples_ = control_samples_to_keep;
-			qDebug() << "Case:" << case_samples_.size() << case_samples_;
-			qDebug() << "Control:" << control_samples_.size() << control_samples_;
 			updateSampleCounts();
 		}
 	}
@@ -615,6 +622,10 @@ void BurdenTestWidget::validateInputData()
 		case_samples_ = case_samples_to_keep;
 		control_samples_ = control_samples_to_keep;
 	}
+
+	qDebug() << "Case:" << case_samples_.size();
+	qDebug() << "Control:" << control_samples_.size();
+
 	//activate Burden test
 	ui_->b_burden_test->setEnabled(true);
 
@@ -682,8 +693,6 @@ QSet<int> BurdenTestWidget::loadSampleList(const QString& type, const QSet<int>&
 		{
 			if(line.startsWith("#") || line.trimmed().isEmpty()) continue;
 			samples << line.split('\t').at(0).trimmed();
-
-			qDebug() << "Sample: " << line;
 		}
 	}
 
@@ -702,8 +711,6 @@ QSet<int> BurdenTestWidget::loadSampleList(const QString& type, const QSet<int>&
 		else
 		{
 			ps_ids << ps_id.toInt();
-
-			qDebug() << ps_id.toInt() << db.processedSampleName(ps_id);
 		}
 	}
 
@@ -793,7 +800,6 @@ QSet<int> BurdenTestWidget::getVariantsForRegion(int max_ngsd, double max_gnomad
 		variant_ids.insert(query.value("id").toInt());
 	}
 
-//	qDebug() << "skipped id:" << n_skipped_id;
 	qDebug() << "skipped empty:" << n_skipped_empty;
 	qDebug() << "skipped wrong gene:" << n_skipped_gene;
 	qDebug() << "skipped wrong impact:" << n_skipped_impact;
