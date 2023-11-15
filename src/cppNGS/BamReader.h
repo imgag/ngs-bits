@@ -245,7 +245,7 @@ class CPPNGSSHARED_EXPORT BamAlignment
 
 		/**
 		  @brief Returns the indels at a chromosomal position (1-based) or a range when using the @p indel_window parameter.
-		  @note Insertions: The string starts with '+' and then contains the bases (e.g. '+TT'). The position is the base @em before which insersion is located.
+		  @note Insertions: The string starts with '+' and then contains the bases (e.g. '+TT'). The position is the base @em before which insertion is located.
 		  @note Deletions: the string starts with '-' and then contains the number of bases (e.g. '-2'). The position is the first deleted base.
 		*/
 		QList<Sequence> extractIndelsByCIGAR(int pos, int indel_window=0);

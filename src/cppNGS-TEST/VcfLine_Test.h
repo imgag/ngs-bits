@@ -194,6 +194,30 @@ TEST_CLASS(VcfLine_Test)
         IS_FALSE(line.isInDel());
     }
 
+	void isMNP()
+	{
+		VcfLine line = VcfLine("chr9", 130932396, "AACA", QList<Sequence>() << "GGGG");
+		IS_TRUE(line.isMNP());
+
+		line = VcfLine("chr9", 130932396, "AAC", QList<Sequence>() << "GGG");
+		IS_TRUE(line.isMNP());
+
+		line = VcfLine("chr9", 130932396, "AA", QList<Sequence>() << "GG");
+		IS_TRUE(line.isMNP());
+
+		line = VcfLine("chr9", 130932396, "AACA", QList<Sequence>() << "AGG");
+		IS_FALSE(line.isMNP());
+
+		line = VcfLine("chr9", 130932396, "AACA", QList<Sequence>() << "A");
+		IS_FALSE(line.isMNP());
+
+		line = VcfLine("chr9", 130932396, "A", QList<Sequence>() << "AGG");
+		IS_FALSE(line.isMNP());
+
+		line = VcfLine("chr9", 130932396, "A", QList<Sequence>() << "G");
+		IS_FALSE(line.isMNP());
+	}
+
     //test same variants as in Variant::leftAlign()
     void leftNormalize()
     {

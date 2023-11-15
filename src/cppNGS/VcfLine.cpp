@@ -428,23 +428,30 @@ bool VcfLine::isValid(const FastaFileIndex& reference) const
 
 bool VcfLine::isInDel() const
 {
-	if(isMultiAllelic()) THROW(Exception, "Can not determine if multi-allelic variant is InDel.")
+	if(isMultiAllelic()) THROW(Exception, "Can not determine if multi-allelic variant is InDel.");
 
-	return alt(0).length() > 1 && ref().length() > 1;
+	return alt(0).length()>1 && ref().length()>1;
 }
 
 bool VcfLine::isIns() const
 {
-	if(isMultiAllelic()) THROW(Exception, "Cannot determine if multi-allelic variant is insertion.")
+	if(isMultiAllelic()) THROW(Exception, "Cannot determine if multi-allelic variant is insertion.");
 
-	return alt(0).length() > 1 && ref().length() == 1 && alt(0).at(0) == ref().at(0);
+	return alt(0).length()>1 && ref().length()==1;
 }
 
 bool VcfLine::isDel() const
 {
-	if(isMultiAllelic()) THROW(Exception, "Cannot determine if multi-allelic variant is deletion.")
+	if(isMultiAllelic()) THROW(Exception, "Cannot determine if multi-allelic variant is deletion.");
 
-	return alt(0).length() == 1 && ref().length() > 1 && alt(0).at(0) == ref().at(0);
+	return alt(0).length()==1 && ref().length()>1;
+}
+
+bool VcfLine::isMNP() const
+{
+	if(isMultiAllelic()) THROW(Exception, "Cannot determine if multi-allelic variant is MNP.");
+
+	return alt(0).length()>1 && ref().length()>1 && alt(0).length()==ref().length();
 }
 
 bool VcfLine::operator<(const VcfLine& rhs) const

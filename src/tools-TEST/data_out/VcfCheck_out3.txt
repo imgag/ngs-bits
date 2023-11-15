@@ -7,3 +7,4 @@ WARNING: For sample 'NA12878 / annotation 'QA', the value 'INVALID' is not a 'In
 WARNING: Unknown MISO term 'undefined_variant' used! - in line 88:
 WARNING: FORMAT 'UNDEFINED_FORMAT' used but not defined! - in line 88:
 WARNING: Missing value '.' used as alternative allele! - in line 89:
+ERROR: First base of insertion/deletion not matching - ref: 'CTAGGGAAAAACATATACCCAT' alt: 'T'! - in line 90:

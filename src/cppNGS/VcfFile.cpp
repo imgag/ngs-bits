@@ -1005,7 +1005,6 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 	}
 	invalid_chars << ' '; //space is not valid
 
-
 	//perform checks
 	QMap<QByteArray, DefinitionLine> defined_filters;
 	QMap<QByteArray, DefinitionLine> defined_formats;
@@ -1062,6 +1061,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 			}
 		}
 
+		//header lines
 		if (line.startsWith("#"))
 		{
 			//check all header lines are at the beginning of the file
@@ -1180,10 +1180,17 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 			QByteArray ref = parts[REF].toUpper();
 			if (pos_is_valid)
 			{
-				Sequence ref_exp = reference.seq(chr, pos, ref.length());
-				if (ref!=ref_exp)
+				if (ref.isEmpty())
 				{
-					printError(out_stream, "Reference base(s) not correct. Is '" + ref + "', should be '" + ref_exp + "'!", l, line);
+					printError(out_stream, "Reference base(s) not set!", l, line);
+				}
+				else
+				{
+					Sequence ref_exp = reference.seq(chr, pos, ref.length());
+					if (ref!=ref_exp)
+					{
+						printError(out_stream, "Reference base(s) not correct. Is '" + ref + "', should be '" + ref_exp + "'!", l, line);
+					}
 				}
 			}
 
@@ -1202,6 +1209,21 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 					if (alt.isEmpty() || !alt_regexp.exactMatch(alt))
 					{
 						printError(out_stream, "Invalid alternative allele '" + alt + "'!", l, line);
+					}
+				}
+			}
+
+			//check that the first base is the same for insertions, deletions and complex insertions/deletions
+			foreach(const QByteArray& alt, alts)
+			{
+				if (alt.startsWith('<') && alt.endsWith('>')) continue; //special case for structural variant
+				if (alt=="*") continue; //special case for missing allele due to downstream deletion
+				if (alt.isEmpty()) continue; //warning already above
+				if ((alt.length()>1 || ref.length()>1) && alt.length()!=ref.length())
+				{
+					if (alt[0]!=ref[0])
+					{
+						printError(out_stream, "First base of insertion/deletion not matching - ref: '" + ref + "' alt: '" + alt + "'!", l, line);
 					}
 				}
 			}
@@ -1289,8 +1311,6 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 							return false;
 						}
 					}
-
-
 
 					//check value (number, type)
 					if (is_defined && has_value)
