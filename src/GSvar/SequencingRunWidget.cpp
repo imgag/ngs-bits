@@ -30,7 +30,7 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	connect(ui_->email_btn, SIGNAL(clicked(bool)), this, SLOT(sendStatusEmail()));
 	connect(ui_->mid_check_btn, SIGNAL(clicked(bool)), this, SLOT(checkMids()));
 	connect(ui_->samples, SIGNAL(rowDoubleClicked(int)), this, SLOT(openSampleTab(int)));
-	connect(ui_->b_export_sample_sheet, SIGNAL(clicked(bool)), this, SLOT(exportSampleSheet()));
+	connect(ui_->novaseqx_samplesheet_btn, SIGNAL(clicked(bool)), this, SLOT(exportSampleSheet()));
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_->samples->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSelectedSampleTabs()));
@@ -81,7 +81,7 @@ void SequencingRunWidget::updateGUI()
 		ui_->backup->setText(query.value("backup_done").toString()=="1" ? "yes" : "no");
 
 		//#### activate SampleSheet ####
-		ui_->b_export_sample_sheet->setEnabled((query.value("d_type").toString() == "NovaSeqXPlus") || (query.value("d_type").toString() == "NovaSeqX"));
+		ui_->novaseqx_samplesheet_btn->setEnabled((query.value("d_type").toString() == "NovaSeqXPlus") || (query.value("d_type").toString() == "NovaSeqX"));
 
 		//#### run quality ####
 		updateReadQualityTable();
@@ -528,6 +528,7 @@ void SequencingRunWidget::setQCMetricAccessions(const QSet<QString>& sample_type
 	if (sample_types.contains("DNA") || sample_types.contains("DNA (amplicon)") || sample_types.contains("DNA (native)"))
 	{
 		qc_metric_accessions_ << "QC:2000113"; // CNV count
+		qc_metric_accessions_ << "QC:2000114"; // CNV coverage profile correlation
 	}
 
 	if (sample_types.contains("RNA"))
