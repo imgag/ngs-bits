@@ -300,9 +300,9 @@ MainWindow::MainWindow(QWidget *parent)
 	{
 		// renew existing session, if it is about to expire
 		// a new token will be requested slightly in advance
-		QTimer *login_timer = new QTimer(this);
-		connect(login_timer, &QTimer::timeout, this, &LoginManager::renewLogin);
-		login_timer->start(20 * 60 * 1000); // every 20 minutes
+        QTimer *login_timer = new QTimer(this);
+        connect(login_timer, SIGNAL(timeout()), this, SLOT(updateSecureToken()));
+        login_timer->start(20 * 60 * 1000); // every 20 minutes
 
 		//check if the server is running
 		QTimer *server_ping_timer = new QTimer(this);
@@ -6564,8 +6564,23 @@ void MainWindow::uploadToClinvar(int variant_index1, int variant_index2)
 	}
 	catch(Exception& e)
 	{
-		GUIHelper::showException(this, e, "ClinVar submission error");
-	}
+        GUIHelper::showException(this, e, "ClinVar submission error");
+    }
+}
+
+void MainWindow::updateSecureToken()
+{
+    if (ClientHelper::isClientServerMode())
+    {
+        LoginManager::renewLogin();
+        for(int i = 0; i < IgvSessionManager::count(); i++)
+        {
+            if (IgvSessionManager::get(i).isIgvRunning())
+            {
+                IgvSessionManager::get(i).execute(QStringList() << "SetAccessToken " + LoginManager::userToken() + " *" + Settings::string("server_host") + "*", false);
+            }
+        }
+    }
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent* e)

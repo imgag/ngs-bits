@@ -84,7 +84,9 @@ public:
 
 public slots:
 	///Upload variant to Clinvar
-	void uploadToClinvar(int variant_index1, int variant_index2=-1);
+    void uploadToClinvar(int variant_index1, int variant_index2=-1);
+    /// Updates (only in clinet-server mode) the secure token
+    void updateSecureToken();
 	/// Checks (only in clinet-server mode) if the server is currently running
 	void checkServerAvailability();
 	/// Checks (only in clinet-server mode) if there is some new information needed to be displayed to the user (e.g. downtimes, maintenance, reboots, updates)
