@@ -307,9 +307,17 @@ QByteArray extendVcfDataLine(const QByteArray& vcf_line, const MetaData& meta, c
     {
 
         // extend info column
-        vcf_column[VcfFile::INFO] += ";" + additional_annotation.join(';');
+		if (vcf_column[VcfFile::INFO]==".")
+		{
+			vcf_column[VcfFile::INFO] = additional_annotation.join(';');
+		}
+		else
+		{
+			vcf_column[VcfFile::INFO] += ";" + additional_annotation.join(';');
+		}
         extended_lines_++;
-        // concat vcf line:
+
+		// concat vcf line:
         return vcf_column.join('\t') + "\n";
     }
     else

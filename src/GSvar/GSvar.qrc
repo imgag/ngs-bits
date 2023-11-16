@@ -125,5 +125,7 @@
         <file>Icons/Virus.png</file>
         <file>Icons/IGV_active.png</file>
         <file>Resources/CCR_supported_genes.txt</file>
-        <file>Resources/CCR80_GRCh38.bed</file>    </qresource>
+        <file>Resources/CCR80_GRCh38.bed</file>
+        <file>Icons/NovaSeqX.png</file>
+    </qresource>
 </RCC>

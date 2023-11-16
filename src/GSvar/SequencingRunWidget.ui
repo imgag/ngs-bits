@@ -93,6 +93,20 @@
           </widget>
          </item>
          <item>
+          <widget class="QToolButton" name="novaseqx_samplesheet_btn">
+           <property name="toolTip">
+            <string>Export NovaSeq X sample sheet</string>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="GSvar.qrc">
+             <normaloff>:/Icons/NovaSeqX.png</normaloff>:/Icons/NovaSeqX.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
           <spacer name="horizontalSpacer_2">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
@@ -551,23 +565,6 @@
          </property>
          <property name="text">
           <string>sort in entry order</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="9">
-        <widget class="QPushButton" name="b_export_sample_sheet">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="toolTip">
-          <string>Export SampleSheet for illumina NovaSeq X (Plus)</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset resource="GSvar.qrc">
-           <normaloff>:/Icons/Table.png</normaloff>:/Icons/Table.png</iconset>
          </property>
         </widget>
        </item>

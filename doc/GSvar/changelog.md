@@ -1,5 +1,16 @@
 # GSvar change log
 
+## 2023_09-53 (15.11.23)
+
+- open variant dialog: variant not contained in NGSD can now be added
+- run tab: added CNV reference correlation to sample table
+- variant tab: copying the variant to clipboard in different formats is now possible
+- variant details: replaced context menu link to gnomAD 2.1 by link to gnomAD 4.0
+- burden test: fixed removal of same samples (were sometimes not removed)
+- burden test: added new option to define splice region
+- IGV: added main menu entry to delete IGV folder
+- IGV: fixed update of IGV access token (before it expired after 24 hours)
+
 ## 2023_09-53 (27.10.23)
 
 - IGV is controlled in the background now (click IGV icon in the status bar to see details)

@@ -580,6 +580,36 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		output.addColumn(new_col, "normal_sample");
 	}
 
+	if (p.add_call_details)
+	{
+		QStringList small_caller;
+		QStringList small_date;
+		QStringList cnv_caller;
+		QStringList cnv_date;
+		QStringList sv_caller;
+		QStringList sv_date;
+
+		for (int r=0; r<output.rowCount(); ++r)
+		{
+			VariantCallingInfo call_info = variantCallingInfo(output.row(r).id());
+			small_caller << (call_info.small_caller+" "+call_info.small_caller_version).trimmed();
+			small_date << call_info.small_call_date.trimmed();
+
+			cnv_caller << (call_info.cnv_caller+" "+call_info.cnv_caller_version).trimmed();
+			cnv_date << call_info.cnv_call_date.trimmed();
+
+			sv_caller << (call_info.sv_caller+" "+call_info.sv_caller_version).trimmed();
+			sv_date << call_info.sv_call_date.trimmed();
+		}
+
+		output.addColumn(small_caller, "small_variants_caller");
+		output.addColumn(small_date, "small_variants_call_date");
+		output.addColumn(cnv_caller, "cvn_caller");
+		output.addColumn(cnv_date, "cnv_call_date");
+		output.addColumn(sv_caller, "sv_caller");
+		output.addColumn(sv_date, "sv_call_date");
+	}
+
 	return output;
 }
 
@@ -4927,6 +4957,41 @@ void NGSD::addGapComment(int id, const QString& comment)
 	query.prepare("UPDATE gaps SET history=:0 WHERE id='" + id_str + "'");
 	query.bindValue(0, history);
 	query.exec();
+}
+
+VariantCallingInfo NGSD::variantCallingInfo(QString ps_id)
+{
+	VariantCallingInfo output;
+
+	SqlQuery query = getQuery();
+
+	//small variants
+	query.exec("SELECT caller, caller_version, call_date FROM small_variants_callset WHERE processed_sample_id="+ps_id);
+	if (query.next())
+	{
+		output.small_caller = query.value(0).toString().trimmed();
+		output.small_caller_version = query.value(1).toString().trimmed();
+		output.small_call_date = (query.value(2).isNull() ? "" : query.value(2).toDate().toString(Qt::ISODate));
+	}
+
+	//CNVs
+	query.exec("SELECT caller, caller_version, call_date FROM cnv_callset WHERE processed_sample_id="+ps_id);
+	if (query.next())
+	{
+		output.cnv_caller = query.value(0).toString().trimmed();
+		output.cnv_caller_version = query.value(1).toString().trimmed();
+		output.cnv_call_date = (query.value(2).isNull() ? "" : query.value(2).toDate().toString(Qt::ISODate));
+	}
+
+	//SVs
+	query.exec("SELECT caller, caller_version, call_date FROM sv_callset WHERE processed_sample_id="+ps_id);
+	if (query.next())
+	{
+		output.sv_caller = query.value(0).toString().trimmed();
+		output.sv_caller_version = query.value(1).toString().trimmed();
+		output.sv_call_date = (query.value(2).isNull() ? "" : query.value(2).toDate().toString(Qt::ISODate));
+	}
+	return output;
 }
 
 QHash<QString, QString> NGSD::cnvCallsetMetrics(int callset_id)

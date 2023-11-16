@@ -182,6 +182,11 @@ public:
     {
 		return obs_.length()==1 && ref_.length()==1 && obs_!="-" && ref_!="-";
     }
+	///Returns if the variant is a MNP
+	bool isMNP() const
+	{
+		return ref_.length()>1 && obs_.length()>1 && ref_.length()==obs_.length();
+	}
     ///Returns the coordinates and base exchange as a string e.g. "chr1:3435345-3435345 A>G"
 	QString toString(bool space_separated=false, int max_sequence_length=-1, bool chr_normalized=false) const;
 

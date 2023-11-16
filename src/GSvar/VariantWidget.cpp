@@ -34,6 +34,7 @@ VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	QMenu* menu = new QMenu();
 	menu->addAction("GSvar", this, SLOT(copyVariant()));
 	menu->addAction("VCF", this, SLOT(copyVariant()));
+	menu->addAction("HGVS.c", this, SLOT(copyVariant()));
 	menu->addAction("gnomAD", this, SLOT(copyVariant()));
 	ui_.format_btn->setMenu(menu);
 
@@ -441,6 +442,21 @@ void VariantWidget::copyVariant()
 		FastaFileIndex genome_idx(Settings::string("reference_genome"));
 		VcfLine vcf = variant_.toVCF(genome_idx);
 		QApplication::clipboard()->setText(vcf.chr().strNormalized(true) + "\t" + QString::number(vcf.start()) + "\t.\t" + vcf.ref() + "\t" + vcf.altString());
+	}
+	else if (format=="HGVS.c")
+	{
+		FastaFileIndex genome_idx(Settings::string("reference_genome"));
+		QStringList output;
+		NGSD db;
+		GeneSet genes = db.genesOverlapping(variant_.chr(), variant_.start(), variant_.end());
+		VariantHgvsAnnotator hgvs_annotator(genome_idx);
+		foreach(const QByteArray& gene, genes)
+		{
+			Transcript trans = db.bestTranscript(db.geneId(gene));
+			VariantConsequence consequence = hgvs_annotator.annotate(trans, variant_);
+			output << trans.nameWithVersion() + ":" + consequence.hgvs_c;
+		}
+		QApplication::clipboard()->setText(output.join("\n"));
 	}
 	else if (format=="gnomAD")
 	{
