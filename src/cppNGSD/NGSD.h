@@ -432,6 +432,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool add_comments = false;
 	bool add_normal_sample = false;
 	bool add_dates = false;
+	bool add_call_details = false;
 };
 
 ///Meta data about somatic report configuration (e.g. creation/update, target bed file)
@@ -622,7 +623,23 @@ struct CPPNGSDSHARED_EXPORT GenotypeCounts
 	int mosaic;
 };
 
-/// NGSD accessor.
+///Variant calling details
+struct CPPNGSDSHARED_EXPORT VariantCallingInfo
+{
+	QString small_caller;
+	QString small_caller_version;
+	QString small_call_date; //ISO format
+
+	QString cnv_caller;
+	QString cnv_caller_version;
+	QString cnv_call_date; //ISO format
+
+	QString sv_caller;
+	QString sv_caller_version;
+	QString sv_call_date; //ISO format
+};
+
+///NGSD access
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
 {
@@ -1125,9 +1142,10 @@ public:
 	///Add a comment to the gap history.
 	void addGapComment(int id, const QString& comment);
 
+	///Returns variant calling inforation if available
+	VariantCallingInfo variantCallingInfo(QString ps_id);
 	///Returns quality metric for a CNV callsets (all metrics for a single sample)
 	QHash<QString, QString> cnvCallsetMetrics(int callset_id);
-
 	///Returns quality metric values for a given metric for all samples of a given processing system
 	QVector<double> cnvCallsetMetrics(QString processing_system_id, QString metric_name);
 
