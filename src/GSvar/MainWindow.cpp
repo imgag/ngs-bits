@@ -6608,8 +6608,9 @@ void MainWindow::closeEvent(QCloseEvent* event)
 	//unload the data
 	loadFile();
 
+    //TODO: turn it on back again after fixing token update in IGV
     //close user session on the server
-    if (ClientHelper::isClientServerMode()) performLogout();
+    //if (ClientHelper::isClientServerMode()) performLogout();
 
 	//here one could cancel closing the window by calling event->ignore()
 
@@ -6922,7 +6923,8 @@ void MainWindow::showMatchingCnvsAndSvs(BedLine v_reg)
 
 void MainWindow::closeAndLogout()
 {
-    if (ClientHelper::isClientServerMode()) performLogout();
+    //TODO: turn it on back again after fixing token update in IGV
+    //if (ClientHelper::isClientServerMode()) performLogout();
     close();
 }
 
