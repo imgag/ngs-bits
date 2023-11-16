@@ -26,6 +26,7 @@ INCLUDEPATH += $$PWD/../VcfToBedpe
 
 
 HEADERS += NGSDAddVariantsSomatic_Test.h \
+    NGSDExportGff_Test.h \
     FastqCheckUMI.h \
     BedpeExtractGenotype_Test.h \
     BedpeExtractInfoField_Test.h \
