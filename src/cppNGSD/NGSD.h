@@ -559,6 +559,13 @@ enum RnaCohortDeterminationStategy
 	RNA_COHORT_CUSTOM //list of processed samples needs to be provided
 };
 
+///Same sample relation mode
+enum SameSampleMode
+{
+	SAME_SAMPLE, //only consider samples from the same biological sample
+	SAME_PATIENT //consider samples from the same sample, patient or same patient id
+};
+
 ///Custom structs for data exchange
 
 ///cfDNA disease course table
@@ -936,8 +943,9 @@ public:
 	///Returns the normal processed sample corresponding to a tumor processed sample, or "" if no normal samples is defined.
 	QString normalSample(const QString& processed_sample_id);
 
-	///Returns the corresponding sample id(s) with relation 'same sample' or 'same patient'. Uses the cache to avoid database queries.
-	const QSet<int>& sameSamples(int sample_id);
+	///Returns the corresponding sample id(s) with relation 'same sample' (mode:SAME_SAMPLE) or 'same patient' and 'same patient' (mode: SAME_PATIENT). Uses the cache to avoid database queries.
+	/// (Does not contain the provided sample itself)
+	const QSet<int>& sameSamples(int sample_id, SameSampleMode mode);
 	///Returns related sample id(s). Uses the cache to avoid database queries.
 	const QSet<int>& relatedSamples(int sample_id);
 	///Return a list of sample ids (not name) which have a (specific) relation of the given sample id. If relation is "", all relations are reported.
@@ -1188,6 +1196,7 @@ protected:
 
 		QMap<QString, TableInfo> table_infos;
 		QHash<int, QSet<int>> same_samples;
+		QHash<int, QSet<int>> same_patients;
 		QHash<int, QSet<int>> related_samples;
 		GeneSet approved_gene_names;
 		QHash<QByteArray, int> gene2id;

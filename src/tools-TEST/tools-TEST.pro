@@ -30,6 +30,7 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     FastqCheckUMI.h \
     BedpeExtractGenotype_Test.h \
     BedpeExtractInfoField_Test.h \
+    NGSDSameSample.h \
     SampleAncestry_Test.h \
     SvFilterAnnotations_Test.h \
     UpdHunter_Test.h \

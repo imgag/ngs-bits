@@ -143,7 +143,7 @@ void ExportWorker::run()
 							{
 								++count_het;
 								samples_done_het << info.s_id;
-								samples_done_het.unite(db.sameSamples(info.s_id));
+								samples_done_het.unite(db.sameSamples(info.s_id, SameSampleMode::SAME_PATIENT));
 
 								if (info.affected)
 								{
@@ -154,7 +154,7 @@ void ExportWorker::run()
 							{
 								++count_mosaic;
 								samples_done_mosaic << info.s_id;
-								samples_done_mosaic.unite(db.sameSamples(info.s_id));
+								samples_done_mosaic.unite(db.sameSamples(info.s_id, SameSampleMode::SAME_PATIENT));
 							}
 						}
 
@@ -163,7 +163,7 @@ void ExportWorker::run()
 						{
 							++count_hom;
 							samples_done_hom << info.s_id;
-							samples_done_hom.unite(db.sameSamples(info.s_id));
+							samples_done_hom.unite(db.sameSamples(info.s_id, SameSampleMode::SAME_PATIENT));
 
 							if (info.affected)
 							{

@@ -1411,26 +1411,38 @@ private slots:
 		IS_THROWN(DatabaseException, db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"}, true));
 
 		//sameSample
-		I_EQUAL(db.sameSamples(99).count(), 0);
-		I_EQUAL(db.sameSamples(2).count(), 2);
-		IS_TRUE(db.sameSamples(2).contains(4));
-		IS_TRUE(db.sameSamples(2).contains(7));
-		I_EQUAL(db.sameSamples(4).count(), 1);
-		IS_TRUE(db.sameSamples(4).contains(2));
-		I_EQUAL(db.sameSamples(7).count(), 1);
-		IS_TRUE(db.sameSamples(7).contains(2));
+		I_EQUAL(db.sameSamples(99, SameSampleMode::SAME_PATIENT).count(), 0);
+		I_EQUAL(db.sameSamples(2, SameSampleMode::SAME_PATIENT).count(), 3);
+		I_EQUAL(db.sameSamples(2, SameSampleMode::SAME_SAMPLE).count(), 2);
+		IS_TRUE(db.sameSamples(2, SameSampleMode::SAME_PATIENT).contains(4));
+		IS_TRUE(db.sameSamples(2, SameSampleMode::SAME_PATIENT).contains(7));
+		IS_TRUE(db.sameSamples(2, SameSampleMode::SAME_PATIENT).contains(8));
+		IS_TRUE(db.sameSamples(2, SameSampleMode::SAME_SAMPLE).contains(4));
+		IS_TRUE(db.sameSamples(2, SameSampleMode::SAME_SAMPLE).contains(8));
+		IS_FALSE(db.sameSamples(2, SameSampleMode::SAME_SAMPLE).contains(7));
+		I_EQUAL(db.sameSamples(4, SameSampleMode::SAME_PATIENT).count(), 3);
+		IS_TRUE(db.sameSamples(4, SameSampleMode::SAME_PATIENT).contains(2));
+		IS_TRUE(db.sameSamples(4, SameSampleMode::SAME_PATIENT).contains(7));
+		IS_TRUE(db.sameSamples(4, SameSampleMode::SAME_PATIENT).contains(8));
+		I_EQUAL(db.sameSamples(7, SameSampleMode::SAME_PATIENT).count(), 3);
+		IS_TRUE(db.sameSamples(7, SameSampleMode::SAME_PATIENT).contains(2));
+		IS_TRUE(db.sameSamples(7, SameSampleMode::SAME_PATIENT).contains(4));
+		IS_TRUE(db.sameSamples(7, SameSampleMode::SAME_PATIENT).contains(8));
 
 		//relatedSamples
 		I_EQUAL(db.relatedSamples(99).count(), 0);
 		I_EQUAL(db.relatedSamples(2).count(), 1);
 		IS_TRUE(db.relatedSamples(2).contains(4));
-		I_EQUAL(db.relatedSamples(4).count(), 1);
+		I_EQUAL(db.relatedSamples(4).count(), 2);
 		IS_TRUE(db.relatedSamples(4).contains(2));
-		I_EQUAL(db.relatedSamples(4, "same sample").count(), 1);
+		IS_TRUE(db.relatedSamples(4).contains(8));
+		I_EQUAL(db.relatedSamples(4, "same sample").count(), 2);
 		IS_TRUE(db.relatedSamples(4, "same sample").contains(2));
+		IS_TRUE(db.relatedSamples(4, "same sample").contains(8));
 		I_EQUAL(db.relatedSamples(4, "twins").count(), 0);
-		I_EQUAL(db.relatedSamples(4, "same sample", "DNA").count(), 1);
+		I_EQUAL(db.relatedSamples(4, "same sample", "DNA").count(), 2);
 		IS_TRUE(db.relatedSamples(4, "same sample", "DNA").contains(2));
+		IS_TRUE(db.relatedSamples(4, "same sample", "DNA").contains(8));
 
 		//omimPreferredPhenotype
 		S_EQUAL(db.omimPreferredPhenotype("BRCA1", "Neoplasms"), "");

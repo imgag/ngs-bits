@@ -566,3 +566,7 @@ SamplePath.depends = cppNGS
 SUBDIRS += BedpeExtractInfoField
 tools-TEST.depends += BedpeExtractInfoField
 SamplePath.depends = cppNGS
+
+SUBDIRS += NGSDSameSample
+tools-TEST.depends += NGSDSameSample
+SamplePath.depends = cppNGSD

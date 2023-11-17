@@ -26,7 +26,8 @@ INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`
 (4, 'NA12123repeat', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s4', 'Neoplasms', 'Affected', 'n/a', NULL, NULL),
 (5, 'DX184894', 'ex5', 'DNA', 1, 'female', 'good', 1, 1, 1, 'comment_s5', 'Neoplasms', 'Affected', 'buccal mucosa', NULL, NULL),
 (6, 'DX184263', 'ex6', 'DNA', 1, 'female', 'good', 0, 0, 1, 'comment_s6', 'Neoplasms', 'Affected', 'skin', NULL, NULL),
-(7, 'NA12123repeat2', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s4', 'Neoplasms', 'Affected', 'n/a', 'pat2', NULL);
+(7, 'NA12123repeat2', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s4', 'Neoplasms', 'Affected', 'n/a', 'pat2', NULL),
+(8, 'NA12123repeat3', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s8', 'Neoplasms', 'Affected', 'n/a', 'pat2', NULL);
 
 INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapter1_p5`, `adapter2_p7`, `type`, `shotgun`, `target_file`, `genome_id`) VALUES
 (1, 'hpHBOCv5', 'HaloPlex HBOC v5', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel Haloplex', 0, 'hpHBOCv5.bed', 1),
@@ -523,7 +524,8 @@ INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status
 (1, '2018-02-12T10:34:09', null, 'finished', 'warning: bla bla bla');
 
 INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES
-(2, 'same sample', 4);
+(2, 'same sample', 4),
+(4, 'same sample', 8);
 
 INSERT INTO `sample_disease_info`(`id`, `sample_id`, `disease_info`, `type`, `user_id`) VALUES
 (1, 3, 'HP:0001251', 'HPO term id', 99),
