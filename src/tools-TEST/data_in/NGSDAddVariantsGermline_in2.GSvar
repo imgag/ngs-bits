@@ -1,6 +1,8 @@
 ##CREATION_DATE=2021-07-19
 ##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
 ##PIPELINE=megSAP 0.2-421-ga6099d1
+##CALLING_DATE=2018-11-08
+##SOURCE=DRAGEN 3.0.2
 ##SAMPLE=<ID=NA12878_38,Gender=female,ExternalSampleName=Coriell-DNA,IsTumor=no,IsFFPE=no,DiseaseGroup=Diseases of the nervous system,DiseaseStatus=affected>
 ##FILTER=off-target=Variant marked as 'off-target'.
 ##FILTER=low_conf_region=Variant marked as 'low_conf_region'.

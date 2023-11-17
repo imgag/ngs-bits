@@ -440,7 +440,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 			   << "ps.quality as processed_sample_quality";
 	}
 
-	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
+	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY r.name ASC, s.name ASC, ps.process_id ASC");
 
 	//remove duplicates
 	QSet<int> done;
@@ -1586,6 +1586,7 @@ void NGSD::deleteVariants(const QString& ps_id, VariantType type)
 {
 	if (type==VariantType::SNVS_INDELS)
 	{
+		getQuery().exec("DELETE FROM small_variants_callset WHERE processed_sample_id='" + ps_id + "'");
 		getQuery().exec("DELETE FROM detected_variant WHERE processed_sample_id=" + ps_id);
 	}
 	else if (type==VariantType::CNVS)

@@ -1184,6 +1184,36 @@ AnalysisType VariantList::type(bool allow_fallback_germline_single_sample) const
 	THROW(FileParseException, "No ANALYSISTYPE line found in variant list header!");
 }
 
+VariantCaller VariantList::getCaller() const
+{
+	foreach(const QString& line, comments_)
+	{
+		if (line.startsWith("##SOURCE="))
+		{
+			QString tmp = line.mid(9).trimmed() + ' ';
+			int sep_idx = tmp.indexOf(' ');
+			return VariantCaller{tmp.left(sep_idx).trimmed(), tmp.mid(sep_idx).trimmed()};
+		}
+	}
+
+	return VariantCaller();
+}
+
+QDate VariantList::getCallingDate() const
+{
+	foreach(const QString& line, comments_)
+	{
+		if (line.startsWith("##CALLING_DATE="))
+		{
+			QString date = line.mid(15).trimmed();
+			date.truncate(10); // cut off time if present
+			return QDate::fromString(date, "yyyy-MM-dd");
+		}
+	}
+
+	return QDate();
+}
+
 int VariantList::indexOf(const Variant& var)
 {
 	for (int i=0; i<count(); ++i)

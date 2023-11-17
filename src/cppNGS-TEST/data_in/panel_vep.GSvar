@@ -1,6 +1,8 @@
 ##CREATION_DATE=2020-08-15
 ##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
 ##PIPELINE=megSAP 0.1-742-ged8ba02
+##CALLING_DATE=2022-04-25 11:14:04
+##SOURCE=freebayes v1.3.3
 ##SAMPLE=<ID=NA12878_03,Gender=n/a,ExternalSampleName=Coriell-DNA,IsTumor=no,IsFFPE=no,DiseaseGroup=Other diseases,DiseaseStatus=affected>
 ##DESCRIPTION=NA12878_03=Genotype of variant in sample.
 ##DESCRIPTION=filter=Annotations for filtering and ranking variants.
