@@ -23,9 +23,7 @@ public:
         addFlag("test", "Uses the test database instead of on the production database.");
 	}
 
-	//TODO add test + refactoring to use Transcript class
-
-	void write_gff_line(const QSharedPointer<QFile> outfile, const QByteArray chromosome, const QByteArray linetype, const QByteArray start, const QByteArray end, const QByteArray strand, const QByteArray info) {
+	void write_gff_line(const QSharedPointer<QFile> outfile, const QByteArray& chromosome, const QByteArray& linetype, const QByteArray& start, const QByteArray& end, const QByteArray& strand, const QByteArray& info) {
 			outfile->write(chromosome + "\t");
 			outfile->write("NGSD\t");
 			outfile->write(linetype + "\t");
@@ -41,22 +39,19 @@ public:
 
     virtual void main()
     {
-
         // open output file
         QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 
-        
         // write header
         outfile->write("##gff-version 3\n");
 
-
         NGSD db(getFlag("test"));
 
-        //QList<QHash<QString, QByteArray>> genes = get_genes();
         QList<QByteArray> parts;
-        QByteArray strand;
         QByteArray info;
         QByteArray geneId;
+        QByteArray st;
+        QByteArray ed;
 
         const TranscriptList transcripts = db.transcripts();
         const QHash<QString, QHash<QString, QByteArray>> genes = get_genes();
@@ -66,15 +61,15 @@ public:
 
         foreach(const Transcript& trans, transcripts)
         {
-            QByteArray gene_id = trans.geneId();
-            QByteArray chrom = trans.chr().strNormalized(true);
-            strand = trans.strandToString(transcripts[0].strand());
+            const QByteArray gene_id = trans.geneId();
+            const QByteArray chrom = trans.chr().strNormalized(true);
+            const QByteArray strand = trans.strandToString(transcripts[0].strand());
 
             if (getFlag("genes") && (gene_id == "")) {
                 continue;
             }
 
-            QHash<QString, QByteArray> gene = genes[gene_id];
+            const QHash<QString, QByteArray> gene = genes[gene_id];
 
             if (getFlag("genes") && (gene_id != last_gene_id)) {
                 // GENE LINE
@@ -91,8 +86,8 @@ public:
             }
             last_gene_id = gene_id;
 
-            QByteArray transcriptId = "transcript:" + trans.name(); 
-            QByteArray biotype = trans.biotypeToString(trans.biotype()).replace(' ', '_');
+            const QByteArray transcriptId = "transcript:" + trans.name(); 
+            const QByteArray biotype = trans.biotypeToString(trans.biotype()).replace(' ', '_');
 
             // RNA LINE
             parts.clear();
@@ -103,18 +98,16 @@ public:
             }
             parts.append("transcript_id=" + trans.name());
             parts.append("biotype=" + biotype);
-            QByteArray is_gencode_basic = trans.isGencodeBasicTranscript() ? "1" : "0";
+            const QByteArray is_gencode_basic = trans.isGencodeBasicTranscript() ? "1" : "0";
             parts.append("is_gencode_basic=" + is_gencode_basic);
-            QByteArray is_ensembl_canonical = trans.isEnsemblCanonicalTranscript() ? "1" : "0";
+            const QByteArray is_ensembl_canonical = trans.isEnsemblCanonicalTranscript() ? "1" : "0";
             parts.append("is_ensembl_canonical=" + is_ensembl_canonical);
-            QByteArray is_mane_select = trans.isManeSelectTranscript() ? "1" : "0";
+            const QByteArray is_mane_select = trans.isManeSelectTranscript() ? "1" : "0";
             parts.append("is_mane_select=" + is_mane_select);
-            QByteArray is_mane_plus_clinical = trans.isManePlusClinicalTranscript() ? "1" : "0";
+            const QByteArray is_mane_plus_clinical = trans.isManePlusClinicalTranscript() ? "1" : "0";
             parts.append("is_mane_plus_clinical=" + is_mane_plus_clinical);
             info = parts.join(";");
-            QByteArray st;
             st.setNum(trans.start());
-            QByteArray ed;
             ed.setNum(trans.end());
 
 			write_gff_line(outfile, trans.chr().strNormalized(true), "RNA", st, ed, strand, info);
@@ -122,7 +115,7 @@ public:
             const BedFile& coding_regions = trans.codingRegions();
 
             if (!coding_regions.isEmpty()) {
-                BedFile utr3prime = trans.utr3prime();
+                const BedFile& utr3prime = trans.utr3prime();
                 for ( int i=0; i<utr3prime.count(); ++i )
                 {
                     // 3prime UTR LINEs
@@ -147,7 +140,7 @@ public:
                     write_gff_line(outfile, coding_region.chr().strNormalized(true), "CDS", st, ed, strand, info);
                 }
 
-                BedFile utr5prime = trans.utr5prime();
+                const BedFile& utr5prime = trans.utr5prime();
                 for ( int i=0; i<utr5prime.count(); ++i )
                 {
                     // 5prime UTR LINEs
@@ -160,7 +153,7 @@ public:
                     write_gff_line(outfile, reg.chr().strNormalized(true), "five_prime_UTR", st, ed, strand, info);
                 }
             } else {
-                BedFile exons = trans.regions();
+                const BedFile& exons = trans.regions();
                 for ( int i=0; i<exons.count(); ++i )
                 {
                     // 5prime UTR LINEs
