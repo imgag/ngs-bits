@@ -25,7 +25,6 @@ VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	connect(ui_.update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
 	connect(ui_.edit_btn, SIGNAL(clicked(bool)), this, SLOT(editComment()));
 	connect(ui_.class_btn, SIGNAL(clicked(bool)), this, SLOT(editClassification()));
-	connect(ui_.transcripts, SIGNAL(linkActivated(QString)), this, SLOT(openGeneTab(QString)));
 	connect(ui_.af_gnomad, SIGNAL(linkActivated(QString)), this, SLOT(gnomadClicked(QString)));
 	connect(ui_.pubmed, SIGNAL(linkActivated(QString)), this, SLOT(pubmedClicked(QString)));
 	connect(ui_.table, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(tableCellDoubleClicked(int, int)));
@@ -60,7 +59,12 @@ void VariantWidget::updateGUI()
 	SqlQuery query1 = db.getQuery();
 	query1.exec("SELECT * FROM variant WHERE id=" + variant_id);
 	query1.next();
-	ui_.af_gnomad->setText("<a style=\"color: #000000;\" href=\"" + variant_id + "\">" + query1.value("gnomad").toString() + "</a>");
+	QString gnomad_af;
+	if (!query1.value("gnomad").isNull())
+	{
+		gnomad_af = QString::number(query1.value("gnomad").toDouble(), 'f', 5);
+	}
+	ui_.af_gnomad->setText("<a style=\"color: #000000;\" href=\"" + variant_id + "\">" + gnomad_af + "</a>");
 
 	QVariant cadd = query1.value("cadd");
 	ui_.cadd->setText(cadd.isNull() ? "" : cadd.toString());
@@ -74,29 +78,6 @@ void VariantWidget::updateGUI()
 	text += QString::number(counts.mosaic)+"x mosaic";
 	ui_.ngsd_counts->setText(text);
 	GSvarHelper::limitLines(ui_.comments, query1.value("comment").toString());
-
-
-	//get all transcripts containing the variant
-	TranscriptList transcripts  = db.transcriptsOverlapping(variant_.chr(), variant_.start(), variant_.end(), 5000);
-	transcripts.sortByRelevance();
-
-	//annotate consequence for each transcript
-	QStringList lines;
-	FastaFileIndex genome_idx(Settings::string("reference_genome"));
-	VariantHgvsAnnotator hgvs_annotator(genome_idx);
-	foreach(const Transcript& trans, transcripts)
-	{
-		VariantConsequence consequence = hgvs_annotator.annotate(trans, variant_);
-
-		QString line = "<a href=\"" + trans.gene() + "\">" + trans.gene() + "</a> " + trans.nameWithVersion() + ": " + consequence.typesToString() + " " + consequence.hgvs_c + " " + consequence.hgvs_p;
-
-		//flags for important transcripts
-		QStringList flags = trans.flags(true);
-		if (!flags.isEmpty()) line.append(" " + flags.join(" "));
-
-		lines << line;
-	}
-	ui_.transcripts->setText(lines.join("<br>"));
 
 	//PubMed ids
 	QStringList pubmed_ids = db.pubmedIds(variant_id);
@@ -113,6 +94,29 @@ void VariantWidget::updateGUI()
 	}
 	ui_.pubmed->setText(pubmed_links.join(", ") + open_all);
 	ui_.pubmed->setToolTip(pubmed_ids.join(", "));
+
+	//annotate consequence for each transcript
+	TranscriptList transcripts  = db.transcriptsOverlapping(variant_.chr(), variant_.start(), variant_.end(), 5000);
+	transcripts.sortByRelevance();
+	FastaFileIndex genome_idx(Settings::string("reference_genome"));
+	VariantHgvsAnnotator hgvs_annotator(genome_idx);
+	ui_.transcripts->setRowCount(transcripts.count());
+	for(int i=0; i<transcripts.count(); ++i)
+	{
+		const Transcript& trans = transcripts[i];
+		VariantConsequence consequence = hgvs_annotator.annotate(trans, variant_);
+
+		QLabel* label = GUIHelper::createLinkLabel("<a href=\"" + trans.gene() + "\">" + trans.gene() + "</a>", false);
+		connect(label, SIGNAL(linkActivated(QString)), this, SLOT(openGeneTab(QString)));
+		ui_.transcripts->setCellWidget(i, 0, label);
+		ui_.transcripts->setItem(i, 1, GUIHelper::createTableItem(trans.nameWithVersion()));
+		ui_.transcripts->setItem(i, 2, GUIHelper::createTableItem(consequence.hgvs_c));
+		ui_.transcripts->setItem(i, 3, GUIHelper::createTableItem(consequence.hgvs_p));
+		ui_.transcripts->setItem(i, 4, GUIHelper::createTableItem(consequence.typesToString(", ")));
+		ui_.transcripts->setItem(i, 5, GUIHelper::createTableItem(trans.flags(false).join(", ")));
+	}
+	GUIHelper::resizeTableCells(ui_.transcripts, 400);
+	GUIHelper::resizeTableHeight(ui_.transcripts);
 
 
 	//classification
@@ -141,7 +145,7 @@ void VariantWidget::updateGUI()
 	SqlQuery query2 = db.getQuery();
 	query2.exec("SELECT processed_sample_id, genotype, mosaic FROM detected_variant WHERE variant_id=" + variant_id);
 	bool fill_table = true;
-	if (query2.size()>100)
+	if (query2.size()>250)
 	{
 		int res = QMessageBox::question(this, "Many variants detected.", "The variant is in NGSD " + QString::number(query2.size()) + " times.\nShowing the variant table might be slow.\nDo you want to fill the variant table?", QMessageBox::Yes, QMessageBox::No|QMessageBox::Default);
 		if (res!=QMessageBox::Yes) fill_table = false;
