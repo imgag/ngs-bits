@@ -406,4 +406,31 @@ private slots:
 		vl.addCommentLine("##GENOME_BUILD=GRCh38");
 		I_EQUAL(vl.build(), GenomeBuild::HG38);
 	}
+
+	void getCaller()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/panel_vep.GSvar"));
+		VariantCaller caller = vl.getCaller();
+		S_EQUAL(caller.name, "freebayes");
+		S_EQUAL(caller.version, "v1.3.3");
+
+		//header not set
+		vl.load(TESTDATA("data_in/VariantFilter_in_multi.GSvar"));
+		caller = vl.getCaller();
+		S_EQUAL(caller.name, "");
+		S_EQUAL(caller.version, "");
+	}
+
+	void getCallingDate()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/panel_vep.GSvar"));
+		IS_TRUE(vl.getCallingDate().isValid());
+		S_EQUAL(vl.getCallingDate().toString("yyyy-MM-dd"), "2022-04-25");
+
+		//header not set
+		vl.load(TESTDATA("data_in/VariantFilter_in_multi.GSvar"));
+		IS_FALSE(vl.getCallingDate().isValid());
+	}
 };

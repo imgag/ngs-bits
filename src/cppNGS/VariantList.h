@@ -9,6 +9,13 @@
 #include "GenomeBuild.h"
 #include "VcfLine.h"
 
+///Variant caller information
+struct VariantCaller
+{
+	QString name;
+	QString version;
+};
+
 ///Transcript annotations e.g. from SnpEff/VEP.
 struct CPPNGSSHARED_EXPORT VariantTranscript
 {
@@ -415,14 +422,18 @@ public:
 	///Parses and returns sample data from variant list header (only for GSvar).
 	SampleHeaderInfo getSampleHeader(bool thow_if_no_samples=true) const;
 
-	///Returns the genome build that the coordinates are based on.
+	///Returns the genome build that the coordinates are based on. HG19 is returned, if it could not be determined.
 	GenomeBuild build();
-	///Returns the analysis pipeline and version from the header.
+	///Returns the analysis pipeline and version from the header. "n/a" is returned, if it could not be determined.
 	QString getPipeline() const;
 	///Returns the creation date from the header i.e. the date of the annotatated VCF from which the GSvar was created. If not available, a invalid date is returned.
 	QDate getCreationDate() const;
-	///Returns the analysis type from the header.
+	///Returns the analysis type from the header. Throws an error, if it could not be determined.
 	AnalysisType type(bool allow_fallback_germline_single_sample=true) const;
+	///Returns the variant caller from the file header in the format "[caller] [caller_version]". An empty string is returned, if it could not be determined.
+	VariantCaller getCaller() const;
+	///Returns the variant calling date from the file header. A invalid date is returened, if it could not be determined.
+	QDate getCallingDate() const;
 
 	///Returns whether list contains variant with same chr, start, end, ref and obs. Warning: this is quite slow as is uses linear search - use ChromosomalIndex for quick access to variants.
 	bool contains(const Variant& var)
