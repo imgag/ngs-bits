@@ -1254,7 +1254,7 @@ int BurdenTestWidget::countOccurences(const QSet<int>& variant_ids, const QSet<i
 				continue;
 			}
 			// skip hom vars in X on male samples
-			QString gender = db_.getSampleData(db_.processedSampleName(QString::number(ps_id))).gender;
+			QString gender = db_.getSampleData(db_.sampleId(db_.processedSampleName(QString::number(ps_id)))).gender;
 			if (gender == "male")
 			{
 				Variant var = db_.variant(QString::number(variant_id));
