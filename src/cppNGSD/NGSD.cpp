@@ -787,51 +787,95 @@ QString NGSD::normalSample(const QString& processed_sample_id)
 	return processedSampleName(value.toString());
 }
 
-const QSet<int>& NGSD::sameSamples(int sample_id)
+const QSet<int>& NGSD::sameSamples(int sample_id, SameSampleMode mode)
 {
 	static QSet<int> empty_entry;
-	QHash<int, QSet<int>>& same_samples = getCache().same_samples;
+	QHash<int, QSet<int>>& same_samples = (mode == SameSampleMode::SAME_PATIENT)? getCache().same_patients : getCache().same_samples;
+
+	//prepare iterative query
+	SqlQuery query_iterative = getQuery();
+	query_iterative.prepare(QString("SELECT sample1_id, sample2_id FROM sample_relations WHERE (relation='same sample'") + ((mode == SameSampleMode::SAME_PATIENT)? " OR relation='same patient')": ")")
+					 + " AND (sample1_id=:0 OR sample2_id=:0)");
 
 	//init if empty
 	if (same_samples.isEmpty())
 	{
 		//sample relation
 		SqlQuery query = getQuery();
-		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample' OR relation='same patient'");
+		query.exec(QString("SELECT sample1_id FROM sample_relations WHERE relation='same sample'") + ((mode == SameSampleMode::SAME_PATIENT)? " OR relation='same patient'": ""));
 		while (query.next())
 		{
 			int sample1_id = query.value(0).toInt();
-			int sample2_id = query.value(1).toInt();
-			same_samples[sample1_id] << sample2_id;
-			same_samples[sample2_id] << sample1_id;
-		}
 
-		//same patient identifier
-		query.exec("SELECT id, patient_identifier FROM sample WHERE patient_identifier IS NOT NULL AND patient_identifier!=''");
-		QHash<QString, QList<int>> sample_ids_by_patient_id;
-		while (query.next())
-		{
-			int sample_id = query.value(0).toInt();
-			QString patient_identifier = query.value(1).toString().trimmed();
-			if (patient_identifier.isEmpty()) continue;
+			//skip already checked samples
+			if (same_samples.contains(sample1_id)) continue;
 
-			sample_ids_by_patient_id[patient_identifier] << sample_id;
-		}
-		foreach(QString patient_id, sample_ids_by_patient_id.keys())
-		{
-			QList<int>& sample_ids = sample_ids_by_patient_id[patient_id];
-
-			for (int i=0; i<sample_ids.count(); ++i)
+			//look-up iteratively and get the same-sample cluster
+			QSet<int> cluster;
+			cluster << sample1_id;
+			int n_ids = 0;
+			while(n_ids != cluster.size())
 			{
-				for (int j=i+1; j<sample_ids.count(); ++j)
+				//store current set size
+				n_ids = cluster.size();
+				foreach (int id, cluster)
 				{
-					int sample1_id = sample_ids[i];
-					int sample2_id = sample_ids[j];
-					same_samples[sample1_id] << sample2_id;
-					same_samples[sample2_id] << sample1_id;
+					query_iterative.bindValue(0, id);
+					query_iterative.exec();
+					while (query_iterative.next())
+					{
+						cluster << query_iterative.value(0).toInt() << query_iterative.value(1).toInt();
+					}
+				}
+			}
+			//set same samples for all samples of cluster (exclude key itself)
+			foreach (int id, cluster)
+			{
+				QSet<int> current_cluster = cluster;
+				current_cluster.remove(id);
+				same_samples[id] = current_cluster;
+			}
+		}
+
+		if (mode == SameSampleMode::SAME_PATIENT)
+		{
+			//same patient identifier
+			query.exec("SELECT id, patient_identifier FROM sample WHERE patient_identifier IS NOT NULL AND patient_identifier!=''");
+			QHash<QString, QSet<int>> sample_ids_by_patient_id;
+			while (query.next())
+			{
+				int sample_id = query.value(0).toInt();
+				QString patient_identifier = query.value(1).toString().trimmed();
+				if (patient_identifier.isEmpty()) continue;
+
+				sample_ids_by_patient_id[patient_identifier] << sample_id;
+			}
+
+			foreach(QString patient_id, sample_ids_by_patient_id.keys())
+			{
+				QSet<int>& sample_ids = sample_ids_by_patient_id[patient_id];
+
+				//skip all patient ids with only 1 linked sample id
+				if (sample_ids.size() < 2) continue;
+
+				//else: merge cluster
+				QSet<int> combined_sample_ids;
+				foreach (int s_id, sample_ids)
+				{
+					combined_sample_ids << s_id;
+					combined_sample_ids += same_samples[s_id];
+				}
+
+				//update each sample in the cluster
+				foreach (int id, combined_sample_ids)
+				{
+					QSet<int> current_cluster = combined_sample_ids;
+					current_cluster.remove(id);
+					same_samples[id] = current_cluster;
 				}
 			}
 		}
+
 	}
 
 	if (same_samples.contains(sample_id))
@@ -1481,14 +1525,14 @@ GenotypeCounts NGSD::genotypeCounts(const QString& variant_id)
 				++c_het;
 
 				samples_done_het << sample_id;
-				samples_done_het.unite(sameSamples(sample_id));
+				samples_done_het.unite(sameSamples(sample_id, SameSampleMode::SAME_PATIENT));
 			}
 			if (mosaic && !samples_done_mosaic.contains(sample_id))
 			{
 				++c_mosaic;
 
 				samples_done_mosaic << sample_id;
-				samples_done_mosaic.unite(sameSamples(sample_id));
+				samples_done_mosaic.unite(sameSamples(sample_id, SameSampleMode::SAME_PATIENT));
 			}
 
 		}
@@ -1497,7 +1541,7 @@ GenotypeCounts NGSD::genotypeCounts(const QString& variant_id)
 			++c_hom;
 
 			samples_done_hom << sample_id;
-			samples_done_hom.unite(sameSamples(sample_id));
+			samples_done_hom.unite(sameSamples(sample_id, SameSampleMode::SAME_PATIENT));
 		}
 	}
 
@@ -8954,6 +8998,7 @@ void NGSD::clearCache()
 
 	cache_instance.table_infos.clear();
 	cache_instance.same_samples.clear();
+	cache_instance.same_patients.clear();
 	cache_instance.related_samples.clear();
 	cache_instance.approved_gene_names.clear();
 	cache_instance.gene2id.clear();
