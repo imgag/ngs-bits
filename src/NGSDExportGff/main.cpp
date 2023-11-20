@@ -75,8 +75,8 @@ public:
                 // GENE LINE
                 geneId = "gene:" + trans.geneId();
                 parts.clear();
-                parts.append("id=" + geneId);
-                parts.append("name=" + gene["symbol"]);
+				parts.append("ID=" + geneId);
+				parts.append("Name=" + gene["symbol"]);
                 parts.append("hgnc_id=" + gene["hgnc_id"]);
                 parts.append("gene_id=" + gene["ensembl_id"]);
                 parts.append("type=" + gene["type"]);
@@ -91,10 +91,10 @@ public:
 
             // RNA LINE
             parts.clear();
-            parts.append("id=" + transcriptId);
-            parts.append("name=" + gene["symbol"]);
+			parts.append("ID=" + transcriptId);
+			parts.append("Name=" + gene["symbol"]);
             if (getFlag("genes")) {
-                parts.append("parent=" + geneId);
+				parts.append("Parent=" + geneId);
             }
             parts.append("transcript_id=" + trans.name());
             parts.append("biotype=" + biotype);
@@ -123,7 +123,7 @@ public:
                     st.setNum(reg.start());
                     ed.setNum(reg.end());
                     parts.clear();
-                    parts.append("parent=" + transcriptId);
+					parts.append("Parent=" + transcriptId);
                     info = parts.join(";");
                     write_gff_line(outfile, reg.chr().strNormalized(true), "three_prime_UTR", st, ed, strand, info);
                 }
@@ -135,7 +135,7 @@ public:
                     st.setNum(coding_region.start());
                     ed.setNum(coding_region.end());
                     parts.clear();
-                    parts.append("parent=" + transcriptId);
+					parts.append("Parent=" + transcriptId);
                     info = parts.join(";");
                     write_gff_line(outfile, coding_region.chr().strNormalized(true), "CDS", st, ed, strand, info);
                 }
@@ -148,7 +148,7 @@ public:
                     st.setNum(reg.start());
                     ed.setNum(reg.end());
                     parts.clear();
-                    parts.append("parent=" + transcriptId);
+					parts.append("Parent=" + transcriptId);
                     info = parts.join(";");
                     write_gff_line(outfile, reg.chr().strNormalized(true), "five_prime_UTR", st, ed, strand, info);
                 }
@@ -161,7 +161,7 @@ public:
                     st.setNum(reg.start());
                     ed.setNum(reg.end());
                     parts.clear();
-                    parts.append("parent=" + transcriptId);
+					parts.append("Parent=" + transcriptId);
                     info = parts.join(";");
                     write_gff_line(outfile, reg.chr().strNormalized(true), "exon", st, ed, strand, info);
                 }
