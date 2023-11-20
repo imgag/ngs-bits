@@ -57,6 +57,7 @@ You can download the genome sequence to speed up IGV:
 If the genome download fails, the proxy settings are probably wrong (see the question `IGV cannot load genomes`).
 
 ### IGV does not open
+
 Follow these instructions, if only the black console window of IGV but not the actual application opens.
 
  - Open the path `C:\Users\[login]\` in the Explorer (replace `[login]` by your Windows login).
@@ -66,6 +67,7 @@ Follow these instructions, if only the black console window of IGV but not the a
  - Change the proxy settings as described below in `IGV cannot load genomes`.
 
 ### IGV cannot load genomes
+
 IGV needs access to the Broad Institute web server to manage non-local genome files.  
 If it cannot access the server, during startup `cannot connect to genome server`, `error loading genome` or similar errors are shown.
 
@@ -74,21 +76,15 @@ In case you need to access the internet through a proxy, do this:
 ![alt text](igv_proxy.png)
 
 
-### How can I change the port through which IGV and GSvar communicate?
-GSvar sends commands to IGV through a port. The default port is 60151.  
-When several IGV instances run on the same computer, e.g. on two user accounts, only the IGV started first can access port 60151.  
-The second user needs to use a different port.  
+### IGV hands at startup showning a dialog to enter Proxy credentials
 
-The GSvar with NGSD support a user-specific port is used.  
-Thus, there should be no problems and nothing needs to be done.
+Please do the following:
 
-If GSvar us used without NGSD, you can change the port like that:
+- Close 'Javaw/IGV' via the Windows task manager.
+- Start IGV from the Windows start menu.
+- Set the proxy data as described in *IGV cannot load genomes*.
 
-- Change the port in IGV: `View > Preferences... > Advanced > Port number`.
-- Restart IGV.
-- Change the port in GSvar: `IGV > Change port`
 
-Note: The GSvar port is not changed permanently! It affects only the currently running instance of GSvar.
 
 ### BLAT search of other does not work.
 

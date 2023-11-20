@@ -476,10 +476,11 @@ void BamReader::init(const QString& bam_file, QString ref_genome)
 	//set reference for CRAM files
 	if(fp_->is_cram)
 	{
+		if (ref_genome.isEmpty()) ref_genome = RefGenomeService::getReferenceGenome();
 		int fai = hts_set_fai_filename(fp_, ref_genome.toUtf8().constData());
 		if(fai < 0)
 		{
-			THROW(FileAccessException, "Error while setting reference genome for cram file " + bam_file);
+			THROW(FileAccessException, "Error while setting reference genome '" + ref_genome + "'for cram file " + bam_file);
 		}
 
 		checkChromosomeLengths(ref_genome);
@@ -498,7 +499,7 @@ BamReader::BamReader(const QString& bam_file)
 	: bam_file_(Helper::canonicalPath(bam_file))
 	, fp_(sam_open(bam_file.toUtf8().constData(), "r"))
 {
-	init(bam_file, RefGenomeService::getReferenceGenome());
+	init(bam_file);
 }
 
 BamReader::BamReader(const QString& bam_file, QString ref_genome)
