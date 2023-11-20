@@ -440,7 +440,7 @@ QList<Sequence> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window)
 	return output;
 }
 
-void BamReader::verify_chromosome_length(const QString& ref_genome)
+void BamReader::checkChromosomeLengths(const QString& ref_genome)
 {
 	FastaFileIndex reference(ref_genome);
 
@@ -449,9 +449,7 @@ void BamReader::verify_chromosome_length(const QString& ref_genome)
 	{
 		char* name_chromosome = header_->target_name[i];
 		uint32_t length_chromosome = header_->target_len[i];
-
-		const Chromosome chr(name_chromosome);
-		uint32_t length_reference_chromosome = (uint32_t)reference.lengthOf(chr);
+		uint32_t length_reference_chromosome = (uint32_t)reference.lengthOf(Chromosome(name_chromosome));
 
 		if(length_chromosome != length_reference_chromosome)
 		{
@@ -476,20 +474,16 @@ void BamReader::init(const QString& bam_file, QString ref_genome)
 	}
 
 	//set reference for CRAM files
-    if(fp_->is_cram)
+	if(fp_->is_cram)
 	{
-        if(ref_genome.isNull() || ref_genome == "") ref_genome = RefGenomeService::getReferenceGenome();
+		int fai = hts_set_fai_filename(fp_, ref_genome.toUtf8().constData());
+		if(fai < 0)
+		{
+			THROW(FileAccessException, "Error while setting reference genome for cram file " + bam_file);
+		}
 
-        //load custom reference genome
-        int fai = hts_set_fai_filename(fp_, ref_genome.toUtf8().constData());
-        if(fai < 0)
-        {
-            THROW(FileAccessException, "Error while setting reference genome for cram file " + bam_file);
-        }
-
-        //check chromosomes are of same length
-        verify_chromosome_length(ref_genome);
-    }
+		checkChromosomeLengths(ref_genome);
+	}
 
 	//parse chromosome names and sizes
 	for(int i=0; i<header_->n_targets; ++i)
@@ -504,14 +498,7 @@ BamReader::BamReader(const QString& bam_file)
 	: bam_file_(Helper::canonicalPath(bam_file))
 	, fp_(sam_open(bam_file.toUtf8().constData(), "r"))
 {
-    if(fp_->is_cram)
-    {
-        init(bam_file, RefGenomeService::getReferenceGenome());
-    }
-    else
-    {
-        init(bam_file);
-    }
+	init(bam_file, RefGenomeService::getReferenceGenome());
 }
 
 BamReader::BamReader(const QString& bam_file, QString ref_genome)
@@ -583,18 +570,6 @@ void BamReader::setRegion(const Chromosome& chr, int start, int end)
 		}
 		THROW(FileAccessException, "Could not create iterator for region query " + region_str + " in BAM/CRAM file " + bam_file_ + extra);
 	}
-}
-
-bool BamReader::getNextAlignment(BamAlignment& al)
-{
-
-	int res = (iter_!=nullptr) ? sam_itr_next(fp_, iter_, al.aln_) : sam_read1(fp_, header_, al.aln_);
-	if (res<-1)
-	{
-		THROW(FileAccessException, "Could not read next alignment in BAM/CRAM file " + bam_file_);
-	}
-
-	return res>=0;
 }
 
 const QList<Chromosome>& BamReader::chromosomes() const

@@ -245,7 +245,7 @@ class CPPNGSSHARED_EXPORT BamAlignment
 
 		/**
 		  @brief Returns the indels at a chromosomal position (1-based) or a range when using the @p indel_window parameter.
-		  @note Insertions: The string starts with '+' and then contains the bases (e.g. '+TT'). The position is the base @em before which insertion is located.
+		  @note Insertions: The string starts with '+' and then contains the bases (e.g. '+TT'). The position is the base @em before which insersion is located.
 		  @note Deletions: the string starts with '-' and then contains the number of bases (e.g. '-2'). The position is the first deleted base.
 		*/
 		QList<Sequence> extractIndelsByCIGAR(int pos, int indel_window=0);
@@ -297,7 +297,16 @@ class CPPNGSSHARED_EXPORT BamReader
 		void setRegion(const Chromosome& chr, int start, int end);
 
 		//Get next alignment and stores it in @p al.
-		bool getNextAlignment(BamAlignment& al);
+		bool getNextAlignment(BamAlignment& al)
+		{
+			int res = (iter_!=nullptr) ? sam_itr_next(fp_, iter_, al.aln_) : sam_read1(fp_, header_, al.aln_);
+			if (res<-1)
+			{
+				THROW(FileAccessException, "Could not read next alignment in BAM/CRAM file " + bam_file_);
+			}
+
+			return res>=0;
+		}
 
 		//Returns all chromosomes stored in the BAM header.
 		const QList<Chromosome>& chromosomes() const;
@@ -338,7 +347,7 @@ class CPPNGSSHARED_EXPORT BamReader
 
 		//Releases resources held by the iterator (index is not cleared)
 		void clearIterator();
-		void verify_chromosome_length(const QString& ref_genome);
+		void checkChromosomeLengths(const QString& ref_genome);
         void init(const QString& bam_file, QString ref_genome = QString());
 
 		//"declared away" methods
